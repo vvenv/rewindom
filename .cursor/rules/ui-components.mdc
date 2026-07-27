@@ -1,0 +1,301 @@
+---
+description: 前端 UI 组件规范（shadcn/ui、表格、样式、URL 参数）
+globs: packages/ui/**/*.{tsx,ts},packages/client-shell/**/*.{tsx,ts},packages/client-app-shell/**/*.{tsx,ts},apps/client/**/*.{tsx,ts},packages/modules/module-*/client/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# UI 组件规范
+
+## shadcn/ui 使用规范
+
+本项目使用 **shadcn/ui**（Base UI + Tailwind CSS）。基础组件在 `@be-water/ui` 包中维护。
+
+**组件目录：**
+
+```
+packages/ui/src/
+├── button.tsx             # shadcn 基础组件
+├── dialog.tsx
+├── field.tsx
+└── …
+
+packages/client-shell/src/components/
+└── data-table/            # 通用表格等业务基建
+```
+
+**安装 / 更新组件：**
+
+```bash
+cd packages/ui
+pnpm dlx shadcn@latest add <component-name>
+# 预览：pnpm dlx shadcn@latest add <component-name> --dry-run --diff
+ls packages/ui/src/<component-name>.tsx
+```
+
+主题 token 与 Tailwind `@source` 在 `apps/client/src/index.css`；`packages/ui/components.json` 的 `tailwind.css` 指向该文件。
+
+**Select 组件 — 禁止使用原生 `<select>`：**
+
+```tsx
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@be-water/ui/select";
+
+<Select value={value} onValueChange={(val) => setValue(val ?? "")}>
+  <SelectTrigger className="w-32">
+    <SelectValue placeholder="请选择" />
+  </SelectTrigger>
+  <SelectContent position="popper" align="start">
+    <SelectItem value="a">选项 A</SelectItem>
+  </SelectContent>
+</Select>;
+```
+
+**Dialog 组件 — 必须用 `DialogTrigger`，禁止 Fragment 拆开手动 `onClick` 打开：**
+
+`DialogTrigger` 与 `DialogContent` 必须是**同一个** `<Dialog>` 的子节点。受控 `open` 与 `DialogTrigger` 可同时使用。
+
+```tsx
+const [open, setOpen] = useState(false);
+
+const handleOpenChange = (nextOpen: boolean): void => {
+  setOpen(nextOpen);
+  if (nextOpen) {
+    resetInternalState();
+  }
+};
+
+return (
+  <Dialog open={open} onOpenChange={handleOpenChange}>
+    <DialogTrigger asChild>
+      <Button type="button">打开</Button>
+    </DialogTrigger>
+    <DialogContent>…</DialogContent>
+  </Dialog>
+);
+```
+
+```tsx
+// ❌ Trigger 与 Dialog 拆成 Fragment / 两个组件，Button 手写 onClick
+<>
+  <Button onClick={() => setOpen(true)}>打开</Button>
+  <SomeDialog open={open} onOpenChange={setOpen} />
+</>;
+
+// ❌ 打开时重置内部状态 — 在 effect 里 setState
+useEffect(() => {
+  if (open) setActiveId(defaultId);
+}, [open]);
+```
+
+打开 Dialog 时需要重置内部状态时，在 `onOpenChange(true)` 分支处理，不要用 `useEffect` 监听 `open`。
+
+**Sheet 组件 — 与 Dialog 对称，必须用 `SheetTrigger`：**
+
+`SheetTrigger` 与 `SheetContent` 必须是同一个 `<Sheet>` 的子节点。
+
+```tsx
+<Sheet open={open} onOpenChange={handleOpenChange}>
+  <SheetTrigger asChild>
+    <Button type="button">编辑</Button>
+  </SheetTrigger>
+  <SheetContent>…</SheetContent>
+</Sheet>
+```
+
+**Sheet 正文必须自带 `px-4` — 只有 `SheetHeader` / `SheetFooter` 内建 `p-4`：**
+
+`SheetContent` 本身只有 `flex flex-col gap-4`，**没有任何内边距**。头尾两个 slot 各自带 `p-4`，
+夹在中间的正文（`FieldGroup` 或滚动 `div`）是你自己写的节点，不加 `px-4` 就会贴着抽屉左右边缘，
+且与上方标题、下方按钮左右不对齐。垂直方向由 `SheetContent` 的 `gap-4` 负责，**不要再加 `py-4`**。
+
+```tsx
+<SheetContent>
+  <form className="flex h-full flex-col" onSubmit={handleSubmit}>
+    <SheetHeader>…</SheetHeader>
+
+    {/* ✅ 正文：px-4 对齐头尾；min-h-0 让 flex 子项真正可收缩后再滚动 */}
+    <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">…</FieldGroup>
+
+    <SheetFooter>…</SheetFooter>
+  </form>
+</SheetContent>
+```
+
+```tsx
+// ❌ 缺 px-4：字段贴边，与 SheetHeader/SheetFooter 不对齐（notes 模块曾如此）
+<FieldGroup className="flex-1 overflow-y-auto py-4">…</FieldGroup>
+```
+
+Dialog 同理：`DialogHeader` / `DialogFooter` 自带内边距，自定义正文节点需自行补齐左右内边距。
+正文外若再包一层滚动 `div`，`px-4` 加在**滚动层**上（参考 `rbac/RoleSheet`），避免滚动条压住内容。
+
+**Popover 组件 — 必须用 `PopoverTrigger`，禁止旁路 `onClick` 打开：**
+
+```tsx
+<Popover open={open} onOpenChange={handleOpenChange}>
+  <PopoverTrigger asChild>
+    <Button type="button">…</Button>
+  </PopoverTrigger>
+  <PopoverContent>…</PopoverContent>
+</Popover>
+```
+
+**使用规范：**
+
+1. 所有 shadcn 组件从 `@be-water/ui/<component>` 导入（如 `@be-water/ui/button`）
+2. 仅在需要合并**动态/条件**类名时使用 `cn()`；静态覆盖直接写 `className` 字符串
+3. **极简原则**：禁止重复添加组件已有的 className
+
+**Form Field 组件 — 禁止手写 `div` + `Label` 包装表单字段：**
+
+Dialog / Sheet / 卡片内表单字段统一使用 `Field` + `FieldLabel`（来自 `@be-water/ui/field`）。说明文字用 `FieldDescription`，校验错误用 `FieldError`。Switch 等横向控件用 `Field orientation="horizontal"`。
+
+```tsx
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@be-water/ui/field";
+
+<form className="flex flex-col gap-4">
+  <Field>
+    <FieldLabel htmlFor="title">标题</FieldLabel>
+    <Input id="title" value={title} onChange={...} />
+    <FieldDescription>可选说明文字</FieldDescription>
+    {error && <FieldError>{error}</FieldError>}
+  </Field>
+
+  <Field orientation="horizontal">
+    <FieldLabel htmlFor="enabled">启用</FieldLabel>
+    <Switch id="enabled" checked={enabled} onCheckedChange={setEnabled} />
+  </Field>
+</form>;
+```
+
+```tsx
+// ❌ 手写 div + Label
+<div className="grid gap-1.5">
+  <Label htmlFor="title">标题</Label>
+  <Input id="title" ... />
+</div>
+```
+
+**例外**：登录/注册等纯 placeholder 输入（`InputGroup` 无可见 label）可只用 `Field` 包裹控件；Checkbox 与 `FieldLabel` 配对时保留 `htmlFor`。
+
+## className 使用偏好
+
+**先查 `@be-water/ui/*` 默认样式，只写差异。**
+
+| 场景                | 不写                                          | 只写                                   |
+| ------------------- | --------------------------------------------- | -------------------------------------- |
+| `SheetContent`      | `flex flex-col`                               | 需加宽时 `sm:max-w-md`                 |
+| Sheet/Dialog 正文   | `py-4`（头尾已由 `gap-4` 隔开）               | `min-h-0 flex-1 overflow-y-auto px-4`  |
+| `Tabs`（横向）      | `flex flex-col gap-*`                         | 占满剩余高度时 `min-h-0 flex-1`        |
+| `TabsContent`       | `flex-1`                                      | 滚动/嵌套 flex 时 `min-h-0 overflow-*` |
+| `TabsTrigger`       | `gap-1.5`                                     | —                                      |
+| `Button` ghost/icon | `text-muted-foreground hover:text-foreground` | 角标定位等 `relative`                  |
+
+**布局与滚动：**
+
+- flex 子项要滚动 → 祖先链路上用 `min-h-0`，滚动层用 `overflow-y-auto` 或 `overflow-hidden`
+- 避免「外层 scroll + 内层 scroll」；能放在 `TabsContent` 上就不要再包一层 `div`
+- 零值重置（`mx-0`）、防收缩（`shrink-0`）仅在确实生效时再加
+
+## 表格组件规范
+
+- **封装组件**: `@be-water/client-kit` 的 `DataTable` + `DataTableColumnHeader`
+- **逻辑层**: TanStack Table (`@tanstack/react-table`)
+- **禁止**: 原生 HTML `<table>`、在 Page 内手写 `useReactTable`（除非 `DataTable` 确实不满足）
+
+### 列排序
+
+| 场景 | `manualSorting` | 排序状态 | 数据 |
+| --- | --- | --- | --- |
+| 服务端分页列表 | `true`（默认） | URL：`sort_by` + `sort_dir`，经 `useXxxPage` | API + Prisma `orderBy` |
+| 全量客户端列表 | `false` | 组件内 `useState<SortingState>` | `getSortedRowModel`（`DataTable` 内置） |
+
+可排序列示例：
+
+```tsx
+{
+  accessorKey: "created_at",
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="创建时间" />
+  ),
+  enableSorting: true,
+}
+```
+
+```tsx
+<DataTable
+  sorting={sorting}
+  onSortingChange={onSortingChange}
+  isLoading={isLoading && data.length === 0}
+/>
+```
+
+- 操作列、派生列（如「权限数」）：`enableSorting: false`
+- 切换排序/翻页：`useQuery({ placeholderData: keepPreviousData })`，避免整表被 Spinner 替换
+- 完整分层约定见 `frontend-page-structure` rule / skill
+
+简单表格直接映射数据；复杂表格优先扩展现有 `DataTable`，勿另起一套表格封装。
+
+## 空值占位符
+
+表格单元格、详情字段等**标量无数据**时统一显示 em dash（`—`，U+2014），勿用 ASCII `-`。
+
+```tsx
+import { displayOrEmpty, EMPTY_DISPLAY } from "@/lib/display";
+
+<span>{displayOrEmpty(row.getValue("description") as string | null)}</span>;
+```
+
+整段文案类空态（如「暂无文档数据」）仍用中文说明，不用 `EMPTY_DISPLAY`。
+
+## 样式规范
+
+**原则：尽量使用 shadcn/ui 默认风格，避免不必要的样式覆盖。**
+
+**禁止的反模式：**
+
+- ❌ 重复组件默认 className（`SheetContent` 上的 `flex flex-col`、`TabsContent` 上的 `flex-1` 等）
+- ❌ 反向遗漏：Sheet / Dialog 正文不写 `px-4`（头尾自带 `p-4`，正文不写就贴边）
+- ❌ 重复 Card 默认样式（`bg-card`、`rounded-xl` 等）
+- ❌ 装饰性阴影/位移（`shadow-sm`、`hover:-translate-y-0.5`）
+- ❌ 魔法值（`text-[10px]`、`bg-[#fafafa]`），应使用语义化 token
+
+**允许的覆盖：**
+
+- ✅ 布局：`min-h-0`、`flex-1`、`grid`、`gap-*`、`overflow-*`
+- ✅ 有意偏离默认：`sm:max-w-md`（比 Sheet 默认更宽）
+- ✅ 交互态：`cursor-pointer`、`hover:bg-accent/50`
+- ✅ 通过 `cn()` 合并**条件**类名或外部传入的 `className`
+
+**通用规范：**
+
+1. Tailwind CSS 工具类
+2. 颜色使用 CSS 变量 token（`bg-primary`、`text-muted-foreground`）
+3. 响应式前缀：`sm:`、`md:`、`lg:`、`xl:`
+4. **优先使用 flex gap 而非 space/margin**
+
+**Gap 档位（业务组件优先套用，避免 `gap-2.5` / `gap-5`）：**
+
+| Token | 用途 |
+| ----- | ---- |
+| `gap-0.5` / `gap-1` | 图标贴文案、极紧凑元信息 |
+| `gap-1.5` / `gap-2` | 默认紧凑：徽章行、筛选条、列表项内 |
+| `gap-3` | 卡片内主区块、标题行与内容列 |
+| `gap-4` | 表单字段组、页面内相关区块、`PageSection` |
+| `gap-6` | 页面大分区（产品组之间、详情多 Section） |
+
+壳层：`WorkbenchPageShell` 为 `gap-4 md:gap-6`；`PageLayout` children 同档。shadcn `@be-water/ui/*` 内建间距勿为对齐而改。
+
+## URL 查询参数持久化
+
+列表页的筛选、搜索、分页状态必须同步到 URL（`useSearchParams`）。查询参数键与 API query **同名 snake_case**：`tenant_id`、`status`、`page_size`。path 参数用 camelCase（`:documentId`），见 `field-naming` rule。

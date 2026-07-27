@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "paths": {
+      "#components/*": ["./src/*"],
+      "#lib/*": ["./src/*"],
+      "#hooks/*": ["./src/hooks/*"],
+      "@be-water/ui/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}

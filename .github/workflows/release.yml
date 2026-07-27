@@ -1,0 +1,236 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "版本号"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      skip_tests:
+        description: "跳过测试"
+        required: false
+        default: true
+        type: boolean
+      environment:
+        description: "目标部署环境"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - production
+          - test
+      deploy:
+        description: "部署到服务器"
+        required: true
+        default: true
+        type: boolean
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "11.17.0"
+
+jobs:
+  prepare:
+    name: Prepare
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve version and run checks
+        id: meta
+        run: |
+          set -euo pipefail
+          chmod +x scripts/bump-version.sh scripts/lib/version.sh
+          args=("${{ inputs.version }}" --prepare-only)
+          if [ "${{ inputs.skip_tests }}" = "true" ]; then
+            args+=(--skip-check)
+          fi
+          NEW_VERSION="$(./scripts/bump-version.sh "${args[@]}")"
+          echo "version=v${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
+  plan:
+    name: Plan
+    needs: prepare
+    if: |
+      always() &&
+      !cancelled() &&
+      (needs.prepare.result == 'success' || needs.prepare.result == 'skipped')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      ref: ${{ steps.meta.outputs.ref }}
+      deploy: ${{ steps.meta.outputs.deploy }}
+      environment: ${{ steps.meta.outputs.environment }}
+
+    steps:
+      - name: Resolve
+        id: meta
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "version=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "ref=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${{ needs.prepare.outputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+            echo "deploy=${{ inputs.deploy }}" >> "$GITHUB_OUTPUT"
+            echo "environment=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    name: "Deploy · ${{ needs.plan.outputs.environment }}"
+    needs: plan
+    if: |
+      always() &&
+      needs.plan.result == 'success' &&
+      needs.plan.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.plan.outputs.environment }}
+    timeout-minutes: 45
+    concurrency:
+      group: deploy-${{ needs.plan.outputs.environment }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.plan.outputs.ref }}
+
+      - name: Validate deploy secrets
+        uses: ./.github/actions/validate-deploy-secrets
+        with:
+          environment: ${{ needs.plan.outputs.environment }}
+          ssh_host: ${{ secrets.DEPLOY_HOST }}
+          ssh_user: ${{ secrets.DEPLOY_SSH_USER }}
+          ssh_password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          require_app_secrets: "true"
+          db_password: ${{ secrets.DB_PASSWORD }}
+          jwt_secret: ${{ secrets.JWT_SECRET }}
+          tenant_secret_encryption_key: ${{ secrets.TENANT_SECRET_ENCRYPTION_KEY }}
+
+      - name: Deploy Docker stack
+        uses: ./.github/actions/deploy-docker-to-server
+        with:
+          environment: ${{ needs.plan.outputs.environment }}
+          ssh_host: ${{ secrets.DEPLOY_HOST }}
+          ssh_user: ${{ secrets.DEPLOY_SSH_USER }}
+          ssh_password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          db_password: ${{ secrets.DB_PASSWORD }}
+          jwt_secret: ${{ secrets.JWT_SECRET }}
+          tenant_secret_encryption_key: ${{ secrets.TENANT_SECRET_ENCRYPTION_KEY }}
+          app_domain: ${{ secrets.APP_DOMAIN }}
+          app_port: ${{ secrets.APP_PORT }}
+          ssl_email: ${{ secrets.SSL_EMAIL }}
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          openai_base_url: ${{ secrets.OPENAI_BASE_URL }}
+          openai_model: ${{ secrets.OPENAI_MODEL }}
+          redis_password: ${{ secrets.REDIS_PASSWORD }}
+          platform_admin_username: ${{ secrets.PLATFORM_ADMIN_USERNAME }}
+          platform_admin_password: ${{ secrets.PLATFORM_ADMIN_PASSWORD }}
+          log_level: ${{ secrets.LOG_LEVEL }}
+
+  publish:
+    name: Publish
+    needs: [plan, deploy]
+    if: |
+      always() &&
+      !cancelled() &&
+      github.event_name == 'workflow_dispatch' &&
+      needs.plan.result == 'success' &&
+      (needs.plan.outputs.deploy != 'true' || needs.deploy.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit version and push
+        id: commit
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.plan.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          chmod +x scripts/lib/version.sh
+          # shellcheck source=scripts/lib/version.sh
+          source scripts/lib/version.sh
+          if version_tag_exists "${VERSION#v}"; then
+            echo "::error::标签已存在: ${VERSION}"
+            exit 1
+          fi
+          sync_package_versions "${VERSION#v}"
+          git add "${VERSION_PACKAGE_JSONS[@]}"
+          git commit -m "chore: release ${VERSION}"
+          git push origin HEAD --no-verify
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.plan.outputs.version }}
+          target_commitish: ${{ steps.commit.outputs.sha }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(needs.plan.outputs.version, 'beta') || contains(needs.plan.outputs.version, 'alpha') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-notes:
+    name: Release notes
+    needs: [plan, deploy]
+    if: |
+      always() &&
+      github.event_name == 'push' &&
+      needs.plan.result == 'success' &&
+      needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.plan.outputs.version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(needs.plan.outputs.version, 'beta') || contains(needs.plan.outputs.version, 'alpha') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,143 @@
+---
+description: 项目核心代码规范（命名、API、TypeScript、依赖）
+alwaysApply: true
+---
+
+# be-water - 代码规范
+
+## 命名规范
+
+- **数据库 / API / 共享类型 / 列表 URL 查询参数**: `snake_case`（详见 `field-naming` rule）
+- **TypeScript 变量/函数**: `camelCase`
+- **TypeScript 类/接口**: `PascalCase`
+- **常量**: `UPPER_SNAKE_CASE`
+- **文件命名**: `kebab-case.ts`
+- **React 路由 path 参数**: camelCase（如 `:documentId`）
+
+## 数据结构约定
+
+所有数据结构使用 JSON 格式，字段使用英文 `snake_case` 命名：
+
+```typescript
+interface Document {
+  id: string;
+  title: string;
+  content_type: string;
+  status: DocumentStatus;
+  created_at: Date;
+}
+```
+
+## API 规范
+
+### 响应格式
+
+```typescript
+// 成功 (HTTP 200)
+{ data: T }
+
+// 列表分页 (HTTP 200)
+{ data: T[], meta: { total, page, page_size } }
+
+// 错误 (HTTP 4xx/5xx)
+{ error: string, code?: string }
+```
+
+**列表排序查询参数**（与 URL / `list-url-params` 一致）：
+
+- `sort_by`：列字段名，`snake_case`，须与服务端排序白名单 / Prisma 字段一致
+- `sort_dir`：`asc` | `desc`（慢查询历史接口为 `sort_order`；新接口统一 `sort_dir`）
+
+### 请求规范
+
+**禁止**在组件或 Context 中直接使用 `fetch`，必须使用 `@be-water/client-kit` 中的 `api` 工具。
+
+```typescript
+import { api } from "@/lib/api";
+
+const data = await api.get<Document>("/documents/:documentId");
+await api.get("/users", { page, page_size, sort_by, sort_dir, search });
+await api.post("/documents", { title, content }, true);
+```
+
+列表页排序、分页、筛选参数读写统一走 `@be-water/client-kit/lib/list-url-params`（见 `frontend-page-structure` rule）。
+
+**Token 管理：**
+
+- 双 Token 模式：`access_token` + `refresh_token`
+- localStorage: `app_access_token`、`app_refresh_token`
+- `api.ts` 自动处理 401 并刷新 Token
+
+**skipAuth 参数：** 登录/注册等公开接口传递 `skipAuth = true`
+
+### HTTP 状态码
+
+| 状态码 | 场景           |
+| ------ | -------------- |
+| 200    | 成功           |
+| 201    | 创建成功       |
+| 400    | 参数错误       |
+| 401    | 未授权         |
+| 404    | 资源不存在     |
+| 409    | 资源冲突       |
+| 500    | 服务器内部错误 |
+
+## 错误处理
+
+- 使用自定义错误类 `AppError` 继承 Error
+- HTTP 状态码遵循上述 API 规范
+- 后端统一通过 `error-handler.ts` 中间件处理
+
+## 前端分层约定
+
+- 通用数据 Hook（如 `useXxx`）只负责：请求调用、缓存失效、数据转换、错误上抛
+- 页面/业务组件负责 UI 副作用：`toast`、`dialog`、`sheet` 开关、页面跳转
+- **Dialog 内聚**：所有 Dialog/Sheet 内聚 trigger + 弹层 + mutation/toast；Page 禁止 `*Open` + 分散 Button/Dialog；行内用 `children` 作 trigger，列表详情在 Row/Table 内聚
+- 默认禁止在通用 Hook 中直接调用 `toast.success/error` 等 UI 提示
+- 仅在"强业务耦合且不会复用"的专用 Hook 中，才允许内聚 UI 副作用（需在代码评审中说明理由）
+- **复杂页面**须按 `frontend-page-structure` rule 拆为 Page / Hook / Lib / Component（详见 Skill）
+
+## 数据库操作
+
+- 使用 Prisma ORM（Prisma 7）
+- 复杂查询使用 `include` 和 `select`
+- 事务使用 `$transaction`
+- 向量搜索使用 `$queryRaw` 或 `$executeRaw` 调用 pgvector 函数
+
+## 日志规范
+
+- 使用 Fastify 内置日志
+- 级别：`info` / `warn` / `error` / `debug`
+
+## TypeScript 规范
+
+- 开启 `strict: true`
+- 避免 `any`，使用 `unknown` + 类型守卫
+- 所有函数必须声明返回类型
+
+## 导入导出规范
+
+```typescript
+// 1. Node.js 内置 → 2. 第三方 → 3. 项目内部
+import path from "path";
+import fastify from "fastify";
+import { config } from "./config";
+```
+
+- **React 组件统一使用具名导出（named export）**，禁止 `export default`
+
+## 注释规范
+
+- 避免冗余区块注释（如 `{/* Document Header */}`）
+- 仅在复杂业务逻辑、workaround、TODO、关键设计决策时使用注释
+
+## 依赖管理
+
+安装或更新依赖时，确保使用最新稳定版本：
+
+```bash
+ncu -u -w
+pnpm install
+```
+
+**严禁**将依赖版本降级作为解决问题的手段。必须从代码层面定位根因并修复。

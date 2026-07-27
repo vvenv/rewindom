@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Architecture
+
+# 架构守卫：拦住新增的模块间循环依赖（棘轮门禁）。
+# 脚本只用 Node 内置模块读取各 package.json，无需 pnpm install，秒级完成。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: architecture-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  circular-deps:
+    name: 循环依赖检查
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Check circular dependencies (ratchet)
+        run: node scripts/check-circular-deps.mjs
+
+  module-deps:
+    name: 模块 requires / import 校验
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: "22"
+          pnpm-version: "11.17.0"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate module dependencies
+        run: pnpm --filter server validate:module-deps

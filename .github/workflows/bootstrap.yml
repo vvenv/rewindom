@@ -1,0 +1,67 @@
+name: Bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "目标部署环境"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - production
+          - test
+
+concurrency:
+  group: bootstrap-${{ inputs.environment }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    name: "Bootstrap · ${{ inputs.environment }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Validate required secrets
+        uses: ./.github/actions/validate-deploy-secrets
+        with:
+          environment: ${{ inputs.environment }}
+          ssh_host: ${{ secrets.DEPLOY_HOST }}
+          ssh_user: ${{ secrets.DEPLOY_SSH_USER }}
+          ssh_password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          require_app_secrets: "true"
+          db_password: ${{ secrets.DB_PASSWORD }}
+          jwt_secret: ${{ secrets.JWT_SECRET }}
+          tenant_secret_encryption_key: ${{ secrets.TENANT_SECRET_ENCRYPTION_KEY }}
+
+      - name: Bootstrap Docker stack
+        uses: ./.github/actions/deploy-docker-to-server
+        with:
+          environment: ${{ inputs.environment }}
+          bootstrap: "true"
+          ssh_host: ${{ secrets.DEPLOY_HOST }}
+          ssh_user: ${{ secrets.DEPLOY_SSH_USER }}
+          ssh_password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          db_password: ${{ secrets.DB_PASSWORD }}
+          jwt_secret: ${{ secrets.JWT_SECRET }}
+          tenant_secret_encryption_key: ${{ secrets.TENANT_SECRET_ENCRYPTION_KEY }}
+          app_domain: ${{ secrets.APP_DOMAIN }}
+          app_port: ${{ secrets.APP_PORT }}
+          ssl_email: ${{ secrets.SSL_EMAIL }}
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          openai_base_url: ${{ secrets.OPENAI_BASE_URL }}
+          openai_model: ${{ secrets.OPENAI_MODEL }}
+          redis_password: ${{ secrets.REDIS_PASSWORD }}
+          platform_admin_username: ${{ secrets.PLATFORM_ADMIN_USERNAME }}
+          platform_admin_password: ${{ secrets.PLATFORM_ADMIN_PASSWORD }}
+          log_level: ${{ secrets.LOG_LEVEL }}

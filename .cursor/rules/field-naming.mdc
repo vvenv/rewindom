@@ -1,0 +1,39 @@
+---
+description: 字段命名全链路约定（DB/API/前端/URL），详见 docs/design/field-naming-conventions.md
+globs: packages/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# 字段命名
+
+## 默认：snake_case
+
+Prisma、API JSON、共享类型、前端业务类型、**URL 查询参数** — 一律 `snake_case`，禁止在层间做 camelCase 转换。
+
+```typescript
+interface Document { document_id: string; content_type?: string }
+searchParams.get("page_size");
+searchParams.get("tenant_id");
+api.get("/documents", { tenant_id, status });
+```
+
+## URL 两类规则
+
+| 类型 | 规范 | 示例 |
+| --- | --- | --- |
+| path 参数名 | camelCase | `/documents/:documentId`、`/products/:productId` |
+| 查询参数键 | snake_case，与 API query 同名 | `?tenant_id=&status=` |
+
+组件内局部变量可用 camelCase：`const documentId = params.documentId`。
+
+## 外键与时间
+
+- 外键：`{table}_id`
+- 时间戳：`{action}_at`
+- 布尔：优先 `is_` / `has_`
+
+## 向量搜索相关字段
+
+- 文档嵌入向量：`embedding vector`
+- 相似度阈值：`similarity_threshold`
+- 搜索结果分数：`relevance_score`

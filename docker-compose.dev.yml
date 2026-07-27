@@ -1,0 +1,39 @@
+# 本地开发依赖：PostgreSQL + Redis
+# 应用仍在宿主机运行：pnpm db:up && pnpm dev
+#
+# 若本机 Postgres 未占用 5432，可将 POSTGRES_PORT 改为 5432 并同步 DATABASE_URL
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: be-water-dev-postgres
+    environment:
+      POSTGRES_USER: be-water
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev-password}
+      POSTGRES_DB: be-water
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - be_water_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U be-water -d be-water"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: be-water-dev-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - be_water_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  be_water_pg:
+  be_water_redis:

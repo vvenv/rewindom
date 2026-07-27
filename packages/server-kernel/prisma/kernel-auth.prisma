@@ -1,0 +1,13 @@
+// packages/server-kernel/prisma/kernel-auth.prisma
+// 由 apps/server/prisma/models/kernel-auth.prisma 符号链接汇入
+model RefreshToken {
+  id         String   @id @default(uuid())
+  user_id    String
+  token      String   @unique
+  expires_at DateTime
+  created_at DateTime @default(now())
+  revoked    Boolean  @default(false)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}

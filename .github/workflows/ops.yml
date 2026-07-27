@@ -1,0 +1,148 @@
+name: Ops
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "目标环境"
+        required: true
+        type: choice
+        options:
+          - production
+          - test
+      task:
+        description: "运维任务"
+        required: true
+        type: choice
+        options:
+          - status
+          - logs
+          - health-check
+          - restart
+          - start
+          - stop
+          - backup
+          - sync-env
+      lines:
+        description: "日志行数（仅 logs 任务有效）"
+        required: false
+        default: "50"
+
+concurrency:
+  group: ops-${{ inputs.environment }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ops:
+    name: "${{ inputs.task }} @ ${{ inputs.environment }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        if: inputs.task == 'sync-env'
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Validate deploy secrets
+        uses: ./.github/actions/validate-deploy-secrets
+        with:
+          environment: ${{ inputs.environment }}
+          ssh_host: ${{ secrets.DEPLOY_HOST }}
+          ssh_user: ${{ secrets.DEPLOY_SSH_USER }}
+          ssh_password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          require_app_secrets: ${{ inputs.task == 'sync-env' && 'true' || 'false' }}
+          db_password: ${{ secrets.DB_PASSWORD }}
+          jwt_secret: ${{ secrets.JWT_SECRET }}
+          tenant_secret_encryption_key: ${{ secrets.TENANT_SECRET_ENCRYPTION_KEY }}
+
+      - name: Sync env and restart Docker
+        if: inputs.task == 'sync-env'
+        uses: ./.github/actions/deploy-docker-to-server
+        with:
+          environment: ${{ inputs.environment }}
+          env_only: "true"
+          ssh_host: ${{ secrets.DEPLOY_HOST }}
+          ssh_user: ${{ secrets.DEPLOY_SSH_USER }}
+          ssh_password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          db_password: ${{ secrets.DB_PASSWORD }}
+          jwt_secret: ${{ secrets.JWT_SECRET }}
+          tenant_secret_encryption_key: ${{ secrets.TENANT_SECRET_ENCRYPTION_KEY }}
+          app_domain: ${{ secrets.APP_DOMAIN }}
+          app_port: ${{ secrets.APP_PORT }}
+          ssl_email: ${{ secrets.SSL_EMAIL }}
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          openai_base_url: ${{ secrets.OPENAI_BASE_URL }}
+          openai_model: ${{ secrets.OPENAI_MODEL }}
+          redis_password: ${{ secrets.REDIS_PASSWORD }}
+          platform_admin_username: ${{ secrets.PLATFORM_ADMIN_USERNAME }}
+          platform_admin_password: ${{ secrets.PLATFORM_ADMIN_PASSWORD }}
+          log_level: ${{ secrets.LOG_LEVEL }}
+
+      - name: Execute ${{ inputs.task }}
+        if: inputs.task != 'sync-env'
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_SSH_USER }}
+          password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          command_timeout: 20m
+          script: |
+            set -euo pipefail
+
+            ENVIRONMENT="${{ inputs.environment }}"
+            TASK="${{ inputs.task }}"
+            LINES="${{ inputs.lines }}"
+
+            case "$ENVIRONMENT" in
+              production) DOCKER_DIR="/opt/be-water-docker" ;;
+              test) DOCKER_DIR="/opt/be-water-docker-test" ;;
+              *)
+                echo "无效环境: $ENVIRONMENT"
+                exit 1
+                ;;
+            esac
+
+            cd "$DOCKER_DIR"
+
+            case "$TASK" in
+              status)
+                docker compose -f docker-compose.prod.yml ps
+                ;;
+              logs)
+                docker compose -f docker-compose.prod.yml logs --tail="$LINES"
+                ;;
+              health-check)
+                PORT="$(grep '^APP_PORT=' .env.production .env.test 2>/dev/null | head -1 | cut -d= -f2)"
+                PORT="${PORT:-3400}"
+                curl -fsS "http://127.0.0.1:${PORT}/health"
+                ;;
+              restart)
+                docker compose -f docker-compose.prod.yml restart
+                ;;
+              start)
+                ENV_FILE=".env.production"
+                [ "$ENVIRONMENT" = "test" ] && ENV_FILE=".env.test"
+                docker compose -f docker-compose.prod.yml --env-file "$ENV_FILE" up -d
+                ;;
+              stop)
+                docker compose -f docker-compose.prod.yml down
+                ;;
+              backup)
+                if [ -f scripts/backup.sh ]; then
+                  bash scripts/backup.sh --env "$ENVIRONMENT"
+                else
+                  echo "backup.sh 未找到，请在服务器安装备份脚本"
+                  exit 1
+                fi
+                ;;
+              *)
+                echo "未知任务: $TASK"
+                exit 1
+                ;;
+            esac

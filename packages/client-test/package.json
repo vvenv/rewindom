@@ -1,0 +1,39 @@
+{
+  "name": "@be-water/client-test",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts",
+    "./setup": "./src/setup.ts",
+    "./mocks/client-shell": "./src/mocks/client-shell.tsx",
+    "./vitest": "./src/vitest.ts",
+    "./react-query": "./src/react-query.ts"
+  },
+  "dependencies": {
+    "@be-water/client-kit": "workspace:*",
+    "@be-water/server-test": "workspace:*",
+    "@tanstack/react-query": "^5.101.4",
+    "msw": "^2.15.0"
+  },
+  "peerDependencies": {
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "vitest": "^4.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "happy-dom": "^20.11.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  }
+}

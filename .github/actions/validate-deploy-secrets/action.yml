@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: Validate deploy secrets
+description: Fail fast when required deployment secrets are missing in the target environment
+
+inputs:
+  environment:
+    description: Target deploy environment (production or test)
+    required: true
+  ssh_host:
+    description: SSH host secret value
+    required: true
+  ssh_user:
+    description: SSH username secret value
+    required: true
+  ssh_password:
+    description: SSH password secret value
+    required: true
+  require_app_secrets:
+    description: Also require DB_PASSWORD, JWT_SECRET, and TENANT_SECRET_ENCRYPTION_KEY
+    required: false
+    default: "false"
+  db_password:
+    description: Database password secret value
+    required: false
+    default: ""
+  jwt_secret:
+    description: JWT secret value
+    required: false
+    default: ""
+  tenant_secret_encryption_key:
+    description: Tenant secret encryption key value
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Validate deploy secrets
+      shell: bash
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
+        SSH_HOST: ${{ inputs.ssh_host }}
+        SSH_USER: ${{ inputs.ssh_user }}
+        SSH_PASSWORD: ${{ inputs.ssh_password }}
+        REQUIRE_APP_SECRETS: ${{ inputs.require_app_secrets }}
+        DB_PASSWORD: ${{ inputs.db_password }}
+        JWT_SECRET: ${{ inputs.jwt_secret }}
+        TENANT_SECRET_ENCRYPTION_KEY: ${{ inputs.tenant_secret_encryption_key }}
+      run: |
+        set -euo pipefail
+        missing=()
+        [ -z "$SSH_HOST" ] && missing+=("DEPLOY_HOST")
+        [ -z "$SSH_USER" ] && missing+=("DEPLOY_SSH_USER")
+        [ -z "$SSH_PASSWORD" ] && missing+=("DEPLOY_SSH_PASSWORD")
+        if [ "$REQUIRE_APP_SECRETS" = "true" ]; then
+          [ -z "$DB_PASSWORD" ] && missing+=("DB_PASSWORD")
+          [ -z "$JWT_SECRET" ] && missing+=("JWT_SECRET")
+          [ -z "$TENANT_SECRET_ENCRYPTION_KEY" ] && missing+=("TENANT_SECRET_ENCRYPTION_KEY")
+        fi
+        if [ "${#missing[@]}" -gt 0 ]; then
+          echo "::error::缺少 Secrets: ${missing[*]}"
+          echo "::error::请在 Settings → Environments → ${ENVIRONMENT} 中配置 DEPLOY_HOST / DEPLOY_SSH_USER / DEPLOY_SSH_PASSWORD"
+          exit 1
+        fi

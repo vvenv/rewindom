@@ -1,0 +1,65 @@
+---
+description: 数据脚本须保证本地与远程库状态一致，并优先自动执行
+alwaysApply: true
+---
+
+# 脚本自动执行
+
+创建一次性脚本（数据迁移、翻译、批量操作等）后，**应优先在同一会话中自动执行**，而非仅告知用户"脚本已创建，请运行 xx 命令"。
+
+## 原则
+
+- **立即执行**：脚本文件写入后，若无明确阻碍，应自动调用执行
+- **可重复执行**：脚本设计时应幂等（可重复运行不产生副作用），以便自动执行无忧
+- **异常处理**：自动执行失败时应输出清晰的错误信息，而非静默失败
+- **本地与远程数据一致**：凡会改动库内数据的运维脚本（清理垃圾法规、回填、迁移、纠错等），目标是**本地开发库与远程目标库（test / production）最终状态都正确**。只在一侧执行、另一侧遗漏，视为未完成。用户未显式限定「仅本地」或「仅远程」时，默认两侧都要跑通同一套逻辑。
+
+## 执行顺序（默认）
+
+对数据变更类脚本，同一会话内按此顺序：
+
+1. **本地**：先 `--dry-run`（若支持），确认命中范围后正式执行，验证本机库结果正确
+2. **远程**：再对目标环境（通常 production；用户指定则用 test）走下方 scp/ssh；同样先 dry-run 再 apply
+3. **汇报**：两侧各自报告 dry-run 命中数 / 实际变更数；若一侧失败，不得假装「已全部完成」
+
+纯只读探测、或用户明确只要一侧时，可跳过另一侧。
+
+## 远程环境（优先 scp/ssh，不等发版）
+
+数据迁移 / 清理 / 回填等运维脚本需要写入**测试或生产库**时：
+
+1. **不要**等 release 部署后再跑；本机写好并完成本地验证后，立即 `scp` 到 Docker 部署目录并 `ssh` 执行
+2. 凭证与 SSH 封装：`source scripts/lib/deploy-remote.sh` → `load_deploy_credentials production|test` → `_run_scp` / `_run_ssh`
+3. Docker 部署目录：`/opt/be-water-docker`（production）或 `/opt/be-water-docker-test`（test）
+4. 推荐流程：先 `--dry-run`，确认命中后再正式执行；在部署目录用 `docker compose exec app pnpm --filter server exec tsx scripts/<name>.ts`
+5. 应用代码随 `pnpm deploy` 上线；一次性数据脚本可 scp 到 `apps/server/scripts/` 后 exec 进容器执行
+
+```bash
+# 示例：本地验证后再 scp → dry-run → apply
+pnpm --filter server exec tsx scripts/foo.ts --dry-run
+pnpm --filter server exec tsx scripts/foo.ts
+
+REMOTE_DIR=/opt/be-water-docker
+_run_scp apps/server/scripts/foo.ts \
+  "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${REMOTE_DIR}/apps/server/scripts/foo.ts"
+_run_ssh "cd '${REMOTE_DIR}' && docker compose exec -T app pnpm --filter server exec tsx scripts/foo.ts --dry-run"
+_run_ssh "cd '${REMOTE_DIR}' && docker compose exec -T app pnpm --filter server exec tsx scripts/foo.ts"
+```
+
+仅当脚本必须随发版代码路径一起上线（例如依赖尚未部署的新 service 模块）时，才挂入 `pnpm deploy` / release 流程。
+
+## 生产 release
+
+生产/测试环境部署统一走 Docker：
+
+1. `docker/entrypoint.sh`：容器启动时 `prisma migrate deploy`（失败则阻塞）
+2. `pnpm deploy`：上传源码 → 远程 `docker compose build` → `up -d` → 健康检查
+3. `pnpm bootstrap`：首次部署额外配置宿主机 Nginx + Certbot
+
+法规占位与采集源 seed（`seed-br-regulations.ts` / `seed-regulation-harvest-sources.ts` 等）仅在新环境初始化或配置变更时按需手动执行，不再随 release 自动跑。
+
+Edge 采集节点（圣保罗）仍走独立 tarball 部署（`deploy-edge-archive.sh` 等），与主站 Docker 栈分离。
+
+## 例外
+
+仅当脚本存在**破坏性风险**（如 `DELETE`、`DROP`、不可逆的数据修改）或需要在生产环境手动审批时，才将执行步骤留给用户。幂等且可失败重试的数据回填应通过 `docker compose exec` 手动或运维脚本执行，失败可重跑、不阻塞发版。

@@ -1,0 +1,16 @@
+// packages/modules/notes/schema.prisma
+// 由 apps/server/prisma/models/notes.prisma 符号链接汇入
+// --- module: notes ---
+model Note {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  title      String
+  content    String   @default("")
+  created_by String
+  updated_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, updated_at])
+}

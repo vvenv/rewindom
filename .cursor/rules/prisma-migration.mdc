@@ -1,0 +1,109 @@
+---
+description: Prisma migration 安全规则与冲突处理流程
+globs: apps/server/prisma/**
+alwaysApply: false
+---
+
+# Prisma Migration 安全规则
+
+## ⚠️ 核心原则
+
+1. **永远不要使用 `prisma migrate reset --force`**，除非用户明确要求且确认可以丢失数据
+2. **在执行任何可能影响数据的命令前，必须先备份数据库**
+3. **优先使用 `prisma migrate dev --create-only` 创建 migration，手动检查后再应用**
+4. **如果遇到 migration 冲突，先使用 `prisma migrate resolve` 解决，而不是 reset**
+5. **对于 schema 变更，优先使用增量 migration 而不是重置**
+
+## 处理 Migration 冲突的标准流程
+
+1. 检查当前状态：
+
+   ```bash
+   pnpm --filter server exec prisma migrate status
+   ```
+
+2. 根据状态解决冲突
+   - migration 已在数据库中手动应用：
+     ```bash
+     pnpm --filter server exec prisma migrate resolve --applied <migration_name>
+     ```
+   - migration 已手动回滚：
+     ```bash
+     pnpm --filter server exec prisma migrate resolve --rolled-back <migration_name>
+     ```
+
+3. 创建新的 migration：
+   ```bash
+   pnpm --filter server exec prisma migrate dev --name <description>
+   ```
+
+## 数据库备份
+
+```bash
+pg_dump be-water > data/postgres-backup-$(date +%Y%m%d-%H%M%S).sql
+```
+
+## 推荐的 Migration 创建流程
+
+```bash
+# 1. 修改 schema.prisma
+# 2. 创建 migration（不应用）
+pnpm --filter server exec prisma migrate dev --name <description> --create-only
+
+# 3. 检查生成的 migration SQL
+cat apps/server/prisma/migrations/<timestamp>_<description>/migration.sql
+
+# 4. 如果正确，应用 migration
+pnpm --filter server exec prisma migrate dev
+```
+
+## 禁止的操作
+
+- ❌ 在生产环境使用 `prisma migrate reset`
+- ❌ 在有重要数据时使用 `--force` 标志
+- ❌ 删除 migration 目录而不考虑数据丢失
+- ❌ 手动修改数据库 schema 而不创建对应的 migration
+- ❌ 在未备份的情况下执行可能影响数据的命令
+
+## 生产环境 Migration 部署
+
+### 历史迁移冲突处理
+
+1. `pnpm --filter server exec prisma migrate status`
+2. `pnpm --filter server exec prisma migrate resolve --applied <init_migration_name>`
+3. `pnpm --filter server exec prisma migrate deploy`
+
+### PostgreSQL Enum 类型处理
+
+条件创建避免 `type already exists`：
+
+```sql
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'EnumName') THEN
+        CREATE TYPE "EnumName" AS ENUM ('VALUE1', 'VALUE2');
+    END IF;
+END $$;
+```
+
+类型名引用必须加引号：`'PENDING'::"DocumentStatus"`（非 `DocumentStatus`）
+
+### pgvector 扩展处理
+
+确保目标数据库已启用 pgvector 扩展。在 migration 中应包含：
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+### Migration 失败恢复
+
+1. `pnpm --filter server exec prisma migrate resolve --rolled-back <migration_name>`
+2. 修复 migration SQL
+3. `pnpm --filter server exec prisma migrate deploy`
+
+### 关键原则
+
+- **不要修改已应用的 migration 文件**（除非 `resolve --rolled-back`）
+- **条件语句处理已存在对象**：`IF NOT EXISTS` 或 `DO $$ ... END $$`
+- **类型转换必须显式**：PostgreSQL 必须用 `USING` 子句

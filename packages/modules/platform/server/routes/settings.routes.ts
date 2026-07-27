@@ -1,0 +1,135 @@
+import { handleRouteError } from "@be-water/server-kernel/http/route-error-handler.js";
+import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
+import { success } from "@be-water/shared";
+
+import { AuditAction } from "../../../audit/shared/index.js";
+import { type PlatformSettings } from "../../shared/index.js";
+import {
+  getPlanLimitTemplates,
+  savePlanLimitTemplates,
+} from "../services/plan-limit-templates.service.js";
+import {
+  getPlatformSettings,
+  savePlatformSettings,
+} from "../services/platform-settings.service.js";
+
+import type { FastifyInstance } from "fastify";
+
+interface UpdatePlatformSettingsBody {
+  registration_enabled?: boolean;
+  require_tenant_approval?: boolean;
+  captcha_enabled?: boolean;
+}
+
+export async function registerSettingsRoutes(
+  app: FastifyInstance,
+): Promise<void> {
+  app.get("/settings", async (_request, reply) => {
+    try {
+      const config = await getPlatformSettings();
+      return reply.send(success(config));
+    } catch (err) {
+      return handleRouteError(
+        reply,
+        err,
+        "[platformSettingsRoutes] 获取平台设置失败",
+        "GET_PLATFORM_SETTINGS_FAILED",
+      );
+    }
+  });
+
+  app.put("/settings", async (request, reply) => {
+    try {
+      const {
+        registration_enabled,
+        require_tenant_approval,
+        captcha_enabled,
+      } = request.body as UpdatePlatformSettingsBody;
+
+      const currentConfig = await getPlatformSettings();
+      const newConfig: PlatformSettings = {
+        registration_enabled:
+          registration_enabled ?? currentConfig.registration_enabled,
+        require_tenant_approval:
+          require_tenant_approval ?? currentConfig.require_tenant_approval,
+        captcha_enabled: captcha_enabled ?? currentConfig.captcha_enabled,
+      };
+
+      await savePlatformSettings(newConfig);
+
+      try {
+        const { username } = request.authUser!;
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          username,
+          action: AuditAction.PLATFORM_SETTINGS_UPDATE,
+          resource: "platform_settings",
+          details: JSON.stringify({
+            before: currentConfig,
+            after: newConfig,
+          }),
+          ipAddress: request.ip,
+          userAgent: request.headers["user-agent"],
+        })
+      } catch (auditError) {
+        app.log.error({ error: auditError }, "记录审计日志失败");
+      }
+
+      return reply.send(success(newConfig));
+    } catch (err) {
+      return handleRouteError(
+        reply,
+        err,
+        "[platformSaasRoutes] 更新平台设置失败",
+        "UPDATE_PLATFORM_SETTINGS_FAILED",
+      );
+    }
+  });
+
+  app.get("/plan-limits", async (_request, reply) => {
+    try {
+      const templates = await getPlanLimitTemplates();
+      return reply.send(success({ templates }));
+    } catch (err) {
+      return handleRouteError(
+        reply,
+        err,
+        "[platformSettingsRoutes] 获取套餐用量模板失败",
+        "GET_PLAN_LIMIT_TEMPLATES_FAILED",
+      );
+    }
+  });
+
+  app.put("/plan-limits", async (request, reply) => {
+    try {
+      const body = request.body as { templates?: unknown };
+      const currentTemplates = await getPlanLimitTemplates();
+      const saved = await savePlanLimitTemplates(body.templates);
+
+      try {
+        const { username } = request.authUser!;
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          username,
+          action: AuditAction.PLAN_LIMIT_TEMPLATES_UPDATE,
+          resource: "plan_limit_templates",
+          details: JSON.stringify({
+            before: currentTemplates,
+            after: saved,
+          }),
+          ipAddress: request.ip,
+          userAgent: request.headers["user-agent"],
+        })
+      } catch (auditError) {
+        app.log.error({ error: auditError }, "记录审计日志失败");
+      }
+
+      return reply.send(success({ templates: saved }));
+    } catch (err) {
+      return handleRouteError(
+        reply,
+        err,
+        "[platformSettingsRoutes] 更新套餐用量模板失败",
+        "UPDATE_PLAN_LIMIT_TEMPLATES_FAILED",
+      );
+    }
+  });
+}

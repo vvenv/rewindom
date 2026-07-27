@@ -1,0 +1,9 @@
+node_modules
+**/node_modules
+.git
+release
+*.tar.gz
+data
+backups
+.env*
+!.env.example

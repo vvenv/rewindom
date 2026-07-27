@@ -1,0 +1,45 @@
+// packages/modules/rbac/schema.prisma
+// 由 apps/server/prisma/models/rbac.prisma 符号链接汇入
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  scope       String // "tenant" | "platform"
+  tenant_id   String?
+  is_builtin  Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  tenant               Tenant?             @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  role_permissions     RolePermission[]
+  user_roles           UserRole[]
+  platform_admin_roles PlatformAdminRole[]
+
+  @@unique([scope, tenant_id, name])
+  @@index([scope])
+  @@index([tenant_id])
+}
+
+model RolePermission {
+  role_id    String
+  permission String
+  created_at DateTime @default(now())
+
+  role Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@id([role_id, permission])
+  @@index([permission])
+}
+
+model UserRole {
+  user_id    String
+  role_id    String
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, role_id])
+  @@index([role_id])
+}

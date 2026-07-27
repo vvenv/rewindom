@@ -1,0 +1,577 @@
+import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
+import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { DEFAULT_TENANT_SLUG } from "@be-water/shared";
+
+
+export interface ErrorLogInput {
+  level: "error" | "warn" | "info" | "debug";
+  message: string;
+  stackTrace?: string;
+  userId?: string;
+  username?: string;
+  tenantSlug?: string | null;
+  route?: string;
+  method?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  requestBody?: string;
+  requestParams?: string;
+  requestQuery?: string;
+  errorCode?: string;
+  context?: Record<string, unknown>;
+}
+
+interface ErrorLogFilters {
+  level?: string;
+  userId?: string;
+  q?: string;
+  tenantSlug?: string;
+  startDate?: string;
+  endDate?: string;
+  sort_by?: string;
+  sort_dir?: "asc" | "desc";
+}
+
+const ERROR_LOG_SORTABLE_FIELDS = new Set([
+  "created_at",
+  "level",
+  "tenant_slug",
+  "username",
+  "route",
+  "method",
+  "error_code",
+]);
+
+/**
+ * Error log service for tracking application errors and issues
+ */
+export class ErrorService {
+  /**
+   * Create an error log entry
+   */
+  static async log(input: ErrorLogInput): Promise<void> {
+    const {
+      level,
+      message,
+      stackTrace,
+      userId,
+      username,
+      tenantSlug,
+      route,
+      method,
+      ipAddress,
+      userAgent,
+      requestBody,
+      requestParams,
+      requestQuery,
+      errorCode,
+      context,
+    } = input;
+
+    await prisma.errorLog.create({
+      data: {
+        level,
+        message,
+        stack_trace: stackTrace,
+        user_id: userId,
+        username,
+        ...(tenantSlug ? { tenant_slug: tenantSlug } : {}),
+        route,
+        method,
+        ip_address: ipAddress,
+        user_agent: userAgent,
+        request_body: requestBody,
+        request_params: requestParams,
+        request_query: requestQuery,
+        error_code: errorCode,
+        context: context ? JSON.stringify(context) : null,
+      },
+    });
+  }
+
+  static belongsToTenant(
+    log: { tenant_slug: string | null },
+    tenantSlug: string,
+  ): boolean {
+    if (tenantSlug === DEFAULT_TENANT_SLUG) {
+      return log.tenant_slug === tenantSlug || log.tenant_slug === null;
+    }
+    return log.tenant_slug === tenantSlug;
+  }
+
+  private static buildTenantSlugWhere(
+    tenantSlug: string,
+  ): Record<string, unknown> {
+    if (tenantSlug === DEFAULT_TENANT_SLUG) {
+      return {
+        OR: [{ tenant_slug: tenantSlug }, { tenant_slug: null }],
+      };
+    }
+    return { tenant_slug: tenantSlug };
+  }
+
+  private static buildTextSearchWhere(
+    q: string,
+  ): Record<string, unknown> {
+    return {
+      OR: [
+        { username: { contains: q, mode: "insensitive" as const } },
+        { route: { contains: q, mode: "insensitive" as const } },
+        { error_code: { contains: q, mode: "insensitive" as const } },
+      ],
+    };
+  }
+
+  private static buildErrorLogConditions(
+    filters: ErrorLogFilters,
+  ): Record<string, unknown>[] {
+    const { level, userId, q, startDate, endDate } = filters;
+    const conditions: Record<string, unknown>[] = [];
+
+    if (level) {
+      conditions.push({ level });
+    }
+
+    if (userId) {
+      conditions.push({ user_id: userId });
+    }
+
+    if (q) {
+      conditions.push(this.buildTextSearchWhere(q));
+    }
+
+    if (startDate || endDate) {
+      const dateFilter: Record<string, Date> = {};
+      if (startDate) {
+        dateFilter.gte = new Date(
+          startDate.includes(" ") ? startDate : startDate + "T00:00:00.000Z",
+        );
+      }
+      if (endDate) {
+        dateFilter.lte = new Date(
+          endDate.includes(" ") ? endDate : endDate + "T23:59:59.999Z",
+        );
+      }
+      conditions.push({ created_at: dateFilter });
+    }
+
+    return conditions;
+  }
+
+  /**
+   * Log an error with full context
+   */
+  static async logError(
+    error: Error,
+    context?: {
+      userId?: string;
+      username?: string;
+      tenantSlug?: string | null;
+      route?: string;
+      method?: string;
+      ipAddress?: string;
+      userAgent?: string;
+      requestBody?: string;
+      requestParams?: string;
+      requestQuery?: string;
+      errorCode?: string;
+      additionalContext?: Record<string, unknown>;
+    },
+  ): Promise<void> {
+    await this.log({
+      level: "error",
+      message: error.message,
+      stackTrace: error.stack,
+      userId: context?.userId,
+      username: context?.username,
+      tenantSlug: context?.tenantSlug,
+      route: context?.route,
+      method: context?.method,
+      ipAddress: context?.ipAddress,
+      userAgent: context?.userAgent,
+      requestBody: context?.requestBody,
+      requestParams: context?.requestParams,
+      requestQuery: context?.requestQuery,
+      errorCode: context?.errorCode,
+      context: context?.additionalContext,
+    });
+  }
+
+  /**
+   * Log a warning
+   */
+  static async logWarning(
+    message: string,
+    context?: {
+      userId?: string;
+      username?: string;
+      tenantSlug?: string | null;
+      route?: string;
+      method?: string;
+      ipAddress?: string;
+      userAgent?: string;
+      additionalContext?: Record<string, unknown>;
+    },
+  ): Promise<void> {
+    await this.log({
+      level: "warn",
+      message,
+      userId: context?.userId,
+      username: context?.username,
+      tenantSlug: context?.tenantSlug,
+      route: context?.route,
+      method: context?.method,
+      ipAddress: context?.ipAddress,
+      userAgent: context?.userAgent,
+      context: context?.additionalContext,
+    });
+  }
+
+  /**
+   * Log an info message
+   */
+  static async logInfo(
+    message: string,
+    context?: {
+      userId?: string;
+      username?: string;
+      tenantSlug?: string | null;
+      route?: string;
+      method?: string;
+      additionalContext?: Record<string, unknown>;
+    },
+  ): Promise<void> {
+    await this.log({
+      level: "info",
+      message,
+      userId: context?.userId,
+      username: context?.username,
+      tenantSlug: context?.tenantSlug,
+      route: context?.route,
+      method: context?.method,
+      context: context?.additionalContext,
+    });
+  }
+
+  /**
+   * Log a debug message
+   */
+  static async logDebug(
+    message: string,
+    context?: {
+      userId?: string;
+      username?: string;
+      tenantSlug?: string | null;
+      route?: string;
+      method?: string;
+      additionalContext?: Record<string, unknown>;
+    },
+  ): Promise<void> {
+    await this.log({
+      level: "debug",
+      message,
+      userId: context?.userId,
+      username: context?.username,
+      tenantSlug: context?.tenantSlug,
+      route: context?.route,
+      method: context?.method,
+      context: context?.additionalContext,
+    });
+  }
+
+  /**
+   * Get error logs with filters
+   */
+  static async getErrorLogs(
+    filters: ErrorLogFilters & {
+      skip?: number;
+      take?: number;
+    } = {},
+  ): Promise<
+    Array<{
+      id: string;
+      level: string;
+      message: string;
+      stack_trace: string | null;
+      user_id: string | null;
+      username: string | null;
+      tenant_slug: string | null;
+      route: string | null;
+      method: string | null;
+      ip_address: string | null;
+      user_agent: string | null;
+      request_body: string | null;
+      request_params: string | null;
+      request_query: string | null;
+      error_code: string | null;
+      context: string | null;
+      created_at: Date;
+    }>
+  > {
+    const {
+      skip = 0,
+      take = 20,
+      sort_by,
+      sort_dir,
+      tenantSlug,
+      ...whereFilters
+    } = filters;
+    const sortField = resolveSortField(
+      sort_by,
+      ERROR_LOG_SORTABLE_FIELDS,
+      "created_at",
+    );
+    const sortOrder = resolveSortOrder(sort_dir, "desc");
+
+    const logs = await prisma.errorLog.findMany({
+      where: {
+        AND: [
+          ...this.buildErrorLogConditions(whereFilters),
+          ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
+        ],
+      },
+      orderBy: { [sortField]: sortOrder },
+      take,
+      skip,
+      select: {
+        id: true,
+        level: true,
+        message: true,
+        stack_trace: true,
+        user_id: true,
+        username: true,
+        tenant_slug: true,
+        route: true,
+        method: true,
+        ip_address: true,
+        user_agent: true,
+        request_body: true,
+        request_params: true,
+        request_query: true,
+        error_code: true,
+        context: true,
+        created_at: true,
+      },
+    });
+
+    return logs;
+  }
+
+  /**
+   * Get error logs count with filters
+   */
+  static async getErrorLogsCount(
+    filters: ErrorLogFilters = {},
+  ): Promise<number> {
+    const { tenantSlug, ...whereFilters } = filters;
+
+    return prisma.errorLog.count({
+      where: {
+        AND: [
+          ...this.buildErrorLogConditions(whereFilters),
+          ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
+        ],
+      },
+    });
+  }
+
+  /**
+   * Get error logs by level
+   */
+  static async getErrorLogsByLevel(
+    level: string,
+    take: number = 100,
+  ): Promise<
+    Array<{
+      id: string;
+      level: string;
+      message: string;
+      stack_trace: string | null;
+      user_id: string | null;
+      username: string | null;
+      route: string | null;
+      method: string | null;
+      ip_address: string | null;
+      user_agent: string | null;
+      request_body: string | null;
+      request_params: string | null;
+      request_query: string | null;
+      error_code: string | null;
+      context: string | null;
+      created_at: Date;
+    }>
+  > {
+    return this.getErrorLogs({ level, take });
+  }
+
+  /**
+   * Get error logs by user
+   */
+  static async getErrorLogsByUser(
+    userId: string,
+    take: number = 100,
+  ): Promise<
+    Array<{
+      id: string;
+      level: string;
+      message: string;
+      stack_trace: string | null;
+      user_id: string | null;
+      username: string | null;
+      route: string | null;
+      method: string | null;
+      ip_address: string | null;
+      user_agent: string | null;
+      request_body: string | null;
+      request_params: string | null;
+      request_query: string | null;
+      error_code: string | null;
+      context: string | null;
+      created_at: Date;
+    }>
+  > {
+    return this.getErrorLogs({ userId, take });
+  }
+
+  /**
+   * Get error statistics
+   */
+  static async getErrorStats(timeRange?: {
+    startDate?: string;
+    endDate?: string;
+    tenantSlug?: string;
+  }): Promise<{
+    total: number;
+    byLevel: Record<string, number>;
+    byRoute: Record<string, number>;
+    byErrorCode: Record<string, number>;
+  }> {
+    const tenantSlug = timeRange?.tenantSlug;
+
+    const logs = await prisma.errorLog.findMany({
+      where: {
+        AND: [
+          ...this.buildErrorLogConditions({
+            startDate: timeRange?.startDate,
+            endDate: timeRange?.endDate,
+          }),
+          ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
+        ],
+      },
+      select: {
+        level: true,
+        route: true,
+        error_code: true,
+      },
+    });
+
+    const byLevel: Record<string, number> = {};
+    const byRoute: Record<string, number> = {};
+    const byErrorCode: Record<string, number> = {};
+
+    for (const log of logs) {
+      byLevel[log.level] = (byLevel[log.level] || 0) + 1;
+      if (log.route) {
+        byRoute[log.route] = (byRoute[log.route] || 0) + 1;
+      }
+      if (log.error_code) {
+        byErrorCode[log.error_code] = (byErrorCode[log.error_code] || 0) + 1;
+      }
+    }
+
+    return {
+      total: logs.length,
+      byLevel,
+      byRoute,
+      byErrorCode,
+    };
+  }
+
+  /**
+   * Clean up old error logs
+   */
+  static async cleanupOldLogs(
+    daysToKeep: number = 30,
+    userId?: string,
+    tenantSlug?: string,
+  ): Promise<number> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+
+    const result = await prisma.errorLog.deleteMany({
+      where: {
+        AND: [
+          { created_at: { lt: cutoffDate } },
+          ...(userId ? [{ user_id: userId }] : []),
+          ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
+        ],
+      },
+    });
+
+    return result.count;
+  }
+
+  /**
+   * Get a single error log by ID
+   */
+  static async getErrorLogById(
+    id: string,
+    tenantSlug: string,
+  ): Promise<{
+    id: string;
+    level: string;
+    message: string;
+    stack_trace: string | null;
+    user_id: string | null;
+    username: string | null;
+    tenant_slug: string | null;
+    route: string | null;
+    method: string | null;
+    ip_address: string | null;
+    user_agent: string | null;
+    request_body: string | null;
+    request_params: string | null;
+    request_query: string | null;
+    error_code: string | null;
+    context: string | null;
+    created_at: Date;
+  } | null> {
+    const log = await prisma.errorLog.findFirst({
+      where: {
+        AND: [{ id }, this.buildTenantSlugWhere(tenantSlug)],
+      },
+      select: {
+        id: true,
+        level: true,
+        message: true,
+        stack_trace: true,
+        user_id: true,
+        username: true,
+        tenant_slug: true,
+        route: true,
+        method: true,
+        ip_address: true,
+        user_agent: true,
+        request_body: true,
+        request_params: true,
+        request_query: true,
+        error_code: true,
+        context: true,
+        created_at: true,
+      },
+    });
+
+    return log;
+  }
+
+  /**
+   * Delete a single error log by ID
+   */
+  static async deleteErrorLog(id: string, tenantSlug: string): Promise<void> {
+    await prisma.errorLog.deleteMany({
+      where: {
+        AND: [{ id }, this.buildTenantSlugWhere(tenantSlug)],
+      },
+    });
+  }
+}

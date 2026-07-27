@@ -1,0 +1,63 @@
+{
+  "name": "@be-water/client-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*",
+    "./components/*": "./src/components/*",
+    "./hooks/*": "./src/hooks/*",
+    "./lib/*": "./src/lib/*",
+    "./lib/app-nav-types": "./src/lib/app-nav-types.ts",
+    "./lib/module-contract": "./src/lib/module-contract.ts",
+    "./lib/datetime-local": "./src/lib/datetime-local.ts",
+    "./lib/calendar-range": "./src/lib/calendar-range.ts",
+    "./lib/filter-chip-options": "./src/lib/filter-chip-options.ts"
+  },
+  "dependencies": {
+    "@be-water/shared": "workspace:*",
+    "@be-water/ui": "workspace:*",
+    "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-table": "^8.21.3",
+    "class-variance-authority": "^0.7.1",
+    "country-flag-icons": "^1.6.20",
+    "lucide-react": "^1.27.0",
+    "next-themes": "^0.4.6",
+    "react-day-picker": "^10.0.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "peerDependencies": {
+    "next-themes": "^0.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^8.0.0"
+  },
+  "devDependencies": {
+    "@be-water/client-test": "workspace:*",
+    "@eslint/js": "^10.0.1",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import-x": "^4.17.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.8.0",
+    "happy-dom": "^20.11.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "^8.3.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^4.1.10"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest --run"
+  }
+}

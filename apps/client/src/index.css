@@ -1,0 +1,672 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@source "../../../packages/ui/src";
+@source "../../../packages/client-kit/src";
+@source "../../../packages/modules/*/client/**/*.{ts,tsx}";
+@source "./**/*.{ts,tsx}";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.625rem;
+  --background: #eef6ff;
+  --foreground: #0a1628;
+  --card: #ffffff;
+  --card-foreground: #0a1628;
+  --popover: #ffffff;
+  --popover-foreground: #0a1628;
+  /* 双强调色分工：--primary(水蓝) = 品牌身份 / 主导航激活 / 表单主按钮；--brand(青) = 数据强调（KPI、进度条、图表主色、激活 chip）。两者同处水色系但靠明度与彩度拉开，不在同一控件抢焦点。 */
+  --primary: #0369a1;
+  --primary-foreground: #f0f9ff;
+  --secondary: #e4f0fa;
+  --secondary-foreground: #0f2744;
+  --muted: #e4f0fa;
+  --muted-foreground: #5b7390;
+  --accent: #dff7fb;
+  --accent-foreground: #0f2744;
+  --destructive: #ef4444;
+  --destructive-foreground: #fff5f5;
+  --border: #c5d9ed;
+  --input: oklch(0.55 0.05 240 / 0.14);
+  --ring: #0891b2;
+  --brand: #0891b2;
+  --brand-foreground: #f0fdfa;
+  --success: #16a34a;
+  --success-foreground: #f0fdf4;
+  --warning: #ca8a04;
+  --warning-foreground: #422006;
+  --info: #2563eb;
+  --info-foreground: #eff6ff;
+  /* 图表去单色：brand(teal) / info(blue) / warning(amber) / success(green) / destructive(red) */
+  --chart-1: var(--brand);
+  --chart-2: var(--info);
+  --chart-3: var(--warning);
+  --chart-4: var(--success);
+  --chart-5: var(--destructive);
+  --glow-brand: 0 0 20px rgba(8, 145, 178, 0.15);
+  --gradient-kpi: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(228, 240, 250, 0.92)
+  );
+  --gradient-panel: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(237, 246, 255, 0.94)
+  );
+  --shadow-panel: 0 14px 40px rgba(10, 22, 40, 0.08);
+  --sidebar: #f5faff;
+  --sidebar-foreground: #0a1628;
+  --sidebar-primary: #0369a1;
+  --sidebar-primary-foreground: #f0f9ff;
+  --sidebar-accent: #dff7fb;
+  --sidebar-accent-foreground: #0f2744;
+  --sidebar-border: #c5d9ed;
+  --sidebar-ring: #0891b2;
+}
+
+/* 深色主题：海军蓝背景层 + 水蓝/青辉光（原驾驶舱风格） */
+.dark {
+  --background: #071426;
+  --foreground: #eef6ff;
+  --card: #10233a;
+  --card-foreground: #eef6ff;
+  --popover: #10233a;
+  --popover-foreground: #eef6ff;
+  --primary: #38bdf8;
+  --primary-foreground: #042335;
+  --secondary: #132b45;
+  --secondary-foreground: #eef6ff;
+  --muted: #132b45;
+  --muted-foreground: #9eb0c6;
+  --accent: #143250;
+  --accent-foreground: #eef6ff;
+  --destructive: #ef4444;
+  --destructive-foreground: #fff5f5;
+  --border: #2b4562;
+  --input: oklch(0.7 0.05 240 / 0.22);
+  --ring: #22d3ee;
+  --brand: #22d3ee;
+  --brand-foreground: #042027;
+  --success: #22c55e;
+  --success-foreground: #04210f;
+  --warning: #facc15;
+  --warning-foreground: #2a1f00;
+  --info: #3b82f6;
+  --info-foreground: #f0f6ff;
+  --chart-1: var(--brand);
+  --chart-2: var(--info);
+  --chart-3: var(--warning);
+  --chart-4: var(--success);
+  --chart-5: var(--destructive);
+  --glow-brand: 0 0 25px rgba(34, 211, 238, 0.25);
+  --gradient-kpi: linear-gradient(
+    180deg,
+    rgba(17, 38, 63, 0.88),
+    rgba(11, 31, 53, 0.78)
+  );
+  --gradient-panel: linear-gradient(
+    180deg,
+    rgba(20, 45, 73, 0.85),
+    rgba(10, 31, 54, 0.72)
+  );
+  --shadow-panel: 0 14px 40px rgba(0, 0, 0, 0.35);
+  --sidebar: #0a1a2e;
+  --sidebar-foreground: #eef6ff;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #042335;
+  --sidebar-accent: #143250;
+  --sidebar-accent-foreground: #eef6ff;
+  --sidebar-border: rgba(120, 160, 200, 0.16);
+  --sidebar-ring: #22d3ee;
+}
+
+html:not(.dark) body {
+  background: radial-gradient(
+      circle at 20% 0%,
+      #e8f4ff 0,
+      #eef6ff 45%,
+      #e3eef9 100%
+    )
+    fixed;
+}
+
+.dark body {
+  background: radial-gradient(
+      circle at 20% 0%,
+      #0e2d50 0,
+      #071426 45%,
+      #06111f 100%
+    )
+    fixed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --font-sans: "Geist Variable", sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* Plain text links only — skip Button/pagination slots and layout/card wrappers */
+  :where(
+    a:not(
+      [data-slot="button"],
+      [data-slot="pagination-link"],
+      :has([data-slot="button"]),
+      [class*="flex"],
+      [class*="block"],
+      [class*="grid"],
+      [class*="rounded-lg"],
+      [class*="group/"],
+      :has(> div),
+      :has(svg)
+    )
+  ) {
+    @apply text-primary underline-offset-4 hover:underline;
+  }
+}
+
+@keyframes auth-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(4%, 3%) scale(1.06);
+  }
+}
+
+@keyframes auth-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-3%, 2%) scale(1.04);
+  }
+}
+
+@keyframes auth-drift-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(2%, -3%) scale(1.05);
+  }
+}
+
+/* 水下光斑：整块缓慢平移 + 呼吸，制造水面折射的游移感 */
+@keyframes auth-caustics-drift {
+  0%,
+  100% {
+    transform: translate3d(-2%, -1%, 0) scale(1.08);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(2%, 2%, 0) scale(1.16);
+    opacity: 1;
+  }
+}
+
+@keyframes auth-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes auth-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+@keyframes auth-waterline-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+@keyframes badge-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.35);
+  }
+  65% {
+    transform: scale(0.92);
+  }
+}
+
+@layer utilities {
+  .animate-badge-pop {
+    animation: badge-pop 0.55s ease-out;
+  }
+
+  /* 深水暗涌：越深越慢 */
+  .animate-auth-current-a {
+    animation: auth-drift-a 72s ease-in-out infinite;
+  }
+
+  .animate-auth-current-b {
+    animation: auth-drift-b 88s ease-in-out infinite;
+  }
+
+  .animate-auth-current-c {
+    animation: auth-drift-c 80s ease-in-out infinite;
+  }
+
+  /* 浅滩：近水面，流速更快 */
+  .animate-auth-shallow-a {
+    animation: auth-drift-a 48s ease-in-out infinite;
+  }
+
+  .animate-auth-shallow-b {
+    animation: auth-drift-b 58s ease-in-out infinite;
+  }
+
+  .animate-auth-shallow-c {
+    animation: auth-drift-c 54s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-badge-pop,
+    .animate-auth-current-a,
+    .animate-auth-current-b,
+    .animate-auth-current-c,
+    .animate-auth-shallow-a,
+    .animate-auth-shallow-b,
+    .animate-auth-shallow-c {
+      animation: none;
+    }
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* 面板质感工具类：浅/深主题均启用渐变/阴影/辉光 token */
+  .surface-panel {
+    background-image: var(--gradient-panel);
+    box-shadow: var(--shadow-panel);
+  }
+
+  .surface-kpi {
+    background-image: var(--gradient-kpi);
+  }
+
+  .glow-brand {
+    box-shadow: var(--glow-brand);
+  }
+
+  .auth-card-enter {
+    animation: auth-card-enter 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .auth-glass-card {
+    border-radius: calc(var(--radius) * 2);
+    overflow: hidden;
+  }
+
+  html:not(.dark) .auth-glass-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid color-mix(in oklch, var(--border) 80%, white);
+    box-shadow:
+      0 1px 2px rgba(10, 22, 40, 0.04),
+      0 4px 16px -2px rgba(10, 22, 40, 0.06),
+      0 20px 48px -12px rgba(10, 22, 40, 0.1),
+      0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+  }
+
+  .dark .auth-glass-card {
+    background: linear-gradient(
+      145deg,
+      color-mix(in oklch, var(--card) 55%, white 8%) 0%,
+      color-mix(in oklch, var(--card) 35%, transparent) 100%
+    );
+    backdrop-filter: blur(28px) saturate(1.4);
+    border: 1px solid color-mix(in oklch, white 14%, transparent);
+    box-shadow:
+      0 32px 64px -12px rgba(0, 0, 0, 0.55),
+      0 0 0 1px color-mix(in oklch, white 8%, transparent) inset,
+      0 0 100px color-mix(in oklch, var(--brand) 12%, transparent);
+  }
+
+  html:not(.dark) .auth-logo-glow {
+    filter: drop-shadow(
+      0 4px 12px color-mix(in oklch, var(--primary) 22%, transparent)
+    );
+  }
+
+  .dark .auth-logo-glow {
+    filter: drop-shadow(
+      0 0 18px color-mix(in oklch, var(--primary) 45%, transparent)
+    );
+  }
+
+  html:not(.dark) .auth-title-shimmer {
+    background-image: none;
+    color: var(--foreground);
+  }
+
+  .dark .auth-title-shimmer {
+    background-image: linear-gradient(
+      110deg,
+      var(--foreground) 0%,
+      color-mix(in oklch, var(--foreground) 70%, var(--brand)) 45%,
+      var(--foreground) 90%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  html:not(.dark) .auth-submit-btn {
+    box-shadow:
+      0 2px 8px rgba(13, 148, 136, 0.2),
+      0 8px 20px -4px rgba(8, 145, 178, 0.28),
+      0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+  }
+
+  html:not(.dark) .auth-submit-btn:hover:not(:disabled) {
+    box-shadow:
+      0 4px 12px rgba(13, 148, 136, 0.28),
+      0 12px 28px -4px rgba(8, 145, 178, 0.35),
+      0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+  }
+
+  .auth-submit-btn {
+    height: 2.75rem;
+    border: 0;
+    background-color: transparent;
+    background-image: linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      color-mix(in oklch, var(--primary) 60%, var(--brand)) 50%,
+      var(--brand) 100%
+    );
+    box-shadow:
+      0 4px 24px color-mix(in oklch, var(--primary) 35%, transparent),
+      0 0 0 1px color-mix(in oklch, white 12%, transparent) inset;
+    transition:
+      box-shadow 0.25s ease,
+      transform 0.2s ease,
+      filter 0.2s ease;
+  }
+
+  .auth-submit-btn:hover:not(:disabled) {
+    background-color: transparent;
+    box-shadow:
+      0 8px 32px color-mix(in oklch, var(--primary) 45%, transparent),
+      0 0 0 1px color-mix(in oklch, white 18%, transparent) inset;
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+  }
+
+  .auth-submit-btn:active:not(:disabled) {
+    transform: translateY(0);
+    filter: brightness(0.98);
+  }
+
+  html:not(.dark) .auth-input-group {
+    background: #ffffff;
+    border-color: color-mix(in oklch, var(--border) 90%, var(--foreground) 10%);
+    box-shadow: 0 1px 2px rgba(10, 22, 40, 0.03) inset;
+  }
+
+  html:not(.dark) .auth-input-group:focus-within {
+    border-color: color-mix(in oklch, var(--primary) 55%, var(--border));
+    box-shadow:
+      0 0 0 3px color-mix(in oklch, var(--primary) 10%, transparent),
+      0 1px 2px rgba(10, 22, 40, 0.02) inset;
+    background: #ffffff;
+  }
+
+  .dark .auth-input-group {
+    background: color-mix(in oklch, var(--background) 55%, transparent);
+    border-color: color-mix(in oklch, var(--border) 60%, transparent);
+  }
+
+  .dark .auth-input-group:focus-within {
+    border-color: color-mix(in oklch, var(--primary) 50%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 12%, transparent);
+    background: color-mix(in oklch, var(--background) 75%, transparent);
+  }
+
+  .auth-input-group {
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  html:not(.dark) .auth-vignette {
+    opacity: 0;
+  }
+
+  .auth-vignette {
+    background: radial-gradient(
+      ellipse 80% 70% at 50% 50%,
+      transparent 30%,
+      color-mix(in oklch, var(--background) 30%, black) 100%
+    );
+  }
+
+  .dark .auth-vignette {
+    background: radial-gradient(
+      ellipse 75% 65% at 50% 45%,
+      transparent 20%,
+      rgba(0, 0, 0, 0.55) 100%
+    );
+  }
+
+  html:not(.dark) .auth-noise {
+    opacity: 0.015;
+  }
+
+  .auth-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.025;
+  }
+
+  .dark .auth-noise {
+    opacity: 0.04;
+  }
+
+  /* 画布配色由 CSS 变量下发，JS 只负责取值——换主题 token 时不必改 canvas 代码。
+     hero 面板恒为深色，用 data-surface="deep" 强制取深水色。 */
+  .auth-water-field {
+    --auth-water-line: #0891b2;
+    --auth-water-ripple: #0369a1;
+    --auth-water-mote: #38bdf8;
+  }
+
+  .dark .auth-water-field,
+  .auth-water-field[data-surface="deep"] {
+    --auth-water-line: #22d3ee;
+    --auth-water-ripple: #7dd3fc;
+    --auth-water-mote: #a5e9f7;
+  }
+
+  /* 浅滩：自上而下由天光过渡到水色，比纯 background 平铺更有「一池水」的纵深 */
+  .auth-shallow-wash {
+    background: radial-gradient(
+      ellipse 120% 80% at 50% -10%,
+      #dceefb 0%,
+      #eef6ff 42%,
+      #e6f2f8 100%
+    );
+  }
+
+  /* 深水：水面在上、越往下越暗。半透明叠加，让 hero 面板自身的渐变透上来
+     （hero 在浅色主题下也是深色，所以这里不能依赖 --background） */
+  .auth-deep-wash {
+    background: linear-gradient(
+      180deg,
+      rgba(8, 42, 58, 0.3) 0%,
+      rgba(4, 18, 32, 0.08) 46%,
+      rgba(2, 10, 18, 0.3) 100%
+    );
+  }
+
+  .auth-form-wash {
+    background:
+      radial-gradient(
+        ellipse 85% 55% at 50% 0%,
+        color-mix(in oklch, var(--brand) 5%, transparent) 0%,
+        transparent 62%
+      ),
+      radial-gradient(
+        ellipse 75% 50% at 50% 100%,
+        color-mix(in oklch, var(--primary) 4%, transparent) 0%,
+        transparent 66%
+      );
+  }
+
+  .auth-caustics {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.011' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.65 0 0 0 0 0.9 0 0 0 0 1 1.4 0 0 0 -0.72'/%3E%3CfeGaussianBlur stdDeviation='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
+    background-size: cover;
+    mix-blend-mode: soft-light;
+    opacity: 0.22;
+    animation: auth-caustics-drift 72s ease-in-out infinite;
+  }
+
+  /* 按 surface 而非主题区分：hero 面板在浅色主题下依然是深水 */
+  .auth-water-field[data-surface="shallow"] .auth-caustics {
+    mix-blend-mode: overlay;
+    opacity: 0.12;
+  }
+
+  /* 水线：底部透上来的光，对应 Logo 里「水满至器壁」的那道水面。
+     只在深水层渲染，不需要按主题再关一次（hero 在浅色主题下同样是深水）。 */
+  .auth-waterline-glow {
+    background: linear-gradient(
+      to top,
+      color-mix(in oklch, var(--brand) 9%, transparent),
+      transparent 70%
+    );
+    animation: auth-waterline-pulse 22s ease-in-out infinite;
+  }
+
+  html:not(.dark) .auth-theme-toggle {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: color-mix(in oklch, var(--border) 70%, white);
+    box-shadow: 0 2px 8px rgba(10, 22, 40, 0.06);
+  }
+
+  .auth-theme-toggle {
+    backdrop-filter: blur(12px);
+    background: color-mix(in oklch, var(--card) 50%, transparent);
+    border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+  }
+
+  .auth-hero-panel {
+    color: #ffffff;
+    background-color: #061a22;
+    background-image:
+      radial-gradient(
+        ellipse 90% 70% at 12% 8%,
+        color-mix(in oklch, var(--brand) 32%, transparent) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 80% 65% at 88% 92%,
+        color-mix(in oklch, var(--primary) 24%, transparent) 0%,
+        transparent 60%
+      ),
+      linear-gradient(155deg, #071e26 0%, #0a2b34 46%, #051a22 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-card-enter {
+      animation: none;
+    }
+
+    .auth-waterline-glow,
+    .auth-caustics {
+      animation: none;
+    }
+  }
+}

@@ -1,0 +1,14 @@
+generator client {
+  provider = "prisma-client"
+  // 相对本文件所在目录（apps/server/prisma/）解析。
+  // 曾写作 ../../server-kernel/…，在 server 位于 packages/server 时才成立；
+  // 迁到 apps/server 后会误落到 apps/server-kernel/，与代码实际 import 的
+  // @be-water/server-kernel（= packages/server-kernel）脱钩。
+  output              = "../../../packages/server-kernel/src/generated/prisma/client"
+  // NodeNext：生成物内部相对 import 必须带 .js（tsconfig 未开 allowImportingTsExtensions）
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}

@@ -1,0 +1,27 @@
+// packages/modules/error-log/schema.prisma
+// 由 apps/server/prisma/models/error-log.prisma 符号链接汇入
+model ErrorLog {
+  id             String   @id @default(uuid())
+  level          String
+  message        String
+  stack_trace    String?
+  user_id        String?
+  username       String?
+  tenant_slug    String?
+  route          String?
+  method         String?
+  ip_address     String?
+  user_agent     String?
+  request_body   String?
+  request_params String?
+  request_query  String?
+  error_code     String?
+  context        String?
+  created_at     DateTime @default(now())
+
+  @@index([user_id])
+  @@index([tenant_slug])
+  @@index([level])
+  @@index([created_at])
+  @@index([error_code])
+}

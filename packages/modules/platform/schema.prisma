@@ -1,0 +1,51 @@
+// packages/modules/platform/schema.prisma
+// 由 apps/server/prisma/models/platform.prisma 符号链接汇入
+
+model AppSetting {
+  key        String   @id
+  value      Json
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model PlatformAdmin {
+  id                    String    @id @default(uuid())
+  username              String    @unique
+  password              String
+  is_system_admin       Boolean   @default(false)
+  enabled               Boolean   @default(true)
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  last_login_at         DateTime?
+  last_access_at        DateTime?
+  failed_login_attempts Int       @default(0)
+  locked_until          DateTime?
+
+  admin_roles    PlatformAdminRole[]
+  refresh_tokens PlatformAdminRefreshToken[]
+}
+
+model PlatformAdminRole {
+  admin_id   String
+  role_id    String
+  created_at DateTime @default(now())
+
+  admin PlatformAdmin @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  role  Role          @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@id([admin_id, role_id])
+  @@index([role_id])
+}
+
+model PlatformAdminRefreshToken {
+  id         String   @id @default(uuid())
+  admin_id   String
+  token      String   @unique
+  expires_at DateTime
+  created_at DateTime @default(now())
+  revoked    Boolean  @default(false)
+
+  admin PlatformAdmin @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+
+  @@index([admin_id])
+}

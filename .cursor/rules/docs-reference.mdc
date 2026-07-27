@@ -1,0 +1,29 @@
+---
+description: docs/ 设计文档索引 — 开发前先查对应 skill 或 docs 原文
+alwaysApply: true
+---
+
+# 设计文档索引
+
+完整文档在 `docs/`。按任务选用 **Skill**（`.cursor/skills/`，同步到 `.claude/skills/`）或 **docs** 原文。
+
+| 任务域 | Skill | 设计文档 |
+| --- | --- | --- |
+| 模块化 / 插件化架构 | `create-module`、`extract-module` | `docs/design/modular-architecture.md` |
+| 从模板派生产品仓 | — | `docs/design/downstream-fork.md` |
+| 权限（PBAC） | — | `docs/design/permission-system.md` |
+| 用户体系 | — | `docs/design/user-system.md` |
+| 多租户配置分层 | — | `docs/design/tenant-config.md` |
+| 租户功能开关 / entitlement | — | `docs/design/tenant-features.md` |
+| 错误日志 | `error-logging` | `docs/design/error-logging.md` |
+| 字段命名全链路 | — | `docs/design/field-naming-conventions.md` |
+| 单元测试 | — | `docs/design/unit-testing.md` |
+| 前端页面分层 | `frontend-page-structure` | — |
+| Prisma migration | `merge-migrations`、`prisma-sync-fix` | — |
+| 部署 | — | `docs/deployment.md` |
+
+## 约定
+
+- 文档是**设计与口径**的唯一真相源；实现细节以代码为准
+- 新增设计文档后，同步更新本索引
+- 业务域文档属于下游产品仓，不放在模板里

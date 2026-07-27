@@ -1,0 +1,18 @@
+// packages/modules/background-job/schema.prisma
+// 由 apps/server/prisma/models/background-job.prisma 符号链接汇入
+model BackgroundJob {
+  id          String    @id @default(uuid())
+  user_id     String
+  type        String
+  title       String
+  status      String    @default("running")
+  description String?
+  result      Json?
+  input       Json?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  finished_at DateTime?
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, created_at(sort: Desc)])
+}

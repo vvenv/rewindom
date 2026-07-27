@@ -1,0 +1,37 @@
+---
+description: be-water 架构与技术选型
+alwaysApply: true
+---
+
+# 架构
+
+```
+Frontend (React SPA) → Fastify API (:3400) → PostgreSQL + Prisma + pgvector
+```
+
+Monorepo: `apps/server`（后端）+ `apps/client`（前端）+ `modules/*`（业务模块）+ `packages/*`（共享基建）。单进程部署，Fastify 托管 `/api/*` 与 SPA fallback。
+
+**目标架构（Modular Monolith，Phase 6 已落地）**：Kernel + Shell 模块 + 单业务包 `be-water`，见 `docs/design/modular-architecture.md`。
+
+## 技术栈
+
+- **后端**: Fastify 5 + TypeScript 6 + Prisma 7 + PostgreSQL（含 pgvector 扩展）
+- **前端**: React 19 + Vite 8 + React Router v7 + TanStack Query/Table + shadcn/ui + Tailwind CSS 4
+- **认证**: JWT 双 Token（`access_token` + `refresh_token`），`api.ts` 自动刷新
+- **向量搜索**: pgvector 实现文档语义检索，结合 PostgreSQL 全文搜索实现混合搜索
+- **任务队列**: BullMQ + ioredis
+- **AI 能力**: OpenAI API（合规分析 Agent、文档解析）
+
+## 核心业务模块
+
+Document（法规文档）· DocumentChunk（文档切片）· Product（产品）· ComplianceAnalysis（合规分析）· CitationRecord（引用记录）
+
+## 合规分析流程
+
+1. 产品解析 → 提取产品属性
+2. 法规检索 → 向量搜索 + 全文搜索混合检索
+3. 风险匹配 → AI 分析合规风险
+4. 建议生成 → 生成合规建议
+5. 法规引用 → 记录引用来源
+
+Skills：`document-management` · `vector-search` · `compliance-analysis` · `product-management` · `error-logging`。文档索引：`docs-reference` rule。

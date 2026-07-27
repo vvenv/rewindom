@@ -1,0 +1,9 @@
+---
+description: PLAN.md 任务完成状态跟踪
+globs: docs/PLAN.md
+alwaysApply: false
+---
+
+# PLAN.md 任务跟踪
+
+完成 `docs/PLAN.md` 中的任务后，立即将对应 `- [ ]` 改为 `- [x]`。

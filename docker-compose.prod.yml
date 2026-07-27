@@ -1,0 +1,94 @@
+# 生产 Docker Compose — 与宿主机 Nginx + Certbot 配合（见 scripts/docker-deploy-remote.sh）
+# 本地验证: docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: be-water-postgres
+    environment:
+      POSTGRES_USER: be-water
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: be-water
+    volumes:
+      - be_water_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U be-water -d be-water"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: be-water-redis
+    command: >
+      sh -c 'if [ -n "$${REDIS_PASSWORD}" ]; then
+        exec redis-server --requirepass "$${REDIS_PASSWORD}";
+      else
+        exec redis-server;
+      fi'
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    volumes:
+      - be_water_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: app
+    container_name: be-water-app
+    environment:
+      NODE_ENV: production
+      PORT: 3400
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://be-water:${DB_PASSWORD}@postgres:5432/be-water
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_USER: be-water
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: "0"
+      JWT_SECRET: ${JWT_SECRET}
+      TENANT_SECRET_ENCRYPTION_KEY: ${TENANT_SECRET_ENCRYPTION_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.deepseek.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-deepseek-v4-flash}
+      PLATFORM_ADMIN_USERNAME: ${PLATFORM_ADMIN_USERNAME:-platform}
+      PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:-}
+      EXPORT_BASE_DIR: /data/exports
+      ATTACHMENT_BASE_DIR: /data/attachments
+      FRONTEND_URL: ${FRONTEND_URL:-https://${APP_DOMAIN}}
+      LOG_LEVEL: ${LOG_LEVEL:-warn}
+    volumes:
+      - be_water_storage:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: web
+    container_name: be-water-web
+    ports:
+      - "127.0.0.1:${APP_PORT:-3400}:80"
+    depends_on:
+      - app
+    restart: unless-stopped
+
+volumes:
+  be_water_pg:
+  be_water_redis:
+  be_water_storage:

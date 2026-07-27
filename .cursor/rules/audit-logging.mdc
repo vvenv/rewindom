@@ -1,0 +1,27 @@
+---
+description: 审计日志实现规范，所有写操作必须记录
+globs: apps/server/**/*.ts
+alwaysApply: false
+---
+
+# 审计日志
+
+所有写操作（POST/PUT/DELETE）必须在业务成功后、响应返回前记录审计日志。
+
+## 实现要点
+
+1. 优先使用 `AuditService` 便捷方法（如 `logDocumentCreate`），而非直接 `log`
+2. 操作者 ID：`request.authUser!.userId`
+3. 审计失败不影响业务，用 try-catch 包裹并 `app.log.error`
+
+```typescript
+try {
+  await AuditService.logDocumentCreate(operatorId, documentId, request.ip, request.headers["user-agent"]);
+} catch (error) {
+  app.log.error({ error }, "Failed to log audit entry");
+}
+```
+
+## 新增操作类型
+
+同时更新 `packages/shared/src/index.ts` 中的 `AuditAction` 和 `AUDIT_ACTION_LABELS`。完整 action 列表以该文件为准。

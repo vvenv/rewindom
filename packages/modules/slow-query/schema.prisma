@@ -1,0 +1,24 @@
+// packages/modules/slow-query/schema.prisma
+// 由 apps/server/prisma/models/slow-query.prisma 符号链接汇入
+model SlowQueryLog {
+  id          String   @id @default(uuid())
+  duration_ms Int
+  query       String
+  params      String?
+  fingerprint String
+  target      String?
+  route       String?
+  method      String?
+  tenant_slug String?
+  user_id     String?
+  username    String?
+  request_id  String?
+  source      String   @default("http")
+  created_at  DateTime @default(now())
+
+  @@index([created_at])
+  @@index([duration_ms])
+  @@index([fingerprint])
+  @@index([tenant_slug])
+  @@index([route])
+}

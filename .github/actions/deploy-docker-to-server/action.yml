@@ -1,0 +1,131 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: Deploy Docker to server
+description: Upload source tarball and run docker compose build on remote server
+
+inputs:
+  environment:
+    description: Target deploy environment (production or test)
+    required: true
+  ssh_host:
+    description: SSH host
+    required: true
+  ssh_user:
+    description: SSH username
+    required: true
+  ssh_password:
+    description: SSH password
+    required: true
+  bootstrap:
+    description: First-time bootstrap with Nginx and SSL
+    required: false
+    default: "false"
+  env_only:
+    description: Only sync env file and restart containers
+    required: false
+    default: "false"
+  db_password:
+    required: true
+  jwt_secret:
+    required: true
+  tenant_secret_encryption_key:
+    required: true
+  app_domain:
+    required: true
+  app_port:
+    required: false
+    default: ""
+  ssl_email:
+    required: false
+    default: ""
+  openai_api_key:
+    required: false
+    default: ""
+  openai_base_url:
+    required: false
+    default: ""
+  openai_model:
+    required: false
+    default: ""
+  redis_password:
+    required: false
+    default: ""
+  platform_admin_username:
+    required: false
+    default: ""
+  platform_admin_password:
+    required: false
+    default: ""
+  log_level:
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install sshpass
+      shell: bash
+      run: |
+        if ! command -v sshpass >/dev/null 2>&1; then
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq sshpass
+        fi
+
+    - name: Write deploy env file
+      shell: bash
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
+        DEPLOY_HOST: ${{ inputs.ssh_host }}
+        DEPLOY_SSH_USER: ${{ inputs.ssh_user }}
+        DEPLOY_SSH_PASSWORD: ${{ inputs.ssh_password }}
+        DB_PASSWORD: ${{ inputs.db_password }}
+        JWT_SECRET: ${{ inputs.jwt_secret }}
+        TENANT_SECRET_ENCRYPTION_KEY: ${{ inputs.tenant_secret_encryption_key }}
+        APP_DOMAIN: ${{ inputs.app_domain }}
+        APP_PORT: ${{ inputs.app_port }}
+        SSL_EMAIL: ${{ inputs.ssl_email }}
+        OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+        OPENAI_BASE_URL: ${{ inputs.openai_base_url }}
+        OPENAI_MODEL: ${{ inputs.openai_model }}
+        REDIS_PASSWORD: ${{ inputs.redis_password }}
+        PLATFORM_ADMIN_USERNAME: ${{ inputs.platform_admin_username }}
+        PLATFORM_ADMIN_PASSWORD: ${{ inputs.platform_admin_password }}
+        LOG_LEVEL: ${{ inputs.log_level }}
+      run: |
+        set -euo pipefail
+        case "$ENVIRONMENT" in
+          production) env_file=".env.production" ;;
+          test) env_file=".env.test" ;;
+          *) echo "Unsupported environment: $ENVIRONMENT"; exit 1 ;;
+        esac
+        {
+          printf 'DEPLOY_HOST=%s\n' "$DEPLOY_HOST"
+          printf 'DEPLOY_SSH_USER=%s\n' "$DEPLOY_SSH_USER"
+          printf 'DEPLOY_SSH_PASSWORD=%s\n' "$DEPLOY_SSH_PASSWORD"
+          printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
+          printf 'JWT_SECRET=%s\n' "$JWT_SECRET"
+          printf 'TENANT_SECRET_ENCRYPTION_KEY=%s\n' "$TENANT_SECRET_ENCRYPTION_KEY"
+          printf 'APP_DOMAIN=%s\n' "$APP_DOMAIN"
+          [ -n "$APP_PORT" ] && printf 'APP_PORT=%s\n' "$APP_PORT"
+          [ -n "$SSL_EMAIL" ] && printf 'SSL_EMAIL=%s\n' "$SSL_EMAIL"
+          [ -n "$OPENAI_API_KEY" ] && printf 'OPENAI_API_KEY=%s\n' "$OPENAI_API_KEY"
+          [ -n "$OPENAI_BASE_URL" ] && printf 'OPENAI_BASE_URL=%s\n' "$OPENAI_BASE_URL"
+          [ -n "$OPENAI_MODEL" ] && printf 'OPENAI_MODEL=%s\n' "$OPENAI_MODEL"
+          [ -n "$REDIS_PASSWORD" ] && printf 'REDIS_PASSWORD=%s\n' "$REDIS_PASSWORD"
+          [ -n "$PLATFORM_ADMIN_USERNAME" ] && printf 'PLATFORM_ADMIN_USERNAME=%s\n' "$PLATFORM_ADMIN_USERNAME"
+          [ -n "$PLATFORM_ADMIN_PASSWORD" ] && printf 'PLATFORM_ADMIN_PASSWORD=%s\n' "$PLATFORM_ADMIN_PASSWORD"
+          [ -n "$LOG_LEVEL" ] && printf 'LOG_LEVEL=%s\n' "$LOG_LEVEL"
+        } >"$env_file"
+
+    - name: Deploy via Docker
+      shell: bash
+      run: |
+        set -euo pipefail
+        chmod +x scripts/docker-deploy-remote.sh
+        args=(--env "${{ inputs.environment }}" --yes)
+        if [ "${{ inputs.bootstrap }}" = "true" ]; then
+          args+=(--bootstrap)
+        fi
+        if [ "${{ inputs.env_only }}" = "true" ]; then
+          args+=(--env-only)
+        fi
+        bash scripts/docker-deploy-remote.sh "${args[@]}"

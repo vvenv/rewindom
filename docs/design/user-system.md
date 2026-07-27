@@ -1,0 +1,440 @@
+# 用户系统设计文档
+
+> **重要说明**：本文档中的代码示例使用的是概念性的 API 调用，仅供参考。实际开发中，**必须**使用 `apps/client/src/lib/api.ts` 中提供的 `api` 工具进行所有 API 调用。该工具已封装了 Token 管理、自动刷新、错误处理等功能。详见项目编码规范 `.cursor/rules/coding-standards.mdc`。
+
+## 一、系统概述
+
+本文档描述 be-water 的用户认证与授权系统，采用标准的 JWT Token 机制，支持用户注册、登录、密码加密、滑块验证码、Access Token 与 Refresh Token 刷新等功能。
+
+> **SaaS 多租户（规划）**：登录标识将演进为 `username@tenant_slug`，默认租户 `default` 可省略后缀；**租户侧 UI 无感知**；**平台系统管理员（PLATFORM_ADMIN）** 凭 env 管理租户，见 [`tenant-config.md`](./tenant-config.md) §5.8、§10.3。
+
+## 二、技术选型
+
+### 后端技术
+
+- **Fastify 5** - Web 框架
+- **Prisma 7** - ORM
+- **PostgreSQL** - 数据库
+- **bcrypt** - 密码加密
+- **@fastify/jwt** - Fastify JWT 插件（内部封装 jsonwebtoken）
+
+### 前端技术
+
+- **React 19** - UI 框架
+- **TanStack Query** - 数据请求与缓存
+- 滑块验证码组件
+
+## 三、数据模型设计
+
+### User 表
+
+```prisma
+model User {
+  id                    String           @id @default(uuid())
+  tenant_id             String
+  username              String
+  password              String           // bcrypt 加密后的密码
+  role                  Role             @default(USER) // USER, SUPERUSER
+  enabled               Boolean          @default(true)
+  last_login_at         DateTime?
+  failed_login_attempts Int              @default(0)
+  locked_until          DateTime?
+  created_at            DateTime         @default(now())
+  updated_at            DateTime         @updatedAt
+
+  tenant                Tenant           @relation(fields: [tenant_id], references: [id])
+  permissions           UserPermission[]
+  refresh_tokens        RefreshToken[]
+  audit_logs            AuditLog[]
+
+  @@unique([tenant_id, username])
+  @@index([tenant_id])
+}
+
+enum Role {
+  USER
+  SUPERUSER
+}
+```
+
+### RefreshToken 表
+
+```prisma
+model RefreshToken {
+  id           String    @id @default(uuid())
+  user_id      String
+  token        String    @unique
+  expires_at   DateTime
+  created_at   DateTime @default(now())
+  revoked      Boolean   @default(false)
+  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+```
+
+### AuditLog 审计日志表
+
+```prisma
+model AuditLog {
+  id          String    @id @default(uuid())
+  user_id     String
+  action      String    // 操作类型
+  resource    String?   // 操作的资源类型（user、note 等，由各模块定义）
+  details     String?   // 操作详情（JSON）
+  ip_address  String?
+  user_agent  String?
+  created_at  DateTime  @default(now())
+
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([action])
+  @@index([created_at])
+}
+```
+
+## 四、认证流程设计
+
+### 4.1 用户注册
+
+**流程**：
+
+1. 客户端提交注册表单（账号、密码、滑块验证码 token）
+2. 服务端验证滑块验证码
+3. 验证账号格式和唯一性（租户内唯一）
+4. 验证密码强度
+5. 使用 bcrypt 加密密码（salt rounds: 10）
+6. 创建用户记录（归属当前租户或 default 租户）
+7. 返回成功响应
+
+**API 接口**：
+
+```
+POST /api/auth/register
+```
+
+**请求体**：
+
+```json
+{
+  "username": "user123",
+  "password": "SecurePass123!",
+  "captcha_token": "滑块验证码_token"
+}
+```
+
+**响应**：
+
+```json
+{
+  "data": {
+    "user_id": "uuid",
+    "username": "user123"
+  }
+}
+```
+
+### 4.2 用户登录
+
+**流程**：
+
+1. 客户端提交登录表单（账号、密码、滑块验证码 token）
+2. 服务端验证滑块验证码
+3. **解析登录标识**（支持多租户格式 `username@tenant_slug`，默认租户 `default` 可省略）
+4. 查询租户记录（多租户场景）
+5. 查询用户记录
+6. 检查账户是否被锁定
+7. 使用 bcrypt 验证密码
+8. 验证成功后：
+   - 生成 Access Token（有效期 15 分钟，包含 `tenant_id` 和 `tenant_slug`）
+   - 生成 Refresh Token（有效期 7 天）
+   - 保存 Refresh Token 到数据库
+   - 更新用户最后登录时间
+   - 重置失败登录次数
+9. 验证失败时：
+   - 增加失败登录次数
+   - 如果失败次数 >= 5，锁定账户 30 分钟
+10. 返回 Token 信息
+
+**API 接口**：
+
+```
+POST /api/auth/login
+```
+
+**请求体**：
+
+```json
+{
+  "username": "user123",
+  "password": "SecurePass123!",
+  "captcha_token": "滑块验证码_token"
+}
+```
+
+**响应**：
+
+```json
+{
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIs...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
+    "expires_in": 900,
+    "user": {
+      "id": "uuid",
+      "username": "user123"
+    }
+  }
+}
+```
+
+### 4.3 Token 刷新
+
+**流程**：
+
+1. 客户端使用 Refresh Token 请求新的 Access Token
+2. 服务端验证 Refresh Token：
+   - 检查数据库中是否存在
+   - 检查是否已撤销
+   - 检查是否过期
+3. 验证成功后：
+   - 生成新的 Access Token
+   - 生成新的 Refresh Token
+   - 撤销旧的 Refresh Token
+   - 保存新的 Refresh Token
+4. 返回新的 Token 信息
+
+**API 接口**：
+
+```
+POST /api/auth/refresh
+```
+
+**请求体**：
+
+```json
+{
+  "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
+}
+```
+
+**响应**：
+
+```json
+{
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIs...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
+    "expires_in": 900
+  }
+}
+```
+
+### 4.4 修改密码
+
+**流程**：
+
+1. 用户提交修改密码请求（旧密码、新密码）
+2. 服务端验证旧密码
+3. 验证新密码强度
+4. 使用 bcrypt 加密新密码
+5. 更新用户密码
+6. 返回成功响应
+
+**API 接口**：
+
+```
+POST /api/auth/change-password
+```
+
+### 4.5 重置用户密码（仅超级用户）
+
+**流程**：
+
+1. 超级用户提交重置密码请求
+2. 服务端验证请求者是否为超级用户
+3. 生成随机密码（16位，包含大小写字母、数字、特殊字符）
+4. 使用 bcrypt 加密新密码
+5. 更新目标用户密码
+6. 返回新密码（仅一次显示）
+
+**API 接口**：
+
+```
+POST /api/users/:id/reset-password
+```
+
+### 4.6 用户登出
+
+**流程**：
+
+1. 客户端发送登出请求（携带 Refresh Token）
+2. 服务端撤销数据库中的 Refresh Token
+3. 返回成功响应
+4. 客户端清除本地存储的 Token
+
+**API 接口**：
+
+```
+POST /api/auth/logout
+```
+
+## 五、安全机制
+
+### 5.1 密码加密
+
+使用 bcrypt 进行密码哈希：
+
+- Salt rounds: 10
+- 存储格式: `$2b$10$...`
+
+### 5.2 滑块验证码验证
+
+使用滑块验证码防止自动化攻击，国内用户友好，无需 Google 服务。
+
+### 5.3 JWT Token 配置
+
+**Access Token**：
+
+- 算法: HS256
+- 有效期: 15 分钟
+- Payload: `{ userId, role, tenant_id, tenant_slug }`
+
+**Refresh Token**：
+
+- 算法: HS256
+- 有效期: 7 天
+- 存储在数据库，可撤销
+
+**环境变量**：
+
+```env
+JWT_SECRET=your-secret-key-min-32-chars
+```
+
+### 5.4 登录失败限制
+
+- 失败次数 >= 5：锁定账户 30 分钟
+- 锁定期间无法登录
+- 成功登录后重置失败次数
+
+### 5.5 Token 存储策略
+
+**客户端**：
+
+- Access Token: 内存存储（sessionStorage 或 React Context）
+- Refresh Token: localStorage
+
+**服务端**：
+
+- Refresh Token: 存储在数据库，支持撤销
+
+## 六、API 路由设计
+
+### 认证路由 `/api/auth`
+
+| 方法 | 路径                        | 说明         | 需要认证 |
+| ---- | --------------------------- | ------------ | -------- |
+| POST | `/api/auth/register`        | 用户注册     | 否       |
+| POST | `/api/auth/login`           | 用户登录     | 否       |
+| POST | `/api/auth/refresh`         | 刷新 Token   | 否       |
+| POST | `/api/auth/logout`          | 用户登出     | 否       |
+| GET  | `/api/auth/me`              | 获取当前用户 | 是       |
+| POST | `/api/auth/change-password` | 修改密码     | 是       |
+
+### 用户管理路由 `/api/users`（仅超级用户）
+
+| 方法   | 路径                            | 说明         | 权限要求 |
+| ------ | ------------------------------- | ------------ | -------- |
+| GET    | `/api/users`                    | 获取用户列表 | 超级用户 |
+| POST   | `/api/users`                    | 创建用户     | 超级用户 |
+| GET    | `/api/users/:id`                | 获取单个用户 | 超级用户 |
+| PUT    | `/api/users/:id`                | 更新用户信息 | 超级用户 |
+| DELETE | `/api/users/:id`                | 删除用户     | 超级用户 |
+| POST   | `/api/users/:id/reset-password` | 重置用户密码 | 超级用户 |
+
+## 七、环境变量配置
+
+```env
+# JWT 配置
+JWT_SECRET=your-super-secret-key-at-least-32-characters-long
+
+# 数据库
+DATABASE_URL="postgresql://be-water:password@localhost:5432/app"
+
+# Redis（BullMQ 任务队列）
+REDIS_URL="redis://localhost:6379"
+
+# LLM（OpenAI 兼容接口）
+OPENAI_API_KEY=sk-...
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4o
+
+# 平台管理员（Phase 1+）
+PLATFORM_ADMIN_USERNAME=platform_admin
+PLATFORM_ADMIN_PASSWORD=<generated-on-bootstrap>
+```
+
+## 八、审计日志分类
+
+### 用户账号操作
+
+| Action            | 说明                     |
+| ----------------- | ------------------------ |
+| `LOGIN`           | 用户成功登录             |
+| `LOGOUT`          | 用户登出                 |
+| `LOGIN_FAILED`    | 登录失败                 |
+| `USER_CREATE`     | 创建用户（超级用户）     |
+| `USER_DELETE`     | 删除用户（超级用户）     |
+| `USER_UPDATE`     | 更新用户信息（超级用户） |
+| `PASSWORD_CHANGE` | 修改密码                 |
+| `PASSWORD_RESET`  | 重置密码（超级用户）     |
+
+### 业务操作
+
+| Action                   | 说明                   |
+| ------------------------ | ---------------------- |
+| `NOTE_CREATE`            | 创建笔记（示例模块）   |
+| `NOTE_UPDATE`            | 更新笔记（示例模块）   |
+| `NOTE_DELETE`            | 删除笔记（示例模块）   |
+| `TENANT_REGISTER`        | 新租户注册             |
+| `TENANT_FEATURES_UPDATE` | 平台管理员修改功能开关 |
+| `TENANT_LIMITS_UPDATE`   | 平台管理员修改配额     |
+| `PLAN_UPGRADE`           | 套餐升级               |
+
+## 九、实施步骤
+
+1. **数据库模型更新**
+   - 添加 User、RefreshToken、AuditLog 模型
+   - 执行数据库迁移
+
+2. **后端实现**
+   - 安装依赖：`bcrypt`, `@fastify/jwt`
+   - 注册 @fastify/jwt 插件
+   - 实现认证路由：register, login, refresh, logout
+   - 实现认证中间件（auth.ts）
+   - 实现权限中间件（permission.ts）
+   - 实现全局错误处理中间件（error-handler.ts）
+   - 实现 AuditService
+
+3. **前端实现**
+   - 实现 AuthContext（AuthContext.tsx）
+   - 实现登录/注册表单页面
+   - 实现 api.ts 的 Token 自动刷新逻辑
+   - 实现用户管理页面（超级用户）
+
+4. **测试**
+   - 单元测试：密码加密、Token 生成/验证
+   - 集成测试：完整认证流程
+   - 安全测试：滑块验证码、登录失败限制
+
+## 十、注意事项
+
+1. **JWT Secret 安全**：使用强随机密钥，至少 32 字符
+2. **HTTPS**：生产环境必须使用 HTTPS
+3. **密码策略**：强制复杂密码（至少 8 位，包含大小写字母、数字、特殊字符）
+4. **Token 存储**：Refresh Token 存 localStorage；Access Token 存内存
+5. **日志记录**：记录登录失败、异常登录等安全事件
+6. **定期清理**：定期清理过期的 Refresh Token 和审计日志
+7. **多租户隔离**：所有业务查询必须带 `tenant_id` 过滤

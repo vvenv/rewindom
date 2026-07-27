@@ -1,0 +1,47 @@
+---
+description: PBAC 按钮级权限（后端 requirePermission + 前端 usePermissions）
+globs: packages/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# 权限系统
+
+详见 `docs/design/permission-system.md`；**同一 PATCH 内字段级写权限**见 `docs/design/field-level-permissions.md`（注册表在 `@be-water/shared` 的 `field-permissions.ts`）。
+
+## 模型
+
+- 角色：`USER` | `SUPERUSER`（超管默认全部权限）
+- 权限：点分字符串，存 `UserPermission`，如 `documents.write`、`analysis.run`
+- JWT 仅含 `userId` + `role`；USER 权限查库/缓存（TTL 5min）
+
+## 后端
+
+路由声明所需权限，经 `requirePermission` / `requireAnyPermission` 装饰器拦截；无权限 → **403**。
+
+```typescript
+{
+  preHandler: [app.authenticate, app.requirePermission("documents.delete")];
+}
+```
+
+## 前端
+
+从后端拉权限列表，用 `usePermissions` / `hasPermission` 控制按钮，**不**仅靠 UI 隐藏做安全边界。
+
+```tsx
+{
+  hasPermission("documents.write") && <Button>上传文档</Button>;
+}
+```
+
+## 常用权限
+
+| 权限                                                      | 场景                   |
+| --------------------------------------------------------- | ---------------------- |
+| `documents.read` / `documents.write` / `documents.delete` | 法规文档列表/上传/删除 |
+| `products.read` / `products.write`                        | 产品管理               |
+| `analysis.run`                                            | 执行合规分析           |
+| `citations.read`                                          | 查看引用记录           |
+| `tenants.manage`                                          | 租户管理               |
+
+新增权限时同步更新 shared 常量、种子数据与文档。

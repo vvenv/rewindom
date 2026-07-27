@@ -1,0 +1,162 @@
+name: Test
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # 每天 09:00 (UTC+8)
+  workflow_dispatch:
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "11.17.0"
+
+jobs:
+  test:
+    name: ${{ matrix.package }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: server
+            filter: server
+          - package: client
+            filter: client
+          - package: shared
+            filter: shared
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: pnpm --filter ${{ matrix.filter }} test:coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.package }}-coverage
+          path: ${{ matrix.package == 'shared' && 'packages/shared/coverage/lcov.info' || format('apps/{0}/coverage/lcov.info', matrix.package) }}
+          retention-days: 1
+
+  upload-coverage:
+    name: Upload coverage
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Download server coverage
+        uses: actions/download-artifact@v8
+        with:
+          name: server-coverage
+          path: apps/server/coverage
+
+      - name: Download client coverage
+        uses: actions/download-artifact@v8
+        with:
+          name: client-coverage
+          path: apps/client/coverage
+
+      - name: Download shared coverage
+        uses: actions/download-artifact@v8
+        with:
+          name: shared-coverage
+          path: packages/shared/coverage
+
+      - name: Verify and rewrite coverage paths
+        run: |
+          declare -A coverage_roots=(
+            [server]="apps/server"
+            [client]="apps/client"
+            [shared]="packages/shared"
+          )
+          for package in server client shared; do
+            root="${coverage_roots[$package]}"
+            file="${root}/coverage/lcov.info"
+            if [ ! -s "$file" ]; then
+              echo "::error::Missing or empty coverage report: $file"
+              exit 1
+            fi
+            sed -i "s|^SF:src/|SF:${root}/src/|" "$file"
+          done
+
+      - name: Upload server coverage
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: apps/server/coverage/lcov.info
+          disable_search: true
+          flags: server
+          name: server-coverage
+          fail_ci_if_error: true
+
+      - name: Upload client coverage
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: apps/client/coverage/lcov.info
+          disable_search: true
+          flags: client
+          name: client-coverage
+          fail_ci_if_error: true
+
+      - name: Upload shared coverage
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: packages/shared/coverage/lcov.info
+          disable_search: true
+          flags: shared
+          name: shared-coverage
+          fail_ci_if_error: true
+
+  # 内核 + 基础设施模块的隔离 smoke test：守护「不启用业务模块也能跑通」，
+  # 即 kernel / infra 未偷偷依赖 module-be-water。be-water 上游仓有自己的 CI。
+  kernel-infra-smoke:
+    name: kernel + infra smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter server exec prisma generate
+
+      - name: Run kernel + infra smoke tests
+        run: |
+          pnpm --filter server exec vitest --run \
+            ../../packages/server-kernel/src \
+            ../../packages/modules/notes/server \
+            ../../packages/modules/rbac/server

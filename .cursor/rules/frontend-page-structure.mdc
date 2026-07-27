@@ -1,0 +1,166 @@
+---
+description: 前端 Page 分层与页面外壳 — PageLayout、Page 编排、Hook 状态、Lib 纯函数、Component UI
+globs: apps/client/**/*.{tsx,ts},packages/modules/*/client/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# 前端 Page 分层
+
+大型页面（>150 行）或新增复杂页面时，按四层拆分。**Page 只编排，不写列定义/校验/URL 细节。**
+
+## 页面外壳（先定这个，再谈分层）
+
+新建页面**第一件事**是选对外壳——取决于页面挂在哪个壳层，看模块 manifest 的 `client.*`：
+
+| 挂载点 | 壳层 | 页面外壳 | 金标准 |
+| --- | --- | --- | --- |
+| `renderRoutes` / `renderSuperUserRoutes` | 租户 `AppLayout` | **必须** `PageLayout` | `notes/client/pages/notes.tsx` |
+| `renderPlatformRoutes` | 平台 `PlatformLayout` | **不要** `PageLayout`，直接 `<div className="flex flex-col gap-4">` | `platform/client/pages/tenants.tsx` |
+| `renderGuestRoutes` | 无壳 | `AuthPageShell` | `shell/pages/login.tsx` |
+
+**租户页**用 `PageLayout` 承载 icon / title / description / action：
+
+```tsx
+<PageLayout
+  icon={ShieldCheck}
+  title="角色权限"
+  description="管理租户角色及其权限，成员通过被分配角色获得权限"
+  action={
+    canWrite ? (
+      <RoleCreateSheet>
+        <DraggableFabTrigger storageKey="roles_create_fab">
+          <Plus className="size-6 md:size-4" />
+          <span className="hidden md:inline">新建角色</span>
+        </DraggableFabTrigger>
+      </RoleCreateSheet>
+    ) : null
+  }
+>
+  <div className="flex flex-col gap-4">{/* 筛选栏 + 表格 */}</div>
+</PageLayout>
+```
+
+要点：
+
+- `action` 传 `DraggableFabTrigger`，桌面端是按钮、移动端是 FAB，一次声明两端生效。
+  因此 `*CreateSheet` 须接受 `children` 作 trigger（`children ?? 默认 Button`）。
+- 无权限时 `action` 传 `null`，不要渲染禁用态按钮。
+- `PageLayout` 的 header 是 `hidden md:flex`；移动端标题由 `AppMobileHeader` 从导航项的
+  `title` 字段解析（见 `resolve-mobile-header.ts`）——**所以导航项必须写 `title`**，否则移动端无标题。
+
+**平台页**不要套 `PageLayout`：`PlatformLayout` 自带 `<header>` + `<h1>`，再套一层会出现两个标题。
+
+❌ 反模式（本仓曾长期如此，勿再复制）：租户页手写 `<div><p className="text-muted-foreground">说明</p><CreateSheet /></div>`
+当页头。它没有 icon、没有移动端 FAB、与 `notes` 不一致，且说明文字在移动端会与 `AppMobileHeader` 的标题重复。
+
+## 职责
+
+| 层 | 目录 | 职责 |
+| --- | --- | --- |
+| **Page** | `pages/` | 组合 Hook + 组件；`toast`/`confirm` 等 UI 副作用 |
+| **Hook** | `hooks/` | URL 同步、表单/列表 state、调用 mutation |
+| **Lib** | `lib/` | 纯函数：校验、URL 解析、数据转换；**须单测** |
+| **Component** | `components/<domain>/` | 展示与交互；props 入、callback 出 |
+
+## 目录约定
+
+- 业务域子目录：`chat/`、`compliance/`、`library/`、`auth/`、`users/`、`platform/`
+- Hook 命名：`useXxxPage`（URL+列表）、`useXxxForm`（表单）、`useXxxActions`（写操作+确认）
+- Lib 命名：`kebab-case.ts`，与页面同域时可放 `lib/<domain>/`
+
+## 复用工具
+
+- **列表 URL**：`@be-water/client-kit/lib/list-url-params`
+  - 分页/筛选：`parseSearchParamsPagination`、`getOptionalSearchParam`、`applyFiltersToSearchParams`
+  - 排序：`parseListSort`、`toSortingState`、`applySortingToSearchParams`（URL 键 `sort_by` + `sort_dir`）
+- **文件 input**：先 `Array.from(input.files ?? [])` 再清空 `input.value`（见 `snapshotInputFiles`）
+- **表单校验**：`validateXxx` + `buildXxxPayload` 放 lib，Page 里 `toast.error(validate(...))`
+
+## 列表表格列排序
+
+分页列表**默认服务端排序**（`DataTable` + `manualSorting` 默认为 `true`）。金标准：`users/UsersTable` + `useUsersPage` + `useUsers`。
+
+### 前端（四层分工）
+
+| 层 | 职责 |
+| --- | --- |
+| **Page hook**（`useXxxPage`） | `parseListSort` → `sorting`；`handleSortingChange` 调 `applySortingToSearchParams`（切换排序重置 `page=1`） |
+| **Data hook**（`useXxx`） | queryKey 含 `sortBy`/`sortDir`；请求传 `sort_by`/`sort_dir`；`placeholderData: keepPreviousData` |
+| **Table** | 可排序列：`DataTableColumnHeader` + `enableSorting: true`；`accessorKey` 与 URL `sort_by` 一致；操作列 `enableSorting: false` |
+| **Page** | 串联 hook 与 table 的 `sorting` / `onSortingChange` |
+
+```tsx
+// Table 列
+{
+  accessorKey: "created_at",
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title="创建时间" />
+  ),
+  enableSorting: true,
+}
+
+// Data hook
+return useQuery({
+  placeholderData: keepPreviousData,
+  queryKey: [...KEY, page, pageSize, sortBy, sortDir],
+  queryFn: () => api.get("/users", { sort_by: sortBy, sort_dir: sortDir, ... }),
+});
+
+// 避免排序/翻页 layout shift：仅无数据时全页 loading
+isLoading={isLoading && rows.length === 0}
+```
+
+### 后端
+
+- 路由解析 `sort_by`、`sort_dir`（`parseSortDir` from `@be-water/server-kernel/http/list-sort.js`）
+- Service 用 `resolveSortField` + `resolveSortOrder` 白名单字段后生成 Prisma `orderBy`
+- 未传或非法字段时回退默认排序（如 `created_at desc`）
+
+### 客户端排序（例外）
+
+全量加载、无服务端分页的表格（如 `rbac/RolesTable`）用本地排序：
+
+```tsx
+const [sorting, setSorting] = useState<SortingState>([]);
+<DataTable sorting={sorting} onSortingChange={setSorting} manualSorting={false} />
+```
+
+`DataTable` 在 `manualSorting={false}` 时自动启用 `getSortedRowModel`。
+
+### 反模式
+
+- ❌ 列有排序 UI 但 API/Service 未接 `sort_by`（排序无效）
+- ❌ 用 `id` 作排序键却未设 `accessorKey`，导致 `sort_by` 与库字段对不上
+- ❌ 排序切换时 `isLoading` 直接替换整表为 Spinner（应 `keepPreviousData` + 条件 loading）
+
+## 反模式
+
+- ❌ 租户页不套 `PageLayout`，手写 `<div>` + `<p>` 当页头（见「页面外壳」）
+- ❌ 平台页套 `PageLayout`（`PlatformLayout` 已有 header，会双标题）
+- ❌ Page 内嵌 `ColumnDef[]`、大段 `useMemo` 列定义
+- ❌ 在通用数据 Hook 里直接 `toast`（专用 `useXxxActions` 或 Page 除外）
+- ❌ 清空 file input 后再读 `FileList`（live 引用会丢文件）
+- ❌ Page 维护 `createOpen` + 头部 Button + 底部 `*Dialog` 三处分散（见下方 Dialog 内聚）
+- ❌ 为拆而拆：简单 CRUD 页保持单文件即可
+
+## Dialog / Sheet 内聚
+
+**所有 Dialog / Sheet 均内聚 trigger + 弹层 + 业务逻辑**，禁止 Page 维护 `open` 状态并分散渲染 Button 与 Dialog。
+
+- 头部/工具栏操作：`CreateXxxDialog` 自带 `DialogTrigger`（参考 `PlatformTenantCreateDialog`）
+- 表格/列表行操作：`*Dialog` 接收 `children` 作为 trigger（参考 `RegulationDetailDialog`）
+- 列表行点击 + 详情：在 Row 或 Table 组件内内聚（参考 `LibraryDocumentRow`、`PlatformErrorLogsTable`）
+- 简单确认：使用 `DialogButton`（内部 `open`，仅传 `trigger`）
+- 凭据展示等多步流程：在同一 Dialog 内切换视图（参考 `PlatformTenantCreateDialog` + `TenantAdminCredentialsPanel`）
+
+Row 级组件可用 `syncUrlParam` 等方式同步 URL，但 open 状态仍由 Dialog 组件内部或 Row 内管理，Page 不单独挂底部 Dialog。
+
+**正文内边距**：`SheetContent` / `DialogContent` 本身无 padding，只有 Header / Footer 自带 `p-4`。
+中间的正文节点必须自己写 `min-h-0 flex-1 overflow-y-auto px-4`，否则字段贴边、与头尾不对齐；
+垂直间距由 `gap-4` 负责，别再加 `py-4`。详见 `ui-components` rule。
+
+## 目标体量
+
+Page **~60–120 行**；单组件聚焦单一 UI 块（表格、表单、筛选栏、空态）。
+
+详细步骤见 Skill：`frontend-page-structure`。
