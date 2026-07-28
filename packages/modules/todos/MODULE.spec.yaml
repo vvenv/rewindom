@@ -56,7 +56,8 @@ api:
   list:
     search_fields: [title]
     sort_whitelist: [title, completed, updated_at, created_at]
-    default_sort: { by: updated_at, dir: desc }
+    # 录入顺序：勾选完成不该让行跳走（TodoMVC 语义）
+    default_sort: { by: created_at, dir: asc }
 
 client:
   mount: renderRoutes
@@ -68,5 +69,6 @@ client:
     icon: ListTodo
     keywords: todos 待办 任务 清单
   page:
+    # 实际页面不是表格，是 TodoMVC 式清单（见 MODULE.md）；这里保留脚手架取值仅供再生成参考
     layout: list-filter-table
     form_fields: [title, completed]

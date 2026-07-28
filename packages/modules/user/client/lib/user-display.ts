@@ -1,4 +1,8 @@
-import { isPlatformAdminActor, TENANT_IMPERSONATION_USERNAME, type User  } from "@be-water/shared";
+import {
+  isPlatformAdminActor,
+  TENANT_IMPERSONATION_USERNAME,
+  type User,
+} from "@be-water/shared";
 
 import type { ImpersonationMeta } from "../../../platform/client/lib/impersonation-storage.js";
 

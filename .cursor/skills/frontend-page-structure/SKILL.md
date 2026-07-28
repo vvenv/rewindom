@@ -110,6 +110,8 @@ export function Roles() {
 3. **Component**（`components/<domain>/`）
    - 筛选栏、表格（含 `ColumnDef` + **`DataTableColumnHeader`**）、表单、空态/加载、Dialog 内容
    - 分页表：`sorting` / `onSortingChange` 透传 `DataTable`；`isLoading={isLoading && data.length === 0}`
+   - 分页器：上下两个时上面用 `variant="simple"`（只有总数 + 上/下一页），每页条数与跳页只放下面那个；
+     用 `DataTable` 即自动合规，自己摆分页器（如 `todos/TodoFooter`）才需要显式选 variant
    - 仅 props + 展示；不写 `useSearchParams`
    - **Dialog 内聚**：触发按钮与弹层成对时，合并为 `*Dialog`（内部 `open` + `DialogTrigger` + mutation + `toast`），Page 不维护 `createOpen`
 
@@ -186,6 +188,7 @@ export function Roles() {
 - [ ] Page 无 `ColumnDef`、无长 validator 函数
 - [ ] URL 读写集中在 Hook + `list-url-params`（含排序时用 `parseListSort` / `applySortingToSearchParams`）
 - [ ] 分页表：Data hook 用 `keepPreviousData`；Table 仅在 `data.length === 0` 时全页 loading
+- [ ] 上下双分页器时，上方为 `variant="simple"`；单个分页器用默认 `full`
 - [ ] 可排序列用 `DataTableColumnHeader`；服务端 `sort_by` 与 `accessorKey` 一致
 - [ ] Sheet / Dialog 正文写了 `min-h-0 flex-1 overflow-y-auto px-4`
 - [ ] Lib 新增逻辑有测试

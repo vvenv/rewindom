@@ -31,6 +31,9 @@ export interface ListTodosResult {
   page_size: number;
   total: number;
   page_count: number;
+  /** 下面两项跨分页、且不受 completed 筛选影响——页脚的「剩余 N 项」要的是全量口径 */
+  active_count: number;
+  completed_count: number;
 }
 
 const TODO_SORTABLE_FIELDS = new Set([
@@ -47,16 +50,16 @@ type TodoOrderByField =
   | { created_at: "asc" | "desc" };
 
 /**
- * 默认排序是复合的：未完成在前，同组内按最近更新。
- * 待办清单里「已完成的沉底」是基本预期，单字段默认排序做不到这件事。
- * 用户点了列排序则尊重其选择，退回单字段。
+ * 默认按录入顺序（created_at asc）——TodoMVC 语义：勾选完成不改变行的位置。
+ * 曾经默认「已完成沉底」，但配合就地勾选会让刚点的那行跳走，手要重新找位置。
+ * 调用方仍可显式传 sort_by 取回单字段排序。
  */
 function buildTodoOrderBy(
   sortBy?: string,
   sortDir?: "asc" | "desc",
 ): TodoOrderByField | TodoOrderByField[] {
   if (!sortBy?.trim()) {
-    return [{ completed: "asc" }, { updated_at: "desc" }];
+    return [{ created_at: "asc" }];
   }
   const field = resolveSortField(sortBy, TODO_SORTABLE_FIELDS, "updated_at");
   const order = resolveSortOrder(sortDir, "desc");
@@ -85,17 +88,24 @@ export async function listTodos(
     params;
   const skip = (page - 1) * page_size;
 
-  const [records, total] = await Promise.all([
+  // 两个分组计数顺带把 total 也算了出来：完成态只有两种，不必再发一条 count
+  const [records, active_count, completed_count] = await Promise.all([
     prisma.todo.findMany({
       where: buildTodoListWhere(tenant_id, q, completed),
       orderBy: buildTodoOrderBy(sort_by, sort_dir),
       skip,
       take: page_size,
     }),
-    prisma.todo.count({
-      where: buildTodoListWhere(tenant_id, q, completed),
-    }),
+    prisma.todo.count({ where: buildTodoListWhere(tenant_id, q, false) }),
+    prisma.todo.count({ where: buildTodoListWhere(tenant_id, q, true) }),
   ]);
+
+  const total =
+    completed === undefined
+      ? active_count + completed_count
+      : completed
+        ? completed_count
+        : active_count;
 
   return {
     items: records.map(toTodoListItem),
@@ -103,6 +113,8 @@ export async function listTodos(
     page_size,
     total,
     page_count: Math.ceil(total / page_size),
+    active_count,
+    completed_count,
   };
 }
 
@@ -203,6 +215,22 @@ export async function deleteTodo(
   await prisma.todo.delete({
     where: withTenantScope(tenant_id, { id: todo_id }),
   });
+}
+
+/**
+ * 一键全选 / 全不选：只写完成态与目标不同的行，
+ * 让返回的条数就是真正改动的行数（提示与审计都按这个数说话）。
+ */
+export async function setAllTodosCompleted(params: {
+  tenant_id: string;
+  user_id: string;
+  completed: boolean;
+}): Promise<number> {
+  const { count } = await prisma.todo.updateMany({
+    where: withTenantScope(params.tenant_id, { completed: !params.completed }),
+    data: { completed: params.completed, updated_by: params.user_id },
+  });
+  return count;
 }
 
 /** 清除已完成：待办清单的标准批量操作，返回删除条数用于提示与审计。 */

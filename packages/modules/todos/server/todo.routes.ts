@@ -15,6 +15,7 @@ import {
   deleteTodo,
   getTodo,
   listTodos,
+  setAllTodosCompleted,
   updateTodo,
 } from "./todo.service.js";
 
@@ -76,6 +77,35 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
       });
 
       return { deleted };
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/toggle-all",
+    context: "TodoToggleAll",
+    errorCode: "TODO_TOGGLE_ALL_FAILED",
+    preHandler: [app.requirePermission("todos.write")],
+    handler: async (request, reply) => {
+      const body = request.body as { completed?: unknown };
+      if (typeof body?.completed !== "boolean") {
+        return reply.code(400).send({ error: "completed 必须是布尔值" });
+      }
+
+      const updated = await setAllTodosCompleted({
+        tenant_id: request.tenantContext!.tenant_id,
+        user_id: request.authUser!.userId,
+        completed: body.completed,
+      });
+
+      await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+        userId: request.authUser!.userId,
+        username: request.authUser!.username,
+        action: AuditAction.TODO_TOGGLE_ALL,
+        details: `${body.completed ? "全部标记完成" : "全部标记未完成"}：${updated} 条`,
+      });
+
+      return { updated };
     },
   });
 

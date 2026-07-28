@@ -1,45 +1,54 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildTodoPayload,
-  INITIAL_TODO_FORM,
   parseTodoStatus,
+  resolveTodoTitleEdit,
   TODO_STATUS_ALL,
   TODO_TITLE_MAX_LENGTH,
   todoStatusToCompleted,
-  validateTodoForm,
+  validateTodoTitle,
 } from "./todos.js";
 
-describe("validateTodoForm", () => {
+describe("validateTodoTitle", () => {
   it("rejects blank title", () => {
-    expect(validateTodoForm({ ...INITIAL_TODO_FORM, title: "  " })).toBe(
-      "请输入标题",
-    );
+    expect(validateTodoTitle("  ")).toBe("请输入标题");
   });
 
   it("rejects overlong title", () => {
-    expect(
-      validateTodoForm({
-        ...INITIAL_TODO_FORM,
-        title: "x".repeat(TODO_TITLE_MAX_LENGTH + 1),
-      }),
-    ).toContain("不能超过");
+    expect(validateTodoTitle("x".repeat(TODO_TITLE_MAX_LENGTH + 1))).toContain(
+      "不能超过",
+    );
+  });
+
+  it("accepts a normal title", () => {
+    expect(validateTodoTitle(" 写周报 ")).toBeNull();
   });
 });
 
-describe("buildTodoPayload", () => {
-  it("trims text and passes other fields through", () => {
-    expect(
-      buildTodoPayload({
-        ...INITIAL_TODO_FORM,
-        title: "  x  ",
-        completed: true,
-      }),
-    ).toEqual({
-      ...INITIAL_TODO_FORM,
-      title: "x",
-      completed: true,
+describe("resolveTodoTitleEdit", () => {
+  it("清空标题＝删除该条", () => {
+    expect(resolveTodoTitleEdit("写周报", "   ")).toEqual({ action: "delete" });
+  });
+
+  it("只改了首尾空白视为没改", () => {
+    expect(resolveTodoTitleEdit("写周报", "  写周报  ")).toEqual({
+      action: "none",
     });
+  });
+
+  it("改过内容则保存去空白后的标题", () => {
+    expect(resolveTodoTitleEdit("写周报", "  写月报 ")).toEqual({
+      action: "save",
+      title: "写月报",
+    });
+  });
+
+  it("超长标题不提交，给出提示", () => {
+    const result = resolveTodoTitleEdit(
+      "写周报",
+      "x".repeat(TODO_TITLE_MAX_LENGTH + 1),
+    );
+    expect(result.action).toBe("invalid");
   });
 });
 

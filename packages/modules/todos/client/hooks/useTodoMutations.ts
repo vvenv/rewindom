@@ -39,6 +39,17 @@ export function useDeleteTodo() {
   });
 }
 
+export function useToggleAllTodos() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (completed: boolean) =>
+      api.post<{ updated: number }>("/todos/toggle-all", { completed }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["todos"] });
+    },
+  });
+}
+
 export function useClearCompletedTodos() {
   const queryClient = useQueryClient();
   return useMutation({

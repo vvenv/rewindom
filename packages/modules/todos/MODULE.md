@@ -17,28 +17,52 @@
 
 四处必须同时收窄，缺一处就会出现「看得见点不进」或「点得进但请求 403」：
 
-| 位置         | 文件                                                         | 收窄方式                                  |
-| ------------ | ------------------------------------------------------------ | ----------------------------------------- |
-| 路由         | `server/todo.routes.ts`                                      | `app.requirePermission`                   |
-| 导航项       | `client/tenant/nav-sections.ts`                              | `anyPermission: ["todos.read"]`           |
-| 页面路由     | `client/tenant/routes.tsx`                                   | `PermissionRoute permission="todos.read"` |
-| 页面内写操作 | `client/pages/todos.tsx`、`client/components/TodosTable.tsx` | `hasPermission("todos.write")`            |
+| 位置         | 文件                                                      | 收窄方式                                  |
+| ------------ | --------------------------------------------------------- | ----------------------------------------- |
+| 路由         | `server/todo.routes.ts`                                   | `app.requirePermission`                   |
+| 导航项       | `client/tenant/nav-sections.ts`                           | `anyPermission: ["todos.read"]`           |
+| 页面路由     | `client/tenant/routes.tsx`                                | `PermissionRoute permission="todos.read"` |
+| 页面内写操作 | `client/pages/todos.tsx`、`client/components/TodoRow.tsx` | `hasPermission("todos.write")`            |
 
-## 相对生成物的手工偏离
+## 交互参照 TodoMVC
 
-脚手架产出的是通用 CRUD 交互（抽屉新建 + 搜索框），待办清单的惯用交互不是这样。改动如下：
+页面交互按 <https://todomvc.com/examples/typescript-react/> 对齐；脚手架那套通用 CRUD
+（表格 + 抽屉新建/编辑 + 每步确认弹窗）已整体替换：
 
-| 处                                              | 改法                                                      | 原因                                                |
-| ----------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------- |
-| `client/components/TodoQuickAdd.tsx`（新增）    | 单行输入 + 回车即建                                       | 只有一个标题字段，开抽屉填表单比直接敲字慢          |
-| `client/components/TodoCreateSheet.tsx`（删除） | 被 QuickAdd 取代                                          | 页面不再有 FAB / 新建抽屉；编辑仍走 `TodoEditSheet` |
-| `client/components/TodoFilters.tsx`             | 加「全部 / 未完成 / 已完成」筛选组 + 清除已完成           | 待办的核心筛选维度是完成态，不是搜索                |
-| `client/components/TodosTable.tsx`              | 已完成标题加删除线并压暗                                  | 一眼区分待做与已做                                  |
-| `server/todo.service.ts`                        | 默认排序改为复合：`completed asc` + `updated_at desc`     | 已完成的要沉底；单字段默认排序做不到                |
-| `server/todo.service.ts` / `todo.routes.ts`     | 新增 `completed` 筛选参数与 `DELETE /api/todos/completed` | 支撑上面两项；批量清除是待办的标准操作              |
+| 行为            | 实现                                                                 | 文件                          |
+| --------------- | -------------------------------------------------------------------- | ----------------------------- |
+| 新建            | 单行输入回车即建；空回车静默忽略；先清空输入再发请求，失败把原文放回 | `components/TodoQuickAdd.tsx` |
+| 一键全选/全不选 | 输入行左侧复选框；全部完成时勾上，再点即全部标未完成                 | `components/TodoQuickAdd.tsx` |
+| 勾选完成        | 行内复选框直接写库；已完成的标题加删除线压暗、勾选框也压成灰调       | `components/TodoRow.tsx`      |
+| 就地改标题      | 双击标题进编辑；Enter / 失焦保存，Esc 放弃，清空即删除该条           | `components/TodoRow.tsx`      |
+| 删除单条        | hover 出 ×，点了立即删除不弹确认，toast 里给「撤销」                 | `hooks/useTodoActions.ts`     |
+| 页脚            | 「剩余 N 项」+ 全部/未完成/已完成 + 清除已完成（有已完成才出现）     | `components/TodoFooter.tsx`   |
 
-对应新增的审计动作 `TODO_CLEAR_COMPLETED`（manifest + audit 模块三处均已登记）。
-`server/todo.routes.test.ts` 覆盖了这些手写行为：筛选参数透传、静态路由优先于 `/:todo_id`、权限收窄。
+几处刻意的偏离与理由：
+
+- **单条删除不确认，但「清除已完成」保留确认**：前者一次一条且可撤销；后者一次抹掉多条，
+  逐条重建的撤销不划算，宁可拦一道。撤销走「按原标题 + 完成态重建」，**id 会变**。
+- **× 在小屏常驻显示**（`md:opacity-0 md:group-hover:opacity-100`）：触屏没有 hover，
+  纯 hover 显示等于在手机上把删除藏死。
+- **保留搜索框与分页**：TodoMVC 没有这两样，但这是租户后台，清单会长到几百条。
+  搜索与三段筛选一起放页脚，分页只在 `page_count > 1` 时出现。
+- **默认排序改成 `created_at asc`**：TodoMVC 语义是勾完成不改变行的位置。
+  早先的「已完成沉底」配合就地勾选，会让刚点的那行跳走，手要重新找位置。
+
+## 相对生成物的其它偏离
+
+| 处                       | 改法                                                               | 原因                                   |
+| ------------------------ | ------------------------------------------------------------------ | -------------------------------------- |
+| `server/todo.service.ts` | 列表额外返回 `active_count` / `completed_count`                    | 页脚计数要跨分页、且不受完成态筛选影响 |
+| `server/todo.routes.ts`  | 新增 `completed` 筛选参数、`DELETE /completed`、`POST /toggle-all` | 支撑三段筛选、清除已完成、一键全选     |
+
+新增审计动作 `TODO_CLEAR_COMPLETED`、`TODO_TOGGLE_ALL`（manifest + audit 模块三处均已登记）。
+覆盖手写行为的测试：
+
+- `server/todo.routes.test.ts`：筛选参数透传、静态路由优先于 `/:todo_id`、`toggle-all` 的布尔
+  校验（漏传 `completed` 会静默把全部标成未完成）、权限收窄
+- `client/components/TodoRow.test.tsx`：就地编辑的四条收尾规则、× 不弹确认、只读用户看不到写入口
+- `client/lib/todos.test.ts`：`resolveTodoTitleEdit` 的判定表
 
 ## 依赖
 

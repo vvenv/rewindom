@@ -34,6 +34,7 @@ export const todosServerModule: ServerAppModule = {
       { action: "TODO_UPDATE", label: "更新待办" },
       { action: "TODO_DELETE", label: "删除待办" },
       { action: "TODO_CLEAR_COMPLETED", label: "清除已完成待办" },
+      { action: "TODO_TOGGLE_ALL", label: "批量切换待办完成态" },
     ],
   },
   server: {

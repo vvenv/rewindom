@@ -8,12 +8,15 @@ vi.mock("./todo.service.js", () => ({
     page_size: 20,
     total: 0,
     page_count: 0,
+    active_count: 0,
+    completed_count: 0,
   }),
   getTodo: vi.fn().mockResolvedValue({ id: "todo-1", title: "t" }),
   createTodo: vi.fn().mockResolvedValue({ id: "todo-1", title: "t" }),
   updateTodo: vi.fn().mockResolvedValue({ id: "todo-1", title: "t" }),
   deleteTodo: vi.fn().mockResolvedValue(undefined),
   clearCompletedTodos: vi.fn().mockResolvedValue(3),
+  setAllTodosCompleted: vi.fn().mockResolvedValue(2),
 }));
 
 import {
@@ -25,7 +28,11 @@ import {
 } from "@be-water/server-test";
 
 import { todoRoutes } from "./todo.routes.js";
-import { clearCompletedTodos, listTodos } from "./todo.service.js";
+import {
+  clearCompletedTodos,
+  listTodos,
+  setAllTodosCompleted,
+} from "./todo.service.js";
 
 installTestPermissionCatalog([
   { key: "todos.read", label: "查看待办", group: "待办" },
@@ -130,6 +137,45 @@ describe("Todo Routes", () => {
         url: "/api/todos/completed",
       });
       expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe("POST /toggle-all", () => {
+    it("按 completed 批量切换并返回改动条数", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/todos/toggle-all",
+        headers: authHeaders(writer),
+        payload: { completed: true },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ data: { updated: 2 } });
+      expect(
+        vi.mocked(setAllTodosCompleted).mock.calls.at(-1)?.[0],
+      ).toMatchObject({ completed: true });
+    });
+
+    // 少了这道校验，漏传 completed 会被当成 false，静默把全部待办标成未完成
+    it("completed 不是布尔值时返回 400", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/todos/toggle-all",
+        headers: authHeaders(writer),
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("只有 todos.read 的用户返回 403", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/todos/toggle-all",
+        headers: authHeaders(reader),
+        payload: { completed: true },
+      });
+      expect(response.statusCode).toBe(403);
     });
   });
 });

@@ -1,6 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { ApiError, DataTable, DataTableColumnHeader , useConfirm , usePermissions  } from "@be-water/client-kit";
+import {
+  ApiError,
+  DataTable,
+  DataTableColumnHeader,
+  useConfirm,
+  usePermissions,
+} from "@be-water/client-kit";
 import { formatBusinessDateOrTimeAgo } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import { toast } from "@be-water/ui/toast";
@@ -81,14 +87,16 @@ export function NotesTable({
         ),
         enableSorting: true,
         cell: ({ row }) => (
-          <div className="font-medium">{row.original.title}</div>
+          <div className="font-medium truncate max-w-sm">
+            {row.original.title}
+          </div>
         ),
       },
       {
         accessorKey: "content_preview",
         header: "摘要",
         cell: ({ row }) => (
-          <div className="text-muted-foreground line-clamp-2 max-w-xl text-sm">
+          <div className="text-muted-foreground truncate max-w-sm">
             {row.original.content_preview || "—"}
           </div>
         ),
@@ -110,6 +118,7 @@ export function NotesTable({
             {
               id: "actions",
               header: "操作",
+              meta: { align: "right" },
               cell: ({ row }: { row: { original: NoteListItem } }) => (
                 <div className="flex items-center gap-1">
                   <NoteEditSheet note={row.original} />

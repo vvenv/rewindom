@@ -91,9 +91,9 @@ describe("config", () => {
   });
 
   describe("frontend", () => {
-    it("开发模式默认 localhost:5173", async () => {
+    it("开发模式默认 localhost:7300", async () => {
       const { config: cfg } = await importConfig();
-      expect(cfg.frontend.url).toBe("http://localhost:5173");
+      expect(cfg.frontend.url).toBe("http://localhost:7300");
     });
 
     it("生产模式默认空字符串", async () => {

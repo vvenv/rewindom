@@ -107,6 +107,7 @@ export const AuditAction = {
   TODO_UPDATE: "TODO_UPDATE",
   TODO_DELETE: "TODO_DELETE",
   TODO_CLEAR_COMPLETED: "TODO_CLEAR_COMPLETED",
+  TODO_TOGGLE_ALL: "TODO_TOGGLE_ALL",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -201,6 +202,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.TODO_UPDATE]: "更新待办",
   [AuditAction.TODO_DELETE]: "删除待办",
   [AuditAction.TODO_CLEAR_COMPLETED]: "清除已完成待办",
+  [AuditAction.TODO_TOGGLE_ALL]: "批量切换待办完成态",
 };
 
 export function getAuditActionLabel(action: AuditActionType): string {
@@ -264,6 +266,7 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.TODO_UPDATE,
       AuditAction.TODO_DELETE,
       AuditAction.TODO_CLEAR_COMPLETED,
+      AuditAction.TODO_TOGGLE_ALL,
     ],
   },
 ] as const;

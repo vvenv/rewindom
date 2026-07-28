@@ -90,6 +90,36 @@ describe("DataTable", () => {
     expect(screen.getAllByText(/共 100 条/)).toHaveLength(2);
   });
 
+  it("上方分页器只保留翻页，每页条数与跳页仅出现在下方", () => {
+    renderTable({
+      columns,
+      data: mockData,
+      pageSize: 10,
+      page: 1,
+      total: 100,
+      pageCount: 10,
+    });
+
+    expect(screen.getAllByLabelText("下一页")).toHaveLength(2);
+    // 每页条数（Select trigger 文本）与「前往 N 页」只属于下方主分页器
+    expect(screen.getAllByText(/条\/页/)).toHaveLength(1);
+    expect(screen.getAllByText("前往")).toHaveLength(1);
+  });
+
+  it("只有一页时不渲染上方分页器", () => {
+    renderTable({
+      columns,
+      data: mockData,
+      pageSize: 10,
+      page: 1,
+      total: 2,
+      pageCount: 1,
+    });
+
+    expect(screen.getAllByText(/共 2 条/)).toHaveLength(1);
+    expect(screen.getAllByLabelText("下一页")).toHaveLength(1);
+  });
+
   it("应该支持行点击", () => {
     const onRowClick = vi.fn();
     renderTable({ columns, data: mockData, onRowClick });
@@ -157,7 +187,8 @@ describe("DataTable", () => {
   it("应该处理非受控分页", () => {
     renderTable({ columns, data: mockData, pageSize: 10 });
 
-    expect(screen.getAllByText(/共 2 条/)).toHaveLength(2);
+    // 2 条数据只够一页，上方分页器不渲染
+    expect(screen.getAllByText(/共 2 条/)).toHaveLength(1);
   });
 
   it("应该将 meta.align 应用到操作列并右对齐", () => {

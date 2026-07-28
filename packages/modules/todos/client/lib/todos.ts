@@ -27,34 +27,44 @@ export function todoStatusToCompleted(
   return undefined;
 }
 
-export interface TodoFormValues {
-  title: string;
-  completed: boolean;
-}
-
-export const INITIAL_TODO_FORM: TodoFormValues = {
-  title: "",
-  completed: false,
-};
-
-export function validateTodoForm(values: TodoFormValues): string | null {
-  const title = values.title.trim();
-  if (!title) {
+export function validateTodoTitle(title: string): string | null {
+  const trimmed = title.trim();
+  if (!trimmed) {
     return "请输入标题";
   }
-  if (title.length > TODO_TITLE_MAX_LENGTH) {
+  if (trimmed.length > TODO_TITLE_MAX_LENGTH) {
     return `标题不能超过 ${TODO_TITLE_MAX_LENGTH} 个字符`;
   }
 
   return null;
 }
 
-export function buildTodoPayload(values: TodoFormValues): {
-  title: string;
-  completed: boolean;
-} {
-  return {
-    title: values.title.trim(),
-    completed: values.completed,
-  };
+export type TodoTitleEdit =
+  | { action: "none" }
+  | { action: "save"; title: string }
+  | { action: "delete" }
+  | { action: "invalid"; message: string };
+
+/**
+ * 就地编辑提交后该做什么。TodoMVC 的规矩：改成空标题＝删掉这条，
+ * 没改动就什么都不做（别为一次误触发一趟 PATCH 和一条审计）。
+ */
+export function resolveTodoTitleEdit(
+  original: string,
+  draft: string,
+): TodoTitleEdit {
+  const trimmed = draft.trim();
+  if (!trimmed) {
+    return { action: "delete" };
+  }
+  if (trimmed === original.trim()) {
+    return { action: "none" };
+  }
+
+  const validationError = validateTodoTitle(trimmed);
+  if (validationError) {
+    return { action: "invalid", message: validationError };
+  }
+
+  return { action: "save", title: trimmed };
 }

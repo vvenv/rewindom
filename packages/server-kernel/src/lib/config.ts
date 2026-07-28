@@ -270,7 +270,7 @@ function resolveTenantGuardMode(): "off" | "audit" | "enforce" {
 export const config = {
   server: buildServerConfig(),
   frontend: {
-    url: strEnv("FRONTEND_URL", isProduction ? "" : "http://localhost:5173"),
+    url: strEnv("FRONTEND_URL", isProduction ? "" : "http://localhost:7300"),
   },
   auth: buildAuthConfig(),
   database: buildDatabaseConfig(),

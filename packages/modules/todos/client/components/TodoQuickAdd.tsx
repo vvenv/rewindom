@@ -1,59 +1,75 @@
 import { useState, type SubmitEvent } from "react";
 
-import { ApiError } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+import { Checkbox } from "@be-water/ui/checkbox";
 import { Input } from "@be-water/ui/input";
-import { Spinner } from "@be-water/ui/spinner";
 import { toast } from "@be-water/ui/toast";
-import { Plus } from "lucide-react";
 
-import { useCreateTodo } from "../hooks/useTodoMutations.js";
-import { validateTodoForm, INITIAL_TODO_FORM } from "../lib/todos.js";
+import { validateTodoTitle } from "../lib/todos.js";
+
+interface TodoQuickAddProps {
+  /** 全部已完成时勾上；无待办时禁用 */
+  allCompleted: boolean;
+  hasTodos: boolean;
+  isTogglingAll: boolean;
+  onAdd: (title: string) => Promise<boolean>;
+  onToggleAll: (completed: boolean) => void;
+}
 
 /**
- * 待办清单的主要录入方式：单行输入 + 回车即建。
- * 只有标题一个字段，开抽屉填表单反而更慢——其余字段（完成态）在列表里就地改。
+ * 待办清单的录入行：左侧一键全选，右侧单行输入 + 回车即建。
+ * 只有标题一个字段，开抽屉填表单反而更慢——完成态在列表里就地勾。
  */
-export function TodoQuickAdd() {
+export function TodoQuickAdd({
+  allCompleted,
+  hasTodos,
+  isTogglingAll,
+  onAdd,
+  onToggleAll,
+}: TodoQuickAddProps) {
   const [title, setTitle] = useState("");
-  const createMutation = useCreateTodo();
 
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault();
-    const values = { ...INITIAL_TODO_FORM, title };
-    const validationError = validateTodoForm(values);
+    const value = title.trim();
+    if (!value) {
+      // 空回车静默忽略：连着敲回车不该弹一串报错
+      return;
+    }
+
+    const validationError = validateTodoTitle(value);
     if (validationError) {
       toast.error(validationError);
       return;
     }
 
-    try {
-      await createMutation.mutateAsync({ title: title.trim() });
-      setTitle("");
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "创建失败，请重试");
+    // 先清空再发请求，好让下一条紧接着敲；失败了再把原文放回去
+    setTitle("");
+    const created = await onAdd(value);
+    if (!created) {
+      setTitle((current) => (current === "" ? value : current));
     }
   };
 
   return (
-    <form className="flex items-center gap-2" onSubmit={handleSubmit}>
+    <form
+      className="flex items-center gap-3 rounded-xl bg-card px-3 py-2 ring-1 ring-foreground/10"
+      onSubmit={handleSubmit}
+    >
+      <Checkbox
+        checked={allCompleted}
+        disabled={!hasTodos || isTogglingAll}
+        aria-label={allCompleted ? "全部标记未完成" : "全部标记完成"}
+        className="data-checked:border-transparent data-checked:bg-muted-foreground/30 data-checked:text-muted-foreground"
+        onCheckedChange={(checked) => onToggleAll(checked === true)}
+      />
       <Input
+        autoFocus
         value={title}
-        placeholder="添加待办，回车保存…"
+        placeholder="需要做点什么？回车添加"
         aria-label="添加待办"
+        className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
         onChange={(event) => setTitle(event.target.value)}
       />
-      <Button
-        type="submit"
-        disabled={createMutation.isPending || !title.trim()}
-      >
-        {createMutation.isPending ? (
-          <Spinner className="size-4" />
-        ) : (
-          <Plus className="size-4" />
-        )}
-        <span className="hidden md:inline">添加</span>
-      </Button>
     </form>
   );
 }

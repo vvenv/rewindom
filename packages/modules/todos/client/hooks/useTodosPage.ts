@@ -2,11 +2,8 @@ import { useCallback } from "react";
 
 import {
   applyFiltersToSearchParams,
-  applySortingToSearchParams,
   parseListPage,
   parseListPageSize,
-  parseListSort,
-  toSortingState,
 } from "@be-water/client-kit/lib/list-url-params";
 import { useSearchParams } from "react-router";
 
@@ -17,8 +14,6 @@ import {
   type TodoStatusFilter,
 } from "../lib/todos.js";
 
-import type { SortingState, Updater } from "@tanstack/react-table";
-
 export function useTodosPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -26,17 +21,6 @@ export function useTodosPage() {
   const status = parseTodoStatus(searchParams.get("status"));
   const page = parseListPage(searchParams.get("page"));
   const pageSize = parseListPageSize(searchParams.get("page_size"));
-  const { sortBy, sortDir } = parseListSort(searchParams);
-  const sorting = toSortingState(sortBy, sortDir);
-
-  const handleSortingChange = useCallback(
-    (updater: Updater<SortingState>) => {
-      setSearchParams(
-        applySortingToSearchParams(searchParams, updater, sorting),
-      );
-    },
-    [searchParams, setSearchParams, sorting],
-  );
 
   const handleFiltersChange = useCallback(
     (filters: { q?: string; status?: TodoStatusFilter }) => {
@@ -60,10 +44,6 @@ export function useTodosPage() {
     completed: todoStatusToCompleted(status),
     page,
     pageSize,
-    sortBy,
-    sortDir,
-    sorting,
-    handleSortingChange,
     handleFiltersChange,
   };
 }

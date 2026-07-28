@@ -252,14 +252,16 @@ export function DataTable<TData, TValue>({
     : table.getState().pagination.pageIndex;
   const actualPageCount = pageCount ?? tablePageCount;
   const showPagination = pageSize !== undefined;
+  // 上方分页器只负责翻页，单页时连翻页都无意义 → 不渲染，控件留给下方主分页器
+  const showHeaderPagination = showPagination && actualPageCount > 1;
   const displayTotal = total ?? data.length;
 
   return (
     <div className="flex flex-col gap-3">
-      {(headerActions || showPagination) && (
+      {(headerActions || showHeaderPagination) && (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">{headerActions}</div>
-          {showPagination && (
+          {showHeaderPagination && (
             <Pagination
               currentPage={currentPage}
               pageCount={actualPageCount}
@@ -273,7 +275,7 @@ export function DataTable<TData, TValue>({
                   ? currentPage < actualPageCount
                   : table.getCanNextPage()
               }
-              compact
+              variant="simple"
             />
           )}
         </div>
