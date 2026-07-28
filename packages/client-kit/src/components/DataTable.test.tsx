@@ -159,4 +159,24 @@ describe("DataTable", () => {
 
     expect(screen.getAllByText(/共 2 条/)).toHaveLength(2);
   });
+
+  it("应该将 meta.className 应用到表头并覆盖默认 text-left", () => {
+    const actionColumns: ColumnDef<Row>[] = [
+      { header: "Name", accessorKey: "name" },
+      {
+        id: "actions",
+        header: "操作",
+        meta: { className: "text-right" },
+        cell: () => null,
+      },
+    ];
+    const { container } = renderTable({
+      columns: actionColumns,
+      data: mockData,
+    });
+
+    const actionHeader = container.querySelector("thead th:last-child");
+    expect(actionHeader?.className).toContain("text-right");
+    expect(actionHeader?.className).not.toContain("text-left");
+  });
 });

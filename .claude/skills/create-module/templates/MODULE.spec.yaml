@@ -1,0 +1,89 @@
+# 模块生成契约 —— create-module skill 的输入
+#
+# 用法：复制本文件填写后 `node scripts/gen-module.mjs <本文件>` 生成模块，
+#       生成器会把它拷进 packages/modules/<id>/MODULE.spec.yaml 作为该模块的契约。
+# 规则：必填项留空 = 阻塞，agent 必须追问，不得猜；可选项留空 = 采用 SKILL.md 的默认值表。
+# 下面的示例值取自金标准模块 notes，可直接对照改写。
+
+# ---------- 必填 · 骨架 ----------
+id: notes # 包目录名 / manifest id，kebab-case
+label: Notes
+description: 租户内笔记 CRUD 金标准示例模块
+kind: business # business | infrastructure
+placement: packages/modules/notes # 业务子域则写 packages/<product>/<subdomain>
+resource:
+  singular: note # 文件名、路径参数（note_id）、service 函数名
+  plural: notes # URL 前缀（/api/notes）、queryKey
+surfaces: [tenant] # tenant | platform | both —— 决定是否生成 platform-*.routes.ts
+requires: [rbac, audit] # 依赖的其它模块 id
+
+# ---------- 必填 · 租户开关 ----------
+entitlement:
+  key: notes
+  label: 笔记
+  description: 租户内笔记管理（示例模块）
+  disabled_hint: 该租户未开通笔记模块
+  default_enabled: true
+
+# ---------- 必填 · 权限 ----------
+# key 必须与前端 hasPermission() / nav 的 anyPermission 字面一致
+permissions:
+  - {
+      key: notes.read,
+      label: 查看笔记,
+      group: 示例模块,
+      description: 查看笔记列表与详情,
+    }
+  - {
+      key: notes.write,
+      label: 创建/编辑笔记,
+      group: 示例模块,
+      description: 创建、编辑与删除笔记,
+    }
+
+# ---------- 必填 · 数据模型 ----------
+# tenant_id / created_at / updated_at 由生成器补齐，无需列出；字段名一律 snake_case
+models:
+  - name: Note
+    fields:
+      - { name: title, type: String, required: true }
+      - { name: content, type: String, required: false, default: "" }
+      - { name: created_by, type: String, required: true }
+      - { name: updated_by, type: String, required: false }
+    indexes:
+      - [tenant_id]
+      - [tenant_id, updated_at]
+
+# ---------- 必填 · API ----------
+api:
+  prefix: /api/notes
+  operations: [list, detail, create, update, delete]
+  list:
+    search_fields: [title, content] # q 参数命中的字段
+    sort_whitelist: [title, updated_at, created_at] # 必须 ⊇ 前端可排序列的 accessorKey
+    default_sort: { by: updated_at, dir: desc }
+
+# ---------- 必填 · 前端 ----------
+client:
+  mount: renderRoutes # renderRoutes | renderPlatformRoutes | renderGuestRoutes | renderSuperUserRoutes
+  route_path: /notes
+  nav:
+    section: 示例
+    label: 笔记
+    title: 笔记 # 移动端标题来源（resolve-mobile-header），不可省
+    icon: StickyNote # lucide-react 图标名
+    keywords: notes 备忘 示例
+  page:
+    layout: list-filter-table # list-filter-table | form | detail | dashboard
+    form_fields: [title, content]
+
+# ---------- 可选 · 留空则用 SKILL.md 的默认值表 ----------
+audit:
+  actions:
+    - { action: NOTE_CREATE, label: 创建笔记 }
+    - { action: NOTE_UPDATE, label: 更新笔记 }
+    - { action: NOTE_DELETE, label: 删除笔记 }
+options:
+  soft_delete: false
+  page_size: 20
+  mobile_tab: false # 是否加入 mobileTabPaths

@@ -26,6 +26,8 @@
     "test:watch:shared": "pnpm --filter shared test:watch",
     "check": "concurrently --kill-others-on-fail --names \"lint,test\" --prefix-colors \"yellow,cyan\" \"pnpm lint\" \"pnpm test\"",
     "check:deps": "node scripts/check-circular-deps.mjs && pnpm --filter server validate:module-deps",
+    "check:modules": "node scripts/verify-module.mjs",
+    "gen:module": "node scripts/gen-module.mjs",
     "check:deps:update": "node scripts/check-circular-deps.mjs --update-baseline",
     "db:up": "docker compose -f docker-compose.dev.yml up -d --wait",
     "db:down": "docker compose -f docker-compose.dev.yml down",

@@ -14,12 +14,77 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 - 新增 **业务** 功能 → 业务包的 `<subdomain>/` 子域（见 `docs/design/modular-architecture.md` §11.2）
 - 金标准示例模块（`notes`）
 
+## 第 0 步：收集输入（缺项必须问，禁止猜）
+
+生成前必须先拿到一份完整 spec。**模板：`templates/MODULE.spec.yaml`**（示例值取自 `notes`）。
+用户已提供 spec → 校验必填项齐全后直接开工；未提供 → 按下表补齐再动手。
+
+### 必问项（猜错要跨文件返工）
+
+| 字段                                           | 影响面                                                                | 猜错的代价                                 |
+| ---------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------ |
+| `kind` + `placement`                           | 进业务包子域 vs 新建 infra 包                                         | 物理布局整体推倒                           |
+| `resource.singular/plural`                     | 20+ 文件名、URL、路径参数、queryKey                                   | 事后重命名成本最高                         |
+| `surfaces`                                     | 是否生成 `platform-*.routes.ts` / `renderPlatformRoutes`              | 平台面漏建或白建                           |
+| `entitlement.key` + `default_enabled`          | `registerTenantGatedRoutes` + `APP_TENANT_ENTITLEMENTS`               | **漏了等于绕过租户开关，是安全问题**       |
+| `permissions[].key`                            | 后端 `requirePermission` + 前端 `hasPermission` + nav `anyPermission` | 字面不一致 → 权限静默失效                  |
+| `models[].fields`                              | Prisma + mapper + 表单 + 表格列                                       | 唯一无法从模板推导的部分                   |
+| `client.mount`                                 | 决定页面外壳（见 `frontend-page-structure`）                          | 租户页漏 `PageLayout` / 平台页多套一层标题 |
+| `client.route_path` + `nav.{label,title,icon}` | 路由与导航                                                            | 漏 `title` → 移动端没有页面标题            |
+
+### 追问节奏
+
+一次最多 4 题，分两轮，不要 20 连问：
+
+- **轮 1（骨架）**：`kind` + `placement` / `resource` 单复数 / `surfaces` / `client.mount`
+- **轮 2（契约）**：`permissions` key 列表 / `models` 字段 / `entitlement` key + 默认开关 / `route_path` + nav 三件套
+
+### 可默认项（直接采用，不要问；在最终回复里列出所用默认值）
+
+| 项                  | 默认                                                                           |
+| ------------------- | ------------------------------------------------------------------------------ |
+| 模型基础字段        | `id` + `tenant_id` + `created_at` + `updated_at`，索引含 `[tenant_id]`         |
+| 列表                | 分页 20；服务端排序；`sort_whitelist` = 模型标量字段；默认按 `updated_at desc` |
+| 审计                | 每个写操作一个 `<RESOURCE>_<ACTION>`，经 `events.emit` 上报                    |
+| 测试                | `*.routes.test.ts` + client `lib/*.test.ts`                                    |
+| 软删除 / 移动端 tab | 关                                                                             |
+
+### 硬规则
+
+- 必问项缺失且用户未回答 → **停，不生成**。禁止「先建着回头改」。
+- 用户答案与仓库约定冲突（如 permission key 或字段名用 camelCase）→ 按 AGENTS.md「前置约束」先给最佳实践方案再确认。
+- spec 落盘为 `packages/modules/<id>/MODULE.spec.yaml`；后续改需求走 **spec diff → 再生成**，保证幂等。
+
+## 第 1 步：优先用脚手架生成
+
+spec 齐了就**先跑生成器**，不要手写骨架：
+
+```bash
+node scripts/gen-module.mjs <spec.yaml> --dry-run   # 先看会动哪些文件
+node scripts/gen-module.mjs <spec.yaml>             # 生成 + 装配 + 自动 prettier/eslint --fix
+```
+
+它产出 26 个文件并完成全部装配：两处 `enabled-modules.ts`、`eslint-rules/tenant-models.json`、
+`apps/server/prisma/models/<id>.prisma` 符号链接、audit 模块里审计动作的**三处**登记
+（`AuditAction` / `AUDIT_ACTION_LABELS` / `AUDIT_ACTION_GROUPS`——漏一处标签就变 `undefined`）。
+
+**支持范围**（超出会直接报错，不生成半对的代码）：`surfaces: [tenant]` +
+`client.mount: renderRoutes` 的列表型 CRUD，表单字段限 String。平台面、非列表页、
+多模型等情况按下面的 checklist 手工建。
+
+生成后要做的：
+
+1. `node scripts/verify-module.mjs <id>`
+2. `pnpm --filter server exec prisma migrate dev --name add_<id>`
+3. 业务逻辑补在 `server/<resource>.service.ts`（生成的是标准 CRUD）
+4. 改需求优先**改 spec 重新生成**（`--force`），而不是手工改生成物后让二者失配
+
 ## 模块分类
 
-| 类型 | `kind` | 原则 |
-| --- | --- | --- |
+| 类型     | `kind`           | 原则                                                |
+| -------- | ---------------- | --------------------------------------------------- |
 | 通用模块 | `infrastructure` | SRP：一种横切能力一个包（`audit`、`notification`…） |
-| 业务模块 | `business` | 一个域一个包；包内拆 `tenant/` 与 `platform/` 两面 |
+| 业务模块 | `business`       | 一个域一个包；包内拆 `tenant/` 与 `platform/` 两面  |
 
 纯租户侧业务（如 `notes`）只需 `tenant/`；兼有平台管理面的域额外加 `platform/`。
 
@@ -45,13 +110,15 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 5. 域类型放在 `packages/modules/<id>/shared/`；`entitlements.ts` 声明租户功能 slice
 6. 写操作审计：优先 `events.emit('audit.log', ...)` 或 `events.emit('<resource>.<action>', ...)`；避免新业务直接 import `AuditService`
 7. 在 `apps/server/src/enabled-modules.ts` 注册 `@be-water/modules/<id>/server/index.js`
-8. Prisma：`packages/modules/<id>/prisma/<id>.prisma`；含 `tenant_id`；内核 `Tenant`/`User` 不声明业务反向 relation
+8. Prisma：`packages/modules/<id>/schema.prisma`，并在 `apps/server/prisma/models/<id>.prisma` 建**符号链接**指向它（`ln -s ../../../../packages/modules/<id>/schema.prisma`）；模型含 `tenant_id`；内核 `Tenant`/`User` 不声明业务反向 relation
 
 ## Client checklist
 
 1. 业务 UI 放在 `packages/modules/<id>/client/`：
-   - `tenant/` — 租户侧 pages、hooks、`*Routes.tsx`、`nav`
-   - `platform/` — 平台侧 pages、hooks、`routes.tsx`、`nav.ts`（导出 platformNav child）
+   - `pages/`、`hooks/`、`components/`、`lib/` 在 `client/` **根目录**（见 `notes`、`user`、`platform`）
+   - `tenant/` — 只放租户侧装配：`routes.tsx` + `nav-sections.ts`
+   - `platform/` — 只放平台侧装配：`routes.tsx` + `nav.ts`（导出 platformNav child）
+   - `shell/` — 跨模块 slot 贡献
 2. `client.renderRoutes`（或 `renderTenantRoutes`）→ 租户侧，挂载到 `AppLayout`
 3. `client.renderPlatformRoutes`（如有）→ 平台侧，挂载到 `PlatformLayout`
 4. 基础设施模块按挂载点注册：`renderGuestRoutes` / `renderSuperUserRoutes`
@@ -75,3 +142,21 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 - 在 `App.tsx` 硬编码业务路由
 - 在 `routes/index.ts` 中央列表追加业务插件
 - 在 `platform` 内写业务域逻辑；用 slot / `renderPlatformRoutes` 反向贡献
+
+## 交付前自检（逐条比对 spec）
+
+**先跑 `node scripts/verify-module.mjs <id>`**（`pnpm check:modules` 查全部）。
+带 🤖 的条目它已经机器化——退出码非 0 就别说「做完了」；其余仍需人工核。
+
+- [ ] 🤖 两个 `enabled-modules.ts` 都注册了：import **且**在 `ENABLED_*` 数组里
+- [ ] 🤖 含 `tenant_id`/`tenant_slug` 的模型已登记 `eslint-rules/tenant-models.json`
+- [ ] 🤖 `apps/server/prisma/models/<id>.prisma` 符号链接已建
+- [ ] 🤖 `registerTenantGatedRoutes` 的 key 有 entitlement 声明，且 server/client manifest 都带 `tenantEntitlements`
+- [ ] 🤖 用到的权限 key 都在某个 manifest 的 `shared.permissions` 里声明过
+- [ ] 🤖 前端 `enableSorting` 的列 ⊆ 服务端 `*_SORTABLE_FIELDS`
+- [ ] 🤖 写路由有审计事件；`AuditAction.*` 已在 `shared.auditActions` 声明（warn）
+- [ ] 🤖 页面外壳与挂载点匹配（租户页有 `PageLayout`、平台页没有）
+- [ ] 🤖 `AppNavSection` 每个导航项写了 `title`
+- [ ] 权限 key 的**语义**分配合理（read/write 边界），非仅字面存在
+- [ ] 服务查询都带 `tenant_id` 过滤（由 `eslint-rules/tenant-scope.js` 兜底）
+- [ ] `MODULE.md` + `MODULE.spec.yaml` 落盘，且 spec 与实现一致

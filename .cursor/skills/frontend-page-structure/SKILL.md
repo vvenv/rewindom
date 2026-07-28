@@ -9,7 +9,7 @@ Rule：`.cursor/rules/frontend-page-structure.mdc`
 
 ## 何时使用
 
-- **新建 `pages/` 下的任何页面**——哪怕只有 30 行，也要先按「第 0 步」选对外壳
+- **新建 `pages/` 下的任何页面**——哪怕只有 30 行，也要先按「第 1 步」选对外壳
 - `pages/**/*.tsx` 超过 ~150 行（触发四层拆分）
 - 同一文件混合：URL 参数、表格列、表单校验、mutation、空态 UI
 - 用户要求「按 ChatHome 模式优化」
@@ -17,15 +17,44 @@ Rule：`.cursor/rules/frontend-page-structure.mdc`
 > 外壳约束（`PageLayout`）与体量无关；四层拆分才看体量。早期版本只写了 150 行门槛，
 > 导致新建的小页面绕过了外壳约束——`/users`、`/roles` 都曾因此偏离金标准。
 
-## 第 0 步：选对页面外壳
+## 第 0 步：收集输入（缺项必须问，禁止猜）
+
+新建页面前先取齐下面这些；随模块一起创建时，这些字段来自 `MODULE.spec.yaml` 的 `client.*`，
+无需重复问用户。
+
+### 必问项
+
+| 字段                                                                    | 影响面                               | 猜错的代价                                   |
+| ----------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------- |
+| 挂载点（`renderRoutes` / `renderPlatformRoutes` / `renderGuestRoutes`） | 页面外壳                             | 租户页漏 `PageLayout`；平台页两个标题        |
+| 路由 path + nav `label` / `title` / `icon`                              | 路由与导航                           | 漏 `title` → 移动端无标题                    |
+| 页面形态（列表 / 表单 / 详情 / 仪表盘）                                 | 四层拆分的取舍                       | 结构走形，后期重构                           |
+| 数据源 API + 表格列（哪些列、哪些可排序）                               | Data hook、`ColumnDef`、服务端白名单 | 排序列与服务端 `sort_by` 对不上 → 静默不排序 |
+| 筛选项及其 URL 参数名（snake_case）                                     | page hook + `list-url-params`        | 参数名不一致 → 刷新丢状态                    |
+| 写操作（新建/编辑/删除）及各自权限 key                                  | `*Dialog` / `*Sheet` + `action`      | 无权限用户看到禁用按钮                       |
+| `PageLayout` 的 `title` / `description` / `icon`                        | 页面头部                             | 只能编，编了多半要返工                       |
+
+一次最多 4 题，先问外壳与形态，再问列与操作。
+
+### 可默认项（直接采用，不要问）
+
+分页 20 + 服务端排序 + `keepPreviousData`；Dialog 内聚（trigger 用 `children`）；组件具名导出；
+Lib 纯函数配 `*.test.ts`；无权限时 `action={null}`。
+
+### 硬规则
+
+- 挂载点未知 → **停下来问**，不要先写页面再补外壳：外壳选错会连带改 header、移动端标题、FAB。
+- 表格可排序列必须回头核对服务端 `sort_by` 白名单；对不上就改一侧，不要两边各写各的。
+
+## 第 1 步：选对页面外壳
 
 **先定外壳再谈分层。** 取决于页面挂在哪个壳层——看模块 manifest 的 `client.*`：
 
-| 挂载点 | 壳层 | 页面外壳 | 金标准 |
-| --- | --- | --- | --- |
-| `renderRoutes` / `renderSuperUserRoutes` | 租户 `AppLayout` | **必须** `PageLayout` | `notes/client/pages/notes.tsx` |
-| `renderPlatformRoutes` | 平台 `PlatformLayout` | **不要** `PageLayout`，直接 `<div className="flex flex-col gap-4">` | `platform/client/pages/tenants.tsx` |
-| `renderGuestRoutes` | 无壳 | `AuthPageShell` | `shell/pages/login.tsx` |
+| 挂载点                                   | 壳层                  | 页面外壳                                                            | 金标准                              |
+| ---------------------------------------- | --------------------- | ------------------------------------------------------------------- | ----------------------------------- |
+| `renderRoutes` / `renderSuperUserRoutes` | 租户 `AppLayout`      | **必须** `PageLayout`                                               | `notes/client/pages/notes.tsx`      |
+| `renderPlatformRoutes`                   | 平台 `PlatformLayout` | **不要** `PageLayout`，直接 `<div className="flex flex-col gap-4">` | `platform/client/pages/tenants.tsx` |
+| `renderGuestRoutes`                      | 无壳                  | `AuthPageShell`                                                     | `shell/pages/login.tsx`             |
 
 租户页模板：
 
@@ -101,14 +130,14 @@ export function Roles() {
 
 ## 参考实现
 
-| 场景 | Page | Hook | Lib | Components |
-| --- | --- | --- | --- | --- |
-| 列表+筛选 | `Notes` | `useNotesPage` | `note-filters` | `notes/*` |
-| 表格+URL+排序 | `Users` | `useUsersPage` | `list-url-params` | `users/UsersTable` |
-| 平台日志+排序 | `ErrorLogs` | `usePlatformErrorLogsPage` | `list-url-params` | `error-log/ErrorLogsTable` |
-| 全量表客户端排序 | `Roles` | — | — | `rbac/RolesTable`（`manualSorting={false}`） |
-| 认证表单 | `Register` | `useRegisterForm` | `register-form` | `auth/RegisterForm`, `AuthPageShell` |
-| 平台 CRUD 弹层 | `PlatformTenants` | — | — | `platform/CreateTenantDialog` |
+| 场景             | Page              | Hook                       | Lib               | Components                                   |
+| ---------------- | ----------------- | -------------------------- | ----------------- | -------------------------------------------- |
+| 列表+筛选        | `Notes`           | `useNotesPage`             | `note-filters`    | `notes/*`                                    |
+| 表格+URL+排序    | `Users`           | `useUsersPage`             | `list-url-params` | `users/UsersTable`                           |
+| 平台日志+排序    | `ErrorLogs`       | `usePlatformErrorLogsPage` | `list-url-params` | `error-log/ErrorLogsTable`                   |
+| 全量表客户端排序 | `Roles`           | —                          | —                 | `rbac/RolesTable`（`manualSorting={false}`） |
+| 认证表单         | `Register`        | `useRegisterForm`          | `register-form`   | `auth/RegisterForm`, `AuthPageShell`         |
+| 平台 CRUD 弹层   | `PlatformTenants` | —                          | —                 | `platform/CreateTenantDialog`                |
 
 ## Dialog 内聚检查
 
