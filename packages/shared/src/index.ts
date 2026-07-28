@@ -8,6 +8,9 @@ export * from "./module-contract.js";
 export * from "./permissions.js";
 export * from "./tenant-catalog.js";
 export * from "./tenant-defaults.js";
+export * from "./theme-palette.js";
+export * from "./shell-layout.js";
+export * from "./appearance.js";
 
 // 原 @be-water/utils
 export * from "./date.js";

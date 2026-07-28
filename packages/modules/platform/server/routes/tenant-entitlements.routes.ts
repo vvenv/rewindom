@@ -1,5 +1,6 @@
 import { success } from "@be-water/shared";
 
+import { resolveTenantAppearance } from "../services/tenant-appearance.service.js";
 import { getTenantEntitlements } from "../services/tenant-entitlement.service.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -23,6 +24,21 @@ export async function tenantEntitlementsRoutes(
       const tenantId = request.tenantContext!.tenant_id;
       const entitlements = await getTenantEntitlements(tenantId);
       return reply.send(success(entitlements));
+    },
+  );
+
+  /**
+   * 租户侧生效的外观默认值：主题与布局，各自「租户配置 > 平台默认」。
+   * 与 tenant-features 同理住在 `/api/settings`：client-kit 的外观 Provider
+   * 硬编码调用它，必须在只装 platform 模块时也能工作。
+   * 用户在浏览器里的个人选择不落库，只覆盖前端 localStorage。
+   */
+  app.get(
+    "/appearance",
+    { onRequest: [app.authenticate] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const tenantId = request.tenantContext!.tenant_id;
+      return reply.send(success(await resolveTenantAppearance(tenantId)));
     },
   );
 }

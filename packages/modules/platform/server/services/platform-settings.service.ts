@@ -1,4 +1,5 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { normalizeShellLayout, normalizeThemePalette } from "@be-water/shared";
 
 import { type PlatformSettings, APP_SETTING_KEY_PLATFORM_SETTINGS, DEFAULT_PLATFORM_SETTINGS  } from "../../shared/index.js";
 
@@ -16,6 +17,14 @@ function normalizeConfig(raw: unknown): PlatformSettings {
     require_tenant_approval:
       obj.require_tenant_approval === true ? true : false,
     captcha_enabled: obj.captcha_enabled === true ? true : false,
+    default_theme: normalizeThemePalette(
+      obj.default_theme,
+      DEFAULT_PLATFORM_SETTINGS.default_theme,
+    ),
+    default_layout: normalizeShellLayout(
+      obj.default_layout,
+      DEFAULT_PLATFORM_SETTINGS.default_layout,
+    ),
   };
 }
 

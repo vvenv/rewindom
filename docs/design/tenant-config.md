@@ -102,6 +102,51 @@ flowchart TB
 > 上表为 secret 型租户配置的**形态示例**。实际 key 由使用它的业务模块自行注册，
 > 底座只负责加密存储、按租户读取与审计。
 
+**已落地的 public 型租户配置**：
+
+| 配置 key     | 形状                                                | 租户可编辑 | 说明                                            |
+| ------------ | --------------------------------------------------- | ---------- | ----------------------------------------------- |
+| `appearance` | `{ theme: string \| null, layout: string \| null }` | ❌         | 租户侧默认主题与布局；`null` 表示继承平台默认。见 §2.3 |
+
+### 2.3 外观：主题与布局
+
+外观有**两根互相正交的轴**，各自独立解析——租户可以只覆盖布局、主题继续继承平台：
+
+| 轴       | 取值             | 注册表（`@be-water/shared`） | 落地方式                            |
+| -------- | ---------------- | ---------------------------- | ----------------------------------- |
+| **主题** | `water` / `slate` | `theme-palette.ts`           | `<html data-theme="...">` + CSS token |
+| **布局** | `sidebar` / `topbar` | `shell-layout.ts`         | `AppShellFrame` 选骨架              |
+
+主题这根轴还与 next-themes 的**明暗**轴正交：明暗仍是 `<html class="dark">`，
+每个配色在 `apps/client/src/index.css` 自带 light + dark 两套 token。
+
+每根轴三级优先级，**越靠近用户越优先**：
+
+| 层级 | 存储                                                             | 谁能改                    |
+| ---- | ---------------------------------------------------------------- | ------------------------- |
+| 用户 | `localStorage: theme-palette` / `shell-layout`                   | 租户用户（侧栏两个按钮）  |
+| 租户 | `TenantSetting[appearance].{theme,layout}`                        | 平台管理员（租户 → 外观） |
+| 平台 | `AppSetting[platform_settings].{default_theme,default_layout}`    | 平台管理员（平台设置）    |
+
+用户选择**不落库**——与现有 dark/light 一致，只存浏览器；换设备会回落到租户默认。
+这一层由 client-kit 的 `useResolvedPreference` 统一实现，两根轴共用。
+
+**只作用于租户侧**：两个 Provider 都挂在租户外壳 `AppLayout` 内（`ThemePaletteProvider`
+卸载时还会移除 `data-theme`），因此登录页与平台控制台恒定使用基础配色 + 左右布局，
+不受任何租户配置影响——运维界面跟着租户变样只会造成认知混乱。
+
+**布局只在 md+ 生效**：窄屏（<768px）一律走移动端外壳（顶部标题栏 + 底部 tab bar +
+抽屉导航），那套本就是为窄屏调优的。这个判断放在渲染层（`AppShellFrame`）而不是
+Provider 里——偏好与生效条件分开，窗口缩到窄屏再拉回来不会丢用户选的布局。
+
+上下布局的顶栏导航区宽度不够时，尾部若干项自动收进「更多」下拉
+（client-kit 的 `useOverflowRow`：靠一份 `visibility:hidden` 的测量行拿到各项自然宽度，
+所以容器变宽时收起的项能正确放回来）。因此顶栏既不横向溢出也不需要横向滚动，
+下游加到几十个菜单同样成立。
+
+新增：配色 = `THEME_PALETTES` 追加一项 + `index.css` 补两个 token 块；
+布局 = `SHELL_LAYOUTS` 追加一项 + `AppShellFrame` 加一个分支。两处配置 UI 自动列出。
+
 ---
 
 ## 3. 配置注册表（Config Registry）

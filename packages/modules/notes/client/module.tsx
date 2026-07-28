@@ -15,5 +15,7 @@ export const notesClientModule: ClientAppModule = {
   client: {
     renderRoutes: renderNotesRoutes,
     nav: NOTES_NAV_SECTIONS,
+    // 底部 tab 只放高频业务入口；管理类页面走抽屉导航（见 MODULE.md）
+    mobileTabPaths: ["/notes"],
   },
 };

@@ -125,6 +125,9 @@ export function getMobileTabItems(): MobileTabItem[] {
         icon: item.icon,
         label: item.mobileLabel ?? item.label,
         path: item.path,
+        // `end` 必须带上：MobileTabBar 用它做精确匹配，漏了会让 `/` 这类
+        // 前缀路径在所有子路由下都显示为激活。
+        end: item.end,
         badgeKey: item.badgeKey,
         activePrefix: item.activePrefix,
       },

@@ -12,12 +12,15 @@ import { UserRoleBadge } from "../components/UserRoleBadge.js";
 export function UserSidebarMenu({
   collapsed,
   showLabel,
+  // 默认按侧边栏页脚（屏幕左下角）摆；顶栏布局会传 bottom/end 覆盖。
+  menuSide = "top",
+  menuAlign = "start",
 }: SidebarUserMenuSlotProps) {
   return (
     <UserAvatar
       showLabel={!collapsed && showLabel}
-      menuSide="top"
-      menuAlign="start"
+      menuSide={menuSide}
+      menuAlign={menuAlign}
     />
   );
 }

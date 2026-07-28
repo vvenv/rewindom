@@ -7,7 +7,12 @@ export { GuestOnlyRoute } from "./components/GuestOnlyRoute.js";
 export { PlatformAdminRoute } from "./components/PlatformAdminRoute.js";
 export { ProtectedRoute } from "./components/ProtectedRoute.js";
 export { SuperUserRoute } from "./components/SuperUserRoute.js";
-export { Sidebar, MobileNavDrawer } from "./components/Sidebar.js";
+export {
+  DesktopSidebar,
+  MobileNavDrawer,
+  MobileTabBar,
+} from "./components/Sidebar.js";
+export { TopBar } from "./components/TopBar.js";
 export { PlatformConsoleShell } from "./components/PlatformConsoleShell.js";
 
 export {

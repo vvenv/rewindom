@@ -38,6 +38,9 @@ export interface SidebarSlotProps {
 export interface SidebarUserMenuSlotProps {
   collapsed?: boolean;
   showLabel?: boolean;
+  /** 外壳告知该 widget 所处位置，决定下拉朝哪边展开（侧边栏在左下、顶栏在右上）。 */
+  menuSide?: "top" | "bottom" | "left" | "right";
+  menuAlign?: "start" | "center" | "end";
 }
 
 export interface AuthLoginHeroProps {

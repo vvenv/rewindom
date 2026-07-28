@@ -19,6 +19,33 @@
 - 对外 guard / 类型：`guards/`、`lib/`
 - 业务模块可通过 slot 向平台控制台注入自己的组件，`platform` 不反向依赖业务模块
 
+## 外观（主题 + 布局）
+
+两根正交的轴，注册表都在 `@be-water/shared`：
+
+- **主题**（配色方案）— `theme-palette.ts`，token 在 `apps/client/src/index.css`
+- **布局**（左右 / 上下）— `shell-layout.ts`，渲染在 `apps/client/src/shell/`
+
+本模块只负责「默认值存哪、谁能改」。每根轴各自三级优先，越靠近用户越优先：
+
+| 层级 | 存储                                                                    | 改的地方                 |
+| ---- | ----------------------------------------------------------------------- | ------------------------ |
+| 用户 | `localStorage: theme-palette` / `shell-layout`                          | 租户侧栏的两个切换按钮   |
+| 租户 | `TenantSetting[appearance].{theme,layout}`（`null`=继承）               | 平台控制台 → 租户 → 外观 |
+| 平台 | `AppSetting[platform_settings].{default_theme,default_layout}`          | 平台控制台 → 平台设置    |
+
+| 方法 | 路径                                   | 身份       |
+| ---- | -------------------------------------- | ---------- |
+| GET  | `/api/settings/appearance`             | 租户用户   |
+| GET  | `/api/platform/tenants/:id/appearance` | 平台管理员 |
+| PUT  | `/api/platform/tenants/:id/appearance` | 平台管理员 |
+
+`PUT` 的两个字段都可选：只传 `theme` 就只改主题，`layout` 保持原值；显式传 `null` 才是恢复继承。
+
+**新增一个配色**：`THEME_PALETTES` 追加一项 + `index.css` 补 light/dark 两个 token 块。
+**新增一种布局**：`SHELL_LAYOUTS` 追加一项 + 在 `AppShellFrame` 加一个分支。
+两处配置 UI 都从注册表渲染，本模块无需改动。
+
 ## 目录结构（server）
 
 ```

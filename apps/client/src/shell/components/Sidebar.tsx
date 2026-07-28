@@ -1,15 +1,17 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo } from "react";
 
 import {
   Logo,
+  ShellLayoutToggle,
+  ThemePaletteToggle,
   ThemeToggle,
   useAppHomePath,
-  useMediaQuery,
   usePersistState,
   type AppNavItem,
   type AppNavSection,
-  NavBadgeRegistryProvider,
-  useNavBadgeCount, useTenantEntitlements, usePermissions
+  useNavBadgeCount,
+  useTenantEntitlements,
+  usePermissions,
 } from "@be-water/client-kit";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
@@ -21,45 +23,19 @@ import {
   SheetHeader,
 } from "@be-water/ui/sheet";
 import { cn } from "@be-water/ui/utils";
-import {
-  PanelLeft,
-  PanelLeftClose,
-  type LucideIcon,
-} from "lucide-react";
+import { PanelLeft, PanelLeftClose, type LucideIcon } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";
+import {
+  getNavBadgeTitle,
+  useFilteredNavSections,
+} from "../hooks/useFilteredNavSections.js";
 
 import { ShellSlotList } from "./ShellSlotList.js";
 
 const SIDEBAR_ICON_BUTTON =
   "text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
-
-function useFilteredNavSections(): {
-  sections: AppNavSection[];
-  isLoading: boolean;
-} {
-  const { getNavSections, filterNavSections } = useAppShellConfig();
-  const { data, isLoading } = useTenantEntitlements();
-  const { hasPermission, isLoading: isLoadingPermissions } = usePermissions();
-
-  const sections = useMemo(
-    () => filterNavSections(getNavSections(), data, hasPermission),
-    [data, filterNavSections, getNavSections, hasPermission],
-  );
-
-  return { sections, isLoading: isLoading || isLoadingPermissions };
-}
-
-function getNavBadgeTitle(
-  badgeKey: AppNavItem["badgeKey"],
-  taskCount: number,
-): string | undefined {
-  if (badgeKey === "tasks" && taskCount > 0) {
-    return `${taskCount} 项待办任务`;
-  }
-  return undefined;
-}
 
 function SidebarNavItem({
   to,
@@ -171,6 +147,8 @@ function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
   if (collapsed) {
     return (
       <div className="mt-auto flex flex-col items-center gap-1">
+        <ShellLayoutToggle />
+        <ThemePaletteToggle />
         <ThemeToggle />
         {UserMenu ? <UserMenu collapsed /> : null}
       </div>
@@ -182,7 +160,11 @@ function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
       <Separator />
       <div className="flex justify-between gap-1 p-3">
         {UserMenu ? <UserMenu showLabel /> : null}
-        <ThemeToggle />
+        <div className="flex shrink-0 items-center">
+          <ShellLayoutToggle />
+          <ThemePaletteToggle />
+          <ThemeToggle />
+        </div>
       </div>
     </>
   );
@@ -295,7 +277,10 @@ function MobileNavDrawer({
 
         <SheetFooter className="flex-row items-center justify-between">
           {UserMenu ? <UserMenu showLabel /> : null}
-          <ThemeToggle />
+          <div className="flex shrink-0 items-center">
+            <ThemePaletteToggle />
+            <ThemeToggle />
+          </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>
@@ -306,11 +291,8 @@ function MobileTabBar() {
   const location = useLocation();
   const { data: entitlements } = useTenantEntitlements();
   const { hasPermission } = usePermissions();
-  const {
-    getMobileTabItems,
-    filterMobileTabPaths,
-    isNavRouteActive,
-  } = useAppShellConfig();
+  const { getMobileTabItems, filterMobileTabPaths, isNavRouteActive } =
+    useAppShellConfig();
 
   const mobileTabItems = useMemo(() => {
     const allItems = getMobileTabItems();
@@ -376,7 +358,11 @@ function MobileTabBar() {
   );
 }
 
-function MobileTabBadge({ badgeKey }: { badgeKey: NonNullable<AppNavItem["badgeKey"]> }) {
+function MobileTabBadge({
+  badgeKey,
+}: {
+  badgeKey: NonNullable<AppNavItem["badgeKey"]>;
+}) {
   const badgeCount = useNavBadgeCount(badgeKey);
   const badgeTitle = getNavBadgeTitle(badgeKey, badgeCount);
 
@@ -470,28 +456,4 @@ function DesktopSidebar() {
   );
 }
 
-function NavBadgeContributors(): ReactNode {
-  const { shellContributions } = useAppShellConfig();
-
-  return (
-    <>
-      <ShellSlotList
-        components={shellContributions.navBadge}
-        render={(Component, index) => <Component key={index} />}
-      />
-    </>
-  );
-}
-
-export function Sidebar() {
-  const isMobile = useMediaQuery("(max-width: 767px)");
-
-  return (
-    <NavBadgeRegistryProvider>
-      <NavBadgeContributors />
-      {isMobile ? <MobileTabBar /> : <DesktopSidebar />}
-    </NavBadgeRegistryProvider>
-  );
-}
-
-export { MobileNavDrawer };
+export { DesktopSidebar, MobileNavDrawer, MobileTabBar };

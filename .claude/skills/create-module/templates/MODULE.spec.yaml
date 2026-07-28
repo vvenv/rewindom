@@ -88,4 +88,4 @@ audit:
 options:
   soft_delete: false
   page_size: 20
-  mobile_tab: false # 是否加入 mobileTabPaths
+  mobile_tab: false # 是否加入底部 tab bar（mobileTabPaths）。只给高频业务入口开，全站不超过 5 个

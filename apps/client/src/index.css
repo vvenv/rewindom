@@ -124,6 +124,123 @@
   --sidebar-ring: #22d3ee;
 }
 
+/* ──────────────────────────────────────────────────────────────
+   主题（配色方案）轴：`<html data-theme="...">`，与明暗轴 `.dark` 正交。
+   `:root` / `.dark` 即 water，不带 data-theme 时（登录页、平台控制台）自然命中。
+
+   胜出关系靠特异性，不靠源码顺序（`:root` vs `.dark` 那一对除外）：
+     :root                       (0,1,0)  water light
+     .dark                       (0,1,0)  water dark —— 同特异性，靠写在后面压过 :root
+     html[data-theme="slate"]    (0,1,1)  slate light —— 高于 .dark
+     html.dark[data-theme=slate] (0,2,1)  slate dark  —— 高于以上全部
+   正因为配色块是靠特异性赢的，它必须声明**完整**的 token 集：漏掉哪个，
+   哪个就会掉回 water 的值。新增配色照抄这两个块即可。
+
+   `--chart-1..5` 是 `var(--brand)` 之类的别名，与 `--brand` 声明在同一个
+   元素（html）上，会跟着本块的 --brand 一起重算，故无需在配色块里重复。
+   ────────────────────────────────────────────────────────────── */
+
+/* 石墨：低饱和中性灰蓝，primary 走近黑石墨，brand 用 slate 蓝灰做数据强调 */
+html[data-theme="slate"] {
+  --background: #f6f7f9;
+  --foreground: #16181d;
+  --card: #ffffff;
+  --card-foreground: #16181d;
+  --popover: #ffffff;
+  --popover-foreground: #16181d;
+  --primary: #2f3742;
+  --primary-foreground: #f8fafc;
+  --secondary: #eceef1;
+  --secondary-foreground: #1f242c;
+  --muted: #eceef1;
+  --muted-foreground: #646b76;
+  --accent: #e6e9ed;
+  --accent-foreground: #1f242c;
+  --destructive: #dc2626;
+  --destructive-foreground: #fff5f5;
+  --border: #d9dde3;
+  --input: oklch(0.5 0.01 260 / 0.16);
+  --ring: #64748b;
+  --brand: #64748b;
+  --brand-foreground: #f8fafc;
+  --success: #15803d;
+  --success-foreground: #f0fdf4;
+  --warning: #b45309;
+  --warning-foreground: #fffbeb;
+  --info: #1d4ed8;
+  --info-foreground: #eff6ff;
+  --glow-brand: 0 0 20px rgba(100, 116, 139, 0.14);
+  --gradient-kpi: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(236, 238, 241, 0.92)
+  );
+  --gradient-panel: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(246, 247, 249, 0.94)
+  );
+  --shadow-panel: 0 14px 40px rgba(22, 24, 29, 0.07);
+  --sidebar: #f0f1f4;
+  --sidebar-foreground: #16181d;
+  --sidebar-primary: #2f3742;
+  --sidebar-primary-foreground: #f8fafc;
+  --sidebar-accent: #e2e5ea;
+  --sidebar-accent-foreground: #1f242c;
+  --sidebar-border: #d9dde3;
+  --sidebar-ring: #64748b;
+}
+
+html.dark[data-theme="slate"] {
+  --background: #101216;
+  --foreground: #e8eaee;
+  --card: #191c22;
+  --card-foreground: #e8eaee;
+  --popover: #191c22;
+  --popover-foreground: #e8eaee;
+  --primary: #cbd5e1;
+  --primary-foreground: #14171c;
+  --secondary: #23272f;
+  --secondary-foreground: #e8eaee;
+  --muted: #23272f;
+  --muted-foreground: #98a0ad;
+  --accent: #2a2f38;
+  --accent-foreground: #e8eaee;
+  --destructive: #ef4444;
+  --destructive-foreground: #fff5f5;
+  --border: #333944;
+  --input: oklch(0.75 0.01 260 / 0.22);
+  --ring: #94a3b8;
+  --brand: #94a3b8;
+  --brand-foreground: #14171c;
+  --success: #22c55e;
+  --success-foreground: #04210f;
+  --warning: #facc15;
+  --warning-foreground: #2a1f00;
+  --info: #60a5fa;
+  --info-foreground: #0b1a2e;
+  --glow-brand: 0 0 25px rgba(148, 163, 184, 0.18);
+  --gradient-kpi: linear-gradient(
+    180deg,
+    rgba(30, 34, 41, 0.9),
+    rgba(22, 25, 31, 0.8)
+  );
+  --gradient-panel: linear-gradient(
+    180deg,
+    rgba(34, 38, 46, 0.85),
+    rgba(20, 23, 28, 0.72)
+  );
+  --shadow-panel: 0 14px 40px rgba(0, 0, 0, 0.4);
+  --sidebar: #14171c;
+  --sidebar-foreground: #e8eaee;
+  --sidebar-primary: #cbd5e1;
+  --sidebar-primary-foreground: #14171c;
+  --sidebar-accent: #2a2f38;
+  --sidebar-accent-foreground: #e8eaee;
+  --sidebar-border: rgba(200, 210, 225, 0.14);
+  --sidebar-ring: #94a3b8;
+}
+
 html:not(.dark) body {
   background: radial-gradient(
       circle at 20% 0%,
@@ -140,6 +257,27 @@ html:not(.dark) body {
       #0e2d50 0,
       #071426 45%,
       #06111f 100%
+    )
+    fixed;
+}
+
+/* body 底图同样按配色覆盖：(0,2,2) / (0,2,2) 均高于上面两条 water 规则 */
+html[data-theme="slate"]:not(.dark) body {
+  background: radial-gradient(
+      circle at 20% 0%,
+      #fafbfc 0,
+      #f6f7f9 45%,
+      #eef0f3 100%
+    )
+    fixed;
+}
+
+html.dark[data-theme="slate"] body {
+  background: radial-gradient(
+      circle at 20% 0%,
+      #1b1f26 0,
+      #101216 45%,
+      #0c0e12 100%
     )
     fixed;
 }

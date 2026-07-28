@@ -139,7 +139,11 @@ checklist 手工建。
    - 业务自有 slot 在**消费方**模块的 `client/<subdomain>/shell/` 下定义
 6. 平台导航角标：`shell.platformNavBadge` + `NavBadgeRegistryProvider`
 7. 可选：`client.routes` 声明式路由（`renderAppRoutes` 自动套 `PermissionRoute`）
-8. `client.nav` + 可选 `mobileTabPaths`
+8. `client.nav` + 可选 `mobileTabPaths`（= spec 的 `options.mobile_tab`）
+   - 只放**高频业务入口**；管理/配置类页面留给抽屉导航，别占底部 tab
+   - 全站 tab 总数控制在 **5 个以内**，超出会挤成一行看不清
+   - 路径必须是本模块 `nav` 里已有的 `path`，否则会被静默丢弃
+   - 权限与 entitlement 过滤自动生效，无需在此重复声明
 9. Page 按 `frontend-page-structure` skill 四层拆分
 10. 在 `apps/client/src/enabled-modules.ts` 注册 `module.tsx`
 

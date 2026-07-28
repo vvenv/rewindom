@@ -57,6 +57,8 @@ describe("platform-settings.service", () => {
       expect(result).toEqual({
         ...dbConfig,
         captcha_enabled: false,
+        default_theme: DEFAULT_PLATFORM_SETTINGS.default_theme,
+        default_layout: DEFAULT_PLATFORM_SETTINGS.default_layout,
       });
     });
 
@@ -87,6 +89,38 @@ describe("platform-settings.service", () => {
       expect(result.registration_enabled).toBe(true);
       expect(result.require_tenant_approval).toBe(false);
       expect(result.captcha_enabled).toBe(false);
+    });
+
+    it("should keep a registered default_layout and reject unknown ones", async () => {
+      const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+
+      vi.mocked(prisma.appSetting.findUnique).mockResolvedValue({
+        value: { default_layout: "topbar" },
+      } as never);
+      expect((await getPlatformSettings()).default_layout).toBe("topbar");
+
+      vi.mocked(prisma.appSetting.findUnique).mockResolvedValue({
+        value: { default_layout: "diagonal" },
+      } as never);
+      expect((await getPlatformSettings()).default_layout).toBe(
+        DEFAULT_PLATFORM_SETTINGS.default_layout,
+      );
+    });
+
+    it("should keep a registered default_theme and reject unknown ones", async () => {
+      const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+
+      vi.mocked(prisma.appSetting.findUnique).mockResolvedValue({
+        value: { default_theme: "slate" },
+      } as never);
+      expect((await getPlatformSettings()).default_theme).toBe("slate");
+
+      vi.mocked(prisma.appSetting.findUnique).mockResolvedValue({
+        value: { default_theme: "no-such-palette" },
+      } as never);
+      expect((await getPlatformSettings()).default_theme).toBe(
+        DEFAULT_PLATFORM_SETTINGS.default_theme,
+      );
     });
 
     it("should normalize captcha_enabled when present", async () => {
@@ -121,6 +155,8 @@ describe("platform-settings.service", () => {
       expect(result).toEqual({
         ...dbConfig,
         captcha_enabled: false,
+        default_theme: DEFAULT_PLATFORM_SETTINGS.default_theme,
+        default_layout: DEFAULT_PLATFORM_SETTINGS.default_layout,
       });
       expect(prisma.appSetting.findUnique).toHaveBeenCalledWith({
         where: { key: "platform_settings" },
@@ -146,6 +182,8 @@ describe("platform-settings.service", () => {
         registration_enabled: true,
         require_tenant_approval: true,
         captcha_enabled: false,
+        default_theme: "slate",
+        default_layout: "topbar",
       };
 
       const result = await savePlatformSettings(config);

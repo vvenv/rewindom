@@ -1,6 +1,13 @@
-import { handleRouteError } from "@be-water/server-kernel/http/route-error-handler.js";
+import {
+  handleRouteError,
+  handleValidationError,
+} from "@be-water/server-kernel/http/route-error-handler.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { success } from "@be-water/shared";
+import {
+  isShellLayoutSlug,
+  isThemePaletteSlug,
+  success,
+} from "@be-water/shared";
 
 import { AuditAction } from "../../../audit/shared/index.js";
 import { type PlatformSettings } from "../../shared/index.js";
@@ -19,6 +26,8 @@ interface UpdatePlatformSettingsBody {
   registration_enabled?: boolean;
   require_tenant_approval?: boolean;
   captcha_enabled?: boolean;
+  default_theme?: string;
+  default_layout?: string;
 }
 
 export async function registerSettingsRoutes(
@@ -44,7 +53,16 @@ export async function registerSettingsRoutes(
         registration_enabled,
         require_tenant_approval,
         captcha_enabled,
+        default_theme,
+        default_layout,
       } = request.body as UpdatePlatformSettingsBody;
+
+      if (default_theme !== undefined && !isThemePaletteSlug(default_theme)) {
+        return handleValidationError(reply, "无效的主题");
+      }
+      if (default_layout !== undefined && !isShellLayoutSlug(default_layout)) {
+        return handleValidationError(reply, "无效的布局");
+      }
 
       const currentConfig = await getPlatformSettings();
       const newConfig: PlatformSettings = {
@@ -53,6 +71,8 @@ export async function registerSettingsRoutes(
         require_tenant_approval:
           require_tenant_approval ?? currentConfig.require_tenant_approval,
         captcha_enabled: captcha_enabled ?? currentConfig.captcha_enabled,
+        default_theme: default_theme ?? currentConfig.default_theme,
+        default_layout: default_layout ?? currentConfig.default_layout,
       };
 
       await savePlatformSettings(newConfig);

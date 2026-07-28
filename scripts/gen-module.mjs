@@ -989,7 +989,13 @@ export const ${camel(n.id)}ClientModule: ClientAppModule = {
   tenantEntitlements: [${n.CONST}_ENTITLEMENT],
   client: {
     renderRoutes: render${n.Plural}Routes,
-    nav: ${n.CONST}_NAV_SECTIONS,
+    nav: ${n.CONST}_NAV_SECTIONS,${
+      spec.options?.mobile_tab
+        ? `
+    // 底部 tab 只放高频业务入口；管理类页面走抽屉导航
+    mobileTabPaths: ["${spec.client.route_path}"],`
+        : ""
+    }
   },
 };
 `,

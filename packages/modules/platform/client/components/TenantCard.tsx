@@ -13,6 +13,7 @@ import { PRICING_PLANS, type TenantSummary } from "../../shared/index.js";
 import { TENANT_STATUS_FILTER_LABELS } from "../lib/platform/tenants/url.js";
 import { tenantCardActionsSlot } from "../shell/platform-widget-slots.js";
 
+import { TenantAppearanceSheet } from "./TenantAppearanceSheet.js";
 import { TenantEditSheet } from "./TenantEditSheet.js";
 import { TenantFeaturesSheet } from "./TenantFeaturesSheet.js";
 import { TenantImpersonateSheet } from "./TenantImpersonateSheet.js";
@@ -94,6 +95,11 @@ export function TenantCard({
             onActingChange={onActingChange}
           />
           <TenantPlanSheet
+            tenant={tenant}
+            disabled={acting}
+            onActingChange={onActingChange}
+          />
+          <TenantAppearanceSheet
             tenant={tenant}
             disabled={acting}
             onActingChange={onActingChange}

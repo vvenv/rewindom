@@ -4,11 +4,16 @@ import {
 } from "@be-water/server-kernel/http/route-error-handler.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
-import { error, success, InvalidTenantSlugError, ReservedTenantSlugError  } from "@be-water/shared";
+import { error, success, isShellLayoutSlug, isThemePaletteSlug, InvalidTenantSlugError, ReservedTenantSlugError  } from "@be-water/shared";
 
 import { AuditAction, type AuditActionType  } from "../../../audit/shared/index.js";
-import { formatPlanChangeAuditDetails, formatTenantFeatureAuditDetails, formatTenantEntitlementsAuditDetails , type CreateTenantBody, type PatchTenantBody, type ResetTenantAdminPasswordBody, type UpdateTenantFeatureFlagsBody, type UpdateTenantEntitlementsBody, type UpdateTenantPlanBody  } from "../../shared/index.js";
+import { formatPlanChangeAuditDetails, formatTenantAppearanceAuditDetails, formatTenantFeatureAuditDetails, formatTenantEntitlementsAuditDetails , type CreateTenantBody, type PatchTenantBody, type ResetTenantAdminPasswordBody, type UpdateTenantAppearanceBody, type UpdateTenantFeatureFlagsBody, type UpdateTenantEntitlementsBody, type UpdateTenantPlanBody  } from "../../shared/index.js";
 import { type TenantIdParams } from "../lib/platform.types.js";
+import {
+  getTenantAppearance,
+  getTenantAppearanceDetail,
+  saveTenantAppearance,
+} from "../services/tenant-appearance.service.js";
 import {
   getTenantEntitlements,
   saveTenantEntitlements,
@@ -513,6 +518,89 @@ export async function registerTenantRoutes(
           err,
           "[platformRoutes] 更新租户能力开关失败",
           "UPDATE_TENANT_ENTITLEMENTS_FAILED",
+        );
+      }
+    },
+  );
+
+  app.get<{ Params: TenantIdParams }>(
+    "/tenants/:id/appearance",
+    async (request, reply) => {
+      try {
+        const tenant = await getTenantById(request.params.id);
+        if (!tenant) {
+          return reply.code(404).send(error("租户不存在"));
+        }
+        const appearance = await getTenantAppearanceDetail(tenant.id);
+        return reply.send(success(appearance));
+      } catch (err) {
+        return handleRouteError(
+          reply,
+          err,
+          "[platformRoutes] 获取租户外观配置失败",
+          "GET_TENANT_APPEARANCE_FAILED",
+        );
+      }
+    },
+  );
+
+  app.put<{ Params: TenantIdParams; Body: UpdateTenantAppearanceBody }>(
+    "/tenants/:id/appearance",
+    async (request, reply) => {
+      try {
+        const tenant = await getTenantById(request.params.id);
+        if (!tenant) {
+          return reply.code(404).send(error("租户不存在"));
+        }
+
+        const body = request.body ?? {};
+        if (body.theme === undefined && body.layout === undefined) {
+          return handleValidationError(reply, "请提供 theme 或 layout");
+        }
+        // null = 恢复继承平台默认；其余必须是已注册的 slug
+        if (
+          body.theme !== undefined &&
+          body.theme !== null &&
+          !isThemePaletteSlug(body.theme)
+        ) {
+          return handleValidationError(reply, "无效的主题");
+        }
+        if (
+          body.layout !== undefined &&
+          body.layout !== null &&
+          !isShellLayoutSlug(body.layout)
+        ) {
+          return handleValidationError(reply, "无效的布局");
+        }
+
+        const before = await getTenantAppearance(tenant.id);
+        const saved = await saveTenantAppearance(tenant.id, body);
+        const { username } = request.authUser!;
+
+        try {
+          await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+            username,
+            action: AuditAction.TENANT_APPEARANCE_UPDATE,
+            resource: "tenant_appearance",
+            details: formatTenantAppearanceAuditDetails(
+              tenant.slug,
+              before,
+              saved,
+            ),
+            ipAddress: request.ip,
+            userAgent: request.headers["user-agent"],
+          })
+        } catch (auditErr) {
+          request.log.error({ error: auditErr }, "记录租户外观审计日志失败");
+        }
+
+        return reply.send(success(await getTenantAppearanceDetail(tenant.id)));
+      } catch (err) {
+        return handleRouteError(
+          reply,
+          err,
+          "[platformRoutes] 更新租户外观配置失败",
+          "UPDATE_TENANT_APPEARANCE_FAILED",
         );
       }
     },

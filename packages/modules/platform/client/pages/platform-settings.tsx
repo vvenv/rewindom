@@ -1,5 +1,11 @@
 import { useConfirm } from "@be-water/client-kit";
 import {
+  SHELL_LAYOUTS,
+  THEME_PALETTES,
+  isShellLayoutSlug,
+  isThemePaletteSlug,
+} from "@be-water/shared";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -9,8 +15,15 @@ import {
 import { Spinner } from "@be-water/ui/spinner";
 import { Switch } from "@be-water/ui/switch";
 import { toast } from "@be-water/ui/toast";
-import { ShieldCheck, UserCheck, ScanEye } from "lucide-react";
+import {
+  ShieldCheck,
+  UserCheck,
+  ScanEye,
+  Palette,
+  PanelsTopLeft,
+} from "lucide-react";
 
+import { AppearanceOptionGroup } from "../components/AppearanceOptionGroup.js";
 import { PlanLimitTemplatesCard } from "../components/PlanLimitTemplatesCard.js";
 import { usePlatformSettings } from "../hooks/usePlatformSettings.js";
 import { useUpdatePlatformSettings } from "../hooks/useUpdatePlatformSettings.js";
@@ -47,6 +60,32 @@ export function PlatformSettings() {
       { require_tenant_approval: checked },
       {
         onSuccess: () => toast.success("租户审批设置已更新"),
+        onError: (err) =>
+          toast.error(err instanceof Error ? err.message : "更新失败，请重试"),
+      },
+    );
+  };
+
+  const handleDefaultThemeChange = (value: string) => {
+    if (!isThemePaletteSlug(value)) return;
+
+    updateMutation.mutate(
+      { default_theme: value },
+      {
+        onSuccess: () => toast.success("默认主题已更新"),
+        onError: (err) =>
+          toast.error(err instanceof Error ? err.message : "更新失败，请重试"),
+      },
+    );
+  };
+
+  const handleDefaultLayoutChange = (value: string) => {
+    if (!isShellLayoutSlug(value)) return;
+
+    updateMutation.mutate(
+      { default_layout: value },
+      {
+        onSuccess: () => toast.success("默认布局已更新"),
         onError: (err) =>
           toast.error(err instanceof Error ? err.message : "更新失败，请重试"),
       },
@@ -155,6 +194,52 @@ export function PlatformSettings() {
               disabled={updateMutation.isPending}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Default Theme */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-1">
+            <Palette className="size-4" />
+            默认主题
+          </CardTitle>
+          <CardDescription>
+            租户侧的默认配色。租户可在「租户 →
+            外观」里单独覆盖，用户也可在侧边栏自行切换
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AppearanceOptionGroup
+            idPrefix="platform-theme"
+            value={settings?.default_theme ?? ""}
+            options={THEME_PALETTES}
+            onChange={handleDefaultThemeChange}
+            disabled={updateMutation.isPending}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Default Layout */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-1">
+            <PanelsTopLeft className="size-4" />
+            默认布局
+          </CardTitle>
+          <CardDescription>
+            租户侧外壳的默认排布。仅在平板/桌面（≥768px）生效，手机端恒为顶部标题栏
+            + 底部导航
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AppearanceOptionGroup
+            idPrefix="platform-layout"
+            value={settings?.default_layout ?? ""}
+            options={SHELL_LAYOUTS}
+            onChange={handleDefaultLayoutChange}
+            disabled={updateMutation.isPending}
+          />
         </CardContent>
       </Card>
 

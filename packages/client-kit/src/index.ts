@@ -7,6 +7,31 @@ export { TenantEntitlementRoute } from "./components/TenantEntitlementRoute";
 export { Logo } from "./components/Logo";
 export { Wordmark } from "./components/Wordmark";
 export { ThemeToggle } from "./components/ThemeToggle";
+export { ThemePaletteToggle } from "./components/ThemePaletteToggle";
+export { ShellLayoutToggle } from "./components/ShellLayoutToggle";
+export {
+  ThemePaletteProvider,
+  useThemePalette,
+  type ThemePaletteValue,
+} from "./contexts/theme-palette-context";
+export {
+  ShellLayoutProvider,
+  useShellLayout,
+  type ShellLayoutValue,
+} from "./contexts/shell-layout-context";
+export {
+  useTenantAppearance,
+  TENANT_APPEARANCE_QUERY_KEY,
+} from "./hooks/useTenantAppearance";
+export {
+  useResolvedPreference,
+  type ResolvedPreference,
+} from "./hooks/useResolvedPreference";
+export {
+  useOverflowRow,
+  OVERFLOW_MEASURE_ROW_CLASS,
+  type OverflowRow,
+} from "./hooks/useOverflowRow";
 export { AppVersion } from "./components/AppVersion";
 export { ConfirmDialog } from "./components/ConfirmDialog";
 export { CopyButton } from "./components/CopyButton";

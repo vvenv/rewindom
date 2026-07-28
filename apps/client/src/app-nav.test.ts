@@ -1,7 +1,12 @@
 import { Settings, ShieldCheck, StickyNote, Users } from "lucide-react";
 import { describe, expect, it } from "vitest";
 
-import { filterAppNavSections } from "./app-nav";
+import {
+  filterAppNavSections,
+  filterMobileTabPaths,
+  getAppNavItems,
+  getMobileTabItems,
+} from "./app-nav";
 
 import type { AppNavSection } from "@be-water/client-kit";
 
@@ -106,5 +111,59 @@ describe("filterAppNavSections — 权限与 entitlement 叠加", () => {
   it("entitlement 未加载时权限维度仍然生效", () => {
     const result = filterAppNavSections(SECTIONS, undefined, () => false);
     expect(paths(result)).toEqual(["/settings"]);
+  });
+});
+
+describe("getMobileTabItems", () => {
+  it("只列出真的声明了 mobileTabPaths 的模块入口", () => {
+    const items = getMobileTabItems();
+    expect(items.map((item) => item.path)).toEqual(["/notes", "/todos"]);
+  });
+
+  it("tab 项携带图标与徽标键，标签优先用 mobileLabel", () => {
+    const notes = getMobileTabItems().find((item) => item.path === "/notes");
+    expect(notes).toBeDefined();
+    expect(notes!.label).toBe("笔记");
+    // lucide 图标是 forwardRef 对象而非普通函数，只断言拿到了组件
+    expect(notes!.icon).toBeTruthy();
+  });
+
+  it("移动端 tab 数量控制在 5 个以内（超出会挤成一行看不清）", () => {
+    expect(getMobileTabItems().length).toBeLessThanOrEqual(5);
+  });
+
+  it("声明的路径必须在导航里存在，否则静默丢弃而不是渲染空 tab", () => {
+    const navPaths = new Set(getAppNavItems().map((item) => item.path));
+    for (const item of getMobileTabItems()) {
+      expect(navPaths.has(item.path)).toBe(true);
+    }
+  });
+});
+
+describe("filterMobileTabPaths", () => {
+  const TAB_PATHS = ["/notes", "/todos"];
+
+  it("按权限过滤：无 notes.read 时该 tab 消失", () => {
+    const result = filterMobileTabPaths(
+      TAB_PATHS,
+      { modules: {}, features: {} },
+      (permission) => permission !== "notes.read",
+    );
+    expect(result).toEqual(["/todos"]);
+  });
+
+  it("按 entitlement 过滤：租户关掉 todos 模块时该 tab 消失", () => {
+    const result = filterMobileTabPaths(
+      TAB_PATHS,
+      { modules: { todos: false }, features: {} },
+      () => true,
+    );
+    expect(result).toEqual(["/notes"]);
+  });
+
+  it("权限未加载时受限 tab 全部隐藏（fail-closed）", () => {
+    expect(
+      filterMobileTabPaths(TAB_PATHS, { modules: {}, features: {} }),
+    ).toEqual([]);
   });
 });
