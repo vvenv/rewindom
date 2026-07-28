@@ -10,7 +10,6 @@ VERSION_PACKAGE_JSONS=(
   "$VERSION_ROOT/apps/server/package.json"
   "$VERSION_ROOT/apps/client/package.json"
   "$VERSION_ROOT/packages/shared/package.json"
-  "$VERSION_ROOT/packages/utils/package.json"
 )
 
 get_current_version() {
