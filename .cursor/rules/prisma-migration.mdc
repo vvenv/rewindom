@@ -40,7 +40,11 @@ alwaysApply: false
 ## 数据库备份
 
 ```bash
-pg_dump be-water > data/postgres-backup-$(date +%Y%m%d-%H%M%S).sql
+# 开发库跑在 docker 里（docker-compose.dev.yml，映射 5433），用容器内的 pg_dump，
+# 版本与服务端一致。宿主机 pg_dump 若是更高大版本，产出的 dump 会带 PG17+ 才认识的
+# SET（如 transaction_timeout），恢复到 PG16 时报 unrecognized configuration parameter。
+docker exec be-water-dev-postgres pg_dump -U be-water be-water \
+  > "data/postgres-backup-$(date +%Y%m%d-%H%M%S).sql"
 ```
 
 ## 推荐的 Migration 创建流程
@@ -88,13 +92,31 @@ END $$;
 
 类型名引用必须加引号：`'PENDING'::"DocumentStatus"`（非 `DocumentStatus`）
 
-### pgvector 扩展处理
+### 列类型变更（TEXT → JSONB 等）
 
-确保目标数据库已启用 pgvector 扩展。在 migration 中应包含：
+`prisma migrate dev` 对改类型生成的是 `DROP COLUMN` + `ADD COLUMN`，**会丢数据**。
+必须改成手写 `ALTER ... USING`，并对无法转换的旧值给出兜底：
 
 ```sql
-CREATE EXTENSION IF NOT EXISTS vector;
+ALTER TABLE "T" ALTER COLUMN "c" TYPE JSONB
+  USING CASE
+    WHEN "c" IS NULL THEN NULL
+    WHEN pg_input_is_valid("c", 'jsonb') THEN "c"::jsonb   -- PostgreSQL 16+
+    ELSE to_jsonb("c")                                      -- 非法文本包成 JSON 字符串而非丢弃
+  END;
 ```
+
+`ALTER COLUMN TYPE` 会整表重写并持 ACCESS EXCLUSIVE 锁；大表先缩表或选低峰。
+同一表的多列合并进一条 `ALTER TABLE`，只重写一次。
+
+### 数据库扩展
+
+当前**没有启用任何扩展**。要新增（如 pgvector）必须同时改两处，否则全新环境
+`migrate deploy` 会在 `CREATE EXTENSION` 直接失败：
+
+1. migration 里 `CREATE EXTENSION IF NOT EXISTS <name>;`
+2. `docker-compose.*.yml` 的 postgres 镜像换成自带该扩展的版本
+   （`postgres:16-alpine` 不含 pgvector）
 
 ### Migration 失败恢复
 

@@ -32,8 +32,8 @@ api.get("/documents", { tenant_id, status });
 - 时间戳：`{action}_at`
 - 布尔：优先 `is_` / `has_`
 
-## 向量搜索相关字段
+## JSON 列
 
-- 文档嵌入向量：`embedding vector`
-- 相似度阈值：`similarity_threshold`
-- 搜索结果分数：`relevance_score`
+- 存结构化数据用 `Json?`（jsonb），**不要**把 `JSON.stringify` 的结果塞进 `String?`
+- 共享类型用 `JsonValue | null`（`@be-water/shared`），读写两侧都不再手工序列化
+- 示例：`ErrorLog.request_body` / `request_params` / `request_query` / `context`

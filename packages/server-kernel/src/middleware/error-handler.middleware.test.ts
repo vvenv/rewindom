@@ -70,8 +70,8 @@ describe("error-handler.middleware", () => {
         method: "GET",
         ipAddress: "127.0.0.1",
         requestBody: { data: "test" },
-        requestParams: JSON.stringify({ id: "123" }),
-        requestQuery: JSON.stringify({ page: "1" }),
+        requestParams: { id: "123" },
+        requestQuery: { page: "1" },
       }),
     );
     expect(mockReply.code).toHaveBeenCalledWith(500);

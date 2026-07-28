@@ -73,7 +73,8 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 | 单元测试          | `design/unit-testing.md`                           | —                                 |
 | 部署 / FAQ        | `deployment.md`、`faq.md`                          | —                                 |
 
-## Cursor 配置
+## Agent 配置（Cursor + Claude Code）
 
-- **Rules**（`.cursor/rules/*.mdc`）— `architecture`、`extension-points`、`coding-standards`、`field-naming`、`permissions`、`docs-reference`、`ui-components`、`frontend-page-structure`、`audit-logging`、`prisma-migration`、`plan-tracking`、`auto-execute-scripts`
-- **Skills**（`.cursor/skills/`）— `create-module`、`extract-module`、`error-logging`、`frontend-page-structure`、`prisma-sync-fix`、`merge-migrations`
+- **Rules**（`.cursor/rules/*.mdc`，仅 Cursor）— `architecture`、`extension-points`、`coding-standards`、`field-naming`、`permissions`、`docs-reference`、`ui-components`、`frontend-page-structure`、`audit-logging`、`prisma-migration`、`plan-tracking`、`auto-execute-scripts`
+- **Skills**（`.cursor/skills/`，单一真相源）— `create-module`、`extract-module`、`error-logging`、`frontend-page-structure`、`prisma-sync-fix`、`merge-migrations`
+- **Claude Code**：`.claude/skills/` 由 `pnpm sync-skills` 生成（`prepare` 自动跑）；只改 `.cursor/skills/`，勿手改生成物

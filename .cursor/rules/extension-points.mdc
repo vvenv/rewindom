@@ -125,5 +125,4 @@ pnpm --filter server validate:module-deps
 | 业务模块 `business` | 一个域一个包，内分两面 | `client/tenant/` + `client/platform/` |
 
 - `platform` 是平台壳层，通过 slot（`platform-widget-slots.ts`）、`renderPlatformRoutes`、`platformNav` 聚合业务贡献
-- 骑墙模块（`document`、`regulation-harvest`、`alert`、`vector-search` 等 `be-water` 子域）在 `scripts/module-contexts.json` 归 `bridge` 上下文
 - infra 模块（如 `user`）禁止 import 业务包；业务 UI 嵌入 infra 视图用 Component Slot 反转（如 `userMenuUsageSlot`）

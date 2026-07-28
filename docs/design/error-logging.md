@@ -1,307 +1,311 @@
 # 错误日志
 
-## 概述
+模块：`packages/modules/error-log/`（Skill：`error-logging`）
 
-错误日志模块负责记录系统运行过程中的异常信息，支持多级别日志记录、上下文捕获和租户隔离，为问题排查和系统监控提供数据支撑。
+全局 error-handler 捕获未处理异常并落库，提供租户内查询、统计与清理。与慢查询（`slow-query`）同属可观测性基础设施模块。
 
 ## 数据模型
 
-### ErrorLog（错误日志）
+### ErrorLog
 
 ```prisma
 model ErrorLog {
-  error_id      String   @id @default(cuid())
-  tenant_id     String?
-  level         LogLevel
-  message       String
-  stack_trace   String?
-  user_id       String?
-  username      String?
-  route         String?
-  method        String?
-  error_code    String?
-  context       String?
-  created_at    DateTime @default(now())
-  
-  tenant        Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
-  user          User?    @relation(fields: [user_id], references: [user_id])
-}
+  id             String   @id @default(uuid())
+  level          String
+  message        String
+  stack_trace    String?
+  user_id        String?
+  username       String?
+  tenant_slug    String?
+  route          String?
+  method         String?
+  ip_address     String?
+  user_agent     String?
+  request_body   Json?
+  request_params Json?
+  request_query  Json?
+  error_code     String?
+  context        Json?
+  created_at     DateTime @default(now())
 
-enum LogLevel {
-  DEBUG
-  INFO
-  WARN
-  ERROR
-  FATAL
+  @@index([user_id])
+  @@index([tenant_slug])
+  @@index([level])
+  @@index([created_at])
+  @@index([error_code])
+  @@index([request_body(ops: JsonbPathOps)], type: Gin)
 }
 ```
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `error_id` | String | 错误记录唯一标识 |
-| `tenant_id` | String? | 租户标识（可选，平台级错误为空） |
-| `level` | Enum | 日志级别：DEBUG/INFO/WARN/ERROR/FATAL |
+| `id` | String | uuid 主键 |
+| `level` | String | `error` / `warn` / `info` / `debug`（普通字符串，非 enum） |
 | `message` | String | 错误消息 |
-| `stack_trace` | String? | 堆栈跟踪信息 |
-| `user_id` | String? | 用户标识（可选） |
-| `username` | String? | 用户名（冗余存储，便于查询） |
-| `route` | String? | 请求路由 |
-| `method` | String? | HTTP 方法 |
-| `error_code` | String? | 错误码 |
-| `context` | String? | 上下文信息（JSON 字符串） |
+| `stack_trace` | String? | 堆栈 |
+| `user_id` / `username` | String? | 触发用户；`username` 冗余存储便于列表展示 |
+| `tenant_slug` | String? | 租户标识；平台级错误为 `null` |
+| `route` / `method` | String? | 请求路由与 HTTP 方法 |
+| `ip_address` / `user_agent` | String? | 客户端信息 |
+| `request_body` | Json? | 请求体 |
+| `request_params` | Json? | 路由参数 |
+| `request_query` | Json? | 查询参数 |
+| `error_code` | String? | 错误码，取自 `error.name` |
+| `context` | Json? | 附加上下文，如 `{ "statusCode": 500 }` |
 | `created_at` | DateTime | 创建时间 |
 
-### 日志级别说明
+**没有外键关系**：`ErrorLog` 不 relation 到 `User` / `Tenant`。日志要在用户被删除后仍然留存，租户维度靠 `tenant_slug` 字符串过滤（`buildTenantSlugWhere`，默认租户额外兼容 `tenant_slug IS NULL` 的历史行）。
 
-| 级别 | 说明 | 使用场景 |
-| --- | --- | --- |
-| DEBUG | 调试信息 | 开发调试、详细执行流程 |
-| INFO | 一般信息 | 正常业务操作记录 |
-| WARN | 警告信息 | 潜在问题、需要关注的情况 |
-| ERROR | 错误信息 | 业务异常、API 错误 |
-| FATAL | 致命错误 | 系统崩溃、无法恢复的错误 |
+### 四个 JSON 列
+
+`request_body` / `request_params` / `request_query` / `context` 是 **jsonb** 列，不是 JSON 字符串：
+
+- 写入侧传纯 JSON 值，服务内部不再 `JSON.stringify`
+- 读出侧拿到的就是结构化对象，前端直接 `JSON.stringify(value, null, 2)` 展示即可
+- 共享类型是 `JsonValue | null`（`@be-water/shared`）
+
+只有 `request_body` 建了 GIN 索引，用 `jsonb_path_ops`——体积约为默认 `jsonb_ops` 的 1/3，代价是只支持 `@>` / `@?` / `@@`，不支持键存在查询（`?` / `?|` / `?&`）。其余三列不建索引：`request_params` / `request_query` 的信息基本已被 `route` 覆盖，`context` 目前只装小字段，日志表写入频繁，不为没有的查询预付索引维护成本。
+
+按内容检索的写法：
+
+```ts
+// Prisma
+await prisma.errorLog.findMany({
+  where: { request_body: { path: ["user_id"], equals: "u-1" } },
+});
+
+// SQL（走 GIN 索引）
+SELECT * FROM "ErrorLog" WHERE request_body @> '{"user_id":"u-1"}';
+```
 
 ## ErrorService
 
-### 核心方法
+`packages/modules/error-log/server/error.service.ts`，**静态类**（不是实例单例）。
 
-```typescript
-interface ErrorService {
-  logError(message: string, context?: ErrorContext): Promise<void>;
-  logWarning(message: string, context?: ErrorContext): Promise<void>;
-  logInfo(message: string, context?: ErrorContext): Promise<void>;
-  logDebug(message: string, context?: ErrorContext): Promise<void>;
-  logFatal(message: string, context?: ErrorContext): Promise<void>;
-  
-  getErrorLogs(filters: ErrorLogFilters): Promise<ErrorLog[]>;
-  getErrorStats(filters: ErrorStatsFilters): Promise<ErrorStats>;
-  cleanupOldLogs(days: number): Promise<number>;
+```ts
+class ErrorService {
+  // 写入
+  static log(input: ErrorLogInput): Promise<void>;
+  static logError(error: Error, context?): Promise<void>;   // 第一参是 Error 对象
+  static logWarning(message: string, context?): Promise<void>;
+  static logInfo(message: string, context?): Promise<void>;
+  static logDebug(message: string, context?): Promise<void>;
+
+  // 查询
+  static getErrorLogs(filters): Promise<ErrorLog[]>;
+  static getErrorLogsCount(filters): Promise<number>;
+  static getErrorLogsByLevel(level, take?): Promise<ErrorLog[]>;
+  static getErrorLogsByUser(userId, take?): Promise<ErrorLog[]>;
+  static getErrorLogById(id, tenantSlug): Promise<ErrorLog | null>;
+  static getErrorStats(timeRange?): Promise<ErrorStats>;
+
+  // 删除
+  static cleanupOldLogs(daysToKeep?, userId?, tenantSlug?): Promise<number>;
+  static deleteErrorLog(id, tenantSlug): Promise<void>;
+
+  static belongsToTenant(log, tenantSlug): boolean;
 }
 ```
 
-### 上下文结构
+没有 `logFatal`——级别只有四档。
 
-```typescript
-interface ErrorContext {
-  tenant_id?: string;
-  user_id?: string;
+### 输入结构
+
+```ts
+interface ErrorLogInput {
+  level: "error" | "warn" | "info" | "debug";
+  message: string;
+  stackTrace?: string;
+  userId?: string;
   username?: string;
+  tenantSlug?: string | null;
   route?: string;
   method?: string;
-  error_code?: string;
-  stack_trace?: string;
-  request_body?: unknown;
-  response_status?: number;
-  [key: string]: unknown;
+  ipAddress?: string;
+  userAgent?: string;
+  requestBody?: unknown;    // 纯 JSON 值，不要预先 stringify
+  requestParams?: unknown;
+  requestQuery?: unknown;
+  errorCode?: string;
+  context?: Record<string, unknown>;
 }
 ```
+
+字段为 `undefined` 时不写入该列（列保持 NULL）；显式传 `null` 写入 JSON `null`。
 
 ### 使用示例
 
-```typescript
-import { errorService } from "../services/error-service";
+```ts
+import { ErrorService } from "./error.service.js";
 
 try {
   // 业务逻辑
 } catch (error) {
-  await errorService.logError(error.message, {
-    tenant_id: request.user.tenant_id,
-    user_id: request.user.user_id,
-    username: request.user.username,
-    route: request.route,
+  await ErrorService.logError(error as Error, {
+    userId: request.authUser?.userId,
+    username: request.authUser?.username,
+    tenantSlug: request.tenantContext?.tenant_slug,
+    route: request.url,
     method: request.method,
-    stack_trace: error.stack,
-    error_code: "DOCUMENT_PARSE_ERROR",
+    errorCode: "TODO_IMPORT_FAILED",
+    additionalContext: { statusCode: 500 },
   });
 }
 ```
 
 ## 全局错误处理中间件
 
-`error-handler.ts` 中间件捕获未处理的异常并自动写入数据库：
+`packages/server-kernel/src/middleware/error-handler.middleware.ts`。
 
-```typescript
-import { FastifyError, FastifyReply, FastifyRequest } from "fastify";
+内核不依赖业务模块，所以中间件不直接 import `ErrorService`，而是通过 `setErrorLogWriter(writer)` 注册写入函数——`error-log` 模块启动时把 `ErrorService.logError` 注进来。未注册时中间件照常返回响应，只是不落库。
 
-async function errorHandler(
-  error: FastifyError,
-  request: FastifyRequest,
-  reply: FastifyReply,
-) {
-  await errorService.logError(error.message, {
-    tenant_id: request.user?.tenant_id,
-    user_id: request.user?.user_id,
-    username: request.user?.username,
-    route: request.routeOptions.url,
-    method: request.method,
-    stack_trace: error.stack,
-    error_code: error.code,
-    response_status: error.statusCode,
-  });
+中间件负责把 `request.body` / `params` / `query` 归一化成可写进 jsonb 的纯 JSON 值：`JSON.parse(JSON.stringify(value))` 一步展开 `Date` 与自定义 `toJSON`，并在循环引用、`BigInt` 这类不可序列化输入上就地失败返回 `undefined`——否则会留到 `prisma.create()` 里抛，而那时已经在错误处理器内部了。
 
-  reply.status(error.statusCode || 500).send({
-    error: error.message,
-  });
-}
-```
+### 配置
 
-## API 接口
+| 环境变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `ERROR_LOGGING_ENABLED` | `true` | 关掉后中间件不落库 |
+| `ERROR_LOG_LEVEL` | `error` | 记录级别 |
+| `ERROR_LOG_INCLUDE_REQUEST_BODY` | `true` | 是否采集 `request_body` |
+| `ERROR_LOG_INCLUDE_REQUEST_PARAMS` | `true` | 是否采集 `request_params` |
+| `ERROR_LOG_INCLUDE_REQUEST_QUERY` | `true` | 是否采集 `request_query` |
+| `ERROR_LOG_RETENTION_DAYS` | `30` | 见下方「数据清理」——目前只被配置测试读取 |
 
-### 错误日志列表
+请求体可能含密码、令牌等敏感信息。生产环境按需关闭 `ERROR_LOG_INCLUDE_REQUEST_BODY`，或在写入前自行脱敏。
 
-```
-GET /api/error-logs?page=&page_size=&level=&user_id=&route=&error_code=&start_date=&end_date=
-```
+## API
 
-**参数说明**：
+挂载在 `/api/error-logs`。
 
-| 参数 | 类型 | 默认值 | 说明 |
+| 方法 | 路径 | 鉴权 | 说明 |
 | --- | --- | --- | --- |
-| `page` | Number | 1 | 页码 |
-| `page_size` | Number | 20 | 每页数量 |
-| `level` | String | - | 日志级别筛选 |
-| `user_id` | String | - | 用户标识筛选（仅 SUPERUSER） |
-| `route` | String | - | 路由筛选 |
-| `error_code` | String | - | 错误码筛选 |
-| `start_date` | String | - | 开始日期（ISO 格式） |
-| `end_date` | String | - | 结束日期（ISO 格式） |
+| GET | `/` | 登录 | 租户内列表；非系统管理员强制只看自己的日志 |
+| GET | `/stats` | `error_logs.read` | 统计 |
+| DELETE | `/cleanup` | `error_logs.manage` | 清理租户内历史日志 |
+| DELETE | `/cleanup/my` | 登录 | 清理本人历史日志 |
+| DELETE | `/:id` | 登录 | 删除单条；非系统管理员只能删自己的 |
 
-**响应格式**：
+三个 DELETE 都记审计日志（`ERROR_LOG_CLEANUP` / `ERROR_LOG_DELETE`）。
+
+### 列表
+
+```
+GET /api/error-logs?page=&page_size=&level=&user_id=&q=&start_date=&end_date=&sort_by=&sort_dir=
+```
+
+| 参数 | 默认值 | 说明 |
+| --- | --- | --- |
+| `page` / `page_size` | 1 / 20 | 偏移分页（非 cursor） |
+| `level` | - | 级别筛选 |
+| `user_id` | - | 仅系统管理员生效；普通用户被强制为自己 |
+| `q` | - | 模糊搜索，覆盖 `username` / `route` / `error_code` |
+| `start_date` / `end_date` | - | `YYYY-MM-DD` 或含空格的完整时间戳 |
+| `sort_by` | `created_at` | 白名单：`created_at`、`level`、`tenant_slug`、`username`、`route`、`method`、`error_code` |
+| `sort_dir` | `desc` | `asc` / `desc` |
+
+`q` 只搜三个字符串列，**不搜 `message` 和 jsonb 列**。
 
 ```json
 {
-  "data": [
-    {
-      "error_id": "error_123",
-      "level": "ERROR",
-      "message": "文档解析失败",
-      "error_code": "DOCUMENT_PARSE_ERROR",
-      "user_id": "user_456",
-      "username": "admin",
-      "route": "/api/documents/upload",
-      "method": "POST",
-      "created_at": "2024-01-15T10:30:00Z"
-    }
-  ],
-  "pagination": {
+  "data": {
+    "items": [
+      {
+        "id": "0f8c…",
+        "level": "error",
+        "message": "Cannot read properties of undefined",
+        "error_code": "TypeError",
+        "user_id": "user_456",
+        "username": "admin",
+        "tenant_slug": "acme",
+        "route": "/api/todos",
+        "method": "POST",
+        "request_body": { "title": "" },
+        "context": { "statusCode": 500 },
+        "created_at": "2026-07-28T10:30:00.000Z"
+      }
+    ],
     "page": 1,
     "page_size": 20,
     "total": 100,
-    "has_more": true
+    "page_count": 5
   }
 }
 ```
 
-### 错误统计
+### 统计
 
 ```
-GET /api/error-logs/stats
+GET /api/error-logs/stats?start_date=&end_date=
 ```
-
-**响应格式**：
 
 ```json
 {
   "data": {
     "total": 150,
-    "by_level": {
-      "DEBUG": 20,
-      "INFO": 50,
-      "WARN": 30,
-      "ERROR": 45,
-      "FATAL": 5
-    },
-    "by_error_code": {
-      "DOCUMENT_PARSE_ERROR": 20,
-      "AI_API_ERROR": 15,
-      "PERMISSION_DENIED": 10
-    },
-    "trend": [
-      { "date": "2024-01-10", "count": 10 },
-      { "date": "2024-01-11", "count": 15 },
-      { "date": "2024-01-12", "count": 8 }
-    ]
+    "by_level": { "error": 45, "warn": 30, "info": 50, "debug": 25 },
+    "by_route": { "/api/todos": 20 },
+    "by_error_code": { "TypeError": 20 }
   }
 }
 ```
 
-### 清理历史日志
+聚合由数据库完成：一次 `count` + 三次 `groupBy`（`level` / `route` / `error_code`），
+与 `slow-query` 模块的 `getStats` 同一套写法。`route` / `error_code` 为 NULL 的行
+会被 `groupBy` 单独分一组，这些行不计入对应分布。
+
+### 清理
 
 ```
 DELETE /api/error-logs/cleanup?days=30
+DELETE /api/error-logs/cleanup/my?days=30
 ```
-
-**参数说明**：
-
-| 参数 | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `days` | Number | 30 | 删除多少天前的日志 |
-
-**响应格式**：
 
 ```json
-{
-  "data": {
-    "deleted_count": 500
-  }
-}
+{ "data": { "deletedCount": 500 } }
 ```
 
-## 权限控制
+## 权限
 
-| 操作 | 权限要求 | 说明 |
-| --- | --- | --- |
-| 查看自己的日志 | 无 | 普通用户仅能查看自己产生的错误日志 |
-| 查看所有日志 | `SUPERUSER` | 租户管理员可查看整个租户的日志 |
-| 查看平台日志 | `PLATFORM_ADMIN` | 平台管理员可查看所有租户日志 |
-| 清理日志 | `SUPERUSER` | 需要租户管理员权限 |
+`packages/modules/error-log/server/module.ts` 声明，分组「系统监控」：
 
-## 前端页面
+| 权限 | 说明 |
+| --- | --- |
+| `error_logs.read` | 查看错误日志（统计接口） |
+| `error_logs.manage` | 管理错误日志（租户级清理） |
 
-### 错误日志列表页
+列表与单条删除只要求登录，租户隔离与「只能看/删自己的」由路由内的 `is_system_admin` 判断兜底。
 
-页面路径：`/error-logs`
+## 前端
 
-**功能**：
-- 日志列表展示（分页）
-- 多维度筛选（级别、用户、路由、错误码、日期范围）
-- 日志详情展开（查看完整上下文和堆栈）
-- 统计图表（按级别分布、按错误码分布）
+`packages/modules/error-log/client/`，页面路径 `/error-logs`（平台侧另有 `usePlatformErrorLogs`）。
 
-### 筛选组件
+| 文件 | 职责 |
+| --- | --- |
+| `pages/error-logs.tsx` | 页面外壳 |
+| `components/ErrorLogsTable.tsx` | 列表 |
+| `components/ErrorLogFilters.tsx` | 筛选，URL 参数同步 |
+| `components/ErrorLogSheet.tsx` | 详情抽屉；四个 jsonb 字段由内部 `JsonField` 统一渲染，值为 `null` 时整块不显示 |
 
-`ErrorLogFilters` 组件：
-- 支持 URL 参数同步
-- 查询参数一律 `snake_case`
-- 与 API 参数同名
+URL 查询参数与 API 同名、一律 snake_case：`user_id`、`start_date`、`page_size`。
 
-### URL 参数示例
+## 数据清理
 
-```
-/error-logs?page=1&page_size=20&level=ERROR&error_code=DOCUMENT_PARSE_ERROR&start_date=2024-01-01&end_date=2024-01-31
-```
+**目前没有自动清理任务。** `ERROR_LOG_RETENTION_DAYS` 已在配置里定义，但除配置测试外无人读取——清理只能靠 `DELETE /api/error-logs/cleanup` 手动触发。
 
-## 性能优化
+对照组：`slow-query` 模块有 `scheduler-jobs.ts`，每 30 分钟按 `SLOW_QUERY_RETENTION_DAYS` 自动清理。error-log 要补自动清理的话，照抄那个文件即可。
 
-### 索引策略
+## 表增长与后续演进
 
-```sql
-CREATE INDEX ON "ErrorLog" ("tenant_id", "created_at");
-CREATE INDEX ON "ErrorLog" ("user_id", "created_at");
-CREATE INDEX ON "ErrorLog" ("level", "created_at");
-CREATE INDEX ON "ErrorLog" ("error_code", "created_at");
-```
+`ErrorLog` 是持续增长的日志表。按优先级：
 
-### 数据清理
+1. 先补自动清理（见上）——保留窗口是最便宜的手段
+2. 再考虑按 `created_at` 声明式分区 + BRIN 索引
+3. 再考虑拆到独立 Postgres 实例
+4. 聚合分析成为主要场景后才考虑列存（ClickHouse 一类），而不是换文档数据库
 
-- 定期清理策略：保留最近 30/90/180 天日志
-- 自动清理任务：使用 BullMQ 定时执行
+## 相关
 
-### 查询优化
-
-- 分页查询使用 cursor-based 分页
-- 统计查询使用聚合索引
-
-## 与可观测性的关系
-
-错误日志是可观测性体系的一部分，与监控告警配合使用，详见 `observability-alerting.md`。
+- 慢查询：`slow-query` 模块
+- 审计日志：`docs/design/`（`audit` 模块）
+- 字段命名：`docs/design/field-naming-conventions.md`

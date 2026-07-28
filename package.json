@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "setup": "bash scripts/dev-setup.sh",
-    "prepare": "husky",
+    "prepare": "husky && pnpm sync-skills",
     "sync-skills": "node scripts/sync-skills.cjs",
     "sync-skills:watch": "node scripts/sync-skills.cjs --watch",
     "dev": "concurrently --names \"server,client\" --prefix-colors \"blue,green\" --kill-others-on-fail \"pnpm --filter server dev\" \"pnpm --filter client dev\"",

@@ -21,7 +21,9 @@
 ## 如何单独测试
 
 ```bash
-pnpm --filter server exec vitest src/modules/background-job/ src/kernel/job-registry.test.ts
+# 每个模块的 server / client / shared 各是一个 vitest project，
+# 位置参数只按 project root 的相对路径过滤，跑全模块要用 --project。
+pnpm --filter modules exec vitest --run --project 'background-job/*'
 ```
 
 ## 禁止

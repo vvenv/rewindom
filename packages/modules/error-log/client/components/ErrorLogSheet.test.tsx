@@ -40,6 +40,33 @@ describe("ErrorLogSheet", () => {
     expect(screen.getByText("测试错误")).toBeInTheDocument();
   });
 
+  it("jsonb 字段应格式化展示，为空时整块不渲染", () => {
+    render(
+      <ErrorLogSheet
+        open
+        onOpenChange={vi.fn()}
+        log={createMockErrorLog({
+          request_body: { user_id: "u-1", nested: { items: [1, 2] } },
+          context: { statusCode: 500 },
+          request_params: null,
+          request_query: null,
+        })}
+      />,
+      { wrapper },
+    );
+
+    expect(screen.getByText("请求体")).toBeInTheDocument();
+    expect(
+      screen.getByText(/"user_id": "u-1"/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("上下文")).toBeInTheDocument();
+    expect(screen.getByText(/"statusCode": 500/)).toBeInTheDocument();
+
+    // 列为 NULL 时不该出现空的标题块
+    expect(screen.queryByText("请求参数")).not.toBeInTheDocument();
+    expect(screen.queryByText("查询参数")).not.toBeInTheDocument();
+  });
+
   it("系统管理员应显示删除按钮", () => {
     render(
       <ErrorLogSheet open onOpenChange={vi.fn()} log={createMockErrorLog()} />,

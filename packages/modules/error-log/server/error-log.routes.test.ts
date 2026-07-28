@@ -31,7 +31,7 @@ vi.mock("./error.service.js", async (importOriginal) => {
       {
         getErrorLogs: vi.fn().mockResolvedValue([]),
         getErrorLogsCount: vi.fn().mockResolvedValue(0),
-        getErrorStats: vi.fn().mockResolvedValue({ total: 0, byLevel: {} }),
+        getErrorStats: vi.fn().mockResolvedValue({ total: 0, by_level: {} }),
         cleanupOldLogs: vi.fn().mockResolvedValue(0),
         getErrorLogById: vi.fn().mockResolvedValue(null),
         deleteErrorLog: vi.fn().mockResolvedValue(undefined),

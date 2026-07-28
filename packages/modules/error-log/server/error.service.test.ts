@@ -12,6 +12,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
       create: vi.fn(),
       findMany: vi.fn(),
       count: vi.fn(),
+      groupBy: vi.fn(),
       findFirst: vi.fn(),
       deleteMany: vi.fn(),
     },
@@ -36,8 +37,8 @@ describe("ErrorService", () => {
         ipAddress: "127.0.0.1",
         userAgent: "Mozilla/5.0",
         requestBody: { test: "data" },
-        requestParams: '{"id": "123"}',
-        requestQuery: '{"page": "1"}',
+        requestParams: { id: "123" },
+        requestQuery: { page: "1" },
         errorCode: "ERR_001",
         context: { key: "value" },
       };
@@ -56,10 +57,10 @@ describe("ErrorService", () => {
           ip_address: "127.0.0.1",
           user_agent: "Mozilla/5.0",
           request_body: { test: "data" },
-          request_params: '{"id": "123"}',
-          request_query: '{"page": "1"}',
+          request_params: { id: "123" },
+          request_query: { page: "1" },
           error_code: "ERR_001",
-          context: '{"key":"value"}',
+          context: { key: "value" },
         },
       });
     });
@@ -87,7 +88,7 @@ describe("ErrorService", () => {
           request_params: undefined,
           request_query: undefined,
           error_code: undefined,
-          context: null,
+          context: undefined,
         },
       });
     });
@@ -105,7 +106,7 @@ describe("ErrorService", () => {
       const callArgs = vi.mocked(prisma.errorLog.create).mock.calls[0];
       expect(callArgs[0].data.level).toBe("warn");
       expect(callArgs[0].data.message).toBe("Test warning");
-      expect(callArgs[0].data.context).toBeNull();
+      expect(callArgs[0].data.context).toBeUndefined();
     });
   });
 
@@ -122,8 +123,8 @@ describe("ErrorService", () => {
         ipAddress: "127.0.0.1",
         userAgent: "Mozilla/5.0",
         requestBody: { test: "data" },
-        requestParams: '{"id": "123"}',
-        requestQuery: '{"page": "1"}',
+        requestParams: { id: "123" },
+        requestQuery: { page: "1" },
         errorCode: "ERR_001",
         additionalContext: { key: "value" },
       });
@@ -140,10 +141,10 @@ describe("ErrorService", () => {
           ip_address: "127.0.0.1",
           user_agent: "Mozilla/5.0",
           request_body: { test: "data" },
-          request_params: '{"id": "123"}',
-          request_query: '{"page": "1"}',
+          request_params: { id: "123" },
+          request_query: { page: "1" },
           error_code: "ERR_001",
-          context: '{"key":"value"}',
+          context: { key: "value" },
         },
       });
     });
@@ -158,7 +159,7 @@ describe("ErrorService", () => {
           level: "error",
           message: "Test error",
           stack_trace: error.stack,
-          context: null,
+          context: undefined,
           error_code: undefined,
           ip_address: undefined,
           method: undefined,
@@ -196,7 +197,7 @@ describe("ErrorService", () => {
           method: "POST",
           ip_address: "127.0.0.1",
           user_agent: "Mozilla/5.0",
-          context: '{"key":"value"}',
+          context: { key: "value" },
           stack_trace: undefined,
           error_code: undefined,
           request_body: undefined,
@@ -224,7 +225,7 @@ describe("ErrorService", () => {
           request_params: undefined,
           request_query: undefined,
           error_code: undefined,
-          context: null,
+          context: undefined,
         },
       });
     });
@@ -248,7 +249,7 @@ describe("ErrorService", () => {
           username: "testuser",
           route: "/api/test",
           method: "POST",
-          context: '{"key":"value"}',
+          context: { key: "value" },
           stack_trace: undefined,
           ip_address: undefined,
           user_agent: undefined,
@@ -279,7 +280,7 @@ describe("ErrorService", () => {
           username: "testuser",
           route: "/api/test",
           method: "POST",
-          context: '{"key":"value"}',
+          context: { key: "value" },
           stack_trace: undefined,
           ip_address: undefined,
           user_agent: undefined,
@@ -306,10 +307,10 @@ describe("ErrorService", () => {
         ip_address: string | null;
         user_agent: string | null;
         request_body: JsonValue | null;
-        request_params: string | null;
-        request_query: string | null;
+        request_params: JsonValue | null;
+        request_query: JsonValue | null;
         error_code: string | null;
-        context: string | null;
+        context: JsonValue | null;
         created_at: Date;
       }> = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
@@ -357,10 +358,10 @@ describe("ErrorService", () => {
         ip_address: string | null;
         user_agent: string | null;
         request_body: JsonValue | null;
-        request_params: string | null;
-        request_query: string | null;
+        request_params: JsonValue | null;
+        request_query: JsonValue | null;
         error_code: string | null;
-        context: string | null;
+        context: JsonValue | null;
         created_at: Date;
       }> = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
@@ -421,10 +422,10 @@ describe("ErrorService", () => {
         ip_address: string | null;
         user_agent: string | null;
         request_body: JsonValue | null;
-        request_params: string | null;
-        request_query: string | null;
+        request_params: JsonValue | null;
+        request_query: JsonValue | null;
         error_code: string | null;
-        context: string | null;
+        context: JsonValue | null;
         created_at: Date;
       }> = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
@@ -596,10 +597,10 @@ describe("ErrorService", () => {
         ip_address: string | null;
         user_agent: string | null;
         request_body: JsonValue | null;
-        request_params: string | null;
-        request_query: string | null;
+        request_params: JsonValue | null;
+        request_query: JsonValue | null;
         error_code: string | null;
-        context: string | null;
+        context: JsonValue | null;
         created_at: Date;
       }> = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
@@ -648,10 +649,10 @@ describe("ErrorService", () => {
         ip_address: string | null;
         user_agent: string | null;
         request_body: JsonValue | null;
-        request_params: string | null;
-        request_query: string | null;
+        request_params: JsonValue | null;
+        request_query: JsonValue | null;
         error_code: string | null;
-        context: string | null;
+        context: JsonValue | null;
         created_at: Date;
       }> = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
@@ -687,74 +688,89 @@ describe("ErrorService", () => {
   });
 
   describe("getErrorStats", () => {
+    /** getErrorStats 依次发出 count + 三次 groupBy（level / route / error_code）。 */
+    const mockStats = (
+      level: Array<[string | null, number]>,
+      route: Array<[string | null, number]>,
+      errorCode: Array<[string | null, number]>,
+      total: number,
+    ) => {
+      const rows = <K extends string>(key: K, pairs: Array<[string | null, number]>) =>
+        pairs.map(([value, count]) => ({ [key]: value, _count: { id: count } }));
+      vi.mocked(prisma.errorLog.count).mockResolvedValue(total);
+      vi.mocked(prisma.errorLog.groupBy)
+        .mockResolvedValueOnce(rows("level", level) as never)
+        .mockResolvedValueOnce(rows("route", route) as never)
+        .mockResolvedValueOnce(rows("error_code", errorCode) as never);
+    };
+
     it("should get error statistics", async () => {
-      const mockLogs = [
-        { level: "error", route: "/api/test", error_code: "ERR_001" },
-        { level: "error", route: "/api/test", error_code: "ERR_001" },
-        { level: "warn", route: "/api/other", error_code: "ERR_002" },
-      ];
-      vi.mocked(prisma.errorLog.findMany).mockResolvedValue(
-        mockLogs as unknown as Awaited<
-          ReturnType<typeof prisma.errorLog.findMany>
-        >,
+      mockStats(
+        [["error", 2], ["warn", 1]],
+        [["/api/test", 2], ["/api/other", 1]],
+        [["ERR_001", 2], ["ERR_002", 1]],
+        3,
       );
 
       const result = await ErrorService.getErrorStats();
 
-      expect(prisma.errorLog.findMany).toHaveBeenCalledWith({
-        where: { AND: [] },
-        select: {
-          level: true,
-          route: true,
-          error_code: true,
-        },
-      });
       expect(result).toEqual({
         total: 3,
-        byLevel: { error: 2, warn: 1 },
-        byRoute: { "/api/test": 2, "/api/other": 1 },
-        byErrorCode: { ERR_001: 2, ERR_002: 1 },
+        by_level: { error: 2, warn: 1 },
+        by_route: { "/api/test": 2, "/api/other": 1 },
+        by_error_code: { ERR_001: 2, ERR_002: 1 },
       });
     });
 
+    it("聚合走数据库，不把日志行拉进内存", async () => {
+      mockStats([["error", 1]], [], [], 1);
+
+      await ErrorService.getErrorStats();
+
+      expect(prisma.errorLog.findMany).not.toHaveBeenCalled();
+      expect(prisma.errorLog.groupBy).toHaveBeenCalledTimes(3);
+      expect(vi.mocked(prisma.errorLog.groupBy).mock.calls.map((c) => c[0].by)).toEqual([
+        ["level"],
+        ["route"],
+        ["error_code"],
+      ]);
+    });
+
     it("should get error statistics with space-formatted dates", async () => {
-      const mockLogs: Awaited<ReturnType<typeof prisma.errorLog.findMany>> = [];
-      vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
+      mockStats([], [], [], 0);
 
       await ErrorService.getErrorStats({
         startDate: "2024-01-01 00:00:00",
         endDate: "2024-12-31 23:59:59",
       });
 
-      expect(prisma.errorLog.findMany).toHaveBeenCalledWith({
-        where: {
-          AND: [
-            {
-              created_at: {
-                gte: new Date("2024-01-01 00:00:00"),
-                lte: new Date("2024-12-31 23:59:59"),
-              },
+      const expectedWhere = {
+        AND: [
+          {
+            created_at: {
+              gte: new Date("2024-01-01 00:00:00"),
+              lte: new Date("2024-12-31 23:59:59"),
             },
-          ],
-        },
-        select: {
-          level: true,
-          route: true,
-          error_code: true,
-        },
+          },
+        ],
+      };
+      expect(prisma.errorLog.count).toHaveBeenCalledWith({ where: expectedWhere });
+      expect(prisma.errorLog.groupBy).toHaveBeenCalledWith({
+        by: ["level"],
+        where: expectedWhere,
+        _count: { id: true },
       });
     });
 
     it("should get error statistics with time range", async () => {
-      const mockLogs: Awaited<ReturnType<typeof prisma.errorLog.findMany>> = [];
-      vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
+      mockStats([], [], [], 0);
 
       await ErrorService.getErrorStats({
         startDate: "2024-01-01",
         endDate: "2024-12-31",
       });
 
-      expect(prisma.errorLog.findMany).toHaveBeenCalledWith({
+      expect(prisma.errorLog.count).toHaveBeenCalledWith({
         where: {
           AND: [
             {
@@ -765,32 +781,25 @@ describe("ErrorService", () => {
             },
           ],
         },
-        select: {
-          level: true,
-          route: true,
-          error_code: true,
-        },
       });
     });
 
     it("should get error statistics with null route and error_code", async () => {
-      const mockLogs = [
-        { level: "error", route: null, error_code: null },
-        { level: "warn", route: "/api/test", error_code: "ERR_001" },
-      ];
-      vi.mocked(prisma.errorLog.findMany).mockResolvedValue(
-        mockLogs as unknown as Awaited<
-          ReturnType<typeof prisma.errorLog.findMany>
-        >,
+      // groupBy 会把 NULL 单独分一组，这些行不该进入分布
+      mockStats(
+        [["error", 1], ["warn", 1]],
+        [[null, 1], ["/api/test", 1]],
+        [[null, 1], ["ERR_001", 1]],
+        2,
       );
 
       const result = await ErrorService.getErrorStats();
 
       expect(result).toEqual({
         total: 2,
-        byLevel: { error: 1, warn: 1 },
-        byRoute: { "/api/test": 1 },
-        byErrorCode: { ERR_001: 1 },
+        by_level: { error: 1, warn: 1 },
+        by_route: { "/api/test": 1 },
+        by_error_code: { ERR_001: 1 },
       });
     });
   });
@@ -855,10 +864,10 @@ describe("ErrorService", () => {
         ip_address: "127.0.0.1",
         user_agent: "Mozilla/5.0",
         request_body: { test: "data" },
-        request_params: '{"id": "123"}',
-        request_query: '{"page": "1"}',
+        request_params: { id: "123" },
+        request_query: { page: "1" },
         error_code: "ERR_001",
-        context: '{"key": "value"}',
+        context: { key: "value" },
         created_at: new Date(),
       };
       vi.mocked(prisma.errorLog.findFirst).mockResolvedValue(mockLog);

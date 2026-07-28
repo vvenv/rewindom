@@ -56,9 +56,7 @@ _run_ssh "cd '${REMOTE_DIR}' && docker compose exec -T app pnpm --filter server 
 2. `pnpm deploy`：上传源码 → 远程 `docker compose build` → `up -d` → 健康检查
 3. `pnpm bootstrap`：首次部署额外配置宿主机 Nginx + Certbot
 
-法规占位与采集源 seed（`seed-br-regulations.ts` / `seed-regulation-harvest-sources.ts` 等）仅在新环境初始化或配置变更时按需手动执行，不再随 release 自动跑。
-
-Edge 采集节点（圣保罗）仍走独立 tarball 部署（`deploy-edge-archive.sh` 等），与主站 Docker 栈分离。
+Seed 由 `scripts/seed.sh` 按需手动执行（新环境初始化），不随 release 自动跑。
 
 ## 例外
 

@@ -1,5 +1,5 @@
 import { useAuth, useConfirm  } from "@be-water/client-kit";
-import { displayOrEmpty, formatBusinessDate } from "@be-water/shared";
+import { displayOrEmpty, formatBusinessDate, type JsonValue } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import {
   Sheet,
@@ -21,6 +21,19 @@ interface ErrorLogSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   log: ErrorLog | null;
+}
+
+/** 渲染一个 jsonb 列：值为 null（列空）时整块不显示 */
+function JsonField({ label, value }: { label: string; value: JsonValue | null }) {
+  if (value == null) return null;
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="text-muted-foreground">{label}</p>
+      <pre className="bg-muted p-3 rounded overflow-x-auto">
+        {JSON.stringify(value, null, 2)}
+      </pre>
+    </div>
+  );
 }
 
 export function ErrorLogSheet({ open, onOpenChange, log }: ErrorLogSheetProps) {
@@ -116,41 +129,10 @@ export function ErrorLogSheet({ open, onOpenChange, log }: ErrorLogSheetProps) {
                 </div>
               )}
 
-              {log.request_body != null && (
-                <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">请求体</p>
-                  <pre className="bg-muted p-3 rounded overflow-x-auto">
-                    {JSON.stringify(log.request_body, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-              {log.request_params && (
-                <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">请求参数</p>
-                  <pre className="bg-muted p-3 rounded overflow-x-auto">
-                    {log.request_params}
-                  </pre>
-                </div>
-              )}
-
-              {log.request_query && (
-                <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">查询参数</p>
-                  <pre className="bg-muted p-3 rounded overflow-x-auto">
-                    {log.request_query}
-                  </pre>
-                </div>
-              )}
-
-              {log.context && (
-                <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">上下文</p>
-                  <pre className="bg-muted p-3 rounded overflow-x-auto">
-                    {JSON.stringify(JSON.parse(log.context), null, 2)}
-                  </pre>
-                </div>
-              )}
+              <JsonField label="请求体" value={log.request_body} />
+              <JsonField label="请求参数" value={log.request_params} />
+              <JsonField label="查询参数" value={log.request_query} />
+              <JsonField label="上下文" value={log.context} />
             </div>
           )}
           {log && canDelete && (

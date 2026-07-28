@@ -12,11 +12,13 @@ model ErrorLog {
   method         String?
   ip_address     String?
   user_agent     String?
+  // 四列都是 JSON 值（写入侧原本各自 JSON.stringify 后塞进 text，读出再 parse）。
+  // 统一成 jsonb：去掉双重编码，读写两侧不必再手工序列化。
   request_body   Json?
-  request_params String?
-  request_query  String?
+  request_params Json?
+  request_query  Json?
   error_code     String?
-  context        String?
+  context        Json?
   created_at     DateTime @default(now())
 
   @@index([user_id])
@@ -24,6 +26,11 @@ model ErrorLog {
   @@index([level])
   @@index([created_at])
   @@index([error_code])
+  // 只给 request_body 建 GIN：它是唯一体积大、内容不可预测、值得按内容检索的列。
+  // request_params / request_query 的信息基本已被 route 覆盖，context 目前只装
+  // { statusCode } 这类小字段——日志表写入频繁，不为没有的查询预付索引维护成本。
+  // 将来真要按 context 过滤，照抄下面这行换列名即可。
+  //
   // jsonb_path_ops：只支持 @> / @? / @@（containment + jsonpath），
   // 但索引体积约为默认 jsonb_ops 的 1/3——日志表持续增长，优先选小的。
   // 若需要键存在查询（? / ?| / ?&），改成 ops: JsonbOps。

@@ -102,7 +102,7 @@ await api.post("/documents", { title, content }, true);
 - 使用 Prisma ORM（Prisma 7）
 - 复杂查询使用 `include` 和 `select`
 - 事务使用 `$transaction`
-- 向量搜索使用 `$queryRaw` 或 `$executeRaw` 调用 pgvector 函数
+- jsonb 列按内容检索用 `path` 过滤（如 `ErrorLog.request_body`），复杂 jsonpath 才降级到 `$queryRaw`
 
 ## 日志规范
 

@@ -147,11 +147,11 @@ const [sorting, setSorting] = useState<SortingState>([]);
 
 **所有 Dialog / Sheet 均内聚 trigger + 弹层 + 业务逻辑**，禁止 Page 维护 `open` 状态并分散渲染 Button 与 Dialog。
 
-- 头部/工具栏操作：`CreateXxxDialog` 自带 `DialogTrigger`（参考 `PlatformTenantCreateDialog`）
-- 表格/列表行操作：`*Dialog` 接收 `children` 作为 trigger（参考 `RegulationDetailDialog`）
-- 列表行点击 + 详情：在 Row 或 Table 组件内内聚（参考 `LibraryDocumentRow`、`PlatformErrorLogsTable`）
-- 简单确认：使用 `DialogButton`（内部 `open`，仅传 `trigger`）
-- 凭据展示等多步流程：在同一 Dialog 内切换视图（参考 `PlatformTenantCreateDialog` + `TenantAdminCredentialsPanel`）
+- 头部/工具栏操作：`XxxCreateDialog` / `XxxCreateSheet` 自带 `DialogTrigger`（参考 `TenantCreateDialog`、`NoteCreateSheet`）
+- 列表行点击 + 详情：由 Table 持有 Sheet 并通过 `onRowClick` 打开（参考 `ErrorLogsTable` + `ErrorLogSheet`、`SlowQueryLogSheet`）
+- 行内编辑：在 Row 组件内内聚（参考 `TodoRow`）
+- 简单确认：使用 `DialogButton`（内部 `open`，仅传 `trigger`）；破坏性确认用 `useConfirm`
+- 凭据展示等多步流程：在同一 Dialog 内切换视图（参考 `TenantCreateDialog` + `TenantAdminCredentialsPanel`）
 
 Row 级组件可用 `syncUrlParam` 等方式同步 URL，但 open 状态仍由 Dialog 组件内部或 Row 内管理，Page 不单独挂底部 Dialog。
 

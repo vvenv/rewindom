@@ -90,7 +90,7 @@ describe("platform error-log routes", () => {
   it("GET /error-logs/stats 返回错误统计", async () => {
     vi.mocked(ErrorService.getErrorStats).mockResolvedValueOnce({
       total: 42,
-      byLevel: { error: 30, warn: 12 },
+      by_level: { error: 30, warn: 12 },
     } as never);
 
     const app = await buildApp();

@@ -6,32 +6,44 @@ alwaysApply: true
 # 架构
 
 ```
-Frontend (React SPA) → Fastify API (:3700) → PostgreSQL + Prisma + pgvector
+Frontend (React SPA) → Fastify API (:3700) → PostgreSQL + Prisma
+                                            └→ Redis（缓存 / BullMQ 队列）
 ```
 
-Monorepo: `apps/server`（后端）+ `apps/client`（前端）+ `modules/*`（业务模块）+ `packages/*`（共享基建）。单进程部署，Fastify 托管 `/api/*` 与 SPA fallback。
+多租户 SaaS **模块化单体**底座。Monorepo：
 
-**目标架构（Modular Monolith，Phase 6 已落地）**：Kernel + Shell 模块 + 单业务包 `be-water`，见 `docs/design/modular-architecture.md`。
+| 路径 | 角色 |
+| --- | --- |
+| `apps/server` / `apps/client` | 极薄组装层，只做启用模块的注册 |
+| `packages/modules/<id>/` | 业务与基础设施模块（`shared` + `server` + `client` + 可选 `schema.prisma`） |
+| `packages/server-kernel` | 后端内核：Prisma、认证、中间件、模块契约 |
+| `packages/client-kit` / `packages/ui` | 前端 App Shell 与组件库 |
+| `packages/shared` | 前后端共享类型与工具 |
+
+内核与基础设施**不含业务领域代码**。详见 `docs/design/modular-architecture.md`。
 
 ## 技术栈
 
-- **后端**: Fastify 5 + TypeScript 6 + Prisma 7 + PostgreSQL（含 pgvector 扩展）
+- **后端**: Fastify 5 + TypeScript 6 + Prisma 7 + PostgreSQL 16
 - **前端**: React 19 + Vite 8 + React Router v7 + TanStack Query/Table + shadcn/ui + Tailwind CSS 4
 - **认证**: JWT 双 Token（`access_token` + `refresh_token`），`api.ts` 自动刷新
-- **向量搜索**: pgvector 实现文档语义检索，结合 PostgreSQL 全文搜索实现混合搜索
 - **任务队列**: BullMQ + ioredis
-- **AI 能力**: OpenAI API（合规分析 Agent、文档解析）
+- **AI 能力**: OpenAI 兼容接口（`openai-client.ts` 只提供客户端与配置，不预设调用场景）
 
-## 核心业务模块
+数据库只用原生 PostgreSQL，**没有启用任何扩展**。若将来要做向量检索，需同时
+`CREATE EXTENSION vector` 并把 docker-compose 的镜像换成自带 pgvector 的
+（`postgres:16-alpine` 不含该扩展）。
 
-Document（法规文档）· DocumentChunk（文档切片）· Product（产品）· ComplianceAnalysis（合规分析）· CitationRecord（引用记录）
+## 内置模块
 
-## 合规分析流程
+`packages/modules/` 下，注册于 `apps/server/src/enabled-modules.ts`（infra → shell → 业务域）：
 
-1. 产品解析 → 提取产品属性
-2. 法规检索 → 向量搜索 + 全文搜索混合检索
-3. 风险匹配 → AI 分析合规风险
-4. 建议生成 → 生成合规建议
-5. 法规引用 → 记录引用来源
+| 类型 | 模块 |
+| --- | --- |
+| 基础设施 | `user` 认证/JWT · `rbac` PBAC · `platform` 租户/套餐/配额 · `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 |
+| 示例业务 | `notes` 金标准 CRUD · `todos` 由 `gen:module` 生成的列表示例 |
 
-Skills：`document-management` · `vector-search` · `compliance-analysis` · `product-management` · `error-logging`。文档索引：`docs-reference` rule。
+新增模块：填 `MODULE.spec.yaml` → `pnpm gen:module` → 补 service → `pnpm check:modules`。
+
+Skills：`create-module` · `extract-module` · `error-logging` · `frontend-page-structure` ·
+`prisma-sync-fix` · `merge-migrations`。文档索引：`docs-reference` rule。

@@ -54,8 +54,8 @@ BEGIN
 END $$;
 ```
 
-本仓库当前只有 `Role` 一个 enum（`apps/server/prisma/models/kernel.prisma`）。
-后续新增的 enum 同样需要这层条件包裹——用下面的命令先列全，别凭记忆。
+本仓库当前**零个** Prisma enum（所有状态字段都用 `String`），所以这一步通常无事可做。
+后续新增的 enum 需要这层条件包裹——用 `grep -rn '^enum ' apps/server/prisma/models/` 先列全，别凭记忆。
 
 确认是否漏掉自定义对象：
 
@@ -132,7 +132,11 @@ ls apps/server/prisma/migrations   # 只剩 ${TS}_init 和 migration_lock.toml
 
 已有库 schema 已存在，只需把历史改成「这一条已应用」。
 
-**部署脚本已自动处理**：Docker 容器启动时 `entrypoint.sh` 会执行 `prisma migrate deploy`（含 squashed init baseline 逻辑）。手动操作仅在不走部署流程时需要：
+**部署路径已自动处理**：`docker/entrypoint.sh` 在 `migrate deploy` 之前会探测
+「已有 `User` 表但 `_prisma_migrations` 里没有这条 init」，命中则先 baseline 再 deploy；
+全新空库跳过该分支正常建表。**改动 baseline 逻辑时记得同步这里。**
+
+手动操作仅在不走部署流程时需要：
 
 ```bash
 LIVE="$(grep '^DATABASE_URL=' .env | cut -d= -f2- | sed 's#[?].*##')"

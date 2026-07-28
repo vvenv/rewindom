@@ -3,6 +3,8 @@ import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_SLUG, type JsonValue } from "@be-water/shared";
 
+import { type ErrorStats } from "../shared/index.js";
+
 
 export interface ErrorLogInput {
   level: "error" | "warn" | "info" | "debug";
@@ -15,12 +17,21 @@ export interface ErrorLogInput {
   method?: string;
   ipAddress?: string;
   userAgent?: string;
-  /** 存进 jsonb 列，调用方传纯 JSON 值而不是 JSON.stringify 后的字符串 */
+  /** 以下四项存进 jsonb 列，调用方传纯 JSON 值而不是 JSON.stringify 后的字符串 */
   requestBody?: unknown;
-  requestParams?: string;
-  requestQuery?: string;
+  requestParams?: unknown;
+  requestQuery?: unknown;
   errorCode?: string;
   context?: Record<string, unknown>;
+}
+
+/** `undefined` -> 不写该字段（列保持 NULL）；`null` -> 写 JSON null；其余原样交给 jsonb。 */
+function toJsonColumn(
+  value: unknown,
+): Prisma.InputJsonValue | typeof Prisma.JsonNull | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return Prisma.JsonNull;
+  return value as Prisma.InputJsonValue;
 }
 
 interface ErrorLogFilters {
@@ -82,17 +93,11 @@ export class ErrorService {
         method,
         ip_address: ipAddress,
         user_agent: userAgent,
-        // undefined -> 字段不写入（列保持 NULL）；JSON null 走 Prisma.JsonNull。
-        request_body:
-          requestBody === undefined
-            ? undefined
-            : requestBody === null
-              ? Prisma.JsonNull
-              : (requestBody as Prisma.InputJsonValue),
-        request_params: requestParams,
-        request_query: requestQuery,
+        request_body: toJsonColumn(requestBody),
+        request_params: toJsonColumn(requestParams),
+        request_query: toJsonColumn(requestQuery),
         error_code: errorCode,
-        context: context ? JSON.stringify(context) : null,
+        context: toJsonColumn(context),
       },
     });
   }
@@ -180,8 +185,8 @@ export class ErrorService {
       ipAddress?: string;
       userAgent?: string;
       requestBody?: unknown;
-      requestParams?: string;
-      requestQuery?: string;
+      requestParams?: unknown;
+      requestQuery?: unknown;
       errorCode?: string;
       additionalContext?: Record<string, unknown>;
     },
@@ -309,10 +314,10 @@ export class ErrorService {
       ip_address: string | null;
       user_agent: string | null;
       request_body: JsonValue | null;
-      request_params: string | null;
-      request_query: string | null;
+      request_params: JsonValue | null;
+      request_query: JsonValue | null;
       error_code: string | null;
-      context: string | null;
+      context: JsonValue | null;
       created_at: Date;
     }>
   > {
@@ -402,10 +407,10 @@ export class ErrorService {
       ip_address: string | null;
       user_agent: string | null;
       request_body: JsonValue | null;
-      request_params: string | null;
-      request_query: string | null;
+      request_params: JsonValue | null;
+      request_query: JsonValue | null;
       error_code: string | null;
-      context: string | null;
+      context: JsonValue | null;
       created_at: Date;
     }>
   > {
@@ -431,10 +436,10 @@ export class ErrorService {
       ip_address: string | null;
       user_agent: string | null;
       request_body: JsonValue | null;
-      request_params: string | null;
-      request_query: string | null;
+      request_params: JsonValue | null;
+      request_query: JsonValue | null;
       error_code: string | null;
-      context: string | null;
+      context: JsonValue | null;
       created_at: Date;
     }>
   > {
@@ -448,50 +453,58 @@ export class ErrorService {
     startDate?: string;
     endDate?: string;
     tenantSlug?: string;
-  }): Promise<{
-    total: number;
-    byLevel: Record<string, number>;
-    byRoute: Record<string, number>;
-    byErrorCode: Record<string, number>;
-  }> {
+  }): Promise<ErrorStats> {
     const tenantSlug = timeRange?.tenantSlug;
+    const where = {
+      AND: [
+        ...this.buildErrorLogConditions({
+          startDate: timeRange?.startDate,
+          endDate: timeRange?.endDate,
+        }),
+        ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
+      ],
+    };
 
-    const logs = await prisma.errorLog.findMany({
-      where: {
-        AND: [
-          ...this.buildErrorLogConditions({
-            startDate: timeRange?.startDate,
-            endDate: timeRange?.endDate,
-          }),
-          ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
-        ],
-      },
-      select: {
-        level: true,
-        route: true,
-        error_code: true,
-      },
-    });
+    // 交给数据库做聚合：早先的实现是把命中的行整表 findMany 回来再在内存里计数，
+    // ErrorLog 是持续增长的日志表，时间范围一宽就会把整段日志拉进进程。
+    // 与 slow-query 模块的 getStats 保持同一套写法。
+    const [total, byLevel, byRoute, byErrorCode] = await Promise.all([
+      prisma.errorLog.count({ where: where as never }),
+      prisma.errorLog.groupBy({
+        by: ["level"],
+        where: where as never,
+        _count: { id: true },
+      }),
+      prisma.errorLog.groupBy({
+        by: ["route"],
+        where: where as never,
+        _count: { id: true },
+      }),
+      prisma.errorLog.groupBy({
+        by: ["error_code"],
+        where: where as never,
+        _count: { id: true },
+      }),
+    ]);
 
-    const byLevel: Record<string, number> = {};
-    const byRoute: Record<string, number> = {};
-    const byErrorCode: Record<string, number> = {};
-
-    for (const log of logs) {
-      byLevel[log.level] = (byLevel[log.level] || 0) + 1;
-      if (log.route) {
-        byRoute[log.route] = (byRoute[log.route] || 0) + 1;
+    /** groupBy 会把 NULL 单独分一组；这些行没有该维度，不计入分布。 */
+    const tally = <K extends string>(
+      rows: Array<Record<K, string | null> & { _count: { id: number } }>,
+      key: K,
+    ): Record<string, number> => {
+      const out: Record<string, number> = {};
+      for (const row of rows) {
+        const value = row[key];
+        if (value) out[value] = row._count.id;
       }
-      if (log.error_code) {
-        byErrorCode[log.error_code] = (byErrorCode[log.error_code] || 0) + 1;
-      }
-    }
+      return out;
+    };
 
     return {
-      total: logs.length,
-      byLevel,
-      byRoute,
-      byErrorCode,
+      total,
+      by_level: tally(byLevel, "level"),
+      by_route: tally(byRoute, "route"),
+      by_error_code: tally(byErrorCode, "error_code"),
     };
   }
 
@@ -538,10 +551,10 @@ export class ErrorService {
     ip_address: string | null;
     user_agent: string | null;
     request_body: JsonValue | null;
-    request_params: string | null;
-    request_query: string | null;
+    request_params: JsonValue | null;
+    request_query: JsonValue | null;
     error_code: string | null;
-    context: string | null;
+    context: JsonValue | null;
     created_at: Date;
   } | null> {
     const log = await prisma.errorLog.findFirst({

@@ -38,18 +38,18 @@ export interface ErrorLog {
   method: string | null;
   ip_address: string | null;
   user_agent: string | null;
-  /** jsonb 列，走 JSON 序列化后仍是结构化值，不是字符串 */
+  /** 以下四项是 jsonb 列，走 API 传回来仍是结构化值，不是字符串 */
   request_body: JsonValue | null;
-  request_params: string | null;
-  request_query: string | null;
+  request_params: JsonValue | null;
+  request_query: JsonValue | null;
   error_code: string | null;
-  context: string | null;
+  context: JsonValue | null;
   created_at: string;
 }
 
 export interface ErrorStats {
   total: number;
-  byLevel: Record<string, number>;
-  byRoute: Record<string, number>;
-  byErrorCode: Record<string, number>;
+  by_level: Record<string, number>;
+  by_route: Record<string, number>;
+  by_error_code: Record<string, number>;
 }
