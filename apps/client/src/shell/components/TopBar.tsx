@@ -22,7 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@be-water/ui/dropdown-menu";
-import { Separator } from "@be-water/ui/separator";
 import { cn } from "@be-water/ui/utils";
 import { ChevronDown } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router";
@@ -38,26 +37,9 @@ import { ShellSlotList } from "./ShellSlotList.js";
 /** 相邻导航项的间距（px），必须与容器的 `gap-1` 一致，供溢出测量换算。 */
 const NAV_GAP_PX = 4;
 
-/**
- * 摊平后的一项：`sectionLabel` 非空表示这里是新 section 的起点。
- * 顶栏没有纵向空间摆 section 标题，改用一道竖分隔线表示分组；
- * section 名字留给「更多」下拉里做分组标签。
- */
-interface TopBarNavEntry {
-  item: AppNavItem;
-  sectionLabel: string;
-  startsSection: boolean;
-}
-
-function flattenSections(sections: AppNavSection[]): TopBarNavEntry[] {
-  return sections.flatMap((section, sectionIndex) =>
-    section.items.map((item, itemIndex) => ({
-      item,
-      sectionLabel: section.label,
-      startsSection: itemIndex === 0 && sectionIndex > 0,
-    })),
-  );
-}
+/** section 下拉入口与「更多」共用同一套外观，测量行才能量准。 */
+const NAV_TRIGGER_CLASS =
+  "h-9 shrink-0 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
 
 function NavBadgeCount({
   badgeKey,
@@ -82,8 +64,36 @@ function NavBadgeCount({
 }
 
 /**
- * 顶栏导航项。与侧边栏版的区别只在朝向：这里用背景块表示激活态，
- * 不用左侧竖条（横向排布时左边框读起来像分隔线）。
+ * section 折叠成下拉后，组内的待办数会被藏起来，所以把组内出现过的 badge
+ * 提到入口上。同一 badgeKey 只提一次——它本身就是全局计数，不按项累加。
+ */
+function SectionBadgeCounts({ items }: { items: AppNavItem[] }) {
+  const badgeKeys = useMemo(
+    () => [
+      ...new Set(
+        items.flatMap((item) => (item.badgeKey ? [item.badgeKey] : [])),
+      ),
+    ],
+    [items],
+  );
+
+  return badgeKeys.map((badgeKey) => (
+    <NavBadgeCount key={badgeKey} badgeKey={badgeKey} />
+  ));
+}
+
+/** 判定 section 里是否有页面处于激活态——决定下拉入口要不要高亮。 */
+function useIsSectionActive(items: AppNavItem[]): boolean {
+  const location = useLocation();
+  const { isNavRouteActive } = useAppShellConfig();
+
+  return items.some((item) => isNavRouteActive(location.pathname, item));
+}
+
+/**
+ * 顶栏一级导航项，只用于「组内仅一个页面」的 section——那种情况套下拉纯属多点一次。
+ * 与侧边栏版的区别只在朝向：这里用背景块表示激活态，不用左侧竖条
+ *（横向排布时左边框读起来像分隔线）。
  */
 function TopBarNavItem({ item }: { item: AppNavItem }) {
   const location = useLocation();
@@ -96,13 +106,7 @@ function TopBarNavItem({ item }: { item: AppNavItem }) {
       end={item.end}
       title={item.title}
       className={({ isActive }) => {
-        const active =
-          isActive ||
-          isNavRouteActive(location.pathname, {
-            path: item.path,
-            end: item.end,
-            activePrefix: item.activePrefix,
-          });
+        const active = isActive || isNavRouteActive(location.pathname, item);
 
         return cn(
           "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-sidebar-foreground transition-colors outline-none select-none",
@@ -118,28 +122,31 @@ function TopBarNavItem({ item }: { item: AppNavItem }) {
   );
 }
 
-/** 放不下的导航项：按 section 分组塞进下拉。 */
-function OverflowNavMenu({ entries }: { entries: TopBarNavEntry[] }) {
+/** 下拉里的一项。激活态得在这儿自己算：className 传给 Slot 时不能是函数。 */
+function NavMenuItem({ item }: { item: AppNavItem }) {
   const location = useLocation();
   const { isNavRouteActive } = useAppShellConfig();
+  const active = isNavRouteActive(location.pathname, item);
 
-  const groups = useMemo(() => {
-    const bySection = new Map<string, AppNavItem[]>();
-    for (const entry of entries) {
-      const list = bySection.get(entry.sectionLabel) ?? [];
-      list.push(entry.item);
-      bySection.set(entry.sectionLabel, list);
-    }
-    return [...bySection.entries()];
-  }, [entries]);
-
-  const hasActive = entries.some((entry) =>
-    isNavRouteActive(location.pathname, {
-      path: entry.item.path,
-      end: entry.item.end,
-      activePrefix: entry.item.activePrefix,
-    }),
+  return (
+    <DropdownMenuItem asChild>
+      <NavLink
+        to={item.path}
+        end={item.end}
+        title={item.title}
+        className={cn(active && "bg-accent font-medium text-accent-foreground")}
+      >
+        <item.icon className="size-4 shrink-0" />
+        <span className="flex-1 truncate">{item.label}</span>
+        <NavBadgeCount badgeKey={item.badgeKey} />
+      </NavLink>
+    </DropdownMenuItem>
   );
+}
+
+/** 一个 section 一个下拉：入口是组名，组内页面是下拉项。 */
+function SectionNavMenu({ section }: { section: AppNavSection }) {
+  const active = useIsSectionActive(section.items);
 
   return (
     <DropdownMenu>
@@ -148,7 +155,40 @@ function OverflowNavMenu({ entries }: { entries: TopBarNavEntry[] }) {
           variant="ghost"
           size="sm"
           className={cn(
-            "h-9 shrink-0 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            NAV_TRIGGER_CLASS,
+            active && "bg-sidebar-accent text-sidebar-accent-foreground",
+          )}
+        >
+          {section.label}
+          <SectionBadgeCounts items={section.items} />
+          <ChevronDown className="size-3.5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" collisionPadding={8} className="w-52">
+        {section.items.map((item) => (
+          <NavMenuItem key={item.path} item={item} />
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** 顶栏放不下的 section：整组塞进「更多」，组名降级为下拉里的分组标签。 */
+function OverflowNavMenu({ sections }: { sections: AppNavSection[] }) {
+  const items = useMemo(
+    () => sections.flatMap((section) => section.items),
+    [sections],
+  );
+  const hasActive = useIsSectionActive(items);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            NAV_TRIGGER_CLASS,
             hasActive && "bg-sidebar-accent text-sidebar-accent-foreground",
           )}
         >
@@ -157,20 +197,14 @@ function OverflowNavMenu({ entries }: { entries: TopBarNavEntry[] }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" collisionPadding={8} className="w-52">
-        {groups.map(([sectionLabel, items], groupIndex) => (
-          <div key={sectionLabel}>
-            {groupIndex > 0 ? <DropdownMenuSeparator /> : null}
-            <DropdownMenuLabel className="text-muted-foreground text-xs">
-              {sectionLabel}
+        {sections.map((section, sectionIndex) => (
+          <div key={section.label}>
+            {sectionIndex > 0 ? <DropdownMenuSeparator /> : null}
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              {section.label}
             </DropdownMenuLabel>
-            {items.map((item) => (
-              <DropdownMenuItem key={item.path} asChild>
-                <NavLink to={item.path} end={item.end} title={item.title}>
-                  <item.icon className="size-4 shrink-0" />
-                  <span className="flex-1 truncate">{item.label}</span>
-                  <NavBadgeCount badgeKey={item.badgeKey} />
-                </NavLink>
-              </DropdownMenuItem>
+            {section.items.map((item) => (
+              <NavMenuItem key={item.path} item={item} />
             ))}
           </div>
         ))}
@@ -179,25 +213,49 @@ function OverflowNavMenu({ entries }: { entries: TopBarNavEntry[] }) {
   );
 }
 
-function NavEntry({ entry }: { entry: TopBarNavEntry }) {
-  return (
-    <>
-      {entry.startsSection ? (
-        <Separator
-          orientation="vertical"
-          className="mx-1 !h-5 bg-sidebar-border"
-        />
-      ) : null}
-      <TopBarNavItem item={entry.item} />
-    </>
-  );
+/**
+ * 一个 section 对应顶栏一格。
+ *
+ * `measuring` 用于隐藏测量行：那里只需要量宽度，把下拉换成同样外观的静态按钮，
+ * 免得给每个 section 再挂一份 Radix 菜单实例（以及重复的 aria 关系）。
+ */
+function NavEntry({
+  section,
+  measuring = false,
+}: {
+  section: AppNavSection;
+  measuring?: boolean;
+}) {
+  const [firstItem] = section.items;
+
+  if (section.items.length === 1 && firstItem) {
+    return <TopBarNavItem item={firstItem} />;
+  }
+
+  if (measuring) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className={NAV_TRIGGER_CLASS}
+        tabIndex={-1}
+      >
+        {section.label}
+        <SectionBadgeCounts items={section.items} />
+        <ChevronDown className="size-3.5" />
+      </Button>
+    );
+  }
+
+  return <SectionNavMenu section={section} />;
 }
 
 /**
  * 上下布局的顶部导航栏（仅 md+ 渲染，窄屏走移动端外壳）。
  *
- * 导航区宽度不够时，尾部若干项自动收进「更多」下拉——见 `useOverflowRow`。
- * 因此这里既不会横向溢出，也不需要横向滚动，下游加到几十个菜单同样成立。
+ * 一级是 section（组内多页时点开下拉，单页时直接就是链接），宽度不够时尾部
+ * 若干 section 整组收进「更多」——见 `useOverflowRow`。因此这里既不会横向溢出，
+ * 也不需要横向滚动，下游加到几十个菜单同样成立。
  */
 export function TopBar(): ReactNode {
   const { sections } = useFilteredNavSections();
@@ -205,12 +263,11 @@ export function TopBar(): ReactNode {
   const homePath = useAppHomePath();
   const UserMenu = shellContributions.sidebarUserMenu[0];
 
-  const entries = useMemo(() => flattenSections(sections), [sections]);
   const { containerRef, measureItemRef, measureOverflowRef, visibleCount } =
-    useOverflowRow(entries.length, { gap: NAV_GAP_PX });
+    useOverflowRow(sections.length, { gap: NAV_GAP_PX });
 
-  const visible = entries.slice(0, visibleCount);
-  const overflow = entries.slice(visibleCount);
+  const visible = sections.slice(0, visibleCount);
+  const overflow = sections.slice(visibleCount);
 
   return (
     <header className="hidden h-14 shrink-0 items-center gap-2 border-b bg-sidebar px-3 text-sidebar-foreground md:flex">
@@ -224,19 +281,19 @@ export function TopBar(): ReactNode {
         className="relative flex min-w-0 flex-1 items-center gap-1 overflow-hidden"
         aria-label="主导航"
       >
-        {visible.map((entry) => (
-          <NavEntry key={entry.item.path} entry={entry} />
+        {visible.map((section) => (
+          <NavEntry key={section.label} section={section} />
         ))}
-        {overflow.length > 0 ? <OverflowNavMenu entries={overflow} /> : null}
+        {overflow.length > 0 ? <OverflowNavMenu sections={overflow} /> : null}
 
         {/*
           隐藏测量行：渲染全部项，只为量出各项自然宽度。已被收起的项宽度也因此可知，
           容器变宽时能正确放回来——只量可见项的实现会单向收缩、涨不回去。
         */}
         <div className={OVERFLOW_MEASURE_ROW_CLASS} aria-hidden="true">
-          {entries.map((entry, index) => (
-            <span key={entry.item.path} ref={measureItemRef(index)}>
-              <NavEntry entry={entry} />
+          {sections.map((section, index) => (
+            <span key={section.label} ref={measureItemRef(index)}>
+              <NavEntry section={section} measuring />
             </span>
           ))}
           <span ref={measureOverflowRef}>
