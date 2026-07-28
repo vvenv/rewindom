@@ -103,6 +103,10 @@ export const AuditAction = {
   NOTE_CREATE: "NOTE_CREATE",
   NOTE_UPDATE: "NOTE_UPDATE",
   NOTE_DELETE: "NOTE_DELETE",
+  TODO_CREATE: "TODO_CREATE",
+  TODO_UPDATE: "TODO_UPDATE",
+  TODO_DELETE: "TODO_DELETE",
+  TODO_CLEAR_COMPLETED: "TODO_CLEAR_COMPLETED",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -193,6 +197,10 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.NOTE_CREATE]: "创建笔记",
   [AuditAction.NOTE_UPDATE]: "更新笔记",
   [AuditAction.NOTE_DELETE]: "删除笔记",
+  [AuditAction.TODO_CREATE]: "创建待办",
+  [AuditAction.TODO_UPDATE]: "更新待办",
+  [AuditAction.TODO_DELETE]: "删除待办",
+  [AuditAction.TODO_CLEAR_COMPLETED]: "清除已完成待办",
 };
 
 export function getAuditActionLabel(action: AuditActionType): string {
@@ -247,6 +255,15 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.NOTE_CREATE,
       AuditAction.NOTE_UPDATE,
       AuditAction.NOTE_DELETE,
+    ],
+  },
+  {
+    label: "Todos",
+    actions: [
+      AuditAction.TODO_CREATE,
+      AuditAction.TODO_UPDATE,
+      AuditAction.TODO_DELETE,
+      AuditAction.TODO_CLEAR_COMPLETED,
     ],
   },
 ] as const;

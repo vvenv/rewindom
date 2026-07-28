@@ -6,7 +6,9 @@ import { notificationServerModule } from "@be-water/modules/notification/server/
 import { platformServerModule } from "@be-water/modules/platform/server/index.js";
 import { rbacServerModule } from "@be-water/modules/rbac/server/index.js";
 import { slowQueryServerModule } from "@be-water/modules/slow-query/server/index.js";
+import { todosServerModule } from "@be-water/modules/todos/server/index.js";
 import { userServerModule } from "@be-water/modules/user/server/index.js";
+
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
 
@@ -20,4 +22,5 @@ export const ENABLED_SERVER_MODULES = [
   userServerModule,
   platformServerModule,
   notesServerModule,
+  todosServerModule,
 ] as const satisfies readonly ServerAppModule[];

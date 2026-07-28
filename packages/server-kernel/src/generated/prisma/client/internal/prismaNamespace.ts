@@ -80,11 +80,11 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.9.0
+ * Prisma Client JS version: 7.9.1
  * Query Engine version: e922089b7d7502aff4249d5da3420f6fa55fc6ad
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.9.0",
+  client: "7.9.1",
   engine: "e922089b7d7502aff4249d5da3420f6fa55fc6ad"
 }
 
@@ -415,7 +415,8 @@ export const ModelName = {
   Role: 'Role',
   RolePermission: 'RolePermission',
   UserRole: 'UserRole',
-  SlowQueryLog: 'SlowQueryLog'
+  SlowQueryLog: 'SlowQueryLog',
+  Todo: 'Todo'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "errorLog" | "refreshToken" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "slowQueryLog"
+    modelProps: "auditLog" | "backgroundJob" | "errorLog" | "refreshToken" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1841,6 +1842,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Todo: {
+      payload: Prisma.$TodoPayload<ExtArgs>
+      fields: Prisma.TodoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TodoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TodoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        findFirst: {
+          args: Prisma.TodoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TodoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        findMany: {
+          args: Prisma.TodoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>[]
+        }
+        create: {
+          args: Prisma.TodoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        createMany: {
+          args: Prisma.TodoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TodoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>[]
+        }
+        delete: {
+          args: Prisma.TodoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        update: {
+          args: Prisma.TodoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        deleteMany: {
+          args: Prisma.TodoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TodoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TodoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>[]
+        }
+        upsert: {
+          args: Prisma.TodoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        aggregate: {
+          args: Prisma.TodoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTodo>
+        }
+        groupBy: {
+          args: Prisma.TodoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TodoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TodoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TodoCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2157,6 +2232,20 @@ export const SlowQueryLogScalarFieldEnum = {
 export type SlowQueryLogScalarFieldEnum = (typeof SlowQueryLogScalarFieldEnum)[keyof typeof SlowQueryLogScalarFieldEnum]
 
 
+export const TodoScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  title: 'title',
+  completed: 'completed',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type TodoScalarFieldEnum = (typeof TodoScalarFieldEnum)[keyof typeof TodoScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2457,6 +2546,7 @@ export type GlobalOmitConfig = {
   rolePermission?: Prisma.RolePermissionOmit
   userRole?: Prisma.UserRoleOmit
   slowQueryLog?: Prisma.SlowQueryLogOmit
+  todo?: Prisma.TodoOmit
 }
 
 /* Types for Logging */

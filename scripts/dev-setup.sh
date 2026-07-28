@@ -39,5 +39,5 @@ pnpm --filter server exec prisma migrate deploy
 
 log_success "本地开发环境就绪"
 log_info "下一步: pnpm dev"
-log_info "  前端 http://localhost:5175"
-log_info "  API   http://localhost:3400（Vite 代理 /api）"
+log_info "  前端 http://localhost:7300"
+log_info "  API   http://localhost:3700（Vite 代理 /api）"

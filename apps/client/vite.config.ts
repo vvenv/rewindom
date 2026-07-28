@@ -26,7 +26,7 @@ export default defineConfig(() => ({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:3400",
+        target: "http://localhost:3700",
         timeout: 600_000,
         proxyTimeout: 600_000,
         configure: (proxy) => {

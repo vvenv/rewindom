@@ -16,7 +16,7 @@ source "$ROOT/scripts/lib/log.sh"
 docker_default_port_for_env() {
   case "${1:-production}" in
     test) echo "3402" ;;
-    *) echo "3400" ;;
+    *) echo "3700" ;;
   esac
 }
 

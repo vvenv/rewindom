@@ -64,13 +64,24 @@ node scripts/gen-module.mjs <spec.yaml> --dry-run   # 先看会动哪些文件
 node scripts/gen-module.mjs <spec.yaml>             # 生成 + 装配 + 自动 prettier/eslint --fix
 ```
 
-它产出 26 个文件并完成全部装配：两处 `enabled-modules.ts`、`eslint-rules/tenant-models.json`、
-`apps/server/prisma/models/<id>.prisma` 符号链接、audit 模块里审计动作的**三处**登记
-（`AuditAction` / `AUDIT_ACTION_LABELS` / `AUDIT_ACTION_GROUPS`——漏一处标签就变 `undefined`）。
+它产出 26 个文件并完成全部装配——**新模块要碰的注册表有 6 处，逐个手工加必漏**：
+
+| 装配点                                                                 | 漏了会怎样                                  |
+| ---------------------------------------------------------------------- | ------------------------------------------- |
+| `apps/server/src/enabled-modules.ts`                                   | 路由不注册                                  |
+| `apps/client/src/enabled-modules.ts`                                   | 页面与导航不出现                            |
+| `apps/server/scripts/lib/module-manifest.ts`                           | `module-dependencies.test.ts` 红            |
+| `packages/server-kernel/src/lib/tenant-guard.ts` 的 `MODEL_POLICIES`   | **Prisma client 启动即失败**（fail-closed） |
+| `eslint-rules/tenant-models.json`                                      | 越权查询失去 lint 兜底                      |
+| audit 的 `AuditAction` / `AUDIT_ACTION_LABELS` / `AUDIT_ACTION_GROUPS` | 审计标签变 `undefined`                      |
+
+外加 `apps/server/prisma/models/<id>.prisma` 符号链接。
 
 **支持范围**（超出会直接报错，不生成半对的代码）：`surfaces: [tenant]` +
-`client.mount: renderRoutes` 的列表型 CRUD，表单字段限 String。平台面、非列表页、
-多模型等情况按下面的 checklist 手工建。
+`client.mount: renderRoutes` 的列表型 CRUD；表单字段支持 `String`（Input/Textarea）、
+`Boolean`（Sheet 里 Switch、表格列 Checkbox 可就地切换）、`DateTime`（Popover + Calendar，
+表单内以 ISO 串表示）；`search_fields` 只能是 String。平台面、非列表页、多模型等按下面的
+checklist 手工建。
 
 生成后要做的：
 
@@ -149,6 +160,8 @@ node scripts/gen-module.mjs <spec.yaml>             # 生成 + 装配 + 自动 p
 带 🤖 的条目它已经机器化——退出码非 0 就别说「做完了」；其余仍需人工核。
 
 - [ ] 🤖 两个 `enabled-modules.ts` 都注册了：import **且**在 `ENABLED_*` 数组里
+- [ ] 🤖 已加入 `apps/server/scripts/lib/module-manifest.ts` 的 `SERVER_MODULE_MANIFEST`
+- [ ] 🤖 每个模型已在 `tenant-guard.ts` 的 `MODEL_POLICIES` 登记（漏了 Prisma client 启动即失败）
 - [ ] 🤖 含 `tenant_id`/`tenant_slug` 的模型已登记 `eslint-rules/tenant-models.json`
 - [ ] 🤖 `apps/server/prisma/models/<id>.prisma` 符号链接已建
 - [ ] 🤖 `registerTenantGatedRoutes` 的 key 有 entitlement 声明，且 server/client manifest 都带 `tenantEntitlements`

@@ -136,3 +136,8 @@ export type UserRole = Prisma.UserRoleModel
  * 
  */
 export type SlowQueryLog = Prisma.SlowQueryLogModel
+/**
+ * Model Todo
+ * 
+ */
+export type Todo = Prisma.TodoModel

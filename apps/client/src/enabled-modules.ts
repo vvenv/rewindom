@@ -6,7 +6,9 @@ import { notificationClientModule } from "@be-water/modules/notification/client/
 import { platformClientModule } from "@be-water/modules/platform/client/module.js";
 import { rbacClientModule } from "@be-water/modules/rbac/client/module.js";
 import { slowQueryClientModule } from "@be-water/modules/slow-query/client/module.js";
+import { todosClientModule } from "@be-water/modules/todos/client/module.js";
 import { userClientModule } from "@be-water/modules/user/client/module.js";
+
 
 import { appShellClientModule } from "@/shell/index";
 
@@ -27,4 +29,5 @@ export const ENABLED_CLIENT_MODULES = [
   slowQueryClientModule,
   notesClientModule,
   notificationClientModule,
+  todosClientModule,
 ] as const satisfies readonly ClientAppModule[];

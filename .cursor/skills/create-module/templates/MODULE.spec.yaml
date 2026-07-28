@@ -43,6 +43,8 @@ permissions:
 
 # ---------- 必填 · 数据模型 ----------
 # tenant_id / created_at / updated_at 由生成器补齐，无需列出；字段名一律 snake_case
+# 进表单的字段类型限 String / Boolean / DateTime；label 用于表单与表格列标题
+# String 想渲染成 Textarea 时加 multiline: true
 models:
   - name: Note
     fields:

@@ -69,7 +69,8 @@ export const ModelName = {
   Role: 'Role',
   RolePermission: 'RolePermission',
   UserRole: 'UserRole',
-  SlowQueryLog: 'SlowQueryLog'
+  SlowQueryLog: 'SlowQueryLog',
+  Todo: 'Todo'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -363,6 +364,20 @@ export const SlowQueryLogScalarFieldEnum = {
 } as const
 
 export type SlowQueryLogScalarFieldEnum = (typeof SlowQueryLogScalarFieldEnum)[keyof typeof SlowQueryLogScalarFieldEnum]
+
+
+export const TodoScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  title: 'title',
+  completed: 'completed',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type TodoScalarFieldEnum = (typeof TodoScalarFieldEnum)[keyof typeof TodoScalarFieldEnum]
 
 
 export const SortOrder = {

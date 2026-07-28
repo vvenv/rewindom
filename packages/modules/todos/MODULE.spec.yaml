@@ -1,0 +1,72 @@
+# ⚠️ 本模块生成后做过手工 UI 定制（见 MODULE.md「相对生成物的手工偏离」）。
+# 直接 `gen-module.mjs --force` 会覆盖那些定制。
+# 待办清单（极简：title + completed）
+id: todos
+label: Todos
+description: 租户内待办清单
+kind: business
+placement: packages/modules/todos
+resource:
+  singular: todo
+  plural: todos
+surfaces: [tenant]
+requires: [rbac, audit]
+
+entitlement:
+  key: todos
+  label: 待办
+  description: 租户内待办事项管理
+  disabled_hint: 该租户未开通待办模块
+  default_enabled: true
+
+permissions:
+  - {
+      key: todos.read,
+      label: 查看待办,
+      group: 待办,
+      description: 查看待办列表与详情,
+    }
+  - {
+      key: todos.write,
+      label: 创建/编辑待办,
+      group: 待办,
+      description: 创建、编辑、完成与删除待办,
+    }
+
+models:
+  - name: Todo
+    fields:
+      - { name: title, type: String, required: true, label: 标题 }
+      - {
+          name: completed,
+          type: Boolean,
+          required: true,
+          default: false,
+          label: 已完成,
+        }
+      - { name: created_by, type: String, required: true }
+      - { name: updated_by, type: String, required: false }
+    indexes:
+      - [tenant_id]
+      - [tenant_id, completed, updated_at]
+
+api:
+  prefix: /api/todos
+  operations: [list, detail, create, update, delete]
+  list:
+    search_fields: [title]
+    sort_whitelist: [title, completed, updated_at, created_at]
+    default_sort: { by: updated_at, dir: desc }
+
+client:
+  mount: renderRoutes
+  route_path: /todos
+  nav:
+    section: 示例
+    label: 待办
+    title: 待办
+    icon: ListTodo
+    keywords: todos 待办 任务 清单
+  page:
+    layout: list-filter-table
+    form_fields: [title, completed]

@@ -42,6 +42,22 @@ const CLIENT_REGISTRY = path.join(
   "enabled-modules.ts",
 );
 const TENANT_MODELS = path.join(ROOT, "eslint-rules", "tenant-models.json");
+const STATIC_MANIFEST = path.join(
+  ROOT,
+  "apps",
+  "server",
+  "scripts",
+  "lib",
+  "module-manifest.ts",
+);
+const TENANT_GUARD = path.join(
+  ROOT,
+  "packages",
+  "server-kernel",
+  "src",
+  "lib",
+  "tenant-guard.ts",
+);
 const PRISMA_MODELS_DIR = path.join(ROOT, "apps", "server", "prisma", "models");
 
 const args = process.argv.slice(2);
@@ -170,6 +186,17 @@ function checkRegistry(mod, add) {
       `未加入 apps/server/src/enabled-modules.ts 的 ENABLED_SERVER_MODULES`,
     );
   }
+  // CI 脚本用的静态清单，与运行时清单有单测做深比较；这里先抓「压根没加」
+  if (mod.serverManifestText && existsSync(STATIC_MANIFEST)) {
+    if (!read(STATIC_MANIFEST).includes(`id: "${mod.id}"`)) {
+      add(
+        "error",
+        "registry",
+        `未加入 apps/server/scripts/lib/module-manifest.ts 的 SERVER_MODULE_MANIFEST`,
+      );
+    }
+  }
+
   if (
     mod.clientManifestText &&
     !isRegistered(
@@ -192,8 +219,20 @@ function checkPrisma(mod, add) {
   const text = read(mod.schema);
   const tenantModels = JSON.parse(read(TENANT_MODELS));
 
+  const guardText = existsSync(TENANT_GUARD) ? read(TENANT_GUARD) : "";
+
   for (const m of text.matchAll(/^model\s+(\w+)\s*\{([\s\S]*?)^\}/gmu)) {
     const [, name, body] = m;
+
+    // tenant-guard 覆盖所有模型（含全局模型），未登记会让 Prisma client 启动即失败
+    if (guardText && !new RegExp(`^  ${name}:`, "mu").test(guardText)) {
+      add(
+        "error",
+        "prisma",
+        `模型 ${name} 未在 tenant-guard 的 MODEL_POLICIES 登记——Prisma client 会启动即失败`,
+      );
+    }
+
     const column = /^\s*tenant_id\s+/mu.test(body)
       ? "tenant_id"
       : /^\s*tenant_slug\s+/mu.test(body)

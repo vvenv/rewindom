@@ -9,5 +9,6 @@
   "tenant": "id",
   "auditLog": "tenant_slug",
   "errorLog": "tenant_slug",
-  "slowQueryLog": "tenant_slug"
+  "slowQueryLog": "tenant_slug",
+  "todo": "tenant_id"
 }

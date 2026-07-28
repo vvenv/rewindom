@@ -109,7 +109,7 @@ function buildServerConfig() {
     isProduction,
     isTest,
     nodeEnv: nodeEnv ?? "development",
-    port: intEnv("PORT", 3400),
+    port: intEnv("PORT", 3700),
     host: strEnv("HOST", "0.0.0.0"),
     logLevel: strEnv("LOG_LEVEL", isProduction ? "warn" : "info"),
     workersEnabled: boolEnv("WORKERS_ENABLED", true),

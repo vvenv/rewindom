@@ -6,7 +6,7 @@ alwaysApply: true
 # 架构
 
 ```
-Frontend (React SPA) → Fastify API (:3400) → PostgreSQL + Prisma + pgvector
+Frontend (React SPA) → Fastify API (:3700) → PostgreSQL + Prisma + pgvector
 ```
 
 Monorepo: `apps/server`（后端）+ `apps/client`（前端）+ `modules/*`（业务模块）+ `packages/*`（共享基建）。单进程部署，Fastify 托管 `/api/*` 与 SPA fallback。

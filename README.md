@@ -50,8 +50,8 @@ pnpm setup    # 幂等：生成 .env.local + 起 Postgres/Redis + 跑 migration
 pnpm dev
 ```
 
-- 前端 `http://localhost:5175`（Vite HMR）
-- API `http://localhost:3400`（`/api` 由 Vite 代理，前端无需跨域配置）
+- 前端 `http://localhost:7300`（Vite HMR）
+- API `http://localhost:3700`（`/api` 由 Vite 代理，前端无需跨域配置）
 
 `pnpm setup` 可重复执行。若只想起数据库：`pnpm db:up`。
 

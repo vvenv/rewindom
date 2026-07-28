@@ -251,8 +251,21 @@ function validateSpec(spec) {
     const field = fieldsByName.get(name);
     if (!field)
       unsupported.push(`form_fields 里的 "${name}" 不在 models[0].fields 中`);
+    else if (!FORM_FIELD_TYPES.includes(field.type))
+      unsupported.push(
+        `表单字段 "${name}" 是 ${field.type}（仅支持 ${FORM_FIELD_TYPES.join(" / ")}）`,
+      );
+  }
+
+  // q 搜索走 Prisma 的 contains，只有字符串列吃得下
+  for (const name of spec.api?.list?.search_fields ?? []) {
+    const field = fieldsByName.get(name);
+    if (!field)
+      unsupported.push(`search_fields 里的 "${name}" 不在 models[0].fields 中`);
     else if (field.type !== "String")
-      unsupported.push(`表单字段 "${name}" 是 ${field.type}（仅支持 String）`);
+      unsupported.push(
+        `search_fields 里的 "${name}" 是 ${field.type}（模糊搜索仅支持 String）`,
+      );
   }
 
   if (unsupported.length > 0) {
@@ -304,10 +317,60 @@ const TS_TYPE = {
 };
 /** 服务端写入、不由客户端提交的字段 */
 const SERVER_MANAGED = new Set(["created_by", "updated_by"]);
+/** 表单能渲染的字段类型 */
+const FORM_FIELD_TYPES = ["String", "Boolean", "DateTime"];
 
 const isMultiline = (field) =>
-  field.multiline === true ||
-  ["content", "description", "body", "remark"].includes(field.name);
+  field.type === "String" &&
+  (field.multiline === true ||
+    ["content", "description", "body", "remark"].includes(field.name));
+
+const isText = (f) => f.type === "String";
+const isBool = (f) => f.type === "Boolean";
+const isDate = (f) => f.type === "DateTime";
+const label = (f) => f.label ?? f.name;
+
+/**
+ * 表单里的值类型：DateTime 在表单/线上都走 ISO 字符串（空串 = 未设置），
+ * 只在 service 边界转 Date——让 Sheet、payload、API body 三处保持同一种表示。
+ */
+const formValueType = (f) => (isBool(f) ? "boolean" : "string");
+const formInitial = (f) => (isBool(f) ? "false" : '""');
+
+/**
+ * DTO → Prisma 写入：字符串 trim，ISO 串转 Date（空串 = 清空），布尔直传。
+ * create 时可选字段缺省交给 Prisma 的 @default，故只在给了值时才写。
+ */
+const createDataLine = (f) => {
+  const p = `params.${f.name}`;
+  if (isBool(f))
+    return `      ...(${p} !== undefined ? { ${f.name}: ${p} } : {}),`;
+  if (isDate(f))
+    return f.required === false
+      ? `      ${f.name}: ${p} ? new Date(${p}) : null,`
+      : `      ${f.name}: new Date(${p}),`;
+  return `      ${f.name}: ${p}${f.required === false ? '?.trim() ?? ""' : ".trim()"},`;
+};
+
+const updateDataLine = (f) => {
+  const p = `params.${f.name}`;
+  const value = isBool(f)
+    ? p
+    : isDate(f)
+      ? f.required === false
+        ? `${p} ? new Date(${p}) : null`
+        : `new Date(${p})`
+      : `${p}.trim()`;
+  return `      ...(${p} !== undefined ? { ${f.name}: ${value} } : {}),`;
+};
+
+/** Prisma 记录 → API DTO：只有 DateTime 需要转 ISO，可空列要先判空 */
+const mapperLine = (f) =>
+  isDate(f)
+    ? f.required === false
+      ? `    ${f.name}: record.${f.name} ? record.${f.name}.toISOString() : null,`
+      : `    ${f.name}: record.${f.name}.toISOString(),`
+    : `    ${f.name}: record.${f.name},`;
 
 // ---------------------------------------------------------------- 文件模板
 
@@ -367,7 +430,7 @@ ${fields.map(tsField).join("\n")}
 }
 
 export interface Create${n.Singular}Body {
-${bodyFields.map((f) => `  ${f.name}${f.required === false ? "?" : ""}: ${TS_TYPE[f.type]};`).join("\n")}
+${bodyFields.map((f) => `  ${f.name}${f.required === false || f.default !== undefined ? "?" : ""}: ${TS_TYPE[f.type]};`).join("\n")}
 }
 
 export interface Update${n.Singular}Body {
@@ -399,7 +462,9 @@ export const ${n.CONST}_ENTITLEMENT: TenantModuleEntitlement = {
   // ---- prisma
   const prismaField = (f) => {
     const optional = f.required === false ? "?" : "";
-    const def = f.default !== undefined ? ` @default("${f.default}")` : "";
+    // 只有 String 的默认值要带引号；Boolean/Int 裸写，DateTime 用 now()
+    const raw = isText(f) ? `"${f.default}"` : `${f.default}`;
+    const def = f.default !== undefined ? ` @default(${raw})` : "";
     return `  ${f.name} ${f.type}${optional}${def}`;
   };
   add(
@@ -473,10 +538,16 @@ ${auditActions.map((a) => `      { action: "${a.action}", label: "${a.label}" },
   add(
     `server/${n.singular}.util.ts`,
     `
-${formFields.map((f) => `export const ${maxLenConst(f)} = ${isMultiline(f) ? "10_000" : "200"};`).join("\n")}
+${formFields
+  .filter(isText)
+  .map(
+    (f) =>
+      `export const ${maxLenConst(f)} = ${isMultiline(f) ? "10_000" : "200"};`,
+  )
+  .join("\n")}
 
 export interface ${n.Singular}Input {
-${formFields.map((f) => `  ${f.name}?: string;`).join("\n")}
+${formFields.map((f) => `  ${f.name}?: ${formValueType(f)};`).join("\n")}
 }
 
 export function validate${n.Singular}Input(
@@ -486,13 +557,24 @@ export function validate${n.Singular}Input(
   const partial = options.partial ?? false;
 
 ${formFields
+  .filter((f) => !isBool(f)) // Boolean 只有两个合法值，无从校验
   .map((f) => {
-    const label = f.label ?? f.name;
     const required = f.required !== false;
+    if (isDate(f)) {
+      return `  if (input.${f.name} !== undefined && input.${f.name} !== "") {
+    if (Number.isNaN(Date.parse(input.${f.name}))) {
+      return "${label(f)}格式不正确";
+    }
+  }${
+    required
+      ? `\n  if (!partial && !input.${f.name}) {\n    return "请选择${label(f)}";\n  }`
+      : ""
+  }`;
+    }
     return `  if (!partial || input.${f.name} !== undefined) {
     const ${f.name} = input.${f.name}?.trim() ?? "";
-${required ? `    if (!${f.name}) {\n      return "请输入${label}";\n    }\n` : ""}    if (${f.name}.length > ${maxLenConst(f)}) {
-      return \`${label}不能超过 \${${maxLenConst(f)}} 个字符\`;
+${required ? `    if (!${f.name}) {\n      return "请输入${label(f)}";\n    }\n` : ""}    if (${f.name}.length > ${maxLenConst(f)}) {
+      return \`${label(f)}不能超过 \${${maxLenConst(f)}} 个字符\`;
     }
   }`;
   })
@@ -513,7 +595,7 @@ import type { ${model.name} as ${model.name}Record } from "@be-water/server-kern
 export function to${n.Singular}ListItem(record: ${model.name}Record): ${n.Singular}ListItem {
   return {
     id: record.id,
-${fields.map((f) => `    ${f.name}: record.${f.name},`).join("\n")}
+${fields.map(mapperLine).join("\n")}
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
   };
@@ -523,7 +605,7 @@ export function to${n.Singular}(record: ${model.name}Record): ${n.Singular} {
   return {
     id: record.id,
     tenant_id: record.tenant_id,
-${fields.map((f) => `    ${f.name}: record.${f.name},`).join("\n")}
+${fields.map(mapperLine).join("\n")}
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
   };
@@ -635,7 +717,7 @@ export async function get${n.Singular}(
 export async function create${n.Singular}(params: {
   tenant_id: string;
   user_id: string;
-${formFields.map((f) => `  ${f.name}${f.required === false ? "?" : ""}: string;`).join("\n")}
+${formFields.map((f) => `  ${f.name}${f.required === false || isBool(f) ? "?" : ""}: ${formValueType(f)};`).join("\n")}
 }): Promise<${n.Singular}> {
   const validationError = validate${n.Singular}Input({
 ${formFields.map((f) => `    ${f.name}: params.${f.name},`).join("\n")}
@@ -647,7 +729,7 @@ ${formFields.map((f) => `    ${f.name}: params.${f.name},`).join("\n")}
   const record = await prisma.${n.prismaClient}.create({
     data: {
       tenant_id: params.tenant_id,
-${formFields.map((f) => `      ${f.name}: params.${f.name}${f.required === false ? '?.trim() ?? ""' : ".trim()"},`).join("\n")}
+${formFields.map(createDataLine).join("\n")}
 ${fields.some((f) => f.name === "created_by") ? "      created_by: params.user_id,\n" : ""}    },
   });
 
@@ -658,7 +740,7 @@ export async function update${n.Singular}(params: {
   tenant_id: string;
   user_id: string;
   ${n.singular}_id: string;
-${formFields.map((f) => `  ${f.name}?: string;`).join("\n")}
+${formFields.map((f) => `  ${f.name}?: ${formValueType(f)};`).join("\n")}
 }): Promise<${n.Singular}> {
   const validationError = validate${n.Singular}Input(
     {
@@ -682,12 +764,7 @@ ${formFields.map((f) => `      ${f.name}: params.${f.name},`).join("\n")}
   const record = await prisma.${n.prismaClient}.update({
     where: withTenantScope(params.tenant_id, { id: params.${n.singular}_id }),
     data: {
-${formFields
-  .map(
-    (f) =>
-      `      ...(params.${f.name} !== undefined ? { ${f.name}: params.${f.name}.trim() } : {}),`,
-  )
-  .join("\n")}
+${formFields.map(updateDataLine).join("\n")}
 ${fields.some((f) => f.name === "updated_by") ? "      updated_by: params.user_id,\n" : ""}    },
   });
 
@@ -791,11 +868,11 @@ export async function ${n.singular}Routes(app: FastifyInstance): Promise<void> {
     preHandler: [app.requirePermission("${n.writePerm}")],
     handler: async (request, reply) => {
       try {
-        const body = request.body as { ${formFields.map((f) => `${f.name}?: string`).join("; ")} };
+        const body = request.body as { ${formFields.map((f) => `${f.name}?: ${formValueType(f)}`).join("; ")} };
         const ${n.singular} = await create${n.Singular}({
           tenant_id: request.tenantContext!.tenant_id,
           user_id: request.authUser!.userId,
-${formFields.map((f) => `          ${f.name}: body.${f.name}${f.required === false ? "" : ' ?? ""'},`).join("\n")}
+${formFields.map((f) => `          ${f.name}: body.${f.name}${f.required === false || isBool(f) ? "" : ' ?? ""'},`).join("\n")}
         });
 
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
@@ -825,7 +902,7 @@ ${formFields.map((f) => `          ${f.name}: body.${f.name}${f.required === fal
     handler: async (request, reply) => {
       try {
         const { ${n.singular}_id } = request.params as { ${n.singular}_id: string };
-        const body = request.body as { ${formFields.map((f) => `${f.name}?: string`).join("; ")} };
+        const body = request.body as { ${formFields.map((f) => `${f.name}?: ${formValueType(f)}`).join("; ")} };
         const ${n.singular} = await update${n.Singular}({
           tenant_id: request.tenantContext!.tenant_id,
           user_id: request.authUser!.userId,
@@ -974,24 +1051,36 @@ export const ${n.CONST}_NAV_SECTIONS: AppNavSection[] = [
   add(
     `client/lib/${n.plural}.ts`,
     `
-${formFields.map((f) => `export const ${maxLenConst(f)} = ${isMultiline(f) ? "10_000" : "200"};`).join("\n")}
+${formFields
+  .filter(isText)
+  .map(
+    (f) =>
+      `export const ${maxLenConst(f)} = ${isMultiline(f) ? "10_000" : "200"};`,
+  )
+  .join("\n")}
 
+/** DateTime 在表单里是 ISO 串（空串 = 未设置），提交前才交给服务端转 Date */
 export interface ${n.Singular}FormValues {
-${formFields.map((f) => `  ${f.name}: string;`).join("\n")}
+${formFields.map((f) => `  ${f.name}: ${formValueType(f)};`).join("\n")}
 }
 
 export const INITIAL_${n.CONST}_FORM: ${n.Singular}FormValues = {
-${formFields.map((f) => `  ${f.name}: "",`).join("\n")}
+${formFields.map((f) => `  ${f.name}: ${formInitial(f)},`).join("\n")}
 };
 
 export function validate${n.Singular}Form(values: ${n.Singular}FormValues): string | null {
 ${formFields
+  .filter((f) => !isBool(f))
   .map((f) => {
-    const label = f.label ?? f.name;
     const required = f.required !== false;
+    if (isDate(f)) {
+      return `${required ? `  if (!values.${f.name}) {\n    return "请选择${label(f)}";\n  }\n` : ""}  if (values.${f.name} && Number.isNaN(Date.parse(values.${f.name}))) {
+    return "${label(f)}格式不正确";
+  }`;
+    }
     return `  const ${f.name} = values.${f.name}.trim();
-${required ? `  if (!${f.name}) {\n    return "请输入${label}";\n  }\n` : ""}  if (${f.name}.length > ${maxLenConst(f)}) {
-    return \`${label}不能超过 \${${maxLenConst(f)}} 个字符\`;
+${required ? `  if (!${f.name}) {\n    return "请输入${label(f)}";\n  }\n` : ""}  if (${f.name}.length > ${maxLenConst(f)}) {
+    return \`${label(f)}不能超过 \${${maxLenConst(f)}} 个字符\`;
   }`;
   })
   .join("\n\n")}
@@ -1000,17 +1089,78 @@ ${required ? `  if (!${f.name}) {\n    return "请输入${label}";\n  }\n` : ""}
 }
 
 export function build${n.Singular}Payload(values: ${n.Singular}FormValues): {
-${formFields.map((f) => `  ${f.name}: string;`).join("\n")}
+${formFields.map((f) => `  ${f.name}: ${formValueType(f)};`).join("\n")}
 } {
   return {
-${formFields.map((f) => `    ${f.name}: values.${f.name}.trim(),`).join("\n")}
+${formFields.map((f) => `    ${f.name}: values.${f.name}${isText(f) ? ".trim()" : ""},`).join("\n")}
   };
 }
 `,
   );
 
-  const requiredFormField =
-    formFields.find((f) => f.required !== false) ?? formFields[0];
+  // 测试挑一个必填文本字段做锚点；纯 Boolean/日期表单则退化为「合法输入不报错」
+  const textAnchor =
+    formFields.find((f) => isText(f) && f.required !== false) ??
+    formFields.find(isText);
+  const dateAnchor = formFields.find((f) => isDate(f));
+  const boolAnchor = formFields.find(isBool);
+
+  const textCases = textAnchor
+    ? `
+describe("validate${n.Singular}Form", () => {
+  it("rejects blank ${textAnchor.name}", () => {
+    expect(
+      validate${n.Singular}Form({ ...INITIAL_${n.CONST}_FORM, ${textAnchor.name}: "  " }),
+    ).toBe("请输入${label(textAnchor)}");
+  });
+
+  it("rejects overlong ${textAnchor.name}", () => {
+    expect(
+      validate${n.Singular}Form({
+        ...INITIAL_${n.CONST}_FORM,
+        ${textAnchor.name}: "x".repeat(${maxLenConst(textAnchor)} + 1),
+      }),
+    ).toContain("不能超过");
+  });
+});
+`
+    : `
+describe("validate${n.Singular}Form", () => {
+  it("accepts the initial form", () => {
+    expect(validate${n.Singular}Form(INITIAL_${n.CONST}_FORM)).toBeNull();
+  });
+});
+`;
+
+  const dateCase = dateAnchor
+    ? `
+describe("validate${n.Singular}Form（日期）", () => {
+  it("rejects unparsable ${dateAnchor.name}", () => {
+    expect(
+      validate${n.Singular}Form({
+        ...INITIAL_${n.CONST}_FORM,${textAnchor ? `\n        ${textAnchor.name}: "ok",` : ""}
+        ${dateAnchor.name}: "not-a-date",
+      }),
+    ).toContain("格式不正确");
+  });
+});
+`
+    : "";
+
+  const payloadCase = `
+describe("build${n.Singular}Payload", () => {
+  it("${textAnchor ? "trims text and passes other fields through" : "passes fields through"}", () => {
+    expect(
+      build${n.Singular}Payload({
+        ...INITIAL_${n.CONST}_FORM,${textAnchor ? `\n        ${textAnchor.name}: "  x  ",` : ""}${boolAnchor ? `\n        ${boolAnchor.name}: true,` : ""}
+      }),
+    ).toEqual({
+      ...INITIAL_${n.CONST}_FORM,${textAnchor ? `\n      ${textAnchor.name}: "x",` : ""}${boolAnchor ? `\n      ${boolAnchor.name}: true,` : ""}
+    });
+  });
+});
+`;
+
   add(
     `client/lib/${n.plural}.test.ts`,
     `
@@ -1018,36 +1168,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   build${n.Singular}Payload,
-  INITIAL_${n.CONST}_FORM,
-  ${maxLenConst(requiredFormField)},
+  INITIAL_${n.CONST}_FORM,${textAnchor ? `\n  ${maxLenConst(textAnchor)},` : ""}
   validate${n.Singular}Form,
 } from "./${n.plural}.js";
-
-describe("validate${n.Singular}Form", () => {
-  it("rejects blank ${requiredFormField.name}", () => {
-    expect(
-      validate${n.Singular}Form({ ...INITIAL_${n.CONST}_FORM, ${requiredFormField.name}: "  " }),
-    ).toBe("请输入${requiredFormField.label ?? requiredFormField.name}");
-  });
-
-  it("rejects overlong ${requiredFormField.name}", () => {
-    expect(
-      validate${n.Singular}Form({
-        ...INITIAL_${n.CONST}_FORM,
-        ${requiredFormField.name}: "x".repeat(${maxLenConst(requiredFormField)} + 1),
-      }),
-    ).toContain("不能超过");
-  });
-});
-
-describe("build${n.Singular}Payload", () => {
-  it("trims fields", () => {
-    expect(
-      build${n.Singular}Payload({ ...INITIAL_${n.CONST}_FORM, ${requiredFormField.name}: "  x  " }),
-    ).toEqual({ ...INITIAL_${n.CONST}_FORM, ${requiredFormField.name}: "x" });
-  });
-});
-`,
+${textCases}${dateCase}${payloadCase}`,
   );
 
   // ---- client hooks
@@ -1244,25 +1368,75 @@ export function ${n.Singular}Filters({ q, onFiltersChange }: ${n.Singular}Filter
 `,
   );
 
+  /**
+   * Boolean 列就地可切换（待办清单的核心交互就是这一下），
+   * 所以 cell 里直接挂 update mutation，而不是只读地渲染个图标。
+   */
+  const cellFor = (f) => {
+    if (isBool(f)) {
+      return `        cell: ({ row }) => (
+          <Checkbox
+            checked={row.original.${f.name}}
+            disabled={!canWrite || togglingId === row.original.id}
+            aria-label="${label(f)}"
+            onCheckedChange={(checked) =>
+              void handleToggle${pascal(f.name)}(row.original, checked === true)
+            }
+          />
+        ),`;
+    }
+    if (isDate(f)) {
+      return `        cell: ({ row }) => (
+          <span className="text-muted-foreground text-sm">
+            {row.original.${f.name}
+              ? formatBusinessDate(row.original.${f.name})
+              : "—"}
+          </span>
+        ),`;
+    }
+    return `        cell: ({ row }) => (
+          <div className="${isMultiline(f) ? "text-muted-foreground line-clamp-2 max-w-xl text-sm" : "font-medium"}">
+            {row.original.${f.name} || "—"}
+          </div>
+        ),`;
+  };
+
   const columnDefs = formFields
     .map((f) => {
-      const label = f.label ?? f.name;
       const sortable = sortWhitelist.includes(f.name);
       return `      {
         accessorKey: "${f.name}",
         header: ${
           sortable
-            ? `({ column }) => (\n          <DataTableColumnHeader column={column} title="${label}" />\n        )`
-            : `"${label}"`
+            ? `({ column }) => (\n          <DataTableColumnHeader column={column} title="${label(f)}" />\n        )`
+            : `"${label(f)}"`
         },${sortable ? "\n        enableSorting: true," : ""}
-        cell: ({ row }) => (
-          <div className="${isMultiline(f) ? "text-muted-foreground line-clamp-2 max-w-xl text-sm" : "font-medium"}">
-            {row.original.${f.name} || "—"}
-          </div>
-        ),
+${cellFor(f)}
       },`;
     })
     .join("\n");
+
+  const boolFields = formFields.filter(isBool);
+  const tableUsesDate = formFields.some(isDate);
+
+  /** Boolean 列的就地切换 handler（每个 Boolean 字段一个） */
+  const toggleHandlers = boolFields
+    .map(
+      (f) => `  const handleToggle${pascal(f.name)} = useCallback(
+    async (item: ${n.Singular}ListItem, next: boolean) => {
+      setTogglingId(item.id);
+      try {
+        await updateMutation.mutateAsync({ id: item.id, ${f.name}: next });
+      } catch (err) {
+        toast.error(err instanceof ApiError ? err.message : "更新失败，请重试");
+      } finally {
+        setTogglingId(null);
+      }
+    },
+    [updateMutation],
+  );`,
+    )
+    .join("\n\n");
 
   add(
     `client/components/${n.Plural}Table.tsx`,
@@ -1276,12 +1450,14 @@ import {
   useConfirm,
   usePermissions,
 } from "@be-water/client-kit";
-import { formatBusinessDateOrTimeAgo } from "@be-water/shared";
+import { ${tableUsesDate ? "formatBusinessDate, " : ""}formatBusinessDateOrTimeAgo } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
-import { toast } from "@be-water/ui/toast";
+${boolFields.length > 0 ? `import { Checkbox } from "@be-water/ui/checkbox";\n` : ""}import { toast } from "@be-water/ui/toast";
 import { ${spec.client.nav.icon}, Trash2 } from "lucide-react";
 
-import { useDelete${n.Singular} } from "../hooks/use${n.Singular}Mutations.js";
+import {
+  useDelete${n.Singular},${boolFields.length > 0 ? `\n  useUpdate${n.Singular},` : ""}
+} from "../hooks/use${n.Singular}Mutations.js";
 
 import { ${n.Singular}EditSheet } from "./${n.Singular}EditSheet.js";
 
@@ -1319,11 +1495,11 @@ export function ${n.Plural}Table({
 }: ${n.Plural}TableProps) {
   const { confirm } = useConfirm();
   const deleteMutation = useDelete${n.Singular}();
-  const { hasPermission } = usePermissions();
+${boolFields.length > 0 ? `  const updateMutation = useUpdate${n.Singular}();\n` : ""}  const { hasPermission } = usePermissions();
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const canWrite = hasPermission("${n.writePerm}");
+${boolFields.length > 0 ? `  const [togglingId, setTogglingId] = useState<string | null>(null);\n` : ""}  const canWrite = hasPermission("${n.writePerm}");
 
-  const handleDelete = useCallback(
+${toggleHandlers ? `${toggleHandlers}\n\n` : ""}  const handleDelete = useCallback(
     async (item: ${n.Singular}ListItem) => {
       const confirmed = await confirm({
         title: "删除${spec.entitlement.label}",
@@ -1385,7 +1561,7 @@ ${columnDefs}
           ]
         : []),
     ],
-    [canWrite, deletingId, handleDelete],
+    [canWrite, deletingId, handleDelete${boolFields.map((f) => `, togglingId, handleToggle${pascal(f.name)}`).join("")}],
   );
 
   return (
@@ -1414,10 +1590,58 @@ ${columnDefs}
   );
 
   const formField = (f, idSuffix) => {
-    const label = f.label ?? f.name;
     const id = idSuffix
       ? `\`${n.singular}-${f.name}-\${item.id}\``
       : `"${n.singular}-${f.name}"`;
+
+    // Boolean 走 Switch，横向排布（label 在左、开关在右），不套 FieldLabel htmlFor 的竖排
+    if (isBool(f)) {
+      return `            <Field orientation="horizontal">
+              <FieldLabel htmlFor={${id}}>${label(f)}</FieldLabel>
+              <Switch
+                id={${id}}
+                checked={form.${f.name}}
+                onCheckedChange={(checked) =>
+                  setForm((prev) => ({ ...prev, ${f.name}: checked }))
+                }
+              />
+            </Field>`;
+    }
+
+    // DateTime：Popover + Calendar 单选，表单里存 ISO 串
+    if (isDate(f)) {
+      return `            <Field>
+              <FieldLabel htmlFor={${id}}>${label(f)}</FieldLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id={${id}}
+                    type="button"
+                    variant="outline"
+                    className="justify-start font-normal"
+                  >
+                    <CalendarIcon className="size-4" />
+                    {form.${f.name}
+                      ? formatBusinessDate(form.${f.name})
+                      : "选择${label(f)}"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={form.${f.name} ? new Date(form.${f.name}) : undefined}
+                    onSelect={(date) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        ${f.name}: date ? date.toISOString() : "",
+                      }))
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+            </Field>`;
+    }
+
     const control = isMultiline(f)
       ? `<Textarea
                 id={${id}}
@@ -1435,17 +1659,40 @@ ${columnDefs}
                 }
               />`;
     return `            <Field>
-              <FieldLabel htmlFor={${id}}>${label}</FieldLabel>
+              <FieldLabel htmlFor={${id}}>${label(f)}</FieldLabel>
               ${control}
             </Field>`;
   };
 
   const usesTextarea = formFields.some(isMultiline);
-  const usesInput = formFields.some((f) => !isMultiline(f));
+  const usesInput = formFields.some((f) => isText(f) && !isMultiline(f));
+  const usesSwitch = formFields.some(isBool);
+  const usesDate = formFields.some(isDate);
+  // 分成两段是为了插在 sheet/spinner 两组 import 之间时仍满足 import 排序规则
   const controlImports = [
-    usesInput ? `import { Input } from "@be-water/ui/input";` : null,
-    usesTextarea ? `import { Textarea } from "@be-water/ui/textarea";` : null,
-  ].filter(Boolean);
+    [
+      usesDate ? `import { Calendar } from "@be-water/ui/calendar";` : null,
+      usesInput ? `import { Input } from "@be-water/ui/input";` : null,
+      usesDate
+        ? `import {\n  Popover,\n  PopoverContent,\n  PopoverTrigger,\n} from "@be-water/ui/popover";`
+        : null,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    [
+      usesSwitch ? `import { Switch } from "@be-water/ui/switch";` : null,
+      usesTextarea ? `import { Textarea } from "@be-water/ui/textarea";` : null,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  ];
+  const sheetExtraImports = usesDate
+    ? `import { formatBusinessDate } from "@be-water/shared";\n`
+    : "";
+  const sheetIconImport = (icon) =>
+    usesDate
+      ? `import { Calendar as CalendarIcon, ${icon} } from "lucide-react";`
+      : `import { ${icon} } from "lucide-react";`;
 
   add(
     `client/components/${n.Singular}CreateSheet.tsx`,
@@ -1453,9 +1700,9 @@ ${columnDefs}
 import { useState, type ReactNode, type SubmitEvent } from "react";
 
 import { ApiError } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+${sheetExtraImports}import { Button } from "@be-water/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@be-water/ui/field";
-${controlImports[0] ?? ""}
+${controlImports[0]}
 import {
   Sheet,
   SheetClose,
@@ -1467,9 +1714,9 @@ import {
   SheetTrigger,
 } from "@be-water/ui/sheet";
 import { Spinner } from "@be-water/ui/spinner";
-${controlImports[1] ?? ""}
+${controlImports[1]}
 import { toast } from "@be-water/ui/toast";
-import { Plus } from "lucide-react";
+${sheetIconImport("Plus")}
 
 import { useCreate${n.Singular} } from "../hooks/use${n.Singular}Mutations.js";
 import {
@@ -1567,9 +1814,9 @@ ${formFields.map((f) => formField(f, false)).join("\n")}
 import { useEffect, useState, type ReactNode, type SubmitEvent } from "react";
 
 import { ApiError } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+${sheetExtraImports}import { Button } from "@be-water/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@be-water/ui/field";
-${controlImports[0] ?? ""}
+${controlImports[0]}
 import {
   Sheet,
   SheetClose,
@@ -1581,9 +1828,9 @@ import {
   SheetTrigger,
 } from "@be-water/ui/sheet";
 import { Spinner } from "@be-water/ui/spinner";
-${controlImports[1] ?? ""}
+${controlImports[1]}
 import { toast } from "@be-water/ui/toast";
-import { Pencil } from "lucide-react";
+${sheetIconImport("Pencil")}
 
 import { use${n.Singular} } from "../hooks/use${n.Singular}.js";
 import { useUpdate${n.Singular} } from "../hooks/use${n.Singular}Mutations.js";
@@ -1611,7 +1858,12 @@ export function ${n.Singular}EditSheet({ item, children }: ${n.Singular}EditShee
   useEffect(() => {
     if (detail) {
       setForm({
-${formFields.map((f) => `        ${f.name}: detail.${f.name}${f.required === false ? ' ?? ""' : ""},`).join("\n")}
+${formFields
+  .map(
+    (f) =>
+      `        ${f.name}: detail.${f.name}${f.required === false ? (isBool(f) ? " ?? false" : ' ?? ""') : ""},`,
+  )
+  .join("\n")}
       });
       setError("");
     }
@@ -1854,6 +2106,45 @@ function patchRegistries(spec, n) {
   if (!(n.prismaClient in models)) {
     models[n.prismaClient] = "tenant_id";
     patches.push([modelsPath, `${JSON.stringify(models, null, 2)}\n`]);
+  }
+
+  // CI 用的静态模块清单：不启动运行时也要能算依赖图，必须与 ENABLED_SERVER_MODULES 逐字一致
+  const staticManifestPath = path.join(
+    ROOT,
+    "apps/server/scripts/lib/module-manifest.ts",
+  );
+  const staticText = readFileSync(staticManifestPath, "utf8");
+  if (!staticText.includes(`id: "${n.id}"`)) {
+    const requires = spec.requires ?? [];
+    const entry =
+      `  {\n    id: "${n.id}",\n    kind: "${spec.kind}",` +
+      (requires.length > 0
+        ? `\n    requires: [${requires.map((r) => `"${r}"`).join(", ")}],`
+        : "") +
+      "\n  },\n";
+    patches.push([
+      staticManifestPath,
+      staticText.replace(
+        /(\n\] as const satisfies readonly ModuleManifestEntry\[\];)/u,
+        `\n${entry}$1`.replace(/^\n/u, ""),
+      ),
+    ]);
+  }
+
+  // tenant-guard 的模型归属表：未登记的模型会让 Prisma client 启动即失败（fail-closed）
+  const guardPath = path.join(
+    ROOT,
+    "packages/server-kernel/src/lib/tenant-guard.ts",
+  );
+  const guardText = readFileSync(guardPath, "utf8");
+  if (!new RegExp(`^  ${n.model}:`, "mu").test(guardText)) {
+    patches.push([
+      guardPath,
+      guardText.replace(
+        /(const MODEL_POLICIES: Record<string, ModelPolicy> = \{\n)/u,
+        `$1  ${n.model}: { kind: "tenant_id" },\n`,
+      ),
+    ]);
   }
 
   return patches;

@@ -46,7 +46,7 @@ services:
     container_name: be-water-app
     environment:
       NODE_ENV: production
-      PORT: 3400
+      PORT: 3700
       HOST: 0.0.0.0
       DATABASE_URL: postgresql://be-water:${DB_PASSWORD}@postgres:5432/be-water
       DATABASE_HOST: postgres
@@ -83,7 +83,7 @@ services:
       target: web
     container_name: be-water-web
     ports:
-      - "127.0.0.1:${APP_PORT:-3400}:80"
+      - "127.0.0.1:${APP_PORT:-3700}:80"
     depends_on:
       - app
     restart: unless-stopped

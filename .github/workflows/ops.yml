@@ -119,7 +119,7 @@ jobs:
                 ;;
               health-check)
                 PORT="$(grep '^APP_PORT=' .env.production .env.test 2>/dev/null | head -1 | cut -d= -f2)"
-                PORT="${PORT:-3400}"
+                PORT="${PORT:-3700}"
                 curl -fsS "http://127.0.0.1:${PORT}/health"
                 ;;
               restart)

@@ -58,7 +58,7 @@ describe("config", () => {
   describe("server", () => {
     it("开发模式使用默认值", async () => {
       const { config: cfg } = await importConfig();
-      expect(cfg.server.port).toBe(3400);
+      expect(cfg.server.port).toBe(3700);
       expect(cfg.server.host).toBe("0.0.0.0");
       expect(cfg.server.logLevel).toBe("info");
       expect(cfg.server.isProduction).toBe(false);
@@ -303,7 +303,6 @@ describe("config", () => {
       expect(cfg.openai.apiKey).toBe("sk-test");
       expect(cfg.openai.model).toBe("deepseek-chat");
     });
-
   });
 
   describe("tenant", () => {
@@ -326,7 +325,7 @@ describe("config", () => {
     it("intEnv 对非数字值返回 fallback", async () => {
       process.env.PORT = "abc";
       const { config: cfg } = await importConfig();
-      expect(cfg.server.port).toBe(3400);
+      expect(cfg.server.port).toBe(3700);
     });
 
     it("boolEnv 默认 true，仅显式 false 为 false", async () => {

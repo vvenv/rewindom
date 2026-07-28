@@ -32,7 +32,7 @@ FROM node:${NODE_VERSION}-bookworm-slim AS app
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
-ENV PORT=3400
+ENV PORT=3700
 
 RUN apt-get update -qq \
   && apt-get install -y -qq --no-install-recommends ca-certificates postgresql-client \
@@ -52,7 +52,7 @@ COPY --from=builder /app/packages ./packages
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 3400
+EXPOSE 3700
 
 ENTRYPOINT ["/entrypoint.sh"]
 

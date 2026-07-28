@@ -1,0 +1,46 @@
+import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/register-tenant-gated-routes.js";
+
+import { TODO_ENTITLEMENT } from "../shared/entitlements.js";
+
+import { todoRoutes } from "./todo.routes.js";
+
+import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+
+export const todosServerModule: ServerAppModule = {
+  id: "todos",
+  version: "1.0.0",
+  label: "Todos",
+  kind: "business",
+  description: "租户内待办清单",
+  requires: ["rbac", "audit"],
+  tenantEntitlements: [TODO_ENTITLEMENT],
+  shared: {
+    permissions: [
+      {
+        key: "todos.read",
+        label: "查看待办",
+        group: "待办",
+        description: "查看待办列表与详情",
+      },
+      {
+        key: "todos.write",
+        label: "创建/编辑待办",
+        group: "待办",
+        description: "创建、编辑、完成与删除待办",
+      },
+    ],
+    auditActions: [
+      { action: "TODO_CREATE", label: "创建待办" },
+      { action: "TODO_UPDATE", label: "更新待办" },
+      { action: "TODO_DELETE", label: "删除待办" },
+      { action: "TODO_CLEAR_COMPLETED", label: "清除已完成待办" },
+    ],
+  },
+  server: {
+    registerRoutes: async (app) => {
+      await registerTenantGatedRoutes(app, "todos", async (scoped) => {
+        await scoped.register(todoRoutes, { prefix: "/api/todos" });
+      });
+    },
+  },
+};

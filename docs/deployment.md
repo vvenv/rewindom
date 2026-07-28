@@ -31,7 +31,7 @@ git clone <repository-url>
 cd be-water
 pnpm install
 pnpm setup          # 创建 .env.local、启动 DB、执行 migrate
-pnpm dev            # 前端 :5175，API :3400
+pnpm dev            # 前端 :7300，API :3700
 ```
 
 手动分步等价于 `pnpm setup`：
@@ -54,7 +54,7 @@ pnpm dev
 ```bash
 cp scripts/env.docker.local.example .env.docker.local
 pnpm docker:stack:up
-# http://localhost:3400
+# http://localhost:3700
 pnpm docker:stack:down
 ```
 
@@ -141,19 +141,19 @@ bash /etc/be-water/scripts/backup.sh --env production
 ## 健康检查
 
 ```bash
-curl http://127.0.0.1:3400/health
+curl http://127.0.0.1:3700/health
 ```
 
 ## 环境变量
 
-| 变量 | 说明 |
-| --- | --- |
-| `DEPLOY_HOST` | SSH 主机（本机专用） |
-| `APP_DOMAIN` | 对外域名 |
-| `APP_PORT` | Docker web 映射到 127.0.0.1 的端口（默认 3400） |
-| `DB_PASSWORD` | PostgreSQL 密码 |
-| `JWT_SECRET` | JWT 签名密钥 |
-| `TENANT_SECRET_ENCRYPTION_KEY` | 租户密钥加密（32 字节 hex） |
+| 变量                           | 说明                                            |
+| ------------------------------ | ----------------------------------------------- |
+| `DEPLOY_HOST`                  | SSH 主机（本机专用）                            |
+| `APP_DOMAIN`                   | 对外域名                                        |
+| `APP_PORT`                     | Docker web 映射到 127.0.0.1 的端口（默认 3700） |
+| `DB_PASSWORD`                  | PostgreSQL 密码                                 |
+| `JWT_SECRET`                   | JWT 签名密钥                                    |
+| `TENANT_SECRET_ENCRYPTION_KEY` | 租户密钥加密（32 字节 hex）                     |
 
 完整列表见 `scripts/env.production.example`。
 

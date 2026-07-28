@@ -40,6 +40,7 @@ type ModelPolicy =
   | { kind: "global"; reason: string };
 
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
+  Todo: { kind: "tenant_id" },
   Note: { kind: "tenant_id" },
   Notification: { kind: "tenant_id" },
   NotificationLog: { kind: "tenant_id" },
