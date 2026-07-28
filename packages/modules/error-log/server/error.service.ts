@@ -1,6 +1,7 @@
+import { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_SLUG } from "@be-water/shared";
+import { DEFAULT_TENANT_SLUG, type JsonValue } from "@be-water/shared";
 
 
 export interface ErrorLogInput {
@@ -14,7 +15,8 @@ export interface ErrorLogInput {
   method?: string;
   ipAddress?: string;
   userAgent?: string;
-  requestBody?: string;
+  /** 存进 jsonb 列，调用方传纯 JSON 值而不是 JSON.stringify 后的字符串 */
+  requestBody?: unknown;
   requestParams?: string;
   requestQuery?: string;
   errorCode?: string;
@@ -80,7 +82,13 @@ export class ErrorService {
         method,
         ip_address: ipAddress,
         user_agent: userAgent,
-        request_body: requestBody,
+        // undefined -> 字段不写入（列保持 NULL）；JSON null 走 Prisma.JsonNull。
+        request_body:
+          requestBody === undefined
+            ? undefined
+            : requestBody === null
+              ? Prisma.JsonNull
+              : (requestBody as Prisma.InputJsonValue),
         request_params: requestParams,
         request_query: requestQuery,
         error_code: errorCode,
@@ -171,7 +179,7 @@ export class ErrorService {
       method?: string;
       ipAddress?: string;
       userAgent?: string;
-      requestBody?: string;
+      requestBody?: unknown;
       requestParams?: string;
       requestQuery?: string;
       errorCode?: string;
@@ -300,7 +308,7 @@ export class ErrorService {
       method: string | null;
       ip_address: string | null;
       user_agent: string | null;
-      request_body: string | null;
+      request_body: JsonValue | null;
       request_params: string | null;
       request_query: string | null;
       error_code: string | null;
@@ -393,7 +401,7 @@ export class ErrorService {
       method: string | null;
       ip_address: string | null;
       user_agent: string | null;
-      request_body: string | null;
+      request_body: JsonValue | null;
       request_params: string | null;
       request_query: string | null;
       error_code: string | null;
@@ -422,7 +430,7 @@ export class ErrorService {
       method: string | null;
       ip_address: string | null;
       user_agent: string | null;
-      request_body: string | null;
+      request_body: JsonValue | null;
       request_params: string | null;
       request_query: string | null;
       error_code: string | null;
@@ -529,7 +537,7 @@ export class ErrorService {
     method: string | null;
     ip_address: string | null;
     user_agent: string | null;
-    request_body: string | null;
+    request_body: JsonValue | null;
     request_params: string | null;
     request_query: string | null;
     error_code: string | null;

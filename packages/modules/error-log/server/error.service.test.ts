@@ -1,4 +1,5 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { type JsonValue } from "@be-water/shared";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 
@@ -34,7 +35,7 @@ describe("ErrorService", () => {
         method: "POST",
         ipAddress: "127.0.0.1",
         userAgent: "Mozilla/5.0",
-        requestBody: '{"test": "data"}',
+        requestBody: { test: "data" },
         requestParams: '{"id": "123"}',
         requestQuery: '{"page": "1"}',
         errorCode: "ERR_001",
@@ -54,7 +55,7 @@ describe("ErrorService", () => {
           method: "POST",
           ip_address: "127.0.0.1",
           user_agent: "Mozilla/5.0",
-          request_body: '{"test": "data"}',
+          request_body: { test: "data" },
           request_params: '{"id": "123"}',
           request_query: '{"page": "1"}',
           error_code: "ERR_001",
@@ -120,7 +121,7 @@ describe("ErrorService", () => {
         method: "POST",
         ipAddress: "127.0.0.1",
         userAgent: "Mozilla/5.0",
-        requestBody: '{"test": "data"}',
+        requestBody: { test: "data" },
         requestParams: '{"id": "123"}',
         requestQuery: '{"page": "1"}',
         errorCode: "ERR_001",
@@ -138,7 +139,7 @@ describe("ErrorService", () => {
           method: "POST",
           ip_address: "127.0.0.1",
           user_agent: "Mozilla/5.0",
-          request_body: '{"test": "data"}',
+          request_body: { test: "data" },
           request_params: '{"id": "123"}',
           request_query: '{"page": "1"}',
           error_code: "ERR_001",
@@ -304,7 +305,7 @@ describe("ErrorService", () => {
         method: string | null;
         ip_address: string | null;
         user_agent: string | null;
-        request_body: string | null;
+        request_body: JsonValue | null;
         request_params: string | null;
         request_query: string | null;
         error_code: string | null;
@@ -355,7 +356,7 @@ describe("ErrorService", () => {
         method: string | null;
         ip_address: string | null;
         user_agent: string | null;
-        request_body: string | null;
+        request_body: JsonValue | null;
         request_params: string | null;
         request_query: string | null;
         error_code: string | null;
@@ -419,7 +420,7 @@ describe("ErrorService", () => {
         method: string | null;
         ip_address: string | null;
         user_agent: string | null;
-        request_body: string | null;
+        request_body: JsonValue | null;
         request_params: string | null;
         request_query: string | null;
         error_code: string | null;
@@ -594,7 +595,7 @@ describe("ErrorService", () => {
         method: string | null;
         ip_address: string | null;
         user_agent: string | null;
-        request_body: string | null;
+        request_body: JsonValue | null;
         request_params: string | null;
         request_query: string | null;
         error_code: string | null;
@@ -646,7 +647,7 @@ describe("ErrorService", () => {
         method: string | null;
         ip_address: string | null;
         user_agent: string | null;
-        request_body: string | null;
+        request_body: JsonValue | null;
         request_params: string | null;
         request_query: string | null;
         error_code: string | null;
@@ -853,7 +854,7 @@ describe("ErrorService", () => {
         method: "POST",
         ip_address: "127.0.0.1",
         user_agent: "Mozilla/5.0",
-        request_body: '{"test": "data"}',
+        request_body: { test: "data" },
         request_params: '{"id": "123"}',
         request_query: '{"page": "1"}',
         error_code: "ERR_001",

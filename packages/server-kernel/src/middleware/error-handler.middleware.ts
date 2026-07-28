@@ -10,7 +10,8 @@ export interface ErrorLogContext {
   method: string;
   ipAddress: string;
   userAgent?: string;
-  requestBody?: string;
+  /** 已归一化的 JSON 值（`ErrorLog.request_body` 是 jsonb 列），不是序列化后的字符串 */
+  requestBody?: unknown;
   requestParams?: string;
   requestQuery?: string;
   errorCode?: string;
@@ -48,14 +49,17 @@ export async function errorHandlerMiddleware(app: FastifyInstance) {
       const userAgent = request.headers["user-agent"];
 
       // Serialize request data based on config
-      let requestBody: string | undefined;
+      let requestBody: unknown;
       let requestParams: string | undefined;
       let requestQuery: string | undefined;
 
       if (config.observability.errorLog.includeRequestBody) {
         try {
           if (request.body) {
-            requestBody = JSON.stringify(request.body);
+            // stringify + parse 一步做两件事：把 Date / toJSON 等归一化成纯 JSON 值，
+            // 同时在循环引用、BigInt 这类不可序列化的 body 上提前抛错——
+            // 否则会留到 prisma.create() 里炸，而这里已经在错误处理器内部了。
+            requestBody = JSON.parse(JSON.stringify(request.body));
           }
         } catch {
           requestBody = undefined;

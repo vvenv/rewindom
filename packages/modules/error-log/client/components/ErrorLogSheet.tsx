@@ -116,11 +116,11 @@ export function ErrorLogSheet({ open, onOpenChange, log }: ErrorLogSheetProps) {
                 </div>
               )}
 
-              {log.request_body && (
+              {log.request_body != null && (
                 <div className="flex flex-col gap-1">
                   <p className="text-muted-foreground">请求体</p>
                   <pre className="bg-muted p-3 rounded overflow-x-auto">
-                    {log.request_body}
+                    {JSON.stringify(log.request_body, null, 2)}
                   </pre>
                 </div>
               )}

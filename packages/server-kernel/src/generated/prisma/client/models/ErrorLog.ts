@@ -36,7 +36,6 @@ export type ErrorLogMinAggregateOutputType = {
   method: string | null
   ip_address: string | null
   user_agent: string | null
-  request_body: string | null
   request_params: string | null
   request_query: string | null
   error_code: string | null
@@ -56,7 +55,6 @@ export type ErrorLogMaxAggregateOutputType = {
   method: string | null
   ip_address: string | null
   user_agent: string | null
-  request_body: string | null
   request_params: string | null
   request_query: string | null
   error_code: string | null
@@ -98,7 +96,6 @@ export type ErrorLogMinAggregateInputType = {
   method?: true
   ip_address?: true
   user_agent?: true
-  request_body?: true
   request_params?: true
   request_query?: true
   error_code?: true
@@ -118,7 +115,6 @@ export type ErrorLogMaxAggregateInputType = {
   method?: true
   ip_address?: true
   user_agent?: true
-  request_body?: true
   request_params?: true
   request_query?: true
   error_code?: true
@@ -231,7 +227,7 @@ export type ErrorLogGroupByOutputType = {
   method: string | null
   ip_address: string | null
   user_agent: string | null
-  request_body: string | null
+  request_body: runtime.JsonValue | null
   request_params: string | null
   request_query: string | null
   error_code: string | null
@@ -272,7 +268,7 @@ export type ErrorLogWhereInput = {
   method?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
   ip_address?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
   user_agent?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
-  request_body?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
+  request_body?: Prisma.JsonNullableFilter<"ErrorLog">
   request_params?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
   request_query?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
   error_code?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
@@ -315,7 +311,7 @@ export type ErrorLogWhereUniqueInput = Prisma.AtLeast<{
   method?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
   ip_address?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
   user_agent?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
-  request_body?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
+  request_body?: Prisma.JsonNullableFilter<"ErrorLog">
   request_params?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
   request_query?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
   error_code?: Prisma.StringNullableFilter<"ErrorLog"> | string | null
@@ -361,7 +357,7 @@ export type ErrorLogScalarWhereWithAggregatesInput = {
   method?: Prisma.StringNullableWithAggregatesFilter<"ErrorLog"> | string | null
   ip_address?: Prisma.StringNullableWithAggregatesFilter<"ErrorLog"> | string | null
   user_agent?: Prisma.StringNullableWithAggregatesFilter<"ErrorLog"> | string | null
-  request_body?: Prisma.StringNullableWithAggregatesFilter<"ErrorLog"> | string | null
+  request_body?: Prisma.JsonNullableWithAggregatesFilter<"ErrorLog">
   request_params?: Prisma.StringNullableWithAggregatesFilter<"ErrorLog"> | string | null
   request_query?: Prisma.StringNullableWithAggregatesFilter<"ErrorLog"> | string | null
   error_code?: Prisma.StringNullableWithAggregatesFilter<"ErrorLog"> | string | null
@@ -381,7 +377,7 @@ export type ErrorLogCreateInput = {
   method?: string | null
   ip_address?: string | null
   user_agent?: string | null
-  request_body?: string | null
+  request_body?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   request_params?: string | null
   request_query?: string | null
   error_code?: string | null
@@ -401,7 +397,7 @@ export type ErrorLogUncheckedCreateInput = {
   method?: string | null
   ip_address?: string | null
   user_agent?: string | null
-  request_body?: string | null
+  request_body?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   request_params?: string | null
   request_query?: string | null
   error_code?: string | null
@@ -421,7 +417,7 @@ export type ErrorLogUpdateInput = {
   method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  request_body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  request_body?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   request_params?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   request_query?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -441,7 +437,7 @@ export type ErrorLogUncheckedUpdateInput = {
   method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  request_body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  request_body?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   request_params?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   request_query?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -461,7 +457,7 @@ export type ErrorLogCreateManyInput = {
   method?: string | null
   ip_address?: string | null
   user_agent?: string | null
-  request_body?: string | null
+  request_body?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   request_params?: string | null
   request_query?: string | null
   error_code?: string | null
@@ -481,7 +477,7 @@ export type ErrorLogUpdateManyMutationInput = {
   method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  request_body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  request_body?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   request_params?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   request_query?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -501,7 +497,7 @@ export type ErrorLogUncheckedUpdateManyInput = {
   method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  request_body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  request_body?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   request_params?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   request_query?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -541,7 +537,6 @@ export type ErrorLogMaxOrderByAggregateInput = {
   method?: Prisma.SortOrder
   ip_address?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
-  request_body?: Prisma.SortOrder
   request_params?: Prisma.SortOrder
   request_query?: Prisma.SortOrder
   error_code?: Prisma.SortOrder
@@ -561,7 +556,6 @@ export type ErrorLogMinOrderByAggregateInput = {
   method?: Prisma.SortOrder
   ip_address?: Prisma.SortOrder
   user_agent?: Prisma.SortOrder
-  request_body?: Prisma.SortOrder
   request_params?: Prisma.SortOrder
   request_query?: Prisma.SortOrder
   error_code?: Prisma.SortOrder
@@ -668,7 +662,7 @@ export type $ErrorLogPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     method: string | null
     ip_address: string | null
     user_agent: string | null
-    request_body: string | null
+    request_body: runtime.JsonValue | null
     request_params: string | null
     request_query: string | null
     error_code: string | null
@@ -1108,7 +1102,7 @@ export interface ErrorLogFieldRefs {
   readonly method: Prisma.FieldRef<"ErrorLog", 'String'>
   readonly ip_address: Prisma.FieldRef<"ErrorLog", 'String'>
   readonly user_agent: Prisma.FieldRef<"ErrorLog", 'String'>
-  readonly request_body: Prisma.FieldRef<"ErrorLog", 'String'>
+  readonly request_body: Prisma.FieldRef<"ErrorLog", 'Json'>
   readonly request_params: Prisma.FieldRef<"ErrorLog", 'String'>
   readonly request_query: Prisma.FieldRef<"ErrorLog", 'String'>
   readonly error_code: Prisma.FieldRef<"ErrorLog", 'String'>

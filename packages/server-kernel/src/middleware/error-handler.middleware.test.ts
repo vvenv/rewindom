@@ -69,7 +69,7 @@ describe("error-handler.middleware", () => {
         route: "/test",
         method: "GET",
         ipAddress: "127.0.0.1",
-        requestBody: JSON.stringify({ data: "test" }),
+        requestBody: { data: "test" },
         requestParams: JSON.stringify({ id: "123" }),
         requestQuery: JSON.stringify({ page: "1" }),
       }),

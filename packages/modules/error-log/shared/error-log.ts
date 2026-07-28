@@ -1,3 +1,5 @@
+import type { JsonValue } from "@be-water/shared";
+
 export const ErrorLevel = {
   ERROR: "error",
   WARN: "warn",
@@ -36,7 +38,8 @@ export interface ErrorLog {
   method: string | null;
   ip_address: string | null;
   user_agent: string | null;
-  request_body: string | null;
+  /** jsonb 列，走 JSON 序列化后仍是结构化值，不是字符串 */
+  request_body: JsonValue | null;
   request_params: string | null;
   request_query: string | null;
   error_code: string | null;
