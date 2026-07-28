@@ -160,23 +160,35 @@ describe("DataTable", () => {
     expect(screen.getAllByText(/共 2 条/)).toHaveLength(2);
   });
 
-  it("应该将 meta.className 应用到表头并覆盖默认 text-left", () => {
+  it("应该将 meta.align 应用到操作列并右对齐", () => {
     const actionColumns: ColumnDef<Row>[] = [
       { header: "Name", accessorKey: "name" },
       {
         id: "actions",
         header: "操作",
-        meta: { className: "text-right" },
-        cell: () => null,
+        meta: { align: "right" },
+        cell: () => <button type="button">编辑</button>,
       },
     ];
     const { container } = renderTable({
       columns: actionColumns,
       data: mockData,
+      enableRowSelection: true,
     });
 
-    const actionHeader = container.querySelector("thead th:last-child");
-    expect(actionHeader?.className).toContain("text-right");
-    expect(actionHeader?.className).not.toContain("text-left");
+    const headers = container.querySelectorAll("thead th");
+    const actionHeader = headers[headers.length - 1];
+    expect(actionHeader?.textContent).toContain("操作");
+    expect(actionHeader?.className).toContain("w-[1%]");
+
+    const headerWrap = actionHeader?.querySelector(":scope > div");
+    expect(headerWrap?.className).toContain("justify-end");
+
+    const actionCell = container.querySelector("tbody td:last-child");
+    expect(actionCell?.className).toContain("w-[1%]");
+
+    const cellWrap = actionCell?.querySelector(":scope > div");
+    expect(cellWrap?.className).toContain("justify-end");
+    expect(cellWrap?.querySelector("button")).toBeInTheDocument();
   });
 });

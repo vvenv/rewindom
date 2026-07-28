@@ -27,10 +27,32 @@ import {
 
 import { Pagination } from "./Pagination";
 
-interface ColumnMeta {
+export interface DataTableColumnMeta {
   className?: string;
   headerClassName?: string;
   cellClassName?: string;
+  /** 操作列等：收窄列宽并右对齐表头/单元格 */
+  align?: "left" | "right";
+}
+
+function resolveColumnAlignClass(
+  align: DataTableColumnMeta["align"] | undefined,
+): string | undefined {
+  if (align === "right") {
+    // 表格末列收窄：避免 w-full 表格把操作列撑满剩余宽度
+    return "w-[1%]";
+  }
+  return undefined;
+}
+
+function wrapColumnAlignEnd(
+  align: DataTableColumnMeta["align"] | undefined,
+  content: React.ReactNode,
+): React.ReactNode {
+  if (align !== "right" || content == null) {
+    return content;
+  }
+  return <div className="flex w-full min-w-0 justify-end">{content}</div>;
 }
 
 interface DataTableProps<TData, TValue> {
@@ -264,19 +286,26 @@ export function DataTable<TData, TValue>({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     const meta = header.column.columnDef.meta as
-                      | ColumnMeta
+                      | DataTableColumnMeta
                       | undefined;
                     return (
                     <TableHead
                       key={header.id}
-                      className={cn(meta?.className, meta?.headerClassName)}
+                      className={cn(
+                        resolveColumnAlignClass(meta?.align),
+                        meta?.className,
+                        meta?.headerClassName,
+                      )}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                      {wrapColumnAlignEnd(
+                        meta?.align,
+                        header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            ),
+                      )}
                     </TableHead>
                     );
                   })}
@@ -294,16 +323,23 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as
-                      | ColumnMeta
+                      | DataTableColumnMeta
                       | undefined;
                     return (
                     <TableCell
                       key={cell.id}
-                      className={cn(meta?.className, meta?.cellClassName)}
+                      className={cn(
+                        resolveColumnAlignClass(meta?.align),
+                        meta?.className,
+                        meta?.cellClassName,
+                      )}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
+                      {wrapColumnAlignEnd(
+                        meta?.align,
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        ),
                       )}
                     </TableCell>
                     );

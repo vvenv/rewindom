@@ -86,7 +86,7 @@ alwaysApply: false
 | --- | --- |
 | **Page hook**（`useXxxPage`） | `parseListSort` → `sorting`；`handleSortingChange` 调 `applySortingToSearchParams`（切换排序重置 `page=1`） |
 | **Data hook**（`useXxx`） | queryKey 含 `sortBy`/`sortDir`；请求传 `sort_by`/`sort_dir`；`placeholderData: keepPreviousData` |
-| **Table** | 可排序列：`DataTableColumnHeader` + `enableSorting: true`；`accessorKey` 与 URL `sort_by` 一致；操作列 `enableSorting: false` |
+| **Table** | 可排序列：`DataTableColumnHeader` + `enableSorting: true`；`accessorKey` 与 URL `sort_by` 一致；操作列 `enableSorting: false` + `meta: { align: "right" }` |
 | **Page** | 串联 hook 与 table 的 `sorting` / `onSortingChange` |
 
 ```tsx

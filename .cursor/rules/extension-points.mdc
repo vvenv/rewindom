@@ -21,7 +21,7 @@ alwaysApply: true
 | `packages/client-app-shell/`             | 产品壳层（认证页、Layout、Sidebar、路由守卫）                                                                    | 仅壳层基建              |
 | `apps/client/src/`                       | app-shell-routes、collectModuleNav、render-app-routes、enabled-modules                                          | 仅模块化任务            |
 | `packages/modules/<id>/client/`            | 业务 UI + `module.tsx`、`*Routes.tsx` 模块注册                                                                   | 新 API、域类型、业务 UI |
-| `packages/ui/`                           | `@be-water/ui` — shadcn 基础组件、toast；CLI 配置见 `components.json`                                            | 仅 UI 基建              |
+| `packages/ui/`                           | `@be-water/ui` — shadcn 基础组件、toast；CLI 配置见 `components.json`                                            | 仅 shadcn CLI 同步更新；禁止为业务需求直接改源码 |
 | `packages/client-api/`                   | `@be-water/client-kit` — api、auth token store 注入                                                                | 仅 API 基建             |
 | `packages/client-kit/` | `@be-water/client-kit` — PageLayout、DataTable、DataTableColumnHeader、list-url-params、api | 仅 API/Shell 基建 |
 | `apps/client/src/lib/`                   | 组装层导航契约（`app-nav.ts`）                                                                                   | 仅横切组装              |

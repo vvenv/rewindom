@@ -8,15 +8,28 @@ interface DataTableColumnHeaderProps<TData, TValue> {
   column: Column<TData, TValue>;
   title: string;
   className?: string;
+  /** 表头内容对齐；操作列等配合列 `meta.align: "right"` */
+  align?: "start" | "end";
 }
 
 export function DataTableColumnHeader<TData, TValue>({
   column,
   title,
   className,
+  align = "start",
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort()) {
-    return <div className={cn(className)}>{title}</div>;
+    return (
+      <div
+        className={cn(
+          "flex w-full",
+          align === "end" && "justify-end",
+          className,
+        )}
+      >
+        {title}
+      </div>
+    );
   }
 
   const sorted = column.getIsSorted();
@@ -24,6 +37,7 @@ export function DataTableColumnHeader<TData, TValue>({
     <button
       className={cn(
         "inline-flex items-center gap-1 cursor-pointer select-none bg-transparent border-0 p-0",
+        align === "end" && "ml-auto",
         className,
       )}
       onClick={() => column.toggleSorting(sorted === "asc")}

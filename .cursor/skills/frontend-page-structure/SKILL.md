@@ -174,7 +174,7 @@ export function Roles() {
 
 1. **Page hook**：`parseListSort` + `applySortingToSearchParams`（`sort_by` / `sort_dir`）
 2. **Data hook**：`keepPreviousData`；API 传 `sort_by` / `sort_dir`
-3. **Table**：`DataTableColumnHeader`；列 `accessorKey` = 服务端白名单字段名
+3. **Table**：`DataTableColumnHeader`；列 `accessorKey` = 服务端白名单字段名；操作列 `meta: { align: "right" }`（`DataTable` 内聚右对齐，单元格按钮 `flex gap-1`）
 4. **Service**：`@be-water/server-kernel/http/list-sort.js`（`parseSortDir`、`resolveSortField`、`resolveSortOrder`）
 5. **无分页全量表**：`manualSorting={false}` + 组件内 `useState<SortingState>`
 

@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2023",
-    "lib": ["ES2023", "DOM"],
+    "lib": [
+      "ES2023",
+      "DOM"
+    ],
     "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
@@ -13,5 +16,7 @@
       "@be-water/ui/*": ["../ui/src/*"]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

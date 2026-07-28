@@ -32,6 +32,12 @@ pnpm dlx shadcn@latest add <component-name>
 ls packages/ui/src/<component-name>.tsx
 ```
 
+**修改边界（Agent 须遵守）：**
+
+- **禁止**在业务需求驱动下直接改 `packages/ui/src/**`（改样式默认值、删 `text-left` 等）
+- **允许**：用户明确要求同步 shadcn 源、或执行 `pnpm dlx shadcn@latest add …` / `--dry-run --diff` 后的 CLI 产出
+- 表格对齐、业务布局等应在 `packages/client-kit`（`DataTable`）或模块 `client/components` 解决，不要动 UI 基建包「绕 bug」
+
 主题 token 与 Tailwind `@source` 在 `apps/client/src/index.css`；`packages/ui/components.json` 的 `tailwind.css` 指向该文件。
 
 **Select 组件 — 禁止使用原生 `<select>`：**
@@ -241,6 +247,8 @@ import {
 ```
 
 - 操作列、派生列（如「权限数」）：`enableSorting: false`
+- 操作列右对齐：`meta: { align: "right" }` — `DataTable` 对表头/单元格内容包一层 `flex justify-end`，列宽 `w-[1%]` 收窄末列。单元格内按钮组用 `flex gap-1` 即可（勿重复 `justify-end`）。勿仅用 `meta.className: "text-right"`：`TableHead` 默认 `text-left` 且末列会撑宽
+- 响应式隐藏列：`meta.className` 或 `meta.cellClassName`（如 `hidden md:table-cell`）；`headerClassName` / `cellClassName` 可分别控制表头与单元格
 - 切换排序/翻页：`useQuery({ placeholderData: keepPreviousData })`，避免整表被 Spinner 替换
 - 完整分层约定见 `frontend-page-structure` rule / skill
 

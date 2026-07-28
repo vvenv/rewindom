@@ -8,7 +8,11 @@ import {
   useConfirm,
   usePermissions,
 } from "@be-water/client-kit";
-import { formatBusinessDate, formatBusinessDateOrTimeAgo, type TenantUserListItem } from "@be-water/shared";
+import {
+  formatBusinessDate,
+  formatBusinessDateOrTimeAgo,
+  type TenantUserListItem,
+} from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import { Switch } from "@be-water/ui/switch";
 import { toast } from "@be-water/ui/toast";
@@ -228,25 +232,20 @@ export function UsersTable({
       {
         id: "actions",
         header: "操作",
-        meta: { className: "text-right" },
+        meta: { align: "right" },
         enableSorting: false,
         cell: ({ row }) => {
           const user = row.original;
           return (
-            <div className="flex justify-end gap-1">
+            <div className="flex gap-1">
               {hasPermission("users.write") && (
                 <UserResetPasswordSheet user={user} />
               )}
               {(currentUser?.is_system_admin ||
                 hasPermission("roles.assign")) &&
-                !user.is_system_admin && (
-                  <UserPermissionSheet user={user} />
-                )}
+                !user.is_system_admin && <UserPermissionSheet user={user} />}
               {hasPermission("users.write") && (
-                <UserEditSheet
-                  user={user}
-                  disabled={user.is_system_admin}
-                />
+                <UserEditSheet user={user} disabled={user.is_system_admin} />
               )}
               {hasPermission("users.delete") && (
                 <Button
@@ -296,7 +295,7 @@ export function UsersTable({
         pageCount={pageCount}
         enableRowSelection={hasPermission("users.delete")}
         onSelectionChange={setSelectedUsers}
-        isRowSelectable={(user) => !user.is_system_admin}
+        isRowSelectable={(user: TenantUserListItem) => !user.is_system_admin}
         sorting={sorting}
         onSortingChange={onSortingChange}
         manualSorting

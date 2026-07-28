@@ -38,7 +38,7 @@ export {
   type KpiCardProps,
   type KpiVariant,
 } from "./components/KpiCard";
-export { DataTable } from "./components/DataTable";
+export { DataTable, type DataTableColumnMeta } from "./components/DataTable";
 export { DataTableColumnHeader } from "./components/DataTableColumnHeader";
 export { Pagination } from "./components/Pagination";
 
