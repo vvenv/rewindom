@@ -83,6 +83,8 @@ pnpm bootstrap -- --env production
 pnpm deploy -- --env production
 ```
 
+服务器执行 `docker compose build`。Dockerfile 已按 sibling **shipest** 做分层缓存（先 install 依赖清单、BuildKit pnpm store、prod prune）：**依赖未变时二次构建会快很多**；勿在服务器随意 `docker system prune` 清掉层缓存。
+
 ### 4. 仅同步环境变量
 
 ```bash
@@ -101,8 +103,11 @@ pnpm deploy -- --env production --env-only
 # 推送 tag 触发 GitHub Actions 自动 Docker 部署
 pnpm release patch -- --push
 
-# CI 分钟用尽：本地 Docker 部署 + 推送 tag
+# CI 分钟用尽：本地上传源码 → 服务器 build（--deploy-local）
 pnpm release patch -- --deploy-local --env production
+
+# 跳过本机 lint/test（假定 PR CI 已跑过）
+pnpm release patch -- --no-check --deploy-local --env production
 ```
 
 ## 运维
