@@ -93,10 +93,9 @@ vi.mock("@be-water/server-kernel/kernel/auth/auth.service.js", () => ({
   },
 }));
 
+// 只 mock 查询：写入统一走 EventBus 的 `audit.log`，平台路由不再直接调用本服务。
 vi.mock("../../../audit/server/audit.service.js", () => ({
   AuditService: {
-    log: vi.fn().mockResolvedValue(undefined),
-    logFromRequest: vi.fn().mockResolvedValue(undefined),
     getAuditLogs: vi.fn().mockResolvedValue([]),
     getAuditLogsCount: vi.fn().mockResolvedValue(0),
   },

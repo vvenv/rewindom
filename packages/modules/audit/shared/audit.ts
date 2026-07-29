@@ -277,8 +277,10 @@ export const AUDIT_ACTION_GROUPS = [
 
 export interface AuditLog {
   id: string;
-  user_id: string;
+  user_id: string | null;
   username: string;
+  /** 租户侧接口不下发该字段（同租户下恒等，且没必要外泄）；平台侧必返回。 */
+  tenant_slug?: string | null;
   action: string;
   resource: string | null;
   details: string | null;
@@ -288,15 +290,6 @@ export interface AuditLog {
 }
 
 /** Cross-tenant audit row for the platform console. */
-export interface PlatformAuditLog {
-  id: string;
-  user_id: string | null;
-  username: string;
+export interface PlatformAuditLog extends AuditLog {
   tenant_slug: string | null;
-  action: string;
-  resource: string | null;
-  details: string | null;
-  ip_address: string | null;
-  user_agent: string | null;
-  created_at: string;
 }

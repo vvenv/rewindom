@@ -20,18 +20,28 @@ import {
 
 import { AUDIT_ACTION_GROUPS, AUDIT_ACTION_LABELS } from "../../shared/index.js";
 
-import type { PlatformAuditLogFilters } from "../hooks/usePlatformAuditLogsPage.js";
 import type { DateRange } from "react-day-picker";
 
+export interface AuditLogFilterValues {
+  action?: string;
+  username?: string;
+  /** 仅平台侧使用；租户侧不传，租户下拉也不会渲染。 */
+  tenant_slug?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
 interface AuditLogFiltersProps {
-  filters: PlatformAuditLogFilters;
-  onTenantChange: (slug: string | null) => void;
+  filters: AuditLogFilterValues;
+  /**
+   * 传入即显示租户下拉。租户下拉只属于平台控制台：`TenantFilterProvider` 挂在
+   * `ShellProviders` 上，租户 AppLayout 也在其作用域内，光判断
+   * `useTenantFilter()` 非空会把跨租户选择器漏到租户页上。
+   */
+  onTenantChange?: (slug: string | null) => void;
   onUsernameChange: (username: string) => void;
   onFiltersChange: (
-    filters: Pick<
-      PlatformAuditLogFilters,
-      "action" | "start_date" | "end_date"
-    >,
+    filters: Pick<AuditLogFilterValues, "action" | "start_date" | "end_date">,
   ) => void;
   onReset: () => void;
 }
@@ -123,7 +133,7 @@ export function AuditLogFilters({
               });
             }}
           />
-          {TenantFilter && (
+          {TenantFilter && onTenantChange && (
             <TenantFilter
               value={filters.tenant_slug ?? null}
               onValueChange={onTenantChange}

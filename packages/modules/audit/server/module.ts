@@ -11,6 +11,11 @@ export const auditServerModule: ServerAppModule = {
   kind: "infrastructure",
   description: "写操作审计日志与租户侧审计查询 API",
   requires: ["rbac"],
+  shared: {
+    permissions: [
+      { key: "audit_logs.read", label: "查看审计日志", group: "系统监控" },
+    ],
+  },
   server: {
     registerRoutes: async (app) => {
       await app.register(auditLogRoutes, { prefix: "/api/audit-logs" });

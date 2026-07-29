@@ -6,14 +6,11 @@ import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_SLUG, PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
 
 import {
-  AuditAction,
   AuditScope,
   resolveAuditLogScope,
   type AuditActionType,
   type AuditScopeType,
 } from "../shared/index.js";
-
-import type { FastifyRequest } from "fastify";
 
 const AUDIT_LOG_SORTABLE_FIELDS = new Set([
   "created_at",
@@ -36,11 +33,16 @@ export interface AuditLogInput {
 }
 
 /**
- * Audit log service for tracking user actions
+ * 审计日志的写入实现与查询。
+ *
+ * **写入只有一个入口**：EventBus 的 `audit.log` 事件（见 `server/module.ts` 的
+ * onBoot 订阅）。业务侧一律用 `emitAuditLogFromRequestSafe` /
+ * `emitDetachedAuditLogSafe` 发事件，不要直接调用本类的 `log()`——
+ * 内核与其它模块都不该依赖 module-audit。
  */
 export class AuditService {
   /**
-   * Create an audit log entry
+   * 落库。仅供本模块的 `audit.log` 订阅者调用。
    */
   static async log(input: AuditLogInput): Promise<void> {
     const {
@@ -77,181 +79,6 @@ export class AuditService {
         ip_address: ipAddress,
         user_agent: userAgent,
       },
-    });
-  }
-
-  static async logFromRequest(
-    request: Pick<FastifyRequest, "tenantContext" | "ip" | "headers">,
-    input: AuditLogInput,
-  ): Promise<void> {
-    const userAgent = request.headers["user-agent"];
-    await this.log({
-      ...input,
-      tenant_slug:
-        input.tenant_slug ?? request.tenantContext?.tenant_slug ?? null,
-      ipAddress: input.ipAddress ?? request.ip,
-      userAgent:
-        input.userAgent ??
-        (typeof userAgent === "string" ? userAgent : undefined),
-    });
-  }
-
-  /**
-   * Log user login
-   */
-  static async logLogin(
-    userId: string,
-    username: string,
-    ipAddress?: string,
-    userAgent?: string,
-    tenantSlug?: string | null,
-  ): Promise<void> {
-    await this.log({
-      userId,
-      username,
-      tenant_slug: tenantSlug ?? null,
-      action: AuditAction.LOGIN,
-      resource: "auth",
-      details: "用户成功登录",
-      ipAddress,
-      userAgent,
-    });
-  }
-
-  /**
-   * Log user logout
-   */
-  static async logLogout(
-    userId: string,
-    username: string,
-    ipAddress?: string,
-    userAgent?: string,
-    tenantSlug?: string | null,
-  ): Promise<void> {
-    await this.log({
-      userId,
-      username,
-      tenant_slug: tenantSlug ?? null,
-      action: AuditAction.LOGOUT,
-      resource: "auth",
-      details: "用户成功登出",
-      ipAddress,
-      userAgent,
-    });
-  }
-
-  /**
-   * Log password change
-   */
-  static async logPasswordChange(
-    userId: string,
-    username: string,
-    ipAddress?: string,
-    userAgent?: string,
-    tenantSlug?: string | null,
-  ): Promise<void> {
-    await this.log({
-      userId,
-      username,
-      tenant_slug: tenantSlug ?? null,
-      action: AuditAction.PASSWORD_CHANGE,
-      resource: "auth",
-      details: "用户成功修改密码",
-      ipAddress,
-      userAgent,
-    });
-  }
-
-  /**
-   * Log user creation (by superuser)
-   */
-  static async logUserCreate(
-    userId: string,
-    username: string,
-    targetUsername: string,
-    ipAddress?: string,
-    userAgent?: string,
-    tenantSlug?: string | null,
-  ): Promise<void> {
-    await this.log({
-      userId,
-      username,
-      tenant_slug: tenantSlug ?? null,
-      action: AuditAction.USER_CREATE,
-      resource: `user:${targetUsername}`,
-      details: `创建用户 ${targetUsername}`,
-      ipAddress,
-      userAgent,
-    });
-  }
-
-  /**
-   * Log user update (by superuser)
-   */
-  static async logUserUpdate(
-    userId: string,
-    username: string,
-    targetUsername: string,
-    details: string,
-    ipAddress?: string,
-    userAgent?: string,
-    tenantSlug?: string | null,
-  ): Promise<void> {
-    await this.log({
-      userId,
-      username,
-      tenant_slug: tenantSlug ?? null,
-      action: AuditAction.USER_UPDATE,
-      resource: `user:${targetUsername}`,
-      details,
-      ipAddress,
-      userAgent,
-    });
-  }
-
-  /**
-   * Log user deletion (by superuser)
-   */
-  static async logUserDelete(
-    userId: string,
-    username: string,
-    targetUsername: string,
-    ipAddress?: string,
-    userAgent?: string,
-    tenantSlug?: string | null,
-  ): Promise<void> {
-    await this.log({
-      userId,
-      username,
-      tenant_slug: tenantSlug ?? null,
-      action: AuditAction.USER_DELETE,
-      resource: `user:${targetUsername}`,
-      details: `删除用户 ${targetUsername}`,
-      ipAddress,
-      userAgent,
-    });
-  }
-
-  /**
-   * Log password reset (by superuser)
-   */
-  static async logPasswordReset(
-    userId: string,
-    username: string,
-    targetUsername: string,
-    ipAddress?: string,
-    userAgent?: string,
-    tenantSlug?: string | null,
-  ): Promise<void> {
-    await this.log({
-      userId,
-      username,
-      tenant_slug: tenantSlug ?? null,
-      action: AuditAction.PASSWORD_RESET,
-      resource: `user:${targetUsername}`,
-      details: `重置了用户 ${targetUsername} 的密码`,
-      ipAddress,
-      userAgent,
     });
   }
 

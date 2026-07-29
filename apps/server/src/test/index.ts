@@ -3,7 +3,6 @@
  * Generic helpers live in @be-water/server-test.
  */
 export {
-  createAuditServiceMock,
   createPrismaMock,
   createRouteTestApp,
   createTestUser,

@@ -19,6 +19,21 @@ describe("ErrorLogFilters", () => {
 
     expect(screen.getByText("全部级别")).toBeInTheDocument();
     expect(screen.getByTestId("datetime-range-picker")).toBeInTheDocument();
+  });
+
+  it("showTenantFilter 时才渲染租户下拉", () => {
+    const { rerender } = render(
+      <ErrorLogFilters filters={{}} onFiltersChange={vi.fn()} />,
+    );
+
+    // TenantFilterProvider 挂在 ShellProviders 上，租户 AppLayout 同样在其作用域内，
+    // 所以 useTenantFilter() 非空并不代表该显示——必须由调用方显式开启。
+    expect(screen.queryByTestId("tenant-combobox")).not.toBeInTheDocument();
+
+    rerender(
+      <ErrorLogFilters filters={{}} onFiltersChange={vi.fn()} showTenantFilter />,
+    );
+
     expect(screen.getByTestId("tenant-combobox")).toBeInTheDocument();
   });
 

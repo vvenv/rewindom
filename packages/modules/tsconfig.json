@@ -1,12 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["@testing-library/jest-dom"],
+    "paths": {
+      "@be-water/client-kit": ["../client-kit/src/index.ts"],
+      "@be-water/client-kit/*": ["../client-kit/src/*"],
+      "@be-water/ui/*": ["../ui/src/*"]
+    }
   },
-  "include": ["*/shared/**/*", "*/server/**/*", "*/client/**/*"]
+  "include": ["*/shared/**/*", "*/server/**/*", "*/client/**/*", "env.d.ts"]
 }

@@ -44,6 +44,8 @@ vi.mock("./error.service.js", async (importOriginal) => {
 import {
   createRouteTestApp,
   createTestUserFast,
+  grantPermission,
+  resetUserPermissions,
   type TestApp,
   type TestUser,
 } from "@be-water/server-test";
@@ -82,6 +84,15 @@ describe("Error Log Routes", () => {
   }
 
   describe("GET /api/error-logs", () => {
+    // 这些断言用 toHaveBeenCalledWith，它匹配「曾经的任意一次调用」——
+    // 不逐个清空的话，前一个用例的调用会让后一个用例假通过。
+    beforeEach(async () => {
+      const { ErrorService } = await import("./error.service.js");
+      vi.mocked(ErrorService.getErrorLogs).mockClear();
+      vi.mocked(ErrorService.getErrorLogsCount).mockClear();
+      await resetUserPermissions(app, regularUser.id);
+    });
+
     it("should get error logs for authenticated user", async () => {
       const response = await app.inject({
         method: "GET",
@@ -134,6 +145,34 @@ describe("Error Log Routes", () => {
       );
     });
 
+    it("should pass through sorting", async () => {
+      const { ErrorService } = await import("./error.service.js");
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/error-logs?sort_by=level&sort_dir=asc",
+        headers: authHeaders(adminUser),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(ErrorService.getErrorLogs).toHaveBeenCalledWith(
+        expect.objectContaining({ sort_by: "level", sort_dir: "asc" }),
+      );
+    });
+
+    it("should ignore an invalid sort_dir", async () => {
+      const { ErrorService } = await import("./error.service.js");
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/error-logs?sort_dir=sideways",
+        headers: authHeaders(adminUser),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(ErrorService.getErrorLogs).toHaveBeenCalledWith(
+        expect.objectContaining({ sort_dir: undefined }),
+      );
+    });
+
     it("should allow superuser to filter by user_id", async () => {
       const { ErrorService } = await import("./error.service.js");
       const response = await app.inject({
@@ -146,6 +185,25 @@ describe("Error Log Routes", () => {
       expect(ErrorService.getErrorLogs).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: regularUser.id,
+          tenantSlug: DEFAULT_TENANT_SLUG,
+        }),
+      );
+    });
+
+    it("should let error_logs.read read tenant-wide", async () => {
+      const { ErrorService } = await import("./error.service.js");
+      await grantPermission(app, regularUser.id, "error_logs.read");
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/error-logs?user_id=${adminUser.id}`,
+        headers: authHeaders(regularUser),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(ErrorService.getErrorLogs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: adminUser.id,
           tenantSlug: DEFAULT_TENANT_SLUG,
         }),
       );
@@ -284,6 +342,30 @@ describe("Error Log Routes", () => {
         headers: authHeaders(regularUser),
       });
       expect(response.statusCode).toBe(403);
+    });
+
+    it("should let error_logs.manage delete another user's log", async () => {
+      const { ErrorService } = await import("./error.service.js");
+      await grantPermission(app, regularUser.id, "error_logs.manage");
+      vi.mocked(ErrorService.getErrorLogById).mockResolvedValueOnce({
+        id: "log-1",
+        user_id: "someone-else",
+        tenant_slug: null,
+      } as never);
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/api/error-logs/log-1",
+        headers: authHeaders(regularUser),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(ErrorService.deleteErrorLog).toHaveBeenCalledWith(
+        "log-1",
+        DEFAULT_TENANT_SLUG,
+      );
+
+      await resetUserPermissions(app, regularUser.id);
     });
 
     it("should delete own log", async () => {

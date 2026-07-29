@@ -37,6 +37,17 @@ declare module "fastify" {
     requireAnyPermission: (
       ...permissions: string[]
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    /**
+     * 软判定：只回真假，不改写 reply。
+     *
+     * 用于「同一个接口按权限收窄可见范围」的场景（如租户侧审计/错误日志：
+     * 有 *_logs.read 看全租户，没有就只看本人），这类接口不该 403——
+     * 403 会让无权限用户连自己的记录都取不到。
+     */
+    hasPermission: (
+      request: FastifyRequest,
+      permission: string,
+    ) => Promise<boolean>;
   }
 }
 
@@ -328,6 +339,21 @@ export async function permissionMiddleware(
         const message = status === 401 ? "未授权" : "无权访问：权限不足";
         return reply.code(status).send({ error: message });
       }
+    },
+  );
+
+  app.decorate(
+    "hasPermission",
+    async (request: FastifyRequest, permission: string) => {
+      if (!request.authUser) {
+        return false;
+      }
+      if (!isValidModulePermission(catalog, permission)) {
+        app.log.warn(`检查了无效的权限：${permission}`);
+        return false;
+      }
+      const result = await authz.check(request, permission);
+      return result.allowed;
     },
   );
 

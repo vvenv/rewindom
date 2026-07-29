@@ -1,5 +1,7 @@
 import { renderErrorLogPlatformRoutes } from "./ErrorLogRoutes.js";
 import { errorLogPlatformNavContributions } from "./platform/nav-contributions.js";
+import { ERROR_LOG_NAV_SECTIONS } from "./tenant/nav-sections.js";
+import { renderErrorLogTenantRoutes } from "./tenant/routes.js";
 
 import type { ClientAppModule } from "@be-water/client-kit";
 
@@ -8,8 +10,10 @@ export const errorLogClientModule: ClientAppModule = {
   version: "1.0.0",
   label: "Error Logs",
   kind: "infrastructure",
-  description: "平台错误日志页面与 hooks",
+  description: "平台与租户错误日志页面与 hooks",
   client: {
+    renderRoutes: renderErrorLogTenantRoutes,
+    nav: ERROR_LOG_NAV_SECTIONS,
     renderPlatformRoutes: renderErrorLogPlatformRoutes,
     platformNav: errorLogPlatformNavContributions,
   },

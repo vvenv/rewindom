@@ -167,7 +167,4 @@ export {
   pauseTokenRefresh,
   isTransientApiError,
 } from "./api.js";
-export {
-  configureAuthTokenStore,
-  type AuthTokenStore,
-} from "./auth-store.js";
+export { configureAuthTokenStore, type AuthTokenStore } from "./auth-store.js";

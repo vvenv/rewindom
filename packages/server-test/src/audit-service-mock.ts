@@ -63,37 +63,3 @@ export function createAuditEmitMock(): {
     emitDetachedAuditLogSafe,
   };
 }
-
-/** @deprecated Prefer `createAuditEmitMock` after routes migrate to event bus. */
-export function createAuditServiceMock(): {
-  AuditService: {
-    log: ReturnType<typeof vi.fn>;
-    logFromRequest: ReturnType<typeof vi.fn>;
-  };
-} {
-  const log = vi.fn().mockResolvedValue(undefined);
-  const logFromRequest = vi.fn(
-    async (
-      request: Pick<FastifyRequest, "tenantContext" | "ip" | "headers">,
-      input: AuditLogEmitInput,
-    ) => {
-      const userAgent = request.headers["user-agent"];
-      await log({
-        ...input,
-        tenant_slug:
-          input.tenant_slug ?? request.tenantContext?.tenant_slug ?? null,
-        ipAddress: input.ipAddress ?? request.ip,
-        userAgent:
-          input.userAgent ??
-          (typeof userAgent === "string" ? userAgent : undefined),
-      });
-    },
-  );
-
-  return {
-    AuditService: {
-      log,
-      logFromRequest,
-    },
-  };
-}

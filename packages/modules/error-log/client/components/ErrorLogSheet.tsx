@@ -1,4 +1,4 @@
-import { useAuth, useConfirm  } from "@be-water/client-kit";
+import { useAuth, useConfirm, usePermissions  } from "@be-water/client-kit";
 import { displayOrEmpty, formatBusinessDate, type JsonValue } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import {
@@ -21,6 +21,11 @@ interface ErrorLogSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   log: ErrorLog | null;
+  /**
+   * 删除走租户接口 `/api/error-logs/:id`，平台管理员令牌打不进租户业务面
+   * （auth 中间件直接 403），所以平台控制台必须关掉这个入口。
+   */
+  allowDelete?: boolean;
 }
 
 /** 渲染一个 jsonb 列：值为 null（列空）时整块不显示 */
@@ -36,12 +41,21 @@ function JsonField({ label, value }: { label: string; value: JsonValue | null })
   );
 }
 
-export function ErrorLogSheet({ open, onOpenChange, log }: ErrorLogSheetProps) {
+export function ErrorLogSheet({
+  open,
+  onOpenChange,
+  log,
+  allowDelete = false,
+}: ErrorLogSheetProps) {
   const { user } = useAuth();
   const deleteMutation = useDeleteErrorLog();
   const { confirm } = useConfirm();
-  const isSystemAdmin = user?.is_system_admin === true;
-  const canDelete = isSystemAdmin || (log && log.user_id === user?.id);
+  const { hasPermission } = usePermissions();
+  // 与服务端同一套判定：有 error_logs.manage 可删本租户任意一条，否则只能删自己的
+  const canDelete =
+    allowDelete &&
+    (hasPermission("error_logs.manage") ||
+      (log !== null && log.user_id === user?.id));
 
   const handleDelete = async () => {
     if (!log) return;

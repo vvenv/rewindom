@@ -30,6 +30,12 @@ export interface ErrorLogFilterValues {
 interface ErrorLogFiltersProps {
   filters: ErrorLogFilterValues;
   onFiltersChange: (filters: ErrorLogFilterValues) => void;
+  /**
+   * 租户下拉只属于平台控制台。必须显式开启：`TenantFilterProvider` 挂在
+   * `ShellProviders` 上，租户 AppLayout 也在其作用域内，光判断
+   * `useTenantFilter()` 非空会把跨租户选择器漏到租户页上。
+   */
+  showTenantFilter?: boolean;
 }
 
 function dateRangeFromFilters(
@@ -48,6 +54,7 @@ function dateRangeFromFilters(
 export function ErrorLogFilters({
   filters,
   onFiltersChange,
+  showTenantFilter = false,
 }: ErrorLogFiltersProps) {
   const TenantFilter = useTenantFilter();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() =>
@@ -128,7 +135,7 @@ export function ErrorLogFilters({
               });
             }}
           />
-          {TenantFilter && (
+          {showTenantFilter && TenantFilter && (
             <TenantFilter
               value={filters.tenant_slug ?? null}
               onValueChange={(slug) => {

@@ -1,9 +1,13 @@
+import { PageLayout, usePermissions } from "@be-water/client-kit";
+import { AlertTriangle } from "lucide-react";
+
+import { ErrorLogCleanupAction } from "../components/ErrorLogCleanupAction.js";
 import { ErrorLogFilters } from "../components/ErrorLogFilters.js";
 import { ErrorLogsTable } from "../components/ErrorLogsTable.js";
-import { usePlatformErrorLogs } from "../hooks/usePlatformErrorLogs.js";
-import { usePlatformErrorLogsPage } from "../hooks/usePlatformErrorLogsPage.js";
+import { useErrorLogs } from "../hooks/useErrorLogs.js";
+import { useErrorLogsPage } from "../hooks/useErrorLogsPage.js";
 
-export function ErrorLogs() {
+export function TenantErrorLogs() {
   const {
     filters,
     page,
@@ -16,17 +20,19 @@ export function ErrorLogs() {
     handleSortingChange,
     selectLog,
     clearSelectedLog,
-  } = usePlatformErrorLogsPage();
+  } = useErrorLogsPage();
+
+  const { hasPermission } = usePermissions();
+  const canManage = hasPermission("error_logs.manage");
 
   const {
     data: logs,
     isLoading,
     error,
-  } = usePlatformErrorLogs(
+  } = useErrorLogs(
     filters.level,
     undefined,
     filters.q,
-    filters.tenant_slug,
     filters.start_date,
     filters.end_date,
     page,
@@ -36,17 +42,14 @@ export function ErrorLogs() {
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground hidden sm:block">
-        跨租户错误日志（只读）
-      </p>
-
+    <PageLayout
+      icon={AlertTriangle}
+      title="错误日志"
+      description="本租户内的服务端报错记录，点击任意一行查看堆栈与请求上下文"
+      action={canManage ? <ErrorLogCleanupAction /> : null}
+    >
       <div className="flex flex-col gap-4">
-        <ErrorLogFilters
-          filters={filters}
-          onFiltersChange={updateFilters}
-          showTenantFilter
-        />
+        <ErrorLogFilters filters={filters} onFiltersChange={updateFilters} />
 
         <ErrorLogsTable
           logs={logs?.items ?? []}
@@ -61,9 +64,9 @@ export function ErrorLogs() {
           onClearSelectedLog={clearSelectedLog}
           sorting={sorting}
           onSortingChange={handleSortingChange}
-          showTenantColumn
+          allowDelete
         />
       </div>
-    </div>
+    </PageLayout>
   );
 }

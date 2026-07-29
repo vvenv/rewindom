@@ -1,4 +1,4 @@
-export { createAuditEmitMock, createAuditServiceMock } from "./audit-service-mock.js";
+export { createAuditEmitMock } from "./audit-service-mock.js";
 export { createPrismaMock, resetPrismaMock } from "./prisma-mock.js";
 export type { PrismaMock } from "./prisma-mock.js";
 export {

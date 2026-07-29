@@ -1,9 +1,12 @@
+import { PageLayout } from "@be-water/client-kit";
+import { ScrollText } from "lucide-react";
+
 import { AuditLogFilters } from "../components/AuditLogFilters.js";
 import { AuditLogsTable } from "../components/AuditLogsTable.js";
-import { usePlatformAuditLogs } from "../hooks/usePlatformAuditLogs.js";
-import { usePlatformAuditLogsPage } from "../hooks/usePlatformAuditLogsPage.js";
+import { useAuditLogs } from "../hooks/useAuditLogs.js";
+import { useAuditLogsPage } from "../hooks/useAuditLogsPage.js";
 
-export function AuditLogs() {
+export function TenantAuditLogs() {
   const {
     filters,
     page,
@@ -12,19 +15,18 @@ export function AuditLogs() {
     sortDir,
     sorting,
     updateFilters,
-    updateParam,
+    updateUsername,
     resetFilters,
     handleSortingChange,
-  } = usePlatformAuditLogsPage();
+  } = useAuditLogsPage();
 
   const {
     data: logs,
     isLoading,
     error,
-  } = usePlatformAuditLogs(
+  } = useAuditLogs(
     filters.action,
     filters.username,
-    filters.tenant_slug,
     filters.start_date,
     filters.end_date,
     page,
@@ -34,18 +36,15 @@ export function AuditLogs() {
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground hidden sm:block">
-        跨租户审计日志（只读）
-      </p>
-
+    <PageLayout
+      icon={ScrollText}
+      title="审计日志"
+      description="本租户内的写操作记录（只读）；平台侧操作与代登录会话不在此列"
+    >
       <div className="flex flex-col gap-4">
         <AuditLogFilters
           filters={filters}
-          onTenantChange={(slug) =>
-            updateParam("tenant_slug", slug ?? undefined)
-          }
-          onUsernameChange={(username) => updateParam("username", username)}
+          onUsernameChange={updateUsername}
           onFiltersChange={updateFilters}
           onReset={resetFilters}
         />
@@ -60,9 +59,8 @@ export function AuditLogs() {
           pageCount={logs?.page_count}
           sorting={sorting}
           onSortingChange={handleSortingChange}
-          showTenantColumn
         />
       </div>
-    </div>
+    </PageLayout>
   );
 }

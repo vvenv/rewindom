@@ -1,3 +1,4 @@
+import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { success } from "@be-water/shared";
@@ -15,14 +16,21 @@ export async function errorLogRoutes(app: FastifyInstance) {
     onRequest: [app.authenticate],
     handler: async (request: FastifyRequest, reply) => {
       try {
-        const { level, user_id, q, start_date, end_date } =
+        const { level, user_id, q, start_date, end_date, sort_by, sort_dir } =
           request.query as Record<string, string>;
         const { page: pageNum, page_size: pageSize } = parsePagination(
           request.query as Record<string, unknown>,
         );
         const skip = (pageNum - 1) * pageSize;
+        const sortDir = parseSortDir(sort_dir);
 
-        const filterUserId = request.authUser?.is_system_admin
+        // 有 error_logs.read 的成员看本租户全量；没有的只看本人——
+        // 该接口不做 403，否则普通成员连自己的报错都取不到。
+        const canReadTenantWide = await app.hasPermission(
+          request,
+          "error_logs.read",
+        );
+        const filterUserId = canReadTenantWide
           ? user_id
           : request.authUser?.userId;
         const tenantSlug = request.tenantContext!.tenant_slug;
@@ -37,6 +45,8 @@ export async function errorLogRoutes(app: FastifyInstance) {
             endDate: end_date,
             skip,
             take: pageSize,
+            sort_by,
+            sort_dir: sortDir,
           }),
           ErrorService.getErrorLogsCount({
             level,
@@ -171,11 +181,9 @@ export async function errorLogRoutes(app: FastifyInstance) {
           return reply.code(403).send({ error: "无权访问" });
         }
 
-        // Only superuser can delete any log, regular users can only delete their own
-        if (
-          !request.authUser?.is_system_admin &&
-          log.user_id !== request.authUser?.userId
-        ) {
+        // 有 error_logs.manage 的成员可删本租户任意一条，其余人只能删自己的
+        const canManage = await app.hasPermission(request, "error_logs.manage");
+        if (!canManage && log.user_id !== request.authUser?.userId) {
           return reply.code(403).send({ error: "无权访问" });
         }
 

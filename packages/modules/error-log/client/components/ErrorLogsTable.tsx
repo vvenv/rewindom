@@ -16,7 +16,9 @@ import { ErrorLogSheet } from "./ErrorLogSheet.js";
 
 import type { ColumnDef, SortingState, Updater } from "@tanstack/react-table";
 
-function buildErrorLogColumns(): ColumnDef<ErrorLog>[] {
+function buildErrorLogColumns(
+  showTenantColumn: boolean,
+): ColumnDef<ErrorLog>[] {
   return [
     {
       accessorKey: "created_at",
@@ -60,18 +62,22 @@ function buildErrorLogColumns(): ColumnDef<ErrorLog>[] {
         );
       },
     },
-    {
-      accessorKey: "tenant_slug",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="租户" />
-      ),
-      enableSorting: true,
-      cell: ({ row }) => (
-        <span className="font-mono text-muted-foreground">
-          {displayOrEmpty(row.getValue("tenant_slug"))}
-        </span>
-      ),
-    },
+    ...(showTenantColumn
+      ? ([
+          {
+            accessorKey: "tenant_slug",
+            header: ({ column }) => (
+              <DataTableColumnHeader column={column} title="租户" />
+            ),
+            enableSorting: true,
+            cell: ({ row }) => (
+              <span className="font-mono text-muted-foreground">
+                {displayOrEmpty(row.getValue("tenant_slug"))}
+              </span>
+            ),
+          },
+        ] satisfies ColumnDef<ErrorLog>[])
+      : []),
     {
       accessorKey: "username",
       header: ({ column }) => (
@@ -136,6 +142,8 @@ export function ErrorLogsTable({
   onSortingChange,
   onSelectLog,
   onClearSelectedLog,
+  showTenantColumn = false,
+  allowDelete = false,
 }: {
   logs: ErrorLog[];
   isLoading: boolean;
@@ -149,8 +157,15 @@ export function ErrorLogsTable({
   onSortingChange: (updater: Updater<SortingState>) => void;
   onSelectLog: (log: ErrorLog) => void;
   onClearSelectedLog: (open: boolean) => void;
+  /** 仅平台控制台开启：租户侧同租户下该列恒等，没有信息量。 */
+  showTenantColumn?: boolean;
+  /** 详情抽屉是否给出删除入口。删除走租户接口，平台控制台不能开。 */
+  allowDelete?: boolean;
 }) {
-  const columns = useMemo(() => buildErrorLogColumns(), []);
+  const columns = useMemo(
+    () => buildErrorLogColumns(showTenantColumn),
+    [showTenantColumn],
+  );
   const selectedLog = logs.find((log) => log.id === logId) ?? null;
 
   return (
@@ -176,6 +191,7 @@ export function ErrorLogsTable({
         open={Boolean(selectedLog)}
         onOpenChange={onClearSelectedLog}
         log={selectedLog}
+        allowDelete={allowDelete}
       />
     </>
   );
