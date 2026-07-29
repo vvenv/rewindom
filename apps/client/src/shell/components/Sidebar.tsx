@@ -140,13 +140,86 @@ function SidebarGlobalActions({
   );
 }
 
-function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
+function SidebarNavSections({
+  sections,
+  onNavigate,
+  collapsed = false,
+}: {
+  sections: AppNavSection[];
+  onNavigate?: () => void;
+  collapsed?: boolean;
+}) {
+  if (sections.length === 0) {
+    return null;
+  }
+
+  if (collapsed) {
+    return (
+      <>
+        {sections.flatMap((section) =>
+          section.items.map((item) => (
+            <SidebarNavItem
+              key={item.path}
+              to={item.path}
+              end={item.end}
+              activePrefix={item.activePrefix}
+              icon={item.icon}
+              label={item.label}
+              itemTitle={item.title}
+              onClick={onNavigate}
+              collapsed
+              badgeKey={item.badgeKey}
+            />
+          )),
+        )}
+      </>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 px-3 py-2">
+      {sections.map((section) => (
+        <div key={section.label} className="flex flex-col gap-0.5">
+          <SidebarSectionLabel>{section.label}</SidebarSectionLabel>
+          {section.items.map((item) => (
+            <SidebarNavItem
+              key={item.path}
+              to={item.path}
+              end={item.end}
+              activePrefix={item.activePrefix}
+              icon={item.icon}
+              label={item.label}
+              itemTitle={item.title}
+              onClick={onNavigate}
+              badgeKey={item.badgeKey}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SidebarFooter({
+  collapsed = false,
+  endSections = [],
+  onNavigate,
+}: {
+  collapsed?: boolean;
+  endSections?: AppNavSection[];
+  onNavigate?: () => void;
+}) {
   const { shellContributions } = useAppShellConfig();
   const UserMenu = shellContributions.sidebarUserMenu[0];
 
   if (collapsed) {
     return (
       <div className="mt-auto flex flex-col items-center gap-1">
+        <SidebarNavSections
+          sections={endSections}
+          onNavigate={onNavigate}
+          collapsed
+        />
         <ShellLayoutToggle />
         <ThemePaletteToggle />
         <ThemeToggle />
@@ -156,7 +229,10 @@ function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
   }
 
   return (
-    <>
+    <div className="mt-auto flex flex-col">
+      {endSections.length > 0 ? (
+        <SidebarNavSections sections={endSections} onNavigate={onNavigate} />
+      ) : null}
       <Separator />
       <div className="flex justify-between gap-1 p-3">
         {UserMenu ? <UserMenu showLabel /> : null}
@@ -166,7 +242,7 @@ function SidebarFooter({ collapsed = false }: { collapsed?: boolean }) {
           <ThemeToggle />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -193,26 +269,7 @@ function SidebarContent({
         />
       </div>
 
-      <div className="flex flex-col gap-3 px-3 py-2">
-        {navSections.map((section) => (
-          <div key={section.label} className="flex flex-col gap-0.5">
-            <SidebarSectionLabel>{section.label}</SidebarSectionLabel>
-            {section.items.map((item) => (
-              <SidebarNavItem
-                key={item.path}
-                to={item.path}
-                end={item.end}
-                activePrefix={item.activePrefix}
-                icon={item.icon}
-                label={item.label}
-                itemTitle={item.title}
-                onClick={onNavigate}
-                badgeKey={item.badgeKey}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
+      <SidebarNavSections sections={navSections} onNavigate={onNavigate} />
 
       {shellContributions.sidebarPanel.length > 0 ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-2">
@@ -235,10 +292,11 @@ function MobileNavDrawer({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { sections: navSections } = useFilteredNavSections();
+  const { mainSections, endSections } = useFilteredNavSections();
   const { shellContributions } = useAppShellConfig();
   const homePath = useAppHomePath();
   const UserMenu = shellContributions.sidebarUserMenu[0];
+  const closeNav = () => onOpenChange(false);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -250,7 +308,7 @@ function MobileNavDrawer({
       >
         <SheetHeader className="flex-row items-center justify-between gap-2">
           <Button variant="ghost" size="sm" className="px-1" asChild>
-            <Link to={homePath} onClick={() => onOpenChange(false)}>
+            <Link to={homePath} onClick={closeNav}>
               <Logo className="size-8 text-primary" />
               <span className="sr-only">be-water</span>
             </Link>
@@ -262,7 +320,7 @@ function MobileNavDrawer({
               size="icon"
               className={SIDEBAR_ICON_BUTTON}
               title="收起侧边栏"
-              onClick={() => onOpenChange(false)}
+              onClick={closeNav}
             >
               <PanelLeftClose />
             </Button>
@@ -270,18 +328,21 @@ function MobileNavDrawer({
         </SheetHeader>
 
         <SidebarContent
-          onNavigate={() => onOpenChange(false)}
+          onNavigate={closeNav}
           homePath={homePath}
-          navSections={navSections}
+          navSections={mainSections}
         />
 
-        <SheetFooter className="flex-row items-center justify-between">
-          {UserMenu ? <UserMenu showLabel /> : null}
-          <div className="flex shrink-0 items-center">
-            <ThemePaletteToggle />
-            <ThemeToggle />
-          </div>
-        </SheetFooter>
+        <div className="mt-auto flex flex-col">
+          <SidebarNavSections sections={endSections} onNavigate={closeNav} />
+          <SheetFooter className="flex-row items-center justify-between">
+            {UserMenu ? <UserMenu showLabel /> : null}
+            <div className="flex shrink-0 items-center">
+              <ThemePaletteToggle />
+              <ThemeToggle />
+            </div>
+          </SheetFooter>
+        </div>
       </SheetContent>
     </Sheet>
   );
@@ -386,14 +447,9 @@ function DesktopSidebar() {
     key: "sidebar_collapsed",
     defaultValue: false,
   });
-  const { sections: navSections } = useFilteredNavSections();
+  const { mainSections, endSections } = useFilteredNavSections();
   const { shellContributions } = useAppShellConfig();
   const homePath = useAppHomePath();
-
-  const navItems = useMemo(
-    () => navSections.flatMap((section) => section.items),
-    [navSections],
-  );
 
   if (collapsed) {
     return (
@@ -414,20 +470,8 @@ function DesktopSidebar() {
             <Component key={index} homePath={homePath} collapsed />
           )}
         />
-        {navItems.map((item) => (
-          <SidebarNavItem
-            key={item.path}
-            to={item.path}
-            end={item.end}
-            activePrefix={item.activePrefix}
-            icon={item.icon}
-            label={item.label}
-            itemTitle={item.title}
-            collapsed
-            badgeKey={item.badgeKey}
-          />
-        ))}
-        <SidebarFooter collapsed />
+        <SidebarNavSections sections={mainSections} collapsed />
+        <SidebarFooter collapsed endSections={endSections} />
       </aside>
     );
   }
@@ -450,8 +494,8 @@ function DesktopSidebar() {
           <PanelLeftClose />
         </Button>
       </div>
-      <SidebarContent homePath={homePath} navSections={navSections} />
-      <SidebarFooter />
+      <SidebarContent homePath={homePath} navSections={mainSections} />
+      <SidebarFooter endSections={endSections} />
     </aside>
   );
 }

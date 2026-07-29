@@ -26,6 +26,11 @@ export interface AppNavItem {
 export interface AppNavSection {
   label: string;
   items: AppNavItem[];
+  /**
+   * 侧栏定位。默认 `main`（主内容区自上而下）；
+   * `end` 沉底钉在用户菜单上方（如「系统管理」），顶栏布局则排在主分组之后。
+   */
+  placement?: "main" | "end";
 }
 
 export interface MobileTabItem {

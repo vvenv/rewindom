@@ -23,6 +23,7 @@ export function collectModuleNav(
 ): AppNavSection[] {
   const sectionOrder: string[] = [];
   const sectionItems = new Map<string, AppNavSection["items"]>();
+  const sectionPlacements = new Map<string, NonNullable<AppNavSection["placement"]>>();
 
   for (const module of modules) {
     if (!module.client?.nav) {
@@ -32,15 +33,23 @@ export function collectModuleNav(
       if (!sectionItems.has(section.label)) {
         sectionItems.set(section.label, []);
         sectionOrder.push(section.label);
+        sectionPlacements.set(section.label, section.placement ?? "main");
+      } else if (section.placement === "end") {
+        // 任一贡献方声明 end 即沉底（同 label 合并时保持一致）。
+        sectionPlacements.set(section.label, "end");
       }
       sectionItems.get(section.label)!.push(...section.items);
     }
   }
 
-  return sectionOrder.map((label) => ({
-    label,
-    items: sectionItems.get(label)!,
-  }));
+  return sectionOrder.map((label) => {
+    const placement = sectionPlacements.get(label) ?? "main";
+    return {
+      label,
+      items: sectionItems.get(label)!,
+      ...(placement === "end" ? { placement: "end" as const } : {}),
+    };
+  });
 }
 
 export function collectMobileTabPaths(

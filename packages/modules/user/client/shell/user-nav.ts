@@ -5,10 +5,12 @@ import type { AppNavSection } from "@be-water/client-kit";
 /**
  * section label 与 `rbac` 的一致，collectModuleNav 会把两者合并为同一分组；
  * 组内顺序由 ENABLED_CLIENT_MODULES 的模块顺序决定（rbac 在 user 之前）。
+ * `placement: "end"` 使该组沉底钉在侧栏用户菜单上方。
  */
 export const USER_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "系统管理",
+    placement: "end",
     items: [
       {
         icon: Users,

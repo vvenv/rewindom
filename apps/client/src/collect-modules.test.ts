@@ -85,6 +85,59 @@ describe("collect-modules", () => {
     expect(nav[0]!.items).toHaveLength(2);
   });
 
+  it("preserves placement:end when merging sections with the same label", () => {
+    const modules: ClientAppModule[] = [
+      {
+        id: "rbac",
+        version: "1.0.0",
+        label: "RBAC",
+        kind: "infrastructure",
+        client: {
+          nav: [
+            {
+              label: "系统管理",
+              placement: "end",
+              items: [{ icon: LayoutDashboard, label: "角色", path: "/roles" }],
+            },
+          ],
+        },
+      },
+      {
+        id: "user",
+        version: "1.0.0",
+        label: "User",
+        kind: "infrastructure",
+        client: {
+          nav: [
+            {
+              label: "系统管理",
+              placement: "end",
+              items: [{ icon: LayoutDashboard, label: "用户", path: "/users" }],
+            },
+          ],
+        },
+      },
+      {
+        id: "notes",
+        version: "1.0.0",
+        label: "Notes",
+        kind: "business",
+        client: {
+          nav: [
+            {
+              label: "示例",
+              items: [{ icon: LayoutDashboard, label: "笔记", path: "/notes" }],
+            },
+          ],
+        },
+      },
+    ];
+
+    const nav = collectModuleNav(modules);
+    expect(nav.find((s) => s.label === "系统管理")?.placement).toBe("end");
+    expect(nav.find((s) => s.label === "示例")?.placement).toBeUndefined();
+  });
+
   it("collects route trees by mount point", () => {
     const modules: ClientAppModule[] = [
       {

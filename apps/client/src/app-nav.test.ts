@@ -6,6 +6,7 @@ import {
   filterMobileTabPaths,
   getAppNavItems,
   getMobileTabItems,
+  partitionNavSections,
 } from "./app-nav";
 
 import type { AppNavSection } from "@be-water/client-kit";
@@ -13,6 +14,7 @@ import type { AppNavSection } from "@be-water/client-kit";
 const SECTIONS: AppNavSection[] = [
   {
     label: "系统管理",
+    placement: "end",
     items: [
       {
         icon: Users,
@@ -57,6 +59,20 @@ const ALL_ENTITLED = { modules: {}, features: {} };
 function paths(sections: AppNavSection[]): string[] {
   return sections.flatMap((s) => s.items.map((i) => i.path));
 }
+
+describe("partitionNavSections", () => {
+  it("把 placement:end 沉到 main 之后", () => {
+    const { mainSections, endSections, sections } =
+      partitionNavSections(SECTIONS);
+    expect(mainSections.map((s) => s.label)).toEqual(["示例", "个人"]);
+    expect(endSections.map((s) => s.label)).toEqual(["系统管理"]);
+    expect(sections.map((s) => s.label)).toEqual([
+      "示例",
+      "个人",
+      "系统管理",
+    ]);
+  });
+});
 
 describe("filterAppNavSections — 权限维度", () => {
   it("未传 hasPermission 时隐藏受限入口（fail-closed）", () => {

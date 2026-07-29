@@ -5,6 +5,7 @@ import type { AppNavSection } from "@be-water/client-kit";
 export const RBAC_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "系统管理",
+    placement: "end",
     items: [
       {
         icon: ShieldCheck,

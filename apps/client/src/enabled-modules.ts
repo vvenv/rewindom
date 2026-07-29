@@ -9,7 +9,6 @@ import { slowQueryClientModule } from "@be-water/modules/slow-query/client/modul
 import { todosClientModule } from "@be-water/modules/todos/client/module.js";
 import { userClientModule } from "@be-water/modules/user/client/module.js";
 
-
 import { appShellClientModule } from "@/shell/index";
 
 import type { ClientAppModule } from "@be-water/client-kit";
@@ -20,12 +19,12 @@ import type { ClientAppModule } from "@be-water/client-kit";
  */
 export const ENABLED_CLIENT_MODULES = [
   appShellClientModule,
-  rbacClientModule,
   backgroundJobClientModule,
-  userClientModule,
   platformClientModule,
   auditClientModule,
   errorLogClientModule,
+  rbacClientModule,
+  userClientModule,
   slowQueryClientModule,
   notesClientModule,
   notificationClientModule,

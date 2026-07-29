@@ -11,7 +11,8 @@
 | `/roles` | 角色列表、增删改、按 group 勾选权限 | `roles.read`（写操作另需 `roles.write`） |
 
 导航项在 `client/shell/rbac-nav.ts`，归入「系统管理」分组——与 `user` 模块的
-`/users` 同组（`collectModuleNav` 按 section label 合并）。两者都挂在
+`/users` 同组（`collectModuleNav` 按 section label 合并），并声明 `placement: "end"`
+沉底钉在侧栏用户菜单上方。两者都挂在
 `SuperUserRoute` 下，并各自用 `PermissionRoute` 收窄到具体权限。
 
 给成员**分配**角色不在这里，而在 `/users` 的用户行内（`user` 模块的

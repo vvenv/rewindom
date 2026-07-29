@@ -9,6 +9,7 @@ import type { AppNavSection } from "@be-water/client-kit";
 export const ERROR_LOG_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "系统监控",
+    placement: "end",
     items: [
       {
         icon: AlertTriangle,

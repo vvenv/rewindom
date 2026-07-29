@@ -33,6 +33,21 @@ export function filterAppNavSections(
     .filter((section) => section.items.length > 0);
 }
 
+/** 按 `placement` 拆分；顶栏用合并后的 `sections`（end 排在 main 之后）。 */
+export function partitionNavSections(sections: AppNavSection[]): {
+  mainSections: AppNavSection[];
+  endSections: AppNavSection[];
+  sections: AppNavSection[];
+} {
+  const mainSections = sections.filter((section) => section.placement !== "end");
+  const endSections = sections.filter((section) => section.placement === "end");
+  return {
+    mainSections,
+    endSections,
+    sections: [...mainSections, ...endSections],
+  };
+}
+
 function isNavItemVisible(
   item: AppNavItem,
   entitlements?: Pick<TenantEntitlementsResponse, "modules" | "features">,

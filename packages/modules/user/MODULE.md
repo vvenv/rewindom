@@ -10,7 +10,8 @@
 | --- | --- | --- |
 | `/users` | 用户列表、增删改、重置密码、分配角色 | `users.read`（写操作另需 `users.write`；分配角色需 `roles.assign`） |
 
-导航项在 `client/shell/user-nav.ts`，与 `rbac` 的 `/roles` 同属「系统管理」分组。
+导航项在 `client/shell/user-nav.ts`，与 `rbac` 的 `/roles` 同属「系统管理」分组
+（`placement: "end"`，侧栏沉底）。
 角色**本身**的增删改在 `/roles`（`rbac` 模块），这里只做「把已有角色分配给某个用户」。
 
 ## 依赖
