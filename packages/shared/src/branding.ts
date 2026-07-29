@@ -13,7 +13,7 @@ export const STORAGE_PREFIX = "be-water";
 /** 备份文件名前缀（`<prefix>_backup_<ts>.dump` 等）。 */
 export const BACKUP_FILE_PREFIX = STORAGE_PREFIX;
 
-/** 登录页、PWA 等面向用户的应用展示名。fork 后在此修改。 */
+/** 登录页、PWA 等面向用户的应用展示名。产品仓升级时改此值并保留旧版 Logo/favicon。 */
 export const APP_DISPLAY_NAME = "be-water";
 
 /** 登录页副标题（紧凑布局 Logo 下方）。回答「这是什么」，保持功能性描述。 */

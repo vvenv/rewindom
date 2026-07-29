@@ -70,6 +70,7 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 | 租户配置 / 用户   | `design/tenant-config.md`、`design/user-system.md` | —                                 |
 | 租户功能开关/配额 | `design/tenant-features.md`                        | —                                 |
 | 前端 Page 分层    | —                                                  | `frontend-page-structure`         |
+| 产品仓升级检查    | `design/downstream-fork.md`                        | `frontend-page-structure`         |
 | 单元测试          | `design/unit-testing.md`                           | —                                 |
 | 部署 / FAQ        | `deployment.md`、`faq.md`                          | —                                 |
 

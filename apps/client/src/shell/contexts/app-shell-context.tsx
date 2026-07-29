@@ -5,6 +5,7 @@ import type {
   AppMobileHeaderState,
   AppNavItem,
   AppNavSection,
+  HomePathCandidate,
   MobileTabItem,
   PlatformNavEntry,
 } from "@be-water/client-kit";
@@ -30,6 +31,8 @@ export interface AppShellConfig {
   ) => boolean;
   getAppNavItems: () => AppNavItem[];
   resolveMobileHeaderState: (pathname: string) => AppMobileHeaderState;
+  /** 登录落地页候选；禁用的 `tenantModule` 会被跳过。 */
+  homePathCandidates: readonly HomePathCandidate[];
   shellContributions: CollectedShellContributions;
   platformNavEntries: readonly PlatformNavEntry[];
 }

@@ -1,5 +1,7 @@
 export { appShellClientModule } from "./module.js";
 
+export { useAppHomePath } from "./hooks/useAppHomePath.js";
+
 export { AppLayout } from "./components/AppLayout.js";
 export { AppMobileHeader } from "./components/AppMobileHeader.js";
 export { AppNotFoundRedirect } from "./components/AppNotFoundRedirect.js";

@@ -133,11 +133,22 @@ const [sorting, setSorting] = useState<SortingState>([]);
 - ❌ 用 `id` 作排序键却未设 `accessorKey`，导致 `sort_by` 与库字段对不上
 - ❌ 排序切换时 `isLoading` 直接替换整表为 Spinner（应 `keepPreviousData` + 条件 loading）
 
+## 产品升级（对齐 be-water）
+
+将其它项目升级到本底座时，除页面外壳外还须处理品牌与默认路由，见
+`docs/design/downstream-fork.md` 与 Skill「产品升级检查」：
+
+1. 租户页 `PageLayout` 对齐
+2. 从旧仓保留 Logo / Wordmark / favicon（勿被 be-water 资产覆盖）
+3. `apps/client/src/home-path-candidates.ts` 配置落地页，候选带 `tenantModule`，跳过禁用模块
+
 ## 反模式
 
 - ❌ 租户页不套 `PageLayout`，手写 `<div>` + `<p>` 当页头（见「页面外壳」）
 - ❌ 向导/多区块页把说明文字留在正文 `<p>` 而非 `PageLayout.description`（如运费估算）
 - ❌ 平台页套 `PageLayout`（`PlatformLayout` 已有 header，会双标题）
+- ❌ 升级时用 be-water 的 Logo/favicon 覆盖产品品牌
+- ❌ 落地页候选缺 `tenantModule`，导致禁用模块仍被当作默认路由
 - ❌ Page 内嵌 `ColumnDef[]`、大段 `useMemo` 列定义
 - ❌ 在通用数据 Hook 里直接 `toast`（专用 `useXxxActions` 或 Page 除外）
 - ❌ 清空 file input 后再读 `FileList`（live 引用会丢文件）

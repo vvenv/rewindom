@@ -6,8 +6,7 @@ import { ENABLED_CLIENT_MODULES } from "@/enabled-modules";
 /**
  * 壳层组装契约。
  *
- * 上游不含业务模块，故不断言具体路由/标题（那属于下游产品仓）——
- * 只验证「模块贡献能被正确聚合」这条机制本身。
+ * 只验证「模块贡献能被正确聚合」；具体业务路由/标题由产品仓覆盖。
  */
 describe("buildAppShellConfig", () => {
   const config = buildAppShellConfig(ENABLED_CLIENT_MODULES);
@@ -26,6 +25,20 @@ describe("buildAppShellConfig", () => {
     expect(Array.isArray(config.shellContributions.mobileHeaderRoutes)).toBe(
       true,
     );
+  });
+
+  it("暴露登录落地页候选（含 tenantModule，便于跳过禁用模块）", () => {
+    expect(config.homePathCandidates.length).toBeGreaterThan(0);
+    expect(
+      config.homePathCandidates.every(
+        (candidate) => typeof candidate.path === "string",
+      ),
+    ).toBe(true);
+    expect(
+      config.homePathCandidates.some(
+        (candidate) => candidate.tenantModule === "notes",
+      ),
+    ).toBe(true);
   });
 
   it("未匹配任何模块路由时回退到导航标签", () => {

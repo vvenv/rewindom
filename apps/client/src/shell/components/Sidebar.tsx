@@ -5,7 +5,6 @@ import {
   ShellLayoutToggle,
   ThemePaletteToggle,
   ThemeToggle,
-  useAppHomePath,
   usePersistState,
   type AppNavItem,
   type AppNavSection,
@@ -27,6 +26,7 @@ import { PanelLeft, PanelLeftClose, type LucideIcon } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";
+import { useAppHomePath } from "../hooks/useAppHomePath.js";
 import {
   getNavBadgeTitle,
   useFilteredNavSections,

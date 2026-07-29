@@ -93,6 +93,7 @@ export {
   useAppHomePath,
   resolveAppHomePath,
   DEFAULT_HOME_PATH,
+  EXAMPLE_HOME_PATH_CANDIDATES,
 } from "./hooks/useAppHomePath";
 export type { HomePathCandidate } from "./hooks/useAppHomePath";
 export { useAppVersion } from "./hooks/useAppVersion";

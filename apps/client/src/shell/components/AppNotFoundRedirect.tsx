@@ -1,4 +1,4 @@
-import { useAppHomePath } from "@be-water/client-kit";
+import { useAppHomePath } from "../hooks/useAppHomePath.js";
 import { Navigate } from "react-router";
 
 

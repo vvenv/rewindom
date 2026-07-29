@@ -7,6 +7,7 @@ import {
   isAppNavItemActive,
   isNavRouteActive,
 } from "@/app-nav";
+import { HOME_PATH_CANDIDATES } from "@/home-path-candidates";
 import {
   AppShellConfigProvider,
   collectPlatformNav,
@@ -35,6 +36,7 @@ export function buildAppShellConfig(
         getAppNavItems,
         isAppNavItemActive,
       ),
+    homePathCandidates: HOME_PATH_CANDIDATES,
     shellContributions: collectShellContributions(modules),
     platformNavEntries: collectPlatformNav(modules),
   };

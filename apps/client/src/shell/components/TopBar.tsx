@@ -6,7 +6,6 @@ import {
   ShellLayoutToggle,
   ThemePaletteToggle,
   ThemeToggle,
-  useAppHomePath,
   useNavBadgeCount,
   useOverflowRow,
   type AppNavItem,
@@ -27,6 +26,7 @@ import { ChevronDown } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";
+import { useAppHomePath } from "../hooks/useAppHomePath.js";
 import {
   getNavBadgeTitle,
   useFilteredNavSections,
