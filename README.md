@@ -101,6 +101,7 @@ be-water/
 | --- | --- |
 | `pnpm setup` / `pnpm dev` | 本地初始化（幂等）/ 启前后端 |
 | `pnpm db:up` / `db:down` / `db:studio` | 本地库启停 / Prisma Studio |
+| `pnpm db:pull` / `seed` | 拉取远程库到本地 / 初始化种子数据 |
 | `pnpm build` / `pnpm start` | 构建 / 生产模式启动 |
 | `pnpm test` / `pnpm check` | 测试 / lint + test |
 | `pnpm check:deps` / `check:modules` | 模块边界校验 / 契约校验（注册表、权限、nav） |

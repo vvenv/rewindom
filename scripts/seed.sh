@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # 数据库初始化脚本
-# 用法: ./scripts/seed.sh --env test
+# 用法:
+#   pnpm seed
+#   pnpm seed -- --env test
+#   ./scripts/seed.sh --env production
 
 set -e
 
