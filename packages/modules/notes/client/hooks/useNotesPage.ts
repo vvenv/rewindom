@@ -10,7 +10,7 @@ import {
 } from "@be-water/client-kit/lib/list-url-params";
 import { useSearchParams } from "react-router";
 
-import type { SortingState, Updater } from "@tanstack/react-table";
+import { fromNoteSortValue, toNoteSortValue } from "../lib/note-sort.js";
 
 export function useNotesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,15 +19,20 @@ export function useNotesPage() {
   const page = parseListPage(searchParams.get("page"));
   const pageSize = parseListPageSize(searchParams.get("page_size"));
   const { sortBy, sortDir } = parseListSort(searchParams);
-  const sorting = toSortingState(sortBy, sortDir);
+  const sortValue = toNoteSortValue(sortBy, sortDir);
 
-  const handleSortingChange = useCallback(
-    (updater: Updater<SortingState>) => {
+  const handleSortChange = useCallback(
+    (value: string) => {
+      const next = fromNoteSortValue(value);
       setSearchParams(
-        applySortingToSearchParams(searchParams, updater, sorting),
+        applySortingToSearchParams(
+          searchParams,
+          [{ id: next.sortBy, desc: next.sortDir === "desc" }],
+          toSortingState(sortBy, sortDir),
+        ),
       );
     },
-    [searchParams, setSearchParams, sorting],
+    [searchParams, setSearchParams, sortBy, sortDir],
   );
 
   const handleFiltersChange = useCallback(
@@ -47,8 +52,8 @@ export function useNotesPage() {
     pageSize,
     sortBy,
     sortDir,
-    sorting,
-    handleSortingChange,
+    sortValue,
+    handleSortChange,
     handleFiltersChange,
   };
 }

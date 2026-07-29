@@ -19,7 +19,7 @@
 | 路由 | `server/note.routes.ts` | `app.requirePermission("notes.read" / "notes.write")` |
 | 导航项 | `client/tenant/nav-sections.ts` | `anyPermission: ["notes.read"]` |
 | 页面路由 | `client/tenant/routes.tsx` | `PermissionRoute permission="notes.read"` |
-| 页面内写操作 | `client/pages/notes.tsx`、`client/components/NotesTable.tsx` | `usePermissions().hasPermission("notes.write")` |
+| 页面内写操作 | `client/pages/notes.tsx`、`client/components/NotesGrid.tsx` | `usePermissions().hasPermission("notes.write")` |
 
 权限在 `server/module.ts` 的 `shared.permissions` 声明，由 `collectModulePermissions`
 汇入权限目录，租户可在 `/roles` 勾选给角色。

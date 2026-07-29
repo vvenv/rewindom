@@ -4,13 +4,21 @@ import { Plus, StickyNote } from "lucide-react";
 
 import { NoteCreateSheet } from "../components/NoteCreateSheet.js";
 import { NoteFilters } from "../components/NoteFilters.js";
-import { NotesTable } from "../components/NotesTable.js";
+import { NotesGrid } from "../components/NotesGrid.js";
 import { useNotes } from "../hooks/useNotes.js";
 import { useNotesPage } from "../hooks/useNotesPage.js";
 
 export function Notes() {
-  const { q, page, pageSize, sortBy, sortDir, sorting, handleSortingChange, handleFiltersChange } =
-    useNotesPage();
+  const {
+    q,
+    page,
+    pageSize,
+    sortBy,
+    sortDir,
+    sortValue,
+    handleSortChange,
+    handleFiltersChange,
+  } = useNotesPage();
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("notes.write");
   const { data, isLoading, isError, error, refetch } = useNotes(
@@ -38,19 +46,22 @@ export function Notes() {
       }
     >
       <div className="flex flex-col gap-4">
-        <NoteFilters q={q} onFiltersChange={handleFiltersChange} />
-        <NotesTable
+        <NoteFilters
+          q={q}
+          sortValue={sortValue}
+          onFiltersChange={handleFiltersChange}
+          onSortChange={handleSortChange}
+        />
+        <NotesGrid
           notes={data?.items ?? []}
-          isLoading={isLoading}
-          isError={isError}
+          isLoading={isLoading && !data}
+          isError={isError && !data}
           error={error}
           page={page}
           pageSize={pageSize}
           total={data?.total ?? 0}
           pageCount={data?.page_count}
           q={q}
-          sorting={sorting}
-          onSortingChange={handleSortingChange}
           onRetry={() => void refetch()}
         />
       </div>
