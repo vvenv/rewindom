@@ -42,6 +42,7 @@
     "docker:stack:logs": "docker compose -p be-water-local -f docker-compose.prod.yml --env-file .env.docker.local logs -f",
     "bootstrap": "bash scripts/docker-deploy-remote.sh --bootstrap",
     "deploy": "bash scripts/deploy.sh",
+    "logs": "bash scripts/logs.sh",
     "release": "bash scripts/release.sh"
   },
   "devDependencies": {

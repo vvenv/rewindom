@@ -15,7 +15,7 @@ source "$ROOT/scripts/lib/log.sh"
 
 docker_default_port_for_env() {
   case "${1:-production}" in
-    test) echo "3402" ;;
+    test) echo "3702" ;;
     *) echo "3700" ;;
   esac
 }
@@ -99,7 +99,8 @@ fi
 
 docker_create_source_tarball() {
   local tarball="$1"
-  tar -czf "$tarball" \
+  # COPYFILE_DISABLE：macOS 下禁止把 AppleDouble（._*）打进包，否则 Prisma 会把 ._*.prisma 当 schema 解析失败
+  COPYFILE_DISABLE=1 tar -czf "$tarball" \
     --exclude='./node_modules' \
     --exclude='./apps/server/node_modules' \
     --exclude='./apps/client/node_modules' \
@@ -109,6 +110,10 @@ docker_create_source_tarball() {
     --exclude='./*.tar.gz' \
     --exclude='./data' \
     --exclude='./backups' \
+    --exclude='*/._*' \
+    --exclude='._*' \
+    --exclude='*/.DS_Store' \
+    --exclude='.DS_Store' \
     -C "$ROOT" \
     docker \
     docker-compose.prod.yml \
@@ -146,6 +151,11 @@ docker_write_remote_env_file() {
 docker_remote_compose_up() {
   local remote_dir="$1"
   local env_file="$2"
+  local pull_base="${3:-0}"
+  local build_cmd="docker compose -f docker-compose.prod.yml --env-file '${env_file}' build"
+  if [ "$pull_base" = "1" ]; then
+    build_cmd="${build_cmd} --pull"
+  fi
 
   _run_ssh "set -euo pipefail
 cd '${remote_dir}'
@@ -156,7 +166,7 @@ if ! command -v docker >/dev/null 2>&1; then
   systemctl enable --now docker
 fi
 
-docker compose -f docker-compose.prod.yml --env-file '${env_file}' build --pull
+${build_cmd}
 docker compose -f docker-compose.prod.yml --env-file '${env_file}' up -d
 
 echo '--- docker compose ps ---'
@@ -182,13 +192,15 @@ exit 1
 "
 }
 
-# docker_deploy environment yes bootstrap [env_only]
+# docker_deploy environment yes bootstrap [env_only] [pull_base]
 # env_only=1: 仅同步 .env 并重启容器，不上传源码
+# pull_base=1: docker compose build --pull（刷新 base image；日常默认关）
 docker_deploy() {
   local environment="${1:-production}"
   local yes="${2:-0}"
   local bootstrap="${3:-0}"
   local env_only="${4:-0}"
+  local pull_base="${5:-0}"
 
 
   load_deploy_credentials "$environment"
@@ -227,6 +239,11 @@ docker_deploy() {
     else
       log_info "模式: 更新部署"
     fi
+    if [ "$pull_base" -eq 1 ]; then
+      log_info "base image: build --pull"
+    else
+      log_info "base image: 复用本地缓存（加 --pull-base 可强制刷新）"
+    fi
     read -r -p "确认继续? [y/N] " confirm </dev/tty
     [[ "$confirm" =~ ^[Yy]$ ]] || log_die "已取消"
   fi
@@ -255,7 +272,7 @@ cd '${remote_dir}'
 tar -xzf be-water-docker-src.tar.gz
 rm -f be-water-docker-src.tar.gz
 "
-    docker_remote_compose_up "$remote_dir" "$remote_env_file"
+    docker_remote_compose_up "$remote_dir" "$remote_env_file" "$pull_base"
   else
     log_info "重启 Docker 栈以应用环境变量..."
     _run_ssh "set -euo pipefail
@@ -277,6 +294,79 @@ docker compose -f docker-compose.prod.yml --env-file '${remote_env_file}' up -d
   else
     log_info "部署完成: http://${domain} (127.0.0.1:${port})"
   fi
+}
+
+# docker_remote_logs environment [options...]
+# options: --tail N | --follow | --service NAME... | --grep PATTERN
+docker_remote_logs() {
+  local environment="${1:-production}"
+  shift || true
+
+  local tail_lines=200
+  local follow=0
+  local grep_pattern=""
+  local -a services=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --tail)
+        tail_lines="$2"
+        shift 2
+        ;;
+      --follow|-f)
+        follow=1
+        shift
+        ;;
+      --service|-s)
+        services+=("$2")
+        shift 2
+        ;;
+      --grep|-g)
+        grep_pattern="$2"
+        shift 2
+        ;;
+      --)
+        shift
+        ;;
+      -*)
+        log_die "未知 logs 选项: $1（可用 --tail、--follow、--service、--grep）"
+        ;;
+      *)
+        services+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  if [ "${#services[@]}" -eq 0 ]; then
+    services=(app web)
+  fi
+
+  load_deploy_credentials "$environment"
+
+  local remote_dir
+  remote_dir="$(docker_remote_dir_for_env "$environment")"
+
+  local logs_cmd
+  logs_cmd="cd '${remote_dir}' && docker compose -f docker-compose.prod.yml logs --tail=${tail_lines}"
+  if [ "$follow" -eq 1 ]; then
+    logs_cmd+=" -f"
+  fi
+  # shellcheck disable=SC2145
+  logs_cmd+=" ${services[*]}"
+
+  if [ -n "$grep_pattern" ]; then
+    if [ "$follow" -eq 1 ]; then
+      logs_cmd+=" 2>&1 | grep -Ei --line-buffered $(printf '%q' "$grep_pattern")"
+    else
+      logs_cmd+=" 2>&1 | grep -Ei $(printf '%q' "$grep_pattern")"
+    fi
+  fi
+
+  log_info "日志: ${DEPLOY_SSH_USER}@${DEPLOY_HOST} (${environment}) → ${remote_dir}"
+  log_info "服务: ${services[*]}  tail=${tail_lines}$([ "$follow" -eq 1 ] && printf ' follow' || true)$([ -n "$grep_pattern" ] && printf ' grep=%s' "$grep_pattern" || true)"
+
+  _run_ssh "$logs_cmd"
 }
 
 # 兼容旧调用

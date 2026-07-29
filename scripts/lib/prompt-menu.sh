@@ -5,7 +5,7 @@
 # 用法:
 #   value=$(prompt_menu "标题" --default=1 \
 #     "production:生产环境 (/var/www/app, 端口 3700)" \
-#     "test:测试环境 (/var/www/app_test, 端口 3402)")
+#     "test:测试环境 (/var/www/app_test, 端口 3702)")
 # 输出选中项的 value（冒号前）到 stdout，菜单到 stderr
 
 prompt_menu() {
