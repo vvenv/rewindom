@@ -38,7 +38,8 @@ Rule：`.cursor/rules/frontend-page-structure.mdc`
 
 ### 可默认项（直接采用，不要问）
 
-分页 20 + 服务端排序 + `keepPreviousData`；Dialog 内聚（trigger 用 `children`）；组件具名导出；
+分页 20 + 服务端排序 + `keepPreviousData`；**Dialog/Sheet 内聚为金标准**（trigger + 弹层 +
+表单 + mutation + toast 同一组件，`children` 作 trigger）；组件具名导出；
 Lib 纯函数配 `*.test.ts`；无权限时 `action={null}`。
 
 ### 硬规则
@@ -86,8 +87,10 @@ export function Roles() {
 }
 ```
 
-- `action` 用 `DraggableFabTrigger` 一次声明覆盖桌面按钮与移动 FAB；
-  为此 `*CreateSheet` 须接受 `children` 作 trigger（`children ?? 默认 Button`）。
+- `action` 放的是**内聚的** `*CreateSheet`（不是裸 Button）；其 `children` 再传
+  `DraggableFabTrigger`，一次声明覆盖桌面按钮与移动 FAB。
+  `*CreateSheet` 须接受 `children` 作 trigger（`children ?? 默认 Button`），内部自含
+  `open` / 表单 / mutation / `toast`——金标准见 `NoteCreateSheet`。
 - 无权限时 `action={null}`，不渲染禁用按钮。
 - `PageLayout` header 是 `hidden md:flex`，移动端标题由 `AppMobileHeader` 从**导航项的 `title`**
   解析（`resolve-mobile-header.ts`）——新增导航项别漏 `title`。
@@ -113,7 +116,9 @@ export function Roles() {
    - 分页器：上下两个时上面用 `variant="simple"`（只有总数 + 上/下一页），每页条数与跳页只放下面那个；
      用 `DataTable` 即自动合规，自己摆分页器（如 `todos/TodoFooter`）才需要显式选 variant
    - 仅 props + 展示；不写 `useSearchParams`
-   - **Dialog 内聚**：触发按钮与弹层成对时，合并为 `*Dialog`（内部 `open` + `DialogTrigger` + mutation + `toast`），Page 不维护 `createOpen`
+   - **Dialog/Sheet 内聚（金标准）**：创建按钮（trigger）与含创建表单的 Sheet/Dialog
+     是同一高内聚组件（如 `NoteCreateSheet`），不是列表 Page 里拆开的 Button + 底部弹层。
+     组件内含 `open` + `*Trigger` + 表单 + mutation + `toast`；Page 不维护 `createOpen`
 
 4. **Page** — 瘦编排
    ```tsx
@@ -175,10 +180,36 @@ export function Roles() {
 | 认证表单         | `Register`        | `useRegisterForm`          | `register-form`   | `auth/RegisterForm`, `AuthPageShell`         |
 | 平台 CRUD 弹层   | `PlatformTenants` | —                          | —                 | `platform/CreateTenantDialog`                |
 
-## Dialog 内聚检查
+## Dialog / Sheet 内聚（金标准）
+
+**原则**：创建 / 编辑类弹层 = trigger + 弹层 + 表单 + mutation + toast，装进**一个**组件。
+列表 Page 只放置它，禁止把「新建按钮」和「创建 Sheet」打散在页面各处。
+
+金标准参考：
+
+| 角色 | 文件 |
+| --- | --- |
+| 内聚组件 | `notes/client/components/NoteCreateSheet.tsx` |
+| Page 放置 | `notes/client/pages/notes.tsx` → `PageLayout.action` |
+
+```tsx
+// ✅ 高内聚：Page 只放置；Sheet 吃 children 作 trigger
+<NoteCreateSheet>
+  <DraggableFabTrigger storageKey="notes_create_fab">…</DraggableFabTrigger>
+</NoteCreateSheet>
+
+// ❌ 打散：Page 管 open + 头部 Button + 底部受控 Sheet
+const [createOpen, setCreateOpen] = useState(false);
+<Button onClick={() => setCreateOpen(true)}>新建</Button>
+// …列表…
+<NoteCreateSheet open={createOpen} onOpenChange={setCreateOpen} />
+```
+
+### 检查清单
 
 - [ ] Page 无 `*Open` state + 底部 `*Dialog` / `*Sheet`
-- [ ] 组件内含 `DialogTrigger`/`SheetTrigger`、mutation、`toast`
+- [ ] `*CreateSheet` / `*Dialog` 内含 `*Trigger`、表单、mutation、`toast`、关闭重置
+- [ ] `PageLayout.action` 放的是内聚组件（`children` = `DraggableFabTrigger`），不是裸 Button
 - [ ] 行内操作用 `children` 作 trigger；列表详情在 Row/Table 内聚
 - [ ] 多步结果（如凭据）在同一 Dialog 内展示，不另挂 Page 级 Dialog
 - [ ] 正文有 `px-4`（见下）
@@ -217,7 +248,8 @@ export function Roles() {
 ## 检查清单
 
 - [ ] 租户页用了 `PageLayout`（icon + title + description + action）；平台页没套
-- [ ] `action` 用 `DraggableFabTrigger`，无权限时为 `null`
+- [ ] `action` 为内聚 `*CreateSheet`（`children` = `DraggableFabTrigger`），无权限时为 `null`
+- [ ] 无 Page 级 `*Open` + 分散 Button / 底部 Sheet（Dialog/Sheet 内聚金标准）
 - [ ] 新增导航项写了 `title`（移动端标题来源）
 - [ ] Page 无 `ColumnDef`、无长 validator 函数
 - [ ] URL 读写集中在 Hook + `list-url-params`（含排序时用 `parseListSort` / `applySortingToSearchParams`）

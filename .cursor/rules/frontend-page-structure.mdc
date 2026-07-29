@@ -42,8 +42,10 @@ alwaysApply: false
 
 要点：
 
-- `action` 传 `DraggableFabTrigger`，桌面端是按钮、移动端是 FAB，一次声明两端生效。
-  因此 `*CreateSheet` 须接受 `children` 作 trigger（`children ?? 默认 Button`）。
+- `action` 放的是**内聚的** `*CreateSheet`（不是裸 Button）；`children` 再传
+  `DraggableFabTrigger`，桌面端是按钮、移动端是 FAB，一次声明两端生效。
+  `*CreateSheet` 须接受 `children` 作 trigger（`children ?? 默认 Button`），内部自含
+  `open` / 表单 / mutation / `toast`——金标准见 `NoteCreateSheet`。
 - 无权限时 `action` 传 `null`，不要渲染禁用态按钮。
 - `PageLayout` 的 header 是 `hidden md:flex`；移动端标题由 `AppMobileHeader` 从导航项的
   `title` 字段解析（见 `resolve-mobile-header.ts`）——**所以导航项必须写 `title`**，否则移动端无标题。
@@ -152,20 +154,46 @@ const [sorting, setSorting] = useState<SortingState>([]);
 - ❌ Page 内嵌 `ColumnDef[]`、大段 `useMemo` 列定义
 - ❌ 在通用数据 Hook 里直接 `toast`（专用 `useXxxActions` 或 Page 除外）
 - ❌ 清空 file input 后再读 `FileList`（live 引用会丢文件）
-- ❌ Page 维护 `createOpen` + 头部 Button + 底部 `*Dialog` 三处分散（见下方 Dialog 内聚）
+- ❌ Page 维护 `createOpen` + 头部 Button + 底部 `*Dialog` 三处分散（违反 Dialog/Sheet 内聚金标准）
 - ❌ 为拆而拆：简单 CRUD 页保持单文件即可
 
-## Dialog / Sheet 内聚
+## Dialog / Sheet 内聚（金标准）
 
-**所有 Dialog / Sheet 均内聚 trigger + 弹层 + 业务逻辑**，禁止 Page 维护 `open` 状态并分散渲染 Button 与 Dialog。
+**创建 / 编辑类弹层是一个高内聚整体**：trigger（按钮 / FAB）+ `Sheet`/`Dialog` + 表单 + mutation + `toast`
+装进同一个 `*CreateSheet` / `*Dialog` 组件。列表 Page 只**放置**该组件，不拆散拼装。
 
-- 头部/工具栏操作：`XxxCreateDialog` / `XxxCreateSheet` 自带 `DialogTrigger`（参考 `TenantCreateDialog`、`NoteCreateSheet`）
-- 列表行点击 + 详情：由 Table 持有 Sheet 并通过 `onRowClick` 打开（参考 `ErrorLogsTable` + `ErrorLogSheet`、`SlowQueryLogSheet`）
+金标准：`notes/client/components/NoteCreateSheet.tsx` + `notes/client/pages/notes.tsx` 的 `action`：
+
+```tsx
+// ✅ Page 只放置内聚组件；children 作 trigger（桌面按钮 / 移动 FAB）
+action={
+  canWrite ? (
+    <NoteCreateSheet>
+      <DraggableFabTrigger storageKey="notes_create_fab">…</DraggableFabTrigger>
+    </NoteCreateSheet>
+  ) : null
+}
+```
+
+`NoteCreateSheet` 内部自含：`open`、`SheetTrigger`（`children ??` 默认 Button）、表单、`useCreateNote`、`toast`、关闭重置。
+
+```tsx
+// ❌ 打散在列表页：Page 管 open + 头部 Button + 底部 Sheet 三处分离
+const [createOpen, setCreateOpen] = useState(false);
+// PageLayout action={<Button onClick={() => setCreateOpen(true)}>新建</Button>}
+// …表格…
+// <NoteCreateSheet open={createOpen} onOpenChange={setCreateOpen} />
+```
+
+场景约定：
+
+- 头部/工具栏新建：`XxxCreateSheet` 接受 `children` 作 trigger（参考 `NoteCreateSheet`、`RoleCreateSheet`）
+- 列表行点击 + 详情：由 Table 持有 Sheet 并通过 `onRowClick` 打开（参考 `ErrorLogsTable` + `ErrorLogSheet`）
 - 行内编辑：在 Row 组件内内聚（参考 `TodoRow`）
 - 简单确认：使用 `DialogButton`（内部 `open`，仅传 `trigger`）；破坏性确认用 `useConfirm`
-- 凭据展示等多步流程：在同一 Dialog 内切换视图（参考 `TenantCreateDialog` + `TenantAdminCredentialsPanel`）
+- 凭据展示等多步流程：在同一 Dialog 内切换视图（参考 `TenantCreateDialog`）
 
-Row 级组件可用 `syncUrlParam` 等方式同步 URL，但 open 状态仍由 Dialog 组件内部或 Row 内管理，Page 不单独挂底部 Dialog。
+Row 级可用 `syncUrlParam` 同步 URL，但 open 仍由 Dialog/Row 内部管理，Page 不单独挂底部 Dialog。
 
 **正文内边距**：`SheetContent` / `DialogContent` 本身无 padding，只有 Header / Footer 自带 `p-4`。
 中间的正文节点必须自己写 `min-h-0 flex-1 overflow-y-auto px-4`，否则字段贴边、与头尾不对齐；

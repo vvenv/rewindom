@@ -61,6 +61,13 @@ import {
 </Select>;
 ```
 
+**Dialog / Sheet 内聚（金标准）— 创建按钮与弹层表单是同一组件：**
+
+业务层 `*CreateSheet` / `*Dialog` 须把 trigger + 弹层 + 表单 + mutation + toast 装在一起
+（金标准：`notes/client/components/NoteCreateSheet.tsx`）。列表 Page 的 `PageLayout.action`
+只**放置**该组件（`children` 传 `DraggableFabTrigger`），禁止 Page 维护 `createOpen` 再
+头部 Button + 底部受控 Sheet 三处打散。详见 `frontend-page-structure` rule「Dialog / Sheet 内聚」。
+
 **Dialog 组件 — 必须用 `DialogTrigger`，禁止 Fragment 拆开手动 `onClick` 打开：**
 
 `DialogTrigger` 与 `DialogContent` 必须是**同一个** `<Dialog>` 的子节点。受控 `open` 与 `DialogTrigger` 可同时使用。
