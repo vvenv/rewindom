@@ -347,8 +347,17 @@ docker_remote_logs() {
   local remote_dir
   remote_dir="$(docker_remote_dir_for_env "$environment")"
 
+  # Compose v5 无 --ansi，靠 SSH pty 着色（_run_ssh 自动 -tt）；NO_COLOR 时显式去色
+  local want_color=0
+  local no_color_flag=""
+  if [ -n "${NO_COLOR:-}" ]; then
+    no_color_flag=" --no-color"
+  elif [ -t 1 ] || [ -t 2 ] || [ "${FORCE_COLOR:-0}" = "1" ]; then
+    want_color=1
+  fi
+
   local logs_cmd
-  logs_cmd="cd '${remote_dir}' && docker compose -f docker-compose.prod.yml logs --tail=${tail_lines}"
+  logs_cmd="cd '${remote_dir}' && docker compose -f docker-compose.prod.yml logs${no_color_flag} --tail=${tail_lines}"
   if [ "$follow" -eq 1 ]; then
     logs_cmd+=" -f"
   fi
@@ -356,10 +365,15 @@ docker_remote_logs() {
   logs_cmd+=" ${services[*]}"
 
   if [ -n "$grep_pattern" ]; then
+    # 管道使 compose 看不到 TTY；保留 grep 命中高亮
+    local grep_color_flag=""
+    if [ "$want_color" -eq 1 ]; then
+      grep_color_flag=" --color=always"
+    fi
     if [ "$follow" -eq 1 ]; then
-      logs_cmd+=" 2>&1 | grep -Ei --line-buffered $(printf '%q' "$grep_pattern")"
+      logs_cmd+=" 2>&1 | grep -Ei --line-buffered${grep_color_flag} $(printf '%q' "$grep_pattern")"
     else
-      logs_cmd+=" 2>&1 | grep -Ei $(printf '%q' "$grep_pattern")"
+      logs_cmd+=" 2>&1 | grep -Ei${grep_color_flag} $(printf '%q' "$grep_pattern")"
     fi
   fi
 

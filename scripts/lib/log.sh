@@ -13,6 +13,7 @@
 # tag 自动取 $0 的 basename（去掉 .sh）；可用 LOG_TAG=xxx 覆盖。
 # 非终端输出（管道 / 重定向 / cron / CI 日志）自动去色，避免转义码泄漏。
 # FORCE_COLOR=1 强制着色（SSH 无 pty 时由本地 _run_ssh 注入）；NO_COLOR 优先去色。
+# 着色条件：stdout 或 stderr 为 TTY，或 FORCE_COLOR=1。
 # log_info / log_success → stdout；log_warn / log_error / log_die / log_debug → stderr。
 #
 # 各脚本可定义本地 wrapper 以保留既有调用点与退出语义，例如:
@@ -28,10 +29,10 @@ fi
 
 : "${LOG_TAG:=$(basename "$0" .sh)}"
 
-# TTY 感知：stderr 为终端时着色；FORCE_COLOR=1 强制；NO_COLOR 优先关闭
+# TTY 感知：stdout/stderr 任一为终端时着色；FORCE_COLOR=1 强制；NO_COLOR 优先关闭
 if [ -n "${NO_COLOR:-}" ]; then
   _LOG_RESET='' _LOG_DIM='' _LOG_INFO='' _LOG_OK='' _LOG_WARN='' _LOG_ERR=''
-elif [ -t 2 ] || [ "${FORCE_COLOR:-0}" = "1" ]; then
+elif [ -t 1 ] || [ -t 2 ] || [ "${FORCE_COLOR:-0}" = "1" ]; then
   _LOG_RESET=$'\033[0m'
   _LOG_DIM=$'\033[2m'
   _LOG_INFO=$'\033[36m'   # cyan

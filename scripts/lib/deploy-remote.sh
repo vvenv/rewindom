@@ -53,14 +53,27 @@ load_deploy_credentials() {
 
 _ssh_common_opts=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o TCPKeepAlive=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3)
 
-# SSH 无 pty 时远程 [ -t 2 ] 为假会去色；本地是终端则注入 FORCE_COLOR（尊重 NO_COLOR）
+# 本地是终端时注入 FORCE_COLOR，供远程 log.sh / 工具链着色（尊重 NO_COLOR）
 _ssh_force_color_prefix() {
   if [ -n "${NO_COLOR:-}" ]; then
     return 0
   fi
-  if [ -t 2 ] || [ "${FORCE_COLOR:-0}" = "1" ]; then
+  if [ -t 1 ] || [ -t 2 ] || [ "${FORCE_COLOR:-0}" = "1" ]; then
     printf '%s' 'export FORCE_COLOR=1; '
   fi
+}
+
+# 是否给远程分配 pty：compose / 构建输出靠 TTY 着色。
+# SSH_ALLOCATE_TTY=1 强制开；=0 强制关；未设则本地终端且未禁色时自动开。
+_ssh_should_allocate_tty() {
+  case "${SSH_ALLOCATE_TTY:-}" in
+    1) return 0 ;;
+    0) return 1 ;;
+  esac
+  if [ -n "${NO_COLOR:-}" ]; then
+    return 1
+  fi
+  [ -t 1 ] || [ -t 2 ] || [ "${FORCE_COLOR:-0}" = "1" ]
 }
 
 _require_sshpass() {
@@ -89,8 +102,13 @@ _ssh_try_key() {
   fi
 
   local remote_cmd="$1"
-  ssh "${_ssh_common_opts[@]}" -o BatchMode=yes \
-    "${DEPLOY_SSH_USER}@${DEPLOY_HOST}" "$remote_cmd" 2>"$stderr_file"
+  if _ssh_should_allocate_tty; then
+    ssh "${_ssh_common_opts[@]}" -tt -o BatchMode=yes \
+      "${DEPLOY_SSH_USER}@${DEPLOY_HOST}" "$remote_cmd" 2>"$stderr_file"
+  else
+    ssh "${_ssh_common_opts[@]}" -o BatchMode=yes \
+      "${DEPLOY_SSH_USER}@${DEPLOY_HOST}" "$remote_cmd" 2>"$stderr_file"
+  fi
 }
 
 _ssh_try_password() {
@@ -109,11 +127,19 @@ _ssh_try_password() {
   fi
 
   local remote_cmd="$1"
-  SSHPASS="$DEPLOY_SSH_PASSWORD" sshpass -e ssh \
-    "${_ssh_common_opts[@]}" \
-    -o PreferredAuthentications=password \
-    -o PubkeyAuthentication=no \
-    "${DEPLOY_SSH_USER}@${DEPLOY_HOST}" "$remote_cmd" 2>"$stderr_file"
+  if _ssh_should_allocate_tty; then
+    SSHPASS="$DEPLOY_SSH_PASSWORD" sshpass -e ssh \
+      "${_ssh_common_opts[@]}" -tt \
+      -o PreferredAuthentications=password \
+      -o PubkeyAuthentication=no \
+      "${DEPLOY_SSH_USER}@${DEPLOY_HOST}" "$remote_cmd" 2>"$stderr_file"
+  else
+    SSHPASS="$DEPLOY_SSH_PASSWORD" sshpass -e ssh \
+      "${_ssh_common_opts[@]}" \
+      -o PreferredAuthentications=password \
+      -o PubkeyAuthentication=no \
+      "${DEPLOY_SSH_USER}@${DEPLOY_HOST}" "$remote_cmd" 2>"$stderr_file"
+  fi
 }
 
 _run_scp() {

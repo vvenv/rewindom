@@ -75,9 +75,13 @@ prompt_menu() {
     civis=$(tput civis 2>/dev/null || true)
     cnorm=$(tput cnorm 2>/dev/null || true)
     clr_eol=$(tput el 2>/dev/null || true)
-    bold=$(tput bold 2>/dev/null || true)
-    cyan=$(tput setaf 6 2>/dev/null || true)
-    sgr0=$(tput sgr0 2>/dev/null || true)
+    if [ -n "${NO_COLOR:-}" ]; then
+      bold="" cyan="" sgr0=""
+    else
+      bold=$(tput bold 2>/dev/null || true)
+      cyan=$(tput setaf 6 2>/dev/null || true)
+      sgr0=$(tput sgr0 2>/dev/null || true)
+    fi
 
     # 标题区
     echo "" >&2
@@ -291,10 +295,14 @@ prompt_multi_menu() {
     civis=$(tput civis 2>/dev/null || true)
     cnorm=$(tput cnorm 2>/dev/null || true)
     clr_eol=$(tput el 2>/dev/null || true)
-    bold=$(tput bold 2>/dev/null || true)
-    cyan=$(tput setaf 6 2>/dev/null || true)
-    green=$(tput setaf 2 2>/dev/null || true)
-    sgr0=$(tput sgr0 2>/dev/null || true)
+    if [ -n "${NO_COLOR:-}" ]; then
+      bold="" cyan="" green="" sgr0=""
+    else
+      bold=$(tput bold 2>/dev/null || true)
+      cyan=$(tput setaf 6 2>/dev/null || true)
+      green=$(tput setaf 2 2>/dev/null || true)
+      sgr0=$(tput sgr0 2>/dev/null || true)
+    fi
 
     echo "" >&2
     printf '%s%s%s\n' "$bold" "$title" "$sgr0" >&2

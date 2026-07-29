@@ -46,6 +46,7 @@ postgres-backup*.sql
 .env.production
 .env.test
 .env.edge
+# 遗留：历史 SSH 隧道 env，勿再新建
 .env.tunnel
 
 # Release

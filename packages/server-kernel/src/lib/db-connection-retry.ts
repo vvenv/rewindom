@@ -3,10 +3,6 @@ import { Prisma } from "../generated/prisma/client/client.js";
 const DEFAULT_ATTEMPTS = 20;
 const DEFAULT_DELAY_MS = 2000;
 
-function isTunnelDevMode(): boolean {
-  return process.env.APP_ENV_FILE === ".env.tunnel";
-}
-
 function isTransientDbError(err: unknown): boolean {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     return (
@@ -41,30 +37,29 @@ export async function withDbConnectionRetry<T>(
   options?: { attempts?: number; delayMs?: number },
 ): Promise<T> {
   const delayMs = options?.delayMs ?? DEFAULT_DELAY_MS;
-  const boundedAttempts = options?.attempts ?? DEFAULT_ATTEMPTS;
-  const unbounded = isTunnelDevMode() && options?.attempts === undefined;
+  const attempts = options?.attempts ?? DEFAULT_ATTEMPTS;
 
-  for (let attempt = 1; ; attempt++) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       return await fn();
     } catch (err) {
       if (!isTransientDbError(err)) {
         throw err;
       }
-      if (!unbounded && attempt >= boundedAttempts) {
+      if (attempt >= attempts) {
         throw err;
       }
       log?.warn(
         {
           attempt,
-          maxAttempts: unbounded ? "∞" : boundedAttempts,
+          maxAttempts: attempts,
           err,
         },
-        unbounded
-          ? `数据库连接失败，${delayMs / 1000}s 后重试 (dev:tunnel #${attempt})`
-          : `数据库连接失败，${delayMs / 1000}s 后重试 (${attempt}/${boundedAttempts})`,
+        `数据库连接失败，${delayMs / 1000}s 后重试 (${attempt}/${attempts})`,
       );
       await sleep(delayMs);
     }
   }
+
+  throw new Error("withDbConnectionRetry: unreachable");
 }
