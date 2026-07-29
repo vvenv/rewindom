@@ -130,6 +130,19 @@ export function Roles() {
    }
    ```
 
+| 向导 / 多区块页（如运费估算） | `Estimation` | `useEstimationPage` 等 | `estimationUtils` | `estimation/*` |
+
+向导类租户页同样**必须** `PageLayout`（icon + title + description）；步骤条与业务 Card 放在 `children` 内，说明文字写入 `description` 而非额外 `<p>`。多 Card 区块用 `Card` + `CardHeader` 分组，避免与 `PageLayout` 标题重复。
+
+## 产品 fork 迁移检查（从单体迁入 be-water 时）
+
+- [ ] 所有 `renderRoutes` 租户页已套 `PageLayout`，无手写 `<p className="text-muted-foreground">` 页头
+- [ ] 导航项 `title` 与 `PageLayout.title` 语义一致（移动端标题来源）
+- [ ] API 字段统一 `snake_case`（hooks/types 对齐 `@<product>/shared`）
+- [ ] Vite `server.proxy` 读取根目录 `PORT`（`loadEnv`），勿硬编码端口
+- [ ] Sheet/Dialog 正文含 `min-h-0 flex-1 overflow-y-auto px-4`
+- [ ] 公开 API 与租户 API 错误分开展示（避免无关接口失败污染整页）
+
 ## 参考实现
 
 | 场景             | Page              | Hook                       | Lib               | Components                                   |

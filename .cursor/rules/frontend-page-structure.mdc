@@ -136,6 +136,7 @@ const [sorting, setSorting] = useState<SortingState>([]);
 ## 反模式
 
 - ❌ 租户页不套 `PageLayout`，手写 `<div>` + `<p>` 当页头（见「页面外壳」）
+- ❌ 向导/多区块页把说明文字留在正文 `<p>` 而非 `PageLayout.description`（如运费估算）
 - ❌ 平台页套 `PageLayout`（`PlatformLayout` 已有 header，会双标题）
 - ❌ Page 内嵌 `ColumnDef[]`、大段 `useMemo` 列定义
 - ❌ 在通用数据 Hook 里直接 `toast`（专用 `useXxxActions` 或 Page 除外）
