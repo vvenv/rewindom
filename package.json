@@ -12,7 +12,7 @@
     "build": "concurrently --kill-others-on-fail --names \"client,server\" --prefix-colors \"green,blue\" \"pnpm --filter client build\" \"pnpm --filter server build\"",
     "start": "pnpm --filter server start",
     "lint": "pnpm -r --if-present --workspace-concurrency=4 lint",
-    "lint:fix": "pnpm -r --if-present --workspace-concurrency=4 run lint -- --fix",
+    "lint:fix": "pnpm -r --if-present --workspace-concurrency=4 run lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "pnpm -r --if-present --workspace-concurrency=4 test",
