@@ -154,7 +154,7 @@ describe("platform-admin routes", () => {
           username: "admin",
           tenant_slug: "acme",
           tenant_name: "Acme",
-          role: "admin",
+          is_system_admin: true,
           enabled: true,
           tenant_id: "tenant-2",
           created_at: new Date().toISOString(),

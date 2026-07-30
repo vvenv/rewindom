@@ -1,4 +1,8 @@
-import { useAuth, useTenantEntitlements } from "@be-water/client-kit";
+import {
+  useAuth,
+  useTenantEntitlements,
+  PLATFORM_HOME_PATH,
+} from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
 import { Spinner } from "@be-water/ui/spinner";
 import { Navigate, Outlet, useLocation } from "react-router";
@@ -22,7 +26,7 @@ export function ProtectedRoute() {
   }
 
   if (user && isPlatformAdminActor(user.actor_type)) {
-    return <Navigate to="/platform" replace />;
+    return <Navigate to={PLATFORM_HOME_PATH} replace />;
   }
 
   return <Outlet />;

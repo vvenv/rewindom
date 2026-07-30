@@ -33,6 +33,9 @@ import {
 import { getDatabaseBackupDir } from "../services/backup.service.js";
 
 
+// 插件由 apps/server 注册，这里只借它对 FastifyRequest/FastifyInstance 的类型增强
+// （isMultipart / saveRequestFiles / tmpUploads / multipartErrors）。
+import type {} from "@fastify/multipart";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 /** 上游只提供整库备份；租户数据级备份是业务感知能力，留在下游产品仓。 */

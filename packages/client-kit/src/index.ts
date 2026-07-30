@@ -97,6 +97,11 @@ export {
   EXAMPLE_HOME_PATH_CANDIDATES,
 } from "./hooks/useAppHomePath";
 export type { HomePathCandidate } from "./hooks/useAppHomePath";
+export {
+  useDefaultHomePath,
+  APP_HOME_ENTRY_PATH,
+  PLATFORM_HOME_PATH,
+} from "./hooks/useDefaultHomePath";
 export { useAppVersion } from "./hooks/useAppVersion";
 export { usePersistState } from "./hooks/usePersistState";
 export {

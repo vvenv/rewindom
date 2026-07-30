@@ -1,4 +1,9 @@
-import { Children, isValidElement, type ReactElement } from "react";
+import {
+  Children,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 
 import { describe, expect, it } from "vitest";
 
@@ -13,7 +18,7 @@ import {
 /** 从路由树里取出声明的 path，用来和 SEO 路由表做交叉校验。 */
 function declaredPaths(): string[] {
   const tree = renderMarketingPublicRoutes() as ReactElement<{
-    children?: unknown;
+    children?: ReactNode;
   }>;
 
   return Children.toArray(tree.props.children)

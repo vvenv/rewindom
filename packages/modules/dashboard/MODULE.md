@@ -25,17 +25,24 @@ dashboard 不 import 任何业务组件。
 
 ## 落地页链路
 
-| 入口             | 位置                                                            | 行为                |
-| ---------------- | --------------------------------------------------------------- | ------------------- |
-| 登录             | `apps/client/src/shell/pages/login.tsx`                         | 租户用户 → `/app`   |
-| 注册（自动登录） | `apps/client/src/shell/pages/register.tsx`                      | → `/app`            |
-| 已登录访问登录页 | `shell/components/GuestOnlyRoute.tsx`                           | → `/app`            |
-| 平台代登录       | `modules/platform/client/components/TenantImpersonateSheet.tsx` | 整页跳 `/app`       |
-| 未匹配路由       | `shell/components/AppNotFoundRedirect.tsx`                      | → `AppHomeRedirect` |
+| 入口             | 位置                                                            | 行为                     |
+| ---------------- | --------------------------------------------------------------- | ------------------------ |
+| 登录             | `apps/client/src/shell/pages/login.tsx`                         | 租户用户 → `/app`        |
+| 注册（自动登录） | `apps/client/src/shell/pages/register.tsx`                      | → `/app`                 |
+| 已登录访问登录页 | `shell/components/GuestOnlyRoute.tsx`                           | → `/app`                 |
+| 平台代登录       | `modules/platform/client/components/TenantImpersonateSheet.tsx` | 整页跳 `/app`            |
+| 未匹配路由       | `shell/components/AppNotFoundRedirect.tsx`                      | → `AppHomeRedirect`      |
+| 权限不足         | `PermissionRoute` / `SuperUserRoute` / `PlatformAdminRoute`     | → `useDefaultHomePath()` |
 
 `/app` 是稳定入口，`AppHomeRedirect` 按 `HOME_PATH_CANDIDATES` 解析出真实首页 →
 默认落到 `/dashboard`。产品仓要换默认首页，只改 `home-path-candidates.ts`，
 不必动登录页与代登录逻辑。
+
+守卫拒绝访问时回**当前身份**的默认首页，由 `client-kit` 的 `useDefaultHomePath()`
+统一解析：平台管理员 → `PLATFORM_HOME_PATH`（`/platform`），租户用户 →
+`APP_HOME_ENTRY_PATH`（`/app` → `/dashboard`）。`PermissionRoute` 平台侧也在用
+（如 `/platform/admins`），所以它必须按身份区分，不能写死租户入口。
+`/dashboard` 无权限门控，因此不会出现「被弹回首页又被弹走」的循环。
 
 ## 贡献一张卡片（扩展点）
 

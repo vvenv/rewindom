@@ -1,9 +1,8 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { type JsonValue } from "@be-water/shared";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 
-import { ErrorService } from "./error.service.js";
+import { ErrorService, type ErrorLogRow } from "./error.service.js";
 
 // Mock prisma
 vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
@@ -295,24 +294,7 @@ describe("ErrorService", () => {
 
   describe("getErrorLogs", () => {
     it("should get error logs with default parameters", async () => {
-      const mockLogs: Array<{
-        id: string;
-        level: string;
-        message: string;
-        stack_trace: string | null;
-        user_id: string | null;
-        username: string | null;
-        route: string | null;
-        method: string | null;
-        ip_address: string | null;
-        user_agent: string | null;
-        request_body: JsonValue | null;
-        request_params: JsonValue | null;
-        request_query: JsonValue | null;
-        error_code: string | null;
-        context: JsonValue | null;
-        created_at: Date;
-      }> = [];
+      const mockLogs: ErrorLogRow[] = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
 
       const result = await ErrorService.getErrorLogs();
@@ -346,24 +328,7 @@ describe("ErrorService", () => {
     });
 
     it("should get error logs with space-formatted dates", async () => {
-      const mockLogs: Array<{
-        id: string;
-        level: string;
-        message: string;
-        stack_trace: string | null;
-        user_id: string | null;
-        username: string | null;
-        route: string | null;
-        method: string | null;
-        ip_address: string | null;
-        user_agent: string | null;
-        request_body: JsonValue | null;
-        request_params: JsonValue | null;
-        request_query: JsonValue | null;
-        error_code: string | null;
-        context: JsonValue | null;
-        created_at: Date;
-      }> = [];
+      const mockLogs: ErrorLogRow[] = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
 
       await ErrorService.getErrorLogs({
@@ -410,24 +375,7 @@ describe("ErrorService", () => {
     });
 
     it("should get error logs with filters", async () => {
-      const mockLogs: Array<{
-        id: string;
-        level: string;
-        message: string;
-        stack_trace: string | null;
-        user_id: string | null;
-        username: string | null;
-        route: string | null;
-        method: string | null;
-        ip_address: string | null;
-        user_agent: string | null;
-        request_body: JsonValue | null;
-        request_params: JsonValue | null;
-        request_query: JsonValue | null;
-        error_code: string | null;
-        context: JsonValue | null;
-        created_at: Date;
-      }> = [];
+      const mockLogs: ErrorLogRow[] = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
 
       await ErrorService.getErrorLogs({
@@ -585,24 +533,7 @@ describe("ErrorService", () => {
 
   describe("getErrorLogsByLevel", () => {
     it("should get error logs by level", async () => {
-      const mockLogs: Array<{
-        id: string;
-        level: string;
-        message: string;
-        stack_trace: string | null;
-        user_id: string | null;
-        username: string | null;
-        route: string | null;
-        method: string | null;
-        ip_address: string | null;
-        user_agent: string | null;
-        request_body: JsonValue | null;
-        request_params: JsonValue | null;
-        request_query: JsonValue | null;
-        error_code: string | null;
-        context: JsonValue | null;
-        created_at: Date;
-      }> = [];
+      const mockLogs: ErrorLogRow[] = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
 
       await ErrorService.getErrorLogsByLevel("error", 50);
@@ -637,24 +568,7 @@ describe("ErrorService", () => {
 
   describe("getErrorLogsByUser", () => {
     it("should get error logs by user", async () => {
-      const mockLogs: Array<{
-        id: string;
-        level: string;
-        message: string;
-        stack_trace: string | null;
-        user_id: string | null;
-        username: string | null;
-        route: string | null;
-        method: string | null;
-        ip_address: string | null;
-        user_agent: string | null;
-        request_body: JsonValue | null;
-        request_params: JsonValue | null;
-        request_query: JsonValue | null;
-        error_code: string | null;
-        context: JsonValue | null;
-        created_at: Date;
-      }> = [];
+      const mockLogs: ErrorLogRow[] = [];
       vi.mocked(prisma.errorLog.findMany).mockResolvedValue(mockLogs);
 
       await ErrorService.getErrorLogsByUser("user-123", 50);

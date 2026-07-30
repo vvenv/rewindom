@@ -523,6 +523,9 @@ importers:
       '@fastify/jwt':
         specifier: ^10.2.1
         version: 10.2.1
+      '@fastify/multipart':
+        specifier: ^10.1.0
+        version: 10.1.0
       '@testing-library/jest-dom':
         specifier: ^7.0.0
         version: 7.0.0(@testing-library/dom@10.4.1)

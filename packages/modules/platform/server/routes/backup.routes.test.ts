@@ -154,10 +154,9 @@ describe("platform-backup routes", () => {
   });
 
   it("POST /backup/jobs/:job_id/download-token 任务不存在返回 404", async () => {
-    const { getDatabaseBackupJobForUser, getDataBackupJobForUser } =
+    const { getDatabaseBackupJobForUser } =
       await import("../background-jobs/job-exports.js");
     vi.mocked(getDatabaseBackupJobForUser).mockResolvedValueOnce(null);
-    vi.mocked(getDataBackupJobForUser).mockResolvedValueOnce(null);
 
     const app = await buildApp();
     const response = await app.inject({

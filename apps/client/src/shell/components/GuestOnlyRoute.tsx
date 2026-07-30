@@ -1,20 +1,12 @@
-import { useAuth } from "@be-water/client-kit";
-import { isPlatformAdminActor } from "@be-water/shared";
+import { useAuth, useDefaultHomePath } from "@be-water/client-kit";
 import { Navigate, Outlet } from "react-router";
 
-
 export function GuestOnlyRoute() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const homePath = useDefaultHomePath();
 
   if (isAuthenticated) {
-    return (
-      <Navigate
-        to={
-          user && isPlatformAdminActor(user.actor_type) ? "/platform" : "/app"
-        }
-        replace
-      />
-    );
+    return <Navigate to={homePath} replace />;
   }
 
   return <Outlet />;

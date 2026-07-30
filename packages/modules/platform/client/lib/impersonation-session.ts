@@ -1,4 +1,4 @@
-import { setStoredAuthTokens } from "@be-water/client-kit";
+import { setStoredAuthTokens, PLATFORM_HOME_PATH } from "@be-water/client-kit";
 
 import {
   clearImpersonationBackup,
@@ -16,7 +16,7 @@ export function exitImpersonation(): void {
   if (!backup) return;
   setStoredAuthTokens(backup);
   clearImpersonationBackup();
-  window.location.href = "/platform";
+  window.location.href = PLATFORM_HOME_PATH;
 }
 
 /** Revoke current session and discard any saved platform backup. */

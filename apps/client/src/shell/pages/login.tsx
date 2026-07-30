@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import { useAuth,
   usePublicConfig,
+  APP_HOME_ENTRY_PATH,
+  PLATFORM_HOME_PATH,
 } from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
 import { toast } from "@be-water/ui/toast";
@@ -48,9 +50,13 @@ export function Login() {
       const user = await login(
         buildLoginCredentials({ username, password }, captchaData),
       );
-      // 租户用户进 `/app`（稳定入口），由 `HOME_PATH_CANDIDATES` 解析出默认首页；
-      // 直接写死 `/` 会把人送到官网落地页，而不是控制台。
-      navigate(isPlatformAdminActor(user.actor_type) ? "/platform" : "/app");
+      // 登录返回的 user 还没进 AuthContext，这里用常量而不是 `useDefaultHomePath`。
+      // 租户用户进 `/app`（稳定入口），由 `HOME_PATH_CANDIDATES` 解析出默认首页。
+      navigate(
+        isPlatformAdminActor(user.actor_type)
+          ? PLATFORM_HOME_PATH
+          : APP_HOME_ENTRY_PATH,
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "登录失败，请重试");
     } finally {

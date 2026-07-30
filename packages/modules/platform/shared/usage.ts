@@ -13,12 +13,12 @@ export interface UsageStats {
     name: string;
     price_monthly: number | null;
   };
+  /**
+   * 内置维度只有 `max_users`（`User` 是内核 model）。业务维度由模块经
+   * `registerTenantMetricCounter` 登记，需要暴露时在此按需扩展。
+   */
   limits: {
-    max_documents: UsageItem;
-    max_products: UsageItem;
-    max_analyses_per_month: UsageItem;
     max_users: UsageItem;
-    analyses_per_day: UsageItem;
   };
   features: TenantFeatureFlags;
   can_upgrade_to: PlanSlug[];

@@ -45,6 +45,32 @@ interface ErrorLogFilters {
   sort_dir?: "asc" | "desc";
 }
 
+/**
+ * `getErrorLogs` 的 select 投影行。
+ *
+ * 具名导出而非就地内联：测试要构造同形状的 mock，各抄一份必然漂移
+ * （`tenant_slug` 加进来时就漏了五处）。
+ */
+export interface ErrorLogRow {
+  id: string;
+  level: string;
+  message: string;
+  stack_trace: string | null;
+  user_id: string | null;
+  username: string | null;
+  tenant_slug: string | null;
+  route: string | null;
+  method: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  request_body: JsonValue | null;
+  request_params: JsonValue | null;
+  request_query: JsonValue | null;
+  error_code: string | null;
+  context: JsonValue | null;
+  created_at: Date;
+}
+
 const ERROR_LOG_SORTABLE_FIELDS = new Set([
   "created_at",
   "level",
@@ -300,27 +326,7 @@ export class ErrorService {
       skip?: number;
       take?: number;
     } = {},
-  ): Promise<
-    Array<{
-      id: string;
-      level: string;
-      message: string;
-      stack_trace: string | null;
-      user_id: string | null;
-      username: string | null;
-      tenant_slug: string | null;
-      route: string | null;
-      method: string | null;
-      ip_address: string | null;
-      user_agent: string | null;
-      request_body: JsonValue | null;
-      request_params: JsonValue | null;
-      request_query: JsonValue | null;
-      error_code: string | null;
-      context: JsonValue | null;
-      created_at: Date;
-    }>
-  > {
+  ): Promise<ErrorLogRow[]> {
     const {
       skip = 0,
       take = 20,

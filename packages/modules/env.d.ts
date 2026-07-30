@@ -9,4 +9,11 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+  /**
+   * 只覆盖本包用到的 eager + `?raw` 形态；值统一为 `unknown`，调用处按需断言。
+   */
+  glob(
+    pattern: string | string[],
+    options?: { query?: string; import?: string; eager?: boolean },
+  ): Record<string, unknown>;
 }

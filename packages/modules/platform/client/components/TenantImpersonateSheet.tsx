@@ -4,7 +4,8 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import { ApiError, pauseTokenRefresh,
   getStoredAccessToken,
   getStoredRefreshToken,
-  setStoredAuthTokens } from "@be-water/client-kit";
+  setStoredAuthTokens,
+  APP_HOME_ENTRY_PATH } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import {
   Field,
@@ -111,7 +112,7 @@ export function TenantImpersonateSheet({
       setStoredAuthTokens(result.tokens);
       setOpen(false);
       // 整页重载以丢弃平台会话的所有缓存；`/app` 会解析到租户默认首页（`/dashboard`）
-      window.location.replace("/app");
+      window.location.replace(APP_HOME_ENTRY_PATH);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "代登录失败");
     } finally {

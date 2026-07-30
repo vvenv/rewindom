@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { api, useAuth,
   usePublicConfig,
+  APP_HOME_ENTRY_PATH,
 } from "@be-water/client-kit";
 import { toast } from "@be-water/ui/toast";
 import { useNavigate } from "react-router";
@@ -80,7 +81,7 @@ export function Register() {
       });
 
       // 注册即自动登录，与登录页同一落地逻辑：`/app` → 默认首页
-      navigate("/app");
+      navigate(APP_HOME_ENTRY_PATH);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "注册失败，请重试");
     } finally {
