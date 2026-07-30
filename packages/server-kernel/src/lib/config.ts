@@ -3,12 +3,12 @@
  * 集中读取环境变量，提供类型安全的默认值
  */
 import path from "path";
-import { fileURLToPath } from "url";
 
 import { config as dotenvConfig } from "dotenv";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const monorepoRoot = path.resolve(__dirname, "../../../..");
+import { findMonorepoRoot } from "./monorepo-root.js";
+
+const monorepoRoot = findMonorepoRoot();
 dotenvConfig({ path: path.resolve(monorepoRoot, ".env") });
 const devEnvFile = process.env.APP_ENV_FILE ?? ".env.local";
 dotenvConfig({

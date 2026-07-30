@@ -1,11 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const monorepoRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../../..",
-);
+import { findMonorepoRoot } from "./monorepo-root.js";
+
+const monorepoRoot = findMonorepoRoot();
 
 let cachedVersion: string | undefined;
 

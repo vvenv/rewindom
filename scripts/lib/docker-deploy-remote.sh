@@ -267,8 +267,12 @@ docker_deploy() {
     rm -rf "$staging"
 
     log_info "在服务器构建并启动 Docker 栈（可能需数分钟）..."
+    # tar 解压不会删除目标机上已移除的文件（如 squash 掉的旧 migration），
+    # 先清掉会被覆盖的源码树，避免 Docker COPY 打进陈旧 migration 导致 deploy 失败。
     _run_ssh "set -euo pipefail
 cd '${remote_dir}'
+rm -rf apps packages docker
+rm -f docker-compose.prod.yml .dockerignore package.json pnpm-lock.yaml pnpm-workspace.yaml
 tar -xzf be-water-docker-src.tar.gz
 rm -f be-water-docker-src.tar.gz
 "
