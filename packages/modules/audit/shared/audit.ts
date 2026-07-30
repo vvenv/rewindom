@@ -109,6 +109,9 @@ export const AuditAction = {
   TODO_DELETE: "TODO_DELETE",
   TODO_CLEAR_COMPLETED: "TODO_CLEAR_COMPLETED",
   TODO_TOGGLE_ALL: "TODO_TOGGLE_ALL",
+  BILLING_CHECKOUT_CREATE: "BILLING_CHECKOUT_CREATE",
+  BILLING_SUBSCRIPTION_CANCEL: "BILLING_SUBSCRIPTION_CANCEL",
+  BILLING_WEBHOOK_SYNC: "BILLING_WEBHOOK_SYNC",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -213,6 +216,9 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.TODO_DELETE]: "删除待办",
   [AuditAction.TODO_CLEAR_COMPLETED]: "清除已完成待办",
   [AuditAction.TODO_TOGGLE_ALL]: "批量切换待办完成态",
+  [AuditAction.BILLING_CHECKOUT_CREATE]: "创建付款结账",
+  [AuditAction.BILLING_SUBSCRIPTION_CANCEL]: "取消订阅",
+  [AuditAction.BILLING_WEBHOOK_SYNC]: "同步付款 webhook",
 };
 
 export function getAuditActionLabel(action: AuditActionType): string {
@@ -278,6 +284,14 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.TODO_DELETE,
       AuditAction.TODO_CLEAR_COMPLETED,
       AuditAction.TODO_TOGGLE_ALL,
+    ],
+  },
+  {
+    label: "订阅与付款",
+    actions: [
+      AuditAction.BILLING_CHECKOUT_CREATE,
+      AuditAction.BILLING_SUBSCRIPTION_CANCEL,
+      AuditAction.BILLING_WEBHOOK_SYNC,
     ],
   },
 ] as const;

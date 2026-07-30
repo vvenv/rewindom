@@ -1,5 +1,6 @@
 import { auditClientModule } from "@be-water/modules/audit/client/module.js";
 import { backgroundJobClientModule } from "@be-water/modules/background-job/client/module.js";
+import { billingClientModule } from "@be-water/modules/billing/client/module.js";
 import { dashboardClientModule } from "@be-water/modules/dashboard/client/module.js";
 import { errorLogClientModule } from "@be-water/modules/error-log/client/module.js";
 import { marketingClientModule } from "@be-water/modules/marketing/client/module.js";
@@ -34,4 +35,5 @@ export const ENABLED_CLIENT_MODULES = [
   notesClientModule,
   notificationClientModule,
   todosClientModule,
+  billingClientModule,
 ] as const satisfies readonly ClientAppModule[];

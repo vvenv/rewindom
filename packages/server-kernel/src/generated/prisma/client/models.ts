@@ -10,6 +10,8 @@
  */
 export type * from './models/AuditLog.js'
 export type * from './models/BackgroundJob.js'
+export type * from './models/Subscription.js'
+export type * from './models/Payment.js'
 export type * from './models/ErrorLog.js'
 export type * from './models/RefreshToken.js'
 export type * from './models/Tenant.js'

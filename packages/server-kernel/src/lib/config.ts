@@ -257,6 +257,54 @@ function buildOpenAiConfig() {
   };
 }
 
+function parseCreemProductMap(raw: string | undefined): Record<string, string> {
+  if (!raw?.trim()) {
+    return {};
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
+      throw new Error("CREEM_PRODUCT_MAP 必须是 JSON 对象");
+    }
+    const out: Record<string, string> = {};
+    for (const [key, value] of Object.entries(parsed)) {
+      if (typeof value === "string" && value.trim()) {
+        out[key] = value.trim();
+      }
+    }
+    return out;
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("CREEM_PRODUCT_MAP")) {
+      throw err;
+    }
+    throw new Error("CREEM_PRODUCT_MAP 不是合法 JSON", { cause: err });
+  }
+}
+
+function resolveCreemServer(): "test" | "prod" {
+  const value = optionalStrEnv("CREEM_SERVER")?.toLowerCase();
+  if (value === "test" || value === "prod") {
+    return value;
+  }
+  return isProduction ? "prod" : "test";
+}
+
+function buildBillingConfig() {
+  return {
+    creem: {
+      apiKey: strEnv("CREEM_API_KEY", ""),
+      webhookSecret: strEnv("CREEM_WEBHOOK_SECRET", ""),
+      storeId: strEnv("CREEM_STORE_ID", "sto_1xa3pu52PWClO5EruTHs86"),
+      server: resolveCreemServer(),
+      productMap: parseCreemProductMap(optionalStrEnv("CREEM_PRODUCT_MAP")),
+    },
+  };
+}
+
 function resolveTenantGuardMode(): "off" | "audit" | "enforce" {
   const value = strEnv("TENANT_GUARD_MODE", "enforce").toLowerCase();
   if (value === "off" || value === "audit" || value === "enforce") {
@@ -278,6 +326,7 @@ export const config = {
   observability: buildObservabilityConfig(),
   infra: buildInfraConfig(),
   openai: buildOpenAiConfig(),
+  billing: buildBillingConfig(),
   tenant: {
     secretEncryptionKey: resolveTenantSecretEncryptionKey(),
     // 租户守卫：enforce 强制注入租户谓词；audit 只上报不改写（灰度用）；off 关闭。

@@ -10,5 +10,7 @@
   "auditLog": "tenant_slug",
   "errorLog": "tenant_slug",
   "slowQueryLog": "tenant_slug",
-  "todo": "tenant_id"
+  "todo": "tenant_id",
+  "subscription": "tenant_id",
+  "payment": "tenant_id"
 }

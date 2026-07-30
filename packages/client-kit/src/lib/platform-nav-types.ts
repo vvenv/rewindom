@@ -97,6 +97,7 @@ export function getPlatformPageTitle(
     "/platform/error-logs": "错误日志",
     "/platform/slow-query-logs": "慢查询",
     "/platform/settings": "平台设置",
+    "/platform/billing": "订阅与付款",
   };
 
   for (const entry of entries) {

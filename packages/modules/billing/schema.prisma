@@ -1,0 +1,45 @@
+// packages/modules/billing/schema.prisma
+// 由 apps/server/prisma/models/billing.prisma 符号链接汇入
+// --- module: billing ---
+// 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard 注入 tenant_id。
+
+model Subscription {
+  id                       String    @id @default(uuid())
+  tenant_id                String
+  plan_slug                String
+  status                   String
+  provider                 String    @default("creem")
+  provider_subscription_id String
+  provider_customer_id     String?
+  current_period_start     DateTime?
+  current_period_end       DateTime?
+  cancel_at_period_end     Boolean   @default(false)
+  metadata                 Json?
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
+
+  @@unique([provider, provider_subscription_id])
+  @@index([tenant_id])
+  @@index([tenant_id, status])
+}
+
+model Payment {
+  id                String    @id @default(uuid())
+  tenant_id         String
+  subscription_id   String?
+  plan_slug         String?
+  provider          String    @default("creem")
+  provider_order_id String
+  amount_cents      Int
+  currency          String    @default("USD")
+  status            String
+  paid_at           DateTime?
+  description       String?
+  raw_event         Json?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  @@unique([provider, provider_order_id])
+  @@index([tenant_id, created_at])
+  @@index([tenant_id])
+}

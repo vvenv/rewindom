@@ -52,6 +52,16 @@ export type AuditLog = Prisma.AuditLogModel
  */
 export type BackgroundJob = Prisma.BackgroundJobModel
 /**
+ * Model Subscription
+ * 
+ */
+export type Subscription = Prisma.SubscriptionModel
+/**
+ * Model Payment
+ * 
+ */
+export type Payment = Prisma.PaymentModel
+/**
  * Model ErrorLog
  * 
  */

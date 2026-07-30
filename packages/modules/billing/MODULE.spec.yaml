@@ -1,0 +1,84 @@
+id: billing
+label: Billing
+description: 租户订阅与付款（Creem Payment Provider）
+kind: business
+placement: packages/modules/billing
+resource:
+  singular: subscription
+  plural: subscriptions
+surfaces: [tenant, platform]
+requires: [rbac, audit, platform]
+
+entitlement:
+  key: billing
+  label: 订阅与付款
+  description: 租户自助管理订阅与付款
+  disabled_hint: 该租户未开通订阅与付款模块
+  default_enabled: true
+
+permissions:
+  - {
+      key: billing.read,
+      label: 查看订阅与付款,
+      group: 订阅与付款,
+      description: 查看当前订阅、可售套餐与付款历史,
+    }
+  - {
+      key: billing.write,
+      label: 管理订阅与付款,
+      group: 订阅与付款,
+      description: 发起结账与取消订阅,
+    }
+
+models:
+  - name: Subscription
+    fields:
+      - { name: plan_slug, type: String, required: true }
+      - { name: status, type: String, required: true }
+      - { name: provider, type: String, required: true, default: "creem" }
+      - { name: provider_subscription_id, type: String, required: true }
+      - { name: provider_customer_id, type: String, required: false }
+      - { name: cancel_at_period_end, type: Boolean, required: true, default: false }
+    indexes:
+      - [tenant_id]
+      - [tenant_id, status]
+  - name: Payment
+    fields:
+      - { name: provider_order_id, type: String, required: true }
+      - { name: amount_cents, type: String, required: true }
+      - { name: currency, type: String, required: true, default: "USD" }
+      - { name: status, type: String, required: true }
+    indexes:
+      - [tenant_id]
+      - [tenant_id, created_at]
+
+api:
+  prefix: /api/billing
+  operations: [list, detail, create]
+  list:
+    search_fields: []
+    sort_whitelist: [created_at, updated_at, status, plan_slug, amount_cents, paid_at]
+    default_sort: { by: updated_at, dir: desc }
+
+client:
+  mount: renderRoutes
+  route_path: /billing
+  nav:
+    section: 设置
+    label: 订阅与付款
+    title: 订阅与付款
+    icon: CreditCard
+    keywords: billing subscription payment 订阅 付款 套餐
+  page:
+    layout: detail
+    form_fields: []
+
+audit:
+  actions:
+    - { action: BILLING_CHECKOUT_CREATE, label: 创建付款结账 }
+    - { action: BILLING_SUBSCRIPTION_CANCEL, label: 取消订阅 }
+    - { action: BILLING_WEBHOOK_SYNC, label: 同步付款 webhook }
+options:
+  soft_delete: false
+  page_size: 20
+  mobile_tab: false

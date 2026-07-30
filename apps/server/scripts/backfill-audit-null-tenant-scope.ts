@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * 将误标为 tenant scope 的无租户审计行回填为 platform。
  *
@@ -49,9 +50,7 @@ async function main(): Promise<void> {
     where,
     data: { scope: "platform" },
   });
-  console.log(
-    `[backfill-audit-null-tenant-scope] updated=${result.count}`,
-  );
+  console.log(`[backfill-audit-null-tenant-scope] updated=${result.count}`);
   await prisma.$disconnect();
 }
 

@@ -53,6 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   AuditLog: 'AuditLog',
   BackgroundJob: 'BackgroundJob',
+  Subscription: 'Subscription',
+  Payment: 'Payment',
   ErrorLog: 'ErrorLog',
   RefreshToken: 'RefreshToken',
   Tenant: 'Tenant',
@@ -121,6 +123,45 @@ export const BackgroundJobScalarFieldEnum = {
 } as const
 
 export type BackgroundJobScalarFieldEnum = (typeof BackgroundJobScalarFieldEnum)[keyof typeof BackgroundJobScalarFieldEnum]
+
+
+export const SubscriptionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  plan_slug: 'plan_slug',
+  status: 'status',
+  provider: 'provider',
+  provider_subscription_id: 'provider_subscription_id',
+  provider_customer_id: 'provider_customer_id',
+  current_period_start: 'current_period_start',
+  current_period_end: 'current_period_end',
+  cancel_at_period_end: 'cancel_at_period_end',
+  metadata: 'metadata',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
+
+
+export const PaymentScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  subscription_id: 'subscription_id',
+  plan_slug: 'plan_slug',
+  provider: 'provider',
+  provider_order_id: 'provider_order_id',
+  amount_cents: 'amount_cents',
+  currency: 'currency',
+  status: 'status',
+  paid_at: 'paid_at',
+  description: 'description',
+  raw_event: 'raw_event',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
 
 
 export const ErrorLogScalarFieldEnum = {

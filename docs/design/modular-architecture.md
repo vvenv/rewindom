@@ -18,7 +18,8 @@
 
 **架构定位（与「换框架」）**：HTTP / UI / ORM / 队列分别使用 Fastify、React、Prisma、BullMQ；自研部分仅为 **ModuleLoader、ProviderRegistry、EventBus、前后端 manifest 合并** 等薄组装层，体量与 NestJS `Module` 相当，但贴合本栈与多租户 SaaS。无现成框架能同时覆盖租户 entitlement 与双壳（租户/平台）；**不建议为模块化而迁移全栈框架**。
 
-**不在本文范围**：具体业务域 API 设计（见各 `docs/design/*.md`）、计费与自助注册 UI。
+**不在本文范围**：具体业务域 API 设计（见各 `docs/design/*.md`）、自助注册 UI。
+计费自助见 `billing` 模块（Creem）。
 
 **相关文档**：
 
