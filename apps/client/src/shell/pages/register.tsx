@@ -79,7 +79,8 @@ export function Register() {
         password: form.password,
       });
 
-      navigate("/");
+      // 注册即自动登录，与登录页同一落地逻辑：`/app` → 默认首页
+      navigate("/app");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "注册失败，请重试");
     } finally {

@@ -1,5 +1,6 @@
 import { TODO_ENTITLEMENT } from "../shared/index.js";
 
+import { TODO_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { TODO_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderTodosRoutes } from "./tenant/routes.js";
 
@@ -15,6 +16,7 @@ export const todosClientModule: ClientAppModule = {
   client: {
     renderRoutes: renderTodosRoutes,
     nav: TODO_NAV_SECTIONS,
+    dashboardWidgets: TODO_DASHBOARD_WIDGETS,
     // 底部 tab 只放高频业务入口；管理类页面走抽屉导航（见 MODULE.md）
     mobileTabPaths: ["/todos"],
   },

@@ -48,7 +48,9 @@ export function Login() {
       const user = await login(
         buildLoginCredentials({ username, password }, captchaData),
       );
-      navigate(isPlatformAdminActor(user.actor_type) ? "/platform" : "/");
+      // 租户用户进 `/app`（稳定入口），由 `HOME_PATH_CANDIDATES` 解析出默认首页；
+      // 直接写死 `/` 会把人送到官网落地页，而不是控制台。
+      navigate(isPlatformAdminActor(user.actor_type) ? "/platform" : "/app");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "登录失败，请重试");
     } finally {

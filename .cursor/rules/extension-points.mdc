@@ -79,6 +79,7 @@ pnpm --filter server validate:module-deps
 | 跨限界上下文写 | 领域事件（`EventBus`） | 直接改对方 Prisma model |
 | 跨模块 Prisma relation | 默认禁止；同一物理包 / 聚合内可例外并文档化 | 内核 model 挂业务反向 relation |
 | 前端跨模块 UI | `createComponentSlot` + `shell.shellProviders` | 壳层页面 import 业务组件 |
+| 首页概览卡片 | `client.dashboardWidgets`（`dashboard` 模块聚合） | `dashboard` 页面 import 业务组件 |
 
 事件名约定：`<resource>.<action>`，与审计 action 对齐。Handler 失败不阻塞发布方主事务。
 
@@ -106,6 +107,8 @@ pnpm --filter server validate:module-deps
 - 提供方：`client.shell.shellProviders` 挂载 `<slot.Provider component={...}>`
 - 消费方：视图内 `slot.useSlot()` 渲染，**不得** import 提供方业务组件
 - 新 slot 优先靠近消费方模块，避免 `client-shell` 堆积业务专用 slot 名
+- **工作台卡片**（`/dashboard`）不用 slot：多模块往同一网格追加，走 `client.dashboardWidgets`
+  注册表（`packages/modules/dashboard/MODULE.md`）；`dashboard` 同样不得 import 业务组件
 - `platform` **不得** import 具体业务实现；平台头部/租户卡片/widget 均通过 slot 组装
 
 `ClientShellContributions` 另含：`sidebarToolbar`、`sidebarPrimaryAction`、`navBadge`、`platformNavBadge`、`mobileHeaderRoutes` 等。

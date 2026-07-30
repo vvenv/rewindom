@@ -142,7 +142,7 @@ const [sorting, setSorting] = useState<SortingState>([]);
 
 1. 租户页 `PageLayout` 对齐
 2. 从旧仓保留 Logo / Wordmark / favicon（勿被 be-water 资产覆盖）
-3. `apps/client/src/home-path-candidates.ts` 配置落地页，候选带 `tenantModule`，跳过禁用模块
+3. `apps/client/src/home-path-candidates.ts` 配置落地页，带门控的候选带 `tenantModule` 以跳过禁用模块；末位保留无门控的 `/dashboard` 工作台兜底
 
 ## 反模式
 

@@ -21,7 +21,7 @@
 
 | 类型 | 模块 |
 | --- | --- |
-| 基础设施 | `user` 认证/JWT · `platform` 租户/套餐/配额 · `rbac` PBAC（未启用则登录即可访问）· `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 |
+| 基础设施 | `user` 认证/JWT · `platform` 租户/套餐/配额 · `rbac` PBAC（未启用则登录即可访问）· `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 · `marketing` 官网（介绍/文档/定价，构建期预渲染） |
 | 示例 | `notes` 金标准 CRUD · `todos` 由 `gen:module` 生成并手工定制的列表示例 |
 
 **不是**：脚手架生成器、微服务框架、低代码平台。
@@ -39,7 +39,7 @@ pnpm setup    # 幂等：.env.local + Postgres/Redis + migration
 pnpm dev
 ```
 
-- 前端 `http://localhost:7300`（Vite HMR）
+- 前端 `http://localhost:7300`（Vite HMR）——`/` 是官网，应用入口 `/app`
 - API `http://localhost:3700`（`/api` 由 Vite 代理）
 
 `pnpm setup` 可重复执行；仅起库：`pnpm db:up`。
@@ -55,6 +55,8 @@ pnpm dev
 3. **模块可按租户开关** — 未开通不挂路由、不进侧栏
 
 边界由 `pnpm check:deps` 强制（包层环 + manifest/schema FK + 文件级环）。新模块：`pnpm gen:module <spec.yaml>` 或复制 `packages/modules/notes/`。详见 [modular-architecture.md](docs/design/modular-architecture.md)。
+
+前端有四类路由挂载点：`renderPublicRoutes`（无守卫，官网/文档）、`renderGuestRoutes`（登录注册，已登录会被弹走）、`renderTenantRoutes`（租户应用）、`renderPlatformRoutes`（平台控制台）。公开路由要能在**没有任何 Provider** 的环境下渲染——构建期预渲染就跑在那种环境里。
 
 ---
 

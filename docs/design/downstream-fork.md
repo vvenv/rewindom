@@ -67,14 +67,16 @@ Logo 与 `favicon.svg` 须保持同一几何；改一处必须同步另一处。
 // apps/client/src/home-path-candidates.ts
 export const HOME_PATH_CANDIDATES: readonly HomePathCandidate[] = [
   { path: "/estimate", tenantModule: "estimation", permission: "estimation.read" },
+  { path: "/dashboard" }, // 工作台：无门控，永远命中，作为兜底
   // 仅当产品仍启用 notes 时保留
 ];
 ```
 
 规则：
 
-1. **顺序即优先级**——业务首页在前
-2. 每项必须带 `tenantModule`（= manifest `tenantEntitlements[].key`）
+1. **顺序即优先级**——业务首页在前，无门控的 `/dashboard` 放最后当兜底
+   （be-water 默认就是 `/dashboard` 单项：所有用户登录后落在工作台）
+2. 每个**带门控**的候选必须带 `tenantModule`（= manifest `tenantEntitlements[].key`）
 3. `resolveAppHomePath` 会跳过 `entitlements.modules[id] === false` 的候选
 4. 全部不可用时回退 `DEFAULT_HOME_PATH`（`/settings`）
 5. 缺 `tenantModule` 时**无法**按 entitlement 跳过——升级时这是常见回归
@@ -88,6 +90,6 @@ export const HOME_PATH_CANDIDATES: readonly HomePathCandidate[] = [
 - [ ] 所有租户页已套 `PageLayout`；平台页未套
 - [ ] 旧版 Logo / Wordmark / favicon / manifest / `index.html` 标题已保留
 - [ ] `APP_DISPLAY_NAME` / `APP_TAGLINE` 已改；`STORAGE_PREFIX` 与旧版一致（若有存量用户）
-- [ ] `HOME_PATH_CANDIDATES` 在 `apps/client/src/home-path-candidates.ts`，业务入口在前且带 `tenantModule`
+- [ ] `HOME_PATH_CANDIDATES` 在 `apps/client/src/home-path-candidates.ts`，业务入口在前且带 `tenantModule`（无门控的 `/dashboard` 兜底放最后）
 - [ ] 未启用的示例模块已从 `enabled-modules` 移除
 - [ ] 用「关闭某业务模块 entitlement」的租户登录，确认不会落到该模块路由

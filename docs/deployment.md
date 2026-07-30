@@ -85,6 +85,18 @@ pnpm deploy -- --env production
 
 服务器执行 `docker compose build`。Dockerfile 已按 sibling **shipest** 做分层缓存（先 install 依赖清单、BuildKit pnpm store、prod prune）：**依赖未变时二次构建会快很多**；勿在服务器随意 `docker system prune` 清掉层缓存。
 
+### 官网静态页（构建期生成）
+
+`pnpm build` 里含一步预渲染：官网路由（`/`、`/pricing`、`/docs/*`）会渲染成真实 HTML，
+连同 `sitemap.xml`、`robots.txt` 一起进 `apps/client/dist`，由 Nginx 直接返回。
+
+canonical / og:url / sitemap 里的域名**写死在构建产物里**，来自 build arg `SITE_URL`
+（compose 默认 `https://${APP_DOMAIN}`）。换域名必须重新构建，改运行时环境变量没用。
+
+Nginx 侧对应两点（`docker/nginx/default.conf`）：`try_files $uri $uri/index.html /app.html`
+命中预渲染出的目录索引；SPA 兜底文件是 `app.html`（带 `noindex`）而不是 `index.html`——
+后者已经是官网落地页，拿它兜底会让刷新应用页先闪一屏官网。
+
 ### 4. 仅同步环境变量
 
 ```bash

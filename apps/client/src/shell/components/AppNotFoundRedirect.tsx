@@ -1,8 +1,6 @@
-import { useAppHomePath } from "../hooks/useAppHomePath.js";
-import { Navigate } from "react-router";
+import { AppHomeRedirect } from "./AppHomeRedirect.js";
 
-
+/** 未匹配任何路由 → 回落地页。与 `/app` 入口共用同一套解析逻辑。 */
 export function AppNotFoundRedirect() {
-  const homePath = useAppHomePath();
-  return <Navigate to={homePath} replace />;
+  return <AppHomeRedirect />;
 }

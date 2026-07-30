@@ -43,6 +43,9 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: app
+      # 与 web 保持一致，否则两个 target 会各建一次 builder 层
+      args:
+        SITE_URL: ${SITE_URL:-https://${APP_DOMAIN}}
     container_name: be-water-app
     environment:
       NODE_ENV: production
@@ -81,6 +84,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: web
+      args:
+        SITE_URL: ${SITE_URL:-https://${APP_DOMAIN}}
     container_name: be-water-web
     ports:
       - "127.0.0.1:${APP_PORT:-3700}:80"

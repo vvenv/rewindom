@@ -22,12 +22,15 @@
 
 架构设计：`docs/design/modular-architecture.md`。Rule：`extension-points`（含跨模块通信决策表、Slot 与物理包策略摘要）。
 
-| 注册表            | 路径                                                            |
-| ----------------- | --------------------------------------------------------------- |
-| Server 启用模块   | `apps/server/src/enabled-modules.ts`（infra → shell → 业务域）  |
-| Client 启用模块   | `apps/client/src/enabled-modules.ts`                            |
-| 内核路由          | `packages/server-kernel/src/kernel/kernel-routes.ts`            |
-| App Shell（前端） | `packages/client-kit/` + `apps/client/src/app-shell-routes.tsx` |
+| 注册表            | 路径                                                                          |
+| ----------------- | ----------------------------------------------------------------------------- |
+| Server 启用模块   | `apps/server/src/enabled-modules.ts`（infra → shell → 业务域）                |
+| Client 启用模块   | `apps/client/src/enabled-modules.ts`                                          |
+| 官网 SEO 路由表   | `packages/modules/marketing/client/lib/seo-routes.ts`（新增官网页面必须同步） |
+| 工作台卡片        | 各模块 `client.dashboardWidgets` → `packages/modules/dashboard` 聚合渲染      |
+| 登录落地页        | `apps/client/src/home-path-candidates.ts`（默认 `/dashboard`；入口统一走 `/app`） |
+| 内核路由          | `packages/server-kernel/src/kernel/kernel-routes.ts`                          |
+| App Shell（前端） | `packages/client-kit/` + `apps/client/src/app-shell-routes.tsx`               |
 
 新功能：创建 `packages/modules/<name>/` + `MODULE.md`，在 `enabled-modules.ts` 注册。Skill：`create-module`。
 
@@ -70,6 +73,7 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 | 租户配置 / 用户   | `design/tenant-config.md`、`design/user-system.md` | —                                 |
 | 租户功能开关/配额 | `design/tenant-features.md`                        | —                                 |
 | 前端 Page 分层    | —                                                  | `frontend-page-structure`         |
+| 官网 / SEO        | `packages/modules/marketing/MODULE.md`             | —                                 |
 | 产品仓升级检查    | `design/downstream-fork.md`                        | `frontend-page-structure`         |
 | 单元测试          | `design/unit-testing.md`                           | —                                 |
 | 部署 / FAQ        | `deployment.md`、`faq.md`                          | —                                 |

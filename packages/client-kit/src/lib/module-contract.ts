@@ -6,6 +6,28 @@ import type { AppNavSection } from "./app-nav-types.js";
 import type { PlatformNavContribution } from "./platform-nav-types.js";
 
 
+/**
+ * 工作台（`/dashboard`）卡片：由**拥有数据的模块自己声明**，`dashboard` 模块只提供
+ * 栅格、可见性过滤与错误隔离，不 import 任何业务组件。
+ *
+ * `component` 用 `lazy()` 包一层——工作台是登录落地页，卡片按需加载才不会把各业务
+ * 模块的代码全塞进首屏 chunk。
+ */
+export interface DashboardWidget {
+  /** 全局唯一，约定 `<moduleId>.<name>`；用作 React key 与重复声明的去重依据。 */
+  id: string;
+  component: ComponentType;
+  /** 桌面端栅格跨度：`1` 占一列，`2` 横跨两列。默认 `1`。 */
+  span?: 1 | 2;
+  /** 升序；默认 100。相同 order 按 `ENABLED_CLIENT_MODULES` 的注册顺序。 */
+  order?: number;
+  /** 租户未开通该模块时不渲染（与导航项同义）。 */
+  tenantModule?: string;
+  tenantFeature?: TenantFeatureKey;
+  /** 命中任一权限才渲染（与导航项同义）。 */
+  anyPermission?: readonly Permission[];
+}
+
 export interface ClientRouteDefinition {
   path: string;
   element: LazyExoticComponent<ComponentType>;
@@ -66,12 +88,24 @@ export interface ClientShellContributions {
 export interface ClientAppModule extends ModuleManifestBase {
   client?: {
     routes?: ClientRouteDefinition[];
+    /**
+     * 完全公开的路由：无任何守卫，登录与未登录都按原样渲染。
+     *
+     * 与 `renderGuestRoutes` 的区别是后者套 `GuestOnlyRoute`——已登录会被重定向走，
+     * 那是登录/注册页的语义。官网、文档、定价这类页面必须对两种身份都可见，
+     * 且**必须能在没有任何 App Provider 的环境下渲染**（构建期预渲染就是这么跑的）：
+     * 不要用 `useAuth`（无 Provider 会抛）、`api` 或其他依赖运行时上下文的东西，
+     * 需要登录态请用 `useOptionalAuth`。
+     */
+    renderPublicRoutes?: () => ReactNode;
     renderGuestRoutes?: () => ReactNode;
     renderTenantRoutes?: () => ReactNode;
     renderRoutes?: () => ReactNode;
     renderSuperUserRoutes?: () => ReactNode;
     renderPlatformRoutes?: () => ReactNode;
     nav?: AppNavSection[];
+    /** 本模块贡献给 `/dashboard` 工作台的卡片。 */
+    dashboardWidgets?: readonly DashboardWidget[];
     platformNav?: readonly PlatformNavContribution[];
     mobileTabPaths?: readonly string[];
     shell?: ClientShellContributions;

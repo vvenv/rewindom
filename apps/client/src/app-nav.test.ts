@@ -133,7 +133,11 @@ describe("filterAppNavSections — 权限与 entitlement 叠加", () => {
 describe("getMobileTabItems", () => {
   it("只列出真的声明了 mobileTabPaths 的模块入口", () => {
     const items = getMobileTabItems();
-    expect(items.map((item) => item.path)).toEqual(["/notes", "/todos"]);
+    expect(items.map((item) => item.path)).toEqual([
+      "/dashboard",
+      "/notes",
+      "/todos",
+    ]);
   });
 
   it("tab 项携带图标与徽标键，标签优先用 mobileLabel", () => {

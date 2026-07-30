@@ -1,17 +1,21 @@
 import type { ReactNode } from "react";
 
-
-import { type ClientAppModule, type AppNavSection  } from "@be-water/client-kit";
+import {
+  type ClientAppModule,
+  type AppNavSection,
+  type DashboardWidget,
+} from "@be-water/client-kit";
 
 import { renderModuleDeclarativeRoutes } from "./declarative-routes";
 
-
 type ClientRouteMountKey =
+  | "renderPublicRoutes"
   | "renderGuestRoutes"
   | "renderSuperUserRoutes"
   | "renderPlatformRoutes";
 
 export interface AppRouteTrees {
+  publicRoutes: ReactNode;
   guestRoutes: ReactNode;
   tenantRoutes: ReactNode;
   superUserRoutes: ReactNode;
@@ -23,7 +27,10 @@ export function collectModuleNav(
 ): AppNavSection[] {
   const sectionOrder: string[] = [];
   const sectionItems = new Map<string, AppNavSection["items"]>();
-  const sectionPlacements = new Map<string, NonNullable<AppNavSection["placement"]>>();
+  const sectionPlacements = new Map<
+    string,
+    NonNullable<AppNavSection["placement"]>
+  >();
 
   for (const module of modules) {
     if (!module.client?.nav) {
@@ -62,6 +69,24 @@ export function collectMobileTabPaths(
     }
   }
   return paths;
+}
+
+/**
+ * 汇总各模块贡献的工作台卡片。同 id 只保留**先注册**的那个：模块顺序即优先级，
+ * 与 `collectModuleNav` 一致；重复 id 多半是复制粘贴，静默叠加会渲染出两张一样的卡片。
+ */
+export function collectDashboardWidgets(
+  modules: readonly ClientAppModule[],
+): readonly DashboardWidget[] {
+  const byId = new Map<string, DashboardWidget>();
+  for (const module of modules) {
+    for (const widget of module.client?.dashboardWidgets ?? []) {
+      if (!byId.has(widget.id)) {
+        byId.set(widget.id, widget);
+      }
+    }
+  }
+  return [...byId.values()];
 }
 
 function collectMountedRoutes(
@@ -106,6 +131,7 @@ export function collectAppRouteTrees(
   modules: readonly ClientAppModule[],
 ): AppRouteTrees {
   return {
+    publicRoutes: collectMountedRoutes(modules, "renderPublicRoutes"),
     guestRoutes: collectMountedRoutes(modules, "renderGuestRoutes"),
     tenantRoutes: collectTenantRoutes(modules),
     superUserRoutes: collectMountedRoutes(modules, "renderSuperUserRoutes"),

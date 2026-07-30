@@ -158,7 +158,7 @@ export function Roles() {
 
 ### 默认模块 / 路由（忽略禁用模块）
 
-- [ ] `apps/client/src/home-path-candidates.ts`：业务首页在前，每项带 `tenantModule`
+- [ ] `apps/client/src/home-path-candidates.ts`：业务首页在前，带门控的每项带 `tenantModule`（默认末位是无门控的 `/dashboard` 工作台兜底）
 - [ ] 未启用的 `notes` / `todos` 已从 client/server `enabled-modules` 移除
 - [ ] 导航项带 `tenantModule`（与 entitlement key 一致）；关闭模块后登录不会落到该路由
 

@@ -3,7 +3,11 @@ import { lazy } from "react";
 import { LayoutDashboard } from "lucide-react";
 import { describe, expect, it } from "vitest";
 
-import { collectAppRouteTrees, collectModuleNav } from "./collect-modules";
+import {
+  collectAppRouteTrees,
+  collectDashboardWidgets,
+  collectModuleNav,
+} from "./collect-modules";
 
 import type { ClientAppModule } from "@be-water/client-kit";
 
@@ -138,6 +142,50 @@ describe("collect-modules", () => {
     expect(nav.find((s) => s.label === "示例")?.placement).toBeUndefined();
   });
 
+  it("collects dashboard widgets in module order and drops duplicate ids", () => {
+    const Widget = () => null;
+    const modules: ClientAppModule[] = [
+      {
+        id: "notes",
+        version: "1.0.0",
+        label: "Notes",
+        kind: "business",
+        client: {
+          dashboardWidgets: [
+            { id: "notes.recent", component: Widget, order: 20 },
+          ],
+        },
+      },
+      {
+        id: "todos",
+        version: "1.0.0",
+        label: "Todos",
+        kind: "business",
+        client: {
+          dashboardWidgets: [
+            { id: "todos.pending", component: Widget },
+            // 复制粘贴出来的重复 id：只保留先注册的那个
+            { id: "notes.recent", component: Widget, order: 99 },
+          ],
+        },
+      },
+      {
+        id: "rbac",
+        version: "1.0.0",
+        label: "RBAC",
+        kind: "infrastructure",
+        client: {},
+      },
+    ];
+
+    const widgets = collectDashboardWidgets(modules);
+    expect(widgets.map((widget) => widget.id)).toEqual([
+      "notes.recent",
+      "todos.pending",
+    ]);
+    expect(widgets[0]!.order).toBe(20);
+  });
+
   it("collects route trees by mount point", () => {
     const modules: ClientAppModule[] = [
       {
@@ -147,6 +195,15 @@ describe("collect-modules", () => {
         kind: "infrastructure",
         client: {
           renderGuestRoutes: () => "guest",
+        },
+      },
+      {
+        id: "marketing",
+        version: "1",
+        label: "Marketing",
+        kind: "infrastructure",
+        client: {
+          renderPublicRoutes: () => "public",
         },
       },
       {
@@ -179,6 +236,7 @@ describe("collect-modules", () => {
     ];
 
     expect(collectAppRouteTrees(modules)).toEqual({
+      publicRoutes: ["public"],
       guestRoutes: ["guest"],
       tenantRoutes: ["tenant"],
       superUserRoutes: ["superuser"],

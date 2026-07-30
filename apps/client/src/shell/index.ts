@@ -4,6 +4,7 @@ export { useAppHomePath } from "./hooks/useAppHomePath.js";
 
 export { AppLayout } from "./components/AppLayout.js";
 export { AppMobileHeader } from "./components/AppMobileHeader.js";
+export { AppHomeRedirect } from "./components/AppHomeRedirect.js";
 export { AppNotFoundRedirect } from "./components/AppNotFoundRedirect.js";
 export { GuestOnlyRoute } from "./components/GuestOnlyRoute.js";
 export { PlatformAdminRoute } from "./components/PlatformAdminRoute.js";

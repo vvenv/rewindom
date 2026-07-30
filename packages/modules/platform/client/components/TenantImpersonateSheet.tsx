@@ -110,7 +110,8 @@ export function TenantImpersonateSheet({
       saveImpersonationBackup({ accessToken, refreshToken }, meta);
       setStoredAuthTokens(result.tokens);
       setOpen(false);
-      window.location.replace("/");
+      // 整页重载以丢弃平台会话的所有缓存；`/app` 会解析到租户默认首页（`/dashboard`）
+      window.location.replace("/app");
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "代登录失败");
     } finally {

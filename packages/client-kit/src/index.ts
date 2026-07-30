@@ -69,6 +69,7 @@ export { Pagination } from "./components/Pagination";
 
 export { useClipboard } from "./hooks/useClipboard";
 export { useAuth } from "./hooks/useAuth";
+export { useOptionalAuth } from "./hooks/useOptionalAuth";
 export { useConfirm } from "./hooks/useConfirm";
 export {
   usePermissions,
@@ -145,6 +146,10 @@ export {
 } from "./lib/text-attachment-upload";
 export { optionsFromLabels } from "./lib/filter-chip-options";
 export * from "./lib/app-nav-quick-links";
+export {
+  registerDashboardWidgetsProvider,
+  getDashboardWidgets,
+} from "./lib/dashboard-widgets";
 export {
   configureClientTenantCatalog,
   getClientTenantCatalog,

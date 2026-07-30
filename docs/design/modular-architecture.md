@@ -693,6 +693,35 @@ shell: {
 
 **演进方向**：新 slot 在消费方模块 `client/shell/` 定义；`client-shell` 仅保留 `createComponentSlot` 机制。
 
+### 10.5.1 工作台卡片（`dashboardWidgets`）
+
+`/dashboard` 是租户登录后的默认首页（`dashboard` 模块）。它只提供栅格、可见性过滤与
+单卡片错误隔离，**不 import 任何业务组件**；卡片由拥有数据的模块自己声明：
+
+```typescript
+// <module>/client/module.tsx
+client: {
+  dashboardWidgets: [
+    {
+      id: "notes.recent",        // 约定 `<moduleId>.<name>`，重复 id 只保留先注册的
+      component: LazyWidget,     // 用 lazy()，落地页不该背业务代码
+      order: 20,                 // 升序，默认 100；相同值按模块注册顺序
+      span: 1,                   // 2 = 桌面端横跨两列
+      tenantModule: "notes",     // 与导航项同义：租户没开通就不渲染
+      anyPermission: ["notes.read"],
+    },
+  ],
+}
+```
+
+与 Component Slot 的区别：slot 是「一个位置一个组件」的替换，卡片是**多方向同一网格追加**，
+所以走注册表而非 Context。模块拿不到 `ENABLED_CLIENT_MODULES`，由组装层依赖倒置注入
+（`prepareAppRoutes` → `registerDashboardWidgetsProvider`，同 `configureClientTenantCatalog`）。
+
+可见性口径与导航项一致：权限 fail-closed（未加载先隐藏）、entitlement fail-open。
+`/dashboard` 本身不设开关也不设权限——它是落地页兜底，关掉就等于登录后无处可去。
+详见 `packages/modules/dashboard/MODULE.md`。
+
 ### 10.6 `ClientShellContributions`
 
 除路由与导航外，模块可通过 `client.shell` 贡献壳层 UI（`ClientShellContributions`）：

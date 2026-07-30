@@ -1,6 +1,8 @@
 import { auditClientModule } from "@be-water/modules/audit/client/module.js";
 import { backgroundJobClientModule } from "@be-water/modules/background-job/client/module.js";
+import { dashboardClientModule } from "@be-water/modules/dashboard/client/module.js";
 import { errorLogClientModule } from "@be-water/modules/error-log/client/module.js";
+import { marketingClientModule } from "@be-water/modules/marketing/client/module.js";
 import { notesClientModule } from "@be-water/modules/notes/client/module.js";
 import { notificationClientModule } from "@be-water/modules/notification/client/module.js";
 import { platformClientModule } from "@be-water/modules/platform/client/module.js";
@@ -19,6 +21,9 @@ import type { ClientAppModule } from "@be-water/client-kit";
  */
 export const ENABLED_CLIENT_MODULES = [
   appShellClientModule,
+  marketingClientModule,
+  // 工作台排在业务模块之前：侧栏「概览」分组要在最上面
+  dashboardClientModule,
   backgroundJobClientModule,
   platformClientModule,
   auditClientModule,

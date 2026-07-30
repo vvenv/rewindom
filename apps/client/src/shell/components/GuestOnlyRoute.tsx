@@ -9,7 +9,9 @@ export function GuestOnlyRoute() {
   if (isAuthenticated) {
     return (
       <Navigate
-        to={user && isPlatformAdminActor(user.actor_type) ? "/platform" : "/"}
+        to={
+          user && isPlatformAdminActor(user.actor_type) ? "/platform" : "/app"
+        }
         replace
       />
     );
