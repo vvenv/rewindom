@@ -41,7 +41,7 @@ const WHERE_OPERATIONS = new Set([
 const DATA_OPERATIONS = new Set(["create", "createMany"]);
 
 /** 认可的辅助函数：调用它即视为已做租户隔离。 */
-const SCOPE_HELPERS = ["withTenantScope", "buildTenantSlugWhere"];
+const SCOPE_HELPERS = ["withTenantScope"];
 
 function isPrismaReceiver(node) {
   if (node.type === "Identifier") {

@@ -350,7 +350,7 @@ describe("Error Log Routes", () => {
       vi.mocked(ErrorService.getErrorLogById).mockResolvedValueOnce({
         id: "log-1",
         user_id: "someone-else",
-        tenant_slug: null,
+        tenant_slug: DEFAULT_TENANT_SLUG,
       } as never);
 
       const response = await app.inject({
@@ -373,7 +373,7 @@ describe("Error Log Routes", () => {
       vi.mocked(ErrorService.getErrorLogById).mockResolvedValueOnce({
         id: "log-1",
         user_id: regularUser.id,
-        tenant_slug: null,
+        tenant_slug: DEFAULT_TENANT_SLUG,
       } as never);
 
       const response = await app.inject({
@@ -443,7 +443,7 @@ describe("Error Log Routes", () => {
       vi.mocked(ErrorService.getErrorLogById).mockResolvedValueOnce({
         id: "log-1",
         user_id: regularUser.id,
-        tenant_slug: null,
+        tenant_slug: DEFAULT_TENANT_SLUG,
       } as never);
 
       const response = await app.inject({
@@ -464,7 +464,7 @@ describe("Error Log Routes", () => {
       vi.mocked(ErrorService.getErrorLogById).mockResolvedValueOnce({
         id: "log-1",
         user_id: "someone-else",
-        tenant_slug: null,
+        tenant_slug: DEFAULT_TENANT_SLUG,
       } as never);
 
       const response = await app.inject({

@@ -55,7 +55,7 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   AuditLog: {
     kind: "service_enforced",
     reason:
-      "tenant_slug 可为 null（登录等尚无租户上下文的行），且 default 租户有专门的可见性规则",
+      "tenant_slug 可为 null（平台会话 / 尚无租户上下文的行）；过滤由 AuditService 按精确 slug 强制",
   },
   ErrorLog: {
     kind: "service_enforced",

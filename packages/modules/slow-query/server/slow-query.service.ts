@@ -4,7 +4,6 @@ import {
   getRequestContext,
   type RequestContext,
 } from "@be-water/server-kernel/lib/request-context.js";
-import { DEFAULT_TENANT_SLUG } from "@be-water/shared";
 
 import { fingerprintSql } from "./sql-fingerprint.js";
 
@@ -370,21 +369,10 @@ export const SlowQueryService = {
       where: {
         AND: [
           { created_at: { lt: threshold } },
-          ...(tenantSlug ? [buildTenantSlugWhere(tenantSlug)] : []),
+          ...(tenantSlug ? [{ tenant_slug: tenantSlug }] : []),
         ],
       },
     });
     return result.count;
   },
 };
-
-function buildTenantSlugWhere(
-  tenantSlug: string,
-): Record<string, unknown> {
-  if (tenantSlug === DEFAULT_TENANT_SLUG) {
-    return {
-      OR: [{ tenant_slug: tenantSlug }, { tenant_slug: null }],
-    };
-  }
-  return { tenant_slug: tenantSlug };
-}

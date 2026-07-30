@@ -491,18 +491,14 @@ describe("ErrorService", () => {
       });
     });
 
-    it("should include legacy null tenant_slug rows for default tenant", async () => {
+    it("should filter default tenant by exact slug only", async () => {
       vi.mocked(prisma.errorLog.count).mockResolvedValue(5);
 
       await ErrorService.getErrorLogsCount({ tenantSlug: "default" });
 
       expect(prisma.errorLog.count).toHaveBeenCalledWith({
         where: {
-          AND: [
-            {
-              OR: [{ tenant_slug: "default" }, { tenant_slug: null }],
-            },
-          ],
+          AND: [{ tenant_slug: "default" }],
         },
       });
     });

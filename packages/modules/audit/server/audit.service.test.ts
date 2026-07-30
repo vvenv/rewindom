@@ -45,6 +45,7 @@ describe("AuditService", () => {
       const input = {
         userId: "user-123",
         username: "testuser",
+        tenant_slug: "acme",
         action: AuditAction.LOGIN,
         resource: "auth",
         details: "用户成功登录",
@@ -58,6 +59,7 @@ describe("AuditService", () => {
         data: {
           user_id: "user-123",
           username: "testuser",
+          tenant_slug: "acme",
           scope: AuditScope.TENANT,
           action: AuditAction.LOGIN,
           resource: "auth",
@@ -82,7 +84,7 @@ describe("AuditService", () => {
       expect(prisma.auditLog.create).toHaveBeenCalledWith({
         data: {
           username: "platform-admin",
-          scope: AuditScope.TENANT,
+          scope: AuditScope.PLATFORM,
           action: AuditAction.LOGIN,
           resource: "auth",
           details: "用户成功登录",
@@ -112,18 +114,20 @@ describe("AuditService", () => {
         username: TENANT_IMPERSONATION_USERNAME,
         action: AuditAction.USER_CREATE,
         resource: "user:1",
+        tenant_slug: "acme",
       });
 
       expect(prisma.auditLog.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           user_id: "shadow-user",
+          tenant_slug: "acme",
           scope: AuditScope.PLATFORM,
           action: AuditAction.USER_CREATE,
         }),
       });
     });
 
-    it("should create an audit log entry without userId", async () => {
+    it("should treat missing tenant_slug as platform scope", async () => {
       const input = {
         username: "testuser",
         action: AuditAction.LOGIN,
@@ -136,7 +140,7 @@ describe("AuditService", () => {
       expect(prisma.auditLog.create).toHaveBeenCalledWith({
         data: {
           username: "testuser",
-          scope: AuditScope.TENANT,
+          scope: AuditScope.PLATFORM,
           action: AuditAction.LOGIN,
           resource: "auth",
           details: "用户成功登录",
@@ -147,6 +151,7 @@ describe("AuditService", () => {
     it("should create an audit log entry with minimal fields", async () => {
       const input = {
         username: "testuser",
+        tenant_slug: "acme",
         action: AuditAction.LOGIN,
       };
 
@@ -155,6 +160,7 @@ describe("AuditService", () => {
       expect(prisma.auditLog.create).toHaveBeenCalledWith({
         data: {
           username: "testuser",
+          tenant_slug: "acme",
           scope: AuditScope.TENANT,
           action: AuditAction.LOGIN,
         },
@@ -190,15 +196,7 @@ describe("AuditService", () => {
 
       expect(prisma.auditLog.findMany).toHaveBeenCalledWith({
         where: {
-          AND: [
-            { user_id: "user-123" },
-            {
-              OR: [
-                { tenant_slug: "default" },
-                { tenant_slug: null, scope: "tenant" },
-              ],
-            },
-          ],
+          AND: [{ user_id: "user-123" }, { tenant_slug: "default" }],
         },
         orderBy: { created_at: "desc" },
         take: 100,
@@ -436,21 +434,14 @@ describe("AuditService", () => {
       });
     });
 
-    it("should include legacy null tenant_slug rows for default tenant", async () => {
+    it("should filter default tenant by exact slug only", async () => {
       vi.mocked(prisma.auditLog.count).mockResolvedValue(5);
 
       await AuditService.getAuditLogsCount({ tenantSlug: "default" });
 
       expect(prisma.auditLog.count).toHaveBeenCalledWith({
         where: {
-          AND: [
-            {
-              OR: [
-                { tenant_slug: "default" },
-                { tenant_slug: null, scope: AuditScope.TENANT },
-              ],
-            },
-          ],
+          AND: [{ tenant_slug: "default" }],
         },
       });
     });

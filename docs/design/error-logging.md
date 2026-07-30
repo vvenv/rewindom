@@ -54,7 +54,7 @@ model ErrorLog {
 | `context` | Json? | 附加上下文，如 `{ "statusCode": 500 }` |
 | `created_at` | DateTime | 创建时间 |
 
-**没有外键关系**：`ErrorLog` 不 relation 到 `User` / `Tenant`。日志要在用户被删除后仍然留存，租户维度靠 `tenant_slug` 字符串过滤（`buildTenantSlugWhere`，默认租户额外兼容 `tenant_slug IS NULL` 的历史行）。
+**没有外键关系**：`ErrorLog` 不 relation 到 `User` / `Tenant`。日志要在用户被删除后仍然留存，租户维度靠精确匹配 `tenant_slug` 字符串过滤（`tenant_slug IS NULL` 的行只出现在平台侧）。
 
 ### 四个 JSON 列
 

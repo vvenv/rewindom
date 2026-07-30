@@ -50,6 +50,7 @@ pnpm --filter modules exec vitest --run --project 'audit/*'
 - 不要从模块外直接调用 `AuditService.log()`：写入一律用
   `emitAuditLogFromRequestSafe`（有 request）或 `emitDetachedAuditLogSafe`（后台任务）。
   直接调用会让调用方依赖 module-audit，且绕开未启用本模块时的 no-op 语义
-- 租户侧查询不要漏 `scope: AuditScope.TENANT`——平台操作与代登录会话不该出现在租户视图
+- 租户侧查询必须带当前 `tenant_slug` 精确匹配，并带 `scope: AuditScope.TENANT`——平台操作与代登录会话不该出现在租户视图；禁止把 `tenant_slug IS NULL` 算进任一租户（含 default）
+
 - 不要仅凭 `useTenantFilter()` 非空就渲染租户下拉：`TenantFilterProvider` 挂在
   `ShellProviders` 上，租户 `AppLayout` 也在其作用域内，必须由调用方显式开启

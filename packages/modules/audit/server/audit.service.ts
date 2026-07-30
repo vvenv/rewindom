@@ -3,10 +3,9 @@ import {
   resolveSortOrder,
 } from "@be-water/server-kernel/http/list-sort.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_SLUG, PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
+import { PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
 
 import {
-  AuditScope,
   resolveAuditLogScope,
   type AuditActionType,
   type AuditScopeType,
@@ -65,6 +64,7 @@ export class AuditService {
       scope: input.scope,
       action,
       username,
+      tenant_slug,
     });
 
     await prisma.auditLog.create({
@@ -102,7 +102,7 @@ export class AuditService {
   > {
     const logs = await prisma.auditLog.findMany({
       where: {
-        AND: [{ user_id: userId }, this.buildTenantSlugWhere(tenantSlug)],
+        AND: [{ user_id: userId }, { tenant_slug: tenantSlug }],
       },
       orderBy: { created_at: "desc" },
       take: limit,
@@ -142,7 +142,7 @@ export class AuditService {
   > {
     const logs = await prisma.auditLog.findMany({
       where: {
-        AND: [{ action }, this.buildTenantSlugWhere(tenantSlug)],
+        AND: [{ action }, { tenant_slug: tenantSlug }],
       },
       orderBy: { created_at: "desc" },
       take: limit,
@@ -186,7 +186,7 @@ export class AuditService {
       where: {
         AND: [
           { username: { contains: username } },
-          this.buildTenantSlugWhere(tenantSlug),
+          { tenant_slug: tenantSlug },
         ],
       },
       orderBy: { created_at: "desc" },
@@ -205,20 +205,6 @@ export class AuditService {
     });
 
     return logs;
-  }
-
-  private static buildTenantSlugWhere(
-    tenantSlug: string,
-  ): Record<string, unknown> {
-    if (tenantSlug === DEFAULT_TENANT_SLUG) {
-      return {
-        OR: [
-          { tenant_slug: tenantSlug },
-          { tenant_slug: null, scope: AuditScope.TENANT },
-        ],
-      };
-    }
-    return { tenant_slug: tenantSlug };
   }
 
   private static buildScopeWhere(
@@ -329,7 +315,7 @@ export class AuditService {
         AND: [
           ...this.buildAuditLogConditions(filters),
           ...(filters.tenantSlug
-            ? [this.buildTenantSlugWhere(filters.tenantSlug)]
+            ? [{ tenant_slug: filters.tenantSlug }]
             : []),
         ],
       },
@@ -372,7 +358,7 @@ export class AuditService {
         AND: [
           ...this.buildAuditLogConditions(filters),
           ...(filters.tenantSlug
-            ? [this.buildTenantSlugWhere(filters.tenantSlug)]
+            ? [{ tenant_slug: filters.tenantSlug }]
             : []),
         ],
       },

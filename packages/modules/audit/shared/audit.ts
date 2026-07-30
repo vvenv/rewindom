@@ -149,6 +149,8 @@ export function resolveAuditLogScope(input: {
   scope?: AuditScopeType;
   action: AuditActionType | string;
   username: string;
+  /** 无租户归属（平台管理员会话等）时归入 platform，避免泄漏到租户端。 */
+  tenant_slug?: string | null;
 }): AuditScopeType {
   if (input.scope) {
     return input.scope;
@@ -157,6 +159,11 @@ export function resolveAuditLogScope(input: {
     return AuditScope.PLATFORM;
   }
   if (input.username === TENANT_IMPERSONATION_USERNAME) {
+    return AuditScope.PLATFORM;
+  }
+  // 没有 tenant_slug 的行不属于任何租户；默认归 platform，
+  // 防止平台管理员 LOGIN 等被 default 租户的历史兼容规则捞走。
+  if (input.tenant_slug == null || input.tenant_slug === "") {
     return AuditScope.PLATFORM;
   }
   return AuditScope.TENANT;

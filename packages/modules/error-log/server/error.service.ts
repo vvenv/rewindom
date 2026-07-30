@@ -1,7 +1,7 @@
 import { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_SLUG, type JsonValue } from "@be-water/shared";
+import { type JsonValue } from "@be-water/shared";
 
 import { type ErrorStats } from "../shared/index.js";
 
@@ -132,21 +132,7 @@ export class ErrorService {
     log: { tenant_slug: string | null },
     tenantSlug: string,
   ): boolean {
-    if (tenantSlug === DEFAULT_TENANT_SLUG) {
-      return log.tenant_slug === tenantSlug || log.tenant_slug === null;
-    }
     return log.tenant_slug === tenantSlug;
-  }
-
-  private static buildTenantSlugWhere(
-    tenantSlug: string,
-  ): Record<string, unknown> {
-    if (tenantSlug === DEFAULT_TENANT_SLUG) {
-      return {
-        OR: [{ tenant_slug: tenantSlug }, { tenant_slug: null }],
-      };
-    }
-    return { tenant_slug: tenantSlug };
   }
 
   private static buildTextSearchWhere(
@@ -346,7 +332,7 @@ export class ErrorService {
       where: {
         AND: [
           ...this.buildErrorLogConditions(whereFilters),
-          ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
+          ...(tenantSlug ? [{ tenant_slug: tenantSlug }] : []),
         ],
       },
       orderBy: { [sortField]: sortOrder },
@@ -388,7 +374,7 @@ export class ErrorService {
       where: {
         AND: [
           ...this.buildErrorLogConditions(whereFilters),
-          ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
+          ...(tenantSlug ? [{ tenant_slug: tenantSlug }] : []),
         ],
       },
     });
@@ -467,7 +453,7 @@ export class ErrorService {
           startDate: timeRange?.startDate,
           endDate: timeRange?.endDate,
         }),
-        ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
+        ...(tenantSlug ? [{ tenant_slug: tenantSlug }] : []),
       ],
     };
 
@@ -530,7 +516,7 @@ export class ErrorService {
         AND: [
           { created_at: { lt: cutoffDate } },
           ...(userId ? [{ user_id: userId }] : []),
-          ...(tenantSlug ? [this.buildTenantSlugWhere(tenantSlug)] : []),
+          ...(tenantSlug ? [{ tenant_slug: tenantSlug }] : []),
         ],
       },
     });
@@ -565,7 +551,7 @@ export class ErrorService {
   } | null> {
     const log = await prisma.errorLog.findFirst({
       where: {
-        AND: [{ id }, this.buildTenantSlugWhere(tenantSlug)],
+        AND: [{ id }, { tenant_slug: tenantSlug }],
       },
       select: {
         id: true,
@@ -597,7 +583,7 @@ export class ErrorService {
   static async deleteErrorLog(id: string, tenantSlug: string): Promise<void> {
     await prisma.errorLog.deleteMany({
       where: {
-        AND: [{ id }, this.buildTenantSlugWhere(tenantSlug)],
+        AND: [{ id }, { tenant_slug: tenantSlug }],
       },
     });
   }
