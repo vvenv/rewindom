@@ -1,5 +1,5 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
+import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 
 import type { MergedPermissionCatalog } from "@be-water/server-kernel/runtime/collect-module-permissions.js";
 

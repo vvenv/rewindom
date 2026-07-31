@@ -1,7 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
-import { config } from "@be-water/server-kernel/lib/config.js";
 import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
+import { config } from "@be-water/server-kernel/lib/config.js";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;

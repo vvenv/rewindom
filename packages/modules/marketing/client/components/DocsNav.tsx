@@ -1,6 +1,6 @@
 import { cn } from "@be-water/ui/utils";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
 import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES } from "../lib/docs.js";

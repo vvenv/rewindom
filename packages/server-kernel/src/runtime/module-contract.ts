@@ -1,9 +1,9 @@
 import { type ModuleManifestBase } from "@be-water/shared";
 
-import type { ServerI18nBundle } from "../lib/i18n/types.js";
 import type { EventBus } from "./event-bus.js";
 import type { JobRegistryContext } from "./job-registry.js";
 import type { ProviderRegistry } from "./provider-registry.js";
+import type { ServerI18nBundle } from "../lib/i18n/types.js";
 import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 
 export type { ServerI18nBundle };

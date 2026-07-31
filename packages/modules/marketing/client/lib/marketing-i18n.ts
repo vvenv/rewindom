@@ -1,15 +1,16 @@
-import type { TFunction } from "i18next";
 
 import {
   PRICING_PLANS,
   type PlanDefinition,
 } from "../../../platform/shared/pricing-plans.js";
 import { type PageSeo, SITE } from "../../shared/index.js";
-import { logicalMarketingPath } from "../../shared/seo.js";
 import {
   MARKETING_PLANS,
   type MarketingPlan,
 } from "../../shared/pricing.js";
+import { logicalMarketingPath } from "../../shared/seo.js";
+
+import type { TFunction } from "i18next";
 
 const NS = "marketing";
 

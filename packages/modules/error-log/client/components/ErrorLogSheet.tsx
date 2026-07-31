@@ -11,9 +11,10 @@ import {
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import type { ErrorLog } from "../../shared/index.js";
 import { useDeleteErrorLog } from "../hooks/useDeleteErrorLog.js";
 import { translateErrorLevel } from "../lib/error-level-i18n.js";
+
+import type { ErrorLog } from "../../shared/index.js";
 
 
 interface ErrorLogSheetProps {

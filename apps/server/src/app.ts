@@ -1,8 +1,8 @@
+import { sendCodedError } from "@be-water/server-kernel/http/coded-error.js";
 import { config } from "@be-water/server-kernel/lib/config.js";
 import { translateForRequest } from "@be-water/server-kernel/lib/i18n/translate.js";
 import { setupPrisma } from "@be-water/server-kernel/lib/prisma.js";
 import { runWithRequestContext } from "@be-water/server-kernel/lib/request-context.js";
-import { sendCodedError } from "@be-water/server-kernel/http/coded-error.js";
 import {
   IMPORT_MAX_FILE_BYTES,
   MAX_UPLOAD_BYTES,
@@ -12,11 +12,9 @@ import { errorHandlerMiddleware } from "@be-water/server-kernel/middleware/error
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import multipart from "@fastify/multipart";
-import Fastify, { type FastifyInstance } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 
 import { registerAllRoutes, registerModuleMiddleware } from "./routes/index.js";
-
-import type { FastifyRequest } from "fastify";
 
 function localizeApiErrorPayload(
   request: FastifyRequest,

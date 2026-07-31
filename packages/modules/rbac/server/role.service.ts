@@ -1,8 +1,8 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import {
   NotFoundError,
   ValidationError,
 } from "@be-water/server-kernel/lib/app-errors.js";
+import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import {
   isValidModulePermission,

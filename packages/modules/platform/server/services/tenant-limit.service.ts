@@ -1,5 +1,5 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
+import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 
 import { formatLimitExceededMessage, isValidPlanSlug, TENANT_LIMITS_STORAGE_KEY, type PlanSlug, type TenantLimitKey, type TenantLimitValues } from "../../shared/index.js";
 import { LimitExceededError } from "../lib/limit-exceeded.error.js";

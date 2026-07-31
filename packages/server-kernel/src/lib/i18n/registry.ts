@@ -5,9 +5,9 @@ import {
   type AppLocale,
 } from "@be-water/shared";
 
-import { formatMessage } from "./format-message.js";
 import { KERNEL_MESSAGES_EN } from "./catalogs/kernel-en.js";
 import { KERNEL_MESSAGES_ZH } from "./catalogs/kernel-zh-CN.js";
+import { formatMessage } from "./format-message.js";
 
 import type { ServerI18nBundle, TranslateMessageInput } from "./types.js";
 

@@ -1,7 +1,7 @@
+import { sendCodedError } from "@be-water/server-kernel/http/coded-error.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { getRequestContext } from "@be-water/server-kernel/lib/request-context.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { sendCodedError } from "@be-water/server-kernel/http/coded-error.js";
 import {
   isValidModulePermission,
   type MergedPermissionCatalog,

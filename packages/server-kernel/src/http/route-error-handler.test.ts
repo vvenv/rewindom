@@ -20,7 +20,7 @@ function makeMockReply(): FastifyReply {
 }
 
 describe("handleRouteError", () => {
-  it("logs error and sends 500 with error message", () => {
+  it("logs error and sends 500 with coded internal error", () => {
     const reply = makeMockReply();
     const err = new Error("Something went wrong");
 
@@ -32,7 +32,10 @@ describe("handleRouteError", () => {
     );
     expect(reply.code).toHaveBeenCalledWith(500);
     expect(reply.send).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Something went wrong" }),
+      expect.objectContaining({
+        code: "common.internal_error",
+        error: "服务器内部错误",
+      }),
     );
   });
 
@@ -54,7 +57,7 @@ describe("handleRouteError", () => {
     handleRouteError(reply, new Error("fail"), "ctx", "MY_CODE");
 
     expect(reply.send).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "fail" }),
+      expect.objectContaining({ code: "MY_CODE", error: "MY_CODE" }),
     );
   });
 
@@ -182,7 +185,10 @@ describe("handleForbiddenError", () => {
 
     expect(reply.code).toHaveBeenCalledWith(403);
     expect(reply.send).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "无权限" }),
+      expect.objectContaining({
+        code: "common.forbidden",
+        error: "权限不足",
+      }),
     );
   });
 });

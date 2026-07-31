@@ -1,5 +1,5 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
+import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 
 import { shouldShowUsageCard, type PlanSlug, type TenantLimitKey, PRICING_PLANS, type UsageStats  } from "../../shared/index.js";
 

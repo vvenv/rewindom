@@ -1,6 +1,7 @@
+import { ErrorLevel, type ErrorLevelType } from "../../shared/index.js";
+
 import type { TFunction } from "i18next";
 
-import { ErrorLevel, type ErrorLevelType } from "../../shared/index.js";
 
 const ERROR_LEVEL_CODES = Object.values(ErrorLevel) as ErrorLevelType[];
 

@@ -1,5 +1,5 @@
-import { config } from "@be-water/server-kernel/lib/config.js";
 import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
+import { config } from "@be-water/server-kernel/lib/config.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import {

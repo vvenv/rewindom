@@ -5,11 +5,10 @@ import {
   Wordmark,
   useOptionalAuth,
 } from "@be-water/client-kit";
-import type { AppLocale } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import { cn } from "@be-water/ui/utils";
-import { Link, useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
+import { Link, useLocation, useNavigate } from "react-router";
 
 import { SITE_NAV } from "../../shared/index.js";
 import { useMarketingHref } from "../hooks/use-marketing-href.js";
@@ -18,6 +17,8 @@ import {
   marketingPathsMatch,
   swapMarketingLocale,
 } from "../lib/marketing-locale-path.js";
+
+import type { AppLocale } from "@be-water/shared";
 
 /**
  * 控制台入口。

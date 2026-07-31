@@ -6,12 +6,13 @@ import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Spinner } from "@be-water/ui/spinner";
 import { cn } from "@be-water/ui/utils";
 import { useTranslation } from "react-i18next";
-import type { TFunction } from "i18next";
+
 
 import { type PlatformUserSummary } from "../../shared/index.js";
 import { userRoleBadgeSlot } from "../shell/platform-widget-slots.js";
 
 import type { ColumnDef, SortingState, Updater } from "@tanstack/react-table";
+import type { TFunction } from "i18next";
 
 function buildPlatformUserColumns(
   t: TFunction<"platform">,

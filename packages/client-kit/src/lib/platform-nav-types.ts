@@ -1,7 +1,9 @@
 import type { ComponentType } from "react";
-import type { TFunction } from "i18next";
 
 import { resolveNavLabel } from "../i18n/translate-nav.js";
+
+import type { TFunction } from "i18next";
+
 
 export interface PlatformNavChild {
   to: string;

@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +11,7 @@ import { defineConfig, defineProject, type UserConfig } from "vitest/config";
 
 const PACKAGE_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SETUP = path.join(PACKAGE_ROOT, "setup.ts");
+const MODULE_I18N_SETUP = path.join(PACKAGE_ROOT, "module-i18n-setup.ts");
 
 export interface ClientVitestOptions {
   /** Directory containing vitest.config.ts */
@@ -18,6 +20,8 @@ export interface ClientVitestOptions {
   include?: string[];
   exclude?: string[];
   alias?: Record<string, string>;
+  /** Absolute path to module `client/i18n.ts`; registers bundles in setup. */
+  moduleI18nPath?: string;
   coverage?: NonNullable<UserConfig["test"]>["coverage"];
 }
 
@@ -52,7 +56,14 @@ function buildClientTestConfig(options: ClientVitestOptions) {
     include = ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude = ["dist/**", "node_modules/**"],
     alias = {},
+    moduleI18nPath,
   } = options;
+
+  const resolvedSetupFiles = [
+    DEFAULT_SETUP,
+    ...(moduleI18nPath ? [MODULE_I18N_SETUP] : []),
+    ...setupFiles,
+  ];
 
   return {
     plugins: [react()],
@@ -60,10 +71,13 @@ function buildClientTestConfig(options: ClientVitestOptions) {
     test: {
       globals: true,
       environment: "happy-dom" as const,
-      setupFiles: [DEFAULT_SETUP, ...setupFiles],
+      setupFiles: resolvedSetupFiles,
       include,
       exclude,
       coverage: options.coverage ?? DEFAULT_COVERAGE,
+      ...(moduleI18nPath
+        ? { env: { BE_WATER_CLIENT_I18N: moduleI18nPath } }
+        : {}),
     },
     resolve: {
       alias,
@@ -80,9 +94,12 @@ export function createClientTestProject(options: ClientVitestOptions) {
 }
 
 export function createModuleClientTestProject(moduleRoot: string) {
+  const clientRoot = path.join(moduleRoot, "client");
+  const moduleI18nPath = path.join(clientRoot, "i18n.ts");
   return createClientTestProject({
-    root: path.join(moduleRoot, "client"),
+    root: clientRoot,
     include: ["**/*.{test,spec}.{ts,tsx}"],
+    moduleI18nPath: existsSync(moduleI18nPath) ? moduleI18nPath : undefined,
   });
 }
 

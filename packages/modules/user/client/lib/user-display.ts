@@ -4,9 +4,9 @@ import {
   type User,
 } from "@be-water/shared";
 
+import type { ImpersonationMeta } from "../../../platform/client/lib/impersonation-storage.js";
 import type { TFunction } from "i18next";
 
-import type { ImpersonationMeta } from "../../../platform/client/lib/impersonation-storage.js";
 
 export interface UserDisplayProfile {
   displayName: string;

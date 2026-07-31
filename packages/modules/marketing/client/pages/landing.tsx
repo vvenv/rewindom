@@ -1,8 +1,8 @@
 import { Logo } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
 import { BUILTIN_MODULES, HERO, TECH_STACK } from "../../shared/index.js";
 import { FeatureGrid } from "../components/FeatureGrid.js";

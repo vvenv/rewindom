@@ -9,8 +9,8 @@ import {
   buildCanonicalUrl,
   type PageSeo,
 } from "../../shared/index.js";
-
 import { MARKETING_I18N } from "../i18n.js";
+
 import { localizePageSeo } from "./marketing-i18n.js";
 import { withMarketingLocale } from "./marketing-locale-path.js";
 import { MARKETING_ROUTES } from "./seo-routes.js";

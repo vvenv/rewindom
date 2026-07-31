@@ -1,12 +1,12 @@
-import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
-
 import {
   APP_LOCALES,
   DEFAULT_LOCALE,
   normalizeLocale,
   type AppLocale,
 } from "@be-water/shared";
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+
 
 import commonEn from "./locales/en/common.json";
 import shellEn from "./locales/en/shell.json";

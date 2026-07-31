@@ -2,6 +2,7 @@ import {
   collectServerI18nBundles,
   registerServerI18nBundles,
 } from "../lib/i18n/registry.js";
+
 import {
   collectModulePermissions,
   type MergedPermissionCatalog,

@@ -1,7 +1,7 @@
 import { Button } from "@be-water/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
+import { Link, useParams } from "react-router";
 
 import { DocContent } from "../components/DocContent.js";
 import { DocsNav } from "../components/DocsNav.js";

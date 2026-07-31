@@ -46,7 +46,7 @@ const LocaleContext = createContext<LocaleValue | null>(null);
 export function LocaleProvider({ children }: { children: ReactNode }): ReactNode {
   const auth = useOptionalAuth();
   const isTenantSession =
-    !!auth?.user && !auth.user.is_system_admin && !auth.isLoading;
+    Boolean(auth?.user) && !auth.user.is_system_admin && !auth.isLoading;
   const { data: appearance } = useTenantAppearance(isTenantSession);
   const { data: publicConfig } = usePublicConfig();
 

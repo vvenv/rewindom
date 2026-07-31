@@ -3,11 +3,11 @@ import { randomUUID } from "node:crypto";
 import { parseLoginIdentifier, type AuthActorType, type AuthTokens  } from "@be-water/shared";
 import bcrypt from "bcrypt";
 
-import { config } from "../../lib/config.js";
 import {
   NotFoundError,
   UnauthorizedError,
 } from "../../lib/app-errors.js";
+import { config } from "../../lib/config.js";
 import { prisma } from "../../lib/prisma.js";
 
 import {

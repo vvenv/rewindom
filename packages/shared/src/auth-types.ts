@@ -1,6 +1,7 @@
 import { isPlatformAdminActor, type AuthActorType } from "./auth-actor.js";
-import type { AppLocale } from "./locale.js";
 import { isReservedTenantUsername } from "./tenant-internal.js";
+
+import type { AppLocale } from "./locale.js";
 
 export interface User {
   id: string;

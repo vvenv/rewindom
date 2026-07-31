@@ -2,8 +2,8 @@ import {
   type BackgroundJob,
   type Prisma,
 } from "@be-water/server-kernel/generated/prisma/client/client.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
 import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
+import { config } from "@be-water/server-kernel/lib/config.js";
 import { emitDetachedAuditLogSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../../audit/shared/index.js";

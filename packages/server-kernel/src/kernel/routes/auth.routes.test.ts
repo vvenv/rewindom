@@ -15,11 +15,11 @@ import {
   vi,
 } from "vitest";
 
-import { AuthService } from "../auth/auth.service.js";
 import {
   NotFoundError,
   UnauthorizedError,
 } from "../../lib/app-errors.js";
+import { AuthService } from "../auth/auth.service.js";
 
 import { authRoutes } from "./auth.routes.js";
 

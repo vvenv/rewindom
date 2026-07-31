@@ -1,5 +1,5 @@
-import { ERROR_LOG_SERVER_I18N } from "./i18n.js";
 import { errorLogRoutes } from "./error-log.routes.js";
+import { ERROR_LOG_SERVER_I18N } from "./i18n.js";
 import { registerPlatformErrorLogRoutes } from "./platform-error-log.routes.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";

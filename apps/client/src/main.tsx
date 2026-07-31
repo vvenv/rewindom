@@ -18,8 +18,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { createRoot } from "react-dom/client";
 
-import { ENABLED_CLIENT_MODULES } from "./enabled-modules.ts";
 import { App } from "./App.tsx";
+import { ENABLED_CLIENT_MODULES } from "./enabled-modules.ts";
 import "./index.css";
 
 const queryClient = new QueryClient({

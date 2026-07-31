@@ -8,8 +8,8 @@ import {
 } from "@be-water/ui/card";
 import { Skeleton } from "@be-water/ui/skeleton";
 import { ArrowRight, StickyNote } from "lucide-react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
 import { useNotes } from "../hooks/useNotes.js";
 

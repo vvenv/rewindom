@@ -9,11 +9,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@be-water/ui/input-group";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@be-water/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@be-water/ui/popover";
 import {
   Sheet,
   SheetContent,
@@ -357,11 +353,10 @@ export function DateTimeRangePicker({
 }: DateTimeRangePickerProps) {
   const { t, i18n } = useTranslation("common");
   const isMobile = useMediaQuery("(max-width: 767px)");
-  const resolvedPlaceholder =
-    placeholder ?? t("dateRangePicker.placeholder");
+  const resolvedPlaceholder = placeholder ?? t("dateRangePicker.placeholder");
   const resolvedPresets = useMemo(
     () => presets ?? buildDefaultDateTimeRangePresets(t),
-    [presets, t, i18n.language],
+    [presets, t],
   );
   const calendarLocale = i18n.language === "en" ? enUS : zhCN;
   const labels = useMemo(
@@ -373,7 +368,7 @@ export function DateTimeRangePicker({
       confirm: t("confirm"),
       clear: t("dateRangePicker.clear"),
     }),
-    [t, i18n.language],
+    [t],
   );
   const [open, setOpen] = useState(false);
   const [tempRange, setTempRange] = useState<DateRange | undefined>(value);

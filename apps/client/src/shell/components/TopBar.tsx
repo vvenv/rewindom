@@ -8,7 +8,6 @@ import {
   type AppNavItem,
   type AppNavSection,
 } from "@be-water/client-kit";
-import { useTranslation } from "react-i18next";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import {
@@ -21,6 +20,7 @@ import {
 } from "@be-water/ui/dropdown-menu";
 import { cn } from "@be-water/ui/utils";
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link, NavLink, useLocation } from "react-router";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";

@@ -1,17 +1,18 @@
+import { useLocale } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { cn } from "@be-water/ui/utils";
 import { Check } from "lucide-react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
-import { useLocale } from "@be-water/client-kit";
 
-import type { PlanDefinition } from "../../../platform/shared/pricing-plans.js";
 import {
   formatMonthlyPriceLocalized,
   formatSeatLimitLocalized,
   type LocalizedMarketingPlan,
 } from "../lib/marketing-i18n.js";
+
+import type { PlanDefinition } from "../../../platform/shared/pricing-plans.js";
 
 function isExternal(href: string): boolean {
   return /^(https?:|mailto:)/u.test(href);
