@@ -1,4 +1,4 @@
-import { normalizeOptionalShellLayout } from "@be-water/shared";
+import { normalizeShellLayout } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import {
   DropdownMenu,
@@ -19,13 +19,11 @@ import {
   translateShellLayoutOptions,
 } from "../lib/translate-shell-layout.js";
 
-/** 「跟随默认」在 radio group 里的哨兵值——DropdownMenuRadioItem 只接受字符串。 */
-const FOLLOW_DEFAULT = "";
-
 /**
  * 外壳布局切换器（左右 / 上下）。与主题、明暗两个切换器并列。
  *
  * 只在 md+ 渲染：窄屏恒定使用移动端外壳，摆一个不生效的开关只会误导用户。
+ * 未显式选过时仍走租户/平台默认；点选后写入本地偏好。
  */
 export function ShellLayoutToggle({
   className,
@@ -36,8 +34,8 @@ export function ShellLayoutToggle({
   menuSide?: "top" | "bottom" | "left" | "right";
   menuAlign?: "start" | "center" | "end";
 }) {
-  const { t, i18n } = useTranslation(["shell", "common"]);
-  const { layout, userChoice, defaultLayout, setLayout } = useShellLayout();
+  const { t, i18n } = useTranslation("shell");
+  const { layout, setLayout } = useShellLayout();
   const options = translateShellLayoutOptions(t);
 
   return (
@@ -65,21 +63,9 @@ export function ShellLayoutToggle({
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
           key={i18n.language}
-          value={userChoice ?? FOLLOW_DEFAULT}
-          onValueChange={(value) =>
-            setLayout(normalizeOptionalShellLayout(value))
-          }
+          value={layout}
+          onValueChange={(value) => setLayout(normalizeShellLayout(value))}
         >
-          <DropdownMenuRadioItem value={FOLLOW_DEFAULT}>
-            <div className="flex flex-col gap-0.5">
-              <span>{t("common:followDefault")}</span>
-              <span className="text-muted-foreground text-xs">
-                {t("common:followDefaultCurrent", {
-                  label: translateShellLayoutLabel(t, defaultLayout),
-                })}
-              </span>
-            </div>
-          </DropdownMenuRadioItem>
           {options.map((option) => (
             <DropdownMenuRadioItem key={option.slug} value={option.slug}>
               <div className="flex flex-col gap-0.5">

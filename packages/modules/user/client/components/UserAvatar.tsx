@@ -2,9 +2,8 @@ import { useAuth, useLocale } from "@be-water/client-kit";
 import {
   APP_LOCALES,
   formatBusinessDateOrTimeAgo,
-  getLocaleNativeLabel,
   isRegularUser,
-  normalizeOptionalLocale,
+  normalizeLocale,
 } from "@be-water/shared";
 import { Avatar, AvatarFallback } from "@be-water/ui/avatar";
 import { Button } from "@be-water/ui/button";
@@ -42,8 +41,6 @@ interface UserAvatarProps {
   menuAlign?: "start" | "center" | "end";
 }
 
-const FOLLOW_DEFAULT = "";
-
 export function UserAvatar({
   menuSide = "bottom",
   menuAlign = "end",
@@ -52,7 +49,7 @@ export function UserAvatar({
   const { t: tCommon } = useTranslation("common");
   const { t: tUser } = useTranslation("user");
   const { user, logout } = useAuth();
-  const { userChoice, defaultLocale, setLocale } = useLocale();
+  const { locale, setLocale } = useLocale();
   const UsageCard = userMenuUsageSlot.useSlot();
 
   const handleLogout = async () => {
@@ -180,21 +177,9 @@ export function UserAvatar({
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-56">
             <DropdownMenuRadioGroup
-              value={userChoice ?? FOLLOW_DEFAULT}
-              onValueChange={(value) =>
-                setLocale(normalizeOptionalLocale(value))
-              }
+              value={locale}
+              onValueChange={(value) => setLocale(normalizeLocale(value))}
             >
-              <DropdownMenuRadioItem value={FOLLOW_DEFAULT}>
-                <div className="flex flex-col gap-0.5">
-                  <span>{tCommon("followDefault")}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {tCommon("followDefaultCurrent", {
-                      label: getLocaleNativeLabel(defaultLocale),
-                    })}
-                  </span>
-                </div>
-              </DropdownMenuRadioItem>
               {APP_LOCALES.map((option) => (
                 <DropdownMenuRadioItem key={option.slug} value={option.slug}>
                   {option.native_label}

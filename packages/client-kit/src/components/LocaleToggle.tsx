@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import {
   APP_LOCALES,
   getLocaleNativeLabel,
-  normalizeOptionalLocale,
+  normalizeLocale,
   type AppLocale,
 } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
@@ -22,14 +22,12 @@ import { useTranslation } from "react-i18next";
 
 import { useLocale } from "../contexts/locale-context.js";
 
-/** 「跟随默认」在 radio group 里的哨兵值。 */
-const FOLLOW_DEFAULT = "";
-
 /**
  * 语言切换器。与主题 / 布局切换并列：个人选择存 localStorage，
  * 默认语言由平台设置 / 租户外观持久化。
  *
  * 官网页可通过 `onLocaleNavigate` 同步改写 URL（`/en/...`）。
+ * 未显式选过时仍走租户/平台默认；点选后写入本地偏好。
  */
 export function LocaleToggle({
   className,
@@ -44,7 +42,7 @@ export function LocaleToggle({
   onLocaleNavigate?: (locale: AppLocale) => void;
 }): ReactNode {
   const { t } = useTranslation(["shell", "common"]);
-  const { locale, userChoice, defaultLocale, setLocale } = useLocale();
+  const { locale, setLocale } = useLocale();
 
   return (
     <DropdownMenu>
@@ -70,23 +68,13 @@ export function LocaleToggle({
         <DropdownMenuLabel>{t("common:language")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
-          value={userChoice ?? FOLLOW_DEFAULT}
+          value={locale}
           onValueChange={(value) => {
-            const next = normalizeOptionalLocale(value);
+            const next = normalizeLocale(value);
             setLocale(next);
-            onLocaleNavigate?.(next ?? defaultLocale);
+            onLocaleNavigate?.(next);
           }}
         >
-          <DropdownMenuRadioItem value={FOLLOW_DEFAULT}>
-            <div className="flex flex-col gap-0.5">
-              <span>{t("common:followDefault")}</span>
-              <span className="text-muted-foreground text-xs">
-                {t("common:followDefaultCurrent", {
-                  label: getLocaleNativeLabel(defaultLocale),
-                })}
-              </span>
-            </div>
-          </DropdownMenuRadioItem>
           {APP_LOCALES.map((option) => (
             <DropdownMenuRadioItem key={option.slug} value={option.slug}>
               <span>{option.native_label}</span>

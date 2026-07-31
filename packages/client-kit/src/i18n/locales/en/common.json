@@ -1,7 +1,5 @@
 {
   "language": "Language",
-  "followDefault": "Follow default",
-  "followDefaultCurrent": "Currently \"{{label}}\"",
   "save": "Save",
   "cancel": "Cancel",
   "confirm": "Confirm",

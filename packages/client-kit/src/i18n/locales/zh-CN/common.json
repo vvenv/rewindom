@@ -1,7 +1,5 @@
 {
   "language": "语言",
-  "followDefault": "跟随默认",
-  "followDefaultCurrent": "当前为「{{label}}」",
   "save": "保存",
   "cancel": "取消",
   "confirm": "确认",

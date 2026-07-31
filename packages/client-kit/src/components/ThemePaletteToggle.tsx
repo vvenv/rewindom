@@ -1,6 +1,4 @@
-import {
-  normalizeOptionalThemePalette,
-} from "@be-water/shared";
+import { normalizeThemePalette } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import {
   DropdownMenu,
@@ -21,12 +19,11 @@ import {
   translateThemePaletteOptions,
 } from "../lib/translate-theme-palette.js";
 
-/** 「跟随默认」在 radio group 里的哨兵值——DropdownMenuRadioItem 只接受字符串。 */
-const FOLLOW_DEFAULT = "";
-
 /**
  * 配色方案切换器。与 {@link ThemeToggle}（浅色/深色/跟随系统）并列摆放：
  * 两者是正交的两根轴，每个配色自带明暗两套 token。
+ *
+ * 未显式选过时仍走租户/平台默认；点选后写入本地偏好。
  */
 export function ThemePaletteToggle({
   className,
@@ -39,8 +36,8 @@ export function ThemePaletteToggle({
   menuSide?: "top" | "bottom" | "left" | "right";
   menuAlign?: "start" | "center" | "end";
 }) {
-  const { t, i18n } = useTranslation(["shell", "common"]);
-  const { palette, userChoice, defaultPalette, setPalette } = useThemePalette();
+  const { t, i18n } = useTranslation("shell");
+  const { palette, setPalette } = useThemePalette();
   const options = translateThemePaletteOptions(t);
 
   return (
@@ -69,21 +66,9 @@ export function ThemePaletteToggle({
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
           key={i18n.language}
-          value={userChoice ?? FOLLOW_DEFAULT}
-          onValueChange={(value) =>
-            setPalette(normalizeOptionalThemePalette(value))
-          }
+          value={palette}
+          onValueChange={(value) => setPalette(normalizeThemePalette(value))}
         >
-          <DropdownMenuRadioItem value={FOLLOW_DEFAULT}>
-            <div className="flex flex-col gap-0.5">
-              <span>{t("common:followDefault")}</span>
-              <span className="text-muted-foreground text-xs">
-                {t("common:followDefaultCurrent", {
-                  label: translateThemePaletteLabel(t, defaultPalette),
-                })}
-              </span>
-            </div>
-          </DropdownMenuRadioItem>
           {options.map((option) => (
             <DropdownMenuRadioItem key={option.slug} value={option.slug}>
               <div className="flex flex-col gap-0.5">
