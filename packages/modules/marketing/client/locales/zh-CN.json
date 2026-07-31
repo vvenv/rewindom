@@ -1,8 +1,8 @@
 {
   "site": {
-    "title": "be-water · 多租户 SaaS 底座",
+    "title": "be-water · Agent-first 多租户 SaaS 底座",
     "tagline": "水无定形，遇器成形",
-    "description": "be-water 是一套多租户 SaaS 模块化单体底座：内核与基础设施不含业务代码，业务以模块挂载，按租户开关，单进程部署。",
+    "description": "be-water 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。",
     "homeAriaLabel": "be-water 首页"
   },
   "nav": {
@@ -27,23 +27,24 @@
       "login": "登录",
       "docsHome": "文档首页",
       "quickstart": "快速开始",
+      "agentFirst": "Agent-first",
       "modules": "模块化架构",
       "github": "GitHub"
     }
   },
   "hero": {
-    "headline": "底座随业务成形，而不是业务迁就底座",
-    "subline": "多租户 SaaS 模块化单体：内核与基础设施不含业务代码，业务以模块挂载、按租户开关、单进程部署。",
+    "headline": "Agent-first 的多租户 SaaS 底座",
+    "subline": "AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展业务；内核不含业务代码，模块按租户开关，单进程部署。",
     "primaryCta": "快速开始",
-    "secondaryCta": "看定价",
+    "secondaryCta": "Agent-first",
     "stats": {
+      "agentLoop": {
+        "term": "Agent 闭环",
+        "detail": "spec → gen → check"
+      },
       "infraModules": {
         "term": "基础设施模块",
         "detail": "{{count}} 个开箱可用"
-      },
-      "deployment": {
-        "term": "部署形态",
-        "detail": "单进程 · Docker Compose"
       },
       "tenantIsolation": {
         "term": "租户隔离",
@@ -52,6 +53,10 @@
     }
   },
   "features": {
+    "bot": {
+      "title": "Agent-first 闭环",
+      "description": "AGENTS.md 与 Skills 是交付物的一部分：填 Spec → gen:module → check:modules，编码 Agent 在闸门内扩展，而不是碰运气。"
+    },
     "layers": {
       "title": "内核不依赖业务",
       "description": "HTTP 栈、认证、租户上下文、模块加载器、事件总线都在内核里，业务代码一行不掺。换业务不用动底座。"
@@ -68,16 +73,32 @@
       "title": "多租户隔离是强制的",
       "description": "租户守卫在 Prisma 层 fail-closed：模型没登记就启动失败，越权查询还有 lint 与运行时双重兜底。"
     },
-    "gauge": {
-      "title": "可观测性内建",
-      "description": "审计日志、错误日志、慢查询看板、后台任务中心开箱即用，不用等到出事才补监控。"
-    },
     "server": {
       "title": "单进程部署",
       "description": "编译期组装、单进程运行，生产用 Docker Compose 交付。没有微服务的运维税，也没有低代码的天花板。"
     }
   },
   "landing": {
+    "agentFirst": {
+      "title": "为人与 Agent 共用的开发闭环",
+      "description": "不是又一份脚手架：结构化 Spec、一键装配、机器闸门，让 Cursor / Claude Code 在边界内扩模块。",
+      "readMore": "读 Agent-first",
+      "stepLabel": "步骤 {{step}}",
+      "steps": {
+        "spec": {
+          "title": "填 Spec",
+          "description": "声明模块 id、权限、模型与 entitlement；留空则 Agent 必须追问，禁止瞎猜。"
+        },
+        "gen": {
+          "title": "生成并装配",
+          "description": "骨架与六处注册表一次写对，避免漏挂路由或租户守卫。"
+        },
+        "check": {
+          "title": "机器闸门",
+          "description": "契约与依赖校验拦住越权与漏装配，CI 跑同一套。"
+        }
+      }
+    },
     "builtinModules": {
       "title": "基础设施开箱即用",
       "description": "认证、租户、权限、审计、通知、任务、可观测性——这些每个 SaaS 都要重写一遍的东西，底座已经写好了，而且都是可开关的模块而非硬编码。"
@@ -91,8 +112,8 @@
       "title": "从这里开始"
     },
     "closingCta": {
-      "title": "先把底座跑起来，再谈业务",
-      "description": "本地 5 分钟起服务，生产一条命令部署。免费版可以一直用下去。",
+      "title": "先把底座跑起来，再让 Agent 扩业务",
+      "description": "本地 5 分钟起服务；模块用 Spec → gen → check 闭环落地。免费版可以一直用下去。",
       "getStarted": "免费开始",
       "viewPricing": "看定价"
     }
@@ -224,7 +245,7 @@
   },
   "docs": {
     "pageTitle": "文档",
-    "pageDescription": "从本地跑起来，到理解模块边界，到部署上线。",
+    "pageDescription": "从本地跑起来，到 Agent-first 闭环，到模块边界与部署上线。",
     "navLabel": "文档目录",
     "navTitle": "文档",
     "prevNextNav": "上下篇",
@@ -236,8 +257,8 @@
   },
   "seo": {
     "home": {
-      "title": "be-water · 多租户 SaaS 底座",
-      "description": "be-water 是一套多租户 SaaS 模块化单体底座：内核与基础设施不含业务代码，业务以模块挂载，按租户开关，单进程部署。"
+      "title": "be-water · Agent-first 多租户 SaaS 底座",
+      "description": "be-water 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。"
     },
     "pricing": {
       "title": "定价",
@@ -245,7 +266,7 @@
     },
     "docs": {
       "title": "文档",
-      "description": "be-water 使用文档：快速开始、模块化架构、多租户与权限、部署。"
+      "description": "be-water 使用文档：快速开始、Agent-first、模块化架构、多租户与权限、部署。"
     }
   }
 }

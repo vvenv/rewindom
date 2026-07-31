@@ -16,6 +16,7 @@
 | 文档                                                        | 说明                                | Skill                          |
 | ----------------------------------------------------------- | ----------------------------------- | ------------------------------ |
 | [modular-architecture.md](./design/modular-architecture.md) | 内核 + 可插拔模块的模块化 Monolith  | `create-module`、`extract-module` |
+| [agent-first.md](./design/agent-first.md) | Agent-first：AGENTS.md / Skills / gen·check 闭环与卖点口径 | `create-module` 等 |
 | [downstream-fork.md](./design/downstream-fork.md) | 产品仓升级到 be-water 的检查清单（布局 / 品牌 / 默认路由） | `frontend-page-structure` |
 
 ### 多租户 / SaaS

@@ -8,10 +8,10 @@ export interface SiteNavLink {
 export const SITE = {
   name: "be-water",
   /** `<title>` 后缀与 og:site_name */
-  title: "be-water · 多租户 SaaS 底座",
+  title: "be-water · Agent-first 多租户 SaaS 底座",
   tagline: "水无定形，遇器成形",
   description:
-    "be-water 是一套多租户 SaaS 模块化单体底座：内核与基础设施不含业务代码，业务以模块挂载，按租户开关，单进程部署。",
+    "be-water 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。",
   /**
    * 站点规范域名（不带结尾斜杠）。canonical / og:url / sitemap 都由它拼出来，
    * 构建时用 `SITE_URL` 环境变量覆盖（见 apps/client/scripts/prerender.mjs）。
@@ -45,6 +45,7 @@ export const SITE_FOOTER_GROUPS: readonly {
     links: [
       { label: "文档首页", href: "/docs" },
       { label: "快速开始", href: "/docs/quickstart" },
+      { label: "Agent-first", href: "/docs/agent-first" },
       { label: "模块化架构", href: "/docs/modules" },
     ],
   },

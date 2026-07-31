@@ -969,7 +969,9 @@ modules/                  # @be-water/modules，exports 仅 "./*": "./*"
 
 ## 15. AI 与开发约定
 
-### 16.1 修改边界
+**Agent-first 产品口径与成功标准**见 [agent-first.md](./agent-first.md)。本节只列修改边界与 Skills 索引。
+
+### 15.1 修改边界
 
 | 任务 | 允许修改 |
 | --- | --- |
@@ -978,16 +980,17 @@ modules/                  # @be-water/modules，exports 仅 "./*": "./*"
 | 修改 HTTP 约定 | kernel only（需 RFC） |
 | 新增租户功能开关 | 模块 manifest `tenantEntitlements` + 平台 UI |
 
-### 16.2 Skills
+### 15.2 Skills
 
 | Skill | 用途 |
 | --- | --- |
 | `create-module` | 按契约创建新模块端到端 |
 | `extract-module` | 从单体迁出模块 checklist |
+| `frontend-page-structure` | 前端 Page / Hook / Lib / Component |
+| `error-logging` | ErrorLog 与可观测 |
+| `prisma-sync-fix` / `merge-migrations` | Prisma 同步与 migration 收敛 |
 
-### 16.3 AGENTS.md 更新方向
-
-增加「模块化」条目，指向本文与 `MODULE.md` 约定；`docs-reference` rule 同步索引。
+完整列表与双 IDE 同步见 `AGENTS.md`。
 
 ---
 

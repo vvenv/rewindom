@@ -7,7 +7,7 @@
 
 # be-water
 
-**多租户 SaaS 底座 — 模块化 Monolith**
+**Agent-first · 多租户 SaaS 底座 — 模块化 Monolith**
 
 水无定形，遇器成形。底座随业务成形，而不是业务迁就底座。
 
@@ -17,7 +17,7 @@
 
 ## 这是什么
 
-多租户 SaaS **模块化单体**：内核 + 基础设施模块 + 示例业务模块。内核与基础设施**不含业务领域代码**；业务以模块挂载，`notes` 为金标准复制起点。
+**Agent-first** 的多租户 SaaS **模块化单体**：内核 + 基础设施模块 + 示例业务模块。用 `AGENTS.md`、Cursor/Claude Skills 与 `gen:module` → `check:modules` 闭环，让编码 Agent 在强制边界内扩展业务。内核与基础设施**不含业务领域代码**；业务以模块挂载，`notes` 为金标准复制起点。
 
 | 类型 | 模块 |
 | --- | --- |
@@ -25,7 +25,7 @@
 | 业务 | `billing` 租户订阅与付款（Creem） |
 | 示例 | `notes` 金标准 CRUD · `todos` 由 `gen:module` 生成并手工定制的列表示例 |
 
-**不是**：脚手架生成器、微服务框架、低代码平台。
+**不是**：无约束的脚手架喷发器、微服务框架、低代码平台。Agent 写代码，闸门与契约由框架强制。详见 [agent-first.md](docs/design/agent-first.md)。
 
 ---
 
@@ -51,11 +51,12 @@ pnpm dev
 
 编译期组装、单进程部署。每模块自带 server 路由、client 页面、shared 契约与 `MODULE.md`。
 
-1. **内核不依赖业务** — HTTP 栈、认证、租户上下文、ModuleLoader、EventBus
-2. **模块间禁止直接 import** — 跨模块走 manifest `requires` + Event Bus / Provider / Slot
-3. **模块可按租户开关** — 未开通不挂路由、不进侧栏
+1. **Agent-first** — `AGENTS.md` + Skills + Spec → `gen:module` → `check:modules` / `check:deps`
+2. **内核不依赖业务** — HTTP 栈、认证、租户上下文、ModuleLoader、EventBus
+3. **模块间禁止直接 import** — 跨模块走 manifest `requires` + Event Bus / Provider / Slot
+4. **模块可按租户开关** — 未开通不挂路由、不进侧栏
 
-边界由 `pnpm check:deps` 强制（包层环 + manifest/schema FK + 文件级环）。新模块：`pnpm gen:module <spec.yaml>` 或复制 `packages/modules/notes/`。详见 [modular-architecture.md](docs/design/modular-architecture.md)。
+边界由 `pnpm check:deps` 强制（包层环 + manifest/schema FK + 文件级环）。新模块：`pnpm gen:module <spec.yaml>` 或复制 `packages/modules/notes/`。详见 [modular-architecture.md](docs/design/modular-architecture.md) 与 [agent-first.md](docs/design/agent-first.md)。
 
 前端有四类路由挂载点：`renderPublicRoutes`（无守卫，官网/文档）、`renderGuestRoutes`（登录注册，已登录会被弹走）、`renderTenantRoutes`（租户应用）、`renderPlatformRoutes`（平台控制台）。公开路由要能在**没有任何 Provider** 的环境下渲染——构建期预渲染就跑在那种环境里。
 
@@ -194,4 +195,4 @@ pnpm deploy    -- --env production   # 更新
 
 ## 文档
 
-[文档索引](docs/README.md) · [模块化架构](docs/design/modular-architecture.md) · [权限](docs/design/permission-system.md) · [租户配置](docs/design/tenant-config.md) · [功能开关与配额](docs/design/tenant-features.md) · [部署](docs/deployment.md) · [FAQ](docs/faq.md)
+[文档索引](docs/README.md) · [Agent-first](docs/design/agent-first.md) · [模块化架构](docs/design/modular-architecture.md) · [权限](docs/design/permission-system.md) · [租户配置](docs/design/tenant-config.md) · [功能开关与配额](docs/design/tenant-features.md) · [部署](docs/deployment.md) · [FAQ](docs/faq.md)

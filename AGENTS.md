@@ -1,6 +1,9 @@
 # be-water
 
-多租户 SaaS 底座 monorepo（`apps/server` + `apps/client` + `packages/*`）。
+**Agent-first** 多租户 SaaS 底座 monorepo（`apps/server` + `apps/client` + `packages/*`）。
+
+编码 Agent 的默认入口即本文件：约定、模块闭环与 Skills/Rules 索引。产品口径与成功标准见
+[`docs/design/agent-first.md`](docs/design/agent-first.md)。
 
 ## 前置约束
 
@@ -66,6 +69,7 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 
 | 领域              | 文档                                               | Skill / Rule                      |
 | ----------------- | -------------------------------------------------- | --------------------------------- |
+| Agent-first       | `design/agent-first.md`                            | Skills + 本文件                   |
 | 模块化 / 插件化   | `design/modular-architecture.md`                   | `create-module`、`extract-module` |
 | 字段命名          | `design/field-naming-conventions.md`               | `field-naming`                    |
 | 权限              | `design/permission-system.md`                      | `permissions`                     |
@@ -83,4 +87,4 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 
 - **Rules**（`.cursor/rules/*.mdc`，仅 Cursor）— `architecture`、`extension-points`、`coding-standards`、`field-naming`、`permissions`、`docs-reference`、`ui-components`、`frontend-page-structure`、`audit-logging`、`prisma-migration`、`plan-tracking`、`auto-execute-scripts`
 - **Skills**（`.cursor/skills/`，单一真相源）— `create-module`、`extract-module`、`error-logging`、`frontend-page-structure`、`prisma-sync-fix`、`merge-migrations`
-- **Claude Code**：`.claude/skills/` 由 `pnpm sync-skills` 生成（`prepare` 自动跑）；只改 `.cursor/skills/`，勿手改生成物
+- **Claude Code**：根目录 `CLAUDE.md` 指向本文件；`.claude/skills/` 由 `pnpm sync-skills` 生成（`prepare` 自动跑）；只改 `.cursor/skills/`，勿手改生成物

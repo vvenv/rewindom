@@ -4,7 +4,12 @@ import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
-import { BUILTIN_MODULES, HERO, TECH_STACK } from "../../shared/index.js";
+import {
+  AGENT_WORKFLOW_STEPS,
+  BUILTIN_MODULES,
+  HERO,
+  TECH_STACK,
+} from "../../shared/index.js";
 import { FeatureGrid } from "../components/FeatureGrid.js";
 import {
   MarketingLayout,
@@ -22,13 +27,13 @@ function Hero() {
     <MarketingSection className="relative overflow-hidden pt-16 pb-20 sm:pt-24">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 -z-10 size-[42rem] -translate-x-1/2 rounded-full bg-primary/8 blur-3xl"
+        className="pointer-events-none absolute -top-40 left-1/2 -z-10 size-168 -translate-x-1/2 rounded-full bg-primary/8 blur-3xl"
       />
       <div
         aria-hidden
         className="pointer-events-none absolute -right-24 -bottom-32 -z-10 hidden lg:block"
       >
-        <Logo className="size-[26rem] text-foreground/[0.03]" />
+        <Logo className="size-104 text-foreground/3" />
       </div>
 
       <p className="text-sm font-medium tracking-wide text-primary">
@@ -63,11 +68,11 @@ function Hero() {
       <dl className="mt-14 grid max-w-2xl gap-6 sm:grid-cols-3">
         {(
           [
+            { key: "agentLoop" as const, detailValues: undefined },
             {
               key: "infraModules" as const,
               detailValues: { count: BUILTIN_MODULES.length },
             },
-            { key: "deployment" as const, detailValues: undefined },
             { key: "tenantIsolation" as const, detailValues: undefined },
           ] as const
         ).map(({ key, detailValues }) => (
@@ -81,6 +86,54 @@ function Hero() {
           </div>
         ))}
       </dl>
+    </MarketingSection>
+  );
+}
+
+function AgentFirst() {
+  const { t } = useTranslation("marketing");
+  const hrefFor = useMarketingHref();
+
+  return (
+    <MarketingSection className="py-20">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="max-w-2xl">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            {t("landing.agentFirst.title")}
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            {t("landing.agentFirst.description")}
+          </p>
+        </div>
+        <Button asChild variant="outline" className="h-10 px-4">
+          <Link to={hrefFor("/docs/agent-first")}>
+            {t("landing.agentFirst.readMore")}
+            <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      </div>
+
+      <ol className="mt-8 grid gap-3 sm:grid-cols-3">
+        {AGENT_WORKFLOW_STEPS.map((step, index) => (
+          <li
+            key={step.key}
+            className="rounded-xl border border-border/60 bg-background p-5"
+          >
+            <span className="text-xs tracking-wide text-muted-foreground uppercase">
+              {t("landing.agentFirst.stepLabel", { step: index + 1 })}
+            </span>
+            <p className="mt-2 font-medium">
+              {t(`landing.agentFirst.steps.${step.key}.title`)}
+            </p>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              {t(`landing.agentFirst.steps.${step.key}.description`)}
+            </p>
+            <code className="mt-3 block text-xs text-primary">
+              {step.command}
+            </code>
+          </li>
+        ))}
+      </ol>
     </MarketingSection>
   );
 }
@@ -224,6 +277,7 @@ export function Landing() {
   return (
     <MarketingLayout path="/">
       <Hero />
+      <AgentFirst />
       <MarketingSection className="pb-4">
         <FeatureGrid />
       </MarketingSection>

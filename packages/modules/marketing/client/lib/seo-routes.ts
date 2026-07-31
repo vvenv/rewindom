@@ -69,7 +69,7 @@ export const MARKETING_ROUTES: readonly PageSeo[] = [
     path: "/docs",
     title: "文档",
     description:
-      "be-water 使用文档：快速开始、模块化架构、多租户与权限、部署。",
+      "be-water 使用文档：快速开始、Agent-first、模块化架构、多租户与权限、部署。",
     priority: 0.8,
     changefreq: "weekly",
   },

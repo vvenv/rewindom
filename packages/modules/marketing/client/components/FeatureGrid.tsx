@@ -1,6 +1,6 @@
 import {
   Blocks,
-  Gauge,
+  Bot,
   Layers,
   Plug,
   Server,
@@ -13,9 +13,9 @@ import { FEATURES, type FeatureIconName } from "../../shared/index.js";
 
 /** shared 层只存图标名（不引 React），映射放在这里。 */
 const ICONS: Record<FeatureIconName, LucideIcon> = {
+  bot: Bot,
   blocks: Blocks,
   shield: ShieldCheck,
-  gauge: Gauge,
   layers: Layers,
   plug: Plug,
   server: Server,

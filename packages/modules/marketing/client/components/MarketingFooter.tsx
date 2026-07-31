@@ -23,6 +23,7 @@ const FOOTER_GROUPS = [
     links: [
       { labelKey: "footer.links.docsHome", href: "/docs" },
       { labelKey: "footer.links.quickstart", href: "/docs/quickstart" },
+      { labelKey: "footer.links.agentFirst", href: "/docs/agent-first" },
       { labelKey: "footer.links.modules", href: "/docs/modules" },
     ],
   },

@@ -46,4 +46,5 @@ Frontend (React SPA) → Fastify API (:3700) → PostgreSQL + Prisma
 新增模块：填 `MODULE.spec.yaml` → `pnpm gen:module` → 补 service → `pnpm check:modules`。
 
 Skills：`create-module` · `extract-module` · `error-logging` · `frontend-page-structure` ·
-`prisma-sync-fix` · `merge-migrations`。文档索引：`docs-reference` rule。
+`prisma-sync-fix` · `merge-migrations`。Agent-first 口径：`docs/design/agent-first.md`。
+文档索引：`docs-reference` rule。

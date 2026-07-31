@@ -67,6 +67,7 @@ describe("DOC_PAGES", () => {
   it("loads the shipped documents", () => {
     expect(DOC_PAGES.length).toBeGreaterThan(0);
     expect(DOC_PAGES.map((page) => page.slug)).toContain("quickstart");
+    expect(DOC_PAGES.map((page) => page.slug)).toContain("agent-first");
   });
 
   it("gives every shipped document a non-empty body", () => {

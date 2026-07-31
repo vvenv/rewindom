@@ -31,7 +31,7 @@ packages/modules/<id>/
 
 ## 新增模块
 
-标准路径是 **填 spec → 生成 → 补业务逻辑 → 校验**：
+标准路径是 **填 spec → 生成 → 补业务逻辑 → 校验**（Agent-first 闭环，详见 [Agent-first](/docs/agent-first)）：
 
 ```bash
 pnpm gen:module <spec.yaml>            # 生成骨架并完成 6 处注册

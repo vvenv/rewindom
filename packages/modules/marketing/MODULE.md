@@ -35,7 +35,7 @@
 | -------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
 | 文档正文       | `content/docs/*.md`                   | frontmatter 必填 `title` + `description`（进 `<head>`），`slug` 可省则取文件名 |
 | 文档顺序       | 文件名数字前缀                        | `01-quickstart.md` → 目录第一项                                                |
-| 首页文案       | `shared/features.ts`                  | HERO、卖点、内建模块、技术栈                                                   |
+| 首页文案       | `shared/features.ts` + `client/locales/*.json` | HERO、Agent 闭环、卖点、内建模块、技术栈（运行时以 i18n 为准）          |
 | 定价包装       | `shared/pricing.ts`                   | 卖点、CTA、推荐位                                                              |
 | 定价数字       | `../platform/shared/pricing-plans.ts` | **价格与配额的唯一真相源**，官网不另存一份                                     |
 | 站点信息 / SEO | `shared/site.ts`、`shared/seo.ts`     | 站名、导航、页脚、canonical 与 JSON-LD 构造                                    |

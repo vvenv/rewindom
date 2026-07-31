@@ -8,17 +8,35 @@ export interface FeatureItem {
 }
 
 export type FeatureIconName =
-  "blocks" | "shield" | "gauge" | "layers" | "plug" | "server";
+  | "bot"
+  | "blocks"
+  | "shield"
+  | "layers"
+  | "plug"
+  | "server";
 
 export const HERO = {
-  headline: "底座随业务成形，而不是业务迁就底座",
+  headline: "Agent-first 的多租户 SaaS 底座",
   subline:
-    "多租户 SaaS 模块化单体：内核与基础设施不含业务代码，业务以模块挂载、按租户开关、单进程部署。",
+    "AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展业务；内核不含业务代码，模块按租户开关，单进程部署。",
   primaryCta: { label: "快速开始", href: "/docs/quickstart" },
-  secondaryCta: { label: "看定价", href: "/pricing" },
+  secondaryCta: { label: "Agent-first", href: "/docs/agent-first" },
 } as const;
 
+/** 首页 Agent 工作流步骤（文案由 i18n 覆盖；此处为预渲染/单测回退）。 */
+export const AGENT_WORKFLOW_STEPS = [
+  { key: "spec" as const, command: "MODULE.spec.yaml" },
+  { key: "gen" as const, command: "pnpm gen:module" },
+  { key: "check" as const, command: "pnpm check:modules" },
+] as const;
+
 export const FEATURES: readonly FeatureItem[] = [
+  {
+    title: "Agent-first 闭环",
+    description:
+      "AGENTS.md 与 Skills 是交付物的一部分：填 Spec → gen:module → check:modules，编码 Agent 在闸门内扩展，而不是碰运气。",
+    icon: "bot",
+  },
   {
     title: "内核不依赖业务",
     description:
@@ -42,12 +60,6 @@ export const FEATURES: readonly FeatureItem[] = [
     description:
       "租户守卫在 Prisma 层 fail-closed：模型没登记就启动失败，越权查询还有 lint 与运行时双重兜底。",
     icon: "shield",
-  },
-  {
-    title: "可观测性内建",
-    description:
-      "审计日志、错误日志、慢查询看板、后台任务中心开箱即用，不用等到出事才补监控。",
-    icon: "gauge",
   },
   {
     title: "单进程部署",

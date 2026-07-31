@@ -1,8 +1,8 @@
 {
   "site": {
-    "title": "be-water · Multi-tenant SaaS foundation",
+    "title": "be-water · Agent-first multi-tenant SaaS foundation",
     "tagline": "Shapeless as water, it takes the form of its container",
-    "description": "be-water is a multi-tenant SaaS modular monolith foundation: the kernel and infrastructure contain no business code; business ships as modules, toggled per tenant, deployed as a single process.",
+    "description": "be-water is an agent-first multi-tenant SaaS modular monolith: AGENTS.md, Skills, and a gen/check loop let coding agents extend the product inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production.",
     "homeAriaLabel": "be-water home"
   },
   "nav": {
@@ -27,23 +27,24 @@
       "login": "Sign in",
       "docsHome": "Docs home",
       "quickstart": "Quick start",
+      "agentFirst": "Agent-first",
       "modules": "Modular architecture",
       "github": "GitHub"
     }
   },
   "hero": {
-    "headline": "The foundation shapes to your business—not the other way around",
-    "subline": "A multi-tenant SaaS modular monolith: kernel and infrastructure stay business-free; modules plug in, toggle per tenant, and run in one process.",
+    "headline": "An agent-first multi-tenant SaaS foundation",
+    "subline": "AGENTS.md, Skills, and a gen/check loop let coding agents extend the product inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production.",
     "primaryCta": "Quick start",
-    "secondaryCta": "View pricing",
+    "secondaryCta": "Agent-first",
     "stats": {
+      "agentLoop": {
+        "term": "Agent loop",
+        "detail": "spec → gen → check"
+      },
       "infraModules": {
         "term": "Infrastructure modules",
         "detail": "{{count}} ready out of the box"
-      },
-      "deployment": {
-        "term": "Deployment",
-        "detail": "Single process · Docker Compose"
       },
       "tenantIsolation": {
         "term": "Tenant isolation",
@@ -52,6 +53,10 @@
     }
   },
   "features": {
+    "bot": {
+      "title": "Agent-first loop",
+      "description": "AGENTS.md and Skills are part of the product: fill a Spec → gen:module → check:modules so coding agents extend inside gates—not by luck."
+    },
     "layers": {
       "title": "Kernel stays business-free",
       "description": "HTTP stack, auth, tenant context, module loader, and event bus live in the kernel—zero business code mixed in. Swap the product without touching the foundation."
@@ -68,16 +73,32 @@
       "title": "Tenant isolation is mandatory",
       "description": "Tenant guards fail-closed at the Prisma layer: unregistered models block startup, with lint and runtime checks against cross-tenant access."
     },
-    "gauge": {
-      "title": "Observability built in",
-      "description": "Audit logs, error logs, slow-query dashboards, and a job center ship ready—no waiting for an incident to add monitoring."
-    },
     "server": {
       "title": "Single-process deployment",
       "description": "Assembled at compile time, one process in production, delivered with Docker Compose. No microservice ops tax, no low-code ceiling."
     }
   },
   "landing": {
+    "agentFirst": {
+      "title": "One loop for humans and agents",
+      "description": "Not another scaffold dump: structured Specs, one-shot wiring, and machine gates so Cursor / Claude Code extend modules inside the lines.",
+      "readMore": "Read Agent-first",
+      "stepLabel": "Step {{step}}",
+      "steps": {
+        "spec": {
+          "title": "Fill the Spec",
+          "description": "Declare module id, permissions, models, and entitlements; blanks mean the agent must ask—no guessing."
+        },
+        "gen": {
+          "title": "Generate and wire",
+          "description": "Scaffold plus six registry touchpoints in one pass—no silent missing routes or tenant guards."
+        },
+        "check": {
+          "title": "Machine gates",
+          "description": "Contract and dependency checks catch overreach and missed wiring; CI runs the same suite."
+        }
+      }
+    },
     "builtinModules": {
       "title": "Infrastructure ready to go",
       "description": "Auth, tenants, permissions, audit, notifications, jobs, observability—everything every SaaS rebuilds from scratch, already modular and toggleable."
@@ -91,8 +112,8 @@
       "title": "Start here"
     },
     "closingCta": {
-      "title": "Run the foundation first, then the product",
-      "description": "Five minutes locally, one command to production. The free tier can stay free.",
+      "title": "Run the foundation, then let agents extend it",
+      "description": "Five minutes locally; ship modules through Spec → gen → check. The free tier can stay free.",
       "getStarted": "Get started free",
       "viewPricing": "View pricing"
     }
@@ -224,7 +245,7 @@
   },
   "docs": {
     "pageTitle": "Docs",
-    "pageDescription": "From local setup to module boundaries to production deployment.",
+    "pageDescription": "From local setup to the agent-first loop to module boundaries and production.",
     "navLabel": "Documentation",
     "navTitle": "Docs",
     "prevNextNav": "Previous and next",
@@ -236,8 +257,8 @@
   },
   "seo": {
     "home": {
-      "title": "be-water · Multi-tenant SaaS foundation",
-      "description": "be-water is a multi-tenant SaaS modular monolith foundation: the kernel and infrastructure contain no business code; business ships as modules, toggled per tenant, deployed as a single process."
+      "title": "be-water · Agent-first multi-tenant SaaS foundation",
+      "description": "be-water is an agent-first multi-tenant SaaS modular monolith: AGENTS.md, Skills, and a gen/check loop let coding agents extend inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production."
     },
     "pricing": {
       "title": "Pricing",
@@ -245,7 +266,7 @@
     },
     "docs": {
       "title": "Docs",
-      "description": "be-water docs: quick start, modular architecture, multi-tenancy and permissions, deployment."
+      "description": "be-water docs: quick start, agent-first, modular architecture, multi-tenancy and permissions, deployment."
     }
   }
 }

@@ -53,5 +53,6 @@ pnpm dev
 
 ## 下一步
 
+- 想用 Agent 扩模块：读 [Agent-first](/docs/agent-first)
 - 想加功能：读[模块化架构](/docs/modules)，用 `pnpm gen:module` 生成骨架
 - 想上线：读[部署](/docs/deploy)
