@@ -17,6 +17,11 @@
 - `audit`
 - `platform`（webhook / 结账成功后调用 `updateTenantPlan` 回写套餐与配额）
 
+## 租户侧导航
+
+`/billing` 归入沉底分组「系统管理」（与用户管理、角色权限同组，`placement: end`），
+不单独占主区「设置」分组，避免日常业务与治理入口被割裂。
+
 ## 启用
 
 在 [enabled-modules.ts](../../../apps/server/src/enabled-modules.ts) 与 client 同名文件注册。

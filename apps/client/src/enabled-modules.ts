@@ -17,23 +17,28 @@ import { appShellClientModule } from "@/shell/index";
 import type { ClientAppModule } from "@be-water/client-kit";
 
 /**
- * 模块顺序决定侧栏 section 顺序与移动端 tab 顺序（见 collect-modules.ts）。
- * 新增业务模块在此追加。
+ * 模块顺序决定侧栏 section 顺序与组内 items 顺序（见 collect-modules.ts）。
+ *
+ * 租户侧栏心流约定：
+ * 1. 主区：概览 → 业务（示例等）
+ * 2. 沉底：系统管理（用户 → 角色 → 订阅）→ 系统监控（审计 → 错误）
+ *
+ * 新增业务模块插在 dashboard 之后、沉底管理类之前。
  */
 export const ENABLED_CLIENT_MODULES = [
   appShellClientModule,
   marketingClientModule,
-  // 工作台排在业务模块之前：侧栏「概览」分组要在最上面
   dashboardClientModule,
+  notesClientModule,
+  todosClientModule,
+  notificationClientModule,
   backgroundJobClientModule,
   platformClientModule,
+  // 沉底：先注册「系统管理」再「系统监控」，组内顺序即下列模块顺序
+  userClientModule,
+  rbacClientModule,
+  billingClientModule,
   auditClientModule,
   errorLogClientModule,
-  rbacClientModule,
-  userClientModule,
   slowQueryClientModule,
-  notesClientModule,
-  notificationClientModule,
-  todosClientModule,
-  billingClientModule,
 ] as const satisfies readonly ClientAppModule[];

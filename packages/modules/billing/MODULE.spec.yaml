@@ -64,7 +64,7 @@ client:
   mount: renderRoutes
   route_path: /billing
   nav:
-    section: 设置
+    section: 系统管理
     label: 订阅与付款
     title: 订阅与付款
     icon: CreditCard
