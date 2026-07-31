@@ -2,10 +2,6 @@ import { useMemo } from "react";
 
 import {
   Logo,
-  LocaleToggle,
-  ShellLayoutToggle,
-  ThemePaletteToggle,
-  ThemeToggle,
   resolveNavLabel,
   usePersistState,
   type AppNavItem,
@@ -224,10 +220,6 @@ function SidebarFooter({
           onNavigate={onNavigate}
           collapsed
         />
-        <ShellLayoutToggle />
-        <ThemePaletteToggle />
-        <LocaleToggle />
-        <ThemeToggle />
         {UserMenu ? <UserMenu collapsed /> : null}
       </div>
     );
@@ -239,14 +231,8 @@ function SidebarFooter({
         <SidebarNavSections sections={endSections} onNavigate={onNavigate} />
       ) : null}
       <Separator />
-      <div className="flex justify-between gap-1 p-3">
+      <div className="flex p-3">
         {UserMenu ? <UserMenu showLabel /> : null}
-        <div className="flex shrink-0 items-center">
-          <ShellLayoutToggle />
-          <ThemePaletteToggle />
-          <LocaleToggle />
-          <ThemeToggle />
-        </div>
       </div>
     </div>
   );
@@ -342,13 +328,8 @@ function MobileNavDrawer({
 
         <div className="mt-auto flex flex-col">
           <SidebarNavSections sections={endSections} onNavigate={closeNav} />
-          <SheetFooter className="flex-row items-center justify-between">
+          <SheetFooter className="flex-row items-center">
             {UserMenu ? <UserMenu showLabel /> : null}
-            <div className="flex shrink-0 items-center">
-              <ThemePaletteToggle />
-              <LocaleToggle />
-              <ThemeToggle />
-            </div>
           </SheetFooter>
         </div>
       </SheetContent>

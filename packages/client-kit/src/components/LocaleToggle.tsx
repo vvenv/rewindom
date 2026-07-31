@@ -10,10 +10,8 @@ import { Button } from "@be-water/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@be-water/ui/dropdown-menu";
 import { cn } from "@be-water/ui/utils";
@@ -41,7 +39,7 @@ export function LocaleToggle({
   /** 官网：切换语言后导航到对应 locale URL（由 marketing 注入）。 */
   onLocaleNavigate?: (locale: AppLocale) => void;
 }): ReactNode {
-  const { t } = useTranslation(["shell", "common"]);
+  const { t } = useTranslation("shell");
   const { locale, setLocale } = useLocale();
 
   return (
@@ -63,10 +61,8 @@ export function LocaleToggle({
         side={menuSide}
         align={menuAlign}
         collisionPadding={8}
-        className="w-56"
+        className="w-max"
       >
-        <DropdownMenuLabel>{t("common:language")}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
           value={locale}
           onValueChange={(value) => {

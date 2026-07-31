@@ -3,10 +3,8 @@ import { Button } from "@be-water/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@be-water/ui/dropdown-menu";
 import { cn } from "@be-water/ui/utils";
@@ -57,10 +55,8 @@ export function ShellLayoutToggle({
         side={menuSide}
         align={menuAlign}
         collisionPadding={8}
-        className="w-60"
+        className="w-max"
       >
-        <DropdownMenuLabel>{t("layout")}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
           key={i18n.language}
           value={layout}
@@ -68,12 +64,7 @@ export function ShellLayoutToggle({
         >
           {options.map((option) => (
             <DropdownMenuRadioItem key={option.slug} value={option.slug}>
-              <div className="flex flex-col gap-0.5">
-                <span>{option.label}</span>
-                <span className="text-muted-foreground text-xs">
-                  {option.description}
-                </span>
-              </div>
+              {option.label}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>

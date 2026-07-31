@@ -11,6 +11,12 @@ export { ThemePaletteToggle } from "./components/ThemePaletteToggle";
 export { ShellLayoutToggle } from "./components/ShellLayoutToggle";
 export { LocaleToggle } from "./components/LocaleToggle";
 export {
+  COLOR_MODES,
+  useColorMode,
+  type ColorMode,
+  type ColorModeValue,
+} from "./hooks/use-color-mode";
+export {
   ThemePaletteProvider,
   useThemePalette,
   type ThemePaletteValue,

@@ -39,6 +39,10 @@ function createMockAuthContext(
 vi.mock("@be-water/client-kit", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@be-water/client-kit")>()),
   useAuth: vi.fn(),
+  useColorMode: () => ({
+    colorMode: "system" as const,
+    setColorMode: vi.fn(),
+  }),
 }));
 
 const mockIsInImpersonationSession = vi.fn();

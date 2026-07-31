@@ -2,6 +2,12 @@
   "theme": "主题",
   "switchTheme": "切换主题",
   "currentTheme": "当前主题: {{label}}",
+  "colorMode": "明暗",
+  "colorModes": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
+  },
   "themePalettes": {
     "water": {
       "label": "水蓝",
@@ -36,7 +42,7 @@
   "pageErrorDescription": "应用遇到了意外错误，请刷新页面重试。",
   "refreshPage": "刷新页面",
   "defaultLocale": "默认语言",
-  "defaultLocaleDescription": "租户侧的默认界面语言。租户可在「租户 → 外观」里单独覆盖，用户也可在侧边栏或菜单自行切换",
+  "defaultLocaleDescription": "租户侧的默认界面语言。租户可在「租户 → 外观」里单独覆盖，用户也可在账户菜单自行切换",
   "defaultLocaleUpdated": "默认语言已更新",
   "tenantLocale": "语言",
   "tenantLocaleDescription": "该租户用户未自行切换时看到的界面语言",

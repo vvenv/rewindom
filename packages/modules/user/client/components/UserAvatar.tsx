@@ -1,9 +1,22 @@
-import { useAuth, useLocale } from "@be-water/client-kit";
+import type { ReactNode } from "react";
+
+import {
+  COLOR_MODES,
+  useAuth,
+  useColorMode,
+  useLocale,
+  useShellLayout,
+  useThemePalette,
+  translateShellLayoutOptions,
+  translateThemePaletteOptions,
+} from "@be-water/client-kit";
 import {
   APP_LOCALES,
   formatBusinessDateOrTimeAgo,
   isRegularUser,
   normalizeLocale,
+  normalizeShellLayout,
+  normalizeThemePalette,
 } from "@be-water/shared";
 import { Avatar, AvatarFallback } from "@be-water/ui/avatar";
 import { Button } from "@be-water/ui/button";
@@ -21,7 +34,16 @@ import {
   DropdownMenuTrigger,
 } from "@be-water/ui/dropdown-menu";
 import { cn } from "@be-water/ui/utils";
-import { ArrowLeft, Key, Languages, LogOut, Shield } from "lucide-react";
+import {
+  ArrowLeft,
+  Key,
+  Languages,
+  LogOut,
+  Palette,
+  PanelsTopLeft,
+  Shield,
+  SunMoon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -39,17 +61,60 @@ interface UserAvatarProps {
   showLabel?: boolean;
   menuSide?: "top" | "bottom" | "left" | "right";
   menuAlign?: "start" | "center" | "end";
+  /**
+   * 租户壳为 true：额外露出配色 / 布局（依赖 AppLayout 的 Provider）。
+   * 平台控制台为 false：只保留语言与明暗（全局生效）。
+   */
+  showShellPreferences?: boolean;
+}
+
+function PreferenceSubmenu({
+  icon,
+  label,
+  value,
+  options,
+  onValueChange,
+  className,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  options: Array<{ slug: string; label: string }>;
+  onValueChange: (value: string) => void;
+  className?: string;
+}): ReactNode {
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className={className}>
+        {icon}
+        <span>{label}</span>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="w-max">
+        <DropdownMenuRadioGroup value={value} onValueChange={onValueChange}>
+          {options.map((option) => (
+            <DropdownMenuRadioItem key={option.slug} value={option.slug}>
+              {option.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  );
 }
 
 export function UserAvatar({
   menuSide = "bottom",
   menuAlign = "end",
+  showShellPreferences = false,
 }: UserAvatarProps) {
-  const { t: tShell } = useTranslation("shell");
+  const { t: tShell, i18n } = useTranslation("shell");
   const { t: tCommon } = useTranslation("common");
   const { t: tUser } = useTranslation("user");
   const { user, logout } = useAuth();
   const { locale, setLocale } = useLocale();
+  const { palette, setPalette } = useThemePalette();
+  const { layout, setLayout } = useShellLayout();
+  const { colorMode, setColorMode } = useColorMode();
   const UsageCard = userMenuUsageSlot.useSlot();
 
   const handleLogout = async () => {
@@ -100,6 +165,8 @@ export function UserAvatar({
 
   const impersonating = isInImpersonationSession();
   const profile = getUserDisplayProfile(user, readImpersonationMeta(), tUser);
+  const paletteOptions = translateThemePaletteOptions(tShell);
+  const layoutOptions = translateShellLayoutOptions(tShell);
 
   const avatar = (
     <Avatar className="h-10 w-10" size="sm">
@@ -170,24 +237,53 @@ export function UserAvatar({
           </>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Languages className="size-4" />
-            <span>{tCommon("language")}</span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-56">
-            <DropdownMenuRadioGroup
-              value={locale}
-              onValueChange={(value) => setLocale(normalizeLocale(value))}
-            >
-              {APP_LOCALES.map((option) => (
-                <DropdownMenuRadioItem key={option.slug} value={option.slug}>
-                  {option.native_label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        <PreferenceSubmenu
+          icon={<Languages className="size-4" />}
+          label={tCommon("language")}
+          value={locale}
+          options={APP_LOCALES.map((option) => ({
+            slug: option.slug,
+            label: option.native_label,
+          }))}
+          onValueChange={(value) => setLocale(normalizeLocale(value))}
+        />
+        {showShellPreferences ? (
+          <>
+            <PreferenceSubmenu
+              key={`palette-${i18n.language}`}
+              icon={<Palette className="size-4" />}
+              label={tShell("theme")}
+              value={palette}
+              options={paletteOptions}
+              onValueChange={(value) =>
+                setPalette(normalizeThemePalette(value))
+              }
+            />
+            <PreferenceSubmenu
+              key={`layout-${i18n.language}`}
+              icon={<PanelsTopLeft className="size-4" />}
+              label={tShell("layout")}
+              value={layout}
+              options={layoutOptions}
+              onValueChange={(value) => setLayout(normalizeShellLayout(value))}
+              className="max-md:hidden"
+            />
+          </>
+        ) : null}
+        <PreferenceSubmenu
+          icon={<SunMoon className="size-4" />}
+          label={tShell("colorMode")}
+          value={colorMode}
+          options={COLOR_MODES.map((mode) => ({
+            slug: mode,
+            label: tShell(`colorModes.${mode}`),
+          }))}
+          onValueChange={(value) => {
+            if ((COLOR_MODES as readonly string[]).includes(value)) {
+              setColorMode(value as (typeof COLOR_MODES)[number]);
+            }
+          }}
+        />
         {impersonating ? (
           <>
             <DropdownMenuSeparator />

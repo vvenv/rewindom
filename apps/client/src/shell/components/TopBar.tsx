@@ -2,11 +2,7 @@ import { useMemo, type ReactNode } from "react";
 
 import {
   Logo,
-  LocaleToggle,
   OVERFLOW_MEASURE_ROW_CLASS,
-  ShellLayoutToggle,
-  ThemePaletteToggle,
-  ThemeToggle,
   useNavBadgeCount,
   useOverflowRow,
   type AppNavItem,
@@ -321,10 +317,6 @@ export function TopBar(): ReactNode {
           components={shellContributions.sidebarToolbar}
           render={(Component, index) => <Component key={index} />}
         />
-        <ShellLayoutToggle menuSide="bottom" menuAlign="end" />
-        <ThemePaletteToggle menuSide="bottom" menuAlign="end" />
-        <LocaleToggle menuSide="bottom" menuAlign="end" />
-        <ThemeToggle />
         {UserMenu ? <UserMenu menuSide="bottom" menuAlign="end" /> : null}
       </div>
     </header>

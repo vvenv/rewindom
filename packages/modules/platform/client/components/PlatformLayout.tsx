@@ -5,8 +5,6 @@ import {
   AppVersion,
   Logo,
   Wordmark,
-  LocaleToggle,
-  ThemeToggle,
   type PlatformNavGroup,
 } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
@@ -281,8 +279,6 @@ export function PlatformLayout() {
               {currentTitle}
             </h1>
             {ActivityCenter && <ActivityCenter />}
-            <LocaleToggle menuSide="bottom" menuAlign="end" />
-            <ThemeToggle />
             {UserAvatar && <UserAvatar />}
           </header>
           <main className="flex-1 overflow-y-auto p-3 pb-20 sm:p-6">

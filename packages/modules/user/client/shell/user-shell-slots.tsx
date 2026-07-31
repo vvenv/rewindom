@@ -21,6 +21,7 @@ export function UserSidebarMenu({
       showLabel={!collapsed && showLabel}
       menuSide={menuSide}
       menuAlign={menuAlign}
+      showShellPreferences
     />
   );
 }

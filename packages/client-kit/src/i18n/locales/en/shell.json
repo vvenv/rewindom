@@ -2,6 +2,12 @@
   "theme": "Theme",
   "switchTheme": "Switch theme",
   "currentTheme": "Current theme: {{label}}",
+  "colorMode": "Color mode",
+  "colorModes": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
   "themePalettes": {
     "water": {
       "label": "Water",
@@ -36,7 +42,7 @@
   "pageErrorDescription": "The app hit an unexpected error. Please refresh and try again.",
   "refreshPage": "Refresh",
   "defaultLocale": "Default language",
-  "defaultLocaleDescription": "Default UI language for tenants. Tenants can override it under Tenant → Appearance; users can also switch it in the sidebar or menu.",
+  "defaultLocaleDescription": "Default UI language for tenants. Tenants can override it under Tenant → Appearance; users can also switch it in the account menu.",
   "defaultLocaleUpdated": "Default language updated",
   "tenantLocale": "Language",
   "tenantLocaleDescription": "UI language tenants see when they have not chosen one themselves",

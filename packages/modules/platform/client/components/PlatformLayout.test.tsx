@@ -38,8 +38,6 @@ vi.mock("@be-water/client-kit", async (importOriginal) => {
       defaultValue,
       vi.fn(),
     ],
-    ThemeToggle: () => <div data-testid="theme-toggle" />,
-    LocaleToggle: () => <div data-testid="locale-toggle" />,
   };
 });
 
