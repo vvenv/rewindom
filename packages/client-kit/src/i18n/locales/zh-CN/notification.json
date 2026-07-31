@@ -1,0 +1,17 @@
+{
+  "panel": {
+    "loading": "加载中…",
+    "empty": "暂无消息",
+    "markAllRead": "全部标为已读"
+  },
+  "desktop": {
+    "denied": "桌面通知已被浏览器拒绝。请在浏览器地址栏左侧的站点设置中，将「通知」改为允许后刷新页面。",
+    "enable": "开启桌面通知",
+    "label": "桌面通知",
+    "backgroundOnly": "仅后台时提醒"
+  },
+  "activityCenter": {
+    "title": "活动中心",
+    "backgroundTasks": "后台任务"
+  }
+}

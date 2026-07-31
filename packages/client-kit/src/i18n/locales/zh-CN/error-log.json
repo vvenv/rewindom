@@ -1,0 +1,68 @@
+{
+  "description": "平台与租户错误日志页面与 hooks",
+  "nav": {
+    "errorLogs": "错误日志",
+    "keywords": "error logs 错误 异常 报错 日志"
+  },
+  "levels": {
+    "error": "错误",
+    "warn": "警告",
+    "info": "信息",
+    "debug": "调试"
+  },
+  "cleanup": {
+    "confirmTitle": "清理历史错误日志",
+    "confirmDescription": "将删除本租户 {{days}} 天前的错误日志，此操作无法撤销。",
+    "buttonLabel": "清理历史日志"
+  },
+  "toast": {
+    "deleteSuccess": "已删除错误日志",
+    "deleteFailed": "删除失败",
+    "cleanupSuccess": "已清理 {{count}} 条旧日志",
+    "cleanupMySuccess": "已清理 {{count}} 条我的旧日志",
+    "cleanupFailed": "清理失败"
+  },
+  "page": {
+    "title": "错误日志",
+    "description": "本租户内的服务端报错记录，点击任意一行查看堆栈与请求上下文"
+  },
+  "platform": {
+    "description": "跨租户错误日志（只读）"
+  },
+  "filters": {
+    "searchPlaceholder": "账号 / 路由 / 错误代码",
+    "allLevels": "全部级别",
+    "tenant": "租户"
+  },
+  "table": {
+    "time": "时间",
+    "level": "级别",
+    "message": "错误信息",
+    "tenant": "租户",
+    "user": "用户",
+    "route": "路由",
+    "method": "方法",
+    "errorCode": "错误代码",
+    "empty": "暂无错误日志",
+    "loading": "加载中..."
+  },
+  "sheet": {
+    "title": "错误详情",
+    "level": "级别",
+    "time": "时间",
+    "user": "用户",
+    "ipAddress": "IP 地址",
+    "route": "路由",
+    "method": "方法",
+    "errorCode": "错误代码",
+    "userAgent": "用户代理",
+    "message": "错误信息",
+    "stackTrace": "堆栈跟踪",
+    "requestBody": "请求体",
+    "requestParams": "请求参数",
+    "requestQuery": "查询参数",
+    "context": "上下文",
+    "deleteConfirmTitle": "确认删除",
+    "deleteConfirmDescription": "确定要删除这条错误日志吗？此操作无法撤销。"
+  }
+}

@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 
-import { usePersistState, AppVersion , Logo , Wordmark , ThemeToggle ,
-  type PlatformNavGroup } from "@be-water/client-kit";
+import {
+  usePersistState,
+  AppVersion,
+  Logo,
+  Wordmark,
+  LocaleToggle,
+  ThemeToggle,
+  type PlatformNavGroup,
+} from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +18,7 @@ import {
 } from "@be-water/ui/dropdown-menu";
 import { cn } from "@be-water/ui/utils";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 
 import { TaskProvider } from "../../../background-job/client/contexts/TaskContext.js";
@@ -135,6 +143,7 @@ function PlatformNavGroupItem({
 }
 
 export function PlatformLayout() {
+  const { t } = useTranslation("platform");
   const location = useLocation();
   const { platformNavEntries, getPlatformPageTitle } = usePlatformNavConfig();
   const ActivityCenter = activityCenterSlot.useSlot();
@@ -194,7 +203,7 @@ export function PlatformLayout() {
               "h-14 flex items-center border-b border-border/50 overflow-hidden",
               collapsed ? "justify-center px-0" : "px-3.5",
             )}
-            title="首页"
+            title={t("layout.home")}
           >
             {collapsed ? (
               <Logo className="size-6 shrink-0" />
@@ -257,7 +266,7 @@ export function PlatformLayout() {
               size="icon"
               className="hidden sm:flex shrink-0 text-muted-foreground hover:text-foreground"
               onClick={() => setCollapsed((v) => !v)}
-              title={collapsed ? "展开侧边栏" : "收起侧边栏"}
+              title={collapsed ? t("layout.expandSidebar") : t("layout.collapseSidebar")}
             >
               {collapsed ? (
                 <ChevronRight className="size-4" />
@@ -265,13 +274,14 @@ export function PlatformLayout() {
                 <ChevronLeft className="size-4" />
               )}
             </Button>
-            <Link to="/platform" className="sm:hidden" title="首页">
+            <Link to="/platform" className="sm:hidden" title={t("layout.home")}>
               <Logo className="size-6 shrink-0" />
             </Link>
             <h1 className="flex-1 min-w-0 truncate font-medium text-foreground">
               {currentTitle}
             </h1>
             {ActivityCenter && <ActivityCenter />}
+            <LocaleToggle menuSide="bottom" menuAlign="end" />
             <ThemeToggle />
             {UserAvatar && <UserAvatar />}
           </header>

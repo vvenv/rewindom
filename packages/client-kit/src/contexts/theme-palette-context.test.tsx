@@ -25,6 +25,8 @@ function appearance(
     theme_source: "platform",
     layout: "sidebar",
     layout_source: "platform",
+    locale: "zh-CN",
+    locale_source: "platform",
     ...overrides,
   };
 }

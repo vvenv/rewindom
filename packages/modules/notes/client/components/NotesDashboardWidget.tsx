@@ -9,6 +9,7 @@ import {
 import { Skeleton } from "@be-water/ui/skeleton";
 import { ArrowRight, StickyNote } from "lucide-react";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 
 import { useNotes } from "../hooks/useNotes.js";
 
@@ -16,6 +17,7 @@ const RECENT_COUNT = 5;
 
 /** 工作台卡片：最近更新的笔记 + 进入笔记列表的入口。 */
 export function NotesDashboardWidget() {
+  const { t } = useTranslation("notes");
   const { data, isLoading, isError } = useNotes(1, RECENT_COUNT);
   const notes = data?.items ?? [];
 
@@ -24,14 +26,14 @@ export function NotesDashboardWidget() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <StickyNote className="size-4 text-primary" />
-          最近笔记
+          {t("dashboardTitle")}
         </CardTitle>
         <CardAction>
           <Link
             to="/notes"
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            全部
+            {t("dashboardViewAll")}
             <ArrowRight className="size-3.5" />
           </Link>
         </CardAction>
@@ -44,9 +46,9 @@ export function NotesDashboardWidget() {
             <Skeleton className="h-4 w-3/5" />
           </div>
         ) : isError ? (
-          <p className="text-sm text-muted-foreground">笔记加载失败</p>
+          <p className="text-sm text-muted-foreground">{t("dashboardLoadFailed")}</p>
         ) : notes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">还没有笔记</p>
+          <p className="text-sm text-muted-foreground">{t("dashboardEmpty")}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {notes.map((note) => (

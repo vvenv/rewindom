@@ -11,6 +11,7 @@ export * from "./tenant-defaults.js";
 export * from "./theme-palette.js";
 export * from "./shell-layout.js";
 export * from "./appearance.js";
+export * from "./locale.js";
 
 // 原 @be-water/utils
 export * from "./date.js";

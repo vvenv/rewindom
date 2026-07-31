@@ -6,7 +6,7 @@ export const auditPlatformNavContributions: readonly PlatformNavContribution[] =
       kind: "group-children",
       group: "observability",
       children: [
-        { to: "/platform/audit-logs", label: "审计日志", end: true },
+        { to: "/platform/audit-logs", label: "audit:nav.auditLogs", end: true },
       ],
     },
   ];

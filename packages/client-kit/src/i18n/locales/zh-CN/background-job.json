@@ -1,0 +1,33 @@
+{
+  "taskCenter": {
+    "empty": "暂无任务",
+    "clearFinished": "清除已完成",
+    "cancelTask": "取消任务",
+    "dismiss": "移除",
+    "downloading": "下载中…",
+    "downloadFile": "下载文件",
+    "duration": "耗时 {{seconds}}s",
+    "viewErrors": "查看错误详情",
+    "viewErrorsCount": "查看错误详情 ({{count}})",
+    "collapseErrors": "收起错误详情",
+    "viewSkips": "查看跳过详情",
+    "viewSkipsCount": "查看跳过详情 ({{count}})",
+    "collapseSkips": "收起跳过详情",
+    "skipCount": "{{reason}}：{{count}} 条",
+    "truncated": "仅显示前 {{count}} 条记录，其余已省略"
+  },
+  "toast": {
+    "backupDownloadStarted": "备份文件已开始下载",
+    "fileDownloadStarted": "文件已开始下载",
+    "downloadFailed": "下载失败",
+    "retryLater": "请稍后重试",
+    "submitting": "正在提交任务…",
+    "submitted": "任务已提交，服务端执行中…",
+    "completed": "任务完成",
+    "failed": "任务失败",
+    "cancelFailed": "取消任务失败",
+    "submitFailed": "任务提交失败",
+    "cancelled": "任务已取消",
+    "cancelling": "正在取消…"
+  }
+}

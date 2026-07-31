@@ -6,7 +6,7 @@ export const errorLogPlatformNavContributions: readonly PlatformNavContribution[
       kind: "group-children",
       group: "observability",
       children: [
-        { to: "/platform/error-logs", label: "错误日志", end: true },
+        { to: "/platform/error-logs", label: "error-log:nav.errorLogs", end: true },
       ],
     },
   ];

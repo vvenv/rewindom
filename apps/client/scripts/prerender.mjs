@@ -13,6 +13,8 @@
  *   dist/app.html                ← 原始 SPA 外壳，给应用路由与未知路径兜底
  *   dist/pricing/index.html
  *   dist/docs/<slug>/index.html
+ *   dist/en/index.html · dist/en/pricing/index.html · …
+ *   dist/zh-CN/…                 ← 带 locale code 的静态镜像
  *   dist/sitemap.xml · dist/robots.txt
  *
  * 为什么要单独留一份 app.html：`dist/index.html` 被落地页占了，若继续拿它做 SPA 兜底，
@@ -80,6 +82,7 @@ async function main() {
       template,
       head: buildHead(route, siteOrigin),
       body,
+      locale: route.locale,
     });
 
     const outputPath = path.join(DIST, outputPathFor(route.path));

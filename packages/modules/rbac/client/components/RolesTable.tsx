@@ -11,6 +11,7 @@ import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { toast } from "@be-water/ui/toast";
 import { ShieldCheck, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useDeleteRole } from "../hooks/useRoleMutations.js";
 
@@ -34,6 +35,7 @@ export function RolesTable({
   error,
   onRetry,
 }: RolesTableProps) {
+  const { t } = useTranslation(["rbac", "common"]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const { hasPermission } = usePermissions();
   const { confirm } = useConfirm();
@@ -44,19 +46,19 @@ export function RolesTable({
   const columns = useMemo<ColumnDef<RoleDetail>[]>(() => {
     const handleDelete = async (role: RoleDetail) => {
       const ok = await confirm({
-        title: "删除角色",
-        description: `确定删除角色「${role.name}」？该角色下成员将失去由它带来的权限。`,
-        confirmText: "删除",
+        title: t("table.deleteConfirmTitle"),
+        description: t("table.deleteConfirmDescription", { name: role.name }),
+        confirmText: t("common:delete"),
         destructive: true,
       });
       if (!ok) return;
 
       try {
         await deleteMutation.mutateAsync(role.id);
-        toast.success("角色已删除");
+        toast.success(t("table.roleDeleted"));
       } catch (err) {
         toast.error(
-          err instanceof ApiError ? err.message : "删除失败，请重试",
+          err instanceof ApiError ? err.message : t("table.deleteFailed"),
         );
       }
     };
@@ -65,20 +67,22 @@ export function RolesTable({
       {
         accessorKey: "name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="角色" />
+          <DataTableColumnHeader column={column} title={t("table.role")} />
         ),
         enableSorting: true,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <span className="font-medium">{row.original.name}</span>
-            {row.original.is_builtin && <Badge variant="secondary">内置</Badge>}
+            {row.original.is_builtin && (
+              <Badge variant="secondary">{t("table.builtin")}</Badge>
+            )}
           </div>
         ),
       },
       {
         accessorKey: "description",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="描述" />
+          <DataTableColumnHeader column={column} title={t("table.description")} />
         ),
         enableSorting: true,
         cell: ({ row }) => (
@@ -89,7 +93,7 @@ export function RolesTable({
       },
       {
         id: "permissions",
-        header: "权限数",
+        header: t("table.permissionCount"),
         enableSorting: false,
         cell: ({ row }) => (
           <span className="tabular-nums">
@@ -108,12 +112,11 @@ export function RolesTable({
           return (
             <div className="flex justify-end gap-1">
               <RoleEditSheet role={row.original} />
-              {/* 内置角色服务端禁止删除，这里直接不给入口 */}
               {!row.original.is_builtin && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  title="删除角色"
+                  title={t("table.deleteRole")}
                   disabled={deleteMutation.isPending}
                   onClick={() => void handleDelete(row.original)}
                 >
@@ -125,7 +128,7 @@ export function RolesTable({
         },
       },
     ];
-  }, [canWrite, confirm, deleteMutation]);
+  }, [canWrite, confirm, deleteMutation, t]);
 
   return (
     <DataTable
@@ -136,8 +139,8 @@ export function RolesTable({
       error={error}
       onRetry={onRetry}
       emptyIcon={<ShieldCheck />}
-      emptyHeader="暂无角色"
-      emptyMessage="创建角色后，即可为成员分配对应权限"
+      emptyHeader={t("table.emptyHeader")}
+      emptyMessage={t("table.emptyMessage")}
       sorting={sorting}
       onSortingChange={setSorting}
       manualSorting={false}

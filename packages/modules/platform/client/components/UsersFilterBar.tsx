@@ -1,4 +1,5 @@
 import { FilterBar } from "@be-water/client-kit";
+import { useTranslation } from "react-i18next";
 
 import { TenantCombobox } from "./TenantCombobox.js";
 
@@ -17,19 +18,21 @@ export function UsersFilterBar({
   onTenantChange: (slug: string | null) => void;
   onReset: () => void;
 }) {
+  const { t } = useTranslation(["platform", "common"]);
+
   return (
     <FilterBar
       search={{
         value: search,
         onCommit: (value: string) => onSearchChange(value.trim()),
-        placeholder: "搜索用户名",
+        placeholder: t("users.filters.searchPlaceholder"),
         className: "max-w-40",
       }}
       inlineContent={
         <TenantCombobox
           value={tenant_slug ?? null}
           onValueChange={onTenantChange}
-          placeholder="租户"
+          placeholder={t("common:tenant")}
           showClear
           className="w-40"
         />

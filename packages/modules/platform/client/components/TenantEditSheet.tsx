@@ -21,6 +21,7 @@ import {
 import { Textarea } from "@be-water/ui/textarea";
 import { toast } from "@be-water/ui/toast";
 import { Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { type TenantSummary } from "../../shared/index.js";
 import { usePatchPlatformTenant } from "../hooks/usePlatformTenants.js";
@@ -36,6 +37,7 @@ export function TenantEditSheet({
   disabled = false,
   onActingChange,
 }: TenantEditSheetProps) {
+  const { t } = useTranslation(["platform", "common"]);
   const patchMutation = usePatchPlatformTenant();
   const [open, setOpen] = useState(false);
   const [slug, setSlug] = useState("");
@@ -56,20 +58,22 @@ export function TenantEditSheet({
     event.preventDefault();
     const trimmedName = name.trim();
     if (!trimmedName) {
-      toast.error("租户名称不能为空");
+      toast.error(t("tenants.edit.nameRequired"));
       return;
     }
 
     const trimmedSlug = slug.trim();
     if (!slugLocked) {
       if (!trimmedSlug) {
-        toast.error("租户标识不能为空");
+        toast.error(t("tenants.edit.slugRequired"));
         return;
       }
       try {
         assertValidTenantSlug(trimmedSlug);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "租户标识格式无效");
+        toast.error(
+          err instanceof Error ? err.message : t("tenants.edit.slugInvalid"),
+        );
         return;
       }
     }
@@ -84,10 +88,10 @@ export function TenantEditSheet({
           remark: remark.trim() || null,
         },
       });
-      toast.success("租户信息已保存");
+      toast.success(t("tenants.edit.saved"));
       setOpen(false);
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "保存失败");
+      toast.error(err instanceof ApiError ? err.message : t("common:saveFailed"));
     } finally {
       onActingChange?.(false);
     }
@@ -98,12 +102,14 @@ export function TenantEditSheet({
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" disabled={disabled}>
           <Pencil className="size-3.5" />
-          编辑
+          {t("tenants.edit.trigger")}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
         <SheetHeader className="shrink-0 border-b pb-4">
-          <SheetTitle className="pr-8">编辑租户 — {tenant.slug}</SheetTitle>
+          <SheetTitle className="pr-8">
+            {t("tenants.edit.title", { slug: tenant.slug })}
+          </SheetTitle>
         </SheetHeader>
         <form
           onSubmit={(event) => void handleSave(event)}
@@ -112,7 +118,7 @@ export function TenantEditSheet({
           <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
             <Field>
               <FieldLabel htmlFor={`edit-tenant-slug-${tenant.id}`}>
-                标识 (slug)
+                {t("tenants.slugField")}
               </FieldLabel>
               <Input
                 id={`edit-tenant-slug-${tenant.id}`}
@@ -121,16 +127,20 @@ export function TenantEditSheet({
                 disabled={slugLocked}
               />
               {slugLocked ? (
-                <FieldDescription>默认租户标识不可修改</FieldDescription>
+                <FieldDescription>
+                  {t("tenants.edit.defaultSlugLocked")}
+                </FieldDescription>
               ) : (
                 <FieldDescription>
-                  用户登录格式：用户名@{slug.trim() || "标识"}
+                  {t("tenants.slugDescription", {
+                    slug: slug.trim() || t("tenants.slug"),
+                  })}
                 </FieldDescription>
               )}
             </Field>
             <Field>
               <FieldLabel htmlFor={`edit-tenant-name-${tenant.id}`}>
-                名称
+                {t("tenants.name")}
               </FieldLabel>
               <Input
                 id={`edit-tenant-name-${tenant.id}`}
@@ -140,11 +150,11 @@ export function TenantEditSheet({
             </Field>
             <Field>
               <FieldLabel htmlFor={`edit-tenant-remark-${tenant.id}`}>
-                备注
+                {t("tenants.remark")}
               </FieldLabel>
               <Textarea
                 id={`edit-tenant-remark-${tenant.id}`}
-                placeholder="支持多行文本"
+                placeholder={t("tenants.remarkMultilinePlaceholder")}
                 value={remark}
                 onChange={(e) => setRemark(e.target.value)}
                 rows={5}
@@ -157,10 +167,10 @@ export function TenantEditSheet({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              取消
+              {t("common:cancel")}
             </Button>
             <Button type="submit" disabled={patchMutation.isPending}>
-              保存
+              {t("common:save")}
             </Button>
           </SheetFooter>
         </form>

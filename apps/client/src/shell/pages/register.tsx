@@ -6,6 +6,7 @@ import { api, useAuth,
   APP_HOME_ENTRY_PATH,
 } from "@be-water/client-kit";
 import { toast } from "@be-water/ui/toast";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import { AuthPageShell } from "../components/AuthPageShell.js";
@@ -15,6 +16,7 @@ import { useRegisterForm } from "../hooks/useRegisterForm.js";
 import { buildRegisterInput, validateRegisterForm } from "../lib/register-form.js";
 
 export function Register() {
+  const { t } = useTranslation(["shell", "common"]);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -51,7 +53,7 @@ export function Register() {
       captcha_enabled,
     );
     if (validationError) {
-      toast.error(validationError);
+      toast.error(t(validationError));
       return;
     }
 
@@ -73,7 +75,7 @@ export function Register() {
         expires_in: number;
       }>("/auth/register", input, undefined, true);
 
-      toast.success("注册成功，正在登录...");
+      toast.success(t("auth.registerSuccess"));
 
       await login({
         username: `${result.username}@${result.tenant_slug}`,
@@ -83,7 +85,9 @@ export function Register() {
       // 注册即自动登录，与登录页同一落地逻辑：`/app` → 默认首页
       navigate(APP_HOME_ENTRY_PATH);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "注册失败，请重试");
+      toast.error(
+        err instanceof Error ? err.message : t("auth.registerFailed"),
+      );
     } finally {
       setIsLoading(false);
     }

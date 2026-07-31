@@ -10,7 +10,7 @@ import {
 describe("register-form", () => {
   it("validates required fields", () => {
     expect(validateRegisterForm(INITIAL_REGISTER_FORM, null, false)).toBe(
-      "请输入组织名称",
+      "auth.validation.tenantNameRequired",
     );
   });
 
@@ -26,7 +26,9 @@ describe("register-form", () => {
       email: "admin@acme.com",
     };
 
-    expect(validateRegisterForm(values, null, true)).toBe("请完成滑块验证");
+    expect(validateRegisterForm(values, null, true)).toBe(
+      "auth.validation.captchaRequired",
+    );
     expect(canSubmitRegisterForm(values, null, true)).toBe(false);
   });
 

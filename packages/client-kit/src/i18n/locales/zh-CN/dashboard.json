@@ -1,0 +1,19 @@
+{
+  "description": "租户登录后的默认首页，聚合各模块通过 dashboardWidgets 贡献的卡片",
+  "nav": {
+    "sectionOverview": "概览",
+    "dashboard": "工作台",
+    "keywords": "dashboard 工作台 首页 概览"
+  },
+  "page": {
+    "title": "工作台",
+    "description": "登录后的默认首页，汇总各模块贡献的概览卡片与快捷入口"
+  },
+  "emptyState": {
+    "title": "工作台还没有卡片",
+    "hint": "从左侧导航进入具体模块开始使用。"
+  },
+  "widget": {
+    "loadFailed": "该卡片加载失败，刷新页面可重试。"
+  }
+}

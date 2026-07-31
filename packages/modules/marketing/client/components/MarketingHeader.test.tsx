@@ -1,9 +1,11 @@
-import { AuthContext, type AuthContextType } from "@be-water/client-kit";
+import { AuthContext, setupI18n, type AuthContextType } from "@be-water/client-kit";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 
 import { MarketingHeader } from "./MarketingHeader.js";
+
+setupI18n("zh-CN");
 
 function renderHeader(auth?: Partial<AuthContextType>) {
   const ui = (

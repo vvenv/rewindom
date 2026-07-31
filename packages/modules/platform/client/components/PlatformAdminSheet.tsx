@@ -17,6 +17,7 @@ import {
 import { Spinner } from "@be-water/ui/spinner";
 import { Switch } from "@be-water/ui/switch";
 import { toast } from "@be-water/ui/toast";
+import { useTranslation } from "react-i18next";
 
 import {
   useCreatePlatformAdmin,
@@ -59,6 +60,7 @@ interface PlatformAdminFormProps {
 }
 
 function PlatformAdminForm({ admin, onClose }: PlatformAdminFormProps) {
+  const { t } = useTranslation(["platform", "common"]);
   const isEdit = Boolean(admin);
   const [form, setForm] = useState<FormState>(() => initialForm(admin));
   const [submitError, setSubmitError] = useState("");
@@ -74,11 +76,11 @@ function PlatformAdminForm({ admin, onClose }: PlatformAdminFormProps) {
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
     if (!isEdit && form.password.length < 6) {
-      setSubmitError("密码至少需要6个字符");
+      setSubmitError(t("admins.sheet.passwordMinLength"));
       return;
     }
     if (isEdit && form.password && form.password.length < 6) {
-      setSubmitError("密码至少需要6个字符");
+      setSubmitError(t("admins.sheet.passwordMinLength"));
       return;
     }
 
@@ -106,11 +108,13 @@ function PlatformAdminForm({ admin, onClose }: PlatformAdminFormProps) {
           role_ids: form.is_system_admin ? [] : form.role_ids,
         });
       }
-      toast.success(isEdit ? "管理员更新成功" : "管理员创建成功");
+      toast.success(
+        isEdit ? t("admins.sheet.updated") : t("admins.sheet.created"),
+      );
       onClose();
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : "保存失败，请重试";
+        err instanceof ApiError ? err.message : t("common:updateFailed");
       setSubmitError(message);
       toast.error(message);
     }
@@ -119,15 +123,21 @@ function PlatformAdminForm({ admin, onClose }: PlatformAdminFormProps) {
   return (
     <>
       <SheetHeader>
-        <SheetTitle>{isEdit ? "编辑平台管理员" : "新建平台管理员"}</SheetTitle>
+        <SheetTitle>
+          {isEdit ? t("admins.sheet.editTitle") : t("admins.sheet.createTitle")}
+        </SheetTitle>
         <SheetDescription>
-          {isEdit ? "更新账号状态与角色" : "创建新的平台管理员账号"}
+          {isEdit
+            ? t("admins.sheet.editDescription")
+            : t("admins.sheet.createDescription")}
         </SheetDescription>
       </SheetHeader>
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
         <FieldGroup className="flex-1 overflow-auto px-4">
           <Field>
-            <FieldLabel htmlFor="platform-admin-username">账号</FieldLabel>
+            <FieldLabel htmlFor="platform-admin-username">
+              {t("admins.table.username")}
+            </FieldLabel>
             <Input
               id="platform-admin-username"
               value={form.username}
@@ -135,12 +145,14 @@ function PlatformAdminForm({ admin, onClose }: PlatformAdminFormProps) {
                 setForm((prev) => ({ ...prev, username: e.target.value }))
               }
               disabled={isEdit || isPending}
-              placeholder="例如：ops"
+              placeholder={t("admins.sheet.usernamePlaceholder")}
             />
           </Field>
           <Field>
             <FieldLabel htmlFor="platform-admin-password">
-              {isEdit ? "密码（留空不修改）" : "密码"}
+              {isEdit
+                ? t("admins.sheet.passwordOptional")
+                : t("admins.sheet.password")}
             </FieldLabel>
             <Input
               id="platform-admin-password"
@@ -162,12 +174,12 @@ function PlatformAdminForm({ admin, onClose }: PlatformAdminFormProps) {
               disabled={isPending}
             />
             <FieldLabel htmlFor="platform-admin-system">
-              系统管理员（拥有全部平台权限）
+              {t("admins.sheet.systemAdminLabel")}
             </FieldLabel>
           </Field>
           {!form.is_system_admin && (
             <Field>
-              <FieldLabel>角色</FieldLabel>
+              <FieldLabel>{t("admins.table.roles")}</FieldLabel>
               <div className="flex flex-col gap-2">
                 {roles.map((role) => (
                   <label key={role.id} className="flex items-center gap-2 text-sm">
@@ -199,19 +211,21 @@ function PlatformAdminForm({ admin, onClose }: PlatformAdminFormProps) {
               }
               disabled={isPending}
             />
-            <FieldLabel htmlFor="platform-admin-enabled">启用账号</FieldLabel>
+            <FieldLabel htmlFor="platform-admin-enabled">
+              {t("admins.sheet.enableAccount")}
+            </FieldLabel>
           </Field>
           {submitError && <FieldError>{submitError}</FieldError>}
         </FieldGroup>
         <SheetFooter>
           <SheetClose asChild>
             <Button type="button" variant="outline" disabled={isPending}>
-              取消
+              {t("common:cancel")}
             </Button>
           </SheetClose>
           <Button type="submit" disabled={isPending}>
             {isPending && <Spinner />}
-            {isEdit ? "保存" : "创建"}
+            {isEdit ? t("common:save") : t("common:create")}
           </Button>
         </SheetFooter>
       </form>

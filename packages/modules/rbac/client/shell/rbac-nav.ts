@@ -8,14 +8,14 @@ import type { AppNavSection } from "@be-water/client-kit";
  */
 export const RBAC_NAV_SECTIONS: AppNavSection[] = [
   {
-    label: "系统管理",
+    label: "common:nav.systemManagement",
     placement: "end",
     items: [
       {
         icon: ShieldCheck,
-        label: "角色权限",
+        label: "rbac:nav.roles",
         path: "/roles",
-        title: "角色权限",
+        title: "rbac:nav.roles",
         keywords: "roles permissions 角色 权限 授权",
         anyPermission: ["roles.read"],
       },

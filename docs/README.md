@@ -23,6 +23,7 @@
 | 文档                                              | 说明           |
 | ------------------------------------------------- | -------------- |
 | [tenant-config.md](./design/tenant-config.md)     | 租户配置与密钥 |
+| [i18n.md](./design/i18n.md)                       | 多语言（zh-CN / en） |
 | [tenant-features.md](./design/tenant-features.md) | 功能开关与配额 |
 | [user-system.md](./design/user-system.md)         | 用户与认证     |
 

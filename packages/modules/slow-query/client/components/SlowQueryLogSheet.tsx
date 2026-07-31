@@ -8,6 +8,7 @@ import {
   SheetTitle,
 } from "@be-water/ui/sheet";
 import { Activity } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { type SlowQueryLogItem } from "../../shared/index.js";
 
@@ -29,13 +30,15 @@ export function SlowQueryLogSheet({
   onOpenChange,
   log,
 }: SlowQueryLogSheetProps) {
+  const { t } = useTranslation("slow-query");
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="flex flex-col sm:max-w-2xl">
         <SheetHeader className="shrink-0">
           <SheetTitle className="flex items-center gap-2">
             <Activity className="size-5 text-muted-foreground" />
-            慢查询详情
+            {t("sheet.title")}
           </SheetTitle>
         </SheetHeader>
 
@@ -56,28 +59,28 @@ export function SlowQueryLogSheet({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
-                <p className="text-muted-foreground">路由</p>
+                <p className="text-muted-foreground">{t("sheet.route")}</p>
                 <p className="font-mono break-all">
                   {displayOrEmpty(log.route)}
                 </p>
               </div>
               <div className="flex flex-col gap-1">
-                <p className="text-muted-foreground">方法</p>
+                <p className="text-muted-foreground">{t("sheet.method")}</p>
                 <p className="font-mono">{displayOrEmpty(log.method)}</p>
               </div>
               <div className="flex flex-col gap-1">
-                <p className="text-muted-foreground">租户</p>
+                <p className="text-muted-foreground">{t("sheet.tenant")}</p>
                 <p className="font-mono">{displayOrEmpty(log.tenant_slug)}</p>
               </div>
               <div className="flex flex-col gap-1">
-                <p className="text-muted-foreground">用户</p>
+                <p className="text-muted-foreground">{t("sheet.user")}</p>
                 <p>{displayOrEmpty(log.username)}</p>
               </div>
             </div>
 
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-muted-foreground">指纹</p>
+                <p className="text-muted-foreground">{t("sheet.fingerprint")}</p>
                 <CopyButton text={log.fingerprint} />
               </div>
               <p className="font-mono text-xs break-all">{log.fingerprint}</p>
@@ -86,7 +89,7 @@ export function SlowQueryLogSheet({
             {log.request_id ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-muted-foreground">Request ID</p>
+                  <p className="text-muted-foreground">{t("sheet.requestId")}</p>
                   <CopyButton text={log.request_id} />
                 </div>
                 <p className="font-mono text-xs break-all">{log.request_id}</p>
@@ -95,7 +98,7 @@ export function SlowQueryLogSheet({
 
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-muted-foreground">SQL</p>
+                <p className="text-muted-foreground">{t("sheet.sql")}</p>
                 <CopyButton text={log.query} />
               </div>
               <p className="font-mono text-xs break-all">{log.query}</p>
@@ -103,7 +106,7 @@ export function SlowQueryLogSheet({
 
             {log.params ? (
               <div className="flex flex-col gap-1">
-                <p className="text-muted-foreground">参数</p>
+                <p className="text-muted-foreground">{t("sheet.params")}</p>
                 <pre className="max-h-40 overflow-auto rounded-lg bg-muted p-3 font-mono text-xs whitespace-pre-wrap break-all">
                   {log.params}
                 </pre>

@@ -1,5 +1,6 @@
 import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ErrorLogCleanupAction } from "../components/ErrorLogCleanupAction.js";
 import { ErrorLogFilters } from "../components/ErrorLogFilters.js";
@@ -8,6 +9,7 @@ import { useErrorLogs } from "../hooks/useErrorLogs.js";
 import { useErrorLogsPage } from "../hooks/useErrorLogsPage.js";
 
 export function TenantErrorLogs() {
+  const { t } = useTranslation("error-log");
   const {
     filters,
     page,
@@ -44,8 +46,8 @@ export function TenantErrorLogs() {
   return (
     <PageLayout
       icon={AlertTriangle}
-      title="错误日志"
-      description="本租户内的服务端报错记录，点击任意一行查看堆栈与请求上下文"
+      title={t("page.title")}
+      description={t("page.description")}
       action={canManage ? <ErrorLogCleanupAction /> : null}
     >
       <div className="flex flex-col gap-4">

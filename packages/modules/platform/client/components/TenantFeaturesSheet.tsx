@@ -22,6 +22,7 @@ import { Spinner } from "@be-water/ui/spinner";
 import { Switch } from "@be-water/ui/switch";
 import { toast } from "@be-water/ui/toast";
 import { ToggleLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { groupTenantCatalogByModule, type UpdateTenantEntitlementsBody, type TenantSummary } from "../../shared/index.js";
 import {
@@ -42,6 +43,7 @@ export function TenantFeaturesSheet({
   onActingChange,
   onSaved,
 }: TenantFeaturesSheetProps) {
+  const { t } = useTranslation(["platform", "common"]);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<TenantEntitlementsResponse | null>(null);
 
@@ -77,11 +79,11 @@ export function TenantFeaturesSheet({
         features: entitlements.features,
       };
       await updateMutation.mutateAsync(body);
-      toast.success("模块与功能开关已保存");
+      toast.success(t("tenants.features.saved"));
       setOpen(false);
       onSaved?.();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "保存失败");
+      toast.error(err instanceof ApiError ? err.message : t("common:saveFailed"));
     } finally {
       onActingChange?.(false);
     }
@@ -92,14 +94,14 @@ export function TenantFeaturesSheet({
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" disabled={disabled}>
           <ToggleLeft className="size-3.5" />
-          能力
+          {t("tenants.features.trigger")}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
         <SheetHeader className="shrink-0">
-          <SheetTitle className="pr-8">模块与功能开关</SheetTitle>
+          <SheetTitle className="pr-8">{t("tenants.features.title")}</SheetTitle>
           <SheetDescription>
-            {tenant.name} · 按模块控制租户能力，模块关闭时其下功能一并不可用
+            {t("tenants.features.description", { name: tenant.name })}
           </SheetDescription>
         </SheetHeader>
 
@@ -107,7 +109,7 @@ export function TenantFeaturesSheet({
           {loading ? (
             <div className="flex min-h-28 items-center justify-center gap-2 text-muted-foreground">
               <Spinner />
-              <span className="text-sm">加载中…</span>
+              <span className="text-sm">{t("common:loading")}</span>
             </div>
           ) : (
             grouped.map(({ module, features }) => {
@@ -192,14 +194,14 @@ export function TenantFeaturesSheet({
 
         <SheetFooter className="shrink-0">
           <Button variant="outline" onClick={() => setOpen(false)}>
-            取消
+            {t("common:cancel")}
           </Button>
           <Button
             onClick={() => void handleSave()}
             disabled={updateMutation.isPending || loading}
           >
             {updateMutation.isPending && <Spinner />}
-            保存
+            {t("common:save")}
           </Button>
         </SheetFooter>
       </SheetContent>

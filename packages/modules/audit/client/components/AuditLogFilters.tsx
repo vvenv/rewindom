@@ -17,8 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@be-water/ui/select";
+import { useTranslation } from "react-i18next";
 
-import { AUDIT_ACTION_GROUPS, AUDIT_ACTION_LABELS } from "../../shared/index.js";
+import {
+  getAuditActionGroupViews,
+  translateAuditAction,
+  translateAuditActionGroup,
+} from "../lib/audit-action-i18n.js";
 
 import type { DateRange } from "react-day-picker";
 
@@ -66,6 +71,7 @@ export function AuditLogFilters({
   onFiltersChange,
   onReset,
 }: AuditLogFiltersProps) {
+  const { t } = useTranslation(["audit", "common"]);
   const TenantFilter = useTenantFilter();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() =>
     dateRangeFromFilters(filters.start_date, filters.end_date),
@@ -102,20 +108,20 @@ export function AuditLogFilters({
             onValueChange={handleActionChange}
           >
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="全部操作" />
+              <SelectValue placeholder={t("filters.allActions")} />
             </SelectTrigger>
             <SelectContent position="popper" align="start">
-              {AUDIT_ACTION_GROUPS.map((group, index) => (
-                <SelectGroup key={group.label}>
-                  <SelectLabel>{group.label}</SelectLabel>
+              {getAuditActionGroupViews().map((group, index, groups) => (
+                <SelectGroup key={group.id}>
+                  <SelectLabel>
+                    {translateAuditActionGroup(t, group.id)}
+                  </SelectLabel>
                   {group.actions.map((action) => (
                     <SelectItem key={action} value={action}>
-                      {AUDIT_ACTION_LABELS[action]}
+                      {translateAuditAction(t, action)}
                     </SelectItem>
                   ))}
-                  {index < AUDIT_ACTION_GROUPS.length - 1 && (
-                    <SelectSeparator />
-                  )}
+                  {index < groups.length - 1 && <SelectSeparator />}
                 </SelectGroup>
               ))}
             </SelectContent>
@@ -137,7 +143,7 @@ export function AuditLogFilters({
             <TenantFilter
               value={filters.tenant_slug ?? null}
               onValueChange={onTenantChange}
-              placeholder="租户"
+              placeholder={t("filters.tenant")}
               showClear
               className="w-40"
             />
@@ -146,7 +152,7 @@ export function AuditLogFilters({
             value={filters.username}
             onCommit={(value) => onUsernameChange(value.trim())}
             className="w-40"
-            placeholder="账号"
+            placeholder={t("filters.username")}
           />
         </>
       }

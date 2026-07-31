@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
+
 import { SlowQueryLogFilters } from "../components/SlowQueryLogFilters.js";
 import { SlowQueryLogsTable } from "../components/SlowQueryLogsTable.js";
 import { usePlatformSlowQueryLogs } from "../hooks/usePlatformSlowQueryLogs.js";
 import { usePlatformSlowQueryLogsPage } from "../hooks/usePlatformSlowQueryLogsPage.js";
 
 export function SlowQueryLogs() {
+  const { t } = useTranslation("slow-query");
   const {
     filters,
     page,
@@ -38,10 +41,7 @@ export function SlowQueryLogs() {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="hidden text-muted-foreground md:block">
-        跨租户慢查询日志 — 自动捕获超过阈值（默认 200ms）的 Prisma
-        查询，用于定位性能瓶颈
-      </p>
+      <p className="hidden text-muted-foreground md:block">{t("page.description")}</p>
 
       <SlowQueryLogFilters
         filters={filters}

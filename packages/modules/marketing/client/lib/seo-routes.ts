@@ -8,10 +8,12 @@ import {
 } from "../../shared/index.js";
 
 import { DOC_PAGES } from "./docs.js";
+import { parseMarketingLocalePath } from "./marketing-locale-path.js";
 
 /**
- * 官网全部可预渲染路由 —— 预渲染脚本、sitemap 与 SPA 侧的 `<head>` 更新共用这一份。
+ * 官网全部可预渲染路由（逻辑路径，无 locale 前缀）—— SPA SEO 与展开表的真相源。
  *
+ * 带 `/{locale}` 的静态页由 `expandLocalizedMarketingRoutes` 在构建期展开。
  * 新增官网页面只需在这里补一条：忘了补就不会被预渲染，也不会进 sitemap，
  * 所以 `marketing.public-routes.test.ts` 会拿路由表和这里做交叉校验。
  */
@@ -88,6 +90,10 @@ export const MARKETING_ROUTES: readonly PageSeo[] = [
   })),
 ];
 
+/** 按逻辑路径查找（`/en/pricing` 与 `/pricing` 命中同一条）。 */
 export function findMarketingRoute(path: string): PageSeo | undefined {
-  return MARKETING_ROUTES.find((route) => route.path === path);
+  const logical = parseMarketingLocalePath(path).path;
+  return MARKETING_ROUTES.find(
+    (route) => route.path === path || route.path === logical,
+  );
 }

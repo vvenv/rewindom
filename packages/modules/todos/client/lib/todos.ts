@@ -4,9 +4,9 @@ export const TODO_TITLE_MAX_LENGTH = 200;
 export const TODO_STATUS_ALL = "all";
 
 export const TODO_STATUS_FILTER_OPTIONS = [
-  { value: TODO_STATUS_ALL, label: "全部" },
-  { value: "active", label: "未完成" },
-  { value: "done", label: "已完成" },
+  { value: TODO_STATUS_ALL, labelKey: "filter.all" },
+  { value: "active", labelKey: "filter.active" },
+  { value: "done", labelKey: "filter.done" },
 ] as const;
 
 export type TodoStatusFilter =
@@ -30,10 +30,10 @@ export function todoStatusToCompleted(
 export function validateTodoTitle(title: string): string | null {
   const trimmed = title.trim();
   if (!trimmed) {
-    return "请输入标题";
+    return "validation.titleRequired";
   }
   if (trimmed.length > TODO_TITLE_MAX_LENGTH) {
-    return `标题不能超过 ${TODO_TITLE_MAX_LENGTH} 个字符`;
+    return "validation.titleTooLong";
   }
 
   return null;

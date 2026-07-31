@@ -1,4 +1,10 @@
-import { type RegisterTenantInput, assertValidTenantSlug, generateTenantSlugFromName  } from "@be-water/shared";
+import {
+  type RegisterTenantInput,
+  assertValidTenantSlug,
+  generateTenantSlugFromName,
+  InvalidTenantSlugError,
+  ReservedTenantSlugError,
+} from "@be-water/shared";
 
 export interface RegisterFormValues {
   tenantName: string;
@@ -36,45 +42,54 @@ export function validateRegisterForm(
   captchaRequired: boolean,
 ): string | null {
   if (!values.tenantName.trim()) {
-    return "请输入组织名称";
+    return "auth.validation.tenantNameRequired";
   }
 
   if (!values.tenantSlug.trim()) {
-    return "请输入租户标识";
+    return "auth.validation.tenantSlugRequired";
   }
 
   try {
     assertValidTenantSlug(values.tenantSlug);
   } catch (err) {
-    return err instanceof Error ? err.message : "租户标识格式无效";
+    if (err instanceof ReservedTenantSlugError) {
+      return "auth.validation.tenantSlugReserved";
+    }
+    if (err instanceof InvalidTenantSlugError) {
+      if (err.message.includes("2–63")) {
+        return "auth.validation.tenantSlugLength";
+      }
+      return "auth.validation.tenantSlugFormat";
+    }
+    return "auth.validation.tenantSlugInvalid";
   }
 
   if (!values.username || !values.password) {
-    return "请输入账号和密码";
+    return "auth.validation.credentialsRequired";
   }
 
   if (!values.phone.trim()) {
-    return "请输入手机号";
+    return "auth.validation.phoneRequired";
   }
 
   if (!values.email.trim()) {
-    return "请输入邮箱";
+    return "auth.validation.emailRequired";
   }
 
   if (!PHONE_REGEX.test(values.phone.trim())) {
-    return "请输入正确的手机号格式";
+    return "auth.validation.phoneInvalid";
   }
 
   if (!EMAIL_REGEX.test(values.email.trim())) {
-    return "请输入正确的邮箱格式";
+    return "auth.validation.emailInvalid";
   }
 
   if (values.password !== values.confirmPassword) {
-    return "两次输入的密码不一致";
+    return "auth.validation.passwordMismatch";
   }
 
   if (captchaRequired && !captchaData) {
-    return "请完成滑块验证";
+    return "auth.validation.captchaRequired";
   }
 
   return null;

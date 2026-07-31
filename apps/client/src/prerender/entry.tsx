@@ -9,16 +9,21 @@
  */
 import { Suspense } from "react";
 
-import { MARKETING_ROUTES } from "@be-water/modules/marketing/client/lib/seo-routes.js";
+import { changeAppLanguage, setupI18n } from "@be-water/client-kit/i18n/setup";
+import { expandLocalizedMarketingRoutes } from "@be-water/modules/marketing/client/lib/expand-localized-routes.js";
+import { parseMarketingLocalePath } from "@be-water/modules/marketing/client/lib/marketing-locale-path.js";
 import { renderMarketingPublicRoutes } from "@be-water/modules/marketing/client/public/routes.js";
 import {
   SITE,
   type PageSeo,
 } from "@be-water/modules/marketing/shared/index.js";
+import { DEFAULT_LOCALE } from "@be-water/shared";
 import { prerender } from "react-dom/static";
 import { Routes, StaticRouter } from "react-router";
 
-export const PRERENDER_ROUTES: readonly PageSeo[] = MARKETING_ROUTES;
+/** 含各 locale 前缀的完整预渲染表。 */
+export const PRERENDER_ROUTES: readonly PageSeo[] =
+  expandLocalizedMarketingRoutes();
 
 /** 未设置 `SITE_URL` 时的兜底域名。 */
 export const DEFAULT_ORIGIN: string = SITE.defaultOrigin;
@@ -36,6 +41,10 @@ export {
 const SUSPENSE_MARKERS = /<!--\/?\$(\?|!)?-->/gu;
 
 export async function renderPage(path: string): Promise<string> {
+  const locale = parseMarketingLocalePath(path).locale || DEFAULT_LOCALE;
+  setupI18n(locale);
+  await changeAppLanguage(locale);
+
   const { prelude } = await prerender(
     <StaticRouter location={path}>
       <Suspense>

@@ -1,0 +1,19 @@
+{
+  "description": "Default home after tenant sign-in — aggregates overview cards from modules via dashboardWidgets",
+  "nav": {
+    "sectionOverview": "Overview",
+    "dashboard": "Dashboard",
+    "keywords": "dashboard home overview"
+  },
+  "page": {
+    "title": "Dashboard",
+    "description": "Your default home after sign-in — overview widgets and shortcuts from enabled modules"
+  },
+  "emptyState": {
+    "title": "No dashboard widgets yet",
+    "hint": "Open a module from the sidebar to get started."
+  },
+  "widget": {
+    "loadFailed": "This widget failed to load. Refresh the page to retry."
+  }
+}

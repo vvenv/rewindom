@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { formatAmountCents, formatBillingDate } from "../lib/billing-format.js";
 
 import type { BillingPayment } from "../../shared/index.js";
@@ -11,23 +13,27 @@ export function BillingPaymentsTable({
   isLoading: boolean;
   error: Error | null;
 }) {
+  const { t } = useTranslation(["billing", "common"]);
+
   if (isLoading) {
     return (
-      <p className="text-muted-foreground text-sm">正在加载付款记录…</p>
+      <p className="text-muted-foreground text-sm">{t("payments.loading")}</p>
     );
   }
 
   if (error) {
     return (
       <p className="text-destructive text-sm">
-        加载失败：{error.message || "未知错误"}
+        {t("payments.loadFailed", {
+          message: error.message || t("payments.unknownError"),
+        })}
       </p>
     );
   }
 
   if (payments.length === 0) {
     return (
-      <p className="text-muted-foreground text-sm">暂无付款记录</p>
+      <p className="text-muted-foreground text-sm">{t("payments.empty")}</p>
     );
   }
 
@@ -36,11 +42,11 @@ export function BillingPaymentsTable({
       <table className="w-full text-sm">
         <thead className="bg-muted/50 text-left">
           <tr>
-            <th className="px-3 py-2 font-medium">时间</th>
-            <th className="px-3 py-2 font-medium">套餐</th>
-            <th className="px-3 py-2 font-medium">金额</th>
-            <th className="px-3 py-2 font-medium">状态</th>
-            <th className="px-3 py-2 font-medium">订单号</th>
+            <th className="px-3 py-2 font-medium">{t("payments.time")}</th>
+            <th className="px-3 py-2 font-medium">{t("payments.plan")}</th>
+            <th className="px-3 py-2 font-medium">{t("payments.amount")}</th>
+            <th className="px-3 py-2 font-medium">{t("payments.status")}</th>
+            <th className="px-3 py-2 font-medium">{t("payments.orderId")}</th>
           </tr>
         </thead>
         <tbody>

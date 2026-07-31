@@ -12,6 +12,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@be-water/ui/card";
 import { Skeleton } from "@be-water/ui/skeleton";
 import { toast } from "@be-water/ui/toast";
 import { StickyNote } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useDeleteNote } from "../hooks/useNoteMutations.js";
 
@@ -49,6 +50,7 @@ export function NotesGrid({
   q,
   onRetry,
 }: NotesGridProps) {
+  const { t } = useTranslation("notes");
   const { confirm } = useConfirm();
   const deleteMutation = useDeleteNote();
   const { hasPermission } = usePermissions();
@@ -58,8 +60,8 @@ export function NotesGrid({
   const handleDelete = useCallback(
     async (note: NoteListItem) => {
       const confirmed = await confirm({
-        title: "删除笔记",
-        description: `确定删除「${note.title}」吗？此操作不可撤销。`,
+        title: t("deleteConfirmTitle"),
+        description: t("deleteConfirmDescription", { title: note.title }),
         destructive: true,
       });
       if (!confirmed) {
@@ -69,14 +71,14 @@ export function NotesGrid({
       setDeletingId(note.id);
       try {
         await deleteMutation.mutateAsync(note.id);
-        toast.success("笔记已删除");
+        toast.success(t("toastDeleted"));
       } catch (err) {
-        toast.error(err instanceof ApiError ? err.message : "删除失败，请重试");
+        toast.error(err instanceof ApiError ? err.message : t("deleteFailed"));
       } finally {
         setDeletingId(null);
       }
     },
-    [confirm, deleteMutation],
+    [confirm, deleteMutation, t],
   );
 
   if (isLoading) {
@@ -88,11 +90,11 @@ export function NotesGrid({
       <div className="flex flex-col items-center gap-3 py-12">
         <Alert variant="destructive" className="max-w-md">
           <AlertDescription>
-            {error instanceof Error ? error.message : "加载失败"}
+            {error instanceof Error ? error.message : t("loadFailed")}
           </AlertDescription>
         </Alert>
         <Button variant="outline" size="sm" onClick={onRetry}>
-          重试
+          {t("retry")}
         </Button>
       </div>
     );
@@ -105,9 +107,9 @@ export function NotesGrid({
           <StickyNote className="size-10" />
         </div>
         <div className="space-y-1 text-center">
-          <p className="text-sm font-medium">暂无笔记</p>
+          <p className="text-sm font-medium">{t("emptyTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            {q ? "没有匹配的笔记，请调整搜索条件。" : "创建第一条笔记开始使用。"}
+            {q ? t("emptyWithSearch") : t("emptyNoSearch")}
           </p>
         </div>
       </div>

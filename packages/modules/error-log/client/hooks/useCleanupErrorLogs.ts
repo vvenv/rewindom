@@ -1,11 +1,13 @@
 import { api } from "@be-water/client-kit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 
 const ERROR_LOGS_KEY = ["error-logs"] as const;
 
 export function useCleanupErrorLogs() {
+  const { t } = useTranslation("error-log");
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -15,11 +17,11 @@ export function useCleanupErrorLogs() {
       );
     },
     onSuccess: (data) => {
-      toast.success(`已清理 ${data.deletedCount} 条旧日志`);
+      toast.success(t("toast.cleanupSuccess", { count: data.deletedCount }));
       queryClient.invalidateQueries({ queryKey: ERROR_LOGS_KEY });
     },
     onError: (error) => {
-      toast.error("清理失败");
+      toast.error(t("toast.cleanupFailed"));
       console.error("清理错误日志失败:", error);
     },
   });

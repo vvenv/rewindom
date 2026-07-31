@@ -21,6 +21,7 @@ import { Input } from "@be-water/ui/input";
 import { Textarea } from "@be-water/ui/textarea";
 import { toast } from "@be-water/ui/toast";
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCreatePlatformTenant } from "../hooks/usePlatformTenants.js";
 
@@ -29,6 +30,7 @@ import { TenantAdminCredentialsPanel } from "./TenantAdminCredentialsPanel.js";
 import type { TenantAdminCredentials } from "../../shared/index.js";
 
 export function TenantCreateDialog() {
+  const { t } = useTranslation(["platform", "common"]);
   const createMutation = useCreatePlatformTenant();
   const [open, setOpen] = useState(false);
   const [credentials, setCredentials] = useState<TenantAdminCredentials | null>(
@@ -57,9 +59,9 @@ export function TenantCreateDialog() {
         remark: remark.trim() || null,
       });
       setCredentials(tenant.admin);
-      toast.success("租户已创建");
+      toast.success(t("tenants.created"));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "创建失败");
+      toast.error(err instanceof ApiError ? err.message : t("tenants.createFailed"));
     }
   };
 
@@ -68,7 +70,7 @@ export function TenantCreateDialog() {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Plus className="size-4" />
-          新建租户
+          {t("tenants.create")}
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -80,34 +82,34 @@ export function TenantCreateDialog() {
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>新建租户</DialogTitle>
+              <DialogTitle>{t("tenants.createTitle")}</DialogTitle>
             </DialogHeader>
             <form onSubmit={(event) => void handleCreate(event)}>
               <FieldGroup className="mb-4">
                 <Field>
-                  <FieldLabel htmlFor="tenant-slug">标识 (slug)</FieldLabel>
+                  <FieldLabel htmlFor="tenant-slug">{t("tenants.slugField")}</FieldLabel>
                   <Input
                     id="tenant-slug"
                     placeholder="acme"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                   />
-                  <FieldDescription>用户登录格式：用户名@acme</FieldDescription>
+                  <FieldDescription>{t("tenants.slugDescriptionGeneric")}</FieldDescription>
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="tenant-name">名称</FieldLabel>
+                  <FieldLabel htmlFor="tenant-name">{t("tenants.name")}</FieldLabel>
                   <Input
                     id="tenant-name"
-                    placeholder="Acme 公司"
+                    placeholder={t("tenants.namePlaceholder")}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="tenant-remark">备注</FieldLabel>
+                  <FieldLabel htmlFor="tenant-remark">{t("tenants.remark")}</FieldLabel>
                   <Textarea
                     id="tenant-remark"
-                    placeholder="可选，支持多行"
+                    placeholder={t("tenants.remarkPlaceholder")}
                     value={remark}
                     onChange={(e) => setRemark(e.target.value)}
                     rows={3}
@@ -120,13 +122,13 @@ export function TenantCreateDialog() {
                   variant="outline"
                   onClick={() => setOpen(false)}
                 >
-                  取消
+                  {t("common:cancel")}
                 </Button>
                 <Button
                   type="submit"
                   disabled={createMutation.isPending || !slug || !name}
                 >
-                  创建
+                  {createMutation.isPending ? t("tenants.creating") : t("common:create")}
                 </Button>
               </DialogFooter>
             </form>

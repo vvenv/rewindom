@@ -11,12 +11,12 @@ import {
 
 describe("validateTodoTitle", () => {
   it("rejects blank title", () => {
-    expect(validateTodoTitle("  ")).toBe("请输入标题");
+    expect(validateTodoTitle("  ")).toBe("validation.titleRequired");
   });
 
   it("rejects overlong title", () => {
-    expect(validateTodoTitle("x".repeat(TODO_TITLE_MAX_LENGTH + 1))).toContain(
-      "不能超过",
+    expect(validateTodoTitle("x".repeat(TODO_TITLE_MAX_LENGTH + 1))).toBe(
+      "validation.titleTooLong",
     );
   });
 

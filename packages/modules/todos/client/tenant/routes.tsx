@@ -1,6 +1,7 @@
 import { lazy, type ReactNode } from "react";
 
 import { PermissionRoute, TenantModuleRoute } from "@be-water/client-kit";
+import { useTranslation } from "react-i18next";
 import { Route } from "react-router";
 
 const Todos = lazy(() =>
@@ -9,9 +10,14 @@ const Todos = lazy(() =>
   })),
 );
 
+function TodosModuleRoute() {
+  const { t } = useTranslation("todos");
+  return <TenantModuleRoute moduleId="todos" label={t("title")} />;
+}
+
 export function renderTodosRoutes(): ReactNode {
   return (
-    <Route element={<TenantModuleRoute moduleId="todos" label="待办" />}>
+    <Route element={<TodosModuleRoute />}>
       <Route element={<PermissionRoute permission="todos.read" />}>
         <Route path="/todos" element={<Todos />} />
       </Route>

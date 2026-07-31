@@ -1,6 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-
 import { Button } from "@be-water/ui/button";
 import {
   Card,
@@ -11,6 +10,8 @@ import {
   CardTitle,
 } from "@be-water/ui/card";
 import { AlertTriangle } from "lucide-react";
+
+import { getI18n } from "../i18n/setup.js";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -42,16 +43,17 @@ export class ErrorBoundary extends Component<
     const { error } = this.state;
 
     if (error) {
+      const t = getI18n().t.bind(getI18n());
       return (
         <div className="flex min-h-svh items-center justify-center p-6">
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="size-5 text-destructive" />
-                页面出错了
+                {t("shell:pageErrorTitle")}
               </CardTitle>
               <CardDescription>
-                应用遇到了意外错误，请刷新页面重试。
+                {t("shell:pageErrorDescription")}
               </CardDescription>
             </CardHeader>
             {import.meta.env.DEV && (
@@ -62,7 +64,9 @@ export class ErrorBoundary extends Component<
               </CardContent>
             )}
             <CardFooter>
-              <Button onClick={this.handleReload}>刷新页面</Button>
+              <Button onClick={this.handleReload}>
+                {t("shell:refreshPage")}
+              </Button>
             </CardFooter>
           </Card>
         </div>

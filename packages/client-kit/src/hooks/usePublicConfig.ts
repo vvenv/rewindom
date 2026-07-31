@@ -13,6 +13,7 @@ import type { PublicConfig } from "@be-water/shared";
 const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
   registration_enabled: false,
   captcha_enabled: false,
+  default_locale: "zh-CN",
 };
 
 export function usePublicConfig() {

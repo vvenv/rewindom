@@ -31,9 +31,11 @@ import {
 } from "@be-water/ui/sheet";
 import { toast } from "@be-water/ui/toast";
 import { Crown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import { PLAN_SLUGS, PRICING_PLANS, type PlanSlug, type TenantSummary } from "../../shared/index.js";
+import { PLAN_SLUGS, type PlanSlug, type TenantSummary } from "../../shared/index.js";
 import { useUpdatePlatformTenantPlan } from "../hooks/usePlatformTenants.js";
+import { translatePlanName } from "../lib/plan-i18n.js";
 
 interface TenantPlanSheetProps {
   tenant: TenantSummary;
@@ -46,6 +48,7 @@ export function TenantPlanSheet({
   disabled = false,
   onActingChange,
 }: TenantPlanSheetProps) {
+  const { t } = useTranslation(["platform", "common"]);
   const updateMutation = useUpdatePlatformTenantPlan();
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState<PlanSlug>(tenant.plan);
@@ -68,7 +71,7 @@ export function TenantPlanSheet({
       !(nextPlanEndsAt === null && tenant.plan_ends_at === null);
 
     if (!planChanged && !endsAtChanged) {
-      toast.error("未修改任何内容");
+      toast.error(t("tenants.plan.noChanges"));
       return;
     }
 
@@ -81,10 +84,10 @@ export function TenantPlanSheet({
           ...(endsAtChanged ? { plan_ends_at: nextPlanEndsAt } : {}),
         },
       });
-      toast.success("套餐已保存");
+      toast.success(t("tenants.plan.saved"));
       setOpen(false);
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "保存失败");
+      toast.error(err instanceof ApiError ? err.message : t("common:saveFailed"));
     } finally {
       onActingChange?.(false);
     }
@@ -95,14 +98,17 @@ export function TenantPlanSheet({
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" disabled={disabled}>
           <Crown className="size-3.5" />
-          套餐
+          {t("tenants.plan.trigger")}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
         <SheetHeader className="shrink-0 border-b pb-4">
-          <SheetTitle className="pr-8">套餐管理</SheetTitle>
+          <SheetTitle className="pr-8">{t("tenants.plan.title")}</SheetTitle>
           <SheetDescription>
-            {tenant.name} · 当前为 {PRICING_PLANS[tenant.plan].name}
+            {t("tenants.plan.description", {
+              name: tenant.name,
+              plan: translatePlanName(t, tenant.plan),
+            })}
           </SheetDescription>
         </SheetHeader>
         <form
@@ -111,7 +117,9 @@ export function TenantPlanSheet({
         >
           <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
             <Field>
-              <FieldLabel htmlFor={`tenant-plan-${tenant.id}`}>套餐</FieldLabel>
+              <FieldLabel htmlFor={`tenant-plan-${tenant.id}`}>
+                {t("tenants.plan.planLabel")}
+              </FieldLabel>
               <Select
                 value={plan}
                 onValueChange={(value) => setPlan(value as PlanSlug)}
@@ -125,7 +133,7 @@ export function TenantPlanSheet({
                 <SelectContent position="popper" align="start">
                   {PLAN_SLUGS.map((slug) => (
                     <SelectItem key={slug} value={slug}>
-                      {PRICING_PLANS[slug].name}
+                      {translatePlanName(t, slug)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -133,7 +141,7 @@ export function TenantPlanSheet({
             </Field>
             <Field>
               <FieldLabel htmlFor={`tenant-plan-ends-${tenant.id}`}>
-                到期时间
+                {t("tenants.plan.endsAt")}
               </FieldLabel>
               <Input
                 id={`tenant-plan-ends-${tenant.id}`}
@@ -141,9 +149,7 @@ export function TenantPlanSheet({
                 value={planEndsAt}
                 onChange={(event) => setPlanEndsAt(event.target.value)}
               />
-              <FieldDescription>
-                留空表示永久有效；变更套餐时会同步应用对应的功能与配额模板
-              </FieldDescription>
+              <FieldDescription>{t("tenants.plan.endsAtHint")}</FieldDescription>
             </Field>
           </FieldGroup>
           <SheetFooter className="shrink-0">
@@ -152,10 +158,10 @@ export function TenantPlanSheet({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              取消
+              {t("common:cancel")}
             </Button>
             <Button type="submit" disabled={updateMutation.isPending}>
-              保存
+              {t("common:save")}
             </Button>
           </SheetFooter>
         </form>

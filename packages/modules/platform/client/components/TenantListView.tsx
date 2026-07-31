@@ -3,12 +3,12 @@ import { Alert, AlertAction, AlertDescription } from "@be-water/ui/alert";
 import { Button } from "@be-water/ui/button";
 import { Spinner } from "@be-water/ui/spinner";
 import { Building2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TenantCard } from "./TenantCard.js";
 
 import type { TenantSummary } from "../../shared/index.js";
 import type { PlatformTenantListFilters } from "../lib/platform/tenants/url.js";
-
 
 export function TenantListView({
   tenants,
@@ -31,6 +31,8 @@ export function TenantListView({
   onToggleStatus: (tenant: TenantSummary) => void;
   onArchive: (tenant: TenantSummary) => void;
 }) {
+  const { t } = useTranslation(["platform", "common"]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -42,10 +44,10 @@ export function TenantListView({
   if (isError) {
     return (
       <Alert variant="destructive">
-        <AlertDescription>加载租户列表失败</AlertDescription>
+        <AlertDescription>{t("tenants.loadFailed")}</AlertDescription>
         <AlertAction>
           <Button variant="outline" size="sm" onClick={onRetry}>
-            重试
+            {t("common:retry")}
           </Button>
         </AlertAction>
       </Alert>
@@ -60,12 +62,14 @@ export function TenantListView({
         </div>
         <div className="space-y-1 text-center">
           <p className="text-sm font-medium">
-            {filters.q || filters.status ? "未找到匹配的租户" : "暂无租户"}
+            {filters.q || filters.status
+              ? t("tenants.noMatch")
+              : t("tenants.empty")}
           </p>
           <p className="text-sm text-muted-foreground">
             {filters.q || filters.status
-              ? "请更换筛选条件"
-              : "点击右上角新建租户"}
+              ? t("tenants.changeFilters")
+              : t("tenants.createHint")}
           </p>
         </div>
       </div>
@@ -80,8 +84,8 @@ export function TenantListView({
           tenant={tenant}
           acting={actingId === tenant.id}
           onActingChange={(acting) => onActingChange(tenant.id, acting)}
-          onToggleStatus={onToggleStatus}
-          onArchive={onArchive}
+          onToggleStatus={() => onToggleStatus(tenant)}
+          onArchive={() => onArchive(tenant)}
         />
       ))}
     </div>

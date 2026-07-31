@@ -17,6 +17,7 @@ import {
 import { Textarea } from "@be-water/ui/textarea";
 import { toast } from "@be-water/ui/toast";
 import { Pencil, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { usePermissionCatalog } from "../hooks/usePermissionCatalog.js";
 import { useCreateRole, useUpdateRole } from "../hooks/useRoleMutations.js";
@@ -39,6 +40,7 @@ interface RoleFormProps {
 }
 
 function RoleForm({ role, onClose }: RoleFormProps) {
+  const { t } = useTranslation(["rbac", "common"]);
   const isEdit = Boolean(role);
   const [form, setForm] = useState<RoleFormState>(() => roleToForm(role));
   const [errors, setErrors] = useState<RoleFormErrors>({});
@@ -48,8 +50,6 @@ function RoleForm({ role, onClose }: RoleFormProps) {
   const createMutation = useCreateRole();
   const updateMutation = useUpdateRole();
 
-  // 内置角色的权限由系统维护，服务端在 `updateTenantRole` 里直接拒绝改权限；
-  // 这里同步禁用勾选，避免用户改完才在提交时收到报错。
   const isBuiltin = role?.is_builtin ?? false;
   const isPending = createMutation.isPending || updateMutation.isPending;
 
@@ -70,17 +70,17 @@ function RoleForm({ role, onClose }: RoleFormProps) {
         await updateMutation.mutateAsync({
           id: role.id,
           ...payload,
-          // 内置角色只允许改名称与描述
           ...(isBuiltin && { permissions: role.permissions }),
         });
-        toast.success("角色已更新");
+        toast.success(t("sheet.roleUpdated"));
       } else {
         await createMutation.mutateAsync(payload);
-        toast.success("角色已创建");
+        toast.success(t("sheet.roleCreated"));
       }
       onClose();
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : "保存失败，请重试";
+      const message =
+        err instanceof ApiError ? err.message : t("sheet.saveFailed");
       setSubmitError(message);
       toast.error(message);
     }
@@ -89,18 +89,20 @@ function RoleForm({ role, onClose }: RoleFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
       <SheetHeader>
-        <SheetTitle>{isEdit ? "编辑角色" : "新建角色"}</SheetTitle>
+        <SheetTitle>
+          {isEdit ? t("sheet.editTitle") : t("sheet.createTitle")}
+        </SheetTitle>
         <SheetDescription>
           {isBuiltin
-            ? "内置角色的权限由系统维护，仅可修改名称与描述"
-            : "勾选该角色可执行的操作，成员通过被分配角色获得权限"}
+            ? t("sheet.builtinDescription")
+            : t("sheet.customDescription")}
         </SheetDescription>
       </SheetHeader>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4">
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="role-name">角色名称</FieldLabel>
+            <FieldLabel htmlFor="role-name">{t("sheet.name")}</FieldLabel>
             <Input
               id="role-name"
               value={form.name}
@@ -108,13 +110,13 @@ function RoleForm({ role, onClose }: RoleFormProps) {
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, name: e.target.value }))
               }
-              placeholder="如：编辑、财务"
+              placeholder={t("sheet.namePlaceholder")}
             />
-            {errors.name && <FieldError>{errors.name}</FieldError>}
+            {errors.name && <FieldError>{t(errors.name)}</FieldError>}
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="role-description">描述</FieldLabel>
+            <FieldLabel htmlFor="role-description">{t("sheet.description")}</FieldLabel>
             <Textarea
               id="role-description"
               value={form.description}
@@ -123,12 +125,12 @@ function RoleForm({ role, onClose }: RoleFormProps) {
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, description: e.target.value }))
               }
-              placeholder="可选，说明该角色的职责"
+              placeholder={t("sheet.descriptionPlaceholder")}
             />
           </Field>
 
           <Field>
-            <FieldLabel>权限</FieldLabel>
+            <FieldLabel>{t("sheet.permissions")}</FieldLabel>
             <PermissionPicker
               catalog={catalog?.permissions ?? []}
               isLoading={isLoadingCatalog}
@@ -146,11 +148,11 @@ function RoleForm({ role, onClose }: RoleFormProps) {
 
       <SheetFooter>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "保存中…" : "保存"}
+          {isPending ? t("sheet.saving") : t("common:save")}
         </Button>
         <SheetClose asChild>
           <Button type="button" variant="outline" disabled={isPending}>
-            取消
+            {t("common:cancel")}
           </Button>
         </SheetClose>
       </SheetFooter>
@@ -171,7 +173,6 @@ function RoleSheet({
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent className="flex w-full flex-col sm:max-w-xl">
-        {/* key 让每次打开都从当前角色重新初始化表单，避免复用上一次的编辑残留 */}
         {open && (
           <RoleForm
             key={role?.id ?? "create"}
@@ -184,15 +185,16 @@ function RoleSheet({
   );
 }
 
-/** `children` 作为触发器，供 Page 传入 `DraggableFabTrigger`（移动端 FAB）。 */
 export function RoleCreateSheet({ children }: { children?: ReactNode }) {
+  const { t } = useTranslation("rbac");
+
   return (
     <RoleSheet
       trigger={
         children ?? (
           <Button>
             <Plus className="size-4" />
-            新建角色
+            {t("page.createRole")}
           </Button>
         )
       }
@@ -201,11 +203,13 @@ export function RoleCreateSheet({ children }: { children?: ReactNode }) {
 }
 
 export function RoleEditSheet({ role }: { role: RoleDetail }) {
+  const { t } = useTranslation("rbac");
+
   return (
     <RoleSheet
       role={role}
       trigger={
-        <Button variant="ghost" size="sm" title="编辑角色">
+        <Button variant="ghost" size="sm" title={t("sheet.editRole")}>
           <Pencil />
         </Button>
       }

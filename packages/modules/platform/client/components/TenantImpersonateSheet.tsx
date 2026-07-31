@@ -31,6 +31,7 @@ import {
 import { Spinner } from "@be-water/ui/spinner";
 import { toast } from "@be-water/ui/toast";
 import { LogIn } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   useImpersonatePlatformTenant,
@@ -56,6 +57,7 @@ export function TenantImpersonateSheet({
   disabled = false,
   onActingChange,
 }: TenantImpersonateSheetProps) {
+  const { t } = useTranslation(["platform", "common"]);
   const [open, setOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("");
   const impersonateMutation = useImpersonatePlatformTenant();
@@ -69,14 +71,11 @@ export function TenantImpersonateSheet({
       const lastUser = lastUserId
         ? users.find((u) => u.id === lastUserId)
         : undefined;
-      // Fall back to the first user (earliest registered, typically admin).
       setSelectedUserId(lastUser?.id ?? users[0].id);
     }
   }, [open, users, tenant.id]);
 
   const handleSelectUser = (userId: string): void => {
-    // Radix Select 挂载在 <form> 内时，隐藏的原生 select 可能触发一次
-    // onValueChange("")，会清掉默认选中，需忽略空值。
     if (!userId) return;
     setSelectedUserId(userId);
     saveImpersonationLastUserId(tenant.id, userId);
@@ -87,7 +86,7 @@ export function TenantImpersonateSheet({
     const accessToken = getStoredAccessToken();
     const refreshToken = getStoredRefreshToken();
     if (!accessToken || !refreshToken) {
-      toast.error("平台会话已失效，请重新登录");
+      toast.error(t("tenants.impersonate.sessionExpired"));
       return;
     }
 
@@ -99,7 +98,7 @@ export function TenantImpersonateSheet({
         userId: selectedUserId || undefined,
       });
       if (!result.tokens?.accessToken || !result.tokens?.refreshToken) {
-        toast.error("代登录响应无效，请重试");
+        toast.error(t("tenants.impersonate.invalidResponse"));
         return;
       }
 
@@ -111,10 +110,11 @@ export function TenantImpersonateSheet({
       saveImpersonationBackup({ accessToken, refreshToken }, meta);
       setStoredAuthTokens(result.tokens);
       setOpen(false);
-      // 整页重载以丢弃平台会话的所有缓存；`/app` 会解析到租户默认首页（`/dashboard`）
       window.location.replace(APP_HOME_ENTRY_PATH);
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "代登录失败");
+      toast.error(
+        err instanceof ApiError ? err.message : t("tenants.impersonate.failed"),
+      );
     } finally {
       unpauseTokenRefresh();
       onActingChange?.(false);
@@ -126,12 +126,12 @@ export function TenantImpersonateSheet({
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" disabled={disabled}>
           <LogIn className="size-3.5" />
-          登录
+          {t("tenants.impersonate.trigger")}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
         <SheetHeader className="shrink-0 border-b pb-4">
-          <SheetTitle className="pr-8">代登录租户</SheetTitle>
+          <SheetTitle className="pr-8">{t("tenants.impersonate.title")}</SheetTitle>
         </SheetHeader>
         <form
           onSubmit={(event) => void handleConfirm(event)}
@@ -139,12 +139,11 @@ export function TenantImpersonateSheet({
         >
           <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
             <FieldDescription>
-              将以选中用户身份进入「{tenant.name}」，用于排障。会话约 4
-              小时后过期。
+              {t("tenants.impersonate.description", { name: tenant.name })}
             </FieldDescription>
             <Field>
               <FieldLabel htmlFor={`impersonate-user-${tenant.id}`}>
-                选择用户
+                {t("tenants.impersonate.selectUser")}
               </FieldLabel>
               {isLoading ? (
                 <div className="flex justify-center py-4">
@@ -159,14 +158,20 @@ export function TenantImpersonateSheet({
                     id={`impersonate-user-${tenant.id}`}
                     className="w-full"
                   >
-                    <SelectValue placeholder="请选择用户" />
+                    <SelectValue
+                      placeholder={t("tenants.impersonate.selectUserPlaceholder")}
+                    />
                   </SelectTrigger>
                   <SelectContent position="popper" align="start">
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.username}
                         <span className="ml-1.5 text-xs text-muted-foreground">
-                          ({user.is_system_admin ? "系统管理员" : "普通用户"})
+                          (
+                          {user.is_system_admin
+                            ? t("tenants.impersonate.systemAdmin")
+                            : t("tenants.impersonate.regularUser")}
+                          )
                         </span>
                       </SelectItem>
                     ))}
@@ -174,7 +179,7 @@ export function TenantImpersonateSheet({
                 </Select>
               ) : (
                 <p className="py-2 text-sm text-muted-foreground">
-                  暂无可用用户
+                  {t("tenants.impersonate.noUsers")}
                 </p>
               )}
             </Field>
@@ -185,7 +190,7 @@ export function TenantImpersonateSheet({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              取消
+              {t("common:cancel")}
             </Button>
             <Button
               type="submit"
@@ -196,7 +201,7 @@ export function TenantImpersonateSheet({
                 impersonateMutation.isPending
               }
             >
-              确认登录
+              {t("tenants.impersonate.confirm")}
             </Button>
           </SheetFooter>
         </form>

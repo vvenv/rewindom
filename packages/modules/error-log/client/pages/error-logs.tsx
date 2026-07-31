@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
+
 import { ErrorLogFilters } from "../components/ErrorLogFilters.js";
 import { ErrorLogsTable } from "../components/ErrorLogsTable.js";
 import { usePlatformErrorLogs } from "../hooks/usePlatformErrorLogs.js";
 import { usePlatformErrorLogsPage } from "../hooks/usePlatformErrorLogsPage.js";
 
 export function ErrorLogs() {
+  const { t } = useTranslation("error-log");
   const {
     filters,
     page,
@@ -38,7 +41,7 @@ export function ErrorLogs() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-muted-foreground hidden sm:block">
-        跨租户错误日志（只读）
+        {t("platform.description")}
       </p>
 
       <div className="flex flex-col gap-4">

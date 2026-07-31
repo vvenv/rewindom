@@ -1,4 +1,7 @@
 import type { ComponentType } from "react";
+import type { TFunction } from "i18next";
+
+import { resolveNavLabel } from "../i18n/translate-nav.js";
 
 export interface PlatformNavChild {
   to: string;
@@ -87,17 +90,19 @@ export function getPlatformPageTitle(
   entries: readonly PlatformNavEntry[],
   pathname: string,
   search = "",
+  t?: TFunction,
 ): string {
-  const platformPageTitles: Record<string, string> = {
-    "/platform": "监控面板",
-    "/platform/tenants": "租户管理",
-    "/platform/users": "跨租户用户",
-    "/platform/admins": "平台管理员",
-    "/platform/audit-logs": "审计日志",
-    "/platform/error-logs": "错误日志",
-    "/platform/slow-query-logs": "慢查询",
-    "/platform/settings": "平台设置",
-    "/platform/billing": "订阅与付款",
+  const platformPageTitleKeys: Record<string, string> = {
+    "/platform": "platform:nav.pageTitles./platform",
+    "/platform/tenants": "platform:nav.pageTitles./platform/tenants",
+    "/platform/users": "platform:nav.pageTitles./platform/users",
+    "/platform/admins": "platform:nav.pageTitles./platform/admins",
+    "/platform/audit-logs": "platform:nav.pageTitles./platform/audit-logs",
+    "/platform/error-logs": "platform:nav.pageTitles./platform/error-logs",
+    "/platform/slow-query-logs":
+      "platform:nav.pageTitles./platform/slow-query-logs",
+    "/platform/settings": "platform:nav.pageTitles./platform/settings",
+    "/platform/billing": "platform:nav.pageTitles./platform/billing",
   };
 
   for (const entry of entries) {
@@ -106,13 +111,14 @@ export function getPlatformPageTitle(
         isNavChildActive(pathname, item.to, item.end, search),
       );
       if (child) {
-        return child.label;
+        return t ? resolveNavLabel(child.label, t) : child.label;
       }
     }
   }
 
-  if (platformPageTitles[pathname]) {
-    return platformPageTitles[pathname];
+  const titleKey = platformPageTitleKeys[pathname];
+  if (titleKey) {
+    return t ? resolveNavLabel(titleKey, t) : titleKey;
   }
 
   const activeLink = entries.find(
@@ -121,5 +127,11 @@ export function getPlatformPageTitle(
       (entry.end ? pathname === entry.to : pathname.startsWith(entry.to)),
   );
 
-  return activeLink?.label ?? "平台管理";
+  if (activeLink) {
+    return t ? resolveNavLabel(activeLink.label, t) : activeLink.label;
+  }
+
+  return t
+    ? resolveNavLabel("platform:nav.fallbackTitle", t)
+    : "平台管理";
 }

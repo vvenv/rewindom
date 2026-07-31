@@ -22,6 +22,7 @@ import {
 import { Spinner } from "@be-water/ui/spinner";
 import { toast } from "@be-water/ui/toast";
 import { Eye, EyeOff, Key, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useResetPassword } from "../hooks/useResetPassword.js";
 
@@ -42,6 +43,7 @@ interface ResetPasswordFormProps {
 }
 
 function ResetPasswordForm({ user, onClose }: ResetPasswordFormProps) {
+  const { t } = useTranslation(["user", "common", "shell"]);
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<
     Partial<Record<keyof FormState, string>>
@@ -64,8 +66,10 @@ function ResetPasswordForm({ user, onClose }: ResetPasswordFormProps) {
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
     const nextErrors: Partial<Record<keyof FormState, string>> = {};
-    if (!form.password.trim()) nextErrors.password = "请输入新密码";
-    if (form.password.length < 6) nextErrors.password = "密码至少需要6个字符";
+    if (!form.password.trim())
+      nextErrors.password = t("resetPassword.validation.passwordRequired");
+    if (form.password.length < 6)
+      nextErrors.password = t("resetPassword.validation.passwordMinLength");
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
       return;
@@ -77,13 +81,15 @@ function ResetPasswordForm({ user, onClose }: ResetPasswordFormProps) {
         id: user.id,
         password: form.password.trim(),
       });
-      toast.success("密码重置成功", {
-        description: `新密码: ${result.password}`,
+      toast.success(t("resetPassword.success"), {
+        description: t("resetPassword.successDescription", {
+          password: result.password,
+        }),
       });
       onClose();
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : "重置失败，请重试";
+        err instanceof ApiError ? err.message : t("resetPassword.resetFailed");
       setSubmitError(message);
       toast.error(message);
     }
@@ -92,20 +98,22 @@ function ResetPasswordForm({ user, onClose }: ResetPasswordFormProps) {
   return (
     <>
       <SheetHeader>
-        <SheetTitle>重置密码</SheetTitle>
-        <SheetDescription>为用户 "{user.username}" 设置新密码</SheetDescription>
+        <SheetTitle>{t("resetPassword.title")}</SheetTitle>
+        <SheetDescription>
+          {t("resetPassword.description", { username: user.username })}
+        </SheetDescription>
       </SheetHeader>
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col min-h-0">
         <FieldGroup className="px-4 flex-1 overflow-auto">
           <Field>
-            <FieldLabel htmlFor="new-password">新密码</FieldLabel>
+            <FieldLabel htmlFor="new-password">{t("resetPassword.newPassword")}</FieldLabel>
             <InputGroup>
               <InputGroupInput
                 id="new-password"
                 type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={(e) => setField("password", e.target.value)}
-                placeholder="至少 6 个字符"
+                placeholder={t("resetPassword.placeholder")}
                 disabled={isPending}
                 aria-invalid={errors.password ? "true" : "false"}
                 autoFocus
@@ -114,7 +122,9 @@ function ResetPasswordForm({ user, onClose }: ResetPasswordFormProps) {
               <InputGroupButton
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isPending}
-                aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                aria-label={
+                  showPassword ? t("shell:auth.hidePassword") : t("shell:auth.showPassword")
+                }
               >
                 {showPassword ? (
                   <EyeOff className="size-4" />
@@ -125,7 +135,7 @@ function ResetPasswordForm({ user, onClose }: ResetPasswordFormProps) {
               <InputGroupButton
                 onClick={fillRandomPassword}
                 disabled={isPending}
-                aria-label="随机生成 8 位密码"
+                aria-label={t("resetPassword.generateRandom")}
               >
                 <RefreshCw className="size-4" />
               </InputGroupButton>
@@ -137,12 +147,12 @@ function ResetPasswordForm({ user, onClose }: ResetPasswordFormProps) {
         <SheetFooter>
           <SheetClose asChild>
             <Button type="button" variant="outline" disabled={isPending}>
-              取消
+              {t("common:cancel")}
             </Button>
           </SheetClose>
           <Button type="submit" disabled={isPending}>
             {isPending && <Spinner />}
-            确认重置
+            {t("resetPassword.confirm")}
           </Button>
         </SheetFooter>
       </form>
@@ -159,6 +169,7 @@ export function UserResetPasswordSheet({
   user,
   disabled = false,
 }: UserResetPasswordSheetProps): React.ReactElement {
+  const { t } = useTranslation("user");
   const [open, setOpen] = useState(false);
 
   const handleOpenChange = (next: boolean): void => {
@@ -171,7 +182,7 @@ export function UserResetPasswordSheet({
         <Button
           variant="ghost"
           size="icon-sm"
-          title="重置密码"
+          title={t("resetPassword.title")}
           disabled={disabled}
         >
           <Key className="size-3.5" />

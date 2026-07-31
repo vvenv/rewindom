@@ -1,6 +1,15 @@
 import { useEffect } from "react";
 
-import { buildDocumentTitle, type PageSeo } from "../../shared/index.js";
+import { useTranslation } from "react-i18next";
+
+import {
+  buildCanonicalUrl,
+  type PageSeo,
+} from "../../shared/index.js";
+import {
+  buildLocalizedDocumentTitle,
+  localizePageSeo,
+} from "../lib/marketing-i18n.js";
 
 function upsertMeta(name: string, content: string): void {
   let tag = document.head.querySelector<HTMLMetaElement>(
@@ -29,17 +38,23 @@ function upsertCanonical(href: string): void {
 /**
  * SPA 侧维护 `<head>`。
  *
- * 首屏的 head 是预渲染脚本写死在 HTML 里的（爬虫看到的就是它）；
- * 这个 hook 只负责客户端路由切换后把 title / description / canonical 跟上，
- * 免得用户从 `/` 点到 `/pricing` 时标签页标题还停在首页。
+ * 首屏的 head 是预渲染脚本写死在 HTML 里的；
+ * 这个 hook 负责客户端路由切换后把 title / description / canonical 跟上当前 URL 与语言。
  */
-export function useDocumentSeo(seo: PageSeo | undefined): void {
+export function useDocumentSeo(
+  seo: PageSeo | undefined,
+  pathname: string,
+): void {
+  const { t, i18n } = useTranslation("marketing");
+
   useEffect(() => {
     if (!seo) {
       return;
     }
-    document.title = buildDocumentTitle(seo);
-    upsertMeta("description", seo.description);
-    upsertCanonical(`${window.location.origin}${seo.path}`);
-  }, [seo]);
+
+    const localized = localizePageSeo({ ...seo, path: pathname }, t);
+    document.title = buildLocalizedDocumentTitle(localized, t);
+    upsertMeta("description", localized.description);
+    upsertCanonical(buildCanonicalUrl(window.location.origin, pathname));
+  }, [seo, pathname, t, i18n.language]);
 }

@@ -5,6 +5,10 @@ import {
   ConfirmProvider,
   ConfirmDialog,
   ErrorBoundary,
+  LocaleProvider,
+  readStoredAppLocale,
+  setApiAcceptLanguage,
+  setupI18n,
 } from "@be-water/client-kit";
 import { clearImpersonationBackup } from "@be-water/modules/platform/client/lib/impersonation-storage.js";
 import { TooltipProvider } from "@be-water/ui/tooltip";
@@ -24,6 +28,12 @@ const queryClient = new QueryClient({
   },
 });
 
+// 在 React 首屏前同步恢复语言，避免刷新后先闪默认 zh-CN。
+const bootLocale = readStoredAppLocale();
+setupI18n(bootLocale);
+setApiAcceptLanguage(bootLocale);
+document.documentElement.lang = bootLocale;
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider
@@ -38,7 +48,9 @@ createRoot(document.getElementById("root")!).render(
           <TooltipProvider>
             <ConfirmProvider>
               <AuthProvider onLogout={clearImpersonationBackup}>
-                <App />
+                <LocaleProvider>
+                  <App />
+                </LocaleProvider>
               </AuthProvider>
               <ConfirmDialog />
             </ConfirmProvider>

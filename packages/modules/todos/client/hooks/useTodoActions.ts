@@ -2,6 +2,7 @@ import { useCallback } from "react";
 
 import { ApiError, useConfirm } from "@be-water/client-kit";
 import { toast } from "@be-water/ui/toast";
+import { useTranslation } from "react-i18next";
 
 import {
   useClearCompletedTodos,
@@ -23,6 +24,7 @@ function describeError(err: unknown, fallback: string): string {
  * 只有「清除已完成」保留确认——它一次抹掉多条，撤销一条一条重建并不划算。
  */
 export function useTodoActions() {
+  const { t } = useTranslation("todos");
   const { confirm } = useConfirm();
   const createMutation = useCreateTodo();
   const updateMutation = useUpdateTodo();
@@ -36,11 +38,11 @@ export function useTodoActions() {
         await createMutation.mutateAsync({ title });
         return true;
       } catch (err) {
-        toast.error(describeError(err, "创建失败，请重试"));
+        toast.error(describeError(err, t("toast.createFailed")));
         return false;
       }
     },
-    [createMutation],
+    [createMutation, t],
   );
 
   const setCompleted = useCallback(
@@ -49,11 +51,11 @@ export function useTodoActions() {
         await updateMutation.mutateAsync({ id: item.id, completed });
         return true;
       } catch (err) {
-        toast.error(describeError(err, "更新失败，请重试"));
+        toast.error(describeError(err, t("toast.updateFailed")));
         return false;
       }
     },
-    [updateMutation],
+    [t, updateMutation],
   );
 
   const renameTodo = useCallback(
@@ -62,11 +64,11 @@ export function useTodoActions() {
         await updateMutation.mutateAsync({ id: item.id, title });
         return true;
       } catch (err) {
-        toast.error(describeError(err, "保存失败，请重试"));
+        toast.error(describeError(err, t("toast.saveFailed")));
         return false;
       }
     },
-    [updateMutation],
+    [t, updateMutation],
   );
 
   const removeTodo = useCallback(
@@ -74,25 +76,25 @@ export function useTodoActions() {
       try {
         await deleteMutation.mutateAsync(item.id);
       } catch (err) {
-        toast.error(describeError(err, "删除失败，请重试"));
+        toast.error(describeError(err, t("toast.deleteFailed")));
         return false;
       }
 
-      toast.success("已删除", {
+      toast.success(t("toast.deleted"), {
         action: {
-          label: "撤销",
+          label: t("toast.undo"),
           onClick: () => {
             void createMutation
               .mutateAsync({ title: item.title, completed: item.completed })
               .catch((err: unknown) => {
-                toast.error(describeError(err, "撤销失败，请重新添加"));
+                toast.error(describeError(err, t("toast.undoFailed")));
               });
           },
         },
       });
       return true;
     },
-    [createMutation, deleteMutation],
+    [createMutation, deleteMutation, t],
   );
 
   const toggleAll = useCallback(
@@ -101,17 +103,17 @@ export function useTodoActions() {
         await toggleAllMutation.mutateAsync(completed);
         return true;
       } catch (err) {
-        toast.error(describeError(err, "操作失败，请重试"));
+        toast.error(describeError(err, t("toast.toggleAllFailed")));
         return false;
       }
     },
-    [toggleAllMutation],
+    [t, toggleAllMutation],
   );
 
   const clearCompleted = useCallback(async (): Promise<boolean> => {
     const confirmed = await confirm({
-      title: "清除已完成",
-      description: "将删除全部已完成的待办，此操作不可撤销。",
+      title: t("confirm.clearCompletedTitle"),
+      description: t("confirm.clearCompletedDescription"),
       destructive: true,
     });
     if (!confirmed) {
@@ -120,13 +122,17 @@ export function useTodoActions() {
 
     try {
       const { deleted } = await clearMutation.mutateAsync();
-      toast.success(deleted > 0 ? `已清除 ${deleted} 条` : "没有已完成的待办");
+      toast.success(
+        deleted > 0
+          ? t("toast.clearedCount", { count: deleted })
+          : t("toast.noCompleted"),
+      );
       return true;
     } catch (err) {
-      toast.error(describeError(err, "清除失败，请重试"));
+      toast.error(describeError(err, t("toast.clearFailed")));
       return false;
     }
-  }, [clearMutation, confirm]);
+  }, [clearMutation, confirm, t]);
 
   return {
     addTodo,

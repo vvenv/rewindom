@@ -9,22 +9,24 @@ describe("formatTenantAppearanceAuditDetails", () => {
   it("只记录真正变动的轴", () => {
     const details = formatTenantAppearanceAuditDetails(
       "acme",
-      { theme: "water", layout: "sidebar" },
-      { theme: "slate", layout: "sidebar" },
+      { theme: "water", layout: "sidebar", locale: null },
+      { theme: "slate", layout: "sidebar", locale: null },
     );
 
     expect(details).toBe("tenant=acme，默认主题：水蓝 → 石墨");
     expect(details).not.toContain("布局");
   });
 
-  it("两根轴都变时都记录", () => {
+  it("多根轴都变时都记录", () => {
     expect(
       formatTenantAppearanceAuditDetails(
         "acme",
-        { theme: "water", layout: "sidebar" },
-        { theme: "slate", layout: "topbar" },
+        { theme: "water", layout: "sidebar", locale: "zh-CN" },
+        { theme: "slate", layout: "topbar", locale: "en" },
       ),
-    ).toBe("tenant=acme，默认主题：水蓝 → 石墨，默认布局：左右 → 上下");
+    ).toBe(
+      "tenant=acme，默认主题：水蓝 → 石墨，默认布局：左右 → 上下，默认语言：中文 → English",
+    );
   });
 
   it("null 渲染成「继承平台默认」", () => {
@@ -32,7 +34,7 @@ describe("formatTenantAppearanceAuditDetails", () => {
       formatTenantAppearanceAuditDetails(
         "acme",
         DEFAULT_TENANT_APPEARANCE,
-        { theme: "slate", layout: null },
+        { theme: "slate", layout: null, locale: null },
       ),
     ).toBe("tenant=acme，默认主题：继承平台默认 → 石墨");
   });
@@ -41,8 +43,8 @@ describe("formatTenantAppearanceAuditDetails", () => {
     expect(
       formatTenantAppearanceAuditDetails(
         "acme",
-        { theme: "slate", layout: "topbar" },
-        { theme: "slate", layout: "topbar" },
+        { theme: "slate", layout: "topbar", locale: "en" },
+        { theme: "slate", layout: "topbar", locale: "en" },
       ),
     ).toBe("tenant=acme，无变更");
   });

@@ -97,6 +97,7 @@ export const platformServerModule: ServerAppModule = {
           return {
             registration_enabled: settings.registration_enabled,
             captcha_enabled: settings.captcha_enabled,
+            default_locale: settings.default_locale,
           };
         },
       });

@@ -1,0 +1,17 @@
+{
+  "panel": {
+    "loading": "Loading…",
+    "empty": "No notifications",
+    "markAllRead": "Mark all as read"
+  },
+  "desktop": {
+    "denied": "Desktop notifications were blocked by your browser. Allow notifications in site settings (address bar) and refresh.",
+    "enable": "Enable desktop notifications",
+    "label": "Desktop notifications",
+    "backgroundOnly": "Notify only when tab is in background"
+  },
+  "activityCenter": {
+    "title": "Activity center",
+    "backgroundTasks": "Background tasks"
+  }
+}

@@ -12,11 +12,11 @@ export function validateLoginForm(
   captchaRequired: boolean,
 ): string | null {
   if (!values.username || !values.password) {
-    return "请输入账号和密码";
+    return "auth.validation.credentialsRequired";
   }
 
   if (captchaRequired && !captchaData) {
-    return "请完成滑块验证";
+    return "auth.validation.captchaRequired";
   }
 
   return null;

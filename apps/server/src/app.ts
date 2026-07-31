@@ -1,4 +1,5 @@
 import { config } from "@be-water/server-kernel/lib/config.js";
+import { translateForRequest } from "@be-water/server-kernel/lib/i18n/translate.js";
 import { setupPrisma } from "@be-water/server-kernel/lib/prisma.js";
 import { runWithRequestContext } from "@be-water/server-kernel/lib/request-context.js";
 import {
@@ -14,6 +15,29 @@ import Fastify, { type FastifyInstance } from "fastify";
 
 import { registerAllRoutes, registerModuleMiddleware } from "./routes/index.js";
 
+import type { FastifyRequest } from "fastify";
+
+function localizeApiErrorPayload(
+  request: FastifyRequest,
+  payload: unknown,
+): unknown {
+  if (typeof payload !== "string") return payload;
+  try {
+    const body = JSON.parse(payload) as {
+      error?: unknown;
+      code?: unknown;
+      [key: string]: unknown;
+    };
+    if (typeof body.error !== "string") return payload;
+    const code = typeof body.code === "string" ? body.code : undefined;
+    const translated = translateForRequest(request, body.error, code);
+    if (translated === body.error) return payload;
+    return JSON.stringify({ ...body, error: translated });
+  } catch {
+    return payload;
+  }
+}
+
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: {
@@ -27,9 +51,9 @@ export async function buildApp(): Promise<FastifyInstance> {
     origin: true,
   });
 
-  app.addHook("onSend", async (request, reply) => {
+  app.addHook("onSend", async (request, reply, payload) => {
     if (!request.url.startsWith("/api")) {
-      return;
+      return payload;
     }
     // All API responses are non-cacheable by default; only long-lived attachment
     // content may opt in via Cache-Control containing "immutable".
@@ -38,11 +62,17 @@ export async function buildApp(): Promise<FastifyInstance> {
       typeof cacheControl === "string" &&
       cacheControl.includes("immutable")
     ) {
-      return;
+      return localizeApiErrorPayload(request, payload);
     }
     reply.header("Cache-Control", "no-store, no-cache, must-revalidate");
     reply.header("Pragma", "no-cache");
     reply.header("Expires", "0");
+
+    // 4xx/5xx `{ error }` 按 Accept-Language 边缘翻译，覆盖全部 API 错误出口。
+    if (reply.statusCode >= 400) {
+      return localizeApiErrorPayload(request, payload);
+    }
+    return payload;
   });
 
   await app.register(multipart, {

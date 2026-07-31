@@ -140,10 +140,10 @@ describe("getMobileTabItems", () => {
     ]);
   });
 
-  it("tab 项携带图标与徽标键，标签优先用 mobileLabel", () => {
+  it("tab 项携带图标与徽标键，标签为可延迟翻译的 namespace:key", () => {
     const notes = getMobileTabItems().find((item) => item.path === "/notes");
     expect(notes).toBeDefined();
-    expect(notes!.label).toBe("笔记");
+    expect(notes!.label).toBe("notes:nav.notes");
     // lucide 图标是 forwardRef 对象而非普通函数，只断言拿到了组件
     expect(notes!.icon).toBeTruthy();
   });

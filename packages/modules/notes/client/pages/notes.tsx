@@ -1,6 +1,7 @@
 import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
 import { Plus, StickyNote } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { NoteCreateSheet } from "../components/NoteCreateSheet.js";
 import { NoteFilters } from "../components/NoteFilters.js";
@@ -9,6 +10,7 @@ import { useNotes } from "../hooks/useNotes.js";
 import { useNotesPage } from "../hooks/useNotesPage.js";
 
 export function Notes() {
+  const { t } = useTranslation("notes");
   const {
     q,
     page,
@@ -32,14 +34,14 @@ export function Notes() {
   return (
     <PageLayout
       icon={StickyNote}
-      title="笔记"
-      description="模块化架构金标准示例：租户内笔记管理"
+      title={t("title")}
+      description={t("pageDescription")}
       action={
         canWrite ? (
           <NoteCreateSheet>
             <DraggableFabTrigger storageKey="notes_create_fab">
               <Plus className="size-6 md:size-4" />
-              <span className="hidden md:inline">新建笔记</span>
+              <span className="hidden md:inline">{t("create")}</span>
             </DraggableFabTrigger>
           </NoteCreateSheet>
         ) : null

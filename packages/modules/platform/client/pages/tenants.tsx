@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { TenantCreateDialog } from "../components/TenantCreateDialog.js";
 import { TenantFilters } from "../components/TenantFilters.js";
 import { TenantListView } from "../components/TenantListView.js";
@@ -5,6 +7,7 @@ import { usePlatformTenantActions } from "../hooks/usePlatformTenantActions.js";
 import { usePlatformTenantsPage } from "../hooks/usePlatformTenantsPage.js";
 
 export function Tenants() {
+  const { t } = useTranslation("platform");
   const { filters, displayedTenants, isLoading, isError, refetch } =
     usePlatformTenantsPage();
 
@@ -15,7 +18,7 @@ export function Tenants() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="hidden text-muted-foreground sm:block">
-          创建、暂停或恢复 SaaS 租户组织
+          {t("tenants.description")}
         </p>
         <TenantCreateDialog />
       </div>

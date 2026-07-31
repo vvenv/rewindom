@@ -1,4 +1,7 @@
 import { Button } from "@be-water/ui/button";
+import { useTranslation } from "react-i18next";
+
+import { translatePlanDescription, translatePlanName } from "../../../platform/client/lib/plan-i18n.js";
 
 import type { BillingPlanOffer } from "../../shared/index.js";
 
@@ -13,9 +16,11 @@ export function BillingPlanPicker({
   isCheckingOut: boolean;
   onCheckout: (planSlug: string) => void;
 }) {
+  const { t } = useTranslation(["billing", "platform"]);
+
   if (plans.length === 0) {
     return (
-      <p className="text-muted-foreground text-sm">暂无可售套餐</p>
+      <p className="text-muted-foreground text-sm">{t("plans.empty")}</p>
     );
   }
 
@@ -27,15 +32,17 @@ export function BillingPlanPicker({
           className="flex flex-col gap-3 rounded-md border p-4"
         >
           <div>
-            <h3 className="font-medium">{plan.name}</h3>
+            <h3 className="font-medium">
+              {translatePlanName(t, plan.plan_slug)}
+            </h3>
             <p className="text-muted-foreground mt-1 text-sm">
-              {plan.description}
+              {translatePlanDescription(t, plan.plan_slug) || plan.description}
             </p>
           </div>
           <p className="text-lg font-semibold">
             {plan.price_monthly == null
-              ? "议价"
-              : `¥${plan.price_monthly}/月`}
+              ? t("plans.customPrice")
+              : t("plans.perMonth", { price: plan.price_monthly })}
           </p>
           {canWrite ? (
             <Button
@@ -43,7 +50,9 @@ export function BillingPlanPicker({
               disabled={!plan.checkout_available || isCheckingOut}
               onClick={() => onCheckout(plan.plan_slug)}
             >
-              {plan.checkout_available ? "升级" : "未配置商品"}
+              {plan.checkout_available
+                ? t("plans.upgradeButton")
+                : t("plans.notConfigured")}
             </Button>
           ) : null}
         </div>

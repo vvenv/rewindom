@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { Button } from "@be-water/ui/button";
+import { useTranslation } from "react-i18next";
 
 import { BillingPaymentsTable } from "../components/BillingPaymentsTable.js";
 import {
@@ -15,6 +16,7 @@ import {
 type Tab = "subscriptions" | "payments";
 
 export function PlatformBillingPage() {
+  const { t } = useTranslation(["billing", "common"]);
   const [tab, setTab] = useState<Tab>("subscriptions");
   const [status, setStatus] = useState("");
   const [tenantId, setTenantId] = useState("");
@@ -40,7 +42,7 @@ export function PlatformBillingPage() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-muted-foreground hidden sm:block">
-        跨租户订阅与付款记录（只读）
+        {t("platform.description")}
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -50,7 +52,7 @@ export function PlatformBillingPage() {
           size="sm"
           onClick={() => setTab("subscriptions")}
         >
-          订阅
+          {t("platform.subscriptions")}
         </Button>
         <Button
           type="button"
@@ -58,7 +60,7 @@ export function PlatformBillingPage() {
           size="sm"
           onClick={() => setTab("payments")}
         >
-          付款
+          {t("platform.payments")}
         </Button>
         <input
           className="border-input bg-background h-8 rounded-md border px-2 text-sm"
@@ -77,16 +79,16 @@ export function PlatformBillingPage() {
       {tab === "subscriptions" ? (
         <div className="overflow-x-auto rounded-md border">
           {subscriptionsQuery.isLoading ? (
-            <p className="text-muted-foreground p-3 text-sm">加载中…</p>
+            <p className="text-muted-foreground p-3 text-sm">{t("common:loading")}</p>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left">
                 <tr>
-                  <th className="px-3 py-2 font-medium">租户</th>
-                  <th className="px-3 py-2 font-medium">套餐</th>
-                  <th className="px-3 py-2 font-medium">状态</th>
-                  <th className="px-3 py-2 font-medium">周期结束</th>
-                  <th className="px-3 py-2 font-medium">Provider ID</th>
+                  <th className="px-3 py-2 font-medium">{t("table.tenant")}</th>
+                  <th className="px-3 py-2 font-medium">{t("subscription.plan")}</th>
+                  <th className="px-3 py-2 font-medium">{t("subscription.status")}</th>
+                  <th className="px-3 py-2 font-medium">{t("table.periodEnd")}</th>
+                  <th className="px-3 py-2 font-medium">{t("table.providerId")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,7 +121,7 @@ export function PlatformBillingPage() {
             paymentsQuery.error instanceof Error
               ? paymentsQuery.error
               : paymentsQuery.error
-                ? new Error("加载失败")
+                ? new Error(t("common:loadFailed"))
                 : null
           }
         />

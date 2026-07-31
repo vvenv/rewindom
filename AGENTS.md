@@ -71,6 +71,7 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 | 权限              | `design/permission-system.md`                      | `permissions`                     |
 | 错误日志 / 可观测 | `design/error-logging.md`                          | `error-logging`                   |
 | 租户配置 / 用户   | `design/tenant-config.md`、`design/user-system.md` | —                                 |
+| 多语言（i18n）    | `design/i18n.md`                                   | —                                 |
 | 租户功能开关/配额 | `design/tenant-features.md`                        | —                                 |
 | 前端 Page 分层    | —                                                  | `frontend-page-structure`         |
 | 官网 / SEO        | `packages/modules/marketing/MODULE.md`             | —                                 |

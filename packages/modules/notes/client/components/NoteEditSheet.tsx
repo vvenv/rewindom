@@ -18,6 +18,7 @@ import { Spinner } from "@be-water/ui/spinner";
 import { Textarea } from "@be-water/ui/textarea";
 import { toast } from "@be-water/ui/toast";
 import { Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useNote } from "../hooks/useNote.js";
 import { useUpdateNote } from "../hooks/useNoteMutations.js";
@@ -36,6 +37,7 @@ interface NoteEditSheetProps {
 }
 
 export function NoteEditSheet({ note, children }: NoteEditSheetProps) {
+  const { t } = useTranslation("notes");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<NoteFormValues>(INITIAL_NOTE_FORM);
   const [error, setError] = useState("");
@@ -54,7 +56,7 @@ export function NoteEditSheet({ note, children }: NoteEditSheetProps) {
 
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault();
-    const validationError = validateNoteForm(form);
+    const validationError = validateNoteForm(form, t);
     if (validationError) {
       setError(validationError);
       return;
@@ -65,10 +67,10 @@ export function NoteEditSheet({ note, children }: NoteEditSheetProps) {
         id: note.id,
         ...buildNotePayload(form),
       });
-      toast.success("笔记已更新");
+      toast.success(t("toastUpdated"));
       setOpen(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "更新失败，请重试");
+      setError(err instanceof ApiError ? err.message : t("updateFailed"));
     }
   };
 
@@ -76,7 +78,7 @@ export function NoteEditSheet({ note, children }: NoteEditSheetProps) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         {children ?? (
-          <Button size="icon" variant="ghost" aria-label="编辑笔记">
+          <Button size="icon" variant="ghost" aria-label={t("editAriaLabel")}>
             <Pencil className="size-4" />
           </Button>
         )}
@@ -84,8 +86,8 @@ export function NoteEditSheet({ note, children }: NoteEditSheetProps) {
       <SheetContent>
         <form className="flex h-full flex-col" onSubmit={handleSubmit}>
           <SheetHeader>
-            <SheetTitle>编辑笔记</SheetTitle>
-            <SheetDescription>更新标题与正文内容。</SheetDescription>
+            <SheetTitle>{t("editTitle")}</SheetTitle>
+            <SheetDescription>{t("editDescription")}</SheetDescription>
           </SheetHeader>
 
           {isLoading ? (
@@ -95,7 +97,9 @@ export function NoteEditSheet({ note, children }: NoteEditSheetProps) {
           ) : (
             <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
               <Field>
-                <FieldLabel htmlFor={`note-title-${note.id}`}>标题</FieldLabel>
+                <FieldLabel htmlFor={`note-title-${note.id}`}>
+                  {t("fieldTitle")}
+                </FieldLabel>
                 <Input
                   id={`note-title-${note.id}`}
                   value={form.title}
@@ -106,7 +110,7 @@ export function NoteEditSheet({ note, children }: NoteEditSheetProps) {
               </Field>
               <Field>
                 <FieldLabel htmlFor={`note-content-${note.id}`}>
-                  内容
+                  {t("fieldContent")}
                 </FieldLabel>
                 <Textarea
                   id={`note-content-${note.id}`}
@@ -127,7 +131,7 @@ export function NoteEditSheet({ note, children }: NoteEditSheetProps) {
           <SheetFooter>
             <SheetClose asChild>
               <Button type="button" variant="outline">
-                取消
+                {t("cancel")}
               </Button>
             </SheetClose>
             <Button
@@ -135,7 +139,7 @@ export function NoteEditSheet({ note, children }: NoteEditSheetProps) {
               disabled={updateMutation.isPending || isLoading}
             >
               {updateMutation.isPending ? <Spinner className="size-4" /> : null}
-              保存
+              {t("save")}
             </Button>
           </SheetFooter>
         </form>

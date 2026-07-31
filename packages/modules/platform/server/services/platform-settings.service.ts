@@ -1,9 +1,15 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { normalizeShellLayout, normalizeThemePalette } from "@be-water/shared";
+import {
+  normalizeLocale,
+  normalizeShellLayout,
+  normalizeThemePalette,
+} from "@be-water/shared";
 
-import { type PlatformSettings, APP_SETTING_KEY_PLATFORM_SETTINGS, DEFAULT_PLATFORM_SETTINGS  } from "../../shared/index.js";
-
-
+import {
+  type PlatformSettings,
+  APP_SETTING_KEY_PLATFORM_SETTINGS,
+  DEFAULT_PLATFORM_SETTINGS,
+} from "../../shared/index.js";
 
 import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 
@@ -24,6 +30,10 @@ function normalizeConfig(raw: unknown): PlatformSettings {
     default_layout: normalizeShellLayout(
       obj.default_layout,
       DEFAULT_PLATFORM_SETTINGS.default_layout,
+    ),
+    default_locale: normalizeLocale(
+      obj.default_locale,
+      DEFAULT_PLATFORM_SETTINGS.default_locale,
     ),
   };
 }

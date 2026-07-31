@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { setupI18n } from "@be-water/client-kit";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { TodoRow } from "./TodoRow.js";
 
@@ -34,6 +35,10 @@ function startEditing(title = "写周报") {
 }
 
 describe("TodoRow", () => {
+  beforeAll(() => {
+    setupI18n();
+  });
+
   it("双击标题进入编辑，回车保存新标题", async () => {
     const { onRename } = renderRow();
 

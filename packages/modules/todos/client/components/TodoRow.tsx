@@ -6,8 +6,12 @@ import { Input } from "@be-water/ui/input";
 import { toast } from "@be-water/ui/toast";
 import { cn } from "@be-water/ui/utils";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import { resolveTodoTitleEdit } from "../lib/todos.js";
+import {
+  TODO_TITLE_MAX_LENGTH,
+  resolveTodoTitleEdit,
+} from "../lib/todos.js";
 
 import type { TodoListItem } from "../../shared/index.js";
 
@@ -30,6 +34,7 @@ export function TodoRow({
   onRename,
   onRemove,
 }: TodoRowProps) {
+  const { t } = useTranslation("todos");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item.title);
   const [pending, setPending] = useState(false);
@@ -52,7 +57,7 @@ export function TodoRow({
 
     const edit = resolveTodoTitleEdit(item.title, draft);
     if (edit.action === "invalid") {
-      toast.error(edit.message);
+      toast.error(t(edit.message, { max: TODO_TITLE_MAX_LENGTH }));
       return;
     }
 
@@ -104,7 +109,11 @@ export function TodoRow({
       <Checkbox
         checked={item.completed}
         disabled={!canWrite || pending || editing}
-        aria-label={`标记「${item.title}」${item.completed ? "未完成" : "完成"}`}
+        aria-label={
+          item.completed
+            ? t("row.markIncomplete", { title: item.title })
+            : t("row.markComplete", { title: item.title })
+        }
         // 已完成的勾选框压成灰调：主色留给「还要做的」，做完的不该继续抢注意力
         className="data-checked:border-transparent data-checked:bg-muted-foreground/30 data-checked:text-muted-foreground"
         onCheckedChange={(checked) => void handleToggle(checked === true)}
@@ -114,7 +123,7 @@ export function TodoRow({
         <Input
           autoFocus
           value={draft}
-          aria-label={`编辑「${item.title}」`}
+          aria-label={t("row.edit", { title: item.title })}
           className="h-7 flex-1 py-0"
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={handleKeyDown}
@@ -127,7 +136,7 @@ export function TodoRow({
             canWrite && "cursor-text",
             item.completed && "text-muted-foreground line-through",
           )}
-          title={canWrite ? "双击编辑" : undefined}
+          title={canWrite ? t("row.doubleClickEdit") : undefined}
           onDoubleClick={startEditing}
         >
           {item.title}
@@ -138,7 +147,7 @@ export function TodoRow({
         <Button
           size="icon"
           variant="ghost"
-          aria-label={`删除「${item.title}」`}
+          aria-label={t("row.delete", { title: item.title })}
           disabled={pending}
           // 触屏没有 hover，小屏一律显示；桌面端才藏起来等 hover / 键盘聚焦
           className="text-muted-foreground opacity-100 transition-opacity hover:text-destructive focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"

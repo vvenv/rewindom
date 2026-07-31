@@ -14,6 +14,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         success({
           registration_enabled: config.registration_enabled,
           captcha_enabled: config.captcha_enabled,
+          default_locale: config.default_locale,
         }),
       );
     } catch (err) {

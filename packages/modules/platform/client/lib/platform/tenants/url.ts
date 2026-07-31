@@ -5,17 +5,13 @@ export interface PlatformTenantListFilters {
   status?: TenantStatus;
 }
 
-export const TENANT_STATUS_FILTER_LABELS: Record<TenantStatus, string> = {
-  active: "正常",
-  suspended: "已暂停",
-  archived: "已归档",
-};
-
-const TENANT_STATUS_VALUES = new Set<TenantStatus>([
+export const TENANT_STATUSES: TenantStatus[] = [
   "active",
   "suspended",
   "archived",
-]);
+];
+
+const TENANT_STATUS_VALUES = new Set<TenantStatus>(TENANT_STATUSES);
 
 function isTenantStatus(value: string): value is TenantStatus {
   return TENANT_STATUS_VALUES.has(value as TenantStatus);

@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 import { ApiError, useConfirm  } from "@be-water/client-kit";
 import { toast } from "@be-water/ui/toast";
+import { useTranslation } from "react-i18next";
 
 import {
   useArchivePlatformTenant,
@@ -11,6 +12,7 @@ import {
 import type { TenantSummary } from "../../shared/index.js";
 
 export function usePlatformTenantActions() {
+  const { t } = useTranslation(["platform", "common"]);
   const patchMutation = usePatchPlatformTenant();
   const archiveMutation = useArchivePlatformTenant();
   const { confirm } = useConfirm();
@@ -20,8 +22,10 @@ export function usePlatformTenantActions() {
   const handleArchive = useCallback(
     async (tenant: TenantSummary): Promise<void> => {
       const ok = await confirm({
-        title: "归档租户",
-        description: `确定归档租户「${tenant.name}」？归档后用户无法登录，数据保留在库中。`,
+        title: t("tenants.actions.archiveTitle"),
+        description: t("tenants.actions.archiveDescription", {
+          name: tenant.name,
+        }),
         destructive: true,
       });
       if (!ok) return;
@@ -29,14 +33,16 @@ export function usePlatformTenantActions() {
       setActingId(tenant.id);
       try {
         await archiveMutation.mutateAsync(tenant.id);
-        toast.success("租户已归档");
+        toast.success(t("tenants.actions.archived"));
       } catch (err) {
-        toast.error(err instanceof ApiError ? err.message : "归档失败");
+        toast.error(
+          err instanceof ApiError ? err.message : t("tenants.actions.archiveFailed"),
+        );
       } finally {
         setActingId(null);
       }
     },
-    [archiveMutation, confirm],
+    [archiveMutation, confirm, t],
   );
 
   const toggleStatus = useCallback(
@@ -44,8 +50,10 @@ export function usePlatformTenantActions() {
       const suspend = tenant.status === "active";
       if (suspend) {
         const ok = await confirm({
-          title: "暂停租户",
-          description: `确定暂停租户「${tenant.name}」？暂停后该租户用户将无法登录与调用 API。`,
+          title: t("tenants.actions.suspendTitle"),
+          description: t("tenants.actions.suspendDescription", {
+            name: tenant.name,
+          }),
           destructive: true,
         });
         if (!ok) return;
@@ -57,14 +65,18 @@ export function usePlatformTenantActions() {
           id: tenant.id,
           body: { status: suspend ? "suspended" : "active" },
         });
-        toast.success(suspend ? "租户已暂停" : "租户已恢复");
+        toast.success(
+          suspend ? t("tenants.actions.suspended") : t("tenants.actions.resumed"),
+        );
       } catch (err) {
-        toast.error(err instanceof ApiError ? err.message : "操作失败");
+        toast.error(
+          err instanceof ApiError ? err.message : t("tenants.actions.actionFailed"),
+        );
       } finally {
         setActingId(null);
       }
     },
-    [confirm, patchMutation],
+    [confirm, patchMutation, t],
   );
 
   return {

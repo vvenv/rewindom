@@ -13,8 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@be-water/ui/select";
+import { useTranslation } from "react-i18next";
 
-import { ERROR_LEVEL_LABELS } from "../../shared/index.js";
+import {
+  ERROR_LEVEL_CODES,
+  translateErrorLevel,
+} from "../lib/error-level-i18n.js";
 
 import type { DateRange } from "react-day-picker";
 
@@ -56,6 +60,7 @@ export function ErrorLogFilters({
   onFiltersChange,
   showTenantFilter = false,
 }: ErrorLogFiltersProps) {
+  const { t } = useTranslation(["error-log", "common"]);
   const TenantFilter = useTenantFilter();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() =>
     dateRangeFromFilters(filters.start_date, filters.end_date),
@@ -105,19 +110,19 @@ export function ErrorLogFilters({
             q: value.trim() || undefined,
           });
         },
-        placeholder: "账号 / 路由 / 错误代码",
+        placeholder: t("filters.searchPlaceholder"),
         className: "w-48",
       }}
       inlineContent={
         <>
           <Select value={filters.level ?? ""} onValueChange={handleLevelChange}>
             <SelectTrigger>
-              <SelectValue placeholder="全部级别" />
+              <SelectValue placeholder={t("filters.allLevels")} />
             </SelectTrigger>
             <SelectContent position="popper" align="start">
-              {Object.entries(ERROR_LEVEL_LABELS).map(([code, label]) => (
+              {ERROR_LEVEL_CODES.map((code) => (
                 <SelectItem key={code} value={code}>
-                  {label}
+                  {translateErrorLevel(t, code)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -144,7 +149,7 @@ export function ErrorLogFilters({
                   tenant_slug: slug || undefined,
                 });
               }}
-              placeholder="租户"
+              placeholder={t("filters.tenant")}
               showClear
               className="w-40"
             />

@@ -2,9 +2,11 @@ import { useMemo } from "react";
 
 import {
   Logo,
+  LocaleToggle,
   ShellLayoutToggle,
   ThemePaletteToggle,
   ThemeToggle,
+  resolveNavLabel,
   usePersistState,
   type AppNavItem,
   type AppNavSection,
@@ -23,6 +25,7 @@ import {
 } from "@be-water/ui/sheet";
 import { cn } from "@be-water/ui/utils";
 import { PanelLeft, PanelLeftClose, type LucideIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link, NavLink, useLocation } from "react-router";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";
@@ -61,10 +64,11 @@ function SidebarNavItem({
   itemTitle?: string;
 }) {
   const location = useLocation();
+  const { t } = useTranslation("common");
   const { isNavRouteActive } = useAppShellConfig();
   const badgeCount = useNavBadgeCount(badgeKey);
   const resolvedBadgeTitle =
-    badgeTitle ?? getNavBadgeTitle(badgeKey, badgeCount);
+    badgeTitle ?? getNavBadgeTitle(badgeKey, badgeCount, t);
 
   return (
     <NavLink
@@ -96,7 +100,7 @@ function SidebarNavItem({
           variant="destructive"
           title={resolvedBadgeTitle}
           className={cn(
-            "h-4 min-w-4 justify-center px-1 text-[10px]",
+            "h-4 min-w-4 justify-center px-1 text-xs",
             collapsed ? "absolute -right-1 -top-1" : "ml-auto",
           )}
         >
@@ -222,6 +226,7 @@ function SidebarFooter({
         />
         <ShellLayoutToggle />
         <ThemePaletteToggle />
+        <LocaleToggle />
         <ThemeToggle />
         {UserMenu ? <UserMenu collapsed /> : null}
       </div>
@@ -239,6 +244,7 @@ function SidebarFooter({
         <div className="flex shrink-0 items-center">
           <ShellLayoutToggle />
           <ThemePaletteToggle />
+          <LocaleToggle />
           <ThemeToggle />
         </div>
       </div>
@@ -292,6 +298,7 @@ function MobileNavDrawer({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation("shell");
   const { mainSections, endSections } = useFilteredNavSections();
   const { shellContributions } = useAppShellConfig();
   const homePath = useAppHomePath();
@@ -303,7 +310,7 @@ function MobileNavDrawer({
       <SheetContent
         side="left"
         showCloseButton={false}
-        title="导航"
+        title={t("chrome.nav")}
         className="flex flex-col gap-0 bg-sidebar p-0 text-sidebar-foreground"
       >
         <SheetHeader className="flex-row items-center justify-between gap-2">
@@ -319,7 +326,7 @@ function MobileNavDrawer({
               variant="ghost"
               size="icon"
               className={SIDEBAR_ICON_BUTTON}
-              title="收起侧边栏"
+              title={t("chrome.collapseSidebar")}
               onClick={closeNav}
             >
               <PanelLeftClose />
@@ -339,6 +346,7 @@ function MobileNavDrawer({
             {UserMenu ? <UserMenu showLabel /> : null}
             <div className="flex shrink-0 items-center">
               <ThemePaletteToggle />
+              <LocaleToggle />
               <ThemeToggle />
             </div>
           </SheetFooter>
@@ -350,6 +358,7 @@ function MobileNavDrawer({
 
 function MobileTabBar() {
   const location = useLocation();
+  const { t } = useTranslation(["common", "dashboard", "notes", "todos"]);
   const { data: entitlements } = useTenantEntitlements();
   const { hasPermission } = usePermissions();
   const { getMobileTabItems, filterMobileTabPaths, isNavRouteActive } =
@@ -364,8 +373,13 @@ function MobileTabBar() {
         hasPermission,
       ),
     );
-    return allItems.filter((item) => visiblePaths.has(item.path));
-  }, [entitlements, filterMobileTabPaths, getMobileTabItems, hasPermission]);
+    return allItems
+      .filter((item) => visiblePaths.has(item.path))
+      .map((item) => ({
+        ...item,
+        label: resolveNavLabel(item.label, t),
+      }));
+  }, [entitlements, filterMobileTabPaths, getMobileTabItems, hasPermission, t]);
 
   const tabClass = (isActive: boolean): string =>
     cn(
@@ -424,8 +438,9 @@ function MobileTabBadge({
 }: {
   badgeKey: NonNullable<AppNavItem["badgeKey"]>;
 }) {
+  const { t } = useTranslation("common");
   const badgeCount = useNavBadgeCount(badgeKey);
-  const badgeTitle = getNavBadgeTitle(badgeKey, badgeCount);
+  const badgeTitle = getNavBadgeTitle(badgeKey, badgeCount, t);
 
   if (badgeCount <= 0) {
     return null;
@@ -435,7 +450,7 @@ function MobileTabBadge({
     <Badge
       variant="destructive"
       title={badgeTitle}
-      className="absolute -top-1.5 -right-2.5 h-4 min-w-4 justify-center px-1 text-[10px]"
+      className="absolute -top-1.5 -right-2.5 h-4 min-w-4 justify-center px-1 text-xs"
     >
       {badgeCount > 99 ? "99+" : badgeCount}
     </Badge>
@@ -443,6 +458,7 @@ function MobileTabBadge({
 }
 
 function DesktopSidebar() {
+  const { t } = useTranslation("shell");
   const [collapsed, setCollapsed] = usePersistState({
     key: "sidebar_collapsed",
     defaultValue: false,
@@ -458,7 +474,7 @@ function DesktopSidebar() {
           variant="ghost"
           size="icon"
           className={SIDEBAR_ICON_BUTTON}
-          title="展开侧边栏"
+          title={t("chrome.expandSidebar")}
           onClick={() => setCollapsed(false)}
         >
           <PanelLeft />
@@ -488,7 +504,7 @@ function DesktopSidebar() {
           variant="ghost"
           size="icon"
           className={SIDEBAR_ICON_BUTTON}
-          title="收起侧边栏"
+          title={t("chrome.collapseSidebar")}
           onClick={() => setCollapsed(true)}
         >
           <PanelLeftClose />

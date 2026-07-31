@@ -7,9 +7,9 @@
 
 ## 面划分
 
-| 面   | 路由                                    | 目录             | 守卫                         |
-| ---- | --------------------------------------- | ---------------- | ---------------------------- |
-| 公开 | `/`、`/pricing`、`/docs`、`/docs/:slug` | `client/public/` | 无——登录与未登录都按原样渲染 |
+| 面   | 路由                                                                 | 目录             | 守卫                         |
+| ---- | -------------------------------------------------------------------- | ---------------- | ---------------------------- |
+| 公开 | `/`、`/pricing`、`/docs`、`/docs/:slug` 及 `/{locale}/...` 前缀形态 | `client/public/` | 无——登录与未登录都按原样渲染 |
 
 挂载点是 `client.renderPublicRoutes`，不是 `renderGuestRoutes`：后者套 `GuestOnlyRoute`，
 已登录用户会被重定向走，那是登录/注册页的语义。官网对两种身份都必须可见。
@@ -62,7 +62,9 @@ SITE_URL=https://your-domain.com pnpm --filter client build   # 指定 canonical
 ```
 
 输出 `dist/index.html`、`dist/pricing/index.html`、`dist/docs/<slug>/index.html`、
-`dist/sitemap.xml`、`dist/robots.txt`。细节见 `apps/client/scripts/prerender.mjs`。
+以及各语言前缀页（`dist/en/...`、`dist/zh-CN/...`）、`dist/sitemap.xml`、`dist/robots.txt`。
+逻辑路由表在 `MARKETING_ROUTES`；带 locale 的展开见 `expandLocalizedMarketingRoutes`。
+细节见 `apps/client/scripts/prerender.mjs` 与 `docs/design/i18n.md`。
 
 浏览器里 SPA 会用同一份路由重新渲染这些页面（`createRoot` 而非 `hydrateRoot`），
 所以静态 HTML 与运行时状态不一致（例如未登录 → 已登录）不会报 hydration 错误。

@@ -8,13 +8,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@be-water/ui/select";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 
 import {
   type PlatformTenantListFilters,
   parseTenantFiltersFromParams,
   serializeTenantFiltersToParams,
-  TENANT_STATUS_FILTER_LABELS,
+  TENANT_STATUSES,
 } from "../lib/platform/tenants/url.js";
 
 import type { TenantStatus } from "../../shared/index.js";
@@ -24,6 +25,7 @@ interface TenantFiltersProps {
 }
 
 export function TenantFilters({ filters }: TenantFiltersProps) {
+  const { t } = useTranslation("platform");
   const [, setSearchParams] = useSearchParams();
 
   const applyFilters = useCallback(
@@ -57,7 +59,7 @@ export function TenantFilters({ filters }: TenantFiltersProps) {
         onCommit: (value: string) => {
           applyFilters({ q: value.trim() || undefined });
         },
-        placeholder: "搜索标识或名称",
+        placeholder: t("tenants.filters.searchPlaceholder"),
         className: "max-w-48",
       }}
       inlineContent={
@@ -71,18 +73,13 @@ export function TenantFilters({ filters }: TenantFiltersProps) {
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="全部状态" />
+            <SelectValue placeholder={t("tenants.filters.allStatus")} />
           </SelectTrigger>
           <SelectContent position="popper" align="start">
-            <SelectItem value="">全部状态</SelectItem>
-            {(
-              Object.entries(TENANT_STATUS_FILTER_LABELS) as [
-                TenantStatus,
-                string,
-              ][]
-            ).map(([code, label]) => (
+            <SelectItem value="">{t("tenants.filters.allStatus")}</SelectItem>
+            {TENANT_STATUSES.map((code) => (
               <SelectItem key={code} value={code}>
-                {label}
+                {t(`tenants.status.${code}`)}
               </SelectItem>
             ))}
           </SelectContent>

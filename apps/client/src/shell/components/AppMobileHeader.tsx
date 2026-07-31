@@ -1,5 +1,6 @@
 import { Button } from "@be-water/ui/button";
 import { ChevronLeft, Menu } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";
@@ -7,6 +8,7 @@ import { useAppShellConfig } from "../contexts/app-shell-context.js";
 import { ShellSlotList } from "./ShellSlotList.js";
 
 export function AppMobileHeader({ onOpenNav }: { onOpenNav: () => void }) {
+  const { t } = useTranslation("shell");
   const location = useLocation();
   const navigate = useNavigate();
   const { resolveMobileHeaderState, shellContributions } = useAppShellConfig();
@@ -30,7 +32,7 @@ export function AppMobileHeader({ onOpenNav }: { onOpenNav: () => void }) {
           size="icon"
           className="shrink-0"
           onClick={onOpenNav}
-          aria-label="打开导航"
+          aria-label={t("chrome.openNav")}
         >
           <Menu className="size-5" />
         </Button>

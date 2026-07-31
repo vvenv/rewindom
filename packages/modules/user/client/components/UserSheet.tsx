@@ -18,6 +18,7 @@ import { Spinner } from "@be-water/ui/spinner";
 import { Switch } from "@be-water/ui/switch";
 import { toast } from "@be-water/ui/toast";
 import { Pencil, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useRoles } from "../../../rbac/client/hooks/useRoles.js";
 import { useCreateUser, type UserInput } from "../hooks/useCreateUser.js";
@@ -58,6 +59,7 @@ interface UserFormProps {
 }
 
 function UserForm({ user, onClose }: UserFormProps) {
+  const { t } = useTranslation(["user", "common"]);
   const isEdit = Boolean(user);
   const [form, setForm] = useState<FormState>(() => initialForm(user));
   const [errors, setErrors] = useState<
@@ -91,12 +93,14 @@ function UserForm({ user, onClose }: UserFormProps) {
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
     const nextErrors: Partial<Record<keyof FormState, string>> = {};
-    if (!form.username.trim()) nextErrors.username = "请输入账号";
-    if (!isEdit && !form.password.trim()) nextErrors.password = "请输入密码";
+    if (!form.username.trim())
+      nextErrors.username = t("sheet.validation.usernameRequired");
+    if (!isEdit && !form.password.trim())
+      nextErrors.password = t("sheet.validation.passwordRequired");
     if (!isEdit && form.password.length < 6)
-      nextErrors.password = "密码至少需要6个字符";
+      nextErrors.password = t("sheet.validation.passwordMinLength");
     if (isEdit && form.password && form.password.length < 6)
-      nextErrors.password = "密码至少需要6个字符";
+      nextErrors.password = t("sheet.validation.passwordMinLength");
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
       return;
@@ -128,11 +132,13 @@ function UserForm({ user, onClose }: UserFormProps) {
         };
         await createMutation.mutateAsync(data);
       }
-      toast.success(isEdit ? "用户更新成功" : "用户添加成功");
+      toast.success(
+        isEdit ? t("sheet.userUpdated") : t("sheet.userCreated"),
+      );
       onClose();
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : "保存失败，请重试";
+        err instanceof ApiError ? err.message : t("common:saveFailed");
       setSubmitError(message);
       toast.error(message);
     }
@@ -141,20 +147,22 @@ function UserForm({ user, onClose }: UserFormProps) {
   return (
     <>
       <SheetHeader>
-        <SheetTitle>{isEdit ? "编辑用户" : "新建用户"}</SheetTitle>
+        <SheetTitle>
+          {isEdit ? t("sheet.editTitle") : t("sheet.createTitle")}
+        </SheetTitle>
         <SheetDescription>
-          {isEdit ? "更新用户信息及角色" : "创建一个新的系统用户"}
+          {isEdit ? t("sheet.editDescription") : t("sheet.createDescription")}
         </SheetDescription>
       </SheetHeader>
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col min-h-0">
         <FieldGroup className="px-4 flex-1 overflow-auto">
           <Field>
-            <FieldLabel htmlFor="user-username">账号</FieldLabel>
+            <FieldLabel htmlFor="user-username">{t("sheet.username")}</FieldLabel>
             <Input
               id="user-username"
               value={form.username}
               onChange={(e) => setField("username", e.target.value)}
-              placeholder="例如：admin"
+              placeholder={t("sheet.usernamePlaceholder")}
               disabled={isEdit || isPending}
               aria-invalid={errors.username ? "true" : "false"}
               autoFocus={!isEdit}
@@ -163,14 +171,18 @@ function UserForm({ user, onClose }: UserFormProps) {
           </Field>
           <Field>
             <FieldLabel htmlFor="user-password">
-              {isEdit ? "密码（留空不修改）" : "密码"}
+              {isEdit ? t("sheet.passwordOptional") : t("sheet.password")}
             </FieldLabel>
             <Input
               id="user-password"
               type="password"
               value={form.password}
               onChange={(e) => setField("password", e.target.value)}
-              placeholder={isEdit ? "留空不修改密码" : "至少6个字符"}
+              placeholder={
+                isEdit
+                  ? t("sheet.passwordPlaceholderEdit")
+                  : t("sheet.passwordPlaceholderCreate")
+              }
               disabled={isPending}
               aria-invalid={errors.password ? "true" : "false"}
               autoComplete="new-password"
@@ -185,12 +197,12 @@ function UserForm({ user, onClose }: UserFormProps) {
               disabled={isPending}
             />
             <FieldLabel htmlFor="user-system-admin">
-              系统管理员（拥有全部租户权限）
+              {t("sheet.systemAdminLabel")}
             </FieldLabel>
           </Field>
           {!form.is_system_admin && (
             <Field>
-              <FieldLabel>角色</FieldLabel>
+              <FieldLabel>{t("sheet.roles")}</FieldLabel>
               <div className="flex flex-col gap-2">
                 {roles.map((role) => (
                   <label key={role.id} className="flex items-center gap-2 text-sm">
@@ -214,9 +226,7 @@ function UserForm({ user, onClose }: UserFormProps) {
               disabled={isPending}
             />
             <FieldLabel htmlFor="user-enabled" className="text-muted-foreground">
-              {form.enabled
-                ? "已启用，用户可以登录系统"
-                : "已停用，用户无法登录系统"}
+              {form.enabled ? t("sheet.enabledHint") : t("sheet.disabledHint")}
             </FieldLabel>
           </Field>
           {submitError && <FieldError>{submitError}</FieldError>}
@@ -224,12 +234,12 @@ function UserForm({ user, onClose }: UserFormProps) {
         <SheetFooter>
           <SheetClose asChild>
             <Button type="button" variant="outline" disabled={isPending}>
-              取消
+              {t("common:cancel")}
             </Button>
           </SheetClose>
           <Button type="submit" disabled={isPending}>
             {isPending && <Spinner />}
-            {isEdit ? "保存" : "创建"}
+            {isEdit ? t("common:save") : t("common:create")}
           </Button>
         </SheetFooter>
       </form>
@@ -274,6 +284,8 @@ export function UserCreateSheet({
 }: {
   children?: ReactNode;
 } = {}): React.ReactElement {
+  const { t } = useTranslation("user");
+
   return (
     <UserSheetWithTrigger
       user={null}
@@ -281,7 +293,7 @@ export function UserCreateSheet({
         children ?? (
           <Button variant="outline">
             <Plus className="size-4" />
-            新建用户
+            {t("page.createUser")}
           </Button>
         )
       }
@@ -298,12 +310,19 @@ export function UserEditSheet({
   user,
   disabled = false,
 }: UserEditSheetProps): React.ReactElement {
+  const { t } = useTranslation("common");
+
   return (
     <UserSheetWithTrigger
       user={user}
       disabled={disabled}
       trigger={
-        <Button variant="ghost" size="icon-sm" title="编辑" disabled={disabled}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          title={t("edit")}
+          disabled={disabled}
+        >
           <Pencil className="size-3.5" />
         </Button>
       }

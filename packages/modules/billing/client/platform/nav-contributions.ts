@@ -8,7 +8,7 @@ export const billingPlatformNavContributions: readonly PlatformNavContribution[]
       kind: "link",
       order: 35,
       to: "/platform/billing",
-      label: "订阅与付款",
+      label: "billing:nav.billing",
       icon: CreditCard,
       end: true,
     },

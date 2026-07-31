@@ -25,6 +25,7 @@ import {
   Phone,
   User,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   canSubmitRegisterForm,
@@ -35,13 +36,12 @@ import {
 import { RegisterLoginLink } from "./RegisterDisabledView.js";
 import { SliderCaptcha } from "./SliderCaptcha";
 
-const INPUT_GROUP_CLASS =
-  "auth-input-group h-11 has-[[data-slot=input-group-control]:focus-visible]:ring-0";
+const INPUT_GROUP_CLASS = "auth-input-group h-11";
 
 /** 分组序号：注册要填两组信息，编号把「两件事」摆到明处 */
 function StepBadge({ step }: { step: number }) {
   return (
-    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[0.6875rem] font-semibold text-primary">
+    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
       {step}
     </span>
   );
@@ -78,6 +78,8 @@ export function RegisterForm({
   onCaptchaError: (error: string) => void;
   onSubmit: () => void;
 }) {
+  const { t } = useTranslation(["shell", "common"]);
+
   return (
     <div className="auth-glass-card relative overflow-hidden rounded-2xl">
       <div
@@ -95,7 +97,7 @@ export function RegisterForm({
           <div className="flex flex-col items-center gap-2">
             <Wordmark className="auth-logo-glow h-6 text-foreground" />
             <p className="text-sm text-muted-foreground">
-              创建组织与管理员账号，即刻使用
+              {t("auth.registerTagline")}
             </p>
           </div>
         </div>
@@ -116,15 +118,15 @@ export function RegisterForm({
                   className="mb-0 flex items-center gap-2"
                 >
                   <StepBadge step={1} />
-                  组织信息
+                  {t("auth.orgInfo")}
                 </FieldLegend>
                 <FieldDescription className="pl-7 text-xs">
-                  用于创建你的租户空间
+                  {t("auth.orgInfoDescription")}
                 </FieldDescription>
               </div>
 
               <Field>
-                <FieldLabel htmlFor="tenant-name">组织名称</FieldLabel>
+                <FieldLabel htmlFor="tenant-name">{t("auth.tenantName")}</FieldLabel>
                 <InputGroup className={INPUT_GROUP_CLASS}>
                   <InputGroupAddon>
                     <Building2 className="size-4 text-muted-foreground/80" />
@@ -134,7 +136,7 @@ export function RegisterForm({
                     type="text"
                     value={form.tenantName}
                     onChange={(event) => onTenantNameChange(event.target.value)}
-                    placeholder="请输入组织名称"
+                    placeholder={t("auth.tenantNamePlaceholder")}
                     disabled={isLoading}
                     autoFocus
                     autoComplete="organization"
@@ -143,7 +145,7 @@ export function RegisterForm({
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="tenant-slug">组织标识</FieldLabel>
+                <FieldLabel htmlFor="tenant-slug">{t("auth.tenantSlug")}</FieldLabel>
                 <InputGroup className={INPUT_GROUP_CLASS}>
                   <InputGroupAddon>
                     <AtSign className="size-4 text-muted-foreground/80" />
@@ -159,12 +161,12 @@ export function RegisterForm({
                   />
                 </InputGroup>
                 <FieldDescription className="text-xs">
-                  由名称自动生成，登录格式：账号@标识
+                  {t("auth.tenantSlugDescription")}
                 </FieldDescription>
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="phone">手机号</FieldLabel>
+                <FieldLabel htmlFor="phone">{t("auth.phone")}</FieldLabel>
                 <InputGroup className={INPUT_GROUP_CLASS}>
                   <InputGroupAddon>
                     <Phone className="size-4 text-muted-foreground/80" />
@@ -176,7 +178,7 @@ export function RegisterForm({
                     onChange={(event) =>
                       onFieldChange("phone", event.target.value)
                     }
-                    placeholder="请输入手机号"
+                    placeholder={t("auth.phonePlaceholder")}
                     disabled={isLoading}
                     autoComplete="tel"
                   />
@@ -184,7 +186,7 @@ export function RegisterForm({
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="email">邮箱</FieldLabel>
+                <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
                 <InputGroup className={INPUT_GROUP_CLASS}>
                   <InputGroupAddon>
                     <Mail className="size-4 text-muted-foreground/80" />
@@ -196,7 +198,7 @@ export function RegisterForm({
                     onChange={(event) =>
                       onFieldChange("email", event.target.value)
                     }
-                    placeholder="请输入邮箱"
+                    placeholder={t("auth.emailPlaceholder")}
                     disabled={isLoading}
                     autoComplete="email"
                   />
@@ -211,15 +213,15 @@ export function RegisterForm({
                   className="mb-0 flex items-center gap-2"
                 >
                   <StepBadge step={2} />
-                  管理员账号
+                  {t("auth.adminAccount")}
                 </FieldLegend>
                 <FieldDescription className="pl-7 text-xs">
-                  该账号拥有组织的最高权限
+                  {t("auth.adminAccountDescription")}
                 </FieldDescription>
               </div>
 
               <Field>
-                <FieldLabel htmlFor="username">账号</FieldLabel>
+                <FieldLabel htmlFor="username">{t("auth.adminUsername")}</FieldLabel>
                 <InputGroup className={INPUT_GROUP_CLASS}>
                   <InputGroupAddon>
                     <User className="size-4 text-muted-foreground/80" />
@@ -231,18 +233,18 @@ export function RegisterForm({
                     onChange={(event) =>
                       onFieldChange("username", event.target.value)
                     }
-                    placeholder="请输入管理员账号"
+                    placeholder={t("auth.adminUsernamePlaceholder")}
                     disabled={isLoading}
                     autoComplete="username"
                   />
                 </InputGroup>
                 <FieldDescription className="text-xs">
-                  3-50 个字符
+                  {t("auth.usernameLengthHint")}
                 </FieldDescription>
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="password">密码</FieldLabel>
+                <FieldLabel htmlFor="password">{t("auth.password")}</FieldLabel>
                 <InputGroup className={INPUT_GROUP_CLASS}>
                   <InputGroupAddon>
                     <KeyRound className="size-4 text-muted-foreground/80" />
@@ -254,14 +256,18 @@ export function RegisterForm({
                     onChange={(event) =>
                       onFieldChange("password", event.target.value)
                     }
-                    placeholder="请输入密码"
+                    placeholder={t("auth.passwordPlaceholder")}
                     disabled={isLoading}
                     autoComplete="new-password"
                   />
                   <InputGroupButton
                     onClick={() => onShowPasswordChange(!showPassword)}
                     disabled={isLoading}
-                    aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                    aria-label={
+                      showPassword
+                        ? t("auth.hidePassword")
+                        : t("auth.showPassword")
+                    }
                   >
                     {showPassword ? (
                       <EyeOff className="size-4 text-muted-foreground/80" />
@@ -271,12 +277,14 @@ export function RegisterForm({
                   </InputGroupButton>
                 </InputGroup>
                 <FieldDescription className="text-xs">
-                  至少 8 位，需包含大小写字母与数字
+                  {t("auth.passwordRequirements")}
                 </FieldDescription>
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="confirm-password">确认密码</FieldLabel>
+                <FieldLabel htmlFor="confirm-password">
+                  {t("auth.confirmPassword")}
+                </FieldLabel>
                 <InputGroup className={INPUT_GROUP_CLASS}>
                   <InputGroupAddon>
                     <KeyRound className="size-4 text-muted-foreground/80" />
@@ -288,7 +296,7 @@ export function RegisterForm({
                     onChange={(event) =>
                       onFieldChange("confirmPassword", event.target.value)
                     }
-                    placeholder="请再次输入密码"
+                    placeholder={t("auth.confirmPasswordPlaceholder")}
                     disabled={isLoading}
                     autoComplete="new-password"
                   />
@@ -297,7 +305,11 @@ export function RegisterForm({
                       onShowConfirmPasswordChange(!showConfirmPassword)
                     }
                     disabled={isLoading}
-                    aria-label={showConfirmPassword ? "隐藏密码" : "显示密码"}
+                    aria-label={
+                      showConfirmPassword
+                        ? t("auth.hidePassword")
+                        : t("auth.showPassword")
+                    }
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="size-4 text-muted-foreground/80" />
@@ -322,7 +334,7 @@ export function RegisterForm({
             <Button
               type="submit"
               className={cn(
-                "auth-submit-btn w-full text-[0.9375rem] font-medium hover:bg-transparent",
+                "auth-submit-btn w-full text-sm font-medium hover:bg-transparent",
                 isLoading && "pointer-events-none opacity-80",
               )}
               disabled={
@@ -333,10 +345,10 @@ export function RegisterForm({
               {isLoading ? (
                 <>
                   <Spinner />
-                  注册中...
+                  {t("auth.registering")}
                 </>
               ) : (
-                "创建组织并注册"
+                t("auth.createOrgAndRegister")
               )}
             </Button>
           </div>

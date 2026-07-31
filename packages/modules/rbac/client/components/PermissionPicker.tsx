@@ -2,6 +2,7 @@ import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { Checkbox } from "@be-water/ui/checkbox";
 import { Spinner } from "@be-water/ui/spinner";
+import { useTranslation } from "react-i18next";
 
 import {
   getGroupSelectionState,
@@ -27,6 +28,7 @@ export function PermissionPicker({
   onChange,
   disabled,
 }: PermissionPickerProps) {
+  const { t } = useTranslation("rbac");
   const groups = groupPermissions(catalog);
 
   if (isLoading) {
@@ -39,7 +41,9 @@ export function PermissionPicker({
 
   if (groups.length === 0) {
     return (
-      <p className="text-muted-foreground py-4 text-sm">暂无可分配的权限</p>
+      <p className="text-muted-foreground py-4 text-sm">
+        {t("permissionPicker.empty")}
+      </p>
     );
   }
 
@@ -53,7 +57,7 @@ export function PermissionPicker({
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">{group.label}</span>
                 {state === "partial" && (
-                  <Badge variant="secondary">部分</Badge>
+                  <Badge variant="secondary">{t("permissionPicker.partial")}</Badge>
                 )}
               </div>
               <Button
@@ -63,7 +67,9 @@ export function PermissionPicker({
                 disabled={disabled}
                 onClick={() => onChange(toggleGroup(value, group))}
               >
-                {state === "all" ? "取消全选" : "全选"}
+                {state === "all"
+                  ? t("permissionPicker.deselectAll")
+                  : t("permissionPicker.selectAll")}
               </Button>
             </div>
 

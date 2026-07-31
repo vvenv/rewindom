@@ -4,6 +4,7 @@ import {
 } from "@be-water/server-kernel/http/route-error-handler.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import {
+  isAppLocale,
   isShellLayoutSlug,
   isThemePaletteSlug,
   success,
@@ -28,6 +29,7 @@ interface UpdatePlatformSettingsBody {
   captcha_enabled?: boolean;
   default_theme?: string;
   default_layout?: string;
+  default_locale?: string;
 }
 
 export async function registerSettingsRoutes(
@@ -55,6 +57,7 @@ export async function registerSettingsRoutes(
         captcha_enabled,
         default_theme,
         default_layout,
+        default_locale,
       } = request.body as UpdatePlatformSettingsBody;
 
       if (default_theme !== undefined && !isThemePaletteSlug(default_theme)) {
@@ -62,6 +65,9 @@ export async function registerSettingsRoutes(
       }
       if (default_layout !== undefined && !isShellLayoutSlug(default_layout)) {
         return handleValidationError(reply, "无效的布局");
+      }
+      if (default_locale !== undefined && !isAppLocale(default_locale)) {
+        return handleValidationError(reply, "无效的语言");
       }
 
       const currentConfig = await getPlatformSettings();
@@ -73,6 +79,7 @@ export async function registerSettingsRoutes(
         captcha_enabled: captcha_enabled ?? currentConfig.captcha_enabled,
         default_theme: default_theme ?? currentConfig.default_theme,
         default_layout: default_layout ?? currentConfig.default_layout,
+        default_locale: default_locale ?? currentConfig.default_locale,
       };
 
       await savePlatformSettings(newConfig);

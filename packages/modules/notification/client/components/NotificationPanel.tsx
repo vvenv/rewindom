@@ -4,6 +4,7 @@ import { Button } from "@be-water/ui/button";
 import { Switch } from "@be-water/ui/switch";
 import { cn } from "@be-water/ui/utils";
 import { MessageSquare } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { type NotificationItem } from "../../shared/index.js";
@@ -79,6 +80,7 @@ function NotificationRow({
 }
 
 function DesktopNotificationSettings() {
+  const { t } = useTranslation("notification");
   const {
     supported,
     permission,
@@ -96,7 +98,7 @@ function DesktopNotificationSettings() {
   if (permission === "denied") {
     return (
       <p className="shrink-0 pb-2 text-xs text-muted-foreground">
-        桌面通知已被浏览器拒绝。请在浏览器地址栏左侧的站点设置中，将「通知」改为允许后刷新页面。
+        {t("desktop.denied")}
       </p>
     );
   }
@@ -110,7 +112,7 @@ function DesktopNotificationSettings() {
           className="w-full"
           onClick={() => void requestPermission()}
         >
-          开启桌面通知
+          {t("desktop.enable")}
         </Button>
       </div>
     );
@@ -119,20 +121,20 @@ function DesktopNotificationSettings() {
   return (
     <div className="shrink-0 space-y-2 pb-2">
       <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">桌面通知</span>
+        <span className="text-muted-foreground">{t("desktop.label")}</span>
         <Switch
           checked={enabled}
           onCheckedChange={setEnabled}
-          aria-label="桌面通知"
+          aria-label={t("desktop.label")}
         />
       </div>
       {enabled && (
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">仅后台时提醒</span>
+          <span className="text-muted-foreground">{t("desktop.backgroundOnly")}</span>
           <Switch
             checked={backgroundOnly}
             onCheckedChange={setBackgroundOnly}
-            aria-label="仅后台时提醒"
+            aria-label={t("desktop.backgroundOnly")}
           />
         </div>
       )}
@@ -149,6 +151,7 @@ export function NotificationPanelContent({
   active,
   onItemClick,
 }: NotificationPanelContentProps) {
+  const { t } = useTranslation(["notification", "common"]);
   const { data: unread } = useUnreadNotificationCount();
   const { data: page, isLoading } = useNotifications(1, 30, false, active);
   const markAllRead = useMarkAllNotificationsRead();
@@ -163,12 +166,12 @@ export function NotificationPanelContent({
       <div className="min-h-0 flex-1 overflow-y-auto">
         {isLoading ? (
           <p className="text-sm text-muted-foreground text-center py-8">
-            加载中…
+            {t("panel.loading")}
           </p>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
             <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-sm">暂无消息</p>
+            <p className="text-sm">{t("panel.empty")}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -191,7 +194,7 @@ export function NotificationPanelContent({
             disabled={markAllRead.isPending}
             onClick={() => markAllRead.mutate()}
           >
-            全部标为已读
+            {t("panel.markAllRead")}
           </Button>
         </div>
       )}

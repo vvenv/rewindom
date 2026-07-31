@@ -31,12 +31,14 @@ const CATALOG: PermissionCatalogEntry[] = [
 
 describe("validateRoleForm", () => {
   it("要求填写名称", () => {
-    expect(validateRoleForm(INITIAL_ROLE_FORM).name).toBe("请输入角色名称");
+    expect(validateRoleForm(INITIAL_ROLE_FORM).name).toBe(
+      "validation.nameRequired",
+    );
   });
 
   it("纯空白名称视为未填写", () => {
     const errors = validateRoleForm({ ...INITIAL_ROLE_FORM, name: "   " });
-    expect(errors.name).toBe("请输入角色名称");
+    expect(errors.name).toBe("validation.nameRequired");
   });
 
   it("限制名称长度", () => {
@@ -44,7 +46,7 @@ describe("validateRoleForm", () => {
       ...INITIAL_ROLE_FORM,
       name: "a".repeat(51),
     });
-    expect(errors.name).toBe("角色名称不超过 50 个字符");
+    expect(errors.name).toBe("validation.nameMaxLength");
   });
 
   it("合法表单无错误", () => {

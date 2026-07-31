@@ -2,16 +2,22 @@ import { Logo } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 
-import { BUILTIN_MODULES, HERO, SITE, TECH_STACK } from "../../shared/index.js";
+import { BUILTIN_MODULES, HERO, TECH_STACK } from "../../shared/index.js";
 import { FeatureGrid } from "../components/FeatureGrid.js";
 import {
   MarketingLayout,
   MarketingSection,
 } from "../components/MarketingLayout.js";
+import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES } from "../lib/docs.js";
+import { resolveTechStackLayerLabel } from "../lib/marketing-i18n.js";
 
 function Hero() {
+  const { t } = useTranslation("marketing");
+  const hrefFor = useMarketingHref();
+
   return (
     <MarketingSection className="relative overflow-hidden pt-16 pb-20 sm:pt-24">
       <div
@@ -26,19 +32,19 @@ function Hero() {
       </div>
 
       <p className="text-sm font-medium tracking-wide text-primary">
-        {SITE.tagline}
+        {t("site.tagline")}
       </p>
       <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl sm:leading-[1.1]">
-        {HERO.headline}
+        {t("hero.headline")}
       </h1>
       <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-        {HERO.subline}
+        {t("hero.subline")}
       </p>
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Button asChild size="lg" className="h-11 px-5 text-base">
-          <Link to={HERO.primaryCta.href}>
-            {HERO.primaryCta.label}
+          <Link to={hrefFor(HERO.primaryCta.href)}>
+            {t("hero.primaryCta")}
             <ArrowRight className="size-4" />
           </Link>
         </Button>
@@ -48,24 +54,30 @@ function Hero() {
           size="lg"
           className="h-11 px-5 text-base"
         >
-          <Link to={HERO.secondaryCta.href}>{HERO.secondaryCta.label}</Link>
+          <Link to={hrefFor(HERO.secondaryCta.href)}>
+            {t("hero.secondaryCta")}
+          </Link>
         </Button>
       </div>
 
       <dl className="mt-14 grid max-w-2xl gap-6 sm:grid-cols-3">
-        {[
-          {
-            term: "基础设施模块",
-            detail: `${BUILTIN_MODULES.length} 个开箱可用`,
-          },
-          { term: "部署形态", detail: "单进程 · Docker Compose" },
-          { term: "租户隔离", detail: "Prisma 层 fail-closed" },
-        ].map((item) => (
-          <div key={item.term}>
+        {(
+          [
+            {
+              key: "infraModules" as const,
+              detailValues: { count: BUILTIN_MODULES.length },
+            },
+            { key: "deployment" as const, detailValues: undefined },
+            { key: "tenantIsolation" as const, detailValues: undefined },
+          ] as const
+        ).map(({ key, detailValues }) => (
+          <div key={key}>
             <dt className="text-xs tracking-wide text-muted-foreground uppercase">
-              {item.term}
+              {t(`hero.stats.${key}.term`)}
             </dt>
-            <dd className="mt-1 text-sm font-medium">{item.detail}</dd>
+            <dd className="mt-1 text-sm font-medium">
+              {t(`hero.stats.${key}.detail`, detailValues)}
+            </dd>
           </div>
         ))}
       </dl>
@@ -74,14 +86,15 @@ function Hero() {
 }
 
 function BuiltinModules() {
+  const { t } = useTranslation("marketing");
+
   return (
     <MarketingSection className="py-20">
       <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-        基础设施开箱即用
+        {t("landing.builtinModules.title")}
       </h2>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        认证、租户、权限、审计、通知、任务、可观测性——这些每个 SaaS
-        都要重写一遍的东西， 底座已经写好了，而且都是可开关的模块而非硬编码。
+        {t("landing.builtinModules.description")}
       </p>
 
       <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -94,7 +107,7 @@ function BuiltinModules() {
               {module.name}
             </code>
             <p className="mt-1 text-sm text-muted-foreground">
-              {module.description}
+              {t(`builtinModules.${module.name}`)}
             </p>
           </li>
         ))}
@@ -104,32 +117,36 @@ function BuiltinModules() {
 }
 
 function TechStack() {
+  const { t } = useTranslation("marketing");
+  const hrefFor = useMarketingHref();
+
   return (
     <MarketingSection className="py-20">
       <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            技术栈没有惊喜
+            {t("landing.techStack.title")}
           </h2>
           <p className="mt-3 text-muted-foreground">
-            全是主流且长期维护的选择：招人好招，出问题搜得到答案，升级路径清晰。
-            底座的价值在边界与约束，不在堆新框架。
+            {t("landing.techStack.description")}
           </p>
           <Button asChild variant="outline" className="mt-6 h-10 px-4">
-            <Link to="/docs">
-              读文档
+            <Link to={hrefFor("/docs")}>
+              {t("landing.techStack.readDocs")}
               <ArrowRight className="size-4" />
             </Link>
           </Button>
         </div>
 
         <dl className="divide-y divide-border/60 overflow-hidden rounded-2xl border border-border/60">
-          {TECH_STACK.map((row) => (
+          {TECH_STACK.map((row, index) => (
             <div
               key={row.layer}
               className="grid grid-cols-[5rem_1fr] gap-4 bg-background px-5 py-4 text-sm"
             >
-              <dt className="text-muted-foreground">{row.layer}</dt>
+              <dt className="text-muted-foreground">
+                {resolveTechStackLayerLabel(index, t)}
+              </dt>
               <dd className="font-medium">{row.items}</dd>
             </div>
           ))}
@@ -140,16 +157,19 @@ function TechStack() {
 }
 
 function DocsTeaser() {
+  const { t } = useTranslation("marketing");
+  const hrefFor = useMarketingHref();
+
   return (
     <MarketingSection className="py-20">
       <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-        从这里开始
+        {t("landing.docsTeaser.title")}
       </h2>
       <ul className="mt-8 grid gap-3 sm:grid-cols-2">
         {DOC_PAGES.map((page) => (
           <li key={page.slug}>
             <Link
-              to={page.path}
+              to={hrefFor(page.path)}
               className="group block h-full rounded-xl border border-border/60 bg-background p-5 transition-colors hover:border-primary/40 hover:bg-muted/40"
             >
               <span className="flex items-center gap-1.5 font-medium">
@@ -168,18 +188,21 @@ function DocsTeaser() {
 }
 
 function ClosingCta() {
+  const { t } = useTranslation("marketing");
+  const hrefFor = useMarketingHref();
+
   return (
     <MarketingSection className="pt-4 pb-24">
       <div className="rounded-2xl border border-border/60 bg-muted/30 px-6 py-12 text-center sm:px-12">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          先把底座跑起来，再谈业务
+          {t("landing.closingCta.title")}
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-          本地 5 分钟起服务，生产一条命令部署。免费版可以一直用下去。
+          {t("landing.closingCta.description")}
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Button asChild size="lg" className="h-11 px-5 text-base">
-            <Link to="/register">免费开始</Link>
+            <Link to="/register">{t("landing.closingCta.getStarted")}</Link>
           </Button>
           <Button
             asChild
@@ -187,7 +210,9 @@ function ClosingCta() {
             size="lg"
             className="h-11 px-5 text-base"
           >
-            <Link to="/pricing">看定价</Link>
+            <Link to={hrefFor("/pricing")}>
+              {t("landing.closingCta.viewPricing")}
+            </Link>
           </Button>
         </div>
       </div>

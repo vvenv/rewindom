@@ -4,26 +4,29 @@ import { DataTable, DataTableColumnHeader } from "@be-water/client-kit";
 import { displayOrEmpty, formatBusinessDate } from "@be-water/shared";
 import { Badge, type badgeVariants } from "@be-water/ui/badge";
 import { AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   ERROR_LEVEL_COLORS,
-  ERROR_LEVEL_LABELS,
   type ErrorLevelType,
   type ErrorLog,
 } from "../../shared/index.js";
+import { translateErrorLevel } from "../lib/error-level-i18n.js";
 
 import { ErrorLogSheet } from "./ErrorLogSheet.js";
 
 import type { ColumnDef, SortingState, Updater } from "@tanstack/react-table";
+import type { TFunction } from "i18next";
 
 function buildErrorLogColumns(
   showTenantColumn: boolean,
+  t: TFunction,
 ): ColumnDef<ErrorLog>[] {
   return [
     {
       accessorKey: "created_at",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="时间" />
+        <DataTableColumnHeader column={column} title={t("table.time")} />
       ),
       enableSorting: true,
       cell: ({ row }) => (
@@ -35,7 +38,7 @@ function buildErrorLogColumns(
     {
       accessorKey: "level",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="级别" />
+        <DataTableColumnHeader column={column} title={t("table.level")} />
       ),
       enableSorting: true,
       cell: ({ row }) => {
@@ -44,14 +47,14 @@ function buildErrorLogColumns(
           <Badge
             variant={ERROR_LEVEL_COLORS[level] as keyof typeof badgeVariants}
           >
-            {ERROR_LEVEL_LABELS[level]}
+            {translateErrorLevel(t, level)}
           </Badge>
         );
       },
     },
     {
       accessorKey: "message",
-      header: "错误信息",
+      header: t("table.message"),
       enableSorting: false,
       cell: ({ row }) => {
         const message = row.getValue("message") as string;
@@ -67,7 +70,7 @@ function buildErrorLogColumns(
           {
             accessorKey: "tenant_slug",
             header: ({ column }) => (
-              <DataTableColumnHeader column={column} title="租户" />
+              <DataTableColumnHeader column={column} title={t("table.tenant")} />
             ),
             enableSorting: true,
             cell: ({ row }) => (
@@ -81,7 +84,7 @@ function buildErrorLogColumns(
     {
       accessorKey: "username",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="用户" />
+        <DataTableColumnHeader column={column} title={t("table.user")} />
       ),
       enableSorting: true,
       cell: ({ row }) => (
@@ -93,7 +96,7 @@ function buildErrorLogColumns(
     {
       accessorKey: "route",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="路由" />
+        <DataTableColumnHeader column={column} title={t("table.route")} />
       ),
       enableSorting: true,
       cell: ({ row }) => (
@@ -105,7 +108,7 @@ function buildErrorLogColumns(
     {
       accessorKey: "method",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="方法" />
+        <DataTableColumnHeader column={column} title={t("table.method")} />
       ),
       enableSorting: true,
       cell: ({ row }) => (
@@ -117,7 +120,7 @@ function buildErrorLogColumns(
     {
       accessorKey: "error_code",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="错误代码" />
+        <DataTableColumnHeader column={column} title={t("table.errorCode")} />
       ),
       enableSorting: true,
       cell: ({ row }) => (
@@ -157,14 +160,13 @@ export function ErrorLogsTable({
   onSortingChange: (updater: Updater<SortingState>) => void;
   onSelectLog: (log: ErrorLog) => void;
   onClearSelectedLog: (open: boolean) => void;
-  /** 仅平台控制台开启：租户侧同租户下该列恒等，没有信息量。 */
   showTenantColumn?: boolean;
-  /** 详情抽屉是否给出删除入口。删除走租户接口，平台控制台不能开。 */
   allowDelete?: boolean;
 }) {
+  const { t } = useTranslation("error-log");
   const columns = useMemo(
-    () => buildErrorLogColumns(showTenantColumn),
-    [showTenantColumn],
+    () => buildErrorLogColumns(showTenantColumn, t),
+    [showTenantColumn, t],
   );
   const selectedLog = logs.find((log) => log.id === logId) ?? null;
 
@@ -176,9 +178,9 @@ export function ErrorLogsTable({
         isLoading={isLoading && logs.length === 0}
         isError={Boolean(error) && logs.length === 0}
         error={error}
-        emptyMessage="暂无错误日志"
+        emptyMessage={t("table.empty")}
         emptyIcon={<AlertTriangle className="size-8 text-muted-foreground" />}
-        loadingMessage="加载中..."
+        loadingMessage={t("table.loading")}
         pageSize={pageSize}
         page={page}
         total={total}

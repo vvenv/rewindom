@@ -10,6 +10,7 @@ import {
   normalizeOrigin,
   type PageSeo,
 } from "@be-water/modules/marketing/shared/index.js";
+import { DEFAULT_LOCALE, type AppLocale } from "@be-water/shared";
 
 export function escapeHtml(value: string): string {
   return value
@@ -28,17 +29,24 @@ export function serialiseJsonLd(data: Record<string, unknown>): string {
   return JSON.stringify(data).replace(/</gu, "\\u003c");
 }
 
+/** Open Graph locale 标签（下划线形式）。 */
+export function ogLocaleFor(locale: AppLocale | undefined): string {
+  return (locale ?? DEFAULT_LOCALE) === "en" ? "en_US" : "zh_CN";
+}
+
 /** 这一页的 `<head>` 内容（不含 `<head>` 标签本身）。 */
 export function buildHead(seo: PageSeo, origin: string): string {
   const title = buildDocumentTitle(seo);
-  const canonical = buildCanonicalUrl(origin, seo.path);
+  const canonicalPath = seo.canonical_path ?? seo.path;
+  const canonical = buildCanonicalUrl(origin, canonicalPath);
+  const ogLocale = ogLocaleFor(seo.locale);
   const tags = [
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(seo.description)}" />`,
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="${escapeHtml(SITE.name)}" />`,
-    `<meta property="og:locale" content="${escapeHtml(SITE.locale)}" />`,
+    `<meta property="og:locale" content="${escapeHtml(ogLocale)}" />`,
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
     `<meta property="og:description" content="${escapeHtml(seo.description)}" />`,
     `<meta property="og:url" content="${escapeHtml(canonical)}" />`,
@@ -68,10 +76,12 @@ export function injectPrerenderedPage({
   template,
   head,
   body,
+  locale = DEFAULT_LOCALE,
 }: {
   template: string;
   head: string;
   body: string;
+  locale?: AppLocale;
 }): string {
   if (!template.includes("</head>")) {
     throw new Error("index.html 模板里找不到 </head>");
@@ -81,6 +91,7 @@ export function injectPrerenderedPage({
   }
 
   return template
+    .replace(/<html\b[^>]*>/u, `<html lang="${locale}">`)
     .replace(/[ \t]*<title>[\s\S]*?<\/title>\r?\n?/u, "")
     .replace(/[ \t]*<meta\s+name="description"[^>]*>\r?\n?/giu, "")
     .replace("</head>", `${head}\n  </head>`)

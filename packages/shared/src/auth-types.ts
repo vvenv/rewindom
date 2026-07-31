@@ -1,4 +1,5 @@
 import { isPlatformAdminActor, type AuthActorType } from "./auth-actor.js";
+import type { AppLocale } from "./locale.js";
 import { isReservedTenantUsername } from "./tenant-internal.js";
 
 export interface User {
@@ -105,8 +106,10 @@ export function isRegularUser(
   return true;
 }
 
-/** 公开配置（未登录可读）：自助注册是否开放、是否启用验证码。 */
+/** 公开配置（未登录可读）：自助注册是否开放、是否启用验证码、平台默认语言。 */
 export interface PublicConfig {
   registration_enabled: boolean;
   captcha_enabled: boolean;
+  /** 平台默认界面语言；登录页 / 未进租户壳时作为服务端默认。 */
+  default_locale: AppLocale;
 }

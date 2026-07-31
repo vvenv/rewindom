@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@be-water/ui/select";
+import { useTranslation } from "react-i18next";
 
 import { SLOW_QUERY_SOURCES } from "../../shared/index.js";
 
@@ -41,6 +42,7 @@ export function SlowQueryLogFilters({
   onFiltersChange,
   showTenantFilter = false,
 }: SlowQueryLogFiltersProps) {
+  const { t } = useTranslation(["slow-query", "common"]);
   const TenantFilter = useTenantFilter();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() =>
     datetimeFilterParamsToDateRange(filters.start_date, filters.end_date),
@@ -90,7 +92,7 @@ export function SlowQueryLogFilters({
       search={{
         value: filters.route,
         onCommit: (value: string) => updateField("route", value),
-        placeholder: "路由",
+        placeholder: t("filters.route"),
         className: "w-40",
       }}
       inlineContent={
@@ -100,7 +102,7 @@ export function SlowQueryLogFilters({
             onValueChange={(value) => updateField("source", value)}
           >
             <SelectTrigger className="w-28">
-              <SelectValue placeholder="来源" />
+              <SelectValue placeholder={t("filters.source")} />
             </SelectTrigger>
             <SelectContent position="popper" align="start">
               {SLOW_QUERY_SOURCES.map((source) => (
@@ -117,19 +119,19 @@ export function SlowQueryLogFilters({
               onValueChange={(slug) =>
                 updateField("tenant_slug", slug ?? undefined)
               }
-              placeholder="租户"
+              placeholder={t("filters.tenant")}
               showClear
               className="w-44"
             />
           ) : null}
           <DebouncedSearchInput
-            placeholder="指纹"
+            placeholder={t("filters.fingerprint")}
             value={filters.fingerprint ?? ""}
             onCommit={(value) => updateField("fingerprint", value)}
             className="w-40"
           />
           <DebouncedSearchInput
-            placeholder="最小耗时 (ms)"
+            placeholder={t("filters.minDuration")}
             type="number"
             value={filters.min_duration_ms ?? ""}
             onCommit={(value) => updateField("min_duration_ms", value)}

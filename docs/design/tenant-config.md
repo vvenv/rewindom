@@ -125,12 +125,12 @@ flowchart TB
 
 | 层级 | 存储                                                             | 谁能改                    |
 | ---- | ---------------------------------------------------------------- | ------------------------- |
-| 用户 | `localStorage: theme-palette` / `shell-layout`                   | 租户用户（侧栏两个按钮）  |
-| 租户 | `TenantSetting[appearance].{theme,layout}`                        | 平台管理员（租户 → 外观） |
-| 平台 | `AppSetting[platform_settings].{default_theme,default_layout}`    | 平台管理员（平台设置）    |
+| 用户 | `localStorage: theme-palette` / `shell-layout` / `app-locale`    | 租户用户（侧栏 / 用户菜单） |
+| 租户 | `TenantSetting[appearance].{theme,layout,locale}`                | 平台管理员（租户 → 外观） |
+| 平台 | `AppSetting[platform_settings].{default_theme,default_layout,default_locale}` | 平台管理员（平台设置） |
 
 用户选择**不落库**——与现有 dark/light 一致，只存浏览器；换设备会回落到租户默认。
-这一层由 client-kit 的 `useResolvedPreference` 统一实现，两根轴共用。
+这一层由 client-kit 的 `useResolvedPreference` 统一实现，主题 / 布局 / 语言三根轴共用。
 
 **只作用于租户侧**：两个 Provider 都挂在租户外壳 `AppLayout` 内（`ThemePaletteProvider`
 卸载时还会移除 `data-theme`），因此登录页与平台控制台恒定使用基础配色 + 左右布局，

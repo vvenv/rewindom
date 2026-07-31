@@ -1,13 +1,41 @@
 import { Logo } from "@be-water/client-kit";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 
-import { SITE, SITE_FOOTER_GROUPS } from "../../shared/index.js";
+import { SITE } from "../../shared/index.js";
+import { useMarketingHref } from "../hooks/use-marketing-href.js";
 
 function isExternal(href: string): boolean {
   return /^(https?:|mailto:)/u.test(href);
 }
 
+const FOOTER_GROUPS = [
+  {
+    labelKey: "footer.groups.product",
+    links: [
+      { labelKey: "footer.links.intro", href: "/" },
+      { labelKey: "footer.links.pricing", href: "/pricing" },
+      { labelKey: "footer.links.login", href: "/login" },
+    ],
+  },
+  {
+    labelKey: "footer.groups.docs",
+    links: [
+      { labelKey: "footer.links.docsHome", href: "/docs" },
+      { labelKey: "footer.links.quickstart", href: "/docs/quickstart" },
+      { labelKey: "footer.links.modules", href: "/docs/modules" },
+    ],
+  },
+  {
+    labelKey: "footer.groups.resources",
+    links: [{ labelKey: "footer.links.github", href: SITE.repoUrl }],
+  },
+] as const;
+
 export function MarketingFooter() {
+  const { t } = useTranslation("marketing");
+  const hrefFor = useMarketingHref();
+
   return (
     <footer className="border-t border-border/60 bg-muted/20">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
@@ -17,18 +45,22 @@ export function MarketingFooter() {
             <span className="font-medium">{SITE.name}</span>
           </div>
           <p className="max-w-xs text-sm text-muted-foreground">
-            {SITE.tagline}——{SITE.description}
+            {t("site.tagline")}——{t("site.description")}
           </p>
         </div>
 
-        {SITE_FOOTER_GROUPS.map((group) => (
-          <nav key={group.label} aria-label={group.label} className="space-y-3">
+        {FOOTER_GROUPS.map((group) => (
+          <nav
+            key={group.labelKey}
+            aria-label={t(group.labelKey)}
+            className="space-y-3"
+          >
             <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              {group.label}
+              {t(group.labelKey)}
             </h2>
             <ul className="space-y-2 text-sm">
               {group.links.map((link) => (
-                <li key={`${group.label}-${link.href}`}>
+                <li key={`${group.labelKey}-${link.href}`}>
                   {isExternal(link.href) ? (
                     <a
                       href={link.href}
@@ -36,14 +68,14 @@ export function MarketingFooter() {
                       rel="noreferrer noopener"
                       target="_blank"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </a>
                   ) : (
                     <Link
-                      to={link.href}
+                      to={hrefFor(link.href)}
                       className="text-muted-foreground transition-colors hover:text-foreground"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </Link>
                   )}
                 </li>

@@ -1,5 +1,11 @@
-import { useAuth } from "@be-water/client-kit";
-import { formatBusinessDateOrTimeAgo, isRegularUser  } from "@be-water/shared";
+import { useAuth, useLocale } from "@be-water/client-kit";
+import {
+  APP_LOCALES,
+  formatBusinessDateOrTimeAgo,
+  getLocaleNativeLabel,
+  isRegularUser,
+  normalizeOptionalLocale,
+} from "@be-water/shared";
 import { Avatar, AvatarFallback } from "@be-water/ui/avatar";
 import { Button } from "@be-water/ui/button";
 import {
@@ -7,12 +13,17 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@be-water/ui/dropdown-menu";
 import { cn } from "@be-water/ui/utils";
-import { ArrowLeft, Key, LogOut, Shield } from "lucide-react";
-
+import { ArrowLeft, Key, Languages, LogOut, Shield } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   exitImpersonation,
@@ -31,18 +42,24 @@ interface UserAvatarProps {
   menuAlign?: "start" | "center" | "end";
 }
 
+const FOLLOW_DEFAULT = "";
+
 export function UserAvatar({
   menuSide = "bottom",
   menuAlign = "end",
 }: UserAvatarProps) {
+  const { t: tShell } = useTranslation("shell");
+  const { t: tCommon } = useTranslation("common");
+  const { t: tUser } = useTranslation("user");
   const { user, logout } = useAuth();
+  const { userChoice, defaultLocale, setLocale } = useLocale();
   const UsageCard = userMenuUsageSlot.useSlot();
 
   const handleLogout = async () => {
     try {
       await logout();
     } catch (error) {
-      console.error("退出登录失败:", error);
+      console.error("Logout failed:", error);
     }
   };
 
@@ -50,7 +67,7 @@ export function UserAvatar({
     try {
       await logoutFully(logout);
     } catch (error) {
-      console.error("退出登录失败:", error);
+      console.error("Logout failed:", error);
     }
   };
 
@@ -85,7 +102,7 @@ export function UserAvatar({
   }
 
   const impersonating = isInImpersonationSession();
-  const profile = getUserDisplayProfile(user, readImpersonationMeta());
+  const profile = getUserDisplayProfile(user, readImpersonationMeta(), tUser);
 
   const avatar = (
     <Avatar className="h-10 w-10" size="sm">
@@ -133,8 +150,9 @@ export function UserAvatar({
               </p>
               {profile.showLastLogin && user.last_login_at && (
                 <p className="text-muted-foreground">
-                  上次登录：
-                  {formatBusinessDateOrTimeAgo(user.last_login_at)}
+                  {tShell("lastLogin", {
+                    time: formatBusinessDateOrTimeAgo(user.last_login_at),
+                  })}
                 </p>
               )}
             </div>
@@ -148,18 +166,49 @@ export function UserAvatar({
               trigger={
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <Key className="size-4" />
-                  <span>修改密码</span>
+                  <span>{tShell("changePassword")}</span>
                 </DropdownMenuItem>
               }
             />
           </>
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Languages className="size-4" />
+            <span>{tCommon("language")}</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent className="w-56">
+            <DropdownMenuRadioGroup
+              value={userChoice ?? FOLLOW_DEFAULT}
+              onValueChange={(value) =>
+                setLocale(normalizeOptionalLocale(value))
+              }
+            >
+              <DropdownMenuRadioItem value={FOLLOW_DEFAULT}>
+                <div className="flex flex-col gap-0.5">
+                  <span>{tCommon("followDefault")}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {tCommon("followDefaultCurrent", {
+                      label: getLocaleNativeLabel(defaultLocale),
+                    })}
+                  </span>
+                </div>
+              </DropdownMenuRadioItem>
+              {APP_LOCALES.map((option) => (
+                <DropdownMenuRadioItem key={option.slug} value={option.slug}>
+                  {option.native_label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         {impersonating ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={exitImpersonation}>
               <ArrowLeft className="size-4" />
-              <span>返回平台管理</span>
+              <span>{tShell("backToPlatform")}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -167,7 +216,7 @@ export function UserAvatar({
               className="text-destructive"
             >
               <LogOut className="size-4" />
-              <span>完全退出</span>
+              <span>{tShell("fullLogout")}</span>
             </DropdownMenuItem>
           </>
         ) : (
@@ -178,7 +227,7 @@ export function UserAvatar({
               className="text-destructive"
             >
               <LogOut className="size-4" />
-              <span>退出登录</span>
+              <span>{tShell("logout")}</span>
             </DropdownMenuItem>
           </>
         )}

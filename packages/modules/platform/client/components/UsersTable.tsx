@@ -5,6 +5,8 @@ import { formatLoginIdentifier, formatBusinessDate, formatBusinessDateOrTimeAgo 
 import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Spinner } from "@be-water/ui/spinner";
 import { cn } from "@be-water/ui/utils";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 import { type PlatformUserSummary } from "../../shared/index.js";
 import { userRoleBadgeSlot } from "../shell/platform-widget-slots.js";
@@ -12,13 +14,14 @@ import { userRoleBadgeSlot } from "../shell/platform-widget-slots.js";
 import type { ColumnDef, SortingState, Updater } from "@tanstack/react-table";
 
 function buildPlatformUserColumns(
+  t: TFunction<"platform">,
   RoleBadge: ComponentType<{ isSystemAdmin: boolean }> | null,
 ): ColumnDef<PlatformUserSummary>[] {
   return [
   {
     accessorKey: "tenant_slug",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="租户" />
+      <DataTableColumnHeader column={column} title={t("users.table.tenant")} />
     ),
     enableSorting: true,
     cell: ({ row }) => (
@@ -30,7 +33,7 @@ function buildPlatformUserColumns(
   {
     accessorKey: "username",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="登录账号" />
+      <DataTableColumnHeader column={column} title={t("users.table.loginAccount")} />
     ),
     enableSorting: true,
     cell: ({ row }) => (
@@ -42,22 +45,22 @@ function buildPlatformUserColumns(
   {
     accessorKey: "is_system_admin",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="类型" />
+      <DataTableColumnHeader column={column} title={t("users.table.type")} />
     ),
     enableSorting: true,
     cell: ({ row }) =>
       RoleBadge ? (
         <RoleBadge isSystemAdmin={row.original.is_system_admin} />
       ) : row.original.is_system_admin ? (
-        "系统管理员"
+        t("users.table.systemAdmin")
       ) : (
-        "普通用户"
+        t("users.table.regularUser")
       ),
   },
   {
     accessorKey: "enabled",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="状态" />
+      <DataTableColumnHeader column={column} title={t("users.table.status")} />
     ),
     enableSorting: true,
     cell: ({ row }) => (
@@ -69,26 +72,26 @@ function buildPlatformUserColumns(
             : "bg-muted text-muted-foreground",
         )}
       >
-        {row.original.enabled ? "启用" : "禁用"}
+        {row.original.enabled ? t("common:enabled") : t("common:disabled")}
       </span>
     ),
   },
   {
     accessorKey: "last_login_at",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="最近登录" />
+      <DataTableColumnHeader column={column} title={t("users.table.lastLogin")} />
     ),
     enableSorting: true,
     meta: { cellClassName: "text-muted-foreground" },
     cell: ({ row }) =>
       row.original.last_login_at
         ? formatBusinessDateOrTimeAgo(row.original.last_login_at)
-        : "从未登录",
+        : t("users.table.neverLoggedIn"),
   },
   {
     accessorKey: "created_at",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="创建时间" />
+      <DataTableColumnHeader column={column} title={t("users.table.createdAt")} />
     ),
     enableSorting: true,
     meta: { cellClassName: "text-muted-foreground tabular-nums" },
@@ -118,8 +121,12 @@ export function UsersTable({
   sorting: SortingState;
   onSortingChange: (updater: Updater<SortingState>) => void;
 }) {
+  const { t } = useTranslation(["platform", "common"]);
   const RoleBadge = userRoleBadgeSlot.useSlot();
-  const columns = useMemo(() => buildPlatformUserColumns(RoleBadge), [RoleBadge]);
+  const columns = useMemo(
+    () => buildPlatformUserColumns(t, RoleBadge),
+    [RoleBadge, t],
+  );
 
   if (isLoading && users.length === 0) {
     return (
@@ -132,7 +139,7 @@ export function UsersTable({
   if (error && users.length === 0) {
     return (
       <Alert variant="destructive">
-        <AlertDescription>加载失败</AlertDescription>
+        <AlertDescription>{t("common:loadFailed")}</AlertDescription>
       </Alert>
     );
   }

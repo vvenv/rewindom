@@ -1,5 +1,6 @@
 import { DebouncedSearchInput, Pagination } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
+import { useTranslation } from "react-i18next";
 
 import {
   TODO_STATUS_ALL,
@@ -40,11 +41,13 @@ export function TodoFooter({
   onFiltersChange,
   onClearCompleted,
 }: TodoFooterProps) {
+  const { t } = useTranslation("todos");
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted-foreground">
-          剩余 {activeCount} 项
+          {t("remainingCount", { count: activeCount })}
         </span>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -64,14 +67,14 @@ export function TodoFooter({
                 }
                 onClick={() => onFiltersChange({ q, status: option.value })}
               >
-                {option.label}
+                {t(option.labelKey)}
               </Button>
             );
           })}
 
           <DebouncedSearchInput
             value={q}
-            placeholder="搜索待办…"
+            placeholder={t("searchPlaceholder")}
             className="h-8 max-w-44"
             onCommit={(value) =>
               onFiltersChange({ q: value.trim() || undefined, status })
@@ -87,7 +90,7 @@ export function TodoFooter({
               disabled={isClearing}
               onClick={onClearCompleted}
             >
-              清除已完成
+              {t("clearCompleted")}
             </Button>
           ) : null}
         </div>

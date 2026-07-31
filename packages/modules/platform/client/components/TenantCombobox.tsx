@@ -10,6 +10,7 @@ import {
   ComboboxList,
 } from "@be-water/ui/combobox";
 import { cn } from "@be-water/ui/utils";
+import { useTranslation } from "react-i18next";
 
 import { usePlatformTenants } from "../hooks/usePlatformTenants.js";
 
@@ -33,13 +34,16 @@ function formatTenantLabel(tenant: TenantSummary): string {
 export function TenantCombobox({
   value,
   onValueChange,
-  placeholder = "请选择租户",
+  placeholder,
   disabled = false,
   showTrigger = true,
   showClear = false,
   includeArchived = false,
   className,
 }: TenantComboboxProps) {
+  const { t } = useTranslation(["platform", "common"]);
+  const resolvedPlaceholder =
+    placeholder ?? t("tenants.combobox.placeholder");
   const [searchQuery, setSearchQuery] = useState("");
   const {
     debouncedValue: debouncedSearch,
@@ -122,14 +126,14 @@ export function TenantCombobox({
       onOpenChange={handleOpenChange}
     >
       <ComboboxInput
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         showTrigger={showTrigger}
         showClear={showClear}
         className={cn("max-w-none", className)}
         {...compositionInputProps}
       />
       <ComboboxContent>
-        <ComboboxEmpty>未找到相关租户</ComboboxEmpty>
+        <ComboboxEmpty>{t("tenants.combobox.empty")}</ComboboxEmpty>
         <ComboboxList>
           {items.map((item) => (
             <ComboboxItem

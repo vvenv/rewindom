@@ -7,6 +7,7 @@ import { useAuth,
 } from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
 import { toast } from "@be-water/ui/toast";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import { AuthLoginHero } from "../components/AuthLoginHero.js";
@@ -18,6 +19,7 @@ import { buildLoginCredentials, validateLoginForm } from "../lib/login-form.js";
 import type { RegisterCaptchaData } from "../lib/register-form.js";
 
 export function Login() {
+  const { t } = useTranslation(["shell", "common"]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +42,7 @@ export function Login() {
       captcha_enabled,
     );
     if (validationError) {
-      toast.error(validationError);
+      toast.error(t(validationError));
       return;
     }
 
@@ -58,7 +60,9 @@ export function Login() {
           : APP_HOME_ENTRY_PATH,
       );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "登录失败，请重试");
+      toast.error(
+        err instanceof Error ? err.message : t("auth.loginFailed"),
+      );
     } finally {
       setIsLoading(false);
     }

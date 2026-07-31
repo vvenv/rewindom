@@ -1,0 +1,116 @@
+{
+  "nav": {
+    "users": "User management"
+  },
+  "page": {
+    "title": "User management",
+    "description": "Manage tenant member accounts and assign roles",
+    "createUser": "New user"
+  },
+  "filters": {
+    "searchPlaceholder": "Search usernames…",
+    "adminTypeAll": "All types",
+    "adminTypeSystemAdmin": "System admin",
+    "adminTypeRegular": "Regular user"
+  },
+  "table": {
+    "username": "Username",
+    "roles": "Roles",
+    "enabled": "Enabled",
+    "lastLogin": "Last login",
+    "lastAccess": "Last access",
+    "createdAt": "Created",
+    "none": "None",
+    "neverLoggedIn": "Never logged in",
+    "never": "Never",
+    "enableAccount": "Enable account",
+    "disableAccount": "Disable account",
+    "deleteConfirmTitle": "Delete user?",
+    "deleteConfirmDescription": "Delete user \"{{username}}\"? This cannot be undone.",
+    "batchDeleteConfirmTitle": "Delete selected users?",
+    "batchDeleteConfirmDescription": "Delete {{count}} selected users? This cannot be undone.",
+    "userDeleted": "User deleted",
+    "batchDeleted": "Deleted {{count}} users",
+    "deleteFailed": "Delete failed, please retry",
+    "batchDeleteFailed": "Batch delete failed, please retry",
+    "noMatch": "No matching users",
+    "emptyHint": "No users yet. Create one from the top-right button.",
+    "emptyHeader": "No users",
+    "deleteSelected": "Delete {{count}} users"
+  },
+  "roleBadge": {
+    "systemAdmin": "System admin",
+    "regularUser": "Regular user"
+  },
+  "profile": {
+    "platformSystemAdmin": "Platform system admin",
+    "platformAdmin": "Platform admin",
+    "tenantSystemAdmin": "Tenant system admin",
+    "tenantUser": "Tenant user",
+    "impersonationSubtitle": "Platform impersonation"
+  },
+  "sheet": {
+    "createTitle": "New user",
+    "editTitle": "Edit user",
+    "createDescription": "Create a new system user",
+    "editDescription": "Update user details and roles",
+    "username": "Username",
+    "usernamePlaceholder": "e.g. admin",
+    "password": "Password",
+    "passwordOptional": "Password (leave blank to keep)",
+    "passwordPlaceholderCreate": "At least 6 characters",
+    "passwordPlaceholderEdit": "Leave blank to keep password",
+    "systemAdminLabel": "System admin (full tenant access)",
+    "roles": "Roles",
+    "enabledHint": "Enabled — user can sign in",
+    "disabledHint": "Disabled — user cannot sign in",
+    "userCreated": "User created",
+    "userUpdated": "User updated",
+    "validation": {
+      "usernameRequired": "Enter a username",
+      "passwordRequired": "Enter a password",
+      "passwordMinLength": "Password must be at least 6 characters"
+    }
+  },
+  "permissionSheet": {
+    "title": "Assign roles",
+    "description": "Assign tenant roles to {{username}}",
+    "systemAdminHint": "System admins have full tenant access by default; no roles needed.",
+    "rolesUpdated": "Roles updated"
+  },
+  "resetPassword": {
+    "title": "Reset password",
+    "description": "Set a new password for \"{{username}}\"",
+    "newPassword": "New password",
+    "placeholder": "At least 6 characters",
+    "generateRandom": "Generate random 8-character password",
+    "confirm": "Reset password",
+    "success": "Password reset",
+    "successDescription": "New password: {{password}}",
+    "resetFailed": "Reset failed, please retry",
+    "validation": {
+      "passwordRequired": "Enter a new password",
+      "passwordMinLength": "Password must be at least 6 characters"
+    }
+  },
+  "changePassword": {
+    "title": "Change password",
+    "description": "Enter your current and new password",
+    "oldPassword": "Current password",
+    "oldPasswordPlaceholder": "Enter current password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Enter new password (at least 6 characters)",
+    "confirmPassword": "Confirm new password",
+    "confirmPasswordPlaceholder": "Re-enter new password",
+    "success": "Password changed",
+    "submitting": "Changing…",
+    "confirm": "Confirm change",
+    "changeFailed": "Password change failed, please retry",
+    "validation": {
+      "allFieldsRequired": "Fill in all password fields",
+      "passwordMinLength": "New password must be at least 6 characters",
+      "passwordMismatch": "New passwords do not match",
+      "sameAsOld": "New password must differ from current password"
+    }
+  }
+}

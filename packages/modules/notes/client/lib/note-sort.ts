@@ -14,13 +14,29 @@ export interface NoteSort {
 }
 
 export const NOTE_SORT_OPTIONS = [
-  { value: "updated_at:desc", label: "最近更新" },
-  { value: "updated_at:asc", label: "最早更新" },
-  { value: "created_at:desc", label: "最近创建" },
-  { value: "created_at:asc", label: "最早创建" },
-  { value: "title:asc", label: "标题 A → Z" },
-  { value: "title:desc", label: "标题 Z → A" },
+  { value: "updated_at:desc" },
+  { value: "updated_at:asc" },
+  { value: "created_at:desc" },
+  { value: "created_at:asc" },
+  { value: "title:asc" },
+  { value: "title:desc" },
 ] as const;
+
+type NoteSortTranslate = (key: string) => string;
+
+function sortOptionKey(value: string): string {
+  return `sort.${value.replace(":", "_")}`;
+}
+
+export function getNoteSortOptions(t: NoteSortTranslate): Array<{
+  value: string;
+  label: string;
+}> {
+  return NOTE_SORT_OPTIONS.map((option) => ({
+    value: option.value,
+    label: t(sortOptionKey(option.value)),
+  }));
+}
 
 /** 与服务端 `resolveSortField` / `resolveSortOrder` 的兜底一致。 */
 export const DEFAULT_NOTE_SORT_VALUE = "updated_at:desc";

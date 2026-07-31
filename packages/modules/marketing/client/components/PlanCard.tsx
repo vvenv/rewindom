@@ -2,14 +2,16 @@ import { Button } from "@be-water/ui/button";
 import { cn } from "@be-water/ui/utils";
 import { Check } from "lucide-react";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 
-import {
-  formatMonthlyPrice,
-  formatSeatLimit,
-  type MarketingPlan,
-} from "../../shared/index.js";
+import { useLocale } from "@be-water/client-kit";
 
 import type { PlanDefinition } from "../../../platform/shared/pricing-plans.js";
+import {
+  formatMonthlyPriceLocalized,
+  formatSeatLimitLocalized,
+  type LocalizedMarketingPlan,
+} from "../lib/marketing-i18n.js";
 
 function isExternal(href: string): boolean {
   return /^(https?:|mailto:)/u.test(href);
@@ -19,10 +21,12 @@ export function PlanCard({
   entry,
   plan,
 }: {
-  entry: MarketingPlan;
+  entry: Omit<LocalizedMarketingPlan, "plan">;
   plan: PlanDefinition;
 }) {
-  const price = formatMonthlyPrice(plan.price_monthly);
+  const { t } = useTranslation("marketing");
+  const { locale } = useLocale();
+  const price = formatMonthlyPriceLocalized(plan.price_monthly, t, locale);
 
   return (
     <li
@@ -35,7 +39,7 @@ export function PlanCard({
     >
       {entry.featured ? (
         <span className="absolute -top-2.5 left-6 rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
-          推荐
+          {t("pricing.recommended")}
         </span>
       ) : null}
 
@@ -45,11 +49,13 @@ export function PlanCard({
       <p className="mt-5 flex items-baseline gap-1">
         <span className="text-3xl font-semibold tracking-tight">{price}</span>
         {plan.price_monthly !== null && plan.price_monthly > 0 ? (
-          <span className="text-sm text-muted-foreground">/ 月</span>
+          <span className="text-sm text-muted-foreground">
+            {t("pricing.perMonth")}
+          </span>
         ) : null}
       </p>
       <p className="mt-1 text-sm text-muted-foreground">
-        {formatSeatLimit(plan.limits.max_users)}
+        {formatSeatLimitLocalized(plan.limits.max_users, t)}
       </p>
 
       <ul className="mt-6 flex-1 space-y-2.5 text-sm">

@@ -7,6 +7,7 @@ import {
 } from "@be-water/ui/card";
 import { Skeleton } from "@be-water/ui/skeleton";
 import { ArrowRight, ListTodo } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { useTodos } from "../hooks/useTodos.js";
@@ -15,6 +16,7 @@ const PREVIEW_COUNT = 5;
 
 /** 工作台卡片：未完成待办数量 + 前几条。 */
 export function TodosDashboardWidget() {
+  const { t } = useTranslation("todos");
   const { data, isLoading, isError } = useTodos(
     1,
     PREVIEW_COUNT,
@@ -28,10 +30,10 @@ export function TodosDashboardWidget() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ListTodo className="size-4 text-primary" />
-          待办
+          {t("title")}
           {data ? (
             <span className="text-sm font-normal text-muted-foreground">
-              未完成 {data.active_count}
+              {t("widget.activeCount", { count: data.active_count })}
             </span>
           ) : null}
         </CardTitle>
@@ -40,7 +42,7 @@ export function TodosDashboardWidget() {
             to="/todos"
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            全部
+            {t("widget.viewAll")}
             <ArrowRight className="size-3.5" />
           </Link>
         </CardAction>
@@ -53,9 +55,9 @@ export function TodosDashboardWidget() {
             <Skeleton className="h-4 w-3/5" />
           </div>
         ) : isError ? (
-          <p className="text-sm text-muted-foreground">待办加载失败</p>
+          <p className="text-sm text-muted-foreground">{t("widget.loadFailed")}</p>
         ) : todos.length === 0 ? (
-          <p className="text-sm text-muted-foreground">没有未完成的待办</p>
+          <p className="text-sm text-muted-foreground">{t("widget.noActive")}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {todos.map((todo) => (

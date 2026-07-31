@@ -16,12 +16,27 @@ import { Spinner } from "@be-water/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@be-water/ui/tabs";
 import { toast } from "@be-water/ui/toast";
 import { Gauge } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import { getDefaultPlanLimitTemplates, PLAN_SLUGS, PRICING_PLANS, TENANT_LIMIT_KEYS, TENANT_LIMIT_REGISTRY, type PlanLimitTemplates, type PlanSlug, type TenantLimitKey, type TenantLimitValues } from "../../shared/index.js";
+import {
+  getDefaultPlanLimitTemplates,
+  PLAN_SLUGS,
+  TENANT_LIMIT_KEYS,
+  TENANT_LIMIT_REGISTRY,
+  type PlanLimitTemplates,
+  type PlanSlug,
+  type TenantLimitKey,
+  type TenantLimitValues,
+} from "../../shared/index.js";
 import {
   usePlanLimitTemplates,
   useUpdatePlanLimitTemplates,
 } from "../hooks/usePlanLimitTemplates.js";
+import {
+  translateLimitDescription,
+  translateLimitLabel,
+  translatePlanName,
+} from "../lib/plan-i18n.js";
 
 const CODE_DEFAULTS = getDefaultPlanLimitTemplates();
 
@@ -60,6 +75,7 @@ function updatePlanLimit(
 }
 
 export function PlanLimitTemplatesCard() {
+  const { t } = useTranslation(["platform", "common"]);
   const { data, isLoading } = usePlanLimitTemplates();
   const updateMutation = useUpdatePlanLimitTemplates();
   const [draft, setDraft] = useState<PlanLimitTemplates | null>(null);
@@ -81,9 +97,9 @@ export function PlanLimitTemplatesCard() {
 
     try {
       await updateMutation.mutateAsync(templates);
-      toast.success("套餐用量模板已保存");
+      toast.success(t("planLimitTemplates.saved"));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "保存失败");
+      toast.error(err instanceof ApiError ? err.message : t("common:saveFailed"));
     }
   };
 
@@ -105,17 +121,15 @@ export function PlanLimitTemplatesCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-1">
           <Gauge className="size-4" />
-          套餐用量模板
+          {t("planLimitTemplates.title")}
         </CardTitle>
-        <CardDescription>
-          配置各套餐的默认用量限制；变更后仅影响新注册租户与后续套餐变更，不会自动覆盖已有租户的单独配置
-        </CardDescription>
+        <CardDescription>{t("planLimitTemplates.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
           <div className="flex min-h-28 items-center justify-center gap-2 text-muted-foreground">
             <Spinner />
-            <span className="text-sm">加载中…</span>
+            <span className="text-sm">{t("common:loading")}</span>
           </div>
         ) : (
           <Tabs
@@ -125,7 +139,7 @@ export function PlanLimitTemplatesCard() {
             <TabsList className="mb-4 flex h-auto flex-wrap gap-1">
               {PLAN_SLUGS.map((slug) => (
                 <TabsTrigger key={slug} value={slug}>
-                  {PRICING_PLANS[slug].name}
+                  {translatePlanName(t, slug)}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -138,26 +152,25 @@ export function PlanLimitTemplatesCard() {
                 <TabsContent key={plan} value={plan} className="space-y-4">
                   {isUltimate ? (
                     <p className="text-sm text-muted-foreground">
-                      终极版为内部租户，默认全部不限。
+                      {t("planLimitTemplates.ultimateHint")}
                     </p>
                   ) : null}
 
                   <FieldGroup className="grid gap-4 sm:grid-cols-2">
                     {TENANT_LIMIT_KEYS.map((key) => {
-                      const { label, description, min } =
-                        TENANT_LIMIT_REGISTRY[key];
+                      const { min } = TENANT_LIMIT_REGISTRY[key];
                       const value = planLimits[key];
 
                       return (
                         <Field key={key}>
                           <FieldLabel htmlFor={`${plan}-${key}`}>
-                            {label}
+                            {translateLimitLabel(t, key)}
                           </FieldLabel>
                           <Input
                             id={`${plan}-${key}`}
                             type="number"
                             min={min}
-                            placeholder="不限"
+                            placeholder={t("planLimitTemplates.unlimited")}
                             disabled={isUltimate || updateMutation.isPending}
                             value={formatLimitInputValue(value)}
                             onChange={(event) => {
@@ -174,8 +187,10 @@ export function PlanLimitTemplatesCard() {
                             }}
                           />
                           <FieldDescription>
-                            {description}
-                            {min > 1 ? `（最小 ${min}）` : ""}
+                            {translateLimitDescription(t, key)}
+                            {min > 1
+                              ? t("planLimitTemplates.minValue", { min })
+                              : ""}
                           </FieldDescription>
                         </Field>
                       );
@@ -189,7 +204,7 @@ export function PlanLimitTemplatesCard() {
                       disabled={updateMutation.isPending}
                       onClick={() => handleResetPlan(plan)}
                     >
-                      重置为默认值
+                      {t("planLimitTemplates.resetDefaults")}
                     </Button>
                   ) : null}
                 </TabsContent>
@@ -204,7 +219,7 @@ export function PlanLimitTemplatesCard() {
           disabled={updateMutation.isPending || loading}
         >
           {updateMutation.isPending && <Spinner />}
-          保存全部套餐
+          {t("planLimitTemplates.saveAll")}
         </Button>
       </CardFooter>
     </Card>

@@ -13,6 +13,8 @@ import { Input } from "@be-water/ui/input";
 import { Switch } from "@be-water/ui/switch";
 import { toast } from "@be-water/ui/toast";
 import { Pencil, Plus, Trash2, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 import {
   useDeletePlatformAdmin,
@@ -26,7 +28,13 @@ import { PlatformRoleManageSheet } from "./PlatformRoleManageSheet.js";
 import type { PlatformAdminListItem } from "../../shared/index.js";
 import type { ColumnDef, SortingState, Updater } from "@tanstack/react-table";
 
-function AdminRoleBadge({ isSystemAdmin }: { isSystemAdmin: boolean }) {
+function AdminRoleBadge({
+  isSystemAdmin,
+  t,
+}: {
+  isSystemAdmin: boolean;
+  t: TFunction<["platform", "common"]>;
+}) {
   return (
     <span
       className={
@@ -35,7 +43,9 @@ function AdminRoleBadge({ isSystemAdmin }: { isSystemAdmin: boolean }) {
           : "rounded-full bg-blue-100 px-2 py-1 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
       }
     >
-      {isSystemAdmin ? "系统管理员" : "普通管理员"}
+      {isSystemAdmin
+        ? t("admins.table.systemAdmin")
+        : t("admins.table.regularAdmin")}
     </span>
   );
 }
@@ -44,12 +54,14 @@ interface AdminRowActionsProps {
   admin: PlatformAdminListItem;
   canManageAdmins: boolean;
   canAssignRoles: boolean;
+  t: TFunction<["platform", "common"]>;
 }
 
 function AdminRowActions({
   admin,
   canManageAdmins,
   canAssignRoles,
+  t,
 }: AdminRowActionsProps) {
   const { user } = useAuth();
   const { confirm } = useConfirm();
@@ -61,23 +73,23 @@ function AdminRowActions({
     try {
       await updateMutation.mutateAsync({ id: admin.id, enabled });
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "更新失败");
+      toast.error(err instanceof ApiError ? err.message : t("common:updateFailed"));
     }
   };
 
   const handleDelete = async () => {
     const ok = await confirm({
-      title: "删除平台管理员",
-      description: `确定删除管理员 ${admin.username}？此操作不可撤销。`,
-      confirmText: "删除",
+      title: t("admins.deleteTitle"),
+      description: t("admins.deleteDescription", { username: admin.username }),
+      confirmText: t("common:delete"),
       destructive: true,
     });
     if (!ok) return;
     try {
       await deleteMutation.mutateAsync(admin.id);
-      toast.success("已删除");
+      toast.success(t("admins.deleted"));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "删除失败");
+      toast.error(err instanceof ApiError ? err.message : t("admins.deleteFailed"));
     }
   };
 
@@ -91,7 +103,7 @@ function AdminRowActions({
           admin={admin}
           disabled={admin.is_system_admin && isSelf}
           trigger={
-            <Button variant="ghost" size="icon-sm" title="编辑">
+            <Button variant="ghost" size="icon-sm" title={t("common:edit")}>
               <Pencil className="size-3.5" />
             </Button>
           }
@@ -101,7 +113,7 @@ function AdminRowActions({
         <Button
           variant="ghost"
           size="icon-sm"
-          title="删除"
+          title={t("common:delete")}
           className="hover:text-destructive"
           onClick={() => void handleDelete()}
           disabled={deleteMutation.isPending}
@@ -116,7 +128,11 @@ function AdminRowActions({
           disabled={
             updateMutation.isPending || admin.is_system_admin || isSelf
           }
-          aria-label={admin.enabled ? "停用账号" : "启用账号"}
+          aria-label={
+            admin.enabled
+              ? t("admins.disableAccount")
+              : t("admins.enableAccount")
+          }
         />
       )}
     </div>
@@ -160,12 +176,14 @@ export function PlatformAdminsTable({
   sorting,
   onSortingChange,
 }: PlatformAdminsTableProps) {
+  const { t } = useTranslation(["platform", "common"]);
+
   const columns = useMemo<ColumnDef<PlatformAdminListItem>[]>(
     () => [
       {
         accessorKey: "username",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="账号" />
+          <DataTableColumnHeader column={column} title={t("admins.table.username")} />
         ),
         enableSorting: true,
         cell: ({ row }) => (
@@ -175,26 +193,27 @@ export function PlatformAdminsTable({
       {
         accessorKey: "is_system_admin",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="类型" />
+          <DataTableColumnHeader column={column} title={t("admins.table.type")} />
         ),
         enableSorting: true,
         cell: ({ row }) => (
-          <AdminRoleBadge isSystemAdmin={row.original.is_system_admin} />
+          <AdminRoleBadge isSystemAdmin={row.original.is_system_admin} t={t} />
         ),
       },
       {
         id: "roles",
-        header: "角色",
+        header: t("admins.table.roles"),
         meta: { cellClassName: "text-muted-foreground" },
         cell: ({ row }) =>
           row.original.is_system_admin
-            ? "全部平台权限"
-            : row.original.roles.map((r) => r.name).join("、") || "无",
+            ? t("admins.table.allPermissions")
+            : row.original.roles.map((r) => r.name).join("、") ||
+              t("admins.table.none"),
       },
       {
         accessorKey: "enabled",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="状态" />
+          <DataTableColumnHeader column={column} title={t("admins.table.status")} />
         ),
         enableSorting: true,
         cell: ({ row }) => (
@@ -205,42 +224,43 @@ export function PlatformAdminsTable({
                 : "text-muted-foreground"
             }
           >
-            {row.original.enabled ? "启用" : "禁用"}
+            {row.original.enabled ? t("common:enabled") : t("common:disabled")}
           </span>
         ),
       },
       {
         accessorKey: "last_login_at",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="最后登录" />
+          <DataTableColumnHeader column={column} title={t("admins.table.lastLogin")} />
         ),
         enableSorting: true,
         meta: { cellClassName: "text-muted-foreground hidden sm:table-cell" },
         cell: ({ row }) =>
           row.original.last_login_at
             ? formatBusinessDateOrTimeAgo(row.original.last_login_at)
-            : "从未登录",
+            : t("users.table.neverLoggedIn"),
       },
       {
         id: "actions",
-        header: () => <span className="sr-only">操作</span>,
+        header: () => <span className="sr-only">{t("common:actions")}</span>,
         enableSorting: false,
         cell: ({ row }) => (
           <AdminRowActions
             admin={row.original}
             canManageAdmins={canManageAdmins}
             canAssignRoles={canAssignRoles}
+            t={t}
           />
         ),
       },
     ],
-    [canAssignRoles, canManageAdmins],
+    [canAssignRoles, canManageAdmins, t],
   );
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-muted-foreground">管理平台管理员账号与角色</p>
+        <p className="text-muted-foreground">{t("admins.description")}</p>
         <div className="flex gap-2">
           {canManageRoles && <PlatformRoleManageSheet />}
           {canManageAdmins && (
@@ -248,7 +268,7 @@ export function PlatformAdminsTable({
               trigger={
                 <Button variant="outline" size="sm">
                   <Plus className="size-4" />
-                  新建管理员
+                  {t("admins.create")}
                 </Button>
               }
             />
@@ -258,7 +278,7 @@ export function PlatformAdminsTable({
 
       <Input
         className="max-w-sm"
-        placeholder="搜索账号..."
+        placeholder={t("admins.searchPlaceholder")}
         value={search ?? ""}
         onChange={(e) => onSearchChange(e.target.value)}
       />
@@ -274,8 +294,8 @@ export function PlatformAdminsTable({
         pageSize={pageSize}
         total={total}
         pageCount={pageCount}
-        emptyMessage="暂无平台管理员"
-        emptyHeader="还没有平台管理员"
+        emptyMessage={t("admins.emptyMessage")}
+        emptyHeader={t("admins.emptyHeader")}
         emptyIcon={<Users className="size-6 text-muted-foreground" />}
         sorting={sorting}
         onSortingChange={onSortingChange}

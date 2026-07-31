@@ -1,10 +1,13 @@
+import { getI18n } from "@be-water/client-kit";
+
 export function formatAmountCents(
   amountCents: number,
   currency: string,
 ): string {
   const amount = amountCents / 100;
+  const locale = getI18n().language === "en" ? "en-US" : "zh-CN";
   try {
-    return new Intl.NumberFormat("zh-CN", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: currency || "USD",
     }).format(amount);
@@ -17,26 +20,13 @@ export function formatBillingDate(value: string | null | undefined): string {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString("zh-CN");
+  const locale = getI18n().language === "en" ? "en-US" : "zh-CN";
+  return date.toLocaleString(locale);
 }
 
 export function subscriptionStatusLabel(status: string): string {
-  switch (status) {
-    case "active":
-      return "生效中";
-    case "trialing":
-      return "试用中";
-    case "past_due":
-      return "逾期";
-    case "canceled":
-      return "已取消";
-    case "expired":
-      return "已过期";
-    case "unpaid":
-      return "未支付";
-    case "paused":
-      return "已暂停";
-    default:
-      return status;
-  }
+  const i18n = getI18n();
+  const key = `status.${status}`;
+  const translated = i18n.t(key, { ns: "billing", defaultValue: "" });
+  return translated || status;
 }

@@ -1,0 +1,251 @@
+{
+  "site": {
+    "title": "be-water · Multi-tenant SaaS foundation",
+    "tagline": "Shapeless as water, it takes the form of its container",
+    "description": "be-water is a multi-tenant SaaS modular monolith foundation: the kernel and infrastructure contain no business code; business ships as modules, toggled per tenant, deployed as a single process.",
+    "homeAriaLabel": "be-water home"
+  },
+  "nav": {
+    "main": "Main navigation",
+    "docs": "Docs",
+    "pricing": "Pricing"
+  },
+  "header": {
+    "login": "Sign in",
+    "getStarted": "Get started free",
+    "enterConsole": "Open console"
+  },
+  "footer": {
+    "groups": {
+      "product": "Product",
+      "docs": "Docs",
+      "resources": "Resources"
+    },
+    "links": {
+      "intro": "Overview",
+      "pricing": "Pricing",
+      "login": "Sign in",
+      "docsHome": "Docs home",
+      "quickstart": "Quick start",
+      "modules": "Modular architecture",
+      "github": "GitHub"
+    }
+  },
+  "hero": {
+    "headline": "The foundation shapes to your business—not the other way around",
+    "subline": "A multi-tenant SaaS modular monolith: kernel and infrastructure stay business-free; modules plug in, toggle per tenant, and run in one process.",
+    "primaryCta": "Quick start",
+    "secondaryCta": "View pricing",
+    "stats": {
+      "infraModules": {
+        "term": "Infrastructure modules",
+        "detail": "{{count}} ready out of the box"
+      },
+      "deployment": {
+        "term": "Deployment",
+        "detail": "Single process · Docker Compose"
+      },
+      "tenantIsolation": {
+        "term": "Tenant isolation",
+        "detail": "Prisma layer fail-closed"
+      }
+    }
+  },
+  "features": {
+    "layers": {
+      "title": "Kernel stays business-free",
+      "description": "HTTP stack, auth, tenant context, module loader, and event bus live in the kernel—zero business code mixed in. Swap the product without touching the foundation."
+    },
+    "blocks": {
+      "title": "Modules plug in cleanly",
+      "description": "Each module ships server routes, client pages, and shared contracts. Register in both enabled-modules lists to go live; remove just as cleanly."
+    },
+    "plug": {
+      "title": "Per-tenant toggles",
+      "description": "Modules and entitlements open per tenant: disabled means no routes, no sidebar, no data—and quota overruns are blocked by the kernel."
+    },
+    "shield": {
+      "title": "Tenant isolation is mandatory",
+      "description": "Tenant guards fail-closed at the Prisma layer: unregistered models block startup, with lint and runtime checks against cross-tenant access."
+    },
+    "gauge": {
+      "title": "Observability built in",
+      "description": "Audit logs, error logs, slow-query dashboards, and a job center ship ready—no waiting for an incident to add monitoring."
+    },
+    "server": {
+      "title": "Single-process deployment",
+      "description": "Assembled at compile time, one process in production, delivered with Docker Compose. No microservice ops tax, no low-code ceiling."
+    }
+  },
+  "landing": {
+    "builtinModules": {
+      "title": "Infrastructure ready to go",
+      "description": "Auth, tenants, permissions, audit, notifications, jobs, observability—everything every SaaS rebuilds from scratch, already modular and toggleable."
+    },
+    "techStack": {
+      "title": "A predictable stack",
+      "description": "Mainstream, long-maintained choices: easy to hire for, easy to search, clear upgrade paths. Value is in boundaries and constraints—not novelty frameworks.",
+      "readDocs": "Read the docs"
+    },
+    "docsTeaser": {
+      "title": "Start here"
+    },
+    "closingCta": {
+      "title": "Run the foundation first, then the product",
+      "description": "Five minutes locally, one command to production. The free tier can stay free.",
+      "getStarted": "Get started free",
+      "viewPricing": "View pricing"
+    }
+  },
+  "builtinModules": {
+    "user": "Auth with JWT dual tokens",
+    "platform": "Tenants, plans, and quota console",
+    "rbac": "PBAC roles and permissions",
+    "audit": "Write-operation audit logs",
+    "notification": "In-app notifications",
+    "background-job": "BullMQ job center",
+    "error-log": "Error logs and query API",
+    "slow-query": "Slow-query attribution dashboard"
+  },
+  "techStack": {
+    "layerLabels": {
+      "backend": "Backend",
+      "data": "Data",
+      "frontend": "Frontend",
+      "ui": "UI",
+      "deploy": "Deploy"
+    }
+  },
+  "pricing": {
+    "pageTitle": "Pricing",
+    "pageDescription": "Seat-based billing with per-tenant module toggles. Stay on free as long as you need; upgrades change quotas, not migrations.",
+    "footnote": "Prices are CNY monthly, tax included, with annual discounts. Every plan includes full infrastructure modules and security updates.",
+    "faqTitle": "FAQ",
+    "recommended": "Recommended",
+    "perMonth": "/ mo",
+    "priceFree": "Free",
+    "priceCustom": "Custom quote",
+    "priceAmount": "¥{{price}}",
+    "seatsUnlimited": "Unlimited seats",
+    "seatsCount": "{{count}} seats",
+    "plans": {
+      "free": {
+        "audience": "Individual / trial",
+        "highlights": [
+          "1 member seat",
+          "All infrastructure modules (auth, audit, notifications, jobs)",
+          "Community support"
+        ],
+        "cta": "Get started free"
+      },
+      "starter": {
+        "audience": "Small teams",
+        "highlights": [
+          "3 member seats",
+          "Custom PBAC roles and permissions",
+          "Error logs and slow-query dashboards",
+          "Weekday email support"
+        ],
+        "cta": "Get started free"
+      },
+      "pro": {
+        "audience": "Growing teams",
+        "highlights": [
+          "10 member seats",
+          "Per-tenant module toggles and quotas",
+          "Audit log export",
+          "Priority email support"
+        ],
+        "cta": "Get started free"
+      },
+      "business": {
+        "audience": "Mid-size and enterprise",
+        "highlights": [
+          "30 member seats",
+          "Multi-tenant isolation and platform console",
+          "SSO / custom domain (on request)",
+          "Dedicated support channel"
+        ],
+        "cta": "Get started free"
+      },
+      "enterprise": {
+        "audience": "Large accounts",
+        "highlights": [
+          "100+ seats, expandable",
+          "Private deployment and custom modules",
+          "SLA and security review support",
+          "Dedicated customer success"
+        ],
+        "cta": "Contact us"
+      }
+    },
+    "platformPlans": {
+      "free": {
+        "name": "Free",
+        "description": "For personal trials"
+      },
+      "starter": {
+        "name": "Starter",
+        "description": "For small teams"
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "For growing teams"
+      },
+      "business": {
+        "name": "Business",
+        "description": "For mid-size and enterprise"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Custom plans—contact sales"
+      }
+    },
+    "faq": {
+      "items": [
+        {
+          "question": "Can I upgrade or downgrade anytime?",
+          "answer": "Yes. Plans are adjusted per tenant in the platform console. Upgrades take effect immediately; downgrades apply after the current billing cycle without affecting existing data."
+        },
+        {
+          "question": "How are seats counted?",
+          "answer": "A seat is an active user in the tenant. Disabled users do not consume seats; adding users beyond the limit is blocked with an upgrade prompt."
+        },
+        {
+          "question": "Do you support private deployment?",
+          "answer": "Yes. be-water is a single-process modular monolith, delivered with Docker Compose in production. Enterprise supports your own servers or private cloud."
+        },
+        {
+          "question": "Can I buy only some modules?",
+          "answer": "Modules toggle per tenant; plans define default scope. Enterprise can mix as needed—disabled modules have no routes, sidebar entries, or data."
+        }
+      ]
+    }
+  },
+  "docs": {
+    "pageTitle": "Docs",
+    "pageDescription": "From local setup to module boundaries to production deployment.",
+    "navLabel": "Documentation",
+    "navTitle": "Docs",
+    "prevNextNav": "Previous and next",
+    "notFound": {
+      "title": "Document not found",
+      "description": "There is no document at this URL—it may be outdated.",
+      "backHome": "Back to docs home"
+    }
+  },
+  "seo": {
+    "home": {
+      "title": "be-water · Multi-tenant SaaS foundation",
+      "description": "be-water is a multi-tenant SaaS modular monolith foundation: the kernel and infrastructure contain no business code; business ships as modules, toggled per tenant, deployed as a single process."
+    },
+    "pricing": {
+      "title": "Pricing",
+      "description": "be-water plans, seat quotas, and scope: start free; enterprise supports private deployment and custom modules."
+    },
+    "docs": {
+      "title": "Docs",
+      "description": "be-water docs: quick start, modular architecture, multi-tenancy and permissions, deployment."
+    }
+  }
+}

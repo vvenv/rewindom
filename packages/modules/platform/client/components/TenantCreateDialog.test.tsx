@@ -162,7 +162,7 @@ describe("TenantCreateDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "创建" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "创建" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "创建中…" })).toBeDisabled();
     });
   });
 

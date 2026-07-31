@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 
 import {
+  translateAppNavSections,
   useTenantEntitlements,
   usePermissions,
   type AppNavItem,
   type AppNavSection,
 } from "@be-water/client-kit";
+import { useTranslation } from "react-i18next";
 
 import { partitionNavSections } from "@/app-nav";
 
@@ -22,10 +24,27 @@ export function useFilteredNavSections(): {
   const { getNavSections, filterNavSections } = useAppShellConfig();
   const { data, isLoading } = useTenantEntitlements();
   const { hasPermission, isLoading: isLoadingPermissions } = usePermissions();
+  const { t } = useTranslation([
+    "user",
+    "common",
+    "shell",
+    "billing",
+    "rbac",
+    "dashboard",
+    "audit",
+    "error-log",
+    "notes",
+    "todos",
+  ]);
 
   const filtered = useMemo(
-    () => filterNavSections(getNavSections(), data, hasPermission),
-    [data, filterNavSections, getNavSections, hasPermission],
+    () =>
+      filterNavSections(
+        translateAppNavSections(getNavSections(), t),
+        data,
+        hasPermission,
+      ),
+    [data, filterNavSections, getNavSections, hasPermission, t],
   );
 
   const { mainSections, endSections, sections } = useMemo(
@@ -44,8 +63,12 @@ export function useFilteredNavSections(): {
 export function getNavBadgeTitle(
   badgeKey: AppNavItem["badgeKey"],
   taskCount: number,
+  t?: (key: string, options?: { count?: number; ns?: string }) => string,
 ): string | undefined {
   if (badgeKey === "tasks" && taskCount > 0) {
+    if (t) {
+      return t("tasksBadge", { count: taskCount, ns: "common" });
+    }
     return `${taskCount} 项待办任务`;
   }
   return undefined;

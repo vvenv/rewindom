@@ -3,8 +3,9 @@ import { useState, type SubmitEvent } from "react";
 import { Checkbox } from "@be-water/ui/checkbox";
 import { Input } from "@be-water/ui/input";
 import { toast } from "@be-water/ui/toast";
+import { useTranslation } from "react-i18next";
 
-import { validateTodoTitle } from "../lib/todos.js";
+import { TODO_TITLE_MAX_LENGTH, validateTodoTitle } from "../lib/todos.js";
 
 interface TodoQuickAddProps {
   /** 全部已完成时勾上；无待办时禁用 */
@@ -26,6 +27,7 @@ export function TodoQuickAdd({
   onAdd,
   onToggleAll,
 }: TodoQuickAddProps) {
+  const { t } = useTranslation("todos");
   const [title, setTitle] = useState("");
 
   const handleSubmit = async (event: SubmitEvent) => {
@@ -38,7 +40,7 @@ export function TodoQuickAdd({
 
     const validationError = validateTodoTitle(value);
     if (validationError) {
-      toast.error(validationError);
+      toast.error(t(validationError, { max: TODO_TITLE_MAX_LENGTH }));
       return;
     }
 
@@ -58,15 +60,19 @@ export function TodoQuickAdd({
       <Checkbox
         checked={allCompleted}
         disabled={!hasTodos || isTogglingAll}
-        aria-label={allCompleted ? "全部标记未完成" : "全部标记完成"}
+        aria-label={
+          allCompleted
+            ? t("quickAdd.markAllIncomplete")
+            : t("quickAdd.markAllComplete")
+        }
         className="data-checked:border-transparent data-checked:bg-muted-foreground/30 data-checked:text-muted-foreground"
         onCheckedChange={(checked) => onToggleAll(checked === true)}
       />
       <Input
         autoFocus
         value={title}
-        placeholder="需要做点什么？回车添加"
-        aria-label="添加待办"
+        placeholder={t("quickAdd.placeholder")}
+        aria-label={t("quickAdd.ariaLabel")}
         className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
         onChange={(event) => setTitle(event.target.value)}
       />

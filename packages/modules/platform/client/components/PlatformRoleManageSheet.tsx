@@ -18,6 +18,7 @@ import {
 import { Spinner } from "@be-water/ui/spinner";
 import { toast } from "@be-water/ui/toast";
 import { Settings2, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   useCreatePlatformRole,
@@ -37,6 +38,7 @@ function RoleEditor({
   role?: PlatformRoleSummary | null;
   onDone: () => void;
 }) {
+  const { t } = useTranslation(["platform", "common"]);
   const { data: catalog, isLoading } = usePlatformPermissionCatalog();
   const createMutation = useCreatePlatformRole();
   const updateMutation = useUpdatePlatformRole();
@@ -72,7 +74,7 @@ function RoleEditor({
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError("请输入角色名称");
+      setError(t("admins.roles.nameRequired"));
       return;
     }
     setError("");
@@ -91,10 +93,12 @@ function RoleEditor({
           permissions,
         });
       }
-      toast.success(role ? "角色已更新" : "角色已创建");
+      toast.success(
+        role ? t("admins.roles.updated") : t("admins.roles.created"),
+      );
       onDone();
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : "保存失败";
+      const message = err instanceof ApiError ? err.message : t("common:saveFailed");
       setError(message);
       toast.error(message);
     }
@@ -104,7 +108,7 @@ function RoleEditor({
     <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
       <FieldGroup className="flex-1 space-y-4 overflow-auto px-4">
         <Field>
-          <FieldLabel>角色名称</FieldLabel>
+          <FieldLabel>{t("admins.roles.nameLabel")}</FieldLabel>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -112,7 +116,7 @@ function RoleEditor({
           />
         </Field>
         <Field>
-          <FieldLabel>描述</FieldLabel>
+          <FieldLabel>{t("admins.roles.descriptionLabel")}</FieldLabel>
           <Input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -120,7 +124,7 @@ function RoleEditor({
           />
         </Field>
         <Field>
-          <FieldLabel>权限</FieldLabel>
+          <FieldLabel>{t("admins.roles.permissionsLabel")}</FieldLabel>
           {catalog?.groups &&
             Object.entries(catalog.groups).map(([group, keys]) => (
               <div key={group} className="mb-3">
@@ -150,12 +154,12 @@ function RoleEditor({
       <SheetFooter>
         <SheetClose asChild>
           <Button type="button" variant="outline" disabled={isPending}>
-            取消
+            {t("common:cancel")}
           </Button>
         </SheetClose>
         <Button type="submit" disabled={isPending || role?.is_builtin}>
           {isPending && <Spinner />}
-          保存
+          {t("common:save")}
         </Button>
       </SheetFooter>
     </form>
@@ -163,6 +167,7 @@ function RoleEditor({
 }
 
 export function PlatformRoleManageSheet() {
+  const { t } = useTranslation(["platform", "common"]);
   const [open, setOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<
     PlatformRoleSummary | null | undefined
@@ -173,17 +178,17 @@ export function PlatformRoleManageSheet() {
 
   const handleDelete = async (role: PlatformRoleSummary) => {
     const ok = await confirm({
-      title: "删除角色",
-      description: `确定删除角色 ${role.name}？`,
-      confirmText: "删除",
+      title: t("admins.roles.deleteTitle"),
+      description: t("admins.roles.deleteDescription", { name: role.name }),
+      confirmText: t("common:delete"),
       destructive: true,
     });
     if (!ok) return;
     try {
       await deleteMutation.mutateAsync(role.id);
-      toast.success("角色已删除");
+      toast.success(t("admins.roles.deleted"));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "删除失败");
+      toast.error(err instanceof ApiError ? err.message : t("admins.deleteFailed"));
     }
   };
 
@@ -198,13 +203,13 @@ export function PlatformRoleManageSheet() {
       <SheetTrigger asChild>
         <Button variant="outline" size="sm">
           <Settings2 className="size-4" />
-          管理角色
+          {t("admins.roles.manage")}
         </Button>
       </SheetTrigger>
       <SheetContent className="sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>平台角色</SheetTitle>
-          <SheetDescription>管理平台 scope 的角色与权限</SheetDescription>
+          <SheetTitle>{t("admins.roles.title")}</SheetTitle>
+          <SheetDescription>{t("admins.roles.description")}</SheetDescription>
         </SheetHeader>
 
         {editingRole !== undefined ? (
@@ -215,10 +220,10 @@ export function PlatformRoleManageSheet() {
         ) : (
           <div className="flex flex-1 flex-col gap-4 overflow-auto px-4">
             <Button size="sm" onClick={() => setEditingRole(null)}>
-              新建角色
+              {t("admins.roles.create")}
             </Button>
             {isLoading ? (
-              <p className="text-sm text-muted-foreground">加载中...</p>
+              <p className="text-sm text-muted-foreground">{t("common:loading")}</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {roles.map((role) => (
@@ -229,7 +234,9 @@ export function PlatformRoleManageSheet() {
                     <div>
                       <p className="font-medium">{role.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {role.is_builtin ? "内置角色" : role.description || "自定义角色"}
+                        {role.is_builtin
+                          ? t("admins.roles.builtin")
+                          : role.description || t("admins.roles.custom")}
                       </p>
                     </div>
                     <div className="flex gap-1">
@@ -238,7 +245,7 @@ export function PlatformRoleManageSheet() {
                         size="sm"
                         onClick={() => setEditingRole(role)}
                       >
-                        编辑
+                        {t("common:edit")}
                       </Button>
                       {!role.is_builtin && (
                         <Button

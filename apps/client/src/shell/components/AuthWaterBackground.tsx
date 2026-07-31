@@ -329,18 +329,18 @@ export function AuthWaterBackground({
       {isDark ? (
         <>
           <div className="auth-deep-wash absolute inset-0" />
-          <div className="animate-auth-current-a absolute -top-1/4 -left-1/4 h-[75%] w-[75%] rounded-full bg-primary/14 blur-[100px]" />
-          <div className="animate-auth-current-b absolute top-1/4 -right-1/4 h-[65%] w-[65%] rounded-full bg-brand/8 blur-[90px]" />
-          <div className="animate-auth-current-c absolute -bottom-1/4 left-1/5 h-[60%] w-[60%] rounded-full bg-brand/6 blur-[80px]" />
+          <div className="animate-auth-current-a absolute -top-1/4 -left-1/4 size-3/4 rounded-full bg-primary/14 blur-3xl" />
+          <div className="animate-auth-current-b absolute top-1/4 -right-1/4 size-2/3 rounded-full bg-brand/8 blur-3xl" />
+          <div className="animate-auth-current-c absolute -bottom-1/4 left-1/5 size-3/5 rounded-full bg-brand/6 blur-3xl" />
           <div className="auth-caustics absolute inset-0" />
           <div className="auth-waterline-glow absolute inset-x-0 bottom-0 h-1/3" />
         </>
       ) : (
         <>
           <div className="auth-shallow-wash absolute inset-0" />
-          <div className="animate-auth-shallow-a absolute -top-40 -left-40 size-112 rounded-full bg-brand/8 blur-[100px]" />
-          <div className="animate-auth-shallow-b absolute top-0 -right-40 h-96 w-96 rounded-full bg-primary/5 blur-[90px]" />
-          <div className="animate-auth-shallow-c absolute right-1/4 -bottom-32 h-80 w-80 rounded-full bg-brand/6 blur-[80px]" />
+          <div className="animate-auth-shallow-a absolute -top-40 -left-40 size-112 rounded-full bg-brand/8 blur-3xl" />
+          <div className="animate-auth-shallow-b absolute top-0 -right-40 size-96 rounded-full bg-primary/5 blur-3xl" />
+          <div className="animate-auth-shallow-c absolute right-1/4 -bottom-32 size-80 rounded-full bg-brand/6 blur-3xl" />
           <div className="auth-caustics absolute inset-0" />
         </>
       )}

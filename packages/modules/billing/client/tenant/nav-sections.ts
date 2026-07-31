@@ -9,14 +9,14 @@ import type { AppNavSection } from "@be-water/client-kit";
  */
 export const BILLING_NAV_SECTIONS: AppNavSection[] = [
   {
-    label: "系统管理",
+    label: "common:nav.systemManagement",
     placement: "end",
     items: [
       {
         icon: CreditCard,
-        label: "订阅与付款",
+        label: "billing:nav.billing",
         path: "/billing",
-        title: "订阅与付款",
+        title: "billing:nav.billing",
         keywords: "billing subscription payment 订阅 付款 套餐",
         tenantModule: "billing",
         anyPermission: ["billing.read"],

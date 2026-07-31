@@ -9,14 +9,14 @@ import type { AppNavSection } from "@be-water/client-kit";
  */
 export const USER_NAV_SECTIONS: AppNavSection[] = [
   {
-    label: "系统管理",
+    label: "common:nav.systemManagement",
     placement: "end",
     items: [
       {
         icon: Users,
-        label: "用户管理",
+        label: "user:nav.users",
         path: "/users",
-        title: "用户管理",
+        title: "user:nav.users",
         keywords: "users 用户 成员 账号",
         anyPermission: ["users.read"],
       },

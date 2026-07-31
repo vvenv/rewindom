@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, isTransientApiError } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { ArrowRight, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { CaptchaChallenge } from "@be-water/shared";
 
@@ -26,6 +27,7 @@ export function SliderCaptcha({
   width = 300,
   height = 150,
 }: SliderCaptchaProps) {
+  const { t } = useTranslation("shell");
   const [challenge, setChallenge] = useState<CaptchaChallenge | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sliderX, setSliderX] = useState(0);
@@ -88,13 +90,14 @@ export function SliderCaptcha({
       }));
       setInterferencePatterns(patterns);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载验证码失败";
+      const message =
+        error instanceof Error ? error.message : t("auth.captcha.loadFailed");
       setErrorMessage(message);
       onError?.(message);
     } finally {
       setIsLoading(false);
     }
-  }, [onError]);
+  }, [onError, t]);
 
   useEffect(() => {
     if (!hasMounted.current) {
@@ -171,8 +174,8 @@ export function SliderCaptcha({
         setIsVerified(true);
         onSuccess({ id: challenge.id, token: challenge.token, x, y });
       } else {
-        setErrorMessage("验证失败，请重试");
-        onError?.("验证失败");
+        setErrorMessage(t("auth.captcha.verifyFailedRetry"));
+        onError?.(t("auth.captcha.verifyFailed"));
         setTimeout(() => {
           setSliderX(0);
           setErrorMessage("");
@@ -180,8 +183,8 @@ export function SliderCaptcha({
         }, 1000);
       }
     } catch (_error) {
-      setErrorMessage("验证失败，请重试");
-      onError?.("验证失败");
+      setErrorMessage(t("auth.captcha.verifyFailedRetry"));
+      onError?.(t("auth.captcha.verifyFailed"));
       setTimeout(() => {
         setSliderX(0);
         setErrorMessage("");
@@ -225,8 +228,8 @@ export function SliderCaptcha({
         setIsVerified(true);
         onSuccess({ id: challenge.id, token: challenge.token, x, y });
       } else {
-        setErrorMessage("验证失败，请重试");
-        onError?.("验证失败");
+        setErrorMessage(t("auth.captcha.verifyFailedRetry"));
+        onError?.(t("auth.captcha.verifyFailed"));
         setTimeout(() => {
           setSliderX(0);
           setErrorMessage("");
@@ -234,8 +237,8 @@ export function SliderCaptcha({
         }, 1000);
       }
     } catch (_error) {
-      setErrorMessage("验证失败，请重试");
-      onError?.("验证失败");
+      setErrorMessage(t("auth.captcha.verifyFailedRetry"));
+      onError?.(t("auth.captcha.verifyFailed"));
       setTimeout(() => {
         setSliderX(0);
         setErrorMessage("");
@@ -369,7 +372,7 @@ export function SliderCaptcha({
           onClick={fetchChallenge}
           disabled={isLoading}
           className="absolute top-2 right-2"
-          aria-label="刷新验证码"
+          aria-label={t("auth.captcha.refresh")}
         >
           <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
         </Button>
@@ -390,7 +393,9 @@ export function SliderCaptcha({
         {/* Slider text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <span className="text-muted-foreground">
-            {isVerified ? "验证成功" : errorMessage || "向右滑动完成验证"}
+            {isVerified
+              ? t("auth.captcha.verified")
+              : errorMessage || t("auth.captcha.dragHint")}
           </span>
         </div>
 

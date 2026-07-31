@@ -1,3 +1,5 @@
+import { isAppLocale, type AppLocale } from "@be-water/shared";
+
 import { SITE } from "./site.js";
 
 /**
@@ -14,15 +16,36 @@ export interface PageSeo {
   /** sitemap 权重，0~1。 */
   priority: number;
   changefreq: "daily" | "weekly" | "monthly";
+  /** 预渲染界面语言；缺省为默认语言。 */
+  locale?: AppLocale;
+  /**
+   * canonical 用的路径；缺省等于 `path`。
+   * 用于 `/zh-CN/...` 镜像页指向无前缀主入口，避免重复收录。
+   */
+  canonical_path?: string;
   /** 结构化数据（JSON-LD）。取 origin 是因为里面要写绝对 URL，而域名只有构建时才知道。 */
   buildJsonLd?: (origin: string) => Record<string, unknown>;
 }
 
-/** `<title>` 成品：首页用站点全称，其余页面挂后缀。 */
+/** 去掉 `/{locale}` 前缀后的逻辑路径（仅识别 APP_LOCALES slug）。 */
+export function logicalMarketingPath(path: string): string {
+  if (path === "/") return "/";
+  const segments = path.replace(/\/+$/u, "").slice(1).split("/");
+  const first = segments[0];
+  if (first && isAppLocale(first)) {
+    const rest = segments.slice(1);
+    return rest.length === 0 ? "/" : `/${rest.join("/")}`;
+  }
+  return path.replace(/\/+$/u, "") || "/";
+}
+
+/** `<title>` 成品：首页用 title 全文，其余页面挂后缀。 */
 export function buildDocumentTitle(
   seo: Pick<PageSeo, "path" | "title">,
 ): string {
-  return seo.path === "/" ? SITE.title : `${seo.title} · ${SITE.name}`;
+  return logicalMarketingPath(seo.path) === "/"
+    ? seo.title
+    : `${seo.title} · ${SITE.name}`;
 }
 
 /** 规范化 origin：去掉结尾斜杠，避免拼出 `https://x.com//pricing`。 */

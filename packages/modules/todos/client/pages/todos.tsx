@@ -1,5 +1,6 @@
 import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { ListTodo } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TodoFooter } from "../components/TodoFooter.js";
 import { TodoList } from "../components/TodoList.js";
@@ -10,6 +11,7 @@ import { useTodosPage } from "../hooks/useTodosPage.js";
 import { TODO_STATUS_ALL } from "../lib/todos.js";
 
 export function Todos() {
+  const { t } = useTranslation("todos");
   const { q, status, completed, page, pageSize, handleFiltersChange } =
     useTodosPage();
   const { hasPermission } = usePermissions();
@@ -32,7 +34,7 @@ export function Todos() {
 
   // 录入入口是页内的快速添加行，不再用 FAB / 抽屉——待办的新建成本必须低到一行
   return (
-    <PageLayout icon={ListTodo} title="待办" description="租户内待办清单">
+    <PageLayout icon={ListTodo} title={t("title")} description={t("description")}>
       <div className="flex flex-col gap-4">
         {canWrite ? (
           <TodoQuickAdd
@@ -51,9 +53,7 @@ export function Todos() {
           error={error}
           canWrite={canWrite}
           emptyMessage={
-            isFiltered
-              ? "没有符合条件的待办，换个筛选看看。"
-              : "在上方输入框添加第一条待办。"
+            isFiltered ? t("page.emptyFiltered") : t("page.emptyInitial")
           }
           onToggle={actions.setCompleted}
           onRename={actions.renameTodo}

@@ -8,14 +8,14 @@ import type { AppNavSection } from "@be-water/client-kit";
  */
 export const AUDIT_NAV_SECTIONS: AppNavSection[] = [
   {
-    label: "系统监控",
+    label: "common:nav.systemMonitoring",
     placement: "end",
     items: [
       {
         icon: ScrollText,
-        label: "审计日志",
+        label: "audit:nav.auditLogs",
         path: "/audit-logs",
-        title: "审计日志",
+        title: "audit:nav.auditLogs",
         keywords: "audit logs 审计 日志 操作记录",
         anyPermission: ["audit_logs.read"],
       },

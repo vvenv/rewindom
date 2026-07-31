@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
+
 import { UsersFilterBar } from "../components/UsersFilterBar.js";
 import { UsersTable } from "../components/UsersTable.js";
 import { usePlatformUsers } from "../hooks/usePlatformUsers.js";
 import { usePlatformUsersPage } from "../hooks/usePlatformUsersPage.js";
 
 export function Users() {
+  const { t } = useTranslation("platform");
   const {
     search,
     tenant_slug,
@@ -30,7 +33,7 @@ export function Users() {
   return (
     <div className="flex flex-col gap-4">
       <p className="hidden text-muted-foreground md:block">
-        跨租户用户列表（只读）
+        {t("users.description")}
       </p>
 
       <UsersFilterBar

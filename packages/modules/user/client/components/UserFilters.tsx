@@ -1,11 +1,6 @@
 import { PageFilterBar } from "@be-water/client-kit";
 import { optionsFromLabels } from "@be-water/client-kit/lib/filter-chip-options";
-
-const ADMIN_TYPE_FILTER_OPTIONS = [
-  { value: "", label: "全部类型" },
-  { value: "system_admin", label: "系统管理员" },
-  { value: "regular", label: "普通用户" },
-] as const;
+import { useTranslation } from "react-i18next";
 
 interface UserFiltersProps {
   filters: {
@@ -16,6 +11,14 @@ interface UserFiltersProps {
 }
 
 export function UserFilters({ filters, onFiltersChange }: UserFiltersProps) {
+  const { t } = useTranslation("user");
+
+  const adminTypeFilterOptions = [
+    { value: "", label: t("filters.adminTypeAll") },
+    { value: "system_admin", label: t("filters.adminTypeSystemAdmin") },
+    { value: "regular", label: t("filters.adminTypeRegular") },
+  ] as const;
+
   const hasActiveFilters =
     Boolean(filters.q) || Boolean(filters.admin_type);
 
@@ -33,13 +36,13 @@ export function UserFilters({ filters, onFiltersChange }: UserFiltersProps) {
             admin_type: filters.admin_type,
           });
         },
-        placeholder: "搜索用户名...",
+        placeholder: t("filters.searchPlaceholder"),
         className: "max-w-40",
       }}
       groups={[
         {
           id: "admin_type",
-          options: optionsFromLabels(ADMIN_TYPE_FILTER_OPTIONS),
+          options: optionsFromLabels(adminTypeFilterOptions),
           value: filters.admin_type ?? "",
           onChange: (value) => {
             onFiltersChange({

@@ -1,8 +1,10 @@
 import { Logo, Wordmark } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 
 export function RegisterDisabledView() {
+  const { t } = useTranslation("shell");
   const navigate = useNavigate();
 
   return (
@@ -18,20 +20,20 @@ export function RegisterDisabledView() {
           <div className="flex flex-col items-center gap-2">
             <Wordmark className="auth-logo-glow h-6 text-foreground" />
             <p className="mt-1 text-sm text-muted-foreground">
-              暂未开放自助注册
+              {t("auth.registerDisabledTitle")}
             </p>
           </div>
         </div>
         <div className="text-center">
           <p className="text-muted-foreground">
-            请联系平台管理员开通账号，或返回登录页面
+            {t("auth.registerDisabledDescription")}
           </p>
           <Button
             variant="outline"
             className="mt-4"
             onClick={() => navigate("/login")}
           >
-            返回登录
+            {t("auth.backToLogin")}
           </Button>
         </div>
       </div>
@@ -40,11 +42,13 @@ export function RegisterDisabledView() {
 }
 
 export function RegisterLoginLink() {
+  const { t } = useTranslation("shell");
+
   return (
     <p className="mt-8 text-center text-sm text-muted-foreground">
-      已有账号？{" "}
+      {t("auth.hasAccount")}{" "}
       <Link to="/login" className="text-primary hover:underline">
-        立即登录
+        {t("auth.loginNow")}
       </Link>
     </p>
   );

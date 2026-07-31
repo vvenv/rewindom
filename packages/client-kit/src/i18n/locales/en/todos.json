@@ -1,0 +1,65 @@
+{
+  "title": "Todos",
+  "description": "Tenant todo list",
+  "nav": {
+    "section": "Examples",
+    "label": "Todos",
+    "keywords": "todos tasks list"
+  },
+  "filter": {
+    "all": "All",
+    "active": "Active",
+    "done": "Completed"
+  },
+  "remainingCount": "{{count}} items left",
+  "searchPlaceholder": "Search todos…",
+  "clearCompleted": "Clear completed",
+  "quickAdd": {
+    "placeholder": "What needs to be done? Press Enter to add",
+    "ariaLabel": "Add todo",
+    "markAllComplete": "Mark all complete",
+    "markAllIncomplete": "Mark all incomplete"
+  },
+  "row": {
+    "markComplete": "Mark \"{{title}}\" complete",
+    "markIncomplete": "Mark \"{{title}}\" incomplete",
+    "edit": "Edit \"{{title}}\"",
+    "delete": "Delete \"{{title}}\"",
+    "doubleClickEdit": "Double-click to edit"
+  },
+  "list": {
+    "emptyTitle": "No todos yet",
+    "loadFailed": "Failed to load"
+  },
+  "page": {
+    "emptyFiltered": "No todos match your filters. Try changing them.",
+    "emptyInitial": "Add your first todo in the field above."
+  },
+  "widget": {
+    "activeCount": "{{count}} active",
+    "viewAll": "View all",
+    "loadFailed": "Failed to load todos",
+    "noActive": "No active todos"
+  },
+  "validation": {
+    "titleRequired": "Enter a title",
+    "titleTooLong": "Title must be at most {{max}} characters"
+  },
+  "toast": {
+    "createFailed": "Could not create todo. Please try again.",
+    "updateFailed": "Could not update todo. Please try again.",
+    "saveFailed": "Could not save. Please try again.",
+    "deleteFailed": "Could not delete todo. Please try again.",
+    "deleted": "Deleted",
+    "undo": "Undo",
+    "undoFailed": "Could not undo. Please add it again.",
+    "toggleAllFailed": "Operation failed. Please try again.",
+    "clearFailed": "Could not clear completed todos. Please try again.",
+    "clearedCount": "Cleared {{count}} item(s)",
+    "noCompleted": "No completed todos"
+  },
+  "confirm": {
+    "clearCompletedTitle": "Clear completed",
+    "clearCompletedDescription": "This permanently deletes all completed todos and cannot be undone."
+  }
+}

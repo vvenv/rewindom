@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { api, useAuth  } from "@be-water/client-kit";
+import { api, getI18n, useAuth } from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
 import { toast } from "@be-water/ui/toast";
 
@@ -254,7 +254,9 @@ export function TaskProvider({ children }: TaskProviderProps) {
             title: options.title,
             status: "running",
             createdAt,
-            description: "正在提交任务…",
+            description: getI18n().t("toast.submitting", {
+              ns: "background-job",
+            }),
             notified: false,
           },
           ...prev,
@@ -263,18 +265,21 @@ export function TaskProvider({ children }: TaskProviderProps) {
       });
 
       void (async () => {
+        const t = getI18n().t.bind(getI18n());
         try {
           const { job_id } = await options.startJob(id);
           updateTask(id, {
             id: job_id,
             serverJobId: job_id,
-            description: "任务已提交，服务端执行中…",
+            description: t("toast.submitted", { ns: "background-job" }),
           });
           await refreshTasks();
         } catch (error) {
           const finishedAt = Date.now();
           const toastDescription =
-            error instanceof Error ? error.message : "请稍后重试";
+            error instanceof Error
+              ? error.message
+              : t("toast.retryLater", { ns: "background-job" });
 
           updateTask(id, {
             status: "error",
@@ -283,7 +288,9 @@ export function TaskProvider({ children }: TaskProviderProps) {
             notified: true,
           });
 
-          toast.error("任务提交失败", { description: toastDescription });
+          toast.error(t("toast.submitFailed", { ns: "background-job" }), {
+            description: toastDescription,
+          });
         }
       })();
 
@@ -336,10 +343,13 @@ export function TaskProvider({ children }: TaskProviderProps) {
           }
         } catch (error) {
           const finishedAt = Date.now();
+          const t = getI18n().t.bind(getI18n());
           const errorMeta = options.onError?.(error) ?? {
-            toastTitle: "任务失败",
+            toastTitle: t("toast.failed", { ns: "background-job" }),
             toastDescription:
-              error instanceof Error ? error.message : "请稍后重试",
+              error instanceof Error
+                ? error.message
+                : t("toast.retryLater", { ns: "background-job" }),
           };
 
           updateTask(id, {
@@ -379,17 +389,20 @@ export function TaskProvider({ children }: TaskProviderProps) {
       const task = tasks.find((item) => item.id === id);
       if (!task || task.status !== "running") return;
 
+      const t = getI18n().t.bind(getI18n());
       if (!task.serverJobId) {
         updateTask(id, {
           status: "interrupted",
-          description: "任务已取消",
+          description: t("toast.cancelled", { ns: "background-job" }),
           finishedAt: Date.now(),
           notified: true,
         });
         return;
       }
 
-      updateTask(id, { description: "正在取消…" });
+      updateTask(id, {
+        description: t("toast.cancelling", { ns: "background-job" }),
+      });
 
       const cancelPath = isPlatformAdmin
         ? `/platform/background-jobs/${task.serverJobId}/cancel`
@@ -400,15 +413,22 @@ export function TaskProvider({ children }: TaskProviderProps) {
           const job = await api.post<BackgroundJobDto>(cancelPath, {});
           updateTask(id, {
             status: mapJobStatusToTaskStatus(job.status),
-            description: job.description ?? "任务已取消",
+            description:
+              job.description ??
+              t("toast.cancelled", { ns: "background-job" }),
             finishedAt: job.finished_at ?? Date.now(),
             notified: true,
           });
           void refreshTasks();
         } catch (error) {
-          const message = error instanceof Error ? error.message : "请稍后重试";
+          const message =
+            error instanceof Error
+              ? error.message
+              : t("toast.retryLater", { ns: "background-job" });
           updateTask(id, { description: message });
-          toast.error("取消任务失败", { description: message });
+          toast.error(t("toast.cancelFailed", { ns: "background-job" }), {
+            description: message,
+          });
         }
       })();
     },

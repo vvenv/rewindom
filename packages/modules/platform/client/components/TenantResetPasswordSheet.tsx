@@ -20,6 +20,7 @@ import {
 } from "@be-water/ui/sheet";
 import { toast } from "@be-water/ui/toast";
 import { KeyRound, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TENANT_INITIAL_ADMIN_USERNAME, type TenantAdminCredentials, type TenantSummary } from "../../shared/index.js";
 import { useResetTenantAdminPassword } from "../hooks/usePlatformTenants.js";
@@ -37,6 +38,7 @@ export function TenantResetPasswordSheet({
   disabled = false,
   onActingChange,
 }: TenantResetPasswordSheetProps) {
+  const { t } = useTranslation(["platform", "common"]);
   const resetMutation = useResetTenantAdminPassword();
   const [open, setOpen] = useState(false);
   const [credentials, setCredentials] = useState<TenantAdminCredentials | null>(
@@ -56,7 +58,7 @@ export function TenantResetPasswordSheet({
     event.preventDefault();
     const trimmed = password.trim();
     if (trimmed && trimmed.length < 6) {
-      toast.error("密码至少需要6个字符");
+      toast.error(t("tenants.resetPassword.passwordMinLength"));
       return;
     }
 
@@ -67,9 +69,15 @@ export function TenantResetPasswordSheet({
         body: trimmed ? { new_password: trimmed } : undefined,
       });
       setCredentials(result);
-      toast.success(result.recreated ? "管理员账号已重建" : "管理员密码已更新");
+      toast.success(
+        result.recreated
+          ? t("tenants.resetPassword.adminRecreated")
+          : t("tenants.resetPassword.passwordUpdated"),
+      );
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "重设失败");
+      toast.error(
+        err instanceof ApiError ? err.message : t("tenants.resetPassword.resetFailed"),
+      );
     } finally {
       onActingChange?.(false);
     }
@@ -80,7 +88,7 @@ export function TenantResetPasswordSheet({
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" disabled={disabled}>
           <KeyRound className="size-3.5" />
-          密码
+          {t("tenants.resetPassword.trigger")}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
@@ -95,7 +103,7 @@ export function TenantResetPasswordSheet({
           <>
             <SheetHeader className="shrink-0 border-b pb-4">
               <SheetTitle className="pr-8">
-                重设管理员密码 — {tenant.name}
+                {t("tenants.resetPassword.title", { name: tenant.name })}
               </SheetTitle>
             </SheetHeader>
             <form
@@ -104,7 +112,7 @@ export function TenantResetPasswordSheet({
             >
               <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
                 <Field>
-                  <FieldLabel>登录账号</FieldLabel>
+                  <FieldLabel>{t("tenants.resetPassword.loginAccount")}</FieldLabel>
                   <p className="font-mono text-sm">
                     {formatLoginIdentifier(
                       TENANT_INITIAL_ADMIN_USERNAME,
@@ -114,12 +122,12 @@ export function TenantResetPasswordSheet({
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`reset-admin-password-${tenant.id}`}>
-                    新密码
+                    {t("tenants.resetPassword.newPassword")}
                   </FieldLabel>
                   <div className="flex gap-2">
                     <Input
                       id={`reset-admin-password-${tenant.id}`}
-                      placeholder="留空则自动生成随机密码"
+                      placeholder={t("tenants.resetPassword.passwordPlaceholder")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
@@ -129,12 +137,11 @@ export function TenantResetPasswordSheet({
                       className="shrink-0 gap-1"
                     >
                       <RefreshCw className="size-4" />
-                      随机
+                      {t("tenants.resetPassword.random")}
                     </Button>
                   </div>
                   <FieldDescription>
-                    至少 6
-                    个字符；留空将自动生成随机密码。若管理员账号已删除，将自动重建。
+                    {t("tenants.resetPassword.passwordHint")}
                   </FieldDescription>
                 </Field>
               </FieldGroup>
@@ -144,10 +151,10 @@ export function TenantResetPasswordSheet({
                   variant="outline"
                   onClick={() => setOpen(false)}
                 >
-                  取消
+                  {t("common:cancel")}
                 </Button>
                 <Button type="submit" disabled={resetMutation.isPending}>
-                  重设密码
+                  {t("tenants.resetPassword.submit")}
                 </Button>
               </SheetFooter>
             </form>

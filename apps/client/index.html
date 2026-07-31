@@ -17,16 +17,25 @@
     <script>
       (function () {
         try {
+          var root = document.documentElement;
           var stored = localStorage.getItem("theme");
           var isDark =
             stored === "dark" ||
             ((!stored || stored === "system") &&
               window.matchMedia("(prefers-color-scheme: dark)").matches);
-          var root = document.documentElement;
           root.classList.add(isDark ? "dark" : "light");
           root.style.colorScheme = isDark ? "dark" : "light";
+
+          // 与 theme 同构：首屏前恢复语言，避免 HTML lang / 无障碍读屏闪一下
+          var locale =
+            localStorage.getItem("app-locale") ||
+            localStorage.getItem("app-locale-default") ||
+            "zh-CN";
+          if (locale === "en" || locale === "zh-CN") {
+            root.lang = locale;
+          }
         } catch (e) {
-          /* localStorage 不可用时退回默认亮色 */
+          /* localStorage 不可用时退回默认亮色 / zh-CN */
         }
       })();
     </script>

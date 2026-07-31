@@ -10,6 +10,7 @@ import {
 import { Spinner } from "@be-water/ui/spinner";
 import { cn } from "@be-water/ui/utils";
 import { Eye, EyeOff, KeyRound, ShieldCheck, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { canSubmitLoginForm } from "../lib/login-form.js";
@@ -48,6 +49,8 @@ export function LoginForm({
   onCaptchaError: (error: string) => void;
   onSubmit: () => void;
 }) {
+  const { t } = useTranslation(["shell", "common"]);
+
   return (
     <div className="auth-glass-card relative overflow-hidden rounded-2xl">
       <div
@@ -62,10 +65,10 @@ export function LoginForm({
       <div className="relative p-8 sm:p-10">
         <div className="mb-8">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            欢迎回来
+            {t("auth.welcomeBack")}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            登录以继续
+            {t("auth.loginSubtitle")}
           </p>
         </div>
 
@@ -77,7 +80,7 @@ export function LoginForm({
         >
           <FieldGroup>
             <Field>
-              <InputGroup className="auth-input-group h-11 has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+              <InputGroup className="auth-input-group h-11">
                 <InputGroupAddon>
                   <User className="size-4 text-muted-foreground/80" />
                 </InputGroupAddon>
@@ -86,17 +89,16 @@ export function LoginForm({
                   type="text"
                   value={username}
                   onChange={(event) => onUsernameChange(event.target.value)}
-                  placeholder="请输入账号"
+                  placeholder={t("auth.usernamePlaceholder")}
                   disabled={isLoading}
                   autoFocus
                   autoComplete="username"
-                  className="text-[0.9375rem]"
                 />
               </InputGroup>
             </Field>
 
             <Field>
-              <InputGroup className="auth-input-group h-11 has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+              <InputGroup className="auth-input-group h-11">
                 <InputGroupAddon>
                   <KeyRound className="size-4 text-muted-foreground/80" />
                 </InputGroupAddon>
@@ -105,15 +107,16 @@ export function LoginForm({
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(event) => onPasswordChange(event.target.value)}
-                  placeholder="请输入密码"
+                  placeholder={t("auth.passwordPlaceholder")}
                   disabled={isLoading}
                   autoComplete="current-password"
-                  className="text-[0.9375rem]"
                 />
                 <InputGroupButton
                   onClick={() => onShowPasswordChange(!showPassword)}
                   disabled={isLoading}
-                  aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                  aria-label={
+                    showPassword ? t("auth.hidePassword") : t("auth.showPassword")
+                  }
                 >
                   {showPassword ? (
                     <EyeOff className="size-4 text-muted-foreground/80" />
@@ -134,7 +137,7 @@ export function LoginForm({
             <Button
               type="submit"
               className={cn(
-                "auth-submit-btn mt-1 w-full bg-transparent text-[0.9375rem] font-medium hover:bg-transparent",
+                "auth-submit-btn mt-1 w-full bg-transparent text-sm font-medium hover:bg-transparent",
                 isLoading && "pointer-events-none opacity-80",
               )}
               disabled={
@@ -149,12 +152,12 @@ export function LoginForm({
               {isLoading ? (
                 <>
                   <Spinner />
-                  登录中...
+                  {t("auth.loggingIn")}
                 </>
               ) : (
                 <>
                   <ShieldCheck className="size-4" />
-                  安全登录
+                  {t("auth.secureLogin")}
                 </>
               )}
             </Button>
@@ -163,12 +166,12 @@ export function LoginForm({
 
         {registrationEnabled && (
           <p className="mt-7 text-center text-sm text-muted-foreground">
-            还没有账号？{" "}
+            {t("auth.noAccount")}{" "}
             <Link
               to="/register"
               className="font-medium text-primary no-underline transition-colors hover:text-brand hover:underline"
             >
-              免费注册
+              {t("auth.registerFree")}
             </Link>
           </p>
         )}

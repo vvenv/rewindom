@@ -10,6 +10,17 @@ import {
 
 const API_BASE = "/api";
 
+/** 当前 UI 语言，写入每个 API 请求的 Accept-Language。 */
+let apiAcceptLanguage = "zh-CN";
+
+export function setApiAcceptLanguage(locale: string): void {
+  apiAcceptLanguage = locale || "zh-CN";
+}
+
+export function getApiAcceptLanguage(): string {
+  return apiAcceptLanguage;
+}
+
 export class ApiError extends Error {
   status: number;
   code?: string;
@@ -117,6 +128,7 @@ async function fetchWithAuth(
 ): Promise<Response> {
   const url = `${API_BASE}${path}`;
   const headers: Record<string, string> = {
+    "Accept-Language": apiAcceptLanguage,
     ...((options.headers as Record<string, string>) || {}),
   };
 

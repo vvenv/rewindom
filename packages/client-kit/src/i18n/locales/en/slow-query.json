@@ -1,0 +1,42 @@
+{
+  "description": "Platform slow query log pages",
+  "nav": {
+    "slowQueryLogs": "Slow queries",
+    "keywords": "slow query performance prisma sql"
+  },
+  "page": {
+    "description": "Cross-tenant slow query logs — Prisma queries exceeding the threshold (default 200ms) for performance analysis"
+  },
+  "filters": {
+    "route": "Route",
+    "source": "Source",
+    "tenant": "Tenant",
+    "fingerprint": "Fingerprint",
+    "minDuration": "Min duration (ms)"
+  },
+  "table": {
+    "time": "Time",
+    "duration": "Duration",
+    "query": "SQL",
+    "route": "Route",
+    "tenant": "Tenant",
+    "source": "Source",
+    "empty": "No slow query logs",
+    "loading": "Loading…"
+  },
+  "chart": {
+    "loading": "Loading…",
+    "noData": "No data"
+  },
+  "sheet": {
+    "title": "Slow query details",
+    "route": "Route",
+    "method": "Method",
+    "tenant": "Tenant",
+    "user": "User",
+    "fingerprint": "Fingerprint",
+    "requestId": "Request ID",
+    "sql": "SQL",
+    "params": "Params"
+  }
+}

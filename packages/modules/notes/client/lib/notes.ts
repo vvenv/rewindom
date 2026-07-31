@@ -11,16 +11,24 @@ export const INITIAL_NOTE_FORM: NoteFormValues = {
   content: "",
 };
 
-export function validateNoteForm(values: NoteFormValues): string | null {
+type NoteTranslate = (
+  key: string,
+  options?: Record<string, unknown>,
+) => string;
+
+export function validateNoteForm(
+  values: NoteFormValues,
+  t: NoteTranslate,
+): string | null {
   const title = values.title.trim();
   if (!title) {
-    return "请输入标题";
+    return t("validation.titleRequired");
   }
   if (title.length > NOTE_TITLE_MAX_LENGTH) {
-    return `标题不能超过 ${NOTE_TITLE_MAX_LENGTH} 个字符`;
+    return t("validation.titleTooLong", { max: NOTE_TITLE_MAX_LENGTH });
   }
   if (values.content.length > NOTE_CONTENT_MAX_LENGTH) {
-    return `内容不能超过 ${NOTE_CONTENT_MAX_LENGTH} 个字符`;
+    return t("validation.contentTooLong", { max: NOTE_CONTENT_MAX_LENGTH });
   }
   return null;
 }

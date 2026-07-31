@@ -1,21 +1,26 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 
 import {
   MarketingLayout,
   MarketingSection,
 } from "../components/MarketingLayout.js";
+import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES } from "../lib/docs.js";
 
 export function DocsIndex() {
+  const { t } = useTranslation("marketing");
+  const hrefFor = useMarketingHref();
+
   return (
     <MarketingLayout path="/docs">
       <MarketingSection className="pt-16 pb-8">
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          文档
+          {t("docs.pageTitle")}
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          从本地跑起来，到理解模块边界，到部署上线。
+          {t("docs.pageDescription")}
         </p>
       </MarketingSection>
 
@@ -24,7 +29,7 @@ export function DocsIndex() {
           {DOC_PAGES.map((page) => (
             <li key={page.slug}>
               <Link
-                to={page.path}
+                to={hrefFor(page.path)}
                 className="group block h-full rounded-xl border border-border/60 bg-background p-5 transition-colors hover:border-primary/40 hover:bg-muted/40"
               >
                 <h2 className="flex items-center gap-1.5 font-medium">

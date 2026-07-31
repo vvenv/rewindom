@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
 import { Plus, Users as UsersIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { UserFilters } from "../components/UserFilters.js";
 import { UserCreateSheet } from "../components/UserSheet.js";
@@ -11,6 +12,7 @@ import { useUsers } from "../hooks/useUsers.js";
 import { useUsersPage } from "../hooks/useUsersPage.js";
 
 export function Users() {
+  const { t } = useTranslation("user");
   const {
     q,
     admin_type,
@@ -46,14 +48,14 @@ export function Users() {
   return (
     <PageLayout
       icon={UsersIcon}
-      title="用户管理"
-      description="管理租户成员账号，并为其分配角色"
+      title={t("page.title")}
+      description={t("page.description")}
       action={
         hasPermission("users.write") ? (
           <UserCreateSheet>
             <DraggableFabTrigger storageKey="users_create_fab">
               <Plus className="size-6 md:size-4" />
-              <span className="hidden md:inline">新建用户</span>
+              <span className="hidden md:inline">{t("page.createUser")}</span>
             </DraggableFabTrigger>
           </UserCreateSheet>
         ) : null

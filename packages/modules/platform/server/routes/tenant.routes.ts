@@ -4,7 +4,15 @@ import {
 } from "@be-water/server-kernel/http/route-error-handler.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
-import { error, success, isShellLayoutSlug, isThemePaletteSlug, InvalidTenantSlugError, ReservedTenantSlugError  } from "@be-water/shared";
+import {
+  error,
+  success,
+  isAppLocale,
+  isShellLayoutSlug,
+  isThemePaletteSlug,
+  InvalidTenantSlugError,
+  ReservedTenantSlugError,
+} from "@be-water/shared";
 
 import { AuditAction, type AuditActionType  } from "../../../audit/shared/index.js";
 import { formatPlanChangeAuditDetails, formatTenantAppearanceAuditDetails, formatTenantFeatureAuditDetails, formatTenantEntitlementsAuditDetails , type CreateTenantBody, type PatchTenantBody, type ResetTenantAdminPasswordBody, type UpdateTenantAppearanceBody, type UpdateTenantFeatureFlagsBody, type UpdateTenantEntitlementsBody, type UpdateTenantPlanBody  } from "../../shared/index.js";
@@ -554,8 +562,12 @@ export async function registerTenantRoutes(
         }
 
         const body = request.body ?? {};
-        if (body.theme === undefined && body.layout === undefined) {
-          return handleValidationError(reply, "请提供 theme 或 layout");
+        if (
+          body.theme === undefined &&
+          body.layout === undefined &&
+          body.locale === undefined
+        ) {
+          return handleValidationError(reply, "请提供 theme、layout 或 locale");
         }
         // null = 恢复继承平台默认；其余必须是已注册的 slug
         if (
@@ -571,6 +583,13 @@ export async function registerTenantRoutes(
           !isShellLayoutSlug(body.layout)
         ) {
           return handleValidationError(reply, "无效的布局");
+        }
+        if (
+          body.locale !== undefined &&
+          body.locale !== null &&
+          !isAppLocale(body.locale)
+        ) {
+          return handleValidationError(reply, "无效的语言");
         }
 
         const before = await getTenantAppearance(tenant.id);

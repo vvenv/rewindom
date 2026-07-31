@@ -3,19 +3,23 @@ import { useMemo } from "react";
 import { DataTable, DataTableColumnHeader } from "@be-water/client-kit";
 import { displayOrEmpty, formatBusinessDate } from "@be-water/shared";
 import { ScrollText } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import { AUDIT_ACTION_LABELS, type AuditLog } from "../../shared/index.js";
+import { type AuditLog } from "../../shared/index.js";
+import { translateAuditAction } from "../lib/audit-action-i18n.js";
 
 import type { ColumnDef, SortingState, Updater } from "@tanstack/react-table";
+import type { TFunction } from "i18next";
 
 function buildAuditLogColumns(
   showTenantColumn: boolean,
+  t: TFunction,
 ): ColumnDef<AuditLog>[] {
   return [
     {
       accessorKey: "created_at",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="时间" />
+        <DataTableColumnHeader column={column} title={t("table.time")} />
       ),
       enableSorting: true,
       meta: { cellClassName: "text-muted-foreground tabular-nums" },
@@ -26,7 +30,7 @@ function buildAuditLogColumns(
           {
             accessorKey: "tenant_slug",
             header: ({ column }) => (
-              <DataTableColumnHeader column={column} title="租户" />
+              <DataTableColumnHeader column={column} title={t("table.tenant")} />
             ),
             enableSorting: true,
             meta: { cellClassName: "font-mono text-muted-foreground" },
@@ -37,18 +41,16 @@ function buildAuditLogColumns(
     {
       accessorKey: "action",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="操作" />
+        <DataTableColumnHeader column={column} title={t("table.action")} />
       ),
       enableSorting: true,
       cell: ({ row }) =>
-        AUDIT_ACTION_LABELS[
-          row.getValue("action") as keyof typeof AUDIT_ACTION_LABELS
-        ] || row.getValue("action"),
+        translateAuditAction(t, String(row.getValue("action"))),
     },
     {
       accessorKey: "username",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="账号" />
+        <DataTableColumnHeader column={column} title={t("table.username")} />
       ),
       enableSorting: true,
       meta: { cellClassName: "text-muted-foreground" },
@@ -57,7 +59,7 @@ function buildAuditLogColumns(
     {
       accessorKey: "resource",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="资源" />
+        <DataTableColumnHeader column={column} title={t("table.resource")} />
       ),
       enableSorting: true,
       meta: { cellClassName: "text-muted-foreground" },
@@ -65,7 +67,7 @@ function buildAuditLogColumns(
     },
     {
       accessorKey: "details",
-      header: "详情",
+      header: t("table.details"),
       enableSorting: false,
       meta: {
         cellClassName: "whitespace-break-spaces text-muted-foreground",
@@ -96,12 +98,12 @@ export function AuditLogsTable({
   pageCount?: number;
   sorting: SortingState;
   onSortingChange: (updater: Updater<SortingState>) => void;
-  /** 仅平台控制台开启：租户侧同租户下该列恒等，没有信息量。 */
   showTenantColumn?: boolean;
 }) {
+  const { t } = useTranslation("audit");
   const columns = useMemo(
-    () => buildAuditLogColumns(showTenantColumn),
-    [showTenantColumn],
+    () => buildAuditLogColumns(showTenantColumn, t),
+    [showTenantColumn, t],
   );
 
   return (
@@ -111,9 +113,9 @@ export function AuditLogsTable({
       isLoading={isLoading && logs.length === 0}
       isError={Boolean(error) && logs.length === 0}
       error={error}
-      emptyMessage="暂无审计日志"
+      emptyMessage={t("table.empty")}
       emptyIcon={<ScrollText className="size-8 text-muted-foreground" />}
-      loadingMessage="加载中..."
+      loadingMessage={t("table.loading")}
       pageSize={pageSize}
       page={page}
       total={total}

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { api, useAuth  } from "@be-water/client-kit";
+import { api, getI18n, useAuth } from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
 import { toast } from "@be-water/ui/toast";
 
@@ -83,16 +83,19 @@ export function useServerJobPoller({
           });
 
           if (!alreadyNotified) {
+            const t = getI18n().t.bind(getI18n());
             if (job.status === "success" || job.status === "warning") {
-              toast.success("任务完成", {
+              toast.success(t("toast.completed", { ns: "background-job" }), {
                 description: job.description ?? undefined,
               });
             } else if (job.status === "error") {
-              toast.error("任务失败", {
-                description: job.description ?? "请稍后重试",
+              toast.error(t("toast.failed", { ns: "background-job" }), {
+                description:
+                  job.description ??
+                  t("toast.retryLater", { ns: "background-job" }),
               });
             } else if (job.status === "cancelled") {
-              toast.info("任务已取消", {
+              toast.info(t("toast.cancelled", { ns: "background-job" }), {
                 description: job.description ?? undefined,
               });
             }

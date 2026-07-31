@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
+
 import { AuditLogFilters } from "../components/AuditLogFilters.js";
 import { AuditLogsTable } from "../components/AuditLogsTable.js";
 import { usePlatformAuditLogs } from "../hooks/usePlatformAuditLogs.js";
 import { usePlatformAuditLogsPage } from "../hooks/usePlatformAuditLogsPage.js";
 
 export function AuditLogs() {
+  const { t } = useTranslation("audit");
   const {
     filters,
     page,
@@ -36,7 +39,7 @@ export function AuditLogs() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-muted-foreground hidden sm:block">
-        跨租户审计日志（只读）
+        {t("platform.description")}
       </p>
 
       <div className="flex flex-col gap-4">

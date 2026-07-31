@@ -11,6 +11,7 @@ import {
 } from "@be-water/ui/sheet";
 import { cn } from "@be-water/ui/utils";
 import { Inbox } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TaskCenterContent } from "../../../background-job/client/components/TaskCenter.js";
 import { useTaskCenter } from "../../../background-job/client/hooks/useTaskCenter.js";
@@ -70,6 +71,7 @@ function useBadgePulse(count: number, enabled: boolean): boolean {
 }
 
 export function ActivityCenter() {
+  const { t } = useTranslation("notification");
   const {
     badgeCount: taskBadgeCount,
     taskCenterOpen,
@@ -85,14 +87,14 @@ export function ActivityCenter() {
           variant="ghost"
           size="icon"
           className="relative"
-          title="活动中心"
+          title={t("activityCenter.title")}
         >
           <Inbox className="size-4" />
           <ActivityCenterTriggerBadge count={taskBadgeCount} pulse={badgePulse} />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="sm:max-w-md" title="活动中心">
-        <SheetHeader>后台任务</SheetHeader>
+      <SheetContent side="right" className="sm:max-w-md" title={t("activityCenter.title")}>
+        <SheetHeader>{t("activityCenter.backgroundTasks")}</SheetHeader>
         <div className="flex min-h-0 flex-1 flex-col">
           <TaskCenterContent />
         </div>

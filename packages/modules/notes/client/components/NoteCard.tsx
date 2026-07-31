@@ -10,6 +10,7 @@ import {
 } from "@be-water/ui/card";
 import { cn } from "@be-water/ui/utils";
 import { Clock, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { NoteEditSheet } from "./NoteEditSheet.js";
 
@@ -28,6 +29,8 @@ export function NoteCard({
   isDeleting,
   onDelete,
 }: NoteCardProps) {
+  const { t } = useTranslation("notes");
+
   return (
     <Card
       aria-busy={isDeleting}
@@ -46,7 +49,7 @@ export function NoteCard({
             <Button
               size="icon"
               variant="ghost"
-              aria-label="删除笔记"
+              aria-label={t("deleteAriaLabel")}
               disabled={isDeleting}
               onClick={() => onDelete(note)}
             >
@@ -57,12 +60,14 @@ export function NoteCard({
       </CardHeader>
       <CardContent className="flex-1">
         <p className="line-clamp-4 wrap-break-word text-muted-foreground">
-          {note.content_preview || "（空白笔记）"}
+          {note.content_preview || t("emptyPreview")}
         </p>
       </CardContent>
       <CardFooter className="gap-1.5 text-xs text-muted-foreground">
         <Clock className="size-3.5" />
-        更新于 {formatBusinessDateOrTimeAgo(note.updated_at)}
+        {t("updatedAt", {
+          time: formatBusinessDateOrTimeAgo(note.updated_at),
+        })}
       </CardFooter>
     </Card>
   );

@@ -63,7 +63,33 @@ describe("buildHead", () => {
     expect(head).toContain(
       '<meta property="og:url" content="https://a.com/pricing" />',
     );
+    expect(head).toContain('<meta property="og:locale" content="zh_CN" />');
     expect(head).toContain('<meta name="twitter:card" content="summary" />');
+  });
+
+  it("uses canonical_path and locale-specific og:locale", () => {
+    const head = buildHead(
+      {
+        ...seo,
+        path: "/zh-CN/pricing",
+        locale: "zh-CN",
+        canonical_path: "/pricing",
+      },
+      "https://a.com/",
+    );
+
+    expect(head).toContain(
+      '<link rel="canonical" href="https://a.com/pricing" />',
+    );
+
+    const enHead = buildHead(
+      { ...seo, path: "/en/pricing", locale: "en", title: "Pricing" },
+      "https://a.com/",
+    );
+    expect(enHead).toContain('<meta property="og:locale" content="en_US" />');
+    expect(enHead).toContain(
+      '<link rel="canonical" href="https://a.com/en/pricing" />',
+    );
   });
 
   it("includes JSON-LD only when the route provides it", () => {
@@ -87,8 +113,10 @@ describe("injectPrerenderedPage", () => {
       template: TEMPLATE,
       head: "    <title>定价 · be-water</title>",
       body: "<main>正文</main>",
+      locale: "en",
     });
 
+    expect(html).toContain('<html lang="en">');
     expect(html).toContain("<title>定价 · be-water</title>");
     expect(html.match(/<title>/gu)).toHaveLength(1);
     expect(html).toContain('<div id="root"><main>正文</main></div>');
@@ -138,6 +166,8 @@ describe("outputPathFor", () => {
     expect(outputPathFor("/docs/quickstart")).toBe(
       "docs/quickstart/index.html",
     );
+    expect(outputPathFor("/en/pricing")).toBe("en/pricing/index.html");
+    expect(outputPathFor("/zh-CN")).toBe("zh-CN/index.html");
   });
 });
 

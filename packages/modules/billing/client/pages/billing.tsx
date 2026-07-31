@@ -1,6 +1,7 @@
 import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { CreditCard } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { BillingPaymentsTable } from "../components/BillingPaymentsTable.js";
@@ -20,6 +21,7 @@ import {
 } from "../lib/billing-format.js";
 
 export function BillingPage() {
+  const { t } = useTranslation(["billing", "common"]);
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("billing.write");
 
@@ -37,50 +39,60 @@ export function BillingPage() {
       const result = await createCheckout.mutateAsync(planSlug);
       window.location.assign(result.checkout_url);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "发起结账失败");
+      toast.error(
+        err instanceof Error ? err.message : t("toast.checkoutFailed"),
+      );
     }
   }
 
   async function handleCancel(): Promise<void> {
     try {
       await cancelSubscription.mutateAsync();
-      toast.success("已安排在周期结束时取消订阅");
+      toast.success(t("subscription.cancelScheduled"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "取消订阅失败");
+      toast.error(
+        err instanceof Error ? err.message : t("subscription.cancelFailed"),
+      );
     }
   }
 
   return (
     <PageLayout
       icon={CreditCard}
-      title="订阅与付款"
-      description="查看当前套餐、升级订阅与付款历史"
+      title={t("page.title")}
+      description={t("page.description")}
     >
       <div className="flex flex-col gap-8">
         <section className="flex flex-col gap-3">
-          <h2 className="text-base font-medium">当前订阅</h2>
+          <h2 className="text-base font-medium">{t("subscription.current")}</h2>
           {subscriptionQuery.isLoading ? (
-            <p className="text-muted-foreground text-sm">加载中…</p>
+            <p className="text-muted-foreground text-sm">{t("common:loading")}</p>
           ) : subscription ? (
             <div className="rounded-md border p-4">
               <dl className="grid gap-2 text-sm sm:grid-cols-2">
                 <div>
-                  <dt className="text-muted-foreground">套餐</dt>
+                  <dt className="text-muted-foreground">{t("subscription.plan")}</dt>
                   <dd className="font-medium">{subscription.plan_slug}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">状态</dt>
+                  <dt className="text-muted-foreground">{t("subscription.status")}</dt>
                   <dd className="font-medium">
                     {subscriptionStatusLabel(subscription.status)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">当前周期结束</dt>
+                  <dt className="text-muted-foreground">{t("subscription.periodEnd")}</dt>
                   <dd>{formatBillingDate(subscription.current_period_end)}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">周期末取消</dt>
-                  <dd>{subscription.cancel_at_period_end ? "是" : "否"}</dd>
+                  <dt className="text-muted-foreground">
+                    {t("subscription.cancelAtPeriodEnd")}
+                  </dt>
+                  <dd>
+                    {subscription.cancel_at_period_end
+                      ? t("common:yes")
+                      : t("common:no")}
+                  </dd>
                 </div>
               </dl>
               {canWrite && !subscription.cancel_at_period_end ? (
@@ -91,19 +103,17 @@ export function BillingPage() {
                   disabled={cancelSubscription.isPending}
                   onClick={() => void handleCancel()}
                 >
-                  取消订阅
+                  {t("subscription.cancel")}
                 </Button>
               ) : null}
             </div>
           ) : (
-            <p className="text-muted-foreground text-sm">
-              当前没有有效订阅（可能仍在免费版）
-            </p>
+            <p className="text-muted-foreground text-sm">{t("subscription.none")}</p>
           )}
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="text-base font-medium">升级套餐</h2>
+          <h2 className="text-base font-medium">{t("plans.upgrade")}</h2>
           <BillingPlanPicker
             plans={plansQuery.data ?? []}
             canWrite={canWrite}
@@ -113,7 +123,7 @@ export function BillingPage() {
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="text-base font-medium">付款历史</h2>
+          <h2 className="text-base font-medium">{t("payments.history")}</h2>
           <BillingPaymentsTable
             payments={paymentsQuery.data?.items ?? []}
             isLoading={paymentsQuery.isLoading}
@@ -121,7 +131,7 @@ export function BillingPage() {
               paymentsQuery.error instanceof Error
                 ? paymentsQuery.error
                 : paymentsQuery.error
-                  ? new Error("加载失败")
+                  ? new Error(t("common:loadFailed"))
                   : null
             }
           />

@@ -1,6 +1,7 @@
 import { Button } from "@be-water/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Link, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
 
 import { DocContent } from "../components/DocContent.js";
 import { DocsNav } from "../components/DocsNav.js";
@@ -8,18 +9,24 @@ import {
   MarketingLayout,
   MarketingSection,
 } from "../components/MarketingLayout.js";
+import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES, findDocPage } from "../lib/docs.js";
 
 function DocNotFound() {
+  const { t } = useTranslation("marketing");
+  const hrefFor = useMarketingHref();
+
   return (
     <MarketingLayout path="/docs">
       <MarketingSection className="py-24 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">文档不存在</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("docs.notFound.title")}
+        </h1>
         <p className="mt-3 text-muted-foreground">
-          这个地址下没有文档，可能是链接过期了。
+          {t("docs.notFound.description")}
         </p>
         <Button asChild variant="outline" className="mt-6 h-10 px-4">
-          <Link to="/docs">回到文档首页</Link>
+          <Link to={hrefFor("/docs")}>{t("docs.notFound.backHome")}</Link>
         </Button>
       </MarketingSection>
     </MarketingLayout>
@@ -28,6 +35,8 @@ function DocNotFound() {
 
 export function DocDetail() {
   const { slug } = useParams();
+  const { t } = useTranslation("marketing");
+  const hrefFor = useMarketingHref();
   const page = findDocPage(slug);
 
   if (!page) {
@@ -59,12 +68,12 @@ export function DocDetail() {
             </div>
 
             <nav
-              aria-label="上下篇"
+              aria-label={t("docs.prevNextNav")}
               className="mt-16 flex flex-wrap gap-3 border-t border-border/60 pt-6"
             >
               {previous ? (
                 <Link
-                  to={previous.path}
+                  to={hrefFor(previous.path)}
                   className="group flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <ArrowLeft className="size-3.5" />
@@ -73,7 +82,7 @@ export function DocDetail() {
               ) : null}
               {next ? (
                 <Link
-                  to={next.path}
+                  to={hrefFor(next.path)}
                   className="group ml-auto flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {next.title}

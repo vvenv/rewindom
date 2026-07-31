@@ -49,11 +49,12 @@ describe("tenant-appearance.service", () => {
   });
 
   describe("getTenantAppearance", () => {
-    it("租户未配置时两根轴都是 null（继承）", async () => {
+    it("租户未配置时各轴都是 null（继承）", async () => {
       await stub({});
       expect(await getTenantAppearance(TENANT_ID)).toEqual({
         theme: null,
         layout: null,
+        locale: null,
       });
     });
 
@@ -62,14 +63,18 @@ describe("tenant-appearance.service", () => {
       expect(await getTenantAppearance(TENANT_ID)).toEqual({
         theme: "slate",
         layout: null,
+        locale: null,
       });
     });
 
     it("未注册的 slug 降级为继承", async () => {
-      await stub({ tenant: { theme: "neon", layout: "diagonal" } });
+      await stub({
+        tenant: { theme: "neon", layout: "diagonal", locale: "ja" },
+      });
       expect(await getTenantAppearance(TENANT_ID)).toEqual({
         theme: null,
         layout: null,
+        locale: null,
       });
     });
   });
@@ -77,27 +82,39 @@ describe("tenant-appearance.service", () => {
   describe("resolveTenantAppearance", () => {
     it("优先用租户配置，并标注来源", async () => {
       await stub({
-        tenant: { theme: "slate", layout: "topbar" },
-        platform: { default_theme: "water", default_layout: "sidebar" },
+        tenant: { theme: "slate", layout: "topbar", locale: "en" },
+        platform: {
+          default_theme: "water",
+          default_layout: "sidebar",
+          default_locale: "zh-CN",
+        },
       });
       expect(await resolveTenantAppearance(TENANT_ID)).toEqual({
         theme: "slate",
         theme_source: "tenant",
         layout: "topbar",
         layout_source: "tenant",
+        locale: "en",
+        locale_source: "tenant",
       });
     });
 
-    it("两根轴各自独立解析——租户只覆盖布局时，主题仍继承平台", async () => {
+    it("各轴各自独立解析——租户只覆盖布局时，主题与语言仍继承平台", async () => {
       await stub({
         tenant: { layout: "topbar" },
-        platform: { default_theme: "slate", default_layout: "sidebar" },
+        platform: {
+          default_theme: "slate",
+          default_layout: "sidebar",
+          default_locale: "en",
+        },
       });
       expect(await resolveTenantAppearance(TENANT_ID)).toEqual({
         theme: "slate",
         theme_source: "platform",
         layout: "topbar",
         layout_source: "tenant",
+        locale: "en",
+        locale_source: "platform",
       });
     });
 
@@ -108,22 +125,31 @@ describe("tenant-appearance.service", () => {
         theme_source: "platform",
         layout: "sidebar",
         layout_source: "platform",
+        locale: "zh-CN",
+        locale_source: "platform",
       });
     });
   });
 
   it("getTenantAppearanceDetail 同时给出原始值、生效值与平台默认", async () => {
     await stub({
-      tenant: { layout: "topbar" },
-      platform: { default_theme: "slate", default_layout: "sidebar" },
+      tenant: { layout: "topbar", locale: "en" },
+      platform: {
+        default_theme: "slate",
+        default_layout: "sidebar",
+        default_locale: "zh-CN",
+      },
     });
     expect(await getTenantAppearanceDetail(TENANT_ID)).toEqual({
       theme: null,
       layout: "topbar",
+      locale: "en",
       resolved_theme: "slate",
       resolved_layout: "topbar",
+      resolved_locale: "en",
       platform_default_theme: "slate",
       platform_default_layout: "sidebar",
+      platform_default_locale: "zh-CN",
     });
   });
 
@@ -137,19 +163,29 @@ describe("tenant-appearance.service", () => {
     }
 
     it("未传的轴保持原值——改布局不会把主题冲掉", async () => {
-      await stub({ tenant: { theme: "slate", layout: null } });
+      await stub({ tenant: { theme: "slate", layout: null, locale: "en" } });
 
       await saveTenantAppearance(TENANT_ID, { layout: "topbar" });
 
-      expect(await savedValue()).toEqual({ theme: "slate", layout: "topbar" });
+      expect(await savedValue()).toEqual({
+        theme: "slate",
+        layout: "topbar",
+        locale: "en",
+      });
     });
 
     it("显式传 null 才是恢复继承", async () => {
-      await stub({ tenant: { theme: "slate", layout: "topbar" } });
+      await stub({
+        tenant: { theme: "slate", layout: "topbar", locale: "en" },
+      });
 
-      await saveTenantAppearance(TENANT_ID, { theme: null });
+      await saveTenantAppearance(TENANT_ID, { theme: null, locale: null });
 
-      expect(await savedValue()).toEqual({ theme: null, layout: "topbar" });
+      expect(await savedValue()).toEqual({
+        theme: null,
+        layout: "topbar",
+        locale: null,
+      });
     });
 
     it("非法 slug 写成 null", async () => {
@@ -158,9 +194,14 @@ describe("tenant-appearance.service", () => {
       await saveTenantAppearance(TENANT_ID, {
         theme: "neon" as never,
         layout: "diagonal" as never,
+        locale: "ja" as never,
       });
 
-      expect(await savedValue()).toEqual({ theme: null, layout: null });
+      expect(await savedValue()).toEqual({
+        theme: null,
+        layout: null,
+        locale: null,
+      });
     });
   });
 });

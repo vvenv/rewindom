@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from "react";
 
 import {
   Logo,
+  LocaleToggle,
   OVERFLOW_MEASURE_ROW_CLASS,
   ShellLayoutToggle,
   ThemePaletteToggle,
@@ -11,6 +12,7 @@ import {
   type AppNavItem,
   type AppNavSection,
 } from "@be-water/client-kit";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import {
@@ -48,6 +50,7 @@ function NavBadgeCount({
   badgeKey: AppNavItem["badgeKey"];
   className?: string;
 }) {
+  const { t } = useTranslation("common");
   const badgeCount = useNavBadgeCount(badgeKey);
 
   if (badgeCount <= 0) return null;
@@ -55,8 +58,8 @@ function NavBadgeCount({
   return (
     <Badge
       variant="destructive"
-      title={getNavBadgeTitle(badgeKey, badgeCount)}
-      className={cn("h-4 min-w-4 justify-center px-1 text-[10px]", className)}
+      title={getNavBadgeTitle(badgeKey, badgeCount, t)}
+      className={cn("h-4 min-w-4 justify-center px-1 text-xs", className)}
     >
       {badgeCount > 99 ? "99+" : badgeCount}
     </Badge>
@@ -175,6 +178,7 @@ function SectionNavMenu({ section }: { section: AppNavSection }) {
 
 /** 顶栏放不下的 section：整组塞进「更多」，组名降级为下拉里的分组标签。 */
 function OverflowNavMenu({ sections }: { sections: AppNavSection[] }) {
+  const { t } = useTranslation(["shell", "common"]);
   const items = useMemo(
     () => sections.flatMap((section) => section.items),
     [sections],
@@ -192,7 +196,7 @@ function OverflowNavMenu({ sections }: { sections: AppNavSection[] }) {
             hasActive && "bg-sidebar-accent text-sidebar-accent-foreground",
           )}
         >
-          更多
+          {t("chrome.more")}
           <ChevronDown className="size-3.5" />
         </Button>
       </DropdownMenuTrigger>
@@ -258,6 +262,7 @@ function NavEntry({
  * 也不需要横向滚动，下游加到几十个菜单同样成立。
  */
 export function TopBar(): ReactNode {
+  const { t } = useTranslation("shell");
   const { sections } = useFilteredNavSections();
   const { shellContributions } = useAppShellConfig();
   const homePath = useAppHomePath();
@@ -279,7 +284,7 @@ export function TopBar(): ReactNode {
       <nav
         ref={containerRef}
         className="relative flex min-w-0 flex-1 items-center gap-1 overflow-hidden"
-        aria-label="主导航"
+        aria-label={t("chrome.mainNav")}
       >
         {visible.map((section) => (
           <NavEntry key={section.label} section={section} />
@@ -298,7 +303,7 @@ export function TopBar(): ReactNode {
           ))}
           <span ref={measureOverflowRef}>
             <Button variant="ghost" size="sm" className="h-9" tabIndex={-1}>
-              更多
+              {t("chrome.more")}
               <ChevronDown className="size-3.5" />
             </Button>
           </span>
@@ -318,6 +323,7 @@ export function TopBar(): ReactNode {
         />
         <ShellLayoutToggle menuSide="bottom" menuAlign="end" />
         <ThemePaletteToggle menuSide="bottom" menuAlign="end" />
+        <LocaleToggle menuSide="bottom" menuAlign="end" />
         <ThemeToggle />
         {UserMenu ? <UserMenu menuSide="bottom" menuAlign="end" /> : null}
       </div>

@@ -15,6 +15,7 @@ import {
 } from "@be-water/ui/dropdown-menu";
 import { cn } from "@be-water/ui/utils";
 import { PanelsTopLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useShellLayout } from "../contexts/shell-layout-context.js";
 
@@ -35,6 +36,7 @@ export function ShellLayoutToggle({
   menuSide?: "top" | "bottom" | "left" | "right";
   menuAlign?: "start" | "center" | "end";
 }) {
+  const { t } = useTranslation(["shell", "common"]);
   const { layout, userChoice, defaultLayout, setLayout } = useShellLayout();
 
   return (
@@ -44,10 +46,10 @@ export function ShellLayoutToggle({
           variant="ghost"
           size="icon"
           className={cn("hidden shrink-0 md:inline-flex", className)}
-          title={`当前布局: ${getShellLayoutLabel(layout)}`}
+          title={t("currentLayout", { label: getShellLayoutLabel(layout) })}
         >
           <PanelsTopLeft className="size-4" />
-          <span className="sr-only">切换布局</span>
+          <span className="sr-only">{t("switchLayout")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -56,7 +58,7 @@ export function ShellLayoutToggle({
         collisionPadding={8}
         className="w-60"
       >
-        <DropdownMenuLabel>布局</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("layout")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
           value={userChoice ?? FOLLOW_DEFAULT}
@@ -66,9 +68,11 @@ export function ShellLayoutToggle({
         >
           <DropdownMenuRadioItem value={FOLLOW_DEFAULT}>
             <div className="flex flex-col gap-0.5">
-              <span>跟随默认</span>
+              <span>{t("common:followDefault")}</span>
               <span className="text-muted-foreground text-xs">
-                当前为「{getShellLayoutLabel(defaultLayout)}」
+                {t("common:followDefaultCurrent", {
+                  label: getShellLayoutLabel(defaultLayout),
+                })}
               </span>
             </div>
           </DropdownMenuRadioItem>

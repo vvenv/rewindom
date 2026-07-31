@@ -660,6 +660,29 @@ html.dark[data-theme="slate"] body {
       background-color 0.2s ease;
   }
 
+  /* 焦点环由下方 focus-within 的 box-shadow 接管，关掉 InputGroup 默认 ring */
+  .auth-input-group:has([data-slot="input-group-control"]:focus-visible) {
+    --tw-ring-shadow: 0 0 #0000;
+  }
+
+  .auth-split-layout {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 1024px) {
+    .auth-split-layout {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    }
+  }
+
+  .auth-hero-vignette {
+    background: radial-gradient(
+      ellipse 70% 60% at 50% 50%,
+      transparent 30%,
+      rgba(0, 0, 0, 0.45) 100%
+    );
+  }
+
   html:not(.dark) .auth-vignette {
     opacity: 0;
   }

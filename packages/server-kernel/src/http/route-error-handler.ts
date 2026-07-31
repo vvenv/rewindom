@@ -3,9 +3,26 @@
  * Standardized error logging and response functions
  */
 
-import { error as errorResponse, success, type ImportPreviewResult  } from "@be-water/shared";
+import {
+  error as errorResponse,
+  success,
+  type ImportPreviewResult,
+} from "@be-water/shared";
+
+import { translateForRequest } from "../lib/i18n/translate.js";
 
 import type { FastifyReply } from "fastify";
+
+function localizedError(
+  reply: FastifyReply,
+  message: string,
+  errorCode?: string,
+): ReturnType<typeof errorResponse> {
+  return errorResponse(
+    translateForRequest(reply.request, message, errorCode),
+    errorCode,
+  );
+}
 
 /**
  * Standard error handler for route handlers
@@ -25,7 +42,7 @@ export function handleRouteError(
     },
     context,
   );
-  reply.code(500).send(errorResponse(message, errorCode));
+  reply.code(500).send(localizedError(reply, message, errorCode));
 }
 
 /**
@@ -36,7 +53,7 @@ export function handleValidationError(
   message: string,
   errorCode?: string,
 ): void {
-  reply.code(400).send(errorResponse(message, errorCode));
+  reply.code(400).send(localizedError(reply, message, errorCode));
 }
 
 export function handleImportValidationError(
@@ -66,7 +83,7 @@ export function handleNotFoundError(
   reply: FastifyReply,
   message: string,
 ): void {
-  reply.code(404).send(errorResponse(message));
+  reply.code(404).send(localizedError(reply, message));
 }
 
 /**
@@ -76,5 +93,5 @@ export function handleForbiddenError(
   reply: FastifyReply,
   message: string = "无权限",
 ): void {
-  reply.code(403).send(errorResponse(message));
+  reply.code(403).send(localizedError(reply, message));
 }

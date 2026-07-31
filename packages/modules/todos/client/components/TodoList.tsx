@@ -2,6 +2,7 @@ import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Button } from "@be-water/ui/button";
 import { Spinner } from "@be-water/ui/spinner";
 import { ListTodo } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { TodoRow } from "./TodoRow.js";
 
@@ -32,11 +33,13 @@ export function TodoList({
   onRemove,
   onRetry,
 }: TodoListProps) {
+  const { t } = useTranslation(["todos", "common"]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Spinner className="size-5 text-muted-foreground" />
-        <span className="ml-2 text-muted-foreground">加载中...</span>
+        <span className="ml-2 text-muted-foreground">{t("common:loading")}</span>
       </div>
     );
   }
@@ -46,11 +49,11 @@ export function TodoList({
       <div className="flex flex-col items-center gap-3 py-12">
         <Alert variant="destructive" className="max-w-md">
           <AlertDescription>
-            {error instanceof Error ? error.message : "加载失败"}
+            {error instanceof Error ? error.message : t("list.loadFailed")}
           </AlertDescription>
         </Alert>
         <Button variant="outline" size="sm" onClick={onRetry}>
-          重试
+          {t("common:retry")}
         </Button>
       </div>
     );
@@ -63,7 +66,7 @@ export function TodoList({
           <ListTodo className="size-10" />
         </div>
         <div className="space-y-1 text-center">
-          <p className="text-sm font-medium">暂无待办</p>
+          <p className="text-sm font-medium">{t("list.emptyTitle")}</p>
           <p className="text-sm text-muted-foreground">{emptyMessage}</p>
         </div>
       </div>

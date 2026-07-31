@@ -9,12 +9,11 @@ import {
   SheetTitle,
 } from "@be-water/ui/sheet";
 import { AlertTriangle, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import {
-  ERROR_LEVEL_LABELS,
-  type ErrorLog,
-} from "../../shared/index.js";
+import type { ErrorLog } from "../../shared/index.js";
 import { useDeleteErrorLog } from "../hooks/useDeleteErrorLog.js";
+import { translateErrorLevel } from "../lib/error-level-i18n.js";
 
 
 interface ErrorLogSheetProps {
@@ -28,7 +27,6 @@ interface ErrorLogSheetProps {
   allowDelete?: boolean;
 }
 
-/** 渲染一个 jsonb 列：值为 null（列空）时整块不显示 */
 function JsonField({ label, value }: { label: string; value: JsonValue | null }) {
   if (value == null) return null;
   return (
@@ -47,11 +45,11 @@ export function ErrorLogSheet({
   log,
   allowDelete = false,
 }: ErrorLogSheetProps) {
+  const { t } = useTranslation(["error-log", "common"]);
   const { user } = useAuth();
   const deleteMutation = useDeleteErrorLog();
   const { confirm } = useConfirm();
   const { hasPermission } = usePermissions();
-  // 与服务端同一套判定：有 error_logs.manage 可删本租户任意一条，否则只能删自己的
   const canDelete =
     allowDelete &&
     (hasPermission("error_logs.manage") ||
@@ -60,8 +58,9 @@ export function ErrorLogSheet({
   const handleDelete = async () => {
     if (!log) return;
     const confirmed = await confirm({
-      title: "确认删除",
-      description: "确定要删除这条错误日志吗？此操作无法撤销。",
+      title: t("sheet.deleteConfirmTitle"),
+      description: t("sheet.deleteConfirmDescription"),
+      confirmText: t("common:delete"),
       destructive: true,
     });
     if (!confirmed) return;
@@ -79,56 +78,54 @@ export function ErrorLogSheet({
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              错误详情
+              {t("sheet.title")}
             </SheetTitle>
           </SheetHeader>
           {log && (
             <div className="flex flex-col gap-4 px-4 flex-1 overflow-auto">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">级别</p>
+                  <p className="text-muted-foreground">{t("sheet.level")}</p>
                   <p>
-                    {ERROR_LEVEL_LABELS[
-                      log.level as keyof typeof ERROR_LEVEL_LABELS
-                    ] || log.level}
+                    {translateErrorLevel(t, log.level)}
                   </p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">时间</p>
+                  <p className="text-muted-foreground">{t("sheet.time")}</p>
                   <p>{formatBusinessDate(log.created_at)}</p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">用户</p>
+                  <p className="text-muted-foreground">{t("sheet.user")}</p>
                   <p>{displayOrEmpty(log.username)}</p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">IP 地址</p>
+                  <p className="text-muted-foreground">{t("sheet.ipAddress")}</p>
                   <p className="font-mono">{displayOrEmpty(log.ip_address)}</p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">路由</p>
+                  <p className="text-muted-foreground">{t("sheet.route")}</p>
                   <p className="font-mono">{displayOrEmpty(log.route)}</p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">方法</p>
+                  <p className="text-muted-foreground">{t("sheet.method")}</p>
                   <p className="font-mono">{displayOrEmpty(log.method)}</p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-1">
-                <p className="text-muted-foreground">错误代码</p>
+                <p className="text-muted-foreground">{t("sheet.errorCode")}</p>
                 <p className="font-mono">{displayOrEmpty(log.error_code)}</p>
               </div>
 
               <div className="flex flex-col gap-1">
-                <p className="text-muted-foreground">用户代理</p>
+                <p className="text-muted-foreground">{t("sheet.userAgent")}</p>
                 <p className="text-mono break-all">
                   {displayOrEmpty(log.user_agent)}
                 </p>
               </div>
 
               <div className="flex flex-col gap-1">
-                <p className="text-muted-foreground">错误信息</p>
+                <p className="text-muted-foreground">{t("sheet.message")}</p>
                 <p className="bg-muted p-3 rounded font-mono overflow-x-auto">
                   {log.message}
                 </p>
@@ -136,17 +133,17 @@ export function ErrorLogSheet({
 
               {log.stack_trace && (
                 <div className="flex flex-col gap-1">
-                  <p className="text-muted-foreground">堆栈跟踪</p>
+                  <p className="text-muted-foreground">{t("sheet.stackTrace")}</p>
                   <pre className="bg-muted p-3 rounded font-mono overflow-x-auto">
                     {log.stack_trace}
                   </pre>
                 </div>
               )}
 
-              <JsonField label="请求体" value={log.request_body} />
-              <JsonField label="请求参数" value={log.request_params} />
-              <JsonField label="查询参数" value={log.request_query} />
-              <JsonField label="上下文" value={log.context} />
+              <JsonField label={t("sheet.requestBody")} value={log.request_body} />
+              <JsonField label={t("sheet.requestParams")} value={log.request_params} />
+              <JsonField label={t("sheet.requestQuery")} value={log.request_query} />
+              <JsonField label={t("sheet.context")} value={log.context} />
             </div>
           )}
           {log && canDelete && (
@@ -158,7 +155,7 @@ export function ErrorLogSheet({
                 className="hover:text-destructive"
               >
                 <Trash2 className="size-4" />
-                删除
+                {t("common:delete")}
               </Button>
             </SheetFooter>
           )}

@@ -32,15 +32,24 @@ describe("buildCanonicalUrl", () => {
 });
 
 describe("buildDocumentTitle", () => {
-  it("uses the full site title on the landing page", () => {
-    expect(buildDocumentTitle({ path: "/", title: "whatever" })).toBe(
+  it("uses the route title as-is on the landing page (incl. locale-prefixed home)", () => {
+    expect(buildDocumentTitle({ path: "/", title: SITE.title })).toBe(
       SITE.title,
     );
+    expect(
+      buildDocumentTitle({
+        path: "/en",
+        title: "be-water · Multi-tenant SaaS foundation",
+      }),
+    ).toBe("be-water · Multi-tenant SaaS foundation");
   });
 
   it("suffixes the site name elsewhere", () => {
     expect(buildDocumentTitle({ path: "/pricing", title: "定价" })).toBe(
       `定价 · ${SITE.name}`,
+    );
+    expect(buildDocumentTitle({ path: "/en/pricing", title: "Pricing" })).toBe(
+      `Pricing · ${SITE.name}`,
     );
   });
 });

@@ -1,3 +1,5 @@
+import { getI18n } from "@be-water/client-kit";
+
 import { slowQueryPlatformNavContributions } from "./platform/nav-contributions.js";
 import { renderSlowQueryPlatformRoutes } from "./SlowQueryRoutes.js";
 
@@ -8,7 +10,7 @@ export const slowQueryClientModule: ClientAppModule = {
   version: "1.0.0",
   label: "Slow Query Logs",
   kind: "infrastructure",
-  description: "平台慢查询日志页面",
+  description: getI18n().t("description", { ns: "slow-query" }),
   client: {
     renderPlatformRoutes: renderSlowQueryPlatformRoutes,
     platformNav: slowQueryPlatformNavContributions,

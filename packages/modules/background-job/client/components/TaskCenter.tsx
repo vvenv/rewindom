@@ -14,6 +14,7 @@ import {
   Trash,
   X,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   isDownloadableBackgroundTask,
@@ -141,13 +142,16 @@ function TaskExpandableDetails({
 }
 
 function TaskErrorDetails({ errors }: { errors: string[] }) {
+  const { t } = useTranslation("background-job");
   const label =
-    errors.length === 1 ? "查看错误详情" : `查看错误详情 (${errors.length})`;
+    errors.length === 1
+      ? t("taskCenter.viewErrors")
+      : t("taskCenter.viewErrorsCount", { count: errors.length });
 
   return (
     <TaskExpandableDetails
       label={label}
-      expandedLabel="收起错误详情"
+      expandedLabel={t("taskCenter.collapseErrors")}
       items={errors}
     />
   );
@@ -158,6 +162,7 @@ function TaskSkipDetails({
 }: {
   skipDetails: NonNullable<ReturnType<typeof getTaskSkipDetails>>;
 }) {
+  const { t } = useTranslation("background-job");
   const [expanded, setExpanded] = useState(false);
   const totalSkipped = skipDetails.summary?.reduce(
     (sum: number, item: { count: number }) => sum + item.count,
@@ -172,8 +177,8 @@ function TaskSkipDetails({
 
   const label =
     totalSkipped != null && totalSkipped > 0
-      ? `查看跳过详情 (${totalSkipped})`
-      : "查看跳过详情";
+      ? t("taskCenter.viewSkipsCount", { count: totalSkipped })
+      : t("taskCenter.viewSkips");
 
   return (
     <div className="overflow-hidden rounded-md border border-border/60 bg-background/40 dark:bg-background/25">
@@ -186,7 +191,9 @@ function TaskSkipDetails({
         ) : (
           <ChevronRight className="size-3.5 shrink-0 opacity-70" />
         )}
-        <span className="flex-1">{expanded ? "收起跳过详情" : label}</span>
+        <span className="flex-1">
+          {expanded ? t("taskCenter.collapseSkips") : label}
+        </span>
       </button>
       {expanded && (
         <div className="space-y-2 border-t border-border/60 px-2.5 py-2 text-xs leading-relaxed">
@@ -198,7 +205,10 @@ function TaskSkipDetails({
                     key={item.reason}
                     className="rounded-sm bg-background/50 px-2 py-1.5 text-foreground/85"
                   >
-                    {item.reason}：{item.count} 条
+                    {t("taskCenter.skipCount", {
+                      reason: item.reason,
+                      count: item.count,
+                    })}
                   </li>
                 ),
               )}
@@ -218,7 +228,9 @@ function TaskSkipDetails({
           )}
           {skipDetails.truncated && (
             <p className="text-muted-foreground">
-              仅显示前 {skipDetails.details?.length ?? 0} 条记录，其余已省略
+              {t("taskCenter.truncated", {
+                count: skipDetails.details?.length ?? 0,
+              })}
             </p>
           )}
         </div>
@@ -242,6 +254,7 @@ function TaskCard({
   onCancel,
   onDownload,
 }: TaskCardProps) {
+  const { t } = useTranslation("background-job");
   const TaskCardExtras = taskCardExtrasSlot.useSlot();
   const [hideDescription, setHideDescription] = useState(false);
   const { label, detail } = splitTaskTitle(task.title);
@@ -285,7 +298,7 @@ function TaskCard({
             size="icon-xs"
             className="shrink-0 -mr-1 -mt-0.5 opacity-70 hover:opacity-100"
             onClick={onCancel}
-            title="取消任务"
+            title={t("taskCenter.cancelTask")}
           >
             <Ban className="size-4" />
           </Button>
@@ -295,7 +308,7 @@ function TaskCard({
             size="icon-xs"
             className="shrink-0 -mr-1 -mt-0.5 opacity-70 hover:opacity-100"
             onClick={onDismiss}
-            title="移除"
+            title={t("taskCenter.dismiss")}
           >
             <X className="size-4" />
           </Button>
@@ -332,7 +345,7 @@ function TaskCard({
               onClick={onDownload}
             >
               <Download className="size-3.5" />
-              {downloading ? "下载中…" : "下载文件"}
+              {downloading ? t("taskCenter.downloading") : t("taskCenter.downloadFile")}
             </Button>
           )}
         </div>
@@ -344,7 +357,9 @@ function TaskCard({
           <>
             <span aria-hidden>·</span>
             <span>
-              耗时 {formatTaskDuration(task.createdAt, task.finishedAt)}
+              {t("taskCenter.duration", {
+                seconds: formatTaskDuration(task.createdAt, task.finishedAt),
+              })}
             </span>
           </>
         )}
@@ -354,6 +369,7 @@ function TaskCard({
 }
 
 export function TaskCenterContent() {
+  const { t } = useTranslation("background-job");
   const { user } = useAuth();
   const isPlatformAdmin =
     user !== null && isPlatformAdminActor(user.actor_type);
@@ -382,7 +398,7 @@ export function TaskCenterContent() {
         if (isPlatformBackupDownloadTask(task)) {
           await downloadPlatformBackupFile(task.serverJobId);
           updateTask(task.id, { exportFileDownloaded: true });
-          toast.success("备份文件已开始下载");
+          toast.success(t("toast.backupDownloadStarted"));
           return;
         }
 
@@ -400,15 +416,16 @@ export function TaskCenterContent() {
           exportFileDownloaded: true,
           exportFilename: filename,
         });
-        toast.success("文件已开始下载");
+        toast.success(t("toast.fileDownloadStarted"));
       } catch (error) {
-        const message = error instanceof Error ? error.message : "请稍后重试";
-        toast.error("下载失败", { description: message });
+        const message =
+          error instanceof Error ? error.message : t("toast.retryLater");
+        toast.error(t("toast.downloadFailed"), { description: message });
       } finally {
         setDownloadingTaskId(null);
       }
     },
-    [updateTask, backgroundJobPath],
+    [updateTask, backgroundJobPath, t],
   );
 
   return (
@@ -422,7 +439,7 @@ export function TaskCenterContent() {
         {tasks.length === 0 ? (
           <div className="flex h-[200px] flex-col items-center justify-center text-muted-foreground">
             <ListTodo className="mb-2 h-8 w-8 opacity-50" />
-            <p>暂无任务</p>
+            <p>{t("taskCenter.empty")}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -443,7 +460,7 @@ export function TaskCenterContent() {
         <div className="shrink-0 py-3">
           <Button variant="outline" className="w-full" onClick={clearFinished}>
             <Trash className="size-4" />
-            清除已完成
+            {t("taskCenter.clearFinished")}
           </Button>
         </div>
       )}

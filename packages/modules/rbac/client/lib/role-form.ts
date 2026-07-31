@@ -32,9 +32,9 @@ export function validateRoleForm(form: RoleFormState): RoleFormErrors {
   const name = form.name.trim();
 
   if (!name) {
-    errors.name = "请输入角色名称";
+    errors.name = "validation.nameRequired";
   } else if (name.length > 50) {
-    errors.name = "角色名称不超过 50 个字符";
+    errors.name = "validation.nameMaxLength";
   }
 
   return errors;

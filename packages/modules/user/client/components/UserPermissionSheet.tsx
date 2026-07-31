@@ -18,6 +18,7 @@ import { Spinner } from "@be-water/ui/spinner";
 import { toast } from "@be-water/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Shield } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useRoles } from "../../../rbac/client/hooks/useRoles.js";
 import { useUpdateUser } from "../hooks/useUpdateUser.js";
@@ -31,6 +32,7 @@ interface UserRoleFormProps {
 }
 
 function UserRoleForm({ user, onClose }: UserRoleFormProps) {
+  const { t } = useTranslation(["user", "common"]);
   const { data: roles = [], isLoading: isLoadingRoles } = useRoles();
   const { data: userRolesData, isLoading: isLoadingUserRoles } = useUserRoles(
     user.id,
@@ -61,11 +63,11 @@ function UserRoleForm({ user, onClose }: UserRoleFormProps) {
       await queryClient.invalidateQueries({
         queryKey: ["users", user.id, "roles"],
       });
-      toast.success("角色更新成功");
+      toast.success(t("permissionSheet.rolesUpdated"));
       onClose();
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : "保存失败，请重试";
+        err instanceof ApiError ? err.message : t("common:saveFailed");
       setSubmitError(message);
       toast.error(message);
     }
@@ -74,14 +76,16 @@ function UserRoleForm({ user, onClose }: UserRoleFormProps) {
   return (
     <>
       <SheetHeader>
-        <SheetTitle>分配角色</SheetTitle>
-        <SheetDescription>为用户 {user.username} 分配租户角色</SheetDescription>
+        <SheetTitle>{t("permissionSheet.title")}</SheetTitle>
+        <SheetDescription>
+          {t("permissionSheet.description", { username: user.username })}
+        </SheetDescription>
       </SheetHeader>
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col min-h-0">
         <FieldGroup className="px-4 flex-1 overflow-auto">
           {isSystemAdmin ? (
             <p className="text-sm text-muted-foreground">
-              系统管理员默认拥有全部租户权限，无需分配角色。
+              {t("permissionSheet.systemAdminHint")}
             </p>
           ) : (
             roles.map((role) => (
@@ -114,12 +118,12 @@ function UserRoleForm({ user, onClose }: UserRoleFormProps) {
         <SheetFooter>
           <SheetClose asChild>
             <Button type="button" variant="outline" disabled={isPending}>
-              取消
+              {t("common:cancel")}
             </Button>
           </SheetClose>
           <Button type="submit" disabled={isPending || isSystemAdmin}>
             {isPending && <Spinner />}
-            保存
+            {t("common:save")}
           </Button>
         </SheetFooter>
       </form>
@@ -132,12 +136,13 @@ interface UserPermissionSheetProps {
 }
 
 export function UserPermissionSheet({ user }: UserPermissionSheetProps) {
+  const { t } = useTranslation("user");
   const [open, setOpen] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon-sm" title="分配角色">
+        <Button variant="ghost" size="icon-sm" title={t("permissionSheet.title")}>
           <Shield className="size-3.5" />
         </Button>
       </SheetTrigger>

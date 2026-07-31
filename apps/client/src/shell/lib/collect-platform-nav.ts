@@ -19,7 +19,7 @@ import type {
 const DASHBOARD_LINK: PlatformNavLink = {
   type: "link",
   to: "/platform",
-  label: "监控",
+  label: "platform:nav.dashboard",
   icon: LayoutDashboard,
   end: true,
 };
@@ -27,7 +27,7 @@ const DASHBOARD_LINK: PlatformNavLink = {
 const SETTINGS_LINK: PlatformNavLink = {
   type: "link",
   to: "/platform/settings",
-  label: "设置",
+  label: "platform:nav.settings",
   icon: Settings,
 };
 
@@ -42,14 +42,24 @@ function createNavGroup(
 
 /** 壳层固定分组；业务模块通过 `platformNav` 的 `group-children` 向 observability 等分组追加子项。 */
 const SHELL_NAV_GROUPS = {
-  tenantAdmin: createNavGroup("tenant-admin", "租户", Building2, [
-    { to: "/platform/tenants", label: "租户管理", end: true },
-    { to: "/platform/users", label: "跨租户用户", end: true },
+  tenantAdmin: createNavGroup(
+    "tenant-admin",
+    "platform:nav.groupTenant",
+    Building2,
+    [
+      { to: "/platform/tenants", label: "platform:nav.tenants", end: true },
+      { to: "/platform/users", label: "platform:nav.users", end: true },
+    ],
+  ),
+  access: createNavGroup("access", "platform:nav.groupAccess", Shield, [
+    { to: "/platform/admins", label: "platform:nav.admins", end: true },
   ]),
-  access: createNavGroup("access", "权限", Shield, [
-    { to: "/platform/admins", label: "平台管理员", end: true },
-  ]),
-  observability: createNavGroup("observability", "运维", Activity, []),
+  observability: createNavGroup(
+    "observability",
+    "platform:nav.groupObservability",
+    Activity,
+    [],
+  ),
 } as const satisfies Record<string, PlatformNavGroup>;
 
 function collectContributions(modules: readonly ClientAppModule[]): {

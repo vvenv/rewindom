@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 
 import { Card, CardContent, CardHeader, CardTitle } from "@be-water/ui/card";
@@ -38,6 +39,7 @@ export function SlowQueryBarChart({
   chartLabel: string;
   isLoading: boolean;
 }) {
+  const { t } = useTranslation("slow-query");
   const maxValue = data.reduce((max, item) => Math.max(max, item.value), 0);
 
   const chartConfig = useMemo(
@@ -107,11 +109,11 @@ export function SlowQueryBarChart({
       <CardContent>
         {isLoading ? (
           <div className="flex h-72 items-center justify-center text-sm text-muted-foreground">
-            加载中...
+            {t("chart.loading")}
           </div>
         ) : data.length === 0 ? (
           <div className="flex h-72 items-center justify-center text-sm text-muted-foreground">
-            暂无数据
+            {t("chart.noData")}
           </div>
         ) : (
           <ChartContainer config={chartConfig} className="h-72 w-full">

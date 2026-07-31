@@ -17,6 +17,7 @@ import {
 import { Spinner } from "@be-water/ui/spinner";
 import { toast } from "@be-water/ui/toast";
 import { Shield } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   usePlatformAdminRoles,
@@ -32,6 +33,7 @@ interface PlatformAdminRoleFormProps {
 }
 
 function PlatformAdminRoleForm({ admin, onClose }: PlatformAdminRoleFormProps) {
+  const { t } = useTranslation(["platform", "common"]);
   const { data: roles = [], isLoading: rolesLoading } = usePlatformRoles();
   const { data: assigned, isLoading: assignedLoading } = usePlatformAdminRoles(
     admin.id,
@@ -56,11 +58,11 @@ function PlatformAdminRoleForm({ admin, onClose }: PlatformAdminRoleFormProps) {
         id: admin.id,
         role_ids: selectedRoleIds,
       });
-      toast.success("角色更新成功");
+      toast.success(t("admins.roleSheet.updated"));
       onClose();
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : "保存失败，请重试";
+        err instanceof ApiError ? err.message : t("common:updateFailed");
       setSubmitError(message);
       toast.error(message);
     }
@@ -69,9 +71,9 @@ function PlatformAdminRoleForm({ admin, onClose }: PlatformAdminRoleFormProps) {
   return (
     <>
       <SheetHeader>
-        <SheetTitle>分配角色</SheetTitle>
+        <SheetTitle>{t("admins.roleSheet.title")}</SheetTitle>
         <SheetDescription>
-          为平台管理员 {admin.username} 分配角色
+          {t("admins.roleSheet.description", { username: admin.username })}
         </SheetDescription>
       </SheetHeader>
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -105,12 +107,12 @@ function PlatformAdminRoleForm({ admin, onClose }: PlatformAdminRoleFormProps) {
         <SheetFooter>
           <SheetClose asChild>
             <Button type="button" variant="outline" disabled={isPending}>
-              取消
+              {t("common:cancel")}
             </Button>
           </SheetClose>
           <Button type="submit" disabled={isPending}>
             {isPending && <Spinner />}
-            保存
+            {t("common:save")}
           </Button>
         </SheetFooter>
       </form>
@@ -123,12 +125,13 @@ export function PlatformAdminRoleSheet({
 }: {
   admin: PlatformAdminListItem;
 }) {
+  const { t } = useTranslation("platform");
   const [open, setOpen] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon-sm" title="分配角色">
+        <Button variant="ghost" size="icon-sm" title={t("admins.assignRoles")}>
           <Shield className="size-3.5" />
         </Button>
       </SheetTrigger>

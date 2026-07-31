@@ -1,3 +1,5 @@
+import { getI18n } from "@be-water/client-kit";
+
 import { renderErrorLogPlatformRoutes } from "./ErrorLogRoutes.js";
 import { errorLogPlatformNavContributions } from "./platform/nav-contributions.js";
 import { ERROR_LOG_NAV_SECTIONS } from "./tenant/nav-sections.js";
@@ -10,7 +12,7 @@ export const errorLogClientModule: ClientAppModule = {
   version: "1.0.0",
   label: "Error Logs",
   kind: "infrastructure",
-  description: "平台与租户错误日志页面与 hooks",
+  description: getI18n().t("description", { ns: "error-log" }),
   client: {
     renderRoutes: renderErrorLogTenantRoutes,
     nav: ERROR_LOG_NAV_SECTIONS,

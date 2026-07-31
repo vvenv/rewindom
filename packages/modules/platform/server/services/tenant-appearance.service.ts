@@ -1,4 +1,5 @@
 import {
+  normalizeOptionalLocale,
   normalizeOptionalShellLayout,
   normalizeOptionalThemePalette,
   type ResolvedTenantAppearance,
@@ -24,6 +25,7 @@ function normalize(
   return {
     theme: normalizeOptionalThemePalette(raw?.theme),
     layout: normalizeOptionalShellLayout(raw?.layout),
+    locale: normalizeOptionalLocale(raw?.locale),
   };
 }
 
@@ -40,7 +42,7 @@ export async function getTenantAppearance(
 }
 
 /**
- * 租户侧实际生效的外观：租户配置 > 平台默认，两根轴各自独立解析。
+ * 租户侧实际生效的外观：租户配置 > 平台默认，各轴各自独立解析。
  * 用户在浏览器里的个人选择优先级更高，但那只存在前端 localStorage，不进这里。
  */
 export async function resolveTenantAppearance(
@@ -56,6 +58,8 @@ export async function resolveTenantAppearance(
     theme_source: appearance.theme !== null ? "tenant" : "platform",
     layout: appearance.layout ?? platformSettings.default_layout,
     layout_source: appearance.layout !== null ? "tenant" : "platform",
+    locale: appearance.locale ?? platformSettings.default_locale,
+    locale_source: appearance.locale !== null ? "tenant" : "platform",
   };
 }
 
@@ -71,10 +75,13 @@ export async function getTenantAppearanceDetail(
   return {
     theme: appearance.theme,
     layout: appearance.layout,
+    locale: appearance.locale,
     resolved_theme: appearance.theme ?? platformSettings.default_theme,
     resolved_layout: appearance.layout ?? platformSettings.default_layout,
+    resolved_locale: appearance.locale ?? platformSettings.default_locale,
     platform_default_theme: platformSettings.default_theme,
     platform_default_layout: platformSettings.default_layout,
+    platform_default_locale: platformSettings.default_locale,
   };
 }
 
@@ -97,6 +104,10 @@ export async function saveTenantAppearance(
       updates.layout === undefined
         ? current.layout
         : normalizeOptionalShellLayout(updates.layout),
+    locale:
+      updates.locale === undefined
+        ? current.locale
+        : normalizeOptionalLocale(updates.locale),
   };
 
   return saveTenantJsonSetting<TenantAppearance>(

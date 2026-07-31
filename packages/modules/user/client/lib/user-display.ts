@@ -4,6 +4,8 @@ import {
   type User,
 } from "@be-water/shared";
 
+import type { TFunction } from "i18next";
+
 import type { ImpersonationMeta } from "../../../platform/client/lib/impersonation-storage.js";
 
 export interface UserDisplayProfile {
@@ -15,14 +17,16 @@ export interface UserDisplayProfile {
   showLastLogin: boolean;
 }
 
-function getUserSubtitle(user: User): string {
+function getUserSubtitle(user: User, t: TFunction): string {
   if (isPlatformAdminActor(user.actor_type)) {
-    return user.is_system_admin ? "平台系统管理员" : "平台管理员";
+    return user.is_system_admin
+      ? t("profile.platformSystemAdmin")
+      : t("profile.platformAdmin");
   }
   if (user.is_system_admin) {
-    return "租户系统管理员";
+    return t("profile.tenantSystemAdmin");
   }
-  return "租户用户";
+  return t("profile.tenantUser");
 }
 
 const CJK_CHAR_PATTERN =
@@ -40,13 +44,14 @@ function toInitials(value: string): string {
 export function getUserDisplayProfile(
   user: User,
   impersonationMeta: ImpersonationMeta | null,
+  t: TFunction,
 ): UserDisplayProfile {
   if (user.username === TENANT_IMPERSONATION_USERNAME && impersonationMeta) {
     const { tenant_name: tenantName, tenant_slug: tenantSlug } =
       impersonationMeta;
     return {
       displayName: tenantName,
-      subtitle: "平台代登录",
+      subtitle: t("profile.impersonationSubtitle"),
       avatarSeed: tenantSlug,
       initials: toInitials(tenantName),
       showSuperuserShield: false,
@@ -56,7 +61,7 @@ export function getUserDisplayProfile(
 
   return {
     displayName: user.username,
-    subtitle: getUserSubtitle(user),
+    subtitle: getUserSubtitle(user, t),
     avatarSeed: user.username,
     initials: toInitials(user.username),
     showSuperuserShield: user.is_system_admin,

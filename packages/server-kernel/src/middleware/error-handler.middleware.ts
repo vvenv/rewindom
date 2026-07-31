@@ -1,4 +1,5 @@
 import { config } from "../lib/config.js";
+import { translateForRequest } from "../lib/i18n/translate.js";
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 
@@ -116,8 +117,13 @@ export async function errorHandlerMiddleware(app: FastifyInstance) {
 
       // Send error response
       // Fastify will handle serialization and headers automatically
+      const code =
+        "code" in error && typeof error.code === "string"
+          ? error.code
+          : undefined;
       return reply.code(statusCode).send({
-        error: error.message,
+        error: translateForRequest(request, error.message, code),
+        ...(code ? { code } : {}),
         ...(!config.server.isProduction && { stack: error.stack }),
       });
     },

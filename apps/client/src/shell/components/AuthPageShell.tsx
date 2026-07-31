@@ -1,6 +1,11 @@
 import { useRef, type ReactNode } from "react";
 
-import { AppVersion, Logo, ThemeToggle } from "@be-water/client-kit";
+import {
+  AppVersion,
+  LocaleToggle,
+  Logo,
+  ThemeToggle,
+} from "@be-water/client-kit";
 import { cn } from "@be-water/ui/utils";
 import { useTheme } from "next-themes";
 
@@ -37,7 +42,12 @@ export function AuthPageShell({
           className="auth-noise pointer-events-none absolute inset-0 z-1"
         />
 
-        <div className="absolute top-4 right-4 z-20 sm:top-6 sm:right-6">
+        <div className="absolute top-4 right-4 z-20 flex items-center gap-1 sm:top-6 sm:right-6">
+          <LocaleToggle
+            menuSide="bottom"
+            menuAlign="end"
+            className="auth-theme-toggle rounded-xl"
+          />
           <ThemeToggle className="auth-theme-toggle rounded-xl" />
         </div>
 
@@ -59,7 +69,7 @@ export function AuthPageShell({
   }
 
   return (
-    <div className="grid min-h-svh bg-background lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+    <div className="auth-split-layout grid min-h-svh bg-background">
       <div
         ref={heroPanelRef}
         className="auth-hero-panel relative hidden overflow-hidden p-12 lg:flex lg:flex-col xl:p-16"
@@ -70,11 +80,11 @@ export function AuthPageShell({
           aria-hidden
           className="pointer-events-none absolute -right-24 -bottom-28 z-1 xl:-right-32"
         >
-          <Logo className="size-[32rem] text-white/[0.022] xl:size-[38rem]" />
+          <Logo className="size-128 text-white/2 xl:size-152" />
         </div>
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-1 bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,transparent_30%,rgba(0,0,0,0.45)_100%)]"
+          className="auth-hero-vignette pointer-events-none absolute inset-0 z-1"
         />
         <div
           aria-hidden
@@ -104,7 +114,12 @@ export function AuthPageShell({
           className="auth-form-wash pointer-events-none absolute inset-0 hidden lg:block"
         />
 
-        <div className="absolute top-4 right-4 z-20 sm:top-6 sm:right-6">
+        <div className="absolute top-4 right-4 z-20 flex items-center gap-1 sm:top-6 sm:right-6">
+          <LocaleToggle
+            menuSide="bottom"
+            menuAlign="end"
+            className="auth-theme-toggle rounded-xl"
+          />
           <ThemeToggle className="auth-theme-toggle rounded-xl" />
         </div>
 

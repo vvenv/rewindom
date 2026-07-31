@@ -55,7 +55,11 @@ export class ProviderRegistry {
   private authz: AuthzProvider = new AuthenticatedOnlyAuthz();
   private publicConfig: PublicConfigProvider = {
     async getPublicConfig() {
-      return { registration_enabled: false, captcha_enabled: false };
+      return {
+        registration_enabled: false,
+        captcha_enabled: false,
+        default_locale: "zh-CN",
+      };
     },
   };
   private tenantRegistration: TenantRegistrationProvider = {

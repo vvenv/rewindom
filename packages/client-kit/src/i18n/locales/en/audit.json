@@ -1,0 +1,84 @@
+{
+  "nav": {
+    "auditLogs": "Audit logs",
+    "keywords": "audit logs history operations"
+  },
+  "page": {
+    "title": "Audit logs",
+    "description": "Write operations within this tenant (read-only); platform actions and impersonation sessions are excluded"
+  },
+  "platform": {
+    "description": "Cross-tenant audit logs (read-only)"
+  },
+  "filters": {
+    "allActions": "All actions",
+    "tenant": "Tenant",
+    "username": "Username"
+  },
+  "table": {
+    "time": "Time",
+    "tenant": "Tenant",
+    "action": "Action",
+    "username": "Username",
+    "resource": "Resource",
+    "details": "Details",
+    "empty": "No audit logs",
+    "loading": "Loading…"
+  },
+  "actions": {
+    "LOGIN": "Sign in",
+    "LOGOUT": "Sign out",
+    "REGISTER": "Register",
+    "PASSWORD_CHANGE": "Change password",
+    "USER_CREATE": "Create user",
+    "USER_UPDATE": "Update user",
+    "USER_DELETE": "Delete user",
+    "PASSWORD_RESET": "Reset password",
+    "UPDATE_USER_PERMISSIONS": "Update user permissions",
+    "ROLE_CREATE": "Create role",
+    "ROLE_UPDATE": "Update role",
+    "ROLE_DELETE": "Delete role",
+    "BACKUP_DATABASE": "Back up database",
+    "RESTORE_DATABASE": "Restore database",
+    "TENANT_FEATURES_UPDATE": "Update tenant feature flags",
+    "TENANT_MODULES_UPDATE": "Update tenant module flags",
+    "TENANT_ENTITLEMENTS_UPDATE": "Update tenant entitlements",
+    "TENANT_APPEARANCE_UPDATE": "Update tenant default appearance",
+    "SETTINGS_UPDATE": "Update system settings",
+    "TENANT_CREATE": "Create tenant",
+    "TENANT_UPDATE": "Update tenant",
+    "TENANT_SUSPEND": "Suspend tenant",
+    "TENANT_RESUME": "Resume tenant",
+    "TENANT_ADMIN_PASSWORD_RESET": "Reset tenant admin password",
+    "TENANT_ARCHIVE": "Archive tenant",
+    "TENANT_IMPERSONATE": "Impersonate tenant",
+    "TENANT_REGISTER": "Self-register tenant",
+    "PLAN_CHANGE_ADMIN": "Admin plan change",
+    "PLAN_LIMIT_TEMPLATES_UPDATE": "Update plan limit templates",
+    "PLATFORM_SETTINGS_UPDATE": "Update platform settings",
+    "TENANT_API_KEY_CREATE": "Create API key",
+    "TENANT_API_KEY_REVOKE": "Revoke API key",
+    "ERROR_LOG_DELETE": "Delete error log",
+    "ERROR_LOG_CLEANUP": "Clean up error logs",
+    "BACKGROUND_JOB_CANCEL": "Cancel background job",
+    "NOTE_CREATE": "Create note",
+    "NOTE_UPDATE": "Update note",
+    "NOTE_DELETE": "Delete note",
+    "TODO_CREATE": "Create todo",
+    "TODO_UPDATE": "Update todo",
+    "TODO_DELETE": "Delete todo",
+    "TODO_CLEAR_COMPLETED": "Clear completed todos",
+    "TODO_TOGGLE_ALL": "Toggle all todos",
+    "BILLING_CHECKOUT_CREATE": "Create checkout",
+    "BILLING_SUBSCRIPTION_CANCEL": "Cancel subscription",
+    "BILLING_WEBHOOK_SYNC": "Sync billing webhook"
+  },
+  "groups": {
+    "auth": "Authentication",
+    "users": "User management",
+    "system": "System",
+    "notes": "Sample module",
+    "todos": "Todos",
+    "billing": "Billing"
+  }
+}

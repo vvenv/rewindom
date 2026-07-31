@@ -1,6 +1,5 @@
 import { useState, type SubmitEvent, type ReactNode } from "react";
 
-
 import { useAuth } from "@be-water/client-kit";
 import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Button } from "@be-water/ui/button";
@@ -22,7 +21,7 @@ import {
 } from "@be-water/ui/input-group";
 import { Spinner } from "@be-water/ui/spinner";
 import { AlertCircle, CheckCircle, Eye, EyeOff, KeyRound } from "lucide-react";
-
+import { useTranslation } from "react-i18next";
 
 interface ChangePasswordDialogProps {
   trigger: ReactNode;
@@ -45,6 +44,7 @@ function initialFormState() {
 export function ChangePasswordDialog({
   trigger,
 }: ChangePasswordDialogProps): React.ReactElement {
+  const { t } = useTranslation(["user", "common", "shell"]);
   const { changePassword } = useAuth();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(initialFormState);
@@ -68,22 +68,34 @@ export function ChangePasswordDialog({
     const { oldPassword, newPassword, confirmPassword } = form;
 
     if (!oldPassword || !newPassword || !confirmPassword) {
-      setForm((prev) => ({ ...prev, error: "请填写所有密码字段" }));
+      setForm((prev) => ({
+        ...prev,
+        error: t("changePassword.validation.allFieldsRequired"),
+      }));
       return;
     }
 
     if (newPassword.length < 6) {
-      setForm((prev) => ({ ...prev, error: "新密码至少需要6个字符" }));
+      setForm((prev) => ({
+        ...prev,
+        error: t("changePassword.validation.passwordMinLength"),
+      }));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setForm((prev) => ({ ...prev, error: "两次输入的新密码不一致" }));
+      setForm((prev) => ({
+        ...prev,
+        error: t("changePassword.validation.passwordMismatch"),
+      }));
       return;
     }
 
     if (oldPassword === newPassword) {
-      setForm((prev) => ({ ...prev, error: "新密码不能与旧密码相同" }));
+      setForm((prev) => ({
+        ...prev,
+        error: t("changePassword.validation.sameAsOld"),
+      }));
       return;
     }
 
@@ -109,7 +121,8 @@ export function ChangePasswordDialog({
       setForm((prev) => ({
         ...prev,
         isLoading: false,
-        error: err instanceof Error ? err.message : "修改密码失败，请重试",
+        error:
+          err instanceof Error ? err.message : t("changePassword.changeFailed"),
       }));
     }
   };
@@ -133,17 +146,17 @@ export function ChangePasswordDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <KeyRound className="h-5 w-5" />
-            修改密码
+            {t("changePassword.title")}
           </DialogTitle>
-          <DialogDescription>
-            请输入您的旧密码和新密码以更改登录密码
-          </DialogDescription>
+          <DialogDescription>{t("changePassword.description")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="oldPassword">旧密码</FieldLabel>
+              <FieldLabel htmlFor="oldPassword">
+                {t("changePassword.oldPassword")}
+              </FieldLabel>
               <InputGroup>
                 <InputGroupAddon>
                   <KeyRound className="size-4" />
@@ -159,7 +172,7 @@ export function ChangePasswordDialog({
                       error: "",
                     }))
                   }
-                  placeholder="请输入旧密码"
+                  placeholder={t("changePassword.oldPasswordPlaceholder")}
                   disabled={isLoading}
                   autoComplete="current-password"
                 />
@@ -171,7 +184,11 @@ export function ChangePasswordDialog({
                     }))
                   }
                   disabled={isLoading}
-                  aria-label={showOldPassword ? "隐藏密码" : "显示密码"}
+                  aria-label={
+                    showOldPassword
+                      ? t("shell:auth.hidePassword")
+                      : t("shell:auth.showPassword")
+                  }
                 >
                   {showOldPassword ? (
                     <EyeOff className="size-4" />
@@ -183,7 +200,9 @@ export function ChangePasswordDialog({
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="newPassword">新密码</FieldLabel>
+              <FieldLabel htmlFor="newPassword">
+                {t("changePassword.newPassword")}
+              </FieldLabel>
               <InputGroup>
                 <InputGroupAddon>
                   <KeyRound className="size-4" />
@@ -199,7 +218,7 @@ export function ChangePasswordDialog({
                       error: "",
                     }))
                   }
-                  placeholder="请输入新密码（至少6个字符）"
+                  placeholder={t("changePassword.newPasswordPlaceholder")}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />
@@ -211,7 +230,11 @@ export function ChangePasswordDialog({
                     }))
                   }
                   disabled={isLoading}
-                  aria-label={showNewPassword ? "隐藏密码" : "显示密码"}
+                  aria-label={
+                    showNewPassword
+                      ? t("shell:auth.hidePassword")
+                      : t("shell:auth.showPassword")
+                  }
                 >
                   {showNewPassword ? (
                     <EyeOff className="size-4" />
@@ -223,7 +246,9 @@ export function ChangePasswordDialog({
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="confirmPassword">确认新密码</FieldLabel>
+              <FieldLabel htmlFor="confirmPassword">
+                {t("changePassword.confirmPassword")}
+              </FieldLabel>
               <InputGroup>
                 <InputGroupAddon>
                   <KeyRound className="size-4" />
@@ -239,7 +264,7 @@ export function ChangePasswordDialog({
                       error: "",
                     }))
                   }
-                  placeholder="请再次输入新密码"
+                  placeholder={t("changePassword.confirmPasswordPlaceholder")}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />
@@ -251,7 +276,11 @@ export function ChangePasswordDialog({
                     }))
                   }
                   disabled={isLoading}
-                  aria-label={showConfirmPassword ? "隐藏密码" : "显示密码"}
+                  aria-label={
+                    showConfirmPassword
+                      ? t("shell:auth.hidePassword")
+                      : t("shell:auth.showPassword")
+                  }
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="size-4" />
@@ -272,7 +301,7 @@ export function ChangePasswordDialog({
             {success && (
               <Alert variant="success">
                 <CheckCircle />
-                <AlertDescription>密码修改成功</AlertDescription>
+                <AlertDescription>{t("changePassword.success")}</AlertDescription>
               </Alert>
             )}
 
@@ -283,7 +312,7 @@ export function ChangePasswordDialog({
                 onClick={() => handleOpenChange(false)}
                 disabled={isLoading}
               >
-                取消
+                {t("common:cancel")}
               </Button>
               <Button
                 type="submit"
@@ -294,10 +323,10 @@ export function ChangePasswordDialog({
                 {isLoading ? (
                   <>
                     <Spinner />
-                    修改中...
+                    {t("changePassword.submitting")}
                   </>
                 ) : (
-                  "确认修改"
+                  t("changePassword.confirm")
                 )}
               </Button>
             </DialogFooter>

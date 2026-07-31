@@ -8,9 +8,10 @@ import {
 } from "@be-water/ui/card";
 import { cn } from "@be-water/ui/utils";
 import { Archive, PauseCircle, PlayCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import { PRICING_PLANS, type TenantSummary } from "../../shared/index.js";
-import { TENANT_STATUS_FILTER_LABELS } from "../lib/platform/tenants/url.js";
+import { type TenantSummary } from "../../shared/index.js";
+import { translatePlanName } from "../lib/plan-i18n.js";
 import { tenantCardActionsSlot } from "../shell/platform-widget-slots.js";
 
 import { TenantAppearanceSheet } from "./TenantAppearanceSheet.js";
@@ -31,6 +32,8 @@ export interface TenantCardProps {
 }
 
 function TenantStatusBadge({ status }: { status: TenantSummary["status"] }) {
+  const { t } = useTranslation("platform");
+
   return (
     <span
       className={cn(
@@ -42,7 +45,7 @@ function TenantStatusBadge({ status }: { status: TenantSummary["status"] }) {
             : "bg-muted text-muted-foreground",
       )}
     >
-      {TENANT_STATUS_FILTER_LABELS[status]}
+      {t(`tenants.status.${status}`)}
     </span>
   );
 }
@@ -54,6 +57,7 @@ export function TenantCard({
   onToggleStatus,
   onArchive,
 }: TenantCardProps) {
+  const { t } = useTranslation("platform");
   const TenantCardActions = tenantCardActionsSlot.useSlot();
   const isArchived = tenant.status === "archived";
   const canManageLifecycle = tenant.slug !== "default";
@@ -67,7 +71,7 @@ export function TenantCard({
               <span className="font-mono">{tenant.slug}</span>
               <span className="font-medium">{tenant.name}</span>
               <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                {PRICING_PLANS[tenant.plan].name}
+                {translatePlanName(t, tenant.plan)}
               </span>
             </div>
           </div>
@@ -77,11 +81,15 @@ export function TenantCard({
 
       <CardContent className="flex flex-col gap-2">
         <p className="text-muted-foreground">
-          创建于：{formatBusinessDate(tenant.created_at)}
+          {t("tenants.card.createdAt", {
+            date: formatBusinessDate(tenant.created_at),
+          })}
         </p>
         {tenant.plan_ends_at ? (
           <p className="text-muted-foreground">
-            套餐到期：{formatBusinessDate(tenant.plan_ends_at)}
+            {t("tenants.card.planEndsAt", {
+              date: formatBusinessDate(tenant.plan_ends_at),
+            })}
           </p>
         ) : null}
         <TenantStats tenantId={tenant.id} />
@@ -136,12 +144,12 @@ export function TenantCard({
                 {tenant.status === "active" ? (
                   <>
                     <PauseCircle className="size-3.5" />
-                    暂停
+                    {t("tenants.card.suspend")}
                   </>
                 ) : (
                   <>
                     <PlayCircle className="size-3.5" />
-                    恢复
+                    {t("tenants.card.resume")}
                   </>
                 )}
               </Button>
@@ -152,7 +160,7 @@ export function TenantCard({
                 onClick={() => onArchive(tenant)}
               >
                 <Archive className="size-3.5" />
-                归档
+                {t("tenants.card.archive")}
               </Button>
             </>
           ) : null}

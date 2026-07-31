@@ -1,0 +1,49 @@
+{
+  "nav": {
+    "roles": "角色权限"
+  },
+  "page": {
+    "title": "角色权限",
+    "description": "管理租户角色及其权限，成员通过被分配角色获得权限",
+    "createRole": "新建角色"
+  },
+  "table": {
+    "role": "角色",
+    "description": "描述",
+    "permissionCount": "权限数",
+    "builtin": "内置",
+    "deleteRole": "删除角色",
+    "deleteConfirmTitle": "删除角色",
+    "deleteConfirmDescription": "确定删除角色「{{name}}」？该角色下成员将失去由它带来的权限。",
+    "roleDeleted": "角色已删除",
+    "deleteFailed": "删除失败，请重试",
+    "emptyHeader": "暂无角色",
+    "emptyMessage": "创建角色后，即可为成员分配对应权限"
+  },
+  "sheet": {
+    "createTitle": "新建角色",
+    "editTitle": "编辑角色",
+    "builtinDescription": "内置角色的权限由系统维护，仅可修改名称与描述",
+    "customDescription": "勾选该角色可执行的操作，成员通过被分配角色获得权限",
+    "name": "角色名称",
+    "namePlaceholder": "如：编辑、财务",
+    "description": "描述",
+    "descriptionPlaceholder": "可选，说明该角色的职责",
+    "permissions": "权限",
+    "saving": "保存中…",
+    "roleCreated": "角色已创建",
+    "roleUpdated": "角色已更新",
+    "saveFailed": "保存失败，请重试",
+    "editRole": "编辑角色"
+  },
+  "permissionPicker": {
+    "empty": "暂无可分配的权限",
+    "partial": "部分",
+    "selectAll": "全选",
+    "deselectAll": "取消全选"
+  },
+  "validation": {
+    "nameRequired": "请输入角色名称",
+    "nameMaxLength": "角色名称不超过 50 个字符"
+  }
+}

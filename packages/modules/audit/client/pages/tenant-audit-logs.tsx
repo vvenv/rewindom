@@ -1,5 +1,6 @@
 import { PageLayout } from "@be-water/client-kit";
 import { ScrollText } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { AuditLogFilters } from "../components/AuditLogFilters.js";
 import { AuditLogsTable } from "../components/AuditLogsTable.js";
@@ -7,6 +8,7 @@ import { useAuditLogs } from "../hooks/useAuditLogs.js";
 import { useAuditLogsPage } from "../hooks/useAuditLogsPage.js";
 
 export function TenantAuditLogs() {
+  const { t } = useTranslation("audit");
   const {
     filters,
     page,
@@ -38,8 +40,8 @@ export function TenantAuditLogs() {
   return (
     <PageLayout
       icon={ScrollText}
-      title="审计日志"
-      description="本租户内的写操作记录（只读）；平台侧操作与代登录会话不在此列"
+      title={t("page.title")}
+      description={t("page.description")}
     >
       <div className="flex flex-col gap-4">
         <AuditLogFilters

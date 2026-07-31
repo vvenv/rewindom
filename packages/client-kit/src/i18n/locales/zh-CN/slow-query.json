@@ -1,0 +1,42 @@
+{
+  "description": "平台慢查询日志页面",
+  "nav": {
+    "slowQueryLogs": "慢查询",
+    "keywords": "slow query performance prisma sql"
+  },
+  "page": {
+    "description": "跨租户慢查询日志 — 自动捕获超过阈值（默认 200ms）的 Prisma 查询，用于定位性能瓶颈"
+  },
+  "filters": {
+    "route": "路由",
+    "source": "来源",
+    "tenant": "租户",
+    "fingerprint": "指纹",
+    "minDuration": "最小耗时 (ms)"
+  },
+  "table": {
+    "time": "时间",
+    "duration": "耗时",
+    "query": "SQL",
+    "route": "路由",
+    "tenant": "租户",
+    "source": "来源",
+    "empty": "暂无慢查询日志",
+    "loading": "加载中..."
+  },
+  "chart": {
+    "loading": "加载中...",
+    "noData": "暂无数据"
+  },
+  "sheet": {
+    "title": "慢查询详情",
+    "route": "路由",
+    "method": "方法",
+    "tenant": "租户",
+    "user": "用户",
+    "fingerprint": "指纹",
+    "requestId": "Request ID",
+    "sql": "SQL",
+    "params": "参数"
+  }
+}

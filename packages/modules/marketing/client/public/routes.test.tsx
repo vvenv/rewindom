@@ -5,9 +5,12 @@ import {
   type ReactNode,
 } from "react";
 
+import { APP_LOCALES } from "@be-water/shared";
 import { describe, expect, it } from "vitest";
 
 import { DOC_PAGES } from "../lib/docs.js";
+import { expandLocalizedMarketingRoutes } from "../lib/expand-localized-routes.js";
+import { withMarketingLocale } from "../lib/marketing-locale-path.js";
 import { MARKETING_ROUTES } from "../lib/seo-routes.js";
 
 import {
@@ -28,25 +31,48 @@ function declaredPaths(): string[] {
 }
 
 describe("renderMarketingPublicRoutes", () => {
-  it("declares the landing, pricing and docs routes", () => {
-    expect(declaredPaths()).toEqual(["/", "/pricing", "/docs", "/docs/:slug"]);
-  });
-
-  it("keeps MARKETING_STATIC_PATHS in sync with the static routes", () => {
-    const staticRoutes = declaredPaths().filter((path) => !path.includes(":"));
-
-    expect([...MARKETING_STATIC_PATHS]).toEqual(staticRoutes);
-  });
-
-  it("prerenders every route it declares", () => {
-    // 动态段 `/docs/:slug` 由 DOC_PAGES 展开，其余是静态路径
+  it("declares unprefixed and locale-prefixed marketing routes", () => {
     const expected = [
+      "/",
+      "/pricing",
+      "/docs",
+      "/docs/:slug",
+      ...APP_LOCALES.flatMap((locale) => [
+        `/${locale.slug}`,
+        `/${locale.slug}/pricing`,
+        `/${locale.slug}/docs`,
+        `/${locale.slug}/docs/:slug`,
+      ]),
+    ];
+
+    expect(declaredPaths()).toEqual(expected);
+  });
+
+  it("keeps MARKETING_STATIC_PATHS in sync with the logical static routes", () => {
+    expect([...MARKETING_STATIC_PATHS]).toEqual(["/", "/pricing", "/docs"]);
+  });
+
+  it("prerenders every logical route for each locale", () => {
+    const logical = [
       ...MARKETING_STATIC_PATHS,
       ...DOC_PAGES.map((page) => page.path),
+    ];
+    const expected = [
+      ...logical,
+      ...APP_LOCALES.flatMap((locale) =>
+        logical.map((path) =>
+          withMarketingLocale(path, locale.slug, { forcePrefix: true }),
+        ),
+      ),
     ].sort();
 
+    expect(
+      expandLocalizedMarketingRoutes()
+        .map((route) => route.path)
+        .sort(),
+    ).toEqual(expected);
     expect(MARKETING_ROUTES.map((route) => route.path).sort()).toEqual(
-      expected,
+      logical.sort(),
     );
   });
 });

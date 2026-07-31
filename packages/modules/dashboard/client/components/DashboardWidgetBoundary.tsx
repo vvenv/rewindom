@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
+import { getI18n } from "@be-water/client-kit";
 import { Card, CardContent } from "@be-water/ui/card";
 import { AlertTriangle } from "lucide-react";
 
@@ -35,11 +36,13 @@ export class DashboardWidgetBoundary extends Component<
       return this.props.children;
     }
 
+    const t = getI18n().t.bind(getI18n());
+
     return (
       <Card className="h-full">
         <CardContent className="flex h-full items-center gap-2 text-sm text-muted-foreground">
           <AlertTriangle className="size-4 shrink-0 text-warning" />
-          该卡片加载失败，刷新页面可重试。
+          {t("widget.loadFailed", { ns: "dashboard" })}
         </CardContent>
       </Card>
     );

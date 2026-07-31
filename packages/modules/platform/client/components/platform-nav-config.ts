@@ -1,9 +1,13 @@
+import { useMemo } from "react";
+
 import {
   getPlatformPageTitle,
   isNavChildActive,
   isNavGroupActive,
+  translatePlatformNavEntries,
   usePlatformNavEntries,
 } from "@be-water/client-kit";
+import { useTranslation } from "react-i18next";
 
 export type {
   PlatformNavChild,
@@ -24,10 +28,23 @@ export function getPlatformPageTitleForEntries(
 
 export function usePlatformNavConfig() {
   const platformNavEntries = usePlatformNavEntries();
+  const { t, i18n } = useTranslation([
+    "platform",
+    "billing",
+    "audit",
+    "error-log",
+    "slow-query",
+  ]);
+
+  const translatedEntries = useMemo(
+    () => translatePlatformNavEntries(platformNavEntries, t),
+    [platformNavEntries, t, i18n.language],
+  );
+
   return {
-    platformNavEntries,
+    platformNavEntries: translatedEntries,
     getPlatformPageTitle: (pathname: string, search = "") =>
-      getPlatformPageTitle(platformNavEntries, pathname, search),
+      getPlatformPageTitle(translatedEntries, pathname, search, t),
     isNavChildActive,
     isNavGroupActive,
   };

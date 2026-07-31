@@ -1,0 +1,49 @@
+{
+  "nav": {
+    "roles": "Roles & permissions"
+  },
+  "page": {
+    "title": "Roles & permissions",
+    "description": "Manage tenant roles and their permissions; members gain access through assigned roles",
+    "createRole": "New role"
+  },
+  "table": {
+    "role": "Role",
+    "description": "Description",
+    "permissionCount": "Permissions",
+    "builtin": "Built-in",
+    "deleteRole": "Delete role",
+    "deleteConfirmTitle": "Delete role",
+    "deleteConfirmDescription": "Delete role \"{{name}}\"? Members with this role will lose its permissions.",
+    "roleDeleted": "Role deleted",
+    "deleteFailed": "Delete failed, please retry",
+    "emptyHeader": "No roles yet",
+    "emptyMessage": "Create a role to assign permissions to members"
+  },
+  "sheet": {
+    "createTitle": "New role",
+    "editTitle": "Edit role",
+    "builtinDescription": "Built-in role permissions are managed by the system; only name and description can be changed",
+    "customDescription": "Select actions this role may perform; members gain permissions through assigned roles",
+    "name": "Role name",
+    "namePlaceholder": "e.g. Editor, Finance",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional — describe this role's responsibilities",
+    "permissions": "Permissions",
+    "saving": "Saving…",
+    "roleCreated": "Role created",
+    "roleUpdated": "Role updated",
+    "saveFailed": "Save failed, please retry",
+    "editRole": "Edit role"
+  },
+  "permissionPicker": {
+    "empty": "No permissions available to assign",
+    "partial": "Partial",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all"
+  },
+  "validation": {
+    "nameRequired": "Enter a role name",
+    "nameMaxLength": "Role name must be 50 characters or fewer"
+  }
+}

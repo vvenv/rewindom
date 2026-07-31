@@ -9,6 +9,7 @@ export { Wordmark } from "./components/Wordmark";
 export { ThemeToggle } from "./components/ThemeToggle";
 export { ThemePaletteToggle } from "./components/ThemePaletteToggle";
 export { ShellLayoutToggle } from "./components/ShellLayoutToggle";
+export { LocaleToggle } from "./components/LocaleToggle";
 export {
   ThemePaletteProvider,
   useThemePalette,
@@ -19,6 +20,23 @@ export {
   useShellLayout,
   type ShellLayoutValue,
 } from "./contexts/shell-layout-context";
+export {
+  LocaleProvider,
+  useLocale,
+  type LocaleValue,
+} from "./contexts/locale-context";
+export {
+  setupI18n,
+  getI18n,
+  changeAppLanguage,
+  i18n,
+} from "./i18n/setup";
+export {
+  readStoredAppLocale,
+  APP_LOCALE_STORAGE_KEY,
+  APP_LOCALE_DEFAULT_CACHE_KEY,
+} from "./lib/read-stored-locale.js";
+export { translateAppNavSections, translatePlatformNavEntries, resolveNavLabel } from "./i18n/translate-nav";
 export {
   useTenantAppearance,
   TENANT_APPEARANCE_QUERY_KEY,
@@ -177,5 +195,7 @@ export {
   shouldClearAuthOnError,
   pauseTokenRefresh,
   isTransientApiError,
+  setApiAcceptLanguage,
+  getApiAcceptLanguage,
 } from "./api.js";
 export { configureAuthTokenStore, type AuthTokenStore } from "./auth-store.js";

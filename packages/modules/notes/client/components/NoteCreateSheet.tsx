@@ -18,6 +18,7 @@ import { Spinner } from "@be-water/ui/spinner";
 import { Textarea } from "@be-water/ui/textarea";
 import { toast } from "@be-water/ui/toast";
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCreateNote } from "../hooks/useNoteMutations.js";
 import {
@@ -32,6 +33,7 @@ interface NoteCreateSheetProps {
 }
 
 export function NoteCreateSheet({ children }: NoteCreateSheetProps) {
+  const { t } = useTranslation("notes");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<NoteFormValues>(INITIAL_NOTE_FORM);
   const [error, setError] = useState("");
@@ -44,7 +46,7 @@ export function NoteCreateSheet({ children }: NoteCreateSheetProps) {
 
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault();
-    const validationError = validateNoteForm(form);
+    const validationError = validateNoteForm(form, t);
     if (validationError) {
       setError(validationError);
       return;
@@ -52,11 +54,11 @@ export function NoteCreateSheet({ children }: NoteCreateSheetProps) {
 
     try {
       await createMutation.mutateAsync(buildNotePayload(form));
-      toast.success("笔记已创建");
+      toast.success(t("toastCreated"));
       setOpen(false);
       reset();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "创建失败，请重试");
+      setError(err instanceof ApiError ? err.message : t("createFailed"));
     }
   };
 
@@ -74,20 +76,20 @@ export function NoteCreateSheet({ children }: NoteCreateSheetProps) {
         {children ?? (
           <Button>
             <Plus className="size-4" />
-            新建笔记
+            {t("create")}
           </Button>
         )}
       </SheetTrigger>
       <SheetContent>
         <form className="flex h-full flex-col" onSubmit={handleSubmit}>
           <SheetHeader>
-            <SheetTitle>新建笔记</SheetTitle>
-            <SheetDescription>记录租户内的简单备忘信息。</SheetDescription>
+            <SheetTitle>{t("createTitle")}</SheetTitle>
+            <SheetDescription>{t("createDescription")}</SheetDescription>
           </SheetHeader>
 
           <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
             <Field>
-              <FieldLabel htmlFor="note-title">标题</FieldLabel>
+              <FieldLabel htmlFor="note-title">{t("fieldTitle")}</FieldLabel>
               <Input
                 id="note-title"
                 value={form.title}
@@ -97,7 +99,7 @@ export function NoteCreateSheet({ children }: NoteCreateSheetProps) {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="note-content">内容</FieldLabel>
+              <FieldLabel htmlFor="note-content">{t("fieldContent")}</FieldLabel>
               <Textarea
                 id="note-content"
                 className="min-h-40"
@@ -113,12 +115,12 @@ export function NoteCreateSheet({ children }: NoteCreateSheetProps) {
           <SheetFooter>
             <SheetClose asChild>
               <Button type="button" variant="outline">
-                取消
+                {t("cancel")}
               </Button>
             </SheetClose>
             <Button type="submit" disabled={createMutation.isPending}>
               {createMutation.isPending ? <Spinner className="size-4" /> : null}
-              保存
+              {t("save")}
             </Button>
           </SheetFooter>
         </form>
