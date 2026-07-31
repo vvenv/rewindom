@@ -24,7 +24,7 @@ export function resolveMobileHeaderState(
 
   const navItem = getNavItems().find((item) => isNavItemActive(pathname, item));
   if (navItem) {
-    return { title: navItem.label };
+    return { title: navItem.title ?? navItem.label };
   }
 
   return { title: fallbackTitle };

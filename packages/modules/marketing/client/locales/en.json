@@ -13,7 +13,8 @@
   "header": {
     "login": "Sign in",
     "getStarted": "Get started free",
-    "enterConsole": "Open console"
+    "enterConsole": "Open console",
+    "menuOpen": "Open menu"
   },
   "footer": {
     "groups": {

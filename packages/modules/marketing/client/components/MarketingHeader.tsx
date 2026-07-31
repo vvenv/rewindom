@@ -6,7 +6,16 @@ import {
   useOptionalAuth,
 } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@be-water/ui/sheet";
 import { cn } from "@be-water/ui/utils";
+import { LayoutDashboard, Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router";
 
@@ -34,8 +43,14 @@ function ConsoleEntry() {
 
   if (auth?.isAuthenticated) {
     return (
-      <Button asChild size="lg" className="px-4">
-        <Link to="/app">{t("header.enterConsole")}</Link>
+      <Button asChild variant="ghost" size="icon" className="rounded-lg">
+        <Link
+          to="/app"
+          aria-label={t("header.enterConsole")}
+          title={t("header.enterConsole")}
+        >
+          <LayoutDashboard className="size-4" />
+        </Link>
       </Button>
     );
   }
@@ -46,14 +61,85 @@ function ConsoleEntry() {
         asChild
         variant="ghost"
         size="lg"
-        className="hidden px-3 sm:inline-flex"
+        className="hidden px-3 md:inline-flex"
       >
         <Link to="/login">{t("header.login")}</Link>
       </Button>
-      <Button asChild size="lg" className="px-4">
+      <Button asChild size="lg" className="px-3 sm:px-4">
         <Link to="/register">{t("header.getStarted")}</Link>
       </Button>
     </>
+  );
+}
+
+function MobileNav({
+  onLocaleNavigate,
+}: {
+  onLocaleNavigate: (locale: AppLocale) => void;
+}) {
+  const { t } = useTranslation("marketing");
+  const { pathname } = useLocation();
+  const hrefFor = useMarketingHref();
+  const auth = useOptionalAuth();
+
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-lg md:hidden"
+          aria-label={t("header.menuOpen")}
+        >
+          <Menu className="size-4" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-[min(100%,20rem)]">
+        <SheetHeader>
+          <SheetTitle>{t("nav.main")}</SheetTitle>
+        </SheetHeader>
+        <nav className="flex flex-col gap-1 px-4" aria-label={t("nav.main")}>
+          {SITE_NAV.map((link) => {
+            const to = hrefFor(link.href);
+            const active = marketingPathsMatch(pathname, link.href);
+            return (
+              <SheetClose asChild key={link.href}>
+                <Link
+                  to={to}
+                  className={cn(
+                    "rounded-lg px-3 py-2.5 text-base transition-colors",
+                    active
+                      ? "bg-muted font-medium text-foreground"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                  )}
+                >
+                  {resolveNavLabel(link.href, t)}
+                </Link>
+              </SheetClose>
+            );
+          })}
+          {!auth?.isAuthenticated ? (
+            <SheetClose asChild>
+              <Link
+                to="/login"
+                className="rounded-lg px-3 py-2.5 text-base text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+              >
+                {t("header.login")}
+              </Link>
+            </SheetClose>
+          ) : null}
+        </nav>
+        <div className="mt-auto flex items-center gap-1.5 border-t border-border/60 px-4 py-4">
+          <LocaleToggle
+            className="rounded-lg"
+            menuSide="top"
+            menuAlign="start"
+            onLocaleNavigate={onLocaleNavigate}
+          />
+          <ThemeToggle className="rounded-lg" />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -69,17 +155,20 @@ export function MarketingHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-md">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-2 px-4 sm:gap-4 sm:px-6">
         <Link
           to={hrefFor("/")}
           className="flex items-center gap-2 text-foreground transition-opacity hover:opacity-80"
           aria-label={t("site.homeAriaLabel")}
         >
           <Logo className="size-6" />
-          <Wordmark className="h-3.5 w-auto" />
+          <Wordmark className="h-3.5 w-auto hidden sm:block" />
         </Link>
 
-        <nav className="ml-2 flex items-center gap-1" aria-label={t("nav.main")}>
+        <nav
+          className="ml-2 hidden items-center gap-1 md:flex"
+          aria-label={t("nav.main")}
+        >
           {SITE_NAV.map((link) => {
             const to = hrefFor(link.href);
             const active = marketingPathsMatch(pathname, link.href);
@@ -101,14 +190,17 @@ export function MarketingHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1.5">
-          <LocaleToggle
-            className="rounded-lg"
-            menuSide="bottom"
-            menuAlign="end"
-            onLocaleNavigate={onLocaleNavigate}
-          />
-          <ThemeToggle className="rounded-lg" />
+          <div className="hidden items-center gap-1.5 md:flex">
+            <LocaleToggle
+              className="rounded-lg"
+              menuSide="bottom"
+              menuAlign="end"
+              onLocaleNavigate={onLocaleNavigate}
+            />
+            <ThemeToggle className="rounded-lg" />
+          </div>
           <ConsoleEntry />
+          <MobileNav onLocaleNavigate={onLocaleNavigate} />
         </div>
       </div>
     </header>

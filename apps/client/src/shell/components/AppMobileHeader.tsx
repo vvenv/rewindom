@@ -1,3 +1,4 @@
+import { resolveNavLabel } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { ChevronLeft, Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -13,6 +14,11 @@ export function AppMobileHeader({ onOpenNav }: { onOpenNav: () => void }) {
   const navigate = useNavigate();
   const { resolveMobileHeaderState, shellContributions } = useAppShellConfig();
   const { title, back } = resolveMobileHeaderState(location.pathname);
+  // nav / mobileHeaderRoutes 存的是 `namespace:key`，与侧栏一致在渲染时解析
+  const resolvedTitle = resolveNavLabel(title, t);
+  const resolvedBackLabel = back
+    ? resolveNavLabel(back.label, t)
+    : undefined;
 
   return (
     <header className="safe-area-inset-top z-40 flex h-14 shrink-0 items-center gap-1.5 border-b border-border/50 bg-card px-3 md:hidden">
@@ -22,7 +28,7 @@ export function AppMobileHeader({ onOpenNav }: { onOpenNav: () => void }) {
           size="icon"
           className="shrink-0"
           onClick={() => navigate(back.to)}
-          aria-label={back.label}
+          aria-label={resolvedBackLabel}
         >
           <ChevronLeft className="size-5" />
         </Button>
@@ -38,7 +44,7 @@ export function AppMobileHeader({ onOpenNav }: { onOpenNav: () => void }) {
         </Button>
       )}
       <h1 className="min-w-0 flex-1 truncate font-medium text-foreground">
-        {title}
+        {resolvedTitle}
       </h1>
       <ShellSlotList
         components={shellContributions.mobileHeaderTrailing}

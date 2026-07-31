@@ -13,7 +13,8 @@
   "header": {
     "login": "登录",
     "getStarted": "免费开始",
-    "enterConsole": "进入控制台"
+    "enterConsole": "进入控制台",
+    "menuOpen": "打开菜单"
   },
   "footer": {
     "groups": {
