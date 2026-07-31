@@ -199,6 +199,7 @@ export function SliderCaptcha({
     onSuccess,
     onError,
     fetchChallenge,
+    t,
   ]);
 
   const handleTouchEnd = useCallback(async () => {
@@ -253,6 +254,7 @@ export function SliderCaptcha({
     onSuccess,
     onError,
     fetchChallenge,
+    t,
   ]);
 
   useEffect(() => {
