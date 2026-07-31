@@ -1,5 +1,6 @@
 import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
 
+import { RBAC_SERVER_I18N } from "./i18n.js";
 import {
   invalidateUserPermissionCache,
   PbacAuthzProvider,
@@ -7,7 +8,6 @@ import {
 } from "./permission.middleware.js";
 import { permissionRoutes } from "./permission.routes.js";
 import { RoleService } from "./role.service.js";
-
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
 
@@ -25,6 +25,7 @@ export const rbacServerModule: ServerAppModule = {
     ],
   },
   server: {
+    i18n: RBAC_SERVER_I18N,
     onBoot: async () => {
       const catalog = getServerPermissionCatalog();
       await RoleService.ensureBuiltinPlatformRoles(catalog);

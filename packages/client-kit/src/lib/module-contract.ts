@@ -1,9 +1,27 @@
 import type { ComponentType, LazyExoticComponent, ReactNode } from "react";
 
-import { type ModuleManifestBase, type Permission, type TenantFeatureKey  } from "@be-water/shared";
+import {
+  type AppLocale,
+  type ModuleManifestBase,
+  type Permission,
+  type TenantFeatureKey,
+} from "@be-water/shared";
 
 import type { AppNavSection } from "./app-nav-types.js";
 import type { PlatformNavContribution } from "./platform-nav-types.js";
+
+/**
+ * 模块贡献的 i18next 文案包。
+ *
+ * 文件放在 `packages/modules/<id>/client/locales/{zh-CN,en}.json`，
+ * 由组装层 `registerI18nBundles(collectClientI18nBundles(...))` 注册。
+ * `client-kit` 只保留 `common` / `shell`。
+ */
+export interface ClientI18nBundle {
+  /** i18next namespace，通常等于 module id（如 `notes`、`background-job`）。 */
+  ns: string;
+  resources: Partial<Record<AppLocale, Record<string, unknown>>>;
+}
 
 
 /**
@@ -109,5 +127,20 @@ export interface ClientAppModule extends ModuleManifestBase {
     platformNav?: readonly PlatformNavContribution[];
     mobileTabPaths?: readonly string[];
     shell?: ClientShellContributions;
+    /** 本模块 UI 文案；未声明则无独立 namespace。 */
+    i18n?: ClientI18nBundle;
   };
+}
+
+/** 从启用模块列表收集文案包（组装层在 `setupI18n` 前注册）。 */
+export function collectClientI18nBundles(
+  modules: readonly ClientAppModule[],
+): ClientI18nBundle[] {
+  const bundles: ClientI18nBundle[] = [];
+  for (const module of modules) {
+    if (module.client?.i18n) {
+      bundles.push(module.client.i18n);
+    }
+  }
+  return bundles;
 }

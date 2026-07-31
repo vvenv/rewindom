@@ -1,4 +1,3 @@
-
 import { type BackgroundJob } from "@be-water/server-kernel/generated/prisma/client/client.js";
 import { config } from "@be-water/server-kernel/lib/config.js";
 import { emitDetachedAuditLogSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
@@ -12,12 +11,14 @@ import {
   throwIfJobCancelled,
   updateJob,
 } from "../../../background-job/server/job-lifecycle.js";
-import { type BackgroundJobDto, type DatabaseBackupJobResult  } from "../../../background-job/shared/index.js";
+import {
+  type BackgroundJobDto,
+  type DatabaseBackupJobResult,
+} from "../../../background-job/shared/index.js";
 import {
   assertCustomDumpFile,
   BackupService,
 } from "../services/backup.service.js";
-
 
 import type { FastifyBaseLogger } from "fastify";
 
@@ -64,12 +65,13 @@ async function executeDatabaseBackupJob(
     );
 
     await emitDetachedAuditLogSafe(logger, {
-        userId,
-        username,
-        action: AuditAction.BACKUP_DATABASE,
-        resource: "database",
-        details: `生成备份：${built.filename}`,
-      })
+      userId,
+      username,
+      action: AuditAction.BACKUP_DATABASE,
+      resource: "database",
+      detail_key: "platform.audit.database_backed_up",
+      detail_params: { filename: built.filename },
+    });
 
     const result: DatabaseBackupJobResult = {
       file_path: built.filePath,

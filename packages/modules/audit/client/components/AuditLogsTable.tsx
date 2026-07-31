@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { type AuditLog } from "../../shared/index.js";
 import { translateAuditAction } from "../lib/audit-action-i18n.js";
+import { translateAuditDetail } from "../lib/audit-detail-i18n.js";
 
 import type { ColumnDef, SortingState, Updater } from "@tanstack/react-table";
 import type { TFunction } from "i18next";
@@ -66,13 +67,20 @@ function buildAuditLogColumns(
       cell: ({ row }) => displayOrEmpty(row.getValue("resource")),
     },
     {
-      accessorKey: "details",
+      id: "details",
+      accessorFn: (row) =>
+        translateAuditDetail(
+          t,
+          row.detail_key,
+          row.detail_params,
+          row.details,
+        ),
       header: t("table.details"),
       enableSorting: false,
       meta: {
         cellClassName: "whitespace-break-spaces text-muted-foreground",
       },
-      cell: ({ row }) => displayOrEmpty(row.getValue("details")),
+      cell: ({ getValue }) => displayOrEmpty(getValue<string>()),
     },
   ];
 }
@@ -100,7 +108,18 @@ export function AuditLogsTable({
   onSortingChange: (updater: Updater<SortingState>) => void;
   showTenantColumn?: boolean;
 }) {
-  const { t } = useTranslation("audit");
+  // 详情模板分布在各业务 ns；t(..., { ns }) 可解析已 register 的任意命名空间
+  const { t } = useTranslation([
+    "audit",
+    "notes",
+    "todos",
+    "user",
+    "rbac",
+    "platform",
+    "billing",
+    "error-log",
+    "background-job",
+  ]);
   const columns = useMemo(
     () => buildAuditLogColumns(showTenantColumn, t),
     [showTenantColumn, t],

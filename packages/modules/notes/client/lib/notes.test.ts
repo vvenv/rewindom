@@ -1,6 +1,7 @@
-import { setupI18n } from "@be-water/client-kit";
+import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
 import { describe, expect, it } from "vitest";
 
+import { NOTES_I18N } from "../i18n.js";
 import {
   buildNotePayload,
   INITIAL_NOTE_FORM,
@@ -9,6 +10,7 @@ import {
   validateNoteForm,
 } from "./notes.js";
 
+registerI18nBundles([NOTES_I18N]);
 setupI18n();
 const t = (key: string, options?: Record<string, unknown>): string =>
   setupI18n().t(key, { ns: "notes", ...options });

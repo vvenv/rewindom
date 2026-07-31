@@ -59,6 +59,7 @@ describe("platform-settings.service", () => {
         captcha_enabled: false,
         default_theme: DEFAULT_PLATFORM_SETTINGS.default_theme,
         default_layout: DEFAULT_PLATFORM_SETTINGS.default_layout,
+        default_locale: DEFAULT_PLATFORM_SETTINGS.default_locale,
       });
     });
 
@@ -157,6 +158,7 @@ describe("platform-settings.service", () => {
         captcha_enabled: false,
         default_theme: DEFAULT_PLATFORM_SETTINGS.default_theme,
         default_layout: DEFAULT_PLATFORM_SETTINGS.default_layout,
+        default_locale: DEFAULT_PLATFORM_SETTINGS.default_locale,
       });
       expect(prisma.appSetting.findUnique).toHaveBeenCalledWith({
         where: { key: "platform_settings" },

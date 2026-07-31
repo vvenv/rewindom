@@ -53,10 +53,13 @@ export async function backgroundJobRoutes(app: FastifyInstance): Promise<void> {
         username: request.authUser!.username,
         action: AuditAction.BACKGROUND_JOB_CANCEL,
         resource: `background_job:${job_id}`,
-        details:
+        detail_key:
           typeof result === "string"
-            ? `取消后台任务 ${job_id}（任务已不在运行）`
-            : `取消后台任务 ${result.title || job_id}`,
+            ? "background-job.audit.cancelled_not_running"
+            : "background-job.audit.cancelled",
+        detail_params: {
+          job: typeof result === "string" ? job_id : result.title || job_id,
+        },
         ipAddress: request.ip,
         userAgent: request.headers["user-agent"],
       });

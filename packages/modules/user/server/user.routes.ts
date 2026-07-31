@@ -1,4 +1,3 @@
-
 import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
 import {
   parseDisplayCatalogPagination,
@@ -8,7 +7,7 @@ import { handleValidationError } from "@be-water/server-kernel/http/route-error-
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { success } from "@be-water/shared";
 
-import { formatAuditFieldChanges, AuditAction } from "../../audit/shared/index.js";
+import { AuditAction } from "../../audit/shared/index.js";
 import {
   handleLimitExceededError,
   isLimitExceededError,
@@ -127,7 +126,8 @@ export async function userRoutes(app: FastifyInstance) {
           username: operatorUsername,
           action: AuditAction.USER_CREATE,
           resource: `user:${user.username}`,
-          details: `创建用户 ${user.username}`,
+          detail_key: "user.audit.created",
+          detail_params: { username: user.username },
         });
 
         return reply.send({ data: user });
@@ -155,10 +155,11 @@ export async function userRoutes(app: FastifyInstance) {
             request.query as Record<string, unknown>,
           );
         const skip = (pageNum - 1) * pageSize;
-        const { items, total } = await UserManagementService.getUserDisplayCatalog(
-          request.tenantContext!.tenant_id,
-          { search, skip, take: pageSize },
-        );
+        const { items, total } =
+          await UserManagementService.getUserDisplayCatalog(
+            request.tenantContext!.tenant_id,
+            { search, skip, take: pageSize },
+          );
         return success({
           items,
           page: pageNum,
@@ -225,19 +226,18 @@ export async function userRoutes(app: FastifyInstance) {
         await invalidateUserPermissionCache(app, id);
 
         const { username: operatorUsername } = request.authUser!;
-        const auditData: Record<string, unknown> = {};
-        if (body.is_system_admin !== undefined) {
-          auditData.is_system_admin = body.is_system_admin;
-        }
-        if (body.enabled !== undefined) auditData.enabled = body.enabled;
-        if (body.role_ids !== undefined) auditData.role_ids = body.role_ids;
-        const details = formatAuditFieldChanges(auditData);
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: operatorId,
           username: operatorUsername,
           action: AuditAction.USER_UPDATE,
           resource: `user:${user.username}`,
-          details,
+          detail_key: "user.audit.updated",
+          detail_params: {
+            username: user.username,
+            is_system_admin: body.is_system_admin,
+            enabled: body.enabled,
+            role_ids: body.role_ids?.join(", "),
+          },
         });
 
         return reply.send({ data: user });
@@ -268,7 +268,10 @@ export async function userRoutes(app: FastifyInstance) {
           return handleValidationError(reply, "不能删除自己的账号");
         }
 
-        const targetUser = await UserManagementService.getUserByIdAdmin(tenantId, id);
+        const targetUser = await UserManagementService.getUserByIdAdmin(
+          tenantId,
+          id,
+        );
         await UserManagementService.deleteUser(tenantId, id);
 
         const { username: operatorUsername } = request.authUser!;
@@ -277,7 +280,8 @@ export async function userRoutes(app: FastifyInstance) {
           username: operatorUsername,
           action: AuditAction.USER_DELETE,
           resource: `user:${targetUser.username}`,
-          details: `删除用户 ${targetUser.username}`,
+          detail_key: "user.audit.deleted",
+          detail_params: { username: targetUser.username },
         });
 
         return reply.send({ data: null });
@@ -308,7 +312,10 @@ export async function userRoutes(app: FastifyInstance) {
           return handleValidationError(reply, "密码至少需要6个字符");
         }
 
-        const targetUser = await UserManagementService.getUserByIdAdmin(tenantId, id);
+        const targetUser = await UserManagementService.getUserByIdAdmin(
+          tenantId,
+          id,
+        );
 
         const result = await UserManagementService.resetPassword({
           tenant_id: tenantId,
@@ -322,7 +329,8 @@ export async function userRoutes(app: FastifyInstance) {
           username: operatorUsername,
           action: AuditAction.PASSWORD_RESET,
           resource: `user:${targetUser.username}`,
-          details: `重置了用户 ${targetUser.username} 的密码`,
+          detail_key: "user.audit.password_reset",
+          detail_params: { username: targetUser.username },
         });
 
         return reply.send({ data: result });
@@ -352,7 +360,10 @@ export async function userRoutes(app: FastifyInstance) {
           return handleValidationError(reply, "不能删除自己的账号");
         }
 
-        const deletedUsernames = await UserManagementService.deleteUsers(tenantId, ids);
+        const deletedUsernames = await UserManagementService.deleteUsers(
+          tenantId,
+          ids,
+        );
 
         const { username: operatorUsername } = request.authUser!;
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
@@ -360,7 +371,8 @@ export async function userRoutes(app: FastifyInstance) {
           username: operatorUsername,
           action: AuditAction.USER_DELETE,
           resource: `user:${deletedUsernames.join(",")}`,
-          details: `删除用户 ${deletedUsernames.join(",")}`,
+          detail_key: "user.audit.batch_deleted",
+          detail_params: { usernames: deletedUsernames.join(", ") },
         });
 
         return reply.send({ data: null });

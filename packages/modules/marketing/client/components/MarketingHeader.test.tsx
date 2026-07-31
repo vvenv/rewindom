@@ -1,10 +1,17 @@
-import { AuthContext, setupI18n, type AuthContextType } from "@be-water/client-kit";
+import {
+  AuthContext,
+  registerI18nBundles,
+  setupI18n,
+  type AuthContextType,
+} from "@be-water/client-kit";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 
+import { MARKETING_I18N } from "../i18n.js";
 import { MarketingHeader } from "./MarketingHeader.js";
 
+registerI18nBundles([MARKETING_I18N]);
 setupI18n("zh-CN");
 
 function renderHeader(auth?: Partial<AuthContextType>) {

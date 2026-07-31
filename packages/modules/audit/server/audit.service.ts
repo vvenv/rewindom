@@ -2,8 +2,11 @@ import {
   resolveSortField,
   resolveSortOrder,
 } from "@be-water/server-kernel/http/list-sort.js";
+import { translateServerMessage } from "@be-water/server-kernel/lib/i18n/registry.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import type { AuditDetailParams } from "@be-water/server-kernel/runtime/domain-events.js";
 import { PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
+import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 
 import {
   resolveAuditLogScope,
@@ -26,9 +29,19 @@ export interface AuditLogInput {
   scope?: AuditScopeType;
   action: AuditActionType;
   resource?: string;
+  /** @deprecated 新写入用 detail_key + detail_params */
   details?: string;
+  detail_key?: string;
+  detail_params?: AuditDetailParams;
   ipAddress?: string;
   userAgent?: string;
+}
+
+function toPrismaJson(
+  params: AuditDetailParams | undefined,
+): Prisma.InputJsonValue | undefined {
+  if (!params) return undefined;
+  return params as Prisma.InputJsonValue;
 }
 
 /**
@@ -51,6 +64,8 @@ export class AuditService {
       action,
       resource,
       details,
+      detail_key,
+      detail_params,
       ipAddress,
       userAgent,
     } = input;
@@ -67,6 +82,16 @@ export class AuditService {
       tenant_slug,
     });
 
+    // 有模板时：落 key+params，并写一份 zh-CN 到 details 供检索 / 旧客户端
+    const resolvedDetails =
+      detail_key !== undefined
+        ? translateServerMessage("zh-CN", {
+            code: detail_key,
+            params: detail_params,
+            message: details,
+          })
+        : details;
+
     await prisma.auditLog.create({
       data: {
         ...(resolvedUserId !== undefined ? { user_id: resolvedUserId } : {}),
@@ -75,7 +100,9 @@ export class AuditService {
         scope,
         action,
         resource,
-        details,
+        details: resolvedDetails,
+        detail_key: detail_key ?? null,
+        detail_params: toPrismaJson(detail_params) ?? undefined,
         ip_address: ipAddress,
         user_agent: userAgent,
       },
@@ -290,6 +317,8 @@ export class AuditService {
       action: string;
       resource: string | null;
       details: string | null;
+      detail_key: string | null;
+      detail_params: Prisma.JsonValue | null;
       ip_address: string | null;
       user_agent: string | null;
       created_at: Date;
@@ -330,6 +359,8 @@ export class AuditService {
         action: true,
         resource: true,
         details: true,
+        detail_key: true,
+        detail_params: true,
         ip_address: true,
         user_agent: true,
         created_at: true,

@@ -110,7 +110,8 @@ export async function billingRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.BILLING_CHECKOUT_CREATE,
           resource: body.plan_slug,
-          details: `创建结账：plan=${body.plan_slug}`,
+          detail_key: "billing.audit.checkout_created",
+          detail_params: { plan_slug: body.plan_slug },
         });
 
         return result;
@@ -140,7 +141,10 @@ export async function billingRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.BILLING_SUBSCRIPTION_CANCEL,
           resource: result.id,
-          details: `取消订阅：${result.provider_subscription_id}`,
+          detail_key: "billing.audit.subscription_cancelled",
+          detail_params: {
+            provider_subscription_id: result.provider_subscription_id,
+          },
         });
 
         return result;
@@ -185,7 +189,8 @@ export async function billingWebhookRoutes(
           username: "creem-webhook",
           action: AuditAction.BILLING_WEBHOOK_SYNC,
           resource: event.id ?? event.type,
-          details: `Creem webhook ${event.type}: ${result.detail}`,
+          detail_key: "billing.audit.webhook_synced",
+          detail_params: { event_type: event.type, detail: result.detail },
           ipAddress: request.ip,
           userAgent:
             typeof request.headers["user-agent"] === "string"

@@ -1,9 +1,6 @@
-import { getI18n } from "@be-water/client-kit";
 import { AlertTriangle } from "lucide-react";
 
 import type { AppNavSection } from "@be-water/client-kit";
-
-const t = (key: string): string => getI18n().t(key, { ns: "error-log" });
 
 /**
  * section label 与 `audit` 的一致，collectModuleNav 会合并为同一分组；
@@ -19,7 +16,7 @@ export const ERROR_LOG_NAV_SECTIONS: AppNavSection[] = [
         label: "error-log:nav.errorLogs",
         path: "/error-logs",
         title: "error-log:nav.errorLogs",
-        keywords: t("nav.keywords"),
+        keywords: "error logs 错误日志",
         anyPermission: ["error_logs.read"],
       },
     ],

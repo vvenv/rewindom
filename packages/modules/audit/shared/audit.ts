@@ -304,7 +304,11 @@ export interface AuditLog {
   tenant_slug?: string | null;
   action: string;
   resource: string | null;
+  /** 遗留纯文本或 zh-CN 检索副本 */
   details: string | null;
+  /** 稳定模板 code；有值时前端按当前语言渲染 */
+  detail_key: string | null;
+  detail_params: Record<string, unknown> | null;
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;

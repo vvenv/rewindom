@@ -1,4 +1,8 @@
 import {
+  collectServerI18nBundles,
+  registerServerI18nBundles,
+} from "../lib/i18n/registry.js";
+import {
   collectModulePermissions,
   type MergedPermissionCatalog,
 } from "./collect-module-permissions.js";
@@ -96,7 +100,13 @@ export class ModuleLoader {
     }
   }
 
+  /** 在路由 / boot 前合并各模块 server.i18n。 */
+  registerI18n(): void {
+    registerServerI18nBundles(collectServerI18nBundles(this.modules));
+  }
+
   async registerAll(app: FastifyInstance): Promise<void> {
+    this.registerI18n();
     this.registerProviders();
     await this.registerRoutes(app);
     this.registerJobs(app);

@@ -86,7 +86,7 @@ export async function getNote(
     where: withTenantScope(tenant_id, { id: note_id }),
   });
   if (!record) {
-    throw new NotFoundError("笔记不存在");
+    throw new NotFoundError("notes.not_found");
   }
   return toNote(record);
 }
@@ -136,7 +136,7 @@ export async function updateNote(params: {
     where: withTenantScope(params.tenant_id, { id: params.note_id }),
   });
   if (!existing) {
-    throw new NotFoundError("笔记不存在");
+    throw new NotFoundError("notes.not_found");
   }
 
   // 归属校验并进 where：上面的 findFirst 负责给出 404，
@@ -164,7 +164,7 @@ export async function deleteNote(
     where: withTenantScope(tenant_id, { id: note_id }),
   });
   if (!existing) {
-    throw new NotFoundError("笔记不存在");
+    throw new NotFoundError("notes.not_found");
   }
 
   // 同 updateNote：租户谓词并进 delete 自身，避免 check-then-act 的时间窗。

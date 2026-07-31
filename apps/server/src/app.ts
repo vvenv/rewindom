@@ -26,11 +26,18 @@ function localizeApiErrorPayload(
     const body = JSON.parse(payload) as {
       error?: unknown;
       code?: unknown;
+      params?: unknown;
       [key: string]: unknown;
     };
     if (typeof body.error !== "string") return payload;
     const code = typeof body.code === "string" ? body.code : undefined;
-    const translated = translateForRequest(request, body.error, code);
+    const params =
+      body.params &&
+      typeof body.params === "object" &&
+      !Array.isArray(body.params)
+        ? (body.params as Record<string, unknown>)
+        : undefined;
+    const translated = translateForRequest(request, body.error, code, params);
     if (translated === body.error) return payload;
     return JSON.stringify({ ...body, error: translated });
   } catch {

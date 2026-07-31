@@ -1,3 +1,4 @@
+import { PLATFORM_I18N } from "./i18n.js";
 import { renderPlatformRoutes } from "./PlatformRoutes.js";
 import { usePlatformImpersonationActive } from "./shell/platform-shell-slots.js";
 import { PlatformTenantFilterProvider } from "./shell/tenant-filter-provider.js";
@@ -11,6 +12,7 @@ export const platformClientModule: ClientAppModule = {
   kind: "infrastructure",
   description: "平台管理端页面、组件与 hooks",
   client: {
+    i18n: PLATFORM_I18N,
     renderPlatformRoutes,
     shell: {
       useImpersonationActive: usePlatformImpersonationActive,

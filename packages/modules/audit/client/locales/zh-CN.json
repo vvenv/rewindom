@@ -1,0 +1,89 @@
+{
+  "nav": {
+    "auditLogs": "审计日志",
+    "keywords": "audit logs 审计 日志 操作记录"
+  },
+  "page": {
+    "title": "审计日志",
+    "description": "本租户内的写操作记录（只读）；平台侧操作与代登录会话不在此列"
+  },
+  "platform": {
+    "description": "跨租户审计日志（只读）"
+  },
+  "filters": {
+    "allActions": "全部操作",
+    "tenant": "租户",
+    "username": "账号"
+  },
+  "table": {
+    "time": "时间",
+    "tenant": "租户",
+    "action": "操作",
+    "username": "账号",
+    "resource": "资源",
+    "details": "详情",
+    "empty": "暂无审计日志",
+    "loading": "加载中..."
+  },
+  "actions": {
+    "LOGIN": "登录",
+    "LOGOUT": "登出",
+    "REGISTER": "注册",
+    "PASSWORD_CHANGE": "修改密码",
+    "USER_CREATE": "创建用户",
+    "USER_UPDATE": "更新用户",
+    "USER_DELETE": "删除用户",
+    "PASSWORD_RESET": "重置密码",
+    "UPDATE_USER_PERMISSIONS": "更新用户权限",
+    "ROLE_CREATE": "创建角色",
+    "ROLE_UPDATE": "更新角色",
+    "ROLE_DELETE": "删除角色",
+    "BACKUP_DATABASE": "备份数据库",
+    "RESTORE_DATABASE": "恢复数据库",
+    "TENANT_FEATURES_UPDATE": "更新租户功能开关",
+    "TENANT_MODULES_UPDATE": "更新租户模块开关",
+    "TENANT_ENTITLEMENTS_UPDATE": "更新租户模块与功能开关",
+    "TENANT_APPEARANCE_UPDATE": "更新租户默认主题",
+    "SETTINGS_UPDATE": "更新系统设置",
+    "TENANT_CREATE": "创建租户",
+    "TENANT_UPDATE": "更新租户",
+    "TENANT_SUSPEND": "暂停租户",
+    "TENANT_RESUME": "恢复租户",
+    "TENANT_ADMIN_PASSWORD_RESET": "重设租户管理员密码",
+    "TENANT_ARCHIVE": "归档租户",
+    "TENANT_IMPERSONATE": "代登录租户",
+    "TENANT_REGISTER": "自助注册租户",
+    "PLAN_CHANGE_ADMIN": "管理员变更套餐",
+    "PLAN_LIMIT_TEMPLATES_UPDATE": "更新套餐用量模板",
+    "PLATFORM_SETTINGS_UPDATE": "更新平台设置",
+    "TENANT_API_KEY_CREATE": "创建 API Key",
+    "TENANT_API_KEY_REVOKE": "吊销 API Key",
+    "ERROR_LOG_DELETE": "删除错误日志",
+    "ERROR_LOG_CLEANUP": "清理错误日志",
+    "BACKGROUND_JOB_CANCEL": "取消后台任务",
+    "NOTE_CREATE": "创建笔记",
+    "NOTE_UPDATE": "更新笔记",
+    "NOTE_DELETE": "删除笔记",
+    "TODO_CREATE": "创建待办",
+    "TODO_UPDATE": "更新待办",
+    "TODO_DELETE": "删除待办",
+    "TODO_CLEAR_COMPLETED": "清除已完成待办",
+    "TODO_TOGGLE_ALL": "批量切换待办完成态",
+    "BILLING_CHECKOUT_CREATE": "创建付款结账",
+    "BILLING_SUBSCRIPTION_CANCEL": "取消订阅",
+    "BILLING_WEBHOOK_SYNC": "同步付款 webhook"
+  },
+  "groups": {
+    "auth": "认证",
+    "users": "用户管理",
+    "system": "系统",
+    "notes": "示例模块",
+    "todos": "Todos",
+    "billing": "订阅与付款"
+  },
+  "detailTemplates": {
+    "auth.audit.login_success": "用户成功登录",
+    "auth.audit.logout_success": "用户成功登出",
+    "auth.audit.password_changed": "用户成功修改密码"
+  }
+}

@@ -1,12 +1,16 @@
+import {
+  registerServerI18nBundles,
+  resetServerI18nCatalogsForTests,
+} from "@be-water/server-kernel/lib/i18n/registry.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-
-import { AuditAction, AuditScope } from "../shared/index.js";
-
 import {
   PLATFORM_ADMIN_USER_ID,
   TENANT_IMPERSONATION_USERNAME,
 } from "@be-water/shared";
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
+import { NOTES_SERVER_I18N } from "../../notes/server/i18n.js";
+import { AuditAction, AuditScope } from "../shared/index.js";
 
 import { AuditService } from "./audit.service.js";
 
@@ -38,6 +42,8 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
 describe("AuditService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetServerI18nCatalogsForTests();
+    registerServerI18nBundles([NOTES_SERVER_I18N]);
   });
 
   describe("log", () => {
@@ -64,6 +70,8 @@ describe("AuditService", () => {
           action: AuditAction.LOGIN,
           resource: "auth",
           details: "用户成功登录",
+          detail_key: null,
+          detail_params: undefined,
           ip_address: "127.0.0.1",
           user_agent: "Mozilla/5.0",
         },
@@ -88,6 +96,8 @@ describe("AuditService", () => {
           action: AuditAction.LOGIN,
           resource: "auth",
           details: "用户成功登录",
+          detail_key: null,
+          detail_params: undefined,
         },
       });
     });
@@ -144,6 +154,8 @@ describe("AuditService", () => {
           action: AuditAction.LOGIN,
           resource: "auth",
           details: "用户成功登录",
+          detail_key: null,
+          detail_params: undefined,
         },
       });
     });
@@ -163,8 +175,32 @@ describe("AuditService", () => {
           tenant_slug: "acme",
           scope: AuditScope.TENANT,
           action: AuditAction.LOGIN,
+          detail_key: null,
+          detail_params: undefined,
         },
       });
+    });
+
+    it("should store detail_key + params and denormalize zh-CN into details", async () => {
+      await AuditService.log({
+        username: "testuser",
+        tenant_slug: "acme",
+        action: AuditAction.NOTE_CREATE,
+        resource: "note:1",
+        detail_key: "notes.audit.created",
+        detail_params: { title: "hello" },
+      });
+
+      expect(prisma.auditLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          detail_key: "notes.audit.created",
+          details: "创建笔记：hello",
+        }),
+      });
+      const data = vi.mocked(prisma.auditLog.create).mock.calls[0]?.[0]?.data as {
+        detail_params?: unknown;
+      };
+      expect(data.detail_params).toBeDefined();
     });
   });
 
@@ -336,6 +372,8 @@ describe("AuditService", () => {
           action: true,
           resource: true,
           details: true,
+          detail_key: true,
+          detail_params: true,
           ip_address: true,
           user_agent: true,
           created_at: true,
@@ -373,6 +411,8 @@ describe("AuditService", () => {
           action: true,
           resource: true,
           details: true,
+          detail_key: true,
+          detail_params: true,
           ip_address: true,
           user_agent: true,
           created_at: true,

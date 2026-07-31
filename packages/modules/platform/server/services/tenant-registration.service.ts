@@ -1,19 +1,30 @@
-
-import { AuthService, type JwtSignPayload } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import {
+  AuthService,
+  type JwtSignPayload,
+} from "@be-water/server-kernel/kernel/auth/auth.service.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { emitDetachedAuditLogSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
 import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
-import { assertValidTenantSlug, type AuthTokens, type RegisterTenantInput   } from "@be-water/shared";
+import {
+  assertValidTenantSlug,
+  type AuthTokens,
+  type RegisterTenantInput,
+} from "@be-water/shared";
 
 import { AuditAction } from "../../../audit/shared/index.js";
 import { RoleService } from "../../../rbac/server/role.service.js";
-import { PRICING_PLANS, TENANT_FEATURES_STORAGE_KEY, TENANT_LIMITS_STORAGE_KEY, TENANT_MODULES_STORAGE_KEY, createDefaultTenantModuleFlags } from "../../shared/index.js";
+import {
+  PRICING_PLANS,
+  TENANT_FEATURES_STORAGE_KEY,
+  TENANT_LIMITS_STORAGE_KEY,
+  TENANT_MODULES_STORAGE_KEY,
+  createDefaultTenantModuleFlags,
+} from "../../shared/index.js";
 
 import { resolvePlanLimitsForSlug } from "./plan-limit-templates.service.js";
 import { getPlatformSettings } from "./platform-settings.service.js";
 import { saveTenantJsonSetting } from "./tenant-json-setting.service.js";
-
 
 export type { RegisterTenantInput };
 
@@ -187,9 +198,15 @@ export async function registerTenant(
       username: input.username,
       ipAddress,
       userAgent,
-      details: `tenant_slug=${tenant.slug}, tenant_name=${tenant.name}, phone=${input.phone}, email=${input.email}`,
+      detail_key: "platform.audit.tenant_registered",
+      detail_params: {
+        tenant_slug: tenant.slug,
+        tenant_name: tenant.name,
+        phone: input.phone,
+        email: input.email,
+      },
       scope: "platform",
-    })
+    });
   } catch (auditError) {
     console.error("记录注册审计日志失败", auditError);
   }

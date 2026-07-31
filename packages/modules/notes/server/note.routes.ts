@@ -82,17 +82,20 @@ export async function noteRoutes(app: FastifyInstance): Promise<void> {
         });
 
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
-            userId: request.authUser!.userId,
-            username: request.authUser!.username,
-            action: AuditAction.NOTE_CREATE,
-            resource: note.id,
-            details: `创建笔记：${note.title}`,
-          })
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.NOTE_CREATE,
+          resource: note.id,
+          detail_key: "notes.audit.created",
+          detail_params: { title: note.title },
+        });
 
         return note;
       } catch (err) {
         if (err instanceof ValidationError) {
-          return reply.code(400).send({ error: err.message });
+          return reply
+            .code(400)
+            .send({ error: err.message, code: err.code, params: err.params });
         }
         throw err;
       }
@@ -118,20 +121,25 @@ export async function noteRoutes(app: FastifyInstance): Promise<void> {
         });
 
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
-            userId: request.authUser!.userId,
-            username: request.authUser!.username,
-            action: AuditAction.NOTE_UPDATE,
-            resource: note.id,
-            details: `更新笔记：${note.title}`,
-          })
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.NOTE_UPDATE,
+          resource: note.id,
+          detail_key: "notes.audit.updated",
+          detail_params: { title: note.title },
+        });
 
         return note;
       } catch (err) {
         if (err instanceof NotFoundError) {
-          return reply.code(404).send({ error: err.message });
+          return reply
+            .code(404)
+            .send({ error: err.message, code: err.code, params: err.params });
         }
         if (err instanceof ValidationError) {
-          return reply.code(400).send({ error: err.message });
+          return reply
+            .code(400)
+            .send({ error: err.message, code: err.code, params: err.params });
         }
         throw err;
       }
@@ -151,17 +159,20 @@ export async function noteRoutes(app: FastifyInstance): Promise<void> {
         await deleteNote(request.tenantContext!.tenant_id, note_id);
 
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
-            userId: request.authUser!.userId,
-            username: request.authUser!.username,
-            action: AuditAction.NOTE_DELETE,
-            resource: existing.id,
-            details: `删除笔记：${existing.title}`,
-          })
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.NOTE_DELETE,
+          resource: existing.id,
+          detail_key: "notes.audit.deleted",
+          detail_params: { title: existing.title },
+        });
 
         return { deleted: true };
       } catch (err) {
         if (err instanceof NotFoundError) {
-          return reply.code(404).send({ error: err.message });
+          return reply
+            .code(404)
+            .send({ error: err.message, code: err.code, params: err.params });
         }
         throw err;
       }

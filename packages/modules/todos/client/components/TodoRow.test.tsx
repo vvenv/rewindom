@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { setupI18n } from "@be-water/client-kit";
+import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
+import { TODOS_I18N } from "../i18n.js";
 import { TodoRow } from "./TodoRow.js";
 
 import type { TodoListItem } from "../../shared/index.js";
@@ -36,6 +37,7 @@ function startEditing(title = "写周报") {
 
 describe("TodoRow", () => {
   beforeAll(() => {
+    registerI18nBundles([TODOS_I18N]);
     setupI18n();
   });
 

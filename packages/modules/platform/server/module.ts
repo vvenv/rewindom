@@ -1,11 +1,10 @@
-
 import { ensureBootstrapPlatformAdmin } from "@be-water/server-kernel/kernel/auth/platform-admin.service.js";
 
+import { PLATFORM_SERVER_I18N } from "./i18n.js";
 import { platformRoutes } from "./platform.routes.js";
 import { tenantEntitlementsRoutes } from "./routes/tenant-entitlements.routes.js";
 import { getPlatformSettings } from "./services/platform-settings.service.js";
 import { registerTenant } from "./services/tenant-registration.service.js";
-
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
 
@@ -87,6 +86,7 @@ export const platformServerModule: ServerAppModule = {
     ],
   },
   server: {
+    i18n: PLATFORM_SERVER_I18N,
     onBoot: async () => {
       await ensureBootstrapPlatformAdmin();
     },

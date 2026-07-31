@@ -1,5 +1,4 @@
-import { getI18n } from "@be-water/client-kit";
-
+import { DASHBOARD_I18N } from "./i18n.js";
 import { DASHBOARD_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderDashboardRoutes } from "./tenant/routes.js";
 
@@ -14,8 +13,9 @@ export const dashboardClientModule: ClientAppModule = {
   version: "1.0.0",
   label: "Dashboard",
   kind: "infrastructure",
-  description: getI18n().t("description", { ns: "dashboard" }),
+  description: "租户登录后的默认首页，聚合各模块通过 dashboardWidgets 贡献的卡片",
   client: {
+    i18n: DASHBOARD_I18N,
     renderRoutes: renderDashboardRoutes,
     nav: DASHBOARD_NAV_SECTIONS,
     mobileTabPaths: ["/dashboard"],

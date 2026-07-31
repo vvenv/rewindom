@@ -112,18 +112,27 @@ export async function errorHandlerMiddleware(app: FastifyInstance) {
         username,
       });
 
-      // Use statusCode from error if available (Fastify best practice)
-      const statusCode = (error as { statusCode?: number }).statusCode || 500;
+      // Use statusCode / status from AppError if available (Fastify best practice)
+      const statusCode =
+        (error as { statusCode?: number }).statusCode ||
+        (error as { status?: number }).status ||
+        500;
 
-      // Send error response
-      // Fastify will handle serialization and headers automatically
       const code =
         "code" in error && typeof error.code === "string"
           ? error.code
           : undefined;
+      const params =
+        "params" in error &&
+        error.params &&
+        typeof error.params === "object" &&
+        !Array.isArray(error.params)
+          ? (error.params as Record<string, unknown>)
+          : undefined;
       return reply.code(statusCode).send({
-        error: translateForRequest(request, error.message, code),
+        error: translateForRequest(request, error.message, code, params),
         ...(code ? { code } : {}),
+        ...(params ? { params } : {}),
         ...(!config.server.isProduction && { stack: error.stack }),
       });
     },

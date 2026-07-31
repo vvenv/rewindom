@@ -3,6 +3,7 @@ import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/regis
 import { BILLING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { billingRoutes, billingWebhookRoutes } from "./billing.routes.js";
+import { BILLING_SERVER_I18N } from "./i18n.js";
 import { registerPlatformBillingRoutes } from "./platform-billing.routes.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
@@ -37,6 +38,7 @@ export const billingServerModule: ServerAppModule = {
     ],
   },
   server: {
+    i18n: BILLING_SERVER_I18N,
     registerRoutes: async (app) => {
       await app.register(billingWebhookRoutes, {
         prefix: "/api/billing/webhooks",

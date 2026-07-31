@@ -1,0 +1,62 @@
+{
+  "title": "Notes",
+  "description": "Reference module for tenant-scoped note CRUD",
+  "pageDescription": "Modular architecture reference: tenant-scoped note management",
+  "create": "New note",
+  "createTitle": "New note",
+  "createDescription": "Capture simple memos within your tenant.",
+  "edit": "Edit note",
+  "editTitle": "Edit note",
+  "editDescription": "Update the title and body.",
+  "editAriaLabel": "Edit note",
+  "delete": "Delete note",
+  "deleteAriaLabel": "Delete note",
+  "deleteConfirmTitle": "Delete note",
+  "deleteConfirmDescription": "Delete \"{{title}}\"? This action cannot be undone.",
+  "fieldTitle": "Title",
+  "fieldContent": "Content",
+  "cancel": "Cancel",
+  "save": "Save",
+  "emptyPreview": "(Empty note)",
+  "updatedAt": "Updated {{time}}",
+  "searchPlaceholder": "Search title or content…",
+  "sortAriaLabel": "Sort by",
+  "emptyTitle": "No notes yet",
+  "emptyWithSearch": "No matching notes. Try adjusting your search.",
+  "emptyNoSearch": "Create your first note to get started.",
+  "loadFailed": "Failed to load",
+  "retry": "Retry",
+  "toastCreated": "Note created",
+  "toastUpdated": "Note updated",
+  "toastDeleted": "Note deleted",
+  "createFailed": "Could not create note. Please try again.",
+  "updateFailed": "Could not update note. Please try again.",
+  "deleteFailed": "Could not delete note. Please try again.",
+  "dashboardTitle": "Recent notes",
+  "dashboardViewAll": "View all",
+  "dashboardLoadFailed": "Failed to load notes",
+  "dashboardEmpty": "No notes yet",
+  "nav": {
+    "sectionExample": "Examples",
+    "notes": "Notes",
+    "keywords": "notes memo example"
+  },
+  "sort": {
+    "updated_at_desc": "Recently updated",
+    "updated_at_asc": "Oldest updated",
+    "created_at_desc": "Recently created",
+    "created_at_asc": "Oldest created",
+    "title_asc": "Title A → Z",
+    "title_desc": "Title Z → A"
+  },
+  "validation": {
+    "titleRequired": "Enter a title",
+    "titleTooLong": "Title cannot exceed {{max}} characters",
+    "contentTooLong": "Content cannot exceed {{max}} characters"
+  },
+  "audit": {
+    "created": "Created note: {{title}}",
+    "updated": "Updated note: {{title}}",
+    "deleted": "Deleted note: {{title}}"
+  }
+}

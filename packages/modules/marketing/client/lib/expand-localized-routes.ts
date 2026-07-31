@@ -1,4 +1,8 @@
-import { i18n, setupI18n } from "@be-water/client-kit/i18n/setup";
+import {
+  i18n,
+  registerI18nBundles,
+  setupI18n,
+} from "@be-water/client-kit/i18n/setup";
 import { APP_LOCALES, DEFAULT_LOCALE, type AppLocale } from "@be-water/shared";
 
 import {
@@ -6,9 +10,12 @@ import {
   type PageSeo,
 } from "../../shared/index.js";
 
+import { MARKETING_I18N } from "../i18n.js";
 import { localizePageSeo } from "./marketing-i18n.js";
 import { withMarketingLocale } from "./marketing-locale-path.js";
 import { MARKETING_ROUTES } from "./seo-routes.js";
+
+registerI18nBundles([MARKETING_I18N]);
 
 function localizeRouteCopy(base: PageSeo, locale: AppLocale): PageSeo {
   setupI18n(locale);

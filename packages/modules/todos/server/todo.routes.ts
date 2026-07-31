@@ -73,7 +73,8 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
         userId: request.authUser!.userId,
         username: request.authUser!.username,
         action: AuditAction.TODO_CLEAR_COMPLETED,
-        details: `清除已完成待办：${deleted} 条`,
+        detail_key: "todos.audit.clear_completed",
+        detail_params: { count: deleted },
       });
 
       return { deleted };
@@ -102,7 +103,10 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
         userId: request.authUser!.userId,
         username: request.authUser!.username,
         action: AuditAction.TODO_TOGGLE_ALL,
-        details: `${body.completed ? "全部标记完成" : "全部标记未完成"}：${updated} 条`,
+        detail_key: body.completed
+          ? "todos.audit.toggle_all_done"
+          : "todos.audit.toggle_all_active",
+        detail_params: { count: updated },
       });
 
       return { updated };
@@ -149,7 +153,8 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.TODO_CREATE,
           resource: todo.id,
-          details: `创建待办：${todo.title}`,
+          detail_key: "todos.audit.created",
+          detail_params: { title: todo.title },
         });
 
         return todo;
@@ -185,7 +190,8 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.TODO_UPDATE,
           resource: todo.id,
-          details: `更新待办：${todo.title}`,
+          detail_key: "todos.audit.updated",
+          detail_params: { title: todo.title },
         });
 
         return todo;
@@ -221,7 +227,8 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.TODO_DELETE,
           resource: existing.id,
-          details: `删除待办：${existing.title}`,
+          detail_key: "todos.audit.deleted",
+          detail_params: { title: existing.title },
         });
 
         return { deleted: true };

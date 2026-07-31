@@ -1,0 +1,73 @@
+{
+  "description": "Tenant and platform error log pages and hooks",
+  "nav": {
+    "errorLogs": "Error logs",
+    "keywords": "error logs exceptions failures"
+  },
+  "levels": {
+    "error": "Error",
+    "warn": "Warning",
+    "info": "Info",
+    "debug": "Debug"
+  },
+  "cleanup": {
+    "confirmTitle": "Clean up historical error logs",
+    "confirmDescription": "This will delete error logs older than {{days}} days for this tenant. This cannot be undone.",
+    "buttonLabel": "Clean up history"
+  },
+  "toast": {
+    "deleteSuccess": "Error log deleted",
+    "deleteFailed": "Delete failed",
+    "cleanupSuccess": "Cleaned up {{count}} old logs",
+    "cleanupMySuccess": "Cleaned up {{count}} of your old logs",
+    "cleanupFailed": "Cleanup failed"
+  },
+  "page": {
+    "title": "Error logs",
+    "description": "Server errors within this tenant — click a row for stack trace and request context"
+  },
+  "platform": {
+    "description": "Cross-tenant error logs (read-only)"
+  },
+  "filters": {
+    "searchPlaceholder": "Username / route / error code",
+    "allLevels": "All levels",
+    "tenant": "Tenant"
+  },
+  "table": {
+    "time": "Time",
+    "level": "Level",
+    "message": "Message",
+    "tenant": "Tenant",
+    "user": "User",
+    "route": "Route",
+    "method": "Method",
+    "errorCode": "Error code",
+    "empty": "No error logs",
+    "loading": "Loading…"
+  },
+  "sheet": {
+    "title": "Error details",
+    "level": "Level",
+    "time": "Time",
+    "user": "User",
+    "ipAddress": "IP address",
+    "route": "Route",
+    "method": "Method",
+    "errorCode": "Error code",
+    "userAgent": "User agent",
+    "message": "Message",
+    "stackTrace": "Stack trace",
+    "requestBody": "Request body",
+    "requestParams": "Request params",
+    "requestQuery": "Query params",
+    "context": "Context",
+    "deleteConfirmTitle": "Confirm delete",
+    "deleteConfirmDescription": "Delete this error log? This cannot be undone."
+  },
+  "audit": {
+    "tenant_cleaned": "Cleaned tenant error logs older than {{days}} days; deleted {{deleted_count}}",
+    "user_cleaned": "Cleaned own error logs older than {{days}} days; deleted {{deleted_count}}",
+    "deleted": "Deleted error log {{id}}"
+  }
+}

@@ -144,8 +144,11 @@ checklist 手工建。
    - 全站 tab 总数控制在 **5 个以内**，超出会挤成一行看不清
    - 路径必须是本模块 `nav` 里已有的 `path`，否则会被静默丢弃
    - 权限与 entitlement 过滤自动生效，无需在此重复声明
-9. Page 按 `frontend-page-structure` skill 四层拆分
-10. 在 `apps/client/src/enabled-modules.ts` 注册 `module.tsx`
+   - nav `label` / `title` 用 `namespace:key`（如 `notes:nav.notes`），**禁止**模块加载时 `t()` 写死文案
+9. Client i18n：`client/locales/{zh-CN,en}.json` + `client/i18n.ts` → `client.i18n`（**不要**往 `client-kit/locales` 塞模块 JSON）
+10. Server i18n：`server/i18n.ts` 按稳定 **code** 提供 zh-CN/en → `server.i18n`；抛错用 `NotFoundError("notes.not_found")` 等，审计用 `detail_key` + `detail_params`（见 `docs/design/i18n.md`）
+11. Page 按 `frontend-page-structure` skill 四层拆分
+12. 在 `apps/client/src/enabled-modules.ts` / `apps/server/src/enabled-modules.ts` 注册
 
 ## 金标准（notes）
 

@@ -1,3 +1,4 @@
+import { USER_I18N } from "./i18n.js";
 import { USER_NAV_SECTIONS } from "./shell/user-nav.js";
 import { UserSidebarMenu, UserShellSlots } from "./shell/user-shell-slots.js";
 import { renderUserSuperUserRoutes } from "./UserRoutes.js";
@@ -11,6 +12,7 @@ export const userClientModule: ClientAppModule = {
   kind: "infrastructure",
   description: "租户用户管理页面与组件",
   client: {
+    i18n: USER_I18N,
     renderSuperUserRoutes: renderUserSuperUserRoutes,
     nav: USER_NAV_SECTIONS,
     shell: {

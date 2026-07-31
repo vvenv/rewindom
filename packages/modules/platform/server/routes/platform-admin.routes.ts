@@ -80,7 +80,11 @@ export async function registerPlatformAdminRoutes(
           action: AuditAction.ROLE_CREATE,
           scope: AuditScope.PLATFORM,
           resource: `platform_role:${role.name}`,
-          details: `创建平台角色 ${role.name}，权限：${body.permissions.join("、") || "无"}`,
+          detail_key: "platform.audit.role_created",
+          detail_params: {
+            name: role.name,
+            permissions_text: body.permissions.join(", ") || "-",
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -112,11 +116,14 @@ export async function registerPlatformAdminRoutes(
           action: AuditAction.ROLE_UPDATE,
           scope: AuditScope.PLATFORM,
           resource: `platform_role:${role.name}`,
-          details: `更新平台角色 ${role.name}${
+          detail_key:
             body.permissions !== undefined
-              ? `，权限：${body.permissions.join("、") || "无"}`
-              : ""
-          }`,
+              ? "platform.audit.role_updated_with_permissions"
+              : "platform.audit.role_updated",
+          detail_params: {
+            name: role.name,
+            permissions_text: body.permissions?.join(", ") || "-",
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -143,7 +150,8 @@ export async function registerPlatformAdminRoutes(
           action: AuditAction.ROLE_DELETE,
           scope: AuditScope.PLATFORM,
           resource: `platform_role:${deletedName}`,
-          details: `删除平台角色 ${deletedName}`,
+          detail_key: "platform.audit.role_deleted",
+          detail_params: { name: deletedName },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -228,7 +236,8 @@ export async function registerPlatformAdminRoutes(
           action: AuditAction.USER_CREATE,
           scope: AuditScope.PLATFORM,
           resource: `platform_admin:${admin.username}`,
-          details: `创建平台管理员 ${admin.username}`,
+          detail_key: "platform.audit.admin_created",
+          detail_params: { username: admin.username },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -290,7 +299,8 @@ export async function registerPlatformAdminRoutes(
           action: AuditAction.USER_UPDATE,
           scope: AuditScope.PLATFORM,
           resource: `platform_admin:${admin.username}`,
-          details: `更新平台管理员 ${admin.username}`,
+          detail_key: "platform.audit.admin_updated",
+          detail_params: { username: admin.username },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -320,7 +330,8 @@ export async function registerPlatformAdminRoutes(
           action: AuditAction.USER_DELETE,
           scope: AuditScope.PLATFORM,
           resource: `platform_admin:${admin.username}`,
-          details: `删除平台管理员 ${admin.username}`,
+          detail_key: "platform.audit.admin_deleted",
+          detail_params: { username: admin.username },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -359,7 +370,8 @@ export async function registerPlatformAdminRoutes(
           action: AuditAction.PASSWORD_RESET,
           scope: AuditScope.PLATFORM,
           resource: `platform_admin:${admin.username}`,
-          details: `重置平台管理员 ${admin.username} 的密码`,
+          detail_key: "platform.audit.admin_password_reset",
+          detail_params: { username: admin.username },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -433,7 +445,11 @@ export async function registerPlatformAdminRoutes(
           action: AuditAction.UPDATE_USER_PERMISSIONS,
           scope: AuditScope.PLATFORM,
           resource: `platform_admin:${admin.username}`,
-          details: `更新平台管理员 ${admin.username} 的角色：${roles.map((r) => r.name).join("、") || "无"}`,
+          detail_key: "platform.audit.admin_roles_updated",
+          detail_params: {
+            username: admin.username,
+            roles_text: roles.map((role) => role.name).join(", ") || "-",
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });

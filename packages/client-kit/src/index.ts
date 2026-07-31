@@ -29,7 +29,10 @@ export {
   setupI18n,
   getI18n,
   changeAppLanguage,
+  registerI18nBundles,
   i18n,
+  SHELL_I18N_NAMESPACES,
+  I18N_NAMESPACES,
 } from "./i18n/setup";
 export {
   readStoredAppLocale,
@@ -37,6 +40,10 @@ export {
   APP_LOCALE_DEFAULT_CACHE_KEY,
 } from "./lib/read-stored-locale.js";
 export { translateAppNavSections, translatePlatformNavEntries, resolveNavLabel } from "./i18n/translate-nav";
+export {
+  collectClientI18nBundles,
+  type ClientI18nBundle,
+} from "./lib/module-contract.js";
 export {
   useTenantAppearance,
   TENANT_APPEARANCE_QUERY_KEY,

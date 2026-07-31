@@ -14,8 +14,19 @@ import {
   ReservedTenantSlugError,
 } from "@be-water/shared";
 
-import { AuditAction, type AuditActionType  } from "../../../audit/shared/index.js";
-import { formatPlanChangeAuditDetails, formatTenantAppearanceAuditDetails, formatTenantFeatureAuditDetails, formatTenantEntitlementsAuditDetails , type CreateTenantBody, type PatchTenantBody, type ResetTenantAdminPasswordBody, type UpdateTenantAppearanceBody, type UpdateTenantFeatureFlagsBody, type UpdateTenantEntitlementsBody, type UpdateTenantPlanBody  } from "../../shared/index.js";
+import {
+  AuditAction,
+  type AuditActionType,
+} from "../../../audit/shared/index.js";
+import {
+  type CreateTenantBody,
+  type PatchTenantBody,
+  type ResetTenantAdminPasswordBody,
+  type UpdateTenantAppearanceBody,
+  type UpdateTenantFeatureFlagsBody,
+  type UpdateTenantEntitlementsBody,
+  type UpdateTenantPlanBody,
+} from "../../shared/index.js";
 import { type TenantIdParams } from "../lib/platform.types.js";
 import {
   getTenantAppearance,
@@ -26,9 +37,7 @@ import {
   getTenantEntitlements,
   saveTenantEntitlements,
 } from "../services/tenant-entitlement.service.js";
-import {
-  saveTenantFeatureFlags,
-} from "../services/tenant-feature.service.js";
+import { saveTenantFeatureFlags } from "../services/tenant-feature.service.js";
 import {
   archiveTenant,
   createTenant,
@@ -42,8 +51,6 @@ import {
   updateTenantPlan,
   listTenantUsers,
 } from "../services/tenant-management.service.js";
-
-
 
 import type { FastifyInstance } from "fastify";
 
@@ -81,10 +88,15 @@ export async function registerTenantRoutes(
         username,
         action: AuditAction.TENANT_CREATE,
         resource: "tenant",
-        details: `slug=${tenant.slug}, name=${tenant.name}, admin=${tenant.admin.login_identifier}`,
+        detail_key: "platform.audit.tenant_created",
+        detail_params: {
+          slug: tenant.slug,
+          name: tenant.name,
+          admin: tenant.admin.login_identifier,
+        },
         ipAddress: request.ip,
         userAgent: request.headers["user-agent"],
-      })
+      });
 
       return reply.code(201).send(success(tenant));
     } catch (err) {
@@ -145,13 +157,22 @@ export async function registerTenantRoutes(
           username,
           action,
           resource: "tenant",
-          details:
-            body.slug !== undefined && before.slug !== tenant.slug
-              ? `slug=${before.slug}->${tenant.slug}, status=${tenant.status}`
-              : `slug=${tenant.slug}, status=${tenant.status}`,
+          detail_key:
+            action === AuditAction.TENANT_SUSPEND
+              ? "platform.audit.tenant_suspended"
+              : action === AuditAction.TENANT_RESUME
+                ? "platform.audit.tenant_resumed"
+                : action === AuditAction.TENANT_ARCHIVE
+                  ? "platform.audit.tenant_archived"
+                  : "platform.audit.tenant_updated",
+          detail_params: {
+            slug: tenant.slug,
+            previous_slug: before.slug,
+            status: tenant.status,
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
-        })
+        });
 
         return reply.send(success(tenant));
       } catch (err) {
@@ -206,10 +227,14 @@ export async function registerTenantRoutes(
         username,
         action: AuditAction.TENANT_ADMIN_PASSWORD_RESET,
         resource: "tenant",
-        details: `admin=${credentials.login_identifier}, recreated=${credentials.recreated === true}`,
+        detail_key: "platform.audit.tenant_admin_password_reset",
+        detail_params: {
+          admin: credentials.login_identifier,
+          recreated: credentials.recreated === true,
+        },
         ipAddress: request.ip,
         userAgent: request.headers["user-agent"],
-      })
+      });
 
       return reply.send(success(credentials));
     } catch (err) {
@@ -270,10 +295,11 @@ export async function registerTenantRoutes(
           username,
           action: AuditAction.TENANT_ARCHIVE,
           resource: "tenant",
-          details: `slug=${tenant.slug}`,
+          detail_key: "platform.audit.tenant_archived",
+          detail_params: { slug: tenant.slug },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
-        })
+        });
 
         return reply.send(success(tenant));
       } catch (err) {
@@ -336,10 +362,11 @@ export async function registerTenantRoutes(
           username,
           action: AuditAction.TENANT_IMPERSONATE,
           resource: "tenant",
-          details: `slug=${tenant.slug}, admin=${result.login_identifier}`,
+          detail_key: "platform.audit.tenant_impersonated",
+          detail_params: { slug: tenant.slug, admin: result.login_identifier },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
-        })
+        });
 
         return reply.send(success(result));
       } catch (err) {
@@ -437,14 +464,14 @@ export async function registerTenantRoutes(
             username,
             action: AuditAction.TENANT_FEATURES_UPDATE,
             resource: "tenant_features",
-            details: formatTenantFeatureAuditDetails(
-              tenant.slug,
-              request.body.features ?? {},
-              getServerTenantCatalog(),
-            ),
+            detail_key: "platform.audit.tenant_features_updated",
+            detail_params: {
+              slug: tenant.slug,
+              features_json: JSON.stringify(request.body.features ?? {}),
+            },
             ipAddress: request.ip,
             userAgent: request.headers["user-agent"],
-          })
+          });
         } catch (auditErr) {
           request.log.error(
             { error: auditErr },
@@ -503,15 +530,15 @@ export async function registerTenantRoutes(
             username,
             action: AuditAction.TENANT_ENTITLEMENTS_UPDATE,
             resource: "tenant_entitlements",
-            details: formatTenantEntitlementsAuditDetails(
-              tenant.slug,
-              request.body.modules ?? {},
-              request.body.features ?? {},
-              getServerTenantCatalog(),
-            ),
+            detail_key: "platform.audit.tenant_entitlements_updated",
+            detail_params: {
+              slug: tenant.slug,
+              modules_json: JSON.stringify(request.body.modules ?? {}),
+              features_json: JSON.stringify(request.body.features ?? {}),
+            },
             ipAddress: request.ip,
             userAgent: request.headers["user-agent"],
-          })
+          });
         } catch (auditErr) {
           request.log.error(
             { error: auditErr },
@@ -601,14 +628,15 @@ export async function registerTenantRoutes(
             username,
             action: AuditAction.TENANT_APPEARANCE_UPDATE,
             resource: "tenant_appearance",
-            details: formatTenantAppearanceAuditDetails(
-              tenant.slug,
-              before,
-              saved,
-            ),
+            detail_key: "platform.audit.tenant_appearance_updated",
+            detail_params: {
+              slug: tenant.slug,
+              before_json: JSON.stringify(before),
+              after_json: JSON.stringify(saved),
+            },
             ipAddress: request.ip,
             userAgent: request.headers["user-agent"],
-          })
+          });
         } catch (auditErr) {
           request.log.error({ error: auditErr }, "记录租户外观审计日志失败");
         }
@@ -651,13 +679,18 @@ export async function registerTenantRoutes(
             username,
             action: AuditAction.PLAN_CHANGE_ADMIN,
             resource: "tenant_plan",
-            details: formatPlanChangeAuditDetails(tenant.slug, before, {
-              plan: updated.plan,
-              plan_ends_at: updated.plan_ends_at,
-            }),
+            detail_key: "platform.audit.tenant_plan_updated",
+            detail_params: {
+              slug: tenant.slug,
+              before_json: JSON.stringify(before),
+              after_json: JSON.stringify({
+                plan: updated.plan,
+                plan_ends_at: updated.plan_ends_at,
+              }),
+            },
             ipAddress: request.ip,
             userAgent: request.headers["user-agent"],
-          })
+          });
         } catch (auditErr) {
           request.log.error({ error: auditErr }, "记录套餐变更审计日志失败");
         }

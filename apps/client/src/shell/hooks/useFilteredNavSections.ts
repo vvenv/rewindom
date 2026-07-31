@@ -35,6 +35,8 @@ export function useFilteredNavSections(): {
     "error-log",
     "notes",
     "todos",
+    "notification",
+    "background-job",
   ]);
 
   const filtered = useMemo(

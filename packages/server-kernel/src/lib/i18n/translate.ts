@@ -5,8 +5,9 @@ import {
   type AppLocale,
 } from "@be-water/shared";
 
-import { SERVER_MESSAGES_EN } from "./messages-en.js";
+import { translateServerMessage } from "./registry.js";
 
+import type { TranslateMessageInput } from "./types.js";
 import type { FastifyRequest } from "fastify";
 
 declare module "fastify" {
@@ -29,26 +30,35 @@ export function resolveRequestLocale(
   return parseAcceptLanguage(raw, DEFAULT_LOCALE);
 }
 
-/** 将用户可见 API 文案翻到目标语言；zh-CN 原样返回。 */
+/** 将用户可见 API 文案翻到目标语言。 */
 export function translateApiMessage(
   locale: AppLocale,
   message: string,
   code?: string,
+  params?: Record<string, unknown>,
 ): string {
-  if (normalizeLocale(locale) === "zh-CN") return message;
-
-  if (code) {
-    const byCode = SERVER_MESSAGES_EN[code];
-    if (byCode) return byCode;
-  }
-
-  return SERVER_MESSAGES_EN[message] ?? message;
+  return translateServerMessage(locale, { message, code, params });
 }
 
 export function translateForRequest(
   request: Pick<FastifyRequest, "headers" | "locale">,
   message: string,
   code?: string,
+  params?: Record<string, unknown>,
 ): string {
-  return translateApiMessage(resolveRequestLocale(request), message, code);
+  return translateApiMessage(
+    resolveRequestLocale(request),
+    message,
+    code,
+    params,
+  );
 }
+
+export function translateInputForRequest(
+  request: Pick<FastifyRequest, "headers" | "locale">,
+  input: TranslateMessageInput,
+): string {
+  return translateServerMessage(resolveRequestLocale(request), input);
+}
+
+export { DEFAULT_LOCALE };

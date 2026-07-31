@@ -1,7 +1,6 @@
-import { getI18n } from "@be-water/client-kit";
-
 import { TODO_ENTITLEMENT } from "../shared/index.js";
 
+import { TODOS_I18N } from "./i18n.js";
 import { TODO_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { TODO_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderTodosRoutes } from "./tenant/routes.js";
@@ -13,9 +12,10 @@ export const todosClientModule: ClientAppModule = {
   version: "1.0.0",
   label: "Todos",
   kind: "business",
-  description: getI18n().t("description", { ns: "todos" }),
+  description: "租户内待办清单",
   tenantEntitlements: [TODO_ENTITLEMENT],
   client: {
+    i18n: TODOS_I18N,
     renderRoutes: renderTodosRoutes,
     nav: TODO_NAV_SECTIONS,
     dashboardWidgets: TODO_DASHBOARD_WIDGETS,

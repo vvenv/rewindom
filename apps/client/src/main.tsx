@@ -6,7 +6,9 @@ import {
   ConfirmDialog,
   ErrorBoundary,
   LocaleProvider,
+  collectClientI18nBundles,
   readStoredAppLocale,
+  registerI18nBundles,
   setApiAcceptLanguage,
   setupI18n,
 } from "@be-water/client-kit";
@@ -16,6 +18,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { createRoot } from "react-dom/client";
 
+import { ENABLED_CLIENT_MODULES } from "./enabled-modules.ts";
 import { App } from "./App.tsx";
 import "./index.css";
 
@@ -28,7 +31,8 @@ const queryClient = new QueryClient({
   },
 });
 
-// 在 React 首屏前同步恢复语言，避免刷新后先闪默认 zh-CN。
+// 模块文案先注册，再按持久化语言初始化，避免首屏闪默认 zh-CN。
+registerI18nBundles(collectClientI18nBundles(ENABLED_CLIENT_MODULES));
 const bootLocale = readStoredAppLocale();
 setupI18n(bootLocale);
 setApiAcceptLanguage(bootLocale);

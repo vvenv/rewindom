@@ -90,13 +90,14 @@ export async function registerSettingsRoutes(
           username,
           action: AuditAction.PLATFORM_SETTINGS_UPDATE,
           resource: "platform_settings",
-          details: JSON.stringify({
-            before: currentConfig,
-            after: newConfig,
-          }),
+          detail_key: "platform.audit.settings_updated",
+          detail_params: {
+            before: JSON.stringify(currentConfig),
+            after: JSON.stringify(newConfig),
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
-        })
+        });
       } catch (auditError) {
         app.log.error({ error: auditError }, "记录审计日志失败");
       }
@@ -138,13 +139,14 @@ export async function registerSettingsRoutes(
           username,
           action: AuditAction.PLAN_LIMIT_TEMPLATES_UPDATE,
           resource: "plan_limit_templates",
-          details: JSON.stringify({
-            before: currentTemplates,
-            after: saved,
-          }),
+          detail_key: "platform.audit.plan_limit_templates_updated",
+          detail_params: {
+            before: JSON.stringify(currentTemplates),
+            after: JSON.stringify(saved),
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
-        })
+        });
       } catch (auditError) {
         app.log.error({ error: auditError }, "记录审计日志失败");
       }

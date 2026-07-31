@@ -126,7 +126,7 @@ export async function getTodo(
     where: withTenantScope(tenant_id, { id: todo_id }),
   });
   if (!record) {
-    throw new NotFoundError("待办不存在");
+    throw new NotFoundError("todos.not_found");
   }
   return toTodo(record);
 }
@@ -181,7 +181,7 @@ export async function updateTodo(params: {
     where: withTenantScope(params.tenant_id, { id: params.todo_id }),
   });
   if (!existing) {
-    throw new NotFoundError("待办不存在");
+    throw new NotFoundError("todos.not_found");
   }
 
   // 归属校验并进 where：上面的 findFirst 负责给出 404，
@@ -208,7 +208,7 @@ export async function deleteTodo(
     where: withTenantScope(tenant_id, { id: todo_id }),
   });
   if (!existing) {
-    throw new NotFoundError("待办不存在");
+    throw new NotFoundError("todos.not_found");
   }
 
   // 同 update：租户谓词并进 delete 自身，避免 check-then-act 的时间窗。

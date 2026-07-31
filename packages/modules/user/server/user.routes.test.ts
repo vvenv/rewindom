@@ -47,7 +47,6 @@ function makeUserRecord(overrides: Record<string, unknown> = {}) {
   };
 }
 
-
 installTestPermissionCatalog();
 
 describe("User Routes", () => {
@@ -81,7 +80,10 @@ describe("User Routes", () => {
 
   describe("GET /api/users/display-catalog", () => {
     it("should return id and username for any logged-in user", async () => {
-      vi.spyOn(UserManagementService, "getUserDisplayCatalog").mockResolvedValue({
+      vi.spyOn(
+        UserManagementService,
+        "getUserDisplayCatalog",
+      ).mockResolvedValue({
         items: [{ id: "user-1", username: "proc-user" }],
         total: 1,
       });
@@ -412,7 +414,13 @@ describe("User Routes", () => {
           username: adminUser.username,
           action: AuditAction.USER_UPDATE,
           resource: "user:Weidong",
-          details: "启用状态=是",
+          detail_key: "user.audit.updated",
+          detail_params: {
+            username: "Weidong",
+            is_system_admin: undefined,
+            enabled: true,
+            role_ids: undefined,
+          },
         },
       );
     });

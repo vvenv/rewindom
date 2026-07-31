@@ -91,7 +91,11 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.ROLE_CREATE,
           resource: `role:${role.name}`,
-          details: `创建角色 ${role.name}，权限：${body.permissions.join("、") || "无"}`,
+          detail_key: "rbac.audit.role_created",
+          detail_params: {
+            name: role.name,
+            permissions_text: body.permissions.join(", ") || "-",
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -129,11 +133,14 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.ROLE_UPDATE,
           resource: `role:${role.name}`,
-          details: `更新角色 ${role.name}${
+          detail_key:
             body.permissions !== undefined
-              ? `，权限：${body.permissions.join("、") || "无"}`
-              : ""
-          }`,
+              ? "rbac.audit.role_updated_with_permissions"
+              : "rbac.audit.role_updated",
+          detail_params: {
+            name: role.name,
+            permissions_text: body.permissions?.join(", ") || "-",
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -161,7 +168,8 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.ROLE_DELETE,
           resource: `role:${deletedName}`,
-          details: `删除角色 ${deletedName}`,
+          detail_key: "rbac.audit.role_deleted",
+          detail_params: { name: deletedName },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -257,7 +265,11 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.UPDATE_USER_PERMISSIONS,
           resource: `user:${user.username}`,
-          details: `更新用户 ${user.username} 的角色：${assigned.map((r) => r.name).join("、") || "无"}`,
+          detail_key: "rbac.audit.user_roles_updated",
+          detail_params: {
+            username: user.username,
+            roles_text: assigned.map((role) => role.name).join(", ") || "-",
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });

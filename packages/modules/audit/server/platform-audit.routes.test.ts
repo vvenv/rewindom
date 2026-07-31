@@ -66,6 +66,8 @@ describe("platform audit routes", () => {
         action: "TENANT_CREATE",
         resource: "tenant",
         details: "slug=test",
+        detail_key: null,
+        detail_params: null,
         ip_address: "127.0.0.1",
         created_at: new Date("2026-01-01"),
       },

@@ -9,7 +9,12 @@
  */
 import { Suspense } from "react";
 
-import { changeAppLanguage, setupI18n } from "@be-water/client-kit/i18n/setup";
+import {
+  changeAppLanguage,
+  registerI18nBundles,
+  setupI18n,
+} from "@be-water/client-kit/i18n/setup";
+import { MARKETING_I18N } from "@be-water/modules/marketing/client/i18n.js";
 import { expandLocalizedMarketingRoutes } from "@be-water/modules/marketing/client/lib/expand-localized-routes.js";
 import { parseMarketingLocalePath } from "@be-water/modules/marketing/client/lib/marketing-locale-path.js";
 import { renderMarketingPublicRoutes } from "@be-water/modules/marketing/client/public/routes.js";
@@ -20,6 +25,8 @@ import {
 import { DEFAULT_LOCALE } from "@be-water/shared";
 import { prerender } from "react-dom/static";
 import { Routes, StaticRouter } from "react-router";
+
+registerI18nBundles([MARKETING_I18N]);
 
 /** 含各 locale 前缀的完整预渲染表。 */
 export const PRERENDER_ROUTES: readonly PageSeo[] =

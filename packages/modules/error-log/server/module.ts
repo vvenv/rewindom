@@ -1,3 +1,4 @@
+import { ERROR_LOG_SERVER_I18N } from "./i18n.js";
 import { errorLogRoutes } from "./error-log.routes.js";
 import { registerPlatformErrorLogRoutes } from "./platform-error-log.routes.js";
 
@@ -17,6 +18,7 @@ export const errorLogServerModule: ServerAppModule = {
     ],
   },
   server: {
+    i18n: ERROR_LOG_SERVER_I18N,
     registerRoutes: async (app) => {
       await app.register(errorLogRoutes, { prefix: "/api/error-logs" });
       await app.register(

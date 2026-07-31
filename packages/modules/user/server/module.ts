@@ -1,3 +1,4 @@
+import { USER_SERVER_I18N } from "./i18n.js";
 import { userRoutes } from "./user.routes.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
@@ -17,6 +18,7 @@ export const userServerModule: ServerAppModule = {
     ],
   },
   server: {
+    i18n: USER_SERVER_I18N,
     registerRoutes: async (app) => {
       await app.register(userRoutes, { prefix: "/api/users" });
     },

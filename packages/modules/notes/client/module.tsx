@@ -1,23 +1,21 @@
-import { i18n, setupI18n } from "@be-water/client-kit";
-
 import { NOTES_ENTITLEMENT } from "../shared/index.js";
 
+import { NOTES_I18N } from "./i18n.js";
 import { NOTES_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { NOTES_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderNotesRoutes } from "./tenant/routes.js";
 
 import type { ClientAppModule } from "@be-water/client-kit";
 
-setupI18n();
-
 export const notesClientModule: ClientAppModule = {
   id: "notes",
   version: "1.0.0",
   label: "Notes",
   kind: "business",
-  description: i18n.t("description", { ns: "notes" }),
+  description: "租户内笔记 CRUD 金标准示例模块",
   tenantEntitlements: [NOTES_ENTITLEMENT],
   client: {
+    i18n: NOTES_I18N,
     renderRoutes: renderNotesRoutes,
     nav: NOTES_NAV_SECTIONS,
     dashboardWidgets: NOTES_DASHBOARD_WIDGETS,

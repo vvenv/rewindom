@@ -93,10 +93,16 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
           action: AuditAction.BACKGROUND_JOB_CANCEL,
           scope: AuditScope.PLATFORM,
           resource: `background_job:${request.params.job_id}`,
-          details:
+          detail_key:
             typeof result === "string"
-              ? `取消后台任务 ${request.params.job_id}（任务已不在运行）`
-              : `取消后台任务 ${result.title || request.params.job_id}`,
+              ? "platform.audit.background_job_cancelled_not_running"
+              : "platform.audit.background_job_cancelled",
+          detail_params: {
+            job:
+              typeof result === "string"
+                ? request.params.job_id
+                : result.title || request.params.job_id,
+          },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });

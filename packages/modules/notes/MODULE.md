@@ -17,7 +17,8 @@
 | 位置 | 文件 | 收窄方式 |
 | --- | --- | --- |
 | 路由 | `server/note.routes.ts` | `app.requirePermission("notes.read" / "notes.write")` |
-| 导航项 | `client/tenant/nav-sections.ts` | `anyPermission: ["notes.read"]` |
+| 导航项 | `client/tenant/nav-sections.ts` | `anyPermission: ["notes.read"]`；label 用 `notes:nav.*` |
+| 文案 | `client/locales/{zh-CN,en}.json` + `client/i18n.ts` | 挂到 `client.i18n`，勿放进 client-kit |
 | 页面路由 | `client/tenant/routes.tsx` | `PermissionRoute permission="notes.read"` |
 | 页面内写操作 | `client/pages/notes.tsx`、`client/components/NotesGrid.tsx` | `usePermissions().hasPermission("notes.write")` |
 

@@ -8,7 +8,11 @@ model AuditLog {
   scope       String   @default("tenant")
   action      String
   resource    String?
+  /** 遗留纯文本，或 detail_key 渲染出的 zh-CN 检索副本 */
   details     String?
+  /** 稳定模板 code，如 notes.audit.created；与 detail_params 成对 */
+  detail_key  String?
+  detail_params Json?
   ip_address  String?
   user_agent  String?
   created_at  DateTime @default(now())
@@ -18,5 +22,6 @@ model AuditLog {
   @@index([tenant_slug])
   @@index([scope])
   @@index([action])
+  @@index([detail_key])
   @@index([created_at])
 }

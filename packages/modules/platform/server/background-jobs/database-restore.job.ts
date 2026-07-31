@@ -1,4 +1,3 @@
-
 import {
   type BackgroundJob,
   type Prisma,
@@ -129,12 +128,13 @@ async function executeDatabaseRestoreJob(
     }
 
     await emitDetachedAuditLogSafe(logger, {
-        userId,
-        username,
-        action: AuditAction.RESTORE_DATABASE,
-        resource: "database",
-        details: `从备份恢复：${input.original_filename}`,
-      })
+      userId,
+      username,
+      action: AuditAction.RESTORE_DATABASE,
+      resource: "database",
+      detail_key: "platform.audit.database_restored",
+      detail_params: { filename: input.original_filename },
+    });
 
     await syncDatabaseRestoreJobState(jobId, {
       status: "success",

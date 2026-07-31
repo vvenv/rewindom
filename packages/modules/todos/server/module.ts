@@ -2,6 +2,7 @@ import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/regis
 
 import { TODO_ENTITLEMENT } from "../shared/entitlements.js";
 
+import { TODOS_SERVER_I18N } from "./i18n.js";
 import { todoRoutes } from "./todo.routes.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
@@ -38,6 +39,7 @@ export const todosServerModule: ServerAppModule = {
     ],
   },
   server: {
+    i18n: TODOS_SERVER_I18N,
     registerRoutes: async (app) => {
       await registerTenantGatedRoutes(app, "todos", async (scoped) => {
         await scoped.register(todoRoutes, { prefix: "/api/todos" });

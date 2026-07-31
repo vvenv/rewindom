@@ -117,7 +117,8 @@ export async function errorLogRoutes(app: FastifyInstance) {
           username: request.authUser!.username,
           action: AuditAction.ERROR_LOG_CLEANUP,
           resource: "error_log:tenant",
-          details: `清理租户内 ${daysToKeep} 天前的错误日志，删除 ${deletedCount} 条`,
+          detail_key: "error-log.audit.tenant_cleaned",
+          detail_params: { days: daysToKeep, deleted_count: deletedCount },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -150,7 +151,8 @@ export async function errorLogRoutes(app: FastifyInstance) {
           username: request.authUser!.username,
           action: AuditAction.ERROR_LOG_CLEANUP,
           resource: `error_log:user:${request.authUser!.userId}`,
-          details: `清理本人 ${daysToKeep} 天前的错误日志，删除 ${deletedCount} 条`,
+          detail_key: "error-log.audit.user_cleaned",
+          detail_params: { days: daysToKeep, deleted_count: deletedCount },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });
@@ -194,7 +196,8 @@ export async function errorLogRoutes(app: FastifyInstance) {
           username: request.authUser!.username,
           action: AuditAction.ERROR_LOG_DELETE,
           resource: `error_log:${id}`,
-          details: `删除错误日志 ${id}`,
+          detail_key: "error-log.audit.deleted",
+          detail_params: { id },
           ipAddress: request.ip,
           userAgent: request.headers["user-agent"],
         });

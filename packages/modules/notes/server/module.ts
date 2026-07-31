@@ -2,6 +2,7 @@ import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/regis
 
 import { NOTES_ENTITLEMENT } from "../shared/entitlements.js";
 
+import { NOTES_SERVER_I18N } from "./i18n.js";
 import { noteRoutes } from "./note.routes.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
@@ -36,6 +37,7 @@ export const notesServerModule: ServerAppModule = {
     ],
   },
   server: {
+    i18n: NOTES_SERVER_I18N,
     registerRoutes: async (app) => {
       await registerTenantGatedRoutes(app, "notes", async (scoped) => {
         await scoped.register(noteRoutes, { prefix: "/api/notes" });
