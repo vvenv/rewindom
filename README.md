@@ -22,6 +22,7 @@
 | 类型 | 模块 |
 | --- | --- |
 | 基础设施 | `user` 认证/JWT · `platform` 租户/套餐/配额 · `rbac` PBAC（未启用则登录即可访问）· `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 · `marketing` 官网（介绍/文档/定价，构建期预渲染） |
+| 业务 | `billing` 租户订阅与付款（Creem） |
 | 示例 | `notes` 金标准 CRUD · `todos` 由 `gen:module` 生成并手工定制的列表示例 |
 
 **不是**：脚手架生成器、微服务框架、低代码平台。
@@ -124,6 +125,42 @@ be-water/
 | `TENANT_SECRET_ENCRYPTION_KEY` | 32 字节 hex（`openssl rand -hex 32`） |
 
 租户级密钥（如 LLM API Key）AES-GCM 加密存库，主密钥为 `TENANT_SECRET_ENCRYPTION_KEY`。完整列表见 `.env.example`。
+
+付款（`billing` / Creem，可选）：
+
+| 变量 | 说明 |
+| --- | --- |
+| `CREEM_API_KEY` | Test/Live API Key；空则无法发起 checkout |
+| `CREEM_WEBHOOK_SECRET` | Webhook 验签密钥（与 Dashboard 一致） |
+| `CREEM_SERVER` | `test` \| `prod`（本地联调用 `test`） |
+| `CREEM_PRODUCT_MAP` | JSON：`{"starter":"prod_xxx",...}`（必须是 `prod_` 开头的商品 ID，不是套餐 slug） |
+| `CREEM_STORE_ID` | 可选；默认见 `.env.example` |
+
+---
+
+## 本地测试 Creem 付款
+
+Webhook 打的是 **API（3700）**，不是前端（7300）。
+
+1. `.env.local` 配好上表 Creem 变量，`pnpm dev`
+2. 隧道指向 API：
+
+```bash
+ngrok http 3700
+# 或：cloudflared tunnel --url http://localhost:3700
+```
+
+3. Creem Dashboard（**Test Mode**）→ Developers → Webhooks，Endpoint 填：
+
+```
+https://<ngrok-host>/api/billing/webhooks/creem
+```
+
+Signing secret 与 `CREEM_WEBHOOK_SECRET` 一致；改配置后重启 server。
+
+4. 浏览器打开 `http://localhost:7300/billing` → 升级 → 用 test 卡付款。开通以 webhook 为准（看 server 日志 `[billing] creem webhook processed`），回跳 URL 只是页面返回。
+
+详情与权限说明见 [`packages/modules/billing/MODULE.md`](packages/modules/billing/MODULE.md)。
 
 ---
 

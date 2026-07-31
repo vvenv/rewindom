@@ -42,6 +42,33 @@ Webhook URL：`POST /api/billing/webhooks/creem`（免 JWT，校验 `creem-signa
 
 ## 如何单独测试
 
+单元测试：
+
 ```bash
 pnpm --filter modules exec vitest --run --project 'billing/*'
 ```
+
+### 本地完整流程（Checkout → Webhook → 改套餐）
+
+Webhook 必须打到 **API `:3700`**，不要隧道前端 `:7300`。
+
+1. `.env.local` 配置 `CREEM_*`（`CREEM_SERVER=test`；`CREEM_PRODUCT_MAP` 使用 Dashboard 里的 `prod_…` ID）
+2. `pnpm dev`
+3. 公网隧道：
+
+```bash
+ngrok http 3700
+```
+
+4. Creem Dashboard（Test Mode）→ Webhooks，Endpoint：
+
+```
+https://<ngrok-host>/api/billing/webhooks/creem
+```
+
+Secret 与 `CREEM_WEBHOOK_SECRET` 一致；改 env 后重启 server。
+
+5. 浏览器 `http://localhost:7300/billing` 升级并用 test 卡付款。  
+   开通以 webhook 为准（日志 `[billing] creem webhook processed`）；`?checkout=success` 只是回跳。
+
+角色需 `billing.read` / `billing.write`（系统管理员自带）。商品建议用 **recurring**，纯 `onetime` 可能收不到完整 `subscription.*` 事件。
