@@ -1,4 +1,5 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
 
 import { formatLimitExceededMessage, isValidPlanSlug, TENANT_LIMITS_STORAGE_KEY, type PlanSlug, type TenantLimitKey, type TenantLimitValues } from "../../shared/index.js";
 import { LimitExceededError } from "../lib/limit-exceeded.error.js";
@@ -50,7 +51,7 @@ async function getTenantPlanContext(tenantId: string): Promise<{
     select: { plan: true },
   });
   if (!tenant) {
-    throw new Error("租户不存在");
+    throw new NotFoundError("tenant.not_found");
   }
 
   const planSlug = (

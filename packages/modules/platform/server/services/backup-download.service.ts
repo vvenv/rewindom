@@ -3,6 +3,7 @@ import { type createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 
 import { getRedisClient } from "@be-water/server-kernel/infra/redis.service.js";
+import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
 import { BACKUP_FILE_PREFIX } from "@be-water/shared";
 
 import {
@@ -88,6 +89,6 @@ export async function openDatabaseBackupFileStream(jobId: string): Promise<{
     };
   } catch {
     // 上游只提供整库备份；租户数据级备份是业务感知能力，留在下游产品仓。
-    throw new Error("备份文件不存在或已过期");
+    throw new NotFoundError("platform.backup_missing_or_expired");
   }
 }

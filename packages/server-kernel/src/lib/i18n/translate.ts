@@ -22,10 +22,11 @@ declare module "fastify" {
  * 租户默认语言由前端读 appearance 后写入 Accept-Language，服务端不再二次查库。
  */
 export function resolveRequestLocale(
-  request: Pick<FastifyRequest, "headers" | "locale">,
+  request?: Pick<FastifyRequest, "headers" | "locale"> | null,
 ): AppLocale {
+  if (!request) return DEFAULT_LOCALE;
   if (request.locale) return normalizeLocale(request.locale);
-  const header = request.headers["accept-language"];
+  const header = request.headers?.["accept-language"];
   const raw = Array.isArray(header) ? header[0] : header;
   return parseAcceptLanguage(raw, DEFAULT_LOCALE);
 }

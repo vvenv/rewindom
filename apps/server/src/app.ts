@@ -2,6 +2,7 @@ import { config } from "@be-water/server-kernel/lib/config.js";
 import { translateForRequest } from "@be-water/server-kernel/lib/i18n/translate.js";
 import { setupPrisma } from "@be-water/server-kernel/lib/prisma.js";
 import { runWithRequestContext } from "@be-water/server-kernel/lib/request-context.js";
+import { sendCodedError } from "@be-water/server-kernel/http/coded-error.js";
 import {
   IMPORT_MAX_FILE_BYTES,
   MAX_UPLOAD_BYTES,
@@ -129,7 +130,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   app.setNotFoundHandler(async (_request, reply) => {
-    return reply.code(404).send({ error: "接口不存在" });
+    return sendCodedError(reply, 404, "common.endpoint_not_found");
   });
 
   return app;

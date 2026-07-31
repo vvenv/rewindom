@@ -1,8 +1,4 @@
-import {
-  SHELL_LAYOUTS,
-  getShellLayoutLabel,
-  normalizeOptionalShellLayout,
-} from "@be-water/shared";
+import { normalizeOptionalShellLayout } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import {
   DropdownMenu,
@@ -18,6 +14,10 @@ import { PanelsTopLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useShellLayout } from "../contexts/shell-layout-context.js";
+import {
+  translateShellLayoutLabel,
+  translateShellLayoutOptions,
+} from "../lib/translate-shell-layout.js";
 
 /** 「跟随默认」在 radio group 里的哨兵值——DropdownMenuRadioItem 只接受字符串。 */
 const FOLLOW_DEFAULT = "";
@@ -36,8 +36,9 @@ export function ShellLayoutToggle({
   menuSide?: "top" | "bottom" | "left" | "right";
   menuAlign?: "start" | "center" | "end";
 }) {
-  const { t } = useTranslation(["shell", "common"]);
+  const { t, i18n } = useTranslation(["shell", "common"]);
   const { layout, userChoice, defaultLayout, setLayout } = useShellLayout();
+  const options = translateShellLayoutOptions(t);
 
   return (
     <DropdownMenu>
@@ -46,7 +47,9 @@ export function ShellLayoutToggle({
           variant="ghost"
           size="icon"
           className={cn("hidden shrink-0 md:inline-flex", className)}
-          title={t("currentLayout", { label: getShellLayoutLabel(layout) })}
+          title={t("currentLayout", {
+            label: translateShellLayoutLabel(t, layout),
+          })}
         >
           <PanelsTopLeft className="size-4" />
           <span className="sr-only">{t("switchLayout")}</span>
@@ -61,6 +64,7 @@ export function ShellLayoutToggle({
         <DropdownMenuLabel>{t("layout")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
+          key={i18n.language}
           value={userChoice ?? FOLLOW_DEFAULT}
           onValueChange={(value) =>
             setLayout(normalizeOptionalShellLayout(value))
@@ -71,12 +75,12 @@ export function ShellLayoutToggle({
               <span>{t("common:followDefault")}</span>
               <span className="text-muted-foreground text-xs">
                 {t("common:followDefaultCurrent", {
-                  label: getShellLayoutLabel(defaultLayout),
+                  label: translateShellLayoutLabel(t, defaultLayout),
                 })}
               </span>
             </div>
           </DropdownMenuRadioItem>
-          {SHELL_LAYOUTS.map((option) => (
+          {options.map((option) => (
             <DropdownMenuRadioItem key={option.slug} value={option.slug}>
               <div className="flex flex-col gap-0.5">
                 <span>{option.label}</span>

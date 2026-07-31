@@ -2,9 +2,29 @@
   "theme": "Theme",
   "switchTheme": "Switch theme",
   "currentTheme": "Current theme: {{label}}",
+  "themePalettes": {
+    "water": {
+      "label": "Water",
+      "description": "Default palette: water blue with cyan accents for data"
+    },
+    "slate": {
+      "label": "Slate",
+      "description": "Low-saturation neutral blue-gray for long reading and dense tables"
+    }
+  },
   "layout": "Layout",
   "switchLayout": "Switch layout",
   "currentLayout": "Current layout: {{label}}",
+  "shellLayouts": {
+    "sidebar": {
+      "label": "Sidebar",
+      "description": "Left sidebar + main content; better for dense nav, collapsible to icons"
+    },
+    "topbar": {
+      "label": "Top bar",
+      "description": "Top navigation + content below; keeps the full width for the page"
+    }
+  },
   "switchLanguage": "Switch language",
   "currentLanguage": "Current language: {{label}}",
   "changePassword": "Change password",

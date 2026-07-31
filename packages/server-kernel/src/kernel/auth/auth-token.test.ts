@@ -104,12 +104,12 @@ describe("AuthService tokens", () => {
     it("should throw error for invalid refresh token", async () => {
       vi.mocked(prisma.refreshToken.findUnique).mockResolvedValue(null);
       const jwtVerify = vi.fn(() => {
-        throw new Error("刷新令牌无效");
+        throw new Error("invalid refresh token");
       });
 
       await expect(
         AuthService.refresh("invalid_token", vi.fn(), jwtVerify),
-      ).rejects.toThrow("刷新令牌无效");
+      ).rejects.toMatchObject({ code: "auth.refresh_invalid" });
     });
 
     it("should throw error for revoked refresh token", async () => {
@@ -136,7 +136,7 @@ describe("AuthService tokens", () => {
 
       await expect(
         AuthService.refresh("revoked_token", vi.fn(), jwtVerify),
-      ).rejects.toThrow("刷新令牌无效");
+      ).rejects.toMatchObject({ code: "auth.refresh_invalid" });
     });
 
     it("should throw error for expired refresh token", async () => {
@@ -164,7 +164,7 @@ describe("AuthService tokens", () => {
 
       await expect(
         AuthService.refresh("expired_token", vi.fn(), jwtVerify),
-      ).rejects.toThrow("刷新令牌已过期");
+      ).rejects.toMatchObject({ code: "auth.refresh_expired" });
     });
 
     it("should throw error for disabled user", async () => {
@@ -191,7 +191,7 @@ describe("AuthService tokens", () => {
 
       await expect(
         AuthService.refresh("valid_token", vi.fn(), jwtVerify),
-      ).rejects.toThrow("用户账号已禁用");
+      ).rejects.toMatchObject({ code: "auth.account_disabled" });
     });
   });
 

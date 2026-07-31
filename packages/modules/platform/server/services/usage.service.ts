@@ -1,4 +1,5 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
 
 import { shouldShowUsageCard, type PlanSlug, type TenantLimitKey, PRICING_PLANS, type UsageStats  } from "../../shared/index.js";
 
@@ -52,7 +53,7 @@ export async function getTenantUsage(tenantId: string): Promise<UsageStats> {
   });
 
   if (!tenant) {
-    throw new Error("租户不存在");
+    throw new NotFoundError("tenant.not_found");
   }
 
   const planSlug = (tenant.plan || "free") as PlanSlug;

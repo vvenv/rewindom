@@ -2,6 +2,10 @@ import { realpath, readdir, stat } from "node:fs/promises";
 import path, { basename } from "node:path";
 
 import { config } from "@be-water/server-kernel/lib/config.js";
+import {
+  NotFoundError,
+  ValidationError,
+} from "@be-water/server-kernel/lib/app-errors.js";
 
 import { assertCustomDumpFile } from "./backup.service.js";
 
@@ -21,10 +25,10 @@ export async function resolveAllowedLocalRestorePath(
 ): Promise<string> {
   const trimmed = filePath.trim();
   if (!trimmed) {
-    throw new Error("请提供备份文件路径");
+    throw new ValidationError("platform.backup_path_required");
   }
   if (!path.isAbsolute(trimmed)) {
-    throw new Error("备份路径必须是绝对路径");
+    throw new ValidationError("platform.backup_path_absolute");
   }
 
   const allowedRoots = (
@@ -40,28 +44,26 @@ export async function resolveAllowedLocalRestorePath(
   ).filter((root): root is string => root != null);
 
   if (allowedRoots.length === 0) {
-    throw new Error("未配置可用的本地还原目录（DATABASE_RESTORE_LOCAL_PATHS）");
+    throw new ValidationError("platform.restore_paths_missing");
   }
 
   let resolved: string;
   try {
     resolved = await realpath(trimmed);
   } catch {
-    throw new Error(`备份文件不存在：${trimmed}`);
+    throw new NotFoundError("platform.backup_missing_or_expired");
   }
 
   const isAllowed = allowedRoots.some(
     (root) => resolved === root || resolved.startsWith(`${root}${path.sep}`),
   );
   if (!isAllowed) {
-    throw new Error(
-      `备份路径不在允许目录内，允许：${allowedRoots.join("、")}`,
-    );
+    throw new ValidationError("platform.backup_path_not_allowed");
   }
 
   const fileStat = await stat(resolved);
   if (!fileStat.isFile()) {
-    throw new Error("路径不是文件");
+    throw new ValidationError("platform.path_not_file");
   }
 
   await assertCustomDumpFile(resolved);

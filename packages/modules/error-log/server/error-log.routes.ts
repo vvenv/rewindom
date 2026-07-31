@@ -1,5 +1,6 @@
 import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
+import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { success } from "@be-water/shared";
 
@@ -67,7 +68,7 @@ export async function errorLogRoutes(app: FastifyInstance) {
         });
       } catch (error) {
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -92,7 +93,7 @@ export async function errorLogRoutes(app: FastifyInstance) {
         return reply.send({ data: stats });
       } catch (error) {
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -126,7 +127,7 @@ export async function errorLogRoutes(app: FastifyInstance) {
         return reply.send({ data: { deletedCount } });
       } catch (error) {
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -160,7 +161,7 @@ export async function errorLogRoutes(app: FastifyInstance) {
         return reply.send({ data: { deletedCount } });
       } catch (error) {
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -176,17 +177,17 @@ export async function errorLogRoutes(app: FastifyInstance) {
         // Check if user can delete this log
         const log = await ErrorService.getErrorLogById(id, tenantSlug);
         if (!log) {
-          return reply.code(404).send({ error: "错误日志不存在" });
+          return sendCodedError(reply, 404, "error-log.not_found");
         }
 
         if (!ErrorService.belongsToTenant(log, tenantSlug)) {
-          return reply.code(403).send({ error: "无权访问" });
+          return sendCodedError(reply, 403, "common.forbidden_access");
         }
 
         // 有 error_logs.manage 的成员可删本租户任意一条，其余人只能删自己的
         const canManage = await app.hasPermission(request, "error_logs.manage");
         if (!canManage && log.user_id !== request.authUser?.userId) {
-          return reply.code(403).send({ error: "无权访问" });
+          return sendCodedError(reply, 403, "common.forbidden_access");
         }
 
         await ErrorService.deleteErrorLog(id, tenantSlug);
@@ -205,7 +206,7 @@ export async function errorLogRoutes(app: FastifyInstance) {
         return reply.send({ data: { success: true } });
       } catch (error) {
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });

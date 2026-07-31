@@ -1,6 +1,18 @@
-import { InvalidTenantSlugError, ReservedTenantSlugError, success, error , InvalidLoginIdentifierError , isRegularUser  } from "@be-water/shared";
+import {
+  InvalidLoginIdentifierError,
+  InvalidTenantSlugError,
+  isRegularUser,
+  ReservedTenantSlugError,
+  success,
+} from "@be-water/shared";
 
-import { handleValidationError } from "../../http/route-error-handler.js";
+import {
+  handleForbiddenError,
+  handleNotFoundError,
+  handleValidationError,
+  sendCodedError,
+} from "../../http/route-error-handler.js";
+import { AppError, hasErrorCode } from "../../lib/app-errors.js";
 import { emitAuditLog } from "../../runtime/audit-log-emit.js";
 import { AuthService } from "../auth/auth.service.js";
 
@@ -43,7 +55,7 @@ export async function authRoutes(app: FastifyInstance) {
       const { username, password } = request.body as LoginBody;
 
       if (!username || !password) {
-        return handleValidationError(reply, "请输入账号和密码");
+        return handleValidationError(reply, "auth.credentials_required");
       }
 
       const result = await AuthService.login(
@@ -69,19 +81,13 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.send({ data: result });
     } catch (error) {
       if (error instanceof InvalidLoginIdentifierError) {
-        return handleValidationError(reply, error.message);
+        return handleValidationError(reply, "auth.username_invalid");
       }
-      if (error instanceof Error) {
-        if (
-          error.message === "账号或密码不正确" ||
-          error.message === "用户账号已禁用" ||
-          error.message.includes("锁定")
-        ) {
-          return reply.code(401).send({ error: error.message });
-        }
+      if (error instanceof AppError && error.code) {
+        return sendCodedError(reply, error.status, error.code, error.params);
       }
       app.log.error(error);
-      return reply.code(500).send({ error: "服务器内部错误" });
+      return sendCodedError(reply, 500, "common.internal_error");
     }
   });
 
@@ -91,7 +97,7 @@ export async function authRoutes(app: FastifyInstance) {
       const { refreshToken } = request.body as RefreshBody;
 
       if (!refreshToken) {
-        return handleValidationError(reply, "请提供刷新令牌");
+        return handleValidationError(reply, "auth.refresh_required");
       }
 
       const tokens = await AuthService.refresh(
@@ -102,17 +108,11 @@ export async function authRoutes(app: FastifyInstance) {
 
       return reply.send({ data: tokens });
     } catch (error) {
-      if (error instanceof Error) {
-        if (
-          error.message.includes("刷新令牌无效") ||
-          error.message.includes("过期") ||
-          error.message.includes("禁用")
-        ) {
-          return reply.code(401).send({ error: error.message });
-        }
+      if (error instanceof AppError && error.code) {
+        return sendCodedError(reply, error.status, error.code, error.params);
       }
       app.log.error(error);
-      return reply.code(500).send({ error: "服务器内部错误" });
+      return sendCodedError(reply, 500, "common.internal_error");
     }
   });
 
@@ -125,7 +125,7 @@ export async function authRoutes(app: FastifyInstance) {
         const { userId, username } = request.authUser!;
 
         if (!refreshToken) {
-          return handleValidationError(reply, "请提供刷新令牌");
+          return handleValidationError(reply, "auth.refresh_required");
         }
 
         await AuthService.logout(refreshToken);
@@ -148,7 +148,7 @@ export async function authRoutes(app: FastifyInstance) {
         return reply.send({ data: null });
       } catch (error) {
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -195,37 +195,22 @@ export async function authRoutes(app: FastifyInstance) {
         }),
       );
     } catch (err) {
-      if (err instanceof Error && err.message === "REGISTRATION_DISABLED") {
-        return reply
-          .code(403)
-          .send(error("暂未开放自助注册", "REGISTRATION_DISABLED"));
-      }
-      if (err instanceof Error && err.message.includes("不能为空")) {
-        return handleValidationError(reply, err.message);
-      }
-      if (
-        err instanceof Error &&
-        (err.message.includes("长度") || err.message.includes("字符"))
-      ) {
-        return handleValidationError(reply, err.message);
-      }
-      if (err instanceof Error && err.message.includes("密码需要")) {
-        return handleValidationError(reply, err.message);
-      }
-      if (err instanceof Error && err.message.includes("账号只能包含")) {
-        return handleValidationError(reply, err.message);
+      if (err instanceof AppError && err.code) {
+        return sendCodedError(reply, err.status, err.code, err.params);
       }
       if (
         err instanceof InvalidTenantSlugError ||
         err instanceof ReservedTenantSlugError
       ) {
-        return handleValidationError(reply, err.message);
-      }
-      if (err instanceof Error && err.message === "租户标识已存在") {
-        return reply.code(409).send(error(err.message));
+        return handleValidationError(
+          reply,
+          err instanceof ReservedTenantSlugError
+            ? "tenant.slug_reserved"
+            : "tenant.slug_invalid",
+        );
       }
       app.log.error(err);
-      return reply.code(500).send({ error: "服务器内部错误" });
+      return sendCodedError(reply, 500, "common.internal_error");
     }
   });
 
@@ -238,15 +223,18 @@ export async function authRoutes(app: FastifyInstance) {
         const { oldPassword, newPassword } = request.body as ChangePasswordBody;
 
         if (!oldPassword || !newPassword) {
-          return handleValidationError(reply, "请输入旧密码和新密码");
+          return handleValidationError(
+            reply,
+            "auth.change_password_fields_required",
+          );
         }
 
         if (newPassword.length < 6) {
-          return handleValidationError(reply, "新密码至少需要6个字符");
+          return handleValidationError(reply, "auth.password_min_6");
         }
 
         if (!isRegularUser({ username, actor_type })) {
-          return reply.code(403).send({ error: "该账号不支持修改密码" });
+          return handleForbiddenError(reply, "auth.password_change_unsupported");
         }
 
         await AuthService.changePassword({
@@ -273,11 +261,11 @@ export async function authRoutes(app: FastifyInstance) {
 
         return reply.send({ data: null });
       } catch (error) {
-        if (error instanceof Error && error.message === "旧密码不正确") {
-          return reply.code(401).send({ error: error.message });
+        if (hasErrorCode(error, "auth.old_password_wrong")) {
+          return sendCodedError(reply, 401, "auth.old_password_wrong");
         }
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -292,11 +280,11 @@ export async function authRoutes(app: FastifyInstance) {
 
         return reply.send({ data: user });
       } catch (error) {
-        if (error instanceof Error && error.message === "用户不存在") {
-          return reply.code(404).send({ error: error.message });
+        if (hasErrorCode(error, "user.not_found")) {
+          return handleNotFoundError(reply, "user.not_found");
         }
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });

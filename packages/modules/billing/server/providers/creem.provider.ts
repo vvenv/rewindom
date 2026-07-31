@@ -21,7 +21,7 @@ export function getCreemProductId(planSlug: string): string | undefined {
 function createCreemClient(): Creem {
   const apiKey = config.billing.creem.apiKey.trim();
   if (!apiKey) {
-    throw new ValidationError("未配置 CREEM_API_KEY，无法发起付款");
+    throw new ValidationError("billing.creem_api_key_missing_checkout");
   }
   return new Creem({
     apiKey,
@@ -36,9 +36,9 @@ export class CreemProvider implements PaymentProvider {
     input: CreateCheckoutInput,
   ): Promise<CreateCheckoutResult> {
     if (!input.product_id.startsWith("prod_")) {
-      throw new ValidationError(
-        `Creem product_id 无效：${input.product_id}（应为 prod_…，请检查 CREEM_PRODUCT_MAP）`,
-      );
+      throw new ValidationError("billing.product_invalid", {
+        product_id: input.product_id,
+      });
     }
 
     const creem = createCreemClient();
@@ -54,7 +54,7 @@ export class CreemProvider implements PaymentProvider {
       });
 
       if (!checkout.checkoutUrl) {
-        throw new ValidationError("Creem 未返回 checkout_url");
+        throw new ValidationError("billing.creem_checkout_url_missing");
       }
 
       return {
@@ -64,9 +64,9 @@ export class CreemProvider implements PaymentProvider {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       if (/Product not found/i.test(message)) {
-        throw new ValidationError(
-          `Creem 找不到商品 ${input.product_id}（确认 CREEM_SERVER=test/prod 与 Dashboard 中该商品一致）`,
-        );
+        throw new ValidationError("billing.product_missing", {
+          product_id: input.product_id,
+        });
       }
       throw err;
     }

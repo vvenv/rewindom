@@ -1,4 +1,8 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import {
+  NotFoundError,
+  ValidationError,
+} from "@be-water/server-kernel/lib/app-errors.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import {
   isValidModulePermission,
@@ -116,10 +120,10 @@ export class RoleService {
       where: { id: roleId, scope: "platform", tenant_id: null },
     });
     if (!existing) {
-      throw new Error("角色不存在");
+      throw new NotFoundError("role.not_found");
     }
     if (existing.is_builtin && input.permissions !== undefined) {
-      throw new Error("内置角色不可修改权限");
+      throw new ValidationError("role.builtin_immutable");
     }
 
     const permissions =
@@ -160,10 +164,10 @@ export class RoleService {
       where: { id: roleId, scope: "platform", tenant_id: null },
     });
     if (!existing) {
-      throw new Error("角色不存在");
+      throw new NotFoundError("role.not_found");
     }
     if (existing.is_builtin) {
-      throw new Error("内置角色不可删除");
+      throw new ValidationError("role.builtin_undeletable");
     }
     await prisma.role.delete({
       where: { id: roleId, scope: "platform", tenant_id: null },
@@ -202,10 +206,10 @@ export class RoleService {
       where: withTenantScope(tenantId, { id: roleId, scope: "tenant" }),
     });
     if (!existing) {
-      throw new Error("角色不存在");
+      throw new NotFoundError("role.not_found");
     }
     if (existing.is_builtin && input.permissions !== undefined) {
-      throw new Error("内置角色不可修改权限");
+      throw new ValidationError("role.builtin_immutable");
     }
 
     const permissions =
@@ -249,10 +253,10 @@ export class RoleService {
       where: withTenantScope(tenantId, { id: roleId, scope: "tenant" }),
     });
     if (!existing) {
-      throw new Error("角色不存在");
+      throw new NotFoundError("role.not_found");
     }
     if (existing.is_builtin) {
-      throw new Error("内置角色不可删除");
+      throw new ValidationError("role.builtin_undeletable");
     }
     await prisma.role.delete({
       where: withTenantScope(tenantId, { id: roleId }),
@@ -344,7 +348,9 @@ function validatePlatformPermissions(
       !catalog.platformPermissionKeys.includes(p),
   );
   if (invalid.length > 0) {
-    throw new Error(`无效权限：${invalid.join("、")}`);
+    throw new ValidationError("permission.invalid_list", {
+      permissions: invalid.join("、"),
+    });
   }
   return [...new Set(permissions)];
 }
@@ -359,7 +365,9 @@ function validateTenantPermissions(
       !catalog.tenantPermissionKeys.includes(p),
   );
   if (invalid.length > 0) {
-    throw new Error(`无效权限：${invalid.join("、")}`);
+    throw new ValidationError("permission.invalid_list", {
+      permissions: invalid.join("、"),
+    });
   }
   return [...new Set(permissions)];
 }

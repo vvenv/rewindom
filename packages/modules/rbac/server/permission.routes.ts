@@ -1,4 +1,8 @@
-import { handleValidationError } from "@be-water/server-kernel/http/route-error-handler.js";
+import {
+  handleValidationError,
+  sendCodedError,
+} from "@be-water/server-kernel/http/route-error-handler.js";
+import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
@@ -20,7 +24,7 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
 
   app.get("/auth/permissions", async (request, reply) => {
     if (!request.authUser) {
-      return reply.code(401).send({ error: "未授权" });
+      return sendCodedError(reply, 401, "common.unauthorized");
     }
 
     const { userId, actor_type, is_system_admin } = request.authUser;
@@ -69,10 +73,10 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
       };
 
       if (!body.name?.trim()) {
-        return handleValidationError(reply, "请输入角色名称");
+        return handleValidationError(reply, "role.name_required");
       }
       if (!Array.isArray(body.permissions)) {
-        return handleValidationError(reply, "权限必须是数组");
+        return handleValidationError(reply, "permission.must_be_array");
       }
 
       try {
@@ -102,8 +106,15 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
 
         return reply.code(201).send({ data: role });
       } catch (err) {
-        const message = err instanceof Error ? err.message : "创建角色失败";
-        return handleValidationError(reply, message);
+        if (hasErrorCode(err, "permission.invalid_list")) {
+          const params =
+            typeof err === "object" && err !== null && "params" in err
+              ? (err.params as Record<string, unknown> | undefined)
+              : undefined;
+          return sendCodedError(reply, 400, "permission.invalid_list", params);
+        }
+        app.log.error(err);
+        return sendCodedError(reply, 500, "role.create_failed");
       }
     },
   );
@@ -147,8 +158,24 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
 
         return reply.send({ data: role });
       } catch (err) {
-        const message = err instanceof Error ? err.message : "更新角色失败";
-        return handleValidationError(reply, message);
+        if (hasErrorCode(err, "role.not_found")) {
+          return sendCodedError(reply, 404, "role.not_found");
+        }
+        if (
+          hasErrorCode(err, "role.builtin_immutable") ||
+          hasErrorCode(err, "permission.invalid_list")
+        ) {
+          const code = hasErrorCode(err, "role.builtin_immutable")
+            ? "role.builtin_immutable"
+            : "permission.invalid_list";
+          const params =
+            typeof err === "object" && err !== null && "params" in err
+              ? (err.params as Record<string, unknown> | undefined)
+              : undefined;
+          return sendCodedError(reply, 400, code, params);
+        }
+        app.log.error(err);
+        return sendCodedError(reply, 500, "role.update_failed");
       }
     },
   );
@@ -176,8 +203,14 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
 
         return reply.send({ data: { success: true } });
       } catch (err) {
-        const message = err instanceof Error ? err.message : "删除角色失败";
-        return handleValidationError(reply, message);
+        if (hasErrorCode(err, "role.not_found")) {
+          return sendCodedError(reply, 404, "role.not_found");
+        }
+        if (hasErrorCode(err, "role.builtin_undeletable")) {
+          return sendCodedError(reply, 400, "role.builtin_undeletable");
+        }
+        app.log.error(err);
+        return sendCodedError(reply, 500, "role.delete_failed");
       }
     },
   );
@@ -212,7 +245,7 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
       });
 
       if (!user) {
-        return reply.code(404).send({ error: "用户不存在" });
+        return sendCodedError(reply, 404, "user.not_found");
       }
 
       return reply.send({
@@ -237,7 +270,7 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
       const tenantId = request.tenantContext!.tenant_id;
 
       if (!Array.isArray(roleIds)) {
-        return handleValidationError(reply, "角色必须是数组");
+        return handleValidationError(reply, "role.roles_must_be_array");
       }
 
       const user = await prisma.user.findFirst({
@@ -246,11 +279,11 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
       });
 
       if (!user) {
-        return reply.code(404).send({ error: "用户不存在" });
+        return sendCodedError(reply, 404, "user.not_found");
       }
 
       if (user.is_system_admin) {
-        return handleValidationError(reply, "无法修改系统管理员的角色");
+        return handleValidationError(reply, "role.system_admin_immutable");
       }
 
       try {
@@ -285,8 +318,11 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
           },
         });
       } catch (err) {
-        const message = err instanceof Error ? err.message : "更新角色失败";
-        return handleValidationError(reply, message);
+        if (hasErrorCode(err, "role.invalid_roles")) {
+          return handleValidationError(reply, "role.invalid_roles");
+        }
+        app.log.error(err);
+        return sendCodedError(reply, 500, "role.update_failed");
       }
     },
   );
@@ -305,7 +341,7 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
       });
 
       if (!user) {
-        return reply.code(404).send({ error: "用户不存在" });
+        return sendCodedError(reply, 404, "user.not_found");
       }
 
       const permissions = await loadActorPermissions(

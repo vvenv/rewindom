@@ -95,6 +95,7 @@ describe("createTenantFeaturePreHandler", () => {
     expect(reply.send).toHaveBeenCalledWith({
       error: "高级分析功能未启用，请联系平台管理员",
       code: "FEATURE_DISABLED",
+      params: { label: "高级分析" },
     });
   });
 
@@ -112,6 +113,7 @@ describe("createTenantFeaturePreHandler", () => {
       expect(reply.send).toHaveBeenCalledWith({
         error: `${feature.label}功能未启用，请联系平台管理员`,
         code: "FEATURE_DISABLED",
+        params: { label: feature.label },
       });
 
       vi.clearAllMocks();

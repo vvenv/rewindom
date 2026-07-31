@@ -87,7 +87,10 @@ describe("permission.middleware", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json()).toEqual({ error: "未授权" });
+      expect(response.json()).toEqual({
+        error: "未授权",
+        code: "common.unauthorized",
+      });
     });
 
     it("should allow system admin without checking permissions", async () => {
@@ -122,7 +125,10 @@ describe("permission.middleware", () => {
       });
 
       expect(response.statusCode).toBe(500);
-      expect(response.json()).toEqual({ error: "无效权限" });
+      expect(response.json()).toEqual({
+        error: "无效权限",
+        code: "permission.invalid",
+      });
     });
 
     it("should return 403 when user lacks permission", async () => {
@@ -149,6 +155,7 @@ describe("permission.middleware", () => {
       expect(response.statusCode).toBe(403);
       expect(response.json()).toEqual({
         error: "无权访问：权限不足",
+        code: "common.forbidden_permission",
       });
     });
 
@@ -228,6 +235,7 @@ describe("permission.middleware", () => {
       expect(response.statusCode).toBe(403);
       expect(response.json()).toEqual({
         error: "无权访问：权限不足",
+        code: "common.forbidden_permission",
       });
     });
   });

@@ -7,19 +7,42 @@ export interface CalendarRangePresetOption {
   label: string;
 }
 
-export const DEFAULT_DATETIME_RANGE_PRESETS: CalendarRangePresetOption[] = [
-  { preset: "today", label: "今日" },
-  { preset: "yesterday", label: "昨日" },
-  { preset: "last_7_days", label: "近一周" },
-  { preset: "last_30_days", label: "近一月" },
-];
+/** 默认快捷范围（不含文案；文案由 `buildDefaultDateTimeRangePresets` / DateTimeRangePicker 翻译）。 */
+export const DEFAULT_DATETIME_RANGE_PRESET_IDS: readonly CalendarRangePreset[] = [
+  "today",
+  "yesterday",
+  "last_7_days",
+  "last_30_days",
+] as const;
 
-export const REPORT_DATE_RANGE_PRESETS: CalendarRangePresetOption[] = [
-  { preset: "today", label: "今日" },
-  { preset: "yesterday", label: "昨日" },
-  { preset: "last_7_days", label: "近一周" },
-  { preset: "last_30_days", label: "近一月" },
-];
+export function buildDefaultDateTimeRangePresets(
+  t: (key: string) => string,
+): CalendarRangePresetOption[] {
+  return DEFAULT_DATETIME_RANGE_PRESET_IDS.map((preset) => ({
+    preset,
+    label: t(`dateRangePicker.presets.${preset}`),
+  }));
+}
+
+const DEFAULT_PRESET_LABELS_ZH: Record<
+  (typeof DEFAULT_DATETIME_RANGE_PRESET_IDS)[number],
+  string
+> = {
+  today: "今日",
+  yesterday: "昨日",
+  last_7_days: "近一周",
+  last_30_days: "近一月",
+};
+
+/** @deprecated 使用 `buildDefaultDateTimeRangePresets`；保留作非 React 场景的 zh-CN 兜底 */
+export const DEFAULT_DATETIME_RANGE_PRESETS: CalendarRangePresetOption[] =
+  DEFAULT_DATETIME_RANGE_PRESET_IDS.map((preset) => ({
+    preset,
+    label: DEFAULT_PRESET_LABELS_ZH[preset],
+  }));
+
+/** @deprecated 与 DEFAULT_DATETIME_RANGE_PRESETS 相同 */
+export const REPORT_DATE_RANGE_PRESETS = DEFAULT_DATETIME_RANGE_PRESETS;
 
 export function naiveDatetimeToDate(value: string): Date {
   return new Date(value);

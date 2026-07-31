@@ -1,9 +1,9 @@
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
 import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
+import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 import {
-  NotFoundError,
-  ValidationError,
+  AppError,
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 
@@ -90,7 +90,7 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
     handler: async (request, reply) => {
       const body = request.body as { completed?: unknown };
       if (typeof body?.completed !== "boolean") {
-        return reply.code(400).send({ error: "completed 必须是布尔值" });
+        return sendCodedError(reply, 400, "todos.completed_must_be_boolean");
       }
 
       const updated = await setAllTodosCompleted({
@@ -124,8 +124,8 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
         const { todo_id } = request.params as { todo_id: string };
         return await getTodo(request.tenantContext!.tenant_id, todo_id);
       } catch (err) {
-        if (err instanceof NotFoundError) {
-          return reply.code(404).send({ error: err.message });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }
@@ -159,8 +159,8 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
 
         return todo;
       } catch (err) {
-        if (err instanceof ValidationError) {
-          return reply.code(400).send({ error: err.message });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }
@@ -196,11 +196,8 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
 
         return todo;
       } catch (err) {
-        if (err instanceof NotFoundError) {
-          return reply.code(404).send({ error: err.message });
-        }
-        if (err instanceof ValidationError) {
-          return reply.code(400).send({ error: err.message });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }
@@ -233,8 +230,8 @@ export async function todoRoutes(app: FastifyInstance): Promise<void> {
 
         return { deleted: true };
       } catch (err) {
-        if (err instanceof NotFoundError) {
-          return reply.code(404).send({ error: err.message });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }

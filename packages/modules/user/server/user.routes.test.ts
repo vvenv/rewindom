@@ -1,5 +1,9 @@
 import * as auditLogEmit from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import {
+  ConflictError,
+  NotFoundError,
+} from "@be-water/server-kernel/lib/app-errors.js";
+import {
   createRouteTestApp,
   createTestUserFast,
   grantPermission,
@@ -267,7 +271,7 @@ describe("User Routes", () => {
 
     it("should return 409 if username already exists", async () => {
       vi.spyOn(UserManagementService, "createUser").mockRejectedValue(
-        new Error("用户名已存在"),
+        new ConflictError("auth.username_exists"),
       );
 
       const response = await app.inject({
@@ -277,6 +281,7 @@ describe("User Routes", () => {
         payload: { username: adminUser.username, password: "password123" },
       });
       expect(response.statusCode).toBe(409);
+      expect(response.json().code).toBe("auth.username_exists");
     });
   });
 
@@ -308,7 +313,7 @@ describe("User Routes", () => {
 
     it("should return 404 if user not found", async () => {
       vi.spyOn(UserManagementService, "getUserByIdAdmin").mockRejectedValue(
-        new Error("用户不存在"),
+        new NotFoundError("user.not_found"),
       );
 
       const response = await app.inject({
@@ -317,6 +322,7 @@ describe("User Routes", () => {
         headers: authHeaders(adminUser),
       });
       expect(response.statusCode).toBe(404);
+      expect(response.json().code).toBe("user.not_found");
     });
   });
 
@@ -347,9 +353,7 @@ describe("User Routes", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.payload)).toEqual({
-        error: "用户名无法修改",
-      });
+      expect(response.json().code).toBe("auth.username_immutable");
     });
 
     it("should return 403 without users.write permission", async () => {
@@ -364,7 +368,7 @@ describe("User Routes", () => {
 
     it("should return 404 if user not found", async () => {
       vi.spyOn(UserManagementService, "updateUser").mockRejectedValue(
-        new Error("用户不存在"),
+        new NotFoundError("user.not_found"),
       );
 
       const response = await app.inject({
@@ -374,6 +378,7 @@ describe("User Routes", () => {
         payload: { enabled: true },
       });
       expect(response.statusCode).toBe(404);
+      expect(response.json().code).toBe("user.not_found");
     });
 
     it("should return 400 if no fields to update", async () => {
@@ -468,7 +473,7 @@ describe("User Routes", () => {
 
     it("should return 404 if user not found", async () => {
       vi.spyOn(UserManagementService, "getUserByIdAdmin").mockRejectedValue(
-        new Error("用户不存在"),
+        new NotFoundError("user.not_found"),
       );
 
       const response = await app.inject({
@@ -477,6 +482,7 @@ describe("User Routes", () => {
         headers: authHeaders(adminUser),
       });
       expect(response.statusCode).toBe(404);
+      expect(response.json().code).toBe("user.not_found");
     });
   });
 
@@ -535,7 +541,7 @@ describe("User Routes", () => {
 
     it("should return 404 if user not found", async () => {
       vi.spyOn(UserManagementService, "resetPassword").mockRejectedValue(
-        new Error("用户不存在"),
+        new NotFoundError("user.not_found"),
       );
 
       const response = await app.inject({
@@ -545,6 +551,7 @@ describe("User Routes", () => {
         payload: { newPassword: "newpassword123" },
       });
       expect(response.statusCode).toBe(404);
+      expect(response.json().code).toBe("user.not_found");
     });
   });
 });

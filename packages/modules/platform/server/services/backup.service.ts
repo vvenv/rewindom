@@ -5,6 +5,7 @@ import { dirname, join } from "path";
 import { promisify } from "util";
 
 import { config } from "@be-water/server-kernel/lib/config.js";
+import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
 import { createModuleLogger } from "@be-water/server-kernel/lib/logger.js";
 import { BACKUP_FILE_PREFIX } from "@be-water/shared";
 
@@ -60,14 +61,12 @@ async function readFilePrefix(
 export async function assertCustomDumpFile(filePath: string): Promise<void> {
   const fileStat = await stat(filePath);
   if (fileStat.size < MIN_BACKUP_FILE_BYTES) {
-    throw new Error(`备份文件缺失或为空（${fileStat.size} 字节）：${filePath}`);
+    throw new AppError({ code: "platform.backup_failed", status: 500 });
   }
 
   const header = await readFilePrefix(filePath, 5);
   if (header.toString("utf8", 0, 5) !== CUSTOM_DUMP_MAGIC) {
-    throw new Error(
-      `备份文件格式无效（非 PostgreSQL custom dump）：${filePath}`,
-    );
+    throw new AppError({ code: "platform.backup_failed", status: 400 });
   }
 }
 
@@ -123,17 +122,15 @@ export class BackupService {
       await execAsync(command, { maxBuffer: 10 * 1024 * 1024 });
       const tempStat = await stat(tempFile);
       if (tempStat.size < MIN_BACKUP_FILE_BYTES) {
-        throw new Error(`备份文件过小（${tempStat.size} 字节）`);
+        throw new AppError({ code: "platform.backup_failed", status: 500 });
       }
       await rename(tempFile, filePath);
       const fileStat = await stat(filePath);
       return { filename, filePath, size_bytes: fileStat.size };
     } catch (error) {
       await unlink(filePath).catch(() => undefined);
-      throw new Error(
-        `备份失败：${error instanceof Error ? error.message : "未知错误"}`,
-        { cause: error },
-      );
+      if (error instanceof AppError) throw error;
+      throw new AppError({ code: "platform.backup_failed", status: 500 });
     } finally {
       try {
         await unlink(tempFile);
@@ -157,10 +154,8 @@ export class BackupService {
       await resetPublicSchema(cleanUrl);
       await restoreCustomDump(cleanUrl, backupFilePath);
     } catch (error) {
-      throw new Error(
-        `恢复失败：${error instanceof Error ? error.message : "未知错误"}`,
-        { cause: error },
-      );
+      if (error instanceof AppError) throw error;
+      throw new AppError({ code: "platform.restore_failed", status: 500 });
     }
   }
 

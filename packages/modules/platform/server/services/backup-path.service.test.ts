@@ -67,7 +67,7 @@ describe("backup-path.service", () => {
     vi.mocked(realpath).mockImplementation(async (input) => String(input));
 
     await expect(resolveAllowedLocalRestorePath("/etc/passwd")).rejects.toThrow(
-      "不在允许目录内",
+      "备份路径不在允许目录内",
     );
   });
 

@@ -1,3 +1,4 @@
+import { buildCodedErrorBody } from "@be-water/server-kernel/http/coded-error.js";
 import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
 import { findCatalogFeature, type TenantFeatureKey } from "@be-water/shared";
 
@@ -19,8 +20,9 @@ export function createTenantFeaturePreHandler(key: TenantFeatureKey) {
     const catalog = getServerTenantCatalog();
     const feature = findCatalogFeature(catalog, key);
     const label = feature?.label ?? key;
+    // 客户端契约保留 FEATURE_DISABLED；文案走 catalog
     return reply.code(403).send({
-      error: `${label}功能未启用，请联系平台管理员`,
+      ...buildCodedErrorBody(reply, "platform.feature_disabled", { label }),
       code: "FEATURE_DISABLED",
     });
   };

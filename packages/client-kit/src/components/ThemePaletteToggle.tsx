@@ -1,6 +1,4 @@
 import {
-  THEME_PALETTES,
-  getThemePaletteLabel,
   normalizeOptionalThemePalette,
 } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
@@ -18,6 +16,10 @@ import { Palette } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useThemePalette } from "../contexts/theme-palette-context.js";
+import {
+  translateThemePaletteLabel,
+  translateThemePaletteOptions,
+} from "../lib/translate-theme-palette.js";
 
 /** 「跟随默认」在 radio group 里的哨兵值——DropdownMenuRadioItem 只接受字符串。 */
 const FOLLOW_DEFAULT = "";
@@ -37,8 +39,9 @@ export function ThemePaletteToggle({
   menuSide?: "top" | "bottom" | "left" | "right";
   menuAlign?: "start" | "center" | "end";
 }) {
-  const { t } = useTranslation(["shell", "common"]);
+  const { t, i18n } = useTranslation(["shell", "common"]);
   const { palette, userChoice, defaultPalette, setPalette } = useThemePalette();
+  const options = translateThemePaletteOptions(t);
 
   return (
     <DropdownMenu>
@@ -47,7 +50,9 @@ export function ThemePaletteToggle({
           variant="ghost"
           size="icon"
           className={cn("shrink-0", className)}
-          title={t("currentTheme", { label: getThemePaletteLabel(palette) })}
+          title={t("currentTheme", {
+            label: translateThemePaletteLabel(t, palette),
+          })}
         >
           <Palette className="size-4" />
           <span className="sr-only">{t("switchTheme")}</span>
@@ -63,6 +68,7 @@ export function ThemePaletteToggle({
         <DropdownMenuLabel>{t("theme")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
+          key={i18n.language}
           value={userChoice ?? FOLLOW_DEFAULT}
           onValueChange={(value) =>
             setPalette(normalizeOptionalThemePalette(value))
@@ -73,12 +79,12 @@ export function ThemePaletteToggle({
               <span>{t("common:followDefault")}</span>
               <span className="text-muted-foreground text-xs">
                 {t("common:followDefaultCurrent", {
-                  label: getThemePaletteLabel(defaultPalette),
+                  label: translateThemePaletteLabel(t, defaultPalette),
                 })}
               </span>
             </div>
           </DropdownMenuRadioItem>
-          {THEME_PALETTES.map((option) => (
+          {options.map((option) => (
             <DropdownMenuRadioItem key={option.slug} value={option.slug}>
               <div className="flex flex-col gap-0.5">
                 <span>{option.label}</span>

@@ -47,7 +47,7 @@ describe("AuthService user lookup", () => {
 
       await expect(
         AuthService.getUserById("user-123", "tenant_user"),
-      ).rejects.toThrow("用户不存在");
+      ).rejects.toMatchObject({ code: "user.not_found" });
     });
   });
 });

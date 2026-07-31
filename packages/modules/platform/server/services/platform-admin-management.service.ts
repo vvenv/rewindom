@@ -1,5 +1,10 @@
 import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
 import { AuthService } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 
 const PLATFORM_ADMIN_SORTABLE_FIELDS = new Set([
@@ -146,7 +151,7 @@ export class PlatformAdminManagementService {
       select: adminSelect,
     });
     if (!admin) {
-      throw new Error("管理员不存在");
+      throw new NotFoundError("platform.admin_not_found");
     }
     return toListItem(admin);
   }
@@ -160,17 +165,17 @@ export class PlatformAdminManagementService {
   }): Promise<PlatformAdminListItem> {
     const username = input.username.trim();
     if (!username || username.includes("@")) {
-      throw new Error("账号格式无效");
+      throw new ValidationError("auth.username_invalid");
     }
     if (input.password.length < 6) {
-      throw new Error("密码至少需要6个字符");
+      throw new ValidationError("auth.password_min_6");
     }
 
     const existing = await prisma.platformAdmin.findUnique({
       where: { username },
     });
     if (existing) {
-      throw new Error("用户名已存在");
+      throw new ConflictError("auth.username_exists");
     }
 
     const hashedPassword = await AuthService.hashPassword(input.password);
@@ -220,7 +225,7 @@ export class PlatformAdminManagementService {
       where: { id: input.id },
     });
     if (!existing) {
-      throw new Error("管理员不存在");
+      throw new NotFoundError("platform.admin_not_found");
     }
 
     const nextIsSystemAdmin = input.is_system_admin ?? existing.is_system_admin;
@@ -229,7 +234,7 @@ export class PlatformAdminManagementService {
       input.is_system_admin === false &&
       (await countSystemAdmins()) <= 1
     ) {
-      throw new Error("至少保留一名系统管理员");
+      throw new ValidationError("platform.admin_last_system_required");
     }
 
     if (input.role_ids !== undefined && !nextIsSystemAdmin) {
@@ -278,16 +283,16 @@ export class PlatformAdminManagementService {
 
   static async deleteAdmin(id: string, operatorId: string): Promise<void> {
     if (id === operatorId) {
-      throw new Error("不能删除自己的账号");
+      throw new ValidationError("auth.cannot_delete_self");
     }
 
     const existing = await prisma.platformAdmin.findUnique({ where: { id } });
     if (!existing) {
-      throw new Error("管理员不存在");
+      throw new NotFoundError("platform.admin_not_found");
     }
 
     if (existing.is_system_admin && (await countSystemAdmins()) <= 1) {
-      throw new Error("至少保留一名系统管理员");
+      throw new ValidationError("platform.admin_last_system_required");
     }
 
     await prisma.platformAdmin.delete({ where: { id } });
@@ -298,12 +303,12 @@ export class PlatformAdminManagementService {
     newPassword: string,
   ): Promise<{ password: string }> {
     if (newPassword.length < 6) {
-      throw new Error("密码至少需要6个字符");
+      throw new ValidationError("auth.password_min_6");
     }
 
     const existing = await prisma.platformAdmin.findUnique({ where: { id } });
     if (!existing) {
-      throw new Error("管理员不存在");
+      throw new NotFoundError("platform.admin_not_found");
     }
 
     const hashedPassword = await AuthService.hashPassword(newPassword);
@@ -331,7 +336,7 @@ async function assertValidPlatformRoleIds(roleIds: string[]): Promise<void> {
     select: { id: true },
   });
   if (validRoles.length !== roleIds.length) {
-    throw new Error("包含无效的角色");
+    throw new ValidationError("role.invalid_roles");
   }
 }
 

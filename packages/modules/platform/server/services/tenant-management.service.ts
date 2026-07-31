@@ -1,5 +1,10 @@
 
 import { AuthService, type JwtSignPayload } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug  } from "@be-water/shared";
 
@@ -55,7 +60,7 @@ function parsePlanEndsAt(
   }
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
-    throw new Error("无效的到期时间");
+    throw new ValidationError("tenant.plan_ends_at_invalid");
   }
   return parsed;
 }
@@ -100,12 +105,12 @@ export async function createTenant(
   const slug = assertValidTenantSlug(input.slug);
   const name = input.name.trim();
   if (!name) {
-    throw new Error("租户名称不能为空");
+    throw new ValidationError("tenant.name_required");
   }
 
   const existing = await prisma.tenant.findUnique({ where: { slug } });
   if (existing) {
-    throw new Error("租户标识已存在");
+    throw new ConflictError("tenant.slug_exists");
   }
 
   const plainPassword = generateRandomPassword();
@@ -147,7 +152,7 @@ export async function resetTenantAdminPassword(
 ): Promise<TenantAdminCredentials> {
   const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
   if (!tenant) {
-    throw new Error("租户不存在");
+    throw new NotFoundError("tenant.not_found");
   }
 
   const adminUser = await prisma.user.findUnique({
@@ -161,7 +166,7 @@ export async function resetTenantAdminPassword(
 
   const password = newPassword?.trim() || generateRandomPassword();
   if (password.length < 6) {
-    throw new Error("密码至少需要6个字符");
+    throw new ValidationError("auth.password_min_6");
   }
 
   const hashedPassword = await AuthService.hashPassword(password);
@@ -211,7 +216,7 @@ export async function patchTenant(
 ): Promise<TenantSummary> {
   const existing = await prisma.tenant.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error("租户不存在");
+    throw new NotFoundError("tenant.not_found");
   }
 
   const data: {
@@ -225,13 +230,13 @@ export async function patchTenant(
     const slug = assertValidTenantSlug(patch.slug);
     if (slug !== existing.slug) {
       if (existing.slug === "default") {
-        throw new Error("默认租户标识不可修改");
+        throw new ValidationError("tenant.default_slug_immutable");
       }
       const conflict = await prisma.tenant.findFirst({
         where: { slug, NOT: { id } },
       });
       if (conflict) {
-        throw new Error("租户标识已存在");
+        throw new ConflictError("tenant.slug_exists");
       }
       data.slug = slug;
     }
@@ -240,7 +245,7 @@ export async function patchTenant(
   if (patch.name !== undefined) {
     const name = patch.name.trim();
     if (!name) {
-      throw new Error("租户名称不能为空");
+      throw new ValidationError("tenant.name_required");
     }
     data.name = name;
   }
@@ -253,13 +258,13 @@ export async function patchTenant(
       patch.status !== "suspended" &&
       patch.status !== "archived"
     ) {
-      throw new Error("无效的租户状态");
+      throw new ValidationError("tenant.status_invalid");
     }
     if (
       existing.slug === "default" &&
       (patch.status === "suspended" || patch.status === "archived")
     ) {
-      throw new Error("默认租户不可暂停或归档");
+      throw new ValidationError("tenant.default_not_suspendable_or_archivable");
     }
     data.status = patch.status;
   }
@@ -469,10 +474,10 @@ export async function impersonateTenantAdmin(
 ): Promise<ImpersonateTenantResult> {
   const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
   if (!tenant) {
-    throw new Error("租户不存在");
+    throw new NotFoundError("tenant.not_found");
   }
   if (tenant.status !== "active") {
-    throw new Error("仅可代登录正常状态的租户");
+    throw new ValidationError("tenant.impersonate_active_only");
   }
 
   const targetUserId =
@@ -482,10 +487,10 @@ export async function impersonateTenantAdmin(
     where: { id: targetUserId },
   });
   if (!targetUser || targetUser.tenant_id !== tenantId) {
-    throw new Error("目标用户不存在或不属于该租户");
+    throw new NotFoundError("tenant.impersonate_user_missing");
   }
   if (!targetUser.enabled) {
-    throw new Error("目标用户已被禁用");
+    throw new ValidationError("tenant.impersonate_user_disabled");
   }
 
   const tokens = AuthService.generateTokens(
@@ -533,18 +538,18 @@ export async function updateTenantPlan(
   body: UpdateTenantPlanBody,
 ): Promise<TenantSummary> {
   if (body.plan === undefined && body.plan_ends_at === undefined) {
-    throw new Error("请提供 plan 或 plan_ends_at");
+    throw new ValidationError("tenant.plan_fields_required");
   }
 
   const existing = await prisma.tenant.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error("租户不存在");
+    throw new NotFoundError("tenant.not_found");
   }
 
   const nextPlan =
     body.plan !== undefined ? body.plan : (existing.plan as PlanSlug);
   if (!isValidPlanSlug(nextPlan)) {
-    throw new Error("无效的套餐");
+    throw new ValidationError("plan.invalid");
   }
 
   const parsedPlanEndsAt = parsePlanEndsAt(body.plan_ends_at);

@@ -112,7 +112,7 @@ describe("AuthService login", () => {
           },
           vi.fn(),
         ),
-      ).rejects.toThrow("账号或密码不正确");
+      ).rejects.toMatchObject({ code: "auth.invalid_credentials" });
     });
 
     it("should throw error for disabled user", async () => {
@@ -138,7 +138,7 @@ describe("AuthService login", () => {
           },
           vi.fn(),
         ),
-      ).rejects.toThrow("用户账号已禁用");
+      ).rejects.toMatchObject({ code: "auth.account_disabled" });
     });
 
     it("should throw error for locked account", async () => {
@@ -165,7 +165,7 @@ describe("AuthService login", () => {
           },
           vi.fn(),
         ),
-      ).rejects.toThrow("账号已锁定，由于多次登录失败，请30分钟后再试");
+      ).rejects.toMatchObject({ code: "auth.account_locked_retry" });
     });
 
     it("should increment failed login attempts on wrong password", async () => {
@@ -194,7 +194,7 @@ describe("AuthService login", () => {
           },
           vi.fn(),
         ),
-      ).rejects.toThrow("账号或密码不正确");
+      ).rejects.toMatchObject({ code: "auth.invalid_credentials" });
 
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: "user-123" },
@@ -230,7 +230,7 @@ describe("AuthService login", () => {
           },
           vi.fn(),
         ),
-      ).rejects.toThrow("账号或密码不正确");
+      ).rejects.toMatchObject({ code: "auth.invalid_credentials" });
 
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: "user-123" },

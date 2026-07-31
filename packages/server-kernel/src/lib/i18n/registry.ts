@@ -8,7 +8,6 @@ import {
 import { formatMessage } from "./format-message.js";
 import { KERNEL_MESSAGES_EN } from "./catalogs/kernel-en.js";
 import { KERNEL_MESSAGES_ZH } from "./catalogs/kernel-zh-CN.js";
-import { LEGACY_MESSAGES_EN_BY_ZH } from "./legacy-messages-en.js";
 
 import type { ServerI18nBundle, TranslateMessageInput } from "./types.js";
 
@@ -61,8 +60,8 @@ export function lookupServerMessage(
 }
 
 /**
- * 按 code（优先）或中文原文（遗留）翻译。
- * zh-CN：优先目录模板 + 插值，否则用 message 原文。
+ * 按稳定 code 翻译；无 code 时返回 message（默认语言）或原样。
+ * 不再支持中文原文 → 英文的遗留对照表。
  */
 export function translateServerMessage(
   locale: AppLocale,
@@ -77,7 +76,6 @@ export function translateServerMessage(
     if (template !== undefined) {
       return formatMessage(template, params);
     }
-    // 目录缺英文时回退 zh-CN 模板，再回退 message
     if (lng !== DEFAULT_LOCALE) {
       const zh = lookupServerMessage(DEFAULT_LOCALE, code);
       if (zh !== undefined) {
@@ -88,14 +86,6 @@ export function translateServerMessage(
 
   const fallback = message ?? code ?? "";
   if (!fallback) return "";
-
-  if (lng === DEFAULT_LOCALE) {
-    return formatMessage(fallback, params);
-  }
-
-  const byZh = LEGACY_MESSAGES_EN_BY_ZH[fallback];
-  if (byZh) return formatMessage(byZh, params);
-
   return formatMessage(fallback, params);
 }
 

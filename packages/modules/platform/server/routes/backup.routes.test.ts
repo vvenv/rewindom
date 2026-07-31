@@ -305,6 +305,6 @@ describe("platform-backup routes", () => {
     });
 
     expect(response.statusCode).toBe(400);
-    expect(response.json().code).toBe("INVALID_LOCAL_RESTORE_PATH");
+    expect(response.json().code).toBe("platform.path_not_file");
   });
 });

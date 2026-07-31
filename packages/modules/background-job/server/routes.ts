@@ -1,5 +1,6 @@
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { error, success } from "@be-water/shared";
+import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
+import { success } from "@be-water/shared";
 
 import { AuditAction } from "../../audit/shared/index.js";
 
@@ -30,7 +31,7 @@ export async function backgroundJobRoutes(app: FastifyInstance): Promise<void> {
 
       const job = await getBackgroundJobForUser(job_id, userId);
       if (!job) {
-        return reply.code(404).send(error("任务不存在", "JOB_NOT_FOUND"));
+        return sendCodedError(reply, 404, "job.not_found");
       }
 
       return reply.send(success(job));
@@ -45,7 +46,7 @@ export async function backgroundJobRoutes(app: FastifyInstance): Promise<void> {
 
       const result = await cancelBackgroundJobForUser(job_id, userId);
       if (result === "not_found") {
-        return reply.code(404).send(error("任务不存在", "JOB_NOT_FOUND"));
+        return sendCodedError(reply, 404, "job.not_found");
       }
 
       await emitAuditLogFromRequestSafe(app.events, app.log, request, {

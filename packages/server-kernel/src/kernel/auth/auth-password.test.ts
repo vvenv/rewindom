@@ -98,7 +98,7 @@ describe("AuthService password", () => {
           oldPassword: "wrong_password",
           newPassword: "new_password",
         }),
-      ).rejects.toThrow("旧密码不正确");
+      ).rejects.toMatchObject({ code: "auth.old_password_wrong" });
     });
 
     it("should throw error if user not found", async () => {
@@ -110,7 +110,7 @@ describe("AuthService password", () => {
           oldPassword: "old_password",
           newPassword: "new_password",
         }),
-      ).rejects.toThrow("用户不存在");
+      ).rejects.toMatchObject({ code: "user.not_found" });
     });
   });
 

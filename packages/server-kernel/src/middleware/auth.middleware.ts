@@ -2,6 +2,7 @@ import { isPlatformAdminActor, type AuthActorType, isApiKeyBlockedPath, isApiKey
 
 import { prisma } from "../lib/prisma.js";
 import { updateRequestContext } from "../lib/request-context.js";
+import { sendCodedError } from "../http/coded-error.js";
 
 import { isAttachmentContentRequest } from "./attachment-content-cache.js";
 
@@ -115,7 +116,7 @@ export async function authMiddleware(app: FastifyInstance) {
 
       const authHeader = request.headers.authorization;
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return reply.code(401).send({ error: "未授权" });
+        return sendCodedError(reply, 401, "common.unauthorized");
       }
 
       const token = authHeader.slice(7);
@@ -124,14 +125,16 @@ export async function authMiddleware(app: FastifyInstance) {
         const decoded = app.jwt.verify<AuthJwtPayload>(token);
 
         if (decoded.type !== "access") {
-          return reply.code(401).send({ error: "令牌类型无效" });
+          return sendCodedError(reply, 401, "auth.token_invalid_type");
         }
 
         if (isPlatformAdminActor(decoded.actor_type)) {
           if (!isPlatformAdminApiPath(requestPath)) {
-            return reply
-              .code(403)
-              .send({ error: "平台管理员无法访问租户业务接口" });
+          return sendCodedError(
+            reply,
+            403,
+            "auth.platform_admin_tenant_api_denied",
+          );
           }
 
           const admin = await prisma.platformAdmin.findUnique({
@@ -145,7 +148,7 @@ export async function authMiddleware(app: FastifyInstance) {
           });
 
           if (!admin || !admin.enabled) {
-            return reply.code(401).send({ error: "用户不存在" });
+          return sendCodedError(reply, 401, "user.not_found");
           }
 
           const ACCESS_THROTTLE_MS = 60_000;
@@ -182,13 +185,11 @@ export async function authMiddleware(app: FastifyInstance) {
         }
 
         if (!decoded.tenant_id || !decoded.tenant_slug) {
-          return reply.code(401).send({ error: "令牌无效或已过期" });
+          return sendCodedError(reply, 401, "auth.token_invalid_or_expired");
         }
 
         if (requestPath.startsWith("/api/platform")) {
-          return reply
-            .code(403)
-            .send({ error: "无权访问：需要平台管理员权限" });
+          return sendCodedError(reply, 403, "auth.platform_admin_required");
         }
 
         const user = await prisma.user.findUnique({
@@ -202,7 +203,7 @@ export async function authMiddleware(app: FastifyInstance) {
         });
 
         if (!user || user.tenant_id !== decoded.tenant_id) {
-          return reply.code(401).send({ error: "用户不存在" });
+          return sendCodedError(reply, 401, "user.not_found");
         }
 
         const tenant = await prisma.tenant.findUnique({
@@ -210,7 +211,7 @@ export async function authMiddleware(app: FastifyInstance) {
           select: { status: true },
         });
         if (!tenant || tenant.status !== "active") {
-          return reply.code(403).send({ error: "租户已暂停或不存在" });
+          return sendCodedError(reply, 403, "tenant.suspended_or_missing");
         }
 
         const ACCESS_THROTTLE_MS = 60_000;
@@ -248,7 +249,7 @@ export async function authMiddleware(app: FastifyInstance) {
       } catch {
         if (isApiKeyToken(token)) {
           if (isApiKeyBlockedPath(requestPath)) {
-            return reply.code(403).send({ error: "API Key 无权访问该接口" });
+            return sendCodedError(reply, 403, "auth.api_key_forbidden");
           }
 
           const apiKeyProvider = app.registry?.getTenantApiKeyAuthProvider();
@@ -256,7 +257,7 @@ export async function authMiddleware(app: FastifyInstance) {
             ? await apiKeyProvider.authenticate(token)
             : null;
           if (!apiKey) {
-            return reply.code(401).send({ error: "API Key 无效或已吊销" });
+            return sendCodedError(reply, 401, "auth.api_key_invalid");
           }
 
           request.tenantContext = {
@@ -280,7 +281,7 @@ export async function authMiddleware(app: FastifyInstance) {
           return;
         }
 
-        return reply.code(401).send({ error: "令牌无效或已过期" });
+        return sendCodedError(reply, 401, "auth.token_invalid_or_expired");
       }
     },
   );
@@ -289,7 +290,7 @@ export async function authMiddleware(app: FastifyInstance) {
     "authenticate",
     async (request: FastifyRequest, reply: FastifyReply) => {
       if (!request.authUser) {
-        return reply.code(401).send({ error: "未授权" });
+        return sendCodedError(reply, 401, "common.unauthorized");
       }
     },
   );
@@ -298,13 +299,17 @@ export async function authMiddleware(app: FastifyInstance) {
     "requireTenantAdmin",
     async (request: FastifyRequest, reply: FastifyReply) => {
       if (!request.authUser) {
-        return reply.code(401).send({ error: "未授权" });
+        return sendCodedError(reply, 401, "common.unauthorized");
       }
       if (
         request.authUser.actor_type !== "tenant_user" ||
         !request.authUser.is_system_admin
       ) {
-        return reply.code(403).send({ error: "无权访问：需要租户系统管理员权限" });
+        return sendCodedError(
+          reply,
+          403,
+          "auth.tenant_system_admin_required",
+        );
       }
     },
   );
@@ -313,10 +318,10 @@ export async function authMiddleware(app: FastifyInstance) {
     "requirePlatformAdmin",
     async (request: FastifyRequest, reply: FastifyReply) => {
       if (!request.authUser) {
-        return reply.code(401).send({ error: "未授权" });
+        return sendCodedError(reply, 401, "common.unauthorized");
       }
       if (!isPlatformAdminActor(request.authUser.actor_type)) {
-        return reply.code(403).send({ error: "无权访问：需要平台管理员权限" });
+        return sendCodedError(reply, 403, "auth.platform_admin_required");
       }
     },
   );

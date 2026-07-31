@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { formatBusinessDate, type CalendarRangePreset } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
@@ -23,11 +23,13 @@ import {
 } from "@be-water/ui/sheet";
 import { cn } from "@be-water/ui/utils";
 import { Calendar as CalendarIcon, X } from "lucide-react";
+import { enUS, zhCN } from "react-day-picker/locale";
+import { useTranslation } from "react-i18next";
 
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import {
   applyPickerTime,
-  DEFAULT_DATETIME_RANGE_PRESETS,
+  buildDefaultDateTimeRangePresets,
   extractPickerTime,
   formatPickerRangeLabel,
   normalizeDateOnlyRange,
@@ -151,6 +153,15 @@ interface DateTimeRangePickerPanelProps {
   onCancel: () => void;
   onConfirm: () => void;
   showFooter?: boolean;
+  calendarLocale: typeof zhCN | typeof enUS;
+  labels: {
+    start: string;
+    end: string;
+    now: string;
+    cancel: string;
+    confirm: string;
+    clear: string;
+  };
 }
 
 function DateTimeRangePickerFooter({
@@ -158,11 +169,15 @@ function DateTimeRangePickerFooter({
   onCancel,
   onConfirm,
   disabled,
+  cancelLabel,
+  confirmLabel,
 }: {
   mobile?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
   disabled: boolean;
+  cancelLabel: string;
+  confirmLabel: string;
 }) {
   return (
     <div
@@ -176,14 +191,14 @@ function DateTimeRangePickerFooter({
         className={cn("flex-1", mobile && "min-h-11")}
         onClick={onCancel}
       >
-        取消
+        {cancelLabel}
       </Button>
       <Button
         className={cn("flex-1", mobile && "min-h-11")}
         onClick={onConfirm}
         disabled={disabled}
       >
-        确认
+        {confirmLabel}
       </Button>
     </div>
   );
@@ -210,6 +225,8 @@ function DateTimeRangePickerPanel({
   onCancel,
   onConfirm,
   showFooter = true,
+  calendarLocale,
+  labels,
 }: DateTimeRangePickerPanelProps) {
   return (
     <>
@@ -245,6 +262,7 @@ function DateTimeRangePickerPanel({
         selected={tempRange}
         onSelect={onDateRangeChange}
         numberOfMonths={mobile ? 1 : 2}
+        locale={calendarLocale}
         className={cn(mobile && "[--cell-size:--spacing(10)] w-full")}
       />
       {!dateOnly && (
@@ -252,7 +270,7 @@ function DateTimeRangePickerPanel({
           <div className="grid gap-3 border-t px-3 py-3">
             <div className="space-y-1.5">
               <div className="text-xs text-muted-foreground">
-                开始
+                {labels.start}
                 {tempRange?.from
                   ? ` · ${formatBusinessDate(tempRange.from, "yyyy-MM-dd")}`
                   : ""}
@@ -263,7 +281,7 @@ function DateTimeRangePickerPanel({
                   className={cn("shrink-0", mobile && "min-h-10")}
                   onClick={() => onNow("start")}
                 >
-                  此刻
+                  {labels.now}
                 </Button>
                 <TimeInput
                   value={fromTime}
@@ -274,7 +292,7 @@ function DateTimeRangePickerPanel({
             </div>
             <div className="space-y-1.5">
               <div className="text-xs text-muted-foreground">
-                结束
+                {labels.end}
                 {tempRange?.to
                   ? ` · ${formatBusinessDate(tempRange.to, "yyyy-MM-dd")}`
                   : tempRange?.from
@@ -292,7 +310,7 @@ function DateTimeRangePickerPanel({
                   className={cn("shrink-0", mobile && "min-h-10")}
                   onClick={() => onNow("end")}
                 >
-                  此刻
+                  {labels.now}
                 </Button>
               </div>
             </div>
@@ -303,6 +321,8 @@ function DateTimeRangePickerPanel({
               onCancel={onCancel}
               onConfirm={onConfirm}
               disabled={!tempRange?.from}
+              cancelLabel={labels.cancel}
+              confirmLabel={labels.confirm}
             />
           )}
         </>
@@ -327,15 +347,34 @@ interface DateTimeRangePickerProps {
 export function DateTimeRangePicker({
   value,
   onChange,
-  placeholder = "时间范围",
+  placeholder,
   className,
-  presets = DEFAULT_DATETIME_RANGE_PRESETS,
+  presets,
   extraActions,
   onExtraAction,
   displayLabel,
   dateOnly = false,
 }: DateTimeRangePickerProps) {
+  const { t, i18n } = useTranslation("common");
   const isMobile = useMediaQuery("(max-width: 767px)");
+  const resolvedPlaceholder =
+    placeholder ?? t("dateRangePicker.placeholder");
+  const resolvedPresets = useMemo(
+    () => presets ?? buildDefaultDateTimeRangePresets(t),
+    [presets, t, i18n.language],
+  );
+  const calendarLocale = i18n.language === "en" ? enUS : zhCN;
+  const labels = useMemo(
+    () => ({
+      start: t("dateRangePicker.start"),
+      end: t("dateRangePicker.end"),
+      now: t("dateRangePicker.now"),
+      cancel: t("cancel"),
+      confirm: t("confirm"),
+      clear: t("dateRangePicker.clear"),
+    }),
+    [t, i18n.language],
+  );
   const [open, setOpen] = useState(false);
   const [tempRange, setTempRange] = useState<DateRange | undefined>(value);
   const [month, setMonth] = useState<Date>(value?.from ?? new Date());
@@ -420,7 +459,7 @@ export function DateTimeRangePicker({
     onChange?.(undefined);
   };
 
-  const matchedPreset = presets.find(({ preset }) =>
+  const matchedPreset = resolvedPresets.find(({ preset }) =>
     rangeMatchesPreset(value, preset),
   );
 
@@ -446,7 +485,7 @@ export function DateTimeRangePicker({
 
   const panelProps: DateTimeRangePickerPanelProps = {
     mobile: isMobile,
-    presets,
+    presets: resolvedPresets,
     extraActions,
     activePreset,
     onPreset: handlePreset,
@@ -464,6 +503,8 @@ export function DateTimeRangePicker({
     onNow: handleNow,
     onCancel: handleCancel,
     onConfirm: handleConfirm,
+    calendarLocale,
+    labels,
   };
 
   const triggerButton = (
@@ -480,7 +521,7 @@ export function DateTimeRangePicker({
         )}
         title={selectedRangeTitle}
       >
-        {displayValue ?? placeholder}
+        {displayValue ?? resolvedPlaceholder}
       </span>
     </button>
   );
@@ -503,6 +544,7 @@ export function DateTimeRangePicker({
           <InputGroupButton
             variant="ghost"
             size="icon-xs"
+            aria-label={labels.clear}
             onClick={(e) => {
               e.stopPropagation();
               handleClear();
@@ -525,7 +567,7 @@ export function DateTimeRangePicker({
           className="flex max-h-[min(92dvh,720px)] flex-col gap-0 overflow-hidden p-0"
         >
           <SheetHeader className="shrink-0 border-b px-4 py-3">
-            <SheetTitle>{placeholder}</SheetTitle>
+            <SheetTitle>{resolvedPlaceholder}</SheetTitle>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <DateTimeRangePickerPanel {...panelProps} showFooter={false} />
@@ -536,6 +578,8 @@ export function DateTimeRangePicker({
               onCancel={handleCancel}
               onConfirm={handleConfirm}
               disabled={!tempRange?.from}
+              cancelLabel={labels.cancel}
+              confirmLabel={labels.confirm}
             />
           )}
         </SheetContent>

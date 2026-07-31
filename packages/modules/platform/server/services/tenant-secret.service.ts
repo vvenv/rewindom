@@ -1,6 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 import { config } from "@be-water/server-kernel/lib/config.js";
+import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
@@ -22,7 +23,7 @@ export function decryptTenantSecret(ciphertext: string): string {
   const key = config.tenant.secretEncryptionKey;
   const data = Buffer.from(ciphertext, "base64");
   if (data.length < IV_LENGTH + AUTH_TAG_LENGTH + 1) {
-    throw new Error("租户密钥密文无效");
+    throw new ValidationError("tenant.secret_invalid");
   }
   const iv = data.subarray(0, IV_LENGTH);
   const authTag = data.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);

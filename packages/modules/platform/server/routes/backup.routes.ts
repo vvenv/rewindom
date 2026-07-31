@@ -6,13 +6,14 @@ import { basename, join } from "node:path";
 import {
   handleRouteError,
   handleValidationError,
+  sendCodedError,
 } from "@be-water/server-kernel/http/route-error-handler.js";
 import { config } from "@be-water/server-kernel/lib/config.js";
 import {
   DATABASE_RESTORE_MAX_FILE_BYTES,
   formatMaxUploadSize,
 } from "@be-water/server-kernel/lib/upload-limits.js";
-import { BACKUP_FILE_PREFIX, error, success } from "@be-water/shared";
+import { BACKUP_FILE_PREFIX, success } from "@be-water/shared";
 
 import {
   getDatabaseBackupJobForUser,
@@ -64,9 +65,7 @@ export async function registerBackupRoutes(
         );
 
         if (result === "misconfigured") {
-          return reply
-            .code(500)
-            .send(error("DATABASE_URL 未配置", "DATABASE_NOT_CONFIGURED"));
+          return sendCodedError(reply, 500, "platform.database_url_missing");
         }
 
         return reply.code(202).send(success(result));
@@ -90,21 +89,17 @@ export async function registerBackupRoutes(
 
         const job = await getBackupDownloadJobForUser(job_id, userId);
         if (!job) {
-          return reply.code(404).send(error("任务不存在", "JOB_NOT_FOUND"));
+          return sendCodedError(reply, 404, "job.not_found");
         }
 
         if (job.status !== "success" || !job.result) {
-          return reply
-            .code(409)
-            .send(error("备份尚未完成", "BACKUP_JOB_NOT_READY"));
+          return sendCodedError(reply, 409, "platform.backup_not_ready");
         }
 
         try {
           await openDatabaseBackupFileStream(job_id);
         } catch {
-          return reply
-            .code(404)
-            .send(error("备份文件不存在或已过期", "BACKUP_FILE_NOT_FOUND"));
+          return sendCodedError(reply, 404, "platform.backup_missing_or_expired");
         }
 
         const download_token = await createDatabaseBackupDownloadToken(
@@ -138,9 +133,7 @@ export async function registerBackupRoutes(
           job_id,
         );
         if (!payload) {
-          return reply
-            .code(401)
-            .send(error("下载链接无效或已过期", "DOWNLOAD_TOKEN_INVALID"));
+          return sendCodedError(reply, 401, "platform.backup_download_invalid");
         }
         userId = payload.user_id;
       } else {
@@ -149,13 +142,11 @@ export async function registerBackupRoutes(
 
       const job = await getBackupDownloadJobForUser(job_id, userId);
       if (!job) {
-        return reply.code(404).send(error("任务不存在", "JOB_NOT_FOUND"));
+        return sendCodedError(reply, 404, "job.not_found");
       }
 
       if (job.status !== "success" || !job.result) {
-        return reply
-          .code(409)
-          .send(error("备份尚未完成", "BACKUP_JOB_NOT_READY"));
+        return sendCodedError(reply, 409, "platform.backup_not_ready");
       }
 
       try {
@@ -175,9 +166,7 @@ export async function registerBackupRoutes(
         reply.header("Content-Length", String(size));
         return reply.send(stream);
       } catch {
-        return reply
-          .code(404)
-          .send(error("备份文件不存在或已过期", "BACKUP_FILE_NOT_FOUND"));
+        return sendCodedError(reply, 404, "platform.backup_missing_or_expired");
       }
     } catch (err) {
       return handleRouteError(
@@ -194,13 +183,11 @@ export async function registerBackupRoutes(
       const { userId, username } = request.authUser!;
 
       if (!config.database.url) {
-        return reply
-          .code(500)
-          .send(error("DATABASE_URL 未配置", "DATABASE_NOT_CONFIGURED"));
+        return sendCodedError(reply, 500, "platform.database_url_missing");
       }
 
       if (!request.isMultipart()) {
-        return handleValidationError(reply, "请上传文件");
+        return handleValidationError(reply, "common.file_required");
       }
 
       const uploadTmpDir = join(getDatabaseBackupDir(), ".tmp");
@@ -211,7 +198,7 @@ export async function registerBackupRoutes(
       });
       const uploaded = files[0];
       if (!uploaded?.filepath) {
-        return handleValidationError(reply, "请上传文件");
+        return handleValidationError(reply, "common.file_required");
       }
 
       const originalFilename = uploaded.filename || "backup.dump";
@@ -277,14 +264,12 @@ export async function registerBackupRoutes(
         const { userId, username } = request.authUser!;
 
         if (!config.database.url) {
-          return reply
-            .code(500)
-            .send(error("DATABASE_URL 未配置", "DATABASE_NOT_CONFIGURED"));
+          return sendCodedError(reply, 500, "platform.database_url_missing");
         }
 
         const rawPath = request.body?.file_path;
         if (typeof rawPath !== "string" || !rawPath.trim()) {
-          return handleValidationError(reply, "请提供 file_path（绝对路径）");
+          return handleValidationError(reply, "platform.backup_path_required");
         }
 
         const resolvedPath = await resolveAllowedLocalRestorePath(
@@ -302,10 +287,7 @@ export async function registerBackupRoutes(
         return reply.code(202).send(success(result));
       } catch (err) {
         if (err instanceof Error && !("statusCode" in err)) {
-          return reply.code(400).send({
-            error: err.message,
-            code: "INVALID_LOCAL_RESTORE_PATH",
-          });
+          return sendCodedError(reply, 400, "platform.path_not_file");
         }
         return handleRouteError(
           reply,

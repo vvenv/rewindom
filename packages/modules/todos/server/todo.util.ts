@@ -5,19 +5,24 @@ export interface TodoInput {
   completed?: boolean;
 }
 
+export interface TodoValidationIssue {
+  code: "todos.title_required" | "todos.title_too_long";
+  params?: Record<string, number>;
+}
+
 export function validateTodoInput(
   input: TodoInput,
   options: { partial?: boolean } = {},
-): string | null {
+): TodoValidationIssue | null {
   const partial = options.partial ?? false;
 
   if (!partial || input.title !== undefined) {
     const title = input.title?.trim() ?? "";
     if (!title) {
-      return "请输入标题";
+      return { code: "todos.title_required" };
     }
     if (title.length > TODO_TITLE_MAX_LENGTH) {
-      return `标题不能超过 ${TODO_TITLE_MAX_LENGTH} 个字符`;
+      return { code: "todos.title_too_long", params: { max: TODO_TITLE_MAX_LENGTH } };
     }
   }
 

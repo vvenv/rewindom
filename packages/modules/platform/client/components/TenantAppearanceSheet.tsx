@@ -1,13 +1,15 @@
 import { useState } from "react";
 
-import { ApiError } from "@be-water/client-kit";
+import {
+  ApiError,
+  translateShellLayoutLabel,
+  translateShellLayoutOptions,
+  translateThemePaletteLabel,
+  translateThemePaletteOptions,
+} from "@be-water/client-kit";
 import {
   APP_LOCALES,
-  SHELL_LAYOUTS,
-  THEME_PALETTES,
   getLocaleNativeLabel,
-  getShellLayoutLabel,
-  getThemePaletteLabel,
   normalizeOptionalLocale,
   normalizeOptionalShellLayout,
   normalizeOptionalThemePalette,
@@ -132,12 +134,15 @@ export function TenantAppearanceSheet({
                 <AppearanceOptionGroup
                   idPrefix={`theme-${tenant.id}`}
                   value={selectedTheme}
-                  options={THEME_PALETTES}
+                  options={translateThemePaletteOptions(t)}
                   onChange={setThemeDraft}
                   inherit={{
                     label: t("inheritPlatformDefault"),
                     description: t("inheritPlatformDefaultLocale", {
-                      label: getThemePaletteLabel(data.platform_default_theme),
+                      label: translateThemePaletteLabel(
+                        t,
+                        data.platform_default_theme,
+                      ),
                     }),
                   }}
                 />
@@ -148,12 +153,15 @@ export function TenantAppearanceSheet({
                 <AppearanceOptionGroup
                   idPrefix={`layout-${tenant.id}`}
                   value={selectedLayout}
-                  options={SHELL_LAYOUTS}
+                  options={translateShellLayoutOptions(t)}
                   onChange={setLayoutDraft}
                   inherit={{
                     label: t("inheritPlatformDefault"),
                     description: t("inheritPlatformDefaultLocale", {
-                      label: getShellLayoutLabel(data.platform_default_layout),
+                      label: translateShellLayoutLabel(
+                        t,
+                        data.platform_default_layout,
+                      ),
                     }),
                   }}
                 />

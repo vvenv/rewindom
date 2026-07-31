@@ -3,26 +3,24 @@
  * Standardized error logging and response functions
  */
 
-import {
-  error as errorResponse,
-  success,
-  type ImportPreviewResult,
-} from "@be-water/shared";
+import { success, type ImportPreviewResult } from "@be-water/shared";
 
-import { translateForRequest } from "../lib/i18n/translate.js";
+import { AppError, hasErrorCode } from "../lib/app-errors.js";
+
+import {
+  resolveMessageOrCode,
+  sendCodedError,
+  type CodedErrorParams,
+} from "./coded-error.js";
 
 import type { FastifyReply } from "fastify";
 
-function localizedError(
-  reply: FastifyReply,
-  message: string,
-  errorCode?: string,
-): ReturnType<typeof errorResponse> {
-  return errorResponse(
-    translateForRequest(reply.request, message, errorCode),
-    errorCode,
-  );
-}
+export {
+  sendCodedError,
+  sendAppErrorOr,
+  buildCodedErrorBody,
+} from "./coded-error.js";
+export type { CodedErrorParams } from "./coded-error.js";
 
 /**
  * Standard error handler for route handlers
@@ -32,7 +30,7 @@ export function handleRouteError(
   reply: FastifyReply,
   err: unknown,
   context: string,
-  errorCode?: string,
+  errorCode = "common.internal_error",
 ): void {
   const message = err instanceof Error ? err.message : String(err);
   reply.log.error(
@@ -42,18 +40,23 @@ export function handleRouteError(
     },
     context,
   );
-  reply.code(500).send(localizedError(reply, message, errorCode));
+  if (err instanceof AppError && err.code && hasErrorCode(err, err.code)) {
+    sendCodedError(reply, err.status, err.code, err.params);
+    return;
+  }
+  sendCodedError(reply, 500, errorCode);
 }
 
 /**
- * Handle validation errors (400)
+ * Handle validation errors (400). Prefer stable message codes.
  */
 export function handleValidationError(
   reply: FastifyReply,
-  message: string,
+  messageOrCode: string,
   errorCode?: string,
+  params?: CodedErrorParams,
 ): void {
-  reply.code(400).send(localizedError(reply, message, errorCode));
+  reply.code(400).send(resolveMessageOrCode(reply, messageOrCode, errorCode, params));
 }
 
 export function handleImportValidationError(
@@ -77,21 +80,23 @@ export function getImportValidationErrors(
 }
 
 /**
- * Handle not found errors (404)
+ * Handle not found errors (404). Prefer stable message codes.
  */
 export function handleNotFoundError(
   reply: FastifyReply,
-  message: string,
+  messageOrCode: string,
+  params?: CodedErrorParams,
 ): void {
-  reply.code(404).send(localizedError(reply, message));
+  reply.code(404).send(resolveMessageOrCode(reply, messageOrCode, undefined, params));
 }
 
 /**
- * Handle forbidden errors (403)
+ * Handle forbidden errors (403). Prefer stable message codes.
  */
 export function handleForbiddenError(
   reply: FastifyReply,
-  message: string = "无权限",
+  messageOrCode: string = "common.forbidden",
+  params?: CodedErrorParams,
 ): void {
-  reply.code(403).send(localizedError(reply, message));
+  reply.code(403).send(resolveMessageOrCode(reply, messageOrCode, undefined, params));
 }

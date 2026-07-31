@@ -1,6 +1,11 @@
 import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
 import { AuthService } from "@be-water/server-kernel/kernel/auth/auth.service.js";
 import { excludeInternalUsersWhere } from "@be-water/server-kernel/kernel/auth/internal-users.js";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import { isReservedTenantUsername } from "@be-water/shared";
@@ -227,7 +232,7 @@ export class UserManagementService {
     } = input;
 
     if (isReservedTenantUsername(username)) {
-      throw new Error("该用户名为系统保留，不可使用");
+      throw new ValidationError("user.username_reserved");
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -237,7 +242,7 @@ export class UserManagementService {
     });
 
     if (existingUser) {
-      throw new Error("用户名已存在");
+      throw new ConflictError("auth.username_exists");
     }
 
     const hashedPassword = await AuthService.hashPassword(password);
@@ -270,7 +275,7 @@ export class UserManagementService {
           select: { id: true },
         });
         if (validRoles.length !== role_ids.length) {
-          throw new Error("包含无效的角色");
+          throw new ValidationError("role.invalid_roles");
         }
         await tx.userRole.createMany({
           data: role_ids.map((role_id) => ({
@@ -336,7 +341,7 @@ export class UserManagementService {
     });
 
     if (!user) {
-      throw new Error("用户不存在");
+      throw new NotFoundError("user.not_found");
     }
 
     return {
@@ -367,7 +372,7 @@ export class UserManagementService {
     });
 
     if (!existingUser) {
-      throw new Error("用户不存在");
+      throw new NotFoundError("user.not_found");
     }
 
     const user = await prisma.$transaction(async (tx) => {
@@ -398,7 +403,7 @@ export class UserManagementService {
           select: { id: true },
         });
         if (validRoles.length !== role_ids.length) {
-          throw new Error("包含无效的角色");
+          throw new ValidationError("role.invalid_roles");
         }
         await tx.userRole.deleteMany({ where: { user_id: id } });
         if (role_ids.length > 0) {
@@ -420,7 +425,7 @@ export class UserManagementService {
     });
 
     if (!existingUser) {
-      throw new Error("用户不存在");
+      throw new NotFoundError("user.not_found");
     }
 
     await prisma.user.delete({
@@ -433,7 +438,7 @@ export class UserManagementService {
     userIds: string[],
   ): Promise<string[]> {
     if (userIds.length === 0) {
-      throw new Error("未提供用户ID");
+      throw new ValidationError("user.id_required");
     }
 
     const existingUsers = await prisma.user.findMany({
@@ -445,7 +450,9 @@ export class UserManagementService {
     const missingIds = userIds.filter((id) => !existingIds.has(id));
 
     if (missingIds.length > 0) {
-      throw new Error(`用户不存在：${missingIds.join("、")}`);
+      throw new NotFoundError("user.not_found_batch", {
+        ids: missingIds.join("、"),
+      });
     }
 
     await prisma.user.deleteMany({
@@ -465,7 +472,7 @@ export class UserManagementService {
     });
 
     if (!existingUser) {
-      throw new Error("用户不存在");
+      throw new NotFoundError("user.not_found");
     }
 
     const hashedPassword = await AuthService.hashPassword(newPassword);

@@ -1,4 +1,5 @@
 import "@be-water/server-kernel/kernel/auth/auth.service.test-mocks.js";
+import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import {
   DEFAULT_TENANT_ID,
@@ -210,7 +211,9 @@ describe("UserManagementService", () => {
           username: "__support_impersonation__",
           password: "password123",
         }),
-      ).rejects.toThrow("该用户名为系统保留，不可使用");
+      ).rejects.toSatisfy((error: unknown) =>
+        hasErrorCode(error, "user.username_reserved"),
+      );
     });
 
     it("should throw error if username already exists", async () => {
@@ -225,7 +228,9 @@ describe("UserManagementService", () => {
           username: "testuser",
           password: "password123",
         }),
-      ).rejects.toThrow("用户名已存在");
+      ).rejects.toSatisfy((error: unknown) =>
+        hasErrorCode(error, "auth.username_exists"),
+      );
     });
   });
 
@@ -274,7 +279,9 @@ describe("UserManagementService", () => {
           id: "user-123",
           is_system_admin: true,
         }),
-      ).rejects.toThrow("用户不存在");
+      ).rejects.toSatisfy((error: unknown) =>
+        hasErrorCode(error, "user.not_found"),
+      );
     });
   });
 
@@ -300,7 +307,9 @@ describe("UserManagementService", () => {
 
       await expect(
         UserManagementService.deleteUser(TENANT_ID, "user-123"),
-      ).rejects.toThrow("用户不存在");
+      ).rejects.toSatisfy((error: unknown) =>
+        hasErrorCode(error, "user.not_found"),
+      );
     });
   });
 
@@ -351,7 +360,9 @@ describe("UserManagementService", () => {
           userId: "user-123",
           newPassword: "new_password",
         }),
-      ).rejects.toThrow("用户不存在");
+      ).rejects.toSatisfy((error: unknown) =>
+        hasErrorCode(error, "user.not_found"),
+      );
     });
   });
 });

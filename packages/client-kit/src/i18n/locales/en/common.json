@@ -43,5 +43,18 @@
     "systemMonitoring": "Monitoring",
     "examples": "Examples"
   },
-  "tasksBadge": "{{count}} pending tasks"
+  "tasksBadge": "{{count}} pending tasks",
+  "dateRangePicker": {
+    "placeholder": "Date range",
+    "start": "Start",
+    "end": "End",
+    "now": "Now",
+    "clear": "Clear",
+    "presets": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "last_7_days": "Last 7 days",
+      "last_30_days": "Last 30 days"
+    }
+  }
 }

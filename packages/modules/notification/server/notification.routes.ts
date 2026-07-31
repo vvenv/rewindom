@@ -1,7 +1,7 @@
 
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
-import { error } from "@be-water/shared";
+import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 
 import {
   getUnreadCount,
@@ -72,9 +72,7 @@ export async function notificationRoutes(app: FastifyInstance) {
         notificationId,
       );
       if (!item) {
-        return reply
-          .code(404)
-          .send(error("通知不存在", "NOTIFICATION_NOT_FOUND"));
+        return sendCodedError(reply, 404, "notification.not_found");
       }
       return item;
     },

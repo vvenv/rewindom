@@ -102,7 +102,7 @@ export async function createNote(params: {
     content: params.content,
   });
   if (validationError) {
-    throw new ValidationError(validationError);
+    throw new ValidationError(validationError.code, validationError.params);
   }
 
   const record = await prisma.note.create({
@@ -129,7 +129,7 @@ export async function updateNote(params: {
     { requireTitle: params.title !== undefined },
   );
   if (validationError) {
-    throw new ValidationError(validationError);
+    throw new ValidationError(validationError.code, validationError.params);
   }
 
   const existing = await prisma.note.findFirst({

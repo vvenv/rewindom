@@ -2,9 +2,29 @@
   "theme": "主题",
   "switchTheme": "切换主题",
   "currentTheme": "当前主题: {{label}}",
+  "themePalettes": {
+    "water": {
+      "label": "水蓝",
+      "description": "默认配色：水蓝主色搭配青色数据强调"
+    },
+    "slate": {
+      "label": "石墨",
+      "description": "低饱和中性灰蓝，适合长时间阅读与密集表格"
+    }
+  },
   "layout": "布局",
   "switchLayout": "切换布局",
   "currentLayout": "当前布局: {{label}}",
+  "shellLayouts": {
+    "sidebar": {
+      "label": "左右",
+      "description": "左侧边栏 + 右侧内容区，导航项多时更从容，可收起为图标条"
+    },
+    "topbar": {
+      "label": "上下",
+      "description": "顶部导航栏 + 下方内容区，把横向空间整块留给内容"
+    }
+  },
   "switchLanguage": "切换语言",
   "currentLanguage": "当前语言: {{label}}",
   "changePassword": "修改密码",

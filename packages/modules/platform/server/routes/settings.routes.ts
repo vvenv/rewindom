@@ -61,13 +61,13 @@ export async function registerSettingsRoutes(
       } = request.body as UpdatePlatformSettingsBody;
 
       if (default_theme !== undefined && !isThemePaletteSlug(default_theme)) {
-        return handleValidationError(reply, "无效的主题");
+        return handleValidationError(reply, "theme.invalid");
       }
       if (default_layout !== undefined && !isShellLayoutSlug(default_layout)) {
-        return handleValidationError(reply, "无效的布局");
+        return handleValidationError(reply, "layout.invalid");
       }
       if (default_locale !== undefined && !isAppLocale(default_locale)) {
-        return handleValidationError(reply, "无效的语言");
+        return handleValidationError(reply, "locale.invalid");
       }
 
       const currentConfig = await getPlatformSettings();

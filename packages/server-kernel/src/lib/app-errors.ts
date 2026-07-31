@@ -13,7 +13,6 @@ export interface AppErrorInit {
  * 自定义错误类。
  *
  * 推荐：`new AppError({ code: "notes.not_found", status: 404 })`
- * 兼容：`new AppError("笔记不存在", 404, "NOT_FOUND")`（仍可走遗留中文目录）
  */
 export class AppError extends Error {
   status: number;
@@ -113,4 +112,14 @@ export class ValidationError extends AppError {
     }
     super(messageOrCode, 400, "VALIDATION_ERROR");
   }
+}
+
+/** 判断未知错误是否带有指定稳定 code（AppError / 结构化错误）。 */
+export function hasErrorCode(err: unknown, code: string): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code?: unknown }).code === code
+  );
 }

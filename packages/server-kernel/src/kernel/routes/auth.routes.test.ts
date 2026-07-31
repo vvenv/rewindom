@@ -16,6 +16,10 @@ import {
 } from "vitest";
 
 import { AuthService } from "../auth/auth.service.js";
+import {
+  NotFoundError,
+  UnauthorizedError,
+} from "../../lib/app-errors.js";
 
 import { authRoutes } from "./auth.routes.js";
 
@@ -85,7 +89,7 @@ describe("Auth Routes", () => {
 
     it("should return 401 with invalid credentials", async () => {
       vi.spyOn(AuthService, "login").mockRejectedValue(
-        new Error("账号或密码不正确"),
+        new UnauthorizedError("auth.invalid_credentials"),
       );
 
       const response = await app.inject({
@@ -95,13 +99,12 @@ describe("Auth Routes", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      const { error } = JSON.parse(response.payload);
-      expect(error).toBe("账号或密码不正确");
+      expect(response.json()).toMatchObject({ code: "auth.invalid_credentials" });
     });
 
     it("should return 401 when account is disabled", async () => {
       vi.spyOn(AuthService, "login").mockRejectedValue(
-        new Error("用户账号已禁用"),
+        new UnauthorizedError("auth.account_disabled"),
       );
 
       const response = await app.inject({
@@ -111,13 +114,12 @@ describe("Auth Routes", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      const { error } = JSON.parse(response.payload);
-      expect(error).toBe("用户账号已禁用");
+      expect(response.json()).toMatchObject({ code: "auth.account_disabled" });
     });
 
     it("should return 401 when account is locked", async () => {
       vi.spyOn(AuthService, "login").mockRejectedValue(
-        new Error("账号已锁定，请稍后再试"),
+        new UnauthorizedError("auth.account_locked_retry"),
       );
 
       const response = await app.inject({
@@ -127,6 +129,9 @@ describe("Auth Routes", () => {
       });
 
       expect(response.statusCode).toBe(401);
+      expect(response.json()).toMatchObject({
+        code: "auth.account_locked_retry",
+      });
     });
 
     it("should return 500 on unexpected login error", async () => {
@@ -174,7 +179,7 @@ describe("Auth Routes", () => {
 
     it("should return 401 with invalid refresh token", async () => {
       vi.spyOn(AuthService, "refresh").mockRejectedValue(
-        new Error("刷新令牌无效"),
+        new UnauthorizedError("auth.refresh_invalid"),
       );
 
       const response = await app.inject({
@@ -183,11 +188,12 @@ describe("Auth Routes", () => {
         payload: { refreshToken: "invalid-token" },
       });
       expect(response.statusCode).toBe(401);
+      expect(response.json()).toMatchObject({ code: "auth.refresh_invalid" });
     });
 
     it("should return 401 with expired refresh token", async () => {
       vi.spyOn(AuthService, "refresh").mockRejectedValue(
-        new Error("令牌已过期"),
+        new UnauthorizedError("auth.refresh_expired"),
       );
 
       const response = await app.inject({
@@ -196,11 +202,12 @@ describe("Auth Routes", () => {
         payload: { refreshToken: "expired-token" },
       });
       expect(response.statusCode).toBe(401);
+      expect(response.json()).toMatchObject({ code: "auth.refresh_expired" });
     });
 
     it("should return 401 when account is disabled during refresh", async () => {
       vi.spyOn(AuthService, "refresh").mockRejectedValue(
-        new Error("账号已禁用"),
+        new UnauthorizedError("auth.account_disabled"),
       );
 
       const response = await app.inject({
@@ -209,6 +216,7 @@ describe("Auth Routes", () => {
         payload: { refreshToken: "some-token" },
       });
       expect(response.statusCode).toBe(401);
+      expect(response.json()).toMatchObject({ code: "auth.account_disabled" });
     });
 
     it("should return 500 on unexpected refresh error", async () => {
@@ -321,7 +329,7 @@ describe("Auth Routes", () => {
 
     it("should return 401 with invalid old password", async () => {
       vi.spyOn(AuthService, "changePassword").mockRejectedValue(
-        new Error("旧密码不正确"),
+        new UnauthorizedError("auth.old_password_wrong"),
       );
 
       const response = await app.inject({
@@ -335,8 +343,9 @@ describe("Auth Routes", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      const { error } = JSON.parse(response.payload);
-      expect(error).toBe("旧密码不正确");
+      expect(response.json()).toMatchObject({
+        code: "auth.old_password_wrong",
+      });
     });
 
     it("should return 403 for impersonation shadow user", async () => {
@@ -355,8 +364,9 @@ describe("Auth Routes", () => {
       });
 
       expect(response.statusCode).toBe(403);
-      const { error } = JSON.parse(response.payload);
-      expect(error).toBe("该账号不支持修改密码");
+      expect(response.json()).toMatchObject({
+        code: "auth.password_change_unsupported",
+      });
     });
 
     it("should return 500 on unexpected change-password error", async () => {
@@ -417,7 +427,7 @@ describe("Auth Routes", () => {
 
     it("should return 404 when user not found", async () => {
       vi.spyOn(AuthService, "getUserById").mockRejectedValue(
-        new Error("用户不存在"),
+        new NotFoundError("user.not_found"),
       );
 
       const response = await app.inject({
@@ -427,6 +437,7 @@ describe("Auth Routes", () => {
       });
 
       expect(response.statusCode).toBe(404);
+      expect(response.json()).toMatchObject({ code: "user.not_found" });
     });
 
     it("should return 500 on unexpected error", async () => {

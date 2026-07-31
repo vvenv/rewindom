@@ -1,13 +1,25 @@
+import { setupI18n } from "@be-water/client-kit/i18n/setup";
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 
 import { DateTimeRangePicker } from "./DateTimeRangePicker.js";
 
 describe("DateTimeRangePicker", () => {
+  afterEach(() => {
+    setupI18n("zh-CN");
+  });
+
   it("应该渲染占位符", () => {
     render(<DateTimeRangePicker />);
 
     expect(screen.getByText("时间范围")).toBeInTheDocument();
+  });
+
+  it("英文语言下渲染翻译后的占位符与快捷项", async () => {
+    setupI18n("en");
+    render(<DateTimeRangePicker />);
+
+    expect(screen.getByText("Date range")).toBeInTheDocument();
   });
 
   it("应该支持自定义占位符", () => {

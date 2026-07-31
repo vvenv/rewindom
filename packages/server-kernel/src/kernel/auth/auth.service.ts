@@ -4,6 +4,10 @@ import { parseLoginIdentifier, type AuthActorType, type AuthTokens  } from "@be-
 import bcrypt from "bcrypt";
 
 import { config } from "../../lib/config.js";
+import {
+  NotFoundError,
+  UnauthorizedError,
+} from "../../lib/app-errors.js";
 import { prisma } from "../../lib/prisma.js";
 
 import {
@@ -103,13 +107,13 @@ export class AuthService {
       const platformAdmin = await findPlatformAdminByUsername(username);
       if (platformAdmin) {
         if (!platformAdmin.enabled) {
-          throw new Error("用户账号已禁用");
+          throw new UnauthorizedError("auth.account_disabled");
         }
         if (
           platformAdmin.locked_until &&
           platformAdmin.locked_until > new Date()
         ) {
-          throw new Error("账号已锁定，由于多次登录失败，请30分钟后再试");
+          throw new UnauthorizedError("auth.account_locked_retry");
         }
 
         const valid = await verifyPlatformAdminPassword(
@@ -129,7 +133,7 @@ export class AuthService {
             where: { id: platformAdmin.id },
             data: updateData,
           });
-          throw new Error("账号或密码不正确");
+          throw new UnauthorizedError("auth.invalid_credentials");
         }
 
         const now = new Date();
@@ -175,7 +179,7 @@ export class AuthService {
       where: { slug: tenant_slug },
     });
     if (!tenant || tenant.status !== "active") {
-      throw new Error("账号或密码不正确");
+      throw new UnauthorizedError("auth.invalid_credentials");
     }
 
     const user = await prisma.user.findUnique({
@@ -189,22 +193,22 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error("账号或密码不正确");
+      throw new UnauthorizedError("auth.invalid_credentials");
     }
 
     if (!user.enabled) {
-      throw new Error("用户账号已禁用");
+      throw new UnauthorizedError("auth.account_disabled");
     }
 
     const fullUser = await prisma.user.findUnique({
       where: { id: user.id },
     });
     if (!fullUser) {
-      throw new Error("账号或密码不正确");
+      throw new UnauthorizedError("auth.invalid_credentials");
     }
 
     if (fullUser.locked_until && fullUser.locked_until > new Date()) {
-      throw new Error("账号已锁定，由于多次登录失败，请30分钟后再试");
+      throw new UnauthorizedError("auth.account_locked_retry");
     }
 
     const isValidPassword = await this.verifyPassword(
@@ -230,7 +234,7 @@ export class AuthService {
         data: updateData,
       });
 
-      throw new Error("账号或密码不正确");
+      throw new UnauthorizedError("auth.invalid_credentials");
     }
 
     await prisma.user.update({
@@ -287,11 +291,11 @@ export class AuthService {
     try {
       decoded = jwtVerify(refreshToken);
     } catch {
-      throw new Error("刷新令牌无效", { cause: "JWT验证失败" });
+      throw new UnauthorizedError("auth.refresh_invalid");
     }
 
     if (decoded.type !== "refresh") {
-      throw new Error("令牌类型无效");
+      throw new UnauthorizedError("auth.token_invalid_type");
     }
 
     if (decoded.actor_type === "platform_admin") {
@@ -301,17 +305,17 @@ export class AuthService {
       });
 
       if (!storedToken || storedToken.revoked) {
-        throw new Error("刷新令牌无效");
+        throw new UnauthorizedError("auth.refresh_invalid");
       }
       if (storedToken.expires_at < new Date()) {
         await prisma.platformAdminRefreshToken.update({
           where: { id: storedToken.id },
           data: { revoked: true },
         });
-        throw new Error("刷新令牌已过期");
+        throw new UnauthorizedError("auth.refresh_expired");
       }
       if (!storedToken.admin.enabled) {
-        throw new Error("用户账号已禁用");
+        throw new UnauthorizedError("auth.account_disabled");
       }
 
       const newTokens = generatePlatformAdminTokens(
@@ -345,7 +349,7 @@ export class AuthService {
     });
 
     if (!storedToken || storedToken.revoked) {
-      throw new Error("刷新令牌无效");
+      throw new UnauthorizedError("auth.refresh_invalid");
     }
 
     if (storedToken.expires_at < new Date()) {
@@ -353,11 +357,11 @@ export class AuthService {
         where: { id: storedToken.id },
         data: { revoked: true },
       });
-      throw new Error("刷新令牌已过期");
+      throw new UnauthorizedError("auth.refresh_expired");
     }
 
     if (!storedToken.user.enabled) {
-      throw new Error("用户账号已禁用");
+      throw new UnauthorizedError("auth.account_disabled");
     }
 
     const tenant_id = decoded.tenant_id ?? storedToken.user.tenant_id;
@@ -410,9 +414,9 @@ export class AuthService {
       const admin = await prisma.platformAdmin.findUnique({
         where: { id: userId },
       });
-      if (!admin) throw new Error("用户不存在");
+      if (!admin) throw new NotFoundError("user.not_found");
       const valid = await this.verifyPassword(oldPassword, admin.password);
-      if (!valid) throw new Error("旧密码不正确");
+      if (!valid) throw new UnauthorizedError("auth.old_password_wrong");
       await prisma.platformAdmin.update({
         where: { id: userId },
         data: { password: await this.hashPassword(newPassword) },
@@ -421,9 +425,9 @@ export class AuthService {
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new Error("用户不存在");
+    if (!user) throw new NotFoundError("user.not_found");
     const valid = await this.verifyPassword(oldPassword, user.password);
-    if (!valid) throw new Error("旧密码不正确");
+    if (!valid) throw new UnauthorizedError("auth.old_password_wrong");
     await prisma.user.update({
       where: { id: userId },
       data: { password: await this.hashPassword(newPassword) },
@@ -458,7 +462,7 @@ export class AuthService {
           last_access_at: true,
         },
       });
-      if (!admin) throw new Error("用户不存在");
+      if (!admin) throw new NotFoundError("user.not_found");
       return { ...admin, actor_type: "platform_admin" };
     }
 
@@ -475,7 +479,7 @@ export class AuthService {
         last_access_at: true,
       },
     });
-    if (!user) throw new Error("用户不存在");
+    if (!user) throw new NotFoundError("user.not_found");
     return { ...user, actor_type: "tenant_user" };
   }
 

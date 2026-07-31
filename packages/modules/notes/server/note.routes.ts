@@ -2,7 +2,8 @@
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
 import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
-import { NotFoundError, ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
+import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
+import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
@@ -57,8 +58,8 @@ export async function noteRoutes(app: FastifyInstance): Promise<void> {
         const { note_id } = request.params as { note_id: string };
         return await getNote(request.tenantContext!.tenant_id, note_id);
       } catch (err) {
-        if (err instanceof NotFoundError) {
-          return reply.code(404).send({ error: err.message });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }
@@ -92,10 +93,8 @@ export async function noteRoutes(app: FastifyInstance): Promise<void> {
 
         return note;
       } catch (err) {
-        if (err instanceof ValidationError) {
-          return reply
-            .code(400)
-            .send({ error: err.message, code: err.code, params: err.params });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }
@@ -131,15 +130,8 @@ export async function noteRoutes(app: FastifyInstance): Promise<void> {
 
         return note;
       } catch (err) {
-        if (err instanceof NotFoundError) {
-          return reply
-            .code(404)
-            .send({ error: err.message, code: err.code, params: err.params });
-        }
-        if (err instanceof ValidationError) {
-          return reply
-            .code(400)
-            .send({ error: err.message, code: err.code, params: err.params });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }
@@ -169,10 +161,8 @@ export async function noteRoutes(app: FastifyInstance): Promise<void> {
 
         return { deleted: true };
       } catch (err) {
-        if (err instanceof NotFoundError) {
-          return reply
-            .code(404)
-            .send({ error: err.message, code: err.code, params: err.params });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }

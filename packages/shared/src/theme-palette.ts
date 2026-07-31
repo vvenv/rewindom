@@ -5,13 +5,20 @@
  * - 明暗轴由 next-themes 管理（`<html class="dark">`），仍是 light / dark / system；
  * - 配色轴由本注册表定义，落到 `<html data-theme="...">`，每个配色自带 light + dark 两套 token。
  *
- * 新增配色 = 在此追加一项 + 在 `apps/client/src/index.css` 补两个 token 块。
+ * 新增配色 = 在此追加一项 + 在 `apps/client/src/index.css` 补两个 token 块
+ * + 补齐 `client-kit` `shell` 文案 `themePalettes.<slug>.{label,description}`。
+ *
+ * `label` / `description` 为 **zh-CN 兜底**（服务端审计等）；前端 UI 必须用
+ * `translateThemePaletteLabel` / `translateThemePaletteOptions`，勿直接展示。
+ *
  * 平台默认值与租户默认值都只存 slug，校验一律走 {@link normalizeThemePalette}。
  */
 
 export interface ThemePaletteDefinition {
   slug: string;
+  /** zh-CN 兜底名；UI 走 i18n */
   label: string;
+  /** zh-CN 兜底说明；UI 走 i18n */
   description: string;
 }
 

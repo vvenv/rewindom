@@ -1,4 +1,7 @@
-import { handleValidationError } from "../../http/route-error-handler.js";
+import {
+  handleValidationError,
+  sendCodedError,
+} from "../../http/route-error-handler.js";
 import { CaptchaService } from "../auth/captcha.service.js";
 
 import type { FastifyInstance } from "fastify";
@@ -11,7 +14,7 @@ export async function captchaRoutes(app: FastifyInstance) {
       return reply.send({ data: challenge });
     } catch (error) {
       app.log.error(error);
-      return reply.code(500).send({ error: "服务器内部错误" });
+      return sendCodedError(reply, 500, "common.internal_error");
     }
   });
 
@@ -26,7 +29,7 @@ export async function captchaRoutes(app: FastifyInstance) {
       };
 
       if (!id || !token || x === undefined || y === undefined) {
-        return handleValidationError(reply, "缺少必填字段");
+        return handleValidationError(reply, "common.required_fields_missing");
       }
 
       const isValid = CaptchaService.verify({ id, token, x, y });
@@ -34,11 +37,11 @@ export async function captchaRoutes(app: FastifyInstance) {
       if (isValid) {
         return reply.send({ data: { valid: true } });
       } else {
-        return handleValidationError(reply, "验证码错误");
+        return handleValidationError(reply, "auth.captcha_invalid");
       }
     } catch (error) {
       app.log.error(error);
-      return reply.code(500).send({ error: "服务器内部错误" });
+      return sendCodedError(reply, 500, "common.internal_error");
     }
   });
 }

@@ -22,7 +22,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         reply,
         err,
         "[publicRoutes] 获取公开设置失败",
-        "GET_PUBLIC_SETTINGS_FAILED",
+        "platform.public_settings_failed",
       );
     }
   });

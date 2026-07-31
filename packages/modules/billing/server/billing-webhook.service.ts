@@ -1,4 +1,5 @@
 import { config } from "@be-water/server-kernel/lib/config.js";
+import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import {
@@ -253,7 +254,7 @@ export async function verifyAndParseCreemWebhook(
 ): Promise<CreemWebhookEvent> {
   const secret = config.billing.creem.webhookSecret.trim();
   if (!secret) {
-    throw new Error("未配置 CREEM_WEBHOOK_SECRET");
+    throw new ValidationError("billing.creem_webhook_secret_missing");
   }
   return constructWebhookEvent(rawBody, headers, { secret });
 }

@@ -168,7 +168,7 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json()).toEqual({ error: "未授权" });
+      expect(response.json()).toMatchObject({ code: "common.unauthorized" });
     });
 
     it("should return 401 with invalid Authorization header format", async () => {
@@ -181,7 +181,7 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json()).toEqual({ error: "未授权" });
+      expect(response.json()).toMatchObject({ code: "common.unauthorized" });
     });
 
     it("should return 401 with invalid token", async () => {
@@ -194,7 +194,9 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json()).toEqual({ error: "令牌无效或已过期" });
+      expect(response.json()).toMatchObject({
+        code: "auth.token_invalid_or_expired",
+      });
     });
 
     it("should return 401 with refresh token type", async () => {
@@ -217,7 +219,7 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json()).toEqual({ error: "令牌类型无效" });
+      expect(response.json()).toMatchObject({ code: "auth.token_invalid_type" });
     });
 
     it("should return 401 when user not found", async () => {
@@ -234,7 +236,7 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json()).toEqual({ error: "用户不存在" });
+      expect(response.json()).toMatchObject({ code: "user.not_found" });
     });
 
     it("should attach user info to request with valid token", async () => {
@@ -279,7 +281,7 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json()).toEqual({ error: "未授权" });
+      expect(response.json()).toMatchObject({ code: "common.unauthorized" });
     });
 
     it("should pass when authUser is set", async () => {
@@ -317,7 +319,7 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(401);
-      expect(response.json()).toEqual({ error: "未授权" });
+      expect(response.json()).toMatchObject({ code: "common.unauthorized" });
     });
 
     it("should return 403 when user is not system admin", async () => {
@@ -339,8 +341,8 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(403);
-      expect(response.json()).toEqual({
-        error: "无权访问：需要租户系统管理员权限",
+      expect(response.json()).toMatchObject({
+        code: "auth.tenant_system_admin_required",
       });
     });
 

@@ -1,6 +1,8 @@
-export class BackgroundJobCancelledError extends Error {
+import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
+
+export class BackgroundJobCancelledError extends AppError {
   constructor() {
-    super("任务已取消");
+    super({ code: "job.cancelled", status: 409 });
     this.name = "BackgroundJobCancelledError";
   }
 }

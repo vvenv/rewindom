@@ -1,6 +1,7 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { getRequestContext } from "@be-water/server-kernel/lib/request-context.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+import { sendCodedError } from "@be-water/server-kernel/http/coded-error.js";
 import {
   isValidModulePermission,
   type MergedPermissionCatalog,
@@ -325,19 +326,22 @@ export async function permissionMiddleware(
     "requirePermission",
     (permission: string) => async (request: FastifyRequest, reply) => {
       if (!request.authUser) {
-        return reply.code(401).send({ error: "未授权" });
+        return sendCodedError(reply, 401, "common.unauthorized");
       }
 
       if (!isValidModulePermission(catalog, permission)) {
         app.log.warn(`检查了无效的权限：${permission}`);
-        return reply.code(500).send({ error: "无效权限" });
+        return sendCodedError(reply, 500, "permission.invalid");
       }
 
       const result = await authz.check(request, permission);
       if (!result.allowed) {
         const status = result.reason === "unauthorized" ? 401 : 403;
-        const message = status === 401 ? "未授权" : "无权访问：权限不足";
-        return reply.code(status).send({ error: message });
+        return sendCodedError(
+          reply,
+          status,
+          status === 401 ? "common.unauthorized" : "common.forbidden_permission",
+        );
       }
     },
   );
@@ -362,21 +366,26 @@ export async function permissionMiddleware(
     (...requiredPermissions: string[]) =>
       async (request: FastifyRequest, reply) => {
         if (!request.authUser) {
-          return reply.code(401).send({ error: "未授权" });
+          return sendCodedError(reply, 401, "common.unauthorized");
         }
 
         for (const permission of requiredPermissions) {
           if (!isValidModulePermission(catalog, permission)) {
             app.log.warn(`检查了无效的权限：${permission}`);
-            return reply.code(500).send({ error: "无效权限" });
+            return sendCodedError(reply, 500, "permission.invalid");
           }
         }
 
         const result = await authz.checkAny(request, requiredPermissions);
         if (!result.allowed) {
           const status = result.reason === "unauthorized" ? 401 : 403;
-          const message = status === 401 ? "未授权" : "无权访问：权限不足";
-          return reply.code(status).send({ error: message });
+          return sendCodedError(
+            reply,
+            status,
+            status === 401
+              ? "common.unauthorized"
+              : "common.forbidden_permission",
+          );
         }
       },
   );

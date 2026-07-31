@@ -255,7 +255,7 @@ describe("BackupService", () => {
 
       await expect(
         assertCustomDumpFile("/some/path/backup.dump"),
-      ).rejects.toThrow("备份文件缺失或为空");
+      ).rejects.toThrow("备份失败");
     });
   });
 });

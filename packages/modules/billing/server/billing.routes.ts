@@ -3,9 +3,9 @@ import { Readable } from "node:stream";
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
 import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
+import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 import {
-  NotFoundError,
-  ValidationError,
+  AppError,
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 
@@ -96,7 +96,7 @@ export async function billingRoutes(app: FastifyInstance): Promise<void> {
       try {
         const body = request.body as { plan_slug?: string };
         if (!body.plan_slug?.trim()) {
-          return reply.code(400).send({ error: "plan_slug 必填" });
+          return sendCodedError(reply, 400, "billing.plan_slug_required");
         }
         const result = await createCheckoutSession({
           tenant_id: request.tenantContext!.tenant_id,
@@ -116,8 +116,8 @@ export async function billingRoutes(app: FastifyInstance): Promise<void> {
 
         return result;
       } catch (err) {
-        if (err instanceof ValidationError) {
-          return reply.code(400).send({ error: err.message });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }
@@ -149,11 +149,8 @@ export async function billingRoutes(app: FastifyInstance): Promise<void> {
 
         return result;
       } catch (err) {
-        if (err instanceof NotFoundError) {
-          return reply.code(404).send({ error: err.message });
-        }
-        if (err instanceof ValidationError) {
-          return reply.code(400).send({ error: err.message });
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
         }
         throw err;
       }
@@ -170,7 +167,7 @@ export async function billingWebhookRoutes(
     try {
       const rawBody = (request as RequestWithRawBody).rawBody;
       if (!rawBody) {
-        return reply.code(400).send({ error: "missing raw body" });
+        return sendCodedError(reply, 400, "billing.webhook_raw_body_missing");
       }
 
       const event = await verifyAndParseCreemWebhook(
@@ -206,9 +203,7 @@ export async function billingWebhookRoutes(
       return reply.code(200).send({ data: result });
     } catch (err) {
       app.log.error({ err }, "[billing] creem webhook failed");
-      return reply.code(400).send({
-        error: err instanceof Error ? err.message : "webhook failed",
-      });
+      return sendCodedError(reply, 400, "billing.webhook_failed");
     }
   });
 }

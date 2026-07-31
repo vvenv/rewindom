@@ -3,7 +3,10 @@ import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
 import {
   handleValidationError,
   handleRouteError,
+  sendCodedError,
+  sendAppErrorOr,
 } from "@be-water/server-kernel/http/route-error-handler.js";
+import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
 import { success } from "@be-water/shared";
@@ -59,10 +62,10 @@ export async function registerPlatformAdminRoutes(
         permissions?: string[];
       };
       if (!body.name?.trim()) {
-        return handleValidationError(reply, "请输入角色名称");
+        return handleValidationError(reply, "role.name_required");
       }
       if (!Array.isArray(body.permissions)) {
-        return handleValidationError(reply, "权限必须是数组");
+        return handleValidationError(reply, "permission.must_be_array");
       }
       try {
         const role = await RoleService.createPlatformRole(
@@ -91,8 +94,7 @@ export async function registerPlatformAdminRoutes(
 
         return reply.code(201).send(success(role));
       } catch (err) {
-        const message = err instanceof Error ? err.message : "创建角色失败";
-        return handleValidationError(reply, message);
+        return sendAppErrorOr(reply, err, "role.create_failed");
       }
     },
   );
@@ -130,8 +132,7 @@ export async function registerPlatformAdminRoutes(
 
         return reply.send(success(role));
       } catch (err) {
-        const message = err instanceof Error ? err.message : "更新角色失败";
-        return handleValidationError(reply, message);
+        return sendAppErrorOr(reply, err, "role.update_failed");
       }
     },
   );
@@ -158,8 +159,7 @@ export async function registerPlatformAdminRoutes(
 
         return reply.send(success({ success: true }));
       } catch (err) {
-        const message = err instanceof Error ? err.message : "删除角色失败";
-        return handleValidationError(reply, message);
+        return sendAppErrorOr(reply, err, "role.delete_failed");
       }
     },
   );
@@ -218,7 +218,7 @@ export async function registerPlatformAdminRoutes(
       };
 
       if (!body.username?.trim() || !body.password) {
-        return handleValidationError(reply, "请输入账号和密码");
+        return handleValidationError(reply, "auth.credentials_required");
       }
 
       try {
@@ -244,11 +244,10 @@ export async function registerPlatformAdminRoutes(
 
         return reply.code(201).send(success(admin));
       } catch (err) {
-        if (err instanceof Error && err.message === "用户名已存在") {
-          return reply.code(409).send({ error: err.message });
+        if (hasErrorCode(err, "auth.username_exists")) {
+          return sendCodedError(reply, 409, "auth.username_exists");
         }
-        const message = err instanceof Error ? err.message : "创建失败";
-        return handleValidationError(reply, message);
+        return sendAppErrorOr(reply, err, "common.create_failed");
       }
     },
   );
@@ -262,8 +261,8 @@ export async function registerPlatformAdminRoutes(
         const admin = await PlatformAdminManagementService.getAdminById(id);
         return reply.send(success(admin));
       } catch (err) {
-        if (err instanceof Error && err.message === "管理员不存在") {
-          return reply.code(404).send({ error: err.message });
+        if (hasErrorCode(err, "platform.admin_not_found")) {
+          return sendCodedError(reply, 404, "platform.admin_not_found");
         }
         return handleRouteError(
           reply,
@@ -307,8 +306,7 @@ export async function registerPlatformAdminRoutes(
 
         return reply.send(success(admin));
       } catch (err) {
-        const message = err instanceof Error ? err.message : "更新失败";
-        return handleValidationError(reply, message);
+        return sendAppErrorOr(reply, err, "common.update_failed");
       }
     },
   );
@@ -338,8 +336,7 @@ export async function registerPlatformAdminRoutes(
 
         return reply.send(success(null));
       } catch (err) {
-        const message = err instanceof Error ? err.message : "删除失败";
-        return handleValidationError(reply, message);
+        return sendAppErrorOr(reply, err, "common.delete_failed");
       }
     },
   );
@@ -354,7 +351,7 @@ export async function registerPlatformAdminRoutes(
       };
 
       if (!newPassword) {
-        return handleValidationError(reply, "请输入新密码");
+        return handleValidationError(reply, "auth.new_password_required");
       }
 
       try {
@@ -378,8 +375,7 @@ export async function registerPlatformAdminRoutes(
 
         return reply.send(success(result));
       } catch (err) {
-        const message = err instanceof Error ? err.message : "重置密码失败";
-        return handleValidationError(reply, message);
+        return sendAppErrorOr(reply, err, "platform.password_reset_failed");
       }
     },
   );
@@ -402,8 +398,8 @@ export async function registerPlatformAdminRoutes(
           }),
         );
       } catch (err) {
-        if (err instanceof Error && err.message === "管理员不存在") {
-          return reply.code(404).send({ error: err.message });
+        if (hasErrorCode(err, "platform.admin_not_found")) {
+          return sendCodedError(reply, 404, "platform.admin_not_found");
         }
         return handleRouteError(
           reply,
@@ -423,13 +419,13 @@ export async function registerPlatformAdminRoutes(
       const { role_ids: roleIds } = request.body as { role_ids?: string[] };
 
       if (!Array.isArray(roleIds)) {
-        return handleValidationError(reply, "角色必须是数组");
+        return handleValidationError(reply, "role.roles_must_be_array");
       }
 
       try {
         const admin = await PlatformAdminManagementService.getAdminById(id);
         if (admin.is_system_admin) {
-          return handleValidationError(reply, "无法修改系统管理员的角色");
+          return handleValidationError(reply, "role.system_admin_immutable");
         }
 
         await setPlatformAdminRoles(id, roleIds);
@@ -465,8 +461,7 @@ export async function registerPlatformAdminRoutes(
           }),
         );
       } catch (err) {
-        const message = err instanceof Error ? err.message : "更新角色失败";
-        return handleValidationError(reply, message);
+        return sendAppErrorOr(reply, err, "role.update_failed");
       }
     },
   );

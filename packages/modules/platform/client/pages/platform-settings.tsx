@@ -1,8 +1,10 @@
-import { useConfirm } from "@be-water/client-kit";
+import {
+  translateShellLayoutOptions,
+  translateThemePaletteOptions,
+  useConfirm,
+} from "@be-water/client-kit";
 import {
   APP_LOCALES,
-  SHELL_LAYOUTS,
-  THEME_PALETTES,
   isAppLocale,
   isShellLayoutSlug,
   isThemePaletteSlug,
@@ -247,7 +249,7 @@ export function PlatformSettings() {
           <AppearanceOptionGroup
             idPrefix="platform-theme"
             value={settings?.default_theme ?? ""}
-            options={THEME_PALETTES}
+            options={translateThemePaletteOptions(t)}
             onChange={handleDefaultThemeChange}
             disabled={updateMutation.isPending}
           />
@@ -268,7 +270,7 @@ export function PlatformSettings() {
           <AppearanceOptionGroup
             idPrefix="platform-layout"
             value={settings?.default_layout ?? ""}
-            options={SHELL_LAYOUTS}
+            options={translateShellLayoutOptions(t)}
             onChange={handleDefaultLayoutChange}
             disabled={updateMutation.isPending}
           />

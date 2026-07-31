@@ -1,5 +1,6 @@
 import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
+import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 import { success } from "@be-water/shared";
 
 import { AuditScope } from "../shared/index.js";
@@ -75,7 +76,7 @@ export async function auditLogRoutes(app: FastifyInstance): Promise<void> {
         });
       } catch (error) {
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });

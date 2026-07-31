@@ -5,11 +5,19 @@
  *
  * **只在 md+ 生效**。窄屏（<768px）恒定使用移动端外壳（顶部标题栏 + 底部 tab bar
  * + 抽屉导航）——那套本就是为窄屏调优的，把桌面横向导航塞进 375px 只会更糟。
+ *
+ * 新增布局 = 在此追加一项 + 补齐 `client-kit` `shell` 文案
+ * `shellLayouts.<slug>.{label,description}`。
+ *
+ * `label` / `description` 为 **zh-CN 兜底**（服务端审计等）；前端 UI 必须用
+ * `translateShellLayoutLabel` / `translateShellLayoutOptions`，勿直接展示。
  */
 
 export interface ShellLayoutDefinition {
   slug: string;
+  /** zh-CN 兜底名；UI 走 i18n */
   label: string;
+  /** zh-CN 兜底说明；UI 走 i18n */
   description: string;
 }
 

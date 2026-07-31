@@ -1,4 +1,5 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
 import {
   createRouteTestApp,
   createTestUserFast,
@@ -354,7 +355,7 @@ describe("Permission Routes", () => {
 
     it("角色写操作失败时不写审计", async () => {
       vi.spyOn(RoleService, "deleteTenantRole").mockRejectedValue(
-        new Error("内置角色不可删除"),
+        new ValidationError("role.builtin_undeletable"),
       );
 
       const response = await app.inject({
@@ -364,6 +365,7 @@ describe("Permission Routes", () => {
       });
 
       expect(response.statusCode).toBe(400);
+      expect(response.json().code).toBe("role.builtin_undeletable");
       expect(auditEmit.emitAuditLogFromRequestSafe).not.toHaveBeenCalled();
     });
   });
@@ -545,8 +547,7 @@ describe("Permission Routes", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const { error } = JSON.parse(response.payload);
-      expect(error).toContain("无法修改系统管理员的角色");
+      expect(response.json().code).toBe("role.system_admin_immutable");
     });
 
     it("should return 403 for regular user", async () => {

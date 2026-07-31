@@ -164,6 +164,14 @@ export * from "./lib/app-nav-types";
 export * from "./lib/module-contract";
 export * from "./lib/datetime-local";
 export * from "./lib/calendar-range";
+export {
+  translateThemePaletteLabel,
+  translateThemePaletteOptions,
+} from "./lib/translate-theme-palette";
+export {
+  translateShellLayoutLabel,
+  translateShellLayoutOptions,
+} from "./lib/translate-shell-layout";
 export * from "./lib/platform-nav-types";
 export {
   PlatformNavProvider,

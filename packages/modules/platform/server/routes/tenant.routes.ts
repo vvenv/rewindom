@@ -1,11 +1,12 @@
 import {
   handleRouteError,
   handleValidationError,
+  sendCodedError,
 } from "@be-water/server-kernel/http/route-error-handler.js";
+import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
 import {
-  error,
   success,
   isAppLocale,
   isShellLayoutSlug,
@@ -78,7 +79,7 @@ export async function registerTenantRoutes(
     try {
       const { slug, name, remark } = request.body ?? {};
       if (!slug || !name) {
-        return handleValidationError(reply, "请提供 slug 和 name");
+        return handleValidationError(reply, "tenant.slug_and_name_required");
       }
 
       const tenant = await createTenant({ slug, name, remark });
@@ -100,20 +101,20 @@ export async function registerTenantRoutes(
 
       return reply.code(201).send(success(tenant));
     } catch (err) {
-      if (
-        err instanceof InvalidTenantSlugError ||
-        err instanceof ReservedTenantSlugError
-      ) {
-        return handleValidationError(reply, err.message);
+      if (err instanceof InvalidTenantSlugError) {
+        return sendCodedError(reply, 400, "tenant.slug_invalid");
       }
-      if (err instanceof Error && err.message === "租户标识已存在") {
-        return reply.code(409).send(error(err.message));
+      if (err instanceof ReservedTenantSlugError) {
+        return sendCodedError(reply, 400, "tenant.slug_reserved");
+      }
+      if (hasErrorCode(err, "tenant.slug_exists")) {
+        return sendCodedError(reply, 409, "tenant.slug_exists");
       }
       return handleRouteError(
         reply,
         err,
         "[platformRoutes] 创建租户失败",
-        "CREATE_TENANT_FAILED",
+        "common.internal_error",
       );
     }
   });
@@ -132,13 +133,13 @@ export async function registerTenantRoutes(
         ) {
           return handleValidationError(
             reply,
-            "请提供 slug、name、remark 或 status",
+            "tenant.patch_fields_required",
           );
         }
 
         const before = await getTenantById(id);
         if (!before) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
 
         const tenant = await patchTenant(id, body);
@@ -176,33 +177,17 @@ export async function registerTenantRoutes(
 
         return reply.send(success(tenant));
       } catch (err) {
-        if (err instanceof Error && err.message === "租户不存在") {
-          return reply.code(404).send(error(err.message));
+        if (err instanceof InvalidTenantSlugError) {
+          return sendCodedError(reply, 400, "tenant.slug_invalid");
         }
-        if (
-          err instanceof Error &&
-          (err.message === "默认租户不可暂停" ||
-            err.message === "默认租户不可暂停或归档" ||
-            err.message === "默认租户标识不可修改" ||
-            err.message === "租户名称不能为空" ||
-            err.message === "无效的租户状态")
-        ) {
-          return handleValidationError(reply, err.message);
-        }
-        if (
-          err instanceof InvalidTenantSlugError ||
-          err instanceof ReservedTenantSlugError
-        ) {
-          return handleValidationError(reply, err.message);
-        }
-        if (err instanceof Error && err.message === "租户标识已存在") {
-          return reply.code(409).send(error(err.message));
+        if (err instanceof ReservedTenantSlugError) {
+          return sendCodedError(reply, 400, "tenant.slug_reserved");
         }
         return handleRouteError(
           reply,
           err,
           "[platformRoutes] 更新租户失败",
-          "PATCH_TENANT_FAILED",
+          "common.internal_error",
         );
       }
     },
@@ -217,7 +202,7 @@ export async function registerTenantRoutes(
       const newPassword = request.body?.new_password;
 
       if (newPassword !== undefined && newPassword.trim().length < 6) {
-        return handleValidationError(reply, "密码至少需要6个字符");
+        return handleValidationError(reply, "auth.password_min_6");
       }
 
       const credentials = await resetTenantAdminPassword(id, newPassword);
@@ -238,12 +223,6 @@ export async function registerTenantRoutes(
 
       return reply.send(success(credentials));
     } catch (err) {
-      if (err instanceof Error && err.message === "租户不存在") {
-        return reply.code(404).send(error(err.message));
-      }
-      if (err instanceof Error && err.message === "密码至少需要6个字符") {
-        return handleValidationError(reply, err.message);
-      }
       return handleRouteError(
         reply,
         err,
@@ -258,7 +237,7 @@ export async function registerTenantRoutes(
       try {
         const status = await getTenantIntegrationStatus(request.params.id);
         if (!status) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
         return reply.send(success(status));
       } catch (err) {
@@ -279,13 +258,13 @@ export async function registerTenantRoutes(
         const { id } = request.params;
         const before = await getTenantById(id);
         if (!before) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
         if (before.slug === "default") {
-          return handleValidationError(reply, "默认租户不可归档");
+          return handleValidationError(reply, "tenant.default_not_archivable");
         }
         if (before.status === "archived") {
-          return handleValidationError(reply, "租户已归档");
+          return handleValidationError(reply, "tenant.archived");
         }
 
         const tenant = await archiveTenant(id);
@@ -303,12 +282,6 @@ export async function registerTenantRoutes(
 
         return reply.send(success(tenant));
       } catch (err) {
-        if (err instanceof Error && err.message === "租户不存在") {
-          return reply.code(404).send(error(err.message));
-        }
-        if (err instanceof Error && err.message === "默认租户不可暂停或归档") {
-          return handleValidationError(reply, err.message);
-        }
         return handleRouteError(
           reply,
           err,
@@ -325,7 +298,7 @@ export async function registerTenantRoutes(
       try {
         const tenant = await getTenantById(request.params.id);
         if (!tenant) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
         const users = await listTenantUsers(request.params.id);
         return reply.send(success(users));
@@ -347,7 +320,7 @@ export async function registerTenantRoutes(
         const { id } = request.params;
         const tenant = await getTenantById(id);
         if (!tenant) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
 
         const userId = request.body?.user_id;
@@ -370,16 +343,6 @@ export async function registerTenantRoutes(
 
         return reply.send(success(result));
       } catch (err) {
-        if (err instanceof Error && err.message === "租户不存在") {
-          return reply.code(404).send(error(err.message));
-        }
-        if (
-          err instanceof Error &&
-          (err.message === "仅可代登录正常状态的租户" ||
-            err.message === "代登录账号不可用")
-        ) {
-          return handleValidationError(reply, err.message);
-        }
         return handleRouteError(
           reply,
           err,
@@ -396,7 +359,7 @@ export async function registerTenantRoutes(
       try {
         const stats = await getTenantStats(request.params.id);
         if (!stats) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
         return reply.send(success(stats));
       } catch (err) {
@@ -429,7 +392,7 @@ export async function registerTenantRoutes(
       try {
         const tenant = await getTenantById(request.params.id);
         if (!tenant) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
         const entitlements = await getTenantEntitlements(tenant.id);
         return reply.send(success(entitlements));
@@ -450,7 +413,7 @@ export async function registerTenantRoutes(
       try {
         const tenant = await getTenantById(request.params.id);
         if (!tenant) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
 
         const saved = await saveTenantFeatureFlags(
@@ -498,7 +461,7 @@ export async function registerTenantRoutes(
       try {
         const tenant = await getTenantById(request.params.id);
         if (!tenant) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
         const entitlements = await getTenantEntitlements(tenant.id);
         return reply.send(success(entitlements));
@@ -519,7 +482,7 @@ export async function registerTenantRoutes(
       try {
         const tenant = await getTenantById(request.params.id);
         if (!tenant) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
 
         const saved = await saveTenantEntitlements(tenant.id, request.body);
@@ -564,7 +527,7 @@ export async function registerTenantRoutes(
       try {
         const tenant = await getTenantById(request.params.id);
         if (!tenant) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
         const appearance = await getTenantAppearanceDetail(tenant.id);
         return reply.send(success(appearance));
@@ -585,7 +548,7 @@ export async function registerTenantRoutes(
       try {
         const tenant = await getTenantById(request.params.id);
         if (!tenant) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
 
         const body = request.body ?? {};
@@ -594,7 +557,7 @@ export async function registerTenantRoutes(
           body.layout === undefined &&
           body.locale === undefined
         ) {
-          return handleValidationError(reply, "请提供 theme、layout 或 locale");
+          return handleValidationError(reply, "tenant.appearance_fields_required");
         }
         // null = 恢复继承平台默认；其余必须是已注册的 slug
         if (
@@ -602,21 +565,21 @@ export async function registerTenantRoutes(
           body.theme !== null &&
           !isThemePaletteSlug(body.theme)
         ) {
-          return handleValidationError(reply, "无效的主题");
+          return handleValidationError(reply, "theme.invalid");
         }
         if (
           body.layout !== undefined &&
           body.layout !== null &&
           !isShellLayoutSlug(body.layout)
         ) {
-          return handleValidationError(reply, "无效的布局");
+          return handleValidationError(reply, "layout.invalid");
         }
         if (
           body.locale !== undefined &&
           body.locale !== null &&
           !isAppLocale(body.locale)
         ) {
-          return handleValidationError(reply, "无效的语言");
+          return handleValidationError(reply, "locale.invalid");
         }
 
         const before = await getTenantAppearance(tenant.id);
@@ -659,12 +622,12 @@ export async function registerTenantRoutes(
       try {
         const tenant = await getTenantById(request.params.id);
         if (!tenant) {
-          return reply.code(404).send(error("租户不存在"));
+          return sendCodedError(reply, 404, "tenant.not_found");
         }
 
         const body = request.body ?? {};
         if (body.plan === undefined && body.plan_ends_at === undefined) {
-          return handleValidationError(reply, "请提供 plan 或 plan_ends_at");
+          return handleValidationError(reply, "tenant.plan_fields_required");
         }
 
         const before = {
@@ -697,12 +660,6 @@ export async function registerTenantRoutes(
 
         return reply.send(success(updated));
       } catch (err) {
-        if (err instanceof Error && err.message === "无效的套餐") {
-          return handleValidationError(reply, err.message);
-        }
-        if (err instanceof Error && err.message === "无效的到期时间") {
-          return handleValidationError(reply, err.message);
-        }
         return handleRouteError(
           reply,
           err,

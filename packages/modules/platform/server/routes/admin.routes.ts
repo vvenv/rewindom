@@ -1,9 +1,12 @@
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
-import { handleRouteError } from "@be-water/server-kernel/http/route-error-handler.js";
+import {
+  handleRouteError,
+  sendCodedError,
+} from "@be-water/server-kernel/http/route-error-handler.js";
 import { getAppEnvironment } from "@be-water/server-kernel/lib/app-environment.js";
 import { getAppVersion } from "@be-water/server-kernel/lib/app-version.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { success, error } from "@be-water/shared";
+import { success } from "@be-water/shared";
 
 import { AuditAction, AuditScope } from "../../../audit/shared/index.js";
 import {
@@ -60,7 +63,7 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
           userId,
         );
         if (!job) {
-          return reply.code(404).send(error("任务不存在", "JOB_NOT_FOUND"));
+          return sendCodedError(reply, 404, "job.not_found");
         }
         return reply.send(success(job));
       } catch (err) {
@@ -84,7 +87,7 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
           userId,
         );
         if (result === "not_found") {
-          return reply.code(404).send(error("任务不存在", "JOB_NOT_FOUND"));
+          return sendCodedError(reply, 404, "job.not_found");
         }
 
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {

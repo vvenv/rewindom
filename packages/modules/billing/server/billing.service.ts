@@ -115,21 +115,21 @@ export async function createCheckoutSession(input: {
   user_id: string;
 }): Promise<{ checkout_url: string }> {
   if (!isSelfServePlanSlug(input.plan_slug)) {
-    throw new ValidationError("该套餐不支持自助购买");
+    throw new ValidationError("billing.plan_not_self_serve");
   }
   if (!isCreemConfigured()) {
-    throw new ValidationError("未配置 CREEM_API_KEY，无法发起付款");
+    throw new ValidationError("billing.creem_api_key_missing_checkout");
   }
   const productId = getCreemProductId(input.plan_slug);
   if (!productId) {
-    throw new ValidationError(
-      `套餐 ${input.plan_slug} 未配置 Creem product_id（CREEM_PRODUCT_MAP）`,
-    );
+    throw new ValidationError("billing.product_unconfigured", {
+      plan_slug: input.plan_slug,
+    });
   }
 
   const plan = getPlanBySlug(input.plan_slug);
   if (!plan) {
-    throw new ValidationError("无效套餐");
+    throw new ValidationError("plan.invalid");
   }
 
   const frontendUrl = config.frontend.url.replace(/\/$/, "");
@@ -161,10 +161,10 @@ export async function cancelCurrentSubscription(input: {
     orderBy: { updated_at: "desc" },
   });
   if (!current) {
-    throw new NotFoundError("当前没有可取消的订阅");
+    throw new NotFoundError("billing.no_cancellable_subscription");
   }
   if (!isCreemConfigured()) {
-    throw new ValidationError("未配置 CREEM_API_KEY，无法取消订阅");
+    throw new ValidationError("billing.creem_api_key_missing_cancel");
   }
 
   const provider = getCreemProvider();
@@ -266,7 +266,9 @@ export async function applyGrantedPlan(input: {
   plan_ends_at?: string | null;
 }): Promise<void> {
   if (!getPlanBySlug(input.plan_slug)) {
-    throw new ValidationError(`未知套餐：${input.plan_slug}`);
+    throw new ValidationError("billing.unknown_plan", {
+      plan_slug: input.plan_slug,
+    });
   }
   await updateTenantPlan(input.tenant_id, {
     plan: input.plan_slug as PlanSlug,

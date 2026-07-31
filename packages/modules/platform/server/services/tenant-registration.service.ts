@@ -2,6 +2,11 @@ import {
   AuthService,
   type JwtSignPayload,
 } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import {
+  AppError,
+  ConflictError,
+  ValidationError,
+} from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { emitDetachedAuditLogSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
@@ -38,61 +43,61 @@ export interface RegisterTenantResult {
 
 function validateUsername(username: string): void {
   if (!username || username.trim().length === 0) {
-    throw new Error("账号不能为空");
+    throw new ValidationError("auth.username_required");
   }
   if (username.length < 3 || username.length > 50) {
-    throw new Error("账号长度需要3-50个字符");
+    throw new ValidationError("auth.username_length");
   }
   if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-    throw new Error("账号只能包含字母、数字、下划线和连字符");
+    throw new ValidationError("auth.username_charset");
   }
 }
 
 function validatePassword(password: string): void {
   if (!password || password.length === 0) {
-    throw new Error("密码不能为空");
+    throw new ValidationError("auth.password_required");
   }
   if (password.length < 8) {
-    throw new Error("密码至少需要8个字符");
+    throw new ValidationError("auth.password_min_8");
   }
   if (!/[a-z]/.test(password)) {
-    throw new Error("密码需要包含小写字母");
+    throw new ValidationError("auth.password_need_lower");
   }
   if (!/[A-Z]/.test(password)) {
-    throw new Error("密码需要包含大写字母");
+    throw new ValidationError("auth.password_need_upper");
   }
   if (!/[0-9]/.test(password)) {
-    throw new Error("密码需要包含数字");
+    throw new ValidationError("auth.password_need_digit");
   }
 }
 
 function validatePhone(phone: string): void {
   if (!phone || phone.trim().length === 0) {
-    throw new Error("手机号不能为空");
+    throw new ValidationError("auth.phone_required");
   }
   const phoneRegex = /^1[3-9]\d{9}$/;
   if (!phoneRegex.test(phone.trim())) {
-    throw new Error("请输入正确的手机号格式");
+    throw new ValidationError("auth.phone_invalid");
   }
 }
 
 function validateEmail(email: string): void {
   if (!email || email.trim().length === 0) {
-    throw new Error("邮箱不能为空");
+    throw new ValidationError("auth.email_required");
   }
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email.trim())) {
-    throw new Error("请输入正确的邮箱格式");
+    throw new ValidationError("auth.email_invalid");
   }
 }
 
 function validateTenantName(name: string): void {
   if (!name || name.trim().length === 0) {
-    throw new Error("组织名称不能为空");
+    throw new ValidationError("tenant.org_name_required");
   }
   const trimmed = name.trim();
   if (trimmed.length < 2 || trimmed.length > 50) {
-    throw new Error("组织名称长度需要2-50个字符");
+    throw new ValidationError("tenant.org_name_length");
   }
 }
 
@@ -104,7 +109,7 @@ export async function registerTenant(
 ): Promise<RegisterTenantResult> {
   const config = await getPlatformSettings();
   if (!config.registration_enabled) {
-    throw new Error("REGISTRATION_DISABLED");
+    throw new AppError({ code: "tenant.registration_disabled", status: 403 });
   }
 
   validateTenantName(input.tenant_name);
@@ -117,7 +122,7 @@ export async function registerTenant(
 
   const existing = await prisma.tenant.findUnique({ where: { slug } });
   if (existing) {
-    throw new Error("租户标识已存在");
+    throw new ConflictError("tenant.slug_exists");
   }
 
   const hashedPassword = await AuthService.hashPassword(input.password);

@@ -7,6 +7,15 @@ export interface NoteInput {
   content?: string;
 }
 
+export interface NoteValidationIssue {
+  code:
+    | "notes.title_enter"
+    | "notes.title_required"
+    | "notes.title_too_long"
+    | "notes.content_too_long";
+  params?: Record<string, number>;
+}
+
 export function buildNoteContentPreview(content: string): string {
   const normalized = content.replace(/\s+/g, " ").trim();
   if (!normalized) {
@@ -21,29 +30,29 @@ export function buildNoteContentPreview(content: string): string {
 export function validateNoteInput(
   input: NoteInput,
   options: { requireTitle?: boolean } = {},
-): string | null {
+): NoteValidationIssue | null {
   const requireTitle = options.requireTitle ?? true;
 
   if (requireTitle) {
     const title = input.title?.trim() ?? "";
     if (!title) {
-      return "请输入标题";
+      return { code: "notes.title_enter" };
     }
     if (title.length > NOTE_TITLE_MAX_LENGTH) {
-      return `标题不能超过 ${NOTE_TITLE_MAX_LENGTH} 个字符`;
+      return { code: "notes.title_too_long", params: { max: NOTE_TITLE_MAX_LENGTH } };
     }
   } else if (input.title !== undefined) {
     const title = input.title.trim();
     if (!title) {
-      return "标题不能为空";
+      return { code: "notes.title_required" };
     }
     if (title.length > NOTE_TITLE_MAX_LENGTH) {
-      return `标题不能超过 ${NOTE_TITLE_MAX_LENGTH} 个字符`;
+      return { code: "notes.title_too_long", params: { max: NOTE_TITLE_MAX_LENGTH } };
     }
   }
 
   if (input.content !== undefined && input.content.length > NOTE_CONTENT_MAX_LENGTH) {
-    return `内容不能超过 ${NOTE_CONTENT_MAX_LENGTH} 个字符`;
+    return { code: "notes.content_too_long", params: { max: NOTE_CONTENT_MAX_LENGTH } };
   }
 
   return null;

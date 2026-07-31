@@ -1,3 +1,5 @@
+import { AppError } from "../lib/app-errors.js";
+
 import type {
   PublicConfigProvider,
   TenantApiKeyAuthProvider,
@@ -64,7 +66,7 @@ export class ProviderRegistry {
   };
   private tenantRegistration: TenantRegistrationProvider = {
     async registerTenant() {
-      throw new Error("REGISTRATION_DISABLED");
+      throw new AppError({ code: "tenant.registration_disabled", status: 403 });
     },
   };
   private tenantApiKeyAuth: TenantApiKeyAuthProvider | null = null;

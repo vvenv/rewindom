@@ -3,7 +3,11 @@ import {
   parseDisplayCatalogPagination,
   parsePagination,
 } from "@be-water/server-kernel/http/pagination.js";
-import { handleValidationError } from "@be-water/server-kernel/http/route-error-handler.js";
+import {
+  handleValidationError,
+  sendCodedError,
+} from "@be-water/server-kernel/http/route-error-handler.js";
+import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { success } from "@be-water/shared";
 
@@ -77,7 +81,7 @@ export async function userRoutes(app: FastifyInstance) {
         });
       } catch (error) {
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -91,11 +95,11 @@ export async function userRoutes(app: FastifyInstance) {
         const { userId: operatorId } = request.authUser!;
 
         if (!username || !password) {
-          return handleValidationError(reply, "请输入账号和密码");
+          return handleValidationError(reply, "auth.credentials_required");
         }
 
         if (password.length < 6) {
-          return handleValidationError(reply, "密码至少需要6个字符");
+          return handleValidationError(reply, "auth.password_min_6");
         }
 
         try {
@@ -132,16 +136,14 @@ export async function userRoutes(app: FastifyInstance) {
 
         return reply.send({ data: user });
       } catch (error) {
-        if (error instanceof Error) {
-          if (error.message === "用户名已存在") {
-            return reply.code(409).send({ error: error.message });
-          }
-          if (error.message === "包含无效的角色") {
-            return handleValidationError(reply, error.message);
-          }
+        if (hasErrorCode(error, "auth.username_exists")) {
+          return sendCodedError(reply, 409, "auth.username_exists");
+        }
+        if (hasErrorCode(error, "role.invalid_roles")) {
+          return handleValidationError(reply, "role.invalid_roles");
         }
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -169,7 +171,7 @@ export async function userRoutes(app: FastifyInstance) {
         });
       } catch (error) {
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -184,11 +186,11 @@ export async function userRoutes(app: FastifyInstance) {
 
         return reply.send({ data: user });
       } catch (error) {
-        if (error instanceof Error && error.message === "用户不存在") {
-          return reply.code(404).send({ error: error.message });
+        if (hasErrorCode(error, "user.not_found")) {
+          return sendCodedError(reply, 404, "user.not_found");
         }
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -204,7 +206,7 @@ export async function userRoutes(app: FastifyInstance) {
 
         const bodyRecord = request.body as Record<string, unknown>;
         if (bodyRecord.username !== undefined) {
-          return handleValidationError(reply, "用户名无法修改");
+          return handleValidationError(reply, "auth.username_immutable");
         }
 
         const hasUpdates =
@@ -212,7 +214,7 @@ export async function userRoutes(app: FastifyInstance) {
           body.enabled !== undefined ||
           body.role_ids !== undefined;
         if (!hasUpdates) {
-          return handleValidationError(reply, "没有要更新的字段");
+          return handleValidationError(reply, "common.no_fields_to_update");
         }
 
         const user = await UserManagementService.updateUser({
@@ -242,16 +244,14 @@ export async function userRoutes(app: FastifyInstance) {
 
         return reply.send({ data: user });
       } catch (error) {
-        if (error instanceof Error) {
-          if (error.message === "用户不存在") {
-            return reply.code(404).send({ error: error.message });
-          }
-          if (error.message === "包含无效的角色") {
-            return handleValidationError(reply, error.message);
-          }
+        if (hasErrorCode(error, "user.not_found")) {
+          return sendCodedError(reply, 404, "user.not_found");
+        }
+        if (hasErrorCode(error, "role.invalid_roles")) {
+          return handleValidationError(reply, "role.invalid_roles");
         }
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -265,7 +265,7 @@ export async function userRoutes(app: FastifyInstance) {
         const tenantId = request.tenantContext!.tenant_id;
 
         if (id === operatorId) {
-          return handleValidationError(reply, "不能删除自己的账号");
+          return handleValidationError(reply, "auth.cannot_delete_self");
         }
 
         const targetUser = await UserManagementService.getUserByIdAdmin(
@@ -286,11 +286,11 @@ export async function userRoutes(app: FastifyInstance) {
 
         return reply.send({ data: null });
       } catch (error) {
-        if (error instanceof Error && error.message === "用户不存在") {
-          return reply.code(404).send({ error: error.message });
+        if (hasErrorCode(error, "user.not_found")) {
+          return sendCodedError(reply, 404, "user.not_found");
         }
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -305,11 +305,11 @@ export async function userRoutes(app: FastifyInstance) {
         const tenantId = request.tenantContext!.tenant_id;
 
         if (!newPassword) {
-          return handleValidationError(reply, "请输入新密码");
+          return handleValidationError(reply, "auth.new_password_required");
         }
 
         if (newPassword.length < 6) {
-          return handleValidationError(reply, "密码至少需要6个字符");
+          return handleValidationError(reply, "auth.password_min_6");
         }
 
         const targetUser = await UserManagementService.getUserByIdAdmin(
@@ -335,11 +335,11 @@ export async function userRoutes(app: FastifyInstance) {
 
         return reply.send({ data: result });
       } catch (error) {
-        if (error instanceof Error && error.message === "用户不存在") {
-          return reply.code(404).send({ error: error.message });
+        if (hasErrorCode(error, "user.not_found")) {
+          return sendCodedError(reply, 404, "user.not_found");
         }
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });
@@ -353,11 +353,11 @@ export async function userRoutes(app: FastifyInstance) {
         const tenantId = request.tenantContext!.tenant_id;
 
         if (!ids || !Array.isArray(ids) || ids.length === 0) {
-          return handleValidationError(reply, "请提供用户ID");
+          return handleValidationError(reply, "user.ids_required");
         }
 
         if (ids.includes(operatorId)) {
-          return handleValidationError(reply, "不能删除自己的账号");
+          return handleValidationError(reply, "auth.cannot_delete_self");
         }
 
         const deletedUsernames = await UserManagementService.deleteUsers(
@@ -377,16 +377,18 @@ export async function userRoutes(app: FastifyInstance) {
 
         return reply.send({ data: null });
       } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.startsWith("用户不存在")) {
-            return reply.code(404).send({ error: error.message });
-          }
-          if (error.message === "未提供用户ID") {
-            return handleValidationError(reply, error.message);
-          }
+        if (hasErrorCode(error, "user.not_found_batch")) {
+          const params =
+            typeof error === "object" && error !== null && "params" in error
+              ? (error.params as Record<string, unknown> | undefined)
+              : undefined;
+          return sendCodedError(reply, 404, "user.not_found_batch", params);
+        }
+        if (hasErrorCode(error, "user.id_required")) {
+          return handleValidationError(reply, "user.id_required");
         }
         app.log.error(error);
-        return reply.code(500).send({ error: "服务器内部错误" });
+        return sendCodedError(reply, 500, "common.internal_error");
       }
     },
   });

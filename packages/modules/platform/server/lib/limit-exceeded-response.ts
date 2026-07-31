@@ -1,7 +1,7 @@
-import {
-  resolveRequestLocale,
-} from "@be-water/server-kernel/lib/i18n/translate.js";
-import { error } from "@be-water/shared";
+import { buildCodedErrorBody } from "@be-water/server-kernel/http/coded-error.js";
+import { resolveRequestLocale } from "@be-water/server-kernel/lib/i18n/translate.js";
+
+import { TENANT_LIMIT_REGISTRY } from "../../shared/index.js";
 
 import { LimitExceededError } from "./limit-exceeded.error.js";
 
@@ -20,13 +20,19 @@ export function handleLimitExceededError(
   err: LimitExceededError,
 ): void {
   const locale = resolveRequestLocale(reply.request);
-  const message =
+  const registryLabel = TENANT_LIMIT_REGISTRY[err.limitKey]?.label;
+  const label =
     locale === "en"
-      ? `Reached ${LIMIT_LABEL_EN[err.limitKey] ?? err.limitKey} (${err.limit}). Contact a platform admin to upgrade your plan.`
-      : err.message;
+      ? (LIMIT_LABEL_EN[err.limitKey] ?? err.limitKey)
+      : (registryLabel ?? err.limitKey);
 
+  // 客户端契约保留 code=LIMIT_EXCEEDED + limit_key；文案走 catalog
   reply.code(403).send({
-    ...error(message, "LIMIT_EXCEEDED"),
+    ...buildCodedErrorBody(reply, "platform.limit_exceeded", {
+      label,
+      limit: err.limit,
+    }),
+    code: "LIMIT_EXCEEDED",
     limit_key: err.limitKey,
   });
 }

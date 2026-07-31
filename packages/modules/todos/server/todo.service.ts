@@ -142,7 +142,7 @@ export async function createTodo(params: {
     completed: params.completed,
   });
   if (validationError) {
-    throw new ValidationError(validationError);
+    throw new ValidationError(validationError.code, validationError.params);
   }
 
   const record = await prisma.todo.create({
@@ -174,7 +174,7 @@ export async function updateTodo(params: {
     { partial: true },
   );
   if (validationError) {
-    throw new ValidationError(validationError);
+    throw new ValidationError(validationError.code, validationError.params);
   }
 
   const existing = await prisma.todo.findFirst({

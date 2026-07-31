@@ -22,13 +22,18 @@ describe("buildNoteContentPreview", () => {
 
 describe("validateNoteInput", () => {
   it("requires title by default", () => {
-    expect(validateNoteInput({ title: "  " })).toBe("请输入标题");
+    expect(validateNoteInput({ title: "  " })).toEqual({
+      code: "notes.title_enter",
+    });
   });
 
   it("rejects overlong title", () => {
     expect(
       validateNoteInput({ title: "x".repeat(NOTE_TITLE_MAX_LENGTH + 1) }),
-    ).toContain("标题不能超过");
+    ).toEqual({
+      code: "notes.title_too_long",
+      params: { max: NOTE_TITLE_MAX_LENGTH },
+    });
   });
 
   it("rejects overlong content", () => {
@@ -37,7 +42,10 @@ describe("validateNoteInput", () => {
         title: "ok",
         content: "y".repeat(NOTE_CONTENT_MAX_LENGTH + 1),
       }),
-    ).toContain("内容不能超过");
+    ).toEqual({
+      code: "notes.content_too_long",
+      params: { max: NOTE_CONTENT_MAX_LENGTH },
+    });
   });
 
   it("accepts valid input", () => {
