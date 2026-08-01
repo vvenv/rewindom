@@ -144,6 +144,13 @@ docker_write_remote_env_file() {
     [ -n "${PLATFORM_ADMIN_USERNAME:-}" ] && printf 'PLATFORM_ADMIN_USERNAME=%s\n' "$PLATFORM_ADMIN_USERNAME"
     [ -n "${PLATFORM_ADMIN_PASSWORD:-}" ] && printf 'PLATFORM_ADMIN_PASSWORD=%s\n' "$PLATFORM_ADMIN_PASSWORD"
     [ -n "${LOG_LEVEL:-}" ] && printf 'LOG_LEVEL=%s\n' "$LOG_LEVEL"
+    [ -n "${FRONTEND_URL:-}" ] && printf 'FRONTEND_URL=%s\n' "$FRONTEND_URL"
+    [ -n "${GITHUB_CLIENT_ID:-}" ] && printf 'GITHUB_CLIENT_ID=%s\n' "$GITHUB_CLIENT_ID"
+    [ -n "${GITHUB_CLIENT_SECRET:-}" ] && printf 'GITHUB_CLIENT_SECRET=%s\n' "$GITHUB_CLIENT_SECRET"
+    [ -n "${GITHUB_CALLBACK_URL:-}" ] && printf 'GITHUB_CALLBACK_URL=%s\n' "$GITHUB_CALLBACK_URL"
+    [ -n "${GOOGLE_CLIENT_ID:-}" ] && printf 'GOOGLE_CLIENT_ID=%s\n' "$GOOGLE_CLIENT_ID"
+    [ -n "${GOOGLE_CLIENT_SECRET:-}" ] && printf 'GOOGLE_CLIENT_SECRET=%s\n' "$GOOGLE_CLIENT_SECRET"
+    [ -n "${GOOGLE_CALLBACK_URL:-}" ] && printf 'GOOGLE_CALLBACK_URL=%s\n' "$GOOGLE_CALLBACK_URL"
   } >"$output"
   chmod 600 "$output"
 }

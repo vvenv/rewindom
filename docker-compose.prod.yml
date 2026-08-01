@@ -70,6 +70,12 @@ services:
       ATTACHMENT_BASE_DIR: /data/attachments
       FRONTEND_URL: ${FRONTEND_URL:-https://${APP_DOMAIN}}
       LOG_LEVEL: ${LOG_LEVEL:-warn}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-}
     volumes:
       - be_water_storage:/data
     depends_on:
