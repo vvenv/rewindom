@@ -76,6 +76,7 @@ export const KERNEL_MESSAGES_EN: Record<string, string> = {
     "Self-registration is closed; ask an admin for an account before using GitHub login",
   "auth.oauth_already_linked": "This GitHub account is already linked",
   "auth.audit.login_oauth_github": "Signed in with GitHub",
+  "auth.audit.login_oauth_google": "Signed in with Google",
   "auth.new_password_same": "New password must differ from the current password",
   "auth.passwords_mismatch": "Passwords do not match",
   "auth.new_password_invalid": "New password does not meet requirements",

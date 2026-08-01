@@ -62,6 +62,7 @@ export class ProviderRegistry {
         captcha_enabled: false,
         default_locale: "zh-CN",
         github_oauth_enabled: false,
+        google_oauth_enabled: false,
       };
     },
   };

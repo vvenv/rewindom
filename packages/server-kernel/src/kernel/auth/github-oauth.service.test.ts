@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeOAuthUsername } from "./github-oauth.service.js";
+import { normalizeOAuthUsername } from "./oauth-common.js";
 
 describe("normalizeOAuthUsername", () => {
-  it("lowercases and keeps valid github logins", () => {
+  it("lowercases and keeps valid logins", () => {
     expect(normalizeOAuthUsername("OctoCat")).toBe("octocat");
   });
 

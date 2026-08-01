@@ -115,4 +115,6 @@ export interface PublicConfig {
   default_locale: AppLocale;
   /** 是否已配置 GitHub OAuth（登录页展示「使用 GitHub 登录」）。 */
   github_oauth_enabled: boolean;
+  /** 是否已配置 Google OAuth（登录页展示「使用 Google 登录」）。 */
+  google_oauth_enabled: boolean;
 }

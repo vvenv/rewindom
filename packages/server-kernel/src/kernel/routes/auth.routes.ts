@@ -21,10 +21,17 @@ import { AuthService } from "../auth/auth.service.js";
 import {
   buildGithubAuthorizeUrl,
   GithubOAuthService,
-  mapOAuthErrorCode,
-  resolveGithubCallbackUrl,
-  verifyGithubOAuthState,
 } from "../auth/github-oauth.service.js";
+import {
+  buildGoogleAuthorizeUrl,
+  GoogleOAuthService,
+} from "../auth/google-oauth.service.js";
+import {
+  mapOAuthErrorCode,
+  oauthStateType,
+  requestOriginFromHeaders,
+  type OAuthProviderId,
+} from "../auth/oauth-common.js";
 
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
@@ -302,121 +309,132 @@ export async function authRoutes(app: FastifyInstance) {
     },
   });
 
-  // GitHub OAuth — start: GET /api/auth/oauth/github
-  app.get("/oauth/github", async (request, reply) => {
-    try {
-      if (!config.auth.github.enabled) {
-        return sendCodedError(reply, 503, "auth.oauth_not_configured");
-      }
+  const oauthProviders: Array<{
+    id: OAuthProviderId;
+    enabled: boolean;
+    buildAuthorizeUrl: (params: {
+      state: string;
+      callbackUrl: string;
+    }) => string;
+    service: typeof GithubOAuthService | typeof GoogleOAuthService;
+    auditDetailKey: string;
+  }> = [
+    {
+      id: "github",
+      enabled: config.auth.github.enabled,
+      buildAuthorizeUrl: buildGithubAuthorizeUrl,
+      service: GithubOAuthService,
+      auditDetailKey: "auth.audit.login_oauth_github",
+    },
+    {
+      id: "google",
+      enabled: config.auth.google.enabled,
+      buildAuthorizeUrl: buildGoogleAuthorizeUrl,
+      service: GoogleOAuthService,
+      auditDetailKey: "auth.audit.login_oauth_google",
+    },
+  ];
 
-      const proto =
-        (request.headers["x-forwarded-proto"] as string | undefined)?.split(
-          ",",
-        )[0]?.trim() || request.protocol;
-      const host =
-        (request.headers["x-forwarded-host"] as string | undefined)?.split(
-          ",",
-        )[0]?.trim() || request.headers.host;
-      if (!host) {
-        return sendCodedError(reply, 500, "common.internal_error");
-      }
+  for (const provider of oauthProviders) {
+    app.get(`/oauth/${provider.id}`, async (request, reply) => {
+      try {
+        if (!provider.enabled) {
+          return sendCodedError(reply, 503, "auth.oauth_not_configured");
+        }
 
-      const callbackUrl = resolveGithubCallbackUrl(`${proto}://${host}`);
-      const state = app.jwt.sign(
-        { typ: "oauth_github_state", nonce: randomUUID() },
-        { expiresIn: "10m" },
-      );
+        const origin = requestOriginFromHeaders(request);
+        if (!origin) {
+          return sendCodedError(reply, 500, "common.internal_error");
+        }
 
-      return reply.redirect(
-        buildGithubAuthorizeUrl({ state, callbackUrl }),
-      );
-    } catch (error) {
-      app.log.error(error);
-      return reply.redirect(
-        GithubOAuthService.buildFrontendErrorRedirect(mapOAuthErrorCode(error)),
-      );
-    }
-  });
+        const callbackUrl = provider.service.resolveCallbackUrl(origin);
+        const state = app.jwt.sign(
+          { typ: oauthStateType(provider.id), nonce: randomUUID() },
+          { expiresIn: "10m" },
+        );
 
-  // GitHub OAuth — callback: GET /api/auth/oauth/github/callback
-  app.get("/oauth/github/callback", async (request, reply) => {
-    const query = request.query as {
-      code?: string;
-      state?: string;
-      error?: string;
-      error_description?: string;
-    };
-
-    try {
-      if (query.error) {
         return reply.redirect(
-          GithubOAuthService.buildFrontendErrorRedirect(
-            query.error === "access_denied"
-              ? "auth.oauth_denied"
-              : "auth.oauth_failed",
-          ),
+          provider.buildAuthorizeUrl({ state, callbackUrl }),
+        );
+      } catch (error) {
+        app.log.error(error);
+        return reply.redirect(
+          provider.service.buildFrontendErrorRedirect(mapOAuthErrorCode(error)),
         );
       }
+    });
 
-      if (!query.code || !query.state) {
-        return reply.redirect(
-          GithubOAuthService.buildFrontendErrorRedirect(
-            "auth.oauth_state_invalid",
-          ),
-        );
-      }
-
-      verifyGithubOAuthState(query.state, (token) =>
-        app.jwt.verify<{ typ?: string }>(token),
-      );
-
-      const proto =
-        (request.headers["x-forwarded-proto"] as string | undefined)?.split(
-          ",",
-        )[0]?.trim() || request.protocol;
-      const host =
-        (request.headers["x-forwarded-host"] as string | undefined)?.split(
-          ",",
-        )[0]?.trim() || request.headers.host;
-      if (!host) {
-        return reply.redirect(
-          GithubOAuthService.buildFrontendErrorRedirect("common.internal_error"),
-        );
-      }
-
-      const callbackUrl = resolveGithubCallbackUrl(`${proto}://${host}`);
-      const result = await GithubOAuthService.completeLogin({
-        code: query.code,
-        callbackUrl,
-        jwtSign: app.jwt.sign.bind(app.jwt),
-        registry: app.registry,
-        ip: request.ip,
-        userAgent: request.headers["user-agent"] ?? "",
-      });
+    app.get(`/oauth/${provider.id}/callback`, async (request, reply) => {
+      const query = request.query as {
+        code?: string;
+        state?: string;
+        error?: string;
+      };
 
       try {
-        await emitAuditLog(app.events, {
-          userId: result.user.id,
-          username: result.user.username,
-          action: KERNEL_AUDIT_ACTIONS.LOGIN,
-          resource: "auth",
-          detail_key: "auth.audit.login_oauth_github",
-          ipAddress: request.ip,
-          userAgent: request.headers["user-agent"],
-          tenant_slug: result.tenant_slug,
-        });
-      } catch (auditError) {
-        app.log.error({ error: auditError }, "记录 OAuth 审计日志失败");
-      }
+        if (query.error) {
+          return reply.redirect(
+            provider.service.buildFrontendErrorRedirect(
+              query.error === "access_denied"
+                ? "auth.oauth_denied"
+                : "auth.oauth_failed",
+            ),
+          );
+        }
 
-      return reply.redirect(
-        GithubOAuthService.buildFrontendSuccessRedirect(result),
-      );
-    } catch (error) {
-      app.log.error(error);
-      return reply.redirect(
-        GithubOAuthService.buildFrontendErrorRedirect(mapOAuthErrorCode(error)),
-      );
-    }
-  });
+        if (!query.code || !query.state) {
+          return reply.redirect(
+            provider.service.buildFrontendErrorRedirect(
+              "auth.oauth_state_invalid",
+            ),
+          );
+        }
+
+        provider.service.verifyState(query.state, (token) =>
+          app.jwt.verify<{ typ?: string }>(token),
+        );
+
+        const origin = requestOriginFromHeaders(request);
+        if (!origin) {
+          return reply.redirect(
+            provider.service.buildFrontendErrorRedirect("common.internal_error"),
+          );
+        }
+
+        const callbackUrl = provider.service.resolveCallbackUrl(origin);
+        const result = await provider.service.completeLogin({
+          code: query.code,
+          callbackUrl,
+          jwtSign: app.jwt.sign.bind(app.jwt),
+          registry: app.registry,
+          ip: request.ip,
+          userAgent: request.headers["user-agent"] ?? "",
+        });
+
+        try {
+          await emitAuditLog(app.events, {
+            userId: result.user.id,
+            username: result.user.username,
+            action: KERNEL_AUDIT_ACTIONS.LOGIN,
+            resource: "auth",
+            detail_key: provider.auditDetailKey,
+            ipAddress: request.ip,
+            userAgent: request.headers["user-agent"],
+            tenant_slug: result.tenant_slug,
+          });
+        } catch (auditError) {
+          app.log.error({ error: auditError }, "记录 OAuth 审计日志失败");
+        }
+
+        return reply.redirect(
+          provider.service.buildFrontendSuccessRedirect(result),
+        );
+      } catch (error) {
+        app.log.error(error);
+        return reply.redirect(
+          provider.service.buildFrontendErrorRedirect(mapOAuthErrorCode(error)),
+        );
+      }
+    });
+  }
 }

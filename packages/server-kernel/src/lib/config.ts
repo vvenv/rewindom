@@ -116,9 +116,19 @@ function buildServerConfig() {
   };
 }
 
+function buildOAuthProviderConfig(envPrefix: "GITHUB" | "GOOGLE") {
+  const clientId = optionalStrEnv(`${envPrefix}_CLIENT_ID`);
+  const clientSecret = optionalStrEnv(`${envPrefix}_CLIENT_SECRET`);
+  return {
+    clientId: clientId ?? "",
+    clientSecret: clientSecret ?? "",
+    /** 可选覆盖；未设时优先 FRONTEND_URL，再回退请求 Host */
+    callbackUrl: optionalStrEnv(`${envPrefix}_CALLBACK_URL`) ?? "",
+    enabled: Boolean(clientId && clientSecret),
+  };
+}
+
 function buildAuthConfig() {
-  const githubClientId = optionalStrEnv("GITHUB_CLIENT_ID");
-  const githubClientSecret = optionalStrEnv("GITHUB_CLIENT_SECRET");
   return {
     jwtSecret: resolveJwtSecret(),
     bcryptSaltRounds: isTest ? 4 : 10,
@@ -127,13 +137,8 @@ function buildAuthConfig() {
       password: strEnv("PLATFORM_ADMIN_PASSWORD", ""),
       passwordHash: strEnv("PLATFORM_ADMIN_PASSWORD_HASH", ""),
     },
-    github: {
-      clientId: githubClientId ?? "",
-      clientSecret: githubClientSecret ?? "",
-      /** 可选覆盖；未设时由请求 Host 推导 `/api/auth/oauth/github/callback` */
-      callbackUrl: optionalStrEnv("GITHUB_CALLBACK_URL") ?? "",
-      enabled: Boolean(githubClientId && githubClientSecret),
-    },
+    github: buildOAuthProviderConfig("GITHUB"),
+    google: buildOAuthProviderConfig("GOOGLE"),
   };
 }
 

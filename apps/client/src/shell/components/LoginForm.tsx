@@ -32,6 +32,29 @@ function GitHubMark({ className }: { className?: string }) {
   );
 }
 
+function GoogleMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={className}>
+      <path
+        fill="#4285F4"
+        d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.44a5.5 5.5 0 0 1-2.39 3.61v3h3.86c2.26-2.08 3.58-5.15 3.58-8.64Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.95-1.07 7.93-2.91l-3.86-3a7.2 7.2 0 0 1-10.78-3.79H1.3v3.09A12 12 0 0 0 12 24Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.29 14.3A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.58.38-2.3V6.61H1.3A12 12 0 0 0 0 12c0 1.94.46 3.77 1.3 5.39l3.99-3.09Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.14 15.24 0 12 0A12 12 0 0 0 1.3 6.61l3.99 3.09A7.17 7.17 0 0 1 12 4.75Z"
+      />
+    </svg>
+  );
+}
+
 export function LoginForm({
   username,
   password,
@@ -40,6 +63,7 @@ export function LoginForm({
   captchaEnabled,
   registrationEnabled,
   githubOAuthEnabled,
+  googleOAuthEnabled,
   isLoading,
   onUsernameChange,
   onPasswordChange,
@@ -55,6 +79,7 @@ export function LoginForm({
   captchaEnabled: boolean;
   registrationEnabled: boolean;
   githubOAuthEnabled: boolean;
+  googleOAuthEnabled: boolean;
   isLoading: boolean;
   onUsernameChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
@@ -64,6 +89,7 @@ export function LoginForm({
   onSubmit: () => void;
 }) {
   const { t } = useTranslation(["shell", "common"]);
+  const oauthEnabled = githubOAuthEnabled || googleOAuthEnabled;
 
   return (
     <div className="auth-glass-card relative overflow-hidden rounded-2xl">
@@ -178,25 +204,41 @@ export function LoginForm({
           </FieldGroup>
         </form>
 
-        {githubOAuthEnabled && (
-          <div className="mt-6 space-y-4">
+        {oauthEnabled && (
+          <div className="mt-6 space-y-3">
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <div className="h-px flex-1 bg-border" />
               <span>{t("auth.oauth.or")}</span>
               <div className="h-px flex-1 bg-border" />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={isLoading}
-              onClick={() => {
-                window.location.href = "/api/auth/oauth/github";
-              }}
-            >
-              <GitHubMark className="size-4" />
-              {t("auth.oauth.continueWithGitHub")}
-            </Button>
+            {githubOAuthEnabled && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={isLoading}
+                onClick={() => {
+                  window.location.href = "/api/auth/oauth/github";
+                }}
+              >
+                <GitHubMark className="size-4" />
+                {t("auth.oauth.continueWithGitHub")}
+              </Button>
+            )}
+            {googleOAuthEnabled && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={isLoading}
+                onClick={() => {
+                  window.location.href = "/api/auth/oauth/google";
+                }}
+              >
+                <GoogleMark className="size-4" />
+                {t("auth.oauth.continueWithGoogle")}
+              </Button>
+            )}
           </div>
         )}
 

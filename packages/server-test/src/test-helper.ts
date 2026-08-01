@@ -33,6 +33,21 @@ vi.mock("@be-water/server-kernel/lib/config.js", () => ({
         password: "",
         passwordHash: "",
       },
+      github: {
+        clientId: "",
+        clientSecret: "",
+        callbackUrl: "",
+        enabled: false,
+      },
+      google: {
+        clientId: "",
+        clientSecret: "",
+        callbackUrl: "",
+        enabled: false,
+      },
+    },
+    frontend: {
+      url: "http://localhost:7300",
     },
     server: {
       isProduction: false,

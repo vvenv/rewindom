@@ -102,6 +102,7 @@ export const platformServerModule: ServerAppModule = {
             captcha_enabled: settings.captcha_enabled,
             default_locale: settings.default_locale,
             github_oauth_enabled: false,
+            google_oauth_enabled: false,
           };
         },
       });

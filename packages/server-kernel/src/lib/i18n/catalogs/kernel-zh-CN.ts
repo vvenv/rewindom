@@ -72,6 +72,7 @@ export const KERNEL_MESSAGES_ZH: Record<string, string> = {
     "平台未开放自助注册，请联系管理员开通账号后再使用 GitHub 登录",
   "auth.oauth_already_linked": "该 GitHub 账号已绑定其他用户",
   "auth.audit.login_oauth_github": "通过 GitHub 登录成功",
+  "auth.audit.login_oauth_google": "通过 Google 登录成功",
   "auth.new_password_same": "新密码不能与旧密码相同",
   "auth.passwords_mismatch": "两次输入的密码不一致",
   "auth.new_password_invalid": "新密码不符合要求",
