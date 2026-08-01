@@ -157,6 +157,21 @@ POST /api/auth/register
    - 如果失败次数 >= 5，锁定账户 30 分钟
 10. 返回 Token 信息
 
+### 4.2.1 GitHub OAuth 登录
+
+配置 `GITHUB_CLIENT_ID` + `GITHUB_CLIENT_SECRET` 后，`GET /api/public/config` 返回 `github_oauth_enabled: true`，登录页展示「使用 GitHub 登录」。
+
+**流程**：
+
+1. 浏览器跳转 `GET /api/auth/oauth/github`（带短时 JWT `state`）
+2. GitHub 授权后回调 `GET /api/auth/oauth/github/callback`
+3. 若已有 `OAuthAccount` 绑定 → 签发双 Token
+4. 若无绑定且平台开放自助注册 → 创建个人租户 + 无密码管理员用户 + `OAuthAccount`，再签发 Token
+5. 若无绑定且未开放注册 → 前端回调页提示联系管理员
+6. 成功时 302 到 `{FRONTEND_URL}/auth/oauth/callback#access_token=…&refresh_token=…`（hash 避免 Referer 泄露）
+
+`User.password` 可为 null（纯 OAuth 账号）；密码登录对这些账号会失败，修改密码接口返回 `auth.password_not_set`。
+
 **API 接口**：
 
 ```

@@ -72,6 +72,11 @@ export type ErrorLog = Prisma.ErrorLogModel
  */
 export type RefreshToken = Prisma.RefreshTokenModel
 /**
+ * Model OAuthAccount
+ * 第三方 OAuth 身份与本地 User 的绑定（provider + provider_user_id 全局唯一）
+ */
+export type OAuthAccount = Prisma.OAuthAccountModel
+/**
  * Model Tenant
  * 
  */

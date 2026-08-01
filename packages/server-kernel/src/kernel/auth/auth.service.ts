@@ -211,6 +211,10 @@ export class AuthService {
       throw new UnauthorizedError("auth.account_locked_retry");
     }
 
+    if (!fullUser.password) {
+      throw new UnauthorizedError("auth.invalid_credentials");
+    }
+
     const isValidPassword = await this.verifyPassword(
       password,
       fullUser.password,
@@ -426,12 +430,97 @@ export class AuthService {
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError("user.not_found");
+    if (!user.password) {
+      throw new UnauthorizedError("auth.password_not_set");
+    }
     const valid = await this.verifyPassword(oldPassword, user.password);
     if (!valid) throw new UnauthorizedError("auth.old_password_wrong");
     await prisma.user.update({
       where: { id: userId },
       data: { password: await this.hashPassword(newPassword) },
     });
+  }
+
+  /**
+   * OAuth 登录成功后签发双 Token，并更新 last_login_at。
+   * 调用方须已完成身份校验与账号启用检查。
+   */
+  static async issueSessionForUser(
+    userId: string,
+    jwtSign: (payload: JwtSignPayload) => string,
+  ): Promise<{
+    user: {
+      id: string;
+      username: string;
+      actor_type: AuthActorType;
+      is_system_admin: boolean;
+      enabled: boolean;
+      created_at: Date;
+      updated_at: Date;
+      last_login_at: Date | null;
+      last_access_at: Date | null;
+    };
+    tokens: AuthTokens;
+    tenant_slug: string;
+  }> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { tenant: true },
+    });
+    if (!user || !user.tenant) {
+      throw new NotFoundError("user.not_found");
+    }
+    if (!user.enabled) {
+      throw new UnauthorizedError("auth.account_disabled");
+    }
+    if (user.tenant.status !== "active") {
+      throw new UnauthorizedError("auth.invalid_credentials");
+    }
+
+    const now = new Date();
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        failed_login_attempts: 0,
+        locked_until: null,
+        last_login_at: now,
+        last_access_at: now,
+      },
+    });
+
+    const tokens = this.generateTokens(
+      user.id,
+      "tenant_user",
+      user.is_system_admin,
+      user.tenant_id,
+      user.tenant.slug,
+      jwtSign,
+    );
+
+    const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await prisma.refreshToken.create({
+      data: {
+        user_id: user.id,
+        token: tokens.refreshToken,
+        expires_at: refreshTokenExpiry,
+      },
+    });
+
+    return {
+      user: {
+        id: updated.id,
+        username: updated.username,
+        actor_type: "tenant_user",
+        is_system_admin: updated.is_system_admin,
+        enabled: updated.enabled,
+        created_at: updated.created_at,
+        updated_at: updated.updated_at,
+        last_login_at: updated.last_login_at,
+        last_access_at: updated.last_access_at,
+      },
+      tokens,
+      tenant_slug: user.tenant.slug,
+    };
   }
 
   static async getUserById(

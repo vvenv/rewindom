@@ -54,7 +54,8 @@ model User {
   id                    String    @id @default(uuid())
   tenant_id             String
   username              String
-  password              String
+  /// bcrypt 哈希；OAuth 专用账号可为 null（仅第三方登录）
+  password              String?
   is_system_admin       Boolean   @default(false)
   enabled               Boolean   @default(true)
   created_at            DateTime  @default(now())
@@ -66,6 +67,7 @@ model User {
 
   tenant          Tenant           @relation(fields: [tenant_id], references: [id])
   refresh_tokens  RefreshToken[]
+  oauth_accounts  OAuthAccount[]
   user_roles      UserRole[]
   audit_logs      AuditLog[]
   background_jobs BackgroundJob[]

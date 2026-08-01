@@ -11,3 +11,21 @@ model RefreshToken {
 
   @@index([user_id])
 }
+
+/// 第三方 OAuth 身份与本地 User 的绑定（provider + provider_user_id 全局唯一）
+model OAuthAccount {
+  id                String   @id @default(uuid())
+  provider          String
+  provider_user_id  String
+  user_id           String
+  provider_username String?
+  provider_email    String?
+  avatar_url        String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([provider, provider_user_id])
+  @@index([user_id])
+}

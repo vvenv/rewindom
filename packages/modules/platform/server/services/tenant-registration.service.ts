@@ -13,9 +13,12 @@ import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/perm
 import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
 import {
   assertValidTenantSlug,
+  InvalidTenantSlugError,
+  ReservedTenantSlugError,
   type AuthTokens,
   type RegisterTenantInput,
 } from "@be-water/shared";
+
 
 import { AuditAction } from "../../../audit/shared/index.js";
 import { RoleService } from "../../../rbac/server/role.service.js";
@@ -30,6 +33,8 @@ import {
 import { resolvePlanLimitsForSlug } from "./plan-limit-templates.service.js";
 import { getPlatformSettings } from "./platform-settings.service.js";
 import { saveTenantJsonSetting } from "./tenant-json-setting.service.js";
+
+import type { OAuthTenantRegistrationInput } from "@be-water/server-kernel/runtime/provider-contracts.js";
 
 export type { RegisterTenantInput };
 
@@ -214,6 +219,192 @@ export async function registerTenant(
     });
   } catch (auditError) {
     console.error("记录注册审计日志失败", auditError);
+  }
+
+  return {
+    tenant_id: tenant.id,
+    tenant_slug: tenant.slug,
+    user_id: user.id,
+    username: user.username,
+    tokens,
+  };
+}
+
+async function resolveUniqueOAuthTenantSlug(baseUsername: string): Promise<string> {
+  const normalized = baseUsername
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  let base = normalized.length >= 2 ? normalized : `gh-${normalized || "user"}`;
+  if (base.length > 63) {
+    base = base.slice(0, 63).replace(/-$/, "");
+  }
+
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const suffix = attempt === 0 ? "" : `-${attempt}`;
+    const candidate = `${base.slice(0, Math.max(2, 63 - suffix.length))}${suffix}`
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    try {
+      const slug = assertValidTenantSlug(candidate);
+      const existing = await prisma.tenant.findUnique({ where: { slug } });
+      if (!existing) {
+        return slug;
+      }
+    } catch (error) {
+      if (
+        !(error instanceof InvalidTenantSlugError) &&
+        !(error instanceof ReservedTenantSlugError)
+      ) {
+        throw error;
+      }
+    }
+  }
+
+  return assertValidTenantSlug(`gh-${Date.now().toString(36)}`);
+}
+
+/**
+ * GitHub 等 OAuth 首次登录：创建个人租户 + 无密码管理员 + OAuthAccount，并签发双 Token。
+ */
+export async function registerOAuthTenant(
+  input: OAuthTenantRegistrationInput,
+  jwtSign: (payload: JwtSignPayload) => string,
+  ipAddress: string,
+  userAgent: string,
+): Promise<RegisterTenantResult> {
+  const settings = await getPlatformSettings();
+  if (!settings.registration_enabled) {
+    throw new AppError({ code: "auth.oauth_registration_disabled", status: 403 });
+  }
+
+  validateUsername(input.username);
+
+  const existingLink = await prisma.oAuthAccount.findUnique({
+    where: {
+      provider_provider_user_id: {
+        provider: input.provider,
+        provider_user_id: input.provider_user_id,
+      },
+    },
+  });
+  if (existingLink) {
+    throw new ConflictError("auth.oauth_already_linked");
+  }
+
+  const slug = await resolveUniqueOAuthTenantSlug(input.username);
+  const tenantName = (
+    input.display_name?.trim() ||
+    input.username
+  ).slice(0, 50);
+  if (tenantName.length < 2) {
+    throw new ValidationError("tenant.org_name_length");
+  }
+
+  const freePlan = PRICING_PLANS.free;
+  const freePlanLimits = await resolvePlanLimitsForSlug("free");
+  const now = new Date();
+
+  const { tenant, user } = await prisma.$transaction(async (tx) => {
+    const createdTenant = await tx.tenant.create({
+      data: {
+        slug,
+        name: tenantName,
+        plan: "free",
+        plan_since: now,
+        status: settings.require_tenant_approval ? "pending" : "active",
+      },
+    });
+
+    await saveTenantJsonSetting(
+      createdTenant.id,
+      TENANT_FEATURES_STORAGE_KEY,
+      freePlan.features,
+      tx,
+    );
+    await saveTenantJsonSetting(
+      createdTenant.id,
+      TENANT_MODULES_STORAGE_KEY,
+      createDefaultTenantModuleFlags(getServerTenantCatalog().modules),
+      tx,
+    );
+    await saveTenantJsonSetting(
+      createdTenant.id,
+      TENANT_LIMITS_STORAGE_KEY,
+      freePlanLimits,
+      tx,
+    );
+
+    const createdUser = await tx.user.create({
+      data: {
+        tenant_id: createdTenant.id,
+        username: input.username.trim(),
+        password: null,
+        is_system_admin: true,
+        last_login_at: now,
+        last_access_at: now,
+      },
+    });
+
+    await tx.oAuthAccount.create({
+      data: {
+        provider: input.provider,
+        provider_user_id: input.provider_user_id,
+        user_id: createdUser.id,
+        provider_username: input.username,
+        provider_email: input.email,
+        avatar_url: input.avatar_url,
+      },
+    });
+
+    return { tenant: createdTenant, user: createdUser };
+  });
+
+  await RoleService.ensureBuiltinTenantRoles(
+    tenant.id,
+    getServerPermissionCatalog(),
+  );
+
+  const tokens = AuthService.generateTokens(
+    user.id,
+    "tenant_user",
+    user.is_system_admin,
+    tenant.id,
+    tenant.slug,
+    jwtSign,
+  );
+
+  const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await prisma.refreshToken.create({
+    data: {
+      user_id: user.id,
+      token: tokens.refreshToken,
+      expires_at: refreshTokenExpiry,
+    },
+  });
+
+  try {
+    await emitDetachedAuditLogSafe(undefined, {
+      action: AuditAction.TENANT_REGISTER,
+      userId: user.id,
+      username: input.username,
+      ipAddress,
+      userAgent,
+      detail_key: "platform.audit.tenant_registered",
+      detail_params: {
+        tenant_slug: tenant.slug,
+        tenant_name: tenant.name,
+        provider: input.provider,
+        email: input.email ?? "",
+        phone: "",
+      },
+      scope: "platform",
+    });
+  } catch (auditError) {
+    console.error("记录 OAuth 注册审计日志失败", auditError);
   }
 
   return {

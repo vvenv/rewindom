@@ -61,11 +61,15 @@ export class ProviderRegistry {
         registration_enabled: false,
         captcha_enabled: false,
         default_locale: "zh-CN",
+        github_oauth_enabled: false,
       };
     },
   };
   private tenantRegistration: TenantRegistrationProvider = {
     async registerTenant() {
+      throw new AppError({ code: "tenant.registration_disabled", status: 403 });
+    },
+    async registerOAuthTenant() {
       throw new AppError({ code: "tenant.registration_disabled", status: 403 });
     },
   };

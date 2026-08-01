@@ -57,6 +57,7 @@ export const ModelName = {
   Payment: 'Payment',
   ErrorLog: 'ErrorLog',
   RefreshToken: 'RefreshToken',
+  OAuthAccount: 'OAuthAccount',
   Tenant: 'Tenant',
   TenantApiKey: 'TenantApiKey',
   TenantSetting: 'TenantSetting',
@@ -199,6 +200,21 @@ export const RefreshTokenScalarFieldEnum = {
 } as const
 
 export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
+
+
+export const OAuthAccountScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  provider_user_id: 'provider_user_id',
+  user_id: 'user_id',
+  provider_username: 'provider_username',
+  provider_email: 'provider_email',
+  avatar_url: 'avatar_url',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type OAuthAccountScalarFieldEnum = (typeof OAuthAccountScalarFieldEnum)[keyof typeof OAuthAccountScalarFieldEnum]
 
 
 export const TenantScalarFieldEnum = {

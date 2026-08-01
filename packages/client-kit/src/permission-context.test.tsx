@@ -31,6 +31,7 @@ function createAuthWrapper(user: AuthContextType["user"] | null) {
     isAuthenticated: user != null,
     isLoading: false,
     login: vi.fn(),
+    loginWithTokens: vi.fn(),
     logout: vi.fn(),
     refreshAccessToken: vi.fn(),
     changePassword: vi.fn(),

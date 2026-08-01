@@ -4,7 +4,10 @@ import { PLATFORM_SERVER_I18N } from "./i18n.js";
 import { platformRoutes } from "./platform.routes.js";
 import { tenantEntitlementsRoutes } from "./routes/tenant-entitlements.routes.js";
 import { getPlatformSettings } from "./services/platform-settings.service.js";
-import { registerTenant } from "./services/tenant-registration.service.js";
+import {
+  registerOAuthTenant,
+  registerTenant,
+} from "./services/tenant-registration.service.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
 
@@ -98,12 +101,15 @@ export const platformServerModule: ServerAppModule = {
             registration_enabled: settings.registration_enabled,
             captcha_enabled: settings.captcha_enabled,
             default_locale: settings.default_locale,
+            github_oauth_enabled: false,
           };
         },
       });
       registry.setTenantRegistrationProvider({
         registerTenant: (input, jwtSign, ip, userAgent) =>
           registerTenant(input, jwtSign, ip, userAgent),
+        registerOAuthTenant: (input, jwtSign, ip, userAgent) =>
+          registerOAuthTenant(input, jwtSign, ip, userAgent),
       });
     },
     registerRoutes: async (app) => {

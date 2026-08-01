@@ -32,7 +32,7 @@ export function Login() {
   const { shellContributions } = useAppShellConfig();
   const LoginHero = shellContributions.authLoginHero ?? AuthLoginHero;
   const {
-    data: { registration_enabled, captcha_enabled },
+    data: { registration_enabled, captcha_enabled, github_oauth_enabled },
   } = usePublicConfig();
 
   const handleSubmit = async () => {
@@ -80,6 +80,7 @@ export function Login() {
         captchaData={captchaData}
         captchaEnabled={captcha_enabled}
         registrationEnabled={registration_enabled}
+        githubOAuthEnabled={github_oauth_enabled}
         isLoading={isLoading}
         onUsernameChange={setUsername}
         onPasswordChange={setPassword}

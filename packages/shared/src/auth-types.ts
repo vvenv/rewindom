@@ -113,4 +113,6 @@ export interface PublicConfig {
   captcha_enabled: boolean;
   /** 平台默认界面语言；登录页 / 未进租户壳时作为服务端默认。 */
   default_locale: AppLocale;
+  /** 是否已配置 GitHub OAuth（登录页展示「使用 GitHub 登录」）。 */
+  github_oauth_enabled: boolean;
 }

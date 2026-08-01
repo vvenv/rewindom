@@ -117,6 +117,8 @@ function buildServerConfig() {
 }
 
 function buildAuthConfig() {
+  const githubClientId = optionalStrEnv("GITHUB_CLIENT_ID");
+  const githubClientSecret = optionalStrEnv("GITHUB_CLIENT_SECRET");
   return {
     jwtSecret: resolveJwtSecret(),
     bcryptSaltRounds: isTest ? 4 : 10,
@@ -124,6 +126,13 @@ function buildAuthConfig() {
       username: strEnv("PLATFORM_ADMIN_USERNAME", ""),
       password: strEnv("PLATFORM_ADMIN_PASSWORD", ""),
       passwordHash: strEnv("PLATFORM_ADMIN_PASSWORD_HASH", ""),
+    },
+    github: {
+      clientId: githubClientId ?? "",
+      clientSecret: githubClientSecret ?? "",
+      /** 可选覆盖；未设时由请求 Host 推导 `/api/auth/oauth/github/callback` */
+      callbackUrl: optionalStrEnv("GITHUB_CALLBACK_URL") ?? "",
+      enabled: Boolean(githubClientId && githubClientSecret),
     },
   };
 }

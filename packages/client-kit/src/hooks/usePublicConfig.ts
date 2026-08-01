@@ -14,6 +14,7 @@ const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
   registration_enabled: false,
   captcha_enabled: false,
   default_locale: "zh-CN",
+  github_oauth_enabled: false,
 };
 
 export function usePublicConfig() {

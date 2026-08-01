@@ -14,6 +14,8 @@ import type { AuthTokens, ChangePasswordData, LoginCredentials, User } from "@be
 
 export interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<User>;
+  /** OAuth 回调等场景：已有双 Token 时写入会话并拉取 /auth/me */
+  loginWithTokens: (tokens: AuthTokens) => Promise<User>;
   logout: () => Promise<void>;
   refreshAccessToken: () => Promise<void>;
   changePassword: (data: ChangePasswordData) => Promise<void>;
@@ -75,6 +77,23 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
       );
       setAuth(data.user, data.tokens);
       return data.user;
+    },
+    [setAuth],
+  );
+
+  const loginWithTokens = useCallback(
+    async (tokens: AuthTokens): Promise<User> => {
+      setStoredAuthTokens(tokens);
+      setState((prev) => ({
+        ...prev,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        isAuthenticated: true,
+        isLoading: true,
+      }));
+      const user = await api.get<User>("/auth/me");
+      setAuth(user, tokens);
+      return user;
     },
     [setAuth],
   );
@@ -212,6 +231,7 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
   const value: AuthContextType = {
     ...state,
     login,
+    loginWithTokens,
     logout,
     refreshAccessToken,
     changePassword,

@@ -1,6 +1,7 @@
 import { success } from "@be-water/shared";
 
 import { handleRouteError } from "../../http/route-error-handler.js";
+import { config as appConfig } from "../../lib/config.js";
 
 import type { FastifyInstance } from "fastify";
 
@@ -15,6 +16,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           registration_enabled: config.registration_enabled,
           captcha_enabled: config.captcha_enabled,
           default_locale: config.default_locale,
+          github_oauth_enabled: appConfig.auth.github.enabled,
         }),
       );
     } catch (err) {

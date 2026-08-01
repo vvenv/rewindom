@@ -63,6 +63,19 @@ export const KERNEL_MESSAGES_EN: Record<string, string> = {
   "auth.cannot_delete_self": "You cannot delete your own account",
   "auth.cannot_delete_self_short": "You cannot delete yourself",
   "auth.old_password_wrong": "Incorrect current password",
+  "auth.password_not_set":
+    "This account has no password; use third-party login or ask an admin to reset it",
+  "auth.oauth_not_configured": "GitHub login is not configured",
+  "auth.oauth_state_invalid":
+    "GitHub login state is invalid or expired; please try again",
+  "auth.oauth_exchange_failed": "Failed to exchange GitHub authorization",
+  "auth.oauth_profile_failed": "Failed to fetch GitHub profile",
+  "auth.oauth_denied": "GitHub authorization was cancelled",
+  "auth.oauth_failed": "GitHub login failed; please try again",
+  "auth.oauth_registration_disabled":
+    "Self-registration is closed; ask an admin for an account before using GitHub login",
+  "auth.oauth_already_linked": "This GitHub account is already linked",
+  "auth.audit.login_oauth_github": "Signed in with GitHub",
   "auth.new_password_same": "New password must differ from the current password",
   "auth.passwords_mismatch": "Passwords do not match",
   "auth.new_password_invalid": "New password does not meet requirements",

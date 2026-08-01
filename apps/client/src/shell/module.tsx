@@ -1,4 +1,5 @@
 import { renderAppShellGuestRoutes } from "./guest-routes.js";
+import { renderAppShellPublicRoutes } from "./public-routes.js";
 
 import type { ClientAppModule } from "@be-water/client-kit";
 
@@ -10,5 +11,6 @@ export const appShellClientModule: ClientAppModule = {
   description: "认证页面、布局与路由守卫",
   client: {
     renderGuestRoutes: renderAppShellGuestRoutes,
+    renderPublicRoutes: renderAppShellPublicRoutes,
   },
 };

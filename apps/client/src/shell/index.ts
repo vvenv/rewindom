@@ -33,5 +33,6 @@ export { collectShellContributions } from "./lib/shell-contributions.js";
 export { collectPlatformNav } from "./lib/collect-platform-nav.js";
 export { resolveMobileHeaderState } from "./lib/resolve-mobile-header.js";
 export { renderAppShellGuestRoutes } from "./guest-routes.js";
+export { renderAppShellPublicRoutes } from "./public-routes.js";
 
 export type { CollectedShellContributions } from "./lib/shell-contributions.js";

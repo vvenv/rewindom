@@ -64,6 +64,22 @@
     "noAccount": "Don't have an account?",
     "registerFree": "Register for free",
     "loginFailed": "Sign-in failed. Please try again.",
+    "oauth": {
+      "or": "or",
+      "continueWithGitHub": "Continue with GitHub",
+      "completing": "Completing GitHub sign-in…",
+      "failedTitle": "GitHub sign-in failed",
+      "failed": "GitHub sign-in failed. Please try again.",
+      "missingTokens": "Missing login tokens. Please try GitHub sign-in again.",
+      "denied": "GitHub authorization was cancelled",
+      "notConfigured": "GitHub login is not configured",
+      "stateInvalid": "Login state is invalid or expired. Please try again.",
+      "exchangeFailed": "Failed to exchange GitHub authorization",
+      "profileFailed": "Failed to fetch GitHub profile",
+      "registrationDisabled":
+        "Self-registration is closed. Ask an admin for an account.",
+      "alreadyLinked": "This GitHub account is already linked"
+    },
     "registerTagline": "Create your organization and admin account to get started",
     "orgInfo": "Organization",
     "orgInfoDescription": "Creates your tenant workspace",

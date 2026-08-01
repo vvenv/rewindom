@@ -74,6 +74,7 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   PlatformAdminRefreshToken: { kind: "global", reason: "平台管理员令牌" },
   RolePermission: { kind: "global", reason: "经 role_id 间接归属" },
   RefreshToken: { kind: "global", reason: "经 user_id 间接归属" },
+  OAuthAccount: { kind: "global", reason: "经 user_id 间接归属" },
   UserRole: { kind: "global", reason: "经 user_id 间接归属" },
   BackgroundJob: { kind: "global", reason: "经 user_id 间接归属" },
 };

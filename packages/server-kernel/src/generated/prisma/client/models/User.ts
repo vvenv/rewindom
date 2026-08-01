@@ -225,7 +225,7 @@ export type UserGroupByOutputType = {
   id: string
   tenant_id: string
   username: string
-  password: string
+  password: string | null
   is_system_admin: boolean
   enabled: boolean
   created_at: Date
@@ -263,7 +263,7 @@ export type UserWhereInput = {
   id?: Prisma.StringFilter<"User"> | string
   tenant_id?: Prisma.StringFilter<"User"> | string
   username?: Prisma.StringFilter<"User"> | string
-  password?: Prisma.StringFilter<"User"> | string
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   is_system_admin?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   created_at?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -274,6 +274,7 @@ export type UserWhereInput = {
   locked_until?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   refresh_tokens?: Prisma.RefreshTokenListRelationFilter
+  oauth_accounts?: Prisma.OAuthAccountListRelationFilter
   user_roles?: Prisma.UserRoleListRelationFilter
   audit_logs?: Prisma.AuditLogListRelationFilter
   background_jobs?: Prisma.BackgroundJobListRelationFilter
@@ -284,7 +285,7 @@ export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
   username?: Prisma.SortOrder
-  password?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   is_system_admin?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -295,6 +296,7 @@ export type UserOrderByWithRelationInput = {
   locked_until?: Prisma.SortOrderInput | Prisma.SortOrder
   tenant?: Prisma.TenantOrderByWithRelationInput
   refresh_tokens?: Prisma.RefreshTokenOrderByRelationAggregateInput
+  oauth_accounts?: Prisma.OAuthAccountOrderByRelationAggregateInput
   user_roles?: Prisma.UserRoleOrderByRelationAggregateInput
   audit_logs?: Prisma.AuditLogOrderByRelationAggregateInput
   background_jobs?: Prisma.BackgroundJobOrderByRelationAggregateInput
@@ -309,7 +311,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   tenant_id?: Prisma.StringFilter<"User"> | string
   username?: Prisma.StringFilter<"User"> | string
-  password?: Prisma.StringFilter<"User"> | string
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   is_system_admin?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   created_at?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -320,6 +322,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   locked_until?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   refresh_tokens?: Prisma.RefreshTokenListRelationFilter
+  oauth_accounts?: Prisma.OAuthAccountListRelationFilter
   user_roles?: Prisma.UserRoleListRelationFilter
   audit_logs?: Prisma.AuditLogListRelationFilter
   background_jobs?: Prisma.BackgroundJobListRelationFilter
@@ -330,7 +333,7 @@ export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
   username?: Prisma.SortOrder
-  password?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   is_system_admin?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -353,7 +356,7 @@ export type UserScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   tenant_id?: Prisma.StringWithAggregatesFilter<"User"> | string
   username?: Prisma.StringWithAggregatesFilter<"User"> | string
-  password?: Prisma.StringWithAggregatesFilter<"User"> | string
+  password?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   is_system_admin?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   enabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -367,7 +370,7 @@ export type UserScalarWhereWithAggregatesInput = {
 export type UserCreateInput = {
   id?: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -378,6 +381,7 @@ export type UserCreateInput = {
   locked_until?: Date | string | null
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
@@ -388,7 +392,7 @@ export type UserUncheckedCreateInput = {
   id?: string
   tenant_id: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -398,6 +402,7 @@ export type UserUncheckedCreateInput = {
   failed_login_attempts?: number
   locked_until?: Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
@@ -407,7 +412,7 @@ export type UserUncheckedCreateInput = {
 export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -418,6 +423,7 @@ export type UserUpdateInput = {
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
@@ -428,7 +434,7 @@ export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -438,6 +444,7 @@ export type UserUncheckedUpdateInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
@@ -448,7 +455,7 @@ export type UserCreateManyInput = {
   id?: string
   tenant_id: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -462,7 +469,7 @@ export type UserCreateManyInput = {
 export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -477,7 +484,7 @@ export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -610,6 +617,20 @@ export type UserUpdateOneRequiredWithoutRefresh_tokensNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRefresh_tokensInput, Prisma.UserUpdateWithoutRefresh_tokensInput>, Prisma.UserUncheckedUpdateWithoutRefresh_tokensInput>
 }
 
+export type UserCreateNestedOneWithoutOauth_accountsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOauth_accountsInput, Prisma.UserUncheckedCreateWithoutOauth_accountsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOauth_accountsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOauth_accountsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOauth_accountsInput, Prisma.UserUncheckedCreateWithoutOauth_accountsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOauth_accountsInput
+  upsert?: Prisma.UserUpsertWithoutOauth_accountsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOauth_accountsInput, Prisma.UserUpdateWithoutOauth_accountsInput>, Prisma.UserUncheckedUpdateWithoutOauth_accountsInput>
+}
+
 export type UserCreateNestedManyWithoutTenantInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutTenantInput, Prisma.UserUncheckedCreateWithoutTenantInput> | Prisma.UserCreateWithoutTenantInput[] | Prisma.UserUncheckedCreateWithoutTenantInput[]
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutTenantInput | Prisma.UserCreateOrConnectWithoutTenantInput[]
@@ -683,7 +704,7 @@ export type UserUpdateOneRequiredWithoutUser_rolesNestedInput = {
 export type UserCreateWithoutAudit_logsInput = {
   id?: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -694,6 +715,7 @@ export type UserCreateWithoutAudit_logsInput = {
   locked_until?: Date | string | null
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -703,7 +725,7 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   id?: string
   tenant_id: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -713,6 +735,7 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   failed_login_attempts?: number
   locked_until?: Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -737,7 +760,7 @@ export type UserUpdateToOneWithWhereWithoutAudit_logsInput = {
 export type UserUpdateWithoutAudit_logsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -748,6 +771,7 @@ export type UserUpdateWithoutAudit_logsInput = {
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -757,7 +781,7 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -767,6 +791,7 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -775,7 +800,7 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
 export type UserCreateWithoutBackground_jobsInput = {
   id?: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -786,6 +811,7 @@ export type UserCreateWithoutBackground_jobsInput = {
   locked_until?: Date | string | null
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -795,7 +821,7 @@ export type UserUncheckedCreateWithoutBackground_jobsInput = {
   id?: string
   tenant_id: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -805,6 +831,7 @@ export type UserUncheckedCreateWithoutBackground_jobsInput = {
   failed_login_attempts?: number
   locked_until?: Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -829,7 +856,7 @@ export type UserUpdateToOneWithWhereWithoutBackground_jobsInput = {
 export type UserUpdateWithoutBackground_jobsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -840,6 +867,7 @@ export type UserUpdateWithoutBackground_jobsInput = {
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -849,7 +877,7 @@ export type UserUncheckedUpdateWithoutBackground_jobsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -859,6 +887,7 @@ export type UserUncheckedUpdateWithoutBackground_jobsInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -867,7 +896,7 @@ export type UserUncheckedUpdateWithoutBackground_jobsInput = {
 export type UserCreateWithoutRefresh_tokensInput = {
   id?: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -877,6 +906,7 @@ export type UserCreateWithoutRefresh_tokensInput = {
   failed_login_attempts?: number
   locked_until?: Date | string | null
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
+  oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
@@ -887,7 +917,7 @@ export type UserUncheckedCreateWithoutRefresh_tokensInput = {
   id?: string
   tenant_id: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -896,6 +926,7 @@ export type UserUncheckedCreateWithoutRefresh_tokensInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
@@ -921,7 +952,7 @@ export type UserUpdateToOneWithWhereWithoutRefresh_tokensInput = {
 export type UserUpdateWithoutRefresh_tokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -931,6 +962,7 @@ export type UserUpdateWithoutRefresh_tokensInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
@@ -941,7 +973,7 @@ export type UserUncheckedUpdateWithoutRefresh_tokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -950,16 +982,17 @@ export type UserUncheckedUpdateWithoutRefresh_tokensInput = {
   last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
-export type UserCreateWithoutTenantInput = {
+export type UserCreateWithoutOauth_accountsInput = {
   id?: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -968,6 +1001,7 @@ export type UserCreateWithoutTenantInput = {
   last_access_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
@@ -975,10 +1009,11 @@ export type UserCreateWithoutTenantInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
-export type UserUncheckedCreateWithoutTenantInput = {
+export type UserUncheckedCreateWithoutOauth_accountsInput = {
   id?: string
+  tenant_id: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -988,6 +1023,102 @@ export type UserUncheckedCreateWithoutTenantInput = {
   failed_login_attempts?: number
   locked_until?: Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutOauth_accountsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOauth_accountsInput, Prisma.UserUncheckedCreateWithoutOauth_accountsInput>
+}
+
+export type UserUpsertWithoutOauth_accountsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOauth_accountsInput, Prisma.UserUncheckedUpdateWithoutOauth_accountsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOauth_accountsInput, Prisma.UserUncheckedCreateWithoutOauth_accountsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOauth_accountsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOauth_accountsInput, Prisma.UserUncheckedUpdateWithoutOauth_accountsInput>
+}
+
+export type UserUpdateWithoutOauth_accountsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
+  refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOauth_accountsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutTenantInput = {
+  id?: string
+  username: string
+  password?: string | null
+  is_system_admin?: boolean
+  enabled?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  last_login_at?: Date | string | null
+  last_access_at?: Date | string | null
+  failed_login_attempts?: number
+  locked_until?: Date | string | null
+  refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
+  user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutTenantInput = {
+  id?: string
+  username: string
+  password?: string | null
+  is_system_admin?: boolean
+  enabled?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  last_login_at?: Date | string | null
+  last_access_at?: Date | string | null
+  failed_login_attempts?: number
+  locked_until?: Date | string | null
+  refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
@@ -1027,7 +1158,7 @@ export type UserScalarWhereInput = {
   id?: Prisma.StringFilter<"User"> | string
   tenant_id?: Prisma.StringFilter<"User"> | string
   username?: Prisma.StringFilter<"User"> | string
-  password?: Prisma.StringFilter<"User"> | string
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   is_system_admin?: Prisma.BoolFilter<"User"> | boolean
   enabled?: Prisma.BoolFilter<"User"> | boolean
   created_at?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -1041,7 +1172,7 @@ export type UserScalarWhereInput = {
 export type UserCreateWithoutNotificationsInput = {
   id?: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -1052,6 +1183,7 @@ export type UserCreateWithoutNotificationsInput = {
   locked_until?: Date | string | null
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
@@ -1061,7 +1193,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   id?: string
   tenant_id: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -1071,6 +1203,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   failed_login_attempts?: number
   locked_until?: Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
@@ -1095,7 +1228,7 @@ export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
 export type UserUpdateWithoutNotificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1106,6 +1239,7 @@ export type UserUpdateWithoutNotificationsInput = {
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
@@ -1115,7 +1249,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1125,6 +1259,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
@@ -1133,7 +1268,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
 export type UserCreateWithoutUser_rolesInput = {
   id?: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -1144,6 +1279,7 @@ export type UserCreateWithoutUser_rolesInput = {
   locked_until?: Date | string | null
   tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
   refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1153,7 +1289,7 @@ export type UserUncheckedCreateWithoutUser_rolesInput = {
   id?: string
   tenant_id: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -1163,6 +1299,7 @@ export type UserUncheckedCreateWithoutUser_rolesInput = {
   failed_login_attempts?: number
   locked_until?: Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1187,7 +1324,7 @@ export type UserUpdateToOneWithWhereWithoutUser_rolesInput = {
 export type UserUpdateWithoutUser_rolesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1198,6 +1335,7 @@ export type UserUpdateWithoutUser_rolesInput = {
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1207,7 +1345,7 @@ export type UserUncheckedUpdateWithoutUser_rolesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1217,6 +1355,7 @@ export type UserUncheckedUpdateWithoutUser_rolesInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1225,7 +1364,7 @@ export type UserUncheckedUpdateWithoutUser_rolesInput = {
 export type UserCreateManyTenantInput = {
   id?: string
   username: string
-  password: string
+  password?: string | null
   is_system_admin?: boolean
   enabled?: boolean
   created_at?: Date | string
@@ -1239,7 +1378,7 @@ export type UserCreateManyTenantInput = {
 export type UserUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1249,6 +1388,7 @@ export type UserUpdateWithoutTenantInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
@@ -1258,7 +1398,7 @@ export type UserUpdateWithoutTenantInput = {
 export type UserUncheckedUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1268,6 +1408,7 @@ export type UserUncheckedUpdateWithoutTenantInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
@@ -1277,7 +1418,7 @@ export type UserUncheckedUpdateWithoutTenantInput = {
 export type UserUncheckedUpdateManyWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1295,6 +1436,7 @@ export type UserUncheckedUpdateManyWithoutTenantInput = {
 
 export type UserCountOutputType = {
   refresh_tokens: number
+  oauth_accounts: number
   user_roles: number
   audit_logs: number
   background_jobs: number
@@ -1303,6 +1445,7 @@ export type UserCountOutputType = {
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   refresh_tokens?: boolean | UserCountOutputTypeCountRefresh_tokensArgs
+  oauth_accounts?: boolean | UserCountOutputTypeCountOauth_accountsArgs
   user_roles?: boolean | UserCountOutputTypeCountUser_rolesArgs
   audit_logs?: boolean | UserCountOutputTypeCountAudit_logsArgs
   background_jobs?: boolean | UserCountOutputTypeCountBackground_jobsArgs
@@ -1324,6 +1467,13 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type UserCountOutputTypeCountRefresh_tokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RefreshTokenWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOauth_accountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OAuthAccountWhereInput
 }
 
 /**
@@ -1370,6 +1520,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   locked_until?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   refresh_tokens?: boolean | Prisma.User$refresh_tokensArgs<ExtArgs>
+  oauth_accounts?: boolean | Prisma.User$oauth_accountsArgs<ExtArgs>
   user_roles?: boolean | Prisma.User$user_rolesArgs<ExtArgs>
   audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   background_jobs?: boolean | Prisma.User$background_jobsArgs<ExtArgs>
@@ -1428,6 +1579,7 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   refresh_tokens?: boolean | Prisma.User$refresh_tokensArgs<ExtArgs>
+  oauth_accounts?: boolean | Prisma.User$oauth_accountsArgs<ExtArgs>
   user_roles?: boolean | Prisma.User$user_rolesArgs<ExtArgs>
   audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   background_jobs?: boolean | Prisma.User$background_jobsArgs<ExtArgs>
@@ -1446,6 +1598,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     tenant: Prisma.$TenantPayload<ExtArgs>
     refresh_tokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
+    oauth_accounts: Prisma.$OAuthAccountPayload<ExtArgs>[]
     user_roles: Prisma.$UserRolePayload<ExtArgs>[]
     audit_logs: Prisma.$AuditLogPayload<ExtArgs>[]
     background_jobs: Prisma.$BackgroundJobPayload<ExtArgs>[]
@@ -1455,7 +1608,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: string
     tenant_id: string
     username: string
-    password: string
+    /**
+     * bcrypt 哈希；OAuth 专用账号可为 null（仅第三方登录）
+     */
+    password: string | null
     is_system_admin: boolean
     enabled: boolean
     created_at: Date
@@ -1860,6 +2016,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   tenant<T extends Prisma.TenantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TenantDefaultArgs<ExtArgs>>): Prisma.Prisma__TenantClient<runtime.Types.Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   refresh_tokens<T extends Prisma.User$refresh_tokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$refresh_tokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  oauth_accounts<T extends Prisma.User$oauth_accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$oauth_accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OAuthAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user_roles<T extends Prisma.User$user_rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$user_rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   audit_logs<T extends Prisma.User$audit_logsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$audit_logsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   background_jobs<T extends Prisma.User$background_jobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$background_jobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BackgroundJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2327,6 +2484,30 @@ export type User$refresh_tokensArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.RefreshTokenScalarFieldEnum | Prisma.RefreshTokenScalarFieldEnum[]
+}
+
+/**
+ * User.oauth_accounts
+ */
+export type User$oauth_accountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OAuthAccount
+   */
+  select?: Prisma.OAuthAccountSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OAuthAccount
+   */
+  omit?: Prisma.OAuthAccountOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OAuthAccountInclude<ExtArgs> | null
+  where?: Prisma.OAuthAccountWhereInput
+  orderBy?: Prisma.OAuthAccountOrderByWithRelationInput | Prisma.OAuthAccountOrderByWithRelationInput[]
+  cursor?: Prisma.OAuthAccountWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OAuthAccountScalarFieldEnum | Prisma.OAuthAccountScalarFieldEnum[]
 }
 
 /**
