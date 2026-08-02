@@ -23,6 +23,8 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
       "platform.audit.tenant_plan_updated": "更新租户 {{slug}} 的套餐",
       "platform.audit.tenant_registered":
         "注册租户 {{tenant_name}}（{{tenant_slug}}）",
+      "platform.audit.user_joined_default":
+        "用户自助注册加入默认租户 {{tenant_slug}}",
       "platform.audit.settings_updated": "更新平台设置",
       "platform.audit.plan_limit_templates_updated": "更新套餐用量模板",
       "platform.audit.background_job_cancelled": "取消后台任务 {{job}}",
@@ -65,6 +67,8 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
       "platform.audit.tenant_plan_updated": "Updated plan for tenant {{slug}}",
       "platform.audit.tenant_registered":
         "Registered tenant {{tenant_name}} ({{tenant_slug}})",
+      "platform.audit.user_joined_default":
+        "User self-registered into default tenant {{tenant_slug}}",
       "platform.audit.settings_updated": "Updated platform settings",
       "platform.audit.plan_limit_templates_updated":
         "Updated plan limit templates",

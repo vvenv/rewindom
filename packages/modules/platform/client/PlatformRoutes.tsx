@@ -1,7 +1,7 @@
 import { lazy, type ReactNode } from "react";
 
-import { PermissionRoute } from "@be-water/client-kit";
-import { Route } from "react-router";
+import { PermissionRoute, usePublicConfig } from "@be-water/client-kit";
+import { Navigate, Route } from "react-router";
 
 const PlatformDashboard = lazy(() =>
   import("./pages/dashboard.js").then((module) => ({
@@ -31,11 +31,21 @@ const PlatformSettings = lazy(() =>
   ),
 );
 
+function PlatformTenantsRoute(): ReactNode {
+  const {
+    data: { single_tenant },
+  } = usePublicConfig();
+  if (single_tenant) {
+    return <Navigate to="/platform" replace />;
+  }
+  return <PlatformTenants />;
+}
+
 export function renderPlatformRoutes(): ReactNode {
   return (
     <>
       <Route path="/platform" element={<PlatformDashboard />} />
-      <Route path="/platform/tenants" element={<PlatformTenants />} />
+      <Route path="/platform/tenants" element={<PlatformTenantsRoute />} />
       <Route path="/platform/users" element={<PlatformUsers />} />
       <Route
         element={<PermissionRoute permission="platform.admins.read" />}

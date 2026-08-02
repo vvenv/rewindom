@@ -14,6 +14,33 @@ describe("register-form", () => {
     );
   });
 
+  it("skips org fields in single-tenant mode", () => {
+    const values = {
+      ...INITIAL_REGISTER_FORM,
+      username: "alice",
+      password: "Password1",
+      confirmPassword: "Password1",
+      phone: "13800138000",
+      email: "alice@example.com",
+    };
+
+    expect(
+      validateRegisterForm(values, null, false, { singleTenant: true }),
+    ).toBeNull();
+    expect(
+      canSubmitRegisterForm(values, null, false, { singleTenant: true }),
+    ).toBe(true);
+    expect(buildRegisterInput(values, "token-1", { singleTenant: true })).toEqual(
+      {
+        username: "alice",
+        password: "Password1",
+        phone: "13800138000",
+        email: "alice@example.com",
+        captcha_token: "token-1",
+      },
+    );
+  });
+
   it("requires captcha when enabled", () => {
     const values = {
       ...INITIAL_REGISTER_FORM,

@@ -18,6 +18,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           default_locale: config.default_locale,
           github_oauth_enabled: appConfig.auth.github.enabled,
           google_oauth_enabled: appConfig.auth.google.enabled,
+          single_tenant: appConfig.tenant.singleTenant,
         }),
       );
     } catch (err) {

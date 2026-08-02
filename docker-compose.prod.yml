@@ -43,7 +43,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: app
-      # 与 web 保持一致，否则两个 target 会各建一次 builder 层
       args:
         SITE_URL: ${SITE_URL:-https://${APP_DOMAIN}}
     container_name: be-water-app
@@ -61,6 +60,7 @@ services:
       REDIS_DB: "0"
       JWT_SECRET: ${JWT_SECRET}
       TENANT_SECRET_ENCRYPTION_KEY: ${TENANT_SECRET_ENCRYPTION_KEY}
+      SINGLE_TENANT: ${SINGLE_TENANT:-false}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.deepseek.com/v1}
       OPENAI_MODEL: ${OPENAI_MODEL:-deepseek-v4-flash}
@@ -76,6 +76,11 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-}
+      CREEM_API_KEY: ${CREEM_API_KEY:-}
+      CREEM_WEBHOOK_SECRET: ${CREEM_WEBHOOK_SECRET:-}
+      CREEM_STORE_ID: ${CREEM_STORE_ID:-}
+      CREEM_SERVER: ${CREEM_SERVER:-}
+      CREEM_PRODUCT_MAP: ${CREEM_PRODUCT_MAP:-}
     volumes:
       - be_water_storage:/data
     depends_on:

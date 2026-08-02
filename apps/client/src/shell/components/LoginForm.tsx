@@ -1,6 +1,6 @@
 
 import { Button } from "@be-water/ui/button";
-import { Field, FieldGroup } from "@be-water/ui/field";
+import { Field, FieldDescription, FieldGroup } from "@be-water/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
@@ -64,6 +64,7 @@ export function LoginForm({
   registrationEnabled,
   githubOAuthEnabled,
   googleOAuthEnabled,
+  singleTenant = false,
   isLoading,
   onUsernameChange,
   onPasswordChange,
@@ -80,6 +81,7 @@ export function LoginForm({
   registrationEnabled: boolean;
   githubOAuthEnabled: boolean;
   googleOAuthEnabled: boolean;
+  singleTenant?: boolean;
   isLoading: boolean;
   onUsernameChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
@@ -135,6 +137,11 @@ export function LoginForm({
                   autoComplete="username"
                 />
               </InputGroup>
+              {!singleTenant && (
+                <FieldDescription className="text-xs">
+                  {t("auth.loginUsernameHint")}
+                </FieldDescription>
+              )}
             </Field>
 
             <Field>

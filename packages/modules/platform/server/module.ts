@@ -1,4 +1,5 @@
 import { ensureBootstrapPlatformAdmin } from "@be-water/server-kernel/kernel/auth/platform-admin.service.js";
+import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
 
 import { PLATFORM_SERVER_I18N } from "./i18n.js";
 import { platformRoutes } from "./platform.routes.js";
@@ -103,6 +104,7 @@ export const platformServerModule: ServerAppModule = {
             default_locale: settings.default_locale,
             github_oauth_enabled: false,
             google_oauth_enabled: false,
+            single_tenant: appConfig.tenant.singleTenant,
           };
         },
       });

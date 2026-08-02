@@ -110,6 +110,9 @@ export async function registerTenantRoutes(
       if (hasErrorCode(err, "tenant.slug_exists")) {
         return sendCodedError(reply, 409, "tenant.slug_exists");
       }
+      if (hasErrorCode(err, "tenant.single_tenant_mode")) {
+        return sendCodedError(reply, 403, "tenant.single_tenant_mode");
+      }
       return handleRouteError(
         reply,
         err,

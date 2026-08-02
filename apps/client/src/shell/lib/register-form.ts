@@ -40,28 +40,31 @@ export function validateRegisterForm(
   values: RegisterFormValues,
   captchaData: RegisterCaptchaData | null,
   captchaRequired: boolean,
+  options: { singleTenant?: boolean } = {},
 ): string | null {
-  if (!values.tenantName.trim()) {
-    return "auth.validation.tenantNameRequired";
-  }
-
-  if (!values.tenantSlug.trim()) {
-    return "auth.validation.tenantSlugRequired";
-  }
-
-  try {
-    assertValidTenantSlug(values.tenantSlug);
-  } catch (err) {
-    if (err instanceof ReservedTenantSlugError) {
-      return "auth.validation.tenantSlugReserved";
+  if (!options.singleTenant) {
+    if (!values.tenantName.trim()) {
+      return "auth.validation.tenantNameRequired";
     }
-    if (err instanceof InvalidTenantSlugError) {
-      if (err.message.includes("2–63")) {
-        return "auth.validation.tenantSlugLength";
+
+    if (!values.tenantSlug.trim()) {
+      return "auth.validation.tenantSlugRequired";
+    }
+
+    try {
+      assertValidTenantSlug(values.tenantSlug);
+    } catch (err) {
+      if (err instanceof ReservedTenantSlugError) {
+        return "auth.validation.tenantSlugReserved";
       }
-      return "auth.validation.tenantSlugFormat";
+      if (err instanceof InvalidTenantSlugError) {
+        if (err.message.includes("2–63")) {
+          return "auth.validation.tenantSlugLength";
+        }
+        return "auth.validation.tenantSlugFormat";
+      }
+      return "auth.validation.tenantSlugInvalid";
     }
-    return "auth.validation.tenantSlugInvalid";
   }
 
   if (!values.username || !values.password) {
@@ -98,15 +101,22 @@ export function validateRegisterForm(
 export function buildRegisterInput(
   values: RegisterFormValues,
   captchaToken: string,
+  options: { singleTenant?: boolean } = {},
 ): RegisterTenantInput {
-  return {
-    tenant_name: values.tenantName.trim(),
-    tenant_slug: values.tenantSlug.trim(),
+  const base: RegisterTenantInput = {
     username: values.username.trim(),
     password: values.password,
     phone: values.phone.trim(),
     email: values.email.trim(),
     captcha_token: captchaToken,
+  };
+  if (options.singleTenant) {
+    return base;
+  }
+  return {
+    ...base,
+    tenant_name: values.tenantName.trim(),
+    tenant_slug: values.tenantSlug.trim(),
   };
 }
 
@@ -114,10 +124,13 @@ export function canSubmitRegisterForm(
   values: RegisterFormValues,
   captchaData: RegisterCaptchaData | null,
   captchaRequired: boolean,
+  options: { singleTenant?: boolean } = {},
 ): boolean {
+  const orgReady =
+    options.singleTenant ||
+    (Boolean(values.tenantName.trim()) && Boolean(values.tenantSlug.trim()));
   return (
-    Boolean(values.tenantName.trim()) &&
-    Boolean(values.tenantSlug.trim()) &&
+    orgReady &&
     Boolean(values.username) &&
     Boolean(values.password) &&
     Boolean(values.confirmPassword) &&

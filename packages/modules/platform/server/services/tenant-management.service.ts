@@ -1,10 +1,12 @@
 
 import { AuthService, type JwtSignPayload } from "@be-water/server-kernel/kernel/auth/auth.service.js";
 import {
+  AppError,
   ConflictError,
   NotFoundError,
   ValidationError,
 } from "@be-water/server-kernel/lib/app-errors.js";
+import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug  } from "@be-water/shared";
 
@@ -102,6 +104,10 @@ function toTenantAdminCredentials(
 export async function createTenant(
   input: CreateTenantBody,
 ): Promise<TenantCreated> {
+  if (appConfig.tenant.singleTenant) {
+    throw new AppError({ code: "tenant.single_tenant_mode", status: 403 });
+  }
+
   const slug = assertValidTenantSlug(input.slug);
   const name = input.name.trim();
   if (!name) {

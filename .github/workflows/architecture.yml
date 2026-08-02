@@ -33,6 +33,22 @@ jobs:
       - name: Check circular dependencies (ratchet)
         run: node scripts/check-circular-deps.mjs
 
+  prod-app-env:
+    name: 生产 compose 环境变量透传
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Check config.ts env keys are wired in docker-compose.prod.yml
+        run: node scripts/check-prod-app-env.mjs
+
   module-deps:
     name: 模块 requires / import 校验
     runs-on: ubuntu-latest

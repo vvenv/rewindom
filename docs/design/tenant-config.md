@@ -82,6 +82,7 @@ flowchart TB
 | `JWT_SECRET`                    | 认证密钥                        |
 | `REDIS_*`                       | 队列与缓存（BullMQ + ioredis）  |
 | `TENANT_SECRET_ENCRYPTION_KEY`  | 租户 secret 字段 AES-GCM 主密钥 |
+| `SINGLE_TENANT`                 | `true` 时单租户部署：注册进默认租户、禁止新建租户、隐藏平台多租户管理入口（默认关闭） |
 | `OPENAI_API_KEY`                | 平台默认 AI 密钥（fallback）    |
 | `NODE_ENV`、`PORT`、`LOG_LEVEL` | 运行时                          |
 
@@ -427,8 +428,8 @@ request.authUser = { userId, username, role, tenant_id };
 
 | 场景                           | 行为                                                                                          |
 | ------------------------------ | --------------------------------------------------------------------------------------------- |
-| **Phase 0 / 单租户**           | 注册逻辑不变；用户隐式归属 `default` 租户                                                     |
-| **Phase 1 注册**               | 仅允许在已存在租户内注册，或由管理员创建用户；`username` 存本地部分，租户由上下文或管理员指定 |
+| **`SINGLE_TENANT=true`**       | 自助注册 / OAuth 首次登录加入默认租户（普通用户）；禁止平台新建租户；隐藏 `/platform/tenants` 与租户筛选；登录不展示 `@tenant` 提示 |
+| **多租户（默认）**             | 自助注册创建新租户并将注册者设为系统管理员；OAuth 首次登录创建个人租户 |
 | **用户列表（租户 SUPERUSER）** | 仅展示本租户用户；**不**展示 `tenant_slug` / 「租户」列                                       |
 | **用户列表（平台管理员）**     | 可跨租户查看，展示 `tenant_slug`                                                              |
 | **创建用户**                   | 租户 SUPERUSER：只能在所属租户内创建；API 从 JWT 继承 `tenant_id`                             |

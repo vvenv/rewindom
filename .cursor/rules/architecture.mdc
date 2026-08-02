@@ -10,7 +10,7 @@ Frontend (React SPA) → Fastify API (:3700) → PostgreSQL + Prisma
                                             └→ Redis（缓存 / BullMQ 队列）
 ```
 
-多租户 SaaS **模块化单体**底座。Monorepo：
+多租户 SaaS **模块化单体**底座（可用 `SINGLE_TENANT=true` 切单租户部署，见 `tenancy-mode` rule）。Monorepo：
 
 | 路径 | 角色 |
 | --- | --- |

@@ -110,6 +110,8 @@ export const KERNEL_MESSAGES_ZH: Record<string, string> = {
   "tenant.slug_reserved": "该租户标识为系统保留，不可使用",
   "tenant.name_required": "租户名称不能为空",
   "tenant.registration_disabled": "自助注册已关闭",
+  "tenant.single_tenant_mode": "当前为单租户部署，不可创建新租户",
+  "tenant.default_unavailable": "默认租户不可用，请联系管理员",
   "tenant.status_invalid": "无效的租户状态",
   "tenant.plan_ends_at_invalid": "无效的到期时间",
   "tenant.default_slug_immutable": "默认租户标识不可修改",

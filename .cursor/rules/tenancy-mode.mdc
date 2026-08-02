@@ -1,0 +1,44 @@
+---
+description: 单租户部署（SINGLE_TENANT）与生产 Docker 环境变量同步
+alwaysApply: true
+---
+
+# 租户部署模式
+
+保留 Tenant 模型与数据隔离；可用 env 切到**单租户部署**。设计口径：`docs/design/tenant-config.md`。
+
+## `SINGLE_TENANT`
+
+| | |
+| --- | --- |
+| 配置 | `config.tenant.singleTenant`（[`packages/server-kernel/src/lib/config.ts`](packages/server-kernel/src/lib/config.ts)） |
+| env | `SINGLE_TENANT=true`（默认关闭；`boolEnv`，显式 `"false"` 才关） |
+| 公开配置 | `GET /api/public/config` → `single_tenant`（前端据此改注册/登录/平台导航） |
+
+开启时：
+
+- 自助注册 / OAuth 首次登录 → 加入默认租户（普通用户，非系统管理员）
+- `createTenant` → 403（`tenant.single_tenant_mode`）
+- 隐藏平台 `/platform/tenants`、租户审批开关、平台租户筛选；登录不展示 `@tenant` 提示
+
+关闭时（默认）：自助注册仍**创建新租户**。
+
+## 新增应用 env 时必须同步的位置
+
+生产 `app` 容器**不会**自动注入 `.env.production` 里的全部键，只认 `docker-compose.prod.yml` 的 `environment:` 白名单。
+
+新增会影响运行时、且需在生产可配置的变量时，同一会话内更新：
+
+1. [`packages/server-kernel/src/lib/config.ts`](packages/server-kernel/src/lib/config.ts)（`strEnv` / `boolEnv` 等）
+2. [`scripts/env.production.example`](scripts/env.production.example)（及按需 `.env.example` / `env.docker.local.example`）
+3. **[`docker-compose.prod.yml`](docker-compose.prod.yml)** `app.environment`（形如 `FOO: ${FOO:-}`）
+4. 若属「compose 故意不透传、有安全默认」的键 → 加入 [`scripts/check-prod-app-env.mjs`](scripts/check-prod-app-env.mjs) 的 `COMPOSE_PASSTHROUGH_DENY`
+5. [`docs/deployment.md`](docs/deployment.md) 环境变量表（运维常用项）
+
+**机器门禁（防漏）**：`pnpm check:prod-app-env`（CI `Architecture` workflow）。  
+从 `config.ts` 收集键 − deny-list，要求 ⊆ compose 透传项且 ⊆ `env.production.example`。
+
+**不必**写入 [`docker-compose.dev.yml`](docker-compose.dev.yml)（仅 Postgres/Redis；应用在宿主机读 `.env.local`）。
+
+本地开单租户：`.env.local` 设 `SINGLE_TENANT=true` 后重启 `pnpm dev`。  
+生产开单租户：`.env.production` 设 `SINGLE_TENANT=true`，且 compose 已透传后 `pnpm deploy`（或 `--env-only`）。

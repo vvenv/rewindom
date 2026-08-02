@@ -63,6 +63,7 @@ export class ProviderRegistry {
         default_locale: "zh-CN",
         github_oauth_enabled: false,
         google_oauth_enabled: false,
+        single_tenant: false,
       };
     },
   };

@@ -51,10 +51,14 @@ export interface CaptchaVerifyInput {
   y: number;
 }
 
-/** 租户自助注册入参（壳层注册页提交，平台侧 tenant-registration 消费）。 */
+/**
+ * 自助注册入参（壳层注册页提交，平台侧 tenant-registration 消费）。
+ * 多租户模式必填 `tenant_name` / `tenant_slug`（新建租户）；
+ * 单租户模式可省略，用户加入默认租户。
+ */
 export interface RegisterTenantInput {
-  tenant_name: string;
-  tenant_slug: string;
+  tenant_name?: string;
+  tenant_slug?: string;
   username: string;
   password: string;
   phone: string;
@@ -117,4 +121,9 @@ export interface PublicConfig {
   github_oauth_enabled: boolean;
   /** 是否已配置 Google OAuth（登录页展示「使用 Google 登录」）。 */
   google_oauth_enabled: boolean;
+  /**
+   * 单租户部署（`SINGLE_TENANT`）：注册进默认租户、隐藏多租户管理入口、
+   * 登录不展示租户后缀提示。
+   */
+  single_tenant: boolean;
 }

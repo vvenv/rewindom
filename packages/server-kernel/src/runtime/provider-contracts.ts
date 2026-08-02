@@ -17,8 +17,10 @@ export interface PublicConfigProvider {
 }
 
 export interface TenantRegistrationInput {
-  tenant_name: string;
-  tenant_slug: string;
+  /** 多租户自助建租户时必填；单租户模式可省略。 */
+  tenant_name?: string;
+  /** 多租户自助建租户时必填；单租户模式可省略。 */
+  tenant_slug?: string;
   username: string;
   phone: string;
   email: string;

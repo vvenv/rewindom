@@ -53,6 +53,7 @@ export function RegisterForm({
   showConfirmPassword,
   captchaData,
   captchaEnabled,
+  singleTenant = false,
   isLoading,
   onTenantNameChange,
   onTenantSlugChange,
@@ -68,6 +69,7 @@ export function RegisterForm({
   showConfirmPassword: boolean;
   captchaData: RegisterCaptchaData | null;
   captchaEnabled: boolean;
+  singleTenant?: boolean;
   isLoading: boolean;
   onTenantNameChange: (value: string) => void;
   onTenantSlugChange: (value: string) => void;
@@ -97,7 +99,11 @@ export function RegisterForm({
           <div className="flex flex-col items-center gap-2">
             <Wordmark className="auth-logo-glow h-6 text-foreground" />
             <p className="text-sm text-muted-foreground">
-              {t("auth.registerTagline")}
+              {t(
+                singleTenant
+                  ? "auth.registerTaglineSingleTenant"
+                  : "auth.registerTagline",
+              )}
             </p>
           </div>
         </div>
@@ -108,120 +114,146 @@ export function RegisterForm({
             onSubmit();
           }}
         >
-          {/* 两组信息并排 + 中缝分隔线：注册填的是「组织」和「人」两件事，
-              分栏比一长条更能让人一眼看出结构 */}
-          <div className="grid gap-8 md:grid-cols-2 md:gap-x-0">
-            <FieldSet className="gap-5 md:pr-10">
-              <div className="flex flex-col gap-1">
-                <FieldLegend
-                  variant="label"
-                  className="mb-0 flex items-center gap-2"
-                >
-                  <StepBadge step={1} />
-                  {t("auth.orgInfo")}
-                </FieldLegend>
-                <FieldDescription className="pl-7 text-xs">
-                  {t("auth.orgInfoDescription")}
-                </FieldDescription>
-              </div>
+          <div
+            className={
+              singleTenant
+                ? "mx-auto flex max-w-md flex-col gap-5"
+                : "grid gap-8 md:grid-cols-2 md:gap-x-0"
+            }
+          >
+            {!singleTenant && (
+              <FieldSet className="gap-5 md:pr-10">
+                <div className="flex flex-col gap-1">
+                  <FieldLegend
+                    variant="label"
+                    className="mb-0 flex items-center gap-2"
+                  >
+                    <StepBadge step={1} />
+                    {t("auth.orgInfo")}
+                  </FieldLegend>
+                  <FieldDescription className="pl-7 text-xs">
+                    {t("auth.orgInfoDescription")}
+                  </FieldDescription>
+                </div>
+
+                <Field>
+                  <FieldLabel htmlFor="tenant-name">
+                    {t("auth.tenantName")}
+                  </FieldLabel>
+                  <InputGroup className={INPUT_GROUP_CLASS}>
+                    <InputGroupAddon>
+                      <Building2 className="size-4 text-muted-foreground/80" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="tenant-name"
+                      type="text"
+                      value={form.tenantName}
+                      onChange={(event) =>
+                        onTenantNameChange(event.target.value)
+                      }
+                      placeholder={t("auth.tenantNamePlaceholder")}
+                      disabled={isLoading}
+                      autoFocus
+                      autoComplete="organization"
+                    />
+                  </InputGroup>
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="tenant-slug">
+                    {t("auth.tenantSlug")}
+                  </FieldLabel>
+                  <InputGroup className={INPUT_GROUP_CLASS}>
+                    <InputGroupAddon>
+                      <AtSign className="size-4 text-muted-foreground/80" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="tenant-slug"
+                      type="text"
+                      value={form.tenantSlug}
+                      onChange={(event) =>
+                        onTenantSlugChange(event.target.value)
+                      }
+                      placeholder="acme"
+                      disabled={isLoading}
+                      autoComplete="off"
+                    />
+                  </InputGroup>
+                  <FieldDescription className="text-xs">
+                    {t("auth.tenantSlugDescription")}
+                  </FieldDescription>
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="phone">{t("auth.phone")}</FieldLabel>
+                  <InputGroup className={INPUT_GROUP_CLASS}>
+                    <InputGroupAddon>
+                      <Phone className="size-4 text-muted-foreground/80" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="phone"
+                      type="tel"
+                      value={form.phone}
+                      onChange={(event) =>
+                        onFieldChange("phone", event.target.value)
+                      }
+                      placeholder={t("auth.phonePlaceholder")}
+                      disabled={isLoading}
+                      autoComplete="tel"
+                    />
+                  </InputGroup>
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
+                  <InputGroup className={INPUT_GROUP_CLASS}>
+                    <InputGroupAddon>
+                      <Mail className="size-4 text-muted-foreground/80" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="email"
+                      type="email"
+                      value={form.email}
+                      onChange={(event) =>
+                        onFieldChange("email", event.target.value)
+                      }
+                      placeholder={t("auth.emailPlaceholder")}
+                      disabled={isLoading}
+                      autoComplete="email"
+                    />
+                  </InputGroup>
+                </Field>
+              </FieldSet>
+            )}
+
+            <FieldSet
+              className={
+                singleTenant
+                  ? "gap-5"
+                  : "gap-5 md:border-l md:border-border/60 md:pl-10"
+              }
+            >
+              {!singleTenant && (
+                <div className="flex flex-col gap-1">
+                  <FieldLegend
+                    variant="label"
+                    className="mb-0 flex items-center gap-2"
+                  >
+                    <StepBadge step={2} />
+                    {t("auth.adminAccount")}
+                  </FieldLegend>
+                  <FieldDescription className="pl-7 text-xs">
+                    {t("auth.adminAccountDescription")}
+                  </FieldDescription>
+                </div>
+              )}
 
               <Field>
-                <FieldLabel htmlFor="tenant-name">{t("auth.tenantName")}</FieldLabel>
-                <InputGroup className={INPUT_GROUP_CLASS}>
-                  <InputGroupAddon>
-                    <Building2 className="size-4 text-muted-foreground/80" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="tenant-name"
-                    type="text"
-                    value={form.tenantName}
-                    onChange={(event) => onTenantNameChange(event.target.value)}
-                    placeholder={t("auth.tenantNamePlaceholder")}
-                    disabled={isLoading}
-                    autoFocus
-                    autoComplete="organization"
-                  />
-                </InputGroup>
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="tenant-slug">{t("auth.tenantSlug")}</FieldLabel>
-                <InputGroup className={INPUT_GROUP_CLASS}>
-                  <InputGroupAddon>
-                    <AtSign className="size-4 text-muted-foreground/80" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="tenant-slug"
-                    type="text"
-                    value={form.tenantSlug}
-                    onChange={(event) => onTenantSlugChange(event.target.value)}
-                    placeholder="acme"
-                    disabled={isLoading}
-                    autoComplete="off"
-                  />
-                </InputGroup>
-                <FieldDescription className="text-xs">
-                  {t("auth.tenantSlugDescription")}
-                </FieldDescription>
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="phone">{t("auth.phone")}</FieldLabel>
-                <InputGroup className={INPUT_GROUP_CLASS}>
-                  <InputGroupAddon>
-                    <Phone className="size-4 text-muted-foreground/80" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="phone"
-                    type="tel"
-                    value={form.phone}
-                    onChange={(event) =>
-                      onFieldChange("phone", event.target.value)
-                    }
-                    placeholder={t("auth.phonePlaceholder")}
-                    disabled={isLoading}
-                    autoComplete="tel"
-                  />
-                </InputGroup>
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
-                <InputGroup className={INPUT_GROUP_CLASS}>
-                  <InputGroupAddon>
-                    <Mail className="size-4 text-muted-foreground/80" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    onChange={(event) =>
-                      onFieldChange("email", event.target.value)
-                    }
-                    placeholder={t("auth.emailPlaceholder")}
-                    disabled={isLoading}
-                    autoComplete="email"
-                  />
-                </InputGroup>
-              </Field>
-            </FieldSet>
-
-            <FieldSet className="gap-5 md:border-l md:border-border/60 md:pl-10">
-              <div className="flex flex-col gap-1">
-                <FieldLegend
-                  variant="label"
-                  className="mb-0 flex items-center gap-2"
-                >
-                  <StepBadge step={2} />
-                  {t("auth.adminAccount")}
-                </FieldLegend>
-                <FieldDescription className="pl-7 text-xs">
-                  {t("auth.adminAccountDescription")}
-                </FieldDescription>
-              </div>
-
-              <Field>
-                <FieldLabel htmlFor="username">{t("auth.adminUsername")}</FieldLabel>
+                <FieldLabel htmlFor="username">
+                  {t(
+                    singleTenant ? "auth.username" : "auth.adminUsername",
+                  )}
+                </FieldLabel>
                 <InputGroup className={INPUT_GROUP_CLASS}>
                   <InputGroupAddon>
                     <User className="size-4 text-muted-foreground/80" />
@@ -233,8 +265,13 @@ export function RegisterForm({
                     onChange={(event) =>
                       onFieldChange("username", event.target.value)
                     }
-                    placeholder={t("auth.adminUsernamePlaceholder")}
+                    placeholder={t(
+                      singleTenant
+                        ? "auth.usernamePlaceholder"
+                        : "auth.adminUsernamePlaceholder",
+                    )}
                     disabled={isLoading}
+                    autoFocus={singleTenant}
                     autoComplete="username"
                   />
                 </InputGroup>
@@ -242,6 +279,50 @@ export function RegisterForm({
                   {t("auth.usernameLengthHint")}
                 </FieldDescription>
               </Field>
+
+              {singleTenant && (
+                <>
+                  <Field>
+                    <FieldLabel htmlFor="phone">{t("auth.phone")}</FieldLabel>
+                    <InputGroup className={INPUT_GROUP_CLASS}>
+                      <InputGroupAddon>
+                        <Phone className="size-4 text-muted-foreground/80" />
+                      </InputGroupAddon>
+                      <InputGroupInput
+                        id="phone"
+                        type="tel"
+                        value={form.phone}
+                        onChange={(event) =>
+                          onFieldChange("phone", event.target.value)
+                        }
+                        placeholder={t("auth.phonePlaceholder")}
+                        disabled={isLoading}
+                        autoComplete="tel"
+                      />
+                    </InputGroup>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="email">{t("auth.email")}</FieldLabel>
+                    <InputGroup className={INPUT_GROUP_CLASS}>
+                      <InputGroupAddon>
+                        <Mail className="size-4 text-muted-foreground/80" />
+                      </InputGroupAddon>
+                      <InputGroupInput
+                        id="email"
+                        type="email"
+                        value={form.email}
+                        onChange={(event) =>
+                          onFieldChange("email", event.target.value)
+                        }
+                        placeholder={t("auth.emailPlaceholder")}
+                        disabled={isLoading}
+                        autoComplete="email"
+                      />
+                    </InputGroup>
+                  </Field>
+                </>
+              )}
 
               <Field>
                 <FieldLabel htmlFor="password">{t("auth.password")}</FieldLabel>
@@ -339,7 +420,9 @@ export function RegisterForm({
               )}
               disabled={
                 isLoading ||
-                !canSubmitRegisterForm(form, captchaData, captchaEnabled)
+                !canSubmitRegisterForm(form, captchaData, captchaEnabled, {
+                  singleTenant,
+                })
               }
             >
               {isLoading ? (
@@ -348,7 +431,11 @@ export function RegisterForm({
                   {t("auth.registering")}
                 </>
               ) : (
-                t("auth.createOrgAndRegister")
+                t(
+                  singleTenant
+                    ? "auth.registerAccount"
+                    : "auth.createOrgAndRegister",
+                )
               )}
             </Button>
           </div>

@@ -2,6 +2,7 @@ import {
   translateShellLayoutOptions,
   translateThemePaletteOptions,
   useConfirm,
+  usePublicConfig,
 } from "@be-water/client-kit";
 import {
   APP_LOCALES,
@@ -36,6 +37,9 @@ import { useUpdatePlatformSettings } from "../hooks/useUpdatePlatformSettings.js
 
 export function PlatformSettings() {
   const { t } = useTranslation(["shell", "common", "platform"]);
+  const {
+    data: { single_tenant },
+  } = usePublicConfig();
   const { data: settings, isLoading } = usePlatformSettings();
   const updateMutation = useUpdatePlatformSettings();
   const { confirm } = useConfirm();
@@ -165,7 +169,11 @@ export function PlatformSettings() {
                 {t("platform:settings.registration.enable")}
               </p>
               <p className="text-sm text-muted-foreground">
-                {t("platform:settings.registration.hint")}
+                {t(
+                  single_tenant
+                    ? "platform:settings.registration.hintSingleTenant"
+                    : "platform:settings.registration.hint",
+                )}
               </p>
             </div>
             <Switch
@@ -177,34 +185,36 @@ export function PlatformSettings() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-1">
-            <UserCheck className="size-4" />
-            {t("platform:settings.tenantApproval.title")}
-          </CardTitle>
-          <CardDescription>
-            {t("platform:settings.tenantApproval.description")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <p className="text-sm font-medium">
-                {t("platform:settings.tenantApproval.require")}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {t("platform:settings.tenantApproval.hint")}
-              </p>
+      {!single_tenant && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-1">
+              <UserCheck className="size-4" />
+              {t("platform:settings.tenantApproval.title")}
+            </CardTitle>
+            <CardDescription>
+              {t("platform:settings.tenantApproval.description")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">
+                  {t("platform:settings.tenantApproval.require")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t("platform:settings.tenantApproval.hint")}
+                </p>
+              </div>
+              <Switch
+                checked={settings?.require_tenant_approval ?? false}
+                onCheckedChange={handleRequireTenantApprovalChange}
+                disabled={updateMutation.isPending}
+              />
             </div>
-            <Switch
-              checked={settings?.require_tenant_approval ?? false}
-              onCheckedChange={handleRequireTenantApprovalChange}
-              disabled={updateMutation.isPending}
-            />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

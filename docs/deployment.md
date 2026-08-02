@@ -171,7 +171,10 @@ curl http://127.0.0.1:3700/health
 | `DB_PASSWORD`                  | PostgreSQL 密码                                 |
 | `JWT_SECRET`                   | JWT 签名密钥                                    |
 | `TENANT_SECRET_ENCRYPTION_KEY` | 租户密钥加密（32 字节 hex）                     |
+| `SINGLE_TENANT`                | `true` 时单租户部署（默认关闭）；须同时出现在 `.env.production` 与 `docker-compose.prod.yml` → `app.environment` |
 
-完整列表见 `scripts/env.production.example`。
+完整列表见 `scripts/env.production.example`。新增应用运行时变量时，务必同步写入 `docker-compose.prod.yml` 的 `app.environment` 白名单（`docker-compose.dev.yml` 不需要）。
+
+门禁：`pnpm check:prod-app-env`（从 `config.ts` 对照 compose + example；已挂 Architecture CI）。
 
 更多问题见 `faq.md`。

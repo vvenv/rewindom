@@ -56,6 +56,8 @@
     "welcomeBack": "欢迎回来",
     "loginSubtitle": "登录以继续",
     "usernamePlaceholder": "请输入账号",
+    "loginUsernameHint": "可用「账号@组织标识」；默认组织可省略后缀",
+    "username": "账号",
     "passwordPlaceholder": "请输入密码",
     "hidePassword": "隐藏密码",
     "showPassword": "显示密码",
@@ -81,6 +83,8 @@
       "alreadyLinked": "该 GitHub 账号已绑定其他用户"
     },
     "registerTagline": "创建组织与管理员账号，即刻使用",
+    "registerTaglineSingleTenant": "创建账号，即刻使用",
+    "registerAccount": "注册账号",
     "orgInfo": "组织信息",
     "orgInfoDescription": "用于创建你的租户空间",
     "tenantName": "组织名称",
@@ -120,6 +124,7 @@
       "passwordMismatch": "两次输入的密码不一致"
     },
     "tagline": "多租户 SaaS 平台",
+    "taglineSingleTenant": "模块化 SaaS 平台",
     "registerDisabledTitle": "暂未开放自助注册",
     "registerDisabledDescription": "请联系平台管理员开通账号，或返回登录页面",
     "backToLogin": "返回登录",
@@ -133,6 +138,10 @@
       "tenancy": {
         "title": "多租户隔离",
         "description": "租户数据严格隔离，权限与配置独立管理"
+      },
+      "isolation": {
+        "title": "安全隔离",
+        "description": "权限、配置与审计按组织边界管理"
       },
       "modules": {
         "title": "模块化扩展",

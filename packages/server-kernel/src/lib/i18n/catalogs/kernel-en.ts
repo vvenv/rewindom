@@ -119,6 +119,10 @@ export const KERNEL_MESSAGES_EN: Record<string, string> = {
   "tenant.slug_reserved": "This tenant slug is reserved",
   "tenant.name_required": "Tenant name is required",
   "tenant.registration_disabled": "Self-registration is disabled",
+  "tenant.single_tenant_mode":
+    "This deployment is single-tenant; creating tenants is disabled",
+  "tenant.default_unavailable":
+    "Default tenant is unavailable; contact an administrator",
   "tenant.status_invalid": "Invalid tenant status",
   "tenant.plan_ends_at_invalid": "Invalid expiration time",
   "tenant.default_slug_immutable": "Default tenant slug cannot be changed",

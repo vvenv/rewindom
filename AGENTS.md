@@ -20,6 +20,7 @@
 - React 组件：具名导出
 - 写操作：记录审计日志
 - Migration：禁止随意 `reset`，优先增量 migration
+- 单租户部署：`SINGLE_TENANT=true`（见 `tenancy-mode` rule）；生产 env 透传门禁：`pnpm check:prod-app-env`
 
 ## 模块化开发
 
@@ -74,7 +75,7 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 | 字段命名          | `design/field-naming-conventions.md`               | `field-naming`                    |
 | 权限              | `design/permission-system.md`                      | `permissions`                     |
 | 错误日志 / 可观测 | `design/error-logging.md`                          | `error-logging`                   |
-| 租户配置 / 用户   | `design/tenant-config.md`、`design/user-system.md` | —                                 |
+| 租户配置 / 用户   | `design/tenant-config.md`、`design/user-system.md` | `tenancy-mode` rule               |
 | 多语言（i18n）    | `design/i18n.md`                                   | —                                 |
 | 租户功能开关/配额 | `design/tenant-features.md`                        | —                                 |
 | 前端 Page 分层    | —                                                  | `frontend-page-structure`         |
@@ -85,6 +86,6 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 
 ## Agent 配置（Cursor + Claude Code）
 
-- **Rules**（`.cursor/rules/*.mdc`，仅 Cursor）— `architecture`、`extension-points`、`coding-standards`、`field-naming`、`permissions`、`docs-reference`、`ui-components`、`frontend-page-structure`、`audit-logging`、`prisma-migration`、`plan-tracking`、`auto-execute-scripts`
+- **Rules**（`.cursor/rules/*.mdc`，仅 Cursor）— `architecture`、`extension-points`、`coding-standards`、`field-naming`、`permissions`、`docs-reference`、`tenancy-mode`、`ui-components`、`frontend-page-structure`、`audit-logging`、`prisma-migration`、`plan-tracking`、`auto-execute-scripts`
 - **Skills**（`.cursor/skills/`，单一真相源）— `create-module`、`extract-module`、`error-logging`、`frontend-page-structure`、`prisma-sync-fix`、`merge-migrations`
 - **Claude Code**：根目录 `CLAUDE.md` 指向本文件；`.claude/skills/` 由 `pnpm sync-skills` 生成（`prepare` 自动跑）；只改 `.cursor/skills/`，勿手改生成物

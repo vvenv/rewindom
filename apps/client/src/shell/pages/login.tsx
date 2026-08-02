@@ -37,6 +37,7 @@ export function Login() {
       captcha_enabled,
       github_oauth_enabled,
       google_oauth_enabled,
+      single_tenant,
     },
   } = usePublicConfig();
 
@@ -87,6 +88,7 @@ export function Login() {
         registrationEnabled={registration_enabled}
         githubOAuthEnabled={github_oauth_enabled}
         googleOAuthEnabled={google_oauth_enabled}
+        singleTenant={single_tenant}
         isLoading={isLoading}
         onUsernameChange={setUsername}
         onPasswordChange={setPassword}

@@ -1,4 +1,4 @@
-import { FilterBar } from "@be-water/client-kit";
+import { FilterBar, usePublicConfig } from "@be-water/client-kit";
 import { useTranslation } from "react-i18next";
 
 import { TenantCombobox } from "./TenantCombobox.js";
@@ -19,6 +19,9 @@ export function UsersFilterBar({
   onReset: () => void;
 }) {
   const { t } = useTranslation(["platform", "common"]);
+  const {
+    data: { single_tenant },
+  } = usePublicConfig();
 
   return (
     <FilterBar
@@ -29,13 +32,15 @@ export function UsersFilterBar({
         className: "max-w-40",
       }}
       inlineContent={
-        <TenantCombobox
-          value={tenant_slug ?? null}
-          onValueChange={onTenantChange}
-          placeholder={t("common:tenant")}
-          showClear
-          className="w-40"
-        />
+        single_tenant ? undefined : (
+          <TenantCombobox
+            value={tenant_slug ?? null}
+            onValueChange={onTenantChange}
+            placeholder={t("common:tenant")}
+            showClear
+            className="w-40"
+          />
+        )
       }
       hasActiveFilters={hasActiveFilters}
       onReset={onReset}

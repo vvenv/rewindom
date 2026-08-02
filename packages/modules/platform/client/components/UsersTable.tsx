@@ -1,6 +1,6 @@
 import { useMemo, type ComponentType  } from "react";
 
-import { DataTable, DataTableColumnHeader } from "@be-water/client-kit";
+import { DataTable, DataTableColumnHeader, usePublicConfig } from "@be-water/client-kit";
 import { formatLoginIdentifier, formatBusinessDate, formatBusinessDateOrTimeAgo  } from "@be-water/shared";
 import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Spinner } from "@be-water/ui/spinner";
@@ -17,9 +17,9 @@ import type { TFunction } from "i18next";
 function buildPlatformUserColumns(
   t: TFunction<"platform">,
   RoleBadge: ComponentType<{ isSystemAdmin: boolean }> | null,
+  singleTenant: boolean,
 ): ColumnDef<PlatformUserSummary>[] {
-  return [
-  {
+  const tenantColumn: ColumnDef<PlatformUserSummary> = {
     accessorKey: "tenant_slug",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("users.table.tenant")} />
@@ -30,7 +30,10 @@ function buildPlatformUserColumns(
         {row.original.tenant_name}（{row.original.tenant_slug}）
       </span>
     ),
-  },
+  };
+
+  return [
+  ...(singleTenant ? [] : [tenantColumn]),
   {
     accessorKey: "username",
     header: ({ column }) => (
@@ -39,7 +42,12 @@ function buildPlatformUserColumns(
     enableSorting: true,
     cell: ({ row }) => (
       <span className="font-mono text-sm">
-        {formatLoginIdentifier(row.original.username, row.original.tenant_slug)}
+        {singleTenant
+          ? row.original.username
+          : formatLoginIdentifier(
+              row.original.username,
+              row.original.tenant_slug,
+            )}
       </span>
     ),
   },
@@ -123,10 +131,13 @@ export function UsersTable({
   onSortingChange: (updater: Updater<SortingState>) => void;
 }) {
   const { t } = useTranslation(["platform", "common"]);
+  const {
+    data: { single_tenant },
+  } = usePublicConfig();
   const RoleBadge = userRoleBadgeSlot.useSlot();
   const columns = useMemo(
-    () => buildPlatformUserColumns(t, RoleBadge),
-    [RoleBadge, t],
+    () => buildPlatformUserColumns(t, RoleBadge, single_tenant),
+    [RoleBadge, single_tenant, t],
   );
 
   if (isLoading && users.length === 0) {

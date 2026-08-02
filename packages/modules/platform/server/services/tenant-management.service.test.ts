@@ -1,4 +1,5 @@
 import { AuthService } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import { config } from "@be-water/server-kernel/lib/config.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_ID } from "@be-water/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -84,6 +85,21 @@ describe("tenant-management.service", () => {
     const tenants = await listTenants();
     expect(tenants).toHaveLength(1);
     expect(tenants[0]?.slug).toBe("default");
+  });
+
+  it("rejects creating tenant in single-tenant mode", async () => {
+    const previous = config.tenant.singleTenant;
+    config.tenant.singleTenant = true;
+    try {
+      await expect(
+        createTenant({ slug: "acme", name: "Acme" }),
+      ).rejects.toMatchObject({
+        code: "tenant.single_tenant_mode",
+        status: 403,
+      });
+    } finally {
+      config.tenant.singleTenant = previous;
+    }
   });
 
   it("creates tenant with normalized slug and initial admin", async () => {

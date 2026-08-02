@@ -345,6 +345,12 @@ export const config = {
     secretEncryptionKey: resolveTenantSecretEncryptionKey(),
     // 租户守卫：enforce 强制注入租户谓词；audit 只上报不改写（灰度用）；off 关闭。
     guardMode: resolveTenantGuardMode(),
+    /**
+     * 单租户部署：保留 Tenant 模型与隔离，但禁止新建租户；
+     * 自助注册 / OAuth 首次登录一律加入默认租户。
+     * env：`SINGLE_TENANT=true`（或任意非 `"false"` 值）；默认关闭。
+     */
+    singleTenant: boolEnv("SINGLE_TENANT", false),
   },
 };
 

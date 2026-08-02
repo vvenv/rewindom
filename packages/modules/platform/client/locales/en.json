@@ -271,6 +271,7 @@
       "description": "Control whether new users can register on their own",
       "enable": "Enable self-registration",
       "hint": "When disabled, users cannot self-register; platform admins must create accounts. Consider disabling during testing.",
+      "hintSingleTenant": "When enabled, new users join the default tenant (no new organization is created).",
       "confirmDisableTitle": "Disable self-registration?",
       "confirmDisableDescription": "New users will not be able to register. They must contact a platform admin. Continue?",
       "confirmDisable": "Disable",

@@ -1000,7 +1000,7 @@ modules/                  # @be-water/modules，exports 仅 "./*": "./*"
 | --- | --- | --- |
 | 1 | 用户/平台管理是否独立为 `user` / `platform`？ | **已决**：已独立为模块包 |
 | 2 | PBAC 与经典 RBAC 是否同一模块两种模式？ | **建议**：均在 `rbac` 内配置 |
-| 3 | 单租户部署是否禁用多租户 UI？ | 配置 `SINGLE_TENANT=1`，内核跳过租户选择逻辑 |
+| 3 | 单租户部署是否禁用多租户 UI？ | **已决**：env `SINGLE_TENANT=true`；注册/OAuth 进默认租户；禁止新建租户；隐藏平台租户管理入口与租户筛选；登录不展示 `@tenant` 提示 |
 | 4 | 跨模块 Prisma relation 是否允许？ | **已决**：默认禁止；同一模块 / 聚合内可例外 |
 | 5 | Event Bus 同步还是异步？ | **已决**：`emit` await 各 handler；审计失败不阻塞主事务 |
 | 6 | Component Slot 声明是否迁出 `client-shell`？ | **已完成**：slot 均在消费方模块 `client/shell/`；`client-shell` 仅保留 `createComponentSlot` |

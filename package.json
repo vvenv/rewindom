@@ -21,6 +21,7 @@
     "check": "concurrently --kill-others-on-fail --names \"lint,test,types\" --prefix-colors \"yellow,cyan,magenta\" \"pnpm lint\" \"pnpm test\" \"pnpm typecheck\"",
     "check:deps": "node scripts/check-circular-deps.mjs && pnpm --filter server validate:module-deps",
     "check:deps:update": "node scripts/check-circular-deps.mjs --update-baseline",
+    "check:prod-app-env": "node scripts/check-prod-app-env.mjs",
     "check:modules": "node scripts/verify-module.mjs",
     "gen:module": "node scripts/gen-module.mjs",
     "db:up": "docker compose -f docker-compose.dev.yml up -d --wait",

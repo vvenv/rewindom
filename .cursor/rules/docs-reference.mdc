@@ -14,7 +14,7 @@ alwaysApply: true
 | 产品仓升级到 be-water | `frontend-page-structure`（升级检查节） | `docs/design/downstream-fork.md` |
 | 权限（PBAC） | — | `docs/design/permission-system.md` |
 | 用户体系 | — | `docs/design/user-system.md` |
-| 多租户配置分层 | — | `docs/design/tenant-config.md` |
+| 多租户配置分层 / 单租户部署 | —（rule：`tenancy-mode`） | `docs/design/tenant-config.md` |
 | 多语言（i18n） | — | `docs/design/i18n.md` |
 | 租户功能开关 / entitlement | — | `docs/design/tenant-features.md` |
 | 错误日志 | `error-logging` | `docs/design/error-logging.md` |
@@ -22,7 +22,7 @@ alwaysApply: true
 | 单元测试 | — | `docs/design/unit-testing.md` |
 | 前端页面分层 | `frontend-page-structure` | — |
 | Prisma migration | `merge-migrations`、`prisma-sync-fix` | — |
-| 部署 | — | `docs/deployment.md` |
+| 部署 / 生产 env 透传 | —（`pnpm check:prod-app-env`；rule：`tenancy-mode`） | `docs/deployment.md` |
 
 ## 约定
 

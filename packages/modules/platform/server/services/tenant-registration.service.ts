@@ -7,12 +7,14 @@ import {
   ConflictError,
   ValidationError,
 } from "@be-water/server-kernel/lib/app-errors.js";
+import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { emitDetachedAuditLogSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
 import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
 import {
   assertValidTenantSlug,
+  DEFAULT_TENANT_ID,
   InvalidTenantSlugError,
   ReservedTenantSlugError,
   type AuthTokens,
@@ -44,6 +46,200 @@ export interface RegisterTenantResult {
   user_id: string;
   username: string;
   tokens: AuthTokens;
+}
+
+async function resolveDefaultTenantForRegistration(): Promise<{
+  id: string;
+  slug: string;
+  name: string;
+}> {
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: DEFAULT_TENANT_ID },
+  });
+  if (!tenant || tenant.status !== "active") {
+    throw new AppError({ code: "tenant.default_unavailable", status: 503 });
+  }
+  return tenant;
+}
+
+/** OAuth 加入默认租户时，在租户内为登录名找可用变体。 */
+async function resolveUniqueUsernameInTenant(
+  tenantId: string,
+  baseUsername: string,
+): Promise<string> {
+  const normalized = baseUsername.trim();
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const candidate =
+      attempt === 0 ? normalized : `${normalized.slice(0, 40)}-${attempt}`;
+    try {
+      validateUsername(candidate);
+    } catch {
+      continue;
+    }
+    const existing = await prisma.user.findUnique({
+      where: {
+        tenant_id_username: {
+          tenant_id: tenantId,
+          username: candidate,
+        },
+      },
+    });
+    if (!existing) {
+      return candidate;
+    }
+  }
+  return `${normalized.slice(0, 32)}-${Date.now().toString(36)}`;
+}
+
+async function issueRegistrationTokens(
+  user: { id: string; username: string; is_system_admin: boolean },
+  tenant: { id: string; slug: string },
+  jwtSign: (payload: JwtSignPayload) => string,
+): Promise<AuthTokens> {
+  const tokens = AuthService.generateTokens(
+    user.id,
+    "tenant_user",
+    user.is_system_admin,
+    tenant.id,
+    tenant.slug,
+    jwtSign,
+  );
+
+  const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await prisma.refreshToken.create({
+    data: {
+      user_id: user.id,
+      token: tokens.refreshToken,
+      expires_at: refreshTokenExpiry,
+    },
+  });
+
+  return tokens;
+}
+
+/**
+ * 单租户模式：在默认租户内创建普通用户（非系统管理员）。
+ */
+async function registerUserIntoDefaultTenant(
+  input: {
+    username: string;
+    password?: string | null;
+    phone?: string;
+    email?: string | null;
+    provider?: string;
+    provider_user_id?: string;
+    provider_username?: string;
+    avatar_url?: string | null;
+    /** OAuth 撞名时自动加后缀；密码注册则直接冲突。 */
+    allowUsernameSuffix?: boolean;
+  },
+  jwtSign: (payload: JwtSignPayload) => string,
+  ipAddress: string,
+  userAgent: string,
+): Promise<RegisterTenantResult> {
+  validateUsername(input.username);
+
+  const tenant = await resolveDefaultTenantForRegistration();
+  let username = input.username.trim();
+
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      tenant_id_username: {
+        tenant_id: tenant.id,
+        username,
+      },
+    },
+  });
+  if (existingUser) {
+    if (!input.allowUsernameSuffix) {
+      throw new ConflictError("auth.username_exists");
+    }
+    username = await resolveUniqueUsernameInTenant(tenant.id, username);
+  }
+
+  if (input.provider && input.provider_user_id) {
+    const existingLink = await prisma.oAuthAccount.findUnique({
+      where: {
+        provider_provider_user_id: {
+          provider: input.provider,
+          provider_user_id: input.provider_user_id,
+        },
+      },
+    });
+    if (existingLink) {
+      throw new ConflictError("auth.oauth_already_linked");
+    }
+  }
+
+  const hashedPassword =
+    input.password != null && input.password.length > 0
+      ? await AuthService.hashPassword(input.password)
+      : null;
+
+  const now = new Date();
+  const user = await prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {
+        tenant_id: tenant.id,
+        username,
+        password: hashedPassword,
+        is_system_admin: false,
+        last_login_at: input.provider ? now : undefined,
+        last_access_at: input.provider ? now : undefined,
+      },
+    });
+
+    if (input.provider && input.provider_user_id) {
+      await tx.oAuthAccount.create({
+        data: {
+          provider: input.provider,
+          provider_user_id: input.provider_user_id,
+          user_id: createdUser.id,
+          provider_username: input.provider_username ?? username,
+          provider_email: input.email ?? null,
+          avatar_url: input.avatar_url ?? null,
+        },
+      });
+    }
+
+    return createdUser;
+  });
+
+  await RoleService.ensureBuiltinTenantRoles(
+    tenant.id,
+    getServerPermissionCatalog(),
+  );
+
+  const tokens = await issueRegistrationTokens(user, tenant, jwtSign);
+
+  try {
+    await emitDetachedAuditLogSafe(undefined, {
+      action: AuditAction.USER_CREATE,
+      userId: user.id,
+      username,
+      ipAddress,
+      userAgent,
+      detail_key: "platform.audit.user_joined_default",
+      detail_params: {
+        tenant_slug: tenant.slug,
+        tenant_name: tenant.name,
+        phone: input.phone ?? "",
+        email: input.email ?? "",
+        provider: input.provider ?? "",
+      },
+      scope: "platform",
+    });
+  } catch (auditError) {
+    console.error("记录单租户注册审计日志失败", auditError);
+  }
+
+  return {
+    tenant_id: tenant.id,
+    tenant_slug: tenant.slug,
+    user_id: user.id,
+    username: user.username,
+    tokens,
+  };
 }
 
 function validateUsername(username: string): void {
@@ -117,13 +313,27 @@ export async function registerTenant(
     throw new AppError({ code: "tenant.registration_disabled", status: 403 });
   }
 
-  validateTenantName(input.tenant_name);
   validateUsername(input.username);
   validatePhone(input.phone);
   validateEmail(input.email);
   validatePassword(input.password);
 
-  const slug = assertValidTenantSlug(input.tenant_slug);
+  if (appConfig.tenant.singleTenant) {
+    return registerUserIntoDefaultTenant(
+      {
+        username: input.username,
+        password: input.password,
+        phone: input.phone,
+        email: input.email,
+      },
+      jwtSign,
+      ipAddress,
+      userAgent,
+    );
+  }
+
+  validateTenantName(input.tenant_name ?? "");
+  const slug = assertValidTenantSlug(input.tenant_slug ?? "");
 
   const existing = await prisma.tenant.findUnique({ where: { slug } });
   if (existing) {
@@ -140,7 +350,7 @@ export async function registerTenant(
     const createdTenant = await tx.tenant.create({
       data: {
         slug,
-        name: input.tenant_name.trim(),
+        name: (input.tenant_name ?? "").trim(),
         plan: "free",
         plan_since: now,
         status: config.require_tenant_approval ? "pending" : "active",
@@ -183,23 +393,7 @@ export async function registerTenant(
     getServerPermissionCatalog(),
   );
 
-  const tokens = AuthService.generateTokens(
-    user.id,
-    "tenant_user",
-    user.is_system_admin,
-    tenant.id,
-    tenant.slug,
-    jwtSign,
-  );
-
-  const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  await prisma.refreshToken.create({
-    data: {
-      user_id: user.id,
-      token: tokens.refreshToken,
-      expires_at: refreshTokenExpiry,
-    },
-  });
+  const tokens = await issueRegistrationTokens(user, tenant, jwtSign);
 
   try {
     await emitDetachedAuditLogSafe(undefined, {
@@ -282,6 +476,24 @@ export async function registerOAuthTenant(
   }
 
   validateUsername(input.username);
+
+  if (appConfig.tenant.singleTenant) {
+    return registerUserIntoDefaultTenant(
+      {
+        username: input.username,
+        password: null,
+        email: input.email,
+        provider: input.provider,
+        provider_user_id: input.provider_user_id,
+        provider_username: input.username,
+        avatar_url: input.avatar_url,
+        allowUsernameSuffix: true,
+      },
+      jwtSign,
+      ipAddress,
+      userAgent,
+    );
+  }
 
   const existingLink = await prisma.oAuthAccount.findUnique({
     where: {
@@ -368,23 +580,7 @@ export async function registerOAuthTenant(
     getServerPermissionCatalog(),
   );
 
-  const tokens = AuthService.generateTokens(
-    user.id,
-    "tenant_user",
-    user.is_system_admin,
-    tenant.id,
-    tenant.slug,
-    jwtSign,
-  );
-
-  const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  await prisma.refreshToken.create({
-    data: {
-      user_id: user.id,
-      token: tokens.refreshToken,
-      expires_at: refreshTokenExpiry,
-    },
-  });
+  const tokens = await issueRegistrationTokens(user, tenant, jwtSign);
 
   try {
     await emitDetachedAuditLogSafe(undefined, {

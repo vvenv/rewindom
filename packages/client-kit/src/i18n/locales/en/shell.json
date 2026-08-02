@@ -56,6 +56,8 @@
     "welcomeBack": "Welcome back",
     "loginSubtitle": "Sign in to continue",
     "usernamePlaceholder": "Enter username",
+    "loginUsernameHint": "Use username@org-id; the default org can omit the suffix",
+    "username": "Username",
     "passwordPlaceholder": "Enter password",
     "hidePassword": "Hide password",
     "showPassword": "Show password",
@@ -82,6 +84,8 @@
       "alreadyLinked": "This GitHub account is already linked"
     },
     "registerTagline": "Create your organization and admin account to get started",
+    "registerTaglineSingleTenant": "Create an account to get started",
+    "registerAccount": "Create account",
     "orgInfo": "Organization",
     "orgInfoDescription": "Creates your tenant workspace",
     "tenantName": "Organization name",
@@ -121,6 +125,7 @@
       "passwordMismatch": "Passwords do not match"
     },
     "tagline": "Multi-tenant SaaS platform",
+    "taglineSingleTenant": "Modular SaaS platform",
     "registerDisabledTitle": "Self-registration is closed",
     "registerDisabledDescription": "Contact a platform admin to get an account, or return to sign in",
     "backToLogin": "Back to sign in",
@@ -134,6 +139,10 @@
       "tenancy": {
         "title": "Tenant isolation",
         "description": "Strict data isolation with independent permissions and settings"
+      },
+      "isolation": {
+        "title": "Secure isolation",
+        "description": "Permissions, settings, and audit stay within organization boundaries"
       },
       "modules": {
         "title": "Modular extension",

@@ -56,8 +56,8 @@ interface ChangePasswordBody {
 }
 
 interface RegisterBody {
-  tenant_name: string;
-  tenant_slug: string;
+  tenant_name?: string;
+  tenant_slug?: string;
   username: string;
   phone: string;
   email: string;

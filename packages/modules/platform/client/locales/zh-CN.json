@@ -271,6 +271,7 @@
       "description": "控制是否允许新用户自助注册账号",
       "enable": "启用自助注册",
       "hint": "关闭后，用户无法自助注册，需要联系平台管理员手动创建账号。建议在测试或内测阶段关闭此功能。",
+      "hintSingleTenant": "开启后，新用户自助注册将加入默认租户（不会创建新组织）。",
       "confirmDisableTitle": "确认关闭自助注册",
       "confirmDisableDescription": "关闭后，新用户将无法自助注册账号，需要联系平台管理员开通。是否继续？",
       "confirmDisable": "确认关闭",
