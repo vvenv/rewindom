@@ -1,4 +1,4 @@
-import { Logo, Wordmark } from "@be-water/client-kit";
+import { BrandMark, Wordmark, usePublicConfig } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import {
   Field,
@@ -81,6 +81,11 @@ export function RegisterForm({
   onSubmit: () => void;
 }) {
   const { t } = useTranslation(["shell", "common"]);
+  const {
+    data: { bound_tenant },
+  } = usePublicConfig();
+  const logoUrl = bound_tenant?.logo_url ?? null;
+  const brandName = bound_tenant?.name ?? "be-water";
 
   return (
     <div className="auth-glass-card relative overflow-hidden rounded-2xl">
@@ -95,9 +100,19 @@ export function RegisterForm({
 
       <div className="relative p-8 sm:p-10">
         <div className="mb-9 flex flex-col items-center gap-3 text-center">
-          <Logo className="auth-logo-glow relative h-14 w-14 text-primary" />
+          <BrandMark
+            src={logoUrl}
+            alt={brandName}
+            className="auth-logo-glow relative h-14 w-14 text-primary"
+          />
           <div className="flex flex-col items-center gap-2">
-            <Wordmark className="auth-logo-glow h-6 text-foreground" />
+            {logoUrl ? (
+              <span className="auth-logo-glow text-lg font-semibold text-foreground">
+                {brandName}
+              </span>
+            ) : (
+              <Wordmark className="auth-logo-glow h-6 text-foreground" />
+            )}
             <p className="text-sm text-muted-foreground">
               {t(
                 singleTenant

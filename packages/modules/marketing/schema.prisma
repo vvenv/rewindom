@@ -1,0 +1,41 @@
+// packages/modules/marketing/schema.prisma
+// 由 apps/server/prisma/models/marketing.prisma 符号链接汇入
+// --- module: marketing ---
+// 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard + withTenantScope 保证。
+
+model MarketingSite {
+  id             String   @id @default(uuid())
+  tenant_id      String   @unique
+  site_name      String
+  tagline        String   @default("")
+  logo_url       String?
+  primary_color  String?
+  default_locale String   @default("zh-CN")
+  nav_json       Json     @default("[]")
+  footer_json    Json     @default("[]")
+  published      Boolean  @default(false)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@index([tenant_id])
+}
+
+model MarketingPage {
+  id          String   @id @default(uuid())
+  tenant_id   String
+  slug        String
+  locale      String   @default("zh-CN")
+  kind        String   @default("page")
+  title       String
+  description String   @default("")
+  body_md     String   @default("")
+  home_blocks Json?
+  status      String   @default("draft")
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@unique([tenant_id, slug, locale])
+  @@index([tenant_id])
+  @@index([tenant_id, status, kind])
+}

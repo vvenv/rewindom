@@ -2,6 +2,7 @@ import { auditServerModule } from "@be-water/modules/audit/server/index.js";
 import { backgroundJobServerModule } from "@be-water/modules/background-job/server/index.js";
 import { billingServerModule } from "@be-water/modules/billing/server/index.js";
 import { errorLogServerModule } from "@be-water/modules/error-log/server/index.js";
+import { marketingServerModule } from "@be-water/modules/marketing/server/index.js";
 import { notesServerModule } from "@be-water/modules/notes/server/index.js";
 import { notificationServerModule } from "@be-water/modules/notification/server/index.js";
 import { platformServerModule } from "@be-water/modules/platform/server/index.js";
@@ -22,6 +23,7 @@ export const ENABLED_SERVER_MODULES = [
   notificationServerModule,
   userServerModule,
   platformServerModule,
+  marketingServerModule,
   notesServerModule,
   todosServerModule,
   billingServerModule,

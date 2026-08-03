@@ -43,6 +43,7 @@ describe("renderMarketingPublicRoutes", () => {
         `/${locale.slug}/docs`,
         `/${locale.slug}/docs/:slug`,
       ]),
+      "/:slug",
     ];
 
     expect(declaredPaths()).toEqual(expected);

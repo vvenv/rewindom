@@ -109,6 +109,7 @@ flowchart TB
 | 配置 key     | 形状                                                | 租户可编辑 | 说明                                            |
 | ------------ | --------------------------------------------------- | ---------- | ----------------------------------------------- |
 | `appearance` | `{ theme: string \| null, layout: string \| null }` | ❌         | 租户侧默认主题与布局；`null` 表示继承平台默认。见 §2.3 |
+| `branding`   | `{ logo, favicon }`（各为 `{ storage_key, mime_type, updated_at } \| null`） | ✅（`settings.read` / `settings.write`） | 租户 Logo / Favicon；文件存本地附件目录。见 §2.4 |
 
 ### 2.3 外观：主题与布局
 
@@ -152,6 +153,20 @@ Provider 里——偏好与生效条件分开，窗口缩到窄屏再拉回来�
 
 新增：配色 = `THEME_PALETTES` 追加一项 + `index.css` 补两个 token 块；
 布局 = `SHELL_LAYOUTS` 追加一项 + `AppShellFrame` 加一个分支。两处配置 UI 自动列出。
+
+### 2.4 品牌：Logo / Favicon
+
+租户管理员在 `/settings`（权限 `settings.read` / `settings.write`）自助上传：
+
+| 资源 | MIME | 大小上限 | 展示位置 |
+| --- | --- | --- | --- |
+| Logo | png / jpeg / webp / svg | 1MB | Host 绑定登录页、登录后侧栏 / 顶栏 |
+| Favicon | 同上 + ico | 256KB | 浏览器标签（登录页与租户壳） |
+
+- **存储**：`TenantSetting[branding]` 存元数据；文件进本地附件目录（`{tenantId}/branding/logo|favicon.*`）
+- **公开读**：`GET /api/public/tenants/:slug/branding/{logo\|favicon}`（品牌图非机密，供 `<img>` / `<link rel="icon">`）
+- **公开配置**：Host 绑定时 `GET /api/public/config` → `bound_tenant.{logo_url,favicon_url}`
+- **未配置**：回退产品默认 Logo / `favicon.svg`；营销官网不跟租户品牌
 
 ---
 
@@ -456,13 +471,15 @@ request.authUser = { userId, username, role, tenant_id };
 | 存储 | `Tenant.custom_domain String? @unique`；通配子域**不**落库 |
 | 平台主域名 | `FRONTEND_URL` 对应 hostname（及 localhost）走多租户/平台模式 |
 | Host 解析 | 主域 → custom_domain → `{slug}.{TENANT_BASE_DOMAIN}` |
-| 绑定域名上的面 | 前台（marketing）开放；中台（`/login`、`/app`）开放；**禁止** `/platform/*` 与平台管理员登录 |
+| 绑定域名上的面 | 前台开放（内容来自租户 Marketing CMS，Fastify SSR）；中台（`/login`、`/app`）开放；**禁止** `/platform/*` 与平台管理员登录 |
+| 租户官网内容 | `MarketingSite` / `MarketingPage`；租户自助 `/app/site`（entitlement `tenant-marketing`，权限 `site.read`/`site.write`）；仅 `published` 进入 SSR / 公开 API |
+| 平台主域官网 | 仍为 marketing 模块构建期静态预渲染（与租户 CMS 分流） |
 | 登录 | 裸用户名强制本租户；带 `@other` 拒绝（不静默改写）；JWT/API Key 的 `tenant_id` 必须与 Host 租户一致 |
 | 注册 / OAuth 首次 | 加入绑定租户，**禁止**在该 Host 新建租户 |
-| 公开配置 | `bound_tenant`、`tenant_base_domain` |
+| 公开配置 | `bound_tenant`、`tenant_base_domain`；站点内容见 `GET /api/public/site` |
 | 与 `SINGLE_TENANT` | 正交：单租户部署仍可绑品牌域名 / 使用通配子域 |
 
-**明确不做（本阶段）**：DNS TXT/CNAME 校验状态机、租户自助绑定、每客户域名自动签发证书。
+**明确不做（本阶段）**：DNS TXT/CNAME 校验状态机、租户自助绑定域名、每客户域名自动签发证书、租户官网自由画布编辑器。
 
 **操作说明（通配子域 / 客户 DNS / TLS / 验收）**：见 [`../custom-domain.md`](../custom-domain.md)。
 

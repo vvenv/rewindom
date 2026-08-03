@@ -15,7 +15,9 @@ export interface TenantApiKeyAuthProvider {
 
 
 export interface PublicConfigProvider {
-  getPublicConfig(): Promise<PublicConfig>;
+  getPublicConfig(options?: {
+    bound_tenant?: HostTenantContext | null;
+  }): Promise<PublicConfig>;
 }
 
 export interface TenantRegistrationInput {

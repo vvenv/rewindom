@@ -20,7 +20,14 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
         "更新租户 {{slug}} 的能力开关",
       "platform.audit.tenant_appearance_updated":
         "更新租户 {{slug}} 的外观配置",
+      "platform.audit.tenant_branding_updated":
+        "更新租户 {{slug}} 的品牌（{{kind}} / {{action}}）",
       "platform.audit.tenant_plan_updated": "更新租户 {{slug}} 的套餐",
+      "branding.file_required": "请上传图片文件",
+      "branding.invalid_mime": "不支持的图片格式",
+      "branding.file_too_large": "图片过大（上限 {{max_bytes}} 字节）",
+      "branding.kind_invalid": "无效的品牌资源类型",
+      "branding.not_found": "品牌资源不存在",
       "platform.audit.tenant_registered":
         "注册租户 {{tenant_name}}（{{tenant_slug}}）",
       "platform.audit.user_joined_default":
@@ -64,7 +71,14 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
         "Updated entitlements for tenant {{slug}}",
       "platform.audit.tenant_appearance_updated":
         "Updated appearance for tenant {{slug}}",
+      "platform.audit.tenant_branding_updated":
+        "Updated branding for tenant {{slug}} ({{kind}} / {{action}})",
       "platform.audit.tenant_plan_updated": "Updated plan for tenant {{slug}}",
+      "branding.file_required": "Please upload an image file",
+      "branding.invalid_mime": "Unsupported image format",
+      "branding.file_too_large": "Image too large (max {{max_bytes}} bytes)",
+      "branding.kind_invalid": "Invalid branding asset kind",
+      "branding.not_found": "Branding asset not found",
       "platform.audit.tenant_registered":
         "Registered tenant {{tenant_name}} ({{tenant_slug}})",
       "platform.audit.user_joined_default":

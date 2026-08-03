@@ -98,7 +98,21 @@ export function mimeTypeToExtension(mimeType: string): string {
       return ".webp";
     case "image/gif":
       return ".gif";
+    case "image/svg+xml":
+      return ".svg";
+    case "image/x-icon":
+    case "image/vnd.microsoft.icon":
+      return ".ico";
     default:
       return "";
   }
+}
+
+export function buildTenantBrandingStorageKey(
+  tenantId: string,
+  kind: "logo" | "favicon",
+  mimeType: string,
+): string {
+  const ext = mimeTypeToExtension(mimeType) || ".bin";
+  return `${tenantId}/branding/${kind}${ext}`;
 }

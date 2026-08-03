@@ -2,17 +2,22 @@ import { useQuery } from "@tanstack/react-query";
 
 import { api } from "../api.js";
 
+import { useTenantApiEnabled } from "./use-tenant-api-enabled.js";
+
 import type { TenantEntitlementsResponse, TenantFeatureKey } from "@be-water/shared";
 
 export const TENANT_ENTITLEMENTS_QUERY_KEY = ["tenant-entitlements"] as const;
 
 export function useTenantEntitlements(enabled = true) {
+  const canFetch = useTenantApiEnabled(enabled);
   return useQuery({
     queryKey: TENANT_ENTITLEMENTS_QUERY_KEY,
     queryFn: () =>
       api.get<TenantEntitlementsResponse>("/settings/tenant-features"),
-    enabled,
+    enabled: canFetch,
     staleTime: 5 * 60 * 1000,
+    retry: false,
+    refetchOnMount: canFetch,
   });
 }
 

@@ -5,6 +5,7 @@ export { PermissionRoute } from "./components/PermissionRoute";
 export { TenantModuleRoute } from "./components/TenantModuleRoute";
 export { TenantEntitlementRoute } from "./components/TenantEntitlementRoute";
 export { Logo } from "./components/Logo";
+export { BrandMark } from "./components/BrandMark";
 export { Wordmark } from "./components/Wordmark";
 export { ThemeToggle } from "./components/ThemeToggle";
 export { ThemePaletteToggle } from "./components/ThemePaletteToggle";
@@ -109,6 +110,11 @@ export {
 } from "./permission-context.js";
 export { usePublicConfig } from "./hooks/usePublicConfig.js";
 export {
+  useTenantBranding,
+  TENANT_BRANDING_QUERY_KEY,
+} from "./hooks/useTenantBranding.js";
+export { useDocumentFavicon } from "./hooks/useDocumentFavicon.js";
+export {
   useTenantEntitlements,
   useTenantModuleEnabled,
   useTenantFeatureEnabled,
@@ -153,6 +159,8 @@ export {
 export {
   readTenantIdFromAccessToken,
   readStoredTenantQueryScope,
+  readActorTypeFromAccessToken,
+  isTenantAccessToken,
   useTenantQueryScope,
 } from "./tenant-query-scope.js";
 export {

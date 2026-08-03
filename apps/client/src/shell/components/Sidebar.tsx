@@ -1,12 +1,13 @@
 import { useMemo } from "react";
 
 import {
-  Logo,
+  BrandMark,
   resolveNavLabel,
   usePersistState,
   type AppNavItem,
   type AppNavSection,
   useNavBadgeCount,
+  useTenantBranding,
   useTenantEntitlements,
   usePermissions,
 } from "@be-water/client-kit";
@@ -277,6 +278,17 @@ function SidebarContent({
   );
 }
 
+function ShellBrandMark({ className }: { className?: string }) {
+  const { data } = useTenantBranding();
+  return (
+    <BrandMark
+      src={data?.logo_url}
+      className={className}
+      alt="Logo"
+    />
+  );
+}
+
 function MobileNavDrawer({
   open,
   onOpenChange,
@@ -302,7 +314,7 @@ function MobileNavDrawer({
         <SheetHeader className="flex-row items-center justify-between gap-2">
           <Button variant="ghost" size="sm" className="px-1" asChild>
             <Link to={homePath} onClick={closeNav}>
-              <Logo className="size-8 text-primary" />
+              <ShellBrandMark className="size-8 text-primary" />
               <span className="sr-only">be-water</span>
             </Link>
           </Button>
@@ -477,7 +489,7 @@ function DesktopSidebar() {
     <aside className="hidden w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex items-center justify-between p-3">
         <Link to={homePath} title="be-water">
-          <Logo className="size-12 text-primary" />
+          <ShellBrandMark className="size-12 text-primary" />
           <span className="sr-only">be-water</span>
         </Link>
         <SidebarGlobalActions className="ml-auto" />

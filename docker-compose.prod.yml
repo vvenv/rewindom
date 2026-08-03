@@ -99,6 +99,9 @@ services:
       args:
         SITE_URL: ${SITE_URL:-https://${APP_DOMAIN}}
     container_name: be-water-web
+    environment:
+      # nginx map：平台主域静态预渲染，其余 Host 反代 Marketing SSR
+      APP_DOMAIN: ${APP_DOMAIN}
     ports:
       - "127.0.0.1:${APP_PORT:-3700}:80"
     depends_on:

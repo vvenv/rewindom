@@ -18,6 +18,7 @@ import {
 import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES } from "../lib/docs.js";
 import { resolveTechStackLayerLabel } from "../lib/marketing-i18n.js";
+import { TenantSitePageGate } from "./tenant-site-page.js";
 
 function Hero() {
   const { t } = useTranslation("marketing");
@@ -273,7 +274,7 @@ function ClosingCta() {
   );
 }
 
-export function Landing() {
+function PlatformLanding() {
   return (
     <MarketingLayout path="/">
       <Hero />
@@ -287,4 +288,8 @@ export function Landing() {
       <ClosingCta />
     </MarketingLayout>
   );
+}
+
+export function Landing() {
+  return <TenantSitePageGate fallback={<PlatformLanding />} />;
 }

@@ -5,6 +5,8 @@ import {
   LocaleToggle,
   Logo,
   ThemeToggle,
+  useDocumentFavicon,
+  usePublicConfig,
 } from "@be-water/client-kit";
 import { cn } from "@be-water/ui/utils";
 import { useTheme } from "next-themes";
@@ -27,6 +29,10 @@ export function AuthPageShell({
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const isSplitLayout = hero != null;
+  const {
+    data: { bound_tenant },
+  } = usePublicConfig();
+  useDocumentFavicon(bound_tenant?.favicon_url);
 
   if (!isSplitLayout) {
     return (

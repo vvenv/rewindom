@@ -45,6 +45,11 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit", "background-job"],
   },
   {
+    id: "marketing",
+    kind: "infrastructure",
+    requires: ["rbac", "audit"],
+  },
+  {
     id: "notes",
     kind: "business",
     requires: ["rbac", "audit"],

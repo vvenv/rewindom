@@ -282,7 +282,7 @@ export class RoleService {
     ];
 
     for (const spec of builtinRoles) {
-      await prisma.role.upsert({
+      const role = await prisma.role.upsert({
         where: {
           scope_tenant_id_name: {
             scope: "tenant",
@@ -301,7 +301,25 @@ export class RoleService {
           },
         },
         update: {},
+        include: { role_permissions: { select: { permission: true } } },
       });
+
+      // 新模块权限发布后，内置「管理员」补齐缺失 key（不收回已有自定义增补）。
+      if (spec.name === "管理员" && spec.permissions.length > 0) {
+        const existing = new Set(
+          role.role_permissions.map((row) => row.permission),
+        );
+        const missing = spec.permissions.filter((key) => !existing.has(key));
+        if (missing.length > 0) {
+          await prisma.rolePermission.createMany({
+            data: missing.map((permission) => ({
+              role_id: role.id,
+              permission,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
     }
   }
 

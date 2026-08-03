@@ -23,6 +23,12 @@ const DocDetail = lazy(() =>
   })),
 );
 
+const TenantCustomPage = lazy(() =>
+  import("../pages/tenant-custom-page.js").then((module) => ({
+    default: module.TenantCustomPage,
+  })),
+);
+
 /**
  * 官网路由：无守卫，登录与未登录都可见。
  *
@@ -58,6 +64,8 @@ export function renderMarketingPublicRoutes(): ReactNode {
           element={<DocDetail />}
         />,
       ])}
+      {/* 放在 locale 静态段之后，避免抢占 /en、/zh-CN */}
+      <Route path="/:slug" element={<TenantCustomPage />} />
     </>
   );
 }

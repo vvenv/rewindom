@@ -14,7 +14,6 @@ import {
 } from "@be-water/shared";
 
 import { setApiAcceptLanguage } from "../api.js";
-import { useOptionalAuth } from "../hooks/useOptionalAuth.js";
 import { usePublicConfig } from "../hooks/usePublicConfig.js";
 import { useResolvedPreference } from "../hooks/useResolvedPreference.js";
 import { useTenantAppearance } from "../hooks/useTenantAppearance.js";
@@ -43,11 +42,12 @@ const LocaleContext = createContext<LocaleValue | null>(null);
  * 三级优先级与主题/布局同构：用户本地选择 > 服务端默认 > 代码兜底。
  * 服务端默认：已进租户壳时用 appearance.locale，否则用公开配置 default_locale。
  */
-export function LocaleProvider({ children }: { children: ReactNode }): ReactNode {
-  const auth = useOptionalAuth();
-  const isTenantSession =
-    Boolean(auth?.user) && !auth.user.is_system_admin && !auth.isLoading;
-  const { data: appearance } = useTenantAppearance(isTenantSession);
+export function LocaleProvider({
+  children,
+}: {
+  children: ReactNode;
+}): ReactNode {
+  const { data: appearance } = useTenantAppearance();
   const { data: publicConfig } = usePublicConfig();
 
   const serverDefault = appearance?.locale ?? publicConfig.default_locale;

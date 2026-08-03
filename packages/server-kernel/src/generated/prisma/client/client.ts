@@ -97,6 +97,16 @@ export type TenantSetting = Prisma.TenantSettingModel
  */
 export type User = Prisma.UserModel
 /**
+ * Model MarketingSite
+ * 
+ */
+export type MarketingSite = Prisma.MarketingSiteModel
+/**
+ * Model MarketingPage
+ * 
+ */
+export type MarketingPage = Prisma.MarketingPageModel
+/**
  * Model Note
  * 
  */

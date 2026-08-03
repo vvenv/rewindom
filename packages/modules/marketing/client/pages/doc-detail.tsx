@@ -11,6 +11,7 @@ import {
 } from "../components/MarketingLayout.js";
 import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES, findDocPage } from "../lib/docs.js";
+import { TenantSitePageGate } from "./tenant-site-page.js";
 
 function DocNotFound() {
   const { t } = useTranslation("marketing");
@@ -33,7 +34,7 @@ function DocNotFound() {
   );
 }
 
-export function DocDetail() {
+function PlatformDocDetail() {
   const { slug } = useParams();
   const { t } = useTranslation("marketing");
   const hrefFor = useMarketingHref();
@@ -95,4 +96,8 @@ export function DocDetail() {
       </MarketingSection>
     </MarketingLayout>
   );
+}
+
+export function DocDetail() {
+  return <TenantSitePageGate fallback={<PlatformDocDetail />} />;
 }

@@ -408,6 +408,8 @@ export const ModelName = {
   TenantApiKey: 'TenantApiKey',
   TenantSetting: 'TenantSetting',
   User: 'User',
+  MarketingSite: 'MarketingSite',
+  MarketingPage: 'MarketingPage',
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
@@ -435,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1250,6 +1252,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    MarketingSite: {
+      payload: Prisma.$MarketingSitePayload<ExtArgs>
+      fields: Prisma.MarketingSiteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MarketingSiteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MarketingSiteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload>
+        }
+        findFirst: {
+          args: Prisma.MarketingSiteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MarketingSiteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload>
+        }
+        findMany: {
+          args: Prisma.MarketingSiteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload>[]
+        }
+        create: {
+          args: Prisma.MarketingSiteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload>
+        }
+        createMany: {
+          args: Prisma.MarketingSiteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MarketingSiteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload>[]
+        }
+        delete: {
+          args: Prisma.MarketingSiteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload>
+        }
+        update: {
+          args: Prisma.MarketingSiteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload>
+        }
+        deleteMany: {
+          args: Prisma.MarketingSiteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MarketingSiteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MarketingSiteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload>[]
+        }
+        upsert: {
+          args: Prisma.MarketingSiteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingSitePayload>
+        }
+        aggregate: {
+          args: Prisma.MarketingSiteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMarketingSite>
+        }
+        groupBy: {
+          args: Prisma.MarketingSiteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingSiteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MarketingSiteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingSiteCountAggregateOutputType> | number
+        }
+      }
+    }
+    MarketingPage: {
+      payload: Prisma.$MarketingPagePayload<ExtArgs>
+      fields: Prisma.MarketingPageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MarketingPageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MarketingPageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload>
+        }
+        findFirst: {
+          args: Prisma.MarketingPageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MarketingPageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload>
+        }
+        findMany: {
+          args: Prisma.MarketingPageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload>[]
+        }
+        create: {
+          args: Prisma.MarketingPageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload>
+        }
+        createMany: {
+          args: Prisma.MarketingPageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MarketingPageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload>[]
+        }
+        delete: {
+          args: Prisma.MarketingPageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload>
+        }
+        update: {
+          args: Prisma.MarketingPageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload>
+        }
+        deleteMany: {
+          args: Prisma.MarketingPageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MarketingPageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MarketingPageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload>[]
+        }
+        upsert: {
+          args: Prisma.MarketingPageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingPagePayload>
+        }
+        aggregate: {
+          args: Prisma.MarketingPageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMarketingPage>
+        }
+        groupBy: {
+          args: Prisma.MarketingPageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingPageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MarketingPageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingPageCountAggregateOutputType> | number
         }
       }
     }
@@ -2367,6 +2517,43 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const MarketingSiteScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  site_name: 'site_name',
+  tagline: 'tagline',
+  logo_url: 'logo_url',
+  primary_color: 'primary_color',
+  default_locale: 'default_locale',
+  nav_json: 'nav_json',
+  footer_json: 'footer_json',
+  published: 'published',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MarketingSiteScalarFieldEnum = (typeof MarketingSiteScalarFieldEnum)[keyof typeof MarketingSiteScalarFieldEnum]
+
+
+export const MarketingPageScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  slug: 'slug',
+  locale: 'locale',
+  kind: 'kind',
+  title: 'title',
+  description: 'description',
+  body_md: 'body_md',
+  home_blocks: 'home_blocks',
+  status: 'status',
+  sort_order: 'sort_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MarketingPageScalarFieldEnum = (typeof MarketingPageScalarFieldEnum)[keyof typeof MarketingPageScalarFieldEnum]
+
+
 export const NoteScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -2820,6 +3007,8 @@ export type GlobalOmitConfig = {
   tenantApiKey?: Prisma.TenantApiKeyOmit
   tenantSetting?: Prisma.TenantSettingOmit
   user?: Prisma.UserOmit
+  marketingSite?: Prisma.MarketingSiteOmit
+  marketingPage?: Prisma.MarketingPageOmit
   note?: Prisma.NoteOmit
   notification?: Prisma.NotificationOmit
   notificationLog?: Prisma.NotificationLogOmit

@@ -3,7 +3,12 @@ import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
 
 import { PLATFORM_SERVER_I18N } from "./i18n.js";
 import { platformRoutes } from "./platform.routes.js";
+import {
+  publicTenantBrandingRoutes,
+  tenantBrandingRoutes,
+} from "./routes/branding.routes.js";
 import { tenantEntitlementsRoutes } from "./routes/tenant-entitlements.routes.js";
+import { getTenantBrandingUrls } from "./services/tenant-branding.service.js";
 import { getPlatformSettings } from "./services/platform-settings.service.js";
 import {
   registerOAuthTenant,
@@ -21,6 +26,18 @@ export const platformServerModule: ServerAppModule = {
   requires: ["rbac", "audit", "background-job"],
   shared: {
     permissions: [
+      {
+        key: "settings.read",
+        label: "查看租户设置",
+        group: "系统设置",
+        scope: "tenant",
+      },
+      {
+        key: "settings.write",
+        label: "管理租户设置",
+        group: "系统设置",
+        scope: "tenant",
+      },
       {
         key: "platform.tenants.read",
         label: "查看租户",
@@ -96,8 +113,27 @@ export const platformServerModule: ServerAppModule = {
     },
     registerProviders: (registry) => {
       registry.setPublicConfigProvider({
-        getPublicConfig: async () => {
+        getPublicConfig: async (options) => {
           const settings = await getPlatformSettings();
+          const hostTenant = options?.bound_tenant ?? null;
+          let bound_tenant: {
+            slug: string;
+            name: string;
+            logo_url: string | null;
+            favicon_url: string | null;
+          } | null = null;
+          if (hostTenant) {
+            const urls = await getTenantBrandingUrls(
+              hostTenant.tenant_id,
+              hostTenant.tenant_slug,
+            );
+            bound_tenant = {
+              slug: hostTenant.tenant_slug,
+              name: hostTenant.name,
+              logo_url: urls.logo_url,
+              favicon_url: urls.favicon_url,
+            };
+          }
           return {
             registration_enabled: settings.registration_enabled,
             captcha_enabled: settings.captcha_enabled,
@@ -105,7 +141,7 @@ export const platformServerModule: ServerAppModule = {
             github_oauth_enabled: false,
             google_oauth_enabled: false,
             single_tenant: appConfig.tenant.singleTenant,
-            bound_tenant: null,
+            bound_tenant,
             tenant_base_domain: appConfig.tenant.baseDomain.trim() || null,
           };
         },
@@ -120,6 +156,8 @@ export const platformServerModule: ServerAppModule = {
     registerRoutes: async (app) => {
       await app.register(platformRoutes, { prefix: "/api/platform" });
       await app.register(tenantEntitlementsRoutes, { prefix: "/api/settings" });
+      await app.register(tenantBrandingRoutes, { prefix: "/api/settings" });
+      await app.register(publicTenantBrandingRoutes, { prefix: "/api/public" });
     },
   },
 };

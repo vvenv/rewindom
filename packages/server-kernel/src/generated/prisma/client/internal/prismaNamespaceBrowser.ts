@@ -62,6 +62,8 @@ export const ModelName = {
   TenantApiKey: 'TenantApiKey',
   TenantSetting: 'TenantSetting',
   User: 'User',
+  MarketingSite: 'MarketingSite',
+  MarketingPage: 'MarketingPage',
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
@@ -277,6 +279,43 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const MarketingSiteScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  site_name: 'site_name',
+  tagline: 'tagline',
+  logo_url: 'logo_url',
+  primary_color: 'primary_color',
+  default_locale: 'default_locale',
+  nav_json: 'nav_json',
+  footer_json: 'footer_json',
+  published: 'published',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MarketingSiteScalarFieldEnum = (typeof MarketingSiteScalarFieldEnum)[keyof typeof MarketingSiteScalarFieldEnum]
+
+
+export const MarketingPageScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  slug: 'slug',
+  locale: 'locale',
+  kind: 'kind',
+  title: 'title',
+  description: 'description',
+  body_md: 'body_md',
+  home_blocks: 'home_blocks',
+  status: 'status',
+  sort_order: 'sort_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MarketingPageScalarFieldEnum = (typeof MarketingPageScalarFieldEnum)[keyof typeof MarketingPageScalarFieldEnum]
 
 
 export const NoteScalarFieldEnum = {

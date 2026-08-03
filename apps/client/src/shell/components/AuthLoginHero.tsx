@@ -1,4 +1,8 @@
-import { Logo, Wordmark, usePublicConfig } from "@be-water/client-kit";
+import {
+  BrandMark,
+  Wordmark,
+  usePublicConfig,
+} from "@be-water/client-kit";
 import { Layers, Building2, Blocks, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -11,8 +15,10 @@ const FEATURE_KEYS = [
 export function AuthLoginHero({ variant }: { variant: "desktop" | "compact" }) {
   const { t } = useTranslation("shell");
   const {
-    data: { single_tenant },
+    data: { single_tenant, bound_tenant },
   } = usePublicConfig();
+  const logoUrl = bound_tenant?.logo_url ?? null;
+  const brandName = bound_tenant?.name ?? "be-water";
   const taglineKey = single_tenant
     ? "auth.taglineSingleTenant"
     : "auth.tagline";
@@ -23,9 +29,19 @@ export function AuthLoginHero({ variant }: { variant: "desktop" | "compact" }) {
   if (variant === "compact") {
     return (
       <div className="mb-8 flex flex-col items-center gap-3 text-center">
-        <Logo className="auth-logo-glow h-12 w-12 text-primary" />
+        <BrandMark
+          src={logoUrl}
+          alt={brandName}
+          className="auth-logo-glow h-12 w-12 text-primary"
+        />
         <div className="flex flex-col items-center gap-1.5">
-          <Wordmark className="auth-logo-glow h-5 text-foreground" />
+          {logoUrl ? (
+            <span className="auth-logo-glow text-lg font-semibold text-foreground">
+              {brandName}
+            </span>
+          ) : (
+            <Wordmark className="auth-logo-glow h-5 text-foreground" />
+          )}
           <p className="text-xs font-medium tracking-widest text-muted-foreground">
             {t(taglineKey)}
           </p>
@@ -37,8 +53,16 @@ export function AuthLoginHero({ variant }: { variant: "desktop" | "compact" }) {
   return (
     <div className="relative z-10 flex flex-1 flex-col justify-between gap-12 text-white">
       <div className="flex items-center gap-3">
-        <Logo className="size-12 text-primary auth-logo-glow" />
-        <Wordmark className="h-6 w-auto text-white" />
+        <BrandMark
+          src={logoUrl}
+          alt={brandName}
+          className="size-12 text-primary auth-logo-glow"
+        />
+        {logoUrl ? (
+          <span className="text-xl font-semibold text-white">{brandName}</span>
+        ) : (
+          <Wordmark className="h-6 w-auto text-white" />
+        )}
       </div>
 
       <div className="flex max-w-md flex-col gap-8">

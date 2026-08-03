@@ -367,5 +367,32 @@
     "admin_deleted": "删除平台管理员 {{username}}",
     "admin_password_reset": "重置平台管理员 {{username}} 的密码",
     "admin_roles_updated": "更新平台管理员 {{username}} 的角色：{{roles_text}}"
+  },
+  "branding": {
+    "nav": "品牌",
+    "page": {
+      "title": "品牌",
+      "description": "上传租户 Logo 与 Favicon，将显示在登录页与应用外壳"
+    },
+    "loading": "加载中…",
+    "loadFailed": "加载品牌配置失败",
+    "upload": "上传",
+    "uploading": "上传中…",
+    "clear": "清除",
+    "clearing": "清除中…",
+    "logo": {
+      "title": "Logo",
+      "hint": "PNG / JPEG / WebP / SVG，最大 1MB。用于登录页与侧栏。"
+    },
+    "favicon": {
+      "title": "Favicon",
+      "hint": "PNG / JPEG / WebP / SVG / ICO，最大 256KB。用于浏览器标签页图标。"
+    },
+    "toast": {
+      "uploaded": "品牌图片已更新",
+      "uploadFailed": "上传失败",
+      "cleared": "已恢复为默认品牌",
+      "clearFailed": "清除失败"
+    }
   }
 }

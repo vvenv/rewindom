@@ -81,7 +81,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 FROM nginx:1.27-alpine AS web
 
-COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+# 官方镜像会对 /etc/nginx/templates/*.template 做 envsubst → conf.d/
+COPY docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=builder /app/apps/client/dist /usr/share/nginx/html
 
 EXPOSE 80

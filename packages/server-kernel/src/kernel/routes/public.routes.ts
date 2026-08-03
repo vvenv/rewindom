@@ -8,10 +8,10 @@ import type { FastifyInstance } from "fastify";
 export async function publicRoutes(app: FastifyInstance): Promise<void> {
   app.get("/config", async (request, reply) => {
     try {
+      const bound = request.hostTenantContext;
       const config = await app.registry
         .getPublicConfigProvider()
-        .getPublicConfig();
-      const bound = request.hostTenantContext;
+        .getPublicConfig({ bound_tenant: bound ?? null });
       const baseDomain = appConfig.tenant.baseDomain.trim() || null;
       return reply.send(
         success({
@@ -21,9 +21,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           github_oauth_enabled: appConfig.auth.github.enabled,
           google_oauth_enabled: appConfig.auth.google.enabled,
           single_tenant: appConfig.tenant.singleTenant,
-          bound_tenant: bound
-            ? { slug: bound.tenant_slug, name: bound.name }
-            : null,
+          bound_tenant: config.bound_tenant,
           tenant_base_domain: baseDomain,
         }),
       );

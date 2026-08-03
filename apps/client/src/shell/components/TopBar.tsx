@@ -1,7 +1,8 @@
 import { useMemo, type ReactNode } from "react";
 
 import {
-  Logo,
+  BrandMark,
+  useTenantBranding,
   OVERFLOW_MEASURE_ROW_CLASS,
   useNavBadgeCount,
   useOverflowRow,
@@ -263,6 +264,7 @@ export function TopBar(): ReactNode {
   const { shellContributions } = useAppShellConfig();
   const homePath = useAppHomePath();
   const UserMenu = shellContributions.sidebarUserMenu[0];
+  const { data: branding } = useTenantBranding();
 
   const { containerRef, measureItemRef, measureOverflowRef, visibleCount } =
     useOverflowRow(sections.length, { gap: NAV_GAP_PX });
@@ -273,7 +275,10 @@ export function TopBar(): ReactNode {
   return (
     <header className="hidden h-14 shrink-0 items-center gap-2 border-b bg-sidebar px-3 text-sidebar-foreground md:flex">
       <Link to={homePath} title="be-water" className="shrink-0">
-        <Logo className="size-9 text-primary" />
+        <BrandMark
+          src={branding?.logo_url}
+          className="size-9 text-primary"
+        />
         <span className="sr-only">be-water</span>
       </Link>
 

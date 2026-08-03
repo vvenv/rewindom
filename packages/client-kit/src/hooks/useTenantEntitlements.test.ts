@@ -19,6 +19,11 @@ vi.mock("../api.js", async (importOriginal) => {
   };
 });
 
+/** 单测只验证 query 本身；会话门控见 use-tenant-api-enabled。 */
+vi.mock("./use-tenant-api-enabled.js", () => ({
+  useTenantApiEnabled: (enabled = true) => enabled,
+}));
+
 describe("useTenantEntitlements", () => {
   const mockApiGet = vi.mocked(api.get);
 

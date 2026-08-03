@@ -367,5 +367,32 @@
     "admin_deleted": "Deleted platform admin {{username}}",
     "admin_password_reset": "Reset password for platform admin {{username}}",
     "admin_roles_updated": "Updated roles for platform admin {{username}}: {{roles_text}}"
+  },
+  "branding": {
+    "nav": "Branding",
+    "page": {
+      "title": "Branding",
+      "description": "Upload a tenant logo and favicon for the login page and app shell"
+    },
+    "loading": "Loading…",
+    "loadFailed": "Failed to load branding",
+    "upload": "Upload",
+    "uploading": "Uploading…",
+    "clear": "Clear",
+    "clearing": "Clearing…",
+    "logo": {
+      "title": "Logo",
+      "hint": "PNG / JPEG / WebP / SVG, max 1MB. Shown on login and in the shell."
+    },
+    "favicon": {
+      "title": "Favicon",
+      "hint": "PNG / JPEG / WebP / SVG / ICO, max 256KB. Browser tab icon."
+    },
+    "toast": {
+      "uploaded": "Branding image updated",
+      "uploadFailed": "Upload failed",
+      "cleared": "Restored default branding",
+      "clearFailed": "Clear failed"
+    }
   }
 }

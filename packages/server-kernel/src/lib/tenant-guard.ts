@@ -42,6 +42,8 @@ type ModelPolicy =
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
   Todo: { kind: "tenant_id" },
   Note: { kind: "tenant_id" },
+  MarketingSite: { kind: "tenant_id" },
+  MarketingPage: { kind: "tenant_id" },
   Subscription: { kind: "tenant_id" },
   Payment: { kind: "tenant_id" },
   Notification: { kind: "tenant_id" },

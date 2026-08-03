@@ -93,7 +93,7 @@ pnpm deploy -- --env production
 canonical / og:url / sitemap 里的域名**写死在构建产物里**，来自 build arg `SITE_URL`
 （compose 默认 `https://${APP_DOMAIN}`）。换域名必须重新构建，改运行时环境变量没用。
 
-Nginx 侧对应两点（`docker/nginx/default.conf`）：`try_files $uri $uri/index.html /app.html`
+Nginx 侧对应两点（`docker/nginx/default.conf.template`，`APP_DOMAIN` 经 envsubst）：`try_files $uri $uri/index.html /app.html`；非平台 Host 的 HTML 文档反代到 app 做租户 Marketing SSR
 命中预渲染出的目录索引；SPA 兜底文件是 `app.html`（带 `noindex`）而不是 `index.html`——
 后者已经是官网落地页，拿它兜底会让刷新应用页先闪一屏官网。
 

@@ -1,3 +1,9 @@
+import {
+  PLATFORM_HOME_PATH,
+  useAuth,
+} from "@be-water/client-kit";
+import { isPlatformAdminActor } from "@be-water/shared";
+import { Spinner } from "@be-water/ui/spinner";
 import { Navigate } from "react-router";
 
 import { useAppHomePath } from "../hooks/useAppHomePath.js";
@@ -9,6 +15,21 @@ import { useAppHomePath } from "../hooks/useAppHomePath.js";
  * 官网、邮件、外部文档不需要知道业务首页到底是哪个路径，指向 `/app` 即可。
  */
 export function AppHomeRedirect() {
+  const { user, isLoading } = useAuth();
   const homePath = useAppHomePath();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  // 平台管理员绝不能落到 /dashboard 等租户壳，否则会挂载 AppLayout 并打租户 API。
+  if (user && isPlatformAdminActor(user.actor_type)) {
+    return <Navigate to={PLATFORM_HOME_PATH} replace />;
+  }
+
   return <Navigate to={homePath} replace />;
 }
