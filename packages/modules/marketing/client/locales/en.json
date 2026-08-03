@@ -268,9 +268,9 @@
     "create": "New page",
     "createPageTitle": "New page",
     "createPageDescription": "Use home for the landing page; docs use /docs/:slug (index → /docs).",
-    "edit": "Edit",
-    "editPageTitle": "Edit page",
-    "editPageDescription": "Markdown body; home pages can also configure hero/feature blocks.",
+    "edit": "Metadata",
+    "editPageTitle": "Edit page metadata",
+    "editPageDescription": "Title and SEO description. Arrange sections in the Theme Editor.",
     "save": "Save",
     "publish": "Publish",
     "unpublish": "Unpublish",
@@ -317,6 +317,43 @@
     "toastPagePublishFailed": "Failed to update publish status",
     "toastPageDeleted": "Page deleted",
     "toastPageDeleteFailed": "Failed to delete page"
+  },
+  "editor": {
+    "title": "Theme Editor",
+    "open": "Edit theme",
+    "back": "Back to list",
+    "sections": "Sections",
+    "addSection": "Add section",
+    "emptySections": "No sections yet. Add one below.",
+    "preview": "Preview",
+    "sectionPanel": "Section",
+    "themePanel": "Theme",
+    "selectSection": "Select a section on the left to edit its settings.",
+    "toastSaved": "Theme and page saved",
+    "fieldHeadline": "Headline",
+    "fieldSubhead": "Subhead",
+    "fieldTitle": "Title",
+    "fieldBody": "Body",
+    "fieldAsideMd": "Aside markdown",
+    "fieldPrimaryLabel": "Primary button label",
+    "fieldPrimaryHref": "Primary button href",
+    "fieldColumns": "Columns",
+    "fieldCardItems": "Card items",
+    "cardItemsPlaceholder": "One per line: Title|Body|Href(optional)",
+    "columnsN": "{{count}} columns",
+    "fieldFontFamily": "Font",
+    "font": {
+      "system": "System sans",
+      "serif": "Serif",
+      "mono": "Monospace"
+    },
+    "sectionType": {
+      "hero": "Hero",
+      "prose": "Prose",
+      "cards": "Cards",
+      "split": "Split",
+      "band": "Band"
+    }
   },
   "seo": {
     "home": {

@@ -268,9 +268,9 @@
     "create": "新建页面",
     "createPageTitle": "新建页面",
     "createPageDescription": "首页用 home；文档页路径为 /docs/:slug（目录页 slug=index）。",
-    "edit": "编辑",
-    "editPageTitle": "编辑页面",
-    "editPageDescription": "支持 Markdown 正文；首页可额外配置 Hero / 卖点区块。",
+    "edit": "元数据",
+    "editPageTitle": "编辑页面元数据",
+    "editPageDescription": "标题与 SEO 描述；区块内容请在 Theme Editor 中编排。",
     "save": "保存",
     "publish": "发布",
     "unpublish": "取消发布",
@@ -317,6 +317,43 @@
     "toastPagePublishFailed": "发布状态更新失败",
     "toastPageDeleted": "页面已删除",
     "toastPageDeleteFailed": "删除页面失败"
+  },
+  "editor": {
+    "title": "Theme Editor",
+    "open": "编辑主题",
+    "back": "返回列表",
+    "sections": "区块",
+    "addSection": "添加区块",
+    "emptySections": "还没有区块，从下方添加。",
+    "preview": "预览",
+    "sectionPanel": "区块设置",
+    "themePanel": "主题设置",
+    "selectSection": "选择左侧区块以编辑设置。",
+    "toastSaved": "主题与页面已保存",
+    "fieldHeadline": "标题",
+    "fieldSubhead": "副标题",
+    "fieldTitle": "标题",
+    "fieldBody": "正文",
+    "fieldAsideMd": "侧栏 Markdown",
+    "fieldPrimaryLabel": "主按钮文案",
+    "fieldPrimaryHref": "主按钮链接",
+    "fieldColumns": "列数",
+    "fieldCardItems": "卡片列表",
+    "cardItemsPlaceholder": "每行：标题|正文|链接(可选)",
+    "columnsN": "{{count}} 列",
+    "fieldFontFamily": "字体",
+    "font": {
+      "system": "系统无衬线",
+      "serif": "衬线",
+      "mono": "等宽"
+    },
+    "sectionType": {
+      "hero": "Hero",
+      "prose": "Prose",
+      "cards": "Cards",
+      "split": "Split",
+      "band": "Band"
+    }
   },
   "seo": {
     "home": {

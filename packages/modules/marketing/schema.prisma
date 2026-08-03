@@ -10,6 +10,7 @@ model MarketingSite {
   tagline        String   @default("")
   logo_url       String?
   primary_color  String?
+  theme_settings Json     @default("{}")
   default_locale String   @default("zh-CN")
   nav_json       Json     @default("[]")
   footer_json    Json     @default("[]")
@@ -29,7 +30,7 @@ model MarketingPage {
   title       String
   description String   @default("")
   body_md     String   @default("")
-  home_blocks Json?
+  sections    Json     @default("[]")
   status      String   @default("draft")
   sort_order  Int      @default(0)
   created_at  DateTime @default(now())

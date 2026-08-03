@@ -9,6 +9,13 @@ import {
 } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@be-water/ui/select";
+import {
   Sheet,
   SheetClose,
   SheetContent,
@@ -25,8 +32,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useSiteMutations } from "../hooks/useSite.js";
+import { THEME_FONT_FAMILIES } from "../../shared/theme-sections.js";
 
 import type { MarketingSite, SiteLinkItem } from "../../shared/site-cms.js";
+import type { ThemeFontFamily } from "../../shared/theme-sections.js";
 
 function linksToText(links: SiteLinkItem[]): string {
   return links.map((l) => `${l.label}|${l.href}`).join("\n");
@@ -60,6 +69,9 @@ export function SiteSettingsSheet({
   const [tagline, setTagline] = useState(site.tagline);
   const [logoUrl, setLogoUrl] = useState(site.logo_url ?? "");
   const [primaryColor, setPrimaryColor] = useState(site.primary_color ?? "");
+  const [fontFamily, setFontFamily] = useState<ThemeFontFamily>(
+    site.theme_settings.font_family ?? "system",
+  );
   const [published, setPublished] = useState(site.published);
   const [navText, setNavText] = useState(linksToText(site.nav));
   const [footerText, setFooterText] = useState(linksToText(site.footer));
@@ -69,6 +81,7 @@ export function SiteSettingsSheet({
     setTagline(site.tagline);
     setLogoUrl(site.logo_url ?? "");
     setPrimaryColor(site.primary_color ?? "");
+    setFontFamily(site.theme_settings.font_family ?? "system");
     setPublished(site.published);
     setNavText(linksToText(site.nav));
     setFooterText(linksToText(site.footer));
@@ -80,8 +93,11 @@ export function SiteSettingsSheet({
       {
         site_name: siteName,
         tagline,
-        logo_url: logoUrl.trim() || null,
-        primary_color: primaryColor.trim() || null,
+        theme_settings: {
+          logo_url: logoUrl.trim() || null,
+          primary_color: primaryColor.trim() || null,
+          font_family: fontFamily,
+        },
         published,
         nav: textToLinks(navText),
         footer: textToLinks(footerText),
@@ -148,6 +164,26 @@ export function SiteSettingsSheet({
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
               />
+            </Field>
+            <Field>
+              <FieldLabel>{t("editor.fieldFontFamily")}</FieldLabel>
+              <Select
+                value={fontFamily}
+                onValueChange={(next) =>
+                  setFontFamily(next as ThemeFontFamily)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {THEME_FONT_FAMILIES.map((family) => (
+                    <SelectItem key={family} value={family}>
+                      {t(`editor.font.${family}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field orientation="horizontal">
               <div className="flex flex-1 flex-col gap-1">

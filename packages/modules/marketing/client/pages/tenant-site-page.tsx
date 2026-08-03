@@ -69,7 +69,7 @@ export function TenantSitePageGate({
       site={siteState.site}
       path={logicalPath}
       body_md={page.body_md}
-      home_blocks={page.home_blocks}
+      sections={page.sections}
       title={page.title}
       description={page.description}
     />

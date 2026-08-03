@@ -1,20 +1,23 @@
 import { Button } from "@be-water/ui/button";
-import { marked } from "marked";
-import { useMemo } from "react";
+import { type CSSProperties } from "react";
 import { Link } from "react-router";
 
 import { marketingPagePath } from "../../shared/site-cms.js";
 import {
+  resolveThemeSettings,
+  themeFontCss,
+  type SiteSection,
+} from "../../shared/theme-sections.js";
+import {
   MarketingLayout,
   MarketingSection,
 } from "./MarketingLayout.js";
+import { SiteSections } from "./sections/SiteSections.js";
 
 import type {
   PublicMarketingPage,
   PublicMarketingSite,
 } from "../../shared/site-cms.js";
-
-marked.setOptions({ gfm: true, breaks: false });
 
 function findPage(
   site: PublicMarketingSite,
@@ -32,11 +35,14 @@ function findPage(
 interface TenantSiteViewProps {
   site: PublicMarketingSite;
   path: string;
-  /** 详情正文：公开目录接口不含 body，需调用方传入或留空仅展示目录信息 */
   body_md?: string;
-  home_blocks?: PublicMarketingPage["home_blocks"];
+  sections?: SiteSection[];
   title?: string;
   description?: string;
+  /** 编辑器预览时隐藏 MarketingLayout 外层（仍渲染页眉页脚） */
+  embedded?: boolean;
+  selectedSectionId?: string | null;
+  onSelectSection?: (sectionId: string) => void;
 }
 
 /**
@@ -47,28 +53,60 @@ export function TenantSiteView({
   site,
   path,
   body_md = "",
-  home_blocks = null,
+  sections = [],
   title,
   description,
+  embedded = false,
+  selectedSectionId = null,
+  onSelectSection,
 }: TenantSiteViewProps) {
   const pageMeta = findPage(site, path);
-  const html = useMemo(
-    () => marked.parse(body_md || "", { async: false }) as string,
-    [body_md],
-  );
   const pageTitle = title ?? pageMeta?.title ?? site.site_name;
+  const theme = resolveThemeSettings({
+    theme_settings: site.theme_settings,
+    logo_url: site.logo_url,
+    primary_color: site.primary_color,
+  });
+  const accent = theme.primary_color ?? undefined;
+  const style: CSSProperties = {
+    ["--site-accent" as string]: accent,
+    fontFamily: themeFontCss(theme.font_family),
+    ...(accent
+      ? {
+          ["--primary" as string]: accent,
+          ["--color-primary" as string]: accent,
+          ["--ring" as string]: accent,
+        }
+      : {}),
+  };
 
-  return (
-    <MarketingLayout path={path}>
+  const content = (
+    <div
+      style={style}
+      className={accent ? "[&_a:not([class*='bg-'])]:text-[var(--site-accent)]" : undefined}
+    >
       <header className="border-b">
         <MarketingSection className="flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <Link to="/" className="text-lg font-semibold">
-              {site.site_name}
-            </Link>
-            {site.tagline ? (
-              <p className="text-sm text-muted-foreground">{site.tagline}</p>
+          <div className="flex items-center gap-3">
+            {theme.logo_url ? (
+              <img
+                src={theme.logo_url}
+                alt={site.site_name}
+                className="h-8 w-auto"
+              />
             ) : null}
+            <div>
+              <Link
+                to="/"
+                className="text-lg font-semibold"
+                style={{ color: "inherit" }}
+              >
+                {site.site_name}
+              </Link>
+              {site.tagline ? (
+                <p className="text-sm text-muted-foreground">{site.tagline}</p>
+              ) : null}
+            </div>
           </div>
           <nav className="flex flex-wrap gap-3 text-sm">
             {site.nav.map((item) => (
@@ -84,7 +122,7 @@ export function TenantSiteView({
       </header>
 
       <MarketingSection className="py-10">
-        {!pageMeta && path !== "/" ? (
+        {!pageMeta && path !== "/" && sections.length === 0 && !body_md ? (
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold">Page not found</h1>
             <p className="text-muted-foreground">
@@ -93,25 +131,7 @@ export function TenantSiteView({
           </div>
         ) : (
           <div className="space-y-8">
-            {home_blocks?.hero ? (
-              <section className="space-y-3">
-                <h1 className="text-4xl font-semibold tracking-tight">
-                  {home_blocks.hero.headline}
-                </h1>
-                {home_blocks.hero.subhead ? (
-                  <p className="text-lg text-muted-foreground">
-                    {home_blocks.hero.subhead}
-                  </p>
-                ) : null}
-                {home_blocks.hero.cta_label && home_blocks.hero.cta_href ? (
-                  <Button asChild>
-                    <Link to={home_blocks.hero.cta_href}>
-                      {home_blocks.hero.cta_label}
-                    </Link>
-                  </Button>
-                ) : null}
-              </section>
-            ) : path !== "/" ? (
+            {path !== "/" && pageMeta?.kind !== "home" ? (
               <h1 className="text-3xl font-semibold tracking-tight">
                 {pageTitle}
               </h1>
@@ -123,28 +143,12 @@ export function TenantSiteView({
               </p>
             ) : null}
 
-            {home_blocks?.features?.length ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {home_blocks.features.map((feature) => (
-                  <article
-                    key={feature.title}
-                    className="rounded-lg border p-4"
-                  >
-                    <h3 className="font-medium">{feature.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            ) : null}
-
-            {html ? (
-              <div
-                className="prose prose-neutral dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
-            ) : null}
+            <SiteSections
+              sections={sections}
+              body_md={body_md}
+              selectedSectionId={selectedSectionId}
+              onSelectSection={onSelectSection}
+            />
 
             {path === "/docs" || path.startsWith("/docs/") ? (
               <ul className="space-y-2 border-t pt-6">
@@ -178,8 +182,14 @@ export function TenantSiteView({
           <span>© {site.site_name}</span>
         </MarketingSection>
       </footer>
-    </MarketingLayout>
+    </div>
   );
+
+  if (embedded) {
+    return content;
+  }
+
+  return <MarketingLayout path={path}>{content}</MarketingLayout>;
 }
 
 /** 公开目录不含正文时，用 path 反查 slug/kind（仅元数据）。 */
@@ -189,3 +199,5 @@ export function resolvePublicPagePath(
 ): string {
   return marketingPagePath(kind, slug);
 }
+
+export type { PublicMarketingPage };

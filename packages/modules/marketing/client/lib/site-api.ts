@@ -70,3 +70,13 @@ export function fetchPublicSitePage(path: string): Promise<{
     true,
   );
 }
+
+export function fetchSitePreview(path: string): Promise<{
+  site: PublicMarketingSite;
+  page: PublicMarketingPage;
+}> {
+  return api.get<{ site: PublicMarketingSite; page: PublicMarketingPage }>(
+    "/site/preview",
+    { path },
+  );
+}

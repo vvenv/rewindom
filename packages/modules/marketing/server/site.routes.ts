@@ -9,6 +9,7 @@ import {
   deletePage,
   getOrCreateSite,
   getPage,
+  getPreviewSitePage,
   listPages,
   setPageStatus,
   updatePage,
@@ -59,6 +60,26 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
         }
         throw err;
       }
+    },
+  });
+
+  defineRoute(app, {
+    method: "GET",
+    url: "/preview",
+    context: "SitePreview",
+    errorCode: "SITE_PREVIEW_FAILED",
+    preHandler: [app.requirePermission("site.read")],
+    handler: async (request, reply) => {
+      const query = request.query as { path?: string };
+      const path = typeof query.path === "string" ? query.path : "/";
+      const result = await getPreviewSitePage(
+        request.tenantContext!.tenant_id,
+        path,
+      );
+      if (!result) {
+        return sendCodedError(reply, 404, "site.page_not_found");
+      }
+      return result;
     },
   });
 

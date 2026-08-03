@@ -2,8 +2,9 @@ import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
-import { Globe, Plus, Settings2 } from "lucide-react";
+import { Globe, Palette, Plus, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { toast } from "sonner";
 
 import { SitePageCreateSheet } from "../components/SitePageCreateSheet.js";
@@ -96,6 +97,12 @@ export function SiteCms() {
               </div>
               {canWrite ? (
                 <div className="flex flex-wrap gap-2">
+                  <Button asChild size="sm">
+                    <Link to={`/site/pages/${page.id}`}>
+                      <Palette className="size-4" />
+                      {t("editor.open")}
+                    </Link>
+                  </Button>
                   <SitePageEditSheet page={page}>
                     <Button size="sm" variant="outline">
                       {t("cms.edit")}

@@ -9,7 +9,8 @@ import {
   type PublicMarketingSite,
   type SiteLinkItem,
 } from "../shared/site-cms.js";
-import { parseLinkList, safeHomeBlocks } from "./site.util.js";
+import { resolveThemeSettings } from "../shared/theme-sections.js";
+import { parseLinkList, safePageSections } from "./site.util.js";
 
 import type {
   MarketingPage as MarketingPageRecord,
@@ -26,13 +27,19 @@ function asStatus(value: string): MarketingPageStatus {
 }
 
 export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
+  const theme_settings = resolveThemeSettings({
+    theme_settings: record.theme_settings,
+    logo_url: record.logo_url,
+    primary_color: record.primary_color,
+  });
   return {
     id: record.id,
     tenant_id: record.tenant_id,
     site_name: record.site_name,
     tagline: record.tagline,
-    logo_url: record.logo_url,
-    primary_color: record.primary_color,
+    logo_url: theme_settings.logo_url ?? record.logo_url,
+    primary_color: theme_settings.primary_color ?? record.primary_color,
+    theme_settings,
     default_locale: record.default_locale,
     nav: parseLinkList(record.nav_json, "nav"),
     footer: parseLinkList(record.footer_json, "footer"),
@@ -53,7 +60,7 @@ export function toMarketingPage(record: MarketingPageRecord): MarketingPage {
     title: record.title,
     description: record.description,
     body_md: record.body_md,
-    home_blocks: safeHomeBlocks(record.home_blocks),
+    sections: safePageSections(record.sections),
     status: asStatus(record.status),
     sort_order: record.sort_order,
     created_at: record.created_at.toISOString(),
@@ -91,11 +98,18 @@ export function toPublicMarketingSite(
     footer = [];
   }
 
+  const theme_settings = resolveThemeSettings({
+    theme_settings: site.theme_settings,
+    logo_url: site.logo_url,
+    primary_color: site.primary_color,
+  });
+
   return {
     site_name: site.site_name,
     tagline: site.tagline,
-    logo_url: site.logo_url,
-    primary_color: site.primary_color,
+    logo_url: theme_settings.logo_url ?? null,
+    primary_color: theme_settings.primary_color ?? null,
+    theme_settings,
     default_locale: site.default_locale,
     nav,
     footer,
@@ -124,7 +138,7 @@ export function toPublicMarketingPage(
     title: record.title,
     description: record.description,
     body_md: record.body_md,
-    home_blocks: safeHomeBlocks(record.home_blocks),
+    sections: safePageSections(record.sections),
     path: marketingPagePath(kind, record.slug),
     updated_at: record.updated_at.toISOString(),
   };

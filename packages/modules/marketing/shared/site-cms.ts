@@ -1,21 +1,9 @@
+import type { SiteSection, ThemeSettings } from "./theme-sections.js";
+
 /** 导航 / 页脚链接项。 */
 export interface SiteLinkItem {
   label: string;
   href: string;
-}
-
-/** 首页结构化区块（可选；与 body_md 并存）。 */
-export interface HomeBlocks {
-  hero?: {
-    headline: string;
-    subhead?: string;
-    cta_label?: string;
-    cta_href?: string;
-  };
-  features?: Array<{
-    title: string;
-    description: string;
-  }>;
 }
 
 export type MarketingPageKind = "home" | "page" | "doc";
@@ -28,6 +16,7 @@ export interface MarketingSite {
   tagline: string;
   logo_url: string | null;
   primary_color: string | null;
+  theme_settings: ThemeSettings;
   default_locale: string;
   nav: SiteLinkItem[];
   footer: SiteLinkItem[];
@@ -45,7 +34,7 @@ export interface MarketingPage {
   title: string;
   description: string;
   body_md: string;
-  home_blocks: HomeBlocks | null;
+  sections: SiteSection[];
   status: MarketingPageStatus;
   sort_order: number;
   created_at: string;
@@ -69,6 +58,7 @@ export interface UpdateMarketingSiteBody {
   tagline?: string;
   logo_url?: string | null;
   primary_color?: string | null;
+  theme_settings?: ThemeSettings;
   default_locale?: string;
   nav?: SiteLinkItem[];
   footer?: SiteLinkItem[];
@@ -82,7 +72,7 @@ export interface CreateMarketingPageBody {
   title: string;
   description?: string;
   body_md?: string;
-  home_blocks?: HomeBlocks | null;
+  sections?: SiteSection[];
   sort_order?: number;
 }
 
@@ -93,7 +83,7 @@ export interface UpdateMarketingPageBody {
   title?: string;
   description?: string;
   body_md?: string;
-  home_blocks?: HomeBlocks | null;
+  sections?: SiteSection[];
   sort_order?: number;
 }
 
@@ -103,6 +93,7 @@ export interface PublicMarketingSite {
   tagline: string;
   logo_url: string | null;
   primary_color: string | null;
+  theme_settings: ThemeSettings;
   default_locale: string;
   nav: SiteLinkItem[];
   footer: SiteLinkItem[];
@@ -123,7 +114,7 @@ export interface PublicMarketingPage {
   title: string;
   description: string;
   body_md: string;
-  home_blocks: HomeBlocks | null;
+  sections: SiteSection[];
   path: string;
   updated_at: string;
 }

@@ -5,7 +5,7 @@
 双轨官网：
 
 1. **平台主域**：产品介绍、使用文档、定价——**构建期预渲染**静态 HTML（爬虫拿完整正文）
-2. **租户绑定域**（`custom_domain` / `{slug}.{TENANT_BASE_DOMAIN}`）：租户自助 CMS（Markdown 页面 + 站点品牌），由 **Fastify SSR** 输出完整 HTML（SEO）
+2. **租户绑定域**（`custom_domain` / `{slug}.{TENANT_BASE_DOMAIN}`）：租户自助 CMS（section 编排 + Markdown + 站点主题），由 **Fastify SSR** 输出完整 HTML（SEO）
 
 ## 面划分
 
@@ -13,7 +13,7 @@
 | ---- | -------------------------------------------------------------------- | ---------------- | ---------------------------- |
 | 公开（平台） | `/`、`/pricing`、`/docs`、`/docs/:slug` 及 `/{locale}/...` | `client/public/` | 无 |
 | 公开（租户 SSR） | `/`、`/docs`、`/docs/:slug`、`/:slug`、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` | Host 绑定 + 站点已发布 |
-| 租户中台 | `/site` | `client/tenant/` + `client/pages/site-cms.tsx` | entitlement `tenant-marketing` + `site.read` |
+| 租户中台 | `/site`、`/site/pages/:pageId`（Theme Editor） | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
 挂载点：`client.renderPublicRoutes`（平台/绑定域 SPA）+ `client.renderRoutes`（CMS）+ `server.registerRoutes`。
 
@@ -33,14 +33,30 @@
 
 | 模型 | 说明 |
 | --- | --- |
-| `MarketingSite` | 每租户一行：站名、标语、主色、nav/footer、站点级 `published` |
-| `MarketingPage` | `kind`: `home` \| `page` \| `doc`；`status`: `draft` \| `published`；`body_md`；首页可选 `home_blocks` |
+| `MarketingSite` | 每租户一行：站名、标语、`theme_settings`（logo / 主色 / 字体）、nav/footer、站点级 `published`；`logo_url`/`primary_color` 列与 theme 双向同步 |
+| `MarketingPage` | `kind`: `home` \| `page` \| `doc`；`status`: `draft` \| `published`；`sections[]`；`body_md`（sections 为空时回退） |
+
+### Section 类型（布局原语）
+
+| type | 说明 | settings |
+| --- | --- | --- |
+| `hero` | 首屏大标题区 | headline, subhead?, primary_label?, primary_href? |
+| `prose` | Markdown 正文 | body_md |
+| `cards` | 卡片栅格 | columns(2\|3\|4), items[{title, body, href?}] |
+| `split` | 双栏 | title, body?, aside_md?, primary_label?, primary_href? |
+| `band` | 通栏强调条 | headline, body?, primary_label?, primary_href? |
+
+读库兼容旧 type：`features`→`cards`，`cta`→`band`，`richtext`/`markdown`→`prose`。
 
 路径约定：`home` → `/`；`doc` + `index` → `/docs`；`doc` + slug → `/docs/:slug`；`page` → `/:slug`。
 
+### Theme Editor
+
+`/app/site/pages/:pageId` 三栏：左侧 section 列表（排序/增删）、中间同页预览（`TenantSiteView`）、右侧 section / theme settings。草稿预览 API：`GET /api/site/preview?path=`（需 `site.read`，含 draft）。
+
 API：
 
-- 租户：`/api/site`、`/api/site/pages…`（权限 `site.read` / `site.write`）
+- 租户：`/api/site`、`/api/site/pages…`、`/api/site/preview`（权限 `site.read` / `site.write`）
 - 公开：`GET /api/public/site`、`GET /api/public/site/page?path=`
 - Entitlement key：`tenant-marketing`
 

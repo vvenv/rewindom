@@ -18,6 +18,7 @@ import {
   type UpdateMarketingPageBody,
   type UpdateMarketingSiteBody,
 } from "../shared/site-cms.js";
+import { resolveThemeSettings } from "../shared/theme-sections.js";
 import {
   toMarketingPage,
   toMarketingPageListItem,
@@ -27,8 +28,9 @@ import {
 } from "./site.mapper.js";
 import {
   normalizePageKind,
-  parseHomeBlocks,
   parseLinkList,
+  parsePageSections,
+  parseSiteThemeSettings,
   validateOptionalColor,
   validatePageSlug,
   validateSiteName,
@@ -48,6 +50,7 @@ async function ensureSiteRow(tenant_id: string): Promise<MarketingSite> {
       site_name: "My Site",
       tagline: "",
       default_locale: "zh-CN",
+      theme_settings: {},
       nav_json: [],
       footer_json: [],
       published: false,
@@ -65,6 +68,9 @@ export async function updateSite(
   body: UpdateMarketingSiteBody,
 ): Promise<MarketingSite> {
   await ensureSiteRow(tenant_id);
+  const existing = await prisma.marketingSite.findFirstOrThrow({
+    where: { tenant_id },
+  });
 
   const data: Record<string, unknown> = {};
   if (body.site_name !== undefined) {
@@ -72,15 +78,6 @@ export async function updateSite(
   }
   if (body.tagline !== undefined) {
     data.tagline = body.tagline.trim();
-  }
-  if (body.logo_url !== undefined) {
-    data.logo_url =
-      body.logo_url === null || body.logo_url.trim() === ""
-        ? null
-        : body.logo_url.trim();
-  }
-  if (body.primary_color !== undefined) {
-    data.primary_color = validateOptionalColor(body.primary_color);
   }
   if (body.default_locale !== undefined) {
     const locale = body.default_locale.trim();
@@ -95,6 +92,36 @@ export async function updateSite(
   }
   if (body.published !== undefined) {
     data.published = Boolean(body.published);
+  }
+
+  const nextTheme = resolveThemeSettings({
+    theme_settings: existing.theme_settings,
+    logo_url: existing.logo_url,
+    primary_color: existing.primary_color,
+  });
+
+  if (body.theme_settings !== undefined) {
+    const parsed = parseSiteThemeSettings(body.theme_settings);
+    Object.assign(nextTheme, parsed);
+  }
+  if (body.logo_url !== undefined) {
+    nextTheme.logo_url =
+      body.logo_url === null || body.logo_url.trim() === ""
+        ? null
+        : body.logo_url.trim();
+  }
+  if (body.primary_color !== undefined) {
+    nextTheme.primary_color = validateOptionalColor(body.primary_color) ?? null;
+  }
+
+  if (
+    body.theme_settings !== undefined ||
+    body.logo_url !== undefined ||
+    body.primary_color !== undefined
+  ) {
+    data.theme_settings = nextTheme as Prisma.InputJsonValue;
+    data.logo_url = nextTheme.logo_url ?? null;
+    data.primary_color = nextTheme.primary_color ?? null;
   }
 
   const updated = await prisma.marketingSite.update({
@@ -139,6 +166,7 @@ export async function createPage(
   const kind = normalizePageKind(body.kind, body.slug);
   const slug = validatePageSlug(kind, body.slug);
   const locale = (body.locale ?? "zh-CN").trim() || "zh-CN";
+  const sections = parsePageSections(body.sections ?? []);
 
   if (kind === "home") {
     const existingHome = await prisma.marketingPage.findFirst({
@@ -159,13 +187,7 @@ export async function createPage(
         title,
         description: body.description?.trim() ?? "",
         body_md: body.body_md ?? "",
-        home_blocks: (() => {
-          if (kind !== "home") return Prisma.JsonNull;
-          const blocks = parseHomeBlocks(body.home_blocks ?? null);
-          return blocks === null
-            ? Prisma.JsonNull
-            : (blocks as Prisma.InputJsonValue);
-        })(),
+        sections: sections as unknown as Prisma.InputJsonValue,
         status: "draft",
         sort_order: body.sort_order ?? 0,
       },
@@ -239,19 +261,11 @@ export async function updatePage(
           ? { description: body.description.trim() }
           : {}),
         ...(body.body_md !== undefined ? { body_md: body.body_md } : {}),
-        ...(body.home_blocks !== undefined || nextKind !== "home"
+        ...(body.sections !== undefined
           ? {
-              home_blocks: (() => {
-                if (nextKind !== "home") return Prisma.JsonNull;
-                const blocks = parseHomeBlocks(
-                  body.home_blocks !== undefined
-                    ? body.home_blocks
-                    : existing.home_blocks,
-                );
-                return blocks === null
-                  ? Prisma.JsonNull
-                  : (blocks as Prisma.InputJsonValue);
-              })(),
+              sections: parsePageSections(
+                body.sections,
+              ) as unknown as Prisma.InputJsonValue,
             }
           : {}),
         ...(body.sort_order !== undefined
@@ -336,6 +350,40 @@ export async function getPublishedPublicPage(
   const pages = await prisma.marketingPage.findMany({
     where: withTenantScope(tenant_id, { status: "published" }),
   });
+
+  const match = pages.find((page) => {
+    const kind =
+      page.kind === "home" || page.kind === "doc" || page.kind === "page"
+        ? page.kind
+        : "page";
+    return marketingPagePath(kind, page.slug) === normalized;
+  });
+  if (!match) return null;
+
+  return { site, page: toPublicMarketingPage(match) };
+}
+
+/** 草稿预览：站点可不发布；页面可为 draft。 */
+export async function getPreviewSitePage(
+  tenant_id: string,
+  path: string,
+): Promise<{ site: PublicMarketingSite; page: PublicMarketingPage } | null> {
+  await ensureSiteRow(tenant_id);
+  const siteRecord = await prisma.marketingSite.findFirstOrThrow({
+    where: { tenant_id },
+  });
+  const pages = await prisma.marketingPage.findMany({
+    where: withTenantScope(tenant_id),
+    orderBy: [{ sort_order: "asc" }, { title: "asc" }],
+  });
+  const site = toPublicMarketingSite(siteRecord, pages);
+
+  const normalized =
+    path === "/" || path === ""
+      ? "/"
+      : path.endsWith("/") && path.length > 1
+        ? path.slice(0, -1)
+        : path;
 
   const match = pages.find((page) => {
     const kind =

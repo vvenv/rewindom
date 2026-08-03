@@ -19,22 +19,20 @@ import {
   SheetTrigger,
 } from "@be-water/ui/sheet";
 import { Spinner } from "@be-water/ui/spinner";
-import { Textarea } from "@be-water/ui/textarea";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { toast } from "sonner";
 
 import { useSiteMutations, useSitePage } from "../hooks/useSite.js";
 
-import type {
-  HomeBlocks,
-  MarketingPageListItem,
-} from "../../shared/site-cms.js";
+import type { MarketingPageListItem } from "../../shared/site-cms.js";
 
 interface SitePageEditSheetProps {
   page: MarketingPageListItem;
   children: ReactNode;
 }
 
+/** 页面元数据（标题 / SEO）；区块内容走 Theme Editor。 */
 export function SitePageEditSheet({ page, children }: SitePageEditSheetProps) {
   const { t } = useTranslation("marketing");
   const { updatePage } = useSiteMutations();
@@ -42,57 +40,12 @@ export function SitePageEditSheet({ page, children }: SitePageEditSheetProps) {
   const detail = useSitePage(open ? page.id : undefined);
   const [title, setTitle] = useState(page.title);
   const [description, setDescription] = useState(page.description);
-  const [bodyMd, setBodyMd] = useState("");
-  const [heroHeadline, setHeroHeadline] = useState("");
-  const [heroSubhead, setHeroSubhead] = useState("");
-  const [heroCtaLabel, setHeroCtaLabel] = useState("");
-  const [heroCtaHref, setHeroCtaHref] = useState("");
-  const [featuresText, setFeaturesText] = useState("");
 
   useEffect(() => {
     if (!detail.data) return;
     setTitle(detail.data.title);
     setDescription(detail.data.description);
-    setBodyMd(detail.data.body_md);
-    setHeroHeadline(detail.data.home_blocks?.hero?.headline ?? "");
-    setHeroSubhead(detail.data.home_blocks?.hero?.subhead ?? "");
-    setHeroCtaLabel(detail.data.home_blocks?.hero?.cta_label ?? "");
-    setHeroCtaHref(detail.data.home_blocks?.hero?.cta_href ?? "");
-    setFeaturesText(
-      (detail.data.home_blocks?.features ?? [])
-        .map((f) => `${f.title}|${f.description}`)
-        .join("\n"),
-    );
   }, [detail.data]);
-
-  const buildHomeBlocks = (): HomeBlocks | null => {
-    if (page.kind !== "home") return null;
-    const features = featuresText
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [featureTitle, ...rest] = line.split("|");
-        return {
-          title: (featureTitle ?? "").trim(),
-          description: rest.join("|").trim(),
-        };
-      })
-      .filter((f) => f.title);
-    const blocks: HomeBlocks = {};
-    if (heroHeadline.trim()) {
-      blocks.hero = {
-        headline: heroHeadline.trim(),
-        ...(heroSubhead.trim() ? { subhead: heroSubhead.trim() } : {}),
-        ...(heroCtaLabel.trim() ? { cta_label: heroCtaLabel.trim() } : {}),
-        ...(heroCtaHref.trim() ? { cta_href: heroCtaHref.trim() } : {}),
-      };
-    }
-    if (features.length > 0) {
-      blocks.features = features;
-    }
-    return Object.keys(blocks).length > 0 ? blocks : null;
-  };
 
   const onSubmit = (event: FormEvent): void => {
     event.preventDefault();
@@ -102,8 +55,6 @@ export function SitePageEditSheet({ page, children }: SitePageEditSheetProps) {
         body: {
           title: title.trim(),
           description: description.trim(),
-          body_md: bodyMd,
-          home_blocks: buildHomeBlocks(),
         },
       },
       {
@@ -121,7 +72,7 @@ export function SitePageEditSheet({ page, children }: SitePageEditSheetProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="sm:max-w-xl">
+      <SheetContent className="sm:max-w-lg">
         <form className="flex h-full flex-col" onSubmit={onSubmit}>
           <SheetHeader>
             <SheetTitle>{t("cms.editPageTitle")}</SheetTitle>
@@ -155,75 +106,11 @@ export function SitePageEditSheet({ page, children }: SitePageEditSheetProps) {
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </Field>
-              {page.kind === "home" ? (
-                <>
-                  <Field>
-                    <FieldLabel htmlFor={`hero-headline-${page.id}`}>
-                      {t("cms.fieldHeroHeadline")}
-                    </FieldLabel>
-                    <Input
-                      id={`hero-headline-${page.id}`}
-                      value={heroHeadline}
-                      onChange={(e) => setHeroHeadline(e.target.value)}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor={`hero-subhead-${page.id}`}>
-                      {t("cms.fieldHeroSubhead")}
-                    </FieldLabel>
-                    <Input
-                      id={`hero-subhead-${page.id}`}
-                      value={heroSubhead}
-                      onChange={(e) => setHeroSubhead(e.target.value)}
-                    />
-                  </Field>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field>
-                      <FieldLabel htmlFor={`hero-cta-label-${page.id}`}>
-                        {t("cms.fieldHeroCtaLabel")}
-                      </FieldLabel>
-                      <Input
-                        id={`hero-cta-label-${page.id}`}
-                        value={heroCtaLabel}
-                        onChange={(e) => setHeroCtaLabel(e.target.value)}
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor={`hero-cta-href-${page.id}`}>
-                        {t("cms.fieldHeroCtaHref")}
-                      </FieldLabel>
-                      <Input
-                        id={`hero-cta-href-${page.id}`}
-                        value={heroCtaHref}
-                        onChange={(e) => setHeroCtaHref(e.target.value)}
-                      />
-                    </Field>
-                  </div>
-                  <Field>
-                    <FieldLabel htmlFor={`features-${page.id}`}>
-                      {t("cms.fieldFeatures")}
-                    </FieldLabel>
-                    <Textarea
-                      id={`features-${page.id}`}
-                      rows={4}
-                      value={featuresText}
-                      onChange={(e) => setFeaturesText(e.target.value)}
-                      placeholder={t("cms.featuresPlaceholder")}
-                    />
-                  </Field>
-                </>
-              ) : null}
-              <Field>
-                <FieldLabel htmlFor={`body-${page.id}`}>
-                  {t("cms.fieldBodyMd")}
-                </FieldLabel>
-                <Textarea
-                  id={`body-${page.id}`}
-                  rows={12}
-                  value={bodyMd}
-                  onChange={(e) => setBodyMd(e.target.value)}
-                />
-              </Field>
+              <Button asChild variant="outline" className="w-full">
+                <Link to={`/site/pages/${page.id}`} onClick={() => setOpen(false)}>
+                  {t("editor.open")}
+                </Link>
+              </Button>
             </FieldGroup>
           )}
 

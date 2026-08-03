@@ -36,16 +36,26 @@ async function main(): Promise<void> {
       slug: "home",
       title: "Welcome Home",
       description: "Tenant home for crawlers",
-      body_md:
-        "# Hello from tenant CMS\n\nThis paragraph must appear in SSR HTML.",
-      home_blocks: {
-        hero: {
-          headline: "Hero Headline Unique",
-          subhead: "Sub",
-          cta_label: "Go",
-          cta_href: "/login",
+      sections: [
+        {
+          id: "smoke-hero",
+          type: "hero",
+          settings: {
+            headline: "Hero Headline Unique",
+            subhead: "Sub",
+            primary_label: "Go",
+            primary_href: "/login",
+          },
         },
-      },
+        {
+          id: "smoke-prose",
+          type: "prose",
+          settings: {
+            body_md:
+              "# Hello from tenant CMS\n\nThis paragraph must appear in SSR HTML.",
+          },
+        },
+      ],
     });
     home = await prisma.marketingPage.findUniqueOrThrow({
       where: { id: created.id },

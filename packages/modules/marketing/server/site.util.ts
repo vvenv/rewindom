@@ -2,10 +2,17 @@ import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
 
 import {
   RESERVED_PAGE_SLUGS,
-  type HomeBlocks,
   type MarketingPageKind,
   type SiteLinkItem,
 } from "../shared/site-cms.js";
+import {
+  parseSections,
+  parseThemeSettings,
+  safeSections,
+  safeThemeSettings,
+  type SiteSection,
+  type ThemeSettings,
+} from "../shared/theme-sections.js";
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u;
 const COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/u;
@@ -31,64 +38,34 @@ export function parseLinkList(value: unknown, field: string): SiteLinkItem[] {
   });
 }
 
-/** 读库时容错；写路径用 parseHomeBlocks。 */
-export function safeHomeBlocks(value: unknown): HomeBlocks | null {
+export function parsePageSections(value: unknown): SiteSection[] {
   try {
-    return parseHomeBlocks(value);
-  } catch {
-    return null;
+    return parseSections(value);
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("site.")) {
+      throw new ValidationError(err.message);
+    }
+    throw new ValidationError("site.sections_invalid");
   }
 }
 
-export function parseHomeBlocks(value: unknown): HomeBlocks | null {
-  if (value === undefined || value === null) {
-    return null;
-  }
-  if (typeof value !== "object" || Array.isArray(value)) {
-    throw new ValidationError("site.home_blocks_invalid");
-  }
-  const raw = value as Record<string, unknown>;
-  const out: HomeBlocks = {};
+export function safePageSections(value: unknown): SiteSection[] {
+  return safeSections(value);
+}
 
-  if (raw.hero !== undefined && raw.hero !== null) {
-    if (typeof raw.hero !== "object" || Array.isArray(raw.hero)) {
-      throw new ValidationError("site.home_blocks_invalid");
+export function parseSiteThemeSettings(value: unknown): ThemeSettings {
+  try {
+    return parseThemeSettings(value);
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("site.")) {
+      throw new ValidationError(err.message);
     }
-    const hero = raw.hero as Record<string, unknown>;
-    const headline = typeof hero.headline === "string" ? hero.headline.trim() : "";
-    if (!headline) {
-      throw new ValidationError("site.home_blocks_invalid");
-    }
-    out.hero = {
-      headline,
-      ...(typeof hero.subhead === "string" ? { subhead: hero.subhead } : {}),
-      ...(typeof hero.cta_label === "string"
-        ? { cta_label: hero.cta_label }
-        : {}),
-      ...(typeof hero.cta_href === "string" ? { cta_href: hero.cta_href } : {}),
-    };
+    throw new ValidationError("site.theme_settings_invalid");
   }
+}
 
-  if (raw.features !== undefined && raw.features !== null) {
-    if (!Array.isArray(raw.features)) {
-      throw new ValidationError("site.home_blocks_invalid");
-    }
-    out.features = raw.features.map((item) => {
-      if (!item || typeof item !== "object") {
-        throw new ValidationError("site.home_blocks_invalid");
-      }
-      const row = item as Record<string, unknown>;
-      const title = typeof row.title === "string" ? row.title.trim() : "";
-      const description =
-        typeof row.description === "string" ? row.description.trim() : "";
-      if (!title) {
-        throw new ValidationError("site.home_blocks_invalid");
-      }
-      return { title, description };
-    });
-  }
-
-  return out;
+export function safeSiteThemeSettings(value: unknown): ThemeSettings {
+  return safeThemeSettings(value);
 }
 
 export function normalizePageKind(

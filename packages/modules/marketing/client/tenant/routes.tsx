@@ -10,6 +10,12 @@ const SiteCms = lazy(() =>
   })),
 );
 
+const SiteThemeEditor = lazy(() =>
+  import("../pages/site-theme-editor.js").then((module) => ({
+    default: module.SiteThemeEditor,
+  })),
+);
+
 function SiteModuleRoute() {
   const { t } = useTranslation("marketing");
   return (
@@ -26,6 +32,7 @@ export function renderSiteRoutes(): ReactNode {
     <Route element={<SiteModuleRoute />}>
       <Route element={<PermissionRoute permission="site.read" />}>
         <Route path="/site" element={<SiteCms />} />
+        <Route path="/site/pages/:pageId" element={<SiteThemeEditor />} />
       </Route>
     </Route>
   );

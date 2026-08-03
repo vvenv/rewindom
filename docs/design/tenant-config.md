@@ -472,14 +472,16 @@ request.authUser = { userId, username, role, tenant_id };
 | 平台主域名 | `FRONTEND_URL` 对应 hostname（及 localhost）走多租户/平台模式 |
 | Host 解析 | 主域 → custom_domain → `{slug}.{TENANT_BASE_DOMAIN}` |
 | 绑定域名上的面 | 前台开放（内容来自租户 Marketing CMS，Fastify SSR）；中台（`/login`、`/app`）开放；**禁止** `/platform/*` 与平台管理员登录 |
-| 租户官网内容 | `MarketingSite` / `MarketingPage`；租户自助 `/app/site`（entitlement `tenant-marketing`，权限 `site.read`/`site.write`）；仅 `published` 进入 SSR / 公开 API |
+| 租户官网内容 | `MarketingSite`（含 `theme_settings`）/ `MarketingPage`（`sections[]`）；租户自助 `/app/site` + Theme Editor `/app/site/pages/:pageId`（entitlement `tenant-marketing`，权限 `site.read`/`site.write`）；仅站点+页均 `published` 进入 SSR / 公开 API；草稿预览走 `GET /api/site/preview` |
 | 平台主域官网 | 仍为 marketing 模块构建期静态预渲染（与租户 CMS 分流） |
 | 登录 | 裸用户名强制本租户；带 `@other` 拒绝（不静默改写）；JWT/API Key 的 `tenant_id` 必须与 Host 租户一致 |
 | 注册 / OAuth 首次 | 加入绑定租户，**禁止**在该 Host 新建租户 |
 | 公开配置 | `bound_tenant`、`tenant_base_domain`；站点内容见 `GET /api/public/site` |
 | 与 `SINGLE_TENANT` | 正交：单租户部署仍可绑品牌域名 / 使用通配子域 |
 
-**明确不做（本阶段）**：DNS TXT/CNAME 校验状态机、租户自助绑定域名、每客户域名自动签发证书、租户官网自由画布编辑器。
+**本阶段支持**：section 级 Theme Editor（有序区块编排 + theme settings + 同页预览）。
+
+**明确不做（本阶段）**：DNS TXT/CNAME 校验状态机、租户自助绑定域名、每客户域名自动签发证书、租户官网自由画布编辑器、多主题市场上架、section block 嵌套。
 
 **操作说明（通配子域 / 客户 DNS / TLS / 验收）**：见 [`../custom-domain.md`](../custom-domain.md)。
 
