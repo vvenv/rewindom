@@ -258,6 +258,7 @@ describe("tenant-management.service", () => {
       slug: "acme",
       name: "Acme Inc",
       remark: null,
+      custom_domain: null,
       status: "active",
       created_at: now,
       updated_at: now,
@@ -267,6 +268,7 @@ describe("tenant-management.service", () => {
       slug: "acme",
       name: "Acme Inc",
       remark: "新备注",
+      custom_domain: null,
       status: "active",
       created_at: now,
       updated_at: now,
@@ -277,6 +279,46 @@ describe("tenant-management.service", () => {
     expect(prisma.tenant.update).toHaveBeenCalledWith({
       where: { id: "tenant-2" },
       data: { remark: "新备注" },
+    });
+  });
+
+  it("patches tenant custom_domain", async () => {
+    const now = new Date("2026-01-01T00:00:00.000Z");
+    vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
+      id: "tenant-2",
+      slug: "acme",
+      name: "Acme Inc",
+      remark: null,
+      custom_domain: null,
+      status: "active",
+      plan: "free",
+      plan_since: null,
+      plan_ends_at: null,
+      created_at: now,
+      updated_at: now,
+    } as never);
+    vi.mocked(prisma.tenant.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.tenant.update).mockResolvedValue({
+      id: "tenant-2",
+      slug: "acme",
+      name: "Acme Inc",
+      remark: null,
+      custom_domain: "portal.acme.io",
+      status: "active",
+      plan: "free",
+      plan_since: null,
+      plan_ends_at: null,
+      created_at: now,
+      updated_at: now,
+    } as never);
+
+    const tenant = await patchTenant("tenant-2", {
+      custom_domain: "Portal.Acme.IO",
+    });
+    expect(tenant.custom_domain).toBe("portal.acme.io");
+    expect(prisma.tenant.update).toHaveBeenCalledWith({
+      where: { id: "tenant-2" },
+      data: { custom_domain: "portal.acme.io" },
     });
   });
 

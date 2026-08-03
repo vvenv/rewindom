@@ -351,6 +351,12 @@ export const config = {
      * env：`SINGLE_TENANT=true`（或任意非 `"false"` 值）；默认关闭。
      */
     singleTenant: boolEnv("SINGLE_TENANT", false),
+    /**
+     * 平台通配子域基域（如 `water.moms.plus`）。
+     * 配置后 `{slug}.{base}` 自动锁定对应租户；空则关闭。
+     * env：`TENANT_BASE_DOMAIN`
+     */
+    baseDomain: strEnv("TENANT_BASE_DOMAIN", ""),
   },
 };
 

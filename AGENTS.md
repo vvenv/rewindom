@@ -83,6 +83,7 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 | 产品仓升级检查    | `design/downstream-fork.md`                        | `frontend-page-structure`         |
 | 单元测试          | `design/unit-testing.md`                           | —                                 |
 | 部署 / FAQ        | `deployment.md`、`faq.md`                          | —                                 |
+| 租户自定义域名    | `custom-domain.md`（设计：`tenant-config.md` §5.9） | —                                 |
 
 ## Agent 配置（Cursor + Claude Code）
 

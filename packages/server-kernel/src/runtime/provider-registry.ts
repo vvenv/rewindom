@@ -64,6 +64,8 @@ export class ProviderRegistry {
         github_oauth_enabled: false,
         google_oauth_enabled: false,
         single_tenant: false,
+        bound_tenant: null,
+        tenant_base_domain: null,
       };
     },
   };

@@ -1,4 +1,8 @@
-import { useAuth, useDefaultHomePath } from "@be-water/client-kit";
+import {
+  useAuth,
+  useDefaultHomePath,
+  usePublicConfig,
+} from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
 import { Spinner } from "@be-water/ui/spinner";
 import { Navigate, Outlet, useLocation } from "react-router";
@@ -9,6 +13,13 @@ export function PlatformAdminRoute() {
   // 被挡下的一定是租户用户，这里解析出来就是租户工作台入口
   const homePath = useDefaultHomePath();
   const location = useLocation();
+  const {
+    data: { bound_tenant },
+  } = usePublicConfig();
+
+  if (bound_tenant) {
+    return <Navigate to="/" replace />;
+  }
 
   if (isLoading) {
     return (

@@ -6,8 +6,10 @@ import bcrypt from "bcrypt";
 import {
   NotFoundError,
   UnauthorizedError,
+  ValidationError,
 } from "../../lib/app-errors.js";
 import { config } from "../../lib/config.js";
+import type { HostTenantContext } from "../../lib/host-tenant.js";
 import { prisma } from "../../lib/prisma.js";
 
 import {
@@ -86,6 +88,7 @@ export class AuthService {
   static async login(
     input: LoginInput,
     jwtSign: (payload: JwtSignPayload) => string,
+    options?: { hostTenant?: HostTenantContext | null },
   ): Promise<{
     user: {
       id: string;
@@ -102,8 +105,9 @@ export class AuthService {
     tenant_slug: string | null;
   }> {
     const { username, password } = input;
+    const hostTenant = options?.hostTenant ?? null;
 
-    if (!username.includes("@")) {
+    if (!username.includes("@") && !hostTenant) {
       const platformAdmin = await findPlatformAdminByUsername(username);
       if (platformAdmin) {
         if (!platformAdmin.enabled) {
@@ -172,12 +176,30 @@ export class AuthService {
       }
     }
 
-    const { username: localUsername, tenant_slug } =
-      parseLoginIdentifier(username);
+    let localUsername: string;
+    let tenant_slug: string;
 
-    const tenant = await prisma.tenant.findUnique({
-      where: { slug: tenant_slug },
-    });
+    if (hostTenant) {
+      if (!username.includes("@")) {
+        localUsername = username.trim();
+        tenant_slug = hostTenant.tenant_slug;
+      } else {
+        const parsed = parseLoginIdentifier(username);
+        if (parsed.tenant_slug !== hostTenant.tenant_slug) {
+          throw new ValidationError("auth.tenant_host_mismatch");
+        }
+        localUsername = parsed.username;
+        tenant_slug = hostTenant.tenant_slug;
+      }
+    } else {
+      const parsed = parseLoginIdentifier(username);
+      localUsername = parsed.username;
+      tenant_slug = parsed.tenant_slug;
+    }
+
+    const tenant = hostTenant
+      ? await prisma.tenant.findUnique({ where: { id: hostTenant.tenant_id } })
+      : await prisma.tenant.findUnique({ where: { slug: tenant_slug } });
     if (!tenant || tenant.status !== "active") {
       throw new UnauthorizedError("auth.invalid_credentials");
     }

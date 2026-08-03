@@ -21,8 +21,9 @@ export function Register() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const {
-    data: { registration_enabled, captcha_enabled, single_tenant },
+    data: { registration_enabled, captcha_enabled, single_tenant, bound_tenant },
   } = usePublicConfig();
+  const hostLockedTenant = single_tenant || bound_tenant != null;
 
   const {
     form,
@@ -51,7 +52,7 @@ export function Register() {
       form,
       captchaData,
       captcha_enabled,
-      { singleTenant: single_tenant },
+      { singleTenant: hostLockedTenant },
     );
     if (validationError) {
       toast.error(t(validationError));
@@ -66,7 +67,7 @@ export function Register() {
 
     try {
       const input = buildRegisterInput(form, captchaData.token, {
-        singleTenant: single_tenant,
+        singleTenant: hostLockedTenant,
       });
       const result = await api.post<{
         tenant_id: string;
@@ -81,7 +82,7 @@ export function Register() {
       toast.success(t("auth.registerSuccess"));
 
       await login({
-        username: single_tenant
+        username: hostLockedTenant
           ? result.username
           : `${result.username}@${result.tenant_slug}`,
         password: form.password,
@@ -99,14 +100,14 @@ export function Register() {
   };
 
   return (
-    <AuthPageShell contentClassName={single_tenant ? undefined : "max-w-3xl"}>
+    <AuthPageShell contentClassName={hostLockedTenant ? undefined : "max-w-3xl"}>
       <RegisterForm
         form={form}
         showPassword={showPassword}
         showConfirmPassword={showConfirmPassword}
         captchaData={captchaData}
         captchaEnabled={captcha_enabled}
-        singleTenant={single_tenant}
+        singleTenant={hostLockedTenant}
         isLoading={isLoading}
         onTenantNameChange={updateTenantName}
         onTenantSlugChange={updateTenantSlug}

@@ -28,6 +28,7 @@ const mockTenant: TenantSummary = {
   slug: "test-tenant",
   name: "Test Tenant",
   remark: "Test remark",
+  custom_domain: null,
   status: "active",
   plan: "free",
   plan_since: null,
@@ -154,6 +155,7 @@ describe("TenantEditSheet", () => {
         slug: "new-slug",
         name: "New Name",
         remark: "New remark",
+        custom_domain: null,
       });
     });
 
@@ -234,6 +236,7 @@ describe("TenantEditSheet", () => {
         slug: "test-tenant",
         name: "New Name",
         remark: "New remark",
+        custom_domain: null,
       });
     });
   });
@@ -261,6 +264,7 @@ describe("TenantEditSheet", () => {
       expect(capturedBody).toEqual({
         name: "New Name",
         remark: "Test remark",
+        custom_domain: null,
       });
     });
   });
@@ -290,6 +294,7 @@ describe("TenantEditSheet", () => {
         slug: "test-tenant",
         name: "New Name",
         remark: null,
+        custom_domain: null,
       });
     });
   });

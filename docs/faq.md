@@ -279,6 +279,12 @@ apt install certbot python3-certbot-nginx
 certbot --nginx -d your-domain.com
 ```
 
+### Q19b: 租户自定义域名要客户做什么？
+
+客户在自己的域名服务商把子域（如 `portal.acme.com`）用 **CNAME** 指到平台对外域名，或用 **A** 指到平台入口 IP；平台管理员在控制台绑定 hostname；运维为该域名配置 HTTPS。三者缺一不可。
+
+完整步骤、验收清单与可转发客户的说明模板见 [`custom-domain.md`](./custom-domain.md)。
+
 ### Q20: 如何查看服务状态？
 
 ```bash

@@ -42,7 +42,8 @@ docker_render_host_nginx_proxy() {
 # be-water-docker-managed
 server {
     listen 80;
-    server_name ${domain};
+    # 平台主域 + 通配子域（{slug}.${domain}）；证书需含 *.${domain}
+    server_name ${domain} *.${domain};
 
     client_max_body_size 100m;
 

@@ -105,14 +105,16 @@ export const platformServerModule: ServerAppModule = {
             github_oauth_enabled: false,
             google_oauth_enabled: false,
             single_tenant: appConfig.tenant.singleTenant,
+            bound_tenant: null,
+            tenant_base_domain: appConfig.tenant.baseDomain.trim() || null,
           };
         },
       });
       registry.setTenantRegistrationProvider({
-        registerTenant: (input, jwtSign, ip, userAgent) =>
-          registerTenant(input, jwtSign, ip, userAgent),
-        registerOAuthTenant: (input, jwtSign, ip, userAgent) =>
-          registerOAuthTenant(input, jwtSign, ip, userAgent),
+        registerTenant: (input, jwtSign, ip, userAgent, options) =>
+          registerTenant(input, jwtSign, ip, userAgent, options),
+        registerOAuthTenant: (input, jwtSign, ip, userAgent, options) =>
+          registerOAuthTenant(input, jwtSign, ip, userAgent, options),
       });
     },
     registerRoutes: async (app) => {

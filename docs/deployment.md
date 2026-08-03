@@ -172,9 +172,16 @@ curl http://127.0.0.1:3700/health
 | `JWT_SECRET`                   | JWT 签名密钥                                    |
 | `TENANT_SECRET_ENCRYPTION_KEY` | 租户密钥加密（32 字节 hex）                     |
 | `SINGLE_TENANT`                | `true` 时单租户部署（默认关闭）；须同时出现在 `.env.production` 与 `docker-compose.prod.yml` → `app.environment` |
+| `TENANT_BASE_DOMAIN`           | 平台通配子域基域（如 `water.moms.plus`）；`{slug}.{base}` 自动锁定租户；空则关闭 |
 
 完整列表见 `scripts/env.production.example`。新增应用运行时变量时，务必同步写入 `docker-compose.prod.yml` 的 `app.environment` 白名单（`docker-compose.dev.yml` 不需要）。
 
 门禁：`pnpm check:prod-app-env`（从 `config.ts` 对照 compose + example；已挂 Architecture CI）。
+
+### 租户自定义域名（可选）
+
+应用层绑定：平台控制台为租户填写唯一 hostname；客户配 DNS；运维配 TLS。同一实例可服务多域名（Nginx `server_name _` + 透传 `Host`）。
+
+**完整步骤、客户说明模板与验收清单**：见 [`custom-domain.md`](./custom-domain.md)。设计口径：[`design/tenant-config.md`](./design/tenant-config.md) §5.9。
 
 更多问题见 `faq.md`。

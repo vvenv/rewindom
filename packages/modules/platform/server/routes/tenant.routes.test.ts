@@ -15,6 +15,7 @@ describe("platform-tenant routes", () => {
     slug: "acme",
     name: "Acme",
     remark: null,
+    custom_domain: null as string | null,
     status: "active",
     plan: "starter" as const,
     plan_since: new Date(),

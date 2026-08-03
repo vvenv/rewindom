@@ -6,11 +6,13 @@ import { config as appConfig } from "../../lib/config.js";
 import type { FastifyInstance } from "fastify";
 
 export async function publicRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/config", async (_request, reply) => {
+  app.get("/config", async (request, reply) => {
     try {
       const config = await app.registry
         .getPublicConfigProvider()
         .getPublicConfig();
+      const bound = request.hostTenantContext;
+      const baseDomain = appConfig.tenant.baseDomain.trim() || null;
       return reply.send(
         success({
           registration_enabled: config.registration_enabled,
@@ -19,6 +21,10 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           github_oauth_enabled: appConfig.auth.github.enabled,
           google_oauth_enabled: appConfig.auth.google.enabled,
           single_tenant: appConfig.tenant.singleTenant,
+          bound_tenant: bound
+            ? { slug: bound.tenant_slug, name: bound.name }
+            : null,
+          tenant_base_domain: baseDomain,
         }),
       );
     } catch (err) {

@@ -11,6 +11,13 @@ vi.mock("@be-water/server-kernel/lib/config.js", () => ({
         passwordHash: "",
       },
     },
+    frontend: {
+      url: "http://localhost:7300",
+    },
+    tenant: {
+      singleTenant: false,
+      baseDomain: "",
+    },
     server: {
       isProduction: false,
       isTest: true,
@@ -59,6 +66,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
     tenant: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
     },

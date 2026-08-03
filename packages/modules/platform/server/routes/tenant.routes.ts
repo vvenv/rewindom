@@ -132,7 +132,8 @@ export async function registerTenantRoutes(
           body.name === undefined &&
           body.remark === undefined &&
           body.status === undefined &&
-          body.slug === undefined
+          body.slug === undefined &&
+          body.custom_domain === undefined
         ) {
           return handleValidationError(
             reply,

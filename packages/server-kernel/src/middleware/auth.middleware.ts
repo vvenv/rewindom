@@ -1,6 +1,11 @@
 import { isPlatformAdminActor, type AuthActorType, isApiKeyBlockedPath, isApiKeyToken  } from "@be-water/shared";
 
 import { sendCodedError } from "../http/coded-error.js";
+import {
+  resolveHostTenant,
+  resolveRequestHostname,
+  type HostTenantContext,
+} from "../lib/host-tenant.js";
 import { prisma } from "../lib/prisma.js";
 import { updateRequestContext } from "../lib/request-context.js";
 
@@ -60,6 +65,8 @@ declare module "fastify" {
       tenant_id: string;
       tenant_slug: string;
     };
+    /** Host 绑定的租户；平台主域名或未绑定为 undefined/null */
+    hostTenantContext?: HostTenantContext | null;
   }
 }
 
@@ -83,10 +90,28 @@ export function isPlatformBackupDownloadTokenBypass(
   );
 }
 
+function assertHostTenantMatch(
+  reply: FastifyReply,
+  hostTenant: HostTenantContext | null | undefined,
+  tenantId: string | null | undefined,
+): boolean {
+  if (!hostTenant) return true;
+  if (!tenantId || tenantId !== hostTenant.tenant_id) {
+    void sendCodedError(reply, 403, "tenant.host_mismatch");
+    return false;
+  }
+  return true;
+}
+
 export async function authMiddleware(app: FastifyInstance) {
   app.addHook(
     "onRequest",
     async (request: FastifyRequest, reply: FastifyReply) => {
+      if (request.url.startsWith("/api")) {
+        const hostname = resolveRequestHostname(request.headers);
+        request.hostTenantContext = await resolveHostTenant(hostname);
+      }
+
       if (
         request.url.startsWith("/api/auth/login") ||
         request.url.startsWith("/api/auth/register") ||
@@ -115,6 +140,13 @@ export async function authMiddleware(app: FastifyInstance) {
 
       if (!request.url.startsWith("/api")) return;
 
+      if (
+        request.hostTenantContext &&
+        requestPath.startsWith("/api/platform")
+      ) {
+        return sendCodedError(reply, 403, "tenant.host_platform_forbidden");
+      }
+
       const authHeader = request.headers.authorization;
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return sendCodedError(reply, 401, "common.unauthorized");
@@ -130,6 +162,10 @@ export async function authMiddleware(app: FastifyInstance) {
         }
 
         if (isPlatformAdminActor(decoded.actor_type)) {
+          if (request.hostTenantContext) {
+            return sendCodedError(reply, 403, "tenant.host_mismatch");
+          }
+
           if (!isPlatformAdminApiPath(requestPath)) {
           return sendCodedError(
             reply,
@@ -191,6 +227,16 @@ export async function authMiddleware(app: FastifyInstance) {
 
         if (requestPath.startsWith("/api/platform")) {
           return sendCodedError(reply, 403, "auth.platform_admin_required");
+        }
+
+        if (
+          !assertHostTenantMatch(
+            reply,
+            request.hostTenantContext,
+            decoded.tenant_id,
+          )
+        ) {
+          return;
         }
 
         const user = await prisma.user.findUnique({
@@ -259,6 +305,16 @@ export async function authMiddleware(app: FastifyInstance) {
             : null;
           if (!apiKey) {
             return sendCodedError(reply, 401, "auth.api_key_invalid");
+          }
+
+          if (
+            !assertHostTenantMatch(
+              reply,
+              request.hostTenantContext,
+              apiKey.tenant_id,
+            )
+          ) {
+            return;
           }
 
           request.tenantContext = {

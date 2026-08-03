@@ -15,6 +15,7 @@ alwaysApply: true
 | 权限（PBAC） | — | `docs/design/permission-system.md` |
 | 用户体系 | — | `docs/design/user-system.md` |
 | 多租户配置分层 / 单租户部署 | —（rule：`tenancy-mode`） | `docs/design/tenant-config.md` |
+| 租户自定义域名（客户 DNS / 绑定 / TLS） | — | `docs/custom-domain.md`（设计：`tenant-config.md` §5.9） |
 | 多语言（i18n） | — | `docs/design/i18n.md` |
 | 租户功能开关 / entitlement | — | `docs/design/tenant-features.md` |
 | 错误日志 | `error-logging` | `docs/design/error-logging.md` |

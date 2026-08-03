@@ -126,4 +126,13 @@ export interface PublicConfig {
    * 登录不展示租户后缀提示。
    */
   single_tenant: boolean;
+  /**
+   * 当前请求 Host 绑定的租户；非 null 时该域名锁定该租户
+   *（登录/注册等同单租户体验，并禁止平台控制台）。
+   */
+  bound_tenant: { slug: string; name: string } | null;
+  /**
+   * 平台通配子域基域（如 `water.moms.plus`）；空则前端不展示默认访问地址。
+   */
+  tenant_base_domain: string | null;
 }

@@ -7,6 +7,7 @@ import {
   ValidationError,
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
+import { normalizeCustomDomain } from "@be-water/server-kernel/lib/host-tenant.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug  } from "@be-water/shared";
 
@@ -29,6 +30,7 @@ function toTenantSummary(row: {
   slug: string;
   name: string;
   remark: string | null;
+  custom_domain: string | null;
   status: string;
   plan: string;
   plan_since: Date | null;
@@ -42,6 +44,7 @@ function toTenantSummary(row: {
     slug: row.slug,
     name: row.name,
     remark: row.remark,
+    custom_domain: row.custom_domain,
     status: row.status as TenantStatus,
     plan,
     plan_since: row.plan_since?.toISOString() ?? null,
@@ -230,6 +233,7 @@ export async function patchTenant(
     name?: string;
     remark?: string | null;
     status?: string;
+    custom_domain?: string | null;
   } = {};
 
   if (patch.slug !== undefined) {
@@ -273,6 +277,20 @@ export async function patchTenant(
       throw new ValidationError("tenant.default_not_suspendable_or_archivable");
     }
     data.status = patch.status;
+  }
+  if (patch.custom_domain !== undefined) {
+    const domain = normalizeCustomDomain(patch.custom_domain);
+    if (domain !== existing.custom_domain) {
+      if (domain) {
+        const conflict = await prisma.tenant.findFirst({
+          where: { custom_domain: domain, NOT: { id } },
+        });
+        if (conflict) {
+          throw new ConflictError("tenant.domain_exists");
+        }
+      }
+      data.custom_domain = domain;
+    }
   }
 
   if (Object.keys(data).length === 0) {

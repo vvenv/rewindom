@@ -222,6 +222,7 @@ export const TenantScalarFieldEnum = {
   slug: 'slug',
   name: 'name',
   remark: 'remark',
+  custom_domain: 'custom_domain',
   status: 'status',
   plan: 'plan',
   plan_since: 'plan_since',

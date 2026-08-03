@@ -446,6 +446,26 @@ request.authUser = { userId, username, role, tenant_id };
 | Settings       | 「系统设置 / AI 配置」                                                      | 租户 CRUD、suspend、用量                     |
 | 登录           | `admin` 即可（default）；多租户用户用 `bob@acme` 但登录后 UI 无「acme」标识 | `platform` 或 env 配置账号                   |
 
+### 5.9 租户自定义域名（应用层绑定）
+
+单实例部署下，平台管理员可为租户绑定**唯一**自定义域名（`Tenant.custom_domain`，规范化小写 hostname）。运维将 DNS/TLS 指到同一 Nginx；应用按 `Host` / `X-Forwarded-Host` 解析并锁定租户。
+
+| 项 | 约定 |
+| --- | --- |
+| 谁配置 | 自定义域：平台控制台 `PATCH custom_domain`；通配子域：env `TENANT_BASE_DOMAIN` + slug |
+| 存储 | `Tenant.custom_domain String? @unique`；通配子域**不**落库 |
+| 平台主域名 | `FRONTEND_URL` 对应 hostname（及 localhost）走多租户/平台模式 |
+| Host 解析 | 主域 → custom_domain → `{slug}.{TENANT_BASE_DOMAIN}` |
+| 绑定域名上的面 | 前台（marketing）开放；中台（`/login`、`/app`）开放；**禁止** `/platform/*` 与平台管理员登录 |
+| 登录 | 裸用户名强制本租户；带 `@other` 拒绝（不静默改写）；JWT/API Key 的 `tenant_id` 必须与 Host 租户一致 |
+| 注册 / OAuth 首次 | 加入绑定租户，**禁止**在该 Host 新建租户 |
+| 公开配置 | `bound_tenant`、`tenant_base_domain` |
+| 与 `SINGLE_TENANT` | 正交：单租户部署仍可绑品牌域名 / 使用通配子域 |
+
+**明确不做（本阶段）**：DNS TXT/CNAME 校验状态机、租户自助绑定、每客户域名自动签发证书。
+
+**操作说明（通配子域 / 客户 DNS / TLS / 验收）**：见 [`../custom-domain.md`](../custom-domain.md)。
+
 ---
 
 ## 6. 运行时解析

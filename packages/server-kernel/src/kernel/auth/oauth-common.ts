@@ -6,6 +6,7 @@ import {
   ValidationError,
 } from "../../lib/app-errors.js";
 import { config } from "../../lib/config.js";
+import type { HostTenantContext } from "../../lib/host-tenant.js";
 import { prisma } from "../../lib/prisma.js";
 
 import { AuthService, type JwtSignPayload } from "./auth.service.js";
@@ -105,6 +106,7 @@ export async function completeOAuthLogin(params: {
   registry: ProviderRegistry;
   ip: string;
   userAgent: string;
+  hostTenant?: HostTenantContext | null;
 }): Promise<OAuthLoginResult> {
   const existing = await prisma.oAuthAccount.findUnique({
     where: {
@@ -113,9 +115,16 @@ export async function completeOAuthLogin(params: {
         provider_user_id: params.profile.provider_user_id,
       },
     },
+    include: { user: { select: { tenant_id: true } } },
   });
 
   if (existing) {
+    if (
+      params.hostTenant &&
+      existing.user.tenant_id !== params.hostTenant.tenant_id
+    ) {
+      throw new ValidationError("auth.tenant_host_mismatch");
+    }
     return AuthService.issueSessionForUser(existing.user_id, params.jwtSign);
   }
 
@@ -133,6 +142,7 @@ export async function completeOAuthLogin(params: {
       params.jwtSign,
       params.ip,
       params.userAgent,
+      { hostTenant: params.hostTenant ?? null },
     );
 
   const session = await AuthService.getUserById(
@@ -147,11 +157,19 @@ export async function completeOAuthLogin(params: {
   };
 }
 
+function oauthFrontendBase(requestOrigin?: string | null): string {
+  const origin = requestOrigin?.trim();
+  if (origin) {
+    return origin.replace(/\/$/u, "");
+  }
+  return (config.frontend.url || "http://localhost:7300").replace(/\/$/u, "");
+}
+
 export function buildOAuthFrontendSuccessRedirect(
   result: OAuthLoginResult,
+  requestOrigin?: string | null,
 ): string {
-  const base = config.frontend.url || "http://localhost:7300";
-  const url = new URL("/auth/oauth/callback", base);
+  const url = new URL("/auth/oauth/callback", oauthFrontendBase(requestOrigin));
   const hash = new URLSearchParams({
     access_token: result.tokens.accessToken,
     refresh_token: result.tokens.refreshToken,
@@ -159,9 +177,11 @@ export function buildOAuthFrontendSuccessRedirect(
   return `${url.toString()}#${hash.toString()}`;
 }
 
-export function buildOAuthFrontendErrorRedirect(errorCode: string): string {
-  const base = config.frontend.url || "http://localhost:7300";
-  const url = new URL("/auth/oauth/callback", base);
+export function buildOAuthFrontendErrorRedirect(
+  errorCode: string,
+  requestOrigin?: string | null,
+): string {
+  const url = new URL("/auth/oauth/callback", oauthFrontendBase(requestOrigin));
   url.searchParams.set("error", errorCode);
   return url.toString();
 }

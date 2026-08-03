@@ -1,5 +1,7 @@
 import { type AuthActorType, type AuthTokens, type PublicConfig  } from "@be-water/shared";
 
+import type { HostTenantContext } from "../lib/host-tenant.js";
+
 export interface TenantApiKeyAuthResult {
   tenant_id: string;
   tenant_slug: string;
@@ -56,12 +58,18 @@ export interface OAuthTenantRegistrationInput {
   avatar_url: string | null;
 }
 
+export interface RegistrationOptions {
+  /** Host 绑定租户：加入该租户，禁止新建租户 */
+  hostTenant?: HostTenantContext | null;
+}
+
 export interface TenantRegistrationProvider {
   registerTenant(
     input: TenantRegistrationInput,
     jwtSign: JwtSignFn,
     ip: string,
     userAgent: string,
+    options?: RegistrationOptions,
   ): Promise<TenantRegistrationResult>;
   /**
    * OAuth 首次登录：创建个人租户 + 管理员用户 + OAuthAccount 绑定并签发 token。
@@ -72,6 +80,7 @@ export interface TenantRegistrationProvider {
     jwtSign: JwtSignFn,
     ip: string,
     userAgent: string,
+    options?: RegistrationOptions,
   ): Promise<TenantRegistrationResult>;
 }
 

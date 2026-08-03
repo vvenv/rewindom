@@ -49,6 +49,9 @@
     "remark": "备注",
     "remarkPlaceholder": "可选备注",
     "remarkMultilinePlaceholder": "支持多行文本",
+    "customDomain": "自定义域名",
+    "customDomainPlaceholder": "app.example.com",
+    "customDomainDescription": "绑定后，通过该域名访问将锁定本租户（前台与中台）；DNS/TLS 需运维配置指向本实例。留空表示清除绑定。",
     "createTitle": "新建租户",
     "creating": "创建中…",
     "status": {
@@ -73,6 +76,8 @@
     "card": {
       "createdAt": "创建于：{{date}}",
       "planEndsAt": "套餐到期：{{date}}",
+      "defaultUrl": "默认访问",
+      "customUrl": "自定义域名",
       "suspend": "暂停",
       "resume": "恢复",
       "archive": "归档"

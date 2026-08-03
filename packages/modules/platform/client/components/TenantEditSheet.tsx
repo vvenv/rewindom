@@ -43,6 +43,7 @@ export function TenantEditSheet({
   const [slug, setSlug] = useState("");
   const [name, setName] = useState("");
   const [remark, setRemark] = useState("");
+  const [customDomain, setCustomDomain] = useState("");
   const slugLocked = tenant.slug === DEFAULT_TENANT_SLUG;
 
   const handleOpenChange = (nextOpen: boolean): void => {
@@ -51,6 +52,7 @@ export function TenantEditSheet({
       setSlug(tenant.slug);
       setName(tenant.name);
       setRemark(tenant.remark ?? "");
+      setCustomDomain(tenant.custom_domain ?? "");
     }
   };
 
@@ -78,6 +80,9 @@ export function TenantEditSheet({
       }
     }
 
+    const trimmedDomain = customDomain.trim();
+    const nextDomain = trimmedDomain.length > 0 ? trimmedDomain : null;
+
     onActingChange?.(true);
     try {
       await patchMutation.mutateAsync({
@@ -86,6 +91,7 @@ export function TenantEditSheet({
           ...(!slugLocked ? { slug: trimmedSlug } : {}),
           name: trimmedName,
           remark: remark.trim() || null,
+          custom_domain: nextDomain,
         },
       });
       toast.success(t("tenants.edit.saved"));
@@ -159,6 +165,22 @@ export function TenantEditSheet({
                 onChange={(e) => setRemark(e.target.value)}
                 rows={5}
               />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor={`edit-tenant-domain-${tenant.id}`}>
+                {t("tenants.customDomain")}
+              </FieldLabel>
+              <Input
+                id={`edit-tenant-domain-${tenant.id}`}
+                value={customDomain}
+                onChange={(e) => setCustomDomain(e.target.value)}
+                placeholder={t("tenants.customDomainPlaceholder")}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <FieldDescription>
+                {t("tenants.customDomainDescription")}
+              </FieldDescription>
             </Field>
           </FieldGroup>
           <SheetFooter className="shrink-0">

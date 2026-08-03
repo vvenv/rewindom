@@ -29,6 +29,7 @@ export type TenantMinAggregateOutputType = {
   slug: string | null
   name: string | null
   remark: string | null
+  custom_domain: string | null
   status: string | null
   plan: string | null
   plan_since: Date | null
@@ -43,6 +44,7 @@ export type TenantMaxAggregateOutputType = {
   slug: string | null
   name: string | null
   remark: string | null
+  custom_domain: string | null
   status: string | null
   plan: string | null
   plan_since: Date | null
@@ -57,6 +59,7 @@ export type TenantCountAggregateOutputType = {
   slug: number
   name: number
   remark: number
+  custom_domain: number
   status: number
   plan: number
   plan_since: number
@@ -73,6 +76,7 @@ export type TenantMinAggregateInputType = {
   slug?: true
   name?: true
   remark?: true
+  custom_domain?: true
   status?: true
   plan?: true
   plan_since?: true
@@ -87,6 +91,7 @@ export type TenantMaxAggregateInputType = {
   slug?: true
   name?: true
   remark?: true
+  custom_domain?: true
   status?: true
   plan?: true
   plan_since?: true
@@ -101,6 +106,7 @@ export type TenantCountAggregateInputType = {
   slug?: true
   name?: true
   remark?: true
+  custom_domain?: true
   status?: true
   plan?: true
   plan_since?: true
@@ -188,6 +194,7 @@ export type TenantGroupByOutputType = {
   slug: string
   name: string
   remark: string | null
+  custom_domain: string | null
   status: string
   plan: string
   plan_since: Date | null
@@ -223,6 +230,7 @@ export type TenantWhereInput = {
   slug?: Prisma.StringFilter<"Tenant"> | string
   name?: Prisma.StringFilter<"Tenant"> | string
   remark?: Prisma.StringNullableFilter<"Tenant"> | string | null
+  custom_domain?: Prisma.StringNullableFilter<"Tenant"> | string | null
   status?: Prisma.StringFilter<"Tenant"> | string
   plan?: Prisma.StringFilter<"Tenant"> | string
   plan_since?: Prisma.DateTimeNullableFilter<"Tenant"> | Date | string | null
@@ -241,6 +249,7 @@ export type TenantOrderByWithRelationInput = {
   slug?: Prisma.SortOrder
   name?: Prisma.SortOrder
   remark?: Prisma.SortOrderInput | Prisma.SortOrder
+  custom_domain?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   plan?: Prisma.SortOrder
   plan_since?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -257,6 +266,7 @@ export type TenantOrderByWithRelationInput = {
 export type TenantWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   slug?: string
+  custom_domain?: string
   AND?: Prisma.TenantWhereInput | Prisma.TenantWhereInput[]
   OR?: Prisma.TenantWhereInput[]
   NOT?: Prisma.TenantWhereInput | Prisma.TenantWhereInput[]
@@ -273,13 +283,14 @@ export type TenantWhereUniqueInput = Prisma.AtLeast<{
   users?: Prisma.UserListRelationFilter
   api_keys?: Prisma.TenantApiKeyListRelationFilter
   roles?: Prisma.RoleListRelationFilter
-}, "id" | "slug">
+}, "id" | "slug" | "custom_domain">
 
 export type TenantOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   name?: Prisma.SortOrder
   remark?: Prisma.SortOrderInput | Prisma.SortOrder
+  custom_domain?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   plan?: Prisma.SortOrder
   plan_since?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -300,6 +311,7 @@ export type TenantScalarWhereWithAggregatesInput = {
   slug?: Prisma.StringWithAggregatesFilter<"Tenant"> | string
   name?: Prisma.StringWithAggregatesFilter<"Tenant"> | string
   remark?: Prisma.StringNullableWithAggregatesFilter<"Tenant"> | string | null
+  custom_domain?: Prisma.StringNullableWithAggregatesFilter<"Tenant"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"Tenant"> | string
   plan?: Prisma.StringWithAggregatesFilter<"Tenant"> | string
   plan_since?: Prisma.DateTimeNullableWithAggregatesFilter<"Tenant"> | Date | string | null
@@ -314,6 +326,7 @@ export type TenantCreateInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -332,6 +345,7 @@ export type TenantUncheckedCreateInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -350,6 +364,7 @@ export type TenantUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -368,6 +383,7 @@ export type TenantUncheckedUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -386,6 +402,7 @@ export type TenantCreateManyInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -400,6 +417,7 @@ export type TenantUpdateManyMutationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -414,6 +432,7 @@ export type TenantUncheckedUpdateManyInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -428,6 +447,7 @@ export type TenantCountOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   name?: Prisma.SortOrder
   remark?: Prisma.SortOrder
+  custom_domain?: Prisma.SortOrder
   status?: Prisma.SortOrder
   plan?: Prisma.SortOrder
   plan_since?: Prisma.SortOrder
@@ -442,6 +462,7 @@ export type TenantMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   name?: Prisma.SortOrder
   remark?: Prisma.SortOrder
+  custom_domain?: Prisma.SortOrder
   status?: Prisma.SortOrder
   plan?: Prisma.SortOrder
   plan_since?: Prisma.SortOrder
@@ -456,6 +477,7 @@ export type TenantMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   name?: Prisma.SortOrder
   remark?: Prisma.SortOrder
+  custom_domain?: Prisma.SortOrder
   status?: Prisma.SortOrder
   plan?: Prisma.SortOrder
   plan_since?: Prisma.SortOrder
@@ -538,6 +560,7 @@ export type TenantCreateWithoutApi_keysInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -555,6 +578,7 @@ export type TenantUncheckedCreateWithoutApi_keysInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -588,6 +612,7 @@ export type TenantUpdateWithoutApi_keysInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -605,6 +630,7 @@ export type TenantUncheckedUpdateWithoutApi_keysInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -622,6 +648,7 @@ export type TenantCreateWithoutSettingsInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -639,6 +666,7 @@ export type TenantUncheckedCreateWithoutSettingsInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -672,6 +700,7 @@ export type TenantUpdateWithoutSettingsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -689,6 +718,7 @@ export type TenantUncheckedUpdateWithoutSettingsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -706,6 +736,7 @@ export type TenantCreateWithoutUsersInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -723,6 +754,7 @@ export type TenantUncheckedCreateWithoutUsersInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -756,6 +788,7 @@ export type TenantUpdateWithoutUsersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -773,6 +806,7 @@ export type TenantUncheckedUpdateWithoutUsersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -790,6 +824,7 @@ export type TenantCreateWithoutRolesInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -807,6 +842,7 @@ export type TenantUncheckedCreateWithoutRolesInput = {
   slug: string
   name: string
   remark?: string | null
+  custom_domain?: string | null
   status?: string
   plan?: string
   plan_since?: Date | string | null
@@ -840,6 +876,7 @@ export type TenantUpdateWithoutRolesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -857,6 +894,7 @@ export type TenantUncheckedUpdateWithoutRolesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  custom_domain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   plan?: Prisma.StringFieldUpdateOperationsInput | string
   plan_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -932,6 +970,7 @@ export type TenantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   slug?: boolean
   name?: boolean
   remark?: boolean
+  custom_domain?: boolean
   status?: boolean
   plan?: boolean
   plan_since?: boolean
@@ -951,6 +990,7 @@ export type TenantSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   slug?: boolean
   name?: boolean
   remark?: boolean
+  custom_domain?: boolean
   status?: boolean
   plan?: boolean
   plan_since?: boolean
@@ -965,6 +1005,7 @@ export type TenantSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   slug?: boolean
   name?: boolean
   remark?: boolean
+  custom_domain?: boolean
   status?: boolean
   plan?: boolean
   plan_since?: boolean
@@ -979,6 +1020,7 @@ export type TenantSelectScalar = {
   slug?: boolean
   name?: boolean
   remark?: boolean
+  custom_domain?: boolean
   status?: boolean
   plan?: boolean
   plan_since?: boolean
@@ -988,7 +1030,7 @@ export type TenantSelectScalar = {
   updated_at?: boolean
 }
 
-export type TenantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "remark" | "status" | "plan" | "plan_since" | "plan_ends_at" | "onboarding_completed" | "created_at" | "updated_at", ExtArgs["result"]["tenant"]>
+export type TenantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "remark" | "custom_domain" | "status" | "plan" | "plan_since" | "plan_ends_at" | "onboarding_completed" | "created_at" | "updated_at", ExtArgs["result"]["tenant"]>
 export type TenantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   settings?: boolean | Prisma.Tenant$settingsArgs<ExtArgs>
   users?: boolean | Prisma.Tenant$usersArgs<ExtArgs>
@@ -1012,6 +1054,10 @@ export type $TenantPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     slug: string
     name: string
     remark: string | null
+    /**
+     * 租户自定义域名（规范化小写 hostname，无 scheme/port）；全局唯一
+     */
+    custom_domain: string | null
     status: string
     plan: string
     plan_since: Date | null
@@ -1450,6 +1496,7 @@ export interface TenantFieldRefs {
   readonly slug: Prisma.FieldRef<"Tenant", 'String'>
   readonly name: Prisma.FieldRef<"Tenant", 'String'>
   readonly remark: Prisma.FieldRef<"Tenant", 'String'>
+  readonly custom_domain: Prisma.FieldRef<"Tenant", 'String'>
   readonly status: Prisma.FieldRef<"Tenant", 'String'>
   readonly plan: Prisma.FieldRef<"Tenant", 'String'>
   readonly plan_since: Prisma.FieldRef<"Tenant", 'DateTime'>

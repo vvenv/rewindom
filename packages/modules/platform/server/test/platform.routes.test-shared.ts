@@ -75,6 +75,7 @@ export function resetPlatformRouteMocks(): void {
   vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
     status: "active",
   } as never);
+  vi.mocked(prisma.tenant.findFirst).mockResolvedValue(null);
 }
 
 export { prisma };

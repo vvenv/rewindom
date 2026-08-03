@@ -1,3 +1,4 @@
+import { usePublicConfig } from "@be-water/client-kit";
 import { formatBusinessDate } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import {
@@ -7,7 +8,7 @@ import {
   CardHeader,
 } from "@be-water/ui/card";
 import { cn } from "@be-water/ui/utils";
-import { Archive, PauseCircle, PlayCircle } from "lucide-react";
+import { Archive, ExternalLink, PauseCircle, PlayCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { type TenantSummary } from "../../shared/index.js";
@@ -59,8 +60,19 @@ export function TenantCard({
 }: TenantCardProps) {
   const { t } = useTranslation("platform");
   const TenantCardActions = tenantCardActionsSlot.useSlot();
+  const {
+    data: { tenant_base_domain },
+  } = usePublicConfig();
   const isArchived = tenant.status === "archived";
   const canManageLifecycle = tenant.slug !== "default";
+  const defaultUrl =
+    tenant_base_domain != null && tenant_base_domain.length > 0
+      ? `https://${tenant.slug}.${tenant_base_domain}`
+      : null;
+  const customUrl =
+    tenant.custom_domain != null && tenant.custom_domain.length > 0
+      ? `https://${tenant.custom_domain}`
+      : null;
 
   return (
     <Card>
@@ -90,6 +102,34 @@ export function TenantCard({
             {t("tenants.card.planEndsAt", {
               date: formatBusinessDate(tenant.plan_ends_at),
             })}
+          </p>
+        ) : null}
+        {defaultUrl ? (
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
+            <span>{t("tenants.card.defaultUrl")}</span>
+            <a
+              href={defaultUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 font-mono text-foreground underline-offset-4 hover:underline"
+            >
+              {defaultUrl}
+              <ExternalLink className="size-3.5 shrink-0 opacity-70" />
+            </a>
+          </p>
+        ) : null}
+        {customUrl ? (
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
+            <span>{t("tenants.card.customUrl")}</span>
+            <a
+              href={customUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 font-mono text-foreground underline-offset-4 hover:underline"
+            >
+              {customUrl}
+              <ExternalLink className="size-3.5 shrink-0 opacity-70" />
+            </a>
           </p>
         ) : null}
         <TenantStats tenantId={tenant.id} />

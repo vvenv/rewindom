@@ -23,6 +23,7 @@ function createMockTenant(
     slug: "test-tenant",
     name: "Test Tenant",
     remark: null,
+    custom_domain: null,
     status: "active",
     plan: "free",
     plan_since: null,

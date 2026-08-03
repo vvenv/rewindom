@@ -49,6 +49,9 @@
     "remark": "Remark",
     "remarkPlaceholder": "Optional remark",
     "remarkMultilinePlaceholder": "Multi-line text supported",
+    "customDomain": "Custom domain",
+    "customDomainPlaceholder": "app.example.com",
+    "customDomainDescription": "When set, visits via this hostname are locked to this tenant (marketing + app). DNS/TLS must point to this instance. Leave empty to clear.",
     "createTitle": "New tenant",
     "creating": "Creating…",
     "status": {
@@ -73,6 +76,8 @@
     "card": {
       "createdAt": "Created: {{date}}",
       "planEndsAt": "Plan ends: {{date}}",
+      "defaultUrl": "Default URL",
+      "customUrl": "Custom domain",
       "suspend": "Suspend",
       "resume": "Resume",
       "archive": "Archive"

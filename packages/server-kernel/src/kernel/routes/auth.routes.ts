@@ -78,6 +78,7 @@ export async function authRoutes(app: FastifyInstance) {
       const result = await AuthService.login(
         { username, password },
         app.jwt.sign.bind(app.jwt),
+        { hostTenant: request.hostTenantContext ?? null },
       );
 
       try {
@@ -198,6 +199,7 @@ export async function authRoutes(app: FastifyInstance) {
           app.jwt.sign.bind(app.jwt),
           request.ip,
           request.headers["user-agent"] ?? "",
+          { hostTenant: request.hostTenantContext ?? null },
         );
 
       return reply.code(201).send(
@@ -358,8 +360,12 @@ export async function authRoutes(app: FastifyInstance) {
         );
       } catch (error) {
         app.log.error(error);
+        const origin = requestOriginFromHeaders(request);
         return reply.redirect(
-          provider.service.buildFrontendErrorRedirect(mapOAuthErrorCode(error)),
+          provider.service.buildFrontendErrorRedirect(
+            mapOAuthErrorCode(error),
+            origin,
+          ),
         );
       }
     });
@@ -409,6 +415,7 @@ export async function authRoutes(app: FastifyInstance) {
           registry: app.registry,
           ip: request.ip,
           userAgent: request.headers["user-agent"] ?? "",
+          hostTenant: request.hostTenantContext ?? null,
         });
 
         try {
@@ -427,12 +434,16 @@ export async function authRoutes(app: FastifyInstance) {
         }
 
         return reply.redirect(
-          provider.service.buildFrontendSuccessRedirect(result),
+          provider.service.buildFrontendSuccessRedirect(result, origin),
         );
       } catch (error) {
         app.log.error(error);
+        const origin = requestOriginFromHeaders(request);
         return reply.redirect(
-          provider.service.buildFrontendErrorRedirect(mapOAuthErrorCode(error)),
+          provider.service.buildFrontendErrorRedirect(
+            mapOAuthErrorCode(error),
+            origin,
+          ),
         );
       }
     });

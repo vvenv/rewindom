@@ -36,7 +36,11 @@ import { resolvePlanLimitsForSlug } from "./plan-limit-templates.service.js";
 import { getPlatformSettings } from "./platform-settings.service.js";
 import { saveTenantJsonSetting } from "./tenant-json-setting.service.js";
 
-import type { OAuthTenantRegistrationInput } from "@be-water/server-kernel/runtime/provider-contracts.js";
+import type {
+  OAuthTenantRegistrationInput,
+  RegistrationOptions,
+} from "@be-water/server-kernel/runtime/provider-contracts.js";
+import type { HostTenantContext } from "@be-water/server-kernel/lib/host-tenant.js";
 
 export type { RegisterTenantInput };
 
@@ -62,7 +66,19 @@ async function resolveDefaultTenantForRegistration(): Promise<{
   return tenant;
 }
 
-/** OAuth 加入默认租户时，在租户内为登录名找可用变体。 */
+async function resolveForcedTenantForRegistration(
+  hostTenant: HostTenantContext,
+): Promise<{ id: string; slug: string; name: string }> {
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: hostTenant.tenant_id },
+  });
+  if (!tenant || tenant.status !== "active") {
+    throw new AppError({ code: "tenant.suspended_or_missing", status: 403 });
+  }
+  return tenant;
+}
+
+/** OAuth / 强制租户注册时，在租户内为登录名找可用变体。 */
 async function resolveUniqueUsernameInTenant(
   tenantId: string,
   baseUsername: string,
@@ -118,9 +134,11 @@ async function issueRegistrationTokens(
 }
 
 /**
- * 单租户模式：在默认租户内创建普通用户（非系统管理员）。
+ * 在指定租户内创建普通用户（非系统管理员）。
+ * 用于 `SINGLE_TENANT` 默认租户，或自定义域名绑定租户。
  */
-async function registerUserIntoDefaultTenant(
+async function registerUserIntoTenant(
+  tenant: { id: string; slug: string; name: string },
   input: {
     username: string;
     password?: string | null;
@@ -139,7 +157,6 @@ async function registerUserIntoDefaultTenant(
 ): Promise<RegisterTenantResult> {
   validateUsername(input.username);
 
-  const tenant = await resolveDefaultTenantForRegistration();
   let username = input.username.trim();
 
   const existingUser = await prisma.user.findUnique({
@@ -307,6 +324,7 @@ export async function registerTenant(
   jwtSign: (payload: JwtSignPayload) => string,
   ipAddress: string,
   userAgent: string,
+  options?: RegistrationOptions,
 ): Promise<RegisterTenantResult> {
   const config = await getPlatformSettings();
   if (!config.registration_enabled) {
@@ -318,8 +336,27 @@ export async function registerTenant(
   validateEmail(input.email);
   validatePassword(input.password);
 
+  const hostTenant = options?.hostTenant ?? null;
+  if (hostTenant) {
+    const tenant = await resolveForcedTenantForRegistration(hostTenant);
+    return registerUserIntoTenant(
+      tenant,
+      {
+        username: input.username,
+        password: input.password,
+        phone: input.phone,
+        email: input.email,
+      },
+      jwtSign,
+      ipAddress,
+      userAgent,
+    );
+  }
+
   if (appConfig.tenant.singleTenant) {
-    return registerUserIntoDefaultTenant(
+    const tenant = await resolveDefaultTenantForRegistration();
+    return registerUserIntoTenant(
+      tenant,
       {
         username: input.username,
         password: input.password,
@@ -469,6 +506,7 @@ export async function registerOAuthTenant(
   jwtSign: (payload: JwtSignPayload) => string,
   ipAddress: string,
   userAgent: string,
+  options?: RegistrationOptions,
 ): Promise<RegisterTenantResult> {
   const settings = await getPlatformSettings();
   if (!settings.registration_enabled) {
@@ -477,8 +515,31 @@ export async function registerOAuthTenant(
 
   validateUsername(input.username);
 
+  const hostTenant = options?.hostTenant ?? null;
+  if (hostTenant) {
+    const tenant = await resolveForcedTenantForRegistration(hostTenant);
+    return registerUserIntoTenant(
+      tenant,
+      {
+        username: input.username,
+        password: null,
+        email: input.email,
+        provider: input.provider,
+        provider_user_id: input.provider_user_id,
+        provider_username: input.username,
+        avatar_url: input.avatar_url,
+        allowUsernameSuffix: true,
+      },
+      jwtSign,
+      ipAddress,
+      userAgent,
+    );
+  }
+
   if (appConfig.tenant.singleTenant) {
-    return registerUserIntoDefaultTenant(
+    const tenant = await resolveDefaultTenantForRegistration();
+    return registerUserIntoTenant(
+      tenant,
       {
         username: input.username,
         password: null,

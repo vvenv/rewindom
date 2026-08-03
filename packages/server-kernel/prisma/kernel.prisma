@@ -6,6 +6,8 @@ model Tenant {
   slug                 String    @unique
   name                 String
   remark               String?
+  /// 租户自定义域名（规范化小写 hostname，无 scheme/port）；全局唯一
+  custom_domain        String?   @unique
   status               String    @default("active")
   plan                 String    @default("free")
   plan_since           DateTime?

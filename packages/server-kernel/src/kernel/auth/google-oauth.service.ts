@@ -13,6 +13,7 @@ import {
 } from "./oauth-common.js";
 
 import type { JwtSignPayload } from "./auth.service.js";
+import type { HostTenantContext } from "../../lib/host-tenant.js";
 import type { ProviderRegistry } from "../../runtime/provider-registry.js";
 
 const GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -143,6 +144,7 @@ export class GoogleOAuthService {
     registry: ProviderRegistry;
     ip: string;
     userAgent: string;
+    hostTenant?: HostTenantContext | null;
   }): Promise<OAuthLoginResult> {
     assertGoogleConfigured();
 
@@ -159,14 +161,21 @@ export class GoogleOAuthService {
       registry: params.registry,
       ip: params.ip,
       userAgent: params.userAgent,
+      hostTenant: params.hostTenant,
     });
   }
 
-  static buildFrontendSuccessRedirect(result: OAuthLoginResult): string {
-    return buildOAuthFrontendSuccessRedirect(result);
+  static buildFrontendSuccessRedirect(
+    result: OAuthLoginResult,
+    requestOrigin?: string | null,
+  ): string {
+    return buildOAuthFrontendSuccessRedirect(result, requestOrigin);
   }
 
-  static buildFrontendErrorRedirect(errorCode: string): string {
-    return buildOAuthFrontendErrorRedirect(errorCode);
+  static buildFrontendErrorRedirect(
+    errorCode: string,
+    requestOrigin?: string | null,
+  ): string {
+    return buildOAuthFrontendErrorRedirect(errorCode, requestOrigin);
   }
 }

@@ -53,11 +53,31 @@ vi.mock("../shell/platform-widget-slots.js", () => ({
   },
 }));
 
+vi.mock("@be-water/client-kit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@be-water/client-kit")>();
+  return {
+    ...actual,
+    usePublicConfig: () => ({
+      data: {
+        registration_enabled: false,
+        captcha_enabled: false,
+        default_locale: "zh-CN" as const,
+        github_oauth_enabled: false,
+        google_oauth_enabled: false,
+        single_tenant: false,
+        bound_tenant: null,
+        tenant_base_domain: "water.moms.plus",
+      },
+    }),
+  };
+});
+
 const baseTenant: TenantSummary = {
   id: "t1",
   slug: "acme",
   name: "Acme 公司",
   remark: "测试备注",
+  custom_domain: null,
   status: "active",
   plan: "free",
   plan_since: null,

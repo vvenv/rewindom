@@ -145,7 +145,17 @@ export const KERNEL_MESSAGES_EN: Record<string, string> = {
     "Target user does not exist or does not belong to this tenant",
   "tenant.impersonate_user_disabled": "Target user is disabled",
   "tenant.patch_fields_required":
-    "Please provide slug, name, remark, or status",
+    "Please provide slug, name, remark, status, or custom_domain",
+  "tenant.domain_exists": "This custom domain is already bound to another tenant",
+  "tenant.domain_invalid":
+    "Invalid custom domain (hostname only, no scheme or port)",
+  "tenant.domain_reserved":
+    "Cannot bind the platform primary domain or a reserved hostname",
+  "tenant.host_mismatch": "Current domain does not match the signed-in tenant",
+  "tenant.host_platform_forbidden":
+    "Platform console is not available on a tenant custom domain",
+  "auth.tenant_host_mismatch":
+    "Account organization does not match the current domain",
 
   "role.not_found": "Role not found",
   "role.name_required": "Role name is required",

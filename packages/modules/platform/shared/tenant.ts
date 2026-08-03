@@ -10,6 +10,8 @@ export interface TenantSummary {
   slug: string;
   name: string;
   remark: string | null;
+  /** 绑定的自定义域名（hostname）；未绑定为 null */
+  custom_domain: string | null;
   status: TenantStatus;
   plan: PlanSlug;
   plan_since: string | null;
@@ -36,6 +38,8 @@ export interface PatchTenantBody {
   name?: string;
   remark?: string | null;
   status?: TenantStatus;
+  /** 传 null 或空字符串清除绑定；传 hostname 则规范化后写入 */
+  custom_domain?: string | null;
 }
 
 export interface UpdateTenantPlanBody {

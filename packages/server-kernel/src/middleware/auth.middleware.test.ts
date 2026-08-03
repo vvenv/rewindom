@@ -10,6 +10,12 @@ vi.mock("../lib/config.js", () => ({
     auth: {
       platformAdmin: { username: "platform", password: "", passwordHash: "" },
     },
+    frontend: {
+      url: "http://localhost:7300",
+    },
+    tenant: {
+      baseDomain: "",
+    },
   },
 }));
 
@@ -51,6 +57,7 @@ vi.mock("../lib/prisma.js", () => ({
     },
     tenant: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
     },
     platformAdmin: {
       findUnique: vi.fn(),
@@ -66,6 +73,7 @@ describe("auth.middleware", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    vi.mocked(prisma.tenant.findFirst).mockResolvedValue(null);
     app = Fastify({ logger: false });
     await app.register(FastifyJWT, {
       secret: "test-secret",
@@ -461,6 +469,99 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe("host-bound tenant", () => {
+    beforeEach(() => {
+      vi.mocked(prisma.tenant.findFirst).mockResolvedValue({
+        id: "tenant-acme",
+        slug: "acme",
+        name: "Acme",
+      } as never);
+    });
+
+    it("rejects JWT for a different tenant on bound host", async () => {
+      mockTenantAuthUser();
+      const token = app.jwt.sign(tenantAccessPayload, { expiresIn: "1h" });
+
+      app.get("/api/notes", async () => ({ ok: true }));
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/notes",
+        headers: {
+          authorization: `Bearer ${token}`,
+          host: "portal.acme.io",
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json().code).toBe("tenant.host_mismatch");
+    });
+
+    it("allows matching tenant JWT on bound host", async () => {
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        username: "bob",
+        tenant_id: "tenant-acme",
+        is_system_admin: false,
+        last_access_at: null,
+      } as never);
+      vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
+        status: "active",
+      } as never);
+
+      const token = app.jwt.sign(
+        {
+          userId: "user-acme",
+          actor_type: "tenant_user",
+          is_system_admin: false,
+          tenant_id: "tenant-acme",
+          tenant_slug: "acme",
+          type: "access",
+        },
+        { expiresIn: "1h" },
+      );
+
+      app.get("/api/notes", async () => ({ ok: true }));
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/notes",
+        headers: {
+          authorization: `Bearer ${token}`,
+          host: "portal.acme.io",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it("blocks platform routes on bound host", async () => {
+      mockPlatformAdminAuthUser();
+      const token = app.jwt.sign(
+        {
+          userId: PLATFORM_ADMIN_USER_ID,
+          actor_type: "platform_admin",
+          is_system_admin: true,
+          type: "access",
+        },
+        { expiresIn: "1h" },
+      );
+
+      app.get("/api/platform/tenants", async () => ({ ok: true }));
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/platform/tenants",
+        headers: {
+          authorization: `Bearer ${token}`,
+          host: "portal.acme.io",
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json().code).toBe("tenant.host_platform_forbidden");
     });
   });
 });

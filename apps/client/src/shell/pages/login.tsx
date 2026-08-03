@@ -38,8 +38,10 @@ export function Login() {
       github_oauth_enabled,
       google_oauth_enabled,
       single_tenant,
+      bound_tenant,
     },
   } = usePublicConfig();
+  const hostLockedTenant = single_tenant || bound_tenant != null;
 
   const handleSubmit = async () => {
     const validationError = validateLoginForm(
@@ -88,7 +90,7 @@ export function Login() {
         registrationEnabled={registration_enabled}
         githubOAuthEnabled={github_oauth_enabled}
         googleOAuthEnabled={google_oauth_enabled}
-        singleTenant={single_tenant}
+        singleTenant={hostLockedTenant}
         isLoading={isLoading}
         onUsernameChange={setUsername}
         onPasswordChange={setPassword}
