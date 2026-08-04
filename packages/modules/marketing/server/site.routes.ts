@@ -76,6 +76,7 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
       const result = await getPreviewSitePage(
         request.tenantContext!.tenant_id,
         path,
+        request.tenantContext!.tenant_slug,
       );
       if (!result) {
         return sendCodedError(reply, 404, "site.page_not_found");

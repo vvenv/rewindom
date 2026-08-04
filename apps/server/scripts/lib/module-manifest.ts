@@ -47,7 +47,8 @@ export const SERVER_MODULE_MANIFEST = [
   {
     id: "marketing",
     kind: "infrastructure",
-    requires: ["rbac", "audit"],
+    // platform：官网 logo 默认继承租户品牌资产（未上传时才回落到手填 URL）
+    requires: ["rbac", "audit", "platform"],
   },
   {
     id: "notes",

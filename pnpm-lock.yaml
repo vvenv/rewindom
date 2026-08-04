@@ -437,6 +437,9 @@ importers:
       '@be-water/server-test':
         specifier: workspace:*
         version: link:../server-test
+      '@be-water/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)

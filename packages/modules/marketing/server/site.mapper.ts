@@ -28,18 +28,15 @@ function asStatus(value: string): MarketingPageStatus {
 }
 
 export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
-  const theme_settings = resolveThemeSettings({
-    theme_settings: record.theme_settings,
-    logo_url: record.logo_url,
-    primary_color: record.primary_color,
-  });
+  const theme_settings = resolveThemeSettings(record.theme_settings);
   return {
     id: record.id,
     tenant_id: record.tenant_id,
     site_name: record.site_name,
     tagline: record.tagline,
-    logo_url: theme_settings.logo_url ?? record.logo_url,
-    primary_color: theme_settings.primary_color ?? record.primary_color,
+    // 顶层两个字段是 theme_settings 的**派生值**，方便调用方直接取
+    logo_url: theme_settings.logo_url ?? null,
+    primary_color: theme_settings.primary_color ?? null,
     theme_settings,
     default_locale: record.default_locale,
     header: safeSiteAreaSection("header", record.nav_json),
@@ -86,20 +83,28 @@ export function toMarketingPageListItem(
   };
 }
 
+/**
+ * 对外渲染用的站点视图。
+ *
+ * `brandingLogoUrl` 是租户在「系统管理 → 品牌」上传的 logo：官网**默认继承**它，
+ * 站点自己填的 `theme_settings.logo_url` 只是可选覆盖。只在这里回落，不动
+ * 管理端的 `toMarketingSite`——那份数据会灌进设置表单，填进去一存就把继承关系写死了。
+ */
 export function toPublicMarketingSite(
   site: MarketingSiteRecord,
   pages: MarketingPageRecord[],
+  brandingLogoUrl: string | null = null,
 ): PublicMarketingSite {
-  const theme_settings = resolveThemeSettings({
-    theme_settings: site.theme_settings,
-    logo_url: site.logo_url,
-    primary_color: site.primary_color,
-  });
+  const resolved = resolveThemeSettings(site.theme_settings);
+  const logo_url = resolved.logo_url ?? brandingLogoUrl;
+  // 两处渲染都走 `resolveThemeSettings`，回落后的值要同时落在 theme_settings 上，
+  // 否则那边的 `fromJson.logo_url !== undefined` 会用显式 null 把它盖回去
+  const theme_settings = { ...resolved, logo_url };
 
   return {
     site_name: site.site_name,
     tagline: site.tagline,
-    logo_url: theme_settings.logo_url ?? null,
+    logo_url,
     primary_color: theme_settings.primary_color ?? null,
     theme_settings,
     default_locale: site.default_locale,

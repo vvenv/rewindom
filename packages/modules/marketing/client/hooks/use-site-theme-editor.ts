@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { useTenantBranding } from "@be-water/client-kit";
+
 import {
   marketingPagePath,
   type MarketingPage,
@@ -43,6 +45,9 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   const pagesQuery = useSitePages();
   const pageQuery = useSitePage(pageId);
   const mutations = useSiteMutations();
+  // 官网 logo 默认继承品牌资产。服务端只对**公开**站点做这个回落，管理端那份保持原样
+  // （它要灌进设置表单，填进去一存就把继承关系写死了），所以预览在这里自己兜。
+  const brandingQuery = useTenantBranding();
 
   const [sections, setSections] = useState<SiteSection[]>([]);
   const [header, setHeader] = useState<SiteSection | null>(null);
@@ -70,14 +75,21 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   const path = page ? marketingPagePath(page.kind, page.slug) : "/";
 
   // 主题设置已并入「系统管理 → 品牌」，编辑器只读取它做预览。
+  const previewLogoUrl =
+    siteQuery.data?.theme_settings.logo_url ??
+    brandingQuery.data?.logo_url ??
+    null;
   const previewSite: PublicMarketingSite | null =
     siteQuery.data && header && footer
       ? {
           site_name: siteQuery.data.site_name,
           tagline: siteQuery.data.tagline,
-          logo_url: siteQuery.data.theme_settings.logo_url ?? null,
+          logo_url: previewLogoUrl,
           primary_color: siteQuery.data.theme_settings.primary_color ?? null,
-          theme_settings: siteQuery.data.theme_settings,
+          theme_settings: {
+            ...siteQuery.data.theme_settings,
+            logo_url: previewLogoUrl,
+          },
           default_locale: siteQuery.data.default_locale,
           header,
           footer,

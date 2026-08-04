@@ -130,20 +130,17 @@ export function safeThemeSettings(value: unknown): ThemeSettings {
   }
 }
 
-/** 合并列字段与 theme_settings JSON，列优先于空 JSON。 */
-export function resolveThemeSettings(input: {
-  theme_settings: unknown;
-  logo_url: string | null;
-  primary_color: string | null;
-}): ThemeSettings {
-  const fromJson = safeThemeSettings(input.theme_settings);
+/**
+ * 脏 JSON → 每个字段都有确定值的主题设置。
+ *
+ * `theme_settings` 是唯一真相源：logo / 主色曾经另有独立列，已在
+ * `20260804020000_marketing_site_theme_only` 回填后删除。
+ */
+export function resolveThemeSettings(theme_settings: unknown): ThemeSettings {
+  const fromJson = safeThemeSettings(theme_settings);
   return {
-    logo_url:
-      fromJson.logo_url !== undefined ? fromJson.logo_url : input.logo_url,
-    primary_color:
-      fromJson.primary_color !== undefined
-        ? fromJson.primary_color
-        : input.primary_color,
+    logo_url: fromJson.logo_url ?? null,
+    primary_color: fromJson.primary_color ?? null,
     font_family: fromJson.font_family ?? "system",
     page_nav: fromJson.page_nav ?? "left",
     page_width: fromJson.page_width ?? "default",

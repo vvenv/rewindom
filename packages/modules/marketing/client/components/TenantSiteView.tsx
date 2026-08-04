@@ -81,11 +81,7 @@ export function TenantSiteView({
 }: TenantSiteViewProps) {
   const pageMeta = findPage(site, path);
   const pageTitle = title ?? pageMeta?.title ?? site.site_name;
-  const theme = resolveThemeSettings({
-    theme_settings: site.theme_settings,
-    logo_url: site.logo_url,
-    primary_color: site.primary_color,
-  });
+  const theme = resolveThemeSettings(site.theme_settings);
   const accent = theme.primary_color ?? undefined;
   const style: CSSProperties = {
     ["--site-accent" as string]: accent,

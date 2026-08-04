@@ -14,6 +14,7 @@
   "dependencies": {
     "@be-water/client-kit": "workspace:*",
     "@be-water/server-test": "workspace:*",
+    "@be-water/shared": "workspace:*",
     "@tanstack/react-query": "^5.101.4",
     "msw": "^2.15.0"
   },

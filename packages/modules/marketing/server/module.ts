@@ -15,7 +15,8 @@ export const marketingServerModule: ServerAppModule = {
   label: "Marketing",
   kind: "infrastructure",
   description: "平台静态官网 + 租户自助 Marketing CMS（绑定 Host SSR）",
-  requires: ["rbac", "audit"],
+  // platform：官网 logo 默认继承租户品牌资产（未上传时才回落到手填 URL）
+  requires: ["rbac", "audit", "platform"],
   tenantEntitlements: [TENANT_MARKETING_ENTITLEMENT],
   shared: {
     permissions: [

@@ -234,11 +234,7 @@ export function renderMarketingHtml(input: {
   spaEntrySrc?: string;
 }): string {
   const { origin, site, page, spaEntrySrc } = input;
-  const theme = resolveThemeSettings({
-    theme_settings: site.theme_settings,
-    logo_url: site.logo_url,
-    primary_color: site.primary_color,
-  });
+  const theme = resolveThemeSettings(site.theme_settings);
   const sections = resolvePageSections({
     sections: page.sections,
     body_md: page.body_md,

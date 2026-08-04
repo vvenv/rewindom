@@ -316,7 +316,9 @@
     "toastPageDeleteFailed": "Failed to delete page",
     "chromeMovedHint": "Header, footer and page sections live in the Theme Editor; logo, accent colour and font live under System → Branding.",
     "deleteConfirmTitle": "Delete this page?",
-    "deleteConfirmDescription": "“{{title}}” and all of its sections will be permanently deleted. This cannot be undone."
+    "deleteConfirmDescription": "“{{title}}” and all of its sections will be permanently deleted. This cannot be undone.",
+    "fieldLogoUrlPlaceholder": "Defaults to the brand logo above",
+    "fieldLogoUrlHint": "Leave empty to follow the logo uploaded under Branding; set it only when the site needs a different version (wordmark, dark variant)."
   },
   "editor": {
     "title": "Theme Editor",

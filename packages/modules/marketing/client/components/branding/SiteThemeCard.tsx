@@ -109,6 +109,7 @@ function SiteThemeForm({ canWrite }: SiteThemeCardProps): ReactElement | null {
           <Input
             id="site_logo_url"
             disabled={!canWrite}
+            placeholder={t("cms.fieldLogoUrlPlaceholder")}
             value={draft.logo_url ?? ""}
             onChange={(event) =>
               setDraft({
@@ -117,6 +118,9 @@ function SiteThemeForm({ canWrite }: SiteThemeCardProps): ReactElement | null {
               })
             }
           />
+          <p className="text-muted-foreground text-xs">
+            {t("cms.fieldLogoUrlHint")}
+          </p>
         </Field>
 
         <Field>

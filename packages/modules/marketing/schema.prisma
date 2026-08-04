@@ -8,8 +8,7 @@ model MarketingSite {
   tenant_id      String   @unique
   site_name      String
   tagline        String   @default("")
-  logo_url       String?
-  primary_color  String?
+  // 品牌相关（logo / 主色 / 字体 / 版式）统一放 theme_settings，不再单独开列
   theme_settings Json     @default("{}")
   default_locale String   @default("zh-CN")
   nav_json       Json     @default("[]")

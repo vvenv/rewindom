@@ -286,8 +286,6 @@ export const MarketingSiteScalarFieldEnum = {
   tenant_id: 'tenant_id',
   site_name: 'site_name',
   tagline: 'tagline',
-  logo_url: 'logo_url',
-  primary_color: 'primary_color',
   theme_settings: 'theme_settings',
   default_locale: 'default_locale',
   nav_json: 'nav_json',

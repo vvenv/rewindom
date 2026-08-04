@@ -1,3 +1,4 @@
+import type { PublicConfig } from "@be-water/shared";
 import type { ReactNode } from "react";
 
 interface MockFilterGroup {
@@ -81,6 +82,23 @@ export function mockDebouncedSearchInput({
   );
 }
 
+/**
+ * `usePublicConfig` 的默认返回：与 client-kit 里的 `DEFAULT_PUBLIC_CONFIG` 同形。
+ *
+ * 这里不 import 真实常量——本对象正是用来**替换**整个 `@be-water/client-kit` 的，
+ * 再 import 回去等于绕开 mock。字段有增减时跟着 `PublicConfig` 补齐即可。
+ */
+const mockPublicConfig: PublicConfig = {
+  registration_enabled: false,
+  captcha_enabled: false,
+  default_locale: "zh-CN",
+  github_oauth_enabled: false,
+  google_oauth_enabled: false,
+  single_tenant: false,
+  bound_tenant: null,
+  tenant_base_domain: null,
+};
+
 export const clientShellTestMock = {
   PageFilterBar: (props: MockPageFilterBarProps) => mockPageFilterBar(props),
   FilterBar: (props: MockPageFilterBarProps) => mockPageFilterBar(props),
@@ -88,4 +106,5 @@ export const clientShellTestMock = {
   DateTimeRangePicker: () => <div data-testid="datetime-range-picker" />,
   useTenantFilter: () => () => <div data-testid="tenant-combobox" />,
   useTenantQueryScope: () => null,
+  usePublicConfig: () => ({ data: mockPublicConfig, isLoading: false }),
 };

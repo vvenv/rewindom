@@ -1,3 +1,4 @@
+import { type Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 import {
   registerServerI18nBundles,
   resetServerI18nCatalogsForTests,
@@ -23,6 +24,9 @@ interface MockAuditLogRow {
   action: string;
   resource: string | null;
   details: string | null;
+  // 与 20260731080000_audit_detail_template 加的两列对齐
+  detail_key: string | null;
+  detail_params: Prisma.JsonValue;
   ip_address: string | null;
   user_agent: string | null;
   created_at: Date;
@@ -197,7 +201,8 @@ describe("AuditService", () => {
           details: "创建笔记：hello",
         }),
       });
-      const data = vi.mocked(prisma.auditLog.create).mock.calls[0]?.[0]?.data as {
+      const data = vi.mocked(prisma.auditLog.create).mock.calls[0]?.[0]
+        ?.data as {
         detail_params?: unknown;
       };
       expect(data.detail_params).toBeDefined();

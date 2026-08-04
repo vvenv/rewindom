@@ -9,7 +9,6 @@ import {
   ValidationError,
 } from "../../lib/app-errors.js";
 import { config } from "../../lib/config.js";
-import type { HostTenantContext } from "../../lib/host-tenant.js";
 import { prisma } from "../../lib/prisma.js";
 
 import {
@@ -18,6 +17,8 @@ import {
   generatePlatformAdminTokens,
   verifyPlatformAdminPassword,
 } from "./platform-admin.service.js";
+
+import type { HostTenantContext } from "../../lib/host-tenant.js";
 
 export const BCRYPT_SALT_ROUNDS = config.auth.bcryptSaltRounds;
 

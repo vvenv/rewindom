@@ -77,7 +77,11 @@ async function renderPath(
     return;
   }
 
-  const result = await getPublishedPublicPage(hostTenant.tenant_id, path);
+  const result = await getPublishedPublicPage(
+    hostTenant.tenant_id,
+    path,
+    hostTenant.tenant_slug,
+  );
   if (!result) {
     sendHtml(
       reply,
@@ -108,7 +112,10 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     if (!hostTenant) {
       return reply.status(404).send("Not Found");
     }
-    const site = await getPublishedPublicSite(hostTenant.tenant_id);
+    const site = await getPublishedPublicSite(
+      hostTenant.tenant_id,
+      hostTenant.tenant_slug,
+    );
     if (!site) {
       return reply.status(404).send("Not Found");
     }

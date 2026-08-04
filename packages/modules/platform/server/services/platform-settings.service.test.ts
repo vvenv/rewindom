@@ -1,4 +1,7 @@
-import { type PlatformSettings, DEFAULT_PLATFORM_SETTINGS  } from "../../shared/index.js";
+import {
+  type PlatformSettings,
+  DEFAULT_PLATFORM_SETTINGS,
+} from "../../shared/index.js";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -186,6 +189,7 @@ describe("platform-settings.service", () => {
         captcha_enabled: false,
         default_theme: "slate",
         default_layout: "topbar",
+        default_locale: "zh-CN",
       };
 
       const result = await savePlatformSettings(config);

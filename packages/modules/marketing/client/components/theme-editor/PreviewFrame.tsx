@@ -24,8 +24,20 @@ const STYLE_MARK = "data-preview-style";
  * 只做 iframe 布局复位。背景**不要**在这里写死成 `var(--background)`——
  * 主站 body 用的是 index.css 里的径向渐变（water / slate × 明暗），
  * 硬铺纯色会和真实页面不一致。样式表克隆进来后会带上那套规则。
+ *
+ * 滚动条显式样式化是**必须**的：macOS 默认是覆盖式滚动条，不占布局宽度，
+ * 会悬浮在内容最右侧十几个像素上——通栏 section（`width: full`）的右边缘、
+ * 以及它的选中框正好被盖住。样式化 `::-webkit-scrollbar` 会让 Chrome/Safari
+ * 退回占位滚动条，内容宽度自动让出这段空间。
  */
-const BASE_CSS = `html,body{height:100%}body{margin:0}`;
+const BASE_CSS = [
+  `html,body{height:100%}`,
+  `body{margin:0}`,
+  `html::-webkit-scrollbar{width:10px;height:10px}`,
+  `html::-webkit-scrollbar-track{background:transparent}`,
+  `html::-webkit-scrollbar-thumb{background:color-mix(in srgb,currentColor 25%,transparent);border-radius:5px}`,
+  `html::-webkit-scrollbar-corner{background:transparent}`,
+].join("");
 
 /**
  * 把主文档的样式表复制进 iframe。

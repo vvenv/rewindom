@@ -17,13 +17,10 @@ describe("theme settings", () => {
     });
   });
 
-  it("resolveThemeSettings merges columns", () => {
+  it("resolveThemeSettings fills every field from the JSON alone", () => {
+    // logo / 主色曾经另有独立列，已随 20260804020000 迁移删除：JSON 是唯一真相源
     expect(
-      resolveThemeSettings({
-        theme_settings: {},
-        logo_url: "/a.png",
-        primary_color: "#111",
-      }),
+      resolveThemeSettings({ logo_url: "/a.png", primary_color: "#111" }),
     ).toEqual({
       logo_url: "/a.png",
       primary_color: "#111",
@@ -32,6 +29,23 @@ describe("theme settings", () => {
       page_width: "default",
       section_spacing: 16,
     });
+  });
+
+  it("resolveThemeSettings falls back to defaults on empty or broken input", () => {
+    const empty = {
+      logo_url: null,
+      primary_color: null,
+      font_family: "system",
+      page_nav: "left",
+      page_width: "default",
+      section_spacing: 16,
+    };
+    expect(resolveThemeSettings({})).toEqual(empty);
+    expect(resolveThemeSettings(null)).toEqual(empty);
+    // 脏数据不该炸掉渲染
+    expect(resolveThemeSettings({ primary_color: "not-a-color" })).toEqual(
+      empty,
+    );
   });
 
   it("parses layout settings and rejects out-of-range spacing", () => {

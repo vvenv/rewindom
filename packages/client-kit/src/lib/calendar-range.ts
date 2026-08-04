@@ -1,4 +1,11 @@
-import { apiRangeMatchesCalendarPreset, dateOnlyToApiRange, getCalendarRange, type CalendarRangePreset, type DateRange as ApiDateRange, formatBusinessDate  } from "@be-water/shared";
+import {
+  apiRangeMatchesCalendarPreset,
+  dateOnlyToApiRange,
+  getCalendarRange,
+  type CalendarRangePreset,
+  type DateRange as ApiDateRange,
+  formatBusinessDate,
+} from "@be-water/shared";
 
 import type { DateRange } from "react-day-picker";
 
@@ -8,12 +15,14 @@ export interface CalendarRangePresetOption {
 }
 
 /** 默认快捷范围（不含文案；文案由 `buildDefaultDateTimeRangePresets` / DateTimeRangePicker 翻译）。 */
-export const DEFAULT_DATETIME_RANGE_PRESET_IDS: readonly CalendarRangePreset[] = [
+// `satisfies` 而不是类型标注：标注会把元组拓宽成整个 CalendarRangePreset 联合，
+// 下面按 `[number]` 建的文案表就被要求覆盖所有预设（含这里刻意不列的 this_month）
+export const DEFAULT_DATETIME_RANGE_PRESET_IDS = [
   "today",
   "yesterday",
   "last_7_days",
   "last_30_days",
-] as const;
+] as const satisfies readonly CalendarRangePreset[];
 
 export function buildDefaultDateTimeRangePresets(
   t: (key: string) => string,

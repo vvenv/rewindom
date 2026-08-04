@@ -31,10 +31,10 @@
 
 ## 租户 CMS 数据
 
-| 模型            | 说明                                                                                                                                                                 |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MarketingSite` | 每租户一行：站名、标语、`theme_settings`（logo / 主色 / 字体）、站点级 `published`；`nav_json` / `footer_json` 现在存**页头 / 页脚 section**（旧的链接数组自动迁移） |
-| `MarketingPage` | `kind`: `home` \| `page` \| `doc`；`status`: `draft` \| `published`；`sections[]`；`body_md`（sections 为空时回退）                                                  |
+| 模型            | 说明                                                                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MarketingSite` | 每租户一行：站名、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 现在存**页头 / 页脚 section**（旧的链接数组自动迁移） |
+| `MarketingPage` | `kind`: `home` \| `page` \| `doc`；`status`: `draft` \| `published`；`sections[]`；`body_md`（sections 为空时回退）                            |
 
 ### Section schema（唯一真相源）
 
@@ -149,10 +149,19 @@ blocks；`nav_json`/`footer_json` 的 `{label,href}[]` 自动迁成页头 / 页�
 **页面预设**（`client/lib/page-presets.ts`）一键铺出默认官网版式：首页 / 定价 / 文档 / 关于 / 联系。
 预设只描述结构 + i18n key，文案在创建时用 `t()` 落成当前语言的普通内容，套完随便改。
 
-**站点主题**（Logo / 主色 / 字体）已从编辑器移出，并入「系统管理 → 品牌」（`/settings`）：
+**站点主题**（Logo / 主色 / 字体 / 页宽 / 区块间距）已从编辑器移出，并入「系统管理 → 品牌」（`/settings`）：
 `platform` 开 `settingsBrandingExtraSlot`，本模块通过 `client.shell.shellProviders`
 注入 `SiteThemeCard`（`platform` 不得反向 import 业务模块）。未开通 `tenant-marketing`
 的租户不渲染该卡片也不发请求。
+
+`theme_settings` 是站点主题的**唯一真相源**——`logo_url` / `primary_color` 曾经另有独立列，
+已由 `20260804020000_marketing_site_theme_only` 回填后删除；API 上的同名顶层字段是派生值。
+
+**官网 logo 默认继承租户品牌资产**（platform 的 `branding` 设置），`theme_settings.logo_url`
+只是可选覆盖。回落只发生在**公开面**（`toPublicMarketingSite`）与编辑器预览
+（`use-site-theme-editor` 用 `useTenantBranding` 自己兜）：管理端 `toMarketingSite` 必须保持原样，
+那份数据要灌进设置表单，填进去一存就把继承关系写死了。也**不能**直接拼公开路径当默认值——
+没上传过资产时那个端点是 404，会渲染成破图，所以要真读一次 branding 设置。
 
 API：
 

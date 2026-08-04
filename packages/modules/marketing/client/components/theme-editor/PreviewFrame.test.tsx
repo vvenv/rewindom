@@ -68,6 +68,21 @@ describe("PreviewFrame", () => {
     document.documentElement.removeAttribute("data-theme");
   });
 
+  /** 样式是 effect 里注入的：必须等到内容真的出现，否则断言拿到的是空列表（恒真）。 */
+  async function injectedCss(container: HTMLElement): Promise<string> {
+    return waitFor(() => {
+      const css = [
+        ...(frameDoc(container)?.head.querySelectorAll(
+          "[data-preview-style]",
+        ) ?? []),
+      ]
+        .map((node) => node.textContent ?? "")
+        .join("");
+      expect(css).not.toBe("");
+      return css;
+    });
+  }
+
   it("does not hard-code a solid body background over the host theme", async () => {
     const { container } = render(
       <PreviewFrame device="desktop">
@@ -75,17 +90,21 @@ describe("PreviewFrame", () => {
       </PreviewFrame>,
     );
 
-    await waitFor(() => expect(frameDoc(container)).not.toBeNull());
-    const marked = [
-      ...(frameDoc(container)?.head.querySelectorAll("[data-preview-style]") ??
-        []),
-    ];
     // 只允许布局复位；纯色 background 会盖住 index.css 的 body 径向渐变
-    expect(
-      marked.some((node) =>
-        (node.textContent ?? "").includes("background:var(--background"),
-      ),
-    ).toBe(false);
+    expect(await injectedCss(container)).not.toContain(
+      "background:var(--background",
+    );
+  });
+
+  it("forces a space-taking scrollbar so flush-right content stays visible", async () => {
+    const { container } = render(
+      <PreviewFrame device="desktop">
+        <span>x</span>
+      </PreviewFrame>,
+    );
+
+    // 覆盖式滚动条会悬浮在内容最右侧，盖住通栏 section 的右边缘与它的选中框
+    expect(await injectedCss(container)).toContain("::-webkit-scrollbar");
   });
 
   it("renders at the device's logical width so media queries see a real viewport", async () => {

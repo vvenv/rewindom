@@ -316,7 +316,9 @@
     "toastPageDeleteFailed": "删除页面失败",
     "chromeMovedHint": "页头、页脚与页面区块在 Theme Editor 里编辑；Logo、主色与字体在「系统管理 → 品牌」。",
     "deleteConfirmTitle": "删除该页面？",
-    "deleteConfirmDescription": "「{{title}}」及其全部区块将被永久删除，此操作不可撤销。"
+    "deleteConfirmDescription": "「{{title}}」及其全部区块将被永久删除，此操作不可撤销。",
+    "fieldLogoUrlPlaceholder": "默认使用上方的品牌 Logo",
+    "fieldLogoUrlHint": "留空即跟随「品牌」里上传的 Logo；只有官网想用不同版本（横版 / 深色版）时才填。"
   },
   "editor": {
     "title": "Theme Editor",

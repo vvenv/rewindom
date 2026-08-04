@@ -58,9 +58,11 @@ function selectable(
       }
     },
     className: cn(
-      "cursor-pointer outline-offset-2 transition-[box-shadow,outline-color]",
+      // 与 section 一致：选中框画在内侧。页头页脚是通栏的，外扩会被视口裁掉；
+      // 页头还是 sticky，外扩的 ring 会压到下面的内容上
+      "cursor-pointer -outline-offset-2 transition-[box-shadow,outline-color]",
       selected
-        ? "outline-2 outline-primary ring-2 ring-primary/20"
+        ? "outline-2 outline-primary inset-ring-2 inset-ring-primary/20"
         : "outline-2 outline-transparent",
     ),
   };

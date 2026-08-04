@@ -21,7 +21,10 @@ export async function publicSiteRoutes(app: FastifyInstance): Promise<void> {
           code: "site.host_unbound",
         });
       }
-      const site = await getPublishedPublicSite(hostTenant.tenant_id);
+      const site = await getPublishedPublicSite(
+        hostTenant.tenant_id,
+        hostTenant.tenant_slug,
+      );
       if (!site) {
         return reply.status(404).send({
           error: "Site is not published",
@@ -55,6 +58,7 @@ export async function publicSiteRoutes(app: FastifyInstance): Promise<void> {
       const result = await getPublishedPublicPage(
         hostTenant.tenant_id,
         pagePath,
+        hostTenant.tenant_slug,
       );
       if (!result) {
         return reply.status(404).send({

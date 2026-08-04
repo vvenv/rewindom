@@ -6,11 +6,11 @@ import {
   ValidationError,
 } from "../../lib/app-errors.js";
 import { config } from "../../lib/config.js";
-import type { HostTenantContext } from "../../lib/host-tenant.js";
 import { prisma } from "../../lib/prisma.js";
 
 import { AuthService, type JwtSignPayload } from "./auth.service.js";
 
+import type { HostTenantContext } from "../../lib/host-tenant.js";
 import type { ProviderRegistry } from "../../runtime/provider-registry.js";
 import type { AuthActorType, AuthTokens } from "@be-water/shared";
 

@@ -7,6 +7,7 @@ import {
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 
+import { getTenantBrandingUrls } from "../../platform/server/services/tenant-branding.service.js";
 import {
   marketingPagePath,
   type CreateMarketingPageBody,
@@ -104,11 +105,7 @@ export async function updateSite(
     data.published = Boolean(body.published);
   }
 
-  const nextTheme = resolveThemeSettings({
-    theme_settings: existing.theme_settings,
-    logo_url: existing.logo_url,
-    primary_color: existing.primary_color,
-  });
+  const nextTheme = resolveThemeSettings(existing.theme_settings);
 
   if (body.theme_settings !== undefined) {
     const parsed = parseSiteThemeSettings(body.theme_settings);
@@ -129,9 +126,8 @@ export async function updateSite(
     body.logo_url !== undefined ||
     body.primary_color !== undefined
   ) {
+    // theme_settings 是唯一真相源；logo / 主色的独立列已随迁移删除
     data.theme_settings = nextTheme as Prisma.InputJsonValue;
-    data.logo_url = nextTheme.logo_url ?? null;
-    data.primary_color = nextTheme.primary_color ?? null;
   }
 
   const updated = await prisma.marketingSite.update({
@@ -252,7 +248,8 @@ export async function updatePage(
 
   try {
     const updated = await prisma.marketingPage.update({
-      where: { id: page_id },
+      // 带上 tenant_id：上面的存在性校验是 check-then-act，写入本身也要租户闭合
+      where: { id: page_id, tenant_id },
       data: {
         slug: nextSlug,
         locale: nextLocale,
@@ -313,7 +310,7 @@ export async function deletePage(
   if (!existing) {
     throw new NotFoundError("site.page_not_found");
   }
-  await prisma.marketingPage.delete({ where: { id: page_id } });
+  await prisma.marketingPage.delete({ where: { id: page_id, tenant_id } });
 }
 
 export async function setPageStatus(
@@ -328,14 +325,28 @@ export async function setPageStatus(
     throw new NotFoundError("site.page_not_found");
   }
   const updated = await prisma.marketingPage.update({
-    where: { id: page_id },
+    where: { id: page_id, tenant_id },
     data: { status },
   });
   return toMarketingPage(updated);
 }
 
+/**
+ * 官网 logo 默认继承租户品牌资产；没上传过时为 `null`，交由站点自己填的 URL 兜底。
+ *
+ * 不能直接把公开路径拼出来当默认值——没资产时那个端点是 404，会渲染成破图。
+ */
+async function brandingLogoUrl(
+  tenant_id: string,
+  tenant_slug: string,
+): Promise<string | null> {
+  const { logo_url } = await getTenantBrandingUrls(tenant_id, tenant_slug);
+  return logo_url;
+}
+
 export async function getPublishedPublicSite(
   tenant_id: string,
+  tenant_slug: string,
 ): Promise<PublicMarketingSite | null> {
   const site = await prisma.marketingSite.findFirst({
     where: withTenantScope(tenant_id, { published: true }),
@@ -346,14 +357,19 @@ export async function getPublishedPublicSite(
     where: withTenantScope(tenant_id, { status: "published" }),
     orderBy: [{ sort_order: "asc" }, { title: "asc" }],
   });
-  return toPublicMarketingSite(site, pages);
+  return toPublicMarketingSite(
+    site,
+    pages,
+    await brandingLogoUrl(tenant_id, tenant_slug),
+  );
 }
 
 export async function getPublishedPublicPage(
   tenant_id: string,
   path: string,
+  tenant_slug: string,
 ): Promise<{ site: PublicMarketingSite; page: PublicMarketingPage } | null> {
-  const site = await getPublishedPublicSite(tenant_id);
+  const site = await getPublishedPublicSite(tenant_id, tenant_slug);
   if (!site) return null;
 
   const normalized =
@@ -383,6 +399,7 @@ export async function getPublishedPublicPage(
 export async function getPreviewSitePage(
   tenant_id: string,
   path: string,
+  tenant_slug: string,
 ): Promise<{ site: PublicMarketingSite; page: PublicMarketingPage } | null> {
   await ensureSiteRow(tenant_id);
   const siteRecord = await prisma.marketingSite.findFirstOrThrow({
@@ -392,7 +409,11 @@ export async function getPreviewSitePage(
     where: withTenantScope(tenant_id),
     orderBy: [{ sort_order: "asc" }, { title: "asc" }],
   });
-  const site = toPublicMarketingSite(siteRecord, pages);
+  const site = toPublicMarketingSite(
+    siteRecord,
+    pages,
+    await brandingLogoUrl(tenant_id, tenant_slug),
+  );
 
   const normalized =
     path === "/" || path === ""

@@ -33,9 +33,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function normalizeAsset(
-  raw: unknown,
-): TenantBrandingAsset | null {
+function normalizeAsset(raw: unknown): TenantBrandingAsset | null {
   if (!isRecord(raw)) return null;
   const storage_key =
     typeof raw.storage_key === "string" ? raw.storage_key.trim() : "";
@@ -75,9 +73,7 @@ export async function getTenantBrandingUrls(
   return brandingUrlsFromAssets(tenantSlug, branding);
 }
 
-function allowedMimeTypes(
-  kind: TenantBrandingAssetKind,
-): readonly string[] {
+function allowedMimeTypes(kind: TenantBrandingAssetKind): readonly string[] {
   return kind === "logo" ? LOGO_ALLOWED_MIME_TYPES : FAVICON_ALLOWED_MIME_TYPES;
 }
 
@@ -169,9 +165,13 @@ export async function clearTenantBrandingAsset(input: {
 export async function openTenantBrandingAssetStream(input: {
   tenant_slug: string;
   kind: TenantBrandingAssetKind;
-}): Promise<{ stream: ReturnType<
-  ReturnType<typeof getFileStorageProvider>["createReadStream"]
->; mime_type: string; size: number }> {
+}): Promise<{
+  stream: ReturnType<
+    ReturnType<typeof getFileStorageProvider>["createReadStream"]
+  >;
+  mime_type: string;
+  size: number;
+}> {
   const tenant = await prisma.tenant.findUnique({
     where: { slug: input.tenant_slug },
     select: { id: true },
@@ -188,7 +188,8 @@ export async function openTenantBrandingAssetStream(input: {
 
   const storage = getFileStorageProvider();
   const absolutePath = storage.resolveAbsolutePath(asset.storage_key);
-  let size = 0;
+  // 不给初值：catch 一定抛，赋值前不可能被读到，给了反而是无用赋值
+  let size: number;
   try {
     size = (await stat(absolutePath)).size;
   } catch {
