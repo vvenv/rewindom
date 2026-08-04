@@ -215,7 +215,11 @@ export function TenantSiteView({
   );
 
   if (embedded) {
-    return content;
+    // 与 MarketingLayout(chrome=false) 同一层底色，避免 iframe 直接露 body 渐变
+    // 而实站被 `bg-background` 壳盖住——预览会和真实页面不一致
+    return (
+      <div className="min-h-full bg-background text-foreground">{content}</div>
+    );
   }
 
   // 租户官网用自己的页头页脚，不套平台 chrome（只借 locale 同步与 SEO）

@@ -97,12 +97,12 @@ export function SectionTree({
           icon={
             blockTypes.length > 0 ? (
               expanded ? (
-                <ChevronDown className="size-3.5 text-muted-foreground" />
+                <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
               ) : (
-                <ChevronRight className="size-3.5 text-muted-foreground" />
+                <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
               )
             ) : Icon ? (
-              <Icon className="size-3.5 text-muted-foreground" />
+              <Icon className="size-3.5 shrink-0 text-muted-foreground" />
             ) : null
           }
           label={sectionLabel(section, t(def.label))}
@@ -136,7 +136,7 @@ export function SectionTree({
                   selected={selection?.blockId === block.id}
                   icon={
                     BlockIcon ? (
-                      <BlockIcon className="size-3.5 text-muted-foreground" />
+                      <BlockIcon className="size-3.5 shrink-0 text-muted-foreground" />
                     ) : null
                   }
                   label={blockLabel(
@@ -177,15 +177,17 @@ export function SectionTree({
   };
 
   return (
+    // 滚动落在 aside 上，三个分组一律 `shrink-0`：它们是 column flex item，
+    // 默认会被压到比内容还矮，压缩后内容溢出、直接盖住后面的分组
     <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto rounded-lg border p-3">
       {header ? (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex shrink-0 flex-col gap-0.5">
           <GroupLabel>{t("editor.group.headerArea")}</GroupLabel>
           {renderSection(header, { removable: false, movable: false })}
         </div>
       ) : null}
 
-      <div className="flex min-h-0 flex-col gap-0.5">
+      <div className="flex shrink-0 flex-col gap-0.5">
         <GroupLabel>
           {t("editor.group.template")}
           <Badge variant="outline" className="ml-auto">
@@ -223,7 +225,7 @@ export function SectionTree({
       </div>
 
       {footer ? (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex shrink-0 flex-col gap-0.5">
           <GroupLabel>{t("editor.group.footerArea")}</GroupLabel>
           {renderSection(footer, { removable: false, movable: false })}
         </div>

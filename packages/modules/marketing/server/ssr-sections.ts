@@ -317,19 +317,25 @@ export function renderSectionHtml(section: SiteSection, gap = 0): string {
   const inner = renderSectionInner(section);
   if (!inner) return "";
   const layout = resolveSectionLayout(section.settings);
+  // 光晕是容器级的背景效果，和 background/divider 同层（目前只有 hero 声明它）
+  const glow = settingBool(section.settings, "show_glow");
   const classes = [
     "sec-band",
     `sec-w-${layout.width}`,
     layout.background !== "none" ? `sec-bg-${layout.background}` : "",
     layout.dividerTop ? "sec-divider-top" : "",
     layout.dividerBottom ? "sec-divider-bottom" : "",
+    glow ? "has-glow" : "",
   ]
     .filter(Boolean)
     .join(" ");
   // 存的是桌面值，窄屏由 `.sec` / `.sec-band` 的媒体查询按比例缩
   const style = `--sec-pt:${layout.paddingTop}px;--sec-pb:${layout.paddingBottom}px`;
   const id = layout.anchor ? ` id="${escapeHtml(layout.anchor)}"` : "";
-  return `<section${id} class="sec" style="--sec-gap:${gap}px"><div class="${classes}" style="${style}"><div class="sec-content sec-c-${layout.contentWidth}">${inner}</div></div></section>`;
+  const glowHtml = glow
+    ? `<div class="sec-glow" aria-hidden="true"></div>`
+    : "";
+  return `<section${id} class="sec" style="--sec-gap:${gap}px"><div class="${classes}" style="${style}">${glowHtml}<div class="sec-content sec-c-${layout.contentWidth}">${inner}</div></div></section>`;
 }
 
 /* -------------------------------------------------------------------------- */

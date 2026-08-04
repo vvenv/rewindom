@@ -108,6 +108,20 @@ SSR 走 `.side-main` 后代选择器）。
 `resolveSectionGaps()` 显式算好落到后一段上，**不靠 margin 折叠**：折叠依赖包装层没有
 padding/border/overflow，哪天有人加一句 `overflow-hidden` 就会静默翻倍。
 
+### 编辑器预览
+
+预览跑在 **iframe** 里（`theme-editor/PreviewFrame.tsx`）：站点断点是视口媒体查询，
+只缩容器宽度并不会触发移动端样式。内容用 `createPortal` 挂进 iframe 的 body，
+所以预览和编辑器仍是同一棵 React 树——选中态、草稿、点击选区块都不用另接通道
+（React 会给 portal 容器单独挂事件监听，跨 document 的点击照样触发）。
+主文档的样式表与明暗 / `data-theme` 克隆进 iframe，开发态用 MutationObserver 跟 HMR。
+iframe body **不**硬铺 `var(--background)`——主站 body 是径向渐变；`embedded` 预览再套一层
+与 `MarketingLayout` 相同的 `bg-background` 壳，观感与实站一致。
+
+设备档位是**逻辑视口宽度**（桌面 1280 / 平板 768 / 手机 390），面板装不下时整体
+等比缩小：缩放只改视觉尺寸，iframe 仍按逻辑宽度渲染，断点不受影响。桌面不能
+「面板有多宽就多宽」——中间栏只有 600～800px，那样 `lg:` 永远不触发。
+
 **新增字段只改 schema + 两处渲染**：`client/components/sections/`（SPA）与
 `server/ssr-sections.ts`（SEO HTML）。新增 setting 类型再在 `SettingsFields.tsx` 加一个分支。
 `label` / `content` 存的是 i18n key（`marketing` namespace 下相对 key），shared 层不含展示文案。

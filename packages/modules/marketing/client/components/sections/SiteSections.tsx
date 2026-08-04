@@ -20,7 +20,10 @@ import {
   type SiteBlock,
   type SiteSection,
 } from "../../../shared/section-schema.js";
-import { THEME_SECTION_SPACING } from "../../../shared/theme-sections.js";
+import {
+  HERO_GLOW_BACKGROUND,
+  THEME_SECTION_SPACING,
+} from "../../../shared/theme-sections.js";
 import { MarkdownProse } from "../MarkdownProse.js";
 
 import { SECTION_ICON_COMPONENTS } from "./section-icons.js";
@@ -204,14 +207,9 @@ function HeroSection({ section }: { section: SiteSection }): ReactElement {
   const centered = align === "center";
 
   return (
-    <div className={cn("relative overflow-hidden", centered && "text-center")}>
-      {settingBool(s, "show_glow") ? (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-40 left-1/2 -z-10 size-168 -translate-x-1/2 rounded-full bg-primary/8 blur-3xl"
-        />
-      ) : null}
-
+    // 光晕不在这里：它是**容器**级的背景效果，画在色块层上（见 SiteSections），
+    // 否则只盖住正文盒子，顶不到 section 的上留白
+    <div className={cn(centered && "text-center")}>
       {eyebrow ? (
         <p className="text-sm font-medium tracking-wide text-primary">
           {eyebrow}
@@ -755,6 +753,8 @@ export function SiteSections({
         const layout = layouts[index]!;
         const width =
           contained && layout.width === "full" ? "page" : layout.width;
+        // 光晕是容器级的背景效果，和 background/divider 同层（目前只有 hero 声明它）
+        const glow = settingBool(section.settings, "show_glow");
         return (
           <section
             key={section.id}
@@ -813,8 +813,18 @@ export function SiteSections({
                 BACKGROUND_CLASS[layout.background],
                 layout.dividerTop && "border-t border-border/60",
                 layout.dividerBottom && "border-b border-border/60",
+                // `isolate` 不能少：光晕是 `-z-10`，没有自己的层叠上下文会掉到祖先背景之后
+                glow && "relative isolate",
               )}
             >
+              {glow ? (
+                <div
+                  aria-hidden
+                  // 跟着色块走：顶到 section 容器上沿（含上留白），圆角也随色块
+                  className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit]"
+                  style={{ background: HERO_GLOW_BACKGROUND }}
+                />
+              ) : null}
               <div
                 className={
                   contained

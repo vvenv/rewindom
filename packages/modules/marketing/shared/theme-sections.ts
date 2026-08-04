@@ -156,6 +156,18 @@ export function themePageWidthCss(width: ThemePageWidth | undefined): string {
   return PAGE_WIDTH_CSS[width ?? "default"];
 }
 
+/**
+ * hero 的柔光背景（`show_glow`），两处渲染共用同一段值。
+ *
+ * 用径向渐变而不是「模糊的圆形子元素」：渐变自带柔和边缘，不需要负偏移、
+ * 不会被父级裁出一道直边，也省掉 `blur()` 在大元素上的合成开销。
+ * 颜色取主题主色 `--site-accent`，两处渲染都注入了这个变量。
+ */
+export const HERO_GLOW_BACKGROUND =
+  "radial-gradient(60% 55% at 50% 0%," +
+  " color-mix(in srgb, var(--site-accent, currentColor) 18%, transparent) 0%," +
+  " transparent 72%)";
+
 export function themeFontCss(family: ThemeFontFamily | undefined): string {
   switch (family) {
     case "serif":

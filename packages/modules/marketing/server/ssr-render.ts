@@ -12,6 +12,7 @@ import {
   type PublicMarketingSite,
 } from "../shared/site-cms.js";
 import {
+  HERO_GLOW_BACKGROUND,
   resolveThemeSettings,
   themeFontCss,
   themePageWidthCss,
@@ -35,6 +36,8 @@ function siteCss(accent: string, fontCss: string, pageWidth: string): string {
     :root {
       --site-page-width: ${pageWidth};
       --accent: ${accent};
+      /* 与 SPA 侧同名，hero 光晕那段渐变两处共用 */
+      --site-accent: ${accent};
       --fg: #0a0a0a;
       --muted-fg: #737373;
       --bg: #ffffff;
@@ -89,6 +92,10 @@ function siteCss(accent: string, fontCss: string, pageWidth: string): string {
     /* 侧栏文档页外层已限宽并给了留白，section 不再自带 gutter，full 退化为 page */
     .side-main .sec-band, .side-main .sec-content { max-width: none; }
     .side-main .sec-content { padding-left: 0; padding-right: 0; }
+    /* 光晕跟着色块走：顶到 section 容器上沿（含上留白）。isolation 不能少——
+       z-index:-1 没有自己的层叠上下文会掉到祖先背景之后 */
+    .sec-band.has-glow { position: relative; isolation: isolate; }
+    .sec-glow { position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; background: ${HERO_GLOW_BACKGROUND}; }
     /* 色块含上下留白，内容不因换底色而横向位移 */
     .sec-bg-muted, .sec-bg-accent, .sec-bg-outline { border-radius: .75rem; }
     /* 通栏色块贴着视口边，圆角会露出两个缺口 */

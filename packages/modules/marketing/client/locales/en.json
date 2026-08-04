@@ -512,6 +512,11 @@
       "compact": "Compact (1024px)",
       "default": "Standard (1152px)",
       "wide": "Wide (1280px)"
+    },
+    "device": {
+      "desktop": "Desktop",
+      "tablet": "Tablet",
+      "mobile": "Mobile"
     }
   },
   "seo": {

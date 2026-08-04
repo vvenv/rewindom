@@ -512,6 +512,11 @@
       "compact": "紧凑（1024px）",
       "default": "标准（1152px）",
       "wide": "宽（1280px）"
+    },
+    "device": {
+      "desktop": "桌面",
+      "tablet": "平板",
+      "mobile": "手机"
     }
   },
   "seo": {

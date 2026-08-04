@@ -1,18 +1,36 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
+import { ButtonGroup } from "@be-water/ui/button-group";
 import { Spinner } from "@be-water/ui/spinner";
-import { ArrowLeft, Palette } from "lucide-react";
+import {
+  ArrowLeft,
+  Monitor,
+  Palette,
+  Smartphone,
+  Tablet,
+  type LucideIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 
 import { TenantSiteView } from "../components/TenantSiteView.js";
 import { PresetMenu } from "../components/theme-editor/PresetMenu.js";
+import {
+  PreviewFrame,
+  type PreviewDevice,
+} from "../components/theme-editor/PreviewFrame.js";
 import { SectionSettingsForm } from "../components/theme-editor/SectionSettingsForm.js";
 import { SectionTree } from "../components/theme-editor/SectionTree.js";
 import { useSiteThemeEditor } from "../hooks/use-site-theme-editor.js";
+
+const DEVICE_ICONS: Array<[PreviewDevice, LucideIcon]> = [
+  ["desktop", Monitor],
+  ["tablet", Tablet],
+  ["mobile", Smartphone],
+];
 
 export function SiteThemeEditor() {
   const { pageId } = useParams<{ pageId: string }>();
@@ -20,7 +38,8 @@ export function SiteThemeEditor() {
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("site.write");
   const editor = useSiteThemeEditor(pageId);
-  const previewRef = useRef<HTMLDivElement | null>(null);
+  const [device, setDevice] = useState<PreviewDevice>("desktop");
+  const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
   const { selectedSectionId } = editor;
   const headerId = editor.header?.id ?? null;
@@ -28,16 +47,15 @@ export function SiteThemeEditor() {
   // 左侧树选中后把预览滚到对应区块；页头是 sticky，scrollIntoView 会判定
   // 「已在视口内」而不动，所以单独滚到顶部。
   useEffect(() => {
-    const container = previewRef.current;
-    if (!container || !selectedSectionId) return;
+    if (!previewDoc || !selectedSectionId) return;
     if (selectedSectionId === headerId) {
-      container.scrollTo({ top: 0, behavior: "smooth" });
+      previewDoc.defaultView?.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    container
+    previewDoc
       .querySelector(`[data-section-id="${CSS.escape(selectedSectionId)}"]`)
       ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [selectedSectionId, headerId]);
+  }, [previewDoc, selectedSectionId, headerId]);
 
   if (editor.pageQuery.isLoading || editor.siteQuery.isLoading) {
     return (
@@ -186,10 +204,29 @@ export function SiteThemeEditor() {
         />
 
         <div className="flex h-[70vh] flex-col overflow-hidden rounded-lg border bg-background lg:h-full">
-          <div className="shrink-0 border-b px-3 py-2 text-xs text-muted-foreground">
-            {t("editor.preview")} · {editor.path}
+          <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2 text-xs text-muted-foreground">
+            <span className="truncate">
+              {t("editor.preview")} · {editor.path}
+            </span>
+            <ButtonGroup className="ml-auto">
+              {DEVICE_ICONS.map(([key, Icon]) => (
+                <Button
+                  key={key}
+                  type="button"
+                  size="sm"
+                  variant={device === key ? "secondary" : "outline"}
+                  aria-pressed={device === key}
+                  title={t(`editor.device.${key}`)}
+                  className="size-7"
+                  onClick={() => setDevice(key)}
+                >
+                  <Icon className="size-3.5" />
+                  <span className="sr-only">{t(`editor.device.${key}`)}</span>
+                </Button>
+              ))}
+            </ButtonGroup>
           </div>
-          <div ref={previewRef} className="min-h-0 flex-1 overflow-y-auto">
+          <PreviewFrame device={device} onDocumentChange={setPreviewDoc}>
             <TenantSiteView
               embedded
               site={editor.previewSite}
@@ -203,7 +240,7 @@ export function SiteThemeEditor() {
               selectedSectionId={editor.selectedSectionId}
               onSelectSection={(sectionId) => editor.selectSection(sectionId)}
             />
-          </div>
+          </PreviewFrame>
         </div>
 
         <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto rounded-lg border p-3">
