@@ -35,13 +35,9 @@ interface ChromeProps {
   logoUrl: string | null;
   /** 编辑器里点击整块可选中 */
   onSelect?: () => void;
-  selected?: boolean;
 }
 
-function selectable(
-  onSelect: (() => void) | undefined,
-  selected: boolean | undefined,
-) {
+function selectable(onSelect: (() => void) | undefined) {
   if (!onSelect) return {};
   return {
     role: "button" as const,
@@ -57,14 +53,7 @@ function selectable(
         onSelect();
       }
     },
-    className: cn(
-      // 与 section 一致：选中框画在内侧。页头页脚是通栏的，外扩会被视口裁掉；
-      // 页头还是 sticky，外扩的 ring 会压到下面的内容上
-      "cursor-pointer -outline-offset-2 transition-[box-shadow,outline-color]",
-      selected
-        ? "outline-2 outline-primary inset-ring-2 inset-ring-primary/20"
-        : "outline-2 outline-transparent",
-    ),
+    className: "cursor-pointer",
   };
 }
 
@@ -73,13 +62,12 @@ export function SiteHeader({
   siteName,
   logoUrl,
   onSelect,
-  selected,
 }: ChromeProps): ReactElement {
   const s = section.settings;
   const loginLabel = settingText(s, "login_label") || "Login";
   const ctaLabel = settingText(s, "primary_label");
   const ctaHref = settingText(s, "primary_href");
-  const select = selectable(onSelect, selected);
+  const select = selectable(onSelect);
 
   return (
     <header
@@ -152,14 +140,13 @@ export function SiteFooter({
   siteName,
   logoUrl,
   onSelect,
-  selected,
 }: ChromeProps): ReactElement {
   const s = section.settings;
   const blurb = settingText(s, "blurb");
   const copyright =
     settingText(s, "copyright") || `© ${new Date().getFullYear()} ${siteName}`;
   const groups = groupFooterLinks(section.blocks);
-  const select = selectable(onSelect, selected);
+  const select = selectable(onSelect);
 
   return (
     <footer

@@ -720,7 +720,6 @@ function SectionView({
 interface SiteSectionsProps {
   sections: SiteSection[];
   body_md?: string;
-  selectedSectionId?: string | null;
   onSelectSection?: (sectionId: string) => void;
   /** 主题的「区块间距」，段设成「继承」时用这个值。 */
   sectionSpacing?: number;
@@ -734,7 +733,6 @@ interface SiteSectionsProps {
 export function SiteSections({
   sections,
   body_md = "",
-  selectedSectionId = null,
   onSelectSection,
   sectionSpacing = THEME_SECTION_SPACING.default,
   contained = false,
@@ -749,7 +747,6 @@ export function SiteSections({
   return (
     <div>
       {resolved.map((section, index) => {
-        const selected = section.id === selectedSectionId;
         const layout = layouts[index]!;
         const width =
           contained && layout.width === "full" ? "page" : layout.width;
@@ -797,25 +794,14 @@ export function SiteSections({
           >
             <div
               className={cn(
-                // 选中框一律画在盒子**内侧**：通栏 section 的边缘就贴着视口，
-                // 外扩的 outline / ring 会被裁掉半条边（首段顶边同理）
-                "transition-[box-shadow,outline-color] -outline-offset-2",
                 BAND_CLASS[width],
                 // 存的是桌面值，窄屏按比例缩——手机上不会顶着 120px 的留白
                 "pt-[calc(var(--sec-pt)*0.7)] pb-[calc(var(--sec-pb)*0.7)]",
                 "sm:pt-[var(--sec-pt)] sm:pb-[var(--sec-pb)]",
-                selected
-                  ? "outline-2 outline-primary inset-ring-2 inset-ring-primary/20"
-                  : "outline-2 outline-transparent",
                 // 通栏色块贴着视口边，圆角会露出两个缺口
                 layout.background !== "none" &&
                   width !== "full" &&
                   "rounded-xl",
-                // 无底色的段自己没有圆角，选中时补一个；有底色的沿用它自己的
-                selected &&
-                  width !== "full" &&
-                  layout.background === "none" &&
-                  "rounded-lg",
                 BACKGROUND_CLASS[layout.background],
                 layout.dividerTop && "border-t border-border/60",
                 layout.dividerBottom && "border-b border-border/60",

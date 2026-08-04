@@ -226,7 +226,11 @@ export function SiteThemeEditor() {
               ))}
             </ButtonGroup>
           </div>
-          <PreviewFrame device={device} onDocumentChange={setPreviewDoc}>
+          <PreviewFrame
+            device={device}
+            onDocumentChange={setPreviewDoc}
+            highlightSectionId={editor.selectedSectionId}
+          >
             <TenantSiteView
               embedded
               site={editor.previewSite}
@@ -237,7 +241,6 @@ export function SiteThemeEditor() {
               description={editor.description}
               headerOverride={editor.header ?? undefined}
               footerOverride={editor.footer ?? undefined}
-              selectedSectionId={editor.selectedSectionId}
               onSelectSection={(sectionId) => editor.selectSection(sectionId)}
             />
           </PreviewFrame>

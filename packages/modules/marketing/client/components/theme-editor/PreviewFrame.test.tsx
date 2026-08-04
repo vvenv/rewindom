@@ -107,6 +107,66 @@ describe("PreviewFrame", () => {
     expect(await injectedCss(container)).toContain("::-webkit-scrollbar");
   });
 
+  it("draws the selection outside the iframe, scaled into host coordinates", async () => {
+    const observers: ResizeObserverCallback[] = [];
+    class DriveableResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        observers.push(callback);
+      }
+      observe(): void {}
+      unobserve(): void {}
+      disconnect(): void {}
+    }
+    vi.stubGlobal("ResizeObserver", DriveableResizeObserver);
+
+    const { container } = render(
+      <PreviewFrame device="desktop" highlightSectionId="sec-1">
+        <div data-section-id="sec-1">hero</div>
+      </PreviewFrame>,
+    );
+
+    const target = await waitFor(() => {
+      const found = frameDoc(container)?.querySelector("[data-section-id]");
+      expect(found).not.toBeNull();
+      return found!;
+    });
+    // jsdom 不做布局：直接给出矩形，验证换算而不是浏览器的测量
+    target.getBoundingClientRect = () =>
+      ({ left: 0, top: 100, width: 1280, height: 400 }) as DOMRect;
+
+    // 面板只有设备宽度的一半 → scale 0.5
+    act(() => {
+      observers[0]?.(
+        [{ contentRect: { width: 640, height: 480 } } as ResizeObserverEntry],
+        {} as ResizeObserver,
+      );
+    });
+
+    const overlay = await waitFor(() => {
+      const found = container.querySelector<HTMLElement>("[aria-hidden]");
+      expect(found).not.toBeNull();
+      return found!;
+    });
+    expect(overlay.style.left).toBe("0px");
+    expect(overlay.style.top).toBe("50px");
+    expect(overlay.style.width).toBe("640px");
+    expect(overlay.style.height).toBe("200px");
+    // 画在宿主文档里，才不会被 iframe 的滚动条 / overflow 吃掉边
+    expect(frameDoc(container)?.body.contains(overlay)).toBe(false);
+
+    vi.unstubAllGlobals();
+  });
+
+  it("clears the selection box when nothing is selected", async () => {
+    const { container } = render(
+      <PreviewFrame device="desktop" highlightSectionId={null}>
+        <div data-section-id="sec-1">hero</div>
+      </PreviewFrame>,
+    );
+    await waitFor(() => expect(frameDoc(container)).not.toBeNull());
+    expect(container.querySelector("[aria-hidden]")).toBeNull();
+  });
+
   it("renders at the device's logical width so media queries see a real viewport", async () => {
     const { container, rerender } = render(
       <PreviewFrame device="mobile">

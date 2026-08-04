@@ -57,7 +57,6 @@ interface TenantSiteViewProps {
   /** 编辑器覆盖：预览未保存的页头 / 页脚草稿 */
   headerOverride?: SiteSection;
   footerOverride?: SiteSection;
-  selectedSectionId?: string | null;
   onSelectSection?: (sectionId: string) => void;
 }
 
@@ -76,7 +75,6 @@ export function TenantSiteView({
   embedded = false,
   headerOverride,
   footerOverride,
-  selectedSectionId = null,
   onSelectSection,
 }: TenantSiteViewProps) {
   const pageMeta = findPage(site, path);
@@ -140,7 +138,6 @@ export function TenantSiteView({
       <SiteSections
         sections={sections}
         body_md={body_md}
-        selectedSectionId={selectedSectionId}
         onSelectSection={onSelectSection}
         sectionSpacing={theme.section_spacing}
         contained={showPageNav}
@@ -154,7 +151,6 @@ export function TenantSiteView({
         section={header}
         siteName={site.site_name}
         logoUrl={theme.logo_url ?? null}
-        selected={selectedSectionId === header.id}
         onSelect={
           onSelectSection ? () => onSelectSection(header.id) : undefined
         }
@@ -202,7 +198,6 @@ export function TenantSiteView({
         section={footer}
         siteName={site.site_name}
         logoUrl={theme.logo_url ?? null}
-        selected={selectedSectionId === footer.id}
         onSelect={
           onSelectSection ? () => onSelectSection(footer.id) : undefined
         }

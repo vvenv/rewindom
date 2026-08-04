@@ -122,6 +122,12 @@ iframe body **不**硬铺 `var(--background)`——主站 body 是径向渐变�
 等比缩小：缩放只改视觉尺寸，iframe 仍按逻辑宽度渲染，断点不受影响。桌面不能
 「面板有多宽就多宽」——中间栏只有 600～800px，那样 `lg:` 永远不触发。
 
+**选中高亮画在 iframe 外面**（`PreviewFrame` 的 overlay，按 `data-section-id` 取矩形
+再乘缩放比）。画在里面躲不开三件事：macOS 覆盖式滚动条会盖住最右侧十几个像素、
+祖先的 `overflow`、以及 sticky 页头的层叠上下文——通栏 section（`width: full`）的边缘
+首当其冲。放到宿主文档后，站点渲染组件（也服务于公开站点）就不再带任何编辑器样式，
+只留 `data-section-id` 与点击回调。矩形随滚动 / 面板缩放 / 内容编辑重算，用 rAF 合并。
+
 **新增字段只改 schema + 两处渲染**：`client/components/sections/`（SPA）与
 `server/ssr-sections.ts`（SEO HTML）。新增 setting 类型再在 `SettingsFields.tsx` 加一个分支。
 `label` / `content` 存的是 i18n key（`marketing` namespace 下相对 key），shared 层不含展示文案。

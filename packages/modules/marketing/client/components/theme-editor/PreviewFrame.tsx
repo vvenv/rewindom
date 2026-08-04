@@ -78,6 +78,15 @@ interface PreviewFrameProps {
   children: ReactNode;
   /** iframe 文档就绪 / 卸载时回调，供外部做滚动定位。 */
   onDocumentChange?: (doc: Document | null) => void;
+  /** 要高亮的 section（`data-section-id`）。高亮画在 iframe **外面**，见 SelectionOverlay。 */
+  highlightSectionId?: string | null;
+}
+
+interface HighlightRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
 }
 
 /**
@@ -92,11 +101,13 @@ export function PreviewFrame({
   device,
   children,
   onDocumentChange,
+  highlightSectionId = null,
 }: PreviewFrameProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [doc, setDoc] = useState<Document | null>(null);
   const [host, setHost] = useState({ width: 0, height: 0 });
+  const [highlight, setHighlight] = useState<HighlightRect | null>(null);
 
   const deviceWidth = PREVIEW_DEVICES[device];
   // 装不下就整体缩小；放得下不放大，免得 390px 的手机被拉成马赛克
@@ -150,6 +161,62 @@ export function PreviewFrame({
     };
   }, [doc]);
 
+  /**
+   * 选中框的位置：把 iframe 里的矩形换算成外层坐标（乘缩放比）。
+   *
+   * 滚动、面板尺寸变化、以及编辑内容导致的重排都会改变它，所以三个来源都要监听；
+   * 测量本身很便宜，用 rAF 合并成一帧一次即可。
+   */
+  useEffect(() => {
+    const view = doc?.defaultView;
+    if (!doc || !view || !highlightSectionId) {
+      setHighlight(null);
+      return;
+    }
+
+    let frame = 0;
+    const measure = (): void => {
+      frame = 0;
+      const target = doc.querySelector(
+        `[data-section-id="${CSS.escape(highlightSectionId)}"]`,
+      );
+      if (!target) {
+        setHighlight(null);
+        return;
+      }
+      const box = target.getBoundingClientRect();
+      setHighlight({
+        left: box.left * scale,
+        top: box.top * scale,
+        width: box.width * scale,
+        height: box.height * scale,
+      });
+    };
+    const schedule = (): void => {
+      frame ||= view.requestAnimationFrame(measure);
+    };
+
+    measure();
+    view.addEventListener("scroll", schedule, { passive: true });
+    // 用宿主的构造器：iframe 的 window 在测试环境里不一定有这些 API
+    const resize = new ResizeObserver(schedule);
+    resize.observe(doc.documentElement);
+    const content = new MutationObserver(schedule);
+    content.observe(doc.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      characterData: true,
+    });
+
+    return () => {
+      if (frame) view.cancelAnimationFrame(frame);
+      view.removeEventListener("scroll", schedule);
+      resize.disconnect();
+      content.disconnect();
+    };
+  }, [doc, highlightSectionId, scale]);
+
   return (
     <div
       ref={hostRef}
@@ -161,9 +228,21 @@ export function PreviewFrame({
         与 clip-path 都裁不住它，站点页头（自带背景）的直角会露在圆角外。
       */}
       <div
-        className="mx-auto overflow-hidden border bg-background shadow-sm"
+        className="relative mx-auto overflow-hidden border bg-background shadow-sm"
         style={{ width: deviceWidth * scale, height: host.height }}
       >
+        {/*
+          选中框画在 iframe **外面**：画在里面就要和滚动条（macOS 覆盖式会盖住最右侧）、
+          overflow、层叠上下文抢位置，通栏 section 的边缘尤其容易被吃掉。
+          用 border 而不是 outline/ring——border-box 下它画在矩形**内**，贴着容器边也不会被裁。
+        */}
+        {highlight ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute z-10 border-2 border-primary inset-ring-2 inset-ring-primary/20"
+            style={highlight}
+          />
+        ) : null}
         <iframe
           ref={frameRef}
           onLoad={attach}
