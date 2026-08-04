@@ -1,9 +1,10 @@
-import { useOptionalAuth } from "./useOptionalAuth.js";
+import { getStoredAccessToken } from "../lib/auth-token-storage.js";
 import {
   isTenantAccessToken,
   readActorTypeFromAccessToken,
 } from "../tenant-query-scope.js";
-import { getStoredAccessToken } from "../lib/auth-token-storage.js";
+
+import { useOptionalAuth } from "./useOptionalAuth.js";
 
 /**
  * 租户业务 API（`/api/settings/*` 等）只应在租户用户 JWT 下请求。

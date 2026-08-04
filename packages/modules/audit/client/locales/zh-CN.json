@@ -5,7 +5,7 @@
   },
   "page": {
     "title": "审计日志",
-    "description": "本租户内的写操作记录（只读）；平台侧操作与代登录会话不在此列"
+    "description": "本组织内的写操作记录（只读）；平台侧操作与代登录会话不在此列"
   },
   "platform": {
     "description": "跨租户审计日志（只读）"
@@ -65,7 +65,7 @@
     "NOTE_CREATE": "创建笔记",
     "NOTE_UPDATE": "更新笔记",
     "NOTE_DELETE": "删除笔记",
-    "SITE_UPDATE": "更新租户官网",
+    "SITE_UPDATE": "更新官网",
     "SITE_PAGE_CREATE": "创建官网页面",
     "SITE_PAGE_UPDATE": "更新官网页面",
     "SITE_PAGE_DELETE": "删除官网页面",
@@ -85,7 +85,7 @@
     "users": "用户管理",
     "system": "系统",
     "notes": "示例模块",
-    "site": "租户官网",
+    "site": "官网",
     "todos": "Todos",
     "billing": "订阅与付款"
   },

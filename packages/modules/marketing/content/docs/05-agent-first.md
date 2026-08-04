@@ -26,12 +26,12 @@ pnpm check:deps
 
 ## Agent 打开仓库后读什么
 
-| 入口 | 作用 |
-| ---- | ---- |
-| `AGENTS.md` | 约定速查与工作流（Claude 另见 `CLAUDE.md` 指针） |
-| `.cursor/rules/` | 始终生效的边界（命名、租户、扩展点） |
-| `.cursor/skills/` | 任务剧本；Claude 侧由 `pnpm sync-skills` 同步到 `.claude/skills/` |
-| `packages/modules/*/MODULE.md` | 单模块说明书 |
+| 入口                           | 作用                                                              |
+| ------------------------------ | ----------------------------------------------------------------- |
+| `AGENTS.md`                    | 约定速查与工作流（Claude 另见 `CLAUDE.md` 指针）                  |
+| `.cursor/rules/`               | 始终生效的边界（命名、租户、扩展点）                              |
+| `.cursor/skills/`              | 任务剧本；Claude 侧由 `pnpm sync-skills` 同步到 `.claude/skills/` |
+| `packages/modules/*/MODULE.md` | 单模块说明书                                                      |
 
 ## 与「不是脚手架」并不矛盾
 

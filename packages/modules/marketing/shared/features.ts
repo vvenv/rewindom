@@ -8,12 +8,7 @@ export interface FeatureItem {
 }
 
 export type FeatureIconName =
-  | "bot"
-  | "blocks"
-  | "shield"
-  | "layers"
-  | "plug"
-  | "server";
+  "bot" | "blocks" | "shield" | "layers" | "plug" | "server";
 
 export const HERO = {
   headline: "Agent-first 的多租户 SaaS 底座",

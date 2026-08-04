@@ -4,7 +4,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
   id: "marketing",
   messages: {
     "zh-CN": {
-      "marketing.audit.site_updated": "更新租户官网「{{site_name}}」",
+      "marketing.audit.site_updated": "更新官网「{{site_name}}」",
       "marketing.audit.page_created": "创建官网页面「{{title}}」",
       "marketing.audit.page_updated": "更新官网页面「{{title}}」",
       "marketing.audit.page_deleted": "删除官网页面",
@@ -25,12 +25,12 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.locale_invalid": "语言代码不能为空",
     },
     en: {
-      "marketing.audit.site_updated": "Updated tenant site \"{{site_name}}\"",
-      "marketing.audit.page_created": "Created site page \"{{title}}\"",
-      "marketing.audit.page_updated": "Updated site page \"{{title}}\"",
+      "marketing.audit.site_updated": 'Updated site "{{site_name}}"',
+      "marketing.audit.page_created": 'Created site page "{{title}}"',
+      "marketing.audit.page_updated": 'Updated site page "{{title}}"',
       "marketing.audit.page_deleted": "Deleted site page",
-      "marketing.audit.page_published": "Published site page \"{{title}}\"",
-      "marketing.audit.page_unpublished": "Unpublished site page \"{{title}}\"",
+      "marketing.audit.page_published": 'Published site page "{{title}}"',
+      "marketing.audit.page_unpublished": 'Unpublished site page "{{title}}"',
       "site.page_not_found": "Page not found",
       "site.page_title_required": "Page title is required",
       "site.slug_invalid": "Invalid page slug",

@@ -9,13 +9,6 @@ import {
 } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@be-water/ui/select";
-import {
   Sheet,
   SheetClose,
   SheetContent,
@@ -27,81 +20,42 @@ import {
 } from "@be-water/ui/sheet";
 import { Spinner } from "@be-water/ui/spinner";
 import { Switch } from "@be-water/ui/switch";
-import { Textarea } from "@be-water/ui/textarea";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useSiteMutations } from "../hooks/useSite.js";
-import { THEME_FONT_FAMILIES } from "../../shared/theme-sections.js";
 
-import type { MarketingSite, SiteLinkItem } from "../../shared/site-cms.js";
-import type { ThemeFontFamily } from "../../shared/theme-sections.js";
-
-function linksToText(links: SiteLinkItem[]): string {
-  return links.map((l) => `${l.label}|${l.href}`).join("\n");
-}
-
-function textToLinks(text: string): SiteLinkItem[] {
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [label, ...rest] = line.split("|");
-      return { label: (label ?? "").trim(), href: rest.join("|").trim() };
-    })
-    .filter((item) => item.label && item.href);
-}
+import type { MarketingSite } from "../../shared/site-cms.js";
 
 interface SiteSettingsSheetProps {
   site: MarketingSite;
   children: ReactNode;
 }
 
-export function SiteSettingsSheet({
-  site,
-  children,
-}: SiteSettingsSheetProps) {
+/**
+ * 站点级设置：站名、标语与发布开关。
+ *
+ * 导航 / 页脚链接已改为 Theme Editor 里的**页头 / 页脚 section**（schema 驱动），
+ * 品牌（Logo / 主色 / 字体）在「系统管理 → 品牌」。这里只留不属于版式的字段。
+ */
+export function SiteSettingsSheet({ site, children }: SiteSettingsSheetProps) {
   const { t } = useTranslation("marketing");
   const { updateSite } = useSiteMutations();
   const [open, setOpen] = useState(false);
   const [siteName, setSiteName] = useState(site.site_name);
   const [tagline, setTagline] = useState(site.tagline);
-  const [logoUrl, setLogoUrl] = useState(site.logo_url ?? "");
-  const [primaryColor, setPrimaryColor] = useState(site.primary_color ?? "");
-  const [fontFamily, setFontFamily] = useState<ThemeFontFamily>(
-    site.theme_settings.font_family ?? "system",
-  );
   const [published, setPublished] = useState(site.published);
-  const [navText, setNavText] = useState(linksToText(site.nav));
-  const [footerText, setFooterText] = useState(linksToText(site.footer));
 
   const reset = (): void => {
     setSiteName(site.site_name);
     setTagline(site.tagline);
-    setLogoUrl(site.logo_url ?? "");
-    setPrimaryColor(site.primary_color ?? "");
-    setFontFamily(site.theme_settings.font_family ?? "system");
     setPublished(site.published);
-    setNavText(linksToText(site.nav));
-    setFooterText(linksToText(site.footer));
   };
 
   const onSubmit = (event: FormEvent): void => {
     event.preventDefault();
     updateSite.mutate(
-      {
-        site_name: siteName,
-        tagline,
-        theme_settings: {
-          logo_url: logoUrl.trim() || null,
-          primary_color: primaryColor.trim() || null,
-          font_family: fontFamily,
-        },
-        published,
-        nav: textToLinks(navText),
-        footer: textToLinks(footerText),
-      },
+      { site_name: siteName, tagline, published },
       {
         onSuccess: () => {
           toast.success(t("cms.toastSiteSaved"));
@@ -130,7 +84,9 @@ export function SiteSettingsSheet({
 
           <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
             <Field>
-              <FieldLabel htmlFor="site_name">{t("cms.fieldSiteName")}</FieldLabel>
+              <FieldLabel htmlFor="site_name">
+                {t("cms.fieldSiteName")}
+              </FieldLabel>
               <Input
                 id="site_name"
                 value={siteName}
@@ -146,49 +102,14 @@ export function SiteSettingsSheet({
                 onChange={(e) => setTagline(e.target.value)}
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor="logo_url">{t("cms.fieldLogoUrl")}</FieldLabel>
-              <Input
-                id="logo_url"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="primary_color">
-                {t("cms.fieldPrimaryColor")}
-              </FieldLabel>
-              <Input
-                id="primary_color"
-                placeholder="#0f766e"
-                value={primaryColor}
-                onChange={(e) => setPrimaryColor(e.target.value)}
-              />
-            </Field>
-            <Field>
-              <FieldLabel>{t("editor.fieldFontFamily")}</FieldLabel>
-              <Select
-                value={fontFamily}
-                onValueChange={(next) =>
-                  setFontFamily(next as ThemeFontFamily)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {THEME_FONT_FAMILIES.map((family) => (
-                    <SelectItem key={family} value={family}>
-                      {t(`editor.font.${family}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
             <Field orientation="horizontal">
               <div className="flex flex-1 flex-col gap-1">
-                <FieldLabel htmlFor="published">{t("cms.fieldPublished")}</FieldLabel>
-                <FieldDescription>{t("cms.fieldPublishedHint")}</FieldDescription>
+                <FieldLabel htmlFor="published">
+                  {t("cms.fieldPublished")}
+                </FieldLabel>
+                <FieldDescription>
+                  {t("cms.fieldPublishedHint")}
+                </FieldDescription>
               </div>
               <Switch
                 id="published"
@@ -196,26 +117,7 @@ export function SiteSettingsSheet({
                 onCheckedChange={setPublished}
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor="nav">{t("cms.fieldNav")}</FieldLabel>
-              <Textarea
-                id="nav"
-                rows={4}
-                value={navText}
-                onChange={(e) => setNavText(e.target.value)}
-                placeholder={t("cms.linksPlaceholder")}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="footer">{t("cms.fieldFooter")}</FieldLabel>
-              <Textarea
-                id="footer"
-                rows={4}
-                value={footerText}
-                onChange={(e) => setFooterText(e.target.value)}
-                placeholder={t("cms.linksPlaceholder")}
-              />
-            </Field>
+            <FieldDescription>{t("cms.chromeMovedHint")}</FieldDescription>
           </FieldGroup>
 
           <SheetFooter>

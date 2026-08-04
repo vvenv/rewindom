@@ -451,15 +451,19 @@ request.authUser = { userId, username, role, tenant_id };
 
 ### 5.8 租户无感知（产品默认）
 
-**结论：是。** 默认情况下，租户内的 USER / SUPERUSER **不应感知**自己处于多租户 SaaS 中。
+**结论：是。** 默认情况下，租户内的 USER / SUPERUSER **不应感知**自己处于多租户 SaaS 中。Agent rule：`.cursor/rules/tenancy-mode.mdc`「租户无感知」。
 
 | 层面           | 租户侧（USER / SUPERUSER）                                                  | 平台侧（PLATFORM_ADMIN）                     |
 | -------------- | --------------------------------------------------------------------------- | -------------------------------------------- |
 | 文案           | 不出现「租户」「Tenant」                                                    | 可称「租户 / 组织」                          |
+| 公开 API / SSR | 错误 `error` 字符串、不可用页文案同样无「Tenant / 租户」（`code` 可保留 `site.*`） | —                                            |
+| 审计展示       | 模板文案用「官网 / site」，不用「租户官网 / tenant site」                   | 平台审计可称租户                             |
 | `/api/auth/me` | 不返回 `tenant_id`、`tenant_slug`                                           | 返回 `role: PLATFORM_ADMIN`                  |
 | 导航 / 路由    | 仅现有业务菜单（文档、产品、分析、设置等）                                  | 独立 `/platform/*`，**不出现在** `navConfig` |
 | Settings       | 「系统设置 / AI 配置」                                                      | 租户 CRUD、suspend、用量                     |
 | 登录           | `admin` 即可（default）；多租户用户用 `bob@acme` 但登录后 UI 无「acme」标识 | `platform` 或 env 配置账号                   |
+
+**推荐替换**（租户侧）：EN `Tenant` / `tenant site` → `organization` / `site` / `website`；ZH「租户」→「组织」或省略，站点场景用「官网 / 站点」。代码符号与 DB 字段（`tenant_id`、`TenantSiteView`）不受此限。
 
 ### 5.9 租户自定义域名（应用层绑定）
 

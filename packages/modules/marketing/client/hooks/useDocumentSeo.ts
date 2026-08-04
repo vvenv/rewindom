@@ -2,10 +2,7 @@ import { useEffect } from "react";
 
 import { useTranslation } from "react-i18next";
 
-import {
-  buildCanonicalUrl,
-  type PageSeo,
-} from "../../shared/index.js";
+import { buildCanonicalUrl, type PageSeo } from "../../shared/index.js";
 import {
   buildLocalizedDocumentTitle,
   localizePageSeo,

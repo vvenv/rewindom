@@ -36,11 +36,11 @@ import { resolvePlanLimitsForSlug } from "./plan-limit-templates.service.js";
 import { getPlatformSettings } from "./platform-settings.service.js";
 import { saveTenantJsonSetting } from "./tenant-json-setting.service.js";
 
+import type { HostTenantContext } from "@be-water/server-kernel/lib/host-tenant.js";
 import type {
   OAuthTenantRegistrationInput,
   RegistrationOptions,
 } from "@be-water/server-kernel/runtime/provider-contracts.js";
-import type { HostTenantContext } from "@be-water/server-kernel/lib/host-tenant.js";
 
 export type { RegisterTenantInput };
 

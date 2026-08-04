@@ -1,13 +1,9 @@
-
 import {
   PRICING_PLANS,
   type PlanDefinition,
 } from "../../../platform/shared/pricing-plans.js";
 import { type PageSeo, SITE } from "../../shared/index.js";
-import {
-  MARKETING_PLANS,
-  type MarketingPlan,
-} from "../../shared/pricing.js";
+import { MARKETING_PLANS, type MarketingPlan } from "../../shared/pricing.js";
 import { logicalMarketingPath } from "../../shared/seo.js";
 
 import type { TFunction } from "i18next";
@@ -62,7 +58,10 @@ export function resolveNavLabel(href: string, t: TFunction): string {
   return key ? t(key, { ns: NS }) : href;
 }
 
-export function resolveTechStackLayerLabel(index: number, t: TFunction): string {
+export function resolveTechStackLayerLabel(
+  index: number,
+  t: TFunction,
+): string {
   const key = TECH_STACK_LAYER_KEYS[index];
   return key ? t(`techStack.layerLabels.${key}`, { ns: NS }) : "";
 }

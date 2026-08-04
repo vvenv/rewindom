@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-
 import { Button } from "@be-water/ui/button";
 import { Card, CardContent } from "@be-water/ui/card";
 import { cn } from "@be-water/ui/utils";
@@ -10,16 +9,23 @@ import { Link } from "react-router";
 export function WorkbenchPageShell({
   children,
   className,
+  fill,
 }: {
   children: ReactNode;
   className?: string;
+  /**
+   * 让内容撑满外壳可用高度（页面自身不滚，由内部分区各自滚）。
+   * 只在 lg+ 生效：窄屏列会堆叠，锁死高度反而挤没内容。
+   */
+  fill?: boolean;
 }) {
   return (
-    <div className="min-h-full bg-background">
+    <div className={cn("min-h-full bg-background", fill && "lg:h-full")}>
       <div
         className={cn(
           // Mobile: AppMobileHeader already provides title + separator; keep top inset minimal.
           "mx-auto flex w-full flex-col gap-4 p-4 md:gap-6 md:px-8 md:py-8",
+          fill && "lg:h-full lg:min-h-0",
           className,
         )}
       >

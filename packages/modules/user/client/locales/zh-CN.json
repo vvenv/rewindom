@@ -4,7 +4,7 @@
   },
   "page": {
     "title": "用户管理",
-    "description": "管理租户成员账号，并为其分配角色",
+    "description": "管理组织成员账号，并为其分配角色",
     "createUser": "新建用户"
   },
   "filters": {
@@ -45,8 +45,8 @@
   "profile": {
     "platformSystemAdmin": "平台系统管理员",
     "platformAdmin": "平台管理员",
-    "tenantSystemAdmin": "租户系统管理员",
-    "tenantUser": "租户用户",
+    "tenantSystemAdmin": "组织系统管理员",
+    "tenantUser": "组织用户",
     "impersonationSubtitle": "平台代登录"
   },
   "sheet": {
@@ -60,7 +60,7 @@
     "passwordOptional": "密码（留空不修改）",
     "passwordPlaceholderCreate": "至少6个字符",
     "passwordPlaceholderEdit": "留空不修改密码",
-    "systemAdminLabel": "系统管理员（拥有全部租户权限）",
+    "systemAdminLabel": "系统管理员（拥有全部组织权限）",
     "roles": "角色",
     "enabledHint": "已启用，用户可以登录系统",
     "disabledHint": "已停用，用户无法登录系统",
@@ -74,8 +74,8 @@
   },
   "permissionSheet": {
     "title": "分配角色",
-    "description": "为用户 {{username}} 分配租户角色",
-    "systemAdminHint": "系统管理员默认拥有全部租户权限，无需分配角色。",
+    "description": "为用户 {{username}} 分配组织角色",
+    "systemAdminHint": "系统管理员默认拥有全部组织权限，无需分配角色。",
     "rolesUpdated": "角色更新成功"
   },
   "resetPassword": {

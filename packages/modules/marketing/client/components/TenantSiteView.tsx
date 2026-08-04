@@ -1,23 +1,34 @@
-import { Button } from "@be-water/ui/button";
 import { type CSSProperties } from "react";
-import { Link } from "react-router";
 
-import { marketingPagePath } from "../../shared/site-cms.js";
+import { cn } from "@be-water/ui/utils";
+
+import {
+  resolvePageSections,
+  sectionsLeadWithHero,
+  type SiteSection,
+} from "../../shared/section-schema.js";
+import {
+  marketingPagePath,
+  pageDepth,
+  resolvePageNav,
+  siblingPages,
+  type MarketingPageSettings,
+  type PublicMarketingPage,
+  type PublicMarketingSite,
+} from "../../shared/site-cms.js";
 import {
   resolveThemeSettings,
   themeFontCss,
-  type SiteSection,
+  themePageWidthCss,
 } from "../../shared/theme-sections.js";
-import {
-  MarketingLayout,
-  MarketingSection,
-} from "./MarketingLayout.js";
-import { SiteSections } from "./sections/SiteSections.js";
 
-import type {
-  PublicMarketingPage,
-  PublicMarketingSite,
-} from "../../shared/site-cms.js";
+import { MarketingLayout } from "./MarketingLayout.js";
+import { SiteFooter, SiteHeader } from "./sections/SiteChrome.js";
+import { SiteSections } from "./sections/SiteSections.js";
+import { SitePageNav } from "./SitePageNav.js";
+
+/** 页面外壳的限宽（与页头页脚、section 的 `wide` 一致）。 */
+const WRAP = "mx-auto w-full max-w-[var(--site-page-width,72rem)]";
 
 function findPage(
   site: PublicMarketingSite,
@@ -39,8 +50,13 @@ interface TenantSiteViewProps {
   sections?: SiteSection[];
   title?: string;
   description?: string;
+  /** 页面级设置（同级页面菜单等）；未给时跟随站点主题 */
+  pageSettings?: MarketingPageSettings;
   /** 编辑器预览时隐藏 MarketingLayout 外层（仍渲染页眉页脚） */
   embedded?: boolean;
+  /** 编辑器覆盖：预览未保存的页头 / 页脚草稿 */
+  headerOverride?: SiteSection;
+  footerOverride?: SiteSection;
   selectedSectionId?: string | null;
   onSelectSection?: (sectionId: string) => void;
 }
@@ -56,7 +72,10 @@ export function TenantSiteView({
   sections = [],
   title,
   description,
+  pageSettings,
   embedded = false,
+  headerOverride,
+  footerOverride,
   selectedSectionId = null,
   onSelectSection,
 }: TenantSiteViewProps) {
@@ -70,6 +89,7 @@ export function TenantSiteView({
   const accent = theme.primary_color ?? undefined;
   const style: CSSProperties = {
     ["--site-accent" as string]: accent,
+    ["--site-page-width" as string]: themePageWidthCss(theme.page_width),
     fontFamily: themeFontCss(theme.font_family),
     ...(accent
       ? {
@@ -80,108 +100,117 @@ export function TenantSiteView({
       : {}),
   };
 
-  const content = (
-    <div
-      style={style}
-      className={accent ? "[&_a:not([class*='bg-'])]:text-[var(--site-accent)]" : undefined}
-    >
-      <header className="border-b">
-        <MarketingSection className="flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            {theme.logo_url ? (
-              <img
-                src={theme.logo_url}
-                alt={site.site_name}
-                className="h-8 w-auto"
-              />
-            ) : null}
-            <div>
-              <Link
-                to="/"
-                className="text-lg font-semibold"
-                style={{ color: "inherit" }}
-              >
-                {site.site_name}
-              </Link>
-              {site.tagline ? (
-                <p className="text-sm text-muted-foreground">{site.tagline}</p>
-              ) : null}
-            </div>
-          </div>
-          <nav className="flex flex-wrap gap-3 text-sm">
-            {site.nav.map((item) => (
-              <Link key={`${item.label}-${item.href}`} to={item.href}>
-                {item.label}
-              </Link>
-            ))}
-            <Button asChild size="sm" variant="outline">
-              <Link to="/login">Login</Link>
-            </Button>
-          </nav>
-        </MarketingSection>
-      </header>
+  const header = headerOverride ?? site.header;
+  const footer = footerOverride ?? site.footer;
+  const hasOwnContent = sections.length > 0 || Boolean(body_md);
+  // hero 开场的页面自带 h1，再渲染 page-head 就是标题出现两遍
+  const showPageHead =
+    path !== "/" &&
+    pageMeta?.kind !== "home" &&
+    !sectionsLeadWithHero(resolvePageSections({ sections, body_md }));
+  // 嵌套页面（/docs/xxx 这类）配同级页面侧边菜单；顶层页各自独立，不挂侧栏
+  // 位置按「页面设置 → 站点默认」取，页面没配（inherit）时跟随站点
+  const navPosition = resolvePageNav(pageSettings, theme.page_nav);
+  const showPageNav =
+    navPosition !== "off" &&
+    pageDepth(path) > 1 &&
+    siblingPages(site.pages, path).items.length > 0;
 
-      <MarketingSection className="py-10">
-        {!pageMeta && path !== "/" && sections.length === 0 && !body_md ? (
-          <div className="space-y-2">
+  const navAside = (
+    <aside className="pt-12 lg:sticky lg:top-20 lg:self-start">
+      <SitePageNav pages={site.pages} currentPath={path} />
+    </aside>
+  );
+
+  // section 自带限宽（`full` 才能通栏），所以 page-head 在没有侧栏时自己补一层
+  const pageBody = (
+    <>
+      {showPageHead ? (
+        <div
+          className={cn(
+            "space-y-3 pt-12",
+            !showPageNav && `${WRAP} px-4 sm:px-6`,
+          )}
+        >
+          <h1 className="text-3xl font-semibold tracking-tight">{pageTitle}</h1>
+          {description || pageMeta?.description ? (
+            <p className="text-muted-foreground">
+              {description ?? pageMeta?.description}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <SiteSections
+        sections={sections}
+        body_md={body_md}
+        selectedSectionId={selectedSectionId}
+        onSelectSection={onSelectSection}
+        sectionSpacing={theme.section_spacing}
+        contained={showPageNav}
+      />
+    </>
+  );
+
+  const content = (
+    <div style={style} className="flex min-h-full flex-col">
+      <SiteHeader
+        section={header}
+        siteName={site.site_name}
+        logoUrl={theme.logo_url ?? null}
+        selected={selectedSectionId === header.id}
+        onSelect={
+          onSelectSection ? () => onSelectSection(header.id) : undefined
+        }
+      />
+
+      {/* 限宽下放到各 section 内部（见 SiteSections），这里只做纵向流 */}
+      <main className="flex-1">
+        {!pageMeta && path !== "/" && !hasOwnContent ? (
+          <div className={cn(WRAP, "space-y-2 px-4 py-16 sm:px-6")}>
             <h1 className="text-2xl font-semibold">Page not found</h1>
             <p className="text-muted-foreground">
               This page is not published on {site.site_name}.
             </p>
           </div>
-        ) : (
-          <div className="space-y-8">
-            {path !== "/" && pageMeta?.kind !== "home" ? (
-              <h1 className="text-3xl font-semibold tracking-tight">
-                {pageTitle}
-              </h1>
-            ) : null}
-
-            {description || pageMeta?.description ? (
-              <p className="text-muted-foreground">
-                {description ?? pageMeta?.description}
-              </p>
-            ) : null}
-
-            <SiteSections
-              sections={sections}
-              body_md={body_md}
-              selectedSectionId={selectedSectionId}
-              onSelectSection={onSelectSection}
-            />
-
-            {path === "/docs" || path.startsWith("/docs/") ? (
-              <ul className="space-y-2 border-t pt-6">
-                {site.pages
-                  .filter((p) => p.kind === "doc")
-                  .map((p) => (
-                    <li key={p.path}>
-                      <Link className="text-primary" to={p.path}>
-                        {p.title}
-                      </Link>
-                      {p.description ? (
-                        <p className="text-sm text-muted-foreground">
-                          {p.description}
-                        </p>
-                      ) : null}
-                    </li>
-                  ))}
-              </ul>
-            ) : null}
+        ) : showPageNav ? (
+          <div className={cn(WRAP, "px-4 sm:px-6")}>
+            <div
+              className={cn(
+                "grid gap-10 lg:gap-14",
+                navPosition === "right"
+                  ? "lg:grid-cols-[minmax(0,1fr)_13rem]"
+                  : "lg:grid-cols-[13rem_minmax(0,1fr)]",
+              )}
+            >
+              {/* 菜单在右侧时连 DOM 顺序一起换：读屏顺序与窄屏堆叠都跟着视觉走 */}
+              {navPosition === "right" ? (
+                <>
+                  <div className="min-w-0">{pageBody}</div>
+                  {navAside}
+                </>
+              ) : (
+                <>
+                  {navAside}
+                  <div className="min-w-0">{pageBody}</div>
+                </>
+              )}
+            </div>
           </div>
+        ) : (
+          pageBody
         )}
-      </MarketingSection>
+      </main>
 
-      <footer className="mt-12 border-t">
-        <MarketingSection className="flex flex-wrap gap-3 py-6 text-sm text-muted-foreground">
-          {site.footer.map((item) => (
-            <Link key={`${item.label}-${item.href}`} to={item.href}>
-              {item.label}
-            </Link>
-          ))}
-          <span>© {site.site_name}</span>
-        </MarketingSection>
-      </footer>
+      <SiteFooter
+        section={footer}
+        siteName={site.site_name}
+        logoUrl={theme.logo_url ?? null}
+        selected={selectedSectionId === footer.id}
+        onSelect={
+          onSelectSection ? () => onSelectSection(footer.id) : undefined
+        }
+      />
     </div>
   );
 
@@ -189,7 +218,12 @@ export function TenantSiteView({
     return content;
   }
 
-  return <MarketingLayout path={path}>{content}</MarketingLayout>;
+  // 租户官网用自己的页头页脚，不套平台 chrome（只借 locale 同步与 SEO）
+  return (
+    <MarketingLayout path={path} chrome={false}>
+      {content}
+    </MarketingLayout>
+  );
 }
 
 /** 公开目录不含正文时，用 path 反查 slug/kind（仅元数据）。 */

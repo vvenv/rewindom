@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+
 import { useLocation } from "react-router";
 
 import { TenantSiteView } from "../components/TenantSiteView.js";
@@ -22,8 +23,7 @@ export function TenantSitePageGate({
     "idle" | "loading" | "ready" | "missing"
   >("idle");
 
-  const logicalPath =
-    pathname.replace(/^\/(en|zh-CN)(?=\/|$)/u, "") || "/";
+  const logicalPath = pathname.replace(/^\/(en|zh-CN)(?=\/|$)/u, "") || "/";
 
   useEffect(() => {
     if (siteState.status !== "ready") return;
@@ -47,10 +47,7 @@ export function TenantSitePageGate({
     };
   }, [siteState.status, logicalPath]);
 
-  if (siteState.status === "idle" || siteState.status === "loading") {
-    return fallback;
-  }
-  if (siteState.status === "none") {
+  if (siteState.status !== "ready") {
     return fallback;
   }
 
@@ -70,6 +67,7 @@ export function TenantSitePageGate({
       path={logicalPath}
       body_md={page.body_md}
       sections={page.sections}
+      pageSettings={page.settings}
       title={page.title}
       description={page.description}
     />

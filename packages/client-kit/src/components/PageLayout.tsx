@@ -2,10 +2,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "@be-water/ui/utils";
 
-import {
-  PageBackLink,
-  WorkbenchPageShell,
-} from "./WorkbenchPageShell";
+import { PageBackLink, WorkbenchPageShell } from "./WorkbenchPageShell";
 
 import type { LucideIcon } from "lucide-react";
 
@@ -27,6 +24,7 @@ export function PageLayout({
   description,
   action,
   backLink,
+  fill,
   children,
 }: {
   icon: LucideIcon;
@@ -34,10 +32,12 @@ export function PageLayout({
   description: string;
   action?: ReactNode;
   backLink?: { to: string; label: string };
+  /** 内容撑满可用高度、自身不滚（三栏编辑器这类工作台页面用）。仅 lg+ 生效。 */
+  fill?: boolean;
   children: ReactNode;
 }) {
   return (
-    <WorkbenchPageShell>
+    <WorkbenchPageShell fill={fill}>
       {backLink ? (
         <PageBackLink
           to={backLink.to}
@@ -70,7 +70,14 @@ export function PageLayout({
         </div>
       </header>
 
-      <div className="flex flex-col gap-4 md:gap-6">{children}</div>
+      <div
+        className={cn(
+          "flex flex-col gap-4 md:gap-6",
+          fill && "lg:min-h-0 lg:flex-1",
+        )}
+      >
+        {children}
+      </div>
 
       {action ? <PageLayoutMobileActions action={action} /> : null}
     </WorkbenchPageShell>

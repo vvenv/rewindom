@@ -276,7 +276,7 @@ export class RoleService {
       },
       {
         name: "管理员",
-        description: "租户管理员，拥有全部租户权限",
+        description: "组织管理员，拥有全部组织权限",
         permissions: [...catalog.tenantPermissionKeys],
       },
     ];

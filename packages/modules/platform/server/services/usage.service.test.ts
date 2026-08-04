@@ -76,7 +76,7 @@ describe("usage.service", () => {
   it("租户不存在时抛出错误", async () => {
     vi.mocked(prisma.tenant.findUnique).mockResolvedValueOnce(null);
 
-    await expect(getTenantUsage(TENANT_ID)).rejects.toThrow("租户不存在");
+    await expect(getTenantUsage(TENANT_ID)).rejects.toThrow("组织不存在");
   });
 
   it("返回正确的套餐信息", async () => {

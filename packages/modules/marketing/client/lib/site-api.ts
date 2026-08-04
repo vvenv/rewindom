@@ -19,7 +19,9 @@ export function fetchSite(): Promise<MarketingSite> {
   return api.get<MarketingSite>("/site");
 }
 
-export function patchSite(body: UpdateMarketingSiteBody): Promise<MarketingSite> {
+export function patchSite(
+  body: UpdateMarketingSiteBody,
+): Promise<MarketingSite> {
   return api.patch<MarketingSite>("/site", body);
 }
 

@@ -2,12 +2,16 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 /**
- * 文档正文渲染。
+ * 站点正文 markdown 渲染（文档页 + 富文本区块共用一套排版）。
  *
  * 不复用 client-kit 的 `MarkdownContent`：那份的字号是为聊天气泡调的（h1 等于正文），
- * 文档页需要真正的标题层级——层级也是 SEO 的一部分。
+ * 站点正文需要真正的标题层级——层级也是 SEO 的一部分。
+ *
+ * 改动这里的样式时，SSR 首屏的 `.prose` 规则（server/ssr-render.ts）要同步跟着改，
+ * 否则首屏与水合后观感会漂移。
  */
-const COMPONENTS: Components = {
+export const MARKDOWN_PROSE_COMPONENTS: Components = {
+  // 页面外壳已有 h1（文档标题 / hero），正文里的 `#` 降一级，避免双 h1
   h1: ({ children }) => (
     <h2 className="mt-12 mb-4 scroll-mt-20 text-2xl font-semibold tracking-tight first:mt-0">
       {children}
@@ -69,6 +73,13 @@ const COMPONENTS: Components = {
       {children}
     </blockquote>
   ),
+  img: ({ src, alt }) => (
+    <img
+      src={typeof src === "string" ? src : undefined}
+      alt={alt ?? ""}
+      className="my-6 h-auto max-w-full rounded-xl border border-border/60"
+    />
+  ),
   table: ({ children }) => (
     <div className="my-6 overflow-x-auto rounded-xl border border-border/60">
       <table className="w-full border-collapse text-sm">{children}</table>
@@ -88,9 +99,12 @@ const COMPONENTS: Components = {
   hr: () => <hr className="my-10 border-border/60" />,
 };
 
-export function DocContent({ markdown }: { markdown: string }) {
+export function MarkdownProse({ markdown }: { markdown: string }) {
   return (
-    <ReactMarkdown components={COMPONENTS} remarkPlugins={[remarkGfm]}>
+    <ReactMarkdown
+      components={MARKDOWN_PROSE_COMPONENTS}
+      remarkPlugins={[remarkGfm]}
+    >
       {markdown}
     </ReactMarkdown>
   );

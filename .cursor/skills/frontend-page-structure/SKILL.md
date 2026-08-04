@@ -245,9 +245,14 @@ const [createOpen, setCreateOpen] = useState(false);
 4. **Service**：`@be-water/server-kernel/http/list-sort.js`（`parseSortDir`、`resolveSortField`、`resolveSortOrder`）
 5. **无分页全量表**：`manualSorting={false}` + 组件内 `useState<SortingState>`
 
+## 文案（租户无感知）
+
+租户侧页面（`renderRoutes` / 绑定域名访客可见面）的 `title` / `description` / toast / 空态 **不要**出现「租户」「Tenant」。用「站点 / 官网 / 组织」或 `site` / `website` / `organization`。平台页（`renderPlatformRoutes`）可说租户。口径：`tenancy-mode` rule、`docs/design/tenant-config.md` §5.8。
+
 ## 检查清单
 
 - [ ] 租户页用了 `PageLayout`（icon + title + description + action）；平台页没套
+- [ ] 租户侧文案无「租户」「Tenant」（平台页除外）
 - [ ] `action` 为内聚 `*CreateSheet`（`children` = `DraggableFabTrigger`），无权限时为 `null`
 - [ ] 无 Page 级 `*Open` + 分散 Button / 底部 Sheet（Dialog/Sheet 内聚金标准）
 - [ ] 新增导航项写了 `title`（移动端标题来源）

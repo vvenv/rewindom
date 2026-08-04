@@ -14,8 +14,7 @@ export const marketingServerModule: ServerAppModule = {
   version: "1.0.0",
   label: "Marketing",
   kind: "infrastructure",
-  description:
-    "平台静态官网 + 租户自助 Marketing CMS（绑定 Host SSR）",
+  description: "平台静态官网 + 租户自助 Marketing CMS（绑定 Host SSR）",
   requires: ["rbac", "audit"],
   tenantEntitlements: [TENANT_MARKETING_ENTITLEMENT],
   shared: {
@@ -46,9 +45,13 @@ export const marketingServerModule: ServerAppModule = {
     i18n: MARKETING_SERVER_I18N,
     registerRoutes: async (app) => {
       await app.register(publicSiteRoutes, { prefix: "/api/public" });
-      await registerTenantGatedRoutes(app, "tenant-marketing", async (scoped) => {
-        await scoped.register(siteRoutes, { prefix: "/api/site" });
-      });
+      await registerTenantGatedRoutes(
+        app,
+        "tenant-marketing",
+        async (scoped) => {
+          await scoped.register(siteRoutes, { prefix: "/api/site" });
+        },
+      );
       await app.register(marketingSsrRoutes);
     },
   },

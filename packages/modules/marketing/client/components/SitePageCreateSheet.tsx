@@ -1,7 +1,12 @@
 import { type FormEvent, type ReactNode, useState } from "react";
 
 import { Button } from "@be-water/ui/button";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@be-water/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
 import {
   Select,
@@ -75,7 +80,9 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
         <form className="flex h-full flex-col" onSubmit={onSubmit}>
           <SheetHeader>
             <SheetTitle>{t("cms.createPageTitle")}</SheetTitle>
-            <SheetDescription>{t("cms.createPageDescription")}</SheetDescription>
+            <SheetDescription>
+              {t("cms.createPageDescription")}
+            </SheetDescription>
           </SheetHeader>
 
           <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
@@ -106,7 +113,9 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
                   required
                 />
                 <FieldDescription>
-                  {kind === "doc" ? t("cms.slugHintDoc") : t("cms.slugHintPage")}
+                  {kind === "doc"
+                    ? t("cms.slugHintDoc")
+                    : t("cms.slugHintPage")}
                 </FieldDescription>
               </Field>
             ) : null}

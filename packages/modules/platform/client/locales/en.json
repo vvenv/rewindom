@@ -372,7 +372,7 @@
     "nav": "Branding",
     "page": {
       "title": "Branding",
-      "description": "Upload a tenant logo and favicon for the login page and app shell"
+      "description": "Tenant logo, favicon and site theme — one place for the app shell, login page and public website."
     },
     "loading": "Loading…",
     "loadFailed": "Failed to load branding",

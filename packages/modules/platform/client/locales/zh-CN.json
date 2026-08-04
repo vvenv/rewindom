@@ -372,7 +372,7 @@
     "nav": "品牌",
     "page": {
       "title": "品牌",
-      "description": "上传租户 Logo 与 Favicon，将显示在登录页与应用外壳"
+      "description": "租户 Logo、Favicon 与官网主题；应用外壳、登录页与对外官网共用一处配置。"
     },
     "loading": "加载中…",
     "loadFailed": "加载品牌配置失败",

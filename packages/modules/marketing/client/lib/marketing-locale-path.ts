@@ -1,8 +1,4 @@
-import {
-  DEFAULT_LOCALE,
-  isAppLocale,
-  type AppLocale,
-} from "@be-water/shared";
+import { DEFAULT_LOCALE, isAppLocale, type AppLocale } from "@be-water/shared";
 
 export interface ParsedMarketingLocalePath {
   /** URL 或默认语言解析出的 locale。 */
@@ -91,10 +87,7 @@ export function isMarketingContentPath(pathname: string): boolean {
 }
 
 /** 导航高亮：按逻辑路径比较，忽略 locale 前缀。 */
-export function marketingPathsMatch(
-  pathname: string,
-  href: string,
-): boolean {
+export function marketingPathsMatch(pathname: string, href: string): boolean {
   const { path } = parseMarketingLocalePath(pathname);
   const target = normalizeLogicalPath(href);
   return path === target || path.startsWith(`${target}/`);
@@ -119,6 +112,9 @@ export function isMarketingLocalizableHref(href: string): boolean {
     return false;
   }
   return (
-    path === "/" || path === "/pricing" || path === "/docs" || path.startsWith("/docs/")
+    path === "/" ||
+    path === "/pricing" ||
+    path === "/docs" ||
+    path.startsWith("/docs/")
   );
 }

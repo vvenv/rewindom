@@ -219,7 +219,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.NOTE_CREATE]: "创建笔记",
   [AuditAction.NOTE_UPDATE]: "更新笔记",
   [AuditAction.NOTE_DELETE]: "删除笔记",
-  [AuditAction.SITE_UPDATE]: "更新租户官网",
+  [AuditAction.SITE_UPDATE]: "更新官网",
   [AuditAction.SITE_PAGE_CREATE]: "创建官网页面",
   [AuditAction.SITE_PAGE_UPDATE]: "更新官网页面",
   [AuditAction.SITE_PAGE_DELETE]: "删除官网页面",
@@ -292,7 +292,7 @@ export const AUDIT_ACTION_GROUPS = [
     ],
   },
   {
-    label: "租户官网",
+    label: "官网",
     actions: [
       AuditAction.SITE_UPDATE,
       AuditAction.SITE_PAGE_CREATE,

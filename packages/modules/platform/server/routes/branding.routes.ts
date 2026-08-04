@@ -8,7 +8,6 @@ import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/aud
 import { success } from "@be-water/shared";
 
 import { AuditAction } from "../../../audit/shared/index.js";
-import type { TenantBrandingAssetKind } from "../../shared/index.js";
 import {
   clearTenantBrandingAsset,
   getTenantBrandingUrls,
@@ -16,6 +15,7 @@ import {
   uploadTenantBrandingAsset,
 } from "../services/tenant-branding.service.js";
 
+import type { TenantBrandingAssetKind } from "../../shared/index.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 function parseKind(raw: string): TenantBrandingAssetKind | null {

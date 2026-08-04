@@ -3,14 +3,15 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 
-import { DocContent } from "../components/DocContent.js";
 import { DocsNav } from "../components/DocsNav.js";
+import { MarkdownProse } from "../components/MarkdownProse.js";
 import {
   MarketingLayout,
   MarketingSection,
 } from "../components/MarketingLayout.js";
 import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES, findDocPage } from "../lib/docs.js";
+
 import { TenantSitePageGate } from "./tenant-site-page.js";
 
 function DocNotFound() {
@@ -65,7 +66,7 @@ function PlatformDocDetail() {
             </p>
 
             <div className="mt-10">
-              <DocContent markdown={page.body} />
+              <MarkdownProse markdown={page.body} />
             </div>
 
             <nav

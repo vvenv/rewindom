@@ -67,7 +67,7 @@ describe("UserPermissionSheet", () => {
     render(<UserPermissionSheet user={user} />, { wrapper });
 
     expect(
-      screen.queryByText(/为用户 testuser 分配租户角色/),
+      screen.queryByText(/为用户 testuser 分配组织角色/),
     ).not.toBeInTheDocument();
   });
 });

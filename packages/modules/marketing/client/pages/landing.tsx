@@ -18,6 +18,7 @@ import {
 import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES } from "../lib/docs.js";
 import { resolveTechStackLayerLabel } from "../lib/marketing-i18n.js";
+
 import { TenantSitePageGate } from "./tenant-site-page.js";
 
 function Hero() {

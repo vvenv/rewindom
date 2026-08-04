@@ -1,42 +1,27 @@
 import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
 
 import {
+  parseAreaSection,
+  parseSections,
+  safeAreaSection,
+  safeSections,
+  type AreaSectionType,
+  type SiteSection,
+} from "../shared/section-schema.js";
+import {
+  parsePageSettings as parsePageSettingsSchema,
   RESERVED_PAGE_SLUGS,
   type MarketingPageKind,
-  type SiteLinkItem,
+  type MarketingPageSettings,
 } from "../shared/site-cms.js";
 import {
-  parseSections,
   parseThemeSettings,
-  safeSections,
   safeThemeSettings,
-  type SiteSection,
   type ThemeSettings,
 } from "../shared/theme-sections.js";
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u;
 const COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/u;
-
-export function parseLinkList(value: unknown, field: string): SiteLinkItem[] {
-  if (value === undefined || value === null) {
-    return [];
-  }
-  if (!Array.isArray(value)) {
-    throw new ValidationError("site.links_invalid", { field });
-  }
-  return value.map((item, index) => {
-    if (!item || typeof item !== "object") {
-      throw new ValidationError("site.links_invalid", { field, index });
-    }
-    const row = item as Record<string, unknown>;
-    const label = typeof row.label === "string" ? row.label.trim() : "";
-    const href = typeof row.href === "string" ? row.href.trim() : "";
-    if (!label || !href) {
-      throw new ValidationError("site.links_invalid", { field, index });
-    }
-    return { label, href };
-  });
-}
 
 export function parsePageSections(value: unknown): SiteSection[] {
   try {
@@ -49,8 +34,41 @@ export function parsePageSections(value: unknown): SiteSection[] {
   }
 }
 
+export function parsePageSettings(value: unknown): MarketingPageSettings {
+  try {
+    return parsePageSettingsSchema(value);
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("site.")) {
+      throw new ValidationError(err.message);
+    }
+    throw new ValidationError("site.page_settings_invalid");
+  }
+}
+
 export function safePageSections(value: unknown): SiteSection[] {
   return safeSections(value);
+}
+
+/** 页头 / 页脚：写路径严格校验，失败转 ValidationError。 */
+export function parseSiteAreaSection(
+  type: AreaSectionType,
+  value: unknown,
+): SiteSection {
+  try {
+    return parseAreaSection(type, value);
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("site.")) {
+      throw new ValidationError(err.message);
+    }
+    throw new ValidationError("site.sections_invalid");
+  }
+}
+
+export function safeSiteAreaSection(
+  type: AreaSectionType,
+  value: unknown,
+): SiteSection {
+  return safeAreaSection(type, value);
 }
 
 export function parseSiteThemeSettings(value: unknown): ThemeSettings {
@@ -79,7 +97,10 @@ export function normalizePageKind(
   return "page";
 }
 
-export function validatePageSlug(kind: MarketingPageKind, slug: string): string {
+export function validatePageSlug(
+  kind: MarketingPageKind,
+  slug: string,
+): string {
   const normalized = slug.trim().toLowerCase();
   if (kind === "home") {
     if (normalized !== "home") {

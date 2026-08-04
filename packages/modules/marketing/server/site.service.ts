@@ -1,3 +1,4 @@
+import { type Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 import {
   ConflictError,
   NotFoundError,
@@ -5,7 +6,6 @@ import {
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 
 import {
   marketingPagePath,
@@ -19,6 +19,7 @@ import {
   type UpdateMarketingSiteBody,
 } from "../shared/site-cms.js";
 import { resolveThemeSettings } from "../shared/theme-sections.js";
+
 import {
   toMarketingPage,
   toMarketingPageListItem,
@@ -28,8 +29,9 @@ import {
 } from "./site.mapper.js";
 import {
   normalizePageKind,
-  parseLinkList,
   parsePageSections,
+  parsePageSettings,
+  parseSiteAreaSection,
   parseSiteThemeSettings,
   validateOptionalColor,
   validatePageSlug,
@@ -59,7 +61,9 @@ async function ensureSiteRow(tenant_id: string): Promise<MarketingSite> {
   return toMarketingSite(created);
 }
 
-export async function getOrCreateSite(tenant_id: string): Promise<MarketingSite> {
+export async function getOrCreateSite(
+  tenant_id: string,
+): Promise<MarketingSite> {
   return ensureSiteRow(tenant_id);
 }
 
@@ -84,11 +88,17 @@ export async function updateSite(
     if (!locale) throw new ValidationError("site.locale_invalid");
     data.default_locale = locale;
   }
-  if (body.nav !== undefined) {
-    data.nav_json = parseLinkList(body.nav, "nav");
+  if (body.header !== undefined) {
+    data.nav_json = parseSiteAreaSection(
+      "header",
+      body.header,
+    ) as unknown as Prisma.InputJsonValue;
   }
   if (body.footer !== undefined) {
-    data.footer_json = parseLinkList(body.footer, "footer");
+    data.footer_json = parseSiteAreaSection(
+      "footer",
+      body.footer,
+    ) as unknown as Prisma.InputJsonValue;
   }
   if (body.published !== undefined) {
     data.published = Boolean(body.published);
@@ -167,6 +177,7 @@ export async function createPage(
   const slug = validatePageSlug(kind, body.slug);
   const locale = (body.locale ?? "zh-CN").trim() || "zh-CN";
   const sections = parsePageSections(body.sections ?? []);
+  const settings = parsePageSettings(body.settings ?? {});
 
   if (kind === "home") {
     const existingHome = await prisma.marketingPage.findFirst({
@@ -188,6 +199,7 @@ export async function createPage(
         description: body.description?.trim() ?? "",
         body_md: body.body_md ?? "",
         sections: sections as unknown as Prisma.InputJsonValue,
+        settings: settings as unknown as Prisma.InputJsonValue,
         status: "draft",
         sort_order: body.sort_order ?? 0,
       },
@@ -222,10 +234,7 @@ export async function updatePage(
     body.kind ?? existing.kind,
     body.slug ?? existing.slug,
   );
-  const nextSlug = validatePageSlug(
-    nextKind,
-    body.slug ?? existing.slug,
-  );
+  const nextSlug = validatePageSlug(nextKind, body.slug ?? existing.slug);
   const nextLocale = (body.locale ?? existing.locale).trim() || "zh-CN";
 
   if (nextKind === "home" && existing.kind !== "home") {
@@ -265,6 +274,13 @@ export async function updatePage(
           ? {
               sections: parsePageSections(
                 body.sections,
+              ) as unknown as Prisma.InputJsonValue,
+            }
+          : {}),
+        ...(body.settings !== undefined
+          ? {
+              settings: parsePageSettings(
+                body.settings,
               ) as unknown as Prisma.InputJsonValue,
             }
           : {}),

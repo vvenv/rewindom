@@ -310,6 +310,7 @@ export const MarketingPageScalarFieldEnum = {
   description: 'description',
   body_md: 'body_md',
   sections: 'sections',
+  settings: 'settings',
   status: 'status',
   sort_order: 'sort_order',
   created_at: 'created_at',

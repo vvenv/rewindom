@@ -13,6 +13,7 @@ import {
   useUploadTenantBranding,
   type BrandingAssetKind,
 } from "../hooks/useTenantBrandingMutations.js";
+import { settingsBrandingExtraSlot } from "../shell/settings-slots.js";
 
 export function SettingsBrandingPage() {
   const { t } = useTranslation("platform");
@@ -21,6 +22,7 @@ export function SettingsBrandingPage() {
   const brandingQuery = useTenantBranding();
   const uploadMutation = useUploadTenantBranding();
   const clearMutation = useClearTenantBranding();
+  const BrandingExtra = settingsBrandingExtraSlot.useSlot();
 
   const logoUrl = brandingQuery.data?.logo_url ?? null;
   const faviconUrl = brandingQuery.data?.favicon_url ?? null;
@@ -94,6 +96,8 @@ export function SettingsBrandingPage() {
             accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,.ico"
             hint={t("branding.favicon.hint")}
           />
+
+          {BrandingExtra ? <BrandingExtra canWrite={canWrite} /> : null}
         </div>
       )}
     </PageLayout>

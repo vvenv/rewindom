@@ -109,7 +109,7 @@ describe("UserAvatar", () => {
     renderAvatar();
     openMenu();
 
-    expect(screen.getByText("租户用户")).toBeInTheDocument();
+    expect(screen.getByText("组织用户")).toBeInTheDocument();
   });
 
   it("应该显示上次登录时间", () => {

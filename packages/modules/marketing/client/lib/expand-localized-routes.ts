@@ -5,10 +5,7 @@ import {
 } from "@be-water/client-kit/i18n/setup";
 import { APP_LOCALES, DEFAULT_LOCALE, type AppLocale } from "@be-water/shared";
 
-import {
-  buildCanonicalUrl,
-  type PageSeo,
-} from "../../shared/index.js";
+import { buildCanonicalUrl, type PageSeo } from "../../shared/index.js";
 import { MARKETING_I18N } from "../i18n.js";
 
 import { localizePageSeo } from "./marketing-i18n.js";
@@ -34,9 +31,10 @@ function remapJsonLdUrls(
   }
   const fromUrl = buildCanonicalUrl(origin, fromPath);
   const toUrl = buildCanonicalUrl(origin, toPath);
-  return JSON.parse(
-    JSON.stringify(data).split(fromUrl).join(toUrl),
-  ) as Record<string, unknown>;
+  return JSON.parse(JSON.stringify(data).split(fromUrl).join(toUrl)) as Record<
+    string,
+    unknown
+  >;
 }
 
 /**

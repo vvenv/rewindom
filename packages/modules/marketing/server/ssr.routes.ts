@@ -40,9 +40,7 @@ function requestOrigin(request: FastifyRequest): string {
       ?.split(",")[0]
       ?.trim() || "https";
   const host =
-    resolveRequestHostname(request.headers) ||
-    request.hostname ||
-    "localhost";
+    resolveRequestHostname(request.headers) || request.hostname || "localhost";
   return `${proto}://${host}`;
 }
 
@@ -73,7 +71,7 @@ async function renderPath(
       404,
       renderUnavailableHtml({
         title: "Site not found",
-        message: "This host is not bound to a tenant site.",
+        message: "This host is not bound to a site.",
       }),
     );
     return;

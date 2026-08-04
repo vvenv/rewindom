@@ -8,6 +8,7 @@ import {
 } from "../components/MarketingLayout.js";
 import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES } from "../lib/docs.js";
+
 import { TenantSitePageGate } from "./tenant-site-page.js";
 
 function PlatformDocsIndex() {

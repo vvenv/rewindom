@@ -9,6 +9,7 @@ import {
   setPageStatus,
   updateSite,
 } from "../../../packages/modules/marketing/server/site.service.js";
+import { parseAreaSection } from "../../../packages/modules/marketing/shared/section-schema.js";
 
 async function main(): Promise<void> {
   const tenant =
@@ -23,8 +24,8 @@ async function main(): Promise<void> {
     site_name: "Local Tenant Site",
     tagline: "SEO SSR smoke test",
     published: true,
-    nav: [{ label: "Docs", href: "/docs" }],
-    footer: [{ label: "Login", href: "/login" }],
+    header: parseAreaSection("header", [{ label: "Docs", href: "/docs" }]),
+    footer: parseAreaSection("footer", [{ label: "Login", href: "/login" }]),
   });
   const pages = await prisma.marketingPage.findMany({
     where: { tenant_id: tenant.id },
@@ -46,6 +47,19 @@ async function main(): Promise<void> {
             primary_label: "Go",
             primary_href: "/login",
           },
+          blocks: [],
+        },
+        {
+          id: "smoke-features",
+          type: "feature-grid",
+          settings: { heading: "Feature Grid Heading", columns: 3 },
+          blocks: [
+            {
+              id: "smoke-f1",
+              type: "feature",
+              settings: { icon: "Bot", title: "Feature One", body: "Body one" },
+            },
+          ],
         },
         {
           id: "smoke-prose",
@@ -54,6 +68,7 @@ async function main(): Promise<void> {
             body_md:
               "# Hello from tenant CMS\n\nThis paragraph must appear in SSR HTML.",
           },
+          blocks: [],
         },
       ],
     });

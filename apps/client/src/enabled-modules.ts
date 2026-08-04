@@ -27,8 +27,8 @@ import type { ClientAppModule } from "@be-water/client-kit";
  */
 export const ENABLED_CLIENT_MODULES = [
   appShellClientModule,
-  marketingClientModule,
   dashboardClientModule,
+  marketingClientModule,
   notesClientModule,
   todosClientModule,
   notificationClientModule,

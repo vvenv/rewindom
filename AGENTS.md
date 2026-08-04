@@ -21,6 +21,7 @@
 - 写操作：记录审计日志
 - Migration：禁止随意 `reset`，优先增量 migration
 - 单租户部署：`SINGLE_TENANT=true`（见 `tenancy-mode` rule）；生产 env 透传门禁：`pnpm check:prod-app-env`
+- 租户无感知：租户侧 / 公开面文案不出现「租户」「Tenant」（见 `tenancy-mode` rule、`tenant-config.md` §5.8）
 
 ## 模块化开发
 

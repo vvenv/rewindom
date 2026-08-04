@@ -1,4 +1,8 @@
-import { MarketingLayout, MarketingSection } from "../components/MarketingLayout.js";
+import {
+  MarketingLayout,
+  MarketingSection,
+} from "../components/MarketingLayout.js";
+
 import { TenantSitePageGate } from "./tenant-site-page.js";
 
 function PlatformNotFound() {

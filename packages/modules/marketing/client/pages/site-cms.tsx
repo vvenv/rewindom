@@ -1,17 +1,26 @@
-import { PageLayout, usePermissions } from "@be-water/client-kit";
+import { PageLayout, useConfirm, usePermissions } from "@be-water/client-kit";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
-import { Globe, Palette, Plus, Settings2 } from "lucide-react";
+import {
+  CloudOff,
+  CloudUpload,
+  Globe,
+  Palette,
+  Pencil,
+  Plus,
+  Settings2,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
+import { marketingPagePath } from "../../shared/site-cms.js";
 import { SitePageCreateSheet } from "../components/SitePageCreateSheet.js";
 import { SitePageEditSheet } from "../components/SitePageEditSheet.js";
 import { SiteSettingsSheet } from "../components/SiteSettingsSheet.js";
 import { useSite, useSiteMutations, useSitePages } from "../hooks/useSite.js";
-import { marketingPagePath } from "../../shared/site-cms.js";
 
 export function SiteCms() {
   const { t } = useTranslation("marketing");
@@ -20,6 +29,40 @@ export function SiteCms() {
   const siteQuery = useSite();
   const pagesQuery = useSitePages();
   const { removePage, publishPage, unpublishPage } = useSiteMutations();
+  const { confirm } = useConfirm();
+
+  /** 删除走统一的二次确认弹窗（`ConfirmProvider`），不用浏览器原生 confirm。 */
+  const handleDelete = async (
+    pageId: string,
+    pageTitle: string,
+  ): Promise<void> => {
+    const confirmed = await confirm({
+      title: t("cms.deleteConfirmTitle"),
+      description: t("cms.deleteConfirmDescription", { title: pageTitle }),
+      confirmText: t("cms.delete"),
+      destructive: true,
+    });
+    if (!confirmed) return;
+    removePage.mutate(pageId, {
+      onSuccess: () => toast.success(t("cms.toastPageDeleted")),
+      onError: () => toast.error(t("cms.toastPageDeleteFailed")),
+    });
+  };
+
+  /** 发布 / 取消发布共用同一份 toast 逻辑，按当前状态切换 mutation 与文案。 */
+  const handleTogglePublish = (page: { id: string; status: string }): void => {
+    const isPublished = page.status === "published";
+    const mutation = isPublished ? unpublishPage : publishPage;
+    mutation.mutate(page.id, {
+      onSuccess: () =>
+        toast.success(
+          t(
+            isPublished ? "cms.toastPageUnpublished" : "cms.toastPagePublished",
+          ),
+        ),
+      onError: () => toast.error(t("cms.toastPagePublishFailed")),
+    });
+  };
 
   return (
     <PageLayout
@@ -50,7 +93,9 @@ export function SiteCms() {
           <div className="rounded-lg border p-4 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">{siteQuery.data.site_name}</span>
-              <Badge variant={siteQuery.data.published ? "default" : "secondary"}>
+              <Badge
+                variant={siteQuery.data.published ? "default" : "secondary"}
+              >
                 {siteQuery.data.published
                   ? t("cms.statusPublished")
                   : t("cms.statusDraft")}
@@ -77,9 +122,19 @@ export function SiteCms() {
               key={page.id}
               className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
             >
-              <div className="min-w-0">
+              {/* 标题 + 状态一行，路径单独一行——三者混排时 truncate 不生效 */}
+              <div className="min-w-0 space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{page.title}</span>
+                  {canWrite ? (
+                    <Link
+                      to={`/site/pages/${page.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {page.title}
+                    </Link>
+                  ) : (
+                    <span className="font-medium">{page.title}</span>
+                  )}
                   <Badge variant="outline">{page.kind}</Badge>
                   <Badge
                     variant={
@@ -96,62 +151,67 @@ export function SiteCms() {
                 </p>
               </div>
               {canWrite ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild size="sm">
+                <div className="flex shrink-0 items-center justify-end gap-1">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="icon-sm"
+                    title={t("editor.open")}
+                    aria-label={t("editor.open")}
+                  >
                     <Link to={`/site/pages/${page.id}`}>
-                      <Palette className="size-4" />
-                      {t("editor.open")}
+                      <Palette className="size-3.5" />
                     </Link>
                   </Button>
                   <SitePageEditSheet page={page}>
-                    <Button size="sm" variant="outline">
-                      {t("cms.edit")}
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      title={t("cms.edit")}
+                      aria-label={t("cms.edit")}
+                    >
+                      <Pencil className="size-3.5" />
                     </Button>
                   </SitePageEditSheet>
-                  {page.status === "published" ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        unpublishPage.mutate(page.id, {
-                          onSuccess: () =>
-                            toast.success(t("cms.toastPageUnpublished")),
-                          onError: () =>
-                            toast.error(t("cms.toastPagePublishFailed")),
-                        })
-                      }
-                    >
-                      {t("cms.unpublish")}
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        publishPage.mutate(page.id, {
-                          onSuccess: () =>
-                            toast.success(t("cms.toastPagePublished")),
-                          onError: () =>
-                            toast.error(t("cms.toastPagePublishFailed")),
-                        })
-                      }
-                    >
-                      {t("cms.publish")}
-                    </Button>
-                  )}
                   <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => {
-                      if (!window.confirm(t("cms.deleteConfirm"))) return;
-                      removePage.mutate(page.id, {
-                        onSuccess: () =>
-                          toast.success(t("cms.toastPageDeleted")),
-                        onError: () =>
-                          toast.error(t("cms.toastPageDeleteFailed")),
-                      });
-                    }}
+                    variant="ghost"
+                    size="icon-sm"
+                    title={t(
+                      page.status === "published"
+                        ? "cms.unpublish"
+                        : "cms.publish",
+                    )}
+                    aria-label={t(
+                      page.status === "published"
+                        ? "cms.unpublish"
+                        : "cms.publish",
+                    )}
+                    disabled={
+                      (publishPage.isPending &&
+                        publishPage.variables === page.id) ||
+                      (unpublishPage.isPending &&
+                        unpublishPage.variables === page.id)
+                    }
+                    onClick={() => handleTogglePublish(page)}
                   >
-                    {t("cms.delete")}
+                    {page.status === "published" ? (
+                      <CloudOff className="size-3.5" />
+                    ) : (
+                      <CloudUpload className="size-3.5" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="hover:text-destructive"
+                    title={t("cms.delete")}
+                    aria-label={t("cms.delete")}
+                    disabled={
+                      removePage.isPending && removePage.variables === page.id
+                    }
+                    onClick={() => void handleDelete(page.id, page.title)}
+                  >
+                    <Trash2 className="size-3.5" />
                   </Button>
                 </div>
               ) : null}

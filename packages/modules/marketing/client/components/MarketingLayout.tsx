@@ -31,10 +31,16 @@ import { MarketingHeader } from "./MarketingHeader.js";
 export function MarketingLayout({
   path,
   children,
+  chrome = true,
 }: {
   /** 当前逻辑路径（无 locale 前缀），用于取这一页的 SEO 数据 */
   path: string;
   children: ReactNode;
+  /**
+   * 是否套平台页头页脚。租户官网自带**可编辑**的页头页脚（schema 驱动），
+   * 传 `false` 只复用这里的 locale 同步与 SEO，避免出现两套 chrome。
+   */
+  chrome?: boolean;
 }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -49,11 +55,7 @@ export function MarketingLayout({
   setupI18n(effectiveLocale);
 
   useLayoutEffect(() => {
-    if (
-      !parsed.prefixed &&
-      userChoice &&
-      userChoice !== DEFAULT_LOCALE
-    ) {
+    if (!parsed.prefixed && userChoice && userChoice !== DEFAULT_LOCALE) {
       navigate(withMarketingLocale(parsed.path, userChoice), { replace: true });
       return;
     }
@@ -74,6 +76,12 @@ export function MarketingLayout({
   ]);
 
   useDocumentSeo(findMarketingRoute(path), pathname);
+
+  if (!chrome) {
+    return (
+      <div className="min-h-svh bg-background text-foreground">{children}</div>
+    );
+  }
 
   return (
     <div className="flex min-h-svh flex-col bg-background text-foreground">

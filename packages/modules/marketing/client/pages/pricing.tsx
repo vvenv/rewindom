@@ -10,7 +10,9 @@ import {
   resolveLocalizedPricingFaq,
 } from "../lib/marketing-i18n.js";
 
-export function Pricing() {
+import { TenantSitePageGate } from "./tenant-site-page.js";
+
+function PlatformPricing() {
   const { t } = useTranslation("marketing");
   const plans = resolveLocalizedMarketingPlans(t);
   const faq = resolveLocalizedPricingFaq(t);
@@ -54,4 +56,9 @@ export function Pricing() {
       </MarketingSection>
     </MarketingLayout>
   );
+}
+
+/** 绑定域名下优先渲染租户自己的 /pricing 页面。 */
+export function Pricing() {
+  return <TenantSitePageGate fallback={<PlatformPricing />} />;
 }

@@ -6,7 +6,7 @@ import {
   removeSection,
   updateSectionSettings,
 } from "./section-schema.js";
-import { createSection } from "../../shared/theme-sections.js";
+import { createSection } from "../../shared/section-schema.js";
 
 describe("section-schema helpers", () => {
   it("moves sections", () => {
@@ -22,9 +22,9 @@ describe("section-schema helpers", () => {
     const updated = updateSectionSettings(withBand, a.id, {
       headline: "New",
     });
-    expect(
-      updated.find((s) => s.id === a.id)?.settings,
-    ).toEqual({ headline: "New" });
+    expect(updated.find((s) => s.id === a.id)?.settings).toEqual({
+      headline: "New",
+    });
     expect(removeSection(withBand, a.id)).toHaveLength(1);
   });
 });

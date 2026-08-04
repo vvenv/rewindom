@@ -1,5 +1,6 @@
 import {
   marketingPagePath,
+  safePageSettings,
   type MarketingPage,
   type MarketingPageKind,
   type MarketingPageListItem,
@@ -7,10 +8,10 @@ import {
   type MarketingSite,
   type PublicMarketingPage,
   type PublicMarketingSite,
-  type SiteLinkItem,
 } from "../shared/site-cms.js";
 import { resolveThemeSettings } from "../shared/theme-sections.js";
-import { parseLinkList, safePageSections } from "./site.util.js";
+
+import { safePageSections, safeSiteAreaSection } from "./site.util.js";
 
 import type {
   MarketingPage as MarketingPageRecord,
@@ -41,8 +42,8 @@ export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
     primary_color: theme_settings.primary_color ?? record.primary_color,
     theme_settings,
     default_locale: record.default_locale,
-    nav: parseLinkList(record.nav_json, "nav"),
-    footer: parseLinkList(record.footer_json, "footer"),
+    header: safeSiteAreaSection("header", record.nav_json),
+    footer: safeSiteAreaSection("footer", record.footer_json),
     published: record.published,
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
@@ -61,6 +62,7 @@ export function toMarketingPage(record: MarketingPageRecord): MarketingPage {
     description: record.description,
     body_md: record.body_md,
     sections: safePageSections(record.sections),
+    settings: safePageSettings(record.settings),
     status: asStatus(record.status),
     sort_order: record.sort_order,
     created_at: record.created_at.toISOString(),
@@ -88,16 +90,6 @@ export function toPublicMarketingSite(
   site: MarketingSiteRecord,
   pages: MarketingPageRecord[],
 ): PublicMarketingSite {
-  let nav: SiteLinkItem[] = [];
-  let footer: SiteLinkItem[] = [];
-  try {
-    nav = parseLinkList(site.nav_json, "nav");
-    footer = parseLinkList(site.footer_json, "footer");
-  } catch {
-    nav = [];
-    footer = [];
-  }
-
   const theme_settings = resolveThemeSettings({
     theme_settings: site.theme_settings,
     logo_url: site.logo_url,
@@ -111,8 +103,8 @@ export function toPublicMarketingSite(
     primary_color: theme_settings.primary_color ?? null,
     theme_settings,
     default_locale: site.default_locale,
-    nav,
-    footer,
+    header: safeSiteAreaSection("header", site.nav_json),
+    footer: safeSiteAreaSection("footer", site.footer_json),
     pages: pages.map((page) => {
       const kind = asKind(page.kind);
       return {
@@ -139,6 +131,7 @@ export function toPublicMarketingPage(
     description: record.description,
     body_md: record.body_md,
     sections: safePageSections(record.sections),
+    settings: safePageSettings(record.settings),
     path: marketingPagePath(kind, record.slug),
     updated_at: record.updated_at.toISOString(),
   };

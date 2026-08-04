@@ -1,6 +1,7 @@
+import { useRef, type ChangeEvent } from "react";
+
 import { BrandMark } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
-import { useRef, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { BrandingAssetKind } from "../hooks/useTenantBrandingMutations.js";

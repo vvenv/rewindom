@@ -147,6 +147,7 @@ checklist 手工建。
    - nav `label` / `title` 用 `namespace:key`（如 `notes:nav.notes`），**禁止**模块加载时 `t()` 写死文案
 9. Client i18n：`client/locales/{zh-CN,en}.json` + `client/i18n.ts` → `client.i18n`（**不要**往 `client-kit/locales` 塞模块 JSON）
 10. Server i18n：`server/i18n.ts` 按稳定 **code** 提供 zh-CN/en → `server.i18n`；抛错用 `NotFoundError("notes.not_found")` 等，审计用 `detail_key` + `detail_params`（见 `docs/design/i18n.md`）
+    - **租户无感知**：租户侧 locale / API `error` 兜底句 / 审计模板勿写「租户」「Tenant」（用 site / website / organization / 官网 / 组织）；平台侧可说租户（见 `tenancy-mode` rule、`tenant-config.md` §5.8）
 11. Page 按 `frontend-page-structure` skill 四层拆分
 12. 在 `apps/client/src/enabled-modules.ts` / `apps/server/src/enabled-modules.ts` 注册
 
@@ -180,3 +181,4 @@ checklist 手工建。
 - [ ] 权限 key 的**语义**分配合理（read/write 边界），非仅字面存在
 - [ ] 服务查询都带 `tenant_id` 过滤（由 `eslint-rules/tenant-scope.js` 兜底）
 - [ ] `MODULE.md` + `MODULE.spec.yaml` 落盘，且 spec 与实现一致
+- [ ] 租户侧 / 公开面文案无「租户」「Tenant」（平台面除外）

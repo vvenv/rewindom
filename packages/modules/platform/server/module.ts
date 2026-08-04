@@ -8,8 +8,8 @@ import {
   tenantBrandingRoutes,
 } from "./routes/branding.routes.js";
 import { tenantEntitlementsRoutes } from "./routes/tenant-entitlements.routes.js";
-import { getTenantBrandingUrls } from "./services/tenant-branding.service.js";
 import { getPlatformSettings } from "./services/platform-settings.service.js";
+import { getTenantBrandingUrls } from "./services/tenant-branding.service.js";
 import {
   registerOAuthTenant,
   registerTenant,

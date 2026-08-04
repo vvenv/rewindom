@@ -31,6 +31,7 @@ model MarketingPage {
   description String   @default("")
   body_md     String   @default("")
   sections    Json     @default("[]")
+  settings    Json     @default("{}")
   status      String   @default("draft")
   sort_order  Int      @default(0)
   created_at  DateTime @default(now())
