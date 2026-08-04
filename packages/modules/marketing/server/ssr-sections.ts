@@ -9,13 +9,16 @@ import { marked } from "marked";
 
 import {
   groupColumns,
+  hasCustomSurface,
   resolveSectionGaps,
   resolveSectionLayout,
+  resolveSurfaceStyle,
   settingBool,
   settingLines,
   settingNumber,
   resolvePageHeaderText,
   settingText,
+  surfaceStyleAttr,
   type SettingValues,
   type SiteBlock,
   type SiteSection,
@@ -32,6 +35,12 @@ import { withSiteLocale } from "../shared/site-locale.js";
 import { escapeHtml } from "./site.util.js";
 
 import type { AppLocale } from "@be-water/shared";
+
+/** block / 卡片上的自定义外观：有设置才吐 ` style="..."`。 */
+function blockSurfaceAttr(settings: SettingValues): string {
+  const attr = surfaceStyleAttr(resolveSurfaceStyle(settings));
+  return attr ? ` style="${attr}"` : "";
+}
 
 /** `page-menu` 等需要站点目录的 section 渲染上下文。 */
 export interface SectionRenderContext {
@@ -130,7 +139,7 @@ function renderFeatureGrid(section: SiteSection): string {
   const items = section.blocks
     .map((block) => {
       const body = settingText(block.settings, "body");
-      return `<li class="card">
+      return `<li class="card"${blockSurfaceAttr(block.settings)}>
   <p class="title">${escapeHtml(settingText(block.settings, "title"))}</p>
   ${body ? `<p class="muted">${escapeHtml(body)}</p>` : ""}
 </li>`;
@@ -150,7 +159,7 @@ function renderSteps(section: SiteSection): string {
     .map((block, index) => {
       const body = settingText(block.settings, "body");
       const code = settingText(block.settings, "code");
-      return `<li class="card">
+      return `<li class="card"${blockSurfaceAttr(block.settings)}>
   ${showNumber ? `<span class="eyebrow">${String(index + 1).padStart(2, "0")}</span>` : ""}
   <p class="title">${escapeHtml(settingText(block.settings, "title"))}</p>
   ${body ? `<p class="muted">${escapeHtml(body)}</p>` : ""}
@@ -195,9 +204,10 @@ function renderSpecList(section: SiteSection): string {
 
 function renderCardBlock(block: SiteBlock, plain: boolean): string {
   const cls = plain ? "card card-plain" : "card";
+  const surface = blockSurfaceAttr(block.settings);
   if (block.type === "stat") {
     const label = settingText(block.settings, "label");
-    return `<li class="${cls}"><strong class="stat-value">${escapeHtml(settingText(block.settings, "value"))}</strong>${
+    return `<li class="${cls}"${surface}><strong class="stat-value">${escapeHtml(settingText(block.settings, "value"))}</strong>${
       label ? `<p class="muted">${escapeHtml(label)}</p>` : ""
     }</li>`;
   }
@@ -207,9 +217,9 @@ function renderCardBlock(block: SiteBlock, plain: boolean): string {
     body ? `<span class="muted">${escapeHtml(body)}</span>` : ""
   }`;
   if (href) {
-    return `<li><a class="${cls}"${linkAttrs(href)}>${inner}</a></li>`;
+    return `<li><a class="${cls}"${linkAttrs(href)}${surface}>${inner}</a></li>`;
   }
-  return `<li class="${cls}">${inner}</li>`;
+  return `<li class="${cls}"${surface}>${inner}</li>`;
 }
 
 function renderCards(section: SiteSection): string {
@@ -296,7 +306,7 @@ function renderPricing(section: SiteSection): string {
       const highlights = settingLines(b, "highlights")
         .map((item) => `<li>${escapeHtml(item)}</li>`)
         .join("");
-      return `<li class="plan${featured ? " featured" : ""}">
+      return `<li class="plan${featured ? " featured" : ""}"${blockSurfaceAttr(b)}>
   ${featured && badge ? `<span class="badge">${escapeHtml(badge)}</span>` : ""}
   <h3>${escapeHtml(settingText(b, "name"))}</h3>
   ${audience ? `<p class="muted">${escapeHtml(audience)}</p>` : ""}
@@ -319,7 +329,7 @@ function renderFaq(section: SiteSection): string {
   const items = section.blocks
     .map((block) => {
       const answer = settingText(block.settings, "answer");
-      return `<div class="qa">
+      return `<div class="qa"${blockSurfaceAttr(block.settings)}>
   <dt>${escapeHtml(settingText(block.settings, "question"))}</dt>
   ${answer ? `<dd>${escapeHtml(answer)}</dd>` : ""}
 </div>`;
@@ -454,23 +464,39 @@ export function renderSectionHtml(
   const inner = renderSectionInner(section, ctx);
   if (!inner) return "";
   const layout = resolveSectionLayout(section.settings);
+  const surface = resolveSurfaceStyle(section.settings);
   // 容器段的列里没有「通栏」可言：外层已限宽，full 退化成 page
   const width =
     options.contained && layout.width === "full" ? "page" : layout.width;
   // 光晕是容器级的背景效果，和 background/divider 同层（目前只有 hero 声明它）
   const glow = settingBool(section.settings, "show_glow");
+  const useTokenBg =
+    !surface.backgroundColor && layout.background !== "none";
+  const useDefaultRadius =
+    surface.borderRadius === null &&
+    (useTokenBg || hasCustomSurface(surface)) &&
+    width !== "full";
   const classes = [
     "sec-band",
     `sec-w-${width}`,
-    layout.background !== "none" ? `sec-bg-${layout.background}` : "",
+    useTokenBg ? `sec-bg-${layout.background}` : "",
+    useDefaultRadius ? "sec-radius-default" : "",
     layout.dividerTop ? "sec-divider-top" : "",
     layout.dividerBottom ? "sec-divider-bottom" : "",
     glow ? "has-glow" : "",
+    hasCustomSurface(surface) ? "has-surface" : "",
   ]
     .filter(Boolean)
     .join(" ");
   // 存的是桌面值，窄屏由 `.sec` / `.sec-band` 的媒体查询按比例缩
-  const style = `--sec-pt:${layout.paddingTop}px;--sec-pb:${layout.paddingBottom}px`;
+  const surfaceAttr = surfaceStyleAttr(surface);
+  const style = [
+    `--sec-pt:${layout.paddingTop}px`,
+    `--sec-pb:${layout.paddingBottom}px`,
+    surfaceAttr,
+  ]
+    .filter(Boolean)
+    .join(";");
   const id = layout.anchor ? ` id="${escapeHtml(layout.anchor)}"` : "";
   const glowHtml = glow
     ? `<div class="sec-glow" aria-hidden="true"></div>`
@@ -574,8 +600,9 @@ export function renderHeaderHtml(input: {
   const switcher = input.showLocaleSwitcher
     ? renderLocaleSwitcherHtml(locales)
     : "";
+  const surface = blockSurfaceAttr(s);
 
-  return `<header class="site-header${settingBool(s, "sticky") ? " sticky" : ""}">
+  return `<header class="site-header${settingBool(s, "sticky") ? " sticky" : ""}"${surface}>
   <div class="wrap header-row${layout === "centered" ? " header-layout-centered" : ""}">
     <a class="brand" href="${escapeHtml(homeHref)}">
       ${settingBool(s, "show_logo") && logoUrl ? `<img class="logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(siteName)}" />` : ""}
@@ -624,7 +651,7 @@ export function renderFooterHtml(input: {
     )
     .join("");
 
-  return `<footer class="site-footer">
+  return `<footer class="site-footer"${blockSurfaceAttr(s)}>
   <div class="wrap footer-grid">
     <div>
       <div class="brand">

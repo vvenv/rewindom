@@ -7,18 +7,22 @@ import { ArrowRight, Check } from "lucide-react";
 import {
   gridColumnsClass,
   groupColumns,
+  hasCustomSurface,
   resolvePageHeaderText,
   resolveSectionGaps,
   resolveSectionLayout,
+  resolveSurfaceStyle,
   settingBool,
   settingIcon,
   settingLines,
   settingNumber,
   settingText,
+  surfaceStyleCss,
   type SectionLayout,
   type SettingValues,
   type SiteBlock,
   type SiteSection,
+  type SurfaceStyle,
 } from "../../../shared/section-schema.js";
 import {
   PAGE_MENU_SOURCES,
@@ -139,14 +143,37 @@ function SectionHeading({
   );
 }
 
-const CARD_SHELL = "rounded-xl border border-border/60 bg-background p-5";
-
 const BACKGROUND_CLASS: Record<SectionLayout["background"], string> = {
   none: "",
   muted: "bg-muted/40",
   accent: "bg-primary/8",
   outline: "border border-border/60",
 };
+
+/** block / 卡片外壳：自定义外观盖过默认底色 / 边 / 圆角。 */
+function blockShellClass(style: SurfaceStyle, plain = false): string {
+  if (plain) return "py-2";
+  return cn(
+    "p-5",
+    style.backgroundColor ? null : "bg-background",
+    style.borderWidth > 0 ? null : "border border-border/60",
+    style.borderRadius !== null ? null : "rounded-xl",
+  );
+}
+
+function blockShellStyle(
+  settings: SettingValues,
+  plain = false,
+): {
+  className: string;
+  style: CSSProperties;
+} {
+  const surface = resolveSurfaceStyle(settings);
+  return {
+    className: blockShellClass(surface, plain),
+    style: plain ? {} : (surfaceStyleCss(surface) as CSSProperties),
+  };
+}
 
 /**
  * 每个 section 分两层：外层「色块」（背景 / 分隔线 / 上下留白）与内层「正文」。
@@ -260,8 +287,9 @@ function FeatureGridSection({
           const Icon =
             SECTION_ICON_COMPONENTS[settingIcon(block.settings, "icon")];
           const body = settingText(block.settings, "body");
+          const shell = blockShellStyle(block.settings);
           return (
-            <li key={block.id} className={CARD_SHELL}>
+            <li key={block.id} className={shell.className} style={shell.style}>
               {showIcons ? (
                 <span className="mb-3 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Icon className="size-4" aria-hidden />
@@ -304,8 +332,9 @@ function StepsSection({
         {section.blocks.map((block, index) => {
           const body = settingText(block.settings, "body");
           const code = settingText(block.settings, "code");
+          const shell = blockShellStyle(block.settings);
           return (
-            <li key={block.id} className={CARD_SHELL}>
+            <li key={block.id} className={shell.className} style={shell.style}>
               {showNumber ? (
                 <span className="text-xs tracking-wide text-muted-foreground uppercase">
                   {String(index + 1).padStart(2, "0")}
@@ -401,11 +430,12 @@ function CardBlock({
   style: string;
 }): ReactElement {
   const plain = style === "plain";
+  const shell = blockShellStyle(block.settings, plain);
 
   if (block.type === "stat") {
     const label = settingText(block.settings, "label");
     return (
-      <li className={plain ? "py-2" : CARD_SHELL}>
+      <li className={shell.className} style={shell.style}>
         <strong className="text-3xl leading-tight font-semibold text-primary">
           {settingText(block.settings, "value")}
         </strong>
@@ -441,15 +471,17 @@ function CardBlock({
           href={href}
           className={cn(
             "group block h-full",
-            plain
-              ? "py-2"
-              : "rounded-xl border border-border/60 bg-background p-5 transition-colors hover:border-primary/40 hover:bg-muted/40",
+            shell.className,
+            !plain && "transition-colors hover:border-primary/40 hover:bg-muted/40",
           )}
+          style={shell.style}
         >
           {inner}
         </SiteLink>
       ) : (
-        <div className={plain ? "py-2" : CARD_SHELL}>{inner}</div>
+        <div className={shell.className} style={shell.style}>
+          {inner}
+        </div>
       )}
     </li>
   );
@@ -507,15 +539,21 @@ function PricingSection({
           const priceNote = settingText(b, "price_note");
           const label = settingText(b, "primary_label");
           const href = settingText(b, "primary_href");
+          const surface = resolveSurfaceStyle(b);
           return (
             <li
               key={block.id}
               className={cn(
-                "relative flex flex-col rounded-2xl border bg-background p-6",
-                featured
-                  ? "border-primary/50 shadow-sm ring-1 ring-primary/20"
-                  : "border-border/60",
+                "relative flex flex-col p-6",
+                surface.backgroundColor ? null : "bg-background",
+                surface.borderWidth > 0
+                  ? null
+                  : featured
+                    ? "border border-primary/50 shadow-sm ring-1 ring-primary/20"
+                    : "border border-border/60",
+                surface.borderRadius !== null ? null : "rounded-2xl",
               )}
+              style={surfaceStyleCss(surface) as CSSProperties}
             >
               {featured && badge ? (
                 <span className="absolute -top-2.5 left-6 rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
@@ -585,8 +623,16 @@ function FaqSection({
       <dl className="divide-y divide-border/60 overflow-hidden rounded-2xl border border-border/60">
         {section.blocks.map((block) => {
           const answer = settingText(block.settings, "answer");
+          const surface = resolveSurfaceStyle(block.settings);
           return (
-            <div key={block.id} className="bg-background px-6 py-5">
+            <div
+              key={block.id}
+              className={cn(
+                "px-6 py-5",
+                surface.backgroundColor ? null : "bg-background",
+              )}
+              style={surfaceStyleCss(surface) as CSSProperties}
+            >
               <dt className="font-medium">
                 {settingText(block.settings, "question")}
               </dt>
@@ -918,10 +964,18 @@ export function SiteSections({
     <div>
       {resolved.map((section, index) => {
         const layout = layouts[index]!;
+        const surface = resolveSurfaceStyle(section.settings);
         const width =
           contained && layout.width === "full" ? "page" : layout.width;
         // 光晕是容器级的背景效果，和 background/divider 同层（目前只有 hero 声明它）
         const glow = settingBool(section.settings, "show_glow");
+        // 自定义底色盖过 token preset；自定义圆角盖过默认 rounded-xl
+        const useTokenBg =
+          !surface.backgroundColor && layout.background !== "none";
+        const useDefaultRadius =
+          surface.borderRadius === null &&
+          (useTokenBg || hasCustomSurface(surface)) &&
+          width !== "full";
         return (
           <section
             key={section.id}
@@ -969,15 +1023,14 @@ export function SiteSections({
                 "pt-[calc(var(--sec-pt)*0.7)] pb-[calc(var(--sec-pb)*0.7)]",
                 "sm:pt-[var(--sec-pt)] sm:pb-[var(--sec-pb)]",
                 // 通栏色块贴着视口边，圆角会露出两个缺口
-                layout.background !== "none" &&
-                  width !== "full" &&
-                  "rounded-xl",
-                BACKGROUND_CLASS[layout.background],
+                useDefaultRadius && "rounded-xl",
+                useTokenBg && BACKGROUND_CLASS[layout.background],
                 layout.dividerTop && "border-t border-border/60",
                 layout.dividerBottom && "border-b border-border/60",
                 // `isolate` 不能少：光晕是 `-z-10`，没有自己的层叠上下文会掉到祖先背景之后
                 glow && "relative isolate",
               )}
+              style={surfaceStyleCss(surface) as CSSProperties}
             >
               {glow ? (
                 <div

@@ -24,6 +24,8 @@ describe("theme settings", () => {
     ).toEqual({
       logo_url: "/a.png",
       primary_color: "#111",
+      bg_color: null,
+      fg_color: null,
       font_family: "system",
       page_width: "default",
       section_spacing: 16,
@@ -35,6 +37,8 @@ describe("theme settings", () => {
     const empty = {
       logo_url: null,
       primary_color: null,
+      bg_color: null,
+      fg_color: null,
       font_family: "system",
       page_width: "default",
       section_spacing: 16,
@@ -45,6 +49,15 @@ describe("theme settings", () => {
     // 脏数据不该炸掉渲染
     expect(resolveThemeSettings({ primary_color: "not-a-color" })).toEqual(
       empty,
+    );
+  });
+
+  it("parses canvas colors with alpha", () => {
+    expect(
+      parseThemeSettings({ bg_color: "#0a0a0a80", fg_color: "#fff" }),
+    ).toEqual({ bg_color: "#0a0a0a80", fg_color: "#fff" });
+    expect(() => parseThemeSettings({ bg_color: "red" })).toThrow(
+      "site.theme_settings_invalid",
     );
   });
 

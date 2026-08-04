@@ -277,11 +277,79 @@ export function layoutSettings(defaults?: {
       placeholder: "pricing",
       info: "editor.info.anchor",
     },
+    // 外观与版式同属 Layout 页签：底色预设在上，自定义色 / 圆角在下覆盖
+    ...styleSettings(),
   ];
 }
 
 /**
- * 按分组抬头把设置拆成「内容」与「版式」两组，供编辑器分页签渲染。
+ * 通用外观设置（背景 / 前景 / 边框 / 圆角），对齐 Shopify color scheme 的可调部分。
+ *
+ * 与 `layoutSettings` 共用 Layout 页签：空颜色 = 不覆盖（继续走 token `background`
+ * 或主题默认）。块级（卡片等）也可单独挂这份声明，不必带整套留白。
+ */
+export function styleSettings(defaults?: {
+  bg_color?: string;
+  fg_color?: string;
+  border_color?: string;
+  border_width?: number;
+  radius?: number;
+}): SettingDef[] {
+  return [
+    { type: "header", content: "editor.group.appearance", group: "appearance" },
+    {
+      type: "color",
+      id: "bg_color",
+      label: "editor.setting.bg_color",
+      default: defaults?.bg_color ?? "",
+      allow_empty: true,
+      allow_alpha: true,
+      info: "editor.info.bg_color",
+    },
+    {
+      type: "color",
+      id: "fg_color",
+      label: "editor.setting.fg_color",
+      default: defaults?.fg_color ?? "",
+      allow_empty: true,
+      allow_alpha: true,
+    },
+    {
+      type: "color",
+      id: "border_color",
+      label: "editor.setting.border_color",
+      default: defaults?.border_color ?? "",
+      allow_empty: true,
+      allow_alpha: true,
+    },
+    {
+      type: "range",
+      id: "border_width",
+      label: "editor.setting.border_width",
+      min: 0,
+      max: 8,
+      step: 1,
+      default: defaults?.border_width ?? 0,
+      unit: "editor.unit.px",
+      info: "editor.info.border_width",
+    },
+    {
+      type: "range",
+      id: "radius",
+      label: "editor.setting.radius",
+      min: -4,
+      max: 48,
+      step: 2,
+      default: defaults?.radius ?? -4,
+      unit: "editor.unit.px",
+      allow_inherit: true,
+      info: "editor.info.radius",
+    },
+  ];
+}
+
+/**
+ * 按分组抬头把设置拆成「内容 / 版式 / 外观」三组，供编辑器分页签渲染。
  *
  * 抬头之后、下一个抬头之前的设置项算同一组；没有抬头的开头部分算内容。
  * 归属由抬头自己的 `group` 声明，不靠匹配 i18n key——加 section 时不会漏。
@@ -289,17 +357,24 @@ export function layoutSettings(defaults?: {
 export function splitSettingsByScope(defs: SettingDef[]): {
   content: SettingDef[];
   layout: SettingDef[];
+  appearance: SettingDef[];
 } {
   const content: SettingDef[] = [];
   const layout: SettingDef[] = [];
+  const appearance: SettingDef[] = [];
   let target = content;
   for (const def of defs) {
     if (def.type === "header") {
-      target = def.group === "layout" ? layout : content;
+      target =
+        def.group === "layout"
+          ? layout
+          : def.group === "appearance"
+            ? appearance
+            : content;
     }
     target.push(def);
   }
-  return { content, layout };
+  return { content, layout, appearance };
 }
 
 /** 主/次按钮成对出现，集中定义避免各 section 抄写。 */
@@ -421,6 +496,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
         hrefPlaceholder: "/login",
       }),
       ...linkSettings("primary"),
+      ...styleSettings(),
     ],
     max_blocks: 8,
     blocks: [
@@ -470,6 +546,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
         label: "editor.setting.copyright",
         info: "editor.info.copyright",
       },
+      ...styleSettings(),
     ],
     max_blocks: 24,
     blocks: [
@@ -555,6 +632,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
             required: true,
           },
           { type: "text", id: "detail", label: "editor.setting.stat_detail" },
+          ...styleSettings(),
         ],
       },
     ],
@@ -601,6 +679,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
             label: "editor.setting.body",
             rows: 3,
           },
+          ...styleSettings(),
         ],
       },
     ],
@@ -652,6 +731,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
             label: "editor.setting.code",
             info: "editor.info.code",
           },
+          ...styleSettings(),
         ],
       },
     ],
@@ -693,6 +773,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
             required: true,
           },
           { type: "text", id: "detail", label: "editor.setting.detail" },
+          ...styleSettings(),
         ],
       },
     ],
@@ -744,6 +825,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
             label: "editor.setting.href",
             placeholder: "/docs",
           },
+          ...styleSettings(),
         ],
       },
       {
@@ -758,6 +840,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
             required: true,
           },
           { type: "text", id: "label", label: "editor.setting.stat_label" },
+          ...styleSettings(),
         ],
       },
     ],
@@ -861,6 +944,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
             default: false,
           },
           ...linkSettings("primary"),
+          ...styleSettings(),
         ],
       },
     ],
@@ -891,6 +975,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
             label: "editor.setting.answer",
             rows: 4,
           },
+          ...styleSettings(),
         ],
       },
     ],
@@ -1026,6 +1111,7 @@ export const SECTION_DEFINITIONS: Record<SectionType, SectionDefinition> = {
             ],
             info: "editor.info.stack_order",
           },
+          ...styleSettings(),
         ],
       },
     ],

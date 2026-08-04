@@ -64,6 +64,7 @@ export function TenantSiteView({
   site,
   path,
   sections = [],
+  pageSettings,
   alternates = [],
   embedded = false,
   headerOverride,
@@ -73,10 +74,14 @@ export function TenantSiteView({
   const pageMeta = findPage(site, path);
   const theme = resolveThemeSettings(site.theme_settings);
   const accent = theme.primary_color ?? undefined;
+  const pageBg = pageSettings?.bg_color ?? null;
+  const pageFg = pageSettings?.fg_color ?? null;
   const style: CSSProperties = {
     ["--site-accent" as string]: accent,
     ["--site-page-width" as string]: themePageWidthCss(theme.page_width),
     fontFamily: themeFontCss(theme.font_family),
+    ...(theme.bg_color ? { ["--background" as string]: theme.bg_color, backgroundColor: theme.bg_color } : {}),
+    ...(theme.fg_color ? { ["--foreground" as string]: theme.fg_color, color: theme.fg_color } : {}),
     ...(accent
       ? {
           ["--primary" as string]: accent,
@@ -84,6 +89,10 @@ export function TenantSiteView({
           ["--ring" as string]: accent,
         }
       : {}),
+  };
+  const mainStyle: CSSProperties = {
+    ...(pageBg ? { backgroundColor: pageBg } : {}),
+    ...(pageFg ? { color: pageFg } : {}),
   };
 
   const header = headerOverride ?? site.header;
@@ -131,7 +140,7 @@ export function TenantSiteView({
           )}
         </header>
 
-        <main className="flex-1">
+        <main className="flex-1" style={mainStyle}>
           {!pageMeta && path !== "/" && !hasOwnContent ? (
             <div className={cn(WRAP, "space-y-2 px-4 py-16 sm:px-6")}>
               <h1 className="text-2xl font-semibold">Page not found</h1>

@@ -395,6 +395,7 @@
       "template": "页面区块",
       "footerArea": "页脚",
       "section": "区块版式",
+      "appearance": "外观",
       "page": "页面"
     },
     "info": {
@@ -417,7 +418,11 @@
       "page_description": "搜索结果里的摘要，建议 150 字以内。",
       "page_path": "改地址请回页面列表——换 slug 等于换 URL。",
       "page_header_headline": "留空则用页面设置里的标题。",
-      "page_header_subhead": "留空则用页面设置里的描述。"
+      "page_header_subhead": "留空则用页面设置里的描述。",
+      "bg_color": "有值时覆盖背景预设。支持透明度（如 #0f766e80）。",
+      "border_width": "为 0 时不画自定义边框；只填了边框色而宽度为 0 时按 1px 画。",
+      "radius": "「继承」保留该表面的默认圆角。",
+      "page_bg_color": "只给页面正文区上色；页头页脚仍用各自的设置。"
     },
     "unit": {
       "columns": "列",
@@ -486,7 +491,12 @@
       "anchor": "锚点 ID",
       "content_width": "正文宽度",
       "spacing_above": "段上间距",
-      "spacing_below": "段下间距"
+      "spacing_below": "段下间距",
+      "bg_color": "背景色",
+      "fg_color": "文字色",
+      "border_color": "边框色",
+      "border_width": "边框宽度",
+      "radius": "圆角"
     },
     "option": {
       "align": {
@@ -587,6 +597,7 @@
     },
     "tabContent": "内容",
     "tabLayout": "版式",
+    "tabAppearance": "外观",
     "noSettings": "这一项没有可配置的选项，样子完全跟随主题。",
     "inherit": "继承",
     "fieldPageWidth": "页面宽度",

@@ -6,6 +6,8 @@
  * 怎么解析」，section 注册表在 `section-registry.ts`。
  */
 
+import { isSiteColor } from "./site-color.js";
+
 /**
  * 多语言文案值。
  *
@@ -223,15 +225,26 @@ export type InputSettingDef =
       allow_inherit?: boolean;
     })
   | (SettingBase & { type: "checkbox"; default: boolean })
-  | (SettingBase & { type: "color"; default: string; allow_empty?: boolean });
+  | (SettingBase & {
+      type: "color";
+      default: string;
+      allow_empty?: boolean;
+      /**
+       * 允许 `#RGBA` / `#RRGGBBAA`。背景 / 前景 / 边框需要半透明时打开；
+       * 品牌主色等保持不透明（默认）。
+       */
+      allow_alpha?: boolean;
+    });
 
 /** 纯排版项：只在编辑器里分组，不落数据。 */
+export type SettingScope = "content" | "layout" | "appearance";
+
 export type LayoutSettingDef =
   | {
       type: "header";
       content: string;
       /** 该抬头之后的设置项归到哪个页签，缺省算内容。 */
-      group?: "content" | "layout";
+      group?: SettingScope;
     }
   | { type: "paragraph"; content: string };
 
@@ -278,8 +291,6 @@ export const SECTION_ICON_CHOICES = [
 ] as const;
 
 export type SectionIconName = (typeof SECTION_ICON_CHOICES)[number];
-
-const COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/u;
 
 /** 旧字段名 → 新 setting id。 */
 const LEGACY_SETTING_ALIASES: Record<string, string> = {
@@ -370,7 +381,7 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
     case "color": {
       const value = typeof raw === "string" ? raw.trim() : "";
       if (!value) return def.allow_empty ? "" : def.default;
-      return COLOR_RE.test(value) ? value : def.default;
+      return isSiteColor(value, def.allow_alpha === true) ? value : def.default;
     }
   }
 }

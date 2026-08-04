@@ -33,6 +33,7 @@ import {
   type SettingDef,
   type SettingValues,
 } from "./section-settings.js";
+import { normalizeSiteColor } from "./site-color.js";
 import { localizeSiteHref } from "./site-locale.js";
 
 import type { AppLocale } from "@be-water/shared";
@@ -576,6 +577,98 @@ export function resolveSectionLayout(settings: SettingValues): SectionLayout {
     dividerBottom: divider === "bottom" || divider === "both",
     anchor: resolveAnchor(settings),
   };
+}
+
+/**
+ * 通用外观（背景 / 前景 / 边框 / 圆角），section / chrome / block 共用。
+ *
+ * 空颜色 = 不覆盖（继续走 token `background` 或主题默认）。圆角负哨兵 = 继承
+ * 渲染端默认（色块 `rounded-xl`、通栏 0、卡片同 CARD_SHELL）。
+ */
+export interface SurfaceStyle {
+  backgroundColor: string | null;
+  color: string | null;
+  borderColor: string | null;
+  /** 实际要画的边框宽度；`border_color` 有值而宽度为 0 时按 1px。 */
+  borderWidth: number;
+  /** `null` = 跟随渲染端默认圆角。 */
+  borderRadius: number | null;
+}
+
+export function resolveSurfaceStyle(settings: SettingValues): SurfaceStyle {
+  const backgroundColor = normalizeSiteColor(settingText(settings, "bg_color"));
+  const color = normalizeSiteColor(settingText(settings, "fg_color"));
+  const borderColor = normalizeSiteColor(settingText(settings, "border_color"));
+  const rawWidth = settingNumber(settings, "border_width", 0);
+  const borderWidth =
+    rawWidth > 0 ? rawWidth : borderColor !== null ? 1 : 0;
+  const radiusRaw = settingNumber(settings, "radius", -4);
+  return {
+    backgroundColor,
+    color,
+    borderColor,
+    borderWidth,
+    borderRadius: radiusRaw < 0 ? null : radiusRaw,
+  };
+}
+
+/** 是否有任何自定义外观（决定要不要加 has-surface 类 / 跳过 token 底色）。 */
+export function hasCustomSurface(style: SurfaceStyle): boolean {
+  return (
+    style.backgroundColor !== null ||
+    style.color !== null ||
+    style.borderWidth > 0 ||
+    style.borderRadius !== null
+  );
+}
+
+/**
+ * 落到 React `style` / SSR inline 的外观属性。
+ *
+ * CSS 变量留给需要在子元素继承的场景（如 `--sec-fg`）；直接属性给色块自己用。
+ */
+export function surfaceStyleCss(
+  style: SurfaceStyle,
+): Record<string, string | number> {
+  const out: Record<string, string | number> = {};
+  if (style.backgroundColor) {
+    out.backgroundColor = style.backgroundColor;
+    out["--sec-bg"] = style.backgroundColor;
+  }
+  if (style.color) {
+    out.color = style.color;
+    out["--sec-fg"] = style.color;
+  }
+  if (style.borderWidth > 0) {
+    out.borderWidth = style.borderWidth;
+    out.borderStyle = "solid";
+    out["--sec-bw"] = `${style.borderWidth}px`;
+    if (style.borderColor) {
+      out.borderColor = style.borderColor;
+      out["--sec-bc"] = style.borderColor;
+    }
+  }
+  if (style.borderRadius !== null) {
+    out.borderRadius = style.borderRadius;
+    out["--sec-radius"] = `${style.borderRadius}px`;
+  }
+  return out;
+}
+
+/** SSR：拼进 `style=""` 的片段（末尾不带分号之外的内容）。 */
+export function surfaceStyleAttr(style: SurfaceStyle): string {
+  const css = surfaceStyleCss(style);
+  const parts: string[] = [];
+  for (const [key, value] of Object.entries(css)) {
+    if (key.startsWith("--")) {
+      parts.push(`${key}:${value}`);
+      continue;
+    }
+    // camelCase → kebab-case
+    const prop = key.replace(/[A-Z]/gu, (ch) => `-${ch.toLowerCase()}`);
+    parts.push(`${prop}:${typeof value === "number" ? `${value}px` : value}`);
+  }
+  return parts.join(";");
 }
 
 /**

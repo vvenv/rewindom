@@ -23,6 +23,13 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import {
+  composeSiteColor,
+  expandHex,
+  isOpaqueHex,
+  isSiteColor,
+  splitSiteColor,
+} from "../../../shared/site-color.js";
+import {
   isInputSetting,
   isLocalizableSetting,
   readLocalizedSetting,
@@ -37,8 +44,6 @@ import { uploadSiteAsset } from "../../lib/site-api.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 
 import type { AppLocale } from "@be-water/shared";
-
-const HEX_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/u;
 
 interface SettingsFieldsProps {
   defs: SettingDef[];
@@ -382,24 +387,58 @@ function SettingControl({
 
     case "color": {
       // 输入框允许中途非法值；只有合法 hex 才同步给取色器，避免闪回。
-      const swatch = HEX_RE.test(text) ? expandHex(text) : def.default;
+      const allowAlpha = def.allow_alpha === true;
+      const valid = isSiteColor(text, allowAlpha);
+      const parts = valid
+        ? splitSiteColor(text)
+        : splitSiteColor(def.default || "#000000");
+      const swatch = isOpaqueHex(parts.rgb)
+        ? expandHex(parts.rgb)
+        : expandHex(def.default || "#000000").slice(0, 7);
       return (
-        <div className="flex items-center gap-2">
-          <Input
-            type="color"
-            aria-label={t(def.label)}
-            disabled={disabled}
-            className="h-9 w-12 shrink-0 cursor-pointer p-1"
-            value={swatch}
-            onChange={(event) => onChange(event.target.value)}
-          />
-          <Input
-            id={fieldId}
-            disabled={disabled}
-            placeholder={def.default}
-            value={text}
-            onChange={(event) => onChange(event.target.value.trim())}
-          />
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Input
+              type="color"
+              aria-label={t(def.label)}
+              disabled={disabled}
+              className="h-9 w-12 shrink-0 cursor-pointer p-1"
+              value={swatch}
+              onChange={(event) => {
+                const nextRgb = event.target.value;
+                onChange(
+                  allowAlpha
+                    ? composeSiteColor(nextRgb, parts.alphaPercent)
+                    : nextRgb,
+                );
+              }}
+            />
+            <Input
+              id={fieldId}
+              disabled={disabled}
+              placeholder={def.default || (allowAlpha ? "#00000080" : "#000000")}
+              value={text}
+              onChange={(event) => onChange(event.target.value.trim())}
+            />
+          </div>
+          {allowAlpha ? (
+            <div className="flex items-center gap-3">
+              <Slider
+                disabled={disabled}
+                className="flex-1"
+                min={0}
+                max={100}
+                step={1}
+                value={[parts.alphaPercent]}
+                onValueChange={([next]) =>
+                  onChange(composeSiteColor(parts.rgb, next ?? 100))
+                }
+              />
+              <span className="w-14 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+                {parts.alphaPercent}%
+              </span>
+            </div>
+          ) : null}
         </div>
       );
     }
@@ -407,10 +446,4 @@ function SettingControl({
     default:
       return null;
   }
-}
-
-function expandHex(hex: string): string {
-  if (hex.length !== 4) return hex;
-  const [, r, g, b] = hex;
-  return `#${r}${r}${g}${g}${b}${b}`;
 }

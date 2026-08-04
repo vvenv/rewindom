@@ -1,3 +1,4 @@
+export * from "./site-color.js";
 export * from "./site.js";
 export * from "./seo.js";
 export * from "./features.js";

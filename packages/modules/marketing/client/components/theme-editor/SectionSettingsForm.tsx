@@ -1,6 +1,8 @@
 import { type ReactElement } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@be-water/ui/tabs";
+import { cn } from "@be-water/ui/utils";
+import { LayoutTemplate, Palette, Type } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -15,6 +17,7 @@ import {
 import { SettingsFields } from "./SettingsFields.js";
 
 import type { AppLocale } from "@be-water/shared";
+import type { LucideIcon } from "lucide-react";
 
 interface SectionSettingsFormProps {
   section: SiteSection;
@@ -35,15 +38,22 @@ interface SectionSettingsFormProps {
  * 拿它开个页签会得到一个点进去什么都没有的空面板。
  */
 function hasFields(defs: SettingDef[]): boolean {
-  return defs.some((def) => def.type !== "header");
+  return defs.some((def) => def.type !== "header" && def.type !== "paragraph");
 }
+
+type SettingsTab = {
+  value: "content" | "layout" | "appearance";
+  labelKey: string;
+  icon: LucideIcon;
+  defs: SettingDef[];
+};
 
 /**
  * 右侧设置面板：完全由 section-schema 驱动，不再按 type 手写表单。
  *
- * 内容与版式分两个页签——版式项（留白、底色、分隔线、列数）多且改动频率低，
- * 混在正文字段里会把内容压到折叠线以下。分组归属由 schema 的抬头决定。
- * 只有一组有字段时不套页签（单页签点了也没别处可去），两组都空则只留一句提示。
+ * 内容 / 版式 / 外观分页签——外观（色、边、圆角）与版式（留白、宽度）分开，
+ * 窄侧栏里未激活页签只显示图标、激活页签才展开文字。
+ * 只有一组有字段时不套页签；全都空则只留一句提示。
  */
 export function SectionSettingsForm({
   section,
@@ -68,31 +78,24 @@ export function SectionSettingsForm({
         </p>
       );
     }
-    // block 没有版式设置，不套页签
     return (
-      <div className="space-y-3">
-        <PanelLabel>{t(blockDef.label)}</PanelLabel>
-        {hasFields(blockDef.settings) ? (
-          <SettingsFields
-            defs={blockDef.settings}
-            values={block.settings}
-            disabled={disabled}
-            locale={locale}
-            defaultLocale={defaultLocale}
-            onChange={(settings) => onChangeBlockSettings(block.id, settings)}
-          />
-        ) : (
-          <EmptySettings />
-        )}
-      </div>
+      <ScopedSettings
+        label={t(blockDef.label)}
+        defs={blockDef.settings}
+        values={block.settings}
+        disabled={disabled}
+        locale={locale}
+        defaultLocale={defaultLocale}
+        onChange={(settings) => onChangeBlockSettings(block.id, settings)}
+      />
     );
   }
 
   const def = getSectionDefinition(section.type);
-  const { content, layout } = splitSettingsByScope(def.settings);
-  const fieldsFor = (defs: typeof def.settings) => (
-    <SettingsFields
-      defs={defs}
+  return (
+    <ScopedSettings
+      label={t(def.label)}
+      defs={def.settings}
       values={section.settings}
       disabled={disabled}
       locale={locale}
@@ -100,34 +103,93 @@ export function SectionSettingsForm({
       onChange={onChangeSettings}
     />
   );
+}
 
-  const hasContent = hasFields(content);
-  const hasLayout = hasFields(layout);
+function ScopedSettings({
+  label,
+  defs,
+  values,
+  disabled,
+  locale,
+  defaultLocale,
+  onChange,
+}: {
+  label: string;
+  defs: SettingDef[];
+  values: SettingValues;
+  disabled?: boolean;
+  locale: AppLocale;
+  defaultLocale: AppLocale;
+  onChange: (settings: SettingValues) => void;
+}): ReactElement {
+  const { t } = useTranslation("marketing");
+  const scopes = splitSettingsByScope(defs);
+  const tabs: SettingsTab[] = (
+    [
+      {
+        value: "content",
+        labelKey: "editor.tabContent",
+        icon: Type,
+        defs: scopes.content,
+      },
+      {
+        value: "layout",
+        labelKey: "editor.tabLayout",
+        icon: LayoutTemplate,
+        defs: scopes.layout,
+      },
+      {
+        value: "appearance",
+        labelKey: "editor.tabAppearance",
+        icon: Palette,
+        defs: scopes.appearance,
+      },
+    ] as const
+  ).filter((tab) => hasFields(tab.defs));
+
+  const fieldsFor = (scopeDefs: SettingDef[]) => (
+    <SettingsFields
+      defs={scopeDefs}
+      values={values}
+      disabled={disabled}
+      locale={locale}
+      defaultLocale={defaultLocale}
+      onChange={onChange}
+    />
+  );
 
   return (
     <div className="space-y-3">
-      <PanelLabel>{t(def.label)}</PanelLabel>
-      {hasContent && hasLayout ? (
-        <Tabs defaultValue="content">
+      <PanelLabel>{label}</PanelLabel>
+      {tabs.length > 1 ? (
+        <Tabs defaultValue={tabs[0]!.value}>
           <TabsList className="w-full">
-            <TabsTrigger value="content" className="flex-1">
-              {t("editor.tabContent")}
-            </TabsTrigger>
-            <TabsTrigger value="layout" className="flex-1">
-              {t("editor.tabLayout")}
-            </TabsTrigger>
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className={cn(
+                    "min-w-0 flex-1 gap-1.5 px-2",
+                    // 未激活只留图标，侧栏窄时三个页签才挤得下
+                    "[&[data-state=inactive]>span]:hidden",
+                  )}
+                >
+                  <Icon className="size-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">{t(tab.labelKey)}</span>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
-          <TabsContent value="content" className="mt-3">
-            {fieldsFor(content)}
-          </TabsContent>
-          <TabsContent value="layout" className="mt-3">
-            {fieldsFor(layout)}
-          </TabsContent>
+          {tabs.map((tab) => (
+            <TabsContent key={tab.value} value={tab.value} className="mt-3">
+              {fieldsFor(tab.defs)}
+            </TabsContent>
+          ))}
         </Tabs>
-      ) : hasContent ? (
-        fieldsFor(content)
-      ) : hasLayout ? (
-        fieldsFor(layout)
+      ) : tabs.length === 1 ? (
+        fieldsFor(tabs[0]!.defs)
       ) : (
         <EmptySettings />
       )}

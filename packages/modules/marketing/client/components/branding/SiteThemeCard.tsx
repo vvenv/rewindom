@@ -18,6 +18,13 @@ import { toast } from "sonner";
 
 import { TENANT_MARKETING_ENTITLEMENT } from "../../../shared/entitlements.js";
 import {
+  composeSiteColor,
+  expandHex,
+  isOpaqueHex,
+  isSiteColor,
+  splitSiteColor,
+} from "../../../shared/site-color.js";
+import {
   THEME_FONT_FAMILIES,
   THEME_PAGE_WIDTHS,
   THEME_SECTION_SPACING,
@@ -27,7 +34,6 @@ import {
 } from "../../../shared/theme-sections.js";
 import { useSite, useSiteMutations } from "../../hooks/useSite.js";
 
-const HEX_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/u;
 const FALLBACK_COLOR = "#0f766e";
 
 interface SiteThemeCardProps {
@@ -85,7 +91,7 @@ function SiteThemeForm({ canWrite }: SiteThemeCardProps): ReactElement | null {
   };
 
   const color = draft.primary_color ?? "";
-  const swatch = HEX_RE.test(color) ? expandHex(color) : FALLBACK_COLOR;
+  const swatch = isOpaqueHex(color) ? expandHex(color) : FALLBACK_COLOR;
 
   return (
     <form
@@ -150,6 +156,25 @@ function SiteThemeForm({ canWrite }: SiteThemeCardProps): ReactElement | null {
             />
           </div>
         </Field>
+
+        <CanvasColorField
+          id="site_bg_color"
+          label={t("editor.setting.bg_color")}
+          value={draft.bg_color ?? ""}
+          disabled={!canWrite}
+          onChange={(bg_color) =>
+            setDraft({ ...draft, bg_color: bg_color || null })
+          }
+        />
+        <CanvasColorField
+          id="site_fg_color"
+          label={t("editor.setting.fg_color")}
+          value={draft.fg_color ?? ""}
+          disabled={!canWrite}
+          onChange={(fg_color) =>
+            setDraft({ ...draft, fg_color: fg_color || null })
+          }
+        />
 
         <Field>
           <FieldLabel htmlFor="site_font_family">
@@ -242,8 +267,65 @@ function SiteThemeForm({ canWrite }: SiteThemeCardProps): ReactElement | null {
   );
 }
 
-function expandHex(hex: string): string {
-  if (hex.length !== 4) return hex;
-  const [, r, g, b] = hex;
-  return `#${r}${r}${g}${g}${b}${b}`;
+function CanvasColorField({
+  id,
+  label,
+  value,
+  disabled,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}): ReactElement {
+  const valid = isSiteColor(value, true);
+  const parts = valid
+    ? splitSiteColor(value)
+    : { rgb: "#ffffff", alphaPercent: 100 };
+  const swatch = isOpaqueHex(parts.rgb) ? expandHex(parts.rgb) : "#ffffff";
+
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <Input
+            type="color"
+            aria-label={label}
+            disabled={disabled}
+            className="h-9 w-12 shrink-0 cursor-pointer p-1"
+            value={swatch}
+            onChange={(event) =>
+              onChange(composeSiteColor(event.target.value, parts.alphaPercent))
+            }
+          />
+          <Input
+            id={id}
+            disabled={disabled}
+            placeholder="#00000000"
+            value={value}
+            onChange={(event) => onChange(event.target.value.trim())}
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <Slider
+            disabled={disabled || !value}
+            className="flex-1"
+            min={0}
+            max={100}
+            step={1}
+            value={[parts.alphaPercent]}
+            onValueChange={([next]) =>
+              onChange(composeSiteColor(parts.rgb, next ?? 100))
+            }
+          />
+          <span className="text-muted-foreground w-14 shrink-0 text-right text-xs tabular-nums">
+            {parts.alphaPercent}%
+          </span>
+        </div>
+      </div>
+    </Field>
+  );
 }

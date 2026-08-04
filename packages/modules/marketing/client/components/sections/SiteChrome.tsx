@@ -1,4 +1,4 @@
-import { type ReactElement } from "react";
+import { type CSSProperties, type ReactElement } from "react";
 
 import { getLocaleNativeLabel } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
@@ -13,8 +13,10 @@ import { Check, Languages } from "lucide-react";
 import { Link } from "react-router";
 
 import {
+  resolveSurfaceStyle,
   settingBool,
   settingText,
+  surfaceStyleCss,
   type SiteBlock,
   type SiteSection,
 } from "../../../shared/section-schema.js";
@@ -177,16 +179,21 @@ export function SiteHeader({
   const centered = layout === "centered";
   const select = selectable(onSelect);
   const navLinks = headerNavLinks(section, pages);
+  const surface = resolveSurfaceStyle(s);
+  const surfaceCss = surfaceStyleCss(surface) as CSSProperties;
 
   return (
     <header
       {...select}
       data-section-id={section.id}
       className={cn(
-        "z-40 border-b border-border/60 bg-background/85 backdrop-blur-md",
+        "z-40 border-b backdrop-blur-md",
+        surface.backgroundColor ? null : "bg-background/85",
+        surface.borderWidth > 0 ? null : "border-border/60",
         settingBool(s, "sticky") && "sticky top-0",
         select.className,
       )}
+      style={surfaceCss}
     >
       <div
         className={cn(
@@ -290,15 +297,20 @@ export function SiteFooter({
     settingText(s, "copyright") || `© ${new Date().getFullYear()} ${siteName}`;
   const groups = groupFooterLinks(section.blocks);
   const select = selectable(onSelect);
+  const surface = resolveSurfaceStyle(s);
+  const surfaceCss = surfaceStyleCss(surface) as CSSProperties;
 
   return (
     <footer
       {...select}
       data-section-id={section.id}
       className={cn(
-        "mt-12 border-t border-border/60 bg-muted/20",
+        "mt-12 border-t",
+        surface.backgroundColor ? null : "bg-muted/20",
+        surface.borderWidth > 0 ? null : "border-border/60",
         select.className,
       )}
+      style={surfaceCss}
     >
       <div className="mx-auto grid w-full max-w-[var(--site-page-width,72rem)] gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div className="space-y-3">

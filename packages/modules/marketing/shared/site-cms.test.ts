@@ -111,11 +111,16 @@ describe("page hierarchy", () => {
 });
 
 describe("page settings", () => {
-  // 目前没有页面级设置字段：只校验信封本身（对象放行、数组/标量拒绝）
-  it("accepts an empty envelope and rejects non-objects", () => {
+  it("accepts canvas colors and rejects non-objects", () => {
     expect(parsePageSettings({ page_nav: "right" })).toEqual({});
     expect(parsePageSettings(null)).toEqual({});
     expect(parsePageSettings({})).toEqual({});
+    expect(
+      parsePageSettings({ bg_color: "#0f766e80", fg_color: "#111" }),
+    ).toEqual({ bg_color: "#0f766e80", fg_color: "#111" });
+    expect(() => parsePageSettings({ bg_color: "red" })).toThrow(
+      "site.page_settings_invalid",
+    );
     expect(() => parsePageSettings([])).toThrow("site.page_settings_invalid");
     expect(() => parsePageSettings("x")).toThrow("site.page_settings_invalid");
   });

@@ -1,4 +1,4 @@
-import { type ReactElement, type ReactNode } from "react";
+import { type CSSProperties, type ReactElement, type ReactNode } from "react";
 
 import { Link } from "react-router";
 
@@ -15,11 +15,13 @@ function isExternal(href: string): boolean {
 export function SiteLink({
   href,
   className,
+  style,
   children,
   "aria-current": ariaCurrent,
 }: {
   href: string;
   className?: string;
+  style?: CSSProperties;
   children: ReactNode;
   "aria-current"?: "page" | "true" | "false" | boolean;
 }): ReactElement {
@@ -29,6 +31,7 @@ export function SiteLink({
       <a
         href={href}
         className={className}
+        style={style}
         rel="noreferrer noopener"
         target="_blank"
         aria-current={ariaCurrent}
@@ -38,7 +41,12 @@ export function SiteLink({
     );
   }
   return (
-    <Link to={localize(href)} className={className} aria-current={ariaCurrent}>
+    <Link
+      to={localize(href)}
+      className={className}
+      style={style}
+      aria-current={ariaCurrent}
+    >
       {children}
     </Link>
   );

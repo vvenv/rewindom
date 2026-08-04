@@ -16,6 +16,7 @@ import {
   marketingPagePath,
   type MarketingPage,
   type MarketingPageListItem,
+  type MarketingPageSettings,
   type PageLocaleAlternate,
   type PublicMarketingSite,
 } from "../../shared/site-cms.js";
@@ -76,6 +77,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   const [footer, setFooter] = useState<SiteSection[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [pageSettings, setPageSettings] = useState<MarketingPageSettings>({});
   const [selection, setSelection] = useState<ThemeEditorSelection | null>(null);
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
   const [baseline, setBaseline] = useState<string | null>(null);
@@ -90,12 +92,14 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     const serverFooter = siteQuery.data.footer;
     const serverTitle = pageQuery.data.title;
     const serverDescription = pageQuery.data.description;
+    const serverSettings = pageQuery.data.settings ?? {};
     const serverSnapshot = draftSnapshot(
       serverSections,
       serverHeader,
       serverFooter,
       serverTitle,
       serverDescription,
+      serverSettings,
     );
 
     const cached = readEditorCache(pageId);
@@ -108,6 +112,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
         cached.footer,
         cached.title,
         cached.description,
+        cached.settings ?? {},
       ) !== serverSnapshot;
 
     const nextSections = useCache ? cached.sections : serverSections;
@@ -115,12 +120,16 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     const nextFooter = useCache ? cached.footer : serverFooter;
     const nextTitle = useCache ? cached.title : serverTitle;
     const nextDescription = useCache ? cached.description : serverDescription;
+    const nextSettings = useCache
+      ? (cached.settings ?? {})
+      : serverSettings;
 
     setSections(nextSections);
     setHeader(nextHeader);
     setFooter(nextFooter);
     setTitle(nextTitle);
     setDescription(nextDescription);
+    setPageSettings(nextSettings);
     const firstId = nextSections[0]?.id ?? null;
     setSelection(
       firstId
@@ -137,7 +146,8 @@ export function useSiteThemeEditor(pageId: string | undefined) {
    */
   const dirty =
     baseline !== null &&
-    baseline !== draftSnapshot(sections, header, footer, title, description);
+    baseline !==
+      draftSnapshot(sections, header, footer, title, description, pageSettings);
 
   useEffect(() => {
     if (!pageId || !hydratedKey || baseline === null) return;
@@ -149,6 +159,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
       footer,
       title,
       description,
+      settings: pageSettings,
     });
   }, [
     pageId,
@@ -160,6 +171,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     footer,
     title,
     description,
+    pageSettings,
   ]);
 
   const page: MarketingPage | undefined = pageQuery.data;
@@ -306,6 +318,8 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     setTitle,
     description,
     setDescription,
+    pageSettings,
+    setPageSettings,
     selection,
     setSelection,
     selectedSectionId,
@@ -450,8 +464,9 @@ function draftSnapshot(
   footer: SiteSection[],
   title: string,
   description: string,
+  settings: MarketingPageSettings,
 ): string {
-  return JSON.stringify([sections, header, footer, title, description]);
+  return JSON.stringify([sections, header, footer, title, description, settings]);
 }
 
 function editorCacheKey(pageId: string): string {
@@ -465,6 +480,7 @@ interface EditorCachePayload {
   footer: SiteSection[];
   title: string;
   description: string;
+  settings?: MarketingPageSettings;
 }
 
 function readEditorCache(pageId: string): EditorCachePayload | null {

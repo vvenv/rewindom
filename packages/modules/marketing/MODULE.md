@@ -100,8 +100,16 @@ group + 左列放 `page-menu`(siblings/list, 列上勾 sticky)，不再有专门
 每个页面级 section 另有一组**通用版式**（`layoutSettings()`，编辑器「版式」页签）：
 `width` · `content_width` · `background`(none/muted/accent/outline) · `padding_top` / `padding_bottom`
 · `spacing_above` / `spacing_below` · `divider`(none/top/bottom/both) · `anchor`。
+以及一组**通用外观**（`styleSettings()`，编辑器「外观」页签）：
+`bg_color` / `fg_color`（`#RGB`/`#RGBA`/`#RRGGBB`/`#RRGGBBAA`，可带 alpha）·
+`border_color` · `border_width` · `radius`（可继承）。
+自定义 `bg_color` 覆盖 token 底色预设；空值不覆盖。
+页签为内容 / 版式 / 外观三栏；窄侧栏未激活页签只显示图标。
 所有留白存的都是**桌面 px**，窄屏两处渲染统一 ×0.7；`anchor` 归一化成 slug 后作为
 `<section id>`，供页内导航链 `#anchor`。
+
+页头 / 页脚本体、卡片类 block（feature / card / plan / qa 等）同样挂 `styleSettings()`。
+站点主题另有整站画布 `bg_color` / `fg_color`；页面设置可覆盖正文区画布色。
 
 ### 多语言
 

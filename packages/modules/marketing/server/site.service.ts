@@ -436,6 +436,8 @@ export async function saveEditorDraft(
   const sections = parsePageSections(body.sections);
   const header = parseSiteAreaSections("header", body.header);
   const footer = parseSiteAreaSections("footer", body.footer);
+  const settings =
+    body.settings !== undefined ? parsePageSettings(body.settings) : undefined;
 
   const [page, site] = await prisma.$transaction([
     prisma.marketingPage.update({
@@ -444,6 +446,9 @@ export async function saveEditorDraft(
         title_draft: body.title.trim(),
         description_draft: body.description.trim(),
         sections_draft: sections as unknown as Prisma.InputJsonValue,
+        ...(settings !== undefined
+          ? { settings: settings as unknown as Prisma.InputJsonValue }
+          : {}),
       },
     }),
     prisma.marketingSite.update({

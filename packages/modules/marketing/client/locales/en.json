@@ -395,6 +395,7 @@
       "template": "Page sections",
       "footerArea": "Footer",
       "section": "Section layout",
+      "appearance": "Appearance",
       "page": "Page"
     },
     "info": {
@@ -417,7 +418,11 @@
       "page_description": "The snippet in search results; keep it under ~150 characters.",
       "page_path": "Change the address from the page list — a new slug means a new URL.",
       "page_header_headline": "Leave empty to use the title from page settings.",
-      "page_header_subhead": "Leave empty to use the description from page settings."
+      "page_header_subhead": "Leave empty to use the description from page settings.",
+      "bg_color": "Overrides the background preset when set. Supports alpha (e.g. #0f766e80).",
+      "border_width": "0 hides the custom border. Setting a border color with width 0 draws a 1px border.",
+      "radius": "Inherit keeps the default corner radius for this surface.",
+      "page_bg_color": "Colors the page content area only; header and footer keep their own settings."
     },
     "unit": {
       "columns": "cols",
@@ -486,7 +491,12 @@
       "anchor": "Anchor ID",
       "content_width": "Content width",
       "spacing_above": "Space above",
-      "spacing_below": "Space below"
+      "spacing_below": "Space below",
+      "bg_color": "Background color",
+      "fg_color": "Text color",
+      "border_color": "Border color",
+      "border_width": "Border width",
+      "radius": "Corner radius"
     },
     "option": {
       "align": {
@@ -587,6 +597,7 @@
     },
     "tabContent": "Content",
     "tabLayout": "Layout",
+    "tabAppearance": "Appearance",
     "noSettings": "Nothing to configure here — this one takes its look from the theme.",
     "inherit": "Inherit",
     "fieldPageWidth": "Page width",

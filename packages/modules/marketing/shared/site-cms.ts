@@ -1,6 +1,7 @@
 import { APP_LOCALES, type AppLocale } from "@be-water/shared";
 
 import type { LocalizedText, SiteSection } from "./section-schema.js";
+import { normalizeSiteColor } from "./site-color.js";
 import type { ThemeSettings } from "./theme-sections.js";
 
 /** 站点级可本地化文案：单语言为纯字符串，多语言为 `__i18n` 表。 */
@@ -23,10 +24,12 @@ export type MarketingPageStatus = "draft" | "published";
 /**
  * 页面级设置。
  *
- * 目前没有字段——唯一那个 `page_nav`（chrome 侧栏位置）随侧栏一起删了，
- * 版式全部落在 section 上（左右布局用 `group` 容器段）。结构留着，将来加设置有地方放。
+ * 版式仍落在 section 上；这里只放整页画布覆盖（背景 / 前景），避免每段都抄一遍。
  */
-export type MarketingPageSettings = Record<string, never>;
+export interface MarketingPageSettings {
+  bg_color?: string | null;
+  fg_color?: string | null;
+}
 
 /** 写路径：非法值直接拒绝（code 由 service 转 ValidationError）。 */
 export function parsePageSettings(value: unknown): MarketingPageSettings {
@@ -34,7 +37,30 @@ export function parsePageSettings(value: unknown): MarketingPageSettings {
   if (typeof value !== "object" || Array.isArray(value)) {
     throw new Error("site.page_settings_invalid");
   }
-  return {};
+  const raw = value as Record<string, unknown>;
+  const out: MarketingPageSettings = {};
+
+  if (raw.bg_color !== undefined) {
+    if (raw.bg_color === null || raw.bg_color === "") {
+      out.bg_color = null;
+    } else {
+      const color = normalizeSiteColor(raw.bg_color, { allowAlpha: true });
+      if (!color) throw new Error("site.page_settings_invalid");
+      out.bg_color = color;
+    }
+  }
+
+  if (raw.fg_color !== undefined) {
+    if (raw.fg_color === null || raw.fg_color === "") {
+      out.fg_color = null;
+    } else {
+      const color = normalizeSiteColor(raw.fg_color, { allowAlpha: true });
+      if (!color) throw new Error("site.page_settings_invalid");
+      out.fg_color = color;
+    }
+  }
+
+  return out;
 }
 
 /** 读路径：脏数据回落默认，不因为一条坏设置整页打不开。 */
@@ -142,6 +168,8 @@ export interface SaveEditorDraftBody {
   sections: unknown;
   header: unknown;
   footer: unknown;
+  /** 页面画布外观（背景 / 前景）；与内容同一次保存。 */
+  settings?: MarketingPageSettings;
 }
 
 /** Theme Editor 事务保存的响应：页面与站点 chrome 同批落库。 */

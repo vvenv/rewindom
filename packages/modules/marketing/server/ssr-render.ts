@@ -31,16 +31,23 @@ import type { SitemapEntry } from "./site.service.js";
  * 静态 CSS：用原生 CSS 变量复刻 shadcn 的中性色 / 圆角 / 边框语汇，
  * 让 SSR 首屏与 SPA 水合后（Tailwind token）观感一致。
  */
-function siteCss(accent: string, fontCss: string, pageWidth: string): string {
+function siteCss(
+  accent: string,
+  fontCss: string,
+  pageWidth: string,
+  canvas?: { bg?: string | null; fg?: string | null },
+): string {
+  const bg = canvas?.bg || "#ffffff";
+  const fg = canvas?.fg || "#0a0a0a";
   return `
     :root {
       --site-page-width: ${pageWidth};
       --accent: ${accent};
       /* 与 SPA 侧同名，hero 光晕那段渐变两处共用 */
       --site-accent: ${accent};
-      --fg: #0a0a0a;
+      --fg: ${fg};
       --muted-fg: #737373;
-      --bg: #ffffff;
+      --bg: ${bg};
       --muted-bg: #fafafa;
       --border: rgba(10,10,10,.12);
       --radius: .75rem;
@@ -125,12 +132,15 @@ function siteCss(accent: string, fontCss: string, pageWidth: string): string {
     .sec-band.has-glow { position: relative; isolation: isolate; }
     .sec-glow { position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; background: ${HERO_GLOW_BACKGROUND}; }
     /* 色块含上下留白，内容不因换底色而横向位移 */
-    .sec-bg-muted, .sec-bg-accent, .sec-bg-outline { border-radius: .75rem; }
+    .sec-bg-muted, .sec-bg-accent, .sec-bg-outline, .sec-radius-default { border-radius: .75rem; }
     /* 通栏色块贴着视口边，圆角会露出两个缺口 */
-    .sec-w-full.sec-bg-muted, .sec-w-full.sec-bg-accent, .sec-w-full.sec-bg-outline { border-radius: 0; }
+    .sec-w-full.sec-bg-muted, .sec-w-full.sec-bg-accent, .sec-w-full.sec-bg-outline, .sec-w-full.sec-radius-default { border-radius: 0; }
     .sec-bg-muted { background: var(--muted-bg); }
     .sec-bg-accent { background: color-mix(in srgb, var(--accent) 8%, transparent); }
     .sec-bg-outline { border: 1px solid var(--border); }
+    .sec-band.has-surface { background-color: var(--sec-bg, transparent); color: var(--sec-fg, inherit); }
+    .sec-band.has-surface[style*="--sec-bw"] { border: var(--sec-bw) solid var(--sec-bc, var(--border)); }
+    .sec-band.has-surface[style*="--sec-radius"] { border-radius: var(--sec-radius); }
     .sec-divider-top { border-top: 1px solid var(--border); }
     .sec-divider-bottom { border-bottom: 1px solid var(--border); }
     .sec-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 2rem; }
@@ -367,11 +377,16 @@ export function renderMarketingHtml(input: {
   <link rel="canonical" href="${escapeHtml(canonical)}" />
   ${alternateLinks}
   <script type="application/ld+json">${jsonLd}</script>
-  <style>${siteCss(theme.primary_color ?? "#0f766e", themeFontCss(theme.font_family), themePageWidthCss(theme.page_width))}</style>
+  <style>${siteCss(theme.primary_color ?? "#0f766e", themeFontCss(theme.font_family), themePageWidthCss(theme.page_width), { bg: theme.bg_color, fg: theme.fg_color })}</style>
 </head>
 <body>
   ${headerHtml}
-  <main>
+  <main${page.settings.bg_color || page.settings.fg_color ? ` style="${[
+    page.settings.bg_color ? `background-color:${page.settings.bg_color}` : "",
+    page.settings.fg_color ? `color:${page.settings.fg_color}` : "",
+  ]
+    .filter(Boolean)
+    .join(";")}"` : ""}>
     ${sectionsHtml}
   </main>
   ${footerHtml}

@@ -136,6 +136,7 @@ export function SiteThemeEditor() {
           sections: editor.sections,
           header: editor.header,
           footer: editor.footer,
+          settings: editor.pageSettings,
         },
       },
       {
@@ -354,7 +355,7 @@ export function SiteThemeEditor() {
               path={editor.path}
               sections={editor.previewSections}
               alternates={editor.previewAlternates}
-              pageSettings={editor.page?.settings}
+              pageSettings={editor.pageSettings}
               headerOverride={editor.header}
               footerOverride={editor.footer}
               onSelectSection={(sectionId) => editor.selectSection(sectionId)}
@@ -368,9 +369,11 @@ export function SiteThemeEditor() {
               title={editor.title}
               description={editor.description}
               path={editor.path}
+              settings={editor.pageSettings}
               disabled={!canWrite}
               onChangeTitle={editor.setTitle}
               onChangeDescription={editor.setDescription}
+              onChangeSettings={editor.setPageSettings}
             />
           ) : selectedSection ? (
             <SectionSettingsForm

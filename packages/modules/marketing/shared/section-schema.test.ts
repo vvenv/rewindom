@@ -12,6 +12,7 @@ import {
   parseSettingValues,
   resolveSectionGaps,
   resolveSectionLayout,
+  resolveSurfaceStyle,
   relocalizeSections,
   resolveGroupSpans,
   groupColumns,
@@ -33,13 +34,19 @@ describe("parseSettingValues", () => {
       // 所有 page section 共有的版式设置
       width: "page",
       content_width: "default",
-      padding_top: 32,
-      padding_bottom: 32,
+      padding_top: 0,
+      padding_bottom: 0,
       spacing_above: -4,
       spacing_below: -4,
       background: "none",
       divider: "none",
       anchor: "",
+      // 通用外观（styleSettings）
+      bg_color: "",
+      fg_color: "",
+      border_color: "",
+      border_width: 0,
+      radius: -4,
     });
   });
 
@@ -261,6 +268,11 @@ describe("section layout settings", () => {
           "background",
           "divider",
           "anchor",
+          "bg_color",
+          "fg_color",
+          "border_color",
+          "border_width",
+          "radius",
         ]),
       );
       // 同一个 id 只能声明一次，否则编辑器会渲染出两个控件
@@ -272,8 +284,8 @@ describe("section layout settings", () => {
     expect(resolveSectionLayout(createSection("prose").settings)).toEqual({
       width: "page",
       contentWidth: "default",
-      paddingTop: 32,
-      paddingBottom: 32,
+      paddingTop: 0,
+      paddingBottom: 0,
       spacingAbove: null,
       spacingBelow: null,
       background: "none",
@@ -364,6 +376,31 @@ describe("section layout settings", () => {
     );
   });
 
+  it("resolves surface colors with alpha and border width fallback", () => {
+    expect(resolveSurfaceStyle({})).toEqual({
+      backgroundColor: null,
+      color: null,
+      borderColor: null,
+      borderWidth: 0,
+      borderRadius: null,
+    });
+    expect(
+      resolveSurfaceStyle({
+        bg_color: "#0f766e80",
+        fg_color: "#fff",
+        border_color: "#00000033",
+        border_width: 0,
+        radius: 16,
+      }),
+    ).toEqual({
+      backgroundColor: "#0f766e80",
+      color: "#fff",
+      borderColor: "#00000033",
+      borderWidth: 1,
+      borderRadius: 16,
+    });
+  });
+
   it("migrates the old divider checkboxes and band tone", () => {
     const defs = SECTION_DEFINITIONS.band.settings;
     expect(parseSettingValues(defs, { divider_bottom: true }).divider).toBe(
@@ -410,9 +447,9 @@ describe("section layout settings", () => {
 });
 
 describe("splitSettingsByScope", () => {
-  it("puts every layout setting in the layout tab and keeps copy in content", () => {
+  it("puts layout and appearance in their own tabs and keeps copy in content", () => {
     for (const type of PAGE_SECTION_TYPES) {
-      const { content, layout } = splitSettingsByScope(
+      const { content, layout, appearance } = splitSettingsByScope(
         SECTION_DEFINITIONS[type].settings,
       );
       const ids = (defs: typeof content) =>
@@ -420,18 +457,27 @@ describe("splitSettingsByScope", () => {
       expect(ids(layout), type).toEqual(
         expect.arrayContaining(["padding_top", "padding_bottom", "width"]),
       );
-      // 两边加起来仍是完整的一份，不丢字段
-      expect(content.length + layout.length, type).toBe(
+      expect(ids(appearance), type).toEqual(
+        expect.arrayContaining(["bg_color", "fg_color", "radius"]),
+      );
+      // 三边加起来仍是完整的一份，不丢字段
+      expect(content.length + layout.length + appearance.length, type).toBe(
         SECTION_DEFINITIONS[type].settings.length,
       );
       expect(ids(content), type).not.toContain("padding_top");
+      expect(ids(layout), type).not.toContain("bg_color");
     }
   });
 
-  it("leaves site areas without a layout tab", () => {
+  it("gives header and footer an appearance tab", () => {
     expect(
-      splitSettingsByScope(SECTION_DEFINITIONS.header.settings).layout,
-    ).toHaveLength(0);
+      splitSettingsByScope(SECTION_DEFINITIONS.header.settings).appearance
+        .length,
+    ).toBeGreaterThan(0);
+    expect(
+      splitSettingsByScope(SECTION_DEFINITIONS.footer.settings).appearance
+        .length,
+    ).toBeGreaterThan(0);
   });
 });
 

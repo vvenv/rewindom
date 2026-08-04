@@ -5,6 +5,8 @@
  * 编辑入口已并入「系统管理 → 品牌」页（marketing 通过 slot 注入卡片）。
  */
 
+import { isOpaqueHex, normalizeSiteColor } from "./site-color.js";
+
 export const THEME_FONT_FAMILIES = ["system", "serif", "mono"] as const;
 export type ThemeFontFamily = (typeof THEME_FONT_FAMILIES)[number];
 
@@ -29,6 +31,10 @@ export const THEME_SECTION_SPACING = {
 export interface ThemeSettings {
   logo_url?: string | null;
   primary_color?: string | null;
+  /** 整站画布背景（可带 alpha）；空 = 主题默认白底。 */
+  bg_color?: string | null;
+  /** 整站默认前景（可带 alpha）；空 = 主题默认近黑。 */
+  fg_color?: string | null;
   font_family?: ThemeFontFamily;
   page_width?: ThemePageWidth;
   section_spacing?: number;
@@ -42,7 +48,25 @@ export interface ThemeSettings {
   show_locale_switcher?: boolean;
 }
 
-const COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/u;
+function parseOptionalColor(
+  raw: unknown,
+  options?: { allowAlpha?: boolean },
+): string | null | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === null || raw === "") return null;
+  if (typeof raw !== "string") {
+    throw new Error("site.theme_settings_invalid");
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (options?.allowAlpha) {
+    const normalized = normalizeSiteColor(trimmed, { allowAlpha: true });
+    if (!normalized) throw new Error("site.theme_settings_invalid");
+    return normalized;
+  }
+  if (!isOpaqueHex(trimmed)) throw new Error("site.theme_settings_invalid");
+  return trimmed;
+}
 
 export function parseThemeSettings(value: unknown): ThemeSettings {
   if (value === undefined || value === null) {
@@ -65,16 +89,17 @@ export function parseThemeSettings(value: unknown): ThemeSettings {
   }
 
   if (raw.primary_color !== undefined) {
-    if (raw.primary_color === null || raw.primary_color === "") {
-      out.primary_color = null;
-    } else if (
-      typeof raw.primary_color === "string" &&
-      COLOR_RE.test(raw.primary_color.trim())
-    ) {
-      out.primary_color = raw.primary_color.trim();
-    } else {
-      throw new Error("site.theme_settings_invalid");
-    }
+    out.primary_color = parseOptionalColor(raw.primary_color, {
+      allowAlpha: false,
+    })!;
+  }
+
+  if (raw.bg_color !== undefined) {
+    out.bg_color = parseOptionalColor(raw.bg_color, { allowAlpha: true })!;
+  }
+
+  if (raw.fg_color !== undefined) {
+    out.fg_color = parseOptionalColor(raw.fg_color, { allowAlpha: true })!;
   }
 
   if (raw.font_family !== undefined) {
@@ -140,6 +165,8 @@ export function resolveThemeSettings(theme_settings: unknown): ThemeSettings {
   return {
     logo_url: fromJson.logo_url ?? null,
     primary_color: fromJson.primary_color ?? null,
+    bg_color: fromJson.bg_color ?? null,
+    fg_color: fromJson.fg_color ?? null,
     font_family: fromJson.font_family ?? "system",
     page_width: fromJson.page_width ?? "default",
     section_spacing: fromJson.section_spacing ?? THEME_SECTION_SPACING.default,
