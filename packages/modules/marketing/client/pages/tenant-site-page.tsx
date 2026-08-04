@@ -1,7 +1,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 
+import { DEFAULT_LOCALE } from "@be-water/shared";
 import { useLocation } from "react-router";
 
+import { parseSiteLocalePath } from "../../shared/site-locale.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";
 import { useTenantPublicSite } from "../hooks/use-tenant-public-site.js";
 import { fetchPublicSitePage } from "../lib/site-api.js";
@@ -17,19 +19,25 @@ export function TenantSitePageGate({
   fallback: ReactNode;
 }): ReactNode {
   const { pathname } = useLocation();
-  const siteState = useTenantPublicSite();
+  /*
+   * `path` / `prefixed` 与传入的默认语言无关（只有「没写前缀时算哪种语言」才用得上），
+   * 而站点的 `default_locale` 要等站点拉回来才知道——所以这里传平台兜底值，
+   * 只取 URL 上**显式**写了的语言，其余交给服务端回落。
+   */
+  const parsed = parseSiteLocalePath(pathname, DEFAULT_LOCALE);
+  const requestedLocale = parsed.prefixed ? parsed.locale : undefined;
+  const logicalPath = parsed.path;
+  const siteState = useTenantPublicSite(requestedLocale);
   const [page, setPage] = useState<PublicMarketingPage | null>(null);
   const [pageStatus, setPageStatus] = useState<
     "idle" | "loading" | "ready" | "missing"
   >("idle");
 
-  const logicalPath = pathname.replace(/^\/(en|zh-CN)(?=\/|$)/u, "") || "/";
-
   useEffect(() => {
     if (siteState.status !== "ready") return;
     let cancelled = false;
     setPageStatus("loading");
-    void fetchPublicSitePage(logicalPath)
+    void fetchPublicSitePage(logicalPath, requestedLocale)
       .then((result) => {
         if (!cancelled) {
           setPage(result.page);
@@ -45,7 +53,7 @@ export function TenantSitePageGate({
     return () => {
       cancelled = true;
     };
-  }, [siteState.status, logicalPath]);
+  }, [siteState.status, logicalPath, requestedLocale]);
 
   if (siteState.status !== "ready") {
     return fallback;
@@ -53,7 +61,7 @@ export function TenantSitePageGate({
 
   if (pageStatus === "loading" || pageStatus === "idle") {
     return (
-      <TenantSiteView site={siteState.site} path={logicalPath} body_md="" />
+      <TenantSiteView site={siteState.site} path={logicalPath} />
     );
   }
 
@@ -65,11 +73,9 @@ export function TenantSitePageGate({
     <TenantSiteView
       site={siteState.site}
       path={logicalPath}
-      body_md={page.body_md}
       sections={page.sections}
       pageSettings={page.settings}
-      title={page.title}
-      description={page.description}
+      alternates={page.alternates}
     />
   );
 }

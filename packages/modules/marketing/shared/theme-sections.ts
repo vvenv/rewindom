@@ -8,10 +8,6 @@
 export const THEME_FONT_FAMILIES = ["system", "serif", "mono"] as const;
 export type ThemeFontFamily = (typeof THEME_FONT_FAMILIES)[number];
 
-/** 嵌套页面的同级页面菜单：放左侧 / 放右侧 / 不显示。 */
-export const THEME_PAGE_NAV_POSITIONS = ["left", "right", "off"] as const;
-export type ThemePageNav = (typeof THEME_PAGE_NAV_POSITIONS)[number];
-
 /** 正文最大宽度（对齐 Shopify 主题设置的 page width）。 */
 export const THEME_PAGE_WIDTHS = ["compact", "default", "wide"] as const;
 export type ThemePageWidth = (typeof THEME_PAGE_WIDTHS)[number];
@@ -34,9 +30,16 @@ export interface ThemeSettings {
   logo_url?: string | null;
   primary_color?: string | null;
   font_family?: ThemeFontFamily;
-  page_nav?: ThemePageNav;
   page_width?: ThemePageWidth;
   section_spacing?: number;
+  /**
+   * 页头是否显示语言切换器。
+   *
+   * 站点级而非页头 section 级：它是「这个站点对外是不是多语言站」的表态，
+   * 与 `default_locale` 同属站点设置里的语言配置（页头 section 里另放一个
+   * 同名开关，只会让租户在两处找同一件事）。
+   */
+  show_locale_switcher?: boolean;
 }
 
 const COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/u;
@@ -85,17 +88,6 @@ export function parseThemeSettings(value: unknown): ThemeSettings {
     }
   }
 
-  if (raw.page_nav !== undefined) {
-    if (
-      typeof raw.page_nav === "string" &&
-      (THEME_PAGE_NAV_POSITIONS as readonly string[]).includes(raw.page_nav)
-    ) {
-      out.page_nav = raw.page_nav as ThemePageNav;
-    } else {
-      throw new Error("site.theme_settings_invalid");
-    }
-  }
-
   if (raw.page_width !== undefined) {
     if (
       typeof raw.page_width === "string" &&
@@ -105,6 +97,13 @@ export function parseThemeSettings(value: unknown): ThemeSettings {
     } else {
       throw new Error("site.theme_settings_invalid");
     }
+  }
+
+  if (raw.show_locale_switcher !== undefined) {
+    if (typeof raw.show_locale_switcher !== "boolean") {
+      throw new Error("site.theme_settings_invalid");
+    }
+    out.show_locale_switcher = raw.show_locale_switcher;
   }
 
   if (raw.section_spacing !== undefined) {
@@ -142,9 +141,9 @@ export function resolveThemeSettings(theme_settings: unknown): ThemeSettings {
     logo_url: fromJson.logo_url ?? null,
     primary_color: fromJson.primary_color ?? null,
     font_family: fromJson.font_family ?? "system",
-    page_nav: fromJson.page_nav ?? "left",
     page_width: fromJson.page_width ?? "default",
     section_spacing: fromJson.section_spacing ?? THEME_SECTION_SPACING.default,
+    show_locale_switcher: fromJson.show_locale_switcher ?? false,
   };
 }
 

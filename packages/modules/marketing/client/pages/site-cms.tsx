@@ -1,26 +1,19 @@
 import { PageLayout, useConfirm, usePermissions } from "@be-water/client-kit";
+import { normalizeLocale } from "@be-water/shared";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
-import {
-  CloudOff,
-  CloudUpload,
-  Globe,
-  Palette,
-  Pencil,
-  Plus,
-  Settings2,
-  Trash2,
-} from "lucide-react";
+import { Globe, Plus, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
 import { toast } from "sonner";
 
-import { marketingPagePath } from "../../shared/site-cms.js";
+import { localizeSiteText } from "../../shared/section-schema.js";
 import { SitePageCreateSheet } from "../components/SitePageCreateSheet.js";
-import { SitePageEditSheet } from "../components/SitePageEditSheet.js";
+import { SitePageGroupRow } from "../components/SitePageGroupRow.js";
 import { SiteSettingsSheet } from "../components/SiteSettingsSheet.js";
+import { SiteStarterMenu } from "../components/SiteStarterMenu.js";
 import { useSite, useSiteMutations, useSitePages } from "../hooks/useSite.js";
+import { groupSitePages } from "../lib/site-page-groups.js";
 
 export function SiteCms() {
   const { t } = useTranslation("marketing");
@@ -30,6 +23,20 @@ export function SiteCms() {
   const pagesQuery = useSitePages();
   const { removePage, publishPage, unpublishPage } = useSiteMutations();
   const { confirm } = useConfirm();
+  const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
+  const groups = groupSitePages(pagesQuery.data ?? [], defaultLocale);
+  const homePage = (pagesQuery.data ?? []).find(
+    (page) => page.kind === "home" && page.locale === defaultLocale,
+  );
+  const hasStarterContent = Boolean(
+    homePage ||
+      siteQuery.data?.header.some(
+        (section) => section.type === "header" && section.blocks.length > 0,
+      ) ||
+      siteQuery.data?.footer.some(
+        (section) => section.type === "footer" && section.blocks.length > 0,
+      ),
+  );
 
   /** 删除走统一的二次确认弹窗（`ConfirmProvider`），不用浏览器原生 confirm。 */
   const handleDelete = async (
@@ -70,29 +77,27 @@ export function SiteCms() {
       title={t("cms.title")}
       description={t("cms.pageDescription")}
       action={
-        canWrite && siteQuery.data ? (
-          <div className="flex items-center gap-2">
-            <SiteSettingsSheet site={siteQuery.data}>
-              <Button variant="outline" size="sm">
-                <Settings2 className="size-4" />
-                <span className="hidden md:inline">{t("cms.settings")}</span>
-              </Button>
-            </SiteSettingsSheet>
-            <SitePageCreateSheet>
-              <DraggableFabTrigger storageKey="site_create_fab">
-                <Plus className="size-6 md:size-4" />
-                <span className="hidden md:inline">{t("cms.create")}</span>
-              </DraggableFabTrigger>
-            </SitePageCreateSheet>
-          </div>
+        canWrite ? (
+          <SitePageCreateSheet>
+            <DraggableFabTrigger storageKey="site_create_fab">
+              <Plus className="size-6 md:size-4" />
+              <span className="hidden md:inline">{t("cms.create")}</span>
+            </DraggableFabTrigger>
+          </SitePageCreateSheet>
         ) : null
       }
     >
       <div className="flex flex-col gap-4">
         {siteQuery.data ? (
-          <div className="rounded-lg border p-4 text-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">{siteQuery.data.site_name}</span>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+              <span className="font-medium">
+                {localizeSiteText(
+                  siteQuery.data.site_name,
+                  defaultLocale,
+                  defaultLocale,
+                )}
+              </span>
               <Badge
                 variant={siteQuery.data.published ? "default" : "secondary"}
               >
@@ -100,11 +105,22 @@ export function SiteCms() {
                   ? t("cms.statusPublished")
                   : t("cms.statusDraft")}
               </Badge>
+              {siteQuery.data.tagline ? (
+                <span className="text-muted-foreground">
+                  {siteQuery.data.tagline}
+                </span>
+              ) : null}
             </div>
-            {siteQuery.data.tagline ? (
-              <p className="mt-1 text-muted-foreground">
-                {siteQuery.data.tagline}
-              </p>
+            {canWrite ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <SiteStarterMenu hasContent={hasStarterContent} />
+                <SiteSettingsSheet site={siteQuery.data}>
+                  <Button variant="outline" size="sm">
+                    <Settings2 className="size-4" />
+                    {t("cms.settings")}
+                  </Button>
+                </SiteSettingsSheet>
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -116,113 +132,34 @@ export function SiteCms() {
           <p className="text-sm text-destructive">{t("cms.loadFailed")}</p>
         ) : null}
 
-        <div className="divide-y rounded-lg border">
-          {(pagesQuery.data ?? []).map((page) => (
-            <div
-              key={page.id}
-              className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
-            >
-              {/* 标题 + 状态一行，路径单独一行——三者混排时 truncate 不生效 */}
-              <div className="min-w-0 space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  {canWrite ? (
-                    <Link
-                      to={`/site/pages/${page.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {page.title}
-                    </Link>
-                  ) : (
-                    <span className="font-medium">{page.title}</span>
-                  )}
-                  <Badge variant="outline">{page.kind}</Badge>
-                  <Badge
-                    variant={
-                      page.status === "published" ? "default" : "secondary"
-                    }
-                  >
-                    {page.status === "published"
-                      ? t("cms.statusPublished")
-                      : t("cms.statusDraft")}
-                  </Badge>
-                </div>
-                <p className="truncate text-xs text-muted-foreground">
-                  {marketingPagePath(page.kind, page.slug)}
-                </p>
-              </div>
-              {canWrite ? (
-                <div className="flex shrink-0 items-center justify-end gap-1">
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="icon-sm"
-                    title={t("editor.open")}
-                    aria-label={t("editor.open")}
-                  >
-                    <Link to={`/site/pages/${page.id}`}>
-                      <Palette className="size-3.5" />
-                    </Link>
-                  </Button>
-                  <SitePageEditSheet page={page}>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      title={t("cms.edit")}
-                      aria-label={t("cms.edit")}
-                    >
-                      <Pencil className="size-3.5" />
-                    </Button>
-                  </SitePageEditSheet>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    title={t(
-                      page.status === "published"
-                        ? "cms.unpublish"
-                        : "cms.publish",
-                    )}
-                    aria-label={t(
-                      page.status === "published"
-                        ? "cms.unpublish"
-                        : "cms.publish",
-                    )}
-                    disabled={
-                      (publishPage.isPending &&
-                        publishPage.variables === page.id) ||
-                      (unpublishPage.isPending &&
-                        unpublishPage.variables === page.id)
-                    }
-                    onClick={() => handleTogglePublish(page)}
-                  >
-                    {page.status === "published" ? (
-                      <CloudOff className="size-3.5" />
-                    ) : (
-                      <CloudUpload className="size-3.5" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="hover:text-destructive"
-                    title={t("cms.delete")}
-                    aria-label={t("cms.delete")}
-                    disabled={
-                      removePage.isPending && removePage.variables === page.id
-                    }
-                    onClick={() => void handleDelete(page.id, page.title)}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-          ))}
-          {pagesQuery.data && pagesQuery.data.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">
-              {t("cms.emptyPages")}
-            </p>
-          ) : null}
-        </div>
+        {!pagesQuery.isLoading && !pagesQuery.isError ? (
+          <div className="divide-y rounded-lg border">
+            {groups.map((group) => (
+              <SitePageGroupRow
+                key={`${group.kind}:${group.slug}`}
+                group={group}
+                defaultLocale={defaultLocale}
+                canWrite={canWrite}
+                publishPendingId={
+                  publishPage.isPending ? publishPage.variables : undefined
+                }
+                unpublishPendingId={
+                  unpublishPage.isPending ? unpublishPage.variables : undefined
+                }
+                deletePendingId={
+                  removePage.isPending ? removePage.variables : undefined
+                }
+                onTogglePublish={handleTogglePublish}
+                onDelete={handleDelete}
+              />
+            ))}
+            {groups.length === 0 ? (
+              <p className="p-6 text-sm text-muted-foreground">
+                {t("cms.emptyPages")}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </PageLayout>
   );

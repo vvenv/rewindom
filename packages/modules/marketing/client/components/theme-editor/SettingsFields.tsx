@@ -1,5 +1,6 @@
-import { useId, type ReactElement } from "react";
+import { useId, useRef, useState, type ChangeEvent, type ReactElement } from "react";
 
+import { Button } from "@be-water/ui/button";
 import { Checkbox } from "@be-water/ui/checkbox";
 import {
   Field,
@@ -16,18 +17,26 @@ import {
   SelectValue,
 } from "@be-water/ui/select";
 import { Slider } from "@be-water/ui/slider";
+import { Spinner } from "@be-water/ui/spinner";
 import { Textarea } from "@be-water/ui/textarea";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import {
   isInputSetting,
+  isLocalizableSetting,
+  readLocalizedSetting,
   SECTION_ICON_CHOICES,
+  writeLocalizedSetting,
   type InputSettingDef,
   type SettingDef,
   type SettingValue,
   type SettingValues,
 } from "../../../shared/section-schema.js";
+import { uploadSiteAsset } from "../../lib/site-api.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
+
+import type { AppLocale } from "@be-water/shared";
 
 const HEX_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/u;
 
@@ -35,6 +44,10 @@ interface SettingsFieldsProps {
   defs: SettingDef[];
   values: SettingValues;
   disabled?: boolean;
+  /** 正在编辑的语言；文案类字段读写这一语言的槽位。 */
+  locale: AppLocale;
+  /** 站点默认语言：纯字符串存量值归它，也是未翻译时的占位来源。 */
+  defaultLocale: AppLocale;
   onChange: (next: SettingValues) => void;
 }
 
@@ -46,6 +59,8 @@ export function SettingsFields({
   defs,
   values,
   disabled,
+  locale,
+  defaultLocale,
   onChange,
 }: SettingsFieldsProps): ReactElement {
   const { t } = useTranslation("marketing");
@@ -71,13 +86,41 @@ export function SettingsFields({
           );
         }
 
+        /*
+         * 文案类字段编辑的是「当前语言的槽位」，其余字段（颜色、留白、链接、图标）
+         * 全站共用一份值——所以只有前者需要拆出 locale 维度。
+         */
+        const localized = isLocalizableSetting(def);
+        const stored = values[def.id];
         return (
           <SettingField
-            key={def.id}
+            key={`${def.id}:${localized ? locale : ""}`}
             def={def}
-            value={values[def.id]}
+            value={
+              localized
+                ? readLocalizedSetting(stored, locale, defaultLocale)
+                : stored
+            }
+            /** 未翻译时把默认语言的原文当占位，省得来回切语言对照 */
+            fallbackHint={
+              localized && locale !== defaultLocale
+                ? readLocalizedSetting(stored, defaultLocale, defaultLocale)
+                : ""
+            }
             disabled={disabled}
-            onChange={(next) => onChange({ ...values, [def.id]: next })}
+            onChange={(next) =>
+              onChange({
+                ...values,
+                [def.id]: localized
+                  ? writeLocalizedSetting(
+                      stored,
+                      locale,
+                      defaultLocale,
+                      String(next),
+                    )
+                  : next,
+              })
+            }
           />
         );
       })}
@@ -88,6 +131,8 @@ export function SettingsFields({
 interface SettingFieldProps {
   def: InputSettingDef;
   value: SettingValue | undefined;
+  /** 该字段在默认语言下的原文，用作未翻译时的占位。 */
+  fallbackHint?: string;
   disabled?: boolean;
   onChange: (next: SettingValue) => void;
 }
@@ -95,6 +140,7 @@ interface SettingFieldProps {
 function SettingField({
   def,
   value,
+  fallbackHint,
   disabled,
   onChange,
 }: SettingFieldProps): ReactElement {
@@ -127,6 +173,7 @@ function SettingField({
         def={def}
         fieldId={fieldId}
         value={value}
+        fallbackHint={fallbackHint}
         disabled={disabled}
         onChange={onChange}
       />
@@ -135,10 +182,85 @@ function SettingField({
   );
 }
 
+function ImageSettingControl({
+  fieldId,
+  value,
+  fallbackHint,
+  disabled,
+  onChange,
+  placeholder,
+}: {
+  fieldId: string;
+  value: string;
+  fallbackHint?: string;
+  disabled?: boolean;
+  onChange: (next: string) => void;
+  placeholder?: string;
+}): ReactElement {
+  const { t } = useTranslation("marketing");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const onFile = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || disabled) return;
+    setUploading(true);
+    try {
+      const { url } = await uploadSiteAsset(file);
+      onChange(url);
+      toast.success(t("editor.toastImageUploaded"));
+    } catch {
+      toast.error(t("editor.toastImageUploadFailed"));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        <Input
+          id={fieldId}
+          disabled={disabled || uploading}
+          placeholder={fallbackHint || placeholder}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={disabled || uploading}
+          onClick={() => inputRef.current?.click()}
+        >
+          {uploading ? <Spinner className="size-4" /> : null}
+          {t("editor.uploadImage")}
+        </Button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+          className="hidden"
+          onChange={(event) => void onFile(event)}
+        />
+      </div>
+      {value ? (
+        <img
+          src={value}
+          alt=""
+          className="max-h-24 w-auto rounded-md border border-border/60 object-contain"
+        />
+      ) : null}
+    </div>
+  );
+}
+
 function SettingControl({
   def,
   fieldId,
   value,
+  fallbackHint,
   disabled,
   onChange,
 }: SettingFieldProps & { fieldId: string }): ReactElement | null {
@@ -148,14 +270,25 @@ function SettingControl({
   switch (def.type) {
     case "text":
     case "url":
-    case "image":
       return (
         <Input
           id={fieldId}
           disabled={disabled}
-          placeholder={def.placeholder}
+          placeholder={fallbackHint || def.placeholder}
           value={text}
           onChange={(event) => onChange(event.target.value)}
+        />
+      );
+
+    case "image":
+      return (
+        <ImageSettingControl
+          fieldId={fieldId}
+          value={text}
+          fallbackHint={fallbackHint}
+          disabled={disabled}
+          placeholder={def.placeholder}
+          onChange={onChange}
         />
       );
 
@@ -167,7 +300,7 @@ function SettingControl({
           id={fieldId}
           disabled={disabled}
           rows={def.rows ?? (def.type === "richtext" ? 10 : 3)}
-          placeholder={def.placeholder}
+          placeholder={fallbackHint || def.placeholder}
           className={def.type === "textarea" ? undefined : "font-mono text-xs"}
           value={text}
           onChange={(event) => onChange(event.target.value)}

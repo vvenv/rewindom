@@ -25,9 +25,9 @@ describe("theme settings", () => {
       logo_url: "/a.png",
       primary_color: "#111",
       font_family: "system",
-      page_nav: "left",
       page_width: "default",
       section_spacing: 16,
+      show_locale_switcher: false,
     });
   });
 
@@ -36,9 +36,9 @@ describe("theme settings", () => {
       logo_url: null,
       primary_color: null,
       font_family: "system",
-      page_nav: "left",
       page_width: "default",
       section_spacing: 16,
+      show_locale_switcher: false,
     };
     expect(resolveThemeSettings({})).toEqual(empty);
     expect(resolveThemeSettings(null)).toEqual(empty);
@@ -64,14 +64,6 @@ describe("theme settings", () => {
       "site.theme_settings_invalid",
     );
     expect(() => parseThemeSettings({ section_spacing: -8 })).toThrow(
-      "site.theme_settings_invalid",
-    );
-  });
-
-  it("parses page_nav and rejects unknown positions", () => {
-    expect(parseThemeSettings({ page_nav: "right" }).page_nav).toBe("right");
-    expect(parseThemeSettings({ page_nav: "off" }).page_nav).toBe("off");
-    expect(() => parseThemeSettings({ page_nav: "top" })).toThrow(
       "site.theme_settings_invalid",
     );
   });

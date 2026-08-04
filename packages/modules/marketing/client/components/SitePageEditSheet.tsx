@@ -4,13 +4,6 @@ import { Button } from "@be-water/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@be-water/ui/select";
-import {
   Sheet,
   SheetClose,
   SheetContent,
@@ -25,21 +18,16 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
-import {
-  marketingPagePath,
-  PAGE_NAV_MODES,
-  pageDepth,
-  type MarketingPageListItem,
-  type PageNavMode,
-} from "../../shared/site-cms.js";
 import { useSiteMutations, useSitePage } from "../hooks/useSite.js";
+
+import type { MarketingPageListItem } from "../../shared/site-cms.js";
 
 interface SitePageEditSheetProps {
   page: MarketingPageListItem;
   children: ReactNode;
 }
 
-/** 页面元数据（标题 / SEO）；区块内容走 Theme Editor。 */
+/** 页面元数据（标题 / SEO）；区块内容与动态菜单走 Theme Editor。 */
 export function SitePageEditSheet({ page, children }: SitePageEditSheetProps) {
   const { t } = useTranslation("marketing");
   const { updatePage } = useSiteMutations();
@@ -47,17 +35,12 @@ export function SitePageEditSheet({ page, children }: SitePageEditSheetProps) {
   const detail = useSitePage(open ? page.id : undefined);
   const [title, setTitle] = useState(page.title);
   const [description, setDescription] = useState(page.description);
-  const [pageNav, setPageNav] = useState<PageNavMode>("inherit");
 
   useEffect(() => {
     if (!detail.data) return;
     setTitle(detail.data.title);
     setDescription(detail.data.description);
-    setPageNav(detail.data.settings.page_nav ?? "inherit");
   }, [detail.data]);
-
-  // 同级页面菜单只在二级页面（/docs/xxx 这类）上生效，顶层页不给这个开关
-  const isNested = pageDepth(marketingPagePath(page.kind, page.slug)) > 1;
 
   const onSubmit = (event: FormEvent): void => {
     event.preventDefault();
@@ -67,7 +50,6 @@ export function SitePageEditSheet({ page, children }: SitePageEditSheetProps) {
         body: {
           title: title.trim(),
           description: description.trim(),
-          ...(isNested ? { settings: { page_nav: pageNav } } : {}),
         },
       },
       {
@@ -119,34 +101,6 @@ export function SitePageEditSheet({ page, children }: SitePageEditSheetProps) {
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </Field>
-              {isNested ? (
-                <Field>
-                  <FieldLabel htmlFor={`page-nav-${page.id}`}>
-                    {t("editor.fieldPageNav")}
-                  </FieldLabel>
-                  <Select
-                    value={pageNav}
-                    onValueChange={(next) => setPageNav(next as PageNavMode)}
-                  >
-                    <SelectTrigger
-                      id={`page-nav-${page.id}`}
-                      className="w-full"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAGE_NAV_MODES.map((mode) => (
-                        <SelectItem key={mode} value={mode}>
-                          {t(`editor.pageNav.${mode}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-muted-foreground text-xs">
-                    {t("cms.fieldPageNavHint")}
-                  </p>
-                </Field>
-              ) : null}
               <Button asChild variant="outline" className="w-full">
                 <Link
                   to={`/site/pages/${page.id}`}

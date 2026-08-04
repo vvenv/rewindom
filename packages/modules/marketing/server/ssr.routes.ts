@@ -4,8 +4,13 @@ import {
 } from "@be-water/server-kernel/lib/host-tenant.js";
 
 import {
+  resolveLocaleSegment,
+  SITE_APP_PREFIXES,
+} from "../shared/site-locale.js";
+
+import {
   getPublishedPublicPage,
-  getPublishedPublicSite,
+  getPublishedSitemapEntries,
 } from "./site.service.js";
 import {
   renderMarketingHtml,
@@ -14,25 +19,10 @@ import {
   renderUnavailableHtml,
 } from "./ssr-render.js";
 
+import type { AppLocale } from "@be-water/shared";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
-const SPA_PREFIXES = [
-  "app",
-  "login",
-  "register",
-  "platform",
-  "billing",
-  "settings",
-  "notes",
-  "todos",
-  "users",
-  "roles",
-  "audit",
-  "notifications",
-  "api",
-  "assets",
-  "health",
-] as const;
+const SPA_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);
 
 function requestOrigin(request: FastifyRequest): string {
   const proto =
@@ -62,6 +52,7 @@ async function renderPath(
   request: FastifyRequest,
   reply: FastifyReply,
   path: string,
+  locale: AppLocale | null = null,
 ): Promise<void> {
   await ensureHostTenant(request);
   const hostTenant = request.hostTenantContext;
@@ -81,6 +72,7 @@ async function renderPath(
     hostTenant.tenant_id,
     path,
     hostTenant.tenant_slug,
+    locale,
   );
   if (!result) {
     sendHtml(
@@ -112,17 +104,11 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     if (!hostTenant) {
       return reply.status(404).send("Not Found");
     }
-    const site = await getPublishedPublicSite(
-      hostTenant.tenant_id,
-      hostTenant.tenant_slug,
-    );
-    if (!site) {
+    const entries = await getPublishedSitemapEntries(hostTenant.tenant_id);
+    if (!entries) {
       return reply.status(404).send("Not Found");
     }
-    const xml = renderSitemapXml(
-      requestOrigin(request),
-      site.pages.map((p) => ({ path: p.path })),
-    );
+    const xml = renderSitemapXml(requestOrigin(request), entries);
     return reply
       .header("content-type", "application/xml; charset=utf-8")
       .header("cache-control", "public, max-age=3600")
@@ -140,6 +126,8 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
       .send(renderRobotsTxt(requestOrigin(request)));
   });
 
+  /* -------------------------------------------------- 站点默认语言（无前缀） */
+
   app.get("/", async (request, reply) => {
     await renderPath(request, reply, "/");
   });
@@ -153,11 +141,64 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     await renderPath(request, reply, `/docs/${slug}`);
   });
 
-  app.get("/:slug", async (request, reply) => {
-    const { slug } = request.params as { slug: string };
-    if (SPA_PREFIXES.includes(slug as (typeof SPA_PREFIXES)[number])) {
+  /* ------------------------------------------------------ 其余语言（前缀树） */
+
+  /*
+   * 一级参数路由同时承担两件事：`/{locale}` 与 `/{slug}`。
+   *
+   * 两者在 URL 上是同一个位置，只能靠取值区分——所以 locale 的 slug 必须占住
+   * `RESERVED_PAGE_SLUGS`（见 shared/site-cms.ts），否则一个叫 `en` 的顶层页
+   * 会把整棵 `/en/*` 遮住。静态段（`/docs`、`/sitemap.xml`）由 Fastify 优先匹配，
+   * 不会落到这里。
+   */
+  app.get("/:first", async (request, reply) => {
+    const { first } = request.params as { first: string };
+    const locale = resolveLocaleSegment(first);
+    if (locale) {
+      // `/{locale}` = 该语言的首页
+      await renderPath(request, reply, "/", locale);
+      return;
+    }
+    if (SPA_PREFIX_SET.has(first)) {
       return reply.callNotFound();
     }
-    await renderPath(request, reply, `/${slug}`);
+    await renderPath(request, reply, `/${first}`);
+  });
+
+  app.get("/:first/:second", async (request, reply) => {
+    const { first, second } = request.params as {
+      first: string;
+      second: string;
+    };
+    const locale = resolveLocaleSegment(first);
+    if (locale) {
+      await renderPath(request, reply, `/${second}`, locale);
+      return;
+    }
+    // 非 locale 的两级路径：应用区交回 SPA，其余当租户嵌套页（`/docs/x`）
+    if (SPA_PREFIX_SET.has(first)) {
+      return reply.callNotFound();
+    }
+    await renderPath(request, reply, `/${first}/${second}`);
+  });
+
+  app.get("/:first/:second/:third", async (request, reply) => {
+    const { first, second, third } = request.params as {
+      first: string;
+      second: string;
+      third: string;
+    };
+    const locale = resolveLocaleSegment(first);
+    if (locale) {
+      if (SPA_PREFIX_SET.has(second)) {
+        return reply.callNotFound();
+      }
+      await renderPath(request, reply, `/${second}/${third}`, locale);
+      return;
+    }
+    if (SPA_PREFIX_SET.has(first)) {
+      return reply.callNotFound();
+    }
+    await renderPath(request, reply, `/${first}/${second}/${third}`);
   });
 }

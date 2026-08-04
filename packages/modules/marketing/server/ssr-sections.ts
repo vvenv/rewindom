@@ -8,17 +8,40 @@
 import { marked } from "marked";
 
 import {
+  groupColumns,
+  resolveSectionGaps,
   resolveSectionLayout,
   settingBool,
   settingLines,
   settingNumber,
+  resolvePageHeaderText,
   settingText,
   type SettingValues,
   type SiteBlock,
   type SiteSection,
 } from "../shared/section-schema.js";
+import {
+  PAGE_MENU_SOURCES,
+  resolvePageMenu,
+  siteNavPages,
+  type PageMenuSource,
+  type PublicSitePage,
+} from "../shared/site-cms.js";
+import { withSiteLocale } from "../shared/site-locale.js";
 
 import { escapeHtml } from "./site.util.js";
+
+import type { AppLocale } from "@be-water/shared";
+
+/** `page-menu` 等需要站点目录的 section 渲染上下文。 */
+export interface SectionRenderContext {
+  pages?: PublicSitePage[];
+  currentPath?: string;
+  locale?: AppLocale;
+  defaultLocale?: AppLocale;
+  /** 主题的「区块间距」；容器段要拿它算列内子段之间的缝。 */
+  sectionSpacing?: number;
+}
 
 marked.setOptions({ gfm: true, breaks: false });
 
@@ -202,6 +225,61 @@ function renderCards(section: SiteSection): string {
 </div>`;
 }
 
+function menuHref(path: string, ctx: SectionRenderContext): string {
+  if (ctx.locale && ctx.defaultLocale) {
+    return withSiteLocale(path, ctx.locale, ctx.defaultLocale);
+  }
+  return path;
+}
+
+function renderPageMenu(
+  section: SiteSection,
+  ctx: SectionRenderContext,
+): string {
+  const pages = ctx.pages ?? [];
+  const currentPath = ctx.currentPath ?? "/";
+  const s = section.settings;
+  const rawSource = settingText(s, "source") || "children";
+  const source: PageMenuSource = (
+    PAGE_MENU_SOURCES as readonly string[]
+  ).includes(rawSource)
+    ? (rawSource as PageMenuSource)
+    : "children";
+  const style = settingText(s, "style") || "cards";
+  const menu = resolvePageMenu(pages, currentPath, source);
+  if (menu.items.length === 0) return "";
+
+  const href = (path: string): string => escapeHtml(menuHref(path, ctx));
+
+  if (style === "list") {
+    const links = menu.items
+      .map(
+        (page) =>
+          `<li${page.path === currentPath ? ' aria-current="page"' : ""}><a href="${href(page.path)}">${escapeHtml(page.title)}</a></li>`,
+      )
+      .join("");
+    return `<div>
+  ${sectionHeading(s)}
+  <nav class="page-menu-list" aria-label="${escapeHtml(menu.title || "Pages")}">
+    <ul>${links}</ul>
+  </nav>
+</div>`;
+  }
+
+  const cards = menu.items
+    .map((page) => {
+      const body = page.description
+        ? `<span class="muted">${escapeHtml(page.description)}</span>`
+        : "";
+      return `<li><a class="card" href="${href(page.path)}"><span class="title">${escapeHtml(page.title)}</span>${body}</a></li>`;
+    })
+    .join("");
+  return `<div>
+  ${sectionHeading(s)}
+  <ul class="${gridClass(settingNumber(s, "columns", 2))}">${cards}</ul>
+</div>`;
+}
+
 function renderPricing(section: SiteSection): string {
   if (section.blocks.length === 0) return "";
   const s = section.settings;
@@ -265,21 +343,71 @@ function renderBand(section: SiteSection): string {
 </div>`;
 }
 
-function renderSplit(section: SiteSection): string {
-  const s = section.settings;
-  const body = settingText(s, "body");
-  const aside = `<div class="prose">${md(settingText(s, "aside_md"))}</div>`;
-  const main = `<div>
-    <h2>${escapeHtml(settingText(s, "title"))}</h2>
-    ${body ? `<p class="lead">${escapeHtml(body)}</p>` : ""}
-    ${buttonRow(s, "left")}
-  </div>`;
-  const mediaFirst = settingText(s, "media_position") === "start";
-  return `<div class="split">${mediaFirst ? `${aside}${main}` : `${main}${aside}`}</div>`;
+/**
+ * 容器段：与 SPA 的 `GroupSection` 同构——12 栏 grid，列内递归渲染子段。
+ *
+ * 列内的子段走 `contained`：列已经限过宽、给过 gutter，子段不再自带这两样，
+ * `width: full` 在一列里也没有「通栏」可言。
+ */
+function renderGroup(section: SiteSection, ctx: SectionRenderContext): string {
+  const columns = groupColumns(section);
+  if (columns.length === 0) return "";
+  const stretch = settingText(section.settings, "align_items") === "stretch";
+  const gap = settingNumber(section.settings, "column_gap", 40);
+
+  const cols = columns
+    .map((column) => {
+      const gaps = resolveSectionGaps(
+        column.sections.map((child) => resolveSectionLayout(child.settings)),
+        ctx.sectionSpacing ?? 0,
+      );
+      const inner = column.sections
+        .map((child, index) =>
+          renderSectionHtml(child, gaps[index], ctx, { contained: true }),
+        )
+        .join("");
+      const classes = [
+        "grp-col",
+        `grp-span-${column.span}`,
+        column.stackOrder !== "auto" ? `grp-stack-${column.stackOrder}` : "",
+        column.sticky ? "grp-sticky" : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return `<div class="${classes}">${inner}</div>`;
+    })
+    .join("");
+
+  return `<div class="grp${stretch ? " grp-stretch" : ""}" style="--grp-gap:${gap}px">${cols}</div>`;
 }
 
 /** 版式（留白 / 底色 / 分隔线 / 窄栏）统一由外层 `<section>` 承担。 */
-function renderSectionInner(section: SiteSection): string {
+/**
+ * 页面标题段：与客户端 `PageHeaderSection` 同一份回落逻辑
+ * （`resolvePageHeaderText`），否则 SSR 出的 h1 会和 hydrate 后的对不上。
+ */
+function renderPageHeader(
+  section: SiteSection,
+  ctx: SectionRenderContext,
+): string {
+  const page = ctx.pages?.find(
+    (item) => item.path === (ctx.currentPath ?? "/"),
+  );
+  const { headline, subhead } = resolvePageHeaderText(section.settings, page);
+  if (!headline && !subhead) return "";
+  const align =
+    settingText(section.settings, "align") === "center"
+      ? ' style="text-align:center"'
+      : "";
+  return `<div class="page-head"${align}>${
+    headline ? `<h1>${escapeHtml(headline)}</h1>` : ""
+  }${subhead ? `<p>${escapeHtml(subhead)}</p>` : ""}</div>`;
+}
+
+function renderSectionInner(
+  section: SiteSection,
+  ctx: SectionRenderContext,
+): string {
   switch (section.type) {
     case "hero":
       return renderHero(section);
@@ -291,14 +419,18 @@ function renderSectionInner(section: SiteSection): string {
       return renderSpecList(section);
     case "cards":
       return renderCards(section);
+    case "page-menu":
+      return renderPageMenu(section, ctx);
     case "pricing":
       return renderPricing(section);
     case "faq":
       return renderFaq(section);
     case "band":
       return renderBand(section);
-    case "split":
-      return renderSplit(section);
+    case "group":
+      return renderGroup(section, ctx);
+    case "page-header":
+      return renderPageHeader(section, ctx);
     case "prose":
       return `<div class="prose">${md(settingText(section.settings, "body_md"))}</div>`;
     default:
@@ -313,15 +445,23 @@ function renderSectionInner(section: SiteSection): string {
  *
  * `gap` 是这一段**上方**的段间距，由 `resolveSectionGaps` 统一算好传进来。
  */
-export function renderSectionHtml(section: SiteSection, gap = 0): string {
-  const inner = renderSectionInner(section);
+export function renderSectionHtml(
+  section: SiteSection,
+  gap = 0,
+  ctx: SectionRenderContext = {},
+  options: { contained?: boolean } = {},
+): string {
+  const inner = renderSectionInner(section, ctx);
   if (!inner) return "";
   const layout = resolveSectionLayout(section.settings);
+  // 容器段的列里没有「通栏」可言：外层已限宽，full 退化成 page
+  const width =
+    options.contained && layout.width === "full" ? "page" : layout.width;
   // 光晕是容器级的背景效果，和 background/divider 同层（目前只有 hero 声明它）
   const glow = settingBool(section.settings, "show_glow");
   const classes = [
     "sec-band",
-    `sec-w-${layout.width}`,
+    `sec-w-${width}`,
     layout.background !== "none" ? `sec-bg-${layout.background}` : "",
     layout.dividerTop ? "sec-divider-top" : "",
     layout.dividerBottom ? "sec-divider-bottom" : "",
@@ -335,39 +475,116 @@ export function renderSectionHtml(section: SiteSection, gap = 0): string {
   const glowHtml = glow
     ? `<div class="sec-glow" aria-hidden="true"></div>`
     : "";
-  return `<section${id} class="sec" style="--sec-gap:${gap}px"><div class="${classes}" style="${style}">${glowHtml}<div class="sec-content sec-c-${layout.contentWidth}">${inner}</div></div></section>`;
+  const contentClass = options.contained
+    ? "sec-content sec-c-contained"
+    : `sec-content sec-c-${layout.contentWidth}`;
+  return `<section${id} class="sec" style="--sec-gap:${gap}px"><div class="${classes}" style="${style}">${glowHtml}<div class="${contentClass}">${inner}</div></div></section>`;
 }
 
 /* -------------------------------------------------------------------------- */
 /* 页头 / 页脚                                                                 */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * 语言切换器：icon + `<details>` dropdown，菜单内是普通 `<a>`。
+ *
+ * 刻意做成链接而不是按 `Accept-Language` 自动跳转——自动跳转会让爬虫只看到一种语言，
+ * 各语言页面互相收录不到（Shopify 同样只做显式切换 + 推荐横幅）。
+ * UI 与 client SiteChrome LocaleSwitcher / LocaleToggle 对齐。
+ */
+const LOCALE_SWITCHER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>`;
+
+function renderLocaleSwitcherHtml(options: LocaleSwitcherOption[]): string {
+  if (options.length < 2) return "";
+  const items = options
+    .map(
+      (option) =>
+        `<a href="${escapeHtml(option.path)}" hreflang="${escapeHtml(option.locale)}"${
+          option.current ? ' aria-current="true"' : ""
+        }>${escapeHtml(option.label)}</a>`,
+    )
+    .join("");
+  return `<details class="locale-switcher">
+  <summary aria-label="Language">${LOCALE_SWITCHER_ICON}</summary>
+  <nav class="locale-switcher-menu" aria-label="Language">${items}</nav>
+</details>`;
+}
+
+export interface LocaleSwitcherOption {
+  locale: string;
+  /** 已带 locale 前缀的目标路径。 */
+  path: string;
+  label: string;
+  current: boolean;
+}
+
 export function renderHeaderHtml(input: {
   section: SiteSection;
   siteName: string;
   logoUrl: string | null;
+  /** 品牌区指向的首页（当前语言）。 */
+  homeHref: string;
+  locales: LocaleSwitcherOption[];
+  /** 站点级开关（`theme_settings.show_locale_switcher`）。 */
+  showLocaleSwitcher: boolean;
+  /** 全站导航（一级页）数据源。 */
+  pages?: PublicSitePage[];
+  /** 当前逻辑路径（不带 locale 前缀），用于 `aria-current`。 */
+  currentPath?: string;
+  locale?: AppLocale;
+  defaultLocale?: AppLocale;
 }): string {
-  const { section, siteName, logoUrl } = input;
+  const { section, siteName, logoUrl, homeHref, locales } = input;
   const s = section.settings;
-  const links = section.blocks
+  const pages = input.pages ?? [];
+  const currentPath = input.currentPath ?? "";
+  const navItems: Array<{ href: string; label: string; current: boolean }> = [];
+  if (settingBool(s, "show_site_nav")) {
+    for (const page of siteNavPages(pages)) {
+      const href =
+        input.locale && input.defaultLocale
+          ? withSiteLocale(page.path, input.locale, input.defaultLocale)
+          : page.path;
+      navItems.push({
+        href,
+        label: page.title,
+        current: page.path === currentPath,
+      });
+    }
+  }
+  for (const block of section.blocks) {
+    navItems.push({
+      href: settingText(block.settings, "href"),
+      label: settingText(block.settings, "label"),
+      // 自定义链接的 href 可能已带 locale 前缀，不好和逻辑路径对齐；只给一级页标 current。
+      current: false,
+    });
+  }
+  const links = navItems
     .map(
-      (block) =>
-        `<a${linkAttrs(settingText(block.settings, "href"))}>${escapeHtml(settingText(block.settings, "label"))}</a>`,
+      (item) =>
+        `<a${linkAttrs(item.href)}${item.current ? ' aria-current="page"' : ""}>${escapeHtml(item.label)}</a>`,
     )
     .join("");
-  const loginLabel = settingText(s, "login_label") || "Login";
+  const secondaryLabel = settingText(s, "secondary_label");
+  const secondaryHref = settingText(s, "secondary_href");
   const ctaLabel = settingText(s, "primary_label");
   const ctaHref = settingText(s, "primary_href");
+  const layout = settingText(s, "layout") || "split";
+  const switcher = input.showLocaleSwitcher
+    ? renderLocaleSwitcherHtml(locales)
+    : "";
 
   return `<header class="site-header${settingBool(s, "sticky") ? " sticky" : ""}">
-  <div class="wrap header-row">
-    <a class="brand" href="/">
+  <div class="wrap header-row${layout === "centered" ? " header-layout-centered" : ""}">
+    <a class="brand" href="${escapeHtml(homeHref)}">
       ${settingBool(s, "show_logo") && logoUrl ? `<img class="logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(siteName)}" />` : ""}
       ${settingBool(s, "show_site_name") ? `<span>${escapeHtml(siteName)}</span>` : ""}
     </a>
     <nav class="header-nav">${links}</nav>
     <div class="header-actions">
-      ${settingBool(s, "show_login") ? `<a class="btn btn-ghost" href="/login">${escapeHtml(loginLabel)}</a>` : ""}
+      ${switcher}
+      ${secondaryLabel && secondaryHref ? `<a class="btn btn-ghost"${linkAttrs(secondaryHref)}>${escapeHtml(secondaryLabel)}</a>` : ""}
       ${ctaLabel && ctaHref ? `<a class="btn"${linkAttrs(ctaHref)}>${escapeHtml(ctaLabel)}</a>` : ""}
     </div>
   </div>

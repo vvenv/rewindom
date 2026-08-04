@@ -1,0 +1,95 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  normalizePageKind,
+  pageContentIsDirty,
+  resolvePageIdentity,
+  validatePageSlug,
+  validateSiteName,
+} from "./site.util.js";
+
+describe("page slug identity", () => {
+  it("accepts nested page slugs", () => {
+    expect(validatePageSlug("page", "docs")).toBe("docs");
+    expect(validatePageSlug("page", "docs/quickstart")).toBe("docs/quickstart");
+    expect(validatePageSlug("page", "/Docs/Guide/")).toBe("docs/guide");
+  });
+
+  it("rejects reserved roots and bad segments", () => {
+    expect(() => validatePageSlug("page", "app")).toThrow("site.slug_reserved");
+    expect(() => validatePageSlug("page", "app/about")).toThrow(
+      "site.slug_reserved",
+    );
+    expect(() => validatePageSlug("page", "Bad_Slug")).toThrow(
+      "site.slug_invalid",
+    );
+    expect(() => validatePageSlug("page", "a/b/c/d")).toThrow(
+      "site.slug_invalid",
+    );
+  });
+
+  it("rewrites legacy doc kind on write", () => {
+    expect(resolvePageIdentity("doc", "index")).toEqual({
+      kind: "page",
+      slug: "docs",
+    });
+    expect(resolvePageIdentity("doc", "guide")).toEqual({
+      kind: "page",
+      slug: "docs/guide",
+    });
+    expect(normalizePageKind("doc", "index")).toBe("page");
+  });
+});
+
+describe("page content draft", () => {
+  it("detects when draft differs from published", () => {
+    expect(
+      pageContentIsDirty({
+        title: "Live",
+        description: "",
+        sections: [],
+        title_draft: "Draft",
+        description_draft: "",
+        sections_draft: [],
+      }),
+    ).toBe(true);
+    expect(
+      pageContentIsDirty({
+        title: "Same",
+        description: "d",
+        sections: [],
+        title_draft: "Same",
+        description_draft: "d",
+        sections_draft: [],
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("validateSiteName", () => {
+  it("keeps a plain string for the primary language", () => {
+    expect(validateSiteName("  Acme  ", "zh-CN")).toBe("Acme");
+  });
+
+  it("stores __i18n when a second language is filled", () => {
+    expect(
+      validateSiteName(
+        { __i18n: { "zh-CN": "艾克米", en: "Acme" } },
+        "zh-CN",
+      ),
+    ).toEqual({ __i18n: { "zh-CN": "艾克米", en: "Acme" } });
+  });
+
+  it("collapses a single primary-locale entry back to a string", () => {
+    expect(
+      validateSiteName({ __i18n: { "zh-CN": "艾克米" } }, "zh-CN"),
+    ).toBe("艾克米");
+  });
+
+  it("rejects an empty primary-language name", () => {
+    expect(() => validateSiteName("", "zh-CN")).toThrow("site.name_invalid");
+    expect(() =>
+      validateSiteName({ __i18n: { en: "Acme" } }, "zh-CN"),
+    ).toThrow("site.name_invalid");
+  });
+});

@@ -2,14 +2,19 @@ import { api } from "@be-water/client-kit";
 
 import type {
   CreateMarketingPageBody,
+  DuplicateMarketingPageBody,
   MarketingPage,
   MarketingPageListItem,
   MarketingSite,
   PublicMarketingPage,
   PublicMarketingSite,
+  ApplySiteStarterResponse,
+  SaveEditorDraftBody,
+  SaveEditorDraftResponse,
   UpdateMarketingPageBody,
   UpdateMarketingSiteBody,
 } from "../../shared/site-cms.js";
+import type { AppLocale } from "@be-water/shared";
 
 export const SITE_QUERY_KEY = ["site"] as const;
 export const SITE_PAGES_QUERY_KEY = ["site", "pages"] as const;
@@ -39,11 +44,40 @@ export function createSitePage(
   return api.post<MarketingPage>("/site/pages", body);
 }
 
+export function duplicateSitePage(
+  pageId: string,
+  body: DuplicateMarketingPageBody,
+): Promise<MarketingPage> {
+  return api.post<MarketingPage>(`/site/pages/${pageId}/duplicate`, body);
+}
+
 export function patchSitePage(
   pageId: string,
   body: UpdateMarketingPageBody,
 ): Promise<MarketingPage> {
   return api.patch<MarketingPage>(`/site/pages/${pageId}`, body);
+}
+
+/** Theme Editor 一次保存：页面内容与页头页脚同事务落库。 */
+export function saveSiteEditorDraft(
+  pageId: string,
+  body: SaveEditorDraftBody,
+): Promise<SaveEditorDraftResponse> {
+  return api.put<SaveEditorDraftResponse>(`/site/pages/${pageId}/draft`, body);
+}
+
+export function applySiteStarter(key: string): Promise<ApplySiteStarterResponse> {
+  return api.post<ApplySiteStarterResponse>(`/site/starters/${key}/apply`, {});
+}
+
+export function publishSiteChrome(): Promise<MarketingSite> {
+  return api.post<MarketingSite>("/site/chrome/publish", {});
+}
+
+export function uploadSiteAsset(file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  return api.upload<{ url: string }>("/site/assets", formData);
 }
 
 export function deleteSitePage(pageId: string): Promise<{ ok: boolean }> {
@@ -54,31 +88,47 @@ export function publishSitePage(pageId: string): Promise<MarketingPage> {
   return api.post<MarketingPage>(`/site/pages/${pageId}/publish`, {});
 }
 
+export function publishSitePageContent(pageId: string): Promise<MarketingPage> {
+  return api.post<MarketingPage>(`/site/pages/${pageId}/content/publish`, {});
+}
+
 export function unpublishSitePage(pageId: string): Promise<MarketingPage> {
   return api.post<MarketingPage>(`/site/pages/${pageId}/unpublish`, {});
 }
 
-export function fetchPublicSite(): Promise<PublicMarketingSite> {
-  return api.get<PublicMarketingSite>("/public/site", undefined, true);
+export function fetchPublicSite(
+  locale?: AppLocale,
+): Promise<PublicMarketingSite> {
+  return api.get<PublicMarketingSite>(
+    "/public/site",
+    locale ? { locale } : undefined,
+    true,
+  );
 }
 
-export function fetchPublicSitePage(path: string): Promise<{
+export function fetchPublicSitePage(
+  path: string,
+  locale?: AppLocale,
+): Promise<{
   site: PublicMarketingSite;
   page: PublicMarketingPage;
 }> {
   return api.get<{ site: PublicMarketingSite; page: PublicMarketingPage }>(
     "/public/site/page",
-    { path },
+    locale ? { path, locale } : { path },
     true,
   );
 }
 
-export function fetchSitePreview(path: string): Promise<{
+export function fetchSitePreview(
+  path: string,
+  locale?: AppLocale,
+): Promise<{
   site: PublicMarketingSite;
   page: PublicMarketingPage;
 }> {
   return api.get<{ site: PublicMarketingSite; page: PublicMarketingPage }>(
     "/site/preview",
-    { path },
+    locale ? { path, locale } : { path },
   );
 }

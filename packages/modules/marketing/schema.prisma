@@ -6,13 +6,16 @@
 model MarketingSite {
   id             String   @id @default(uuid())
   tenant_id      String   @unique
-  site_name      String
+  // 纯字符串（单语言）或 { __i18n: { [locale]: text } }（同页头文案）
+  site_name      Json
   tagline        String   @default("")
   // 品牌相关（logo / 主色 / 字体 / 版式）统一放 theme_settings，不再单独开列
   theme_settings Json     @default("{}")
   default_locale String   @default("zh-CN")
   nav_json       Json     @default("[]")
   footer_json    Json     @default("[]")
+  nav_draft_json Json     @default("[]")
+  footer_draft_json Json  @default("[]")
   published      Boolean  @default(false)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
@@ -26,10 +29,12 @@ model MarketingPage {
   slug        String
   locale      String   @default("zh-CN")
   kind        String   @default("page")
-  title       String
-  description String   @default("")
-  body_md     String   @default("")
-  sections    Json     @default("[]")
+  title             String
+  description       String   @default("")
+  sections          Json     @default("[]")
+  title_draft       String
+  description_draft String   @default("")
+  sections_draft    Json     @default("[]")
   settings    Json     @default("{}")
   status      String   @default("draft")
   sort_order  Int      @default(0)

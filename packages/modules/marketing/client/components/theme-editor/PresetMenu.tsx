@@ -10,13 +10,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@be-water/ui/alert-dialog";
+import { Button } from "@be-water/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@be-water/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@be-water/ui/dropdown-menu";
 import { Wand2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -35,8 +36,11 @@ interface PresetMenuProps {
 }
 
 /**
- * 套用页面预设：一键铺出默认官网那套版式（首页 / 定价 / 文档 / 关于 / 联系）。
+ * 套用页面预设：一键铺出默认官网那套版式（首页 / 定价 / 文档目录 / 文档详情 / 关于 / 联系）。
  * 落地的是普通 section 数据，套完随便改。
+ *
+ * 放在顶部工具栏而不是区块树里：它整页替换 sections，与「添加区块」不是一档操作，
+ * 挨着摆成同样的下拉太容易误点。
  */
 export function PresetMenu({
   hasContent,
@@ -53,27 +57,28 @@ export function PresetMenu({
 
   return (
     <>
-      <Select
-        key={pending ?? "preset"}
-        onValueChange={(key) => {
-          if (hasContent) setPending(key);
-          else apply(key);
-        }}
-      >
-        <SelectTrigger className="mt-1 w-full" size="sm">
-          <SelectValue placeholder={t("editor.applyPreset")} />
-        </SelectTrigger>
-        <SelectContent>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="sm" variant="outline">
+            <Wand2 className="size-4" />
+            <span className="hidden md:inline">{t("editor.presets")}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>{t("editor.applyPreset")}</DropdownMenuLabel>
           {PAGE_PRESETS.map((preset) => (
-            <SelectItem key={preset.key} value={preset.key}>
-              <span className="inline-flex items-center gap-2">
-                <Wand2 className="size-3.5" />
-                {t(preset.label)}
-              </span>
-            </SelectItem>
+            <DropdownMenuItem
+              key={preset.key}
+              onSelect={() => {
+                if (hasContent) setPending(preset.key);
+                else apply(preset.key);
+              }}
+            >
+              {t(preset.label)}
+            </DropdownMenuItem>
           ))}
-        </SelectContent>
-      </Select>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <AlertDialog
         open={pending !== null}

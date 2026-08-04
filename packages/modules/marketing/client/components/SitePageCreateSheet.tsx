@@ -1,5 +1,10 @@
 import { type FormEvent, type ReactNode, useState } from "react";
 
+import {
+  getLocaleNativeLabel,
+  normalizeLocale,
+  type AppLocale,
+} from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import {
   Field,
@@ -29,7 +34,8 @@ import { Spinner } from "@be-water/ui/spinner";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { useSiteMutations } from "../hooks/useSite.js";
+import { siteLocaleOrder } from "../../shared/site-locale.js";
+import { useSite, useSiteMutations } from "../hooks/useSite.js";
 
 import type { MarketingPageKind } from "../../shared/site-cms.js";
 
@@ -40,22 +46,31 @@ interface SitePageCreateSheetProps {
 export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
   const { t } = useTranslation("marketing");
   const { createPage } = useSiteMutations();
+  const siteQuery = useSite();
+  const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<MarketingPageKind>("page");
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
+  const [locale, setLocale] = useState<AppLocale | null>(null);
 
   const reset = (): void => {
     setSlug("");
     setTitle("");
     setKind("page");
+    setLocale(null);
   };
 
   const onSubmit = (event: FormEvent): void => {
     event.preventDefault();
     const nextSlug = kind === "home" ? "home" : slug.trim().toLowerCase();
     createPage.mutate(
-      { kind, slug: nextSlug, title: title.trim() },
+      {
+        kind,
+        slug: nextSlug,
+        title: title.trim(),
+        locale: locale ?? defaultLocale,
+      },
       {
         onSuccess: () => {
           toast.success(t("cms.toastPageCreated"));
@@ -98,7 +113,6 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
                 <SelectContent>
                   <SelectItem value="home">{t("cms.kindHome")}</SelectItem>
                   <SelectItem value="page">{t("cms.kindPage")}</SelectItem>
-                  <SelectItem value="doc">{t("cms.kindDoc")}</SelectItem>
                 </SelectContent>
               </Select>
             </Field>
@@ -109,14 +123,10 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
                   id="slug"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  placeholder={kind === "doc" ? "index" : "about"}
+                  placeholder="docs/quickstart"
                   required
                 />
-                <FieldDescription>
-                  {kind === "doc"
-                    ? t("cms.slugHintDoc")
-                    : t("cms.slugHintPage")}
-                </FieldDescription>
+                <FieldDescription>{t("cms.slugHintPage")}</FieldDescription>
               </Field>
             ) : null}
             <Field>
@@ -127,6 +137,29 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
+            </Field>
+            {/*
+              页面按语言分行存：同一个 slug 每种语言各建一页，
+              它们靠 (kind, slug) 自动成为一组译文（hreflang / 语言切换器据此生成）。
+            */}
+            <Field>
+              <FieldLabel>{t("cms.fieldLocale")}</FieldLabel>
+              <Select
+                value={locale ?? defaultLocale}
+                onValueChange={(value) => setLocale(value as AppLocale)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {siteLocaleOrder(defaultLocale).map((slug) => (
+                    <SelectItem key={slug} value={slug}>
+                      {getLocaleNativeLabel(slug)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldDescription>{t("cms.localeHint")}</FieldDescription>
             </Field>
           </FieldGroup>
 

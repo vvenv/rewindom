@@ -1,13 +1,13 @@
-import { type CSSProperties, type ReactElement, type ReactNode } from "react";
+import { type CSSProperties, type ReactElement } from "react";
 
 import { Button } from "@be-water/ui/button";
 import { cn } from "@be-water/ui/utils";
 import { ArrowRight, Check } from "lucide-react";
-import { Link } from "react-router";
 
 import {
   gridColumnsClass,
-  resolvePageSections,
+  groupColumns,
+  resolvePageHeaderText,
   resolveSectionGaps,
   resolveSectionLayout,
   settingBool,
@@ -21,12 +21,22 @@ import {
   type SiteSection,
 } from "../../../shared/section-schema.js";
 import {
+  PAGE_MENU_SOURCES,
+  resolvePageMenu,
+  type PageMenuSource,
+  type PublicSitePage,
+} from "../../../shared/site-cms.js";
+import {
   HERO_GLOW_BACKGROUND,
   THEME_SECTION_SPACING,
 } from "../../../shared/theme-sections.js";
 import { MarkdownProse } from "../MarkdownProse.js";
+import { PageMenuList } from "../PageMenuList.js";
 
 import { SECTION_ICON_COMPONENTS } from "./section-icons.js";
+import { SiteLink } from "./SiteLink.js";
+
+export { SiteLink } from "./SiteLink.js";
 
 /* -------------------------------------------------------------------------- */
 /* 共用片段                                                                    */
@@ -39,39 +49,6 @@ function MarkdownBlock({ body_md }: { body_md: string }): ReactElement | null {
     <div>
       <MarkdownProse markdown={body_md} />
     </div>
-  );
-}
-
-function isExternal(href: string): boolean {
-  return /^(https?:|mailto:|tel:)/u.test(href);
-}
-
-/** 站内用 `Link`，站外用 `a`——租户可以填任意外链。 */
-export function SiteLink({
-  href,
-  className,
-  children,
-}: {
-  href: string;
-  className?: string;
-  children: ReactNode;
-}): ReactElement {
-  if (isExternal(href)) {
-    return (
-      <a
-        href={href}
-        className={className}
-        rel="noreferrer noopener"
-        target="_blank"
-      >
-        {children}
-      </a>
-    );
-  }
-  return (
-    <Link to={href} className={className}>
-      {children}
-    </Link>
   );
 }
 
@@ -192,7 +169,7 @@ const CONTENT_CLASS: Record<SectionLayout["contentWidth"], string> = {
   full: "w-full px-4 sm:px-6",
 };
 
-/** 侧栏布局里外层已经限宽并给了 gutter，正文只管填满那一列。 */
+/** 容器段的列里外层已经限宽并给了 gutter，正文只管填满那一列。 */
 const CONTAINED_CONTENT_CLASS = "w-full";
 
 /* -------------------------------------------------------------------------- */
@@ -654,37 +631,173 @@ function BandSection({ section }: { section: SiteSection }): ReactElement {
   );
 }
 
-function SplitSection({ section }: { section: SiteSection }): ReactElement {
-  const s = section.settings;
-  const body = settingText(s, "body");
-  const mediaFirst = settingText(s, "media_position") === "start";
-  const main = (
-    <div className="space-y-3">
-      <h2 className="text-2xl font-semibold tracking-tight">
-        {settingText(s, "title")}
-      </h2>
-      {body ? <p className="text-muted-foreground">{body}</p> : null}
-      <ButtonRow settings={s} />
-    </div>
-  );
-  const aside = (
-    <div>
-      <MarkdownBlock body_md={settingText(s, "aside_md")} />
-    </div>
-  );
+/** 12 栏制列宽（静态类名，Tailwind 要能扫到）。 */
+const GROUP_SPAN_CLASS: Record<number, string> = {
+  1: "md:col-span-1",
+  2: "md:col-span-2",
+  3: "md:col-span-3",
+  4: "md:col-span-4",
+  5: "md:col-span-5",
+  6: "md:col-span-6",
+  7: "md:col-span-7",
+  8: "md:col-span-8",
+  9: "md:col-span-9",
+  10: "md:col-span-10",
+  11: "md:col-span-11",
+  12: "md:col-span-12",
+};
+
+/** 窄屏堆叠顺序：桌面永远按声明顺序，只有堆起来之后才谈得上「谁在前」。 */
+const STACK_ORDER_CLASS: Record<"auto" | "first" | "last", string> = {
+  auto: "",
+  first: "max-md:order-first",
+  last: "max-md:order-last",
+};
+
+/**
+ * 容器段：页面里唯一的分栏原语。列是 block，列内递归渲染子段。
+ *
+ * 列内复用 `SiteSections` 自身并打开 `contained`——列已经限过宽、给过留白，
+ * 子段不该再自带 gutter，`width: full` 在一列里也没有「通栏」可言。
+ */
+function GroupSection({
+  section,
+  pages,
+  currentPath,
+  sectionSpacing,
+  onSelectSection,
+}: {
+  section: SiteSection;
+  pages: PublicSitePage[];
+  currentPath: string;
+  sectionSpacing: number;
+  onSelectSection?: (sectionId: string) => void;
+}): ReactElement | null {
+  const columns = groupColumns(section);
+  if (columns.length === 0) return null;
+  const stretch = settingText(section.settings, "align_items") === "stretch";
 
   return (
-    <div className="grid gap-8 md:grid-cols-2 md:items-start">
-      {mediaFirst ? aside : main}
-      {mediaFirst ? main : aside}
+    <div
+      className={cn(
+        // 窄屏一列到底，桌面才进 12 栏
+        "grid grid-cols-1 md:grid-cols-12",
+        "gap-[calc(var(--grp-gap)*0.7)] md:gap-[var(--grp-gap)]",
+        stretch ? "md:items-stretch" : "md:items-start",
+      )}
+      style={
+        {
+          "--grp-gap": `${settingNumber(section.settings, "column_gap", 40)}px`,
+        } as CSSProperties
+      }
+    >
+      {columns.map((column) => (
+        <div
+          key={column.block.id}
+          className={cn(
+            GROUP_SPAN_CLASS[column.span],
+            STACK_ORDER_CLASS[column.stackOrder],
+            // sticky 必须配 `self-start`：拉伸满高的列没有可滚动的余量，粘不住
+            column.sticky && "md:sticky md:top-20 md:self-start",
+          )}
+        >
+          <SiteSections
+            sections={column.sections}
+            contained
+            sectionSpacing={sectionSpacing}
+            pages={pages}
+            currentPath={currentPath}
+            onSelectSection={onSelectSection}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PageMenuSection({
+  section,
+  pages,
+  currentPath,
+}: {
+  section: SiteSection;
+  pages: PublicSitePage[];
+  currentPath: string;
+}): ReactElement | null {
+  const s = section.settings;
+  const rawSource = settingText(s, "source") || "children";
+  const source: PageMenuSource = (
+    PAGE_MENU_SOURCES as readonly string[]
+  ).includes(rawSource)
+    ? (rawSource as PageMenuSource)
+    : "children";
+  const style = settingText(s, "style") || "cards";
+  const menu = resolvePageMenu(pages, currentPath, source);
+  if (menu.items.length === 0) return null;
+
+  if (style === "list") {
+    return (
+      <div className="space-y-8">
+        <SectionHeading settings={s} />
+        <PageMenuList
+          title={menu.title}
+          titlePath={menu.title_path}
+          items={menu.items.map((page) => ({
+            label: page.title,
+            href: page.path,
+          }))}
+          currentPath={currentPath}
+          showTitle={false}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      <SectionHeading settings={s} />
+      <ul
+        className={cn(
+          "grid gap-3",
+          gridColumnsClass(settingNumber(s, "columns", 2)),
+        )}
+      >
+        {menu.items.map((page) => (
+          <li key={page.path}>
+            <SiteLink
+              href={page.path}
+              className="group block h-full rounded-xl border border-border/60 bg-background p-5 transition-colors hover:border-primary/40 hover:bg-muted/40"
+            >
+              <span className="flex items-center gap-1.5 font-medium">
+                {page.title}
+                <ArrowRight className="size-3.5 opacity-0 transition-opacity group-hover:opacity-70" />
+              </span>
+              {page.description ? (
+                <span className="mt-1.5 block text-sm text-muted-foreground">
+                  {page.description}
+                </span>
+              ) : null}
+            </SiteLink>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
 function SectionView({
   section,
+  pages,
+  currentPath,
+  sectionSpacing,
+  onSelectSection,
 }: {
   section: SiteSection;
+  pages: PublicSitePage[];
+  currentPath: string;
+  /** 容器段要把它继续传给列内的子段流。 */
+  sectionSpacing: number;
+  onSelectSection?: (sectionId: string) => void;
 }): ReactElement | null {
   switch (section.type) {
     case "hero":
@@ -697,14 +810,38 @@ function SectionView({
       return <SpecListSection section={section} />;
     case "cards":
       return <CardsSection section={section} />;
+    case "page-menu":
+      return (
+        <PageMenuSection
+          section={section}
+          pages={pages}
+          currentPath={currentPath}
+        />
+      );
     case "pricing":
       return <PricingSection section={section} />;
     case "faq":
       return <FaqSection section={section} />;
     case "band":
       return <BandSection section={section} />;
-    case "split":
-      return <SplitSection section={section} />;
+    case "group":
+      return (
+        <GroupSection
+          section={section}
+          pages={pages}
+          currentPath={currentPath}
+          sectionSpacing={sectionSpacing}
+          onSelectSection={onSelectSection}
+        />
+      );
+    case "page-header":
+      return (
+        <PageHeaderSection
+          section={section}
+          pages={pages}
+          currentPath={currentPath}
+        />
+      );
     case "prose":
       return (
         <MarkdownBlock body_md={settingText(section.settings, "body_md")} />
@@ -717,9 +854,38 @@ function SectionView({
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * 页面标题段：h1 + 一句描述。
+ *
+ * 文案留空回落到页面自己的 title / description —— 这一段以前是自动渲染的，
+ * 现在是树上一段普通 section，但「不填也有标题」这个便利保留下来。
+ */
+function PageHeaderSection({
+  section,
+  pages,
+  currentPath,
+}: {
+  section: SiteSection;
+  pages?: PublicSitePage[];
+  currentPath?: string;
+}): ReactElement | null {
+  const page = pages?.find((item) => item.path === currentPath);
+  const { headline, subhead } = resolvePageHeaderText(section.settings, page);
+  if (!headline && !subhead) return null;
+  const centered = settingText(section.settings, "align") === "center";
+
+  return (
+    <div className={cn("space-y-3", centered && "text-center")}>
+      {headline ? (
+        <h1 className="text-3xl font-semibold tracking-tight">{headline}</h1>
+      ) : null}
+      {subhead ? <p className="text-muted-foreground">{subhead}</p> : null}
+    </div>
+  );
+}
+
 interface SiteSectionsProps {
   sections: SiteSection[];
-  body_md?: string;
   onSelectSection?: (sectionId: string) => void;
   /** 主题的「区块间距」，段设成「继承」时用这个值。 */
   sectionSpacing?: number;
@@ -728,16 +894,20 @@ interface SiteSectionsProps {
    * `full` 也退化成 `page`——侧栏旁边没有「通栏」可言。
    */
   contained?: boolean;
+  /** `page-menu` 动态条目来源；未传时该 section 不渲染。 */
+  pages?: PublicSitePage[];
+  currentPath?: string;
 }
 
 export function SiteSections({
   sections,
-  body_md = "",
   onSelectSection,
   sectionSpacing = THEME_SECTION_SPACING.default,
   contained = false,
+  pages = [],
+  currentPath = "/",
 }: SiteSectionsProps): ReactElement {
-  const resolved = resolvePageSections({ sections, body_md });
+  const resolved = sections;
   const layouts = resolved.map((section) =>
     resolveSectionLayout(section.settings),
   );
@@ -824,7 +994,13 @@ export function SiteSections({
                     : CONTENT_CLASS[layout.contentWidth]
                 }
               >
-                <SectionView section={section} />
+                <SectionView
+                  section={section}
+                  pages={pages}
+                  currentPath={currentPath}
+                  sectionSpacing={sectionSpacing}
+                  onSelectSection={onSelectSection}
+                />
               </div>
             </div>
           </section>

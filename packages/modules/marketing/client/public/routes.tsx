@@ -64,8 +64,9 @@ export function renderMarketingPublicRoutes(): ReactNode {
           element={<DocDetail />}
         />,
       ])}
-      {/* 放在 locale 静态段之后，避免抢占 /en、/zh-CN */}
+      {/* 放在 locale 静态段之后，避免抢占 /en、/zh-CN；`/*` 承接嵌套 slug */}
       <Route path="/:slug" element={<TenantCustomPage />} />
+      <Route path="/:slug/*" element={<TenantCustomPage />} />
     </>
   );
 }

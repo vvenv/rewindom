@@ -27,7 +27,6 @@ export type AggregateMarketingSite = {
 export type MarketingSiteMinAggregateOutputType = {
   id: string | null
   tenant_id: string | null
-  site_name: string | null
   tagline: string | null
   default_locale: string | null
   published: boolean | null
@@ -38,7 +37,6 @@ export type MarketingSiteMinAggregateOutputType = {
 export type MarketingSiteMaxAggregateOutputType = {
   id: string | null
   tenant_id: string | null
-  site_name: string | null
   tagline: string | null
   default_locale: string | null
   published: boolean | null
@@ -55,6 +53,8 @@ export type MarketingSiteCountAggregateOutputType = {
   default_locale: number
   nav_json: number
   footer_json: number
+  nav_draft_json: number
+  footer_draft_json: number
   published: number
   created_at: number
   updated_at: number
@@ -65,7 +65,6 @@ export type MarketingSiteCountAggregateOutputType = {
 export type MarketingSiteMinAggregateInputType = {
   id?: true
   tenant_id?: true
-  site_name?: true
   tagline?: true
   default_locale?: true
   published?: true
@@ -76,7 +75,6 @@ export type MarketingSiteMinAggregateInputType = {
 export type MarketingSiteMaxAggregateInputType = {
   id?: true
   tenant_id?: true
-  site_name?: true
   tagline?: true
   default_locale?: true
   published?: true
@@ -93,6 +91,8 @@ export type MarketingSiteCountAggregateInputType = {
   default_locale?: true
   nav_json?: true
   footer_json?: true
+  nav_draft_json?: true
+  footer_draft_json?: true
   published?: true
   created_at?: true
   updated_at?: true
@@ -174,12 +174,14 @@ export type MarketingSiteGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 export type MarketingSiteGroupByOutputType = {
   id: string
   tenant_id: string
-  site_name: string
+  site_name: runtime.JsonValue
   tagline: string
   theme_settings: runtime.JsonValue
   default_locale: string
   nav_json: runtime.JsonValue
   footer_json: runtime.JsonValue
+  nav_draft_json: runtime.JsonValue
+  footer_draft_json: runtime.JsonValue
   published: boolean
   created_at: Date
   updated_at: Date
@@ -209,12 +211,14 @@ export type MarketingSiteWhereInput = {
   NOT?: Prisma.MarketingSiteWhereInput | Prisma.MarketingSiteWhereInput[]
   id?: Prisma.StringFilter<"MarketingSite"> | string
   tenant_id?: Prisma.StringFilter<"MarketingSite"> | string
-  site_name?: Prisma.StringFilter<"MarketingSite"> | string
+  site_name?: Prisma.JsonFilter<"MarketingSite">
   tagline?: Prisma.StringFilter<"MarketingSite"> | string
   theme_settings?: Prisma.JsonFilter<"MarketingSite">
   default_locale?: Prisma.StringFilter<"MarketingSite"> | string
   nav_json?: Prisma.JsonFilter<"MarketingSite">
   footer_json?: Prisma.JsonFilter<"MarketingSite">
+  nav_draft_json?: Prisma.JsonFilter<"MarketingSite">
+  footer_draft_json?: Prisma.JsonFilter<"MarketingSite">
   published?: Prisma.BoolFilter<"MarketingSite"> | boolean
   created_at?: Prisma.DateTimeFilter<"MarketingSite"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"MarketingSite"> | Date | string
@@ -229,6 +233,8 @@ export type MarketingSiteOrderByWithRelationInput = {
   default_locale?: Prisma.SortOrder
   nav_json?: Prisma.SortOrder
   footer_json?: Prisma.SortOrder
+  nav_draft_json?: Prisma.SortOrder
+  footer_draft_json?: Prisma.SortOrder
   published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -240,12 +246,14 @@ export type MarketingSiteWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.MarketingSiteWhereInput | Prisma.MarketingSiteWhereInput[]
   OR?: Prisma.MarketingSiteWhereInput[]
   NOT?: Prisma.MarketingSiteWhereInput | Prisma.MarketingSiteWhereInput[]
-  site_name?: Prisma.StringFilter<"MarketingSite"> | string
+  site_name?: Prisma.JsonFilter<"MarketingSite">
   tagline?: Prisma.StringFilter<"MarketingSite"> | string
   theme_settings?: Prisma.JsonFilter<"MarketingSite">
   default_locale?: Prisma.StringFilter<"MarketingSite"> | string
   nav_json?: Prisma.JsonFilter<"MarketingSite">
   footer_json?: Prisma.JsonFilter<"MarketingSite">
+  nav_draft_json?: Prisma.JsonFilter<"MarketingSite">
+  footer_draft_json?: Prisma.JsonFilter<"MarketingSite">
   published?: Prisma.BoolFilter<"MarketingSite"> | boolean
   created_at?: Prisma.DateTimeFilter<"MarketingSite"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"MarketingSite"> | Date | string
@@ -260,6 +268,8 @@ export type MarketingSiteOrderByWithAggregationInput = {
   default_locale?: Prisma.SortOrder
   nav_json?: Prisma.SortOrder
   footer_json?: Prisma.SortOrder
+  nav_draft_json?: Prisma.SortOrder
+  footer_draft_json?: Prisma.SortOrder
   published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -274,12 +284,14 @@ export type MarketingSiteScalarWhereWithAggregatesInput = {
   NOT?: Prisma.MarketingSiteScalarWhereWithAggregatesInput | Prisma.MarketingSiteScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"MarketingSite"> | string
   tenant_id?: Prisma.StringWithAggregatesFilter<"MarketingSite"> | string
-  site_name?: Prisma.StringWithAggregatesFilter<"MarketingSite"> | string
+  site_name?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
   tagline?: Prisma.StringWithAggregatesFilter<"MarketingSite"> | string
   theme_settings?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
   default_locale?: Prisma.StringWithAggregatesFilter<"MarketingSite"> | string
   nav_json?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
   footer_json?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
+  nav_draft_json?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
+  footer_draft_json?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
   published?: Prisma.BoolWithAggregatesFilter<"MarketingSite"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"MarketingSite"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"MarketingSite"> | Date | string
@@ -288,12 +300,14 @@ export type MarketingSiteScalarWhereWithAggregatesInput = {
 export type MarketingSiteCreateInput = {
   id?: string
   tenant_id: string
-  site_name: string
+  site_name: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: string
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  nav_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  footer_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   published?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -302,12 +316,14 @@ export type MarketingSiteCreateInput = {
 export type MarketingSiteUncheckedCreateInput = {
   id?: string
   tenant_id: string
-  site_name: string
+  site_name: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: string
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  nav_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  footer_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   published?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -316,12 +332,14 @@ export type MarketingSiteUncheckedCreateInput = {
 export type MarketingSiteUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
-  site_name?: Prisma.StringFieldUpdateOperationsInput | string
+  site_name?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.StringFieldUpdateOperationsInput | string
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: Prisma.StringFieldUpdateOperationsInput | string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  nav_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  footer_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -330,12 +348,14 @@ export type MarketingSiteUpdateInput = {
 export type MarketingSiteUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
-  site_name?: Prisma.StringFieldUpdateOperationsInput | string
+  site_name?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.StringFieldUpdateOperationsInput | string
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: Prisma.StringFieldUpdateOperationsInput | string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  nav_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  footer_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -344,12 +364,14 @@ export type MarketingSiteUncheckedUpdateInput = {
 export type MarketingSiteCreateManyInput = {
   id?: string
   tenant_id: string
-  site_name: string
+  site_name: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: string
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  nav_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  footer_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   published?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -358,12 +380,14 @@ export type MarketingSiteCreateManyInput = {
 export type MarketingSiteUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
-  site_name?: Prisma.StringFieldUpdateOperationsInput | string
+  site_name?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.StringFieldUpdateOperationsInput | string
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: Prisma.StringFieldUpdateOperationsInput | string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  nav_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  footer_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -372,12 +396,14 @@ export type MarketingSiteUpdateManyMutationInput = {
 export type MarketingSiteUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
-  site_name?: Prisma.StringFieldUpdateOperationsInput | string
+  site_name?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.StringFieldUpdateOperationsInput | string
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: Prisma.StringFieldUpdateOperationsInput | string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  nav_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  footer_draft_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -392,6 +418,8 @@ export type MarketingSiteCountOrderByAggregateInput = {
   default_locale?: Prisma.SortOrder
   nav_json?: Prisma.SortOrder
   footer_json?: Prisma.SortOrder
+  nav_draft_json?: Prisma.SortOrder
+  footer_draft_json?: Prisma.SortOrder
   published?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -400,7 +428,6 @@ export type MarketingSiteCountOrderByAggregateInput = {
 export type MarketingSiteMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
-  site_name?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   default_locale?: Prisma.SortOrder
   published?: Prisma.SortOrder
@@ -411,7 +438,6 @@ export type MarketingSiteMaxOrderByAggregateInput = {
 export type MarketingSiteMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
-  site_name?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   default_locale?: Prisma.SortOrder
   published?: Prisma.SortOrder
@@ -430,6 +456,8 @@ export type MarketingSiteSelect<ExtArgs extends runtime.Types.Extensions.Interna
   default_locale?: boolean
   nav_json?: boolean
   footer_json?: boolean
+  nav_draft_json?: boolean
+  footer_draft_json?: boolean
   published?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -444,6 +472,8 @@ export type MarketingSiteSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   default_locale?: boolean
   nav_json?: boolean
   footer_json?: boolean
+  nav_draft_json?: boolean
+  footer_draft_json?: boolean
   published?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -458,6 +488,8 @@ export type MarketingSiteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   default_locale?: boolean
   nav_json?: boolean
   footer_json?: boolean
+  nav_draft_json?: boolean
+  footer_draft_json?: boolean
   published?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -472,12 +504,14 @@ export type MarketingSiteSelectScalar = {
   default_locale?: boolean
   nav_json?: boolean
   footer_json?: boolean
+  nav_draft_json?: boolean
+  footer_draft_json?: boolean
   published?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type MarketingSiteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "site_name" | "tagline" | "theme_settings" | "default_locale" | "nav_json" | "footer_json" | "published" | "created_at" | "updated_at", ExtArgs["result"]["marketingSite"]>
+export type MarketingSiteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "site_name" | "tagline" | "theme_settings" | "default_locale" | "nav_json" | "footer_json" | "nav_draft_json" | "footer_draft_json" | "published" | "created_at" | "updated_at", ExtArgs["result"]["marketingSite"]>
 
 export type $MarketingSitePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MarketingSite"
@@ -485,12 +519,14 @@ export type $MarketingSitePayload<ExtArgs extends runtime.Types.Extensions.Inter
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     tenant_id: string
-    site_name: string
+    site_name: runtime.JsonValue
     tagline: string
     theme_settings: runtime.JsonValue
     default_locale: string
     nav_json: runtime.JsonValue
     footer_json: runtime.JsonValue
+    nav_draft_json: runtime.JsonValue
+    footer_draft_json: runtime.JsonValue
     published: boolean
     created_at: Date
     updated_at: Date
@@ -919,12 +955,14 @@ export interface Prisma__MarketingSiteClient<T, Null = never, ExtArgs extends ru
 export interface MarketingSiteFieldRefs {
   readonly id: Prisma.FieldRef<"MarketingSite", 'String'>
   readonly tenant_id: Prisma.FieldRef<"MarketingSite", 'String'>
-  readonly site_name: Prisma.FieldRef<"MarketingSite", 'String'>
+  readonly site_name: Prisma.FieldRef<"MarketingSite", 'Json'>
   readonly tagline: Prisma.FieldRef<"MarketingSite", 'String'>
   readonly theme_settings: Prisma.FieldRef<"MarketingSite", 'Json'>
   readonly default_locale: Prisma.FieldRef<"MarketingSite", 'String'>
   readonly nav_json: Prisma.FieldRef<"MarketingSite", 'Json'>
   readonly footer_json: Prisma.FieldRef<"MarketingSite", 'Json'>
+  readonly nav_draft_json: Prisma.FieldRef<"MarketingSite", 'Json'>
+  readonly footer_draft_json: Prisma.FieldRef<"MarketingSite", 'Json'>
   readonly published: Prisma.FieldRef<"MarketingSite", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"MarketingSite", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"MarketingSite", 'DateTime'>

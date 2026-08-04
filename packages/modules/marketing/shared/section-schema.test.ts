@@ -7,13 +7,16 @@ import {
   createBlock,
   createSection,
   homeBlocksToSections,
-  parseAreaSection,
+  parseAreaSections,
   parseSections,
   parseSettingValues,
-  resolvePageSections,
   resolveSectionGaps,
   resolveSectionLayout,
-  safeAreaSection,
+  relocalizeSections,
+  resolveGroupSpans,
+  groupColumns,
+  localizeSections,
+  safeAreaSections,
   safeSections,
   settingText,
 } from "./section-schema.js";
@@ -187,57 +190,53 @@ describe("homeBlocksToSections", () => {
   });
 });
 
-describe("resolvePageSections", () => {
-  it("falls back to body_md when sections empty", () => {
-    const sections = resolvePageSections({
-      sections: [],
-      body_md: "# Hello",
-    });
-    expect(sections).toHaveLength(1);
-    expect(sections[0]?.type).toBe("prose");
+describe("parseAreaSections", () => {
+  it("页头区是一串 section，本体缺了就补上", () => {
+    const header = parseAreaSections("header", []);
+    expect(header.map((s) => s.type)).toEqual(["header"]);
+    // 站点级默认值同样由 schema 兜底
+    expect(header[0]!.settings.sticky).toBe(true);
   });
 
-  it("prefers sections over body_md", () => {
-    const sections = resolvePageSections({
-      sections: [createSection("band")],
-      body_md: "# ignored",
-    });
-    expect(sections).toHaveLength(1);
-    expect(sections[0]?.type).toBe("band");
+  it("公告条排在导航条上方，一起存一起取", () => {
+    const header = parseAreaSections("header", [
+      { type: "band", settings: { headline: "限时优惠" }, blocks: [] },
+      { type: "header", settings: {}, blocks: [] },
+    ]);
+    expect(header.map((s) => s.type)).toEqual(["band", "header"]);
+    expect(settingText(header[0]!.settings, "headline")).toBe("限时优惠");
+  });
+
+  // placements 说了算：pricing 没声明能进页头，就不许存进去
+  it("拒收没声明能放进该区域的段", () => {
+    expect(() =>
+      parseAreaSections("header", [
+        { type: "pricing", settings: {}, blocks: [] },
+      ]),
+    ).toThrow("site.sections_invalid");
+    // safe 版本回落到只剩本体，不炸整个站点
+    expect(
+      safeAreaSections("header", [{ type: "pricing" }]).map((s) => s.type),
+    ).toEqual(["header"]);
+  });
+
+  it("本体只留一段：存了两个导航条也只认第一个", () => {
+    const header = parseAreaSections("header", [
+      { type: "header", settings: {}, blocks: [] },
+      { type: "header", settings: {}, blocks: [] },
+    ]);
+    expect(header.filter((s) => s.type === "header")).toHaveLength(1);
+  });
+
+  it("页脚本体排在最前，其余段跟在后面", () => {
+    const footer = parseAreaSections("footer", [
+      { type: "prose", settings: { body_md: "备案号" }, blocks: [] },
+    ]);
+    expect(footer.map((s) => s.type)).toEqual(["footer", "prose"]);
   });
 });
 
-describe("parseAreaSection", () => {
-  it("migrates the legacy nav array into header nav_link blocks", () => {
-    const header = parseAreaSection("header", [
-      { label: "Docs", href: "/docs" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "", href: "/broken" },
-    ]);
-    expect(header.type).toBe("header");
-    expect(header.blocks.map((b) => b.type)).toEqual(["nav_link", "nav_link"]);
-    expect(settingText(header.blocks[0]!.settings, "label")).toBe("Docs");
-    // 站点级默认值同样由 schema 兜底
-    expect(header.settings.sticky).toBe(true);
-  });
-
-  it("round-trips an already-migrated section object", () => {
-    const first = parseAreaSection("footer", [
-      { label: "GitHub", href: "/gh" },
-    ]);
-    const again = parseAreaSection("footer", first);
-    expect(again.blocks).toHaveLength(1);
-    expect(settingText(again.blocks[0]!.settings, "href")).toBe("/gh");
-  });
-
-  it("rejects a section stored under the wrong area column", () => {
-    expect(() =>
-      parseAreaSection("header", { type: "footer", settings: {}, blocks: [] }),
-    ).toThrow("site.sections_invalid");
-    // safe 版本回落到默认页头，不炸整个站点
-    expect(safeAreaSection("header", { type: "footer" }).type).toBe("header");
-  });
-
+describe("页面区块流", () => {
   it("keeps header/footer out of the page section stream", () => {
     expect(() => parseSections([{ type: "header", settings: {} }])).toThrow(
       "site.sections_invalid",
@@ -384,6 +383,30 @@ describe("section layout settings", () => {
         .background,
     ).toBe("outline");
   });
+
+  it("migrates header login fields to the secondary button", () => {
+    const defs = SECTION_DEFINITIONS.header.settings;
+    const on = parseSettingValues(defs, {
+      show_login: true,
+      login_label: "登录",
+    });
+    expect(on.secondary_label).toBe("登录");
+    expect(on.secondary_href).toBe("/login");
+
+    const off = parseSettingValues(defs, { show_login: false, login_label: "登录" });
+    expect(off.secondary_label).toBe("");
+    expect(off.secondary_href).toBe("");
+
+    // 新值优先
+    const kept = parseSettingValues(defs, {
+      show_login: true,
+      login_label: "登录",
+      secondary_label: "Account",
+      secondary_href: "/app",
+    });
+    expect(kept.secondary_label).toBe("Account");
+    expect(kept.secondary_href).toBe("/app");
+  });
 });
 
 describe("splitSettingsByScope", () => {
@@ -409,5 +432,178 @@ describe("splitSettingsByScope", () => {
     expect(
       splitSettingsByScope(SECTION_DEFINITIONS.header.settings).layout,
     ).toHaveLength(0);
+  });
+});
+
+describe("relocalizeSections", () => {
+  const hero = (settings: Record<string, unknown>) => [
+    { type: "hero", settings, blocks: [] },
+  ];
+
+  it("seeds the target locale with the source text and keeps the source", () => {
+    const sections = parseSections(
+      hero({ headline: "你好", subhead: "副标题" }),
+    );
+    const [copied] = relocalizeSections(sections, "zh-CN", "en", "zh-CN");
+    // 纯字符串（= 主语言原文）升级成 __i18n，两种语言都指向同一句原文
+    expect(copied!.settings.headline).toEqual({
+      __i18n: { "zh-CN": "你好", en: "你好" },
+    });
+    expect(copied!.settings.subhead).toEqual({
+      __i18n: { "zh-CN": "副标题", en: "副标题" },
+    });
+  });
+
+  it("copies the source locale slot, not the site default", () => {
+    const sections = parseSections(
+      hero({ headline: { __i18n: { "zh-CN": "你好", en: "Hello" } } }),
+    );
+    // en → zh-CN：目标槽位要拿 en 的原文当翻译起点
+    const [copied] = relocalizeSections(sections, "en", "zh-CN", "zh-CN");
+    expect(copied!.settings.headline).toEqual({
+      __i18n: { "zh-CN": "Hello", en: "Hello" },
+    });
+  });
+
+  it("leaves non-localizable settings and same-locale copies untouched", () => {
+    const sections = parseSections(
+      hero({ headline: "你好", primary_href: "/pricing", show_glow: true }),
+    );
+    expect(relocalizeSections(sections, "zh-CN", "zh-CN", "zh-CN")).toBe(
+      sections,
+    );
+    const [copied] = relocalizeSections(sections, "zh-CN", "en", "zh-CN");
+    expect(copied!.settings.primary_href).toBe("/pricing");
+    expect(copied!.settings.show_glow).toBe(true);
+  });
+
+  it("seeds block copy too", () => {
+    const sections = parseSections([
+      {
+        type: "faq",
+        settings: {},
+        blocks: [
+          { type: "qa", settings: { question: "多少钱？", answer: "免费" } },
+        ],
+      },
+    ]);
+    const [copied] = relocalizeSections(sections, "zh-CN", "en", "zh-CN");
+    expect(copied!.blocks[0]!.settings.question).toEqual({
+      __i18n: { "zh-CN": "多少钱？", en: "多少钱？" },
+    });
+  });
+});
+
+describe("容器段（group）", () => {
+  const groupWith = (
+    children: unknown[],
+    settings: Record<string, unknown> = {},
+  ) => ({
+    type: "group",
+    settings,
+    blocks: [
+      { type: "column", settings: {}, sections: children },
+      { type: "column", settings: {} },
+    ],
+  });
+
+  it("解析列里的子段，并给没写 sections 的列补空数组", () => {
+    const [group] = parseSections([
+      groupWith([{ type: "page-menu", settings: { source: "siblings" } }]),
+    ]);
+    expect(group!.blocks[0]!.sections?.map((s) => s.type)).toEqual([
+      "page-menu",
+    ]);
+    expect(group!.blocks[1]!.sections).toEqual([]);
+  });
+
+  // 深度上限 1：容器段不能装容器段，否则「布局原语」会滑成自由画布
+  it("拒绝嵌套的容器段（写路径抛错、读路径只丢里面那一段）", () => {
+    const nested = [groupWith([groupWith([])])];
+    expect(() => parseSections(nested)).toThrow("site.sections_invalid");
+    const [survived] = safeSections(nested);
+    expect(survived!.type).toBe("group");
+    expect(survived!.blocks[0]!.sections).toEqual([]);
+  });
+
+  it("读路径只丢坏掉的那个子段，不连坐整个容器段", () => {
+    const [group] = safeSections([
+      groupWith([
+        { type: "band", settings: { headline: "Fine" } },
+        { type: "gallery", settings: {} },
+        { type: "prose", settings: { body_md: "x" } },
+      ]),
+    ]);
+    expect(group!.blocks[0]!.sections?.map((s) => s.type)).toEqual([
+      "band",
+      "prose",
+    ]);
+  });
+
+  it("写路径对坏子段直接抛错", () => {
+    expect(() =>
+      parseSections([groupWith([{ type: "gallery", settings: {} }])]),
+    ).toThrow("site.sections_invalid");
+  });
+
+  it("createSection 预置两列", () => {
+    const group = createSection("group");
+    expect(group.blocks.map((b) => b.type)).toEqual(["column", "column"]);
+    expect(group.blocks[0]!.sections).toEqual([]);
+  });
+
+  it("列宽按比例解析，比例与列数对不上时等分回落", () => {
+    expect(resolveGroupSpans("1:3", 2)).toEqual([3, 9]);
+    expect(resolveGroupSpans("1:1:1", 3)).toEqual([4, 4, 4]);
+    // 比例是两列、实际三列：按列数等分，总和仍是 12
+    expect(resolveGroupSpans("1:3", 3)).toEqual([4, 4, 4]);
+    expect(resolveGroupSpans("1:3", 1)).toEqual([12]);
+    expect(resolveGroupSpans("zzz", 2)).toEqual([6, 6]);
+    expect(resolveGroupSpans("1:3", 0)).toEqual([]);
+  });
+
+  it("groupColumns 带出列宽与列设置", () => {
+    const [group] = parseSections([
+      {
+        type: "group",
+        settings: { columns_layout: "1:3" },
+        blocks: [
+          {
+            type: "column",
+            settings: { sticky: true, stack_order: "last" },
+            sections: [{ type: "prose", settings: { body_md: "x" } }],
+          },
+          { type: "column", settings: {} },
+        ],
+      },
+    ]);
+    const columns = groupColumns(group!);
+    expect(columns.map((c) => c.span)).toEqual([3, 9]);
+    expect(columns[0]!.sticky).toBe(true);
+    expect(columns[0]!.stackOrder).toBe("last");
+    expect(columns[1]!.stackOrder).toBe("auto");
+    expect(columns[0]!.sections.map((s) => s.type)).toEqual(["prose"]);
+  });
+
+  // 漏了递归的话，列里的文案在公开页会整片空白
+  it("localize / relocalize 递归进列里的子段", () => {
+    const [group] = parseSections([
+      groupWith([
+        {
+          type: "band",
+          settings: { headline: { __i18n: { "zh-CN": "你好", en: "Hello" } } },
+        },
+      ]),
+    ]);
+
+    const [localized] = localizeSections([group!], "en", "zh-CN");
+    expect(localized!.blocks[0]!.sections?.[0]?.settings.headline).toBe(
+      "Hello",
+    );
+
+    const [copied] = relocalizeSections([group!], "en", "zh-CN", "zh-CN");
+    expect(copied!.blocks[0]!.sections?.[0]?.settings.headline).toEqual({
+      __i18n: { "zh-CN": "Hello", en: "Hello" },
+    });
   });
 });

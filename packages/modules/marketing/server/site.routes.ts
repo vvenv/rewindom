@@ -1,28 +1,43 @@
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
+import { parseMultipartFileUpload } from "@be-water/server-kernel/http/multipart-upload.js";
 import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
+import type { FastifyInstance } from "fastify";
 
 import { AuditAction } from "../../audit/shared/index.js";
+import type {
+  CreateMarketingPageBody,
+  DuplicateMarketingPageBody,
+  MarketingSite,
+  SaveEditorDraftBody,
+  UpdateMarketingPageBody,
+  UpdateMarketingSiteBody,
+} from "../shared/site-cms.js";
+import { resolveLocaleSegment } from "../shared/site-locale.js";
 
+import { uploadSiteAsset } from "./site-asset.service.js";
 import {
+  applySiteStarter,
   createPage,
   deletePage,
+  duplicatePage,
   getOrCreateSite,
   getPage,
   getPreviewSitePage,
   listPages,
+  publishPageContent,
+  publishSiteChrome,
+  saveEditorDraft,
   setPageStatus,
   updatePage,
   updateSite,
 } from "./site.service.js";
+import { displaySiteName } from "./site.util.js";
 
-import type {
-  CreateMarketingPageBody,
-  UpdateMarketingPageBody,
-  UpdateMarketingSiteBody,
-} from "../shared/site-cms.js";
-import type { FastifyInstance } from "fastify";
+function auditSiteName(site: MarketingSite): string {
+  return displaySiteName(site.site_name, site.default_locale);
+}
 
 export async function siteRoutes(app: FastifyInstance): Promise<void> {
   defineRoute(app, {
@@ -52,7 +67,7 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           action: AuditAction.SITE_UPDATE,
           resource: site.id,
           detail_key: "marketing.audit.site_updated",
-          detail_params: { site_name: site.site_name },
+          detail_params: { site_name: auditSiteName(site) },
         });
         return site;
       } catch (err) {
@@ -71,12 +86,15 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
     errorCode: "SITE_PREVIEW_FAILED",
     preHandler: [app.requirePermission("site.read")],
     handler: async (request, reply) => {
-      const query = request.query as { path?: string };
+      const query = request.query as { path?: string; locale?: string };
       const path = typeof query.path === "string" ? query.path : "/";
       const result = await getPreviewSitePage(
         request.tenantContext!.tenant_id,
         path,
         request.tenantContext!.tenant_slug,
+        typeof query.locale === "string"
+          ? resolveLocaleSegment(query.locale)
+          : null,
       );
       if (!result) {
         return sendCodedError(reply, 404, "site.page_not_found");
@@ -144,6 +162,168 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
     },
   });
 
+  /** 复制页面：主要用来从一种语言快速铺出另一种语言的同一篇内容。 */
+  defineRoute(app, {
+    method: "POST",
+    url: "/pages/:pageId/duplicate",
+    context: "SitePageDuplicate",
+    errorCode: "SITE_PAGE_DUPLICATE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const { pageId } = request.params as { pageId: string };
+        const body = request.body as DuplicateMarketingPageBody;
+        const page = await duplicatePage(
+          request.tenantContext!.tenant_id,
+          pageId,
+          body,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_PAGE_CREATE,
+          resource: page.id,
+          detail_key: "marketing.audit.page_duplicated",
+          detail_params: { title: page.title, source: pageId },
+        });
+        void reply.code(201);
+        return page;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/chrome/publish",
+    context: "SiteChromePublish",
+    errorCode: "SITE_CHROME_PUBLISH_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const site = await publishSiteChrome(request.tenantContext!.tenant_id);
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_UPDATE,
+          resource: site.id,
+          detail_key: "marketing.audit.chrome_published",
+          detail_params: { site_name: auditSiteName(site) },
+        });
+        return site;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/assets",
+    context: "SiteAssetUpload",
+    errorCode: "SITE_ASSET_UPLOAD_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const uploaded = await parseMultipartFileUpload(request);
+        if (!uploaded) {
+          return sendCodedError(reply, 400, "site.asset_required");
+        }
+        const { tenant_id, tenant_slug } = request.tenantContext!;
+        return await uploadSiteAsset({
+          tenant_id,
+          tenant_slug,
+          buffer: uploaded.buffer,
+          mime_type: uploaded.mimetype,
+        });
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/starters/:key/apply",
+    context: "SiteStarterApply",
+    errorCode: "SITE_STARTER_APPLY_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const { key } = request.params as { key: string };
+        const result = await applySiteStarter(
+          request.tenantContext!.tenant_id,
+          key,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_UPDATE,
+          resource: result.site.id,
+          detail_key: "marketing.audit.starter_applied",
+          detail_params: { key, page_count: result.pages.length },
+        });
+        return result;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "PUT",
+    url: "/pages/:pageId/draft",
+    context: "SiteEditorDraftSave",
+    errorCode: "SITE_EDITOR_DRAFT_SAVE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const { pageId } = request.params as { pageId: string };
+        const body = request.body as SaveEditorDraftBody;
+        const { page, site } = await saveEditorDraft(
+          request.tenantContext!.tenant_id,
+          pageId,
+          body,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_PAGE_UPDATE,
+          resource: page.id,
+          detail_key: "marketing.audit.page_updated",
+          detail_params: { title: page.title },
+        });
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_UPDATE,
+          resource: site.id,
+          detail_key: "marketing.audit.site_updated",
+          detail_params: { site_name: auditSiteName(site) },
+        });
+        return { page, site };
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
   defineRoute(app, {
     method: "PATCH",
     url: "/pages/:pageId",
@@ -196,6 +376,37 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           detail_params: {},
         });
         return { ok: true };
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/pages/:pageId/content/publish",
+    context: "SitePageContentPublish",
+    errorCode: "SITE_PAGE_CONTENT_PUBLISH_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const { pageId } = request.params as { pageId: string };
+        const page = await publishPageContent(
+          request.tenantContext!.tenant_id,
+          pageId,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_PAGE_PUBLISH,
+          resource: page.id,
+          detail_key: "marketing.audit.page_content_published",
+          detail_params: { title: page.title },
+        });
+        return page;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

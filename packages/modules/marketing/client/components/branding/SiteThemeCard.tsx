@@ -19,11 +19,9 @@ import { toast } from "sonner";
 import { TENANT_MARKETING_ENTITLEMENT } from "../../../shared/entitlements.js";
 import {
   THEME_FONT_FAMILIES,
-  THEME_PAGE_NAV_POSITIONS,
   THEME_PAGE_WIDTHS,
   THEME_SECTION_SPACING,
   type ThemeFontFamily,
-  type ThemePageNav,
   type ThemePageWidth,
   type ThemeSettings,
 } from "../../../shared/theme-sections.js";
@@ -228,33 +226,6 @@ function SiteThemeForm({ canWrite }: SiteThemeCardProps): ReactElement | null {
           </div>
           <p className="text-muted-foreground text-xs">
             {t("editor.fieldSectionSpacingHint")}
-          </p>
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor="site_page_nav">
-            {t("editor.fieldPageNav")}
-          </FieldLabel>
-          <Select
-            disabled={!canWrite}
-            value={draft.page_nav ?? "left"}
-            onValueChange={(next) =>
-              setDraft({ ...draft, page_nav: next as ThemePageNav })
-            }
-          >
-            <SelectTrigger id="site_page_nav" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {THEME_PAGE_NAV_POSITIONS.map((position) => (
-                <SelectItem key={position} value={position}>
-                  {t(`editor.pageNav.${position}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-muted-foreground text-xs">
-            {t("editor.fieldPageNavHint")}
           </p>
         </Field>
       </FieldGroup>

@@ -1,23 +1,20 @@
+import { getLocaleNativeLabel, normalizeLocale } from "@be-water/shared";
+
 import {
-  resolvePageSections,
   resolveSectionGaps,
   resolveSectionLayout,
-  sectionsLeadWithHero,
 } from "../shared/section-schema.js";
 import {
-  pageDepth,
-  resolvePageNav,
-  siblingPages,
   type PublicMarketingPage,
   type PublicMarketingSite,
 } from "../shared/site-cms.js";
+import { withSiteLocale } from "../shared/site-locale.js";
 import {
   HERO_GLOW_BACKGROUND,
   resolveThemeSettings,
   themeFontCss,
   themePageWidthCss,
   THEME_SECTION_SPACING,
-  type ThemePageNav,
 } from "../shared/theme-sections.js";
 
 import { escapeHtml } from "./site.util.js";
@@ -25,7 +22,10 @@ import {
   renderFooterHtml,
   renderHeaderHtml,
   renderSectionHtml,
+  type LocaleSwitcherOption,
 } from "./ssr-sections.js";
+
+import type { SitemapEntry } from "./site.service.js";
 
 /**
  * 静态 CSS：用原生 CSS 变量复刻 shadcn 的中性色 / 圆角 / 边框语汇，
@@ -60,11 +60,23 @@ function siteCss(accent: string, fontCss: string, pageWidth: string): string {
     .site-header { border-bottom: 1px solid var(--border); background: rgba(255,255,255,.85); backdrop-filter: blur(12px); }
     .site-header.sticky { position: sticky; top: 0; z-index: 40; }
     .header-row { display: flex; align-items: center; gap: 1rem; height: 3.5rem; }
+    .header-row.header-layout-centered { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+    .header-layout-centered .header-nav { justify-self: center; }
+    .header-layout-centered .header-actions { justify-self: end; }
     .brand { display: flex; align-items: center; gap: .5rem; font-weight: 600; }
     .logo { height: 1.5rem; width: auto; }
     .header-nav { display: flex; flex-wrap: wrap; gap: .25rem; }
     .header-nav a { padding: .375rem .625rem; border-radius: .5rem; font-size: .875rem; color: var(--muted-fg); }
     .header-actions { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
+    /* 语言切换：icon + dropdown，与 client SiteChrome LocaleSwitcher 对齐 */
+    .locale-switcher { position: relative; }
+    .locale-switcher > summary { list-style: none; display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: .5rem; color: var(--fg); cursor: pointer; }
+    .locale-switcher > summary::-webkit-details-marker { display: none; }
+    .locale-switcher > summary:hover { background: var(--muted-bg); }
+    .locale-switcher-menu { position: absolute; right: 0; top: calc(100% + .25rem); z-index: 50; min-width: 8rem; display: grid; gap: .125rem; padding: .25rem; border: 1px solid var(--border); border-radius: .5rem; background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .locale-switcher-menu a { display: block; padding: .375rem .625rem; border-radius: .375rem; font-size: .875rem; color: var(--muted-fg); white-space: nowrap; }
+    .locale-switcher-menu a:hover { background: var(--muted-bg); color: var(--fg); }
+    .locale-switcher-menu a[aria-current="true"] { background: var(--muted-bg); color: var(--fg); font-weight: 500; }
     .site-footer { margin-top: 3rem; border-top: 1px solid var(--border); background: var(--muted-bg); }
     .footer-grid { display: grid; gap: 2rem; padding-top: 3rem; padding-bottom: 3rem; grid-template-columns: 1.4fr repeat(3, 1fr); }
     .footer-grid h2 { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-fg); margin-bottom: .75rem; }
@@ -89,9 +101,25 @@ function siteCss(accent: string, fontCss: string, pageWidth: string): string {
     .sec-content { padding: 0 1.5rem; }
     .sec-c-default { width: 100%; max-width: var(--site-page-width, 72rem); margin: 0 auto; }
     .sec-c-narrow { width: 100%; max-width: 48rem; margin: 0 auto; }
-    /* 侧栏文档页外层已限宽并给了留白，section 不再自带 gutter，full 退化为 page */
-    .side-main .sec-band, .side-main .sec-content { max-width: none; }
-    .side-main .sec-content { padding-left: 0; padding-right: 0; }
+    /* 容器段的列里外层已限宽并给了留白，section 不再自带 gutter，full 退化为 page */
+    .grp-col .sec-band, .sec-c-contained { max-width: none; }
+    .sec-c-contained { width: 100%; padding-left: 0; padding-right: 0; }
+
+    /* 容器段：窄屏一列到底，桌面进 12 栏。与 client 的 GroupSection 同构 */
+    .grp { display: grid; grid-template-columns: minmax(0,1fr); gap: calc(var(--grp-gap, 40px) * .7); }
+    .grp-col { min-width: 0; }
+    @media (min-width: 768px) {
+      .grp { grid-template-columns: repeat(12, minmax(0,1fr)); gap: var(--grp-gap, 40px); align-items: start; }
+      .grp.grp-stretch { align-items: stretch; }
+      ${Array.from({ length: 12 }, (_, index) => `.grp-span-${index + 1} { grid-column: span ${index + 1} / span ${index + 1}; }`).join("\n      ")}
+      /* sticky 必须配 align-self:start：拉伸满高的列没有可滚动的余量，粘不住 */
+      .grp-sticky { position: sticky; top: 5rem; align-self: start; }
+    }
+    /* 堆叠顺序只在窄屏有意义——桌面永远按声明顺序从左到右 */
+    @media (max-width: 767px) {
+      .grp-stack-first { order: -1; }
+      .grp-stack-last { order: 1; }
+    }
     /* 光晕跟着色块走：顶到 section 容器上沿（含上留白）。isolation 不能少——
        z-index:-1 没有自己的层叠上下文会掉到祖先背景之后 */
     .sec-band.has-glow { position: relative; isolation: isolate; }
@@ -183,21 +211,15 @@ function siteCss(accent: string, fontCss: string, pageWidth: string): string {
     .page-head h1 { font-size: 1.875rem; }
     .page-head p { margin-top: .75rem; color: var(--muted-fg); }
 
-    /* 嵌套页面：左侧同级菜单 + 右正文，与 client/components/SitePageNav.tsx 对齐 */
-    .side-layout { display: grid; gap: 3.5rem; grid-template-columns: 13rem minmax(0,1fr); }
-    .side-layout.nav-right { grid-template-columns: minmax(0,1fr) 13rem; }
-    .side-nav { position: sticky; top: 5rem; align-self: start; padding-top: 3rem; font-size: .875rem; }
-    .side-nav h2 { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-fg); margin-bottom: .75rem; }
-    .side-nav ul { display: grid; gap: .125rem; }
-    .side-nav a { display: block; border-radius: .5rem; padding: .375rem .625rem; color: var(--muted-fg); }
-    .side-nav li[aria-current="page"] a { background: var(--muted-bg); color: var(--fg); font-weight: 500; }
-    .side-main { min-width: 0; }
+    /* page-menu section list style */
+    .page-menu-list ul { display: grid; gap: .125rem; }
+    .page-menu-list a { display: block; border-radius: .5rem; padding: .375rem .625rem; color: var(--muted-fg); }
+    .page-menu-list li[aria-current="page"] a { background: var(--muted-bg); color: var(--fg); font-weight: 500; }
+    .page-menu-list { font-size: .875rem; }
 
     @media (max-width: 900px) {
       .footer-grid { grid-template-columns: 1fr 1fr; }
       .split { grid-template-columns: 1fr; }
-      .side-layout, .side-layout.nav-right { grid-template-columns: 1fr; gap: 2rem; }
-      .side-nav { position: static; padding-top: 2rem; }
     }
     @media (max-width: 640px) {
       .grid.cols-2, .grid.cols-3, .grid.cols-4, .stats, .footer-grid { grid-template-columns: 1fr; }
@@ -206,25 +228,43 @@ function siteCss(accent: string, fontCss: string, pageWidth: string): string {
     }`;
 }
 
-/** 同级页面侧边菜单；与 client/components/SitePageNav.tsx 同一套规则与结构。 */
-function renderPageNavHtml(
-  site: PublicMarketingSite,
-  currentPath: string,
-  position: ThemePageNav,
+/**
+ * hreflang：各语言互指 + `x-default` 指主语言。
+ *
+ * 只列**已发布**的语言（`page.alternates` 就是这么算出来的）——列上没有内容的语言，
+ * Google 会因为互指不成立而整组忽略。
+ */
+function renderAlternateLinksHtml(
+  base: string,
+  page: PublicMarketingPage,
+  defaultLocale: string,
 ): string {
-  if (position === "off" || pageDepth(currentPath) <= 1) return "";
-  const { parent, items } = siblingPages(site.pages, currentPath);
-  if (items.length === 0) return "";
-  const links = items
-    .map(
-      (p) =>
-        `<li${p.path === currentPath ? ' aria-current="page"' : ""}><a href="${escapeHtml(p.path)}">${escapeHtml(p.title)}</a></li>`,
-    )
-    .join("");
-  return `<nav class="side-nav" aria-label="${escapeHtml(parent?.title || "Pages")}">
-    ${parent ? `<h2><a href="${escapeHtml(parent.path)}">${escapeHtml(parent.title)}</a></h2>` : ""}
-    <ul>${links}</ul>
-  </nav>`;
+  if (page.alternates.length < 2) return "";
+  const links = page.alternates.map(
+    (alternate) =>
+      `<link rel="alternate" hreflang="${escapeHtml(alternate.locale)}" href="${escapeHtml(`${base}${alternate.path}`)}" />`,
+  );
+  const primary = page.alternates.find(
+    (alternate) => alternate.locale === defaultLocale,
+  );
+  if (primary) {
+    links.push(
+      `<link rel="alternate" hreflang="x-default" href="${escapeHtml(`${base}${primary.path}`)}" />`,
+    );
+  }
+  return links.join("\n  ");
+}
+
+function localeSwitcherOptions(
+  page: PublicMarketingPage,
+  current: string,
+): LocaleSwitcherOption[] {
+  return page.alternates.map((alternate) => ({
+    locale: alternate.locale,
+    path: alternate.path,
+    label: getLocaleNativeLabel(alternate.locale),
+    current: alternate.locale === current,
+  }));
 }
 
 export function renderMarketingHtml(input: {
@@ -235,30 +275,36 @@ export function renderMarketingHtml(input: {
 }): string {
   const { origin, site, page, spaEntrySrc } = input;
   const theme = resolveThemeSettings(site.theme_settings);
-  const sections = resolvePageSections({
-    sections: page.sections,
-    body_md: page.body_md,
-  });
+  const sections = page.sections;
   // 段间距显式算好落到每一段上，与 SPA 侧同一个函数
   const gaps = resolveSectionGaps(
     sections.map((section) => resolveSectionLayout(section.settings)),
     theme.section_spacing ?? THEME_SECTION_SPACING.default,
   );
+  const sectionCtx = {
+    pages: site.pages,
+    currentPath: page.path,
+    locale: normalizeLocale(page.locale, site.default_locale),
+    defaultLocale: site.default_locale,
+    sectionSpacing: theme.section_spacing ?? THEME_SECTION_SPACING.default,
+  };
   const sectionsHtml = sections
-    .map((section, index) => renderSectionHtml(section, gaps[index]))
+    .map((section, index) =>
+      renderSectionHtml(section, gaps[index], sectionCtx),
+    )
     .join("\n");
-  const navPosition = resolvePageNav(page.settings, theme.page_nav);
-  const pageNavHtml = renderPageNavHtml(site, page.path, navPosition);
-  // 菜单在右侧时连 DOM 顺序一起换，读屏顺序与窄屏堆叠都跟着视觉走
-  const navRight = navPosition === "right";
-  // 限宽下放到各 section 内部（`full` 才能通栏）；侧栏布局仍需要外层 `.wrap`
-  const layoutOpen = pageNavHtml
-    ? `<div class="wrap"><div class="side-layout${navRight ? " nav-right" : ""}">${navRight ? "" : pageNavHtml}<div class="side-main">`
-    : "";
-  const layoutClose = pageNavHtml
-    ? `</div>${navRight ? pageNavHtml : ""}</div></div>`
-    : "";
-  const canonical = `${origin.replace(/\/$/u, "")}${page.path === "/" ? "/" : page.path}`;
+  const base = origin.replace(/\/$/u, "");
+  const locale = normalizeLocale(page.locale, site.default_locale);
+  // canonical 指向**本页语言**的 URL：默认语言无前缀、其余 `/{locale}/...`。
+  // 请求语言没有内容而回落到默认语言时（见 site.service 的 effectiveLocale），
+  // 这里自然会指回无前缀入口，不会把回落出来的页面当成一份独立内容收录。
+  const localizedPath = withSiteLocale(page.path, locale, site.default_locale);
+  const canonical = `${base}${localizedPath === "/" ? "/" : localizedPath}`;
+  const alternateLinks = renderAlternateLinksHtml(
+    base,
+    page,
+    site.default_locale,
+  );
   const title = escapeHtml(
     page.kind === "home" ? site.site_name : `${page.title} · ${site.site_name}`,
   );
@@ -280,42 +326,53 @@ export function renderMarketingHtml(input: {
 
   const logoUrl =
     theme.logo_url && theme.logo_url !== "" ? theme.logo_url : null;
-  const headerHtml = renderHeaderHtml({
-    section: site.header,
-    siteName: site.site_name,
-    logoUrl,
-  });
-  const footerHtml = renderFooterHtml({
-    section: site.footer,
-    siteName: site.site_name,
-    logoUrl,
-  });
+  // 页头 / 页脚区各是一串 section：本体走专用渲染，其余（公告条等）走通用那套
+  const headerHtml = site.header
+    .map((section) =>
+      section.type === "header"
+        ? renderHeaderHtml({
+            section,
+            siteName: site.site_name,
+            logoUrl,
+            homeHref: withSiteLocale("/", locale, site.default_locale),
+            locales: localeSwitcherOptions(page, locale),
+            showLocaleSwitcher: theme.show_locale_switcher === true,
+            pages: site.pages,
+            currentPath: page.path,
+            locale,
+            defaultLocale: site.default_locale,
+          })
+        : renderSectionHtml(section, 0, sectionCtx),
+    )
+    .join("");
+  const footerHtml = site.footer
+    .map((section) =>
+      section.type === "footer"
+        ? renderFooterHtml({
+            section,
+            siteName: site.site_name,
+            logoUrl,
+          })
+        : renderSectionHtml(section, 0, sectionCtx),
+    )
+    .join("");
 
   return `<!DOCTYPE html>
-<html lang="${escapeHtml(site.default_locale || "zh-CN")}">
+<html lang="${escapeHtml(locale)}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${title}</title>
   <meta name="description" content="${description}" />
   <link rel="canonical" href="${escapeHtml(canonical)}" />
+  ${alternateLinks}
   <script type="application/ld+json">${jsonLd}</script>
   <style>${siteCss(theme.primary_color ?? "#0f766e", themeFontCss(theme.font_family), themePageWidthCss(theme.page_width))}</style>
 </head>
 <body>
   ${headerHtml}
   <main>
-    ${layoutOpen}
-    ${
-      page.kind !== "home" && !sectionsLeadWithHero(sections)
-        ? `<div class="page-head${pageNavHtml ? "" : " wrap"}">
-      <h1>${escapeHtml(page.title)}</h1>
-      ${page.description ? `<p>${escapeHtml(page.description)}</p>` : ""}
-    </div>`
-        : ""
-    }
     ${sectionsHtml}
-    ${layoutClose}
   </main>
   ${footerHtml}
   ${spaEntrySrc ? `<script type="module" src="${escapeHtml(spaEntrySrc)}"></script>` : ""}
@@ -344,22 +401,34 @@ export function renderUnavailableHtml(input: {
 </html>`;
 }
 
+/**
+ * sitemap：一种语言一条 `<url>`，每条挂上全组的 `xhtml:link` 备选。
+ *
+ * 不能只输出逻辑路径——那样各语言会塌成同一个 `<loc>`，除默认语言外都不会被收录。
+ */
 export function renderSitemapXml(
   origin: string,
-  paths: Array<{ path: string; updated_at?: string }>,
+  entries: Array<Pick<SitemapEntry, "path"> & Partial<SitemapEntry>>,
 ): string {
   const base = origin.replace(/\/$/u, "");
-  const urls = paths
+  const absolute = (path: string): string =>
+    `${base}${path === "/" ? "/" : path}`;
+  const urls = entries
     .map((item) => {
-      const loc = `${base}${item.path === "/" ? "/" : item.path}`;
       const lastmod = item.updated_at
         ? `<lastmod>${escapeHtml(item.updated_at.slice(0, 10))}</lastmod>`
         : "";
-      return `<url><loc>${escapeHtml(loc)}</loc>${lastmod}</url>`;
+      const alternates = (item.alternates ?? [])
+        .map(
+          (alternate) =>
+            `<xhtml:link rel="alternate" hreflang="${escapeHtml(alternate.locale)}" href="${escapeHtml(absolute(alternate.path))}"/>`,
+        )
+        .join("");
+      return `<url><loc>${escapeHtml(absolute(item.path))}</loc>${lastmod}${alternates}</url>`;
     })
     .join("");
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`;
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls}</urlset>`;
 }
 
 export function renderRobotsTxt(origin: string): string {

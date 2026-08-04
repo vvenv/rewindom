@@ -1,21 +1,44 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  canonicalizePageIdentity,
   marketingPagePath,
   pageDepth,
   pageParentPath,
   parsePageSettings,
-  resolvePageNav,
+  resolvePageMenu,
   siblingPages,
+  siteNavPages,
   type PublicSitePage,
 } from "./site-cms.js";
 
 describe("marketingPagePath", () => {
-  it("maps home / doc index / doc / page", () => {
+  it("maps home and nested page slugs", () => {
     expect(marketingPagePath("home", "home")).toBe("/");
-    expect(marketingPagePath("doc", "index")).toBe("/docs");
-    expect(marketingPagePath("doc", "guide")).toBe("/docs/guide");
     expect(marketingPagePath("page", "about")).toBe("/about");
+    expect(marketingPagePath("page", "docs")).toBe("/docs");
+    expect(marketingPagePath("page", "docs/guide")).toBe("/docs/guide");
+  });
+});
+
+describe("canonicalizePageIdentity", () => {
+  it("rewrites legacy doc kind into nested page slugs", () => {
+    expect(canonicalizePageIdentity("doc", "index")).toEqual({
+      kind: "page",
+      slug: "docs",
+    });
+    expect(canonicalizePageIdentity("doc", "guide")).toEqual({
+      kind: "page",
+      slug: "docs/guide",
+    });
+    expect(canonicalizePageIdentity("page", "about")).toEqual({
+      kind: "page",
+      slug: "about",
+    });
+    expect(canonicalizePageIdentity("home", "home")).toEqual({
+      kind: "home",
+      slug: "home",
+    });
   });
 });
 
@@ -27,6 +50,7 @@ describe("page hierarchy", () => {
     title,
     description: "",
     path,
+    settings: {},
   });
   const pages = [
     page("/", "Home"),
@@ -59,24 +83,40 @@ describe("page hierarchy", () => {
     expect(top.parent?.path).toBe("/");
     expect(top.items.map((p) => p.path)).toEqual(["/docs", "/pricing"]);
   });
+
+  it("resolvePageMenu children lists direct children of the current path", () => {
+    const menu = resolvePageMenu(pages, "/docs", "children");
+    expect(menu.title).toBe("Docs");
+    expect(menu.title_path).toBe("/docs");
+    expect(menu.items.map((p) => p.path)).toEqual([
+      "/docs/quickstart",
+      "/docs/deploy",
+    ]);
+  });
+
+  it("resolvePageMenu siblings matches siblingPages", () => {
+    const menu = resolvePageMenu(pages, "/docs/quickstart", "siblings");
+    const siblings = siblingPages(pages, "/docs/quickstart");
+    expect(menu.title).toBe(siblings.parent?.title ?? null);
+    expect(menu.title_path).toBe(siblings.parent?.path ?? null);
+    expect(menu.items).toEqual(siblings.items);
+  });
+
+  it("siteNavPages lists top-level pages excluding home", () => {
+    expect(siteNavPages(pages).map((p) => p.path)).toEqual([
+      "/docs",
+      "/pricing",
+    ]);
+  });
 });
 
 describe("page settings", () => {
-  it("parses page_nav and rejects unknown modes", () => {
-    expect(parsePageSettings({ page_nav: "right" })).toEqual({
-      page_nav: "right",
-    });
+  // 目前没有页面级设置字段：只校验信封本身（对象放行、数组/标量拒绝）
+  it("accepts an empty envelope and rejects non-objects", () => {
+    expect(parsePageSettings({ page_nav: "right" })).toEqual({});
     expect(parsePageSettings(null)).toEqual({});
-    expect(() => parsePageSettings({ page_nav: "top" })).toThrow(
-      "site.page_settings_invalid",
-    );
+    expect(parsePageSettings({})).toEqual({});
     expect(() => parsePageSettings([])).toThrow("site.page_settings_invalid");
-  });
-
-  it("resolves page setting over the site default", () => {
-    expect(resolvePageNav({ page_nav: "off" }, "left")).toBe("off");
-    expect(resolvePageNav({ page_nav: "inherit" }, "right")).toBe("right");
-    expect(resolvePageNav({}, "right")).toBe("right");
-    expect(resolvePageNav(undefined, undefined)).toBe("left");
+    expect(() => parsePageSettings("x")).toThrow("site.page_settings_invalid");
   });
 });

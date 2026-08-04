@@ -1,14 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  applySiteStarter,
   createSitePage,
   deleteSitePage,
+  duplicateSitePage,
   fetchSite,
   fetchSitePage,
   fetchSitePages,
   patchSite,
   patchSitePage,
   publishSitePage,
+  publishSitePageContent,
+  publishSiteChrome,
+  saveSiteEditorDraft,
   SITE_PAGES_QUERY_KEY,
   SITE_QUERY_KEY,
   unpublishSitePage,
@@ -16,6 +21,8 @@ import {
 
 import type {
   CreateMarketingPageBody,
+  DuplicateMarketingPageBody,
+  SaveEditorDraftBody,
   UpdateMarketingPageBody,
   UpdateMarketingSiteBody,
 } from "../../shared/site-cms.js";
@@ -62,6 +69,17 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
+  const duplicatePage = useMutation({
+    mutationFn: ({
+      pageId,
+      body,
+    }: {
+      pageId: string;
+      body: DuplicateMarketingPageBody;
+    }) => duplicateSitePage(pageId, body),
+    onSuccess: () => invalidate(),
+  });
+
   const updatePage = useMutation({
     mutationFn: ({
       pageId,
@@ -73,8 +91,34 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
+  const saveEditorDraft = useMutation({
+    mutationFn: ({
+      pageId,
+      body,
+    }: {
+      pageId: string;
+      body: SaveEditorDraftBody;
+    }) => saveSiteEditorDraft(pageId, body),
+    onSuccess: () => invalidate(),
+  });
+
+  const applyStarter = useMutation({
+    mutationFn: (key: string) => applySiteStarter(key),
+    onSuccess: () => invalidate(),
+  });
+
+  const publishChrome = useMutation({
+    mutationFn: () => publishSiteChrome(),
+    onSuccess: () => invalidate(),
+  });
+
   const removePage = useMutation({
     mutationFn: (pageId: string) => deleteSitePage(pageId),
+    onSuccess: () => invalidate(),
+  });
+
+  const publishPageContent = useMutation({
+    mutationFn: (pageId: string) => publishSitePageContent(pageId),
     onSuccess: () => invalidate(),
   });
 
@@ -91,9 +135,14 @@ export function useSiteMutations() {
   return {
     updateSite,
     createPage,
+    duplicatePage,
     updatePage,
+    saveEditorDraft,
+    applyStarter,
+    publishChrome,
     removePage,
     publishPage,
+    publishPageContent,
     unpublishPage,
   };
 }

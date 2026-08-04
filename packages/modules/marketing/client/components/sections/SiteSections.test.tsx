@@ -1,0 +1,162 @@
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
+import { describe, expect, it } from "vitest";
+
+import {
+  parseSections,
+  type SiteSection,
+} from "../../../shared/section-schema.js";
+import { type PublicSitePage } from "../../../shared/site-cms.js";
+
+import { SiteSections } from "./SiteSections.js";
+
+const pages = [
+  {
+    slug: "docs",
+    locale: "zh-CN",
+    kind: "page",
+    title: "文档",
+    description: "",
+    path: "/docs",
+    settings: {},
+  },
+  {
+    slug: "docs/quickstart",
+    locale: "zh-CN",
+    kind: "page",
+    title: "快速开始",
+    description: "",
+    path: "/docs/quickstart",
+    settings: {},
+  },
+  {
+    slug: "docs/api",
+    locale: "zh-CN",
+    kind: "page",
+    title: "API",
+    description: "",
+    path: "/docs/api",
+    settings: {},
+  },
+] as unknown as PublicSitePage[];
+
+/** 文档版式：1:3 容器段，左列同级菜单（吸顶）、右列正文。 */
+function docsGroup(): SiteSection[] {
+  return parseSections([
+    {
+      type: "group",
+      settings: { columns_layout: "1:3", column_gap: 40 },
+      blocks: [
+        {
+          type: "column",
+          settings: { sticky: true },
+          sections: [
+            {
+              type: "page-menu",
+              settings: { source: "siblings", style: "list" },
+            },
+          ],
+        },
+        {
+          type: "column",
+          settings: {},
+          // 列里的「通栏」没有意义，应当被降级
+          sections: [
+            { type: "prose", settings: { body_md: "正文", width: "full" } },
+          ],
+        },
+      ],
+    },
+  ]);
+}
+
+function renderSections(sections: SiteSection[]) {
+  return render(
+    <MemoryRouter initialEntries={["/docs/quickstart"]}>
+      <SiteSections
+        sections={sections}
+        pages={pages}
+        currentPath="/docs/quickstart"
+      />
+    </MemoryRouter>,
+  );
+}
+
+describe("SiteSections 容器段", () => {
+  it("按比例分栏，左列吸顶，右列拿到剩下的宽度", () => {
+    const { container } = renderSections(docsGroup());
+    const columns = container.querySelectorAll(".grid > div");
+    expect(columns).toHaveLength(2);
+    expect(columns[0]!.className).toContain("md:col-span-3");
+    expect(columns[0]!.className).toContain("md:sticky");
+    expect(columns[1]!.className).toContain("md:col-span-9");
+    expect(columns[1]!.className).not.toContain("md:sticky");
+  });
+
+  it("列里的同级菜单是真链接，当前页标出来", () => {
+    renderSections(docsGroup());
+    expect(screen.getByRole("link", { name: "API" })).toHaveAttribute(
+      "href",
+      "/docs/api",
+    );
+    expect(screen.getByRole("listitem", { current: "page" })).toHaveTextContent(
+      "快速开始",
+    );
+  });
+
+  // 列已经限过宽、给过 gutter，子段不该再自带一层
+  it("列里的子段走 contained：不再自带 gutter，full 退化成 page", () => {
+    const { container } = renderSections(docsGroup());
+    const nested = [...container.querySelectorAll(".grid > div > div section")];
+    expect(nested).toHaveLength(2);
+    for (const section of nested) {
+      // 正文层只剩 w-full（填满列），没有页面级的左右留白
+      expect(section.querySelector("[class*='px-4']")).toBeNull();
+      // 色块层退化成 page 宽：mx-auto + 页宽变量，而不是 w-full 通栏
+      expect(section.firstElementChild!.className).toContain("mx-auto");
+    }
+  });
+
+  it("没有列时整段不渲染", () => {
+    const { container } = renderSections(
+      parseSections([{ type: "group", settings: {}, blocks: [] }]),
+    );
+    expect(container.querySelector(".grid")).toBeNull();
+  });
+});
+
+/*
+ * 页面标题以前是**自动**渲染的（非首页 + 首段不是 hero 就出 h1），标题出不出现
+ * 取决于第一段碰巧是什么类型，租户在树上看不见也删不掉。现在它是一段普通 section。
+ */
+describe("页面标题段", () => {
+  it("文案留空时回落到页面自己的标题与描述", () => {
+    renderSections(parseSections([{ type: "page-header", settings: {} }]));
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "快速开始",
+    );
+  });
+
+  it("段上填了就盖过页面标题", () => {
+    renderSections(
+      parseSections([
+        {
+          type: "page-header",
+          settings: { headline: "上手指南", subhead: "五分钟跑起来" },
+        },
+      ]),
+    );
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "上手指南",
+    );
+    expect(screen.getByText("五分钟跑起来")).toBeTruthy();
+  });
+
+  // 不加这一段就没有 h1——标题不再凭第一段的类型自动冒出来
+  it("没有这一段就不出 h1", () => {
+    renderSections(
+      parseSections([{ type: "prose", settings: { body_md: "正文" } }]),
+    );
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+  });
+});

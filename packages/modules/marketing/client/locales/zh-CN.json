@@ -267,11 +267,16 @@
     "settingsDescription": "品牌、导航与站点级发布开关。",
     "create": "新建页面",
     "createPageTitle": "新建页面",
-    "createPageDescription": "首页用 home；文档页路径为 /docs/:slug（目录页 slug=index）。",
+    "createPageDescription": "首页用 home；其它页用路径 slug（可用多段，如 docs、docs/quickstart）。",
     "edit": "元数据",
     "editPageTitle": "编辑页面元数据",
     "editPageDescription": "标题与 SEO 描述；区块内容请在 Theme Editor 中编排。",
-    "fieldPageNavHint": "覆盖站点默认的同级页面菜单显示方式。",
+    "duplicate": "复制",
+    "duplicatePageTitle": "复制页面",
+    "duplicatePageDescription": "从「{{title}}」（{{locale}}）复制一份：区块结构照搬，文案先沿用原文当翻译起点，复制出来的是草稿。",
+    "duplicateLocaleHint": "沿用同一个 slug，两页自动互为译文（hreflang / 语言切换器据此生成）。",
+    "duplicateSlugSuffixHint": "该语言下已有这篇内容，复制件会自动加 -copy 后缀，因而不与原页面互为译文。",
+    "localeTaken": "已建",
     "save": "保存",
     "publish": "发布",
     "unpublish": "取消发布",
@@ -282,6 +287,8 @@
     "statusPublished": "已发布",
     "statusDraft": "草稿",
     "fieldSiteName": "站点名称",
+    "fieldSiteNameLocale": "站点名称的语言",
+    "fieldSiteNameHint": "与页头文案同口径：每种语言各填一名；未译的语言回落主语言。",
     "fieldTagline": "标语",
     "fieldLogoUrl": "Logo URL",
     "fieldPrimaryColor": "主色",
@@ -290,10 +297,8 @@
     "fieldKind": "类型",
     "kindHome": "首页",
     "kindPage": "自定义页",
-    "kindDoc": "文档",
     "fieldSlug": "路径 slug",
-    "slugHintDoc": "index → /docs；其它 → /docs/{slug}",
-    "slugHintPage": "例如 about → /about",
+    "slugHintPage": "例如 about → /about；docs/quickstart → /docs/quickstart",
     "fieldTitle": "标题",
     "fieldDescription": "SEO 描述",
     "fieldBodyMd": "Markdown 正文",
@@ -312,13 +317,37 @@
     "toastPagePublished": "页面已发布",
     "toastPageUnpublished": "已取消发布",
     "toastPagePublishFailed": "发布状态更新失败",
+    "toastPageDuplicated": "页面已复制",
+    "toastPageDuplicateFailed": "复制页面失败",
     "toastPageDeleted": "页面已删除",
     "toastPageDeleteFailed": "删除页面失败",
     "chromeMovedHint": "页头、页脚与页面区块在 Theme Editor 里编辑；Logo、主色与字体在「系统管理 → 品牌」。",
     "deleteConfirmTitle": "删除该页面？",
     "deleteConfirmDescription": "「{{title}}」及其全部区块将被永久删除，此操作不可撤销。",
     "fieldLogoUrlPlaceholder": "默认使用上方的品牌 Logo",
-    "fieldLogoUrlHint": "留空即跟随「品牌」里上传的 Logo；只有官网想用不同版本（横版 / 深色版）时才填。"
+    "fieldLogoUrlHint": "留空即跟随「品牌」里上传的 Logo；只有官网想用不同版本（横版 / 深色版）时才填。",
+    "fieldLocale": "语言",
+    "localeHint": "同一个 slug 每种语言各建一页；主语言的 URL 不带前缀，其余为 /{locale}/…",
+    "fieldDefaultLocale": "主语言",
+    "fieldDefaultLocaleHint": "URL 上不带前缀的那一种；改动会影响已收录的链接。",
+    "fieldLocaleSwitcher": "显示语言切换按钮",
+    "fieldLocaleSwitcherHint": "全站生效：页头右侧出现语言切换器，只列出本页真的有已发布译文的语言。"
+  },
+  "starter": {
+    "menu": "起步模板",
+    "apply": "应用站点模板",
+    "default": {
+      "label": "默认营销站",
+      "description": "页头、页脚、主题色与首页 / 文档 / 定价",
+      "login": "登录",
+      "cta": "免费开始"
+    },
+    "confirmTitle": "覆盖现有站点内容？",
+    "confirmBody": "将替换页头、页脚、主题色，并在主语言下创建或更新首页、文档与定价页。此操作不可撤销。",
+    "confirmAction": "应用",
+    "cancel": "取消",
+    "toastApplied": "站点模板已应用",
+    "toastApplyFailed": "应用站点模板失败"
   },
   "editor": {
     "title": "Theme Editor",
@@ -328,30 +357,45 @@
     "addSection": "添加区块",
     "addBlock": "添加子项",
     "blockCount": "{{count}} 个子项",
-    "emptySections": "还没有区块，从下方添加或套用预设。",
+    "emptySections": "还没有区块，从下方添加，或用顶部工具栏的「预设」一键铺版式。",
     "preview": "预览",
     "selectSection": "在左侧选择区块以编辑设置。",
     "moveUp": "上移",
     "moveDown": "下移",
     "remove": "删除",
+    "moveTo": "移动到",
+    "moveToPage": "移出到页面顶层",
+    "moveIntoColumn": "{{section}} · 第 {{index}} 列",
+    "dropIntoColumn": "拖到这里放进本列",
     "toastSaved": "页面与页头页脚已保存",
+    "toastSaveFailed": "保存失败，请重试",
+    "publishChrome": "发布页头页脚",
+    "toastChromePublished": "页头页脚已上线",
+    "toastChromePublishFailed": "发布页头页脚失败",
+    "publishContent": "发布页面更改",
+    "toastContentPublished": "页面内容已上线",
+    "toastContentPublishFailed": "发布页面内容失败",
+    "uploadImage": "上传",
+    "toastImageUploaded": "图片已上传",
+    "toastImageUploadFailed": "图片上传失败",
     "applyPreset": "套用页面预设",
+    "presets": "预设",
     "presetConfirmTitle": "覆盖当前页面内容？",
     "presetConfirmBody": "套用预设会替换本页现有的全部区块，页头页脚与主题不受影响。此操作在保存前可以直接离开放弃。",
     "presetConfirmApply": "覆盖并套用",
     "fieldFontFamily": "字体",
-    "fieldPageNav": "同级页面菜单",
-    "fieldPageNavHint": "文档正文页这类二级页面上，列出同级页面的侧边菜单；单个页面可以覆盖这里的默认值。",
     "group": {
       "content": "内容",
       "buttons": "按钮",
       "heading": "抬头",
       "layout": "布局",
       "brand": "品牌",
+      "nav": "导航",
       "headerArea": "页头",
       "template": "页面区块",
       "footerArea": "页脚",
-      "section": "区块版式"
+      "section": "区块版式",
+      "page": "页面"
     },
     "info": {
       "markdown": "支持 Markdown 语法。",
@@ -363,7 +407,17 @@
       "padding": "桌面端数值；窄屏自动按比例收窄",
       "anchor": "留空则不生成；填 pricing 后可用 /#pricing 链到此区块",
       "content_width": "「通栏」+「不限宽」可做满屏大图；通栏色带一般配「跟随页宽」。",
-      "spacing": "与相邻区块之间的距离；「继承」跟随站点的区块间距。"
+      "spacing": "与相邻区块之间的距离；「继承」跟随站点的区块间距。",
+      "locale_switcher_site": "语言切换器是站点级设置，在「官网 → 设置」里开关。",
+      "show_site_nav": "列出已发布的一级页面（不嵌套在其他页面下）。下方的自定义导航链接仍会排在它们后面。",
+      "columns_layout": "只在桌面生效，窄屏一律上下堆叠。比例与列数对不上时按列数等分。",
+      "sticky_column": "另一列滚动时这一列留在视野里，适合放菜单或简短摘要。",
+      "stack_order": "只影响窄屏——桌面永远按从左到右的顺序。",
+      "page_title": "显示在浏览器标签与搜索结果里；「页面标题」段留空时也用它。",
+      "page_description": "搜索结果里的摘要，建议 150 字以内。",
+      "page_path": "改地址请回页面列表——换 slug 等于换 URL。",
+      "page_header_headline": "留空则用页面设置里的标题。",
+      "page_header_subhead": "留空则用页面设置里的描述。"
     },
     "unit": {
       "columns": "列",
@@ -378,13 +432,18 @@
       "subheading": "区块描述",
       "body": "正文",
       "body_md": "正文（Markdown）",
-      "aside_md": "侧栏（Markdown）",
       "align": "对齐",
       "width": "宽度",
       "columns": "列数",
+      "columns_layout": "列宽",
+      "column_gap": "列间距",
+      "align_items": "列对齐",
+      "sticky_column": "滚动时吸顶",
+      "stack_order": "窄屏顺序",
       "layout": "版式",
       "card_style": "卡片样式",
-      "media_position": "侧栏位置",
+      "page_menu_source": "菜单来源",
+      "page_menu_style": "展示样式",
       "href": "链接",
       "label": "文案",
       "group": "分组",
@@ -415,9 +474,9 @@
       "show_glow": "显示光晕背景",
       "show_logo": "显示 Logo",
       "show_site_name": "显示站点名",
+      "show_site_nav": "显示全站导航",
       "sticky": "滚动时吸顶",
-      "show_login": "显示登录入口",
-      "login_label": "登录按钮文案",
+      "header_layout": "导航布局",
       "blurb": "简介",
       "copyright": "版权信息",
       "padding_top": "上间距",
@@ -434,6 +493,10 @@
         "left": "左对齐",
         "center": "居中"
       },
+      "header_layout": {
+        "split": "品牌左 · 导航旁 · 按钮右",
+        "centered": "导航居中"
+      },
       "width": {
         "page": "页面宽度",
         "full": "通栏"
@@ -442,9 +505,13 @@
         "bordered": "描边卡片",
         "plain": "无边框"
       },
-      "media_position": {
-        "start": "左侧",
-        "end": "右侧"
+      "page_menu_source": {
+        "children": "本页的子页面",
+        "siblings": "同级页面"
+      },
+      "page_menu_style": {
+        "list": "列表",
+        "cards": "卡片"
       },
       "layout": {
         "split": "左右分栏",
@@ -466,18 +533,29 @@
         "default": "跟随页宽",
         "narrow": "窄栏",
         "full": "不限宽"
+      },
+      "columns_layout": {
+        "1_1": "等分（1:1）",
+        "1_2": "窄 + 宽（1:2）",
+        "2_1": "宽 + 窄（2:1）",
+        "1_3": "侧栏 + 正文（1:3）",
+        "3_1": "正文 + 侧栏（3:1）",
+        "1_1_1": "三等分"
+      },
+      "align_items": {
+        "start": "顶部对齐",
+        "stretch": "等高"
+      },
+      "stack_order": {
+        "auto": "按原顺序",
+        "first": "排到最前",
+        "last": "排到最后"
       }
     },
     "font": {
       "system": "系统无衬线",
       "serif": "衬线",
       "mono": "等宽"
-    },
-    "pageNav": {
-      "inherit": "跟随站点设置",
-      "left": "显示在左侧",
-      "right": "显示在右侧",
-      "off": "不显示"
     },
     "sectionType": {
       "header": "页头",
@@ -487,14 +565,17 @@
       "steps": "步骤",
       "spec-list": "规格表",
       "cards": "卡片组",
+      "page-menu": "页面菜单",
       "pricing": "定价套餐",
       "faq": "常见问题",
       "prose": "富文本",
-      "split": "左右分栏",
-      "band": "通栏 CTA"
+      "group": "分栏",
+      "band": "通栏 CTA",
+      "page-header": "页面标题"
     },
     "blockType": {
       "card": "卡片",
+      "column": "列",
       "stat": "数据",
       "feature": "特性",
       "step": "步骤",
@@ -506,6 +587,7 @@
     },
     "tabContent": "内容",
     "tabLayout": "版式",
+    "noSettings": "这一项没有可配置的选项，样子完全跟随主题。",
     "inherit": "继承",
     "fieldPageWidth": "页面宽度",
     "fieldSectionSpacing": "区块间距",
@@ -519,7 +601,16 @@
       "desktop": "桌面",
       "tablet": "平板",
       "mobile": "手机"
-    }
+    },
+    "locale": {
+      "missing": "该语言还没有这一页，去页面列表新建"
+    },
+    "switchPage": "切换页面",
+    "leaveConfirmTitle": "放弃未保存的改动？",
+    "leaveConfirmBody": "本页还有没保存的改动，离开后会丢失。",
+    "leaveConfirmAction": "放弃并离开",
+    "pageMeta": "页面设置",
+    "pagePath": "页面地址"
   },
   "seo": {
     "home": {
@@ -647,15 +738,21 @@
       "c2_title": "使用指南",
       "c2_body": "常见场景的完整操作步骤。"
     },
+    "docs_detail": {
+      "label": "文档详情页",
+      "title": "指南",
+      "description": "左侧同级菜单 + 右侧 Markdown 正文的文档页。",
+      "body_md": "## 开始使用\n\n把这里换成你的正文。同级已发布页面会自动出现在左侧菜单。"
+    },
     "about": {
       "label": "关于我们",
       "title": "关于我们",
       "description": "我们是谁，为什么做这件事。",
       "hero_headline": "关于我们",
       "hero_subhead": "一句话讲清楚你们是谁、在为谁解决什么问题。",
-      "split_title": "我们在做什么",
-      "split_body": "用两三句话说明产品的由来与目标客户，避免空泛的愿景描述。",
-      "split_aside": "### 一些事实\n\n- 成立于 20XX 年\n- 服务 XXX 家客户\n- 团队分布在 X 个城市",
+      "intro_title": "我们做什么",
+      "intro_body": "两三句话说清产品从哪来、给谁用。别写空泛的愿景。",
+      "intro_aside": "### 几个事实\n\n- 成立于 20XX 年\n- 服务 XXX 家客户\n- 团队分布在 X 个城市",
       "values_heading": "我们相信什么",
       "v1_title": "把事做对",
       "v1_body": "宁可少做一个功能，也不交付半成品。",

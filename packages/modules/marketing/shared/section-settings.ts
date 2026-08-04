@@ -6,8 +6,141 @@
  * 怎么解析」，section 注册表在 `section-registry.ts`。
  */
 
-export type SettingValue = string | number | boolean;
+/**
+ * 多语言文案值。
+ *
+ * 存储层保留整张表，渲染层用 `localizeSettingValues` 压成当前语言的字符串——
+ * 所以除编辑器外的所有调用方看到的 `settings[id]` 仍然是普通 string。
+ *
+ * 与页面的分语言存储（`MarketingPage` 一语言一行）分工不同：页面是**整篇各写各的**，
+ * 页头 / 页脚这种全站共用、结构必须一致的区域则是**逐字段**翻译（同 Shopify）。
+ */
+export interface LocalizedText {
+  /** locale → 文案；缺的语言在渲染期回落站点默认语言。 */
+  __i18n: Record<string, string>;
+}
+
+export type SettingValue = string | number | boolean | LocalizedText;
 export type SettingValues = Record<string, SettingValue>;
+
+export function isLocalizedText(value: unknown): value is LocalizedText {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof (value as LocalizedText).__i18n === "object" &&
+    (value as LocalizedText).__i18n !== null &&
+    !Array.isArray((value as LocalizedText).__i18n)
+  );
+}
+
+/** 只保留字符串项，顺带丢掉脏数据。 */
+function cleanLocalizedText(raw: Record<string, unknown>): LocalizedText {
+  const out: Record<string, string> = {};
+  for (const [locale, text] of Object.entries(raw)) {
+    if (typeof text === "string") out[locale] = text;
+  }
+  return { __i18n: out };
+}
+
+/**
+ * 取某语言的文案：当前语言 → 站点默认语言 → 表里任意非空项。
+ *
+ * 最后那档回落是有意的：租户只填了一种语言时，其它语言页面应该显示那份原文，
+ * 而不是留白（同 Shopify 未翻译即回落主语言）。
+ */
+export function resolveLocalizedText(
+  value: LocalizedText,
+  locale: string,
+  fallbackLocale: string,
+): string {
+  const table = value.__i18n;
+  const current = table[locale];
+  if (typeof current === "string" && current !== "") return current;
+  const fallback = table[fallbackLocale];
+  if (typeof fallback === "string" && fallback !== "") return fallback;
+  for (const text of Object.values(table)) {
+    if (text !== "") return text;
+  }
+  return "";
+}
+
+/**
+ * 编辑器读某一语言的原文（**不回落**——回落会让人以为已经翻译过了）。
+ *
+ * 存量的纯字符串值视为「站点默认语言的原文」，所以只在编辑默认语言时才显示。
+ */
+export function readLocalizedSetting(
+  value: SettingValue | undefined,
+  locale: string,
+  defaultLocale: string,
+): string {
+  if (isLocalizedText(value)) return value.__i18n[locale] ?? "";
+  if (typeof value === "string") return locale === defaultLocale ? value : "";
+  return "";
+}
+
+/**
+ * 编辑器写某一语言的原文。
+ *
+ * 只有一种语言的站点保持**纯字符串**存储不变——不主动把所有字段升级成
+ * `__i18n`，单语言站点的数据形状因此和以前逐字节一致。真的填了第二种语言时
+ * 才升级，并把原来的字符串归到默认语言名下。
+ */
+export function writeLocalizedSetting(
+  current: SettingValue | undefined,
+  locale: string,
+  defaultLocale: string,
+  next: string,
+): SettingValue {
+  if (isLocalizedText(current)) {
+    return { __i18n: { ...current.__i18n, [locale]: next } };
+  }
+  const existing = typeof current === "string" ? current : "";
+  if (locale === defaultLocale) return next;
+  return { __i18n: { [defaultLocale]: existing, [locale]: next } };
+}
+
+/** 把一组设置值压成当前语言（渲染路径专用）。 */
+export function localizeSettingValues(
+  values: SettingValues,
+  locale: string,
+  fallbackLocale: string,
+): SettingValues {
+  let out: SettingValues | null = null;
+  for (const [id, value] of Object.entries(values)) {
+    if (!isLocalizedText(value)) continue;
+    out ??= { ...values };
+    out[id] = resolveLocalizedText(value, locale, fallbackLocale);
+  }
+  return out ?? values;
+}
+
+/**
+ * 站点级文案（站名等）：纯字符串或 `__i18n`。
+ *
+ * 公开面 / 预览压成当前语言；管理端保留整张表给编辑器。
+ */
+export function localizeSiteText(
+  value: unknown,
+  locale: string,
+  fallbackLocale: string,
+): string {
+  if (isLocalizedText(value)) {
+    return resolveLocalizedText(value, locale, fallbackLocale);
+  }
+  if (typeof value === "string") return value;
+  return "";
+}
+
+/**
+ * 读路径：把库里的站名收成合法存储形状（脏对象不炸整站）。
+ */
+export function parseSiteNameValue(value: unknown): string | LocalizedText {
+  if (typeof value === "string") return value;
+  if (isLocalizedText(value)) return cleanLocalizedText(value.__i18n);
+  return "";
+}
 
 export interface SettingOption {
   value: string;
@@ -23,33 +156,47 @@ interface SettingBase {
   info?: string;
 }
 
+/**
+ * 文案类设置项共有的开关：是否可逐语言填写。
+ *
+ * 默认**可以**——文案类字段绝大多数都是给人读的。少数存的是技术标识
+ * （锚点 id、代码片段），显式关掉。
+ */
+interface LocalizableSetting {
+  localizable?: false;
+}
+
 /** 有值的设置项（落到 `settings[id]`）。 */
 export type InputSettingDef =
-  | (SettingBase & {
-      type: "text";
-      default?: string;
-      placeholder?: string;
-      required?: boolean;
-    })
-  | (SettingBase & {
-      type: "textarea";
-      default?: string;
-      rows?: number;
-      placeholder?: string;
-    })
-  | (SettingBase & {
-      type: "richtext";
-      default?: string;
-      rows?: number;
-      placeholder?: string;
-    })
-  | (SettingBase & {
-      /** 每行一条的纯文本列表（要点、清单）。 */
-      type: "list";
-      default?: string;
-      rows?: number;
-      placeholder?: string;
-    })
+  | (SettingBase &
+      LocalizableSetting & {
+        type: "text";
+        default?: string;
+        placeholder?: string;
+        required?: boolean;
+      })
+  | (SettingBase &
+      LocalizableSetting & {
+        type: "textarea";
+        default?: string;
+        rows?: number;
+        placeholder?: string;
+      })
+  | (SettingBase &
+      LocalizableSetting & {
+        type: "richtext";
+        default?: string;
+        rows?: number;
+        placeholder?: string;
+      })
+  | (SettingBase &
+      LocalizableSetting & {
+        /** 每行一条的纯文本列表（要点、清单）。 */
+        type: "list";
+        default?: string;
+        rows?: number;
+        placeholder?: string;
+      })
   | (SettingBase & { type: "url"; default?: string; placeholder?: string })
   | (SettingBase & { type: "image"; default?: string; placeholder?: string })
   | (SettingBase & {
@@ -92,6 +239,19 @@ export type SettingDef = InputSettingDef | LayoutSettingDef;
 
 export function isInputSetting(def: SettingDef): def is InputSettingDef {
   return def.type !== "header" && def.type !== "paragraph";
+}
+
+/** 该设置项能否逐语言填写（编辑器据此渲染多语言输入）。 */
+export function isLocalizableSetting(def: InputSettingDef): boolean {
+  switch (def.type) {
+    case "text":
+    case "textarea":
+    case "richtext":
+    case "list":
+      return def.localizable !== false;
+    default:
+      return false;
+  }
 }
 
 /**
@@ -168,7 +328,12 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
     case "textarea":
     case "richtext":
     case "list":
-      return typeof raw === "string" ? raw : (def.default ?? "");
+      if (typeof raw === "string") return raw;
+      // 多语言表：只有声明了可本地化的字段才认，否则按脏数据回落
+      if (isLocalizableSetting(def) && isLocalizedText(raw)) {
+        return cleanLocalizedText(raw.__i18n);
+      }
+      return def.default ?? "";
     case "url":
     case "image":
       return typeof raw === "string" ? raw.trim() : (def.default ?? "");
@@ -247,7 +412,39 @@ function withLegacyAliases(
     }
   }
 
+  // header 旧登录入口 → secondary 按钮（href 曾写死 /login）
+  if (
+    (raw.login_label !== undefined || raw.show_login !== undefined) &&
+    raw.secondary_label === undefined &&
+    raw.secondary_href === undefined
+  ) {
+    if (raw.show_login === false) {
+      // 显式关掉：写入空串，避免落到 schema 的 Login /login 默认值
+      patch("secondary_label", "");
+      patch("secondary_href", "");
+    } else {
+      // 空 login_label 不写入，让 schema 默认 "Login" 生效（旧渲染端也是如此回落）
+      const label = raw.login_label;
+      if (typeof label === "string" && label.trim() !== "") {
+        patch("secondary_label", label);
+      } else if (isLocalizedText(label)) {
+        const hasText = Object.values(label.__i18n).some(
+          (text) => text.trim() !== "",
+        );
+        if (hasText) patch("secondary_label", label);
+      }
+      patch("secondary_href", "/login");
+    }
+  }
+
   return patched ?? raw;
+}
+
+function isBlankSetting(value: SettingValue): boolean {
+  if (isLocalizedText(value)) {
+    return Object.values(value.__i18n).every((text) => text.trim() === "");
+  }
+  return String(value).trim() === "";
 }
 
 export function parseSettingValues(
@@ -262,7 +459,8 @@ export function parseSettingValues(
   for (const def of defs) {
     if (!isInputSetting(def)) continue;
     const next = coerceSetting(def, raw[def.id]);
-    if (def.type === "text" && def.required && String(next).trim() === "") {
+    // 必填只要求「有一种语言填了」——逐语言强制会让加一门新语言变成批量报错
+    if (def.type === "text" && def.required && isBlankSetting(next)) {
       throw new Error("site.sections_invalid");
     }
     out[def.id] = next;

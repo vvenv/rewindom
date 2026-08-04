@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createSection, type SiteSection } from "../shared/section-schema.js";
+import {
+  createSection,
+  parseSections,
+  type SiteSection,
+} from "../shared/section-schema.js";
 
 import { renderSectionHtml } from "./ssr-sections.js";
 
@@ -44,5 +48,108 @@ describe("renderSectionHtml", () => {
   it("carries the gap for the section above it", () => {
     expect(renderSectionHtml(hero({}), 48)).toContain("--sec-gap:48px");
     expect(renderSectionHtml(hero({}))).toContain("--sec-gap:0px");
+  });
+});
+
+describe("容器段（group）", () => {
+  const pages = [
+    {
+      slug: "docs",
+      locale: "zh-CN",
+      kind: "page",
+      title: "文档",
+      description: "",
+      path: "/docs",
+      settings: {},
+    },
+    {
+      slug: "docs/a",
+      locale: "zh-CN",
+      kind: "page",
+      title: "A",
+      description: "",
+      path: "/docs/a",
+      settings: {},
+    },
+    {
+      slug: "docs/b",
+      locale: "zh-CN",
+      kind: "page",
+      title: "B",
+      description: "",
+      path: "/docs/b",
+      settings: {},
+    },
+  ] as never;
+
+  /** 文档版式：1:3 的容器段，左列同级菜单（吸顶）、右列正文。 */
+  function docsGroup(): SiteSection {
+    const [group] = parseSections([
+      {
+        type: "group",
+        settings: { columns_layout: "1:3" },
+        blocks: [
+          {
+            type: "column",
+            settings: { sticky: true },
+            sections: [
+              {
+                type: "page-menu",
+                settings: { source: "siblings", style: "list" },
+              },
+            ],
+          },
+          {
+            type: "column",
+            settings: {},
+            // 列里的「通栏」没有意义，应当被降级
+            sections: [
+              { type: "prose", settings: { body_md: "# Hi", width: "full" } },
+            ],
+          },
+        ],
+      },
+    ]);
+    return group!;
+  }
+
+  it("按比例渲染 12 栏，并把 sticky 落到列上", () => {
+    const html = renderSectionHtml(docsGroup(), 0, {
+      pages,
+      currentPath: "/docs/a",
+    });
+    expect(html).toContain('class="grp"');
+    expect(html).toContain("grp-span-3");
+    expect(html).toContain("grp-span-9");
+    expect(html).toContain("grp-sticky");
+    expect(html).toContain("--grp-gap:40px");
+  });
+
+  it("列里的子段走 contained：full 退化成 page，正文不再自带 gutter", () => {
+    const html = renderSectionHtml(docsGroup(), 0, {
+      pages,
+      currentPath: "/docs/a",
+    });
+    // 外层容器段自己仍是 page 宽；列里的 prose 声明了 full 也不该通栏
+    expect(html).not.toContain("sec-w-full");
+    expect(html).toContain("sec-c-contained");
+  });
+
+  it("同级菜单在列里渲染成真链接，当前页带 aria-current", () => {
+    const html = renderSectionHtml(docsGroup(), 0, {
+      pages,
+      currentPath: "/docs/a",
+    });
+    expect(html).toContain('href="/docs/b"');
+    expect(html).toMatch(
+      /aria-current="page"[^>]*>|<[^>]*aria-current="page"/u,
+    );
+  });
+
+  it("没有列时不渲染", () => {
+    const [empty] = parseSections([
+      { type: "group", settings: {}, blocks: [] },
+    ]);
+    expect(renderSectionHtml(empty!)).toBe("");
   });
 });

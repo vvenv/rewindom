@@ -267,11 +267,16 @@
     "settingsDescription": "Branding, navigation, and site-level publish switch.",
     "create": "New page",
     "createPageTitle": "New page",
-    "createPageDescription": "Use home for the landing page; docs use /docs/:slug (index → /docs).",
+    "createPageDescription": "Use home for the landing page; other pages use a path slug (nested ok: docs, docs/quickstart).",
     "edit": "Metadata",
     "editPageTitle": "Edit page metadata",
     "editPageDescription": "Title and SEO description. Arrange sections in the Theme Editor.",
-    "fieldPageNavHint": "Overrides the site-wide sibling page menu setting.",
+    "duplicate": "Duplicate",
+    "duplicatePageTitle": "Duplicate page",
+    "duplicatePageDescription": "Copies “{{title}}” ({{locale}}): same sections, text seeded from the original as a starting point for translation. The copy is created as a draft.",
+    "duplicateLocaleHint": "Keeps the same slug, so both pages automatically become translations of each other (hreflang and the language switcher follow).",
+    "duplicateSlugSuffixHint": "This language already has this page, so the copy gets a -copy suffix and is not treated as a translation of the original.",
+    "localeTaken": "exists",
     "save": "Save",
     "publish": "Publish",
     "unpublish": "Unpublish",
@@ -282,6 +287,8 @@
     "statusPublished": "Published",
     "statusDraft": "Draft",
     "fieldSiteName": "Site name",
+    "fieldSiteNameLocale": "Language for site name",
+    "fieldSiteNameHint": "Same as header labels: one name per language. Empty translations fall back to the primary language.",
     "fieldTagline": "Tagline",
     "fieldLogoUrl": "Logo URL",
     "fieldPrimaryColor": "Primary color",
@@ -290,10 +297,8 @@
     "fieldKind": "Kind",
     "kindHome": "Home",
     "kindPage": "Custom page",
-    "kindDoc": "Doc",
     "fieldSlug": "Slug",
-    "slugHintDoc": "index → /docs; others → /docs/{slug}",
-    "slugHintPage": "e.g. about → /about",
+    "slugHintPage": "e.g. about → /about; docs/quickstart → /docs/quickstart",
     "fieldTitle": "Title",
     "fieldDescription": "SEO description",
     "fieldBodyMd": "Markdown body",
@@ -312,13 +317,37 @@
     "toastPagePublished": "Page published",
     "toastPageUnpublished": "Page unpublished",
     "toastPagePublishFailed": "Failed to update publish status",
+    "toastPageDuplicated": "Page duplicated",
+    "toastPageDuplicateFailed": "Failed to duplicate page",
     "toastPageDeleted": "Page deleted",
     "toastPageDeleteFailed": "Failed to delete page",
     "chromeMovedHint": "Header, footer and page sections live in the Theme Editor; logo, accent colour and font live under System → Branding.",
     "deleteConfirmTitle": "Delete this page?",
     "deleteConfirmDescription": "“{{title}}” and all of its sections will be permanently deleted. This cannot be undone.",
     "fieldLogoUrlPlaceholder": "Defaults to the brand logo above",
-    "fieldLogoUrlHint": "Leave empty to follow the logo uploaded under Branding; set it only when the site needs a different version (wordmark, dark variant)."
+    "fieldLogoUrlHint": "Leave empty to follow the logo uploaded under Branding; set it only when the site needs a different version (wordmark, dark variant).",
+    "fieldLocale": "Language",
+    "localeHint": "Create one page per language under the same slug. The primary language has no URL prefix; others live under /{locale}/…",
+    "fieldDefaultLocale": "Primary language",
+    "fieldDefaultLocaleHint": "The one served without a URL prefix. Changing it affects already-indexed links.",
+    "fieldLocaleSwitcher": "Show language switcher",
+    "fieldLocaleSwitcherHint": "Site-wide: adds a language switcher to the header, listing only the languages each page is actually published in."
+  },
+  "starter": {
+    "menu": "Starter",
+    "apply": "Apply site template",
+    "default": {
+      "label": "Default marketing site",
+      "description": "Header, footer, theme colors, home, docs and pricing",
+      "login": "Sign in",
+      "cta": "Start free"
+    },
+    "confirmTitle": "Replace existing site content?",
+    "confirmBody": "This replaces the header, footer, theme colors, and creates or updates the home, docs and pricing pages in the primary language. This cannot be undone.",
+    "confirmAction": "Apply",
+    "cancel": "Cancel",
+    "toastApplied": "Site template applied",
+    "toastApplyFailed": "Failed to apply site template"
   },
   "editor": {
     "title": "Theme Editor",
@@ -328,30 +357,45 @@
     "addSection": "Add section",
     "addBlock": "Add block",
     "blockCount": "{{count}} blocks",
-    "emptySections": "No sections yet. Add one below or apply a preset.",
+    "emptySections": "No sections yet. Add one below, or use Presets in the toolbar.",
     "preview": "Preview",
     "selectSection": "Select a section on the left to edit its settings.",
     "moveUp": "Move up",
     "moveDown": "Move down",
     "remove": "Remove",
+    "moveTo": "Move to",
+    "moveToPage": "Out to page level",
+    "moveIntoColumn": "{{section}} · column {{index}}",
+    "dropIntoColumn": "Drop here to put it in this column",
     "toastSaved": "Page, header and footer saved",
+    "toastSaveFailed": "Save failed. Please try again.",
+    "publishChrome": "Publish header & footer",
+    "toastChromePublished": "Header and footer are now live",
+    "toastChromePublishFailed": "Failed to publish header and footer",
+    "publishContent": "Publish page changes",
+    "toastContentPublished": "Page content is now live",
+    "toastContentPublishFailed": "Failed to publish page content",
+    "uploadImage": "Upload",
+    "toastImageUploaded": "Image uploaded",
+    "toastImageUploadFailed": "Image upload failed",
     "applyPreset": "Apply page preset",
+    "presets": "Presets",
     "presetConfirmTitle": "Replace this page's content?",
     "presetConfirmBody": "Applying a preset replaces every section on this page. Header, footer and theme are untouched, and nothing is written until you save.",
     "presetConfirmApply": "Replace and apply",
     "fieldFontFamily": "Font",
-    "fieldPageNav": "Sibling page menu",
-    "fieldPageNavHint": "Side menu listing sibling pages on second-level pages such as doc articles; individual pages can override this default.",
     "group": {
       "content": "Content",
       "buttons": "Buttons",
       "heading": "Heading",
       "layout": "Layout",
       "brand": "Brand",
+      "nav": "Navigation",
       "headerArea": "Header",
       "template": "Page sections",
       "footerArea": "Footer",
-      "section": "Section layout"
+      "section": "Section layout",
+      "page": "Page"
     },
     "info": {
       "markdown": "Markdown is supported.",
@@ -363,7 +407,17 @@
       "padding": "Desktop value; scaled down on narrow screens",
       "anchor": "Leave blank for none. With \"pricing\", link here via /#pricing",
       "content_width": "Full bleed + unconstrained gives edge-to-edge media; colored bands usually keep content at page width.",
-      "spacing": "Distance to the neighbouring section; “Inherit” follows the site-wide section spacing."
+      "spacing": "Distance to the neighbouring section; “Inherit” follows the site-wide section spacing.",
+      "locale_switcher_site": "The language switcher is a site-wide setting, toggled under Site → Settings.",
+      "show_site_nav": "Lists published top-level pages (not nested under another page). Custom nav links below still appear after them.",
+      "columns_layout": "Applies on desktop; columns stack on narrow screens. Ratios that do not match the column count fall back to equal widths.",
+      "sticky_column": "The column stays in view while the other column scrolls. Best for a menu or a short summary.",
+      "stack_order": "Only affects narrow screens, where columns stack vertically.",
+      "page_title": "Shown in the browser tab and search results; the page-header section falls back to it.",
+      "page_description": "The snippet in search results; keep it under ~150 characters.",
+      "page_path": "Change the address from the page list — a new slug means a new URL.",
+      "page_header_headline": "Leave empty to use the title from page settings.",
+      "page_header_subhead": "Leave empty to use the description from page settings."
     },
     "unit": {
       "columns": "cols",
@@ -378,13 +432,18 @@
       "subheading": "Section description",
       "body": "Body",
       "body_md": "Body (Markdown)",
-      "aside_md": "Aside (Markdown)",
       "align": "Alignment",
       "width": "Width",
       "columns": "Columns",
+      "columns_layout": "Column widths",
+      "column_gap": "Gap between columns",
+      "align_items": "Column alignment",
+      "sticky_column": "Stick while scrolling",
+      "stack_order": "Order on narrow screens",
       "layout": "Layout",
       "card_style": "Card style",
-      "media_position": "Aside position",
+      "page_menu_source": "Menu source",
+      "page_menu_style": "Display style",
       "href": "Link",
       "label": "Label",
       "group": "Group",
@@ -415,9 +474,9 @@
       "show_glow": "Show glow backdrop",
       "show_logo": "Show logo",
       "show_site_name": "Show site name",
+      "show_site_nav": "Show site navigation",
       "sticky": "Stick to top on scroll",
-      "show_login": "Show login link",
-      "login_label": "Login button label",
+      "header_layout": "Navigation layout",
       "blurb": "Blurb",
       "copyright": "Copyright line",
       "padding_top": "Top padding",
@@ -434,6 +493,10 @@
         "left": "Left",
         "center": "Center"
       },
+      "header_layout": {
+        "split": "Brand left · nav beside · actions right",
+        "centered": "Centered navigation"
+      },
       "width": {
         "page": "Page width",
         "full": "Full bleed"
@@ -442,9 +505,13 @@
         "bordered": "Bordered",
         "plain": "Plain"
       },
-      "media_position": {
-        "start": "Left",
-        "end": "Right"
+      "page_menu_source": {
+        "children": "Child pages of this page",
+        "siblings": "Sibling pages"
+      },
+      "page_menu_style": {
+        "list": "List",
+        "cards": "Cards"
       },
       "layout": {
         "split": "Split",
@@ -466,18 +533,29 @@
         "default": "Match page",
         "narrow": "Narrow",
         "full": "Unconstrained"
+      },
+      "columns_layout": {
+        "1_1": "Equal (1:1)",
+        "1_2": "Narrow + wide (1:2)",
+        "2_1": "Wide + narrow (2:1)",
+        "1_3": "Sidebar + content (1:3)",
+        "3_1": "Content + sidebar (3:1)",
+        "1_1_1": "Three equal columns"
+      },
+      "align_items": {
+        "start": "Top",
+        "stretch": "Equal height"
+      },
+      "stack_order": {
+        "auto": "Keep order",
+        "first": "Move first",
+        "last": "Move last"
       }
     },
     "font": {
       "system": "System sans",
       "serif": "Serif",
       "mono": "Monospace"
-    },
-    "pageNav": {
-      "inherit": "Follow site setting",
-      "left": "Show on the left",
-      "right": "Show on the right",
-      "off": "Hidden"
     },
     "sectionType": {
       "header": "Header",
@@ -487,14 +565,17 @@
       "steps": "Steps",
       "spec-list": "Spec list",
       "cards": "Cards",
+      "page-menu": "Page menu",
       "pricing": "Pricing",
       "faq": "FAQ",
       "prose": "Rich text",
-      "split": "Split",
-      "band": "CTA band"
+      "group": "Columns",
+      "band": "CTA band",
+      "page-header": "Page title"
     },
     "blockType": {
       "card": "Card",
+      "column": "Column",
       "stat": "Stat",
       "feature": "Feature",
       "step": "Step",
@@ -506,6 +587,7 @@
     },
     "tabContent": "Content",
     "tabLayout": "Layout",
+    "noSettings": "Nothing to configure here — this one takes its look from the theme.",
     "inherit": "Inherit",
     "fieldPageWidth": "Page width",
     "fieldSectionSpacing": "Section spacing",
@@ -519,7 +601,16 @@
       "desktop": "Desktop",
       "tablet": "Tablet",
       "mobile": "Mobile"
-    }
+    },
+    "locale": {
+      "missing": "This page has no version in that language yet — create one from the page list"
+    },
+    "switchPage": "Switch page",
+    "leaveConfirmTitle": "Leave without saving?",
+    "leaveConfirmBody": "This page has unsaved changes. Leaving now discards them.",
+    "leaveConfirmAction": "Discard and leave",
+    "pageMeta": "Page settings",
+    "pagePath": "Page path"
   },
   "seo": {
     "home": {
@@ -647,15 +738,21 @@
       "c2_title": "Guides",
       "c2_body": "Step-by-step walkthroughs for common scenarios."
     },
+    "docs_detail": {
+      "label": "Docs article",
+      "title": "Guide",
+      "description": "A docs page with sibling nav and markdown body.",
+      "body_md": "## Getting started\n\nReplace this with your guide. Sibling pages appear in the left menu automatically when published."
+    },
     "about": {
       "label": "About us",
       "title": "About us",
       "description": "Who we are and why we build this.",
       "hero_headline": "About us",
       "hero_subhead": "One sentence on who you are and whose problem you solve.",
-      "split_title": "What we do",
-      "split_body": "Two or three sentences on where the product came from and who it is for. Skip the vague vision statement.",
-      "split_aside": "### A few facts\n\n- Founded in 20XX\n- Serving XXX customers\n- Team across X cities",
+      "intro_title": "What we do",
+      "intro_body": "Two or three sentences on where the product came from and who it is for. Skip the vague vision statement.",
+      "intro_aside": "### A few facts\n\n- Founded in 20XX\n- Serving XXX customers\n- Team across X cities",
       "values_heading": "What we believe",
       "v1_title": "Do it properly",
       "v1_body": "We would rather ship one fewer feature than ship a half-built one.",

@@ -32,7 +32,6 @@ import {
   PRICING_FAQ,
   SITE,
   SITE_FOOTER_GROUPS,
-  SITE_NAV,
   TECH_STACK,
   type FeatureIconName,
 } from "../../../packages/modules/marketing/shared/index.js";
@@ -47,7 +46,10 @@ import {
 } from "../../../packages/modules/marketing/shared/section-schema.js";
 import { PRICING_PLANS } from "../../../packages/modules/platform/shared/pricing-plans.js";
 
-import type { MarketingPageKind } from "../../../packages/modules/marketing/shared/site-cms.js";
+import type {
+  MarketingPageKind,
+  MarketingPageSettings,
+} from "../../../packages/modules/marketing/shared/site-cms.js";
 
 /** 默认官网的 `FeatureIconName` → section schema 的图标白名单。 */
 const FEATURE_ICONS: Record<FeatureIconName, string> = {
@@ -311,24 +313,47 @@ function pricingSections(): SiteSection[] {
   ];
 }
 
-function docsIndexSections(docs: DocEntry[]): SiteSection[] {
+function docsIndexSections(_docs: DocEntry[]): SiteSection[] {
   return [
-    // 不给 heading：页面标题 / 描述已经由 page-head 渲染，写在这里就重复了
-    section(
-      "cards",
-      {
-        columns: 2,
-        card_style: "bordered",
-      },
-      docs.map((doc) => ({
-        type: "card",
-        settings: {
-          title: doc.title,
-          body: doc.description,
-          href: `/docs/${doc.slug}`,
+    // 动态子页面菜单：发布新文档页后目录自动出现，不用手填卡片
+    section("page-menu", {
+      source: "children",
+      style: "cards",
+      columns: 2,
+    }),
+  ];
+}
+
+/** 文档详情：1:3 group + 左 sticky siblings 菜单 + 右 narrow prose（对齐 page-presets）。 */
+function docsDetailSections(body: string): SiteSection[] {
+  const menu = section("page-menu", {
+    source: "siblings",
+    style: "list",
+    columns: 1,
+  });
+  const prose = section("prose", {
+    body_md: body,
+    content_width: "narrow",
+  });
+  const base = createSection("group");
+  return [
+    {
+      ...base,
+      settings: parseSettingValues(getSectionDefinition("group").settings, {
+        ...base.settings,
+        columns_layout: "1:3",
+      }),
+      blocks: [
+        {
+          ...createBlock("group", "column", { sticky: true }),
+          sections: [menu],
         },
-      })),
-    ),
+        {
+          ...createBlock("group", "column", {}),
+          sections: [prose],
+        },
+      ],
+    },
   ];
 }
 
@@ -342,6 +367,7 @@ async function upsertPage(
     title: string;
     description: string;
     sections: SiteSection[];
+    settings?: MarketingPageSettings;
     sort_order: number;
   },
 ): Promise<void> {
@@ -355,6 +381,7 @@ async function upsertPage(
           title: input.title,
           description: input.description,
           sections: input.sections,
+          settings: input.settings,
           sort_order: input.sort_order,
         })
       ).id
@@ -391,40 +418,42 @@ async function main(): Promise<void> {
       font_family: "system",
       logo_url: null,
     },
-    header: section(
-      "header",
-      {
-        show_logo: true,
-        show_site_name: true,
-        sticky: true,
-        show_login: true,
-        login_label: "登录",
-        primary_label: "免费开始",
-        primary_href: "/register",
-      },
-      SITE_NAV.map((link) => ({
-        type: "nav_link",
-        settings: { label: link.label, href: link.href },
-      })),
-    ),
-    footer: section(
-      "footer",
-      {
-        show_logo: true,
-        blurb: `${SITE.tagline}——${SITE.description}`,
-        copyright: `© ${new Date().getFullYear()} ${SITE.name}`,
-      },
-      SITE_FOOTER_GROUPS.flatMap((group) =>
-        group.links.map((link) => ({
-          type: "footer_link",
-          settings: {
-            group: group.label,
-            label: link.label,
-            href: link.href,
-          },
-        })),
+    header: [
+      section(
+        "header",
+        {
+          show_logo: true,
+          show_site_name: true,
+          sticky: true,
+          show_site_nav: true,
+          secondary_label: "登录",
+          secondary_href: "/login",
+          primary_label: "免费开始",
+          primary_href: "/register",
+        },
+        [],
       ),
-    ),
+    ],
+    footer: [
+      section(
+        "footer",
+        {
+          show_logo: true,
+          blurb: `${SITE.tagline}——${SITE.description}`,
+          copyright: `© ${new Date().getFullYear()} ${SITE.name}`,
+        },
+        SITE_FOOTER_GROUPS.flatMap((group) =>
+          group.links.map((link) => ({
+            type: "footer_link",
+            settings: {
+              group: group.label,
+              label: link.label,
+              href: link.href,
+            },
+          })),
+        ),
+      ),
+    ],
   });
   console.warn("site: brand + header + footer aligned");
 
@@ -438,8 +467,8 @@ async function main(): Promise<void> {
   });
 
   await upsertPage(tenant.id, {
-    kind: "doc",
-    slug: "index",
+    kind: "page",
+    slug: "docs",
     title: "文档",
     description:
       "be-water 使用文档：快速开始、Agent-first、模块化架构、多租户与权限、部署。",
@@ -449,12 +478,11 @@ async function main(): Promise<void> {
 
   for (const [index, doc] of docs.entries()) {
     await upsertPage(tenant.id, {
-      kind: "doc",
-      slug: doc.slug,
+      kind: "page",
+      slug: `docs/${doc.slug}`,
       title: doc.title,
       description: doc.description,
-      // 不指定 width：走 schema 默认的 wide，正文跟着内容区走
-      sections: [section("prose", { body_md: doc.body })],
+      sections: docsDetailSections(doc.body),
       sort_order: 20 + index,
     });
   }

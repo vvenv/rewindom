@@ -4,5 +4,6 @@ export * from "./features.js";
 export * from "./pricing.js";
 export * from "./entitlements.js";
 export * from "./site-cms.js";
+export * from "./site-locale.js";
 export * from "./theme-sections.js";
 export * from "./section-schema.js";

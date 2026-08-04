@@ -8,7 +8,9 @@
 
 import {
   getBlockDefinition,
+  isContainerSection,
   isPageSectionType,
+  resolveGroupSpans,
   SECTION_DEFINITIONS,
   type AreaSectionType,
   type PageSectionType,
@@ -18,11 +20,22 @@ import {
   type SiteSection,
 } from "./section-registry.js";
 import {
+  isInputSetting,
+  isLocalizableSetting,
+  isLocalizedText,
+  localizeSettingValues,
   parseSettingValues,
+  resolveLocalizedText,
+  settingBool,
   settingNumber,
   settingText,
+  writeLocalizedSetting,
+  type SettingDef,
   type SettingValues,
 } from "./section-settings.js";
+import { localizeSiteHref } from "./site-locale.js";
+
+import type { AppLocale } from "@be-water/shared";
 
 export * from "./section-settings.js";
 export * from "./section-registry.js";
@@ -52,6 +65,8 @@ export function createBlock(
     id: createSectionId(),
     type: blockType,
     settings: parseSettingValues(def.settings, settings ?? {}),
+    // 容器 block（`group` 的列）恒带 sections，哪怕是空的——渲染与编辑器都按数组读
+    ...(def.container ? { sections: [] } : {}),
   };
 }
 
@@ -76,10 +91,44 @@ function legacyItems(raw: Record<string, unknown>): unknown[] | null {
   return Array.isArray(raw.items) ? raw.items : null;
 }
 
+/**
+ * 解析选项：
+ * - `depth`：当前嵌套层数，`0` 是页面直挂的段。容器段只允许出现在 `0` 层。
+ * - `strict`：写路径（`parseSections`）为真，坏数据抛错；读路径（`safeSections`）为假，
+ *   坏的子段逐个跳过——一列里有一段脏数据不该把整个容器段连坐掉。
+ */
+interface ParseOptions {
+  depth: number;
+  strict: boolean;
+}
+
+/** 容器 block 里的子段：同一套解析，深度 +1。 */
+function parseChildSections(
+  value: unknown,
+  options: ParseOptions,
+): SiteSection[] {
+  if (!Array.isArray(value)) return [];
+  const child: ParseOptions = {
+    depth: options.depth + 1,
+    strict: options.strict,
+  };
+  const out: SiteSection[] = [];
+  value.forEach((item, index) => {
+    try {
+      out.push(parsePageSection(item, index, child));
+    } catch (error) {
+      if (options.strict) throw error;
+      /* skip broken child section */
+    }
+  });
+  return out;
+}
+
 function parseBlocks(
   def: SectionDefinition,
   rawBlocks: unknown,
   legacy: unknown[] | null,
+  options: ParseOptions,
 ): SiteBlock[] {
   if (!def.blocks || def.blocks.length === 0) return [];
   const defaultBlockType = def.blocks[0]?.type ?? "";
@@ -106,6 +155,9 @@ function parseBlocks(
           : createSectionId(),
       type,
       settings: parseSettingValues(blockDef.settings, row.settings),
+      ...(blockDef.container
+        ? { sections: parseChildSections(row.sections, options) }
+        : {}),
     });
   }
 
@@ -130,6 +182,7 @@ function buildSection(
   type: SectionType,
   row: Record<string, unknown>,
   fallbackId: string,
+  options: ParseOptions,
 ): SiteSection {
   const def = SECTION_DEFINITIONS[type];
   const settings = rawSettingsOf(row);
@@ -138,11 +191,15 @@ function buildSection(
       typeof row.id === "string" && row.id.trim() ? row.id.trim() : fallbackId,
     type,
     settings: parseSettingValues(def.settings, settings),
-    blocks: parseBlocks(def, row.blocks, legacyItems(settings)),
+    blocks: parseBlocks(def, row.blocks, legacyItems(settings), options),
   };
 }
 
-function parsePageSection(item: unknown, index: number): SiteSection {
+function parsePageSection(
+  item: unknown,
+  index: number,
+  options: ParseOptions = { depth: 0, strict: true },
+): SiteSection {
   if (!item || typeof item !== "object" || Array.isArray(item)) {
     throw new Error("site.sections_invalid");
   }
@@ -151,7 +208,17 @@ function parsePageSection(item: unknown, index: number): SiteSection {
   if (!type) {
     throw new Error("site.sections_invalid");
   }
-  return buildSection(type, row, `section-${index}-${createSectionId()}`);
+  // 深度上限 1：容器段不能装容器段。这道闸门让它保持「布局原语」，
+  // 而不是滑成一棵可以无限套下去的自由画布（编辑器的加段菜单里也挡了一道）。
+  if (options.depth > 0 && isContainerSection(type)) {
+    throw new Error("site.sections_invalid");
+  }
+  return buildSection(
+    type,
+    row,
+    `section-${index}-${createSectionId()}`,
+    options,
+  );
 }
 
 /** 写路径严格校验；失败抛 Error（code 字符串）由 service 转 ValidationError。 */
@@ -162,7 +229,9 @@ export function parseSections(value: unknown): SiteSection[] {
   if (!Array.isArray(value)) {
     throw new Error("site.sections_invalid");
   }
-  return value.map((item, index) => parsePageSection(item, index));
+  return value.map((item, index) =>
+    parsePageSection(item, index, { depth: 0, strict: true }),
+  );
 }
 
 /** 读库容错：逐个跳过损坏 section，不因一条脏数据丢掉整页。 */
@@ -171,7 +240,7 @@ export function safeSections(value: unknown): SiteSection[] {
   const out: SiteSection[] = [];
   value.forEach((item, index) => {
     try {
-      out.push(parsePageSection(item, index));
+      out.push(parsePageSection(item, index, { depth: 0, strict: false }));
     } catch {
       /* skip broken section */
     }
@@ -180,63 +249,224 @@ export function safeSections(value: unknown): SiteSection[] {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 站点级区域（页头 / 页脚）                                                    */
+/* 多语言压平                                                                  */
 /* -------------------------------------------------------------------------- */
 
-/** 旧结构：`nav_json` / `footer_json` 是 `{label, href}[]`。 */
-function legacyLinksToBlocks(
-  type: AreaSectionType,
-  value: unknown[],
-): SiteBlock[] {
-  const blockType = type === "header" ? "nav_link" : "footer_link";
-  const blocks: SiteBlock[] = [];
-  for (const item of value) {
-    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
-    const row = item as Record<string, unknown>;
-    const label = typeof row.label === "string" ? row.label.trim() : "";
-    const href = typeof row.href === "string" ? row.href.trim() : "";
-    if (!label || !href) continue;
-    try {
-      blocks.push(createBlock(type, blockType, { label, href }));
-    } catch {
-      /* skip invalid legacy link */
-    }
+/** 站内链接按语言改写（`url` 类型的设置项）。 */
+function localizeUrlSettings(
+  defs: SettingDef[],
+  values: SettingValues,
+  locale: AppLocale,
+  defaultLocale: AppLocale,
+): SettingValues {
+  let out: SettingValues | null = null;
+  for (const def of defs) {
+    if (!isInputSetting(def) || def.type !== "url") continue;
+    const value = values[def.id];
+    if (typeof value !== "string" || value === "") continue;
+    const next = localizeSiteHref(value, locale, defaultLocale);
+    if (next === value) continue;
+    out ??= { ...values };
+    out[def.id] = next;
   }
-  return blocks;
+  return out ?? values;
 }
 
 /**
- * 页头 / 页脚：每站点各一个 section。
+ * 把 section（含 blocks）投影到某一种语言：多语言文案压成字符串 + 站内链接补 locale 前缀。
  *
- * 兼容三种存量形态——已是 section 对象、旧的链接数组、以及空值（回落默认）。
+ * 边界只有一处：**公开 / 预览的读路径**。压过之后 `settings[id]` 恒为标量、href 已带前缀，
+ * 两处渲染（`client/components/sections/`、`server/ssr-sections.ts`）与所有
+ * `settingText` 调用方都不必知道多语言的存在。管理端读路径不压——编辑器要拿整张表和原始 href。
+ *
+ * `defaultLocale` 同时是文案回落语言与「不带前缀的那种语言」，两者本来就是同一个值。
  */
-export function parseAreaSection(
-  type: AreaSectionType,
-  value: unknown,
+export function localizeSection(
+  section: SiteSection,
+  locale: AppLocale,
+  defaultLocale: AppLocale,
 ): SiteSection {
-  if (Array.isArray(value)) {
-    const base = createSection(type);
-    return { ...base, blocks: legacyLinksToBlocks(type, value) };
-  }
-  if (!value || typeof value !== "object") {
-    return createSection(type);
-  }
-  const row = value as Record<string, unknown>;
-  // 存的 type 与列语义冲突时以列为准：一个站点只有一个页头 / 页脚。
-  if (row.type !== undefined && row.type !== type) {
-    throw new Error("site.sections_invalid");
-  }
-  return buildSection(type, row, createSectionId());
+  const def = SECTION_DEFINITIONS[section.type];
+  const localize = (defs: SettingDef[], values: SettingValues): SettingValues =>
+    localizeUrlSettings(
+      defs,
+      localizeSettingValues(values, locale, defaultLocale),
+      locale,
+      defaultLocale,
+    );
+
+  return {
+    ...section,
+    settings: localize(def.settings, section.settings),
+    blocks: section.blocks.map((block) => {
+      const blockDef = getBlockDefinition(section.type, block.type);
+      return {
+        ...block,
+        settings: localize(blockDef?.settings ?? [], block.settings),
+        // 容器 block 的子段一起压：漏了的话列里的文案在公开页会整片空白
+        ...(block.sections
+          ? {
+              sections: block.sections.map((child) =>
+                localizeSection(child, locale, defaultLocale),
+              ),
+            }
+          : {}),
+      };
+    }),
+  };
 }
 
-export function safeAreaSection(
-  type: AreaSectionType,
-  value: unknown,
+export function localizeSections(
+  sections: SiteSection[],
+  locale: AppLocale,
+  defaultLocale: AppLocale,
+): SiteSection[] {
+  return sections.map((section) =>
+    localizeSection(section, locale, defaultLocale),
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* 多语言搬运（复制页面到另一种语言）                                          */
+/* -------------------------------------------------------------------------- */
+
+/** 把一组设置值里的文案，从 `from` 语言的槽位复制到 `to` 语言的槽位。 */
+function relocalizeValues(
+  defs: SettingDef[],
+  values: SettingValues,
+  from: AppLocale,
+  to: AppLocale,
+  defaultLocale: AppLocale,
+): SettingValues {
+  let out: SettingValues | null = null;
+  for (const def of defs) {
+    if (!isInputSetting(def) || !isLocalizableSetting(def)) continue;
+    const current = values[def.id];
+    const text = isLocalizedText(current)
+      ? resolveLocalizedText(current, from, defaultLocale)
+      : typeof current === "string"
+        ? current
+        : "";
+    out ??= { ...values };
+    out[def.id] = writeLocalizedSetting(current, to, defaultLocale, text);
+  }
+  return out ?? values;
+}
+
+/**
+ * 复制页面到另一种语言时的文案搬运：**把源语言的原文填进目标语言的槽位**。
+ *
+ * 不搬的话新页面在编辑器里会是一片空白——`readLocalizedSetting` 刻意不回落
+ * （回落会让人以为已经翻译过了），而复制的用途恰恰是「拿原文当翻译起点」。
+ * 源语言的槽位原样保留，所以复制不会把原文弄丢。
+ */
+export function relocalizeSection(
+  section: SiteSection,
+  from: AppLocale,
+  to: AppLocale,
+  defaultLocale: AppLocale,
 ): SiteSection {
+  if (from === to) return section;
+  const def = SECTION_DEFINITIONS[section.type];
+  return {
+    ...section,
+    settings: relocalizeValues(
+      def.settings,
+      section.settings,
+      from,
+      to,
+      defaultLocale,
+    ),
+    blocks: section.blocks.map((block) => ({
+      ...block,
+      settings: relocalizeValues(
+        getBlockDefinition(section.type, block.type)?.settings ?? [],
+        block.settings,
+        from,
+        to,
+        defaultLocale,
+      ),
+      ...(block.sections
+        ? {
+            sections: block.sections.map((child) =>
+              relocalizeSection(child, from, to, defaultLocale),
+            ),
+          }
+        : {}),
+    })),
+  };
+}
+
+export function relocalizeSections(
+  sections: SiteSection[],
+  from: AppLocale,
+  to: AppLocale,
+  defaultLocale: AppLocale,
+): SiteSection[] {
+  if (from === to) return sections;
+  return sections.map((section) =>
+    relocalizeSection(section, from, to, defaultLocale),
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* 站点级区域（页头 / 页脚）                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 页头 / 页脚区：各是**一串** section。
+ *
+ * 区域里必有一段本体（`header` / `footer` 那个导航条本身），其余按 `placements`
+ * 放行——通栏 CTA 当公告条、prose 放备案号都走这条路，不为每种花样另造类型。
+ * 本体缺了就补一个：没有导航条的页头是坏数据，不是一种配置。
+ */
+export function parseAreaSections(
+  area: AreaSectionType,
+  value: unknown,
+): SiteSection[] {
+  const rows = Array.isArray(value) ? value : [];
+  const sections: SiteSection[] = [];
+  for (const row of rows) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) continue;
+    const raw = row as Record<string, unknown>;
+    const type = typeof raw.type === "string" ? raw.type : "";
+    const def = Object.hasOwn(SECTION_DEFINITIONS, type)
+      ? SECTION_DEFINITIONS[type as SectionType]
+      : undefined;
+    if (!def?.placements.includes(area)) {
+      throw new Error("site.sections_invalid");
+    }
+    sections.push(
+      buildSection(def.type, raw, createSectionId(), {
+        depth: 0,
+        strict: true,
+      }),
+    );
+  }
+  return ensureAreaBody(area, sections);
+}
+
+/** 区域本体（导航条 / 页脚本体）只能有一段，且必须在：缺了补、多了删。 */
+function ensureAreaBody(
+  area: AreaSectionType,
+  sections: SiteSection[],
+): SiteSection[] {
+  const body = sections.filter((section) => section.type === area);
+  const rest = sections.filter((section) => section.type !== area);
+  if (body.length === 1) return sections;
+  const kept = body[0] ?? createSection(area);
+  // 页头本体排最后（公告条在导航条上方是通例），页脚本体排最前
+  return area === "header" ? [...rest, kept] : [kept, ...rest];
+}
+
+export function safeAreaSections(
+  area: AreaSectionType,
+  value: unknown,
+): SiteSection[] {
   try {
-    return parseAreaSection(type, value);
+    return parseAreaSections(area, value);
   } catch {
-    return createSection(type);
+    return [createSection(area)];
   }
 }
 
@@ -280,24 +510,6 @@ export function homeBlocksToSections(home_blocks: unknown): SiteSection[] {
   return sections;
 }
 
-/** 渲染用：sections 优先；若为空则用 body_md 回退为 prose section。 */
-export function resolvePageSections(input: {
-  sections: unknown;
-  body_md?: string;
-}): SiteSection[] {
-  const sections = safeSections(input.sections);
-  if (sections.length > 0) return sections;
-  const body = input.body_md?.trim() ?? "";
-  if (!body) return [];
-  return [
-    {
-      id: "legacy-body-md",
-      type: "prose",
-      settings: { body_md: input.body_md ?? "", width: "page" },
-      blocks: [],
-    },
-  ];
-}
 
 export interface SectionLayout {
   /** 色块（背景 / 分隔线）铺到哪：`page` 居中限宽，`full` 通栏。 */
@@ -392,16 +604,60 @@ export function resolveSectionGaps(
 }
 
 /**
- * 页面是否以 hero 开场（hero 自己就渲染 h1 + 副标题）。
+ * `page-header` 段最终显示的文案：段上填了就用段上的，留空回落到页面自己的
+ * 标题 / 描述。
  *
- * 用来决定要不要再渲染「页面标题 + 描述」那块 page-head——hero 已经把标题说了一遍，
- * 再渲染一次就是重复内容 + 两个 h1（关于我们 / 联系我们 预设都会撞上）。
- * 只有 prose 的文档正文页没有自带标题，仍然靠 page-head 提供 h1。
+ * 回落是这一段的关键——新建页面不填任何东西也自带 h1，租户不用把标题抄两遍；
+ * 想让展示标题与 SEO 标题不一样时再填。客户端与 SSR 共用这一份，避免两边算出
+ * 不同的 h1。
  */
-export function sectionsLeadWithHero(sections: SiteSection[]): boolean {
-  const first = sections[0];
-  if (!first || first.type !== "hero") return false;
-  return Boolean(settingText(first.settings, "headline"));
+export function resolvePageHeaderText(
+  settings: SettingValues,
+  page?: { title?: string; description?: string } | null,
+): { headline: string; subhead: string } {
+  return {
+    headline: settingText(settings, "headline").trim() || (page?.title ?? ""),
+    subhead:
+      settingText(settings, "subhead").trim() || (page?.description ?? ""),
+  };
+}
+
+/** 容器段的一列：列 block 本身 + 它装的子段 + 已算好的 12 栏宽。 */
+export interface GroupColumn {
+  block: SiteBlock;
+  sections: SiteSection[];
+  /** 12 栏制列宽（桌面）。 */
+  span: number;
+  sticky: boolean;
+  /** 窄屏堆叠顺序：`auto` 按声明顺序。 */
+  stackOrder: "auto" | "first" | "last";
+}
+
+/**
+ * 容器段解析（两处渲染 + 编辑器共用）：列表 + 列宽。
+ *
+ * 空列照样返回——编辑器里刚加出来的列必须能被选中、能往里放东西；
+ * 公开渲染那边由 `GroupSection` / `renderGroup` 自己决定要不要跳过空列。
+ */
+export function groupColumns(section: SiteSection): GroupColumn[] {
+  const columns = section.blocks.filter(
+    (block) => block.sections !== undefined,
+  );
+  const spans = resolveGroupSpans(
+    settingText(section.settings, "columns_layout") || "1:3",
+    columns.length,
+  );
+  return columns.map((block, index) => {
+    const stackOrder = settingText(block.settings, "stack_order");
+    return {
+      block,
+      sections: block.sections ?? [],
+      span: spans[index] ?? 12,
+      sticky: settingBool(block.settings, "sticky"),
+      stackOrder:
+        stackOrder === "first" || stackOrder === "last" ? stackOrder : "auto",
+    };
+  });
 }
 
 export function gridColumnsClass(columns: number): string {
