@@ -23,13 +23,6 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import {
-  composeSiteColor,
-  expandHex,
-  isOpaqueHex,
-  isSiteColor,
-  splitSiteColor,
-} from "../../../shared/site-color.js";
-import {
   isInputSetting,
   isLocalizableSetting,
   readLocalizedSetting,
@@ -40,6 +33,13 @@ import {
   type SettingValue,
   type SettingValues,
 } from "../../../shared/section-schema.js";
+import {
+  composeSiteColor,
+  expandHex,
+  isOpaqueHex,
+  isSiteColor,
+  splitSiteColor,
+} from "../../../shared/site-color.js";
 import { uploadSiteAsset } from "../../lib/site-api.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 

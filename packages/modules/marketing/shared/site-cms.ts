@@ -1,7 +1,8 @@
 import { APP_LOCALES, type AppLocale } from "@be-water/shared";
 
-import type { LocalizedText, SiteSection } from "./section-schema.js";
 import { normalizeSiteColor } from "./site-color.js";
+
+import type { LocalizedText, SiteSection } from "./section-schema.js";
 import type { ThemeSettings } from "./theme-sections.js";
 
 /** 站点级可本地化文案：单语言为纯字符串，多语言为 `__i18n` 表。 */

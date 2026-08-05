@@ -9,7 +9,6 @@ import {
   fetchSitePage,
   fetchSitePages,
   patchSite,
-  patchSitePage,
   publishSitePage,
   publishSitePageContent,
   publishSiteChrome,
@@ -23,7 +22,6 @@ import type {
   CreateMarketingPageBody,
   DuplicateMarketingPageBody,
   SaveEditorDraftBody,
-  UpdateMarketingPageBody,
   UpdateMarketingSiteBody,
 } from "../../shared/site-cms.js";
 
@@ -80,17 +78,6 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
-  const updatePage = useMutation({
-    mutationFn: ({
-      pageId,
-      body,
-    }: {
-      pageId: string;
-      body: UpdateMarketingPageBody;
-    }) => patchSitePage(pageId, body),
-    onSuccess: () => invalidate(),
-  });
-
   const saveEditorDraft = useMutation({
     mutationFn: ({
       pageId,
@@ -136,7 +123,6 @@ export function useSiteMutations() {
     updateSite,
     createPage,
     duplicatePage,
-    updatePage,
     saveEditorDraft,
     applyStarter,
     publishChrome,

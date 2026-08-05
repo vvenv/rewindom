@@ -11,7 +11,6 @@ import type {
   ApplySiteStarterResponse,
   SaveEditorDraftBody,
   SaveEditorDraftResponse,
-  UpdateMarketingPageBody,
   UpdateMarketingSiteBody,
 } from "../../shared/site-cms.js";
 import type { AppLocale } from "@be-water/shared";
@@ -49,13 +48,6 @@ export function duplicateSitePage(
   body: DuplicateMarketingPageBody,
 ): Promise<MarketingPage> {
   return api.post<MarketingPage>(`/site/pages/${pageId}/duplicate`, body);
-}
-
-export function patchSitePage(
-  pageId: string,
-  body: UpdateMarketingPageBody,
-): Promise<MarketingPage> {
-  return api.patch<MarketingPage>(`/site/pages/${pageId}`, body);
 }
 
 /** Theme Editor 一次保存：页面内容与页头页脚同事务落库。 */

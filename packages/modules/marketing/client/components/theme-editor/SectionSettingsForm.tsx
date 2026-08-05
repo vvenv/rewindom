@@ -2,7 +2,7 @@ import { type ReactElement } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@be-water/ui/tabs";
 import { cn } from "@be-water/ui/utils";
-import { LayoutTemplate, Palette, Type } from "lucide-react";
+import { LayoutTemplate, Palette, Type, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -17,7 +17,6 @@ import {
 import { SettingsFields } from "./SettingsFields.js";
 
 import type { AppLocale } from "@be-water/shared";
-import type { LucideIcon } from "lucide-react";
 
 interface SectionSettingsFormProps {
   section: SiteSection;
@@ -41,12 +40,12 @@ function hasFields(defs: SettingDef[]): boolean {
   return defs.some((def) => def.type !== "header" && def.type !== "paragraph");
 }
 
-type SettingsTab = {
+interface SettingsTab {
   value: "content" | "layout" | "appearance";
   labelKey: string;
   icon: LucideIcon;
   defs: SettingDef[];
-};
+}
 
 /**
  * 右侧设置面板：完全由 section-schema 驱动，不再按 type 手写表单。

@@ -215,7 +215,7 @@ describe("saveEditorDraft", () => {
     vi.clearAllMocks();
     vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(pageRow as never);
     vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(siteRow as never);
-    vi.mocked(prisma.$transaction).mockImplementation((async (ops) => {
+    vi.mocked(prisma.$transaction).mockImplementation((async (ops: unknown) => {
       const results = [];
       for (const op of ops as Array<Promise<unknown>>) {
         results.push(await op);
@@ -289,7 +289,7 @@ describe("applySiteStarter", () => {
       updated_at: new Date("2026-08-03T00:00:00.000Z"),
       ...data,
     })) as never);
-    vi.mocked(prisma.$transaction).mockImplementation((async (fn) => {
+    vi.mocked(prisma.$transaction).mockImplementation((async (fn: unknown) => {
       if (typeof fn === "function") {
         return fn(prisma);
       }

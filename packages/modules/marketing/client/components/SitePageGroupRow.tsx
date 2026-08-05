@@ -1,34 +1,27 @@
+import { type ReactNode } from "react";
+
 import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
-import {
-  CloudOff,
-  CloudUpload,
-  Copy,
-  Palette,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { Spinner } from "@be-water/ui/spinner";
+import { cn } from "@be-water/ui/utils";
+import { CloudOff, CloudUpload, Copy, Palette, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { SitePageDuplicateSheet } from "./SitePageDuplicateSheet.js";
-import { SitePageEditSheet } from "./SitePageEditSheet.js";
 
 import type {
   MarketingPageKind,
   MarketingPageListItem,
 } from "../../shared/site-cms.js";
+import type { SitePageActions } from "../hooks/use-site-page-actions.js";
 import type { SitePageGroup } from "../lib/site-page-groups.js";
 
 interface SitePageGroupRowProps {
   group: SitePageGroup;
   defaultLocale: AppLocale;
   canWrite: boolean;
-  publishPendingId: string | undefined;
-  unpublishPendingId: string | undefined;
-  deletePendingId: string | undefined;
-  onTogglePublish: (page: MarketingPageListItem) => void;
-  onDelete: (pageId: string, pageTitle: string) => void;
+  actions: SitePageActions;
 }
 
 const KIND_LABEL_KEY = {
@@ -37,86 +30,63 @@ const KIND_LABEL_KEY = {
 } as const satisfies Record<MarketingPageKind, string>;
 
 /**
- * 翻译组一行：标题 + 逻辑路径作头，下面各语言各占一行（含操作）。
- * 单语言与多语言同一结构，避免两套布局。
+ * 翻译组一块：一个逻辑 URL 下的各语言页面。
+ *
+ * 只有一种语言时（单语言站点的常态）标题与那一行合并——原来固定「组头 + 语言行」
+ * 两行，第二行只写着「简体中文 草稿」，一页白占一倍高度。多语言时才展开成
+ * 组头 + 缩进的语言行；两种形态共用 `PageRow`，右侧状态与操作列因此始终对齐。
  */
 export function SitePageGroupRow({
   group,
   defaultLocale,
   canWrite,
-  publishPendingId,
-  unpublishPendingId,
-  deletePendingId,
-  onTogglePublish,
-  onDelete,
+  actions,
 }: SitePageGroupRowProps) {
   const { t } = useTranslation("marketing");
   const primary =
     group.pages.find((page) => page.locale === defaultLocale) ??
     group.pages[0]!;
 
-  return (
-    <div className="flex flex-col gap-2 px-4 py-3">
-      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        {canWrite ? (
-          <Link
-            to={`/site/pages/${primary.id}`}
-            className="font-medium hover:underline"
-          >
-            {group.title}
-          </Link>
-        ) : (
-          <span className="font-medium">{group.title}</span>
-        )}
-        <span className="text-xs text-muted-foreground">
-          {t(KIND_LABEL_KEY[group.kind])}
-        </span>
-        <span className="truncate font-mono text-xs text-muted-foreground">
-          {group.path}
-        </span>
-      </div>
+  const heading = (
+    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      {canWrite ? (
+        <Link
+          to={`/site/pages/${primary.id}`}
+          className="truncate font-medium hover:underline"
+        >
+          {group.title}
+        </Link>
+      ) : (
+        <span className="truncate font-medium">{group.title}</span>
+      )}
+      <span className="text-xs text-muted-foreground">
+        {t(KIND_LABEL_KEY[group.kind])}
+      </span>
+      <span className="truncate font-mono text-xs text-muted-foreground">
+        {group.path}
+      </span>
+    </div>
+  );
 
+  if (group.pages.length === 1) {
+    return (
+      <PageRow page={primary} canWrite={canWrite} actions={actions}>
+        {heading}
+      </PageRow>
+    );
+  }
+
+  return (
+    <div className="py-1">
+      <div className="px-4 py-2">{heading}</div>
       <ul className="flex flex-col">
         {group.pages.map((page) => (
-          <li
-            key={page.id}
-            className="flex items-center justify-between gap-2 rounded-md py-1 pl-0.5 pr-0 sm:pl-1"
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              {canWrite ? (
-                <Link
-                  to={`/site/pages/${page.id}`}
-                  className="text-sm hover:underline"
-                >
-                  {getLocaleNativeLabel(page.locale)}
-                </Link>
-              ) : (
-                <span className="text-sm">
-                  {getLocaleNativeLabel(page.locale)}
-                </span>
-              )}
-              <span
-                className={
-                  page.status === "published"
-                    ? "text-xs text-foreground/70"
-                    : "text-xs text-muted-foreground"
-                }
-              >
-                {page.status === "published"
-                  ? t("cms.statusPublished")
-                  : t("cms.statusDraft")}
+          <li key={page.id}>
+            <PageRow page={page} canWrite={canWrite} actions={actions} indent>
+              <span className="truncate text-sm">
+                {getLocaleNativeLabel(page.locale)}
               </span>
-            </div>
-            {canWrite ? (
-              <PageActions
-                page={page}
-                publishPendingId={publishPendingId}
-                unpublishPendingId={unpublishPendingId}
-                deletePendingId={deletePendingId}
-                onTogglePublish={onTogglePublish}
-                onDelete={onDelete}
-              />
-            ) : null}
+            </PageRow>
           </li>
         ))}
       </ul>
@@ -124,25 +94,93 @@ export function SitePageGroupRow({
   );
 }
 
-function PageActions({
+/**
+ * 一个页面（= 一个语言版本）占一行：左边是标识，右边是状态与操作。
+ * `indent` 用于多语言组里的语言行，靠一条竖线挂在组头下面。
+ */
+function PageRow({
   page,
-  publishPendingId,
-  unpublishPendingId,
-  deletePendingId,
-  onTogglePublish,
-  onDelete,
+  canWrite,
+  actions,
+  indent,
+  children,
 }: {
   page: MarketingPageListItem;
-  publishPendingId: string | undefined;
-  unpublishPendingId: string | undefined;
-  deletePendingId: string | undefined;
-  onTogglePublish: (page: MarketingPageListItem) => void;
-  onDelete: (pageId: string, pageTitle: string) => void;
+  canWrite: boolean;
+  actions: SitePageActions;
+  indent?: boolean;
+  children: ReactNode;
 }) {
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-muted/40",
+        indent && "ml-6 border-l py-1.5 pl-4",
+      )}
+    >
+      <div className="min-w-0 flex-1">{children}</div>
+      <div className="flex shrink-0 items-center gap-1">
+        <PageStatus page={page} />
+        {canWrite ? <PageActions page={page} actions={actions} /> : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 状态点 + 文案：草稿灰、已发布绿、已发布但草稿更新过用琥珀色。
+ * 窄屏只留点，文案挤掉——图标化的操作按钮已经把行占满。
+ */
+function PageStatus({ page }: { page: MarketingPageListItem }) {
   const { t } = useTranslation("marketing");
+  const published = page.status === "published";
+  const dirty = published && page.content_dirty;
+  const label = dirty
+    ? t("cms.statusDirty")
+    : published
+      ? t("cms.statusPublished")
+      : t("cms.statusDraft");
 
   return (
-    <div className="flex shrink-0 items-center gap-0.5">
+    <span
+      className="flex items-center gap-1.5 sm:w-32"
+      title={dirty ? t("cms.statusDirtyHint") : undefined}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "size-1.5 shrink-0 rounded-full",
+          dirty
+            ? "bg-amber-500"
+            : published
+              ? "bg-emerald-500"
+              : "bg-muted-foreground/40",
+        )}
+      />
+      {/* 窄屏只留点，但文案留在无障碍树里，屏幕阅读器两种宽度下读到的一样 */}
+      <span className="truncate text-xs text-muted-foreground sr-only sm:not-sr-only">
+        {label}
+      </span>
+    </span>
+  );
+}
+
+function PageActions({
+  page,
+  actions,
+}: {
+  page: MarketingPageListItem;
+  actions: SitePageActions;
+}) {
+  const { t } = useTranslation("marketing");
+  const isPublished = page.status === "published";
+  const publishPending =
+    actions.publishPendingId === page.id ||
+    actions.unpublishPendingId === page.id;
+  const deletePending = actions.deletePendingId === page.id;
+
+  return (
+    <div className="flex shrink-0 items-center gap-0.5 text-muted-foreground">
       <Button
         asChild
         variant="ghost"
@@ -154,16 +192,6 @@ function PageActions({
           <Palette className="size-3.5" />
         </Link>
       </Button>
-      <SitePageEditSheet page={page}>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title={t("cms.edit")}
-          aria-label={t("cms.edit")}
-        >
-          <Pencil className="size-3.5" />
-        </Button>
-      </SitePageEditSheet>
       <SitePageDuplicateSheet page={page}>
         <Button
           variant="ghost"
@@ -177,16 +205,14 @@ function PageActions({
       <Button
         variant="ghost"
         size="icon-sm"
-        title={t(page.status === "published" ? "cms.unpublish" : "cms.publish")}
-        aria-label={t(
-          page.status === "published" ? "cms.unpublish" : "cms.publish",
-        )}
-        disabled={
-          publishPendingId === page.id || unpublishPendingId === page.id
-        }
-        onClick={() => onTogglePublish(page)}
+        title={t(isPublished ? "cms.unpublish" : "cms.publish")}
+        aria-label={t(isPublished ? "cms.unpublish" : "cms.publish")}
+        disabled={publishPending}
+        onClick={() => actions.togglePublish(page)}
       >
-        {page.status === "published" ? (
+        {publishPending ? (
+          <Spinner className="size-3.5" />
+        ) : isPublished ? (
           <CloudOff className="size-3.5" />
         ) : (
           <CloudUpload className="size-3.5" />
@@ -198,10 +224,14 @@ function PageActions({
         className="hover:text-destructive"
         title={t("cms.delete")}
         aria-label={t("cms.delete")}
-        disabled={deletePendingId === page.id}
-        onClick={() => void onDelete(page.id, page.title)}
+        disabled={deletePending}
+        onClick={() => void actions.remove(page.id, page.title)}
       >
-        <Trash2 className="size-3.5" />
+        {deletePending ? (
+          <Spinner className="size-3.5" />
+        ) : (
+          <Trash2 className="size-3.5" />
+        )}
       </Button>
     </div>
   );
