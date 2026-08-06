@@ -230,38 +230,34 @@ describe("renderMarketingHtml SEO", () => {
 });
 
 /*
- * 绑定域上**每个** HTML 文档都由这里产出（nginx 全量反代给 SSR），所以站点的
- * 交互层能不能活，取决于这份 HTML 有没有把 SPA 带上：账户入口、明暗切换按钮、
- * `requires_member` 页的正文，全都要等 SPA 接管。曾经漏掉过，整个绑定域上没有 JS。
+ * 公开站交互靠 site-enhance（无 React）：SSR 注入 defer 脚本，不挂 #root / main.tsx。
  */
-describe("renderMarketingHtml 接上 SPA", () => {
-  const BOOTSTRAP =
-    '<script type="module" src="/assets/index-BiyOPNPZ.js"></script>';
-
-  it("给出入口时挂上 script，并把正文包进 #root", () => {
+describe("renderMarketingHtml 接上 site-enhance", () => {
+  it("注入 enhance 脚本，正文包在 marketing-site-root（无 #root）", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
       site: site(),
       page: page(),
-      spaBootstrapHtml: BOOTSTRAP,
     });
-    expect(html).toContain(BOOTSTRAP);
-    // createRoot(#root) 找不到挂载点会直接抛，SPA 就永远接管不了
-    expect(html).toContain('id="root"');
+    expect(html).toContain("/api/public/site-enhance.js?v=");
     expect(html).toContain('class="marketing-site-root"');
+    expect(html).toContain('data-page-path="/about"');
     expect(html).toContain('class="site-stack"');
     expect(html).toContain('<main class="site-main"');
+    expect(html).not.toContain('id="root"');
+    expect(html).not.toContain("/src/main.tsx");
   });
 
-  it("没有产物时退化成纯静态 HTML，但挂载点仍在", () => {
+  it("会员门控页给 main 打 data-member-gate", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
       site: site(),
       page: page(),
+      memberGate: true,
     });
-    expect(html).not.toContain("<script type=\"module\"");
-    expect(html).toContain('id="root"');
-    expect(html).toContain('class="site-stack"');
+    expect(html).toContain("data-member-gate");
+    expect(html).toContain('data-path="/about"');
+    expect(html).toContain("noindex");
   });
 });
 

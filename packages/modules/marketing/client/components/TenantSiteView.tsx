@@ -95,8 +95,8 @@ export function TenantSiteView({
           页头区**不能**再套一层 `<header>`：`SiteHeader` 自己就是 `<header>`，
           外面这层的高度恰好等于它，`position: sticky` 于是没有任何可粘的余量
           （sticky 只在包含块内部移动），「吸顶」开关点了跟没点一样。
-          SSR 把页头直接摊在 `#root` 下，所以这条只在 SPA 接管后犯——首屏能吸，
-          一水合就掉下来。页脚同理，顺带也消掉了嵌套 landmark。
+          公开站 SSR 与编辑器预览都把页头直接摊在 `.site-stack` 下。页脚同理，
+          顺带也消掉了嵌套 landmark。
         */}
         {header.map((section) =>
           section.type === "header" ? (

@@ -8,7 +8,7 @@ import type { AppLocale } from "@be-water/shared";
  *（site-member `requires: ["marketing"]`），marketing 不反向 import。
  *
  * 有了它，三处口径才有同一个真相源：
- * - SSR 首屏直接把未登录态的「登录」渲染出来，不再等 SPA 水合才长出来；
+ * - SSR 首屏直接把未登录态的「登录」渲染出来；
  * - 编辑器问 `/api/site/capabilities` 决定「账户入口」开关能不能点；
  * - 预览据此决定要不要画那枚按钮。
  */
@@ -19,7 +19,7 @@ export interface SiteAccountEntry {
    * 未登录态入口的 HTML 片段，供 SSR 首屏内联。
    *
    * 只画未登录那一态：会员 token 存在 localStorage，不随 HTML 请求发送，服务端
-   * 无从知道访客是否已登录。SPA 水合后会用真实会话替换掉它。
+   * 无从知道访客是否已登录。site-enhance 在有会话时会升级成账户菜单。
    */
   html: string;
 }

@@ -59,6 +59,7 @@ describe("marketing-site-css", () => {
       ).toBe(true);
     }
     expect(sources.has("site-css/base.css")).toBe(true);
+    expect(sources.has("site-css/member.css")).toBe(true);
     expect(sources.has("sections/_common/styles.css")).toBe(true);
   });
 });

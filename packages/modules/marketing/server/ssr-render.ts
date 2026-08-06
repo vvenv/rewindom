@@ -7,19 +7,14 @@ import {
   marketingSiteThemeCss,
 } from "../shared/marketing-site-theme.js";
 import {
-  resolveSectionGaps,
-  resolveSectionLayout,
-} from "../shared/section-schema.js";
-import {
   type PublicMarketingPage,
   type PublicMarketingSite,
 } from "../shared/site-cms.js";
+import { SITE_ENHANCE_HASH } from "../shared/site-enhance.js";
 import { withSiteLocale } from "../shared/site-locale.js";
-import {
-  resolveThemeSettings,
-  THEME_SECTION_SPACING,
-} from "../shared/theme-sections.js";
+import { resolveThemeSettings } from "../shared/theme-sections.js";
 
+import { renderPageSectionsHtml } from "./render-page-sections-html.js";
 import {
   renderFooterHtml,
   renderHeaderHtml,
@@ -73,18 +68,14 @@ function localeSwitcherOptions(
   }));
 }
 
+function siteEnhanceScriptTag(): string {
+  return `<script defer src="/api/public/site-enhance.js?v=${escapeHtml(SITE_ENHANCE_HASH)}"></script>`;
+}
+
 export function renderMarketingHtml(input: {
   origin: string;
   site: PublicMarketingSite;
   page: PublicMarketingPage;
-  /**
-   * SPA 引导脚本 HTML（`renderSpaBootstrapHtml()`）。
-   *
-   * 绑定域上每个 HTML 文档都由 SSR 产出，所以站点的交互层能不能活全看它——
-   * 缺了就只是一张静态页：账户入口、明暗切换按钮、`requires_member` 页的正文
-   * 都不会出现。
-   */
-  spaBootstrapHtml?: string;
   /** 会员专属页：正文占位 + robots noindex（token 不随 HTML 请求）。 */
   memberGate?: boolean;
   /** 页头账户入口（未登录态）的 HTML；见 `site-account-entry.ts`。 */
@@ -94,29 +85,16 @@ export function renderMarketingHtml(input: {
     origin,
     site,
     page,
-    spaBootstrapHtml = "",
     memberGate = false,
     accountEntryHtml = "",
   } = input;
   const theme = resolveThemeSettings(site.theme_settings);
-  const sections = memberGate ? [] : page.sections;
-  // 段间距显式算好落到每一段上，与 SPA 侧同一个函数
-  const gaps = resolveSectionGaps(
-    sections.map((section) => resolveSectionLayout(section.settings)),
-    theme.section_spacing ?? THEME_SECTION_SPACING.default,
-  );
   const sectionCtx = {
     pages: site.pages,
     currentPath: page.path,
     locale: normalizeLocale(page.locale, site.default_locale),
     defaultLocale: site.default_locale,
-    sectionSpacing: theme.section_spacing ?? THEME_SECTION_SPACING.default,
   };
-  const sectionsHtml = sections
-    .map((section, index) =>
-      renderSectionHtml(section, gaps[index], sectionCtx),
-    )
-    .join("\n");
   const base = origin.replace(/\/$/u, "");
   const locale = normalizeLocale(page.locale, site.default_locale);
   // canonical 指向**本页语言**的 URL：默认语言无前缀、其余 `/{locale}/...`。
@@ -184,13 +162,28 @@ export function renderMarketingHtml(input: {
   const robotsMeta = memberGate
     ? `<meta name="robots" content="noindex, nofollow" />`
     : "";
-  const mainHtml = memberGate
+  const mainInner = memberGate
     ? `<div class="wrap" style="padding:4rem 1.5rem;text-align:center">
       <h1 style="font-size:1.5rem;font-weight:600;margin-bottom:.75rem">${escapeHtml(page.title)}</h1>
       <p class="muted" style="margin-bottom:1.5rem">${escapeHtml(page.description || "Sign in to read this content.")}</p>
-      <p><a class="btn" href="/member/login">Sign in</a></p>
+      <p><a class="btn" href="/member/login?redirect=${encodeURIComponent(localizedPath)}">Sign in</a></p>
     </div>`
-    : sectionsHtml;
+    : renderPageSectionsHtml(site, page);
+
+  const mainStyle =
+    page.settings.bg_color || page.settings.fg_color
+      ? ` style="${[
+          page.settings.bg_color
+            ? `background-color:${page.settings.bg_color}`
+            : "",
+          page.settings.fg_color ? `color:${page.settings.fg_color}` : "",
+        ]
+          .filter(Boolean)
+          .join(";")}"`
+      : "";
+  const mainGateAttrs = memberGate
+    ? ` data-member-gate data-path="${escapeHtml(page.path)}" data-locale="${escapeHtml(locale)}"`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="${escapeHtml(locale)}">
@@ -208,25 +201,19 @@ export function renderMarketingHtml(input: {
 </head>
 <body>
   <!--
-    正文包在 #root 里：SPA 接管时走 createRoot(#root)，会把这份 SSR 内容整片换掉。
-    没有它 main.tsx 的 getElementById("root") 直接抛，页面就停在静态 HTML 上
-    ——账户入口、明暗切换、会员页正文都指望 SPA 到场。
+    公开站是 SSR 静态 HTML + site-enhance（无 React）。
+    交互（明暗、表单、账户菜单、会员正文）由 defer 脚本渐进增强。
   -->
-  <div id="root" class="marketing-site-root">
+  <div class="marketing-site-root" data-page-path="${escapeHtml(page.path)}" data-page-locale="${escapeHtml(locale)}">
   <div class="site-stack">
   ${headerHtml}
-  <main class="site-main"${page.settings.bg_color || page.settings.fg_color ? ` style="${[
-    page.settings.bg_color ? `background-color:${page.settings.bg_color}` : "",
-    page.settings.fg_color ? `color:${page.settings.fg_color}` : "",
-  ]
-    .filter(Boolean)
-    .join(";")}"` : ""}>
-    ${mainHtml}
+  <main class="site-main"${mainGateAttrs}${mainStyle}>
+    ${mainInner}
   </main>
   ${footerHtml}
   </div>
   </div>
-  ${spaBootstrapHtml}
+  ${siteEnhanceScriptTag()}
 </body>
 </html>`;
 }
@@ -279,7 +266,7 @@ export function renderSitemapXml(
     })
     .join("");
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls}</urlset>`;
+<urlset xmlns="http://www.w3.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls}</urlset>`;
 }
 
 export function renderRobotsTxt(origin: string): string {

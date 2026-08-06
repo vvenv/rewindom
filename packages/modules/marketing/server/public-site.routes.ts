@@ -2,6 +2,10 @@ import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
 import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
 
+import {
+  SITE_ENHANCE_HASH,
+  SITE_ENHANCE_JS,
+} from "../shared/site-enhance.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
 import { openSiteAssetStream } from "./site-asset.service.js";
@@ -21,6 +25,18 @@ function queryLocale(request: FastifyRequest): AppLocale | null {
 }
 
 export async function publicSiteRoutes(app: FastifyInstance): Promise<void> {
+  /*
+   * 公开站交互脚本：SSR 以 defer 注入。不走 defineRoute（那会包成 JSON）。
+   * 内容哈希在 query `v=` 与 ETag，便于长缓存；源码变更后 hash 变、浏览器重拉。
+   */
+  app.get("/site-enhance.js", async (_request, reply) => {
+    return reply
+      .header("content-type", "application/javascript; charset=utf-8")
+      .header("cache-control", "public, max-age=31536000, immutable")
+      .header("etag", `"${SITE_ENHANCE_HASH}"`)
+      .send(SITE_ENHANCE_JS);
+  });
+
   defineRoute(app, {
     method: "GET",
     url: "/site",

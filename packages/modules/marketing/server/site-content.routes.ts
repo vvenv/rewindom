@@ -1,16 +1,54 @@
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { isSiteMemberActor, type AppLocale  } from "@be-water/shared";
+import { isSiteMemberActor, type AppLocale } from "@be-water/shared";
 
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
+import { renderPageSectionsHtml } from "./render-page-sections-html.js";
 import { getMemberContentPage } from "./site.service.js";
 
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 /** 非法 / 缺失的 `locale` 一律当没传，由服务层回落站点默认语言。 */
 function queryLocale(request: FastifyRequest): AppLocale | null {
   const { locale } = request.query as { locale?: string };
   return typeof locale === "string" ? resolveLocaleSegment(locale) : null;
+}
+
+async function requireMemberContentAccess(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<boolean> {
+  if (
+    !request.authUser ||
+    !isSiteMemberActor(request.authUser.actor_type)
+  ) {
+    await reply.status(401).send({
+      error: "Member sign-in required",
+      code: "site_member.member_required",
+    });
+    return false;
+  }
+
+  const hostTenant = request.hostTenantContext;
+  if (!hostTenant) {
+    await reply.status(404).send({
+      error: "No site for this host",
+      code: "site.host_unbound",
+    });
+    return false;
+  }
+
+  // 会员 JWT 的租户必须与当前 Host 一致（中间件已 assertHostTenantMatch，
+  // 这里再防一层：非绑定域上的会员 token 不该读到任何站点正文）。
+  if (request.authUser.tenant_id !== hostTenant.tenant_id) {
+    await reply.status(403).send({
+      error: "Member does not belong to this site",
+      code: "auth.host_tenant_mismatch",
+    });
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -26,33 +64,9 @@ export async function siteContentRoutes(app: FastifyInstance): Promise<void> {
     context: "SiteMemberContentPage",
     errorCode: "SITE_MEMBER_CONTENT_PAGE_FAILED",
     handler: async (request, reply) => {
-      if (
-        !request.authUser ||
-        !isSiteMemberActor(request.authUser.actor_type)
-      ) {
-        return reply.status(401).send({
-          error: "Member sign-in required",
-          code: "site_member.member_required",
-        });
-      }
+      if (!(await requireMemberContentAccess(request, reply))) return;
 
-      const hostTenant = request.hostTenantContext;
-      if (!hostTenant) {
-        return reply.status(404).send({
-          error: "No site for this host",
-          code: "site.host_unbound",
-        });
-      }
-
-      // 会员 JWT 的租户必须与当前 Host 一致（中间件已 assertHostTenantMatch，
-      // 这里再防一层：非绑定域上的会员 token 不该读到任何站点正文）。
-      if (request.authUser.tenant_id !== hostTenant.tenant_id) {
-        return reply.status(403).send({
-          error: "Member does not belong to this site",
-          code: "auth.host_tenant_mismatch",
-        });
-      }
-
+      const hostTenant = request.hostTenantContext!;
       const { path: pagePath } = request.query as { path?: string };
       if (!pagePath || typeof pagePath !== "string") {
         return reply.status(400).send({
@@ -74,6 +88,47 @@ export async function siteContentRoutes(app: FastifyInstance): Promise<void> {
         });
       }
       return result;
+    },
+  });
+
+  /**
+   * 会员正文的 HTML 片段：公开站 site-enhance 注入用。
+   * 渲染器与 SSR 同构（`renderPageSectionsHtml`），浏览器不解释 section JSON。
+   */
+  defineRoute(app, {
+    method: "GET",
+    url: "/page-html",
+    context: "SiteMemberContentPageHtml",
+    errorCode: "SITE_MEMBER_CONTENT_PAGE_HTML_FAILED",
+    handler: async (request, reply) => {
+      if (!(await requireMemberContentAccess(request, reply))) return;
+
+      const hostTenant = request.hostTenantContext!;
+      const { path: pagePath } = request.query as { path?: string };
+      if (!pagePath || typeof pagePath !== "string") {
+        return reply.status(400).send({
+          error: "path is required",
+          code: "site.path_required",
+        });
+      }
+
+      const result = await getMemberContentPage(
+        hostTenant.tenant_id,
+        pagePath,
+        hostTenant.tenant_slug,
+        queryLocale(request),
+      );
+      if (!result) {
+        return reply.status(404).send({
+          error: "Page not found",
+          code: "site.page_not_found",
+        });
+      }
+
+      return {
+        html: renderPageSectionsHtml(result.site, result.page),
+        title: result.page.title,
+      };
     },
   });
 }

@@ -42,7 +42,7 @@ describe("TenantSiteView 页面外壳", () => {
   /*
    * 页头曾经被再套一层 `<header>`：外层高度恰好等于页头本身，`position: sticky`
    * 没有任何可粘的余量，「吸顶」开关在 SPA 接管后就失效了（SSR 首屏还能吸，
-   * 因为那边页头直接摊在 `#root` 下）。
+   * 因为那边页头直接摊在 `.site-stack` 下）。
    */
   it("吸顶页头直接挂在 site-stack 上，不再套一层等高 wrapper", () => {
     const { container } = renderSite({ sticky: true });

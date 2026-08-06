@@ -52,10 +52,8 @@ function fieldHtml(field: FormField, surface: string): string {
 /**
  * 表单段的 SSR。
  *
- * **只出静态结构，不带提交脚本**——与本模块既有口径一致（见 MODULE.md：SSR 是 SEO
- * 真相源，交互层由 SPA 接管）。但光不带脚本还不够：原生 `<form>` 在水合前被提交会
- * 直接导航走，页面白一下什么也没发生。`onsubmit="return false"` 是**不引入 script
- * 标签**就能挡住这一下的唯一办法，所以它在这里，不是随手写的。
+ * 只出静态结构；提交由 site-enhance 拦截（`POST /api/public/site/form`）。
+ * `data-success-message` 给增强脚本成功态文案。
  */
 export const renderFormHtml: SectionHtmlRenderer = (section) => {
   const fields = resolveFormFields(section);
@@ -67,6 +65,10 @@ export const renderFormHtml: SectionHtmlRenderer = (section) => {
       fieldHtml(fields[index]!, blockSurfaceAttr(block.settings)),
     )
     .join("");
+  const success = settingText(s, "success_message");
+  const successAttr = success
+    ? ` data-success-message="${escapeHtml(success)}"`
+    : "";
 
-  return `${sectionHeading(s)}<form class="site-form" data-section-id="${escapeHtml(section.id)}" onsubmit="return false"><div class="form-grid">${rows}</div><div class="form-actions"><button class="btn" type="submit">${escapeHtml(settingText(s, "submit_label"))}</button></div></form>`;
-};
+  return `${sectionHeading(s)}<form class="site-form" data-section-id="${escapeHtml(section.id)}"${successAttr} novalidate><div class="form-grid">${rows}</div><div class="form-actions"><button class="btn" type="submit">${escapeHtml(settingText(s, "submit_label"))}</button></div></form>`;
+}

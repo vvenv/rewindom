@@ -12,15 +12,17 @@
 
 | 面           | 路由                                                                  | 目录                                         | 守卫                                           |
 | ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
-| 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` + `client/public/`    | Host 绑定（含主域→default）+ 站点已发布        |
+| 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
 | 租户中台     | `/app/site`、`/app/site/pages/:pageId`（Theme Editor）                        | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
-挂载点：`client.renderPublicRoutes`（SPA 接管）+ `client.renderRoutes`（CMS）+ `server.registerRoutes`。
+挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / Theme Editor）。
+公开站**不**挂 React；交互由 `site-enhance`（无 React IIFE）渐进增强。
 
 `/` 由本模块占据，因此**登录后的落地页不是 `/`**，而是 `HOME_PATH_CANDIDATES` 解析出的路径。
 外部链接想进应用一律指向 `/app`。平台管理员入口在 `PLATFORM_URL`。
 
-公开页中台壳用 CMS `SiteChrome`；工作台页用 `PageLayout`。SSR 首屏不依赖客户端 Provider；会员入口等在 SPA 接管后生效。
+公开页 chrome 由 SSR HTML 产出；Theme Editor 预览用 React `SiteChrome` / `TenantSiteView`。
+工作台页用 `PageLayout`。
 
 ## 租户 CMS 数据
 
@@ -55,8 +57,8 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 页头 / 页脚区渲染时**不许再包一层 `<header>` / `<footer>`**：`SiteHeader` 自己就是
 `<header>`，外面套一层等高的祖先，`sticky` 就没有可粘的余量（sticky 只在包含块内部
-移动），「吸顶」开关等于失效——而 SSR 把页头直接摊在 `#root` 下，症状是首屏吸得住、
-SPA 一接管就掉下来。顺带也避免了嵌套 landmark。
+移动），「吸顶」开关等于失效——编辑器预览若再包一层等高祖先就会犯这个错。
+顺带也避免了嵌套 landmark。
 
 ### 页头右侧的四个显示项
 
@@ -79,8 +81,9 @@ SPA 一接管就掉下来。顺带也避免了嵌套 landmark。
 
 站点默认跟随访客设备，访客也可以手动改。公开站样式是**语义 class**（**不用 Tailwind**），
 按 Shopify section stylesheet 模型共置为真 `.css`：`shared/site-css/base.css`（primitive /
-`.sec*` / `.grp*`）、`shared/sections/_common/styles.css`（跨段 `.card` / `.grid` 等）、
-以及 `shared/sections/<type>/styles.css`（该段与其 block 专用）。清单在
+`.sec*` / `.grp*`）、`shared/site-css/member.css`（会员入口 chrome）、
+`shared/sections/_common/styles.css`（跨段 `.card` / `.grid` 等）、以及
+`shared/sections/<type>/styles.css`（该段与其 block 专用）。清单在
 `shared/site-css/sources.json`；`assemble.mjs` 拼成
 `marketing-site-css.generated.ts` 的 `MARKETING_SITE_CSS`（Vite 客户端 / esbuild SSR /
 Vitest 共用，勿在运行时 `fs` 读旁路 css）。改样式只改 `.css`，再跑
@@ -105,65 +108,47 @@ Vitest 共用，勿在运行时 `fs` 读旁路 css）。改样式只改 `.css`�
 于是深色设备拿到的是一张真正的深色页而不是白底。同理，section 级的 surface 颜色是内联
 样式，两态都生效。
 
-SSR **不**输出明暗切换按钮：它要 JS 才能工作（语言切换器能进 SSR 是因为那是纯 `<details>`）。
-按钮由 SPA 接管后渲染，与账户入口同一处理——前提是 SPA 真的会到场，见下节。
+SSR 在 `show_theme_toggle` 时输出 `<button class="theme-toggle">`；点击与图标同步由
+`site-enhance` 完成（语言切换器仍是纯 `<details>`，不依赖 enhance）。
 
 ### 会员入口（`show_account`）
 
-未登录显示「登录」，登录后换成头像 + 账户下拉（账户页 / 退出登录）。marketing **不**实现它，
-只在 `client/shell/site-member-slots.ts` 里声明 `siteMemberEntrySlot`；site-member 通过
-`client.shell.publicProviders` 把组件填进来（方向：site-member → marketing）。
+未登录显示「登录」，登录后换成头像 + 账户下拉（账户页 / 退出登录）。
 
-服务端有一份**对称的**注入点 `server/site-account-entry.ts`（`registerSiteAccountEntry`），
-site-member 在 `onBoot` 里填。它回答两件事：本站有没有账户能力（`available`），
-以及未登录态入口的 HTML（`html`）。三处宿主因此有了同一个真相源：
+服务端注入点 `server/site-account-entry.ts`（`registerSiteAccountEntry`），site-member 在
+`onBoot` 里填。它回答两件事：本站有没有账户能力（`available`），以及未登录态入口的 HTML
+（`html`）。宿主口径：
 
-| 宿主                | 数据来源                      | 渲染                                       |
-| ------------------- | ----------------------------- | ------------------------------------------ |
-| SSR 首屏            | 服务端注入点                  | 未开通不输出；开通了直接给「登录」链接     |
-| 租户站点前台（SPA） | `siteMemberEntrySlot`         | 真组件，按会员会话显示登录 / 账户下拉      |
-| 主题编辑器预览      | `GET /api/site/capabilities`  | 开通了才灌 `SiteAccountEntryPreview`       |
+| 宿主           | 数据来源                        | 渲染                                                 |
+| -------------- | ------------------------------- | ---------------------------------------------------- |
+| SSR 首屏       | 服务端注入点                    | 未开通不输出；开通了直接给「登录」链接               |
+| 公开站交互     | site-enhance + `/api/member/me` | 有会员 token 时把 `.member-entry` 升级成账户菜单     |
+| 主题编辑器预览 | `GET /api/site/capabilities`    | 开通了才灌 `SiteAccountEntryPreview`（slot）         |
 
-三条以前各说各话：SSR 从不输出（开通了首屏也没有，登录按钮要等水合才跳出来，
-爬虫与禁用 JS 的访客永远看不到）；编辑器无条件灌静态占位（没开通会员的站点，
-预览里挂着一枚线上根本不存在的「登录」）；而 `show_account` 开关默认打开、随手可点，
-打开后什么都不发生也没有任何提示。现在未开通时开关会置灰并写明原因
-（`SettingsFields` 的 `unavailable`），预览也跟着不画。
+SSR 只画未登录那一态：会员 token 在 localStorage，不随 HTML 请求发送。
+次按钮（secondary）**不**默认成登录：登录归账户入口管。
 
-编辑器不能借用真组件：它跑在工作台外壳里拿不到 `publicProviders`，而真组件判
-「本站是否开通会员」是按**请求 Host** 走的，工作台域名下必然判不出来。所以预览
-用静态占位，能力则单独问 `/api/site/capabilities`（marketing 自己的接口，值由注入点给）。
+### 公开站 site-enhance（交互层）
 
-SSR 只画未登录那一态：会员 token 在 localStorage，不随 HTML 请求发送，服务端无从
-知道访客是否已登录；已登录的访客水合后会换成头像下拉。
+nginx 把绑定域的**所有** HTML 文档反代给 Fastify SSR。公开站**不**注入 React SPA
+（不再 `createRoot(#root)`）。交互由：
 
-次按钮（secondary）**不**默认成登录：登录归账户入口管，两边都配就会并排出现两个「登录」。
+1. SSR 输出挂点（theme 按钮、`.member-entry`、`form.site-form`、`main[data-member-gate]`）
+2. `<script defer src="/api/public/site-enhance.js?v=…">`——源码在
+   `client/enhance/`，`pnpm --filter @be-water/modules assemble:site-enhance` 打成 IIFE
+   写入 `shared/site-enhance.generated.ts`
 
-### 绑定域上的 SPA 接管（交互层的前提）
+| 能力         | 行为                                                                   |
+| ------------ | ---------------------------------------------------------------------- |
+| 明暗         | 读写 `localStorage.site-color-mode`，同步 `data-site-color-mode`       |
+| 表单         | 拦截 `.site-form` → `POST /api/public/site/form`                       |
+| 账户菜单     | Bearer `/api/member/me`（可 refresh）后替换登录链                      |
+| 会员专属正文 | Bearer `GET /api/site/content/page-html`，写入 `main[data-member-gate]` |
 
-nginx 把绑定域的**所有** HTML 文档反代给 Fastify SSR，因此租户站上一切要 JS 的东西
-——账户入口、明暗切换、`requires_member` 页的正文——都取决于这份 SSR HTML 有没有把
-SPA 带上。两件事缺一不可：
-
-1. 正文包在 `<div id="root">` 里。`main.tsx` 走 `createRoot(getElementById("root")!)`，
-   没有挂载点会直接抛。
-2. `renderMarketingHtml({ spaBootstrapHtml })` 输出引导脚本，由
-   `spa-entry.ts` 的 `renderSpaBootstrapHtml()` 按环境分流：
-
-   - **生产**：从构建产物 `apps/client/dist/index.html` 里解析出带 vite 内容哈希的入口
-     并缓存（容器 cwd 是 `/app`，本地是 `apps/server`，两处候选路径都试）。读不到就退化
-     成纯静态 HTML —— 只跑服务端时不该因此 500。
-   - **开发**：改用 vite dev server 的源码入口（react-refresh 前导 + `/@vite/client`
-     + `/src/main.tsx`）。**不能**用 dist 里的哈希文件名——dev server 不 serve `dist/`，
-     浏览器只会拿到 404，租户站的交互层在本地整个是死的；而 `dist/` 常有上一次构建的
-     残留，所以分流看 `isProduction` 而不是「产物在不在」。
-
-这两条曾经都不成立（`spaEntrySrc` 全仓无调用方、body 里没有 `#root`），结果是绑定域上
-根本没有 JS：账户入口与明暗按钮永远不出现，会员页永远停在空占位。
-
-同一条链上还有 nginx 的 SPA 前缀正则，必须与 `SITE_APP_PREFIXES` 一致——漏一个前缀，
-那条路径会落进 `location /` 反代给 SSR，SSR 认出它属于应用区就 `callNotFound()`，
-访客拿到 404 JSON。`member` 就这么漏过一次，由 `nginx-spa-prefixes.test.ts` 守住。
+`/app` `/login` `/register` `/member` `/platform` 仍走 SPA（`SITE_APP_PREFIXES` /
+nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
+若 SPA 内客户端导航误入公开 CMS 路径，`AppNotFoundRedirect` 会 `location.replace`
+硬跳回 SSR 文档。
 
 **页面级**（`placements` 含 `page`）。`band` / `prose` 三处都能放——通栏 CTA 摆进页头区
 就是公告条，prose 摆进页脚就是备案号，不另造类型：
@@ -508,9 +493,8 @@ API：
 **提交内容存成自描述的 `[{ id, label, value }]`**，不是 `{ fieldId: value }`：字段是 block，
 租户随时会改标题、删字段、调顺序，按 id 存的话三个月后回头看只剩一堆 uuid 对不上任何东西。
 
-**SSR 只出静态结构，不带提交脚本**（同本模块既有口径：SSR 是 SEO 真相源，交互层由 SPA 接管）。
-但 `onsubmit="return false"` 不能省——原生 `<form>` 在水合前被提交会直接导航走，
-而这是**不引入 script 标签**就能挡住它的唯一办法。
+**SSR 只出静态结构**；提交由 site-enhance 拦截（`validateFormValues` + `POST /api/public/site/form`）。
+Theme Editor 预览里的 React `FormSection` 共用同一份校验。
 
 ## 默认内容从哪来
 
@@ -528,7 +512,7 @@ API：
 
 本地 Vite：`localhost` 文档导航代理到 `:3700` SSR；`127.0.0.1` 为平台控制台（不代理）。
 
-SSR HTML 为 SEO 真相源；SPA 接管后补交互层（会员入口、明暗切换等）。
+SSR HTML 为 SEO 真相源；site-enhance 补交互层（会员入口、明暗切换、表单、会员正文）。
 
 ## 本地种子数据
 

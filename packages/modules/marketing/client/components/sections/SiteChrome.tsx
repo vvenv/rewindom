@@ -91,10 +91,8 @@ const MOON_ICON = (
 );
 
 /**
- * 会员入口由 site-member 通过 slot 填入；未开通会员的站点这里什么都不渲染。
- *
- * 平台预渲染与主题编辑器都拿不到 `publicProviders`（slot 为空）：前者本就不该
- * 输出一个随后又被 SPA 抹掉的登录按钮，后者由编辑器自己灌一个静态预览进来。
+ * 会员入口由 slot 填入（Theme Editor 灌 `SiteAccountEntryPreview`）。
+ * 公开站页头走 SSR HTML，不经过本组件。
  */
 function SiteMemberEntry(): ReactElement | null {
   const Entry = siteMemberEntrySlot.useSlot();

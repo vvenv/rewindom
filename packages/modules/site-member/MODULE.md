@@ -19,8 +19,12 @@
 ## 与 marketing 的边界
 
 - marketing **不** import site-member
-- 页头入口 / 门控 / 受限页加载器由 marketing 定义 slot，site-member 通过 `publicProviders` 填入
-- `MarketingPage.visibility=members` 的公开端点只返回摘要；正文走 `/api/site/content/page`（会员 token）
+- 公开 CMS 页不挂 React：SSR 未登录入口由 `registerSiteAccountEntry` 注入；已登录菜单 /
+  会员正文由 marketing `site-enhance` 调 `/api/member/*` 与 `/api/site/content/page-html`
+- `/member/*` 仍走 React（`renderPublicRoutes` + `SiteMemberAuthProvider`）
+- Theme Editor 预览用 marketing 的 `siteMemberEntrySlot` + 静态 `SiteAccountEntryPreview`
+- `MarketingPage.visibility=members` 的公开端点只返回摘要；JSON 正文仍可走
+  `/api/site/content/page`，公开站注入优先 `page-html`
 
 ## 权限与开关
 

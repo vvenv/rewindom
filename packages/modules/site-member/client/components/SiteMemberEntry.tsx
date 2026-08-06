@@ -43,7 +43,7 @@ function MemberAvatar({ member }: { member: SiteMemberProfile | null }): ReactNo
 }
 
 /**
- * 站点页头的会员入口。挂在 marketing 的 `siteMemberEntrySlot` 上。
+ * 站点页头的会员入口（React 参考实现；公开站由 SSR + site-enhance 对等渲染）。
  *
  * 样式走官网语义 CSS（`btn` / `member-menu`），不依赖工作台 shadcn Button。
  */

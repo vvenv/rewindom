@@ -269,7 +269,7 @@ export interface PublicMarketingPage {
   visibility: MarketingPageVisibility;
   /**
    * 公开端点对 `visibility=members` 页只返回摘要时为 true。
-   * SPA 据此显示登录门控，再带会员 token 去 `/api/site/content/page` 拉正文。
+   * SSR 据此输出登录门控；site-enhance 再带会员 token 拉 `/api/site/content/page-html`。
    */
   requires_member?: boolean;
   /** 逻辑路径（不带 locale 前缀）。 */

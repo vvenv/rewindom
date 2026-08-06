@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "prebuild": "pnpm --filter @be-water/modules assemble:marketing-css",
+    "prebuild": "pnpm --filter @be-water/modules assemble",
     "build": "tsc -p tsconfig.build.json --noEmit && node scripts/bundle.mjs",
     "start": "node dist/index.js",
     "lint": "eslint .",

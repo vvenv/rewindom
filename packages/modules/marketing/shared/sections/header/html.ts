@@ -32,6 +32,13 @@ export interface LocaleSwitcherOption {
  */
 const LOCALE_SWITCHER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>`;
 
+/** 首屏图标用太阳；site-enhance 会按当前明暗换成月亮。 */
+const THEME_TOGGLE_SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+
+function renderThemeToggleHtml(): string {
+  return `<button type="button" class="theme-toggle" title="当前主题: 跟随系统">${THEME_TOGGLE_SUN}</button>`;
+}
+
 function renderLocaleSwitcherHtml(options: LocaleSwitcherOption[]): string {
   if (options.length < 2) return "";
   const items = options
@@ -108,8 +115,12 @@ export function renderHeaderHtml(input: {
   const switcher = settingBool(s, "show_locale_switcher")
     ? renderLocaleSwitcherHtml(locales)
     : "";
+  // 明暗按钮需要 JS；SSR 先画出挂点，site-enhance 绑定点击并同步图标。
+  const themeToggle = settingBool(s, "show_theme_toggle")
+    ? renderThemeToggleHtml()
+    : "";
   /*
-   * 首屏就把账户入口渲染出来，而不是留给 SPA 水合后再插。
+   * 首屏就把账户入口渲染出来（未登录态），已登录菜单由 site-enhance 升级。
    *
    * 页头是 sticky 的一行，晚出现的按钮会把右侧那一排整体推一下——访客看到的是
    * 「登录」凭空跳出来。爬虫与禁用 JS 的访客更是永远看不到站点有登录入口。
@@ -127,6 +138,7 @@ export function renderHeaderHtml(input: {
     <nav class="header-nav">${links}</nav>
     <div class="header-actions">
       ${switcher}
+      ${themeToggle}
       ${accountEntry}
       ${secondaryLabel && secondaryHref ? `<a class="btn btn-ghost"${linkAttrs(secondaryHref)}>${escapeHtml(secondaryLabel)}</a>` : ""}
       ${ctaLabel && ctaHref ? `<a class="btn"${linkAttrs(ctaHref)}>${escapeHtml(ctaLabel)}</a>` : ""}

@@ -1,5 +1,6 @@
 [
   "site-css/base.css",
+  "site-css/member.css",
   "sections/_common/styles.css",
   "sections/header/styles.css",
   "sections/footer/styles.css",
