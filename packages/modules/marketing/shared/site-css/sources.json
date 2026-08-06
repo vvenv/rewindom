@@ -1,0 +1,20 @@
+[
+  "site-css/base.css",
+  "sections/_common/styles.css",
+  "sections/header/styles.css",
+  "sections/footer/styles.css",
+  "sections/page-header/styles.css",
+  "sections/hero/styles.css",
+  "sections/feature-grid/styles.css",
+  "sections/steps/styles.css",
+  "sections/spec-list/styles.css",
+  "sections/cards/styles.css",
+  "sections/page-menu/styles.css",
+  "sections/pricing/styles.css",
+  "sections/faq/styles.css",
+  "sections/form/styles.css",
+  "sections/prose/styles.css",
+  "sections/group/styles.css",
+  "sections/band/styles.css",
+  "sections/unsupported/styles.css"
+]

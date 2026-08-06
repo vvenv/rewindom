@@ -7,6 +7,9 @@
     "./*": "./*"
   },
   "scripts": {
+    "assemble:marketing-css": "node marketing/shared/site-css/assemble.mjs",
+    "pretest": "pnpm assemble:marketing-css",
+    "pretypecheck": "pnpm assemble:marketing-css",
     "test": "vitest --run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit",

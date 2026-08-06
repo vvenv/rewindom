@@ -1,10 +1,20 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
+import {
+  assembleMarketingSiteCss,
+  listMarketingSiteCssSources,
+  writeMarketingSiteCssGenerated,
+} from "./site-css/assemble.mjs";
 import { MARKETING_SITE_CSS } from "./marketing-site-css.js";
 import { loadMarketingSiteCss } from "./load-marketing-site-css.js";
 import { SECTION_DEFINITIONS } from "./sections/index.js";
-import { SECTION_STYLES_BY_TYPE } from "./sections/styles.js";
 import type { SectionType } from "./sections/types.js";
+
+const SHARED_ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 describe("marketing-site-css", () => {
   it("exports semantic classes used by SSR and SPA", () => {
@@ -24,14 +34,31 @@ describe("marketing-site-css", () => {
     expect(loadMarketingSiteCss()).toBe(MARKETING_SITE_CSS);
   });
 
-  it("registers a stylesheet export for every section type", () => {
+  it("keeps generated bundle in sync with co-located css sources", () => {
+    const fromSources = assembleMarketingSiteCss();
+    expect(MARKETING_SITE_CSS).toBe(fromSources);
+    // Also ensure the on-disk generated file matches (catches uncommitted drift).
+    writeMarketingSiteCssGenerated();
+    const regenerated = readFileSync(
+      path.join(SHARED_ROOT, "marketing-site-css.generated.ts"),
+      "utf8",
+    );
+    expect(regenerated).toContain("export const MARKETING_SITE_CSS");
+    expect(regenerated).toContain(".btn {");
+  });
+
+  it("lists a styles.css for every registered section type", () => {
+    const sources = new Set(listMarketingSiteCssSources());
     const registered = Object.keys(SECTION_DEFINITIONS) as SectionType[];
     for (const type of registered) {
-      expect(SECTION_STYLES_BY_TYPE).toHaveProperty(type);
-      expect(typeof SECTION_STYLES_BY_TYPE[type]).toBe("string");
+      const rel = `sections/${type}/styles.css`;
+      expect(sources.has(rel), `sources.json missing ${rel}`).toBe(true);
+      expect(
+        existsSync(path.join(SHARED_ROOT, rel)),
+        `missing ${rel}`,
+      ).toBe(true);
     }
-    expect(Object.keys(SECTION_STYLES_BY_TYPE).sort()).toEqual(
-      registered.slice().sort(),
-    );
+    expect(sources.has("site-css/base.css")).toBe(true);
+    expect(sources.has("sections/_common/styles.css")).toBe(true);
   });
 });
