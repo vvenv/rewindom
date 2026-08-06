@@ -9,7 +9,7 @@ async function main(): Promise<void> {
   const result = await getPublishedPublicPage(tenant.id, "/");
   if (!result) throw new Error("no published home");
   const html = renderMarketingHtml({
-    origin: "http://local.water.moms.plus",
+    origin: "http://local.moms.plus",
     site: result.site,
     page: result.page,
   });

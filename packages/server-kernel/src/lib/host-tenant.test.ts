@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./config.js", () => ({
   config: {
-    frontend: { url: "https://water.moms.plus" },
+    frontend: { url: "https://moms.plus" },
     platform: { url: "https://platform.moms.plus" },
-    tenant: { baseDomain: "water.moms.plus" },
+    tenant: { baseDomain: "moms.plus" },
   },
 }));
 
@@ -58,13 +58,13 @@ describe("hostname sets", () => {
   });
 
   it("FRONTEND_URL 为默认租户 Host（含 www）", () => {
-    expect(getDefaultTenantHostnames().has("water.moms.plus")).toBe(true);
-    expect(getDefaultTenantHostnames().has("www.water.moms.plus")).toBe(true);
+    expect(getDefaultTenantHostnames().has("moms.plus")).toBe(true);
+    expect(getDefaultTenantHostnames().has("www.moms.plus")).toBe(true);
     expect(getDefaultTenantHostnames().has("127.0.0.1")).toBe(false);
   });
 
   it("保留主机名包含两边", () => {
-    expect(getReservedHostnames().has("water.moms.plus")).toBe(true);
+    expect(getReservedHostnames().has("moms.plus")).toBe(true);
     expect(getReservedHostnames().has("platform.moms.plus")).toBe(true);
   });
 });
@@ -72,27 +72,27 @@ describe("hostname sets", () => {
 describe("extractTenantSubdomainLabel / buildTenantDefaultUrl", () => {
   it("解析单标签子域", () => {
     expect(
-      extractTenantSubdomainLabel("acme.water.moms.plus", "water.moms.plus"),
+      extractTenantSubdomainLabel("acme.moms.plus", "moms.plus"),
     ).toBe("acme");
   });
 
   it("拒绝基域本身、多级与保留前缀", () => {
     expect(
-      extractTenantSubdomainLabel("water.moms.plus", "water.moms.plus"),
+      extractTenantSubdomainLabel("moms.plus", "moms.plus"),
     ).toBeNull();
     expect(
-      extractTenantSubdomainLabel("a.b.water.moms.plus", "water.moms.plus"),
+      extractTenantSubdomainLabel("a.b.moms.plus", "moms.plus"),
     ).toBeNull();
     expect(
-      extractTenantSubdomainLabel("www.water.moms.plus", "water.moms.plus"),
+      extractTenantSubdomainLabel("www.moms.plus", "moms.plus"),
     ).toBeNull();
     expect(
-      extractTenantSubdomainLabel("api.water.moms.plus", "water.moms.plus"),
+      extractTenantSubdomainLabel("api.moms.plus", "moms.plus"),
     ).toBeNull();
   });
 
   it("拼默认访问 URL", () => {
-    expect(buildTenantDefaultUrl("acme")).toBe("https://acme.water.moms.plus");
+    expect(buildTenantDefaultUrl("acme")).toBe("https://acme.moms.plus");
   });
 });
 
@@ -121,13 +121,13 @@ describe("normalizeCustomDomain", () => {
   });
 
   it("拒绝产品主域、平台控制台 Host 与通配子域", () => {
-    expect(() => normalizeCustomDomain("water.moms.plus")).toThrow(
+    expect(() => normalizeCustomDomain("moms.plus")).toThrow(
       ValidationError,
     );
     expect(() => normalizeCustomDomain("platform.moms.plus")).toThrow(
       ValidationError,
     );
-    expect(() => normalizeCustomDomain("acme.water.moms.plus")).toThrow(
+    expect(() => normalizeCustomDomain("acme.moms.plus")).toThrow(
       ValidationError,
     );
   });
@@ -153,7 +153,7 @@ describe("resolveHostTenant", () => {
       status: "active",
     } as never);
 
-    await expect(resolveHostTenant("water.moms.plus")).resolves.toEqual({
+    await expect(resolveHostTenant("moms.plus")).resolves.toEqual({
       tenant_id: DEFAULT_TENANT_ID,
       tenant_slug: "default",
       name: "默认租户",
@@ -191,7 +191,7 @@ describe("resolveHostTenant", () => {
         name: "Acme",
       } as never);
 
-    await expect(resolveHostTenant("acme.water.moms.plus")).resolves.toEqual({
+    await expect(resolveHostTenant("acme.moms.plus")).resolves.toEqual({
       tenant_id: "t-2",
       tenant_slug: "acme",
       name: "Acme",

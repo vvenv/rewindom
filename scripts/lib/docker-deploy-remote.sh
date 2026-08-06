@@ -131,28 +131,15 @@ docker_write_remote_env_file() {
   local environment="$2"
   local domain="$3"
   local port="$4"
+  local source_env
+  source_env="$(deploy_env_file_for "$ROOT" "$environment")"
 
+  deploy_env_write_runtime_file "$source_env" "$output"
   {
-    printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
-    printf 'JWT_SECRET=%s\n' "$JWT_SECRET"
-    printf 'TENANT_SECRET_ENCRYPTION_KEY=%s\n' "$TENANT_SECRET_ENCRYPTION_KEY"
     printf 'APP_DOMAIN=%s\n' "$domain"
     printf 'APP_PORT=%s\n' "$port"
-    [ -n "${REDIS_PASSWORD:-}" ] && printf 'REDIS_PASSWORD=%s\n' "$REDIS_PASSWORD"
-    [ -n "${OPENAI_API_KEY:-}" ] && printf 'OPENAI_API_KEY=%s\n' "$OPENAI_API_KEY"
-    [ -n "${OPENAI_BASE_URL:-}" ] && printf 'OPENAI_BASE_URL=%s\n' "$OPENAI_BASE_URL"
-    [ -n "${OPENAI_MODEL:-}" ] && printf 'OPENAI_MODEL=%s\n' "$OPENAI_MODEL"
-    [ -n "${PLATFORM_ADMIN_USERNAME:-}" ] && printf 'PLATFORM_ADMIN_USERNAME=%s\n' "$PLATFORM_ADMIN_USERNAME"
-    [ -n "${PLATFORM_ADMIN_PASSWORD:-}" ] && printf 'PLATFORM_ADMIN_PASSWORD=%s\n' "$PLATFORM_ADMIN_PASSWORD"
-    [ -n "${LOG_LEVEL:-}" ] && printf 'LOG_LEVEL=%s\n' "$LOG_LEVEL"
-    [ -n "${FRONTEND_URL:-}" ] && printf 'FRONTEND_URL=%s\n' "$FRONTEND_URL"
-    [ -n "${GITHUB_CLIENT_ID:-}" ] && printf 'GITHUB_CLIENT_ID=%s\n' "$GITHUB_CLIENT_ID"
-    [ -n "${GITHUB_CLIENT_SECRET:-}" ] && printf 'GITHUB_CLIENT_SECRET=%s\n' "$GITHUB_CLIENT_SECRET"
-    [ -n "${GITHUB_CALLBACK_URL:-}" ] && printf 'GITHUB_CALLBACK_URL=%s\n' "$GITHUB_CALLBACK_URL"
-    [ -n "${GOOGLE_CLIENT_ID:-}" ] && printf 'GOOGLE_CLIENT_ID=%s\n' "$GOOGLE_CLIENT_ID"
-    [ -n "${GOOGLE_CLIENT_SECRET:-}" ] && printf 'GOOGLE_CLIENT_SECRET=%s\n' "$GOOGLE_CLIENT_SECRET"
-    [ -n "${GOOGLE_CALLBACK_URL:-}" ] && printf 'GOOGLE_CALLBACK_URL=%s\n' "$GOOGLE_CALLBACK_URL"
-  } >"$output"
+    printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
+  } >>"$output"
   chmod 600 "$output"
 }
 

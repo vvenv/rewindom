@@ -114,7 +114,7 @@ export function getReservedHostnames(): Set<string> {
   ]);
 }
 
-/** 平台通配子域基域（如 `water.moms.plus`）；空则关闭 slug 子域解析。 */
+/** 平台通配子域基域（如 `moms.plus`）；空则关闭 slug 子域解析。 */
 export function getTenantBaseDomain(): string | null {
   const raw = config.tenant.baseDomain.trim().toLowerCase().replace(/\.$/u, "");
   return raw.length > 0 ? raw : null;

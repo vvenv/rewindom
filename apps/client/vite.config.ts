@@ -95,7 +95,7 @@ export default defineConfig(() => ({
     },
   },
   server: {
-    allowedHosts: ["localhost", "127.0.0.1", "::1", "local.water.moms.plus"],
+    allowedHosts: ["localhost", "127.0.0.1", "::1", "local.moms.plus"],
     proxy: {
       "/api": {
         target: "http://localhost:3700",

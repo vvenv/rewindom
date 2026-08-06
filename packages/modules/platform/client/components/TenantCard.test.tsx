@@ -66,7 +66,7 @@ vi.mock("@be-water/client-kit", async (importOriginal) => {
         google_oauth_enabled: false,
         single_tenant: false,
         bound_tenant: null,
-        tenant_base_domain: "water.moms.plus",
+        tenant_base_domain: "moms.plus",
         platform_url: "https://platform.moms.plus",
       },
     }),
