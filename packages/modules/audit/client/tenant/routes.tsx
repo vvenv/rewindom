@@ -12,7 +12,7 @@ const TenantAuditLogs = lazy(() =>
 export function renderAuditTenantRoutes(): ReactNode {
   return (
     <Route element={<PermissionRoute permission="audit_logs.read" />}>
-      <Route path="/audit-logs" element={<TenantAuditLogs />} />
+      <Route path="/app/audit-logs" element={<TenantAuditLogs />} />
     </Route>
   );
 }

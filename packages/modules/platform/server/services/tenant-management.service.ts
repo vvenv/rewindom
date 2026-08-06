@@ -7,7 +7,10 @@ import {
   ValidationError,
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
-import { normalizeCustomDomain } from "@be-water/server-kernel/lib/host-tenant.js";
+import {
+  invalidateHostTenantCache,
+  normalizeCustomDomain,
+} from "@be-water/server-kernel/lib/host-tenant.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug  } from "@be-water/shared";
 
@@ -148,6 +151,9 @@ export async function createTenant(
 
     return created;
   });
+
+  // 新租户的 `{slug}.{base}` 之前解析为「无租户」，那个否定结果可能还在缓存里
+  invalidateHostTenantCache();
 
   return {
     ...toTenantSummary(tenant),
@@ -318,6 +324,10 @@ export async function patchTenant(
           where: { id },
           data,
         });
+
+  // slug / custom_domain / status 任何一个变了，Host → 租户的映射就变了。
+  // 不清缓存的话最长 30 秒内旧绑定仍然生效：新绑的域名 404、刚归档的租户还进得去。
+  invalidateHostTenantCache();
 
   return toTenantSummary(tenant);
 }

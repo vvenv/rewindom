@@ -1,3 +1,4 @@
+import { DEFAULT_TENANT_ID } from "@be-water/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./config.js", () => ({
@@ -5,6 +6,8 @@ vi.mock("./config.js", () => ({
     frontend: { url: "https://moms.plus" },
     platform: { url: "https://platform.moms.plus" },
     tenant: { baseDomain: "moms.plus" },
+    // 测试态不缓存解析结果，这里逐条断言查库次数才有意义
+    server: { isTest: true },
   },
 }));
 
@@ -16,8 +19,6 @@ vi.mock("./prisma.js", () => ({
     },
   },
 }));
-
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
 
 import { ValidationError } from "./app-errors.js";
 import {
@@ -88,6 +89,26 @@ describe("extractTenantSubdomainLabel / buildTenantDefaultUrl", () => {
     ).toBeNull();
     expect(
       extractTenantSubdomainLabel("api.moms.plus", "moms.plus"),
+    ).toBeNull();
+  });
+
+  /*
+   * 本地多租户的做法（见 README / .env.example）：把基域设成 `localhost`，
+   * 直接开 `{slug}.localhost:7300`——浏览器原生把 `*.localhost` 解析到回环，
+   * 不用改 hosts，也不用给开发态另造一套「把当前 origin 绑到某租户」的旁路。
+   * 这条断言就是那份文档的守卫：`localhost` 作基域必须照常解析。
+   */
+  it("localhost 可以当基域（本地多租户）", () => {
+    expect(extractTenantSubdomainLabel("acme.localhost", "localhost")).toBe(
+      "acme",
+    );
+    // 基域本身仍是产品站，不该被当成某个租户的子域
+    expect(
+      extractTenantSubdomainLabel("localhost", "localhost"),
+    ).toBeNull();
+    // 保留前缀照旧挡住，免得和 /app、/platform 这类入口撞名
+    expect(
+      extractTenantSubdomainLabel("app.localhost", "localhost"),
     ).toBeNull();
   });
 

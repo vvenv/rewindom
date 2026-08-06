@@ -17,7 +17,7 @@ export function renderBillingTenantRoutes(): ReactNode {
   return (
     <Route element={<TenantModuleRoute moduleId="billing" label="订阅与付款" />}>
       <Route element={<PermissionRoute permission="billing.read" />}>
-        <Route path="/billing" element={<BillingPage />} />
+        <Route path="/app/billing" element={<BillingPage />} />
       </Route>
     </Route>
   );

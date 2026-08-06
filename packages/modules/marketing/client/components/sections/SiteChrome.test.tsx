@@ -84,7 +84,7 @@ describe("SiteHeader 显示项开关", () => {
     expect(screen.getAllByRole("link", { name: "文档" }).length).toBeGreaterThan(
       0,
     );
-    expect(screen.queryByRole("button", { name: "Language" })).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "Language" })).toBeNull();
   });
 
   it("站点导航开关控制一级页进不进顶栏", () => {
@@ -94,9 +94,7 @@ describe("SiteHeader 显示项开关", () => {
 
   it("语言切换按开关出现", () => {
     renderHeader(headerSection({ show_locale_switcher: true }));
-    expect(
-      screen.getByRole("button", { name: "Language" }),
-    ).toBeInTheDocument();
+    expect(document.querySelector(".locale-switcher")).toBeInTheDocument();
   });
 
   // ThemeToggle 没有可见文案，可读名字来自 title（「当前主题: 跟随系统」）

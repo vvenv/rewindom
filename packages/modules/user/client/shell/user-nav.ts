@@ -15,7 +15,7 @@ export const USER_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: Users,
         label: "user:nav.users",
-        path: "/users",
+        path: "/app/users",
         title: "user:nav.users",
         keywords: "users 用户 成员 账号",
         anyPermission: ["users.read"],

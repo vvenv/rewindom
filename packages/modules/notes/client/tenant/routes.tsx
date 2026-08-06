@@ -19,7 +19,7 @@ export function renderNotesRoutes(): ReactNode {
   return (
     <Route element={<NotesModuleRoute />}>
       <Route element={<PermissionRoute permission="notes.read" />}>
-        <Route path="/notes" element={<Notes />} />
+        <Route path="/app/notes" element={<Notes />} />
       </Route>
     </Route>
   );

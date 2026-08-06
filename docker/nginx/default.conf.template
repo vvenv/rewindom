@@ -62,8 +62,8 @@ server {
 
     # 应用壳层路径：仍走 SPA，不进 Marketing SSR。
     # 必须与 `SITE_APP_PREFIXES`（packages/modules/marketing/shared/site-locale.ts）保持一致。
-    location ~ ^/(app|login|register|member|platform|billing|settings|notes|todos|users|roles|audit|notifications)(/|$) {
-        try_files $uri /app.html;
+    location ~ ^/(app|login|register|member|platform)(/|$) {
+        try_files $uri /index.html;
         add_header Cache-Control "no-cache" always;
     }
 
@@ -76,14 +76,13 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # 产品主域与其它租户 Host：文档导航反代 SSR。
-    # 平台控制台 Host：静态 SPA（/ → app.html，前端可进 /platform）。
+    # 平台控制台 Host：静态 SPA（/ → index.html，前端可进 /platform）。
     location / {
         error_page 418 = @tenant_ssr;
         if ($use_tenant_ssr = 1) {
             return 418;
         }
-        try_files $uri /app.html;
+        try_files $uri /index.html;
         add_header Cache-Control "no-cache" always;
     }
 

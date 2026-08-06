@@ -142,6 +142,7 @@ export {
 export {
   buildPlatformConsoleUrl,
   goToPlatformConsole,
+  isPlatformConsoleOrigin,
 } from "./lib/platform-console-url.js";
 export { ExternalOrNavigate } from "./components/ExternalOrNavigate.js";
 export { useAppVersion } from "./hooks/useAppVersion";

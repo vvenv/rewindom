@@ -14,5 +14,5 @@ const Dashboard = lazy(() =>
  * 权限收窄发生在**卡片**粒度（`DashboardWidget.anyPermission`）。
  */
 export function renderDashboardRoutes(): ReactNode {
-  return <Route path="/dashboard" element={<Dashboard />} />;
+  return <Route path="/app/dashboard" element={<Dashboard />} />;
 }

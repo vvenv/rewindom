@@ -46,8 +46,25 @@ vi.mock("@be-water/server-kernel/lib/config.js", () => ({
         enabled: false,
       },
     },
+    /*
+     * 这两个 origin 都**刻意避开 `localhost`**——`app.inject()` 不带 Host 头时
+     * 用的就是 localhost。
+     *
+     * auth 中间件对每个 `/api` 请求都会 `resolveHostTenant()`：Host 命中
+     * `platform.url` 就是控制台，命中 `frontend.url` 就隐式绑定默认租户。
+     * 若让 localhost 命中 `frontend.url`，所有路由测试都会带上租户 Host 上下文，
+     * `/api/platform/*` 随即被 `tenant.host_platform_forbidden` 挡成 403。
+     * 路由单测不该被 Host 绑定影响；Host 绑定本身由
+     * `server-kernel/middleware/auth.middleware.test.ts` 专门覆盖。
+     *
+     * 另外这两段**不能缺**：缺了 `config.platform.url` 读出来是 undefined，
+     * 每个路由测试都会 500。
+     */
     frontend: {
-      url: "http://localhost:7300",
+      url: "http://app.test",
+    },
+    platform: {
+      url: "http://console.test",
     },
     server: {
       isProduction: false,
@@ -96,6 +113,10 @@ vi.mock("@be-water/server-kernel/lib/config.js", () => ({
     },
     tenant: {
       secretEncryptionKey: Buffer.alloc(32, 0),
+      // 同样走 `resolveHostTenant`：`{slug}.{baseDomain}` 的子域解析与单租户回落
+      singleTenant: false,
+      baseDomain: "",
+      guardMode: "enforce",
     },
   },
 }));

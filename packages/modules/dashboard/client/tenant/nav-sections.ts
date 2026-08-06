@@ -9,7 +9,7 @@ export const DASHBOARD_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: LayoutDashboard,
         label: "dashboard:nav.dashboard",
-        path: "/dashboard",
+        path: "/app/dashboard",
         title: "dashboard:nav.dashboard",
         keywords: "dashboard 工作台 首页 概览",
         end: true,

@@ -4,6 +4,7 @@ import { Route } from "react-router";
 
 import {
   AppHomeRedirect,
+  AppShellCssLoader,
   GuestOnlyRoute,
   PlatformAdminRoute,
   ProtectedRoute,
@@ -33,22 +34,24 @@ export function renderAppShellRoutes(trees: AppRouteTrees): ReactNode {
           不参与匹配也不做重定向。 */}
       <Route element={<PublicProviders />}>{trees.publicRoutes}</Route>
 
-      <Route element={<GuestOnlyRoute />}>{trees.guestRoutes}</Route>
+      <Route element={<AppShellCssLoader />}>
+        <Route element={<GuestOnlyRoute />}>{trees.guestRoutes}</Route>
 
-      <Route element={<ProtectedRoute />}>
-        {/* 控制台稳定入口：官网等站外链接指向 `/app`，不必知道业务首页是哪个路径。
-            未登录会先被 ProtectedRoute 送去登录页。 */}
-        <Route path="/app" element={<AppHomeRedirect />} />
+        <Route element={<ProtectedRoute />}>
+          {/* 控制台稳定入口：官网等站外链接指向 `/app`，不必知道业务首页是哪个路径。
+              未登录会先被 ProtectedRoute 送去登录页。 */}
+          <Route path="/app" element={<AppHomeRedirect />} />
 
-        <Route element={<AppLayout />}>{trees.tenantRoutes}</Route>
+          <Route element={<AppLayout />}>{trees.tenantRoutes}</Route>
 
-        <Route element={<SuperUserRoute />}>
-          <Route element={<AppLayout />}>{trees.superUserRoutes}</Route>
+          <Route element={<SuperUserRoute />}>
+            <Route element={<AppLayout />}>{trees.superUserRoutes}</Route>
+          </Route>
         </Route>
-      </Route>
 
-      <Route element={<PlatformAdminRoute />}>
-        <Route element={<PlatformLayout />}>{trees.platformRoutes}</Route>
+        <Route element={<PlatformAdminRoute />}>
+          <Route element={<PlatformLayout />}>{trees.platformRoutes}</Route>
+        </Route>
       </Route>
     </>
   );

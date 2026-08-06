@@ -16,6 +16,6 @@ import {
  * 3. 未启用的示例模块（notes / todos）从 `enabled-modules` 移除后，也从本列表去掉
  */
 export const HOME_PATH_CANDIDATES: readonly HomePathCandidate[] = [
-  { path: "/dashboard" },
+  { path: "/app/dashboard" },
   ...EXAMPLE_HOME_PATH_CANDIDATES,
 ];

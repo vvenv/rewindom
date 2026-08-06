@@ -74,3 +74,46 @@ export function composeSiteColor(rgb: string, alphaPercent: number): string {
     .padStart(2, "0");
   return `${opaque}${byte}`;
 }
+
+function parseOpaqueRgb(hex: string): { r: number; g: number; b: number } | null {
+  const { rgb } = splitSiteColor(hex);
+  if (!isOpaqueHex(rgb)) return null;
+  const expanded = expandHex(rgb).slice(1);
+  return {
+    r: Number.parseInt(expanded.slice(0, 2), 16),
+    g: Number.parseInt(expanded.slice(2, 4), 16),
+    b: Number.parseInt(expanded.slice(4, 6), 16),
+  };
+}
+
+function srgbChannelToLinear(channel: number): number {
+  const c = channel / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(r: number, g: number, b: number): number {
+  return (
+    0.2126 * srgbChannelToLinear(r) +
+    0.7152 * srgbChannelToLinear(g) +
+    0.0722 * srgbChannelToLinear(b)
+  );
+}
+
+/**
+ * 黑字开始比白字更清楚的那个临界亮度。
+ *
+ * 按 WCAG 对比度公式解出来的，不是拍的：白字对比度 `1.05 / (L + 0.05)`，
+ * 黑字 `(L + 0.05) / 0.05`，两者相等即 `L = sqrt(1.05 * 0.05) - 0.05 ≈ 0.179`。
+ * 取更高的阈值（比如 0.55）会让 `#aabbcc` 这种浅色也配白字——对比度只有 1.96，
+ * 基本读不清，而这个函数存在的意义正是避免这件事。
+ */
+const BLACK_BEATS_WHITE_LUMINANCE = Math.sqrt(1.05 * 0.05) - 0.05;
+
+/** 主色按钮 / badge 上的可读前景色（SSR 与 SPA 共用）。 */
+export function primaryForegroundFor(background: string): string {
+  const rgb = parseOpaqueRgb(background);
+  if (!rgb) return "#ffffff";
+  return relativeLuminance(rgb.r, rgb.g, rgb.b) > BLACK_BEATS_WHITE_LUMINANCE
+    ? "#0a0a0a"
+    : "#ffffff";
+}

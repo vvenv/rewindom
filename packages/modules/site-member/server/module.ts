@@ -42,11 +42,18 @@ export const siteMemberServerModule: ServerAppModule = {
   server: {
     i18n: SITE_MEMBER_SERVER_I18N,
     registerRoutes: async (app) => {
-      // 会员自助接口**不能**套 registerTenantGatedRoutes：注册/登录是免认证的，
-      // 那时还没有 request.tenantContext，网关会直接崩。
-      // entitlement 由 resolveSiteTenant 在解析站点归属时一并校验。
+      /*
+       * 顶层命名空间，**不能**挂在 marketing 的 `/api/site` 之下：那边是租户管理
+       * 接口（要 site.read / site.write），把一组对公网免认证的接口嵌进去，
+       * 鉴权中间件就只能逐条列白名单把它们从「需认证」里挖出来——受众不同的接口
+       * 不该共用命名空间。
+       *
+       * 也**不能**套 registerTenantGatedRoutes：注册/登录是免认证的，
+       * 那时还没有 request.tenantContext，网关会直接崩。
+       * entitlement 由 resolveSiteTenant 在解析站点归属时一并校验。
+       */
       await app.register(siteMemberAuthRoutes, {
-        prefix: "/api/site/member",
+        prefix: "/api/member",
       });
 
       await registerTenantGatedRoutes(

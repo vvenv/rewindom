@@ -2,6 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { createPortal } from "react-dom";
 
+import { MARKETING_SITE_CSS } from "../../../shared/marketing-site-css.js";
+import { PreviewDocumentContext } from "../../lib/preview-document-context.js";
+
 /**
  * 预览设备的**逻辑视口宽度**：iframe 真的按这个宽度渲染，媒体查询看到的就是它。
  *
@@ -17,60 +20,32 @@ export const PREVIEW_DEVICES = {
 
 export type PreviewDevice = keyof typeof PREVIEW_DEVICES;
 
-/** 克隆进 iframe 的样式打个标记，重新同步时只清自己加的。 */
-const STYLE_MARK = "data-preview-style";
+const STYLE_MARK = "data-marketing-site-style";
 
 /**
- * 只做 iframe 布局复位。背景**不要**在这里写死成 `var(--background)`——
- * 主站 body 用的是 index.css 里的径向渐变（water / slate × 明暗），
- * 硬铺纯色会和真实页面不一致。样式表克隆进来后会带上那套规则。
+ * 只做 iframe 布局复位；官网语义 CSS 用 `MARKETING_SITE_CSS` 注入，**不**克隆工作台 `index.css`。
  *
  * 滚动条显式样式化是**必须**的：macOS 默认是覆盖式滚动条，不占布局宽度，
- * 会悬浮在内容最右侧十几个像素上——通栏 section（`width: full`）的右边缘、
- * 以及它的选中框正好被盖住。样式化 `::-webkit-scrollbar` 会让 Chrome/Safari
- * 退回占位滚动条，内容宽度自动让出这段空间。
+ * 会悬浮在内容最右侧十几个像素上——通栏 section 的右边缘与选中框正好被盖住。
  */
-const BASE_CSS = [
+const FRAME_CSS = [
   `html,body{height:100%}`,
-  `body{margin:0}`,
+  `body{margin:0;color:var(--fg);background:var(--bg)}`,
   `html::-webkit-scrollbar{width:10px;height:10px}`,
   `html::-webkit-scrollbar-track{background:transparent}`,
   `html::-webkit-scrollbar-thumb{background:color-mix(in srgb,currentColor 25%,transparent);border-radius:5px}`,
   `html::-webkit-scrollbar-corner{background:transparent}`,
-].join("");
+  MARKETING_SITE_CSS,
+].join("\n");
 
-/**
- * 把主文档的样式表复制进 iframe。
- *
- * 开发态 Vite 用内联 `<style>`、生产态是 `<link>`，两种都要覆盖；HMR 改的是
- * `<style>` 的文本内容，所以监听到 head 有任何变化就整体重来（只在开发态频繁触发）。
- */
-function syncStyles(from: Document, to: Document): void {
+function injectMarketingStyles(to: Document): void {
   for (const stale of to.head.querySelectorAll(`[${STYLE_MARK}]`)) {
     stale.remove();
   }
-  const base = to.createElement("style");
-  base.setAttribute(STYLE_MARK, "");
-  base.textContent = BASE_CSS;
-  to.head.append(base);
-  for (const node of from.head.querySelectorAll(
-    'style, link[rel="stylesheet"]',
-  )) {
-    const clone = node.cloneNode(true) as HTMLElement;
-    clone.setAttribute(STYLE_MARK, "");
-    to.head.append(clone);
-  }
-}
-
-/** 明暗 class + 配色 `data-theme` 都要跟上，否则 slate 的 body 渐变对不上。 */
-function syncTheme(from: Document, to: Document): void {
-  to.documentElement.className = from.documentElement.className;
-  const theme = from.documentElement.getAttribute("data-theme");
-  if (theme) {
-    to.documentElement.setAttribute("data-theme", theme);
-  } else {
-    to.documentElement.removeAttribute("data-theme");
-  }
+  const style = to.createElement("style");
+  style.setAttribute(STYLE_MARK, "");
+  style.textContent = FRAME_CSS;
+  to.head.append(style);
 }
 
 interface PreviewFrameProps {
@@ -78,7 +53,7 @@ interface PreviewFrameProps {
   children: ReactNode;
   /** iframe 文档就绪 / 卸载时回调，供外部做滚动定位。 */
   onDocumentChange?: (doc: Document | null) => void;
-  /** 要高亮的 section（`data-section-id`）。高亮画在 iframe **外面**，见 SelectionOverlay。 */
+  /** 要高亮的 section（`data-section-id`）。高亮画在 iframe **外面**。 */
   highlightSectionId?: string | null;
 }
 
@@ -92,10 +67,8 @@ interface HighlightRect {
 /**
  * 设备预览框。
  *
- * 用 iframe 而不是缩容器宽度：站点的响应式断点是**视口**媒体查询，容器变窄并不会
- * 触发移动端样式，只有真正给它一个窄视口才做得到。内容仍走 `createPortal`，
- * 所以预览和编辑器是同一棵 React 树——选中态、草稿、点击选区块都不用另接一套通道
- * （React 会给 portal 容器单独挂事件监听，跨 document 的点击照样触发）。
+ * 用 iframe 而不是缩容器宽度：站点的响应式断点是**视口**媒体查询。
+ * 内容走 `createPortal`，与编辑器同一棵 React 树。
  */
 export function PreviewFrame({
   device,
@@ -110,10 +83,8 @@ export function PreviewFrame({
   const [highlight, setHighlight] = useState<HighlightRect | null>(null);
 
   const deviceWidth = PREVIEW_DEVICES[device];
-  // 装不下就整体缩小；放得下不放大，免得 390px 的手机被拉成马赛克
   const scale = host.width > 0 ? Math.min(1, host.width / deviceWidth) : 1;
 
-  // iframe 的 document 要等 load 之后才稳定（srcDoc 也一样会走一次导航）
   const attach = (): void => {
     setDoc(frameRef.current?.contentDocument ?? null);
   };
@@ -134,39 +105,17 @@ export function PreviewFrame({
     return () => onDocumentChange?.(null);
   }, [doc, onDocumentChange]);
 
+  /*
+   * 明暗**不**在这里同步：iframe 里渲染的 `TenantSiteView` 自己会把访客偏好
+   * （`data-site-color-mode`）打到这份 document 的 `<html>` 上，与访客实站同一条路径。
+   * 这里再抄一遍工作台的 `.dark` / `localStorage.theme`，预览就会跟着管理台的
+   * 明暗走，而访客看到的根本是另一态。
+   */
   useEffect(() => {
     if (!doc) return;
-    const source = document;
-    const sync = (): void => {
-      syncStyles(source, doc);
-      // 工作台的明暗 / 配色跟着走，预览里的 token 与 body 渐变才和主站一致
-      syncTheme(source, doc);
-    };
-    sync();
-
-    const styles = new MutationObserver(sync);
-    styles.observe(source.head, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-    const theme = new MutationObserver(sync);
-    theme.observe(source.documentElement, {
-      attributes: true,
-      attributeFilter: ["class", "data-theme"],
-    });
-    return () => {
-      styles.disconnect();
-      theme.disconnect();
-    };
+    injectMarketingStyles(doc);
   }, [doc]);
 
-  /**
-   * 选中框的位置：把 iframe 里的矩形换算成外层坐标（乘缩放比）。
-   *
-   * 滚动、面板尺寸变化、以及编辑内容导致的重排都会改变它，所以三个来源都要监听；
-   * 测量本身很便宜，用 rAF 合并成一帧一次即可。
-   */
   useEffect(() => {
     const view = doc?.defaultView;
     if (!doc || !view || !highlightSectionId) {
@@ -198,7 +147,6 @@ export function PreviewFrame({
 
     measure();
     view.addEventListener("scroll", schedule, { passive: true });
-    // 用宿主的构造器：iframe 的 window 在测试环境里不一定有这些 API
     const resize = new ResizeObserver(schedule);
     resize.observe(doc.documentElement);
     const content = new MutationObserver(schedule);
@@ -222,20 +170,10 @@ export function PreviewFrame({
       ref={hostRef}
       className="min-h-0 flex-1 overflow-hidden bg-muted/30 p-3"
     >
-      {/*
-        外层是缩放**后**的视觉尺寸，内层 iframe 仍按设备逻辑宽度渲染。
-        直角是有意的：iframe 带 transform、是独立合成层，祖先的 overflow-hidden
-        与 clip-path 都裁不住它，站点页头（自带背景）的直角会露在圆角外。
-      */}
       <div
         className="relative mx-auto overflow-hidden border bg-background shadow-sm"
         style={{ width: deviceWidth * scale, height: host.height }}
       >
-        {/*
-          选中框画在 iframe **外面**：画在里面就要和滚动条（macOS 覆盖式会盖住最右侧）、
-          overflow、层叠上下文抢位置，通栏 section 的边缘尤其容易被吃掉。
-          用 border 而不是 outline/ring——border-box 下它画在矩形**内**，贴着容器边也不会被裁。
-        */}
         {highlight ? (
           <div
             aria-hidden
@@ -247,7 +185,6 @@ export function PreviewFrame({
           ref={frameRef}
           onLoad={attach}
           title="preview"
-          // 空文档即可，内容由 portal 挂进来
           srcDoc="<!doctype html><html><head></head><body></body></html>"
           className="border-0"
           style={{
@@ -258,7 +195,11 @@ export function PreviewFrame({
           }}
         />
       </div>
-      {doc ? createPortal(children, doc.body) : null}
+      {doc ? (
+        <PreviewDocumentContext.Provider value={doc}>
+          {createPortal(children, doc.body)}
+        </PreviewDocumentContext.Provider>
+      ) : null}
     </div>
   );
 }

@@ -9,11 +9,8 @@ import {
   fetchSitePage,
   fetchSitePages,
   patchSite,
-  publishSitePage,
-  publishSitePageContent,
-  publishSiteChrome,
-  revertSitePageContent,
-  revertSiteChrome,
+  publishSiteEditorDraft,
+  revertSiteEditorDraft,
   saveSiteEditorDraft,
   SITE_PAGES_QUERY_KEY,
   SITE_QUERY_KEY,
@@ -96,33 +93,20 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
-  const publishChrome = useMutation({
-    mutationFn: () => publishSiteChrome(),
+  /** 一次发布：正文 + 页头页脚。 */
+  const publishDraft = useMutation({
+    mutationFn: (pageId: string) => publishSiteEditorDraft(pageId),
+    onSuccess: () => invalidate(),
+  });
+
+  /** 一次撤销：正文 + 页头页脚回到线上那一版。 */
+  const revertDraft = useMutation({
+    mutationFn: (pageId: string) => revertSiteEditorDraft(pageId),
     onSuccess: () => invalidate(),
   });
 
   const removePage = useMutation({
     mutationFn: (pageId: string) => deleteSitePage(pageId),
-    onSuccess: () => invalidate(),
-  });
-
-  const publishPageContent = useMutation({
-    mutationFn: (pageId: string) => publishSitePageContent(pageId),
-    onSuccess: () => invalidate(),
-  });
-
-  const revertPageContent = useMutation({
-    mutationFn: (pageId: string) => revertSitePageContent(pageId),
-    onSuccess: () => invalidate(),
-  });
-
-  const revertChrome = useMutation({
-    mutationFn: () => revertSiteChrome(),
-    onSuccess: () => invalidate(),
-  });
-
-  const publishPage = useMutation({
-    mutationFn: (pageId: string) => publishSitePage(pageId),
     onSuccess: () => invalidate(),
   });
 
@@ -137,12 +121,9 @@ export function useSiteMutations() {
     duplicatePage,
     saveEditorDraft,
     applyStarter,
-    publishChrome,
-    revertChrome,
+    publishDraft,
+    revertDraft,
     removePage,
-    publishPage,
-    publishPageContent,
-    revertPageContent,
     unpublishPage,
   };
 }

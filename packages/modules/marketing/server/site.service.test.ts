@@ -4,8 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   applySiteStarter,
   duplicatePage,
-  revertPageContent,
-  revertSiteChrome,
+  revertEditorDraft,
   saveEditorDraft,
 } from "./site.service.js";
 
@@ -295,7 +294,7 @@ describe("saveEditorDraft", () => {
   });
 });
 
-describe("revertPageContent", () => {
+describe("revertEditorDraft", () => {
   const livePageRow = {
     ...sourceRow(),
     title: "线上标题",
@@ -325,8 +324,20 @@ describe("revertPageContent", () => {
     }) => ({ ...livePageRow, ...args.data })) as never);
   });
 
+  beforeEach(() => {
+    vi.mocked(prisma.marketingSite.findFirstOrThrow).mockResolvedValue(
+      siteRow as never,
+    );
+    vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
+    vi.mocked(prisma.$transaction).mockImplementation((async (ops: unknown) => {
+      const results = [];
+      for (const op of ops as Array<Promise<unknown>>) results.push(await op);
+      return results;
+    }) as never);
+  });
+
   it("resets every draft column to the live one", async () => {
-    const page = await revertPageContent(TENANT, "page-1");
+    const { page } = await revertEditorDraft(TENANT, "page-1");
 
     const data = vi.mocked(prisma.marketingPage.update).mock
       .calls[0]?.[0] as unknown as { data: Record<string, unknown> };
@@ -344,76 +355,34 @@ describe("revertPageContent", () => {
       (data.data.sections_draft as Array<{ settings: { headline: unknown } }>)[0]
         ?.settings.headline,
     ).toBe("线上");
-    // 撤销后草稿等于线上，编辑器的「有改动未发布」随之熄灭
+    // 撤销后草稿等于线上，编辑器的「有未发布的更改」随之熄灭
     expect(page.title).toBe("线上标题");
     expect(page.settings).toEqual({ bg_color: "#ffffff" });
     expect(page.content_dirty).toBe(false);
   });
 
-  // 没上线过的页面，无后缀列里躺的是建页初值，不是用户见过的「线上版」
-  it("refuses pages that were never published", async () => {
+  // 没上线过的页面，无后缀列里躺的是建页初值，不是用户见过的「线上版」——
+  // 所以正文一列都不动；页头页脚是站点级的，照常还原
+  it("leaves content alone on a page that was never published", async () => {
     vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue({
       ...livePageRow,
       status: "draft",
     } as never);
 
-    await expect(revertPageContent(TENANT, "page-1")).rejects.toThrow(
-      "site.page_not_published",
-    );
-    expect(prisma.marketingPage.update).not.toHaveBeenCalled();
+    await revertEditorDraft(TENANT, "page-1");
+
+    const data = vi.mocked(prisma.marketingPage.update).mock
+      .calls[0]?.[0] as unknown as { data: Record<string, unknown> };
+    expect(data.data).toEqual({});
+    expect(prisma.marketingSite.update).toHaveBeenCalled();
   });
 
   it("404s on a page from another tenant", async () => {
     vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(null as never);
 
-    await expect(revertPageContent(TENANT, "page-1")).rejects.toThrow(
+    await expect(revertEditorDraft(TENANT, "page-1")).rejects.toThrow(
       "site.page_not_found",
     );
-  });
-});
-
-describe("revertSiteChrome", () => {
-  const dirtyChromeRow = {
-    ...siteRow,
-    nav_json: [
-      { id: "h1", type: "header", settings: { sticky: true }, blocks: [] },
-    ],
-    footer_json: [{ id: "f1", type: "footer", settings: {}, blocks: [] }],
-    nav_draft_json: [
-      { id: "h1", type: "header", settings: { sticky: false }, blocks: [] },
-    ],
-    footer_draft_json: [],
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
-      dirtyChromeRow as never,
-    );
-    vi.mocked(prisma.marketingSite.findFirstOrThrow).mockResolvedValue(
-      dirtyChromeRow as never,
-    );
-    vi.mocked(prisma.marketingSite.update).mockImplementation((async (args: {
-      data: Record<string, unknown>;
-    }) => ({ ...dirtyChromeRow, ...args.data })) as never);
-  });
-
-  it("resets the draft chrome to the live one", async () => {
-    const site = await revertSiteChrome(TENANT);
-
-    const data = vi.mocked(prisma.marketingSite.update).mock
-      .calls[0]?.[0] as unknown as { data: Record<string, unknown> };
-    expect(Object.keys(data.data).sort()).toEqual([
-      "footer_draft_json",
-      "nav_draft_json",
-    ]);
-    expect(
-      (data.data.nav_draft_json as Array<{ settings: { sticky: unknown } }>)[0]
-        ?.settings.sticky,
-    ).toBe(true);
-    // 回灌后草稿等于线上，工具栏里「发布页头页脚」与撤销项一起消失
-    expect(site.chrome_dirty).toBe(false);
-    expect(site.header[0]?.settings.sticky).toBe(true);
   });
 });
 

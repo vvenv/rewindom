@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   isSiteLocalizableHref,
   localizeSiteHref,
+  isMarketingPublicPath,
   parseSiteLocalePath,
   resolveLocaleSegment,
   siteLocaleOrder,
@@ -77,6 +78,20 @@ describe("withSiteLocale", () => {
     // 站点主语言是 en 时，无前缀的那一支就是 en
     expect(withSiteLocale("/about", "en", "en")).toBe("/about");
     expect(withSiteLocale("/about", "zh-CN", "en")).toBe("/zh-CN/about");
+  });
+});
+
+describe("isMarketingPublicPath", () => {
+  it("treats tenant CMS paths as public marketing", () => {
+    expect(isMarketingPublicPath("/")).toBe(true);
+    expect(isMarketingPublicPath("/pricing")).toBe(true);
+    expect(isMarketingPublicPath("/en/pricing")).toBe(true);
+  });
+
+  it("excludes the app area and auth routes", () => {
+    expect(isMarketingPublicPath("/app/site")).toBe(false);
+    expect(isMarketingPublicPath("/login")).toBe(false);
+    expect(isMarketingPublicPath("/member/login")).toBe(false);
   });
 });
 

@@ -15,6 +15,12 @@ vi.mock("./error.service.js", () => ({
 
 vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   prisma: {
+    // auth 中间件对每个 /api 请求都会 `resolveHostTenant()` 查一次租户；
+    // 返回空 = 这个 Host 没绑定租户，平台路由才放行
+    tenant: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
     platformAdmin: {
       findUnique: vi.fn(),
       update: vi.fn().mockResolvedValue({}),

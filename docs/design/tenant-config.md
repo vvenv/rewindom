@@ -156,7 +156,7 @@ Provider 里——偏好与生效条件分开，窗口缩到窄屏再拉回来�
 
 ### 2.4 品牌：Logo / Favicon
 
-租户管理员在 `/settings`（权限 `settings.read` / `settings.write`）自助上传：
+租户管理员在 `/app/settings`（权限 `settings.read` / `settings.write`）自助上传：
 
 | 资源 | MIME | 大小上限 | 展示位置 |
 | --- | --- | --- | --- |
@@ -476,6 +476,7 @@ request.authUser = { userId, username, role, tenant_id };
 | 产品主域名 | `FRONTEND_URL` / `APP_DOMAIN`（及 localhost）**隐式绑定默认租户**（CMS SSR + 锁登录；禁 `/platform`） |
 | 平台控制台 Host | `PLATFORM_URL`（及本地 `127.0.0.1`）：不绑定租户，开放 `/platform` 与平台管理员登录 |
 | Host 解析 | 平台控制台 Host → null；产品主域 → default；再 custom_domain → `{slug}.{TENANT_BASE_DOMAIN}` |
+| Host 解析缓存 | 结果按 hostname 缓存 30s（`resolveHostTenant`）。auth 中间件对**每个** `/api` 请求都解析一次，不缓存等于每个 API 调用附赠一次数据库往返。改 `slug` / `custom_domain` / `status` 与建租户的写路径必须调 `invalidateHostTenantCache()`，否则新绑域名最长 30s 内仍 404、刚归档的租户还进得去；TTL 只兜底多进程部署下的其它实例。测试态不缓存 |
 | 绑定域名上的面 | 前台开放（租户 Marketing CMS，Fastify SSR）；中台（`/login`、`/app`）开放；**禁止** `/platform/*` 与平台管理员登录 |
 | 租户官网内容 | `MarketingSite`（含 `theme_settings`）/ `MarketingPage`（`sections[]`）；租户自助 `/app/site` + Theme Editor `/app/site/pages/:pageId`（entitlement `tenant-marketing`，权限 `site.read`/`site.write`）；仅站点+页均 `published` 进入 SSR / 公开 API；草稿预览走 `GET /api/site/preview`；默认租户站由 bootstrap 幂等 starter |
 | 登录 | 裸用户名强制本租户；带 `@other` 拒绝（不静默改写）；JWT/API Key 的 `tenant_id` 必须与 Host 租户一致 |

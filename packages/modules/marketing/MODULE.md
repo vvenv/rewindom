@@ -13,7 +13,7 @@
 | 面           | 路由                                                                  | 目录                                         | 守卫                                           |
 | ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
 | 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` + `client/public/`    | Host 绑定（含主域→default）+ 站点已发布        |
-| 租户中台     | `/site`、`/site/pages/:pageId`（Theme Editor）                        | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
+| 租户中台     | `/app/site`、`/app/site/pages/:pageId`（Theme Editor）                        | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
 挂载点：`client.renderPublicRoutes`（SPA 接管）+ `client.renderRoutes`（CMS）+ `server.registerRoutes`。
 
@@ -73,8 +73,10 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 ### 明暗模式
 
 站点始终跟随访客设备：SPA 侧是 `next-themes`（`defaultTheme="system"`，`.dark` 落在
-`<html>` 上，站点组件用的 Tailwind 语义 token 自动翻）；SSR 侧是
-`@media (prefers-color-scheme: dark)` 覆写 `--fg` / `--bg` / `--border` 等中性变量。
+`<html>` 上）；SSR 侧是 `@media (prefers-color-scheme: dark)` 覆写 `--fg` / `--bg` /
+`--border` 等中性变量。公开站样式是**语义 class**（`shared/marketing-site-css.ts`，镜像
+`shared/marketing-site.css`），**不用 Tailwind**；主题色由 `marketing-site-theme`
+注入 CSS 变量。工作台 `/app` 仍用 `index.css` + Tailwind。
 
 **租户显式配过的画布色两态都用**。`theme_settings.bg_color` / `fg_color` 是他自己挑的品牌
 色，深色态不该把它悄悄换掉；只有没配过的（绝大多数站点只配主色）才落到内置中性色上，
@@ -114,10 +116,16 @@ SPA 带上。两件事缺一不可：
 
 1. 正文包在 `<div id="root">` 里。`main.tsx` 走 `createRoot(getElementById("root")!)`，
    没有挂载点会直接抛。
-2. `renderMarketingHtml({ spaEntrySrc })` 输出入口 `<script type="module">`。文件名带
-   vite 内容哈希，由 `spa-entry.ts` 从构建产物 `apps/client/dist/app.html` 里解析并缓存
-   （容器 cwd 是 `/app`，本地是 `apps/server`，两处候选路径都试）。读不到就退化成纯静态
-   HTML —— 开发态没有 dist 是常态，不该因此 500。
+2. `renderMarketingHtml({ spaBootstrapHtml })` 输出引导脚本，由
+   `spa-entry.ts` 的 `renderSpaBootstrapHtml()` 按环境分流：
+
+   - **生产**：从构建产物 `apps/client/dist/index.html` 里解析出带 vite 内容哈希的入口
+     并缓存（容器 cwd 是 `/app`，本地是 `apps/server`，两处候选路径都试）。读不到就退化
+     成纯静态 HTML —— 只跑服务端时不该因此 500。
+   - **开发**：改用 vite dev server 的源码入口（react-refresh 前导 + `/@vite/client`
+     + `/src/main.tsx`）。**不能**用 dist 里的哈希文件名——dev server 不 serve `dist/`，
+     浏览器只会拿到 404，租户站的交互层在本地整个是死的；而 `dist/` 常有上一次构建的
+     残留，所以分流看 `isProduction` 而不是「产物在不在」。
 
 这两条曾经都不成立（`spaEntrySrc` 全仓无调用方、body 里没有 `#root`），结果是绑定域上
 根本没有 JS：账户入口与明暗按钮永远不出现，会员页永远停在空占位。
@@ -243,9 +251,8 @@ padding/border/overflow，哪天有人加一句 `overflow-hidden` 就会静默�
 只缩容器宽度并不会触发移动端样式。内容用 `createPortal` 挂进 iframe 的 body，
 所以预览和编辑器仍是同一棵 React 树——选中态、草稿、点击选区块都不用另接通道
 （React 会给 portal 容器单独挂事件监听，跨 document 的点击照样触发）。
-主文档的样式表与明暗 / `data-theme` 克隆进 iframe，开发态用 MutationObserver 跟 HMR。
-iframe body **不**硬铺 `var(--background)`——主站 body 是径向渐变；`embedded` 预览再套一层
-`bg-background` 壳，观感与实站一致。
+iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作台 `index.css` /
+`data-theme`；明暗按访客 `localStorage.theme` + 系统偏好，与实站同构。
 
 设备档位是**逻辑视口宽度**（桌面 1280 / 平板 768 / 手机 390），面板装不下时整体
 等比缩小：缩放只改视觉尺寸，iframe 仍按逻辑宽度渲染，断点不受影响。桌面不能
@@ -355,7 +362,7 @@ block 不跨层：它的 schema 属于所在 section，一个 `card` 换不到 `
 主题色，并在主语言下创建或更新首页、文档与定价页（复用页面预设）。应用走
 `POST /api/site/starters/:key/apply`，chrome 与页面**同一事务**落库。
 
-**站点主题**（Logo / 主色 / 字体 / 页宽 / 区块间距）已从编辑器移出，并入「系统管理 → 品牌」（`/settings`）：
+**站点主题**（Logo / 主色 / 字体 / 页宽 / 区块间距）已从编辑器移出，并入「系统管理 → 品牌」（`/app/settings`）：
 `platform` 开 `settingsBrandingExtraSlot`，本模块通过 `client.shell.shellProviders`
 注入 `SiteThemeCard`（`platform` 不得反向 import 业务模块）。未开通 `tenant-marketing`
 的租户不渲染该卡片也不发请求。
@@ -382,7 +389,7 @@ API：
 | 内容 | 位置 | 说明 |
 | --- | --- | --- |
 | 起步模板 | `shared/site-starters.ts` + `page-presets.ts` | key=`default`（home/docs/pricing） |
-| 站点元信息 | `shared/site.ts` | starter 页脚 / 站名默认值 |
+| 站点元信息 | `client/locales` · `starter.default.*` | starter 站名 / 标语 / 页脚简介 |
 | Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等 apply + 发布 |
 
 新增页面：在 CMS Theme Editor 创建/发布即可；SEO 由 SSR + sitemap 动态生成。

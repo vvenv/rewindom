@@ -24,7 +24,6 @@ vi.mock("../contexts/SiteMemberAuthContext.js", () => ({
   useOptionalSiteMemberAuth: () => auth,
 }));
 
-// 开关要发一次请求，组件测里固定成「已开通」
 vi.mock("../hooks/use-site-member-enabled.js", () => ({
   useSiteMemberEnabled: () => enabled,
 }));
@@ -74,13 +73,13 @@ function renderEntry(path = "/pricing") {
   );
 }
 
-/** Radix 的菜单认 pointerdown，不是 click。 */
-async function openMenu(): Promise<void> {
-  fireEvent.pointerDown(
-    screen.getByRole("button", { name: "账户菜单" }),
-    { button: 0, ctrlKey: false, pointerType: "mouse" },
-  );
-  await screen.findByRole("menu");
+function openMenu(): HTMLDetailsElement {
+  const summary = screen.getByLabelText("账户菜单");
+  const root = summary.closest("details");
+  expect(root).not.toBeNull();
+  fireEvent.click(summary);
+  root!.open = true;
+  return root!;
 }
 
 beforeEach(() => {
@@ -90,7 +89,6 @@ beforeEach(() => {
 });
 
 describe("SiteMemberEntry", () => {
-  // 站点没开通会员时，页头不该多出一个点不动的入口
   it("renders nothing when the site has no members", () => {
     enabled = false;
     auth = signedIn();
@@ -109,61 +107,60 @@ describe("SiteMemberEntry", () => {
   it("puts the member's name on the trigger once signed in", () => {
     auth = signedIn();
     renderEntry();
-    expect(
-      screen.getByRole("button", { name: "账户菜单" }),
-    ).toHaveTextContent("Ada Lovelace");
+    expect(screen.getByLabelText("账户菜单")).toHaveTextContent("Ada Lovelace");
     expect(screen.queryByRole("link", { name: /登录/u })).not.toBeInTheDocument();
   });
 
-  it("shows name, email and both actions in the dropdown", async () => {
+  it("shows name, email and both actions in the dropdown", () => {
     auth = signedIn();
     renderEntry();
-    await openMenu();
+    const menu = openMenu();
 
-    expect(screen.getByText("ada@example.com")).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /我的账户/u })).toHaveAttribute(
+    expect(within(menu).getByText("ada@example.com")).toBeInTheDocument();
+    expect(within(menu).getByRole("link", { name: /我的账户/u })).toHaveAttribute(
       "href",
       "/member/account",
     );
     expect(
-      screen.getByRole("menuitem", { name: /退出登录/u }),
+      within(menu).getByRole("button", { name: /退出登录/u }),
     ).toBeInTheDocument();
   });
 
-  // 昵称是选填的：没填时用邮箱当名字，下拉里就不该在名字下面再重复一行邮箱
-  it("falls back to the email without repeating it", async () => {
+  it("falls back to the email without repeating it", () => {
     auth = signedIn(member({ display_name: "" }));
     renderEntry();
 
-    // 菜单一展开，触发器就被移出无障碍树了，所以先验它
-    expect(
-      screen.getByRole("button", { name: "账户菜单" }),
-    ).toHaveTextContent("ada@example.com");
+    const summary = screen.getByLabelText("账户菜单");
+    expect(summary).toHaveTextContent("ada@example.com");
 
-    await openMenu();
-    expect(
-      within(screen.getByRole("menu")).getAllByText("ada@example.com"),
-    ).toHaveLength(1);
+    fireEvent.click(summary);
+    const menu = summary.closest("details")!;
+    menu.open = true;
+    const panel = menu.querySelector(".member-menu-panel");
+    expect(panel).not.toBeNull();
+    // 昵称回落成邮箱时，面板标题只有一行，不再重复副标题
+    expect(within(panel as HTMLElement).getAllByText("ada@example.com")).toHaveLength(
+      1,
+    );
   });
 
   it("logs out and stays put on an ordinary page", async () => {
     auth = signedIn();
     renderEntry("/pricing");
-    await openMenu();
+    const menu = openMenu();
 
-    fireEvent.click(screen.getByRole("menuitem", { name: /退出登录/u }));
+    fireEvent.click(within(menu).getByRole("button", { name: /退出登录/u }));
 
     await waitFor(() => expect(logout).toHaveBeenCalledOnce());
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  // 会员专区退出后就打不开了，留在原地只会看到一个空壳
   it("sends you home when logging out from the member area", async () => {
     auth = signedIn();
     renderEntry("/member/account");
-    await openMenu();
+    const menu = openMenu();
 
-    fireEvent.click(screen.getByRole("menuitem", { name: /退出登录/u }));
+    fireEvent.click(within(menu).getByRole("button", { name: /退出登录/u }));
 
     await waitFor(() =>
       expect(navigate).toHaveBeenCalledWith("/", { replace: true }),

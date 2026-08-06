@@ -1,8 +1,6 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_ID } from "@be-water/shared";
 
-import { SITE } from "../shared/site.js";
-
 import {
   applySiteStarter,
   setPageStatus,
@@ -32,11 +30,7 @@ export async function ensureDefaultMarketingSite(): Promise<void> {
   }
 
   const applied = await applySiteStarter(DEFAULT_TENANT_ID, "default");
-  await updateSite(DEFAULT_TENANT_ID, {
-    site_name: SITE.name,
-    tagline: SITE.tagline,
-    published: true,
-  });
+  await updateSite(DEFAULT_TENANT_ID, { published: true });
   for (const page of applied.pages) {
     if (page.status !== "published") {
       await setPageStatus(DEFAULT_TENANT_ID, page.id, "published");

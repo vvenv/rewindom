@@ -204,10 +204,68 @@ async function resolveDefaultTenantHost(): Promise<HostTenantContext | null> {
 }
 
 /**
+ * Host → 租户的短 TTL 缓存。
+ *
+ * auth 中间件对**每个** `/api` 请求都会解析一次 Host，未命中控制台域时要查库。
+ * 那是全站最热的路径，等于给每个 API 调用附赠一次数据库往返。
+ *
+ * 30 秒 TTL：域名绑定改动后最迟 30 秒生效，改绑定的写路径还会显式清缓存
+ *（见 `invalidateHostTenantCache`），所以正常操作是立即生效的；TTL 只是兜底
+ * 多进程部署下另一个实例的缓存。
+ */
+const HOST_TENANT_CACHE_TTL_MS = 30_000;
+/** 上限防止随手伪造的 Host 头把内存撑爆（每条只是三个短字符串）。 */
+const HOST_TENANT_CACHE_MAX = 512;
+
+interface HostTenantCacheEntry {
+  value: HostTenantContext | null;
+  expiresAt: number;
+}
+
+const hostTenantCache = new Map<string, HostTenantCacheEntry>();
+
+/**
+ * 清空 Host → 租户缓存。
+ *
+ * 改动 `custom_domain` / `slug` / `status` 的写路径必须调用它，否则最长 30 秒内
+ * 旧绑定仍然生效（新绑的域名 404、刚归档的租户还能访问）。
+ */
+export function invalidateHostTenantCache(): void {
+  hostTenantCache.clear();
+}
+
+function readHostTenantCache(hostname: string): HostTenantCacheEntry | null {
+  const hit = hostTenantCache.get(hostname);
+  if (!hit) return null;
+  if (hit.expiresAt <= Date.now()) {
+    hostTenantCache.delete(hostname);
+    return null;
+  }
+  return hit;
+}
+
+function writeHostTenantCache(
+  hostname: string,
+  value: HostTenantContext | null,
+): void {
+  // 满了就整批丢弃：Host 数量本就有限，走到这里基本是被灌垃圾 Host，
+  // 与其维护 LRU 不如直接重来一轮
+  if (hostTenantCache.size >= HOST_TENANT_CACHE_MAX) {
+    hostTenantCache.clear();
+  }
+  hostTenantCache.set(hostname, {
+    value,
+    expiresAt: Date.now() + HOST_TENANT_CACHE_TTL_MS,
+  });
+}
+
+/**
  * 按 Host 查找已绑定且 active 的租户。
  * - 平台控制台 Host → null
  * - 产品主域 / localhost → 默认租户
  * - custom_domain / `{slug}.{TENANT_BASE_DOMAIN}` → 对应租户
+ *
+ * 结果按 Host 缓存（测试态不缓存，免得同一文件里换了 prisma mock 还读到旧值）。
  */
 export async function resolveHostTenant(
   hostname: string | null,
@@ -215,6 +273,30 @@ export async function resolveHostTenant(
   if (!hostname) return null;
   if (getPlatformConsoleHostnames().has(hostname)) return null;
 
+  /*
+   * 只在**确知不是测试**时才缓存。
+   *
+   * 反过来写（`!config.server.isTest`）会有两个坑：配置里缺 `server` 段直接抛
+   *（仓库里有好几份手写的 config mock，少一段就是全线 500）；而拿不准时默认开缓存
+   * 又会让同一个测试文件里换了 prisma mock 还读到上一次的结果。
+   * 生产配置的 `isTest` 恒为 `false`，正常路径不受影响。
+   */
+  const cacheable = config.server?.isTest === false;
+  if (cacheable) {
+    const hit = readHostTenantCache(hostname);
+    if (hit) return hit.value;
+  }
+
+  const resolved = await lookupHostTenant(hostname);
+  if (cacheable) {
+    writeHostTenantCache(hostname, resolved);
+  }
+  return resolved;
+}
+
+async function lookupHostTenant(
+  hostname: string,
+): Promise<HostTenantContext | null> {
   if (getDefaultTenantHostnames().has(hostname)) {
     return resolveDefaultTenantHost();
   }

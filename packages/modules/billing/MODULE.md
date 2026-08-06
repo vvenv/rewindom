@@ -8,7 +8,7 @@
 
 | 面 | 路由 | 目录 | 所需权限 |
 | --- | --- | --- | --- |
-| 租户侧 | `/billing` | `client/tenant/` | `billing.read`（结账/取消另需 `billing.write`） |
+| 租户侧 | `/app/billing` | `client/tenant/` | `billing.read`（结账/取消另需 `billing.write`） |
 | 平台侧 | `/platform/billing` | `client/platform/` | 平台管理员 |
 
 ## 依赖
@@ -19,7 +19,7 @@
 
 ## 租户侧导航
 
-`/billing` 归入沉底分组「系统管理」（与用户管理、角色权限同组，`placement: end`），
+`/app/billing` 归入沉底分组「系统管理」（与用户管理、角色权限同组，`placement: end`），
 不单独占主区「设置」分组，避免日常业务与治理入口被割裂。
 
 ## 启用
@@ -73,7 +73,7 @@ https://<ngrok-host>/api/billing/webhooks/creem
 
 Secret 与 `CREEM_WEBHOOK_SECRET` 一致；改 env 后重启 server。
 
-5. 浏览器 `http://localhost:7300/billing` 升级并用 test 卡付款。  
+5. 浏览器 `http://localhost:7300/app/billing` 升级并用 test 卡付款。  
    开通以 webhook 为准（日志 `[billing] creem webhook processed`）；`?checkout=success` 只是回跳。
 
 角色需 `billing.read` / `billing.write`（系统管理员自带）。商品建议用 **recurring**，纯 `onetime` 可能收不到完整 `subscription.*` 事件。

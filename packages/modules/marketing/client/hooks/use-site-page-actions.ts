@@ -23,7 +23,7 @@ export interface SitePageActions {
 export function useSitePageActions(): SitePageActions {
   const { t } = useTranslation("marketing");
   const { confirm } = useConfirm();
-  const { removePage, publishPage, unpublishPage } = useSiteMutations();
+  const { removePage, publishDraft, unpublishPage } = useSiteMutations();
 
   /** 删除走统一的二次确认弹窗（`ConfirmProvider`），不用浏览器原生 confirm。 */
   const remove = async (pageId: string, pageTitle: string): Promise<void> => {
@@ -43,7 +43,7 @@ export function useSitePageActions(): SitePageActions {
   /** 发布 / 取消发布共用同一份 toast 逻辑，按当前状态切换 mutation 与文案。 */
   const togglePublish = (page: MarketingPageListItem): void => {
     const isPublished = page.status === "published";
-    const mutation = isPublished ? unpublishPage : publishPage;
+    const mutation = isPublished ? unpublishPage : publishDraft;
     mutation.mutate(page.id, {
       onSuccess: () =>
         toast.success(
@@ -56,7 +56,7 @@ export function useSitePageActions(): SitePageActions {
   };
 
   return {
-    publishPendingId: publishPage.isPending ? publishPage.variables : undefined,
+    publishPendingId: publishDraft.isPending ? publishDraft.variables : undefined,
     unpublishPendingId: unpublishPage.isPending
       ? unpublishPage.variables
       : undefined,

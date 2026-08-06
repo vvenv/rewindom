@@ -33,7 +33,7 @@
 | Client 启用模块   | `apps/client/src/enabled-modules.ts`                                          |
 | 官网（租户 CMS）  | `packages/modules/marketing/`（主域=默认租户 SSR；平台控制台见 `PLATFORM_URL`） |
 | 工作台卡片        | 各模块 `client.dashboardWidgets` → `packages/modules/dashboard` 聚合渲染      |
-| 登录落地页        | `apps/client/src/home-path-candidates.ts`（默认 `/dashboard`；入口统一走 `/app`） |
+| 登录落地页        | `apps/client/src/home-path-candidates.ts`（默认 `/app/dashboard`；入口统一走 `/app`） |
 | 内核路由          | `packages/server-kernel/src/kernel/kernel-routes.ts`                          |
 | App Shell（前端） | `packages/client-kit/` + `apps/client/src/app-shell-routes.tsx`               |
 
@@ -49,6 +49,29 @@
 提改动方案时**不要**以「会与上游冲突」或「先进上游再同步」为由——那套约束已作废。
 
 内核与基础设施仍**不得**依赖业务模块，但理由是单向依赖分层，不是合并成本。
+
+## Host 分流（本地与生产同构）
+
+同一个进程按 **Host** 分流，不是按路径。本地 `localhost` 与 `127.0.0.1` 是**两个入口**：
+
+| Host                              | 是什么         | 入口                                      |
+| --------------------------------- | -------------- | ----------------------------------------- |
+| `FRONTEND_URL`（本地 `localhost`）| 产品站=默认租户 | `/` 官网、`/app` 工作台、`/member/*` 会员 |
+| `PLATFORM_URL`（本地 `127.0.0.1`）| 平台控制台     | `/platform`（未登录转 `/login`）          |
+| `custom_domain` / `{slug}.{TENANT_BASE_DOMAIN}` | 租户站点 | 同产品站                        |
+
+租户 Host 上访问 `/platform` 会被送去 `PLATFORM_URL`；控制台 Host 上访问 `/` 会被送去
+`/platform`。详见 [README](./README.md#从哪个地址进本地) 与
+[tenant-config.md](docs/design/tenant-config.md)。
+
+### 租户路由一律挂在 `/app/*` 之下
+
+新模块的 `renderRoutes` / `nav.path` / `mobileTabPaths` **必须**用 `/app/<模块>` 前缀
+（如 `/app/site`、`/app/notes`）。原因是租户 Host 上 `/` 归租户 CMS，应用区靠一级路径
+前缀区分，而那份前缀表在 `SITE_APP_PREFIXES`、nginx location、vite dev 代理里各有一份。
+每个模块各占一个顶层路径时，三份表都得跟着长——`/site`、`/dashboard`、`/audit-logs`
+就是这么漏掉的，在绑定域上一直返回 404。收进 `/app/*` 后三处都只需要一个 `app`，
+新增模块不必再碰它们，顶层 slug 也还给了租户站点。
 
 ## 命令
 

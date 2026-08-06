@@ -19,7 +19,7 @@ export function renderTodosRoutes(): ReactNode {
   return (
     <Route element={<TodosModuleRoute />}>
       <Route element={<PermissionRoute permission="todos.read" />}>
-        <Route path="/todos" element={<Todos />} />
+        <Route path="/app/todos" element={<Todos />} />
       </Route>
     </Route>
   );

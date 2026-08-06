@@ -18,7 +18,6 @@ describe("PreviewFrame", () => {
     await waitFor(() => {
       expect(frameDoc(container)?.body.querySelector("p")).not.toBeNull();
     });
-    // 宿主文档里不该有一份——否则媒体查询仍按工作台视口算
     expect(container.querySelector("[data-testid=preview-content]")).toBeNull();
   });
 
@@ -43,10 +42,15 @@ describe("PreviewFrame", () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it("copies host stylesheets and theme class into the frame", async () => {
-    const style = document.createElement("style");
-    style.textContent = ".probe{color:red}";
-    document.head.append(style);
+  it("injects semantic marketing CSS and ignores host workbench styles", async () => {
+    const workbenchStyle = document.createElement("style");
+    workbenchStyle.setAttribute(
+      "data-vite-dev-id",
+      "/project/apps/client/src/index.css",
+    );
+    workbenchStyle.textContent = ".workbench-probe{color:blue}";
+    document.head.append(workbenchStyle);
+
     document.documentElement.classList.add("dark");
     document.documentElement.setAttribute("data-theme", "slate");
 
@@ -58,22 +62,24 @@ describe("PreviewFrame", () => {
 
     await waitFor(() => {
       const doc = frameDoc(container);
-      expect(doc?.head.textContent).toContain(".probe{color:red}");
-      expect(doc?.documentElement.className).toContain("dark");
-      expect(doc?.documentElement.getAttribute("data-theme")).toBe("slate");
+      const head = doc?.head.textContent ?? "";
+      expect(head).toContain(".btn");
+      expect(head).not.toContain(".workbench-probe{color:blue}");
+      // 工作台的明暗痕迹一律不进预览：访客看的是站点自己那份偏好
+      expect(doc?.documentElement.classList.contains("dark")).toBe(false);
+      expect(doc?.documentElement.getAttribute("data-theme")).toBeNull();
     });
 
-    style.remove();
+    workbenchStyle.remove();
     document.documentElement.classList.remove("dark");
     document.documentElement.removeAttribute("data-theme");
   });
 
-  /** 样式是 effect 里注入的：必须等到内容真的出现，否则断言拿到的是空列表（恒真）。 */
   async function injectedCss(container: HTMLElement): Promise<string> {
     return waitFor(() => {
       const css = [
         ...(frameDoc(container)?.head.querySelectorAll(
-          "[data-preview-style]",
+          "[data-marketing-site-style]",
         ) ?? []),
       ]
         .map((node) => node.textContent ?? "")
@@ -83,19 +89,6 @@ describe("PreviewFrame", () => {
     });
   }
 
-  it("does not hard-code a solid body background over the host theme", async () => {
-    const { container } = render(
-      <PreviewFrame device="desktop">
-        <span>x</span>
-      </PreviewFrame>,
-    );
-
-    // 只允许布局复位；纯色 background 会盖住 index.css 的 body 径向渐变
-    expect(await injectedCss(container)).not.toContain(
-      "background:var(--background",
-    );
-  });
-
   it("forces a space-taking scrollbar so flush-right content stays visible", async () => {
     const { container } = render(
       <PreviewFrame device="desktop">
@@ -103,7 +96,6 @@ describe("PreviewFrame", () => {
       </PreviewFrame>,
     );
 
-    // 覆盖式滚动条会悬浮在内容最右侧，盖住通栏 section 的右边缘与它的选中框
     expect(await injectedCss(container)).toContain("::-webkit-scrollbar");
   });
 
@@ -130,11 +122,9 @@ describe("PreviewFrame", () => {
       expect(found).not.toBeNull();
       return found!;
     });
-    // jsdom 不做布局：直接给出矩形，验证换算而不是浏览器的测量
     target.getBoundingClientRect = () =>
       ({ left: 0, top: 100, width: 1280, height: 400 }) as DOMRect;
 
-    // 面板只有设备宽度的一半 → scale 0.5
     act(() => {
       observers[0]?.(
         [{ contentRect: { width: 640, height: 480 } } as ResizeObserverEntry],
@@ -151,7 +141,6 @@ describe("PreviewFrame", () => {
     expect(overlay.style.top).toBe("50px");
     expect(overlay.style.width).toBe("640px");
     expect(overlay.style.height).toBe("200px");
-    // 画在宿主文档里，才不会被 iframe 的滚动条 / overflow 吃掉边
     expect(frameDoc(container)?.body.contains(overlay)).toBe(false);
 
     vi.unstubAllGlobals();
@@ -176,8 +165,6 @@ describe("PreviewFrame", () => {
     const frame = container.querySelector("iframe")!;
     expect(frame.style.width).toBe(`${PREVIEW_DEVICES.mobile}px`);
 
-    // 桌面是固定的 1280 逻辑宽度，不是「面板有多宽就多宽」——
-    // 否则窄面板里 `lg:` 断点永远不触发，预览的就不是桌面版
     rerender(
       <PreviewFrame device="desktop">
         <span>x</span>
@@ -188,7 +175,6 @@ describe("PreviewFrame", () => {
   });
 
   it("scales down to fit the panel without changing the logical viewport", () => {
-    // jsdom 没有布局，测试环境的 ResizeObserver 又是空 mock：换成能手动驱动的
     const observers: ResizeObserverCallback[] = [];
     class DriveableResizeObserver {
       constructor(callback: ResizeObserverCallback) {
@@ -207,7 +193,6 @@ describe("PreviewFrame", () => {
     );
     const frame = container.querySelector("iframe")!;
 
-    // 面板只有设备宽度的一半
     act(() => {
       observers[0]?.(
         [{ contentRect: { width: 640, height: 480 } } as ResizeObserverEntry],
@@ -215,11 +200,9 @@ describe("PreviewFrame", () => {
       );
     });
 
-    // 缩放只改视觉尺寸：iframe 仍按 1280 渲染，媒体查询看到的还是桌面
     expect(frame.style.width).toBe(`${PREVIEW_DEVICES.desktop}px`);
     expect(frame.style.transform).toBe("scale(0.5)");
     expect(frame.style.transformOrigin).toBe("top left");
-    // 高度反向放大，缩放后正好铺满面板
     expect(frame.style.height).toBe("960px");
 
     vi.unstubAllGlobals();

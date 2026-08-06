@@ -18,10 +18,8 @@ import {
   getPage,
   getPreviewSitePage,
   listPages,
-  publishPageContent,
-  publishSiteChrome,
-  revertPageContent,
-  revertSiteChrome,
+  publishEditorDraft,
+  revertEditorDraft,
   saveEditorDraft,
   setPageStatus,
   updatePage,
@@ -203,60 +201,6 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
 
   defineRoute(app, {
     method: "POST",
-    url: "/chrome/publish",
-    context: "SiteChromePublish",
-    errorCode: "SITE_CHROME_PUBLISH_FAILED",
-    preHandler: [app.requirePermission("site.write")],
-    handler: async (request, reply) => {
-      try {
-        const site = await publishSiteChrome(request.tenantContext!.tenant_id);
-        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
-          userId: request.authUser!.userId,
-          username: request.authUser!.username,
-          action: AuditAction.SITE_UPDATE,
-          resource: site.id,
-          detail_key: "marketing.audit.chrome_published",
-          detail_params: { site_name: auditSiteName(site) },
-        });
-        return site;
-      } catch (err) {
-        if (err instanceof AppError && err.code) {
-          return sendCodedError(reply, err.status, err.code, err.params);
-        }
-        throw err;
-      }
-    },
-  });
-
-  defineRoute(app, {
-    method: "POST",
-    url: "/chrome/revert",
-    context: "SiteChromeRevert",
-    errorCode: "SITE_CHROME_REVERT_FAILED",
-    preHandler: [app.requirePermission("site.write")],
-    handler: async (request, reply) => {
-      try {
-        const site = await revertSiteChrome(request.tenantContext!.tenant_id);
-        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
-          userId: request.authUser!.userId,
-          username: request.authUser!.username,
-          action: AuditAction.SITE_UPDATE,
-          resource: site.id,
-          detail_key: "marketing.audit.chrome_reverted",
-          detail_params: { site_name: auditSiteName(site) },
-        });
-        return site;
-      } catch (err) {
-        if (err instanceof AppError && err.code) {
-          return sendCodedError(reply, err.status, err.code, err.params);
-        }
-        throw err;
-      }
-    },
-  });
-
-  defineRoute(app, {
-    method: "POST",
     url: "/assets",
     context: "SiteAssetUpload",
     errorCode: "SITE_ASSET_UPLOAD_FAILED",
@@ -416,16 +360,17 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
     },
   });
 
+  /** 一次发布：本页正文 + 站点级页头页脚，同一事务。 */
   defineRoute(app, {
     method: "POST",
-    url: "/pages/:pageId/content/publish",
-    context: "SitePageContentPublish",
-    errorCode: "SITE_PAGE_CONTENT_PUBLISH_FAILED",
+    url: "/pages/:pageId/publish",
+    context: "SitePagePublish",
+    errorCode: "SITE_PAGE_PUBLISH_FAILED",
     preHandler: [app.requirePermission("site.write")],
     handler: async (request, reply) => {
       try {
         const { pageId } = request.params as { pageId: string };
-        const page = await publishPageContent(
+        const { page, site } = await publishEditorDraft(
           request.tenantContext!.tenant_id,
           pageId,
         );
@@ -434,10 +379,10 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           username: request.authUser!.username,
           action: AuditAction.SITE_PAGE_PUBLISH,
           resource: page.id,
-          detail_key: "marketing.audit.page_content_published",
+          detail_key: "marketing.audit.page_published",
           detail_params: { title: page.title },
         });
-        return page;
+        return { page, site };
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);
@@ -447,16 +392,17 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
     },
   });
 
+  /** 一次撤销：正文与页头页脚的草稿一起回到线上那一版。 */
   defineRoute(app, {
     method: "POST",
-    url: "/pages/:pageId/content/revert",
-    context: "SitePageContentRevert",
-    errorCode: "SITE_PAGE_CONTENT_REVERT_FAILED",
+    url: "/pages/:pageId/revert",
+    context: "SitePageRevert",
+    errorCode: "SITE_PAGE_REVERT_FAILED",
     preHandler: [app.requirePermission("site.write")],
     handler: async (request, reply) => {
       try {
         const { pageId } = request.params as { pageId: string };
-        const page = await revertPageContent(
+        const { page, site } = await revertEditorDraft(
           request.tenantContext!.tenant_id,
           pageId,
         );
@@ -468,39 +414,7 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           detail_key: "marketing.audit.page_content_reverted",
           detail_params: { title: page.title },
         });
-        return page;
-      } catch (err) {
-        if (err instanceof AppError && err.code) {
-          return sendCodedError(reply, err.status, err.code, err.params);
-        }
-        throw err;
-      }
-    },
-  });
-
-  defineRoute(app, {
-    method: "POST",
-    url: "/pages/:pageId/publish",
-    context: "SitePagePublish",
-    errorCode: "SITE_PAGE_PUBLISH_FAILED",
-    preHandler: [app.requirePermission("site.write")],
-    handler: async (request, reply) => {
-      try {
-        const { pageId } = request.params as { pageId: string };
-        const page = await setPageStatus(
-          request.tenantContext!.tenant_id,
-          pageId,
-          "published",
-        );
-        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
-          userId: request.authUser!.userId,
-          username: request.authUser!.username,
-          action: AuditAction.SITE_PAGE_PUBLISH,
-          resource: page.id,
-          detail_key: "marketing.audit.page_published",
-          detail_params: { title: page.title },
-        });
-        return page;
+        return { page, site };
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

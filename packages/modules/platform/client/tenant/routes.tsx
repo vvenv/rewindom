@@ -12,7 +12,7 @@ const SettingsBrandingPage = lazy(() =>
 export function renderPlatformTenantRoutes(): ReactNode {
   return (
     <Route element={<PermissionRoute permission="settings.read" />}>
-      <Route path="/settings" element={<SettingsBrandingPage />} />
+      <Route path="/app/settings" element={<SettingsBrandingPage />} />
     </Route>
   );
 }

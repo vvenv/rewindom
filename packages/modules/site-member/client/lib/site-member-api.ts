@@ -14,10 +14,10 @@ import {
  */
 export const siteMemberApi = createApiClient({
   tokenStore: siteMemberTokenStore,
-  refreshPath: "/site/member/refresh",
+  refreshPath: "/member/refresh",
   refreshBodyKey: "refresh_token",
   tokenRefreshedEvent: MEMBER_TOKEN_REFRESHED_EVENT,
   authLogoutEvent: MEMBER_AUTH_LOGOUT_EVENT,
 });
 
-export const SITE_MEMBER_API_BASE = "/site/member";
+export const SITE_MEMBER_API_BASE = "/member";

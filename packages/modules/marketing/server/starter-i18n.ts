@@ -1,7 +1,7 @@
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
-import en from "../client/locales/en.json";
-import zhCN from "../client/locales/zh-CN.json";
+import en from "../client/locales/en.json" with { type: "json" };
+import zhCN from "../client/locales/zh-CN.json" with { type: "json" };
 
 import type { PresetTranslateFn } from "../shared/page-presets.js";
 

@@ -15,7 +15,6 @@ import {
   setPageStatus,
   updateSite,
 } from "../../../packages/modules/marketing/server/site.service.js";
-import { SITE } from "../../../packages/modules/marketing/shared/site.js";
 
 async function main(): Promise<void> {
   const slug = process.argv[2]?.trim() || DEFAULT_TENANT_SLUG;
@@ -28,11 +27,7 @@ async function main(): Promise<void> {
   }
 
   const applied = await applySiteStarter(tenant.id, "default");
-  await updateSite(tenant.id, {
-    site_name: SITE.name,
-    tagline: SITE.tagline,
-    published: true,
-  });
+  await updateSite(tenant.id, { published: true });
 
   for (const page of applied.pages) {
     if (page.status !== "published") {

@@ -12,7 +12,7 @@ const Roles = lazy(() =>
 export function renderRbacSuperUserRoutes(): ReactNode {
   return (
     <Route element={<PermissionRoute permission="roles.read" />}>
-      <Route path="/roles" element={<Roles />} />
+      <Route path="/app/roles" element={<Roles />} />
     </Route>
   );
 }

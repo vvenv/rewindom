@@ -40,10 +40,62 @@ pnpm setup    # 幂等：.env.local + Postgres/Redis + migration
 pnpm dev
 ```
 
-- 前端 `http://localhost:7300`（Vite HMR）——`/` 是官网，应用入口 `/app`
 - API `http://localhost:3700`（`/api` 由 Vite 代理）
 
 `pnpm setup` 可重复执行；仅起库：`pnpm db:up`。
+
+### 从哪个地址进（本地）
+
+**`localhost` 与 `127.0.0.1` 不是同一个入口**——同一个 Vite 端口，按 Host 分流：
+`localhost` 是产品站（隐式绑定默认租户），`127.0.0.1` 是平台控制台。这是刻意的，
+免去改 `/etc/hosts` 就能在本地同时验证两种 Host。
+
+| 要进哪儿       | 本地地址                              | 说明                                        |
+| -------------- | ------------------------------------- | ------------------------------------------- |
+| 租户官网       | `http://localhost:7300/`              | 默认租户的 CMS 站点（Fastify SSR）          |
+| 租户工作台     | `http://localhost:7300/app`           | 稳定入口；未登录自动转 `/login`。所有工作台页面都在 `/app/*`（`/app/site`、`/app/dashboard`…） |
+| 租户登录       | `http://localhost:7300/login`         | 租户锁定为默认租户                          |
+| 站点会员       | `http://localhost:7300/member/login`  | 站点前台的终端客户，与工作台用户是两套身份  |
+| **平台控制台** | **`http://127.0.0.1:7300/platform`**  | 未登录自动转 `/login`；平台管理员在此登录   |
+
+常见困惑：在 `localhost:7300/platform` 打不开控制台——那个 Host 绑着租户，控制台不在
+上面，会被转到 `127.0.0.1:7300/platform`。反过来，`127.0.0.1:7300/` 也没有官网，
+它会直接进控制台入口。
+
+#### 本地调多个租户
+
+把基域设成 `localhost`（`.env.local`），然后直接开 `http://{slug}.localhost:7300`：
+
+```bash
+TENANT_BASE_DOMAIN=localhost
+```
+
+浏览器原生把 `*.localhost` 解析到回环地址，**不用改 hosts 文件**。三个入口互不影响：
+`localhost` 仍是默认租户、`127.0.0.1` 仍是平台控制台、`{slug}.localhost` 是对应租户
+（`app` / `api` / `platform` 等保留前缀不会被当成租户）。
+
+要验自定义域名那条分支，就把某个租户的 `custom_domain` 设成 `shop.localhost` 之类，
+同样直接可访问。
+
+> 刻意**不做**「开发态把当前 origin 手动绑到某租户」的旁路：那会绕过
+> `resolveHostTenant`，让最容易在生产出问题的 Host 解析恰好成为本地唯一不被验证的
+> 环节，还得为它加一道非生产门禁（本质是「按 Host 冒充租户」）。用真域名走真路径更省事。
+
+### 生产
+
+由 Host 决定，与本地同构，只是换成真实域名：
+
+| 要进哪儿   | 地址                        | env             |
+| ---------- | --------------------------- | --------------- |
+| 产品站     | `https://{APP_DOMAIN}/`     | `FRONTEND_URL`  |
+| 租户工作台 | `https://{APP_DOMAIN}/app`  | 同上            |
+| 租户站点   | 租户 `custom_domain` 或 `{slug}.{TENANT_BASE_DOMAIN}` | `TENANT_BASE_DOMAIN` |
+| 平台控制台 | `https://{PLATFORM_HOST}/platform` | `PLATFORM_URL` |
+
+`PLATFORM_URL` 必须与 `FRONTEND_URL` **不同 Host**：nginx 按 Host 分流（见
+`docker/nginx/default.conf.template` 的 `$use_tenant_ssr`），平台 Host 走静态 SPA，
+其余 Host 的 HTML 反代给 Marketing SSR。完整口径见
+[tenant-config.md](docs/design/tenant-config.md) 的「自定义域名 / Host 绑定」。
 
 ---
 
@@ -159,7 +211,7 @@ https://<ngrok-host>/api/billing/webhooks/creem
 
 Signing secret 与 `CREEM_WEBHOOK_SECRET` 一致；改配置后重启 server。
 
-4. 浏览器打开 `http://localhost:7300/billing` → 升级 → 用 test 卡付款。开通以 webhook 为准（看 server 日志 `[billing] creem webhook processed`），回跳 URL 只是页面返回。
+4. 浏览器打开 `http://localhost:7300/app/billing` → 升级 → 用 test 卡付款。开通以 webhook 为准（看 server 日志 `[billing] creem webhook processed`），回跳 URL 只是页面返回。
 
 详情与权限说明见 [`packages/modules/billing/MODULE.md`](packages/modules/billing/MODULE.md)。
 

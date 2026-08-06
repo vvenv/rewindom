@@ -12,7 +12,6 @@ import {
   parseSettingValues,
   type SiteSection,
 } from "./section-schema.js";
-import { SITE, SITE_FOOTER_GROUPS } from "./site.js";
 
 import type { UpdateMarketingSiteBody } from "./site-cms.js";
 import type { ThemeSettings } from "./theme-sections.js";
@@ -54,12 +53,33 @@ export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
   { presetKey: "pricing", sort_order: 100 },
 ];
 
-function footerBlocks(): ReturnType<typeof createBlock>[] {
-  return SITE_FOOTER_GROUPS.flatMap((group) =>
+/** 起步模板页脚链接：文案走 i18n，href 与 `DEFAULT_SITE_STARTER_PAGES` 对齐。 */
+const FOOTER_LINK_SPECS: readonly {
+  groupKey: string;
+  links: readonly { labelKey: string; href: string }[];
+}[] = [
+  {
+    groupKey: "footer.groups.product",
+    links: [
+      { labelKey: "footer.links.intro", href: "/" },
+      { labelKey: "footer.links.pricing", href: "/pricing" },
+    ],
+  },
+  {
+    groupKey: "footer.groups.docs",
+    links: [
+      { labelKey: "footer.links.docsHome", href: "/docs" },
+      { labelKey: "footer.links.quickstart", href: "/docs/quickstart" },
+    ],
+  },
+];
+
+function footerBlocks(t: PresetTranslateFn): ReturnType<typeof createBlock>[] {
+  return FOOTER_LINK_SPECS.flatMap((group) =>
     group.links.map((link) =>
       createBlock("footer", "footer_link", {
-        group: group.label,
-        label: link.label,
+        group: t(group.groupKey),
+        label: t(link.labelKey),
         href: link.href,
       }),
     ),
@@ -73,6 +93,7 @@ export function buildSiteStarterChrome(
   const header = createSection("header");
   const footer = createSection("footer");
   const year = new Date().getFullYear();
+  const siteName = t("starter.default.site_name");
 
   return {
     theme_settings: {
@@ -104,10 +125,10 @@ export function buildSiteStarterChrome(
         settings: parseSettingValues(getSectionDefinition("footer").settings, {
           ...footer.settings,
           show_logo: true,
-          blurb: `${SITE.tagline} — ${SITE.description}`,
-          copyright: `© ${year} ${SITE.name}`,
+          blurb: t("starter.default.footer_blurb"),
+          copyright: `© ${year} ${siteName}`,
         }),
-        blocks: footerBlocks(),
+        blocks: footerBlocks(t),
       },
     ],
   };
@@ -135,7 +156,14 @@ export function buildSiteStarter(
 
   if (pages.length === 0) return null;
 
-  return { site: chrome, pages };
+  return {
+    site: {
+      ...chrome,
+      site_name: t("starter.default.site_name"),
+      tagline: t("starter.default.tagline"),
+    },
+    pages,
+  };
 }
 
 export function findSiteStarter(key: string): SiteStarter | undefined {

@@ -48,7 +48,7 @@ export function SiteStarterMenu({
     applyStarter.mutate(key, {
       onSuccess: (result) => {
         toast.success(t("starter.toastApplied"));
-        void navigate(`/site/pages/${result.home_page_id}`);
+        void navigate(`/app/site/pages/${result.home_page_id}`);
         setPending(null);
       },
       onError: () => toast.error(t("starter.toastApplyFailed")),

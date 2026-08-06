@@ -57,7 +57,7 @@ describe("createApiClient isolation", () => {
     const workbench = createApiClient(clientOptions(workbenchStore));
     const member = createApiClient(
       clientOptions(memberStore, {
-        refreshPath: "/site/member/refresh",
+        refreshPath: "/member/refresh",
         refreshBodyKey: "refresh_token",
         tokenRefreshedEvent: "tokenRefreshedMember",
         authLogoutEvent: "authLogoutMember",
@@ -81,7 +81,7 @@ describe("createApiClient isolation", () => {
             { status: 200, headers: { "Content-Type": "application/json" } },
           );
         }
-        if (url.includes("/site/member/refresh")) {
+        if (url.includes("/member/refresh")) {
           refreshCalls += 1;
           return new Response(
             JSON.stringify({
@@ -93,7 +93,7 @@ describe("createApiClient isolation", () => {
             { status: 200, headers: { "Content-Type": "application/json" } },
           );
         }
-        if (url.includes("/notes") || url.includes("/site/member/me")) {
+        if (url.includes("/notes") || url.includes("/member/me")) {
           const auth = (init?.headers as Record<string, string> | undefined)
             ?.Authorization;
           if (auth?.includes("access-2")) {
@@ -114,7 +114,7 @@ describe("createApiClient isolation", () => {
     // 两个实例各自 401 → 各自 refresh，互不覆盖对方 token
     const [wbResult, memberResult] = await Promise.all([
       workbench.get<{ ok: boolean }>("/notes"),
-      member.get<{ ok: boolean }>("/site/member/me"),
+      member.get<{ ok: boolean }>("/member/me"),
     ]);
 
     expect(wbResult).toEqual({ ok: true });
@@ -138,7 +138,7 @@ describe("createApiClient isolation", () => {
     const workbench = createApiClient(clientOptions(workbenchStore));
     const member = createApiClient(
       clientOptions(memberStore, {
-        refreshPath: "/site/member/refresh",
+        refreshPath: "/member/refresh",
         refreshBodyKey: "refresh_token",
         tokenRefreshedEvent: "tokenRefreshedMember",
         authLogoutEvent: "authLogoutMember",
@@ -151,7 +151,7 @@ describe("createApiClient isolation", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input);
-        if (url.includes("/site/member/refresh")) {
+        if (url.includes("/member/refresh")) {
           return new Response(
             JSON.stringify({
               data: { accessToken: "m-access-2", refreshToken: "m-refresh-2" },
@@ -159,7 +159,7 @@ describe("createApiClient isolation", () => {
             { status: 200, headers: { "Content-Type": "application/json" } },
           );
         }
-        if (url.includes("/site/member/me")) {
+        if (url.includes("/member/me")) {
           const auth = (init?.headers as Record<string, string> | undefined)
             ?.Authorization;
           if (auth?.includes("m-access-2")) {
@@ -184,7 +184,7 @@ describe("createApiClient isolation", () => {
     await expect(workbench.get("/notes")).rejects.toThrow();
     expect(workbenchStore.access).toBe("wb-access");
 
-    await expect(member.get("/site/member/me")).resolves.toEqual({ ok: true });
+    await expect(member.get("/member/me")).resolves.toEqual({ ok: true });
     expect(memberStore.access).toBe("m-access-2");
 
     resume();

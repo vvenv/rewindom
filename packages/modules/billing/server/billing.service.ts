@@ -133,7 +133,8 @@ export async function createCheckoutSession(input: {
   }
 
   const frontendUrl = config.frontend.url.replace(/\/$/, "");
-  const successUrl = `${frontendUrl}/billing?checkout=success`;
+  // 租户工作台路由统一在 /app/* 之下；`/billing` 现在归租户 CMS，付款回跳会落到 404
+  const successUrl = `${frontendUrl}/app/billing?checkout=success`;
 
   const provider = getCreemProvider();
   const result = await provider.createCheckout({

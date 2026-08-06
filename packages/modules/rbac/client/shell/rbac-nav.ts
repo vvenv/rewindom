@@ -14,7 +14,7 @@ export const RBAC_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: ShieldCheck,
         label: "rbac:nav.roles",
-        path: "/roles",
+        path: "/app/roles",
         title: "rbac:nav.roles",
         keywords: "roles permissions 角色 权限 授权",
         anyPermission: ["roles.read"],

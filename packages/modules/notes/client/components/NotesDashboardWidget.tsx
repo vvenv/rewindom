@@ -30,7 +30,7 @@ export function NotesDashboardWidget() {
         </CardTitle>
         <CardAction>
           <Link
-            to="/notes"
+            to="/app/notes"
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
             {t("dashboardViewAll")}

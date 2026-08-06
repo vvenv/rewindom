@@ -20,6 +20,6 @@ export const todosClientModule: ClientAppModule = {
     nav: TODO_NAV_SECTIONS,
     dashboardWidgets: TODO_DASHBOARD_WIDGETS,
     // 底部 tab 只放高频业务入口；管理类页面走抽屉导航（见 MODULE.md）
-    mobileTabPaths: ["/todos"],
+    mobileTabPaths: ["/app/todos"],
   },
 };

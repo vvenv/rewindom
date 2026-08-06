@@ -16,20 +16,24 @@ import { APP_LOCALES, isAppLocale, type AppLocale } from "@be-water/shared";
  * 这三处说的是同一件事——这些一级段不归租户 CMS 管。
  */
 export const SITE_APP_PREFIXES = [
+  /*
+   * 应用区一级路径：这些不是租户 CMS 的页面，SSR 认出后交回 SPA。
+   *
+   * **租户工作台的路由全部收在 `/app/*` 之下**，所以这里只需要一个 `app`——
+   * 新增业务模块不必再回来加一行。以前每个模块各占一个顶层路径（`/notes`、
+   * `/site`…），这张表就得跟着长，而它在 nginx location 与 vite dev 代理里
+   * 还各有一份副本：`/site`、`/dashboard`、`/audit-logs` 就这么漏掉过，
+   * 在绑定域上一直是 404。顺带也把这些顶层 slug 还给了租户站点。
+   */
   "app",
+  // 工作台登录/注册（GuestOnlyRoute）
   "login",
   "register",
   // 站点会员的登录/注册/我的账户；不加进来 SSR 会把 /member/login 当 CMS 页面找
   "member",
+  // 平台控制台
   "platform",
-  "billing",
-  "settings",
-  "notes",
-  "todos",
-  "users",
-  "roles",
-  "audit",
-  "notifications",
+  // 非文档路径，由各自的 location / 中间件处理
   "api",
   "assets",
   "health",
@@ -116,6 +120,25 @@ export function withSiteLocale(
   const path = normalizeSitePath(logicalPath);
   if (locale === defaultLocale) return path;
   return path === "/" ? `/${locale}` : `/${locale}${path}`;
+}
+
+/**
+ * 当前路径是否由租户官网 CMS 承接（相对 `/app`、`/login` 等应用区而言）。
+ * 用于决定首屏加载 `marketing-site.css` 还是工作台 `index.css`。
+ */
+export function isMarketingPublicPath(pathname: string): boolean {
+  const normalized = normalizeSitePath(pathname);
+  if (normalized === "/") return true;
+  const segments = normalized.slice(1).split("/");
+  const first = segments[0] ?? "";
+  if (APP_PREFIX_SET.has(first)) return false;
+  const locale = resolveLocaleSegment(first);
+  if (locale) {
+    const second = segments[1] ?? "";
+    if (!second) return true;
+    return !APP_PREFIX_SET.has(second);
+  }
+  return true;
 }
 
 /** 站内、且属于官网内容的链接才加 locale 前缀。 */

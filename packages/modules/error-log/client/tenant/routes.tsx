@@ -12,7 +12,7 @@ const TenantErrorLogs = lazy(() =>
 export function renderErrorLogTenantRoutes(): ReactNode {
   return (
     <Route element={<PermissionRoute permission="error_logs.read" />}>
-      <Route path="/error-logs" element={<TenantErrorLogs />} />
+      <Route path="/app/error-logs" element={<TenantErrorLogs />} />
     </Route>
   );
 }

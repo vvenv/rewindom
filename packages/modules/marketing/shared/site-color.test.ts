@@ -5,6 +5,7 @@ import {
   expandHex,
   isSiteColor,
   normalizeSiteColor,
+  primaryForegroundFor,
   splitSiteColor,
 } from "./site-color.js";
 
@@ -34,5 +35,11 @@ describe("site-color", () => {
     expect(composeSiteColor("#0f766e", 100)).toBe("#0f766e");
     expect(expandHex("#abc")).toBe("#aabbcc");
     expect(expandHex("#abcd")).toBe("#aabbccdd");
+  });
+
+  it("picks a readable foreground for primary buttons", () => {
+    expect(primaryForegroundFor("#0369a1")).toBe("#ffffff");
+    expect(primaryForegroundFor("#facc15")).toBe("#0a0a0a");
+    expect(primaryForegroundFor("#abc")).toBe("#0a0a0a");
   });
 });

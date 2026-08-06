@@ -85,12 +85,12 @@ function renderSections(sections: SiteSection[]) {
 describe("SiteSections 容器段", () => {
   it("按比例分栏，左列吸顶，右列拿到剩下的宽度", () => {
     const { container } = renderSections(docsGroup());
-    const columns = container.querySelectorAll(".grid > div");
+    const columns = container.querySelectorAll(".grp > .grp-col");
     expect(columns).toHaveLength(2);
-    expect(columns[0]!.className).toContain("md:col-span-3");
-    expect(columns[0]!.className).toContain("md:sticky");
-    expect(columns[1]!.className).toContain("md:col-span-9");
-    expect(columns[1]!.className).not.toContain("md:sticky");
+    expect(columns[0]!.className).toContain("grp-span-3");
+    expect(columns[0]!.className).toContain("grp-sticky");
+    expect(columns[1]!.className).toContain("grp-span-9");
+    expect(columns[1]!.className).not.toContain("grp-sticky");
   });
 
   it("列里的同级菜单是真链接，当前页标出来", () => {
@@ -107,13 +107,11 @@ describe("SiteSections 容器段", () => {
   // 列已经限过宽、给过 gutter，子段不该再自带一层
   it("列里的子段走 contained：不再自带 gutter，full 退化成 page", () => {
     const { container } = renderSections(docsGroup());
-    const nested = [...container.querySelectorAll(".grid > div > div section")];
+    const nested = [...container.querySelectorAll(".grp-col section")];
     expect(nested).toHaveLength(2);
     for (const section of nested) {
-      // 正文层只剩 w-full（填满列），没有页面级的左右留白
-      expect(section.querySelector("[class*='px-4']")).toBeNull();
-      // 色块层退化成 page 宽：mx-auto + 页宽变量，而不是 w-full 通栏
-      expect(section.firstElementChild!.className).toContain("mx-auto");
+      expect(section.querySelector(".sec-c-contained")).toBeTruthy();
+      expect(section.firstElementChild!.className).toContain("sec-w-page");
     }
   });
 
@@ -121,7 +119,7 @@ describe("SiteSections 容器段", () => {
     const { container } = renderSections(
       parseSections([{ type: "group", settings: {}, blocks: [] }]),
     );
-    expect(container.querySelector(".grid")).toBeNull();
+    expect(container.querySelector(".grp")).toBeNull();
   });
 });
 

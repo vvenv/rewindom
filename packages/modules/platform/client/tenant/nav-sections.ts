@@ -14,7 +14,7 @@ export const PLATFORM_TENANT_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: Palette,
         label: "platform:branding.nav",
-        path: "/settings",
+        path: "/app/settings",
         title: "platform:branding.nav",
         keywords: "settings branding logo favicon 品牌 设置",
         anyPermission: ["settings.read"],

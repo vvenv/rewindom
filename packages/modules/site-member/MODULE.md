@@ -12,8 +12,8 @@
 | 面 | 路由 | 目录 | 所需权限 / 门控 |
 | --- | --- | --- | --- |
 | 公开（站点前台） | `/member/login`、`/member/register`、`/member/account` | `client/public/`、`client/pages/member-*.tsx` | 无；走 `renderPublicRoutes` + `publicProviders` |
-| 租户侧 | `/site-members` | `client/tenant/`、`client/pages/site-members.tsx` | `site_members.read`（写操作另需 `site_members.write`） |
-| 会员 API | `/api/site/member/*` | `server/site-member-auth.routes.ts` | 登录态；路径白名单 |
+| 租户侧 | `/app/site-members` | `client/tenant/`、`client/pages/site-members.tsx` | `site_members.read`（写操作另需 `site_members.write`） |
+| 会员 API | `/api/member/*` | `server/site-member-auth.routes.ts` | 登录态；路径白名单 |
 | 管理 API | `/api/site-members` | `server/site-member-admin.routes.ts` | PBAC + entitlement `tenant-site-member` |
 
 ## 与 marketing 的边界

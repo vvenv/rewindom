@@ -40,7 +40,7 @@ function isPlatformAdminApiPath(path: string): boolean {
 // 这里用**白名单**而不是像 api_key 那样列黑名单：会员是对公网开放注册的身份，
 // 新增业务路由时默认拒绝才安全，漏写黑名单则等于默认放行。
 const SITE_MEMBER_ALLOWED_PREFIXES = [
-  "/api/site/member",
+  "/api/member",
   "/api/site/content",
   "/api/public",
 ] as const;
@@ -49,17 +49,23 @@ function isSiteMemberApiPath(path: string): boolean {
   return SITE_MEMBER_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
-/** 会员自助接口免认证（注册/登录/刷新/登出/能力探测）。 */
-const SITE_MEMBER_PUBLIC_PATHS = [
-  "/api/site/member/config",
-  "/api/site/member/register",
-  "/api/site/member/login",
-  "/api/site/member/refresh",
-  "/api/site/member/logout",
-] as const;
+/**
+ * 会员自助接口免认证（注册/登录/刷新/登出/能力探测）。
+ *
+ * **整条路径精确匹配**，不是前缀匹配：前缀匹配下，日后任何以这几个串开头的新路由
+ * 都会静默变成免认证的——比如给会员加一个 `/api/member/login-history`，
+ * 它会连鉴权都不走。免认证是白名单，白名单就该逐条列全。
+ */
+const SITE_MEMBER_PUBLIC_PATHS = new Set([
+  "/api/member/config",
+  "/api/member/register",
+  "/api/member/login",
+  "/api/member/refresh",
+  "/api/member/logout",
+]);
 
 function isSiteMemberPublicPath(path: string): boolean {
-  return SITE_MEMBER_PUBLIC_PATHS.some((prefix) => path.startsWith(prefix));
+  return SITE_MEMBER_PUBLIC_PATHS.has(path);
 }
 
 declare module "fastify" {

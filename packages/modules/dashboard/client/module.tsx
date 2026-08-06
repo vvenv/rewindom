@@ -18,6 +18,6 @@ export const dashboardClientModule: ClientAppModule = {
     i18n: DASHBOARD_I18N,
     renderRoutes: renderDashboardRoutes,
     nav: DASHBOARD_NAV_SECTIONS,
-    mobileTabPaths: ["/dashboard"],
+    mobileTabPaths: ["/app/dashboard"],
   },
 };

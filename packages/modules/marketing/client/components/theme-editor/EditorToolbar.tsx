@@ -16,7 +16,6 @@ import {
   ArrowLeft,
   CloudOff,
   Copy,
-  Layers,
   MoreHorizontal,
   RotateCcw,
   Undo2,
@@ -50,14 +49,7 @@ interface EditorToolbarProps {
   state: EditorPublishState;
   canWrite: boolean;
   hasSections: boolean;
-  /** 库里草稿与线上不一致（站点级页头页脚，不在 `state` 里）。 */
-  chromeDirty: boolean;
-  pending: {
-    saving: boolean;
-    publishing: boolean;
-    chrome: boolean;
-    reverting: boolean;
-  };
+  pending: { saving: boolean; publishing: boolean; reverting: boolean };
   onBack: () => void;
   onGoToPage: (pageId: string) => void;
   onDuplicated: (page: MarketingPage) => void;
@@ -65,19 +57,20 @@ interface EditorToolbarProps {
   onSave: () => void;
   onPublish: () => void;
   onUnpublish: () => void;
-  onPublishChrome: () => void;
   onDiscardLocal: () => void;
-  onRevertContent: () => void;
-  onRevertChrome: () => void;
+  onRevert: () => void;
 }
 
 /**
  * 编辑器顶部工具栏，三段式：**去哪儿**（返回 / 换页 / 换语言）、**现在什么状态**、
  * **该做什么**（更多 / 保存 / 发布）。
  *
- * 原来是九个 `outline` 按钮平铺，其中四个都长得像发布。现在低频动作（复制、预设、
- * 发布页头页脚、取消发布）收进「更多」，主操作只剩保存与发布两枚，且由
- * `EditorPublishState` 决定同一时刻哪一枚是 primary——工具栏因此永远只有一个重点。
+ * 只有两枚主按钮：保存、发布。发布把这次编辑的东西整个上线——本页正文与站点级的
+ * 页头页脚一起（服务端同一事务）。曾经把它们拆成两条发布链，工具栏就长出了第三种
+ * 状态、第三个主按钮和第三条撤销，而站长的心智始终只有一个「发过去」。
+ *
+ * 低频动作（复制、预设、撤销、取消发布）收进「更多」；同一时刻只有一枚 primary，
+ * 由 `EditorPublishState` 决定，工具栏因此永远只有一个重点。
  */
 export function EditorToolbar({
   page,
@@ -88,7 +81,6 @@ export function EditorToolbar({
   state,
   canWrite,
   hasSections,
-  chromeDirty,
   pending,
   onBack,
   onGoToPage,
@@ -97,16 +89,13 @@ export function EditorToolbar({
   onSave,
   onPublish,
   onUnpublish,
-  onPublishChrome,
   onDiscardLocal,
-  onRevertContent,
-  onRevertChrome,
+  onRevert,
 }: EditorToolbarProps) {
   const { t } = useTranslation("marketing");
   const [duplicateOpen, setDuplicateOpen] = useState(false);
   const published = page.status === "published";
-  const hasRevert =
-    state.canDiscardLocal || state.canRevertContent || chromeDirty;
+  const hasRevert = state.canDiscardLocal || state.canRevert;
 
   return (
     // 移动端 `PageLayout` 把 action 放进固定层，所以自己收成右下角悬浮条
@@ -181,23 +170,6 @@ export function EditorToolbar({
                 hasContent={hasSections}
                 onApply={onApplyPreset}
               />
-              {chromeDirty ? <DropdownMenuSeparator /> : null}
-              {/* 页头页脚是站点级的，发出去会影响所有页面——所以不并进本页的发布 */}
-              {chromeDirty ? (
-                <DropdownMenuItem
-                  disabled={pending.chrome}
-                  onSelect={onPublishChrome}
-                >
-                  <Layers className="size-4" />
-                  <span className="flex min-w-0 flex-col">
-                    <span>{t("editor.publishChrome")}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {t("editor.publishChromeHint")}
-                    </span>
-                  </span>
-                </DropdownMenuItem>
-              ) : null}
-
               {/*
                 撤销分两级，与状态点说的是同一条链：内存 →(保存) 草稿 →(发布) 线上。
                 每一项只在真有东西可撤时出现，菜单里通常至多一两条。
@@ -217,32 +189,17 @@ export function EditorToolbar({
                   </span>
                 </DropdownMenuItem>
               ) : null}
-              {state.canRevertContent ? (
+              {state.canRevert ? (
                 <DropdownMenuItem
                   variant="destructive"
                   disabled={pending.reverting}
-                  onSelect={onRevertContent}
+                  onSelect={onRevert}
                 >
                   <RotateCcw className="size-4" />
                   <span className="flex min-w-0 flex-col">
-                    <span>{t("editor.revertContent")}</span>
+                    <span>{t("editor.revert")}</span>
                     <span className="text-xs text-muted-foreground">
-                      {t("editor.revertContentHint")}
-                    </span>
-                  </span>
-                </DropdownMenuItem>
-              ) : null}
-              {chromeDirty ? (
-                <DropdownMenuItem
-                  variant="destructive"
-                  disabled={pending.chrome}
-                  onSelect={onRevertChrome}
-                >
-                  <RotateCcw className="size-4" />
-                  <span className="flex min-w-0 flex-col">
-                    <span>{t("editor.revertChrome")}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {t("editor.revertChromeHint")}
+                      {t("editor.revertHint")}
                     </span>
                   </span>
                 </DropdownMenuItem>

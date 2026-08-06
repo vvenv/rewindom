@@ -51,7 +51,7 @@ export function SitePageGroupRow({
     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
       {canWrite ? (
         <Link
-          to={`/site/pages/${primary.id}`}
+          to={`/app/site/pages/${primary.id}`}
           className="truncate font-medium hover:underline"
         >
           {group.title}
@@ -188,7 +188,7 @@ function PageActions({
         title={t("editor.open")}
         aria-label={t("editor.open")}
       >
-        <Link to={`/site/pages/${page.id}`}>
+        <Link to={`/app/site/pages/${page.id}`}>
           <Palette className="size-3.5" />
         </Link>
       </Button>

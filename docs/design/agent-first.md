@@ -79,7 +79,7 @@ be-water 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 - [ ] 新 Skill → 只加 `.cursor/skills/`，`prepare` / `pnpm sync-skills` 同步 Claude
 - [ ] 新硬约束 → 优先 Rule 或 `check:*`，再写进 AGENTS.md 速查
 - [ ] 闭环变更 → 更新本文、`AGENTS.md` 与默认租户 CMS（starter / Theme Editor）相关文案
-- [ ] 对外口号 → `packages/modules/marketing` 的 i18n / `shared/site.ts` / page presets 保持一致
+- [ ] 对外口号 → `packages/modules/marketing` 的 i18n（`starter.default.*` / `preset.*`）保持一致
 
 ---
 

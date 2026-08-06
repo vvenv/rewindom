@@ -54,6 +54,8 @@ import {
   promotePageContentData,
   resolvePageIdentity,
   revertPageContentData,
+  siteChromeDraftFooter,
+  siteChromeDraftHeader,
   siteChromePublishedFooter,
   siteChromePublishedHeader,
   validateOptionalColor,
@@ -471,26 +473,6 @@ export async function saveEditorDraft(
   return { page: toMarketingPage(page), site: toMarketingSite(site) };
 }
 
-/** 将草稿 chrome 发布到线上（公开面与已发布预览从此读取）。 */
-export async function publishSiteChrome(
-  tenant_id: string,
-): Promise<MarketingSite> {
-  await ensureSiteRow(tenant_id);
-  const existing = await prisma.marketingSite.findFirstOrThrow({
-    where: { tenant_id },
-  });
-  const header = parseSiteAreaSections("header", existing.nav_draft_json);
-  const footer = parseSiteAreaSections("footer", existing.footer_draft_json);
-  const updated = await prisma.marketingSite.update({
-    where: { tenant_id },
-    data: {
-      nav_json: header as unknown as Prisma.InputJsonValue,
-      footer_json: footer as unknown as Prisma.InputJsonValue,
-    },
-  });
-  return toMarketingSite(updated);
-}
-
 /**
  * 应用站点起步模板：chrome + 主题色 + 主语言下的若干页面**同一事务**落库。
  */
@@ -513,6 +495,11 @@ export async function applySiteStarter(
   const theme_settings = parseSiteThemeSettings(payload.site.theme_settings);
   const header = parseSiteAreaSections("header", payload.site.header);
   const footer = parseSiteAreaSections("footer", payload.site.footer);
+  const site_name =
+    payload.site.site_name !== undefined
+      ? validateSiteName(payload.site.site_name, locale)
+      : undefined;
+  const tagline = payload.site.tagline?.trim();
 
   const pageWrites = payload.pages.map((item) => {
     const title = t(item.preset.titleKey).trim();
@@ -534,6 +521,11 @@ export async function applySiteStarter(
     const site = await tx.marketingSite.update({
       where: { tenant_id },
       data: {
+        // `site_name` 是 `string | {__i18n}`，与 updateSite 一样要转成 Json 入参
+        ...(site_name !== undefined && {
+          site_name: site_name as unknown as Prisma.InputJsonValue,
+        }),
+        ...(tagline !== undefined && { tagline }),
         theme_settings: theme_settings as unknown as Prisma.InputJsonValue,
         nav_json: header as unknown as Prisma.InputJsonValue,
         footer_json: footer as unknown as Prisma.InputJsonValue,
@@ -756,82 +748,108 @@ export async function setPageStatus(
 }
 
 /** 将草稿页面内容发布到线上（页面须已是 `published` 状态）。 */
-export async function publishPageContent(
+/**
+ * 编辑器的一次发布：本页正文与站点级页头页脚**一起**上线，同一事务。
+ *
+ * 以前拆成两条链（`content/publish` + `chrome/publish`），工具栏因此长出两个状态、
+ * 两个主按钮、两条撤销。而站长的心智只有一个：「把我刚才编辑的东西发出去」——
+ * 页头本来就是他在这个编辑器里改的，分两次发只会让人以为已经发完了
+ *（改完页头点发布、状态却说「线上已是最新」，正是这么来的）。
+ *
+ * 页头页脚是站点级的，所以它一并上线会影响所有页面——这由文案讲清楚，
+ * 而不是靠拆成两个动作让人自己拼。
+ */
+export async function publishEditorDraft(
   tenant_id: string,
   page_id: string,
-): Promise<MarketingPage> {
-  const existing = await prisma.marketingPage.findFirst({
+): Promise<{ page: MarketingPage; site: MarketingSite }> {
+  const existingPage = await prisma.marketingPage.findFirst({
     where: withTenantScope(tenant_id, { id: page_id }),
   });
-  if (!existing) {
+  if (!existingPage) {
     throw new NotFoundError("site.page_not_found");
   }
-  if (existing.status !== "published") {
-    throw new ValidationError("site.page_not_published");
-  }
-  const promoted = promotePageContentData(existing);
-  const updated = await prisma.marketingPage.update({
-    where: { id: page_id, tenant_id },
-    data: {
-      title: promoted.title,
-      description: promoted.description,
-      sections: promoted.sections as unknown as Prisma.InputJsonValue,
-      settings: promoted.settings as unknown as Prisma.InputJsonValue,
-    },
+  await ensureSiteRow(tenant_id);
+  const existingSite = await prisma.marketingSite.findFirstOrThrow({
+    where: { tenant_id },
   });
-  return toMarketingPage(updated);
+
+  const promoted = promotePageContentData(existingPage);
+  const header = siteChromeDraftHeader(existingSite);
+  const footer = siteChromeDraftFooter(existingSite);
+
+  const [page, site] = await prisma.$transaction([
+    prisma.marketingPage.update({
+      where: { id: page_id, tenant_id },
+      data: {
+        // 没上线过的页面顺带上线：对用户是同一个动作
+        status: "published",
+        title: promoted.title,
+        description: promoted.description,
+        sections: promoted.sections as unknown as Prisma.InputJsonValue,
+        settings: promoted.settings as unknown as Prisma.InputJsonValue,
+      },
+    }),
+    prisma.marketingSite.update({
+      where: { tenant_id },
+      data: {
+        nav_json: header as unknown as Prisma.InputJsonValue,
+        footer_json: footer as unknown as Prisma.InputJsonValue,
+      },
+    }),
+  ]);
+
+  return { page: toMarketingPage(page), site: toMarketingSite(site) };
 }
 
 /**
- * 撤销页面上未发布的更改：草稿列整组回灌成线上列。
+ * 撤销未发布的更改：正文与页头页脚的草稿列一起回灌成线上列，同一事务。
  *
- * 只对**已发布**的页面开放——没上线过的页面没有「线上那一版」可回，
- * 无后缀列里躺的是建页时的初值，把它当还原目标只会给出一个用户没见过的版本。
+ * 与发布严格互为反向。没上线过的页面不动正文——无后缀列里躺的是建页初值，
+ * 拿它当还原目标只会给出一个用户从没见过的版本；页头页脚则照常还原。
  */
-export async function revertPageContent(
+export async function revertEditorDraft(
   tenant_id: string,
   page_id: string,
-): Promise<MarketingPage> {
-  const existing = await prisma.marketingPage.findFirst({
+): Promise<{ page: MarketingPage; site: MarketingSite }> {
+  const existingPage = await prisma.marketingPage.findFirst({
     where: withTenantScope(tenant_id, { id: page_id }),
   });
-  if (!existing) {
+  if (!existingPage) {
     throw new NotFoundError("site.page_not_found");
   }
-  if (existing.status !== "published") {
-    throw new ValidationError("site.page_not_published");
-  }
-  const live = revertPageContentData(existing);
-  const updated = await prisma.marketingPage.update({
-    where: { id: page_id, tenant_id },
-    data: {
-      title_draft: live.title,
-      description_draft: live.description,
-      sections_draft: live.sections as unknown as Prisma.InputJsonValue,
-      settings_draft: live.settings as unknown as Prisma.InputJsonValue,
-    },
-  });
-  return toMarketingPage(updated);
-}
-
-/** 撤销页头页脚上未发布的更改：草稿 chrome 回灌成线上 chrome。 */
-export async function revertSiteChrome(
-  tenant_id: string,
-): Promise<MarketingSite> {
   await ensureSiteRow(tenant_id);
-  const existing = await prisma.marketingSite.findFirstOrThrow({
+  const existingSite = await prisma.marketingSite.findFirstOrThrow({
     where: { tenant_id },
   });
-  const header = siteChromePublishedHeader(existing);
-  const footer = siteChromePublishedFooter(existing);
-  const updated = await prisma.marketingSite.update({
-    where: { tenant_id },
-    data: {
-      nav_draft_json: header as unknown as Prisma.InputJsonValue,
-      footer_draft_json: footer as unknown as Prisma.InputJsonValue,
-    },
-  });
-  return toMarketingSite(updated);
+
+  const live = revertPageContentData(existingPage);
+  const header = siteChromePublishedHeader(existingSite);
+  const footer = siteChromePublishedFooter(existingSite);
+
+  const [page, site] = await prisma.$transaction([
+    prisma.marketingPage.update({
+      where: { id: page_id, tenant_id },
+      data:
+        existingPage.status === "published"
+          ? {
+              title_draft: live.title,
+              description_draft: live.description,
+              sections_draft: live.sections as unknown as Prisma.InputJsonValue,
+              settings_draft: live.settings as unknown as Prisma.InputJsonValue,
+            }
+          : {},
+    }),
+    prisma.marketingSite.update({
+      where: { tenant_id },
+      data: {
+        nav_draft_json: header as unknown as Prisma.InputJsonValue,
+        footer_draft_json: footer as unknown as Prisma.InputJsonValue,
+      },
+    }),
+  ]);
+
+  return { page: toMarketingPage(page), site: toMarketingSite(site) };
 }
 
 /**

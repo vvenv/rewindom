@@ -70,7 +70,7 @@ describe("resolveEditorPublishState", () => {
     expect(state.primary).toBe("save");
     // 两级撤销互不遮挡：既能退回已保存的草稿，也能一路退回线上
     expect(state.canDiscardLocal).toBe(true);
-    expect(state.canRevertContent).toBe(true);
+    expect(state.canRevert).toBe(true);
   });
 
   it("offers no revert once live, draft and editor all agree", () => {
@@ -81,7 +81,7 @@ describe("resolveEditorPublishState", () => {
     });
 
     expect(state.canDiscardLocal).toBe(false);
-    expect(state.canRevertContent).toBe(false);
+    expect(state.canRevert).toBe(false);
   });
 
   // 没发布过的页面，无后缀列里是建页初值，还原过去等于给出一个用户没见过的版本
@@ -92,8 +92,68 @@ describe("resolveEditorPublishState", () => {
       contentDirty: true,
     });
 
-    expect(state.canRevertContent).toBe(false);
+    expect(state.canRevert).toBe(false);
     // 但内存这一版仍能退回已保存的草稿
     expect(state.canDiscardLocal).toBe(true);
+  });
+});
+
+/*
+ * 页头页脚不再是独立的一条发布链：它和本页正文一起进「有未发布的更改」。
+ * 拆开时工具栏长出了第三种状态、第三个主按钮和第三条撤销，而站长的心智只有一个
+ *「把我刚才改的发出去」——改完页头却看到「线上已是最新」，正是拆开的代价。
+ */
+describe("页头页脚并入同一条发布链", () => {
+  it("只改页头也算「有未发布的更改」", () => {
+    const state = resolveEditorPublishState({
+      dirty: false,
+      published: true,
+      contentDirty: false,
+      chromeDirty: true,
+    });
+
+    expect(state.stage).toBe("stale");
+    expect(state.primary).toBe("publish");
+    expect(state.canPublish).toBe(true);
+    // 撤销也是一条：正文与页头一起回滚
+    expect(state.canRevert).toBe(true);
+  });
+
+  it("两边都干净才是 live", () => {
+    const state = resolveEditorPublishState({
+      dirty: false,
+      published: true,
+      contentDirty: false,
+      chromeDirty: false,
+    });
+
+    expect(state.stage).toBe("live");
+    expect(state.primary).toBeNull();
+    expect(state.canRevert).toBe(false);
+  });
+
+  // 未保存优先：保存本来就把正文与页头一起落库
+  it("未保存改动仍然优先于发布", () => {
+    const state = resolveEditorPublishState({
+      dirty: true,
+      published: true,
+      contentDirty: false,
+      chromeDirty: true,
+    });
+
+    expect(state.stage).toBe("unsaved");
+    expect(state.primary).toBe("save");
+  });
+
+  // 页面没上线过时正文没有「线上版」可回，但页头照样能还原
+  it("未发布的页面靠页头脏也能撤销", () => {
+    const state = resolveEditorPublishState({
+      dirty: false,
+      published: false,
+      contentDirty: true,
+      chromeDirty: true,
+    });
+
+    expect(state.canRevert).toBe(true);
   });
 });

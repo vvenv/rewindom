@@ -334,7 +334,10 @@
     "default": {
       "label": "默认营销站",
       "description": "页头、页脚、主题色与首页 / 文档 / 定价",
-      "cta": "免费开始"
+      "cta": "免费开始",
+      "site_name": "我的站点",
+      "tagline": "一句话介绍你的站点",
+      "footer_blurb": "在这里写一句站点简介，访客会在页脚看到。"
     },
     "confirmTitle": "覆盖现有站点内容？",
     "confirmBody": "将替换页头、页脚、主题色，并在主语言下创建或更新首页、文档与定价页。此操作不可撤销。",
@@ -365,7 +368,7 @@
     "toastSaveFailed": "保存失败，请重试",
     "saveDraft": "保存草稿",
     "saveHint": "把改动存进草稿；访客看到的还是线上那一版。",
-    "publishHint": "把当前草稿推到线上，访客立即可见。",
+    "publishHint": "把当前草稿推到线上：本页内容与页头页脚一起上线（页头页脚是所有页面共用的）。",
     "publishBlockedUnsaved": "先保存草稿，再发布——否则发出去的是上一次保存的内容。",
     "publishBlockedUpToDate": "线上已经和当前草稿一致，没有要发布的改动。",
     "more": "更多操作",
@@ -375,31 +378,15 @@
       "stale": "线上不是最新",
       "live": "线上已是最新"
     },
-    "publishChrome": "发布页头页脚",
-    "publishChromeHint": "站点级，所有页面的页头页脚都会更新。",
-    "toastChromePublished": "页头页脚已上线",
-    "toastChromePublishFailed": "发布页头页脚失败",
     "discardLocal": "撤销未保存的改动",
     "discardLocalHint": "回到上次保存的草稿，只影响本机这一版。",
     "discardLocalConfirmTitle": "撤销未保存的改动？",
     "discardLocalConfirmBody": "编辑器会回到上次保存的草稿，这之后改的内容会丢失。",
     "discardLocalConfirmAction": "撤销改动",
     "toastLocalDiscarded": "已回到上次保存的草稿",
-    "revertContent": "撤销未发布的更改",
-    "revertContentHint": "草稿回到线上那一版，本页内容与页面设置一并还原。",
-    "revertContentConfirmTitle": "撤销本页未发布的更改？",
-    "revertContentConfirmBody": "草稿会还原成线上那一版，保存过但没发布的改动会丢失。线上内容不受影响。",
     "revertDiscardsUnsavedToo": "本页还有没保存的改动，也会一并丢失。",
     "revertConfirmAction": "撤销并还原",
-    "toastContentReverted": "已还原成线上那一版",
-    "revertChrome": "撤销页头页脚更改",
-    "revertChromeHint": "站点级，所有页面的页头页脚草稿都会还原。",
-    "revertChromeConfirmTitle": "撤销页头页脚未发布的更改？",
-    "revertChromeConfirmBody": "页头页脚是站点级的：草稿会还原成线上那一版，所有页面都跟着变。线上内容不受影响。",
-    "toastChromeReverted": "页头页脚已还原成线上那一版",
     "toastRevertFailed": "撤销失败，请重试",
-    "toastContentPublished": "页面内容已上线",
-    "toastContentPublishFailed": "发布页面内容失败",
     "uploadImage": "上传",
     "toastImageUploaded": "图片已上传",
     "toastImageUploadFailed": "图片上传失败",
@@ -658,7 +645,14 @@
       "membersOnlyHint": "访客需登录站点会员后才能阅读完整内容"
     },
     "accountEntryPreview": "登录",
-    "settingInfo": "说明"
+    "settingInfo": "说明",
+    "revert": "撤销未发布的更改",
+    "revertHint": "本页内容与页头页脚一起回到线上那一版。",
+    "revertConfirmTitle": "撤销未发布的更改？",
+    "revertConfirmBody": "页面内容与页头页脚会一起还原成线上那一版，保存过但没发布的改动会丢失。线上内容不受影响。",
+    "toastReverted": "已还原成线上那一版",
+    "toastPublished": "已上线，访客可见",
+    "toastPublishFailed": "发布失败，请重试"
   },
   "seo": {
     "home": {

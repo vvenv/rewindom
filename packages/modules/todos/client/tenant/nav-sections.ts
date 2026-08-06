@@ -14,7 +14,7 @@ export const TODO_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: ListTodo,
         label: "todos:nav.label",
-        path: "/todos",
+        path: "/app/todos",
         title: "todos:title",
         keywords: "todos 待办 任务 清单",
         tenantModule: "todos",

@@ -22,7 +22,7 @@ describe("resolveAppHomePath", () => {
         hasAllPermissions,
         EXAMPLE_HOME_PATH_CANDIDATES,
       ),
-    ).toBe("/notes");
+    ).toBe("/app/notes");
   });
 
   it("treats a module as enabled when its entitlement is absent", () => {
@@ -32,7 +32,7 @@ describe("resolveAppHomePath", () => {
         hasAllPermissions,
         EXAMPLE_HOME_PATH_CANDIDATES,
       ),
-    ).toBe("/notes");
+    ).toBe("/app/notes");
   });
 
   it("skips a candidate whose tenant module is disabled", () => {
@@ -52,7 +52,7 @@ describe("resolveAppHomePath", () => {
         hasAllPermissions,
         PRODUCT_CANDIDATES,
       ),
-    ).toBe("/notes");
+    ).toBe("/app/notes");
   });
 
   it("skips a candidate the user lacks permission for", () => {

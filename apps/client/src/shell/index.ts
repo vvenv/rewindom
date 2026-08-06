@@ -6,6 +6,7 @@ export { AppLayout } from "./components/AppLayout.js";
 export { AppMobileHeader } from "./components/AppMobileHeader.js";
 export { AppHomeRedirect } from "./components/AppHomeRedirect.js";
 export { AppNotFoundRedirect } from "./components/AppNotFoundRedirect.js";
+export { AppShellCssLoader } from "./components/AppShellCssLoader.js";
 export { GuestOnlyRoute } from "./components/GuestOnlyRoute.js";
 export { PlatformAdminRoute } from "./components/PlatformAdminRoute.js";
 export { ProtectedRoute } from "./components/ProtectedRoute.js";

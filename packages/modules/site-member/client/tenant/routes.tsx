@@ -24,7 +24,7 @@ export function renderSiteMemberRoutes(): ReactNode {
   return (
     <Route element={<SiteMemberModuleRoute />}>
       <Route element={<PermissionRoute permission="site_members.read" />}>
-        <Route path="/site-members" element={<SiteMembers />} />
+        <Route path="/app/site-members" element={<SiteMembers />} />
       </Route>
     </Route>
   );

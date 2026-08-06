@@ -31,8 +31,8 @@ export function renderSiteRoutes(): ReactNode {
   return (
     <Route element={<SiteModuleRoute />}>
       <Route element={<PermissionRoute permission="site.read" />}>
-        <Route path="/site" element={<Site />} />
-        <Route path="/site/pages/:pageId" element={<SiteThemeEditor />} />
+        <Route path="/app/site" element={<Site />} />
+        <Route path="/app/site/pages/:pageId" element={<SiteThemeEditor />} />
       </Route>
     </Route>
   );

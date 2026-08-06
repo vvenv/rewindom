@@ -14,7 +14,7 @@ export const NOTES_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: StickyNote,
         label: "notes:nav.notes",
-        path: "/notes",
+        path: "/app/notes",
         title: "notes:nav.notes",
         keywords: "notes 备忘 示例 memo",
         tenantModule: "notes",

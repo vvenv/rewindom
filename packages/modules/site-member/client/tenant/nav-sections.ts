@@ -10,7 +10,7 @@ export const SITE_MEMBER_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: Users,
         label: "site-member:admin.nav",
-        path: "/site-members",
+        path: "/app/site-members",
         title: "site-member:admin.nav",
         keywords: "site member members 会员 站点会员",
         tenantModule: "tenant-site-member",

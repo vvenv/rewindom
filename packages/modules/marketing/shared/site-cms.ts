@@ -283,23 +283,19 @@ export const RESERVED_PAGE_SLUGS = new Set([
   // slug 在写入前已小写，这里也存小写形态。
   ...APP_LOCALES.map((locale) => locale.slug.toLowerCase()),
   "home",
+  /*
+   * 应用区一级路径，与 `SITE_APP_PREFIXES` 同源（那边是「交回 SPA」，
+   * 这边是「租户不能拿它当页面 slug」）。租户工作台已统一收进 `/app/*`，
+   * 所以这里也只剩一个 `app`——`/notes`、`/site` 这些顶层地址还给了租户。
+   */
   "app",
   "login",
   "register",
-  // 会员登录/注册/我的账户；与 SITE_APP_PREFIXES 手工对齐（两份清单用途不同）
   "member",
   "platform",
   "api",
   "assets",
   "health",
-  "billing",
-  "settings",
-  "notes",
-  "todos",
-  "users",
-  "roles",
-  "audit",
-  "notifications",
   "sitemap.xml",
   "robots.txt",
 ]);

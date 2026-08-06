@@ -41,7 +41,7 @@ describe("CreemProvider", () => {
     const provider = new CreemProvider();
     const result = await provider.createCheckout({
       product_id: "prod_starter",
-      success_url: "http://localhost:7300/billing",
+      success_url: "http://localhost:7300/app/billing",
       metadata: { tenant_id: "t1", plan_slug: "starter" },
     });
 
@@ -57,7 +57,7 @@ describe("CreemProvider", () => {
     await expect(
       provider.createCheckout({
         product_id: "starter",
-        success_url: "http://localhost:7300/billing",
+        success_url: "http://localhost:7300/app/billing",
         metadata: { tenant_id: "t1", plan_slug: "starter" },
       }),
     ).rejects.toThrow(/product_id 无效/);

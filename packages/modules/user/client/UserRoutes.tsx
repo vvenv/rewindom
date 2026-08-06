@@ -12,7 +12,7 @@ const Users = lazy(() =>
 export function renderUserSuperUserRoutes(): ReactNode {
   return (
     <Route element={<PermissionRoute permission="users.read" />}>
-      <Route path="/users" element={<Users />} />
+      <Route path="/app/users" element={<Users />} />
     </Route>
   );
 }

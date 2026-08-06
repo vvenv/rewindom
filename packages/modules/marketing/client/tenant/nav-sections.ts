@@ -9,7 +9,7 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: Globe,
         label: "marketing:cms.nav",
-        path: "/site",
+        path: "/app/site",
         title: "marketing:cms.nav",
         keywords: "site marketing cms 官网 站点",
         tenantModule: "tenant-marketing",

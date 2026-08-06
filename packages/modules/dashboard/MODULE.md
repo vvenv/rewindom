@@ -2,7 +2,7 @@
 
 ## 用途
 
-租户登录后的默认首页 `/dashboard`（工作台）。本模块**只提供骨架**：栅格布局、可见性过滤、
+租户登录后的默认首页 `/app/dashboard`（工作台）。本模块**只提供骨架**：栅格布局、可见性过滤、
 单卡片错误隔离；卡片内容由各业务模块通过 `client.dashboardWidgets` 自己贡献，
 dashboard 不 import 任何业务组件。
 
@@ -10,13 +10,13 @@ dashboard 不 import 任何业务组件。
 
 | 面     | 路由         | 目录             | 所需权限                 |
 | ------ | ------------ | ---------------- | ------------------------ |
-| 租户侧 | `/dashboard` | `client/tenant/` | 无（登录即可访问，见下） |
+| 租户侧 | `/app/dashboard` | `client/tenant/` | 无（登录即可访问，见下） |
 
 纯前端模块，没有 server 面，也没有 `schema.prisma`。
 
 ## 为什么不加租户开关 / 权限
 
-`/dashboard` 是登录落地页（`apps/client/src/home-path-candidates.ts` 的第一候选）。
+`/app/dashboard` 是登录落地页（`apps/client/src/home-path-candidates.ts` 的第一候选）。
 一旦它可被平台关闭或需要某个权限，租户登录后就可能无处可去。因此：
 
 - 路由不套 `TenantModuleRoute` / `PermissionRoute`
@@ -35,14 +35,14 @@ dashboard 不 import 任何业务组件。
 | 权限不足         | `PermissionRoute` / `SuperUserRoute` / `PlatformAdminRoute`     | → `useDefaultHomePath()` |
 
 `/app` 是稳定入口，`AppHomeRedirect` 按 `HOME_PATH_CANDIDATES` 解析出真实首页 →
-默认落到 `/dashboard`。产品仓要换默认首页，只改 `home-path-candidates.ts`，
+默认落到 `/app/dashboard`。产品仓要换默认首页，只改 `home-path-candidates.ts`，
 不必动登录页与代登录逻辑。
 
 守卫拒绝访问时回**当前身份**的默认首页，由 `client-kit` 的 `useDefaultHomePath()`
 统一解析：平台管理员 → `PLATFORM_HOME_PATH`（`/platform`），租户用户 →
-`APP_HOME_ENTRY_PATH`（`/app` → `/dashboard`）。`PermissionRoute` 平台侧也在用
+`APP_HOME_ENTRY_PATH`（`/app` → `/app/dashboard`）。`PermissionRoute` 平台侧也在用
 （如 `/platform/admins`），所以它必须按身份区分，不能写死租户入口。
-`/dashboard` 无权限门控，因此不会出现「被弹回首页又被弹走」的循环。
+`/app/dashboard` 无权限门控，因此不会出现「被弹回首页又被弹走」的循环。
 
 ## 贡献一张卡片（扩展点）
 

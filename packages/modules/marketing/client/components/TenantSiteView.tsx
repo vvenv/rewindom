@@ -2,6 +2,9 @@ import { type CSSProperties, type ReactNode } from "react";
 
 import { cn } from "@be-water/ui/utils";
 
+import { useMarketingSiteDocumentTheme } from "../hooks/use-marketing-site-document-theme.js";
+import { usePreviewDocument } from "../lib/preview-document-context.js";
+import { MARKETING_SITE_ROOT_CLASS } from "../../shared/marketing-site-theme.js";
 import { type SiteSection } from "../../shared/section-schema.js";
 import {
   marketingPagePath,
@@ -10,11 +13,7 @@ import {
   type PublicMarketingPage,
   type PublicMarketingSite,
 } from "../../shared/site-cms.js";
-import {
-  resolveThemeSettings,
-  themeFontCss,
-  themePageWidthCss,
-} from "../../shared/theme-sections.js";
+import { resolveThemeSettings } from "../../shared/theme-sections.js";
 
 import { SiteLocaleProvider } from "./sections/site-locale-context.js";
 import { SiteFooter, SiteHeader } from "./sections/SiteChrome.js";
@@ -73,25 +72,14 @@ export function TenantSiteView({
   onSelectSection,
   mainOverride,
 }: TenantSiteViewProps) {
+  const previewDoc = usePreviewDocument();
+  const doc = embedded ? previewDoc : document;
+  useMarketingSiteDocumentTheme(site.theme_settings, doc);
+
   const pageMeta = findPage(site, path);
   const theme = resolveThemeSettings(site.theme_settings);
-  const accent = theme.primary_color ?? undefined;
   const pageBg = pageSettings?.bg_color ?? null;
   const pageFg = pageSettings?.fg_color ?? null;
-  const style: CSSProperties = {
-    ["--site-accent" as string]: accent,
-    ["--site-page-width" as string]: themePageWidthCss(theme.page_width),
-    fontFamily: themeFontCss(theme.font_family),
-    ...(theme.bg_color ? { ["--background" as string]: theme.bg_color, backgroundColor: theme.bg_color } : {}),
-    ...(theme.fg_color ? { ["--foreground" as string]: theme.fg_color, color: theme.fg_color } : {}),
-    ...(accent
-      ? {
-          ["--primary" as string]: accent,
-          ["--color-primary" as string]: accent,
-          ["--ring" as string]: accent,
-        }
-      : {}),
-  };
   const mainStyle: CSSProperties = {
     ...(pageBg ? { backgroundColor: pageBg } : {}),
     ...(pageFg ? { color: pageFg } : {}),
@@ -105,11 +93,7 @@ export function TenantSiteView({
       locale={site.locale}
       defaultLocale={site.default_locale}
     >
-      <div style={style} className="flex min-h-full flex-col">
-        {/*
-          页头区是**一串** section：导航条本体走 SiteHeader，公告条之类的普通段
-          走通用渲染。页脚同理。
-        */}
+      <div className="flex min-h-full flex-col">
         <header>
           {header.map((section) =>
             section.type === "header" ? (
@@ -192,16 +176,12 @@ export function TenantSiteView({
     </SiteLocaleProvider>
   );
 
-  if (embedded) {
-    // 与实站同一层底色，避免 iframe 直接露 body 渐变
-    return (
-      <div className="min-h-full bg-background text-foreground">{content}</div>
-    );
-  }
-
-  return (
-    <div className="min-h-svh bg-background text-foreground">{content}</div>
+  const shellClass = cn(
+    MARKETING_SITE_ROOT_CLASS,
+    embedded ? "min-h-full" : "min-h-svh",
   );
+
+  return <div className={shellClass}>{content}</div>;
 }
 
 /** 公开目录不含正文时，用 path 反查 slug/kind（仅元数据）。 */

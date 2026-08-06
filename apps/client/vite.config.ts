@@ -5,6 +5,10 @@ import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 
 import { manualChunks } from "./vite-manual-chunks";
+import {
+  shouldBypassMarketingSsrProxy,
+  shouldProxyDocumentToMarketingSsr,
+} from "./vite-marketing-ssr-proxy";
 
 /** 平台控制台 Host：不代理 Marketing SSR（与 server `getPlatformConsoleHostnames` 对齐）。 */
 const PLATFORM_CONSOLE_DEV_HOSTS = new Set([
@@ -12,9 +16,6 @@ const PLATFORM_CONSOLE_DEV_HOSTS = new Set([
   "::1",
   "[::1]",
 ]);
-
-const SPA_PREFIX_RE =
-  /^\/(app|login|register|member|platform|billing|settings|notes|todos|users|roles|audit|notifications|api|assets|@|src|node_modules)(\/|$)/u;
 
 /**
  * 产品站 / 租户 Host 下将文档导航代理到 Fastify Marketing SSR。
@@ -31,21 +32,18 @@ function tenantMarketingSsrProxy(): Plugin {
           return;
         }
         const url = req.url?.split("?")[0] ?? "/";
-        if (SPA_PREFIX_RE.test(url)) {
-          next();
-          return;
-        }
-        if (req.method !== "GET" && req.method !== "HEAD") {
+        if (shouldBypassMarketingSsrProxy(url)) {
           next();
           return;
         }
         const accept = req.headers.accept ?? "";
-        const wantsHtml =
-          url === "/sitemap.xml" ||
-          url === "/robots.txt" ||
-          accept.includes("text/html") ||
-          accept.includes("*/*");
-        if (!wantsHtml) {
+        if (
+          !shouldProxyDocumentToMarketingSsr(
+            url,
+            req.method ?? "GET",
+            accept,
+          )
+        ) {
           next();
           return;
         }
@@ -95,7 +93,13 @@ export default defineConfig(() => ({
     },
   },
   server: {
-    allowedHosts: ["localhost", "127.0.0.1", "::1", "local.moms.plus"],
+    /*
+     * `.localhost` 是前缀写法（vite：以点开头 = 该域及其全部子域），用来支持
+     * 本地多租户：配 `TENANT_BASE_DOMAIN=localhost` 后 `{slug}.localhost:7300`
+     * 就会走通配子域解析到对应租户。浏览器原生把 `*.localhost` 解析到回环地址，
+     * 不用改 hosts 文件；少了它 vite 会以 "Blocked request" 直接挡掉。
+     */
+    allowedHosts: [".localhost", "127.0.0.1", "::1", "local.moms.plus"],
     proxy: {
       "/api": {
         target: "http://localhost:3700",

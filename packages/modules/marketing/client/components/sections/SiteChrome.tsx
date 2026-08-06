@@ -1,18 +1,14 @@
-import { type CSSProperties, type ReactElement } from "react";
-
-import { ThemeToggle } from "@be-water/client-kit";
-import { getLocaleNativeLabel } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
-import { cn } from "@be-water/ui/utils";
-import { Check, Languages } from "lucide-react";
+  type CSSProperties,
+  type ReactElement,
+  useEffect,
+  useRef,
+} from "react";
+
+import { getLocaleNativeLabel } from "@be-water/shared";
 import { Link } from "react-router";
 
+import { useSiteColorMode } from "../../hooks/use-marketing-site-document-theme.js";
 import {
   resolveSurfaceStyle,
   settingBool,
@@ -29,6 +25,70 @@ import {
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
 import { SiteLink } from "./SiteLink.js";
+
+const LOCALE_SWITCHER_ICON = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <path d="m5 8 6 6" />
+    <path d="m4 14 6-6 2-3" />
+    <path d="M2 5h12" />
+    <path d="M7 2h1" />
+    <path d="m22 22-5-10-5 10" />
+    <path d="M14 18h6" />
+  </svg>
+);
+
+const SUN_ICON = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2" />
+    <path d="M12 20v2" />
+    <path d="m4.93 4.93 1.41 1.41" />
+    <path d="m17.66 17.66 1.41 1.41" />
+    <path d="M2 12h2" />
+    <path d="M20 12h2" />
+    <path d="m6.34 17.66-1.41 1.41" />
+    <path d="m19.07 4.93-1.41 1.41" />
+  </svg>
+);
+
+const MOON_ICON = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+  </svg>
+);
 
 /**
  * 会员入口由 site-member 通过 slot 填入；未开通会员的站点这里什么都不渲染。
@@ -59,12 +119,11 @@ function groupFooterLinks(
 }
 
 /**
- * 语言切换：icon + dropdown，**不**按 `Accept-Language` 自动跳转。
+ * 语言切换：icon + `<details>` dropdown，**不**按 `Accept-Language` 自动跳转。
  *
  * 自动跳转会让爬虫只看到一种语言，各语言页面互相收录不到（Shopify 同样只做显式切换）。
  * 候选来自本页 `alternates`——只列真的有已发布译文的语言，点进去不会是 404。
  * 目标路径已带 locale 前缀，所以直接用 `Link` 而不是会再改写一次的 `SiteLink`。
- * UI 与 `@be-water/client-kit` 的 `LocaleToggle` 对齐（Languages icon + 菜单）。
  */
 function LocaleSwitcher({
   alternates,
@@ -73,39 +132,68 @@ function LocaleSwitcher({
   alternates: PageLocaleAlternate[];
   current: string;
 }): ReactElement | null {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent): void {
+      const details = detailsRef.current;
+      if (!details?.open) return;
+      const target = event.target;
+      if (target instanceof Node && details.contains(target)) return;
+      details.open = false;
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
+
   if (alternates.length < 2) return null;
   const currentLabel = getLocaleNativeLabel(current);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-lg"
-          aria-label="Language"
-          title={currentLabel}
-        >
-          <Languages className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" collisionPadding={8} className="w-max">
+    <details ref={detailsRef} className="locale-switcher">
+      <summary aria-label="Language" title={currentLabel}>
+        {LOCALE_SWITCHER_ICON}
+      </summary>
+      <nav className="locale-switcher-menu" aria-label="Language">
         {alternates.map((alternate) => {
           const active = alternate.locale === current;
           return (
-            <DropdownMenuItem key={alternate.locale} asChild>
-              <Link
-                to={alternate.path}
-                hrefLang={alternate.locale}
-                aria-current={active ? "true" : undefined}
-              >
-                <span className="flex-1">{getLocaleNativeLabel(alternate.locale)}</span>
-                {active ? <Check className="size-4 opacity-70" /> : null}
-              </Link>
-            </DropdownMenuItem>
+            <Link
+              key={alternate.locale}
+              to={alternate.path}
+              hrefLang={alternate.locale}
+              aria-current={active ? "true" : undefined}
+            >
+              {getLocaleNativeLabel(alternate.locale)}
+            </Link>
           );
         })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </nav>
+    </details>
+  );
+}
+
+/**
+ * 明暗切换：点击在 light / dark 间切换。
+ *
+ * 用站点自己的偏好而**不是**工作台的 `next-themes`：两者同源同一个 SPA，共用
+ * `localStorage.theme` 会让访客的选择顺带改掉租户管理台的明暗。
+ */
+function SiteThemeToggle(): ReactElement {
+  const { mode, resolved, setMode } = useSiteColorMode();
+  const label =
+    mode === "system" ? "跟随系统" : mode === "dark" ? "深色" : "浅色";
+
+  return (
+    <button
+      type="button"
+      className="theme-toggle"
+      title={`当前主题: ${label}`}
+      onClick={() => setMode(resolved === "dark" ? "light" : "dark")}
+    >
+      {resolved === "dark" ? MOON_ICON : SUN_ICON}
+    </button>
   );
 }
 
@@ -133,7 +221,7 @@ function selectable(onSelect: (() => void) | undefined) {
         onSelect();
       }
     },
-    className: "cursor-pointer",
+    style: { cursor: "pointer" } as CSSProperties,
   };
 }
 
@@ -190,60 +278,46 @@ export function SiteHeader({
   const select = selectable(onSelect);
   const navLinks = headerNavLinks(section, pages);
   const surface = resolveSurfaceStyle(s);
-  const surfaceCss = surfaceStyleCss(surface) as CSSProperties;
+  const surfaceCss = {
+    ...surfaceStyleCss(surface),
+    ...select.style,
+  } as CSSProperties;
+
+  const headerClass = [
+    "site-header",
+    settingBool(s, "sticky") ? "sticky" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const rowClass = [
+    "wrap",
+    "header-row",
+    centered ? "header-layout-centered" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <header
       {...select}
       data-section-id={section.id}
-      className={cn(
-        "z-40 border-b backdrop-blur-md",
-        surface.backgroundColor ? null : "bg-background/85",
-        surface.borderWidth > 0 ? null : "border-border/60",
-        settingBool(s, "sticky") && "sticky top-0",
-        select.className,
-      )}
+      className={headerClass}
       style={surfaceCss}
     >
-      <div
-        className={cn(
-          "mx-auto w-full max-w-[var(--site-page-width,72rem)] px-4 sm:px-6",
-          centered
-            ? "grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4"
-            : "flex h-14 items-center gap-2 sm:gap-4",
-        )}
-      >
-        <SiteLink
-          href="/"
-          className={cn(
-            "flex items-center gap-2 text-foreground transition-opacity hover:opacity-80",
-            centered && "justify-self-start",
-          )}
-        >
+      <div className={rowClass}>
+        <SiteLink href="/" className="brand">
           {settingBool(s, "show_logo") && logoUrl ? (
-            <img src={logoUrl} alt={siteName} className="h-6 w-auto" />
+            <img src={logoUrl} alt={siteName} className="logo" />
           ) : null}
-          {settingBool(s, "show_site_name") ? (
-            <span className="font-semibold">{siteName}</span>
-          ) : null}
+          {settingBool(s, "show_site_name") ? <span>{siteName}</span> : null}
         </SiteLink>
 
-        <nav
-          className={cn(
-            "hidden items-center gap-1 md:flex",
-            centered ? "justify-self-center" : "ml-2",
-          )}
-        >
+        <nav className="header-nav">
           {navLinks.map((link) => (
             <SiteLink
               key={link.key}
               href={link.href}
-              className={cn(
-                "rounded-lg px-2.5 py-1.5 text-sm transition-colors hover:bg-muted/60 hover:text-foreground",
-                currentPath === link.href
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground",
-              )}
               aria-current={currentPath === link.href ? "page" : undefined}
             >
               {link.label}
@@ -251,47 +325,34 @@ export function SiteHeader({
           ))}
         </nav>
 
-        <div
-          className={cn(
-            "flex items-center gap-1.5",
-            centered ? "justify-self-end" : "ml-auto",
-          )}
-        >
+        <div className="header-actions">
           {settingBool(s, "show_locale_switcher") ? (
             <LocaleSwitcher alternates={alternates} current={locale ?? ""} />
           ) : null}
           {/*
-            明暗永远跟随设备（`next-themes` 的 `defaultTheme="system"`）；
-            这枚按钮只是让访客手动改，关掉不等于锁死浅色。
+            明暗默认跟随设备；这枚按钮只是让访客手动改，关掉不等于锁死浅色。
           */}
-          {settingBool(s, "show_theme_toggle") ? (
-            <ThemeToggle className="rounded-lg" />
-          ) : null}
+          {settingBool(s, "show_theme_toggle") ? <SiteThemeToggle /> : null}
           {settingBool(s, "show_account") ? <SiteMemberEntry /> : null}
           {secondaryLabel && secondaryHref ? (
-            <Button asChild variant="ghost" size="sm" className="px-3">
-              <SiteLink href={secondaryHref}>{secondaryLabel}</SiteLink>
-            </Button>
+            <SiteLink href={secondaryHref} className="btn btn-ghost">
+              {secondaryLabel}
+            </SiteLink>
           ) : null}
           {ctaLabel && ctaHref ? (
-            <Button asChild size="sm" className="px-3 sm:px-4">
-              <SiteLink href={ctaHref}>{ctaLabel}</SiteLink>
-            </Button>
+            <SiteLink href={ctaHref} className="btn">
+              {ctaLabel}
+            </SiteLink>
           ) : null}
         </div>
       </div>
 
       {navLinks.length > 0 ? (
-        <nav className="flex flex-wrap gap-3 border-t border-border/60 px-4 py-2 text-sm md:hidden">
+        <nav className="header-mobile-nav wrap">
           {navLinks.map((link) => (
             <SiteLink
               key={link.key}
               href={link.href}
-              className={cn(
-                currentPath === link.href
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
               aria-current={currentPath === link.href ? "page" : undefined}
             >
               {link.label}
@@ -316,47 +377,36 @@ export function SiteFooter({
   const groups = groupFooterLinks(section.blocks);
   const select = selectable(onSelect);
   const surface = resolveSurfaceStyle(s);
-  const surfaceCss = surfaceStyleCss(surface) as CSSProperties;
+  const surfaceCss = {
+    ...surfaceStyleCss(surface),
+    ...select.style,
+  } as CSSProperties;
 
   return (
     <footer
       {...select}
       data-section-id={section.id}
-      className={cn(
-        "mt-12 border-t",
-        surface.backgroundColor ? null : "bg-muted/20",
-        surface.borderWidth > 0 ? null : "border-border/60",
-        select.className,
-      )}
+      className="site-footer"
       style={surfaceCss}
     >
-      <div className="mx-auto grid w-full max-w-[var(--site-page-width,72rem)] gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
+      <div className="wrap footer-grid">
+        <div>
+          <div className="brand">
             {settingBool(s, "show_logo") && logoUrl ? (
-              <img src={logoUrl} alt={siteName} className="h-6 w-auto" />
+              <img src={logoUrl} alt={siteName} className="logo" />
             ) : null}
-            <span className="font-medium">{siteName}</span>
+            <span>{siteName}</span>
           </div>
-          {blurb ? (
-            <p className="max-w-xs text-sm text-muted-foreground">{blurb}</p>
-          ) : null}
+          {blurb ? <p className="muted">{blurb}</p> : null}
         </div>
 
         {groups.map((group, index) => (
-          <nav key={group.group || `group-${index}`} className="space-y-3">
-            {group.group ? (
-              <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                {group.group}
-              </h2>
-            ) : null}
-            <ul className="space-y-2 text-sm">
+          <nav key={group.group || `group-${index}`}>
+            {group.group ? <h2>{group.group}</h2> : null}
+            <ul>
               {group.links.map((block) => (
                 <li key={block.id}>
-                  <SiteLink
-                    href={settingText(block.settings, "href")}
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                  >
+                  <SiteLink href={settingText(block.settings, "href")}>
                     {settingText(block.settings, "label")}
                   </SiteLink>
                 </li>
@@ -366,9 +416,7 @@ export function SiteFooter({
         ))}
       </div>
 
-      <div className="mx-auto w-full max-w-[var(--site-page-width,72rem)] border-t border-border/60 px-4 py-6 text-xs text-muted-foreground sm:px-6">
-        {copyright}
-      </div>
+      <div className="wrap footer-legal">{copyright}</div>
     </footer>
   );
 }

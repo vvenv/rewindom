@@ -90,7 +90,7 @@ export function SiteThemeEditor() {
       >
         <p className="text-sm text-destructive">{t("cms.loadFailed")}</p>
         <Button asChild variant="outline" className="mt-4">
-          <Link to="/site">
+          <Link to="/app/site">
             <ArrowLeft className="size-4" />
             {t("editor.back")}
           </Link>
@@ -102,15 +102,15 @@ export function SiteThemeEditor() {
   const page = editor.page;
   const selectedSection = editor.selectedSection;
   const saving = editor.mutations.saveEditorDraft.isPending;
-  const publishingChrome = editor.mutations.publishChrome.isPending;
-  const publishingContent = editor.mutations.publishPageContent.isPending;
-  const publishingPage = editor.mutations.publishPage.isPending;
-  const revertingContent = editor.mutations.revertPageContent.isPending;
-  const revertingChrome = editor.mutations.revertChrome.isPending;
+  const publishing = editor.mutations.publishDraft.isPending;
+  const reverting = editor.mutations.revertDraft.isPending;
   const publishState = resolveEditorPublishState({
     dirty: editor.dirty,
     published: page.status === "published",
     contentDirty: editor.contentDirty,
+    // 页头页脚与正文同属一条发布链：只改页头也要算「有未发布的更改」，
+    // 否则状态点会报「线上已是最新」，而访客看到的还是旧页头
+    chromeDirty: editor.chromeDirty,
   });
 
   /**
@@ -131,7 +131,7 @@ export function SiteThemeEditor() {
 
   const goToPage = (nextPageId: string): void => {
     if (nextPageId === pageId) return;
-    void leaveTo(`/site/pages/${nextPageId}`);
+    void leaveTo(`/app/site/pages/${nextPageId}`);
   };
 
   /** 页面 sections 与站点级页头页脚一次事务落库，避免半截状态。 */
@@ -160,29 +160,16 @@ export function SiteThemeEditor() {
     );
   };
 
-  const publishChrome = (): void => {
-    editor.mutations.publishChrome.mutate(undefined, {
-      onSuccess: () => toast.success(t("editor.toastChromePublished")),
-      onError: () => toast.error(t("editor.toastChromePublishFailed")),
-    });
-  };
-
   /**
-   * 「发布」只有一枚：页面还没上线就走上线（服务端顺带把草稿提升到线上），
-   * 已经上线就只推正文。两条路径对用户是同一件事——让线上等于当前草稿。
+   * 「发布」只有一枚：把这次编辑的东西整个上线——本页正文与站点级的页头页脚
+   * 一起（服务端同一事务）；页面还没上线的话顺带上线。对用户就是一件事：
+   * 让访客看到的等于眼前这一版。
    */
   const publish = (): void => {
     if (!pageId) return;
-    if (page.status === "published") {
-      editor.mutations.publishPageContent.mutate(pageId, {
-        onSuccess: () => toast.success(t("editor.toastContentPublished")),
-        onError: () => toast.error(t("editor.toastContentPublishFailed")),
-      });
-      return;
-    }
-    editor.mutations.publishPage.mutate(pageId, {
-      onSuccess: () => toast.success(t("cms.toastPagePublished")),
-      onError: () => toast.error(t("cms.toastPagePublishFailed")),
+    editor.mutations.publishDraft.mutate(pageId, {
+      onSuccess: () => toast.success(t("editor.toastPublished")),
+      onError: () => toast.error(t("editor.toastPublishFailed")),
     });
   };
 
@@ -200,49 +187,25 @@ export function SiteThemeEditor() {
   };
 
   /**
-   * 撤销落在服务端：草稿列回灌成线上列后编辑器整个重新灌入，
-   * 内存里没保存的改动也一并作废——所以有未保存改动时要在确认里多说一句。
+   * 撤销未发布的更改：正文与页头页脚的草稿一起回到线上那一版（同一事务）。
+   * 页面重新灌入时会跟着回退，内存里没保存的改动一并作废——所以要连着问。
    */
-  const confirmRevert = async (titleKey: string, bodyKey: string) => {
-    const body = t(bodyKey);
-    return confirm({
-      title: t(titleKey),
+  const revert = async (): Promise<void> => {
+    if (!pageId) return;
+    const body = t("editor.revertConfirmBody");
+    const confirmed = await confirm({
+      title: t("editor.revertConfirmTitle"),
       description: editor.dirty
         ? `${body}${t("editor.revertDiscardsUnsavedToo")}`
         : body,
       confirmText: t("editor.revertConfirmAction"),
       destructive: true,
     });
-  };
-
-  /** 撤销本页未发布的更改：服务端把草稿列回灌成线上列。 */
-  const revertContent = async (): Promise<void> => {
-    if (!pageId) return;
-    const confirmed = await confirmRevert(
-      "editor.revertContentConfirmTitle",
-      "editor.revertContentConfirmBody",
-    );
     if (!confirmed) return;
-    editor.mutations.revertPageContent.mutate(pageId, {
+    editor.mutations.revertDraft.mutate(pageId, {
       onSuccess: () => {
         clearEditorCache(pageId);
-        toast.success(t("editor.toastContentReverted"));
-      },
-      onError: () => toast.error(t("editor.toastRevertFailed")),
-    });
-  };
-
-  /** 撤销页头页脚未发布的更改（站点级，影响所有页面）。 */
-  const revertChrome = async (): Promise<void> => {
-    const confirmed = await confirmRevert(
-      "editor.revertChromeConfirmTitle",
-      "editor.revertChromeConfirmBody",
-    );
-    if (!confirmed) return;
-    editor.mutations.revertChrome.mutate(undefined, {
-      onSuccess: () => {
-        if (pageId) clearEditorCache(pageId);
-        toast.success(t("editor.toastChromeReverted"));
+        toast.success(t("editor.toastReverted"));
       },
       onError: () => toast.error(t("editor.toastRevertFailed")),
     });
@@ -271,24 +234,18 @@ export function SiteThemeEditor() {
           state={publishState}
           canWrite={canWrite}
           hasSections={editor.sections.length > 0}
-          chromeDirty={editor.chromeDirty}
-          pending={{
-            saving,
-            publishing: publishingContent || publishingPage,
-            chrome: publishingChrome || revertingChrome,
-            reverting: revertingContent,
-          }}
-          onBack={() => void leaveTo("/site")}
+          pending={{ saving, publishing, reverting }}
+          onBack={() => void leaveTo("/app/site")}
           onGoToPage={goToPage}
-          onDuplicated={(created) => void navigate(`/site/pages/${created.id}`)}
+          onDuplicated={(created) =>
+            void navigate(`/app/site/pages/${created.id}`)
+          }
           onApplyPreset={editor.replaceSections}
           onSave={saveAll}
           onPublish={publish}
           onUnpublish={unpublish}
-          onPublishChrome={publishChrome}
           onDiscardLocal={() => void discardLocal()}
-          onRevertContent={() => void revertContent()}
-          onRevertChrome={() => void revertChrome()}
+          onRevert={() => void revert()}
         />
       }
     >

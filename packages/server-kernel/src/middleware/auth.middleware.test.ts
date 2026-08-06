@@ -20,6 +20,8 @@ vi.mock("../lib/config.js", () => ({
     tenant: {
       baseDomain: "",
     },
+    // 缓存只在「确知不是测试」时开；这里显式声明，逐条断言查库次数才成立
+    server: { isTest: true },
   },
 }));
 
@@ -500,14 +502,14 @@ describe("auth.middleware", () => {
       } as never);
     }
 
-    it("allows member token on /api/site/member", async () => {
+    it("allows member token on /api/member", async () => {
       mockSiteMember();
       const token = app.jwt.sign(memberPayload, { expiresIn: "1h" });
-      app.get("/api/site/member/me", async (request) => request.authUser);
+      app.get("/api/member/me", async (request) => request.authUser);
 
       const response = await app.inject({
         method: "GET",
-        url: "/api/site/member/me",
+        url: "/api/member/me",
         headers: { authorization: `Bearer ${token}` },
       });
 
@@ -571,14 +573,30 @@ describe("auth.middleware", () => {
 
     it("skips auth for member login/register", async () => {
       for (const url of [
-        "/api/site/member/login",
-        "/api/site/member/register",
-        "/api/site/member/refresh",
-        "/api/site/member/logout",
+        "/api/member/login",
+        "/api/member/register",
+        "/api/member/refresh",
+        "/api/member/logout",
       ]) {
         const response = await app.inject({ method: "POST", url });
         expect(response.statusCode).not.toBe(401);
       }
+    });
+
+    /*
+     * 免认证是白名单，必须整条路径精确匹配。
+     * 曾经用 `startsWith`：那样任何以白名单串开头的新路由都会静默免认证——
+     * 给会员加个 `/api/member/login-history` 就等于开了个没鉴权的口子。
+     */
+    it("免认证白名单不放行仅仅是前缀相同的路径", async () => {
+      app.get("/api/member/login-history", async () => ({ ok: true }));
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/member/login-history",
+      });
+
+      expect(response.statusCode).toBe(401);
     });
   });
 

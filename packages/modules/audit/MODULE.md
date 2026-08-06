@@ -33,7 +33,7 @@
 
 | 路径 | 挂载点 | 说明 |
 | --- | --- | --- |
-| `/audit-logs` | `renderRoutes`（租户） | 需 `audit_logs.read`，导航同步隐藏；不显示租户列与租户筛选 |
+| `/app/audit-logs` | `renderRoutes`（租户） | 需 `audit_logs.read`，导航同步隐藏；不显示租户列与租户筛选 |
 | `/platform/audit-logs` | `renderPlatformRoutes` | 跨租户只读，含租户列与租户筛选 |
 
 ## 如何单独测试

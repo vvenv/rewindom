@@ -134,14 +134,14 @@ describe("getMobileTabItems", () => {
   it("只列出真的声明了 mobileTabPaths 的模块入口", () => {
     const items = getMobileTabItems();
     expect(items.map((item) => item.path)).toEqual([
-      "/dashboard",
-      "/notes",
-      "/todos",
+      "/app/dashboard",
+      "/app/notes",
+      "/app/todos",
     ]);
   });
 
   it("tab 项携带图标与徽标键，标签为可延迟翻译的 namespace:key", () => {
-    const notes = getMobileTabItems().find((item) => item.path === "/notes");
+    const notes = getMobileTabItems().find((item) => item.path === "/app/notes");
     expect(notes).toBeDefined();
     expect(notes!.label).toBe("notes:nav.notes");
     // lucide 图标是 forwardRef 对象而非普通函数，只断言拿到了组件
@@ -161,7 +161,7 @@ describe("getMobileTabItems", () => {
 });
 
 describe("filterMobileTabPaths", () => {
-  const TAB_PATHS = ["/notes", "/todos"];
+  const TAB_PATHS = ["/app/notes", "/app/todos"];
 
   it("按权限过滤：无 notes.read 时该 tab 消失", () => {
     const result = filterMobileTabPaths(
@@ -169,7 +169,7 @@ describe("filterMobileTabPaths", () => {
       { modules: {}, features: {} },
       (permission) => permission !== "notes.read",
     );
-    expect(result).toEqual(["/todos"]);
+    expect(result).toEqual(["/app/todos"]);
   });
 
   it("按 entitlement 过滤：租户关掉 todos 模块时该 tab 消失", () => {
@@ -178,7 +178,7 @@ describe("filterMobileTabPaths", () => {
       { modules: { todos: false }, features: {} },
       () => true,
     );
-    expect(result).toEqual(["/notes"]);
+    expect(result).toEqual(["/app/notes"]);
   });
 
   it("权限未加载时受限 tab 全部隐藏（fail-closed）", () => {

@@ -11,8 +11,17 @@ vi.mock("@be-water/server-kernel/lib/config.js", () => ({
         passwordHash: "",
       },
     },
+    /*
+     * 两个 origin 都避开 `localhost`——`app.inject()` 不带 Host 头时用的就是它。
+     * auth 中间件每个 /api 请求都会 `resolveHostTenant()`：命中 `frontend.url`
+     * 会隐式绑定默认租户，`/api/platform/*` 随即被挡成 403。
+     * 且 `platform.url` **不能缺**，否则 `config.platform` 是 undefined，直接 500。
+     */
     frontend: {
-      url: "http://localhost:7300",
+      url: "http://app.test",
+    },
+    platform: {
+      url: "http://console.test",
     },
     tenant: {
       singleTenant: false,

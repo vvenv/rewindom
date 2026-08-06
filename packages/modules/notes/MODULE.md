@@ -8,7 +8,7 @@
 
 | 面 | 路由 | 目录 | 所需权限 |
 | --- | --- | --- | --- |
-| 租户侧 | `/notes` | `client/src/tenant/` | `notes.read`（写操作另需 `notes.write`） |
+| 租户侧 | `/app/notes` | `client/src/tenant/` | `notes.read`（写操作另需 `notes.write`） |
 
 ## 权限控制
 
@@ -23,7 +23,7 @@
 | 页面内写操作 | `client/pages/notes.tsx`、`client/components/NotesGrid.tsx` | `usePermissions().hasPermission("notes.write")` |
 
 权限在 `server/module.ts` 的 `shared.permissions` 声明，由 `collectModulePermissions`
-汇入权限目录，租户可在 `/roles` 勾选给角色。
+汇入权限目录，租户可在 `/app/roles` 勾选给角色。
 
 导航的权限维度是 fail-closed（权限未加载时先隐藏），与 `tenantEntitlements`
 的 fail-open 是两个独立维度：前者是**当前用户**有没有权限，后者是**租户**开没开通模块。

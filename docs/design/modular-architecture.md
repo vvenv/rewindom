@@ -696,7 +696,7 @@ shell: {
 
 ### 10.5.1 工作台卡片（`dashboardWidgets`）
 
-`/dashboard` 是租户登录后的默认首页（`dashboard` 模块）。它只提供栅格、可见性过滤与
+`/app/dashboard` 是租户登录后的默认首页（`dashboard` 模块）。它只提供栅格、可见性过滤与
 单卡片错误隔离，**不 import 任何业务组件**；卡片由拥有数据的模块自己声明：
 
 ```typescript
@@ -720,7 +720,7 @@ client: {
 （`prepareAppRoutes` → `registerDashboardWidgetsProvider`，同 `configureClientTenantCatalog`）。
 
 可见性口径与导航项一致：权限 fail-closed（未加载先隐藏）、entitlement fail-open。
-`/dashboard` 本身不设开关也不设权限——它是落地页兜底，关掉就等于登录后无处可去。
+`/app/dashboard` 本身不设开关也不设权限——它是落地页兜底，关掉就等于登录后无处可去。
 详见 `packages/modules/dashboard/MODULE.md`。
 
 ### 10.6 `ClientShellContributions`

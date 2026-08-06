@@ -58,18 +58,13 @@ export function saveSiteEditorDraft(
   return api.put<SaveEditorDraftResponse>(`/site/pages/${pageId}/draft`, body);
 }
 
-export function applySiteStarter(key: string): Promise<ApplySiteStarterResponse> {
+export function applySiteStarter(
+  key: string,
+): Promise<ApplySiteStarterResponse> {
   return api.post<ApplySiteStarterResponse>(`/site/starters/${key}/apply`, {});
 }
 
-export function publishSiteChrome(): Promise<MarketingSite> {
-  return api.post<MarketingSite>("/site/chrome/publish", {});
-}
 
-/** 撤销页头页脚上未发布的更改：草稿回到线上那一版。 */
-export function revertSiteChrome(): Promise<MarketingSite> {
-  return api.post<MarketingSite>("/site/chrome/revert", {});
-}
 
 export function uploadSiteAsset(file: File): Promise<{ url: string }> {
   const formData = new FormData();
@@ -81,17 +76,18 @@ export function deleteSitePage(pageId: string): Promise<{ ok: boolean }> {
   return api.delete<{ ok: boolean }>(`/site/pages/${pageId}`);
 }
 
-export function publishSitePage(pageId: string): Promise<MarketingPage> {
-  return api.post<MarketingPage>(`/site/pages/${pageId}/publish`, {});
+/** 一次发布：本页正文 + 站点级页头页脚，服务端同一事务。 */
+export function publishSiteEditorDraft(
+  pageId: string,
+): Promise<SaveEditorDraftResponse> {
+  return api.post<SaveEditorDraftResponse>(`/site/pages/${pageId}/publish`, {});
 }
 
-export function publishSitePageContent(pageId: string): Promise<MarketingPage> {
-  return api.post<MarketingPage>(`/site/pages/${pageId}/content/publish`, {});
-}
-
-/** 撤销页面上未发布的更改：草稿回到线上那一版。 */
-export function revertSitePageContent(pageId: string): Promise<MarketingPage> {
-  return api.post<MarketingPage>(`/site/pages/${pageId}/content/revert`, {});
+/** 一次撤销：正文与页头页脚的草稿一起回到线上那一版。 */
+export function revertSiteEditorDraft(
+  pageId: string,
+): Promise<SaveEditorDraftResponse> {
+  return api.post<SaveEditorDraftResponse>(`/site/pages/${pageId}/revert`, {});
 }
 
 export function unpublishSitePage(pageId: string): Promise<MarketingPage> {

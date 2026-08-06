@@ -39,7 +39,7 @@
 
 | 路径 | 挂载点 | 说明 |
 | --- | --- | --- |
-| `/error-logs` | `renderRoutes`（租户） | 需 `error_logs.read`；`error_logs.manage` 才出现清理入口与删除按钮 |
+| `/app/error-logs` | `renderRoutes`（租户） | 需 `error_logs.read`；`error_logs.manage` 才出现清理入口与删除按钮 |
 | `/platform/error-logs` | `renderPlatformRoutes` | 跨租户只读，含租户列与租户筛选 |
 
 ## 如何单独测试

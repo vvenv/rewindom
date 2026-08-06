@@ -8,14 +8,14 @@
 
 | 路径 | 页面 | 所需权限 |
 | --- | --- | --- |
-| `/roles` | 角色列表、增删改、按 group 勾选权限 | `roles.read`（写操作另需 `roles.write`） |
+| `/app/roles` | 角色列表、增删改、按 group 勾选权限 | `roles.read`（写操作另需 `roles.write`） |
 
-导航项在 `client/shell/rbac-nav.ts`，归入「系统管理」分组——与 `user` 的 `/users`、
-`billing` 的 `/billing` 同组（`collectModuleNav` 按 section label 合并），并声明
+导航项在 `client/shell/rbac-nav.ts`，归入「系统管理」分组——与 `user` 的 `/app/users`、
+`billing` 的 `/app/billing` 同组（`collectModuleNav` 按 section label 合并），并声明
 `placement: "end"` 沉底。组内顺序由 client `enabled-modules` 决定：用户 → 角色 → 订阅。
 角色页挂在 `SuperUserRoute` 下，并用 `PermissionRoute` 收窄到具体权限。
 
-给成员**分配**角色不在这里，而在 `/users` 的用户行内（`user` 模块的
+给成员**分配**角色不在这里，而在 `/app/users` 的用户行内（`user` 模块的
 `UserPermissionSheet`，需 `roles.assign`）——角色的定义与角色的分配分属两个页面。
 
 ## 系统管理员默认全权限

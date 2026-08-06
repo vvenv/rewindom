@@ -12,7 +12,7 @@ import {
   getPublishedPublicPage,
   getPublishedSitemapEntries,
 } from "./site.service.js";
-import { resolveSpaEntrySrc } from "./spa-entry.js";
+import { renderSpaBootstrapHtml } from "./spa-entry.js";
 import {
   renderMarketingHtml,
   renderRobotsTxt,
@@ -97,7 +97,7 @@ async function renderPath(
       origin: requestOrigin(request),
       site: result.site,
       page: result.page,
-      spaEntrySrc: resolveSpaEntrySrc() ?? undefined,
+      spaBootstrapHtml: renderSpaBootstrapHtml(),
       memberGate: result.page.requires_member === true,
     }),
   );

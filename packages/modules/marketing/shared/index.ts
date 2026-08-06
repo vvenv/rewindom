@@ -1,5 +1,4 @@
 export * from "./site-color.js";
-export * from "./site.js";
 export * from "./entitlements.js";
 export * from "./site-cms.js";
 export * from "./site-locale.js";

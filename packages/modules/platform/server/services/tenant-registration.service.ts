@@ -8,6 +8,10 @@ import {
   ValidationError,
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
+import {
+  invalidateHostTenantCache,
+  type HostTenantContext,
+} from "@be-water/server-kernel/lib/host-tenant.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { emitDetachedAuditLogSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
@@ -36,7 +40,6 @@ import { resolvePlanLimitsForSlug } from "./plan-limit-templates.service.js";
 import { getPlatformSettings } from "./platform-settings.service.js";
 import { saveTenantJsonSetting } from "./tenant-json-setting.service.js";
 
-import type { HostTenantContext } from "@be-water/server-kernel/lib/host-tenant.js";
 import type {
   OAuthTenantRegistrationInput,
   RegistrationOptions,
@@ -425,6 +428,9 @@ export async function registerTenant(
     return { tenant: createdTenant, user: createdUser };
   });
 
+  // 新租户的 `{slug}.{base}` 之前解析为「无租户」，那个否定结果可能还在缓存里
+  invalidateHostTenantCache();
+
   await RoleService.ensureBuiltinTenantRoles(
     tenant.id,
     getServerPermissionCatalog(),
@@ -635,6 +641,9 @@ export async function registerOAuthTenant(
 
     return { tenant: createdTenant, user: createdUser };
   });
+
+  // 新租户的 `{slug}.{base}` 之前解析为「无租户」，那个否定结果可能还在缓存里
+  invalidateHostTenantCache();
 
   await RoleService.ensureBuiltinTenantRoles(
     tenant.id,

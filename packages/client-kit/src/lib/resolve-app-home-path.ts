@@ -16,11 +16,11 @@ export interface HomePathCandidate {
  * 列表顺序即优先级；禁用模块（`entitlements.modules[id] === false`）会被跳过。
  */
 export const EXAMPLE_HOME_PATH_CANDIDATES: readonly HomePathCandidate[] = [
-  { path: "/notes", tenantModule: "notes", permission: "notes.read" },
+  { path: "/app/notes", tenantModule: "notes", permission: "notes.read" },
 ];
 
 /** 候选全部不可用时的兜底（租户什么业务模块都没开通时也要有地方去）。 */
-export const DEFAULT_HOME_PATH = "/settings";
+export const DEFAULT_HOME_PATH = "/app/settings";
 
 function isTenantModuleEnabled(
   entitlements: HomeEntitlements | undefined,

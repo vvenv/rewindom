@@ -67,7 +67,7 @@ describe("SitePageGroupRow", () => {
 
     expect(screen.getByRole("link", { name: "关于我们" })).toHaveAttribute(
       "href",
-      "/site/pages/zh",
+      "/app/site/pages/zh",
     );
     expect(screen.getByText("/about")).toBeInTheDocument();
     // 语言名是多语言组才有的第二层，单语言时不该出现

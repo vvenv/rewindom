@@ -15,7 +15,7 @@ export const BILLING_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: CreditCard,
         label: "billing:nav.billing",
-        path: "/billing",
+        path: "/app/billing",
         title: "billing:nav.billing",
         keywords: "billing subscription payment 订阅 付款 套餐",
         tenantModule: "billing",

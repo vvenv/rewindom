@@ -7,32 +7,50 @@ import { SITE_APP_PREFIXES } from "../shared/site-locale.js";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../../../..");
 
+function read(relative: string): string {
+  return readFileSync(path.join(REPO_ROOT, relative), "utf8");
+}
+
 /**
- * nginx 的 SPA 前缀正则必须覆盖 `SITE_APP_PREFIXES`。
+ * 应用区前缀在**三处**各写了一遍，必须一致：
  *
- * 漏一个的后果不是「少一条规则」而是**那条路径 404**：请求落进 `location /`
- * 被反代给 Marketing SSR，SSR 认出它属于应用区就 `callNotFound()`，
- * 访客拿到的是 404 JSON。`member` 加进前缀表时就漏了这一处，
- * 会员登录页在绑定域上一直打不开。
+ * | 位置                                  | 作用                                   |
+ * | ------------------------------------- | -------------------------------------- |
+ * | `SITE_APP_PREFIXES`（本仓真相源）     | SSR 认出应用区路径后交回 SPA           |
+ * | `docker/nginx/default.conf.template`  | 生产：这些路径直接发静态 SPA，不进 SSR |
+ * | `apps/client/vite-marketing-ssr-proxy.ts` | 开发：从 `SITE_APP_PREFIXES` 生成代理白名单 |
+ *
+ * 任何一处漏掉一个前缀，那条路径就会落进 Marketing SSR，而 SSR 认出它属于应用区
+ * 就 `callNotFound()`——访客拿到的是 404 JSON 而不是页面。`member` 加进前缀表时
+ * 就漏了 nginx 那一处，会员登录页在绑定域上一直打不开。
  */
-describe("nginx SPA 前缀与 SITE_APP_PREFIXES 对齐", () => {
-  // 只有 HTML 路径需要交回 SPA；这几个由各自的 location 处理
+describe("SPA 前缀三处对齐", () => {
+  // 只有 HTML 文档路径需要交回 SPA；这几个由各自的 location / 中间件处理
   const NOT_ROUTED_TO_SPA = new Set(["api", "assets", "health"]);
 
-  it("每个应用区前缀都在 location 正则里", () => {
-    const template = readFileSync(
-      path.join(REPO_ROOT, "docker/nginx/default.conf.template"),
-      "utf8",
-    );
-    const spaLocation = /location\s+~\s+\^\/\(([^)]+)\)\(\/\|\$\)/u.exec(
-      template,
-    );
-    expect(spaLocation).not.toBeNull();
-
-    const routed = new Set(spaLocation![1]!.split("|"));
+  function expectCoveredBy(routed: Set<string>): void {
     const missing = SITE_APP_PREFIXES.filter(
       (prefix) => !NOT_ROUTED_TO_SPA.has(prefix) && !routed.has(prefix),
     );
     expect(missing).toEqual([]);
+  }
+
+  it("nginx location 正则覆盖全部前缀", () => {
+    const matched = /location\s+~\s+\^\/\(([^)]+)\)\(\/\|\$\)/u.exec(
+      read("docker/nginx/default.conf.template"),
+    );
+    expect(matched).not.toBeNull();
+    expectCoveredBy(new Set(matched![1]!.split("|")));
+  });
+
+  it("vite dev 代理的 SPA_PREFIX_RE 覆盖全部前缀", () => {
+    const matched = /SPA_ROUTE_PREFIXES\s*=\s*\[([\s\S]*?)\]\s*as const/u.exec(
+      read("apps/client/vite-marketing-ssr-proxy.ts"),
+    );
+    expect(matched).not.toBeNull();
+    const routed = new Set(
+      [...matched![1]!.matchAll(/"([^"]+)"/gu)].map((m) => m[1]!),
+    );
+    expectCoveredBy(routed);
   });
 });

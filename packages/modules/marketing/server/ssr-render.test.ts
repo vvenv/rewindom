@@ -78,6 +78,30 @@ describe("renderMarketingHtml SEO", () => {
     );
   });
 
+  it("derives button foreground from the theme primary color", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site({
+        theme_settings: { primary_color: "#facc15" },
+      }),
+      page: page(),
+    });
+    expect(html).toContain("--accent: #facc15");
+    expect(html).toContain("--accent-fg: #0a0a0a");
+    expect(html).toContain("color: var(--accent-fg)");
+  });
+
+  it("inlines shared semantic marketing CSS without Tailwind", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page(),
+    });
+    expect(html).toContain(".btn {");
+    expect(html).toContain(".sec-band");
+    expect(html).not.toContain("@import \"tailwindcss\"");
+  });
+
   it("leaves the default language unprefixed", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
@@ -211,16 +235,17 @@ describe("renderMarketingHtml SEO", () => {
  * `requires_member` 页的正文，全都要等 SPA 接管。曾经漏掉过，整个绑定域上没有 JS。
  */
 describe("renderMarketingHtml 接上 SPA", () => {
-  const ENTRY = "/assets/index-BiyOPNPZ.js";
+  const BOOTSTRAP =
+    '<script type="module" src="/assets/index-BiyOPNPZ.js"></script>';
 
   it("给出入口时挂上 script，并把正文包进 #root", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
       site: site(),
       page: page(),
-      spaEntrySrc: ENTRY,
+      spaBootstrapHtml: BOOTSTRAP,
     });
-    expect(html).toContain(`<script type="module" src="${ENTRY}"></script>`);
+    expect(html).toContain(BOOTSTRAP);
     // createRoot(#root) 找不到挂载点会直接抛，SPA 就永远接管不了
     expect(html).toContain('<div id="root">');
   });

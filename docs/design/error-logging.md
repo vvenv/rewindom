@@ -278,7 +278,7 @@ DELETE /api/error-logs/cleanup/my?days=30
 
 ## 前端
 
-`packages/modules/error-log/client/`，页面路径 `/error-logs`（平台侧另有 `usePlatformErrorLogs`）。
+`packages/modules/error-log/client/`，页面路径 `/app/error-logs`（平台侧另有 `usePlatformErrorLogs`）。
 
 | 文件 | 职责 |
 | --- | --- |

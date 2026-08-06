@@ -20,7 +20,7 @@ import { createRoot } from "react-dom/client";
 
 import { App } from "./App.tsx";
 import { ENABLED_CLIENT_MODULES } from "./enabled-modules.ts";
-import "./index.css";
+import { loadInitialShellCss } from "./load-shell-css.ts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,36 +31,41 @@ const queryClient = new QueryClient({
   },
 });
 
-// 模块文案先注册，再按持久化语言初始化，避免首屏闪默认 zh-CN。
-registerI18nBundles(collectClientI18nBundles(ENABLED_CLIENT_MODULES));
-const bootLocale = readStoredAppLocale();
-setupI18n(bootLocale);
-setApiAcceptLanguage(bootLocale);
-document.documentElement.lang = bootLocale;
+async function boot(): Promise<void> {
+  registerI18nBundles(collectClientI18nBundles(ENABLED_CLIENT_MODULES));
+  const bootLocale = readStoredAppLocale();
+  setupI18n(bootLocale);
+  setApiAcceptLanguage(bootLocale);
+  document.documentElement.lang = bootLocale;
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      storageKey="theme"
-      themes={["light", "dark", "system"]}
-    >
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <ConfirmProvider>
-              <AuthProvider onLogout={clearImpersonationBackup}>
-                <LocaleProvider>
-                  <App />
-                </LocaleProvider>
-              </AuthProvider>
-              <ConfirmDialog />
-            </ConfirmProvider>
-          </TooltipProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </ThemeProvider>
-  </StrictMode>,
-);
+  await loadInitialShellCss();
+
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        storageKey="theme"
+        themes={["light", "dark", "system"]}
+      >
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <ConfirmProvider>
+                <AuthProvider onLogout={clearImpersonationBackup}>
+                  <LocaleProvider>
+                    <App />
+                  </LocaleProvider>
+                </AuthProvider>
+                <ConfirmDialog />
+              </ConfirmProvider>
+            </TooltipProvider>
+          </QueryClientProvider>
+        </ErrorBoundary>
+      </ThemeProvider>
+    </StrictMode>,
+  );
+}
+
+void boot();

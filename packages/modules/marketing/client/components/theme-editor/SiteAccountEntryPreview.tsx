@@ -1,10 +1,7 @@
 import type { ReactElement } from "react";
 
-import { Button } from "@be-water/ui/button";
-import { cn } from "@be-water/ui/utils";
 import { UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
 
 /**
  * 主题编辑器预览里的会员入口占位。
@@ -22,17 +19,19 @@ export function SiteAccountEntryPreview({
   className?: string;
 }): ReactElement {
   const { t } = useTranslation("marketing");
+  const classes = className
+    ? `btn btn-ghost member-entry ${className}`
+    : "btn btn-ghost member-entry";
+
   return (
-    <Button
+    <button
       type="button"
-      variant="ghost"
-      size="sm"
       // 预览里点它只应该选中页头，不该真的跳转（页头的选中处理会吞掉这次点击）
       tabIndex={-1}
-      className={cn("px-3", className)}
+      className={classes}
     >
-      <UserRound className="size-4" />
+      <UserRound className="icon" aria-hidden />
       {t("editor.accountEntryPreview")}
-    </Button>
+    </button>
   );
 }
