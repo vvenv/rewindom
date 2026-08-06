@@ -1,5 +1,10 @@
 import { getLocaleNativeLabel, normalizeLocale } from "@be-water/shared";
 
+import { loadMarketingSiteCss } from "../shared/load-marketing-site-css.js";
+import {
+  marketingSiteColorModeScript,
+  marketingSiteThemeCss,
+} from "../shared/marketing-site-theme.js";
 import {
   resolveSectionGaps,
   resolveSectionLayout,
@@ -9,11 +14,6 @@ import {
   type PublicMarketingSite,
 } from "../shared/site-cms.js";
 import { withSiteLocale } from "../shared/site-locale.js";
-import { loadMarketingSiteCss } from "../shared/load-marketing-site-css.js";
-import {
-  marketingSiteColorModeScript,
-  marketingSiteThemeCss,
-} from "../shared/marketing-site-theme.js";
 import {
   resolveThemeSettings,
   THEME_SECTION_SPACING,

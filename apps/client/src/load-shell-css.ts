@@ -1,5 +1,5 @@
-import { isMarketingPublicPath } from "@be-water/modules/marketing/shared/site-locale";
-import { MARKETING_SITE_CSS } from "@be-water/modules/marketing/shared/marketing-site-css";
+import { MARKETING_SITE_CSS } from "@be-water/modules/marketing/shared/marketing-site-css.js";
+import { isMarketingPublicPath } from "@be-water/modules/marketing/shared/site-locale.js";
 
 function isPlatformConsoleHost(): boolean {
   const host = window.location.hostname;

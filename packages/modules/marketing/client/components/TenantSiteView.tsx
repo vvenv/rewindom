@@ -2,8 +2,6 @@ import { type CSSProperties, type ReactNode } from "react";
 
 import { cn } from "@be-water/ui/utils";
 
-import { useMarketingSiteDocumentTheme } from "../hooks/use-marketing-site-document-theme.js";
-import { usePreviewDocument } from "../lib/preview-document-context.js";
 import { MARKETING_SITE_ROOT_CLASS } from "../../shared/marketing-site-theme.js";
 import { type SiteSection } from "../../shared/section-schema.js";
 import {
@@ -14,6 +12,8 @@ import {
   type PublicMarketingSite,
 } from "../../shared/site-cms.js";
 import { resolveThemeSettings } from "../../shared/theme-sections.js";
+import { useMarketingSiteDocumentTheme } from "../hooks/use-marketing-site-document-theme.js";
+import { usePreviewDocument } from "../lib/preview-document-context.js";
 
 import { SiteLocaleProvider } from "./sections/site-locale-context.js";
 import { SiteFooter, SiteHeader } from "./sections/SiteChrome.js";
@@ -94,36 +94,39 @@ export function TenantSiteView({
       defaultLocale={site.default_locale}
     >
       <div className="flex min-h-full flex-col">
-        <header>
-          {header.map((section) =>
-            section.type === "header" ? (
-              <SiteHeader
-                key={section.id}
-                section={section}
-                siteName={site.site_name}
-                logoUrl={theme.logo_url ?? null}
-                pages={site.pages}
-                currentPath={path}
-                alternates={alternates}
-                locale={site.locale}
-                onSelect={
-                  onSelectSection
-                    ? () => onSelectSection(section.id)
-                    : undefined
-                }
-              />
-            ) : (
-              <SiteSections
-                key={section.id}
-                sections={[section]}
-                onSelectSection={onSelectSection}
-                sectionSpacing={theme.section_spacing}
-                pages={site.pages}
-                currentPath={path}
-              />
-            ),
-          )}
-        </header>
+        {/*
+          页头区**不能**再套一层 `<header>`：`SiteHeader` 自己就是 `<header>`，
+          外面这层的高度恰好等于它，`position: sticky` 于是没有任何可粘的余量
+          （sticky 只在包含块内部移动），「吸顶」开关点了跟没点一样。
+          SSR 把页头直接摊在 `#root` 下，所以这条只在 SPA 接管后犯——首屏能吸，
+          一水合就掉下来。页脚同理，顺带也消掉了嵌套 landmark。
+        */}
+        {header.map((section) =>
+          section.type === "header" ? (
+            <SiteHeader
+              key={section.id}
+              section={section}
+              siteName={site.site_name}
+              logoUrl={theme.logo_url ?? null}
+              pages={site.pages}
+              currentPath={path}
+              alternates={alternates}
+              locale={site.locale}
+              onSelect={
+                onSelectSection ? () => onSelectSection(section.id) : undefined
+              }
+            />
+          ) : (
+            <SiteSections
+              key={section.id}
+              sections={[section]}
+              onSelectSection={onSelectSection}
+              sectionSpacing={theme.section_spacing}
+              pages={site.pages}
+              currentPath={path}
+            />
+          ),
+        )}
 
         <main className="flex-1" style={mainStyle}>
           {mainOverride !== undefined ? (
@@ -146,32 +149,28 @@ export function TenantSiteView({
           )}
         </main>
 
-        <footer>
-          {footer.map((section) =>
-            section.type === "footer" ? (
-              <SiteFooter
-                key={section.id}
-                section={section}
-                siteName={site.site_name}
-                logoUrl={theme.logo_url ?? null}
-                onSelect={
-                  onSelectSection
-                    ? () => onSelectSection(section.id)
-                    : undefined
-                }
-              />
-            ) : (
-              <SiteSections
-                key={section.id}
-                sections={[section]}
-                onSelectSection={onSelectSection}
-                sectionSpacing={theme.section_spacing}
-                pages={site.pages}
-                currentPath={path}
-              />
-            ),
-          )}
-        </footer>
+        {footer.map((section) =>
+          section.type === "footer" ? (
+            <SiteFooter
+              key={section.id}
+              section={section}
+              siteName={site.site_name}
+              logoUrl={theme.logo_url ?? null}
+              onSelect={
+                onSelectSection ? () => onSelectSection(section.id) : undefined
+              }
+            />
+          ) : (
+            <SiteSections
+              key={section.id}
+              sections={[section]}
+              onSelectSection={onSelectSection}
+              sectionSpacing={theme.section_spacing}
+              pages={site.pages}
+              currentPath={path}
+            />
+          ),
+        )}
       </div>
     </SiteLocaleProvider>
   );

@@ -8,7 +8,6 @@ import {
 import { getLocaleNativeLabel } from "@be-water/shared";
 import { Link } from "react-router";
 
-import { useSiteColorMode } from "../../hooks/use-marketing-site-document-theme.js";
 import {
   resolveSurfaceStyle,
   settingBool,
@@ -22,6 +21,7 @@ import {
   type PageLocaleAlternate,
   type PublicSitePage,
 } from "../../../shared/site-cms.js";
+import { useSiteColorMode } from "../../hooks/use-marketing-site-document-theme.js";
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
 import { SiteLink } from "./SiteLink.js";

@@ -53,6 +53,11 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 | `header` | show_logo, show_site_name, sticky, layout(split\|centered), **显示项四开关**（见下）, primary/secondary 按钮（都无默认值） | `nav_link`{label\*, href}，最多 8（自定义链接，排在一级页之后） |
 | `footer` | show_logo, blurb, copyright                                              | `footer_link`{group, label\*, href}，最多 24；同 `group` 的排进同一列 |
 
+页头 / 页脚区渲染时**不许再包一层 `<header>` / `<footer>`**：`SiteHeader` 自己就是
+`<header>`，外面套一层等高的祖先，`sticky` 就没有可粘的余量（sticky 只在包含块内部
+移动），「吸顶」开关等于失效——而 SSR 把页头直接摊在 `#root` 下，症状是首屏吸得住、
+SPA 一接管就掉下来。顺带也避免了嵌套 landmark。
+
 ### 页头右侧的四个显示项
 
 `show_site_nav` / `show_locale_switcher` / `show_theme_toggle` / `show_account` 合成一组
@@ -72,11 +77,22 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 ### 明暗模式
 
-站点始终跟随访客设备：SPA 侧是 `next-themes`（`defaultTheme="system"`，`.dark` 落在
-`<html>` 上）；SSR 侧是 `@media (prefers-color-scheme: dark)` 覆写 `--fg` / `--bg` /
-`--border` 等中性变量。公开站样式是**语义 class**（`shared/marketing-site-css.ts`，镜像
-`shared/marketing-site.css`），**不用 Tailwind**；主题色由 `marketing-site-theme`
-注入 CSS 变量。工作台 `/app` 仍用 `index.css` + Tailwind。
+站点默认跟随访客设备，访客也可以手动改。公开站样式是**语义 class**
+（`shared/marketing-site-css.ts`，镜像 `shared/marketing-site.css`），**不用 Tailwind**；
+主题色由 `marketing-site-theme` 注入 CSS 变量。工作台 `/app` 仍用 `index.css` + Tailwind。
+
+**站点的明暗是自己一份，与工作台完全隔离。** 工作台走 `next-themes`
+（`localStorage.theme` + `<html class="dark">`）；站点走
+`client/lib/site-color-mode.ts`（`localStorage.site-color-mode` +
+`<html data-site-color-mode>`）。两者同源同一个 SPA，共用一份存储的后果是访客在官网点
+一下深色，租户下次打开管理台就是黑的——那是两个受众、两套偏好。编辑器预览 iframe 同样
+读站点这份，不抄宿主的 `.dark`。
+
+变量块（`marketingSiteThemeCss`）三条规则的次序不能动：设备偏好那条写成
+`:not([data-site-color-mode="light"])`，否则深色设备上点「浅色」时，
+`@media (prefers-color-scheme: dark)` 与基础规则同权重且排在后面，深色变量照旧生效，
+按钮点了跟没点一样。SSR 在 `<head>` 里先跑一段
+`marketingSiteColorModeScript()` 把偏好写到 `<html>`，避免首屏闪一下再纠正。
 
 **租户显式配过的画布色两态都用**。`theme_settings.bg_color` / `fg_color` 是他自己挑的品牌
 色，深色态不该把它悄悄换掉；只有没配过的（绝大多数站点只配主色）才落到内置中性色上，
