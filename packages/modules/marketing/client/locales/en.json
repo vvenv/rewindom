@@ -609,6 +609,7 @@
     "tabAppearance": "Appearance",
     "noSettings": "Nothing to configure here — this one takes its look from the theme.",
     "inherit": "Inherit",
+    "opacity": "Opacity",
     "fieldPageWidth": "Page width",
     "fieldSectionSpacing": "Section spacing",
     "fieldSectionSpacingHint": "Default distance between sections; any section can override it under Layout.",

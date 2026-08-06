@@ -7,17 +7,10 @@ import {
   FieldLabel,
 } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
-import { Slider } from "@be-water/ui/slider";
 import { Textarea } from "@be-water/ui/textarea";
 import { useTranslation } from "react-i18next";
 
-import {
-  composeSiteColor,
-  expandHex,
-  isOpaqueHex,
-  isSiteColor,
-  splitSiteColor,
-} from "../../../shared/site-color.js";
+import { SiteColorField } from "../SiteColorField.js";
 
 import type { MarketingPageSettings } from "../../../shared/site-cms.js";
 
@@ -101,94 +94,39 @@ export function PageMetaForm({
           {t("editor.group.appearance")}
         </p>
 
-        <ColorField
-          id="page-meta-bg"
-          label={t("editor.setting.bg_color")}
-          info={t("editor.info.page_bg_color")}
-          value={settings.bg_color ?? ""}
-          disabled={disabled}
-          onChange={(bg_color) =>
-            onChangeSettings({ ...settings, bg_color: bg_color || null })
-          }
-        />
-        <ColorField
-          id="page-meta-fg"
-          label={t("editor.setting.fg_color")}
-          value={settings.fg_color ?? ""}
-          disabled={disabled}
-          onChange={(fg_color) =>
-            onChangeSettings({ ...settings, fg_color: fg_color || null })
-          }
-        />
+        <Field>
+          <FieldLabel htmlFor="page-meta-bg">
+            {t("editor.setting.bg_color")}
+          </FieldLabel>
+          <SiteColorField
+            id="page-meta-bg"
+            label={t("editor.setting.bg_color")}
+            value={settings.bg_color ?? ""}
+            fallback="#ffffff"
+            disabled={disabled}
+            onChange={(bg_color) =>
+              onChangeSettings({ ...settings, bg_color: bg_color || null })
+            }
+          />
+          <FieldDescription>{t("editor.info.page_bg_color")}</FieldDescription>
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="page-meta-fg">
+            {t("editor.setting.fg_color")}
+          </FieldLabel>
+          <SiteColorField
+            id="page-meta-fg"
+            label={t("editor.setting.fg_color")}
+            value={settings.fg_color ?? ""}
+            fallback="#ffffff"
+            disabled={disabled}
+            onChange={(fg_color) =>
+              onChangeSettings({ ...settings, fg_color: fg_color || null })
+            }
+          />
+        </Field>
       </FieldGroup>
     </div>
-  );
-}
-
-function ColorField({
-  id,
-  label,
-  info,
-  value,
-  disabled,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  info?: string;
-  value: string;
-  disabled?: boolean;
-  onChange: (value: string) => void;
-}): ReactElement {
-  const valid = isSiteColor(value, true);
-  const parts = valid
-    ? splitSiteColor(value)
-    : { rgb: "#ffffff", alphaPercent: 100 };
-  const swatch = isOpaqueHex(parts.rgb)
-    ? expandHex(parts.rgb)
-    : "#ffffff";
-
-  return (
-    <Field>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <Input
-            type="color"
-            aria-label={label}
-            disabled={disabled}
-            className="h-9 w-12 shrink-0 cursor-pointer p-1"
-            value={swatch}
-            onChange={(event) =>
-              onChange(composeSiteColor(event.target.value, parts.alphaPercent))
-            }
-          />
-          <Input
-            id={id}
-            disabled={disabled}
-            placeholder="#00000000"
-            value={value}
-            onChange={(event) => onChange(event.target.value.trim())}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <Slider
-            disabled={disabled || !value}
-            className="flex-1"
-            min={0}
-            max={100}
-            step={1}
-            value={[parts.alphaPercent]}
-            onValueChange={([next]) =>
-              onChange(composeSiteColor(parts.rgb, next ?? 100))
-            }
-          />
-          <span className="w-14 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-            {parts.alphaPercent}%
-          </span>
-        </div>
-      </div>
-      {info ? <FieldDescription>{info}</FieldDescription> : null}
-    </Field>
   );
 }

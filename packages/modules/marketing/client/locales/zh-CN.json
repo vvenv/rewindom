@@ -609,6 +609,7 @@
     "tabAppearance": "外观",
     "noSettings": "这一项没有可配置的选项，样子完全跟随主题。",
     "inherit": "继承",
+    "opacity": "不透明度",
     "fieldPageWidth": "页面宽度",
     "fieldSectionSpacing": "区块间距",
     "fieldSectionSpacingHint": "区块之间的默认距离，单个区块可在「版式」里覆盖。",

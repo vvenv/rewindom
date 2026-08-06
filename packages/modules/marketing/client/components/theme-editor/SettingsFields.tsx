@@ -1,4 +1,10 @@
-import { useId, useRef, useState, type ChangeEvent, type ReactElement } from "react";
+import {
+  useId,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ReactElement,
+} from "react";
 
 import { Button } from "@be-water/ui/button";
 import { Checkbox } from "@be-water/ui/checkbox";
@@ -33,15 +39,9 @@ import {
   type SettingValue,
   type SettingValues,
 } from "../../../shared/section-schema.js";
-import {
-  composeSiteColor,
-  expandHex,
-  isOpaqueHex,
-  isSiteColor,
-  splitSiteColor,
-} from "../../../shared/site-color.js";
 import { uploadSiteAsset } from "../../lib/site-api.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
+import { SiteColorField } from "../SiteColorField.js";
 
 import type { AppLocale } from "@be-water/shared";
 
@@ -206,7 +206,9 @@ function ImageSettingControl({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  const onFile = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
+  const onFile = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || disabled) return;
@@ -386,60 +388,18 @@ function SettingControl({
     }
 
     case "color": {
-      // 输入框允许中途非法值；只有合法 hex 才同步给取色器，避免闪回。
       const allowAlpha = def.allow_alpha === true;
-      const valid = isSiteColor(text, allowAlpha);
-      const parts = valid
-        ? splitSiteColor(text)
-        : splitSiteColor(def.default || "#000000");
-      const swatch = isOpaqueHex(parts.rgb)
-        ? expandHex(parts.rgb)
-        : expandHex(def.default || "#000000").slice(0, 7);
       return (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <Input
-              type="color"
-              aria-label={t(def.label)}
-              disabled={disabled}
-              className="h-9 w-12 shrink-0 cursor-pointer p-1"
-              value={swatch}
-              onChange={(event) => {
-                const nextRgb = event.target.value;
-                onChange(
-                  allowAlpha
-                    ? composeSiteColor(nextRgb, parts.alphaPercent)
-                    : nextRgb,
-                );
-              }}
-            />
-            <Input
-              id={fieldId}
-              disabled={disabled}
-              placeholder={def.default || (allowAlpha ? "#00000080" : "#000000")}
-              value={text}
-              onChange={(event) => onChange(event.target.value.trim())}
-            />
-          </div>
-          {allowAlpha ? (
-            <div className="flex items-center gap-3">
-              <Slider
-                disabled={disabled}
-                className="flex-1"
-                min={0}
-                max={100}
-                step={1}
-                value={[parts.alphaPercent]}
-                onValueChange={([next]) =>
-                  onChange(composeSiteColor(parts.rgb, next ?? 100))
-                }
-              />
-              <span className="w-14 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                {parts.alphaPercent}%
-              </span>
-            </div>
-          ) : null}
-        </div>
+        <SiteColorField
+          id={fieldId}
+          label={t(def.label)}
+          value={text}
+          allowAlpha={allowAlpha}
+          fallback={def.default || "#000000"}
+          placeholder={def.default || (allowAlpha ? "#00000080" : "#000000")}
+          disabled={disabled}
+          onChange={onChange}
+        />
       );
     }
 
