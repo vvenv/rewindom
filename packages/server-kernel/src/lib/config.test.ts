@@ -11,6 +11,7 @@ describe("config", () => {
     "HOST",
     "LOG_LEVEL",
     "FRONTEND_URL",
+    "PLATFORM_URL",
     "JWT_SECRET",
     "PLATFORM_ADMIN_USERNAME",
     "PLATFORM_ADMIN_PASSWORD",
@@ -90,10 +91,11 @@ describe("config", () => {
     });
   });
 
-  describe("frontend", () => {
-    it("开发模式默认 localhost:7300", async () => {
+  describe("frontend / platform", () => {
+    it("开发模式默认 localhost 产品站与 127.0.0.1 控制台", async () => {
       const { config: cfg } = await importConfig();
       expect(cfg.frontend.url).toBe("http://localhost:7300");
+      expect(cfg.platform.url).toBe("http://127.0.0.1:7300");
     });
 
     it("生产模式默认空字符串", async () => {
@@ -101,6 +103,7 @@ describe("config", () => {
       process.env.JWT_SECRET = "test-prod-secret";
       const { config: cfg } = await importConfig();
       expect(cfg.frontend.url).toBe("");
+      expect(cfg.platform.url).toBe("");
     });
   });
 

@@ -43,8 +43,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: app
-      args:
-        SITE_URL: ${SITE_URL:-https://${APP_DOMAIN}}
     container_name: be-water-app
     environment:
       NODE_ENV: production
@@ -70,6 +68,7 @@ services:
       EXPORT_BASE_DIR: /data/exports
       ATTACHMENT_BASE_DIR: /data/attachments
       FRONTEND_URL: ${FRONTEND_URL:-https://${APP_DOMAIN}}
+      PLATFORM_URL: ${PLATFORM_URL:-https://platform.${APP_DOMAIN}}
       LOG_LEVEL: ${LOG_LEVEL:-warn}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
@@ -96,12 +95,11 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: web
-      args:
-        SITE_URL: ${SITE_URL:-https://${APP_DOMAIN}}
     container_name: be-water-web
     environment:
-      # nginx map：平台主域静态预渲染，其余 Host 反代 Marketing SSR
+      # nginx map：仅平台控制台 Host 走静态 SPA；产品主域与其它 Host 反代 Marketing SSR
       APP_DOMAIN: ${APP_DOMAIN}
+      PLATFORM_HOST: ${PLATFORM_HOST:-platform.${APP_DOMAIN}}
     ports:
       - "127.0.0.1:${APP_PORT:-3700}:80"
     depends_on:

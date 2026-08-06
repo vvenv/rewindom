@@ -66,6 +66,11 @@ export function publishSiteChrome(): Promise<MarketingSite> {
   return api.post<MarketingSite>("/site/chrome/publish", {});
 }
 
+/** 撤销页头页脚上未发布的更改：草稿回到线上那一版。 */
+export function revertSiteChrome(): Promise<MarketingSite> {
+  return api.post<MarketingSite>("/site/chrome/revert", {});
+}
+
 export function uploadSiteAsset(file: File): Promise<{ url: string }> {
   const formData = new FormData();
   formData.append("file", file);
@@ -82,6 +87,11 @@ export function publishSitePage(pageId: string): Promise<MarketingPage> {
 
 export function publishSitePageContent(pageId: string): Promise<MarketingPage> {
   return api.post<MarketingPage>(`/site/pages/${pageId}/content/publish`, {});
+}
+
+/** 撤销页面上未发布的更改：草稿回到线上那一版。 */
+export function revertSitePageContent(pageId: string): Promise<MarketingPage> {
+  return api.post<MarketingPage>(`/site/pages/${pageId}/content/revert`, {});
 }
 
 export function unpublishSitePage(pageId: string): Promise<MarketingPage> {

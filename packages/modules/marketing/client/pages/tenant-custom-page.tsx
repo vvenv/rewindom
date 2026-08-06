@@ -1,21 +1,17 @@
-import {
-  MarketingLayout,
-  MarketingSection,
-} from "../components/MarketingLayout.js";
 import { TenantSitePageGate } from "../components/TenantSitePageGate.js";
 
-function PlatformNotFound() {
+function SiteUnavailable() {
   return (
-    <MarketingLayout path="/">
-      <MarketingSection className="py-24 text-center">
-        <h1 className="text-2xl font-semibold">Not found</h1>
-        <p className="mt-3 text-muted-foreground">This page does not exist.</p>
-      </MarketingSection>
-    </MarketingLayout>
+    <div className="flex min-h-svh flex-col items-center justify-center bg-background px-4 text-center text-foreground">
+      <h1 className="text-2xl font-semibold">Site unavailable</h1>
+      <p className="mt-3 max-w-md text-muted-foreground">
+        This site is not published yet, or the page does not exist.
+      </p>
+    </div>
   );
 }
 
-/** 租户自定义页 `/about` 等；平台主域上显示 404。 */
+/** 公开路径一律走租户 CMS；站点未就绪时显示不可用页。 */
 export function TenantCustomPage() {
-  return <TenantSitePageGate fallback={<PlatformNotFound />} />;
+  return <TenantSitePageGate fallback={<SiteUnavailable />} />;
 }

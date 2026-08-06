@@ -1,9 +1,10 @@
 import { useState } from "react";
 
-import { useAuth,
+import {
+  useAuth,
   usePublicConfig,
   APP_HOME_ENTRY_PATH,
-  PLATFORM_HOME_PATH,
+  goToPlatformConsole,
 } from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
 import { toast } from "@be-water/ui/toast";
@@ -39,6 +40,7 @@ export function Login() {
       google_oauth_enabled,
       single_tenant,
       bound_tenant,
+      platform_url,
     },
   } = usePublicConfig();
   const hostLockedTenant = single_tenant || bound_tenant != null;
@@ -61,12 +63,12 @@ export function Login() {
         buildLoginCredentials({ username, password }, captchaData),
       );
       // 登录返回的 user 还没进 AuthContext，这里用常量而不是 `useDefaultHomePath`。
-      // 租户用户进 `/app`（稳定入口），由 `HOME_PATH_CANDIDATES` 解析出默认首页。
-      navigate(
-        isPlatformAdminActor(user.actor_type)
-          ? PLATFORM_HOME_PATH
-          : APP_HOME_ENTRY_PATH,
-      );
+      // 平台管理员进 PLATFORM_URL；租户用户进 `/app`。
+      if (isPlatformAdminActor(user.actor_type)) {
+        goToPlatformConsole(platform_url);
+        return;
+      }
+      navigate(APP_HOME_ENTRY_PATH);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : t("auth.loginFailed"),

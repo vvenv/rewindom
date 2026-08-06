@@ -1,4 +1,4 @@
-import { isPlatformAdminActor, type AuthActorType, isApiKeyBlockedPath, isApiKeyToken  } from "@be-water/shared";
+import { isPlatformAdminActor, isSiteMemberActor, type AuthActorType, isApiKeyBlockedPath, isApiKeyToken  } from "@be-water/shared";
 
 import { sendCodedError } from "../http/coded-error.js";
 import {
@@ -36,6 +36,32 @@ function isPlatformAdminApiPath(path: string): boolean {
   return PLATFORM_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
+// 站点会员是租户的终端客户，只能碰站点前台那几个接口。
+// 这里用**白名单**而不是像 api_key 那样列黑名单：会员是对公网开放注册的身份，
+// 新增业务路由时默认拒绝才安全，漏写黑名单则等于默认放行。
+const SITE_MEMBER_ALLOWED_PREFIXES = [
+  "/api/site/member",
+  "/api/site/content",
+  "/api/public",
+] as const;
+
+function isSiteMemberApiPath(path: string): boolean {
+  return SITE_MEMBER_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
+}
+
+/** 会员自助接口免认证（注册/登录/刷新/登出/能力探测）。 */
+const SITE_MEMBER_PUBLIC_PATHS = [
+  "/api/site/member/config",
+  "/api/site/member/register",
+  "/api/site/member/login",
+  "/api/site/member/refresh",
+  "/api/site/member/logout",
+] as const;
+
+function isSiteMemberPublicPath(path: string): boolean {
+  return SITE_MEMBER_PUBLIC_PATHS.some((prefix) => path.startsWith(prefix));
+}
+
 declare module "fastify" {
   interface FastifyInstance {
     authenticate: (
@@ -65,7 +91,7 @@ declare module "fastify" {
       tenant_id: string;
       tenant_slug: string;
     };
-    /** Host 绑定的租户；平台主域名或未绑定为 undefined/null */
+    /** Host 绑定的租户；平台控制台 Host 或未绑定为 undefined/null */
     hostTenantContext?: HostTenantContext | null;
   }
 }
@@ -120,7 +146,8 @@ export async function authMiddleware(app: FastifyInstance) {
         request.url.startsWith("/api/captcha") ||
         request.url.startsWith("/api/public/") ||
         request.url.startsWith("/api/system-info") ||
-        request.url.startsWith("/api/billing/webhooks/")
+        request.url.startsWith("/api/billing/webhooks/") ||
+        isSiteMemberPublicPath(request.url.split("?")[0] ?? "")
       ) {
         return;
       }
@@ -236,6 +263,60 @@ export async function authMiddleware(app: FastifyInstance) {
             decoded.tenant_id,
           )
         ) {
+          return;
+        }
+
+        // 必须排在 prisma.user.findUnique 之前：会员 id 不在 User 表里，
+        // 落到下面的分支只会得到一个误导性的「用户不存在」401。
+        if (isSiteMemberActor(decoded.actor_type)) {
+          if (!isSiteMemberApiPath(requestPath)) {
+            return sendCodedError(reply, 403, "auth.site_member_api_denied");
+          }
+
+          const member = await prisma.siteMember.findUnique({
+            where: { id: decoded.userId },
+            select: {
+              email: true,
+              enabled: true,
+              tenant_id: true,
+            },
+          });
+
+          if (
+            !member ||
+            !member.enabled ||
+            member.tenant_id !== decoded.tenant_id
+          ) {
+            return sendCodedError(reply, 401, "auth.site_member_not_found");
+          }
+
+          const memberTenant = await prisma.tenant.findUnique({
+            where: { id: decoded.tenant_id },
+            select: { status: true },
+          });
+          if (!memberTenant || memberTenant.status !== "active") {
+            return sendCodedError(reply, 403, "tenant.suspended_or_missing");
+          }
+
+          request.tenantContext = {
+            tenant_id: decoded.tenant_id,
+            tenant_slug: decoded.tenant_slug,
+          };
+          request.authUser = {
+            userId: decoded.userId,
+            username: member.email,
+            actor_type: "site_member",
+            // 会员永不是管理员，不读 JWT 里的值，避免伪造 token 提权。
+            is_system_admin: false,
+            tenant_id: decoded.tenant_id,
+            tenant_slug: decoded.tenant_slug,
+          };
+          updateRequestContext({
+            tenant_id: decoded.tenant_id,
+            tenant_slug: decoded.tenant_slug,
+            user_id: decoded.userId,
+            username: member.email,
+          });
           return;
         }
 

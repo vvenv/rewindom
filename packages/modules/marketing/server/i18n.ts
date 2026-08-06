@@ -11,9 +11,13 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_deleted": "删除官网页面",
       "marketing.audit.page_published": "发布官网页面「{{title}}」",
       "marketing.audit.page_content_published": "发布官网页面内容「{{title}}」",
+      "marketing.audit.page_content_reverted":
+        "撤销官网页面未发布的更改「{{title}}」",
       "marketing.audit.page_unpublished": "取消发布官网页面「{{title}}」",
       "marketing.audit.starter_applied": "应用站点起步模板「{{key}}」（{{page_count}} 页）",
       "marketing.audit.chrome_published": "发布官网页头页脚「{{site_name}}」",
+      "marketing.audit.chrome_reverted":
+        "撤销官网页头页脚未发布的更改「{{site_name}}」",
       "site.page_not_found": "页面不存在",
       "site.page_not_published": "页面尚未发布",
       "site.page_title_required": "页面标题不能为空",
@@ -44,11 +48,15 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_published": 'Published site page "{{title}}"',
       "marketing.audit.page_content_published":
         'Published site page content for "{{title}}"',
+      "marketing.audit.page_content_reverted":
+        'Discarded unpublished changes on site page "{{title}}"',
       "marketing.audit.page_unpublished": 'Unpublished site page "{{title}}"',
       "marketing.audit.starter_applied":
         'Applied site starter "{{key}}" ({{page_count}} pages)',
       "marketing.audit.chrome_published":
         'Published site header and footer for "{{site_name}}"',
+      "marketing.audit.chrome_reverted":
+        'Discarded unpublished header and footer changes for "{{site_name}}"',
       "site.page_not_found": "Page not found",
       "site.page_not_published": "Page is not published",
       "site.page_title_required": "Page title is required",

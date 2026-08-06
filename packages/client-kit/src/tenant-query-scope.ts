@@ -42,7 +42,8 @@ export function readActorTypeFromAccessToken(
   const actorType = decodeAccessTokenPayload(token)?.actor_type;
   return actorType === "tenant_user" ||
     actorType === "platform_admin" ||
-    actorType === "api_key"
+    actorType === "api_key" ||
+    actorType === "site_member"
     ? actorType
     : null;
 }

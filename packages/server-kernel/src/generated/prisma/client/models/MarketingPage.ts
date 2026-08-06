@@ -44,6 +44,7 @@ export type MarketingPageMinAggregateOutputType = {
   description: string | null
   title_draft: string | null
   description_draft: string | null
+  visibility: string | null
   status: string | null
   sort_order: number | null
   created_at: Date | null
@@ -60,6 +61,7 @@ export type MarketingPageMaxAggregateOutputType = {
   description: string | null
   title_draft: string | null
   description_draft: string | null
+  visibility: string | null
   status: string | null
   sort_order: number | null
   created_at: Date | null
@@ -75,10 +77,12 @@ export type MarketingPageCountAggregateOutputType = {
   title: number
   description: number
   sections: number
+  settings: number
   title_draft: number
   description_draft: number
   sections_draft: number
-  settings: number
+  settings_draft: number
+  visibility: number
   status: number
   sort_order: number
   created_at: number
@@ -105,6 +109,7 @@ export type MarketingPageMinAggregateInputType = {
   description?: true
   title_draft?: true
   description_draft?: true
+  visibility?: true
   status?: true
   sort_order?: true
   created_at?: true
@@ -121,6 +126,7 @@ export type MarketingPageMaxAggregateInputType = {
   description?: true
   title_draft?: true
   description_draft?: true
+  visibility?: true
   status?: true
   sort_order?: true
   created_at?: true
@@ -136,10 +142,12 @@ export type MarketingPageCountAggregateInputType = {
   title?: true
   description?: true
   sections?: true
+  settings?: true
   title_draft?: true
   description_draft?: true
   sections_draft?: true
-  settings?: true
+  settings_draft?: true
+  visibility?: true
   status?: true
   sort_order?: true
   created_at?: true
@@ -242,10 +250,12 @@ export type MarketingPageGroupByOutputType = {
   title: string
   description: string
   sections: runtime.JsonValue
+  settings: runtime.JsonValue
   title_draft: string
   description_draft: string
   sections_draft: runtime.JsonValue
-  settings: runtime.JsonValue
+  settings_draft: runtime.JsonValue
+  visibility: string
   status: string
   sort_order: number
   created_at: Date
@@ -284,10 +294,12 @@ export type MarketingPageWhereInput = {
   title?: Prisma.StringFilter<"MarketingPage"> | string
   description?: Prisma.StringFilter<"MarketingPage"> | string
   sections?: Prisma.JsonFilter<"MarketingPage">
+  settings?: Prisma.JsonFilter<"MarketingPage">
   title_draft?: Prisma.StringFilter<"MarketingPage"> | string
   description_draft?: Prisma.StringFilter<"MarketingPage"> | string
   sections_draft?: Prisma.JsonFilter<"MarketingPage">
-  settings?: Prisma.JsonFilter<"MarketingPage">
+  settings_draft?: Prisma.JsonFilter<"MarketingPage">
+  visibility?: Prisma.StringFilter<"MarketingPage"> | string
   status?: Prisma.StringFilter<"MarketingPage"> | string
   sort_order?: Prisma.IntFilter<"MarketingPage"> | number
   created_at?: Prisma.DateTimeFilter<"MarketingPage"> | Date | string
@@ -303,10 +315,12 @@ export type MarketingPageOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   sections?: Prisma.SortOrder
+  settings?: Prisma.SortOrder
   title_draft?: Prisma.SortOrder
   description_draft?: Prisma.SortOrder
   sections_draft?: Prisma.SortOrder
-  settings?: Prisma.SortOrder
+  settings_draft?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
   status?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -326,10 +340,12 @@ export type MarketingPageWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"MarketingPage"> | string
   description?: Prisma.StringFilter<"MarketingPage"> | string
   sections?: Prisma.JsonFilter<"MarketingPage">
+  settings?: Prisma.JsonFilter<"MarketingPage">
   title_draft?: Prisma.StringFilter<"MarketingPage"> | string
   description_draft?: Prisma.StringFilter<"MarketingPage"> | string
   sections_draft?: Prisma.JsonFilter<"MarketingPage">
-  settings?: Prisma.JsonFilter<"MarketingPage">
+  settings_draft?: Prisma.JsonFilter<"MarketingPage">
+  visibility?: Prisma.StringFilter<"MarketingPage"> | string
   status?: Prisma.StringFilter<"MarketingPage"> | string
   sort_order?: Prisma.IntFilter<"MarketingPage"> | number
   created_at?: Prisma.DateTimeFilter<"MarketingPage"> | Date | string
@@ -345,10 +361,12 @@ export type MarketingPageOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   sections?: Prisma.SortOrder
+  settings?: Prisma.SortOrder
   title_draft?: Prisma.SortOrder
   description_draft?: Prisma.SortOrder
   sections_draft?: Prisma.SortOrder
-  settings?: Prisma.SortOrder
+  settings_draft?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
   status?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -372,10 +390,12 @@ export type MarketingPageScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"MarketingPage"> | string
   description?: Prisma.StringWithAggregatesFilter<"MarketingPage"> | string
   sections?: Prisma.JsonWithAggregatesFilter<"MarketingPage">
+  settings?: Prisma.JsonWithAggregatesFilter<"MarketingPage">
   title_draft?: Prisma.StringWithAggregatesFilter<"MarketingPage"> | string
   description_draft?: Prisma.StringWithAggregatesFilter<"MarketingPage"> | string
   sections_draft?: Prisma.JsonWithAggregatesFilter<"MarketingPage">
-  settings?: Prisma.JsonWithAggregatesFilter<"MarketingPage">
+  settings_draft?: Prisma.JsonWithAggregatesFilter<"MarketingPage">
+  visibility?: Prisma.StringWithAggregatesFilter<"MarketingPage"> | string
   status?: Prisma.StringWithAggregatesFilter<"MarketingPage"> | string
   sort_order?: Prisma.IntWithAggregatesFilter<"MarketingPage"> | number
   created_at?: Prisma.DateTimeWithAggregatesFilter<"MarketingPage"> | Date | string
@@ -391,10 +411,12 @@ export type MarketingPageCreateInput = {
   title: string
   description?: string
   sections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   title_draft: string
   description_draft?: string
   sections_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  visibility?: string
   status?: string
   sort_order?: number
   created_at?: Date | string
@@ -410,10 +432,12 @@ export type MarketingPageUncheckedCreateInput = {
   title: string
   description?: string
   sections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   title_draft: string
   description_draft?: string
   sections_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  visibility?: string
   status?: string
   sort_order?: number
   created_at?: Date | string
@@ -429,10 +453,12 @@ export type MarketingPageUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   sections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   title_draft?: Prisma.StringFieldUpdateOperationsInput | string
   description_draft?: Prisma.StringFieldUpdateOperationsInput | string
   sections_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  visibility?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -448,10 +474,12 @@ export type MarketingPageUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   sections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   title_draft?: Prisma.StringFieldUpdateOperationsInput | string
   description_draft?: Prisma.StringFieldUpdateOperationsInput | string
   sections_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  visibility?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -467,10 +495,12 @@ export type MarketingPageCreateManyInput = {
   title: string
   description?: string
   sections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   title_draft: string
   description_draft?: string
   sections_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  visibility?: string
   status?: string
   sort_order?: number
   created_at?: Date | string
@@ -486,10 +516,12 @@ export type MarketingPageUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   sections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   title_draft?: Prisma.StringFieldUpdateOperationsInput | string
   description_draft?: Prisma.StringFieldUpdateOperationsInput | string
   sections_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  visibility?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -505,10 +537,12 @@ export type MarketingPageUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   sections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   title_draft?: Prisma.StringFieldUpdateOperationsInput | string
   description_draft?: Prisma.StringFieldUpdateOperationsInput | string
   sections_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  visibility?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -530,10 +564,12 @@ export type MarketingPageCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   sections?: Prisma.SortOrder
+  settings?: Prisma.SortOrder
   title_draft?: Prisma.SortOrder
   description_draft?: Prisma.SortOrder
   sections_draft?: Prisma.SortOrder
-  settings?: Prisma.SortOrder
+  settings_draft?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
   status?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -554,6 +590,7 @@ export type MarketingPageMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   title_draft?: Prisma.SortOrder
   description_draft?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
   status?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -570,6 +607,7 @@ export type MarketingPageMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   title_draft?: Prisma.SortOrder
   description_draft?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
   status?: Prisma.SortOrder
   sort_order?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -591,10 +629,12 @@ export type MarketingPageSelect<ExtArgs extends runtime.Types.Extensions.Interna
   title?: boolean
   description?: boolean
   sections?: boolean
+  settings?: boolean
   title_draft?: boolean
   description_draft?: boolean
   sections_draft?: boolean
-  settings?: boolean
+  settings_draft?: boolean
+  visibility?: boolean
   status?: boolean
   sort_order?: boolean
   created_at?: boolean
@@ -610,10 +650,12 @@ export type MarketingPageSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   title?: boolean
   description?: boolean
   sections?: boolean
+  settings?: boolean
   title_draft?: boolean
   description_draft?: boolean
   sections_draft?: boolean
-  settings?: boolean
+  settings_draft?: boolean
+  visibility?: boolean
   status?: boolean
   sort_order?: boolean
   created_at?: boolean
@@ -629,10 +671,12 @@ export type MarketingPageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   title?: boolean
   description?: boolean
   sections?: boolean
+  settings?: boolean
   title_draft?: boolean
   description_draft?: boolean
   sections_draft?: boolean
-  settings?: boolean
+  settings_draft?: boolean
+  visibility?: boolean
   status?: boolean
   sort_order?: boolean
   created_at?: boolean
@@ -648,17 +692,19 @@ export type MarketingPageSelectScalar = {
   title?: boolean
   description?: boolean
   sections?: boolean
+  settings?: boolean
   title_draft?: boolean
   description_draft?: boolean
   sections_draft?: boolean
-  settings?: boolean
+  settings_draft?: boolean
+  visibility?: boolean
   status?: boolean
   sort_order?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type MarketingPageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "locale" | "kind" | "title" | "description" | "sections" | "title_draft" | "description_draft" | "sections_draft" | "settings" | "status" | "sort_order" | "created_at" | "updated_at", ExtArgs["result"]["marketingPage"]>
+export type MarketingPageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "locale" | "kind" | "title" | "description" | "sections" | "settings" | "title_draft" | "description_draft" | "sections_draft" | "settings_draft" | "visibility" | "status" | "sort_order" | "created_at" | "updated_at", ExtArgs["result"]["marketingPage"]>
 
 export type $MarketingPagePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MarketingPage"
@@ -672,10 +718,12 @@ export type $MarketingPagePayload<ExtArgs extends runtime.Types.Extensions.Inter
     title: string
     description: string
     sections: runtime.JsonValue
+    settings: runtime.JsonValue
     title_draft: string
     description_draft: string
     sections_draft: runtime.JsonValue
-    settings: runtime.JsonValue
+    settings_draft: runtime.JsonValue
+    visibility: string
     status: string
     sort_order: number
     created_at: Date
@@ -1111,10 +1159,12 @@ export interface MarketingPageFieldRefs {
   readonly title: Prisma.FieldRef<"MarketingPage", 'String'>
   readonly description: Prisma.FieldRef<"MarketingPage", 'String'>
   readonly sections: Prisma.FieldRef<"MarketingPage", 'Json'>
+  readonly settings: Prisma.FieldRef<"MarketingPage", 'Json'>
   readonly title_draft: Prisma.FieldRef<"MarketingPage", 'String'>
   readonly description_draft: Prisma.FieldRef<"MarketingPage", 'String'>
   readonly sections_draft: Prisma.FieldRef<"MarketingPage", 'Json'>
-  readonly settings: Prisma.FieldRef<"MarketingPage", 'Json'>
+  readonly settings_draft: Prisma.FieldRef<"MarketingPage", 'Json'>
+  readonly visibility: Prisma.FieldRef<"MarketingPage", 'String'>
   readonly status: Prisma.FieldRef<"MarketingPage", 'String'>
   readonly sort_order: Prisma.FieldRef<"MarketingPage", 'Int'>
   readonly created_at: Prisma.FieldRef<"MarketingPage", 'DateTime'>

@@ -12,6 +12,8 @@ import {
   publishSitePage,
   publishSitePageContent,
   publishSiteChrome,
+  revertSitePageContent,
+  revertSiteChrome,
   saveSiteEditorDraft,
   SITE_PAGES_QUERY_KEY,
   SITE_QUERY_KEY,
@@ -109,6 +111,16 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
+  const revertPageContent = useMutation({
+    mutationFn: (pageId: string) => revertSitePageContent(pageId),
+    onSuccess: () => invalidate(),
+  });
+
+  const revertChrome = useMutation({
+    mutationFn: () => revertSiteChrome(),
+    onSuccess: () => invalidate(),
+  });
+
   const publishPage = useMutation({
     mutationFn: (pageId: string) => publishSitePage(pageId),
     onSuccess: () => invalidate(),
@@ -126,9 +138,11 @@ export function useSiteMutations() {
     saveEditorDraft,
     applyStarter,
     publishChrome,
+    revertChrome,
     removePage,
     publishPage,
     publishPageContent,
+    revertPageContent,
     unpublishPage,
   };
 }

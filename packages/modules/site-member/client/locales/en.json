@@ -1,0 +1,86 @@
+{
+  "brand": {
+    "account": "My account"
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Sign in with your email and password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "no_account": "Don't have an account?",
+    "go_register": "Create one",
+    "success": "Signed in"
+  },
+  "register": {
+    "title": "Create account",
+    "subtitle": "Create an account to access member content",
+    "submit": "Create account",
+    "submitting": "Creating…",
+    "has_account": "Already have an account?",
+    "go_login": "Sign in",
+    "success": "Account created"
+  },
+  "fields": {
+    "email": "Email",
+    "password": "Password",
+    "display_name": "Display name",
+    "display_name_placeholder": "Optional",
+    "old_password": "Current password",
+    "new_password": "New password",
+    "confirm_password": "Confirm new password"
+  },
+  "account": {
+    "title": "My account",
+    "profile_title": "Account details",
+    "profile_desc": "Your display name is shown on member content",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "email_readonly": "Email cannot be changed",
+    "created_at": "Registered",
+    "last_login_at": "Last sign-in",
+    "never": "—",
+    "password_title": "Change password",
+    "password_desc": "You will be signed out after changing it",
+    "password_changed": "Password changed, please sign in again",
+    "password_mismatch": "The new passwords do not match",
+    "logout": "Sign out",
+    "logged_out": "Signed out"
+  },
+  "entry": {
+    "login": "Sign in",
+    "account": "My account",
+    "menu": "Account menu"
+  },
+  "gate": {
+    "title": "Sign in to read this content",
+    "description": "Sign in or create an account to see the full content.",
+    "login": "Sign in",
+    "register": "Create account"
+  },
+  "admin": {
+    "nav": "Site members",
+    "title": "Site members",
+    "description": "Members who registered on your site. Enable, disable, or reset passwords.",
+    "searchPlaceholder": "Search by email or name",
+    "enabled": "Enabled",
+    "actions": "Actions",
+    "empty": "No members yet",
+    "emptyDescription": "Members appear here after they register on your site",
+    "noMatch": "No members match your search",
+    "resetPassword": "Reset password",
+    "resetConfirmTitle": "Reset password?",
+    "resetConfirmDescription": "A new password will be generated for {{email}} and copied to the clipboard.",
+    "resetSuccess": "New password copied to clipboard",
+    "deleteConfirmTitle": "Delete member?",
+    "deleteConfirmDescription": "Delete {{email}}? This cannot be undone.",
+    "deleteSuccess": "Member deleted"
+  },
+  "captcha": {
+    "required": "Please complete the captcha",
+    "failed": "Captcha verification failed, please try again"
+  },
+  "errors": {
+    "generic": "Something went wrong, please try again"
+  }
+}

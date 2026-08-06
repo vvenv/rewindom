@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("./config.js", () => ({
   config: {
     frontend: { url: "https://water.moms.plus" },
+    platform: { url: "https://platform.moms.plus" },
     tenant: { baseDomain: "water.moms.plus" },
   },
 }));
@@ -11,15 +12,20 @@ vi.mock("./prisma.js", () => ({
   prisma: {
     tenant: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
     },
   },
 }));
+
+import { DEFAULT_TENANT_ID } from "@be-water/shared";
 
 import { ValidationError } from "./app-errors.js";
 import {
   buildTenantDefaultUrl,
   extractTenantSubdomainLabel,
-  getPlatformHostnames,
+  getDefaultTenantHostnames,
+  getPlatformConsoleHostnames,
+  getReservedHostnames,
   hostnameFromUrl,
   normalizeCustomDomain,
   resolveHostTenant,
@@ -42,13 +48,24 @@ describe("resolveRequestHostname", () => {
   });
 });
 
-describe("hostnameFromUrl / getPlatformHostnames", () => {
-  it("从 FRONTEND_URL 解析平台主域名", () => {
-    expect(hostnameFromUrl("https://water.moms.plus/path")).toBe(
-      "water.moms.plus",
+describe("hostname sets", () => {
+  it("PLATFORM_URL 为平台控制台 Host", () => {
+    expect(hostnameFromUrl("https://platform.moms.plus/path")).toBe(
+      "platform.moms.plus",
     );
-    expect(getPlatformHostnames().has("water.moms.plus")).toBe(true);
-    expect(getPlatformHostnames().has("localhost")).toBe(true);
+    expect(getPlatformConsoleHostnames().has("platform.moms.plus")).toBe(true);
+    expect(getPlatformConsoleHostnames().has("localhost")).toBe(false);
+  });
+
+  it("FRONTEND_URL 为默认租户 Host（含 www）", () => {
+    expect(getDefaultTenantHostnames().has("water.moms.plus")).toBe(true);
+    expect(getDefaultTenantHostnames().has("www.water.moms.plus")).toBe(true);
+    expect(getDefaultTenantHostnames().has("127.0.0.1")).toBe(false);
+  });
+
+  it("保留主机名包含两边", () => {
+    expect(getReservedHostnames().has("water.moms.plus")).toBe(true);
+    expect(getReservedHostnames().has("platform.moms.plus")).toBe(true);
   });
 });
 
@@ -103,25 +120,48 @@ describe("normalizeCustomDomain", () => {
     expect(() => normalizeCustomDomain("*.acme.com")).toThrow(ValidationError);
   });
 
-  it("拒绝平台主域名与通配子域", () => {
+  it("拒绝产品主域、平台控制台 Host 与通配子域", () => {
     expect(() => normalizeCustomDomain("water.moms.plus")).toThrow(
+      ValidationError,
+    );
+    expect(() => normalizeCustomDomain("platform.moms.plus")).toThrow(
       ValidationError,
     );
     expect(() => normalizeCustomDomain("acme.water.moms.plus")).toThrow(
       ValidationError,
     );
-    expect(() => normalizeCustomDomain("localhost")).toThrow(ValidationError);
   });
 });
 
 describe("resolveHostTenant", () => {
   beforeEach(() => {
     vi.mocked(prisma.tenant.findFirst).mockReset();
+    vi.mocked(prisma.tenant.findUnique).mockReset();
   });
 
-  it("平台主域名不查库", async () => {
-    await expect(resolveHostTenant("water.moms.plus")).resolves.toBeNull();
+  it("平台控制台 Host 不查库", async () => {
+    await expect(resolveHostTenant("platform.moms.plus")).resolves.toBeNull();
     expect(prisma.tenant.findFirst).not.toHaveBeenCalled();
+    expect(prisma.tenant.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("产品主域绑定默认租户", async () => {
+    vi.mocked(prisma.tenant.findUnique).mockResolvedValueOnce({
+      id: DEFAULT_TENANT_ID,
+      slug: "default",
+      name: "默认租户",
+      status: "active",
+    } as never);
+
+    await expect(resolveHostTenant("water.moms.plus")).resolves.toEqual({
+      tenant_id: DEFAULT_TENANT_ID,
+      tenant_slug: "default",
+      name: "默认租户",
+    });
+    expect(prisma.tenant.findUnique).toHaveBeenCalledWith({
+      where: { id: DEFAULT_TENANT_ID },
+      select: { id: true, slug: true, name: true, status: true },
+    });
   });
 
   it("优先 custom_domain 精确匹配", async () => {

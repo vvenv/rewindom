@@ -444,7 +444,7 @@ function withLegacyAliases(
         );
         if (hasText) patch("secondary_label", label);
       }
-      patch("secondary_href", "/login");
+      patch("secondary_href", "/member/login");
     }
   }
 

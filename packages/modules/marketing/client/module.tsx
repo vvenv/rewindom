@@ -14,7 +14,7 @@ export const marketingClientModule: ClientAppModule = {
   label: "官网",
   kind: "infrastructure",
   description:
-    "公开官网（平台静态预渲染）+ 租户自助 Marketing CMS（绑定 Host SSR）",
+    "租户自助 Marketing CMS（主域绑定默认租户；其它 Host SSR）",
   requires: ["platform"],
   tenantEntitlements: [TENANT_MARKETING_ENTITLEMENT],
   client: {

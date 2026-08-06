@@ -74,6 +74,8 @@ export const ModelName = {
   Role: 'Role',
   RolePermission: 'RolePermission',
   UserRole: 'UserRole',
+  SiteMember: 'SiteMember',
+  SiteMemberRefreshToken: 'SiteMemberRefreshToken',
   SlowQueryLog: 'SlowQueryLog',
   Todo: 'Todo'
 } as const
@@ -309,10 +311,12 @@ export const MarketingPageScalarFieldEnum = {
   title: 'title',
   description: 'description',
   sections: 'sections',
+  settings: 'settings',
   title_draft: 'title_draft',
   description_draft: 'description_draft',
   sections_draft: 'sections_draft',
-  settings: 'settings',
+  settings_draft: 'settings_draft',
+  visibility: 'visibility',
   status: 'status',
   sort_order: 'sort_order',
   created_at: 'created_at',
@@ -447,6 +451,36 @@ export const UserRoleScalarFieldEnum = {
 } as const
 
 export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
+
+
+export const SiteMemberScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  email: 'email',
+  password: 'password',
+  display_name: 'display_name',
+  email_verified_at: 'email_verified_at',
+  enabled: 'enabled',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  last_login_at: 'last_login_at',
+  failed_login_attempts: 'failed_login_attempts',
+  locked_until: 'locked_until'
+} as const
+
+export type SiteMemberScalarFieldEnum = (typeof SiteMemberScalarFieldEnum)[keyof typeof SiteMemberScalarFieldEnum]
+
+
+export const SiteMemberRefreshTokenScalarFieldEnum = {
+  id: 'id',
+  member_id: 'member_id',
+  token: 'token',
+  expires_at: 'expires_at',
+  created_at: 'created_at',
+  revoked: 'revoked'
+} as const
+
+export type SiteMemberRefreshTokenScalarFieldEnum = (typeof SiteMemberRefreshTokenScalarFieldEnum)[keyof typeof SiteMemberRefreshTokenScalarFieldEnum]
 
 
 export const SlowQueryLogScalarFieldEnum = {

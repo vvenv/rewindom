@@ -16,7 +16,6 @@ import { relocalizeSections } from "../shared/section-schema.js";
 import {
   canonicalizePageIdentity,
   marketingPagePath,
-  safePageSettings,
   type ApplySiteStarterResponse,
   type CreateMarketingPageBody,
   type DuplicateMarketingPageBody,
@@ -28,6 +27,7 @@ import {
   type PublicMarketingPage,
   type PublicMarketingSite,
   type SaveEditorDraftBody,
+  parsePageVisibility,
   type UpdateMarketingPageBody,
   type UpdateMarketingSiteBody,
 } from "../shared/site-cms.js";
@@ -53,6 +53,9 @@ import {
   parseSiteThemeSettings,
   promotePageContentData,
   resolvePageIdentity,
+  revertPageContentData,
+  siteChromePublishedFooter,
+  siteChromePublishedHeader,
   validateOptionalColor,
   validatePageSlug,
   validateSiteLocale,
@@ -264,10 +267,11 @@ export async function createPage(
         title,
         description,
         sections: sections as unknown as Prisma.InputJsonValue,
+        settings: settings as unknown as Prisma.InputJsonValue,
         title_draft: title,
         description_draft: description,
         sections_draft: sections as unknown as Prisma.InputJsonValue,
-        settings: settings as unknown as Prisma.InputJsonValue,
+        settings_draft: settings as unknown as Prisma.InputJsonValue,
         status: "draft",
         sort_order: body.sort_order ?? 0,
       },
@@ -388,12 +392,12 @@ export async function duplicatePage(
         title,
         description: sourceContent.description,
         sections: sections as unknown as Prisma.InputJsonValue,
+        settings: sourceContent.settings as unknown as Prisma.InputJsonValue,
         title_draft: title,
         description_draft: sourceContent.description,
         sections_draft: sections as unknown as Prisma.InputJsonValue,
-        settings: safePageSettings(
-          source.settings,
-        ) as unknown as Prisma.InputJsonValue,
+        settings_draft:
+          sourceContent.settings as unknown as Prisma.InputJsonValue,
         status: "draft",
         sort_order: source.sort_order,
       },
@@ -438,6 +442,10 @@ export async function saveEditorDraft(
   const footer = parseSiteAreaSections("footer", body.footer);
   const settings =
     body.settings !== undefined ? parsePageSettings(body.settings) : undefined;
+  const visibility =
+    body.visibility !== undefined
+      ? parsePageVisibility(body.visibility)
+      : undefined;
 
   const [page, site] = await prisma.$transaction([
     prisma.marketingPage.update({
@@ -447,8 +455,9 @@ export async function saveEditorDraft(
         description_draft: body.description.trim(),
         sections_draft: sections as unknown as Prisma.InputJsonValue,
         ...(settings !== undefined
-          ? { settings: settings as unknown as Prisma.InputJsonValue }
+          ? { settings_draft: settings as unknown as Prisma.InputJsonValue }
           : {}),
+        ...(visibility !== undefined ? { visibility } : {}),
       },
     }),
     prisma.marketingSite.update({
@@ -582,6 +591,7 @@ export async function applySiteStarter(
                 locale: write.locale,
                 status: "draft",
                 settings: {} as Prisma.InputJsonValue,
+                settings_draft: {} as Prisma.InputJsonValue,
                 ...data,
               },
             }),
@@ -679,10 +689,13 @@ export async function updatePage(
           : {}),
         ...(body.settings !== undefined
           ? {
-              settings: parsePageSettings(
+              settings_draft: parsePageSettings(
                 body.settings,
               ) as unknown as Prisma.InputJsonValue,
             }
+          : {}),
+        ...(body.visibility !== undefined
+          ? { visibility: parsePageVisibility(body.visibility) }
           : {}),
         ...(body.sort_order !== undefined
           ? { sort_order: body.sort_order }
@@ -733,6 +746,7 @@ export async function setPageStatus(
     data.title = promoted.title;
     data.description = promoted.description;
     data.sections = promoted.sections as unknown as Prisma.InputJsonValue;
+    data.settings = promoted.settings as unknown as Prisma.InputJsonValue;
   }
   const updated = await prisma.marketingPage.update({
     where: { id: page_id, tenant_id },
@@ -762,9 +776,62 @@ export async function publishPageContent(
       title: promoted.title,
       description: promoted.description,
       sections: promoted.sections as unknown as Prisma.InputJsonValue,
+      settings: promoted.settings as unknown as Prisma.InputJsonValue,
     },
   });
   return toMarketingPage(updated);
+}
+
+/**
+ * 撤销页面上未发布的更改：草稿列整组回灌成线上列。
+ *
+ * 只对**已发布**的页面开放——没上线过的页面没有「线上那一版」可回，
+ * 无后缀列里躺的是建页时的初值，把它当还原目标只会给出一个用户没见过的版本。
+ */
+export async function revertPageContent(
+  tenant_id: string,
+  page_id: string,
+): Promise<MarketingPage> {
+  const existing = await prisma.marketingPage.findFirst({
+    where: withTenantScope(tenant_id, { id: page_id }),
+  });
+  if (!existing) {
+    throw new NotFoundError("site.page_not_found");
+  }
+  if (existing.status !== "published") {
+    throw new ValidationError("site.page_not_published");
+  }
+  const live = revertPageContentData(existing);
+  const updated = await prisma.marketingPage.update({
+    where: { id: page_id, tenant_id },
+    data: {
+      title_draft: live.title,
+      description_draft: live.description,
+      sections_draft: live.sections as unknown as Prisma.InputJsonValue,
+      settings_draft: live.settings as unknown as Prisma.InputJsonValue,
+    },
+  });
+  return toMarketingPage(updated);
+}
+
+/** 撤销页头页脚上未发布的更改：草稿 chrome 回灌成线上 chrome。 */
+export async function revertSiteChrome(
+  tenant_id: string,
+): Promise<MarketingSite> {
+  await ensureSiteRow(tenant_id);
+  const existing = await prisma.marketingSite.findFirstOrThrow({
+    where: { tenant_id },
+  });
+  const header = siteChromePublishedHeader(existing);
+  const footer = siteChromePublishedFooter(existing);
+  const updated = await prisma.marketingSite.update({
+    where: { tenant_id },
+    data: {
+      nav_draft_json: header as unknown as Prisma.InputJsonValue,
+      footer_draft_json: footer as unknown as Prisma.InputJsonValue,
+    },
+  });
+  return toMarketingSite(updated);
 }
 
 /**
@@ -835,6 +902,54 @@ export async function getPublishedPublicPage(
   );
   if (!match) return null;
 
+  const isMembersOnly = parsePageVisibility(match.visibility) === "members";
+
+  return {
+    site: toPublicMarketingSite(
+      siteRecord,
+      pages,
+      await brandingLogoUrl(tenant_id, tenant_slug),
+      current,
+    ),
+    page: toPublicMarketingPage(match, {
+      siblings: pages,
+      defaultLocale: default_locale,
+      // 公开端点不带会员 token：会员页只吐标题 + 摘要，正文走 /api/site/content/page
+      memberSummary: isMembersOnly,
+    }),
+  };
+}
+
+/**
+ * 会员已认证后拉受限页正文。与公开端点同一路径语义，但返回完整 sections。
+ */
+export async function getMemberContentPage(
+  tenant_id: string,
+  path: string,
+  tenant_slug: string,
+  locale?: AppLocale | null,
+): Promise<SitePageView | null> {
+  const siteRecord = await prisma.marketingSite.findFirst({
+    where: withTenantScope(tenant_id, { published: true }),
+  });
+  if (!siteRecord) return null;
+
+  const pages = await prisma.marketingPage.findMany({
+    where: withTenantScope(tenant_id, { status: "published" }),
+    orderBy: [{ sort_order: "asc" }, { title: "asc" }],
+  });
+
+  const default_locale = normalizeLocale(siteRecord.default_locale);
+  const current = effectiveLocale(locale, default_locale, pages);
+  const normalized = normalizePath(path);
+
+  const match = pages.find(
+    (page) =>
+      normalizeLocale(page.locale, default_locale) === current &&
+      matchesPath(page, normalized),
+  );
+  if (!match) return null;
+
   return {
     site: toPublicMarketingSite(
       siteRecord,
@@ -876,17 +991,19 @@ export async function getPublishedSitemapEntries(
   });
   const default_locale = normalizeLocale(siteRecord.default_locale);
 
-  return pages.map((record) => {
-    const view = toPublicMarketingPage(record, {
-      siblings: pages,
-      defaultLocale: default_locale,
+  return pages
+    .filter((record) => parsePageVisibility(record.visibility) === "public")
+    .map((record) => {
+      const view = toPublicMarketingPage(record, {
+        siblings: pages,
+        defaultLocale: default_locale,
+      });
+      return {
+        path: withSiteLocale(view.path, view.locale, default_locale),
+        updated_at: view.updated_at,
+        alternates: view.alternates,
+      };
     });
-    return {
-      path: withSiteLocale(view.path, view.locale, default_locale),
-      updated_at: view.updated_at,
-      alternates: view.alternates,
-    };
-  });
 }
 
 /** 草稿预览：站点可不发布；页面可为 draft；chrome 读草稿列。 */

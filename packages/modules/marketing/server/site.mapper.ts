@@ -8,12 +8,12 @@ import {
 import {
   canonicalizePageIdentity,
   marketingPagePath,
-  safePageSettings,
   type MarketingPage,
   type MarketingPageKind,
   type MarketingPageListItem,
   type MarketingPageStatus,
   type MarketingSite,
+  parsePageVisibility,
   type PageLocaleAlternate,
   type PublicMarketingPage,
   type PublicMarketingSite,
@@ -83,7 +83,8 @@ export function toMarketingPage(record: MarketingPageRecord): MarketingPage {
     title: draft.title,
     description: draft.description,
     sections: draft.sections,
-    settings: safePageSettings(record.settings),
+    settings: draft.settings,
+    visibility: parsePageVisibility(record.visibility),
     status: asStatus(record.status),
     content_dirty: pageContentIsDirty(record),
     sort_order: record.sort_order,
@@ -104,7 +105,8 @@ export function toMarketingPageListItem(
     kind,
     title: draft.title,
     description: draft.description,
-    settings: safePageSettings(record.settings),
+    visibility: parsePageVisibility(record.visibility),
+    settings: draft.settings,
     status: asStatus(record.status),
     content_dirty: pageContentIsDirty(record),
     sort_order: record.sort_order,
@@ -186,7 +188,7 @@ export function toPublicMarketingSite(
           title: content.title,
           description: content.description,
           path: marketingPagePath(kind, slug),
-          settings: safePageSettings(page.settings),
+          settings: content.settings,
         };
       }),
   };
@@ -227,6 +229,8 @@ export function toPublicMarketingPage(
     siblings?: MarketingPageRecord[];
     defaultLocale?: AppLocale;
     draftContent?: boolean;
+    /** 公开端点对会员页只返回摘要时置 true，并清空 sections。 */
+    memberSummary?: boolean;
   },
 ): PublicMarketingPage {
   const { kind, slug } = pageIdentity(record);
@@ -236,18 +240,20 @@ export function toPublicMarketingPage(
     options?.draftContent === true
       ? pageContentDraft(record)
       : pageContentPublished(record);
+  const visibility = parsePageVisibility(record.visibility);
+  const memberSummary = options?.memberSummary === true;
   return {
     slug,
     locale,
     kind,
     title: content.title,
     description: content.description,
-    sections: localizeSections(
-      content.sections,
-      locale,
-      default_locale,
-    ),
-    settings: safePageSettings(record.settings),
+    sections: memberSummary
+      ? []
+      : localizeSections(content.sections, locale, default_locale),
+    settings: content.settings,
+    visibility,
+    ...(memberSummary ? { requires_member: true as const } : {}),
     path: marketingPagePath(kind, slug),
     alternates: pageAlternates(
       record,

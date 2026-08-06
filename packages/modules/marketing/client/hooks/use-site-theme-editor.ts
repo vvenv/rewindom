@@ -17,6 +17,7 @@ import {
   type MarketingPage,
   type MarketingPageListItem,
   type MarketingPageSettings,
+  type MarketingPageVisibility,
   type PageLocaleAlternate,
   type PublicMarketingSite,
 } from "../../shared/site-cms.js";
@@ -78,6 +79,8 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [pageSettings, setPageSettings] = useState<MarketingPageSettings>({});
+  const [visibility, setVisibility] =
+    useState<MarketingPageVisibility>("public");
   const [selection, setSelection] = useState<ThemeEditorSelection | null>(null);
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
   const [baseline, setBaseline] = useState<string | null>(null);
@@ -93,6 +96,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     const serverTitle = pageQuery.data.title;
     const serverDescription = pageQuery.data.description;
     const serverSettings = pageQuery.data.settings ?? {};
+    const serverVisibility = pageQuery.data.visibility ?? "public";
     const serverSnapshot = draftSnapshot(
       serverSections,
       serverHeader,
@@ -100,6 +104,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
       serverTitle,
       serverDescription,
       serverSettings,
+      serverVisibility,
     );
 
     const cached = readEditorCache(pageId);
@@ -113,6 +118,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
         cached.title,
         cached.description,
         cached.settings ?? {},
+        cached.visibility ?? "public",
       ) !== serverSnapshot;
 
     const nextSections = useCache ? cached.sections : serverSections;
@@ -123,6 +129,9 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     const nextSettings = useCache
       ? (cached.settings ?? {})
       : serverSettings;
+    const nextVisibility = useCache
+      ? (cached.visibility ?? "public")
+      : serverVisibility;
 
     setSections(nextSections);
     setHeader(nextHeader);
@@ -130,6 +139,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     setTitle(nextTitle);
     setDescription(nextDescription);
     setPageSettings(nextSettings);
+    setVisibility(nextVisibility);
     const firstId = nextSections[0]?.id ?? null;
     setSelection(
       firstId
@@ -147,7 +157,15 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   const dirty =
     baseline !== null &&
     baseline !==
-      draftSnapshot(sections, header, footer, title, description, pageSettings);
+      draftSnapshot(
+        sections,
+        header,
+        footer,
+        title,
+        description,
+        pageSettings,
+        visibility,
+      );
 
   useEffect(() => {
     if (!pageId || !hydratedKey || baseline === null) return;
@@ -160,6 +178,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
       title,
       description,
       settings: pageSettings,
+      visibility,
     });
   }, [
     pageId,
@@ -172,6 +191,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     title,
     description,
     pageSettings,
+    visibility,
   ]);
 
   const page: MarketingPage | undefined = pageQuery.data;
@@ -320,6 +340,8 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     setDescription,
     pageSettings,
     setPageSettings,
+    visibility,
+    setVisibility,
     selection,
     setSelection,
     selectedSectionId,
@@ -339,6 +361,17 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     chromeDirty: siteQuery.data?.chrome_dirty ?? false,
     contentDirty: pageQuery.data?.content_dirty ?? false,
     mutations,
+
+    /**
+     * 丢掉内存里这一版，回到库里已保存的草稿。
+     *
+     * 不逐字段还原：把缓存清掉再让 `hydratedKey` 失效，灌入那段 effect 会重跑一遍
+     * ——服务端草稿是什么样，编辑器就回到什么样，多一条还原路径就多一处能对不齐。
+     */
+    discardLocalChanges: (): void => {
+      if (pageId) clearEditorCache(pageId);
+      setHydratedKey(null);
+    },
 
     selectSection: (sectionId: string, blockId: string | null = null): void => {
       setSelection({ kind: "section", sectionId, blockId });
@@ -465,8 +498,17 @@ function draftSnapshot(
   title: string,
   description: string,
   settings: MarketingPageSettings,
+  visibility: MarketingPageVisibility,
 ): string {
-  return JSON.stringify([sections, header, footer, title, description, settings]);
+  return JSON.stringify([
+    sections,
+    header,
+    footer,
+    title,
+    description,
+    settings,
+    visibility,
+  ]);
 }
 
 function editorCacheKey(pageId: string): string {
@@ -481,6 +523,7 @@ interface EditorCachePayload {
   title: string;
   description: string;
   settings?: MarketingPageSettings;
+  visibility?: MarketingPageVisibility;
 }
 
 function readEditorCache(pageId: string): EditorCachePayload | null {

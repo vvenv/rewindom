@@ -7,7 +7,7 @@
 
 两类域名上效果相同：开放营销前台与租户中台，禁止平台控制台；登录/注册无需再写 `@租户标识`。若租户在「品牌」设置上传了 Logo / Favicon，Host 绑定登录页与浏览器标签会展示该租户品牌（见 `design/tenant-config.md` §2.4）。
 
-绑定域上的营销前台默认是**租户 CMS**（`/app/site` 自助编辑），不是平台 be-water 静态官网；未发布站点时 SSR 返回「未开通」页。平台主域仍是构建期预渲染的产品官网。
+营销前台一律是**租户 CMS**（`/app/site` 自助编辑）：产品主域隐式绑定默认租户，其它 Host 按 custom_domain / 通配子域绑定。未发布站点时 SSR 返回「未开通」页。平台控制台在独立 `PLATFORM_URL` Host。
 
 > 设计口径见 [`design/tenant-config.md`](./design/tenant-config.md) §5.9；CMS 细节见 [`packages/modules/marketing/MODULE.md`](../packages/modules/marketing/MODULE.md)。
 
@@ -26,10 +26,11 @@
 
 应用解析优先级：
 
-1. Host = 平台主域名（`FRONTEND_URL` / `APP_DOMAIN`）→ 多租户 / 平台模式  
-2. Host = `Tenant.custom_domain` → 锁定该租户  
-3. Host = `{slug}.{TENANT_BASE_DOMAIN}` → 按 slug 锁定 active 租户  
-4. 其它 → 不绑定  
+1. Host = 平台控制台（`PLATFORM_URL` / 本地 `127.0.0.1`）→ 不绑定（开放 `/platform`）  
+2. Host = 产品主域（`FRONTEND_URL` / `APP_DOMAIN` / 本地 `localhost`）→ 锁定默认租户  
+3. Host = `Tenant.custom_domain` → 锁定该租户  
+4. Host = `{slug}.{TENANT_BASE_DOMAIN}` → 按 slug 锁定 active 租户  
+5. 其它 → 不绑定  
 
 保留前缀（不映射租户）：`www` / `app` / `api` / `platform` / `admin` / `mail` / `status` / `cdn` / `static` / `assets`。
 
@@ -102,7 +103,7 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 | --- | --- |
 | **租户 / 客户** | DNS（自定义域）；在中台 `/app/site` 编辑并发布官网内容 |
 | **平台管理员** | 控制台绑定 `custom_domain`；开通 entitlement `tenant-marketing`（默认开） |
-| **实例运维** | 公网入口、TLS；Nginx 按 Host 分流（平台静态 / 租户 SSR） |
+| **实例运维** | 公网入口、TLS；Nginx 按 Host 分流（平台控制台 SPA / 租户 SSR） |
 
 通配子域只需运维完成 §0；自定义域还需客户 DNS + 控制台绑定。官网文案由租户在 CMS 发布后生效。
 
@@ -110,18 +111,19 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 
 ## 2. 成功后的效果
 
-假设平台主域名为 `https://app.example.com`，租户绑定了 `portal.acme.com`：
+假设产品主域为 `https://app.example.com`，平台控制台为 `https://platform.app.example.com`，租户绑定了 `portal.acme.com`：
 
 | 访问方式 | 行为 |
 | --- | --- |
-| `https://portal.acme.com/` | 租户已发布官网（SSR 完整正文）；未发布则提示未开通 |
+| `https://portal.acme.com/` | 租户已发布官网（SSR）；未发布则提示未开通 |
 | `https://portal.acme.com/login` | 登录锁定该租户；可用裸用户名（如 `admin`） |
 | `https://portal.acme.com/app/site` | 租户自助编辑官网（需 `site.read`） |
 | `https://portal.acme.com/app` | 租户中台 |
 | `https://portal.acme.com/platform` | **不可用**（前端跳转；API 403） |
-| `https://app.example.com` | 不变：平台产品官网（静态预渲染）、多租户登录、平台控制台 |
+| `https://app.example.com` | 默认租户 CMS SSR；登录锁定 default；禁平台控制台 |
+| `https://platform.app.example.com/platform` | 平台控制台（不绑定租户） |
 
-同一域名全局只能绑一个租户；不可绑定平台主域名（`APP_DOMAIN` / `FRONTEND_URL` 对应主机名）或 `localhost`。
+同一域名全局只能绑一个租户；不可绑定产品主域、平台控制台 Host（`APP_DOMAIN` / `FRONTEND_URL` / `PLATFORM_URL`）或 `localhost` / `127.0.0.1`。
 
 ---
 

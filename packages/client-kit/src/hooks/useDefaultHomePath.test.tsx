@@ -1,16 +1,23 @@
 import { renderHook } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { AuthContext, type AuthContextType } from "../contexts/AuthContext.js";
 
 import {
   APP_HOME_ENTRY_PATH,
-  PLATFORM_HOME_PATH,
   useDefaultHomePath,
 } from "./useDefaultHomePath.js";
 
 import type { ReactNode } from "react";
 import type { AuthActorType, User } from "@be-water/shared";
+
+vi.mock("./usePublicConfig.js", () => ({
+  usePublicConfig: () => ({
+    data: {
+      platform_url: "https://platform.example.com",
+    },
+  }),
+}));
 
 function wrapperWithUser(user: User | null) {
   const value = {
@@ -33,12 +40,12 @@ function userWithActor(actorType: AuthActorType): User {
 }
 
 describe("useDefaultHomePath", () => {
-  it("平台管理员回平台控制台", () => {
+  it("平台管理员回 PLATFORM_URL 控制台", () => {
     const { result } = renderHook(() => useDefaultHomePath(), {
       wrapper: wrapperWithUser(userWithActor("platform_admin")),
     });
 
-    expect(result.current).toBe(PLATFORM_HOME_PATH);
+    expect(result.current).toBe("https://platform.example.com/platform");
   });
 
   it("租户用户回租户控制台入口（再解析到默认首页）", () => {

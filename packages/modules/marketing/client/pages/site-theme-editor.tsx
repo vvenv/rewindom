@@ -25,11 +25,13 @@ import {
 } from "../components/theme-editor/PreviewFrame.js";
 import { SectionSettingsForm } from "../components/theme-editor/SectionSettingsForm.js";
 import { SectionTree } from "../components/theme-editor/SectionTree.js";
+import { SiteAccountEntryPreview } from "../components/theme-editor/SiteAccountEntryPreview.js";
 import {
   useSiteThemeEditor,
   clearEditorCache,
 } from "../hooks/use-site-theme-editor.js";
 import { resolveEditorPublishState } from "../lib/editor-publish-state.js";
+import { siteMemberEntrySlot } from "../shell/site-member-slots.js";
 
 const DEVICE_ICONS: Array<[PreviewDevice, LucideIcon]> = [
   ["desktop", Monitor],
@@ -103,6 +105,8 @@ export function SiteThemeEditor() {
   const publishingChrome = editor.mutations.publishChrome.isPending;
   const publishingContent = editor.mutations.publishPageContent.isPending;
   const publishingPage = editor.mutations.publishPage.isPending;
+  const revertingContent = editor.mutations.revertPageContent.isPending;
+  const revertingChrome = editor.mutations.revertChrome.isPending;
   const publishState = resolveEditorPublishState({
     dirty: editor.dirty,
     published: page.status === "published",
@@ -143,6 +147,7 @@ export function SiteThemeEditor() {
           header: editor.header,
           footer: editor.footer,
           settings: editor.pageSettings,
+          visibility: editor.visibility,
         },
       },
       {
@@ -181,6 +186,68 @@ export function SiteThemeEditor() {
     });
   };
 
+  /** 丢掉内存里这一版，回到库里已保存的草稿（不碰服务端）。 */
+  const discardLocal = async (): Promise<void> => {
+    const confirmed = await confirm({
+      title: t("editor.discardLocalConfirmTitle"),
+      description: t("editor.discardLocalConfirmBody"),
+      confirmText: t("editor.discardLocalConfirmAction"),
+      destructive: true,
+    });
+    if (!confirmed) return;
+    editor.discardLocalChanges();
+    toast.success(t("editor.toastLocalDiscarded"));
+  };
+
+  /**
+   * 撤销落在服务端：草稿列回灌成线上列后编辑器整个重新灌入，
+   * 内存里没保存的改动也一并作废——所以有未保存改动时要在确认里多说一句。
+   */
+  const confirmRevert = async (titleKey: string, bodyKey: string) => {
+    const body = t(bodyKey);
+    return confirm({
+      title: t(titleKey),
+      description: editor.dirty
+        ? `${body}${t("editor.revertDiscardsUnsavedToo")}`
+        : body,
+      confirmText: t("editor.revertConfirmAction"),
+      destructive: true,
+    });
+  };
+
+  /** 撤销本页未发布的更改：服务端把草稿列回灌成线上列。 */
+  const revertContent = async (): Promise<void> => {
+    if (!pageId) return;
+    const confirmed = await confirmRevert(
+      "editor.revertContentConfirmTitle",
+      "editor.revertContentConfirmBody",
+    );
+    if (!confirmed) return;
+    editor.mutations.revertPageContent.mutate(pageId, {
+      onSuccess: () => {
+        clearEditorCache(pageId);
+        toast.success(t("editor.toastContentReverted"));
+      },
+      onError: () => toast.error(t("editor.toastRevertFailed")),
+    });
+  };
+
+  /** 撤销页头页脚未发布的更改（站点级，影响所有页面）。 */
+  const revertChrome = async (): Promise<void> => {
+    const confirmed = await confirmRevert(
+      "editor.revertChromeConfirmTitle",
+      "editor.revertChromeConfirmBody",
+    );
+    if (!confirmed) return;
+    editor.mutations.revertChrome.mutate(undefined, {
+      onSuccess: () => {
+        if (pageId) clearEditorCache(pageId);
+        toast.success(t("editor.toastChromeReverted"));
+      },
+      onError: () => toast.error(t("editor.toastRevertFailed")),
+    });
+  };
+
   const unpublish = (): void => {
     editor.mutations.unpublishPage.mutate(page.id, {
       onSuccess: () => toast.success(t("cms.toastPageUnpublished")),
@@ -208,7 +275,8 @@ export function SiteThemeEditor() {
           pending={{
             saving,
             publishing: publishingContent || publishingPage,
-            chrome: publishingChrome,
+            chrome: publishingChrome || revertingChrome,
+            reverting: revertingContent,
           }}
           onBack={() => void leaveTo("/site")}
           onGoToPage={goToPage}
@@ -218,6 +286,9 @@ export function SiteThemeEditor() {
           onPublish={publish}
           onUnpublish={unpublish}
           onPublishChrome={publishChrome}
+          onDiscardLocal={() => void discardLocal()}
+          onRevertContent={() => void revertContent()}
+          onRevertChrome={() => void revertChrome()}
         />
       }
     >
@@ -273,17 +344,24 @@ export function SiteThemeEditor() {
             onDocumentChange={setPreviewDoc}
             highlightSectionId={editor.selectedSectionId}
           >
-            <TenantSiteView
-              embedded
-              site={editor.previewSite}
-              path={editor.path}
-              sections={editor.previewSections}
-              alternates={editor.previewAlternates}
-              pageSettings={editor.pageSettings}
-              headerOverride={editor.header}
-              footerOverride={editor.footer}
-              onSelectSection={(sectionId) => editor.selectSection(sectionId)}
-            />
+            {/*
+              页头的会员入口在站点前台由 site-member 填进 slot；编辑器在工作台
+              外壳里拿不到那份 Provider，所以自己灌一个访客态的静态预览，
+              让「账户入口」开关在预览里看得见效果。
+            */}
+            <siteMemberEntrySlot.Provider component={SiteAccountEntryPreview}>
+              <TenantSiteView
+                embedded
+                site={editor.previewSite}
+                path={editor.path}
+                sections={editor.previewSections}
+                alternates={editor.previewAlternates}
+                pageSettings={editor.pageSettings}
+                headerOverride={editor.header}
+                footerOverride={editor.footer}
+                onSelectSection={(sectionId) => editor.selectSection(sectionId)}
+              />
+            </siteMemberEntrySlot.Provider>
           </PreviewFrame>
         </div>
 
@@ -294,10 +372,12 @@ export function SiteThemeEditor() {
               description={editor.description}
               path={editor.path}
               settings={editor.pageSettings}
+              visibility={editor.visibility}
               disabled={!canWrite}
               onChangeTitle={editor.setTitle}
               onChangeDescription={editor.setDescription}
               onChangeSettings={editor.setPageSettings}
+              onChangeVisibility={editor.setVisibility}
             />
           ) : selectedSection ? (
             <SectionSettingsForm

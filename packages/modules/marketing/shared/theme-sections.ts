@@ -38,14 +38,6 @@ export interface ThemeSettings {
   font_family?: ThemeFontFamily;
   page_width?: ThemePageWidth;
   section_spacing?: number;
-  /**
-   * 页头是否显示语言切换器。
-   *
-   * 站点级而非页头 section 级：它是「这个站点对外是不是多语言站」的表态，
-   * 与 `default_locale` 同属站点设置里的语言配置（页头 section 里另放一个
-   * 同名开关，只会让租户在两处找同一件事）。
-   */
-  show_locale_switcher?: boolean;
 }
 
 function parseOptionalColor(
@@ -124,13 +116,6 @@ export function parseThemeSettings(value: unknown): ThemeSettings {
     }
   }
 
-  if (raw.show_locale_switcher !== undefined) {
-    if (typeof raw.show_locale_switcher !== "boolean") {
-      throw new Error("site.theme_settings_invalid");
-    }
-    out.show_locale_switcher = raw.show_locale_switcher;
-  }
-
   if (raw.section_spacing !== undefined) {
     const { min, max, step } = THEME_SECTION_SPACING;
     const num =
@@ -170,7 +155,6 @@ export function resolveThemeSettings(theme_settings: unknown): ThemeSettings {
     font_family: fromJson.font_family ?? "system",
     page_width: fromJson.page_width ?? "default",
     section_spacing: fromJson.section_spacing ?? THEME_SECTION_SPACING.default,
-    show_locale_switcher: fromJson.show_locale_switcher ?? false,
   };
 }
 

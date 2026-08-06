@@ -91,6 +91,14 @@ export interface ClientShellContributions {
   /** 登录页左侧/移动端 Hero；未提供时使用壳层默认中性文案。 */
   authLoginHero?: ComponentType<AuthLoginHeroProps>;
   shellProviders?: Array<ComponentType<{ children: ReactNode }>>;
+  /**
+   * 包裹**公开路由树**的 Provider（`renderPublicRoutes` 的那一批）。
+   *
+   * `shellProviders` 只挂在 `AppLayout` 与平台外壳里，官网 / 租户站点前台拿不到，
+   * 所以站点会员会话这类「登录前就要有」的上下文必须走这里。
+   * 公开页 SSR 首屏不跑客户端 Provider；会员会话等能力在 SPA 接管后生效。
+   */
+  publicProviders?: Array<ComponentType<{ children: ReactNode }>>;
   sidebarToolbar?: ComponentType;
   sidebarPrimaryAction?: ComponentType<SidebarSlotProps>;
   sidebarPanel?: ComponentType<SidebarSlotProps>;

@@ -1,7 +1,8 @@
 import {
   useAuth,
   useTenantEntitlements,
-  PLATFORM_HOME_PATH,
+  useDefaultHomePath,
+  ExternalOrNavigate,
   isTenantAccessToken,
 } from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
@@ -12,6 +13,7 @@ export function ProtectedRoute() {
   const { isAuthenticated, isLoading, user, accessToken } = useAuth();
   const location = useLocation();
   const entitlements = useTenantEntitlements();
+  const platformHome = useDefaultHomePath();
 
   if (isLoading) {
     return (
@@ -30,7 +32,7 @@ export function ProtectedRoute() {
     isPlatformAdminActor(user?.actor_type) ||
     (accessToken !== null && !isTenantAccessToken(accessToken))
   ) {
-    return <Navigate to={PLATFORM_HOME_PATH} replace />;
+    return <ExternalOrNavigate to={platformHome} replace />;
   }
 
   if (entitlements.isLoading) {

@@ -139,6 +139,11 @@ export {
   APP_HOME_ENTRY_PATH,
   PLATFORM_HOME_PATH,
 } from "./hooks/useDefaultHomePath";
+export {
+  buildPlatformConsoleUrl,
+  goToPlatformConsole,
+} from "./lib/platform-console-url.js";
+export { ExternalOrNavigate } from "./components/ExternalOrNavigate.js";
 export { useAppVersion } from "./hooks/useAppVersion";
 export { usePersistState } from "./hooks/usePersistState";
 export {
@@ -220,6 +225,8 @@ export type { ConfirmContextValue } from "./contexts/ConfirmContext";
 // 原 @be-water/client-api
 export {
   api,
+  apiRequest,
+  createApiClient,
   ApiError,
   shouldClearAuthOnError,
   pauseTokenRefresh,
@@ -227,4 +234,5 @@ export {
   setApiAcceptLanguage,
   getApiAcceptLanguage,
 } from "./api.js";
+export type { ApiClient, ApiClientOptions } from "./api.js";
 export { configureAuthTokenStore, type AuthTokenStore } from "./auth-store.js";

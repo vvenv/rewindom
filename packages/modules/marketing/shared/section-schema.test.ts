@@ -428,7 +428,7 @@ describe("section layout settings", () => {
       login_label: "登录",
     });
     expect(on.secondary_label).toBe("登录");
-    expect(on.secondary_href).toBe("/login");
+    expect(on.secondary_href).toBe("/member/login");
 
     const off = parseSettingValues(defs, { show_login: false, login_label: "登录" });
     expect(off.secondary_label).toBe("");

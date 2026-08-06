@@ -6,24 +6,27 @@ import { defineConfig, type Plugin } from "vite";
 
 import { manualChunks } from "./vite-manual-chunks";
 
-const PLATFORM_DEV_HOSTS = new Set([
-  "localhost",
+/** 平台控制台 Host：不代理 Marketing SSR（与 server `getPlatformConsoleHostnames` 对齐）。 */
+const PLATFORM_CONSOLE_DEV_HOSTS = new Set([
   "127.0.0.1",
   "::1",
   "[::1]",
 ]);
 
 const SPA_PREFIX_RE =
-  /^\/(app|login|register|platform|billing|settings|notes|todos|users|roles|audit|notifications|api|assets|@|src|node_modules)(\/|$)/u;
+  /^\/(app|login|register|member|platform|billing|settings|notes|todos|users|roles|audit|notifications|api|assets|@|src|node_modules)(\/|$)/u;
 
-/** 租户 Host 下将文档导航代理到 Fastify Marketing SSR（平台 Host 仍走 Vite/预渲染）。 */
+/**
+ * 产品站 / 租户 Host 下将文档导航代理到 Fastify Marketing SSR。
+ * 本地：`localhost` → 默认租户 SSR；`127.0.0.1` → 平台控制台 Vite SPA。
+ */
 function tenantMarketingSsrProxy(): Plugin {
   return {
     name: "tenant-marketing-ssr-proxy",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const hostHeader = req.headers.host?.split(":")[0]?.toLowerCase() ?? "";
-        if (!hostHeader || PLATFORM_DEV_HOSTS.has(hostHeader)) {
+        if (!hostHeader || PLATFORM_CONSOLE_DEV_HOSTS.has(hostHeader)) {
           next();
           return;
         }

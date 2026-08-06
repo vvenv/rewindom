@@ -1,3 +1,5 @@
+import { DEFAULT_TENANT_ID } from "@be-water/shared";
+
 import { ValidationError } from "./app-errors.js";
 import { config } from "./config.js";
 import { prisma } from "./prisma.js";
@@ -59,15 +61,57 @@ export function hostnameFromUrl(url: string): string | null {
   }
 }
 
-/** 平台主域名（FRONTEND_URL 等），这些 Host 不走租户绑定。 */
-export function getPlatformHostnames(): Set<string> {
+function addWwwVariant(hosts: Set<string>, host: string): void {
+  hosts.add(host);
+  // 只给真实域名补 www.；跳过 localhost / 纯 IP
+  if (
+    host === "localhost" ||
+    host.startsWith("www.") ||
+    !host.includes(".") ||
+    /^[\d.]+$/u.test(host) ||
+    host.includes(":")
+  ) {
+    return;
+  }
+  hosts.add(`www.${host}`);
+}
+
+/**
+ * 平台控制台 Host：不绑定任何租户，允许 `/platform` 与平台管理员 API。
+ * 本地默认 `PLATFORM_URL=http://127.0.0.1:7300` → 认 `127.0.0.1`。
+ */
+export function getPlatformConsoleHostnames(): Set<string> {
+  const hosts = new Set<string>();
+  const platformHost = hostnameFromUrl(config.platform.url);
+  if (platformHost) addWwwVariant(hosts, platformHost);
+  return hosts;
+}
+
+/**
+ * 产品站 / 默认租户 Host：隐式绑定 `DEFAULT_TENANT_ID`（不写 custom_domain）。
+ * 本地默认 `FRONTEND_URL=http://localhost:7300` → 认 `localhost`。
+ */
+export function getDefaultTenantHostnames(): Set<string> {
   const hosts = new Set<string>();
   const frontendHost = hostnameFromUrl(config.frontend.url);
-  if (frontendHost) hosts.add(frontendHost);
-  // 本地开发常见
-  hosts.add("localhost");
-  hosts.add("127.0.0.1");
+  if (frontendHost) addWwwVariant(hosts, frontendHost);
   return hosts;
+}
+
+/**
+ * 不可作为租户 `custom_domain` 的保留 Host（平台控制台 + 产品主域）。
+ * @deprecated 名称保留给旧调用方；语义为「保留主机名」。
+ */
+export function getPlatformHostnames(): Set<string> {
+  return getReservedHostnames();
+}
+
+/** 不可绑定为租户自定义域的主机名。 */
+export function getReservedHostnames(): Set<string> {
+  return new Set([
+    ...getPlatformConsoleHostnames(),
+    ...getDefaultTenantHostnames(),
+  ]);
 }
 
 /** 平台通配子域基域（如 `water.moms.plus`）；空则关闭 slug 子域解析。 */
@@ -104,7 +148,7 @@ export function buildTenantDefaultUrl(slug: string): string | null {
  * 规范化并校验自定义域名。
  * - 空 / null → null（清除绑定）
  * - 禁止 scheme、path、port、通配符
- * - 禁止平台主域名与平台通配子域（`*.TENANT_BASE_DOMAIN`）
+ * - 禁止产品主域、平台控制台 Host 与通配子域（`*.TENANT_BASE_DOMAIN`）
  */
 export function normalizeCustomDomain(
   value: string | null | undefined,
@@ -123,7 +167,7 @@ export function normalizeCustomDomain(
   if (!host || host.length > 253 || !HOSTNAME_RE.test(host)) {
     throw new ValidationError("tenant.domain_invalid");
   }
-  if (getPlatformHostnames().has(host)) {
+  if (getReservedHostnames().has(host)) {
     throw new ValidationError("tenant.domain_reserved");
   }
   const base = getTenantBaseDomain();
@@ -145,12 +189,35 @@ async function toHostTenantContext(tenant: {
   };
 }
 
-/** 按 Host 查找已绑定且 active 的租户；平台主域名或未绑定返回 null。 */
+async function resolveDefaultTenantHost(): Promise<HostTenantContext | null> {
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: DEFAULT_TENANT_ID },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      status: true,
+    },
+  });
+  if (!tenant || tenant.status !== "active") return null;
+  return toHostTenantContext(tenant);
+}
+
+/**
+ * 按 Host 查找已绑定且 active 的租户。
+ * - 平台控制台 Host → null
+ * - 产品主域 / localhost → 默认租户
+ * - custom_domain / `{slug}.{TENANT_BASE_DOMAIN}` → 对应租户
+ */
 export async function resolveHostTenant(
   hostname: string | null,
 ): Promise<HostTenantContext | null> {
   if (!hostname) return null;
-  if (getPlatformHostnames().has(hostname)) return null;
+  if (getPlatformConsoleHostnames().has(hostname)) return null;
+
+  if (getDefaultTenantHostnames().has(hostname)) {
+    return resolveDefaultTenantHost();
+  }
 
   const byCustomDomain = await prisma.tenant.findFirst({
     where: {

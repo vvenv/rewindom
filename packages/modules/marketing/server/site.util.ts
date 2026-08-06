@@ -16,6 +16,7 @@ import {
   canonicalizePageIdentity,
   parsePageSettings as parsePageSettingsSchema,
   RESERVED_PAGE_SLUGS,
+  safePageSettings,
   type MarketingPageKind,
   type MarketingPageSettings,
   type SiteLocalizedText,
@@ -123,48 +124,57 @@ export function siteChromeIsDirty(record: {
   );
 }
 
-function pageContentFingerprint(parts: {
+/** 一页正文的全部可发布字段——草稿列与线上列各投影出一份，逐字段对齐。 */
+export interface PageContent {
   title: string;
   description: string;
   sections: SiteSection[];
-}): string {
+  settings: MarketingPageSettings;
+}
+
+/** 草稿列的形状（`_draft` 后缀那一组）。 */
+export interface PageDraftRecord {
+  title_draft: string;
+  description_draft: string;
+  sections_draft: unknown;
+  settings_draft: unknown;
+}
+
+/** 线上列的形状（无后缀那一组）。 */
+export interface PagePublishedRecord {
+  title: string;
+  description: string;
+  sections: unknown;
+  settings: unknown;
+}
+
+function pageContentFingerprint(parts: PageContent): string {
   return JSON.stringify(parts);
 }
 
 /** Theme Editor / 预览读草稿页面内容。 */
-export function pageContentDraft(record: {
-  title_draft: string;
-  description_draft: string;
-  sections_draft: unknown;
-}): { title: string; description: string; sections: SiteSection[] } {
+export function pageContentDraft(record: PageDraftRecord): PageContent {
   return {
     title: record.title_draft,
     description: record.description_draft,
     sections: safePageSections(record.sections_draft),
+    settings: safePageSettings(record.settings_draft),
   };
 }
 
 /** 公开面读已发布页面内容。 */
-export function pageContentPublished(record: {
-  title: string;
-  description: string;
-  sections: unknown;
-}): { title: string; description: string; sections: SiteSection[] } {
+export function pageContentPublished(record: PagePublishedRecord): PageContent {
   return {
     title: record.title,
     description: record.description,
     sections: safePageSections(record.sections),
+    settings: safePageSettings(record.settings),
   };
 }
 
-export function pageContentIsDirty(record: {
-  title: string;
-  description: string;
-  sections: unknown;
-  title_draft: string;
-  description_draft: string;
-  sections_draft: unknown;
-}): boolean {
+export function pageContentIsDirty(
+  record: PageDraftRecord & PagePublishedRecord,
+): boolean {
   return (
     pageContentFingerprint(pageContentPublished(record)) !==
     pageContentFingerprint(pageContentDraft(record))
@@ -172,21 +182,15 @@ export function pageContentIsDirty(record: {
 }
 
 /** 将草稿页面内容提升为已发布列（`publish` / `content/publish` 共用）。 */
-export function promotePageContentData(record: {
-  title_draft: string;
-  description_draft: string;
-  sections_draft: unknown;
-}): {
-  title: string;
-  description: string;
-  sections: SiteSection[];
-} {
-  const draft = pageContentDraft(record);
-  return {
-    title: draft.title,
-    description: draft.description,
-    sections: draft.sections,
-  };
+export function promotePageContentData(record: PageDraftRecord): PageContent {
+  return pageContentDraft(record);
+}
+
+/** 反向：把线上内容回灌进草稿列（撤销未发布的更改）。 */
+export function revertPageContentData(
+  record: PagePublishedRecord,
+): PageContent {
+  return pageContentPublished(record);
 }
 
 export function parseSiteThemeSettings(value: unknown): ThemeSettings {

@@ -1,0 +1,86 @@
+{
+  "brand": {
+    "account": "我的账户"
+  },
+  "login": {
+    "title": "登录",
+    "subtitle": "使用邮箱和密码登录",
+    "submit": "登录",
+    "submitting": "登录中…",
+    "no_account": "还没有账户？",
+    "go_register": "立即注册",
+    "success": "已登录"
+  },
+  "register": {
+    "title": "注册",
+    "subtitle": "创建账户即可访问会员内容",
+    "submit": "注册",
+    "submitting": "注册中…",
+    "has_account": "已有账户？",
+    "go_login": "去登录",
+    "success": "注册成功"
+  },
+  "fields": {
+    "email": "邮箱",
+    "password": "密码",
+    "display_name": "昵称",
+    "display_name_placeholder": "选填",
+    "old_password": "当前密码",
+    "new_password": "新密码",
+    "confirm_password": "确认新密码"
+  },
+  "account": {
+    "title": "我的账户",
+    "profile_title": "账户资料",
+    "profile_desc": "昵称会显示在会员内容里",
+    "save": "保存",
+    "saving": "保存中…",
+    "saved": "已保存",
+    "email_readonly": "邮箱不可修改",
+    "created_at": "注册时间",
+    "last_login_at": "上次登录",
+    "never": "—",
+    "password_title": "修改密码",
+    "password_desc": "修改后需要重新登录",
+    "password_changed": "密码已修改，请重新登录",
+    "password_mismatch": "两次输入的新密码不一致",
+    "logout": "退出登录",
+    "logged_out": "已退出登录"
+  },
+  "entry": {
+    "login": "登录",
+    "account": "我的账户",
+    "menu": "账户菜单"
+  },
+  "gate": {
+    "title": "该内容需要登录后查看",
+    "description": "登录或注册账户即可阅读完整内容。",
+    "login": "登录",
+    "register": "注册"
+  },
+  "admin": {
+    "nav": "站点会员",
+    "title": "站点会员",
+    "description": "在站点前台注册的会员。可启用、停用或重置密码。",
+    "searchPlaceholder": "按邮箱或昵称搜索",
+    "enabled": "启用",
+    "actions": "操作",
+    "empty": "还没有会员",
+    "emptyDescription": "访客在站点注册后会出现在这里",
+    "noMatch": "没有匹配的会员",
+    "resetPassword": "重置密码",
+    "resetConfirmTitle": "重置密码？",
+    "resetConfirmDescription": "将为 {{email}} 生成新密码并复制到剪贴板。",
+    "resetSuccess": "新密码已复制到剪贴板",
+    "deleteConfirmTitle": "删除会员？",
+    "deleteConfirmDescription": "确定删除 {{email}}？此操作不可撤销。",
+    "deleteSuccess": "会员已删除"
+  },
+  "captcha": {
+    "required": "请完成验证码",
+    "failed": "验证码校验失败，请重试"
+  },
+  "errors": {
+    "generic": "操作失败，请稍后重试"
+  }
+}

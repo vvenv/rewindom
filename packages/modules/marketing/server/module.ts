@@ -4,6 +4,7 @@ import { TENANT_MARKETING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { MARKETING_SERVER_I18N } from "./i18n.js";
 import { publicSiteRoutes } from "./public-site.routes.js";
+import { siteContentRoutes } from "./site-content.routes.js";
 import { siteRoutes } from "./site.routes.js";
 import { marketingSsrRoutes } from "./ssr.routes.js";
 
@@ -14,7 +15,7 @@ export const marketingServerModule: ServerAppModule = {
   version: "1.0.0",
   label: "Marketing",
   kind: "infrastructure",
-  description: "平台静态官网 + 租户自助 Marketing CMS（绑定 Host SSR）",
+  description: "租户自助 Marketing CMS（主域绑定默认租户；其它 Host SSR）",
   // platform：官网 logo 默认继承租户品牌资产（未上传时才回落到手填 URL）
   requires: ["rbac", "audit", "platform"],
   tenantEntitlements: [TENANT_MARKETING_ENTITLEMENT],
@@ -46,6 +47,8 @@ export const marketingServerModule: ServerAppModule = {
     i18n: MARKETING_SERVER_I18N,
     registerRoutes: async (app) => {
       await app.register(publicSiteRoutes, { prefix: "/api/public" });
+      // 会员读正文：独立前缀，不进工作台 entitlement 网关（见 site-content.routes）
+      await app.register(siteContentRoutes, { prefix: "/api/site/content" });
       await registerTenantGatedRoutes(
         app,
         "tenant-marketing",

@@ -332,7 +332,15 @@ function resolveTenantGuardMode(): "off" | "audit" | "enforce" {
 export const config = {
   server: buildServerConfig(),
   frontend: {
+    /** 产品站 / 默认租户前台（主域）。本地默认 localhost。 */
     url: strEnv("FRONTEND_URL", isProduction ? "" : "http://localhost:7300"),
+  },
+  platform: {
+    /**
+     * 平台控制台 origin（与产品站分离的 Host）。
+     * 本地默认 127.0.0.1，与 FRONTEND_URL 的 localhost 区分，免改 /etc/hosts。
+     */
+    url: strEnv("PLATFORM_URL", isProduction ? "" : "http://127.0.0.1:7300"),
   },
   auth: buildAuthConfig(),
   database: buildDatabaseConfig(),

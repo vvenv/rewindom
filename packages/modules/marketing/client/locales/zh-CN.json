@@ -326,9 +326,7 @@
     "fieldLocale": "语言",
     "localeHint": "同一个 slug 每种语言各建一页；主语言的 URL 不带前缀，其余为 /{locale}/…",
     "fieldDefaultLocale": "主语言",
-    "fieldDefaultLocaleHint": "URL 上不带前缀的那一种；改动会影响已收录的链接。",
-    "fieldLocaleSwitcher": "显示语言切换按钮",
-    "fieldLocaleSwitcherHint": "全站生效：页头右侧出现语言切换器，只列出本页真的有已发布译文的语言。"
+    "fieldDefaultLocaleHint": "URL 上不带前缀的那一种；改动会影响已收录的链接。"
   },
   "starter": {
     "menu": "起步模板",
@@ -336,7 +334,6 @@
     "default": {
       "label": "默认营销站",
       "description": "页头、页脚、主题色与首页 / 文档 / 定价",
-      "login": "登录",
       "cta": "免费开始"
     },
     "confirmTitle": "覆盖现有站点内容？",
@@ -382,6 +379,25 @@
     "publishChromeHint": "站点级，所有页面的页头页脚都会更新。",
     "toastChromePublished": "页头页脚已上线",
     "toastChromePublishFailed": "发布页头页脚失败",
+    "discardLocal": "撤销未保存的改动",
+    "discardLocalHint": "回到上次保存的草稿，只影响本机这一版。",
+    "discardLocalConfirmTitle": "撤销未保存的改动？",
+    "discardLocalConfirmBody": "编辑器会回到上次保存的草稿，这之后改的内容会丢失。",
+    "discardLocalConfirmAction": "撤销改动",
+    "toastLocalDiscarded": "已回到上次保存的草稿",
+    "revertContent": "撤销未发布的更改",
+    "revertContentHint": "草稿回到线上那一版，本页内容与页面设置一并还原。",
+    "revertContentConfirmTitle": "撤销本页未发布的更改？",
+    "revertContentConfirmBody": "草稿会还原成线上那一版，保存过但没发布的改动会丢失。线上内容不受影响。",
+    "revertDiscardsUnsavedToo": "本页还有没保存的改动，也会一并丢失。",
+    "revertConfirmAction": "撤销并还原",
+    "toastContentReverted": "已还原成线上那一版",
+    "revertChrome": "撤销页头页脚更改",
+    "revertChromeHint": "站点级，所有页面的页头页脚草稿都会还原。",
+    "revertChromeConfirmTitle": "撤销页头页脚未发布的更改？",
+    "revertChromeConfirmBody": "页头页脚是站点级的：草稿会还原成线上那一版，所有页面都跟着变。线上内容不受影响。",
+    "toastChromeReverted": "页头页脚已还原成线上那一版",
+    "toastRevertFailed": "撤销失败，请重试",
     "toastContentPublished": "页面内容已上线",
     "toastContentPublishFailed": "发布页面内容失败",
     "uploadImage": "上传",
@@ -399,13 +415,13 @@
       "heading": "抬头",
       "layout": "布局",
       "brand": "品牌",
-      "nav": "导航",
       "headerArea": "页头",
       "template": "页面区块",
       "footerArea": "页脚",
       "section": "区块版式",
       "appearance": "外观",
-      "page": "页面"
+      "page": "页面",
+      "headerItems": "页头显示"
     },
     "info": {
       "markdown": "支持 Markdown 语法。",
@@ -418,7 +434,6 @@
       "anchor": "留空则不生成；填 pricing 后可用 /#pricing 链到此区块",
       "content_width": "「通栏」+「不限宽」可做满屏大图；通栏色带一般配「跟随页宽」。",
       "spacing": "与相邻区块之间的距离；「继承」跟随站点的区块间距。",
-      "locale_switcher_site": "语言切换器是站点级设置，在「官网 → 设置」里开关。",
       "show_site_nav": "列出已发布的一级页面（不嵌套在其他页面下）。下方的自定义导航链接仍会排在它们后面。",
       "columns_layout": "只在桌面生效，窄屏一律上下堆叠。比例与列数对不上时按列数等分。",
       "sticky_column": "另一列滚动时这一列留在视野里，适合放菜单或简短摘要。",
@@ -431,7 +446,10 @@
       "bg_color": "有值时覆盖背景预设。支持透明度（如 #0f766e80）。",
       "border_width": "为 0 时不画自定义边框；只填了边框色而宽度为 0 时按 1px 画。",
       "radius": "「继承」保留该表面的默认圆角。",
-      "page_bg_color": "只给页面正文区上色；页头页脚仍用各自的设置。"
+      "page_bg_color": "只给页面正文区上色；页头页脚仍用各自的设置。",
+      "show_account": "未登录显示「登录」，登录后显示账户菜单。站点未开通会员时不显示。",
+      "show_locale_switcher": "只在本页有其它语言的译文时才会出现。是否翻译由页面列表决定，这里只管按钮露不露。",
+      "show_theme_toggle": "站点始终跟随访客设备的深浅色偏好；打开后额外给访客一枚手动切换按钮。关掉不会锁死浅色。"
     },
     "unit": {
       "columns": "列",
@@ -505,7 +523,10 @@
       "fg_color": "文字色",
       "border_color": "边框色",
       "border_width": "边框宽度",
-      "radius": "圆角"
+      "radius": "圆角",
+      "show_account": "账户入口",
+      "show_locale_switcher": "语言切换",
+      "show_theme_toggle": "深色模式切换"
     },
     "option": {
       "align": {
@@ -631,7 +652,13 @@
     "leaveConfirmBody": "本页还有没保存的改动，离开后会丢失。",
     "leaveConfirmAction": "放弃并离开",
     "pageMeta": "页面设置",
-    "pagePath": "页面地址"
+    "pagePath": "页面地址",
+    "visibility": {
+      "membersOnly": "仅会员可见",
+      "membersOnlyHint": "访客需登录站点会员后才能阅读完整内容"
+    },
+    "accountEntryPreview": "登录",
+    "settingInfo": "说明"
   },
   "seo": {
     "home": {

@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactElement } from "react";
 
+import { ThemeToggle } from "@be-water/client-kit";
 import { getLocaleNativeLabel } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import {
@@ -25,8 +26,20 @@ import {
   type PageLocaleAlternate,
   type PublicSitePage,
 } from "../../../shared/site-cms.js";
+import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
 import { SiteLink } from "./SiteLink.js";
+
+/**
+ * 会员入口由 site-member 通过 slot 填入；未开通会员的站点这里什么都不渲染。
+ *
+ * 平台预渲染与主题编辑器都拿不到 `publicProviders`（slot 为空）：前者本就不该
+ * 输出一个随后又被 SPA 抹掉的登录按钮，后者由编辑器自己灌一个静态预览进来。
+ */
+function SiteMemberEntry(): ReactElement | null {
+  const Entry = siteMemberEntrySlot.useSlot();
+  return Entry ? <Entry /> : null;
+}
 
 /** 页脚 blocks 按 `group` 聚成列；无 group 的归到一个匿名列。 */
 function groupFooterLinks(
@@ -158,7 +171,6 @@ export function SiteHeader({
   currentPath,
   alternates = [],
   locale,
-  showLocaleSwitcher = false,
 }: ChromeProps & {
   /** 全站导航（一级页）的数据源；未传时开关打开也不渲染自动条目。 */
   pages?: PublicSitePage[];
@@ -167,8 +179,6 @@ export function SiteHeader({
   /** 本页各语言入口（语言切换器的候选）。 */
   alternates?: PageLocaleAlternate[];
   locale?: string;
-  /** 站点级开关（`theme_settings.show_locale_switcher`）。 */
-  showLocaleSwitcher?: boolean;
 }): ReactElement {
   const s = section.settings;
   const secondaryLabel = settingText(s, "secondary_label");
@@ -247,9 +257,17 @@ export function SiteHeader({
             centered ? "justify-self-end" : "ml-auto",
           )}
         >
-          {showLocaleSwitcher ? (
+          {settingBool(s, "show_locale_switcher") ? (
             <LocaleSwitcher alternates={alternates} current={locale ?? ""} />
           ) : null}
+          {/*
+            明暗永远跟随设备（`next-themes` 的 `defaultTheme="system"`）；
+            这枚按钮只是让访客手动改，关掉不等于锁死浅色。
+          */}
+          {settingBool(s, "show_theme_toggle") ? (
+            <ThemeToggle className="rounded-lg" />
+          ) : null}
+          {settingBool(s, "show_account") ? <SiteMemberEntry /> : null}
           {secondaryLabel && secondaryHref ? (
             <Button asChild variant="ghost" size="sm" className="px-3">
               <SiteLink href={secondaryHref}>{secondaryLabel}</SiteLink>

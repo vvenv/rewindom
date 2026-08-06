@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createSection } from "../shared/section-schema.js";
+import {
+  createSection,
+  type SettingValue,
+  type SiteSection,
+} from "../shared/section-schema.js";
 
 import { renderMarketingHtml, renderSitemapXml } from "./ssr-render.js";
 
@@ -8,6 +12,12 @@ import type {
   PublicMarketingPage,
   PublicMarketingSite,
 } from "../shared/site-cms.js";
+
+/** 页头 section + 若干覆盖设置（默认值仍由 schema 兜底）。 */
+function headerWith(settings: Record<string, SettingValue>): SiteSection {
+  const section = createSection("header");
+  return { ...section, settings: { ...section.settings, ...settings } };
+}
 
 function site(overrides: Partial<PublicMarketingSite> = {}) {
   return {
@@ -105,22 +115,25 @@ describe("renderMarketingHtml SEO", () => {
     expect(html).not.toContain("hreflang");
   });
 
-  it("renders the language switcher from the site-level theme setting", () => {
-    // 开关是站点级的（theme_settings），不再是页头 section 的一个 checkbox
+  it("renders the language switcher from the header setting", () => {
+    // 开关回到页头 section，与站点导航 / 明暗 / 账户入口并排（默认关）
     expect(
       renderMarketingHtml({ origin: ORIGIN, site: site(), page: page() }),
     ).not.toContain('class="locale-switcher"');
 
     const html = renderMarketingHtml({
       origin: ORIGIN,
-      site: site({ theme_settings: { show_locale_switcher: true } }),
+      site: site({ header: [headerWith({ show_locale_switcher: true })] }),
       page: page(),
     });
     expect(html).toContain('class="locale-switcher"');
     expect(html).toContain('class="locale-switcher-menu"');
     expect(html).toContain('aria-label="Language"');
     expect(html).toContain('href="/en/about"');
+    // 点外部收起：内联脚本绑定同一枚 details
+    expect(html).toContain("d.open=false");
   });
+
 
   it("points the brand link at the current language's home", () => {
     const html = renderMarketingHtml({
@@ -189,6 +202,37 @@ describe("renderMarketingHtml SEO", () => {
       page: page(),
     });
     expect(html).not.toContain(">文档</a>");
+  });
+});
+
+/*
+ * 绑定域上**每个** HTML 文档都由这里产出（nginx 全量反代给 SSR），所以站点的
+ * 交互层能不能活，取决于这份 HTML 有没有把 SPA 带上：账户入口、明暗切换按钮、
+ * `requires_member` 页的正文，全都要等 SPA 接管。曾经漏掉过，整个绑定域上没有 JS。
+ */
+describe("renderMarketingHtml 接上 SPA", () => {
+  const ENTRY = "/assets/index-BiyOPNPZ.js";
+
+  it("给出入口时挂上 script，并把正文包进 #root", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page(),
+      spaEntrySrc: ENTRY,
+    });
+    expect(html).toContain(`<script type="module" src="${ENTRY}"></script>`);
+    // createRoot(#root) 找不到挂载点会直接抛，SPA 就永远接管不了
+    expect(html).toContain('<div id="root">');
+  });
+
+  it("没有产物时退化成纯静态 HTML，但挂载点仍在", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page(),
+    });
+    expect(html).not.toContain("<script type=\"module\"");
+    expect(html).toContain('<div id="root">');
   });
 });
 

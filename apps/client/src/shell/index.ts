@@ -9,6 +9,7 @@ export { AppNotFoundRedirect } from "./components/AppNotFoundRedirect.js";
 export { GuestOnlyRoute } from "./components/GuestOnlyRoute.js";
 export { PlatformAdminRoute } from "./components/PlatformAdminRoute.js";
 export { ProtectedRoute } from "./components/ProtectedRoute.js";
+export { PublicProviders } from "./components/PublicProviders.js";
 export { SuperUserRoute } from "./components/SuperUserRoute.js";
 export {
   DesktopSidebar,

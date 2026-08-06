@@ -1,12 +1,25 @@
 # 用户系统设计文档
 
-> **重要说明**：本文档中的代码示例使用的是概念性的 API 调用，仅供参考。实际开发中，**必须**使用 `apps/client/src/lib/api.ts` 中提供的 `api` 工具进行所有 API 调用。该工具已封装了 Token 管理、自动刷新、错误处理等功能。详见项目编码规范 `.cursor/rules/coding-standards.mdc`。
+> **重要说明**：本文档中的代码示例使用的是概念性的 API 调用，仅供参考。实际开发中，**必须**使用 `@be-water/client-kit` 的 `api`（或 `createApiClient`）进行所有 API 调用。该工具已封装了 Token 管理、自动刷新、错误处理等功能。详见项目编码规范 `.cursor/rules/coding-standards.mdc`。
 
 ## 一、系统概述
 
 本文档描述 be-water 的用户认证与授权系统，采用标准的 JWT Token 机制，支持用户注册、登录、密码加密、滑块验证码、Access Token 与 Refresh Token 刷新等功能。
 
-> **SaaS 多租户（规划）**：登录标识将演进为 `username@tenant_slug`，默认租户 `default` 可省略后缀；**租户侧 UI 无感知**；**平台系统管理员（PLATFORM_ADMIN）** 凭 env 管理租户，见 [`tenant-config.md`](./tenant-config.md) §5.8、§10.3。
+### 1.1 四类 Actor
+
+JWT / 请求上下文用 `actor_type` 区分身份（见 `packages/shared/src/auth-actor.ts`）：
+
+| actor_type | 身份表 | 活动范围 | 说明 |
+| --- | --- | --- | --- |
+| `tenant_user` | `User` | `/app` 工作台 | 租户运营者；权限走 PBAC（`UserRole` / Role） |
+| `platform_admin` | `PlatformAdmin` | `/platform/*` | 平台控制台；独立表 + 路径白名单 |
+| `api_key` | `TenantApiKey` | `/api` 白名单 | 机器调用；路径黑名单限制 |
+| `site_member` | `SiteMember` | 站点前台 + `/member/*` | 租户站点的终端会员；**不进工作台、不进 PBAC** |
+
+站点会员是独立身份层：独立 refresh token 表、独立 localStorage key、独立 `createApiClient` 实例。`marketing` 通过 Component Slot 接入会员入口与门控，不反向依赖 `site-member`。
+
+> **多租户**：登录标识为 `username@tenant_slug`，默认租户 `default` 可省略后缀；**租户侧 UI 无感知**；平台管理员见 [`tenant-config.md`](./tenant-config.md) §5.8、§10.3。单租户部署见 `SINGLE_TENANT`。
 
 ## 二、技术选型
 
@@ -26,36 +39,34 @@
 
 ## 三、数据模型设计
 
-### User 表
+### User 表（工作台租户用户）
+
+权限不再用内嵌 `Role` 枚举，而是 PBAC：`User` ↔ `UserRole` ↔ `Role`（见 [`permission-system.md`](./permission-system.md)）。`is_system_admin` 表示租户内系统管理员捷径。
 
 ```prisma
 model User {
-  id                    String           @id @default(uuid())
+  id                    String    @id @default(uuid())
   tenant_id             String
   username              String
-  password              String           // bcrypt 加密后的密码
-  role                  Role             @default(USER) // USER, SUPERUSER
-  enabled               Boolean          @default(true)
+  password              String?   // bcrypt；OAuth 用户可为 null
+  is_system_admin       Boolean   @default(false)
+  enabled               Boolean   @default(true)
   last_login_at         DateTime?
-  failed_login_attempts Int              @default(0)
+  failed_login_attempts Int       @default(0)
   locked_until          DateTime?
-  created_at            DateTime         @default(now())
-  updated_at            DateTime         @updatedAt
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
 
-  tenant                Tenant           @relation(fields: [tenant_id], references: [id])
-  permissions           UserPermission[]
-  refresh_tokens        RefreshToken[]
-  audit_logs            AuditLog[]
+  // 另有 UserRole / RefreshToken / AuditLog 等关联（见 kernel schema）
 
   @@unique([tenant_id, username])
   @@index([tenant_id])
 }
-
-enum Role {
-  USER
-  SUPERUSER
-}
 ```
+
+### SiteMember 表（站点会员）
+
+终端客户，独立于 `User`。字段含 `email`、`password?`、`display_name`、`email_verified_at?`、`enabled`、登录锁定计数等；`@@unique([tenant_id, email])`。配套 `SiteMemberRefreshToken`。详见 `packages/modules/site-member/schema.prisma`。
 
 ### RefreshToken 表
 
@@ -319,13 +330,16 @@ POST /api/auth/logout
 
 - 算法: HS256
 - 有效期: 15 分钟
-- Payload: `{ userId, role, tenant_id, tenant_slug }`
+- Payload: `{ userId, actor_type, is_system_admin, type: "access", tenant_id?, tenant_slug? }`
+  - `actor_type`: `tenant_user` | `platform_admin` | `api_key` | `site_member`
+  - 平台管理员可无 `tenant_id` / `tenant_slug`
+  - **不再**使用已废弃的 `role` 字段
 
 **Refresh Token**：
 
 - 算法: HS256
 - 有效期: 7 天
-- 存储在数据库，可撤销
+- 存储在对应身份的 refresh 表（`RefreshToken` / `PlatformAdminRefreshToken` / `SiteMemberRefreshToken`），可撤销
 
 **环境变量**：
 

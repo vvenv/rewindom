@@ -18,6 +18,8 @@ import {
   Copy,
   Layers,
   MoreHorizontal,
+  RotateCcw,
+  Undo2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -48,8 +50,14 @@ interface EditorToolbarProps {
   state: EditorPublishState;
   canWrite: boolean;
   hasSections: boolean;
+  /** 库里草稿与线上不一致（站点级页头页脚，不在 `state` 里）。 */
   chromeDirty: boolean;
-  pending: { saving: boolean; publishing: boolean; chrome: boolean };
+  pending: {
+    saving: boolean;
+    publishing: boolean;
+    chrome: boolean;
+    reverting: boolean;
+  };
   onBack: () => void;
   onGoToPage: (pageId: string) => void;
   onDuplicated: (page: MarketingPage) => void;
@@ -58,6 +66,9 @@ interface EditorToolbarProps {
   onPublish: () => void;
   onUnpublish: () => void;
   onPublishChrome: () => void;
+  onDiscardLocal: () => void;
+  onRevertContent: () => void;
+  onRevertChrome: () => void;
 }
 
 /**
@@ -87,10 +98,15 @@ export function EditorToolbar({
   onPublish,
   onUnpublish,
   onPublishChrome,
+  onDiscardLocal,
+  onRevertContent,
+  onRevertChrome,
 }: EditorToolbarProps) {
   const { t } = useTranslation("marketing");
   const [duplicateOpen, setDuplicateOpen] = useState(false);
   const published = page.status === "published";
+  const hasRevert =
+    state.canDiscardLocal || state.canRevertContent || chromeDirty;
 
   return (
     // 移动端 `PageLayout` 把 action 放进固定层，所以自己收成右下角悬浮条
@@ -165,7 +181,7 @@ export function EditorToolbar({
                 hasContent={hasSections}
                 onApply={onApplyPreset}
               />
-              {chromeDirty || published ? <DropdownMenuSeparator /> : null}
+              {chromeDirty ? <DropdownMenuSeparator /> : null}
               {/* 页头页脚是站点级的，发出去会影响所有页面——所以不并进本页的发布 */}
               {chromeDirty ? (
                 <DropdownMenuItem
@@ -181,6 +197,58 @@ export function EditorToolbar({
                   </span>
                 </DropdownMenuItem>
               ) : null}
+
+              {/*
+                撤销分两级，与状态点说的是同一条链：内存 →(保存) 草稿 →(发布) 线上。
+                每一项只在真有东西可撤时出现，菜单里通常至多一两条。
+              */}
+              {hasRevert ? <DropdownMenuSeparator /> : null}
+              {state.canDiscardLocal ? (
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={onDiscardLocal}
+                >
+                  <Undo2 className="size-4" />
+                  <span className="flex min-w-0 flex-col">
+                    <span>{t("editor.discardLocal")}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t("editor.discardLocalHint")}
+                    </span>
+                  </span>
+                </DropdownMenuItem>
+              ) : null}
+              {state.canRevertContent ? (
+                <DropdownMenuItem
+                  variant="destructive"
+                  disabled={pending.reverting}
+                  onSelect={onRevertContent}
+                >
+                  <RotateCcw className="size-4" />
+                  <span className="flex min-w-0 flex-col">
+                    <span>{t("editor.revertContent")}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t("editor.revertContentHint")}
+                    </span>
+                  </span>
+                </DropdownMenuItem>
+              ) : null}
+              {chromeDirty ? (
+                <DropdownMenuItem
+                  variant="destructive"
+                  disabled={pending.chrome}
+                  onSelect={onRevertChrome}
+                >
+                  <RotateCcw className="size-4" />
+                  <span className="flex min-w-0 flex-col">
+                    <span>{t("editor.revertChrome")}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t("editor.revertChromeHint")}
+                    </span>
+                  </span>
+                </DropdownMenuItem>
+              ) : null}
+
+              {published ? <DropdownMenuSeparator /> : null}
               {published ? (
                 <DropdownMenuItem variant="destructive" onSelect={onUnpublish}>
                   <CloudOff className="size-4" />

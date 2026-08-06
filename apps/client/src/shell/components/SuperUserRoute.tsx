@@ -1,6 +1,10 @@
-import { usePermissions, useAuth, useDefaultHomePath  } from "@be-water/client-kit";
+import {
+  ExternalOrNavigate,
+  useAuth,
+  useDefaultHomePath,
+  usePermissions,
+} from "@be-water/client-kit";
 import { Navigate, Outlet, useLocation } from "react-router";
-
 
 export function SuperUserRoute() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -30,7 +34,7 @@ export function SuperUserRoute() {
     ]);
 
   if (!canAccess) {
-    return <Navigate to={homePath} replace />;
+    return <ExternalOrNavigate to={homePath} replace />;
   }
 
   return <Outlet />;

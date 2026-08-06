@@ -7,6 +7,7 @@ import {
   GuestOnlyRoute,
   PlatformAdminRoute,
   ProtectedRoute,
+  PublicProviders,
   SuperUserRoute,
 } from "@/shell/index";
 
@@ -27,8 +28,10 @@ const PlatformLayout = lazy(() =>
 export function renderAppShellRoutes(trees: AppRouteTrees): ReactNode {
   return (
     <>
-      {/* 公开路由不套任何守卫，且排在最前：官网 `/` 必须先于受保护的应用路由匹配。 */}
-      {trees.publicRoutes}
+      {/* 公开路由不套任何守卫，且排在最前：官网 `/` 必须先于受保护的应用路由匹配。
+          PublicProviders 是 pathless layout route，只注入上下文（如站点会员会话），
+          不参与匹配也不做重定向。 */}
+      <Route element={<PublicProviders />}>{trees.publicRoutes}</Route>
 
       <Route element={<GuestOnlyRoute />}>{trees.guestRoutes}</Route>
 

@@ -1,4 +1,4 @@
-import { isPlatformAdminActor, type AuthActorType } from "./auth-actor.js";
+import { isTenantUserActor, type AuthActorType } from "./auth-actor.js";
 import { isReservedTenantUsername } from "./tenant-internal.js";
 
 import type { AppLocale } from "./locale.js";
@@ -99,14 +99,17 @@ export interface TenantUserListItem {
 }
 
 /**
- * 是否为普通租户用户（排除平台管理员、保留用户名、模拟登录态）。
+ * 是否为普通租户用户（排除平台管理员、站点会员、API Key、保留用户名、模拟登录态）。
+ *
+ * 用白名单而非黑名单：新增 actor 类型时默认落在「非普通用户」一侧，
+ * 免得工作台专属能力（改密、用户菜单）被新身份意外命中。
  */
 export function isRegularUser(
   user: { username: string; actor_type: AuthActorType },
   isImpersonation = false,
 ): boolean {
   if (isImpersonation) return false;
-  if (isPlatformAdminActor(user.actor_type)) return false;
+  if (!isTenantUserActor(user.actor_type)) return false;
   if (isReservedTenantUsername(user.username)) return false;
   return true;
 }
@@ -142,4 +145,9 @@ export interface PublicConfig {
    * 平台通配子域基域（如 `water.moms.plus`）；空则前端不展示默认访问地址。
    */
   tenant_base_domain: string | null;
+  /**
+   * 平台控制台 origin（`PLATFORM_URL`）；前端拼绝对 `/platform` 入口用。
+   * 未配置时为 null（本地/测试兜底同域相对路径）。
+   */
+  platform_url: string | null;
 }

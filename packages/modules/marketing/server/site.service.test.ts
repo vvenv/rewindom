@@ -1,7 +1,13 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { duplicatePage, saveEditorDraft, applySiteStarter } from "./site.service.js";
+import {
+  applySiteStarter,
+  duplicatePage,
+  revertPageContent,
+  revertSiteChrome,
+  saveEditorDraft,
+} from "./site.service.js";
 
 vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   prisma: {
@@ -65,6 +71,7 @@ function sourceRow(overrides: Record<string, unknown> = {}) {
       (overrides.description_draft as string | undefined) ?? description,
     sections_draft: (overrides.sections_draft as unknown) ?? sections,
     settings: {},
+    settings_draft: {},
     status: "published",
     sort_order: 3,
     created_at: new Date("2026-08-01T00:00:00.000Z"),
@@ -205,6 +212,7 @@ describe("saveEditorDraft", () => {
     description_draft: "描述",
     sections_draft: [],
     settings: {},
+    settings_draft: {},
     status: "draft",
     sort_order: 0,
     created_at: new Date("2026-08-01T00:00:00.000Z"),
@@ -267,6 +275,145 @@ describe("saveEditorDraft", () => {
     );
     expect(result.page.title).toBe("新标题");
     expect(result.site.id).toBe("site-1");
+  });
+
+  // 页面设置也是要发布才上线的——写进 `settings` 就等于绕过发布直接改了线上
+  it("writes page settings to the draft column", async () => {
+    await saveEditorDraft(TENANT, "page-1", {
+      title: "新标题",
+      description: "新描述",
+      sections: [],
+      header: [],
+      footer: [],
+      settings: { bg_color: "#101010" },
+    });
+
+    const data = vi.mocked(prisma.marketingPage.update).mock
+      .calls[0]?.[0] as unknown as { data: Record<string, unknown> };
+    expect(data.data.settings_draft).toEqual({ bg_color: "#101010" });
+    expect(data.data.settings).toBeUndefined();
+  });
+});
+
+describe("revertPageContent", () => {
+  const livePageRow = {
+    ...sourceRow(),
+    title: "线上标题",
+    description: "线上描述",
+    // section 的 id 要显式给：缺 id 时 schema 每次解析都补一个随机的，
+    // 前后两次比对必然不等，`content_dirty` 就永远是 true
+    sections: [
+      { id: "s1", type: "hero", settings: { headline: "线上" }, blocks: [] },
+    ],
+    settings: { bg_color: "#ffffff" },
+    title_draft: "草稿标题",
+    description_draft: "草稿描述",
+    sections_draft: [
+      { id: "s1", type: "hero", settings: { headline: "草稿" }, blocks: [] },
+    ],
+    settings_draft: { bg_color: "#000000" },
+    status: "published",
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
+      livePageRow as never,
+    );
+    vi.mocked(prisma.marketingPage.update).mockImplementation((async (args: {
+      data: Record<string, unknown>;
+    }) => ({ ...livePageRow, ...args.data })) as never);
+  });
+
+  it("resets every draft column to the live one", async () => {
+    const page = await revertPageContent(TENANT, "page-1");
+
+    const data = vi.mocked(prisma.marketingPage.update).mock
+      .calls[0]?.[0] as unknown as { data: Record<string, unknown> };
+    // 四列一组全部回灌；sections 过 schema 时会补默认值，所以只认关键字段
+    expect(Object.keys(data.data).sort()).toEqual([
+      "description_draft",
+      "sections_draft",
+      "settings_draft",
+      "title_draft",
+    ]);
+    expect(data.data.title_draft).toBe("线上标题");
+    expect(data.data.description_draft).toBe("线上描述");
+    expect(data.data.settings_draft).toEqual({ bg_color: "#ffffff" });
+    expect(
+      (data.data.sections_draft as Array<{ settings: { headline: unknown } }>)[0]
+        ?.settings.headline,
+    ).toBe("线上");
+    // 撤销后草稿等于线上，编辑器的「有改动未发布」随之熄灭
+    expect(page.title).toBe("线上标题");
+    expect(page.settings).toEqual({ bg_color: "#ffffff" });
+    expect(page.content_dirty).toBe(false);
+  });
+
+  // 没上线过的页面，无后缀列里躺的是建页初值，不是用户见过的「线上版」
+  it("refuses pages that were never published", async () => {
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue({
+      ...livePageRow,
+      status: "draft",
+    } as never);
+
+    await expect(revertPageContent(TENANT, "page-1")).rejects.toThrow(
+      "site.page_not_published",
+    );
+    expect(prisma.marketingPage.update).not.toHaveBeenCalled();
+  });
+
+  it("404s on a page from another tenant", async () => {
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(null as never);
+
+    await expect(revertPageContent(TENANT, "page-1")).rejects.toThrow(
+      "site.page_not_found",
+    );
+  });
+});
+
+describe("revertSiteChrome", () => {
+  const dirtyChromeRow = {
+    ...siteRow,
+    nav_json: [
+      { id: "h1", type: "header", settings: { sticky: true }, blocks: [] },
+    ],
+    footer_json: [{ id: "f1", type: "footer", settings: {}, blocks: [] }],
+    nav_draft_json: [
+      { id: "h1", type: "header", settings: { sticky: false }, blocks: [] },
+    ],
+    footer_draft_json: [],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      dirtyChromeRow as never,
+    );
+    vi.mocked(prisma.marketingSite.findFirstOrThrow).mockResolvedValue(
+      dirtyChromeRow as never,
+    );
+    vi.mocked(prisma.marketingSite.update).mockImplementation((async (args: {
+      data: Record<string, unknown>;
+    }) => ({ ...dirtyChromeRow, ...args.data })) as never);
+  });
+
+  it("resets the draft chrome to the live one", async () => {
+    const site = await revertSiteChrome(TENANT);
+
+    const data = vi.mocked(prisma.marketingSite.update).mock
+      .calls[0]?.[0] as unknown as { data: Record<string, unknown> };
+    expect(Object.keys(data.data).sort()).toEqual([
+      "footer_draft_json",
+      "nav_draft_json",
+    ]);
+    expect(
+      (data.data.nav_draft_json as Array<{ settings: { sticky: unknown } }>)[0]
+        ?.settings.sticky,
+    ).toBe(true);
+    // 回灌后草稿等于线上，工具栏里「发布页头页脚」与撤销项一起消失
+    expect(site.chrome_dirty).toBe(false);
+    expect(site.header[0]?.settings.sticky).toBe(true);
   });
 });
 

@@ -133,6 +133,16 @@ export type RolePermission = Prisma.RolePermissionModel
  */
 export type UserRole = Prisma.UserRoleModel
 /**
+ * Model SiteMember
+ * 
+ */
+export type SiteMember = Prisma.SiteMemberModel
+/**
+ * Model SiteMemberRefreshToken
+ * 
+ */
+export type SiteMemberRefreshToken = Prisma.SiteMemberRefreshTokenModel
+/**
  * Model SlowQueryLog
  * 
  */

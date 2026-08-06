@@ -38,6 +38,7 @@ function page(
     title: "关于我们",
     description: "",
     settings: {},
+    visibility: "public",
     status: "draft",
     content_dirty: false,
     sort_order: 0,

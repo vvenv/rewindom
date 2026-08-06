@@ -1,9 +1,7 @@
 /**
  * 租户官网的 locale 路由规则（SSR / SPA / sitemap / 编辑器共用）。
  *
- * 与平台官网的 `client/lib/marketing-locale-path.ts` **刻意分开**：平台那套按白名单
- * 认官网路径（`/pricing`、`/docs`），租户站点的路径是自助 CMS 建出来的，白名单认不了，
- * 只能反过来排除应用区 / API 前缀。
+ * 租户 CMS 路径是自助建出来的，不能靠白名单认页面；只能反过来排除应用区 / API 前缀。
  *
  * URL 形态对齐 Shopify Markets：站点默认语言**不带前缀**（SEO 主入口），
  * 其余语言走 `/{locale}/...` 子目录。
@@ -21,6 +19,8 @@ export const SITE_APP_PREFIXES = [
   "app",
   "login",
   "register",
+  // 站点会员的登录/注册/我的账户；不加进来 SSR 会把 /member/login 当 CMS 页面找
+  "member",
   "platform",
   "billing",
   "settings",

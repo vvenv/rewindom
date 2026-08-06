@@ -85,17 +85,11 @@ pnpm deploy -- --env production
 
 服务器执行 `docker compose build`。Dockerfile 已按 sibling **shipest** 做分层缓存（先 install 依赖清单、BuildKit pnpm store、prod prune）：**依赖未变时二次构建会快很多**；勿在服务器随意 `docker system prune` 清掉层缓存。
 
-### 官网静态页（构建期生成）
+### 官网（租户 CMS SSR）
 
-`pnpm build` 里含一步预渲染：官网路由（`/`、`/pricing`、`/docs/*`）会渲染成真实 HTML，
-连同 `sitemap.xml`、`robots.txt` 一起进 `apps/client/dist`，由 Nginx 直接返回。
-
-canonical / og:url / sitemap 里的域名**写死在构建产物里**，来自 build arg `SITE_URL`
-（compose 默认 `https://${APP_DOMAIN}`）。换域名必须重新构建，改运行时环境变量没用。
-
-Nginx 侧对应两点（`docker/nginx/default.conf.template`，`APP_DOMAIN` 经 envsubst）：`try_files $uri $uri/index.html /app.html`；非平台 Host 的 HTML 文档反代到 app 做租户 Marketing SSR
-命中预渲染出的目录索引；SPA 兜底文件是 `app.html`（带 `noindex`）而不是 `index.html`——
-后者已经是官网落地页，拿它兜底会让刷新应用页先闪一屏官网。
+产品主域与其它绑定 Host 的 HTML 文档由 Nginx 反代到 Fastify Marketing SSR；
+仅 `PLATFORM_HOST`（平台控制台）走静态 SPA（`app.html`）。
+应用壳路径（`/app`、`/login`、`/platform` 等）始终走 SPA。
 
 ### 4. 仅同步环境变量
 
@@ -166,7 +160,9 @@ curl http://127.0.0.1:3700/health
 | 变量                           | 说明                                            |
 | ------------------------------ | ----------------------------------------------- |
 | `DEPLOY_HOST`                  | SSH 主机（本机专用）                            |
-| `APP_DOMAIN`                   | 对外域名                                        |
+| `APP_DOMAIN`                   | 产品主域（默认租户 CMS）                        |
+| `PLATFORM_URL`                 | 平台控制台 origin（默认 `https://platform.${APP_DOMAIN}`） |
+| `PLATFORM_HOST`                | Nginx 上平台控制台 hostname（默认 `platform.${APP_DOMAIN}`） |
 | `APP_PORT`                     | Docker web 映射到 127.0.0.1 的端口（默认 3700） |
 | `DB_PASSWORD`                  | PostgreSQL 密码                                 |
 | `JWT_SECRET`                   | JWT 签名密钥                                    |

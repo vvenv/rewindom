@@ -29,13 +29,17 @@ model MarketingPage {
   slug        String
   locale      String   @default("zh-CN")
   kind        String   @default("page")
+  // 正文四件套：无后缀的是线上（访客看到的），`_draft` 的是编辑器在改的那一份
   title             String
   description       String   @default("")
   sections          Json     @default("[]")
+  settings          Json     @default("{}")
   title_draft       String
   description_draft String   @default("")
   sections_draft    Json     @default("[]")
-  settings    Json     @default("{}")
+  settings_draft    Json     @default("{}")
+  // public = 所有人可见；members = 需站点会员登录（公开端点只返回摘要）
+  visibility  String   @default("public")
   status      String   @default("draft")
   sort_order  Int      @default(0)
   created_at  DateTime @default(now())

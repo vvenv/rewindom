@@ -21,6 +21,12 @@ export interface SiteLinkItem {
 
 export type MarketingPageKind = "home" | "page";
 export type MarketingPageStatus = "draft" | "published";
+/** 页面可见性：`public` 所有人；`members` 需站点会员登录。 */
+export type MarketingPageVisibility = "public" | "members";
+
+export function parsePageVisibility(value: unknown): MarketingPageVisibility {
+  return value === "members" ? "members" : "public";
+}
 
 /**
  * 页面级设置。
@@ -103,6 +109,7 @@ export interface MarketingPage {
   description: string;
   sections: SiteSection[];
   settings: MarketingPageSettings;
+  visibility: MarketingPageVisibility;
   status: MarketingPageStatus;
   /** 草稿正文是否与线上一致（仅 `published` 页有意义）。 */
   content_dirty: boolean;
@@ -118,6 +125,7 @@ export interface MarketingPageListItem {
   kind: MarketingPageKind;
   title: string;
   description: string;
+  visibility: MarketingPageVisibility;
   settings: MarketingPageSettings;
   status: MarketingPageStatus;
   content_dirty: boolean;
@@ -171,6 +179,8 @@ export interface SaveEditorDraftBody {
   footer: unknown;
   /** 页面画布外观（背景 / 前景）；与内容同一次保存。 */
   settings?: MarketingPageSettings;
+  /** 可见性立即生效（不进草稿列）：改完保存即对公开面生效。 */
+  visibility?: MarketingPageVisibility;
 }
 
 /** Theme Editor 事务保存的响应：页面与站点 chrome 同批落库。 */
@@ -194,6 +204,7 @@ export interface UpdateMarketingPageBody {
   description?: string;
   sections?: SiteSection[];
   settings?: MarketingPageSettings;
+  visibility?: MarketingPageVisibility;
   sort_order?: number;
 }
 
@@ -243,6 +254,12 @@ export interface PublicMarketingPage {
   description: string;
   sections: SiteSection[];
   settings: MarketingPageSettings;
+  visibility: MarketingPageVisibility;
+  /**
+   * 公开端点对 `visibility=members` 页只返回摘要时为 true。
+   * SPA 据此显示登录门控，再带会员 token 去 `/api/site/content/page` 拉正文。
+   */
+  requires_member?: boolean;
   /** 逻辑路径（不带 locale 前缀）。 */
   path: string;
   /**
@@ -269,6 +286,8 @@ export const RESERVED_PAGE_SLUGS = new Set([
   "app",
   "login",
   "register",
+  // 会员登录/注册/我的账户；与 SITE_APP_PREFIXES 手工对齐（两份清单用途不同）
+  "member",
   "platform",
   "api",
   "assets",

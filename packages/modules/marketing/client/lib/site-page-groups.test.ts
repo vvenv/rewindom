@@ -11,6 +11,7 @@ function page(
   return {
     description: "",
     settings: {},
+    visibility: "public",
     status: "draft",
     content_dirty: false,
     sort_order: 0,

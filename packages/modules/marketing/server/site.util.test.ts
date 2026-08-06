@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   normalizePageKind,
   pageContentIsDirty,
+  promotePageContentData,
   resolvePageIdentity,
+  revertPageContentData,
   validatePageSlug,
   validateSiteName,
 } from "./site.util.js";
@@ -48,9 +50,11 @@ describe("page content draft", () => {
         title: "Live",
         description: "",
         sections: [],
+        settings: {},
         title_draft: "Draft",
         description_draft: "",
         sections_draft: [],
+        settings_draft: {},
       }),
     ).toBe(true);
     expect(
@@ -58,11 +62,54 @@ describe("page content draft", () => {
         title: "Same",
         description: "d",
         sections: [],
+        settings: {},
         title_draft: "Same",
         description_draft: "d",
         sections_draft: [],
+        settings_draft: {},
       }),
     ).toBe(false);
+  });
+
+  // 页面设置以前没有草稿列，改一下就直接对访客生效，且这里一律报「不脏」
+  it("counts page settings as page content", () => {
+    expect(
+      pageContentIsDirty({
+        title: "Same",
+        description: "",
+        sections: [],
+        settings: { bg_color: "#fff" },
+        title_draft: "Same",
+        description_draft: "",
+        sections_draft: [],
+        settings_draft: { bg_color: "#000" },
+      }),
+    ).toBe(true);
+  });
+
+  it("promotes and reverts the whole content group", () => {
+    const record = {
+      title: "Live",
+      description: "live desc",
+      sections: [],
+      settings: { bg_color: "#fff" },
+      title_draft: "Draft",
+      description_draft: "draft desc",
+      sections_draft: [],
+      settings_draft: { bg_color: "#000" },
+    };
+    expect(promotePageContentData(record)).toEqual({
+      title: "Draft",
+      description: "draft desc",
+      sections: [],
+      settings: { bg_color: "#000" },
+    });
+    expect(revertPageContentData(record)).toEqual({
+      title: "Live",
+      description: "live desc",
+      sections: [],
+      settings: { bg_color: "#fff" },
+    });
   });
 });
 

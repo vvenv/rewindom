@@ -70,9 +70,6 @@ export function SiteSettingsSheet({ site, children }: SiteSettingsSheetProps) {
   const [defaultLocale, setDefaultLocale] = useState<AppLocale>(
     normalizeLocale(site.default_locale),
   );
-  const [showLocaleSwitcher, setShowLocaleSwitcher] = useState(
-    site.theme_settings.show_locale_switcher === true,
-  );
 
   const reset = (): void => {
     const nextDefault = normalizeLocale(site.default_locale);
@@ -81,7 +78,6 @@ export function SiteSettingsSheet({ site, children }: SiteSettingsSheetProps) {
     setTagline(site.tagline);
     setPublished(site.published);
     setDefaultLocale(nextDefault);
-    setShowLocaleSwitcher(site.theme_settings.show_locale_switcher === true);
   };
 
   const onSubmit = (event: FormEvent): void => {
@@ -92,8 +88,6 @@ export function SiteSettingsSheet({ site, children }: SiteSettingsSheetProps) {
         tagline,
         published,
         default_locale: defaultLocale,
-        // 只传这一个字段：服务端把 theme_settings 合并进现有主题，不会覆盖其它设置
-        theme_settings: { show_locale_switcher: showLocaleSwitcher },
       },
       {
         onSuccess: () => {
@@ -210,25 +204,6 @@ export function SiteSettingsSheet({ site, children }: SiteSettingsSheetProps) {
               <FieldDescription>
                 {t("cms.fieldDefaultLocaleHint")}
               </FieldDescription>
-            </Field>
-            {/*
-              语言切换器是**站点级**开关：它表态的是「这个站对外是不是多语言站」，
-              与主语言同属语言配置，所以不放在页头 section 的设置里。
-            */}
-            <Field orientation="horizontal">
-              <div className="flex flex-1 flex-col gap-1">
-                <FieldLabel htmlFor="show_locale_switcher">
-                  {t("cms.fieldLocaleSwitcher")}
-                </FieldLabel>
-                <FieldDescription>
-                  {t("cms.fieldLocaleSwitcherHint")}
-                </FieldDescription>
-              </div>
-              <Switch
-                id="show_locale_switcher"
-                checked={showLocaleSwitcher}
-                onCheckedChange={setShowLocaleSwitcher}
-              />
             </Field>
             <Field orientation="horizontal">
               <div className="flex flex-1 flex-col gap-1">

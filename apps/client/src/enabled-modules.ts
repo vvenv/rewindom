@@ -8,6 +8,7 @@ import { notesClientModule } from "@be-water/modules/notes/client/module.js";
 import { notificationClientModule } from "@be-water/modules/notification/client/module.js";
 import { platformClientModule } from "@be-water/modules/platform/client/module.js";
 import { rbacClientModule } from "@be-water/modules/rbac/client/module.js";
+import { siteMemberClientModule } from "@be-water/modules/site-member/client/module.js";
 import { slowQueryClientModule } from "@be-water/modules/slow-query/client/module.js";
 import { todosClientModule } from "@be-water/modules/todos/client/module.js";
 import { userClientModule } from "@be-water/modules/user/client/module.js";
@@ -29,6 +30,7 @@ export const ENABLED_CLIENT_MODULES = [
   appShellClientModule,
   dashboardClientModule,
   marketingClientModule,
+  siteMemberClientModule,
   notesClientModule,
   todosClientModule,
   notificationClientModule,

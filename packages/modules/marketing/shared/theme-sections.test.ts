@@ -29,7 +29,6 @@ describe("theme settings", () => {
       font_family: "system",
       page_width: "default",
       section_spacing: 16,
-      show_locale_switcher: false,
     });
   });
 
@@ -42,7 +41,6 @@ describe("theme settings", () => {
       font_family: "system",
       page_width: "default",
       section_spacing: 16,
-      show_locale_switcher: false,
     };
     expect(resolveThemeSettings({})).toEqual(empty);
     expect(resolveThemeSettings(null)).toEqual(empty);

@@ -13,6 +13,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         .getPublicConfigProvider()
         .getPublicConfig({ bound_tenant: bound ?? null });
       const baseDomain = appConfig.tenant.baseDomain.trim() || null;
+      const platformUrl = appConfig.platform.url.trim() || null;
       return reply.send(
         success({
           registration_enabled: config.registration_enabled,
@@ -23,6 +24,7 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
           single_tenant: appConfig.tenant.singleTenant,
           bound_tenant: config.bound_tenant,
           tenant_base_domain: baseDomain,
+          platform_url: platformUrl,
         }),
       );
     } catch (err) {

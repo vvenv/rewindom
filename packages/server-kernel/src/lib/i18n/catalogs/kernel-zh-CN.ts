@@ -84,6 +84,8 @@ export const KERNEL_MESSAGES_ZH: Record<string, string> = {
   "auth.tenant_system_admin_required": "无权访问：需要组织系统管理员权限",
   "auth.api_key_forbidden": "API Key 无权访问该接口",
   "auth.api_key_invalid": "API Key 无效或已吊销",
+  "auth.site_member_api_denied": "会员账户无权访问该接口",
+  "auth.site_member_not_found": "会员账户不存在或已停用",
   "auth.phone_required": "手机号不能为空",
   "auth.phone_invalid": "请输入正确的手机号格式",
   "auth.email_required": "邮箱不能为空",

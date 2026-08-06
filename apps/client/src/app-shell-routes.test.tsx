@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, it } from "vitest";
 
+import { AppShellConfigProvider, buildAppShellConfig } from "./app-shell-config";
 import { renderAppShellRoutes } from "./app-shell-routes";
 
 import type { AppRouteTrees } from "./collect-modules";
@@ -16,12 +17,21 @@ const trees: AppRouteTrees = {
   platformRoutes: null,
 };
 
+/**
+ * 公开路由外面套的是 `PublicProviders`（模块贡献的 `publicProviders`，如站点会员
+ * 会话），它要读外壳配置——`App.tsx` 里 `AppShellConfigProvider` 恒在 `Routes` 外层，
+ * 所以这里也照着给一份空配置。要验的是「没有 **Auth** Provider 也能渲染」。
+ */
+const shellConfig = buildAppShellConfig([]);
+
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <Suspense fallback={null}>
-        <Routes>{renderAppShellRoutes(trees)}</Routes>
-      </Suspense>
+      <AppShellConfigProvider value={shellConfig}>
+        <Suspense fallback={null}>
+          <Routes>{renderAppShellRoutes(trees)}</Routes>
+        </Suspense>
+      </AppShellConfigProvider>
     </MemoryRouter>,
   );
 }

@@ -41,11 +41,6 @@ RUN --mount=type=cache,id=be-water-pnpm-store,target=/pnpm/store \
 COPY apps apps
 COPY packages packages
 
-# 官网 canonical / og:url / sitemap 的域名在**构建期**写死进静态 HTML，
-# 因此必须是 build arg 而不是运行时环境变量（部署脚本传 https://${APP_DOMAIN}）。
-ARG SITE_URL
-ENV SITE_URL=${SITE_URL}
-
 RUN pnpm --filter server exec prisma generate \
   && pnpm build
 

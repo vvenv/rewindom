@@ -51,6 +51,7 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   TenantApiKey: { kind: "tenant_id" },
   TenantSetting: { kind: "tenant_id" },
   User: { kind: "tenant_id" },
+  SiteMember: { kind: "tenant_id" },
   // tenant_id 可空：平台角色为 null。租户上下文下注入即排除平台角色，符合预期。
   Role: { kind: "tenant_id" },
 
@@ -76,6 +77,7 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   PlatformAdminRefreshToken: { kind: "global", reason: "平台管理员令牌" },
   RolePermission: { kind: "global", reason: "经 role_id 间接归属" },
   RefreshToken: { kind: "global", reason: "经 user_id 间接归属" },
+  SiteMemberRefreshToken: { kind: "global", reason: "经 member_id 间接归属" },
   OAuthAccount: { kind: "global", reason: "经 user_id 间接归属" },
   UserRole: { kind: "global", reason: "经 user_id 间接归属" },
   BackgroundJob: { kind: "global", reason: "经 user_id 间接归属" },

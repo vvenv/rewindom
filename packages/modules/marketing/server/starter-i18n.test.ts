@@ -6,11 +6,11 @@ describe("createStarterTranslator", () => {
   it("resolves preset keys for zh-CN", () => {
     const t = createStarterTranslator("zh-CN");
     expect(t("preset.home.title")).not.toBe("preset.home.title");
-    expect(t("starter.default.login")).toBe("登录");
+    expect(t("starter.default.cta")).toBe("免费开始");
   });
 
   it("falls back to zh-CN for missing en strings", () => {
     const t = createStarterTranslator("en");
-    expect(t("starter.default.login")).toBe("Sign in");
+    expect(t("starter.default.cta")).toBe("Start free");
   });
 });

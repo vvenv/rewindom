@@ -12,6 +12,7 @@ import {
   getPublishedPublicPage,
   getPublishedSitemapEntries,
 } from "./site.service.js";
+import { resolveSpaEntrySrc } from "./spa-entry.js";
 import {
   renderMarketingHtml,
   renderRobotsTxt,
@@ -86,6 +87,9 @@ async function renderPath(
     return;
   }
 
+  // localStorage 会员 token 不随 HTML 请求发送：SSR 只能输出「需登录」占位 + noindex，
+  // 正文由 SPA 接管后带 token 拉取（见 TenantSitePageGate）——所以这里必须把 SPA
+  // 入口带上，否则会员页会永远停在占位上。
   sendHtml(
     reply,
     200,
@@ -93,6 +97,8 @@ async function renderPath(
       origin: requestOrigin(request),
       site: result.site,
       page: result.page,
+      spaEntrySrc: resolveSpaEntrySrc() ?? undefined,
+      memberGate: result.page.requires_member === true,
     }),
   );
 }

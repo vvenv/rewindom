@@ -1,8 +1,10 @@
 import { Spinner } from "@be-water/ui/spinner";
-import { Navigate, Outlet } from "react-router";
+import { Outlet } from "react-router";
 
 import { useDefaultHomePath } from "../hooks/useDefaultHomePath.js";
 import { usePermissions } from "../hooks/usePermissions.js";
+
+import { ExternalOrNavigate } from "./ExternalOrNavigate.js";
 
 import type { Permission } from "@be-water/shared";
 
@@ -31,7 +33,7 @@ export function PermissionRoute({ permission, anyOf }: PermissionRouteProps) {
       : true;
 
   if (!allowed) {
-    return <Navigate to={homePath} replace />;
+    return <ExternalOrNavigate to={homePath} replace />;
   }
 
   return <Outlet />;

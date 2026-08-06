@@ -10,8 +10,12 @@ vi.mock("../lib/config.js", () => ({
     auth: {
       platformAdmin: { username: "platform", password: "", passwordHash: "" },
     },
+    // 产品站 vs 平台控制台 Host 分离；测试默认走控制台 Host（不绑租户）
     frontend: {
-      url: "http://localhost:7300",
+      url: "http://app.example.com",
+    },
+    platform: {
+      url: "http://127.0.0.1:7300",
     },
     tenant: {
       baseDomain: "",
@@ -62,6 +66,9 @@ vi.mock("../lib/prisma.js", () => ({
     platformAdmin: {
       findUnique: vi.fn(),
       update: vi.fn().mockResolvedValue({}),
+    },
+    siteMember: {
+      findUnique: vi.fn(),
     },
   },
 }));
@@ -469,6 +476,109 @@ describe("auth.middleware", () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe("site_member actor", () => {
+    const memberPayload = {
+      userId: "member-1",
+      actor_type: "site_member" as const,
+      is_system_admin: false,
+      tenant_id: DEFAULT_TENANT_ID,
+      tenant_slug: "default",
+      type: "access" as const,
+    };
+
+    function mockSiteMember(): void {
+      vi.mocked(prisma.siteMember.findUnique).mockResolvedValue({
+        email: "member@example.com",
+        enabled: true,
+        tenant_id: DEFAULT_TENANT_ID,
+      } as never);
+      vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
+        status: "active",
+      } as never);
+    }
+
+    it("allows member token on /api/site/member", async () => {
+      mockSiteMember();
+      const token = app.jwt.sign(memberPayload, { expiresIn: "1h" });
+      app.get("/api/site/member/me", async (request) => request.authUser);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/site/member/me",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().actor_type).toBe("site_member");
+      expect(prisma.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("denies member token on workbench API", async () => {
+      mockSiteMember();
+      const token = app.jwt.sign(memberPayload, { expiresIn: "1h" });
+      app.get("/api/notes", async () => ({ ok: true }));
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/notes",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json().code).toBe("auth.site_member_api_denied");
+    });
+
+    it("denies member token on /api/platform", async () => {
+      mockSiteMember();
+      const token = app.jwt.sign(memberPayload, { expiresIn: "1h" });
+      app.get("/api/platform/tenants", async () => ({ ok: true }));
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/platform/tenants",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json().code).toBe("auth.platform_admin_required");
+    });
+
+    it("denies member token on bound host for another tenant", async () => {
+      mockSiteMember();
+      vi.mocked(prisma.tenant.findFirst).mockResolvedValue({
+        id: "tenant-acme",
+        slug: "acme",
+        name: "Acme",
+      } as never);
+      const token = app.jwt.sign(memberPayload, { expiresIn: "1h" });
+      app.get("/api/site/content/page", async () => ({ ok: true }));
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/site/content/page?path=/",
+        headers: {
+          authorization: `Bearer ${token}`,
+          host: "portal.acme.io",
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json().code).toBe("tenant.host_mismatch");
+    });
+
+    it("skips auth for member login/register", async () => {
+      for (const url of [
+        "/api/site/member/login",
+        "/api/site/member/register",
+        "/api/site/member/refresh",
+        "/api/site/member/logout",
+      ]) {
+        const response = await app.inject({ method: "POST", url });
+        expect(response.statusCode).not.toBe(401);
+      }
     });
   });
 

@@ -97,6 +97,7 @@ const mockPublicConfig: PublicConfig = {
   single_tenant: false,
   bound_tenant: null,
   tenant_base_domain: null,
+  platform_url: null,
 };
 
 export const clientShellTestMock = {

@@ -3,12 +3,12 @@ upstream app_backend {
     keepalive 8;
 }
 
-# 平台主域走静态预渲染；其余 Host（租户通配/自定义域）HTML 文档反代到 Fastify SSR。
-# APP_DOMAIN 由 nginx 镜像 envsubst 注入（见 docker-compose web.environment）。
+# 仅平台控制台 Host 走静态 SPA；产品主域（APP_DOMAIN）与其它 Host 的 HTML 反代 Marketing SSR。
+# PLATFORM_HOST / APP_DOMAIN 由 nginx 镜像 envsubst 注入（见 docker-compose web.environment）。
 map $host $use_tenant_ssr {
     default 1;
-    ${APP_DOMAIN} 0;
-    www.${APP_DOMAIN} 0;
+    ${PLATFORM_HOST} 0;
+    www.${PLATFORM_HOST} 0;
 }
 
 server {
@@ -60,8 +60,9 @@ server {
         try_files $uri =404;
     }
 
-    # 租户绑定域上的应用壳层路径：仍走 SPA，不进 Marketing SSR。
-    location ~ ^/(app|login|register|platform|billing|settings|notes|todos|users|roles|audit|notifications)(/|$) {
+    # 应用壳层路径：仍走 SPA，不进 Marketing SSR。
+    # 必须与 `SITE_APP_PREFIXES`（packages/modules/marketing/shared/site-locale.ts）保持一致。
+    location ~ ^/(app|login|register|member|platform|billing|settings|notes|todos|users|roles|audit|notifications)(/|$) {
         try_files $uri /app.html;
         add_header Cache-Control "no-cache" always;
     }
@@ -75,19 +76,18 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # 官网的静态产物：`/pricing` → `/pricing/index.html`（预渲染出的目录索引）。
-    # 兜底文件是 app.html 而不是 index.html——后者已经是预渲染的落地页，
-    # 拿它兜底会让刷新 /notes 先闪一屏官网内容再切回应用。
+    # 产品主域与其它租户 Host：文档导航反代 SSR。
+    # 平台控制台 Host：静态 SPA（/ → app.html，前端可进 /platform）。
     location / {
         error_page 418 = @tenant_ssr;
         if ($use_tenant_ssr = 1) {
             return 418;
         }
-        try_files $uri $uri/index.html /app.html;
+        try_files $uri /app.html;
         add_header Cache-Control "no-cache" always;
     }
 
-    # sitemap / robots：平台主域用静态文件；租户 Host 走 SSR。
+    # sitemap / robots：租户 Host 走 SSR；平台控制台 Host 若有静态文件则直接返回。
     location ~ ^/(sitemap\.xml|robots\.txt)$ {
         error_page 418 = @tenant_ssr;
         if ($use_tenant_ssr = 1) {

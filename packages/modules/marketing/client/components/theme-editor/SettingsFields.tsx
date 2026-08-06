@@ -25,6 +25,12 @@ import {
 import { Slider } from "@be-water/ui/slider";
 import { Spinner } from "@be-water/ui/spinner";
 import { Textarea } from "@be-water/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@be-water/ui/tooltip";
+import { Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -142,6 +148,36 @@ interface SettingFieldProps {
   onChange: (next: SettingValue) => void;
 }
 
+/**
+ * 开关行标签后的说明气泡。
+ *
+ * 触发器是真正的 `<button>`：Radix Tooltip 只认指针与焦点，做成 icon 才能让键盘
+ * 与读屏用户也拿得到这段话（`sr-only` 的标题给出「说明」二字）。触屏上仍然要点
+ * 一下才展开，所以这里只放**补充**信息，缺了也不影响把开关用对。
+ */
+function SettingInfoTip({ text }: { text: string }): ReactElement {
+  const { t } = useTranslation("marketing");
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          // 不进 tab 序：开关本身才是这一行的焦点目标，说明按 Tooltip 的
+          // `aria-describedby` 随标签一起读出来
+          tabIndex={-1}
+          className="text-muted-foreground/70 transition-colors hover:text-foreground"
+        >
+          <Info className="size-3.5" />
+          <span className="sr-only">{t("editor.settingInfo")}</span>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="left" className="max-w-56">
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 function SettingField({
   def,
   value,
@@ -154,6 +190,14 @@ function SettingField({
   const label = t(def.label);
   const info = def.info ? t(def.info) : null;
 
+  /*
+   * 开关行的说明收进 tooltip，输入类字段保留行下说明。
+   *
+   * 两者的 info 性质不同：开关的标签（「站点导航」「账户入口」）已经把事情说完了，
+   * 说明是补充；而输入类的 info 多是**影响你怎么填**的约束（「留空则自动生成」
+   * 「只在桌面生效」），藏起来就等于没写。页头一口气四个开关，每个再压两行灰字，
+   * 300px 的侧栏会糊成一片。
+   */
   if (def.type === "checkbox") {
     return (
       <Field orientation="horizontal">
@@ -163,10 +207,10 @@ function SettingField({
           checked={value === true}
           onCheckedChange={(checked) => onChange(checked === true)}
         />
-        <div className="flex flex-col gap-1">
-          <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
-          {info ? <FieldDescription>{info}</FieldDescription> : null}
-        </div>
+        <FieldLabel htmlFor={fieldId} className="flex items-center gap-1">
+          {label}
+          {info ? <SettingInfoTip text={info} /> : null}
+        </FieldLabel>
       </Field>
     );
   }

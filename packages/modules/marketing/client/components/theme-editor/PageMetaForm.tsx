@@ -7,12 +7,16 @@ import {
   FieldLabel,
 } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
+import { Switch } from "@be-water/ui/switch";
 import { Textarea } from "@be-water/ui/textarea";
 import { useTranslation } from "react-i18next";
 
 import { SiteColorField } from "../SiteColorField.js";
 
-import type { MarketingPageSettings } from "../../../shared/site-cms.js";
+import type {
+  MarketingPageSettings,
+  MarketingPageVisibility,
+} from "../../../shared/site-cms.js";
 
 interface PageMetaFormProps {
   title: string;
@@ -20,10 +24,12 @@ interface PageMetaFormProps {
   /** 页面路径，只读——改 slug 会换 URL，仍然留在页面列表里做。 */
   path: string;
   settings: MarketingPageSettings;
+  visibility: MarketingPageVisibility;
   disabled?: boolean;
   onChangeTitle: (value: string) => void;
   onChangeDescription: (value: string) => void;
   onChangeSettings: (settings: MarketingPageSettings) => void;
+  onChangeVisibility: (visibility: MarketingPageVisibility) => void;
 }
 
 /**
@@ -39,10 +45,12 @@ export function PageMetaForm({
   description,
   path,
   settings,
+  visibility,
   disabled,
   onChangeTitle,
   onChangeDescription,
   onChangeSettings,
+  onChangeVisibility,
 }: PageMetaFormProps): ReactElement {
   const { t } = useTranslation("marketing");
 
@@ -88,6 +96,27 @@ export function PageMetaForm({
           </FieldLabel>
           <Input id="page-meta-path" value={path} disabled readOnly />
           <FieldDescription>{t("editor.info.page_path")}</FieldDescription>
+        </Field>
+
+        <Field>
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-1">
+              <FieldLabel htmlFor="page-meta-members-only">
+                {t("editor.visibility.membersOnly")}
+              </FieldLabel>
+              <FieldDescription>
+                {t("editor.visibility.membersOnlyHint")}
+              </FieldDescription>
+            </div>
+            <Switch
+              id="page-meta-members-only"
+              checked={visibility === "members"}
+              disabled={disabled}
+              onCheckedChange={(checked) =>
+                onChangeVisibility(checked ? "members" : "public")
+              }
+            />
+          </div>
         </Field>
 
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase not-first:mt-2">

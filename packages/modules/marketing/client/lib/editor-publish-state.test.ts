@@ -68,5 +68,32 @@ describe("resolveEditorPublishState", () => {
 
     expect(state.stage).toBe("unsaved");
     expect(state.primary).toBe("save");
+    // 两级撤销互不遮挡：既能退回已保存的草稿，也能一路退回线上
+    expect(state.canDiscardLocal).toBe(true);
+    expect(state.canRevertContent).toBe(true);
+  });
+
+  it("offers no revert once live, draft and editor all agree", () => {
+    const state = resolveEditorPublishState({
+      dirty: false,
+      published: true,
+      contentDirty: false,
+    });
+
+    expect(state.canDiscardLocal).toBe(false);
+    expect(state.canRevertContent).toBe(false);
+  });
+
+  // 没发布过的页面，无后缀列里是建页初值，还原过去等于给出一个用户没见过的版本
+  it("never offers 撤销未发布的更改 on a page that was never published", () => {
+    const state = resolveEditorPublishState({
+      dirty: true,
+      published: false,
+      contentDirty: true,
+    });
+
+    expect(state.canRevertContent).toBe(false);
+    // 但内存这一版仍能退回已保存的草稿
+    expect(state.canDiscardLocal).toBe(true);
   });
 });

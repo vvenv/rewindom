@@ -1,4 +1,4 @@
-import { type CSSProperties } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 
 import { cn } from "@be-water/ui/utils";
 
@@ -16,7 +16,6 @@ import {
   themePageWidthCss,
 } from "../../shared/theme-sections.js";
 
-import { MarketingLayout } from "./MarketingLayout.js";
 import { SiteLocaleProvider } from "./sections/site-locale-context.js";
 import { SiteFooter, SiteHeader } from "./sections/SiteChrome.js";
 import { SiteSections } from "./sections/SiteSections.js";
@@ -45,12 +44,14 @@ interface TenantSiteViewProps {
   pageSettings?: MarketingPageSettings;
   /** 本页各语言入口；驱动页头的语言切换器 */
   alternates?: PageLocaleAlternate[];
-  /** 编辑器预览时隐藏 MarketingLayout 外层（仍渲染页眉页脚） */
+  /** 编辑器预览时去掉外层 min-h-svh 壳（仍渲染页眉页脚） */
   embedded?: boolean;
   /** 编辑器覆盖：预览未保存的页头 / 页脚草稿 */
   headerOverride?: SiteSection[];
   footerOverride?: SiteSection[];
   onSelectSection?: (sectionId: string) => void;
+  /** 替换 main 区内容（会员门控占位等）；有值时不再渲染 sections。 */
+  mainOverride?: ReactNode;
 }
 
 /**
@@ -70,6 +71,7 @@ export function TenantSiteView({
   headerOverride,
   footerOverride,
   onSelectSection,
+  mainOverride,
 }: TenantSiteViewProps) {
   const pageMeta = findPage(site, path);
   const theme = resolveThemeSettings(site.theme_settings);
@@ -120,7 +122,6 @@ export function TenantSiteView({
                 currentPath={path}
                 alternates={alternates}
                 locale={site.locale}
-                showLocaleSwitcher={theme.show_locale_switcher === true}
                 onSelect={
                   onSelectSection
                     ? () => onSelectSection(section.id)
@@ -141,7 +142,9 @@ export function TenantSiteView({
         </header>
 
         <main className="flex-1" style={mainStyle}>
-          {!pageMeta && path !== "/" && !hasOwnContent ? (
+          {mainOverride !== undefined ? (
+            mainOverride
+          ) : !pageMeta && path !== "/" && !hasOwnContent ? (
             <div className={cn(WRAP, "space-y-2 px-4 py-16 sm:px-6")}>
               <h1 className="text-2xl font-semibold">Page not found</h1>
               <p className="text-muted-foreground">
@@ -149,15 +152,13 @@ export function TenantSiteView({
               </p>
             </div>
           ) : (
-            <>
-              <SiteSections
-                sections={sections}
-                onSelectSection={onSelectSection}
-                sectionSpacing={theme.section_spacing}
-                pages={site.pages}
-                currentPath={path}
-              />
-            </>
+            <SiteSections
+              sections={sections}
+              onSelectSection={onSelectSection}
+              sectionSpacing={theme.section_spacing}
+              pages={site.pages}
+              currentPath={path}
+            />
           )}
         </main>
 
@@ -192,18 +193,14 @@ export function TenantSiteView({
   );
 
   if (embedded) {
-    // 与 MarketingLayout(chrome=false) 同一层底色，避免 iframe 直接露 body 渐变
-    // 而实站被 `bg-background` 壳盖住——预览会和真实页面不一致
+    // 与实站同一层底色，避免 iframe 直接露 body 渐变
     return (
       <div className="min-h-full bg-background text-foreground">{content}</div>
     );
   }
 
-  // 租户官网用自己的页头页脚，不套平台 chrome（只借 locale 同步与 SEO）
   return (
-    <MarketingLayout path={path} chrome={false}>
-      {content}
-    </MarketingLayout>
+    <div className="min-h-svh bg-background text-foreground">{content}</div>
   );
 }
 

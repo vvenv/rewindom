@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   APP_HOME_ENTRY_PATH,
-  PLATFORM_HOME_PATH,
+  goToPlatformConsole,
   useAuth,
+  usePublicConfig,
 } from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
 import { Spinner } from "@be-water/ui/spinner";
@@ -20,6 +21,9 @@ export function OAuthCallback() {
   const { t } = useTranslation(["shell", "common"]);
   const { loginWithTokens } = useAuth();
   const navigate = useNavigate();
+  const {
+    data: { platform_url },
+  } = usePublicConfig();
   const [error, setError] = useState<string | null>(null);
   const started = useRef(false);
 
@@ -48,19 +52,18 @@ export function OAuthCallback() {
 
     void loginWithTokens(tokens)
       .then((user) => {
-        navigate(
-          isPlatformAdminActor(user.actor_type)
-            ? PLATFORM_HOME_PATH
-            : APP_HOME_ENTRY_PATH,
-          { replace: true },
-        );
+        if (isPlatformAdminActor(user.actor_type)) {
+          goToPlatformConsole(platform_url);
+          return;
+        }
+        navigate(APP_HOME_ENTRY_PATH, { replace: true });
       })
       .catch((err: unknown) => {
         setError(
           err instanceof Error ? err.message : t("auth.oauth.failed"),
         );
       });
-  }, [loginWithTokens, navigate, t]);
+  }, [loginWithTokens, navigate, platform_url, t]);
 
   return (
     <AuthPageShell>

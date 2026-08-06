@@ -5,9 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 7300 --host",
-    "build": "vite build && pnpm build:prerender",
-    "build:spa": "vite build",
-    "build:prerender": "vite build --ssr src/prerender/entry.tsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "build": "vite build",
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "test": "vitest --run",

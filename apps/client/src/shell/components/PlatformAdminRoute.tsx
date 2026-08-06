@@ -1,4 +1,5 @@
 import {
+  ExternalOrNavigate,
   useAuth,
   useDefaultHomePath,
   usePublicConfig,
@@ -6,7 +7,6 @@ import {
 import { isPlatformAdminActor } from "@be-water/shared";
 import { Spinner } from "@be-water/ui/spinner";
 import { Navigate, Outlet, useLocation } from "react-router";
-
 
 export function PlatformAdminRoute() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -34,7 +34,7 @@ export function PlatformAdminRoute() {
   }
 
   if (!user || !isPlatformAdminActor(user.actor_type)) {
-    return <Navigate to={homePath} replace />;
+    return <ExternalOrNavigate to={homePath} replace />;
   }
 
   return <Outlet />;

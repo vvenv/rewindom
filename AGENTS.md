@@ -31,7 +31,7 @@
 | ----------------- | ----------------------------------------------------------------------------- |
 | Server 启用模块   | `apps/server/src/enabled-modules.ts`（infra → shell → 业务域）                |
 | Client 启用模块   | `apps/client/src/enabled-modules.ts`                                          |
-| 官网 SEO 路由表   | `packages/modules/marketing/client/lib/seo-routes.ts`（新增官网页面必须同步） |
+| 官网（租户 CMS）  | `packages/modules/marketing/`（主域=默认租户 SSR；平台控制台见 `PLATFORM_URL`） |
 | 工作台卡片        | 各模块 `client.dashboardWidgets` → `packages/modules/dashboard` 聚合渲染      |
 | 登录落地页        | `apps/client/src/home-path-candidates.ts`（默认 `/dashboard`；入口统一走 `/app`） |
 | 内核路由          | `packages/server-kernel/src/kernel/kernel-routes.ts`                          |

@@ -1,6 +1,7 @@
 import {
-  PLATFORM_HOME_PATH,
+  ExternalOrNavigate,
   useAuth,
+  useDefaultHomePath,
 } from "@be-water/client-kit";
 import { isPlatformAdminActor } from "@be-water/shared";
 import { Spinner } from "@be-water/ui/spinner";
@@ -17,6 +18,7 @@ import { useAppHomePath } from "../hooks/useAppHomePath.js";
 export function AppHomeRedirect() {
   const { user, isLoading } = useAuth();
   const homePath = useAppHomePath();
+  const platformHome = useDefaultHomePath();
 
   if (isLoading) {
     return (
@@ -28,7 +30,7 @@ export function AppHomeRedirect() {
 
   // 平台管理员绝不能落到 /dashboard 等租户壳，否则会挂载 AppLayout 并打租户 API。
   if (user && isPlatformAdminActor(user.actor_type)) {
-    return <Navigate to={PLATFORM_HOME_PATH} replace />;
+    return <ExternalOrNavigate to={platformHome} replace />;
   }
 
   return <Navigate to={homePath} replace />;

@@ -517,6 +517,7 @@ export function renderSectionHtml(
  * 刻意做成链接而不是按 `Accept-Language` 自动跳转——自动跳转会让爬虫只看到一种语言，
  * 各语言页面互相收录不到（Shopify 同样只做显式切换 + 推荐横幅）。
  * UI 与 client SiteChrome LocaleSwitcher / LocaleToggle 对齐。
+ * 附带一小段脚本：点击 details 外部时关闭（原生 details 无 light dismiss）。
  */
 const LOCALE_SWITCHER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>`;
 
@@ -530,10 +531,12 @@ function renderLocaleSwitcherHtml(options: LocaleSwitcherOption[]): string {
         }>${escapeHtml(option.label)}</a>`,
     )
     .join("");
+  // 原生 <details> 点外部不会收起；脚本挂在元素后，用 previousElementSibling 绑定自身。
   return `<details class="locale-switcher">
   <summary aria-label="Language">${LOCALE_SWITCHER_ICON}</summary>
   <nav class="locale-switcher-menu" aria-label="Language">${items}</nav>
-</details>`;
+</details>
+<script>(function(){var d=document.currentScript&&document.currentScript.previousElementSibling;if(!d||d.tagName!=="DETAILS")return;document.addEventListener("pointerdown",function(e){if(!d.open)return;if(e.target instanceof Node&&d.contains(e.target))return;d.open=false;});})();</script>`;
 }
 
 export interface LocaleSwitcherOption {
@@ -551,8 +554,6 @@ export function renderHeaderHtml(input: {
   /** 品牌区指向的首页（当前语言）。 */
   homeHref: string;
   locales: LocaleSwitcherOption[];
-  /** 站点级开关（`theme_settings.show_locale_switcher`）。 */
-  showLocaleSwitcher: boolean;
   /** 全站导航（一级页）数据源。 */
   pages?: PublicSitePage[];
   /** 当前逻辑路径（不带 locale 前缀），用于 `aria-current`。 */
@@ -597,7 +598,7 @@ export function renderHeaderHtml(input: {
   const ctaLabel = settingText(s, "primary_label");
   const ctaHref = settingText(s, "primary_href");
   const layout = settingText(s, "layout") || "split";
-  const switcher = input.showLocaleSwitcher
+  const switcher = settingBool(s, "show_locale_switcher")
     ? renderLocaleSwitcherHtml(locales)
     : "";
   const surface = blockSurfaceAttr(s);

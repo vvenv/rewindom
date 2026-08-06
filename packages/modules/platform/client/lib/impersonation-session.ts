@@ -1,10 +1,16 @@
-import { setStoredAuthTokens, PLATFORM_HOME_PATH } from "@be-water/client-kit";
+import {
+  api,
+  goToPlatformConsole,
+  setStoredAuthTokens,
+} from "@be-water/client-kit";
 
 import {
   clearImpersonationBackup,
   readImpersonationBackup,
   readImpersonationMeta,
 } from "./impersonation-storage.js";
+
+import type { PublicConfig } from "@be-water/shared";
 
 export function isInImpersonationSession(): boolean {
   return readImpersonationMeta() !== null && readImpersonationBackup() !== null;
@@ -16,7 +22,14 @@ export function exitImpersonation(): void {
   if (!backup) return;
   setStoredAuthTokens(backup);
   clearImpersonationBackup();
-  window.location.href = PLATFORM_HOME_PATH;
+  void api
+    .get<PublicConfig>("/public/config", undefined, true)
+    .then((config) => {
+      goToPlatformConsole(config.platform_url);
+    })
+    .catch(() => {
+      goToPlatformConsole(null);
+    });
 }
 
 /** Revoke current session and discard any saved platform backup. */

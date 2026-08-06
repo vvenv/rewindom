@@ -87,6 +87,8 @@ export const KERNEL_MESSAGES_EN: Record<string, string> = {
     "This account does not support password changes",
   "auth.platform_admin_tenant_api_denied":
     "Platform admins cannot access tenant APIs",
+  "auth.site_member_api_denied": "Member accounts cannot access this API",
+  "auth.site_member_not_found": "Member account not found or disabled",
   "auth.platform_admin_required":
     "Access denied: platform admin permission required",
   "auth.tenant_system_admin_required":

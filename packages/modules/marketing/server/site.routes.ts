@@ -20,6 +20,8 @@ import {
   listPages,
   publishPageContent,
   publishSiteChrome,
+  revertPageContent,
+  revertSiteChrome,
   saveEditorDraft,
   setPageStatus,
   updatePage,
@@ -228,6 +230,33 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
 
   defineRoute(app, {
     method: "POST",
+    url: "/chrome/revert",
+    context: "SiteChromeRevert",
+    errorCode: "SITE_CHROME_REVERT_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const site = await revertSiteChrome(request.tenantContext!.tenant_id);
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_UPDATE,
+          resource: site.id,
+          detail_key: "marketing.audit.chrome_reverted",
+          detail_params: { site_name: auditSiteName(site) },
+        });
+        return site;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
     url: "/assets",
     context: "SiteAssetUpload",
     errorCode: "SITE_ASSET_UPLOAD_FAILED",
@@ -406,6 +435,37 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           action: AuditAction.SITE_PAGE_PUBLISH,
           resource: page.id,
           detail_key: "marketing.audit.page_content_published",
+          detail_params: { title: page.title },
+        });
+        return page;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/pages/:pageId/content/revert",
+    context: "SitePageContentRevert",
+    errorCode: "SITE_PAGE_CONTENT_REVERT_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const { pageId } = request.params as { pageId: string };
+        const page = await revertPageContent(
+          request.tenantContext!.tenant_id,
+          pageId,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_PAGE_UPDATE,
+          resource: page.id,
+          detail_key: "marketing.audit.page_content_reverted",
           detail_params: { title: page.title },
         });
         return page;

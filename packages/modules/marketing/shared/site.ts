@@ -12,22 +12,13 @@ export const SITE = {
   tagline: "水无定形，遇器成形",
   description:
     "be-water 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。",
-  /**
-   * 站点规范域名（不带结尾斜杠）。canonical / og:url / sitemap 都由它拼出来，
-   * 构建时用 `SITE_URL` 环境变量覆盖（见 apps/client/scripts/prerender.mjs）。
-   */
+  /** 文档/示例用的占位 origin；线上 canonical 由请求 Host / FRONTEND_URL 决定。 */
   defaultOrigin: "https://be-water.example.com",
   locale: "zh_CN",
   repoUrl: "https://github.com/vvenv/be-water",
 } as const;
 
-/** 顶栏导航（顺序即展示顺序）。 */
-export const SITE_NAV: readonly SiteNavLink[] = [
-  { label: "文档", href: "/docs" },
-  { label: "定价", href: "/pricing" },
-];
-
-/** 页脚分组链接。 */
+/** 默认 starter 页脚分组链接。 */
 export const SITE_FOOTER_GROUPS: readonly {
   label: string;
   links: readonly SiteNavLink[];

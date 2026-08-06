@@ -12,9 +12,8 @@ export type TenantPublicSiteState =
   | { status: "ready"; site: PublicMarketingSite };
 
 /**
- * 绑定 Host 上拉取已发布租户站点。
- * 仅用 useEffect（不用 React Query），避免构建期预渲染因无 QueryClient 失败。
- * 预渲染不跑 effect → 始终走平台静态官网。
+ * 拉取当前 Host 已发布的租户站点（主域 = 默认租户）。
+ * 仅用 useEffect（不用 React Query），公开页可在无 QueryClient 的轻量宿主里跑。
  *
  * `locale` 只在 URL 显式带了 `/{locale}` 前缀时传；不带前缀时由服务端按站点
  * `default_locale` 决定——客户端在拿到站点之前并不知道那是哪一种语言。

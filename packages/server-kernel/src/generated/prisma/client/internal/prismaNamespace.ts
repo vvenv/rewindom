@@ -420,6 +420,8 @@ export const ModelName = {
   Role: 'Role',
   RolePermission: 'RolePermission',
   UserRole: 'UserRole',
+  SiteMember: 'SiteMember',
+  SiteMemberRefreshToken: 'SiteMemberRefreshToken',
   SlowQueryLog: 'SlowQueryLog',
   Todo: 'Todo'
 } as const
@@ -437,7 +439,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2143,6 +2145,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SiteMember: {
+      payload: Prisma.$SiteMemberPayload<ExtArgs>
+      fields: Prisma.SiteMemberFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SiteMemberFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SiteMemberFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload>
+        }
+        findFirst: {
+          args: Prisma.SiteMemberFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SiteMemberFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload>
+        }
+        findMany: {
+          args: Prisma.SiteMemberFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload>[]
+        }
+        create: {
+          args: Prisma.SiteMemberCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload>
+        }
+        createMany: {
+          args: Prisma.SiteMemberCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SiteMemberCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload>[]
+        }
+        delete: {
+          args: Prisma.SiteMemberDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload>
+        }
+        update: {
+          args: Prisma.SiteMemberUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload>
+        }
+        deleteMany: {
+          args: Prisma.SiteMemberDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SiteMemberUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SiteMemberUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload>[]
+        }
+        upsert: {
+          args: Prisma.SiteMemberUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberPayload>
+        }
+        aggregate: {
+          args: Prisma.SiteMemberAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSiteMember>
+        }
+        groupBy: {
+          args: Prisma.SiteMemberGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteMemberGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SiteMemberCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteMemberCountAggregateOutputType> | number
+        }
+      }
+    }
+    SiteMemberRefreshToken: {
+      payload: Prisma.$SiteMemberRefreshTokenPayload<ExtArgs>
+      fields: Prisma.SiteMemberRefreshTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SiteMemberRefreshTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SiteMemberRefreshTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.SiteMemberRefreshTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SiteMemberRefreshTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload>
+        }
+        findMany: {
+          args: Prisma.SiteMemberRefreshTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload>[]
+        }
+        create: {
+          args: Prisma.SiteMemberRefreshTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload>
+        }
+        createMany: {
+          args: Prisma.SiteMemberRefreshTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SiteMemberRefreshTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.SiteMemberRefreshTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload>
+        }
+        update: {
+          args: Prisma.SiteMemberRefreshTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.SiteMemberRefreshTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SiteMemberRefreshTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SiteMemberRefreshTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.SiteMemberRefreshTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteMemberRefreshTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.SiteMemberRefreshTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSiteMemberRefreshToken>
+        }
+        groupBy: {
+          args: Prisma.SiteMemberRefreshTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteMemberRefreshTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SiteMemberRefreshTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteMemberRefreshTokenCountAggregateOutputType> | number
+        }
+      }
+    }
     SlowQueryLog: {
       payload: Prisma.$SlowQueryLogPayload<ExtArgs>
       fields: Prisma.SlowQueryLogFieldRefs
@@ -2545,10 +2695,12 @@ export const MarketingPageScalarFieldEnum = {
   title: 'title',
   description: 'description',
   sections: 'sections',
+  settings: 'settings',
   title_draft: 'title_draft',
   description_draft: 'description_draft',
   sections_draft: 'sections_draft',
-  settings: 'settings',
+  settings_draft: 'settings_draft',
+  visibility: 'visibility',
   status: 'status',
   sort_order: 'sort_order',
   created_at: 'created_at',
@@ -2683,6 +2835,36 @@ export const UserRoleScalarFieldEnum = {
 } as const
 
 export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
+
+
+export const SiteMemberScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  email: 'email',
+  password: 'password',
+  display_name: 'display_name',
+  email_verified_at: 'email_verified_at',
+  enabled: 'enabled',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  last_login_at: 'last_login_at',
+  failed_login_attempts: 'failed_login_attempts',
+  locked_until: 'locked_until'
+} as const
+
+export type SiteMemberScalarFieldEnum = (typeof SiteMemberScalarFieldEnum)[keyof typeof SiteMemberScalarFieldEnum]
+
+
+export const SiteMemberRefreshTokenScalarFieldEnum = {
+  id: 'id',
+  member_id: 'member_id',
+  token: 'token',
+  expires_at: 'expires_at',
+  created_at: 'created_at',
+  revoked: 'revoked'
+} as const
+
+export type SiteMemberRefreshTokenScalarFieldEnum = (typeof SiteMemberRefreshTokenScalarFieldEnum)[keyof typeof SiteMemberRefreshTokenScalarFieldEnum]
 
 
 export const SlowQueryLogScalarFieldEnum = {
@@ -3023,6 +3205,8 @@ export type GlobalOmitConfig = {
   role?: Prisma.RoleOmit
   rolePermission?: Prisma.RolePermissionOmit
   userRole?: Prisma.UserRoleOmit
+  siteMember?: Prisma.SiteMemberOmit
+  siteMemberRefreshToken?: Prisma.SiteMemberRefreshTokenOmit
   slowQueryLog?: Prisma.SlowQueryLogOmit
   todo?: Prisma.TodoOmit
 }

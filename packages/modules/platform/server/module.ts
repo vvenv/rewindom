@@ -143,6 +143,7 @@ export const platformServerModule: ServerAppModule = {
             single_tenant: appConfig.tenant.singleTenant,
             bound_tenant,
             tenant_base_domain: appConfig.tenant.baseDomain.trim() || null,
+            platform_url: appConfig.platform.url.trim() || null,
           };
         },
       });

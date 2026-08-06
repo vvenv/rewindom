@@ -2,39 +2,32 @@
 
 ## 用途
 
-双轨官网：
+统一租户 CMS 官网（Fastify SSR）：
 
-1. **平台主域**：产品介绍、使用文档、定价——**构建期预渲染**静态 HTML（爬虫拿完整正文）
-2. **租户绑定域**（`custom_domain` / `{slug}.{TENANT_BASE_DOMAIN}`）：租户自助 CMS（section 编排 + Markdown + 站点主题），由 **Fastify SSR** 输出完整 HTML（SEO）
+1. **产品主域**（`FRONTEND_URL` / `APP_DOMAIN` / 本地 `localhost`）：隐式绑定**默认租户**；bootstrap 幂等 apply `default` starter 并发布
+2. **其它绑定域**（`custom_domain` / `{slug}.{TENANT_BASE_DOMAIN}`）：对应租户的已发布站点
+3. **平台控制台**在独立 Host（`PLATFORM_URL` / 本地 `127.0.0.1`），**不**走本模块 SSR
 
 ## 面划分
 
-| 面               | 路由                                                                            | 目录                                         | 守卫                                         |
-| ---------------- | ------------------------------------------------------------------------------- | -------------------------------------------- | -------------------------------------------- |
-| 公开（平台）     | `/`、`/pricing`、`/docs`、`/docs/:slug` 及 `/{locale}/...`                      | `client/public/`                             | 无                                           |
-| 公开（租户 SSR） | `/`、`/:slug`、嵌套 `/:a/:b`（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts`                       | Host 绑定 + 站点已发布                       |
-| 租户中台         | `/site`、`/site/pages/:pageId`（Theme Editor）                                  | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
+| 面           | 路由                                                                  | 目录                                         | 守卫                                           |
+| ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
+| 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` + `client/public/`    | Host 绑定（含主域→default）+ 站点已发布        |
+| 租户中台     | `/site`、`/site/pages/:pageId`（Theme Editor）                        | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
-挂载点：`client.renderPublicRoutes`（平台/绑定域 SPA）+ `client.renderRoutes`（CMS）+ `server.registerRoutes`。
+挂载点：`client.renderPublicRoutes`（SPA 接管）+ `client.renderRoutes`（CMS）+ `server.registerRoutes`。
 
 `/` 由本模块占据，因此**登录后的落地页不是 `/`**，而是 `HOME_PATH_CANDIDATES` 解析出的路径。
-外部链接想进应用一律指向 `/app`。
+外部链接想进应用一律指向 `/app`。平台管理员入口在 `PLATFORM_URL`。
 
-## 无 Provider 约束（平台预渲染）
-
-平台公开页面会在**没有任何 App Provider** 的环境下被渲染一次——预渲染脚本跑的是裸 React。
-
-- 不用 `useAuth`（用 `useOptionalAuth`）
-- **首屏渲染路径不发请求**（无 `QueryClientProvider`）。租户站点切换仅在 `useEffect` 中拉取 `/api/public/site*`，预渲染不跑 effect，静态 HTML 仍是平台官网
-- 不碰 `window` / `document` / `localStorage`（渲染期）
-- 不套 `PageLayout`：平台/租户公开页用 `MarketingLayout`；CMS 中台页用 `PageLayout`
+公开页中台壳用 CMS `SiteChrome`；工作台页用 `PageLayout`。SSR 首屏不依赖客户端 Provider；会员入口等在 SPA 接管后生效。
 
 ## 租户 CMS 数据
 
 | 模型            | 说明                                                                                                                                           |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布**页头页脚，`nav_draft_json` / `footer_draft_json` 为编辑器草稿 |
-| `MarketingPage` | `kind`: `home` \| `page`；`status`: `draft` \| `published`；`title` / `description` / `sections` 为**已发布**正文，`title_draft` / `description_draft` / `sections_draft` 为编辑器草稿；`settings`（占位） |
+| `MarketingPage` | `kind`: `home` \| `page`；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退） |
 
 ### Section schema（唯一真相源）
 
@@ -57,8 +50,81 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 | type     | settings                                                                 | blocks                                                                |
 | -------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| `header` | show_logo, show_site_name, sticky, show_site_nav（默认开：已发布一级页进顶栏）, layout(split\|centered), primary/secondary 按钮（secondary 默认 /login） | `nav_link`{label\*, href}，最多 8（自定义链接，排在一级页之后） |
+| `header` | show_logo, show_site_name, sticky, layout(split\|centered), **显示项四开关**（见下）, primary/secondary 按钮（都无默认值） | `nav_link`{label\*, href}，最多 8（自定义链接，排在一级页之后） |
 | `footer` | show_logo, blurb, copyright                                              | `footer_link`{group, label\*, href}，最多 24；同 `group` 的排进同一列 |
+
+### 页头右侧的四个显示项
+
+`show_site_nav` / `show_locale_switcher` / `show_theme_toggle` / `show_account` 合成一组
+「页头显示」，因为它们回答的是**同一个问题**：这枚入口露不露。能力本身另有出处，开关
+只管露不露，关掉不等于关掉能力：
+
+| 开关                    | 默认 | 能力由谁保证                                     |
+| ----------------------- | ---- | ------------------------------------------------ |
+| `show_site_nav`         | 开   | 已发布的一级页面                                 |
+| `show_locale_switcher`  | 关   | 本页 `alternates`——没译文时开了也不会露          |
+| `show_theme_toggle`     | 关   | 明暗内置且**永远跟随设备**；关掉只是不给手动按钮 |
+| `show_account`          | 开   | 租户是否开通会员（site-member）                  |
+
+语言切换器曾经是站点级设置（`theme_settings.show_locale_switcher`，
+`20260804030000`）；`20260806030000_marketing_header_chrome_toggles` 把它搬回页头并回填
+存量值。搬回来的理由是这四个开关本就该在一处配完，分成两处租户得跑两个地方排同一行按钮。
+
+### 明暗模式
+
+站点始终跟随访客设备：SPA 侧是 `next-themes`（`defaultTheme="system"`，`.dark` 落在
+`<html>` 上，站点组件用的 Tailwind 语义 token 自动翻）；SSR 侧是
+`@media (prefers-color-scheme: dark)` 覆写 `--fg` / `--bg` / `--border` 等中性变量。
+
+**租户显式配过的画布色两态都用**。`theme_settings.bg_color` / `fg_color` 是他自己挑的品牌
+色，深色态不该把它悄悄换掉；只有没配过的（绝大多数站点只配主色）才落到内置中性色上，
+于是深色设备拿到的是一张真正的深色页而不是白底。同理，section 级的 surface 颜色是内联
+样式，两态都生效。
+
+SSR **不**输出明暗切换按钮：它要 JS 才能工作（语言切换器能进 SSR 是因为那是纯 `<details>`）。
+按钮由 SPA 接管后渲染，与账户入口同一处理——前提是 SPA 真的会到场，见下节。
+
+### 会员入口（`show_account`）
+
+未登录显示「登录」，登录后换成头像 + 账户下拉（账户页 / 退出登录）。marketing **不**实现它，
+只在 `client/shell/site-member-slots.ts` 里声明 `siteMemberEntrySlot`；site-member 通过
+`client.shell.publicProviders` 把组件填进来（方向：site-member → marketing）。
+
+因此这枚入口在三种宿主下表现不同，都是刻意的：
+
+| 宿主                | slot | 渲染                                  |
+| ------------------- | ---- | ------------------------------------- |
+| 租户站点前台（SPA） | 有   | 真组件，按会员会话显示登录 / 账户下拉 |
+| SSR 首屏（无 slot） | 无   | 不输出账户入口；SPA 接管后补上        |
+| 主题编辑器预览      | 无   | 编辑器灌 `SiteAccountEntryPreview`    |
+
+编辑器拿不到 `publicProviders`，且真组件判「本站是否开通会员」是按请求 Host 走的，
+工作台域名下必然判不出来——所以预览用静态占位而不是借用真组件。
+
+次按钮（secondary）因此**不再**默认成登录：登录归账户入口管，两边都配就会并排出现两个「登录」。
+SSR（`ssr-sections.ts`）同样不输出账户入口——会员是否开通属于 site-member 的 entitlement，
+marketing 服务端要读它就得反向依赖；而绑定域上 SPA 会用 `createRoot` 整片覆盖 SSR HTML，
+少一枚登录按钮的首屏差异不值得为此把模块方向拧过来。
+
+### 绑定域上的 SPA 接管（交互层的前提）
+
+nginx 把绑定域的**所有** HTML 文档反代给 Fastify SSR，因此租户站上一切要 JS 的东西
+——账户入口、明暗切换、`requires_member` 页的正文——都取决于这份 SSR HTML 有没有把
+SPA 带上。两件事缺一不可：
+
+1. 正文包在 `<div id="root">` 里。`main.tsx` 走 `createRoot(getElementById("root")!)`，
+   没有挂载点会直接抛。
+2. `renderMarketingHtml({ spaEntrySrc })` 输出入口 `<script type="module">`。文件名带
+   vite 内容哈希，由 `spa-entry.ts` 从构建产物 `apps/client/dist/app.html` 里解析并缓存
+   （容器 cwd 是 `/app`，本地是 `apps/server`，两处候选路径都试）。读不到就退化成纯静态
+   HTML —— 开发态没有 dist 是常态，不该因此 500。
+
+这两条曾经都不成立（`spaEntrySrc` 全仓无调用方、body 里没有 `#root`），结果是绑定域上
+根本没有 JS：账户入口与明暗按钮永远不出现，会员页永远停在空占位。
+
+同一条链上还有 nginx 的 SPA 前缀正则，必须与 `SITE_APP_PREFIXES` 一致——漏一个前缀，
+那条路径会落进 `location /` 反代给 SSR，SSR 认出它属于应用区就 `callNotFound()`，
+访客拿到 404 JSON。`member` 就这么漏过一次，由 `nginx-spa-prefixes.test.ts` 守住。
 
 **页面级**（`placements` 含 `page`）。`band` / `prose` 三处都能放——通栏 CTA 摆进页头区
 就是公告条，prose 摆进页脚就是备案号，不另造类型：
@@ -114,9 +180,8 @@ group + 左列放 `page-menu`(siblings/list, 列上勾 sticky)，不再有专门
 ### 多语言
 
 URL 对齐 Shopify Markets：站点**主语言不带前缀**（`MarketingSite.default_locale`，SEO 主入口），
-其余语言走 `/{locale}/…` 子目录。路由规则集中在 `shared/site-locale.ts`（与平台官网的
-`client/lib/marketing-locale-path.ts` 分开——平台那套按白名单认路径，租户页面是自助建的，
-只能反过来排除应用区前缀）。locale 的 slug 占住了 `RESERVED_PAGE_SLUGS`，否则一个叫 `en`
+其余语言走 `/{locale}/…` 子目录。路由规则集中在 `shared/site-locale.ts`（排除应用区前缀，
+不靠页面白名单）。locale 的 slug 占住了 `RESERVED_PAGE_SLUGS`，否则一个叫 `en`
 的顶层页会把整棵 `/en/*` 遮住。
 
 存储按「授权单位 = 本地化单位」分两种：
@@ -139,11 +204,9 @@ URL 对齐 Shopify Markets：站点**主语言不带前缀**（`MarketingSite.de
 - 某字段缺译文 → 回落主语言原文，不留白
 - **不**按 `Accept-Language` 自动跳转：那会让爬虫只看到一种语言
 
-页头的**语言切换器**是站点级开关（`theme_settings.show_locale_switcher`，在「官网 → 站点设置」里，
-与主语言同一组），不是页头 section 的设置——它表态的是「这个站对外是不是多语言站」，
-放进 section 会让租户在两处找同一件事。存量的页头 section 值由
-`20260804030000_marketing_site_locale_switcher` 迁进 `theme_settings`。
-候选语言仍逐页算（`page.alternates`），只列真的有已发布译文的语言。
+页头的**语言切换器**是页头 section 的一个开关（`show_locale_switcher`，与站点导航 / 明暗 /
+账户入口同组，见上）。候选语言逐页算（`page.alternates`），只列真的有已发布译文的语言
+——所以单语言站点即使把开关打开也不会露出按钮。
 
 单语言站点的数据形状与以前逐字节一致：只有真的填了第二种语言，文案字段才从纯字符串
 升级成 `__i18n`（见 `writeLocalizedSetting`）。
@@ -182,7 +245,7 @@ padding/border/overflow，哪天有人加一句 `overflow-hidden` 就会静默�
 （React 会给 portal 容器单独挂事件监听，跨 document 的点击照样触发）。
 主文档的样式表与明暗 / `data-theme` 克隆进 iframe，开发态用 MutationObserver 跟 HMR。
 iframe body **不**硬铺 `var(--background)`——主站 body 是径向渐变；`embedded` 预览再套一层
-与 `MarketingLayout` 相同的 `bg-background` 壳，观感与实站一致。
+`bg-background` 壳，观感与实站一致。
 
 设备档位是**逻辑视口宽度**（桌面 1280 / 平板 768 / 手机 390），面板装不下时整体
 等比缩小：缩放只改视觉尺寸，iframe 仍按逻辑宽度渲染，断点不受影响。桌面不能
@@ -253,8 +316,21 @@ block 不跨层：它的 schema 属于所在 section，一个 `card` 换不到 `
 
 保存一次写页面 sections 与页头页脚草稿：`PUT /api/site/pages/:id/draft`（`saveEditorDraft`，同事务）。
 页头页脚上线：`POST /api/site/chrome/publish`（将草稿列复制到 `nav_json` / `footer_json`）。
-已发布页面正文上线：`POST /api/site/pages/:id/content/publish`（将草稿列复制到 `title` / `description` / `sections`）。
+已发布页面正文上线：`POST /api/site/pages/:id/content/publish`（将草稿列复制到 `title` / `description` / `sections` / `settings`）。
 首次发布页面：`POST /api/site/pages/:id/publish`（`status` → `published` 并同步正文草稿）。
+
+**撤销未发布的草稿**是发布的反向，两级各有入口（都在工具栏「更多」里，按需出现）：
+
+| 撤到哪儿             | 入口                                            | 条件                     |
+| -------------------- | ----------------------------------------------- | ------------------------ |
+| 内存 → 已保存的草稿  | 纯前端（清 sessionStorage 缓存后重新灌入）      | `dirty`                  |
+| 页面草稿 → 线上      | `POST /api/site/pages/:id/content/revert`       | 页面 `published` 且脏     |
+| 页头页脚草稿 → 线上  | `POST /api/site/chrome/revert`                  | `chrome_dirty`           |
+
+服务端两条 revert 是 publish 的镜像：把无后缀列回灌进 `_draft` 列。页面级那条只对
+**已发布**页面开放——没上线过的页面，无后缀列里躺的是建页初值，拿它当还原目标只会
+给出一个用户从没见过的版本。可撤性由 `resolveEditorPublishState` 与发布态一起算出
+（`canDiscardLocal` / `canRevertContent`），工具栏只负责渲染。
 图片上传：`POST /api/site/assets` → 公开 URL `/api/public/tenants/:slug/site-assets/:filename`。
 草稿预览 API：`GET /api/site/preview?path=`（需 `site.read`，含 draft 页面 + 草稿 chrome）。
 
@@ -301,45 +377,35 @@ API：
 
 现有租户管理员补权限：`pnpm --filter server exec tsx scripts/sync-builtin-admin-permissions.ts`
 
-## 平台内容在哪
+## 默认内容从哪来
 
-| 内容           | 位置                                                          | 说明                                     |
-| -------------- | ------------------------------------------------------------- | ---------------------------------------- |
-| 文档正文       | `content/docs/*.md`                                           | frontmatter 必填 `title` + `description` |
-| 首页文案       | `shared/features.ts` + `client/locales/*.json`                |                                          |
-| 定价包装       | `shared/pricing.ts`                                           | 数字来自 platform `PRICING_PLANS`        |
-| 站点信息 / SEO | `shared/site.ts`、`shared/seo.ts`、`client/lib/seo-routes.ts` | 仅平台预渲染                             |
+| 内容 | 位置 | 说明 |
+| --- | --- | --- |
+| 起步模板 | `shared/site-starters.ts` + `page-presets.ts` | key=`default`（home/docs/pricing） |
+| 站点元信息 | `shared/site.ts` | starter 页脚 / 站名默认值 |
+| Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等 apply + 发布 |
 
-新增平台文档 = `content/docs/`；新增平台**页面**要三处同步：`client/public/routes.tsx`、`MARKETING_STATIC_PATHS`、`MARKETING_ROUTES`。
+新增页面：在 CMS Theme Editor 创建/发布即可；SEO 由 SSR + sitemap 动态生成。
 
 ## Nginx 分流
 
-见 `docker/nginx/default.conf.template`：`APP_DOMAIN`（及 `www.`）走静态预渲染；其余 Host 的 HTML 文档反代到 Fastify SSR；`/app` `/login` 等仍走 SPA。
+见 `docker/nginx/default.conf.template`：仅 `PLATFORM_HOST` 走静态 SPA；产品主域与其它 Host 的 HTML 反代 Fastify SSR；`/app` `/login` `/platform` 等仍走 SPA。
 
-本地 Vite：非 localhost Host 的文档导航由 `tenantMarketingSsrProxy` 代理到 `:3700`。
+本地 Vite：`localhost` 文档导航代理到 `:3700` SSR；`127.0.0.1` 为平台控制台（不代理）。
 
-## 预渲染（平台）
-
-```bash
-pnpm --filter client build
-SITE_URL=https://your-domain.com pnpm --filter client build
-```
-
-浏览器里 SPA 用 `createRoot` 覆盖预渲染 HTML；绑定域上则以 SSR HTML 为 SEO 真相源，SPA 再拉取公开 API 覆盖交互层。
+SSR HTML 为 SEO 真相源；SPA 接管后补交互层（会员入口、明暗切换等）。
 
 ## 本地种子数据
 
 ```bash
-# 给 local 租户铺一套与默认官网对齐的站点（首页 / 文档 / 定价 + 页头页脚 + 品牌色）
+# 给指定租户铺 default starter 并发布（默认 slug=default）
 pnpm --filter server exec tsx scripts/seed-local-marketing-site.ts [tenantSlug]
 
 # 只发首页的最小 SSR 冒烟
 pnpm --filter server exec tsx scripts/seed-tenant-site-smoke.ts
 ```
 
-`seed-local-marketing-site.ts` 的内容直接取自默认官网的数据源（`HERO`、`FEATURES`、
-`BUILTIN_MODULES`、`TECH_STACK`、`MARKETING_PLANS`、`PRICING_FAQ`、`content/docs/*.md`），
-改了那些常量重跑即可同步，不用手抄文案。按 `kind + slug` upsert，可反复执行。
+`seed-local-marketing-site.ts` 调用 `applySiteStarter("default")` 后整站发布，可反复执行。
 
 ## 如何单独测试
 

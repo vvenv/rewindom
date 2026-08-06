@@ -51,6 +51,13 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit", "platform"],
   },
   {
+    id: "site-member",
+    kind: "infrastructure",
+    // platform：注册前需要确认站点已开通会员 entitlement
+    // marketing：前端把会员入口 / 门控组件填进站点前台的 slot（方向 site-member → marketing）
+    requires: ["rbac", "audit", "platform", "marketing"],
+  },
+  {
     id: "notes",
     kind: "business",
     requires: ["rbac", "audit"],

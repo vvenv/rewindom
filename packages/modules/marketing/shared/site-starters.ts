@@ -91,10 +91,9 @@ export function buildSiteStarterChrome(
           // 一级页（docs / pricing）由 `show_site_nav` 自动进顶栏，不必再抄一份 nav_link。
           show_site_nav: true,
           layout: "split",
-          secondary_label: t("starter.default.login"),
-          secondary_href: "/login",
+          // 登录 / 账户入口由会员模块填进页头，模板不再自己配一枚「登录」按钮
           primary_label: t("starter.default.cta"),
-          primary_href: "/register",
+          primary_href: "/member/register",
         }),
         blocks: [],
       },

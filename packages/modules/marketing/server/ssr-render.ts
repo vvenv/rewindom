@@ -37,21 +37,54 @@ function siteCss(
   pageWidth: string,
   canvas?: { bg?: string | null; fg?: string | null },
 ): string {
-  const bg = canvas?.bg || "#ffffff";
-  const fg = canvas?.fg || "#0a0a0a";
+  /*
+   * 明暗两套中性色，默认跟随设备（`prefers-color-scheme`）。
+   *
+   * 租户在主题里显式配过的画布色**两态都用**：那是他自己挑的品牌色，不该被深色态
+   * 悄悄换掉。只有没配过的（绝大多数站点只配了主色）才落到内置中性色上，
+   * 于是深色设备拿到的是一张真正的深色页，而不是白底。
+   */
+  const bg = canvas?.bg;
+  const fg = canvas?.fg;
+  const light = { bg: bg || "#ffffff", fg: fg || "#0a0a0a" };
+  const dark = { bg: bg || "#0a0a0a", fg: fg || "#fafafa" };
+  const darkVars = `
+      --fg: ${dark.fg};
+      --muted-fg: #a1a1aa;
+      --bg: ${dark.bg};
+      --muted-bg: #18181b;
+      --border: rgba(250,250,250,.14);
+      --header-bg: rgba(10,10,10,.85);
+      --surface: #18181b;`;
   return `
     :root {
       --site-page-width: ${pageWidth};
       --accent: ${accent};
       /* 与 SPA 侧同名，hero 光晕那段渐变两处共用 */
       --site-accent: ${accent};
-      --fg: ${fg};
+      --fg: ${light.fg};
       --muted-fg: #737373;
-      --bg: ${bg};
+      --bg: ${light.bg};
       --muted-bg: #fafafa;
       --border: rgba(10,10,10,.12);
+      /* 页头半透明底与下拉浮层底：深色态要跟着翻，所以抽成变量 */
+      --header-bg: rgba(255,255,255,.85);
+      --surface: #ffffff;
       --radius: .75rem;
       color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {${darkVars}
+        color-scheme: dark;
+      }
+    }
+    /*
+     * 访客手动切换后，SPA 会在 html 元素上落 class="dark"（next-themes）。
+     * SSR 首屏读不到那个选择（它存在 localStorage 里），但 SPA 用 createRoot
+     * 整片接管，所以这条只是让接管前后不至于闪成两种底色。
+     */
+    :root.dark {${darkVars}
+      color-scheme: dark;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: ${fontCss}; line-height: 1.6; color: var(--fg); background: var(--bg); -webkit-font-smoothing: antialiased; }
@@ -64,7 +97,7 @@ function siteCss(
     .lead { color: var(--muted-fg); }
     .eyebrow { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-fg); }
 
-    .site-header { border-bottom: 1px solid var(--border); background: rgba(255,255,255,.85); backdrop-filter: blur(12px); }
+    .site-header { border-bottom: 1px solid var(--border); background: var(--header-bg); backdrop-filter: blur(12px); }
     .site-header.sticky { position: sticky; top: 0; z-index: 40; }
     .header-row { display: flex; align-items: center; gap: 1rem; height: 3.5rem; }
     .header-row.header-layout-centered { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
@@ -80,7 +113,7 @@ function siteCss(
     .locale-switcher > summary { list-style: none; display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: .5rem; color: var(--fg); cursor: pointer; }
     .locale-switcher > summary::-webkit-details-marker { display: none; }
     .locale-switcher > summary:hover { background: var(--muted-bg); }
-    .locale-switcher-menu { position: absolute; right: 0; top: calc(100% + .25rem); z-index: 50; min-width: 8rem; display: grid; gap: .125rem; padding: .25rem; border: 1px solid var(--border); border-radius: .5rem; background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .locale-switcher-menu { position: absolute; right: 0; top: calc(100% + .25rem); z-index: 50; min-width: 8rem; display: grid; gap: .125rem; padding: .25rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--surface); box-shadow: 0 4px 16px rgba(0,0,0,.08); }
     .locale-switcher-menu a { display: block; padding: .375rem .625rem; border-radius: .375rem; font-size: .875rem; color: var(--muted-fg); white-space: nowrap; }
     .locale-switcher-menu a:hover { background: var(--muted-bg); color: var(--fg); }
     .locale-switcher-menu a[aria-current="true"] { background: var(--muted-bg); color: var(--fg); font-weight: 500; }
@@ -282,10 +315,12 @@ export function renderMarketingHtml(input: {
   site: PublicMarketingSite;
   page: PublicMarketingPage;
   spaEntrySrc?: string;
+  /** 会员专属页：正文占位 + robots noindex（token 不随 HTML 请求）。 */
+  memberGate?: boolean;
 }): string {
-  const { origin, site, page, spaEntrySrc } = input;
+  const { origin, site, page, spaEntrySrc, memberGate = false } = input;
   const theme = resolveThemeSettings(site.theme_settings);
-  const sections = page.sections;
+  const sections = memberGate ? [] : page.sections;
   // 段间距显式算好落到每一段上，与 SPA 侧同一个函数
   const gaps = resolveSectionGaps(
     sections.map((section) => resolveSectionLayout(section.settings)),
@@ -346,7 +381,6 @@ export function renderMarketingHtml(input: {
             logoUrl,
             homeHref: withSiteLocale("/", locale, site.default_locale),
             locales: localeSwitcherOptions(page, locale),
-            showLocaleSwitcher: theme.show_locale_switcher === true,
             pages: site.pages,
             currentPath: page.path,
             locale,
@@ -367,6 +401,17 @@ export function renderMarketingHtml(input: {
     )
     .join("");
 
+  const robotsMeta = memberGate
+    ? `<meta name="robots" content="noindex, nofollow" />`
+    : "";
+  const mainHtml = memberGate
+    ? `<div class="wrap" style="padding:4rem 1.5rem;text-align:center">
+      <h1 style="font-size:1.5rem;font-weight:600;margin-bottom:.75rem">${escapeHtml(page.title)}</h1>
+      <p class="muted" style="margin-bottom:1.5rem">${escapeHtml(page.description || "Sign in to read this content.")}</p>
+      <p><a class="btn" href="/member/login">Sign in</a></p>
+    </div>`
+    : sectionsHtml;
+
   return `<!DOCTYPE html>
 <html lang="${escapeHtml(locale)}">
 <head>
@@ -374,12 +419,19 @@ export function renderMarketingHtml(input: {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${title}</title>
   <meta name="description" content="${description}" />
+  ${robotsMeta}
   <link rel="canonical" href="${escapeHtml(canonical)}" />
   ${alternateLinks}
   <script type="application/ld+json">${jsonLd}</script>
   <style>${siteCss(theme.primary_color ?? "#0f766e", themeFontCss(theme.font_family), themePageWidthCss(theme.page_width), { bg: theme.bg_color, fg: theme.fg_color })}</style>
 </head>
 <body>
+  <!--
+    正文包在 #root 里：SPA 接管时走 createRoot(#root)，会把这份 SSR 内容整片换掉。
+    没有它 main.tsx 的 getElementById("root") 直接抛，页面就停在静态 HTML 上
+    ——账户入口、明暗切换、会员页正文都指望 SPA 到场。
+  -->
+  <div id="root">
   ${headerHtml}
   <main${page.settings.bg_color || page.settings.fg_color ? ` style="${[
     page.settings.bg_color ? `background-color:${page.settings.bg_color}` : "",
@@ -387,9 +439,10 @@ export function renderMarketingHtml(input: {
   ]
     .filter(Boolean)
     .join(";")}"` : ""}>
-    ${sectionsHtml}
+    ${mainHtml}
   </main>
   ${footerHtml}
+  </div>
   ${spaEntrySrc ? `<script type="module" src="${escapeHtml(spaEntrySrc)}"></script>` : ""}
 </body>
 </html>`;
@@ -410,7 +463,7 @@ export function renderUnavailableHtml(input: {
   <main style="max-width:40rem;margin:4rem auto;padding:1.5rem;font-family:system-ui,sans-serif">
     <h1>${escapeHtml(input.title)}</h1>
     <p>${escapeHtml(input.message)}</p>
-    <p><a href="/login">登录</a></p>
+    <p><a href="/member/login">Sign in</a></p>
   </main>
 </body>
 </html>`;

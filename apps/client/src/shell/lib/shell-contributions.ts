@@ -12,6 +12,7 @@ import type {
 export interface CollectedShellContributions {
   authLoginHero?: ComponentType<AuthLoginHeroProps>;
   shellProviders: Array<ComponentType<{ children: ReactNode }>>;
+  publicProviders: Array<ComponentType<{ children: ReactNode }>>;
   sidebarToolbar: Array<ComponentType>;
   sidebarPrimaryAction: Array<ComponentType<SidebarSlotProps>>;
   sidebarPanel: Array<ComponentType<SidebarSlotProps>>;
@@ -37,6 +38,7 @@ export function collectShellContributions(
 ): CollectedShellContributions {
   const collected: CollectedShellContributions = {
     shellProviders: [],
+    publicProviders: [],
     sidebarToolbar: [],
     sidebarPrimaryAction: [],
     sidebarPanel: [],
@@ -55,6 +57,9 @@ export function collectShellContributions(
 
     if (shell.shellProviders) {
       collected.shellProviders.push(...shell.shellProviders);
+    }
+    if (shell.publicProviders) {
+      collected.publicProviders.push(...shell.publicProviders);
     }
     pushContribution(collected.sidebarToolbar, shell.sidebarToolbar);
     pushContribution(collected.sidebarPrimaryAction, shell.sidebarPrimaryAction);

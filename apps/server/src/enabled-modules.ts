@@ -7,6 +7,7 @@ import { notesServerModule } from "@be-water/modules/notes/server/index.js";
 import { notificationServerModule } from "@be-water/modules/notification/server/index.js";
 import { platformServerModule } from "@be-water/modules/platform/server/index.js";
 import { rbacServerModule } from "@be-water/modules/rbac/server/index.js";
+import { siteMemberServerModule } from "@be-water/modules/site-member/server/index.js";
 import { slowQueryServerModule } from "@be-water/modules/slow-query/server/index.js";
 import { todosServerModule } from "@be-water/modules/todos/server/index.js";
 import { userServerModule } from "@be-water/modules/user/server/index.js";
@@ -24,6 +25,7 @@ export const ENABLED_SERVER_MODULES = [
   userServerModule,
   platformServerModule,
   marketingServerModule,
+  siteMemberServerModule,
   notesServerModule,
   todosServerModule,
   billingServerModule,

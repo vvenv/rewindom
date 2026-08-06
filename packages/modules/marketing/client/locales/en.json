@@ -326,9 +326,7 @@
     "fieldLocale": "Language",
     "localeHint": "Create one page per language under the same slug. The primary language has no URL prefix; others live under /{locale}/…",
     "fieldDefaultLocale": "Primary language",
-    "fieldDefaultLocaleHint": "The one served without a URL prefix. Changing it affects already-indexed links.",
-    "fieldLocaleSwitcher": "Show language switcher",
-    "fieldLocaleSwitcherHint": "Site-wide: adds a language switcher to the header, listing only the languages each page is actually published in."
+    "fieldDefaultLocaleHint": "The one served without a URL prefix. Changing it affects already-indexed links."
   },
   "starter": {
     "menu": "Starter",
@@ -336,7 +334,6 @@
     "default": {
       "label": "Default marketing site",
       "description": "Header, footer, theme colors, home, docs and pricing",
-      "login": "Sign in",
       "cta": "Start free"
     },
     "confirmTitle": "Replace existing site content?",
@@ -382,6 +379,25 @@
     "publishChromeHint": "Site-wide: updates the header and footer on every page.",
     "toastChromePublished": "Header and footer are now live",
     "toastChromePublishFailed": "Failed to publish header and footer",
+    "discardLocal": "Discard unsaved changes",
+    "discardLocalHint": "Back to the last saved draft — nothing on the server changes.",
+    "discardLocalConfirmTitle": "Discard unsaved changes?",
+    "discardLocalConfirmBody": "The editor goes back to the last saved draft. Everything changed since then is lost.",
+    "discardLocalConfirmAction": "Discard changes",
+    "toastLocalDiscarded": "Back to the last saved draft",
+    "revertContent": "Discard unpublished changes",
+    "revertContentHint": "Resets the draft to the live version, page settings included.",
+    "revertContentConfirmTitle": "Discard this page's unpublished changes?",
+    "revertContentConfirmBody": "The draft is reset to the live version. Changes you saved but never published are lost. The live page is untouched.",
+    "revertDiscardsUnsavedToo": "This page also has unsaved changes — those go too.",
+    "revertConfirmAction": "Discard and reset",
+    "toastContentReverted": "Draft reset to the live version",
+    "revertChrome": "Discard header & footer changes",
+    "revertChromeHint": "Site-wide: resets the header and footer draft on every page.",
+    "revertChromeConfirmTitle": "Discard unpublished header & footer changes?",
+    "revertChromeConfirmBody": "The header and footer are site-wide: the draft is reset to the live version on every page. The live site is untouched.",
+    "toastChromeReverted": "Header and footer reset to the live version",
+    "toastRevertFailed": "Failed to discard changes. Please try again.",
     "toastContentPublished": "Page content is now live",
     "toastContentPublishFailed": "Failed to publish page content",
     "uploadImage": "Upload",
@@ -399,13 +415,13 @@
       "heading": "Heading",
       "layout": "Layout",
       "brand": "Brand",
-      "nav": "Navigation",
       "headerArea": "Header",
       "template": "Page sections",
       "footerArea": "Footer",
       "section": "Section layout",
       "appearance": "Appearance",
-      "page": "Page"
+      "page": "Page",
+      "headerItems": "Header items"
     },
     "info": {
       "markdown": "Markdown is supported.",
@@ -418,7 +434,6 @@
       "anchor": "Leave blank for none. With \"pricing\", link here via /#pricing",
       "content_width": "Full bleed + unconstrained gives edge-to-edge media; colored bands usually keep content at page width.",
       "spacing": "Distance to the neighbouring section; “Inherit” follows the site-wide section spacing.",
-      "locale_switcher_site": "The language switcher is a site-wide setting, toggled under Site → Settings.",
       "show_site_nav": "Lists published top-level pages (not nested under another page). Custom nav links below still appear after them.",
       "columns_layout": "Applies on desktop; columns stack on narrow screens. Ratios that do not match the column count fall back to equal widths.",
       "sticky_column": "The column stays in view while the other column scrolls. Best for a menu or a short summary.",
@@ -431,7 +446,10 @@
       "bg_color": "Overrides the background preset when set. Supports alpha (e.g. #0f766e80).",
       "border_width": "0 hides the custom border. Setting a border color with width 0 draws a 1px border.",
       "radius": "Inherit keeps the default corner radius for this surface.",
-      "page_bg_color": "Colors the page content area only; header and footer keep their own settings."
+      "page_bg_color": "Colors the page content area only; header and footer keep their own settings.",
+      "show_account": "Shows “Sign in” when signed out, and an account menu once signed in. Hidden on sites without members.",
+      "show_locale_switcher": "Only appears when this page has translations. Whether a page is translated is decided in the page list; this only controls the button.",
+      "show_theme_toggle": "The site always follows the visitor's device preference. Turn this on to also give them a manual switch. Off does not force light mode."
     },
     "unit": {
       "columns": "cols",
@@ -505,7 +523,10 @@
       "fg_color": "Text color",
       "border_color": "Border color",
       "border_width": "Border width",
-      "radius": "Corner radius"
+      "radius": "Corner radius",
+      "show_account": "Account entry",
+      "show_locale_switcher": "Language switcher",
+      "show_theme_toggle": "Dark mode switch"
     },
     "option": {
       "align": {
@@ -631,7 +652,13 @@
     "leaveConfirmBody": "This page has unsaved changes. Leaving now discards them.",
     "leaveConfirmAction": "Discard and leave",
     "pageMeta": "Page settings",
-    "pagePath": "Page path"
+    "pagePath": "Page path",
+    "visibility": {
+      "membersOnly": "Members only",
+      "membersOnlyHint": "Visitors must sign in as a site member to read the full content"
+    },
+    "accountEntryPreview": "Sign in",
+    "settingInfo": "Details"
   },
   "seo": {
     "home": {
