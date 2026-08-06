@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 
 import { PageLayout, useConfirm, usePermissions } from "@be-water/client-kit";
-import { getLocaleNativeLabel } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import { ButtonGroup } from "@be-water/ui/button-group";
 import { Spinner } from "@be-water/ui/spinner";
 import {
   ArrowLeft,
-  Copy,
   Monitor,
   Palette,
   Smartphone,
@@ -18,18 +16,20 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
-import { SitePageDuplicateSheet } from "../components/SitePageDuplicateSheet.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";
+import { EditorToolbar } from "../components/theme-editor/EditorToolbar.js";
 import { PageMetaForm } from "../components/theme-editor/PageMetaForm.js";
-import { PageSwitcher } from "../components/theme-editor/PageSwitcher.js";
-import { PresetMenu } from "../components/theme-editor/PresetMenu.js";
 import {
   PreviewFrame,
   type PreviewDevice,
 } from "../components/theme-editor/PreviewFrame.js";
 import { SectionSettingsForm } from "../components/theme-editor/SectionSettingsForm.js";
 import { SectionTree } from "../components/theme-editor/SectionTree.js";
-import { useSiteThemeEditor, clearEditorCache } from "../hooks/use-site-theme-editor.js";
+import {
+  useSiteThemeEditor,
+  clearEditorCache,
+} from "../hooks/use-site-theme-editor.js";
+import { resolveEditorPublishState } from "../lib/editor-publish-state.js";
 
 const DEVICE_ICONS: Array<[PreviewDevice, LucideIcon]> = [
   ["desktop", Monitor],
@@ -102,6 +102,12 @@ export function SiteThemeEditor() {
   const saving = editor.mutations.saveEditorDraft.isPending;
   const publishingChrome = editor.mutations.publishChrome.isPending;
   const publishingContent = editor.mutations.publishPageContent.isPending;
+  const publishingPage = editor.mutations.publishPage.isPending;
+  const publishState = resolveEditorPublishState({
+    dirty: editor.dirty,
+    published: page.status === "published",
+    contentDirty: editor.contentDirty,
+  });
 
   /**
    * 离开当前草稿（返回列表 / 换页 / 换语言）都会把没存的改动丢掉，先问一句。
@@ -156,11 +162,29 @@ export function SiteThemeEditor() {
     });
   };
 
-  const publishPageContent = (): void => {
+  /**
+   * 「发布」只有一枚：页面还没上线就走上线（服务端顺带把草稿提升到线上），
+   * 已经上线就只推正文。两条路径对用户是同一件事——让线上等于当前草稿。
+   */
+  const publish = (): void => {
     if (!pageId) return;
-    editor.mutations.publishPageContent.mutate(pageId, {
-      onSuccess: () => toast.success(t("editor.toastContentPublished")),
-      onError: () => toast.error(t("editor.toastContentPublishFailed")),
+    if (page.status === "published") {
+      editor.mutations.publishPageContent.mutate(pageId, {
+        onSuccess: () => toast.success(t("editor.toastContentPublished")),
+        onError: () => toast.error(t("editor.toastContentPublishFailed")),
+      });
+      return;
+    }
+    editor.mutations.publishPage.mutate(pageId, {
+      onSuccess: () => toast.success(t("cms.toastPagePublished")),
+      onError: () => toast.error(t("cms.toastPagePublishFailed")),
+    });
+  };
+
+  const unpublish = (): void => {
+    editor.mutations.unpublishPage.mutate(page.id, {
+      onSuccess: () => toast.success(t("cms.toastPageUnpublished")),
+      onError: () => toast.error(t("cms.toastPagePublishFailed")),
     });
   };
 
@@ -171,130 +195,30 @@ export function SiteThemeEditor() {
       description={editor.title || page.title}
       fill
       action={
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => void leaveTo("/site")}
-          >
-            <ArrowLeft className="size-4" />
-            <span className="hidden md:inline">{t("editor.back")}</span>
-          </Button>
-          {/* 同语言下的其它页面：改完一页直接切下一页，不用退回列表 */}
-          <PageSwitcher
-            pages={editor.localePages}
-            currentPageId={page.id}
-            currentTitle={editor.title || page.title}
-            onSelect={goToPage}
-          />
-          {/*
-            切语言 = 切到同 slug 的**另一行页面**（页面按语言分行存），所以是导航
-            而不是本地状态。还没建那一行时置灰，提示去页面列表新建。
-          */}
-          {editor.localeVariants.length > 1 ? (
-            <ButtonGroup>
-              {editor.localeVariants.map((variant) => {
-                const active = variant.locale === editor.locale;
-                return (
-                  <Button
-                    key={variant.locale}
-                    size="sm"
-                    variant={active ? "secondary" : "outline"}
-                    aria-pressed={active}
-                    disabled={variant.pageId === null}
-                    title={
-                      variant.pageId === null
-                        ? t("editor.locale.missing")
-                        : getLocaleNativeLabel(variant.locale)
-                    }
-                    onClick={() => {
-                      if (variant.pageId) void goToPage(variant.pageId);
-                    }}
-                  >
-                    {getLocaleNativeLabel(variant.locale)}
-                  </Button>
-                );
-              })}
-            </ButtonGroup>
-          ) : null}
-          {canWrite ? (
-            <>
-              {/* 复制到另一种语言后直接跳过去接着译 */}
-              <SitePageDuplicateSheet
-                page={page}
-                onDuplicated={(created) =>
-                  void navigate(`/site/pages/${created.id}`)
-                }
-              >
-                <Button size="sm" variant="outline">
-                  <Copy className="size-4" />
-                  <span className="hidden md:inline">{t("cms.duplicate")}</span>
-                </Button>
-              </SitePageDuplicateSheet>
-              <PresetMenu
-                hasContent={editor.sections.length > 0}
-                onApply={editor.replaceSections}
-              />
-              {editor.chromeDirty ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={publishingChrome}
-                  onClick={publishChrome}
-                >
-                  {publishingChrome && <Spinner className="size-4" />}
-                  {t("editor.publishChrome")}
-                </Button>
-              ) : null}
-              {page.status === "published" && editor.contentDirty ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={publishingContent}
-                  onClick={publishPageContent}
-                >
-                  {publishingContent && <Spinner className="size-4" />}
-                  {t("editor.publishContent")}
-                </Button>
-              ) : null}
-              {page.status === "published" ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    editor.mutations.unpublishPage.mutate(page.id, {
-                      onSuccess: () =>
-                        toast.success(t("cms.toastPageUnpublished")),
-                      onError: () =>
-                        toast.error(t("cms.toastPagePublishFailed")),
-                    })
-                  }
-                >
-                  {t("cms.unpublish")}
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    editor.mutations.publishPage.mutate(page.id, {
-                      onSuccess: () =>
-                        toast.success(t("cms.toastPagePublished")),
-                      onError: () =>
-                        toast.error(t("cms.toastPagePublishFailed")),
-                    })
-                  }
-                >
-                  {t("cms.publish")}
-                </Button>
-              )}
-              <Button size="sm" disabled={saving} onClick={saveAll}>
-                {saving && <Spinner className="size-4" />}
-                {t("cms.save")}
-              </Button>
-            </>
-          ) : null}
-        </div>
+        <EditorToolbar
+          page={page}
+          currentTitle={editor.title || page.title}
+          localePages={editor.localePages}
+          localeVariants={editor.localeVariants}
+          locale={editor.locale}
+          state={publishState}
+          canWrite={canWrite}
+          hasSections={editor.sections.length > 0}
+          chromeDirty={editor.chromeDirty}
+          pending={{
+            saving,
+            publishing: publishingContent || publishingPage,
+            chrome: publishingChrome,
+          }}
+          onBack={() => void leaveTo("/site")}
+          onGoToPage={goToPage}
+          onDuplicated={(created) => void navigate(`/site/pages/${created.id}`)}
+          onApplyPreset={editor.replaceSections}
+          onSave={saveAll}
+          onPublish={publish}
+          onUnpublish={unpublish}
+          onPublishChrome={publishChrome}
+        />
       }
     >
       {/* 三栏各自滚：页面不整体滚动，预览区吃满剩余高度 */}

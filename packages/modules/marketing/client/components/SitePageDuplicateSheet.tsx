@@ -51,7 +51,13 @@ type DuplicateSource = Pick<
 
 interface SitePageDuplicateSheetProps {
   page: DuplicateSource;
-  children: ReactNode;
+  /**
+   * 触发器。放在下拉菜单里时给不出来——菜单项一点菜单就关，`SheetTrigger`
+   * 跟着卸载，这时改用受控的 `open` / `onOpenChange`。
+   */
+  children?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   /** 复制成功后的去向（编辑器里复制完直接跳到新页面）。 */
   onDuplicated?: (page: MarketingPage) => void;
 }
@@ -77,6 +83,8 @@ function translatedLocales(
 export function SitePageDuplicateSheet({
   page,
   children,
+  open: controlledOpen,
+  onOpenChange,
   onDuplicated,
 }: SitePageDuplicateSheetProps) {
   const { t } = useTranslation("marketing");
@@ -90,7 +98,12 @@ export function SitePageDuplicateSheet({
     siteLocaleOrder(defaultLocale).find((slug) => !existing.has(slug)) ??
     page.locale;
 
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (next: boolean): void => {
+    setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  };
   const [title, setTitle] = useState(page.title);
   const [locale, setLocale] = useState<AppLocale>(suggestedLocale);
 
@@ -119,7 +132,7 @@ export function SitePageDuplicateSheet({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>{children}</SheetTrigger>
+      {children ? <SheetTrigger asChild>{children}</SheetTrigger> : null}
       <SheetContent className="sm:max-w-md">
         <form className="flex h-full flex-col" onSubmit={onSubmit}>
           <SheetHeader>

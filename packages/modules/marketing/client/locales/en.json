@@ -366,10 +366,22 @@
     "dropIntoColumn": "Drop here to put it in this column",
     "toastSaved": "Page, header and footer saved",
     "toastSaveFailed": "Save failed. Please try again.",
+    "saveDraft": "Save draft",
+    "saveHint": "Saves your changes to the draft. Visitors still see the live version.",
+    "publishHint": "Pushes the current draft live — visitors see it right away.",
+    "publishBlockedUnsaved": "Save the draft first; publishing now would ship your last saved version.",
+    "publishBlockedUpToDate": "The live page already matches the draft — nothing to publish.",
+    "more": "More actions",
+    "state": {
+      "unsaved": "Unsaved changes",
+      "unpublished": "Draft — not live",
+      "stale": "Live version is behind",
+      "live": "Live is up to date"
+    },
     "publishChrome": "Publish header & footer",
+    "publishChromeHint": "Site-wide: updates the header and footer on every page.",
     "toastChromePublished": "Header and footer are now live",
     "toastChromePublishFailed": "Failed to publish header and footer",
-    "publishContent": "Publish page changes",
     "toastContentPublished": "Page content is now live",
     "toastContentPublishFailed": "Failed to publish page content",
     "uploadImage": "Upload",
@@ -785,5 +797,17 @@
       "faq1_q": "How quickly will I hear back?",
       "faq1_a": "Usually within one business day. For anything urgent, please call."
     }
+  },
+  "audit": {
+    "site_updated": "Updated site \"{{site_name}}\"",
+    "page_created": "Created site page \"{{title}}\"",
+    "page_duplicated": "Duplicated site page \"{{title}}\"",
+    "page_updated": "Updated site page \"{{title}}\"",
+    "page_deleted": "Deleted site page",
+    "page_published": "Published site page \"{{title}}\"",
+    "page_content_published": "Published site page content for \"{{title}}\"",
+    "page_unpublished": "Unpublished site page \"{{title}}\"",
+    "starter_applied": "Applied site starter \"{{key}}\" ({{page_count}} pages)",
+    "chrome_published": "Published site header and footer for \"{{site_name}}\""
   }
 }

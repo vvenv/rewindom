@@ -6,12 +6,11 @@ import {
   MarketingLayout,
   MarketingSection,
 } from "../components/MarketingLayout.js";
+import { TenantSitePageGate } from "../components/TenantSitePageGate.js";
 import { useMarketingHref } from "../hooks/use-marketing-href.js";
 import { DOC_PAGES } from "../lib/docs.js";
 
-import { TenantSitePageGate } from "./tenant-site-page.js";
-
-function PlatformDocsIndex() {
+function PlatformDocs() {
   const { t } = useTranslation("marketing");
   const hrefFor = useMarketingHref();
 
@@ -50,6 +49,6 @@ function PlatformDocsIndex() {
   );
 }
 
-export function DocsIndex() {
-  return <TenantSitePageGate fallback={<PlatformDocsIndex />} />;
+export function Docs() {
+  return <TenantSitePageGate fallback={<PlatformDocs />} />;
 }

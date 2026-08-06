@@ -13,7 +13,7 @@ import { useSite, useSitePages } from "../hooks/useSite.js";
 import { hasSiteStarterContent } from "../lib/site-content-state.js";
 import { groupSitePages } from "../lib/site-page-groups.js";
 
-export function SiteCms() {
+export function Site() {
   const { t } = useTranslation("marketing");
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("site.write");

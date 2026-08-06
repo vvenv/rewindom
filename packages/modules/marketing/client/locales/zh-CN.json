@@ -366,10 +366,22 @@
     "dropIntoColumn": "拖到这里放进本列",
     "toastSaved": "页面与页头页脚已保存",
     "toastSaveFailed": "保存失败，请重试",
+    "saveDraft": "保存草稿",
+    "saveHint": "把改动存进草稿；访客看到的还是线上那一版。",
+    "publishHint": "把当前草稿推到线上，访客立即可见。",
+    "publishBlockedUnsaved": "先保存草稿，再发布——否则发出去的是上一次保存的内容。",
+    "publishBlockedUpToDate": "线上已经和当前草稿一致，没有要发布的改动。",
+    "more": "更多操作",
+    "state": {
+      "unsaved": "有未保存的改动",
+      "unpublished": "草稿未上线",
+      "stale": "线上不是最新",
+      "live": "线上已是最新"
+    },
     "publishChrome": "发布页头页脚",
+    "publishChromeHint": "站点级，所有页面的页头页脚都会更新。",
     "toastChromePublished": "页头页脚已上线",
     "toastChromePublishFailed": "发布页头页脚失败",
-    "publishContent": "发布页面更改",
     "toastContentPublished": "页面内容已上线",
     "toastContentPublishFailed": "发布页面内容失败",
     "uploadImage": "上传",
@@ -785,5 +797,17 @@
       "faq1_q": "多久能收到回复？",
       "faq1_a": "工作日通常 24 小时内回复；紧急问题请直接致电。"
     }
+  },
+  "audit": {
+    "site_updated": "更新官网「{{site_name}}」",
+    "page_created": "创建官网页面「{{title}}」",
+    "page_duplicated": "复制官网页面「{{title}}」",
+    "page_updated": "更新官网页面「{{title}}」",
+    "page_deleted": "删除官网页面",
+    "page_published": "发布官网页面「{{title}}」",
+    "page_content_published": "发布官网页面内容「{{title}}」",
+    "page_unpublished": "取消发布官网页面「{{title}}」",
+    "starter_applied": "应用站点起步模板「{{key}}」（{{page_count}} 页）",
+    "chrome_published": "发布官网页头页脚「{{site_name}}」"
   }
 }

@@ -5,12 +5,11 @@ import {
   MarketingSection,
 } from "../components/MarketingLayout.js";
 import { PlanCard } from "../components/PlanCard.js";
+import { TenantSitePageGate } from "../components/TenantSitePageGate.js";
 import {
   resolveLocalizedMarketingPlans,
   resolveLocalizedPricingFaq,
 } from "../lib/marketing-i18n.js";
-
-import { TenantSitePageGate } from "./tenant-site-page.js";
 
 function PlatformPricing() {
   const { t } = useTranslation("marketing");

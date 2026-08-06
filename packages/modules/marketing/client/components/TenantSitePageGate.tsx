@@ -4,9 +4,10 @@ import { DEFAULT_LOCALE } from "@be-water/shared";
 import { useLocation } from "react-router";
 
 import { parseSiteLocalePath } from "../../shared/site-locale.js";
-import { TenantSiteView } from "../components/TenantSiteView.js";
 import { useTenantPublicSite } from "../hooks/use-tenant-public-site.js";
 import { fetchPublicSitePage } from "../lib/site-api.js";
+
+import { TenantSiteView } from "./TenantSiteView.js";
 
 import type { PublicMarketingPage } from "../../shared/site-cms.js";
 
@@ -60,9 +61,7 @@ export function TenantSitePageGate({
   }
 
   if (pageStatus === "loading" || pageStatus === "idle") {
-    return (
-      <TenantSiteView site={siteState.site} path={logicalPath} />
-    );
+    return <TenantSiteView site={siteState.site} path={logicalPath} />;
   }
 
   if (pageStatus === "missing" || !page) {

@@ -11,15 +11,13 @@ const Pricing = lazy(() =>
   import("../pages/pricing.js").then((module) => ({ default: module.Pricing })),
 );
 
-const DocsIndex = lazy(() =>
-  import("../pages/docs-index.js").then((module) => ({
-    default: module.DocsIndex,
-  })),
+const Docs = lazy(() =>
+  import("../pages/docs.js").then((module) => ({ default: module.Docs })),
 );
 
-const DocDetail = lazy(() =>
-  import("../pages/doc-detail.js").then((module) => ({
-    default: module.DocDetail,
+const DocsDetail = lazy(() =>
+  import("../pages/docs-detail.js").then((module) => ({
+    default: module.DocsDetail,
   })),
 );
 
@@ -40,8 +38,8 @@ export function renderMarketingPublicRoutes(): ReactNode {
     <>
       <Route path="/" element={<Landing />} />
       <Route path="/pricing" element={<Pricing />} />
-      <Route path="/docs" element={<DocsIndex />} />
-      <Route path="/docs/:slug" element={<DocDetail />} />
+      <Route path="/docs" element={<Docs />} />
+      <Route path="/docs/:slug" element={<DocsDetail />} />
       {APP_LOCALES.flatMap((locale) => [
         <Route
           key={`${locale.slug}-home`}
@@ -56,12 +54,12 @@ export function renderMarketingPublicRoutes(): ReactNode {
         <Route
           key={`${locale.slug}-docs`}
           path={`/${locale.slug}/docs`}
-          element={<DocsIndex />}
+          element={<Docs />}
         />,
         <Route
           key={`${locale.slug}-docs-slug`}
           path={`/${locale.slug}/docs/:slug`}
-          element={<DocDetail />}
+          element={<DocsDetail />}
         />,
       ])}
       {/* 放在 locale 静态段之后，避免抢占 /en、/zh-CN；`/*` 承接嵌套 slug */}
