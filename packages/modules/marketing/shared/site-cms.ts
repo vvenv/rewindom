@@ -189,6 +189,18 @@ export interface SaveEditorDraftResponse {
   site: MarketingSite;
 }
 
+/**
+ * 站点当前具备哪些「需要另外开通」的能力。
+ *
+ * 编辑器里那几个开关本身永远存在（页头就该有账户入口这个位置），但能力具不具备
+ * 是租户级的开通状态。不告诉编辑器的话，租户打开开关、预览里看得见按钮，线上却
+ * 什么都不出现——三处口径对不上，而且没有任何提示说明为什么。
+ */
+export interface MarketingSiteCapabilities {
+  /** 页头账户入口（登录 / 我的账户）是否可用；未开通会员时为 false。 */
+  account_entry: boolean;
+}
+
 /** 应用站点起步模板的响应。 */
 export interface ApplySiteStarterResponse {
   site: MarketingSite;

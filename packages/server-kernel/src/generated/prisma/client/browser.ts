@@ -83,6 +83,16 @@ export type MarketingSite = Prisma.MarketingSiteModel
  */
 export type MarketingPage = Prisma.MarketingPageModel
 /**
+ * Model MarketingFormSubmission
+ * *
+ *  * 公开表单的一次提交。
+ *  *
+ *  * 内容存成自描述的 `[{ id, label, value }]` 而不是 `{ fieldId: value }`：字段是 block，
+ *  * 租户随时会改标题、删字段、调顺序——按 id 存的话，三个月后回头看后台列表只剩一堆
+ *  * uuid 对不上任何东西。存下提交**当时**的标签，历史记录才读得懂。
+ */
+export type MarketingFormSubmission = Prisma.MarketingFormSubmissionModel
+/**
  * Model Note
  * 
  */

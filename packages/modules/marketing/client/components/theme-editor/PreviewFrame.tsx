@@ -27,6 +27,10 @@ const STYLE_MARK = "data-marketing-site-style";
  *
  * 滚动条显式样式化是**必须**的：macOS 默认是覆盖式滚动条，不占布局宽度，
  * 会悬浮在内容最右侧十几个像素上——通栏 section 的右边缘与选中框正好被盖住。
+ *
+ * 末尾那两条 hover 提示只活在编辑器的 iframe 里（这份 CSS 不进公开面），
+ * 用来告诉租户「这一块也点得动」——选中框画在 iframe 外面，光看静止画面
+ * 分不出哪些是可选单元。
  */
 const FRAME_CSS = [
   `html,body{height:100%}`,
@@ -36,6 +40,8 @@ const FRAME_CSS = [
   `html::-webkit-scrollbar-thumb{background:color-mix(in srgb,currentColor 25%,transparent);border-radius:5px}`,
   `html::-webkit-scrollbar-corner{background:transparent}`,
   MARKETING_SITE_CSS,
+  `[data-block-id]{outline:1px dashed transparent;outline-offset:2px;transition:outline-color .12s}`,
+  `[data-block-id]:hover{outline-color:color-mix(in srgb,currentColor 30%,transparent)}`,
 ].join("\n");
 
 function injectMarketingStyles(to: Document): void {
@@ -55,6 +61,10 @@ interface PreviewFrameProps {
   onDocumentChange?: (doc: Document | null) => void;
   /** 要高亮的 section（`data-section-id`）。高亮画在 iframe **外面**。 */
   highlightSectionId?: string | null;
+  /** 选中的 block（`data-block-id`）；有值时它才是主高亮，所属 section 退成淡框。 */
+  highlightBlockId?: string | null;
+  /** 主高亮左上角那枚标签的文字（段 / 块的类型名）。 */
+  highlightLabel?: string;
 }
 
 interface HighlightRect {
@@ -75,15 +85,20 @@ export function PreviewFrame({
   children,
   onDocumentChange,
   highlightSectionId = null,
+  highlightBlockId = null,
+  highlightLabel,
 }: PreviewFrameProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [doc, setDoc] = useState<Document | null>(null);
   const [host, setHost] = useState({ width: 0, height: 0 });
-  const [highlight, setHighlight] = useState<HighlightRect | null>(null);
+  const [sectionRect, setSectionRect] = useState<HighlightRect | null>(null);
+  const [blockRect, setBlockRect] = useState<HighlightRect | null>(null);
 
   const deviceWidth = PREVIEW_DEVICES[device];
   const scale = host.width > 0 ? Math.min(1, host.width / deviceWidth) : 1;
+  /** 选中 block 时它才是主角，所属 section 退成淡框做上下文。 */
+  const primaryRect = blockRect ?? sectionRect;
 
   const attach = (): void => {
     setDoc(frameRef.current?.contentDocument ?? null);
@@ -119,27 +134,34 @@ export function PreviewFrame({
   useEffect(() => {
     const view = doc?.defaultView;
     if (!doc || !view || !highlightSectionId) {
-      setHighlight(null);
+      setSectionRect(null);
+      setBlockRect(null);
       return;
     }
+
+    const rectOf = (selector: string): HighlightRect | null => {
+      const box = doc.querySelector(selector)?.getBoundingClientRect();
+      return box
+        ? {
+            left: box.left * scale,
+            top: box.top * scale,
+            width: box.width * scale,
+            height: box.height * scale,
+          }
+        : null;
+    };
 
     let frame = 0;
     const measure = (): void => {
       frame = 0;
-      const target = doc.querySelector(
-        `[data-section-id="${CSS.escape(highlightSectionId)}"]`,
+      setSectionRect(
+        rectOf(`[data-section-id="${CSS.escape(highlightSectionId)}"]`),
       );
-      if (!target) {
-        setHighlight(null);
-        return;
-      }
-      const box = target.getBoundingClientRect();
-      setHighlight({
-        left: box.left * scale,
-        top: box.top * scale,
-        width: box.width * scale,
-        height: box.height * scale,
-      });
+      setBlockRect(
+        highlightBlockId
+          ? rectOf(`[data-block-id="${CSS.escape(highlightBlockId)}"]`)
+          : null,
+      );
     };
     const schedule = (): void => {
       frame ||= view.requestAnimationFrame(measure);
@@ -163,7 +185,7 @@ export function PreviewFrame({
       resize.disconnect();
       content.disconnect();
     };
-  }, [doc, highlightSectionId, scale]);
+  }, [doc, highlightSectionId, highlightBlockId, scale]);
 
   return (
     <div
@@ -174,12 +196,39 @@ export function PreviewFrame({
         className="relative mx-auto overflow-hidden border bg-background shadow-sm"
         style={{ width: deviceWidth * scale, height: host.height }}
       >
-        {highlight ? (
+        {/*
+          选中框刻意只有 1px 半透明：它是「我改的是这一块」的提示，不是内容的一部分。
+          原来的 2px 实色边框 + 内环会盖住段落自己的圆角与分隔线，租户看到的排版
+          和访客看到的差出好几个像素——预览失真比标注不明显更糟。
+        */}
+        {blockRect && sectionRect ? (
           <div
             aria-hidden
-            className="pointer-events-none absolute z-10 border-2 border-primary inset-ring-2 inset-ring-primary/20"
-            style={highlight}
+            className="pointer-events-none absolute z-10 rounded-xs ring-1 ring-inset ring-primary/25"
+            style={sectionRect}
           />
+        ) : null}
+        {primaryRect ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute z-10 rounded-xs bg-primary/5 ring-1 ring-inset ring-primary/70"
+            style={primaryRect}
+          >
+            {highlightLabel ? (
+              <span
+                className="absolute left-0 bg-primary/70 p-1 text-xs leading-none font-medium whitespace-nowrap text-primary-foreground"
+                // 标签默认贴在框**上方**；框已经顶到预览区顶端时翻到框内，
+                // 否则会被外层的 overflow-hidden 裁掉。
+                style={
+                  primaryRect.top >= 18
+                    ? { bottom: "100%", marginBottom: 2 }
+                    : { top: 2 }
+                }
+              >
+                {highlightLabel}
+              </span>
+            ) : null}
+          </div>
         ) : null}
         <iframe
           ref={frameRef}

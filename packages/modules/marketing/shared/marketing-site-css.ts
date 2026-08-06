@@ -19,6 +19,15 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 .lead { color: var(--muted-fg); }
 .eyebrow { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-fg); }
 
+/* 页面外壳：撑满视口 + main 吃掉中间，页脚贴底（无 Tailwind） */
+.marketing-site-root { min-height: 100svh; }
+.marketing-site-root.is-embedded { min-height: 100%; }
+.site-stack { display: flex; flex-direction: column; min-height: 100%; }
+.site-main { flex: 1 1 auto; }
+.page-missing { padding: 4rem 1.5rem; }
+.page-missing h1 { font-size: 1.5rem; font-weight: 600; }
+.page-missing > * + * { margin-top: .5rem; }
+
 .site-header { border-bottom: 1px solid var(--border); background: var(--header-bg); backdrop-filter: blur(12px); }
 .site-header.sticky { position: sticky; top: 0; z-index: 40; }
 .header-row { display: flex; align-items: center; gap: 1rem; height: 3.5rem; }

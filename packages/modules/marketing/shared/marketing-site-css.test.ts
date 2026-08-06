@@ -8,6 +8,9 @@ describe("marketing-site-css", () => {
     expect(MARKETING_SITE_CSS).toContain(".btn {");
     expect(MARKETING_SITE_CSS).toContain(".sec-band");
     expect(MARKETING_SITE_CSS).toContain(".hero");
+    expect(MARKETING_SITE_CSS).toContain(".marketing-site-root");
+    expect(MARKETING_SITE_CSS).toContain(".site-stack");
+    expect(MARKETING_SITE_CSS).toContain(".site-main");
     expect(MARKETING_SITE_CSS).not.toContain("@import");
   });
 

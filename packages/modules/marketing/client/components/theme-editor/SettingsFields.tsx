@@ -55,6 +55,13 @@ interface SettingsFieldsProps {
   defs: SettingDef[];
   values: SettingValues;
   disabled?: boolean;
+  /**
+   * 本站还不具备的能力：setting id → 说明为什么它现在没用。
+   *
+   * 开关**照常显示**、只是点不动并附一行说明——直接把它藏起来，租户会以为
+   * 「这个站点没有账户入口这回事」，而真相是能力没开通，开通后它就该在。
+   */
+  unavailable?: Record<string, string>;
   /** 正在编辑的语言；文案类字段读写这一语言的槽位。 */
   locale: AppLocale;
   /** 站点默认语言：纯字符串存量值归它，也是未翻译时的占位来源。 */
@@ -70,6 +77,7 @@ export function SettingsFields({
   defs,
   values,
   disabled,
+  unavailable,
   locale,
   defaultLocale,
   onChange,
@@ -118,7 +126,8 @@ export function SettingsFields({
                 ? readLocalizedSetting(stored, defaultLocale, defaultLocale)
                 : ""
             }
-            disabled={disabled}
+            disabled={disabled || Boolean(unavailable?.[def.id])}
+            unavailableHint={unavailable?.[def.id]}
             onChange={(next) =>
               onChange({
                 ...values,
@@ -145,6 +154,8 @@ interface SettingFieldProps {
   /** 该字段在默认语言下的原文，用作未翻译时的占位。 */
   fallbackHint?: string;
   disabled?: boolean;
+  /** 本站还不具备这项能力时的说明（此时字段已被禁用）。 */
+  unavailableHint?: string;
   onChange: (next: SettingValue) => void;
 }
 
@@ -183,6 +194,7 @@ function SettingField({
   value,
   fallbackHint,
   disabled,
+  unavailableHint,
   onChange,
 }: SettingFieldProps): ReactElement {
   const { t } = useTranslation("marketing");
@@ -200,18 +212,24 @@ function SettingField({
    */
   if (def.type === "checkbox") {
     return (
-      <Field orientation="horizontal">
-        <Checkbox
-          id={fieldId}
-          disabled={disabled}
-          checked={value === true}
-          onCheckedChange={(checked) => onChange(checked === true)}
-        />
-        <FieldLabel htmlFor={fieldId} className="flex items-center gap-1">
-          {label}
-          {info ? <SettingInfoTip text={info} /> : null}
-        </FieldLabel>
-      </Field>
+      <div className="space-y-1">
+        <Field orientation="horizontal">
+          <Checkbox
+            id={fieldId}
+            disabled={disabled}
+            checked={value === true}
+            onCheckedChange={(checked) => onChange(checked === true)}
+          />
+          <FieldLabel htmlFor={fieldId} className="flex items-center gap-1">
+            {label}
+            {info ? <SettingInfoTip text={info} /> : null}
+          </FieldLabel>
+        </Field>
+        {/* 不具备的能力把原因摊开写，不收进 tooltip——这条得让人一眼看到 */}
+        {unavailableHint ? (
+          <FieldDescription>{unavailableHint}</FieldDescription>
+        ) : null}
+      </div>
     );
   }
 

@@ -2,6 +2,7 @@
   "note": "tenant_id",
   "marketingSite": "tenant_id",
   "marketingPage": "tenant_id",
+  "marketingFormSubmission": "tenant_id",
   "notification": "tenant_id",
   "notificationLog": "tenant_id",
   "tenantApiKey": "tenant_id",

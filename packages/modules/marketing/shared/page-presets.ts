@@ -50,6 +50,14 @@ export interface PagePreset {
 
 export const PAGE_PRESETS: PagePreset[] = [
   {
+    /*
+     * 起步首页刻意只有三段。
+     *
+     * 它是**起点**，不是成品：租户第一件事是把文案换成自己的，段数越多越像
+     * 「改别人的站」，改不完就干脆整页删掉重来。原来这页有六段十八块，还写死了
+     * 本仓自己的技术栈（Fastify / Prisma / `pnpm gen:module`），对任何真实租户
+     * 都是噪音。想要文档 / 定价 / 关于的，从「页面预设」里按需加——那些预设都还在。
+     */
     key: "home",
     label: "preset.home.label",
     kind: "home",
@@ -60,76 +68,16 @@ export const PAGE_PRESETS: PagePreset[] = [
       {
         type: "hero",
         text: {
-          eyebrow: "preset.home.hero.eyebrow",
           headline: "preset.home.hero.headline",
           subhead: "preset.home.hero.subhead",
           primary_label: "preset.home.hero.primary_label",
-          secondary_label: "preset.home.hero.secondary_label",
         },
         raw: {
-          primary_href: "/register",
-          secondary_href: "/docs",
+          // 起步模板只建首页，站内没有别的地址可指；页内锚点是单页站的通行写法
+          primary_href: "#contact",
           align: "left",
           show_glow: true,
         },
-        blocks: [
-          {
-            type: "stat",
-            text: {
-              term: "preset.home.hero.stat1_term",
-              detail: "preset.home.hero.stat1_detail",
-            },
-          },
-          {
-            type: "stat",
-            text: {
-              term: "preset.home.hero.stat2_term",
-              detail: "preset.home.hero.stat2_detail",
-            },
-          },
-          {
-            type: "stat",
-            text: {
-              term: "preset.home.hero.stat3_term",
-              detail: "preset.home.hero.stat3_detail",
-            },
-          },
-        ],
-      },
-      {
-        type: "steps",
-        text: {
-          heading: "preset.home.steps.heading",
-          subheading: "preset.home.steps.subheading",
-          primary_label: "preset.home.steps.primary_label",
-        },
-        raw: { primary_href: "/docs", columns: 3, show_number: true },
-        blocks: [
-          {
-            type: "step",
-            text: {
-              title: "preset.home.steps.s1_title",
-              body: "preset.home.steps.s1_body",
-            },
-            raw: { code: "pnpm gen:module" },
-          },
-          {
-            type: "step",
-            text: {
-              title: "preset.home.steps.s2_title",
-              body: "preset.home.steps.s2_body",
-            },
-            raw: { code: "pnpm check:modules" },
-          },
-          {
-            type: "step",
-            text: {
-              title: "preset.home.steps.s3_title",
-              body: "preset.home.steps.s3_body",
-            },
-            raw: { code: "pnpm dev" },
-          },
-        ],
       },
       {
         type: "feature-grid",
@@ -145,7 +93,7 @@ export const PAGE_PRESETS: PagePreset[] = [
               title: "preset.home.features.f1_title",
               body: "preset.home.features.f1_body",
             },
-            raw: { icon: "Bot" },
+            raw: { icon: "Sparkles" },
           },
           {
             type: "feature",
@@ -161,85 +109,7 @@ export const PAGE_PRESETS: PagePreset[] = [
               title: "preset.home.features.f3_title",
               body: "preset.home.features.f3_body",
             },
-            raw: { icon: "Blocks" },
-          },
-          {
-            type: "feature",
-            text: {
-              title: "preset.home.features.f4_title",
-              body: "preset.home.features.f4_body",
-            },
-            raw: { icon: "Plug" },
-          },
-          {
-            type: "feature",
-            text: {
-              title: "preset.home.features.f5_title",
-              body: "preset.home.features.f5_body",
-            },
-            raw: { icon: "Shield" },
-          },
-          {
-            type: "feature",
-            text: {
-              title: "preset.home.features.f6_title",
-              body: "preset.home.features.f6_body",
-            },
-            raw: { icon: "Server" },
-          },
-        ],
-      },
-      {
-        type: "spec-list",
-        text: {
-          heading: "preset.home.spec.heading",
-          subheading: "preset.home.spec.subheading",
-          primary_label: "preset.home.spec.primary_label",
-        },
-        raw: { primary_href: "/docs", layout: "split" },
-        blocks: [
-          {
-            type: "row",
-            text: { term: "preset.home.spec.r1_term" },
-            raw: { detail: "Fastify · Prisma · PostgreSQL" },
-          },
-          {
-            type: "row",
-            text: { term: "preset.home.spec.r2_term" },
-            raw: { detail: "React · Vite · React Router" },
-          },
-          {
-            type: "row",
-            text: { term: "preset.home.spec.r3_term" },
-            raw: { detail: "Tailwind CSS · shadcn/ui" },
-          },
-          {
-            type: "row",
-            text: { term: "preset.home.spec.r4_term" },
-            raw: { detail: "Docker Compose" },
-          },
-        ],
-      },
-      {
-        type: "cards",
-        text: { heading: "preset.home.docs.heading" },
-        raw: { columns: 2, card_style: "bordered" },
-        blocks: [
-          {
-            type: "card",
-            text: {
-              title: "preset.home.docs.c1_title",
-              body: "preset.home.docs.c1_body",
-            },
-            raw: { href: "/docs/quickstart" },
-          },
-          {
-            type: "card",
-            text: {
-              title: "preset.home.docs.c2_title",
-              body: "preset.home.docs.c2_body",
-            },
-            raw: { href: "/docs/modules" },
+            raw: { icon: "Users" },
           },
         ],
       },
@@ -249,11 +119,10 @@ export const PAGE_PRESETS: PagePreset[] = [
           headline: "preset.home.cta.headline",
           body: "preset.home.cta.body",
           primary_label: "preset.home.cta.primary_label",
-          secondary_label: "preset.home.cta.secondary_label",
         },
         raw: {
-          primary_href: "/register",
-          secondary_href: "/pricing",
+          anchor: "contact",
+          primary_href: "mailto:hello@example.com",
           align: "center",
           background: "muted",
         },
@@ -262,6 +131,12 @@ export const PAGE_PRESETS: PagePreset[] = [
   },
 
   {
+    /*
+     * 各套餐的按钮指 `/contact` 而不是 `/register`：`/register` 是**工作台的员工
+     * 注册页**（`apps/client/src/shell/guest-routes.tsx`），租户站点的访客点进去
+     * 会看到 SaaS 运营方的注册表单。站点自己的会员注册在 `/member/register`，
+     * 且只在开通会员后才存在，不能写死进预设。
+     */
     key: "pricing",
     label: "preset.pricing.label",
     kind: "page",
@@ -288,7 +163,7 @@ export const PAGE_PRESETS: PagePreset[] = [
               highlights: "preset.pricing.p1_highlights",
               primary_label: "preset.pricing.cta_start",
             },
-            raw: { primary_href: "/register", featured: false },
+            raw: { primary_href: "/contact", featured: false },
           },
           {
             type: "plan",
@@ -300,7 +175,7 @@ export const PAGE_PRESETS: PagePreset[] = [
               highlights: "preset.pricing.p2_highlights",
               primary_label: "preset.pricing.cta_start",
             },
-            raw: { primary_href: "/register", featured: true },
+            raw: { primary_href: "/contact", featured: true },
           },
           {
             type: "plan",

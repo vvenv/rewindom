@@ -16,23 +16,6 @@
     "enterConsole": "Open console",
     "menuOpen": "Open menu"
   },
-  "footer": {
-    "groups": {
-      "product": "Product",
-      "docs": "Docs",
-      "resources": "Resources"
-    },
-    "links": {
-      "intro": "Overview",
-      "pricing": "Pricing",
-      "login": "Sign in",
-      "docsHome": "Docs home",
-      "quickstart": "Quick start",
-      "agentFirst": "Agent-first",
-      "modules": "Modular architecture",
-      "github": "GitHub"
-    }
-  },
   "hero": {
     "headline": "An agent-first multi-tenant SaaS foundation",
     "subline": "AGENTS.md, Skills, and a gen/check loop let coding agents extend the product inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production.",
@@ -333,14 +316,13 @@
     "apply": "Apply site template",
     "default": {
       "label": "Default marketing site",
-      "description": "Header, footer, theme colors, home, docs and pricing",
-      "cta": "Start free",
+      "description": "Header, footer, theme colors and a three-section home page",
       "site_name": "My site",
       "tagline": "A one-line introduction to your site",
       "footer_blurb": "A short blurb visitors see in the site footer."
     },
     "confirmTitle": "Replace existing site content?",
-    "confirmBody": "This replaces the header, footer, theme colors, and creates or updates the home, docs and pricing pages in the primary language. This cannot be undone.",
+    "confirmBody": "This replaces the header, footer and theme colors, and creates or updates the home page in the primary language. This cannot be undone.",
     "confirmAction": "Apply",
     "cancel": "Cancel",
     "toastApplied": "Site template applied",
@@ -357,6 +339,7 @@
     "emptySections": "No sections yet. Add one below, or use Presets in the toolbar.",
     "preview": "Preview",
     "selectSection": "Select a section on the left to edit its settings.",
+    "unsupportedSection": "This block ({{type}}) comes from a module that is not enabled, so it can't be edited or displayed right now. Its content is kept intact and will come back when the module is re-enabled — or just delete it if you no longer need it.",
     "moveUp": "Move up",
     "moveDown": "Move down",
     "remove": "Remove",
@@ -408,7 +391,8 @@
       "section": "Section layout",
       "appearance": "Appearance",
       "page": "Page",
-      "headerItems": "Header items"
+      "headerItems": "Header items",
+      "form": "Form"
     },
     "info": {
       "markdown": "Markdown is supported.",
@@ -436,7 +420,10 @@
       "page_bg_color": "Colors the page content area only; header and footer keep their own settings.",
       "show_account": "Shows “Sign in” when signed out, and an account menu once signed in. Hidden on sites without members.",
       "show_locale_switcher": "Only appears when this page has translations. Whether a page is translated is decided in the page list; this only controls the button.",
-      "show_theme_toggle": "The site always follows the visitor's device preference. Turn this on to also give them a manual switch. Off does not force light mode."
+      "show_theme_toggle": "The site always follows the visitor's device preference. Turn this on to also give them a manual switch. Off does not force light mode.",
+      "success_message": "Leave empty to show just a checkmark.",
+      "field_options": "One per line; used by “Dropdown” only.",
+      "field_wide": "Narrow screens are always single column; this affects desktop only."
     },
     "unit": {
       "columns": "cols",
@@ -513,7 +500,15 @@
       "radius": "Corner radius",
       "show_account": "Account entry",
       "show_locale_switcher": "Language switcher",
-      "show_theme_toggle": "Dark mode switch"
+      "show_theme_toggle": "Dark mode switch",
+      "submit_label": "Submit button",
+      "success_message": "Success message",
+      "field_label": "Field label",
+      "field_type": "Field type",
+      "placeholder": "Placeholder",
+      "field_required": "Required",
+      "field_options": "Options",
+      "field_wide": "Full width"
     },
     "option": {
       "align": {
@@ -577,7 +572,13 @@
         "auto": "Keep order",
         "first": "Move first",
         "last": "Move last"
-      }
+      },
+      "field_type.text": "Text",
+      "field_type.email": "Email",
+      "field_type.tel": "Phone",
+      "field_type.textarea": "Long text",
+      "field_type.select": "Dropdown",
+      "field_type.checkbox": "Checkbox"
     },
     "font": {
       "system": "System sans",
@@ -598,7 +599,9 @@
       "prose": "Rich text",
       "group": "Columns",
       "band": "CTA band",
-      "page-header": "Page title"
+      "page-header": "Page title",
+      "unsupported": "Unavailable block",
+      "form": "Form"
     },
     "blockType": {
       "card": "Card",
@@ -610,7 +613,8 @@
       "plan": "Plan",
       "qa": "Q&A",
       "nav_link": "Nav link",
-      "footer_link": "Footer link"
+      "footer_link": "Footer link",
+      "field": "Field"
     },
     "tabContent": "Content",
     "tabLayout": "Layout",
@@ -652,7 +656,8 @@
     "revertConfirmBody": "This page and the header & footer are reset to the live version. Changes you saved but never published are lost. The live site is untouched.",
     "toastReverted": "Reset to the live version",
     "toastPublished": "Published — visitors can see it now",
-    "toastPublishFailed": "Publish failed. Please try again."
+    "toastPublishFailed": "Publish failed. Please try again.",
+    "accountEntryUnavailable": "Memberships are not enabled for this site, so the header shows no account entry. Turn it on once enabled."
   },
   "seo": {
     "home": {
@@ -677,68 +682,26 @@
     "home": {
       "label": "Home (default layout)",
       "title": "Home",
-      "description": "Product overview and key selling points.",
+      "description": "One line on what this site is about.",
       "hero": {
-        "eyebrow": "Shape yourself to what you pour into",
-        "headline": "The first screen that explains your product",
-        "subhead": "One sentence on what you solve and who you solve it for. Keep the subhead under two lines — it is not a feature list.",
-        "primary_label": "Start free",
-        "secondary_label": "Read the docs",
-        "stat1_term": "Time to value",
-        "stat1_detail": "Running in 5 minutes",
-        "stat2_term": "Built-in modules",
-        "stat2_detail": "Ready out of the box",
-        "stat3_term": "Deployment",
-        "stat3_detail": "Single process / self-hosted"
-      },
-      "steps": {
-        "heading": "Three steps to get started",
-        "subheading": "From signup to production without reading the whole manual.",
-        "primary_label": "Full docs",
-        "s1_title": "Create a project",
-        "s1_body": "Fill in the basics; the skeleton and defaults are generated for you.",
-        "s2_title": "Run the checks",
-        "s2_body": "One command tells you whether anything is misconfigured.",
-        "s3_title": "Run it locally",
-        "s3_body": "Start the server and see it in the browser."
+        "headline": "Say who you are and what you do, in one line",
+        "subhead": "Then one more line: what you solve and for whom. Keep it under two lines.",
+        "primary_label": "Get in touch"
       },
       "features": {
-        "heading": "What you get",
-        "subheading": "Each line says what work it saves — not which library it uses.",
-        "f1_title": "Automated loop",
-        "f1_body": "Repetitive work goes to the pipeline; people make the calls.",
-        "f2_title": "Clean layering",
-        "f2_body": "Infrastructure and business code stay separate, so swapping one leaves the other alone.",
-        "f3_title": "Plug and play",
-        "f3_body": "Capabilities ship as modules: install and go, remove without residue.",
-        "f4_title": "Per-customer switches",
-        "f4_body": "You decide what each customer gets; what's off produces no data at all.",
-        "f5_title": "Isolation is enforced",
-        "f5_body": "Data boundaries live in the lowest layer, so cross-tenant queries simply fail.",
-        "f6_title": "Simple to deploy",
-        "f6_body": "One process to run — none of the microservice ops tax."
-      },
-      "spec": {
-        "heading": "No surprises in the stack",
-        "subheading": "Mainstream, long-maintained choices: easy to hire for, easy to search when something breaks.",
-        "primary_label": "Read the docs",
-        "r1_term": "Backend",
-        "r2_term": "Frontend",
-        "r3_term": "UI",
-        "r4_term": "Deploy"
-      },
-      "docs": {
-        "heading": "Start here",
-        "c1_title": "Quickstart",
-        "c1_body": "Everything needed to run it locally.",
-        "c2_title": "Architecture",
-        "c2_body": "Module boundaries and how to extend them."
+        "heading": "What we offer",
+        "subheading": "Three is enough. Each one says what it does for the visitor.",
+        "f1_title": "First highlight",
+        "f1_body": "A sentence or two about this one. Replace this placeholder text.",
+        "f2_title": "Second highlight",
+        "f2_body": "A sentence or two about this one. Replace this placeholder text.",
+        "f3_title": "Third highlight",
+        "f3_body": "A sentence or two about this one. Replace this placeholder text."
       },
       "cta": {
-        "headline": "Get it running first, customise later",
-        "body": "A few minutes to a local server, and the free tier stays free.",
-        "primary_label": "Start free",
-        "secondary_label": "See pricing"
+        "headline": "Want to talk?",
+        "body": "Replace this with your call to action, and point the button at your own address.",
+        "primary_label": "Email us"
       }
     },
     "pricing": {
@@ -831,5 +794,22 @@
     "page_unpublished": "Unpublished site page \"{{title}}\"",
     "starter_applied": "Applied site starter \"{{key}}\" ({{page_count}} pages)",
     "chrome_published": "Published site header and footer for \"{{site_name}}\""
+  },
+  "formSubmissions": {
+    "nav": "Form submissions",
+    "title": "Form submissions",
+    "pageDescription": "What your website forms have collected, newest first.",
+    "empty": "No submissions yet",
+    "loading": "Loading…",
+    "delete": "Delete",
+    "deleted": "Deleted",
+    "deleteFailed": "Couldn't delete",
+    "deleteConfirmTitle": "Delete this submission?",
+    "deleteConfirmDescription": "The submission from “{{source}}” will be permanently deleted and cannot be recovered.",
+    "table": {
+      "time": "Time",
+      "source": "Source",
+      "content": "Content"
+    }
   }
 }

@@ -111,6 +111,7 @@ export const AuditAction = {
   SITE_PAGE_DELETE: "SITE_PAGE_DELETE",
   SITE_PAGE_PUBLISH: "SITE_PAGE_PUBLISH",
   SITE_PAGE_UNPUBLISH: "SITE_PAGE_UNPUBLISH",
+  SITE_FORM_SUBMISSION_DELETE: "SITE_FORM_SUBMISSION_DELETE",
   SITE_MEMBER_REGISTER: "SITE_MEMBER_REGISTER",
   SITE_MEMBER_UPDATE: "SITE_MEMBER_UPDATE",
   SITE_MEMBER_DELETE: "SITE_MEMBER_DELETE",
@@ -229,6 +230,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.SITE_PAGE_DELETE]: "删除官网页面",
   [AuditAction.SITE_PAGE_PUBLISH]: "发布官网页面",
   [AuditAction.SITE_PAGE_UNPUBLISH]: "取消发布官网页面",
+  [AuditAction.SITE_FORM_SUBMISSION_DELETE]: "删除官网表单提交",
   [AuditAction.SITE_MEMBER_REGISTER]: "会员注册",
   [AuditAction.SITE_MEMBER_UPDATE]: "更新会员",
   [AuditAction.SITE_MEMBER_DELETE]: "删除会员",
@@ -308,6 +310,7 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.SITE_PAGE_DELETE,
       AuditAction.SITE_PAGE_PUBLISH,
       AuditAction.SITE_PAGE_UNPUBLISH,
+      AuditAction.SITE_FORM_SUBMISSION_DELETE,
     ],
   },
   {

@@ -44,6 +44,7 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   Note: { kind: "tenant_id" },
   MarketingSite: { kind: "tenant_id" },
   MarketingPage: { kind: "tenant_id" },
+  MarketingFormSubmission: { kind: "tenant_id" },
   Subscription: { kind: "tenant_id" },
   Payment: { kind: "tenant_id" },
   Notification: { kind: "tenant_id" },

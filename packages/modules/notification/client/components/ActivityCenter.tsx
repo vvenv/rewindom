@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import {
@@ -38,7 +37,7 @@ function ActivityCenterTriggerBadge({
         pulse && "animate-badge-pop",
       )}
     >
-      <Badge variant="secondary" className="h-4 p-1 text-[10px]">
+      <Badge variant="secondary" className="h-4 p-1 text-xs">
         {formatBadgeCount(count)}
       </Badge>
     </span>
@@ -90,10 +89,17 @@ export function ActivityCenter() {
           title={t("activityCenter.title")}
         >
           <Inbox className="size-4" />
-          <ActivityCenterTriggerBadge count={taskBadgeCount} pulse={badgePulse} />
+          <ActivityCenterTriggerBadge
+            count={taskBadgeCount}
+            pulse={badgePulse}
+          />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="sm:max-w-md" title={t("activityCenter.title")}>
+      <SheetContent
+        side="right"
+        className="sm:max-w-md"
+        title={t("activityCenter.title")}
+      >
         <SheetHeader>{t("activityCenter.backgroundTasks")}</SheetHeader>
         <div className="flex min-h-0 flex-1 flex-col">
           <TaskCenterContent />

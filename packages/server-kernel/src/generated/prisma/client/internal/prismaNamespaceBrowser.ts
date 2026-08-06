@@ -64,6 +64,7 @@ export const ModelName = {
   User: 'User',
   MarketingSite: 'MarketingSite',
   MarketingPage: 'MarketingPage',
+  MarketingFormSubmission: 'MarketingFormSubmission',
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
@@ -324,6 +325,22 @@ export const MarketingPageScalarFieldEnum = {
 } as const
 
 export type MarketingPageScalarFieldEnum = (typeof MarketingPageScalarFieldEnum)[keyof typeof MarketingPageScalarFieldEnum]
+
+
+export const MarketingFormSubmissionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  page_slug: 'page_slug',
+  page_locale: 'page_locale',
+  section_id: 'section_id',
+  form_title: 'form_title',
+  data: 'data',
+  ip: 'ip',
+  user_agent: 'user_agent',
+  created_at: 'created_at'
+} as const
+
+export type MarketingFormSubmissionScalarFieldEnum = (typeof MarketingFormSubmissionScalarFieldEnum)[keyof typeof MarketingFormSubmissionScalarFieldEnum]
 
 
 export const NoteScalarFieldEnum = {

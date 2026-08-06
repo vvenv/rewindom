@@ -3,7 +3,7 @@
  *
  * 对齐 Shopify theme editor：setting 是声明式的，编辑器据此自动渲染控件，
  * 渲染端按 id 读值，写入路径按同一份声明校验。此文件只管「一个设置项长什么样、
- * 怎么解析」，section 注册表在 `section-registry.ts`。
+ * 怎么解析」，section 注册表在 `sections/`（一段一个目录）。
  */
 
 import { isSiteColor } from "./site-color.js";

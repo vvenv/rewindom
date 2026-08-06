@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   parseSections,
@@ -156,5 +156,75 @@ describe("页面标题段", () => {
       parseSections([{ type: "prose", settings: { body_md: "正文" } }]),
     );
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+  });
+});
+
+/**
+ * 预览里的选中：点在块上选块，点在段的空白处选段本身。
+ *
+ * 编辑器右侧表单与预览高亮都靠这一对返回值决定画什么，所以两种落点都要钉住。
+ */
+describe("SiteSections 选中", () => {
+  function featureGrid(): SiteSection[] {
+    return parseSections([
+      {
+        type: "feature-grid",
+        settings: { heading: "核心能力", columns: 3 },
+        blocks: [
+          { type: "feature", settings: { title: "第一项" } },
+          { type: "feature", settings: { title: "第二项" } },
+        ],
+      },
+    ]);
+  }
+
+  function renderSelectable(sections: SiteSection[], currentPath = "/") {
+    const onSelectSection = vi.fn();
+    render(
+      <MemoryRouter>
+        <SiteSections
+          sections={sections}
+          pages={pages}
+          currentPath={currentPath}
+          onSelectSection={onSelectSection}
+        />
+      </MemoryRouter>,
+    );
+    return { onSelectSection, sections };
+  }
+
+  it("点在块上带回 blockId", () => {
+    const sections = featureGrid();
+    const { onSelectSection } = renderSelectable(sections);
+    const section = sections[0]!;
+
+    fireEvent.click(screen.getByText("第二项"));
+
+    expect(onSelectSection).toHaveBeenCalledWith(
+      section.id,
+      section.blocks[1]!.id,
+    );
+  });
+
+  it("点在段的抬头上只选中段", () => {
+    const sections = featureGrid();
+    const { onSelectSection } = renderSelectable(sections);
+
+    fireEvent.click(screen.getByText("核心能力"));
+
+    expect(onSelectSection).toHaveBeenCalledWith(sections[0]!.id, null);
+  });
+
+  it("分栏段里点子段：选中的是子段，不是外层容器的列", () => {
+    const sections = docsGroup();
+    const { onSelectSection } = renderSelectable(sections, "/docs/quickstart");
+    const group = sections[0]!;
+    const inner = group.blocks[0]!.sections![0]!;
+
+    fireEvent.click(screen.getByRole("link", { name: "API" }));
+
+    // 子段自己 stopPropagation，外层 group 不会再收到这次点击
+    expect(onSelectSection).toHaveBeenCalledTimes(1);
+    expect(onSelectSection).toHaveBeenCalledWith(inner.id, null);
   });
 });

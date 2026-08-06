@@ -2,12 +2,14 @@ import {
   resolveHostTenant,
   resolveRequestHostname,
 } from "@be-water/server-kernel/lib/host-tenant.js";
+import { normalizeLocale, type AppLocale  } from "@be-water/shared";
 
 import {
   resolveLocaleSegment,
   SITE_APP_PREFIXES,
 } from "../shared/site-locale.js";
 
+import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import {
   getPublishedPublicPage,
   getPublishedSitemapEntries,
@@ -20,7 +22,6 @@ import {
   renderUnavailableHtml,
 } from "./ssr-render.js";
 
-import type { AppLocale } from "@be-water/shared";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 const SPA_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);
@@ -87,6 +88,11 @@ async function renderPath(
     return;
   }
 
+  const accountEntry = await resolveSiteAccountEntry({
+    tenantId: hostTenant.tenant_id,
+    locale: normalizeLocale(result.page.locale, result.site.default_locale),
+  });
+
   // localStorage 会员 token 不随 HTML 请求发送：SSR 只能输出「需登录」占位 + noindex，
   // 正文由 SPA 接管后带 token 拉取（见 TenantSitePageGate）——所以这里必须把 SPA
   // 入口带上，否则会员页会永远停在占位上。
@@ -99,6 +105,7 @@ async function renderPath(
       page: result.page,
       spaBootstrapHtml: renderSpaBootstrapHtml(),
       memberGate: result.page.requires_member === true,
+      accountEntryHtml: accountEntry.html,
     }),
   );
 }

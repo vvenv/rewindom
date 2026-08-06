@@ -5,6 +5,7 @@ import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
 import { openSiteAssetStream } from "./site-asset.service.js";
+import { submitSiteForm } from "./site-form.service.js";
 import {
   getPublishedPublicPage,
   getPublishedPublicSite,
@@ -81,6 +82,66 @@ export async function publicSiteRoutes(app: FastifyInstance): Promise<void> {
         });
       }
       return result;
+    },
+  });
+
+  /**
+   * 公开表单提交。
+   *
+   * 这个模块唯一一条**匿名写库**的路径，所以它的口径都在 `site-form.service`：字段表
+   * 从已发布正文里现取、逐字段校验、按 IP 限流。这里只负责把请求翻译过去。
+   *
+   * 失败一律不透露细节：段不存在、不是表单、站点没发布，对外都是 404——探测者拿不到
+   * 任何可用于枚举的反馈。只有「字段填得不对」会逐字段返回，那是填表人自己要看的。
+   */
+  defineRoute(app, {
+    method: "POST",
+    url: "/site/form",
+    context: "PublicSiteFormSubmit",
+    errorCode: "PUBLIC_SITE_FORM_FAILED",
+    handler: async (request, reply) => {
+      const hostTenant = request.hostTenantContext;
+      if (!hostTenant) {
+        return reply
+          .status(404)
+          .send({ error: "No site for this host", code: "site.host_unbound" });
+      }
+      const body = (request.body ?? {}) as {
+        path?: unknown;
+        section_id?: unknown;
+        values?: unknown;
+      };
+      if (typeof body.path !== "string" || typeof body.section_id !== "string") {
+        return sendCodedError(reply, 400, "site.form_invalid");
+      }
+
+      const result = await submitSiteForm({
+        tenant_id: hostTenant.tenant_id,
+        tenant_slug: hostTenant.tenant_slug,
+        path: body.path,
+        locale: queryLocale(request),
+        section_id: body.section_id,
+        values:
+          body.values && typeof body.values === "object"
+            ? (body.values as Record<string, unknown>)
+            : {},
+        ip: request.ip,
+        user_agent: request.headers["user-agent"] ?? "",
+      });
+
+      if (result.status === "not_found") {
+        return sendCodedError(reply, 404, "site.form_not_found");
+      }
+      if (result.status === "rate_limited") {
+        return sendCodedError(reply, 429, "site.form_rate_limited");
+      }
+      if (result.status === "invalid") {
+        // 逐字段的 code 直接给出去，段自己就地渲染；不用整体错误吞掉它们
+        return reply
+          .status(422)
+          .send({ error: "Invalid form", code: "site.form_invalid", fields: result.fields });
+      }
+      return { submitted: true };
     },
   });
 

@@ -201,11 +201,23 @@ interface ChromeProps {
   section: SiteSection;
   siteName: string;
   logoUrl: string | null;
-  /** 编辑器里点击整块可选中 */
-  onSelect?: () => void;
+  /** 编辑器里点击整块可选中；`blockId` 非空表示点在某条链接（block）上。 */
+  onSelect?: (blockId: string | null) => void;
 }
 
-function selectable(onSelect: (() => void) | undefined) {
+/**
+ * 与页面区块同一套口径：点到哪个 `data-block-id` 就选哪个 block，点在别处选整段。
+ * 判空用 `closest` 是否存在而不是 `instanceof`——预览在 iframe 里是另一个 realm。
+ */
+function clickedBlockId(event: React.MouseEvent): string | null {
+  const target = event.target as Element | null;
+  if (typeof target?.closest !== "function") return null;
+  const block = target.closest("[data-block-id]");
+  if (!block || !event.currentTarget.contains(block)) return null;
+  return block.getAttribute("data-block-id");
+}
+
+function selectable(onSelect: ((blockId: string | null) => void) | undefined) {
   if (!onSelect) return {};
   return {
     role: "button" as const,
@@ -213,12 +225,12 @@ function selectable(onSelect: (() => void) | undefined) {
     onClick: (event: React.MouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
-      onSelect();
+      onSelect(clickedBlockId(event));
     },
     onKeyDown: (event: React.KeyboardEvent) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        onSelect();
+        onSelect(null);
       }
     },
     style: { cursor: "pointer" } as CSSProperties,
@@ -229,10 +241,16 @@ function selectable(onSelect: (() => void) | undefined) {
 function headerNavLinks(
   section: SiteSection,
   pages: PublicSitePage[],
-): Array<{ key: string; href: string; label: string }> {
-  const links: Array<{ key: string; href: string; label: string }> = [];
+): Array<{ key: string; href: string; label: string; blockId?: string }> {
+  const links: Array<{
+    key: string;
+    href: string;
+    label: string;
+    blockId?: string;
+  }> = [];
   if (settingBool(section.settings, "show_site_nav")) {
     for (const page of siteNavPages(pages)) {
+      // 自动条目来自已发布的一级页，不是 block——编辑器里点它没有可改的设置
       links.push({
         key: `page:${page.path}`,
         href: page.path,
@@ -243,6 +261,7 @@ function headerNavLinks(
   for (const block of section.blocks) {
     links.push({
       key: block.id,
+      blockId: block.id,
       href: settingText(block.settings, "href"),
       label: settingText(block.settings, "label"),
     });
@@ -318,6 +337,7 @@ export function SiteHeader({
             <SiteLink
               key={link.key}
               href={link.href}
+              blockId={link.blockId}
               aria-current={currentPath === link.href ? "page" : undefined}
             >
               {link.label}
@@ -353,6 +373,7 @@ export function SiteHeader({
             <SiteLink
               key={link.key}
               href={link.href}
+              blockId={link.blockId}
               aria-current={currentPath === link.href ? "page" : undefined}
             >
               {link.label}
@@ -406,7 +427,10 @@ export function SiteFooter({
             <ul>
               {group.links.map((block) => (
                 <li key={block.id}>
-                  <SiteLink href={settingText(block.settings, "href")}>
+                  <SiteLink
+                    href={settingText(block.settings, "href")}
+                    blockId={block.id}
+                  >
                     {settingText(block.settings, "label")}
                   </SiteLink>
                 </li>

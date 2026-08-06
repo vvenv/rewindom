@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { config } from "@be-water/server-kernel/lib/config.js";
 
-import { escapeHtml } from "./site.util.js";
+import { escapeHtml } from "../shared/html.js";
 
 /**
  * 租户站 SSR 页面里要引用的 SPA 入口脚本。

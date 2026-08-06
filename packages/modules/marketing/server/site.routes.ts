@@ -3,12 +3,17 @@ import { parseMultipartFileUpload } from "@be-water/server-kernel/http/multipart
 import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-
+import { normalizeLocale } from "@be-water/shared";
 
 import { AuditAction } from "../../audit/shared/index.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
+import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import { uploadSiteAsset } from "./site-asset.service.js";
+import {
+  deleteFormSubmission,
+  listFormSubmissions,
+} from "./site-form.service.js";
 import {
   applySiteStarter,
   createPage,
@@ -31,6 +36,7 @@ import type {
   CreateMarketingPageBody,
   DuplicateMarketingPageBody,
   MarketingSite,
+  MarketingSiteCapabilities,
   SaveEditorDraftBody,
   UpdateMarketingPageBody,
   UpdateMarketingSiteBody,
@@ -50,6 +56,29 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
     preHandler: [app.requirePermission("site.read")],
     handler: async (request) => {
       return getOrCreateSite(request.tenantContext!.tenant_id);
+    },
+  });
+
+  /*
+   * 编辑器据此决定「账户入口」开关能不能点、预览要不要画那枚登录按钮。
+   *
+   * 单独一条而不是并进 `GET /site`：能力来自跨模块的注入点（要按租户查开通状态），
+   * 而 `toMarketingSite` 是一个纯粹的记录映射，为它引入异步查询会把所有调用方
+   * 都拖成异步。
+   */
+  defineRoute(app, {
+    method: "GET",
+    url: "/capabilities",
+    context: "SiteCapabilities",
+    errorCode: "SITE_CAPABILITIES_FAILED",
+    preHandler: [app.requirePermission("site.read")],
+    handler: async (request) => {
+      const tenant = request.tenantContext!;
+      const entry = await resolveSiteAccountEntry({
+        tenantId: tenant.tenant_id,
+        locale: normalizeLocale(null),
+      });
+      return { account_entry: entry.available } satisfies MarketingSiteCapabilities;
     },
   });
 
@@ -453,6 +482,53 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
         }
         throw err;
       }
+    },
+  });
+
+  /* ------------------------------------------------------------ 表单提交 */
+
+  defineRoute(app, {
+    method: "GET",
+    url: "/form-submissions",
+    context: "SiteFormSubmissionList",
+    errorCode: "SITE_FORM_SUBMISSION_LIST_FAILED",
+    preHandler: [app.requirePermission("site.read")],
+    handler: async (request) => {
+      const { page, page_size } = request.query as {
+        page?: string;
+        page_size?: string;
+      };
+      return listFormSubmissions(request.tenantContext!.tenant_id, {
+        page: page ? Number(page) : undefined,
+        page_size: page_size ? Number(page_size) : undefined,
+      });
+    },
+  });
+
+  defineRoute(app, {
+    method: "DELETE",
+    url: "/form-submissions/:id",
+    context: "SiteFormSubmissionDelete",
+    errorCode: "SITE_FORM_SUBMISSION_DELETE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const removed = await deleteFormSubmission(
+        request.tenantContext!.tenant_id,
+        id,
+      );
+      if (!removed) {
+        return sendCodedError(reply, 404, "site.form_submission_not_found");
+      }
+      // 提交里可能有访客留的联系方式，删除要留痕
+      await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+        userId: request.authUser!.userId,
+        username: request.authUser!.username,
+        action: AuditAction.SITE_FORM_SUBMISSION_DELETE,
+        resource: id,
+        detail_key: "marketing.audit.form_submission_deleted",
+      });
+      return { deleted: true };
     },
   });
 }

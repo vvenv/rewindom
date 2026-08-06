@@ -1,5 +1,6 @@
 import { getLocaleNativeLabel, normalizeLocale } from "@be-water/shared";
 
+import { escapeHtml } from "../shared/html.js";
 import { loadMarketingSiteCss } from "../shared/load-marketing-site-css.js";
 import {
   marketingSiteColorModeScript,
@@ -19,7 +20,6 @@ import {
   THEME_SECTION_SPACING,
 } from "../shared/theme-sections.js";
 
-import { escapeHtml } from "./site.util.js";
 import {
   renderFooterHtml,
   renderHeaderHtml,
@@ -87,6 +87,8 @@ export function renderMarketingHtml(input: {
   spaBootstrapHtml?: string;
   /** 会员专属页：正文占位 + robots noindex（token 不随 HTML 请求）。 */
   memberGate?: boolean;
+  /** 页头账户入口（未登录态）的 HTML；见 `site-account-entry.ts`。 */
+  accountEntryHtml?: string;
 }): string {
   const {
     origin,
@@ -94,6 +96,7 @@ export function renderMarketingHtml(input: {
     page,
     spaBootstrapHtml = "",
     memberGate = false,
+    accountEntryHtml = "",
   } = input;
   const theme = resolveThemeSettings(site.theme_settings);
   const sections = memberGate ? [] : page.sections;
@@ -161,6 +164,7 @@ export function renderMarketingHtml(input: {
             currentPath: page.path,
             locale,
             defaultLocale: site.default_locale,
+            accountEntryHtml,
           })
         : renderSectionHtml(section, 0, sectionCtx),
     )
@@ -208,9 +212,10 @@ export function renderMarketingHtml(input: {
     没有它 main.tsx 的 getElementById("root") 直接抛，页面就停在静态 HTML 上
     ——账户入口、明暗切换、会员页正文都指望 SPA 到场。
   -->
-  <div id="root">
+  <div id="root" class="marketing-site-root">
+  <div class="site-stack">
   ${headerHtml}
-  <main${page.settings.bg_color || page.settings.fg_color ? ` style="${[
+  <main class="site-main"${page.settings.bg_color || page.settings.fg_color ? ` style="${[
     page.settings.bg_color ? `background-color:${page.settings.bg_color}` : "",
     page.settings.fg_color ? `color:${page.settings.fg_color}` : "",
   ]
@@ -219,6 +224,7 @@ export function renderMarketingHtml(input: {
     ${mainHtml}
   </main>
   ${footerHtml}
+  </div>
   </div>
   ${spaBootstrapHtml}
 </body>

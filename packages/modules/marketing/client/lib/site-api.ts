@@ -6,6 +6,7 @@ import type {
   MarketingPage,
   MarketingPageListItem,
   MarketingSite,
+  MarketingSiteCapabilities,
   PublicMarketingPage,
   PublicMarketingSite,
   ApplySiteStarterResponse,
@@ -16,11 +17,21 @@ import type {
 import type { AppLocale } from "@be-water/shared";
 
 export const SITE_QUERY_KEY = ["site"] as const;
+/*
+ * 刻意**不**挂在 `["site", …]` 之下：`SITE_QUERY_KEY` 是前缀，每次保存草稿都会
+ * `invalidateQueries(["site"])` 把它一并作废，而能力只随租户开通状态变。
+ */
+export const SITE_CAPABILITIES_QUERY_KEY = ["site-capabilities"] as const;
 export const SITE_PAGES_QUERY_KEY = ["site", "pages"] as const;
 export const PUBLIC_SITE_QUERY_KEY = ["public", "site"] as const;
 
 export function fetchSite(): Promise<MarketingSite> {
   return api.get<MarketingSite>("/site");
+}
+
+/** 本站具备哪些需要另外开通的能力（如页头账户入口）。 */
+export function fetchSiteCapabilities(): Promise<MarketingSiteCapabilities> {
+  return api.get<MarketingSiteCapabilities>("/site/capabilities");
 }
 
 export function patchSite(

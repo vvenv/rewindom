@@ -6,7 +6,6 @@ import {
   type PresetTranslateFn,
 } from "./page-presets.js";
 import {
-  createBlock,
   createSection,
   getSectionDefinition,
   parseSettingValues,
@@ -46,45 +45,16 @@ export const SITE_STARTERS: SiteStarter[] = [
   },
 ];
 
-/** 默认营销站起步模板包含的页面（主语言）。 */
+/**
+ * 默认营销站起步模板包含的页面（主语言）：只建首页。
+ *
+ * 以前还顺带建了 `docs` 与 `pricing`。那是**本仓自己**的官网结构，不是通用租户的：
+ * 一个做线下课程的站点拿到手，第一件事是删掉两个空文档页。想要它们的从「页面预设」
+ * 里加一页即可（`PAGE_PRESETS` 里 docs / pricing / about / contact 都还在）。
+ */
 export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
   { presetKey: "home", sort_order: 0 },
-  { presetKey: "docs", sort_order: 10 },
-  { presetKey: "pricing", sort_order: 100 },
 ];
-
-/** 起步模板页脚链接：文案走 i18n，href 与 `DEFAULT_SITE_STARTER_PAGES` 对齐。 */
-const FOOTER_LINK_SPECS: readonly {
-  groupKey: string;
-  links: readonly { labelKey: string; href: string }[];
-}[] = [
-  {
-    groupKey: "footer.groups.product",
-    links: [
-      { labelKey: "footer.links.intro", href: "/" },
-      { labelKey: "footer.links.pricing", href: "/pricing" },
-    ],
-  },
-  {
-    groupKey: "footer.groups.docs",
-    links: [
-      { labelKey: "footer.links.docsHome", href: "/docs" },
-      { labelKey: "footer.links.quickstart", href: "/docs/quickstart" },
-    ],
-  },
-];
-
-function footerBlocks(t: PresetTranslateFn): ReturnType<typeof createBlock>[] {
-  return FOOTER_LINK_SPECS.flatMap((group) =>
-    group.links.map((link) =>
-      createBlock("footer", "footer_link", {
-        group: t(group.groupKey),
-        label: t(link.labelKey),
-        href: link.href,
-      }),
-    ),
-  );
-}
 
 /** 默认官网风格的页头 / 页脚 + 主题 token。 */
 export function buildSiteStarterChrome(
@@ -109,12 +79,17 @@ export function buildSiteStarterChrome(
           show_logo: true,
           show_site_name: true,
           sticky: true,
-          // 一级页（docs / pricing）由 `show_site_nav` 自动进顶栏，不必再抄一份 nav_link。
+          // 租户新建的一级页由 `show_site_nav` 自动进顶栏，不必再抄一份 nav_link。
           show_site_nav: true,
           layout: "split",
-          // 登录 / 账户入口由会员模块填进页头，模板不再自己配一枚「登录」按钮
-          primary_label: t("starter.default.cta"),
-          primary_href: "/member/register",
+          /*
+           * 模板**不**配页头按钮。
+           *
+           * 原来这里写死 `/member/register`：会员是按租户开通的能力，默认关着，
+           * 于是新站点的页头第一眼就挂着一枚点进去 403 的「免费开始」。登录 /
+           * 账户入口另有 `show_account` 开关（由会员模块填内容），要 CTA 的租户
+           * 自己在页头设置里加一条即可。
+           */
         }),
         blocks: [],
       },
@@ -128,7 +103,8 @@ export function buildSiteStarterChrome(
           blurb: t("starter.default.footer_blurb"),
           copyright: `© ${year} ${siteName}`,
         }),
-        blocks: footerBlocks(t),
+        // 起步只建首页，页脚链接组指不到任何地址；租户加了页面再自己配
+        blocks: [],
       },
     ],
   };

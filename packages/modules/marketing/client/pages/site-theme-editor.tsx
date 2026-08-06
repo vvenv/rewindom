@@ -16,6 +16,10 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
+import {
+  getSectionDefinition,
+  type SiteSection,
+} from "../../shared/section-schema.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";
 import { EditorToolbar } from "../components/theme-editor/EditorToolbar.js";
 import { PageMetaForm } from "../components/theme-editor/PageMetaForm.js";
@@ -39,6 +43,19 @@ const DEVICE_ICONS: Array<[PreviewDevice, LucideIcon]> = [
   ["mobile", Smartphone],
 ];
 
+/** 选中项的类型名（「功能墙」/「功能」），给预览高亮当标签用。 */
+function selectionTypeLabel(
+  section: SiteSection,
+  blockId: string | null,
+  t: (key: string) => string,
+): string {
+  const def = getSectionDefinition(section.type);
+  if (!blockId) return t(def.label);
+  const block = section.blocks.find((item) => item.id === blockId);
+  const blockDef = def.blocks?.find((item) => item.type === block?.type);
+  return blockDef ? t(blockDef.label) : (block?.type ?? t(def.label));
+}
+
 export function SiteThemeEditor() {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
@@ -50,7 +67,7 @@ export function SiteThemeEditor() {
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
-  const { selectedSectionId } = editor;
+  const { selectedSectionId, selectedBlockId } = editor;
   // 页头区里的段一律滚到顶部：页头本体是 sticky，scrollIntoView 会判定「已在视口内」
   const headerIds = editor.header.map((section) => section.id).join(",");
 
@@ -62,10 +79,15 @@ export function SiteThemeEditor() {
       previewDoc.defaultView?.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
+    // 选中的是块就滚到块：一个长段（六张卡片的功能墙）滚到段首，选中的那张
+    // 卡片可能还在视口外，高亮框跟着画在看不见的地方。
+    const selector = selectedBlockId
+      ? `[data-block-id="${CSS.escape(selectedBlockId)}"]`
+      : `[data-section-id="${CSS.escape(selectedSectionId)}"]`;
     previewDoc
-      .querySelector(`[data-section-id="${CSS.escape(selectedSectionId)}"]`)
+      .querySelector(selector)
       ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [previewDoc, selectedSectionId, headerIds]);
+  }, [previewDoc, selectedSectionId, selectedBlockId, headerIds]);
 
   if (editor.pageQuery.isLoading || editor.siteQuery.isLoading) {
     return (
@@ -100,7 +122,12 @@ export function SiteThemeEditor() {
   }
 
   const page = editor.page;
+  const accountEntryAvailable = editor.capabilities.account_entry;
   const selectedSection = editor.selectedSection;
+  /** 预览高亮左上角那枚标签：选中块时报块的类型名，否则报段的。 */
+  const highlightLabel = selectedSection
+    ? selectionTypeLabel(selectedSection, editor.selectedBlockId, t)
+    : undefined;
   const saving = editor.mutations.saveEditorDraft.isPending;
   const publishing = editor.mutations.publishDraft.isPending;
   const reverting = editor.mutations.revertDraft.isPending;
@@ -211,6 +238,22 @@ export function SiteThemeEditor() {
     });
   };
 
+  const previewView = (
+    <TenantSiteView
+      embedded
+      site={editor.previewSite}
+      path={editor.path}
+      sections={editor.previewSections}
+      alternates={editor.previewAlternates}
+      pageSettings={editor.pageSettings}
+      headerOverride={editor.header}
+      footerOverride={editor.footer}
+      onSelectSection={(sectionId, blockId) =>
+        editor.selectSection(sectionId, blockId)
+      }
+    />
+  );
+
   const unpublish = (): void => {
     editor.mutations.unpublishPage.mutate(page.id, {
       onSuccess: () => toast.success(t("cms.toastPageUnpublished")),
@@ -300,25 +343,24 @@ export function SiteThemeEditor() {
             device={device}
             onDocumentChange={setPreviewDoc}
             highlightSectionId={editor.selectedSectionId}
+            highlightBlockId={editor.selectedBlockId}
+            highlightLabel={highlightLabel}
           >
             {/*
               页头的会员入口在站点前台由 site-member 填进 slot；编辑器在工作台
-              外壳里拿不到那份 Provider，所以自己灌一个访客态的静态预览，
-              让「账户入口」开关在预览里看得见效果。
+              外壳里拿不到那份 Provider，所以自己灌一个访客态的静态预览。
+
+              **只在本站真的开通了会员时才灌**：以前无条件灌，于是没开通的站点
+              预览里挂着一枚「登录」，线上却什么都没有——预览撒的谎正是「账户入口
+              坏了」这个印象的来源。没开通时右侧那个开关也会被置灰并写明原因。
             */}
-            <siteMemberEntrySlot.Provider component={SiteAccountEntryPreview}>
-              <TenantSiteView
-                embedded
-                site={editor.previewSite}
-                path={editor.path}
-                sections={editor.previewSections}
-                alternates={editor.previewAlternates}
-                pageSettings={editor.pageSettings}
-                headerOverride={editor.header}
-                footerOverride={editor.footer}
-                onSelectSection={(sectionId) => editor.selectSection(sectionId)}
-              />
-            </siteMemberEntrySlot.Provider>
+            {accountEntryAvailable ? (
+              <siteMemberEntrySlot.Provider component={SiteAccountEntryPreview}>
+                {previewView}
+              </siteMemberEntrySlot.Provider>
+            ) : (
+              previewView
+            )}
           </PreviewFrame>
         </div>
 
@@ -341,6 +383,11 @@ export function SiteThemeEditor() {
               section={selectedSection}
               blockId={editor.selectedBlockId}
               disabled={!canWrite}
+              unavailable={
+                accountEntryAvailable
+                  ? undefined
+                  : { show_account: t("editor.accountEntryUnavailable") }
+              }
               locale={editor.locale}
               defaultLocale={editor.defaultLocale}
               onChangeSettings={(settings) =>

@@ -40,6 +40,7 @@ import {
 
 import {
   useSite,
+  useSiteCapabilities,
   useSiteMutations,
   useSitePage,
   useSitePages,
@@ -66,6 +67,7 @@ export type EditorArea = "header" | "footer";
 
 export function useSiteThemeEditor(pageId: string | undefined) {
   const siteQuery = useSite();
+  const capabilitiesQuery = useSiteCapabilities();
   const pagesQuery = useSitePages();
   const pageQuery = useSitePage(pageId);
   const mutations = useSiteMutations();
@@ -329,6 +331,15 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   return {
     siteQuery,
     pageQuery,
+    /**
+     * 本站具备哪些需另外开通的能力。
+     *
+     * 还没拉回来时按**不具备**算：反过来会让预览先画一枚登录按钮再抹掉，
+     * 而线上从头到尾都没有它——预览闪一下比晚一拍出现更容易被当成 bug。
+     */
+    capabilities: {
+      account_entry: capabilitiesQuery.data?.account_entry ?? false,
+    },
     page,
     path,
     sections,

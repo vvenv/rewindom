@@ -41,6 +41,7 @@ export const marketingServerModule: ServerAppModule = {
       { action: "SITE_PAGE_DELETE", label: "删除官网页面" },
       { action: "SITE_PAGE_PUBLISH", label: "发布官网页面" },
       { action: "SITE_PAGE_UNPUBLISH", label: "取消发布官网页面" },
+      { action: "SITE_FORM_SUBMISSION_DELETE", label: "删除官网表单提交" },
     ],
   },
   server: {

@@ -36,7 +36,7 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 | 文件                  | 职责                                                                                                                                                    |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `section-settings.ts` | setting 的类型系统 + 解析（`text`/`textarea`/`richtext`/`list`/`url`/`image`/`select`/`icon`/`range`/`checkbox`/`color` + 排版用 `header`/`paragraph`） |
-| `section-registry.ts` | `SECTION_DEFINITIONS`——所有 section / block 的声明                                                                                                      |
+| `sections/`           | **一段一个目录**：`<type>/definition.ts` 是声明，`<type>/html.ts` 是 SSR 渲染；`sections/index.ts` 聚合成 `SECTION_DEFINITIONS`，`sections/html.ts` 聚合成渲染器表 |
 | `section-schema.ts`   | 按 schema 解析脏数据、按 schema 造默认值                                                                                                                |
 
 基础架构对齐 Shopify theme editor：section 声明 `settings` 与可重复的 `blocks`，
@@ -108,21 +108,30 @@ SSR **不**输出明暗切换按钮：它要 JS 才能工作（语言切换器�
 只在 `client/shell/site-member-slots.ts` 里声明 `siteMemberEntrySlot`；site-member 通过
 `client.shell.publicProviders` 把组件填进来（方向：site-member → marketing）。
 
-因此这枚入口在三种宿主下表现不同，都是刻意的：
+服务端有一份**对称的**注入点 `server/site-account-entry.ts`（`registerSiteAccountEntry`），
+site-member 在 `onBoot` 里填。它回答两件事：本站有没有账户能力（`available`），
+以及未登录态入口的 HTML（`html`）。三处宿主因此有了同一个真相源：
 
-| 宿主                | slot | 渲染                                  |
-| ------------------- | ---- | ------------------------------------- |
-| 租户站点前台（SPA） | 有   | 真组件，按会员会话显示登录 / 账户下拉 |
-| SSR 首屏（无 slot） | 无   | 不输出账户入口；SPA 接管后补上        |
-| 主题编辑器预览      | 无   | 编辑器灌 `SiteAccountEntryPreview`    |
+| 宿主                | 数据来源                      | 渲染                                       |
+| ------------------- | ----------------------------- | ------------------------------------------ |
+| SSR 首屏            | 服务端注入点                  | 未开通不输出；开通了直接给「登录」链接     |
+| 租户站点前台（SPA） | `siteMemberEntrySlot`         | 真组件，按会员会话显示登录 / 账户下拉      |
+| 主题编辑器预览      | `GET /api/site/capabilities`  | 开通了才灌 `SiteAccountEntryPreview`       |
 
-编辑器拿不到 `publicProviders`，且真组件判「本站是否开通会员」是按请求 Host 走的，
-工作台域名下必然判不出来——所以预览用静态占位而不是借用真组件。
+三条以前各说各话：SSR 从不输出（开通了首屏也没有，登录按钮要等水合才跳出来，
+爬虫与禁用 JS 的访客永远看不到）；编辑器无条件灌静态占位（没开通会员的站点，
+预览里挂着一枚线上根本不存在的「登录」）；而 `show_account` 开关默认打开、随手可点，
+打开后什么都不发生也没有任何提示。现在未开通时开关会置灰并写明原因
+（`SettingsFields` 的 `unavailable`），预览也跟着不画。
 
-次按钮（secondary）因此**不再**默认成登录：登录归账户入口管，两边都配就会并排出现两个「登录」。
-SSR（`ssr-sections.ts`）同样不输出账户入口——会员是否开通属于 site-member 的 entitlement，
-marketing 服务端要读它就得反向依赖；而绑定域上 SPA 会用 `createRoot` 整片覆盖 SSR HTML，
-少一枚登录按钮的首屏差异不值得为此把模块方向拧过来。
+编辑器不能借用真组件：它跑在工作台外壳里拿不到 `publicProviders`，而真组件判
+「本站是否开通会员」是按**请求 Host** 走的，工作台域名下必然判不出来。所以预览
+用静态占位，能力则单独问 `/api/site/capabilities`（marketing 自己的接口，值由注入点给）。
+
+SSR 只画未登录那一态：会员 token 在 localStorage，不随 HTML 请求发送，服务端无从
+知道访客是否已登录；已登录的访客水合后会换成头像下拉。
+
+次按钮（secondary）**不**默认成登录：登录归账户入口管，两边都配就会并排出现两个「登录」。
 
 ### 绑定域上的 SPA 接管（交互层的前提）
 
@@ -274,15 +283,72 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 等比缩小：缩放只改视觉尺寸，iframe 仍按逻辑宽度渲染，断点不受影响。桌面不能
 「面板有多宽就多宽」——中间栏只有 600～800px，那样 `lg:` 永远不触发。
 
-**选中高亮画在 iframe 外面**（`PreviewFrame` 的 overlay，按 `data-section-id` 取矩形
-再乘缩放比）。画在里面躲不开三件事：macOS 覆盖式滚动条会盖住最右侧十几个像素、
-祖先的 `overflow`、以及 sticky 页头的层叠上下文——通栏 section（`width: full`）的边缘
-首当其冲。放到宿主文档后，站点渲染组件（也服务于公开站点）就不再带任何编辑器样式，
-只留 `data-section-id` 与点击回调。矩形随滚动 / 面板缩放 / 内容编辑重算，用 rAF 合并。
+**选中高亮画在 iframe 外面**（`PreviewFrame` 的 overlay，按 `data-section-id` /
+`data-block-id` 取矩形再乘缩放比）。画在里面躲不开三件事：macOS 覆盖式滚动条会盖住
+最右侧十几个像素、祖先的 `overflow`、以及 sticky 页头的层叠上下文——通栏 section
+（`width: full`）的边缘首当其冲。放到宿主文档后，站点渲染组件（也服务于公开站点）
+就不再带任何编辑器样式，只留两个 data 属性与点击回调。矩形随滚动 / 面板缩放 /
+内容编辑重算，用 rAF 合并。
 
-**新增字段只改 schema + 两处渲染**：`client/components/sections/`（SPA）与
-`server/ssr-sections.ts`（SEO HTML）。新增 setting 类型再在 `SettingsFields.tsx` 加一个分支。
+高亮只有 **1px 半透明 ring + 极淡填充 + 一枚类型名标签**。它是「我改的是这一块」的
+提示，不是内容的一部分：原来那圈 2px 实色边框加内环会盖住段落自己的圆角与分隔线，
+租户看到的排版和访客看到的差出好几个像素——预览失真比标注不明显更糟。
+
+**块也能选**。选中 block 时它是主高亮，所属 section 退成更淡的框做上下文。渲染层
+给每个 block 打 `data-block-id`，点击统一在**段**这一层从事件目标 `closest` 上溯到最近的
+块（`resolveClickedBlockId`）——block 的渲染散在十来个视图里，逐个挂 onClick 必漏，
+而「卡片整块是 `<a>`」的那几种还会先把事件吃掉。找到的元素不在本段里（分栏段的外层）
+就当没点中；判空用 `closest` 是否存在而**不是** `instanceof Element`，预览在 iframe 里
+是另一个 realm，`instanceof` 恒为 false。iframe 内另加一条 hover 虚线提示哪些是可选单元
+（这份 CSS 只在编辑器的 iframe 里，不进公开面）。
+
+**加一段 = 三个文件 + 两行登记**，没有任何 switch 要改：
+
+| 文件                                                   | 内容                     |
+| ------------------------------------------------------ | ------------------------ |
+| `shared/sections/<type>/definition.ts`                 | schema 声明              |
+| `shared/sections/<type>/html.ts`                       | SSR 渲染（SEO 正文以它为准） |
+| `client/components/sections/views/<type>.tsx`          | SPA React 视图           |
+
+两行登记分别在 `shared/sections/index.ts`（声明表）与 `shared/sections/html.ts` +
+`client/components/sections/section-views.ts`（两张渲染器表）。**两端渲染必须同构**：
+一段的三个文件按 type 并置，漏改一端在 diff 里看得见。客户端与服务端各有一张表，
+是因为两侧本就是两个 bundle（React 视图进不了 Fastify），与 `site-account-entry` 的
+client / server 双注入点同一形状。
+
+新增 setting 类型再在 `SettingsFields.tsx` 加一个分支。
 `label` / `content` 存的是 i18n key（`marketing` namespace 下相对 key），shared 层不含展示文案。
+
+`header` / `footer` 是站点级 chrome，不进段流：它们的渲染在
+`shared/sections/{header,footer}/html.ts`（SSR）与 `SiteChrome.tsx`（SPA），
+不套 `sec-band` 外壳，也不在上面两张渲染器表里。
+
+#### 撞见不认识的段
+
+页面里可能存着这份代码解析不了的段：模块停用、租户退订、或页面是更新版本写的。
+口径分两种，别混：
+
+| 情况                              | 读路径                               | 写路径 |
+| --------------------------------- | ------------------------------------ | ------ |
+| **type 完全不认识**               | 包成 `unsupported` 占位，**原样兜住** | 拒收   |
+| **type 认识、但不该放在这个位置** | 丢掉                                 | 拒收   |
+
+**兜住**是因为「停用模块 → 打开编辑器看看 → 顺手保存」是最常见的一串操作，静默丢掉
+等于一次保存就永久烧掉内容，重新启用模块也回不来。占位把原始条目原封不动放在
+`section.source.raw` 里，写路径原样回存；等 type 重新被认识，解析时自动复活成真正的段
+（`parseUnsupported`），不留痕迹。**丢掉**则是因为 `placements` 写死在代码里，没有任何
+模块开关能让 `pricing` 变成合法的页头段——兜着它也永远复活不了。
+
+**拒收**是因为编辑器手上的未知段一定已经是占位（读路径给的），写路径上再冒出一个裸的
+未知 type，只可能是客户端 bug 或构造的请求。
+
+占位两端都不渲染（不在任何渲染器表里），公开页与 SSR 一致——不可用不等于露出半个坏掉的
+段。编辑器里它照常出现在段树上（警示图标），能选中、能删，设置面板给一句说明而不是空白。
+`placements: []` 保证它永远不出现在「添加区块」菜单里。
+
+一段坏了也不再连坐：页头 / 页脚以前是「一段解析失败 → 整个区域重置成默认」，现在逐段跳过。
+
+用例见 `shared/unsupported-section.test.ts`。
 
 读库兼容旧数据：type `features`→`feature-grid`、`cta`→`band`、`richtext`/`markdown`→`prose`；
 字段 `cta_label`/`cta_href`→`primary_*`、`description`→`body`、band 的 `tone`→`background`、
@@ -304,7 +370,7 @@ blocks；`nav_json`/`footer_json` 的 `{label,href}[]` 自动迁成页头 / 页�
 `/app/site/pages/:pageId` 三栏：
 
 - **左**：页面 / 页头 / 页面区块 / 页脚四组。最上面「页面」那一行不是 section，是**页面自己**（标题 / SEO 描述），选中后右栏出 `PageMetaForm`——改元数据不用退回页面列表，且即时反映到中间预览。其余三组是区块树（对齐 Shopify sections group），section → blocks 两层，容器段再多一层（列 → 子段 → 子段的 blocks），增删排序都在这里；页头页脚不可删不可移。树上的操作一律**按 id 定位**（`client/lib/section-schema.ts`），不用下标——下标只在自己那一层有意义
-- **中**：同页预览（`TenantSiteView`），点击任意区块即选中
+- **中**：同页预览（`TenantSiteView`），点击任意区块即选中；点在某个 block 上直接选中该 block，点在段的其余部分选中整段
 - **右**：由 schema 渲染的设置面板（选中 section 或 block）
 
 **区块的搬移**（`moveSectionTo`）：落点按指针在目标行的上半 / 下半算，插到那一段前 / 后；
@@ -375,8 +441,18 @@ block 不跨层：它的 schema 属于所在 section，一个 `card` 换不到 `
 预设只描述结构 + i18n key，文案在创建时用 `t()` 落成当前语言的普通内容，套完随便改。
 
 **站点起步模板**（`shared/site-starters.ts` + `SiteStarterMenu`）在页面列表一键铺好页头 / 页脚 /
-主题色，并在主语言下创建或更新首页、文档与定价页（复用页面预设）。应用走
+主题色，并在主语言下创建或更新**首页**（复用页面预设）。应用走
 `POST /api/site/starters/:key/apply`，chrome 与页面**同一事务**落库。
+
+起步模板刻意很轻：首页只有 hero / 三项功能 / CTA 三段，文案是可替换的占位，
+页头不预设按钮、页脚不预设链接组，且不再顺带建 docs 与 pricing。那三样是**本仓自己**
+官网的结构与文案（写死了 Fastify / Prisma / `pnpm gen:module`），真实租户拿到手第一件事
+是删。想要文档 / 定价 / 关于 / 联系的从「页面预设」里按需加，预设都还在。
+
+模板里的链接也不能写死站内地址：起步只建首页，别处都指不到；`/register` 更是
+**工作台的员工注册页**（`apps/client/src/shell/guest-routes.tsx`），租户站点的访客点进去
+会看到 SaaS 运营方的注册表单。首页 CTA 因此走页内锚点（`#contact` → band 段的 `anchor`），
+`SiteLink` 会把 `#` 开头的 href 原样交给 `<a>`，不再当相对路径去补 locale 前缀。
 
 **站点主题**（Logo / 主色 / 字体 / 页宽 / 区块间距）已从编辑器移出，并入「系统管理 → 品牌」（`/app/settings`）：
 `platform` 开 `settingsBrandingExtraSlot`，本模块通过 `client.shell.shellProviders`
@@ -394,11 +470,38 @@ block 不跨层：它的 schema 属于所在 section，一个 `card` 换不到 `
 
 API：
 
-- 租户：`/api/site`、`/api/site/pages…`（含 `POST /pages/:id/duplicate`）、`/api/site/preview`（权限 `site.read` / `site.write`）
+- 租户：`/api/site`、`/api/site/capabilities`、`/api/site/pages…`（含 `POST /pages/:id/duplicate`）、`/api/site/preview`（权限 `site.read` / `site.write`）
 - 公开：`GET /api/public/site`、`GET /api/public/site/page?path=`
 - Entitlement key：`tenant-marketing`
 
 现有租户管理员补权限：`pnpm --filter server exec tsx scripts/sync-builtin-admin-permissions.ts`
+
+## 表单段（`form`）
+
+第一个**会往回写数据**的段：其余段都只是把 settings 画出来，它还要收访客填的东西。
+
+| 层 | 位置 |
+| --- | --- |
+| 字段模型 + 校验（唯一真相源） | `shared/sections/form/fields.ts` |
+| 提交与查看 | `server/site-form.service.ts` |
+| 公开提交口 | `POST /api/public/site/form` |
+| 租户侧查看 | `GET /api/site/form-submissions`、`/app/site/form-submissions` |
+| 存储 | `MarketingFormSubmission` |
+
+**字段表以已发布正文为准，不信客户端。** 提交时服务端按 `path` + `section_id` 现取那一段，
+用它的 `field` block 重新算一遍字段表再校验：客户端想多送字段、改下拉选项、把必填改成
+选填，都过不来。客户端也调同一个 `validateFormValues`，所以两端口径不会漂。
+
+**失败一律不透露细节**：段不存在、不是表单、站点没发布，对外都是 404；只有「字段填得
+不对」逐字段返回，那是填表人自己要看的。限流按 `租户:IP`，**进程内**滑动窗口——挡的是
+脚本猛灌，不是分布式刷量（那要 Redis 或网关层，等真出现再上）。
+
+**提交内容存成自描述的 `[{ id, label, value }]`**，不是 `{ fieldId: value }`：字段是 block，
+租户随时会改标题、删字段、调顺序，按 id 存的话三个月后回头看只剩一堆 uuid 对不上任何东西。
+
+**SSR 只出静态结构，不带提交脚本**（同本模块既有口径：SSR 是 SEO 真相源，交互层由 SPA 接管）。
+但 `onsubmit="return false"` 不能省——原生 `<form>` 在水合前被提交会直接导航走，
+而这是**不引入 script 标签**就能挡住它的唯一办法。
 
 ## 默认内容从哪来
 

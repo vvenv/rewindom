@@ -418,8 +418,9 @@ describe("applySiteStarter", () => {
 
     expect(prisma.$transaction).toHaveBeenCalledOnce();
     expect(prisma.marketingSite.update).toHaveBeenCalled();
-    expect(prisma.marketingPage.create).toHaveBeenCalledTimes(3);
-    expect(result.pages).toHaveLength(3);
+    // 起步模板只建首页；docs / pricing 已降级为按需添加的页面预设
+    expect(prisma.marketingPage.create).toHaveBeenCalledTimes(1);
+    expect(result.pages).toHaveLength(1);
     expect(result.home_page_id).toBe("page-home");
   });
 

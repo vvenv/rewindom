@@ -572,7 +572,7 @@ describe("容器段（group）", () => {
     expect(survived!.blocks[0]!.sections).toEqual([]);
   });
 
-  it("读路径只丢坏掉的那个子段，不连坐整个容器段", () => {
+  it("读路径不连坐整个容器段：不认识的子段就地兜成占位", () => {
     const [group] = safeSections([
       groupWith([
         { type: "band", settings: { headline: "Fine" } },
@@ -580,8 +580,11 @@ describe("容器段（group）", () => {
         { type: "prose", settings: { body_md: "x" } },
       ]),
     ]);
+    // 列里也可能装模块贡献的段，口径与顶层一致：不认识 ≠ 丢掉
+    // （占位不渲染，但内容留着、位置也留着，见 unsupported-section.test.ts）
     expect(group!.blocks[0]!.sections?.map((s) => s.type)).toEqual([
       "band",
+      "unsupported",
       "prose",
     ]);
   });

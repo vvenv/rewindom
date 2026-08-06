@@ -1,4 +1,4 @@
-import { useNavBadgeCount, type PlatformNavChild  } from "@be-water/client-kit";
+import { useNavBadgeCount, type PlatformNavChild } from "@be-water/client-kit";
 
 function PlatformNavBadgeLabel({
   label,

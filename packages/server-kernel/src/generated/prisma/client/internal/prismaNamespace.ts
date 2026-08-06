@@ -410,6 +410,7 @@ export const ModelName = {
   User: 'User',
   MarketingSite: 'MarketingSite',
   MarketingPage: 'MarketingPage',
+  MarketingFormSubmission: 'MarketingFormSubmission',
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
@@ -439,7 +440,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1402,6 +1403,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MarketingPageCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MarketingPageCountAggregateOutputType> | number
+        }
+      }
+    }
+    MarketingFormSubmission: {
+      payload: Prisma.$MarketingFormSubmissionPayload<ExtArgs>
+      fields: Prisma.MarketingFormSubmissionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MarketingFormSubmissionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MarketingFormSubmissionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
+        }
+        findFirst: {
+          args: Prisma.MarketingFormSubmissionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MarketingFormSubmissionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
+        }
+        findMany: {
+          args: Prisma.MarketingFormSubmissionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>[]
+        }
+        create: {
+          args: Prisma.MarketingFormSubmissionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
+        }
+        createMany: {
+          args: Prisma.MarketingFormSubmissionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MarketingFormSubmissionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>[]
+        }
+        delete: {
+          args: Prisma.MarketingFormSubmissionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
+        }
+        update: {
+          args: Prisma.MarketingFormSubmissionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
+        }
+        deleteMany: {
+          args: Prisma.MarketingFormSubmissionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MarketingFormSubmissionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MarketingFormSubmissionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>[]
+        }
+        upsert: {
+          args: Prisma.MarketingFormSubmissionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
+        }
+        aggregate: {
+          args: Prisma.MarketingFormSubmissionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMarketingFormSubmission>
+        }
+        groupBy: {
+          args: Prisma.MarketingFormSubmissionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingFormSubmissionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MarketingFormSubmissionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingFormSubmissionCountAggregateOutputType> | number
         }
       }
     }
@@ -2710,6 +2785,22 @@ export const MarketingPageScalarFieldEnum = {
 export type MarketingPageScalarFieldEnum = (typeof MarketingPageScalarFieldEnum)[keyof typeof MarketingPageScalarFieldEnum]
 
 
+export const MarketingFormSubmissionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  page_slug: 'page_slug',
+  page_locale: 'page_locale',
+  section_id: 'section_id',
+  form_title: 'form_title',
+  data: 'data',
+  ip: 'ip',
+  user_agent: 'user_agent',
+  created_at: 'created_at'
+} as const
+
+export type MarketingFormSubmissionScalarFieldEnum = (typeof MarketingFormSubmissionScalarFieldEnum)[keyof typeof MarketingFormSubmissionScalarFieldEnum]
+
+
 export const NoteScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -3195,6 +3286,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   marketingSite?: Prisma.MarketingSiteOmit
   marketingPage?: Prisma.MarketingPageOmit
+  marketingFormSubmission?: Prisma.MarketingFormSubmissionOmit
   note?: Prisma.NoteOmit
   notification?: Prisma.NotificationOmit
   notificationLog?: Prisma.NotificationLogOmit

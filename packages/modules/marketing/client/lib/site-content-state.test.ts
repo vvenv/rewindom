@@ -4,7 +4,7 @@ import type {
   MarketingPageListItem,
   MarketingSite,
 } from "../../shared/site-cms.js";
-import type { SiteBlock, SiteSection } from "../../shared/section-registry.js";
+import type { SiteBlock, SiteSection } from "../../shared/sections/types.js";
 
 import { hasSiteStarterContent } from "./site-content-state.js";
 

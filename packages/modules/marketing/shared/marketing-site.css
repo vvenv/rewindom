@@ -16,6 +16,15 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 .lead { color: var(--muted-fg); }
 .eyebrow { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-fg); }
 
+/* 页面外壳：撑满视口 + main 吃掉中间，页脚贴底（无 Tailwind） */
+.marketing-site-root { min-height: 100svh; }
+.marketing-site-root.is-embedded { min-height: 100%; }
+.site-stack { display: flex; flex-direction: column; min-height: 100%; }
+.site-main { flex: 1 1 auto; }
+.page-missing { padding: 4rem 1.5rem; }
+.page-missing h1 { font-size: 1.5rem; font-weight: 600; }
+.page-missing > * + * { margin-top: .5rem; }
+
 .site-header { border-bottom: 1px solid var(--border); background: var(--header-bg); backdrop-filter: blur(12px); }
 .site-header.sticky { position: sticky; top: 0; z-index: 40; }
 .header-row { display: flex; align-items: center; gap: 1rem; height: 3.5rem; }
@@ -190,6 +199,31 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 .page-menu-list a { display: block; border-radius: .5rem; padding: .375rem .625rem; color: var(--muted-fg); }
 .page-menu-list li[aria-current="page"] a { background: var(--muted-bg); color: var(--fg); font-weight: 500; }
 .page-menu-list { font-size: .875rem; }
+
+/* 表单段：窄屏永远一列，桌面两列；`form-field-wide` 独占一行 */
+.form-grid { display: grid; gap: 1rem; }
+@media (min-width: 640px) {
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  .form-field-wide { grid-column: 1 / -1; }
+}
+.form-field { display: grid; gap: .375rem; min-width: 0; }
+.form-field > label { font-size: .875rem; font-weight: 500; }
+.form-req { color: var(--accent); margin-left: .125rem; }
+.form-field input, .form-field textarea, .form-field select {
+  width: 100%; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); color: inherit; padding: .5rem .75rem; font: inherit;
+}
+.form-field textarea { resize: vertical; }
+.form-field :is(input, textarea, select):focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
+.form-field [aria-invalid="true"] { border-color: #dc2626; }
+/* 勾选框把控件放进 label 里，点文字也能勾上 */
+.form-check > label { display: flex; align-items: center; gap: .5rem; font-weight: 400; }
+.form-check input { width: auto; }
+.form-error { color: #dc2626; font-size: .8125rem; }
+.form-actions { display: flex; align-items: center; gap: .75rem; margin-top: 1.25rem; }
+.form-success { color: var(--accent); font-weight: 500; }
 
 @media (max-width: 900px) {
   .footer-grid { grid-template-columns: 1fr 1fr; }

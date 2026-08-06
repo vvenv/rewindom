@@ -1,24 +1,11 @@
 /**
  * Section 的解析 / 构造层（Theme Editor / SSR / 写入校验共用）。
  *
- * 类型系统在 `section-settings.ts`，注册表在 `section-registry.ts`；
+ * 类型系统在 `section-settings.ts`，注册表在 `sections/`（一段一个目录）；
  * 此文件把两者接起来：按 schema 解析脏数据、按 schema 造默认值。
  * 对外统一从这里 re-export，调用方只 import 一个模块。
  */
 
-import {
-  getBlockDefinition,
-  isContainerSection,
-  isPageSectionType,
-  resolveGroupSpans,
-  SECTION_DEFINITIONS,
-  type AreaSectionType,
-  type PageSectionType,
-  type SectionDefinition,
-  type SectionType,
-  type SiteBlock,
-  type SiteSection,
-} from "./section-registry.js";
 import {
   isInputSetting,
   isLocalizableSetting,
@@ -33,13 +20,27 @@ import {
   type SettingDef,
   type SettingValues,
 } from "./section-settings.js";
+import {
+  getBlockDefinition,
+  isContainerSection,
+  isPageSectionType,
+  resolveGroupSpans,
+  SECTION_DEFINITIONS,
+  type AreaSectionType,
+  type PageSectionType,
+  type SectionDefinition,
+  type SectionType,
+  type SiteBlock,
+  type SiteSection,
+  type UnsupportedSectionSource,
+} from "./sections/index.js";
 import { normalizeSiteColor } from "./site-color.js";
 import { localizeSiteHref } from "./site-locale.js";
 
 import type { AppLocale } from "@be-water/shared";
 
 export * from "./section-settings.js";
-export * from "./section-registry.js";
+export * from "./sections/index.js";
 
 /** 旧业务语义 type → 布局原语（读/写兼容）。 */
 const LEGACY_SECTION_TYPE_MAP: Record<string, PageSectionType> = {
@@ -196,6 +197,93 @@ function buildSection(
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* 不认识的段                                                                  */
+/* -------------------------------------------------------------------------- */
+
+const UNSUPPORTED_TYPE = "unsupported";
+
+/**
+ * 读出 `unsupported` 占位里兜着的原始条目。
+ *
+ * `source.type` 自己是 `unsupported` 的话当没读到——不接受套娃，否则一次
+ * 读-写往返就多一层壳，几次之后原始数据埋在十层里。
+ */
+function readUnsupportedSource(
+  row: Record<string, unknown>,
+): UnsupportedSectionSource | null {
+  const source = row.source;
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    return null;
+  }
+  const value = source as Record<string, unknown>;
+  if (typeof value.type !== "string" || value.type === UNSUPPORTED_TYPE) {
+    return null;
+  }
+  return { type: value.type, raw: value.raw };
+}
+
+/**
+ * 这份代码认不认识这个 type —— 不论它能不能放在当前位置。
+ *
+ * 用来分开两种「解析不了」：**不认识**（模块停用，兜住等它回来）与
+ * **认识但放错了地方**（把页头段塞进页面段流）。后者是坏数据：`placements` 写死在
+ * 代码里，没有任何模块开关能让 `pricing` 变成合法的页头段，兜着它也永远复活不了。
+ */
+function isKnownSectionType(value: unknown): value is SectionType {
+  return typeof value === "string" && Object.hasOwn(SECTION_DEFINITIONS, value);
+}
+
+function buildUnsupportedSection(
+  source: UnsupportedSectionSource,
+  fallbackId: string,
+): SiteSection {
+  const raw =
+    source.raw && typeof source.raw === "object" && !Array.isArray(source.raw)
+      ? (source.raw as Record<string, unknown>)
+      : {};
+  return {
+    id: typeof raw.id === "string" && raw.id.trim() ? raw.id.trim() : fallbackId,
+    type: UNSUPPORTED_TYPE,
+    settings: {},
+    blocks: [],
+    source,
+  };
+}
+
+/**
+ * 撞见不认识的段时怎么办 —— 全模块统一口径，改这里就改了所有入口。
+ *
+ * **读路径原样兜住，写路径拒收。** 两条合起来才成立：
+ *
+ * - 兜住：模块停用、租户退订、页面是更新版本写的，都会让某个 type 突然不认识。
+ *   静默丢掉的话，租户下次一保存就永久没了，重新启用模块也回不来——而这恰恰是
+ *   最常见的一次操作（停用模块 → 打开编辑器看看 → 顺手保存）。
+ * - 拒收：编辑器手上的未知段一定已经是 `unsupported` 占位（读路径给的），所以写
+ *   路径上再冒出一个裸的未知 type，只可能是客户端 bug 或构造的请求，没有放行的理由。
+ *
+ * 占位段两端都不渲染，公开页与 SSR 一致——不可用不等于露出半个坏掉的段。
+ */
+function parseUnsupported(
+  row: Record<string, unknown>,
+  fallbackId: string,
+  options: ParseOptions,
+): SiteSection {
+  const source = readUnsupportedSource(row);
+  // 壳都坏了：里面兜的是什么已经无从得知，按坏数据处理
+  if (!source) throw new Error("site.sections_invalid");
+
+  // 模块又启用了 / 版本追上了：原样复活，不留痕迹——这是「可恢复」的那一半
+  if (source.raw && typeof source.raw === "object" && !Array.isArray(source.raw)) {
+    const inner = source.raw as Record<string, unknown>;
+    const innerType = resolvePageSectionType(inner.type);
+    if (innerType && !(options.depth > 0 && isContainerSection(innerType))) {
+      return buildSection(innerType, inner, fallbackId, options);
+    }
+  }
+  return buildUnsupportedSection(source, fallbackId);
+}
+
 function parsePageSection(
   item: unknown,
   index: number,
@@ -205,21 +293,29 @@ function parsePageSection(
     throw new Error("site.sections_invalid");
   }
   const row = item as Record<string, unknown>;
+  const fallbackId = `section-${index}-${createSectionId()}`;
+
+  if (row.type === UNSUPPORTED_TYPE) {
+    return parseUnsupported(row, fallbackId, options);
+  }
+
   const type = resolvePageSectionType(row.type);
   if (!type) {
-    throw new Error("site.sections_invalid");
+    // 认识但不该出现在页面段流里（`header` / `footer`）：坏数据，丢
+    if (options.strict || isKnownSectionType(row.type)) {
+      throw new Error("site.sections_invalid");
+    }
+    return buildUnsupportedSection(
+      { type: typeof row.type === "string" ? row.type : "", raw: row },
+      fallbackId,
+    );
   }
   // 深度上限 1：容器段不能装容器段。这道闸门让它保持「布局原语」，
   // 而不是滑成一棵可以无限套下去的自由画布（编辑器的加段菜单里也挡了一道）。
   if (options.depth > 0 && isContainerSection(type)) {
     throw new Error("site.sections_invalid");
   }
-  return buildSection(
-    type,
-    row,
-    `section-${index}-${createSectionId()}`,
-    options,
-  );
+  return buildSection(type, row, fallbackId, options);
 }
 
 /** 写路径严格校验；失败抛 Error（code 字符串）由 service 转 ValidationError。 */
@@ -421,30 +517,61 @@ export function relocalizeSections(
  * 放行——通栏 CTA 当公告条、prose 放备案号都走这条路，不为每种花样另造类型。
  * 本体缺了就补一个：没有导航条的页头是坏数据，不是一种配置。
  */
-export function parseAreaSections(
+function parseAreaSectionList(
   area: AreaSectionType,
   value: unknown,
+  strict: boolean,
 ): SiteSection[] {
   const rows = Array.isArray(value) ? value : [];
+  const options: ParseOptions = { depth: 0, strict };
   const sections: SiteSection[] = [];
   for (const row of rows) {
     if (!row || typeof row !== "object" || Array.isArray(row)) continue;
     const raw = row as Record<string, unknown>;
-    const type = typeof raw.type === "string" ? raw.type : "";
-    const def = Object.hasOwn(SECTION_DEFINITIONS, type)
-      ? SECTION_DEFINITIONS[type as SectionType]
-      : undefined;
-    if (!def?.placements.includes(area)) {
-      throw new Error("site.sections_invalid");
+
+    try {
+      if (raw.type === UNSUPPORTED_TYPE) {
+        const parsed = parseUnsupported(raw, createSectionId(), options);
+        // 复活出来的段得真能放进这个区域；放不进就是坏数据，丢（口径见 isKnownSectionType）
+        if (
+          parsed.type !== UNSUPPORTED_TYPE &&
+          !SECTION_DEFINITIONS[parsed.type].placements.includes(area)
+        ) {
+          throw new Error("site.sections_invalid");
+        }
+        sections.push(parsed);
+        continue;
+      }
+
+      const type = raw.type;
+      if (!isKnownSectionType(type)) {
+        // 完全不认识：读路径兜住等模块回来，写路径拒收（口径见 parseUnsupported）
+        if (strict) throw new Error("site.sections_invalid");
+        sections.push(
+          buildUnsupportedSection(
+            { type: typeof type === "string" ? type : "", raw },
+            createSectionId(),
+          ),
+        );
+        continue;
+      }
+      if (!SECTION_DEFINITIONS[type].placements.includes(area)) {
+        throw new Error("site.sections_invalid");
+      }
+      sections.push(buildSection(type, raw, createSectionId(), options));
+    } catch (error) {
+      // 读路径逐段跳过：一段坏了不该把整个页头 / 页脚连坐重置
+      if (strict) throw error;
     }
-    sections.push(
-      buildSection(def.type, raw, createSectionId(), {
-        depth: 0,
-        strict: true,
-      }),
-    );
   }
   return ensureAreaBody(area, sections);
+}
+
+export function parseAreaSections(
+  area: AreaSectionType,
+  value: unknown,
+): SiteSection[] {
+  return parseAreaSectionList(area, value, true);
 }
 
 /** 区域本体（导航条 / 页脚本体）只能有一段，且必须在：缺了补、多了删。 */
@@ -460,12 +587,18 @@ function ensureAreaBody(
   return area === "header" ? [...rest, kept] : [kept, ...rest];
 }
 
+/**
+ * 读库容错：逐段跳过 / 兜住，只有整体崩了才回落到一个空区域。
+ *
+ * 以前这里是「一段坏 → 整个页头页脚重置成默认」——租户配了半年的页脚，因为某一段
+ * 引用了停用模块就整片消失。现在坏的那一段自己变占位，其余原样留着。
+ */
 export function safeAreaSections(
   area: AreaSectionType,
   value: unknown,
 ): SiteSection[] {
   try {
-    return parseAreaSections(area, value);
+    return parseAreaSectionList(area, value, false);
   } catch {
     return [createSection(area)];
   }

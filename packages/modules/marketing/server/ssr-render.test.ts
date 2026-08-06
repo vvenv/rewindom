@@ -247,7 +247,10 @@ describe("renderMarketingHtml 接上 SPA", () => {
     });
     expect(html).toContain(BOOTSTRAP);
     // createRoot(#root) 找不到挂载点会直接抛，SPA 就永远接管不了
-    expect(html).toContain('<div id="root">');
+    expect(html).toContain('id="root"');
+    expect(html).toContain('class="marketing-site-root"');
+    expect(html).toContain('class="site-stack"');
+    expect(html).toContain('<main class="site-main"');
   });
 
   it("没有产物时退化成纯静态 HTML，但挂载点仍在", () => {
@@ -257,7 +260,8 @@ describe("renderMarketingHtml 接上 SPA", () => {
       page: page(),
     });
     expect(html).not.toContain("<script type=\"module\"");
-    expect(html).toContain('<div id="root">');
+    expect(html).toContain('id="root"');
+    expect(html).toContain('class="site-stack"');
   });
 });
 

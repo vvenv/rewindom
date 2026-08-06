@@ -14,6 +14,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_content_reverted":
         "撤销官网页面未发布的更改「{{title}}」",
       "marketing.audit.page_unpublished": "取消发布官网页面「{{title}}」",
+      "marketing.audit.form_submission_deleted": "删除官网表单提交",
       "marketing.audit.starter_applied": "应用站点起步模板「{{key}}」（{{page_count}} 页）",
       "marketing.audit.chrome_published": "发布官网页头页脚「{{site_name}}」",
       "marketing.audit.chrome_reverted":

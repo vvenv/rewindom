@@ -23,6 +23,8 @@ interface SectionSettingsFormProps {
   /** 选中 block 时编辑该 block；否则编辑 section 自身 settings。 */
   blockId?: string | null;
   disabled?: boolean;
+  /** 本站还不具备的能力：setting id → 说明（字段照常显示但点不动）。 */
+  unavailable?: Record<string, string>;
   /** 正在编辑的语言（文案类字段按语言分槽存）。 */
   locale: AppLocale;
   defaultLocale: AppLocale;
@@ -58,6 +60,7 @@ export function SectionSettingsForm({
   section,
   blockId,
   disabled,
+  unavailable,
   locale,
   defaultLocale,
   onChangeSettings,
@@ -90,6 +93,21 @@ export function SectionSettingsForm({
     );
   }
 
+  /*
+   * 不认识的段：连字段都不认识，谈不上编辑。给一句说明 + 原始 type，让租户知道
+   * 「这块内容还在、只是当前渲染不出来」——面板空着的话看上去就像坏了。
+   * 左树上它照常能选中能删，想清掉随时能清。
+   */
+  if (section.type === "unsupported") {
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("editor.unsupportedSection", {
+          type: section.source?.type || "?",
+        })}
+      </p>
+    );
+  }
+
   const def = getSectionDefinition(section.type);
   return (
     <ScopedSettings
@@ -97,6 +115,7 @@ export function SectionSettingsForm({
       defs={def.settings}
       values={section.settings}
       disabled={disabled}
+      unavailable={unavailable}
       locale={locale}
       defaultLocale={defaultLocale}
       onChange={onChangeSettings}
@@ -109,6 +128,7 @@ function ScopedSettings({
   defs,
   values,
   disabled,
+  unavailable,
   locale,
   defaultLocale,
   onChange,
@@ -117,6 +137,7 @@ function ScopedSettings({
   defs: SettingDef[];
   values: SettingValues;
   disabled?: boolean;
+  unavailable?: Record<string, string>;
   locale: AppLocale;
   defaultLocale: AppLocale;
   onChange: (settings: SettingValues) => void;
@@ -151,6 +172,7 @@ function ScopedSettings({
       defs={scopeDefs}
       values={values}
       disabled={disabled}
+      unavailable={unavailable}
       locale={locale}
       defaultLocale={defaultLocale}
       onChange={onChange}

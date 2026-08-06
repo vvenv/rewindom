@@ -17,10 +17,7 @@ import { usePreviewDocument } from "../lib/preview-document-context.js";
 
 import { SiteLocaleProvider } from "./sections/site-locale-context.js";
 import { SiteFooter, SiteHeader } from "./sections/SiteChrome.js";
-import { SiteSections } from "./sections/SiteSections.js";
-
-/** 页面外壳的限宽（与页头页脚、section 的 `wide` 一致）。 */
-const WRAP = "mx-auto w-full max-w-[var(--site-page-width,72rem)]";
+import { SiteSections, type SelectSectionFn } from "./sections/SiteSections.js";
 
 function findPage(
   site: PublicMarketingSite,
@@ -48,7 +45,7 @@ interface TenantSiteViewProps {
   /** 编辑器覆盖：预览未保存的页头 / 页脚草稿 */
   headerOverride?: SiteSection[];
   footerOverride?: SiteSection[];
-  onSelectSection?: (sectionId: string) => void;
+  onSelectSection?: SelectSectionFn;
   /** 替换 main 区内容（会员门控占位等）；有值时不再渲染 sections。 */
   mainOverride?: ReactNode;
 }
@@ -93,7 +90,7 @@ export function TenantSiteView({
       locale={site.locale}
       defaultLocale={site.default_locale}
     >
-      <div className="flex min-h-full flex-col">
+      <div className="site-stack">
         {/*
           页头区**不能**再套一层 `<header>`：`SiteHeader` 自己就是 `<header>`，
           外面这层的高度恰好等于它，`position: sticky` 于是没有任何可粘的余量
@@ -113,7 +110,9 @@ export function TenantSiteView({
               alternates={alternates}
               locale={site.locale}
               onSelect={
-                onSelectSection ? () => onSelectSection(section.id) : undefined
+                onSelectSection
+                  ? (blockId) => onSelectSection(section.id, blockId)
+                  : undefined
               }
             />
           ) : (
@@ -128,13 +127,13 @@ export function TenantSiteView({
           ),
         )}
 
-        <main className="flex-1" style={mainStyle}>
+        <main className="site-main" style={mainStyle}>
           {mainOverride !== undefined ? (
             mainOverride
           ) : !pageMeta && path !== "/" && !hasOwnContent ? (
-            <div className={cn(WRAP, "space-y-2 px-4 py-16 sm:px-6")}>
-              <h1 className="text-2xl font-semibold">Page not found</h1>
-              <p className="text-muted-foreground">
+            <div className="wrap page-missing">
+              <h1>Page not found</h1>
+              <p className="muted">
                 This page is not published on {site.site_name}.
               </p>
             </div>
@@ -157,7 +156,9 @@ export function TenantSiteView({
               siteName={site.site_name}
               logoUrl={theme.logo_url ?? null}
               onSelect={
-                onSelectSection ? () => onSelectSection(section.id) : undefined
+                onSelectSection
+                  ? (blockId) => onSelectSection(section.id, blockId)
+                  : undefined
               }
             />
           ) : (
@@ -177,7 +178,7 @@ export function TenantSiteView({
 
   const shellClass = cn(
     MARKETING_SITE_ROOT_CLASS,
-    embedded ? "min-h-full" : "min-h-svh",
+    embedded && "is-embedded",
   );
 
   return <div className={shellClass}>{content}</div>;

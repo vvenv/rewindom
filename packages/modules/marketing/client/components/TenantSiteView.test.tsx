@@ -44,14 +44,18 @@ describe("TenantSiteView 页面外壳", () => {
    * 没有任何可粘的余量，「吸顶」开关在 SPA 接管后就失效了（SSR 首屏还能吸，
    * 因为那边页头直接摊在 `#root` 下）。
    */
-  it("吸顶页头直接挂在页面外壳上，不再套一层等高 wrapper", () => {
+  it("吸顶页头直接挂在 site-stack 上，不再套一层等高 wrapper", () => {
     const { container } = renderSite({ sticky: true });
 
     const header = container.querySelector("header.site-header");
     expect(header).not.toBeNull();
     expect(header!.classList.contains("sticky")).toBe(true);
+    expect(header!.parentElement?.classList.contains("site-stack")).toBe(true);
     expect(header!.parentElement?.tagName).not.toBe("HEADER");
     expect(container.querySelectorAll("header")).toHaveLength(1);
+    expect(
+      container.querySelector(`.marketing-site-root main.site-main`),
+    ).not.toBeNull();
   });
 
   it("关掉吸顶就不给 sticky class", () => {

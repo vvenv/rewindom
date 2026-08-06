@@ -10,6 +10,12 @@ const Site = lazy(() =>
   })),
 );
 
+const SiteFormSubmissions = lazy(() =>
+  import("../pages/site-form-submissions.js").then((module) => ({
+    default: module.SiteFormSubmissions,
+  })),
+);
+
 const SiteThemeEditor = lazy(() =>
   import("../pages/site-theme-editor.js").then((module) => ({
     default: module.SiteThemeEditor,
@@ -32,6 +38,10 @@ export function renderSiteRoutes(): ReactNode {
     <Route element={<SiteModuleRoute />}>
       <Route element={<PermissionRoute permission="site.read" />}>
         <Route path="/app/site" element={<Site />} />
+        <Route
+          path="/app/site/form-submissions"
+          element={<SiteFormSubmissions />}
+        />
         <Route path="/app/site/pages/:pageId" element={<SiteThemeEditor />} />
       </Route>
     </Route>

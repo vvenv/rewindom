@@ -15,10 +15,12 @@ import {
   RectangleHorizontal,
   RectangleVertical,
   Rows3,
+  TextCursorInput,
   Sparkles,
   Table2,
   Tag,
   Text,
+  TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,9 +39,12 @@ export const SECTION_ICONS: Record<SectionType, LucideIcon> = {
   "page-menu": LayoutList,
   pricing: Tag,
   faq: CircleHelp,
+  form: TextCursorInput,
   prose: Text,
   group: Columns2,
   band: Megaphone,
+  // 这份代码不认识的段：树上要看得见、能选中、能删，所以给它一个明确的警示图标
+  unsupported: TriangleAlert,
 };
 
 export const BLOCK_ICONS: Record<string, LucideIcon> = {
@@ -51,6 +56,7 @@ export const BLOCK_ICONS: Record<string, LucideIcon> = {
   row: Rows3,
   plan: Tag,
   qa: CircleHelp,
+  field: TextCursorInput,
   nav_link: Link2,
   footer_link: Link2,
 };

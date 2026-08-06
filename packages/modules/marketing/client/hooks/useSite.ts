@@ -6,12 +6,14 @@ import {
   deleteSitePage,
   duplicateSitePage,
   fetchSite,
+  fetchSiteCapabilities,
   fetchSitePage,
   fetchSitePages,
   patchSite,
   publishSiteEditorDraft,
   revertSiteEditorDraft,
   saveSiteEditorDraft,
+  SITE_CAPABILITIES_QUERY_KEY,
   SITE_PAGES_QUERY_KEY,
   SITE_QUERY_KEY,
   unpublishSitePage,
@@ -28,6 +30,19 @@ export function useSite() {
   return useQuery({
     queryKey: SITE_QUERY_KEY,
     queryFn: fetchSite,
+  });
+}
+
+/**
+ * 本站具备哪些需要另外开通的能力。
+ *
+ * 与站点内容分开缓存（见 `SITE_CAPABILITIES_QUERY_KEY`）：它跟着**租户开通状态**
+ * 变，不随编辑保存而变。
+ */
+export function useSiteCapabilities() {
+  return useQuery({
+    queryKey: SITE_CAPABILITIES_QUERY_KEY,
+    queryFn: fetchSiteCapabilities,
   });
 }
 
