@@ -29,7 +29,7 @@ import {
 
 import type { SitemapEntry } from "./site.service.js";
 
-/** 主题变量 + 共享语义 CSS（`shared/marketing-site.css`）。 */
+/** 主题变量 + 共享语义 CSS（`MARKETING_SITE_CSS`）。 */
 function siteCss(theme_settings: unknown): string {
   return `${marketingSiteThemeCss(theme_settings, ":root")}\n${loadMarketingSiteCss()}`;
 }

@@ -1,0 +1,51 @@
+/** 页头 chrome：顶栏、导航、语言切换、明暗按钮、窄屏菜单。 */
+
+export const headerStyles = `
+.site-header { border-bottom: 1px solid var(--border); background: var(--header-bg); backdrop-filter: blur(12px); }
+.site-header.sticky { position: sticky; top: 0; z-index: 40; }
+.header-row { display: flex; align-items: center; gap: 1rem; height: 3.5rem; }
+.header-row.header-layout-centered { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+.header-layout-centered .header-nav { justify-self: center; }
+.header-layout-centered .header-actions { justify-self: end; }
+.brand { display: flex; align-items: center; gap: .5rem; font-weight: 600; }
+.logo { height: 1.5rem; width: auto; }
+.header-nav { display: flex; flex-wrap: wrap; gap: .25rem; }
+.header-nav a { padding: .375rem .625rem; border-radius: .5rem; font-size: .875rem; color: var(--muted-fg); }
+.header-actions { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
+/* 语言切换：icon + dropdown，与 client SiteChrome LocaleSwitcher 对齐 */
+.locale-switcher { position: relative; }
+.locale-switcher > summary { list-style: none; display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: .5rem; color: var(--fg); cursor: pointer; }
+.locale-switcher > summary::-webkit-details-marker { display: none; }
+.locale-switcher > summary:hover { background: var(--muted-bg); }
+.locale-switcher-menu { position: absolute; right: 0; top: calc(100% + .25rem); z-index: 50; min-width: 8rem; display: grid; gap: .125rem; padding: .25rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--surface); box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+.locale-switcher-menu a { display: block; padding: .375rem .625rem; border-radius: .375rem; font-size: .875rem; color: var(--muted-fg); white-space: nowrap; }
+.locale-switcher-menu a:hover { background: var(--muted-bg); color: var(--fg); }
+.locale-switcher-menu a[aria-current="true"] { background: var(--muted-bg); color: var(--fg); font-weight: 500; }
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: .5rem;
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.theme-toggle:hover { background: var(--muted-bg); }
+.header-mobile-nav {
+  display: none;
+  flex-wrap: wrap;
+  gap: .75rem;
+  border-top: 1px solid var(--border);
+  padding: .5rem 1rem;
+  font-size: .875rem;
+}
+.header-mobile-nav a { color: var(--muted-fg); }
+@media (max-width: 640px) {
+  .header-nav { display: none; }
+  .header-mobile-nav { display: flex; }
+}
+`;

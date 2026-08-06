@@ -124,7 +124,7 @@ export function withSiteLocale(
 
 /**
  * 当前路径是否由租户官网 CMS 承接（相对 `/app`、`/login` 等应用区而言）。
- * 用于决定首屏加载 `marketing-site.css` 还是工作台 `index.css`。
+ * 用于决定首屏注入 `MARKETING_SITE_CSS` 还是工作台 `index.css`。
  */
 export function isMarketingPublicPath(pathname: string): boolean {
   const normalized = normalizeSitePath(pathname);

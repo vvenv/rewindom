@@ -77,8 +77,11 @@ SPA 一接管就掉下来。顺带也避免了嵌套 landmark。
 
 ### 明暗模式
 
-站点默认跟随访客设备，访客也可以手动改。公开站样式是**语义 class**
-（`shared/marketing-site-css.ts`，镜像 `shared/marketing-site.css`），**不用 Tailwind**；
+站点默认跟随访客设备，访客也可以手动改。公开站样式是**语义 class**（**不用 Tailwind**），
+按 Shopify section stylesheet 模型共置：`shared/site-css/base.ts`（primitive / `.sec*` /
+`.grp*`）、`shared/sections/_common/styles.ts`（跨段 `.card` / `.grid` 等）、以及
+`shared/sections/<type>/styles.ts`（该段与其 block 专用）。运行时由
+`shared/marketing-site-css.ts` 聚合成一份 `MARKETING_SITE_CSS` 注入 SSR / SPA / 预览。
 主题色由 `marketing-site-theme` 注入 CSS 变量。工作台 `/app` 仍用 `index.css` + Tailwind。
 
 **站点的明暗是自己一份，与工作台完全隔离。** 工作台走 `next-themes`
@@ -302,19 +305,21 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 是另一个 realm，`instanceof` 恒为 false。iframe 内另加一条 hover 虚线提示哪些是可选单元
 （这份 CSS 只在编辑器的 iframe 里，不进公开面）。
 
-**加一段 = 三个文件 + 两行登记**，没有任何 switch 要改：
+**加一段 = 四个文件 + 三处登记**，没有任何 switch 要改：
 
 | 文件                                                   | 内容                     |
 | ------------------------------------------------------ | ------------------------ |
 | `shared/sections/<type>/definition.ts`                 | schema 声明              |
 | `shared/sections/<type>/html.ts`                       | SSR 渲染（SEO 正文以它为准） |
+| `shared/sections/<type>/styles.ts`                     | 该段 / block 专用语义 CSS（可为空） |
 | `client/components/sections/views/<type>.tsx`          | SPA React 视图           |
 
-两行登记分别在 `shared/sections/index.ts`（声明表）与 `shared/sections/html.ts` +
-`client/components/sections/section-views.ts`（两张渲染器表）。**两端渲染必须同构**：
-一段的三个文件按 type 并置，漏改一端在 diff 里看得见。客户端与服务端各有一张表，
-是因为两侧本就是两个 bundle（React 视图进不了 Fastify），与 `site-account-entry` 的
-client / server 双注入点同一形状。
+登记分别在 `shared/sections/index.ts`（声明表）、`shared/sections/styles.ts`（stylesheet
+聚合）、以及 `shared/sections/html.ts` + `client/components/sections/section-views.ts`
+（两张渲染器表）。**两端渲染必须同构**：一段的文件按 type 并置，漏改一端在 diff 里看得见。
+客户端与服务端各有一张渲染器表，是因为两侧本就是两个 bundle（React 视图进不了 Fastify），
+与 `site-account-entry` 的 client / server 双注入点同一形状。跨段共用 class（`.card`、
+`.grid`、`.spec` 壳等）进 `_common/styles.ts`，不要塞进某一个段。
 
 新增 setting 类型再在 `SettingsFields.tsx` 加一个分支。
 `label` / `content` 存的是 i18n key（`marketing` namespace 下相对 key），shared 层不含展示文案。

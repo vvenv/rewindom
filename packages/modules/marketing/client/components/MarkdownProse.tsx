@@ -4,8 +4,8 @@ import remarkGfm from "remark-gfm";
 /**
  * 站点正文 markdown 渲染（文档页 + 富文本区块共用一套排版）。
  *
- * 样式由父级 `.prose`（marketing-site.css）负责；组件映射只用语义标签，
- * 不在元素上挂 Tailwind。改排版时同步 `shared/marketing-site.css` 与 SSR `md()`。
+ * 样式由父级 `.prose`（`sections/prose/styles.ts` → `MARKETING_SITE_CSS`）负责；
+ * 组件映射只用语义标签，不在元素上挂 Tailwind。改排版时同步 prose styles 与 SSR `md()`。
  */
 export const MARKDOWN_PROSE_COMPONENTS: Components = {
   // 页面外壳已有 h1（文档标题 / hero），正文里的 `#` 降一级，避免双 h1
