@@ -119,6 +119,7 @@ export function AuditLogsTable({
     "billing",
     "error-log",
     "background-job",
+    "marketing",
   ]);
   const columns = useMemo(
     () => buildAuditLogColumns(showTenantColumn, t),
