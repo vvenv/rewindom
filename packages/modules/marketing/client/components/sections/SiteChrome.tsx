@@ -5,7 +5,7 @@ import {
   useRef,
 } from "react";
 
-import { getLocaleNativeLabel } from "@be-water/shared";
+import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
 import { Link } from "react-router";
 
 import {
@@ -16,6 +16,7 @@ import {
   type SiteBlock,
   type SiteSection,
 } from "../../../shared/section-schema.js";
+import { themeToggleTitle } from "../../../shared/sections/header/messages.js";
 import {
   siteNavPages,
   type PageLocaleAlternate,
@@ -178,16 +179,14 @@ function LocaleSwitcher({
  * 用站点自己的偏好而**不是**工作台的 `next-themes`：两者同源同一个 SPA，共用
  * `localStorage.theme` 会让访客的选择顺带改掉租户管理台的明暗。
  */
-function SiteThemeToggle(): ReactElement {
+function SiteThemeToggle({ locale }: { locale: AppLocale }): ReactElement {
   const { mode, resolved, setMode } = useSiteColorMode();
-  const label =
-    mode === "system" ? "跟随系统" : mode === "dark" ? "深色" : "浅色";
 
   return (
     <button
       type="button"
       className="theme-toggle"
-      title={`当前主题: ${label}`}
+      title={themeToggleTitle(locale, mode)}
       onClick={() => setMode(resolved === "dark" ? "light" : "dark")}
     >
       {resolved === "dark" ? MOON_ICON : SUN_ICON}
@@ -300,10 +299,7 @@ export function SiteHeader({
     ...select.style,
   } as CSSProperties;
 
-  const headerClass = [
-    "site-header",
-    settingBool(s, "sticky") ? "sticky" : "",
-  ]
+  const headerClass = ["site-header", settingBool(s, "sticky") ? "sticky" : ""]
     .filter(Boolean)
     .join(" ");
 
@@ -350,7 +346,9 @@ export function SiteHeader({
           {/*
             明暗默认跟随设备；这枚按钮只是让访客手动改，关掉不等于锁死浅色。
           */}
-          {settingBool(s, "show_theme_toggle") ? <SiteThemeToggle /> : null}
+          {settingBool(s, "show_theme_toggle") ? (
+            <SiteThemeToggle locale={locale === "en" ? "en" : "zh-CN"} />
+          ) : null}
           {settingBool(s, "show_account") ? <SiteMemberEntry /> : null}
           {secondaryLabel && secondaryHref ? (
             <SiteLink href={secondaryHref} className="btn btn-ghost">

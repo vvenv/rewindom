@@ -3,6 +3,7 @@
   "switchTheme": "切换主题",
   "currentTheme": "当前主题: {{label}}",
   "colorMode": "明暗",
+  "currentColorMode": "当前明暗: {{label}}",
   "colorModes": {
     "light": "浅色",
     "dark": "深色",

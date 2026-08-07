@@ -33,4 +33,20 @@ describe("enhanceTheme", () => {
       second,
     );
   });
+
+  // title 是这枚图标按钮唯一的可读名字，得跟着站点语言走
+  it("按页面语言同步 title", () => {
+    document.body.innerHTML =
+      '<div class="marketing-site-root" data-page-locale="en">' +
+      '<button type="button" class="theme-toggle" title="x">sun</button>' +
+      "</div>";
+    localStorage.setItem("site-color-mode", "dark");
+    enhanceTheme();
+
+    const button = document.querySelector("button.theme-toggle")!;
+    expect(button.getAttribute("title")).toBe("Theme: Dark");
+
+    button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(button.getAttribute("title")).toBe("Theme: Light");
+  });
 });

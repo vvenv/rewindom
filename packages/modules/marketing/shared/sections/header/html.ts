@@ -121,7 +121,7 @@ export function renderHeaderHtml(input: {
     : "";
   // 明暗按钮需要 JS；SSR 先画出挂点，site-enhance 绑定点击并同步图标。
   const themeToggle = settingBool(s, "show_theme_toggle")
-    ? renderThemeToggleHtml(input.locale ?? "zh-CN")
+    ? renderThemeToggleHtml(input.locale ?? input.defaultLocale ?? "zh-CN")
     : "";
   /*
    * 首屏就把账户入口渲染出来（未登录态），已登录菜单由 site-enhance 升级。

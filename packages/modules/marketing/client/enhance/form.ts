@@ -12,13 +12,9 @@ import {
 } from "../../shared/sections/form/fields.js";
 import { formErrorText } from "../../shared/sections/form/messages.js";
 
-import type { AppLocale } from "@be-water/shared";
+import { pageLocale } from "./locale.js";
 
-function pageLocale(): AppLocale {
-  const root = document.querySelector(".marketing-site-root");
-  const raw = root?.getAttribute("data-page-locale") ?? document.documentElement.lang;
-  return raw === "en" ? "en" : "zh-CN";
-}
+import type { AppLocale } from "@be-water/shared";
 
 function pagePath(): string {
   const root = document.querySelector(".marketing-site-root");

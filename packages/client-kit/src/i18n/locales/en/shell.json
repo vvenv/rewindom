@@ -3,6 +3,7 @@
   "switchTheme": "Switch theme",
   "currentTheme": "Current theme: {{label}}",
   "colorMode": "Color mode",
+  "currentColorMode": "Color mode: {{label}}",
   "colorModes": {
     "light": "Light",
     "dark": "Dark",

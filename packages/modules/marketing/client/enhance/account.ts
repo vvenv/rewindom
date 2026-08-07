@@ -2,6 +2,8 @@
  * 公开站账户入口：SSR 已登录则只绑定登出；访客态用 cookie 探测后升级菜单。
  */
 
+import { pageLocale } from "./locale.js";
+
 interface MemberProfile {
   display_name: string | null;
   email: string;
@@ -42,11 +44,7 @@ function loginHref(): string {
 }
 
 function loginLabel(): string {
-  const locale =
-    document.querySelector(".marketing-site-root")?.getAttribute(
-      "data-page-locale",
-    ) ?? document.documentElement.lang;
-  return locale === "en" ? "Sign in" : "登录";
+  return isEnglish() ? "Sign in" : "登录";
 }
 
 function loginEntryHtml(): string {
@@ -54,11 +52,7 @@ function loginEntryHtml(): string {
 }
 
 function isEnglish(): boolean {
-  const locale =
-    document.querySelector(".marketing-site-root")?.getAttribute(
-      "data-page-locale",
-    ) ?? document.documentElement.lang;
-  return locale === "en";
+  return pageLocale() === "en";
 }
 
 function menuHtml(member: MemberProfile): string {

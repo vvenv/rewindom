@@ -5,14 +5,10 @@
  * 避免同一枚按钮在三处各写一份中文。
  */
 
+import type { SiteColorMode } from "../../marketing-site-theme.js";
 import type { AppLocale } from "@be-water/shared";
 
-export type SiteColorModeName = "light" | "dark" | "system";
-
-const THEME_TOGGLE_TITLE: Record<
-  AppLocale,
-  Record<SiteColorModeName, string>
-> = {
+const THEME_TOGGLE_TITLE: Record<AppLocale, Record<SiteColorMode, string>> = {
   "zh-CN": {
     system: "当前主题: 跟随系统",
     dark: "当前主题: 深色",
@@ -27,7 +23,7 @@ const THEME_TOGGLE_TITLE: Record<
 
 export function themeToggleTitle(
   locale: AppLocale,
-  mode: SiteColorModeName,
+  mode: SiteColorMode,
 ): string {
   return (
     THEME_TOGGLE_TITLE[locale]?.[mode] ?? THEME_TOGGLE_TITLE["zh-CN"][mode]

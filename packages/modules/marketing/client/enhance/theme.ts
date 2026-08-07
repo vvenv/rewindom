@@ -5,6 +5,10 @@
  * `localStorage.site-color-mode` + `<html data-site-color-mode>`。
  */
 
+import { themeToggleTitle } from "../../shared/sections/header/messages.js";
+
+import { pageLocale } from "./locale.js";
+
 const STORAGE_KEY = "site-color-mode";
 const ATTR = "data-site-color-mode";
 const DARK_QUERY = "(prefers-color-scheme: dark)";
@@ -60,18 +64,22 @@ function setMode(next: Mode): void {
 function syncButtons(): void {
   const mode = readMode();
   const resolved = resolvedOf(mode);
-  const label =
-    mode === "system" ? "跟随系统" : mode === "dark" ? "深色" : "浅色";
+  const title = themeToggleTitle(pageLocale(), mode);
   for (const button of document.querySelectorAll<HTMLButtonElement>(
     "button.theme-toggle",
   )) {
-    button.title = `当前主题: ${label}`;
+    button.title = title;
     button.innerHTML = resolved === "dark" ? MOON_SVG : SUN_SVG;
   }
 }
 
+let bound = false;
+
+/** 可以重复调用：只同步按钮，委托监听只绑一次（绑两次会把点击来回切成没变化）。 */
 export function enhanceTheme(): void {
   syncButtons();
+  if (bound) return;
+  bound = true;
   document.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
