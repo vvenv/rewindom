@@ -183,6 +183,34 @@ function describe(value: unknown): string {
   return typeof value === "string" ? value : JSON.stringify(value);
 }
 
+/**
+ * 从 where 取出租户谓词。除顶层 `where.tenant_id` 外，还认复合唯一键里的嵌套字段，
+ * 例如 `where: { tenant_id_key: { tenant_id, key } }` —— Prisma findUnique/upsert
+ * 常用这种写法，只看顶层会误报 missing。
+ */
+function findTenantPredicate(
+  where: Record<string, unknown>,
+  field: string,
+): unknown {
+  if (Object.prototype.hasOwnProperty.call(where, field)) {
+    return where[field];
+  }
+
+  for (const [key, value] of Object.entries(where)) {
+    if (key === "AND" || key === "OR" || key === "NOT") continue;
+    if (
+      value !== null &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      Object.prototype.hasOwnProperty.call(value, field)
+    ) {
+      return (value as Record<string, unknown>)[field];
+    }
+  }
+
+  return undefined;
+}
+
 interface GuardOptions {
   mode: TenantGuardMode;
   onViolation?: (violation: TenantGuardViolation) => void;
@@ -272,7 +300,7 @@ export function createTenantGuardExtension(options: GuardOptions) {
 
           if (WHERE_OPERATIONS.has(operation as string)) {
             const where = (nextArgs.where ?? {}) as Record<string, unknown>;
-            const existing = where[field];
+            const existing = findTenantPredicate(where, field);
 
             if (existing !== undefined && existing !== tenantId) {
               // 调用方显式指向了别的租户 —— 不静默改写，直接判定为越权。

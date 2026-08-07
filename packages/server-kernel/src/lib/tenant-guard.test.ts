@@ -176,6 +176,40 @@ describe("tenant-guard", () => {
       expect(violations).toHaveLength(0);
     });
 
+    it("复合唯一键里嵌套的 tenant_id 视为已隔离（不误报 missing）", async () => {
+      const where = {
+        tenant_id_key: { tenant_id: TENANT_A, key: "ui_config" },
+      };
+      const { promise, query, violations } = callGuard({
+        mode: "enforce",
+        model: "TenantSetting",
+        operation: "findUnique",
+        args: { where },
+        tenantId: TENANT_A,
+      });
+
+      await promise;
+      expect(query).toHaveBeenCalledWith({ where });
+      expect(violations).toHaveLength(0);
+    });
+
+    it("复合唯一键里嵌套了其它租户时仍判定跨租户", async () => {
+      const { promise, query } = callGuard({
+        mode: "enforce",
+        model: "TenantSetting",
+        operation: "findUnique",
+        args: {
+          where: {
+            tenant_id_key: { tenant_id: TENANT_B, key: "ui_config" },
+          },
+        },
+        tenantId: TENANT_A,
+      });
+
+      await expect(promise).rejects.toBeInstanceOf(CrossTenantAccessError);
+      expect(query).not.toHaveBeenCalled();
+    });
+
     it("delete 同样被注入（避免按 id 删掉别人的行）", async () => {
       const { promise, query } = callGuard({
         mode: "enforce",
