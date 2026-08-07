@@ -111,10 +111,10 @@ const DIVIDER_OPTIONS = [
 ] as const;
 
 /**
- * 所有页面 section 共有的布局设置（对齐 Shopify 的 section padding / color scheme）。
+ * 所有页面 section 共有的布局设置（对齐 Shopify 的 section padding）。
  *
- * 放在各自设置的**末尾**：编辑器里内容在前、版式在后。顺序按影响面从大到小：
- * 宽度 → 背景 → 段内留白 → 段间距 → 分隔线 → 锚点。
+ * 放在各自设置的**末尾**：编辑器里内容在前、版式 / 外观在后。版式按影响面从大到小：
+ * 宽度 → 段内留白 → 段间距 → 分隔线 → 锚点；底色预设进外观页签（与 `bg_color` 成对）。
  *
  * 段内留白用 px range 而不是档位，理由同 Shopify——租户要的是能微调，不是选 S/M/L；
  * 这里存的是**桌面值**，窄屏由两处渲染统一按比例缩，避免手机上留白过大。
@@ -141,13 +141,6 @@ export function layoutSettings(defaults?: {
       default: defaults?.content_width ?? "default",
       options: CONTENT_WIDTH_OPTIONS,
       info: "editor.info.content_width",
-    },
-    {
-      type: "select",
-      id: "background",
-      label: "editor.setting.background",
-      default: defaults?.background ?? "none",
-      options: BACKGROUND_OPTIONS,
     },
     {
       type: "range",
@@ -197,26 +190,41 @@ export function layoutSettings(defaults?: {
       placeholder: "pricing",
       info: "editor.info.anchor",
     },
-    // 外观与版式同属 Layout 页签：底色预设在上，自定义色 / 圆角在下覆盖
-    ...styleSettings(),
+    // 底色预设只挂在页面 section：block / chrome 没有 sec-bg-* 渲染路径
+    ...styleSettings(defaults, { withTokenBackground: true }),
   ];
 }
 
 /**
  * 通用外观设置（背景 / 前景 / 边框 / 圆角），对齐 Shopify color scheme 的可调部分。
  *
- * 与 `layoutSettings` 共用 Layout 页签：空颜色 = 不覆盖（继续走 token `background`
- * 或主题默认）。块级（卡片等）也可单独挂这份声明，不必带整套留白。
+ * 编辑器「外观」页签：空颜色 = 不覆盖（继续走 token `background` 或主题默认）。
+ * 块级（卡片等）也可单独挂这份声明，不必带整套留白；token 底色预设仅 section 开启。
  */
-export function styleSettings(defaults?: {
-  bg_color?: string;
-  fg_color?: string;
-  border_color?: string;
-  border_width?: number;
-  radius?: number;
-}): SettingDef[] {
+export function styleSettings(
+  defaults?: {
+    background?: string;
+    bg_color?: string;
+    fg_color?: string;
+    border_color?: string;
+    border_width?: number;
+    radius?: number;
+  },
+  options?: { withTokenBackground?: boolean },
+): SettingDef[] {
   return [
     { type: "header", content: "editor.group.appearance", group: "appearance" },
+    ...(options?.withTokenBackground
+      ? ([
+          {
+            type: "select",
+            id: "background",
+            label: "editor.setting.background",
+            default: defaults?.background ?? "none",
+            options: BACKGROUND_OPTIONS,
+          },
+        ] as SettingDef[])
+      : []),
     {
       type: "color",
       id: "bg_color",

@@ -187,9 +187,10 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 group + 左列放 `page-menu`(siblings/list, 列上勾 sticky)，不再有专门的侧栏机制。
 
 每个页面级 section 另有一组**通用版式**（`layoutSettings()`，编辑器「版式」页签）：
-`width` · `content_width` · `background`(none/muted/accent/outline) · `padding_top` / `padding_bottom`
+`width` · `content_width` · `padding_top` / `padding_bottom`
 · `spacing_above` / `spacing_below` · `divider`(none/top/bottom/both) · `anchor`。
 以及一组**通用外观**（`styleSettings()`，编辑器「外观」页签）：
+`background`(none/muted/accent/outline，仅页面 section）·
 `bg_color` / `fg_color`（`#RGB`/`#RGBA`/`#RRGGBB`/`#RRGGBBAA`，可带 alpha）·
 `border_color` · `border_width` · `radius`（可继承）。
 自定义 `bg_color` 覆盖 token 底色预设；空值不覆盖。

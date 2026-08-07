@@ -458,7 +458,12 @@ describe("splitSettingsByScope", () => {
         expect.arrayContaining(["padding_top", "padding_bottom", "width"]),
       );
       expect(ids(appearance), type).toEqual(
-        expect.arrayContaining(["bg_color", "fg_color", "radius"]),
+        expect.arrayContaining([
+          "background",
+          "bg_color",
+          "fg_color",
+          "radius",
+        ]),
       );
       // 三边加起来仍是完整的一份，不丢字段
       expect(content.length + layout.length + appearance.length, type).toBe(
@@ -466,6 +471,7 @@ describe("splitSettingsByScope", () => {
       );
       expect(ids(content), type).not.toContain("padding_top");
       expect(ids(layout), type).not.toContain("bg_color");
+      expect(ids(layout), type).not.toContain("background");
     }
   });
 
