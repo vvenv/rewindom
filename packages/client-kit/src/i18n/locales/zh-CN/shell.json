@@ -71,6 +71,7 @@
       "or": "或",
       "continueWithGitHub": "使用 GitHub 登录",
       "continueWithGoogle": "使用 Google 登录",
+      "continueWithMicrosoft": "使用 Microsoft 登录",
       "completing": "正在完成第三方登录…",
       "failedTitle": "第三方登录失败",
       "failed": "第三方登录失败，请重试",
@@ -78,10 +79,10 @@
       "denied": "已取消授权",
       "notConfigured": "未配置第三方登录",
       "stateInvalid": "登录状态无效或已过期，请重试",
-      "exchangeFailed": "GitHub 授权换取失败",
-      "profileFailed": "获取 GitHub 用户信息失败",
+      "exchangeFailed": "授权换取失败",
+      "profileFailed": "获取账号资料失败",
       "registrationDisabled": "平台未开放自助注册，请联系管理员开通账号",
-      "alreadyLinked": "该 GitHub 账号已绑定其他用户"
+      "alreadyLinked": "该第三方账号已绑定其他用户"
     },
     "registerTagline": "创建组织与管理员账号，即刻使用",
     "registerTaglineSingleTenant": "创建账号，即刻使用",

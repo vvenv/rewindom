@@ -273,6 +273,8 @@ export type SiteMemberWhereInput = {
   failed_login_attempts?: Prisma.IntFilter<"SiteMember"> | number
   locked_until?: Prisma.DateTimeNullableFilter<"SiteMember"> | Date | string | null
   refresh_tokens?: Prisma.SiteMemberRefreshTokenListRelationFilter
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountListRelationFilter
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeListRelationFilter
 }
 
 export type SiteMemberOrderByWithRelationInput = {
@@ -289,6 +291,8 @@ export type SiteMemberOrderByWithRelationInput = {
   failed_login_attempts?: Prisma.SortOrder
   locked_until?: Prisma.SortOrderInput | Prisma.SortOrder
   refresh_tokens?: Prisma.SiteMemberRefreshTokenOrderByRelationAggregateInput
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountOrderByRelationAggregateInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeOrderByRelationAggregateInput
 }
 
 export type SiteMemberWhereUniqueInput = Prisma.AtLeast<{
@@ -309,6 +313,8 @@ export type SiteMemberWhereUniqueInput = Prisma.AtLeast<{
   failed_login_attempts?: Prisma.IntFilter<"SiteMember"> | number
   locked_until?: Prisma.DateTimeNullableFilter<"SiteMember"> | Date | string | null
   refresh_tokens?: Prisma.SiteMemberRefreshTokenListRelationFilter
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountListRelationFilter
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeListRelationFilter
 }, "id" | "tenant_id_email">
 
 export type SiteMemberOrderByWithAggregationInput = {
@@ -363,6 +369,8 @@ export type SiteMemberCreateInput = {
   failed_login_attempts?: number
   locked_until?: Date | string | null
   refresh_tokens?: Prisma.SiteMemberRefreshTokenCreateNestedManyWithoutMemberInput
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountCreateNestedManyWithoutMemberInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeCreateNestedManyWithoutMemberInput
 }
 
 export type SiteMemberUncheckedCreateInput = {
@@ -379,6 +387,8 @@ export type SiteMemberUncheckedCreateInput = {
   failed_login_attempts?: number
   locked_until?: Date | string | null
   refresh_tokens?: Prisma.SiteMemberRefreshTokenUncheckedCreateNestedManyWithoutMemberInput
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountUncheckedCreateNestedManyWithoutMemberInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeUncheckedCreateNestedManyWithoutMemberInput
 }
 
 export type SiteMemberUpdateInput = {
@@ -395,6 +405,8 @@ export type SiteMemberUpdateInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.SiteMemberRefreshTokenUpdateManyWithoutMemberNestedInput
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountUpdateManyWithoutMemberNestedInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeUpdateManyWithoutMemberNestedInput
 }
 
 export type SiteMemberUncheckedUpdateInput = {
@@ -411,6 +423,8 @@ export type SiteMemberUncheckedUpdateInput = {
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.SiteMemberRefreshTokenUncheckedUpdateManyWithoutMemberNestedInput
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountUncheckedUpdateManyWithoutMemberNestedInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 export type SiteMemberCreateManyInput = {
@@ -535,6 +549,34 @@ export type SiteMemberUpdateOneRequiredWithoutRefresh_tokensNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SiteMemberUpdateToOneWithWhereWithoutRefresh_tokensInput, Prisma.SiteMemberUpdateWithoutRefresh_tokensInput>, Prisma.SiteMemberUncheckedUpdateWithoutRefresh_tokensInput>
 }
 
+export type SiteMemberCreateNestedOneWithoutOauth_accountsInput = {
+  create?: Prisma.XOR<Prisma.SiteMemberCreateWithoutOauth_accountsInput, Prisma.SiteMemberUncheckedCreateWithoutOauth_accountsInput>
+  connectOrCreate?: Prisma.SiteMemberCreateOrConnectWithoutOauth_accountsInput
+  connect?: Prisma.SiteMemberWhereUniqueInput
+}
+
+export type SiteMemberUpdateOneRequiredWithoutOauth_accountsNestedInput = {
+  create?: Prisma.XOR<Prisma.SiteMemberCreateWithoutOauth_accountsInput, Prisma.SiteMemberUncheckedCreateWithoutOauth_accountsInput>
+  connectOrCreate?: Prisma.SiteMemberCreateOrConnectWithoutOauth_accountsInput
+  upsert?: Prisma.SiteMemberUpsertWithoutOauth_accountsInput
+  connect?: Prisma.SiteMemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SiteMemberUpdateToOneWithWhereWithoutOauth_accountsInput, Prisma.SiteMemberUpdateWithoutOauth_accountsInput>, Prisma.SiteMemberUncheckedUpdateWithoutOauth_accountsInput>
+}
+
+export type SiteMemberCreateNestedOneWithoutOauth_exchange_codesInput = {
+  create?: Prisma.XOR<Prisma.SiteMemberCreateWithoutOauth_exchange_codesInput, Prisma.SiteMemberUncheckedCreateWithoutOauth_exchange_codesInput>
+  connectOrCreate?: Prisma.SiteMemberCreateOrConnectWithoutOauth_exchange_codesInput
+  connect?: Prisma.SiteMemberWhereUniqueInput
+}
+
+export type SiteMemberUpdateOneRequiredWithoutOauth_exchange_codesNestedInput = {
+  create?: Prisma.XOR<Prisma.SiteMemberCreateWithoutOauth_exchange_codesInput, Prisma.SiteMemberUncheckedCreateWithoutOauth_exchange_codesInput>
+  connectOrCreate?: Prisma.SiteMemberCreateOrConnectWithoutOauth_exchange_codesInput
+  upsert?: Prisma.SiteMemberUpsertWithoutOauth_exchange_codesInput
+  connect?: Prisma.SiteMemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SiteMemberUpdateToOneWithWhereWithoutOauth_exchange_codesInput, Prisma.SiteMemberUpdateWithoutOauth_exchange_codesInput>, Prisma.SiteMemberUncheckedUpdateWithoutOauth_exchange_codesInput>
+}
+
 export type SiteMemberCreateWithoutRefresh_tokensInput = {
   id?: string
   tenant_id: string
@@ -548,6 +590,8 @@ export type SiteMemberCreateWithoutRefresh_tokensInput = {
   last_login_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountCreateNestedManyWithoutMemberInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeCreateNestedManyWithoutMemberInput
 }
 
 export type SiteMemberUncheckedCreateWithoutRefresh_tokensInput = {
@@ -563,6 +607,8 @@ export type SiteMemberUncheckedCreateWithoutRefresh_tokensInput = {
   last_login_at?: Date | string | null
   failed_login_attempts?: number
   locked_until?: Date | string | null
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountUncheckedCreateNestedManyWithoutMemberInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeUncheckedCreateNestedManyWithoutMemberInput
 }
 
 export type SiteMemberCreateOrConnectWithoutRefresh_tokensInput = {
@@ -594,6 +640,8 @@ export type SiteMemberUpdateWithoutRefresh_tokensInput = {
   last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountUpdateManyWithoutMemberNestedInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeUpdateManyWithoutMemberNestedInput
 }
 
 export type SiteMemberUncheckedUpdateWithoutRefresh_tokensInput = {
@@ -609,6 +657,176 @@ export type SiteMemberUncheckedUpdateWithoutRefresh_tokensInput = {
   last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
   locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountUncheckedUpdateManyWithoutMemberNestedInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeUncheckedUpdateManyWithoutMemberNestedInput
+}
+
+export type SiteMemberCreateWithoutOauth_accountsInput = {
+  id?: string
+  tenant_id: string
+  email: string
+  password?: string | null
+  display_name?: string
+  email_verified_at?: Date | string | null
+  enabled?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  last_login_at?: Date | string | null
+  failed_login_attempts?: number
+  locked_until?: Date | string | null
+  refresh_tokens?: Prisma.SiteMemberRefreshTokenCreateNestedManyWithoutMemberInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeCreateNestedManyWithoutMemberInput
+}
+
+export type SiteMemberUncheckedCreateWithoutOauth_accountsInput = {
+  id?: string
+  tenant_id: string
+  email: string
+  password?: string | null
+  display_name?: string
+  email_verified_at?: Date | string | null
+  enabled?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  last_login_at?: Date | string | null
+  failed_login_attempts?: number
+  locked_until?: Date | string | null
+  refresh_tokens?: Prisma.SiteMemberRefreshTokenUncheckedCreateNestedManyWithoutMemberInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeUncheckedCreateNestedManyWithoutMemberInput
+}
+
+export type SiteMemberCreateOrConnectWithoutOauth_accountsInput = {
+  where: Prisma.SiteMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.SiteMemberCreateWithoutOauth_accountsInput, Prisma.SiteMemberUncheckedCreateWithoutOauth_accountsInput>
+}
+
+export type SiteMemberUpsertWithoutOauth_accountsInput = {
+  update: Prisma.XOR<Prisma.SiteMemberUpdateWithoutOauth_accountsInput, Prisma.SiteMemberUncheckedUpdateWithoutOauth_accountsInput>
+  create: Prisma.XOR<Prisma.SiteMemberCreateWithoutOauth_accountsInput, Prisma.SiteMemberUncheckedCreateWithoutOauth_accountsInput>
+  where?: Prisma.SiteMemberWhereInput
+}
+
+export type SiteMemberUpdateToOneWithWhereWithoutOauth_accountsInput = {
+  where?: Prisma.SiteMemberWhereInput
+  data: Prisma.XOR<Prisma.SiteMemberUpdateWithoutOauth_accountsInput, Prisma.SiteMemberUncheckedUpdateWithoutOauth_accountsInput>
+}
+
+export type SiteMemberUpdateWithoutOauth_accountsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_tokens?: Prisma.SiteMemberRefreshTokenUpdateManyWithoutMemberNestedInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeUpdateManyWithoutMemberNestedInput
+}
+
+export type SiteMemberUncheckedUpdateWithoutOauth_accountsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_tokens?: Prisma.SiteMemberRefreshTokenUncheckedUpdateManyWithoutMemberNestedInput
+  oauth_exchange_codes?: Prisma.SiteMemberOAuthExchangeCodeUncheckedUpdateManyWithoutMemberNestedInput
+}
+
+export type SiteMemberCreateWithoutOauth_exchange_codesInput = {
+  id?: string
+  tenant_id: string
+  email: string
+  password?: string | null
+  display_name?: string
+  email_verified_at?: Date | string | null
+  enabled?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  last_login_at?: Date | string | null
+  failed_login_attempts?: number
+  locked_until?: Date | string | null
+  refresh_tokens?: Prisma.SiteMemberRefreshTokenCreateNestedManyWithoutMemberInput
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountCreateNestedManyWithoutMemberInput
+}
+
+export type SiteMemberUncheckedCreateWithoutOauth_exchange_codesInput = {
+  id?: string
+  tenant_id: string
+  email: string
+  password?: string | null
+  display_name?: string
+  email_verified_at?: Date | string | null
+  enabled?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  last_login_at?: Date | string | null
+  failed_login_attempts?: number
+  locked_until?: Date | string | null
+  refresh_tokens?: Prisma.SiteMemberRefreshTokenUncheckedCreateNestedManyWithoutMemberInput
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountUncheckedCreateNestedManyWithoutMemberInput
+}
+
+export type SiteMemberCreateOrConnectWithoutOauth_exchange_codesInput = {
+  where: Prisma.SiteMemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.SiteMemberCreateWithoutOauth_exchange_codesInput, Prisma.SiteMemberUncheckedCreateWithoutOauth_exchange_codesInput>
+}
+
+export type SiteMemberUpsertWithoutOauth_exchange_codesInput = {
+  update: Prisma.XOR<Prisma.SiteMemberUpdateWithoutOauth_exchange_codesInput, Prisma.SiteMemberUncheckedUpdateWithoutOauth_exchange_codesInput>
+  create: Prisma.XOR<Prisma.SiteMemberCreateWithoutOauth_exchange_codesInput, Prisma.SiteMemberUncheckedCreateWithoutOauth_exchange_codesInput>
+  where?: Prisma.SiteMemberWhereInput
+}
+
+export type SiteMemberUpdateToOneWithWhereWithoutOauth_exchange_codesInput = {
+  where?: Prisma.SiteMemberWhereInput
+  data: Prisma.XOR<Prisma.SiteMemberUpdateWithoutOauth_exchange_codesInput, Prisma.SiteMemberUncheckedUpdateWithoutOauth_exchange_codesInput>
+}
+
+export type SiteMemberUpdateWithoutOauth_exchange_codesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_tokens?: Prisma.SiteMemberRefreshTokenUpdateManyWithoutMemberNestedInput
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountUpdateManyWithoutMemberNestedInput
+}
+
+export type SiteMemberUncheckedUpdateWithoutOauth_exchange_codesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  display_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email_verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_tokens?: Prisma.SiteMemberRefreshTokenUncheckedUpdateManyWithoutMemberNestedInput
+  oauth_accounts?: Prisma.SiteMemberOAuthAccountUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 
@@ -618,10 +836,14 @@ export type SiteMemberUncheckedUpdateWithoutRefresh_tokensInput = {
 
 export type SiteMemberCountOutputType = {
   refresh_tokens: number
+  oauth_accounts: number
+  oauth_exchange_codes: number
 }
 
 export type SiteMemberCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   refresh_tokens?: boolean | SiteMemberCountOutputTypeCountRefresh_tokensArgs
+  oauth_accounts?: boolean | SiteMemberCountOutputTypeCountOauth_accountsArgs
+  oauth_exchange_codes?: boolean | SiteMemberCountOutputTypeCountOauth_exchange_codesArgs
 }
 
 /**
@@ -641,6 +863,20 @@ export type SiteMemberCountOutputTypeCountRefresh_tokensArgs<ExtArgs extends run
   where?: Prisma.SiteMemberRefreshTokenWhereInput
 }
 
+/**
+ * SiteMemberCountOutputType without action
+ */
+export type SiteMemberCountOutputTypeCountOauth_accountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SiteMemberOAuthAccountWhereInput
+}
+
+/**
+ * SiteMemberCountOutputType without action
+ */
+export type SiteMemberCountOutputTypeCountOauth_exchange_codesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SiteMemberOAuthExchangeCodeWhereInput
+}
+
 
 export type SiteMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -656,6 +892,8 @@ export type SiteMemberSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   failed_login_attempts?: boolean
   locked_until?: boolean
   refresh_tokens?: boolean | Prisma.SiteMember$refresh_tokensArgs<ExtArgs>
+  oauth_accounts?: boolean | Prisma.SiteMember$oauth_accountsArgs<ExtArgs>
+  oauth_exchange_codes?: boolean | Prisma.SiteMember$oauth_exchange_codesArgs<ExtArgs>
   _count?: boolean | Prisma.SiteMemberCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["siteMember"]>
 
@@ -707,6 +945,8 @@ export type SiteMemberSelectScalar = {
 export type SiteMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "email" | "password" | "display_name" | "email_verified_at" | "enabled" | "created_at" | "updated_at" | "last_login_at" | "failed_login_attempts" | "locked_until", ExtArgs["result"]["siteMember"]>
 export type SiteMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   refresh_tokens?: boolean | Prisma.SiteMember$refresh_tokensArgs<ExtArgs>
+  oauth_accounts?: boolean | Prisma.SiteMember$oauth_accountsArgs<ExtArgs>
+  oauth_exchange_codes?: boolean | Prisma.SiteMember$oauth_exchange_codesArgs<ExtArgs>
   _count?: boolean | Prisma.SiteMemberCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SiteMemberIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -716,6 +956,8 @@ export type $SiteMemberPayload<ExtArgs extends runtime.Types.Extensions.Internal
   name: "SiteMember"
   objects: {
     refresh_tokens: Prisma.$SiteMemberRefreshTokenPayload<ExtArgs>[]
+    oauth_accounts: Prisma.$SiteMemberOAuthAccountPayload<ExtArgs>[]
+    oauth_exchange_codes: Prisma.$SiteMemberOAuthExchangeCodePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1125,6 +1367,8 @@ readonly fields: SiteMemberFieldRefs;
 export interface Prisma__SiteMemberClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   refresh_tokens<T extends Prisma.SiteMember$refresh_tokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SiteMember$refresh_tokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SiteMemberRefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  oauth_accounts<T extends Prisma.SiteMember$oauth_accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SiteMember$oauth_accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SiteMemberOAuthAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  oauth_exchange_codes<T extends Prisma.SiteMember$oauth_exchange_codesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SiteMember$oauth_exchange_codesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SiteMemberOAuthExchangeCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1580,6 +1824,54 @@ export type SiteMember$refresh_tokensArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.SiteMemberRefreshTokenScalarFieldEnum | Prisma.SiteMemberRefreshTokenScalarFieldEnum[]
+}
+
+/**
+ * SiteMember.oauth_accounts
+ */
+export type SiteMember$oauth_accountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SiteMemberOAuthAccount
+   */
+  select?: Prisma.SiteMemberOAuthAccountSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SiteMemberOAuthAccount
+   */
+  omit?: Prisma.SiteMemberOAuthAccountOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SiteMemberOAuthAccountInclude<ExtArgs> | null
+  where?: Prisma.SiteMemberOAuthAccountWhereInput
+  orderBy?: Prisma.SiteMemberOAuthAccountOrderByWithRelationInput | Prisma.SiteMemberOAuthAccountOrderByWithRelationInput[]
+  cursor?: Prisma.SiteMemberOAuthAccountWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SiteMemberOAuthAccountScalarFieldEnum | Prisma.SiteMemberOAuthAccountScalarFieldEnum[]
+}
+
+/**
+ * SiteMember.oauth_exchange_codes
+ */
+export type SiteMember$oauth_exchange_codesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SiteMemberOAuthExchangeCode
+   */
+  select?: Prisma.SiteMemberOAuthExchangeCodeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SiteMemberOAuthExchangeCode
+   */
+  omit?: Prisma.SiteMemberOAuthExchangeCodeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SiteMemberOAuthExchangeCodeInclude<ExtArgs> | null
+  where?: Prisma.SiteMemberOAuthExchangeCodeWhereInput
+  orderBy?: Prisma.SiteMemberOAuthExchangeCodeOrderByWithRelationInput | Prisma.SiteMemberOAuthExchangeCodeOrderByWithRelationInput[]
+  cursor?: Prisma.SiteMemberOAuthExchangeCodeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SiteMemberOAuthExchangeCodeScalarFieldEnum | Prisma.SiteMemberOAuthExchangeCodeScalarFieldEnum[]
 }
 
 /**

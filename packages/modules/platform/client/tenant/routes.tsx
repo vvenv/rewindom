@@ -9,10 +9,17 @@ const SettingsBrandingPage = lazy(() =>
   })),
 );
 
+const SettingsOAuthPage = lazy(() =>
+  import("../pages/settings-oauth.js").then((module) => ({
+    default: module.SettingsOAuthPage,
+  })),
+);
+
 export function renderPlatformTenantRoutes(): ReactNode {
   return (
     <Route element={<PermissionRoute permission="settings.read" />}>
       <Route path="/app/settings" element={<SettingsBrandingPage />} />
+      <Route path="/app/settings/oauth" element={<SettingsOAuthPage />} />
     </Route>
   );
 }

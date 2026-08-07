@@ -10,16 +10,19 @@ import { prisma } from "../../lib/prisma.js";
 
 import { AuthService, type JwtSignPayload } from "./auth.service.js";
 
+import type { ResolvedOAuthCredentials } from "./oauth-credentials.js";
 import type { HostTenantContext } from "../../lib/host-tenant.js";
 import type { ProviderRegistry } from "../../runtime/provider-registry.js";
 import type { AuthActorType, AuthTokens } from "@be-water/shared";
 
-export type OAuthProviderId = "github" | "google";
+export type OAuthProviderId = "github" | "google" | "microsoft";
 
 export interface OAuthProfile {
   provider_user_id: string;
   username: string;
   email: string | null;
+  /** IdP 声明邮箱已验证时为 true；会员自动绑定时要求 true */
+  email_verified: boolean;
   display_name: string | null;
   avatar_url: string | null;
 }
@@ -59,28 +62,51 @@ export function oauthStateType(provider: OAuthProviderId): string {
   return `oauth_${provider}_state`;
 }
 
+export type OAuthCallbackSurface = "auth" | "member";
+
 /**
  * 回调 URL 优先级：
- * 1. 显式 `*_CALLBACK_URL`
- * 2. FRONTEND_URL（本地 Vite 代理时 Host 可能变成 :3700）
+ * 1. 解析后凭证上的 callbackUrl（租户覆盖或 env）
+ * 2. FRONTEND_URL
  * 3. 请求 Origin
  */
 export function resolveOAuthCallbackUrl(
   provider: OAuthProviderId,
   requestUrlOrigin: string,
+  credentials?: Pick<ResolvedOAuthCredentials, "callbackUrl"> | null,
+  surface: OAuthCallbackSurface = "auth",
 ): string {
-  const explicit =
-    provider === "github"
-      ? config.auth.github.callbackUrl
-      : config.auth.google.callbackUrl;
+  const explicit = credentials?.callbackUrl?.trim();
   if (explicit) {
     return explicit;
   }
   const frontend = config.frontend.url.trim();
   if (frontend) {
-    return `${frontend.replace(/\/$/, "")}/api/auth/oauth/${provider}/callback`;
+    return `${frontend.replace(/\/$/, "")}/api/${surface}/oauth/${provider}/callback`;
   }
-  return `${requestUrlOrigin.replace(/\/$/, "")}/api/auth/oauth/${provider}/callback`;
+  return `${requestUrlOrigin.replace(/\/$/, "")}/api/${surface}/oauth/${provider}/callback`;
+}
+
+/**
+ * 会员 OAuth：平台应用须登记固定主域回调；租户覆盖可自带 callbackUrl。
+ * 无显式 callback 时强制走 FRONTEND_URL（不回退发起 Host），以便 custom_domain 用 code 跳回。
+ */
+export function resolveMemberOAuthCallbackUrl(
+  provider: OAuthProviderId,
+  credentials: Pick<ResolvedOAuthCredentials, "callbackUrl">,
+): string {
+  const explicit = credentials.callbackUrl?.trim();
+  if (explicit) {
+    return explicit;
+  }
+  const frontend = config.frontend.url.trim();
+  if (!frontend) {
+    throw new AppError({
+      code: "auth.oauth_callback_unconfigured",
+      status: 503,
+    });
+  }
+  return `${frontend.replace(/\/$/, "")}/api/member/oauth/${provider}/callback`;
 }
 
 export function verifyOAuthState(

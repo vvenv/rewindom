@@ -12,6 +12,7 @@
   "tenantSetting": "tenant_id",
   "user": "tenant_id",
   "siteMember": "tenant_id",
+  "siteMemberOAuthAccount": "tenant_id",
   "role": "tenant_id",
   "tenant": "id",
   "auditLog": "tenant_slug",

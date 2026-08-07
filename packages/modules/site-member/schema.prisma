@@ -22,6 +22,8 @@ model SiteMember {
   locked_until          DateTime?
 
   refresh_tokens SiteMemberRefreshToken[]
+  oauth_accounts SiteMemberOAuthAccount[]
+  oauth_exchange_codes SiteMemberOAuthExchangeCode[]
 
   @@unique([tenant_id, email])
   @@index([tenant_id])
@@ -38,4 +40,41 @@ model SiteMemberRefreshToken {
   member SiteMember @relation(fields: [member_id], references: [id], onDelete: Cascade)
 
   @@index([member_id])
+}
+
+/// 会员第三方登录绑定（按站点租户隔离：同一 GitHub 可在不同站点各有一份会员）。
+model SiteMemberOAuthAccount {
+  id                 String   @id @default(uuid())
+  tenant_id          String
+  member_id          String
+  provider           String
+  provider_user_id   String
+  provider_email     String?
+  provider_username  String?
+  avatar_url         String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  member SiteMember @relation(fields: [member_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, provider, provider_user_id])
+  @@index([member_id])
+  @@index([tenant_id])
+}
+
+/// 会员 OAuth 回调后的一次性换票码（固定主域回调 → 跳回 custom_domain 种 Cookie）。
+model SiteMemberOAuthExchangeCode {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  tenant_id   String
+  member_id   String
+  expires_at  DateTime
+  consumed_at DateTime?
+  created_at  DateTime  @default(now())
+
+  member SiteMember @relation(fields: [member_id], references: [id], onDelete: Cascade)
+
+  @@index([member_id])
+  @@index([tenant_id])
+  @@index([expires_at])
 }

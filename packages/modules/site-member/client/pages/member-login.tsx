@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
 import { MemberCaptcha, type MemberCaptchaData } from "../components/MemberCaptcha.js";
+import { MemberOAuthButtons } from "../components/MemberOAuthButtons.js";
 import { MemberPageShell } from "../components/MemberPageShell.js";
 import { useSiteMemberAuth } from "../contexts/SiteMemberAuthContext.js";
 import { useSiteMemberEnabled } from "../hooks/use-site-member-enabled.js";
@@ -28,14 +29,27 @@ export function MemberLogin(): ReactNode {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captchaEnabled, setCaptchaEnabled] = useState(false);
+  const [githubOAuthEnabled, setGithubOAuthEnabled] = useState(false);
+  const [googleOAuthEnabled, setGoogleOAuthEnabled] = useState(false);
+  const [microsoftOAuthEnabled, setMicrosoftOAuthEnabled] = useState(false);
   const [captcha, setCaptcha] = useState<MemberCaptchaData | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     void siteMemberApi
       .get<SiteMemberConfig>(`${SITE_MEMBER_API_BASE}/config`, undefined, true)
-      .then((config) => setCaptchaEnabled(config.captcha_enabled))
-      .catch(() => setCaptchaEnabled(false));
+      .then((config) => {
+        setCaptchaEnabled(config.captcha_enabled);
+        setGithubOAuthEnabled(config.github_oauth_enabled);
+        setGoogleOAuthEnabled(config.google_oauth_enabled);
+        setMicrosoftOAuthEnabled(config.microsoft_oauth_enabled);
+      })
+      .catch(() => {
+        setCaptchaEnabled(false);
+        setGithubOAuthEnabled(false);
+        setGoogleOAuthEnabled(false);
+        setMicrosoftOAuthEnabled(false);
+      });
   }, []);
 
   async function handleSubmit(event: FormEvent): Promise<void> {
@@ -122,6 +136,14 @@ export function MemberLogin(): ReactNode {
               </Button>
             </FieldGroup>
           </form>
+          <div className="mt-6">
+            <MemberOAuthButtons
+              githubEnabled={githubOAuthEnabled}
+              googleEnabled={googleOAuthEnabled}
+              microsoftEnabled={microsoftOAuthEnabled}
+              disabled={submitting}
+            />
+          </div>
         </CardContent>
       </Card>
 

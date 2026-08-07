@@ -168,25 +168,41 @@ POST /api/auth/register
    - 如果失败次数 >= 5，锁定账户 30 分钟
 10. 返回 Token 信息
 
-### 4.2.1 第三方 OAuth 登录（GitHub / Google）
+### 4.2.1 第三方 OAuth 登录（GitHub / Google / Microsoft）
 
-配置对应 `*_CLIENT_ID` + `*_CLIENT_SECRET` 后，`GET /api/public/config` 返回 `github_oauth_enabled` / `google_oauth_enabled`，登录页展示按钮。
+**凭证分层**：平台默认用 env（`GITHUB_*` / `GOOGLE_*` / `MICROSOFT_*`）；站点可在工作台 `/app/settings/oauth` 覆盖（加密存 `TenantSetting.secret`，key=`oauth_providers`）。`GET /api/public/config` 按当前 Host 解析后的凭证返回 `github_oauth_enabled` / `google_oauth_enabled` / `microsoft_oauth_enabled`。
 
 | Provider | 启动 | 回调 |
 | --- | --- | --- |
 | GitHub | `GET /api/auth/oauth/github` | `GET /api/auth/oauth/github/callback` |
 | Google | `GET /api/auth/oauth/google` | `GET /api/auth/oauth/google/callback` |
+| Microsoft | `GET /api/auth/oauth/microsoft` | `GET /api/auth/oauth/microsoft/callback` |
 
-**流程**（两家相同）：
+**流程**（三家相同）：
 
 1. 浏览器跳转启动 URL（带短时 JWT `state`）
 2. 授权后进入回调，换取 access token 并拉取用户资料
 3. 若已有 `OAuthAccount` 绑定 → 签发双 Token
 4. 若无绑定且平台开放自助注册 → 创建个人租户 + 无密码管理员用户 + `OAuthAccount`，再签发 Token
 5. 若无绑定且未开放注册 → 前端回调页提示联系管理员
-6. 成功时 302 到 `{FRONTEND_URL}/auth/oauth/callback#access_token=…&refresh_token=…`（hash 避免 Referer 泄露）
+6. 成功时 302 到 `{origin}/auth/oauth/callback#access_token=…&refresh_token=…`（hash 避免 Referer 泄露）
+
+登录页与注册页均展示已启用的 OAuth 按钮（首次 OAuth 与注册等价）。
 
 `User.password` 可为 null（纯 OAuth 账号）；密码登录对这些账号会失败，修改密码接口返回 `auth.password_not_set`。
+
+### 4.2.2 站点会员第三方登录（`SiteMember`）
+
+会员身份独立于工作台 `User`。启用 entitlement `tenant-site-member` 后，`GET /api/member/config` 返回三家 `*_oauth_enabled`；登录/注册页展示按钮。
+
+| 步骤 | 路径 |
+| --- | --- |
+| 启动 | `GET /api/member/oauth/{provider}?redirect=` |
+| 回调（固定主域） | `GET /api/member/oauth/{provider}/callback` |
+| 换票种 Cookie | `POST /api/member/oauth/exchange` `{ code }` |
+| 前端落地 | `/member/oauth/callback` |
+
+会员 Cookie 按 Host 隔离，平台 OAuth 应用只能登记少量 redirect URI → 回调落在 `FRONTEND_URL`，再发一次性 exchange code 跳回发起域名种 Cookie。绑定表 `SiteMemberOAuthAccount` 按 `(tenant_id, provider, provider_user_id)` 唯一；首次登录要求 IdP **已验证邮箱**，可自动绑定同邮箱已有会员或创建 `password: null` 的新会员。
 
 **API 接口**：
 

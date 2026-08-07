@@ -116,7 +116,7 @@ function buildServerConfig() {
   };
 }
 
-function buildOAuthProviderConfig(envPrefix: "GITHUB" | "GOOGLE") {
+function buildOAuthProviderConfig(envPrefix: "GITHUB" | "GOOGLE" | "MICROSOFT") {
   const clientId = optionalStrEnv(`${envPrefix}_CLIENT_ID`);
   const clientSecret = optionalStrEnv(`${envPrefix}_CLIENT_SECRET`);
   return {
@@ -139,6 +139,11 @@ function buildAuthConfig() {
     },
     github: buildOAuthProviderConfig("GITHUB"),
     google: buildOAuthProviderConfig("GOOGLE"),
+    microsoft: {
+      ...buildOAuthProviderConfig("MICROSOFT"),
+      /** Entra 目录：`common` / `organizations` / `consumers` / 具体 tenant id */
+      authority: strEnv("MICROSOFT_AUTHORITY", "common"),
+    },
   };
 }
 

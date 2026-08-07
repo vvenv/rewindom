@@ -80,6 +80,25 @@
     "required": "Please complete the captcha",
     "failed": "Captcha verification failed, please try again"
   },
+  "oauth": {
+    "or": "or",
+    "continueWithGitHub": "Continue with GitHub",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithMicrosoft": "Continue with Microsoft",
+    "completing": "Completing sign-in…",
+    "completingHint": "Please wait",
+    "failedTitle": "Sign-in failed",
+    "failed": "Third-party sign-in failed. Please try again.",
+    "missingCode": "Missing sign-in code. Please try again.",
+    "backToLogin": "Back to sign-in",
+    "denied": "Authorization was cancelled",
+    "notConfigured": "Third-party sign-in is not configured",
+    "stateInvalid": "Sign-in state is invalid or expired. Please try again.",
+    "emailRequired": "The third-party account did not provide an email",
+    "emailUnverified": "Please use a third-party account with a verified email",
+    "exchangeInvalid": "Sign-in code is invalid or expired. Please try again.",
+    "accountDisabled": "This account has been disabled"
+  },
   "errors": {
     "generic": "Something went wrong, please try again"
   },

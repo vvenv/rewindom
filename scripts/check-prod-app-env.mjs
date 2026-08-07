@@ -70,9 +70,9 @@ function collectConfigEnvKeys(source) {
     keys.add(match[1]);
   }
 
-  // buildOAuthProviderConfig("GITHUB" | "GOOGLE")
+  // buildOAuthProviderConfig("GITHUB" | "GOOGLE" | "MICROSOFT")
   const oauthRe =
-    /buildOAuthProviderConfig\(\s*["'](GITHUB|GOOGLE)["']\s*\)/g;
+    /buildOAuthProviderConfig\(\s*["'](GITHUB|GOOGLE|MICROSOFT)["']\s*\)/g;
   for (const match of source.matchAll(oauthRe)) {
     const prefix = match[1];
     keys.add(`${prefix}_CLIENT_ID`);

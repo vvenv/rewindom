@@ -9,6 +9,7 @@ export * from "./tenant-limits.js";
 export * from "./tenant-entitlements.js";
 export * from "./tenant-appearance.js";
 export * from "./tenant-branding.js";
+export * from "./tenant-oauth.js";
 export * from "./collect-tenant-catalog.js";
 export * from "./pricing-plans.js";
 export * from "./plan-limit-templates.js";

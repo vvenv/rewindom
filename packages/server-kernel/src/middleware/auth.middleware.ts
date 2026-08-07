@@ -187,6 +187,7 @@ export async function authMiddleware(app: FastifyInstance) {
         request.url.startsWith("/api/auth/register") ||
         request.url.startsWith("/api/auth/refresh") ||
         request.url.startsWith("/api/auth/oauth/") ||
+        request.url.startsWith("/api/member/oauth/") ||
         request.url.startsWith("/api/captcha") ||
         request.url.startsWith("/api/public/") ||
         request.url.startsWith("/api/system-info") ||

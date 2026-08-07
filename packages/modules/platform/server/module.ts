@@ -7,6 +7,7 @@ import {
   publicTenantBrandingRoutes,
   tenantBrandingRoutes,
 } from "./routes/branding.routes.js";
+import { tenantOAuthProvidersRoutes } from "./routes/oauth-providers.routes.js";
 import { tenantEntitlementsRoutes } from "./routes/tenant-entitlements.routes.js";
 import { getPlatformSettings } from "./services/platform-settings.service.js";
 import { getTenantBrandingUrls } from "./services/tenant-branding.service.js";
@@ -140,6 +141,7 @@ export const platformServerModule: ServerAppModule = {
             default_locale: settings.default_locale,
             github_oauth_enabled: false,
             google_oauth_enabled: false,
+            microsoft_oauth_enabled: false,
             single_tenant: appConfig.tenant.singleTenant,
             bound_tenant,
             tenant_base_domain: appConfig.tenant.baseDomain.trim() || null,
@@ -158,6 +160,7 @@ export const platformServerModule: ServerAppModule = {
       await app.register(platformRoutes, { prefix: "/api/platform" });
       await app.register(tenantEntitlementsRoutes, { prefix: "/api/settings" });
       await app.register(tenantBrandingRoutes, { prefix: "/api/settings" });
+      await app.register(tenantOAuthProvidersRoutes, { prefix: "/api/settings" });
       await app.register(publicTenantBrandingRoutes, { prefix: "/api/public" });
     },
   },

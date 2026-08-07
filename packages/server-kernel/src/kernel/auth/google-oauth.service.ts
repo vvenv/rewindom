@@ -1,5 +1,4 @@
 import { AppError } from "../../lib/app-errors.js";
-import { config } from "../../lib/config.js";
 
 import {
   buildOAuthFrontendErrorRedirect,
@@ -12,6 +11,7 @@ import {
   type OAuthProfile,
 } from "./oauth-common.js";
 
+import type { ResolvedOAuthCredentials } from "./oauth-credentials.js";
 import type { JwtSignPayload } from "./auth.service.js";
 import type { HostTenantContext } from "../../lib/host-tenant.js";
 import type { ProviderRegistry } from "../../runtime/provider-registry.js";
@@ -36,8 +36,8 @@ interface GoogleUserInfoResponse {
   given_name?: string;
 }
 
-function assertGoogleConfigured(): void {
-  if (!config.auth.google.enabled) {
+function assertCredentials(credentials: ResolvedOAuthCredentials): void {
+  if (!credentials.enabled || credentials.provider !== PROVIDER) {
     throw new AppError({ code: "auth.oauth_not_configured", status: 503 });
   }
 }
@@ -45,10 +45,11 @@ function assertGoogleConfigured(): void {
 export function buildGoogleAuthorizeUrl(params: {
   state: string;
   callbackUrl: string;
+  credentials: ResolvedOAuthCredentials;
 }): string {
-  assertGoogleConfigured();
+  assertCredentials(params.credentials);
   const url = new URL(GOOGLE_AUTHORIZE_URL);
-  url.searchParams.set("client_id", config.auth.google.clientId);
+  url.searchParams.set("client_id", params.credentials.clientId);
   url.searchParams.set("redirect_uri", params.callbackUrl);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", "openid email profile");
@@ -61,11 +62,12 @@ export function buildGoogleAuthorizeUrl(params: {
 async function exchangeCodeForAccessToken(
   code: string,
   callbackUrl: string,
+  credentials: ResolvedOAuthCredentials,
 ): Promise<string> {
   const body = new URLSearchParams({
     code,
-    client_id: config.auth.google.clientId,
-    client_secret: config.auth.google.clientSecret,
+    client_id: credentials.clientId,
+    client_secret: credentials.clientSecret,
     redirect_uri: callbackUrl,
     grant_type: "authorization_code",
   });
@@ -94,7 +96,9 @@ async function exchangeCodeForAccessToken(
   return data.access_token;
 }
 
-async function fetchGoogleProfile(accessToken: string): Promise<OAuthProfile> {
+export async function fetchGoogleProfile(
+  accessToken: string,
+): Promise<OAuthProfile> {
   const response = await fetch(GOOGLE_USERINFO_URL, {
     headers: {
       Accept: "application/json",
@@ -110,8 +114,8 @@ async function fetchGoogleProfile(accessToken: string): Promise<OAuthProfile> {
     throw new AppError({ code: "auth.oauth_profile_failed", status: 502 });
   }
 
-  const email =
-    user.email && user.email_verified !== false ? user.email : (user.email ?? null);
+  const emailVerified = user.email_verified === true;
+  const email = user.email ?? null;
   const emailLocal = email?.split("@")[0] ?? "";
   const usernameSource =
     emailLocal || user.given_name || user.name || `google_${user.sub}`;
@@ -120,14 +124,18 @@ async function fetchGoogleProfile(accessToken: string): Promise<OAuthProfile> {
     provider_user_id: user.sub,
     username: normalizeOAuthUsername(usernameSource),
     email,
+    email_verified: emailVerified,
     display_name: user.name ?? null,
     avatar_url: user.picture ?? null,
   };
 }
 
 export class GoogleOAuthService {
-  static resolveCallbackUrl(requestUrlOrigin: string): string {
-    return resolveOAuthCallbackUrl(PROVIDER, requestUrlOrigin);
+  static resolveCallbackUrl(
+    requestUrlOrigin: string,
+    credentials: ResolvedOAuthCredentials,
+  ): string {
+    return resolveOAuthCallbackUrl(PROVIDER, requestUrlOrigin, credentials);
   }
 
   static verifyState(
@@ -140,17 +148,19 @@ export class GoogleOAuthService {
   static async completeLogin(params: {
     code: string;
     callbackUrl: string;
+    credentials: ResolvedOAuthCredentials;
     jwtSign: (payload: JwtSignPayload) => string;
     registry: ProviderRegistry;
     ip: string;
     userAgent: string;
     hostTenant?: HostTenantContext | null;
   }): Promise<OAuthLoginResult> {
-    assertGoogleConfigured();
+    assertCredentials(params.credentials);
 
     const accessToken = await exchangeCodeForAccessToken(
       params.code,
       params.callbackUrl,
+      params.credentials,
     );
     const profile = await fetchGoogleProfile(accessToken);
 
@@ -163,6 +173,20 @@ export class GoogleOAuthService {
       userAgent: params.userAgent,
       hostTenant: params.hostTenant,
     });
+  }
+
+  static async fetchProfileFromCode(params: {
+    code: string;
+    callbackUrl: string;
+    credentials: ResolvedOAuthCredentials;
+  }): Promise<OAuthProfile> {
+    assertCredentials(params.credentials);
+    const accessToken = await exchangeCodeForAccessToken(
+      params.code,
+      params.callbackUrl,
+      params.credentials,
+    );
+    return fetchGoogleProfile(accessToken);
   }
 
   static buildFrontendSuccessRedirect(

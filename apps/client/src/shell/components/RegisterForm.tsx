@@ -33,6 +33,7 @@ import {
   type RegisterFormValues,
 } from "../lib/register-form.js";
 
+import { OAuthProviderButtons } from "./OAuthProviderButtons.js";
 import { RegisterLoginLink } from "./RegisterDisabledView.js";
 import { SliderCaptcha } from "./SliderCaptcha";
 
@@ -53,6 +54,9 @@ export function RegisterForm({
   showConfirmPassword,
   captchaData,
   captchaEnabled,
+  githubOAuthEnabled = false,
+  googleOAuthEnabled = false,
+  microsoftOAuthEnabled = false,
   singleTenant = false,
   isLoading,
   onTenantNameChange,
@@ -69,6 +73,9 @@ export function RegisterForm({
   showConfirmPassword: boolean;
   captchaData: RegisterCaptchaData | null;
   captchaEnabled: boolean;
+  githubOAuthEnabled?: boolean;
+  googleOAuthEnabled?: boolean;
+  microsoftOAuthEnabled?: boolean;
   singleTenant?: boolean;
   isLoading: boolean;
   onTenantNameChange: (value: string) => void;
@@ -455,6 +462,13 @@ export function RegisterForm({
             </Button>
           </div>
         </form>
+
+        <OAuthProviderButtons
+          githubEnabled={githubOAuthEnabled}
+          googleEnabled={googleOAuthEnabled}
+          microsoftEnabled={microsoftOAuthEnabled}
+          disabled={isLoading}
+        />
 
         <RegisterLoginLink />
       </div>

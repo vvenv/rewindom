@@ -28,7 +28,14 @@ export const SITE_MEMBER_SERVER_I18N: ServerI18nBundle = {
       "site_member.display_name_too_long": "昵称最长 50 个字符",
       "site_member.token_invalid_type": "登录凭证类型不正确",
       "site_member.token_invalid_or_expired": "登录已过期，请重新登录",
+      "site_member.oauth_provider_invalid": "不支持的第三方登录方式",
+      "site_member.oauth_email_required": "第三方账号未提供可用邮箱",
+      "site_member.oauth_email_unverified": "请使用已验证邮箱的第三方账号",
+      "site_member.oauth_exchange_invalid": "登录凭证无效或已过期，请重试",
+      "site_member.oauth_tenant_mismatch": "账号与当前站点不匹配",
       "site_member.audit.registered": "会员注册：{{email}}",
+      "site_member.audit.oauth_registered":
+        "会员通过 {{provider}} 注册：{{email}}",
       "site_member.audit.password_changed": "会员修改密码：{{email}}",
       "site_member.audit.updated": "更新会员：{{email}}",
       "site_member.audit.deleted": "删除会员：{{email}}",
@@ -58,7 +65,18 @@ export const SITE_MEMBER_SERVER_I18N: ServerI18nBundle = {
       "site_member.token_invalid_type": "Invalid credential type",
       "site_member.token_invalid_or_expired":
         "Your session has expired, please sign in again",
+      "site_member.oauth_provider_invalid": "Unsupported sign-in provider",
+      "site_member.oauth_email_required":
+        "The third-party account did not provide an email",
+      "site_member.oauth_email_unverified":
+        "Please use a third-party account with a verified email",
+      "site_member.oauth_exchange_invalid":
+        "Sign-in code is invalid or expired, please try again",
+      "site_member.oauth_tenant_mismatch":
+        "This account does not belong to the current site",
       "site_member.audit.registered": "Member registered: {{email}}",
+      "site_member.audit.oauth_registered":
+        "Member registered via {{provider}}: {{email}}",
       "site_member.audit.password_changed": "Member changed password: {{email}}",
       "site_member.audit.updated": "Updated member: {{email}}",
       "site_member.audit.deleted": "Deleted member: {{email}}",

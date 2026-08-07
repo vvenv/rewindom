@@ -1,4 +1,4 @@
-import { Palette } from "lucide-react";
+import { KeyRound, Palette } from "lucide-react";
 
 import type { AppNavSection } from "@be-water/client-kit";
 
@@ -17,6 +17,14 @@ export const PLATFORM_TENANT_NAV_SECTIONS: AppNavSection[] = [
         path: "/app/settings",
         title: "platform:branding.nav",
         keywords: "settings branding logo favicon 品牌 设置",
+        anyPermission: ["settings.read"],
+      },
+      {
+        icon: KeyRound,
+        label: "platform:oauth.nav",
+        path: "/app/settings/oauth",
+        title: "platform:oauth.nav",
+        keywords: "oauth github google microsoft 登录 第三方",
         anyPermission: ["settings.read"],
       },
     ],

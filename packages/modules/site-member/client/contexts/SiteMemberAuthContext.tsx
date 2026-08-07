@@ -31,6 +31,7 @@ interface SiteMemberAuthState {
 export interface SiteMemberAuthContextValue extends SiteMemberAuthState {
   login: (body: SiteMemberLoginBody) => Promise<SiteMemberProfile>;
   register: (body: SiteMemberRegisterBody) => Promise<SiteMemberProfile>;
+  completeOAuthExchange: (code: string) => Promise<SiteMemberProfile>;
   logout: () => Promise<void>;
   updateProfile: (
     body: SiteMemberUpdateProfileBody,
@@ -90,6 +91,20 @@ export function SiteMemberAuthProvider({
       const session = await siteMemberApi.post<SiteMemberSession>(
         `${SITE_MEMBER_API_BASE}/register`,
         body,
+        undefined,
+        true,
+      );
+      applySession(session);
+      return session.member;
+    },
+    [applySession],
+  );
+
+  const completeOAuthExchange = useCallback(
+    async (code: string) => {
+      const session = await siteMemberApi.post<SiteMemberSession>(
+        `${SITE_MEMBER_API_BASE}/oauth/exchange`,
+        { code },
         undefined,
         true,
       );
@@ -168,6 +183,7 @@ export function SiteMemberAuthProvider({
         ...state,
         login,
         register,
+        completeOAuthExchange,
         logout,
         updateProfile,
         changePassword,

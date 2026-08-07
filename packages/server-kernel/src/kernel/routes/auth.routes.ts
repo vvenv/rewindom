@@ -15,7 +15,6 @@ import {
   sendCodedError,
 } from "../../http/route-error-handler.js";
 import { AppError, hasErrorCode } from "../../lib/app-errors.js";
-import { config } from "../../lib/config.js";
 import { emitAuditLog } from "../../runtime/audit-log-emit.js";
 import { AuthService } from "../auth/auth.service.js";
 import {
@@ -27,12 +26,18 @@ import {
   GoogleOAuthService,
 } from "../auth/google-oauth.service.js";
 import {
+  buildMicrosoftAuthorizeUrl,
+  MicrosoftOAuthService,
+} from "../auth/microsoft-oauth.service.js";
+import {
   mapOAuthErrorCode,
   oauthStateType,
   requestOriginFromHeaders,
   type OAuthProviderId,
 } from "../auth/oauth-common.js";
+import { resolveOAuthCredentials } from "../auth/oauth-credentials.js";
 
+import type { ResolvedOAuthCredentials } from "../auth/oauth-credentials.js";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 const KERNEL_AUDIT_ACTIONS = {
@@ -311,36 +316,50 @@ export async function authRoutes(app: FastifyInstance) {
     },
   });
 
+  type WorkspaceOAuthService =
+    | typeof GithubOAuthService
+    | typeof GoogleOAuthService
+    | typeof MicrosoftOAuthService;
+
   const oauthProviders: Array<{
     id: OAuthProviderId;
-    enabled: boolean;
     buildAuthorizeUrl: (params: {
       state: string;
       callbackUrl: string;
+      credentials: ResolvedOAuthCredentials;
     }) => string;
-    service: typeof GithubOAuthService | typeof GoogleOAuthService;
+    service: WorkspaceOAuthService;
     auditDetailKey: string;
   }> = [
     {
       id: "github",
-      enabled: config.auth.github.enabled,
       buildAuthorizeUrl: buildGithubAuthorizeUrl,
       service: GithubOAuthService,
       auditDetailKey: "auth.audit.login_oauth_github",
     },
     {
       id: "google",
-      enabled: config.auth.google.enabled,
       buildAuthorizeUrl: buildGoogleAuthorizeUrl,
       service: GoogleOAuthService,
       auditDetailKey: "auth.audit.login_oauth_google",
+    },
+    {
+      id: "microsoft",
+      buildAuthorizeUrl: buildMicrosoftAuthorizeUrl,
+      service: MicrosoftOAuthService,
+      auditDetailKey: "auth.audit.login_oauth_microsoft",
     },
   ];
 
   for (const provider of oauthProviders) {
     app.get(`/oauth/${provider.id}`, async (request, reply) => {
       try {
-        if (!provider.enabled) {
+        const hostTenant = request.hostTenantContext ?? null;
+        const credentials = await resolveOAuthCredentials(
+          provider.id,
+          hostTenant?.tenant_id ?? null,
+        );
+        if (!credentials.enabled) {
           return sendCodedError(reply, 503, "auth.oauth_not_configured");
         }
 
@@ -349,14 +368,17 @@ export async function authRoutes(app: FastifyInstance) {
           return sendCodedError(reply, 500, "common.internal_error");
         }
 
-        const callbackUrl = provider.service.resolveCallbackUrl(origin);
+        const callbackUrl = provider.service.resolveCallbackUrl(
+          origin,
+          credentials,
+        );
         const state = app.jwt.sign(
           { typ: oauthStateType(provider.id), nonce: randomUUID() },
           { expiresIn: "10m" },
         );
 
         return reply.redirect(
-          provider.buildAuthorizeUrl({ state, callbackUrl }),
+          provider.buildAuthorizeUrl({ state, callbackUrl, credentials }),
         );
       } catch (error) {
         app.log.error(error);
@@ -407,15 +429,33 @@ export async function authRoutes(app: FastifyInstance) {
           );
         }
 
-        const callbackUrl = provider.service.resolveCallbackUrl(origin);
+        const hostTenant = request.hostTenantContext ?? null;
+        const credentials = await resolveOAuthCredentials(
+          provider.id,
+          hostTenant?.tenant_id ?? null,
+        );
+        if (!credentials.enabled) {
+          return reply.redirect(
+            provider.service.buildFrontendErrorRedirect(
+              "auth.oauth_not_configured",
+              origin,
+            ),
+          );
+        }
+
+        const callbackUrl = provider.service.resolveCallbackUrl(
+          origin,
+          credentials,
+        );
         const result = await provider.service.completeLogin({
           code: query.code,
           callbackUrl,
+          credentials,
           jwtSign: app.jwt.sign.bind(app.jwt),
           registry: app.registry,
           ip: request.ip,
           userAgent: request.headers["user-agent"] ?? "",
-          hostTenant: request.hostTenantContext ?? null,
+          hostTenant,
         });
 
         try {

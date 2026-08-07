@@ -187,6 +187,16 @@ export type SiteMember = Prisma.SiteMemberModel
  */
 export type SiteMemberRefreshToken = Prisma.SiteMemberRefreshTokenModel
 /**
+ * Model SiteMemberOAuthAccount
+ * 会员第三方登录绑定（按站点租户隔离：同一 GitHub 可在不同站点各有一份会员）。
+ */
+export type SiteMemberOAuthAccount = Prisma.SiteMemberOAuthAccountModel
+/**
+ * Model SiteMemberOAuthExchangeCode
+ * 会员 OAuth 回调后的一次性换票码（固定主域回调 → 跳回 custom_domain 种 Cookie）。
+ */
+export type SiteMemberOAuthExchangeCode = Prisma.SiteMemberOAuthExchangeCodeModel
+/**
  * Model SlowQueryLog
  * 
  */

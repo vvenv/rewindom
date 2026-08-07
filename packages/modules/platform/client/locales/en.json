@@ -396,5 +396,49 @@
       "cleared": "Restored default branding",
       "clearFailed": "Clear failed"
     }
+  },
+  "oauth": {
+    "nav": "Sign-in providers",
+    "page": {
+      "title": "Sign-in providers",
+      "description": "Override the platform GitHub / Google / Microsoft OAuth apps. Leave empty to use platform credentials."
+    },
+    "hint": "With your own OAuth app, the consent screen shows your app name and icon. Client secrets are encrypted and never shown again after save.",
+    "loading": "Loading…",
+    "loadFailed": "Failed to load OAuth settings",
+    "save": "Save override",
+    "saving": "Saving…",
+    "clear": "Clear override",
+    "clearing": "Clearing…",
+    "providers": {
+      "github": "GitHub",
+      "google": "Google",
+      "microsoft": "Microsoft"
+    },
+    "source": {
+      "platform": "platform default",
+      "tenant": "site override"
+    },
+    "status": {
+      "enabled": "Available ({{source}})",
+      "disabled": "Unavailable",
+      "overrideActive": "site credentials saved",
+      "usingPlatform": "using platform credentials"
+    },
+    "fields": {
+      "clientId": "Client ID",
+      "clientSecret": "Client Secret",
+      "secretPlaceholder": "Paste client secret",
+      "secretPlaceholderReplace": "Enter a new secret to replace",
+      "callbackUrl": "Callback URL (optional)",
+      "callbackPlaceholder": "Leave empty for the platform default callback",
+      "authority": "Microsoft authority (optional)"
+    },
+    "toast": {
+      "saved": "OAuth override saved",
+      "saveFailed": "Save failed",
+      "cleared": "Restored platform credentials",
+      "clearFailed": "Clear failed"
+    }
   }
 }

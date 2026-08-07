@@ -26,6 +26,9 @@ export interface SiteMemberConfig {
   enabled: boolean;
   /** 平台开启滑块验证码时，登录/注册须先完成 `/api/captcha`。 */
   captcha_enabled: boolean;
+  github_oauth_enabled: boolean;
+  google_oauth_enabled: boolean;
+  microsoft_oauth_enabled: boolean;
 }
 
 /** 与工作台 LoginCredentials.captcha 同形，走内核 CaptchaService。 */

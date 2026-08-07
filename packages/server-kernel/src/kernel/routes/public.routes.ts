@@ -1,5 +1,6 @@
 import { success } from "@be-water/shared";
 
+import { resolveOAuthEnabledFlags } from "../auth/oauth-credentials.js";
 import { handleRouteError } from "../../http/route-error-handler.js";
 import { config as appConfig } from "../../lib/config.js";
 
@@ -14,13 +15,17 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         .getPublicConfig({ bound_tenant: bound ?? null });
       const baseDomain = appConfig.tenant.baseDomain.trim() || null;
       const platformUrl = appConfig.platform.url.trim() || null;
+      const oauthFlags = await resolveOAuthEnabledFlags(
+        bound?.tenant_id ?? null,
+      );
       return reply.send(
         success({
           registration_enabled: config.registration_enabled,
           captcha_enabled: config.captcha_enabled,
           default_locale: config.default_locale,
-          github_oauth_enabled: appConfig.auth.github.enabled,
-          google_oauth_enabled: appConfig.auth.google.enabled,
+          github_oauth_enabled: oauthFlags.github_oauth_enabled,
+          google_oauth_enabled: oauthFlags.google_oauth_enabled,
+          microsoft_oauth_enabled: oauthFlags.microsoft_oauth_enabled,
           single_tenant: appConfig.tenant.singleTenant,
           bound_tenant: config.bound_tenant,
           tenant_base_domain: baseDomain,

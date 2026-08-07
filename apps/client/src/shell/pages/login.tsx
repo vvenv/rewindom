@@ -38,6 +38,7 @@ export function Login() {
       captcha_enabled,
       github_oauth_enabled,
       google_oauth_enabled,
+      microsoft_oauth_enabled,
       single_tenant,
       bound_tenant,
       platform_url,
@@ -92,6 +93,7 @@ export function Login() {
         registrationEnabled={registration_enabled}
         githubOAuthEnabled={github_oauth_enabled}
         googleOAuthEnabled={google_oauth_enabled}
+        microsoftOAuthEnabled={microsoft_oauth_enabled}
         singleTenant={hostLockedTenant}
         isLoading={isLoading}
         onUsernameChange={setUsername}

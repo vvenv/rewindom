@@ -20,6 +20,12 @@ const MemberAccount = lazy(() =>
   })),
 );
 
+const MemberOAuthCallback = lazy(() =>
+  import("../pages/member-oauth-callback.js").then((module) => ({
+    default: module.MemberOAuthCallback,
+  })),
+);
+
 /**
  * 会员页走 public 而非 guest 路由树。
  *
@@ -32,6 +38,7 @@ export function renderSiteMemberPublicRoutes(): ReactNode {
     <>
       <Route path="/member/login" element={<MemberLogin />} />
       <Route path="/member/register" element={<MemberRegister />} />
+      <Route path="/member/oauth/callback" element={<MemberOAuthCallback />} />
       <Route path="/member/account" element={<MemberAccount />} />
     </>
   );

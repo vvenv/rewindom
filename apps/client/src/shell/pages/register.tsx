@@ -21,7 +21,15 @@ export function Register() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const {
-    data: { registration_enabled, captcha_enabled, single_tenant, bound_tenant },
+    data: {
+      registration_enabled,
+      captcha_enabled,
+      github_oauth_enabled,
+      google_oauth_enabled,
+      microsoft_oauth_enabled,
+      single_tenant,
+      bound_tenant,
+    },
   } = usePublicConfig();
   const hostLockedTenant = single_tenant || bound_tenant != null;
 
@@ -107,6 +115,9 @@ export function Register() {
         showConfirmPassword={showConfirmPassword}
         captchaData={captchaData}
         captchaEnabled={captcha_enabled}
+        githubOAuthEnabled={github_oauth_enabled}
+        googleOAuthEnabled={google_oauth_enabled}
+        microsoftOAuthEnabled={microsoft_oauth_enabled}
         singleTenant={hostLockedTenant}
         isLoading={isLoading}
         onTenantNameChange={updateTenantName}

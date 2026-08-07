@@ -1,5 +1,6 @@
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
 import { CaptchaService } from "@be-water/server-kernel/kernel/auth/captcha.service.js";
+import { resolveOAuthEnabledFlags } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
 import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 
@@ -84,13 +85,18 @@ export async function siteMemberAuthRoutes(
     context: "SiteMemberConfig",
     errorCode: "SITE_MEMBER_CONFIG_FAILED",
     handler: async (request) => {
-      const [enabled, settings] = await Promise.all([
-        readSiteMembersEnabled(request.hostTenantContext ?? null),
+      const hostTenant = request.hostTenantContext ?? null;
+      const [enabled, settings, oauthFlags] = await Promise.all([
+        readSiteMembersEnabled(hostTenant),
         getPlatformSettings(),
+        resolveOAuthEnabledFlags(hostTenant?.tenant_id ?? null),
       ]);
       return {
         enabled,
         captcha_enabled: settings.captcha_enabled,
+        github_oauth_enabled: oauthFlags.github_oauth_enabled,
+        google_oauth_enabled: oauthFlags.google_oauth_enabled,
+        microsoft_oauth_enabled: oauthFlags.microsoft_oauth_enabled,
       } satisfies SiteMemberConfig;
     },
   });

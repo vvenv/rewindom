@@ -7,6 +7,7 @@ import { registerMemberGateSection } from "./member-gate-section.js";
 import { registerSiteMemberAccountEntry } from "./site-account-entry.js";
 import { siteMemberAdminRoutes } from "./site-member-admin.routes.js";
 import { siteMemberAuthRoutes } from "./site-member-auth.routes.js";
+import { siteMemberOAuthRoutes } from "./site-member-oauth.routes.js";
 import { registerSiteMemberSsrSessionResolver } from "./site-member-ssr-session.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
@@ -63,6 +64,9 @@ export const siteMemberServerModule: ServerAppModule = {
        * entitlement 由 resolveSiteTenant 在解析站点归属时一并校验。
        */
       await app.register(siteMemberAuthRoutes, {
+        prefix: "/api/member",
+      });
+      await app.register(siteMemberOAuthRoutes, {
         prefix: "/api/member",
       });
 

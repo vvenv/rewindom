@@ -124,6 +124,8 @@ export interface PublicConfig {
   github_oauth_enabled: boolean;
   /** 是否已配置 Google OAuth（登录页展示「使用 Google 登录」）。 */
   google_oauth_enabled: boolean;
+  /** 是否已配置 Microsoft OAuth（登录页展示「使用 Microsoft 登录」）。 */
+  microsoft_oauth_enabled: boolean;
   /**
    * 单租户部署（`SINGLE_TENANT`）：注册进默认租户、隐藏多租户管理入口、
    * 登录不展示租户后缀提示。

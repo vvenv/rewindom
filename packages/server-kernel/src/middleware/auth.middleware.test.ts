@@ -634,6 +634,21 @@ describe("auth.middleware", () => {
       }
     });
 
+    it("skips auth for member OAuth start/callback/exchange", async () => {
+      app.get("/api/member/oauth/github", async () => ({ ok: true }));
+      app.get("/api/member/oauth/github/callback", async () => ({ ok: true }));
+      app.post("/api/member/oauth/exchange", async () => ({ ok: true }));
+
+      for (const [method, url] of [
+        ["GET", "/api/member/oauth/github"],
+        ["GET", "/api/member/oauth/github/callback"],
+        ["POST", "/api/member/oauth/exchange"],
+      ] as const) {
+        const response = await app.inject({ method, url });
+        expect(response.statusCode).not.toBe(401);
+      }
+    });
+
     /*
      * 免认证是白名单，必须整条路径精确匹配。
      * 曾经用 `startsWith`：那样任何以白名单串开头的新路由都会静默免认证——

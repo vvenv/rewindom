@@ -80,6 +80,8 @@ export const ModelName = {
   UserRole: 'UserRole',
   SiteMember: 'SiteMember',
   SiteMemberRefreshToken: 'SiteMemberRefreshToken',
+  SiteMemberOAuthAccount: 'SiteMemberOAuthAccount',
+  SiteMemberOAuthExchangeCode: 'SiteMemberOAuthExchangeCode',
   SlowQueryLog: 'SlowQueryLog',
   Todo: 'Todo'
 } as const
@@ -546,6 +548,35 @@ export const SiteMemberRefreshTokenScalarFieldEnum = {
 } as const
 
 export type SiteMemberRefreshTokenScalarFieldEnum = (typeof SiteMemberRefreshTokenScalarFieldEnum)[keyof typeof SiteMemberRefreshTokenScalarFieldEnum]
+
+
+export const SiteMemberOAuthAccountScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  member_id: 'member_id',
+  provider: 'provider',
+  provider_user_id: 'provider_user_id',
+  provider_email: 'provider_email',
+  provider_username: 'provider_username',
+  avatar_url: 'avatar_url',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SiteMemberOAuthAccountScalarFieldEnum = (typeof SiteMemberOAuthAccountScalarFieldEnum)[keyof typeof SiteMemberOAuthAccountScalarFieldEnum]
+
+
+export const SiteMemberOAuthExchangeCodeScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  tenant_id: 'tenant_id',
+  member_id: 'member_id',
+  expires_at: 'expires_at',
+  consumed_at: 'consumed_at',
+  created_at: 'created_at'
+} as const
+
+export type SiteMemberOAuthExchangeCodeScalarFieldEnum = (typeof SiteMemberOAuthExchangeCodeScalarFieldEnum)[keyof typeof SiteMemberOAuthExchangeCodeScalarFieldEnum]
 
 
 export const SlowQueryLogScalarFieldEnum = {

@@ -71,6 +71,7 @@
       "or": "or",
       "continueWithGitHub": "Continue with GitHub",
       "continueWithGoogle": "Continue with Google",
+      "continueWithMicrosoft": "Continue with Microsoft",
       "completing": "Completing sign-in…",
       "failedTitle": "Sign-in failed",
       "failed": "Third-party sign-in failed. Please try again.",
@@ -78,11 +79,11 @@
       "denied": "Authorization was cancelled",
       "notConfigured": "Third-party login is not configured",
       "stateInvalid": "Login state is invalid or expired. Please try again.",
-      "exchangeFailed": "Failed to exchange GitHub authorization",
-      "profileFailed": "Failed to fetch GitHub profile",
+      "exchangeFailed": "Failed to exchange authorization code",
+      "profileFailed": "Failed to fetch account profile",
       "registrationDisabled":
         "Self-registration is closed. Ask an admin for an account.",
-      "alreadyLinked": "This GitHub account is already linked"
+      "alreadyLinked": "This account is already linked to another user"
     },
     "registerTagline": "Create your organization and admin account to get started",
     "registerTaglineSingleTenant": "Create an account to get started",

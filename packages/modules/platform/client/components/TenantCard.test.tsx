@@ -64,6 +64,7 @@ vi.mock("@be-water/client-kit", async (importOriginal) => {
         default_locale: "zh-CN" as const,
         github_oauth_enabled: false,
         google_oauth_enabled: false,
+        microsoft_oauth_enabled: false,
         single_tenant: false,
         bound_tenant: null,
         tenant_base_domain: "moms.plus",
