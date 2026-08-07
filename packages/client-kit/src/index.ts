@@ -39,7 +39,6 @@ export {
   registerI18nBundles,
   i18n,
   SHELL_I18N_NAMESPACES,
-  I18N_NAMESPACES,
 } from "./i18n/setup";
 export {
   readStoredAppLocale,

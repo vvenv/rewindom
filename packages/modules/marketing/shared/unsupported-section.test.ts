@@ -89,8 +89,8 @@ describe("写路径：占位能原样回存，裸的未知 type 拒收", () => {
 
 describe("模块回来了：占位自动复活", () => {
   it("兜着的 type 重新被认识时，原样解析回真正的段", () => {
-    // `features` 是历史 type，会被 legacy 映射认成 `feature-grid`——
-    // 用它模拟「原本不认识、后来认识了」，不必真的去装一个模块
+    // 用一个当前合法的 type 模拟「模块回来了、type 重新被认识」：
+    // 占位兜着 source.raw.type = feature-grid，parseSections 认出后复活成真段
     const wrapped: SiteSection[] = [
       {
         id: "sec-x",
@@ -98,8 +98,8 @@ describe("模块回来了：占位自动复活", () => {
         settings: {},
         blocks: [],
         source: {
-          type: "features",
-          raw: { id: "sec-x", type: "features", settings: {}, blocks: [] },
+          type: "feature-grid",
+          raw: { id: "sec-x", type: "feature-grid", settings: {}, blocks: [] },
         },
       },
     ];

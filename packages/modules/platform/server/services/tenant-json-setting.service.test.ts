@@ -49,12 +49,9 @@ describe("getTenantJsonSetting", () => {
     expect(result).toEqual({ theme: "dark" });
   });
 
-  it("tenantSetting 不存在且为 DEFAULT_TENANT_ID 时应回退到 appSetting", async () => {
+  it("DEFAULT_TENANT_ID 时 tenantSetting 不存在也返回 defaultValue(不再回退 appSetting)", async () => {
     const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
     vi.mocked(prisma.tenantSetting.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.appSetting.findUnique).mockResolvedValue({
-      value: { theme: "dark" },
-    } as never);
 
     const result = await getTenantJsonSetting(
       DEFAULT_TENANT_ID,
@@ -63,7 +60,9 @@ describe("getTenantJsonSetting", () => {
       { theme: "light" },
     );
 
-    expect(result).toEqual({ theme: "dark" });
+    // 实现已统一到 tenantSetting:默认租户也走 tenantSetting,不再回退 appSetting
+    expect(result).toEqual({ theme: "light" });
+    expect(prisma.appSetting.findUnique).not.toHaveBeenCalled();
   });
 
   it("两者都不存在时应返回 defaultValue 的 normalize 结果", async () => {
@@ -118,17 +117,21 @@ describe("saveTenantJsonSetting", () => {
     );
   });
 
-  it("DEFAULT_TENANT_ID 时应删除旧 appSetting", async () => {
+  it("DEFAULT_TENANT_ID 时也走 upsert tenantSetting(不清理 appSetting)", async () => {
     const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
     vi.mocked(prisma.tenantSetting.upsert).mockResolvedValue({} as never);
-    vi.mocked(prisma.appSetting.deleteMany).mockResolvedValue({ count: 1 });
 
     await saveTenantJsonSetting(DEFAULT_TENANT_ID, "ui_config", {
       theme: "dark",
     });
 
-    expect(prisma.appSetting.deleteMany).toHaveBeenCalledWith({
-      where: { key: "ui_config" },
-    });
+    expect(prisma.tenantSetting.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          tenant_id_key: { tenant_id: DEFAULT_TENANT_ID, key: "ui_config" },
+        },
+      }),
+    );
+    expect(prisma.appSetting.deleteMany).not.toHaveBeenCalled();
   });
 });

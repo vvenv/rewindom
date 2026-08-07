@@ -381,8 +381,3 @@ docker_remote_logs() {
 
   _run_ssh "$logs_cmd"
 }
-
-# 兼容旧调用
-docker_bootstrap_production() {
-  docker_deploy "${1:-production}" "${2:-0}" 1 0
-}

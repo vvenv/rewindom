@@ -31,13 +31,15 @@ describe("page slug identity", () => {
   });
 
   it("rewrites legacy doc kind on write", () => {
+    // kind="doc" 已废弃：写路径把它收敛成 "page",slug 原样保留
+    // (早期 doc→docs 命名空间改写已移除,统一用 page kind)
     expect(resolvePageIdentity("doc", "index")).toEqual({
       kind: "page",
-      slug: "docs",
+      slug: "index",
     });
     expect(resolvePageIdentity("doc", "guide")).toEqual({
       kind: "page",
-      slug: "docs/guide",
+      slug: "guide",
     });
     expect(normalizePageKind("doc", "index")).toBe("page");
   });
