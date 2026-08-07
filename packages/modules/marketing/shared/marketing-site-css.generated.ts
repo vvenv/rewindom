@@ -143,13 +143,30 @@ dl {
   }
 }
 /* 限宽在 section 内部：色块与正文各自一档，组合出「通栏色带 + 居中正文」等排版 */
+/*
+ * 页宽色块 = 正文列，gutter 留在色块**外面**。
+ *
+ * 色块外框若按整个页宽算（含 gutter），有底色的段就会比同页的卡片、标题宽出 3rem，
+ * 底色边、描边、分隔线全部对不上正文列——页面上一眼看得出来的那种错位。
+ */
 .sec-w-page {
-  width: 100%;
-  max-width: var(--site-page-width, 72rem);
+  width: calc(100% - 3rem);
+  max-width: calc(var(--site-page-width, 72rem) - 3rem);
   margin: 0 auto;
 }
 .sec-content {
   padding: 0 1.5rem;
+}
+/* 页宽色块已经让出 gutter，正文不再重复缩进 */
+.sec-w-page > .sec-content {
+  padding-left: 0;
+  padding-right: 0;
+}
+/* 除非色块真的画了底色 / 描边——那 1.5rem 就是它的内边距，否则文字贴着色块边 */
+.sec-w-page:is(.sec-bg-muted, .sec-bg-accent, .sec-bg-outline, .has-surface)
+  > .sec-content {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 .sec-c-default {
   width: 100%;
@@ -165,6 +182,9 @@ dl {
 .grp-col .sec-band,
 .sec-c-contained {
   max-width: none;
+}
+.grp-col .sec-band {
+  width: 100%;
 }
 .sec-c-contained {
   width: 100%;
@@ -260,7 +280,8 @@ dl {
     transparent 72%
   );
 }
-/* 色块含上下留白，内容不因换底色而横向位移 */
+/* 色块含上下留白。横向上它与正文列同宽（见 .sec-w-page），换底色会把 gutter 变成
+   色块的内边距，正文因此右移 1.5rem——用色块边和正文列对齐换掉那 1.5rem 的位移 */
 .sec-bg-muted,
 .sec-bg-accent,
 .sec-bg-outline,
@@ -676,11 +697,19 @@ dl {
   color: var(--muted-fg);
 }
 .footer-legal {
-  border-top: 1px solid var(--border);
+  position: relative;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
   font-size: 0.75rem;
   color: var(--muted-fg);
+}
+/* 分隔线跟正文列同宽。\`.footer-legal\` 自己就是 \`.wrap\`，border 画在 border box 上会
+   连 gutter 一起横过去，比上面那排页脚链接宽出 3rem，所以让伪元素退到 padding 里画 */
+.footer-legal::before {
+  content: "";
+  position: absolute;
+  inset: 0 1.5rem auto;
+  border-top: 1px solid var(--border);
 }
 @media (max-width: 900px) {
   .footer-grid {

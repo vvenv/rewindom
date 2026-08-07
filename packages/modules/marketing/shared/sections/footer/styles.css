@@ -26,11 +26,19 @@
   color: var(--muted-fg);
 }
 .footer-legal {
-  border-top: 1px solid var(--border);
+  position: relative;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
   font-size: 0.75rem;
   color: var(--muted-fg);
+}
+/* 分隔线跟正文列同宽。`.footer-legal` 自己就是 `.wrap`，border 画在 border box 上会
+   连 gutter 一起横过去，比上面那排页脚链接宽出 3rem，所以让伪元素退到 padding 里画 */
+.footer-legal::before {
+  content: "";
+  position: absolute;
+  inset: 0 1.5rem auto;
+  border-top: 1px solid var(--border);
 }
 @media (max-width: 900px) {
   .footer-grid {
