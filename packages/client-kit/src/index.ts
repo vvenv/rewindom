@@ -46,7 +46,11 @@ export {
   APP_LOCALE_STORAGE_KEY,
   APP_LOCALE_DEFAULT_CACHE_KEY,
 } from "./lib/read-stored-locale.js";
-export { translateAppNavSections, translatePlatformNavEntries, resolveNavLabel } from "./i18n/translate-nav";
+export {
+  translateAppNavSections,
+  translatePlatformNavEntries,
+  resolveNavLabel,
+} from "./i18n/translate-nav";
 export {
   collectClientI18nBundles,
   type ClientI18nBundle,
@@ -75,6 +79,7 @@ export {
   type DateTimeRangePresetOption,
 } from "./components/DateTimeRangePicker";
 export { ErrorBoundary } from "./components/ErrorBoundary";
+export { FieldInfoTip } from "./components/FieldInfoTip";
 export {
   PageBackLink,
   PageSection,

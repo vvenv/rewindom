@@ -190,10 +190,13 @@ group + 左列放 `page-menu`(siblings/list, 列上勾 sticky)，不再有专门
 `width` · `content_width` · 盒模型留白（`padding_top/right/bottom/left` +
 `spacing_above` / `spacing_below`，外左右不做）· `divider`(none/top/bottom/both) · `anchor`。
 以及一组**通用外观**（`styleSettings()`，编辑器「外观」页签）：
-`bg_color` / `fg_color`（`#RGB`/`#RGBA`/`#RRGGBB`/`#RRGGBBAA`，可带 alpha）·
+`bg_color`（外背景，色块外壳 / `.sec-band`）· `inner_bg_color`（内背景 + 内边距环，正文区 / `.sec-content`，仅页面 section）·
+`fg_color`（`#RGB`/`#RGBA`/`#RRGGBB`/`#RRGGBBAA`，可带 alpha）·
 `border_color` · `border_width` · `radius`（可继承）。
-空 `bg_color` = 无自定义底色；旧 `background` token（muted/accent）仍可兼容渲染，
+外背景与内边距互不重叠：padding 落在正文层，补白环显示内色；外色只铺色块，正文限宽时两侧可露出。
+空外背景 = 无自定义色块底；旧 `background` token（muted/accent）仍可兼容渲染，
 `outline` 迁移为边框。band 新建默认写入内部 `background: muted`。
+块级 / 页头页脚只有一层 `bg_color`（无内外之分）。
 页签为内容 / 版式 / 外观三栏；窄侧栏未激活页签只显示图标。
 所有留白存的都是**桌面 px**，窄屏两处渲染统一 ×0.7；`anchor` 归一化成 slug 后作为
 `<section id>`，供页内导航链 `#anchor`。
@@ -253,8 +256,17 @@ URL 对齐 Shopify Markets：站点**主语言不带前缀**（`MarketingSite.de
 ### 间距：段内 padding + 段间 spacing
 
 两者互不相扰，这是 Shopify 的分工：`padding_*` 是色块**内**的留白（底色包住），
-`spacing_*` 是段与段之间的缝。段间距默认继承主题的「区块间距」，滑块最左一格（哨兵负值，
-见 `allow_inherit`）表示继承——和 padding 用同一种控件、同一个单位，租户不用先分清概念。
+`spacing_*` 是段与段之间的缝。段间距默认继承主题的「区块间距」，档位下限（哨兵 `-4`）
+表示继承——和 padding 用同一种控件、同一个单位，租户不用先分清概念。
+
+编辑器里这六个值合成一个盒模型控件（`theme-editor/SpacingBoxField.tsx`，schema 里是
+`spacing_box`，写入时由 `applySpacingBox()` 展开回六个独立键）。每格都是「可拖的数字」：
+拖动（3px 一档，横向格看 x、纵向格看 y，统一**向上 / 向右为加**，跟 ArrowUp 一个方向）、
+方向键（一档，Shift 四档）、直接打字（草稿态，失焦 / 回车才吸附提交——逐字符 clamp 的话
+「12」会在敲下「1」时被吸成 0）。清空 = 回档位下限，段间距那两格即回到「继承」。
+指针停在哪格，盒子对应的那条边就点亮。中间两个联锁开关（↔ / ↕）各管一条轴：按下后该轴
+两条对边一起改，两个都按 = 锁全部，都不按 = 不锁（纯编辑器态，不落库）。字段说明与操作提示
+收在标签后的 `FieldInfoTip` 气泡里，不占版面（口径见 `ui-components` rule）。
 
 一条缝由相邻两段共同决定：**显式覆盖压过继承**，两边都显式时取较大的一方。不能无脑取 max——
 那样某段设成 0（想和上一段拼成连续色带）会被邻居继承来的主题值挡住。缝隙由

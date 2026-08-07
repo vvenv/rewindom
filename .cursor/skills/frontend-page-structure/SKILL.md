@@ -235,6 +235,22 @@ const [createOpen, setCreateOpen] = useState(false);
 - **不要加 `py-4`**：`SheetContent` 的 `gap-4` 已经隔开头/正文/尾
 - ❌ `<FieldGroup className="flex-1 overflow-y-auto py-4">` — notes 模块曾如此，左右贴边
 
+## 字段说明用气泡，不用常驻灰字
+
+字段的**使用说明**（这项是什么、留空会怎样、怎么操作）挂 `FieldInfoTip`
+（`@be-water/client-kit`，标签后的 ⓘ；窄侧栏传 `side="left"`），不要用 `FieldDescription`
+压在控件下面——一屏十来个字段各带两行灰字，控件全被挤到折叠线以下。
+
+```tsx
+<FieldLabel htmlFor="slug" className="flex items-center gap-1">
+  路径
+  <FieldInfoTip text={t("info.slug")} side="left" />
+</FieldLabel>
+```
+
+`FieldDescription` / `FieldError` 只留给必须常驻可见的：校验错误、当前状态与不可用原因、
+危险后果。同一字段不要两处都写。完整口径见 `ui-components` rule。
+
 ## 列表表格列排序
 
 分页列表默认**服务端排序**，全链路约定见 `frontend-page-structure` rule。要点：

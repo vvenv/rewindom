@@ -44,6 +44,7 @@ describe("parseSettingValues", () => {
       anchor: "",
       // 通用外观（styleSettings）
       bg_color: "",
+      inner_bg_color: "",
       fg_color: "",
       border_color: "",
       border_width: 0,
@@ -266,6 +267,7 @@ describe("section layout settings", () => {
           "divider",
           "anchor",
           "bg_color",
+          "inner_bg_color",
           "fg_color",
           "border_color",
           "border_width",
@@ -275,6 +277,16 @@ describe("section layout settings", () => {
       expect(ids, type).not.toContain("background");
       // 同一个 id 只能声明一次，否则编辑器会渲染出两个控件
       expect(new Set(ids).size, type).toBe(ids.length);
+    }
+  });
+
+  it("keeps header and footer on a single surface background", () => {
+    for (const type of ["header", "footer"] as const) {
+      const ids = BUILTIN_SECTION_DEFINITIONS[type].settings
+        .map((def) => ("id" in def ? def.id : ""))
+        .filter(Boolean);
+      expect(ids, type).toContain("bg_color");
+      expect(ids, type).not.toContain("inner_bg_color");
     }
   });
 
@@ -379,6 +391,7 @@ describe("section layout settings", () => {
   it("resolves surface colors with alpha and border width fallback", () => {
     expect(resolveSurfaceStyle({})).toEqual({
       backgroundColor: null,
+      innerBackgroundColor: null,
       color: null,
       borderColor: null,
       borderWidth: 0,
@@ -387,6 +400,7 @@ describe("section layout settings", () => {
     expect(
       resolveSurfaceStyle({
         bg_color: "#0f766e80",
+        inner_bg_color: "#ffffff",
         fg_color: "#fff",
         border_color: "#00000033",
         border_width: 0,
@@ -394,6 +408,7 @@ describe("section layout settings", () => {
       }),
     ).toEqual({
       backgroundColor: "#0f766e80",
+      innerBackgroundColor: "#ffffff",
       color: "#fff",
       borderColor: "#00000033",
       borderWidth: 1,
@@ -501,7 +516,12 @@ describe("splitSettingsByScope", () => {
         expect.arrayContaining(["spacing_box", "width"]),
       );
       expect(ids(appearance), type).toEqual(
-        expect.arrayContaining(["bg_color", "fg_color", "radius"]),
+        expect.arrayContaining([
+          "bg_color",
+          "inner_bg_color",
+          "fg_color",
+          "radius",
+        ]),
       );
       // 三边加起来仍是完整的一份，不丢字段
       expect(content.length + layout.length + appearance.length, type).toBe(

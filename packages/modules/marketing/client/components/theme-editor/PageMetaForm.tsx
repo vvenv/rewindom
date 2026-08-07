@@ -1,11 +1,7 @@
 import { type ReactElement } from "react";
 
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@be-water/ui/field";
+import { FieldInfoTip } from "@be-water/client-kit";
+import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
 import { Switch } from "@be-water/ui/switch";
 import { Textarea } from "@be-water/ui/textarea";
@@ -18,6 +14,9 @@ import type {
   MarketingPageSettings,
   MarketingPageVisibility,
 } from "../../../shared/site-cms.js";
+
+/** 标签 + 说明气泡同一行（气泡是标签的一部分，不该换行掉下去）。 */
+const LABEL_CLASS = "flex items-center gap-1";
 
 interface PageMetaFormProps {
   title: string;
@@ -63,8 +62,9 @@ export function PageMetaForm({
 
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="page-meta-title">
+          <FieldLabel htmlFor="page-meta-title" className={LABEL_CLASS}>
             {t("cms.fieldTitle")}
+            <FieldInfoTip text={t("editor.info.page_title")} side="left" />
           </FieldLabel>
           <Input
             id="page-meta-title"
@@ -72,12 +72,15 @@ export function PageMetaForm({
             disabled={disabled}
             onChange={(event) => onChangeTitle(event.target.value)}
           />
-          <FieldDescription>{t("editor.info.page_title")}</FieldDescription>
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="page-meta-description">
+          <FieldLabel htmlFor="page-meta-description" className={LABEL_CLASS}>
             {t("cms.fieldDescription")}
+            <FieldInfoTip
+              text={t("editor.info.page_description")}
+              side="left"
+            />
           </FieldLabel>
           <Textarea
             id="page-meta-description"
@@ -86,29 +89,28 @@ export function PageMetaForm({
             disabled={disabled}
             onChange={(event) => onChangeDescription(event.target.value)}
           />
-          <FieldDescription>
-            {t("editor.info.page_description")}
-          </FieldDescription>
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="page-meta-path">
+          <FieldLabel htmlFor="page-meta-path" className={LABEL_CLASS}>
             {t("editor.pagePath")}
+            <FieldInfoTip text={t("editor.info.page_path")} side="left" />
           </FieldLabel>
           <Input id="page-meta-path" value={path} disabled readOnly />
-          <FieldDescription>{t("editor.info.page_path")}</FieldDescription>
         </Field>
 
         <Field>
           <div className="flex items-center justify-between gap-3">
-            <div className="space-y-1">
-              <FieldLabel htmlFor="page-meta-members-only">
-                {t("editor.visibility.membersOnly")}
-              </FieldLabel>
-              <FieldDescription>
-                {t("editor.visibility.membersOnlyHint")}
-              </FieldDescription>
-            </div>
+            <FieldLabel
+              htmlFor="page-meta-members-only"
+              className={LABEL_CLASS}
+            >
+              {t("editor.visibility.membersOnly")}
+              <FieldInfoTip
+                text={t("editor.visibility.membersOnlyHint")}
+                side="left"
+              />
+            </FieldLabel>
             <Switch
               id="page-meta-members-only"
               checked={visibility === "members"}
@@ -125,8 +127,9 @@ export function PageMetaForm({
         </p>
 
         <Field>
-          <FieldLabel htmlFor="page-meta-og-image">
+          <FieldLabel htmlFor="page-meta-og-image" className={LABEL_CLASS}>
             {t("editor.setting.og_image")}
+            <FieldInfoTip text={t("editor.info.og_image")} side="left" />
           </FieldLabel>
           <SiteImageField
             id="page-meta-og-image"
@@ -137,17 +140,14 @@ export function PageMetaForm({
               onChangeSettings({ ...settings, og_image: next || null })
             }
           />
-          <FieldDescription>{t("editor.info.og_image")}</FieldDescription>
         </Field>
 
         <Field>
           <div className="flex items-center justify-between gap-3">
-            <div className="space-y-1">
-              <FieldLabel htmlFor="page-meta-noindex">
-                {t("editor.setting.noindex")}
-              </FieldLabel>
-              <FieldDescription>{t("editor.info.noindex")}</FieldDescription>
-            </div>
+            <FieldLabel htmlFor="page-meta-noindex" className={LABEL_CLASS}>
+              {t("editor.setting.noindex")}
+              <FieldInfoTip text={t("editor.info.noindex")} side="left" />
+            </FieldLabel>
             <Switch
               id="page-meta-noindex"
               checked={settings.noindex === true}
@@ -164,8 +164,9 @@ export function PageMetaForm({
         </p>
 
         <Field>
-          <FieldLabel htmlFor="page-meta-bg">
+          <FieldLabel htmlFor="page-meta-bg" className={LABEL_CLASS}>
             {t("editor.setting.bg_color")}
+            <FieldInfoTip text={t("editor.info.page_bg_color")} side="left" />
           </FieldLabel>
           <SiteColorField
             id="page-meta-bg"
@@ -177,7 +178,6 @@ export function PageMetaForm({
               onChangeSettings({ ...settings, bg_color: bg_color || null })
             }
           />
-          <FieldDescription>{t("editor.info.page_bg_color")}</FieldDescription>
         </Field>
 
         <Field>

@@ -36,6 +36,7 @@
   "optional": "Optional",
   "tenant": "Tenant",
   "loadFailed": "Failed to load",
+  "fieldInfo": "Details: {{text}}",
   "nav": {
     "systemManagement": "Administration",
     "systemMonitoring": "Monitoring",

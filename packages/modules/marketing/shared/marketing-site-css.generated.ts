@@ -129,20 +129,24 @@ dl {
   scroll-margin-top: 4rem;
   margin-top: calc(var(--sec-gap, 0px) * 0.7);
 }
-.sec-band {
-  padding-top: calc(var(--sec-pt, 32px) * 0.7);
+/*
+ * 外背景在 \`.sec-band\`，内边距 + 内背景在 \`.sec-content\`——补白环显示内色，
+ * 外色只铺色块外壳（正文限宽时两侧还能露出来）。
+ */
+.sec-content {
+  padding-top: calc(var(--sec-pt, 0px) * 0.7);
   padding-right: calc(var(--sec-pr, 0px) * 0.7);
-  padding-bottom: calc(var(--sec-pb, 32px) * 0.7);
+  padding-bottom: calc(var(--sec-pb, 0px) * 0.7);
   padding-left: calc(var(--sec-pl, 0px) * 0.7);
 }
 @media (min-width: 640px) {
   .sec {
     margin-top: var(--sec-gap, 0px);
   }
-  .sec-band {
-    padding-top: var(--sec-pt, 32px);
+  .sec-content {
+    padding-top: var(--sec-pt, 0px);
     padding-right: var(--sec-pr, 0px);
-    padding-bottom: var(--sec-pb, 32px);
+    padding-bottom: var(--sec-pb, 0px);
     padding-left: var(--sec-pl, 0px);
   }
 }
@@ -158,34 +162,42 @@ dl {
   max-width: calc(var(--site-page-width, 72rem) - 3rem);
   margin: 0 auto;
 }
-.sec-content {
-  padding: 0 1.5rem;
-}
-/* 页宽色块已经让出 gutter，正文不再重复缩进 */
-.sec-w-page > .sec-content {
-  padding-left: 0;
-  padding-right: 0;
-}
-/* 除非色块真的画了底色 / 描边——那 1.5rem 就是它的内边距，否则文字贴着色块边 */
-.sec-w-page:is(.sec-bg-muted, .sec-bg-accent, .sec-bg-outline, .has-surface)
-  > .sec-content {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-/* 租户显式设了左右内边距：用 band 的 --sec-pl/pr，取消自动 content 垫 */
-.sec-band.sec-pad-x > .sec-content {
-  padding-left: 0;
-  padding-right: 0;
-}
+/*
+ * 正文列不论装在哪种色块里都落在同一条边上（= 页眉页脚 \`.wrap\` 的那条边）：
+ * 页宽段的 gutter 由 \`.sec-w-page\` 在色块外扣掉，通栏段由正文列自己扣。
+ *
+ * gutter 不能像以前那样走 \`.sec-content\` 的左右 padding——内背景铺的是 padding box，
+ * 会把 gutter 一起染上色，通栏段的内背景因此比页宽段的两侧各宽出 1.5rem。
+ */
 .sec-c-default {
   width: 100%;
-  max-width: var(--site-page-width, 72rem);
+  max-width: calc(var(--site-page-width, 72rem) - 3rem);
   margin: 0 auto;
 }
 .sec-c-narrow {
   width: 100%;
   max-width: 48rem;
   margin: 0 auto;
+}
+.sec-w-full > .sec-content:is(.sec-c-default, .sec-c-narrow) {
+  width: calc(100% - 3rem);
+}
+/*
+ * 正文左右不自带内边距。两种例外：\`content_width: full\` 不限宽，靠它兜住视口边；
+ * 有底色的色块靠它把正文推离色边（页宽段的色块边此时正压在正文列上）。
+ */
+.sec-content:not(.sec-pad-x) {
+  padding-left: 0;
+  padding-right: 0;
+}
+.sec-w-full > .sec-c-full:not(.sec-pad-x) {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+.sec-band:is(.sec-bg-muted, .sec-bg-accent, .sec-bg-outline, .has-surface)
+  > .sec-content:not(.sec-pad-x) {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 /* 容器段的列里外层已限宽并给了留白，section 不再自带 gutter，full 退化为 page */
 .grp-col .sec-band,
@@ -197,8 +209,6 @@ dl {
 }
 .sec-c-contained {
   width: 100%;
-  padding-left: 0;
-  padding-right: 0;
 }
 
 /* 容器段：窄屏一列到底，桌面进 12 栏。与 client 的 GroupSection 同构 */
@@ -322,6 +332,11 @@ dl {
 }
 .sec-band.has-surface[style*="--sec-radius"] {
   border-radius: var(--sec-radius);
+}
+/* 内背景铺满色块时得跟着色块收圆角，否则方角会盖掉色块的圆角缺口 */
+.sec-content.has-inner-bg {
+  background-color: var(--sec-inner-bg, transparent);
+  border-radius: inherit;
 }
 .sec-divider-top {
   border-top: 1px solid var(--border);

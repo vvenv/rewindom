@@ -740,9 +740,14 @@ export function resolveSectionLayout(settings: SettingValues): SectionLayout {
  *
  * 空颜色 = 不覆盖（继续走 token `background` 或主题默认）。圆角负哨兵 = 继承
  * 渲染端默认（色块 `rounded-xl`、通栏 0、卡片同 CARD_SHELL）。
+ *
+ * 页面 section 另有 `innerBackgroundColor`（正文区）；块级恒为 `null`。
  */
 export interface SurfaceStyle {
+  /** 外层色块外壳（`.sec-band` / 卡片表面）；不含内边距环。 */
   backgroundColor: string | null;
+  /** 内层正文区（`.sec-content`）含内边距环；仅页面 section。 */
+  innerBackgroundColor: string | null;
   color: string | null;
   borderColor: string | null;
   /** 实际要画的边框宽度；`border_color` 有值而宽度为 0 时按 1px。 */
@@ -753,6 +758,9 @@ export interface SurfaceStyle {
 
 export function resolveSurfaceStyle(settings: SettingValues): SurfaceStyle {
   const backgroundColor = normalizeSiteColor(settingText(settings, "bg_color"));
+  const innerBackgroundColor = normalizeSiteColor(
+    settingText(settings, "inner_bg_color"),
+  );
   const color = normalizeSiteColor(settingText(settings, "fg_color"));
   const borderColor = normalizeSiteColor(settingText(settings, "border_color"));
   const rawWidth = settingNumber(settings, "border_width", 0);
@@ -761,6 +769,7 @@ export function resolveSurfaceStyle(settings: SettingValues): SurfaceStyle {
   const radiusRaw = settingNumber(settings, "radius", -4);
   return {
     backgroundColor,
+    innerBackgroundColor,
     color,
     borderColor,
     borderWidth,
@@ -768,7 +777,7 @@ export function resolveSurfaceStyle(settings: SettingValues): SurfaceStyle {
   };
 }
 
-/** 是否有任何自定义外观（决定要不要加 has-surface 类 / 跳过 token 底色）。 */
+/** 外层是否有任何自定义外观（决定要不要加 has-surface 类 / 跳过 token 底色）。 */
 export function hasCustomSurface(style: SurfaceStyle): boolean {
   return (
     style.backgroundColor !== null ||
@@ -779,9 +788,10 @@ export function hasCustomSurface(style: SurfaceStyle): boolean {
 }
 
 /**
- * 落到 React `style` / SSR inline 的外观属性。
+ * 落到 React `style` / SSR inline 的**外层**外观属性。
  *
  * CSS 变量留给需要在子元素继承的场景（如 `--sec-fg`）；直接属性给色块自己用。
+ * 内层底色见 `contentSurfaceStyleCss`。
  */
 export function surfaceStyleCss(
   style: SurfaceStyle,
@@ -811,9 +821,19 @@ export function surfaceStyleCss(
   return out;
 }
 
+/** 正文区（`.sec-content`）内背景。 */
+export function contentSurfaceStyleCss(
+  style: SurfaceStyle,
+): Record<string, string | number> {
+  if (!style.innerBackgroundColor) return {};
+  return {
+    backgroundColor: style.innerBackgroundColor,
+    "--sec-inner-bg": style.innerBackgroundColor,
+  };
+}
+
 /** SSR：拼进 `style=""` 的片段（末尾不带分号之外的内容）。 */
-export function surfaceStyleAttr(style: SurfaceStyle): string {
-  const css = surfaceStyleCss(style);
+function cssRecordToAttr(css: Record<string, string | number>): string {
   const parts: string[] = [];
   for (const [key, value] of Object.entries(css)) {
     if (key.startsWith("--")) {
@@ -825,6 +845,14 @@ export function surfaceStyleAttr(style: SurfaceStyle): string {
     parts.push(`${prop}:${typeof value === "number" ? `${value}px` : value}`);
   }
   return parts.join(";");
+}
+
+export function surfaceStyleAttr(style: SurfaceStyle): string {
+  return cssRecordToAttr(surfaceStyleCss(style));
+}
+
+export function contentSurfaceStyleAttr(style: SurfaceStyle): string {
+  return cssRecordToAttr(contentSurfaceStyleCss(style));
 }
 
 /**

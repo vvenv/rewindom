@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import { TooltipProvider } from "@be-water/ui/tooltip";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -44,17 +43,14 @@ describe("SectionSettingsForm 页签", () => {
 describe("SectionSettingsForm 未开通的能力", () => {
   function renderHeaderForm(unavailable?: Record<string, string>) {
     render(
-      // 页头几个开关都挂了说明气泡，Radix Tooltip 必须有 Provider
-      <TooltipProvider>
-        <SectionSettingsForm
-          section={createSection("header")}
-          unavailable={unavailable}
-          locale="zh-CN"
-          defaultLocale="zh-CN"
-          onChangeSettings={vi.fn()}
-          onChangeBlockSettings={vi.fn()}
-        />
-      </TooltipProvider>,
+      <SectionSettingsForm
+        section={createSection("header")}
+        unavailable={unavailable}
+        locale="zh-CN"
+        defaultLocale="zh-CN"
+        onChangeSettings={vi.fn()}
+        onChangeBlockSettings={vi.fn()}
+      />,
     );
     return screen.getByRole("checkbox", { name: /账户入口/u });
   }

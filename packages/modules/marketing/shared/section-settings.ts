@@ -366,6 +366,20 @@ export function defaultSettingValue(def: InputSettingDef): SettingValue {
   }
 }
 
+export interface SettingRange {
+  min: number;
+  max: number;
+  step: number;
+}
+
+/** 夹到 range 内并吸附到最近的档位——编辑器与写入端共用同一套口径。 */
+export function snapSettingNumber(value: number, range: SettingRange): number {
+  const clamped = Math.min(range.max, Math.max(range.min, value));
+  const snapped =
+    range.min + Math.round((clamped - range.min) / range.step) * range.step;
+  return Number(snapped.toFixed(4));
+}
+
 function coerceRangeNumber(
   raw: unknown,
   min: number,
@@ -380,9 +394,7 @@ function coerceRangeNumber(
         ? Number(raw)
         : Number.NaN;
   if (!Number.isFinite(num)) return fallback;
-  const clamped = Math.min(max, Math.max(min, num));
-  const snapped = min + Math.round((clamped - min) / step) * step;
-  return Number(snapped.toFixed(4));
+  return snapSettingNumber(num, { min, max, step });
 }
 
 /** 类型不符一律回落默认值——渲染端与编辑器都不该因脏数据崩掉。 */

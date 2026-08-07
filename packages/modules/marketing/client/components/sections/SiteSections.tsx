@@ -1,5 +1,5 @@
 /**
- * 页面段流的外壳：外层「色块」承背景与上下留白，内层「正文」负责限宽。
+ * 页面段流的外壳：外层色块承外背景，内层正文承内背景与内边距。
  *
  * 段本身长什么样不在这里——见 `section-views.ts` 与 `views/<type>.tsx`，
  * 以及它们在 SSR 侧的对应实现 `shared/sections/<type>/html.ts`。
@@ -8,6 +8,7 @@
 import { type CSSProperties, type ReactNode } from "react";
 
 import {
+  contentSurfaceStyleCss,
   hasCustomSurface,
   resolveSectionGaps,
   resolveSectionLayout,
@@ -110,14 +111,19 @@ export function SiteSections({
       layout.dividerBottom ? "sec-divider-bottom" : "",
       glow ? "has-glow" : "",
       hasCustomSurface(surface) ? "has-surface" : "",
-      explicitPadX ? "sec-pad-x" : "",
     ]
       .filter(Boolean)
       .join(" ");
 
-    const contentClass = contained
-      ? "sec-content sec-c-contained"
-      : `sec-content sec-c-${layout.contentWidth}`;
+    const contentClass = [
+      contained
+        ? "sec-content sec-c-contained"
+        : `sec-content sec-c-${layout.contentWidth}`,
+      surface.innerBackgroundColor ? "has-inner-bg" : "",
+      explicitPadX ? "sec-pad-x" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     return (
       <section
@@ -156,18 +162,21 @@ export function SiteSections({
       >
         <div
           className={bandClass}
-          style={
-            {
-              "--sec-pt": `${layout.paddingTop}px`,
-              "--sec-pr": `${layout.paddingRight}px`,
-              "--sec-pb": `${layout.paddingBottom}px`,
-              "--sec-pl": `${layout.paddingLeft}px`,
-              ...(surfaceStyleCss(surface) as CSSProperties),
-            } as CSSProperties
-          }
+          style={surfaceStyleCss(surface) as CSSProperties}
         >
           {glow ? <div className="sec-glow" aria-hidden /> : null}
-          <div className={contentClass}>
+          <div
+            className={contentClass}
+            style={
+              {
+                "--sec-pt": `${layout.paddingTop}px`,
+                "--sec-pr": `${layout.paddingRight}px`,
+                "--sec-pb": `${layout.paddingBottom}px`,
+                "--sec-pl": `${layout.paddingLeft}px`,
+                ...contentSurfaceStyleCss(surface),
+              } as CSSProperties
+            }
+          >
             <View
               section={section}
               pages={pages}

@@ -17,6 +17,7 @@ import {
   registerSectionDefinition,
   resolveSectionLayout,
   resolveSurfaceStyle,
+  contentSurfaceStyleAttr,
   settingBool,
   surfaceStyleAttr,
   type SectionDefinition,
@@ -93,8 +94,8 @@ export const SECTION_HTML: Partial<Record<SectionType, SectionHtmlRenderer>> = {
 };
 
 /**
- * 与 client/components/sections/SiteSections.tsx 同构：外层「色块」承背景与上下留白，
- * 内层「正文」负责限宽——限宽落在 section 内部，`full` 才可能通栏。
+ * 与 client/components/sections/SiteSections.tsx 同构：外层色块承外背景，
+ * 内层正文承内背景与内边距（补白环显示内色）——限宽落在 section 内部，`full` 才可能通栏。
  *
  * `gap` 是这一段**上方**的段间距，由 `resolveSectionGaps` 统一算好传进来。
  */
@@ -140,24 +141,30 @@ export function renderSectionHtml(
     layout.dividerBottom ? "sec-divider-bottom" : "",
     glow ? "has-glow" : "",
     hasCustomSurface(surface) ? "has-surface" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  // 外层只承外背景；内边距变量 + 内背景落在正文区（补白环显示内色）
+  const style = surfaceStyleAttr(surface);
+  const id = layout.anchor ? ` id="${escapeHtml(layout.anchor)}"` : "";
+  const glowHtml = glow ? `<div class="sec-glow" aria-hidden="true"></div>` : "";
+  const contentClass = [
+    options.contained
+      ? "sec-content sec-c-contained"
+      : `sec-content sec-c-${layout.contentWidth}`,
+    surface.innerBackgroundColor ? "has-inner-bg" : "",
     explicitPadX ? "sec-pad-x" : "",
   ]
     .filter(Boolean)
     .join(" ");
-  // 存的是桌面值，窄屏由 `.sec` / `.sec-band` 的媒体查询按比例缩
-  const style = [
+  const contentStyle = [
     `--sec-pt:${layout.paddingTop}px`,
     `--sec-pr:${layout.paddingRight}px`,
     `--sec-pb:${layout.paddingBottom}px`,
     `--sec-pl:${layout.paddingLeft}px`,
-    surfaceStyleAttr(surface),
+    contentSurfaceStyleAttr(surface),
   ]
     .filter(Boolean)
     .join(";");
-  const id = layout.anchor ? ` id="${escapeHtml(layout.anchor)}"` : "";
-  const glowHtml = glow ? `<div class="sec-glow" aria-hidden="true"></div>` : "";
-  const contentClass = options.contained
-    ? "sec-content sec-c-contained"
-    : `sec-content sec-c-${layout.contentWidth}`;
-  return `<section${id} class="sec" style="--sec-gap:${gap}px"><div class="${classes}" style="${style}">${glowHtml}<div class="${contentClass}">${inner}</div></div></section>`;
+  return `<section${id} class="sec" style="--sec-gap:${gap}px"><div class="${classes}"${style ? ` style="${style}"` : ""}>${glowHtml}<div class="${contentClass}" style="${contentStyle}">${inner}</div></div></section>`;
 }

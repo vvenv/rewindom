@@ -11,6 +11,8 @@ import { siteNavPages, type PublicSitePage } from "../../site-cms.js";
 import { withSiteLocale } from "../../site-locale.js";
 import { blockSurfaceAttr, linkAttrs } from "../_common/html.js";
 
+import { themeToggleTitle } from "./messages.js";
+
 import type { SiteSection } from "../types.js";
 import type { AppLocale } from "@be-water/shared";
 
@@ -35,8 +37,10 @@ const LOCALE_SWITCHER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16"
 /** 首屏图标用太阳；site-enhance 会按当前明暗换成月亮。 */
 const THEME_TOGGLE_SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
 
-function renderThemeToggleHtml(): string {
-  return `<button type="button" class="theme-toggle" title="当前主题: 跟随系统">${THEME_TOGGLE_SUN}</button>`;
+/** 首屏按「跟随系统」渲染；site-enhance 读到实际偏好后会改写 title。 */
+function renderThemeToggleHtml(locale: AppLocale): string {
+  const title = escapeHtml(themeToggleTitle(locale, "system"));
+  return `<button type="button" class="theme-toggle" title="${title}">${THEME_TOGGLE_SUN}</button>`;
 }
 
 function renderLocaleSwitcherHtml(options: LocaleSwitcherOption[]): string {
@@ -117,7 +121,7 @@ export function renderHeaderHtml(input: {
     : "";
   // 明暗按钮需要 JS；SSR 先画出挂点，site-enhance 绑定点击并同步图标。
   const themeToggle = settingBool(s, "show_theme_toggle")
-    ? renderThemeToggleHtml()
+    ? renderThemeToggleHtml(input.locale ?? "zh-CN")
     : "";
   /*
    * 首屏就把账户入口渲染出来（未登录态），已登录菜单由 site-enhance 升级。

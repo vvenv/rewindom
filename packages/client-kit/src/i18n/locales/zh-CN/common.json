@@ -36,6 +36,7 @@
   "optional": "可选",
   "tenant": "租户",
   "loadFailed": "加载失败",
+  "fieldInfo": "说明：{{text}}",
   "nav": {
     "systemManagement": "系统管理",
     "systemMonitoring": "系统监控",

@@ -151,34 +151,56 @@ export function layoutSettings(defaults?: {
       placeholder: "pricing",
       info: "editor.info.anchor",
     },
-    ...styleSettings(),
+    ...styleSettings(undefined, { withInnerBg: true }),
   ];
 }
 
 /**
  * 通用外观设置（背景 / 前景 / 边框 / 圆角），对齐 Shopify color scheme 的可调部分。
  *
- * 编辑器「外观」页签：空 `bg_color` = 无自定义底色（旧 `background` token 仍可兼容渲染）。
- * 块级（卡片等）也可单独挂这份声明，不必带整套留白。
+ * 编辑器「外观」页签：空颜色 = 不覆盖。页面 section 另开「外 / 内」两层背景
+ * （色块 vs 正文区）；块级 / chrome 只有一层 `bg_color`。
  */
-export function styleSettings(defaults?: {
-  bg_color?: string;
-  fg_color?: string;
-  border_color?: string;
-  border_width?: number;
-  radius?: number;
-}): SettingDef[] {
+export function styleSettings(
+  defaults?: {
+    bg_color?: string;
+    inner_bg_color?: string;
+    fg_color?: string;
+    border_color?: string;
+    border_width?: number;
+    radius?: number;
+  },
+  options?: { withInnerBg?: boolean },
+): SettingDef[] {
+  const withInnerBg = options?.withInnerBg === true;
   return [
     { type: "header", content: "editor.group.appearance", group: "appearance" },
     {
       type: "color",
       id: "bg_color",
-      label: "editor.setting.bg_color",
+      label: withInnerBg
+        ? "editor.setting.outer_bg_color"
+        : "editor.setting.bg_color",
       default: defaults?.bg_color ?? "",
       allow_empty: true,
       allow_alpha: true,
-      info: "editor.info.bg_color",
+      info: withInnerBg
+        ? "editor.info.outer_bg_color"
+        : "editor.info.bg_color",
     },
+    ...(withInnerBg
+      ? ([
+          {
+            type: "color",
+            id: "inner_bg_color",
+            label: "editor.setting.inner_bg_color",
+            default: defaults?.inner_bg_color ?? "",
+            allow_empty: true,
+            allow_alpha: true,
+            info: "editor.info.inner_bg_color",
+          },
+        ] as SettingDef[])
+      : []),
     {
       type: "color",
       id: "fg_color",
