@@ -91,6 +91,7 @@ describe("isMarketingPublicPath", () => {
   it("excludes the app area and auth routes", () => {
     expect(isMarketingPublicPath("/app/site")).toBe(false);
     expect(isMarketingPublicPath("/login")).toBe(false);
+    expect(isMarketingPublicPath("/auth/oauth/callback")).toBe(false);
     expect(isMarketingPublicPath("/member/login")).toBe(false);
   });
 });

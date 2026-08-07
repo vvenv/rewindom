@@ -351,6 +351,7 @@ export const RESERVED_PAGE_SLUGS = new Set([
   "app",
   "login",
   "register",
+  "auth",
   "member",
   "platform",
   "api",

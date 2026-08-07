@@ -8,6 +8,7 @@ const SPA_ROUTE_PREFIXES = [
   "app",
   "login",
   "register",
+  "auth",
   "member",
   "platform",
   "api",

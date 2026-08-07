@@ -29,6 +29,8 @@ export const SITE_APP_PREFIXES = [
   // 工作台登录/注册（GuestOnlyRoute）
   "login",
   "register",
+  // 工作台 OAuth 前端落地页（/auth/oauth/callback）；漏掉会被 Marketing SSR 当成 CMS 404
+  "auth",
   // 站点会员的登录/注册/我的账户；不加进来 SSR 会把 /member/login 当 CMS 页面找
   "member",
   // 平台控制台

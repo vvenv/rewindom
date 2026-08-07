@@ -90,13 +90,17 @@ export function resolveOAuthCallbackUrl(
 /**
  * 会员 OAuth：平台应用须登记固定主域回调；租户覆盖可自带 callbackUrl。
  * 无显式 callback 时强制走 FRONTEND_URL（不回退发起 Host），以便 custom_domain 用 code 跳回。
+ *
+ * 平台 env 的 `*_CALLBACK_URL` 是工作台 `/api/auth/oauth/...` 地址，**不能**复用到会员流，
+ * 否则 Google 会把带 `member_oauth_*_state` 的回调打到 auth handler → state typ 校验失败。
  */
 export function resolveMemberOAuthCallbackUrl(
   provider: OAuthProviderId,
   credentials: Pick<ResolvedOAuthCredentials, "callbackUrl">,
 ): string {
   const explicit = credentials.callbackUrl?.trim();
-  if (explicit) {
+  // 仅接受会员面回调；工作台 auth 回调（含平台 env 默认值）一律忽略。
+  if (explicit && /\/api\/member\/oauth\//u.test(explicit)) {
     return explicit;
   }
   const frontend = config.frontend.url.trim();
