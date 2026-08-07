@@ -348,6 +348,35 @@ CREATE TABLE "public"."SiteMember" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."SiteMemberOAuthAccount" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "member_id" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "provider_user_id" TEXT NOT NULL,
+    "provider_email" TEXT,
+    "provider_username" TEXT,
+    "avatar_url" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SiteMemberOAuthAccount_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."SiteMemberOAuthExchangeCode" (
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "member_id" TEXT NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "consumed_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SiteMemberOAuthExchangeCode_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."SiteMemberRefreshToken" (
     "id" TEXT NOT NULL,
     "member_id" TEXT NOT NULL,
@@ -645,6 +674,27 @@ CREATE UNIQUE INDEX "SiteMember_tenant_id_email_key" ON "public"."SiteMember"("t
 CREATE INDEX "SiteMember_tenant_id_idx" ON "public"."SiteMember"("tenant_id" ASC);
 
 -- CreateIndex
+CREATE INDEX "SiteMemberOAuthAccount_member_id_idx" ON "public"."SiteMemberOAuthAccount"("member_id" ASC);
+
+-- CreateIndex
+CREATE INDEX "SiteMemberOAuthAccount_tenant_id_idx" ON "public"."SiteMemberOAuthAccount"("tenant_id" ASC);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SiteMemberOAuthAccount_tenant_id_provider_provider_user_id_key" ON "public"."SiteMemberOAuthAccount"("tenant_id" ASC, "provider" ASC, "provider_user_id" ASC);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SiteMemberOAuthExchangeCode_code_key" ON "public"."SiteMemberOAuthExchangeCode"("code" ASC);
+
+-- CreateIndex
+CREATE INDEX "SiteMemberOAuthExchangeCode_expires_at_idx" ON "public"."SiteMemberOAuthExchangeCode"("expires_at" ASC);
+
+-- CreateIndex
+CREATE INDEX "SiteMemberOAuthExchangeCode_member_id_idx" ON "public"."SiteMemberOAuthExchangeCode"("member_id" ASC);
+
+-- CreateIndex
+CREATE INDEX "SiteMemberOAuthExchangeCode_tenant_id_idx" ON "public"."SiteMemberOAuthExchangeCode"("tenant_id" ASC);
+
+-- CreateIndex
 CREATE INDEX "SiteMemberRefreshToken_member_id_idx" ON "public"."SiteMemberRefreshToken"("member_id" ASC);
 
 -- CreateIndex
@@ -732,6 +782,12 @@ ALTER TABLE "public"."Role" ADD CONSTRAINT "Role_tenant_id_fkey" FOREIGN KEY ("t
 ALTER TABLE "public"."RolePermission" ADD CONSTRAINT "RolePermission_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "public"."Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."SiteMemberOAuthAccount" ADD CONSTRAINT "SiteMemberOAuthAccount_member_id_fkey" FOREIGN KEY ("member_id") REFERENCES "public"."SiteMember"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."SiteMemberOAuthExchangeCode" ADD CONSTRAINT "SiteMemberOAuthExchangeCode_member_id_fkey" FOREIGN KEY ("member_id") REFERENCES "public"."SiteMember"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."SiteMemberRefreshToken" ADD CONSTRAINT "SiteMemberRefreshToken_member_id_fkey" FOREIGN KEY ("member_id") REFERENCES "public"."SiteMember"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -748,4 +804,5 @@ ALTER TABLE "public"."UserRole" ADD CONSTRAINT "UserRole_role_id_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "public"."UserRole" ADD CONSTRAINT "UserRole_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
 
