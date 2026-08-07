@@ -131,7 +131,9 @@ dl {
 }
 .sec-band {
   padding-top: calc(var(--sec-pt, 32px) * 0.7);
+  padding-right: calc(var(--sec-pr, 0px) * 0.7);
   padding-bottom: calc(var(--sec-pb, 32px) * 0.7);
+  padding-left: calc(var(--sec-pl, 0px) * 0.7);
 }
 @media (min-width: 640px) {
   .sec {
@@ -139,7 +141,9 @@ dl {
   }
   .sec-band {
     padding-top: var(--sec-pt, 32px);
+    padding-right: var(--sec-pr, 0px);
     padding-bottom: var(--sec-pb, 32px);
+    padding-left: var(--sec-pl, 0px);
   }
 }
 /* 限宽在 section 内部：色块与正文各自一档，组合出「通栏色带 + 居中正文」等排版 */
@@ -167,6 +171,11 @@ dl {
   > .sec-content {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
+}
+/* 租户显式设了左右内边距：用 band 的 --sec-pl/pr，取消自动 content 垫 */
+.sec-band.sec-pad-x > .sec-content {
+  padding-left: 0;
+  padding-right: 0;
 }
 .sec-c-default {
   width: 100%;

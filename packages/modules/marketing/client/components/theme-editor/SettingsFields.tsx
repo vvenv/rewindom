@@ -40,6 +40,8 @@ import { SiteImageField } from "../media/SiteImageField.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 import { SiteColorField } from "../SiteColorField.js";
 
+import { SpacingBoxField } from "./SpacingBoxField.js";
+
 import type { AppLocale } from "@be-water/shared";
 
 interface SettingsFieldsProps {
@@ -96,6 +98,18 @@ export function SettingsFields({
           );
         }
 
+        if (def.type === "spacing_box") {
+          return (
+            <SpacingBoxField
+              key={def.id}
+              def={def}
+              values={values}
+              disabled={disabled || Boolean(unavailable?.[def.id])}
+              onChange={onChange}
+            />
+          );
+        }
+
         /*
          * 文案类字段编辑的是「当前语言的槽位」，其余字段（颜色、留白、链接、图标）
          * 全站共用一份值——所以只有前者需要拆出 locale 维度。
@@ -119,8 +133,8 @@ export function SettingsFields({
             }
             disabled={disabled || Boolean(unavailable?.[def.id])}
             unavailableHint={unavailable?.[def.id]}
-            onChange={(next) =>
-              onChange({
+            onChange={(next) => {
+              const merged: SettingValues = {
                 ...values,
                 [def.id]: localized
                   ? writeLocalizedSetting(
@@ -130,8 +144,17 @@ export function SettingsFields({
                       String(next),
                     )
                   : next,
-              })
-            }
+              };
+              // 自定义背景色覆盖旧 token 预设；写入时清掉，避免两套并存
+              if (
+                def.id === "bg_color" &&
+                typeof next === "string" &&
+                next.trim()
+              ) {
+                delete merged.background;
+              }
+              onChange(merged);
+            }}
           />
         );
       })}

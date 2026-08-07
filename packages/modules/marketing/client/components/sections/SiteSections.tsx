@@ -99,6 +99,7 @@ export function SiteSections({
       surface.borderRadius === null &&
       (useTokenBg || hasCustomSurface(surface)) &&
       width !== "full";
+    const explicitPadX = layout.paddingLeft > 0 || layout.paddingRight > 0;
 
     const bandClass = [
       "sec-band",
@@ -109,6 +110,7 @@ export function SiteSections({
       layout.dividerBottom ? "sec-divider-bottom" : "",
       glow ? "has-glow" : "",
       hasCustomSurface(surface) ? "has-surface" : "",
+      explicitPadX ? "sec-pad-x" : "",
     ]
       .filter(Boolean)
       .join(" ");
@@ -157,7 +159,9 @@ export function SiteSections({
           style={
             {
               "--sec-pt": `${layout.paddingTop}px`,
+              "--sec-pr": `${layout.paddingRight}px`,
               "--sec-pb": `${layout.paddingBottom}px`,
+              "--sec-pl": `${layout.paddingLeft}px`,
               ...(surfaceStyleCss(surface) as CSSProperties),
             } as CSSProperties
           }

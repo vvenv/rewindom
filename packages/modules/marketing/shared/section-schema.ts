@@ -76,10 +76,19 @@ export function createSection(type: SectionType): SiteSection {
   const def = getSectionDefinition(type);
   // 造一个不认识的段没有意义：调用方要么传了内置 type，要么传了已注册的贡献段
   if (!def) throw new Error("site.sections_invalid");
+  const settings = parseSettingValues(def.settings, {});
+  // band 默认淡底：表单不再有 background 预设，内部仍写 token 供渲染
+  if (
+    type === "band" &&
+    !settingText(settings, "bg_color") &&
+    !settingText(settings, "background")
+  ) {
+    settings.background = "muted";
+  }
   return {
     id: createSectionId(),
     type,
-    settings: parseSettingValues(def.settings, {}),
+    settings,
     blocks: (def.preset_blocks ?? []).map((preset) =>
       createBlock(type, preset.type, preset.settings),
     ),
@@ -656,12 +665,18 @@ export interface SectionLayout {
   width: "page" | "full";
   /** 正文铺到哪：`default` 跟随页宽，`narrow` 收窄一档，`full` 不限宽。 */
   contentWidth: "default" | "narrow" | "full";
-  /** 色块**内**的上下留白（底色包住的那部分）。 */
+  /** 色块**内**的四边留白（底色包住的那部分）。 */
   paddingTop: number;
+  paddingRight: number;
   paddingBottom: number;
+  paddingLeft: number;
   /** 与上/下一段之间想要的间距；`null` 表示继承主题的「区块间距」。 */
   spacingAbove: number | null;
   spacingBelow: number | null;
+  /**
+   * 旧底色 token（muted/accent/outline）。新编辑只写 `bg_color`；
+   * 存量与 band 默认仍可能带此字段。
+   */
   background: "none" | "muted" | "accent" | "outline";
   dividerTop: boolean;
   dividerBottom: boolean;
@@ -706,7 +721,9 @@ export function resolveSectionLayout(settings: SettingValues): SectionLayout {
       ? (contentWidth as SectionLayout["contentWidth"])
       : "default",
     paddingTop: settingNumber(settings, "padding_top", 32),
+    paddingRight: settingNumber(settings, "padding_right", 0),
     paddingBottom: settingNumber(settings, "padding_bottom", 32),
+    paddingLeft: settingNumber(settings, "padding_left", 0),
     spacingAbove: resolveSpacing(settings, "spacing_above"),
     spacingBelow: resolveSpacing(settings, "spacing_below"),
     background: BACKGROUNDS.has(background)

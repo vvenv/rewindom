@@ -34,30 +34,6 @@ const CONTENT_WIDTH_OPTIONS = [
 ] as const;
 
 /**
- * 段间距：默认继承主题的「区块间距」，需要时逐段覆盖。
- *
- * 和段内留白（padding）用同一种控件、同一个单位——租户面对的始终是
- * 「一根滑块 + 一个 px 数」，不用先分清哪个概念用档位、哪个用数值。
- * 最左一格是「继承」（哨兵负值，见 `allow_inherit`）。
- */
-const SPACING_RANGE = {
-  type: "range",
-  min: -4,
-  max: 96,
-  step: 4,
-  default: -4,
-  unit: "editor.unit.px",
-  allow_inherit: true,
-} as const;
-
-const BACKGROUND_OPTIONS = [
-  { value: "none", label: "editor.option.background.none" },
-  { value: "muted", label: "editor.option.background.muted" },
-  { value: "accent", label: "editor.option.background.accent" },
-  { value: "outline", label: "editor.option.background.outline" },
-] as const;
-
-/**
  * 容器段的列宽：一个比例预设，而不是每列自己填宽度。
  *
  * 比例总和恒定（12 栏），租户点不出「加起来不满一行」或「三列挤成一条」的坏版式；
@@ -113,16 +89,17 @@ const DIVIDER_OPTIONS = [
 /**
  * 所有页面 section 共有的布局设置（对齐 Shopify 的 section padding）。
  *
- * 放在各自设置的**末尾**：编辑器里内容在前、版式 / 外观在后。版式按影响面从大到小：
- * 宽度 → 段内留白 → 段间距 → 分隔线 → 锚点；底色预设进外观页签（与 `bg_color` 成对）。
+ * 放在各自设置的**末尾**：编辑器里内容在前、版式 / 外观在后。版式：
+ * 宽度 → 盒模型留白（内四边 + 外上下）→ 分隔线 → 锚点。
  *
- * 段内留白用 px range 而不是档位，理由同 Shopify——租户要的是能微调，不是选 S/M/L；
+ * 段内留白用 px 而不是档位，理由同 Shopify——租户要的是能微调，不是选 S/M/L；
  * 这里存的是**桌面值**，窄屏由两处渲染统一按比例缩，避免手机上留白过大。
  */
 export function layoutSettings(defaults?: {
   padding_top?: number;
+  padding_right?: number;
   padding_bottom?: number;
-  background?: string;
+  padding_left?: number;
   content_width?: string;
 }): SettingDef[] {
   return [
@@ -143,36 +120,20 @@ export function layoutSettings(defaults?: {
       info: "editor.info.content_width",
     },
     {
-      type: "range",
-      id: "padding_top",
-      label: "editor.setting.padding_top",
-      min: 0,
-      max: 120,
-      step: 4,
-      default: defaults?.padding_top ?? 0,
-      unit: "editor.unit.px",
-      info: "editor.info.padding",
-    },
-    {
-      type: "range",
-      id: "padding_bottom",
-      label: "editor.setting.padding_bottom",
-      min: 0,
-      max: 120,
-      step: 4,
-      default: defaults?.padding_bottom ?? 0,
-      unit: "editor.unit.px",
-    },
-    {
-      ...SPACING_RANGE,
-      id: "spacing_above",
-      label: "editor.setting.spacing_above",
-      info: "editor.info.spacing",
-    },
-    {
-      ...SPACING_RANGE,
-      id: "spacing_below",
-      label: "editor.setting.spacing_below",
+      type: "spacing_box",
+      id: "spacing_box",
+      label: "editor.setting.spacing_box",
+      info: "editor.info.spacing_box",
+      padding: {
+        top: defaults?.padding_top ?? 0,
+        right: defaults?.padding_right ?? 0,
+        bottom: defaults?.padding_bottom ?? 0,
+        left: defaults?.padding_left ?? 0,
+      },
+      spacing: {
+        above: -4,
+        below: -4,
+      },
     },
     {
       type: "select",
@@ -190,41 +151,25 @@ export function layoutSettings(defaults?: {
       placeholder: "pricing",
       info: "editor.info.anchor",
     },
-    // 底色预设只挂在页面 section：block / chrome 没有 sec-bg-* 渲染路径
-    ...styleSettings(defaults, { withTokenBackground: true }),
+    ...styleSettings(),
   ];
 }
 
 /**
  * 通用外观设置（背景 / 前景 / 边框 / 圆角），对齐 Shopify color scheme 的可调部分。
  *
- * 编辑器「外观」页签：空颜色 = 不覆盖（继续走 token `background` 或主题默认）。
- * 块级（卡片等）也可单独挂这份声明，不必带整套留白；token 底色预设仅 section 开启。
+ * 编辑器「外观」页签：空 `bg_color` = 无自定义底色（旧 `background` token 仍可兼容渲染）。
+ * 块级（卡片等）也可单独挂这份声明，不必带整套留白。
  */
-export function styleSettings(
-  defaults?: {
-    background?: string;
-    bg_color?: string;
-    fg_color?: string;
-    border_color?: string;
-    border_width?: number;
-    radius?: number;
-  },
-  options?: { withTokenBackground?: boolean },
-): SettingDef[] {
+export function styleSettings(defaults?: {
+  bg_color?: string;
+  fg_color?: string;
+  border_color?: string;
+  border_width?: number;
+  radius?: number;
+}): SettingDef[] {
   return [
     { type: "header", content: "editor.group.appearance", group: "appearance" },
-    ...(options?.withTokenBackground
-      ? ([
-          {
-            type: "select",
-            id: "background",
-            label: "editor.setting.background",
-            default: defaults?.background ?? "none",
-            options: BACKGROUND_OPTIONS,
-          },
-        ] as SettingDef[])
-      : []),
     {
       type: "color",
       id: "bg_color",

@@ -130,6 +130,7 @@ export function renderSectionHtml(
     surface.borderRadius === null &&
     (useTokenBg || hasCustomSurface(surface)) &&
     width !== "full";
+  const explicitPadX = layout.paddingLeft > 0 || layout.paddingRight > 0;
   const classes = [
     "sec-band",
     `sec-w-${width}`,
@@ -139,13 +140,16 @@ export function renderSectionHtml(
     layout.dividerBottom ? "sec-divider-bottom" : "",
     glow ? "has-glow" : "",
     hasCustomSurface(surface) ? "has-surface" : "",
+    explicitPadX ? "sec-pad-x" : "",
   ]
     .filter(Boolean)
     .join(" ");
   // 存的是桌面值，窄屏由 `.sec` / `.sec-band` 的媒体查询按比例缩
   const style = [
     `--sec-pt:${layout.paddingTop}px`,
+    `--sec-pr:${layout.paddingRight}px`,
     `--sec-pb:${layout.paddingBottom}px`,
+    `--sec-pl:${layout.paddingLeft}px`,
     surfaceStyleAttr(surface),
   ]
     .filter(Boolean)

@@ -234,6 +234,23 @@ export type InputSettingDef =
        * 品牌主色等保持不透明（默认）。
        */
       allow_alpha?: boolean;
+    })
+  | (SettingBase & {
+      /**
+       * 盒模型留白：展开为 `padding_*`（内四边）+ `spacing_above/below`（外上下）。
+       * `id` 只作编辑器 key，不落 `settings[id]`。
+       */
+      type: "spacing_box";
+      padding?: {
+        top?: number;
+        right?: number;
+        bottom?: number;
+        left?: number;
+      };
+      spacing?: {
+        above?: number;
+        below?: number;
+      };
     });
 
 /** 纯排版项：只在编辑器里分组，不落数据。 */
@@ -317,6 +334,20 @@ const LEGACY_TONE_TO_BACKGROUND: Record<string, string> = {
   accent: "accent",
 };
 
+/** 段内留白 range（与编辑器盒模型、旧独立滑块同一口径）。 */
+export const SECTION_PADDING_RANGE = {
+  min: 0,
+  max: 120,
+  step: 4,
+} as const;
+
+/** 段外间距 range；负哨兵 = 继承主题「区块间距」。 */
+export const SECTION_SPACING_RANGE = {
+  min: -4,
+  max: 96,
+  step: 4,
+} as const;
+
 export function defaultSettingValue(def: InputSettingDef): SettingValue {
   switch (def.type) {
     case "select":
@@ -327,9 +358,31 @@ export function defaultSettingValue(def: InputSettingDef): SettingValue {
       return def.default;
     case "icon":
       return def.default ?? SECTION_ICON_CHOICES[0];
+    case "spacing_box":
+      // 复合控件不落单一值；调用方应走 parseSettingValues
+      return "";
     default:
       return def.default ?? "";
   }
+}
+
+function coerceRangeNumber(
+  raw: unknown,
+  min: number,
+  max: number,
+  step: number,
+  fallback: number,
+): number {
+  const num =
+    typeof raw === "number"
+      ? raw
+      : typeof raw === "string"
+        ? Number(raw)
+        : Number.NaN;
+  if (!Number.isFinite(num)) return fallback;
+  const clamped = Math.min(max, Math.max(min, num));
+  const snapped = min + Math.round((clamped - min) / step) * step;
+  return Number(snapped.toFixed(4));
 }
 
 /** 类型不符一律回落默认值——渲染端与编辑器都不该因脏数据崩掉。 */
@@ -361,17 +414,7 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
         : def.default;
     }
     case "range": {
-      const num =
-        typeof raw === "number"
-          ? raw
-          : typeof raw === "string"
-            ? Number(raw)
-            : Number.NaN;
-      if (!Number.isFinite(num)) return def.default;
-      const clamped = Math.min(def.max, Math.max(def.min, num));
-      const snapped =
-        def.min + Math.round((clamped - def.min) / def.step) * def.step;
-      return Number(snapped.toFixed(4));
+      return coerceRangeNumber(raw, def.min, def.max, def.step, def.default);
     }
     case "checkbox":
       if (typeof raw === "boolean") return raw;
@@ -383,6 +426,89 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
       if (!value) return def.allow_empty ? "" : def.default;
       return isSiteColor(value, def.allow_alpha === true) ? value : def.default;
     }
+    case "spacing_box":
+      return "";
+  }
+}
+
+/** 把 `spacing_box` 展开成六个独立键（写入 / 渲染共用）。 */
+function applySpacingBox(
+  def: Extract<InputSettingDef, { type: "spacing_box" }>,
+  raw: Record<string, unknown>,
+  out: SettingValues,
+): void {
+  const { min: pMin, max: pMax, step: pStep } = SECTION_PADDING_RANGE;
+  const { min: sMin, max: sMax, step: sStep } = SECTION_SPACING_RANGE;
+  out.padding_top = coerceRangeNumber(
+    raw.padding_top,
+    pMin,
+    pMax,
+    pStep,
+    def.padding?.top ?? 0,
+  );
+  out.padding_right = coerceRangeNumber(
+    raw.padding_right,
+    pMin,
+    pMax,
+    pStep,
+    def.padding?.right ?? 0,
+  );
+  out.padding_bottom = coerceRangeNumber(
+    raw.padding_bottom,
+    pMin,
+    pMax,
+    pStep,
+    def.padding?.bottom ?? 0,
+  );
+  out.padding_left = coerceRangeNumber(
+    raw.padding_left,
+    pMin,
+    pMax,
+    pStep,
+    def.padding?.left ?? 0,
+  );
+  out.spacing_above = coerceRangeNumber(
+    raw.spacing_above,
+    sMin,
+    sMax,
+    sStep,
+    def.spacing?.above ?? -4,
+  );
+  out.spacing_below = coerceRangeNumber(
+    raw.spacing_below,
+    sMin,
+    sMax,
+    sStep,
+    def.spacing?.below ?? -4,
+  );
+}
+
+/**
+ * 旧 `background` 预设：有 `bg_color` 时丢弃；`outline` 迁到边框；`muted`/`accent` 透传。
+ * 表单已不再声明该字段，不透传则一保存就丢淡底。
+ */
+function applyLegacyBackground(
+  raw: Record<string, unknown>,
+  out: SettingValues,
+): void {
+  const bgColor =
+    typeof out.bg_color === "string" ? out.bg_color.trim() : "";
+  if (bgColor) return;
+
+  const background =
+    typeof raw.background === "string" ? raw.background : "";
+  if (background === "outline") {
+    const borderWidth =
+      typeof out.border_width === "number" ? out.border_width : 0;
+    const borderColor =
+      typeof out.border_color === "string" ? out.border_color.trim() : "";
+    if (borderWidth === 0 && !borderColor) {
+      out.border_width = 1;
+    }
+    return;
+  }
+  if (background === "muted" || background === "accent") {
+    out.background = background;
   }
 }
 
@@ -469,6 +595,10 @@ export function parseSettingValues(
   const out: SettingValues = {};
   for (const def of defs) {
     if (!isInputSetting(def)) continue;
+    if (def.type === "spacing_box") {
+      applySpacingBox(def, raw, out);
+      continue;
+    }
     const next = coerceSetting(def, raw[def.id]);
     // 必填只要求「有一种语言填了」——逐语言强制会让加一门新语言变成批量报错
     if (def.type === "text" && def.required && isBlankSetting(next)) {
@@ -476,6 +606,7 @@ export function parseSettingValues(
     }
     out[def.id] = next;
   }
+  applyLegacyBackground(raw, out);
   return out;
 }
 

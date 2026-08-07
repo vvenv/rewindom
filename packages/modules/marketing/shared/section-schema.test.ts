@@ -35,10 +35,11 @@ describe("parseSettingValues", () => {
       width: "page",
       content_width: "default",
       padding_top: 0,
+      padding_right: 0,
       padding_bottom: 0,
+      padding_left: 0,
       spacing_above: -4,
       spacing_below: -4,
-      background: "none",
       divider: "none",
       anchor: "",
       // 通用外观（styleSettings）
@@ -261,11 +262,7 @@ describe("section layout settings", () => {
         expect.arrayContaining([
           "width",
           "content_width",
-          "padding_top",
-          "padding_bottom",
-          "spacing_above",
-          "spacing_below",
-          "background",
+          "spacing_box",
           "divider",
           "anchor",
           "bg_color",
@@ -275,6 +272,7 @@ describe("section layout settings", () => {
           "radius",
         ]),
       );
+      expect(ids, type).not.toContain("background");
       // 同一个 id 只能声明一次，否则编辑器会渲染出两个控件
       expect(new Set(ids).size, type).toBe(ids.length);
     }
@@ -285,7 +283,9 @@ describe("section layout settings", () => {
       width: "page",
       contentWidth: "default",
       paddingTop: 0,
+      paddingRight: 0,
       paddingBottom: 0,
+      paddingLeft: 0,
       spacingAbove: null,
       spacingBelow: null,
       background: "none",
@@ -410,15 +410,58 @@ describe("section layout settings", () => {
       parseSettingValues(defs, { divider_top: true, divider_bottom: true })
         .divider,
     ).toBe("both");
+    // muted/accent 透传；plain/none 不写 background
     expect(parseSettingValues(defs, { tone: "accent" }).background).toBe(
       "accent",
     );
-    expect(parseSettingValues(defs, { tone: "plain" }).background).toBe("none");
-    // 新值优先，不被旧字段覆盖
+    expect(parseSettingValues(defs, { tone: "plain" }).background).toBeUndefined();
+    // outline → 边框，不再保留 background
+    const outlined = parseSettingValues(defs, {
+      tone: "accent",
+      background: "outline",
+    });
+    expect(outlined.background).toBeUndefined();
+    expect(outlined.border_width).toBe(1);
+    // 有自定义色时不透传旧 token
     expect(
-      parseSettingValues(defs, { tone: "accent", background: "outline" })
+      parseSettingValues(defs, { background: "muted", bg_color: "#112233" })
         .background,
-    ).toBe("outline");
+    ).toBeUndefined();
+  });
+
+  it("seeds new band sections with a muted token background", () => {
+    expect(createSection("band").settings.background).toBe("muted");
+  });
+
+  it("expands spacing_box into four paddings and vertical outer spacing", () => {
+    const defs = BUILTIN_SECTION_DEFINITIONS.cards.settings;
+    expect(
+      parseSettingValues(defs, {
+        padding_top: 16,
+        padding_right: 24,
+        padding_left: 8,
+      }),
+    ).toMatchObject({
+      padding_top: 16,
+      padding_right: 24,
+      padding_bottom: 0,
+      padding_left: 8,
+      spacing_above: -4,
+      spacing_below: -4,
+    });
+    expect(
+      resolveSectionLayout({
+        padding_top: 16,
+        padding_right: 24,
+        padding_bottom: 8,
+        padding_left: 4,
+      }),
+    ).toMatchObject({
+      paddingTop: 16,
+      paddingRight: 24,
+      paddingBottom: 8,
+      paddingLeft: 4,
+    });
   });
 
   it("migrates header login fields to the secondary button", () => {
@@ -455,23 +498,18 @@ describe("splitSettingsByScope", () => {
       const ids = (defs: typeof content) =>
         defs.map((def) => ("id" in def ? def.id : "")).filter(Boolean);
       expect(ids(layout), type).toEqual(
-        expect.arrayContaining(["padding_top", "padding_bottom", "width"]),
+        expect.arrayContaining(["spacing_box", "width"]),
       );
       expect(ids(appearance), type).toEqual(
-        expect.arrayContaining([
-          "background",
-          "bg_color",
-          "fg_color",
-          "radius",
-        ]),
+        expect.arrayContaining(["bg_color", "fg_color", "radius"]),
       );
       // 三边加起来仍是完整的一份，不丢字段
       expect(content.length + layout.length + appearance.length, type).toBe(
         BUILTIN_SECTION_DEFINITIONS[type].settings.length,
       );
-      expect(ids(content), type).not.toContain("padding_top");
+      expect(ids(content), type).not.toContain("spacing_box");
       expect(ids(layout), type).not.toContain("bg_color");
-      expect(ids(layout), type).not.toContain("background");
+      expect(ids(appearance), type).not.toContain("background");
     }
   });
 

@@ -31,9 +31,8 @@ export const bandSection: SectionDefinition = {
     { type: "header", content: "editor.group.buttons" },
     ...linkSettings("primary"),
     ...linkSettings("secondary"),
-    // 底色走通用 background，band 不再自带一套同义的 tone
+    // 底色走通用 background token（createSection 默认写入 muted），band 不再自带 tone
     ...layoutSettings({
-      background: "muted",
       padding_top: 48,
       padding_bottom: 48,
     }),
