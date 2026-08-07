@@ -6,7 +6,6 @@ import {
   splitSettingsByScope,
   createBlock,
   createSection,
-  homeBlocksToSections,
   parseAreaSections,
   parseSections,
   parseSettingValues,
@@ -82,7 +81,7 @@ describe("createSection", () => {
 });
 
 describe("parseSections", () => {
-  it("parses layout primitives and lifts cards items into blocks", () => {
+  it("parses layout primitives and card blocks", () => {
     const sections = parseSections([
       {
         id: "a",
@@ -92,10 +91,8 @@ describe("parseSections", () => {
       {
         id: "b",
         type: "cards",
-        settings: {
-          columns: 3,
-          items: [{ title: "A", body: "d" }],
-        },
+        settings: { columns: 3 },
+        blocks: [{ type: "card", settings: { title: "A", body: "d" } }],
       },
     ]);
     expect(sections).toHaveLength(2);
@@ -105,36 +102,6 @@ describe("parseSections", () => {
     expect(sections[1]?.blocks).toHaveLength(1);
     expect(settingText(sections[1]!.blocks[0]!.settings, "title")).toBe("A");
     expect(settingText(sections[1]!.blocks[0]!.settings, "body")).toBe("d");
-  });
-
-  it("normalizes legacy types", () => {
-    const sections = parseSections([
-      {
-        id: "f",
-        type: "features",
-        settings: { items: [{ title: "A", description: "d" }] },
-      },
-      {
-        id: "c",
-        type: "cta",
-        settings: { headline: "Go", cta_label: "Click", cta_href: "/x" },
-      },
-      {
-        id: "m",
-        type: "markdown",
-        settings: { body_md: "# Hi" },
-      },
-    ]);
-    expect(sections.map((s) => s.type)).toEqual([
-      "feature-grid",
-      "band",
-      "prose",
-    ]);
-    expect(settingText(sections[0]!.blocks[0]!.settings, "title")).toBe("A");
-    expect(settingText(sections[0]!.blocks[0]!.settings, "body")).toBe("d");
-    expect(settingText(sections[1]!.settings, "headline")).toBe("Go");
-    expect(settingText(sections[1]!.settings, "primary_label")).toBe("Click");
-    expect(settingText(sections[1]!.settings, "primary_href")).toBe("/x");
   });
 
   it("keeps declared block types and drops the rest", () => {
@@ -186,16 +153,6 @@ describe("safeSections", () => {
       { id: "ok2", type: "prose", settings: { body_md: "x" } },
     ]);
     expect(sections.map((section) => section.id)).toEqual(["ok", "ok2"]);
-  });
-});
-
-describe("homeBlocksToSections", () => {
-  it("maps hero and features to cards", () => {
-    const sections = homeBlocksToSections({
-      hero: { headline: "H", cta_label: "Go", cta_href: "/login" },
-      features: [{ title: "F1", description: "d1" }],
-    });
-    expect(sections.map((s) => s.type)).toEqual(["hero", "feature-grid"]);
   });
 });
 
@@ -321,19 +278,6 @@ describe("section layout settings", () => {
     ).toMatchObject({ width: "full", contentWidth: "full" });
   });
 
-  it("migrates the old single width setting onto the two axes", () => {
-    const defs = BUILTIN_SECTION_DEFINITIONS.cards.settings;
-    expect(parseSettingValues(defs, { width: "wide" })).toMatchObject({
-      width: "page",
-      content_width: "default",
-    });
-    // narrow 说的一直是正文，色块本身仍是限宽的
-    expect(parseSettingValues(defs, { width: "narrow" })).toMatchObject({
-      width: "page",
-      content_width: "narrow",
-    });
-  });
-
   it("reads section spacing as an override of the theme value", () => {
     // 哨兵负值 = 继承
     expect(resolveSectionLayout({}).spacingBelow).toBeNull();
@@ -416,28 +360,17 @@ describe("section layout settings", () => {
     });
   });
 
-  it("migrates the old divider checkboxes and band tone", () => {
+  it("preserves background tokens when no custom bg_color", () => {
     const defs = BUILTIN_SECTION_DEFINITIONS.band.settings;
-    expect(parseSettingValues(defs, { divider_bottom: true }).divider).toBe(
-      "bottom",
+    expect(parseSettingValues(defs, { background: "muted" }).background).toBe(
+      "muted",
     );
-    expect(
-      parseSettingValues(defs, { divider_top: true, divider_bottom: true })
-        .divider,
-    ).toBe("both");
-    // muted/accent 透传；plain/none 不写 background
-    expect(parseSettingValues(defs, { tone: "accent" }).background).toBe(
+    expect(parseSettingValues(defs, { background: "accent" }).background).toBe(
       "accent",
     );
-    expect(parseSettingValues(defs, { tone: "plain" }).background).toBeUndefined();
-    // outline → 边框，不再保留 background
-    const outlined = parseSettingValues(defs, {
-      tone: "accent",
-      background: "outline",
-    });
+    const outlined = parseSettingValues(defs, { background: "outline" });
     expect(outlined.background).toBeUndefined();
     expect(outlined.border_width).toBe(1);
-    // 有自定义色时不透传旧 token
     expect(
       parseSettingValues(defs, { background: "muted", bg_color: "#112233" })
         .background,
@@ -479,29 +412,6 @@ describe("section layout settings", () => {
     });
   });
 
-  it("migrates header login fields to the secondary button", () => {
-    const defs = BUILTIN_SECTION_DEFINITIONS.header.settings;
-    const on = parseSettingValues(defs, {
-      show_login: true,
-      login_label: "登录",
-    });
-    expect(on.secondary_label).toBe("登录");
-    expect(on.secondary_href).toBe("/member/login");
-
-    const off = parseSettingValues(defs, { show_login: false, login_label: "登录" });
-    expect(off.secondary_label).toBe("");
-    expect(off.secondary_href).toBe("");
-
-    // 新值优先
-    const kept = parseSettingValues(defs, {
-      show_login: true,
-      login_label: "登录",
-      secondary_label: "Account",
-      secondary_href: "/app",
-    });
-    expect(kept.secondary_label).toBe("Account");
-    expect(kept.secondary_href).toBe("/app");
-  });
 });
 
 describe("splitSettingsByScope", () => {

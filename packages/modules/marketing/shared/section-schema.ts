@@ -42,14 +42,6 @@ import type { AppLocale } from "@be-water/shared";
 export * from "./section-settings.js";
 export * from "./sections/index.js";
 
-/** 旧业务语义 type → 布局原语（读/写兼容）。 */
-const LEGACY_SECTION_TYPE_MAP: Record<string, PageSectionType> = {
-  features: "feature-grid",
-  cta: "band",
-  richtext: "prose",
-  markdown: "prose",
-};
-
 export function createSectionId(): string {
   return crypto.randomUUID();
 }
@@ -99,11 +91,6 @@ export function createSection(type: SectionType): SiteSection {
 /* 解析                                                                        */
 /* -------------------------------------------------------------------------- */
 
-/** 旧 `settings.items[]` → blocks（cards / features 的历史结构）。 */
-function legacyItems(raw: Record<string, unknown>): unknown[] | null {
-  return Array.isArray(raw.items) ? raw.items : null;
-}
-
 /**
  * 解析选项：
  * - `depth`：当前嵌套层数，`0` 是页面直挂的段。容器段只允许出现在 `0` 层。
@@ -140,18 +127,12 @@ function parseChildSections(
 function parseBlocks(
   def: SectionDefinition,
   rawBlocks: unknown,
-  legacy: unknown[] | null,
   options: ParseOptions,
 ): SiteBlock[] {
   if (!def.blocks || def.blocks.length === 0) return [];
   const defaultBlockType = def.blocks[0]?.type ?? "";
 
-  const source: unknown[] = Array.isArray(rawBlocks)
-    ? rawBlocks
-    : (legacy ?? []).map((item) => ({
-        type: defaultBlockType,
-        settings: item,
-      }));
+  const source: unknown[] = Array.isArray(rawBlocks) ? rawBlocks : [];
 
   const blocks: SiteBlock[] = [];
   for (const item of source) {
@@ -179,8 +160,7 @@ function parseBlocks(
 
 function resolvePageSectionType(rawType: unknown): PageSectionType | null {
   if (typeof rawType !== "string") return null;
-  if (isPageSectionType(rawType)) return rawType;
-  return LEGACY_SECTION_TYPE_MAP[rawType] ?? null;
+  return isPageSectionType(rawType) ? rawType : null;
 }
 
 function rawSettingsOf(row: Record<string, unknown>): Record<string, unknown> {
@@ -205,7 +185,7 @@ function buildSection(
       typeof row.id === "string" && row.id.trim() ? row.id.trim() : fallbackId,
     type,
     settings: parseSettingValues(def.settings, settings),
-    blocks: parseBlocks(def, row.blocks, legacyItems(settings), options),
+    blocks: parseBlocks(def, row.blocks, options),
   };
 }
 
@@ -618,47 +598,6 @@ export function safeAreaSections(
     return [createSection(area)];
   }
 }
-
-/* -------------------------------------------------------------------------- */
-/* 迁移与回落                                                                  */
-/* -------------------------------------------------------------------------- */
-
-/** 旧 home_blocks → sections（迁移 / 兼容）。 */
-export function homeBlocksToSections(home_blocks: unknown): SiteSection[] {
-  if (
-    !home_blocks ||
-    typeof home_blocks !== "object" ||
-    Array.isArray(home_blocks)
-  ) {
-    return [];
-  }
-  const raw = home_blocks as Record<string, unknown>;
-  const sections: SiteSection[] = [];
-
-  if (raw.hero && typeof raw.hero === "object" && !Array.isArray(raw.hero)) {
-    try {
-      sections.push(parsePageSection({ type: "hero", settings: raw.hero }, 0));
-    } catch {
-      /* skip invalid hero */
-    }
-  }
-
-  if (Array.isArray(raw.features) && raw.features.length > 0) {
-    try {
-      sections.push(
-        parsePageSection(
-          { type: "features", settings: { items: raw.features } },
-          1,
-        ),
-      );
-    } catch {
-      /* skip invalid features */
-    }
-  }
-
-  return sections;
-}
-
 
 export interface SectionLayout {
   /** 色块（背景 / 分隔线）铺到哪：`page` 居中限宽，`full` 通栏。 */

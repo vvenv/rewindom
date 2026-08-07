@@ -8,17 +8,6 @@ import type { ThemeSettings } from "./theme-sections.js";
 /** 站点级可本地化文案：单语言为纯字符串，多语言为 `__i18n` 表。 */
 export type SiteLocalizedText = string | LocalizedText;
 
-/**
- * 导航 / 页脚链接项。
- *
- * @deprecated 页头页脚已改为 schema 驱动的 `header` / `footer` section；
- * 此类型只用于解析存量 `nav_json` / `footer_json` 的数组形态。
- */
-export interface SiteLinkItem {
-  label: string;
-  href: string;
-}
-
 export type MarketingPageKind = "home" | "page";
 export type MarketingPageStatus = "draft" | "published";
 /** 页面可见性：`public` 所有人；`members` 需站点会员登录。 */
@@ -361,10 +350,7 @@ export const RESERVED_PAGE_SLUGS = new Set([
   "robots.txt",
 ]);
 
-/**
- * 把存量 `kind: "doc"` 收成普通 page：`index` → `docs`，其它 → `docs/{slug}`。
- * 读路径兼容未跑 migration 的行；写路径也会先走这里再校验。
- */
+/** 规范化页面 kind / slug（home 固定 slug=`home`）。 */
 export function canonicalizePageIdentity(
   kind: string | undefined,
   slug: string,
@@ -375,11 +361,6 @@ export function canonicalizePageIdentity(
     .replace(/^\/+|\/+$/gu, "");
   if (kind === "home" || trimmed === "home") {
     return { kind: "home", slug: "home" };
-  }
-  if (kind === "doc") {
-    const next =
-      trimmed === "" || trimmed === "index" ? "docs" : `docs/${trimmed}`;
-    return { kind: "page", slug: next };
   }
   return { kind: "page", slug: trimmed };
 }

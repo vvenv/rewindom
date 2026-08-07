@@ -401,15 +401,10 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 
 用例见 `shared/unsupported-section.test.ts`。
 
-读库兼容旧数据：type `features`→`feature-grid`、`cta`→`band`、`richtext`/`markdown`→`prose`；
-字段 `cta_label`/`cta_href`→`primary_*`、`description`→`body`、band 的 `tone`→`background`、
-`divider_top`/`divider_bottom`→`divider`、header 的 `show_login`/`login_label`→`secondary_*`
-（href 曾写死 `/login`）；`settings.items[]` 自动提升为
-blocks；`nav_json`/`footer_json` 的 `{label,href}[]` 自动迁成页头 / 页脚 blocks。
 未知 block type 直接丢弃；`safeSections` 只跳过损坏的单个 section，不再整页清空。
 
 路径约定：`home` → `/`；`page` → `/{slug}`（slug 可多段，如 `docs`、`docs/quickstart`）。
-文档站用普通 page + `page-menu` section 拼出来，不再单独有 `doc` kind。
+文档站用普通 page + `page-menu` section 拼出来。
 `pricing` / `docs` 不在保留 slug 里——绑定域名上归租户（平台页只在平台域名下有意义）。
 
 **动态页面菜单**：在 Theme Editor 插入 `page-menu` section——父页选 `children`，子页选

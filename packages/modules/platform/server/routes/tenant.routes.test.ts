@@ -356,11 +356,11 @@ describe("platform-tenant routes", () => {
     expect(response.json().data.openai_api.configured).toBe(true);
   });
 
-  it("GET /tenants/:id/features 返回功能开关", async () => {
+  it("GET /tenants/:id/entitlements 返回能力开关", async () => {
     const app = await buildApp();
     const response = await app.inject({
       method: "GET",
-      url: "/api/platform/tenants/t-1/features",
+      url: "/api/platform/tenants/t-1/entitlements",
       headers: { authorization: `Bearer ${platformToken(app)}` },
     });
 
@@ -369,21 +369,10 @@ describe("platform-tenant routes", () => {
     expect(response.json().data.modules).toBeDefined();
   });
 
-  it("PUT /tenants/:id/features 更新功能开关", async () => {
-    const { saveTenantFeatureFlags: saveFlags } =
-      await import("../services/tenant-feature.service.js");
-    vi.mocked(saveFlags).mockResolvedValueOnce({
-      advanced_analysis: true,
-      vector_search: true,
-      bulk_import: false,
-      api_access: false,
-      custom_reports: false,
-      advanced_retrieval: false,
-      chat: true,
-    });
-    const { getTenantEntitlements } =
+  it("PUT /tenants/:id/entitlements 更新能力开关", async () => {
+    const { saveTenantEntitlements } =
       await import("../services/tenant-entitlement.service.js");
-    vi.mocked(getTenantEntitlements).mockResolvedValueOnce({
+    vi.mocked(saveTenantEntitlements).mockResolvedValueOnce({
       modules: { chat: true },
       features: {
         advanced_analysis: true,
@@ -399,7 +388,7 @@ describe("platform-tenant routes", () => {
     const app = await buildApp();
     const response = await app.inject({
       method: "PUT",
-      url: "/api/platform/tenants/t-1/features",
+      url: "/api/platform/tenants/t-1/entitlements",
       headers: { authorization: `Bearer ${platformToken(app)}` },
       payload: { features: { advanced_analysis: true } },
     });

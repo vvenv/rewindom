@@ -53,54 +53,33 @@ export class AppError extends Error {
 }
 
 export class NotFoundError extends AppError {
-  /**
-   * @param messageOrCode 稳定 code（`notes.not_found`）或遗留中文 / 资源名
-   */
-  constructor(
-    messageOrCode = "common.not_found",
-    params?: Record<string, unknown>,
-  ) {
-    if (isServerMessageCode(messageOrCode)) {
-      super({ code: messageOrCode, status: 404, params });
-      return;
-    }
-    const message = messageOrCode.endsWith("不存在")
-      ? messageOrCode
-      : `${messageOrCode}不存在`;
-    super(message, 404, "NOT_FOUND");
+  constructor(code = "common.not_found", params?: Record<string, unknown>) {
+    super({ code, status: 404, params });
   }
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(messageOrCode = "common.unauthorized") {
-    if (isServerMessageCode(messageOrCode)) {
-      super({ code: messageOrCode, status: 401 });
-      return;
-    }
-    super(messageOrCode, 401, "UNAUTHORIZED");
+  constructor(code = "common.unauthorized") {
+    super({ code, status: 401 });
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(messageOrCode = "common.forbidden") {
-    if (isServerMessageCode(messageOrCode)) {
-      super({ code: messageOrCode, status: 403 });
-      return;
-    }
-    super(messageOrCode, 403, "FORBIDDEN");
+  constructor(code = "common.forbidden") {
+    super({ code, status: 403 });
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(messageOrCode = "common.conflict") {
-    if (isServerMessageCode(messageOrCode)) {
-      super({ code: messageOrCode, status: 409 });
-      return;
-    }
-    super(messageOrCode, 409, "CONFLICT");
+  constructor(code = "common.conflict") {
+    super({ code, status: 409 });
   }
 }
 
+/**
+ * 校验失败。优先传稳定 code；解析器等仍可传自由文本，此时 code 固定为
+ * `common.validation_error`，message 保留原文。
+ */
 export class ValidationError extends AppError {
   constructor(
     messageOrCode = "common.validation_error",
@@ -110,7 +89,12 @@ export class ValidationError extends AppError {
       super({ code: messageOrCode, status: 400, params });
       return;
     }
-    super(messageOrCode, 400, "VALIDATION_ERROR");
+    super({
+      code: "common.validation_error",
+      status: 400,
+      params,
+      message: messageOrCode,
+    });
   }
 }
 

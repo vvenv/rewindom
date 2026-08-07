@@ -309,31 +309,6 @@ export const SECTION_ICON_CHOICES = [
 
 export type SectionIconName = (typeof SECTION_ICON_CHOICES)[number];
 
-/** 旧字段名 → 新 setting id。 */
-const LEGACY_SETTING_ALIASES: Record<string, string> = {
-  cta_label: "primary_label",
-  cta_href: "primary_href",
-  description: "body",
-};
-
-/**
- * 旧的单档 `width` 拆成了「色块宽度 + 正文宽度」两个维度。
- * `narrow` 说的其实一直是正文，色块本身仍是限宽的。
- */
-const LEGACY_WIDTH: Record<string, { width: string; content_width?: string }> =
-  {
-    wide: { width: "page" },
-    narrow: { width: "page", content_width: "narrow" },
-  };
-
-/** band 旧的 `tone` 与通用 `background` 是同一件事，已合并到后者。 */
-const LEGACY_TONE_TO_BACKGROUND: Record<string, string> = {
-  plain: "none",
-  outline: "outline",
-  muted: "muted",
-  accent: "accent",
-};
-
 /** 段内留白 range（与编辑器盒模型、旧独立滑块同一口径）。 */
 export const SECTION_PADDING_RANGE = {
   min: 0,
@@ -496,10 +471,10 @@ function applySpacingBox(
 }
 
 /**
- * 旧 `background` 预设：有 `bg_color` 时丢弃；`outline` 迁到边框；`muted`/`accent` 透传。
- * 表单已不再声明该字段，不透传则一保存就丢淡底。
+ * `background` 预设 token：有 `bg_color` 时丢弃；`outline` 迁到边框；
+ * `muted`/`accent` 透传（表单不声明该字段，不透传则保存会丢淡底）。
  */
-function applyLegacyBackground(
+function applyBackgroundToken(
   raw: Record<string, unknown>,
   out: SettingValues,
 ): void {
@@ -524,71 +499,6 @@ function applyLegacyBackground(
   }
 }
 
-function withLegacyAliases(
-  raw: Record<string, unknown>,
-): Record<string, unknown> {
-  let patched: Record<string, unknown> | null = null;
-  const patch = (id: string, value: unknown): void => {
-    patched ??= { ...raw };
-    patched[id] = value;
-  };
-
-  for (const [from, to] of Object.entries(LEGACY_SETTING_ALIASES)) {
-    if (raw[from] !== undefined && raw[to] === undefined) {
-      patch(to, raw[from]);
-    }
-  }
-
-  if (typeof raw.width === "string" && raw.width in LEGACY_WIDTH) {
-    const migrated = LEGACY_WIDTH[raw.width]!;
-    patch("width", migrated.width);
-    if (migrated.content_width && raw.content_width === undefined) {
-      patch("content_width", migrated.content_width);
-    }
-  }
-
-  if (raw.background === undefined && typeof raw.tone === "string") {
-    const background = LEGACY_TONE_TO_BACKGROUND[raw.tone];
-    if (background) patch("background", background);
-  }
-
-  // 旧的两个 checkbox → 单个 divider 选择项
-  if (raw.divider === undefined) {
-    const top = raw.divider_top === true;
-    const bottom = raw.divider_bottom === true;
-    if (top || bottom) {
-      patch("divider", top ? (bottom ? "both" : "top") : "bottom");
-    }
-  }
-
-  // header 旧登录入口 → secondary 按钮（href 曾写死 /login）
-  if (
-    (raw.login_label !== undefined || raw.show_login !== undefined) &&
-    raw.secondary_label === undefined &&
-    raw.secondary_href === undefined
-  ) {
-    if (raw.show_login === false) {
-      // 显式关掉：写入空串，避免落到 schema 的 Login /login 默认值
-      patch("secondary_label", "");
-      patch("secondary_href", "");
-    } else {
-      // 空 login_label 不写入，让 schema 默认 "Login" 生效（旧渲染端也是如此回落）
-      const label = raw.login_label;
-      if (typeof label === "string" && label.trim() !== "") {
-        patch("secondary_label", label);
-      } else if (isLocalizedText(label)) {
-        const hasText = Object.values(label.__i18n).some(
-          (text) => text.trim() !== "",
-        );
-        if (hasText) patch("secondary_label", label);
-      }
-      patch("secondary_href", "/member/login");
-    }
-  }
-
-  return patched ?? raw;
-}
-
 function isBlankSetting(value: SettingValue): boolean {
   if (isLocalizedText(value)) {
     return Object.values(value.__i18n).every((text) => text.trim() === "");
@@ -602,7 +512,7 @@ export function parseSettingValues(
 ): SettingValues {
   const raw =
     value && typeof value === "object" && !Array.isArray(value)
-      ? withLegacyAliases(value as Record<string, unknown>)
+      ? (value as Record<string, unknown>)
       : {};
   const out: SettingValues = {};
   for (const def of defs) {
@@ -618,7 +528,7 @@ export function parseSettingValues(
     }
     out[def.id] = next;
   }
-  applyLegacyBackground(raw, out);
+  applyBackgroundToken(raw, out);
   return out;
 }
 

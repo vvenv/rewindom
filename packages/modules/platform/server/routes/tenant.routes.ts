@@ -24,7 +24,6 @@ import {
   type PatchTenantBody,
   type ResetTenantAdminPasswordBody,
   type UpdateTenantAppearanceBody,
-  type UpdateTenantFeatureFlagsBody,
   type UpdateTenantEntitlementsBody,
   type UpdateTenantPlanBody,
 } from "../../shared/index.js";
@@ -38,7 +37,6 @@ import {
   getTenantEntitlements,
   saveTenantEntitlements,
 } from "../services/tenant-entitlement.service.js";
-import { saveTenantFeatureFlags } from "../services/tenant-feature.service.js";
 import {
   archiveTenant,
   createTenant,
@@ -389,75 +387,6 @@ export async function registerTenantRoutes(
       );
     }
   });
-
-  app.get<{ Params: TenantIdParams }>(
-    "/tenants/:id/features",
-    async (request, reply) => {
-      try {
-        const tenant = await getTenantById(request.params.id);
-        if (!tenant) {
-          return sendCodedError(reply, 404, "tenant.not_found");
-        }
-        const entitlements = await getTenantEntitlements(tenant.id);
-        return reply.send(success(entitlements));
-      } catch (err) {
-        return handleRouteError(
-          reply,
-          err,
-          "[platformRoutes] 获取租户功能开关失败",
-          "GET_TENANT_FEATURES_FAILED",
-        );
-      }
-    },
-  );
-
-  app.put<{ Params: TenantIdParams; Body: UpdateTenantFeatureFlagsBody }>(
-    "/tenants/:id/features",
-    async (request, reply) => {
-      try {
-        const tenant = await getTenantById(request.params.id);
-        if (!tenant) {
-          return sendCodedError(reply, 404, "tenant.not_found");
-        }
-
-        const saved = await saveTenantFeatureFlags(
-          tenant.id,
-          request.body.features ?? {},
-        );
-        const { username } = request.authUser!;
-
-        try {
-          await emitAuditLogFromRequestSafe(app.events, app.log, request, {
-            username,
-            action: AuditAction.TENANT_FEATURES_UPDATE,
-            resource: "tenant_features",
-            detail_key: "platform.audit.tenant_features_updated",
-            detail_params: {
-              slug: tenant.slug,
-              features_json: JSON.stringify(request.body.features ?? {}),
-            },
-            ipAddress: request.ip,
-            userAgent: request.headers["user-agent"],
-          });
-        } catch (auditErr) {
-          request.log.error(
-            { error: auditErr },
-            "记录租户功能开关审计日志失败",
-          );
-        }
-
-        const modules = (await getTenantEntitlements(tenant.id)).modules;
-        return reply.send(success({ modules, features: saved }));
-      } catch (err) {
-        return handleRouteError(
-          reply,
-          err,
-          "[platformRoutes] 更新租户功能开关失败",
-          "UPDATE_TENANT_FEATURES_FAILED",
-        );
-      }
-    },
-  );
 
   app.get<{ Params: TenantIdParams }>(
     "/tenants/:id/entitlements",

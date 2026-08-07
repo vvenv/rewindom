@@ -33,26 +33,6 @@ export function buildDefaultDateTimeRangePresets(
   }));
 }
 
-const DEFAULT_PRESET_LABELS_ZH: Record<
-  (typeof DEFAULT_DATETIME_RANGE_PRESET_IDS)[number],
-  string
-> = {
-  today: "今日",
-  yesterday: "昨日",
-  last_7_days: "近一周",
-  last_30_days: "近一月",
-};
-
-/** @deprecated 使用 `buildDefaultDateTimeRangePresets`；保留作非 React 场景的 zh-CN 兜底 */
-export const DEFAULT_DATETIME_RANGE_PRESETS: CalendarRangePresetOption[] =
-  DEFAULT_DATETIME_RANGE_PRESET_IDS.map((preset) => ({
-    preset,
-    label: DEFAULT_PRESET_LABELS_ZH[preset],
-  }));
-
-/** @deprecated 与 DEFAULT_DATETIME_RANGE_PRESETS 相同 */
-export const REPORT_DATE_RANGE_PRESETS = DEFAULT_DATETIME_RANGE_PRESETS;
-
 export function naiveDatetimeToDate(value: string): Date {
   return new Date(value);
 }

@@ -4,7 +4,6 @@ export {
   usePermissionCatalog,
   type PermissionCatalogResponse,
 } from "./hooks/usePermissionCatalog.js";
-export { useAllPermissions } from "./hooks/useAllPermissions.js";
 export { useRoles, ROLES_KEY } from "./hooks/useRoles.js";
 export {
   useCreateRole,

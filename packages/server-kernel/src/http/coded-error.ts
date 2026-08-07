@@ -41,8 +41,8 @@ export function sendCodedError(
 }
 
 /**
- * `messageOrCode` 为稳定 code 时按 catalog 翻译；否则当作遗留原文（迁移期）。
- * 迁移完成后应始终传 code。
+ * `messageOrCode` 为稳定 code 时按 catalog 翻译；否则按自由文本回写
+ *（供 ValidationError 解析器原文等少数出口）。
  */
 export function resolveMessageOrCode(
   reply: FastifyReply,
@@ -53,10 +53,7 @@ export function resolveMessageOrCode(
   if (isServerMessageCode(messageOrCode)) {
     return buildCodedErrorBody(reply, messageOrCode, params);
   }
-  return errorResponse(
-    translateForRequest(reply.request, messageOrCode, errorCode, params),
-    errorCode,
-  );
+  return errorResponse(messageOrCode, errorCode);
 }
 
 /** catch 里优先回写 AppError.code，否则用 fallback code。 */

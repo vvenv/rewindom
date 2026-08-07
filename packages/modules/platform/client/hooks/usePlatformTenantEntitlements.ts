@@ -30,17 +30,6 @@ export function usePlatformTenantEntitlements(tenantId: string | null) {
   });
 }
 
-/** @deprecated Use usePlatformTenantEntitlements */
-export function usePlatformTenantFeatures(tenantId: string | null) {
-  const query = usePlatformTenantEntitlements(tenantId);
-  return {
-    ...query,
-    data: query.data
-      ? { features: query.data.entitlements.features }
-      : undefined,
-  };
-}
-
 export function useUpdatePlatformTenantEntitlements(tenantId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -73,14 +62,4 @@ export function useUpdatePlatformTenantEntitlements(tenantId: string | null) {
       });
     },
   });
-}
-
-/** @deprecated Use useUpdatePlatformTenantEntitlements */
-export function useUpdatePlatformTenantFeatures(tenantId: string | null) {
-  const mutation = useUpdatePlatformTenantEntitlements(tenantId);
-  return {
-    ...mutation,
-    mutateAsync: async (body: { features: UpdateTenantEntitlementsBody["features"] }) =>
-      mutation.mutateAsync({ features: body.features }),
-  };
 }

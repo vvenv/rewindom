@@ -1,7 +1,6 @@
 
 import { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
 
 export async function getTenantJsonSetting<T>(
   tenantId: string,
@@ -26,23 +25,6 @@ export async function getTenantJsonSetting<T>(
       return normalize(defaultValue);
     }
     throw err;
-  }
-
-  if (tenantId === DEFAULT_TENANT_ID) {
-    try {
-      const legacy = await prisma.appSetting.findUnique({ where: { key } });
-      if (legacy?.value != null) {
-        return normalize(legacy.value as Partial<T>);
-      }
-    } catch (err) {
-      if (
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === "P2021"
-      ) {
-        return normalize(defaultValue);
-      }
-      throw err;
-    }
   }
 
   return normalize(defaultValue);
@@ -70,10 +52,6 @@ export async function saveTenantJsonSetting<T>(
       value: json,
     },
   });
-
-  if (tenantId === DEFAULT_TENANT_ID) {
-    await client.appSetting.deleteMany({ where: { key } });
-  }
 
   return value;
 }

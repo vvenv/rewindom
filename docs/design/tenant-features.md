@@ -186,8 +186,8 @@ pm2 reload / 发版
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/api/platform/tenants/:id/features` | `{ features }` |
-| PUT | `/api/platform/tenants/:id/features` | 部分更新；审计 `TENANT_FEATURES_UPDATE` |
+| GET | `/api/platform/tenants/:id/entitlements` | `{ modules, features }` |
+| PUT | `/api/platform/tenants/:id/entitlements` | 部分更新；审计 `TENANT_ENTITLEMENTS_UPDATE` |
 | GET | `/api/platform/tenants/:id/limits` | `{ limits }` |
 | PUT | `/api/platform/tenants/:id/limits` | 部分更新；审计 `TENANT_LIMITS_UPDATE` |
 

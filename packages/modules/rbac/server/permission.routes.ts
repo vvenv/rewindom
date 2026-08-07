@@ -326,44 +326,6 @@ export async function permissionRoutes(app: FastifyInstance): Promise<void> {
       }
     },
   );
-
-  // Legacy alias: return effective permissions for a user
-  app.get(
-    "/users/:id/permissions",
-    { preHandler: [app.requirePermission("roles.assign")] },
-    async (request, reply) => {
-      const { id } = request.params as { id: string };
-      const tenantId = request.tenantContext!.tenant_id;
-
-      const user = await prisma.user.findFirst({
-        where: withTenantScope(tenantId, { id }),
-        select: { id: true, username: true, is_system_admin: true },
-      });
-
-      if (!user) {
-        return sendCodedError(reply, 404, "user.not_found");
-      }
-
-      const permissions = await loadActorPermissions(
-        app,
-        "tenant_user",
-        id,
-        user.is_system_admin,
-        catalog,
-      );
-
-      return reply.send({
-        data: {
-          user: {
-            id: user.id,
-            username: user.username,
-            is_system_admin: user.is_system_admin,
-          },
-          permissions,
-        },
-      });
-    },
-  );
 }
 
 export { getUserRoleIds };

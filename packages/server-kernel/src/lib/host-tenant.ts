@@ -98,14 +98,6 @@ export function getDefaultTenantHostnames(): Set<string> {
   return hosts;
 }
 
-/**
- * 不可作为租户 `custom_domain` 的保留 Host（平台控制台 + 产品主域）。
- * @deprecated 名称保留给旧调用方；语义为「保留主机名」。
- */
-export function getPlatformHostnames(): Set<string> {
-  return getReservedHostnames();
-}
-
 /** 不可绑定为租户自定义域的主机名。 */
 export function getReservedHostnames(): Set<string> {
   return new Set([

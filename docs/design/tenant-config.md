@@ -8,7 +8,7 @@ be-water 当前为**单实例部署**：业务配置分散在 `.env`（进程环
 
 - **三层配置**：Platform（平台）→ Tenant（租户）→ 可选子级
 - **DB 存租户配置**：敏感字段加密；非敏感字段 JSON 明文
-- **运行时解析**：优先级 DB > 旧 AppSetting（迁移窗口）> Platform env > 代码默认值
+- **运行时解析**：优先级 TenantSetting（DB）> Platform env > 代码默认值
 - **单租户零破坏**：引入默认租户 `default`，现有用户仍可用原用户名登录（省略 `@default`）
 - **登录标识**：`username@tenant_slug`；默认租户 `default` 在登录时可省略后缀
 - **租户无感知**：租户侧 UI 不暴露「租户」概念；多租户能力对使用者透明
@@ -267,7 +267,7 @@ model TenantSetting {
 | `search_settings`     | 迁入 `TenantSetting`，key 不变 |
 | 新增 `openai_api_key` | 仅 `TenantSetting`             |
 
-**迁移窗口**：resolver 对 `default` 租户保留读旧 `AppSetting` 的 fallback，写入只走 `TenantSetting`。
+租户业务配置只读/写 `TenantSetting`。`AppSetting` 仅保留平台级键（如 `platform_settings`、`plan_limit_templates`）。
 
 ### 4.4 User 表（Phase 1）
 
@@ -505,13 +505,7 @@ async function resolveTenantConfig<T>(
   const row = await getTenantSetting(tenantId, def.key);
   if (row) return def.validate(decryptIfNeeded(row, def));
 
-  // 2. 旧 AppSetting（仅 default 租户，迁移窗口）
-  if (tenantId === DEFAULT_TENANT_ID) {
-    const legacy = await getLegacyAppSetting(def.key);
-    if (legacy) return def.validate(legacy);
-  }
-
-  // 3. 代码默认值
+  // 2. 代码默认值（再上层由 Platform env 注入）
   return def.validate(undefined);
 }
 ```

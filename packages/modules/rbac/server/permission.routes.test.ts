@@ -370,61 +370,6 @@ describe("Permission Routes", () => {
     });
   });
 
-  describe("GET /api/users/:id/permissions", () => {
-    it("should return user's permissions for system admin", async () => {
-      await grantPermission(app, regularUser.id, "documents.read");
-      await grantPermission(app, regularUser.id, "documents.write");
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/users/${regularUser.id}/permissions`,
-        headers: authHeaders(systemAdmin),
-      });
-
-      expect(response.statusCode).toBe(200);
-      const { data } = JSON.parse(response.payload);
-      expect(data.user.id).toBe(regularUser.id);
-      expect(data.user.username).toBe(regularUser.username);
-      expect(Array.isArray(data.permissions)).toBe(true);
-      expect(data.permissions).toContain("documents.read");
-      expect(data.permissions).toContain("documents.write");
-    });
-
-    it("should return all permissions for system admin user", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/users/${systemAdmin.id}/permissions`,
-        headers: authHeaders(systemAdmin),
-      });
-
-      expect(response.statusCode).toBe(200);
-      const { data } = JSON.parse(response.payload);
-      expect(data.user.is_system_admin).toBe(true);
-      expect(Array.isArray(data.permissions)).toBe(true);
-      expect(data.permissions.length).toBeGreaterThan(0);
-    });
-
-    it("should return 404 for non-existent user", async () => {
-      vi.mocked(prisma.user.findFirst).mockResolvedValueOnce(null);
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/users/nonexistent-id/permissions",
-        headers: authHeaders(systemAdmin),
-      });
-      expect(response.statusCode).toBe(404);
-    });
-
-    it("should return 403 for regular user", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/users/${regularUser.id}/permissions`,
-        headers: authHeaders(regularUser),
-      });
-      expect(response.statusCode).toBe(403);
-    });
-  });
-
   describe("GET /api/users/:id/roles", () => {
     it("should return user roles for system admin", async () => {
       vi.mocked(prisma.user.findFirst).mockResolvedValueOnce({

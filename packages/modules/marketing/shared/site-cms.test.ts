@@ -22,15 +22,7 @@ describe("marketingPagePath", () => {
 });
 
 describe("canonicalizePageIdentity", () => {
-  it("rewrites legacy doc kind into nested page slugs", () => {
-    expect(canonicalizePageIdentity("doc", "index")).toEqual({
-      kind: "page",
-      slug: "docs",
-    });
-    expect(canonicalizePageIdentity("doc", "guide")).toEqual({
-      kind: "page",
-      slug: "docs/guide",
-    });
+  it("normalizes home and page identities", () => {
     expect(canonicalizePageIdentity("page", "about")).toEqual({
       kind: "page",
       slug: "about",
@@ -38,6 +30,10 @@ describe("canonicalizePageIdentity", () => {
     expect(canonicalizePageIdentity("home", "home")).toEqual({
       kind: "home",
       slug: "home",
+    });
+    expect(canonicalizePageIdentity("page", "/Docs/Guide/")).toEqual({
+      kind: "page",
+      slug: "docs/guide",
     });
   });
 });

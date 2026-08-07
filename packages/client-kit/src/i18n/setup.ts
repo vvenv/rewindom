@@ -114,7 +114,4 @@ export async function changeAppLanguage(locale: AppLocale): Promise<void> {
   await setupI18n().changeLanguage(next);
 }
 
-/** @deprecated 使用 `SHELL_I18N_NAMESPACES`；保留别名以免外部瞬时断裂。 */
-export const I18N_NAMESPACES = SHELL_I18N_NAMESPACES;
-
 export { i18n };
