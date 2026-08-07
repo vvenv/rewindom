@@ -87,3 +87,15 @@
 .spec > :first-child {
   border-top: 0;
 }
+
+/* 站名 + logo：页头页脚都在用，所以归共用而不是归 header 自己。 */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+.logo {
+  height: 1.5rem;
+  width: auto;
+}

@@ -82,11 +82,18 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 按 Shopify section stylesheet 模型共置为真 `.css`：`shared/site-css/base.css`（primitive /
 `.sec*` / `.grp*`）、`shared/site-css/member.css`（会员入口 chrome）、
 `shared/sections/_common/styles.css`（跨段 `.card` / `.grid` 等）、以及
-`shared/sections/<type>/styles.css`（该段与其 block 专用）。清单在
-`shared/site-css/sources.json`；`assemble.mjs` 拼成
-`marketing-site-css.generated.ts` 的 `MARKETING_SITE_CSS`（Vite 客户端 / esbuild SSR /
-Vitest 共用，勿在运行时 `fs` 读旁路 css）。改样式只改 `.css`，再跑
-`pnpm --filter @be-water/modules assemble:marketing-css`。主题色由
+`shared/sections/<type>/styles.css`（该段与其 block 专用）。段目录**靠扫描发现**，没有
+需要同步的清单；`assemble.mjs` 压缩后写进 `marketing-site-css.generated.ts`——常驻部分是
+`MARKETING_SITE_CSS_BASE`，各段样式按 type 落在 `MARKETING_SECTION_CSS`（Vite 客户端 /
+esbuild SSR / Vitest 共用，勿在运行时 `fs` 读旁路 css）。改样式只改 `.css`，再跑
+`pnpm --filter @be-water/modules assemble:marketing-css`。
+
+**SSR 只发本页用到的段样式**：`ssr-render` 用 `collectSectionTypes()` 收齐页头 / 页脚 /
+正文（含 `group` 列里的子段）的 type，交给 `loadMarketingSiteCssFor()`。顺序由
+`MARKETING_SECTION_CSS` 的键序定、**不由页面上段的排列定**——让内容编排决定层叠顺序，
+同特异性规则的胜负就会随租户拖拽而变。编辑器预览与 SPA shell 仍用全量
+`loadMarketingSiteCss()`（那两处随时会加新段）。拆表的前提是段样式互不越界，由
+`pnpm check:section-css` 守着（也跟着 `pnpm test` 跑）。主题色由
 `marketing-site-theme` 注入 CSS 变量。工作台 `/app` 仍用 `index.css` + Tailwind。
 
 **站点的明暗是自己一份，与工作台完全隔离。** 工作台走 `next-themes`
@@ -314,13 +321,16 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 | `shared/sections/<type>/styles.css`                    | 该段 / block 专用语义 CSS（可仅注释） |
 | `client/components/sections/views/<type>.tsx`          | SPA React 视图           |
 
-登记分别在 `shared/sections/index.ts`（声明表）、`shared/site-css/sources.json`（stylesheet
-清单，改完跑 `assemble:marketing-css`）、以及 `shared/sections/html.ts` +
-`client/components/sections/section-views.ts`（两张渲染器表）。**两端渲染必须同构**：一段的
+登记在 `shared/sections/index.ts`（声明表）与 `shared/sections/html.ts` +
+`client/components/sections/section-views.ts`（两张渲染器表）；`styles.css` 不用登记，扫目录
+就发现了，放完跑 `assemble:marketing-css`。**两端渲染必须同构**：一段的
 文件按 type 并置，漏改一端在 diff 里看得见。客户端与服务端各有一张渲染器表，是因为两侧本
 就是两个 bundle（React 视图进不了 Fastify），与 `site-account-entry` 的 client / server
-双注入点同一形状。跨段共用 class（`.card`、`.grid`、`.spec` 壳等）进
-`_common/styles.css`，不要塞进某一个段。
+双注入点同一形状。
+
+跨段共用 class（`.card`、`.grid`、`.spec` 壳、`.brand` / `.logo` 等）进
+`_common/styles.css`，**不要塞进某一个段**：SSR 按需发 CSS，用了别段的类就会在「有 A 没 B」
+的页面上裸出来。这条由 `pnpm check:section-css` 强制，越界会指名道姓报出来。
 
 新增 setting 类型再在 `SettingsFields.tsx` 加一个分支。
 `label` / `content` 存的是 i18n key（`marketing` namespace 下相对 key），shared 层不含展示文案。
@@ -355,8 +365,9 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 由 `site-entitlements.ts` 按租户解析）。渲染器是**进程级**注册的、开通与否是**租户级**的，
 所以闸门只能在渲染时按租户拦。忘了传集合按「都没开通」处理——少了而不是多了。
 
-**CSS** 随注册一起交进来：内置段的样式构建期就打进 `MARKETING_SITE_CSS` 了，贡献段进不了
-那次打包，所以 `loadMarketingSiteCss()` 会把它们拼在最后（覆盖内置类时不必打优先级战争）。
+**CSS** 随注册一起交进来：内置段的样式构建期就打进 `MARKETING_SECTION_CSS` 了，贡献段进不了
+那次打包，所以运行时注册进来、一律拼在最后（覆盖内置类时不必打优先级战争）。贡献段同样
+**按需**发：这一页没上它就不发（见 `loadMarketingSiteCssFor`）。
 
 **停用之后不丢内容**：模块被移除或租户退订时，页面上已经摆好的那一段走下面的
 `unsupported` 口径原样兜住，重新启用就自动回来。这是这个契约敢用的前提。

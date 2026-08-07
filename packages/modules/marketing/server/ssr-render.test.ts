@@ -86,9 +86,10 @@ describe("renderMarketingHtml SEO", () => {
       }),
       page: page(),
     });
+    // 主题变量是运行时按租户拼的，仍是原样；语义 CSS 是构建期压过的
     expect(html).toContain("--accent: #facc15");
     expect(html).toContain("--accent-fg: #0a0a0a");
-    expect(html).toContain("color: var(--accent-fg)");
+    expect(html).toContain("color:var(--accent-fg)");
   });
 
   it("inlines shared semantic marketing CSS without Tailwind", () => {
@@ -97,9 +98,59 @@ describe("renderMarketingHtml SEO", () => {
       site: site(),
       page: page(),
     });
-    expect(html).toContain(".btn {");
+    expect(html).toContain(".btn{");
     expect(html).toContain(".sec-band");
     expect(html).not.toContain("@import \"tailwindcss\"");
+  });
+
+  it("只内联本页用到的段样式", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page({ sections: [createSection("hero")] }),
+    });
+    expect(html).toContain(".hero");
+    // 页头页脚在每页上，它们的样式照发
+    expect(html).toContain(".site-header");
+    expect(html).toContain(".site-footer");
+    // 这页没有定价 / 表单段
+    expect(html).not.toContain(".plan{");
+    expect(html).not.toContain(".form-grid");
+  });
+
+  it("下钻分栏段的列——列里的子段样式不能漏", () => {
+    const group = createSection("group");
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page({
+        sections: [
+          {
+            ...group,
+            blocks: [
+              {
+                id: "col-1",
+                type: "column",
+                settings: {},
+                sections: [createSection("pricing")],
+              },
+            ],
+          },
+        ],
+      }),
+    });
+    expect(html).toContain(".plan{");
+  });
+
+  it("会员闸门下仍发正文段的样式——解锁是客户端塞 HTML，那时 CSS 早发完了", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page({ sections: [createSection("pricing")] }),
+      memberGate: true,
+    });
+    expect(html).toContain("data-member-gate");
+    expect(html).toContain(".plan{");
   });
 
   it("leaves the default language unprefixed", () => {

@@ -25,16 +25,6 @@
 .header-layout-centered .header-actions {
   justify-self: end;
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-}
-.logo {
-  height: 1.5rem;
-  width: auto;
-}
 .header-nav {
   display: flex;
   flex-wrap: wrap;

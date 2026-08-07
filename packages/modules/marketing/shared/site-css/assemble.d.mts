@@ -5,10 +5,16 @@
  * 「生成物与源文件一致」。没有这份声明，`allowJs` 关着的 tsc 会把它判成隐式 any。
  */
 
+export function listSectionCssTypes(): string[];
 export function listMarketingSiteCssSources(): string[];
-export function assembleMarketingSiteCss(): string;
+export function assembleMarketingSiteCss(): {
+  base: string;
+  sections: Record<string, string>;
+};
 export function writeMarketingSiteCssGenerated(): {
   outPath: string;
-  bytes: number;
+  baseBytes: number;
+  sectionBytes: number;
+  sections: number;
   files: number;
 };

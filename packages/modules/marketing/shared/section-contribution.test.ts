@@ -24,6 +24,7 @@ import {
 } from "./sections/html.js";
 import {
   loadMarketingSiteCss,
+  loadMarketingSiteCssFor,
   resetSectionCss,
 } from "./load-marketing-site-css.js";
 
@@ -83,6 +84,20 @@ describe("注册", () => {
     expect(css).toContain(".demo{color:red}");
     // 拼在最后，贡献方要覆盖内置类时不必打优先级战争
     expect(css.indexOf(".demo{color:red}")).toBe(css.lastIndexOf(".demo"));
+  });
+
+  it("贡献段的 CSS 同样按需：这一页没上它就不发", () => {
+    contribute();
+    expect(loadMarketingSiteCssFor(new Set([TYPE]))).toContain(
+      ".demo{color:red}",
+    );
+    expect(loadMarketingSiteCssFor(new Set(["hero"]))).not.toContain(".demo");
+  });
+
+  it("贡献段仍垫底，排在内置段之后", () => {
+    contribute();
+    const css = loadMarketingSiteCssFor(new Set(["hero", TYPE]));
+    expect(css.indexOf(".demo{color:red}")).toBeGreaterThan(css.indexOf(".hero"));
   });
 });
 

@@ -1,11 +1,12 @@
 import { getLocaleNativeLabel, normalizeLocale } from "@be-water/shared";
 
 import { escapeHtml } from "../shared/html.js";
-import { loadMarketingSiteCss } from "../shared/load-marketing-site-css.js";
+import { loadMarketingSiteCssFor } from "../shared/load-marketing-site-css.js";
 import {
   marketingSiteColorModeScript,
   marketingSiteThemeCss,
 } from "../shared/marketing-site-theme.js";
+import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import {
   type PublicMarketingPage,
   type PublicMarketingSite,
@@ -27,9 +28,9 @@ import {
 
 import type { SitemapEntry } from "./site.service.js";
 
-/** 主题变量 + 共享语义 CSS（`MARKETING_SITE_CSS`）。 */
-function siteCss(theme_settings: unknown): string {
-  return `${marketingSiteThemeCss(theme_settings, ":root")}\n${loadMarketingSiteCss()}`;
+/** 主题变量 + 本页用到的那几段语义 CSS。 */
+function siteCss(theme_settings: unknown, types: ReadonlySet<string>): string {
+  return `${marketingSiteThemeCss(theme_settings, ":root")}\n${loadMarketingSiteCssFor(types)}`;
 }
 
 /**
@@ -256,6 +257,17 @@ export function renderMarketingHtml(input: {
     ? ` data-member-gate data-path="${escapeHtml(page.path)}" data-locale="${escapeHtml(locale)}"`
     : "";
 
+  /*
+   * 只发本页用得上的段样式。
+   *
+   * 会员闸门下 SSR 正文是占位，但**照样要收 `page.sections`**：解锁后的正文由
+   * site-enhance 拉 `page-html` 写进 `main`（见 client/enhance/gated.ts），那时
+   * 首屏 CSS 早发完了，这里不收就是解锁后一页裸样式。
+   */
+  const usedSectionTypes = collectSectionTypes(site.header);
+  collectSectionTypes(site.footer, usedSectionTypes);
+  collectSectionTypes(page.sections, usedSectionTypes);
+
   return `<!DOCTYPE html>
 <html lang="${escapeHtml(locale)}">
 <head>
@@ -269,7 +281,7 @@ export function renderMarketingHtml(input: {
   ${socialMeta}
   <script type="application/ld+json">${jsonLd}</script>
   <script>${marketingSiteColorModeScript()}</script>
-  <style>${siteCss(site.theme_settings)}</style>
+  <style>${siteCss(site.theme_settings, usedSectionTypes)}</style>
 </head>
 <body>
   <!--
