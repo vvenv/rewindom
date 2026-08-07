@@ -36,6 +36,20 @@ export function parsePageVisibility(value: unknown): MarketingPageVisibility {
 export interface MarketingPageSettings {
   bg_color?: string | null;
   fg_color?: string | null;
+  /**
+   * 社交分享缩略图（og:image / twitter:image）。
+   *
+   * 留空回落站点级默认（`theme_settings.og_image`）。存相对路径也行——渲染时按站点
+   * origin 补成绝对地址，社交平台的抓取器不认相对路径。
+   */
+  og_image?: string | null;
+  /**
+   * 让搜索引擎不要收录本页。
+   *
+   * 只影响**这一页**：落地页 A/B、临时活动页、需要能访问但不该被搜出来的内容。
+   * 打开后同时从 sitemap 里摘掉——留在 sitemap 里又标 noindex 是自相矛盾的信号。
+   */
+  noindex?: boolean;
 }
 
 /** 写路径：非法值直接拒绝（code 由 service 转 ValidationError）。 */
@@ -67,7 +81,34 @@ export function parsePageSettings(value: unknown): MarketingPageSettings {
     }
   }
 
+  if (raw.og_image !== undefined) {
+    out.og_image = parseSiteImageUrl(raw.og_image);
+  }
+
+  if (raw.noindex !== undefined) {
+    if (typeof raw.noindex !== "boolean") {
+      throw new Error("site.page_settings_invalid");
+    }
+    out.noindex = raw.noindex;
+  }
+
   return out;
+}
+
+/**
+ * 图片地址：站内相对路径或 http(s) 绝对地址。
+ *
+ * 只放行这两种是为了挡住 `javascript:` / `data:` 这类会被塞进 `<meta content>` 的东西
+ *（og 标签本身不执行脚本，但同一个值也会进编辑器预览的 `<img src>`）。
+ */
+function parseSiteImageUrl(value: unknown): string | null {
+  if (value === null || value === "") return null;
+  if (typeof value !== "string") throw new Error("site.page_settings_invalid");
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  if (trimmed.startsWith("/")) return trimmed;
+  if (/^https?:\/\//iu.test(trimmed)) return trimmed;
+  throw new Error("site.page_settings_invalid");
 }
 
 /** 读路径：脏数据回落默认，不因为一条坏设置整页打不开。 */
@@ -199,6 +240,13 @@ export interface SaveEditorDraftResponse {
 export interface MarketingSiteCapabilities {
   /** 页头账户入口（登录 / 我的账户）是否可用；未开通会员时为 false。 */
   account_entry: boolean;
+  /**
+   * 本站已开通的 entitlement。
+   *
+   * 编辑器拿它过滤「添加区块」菜单里的贡献段：租户没开通就不该列出来——列了也加不出
+   * 可用的东西（渲染那边同样会拦，见 `site-entitlements.ts`）。
+   */
+  entitlements: string[];
 }
 
 /** 应用站点起步模板的响应。 */
@@ -269,7 +317,7 @@ export interface PublicMarketingPage {
   visibility: MarketingPageVisibility;
   /**
    * 公开端点对 `visibility=members` 页只返回摘要时为 true。
-   * SSR 据此输出登录门控；site-enhance 再带会员 token 拉 `/api/site/content/page-html`。
+   * SSR：访客输出登录门控；有会员 cookie 时解锁正文。
    */
   requires_member?: boolean;
   /** 逻辑路径（不带 locale 前缀）。 */

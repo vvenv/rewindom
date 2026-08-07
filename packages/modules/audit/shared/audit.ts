@@ -112,6 +112,10 @@ export const AuditAction = {
   SITE_PAGE_PUBLISH: "SITE_PAGE_PUBLISH",
   SITE_PAGE_UNPUBLISH: "SITE_PAGE_UNPUBLISH",
   SITE_FORM_SUBMISSION_DELETE: "SITE_FORM_SUBMISSION_DELETE",
+  SITE_REDIRECT_SAVE: "SITE_REDIRECT_SAVE",
+  SITE_REDIRECT_DELETE: "SITE_REDIRECT_DELETE",
+  SITE_ASSET_DELETE: "SITE_ASSET_DELETE",
+  SITE_PAGE_VERSION_RESTORE: "SITE_PAGE_VERSION_RESTORE",
   SITE_MEMBER_REGISTER: "SITE_MEMBER_REGISTER",
   SITE_MEMBER_UPDATE: "SITE_MEMBER_UPDATE",
   SITE_MEMBER_DELETE: "SITE_MEMBER_DELETE",
@@ -231,6 +235,10 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.SITE_PAGE_PUBLISH]: "发布官网页面",
   [AuditAction.SITE_PAGE_UNPUBLISH]: "取消发布官网页面",
   [AuditAction.SITE_FORM_SUBMISSION_DELETE]: "删除官网表单提交",
+  [AuditAction.SITE_REDIRECT_SAVE]: "保存官网重定向",
+  [AuditAction.SITE_REDIRECT_DELETE]: "删除官网重定向",
+  [AuditAction.SITE_ASSET_DELETE]: "删除官网媒体",
+  [AuditAction.SITE_PAGE_VERSION_RESTORE]: "恢复官网页面历史版本",
   [AuditAction.SITE_MEMBER_REGISTER]: "会员注册",
   [AuditAction.SITE_MEMBER_UPDATE]: "更新会员",
   [AuditAction.SITE_MEMBER_DELETE]: "删除会员",
@@ -311,6 +319,10 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.SITE_PAGE_PUBLISH,
       AuditAction.SITE_PAGE_UNPUBLISH,
       AuditAction.SITE_FORM_SUBMISSION_DELETE,
+      AuditAction.SITE_REDIRECT_SAVE,
+      AuditAction.SITE_REDIRECT_DELETE,
+      AuditAction.SITE_ASSET_DELETE,
+      AuditAction.SITE_PAGE_VERSION_RESTORE,
     ],
   },
   {
@@ -348,6 +360,8 @@ export interface AuditLog {
   username: string;
   /** 租户侧接口不下发该字段（同租户下恒等，且没必要外泄）；平台侧必返回。 */
   tenant_slug?: string | null;
+  /** 平台侧列表按 slug 回填的租户名称。 */
+  tenant_name?: string | null;
   action: string;
   resource: string | null;
   /** 遗留纯文本或 zh-CN 检索副本 */
@@ -363,4 +377,5 @@ export interface AuditLog {
 /** Cross-tenant audit row for the platform console. */
 export interface PlatformAuditLog extends AuditLog {
   tenant_slug: string | null;
+  tenant_name: string | null;
 }

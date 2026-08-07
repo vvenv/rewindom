@@ -1,46 +1,10 @@
 /**
- * 公开站账户入口：把 SSR 的未登录 `.member-entry` 升级为已登录菜单。
+ * 公开站账户入口：SSR 已登录则只绑定登出；访客态用 cookie 探测后升级菜单。
  */
-
-const ACCESS_KEY = "be-water_member_access_token";
-const REFRESH_KEY = "be-water_member_refresh_token";
 
 interface MemberProfile {
   display_name: string | null;
   email: string;
-}
-
-function read(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function write(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // ignore
-  }
-}
-
-function remove(key: string): void {
-  try {
-    localStorage.removeItem(key);
-  } catch {
-    // ignore
-  }
-}
-
-function hasTokens(): boolean {
-  return Boolean(read(ACCESS_KEY) && read(REFRESH_KEY));
-}
-
-function clearTokens(): void {
-  remove(ACCESS_KEY);
-  remove(REFRESH_KEY);
 }
 
 function displayName(member: MemberProfile): string {
@@ -125,50 +89,28 @@ function menuHtml(member: MemberProfile): string {
 }
 
 async function refreshAccess(): Promise<boolean> {
-  const refresh = read(REFRESH_KEY);
-  if (!refresh) return false;
   try {
     const response = await fetch("/api/member/refresh", {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ refresh_token: refresh }),
+      body: "{}",
     });
-    if (!response.ok) {
-      clearTokens();
-      return false;
-    }
-    const body = (await response.json()) as {
-      data?: { accessToken?: string; refreshToken?: string };
-    };
-    const access = body.data?.accessToken;
-    const nextRefresh = body.data?.refreshToken;
-    if (!access || !nextRefresh) {
-      clearTokens();
-      return false;
-    }
-    write(ACCESS_KEY, access);
-    write(REFRESH_KEY, nextRefresh);
-    return true;
+    return response.ok;
   } catch {
     return false;
   }
 }
 
 async function fetchMe(): Promise<MemberProfile | null> {
-  const access = read(ACCESS_KEY);
-  if (!access) return null;
-  const request = async (token: string): Promise<Response> =>
-    fetch("/api/member/me", {
-      headers: { authorization: `Bearer ${token}` },
-    });
+  const request = async (): Promise<Response> =>
+    fetch("/api/member/me", { credentials: "include" });
 
-  let response = await request(access);
+  let response = await request();
   if (response.status === 401) {
     const ok = await refreshAccess();
     if (!ok) return null;
-    const next = read(ACCESS_KEY);
-    if (!next) return null;
-    response = await request(next);
+    response = await request();
   }
   if (!response.ok) return null;
   const body = (await response.json()) as { data?: MemberProfile };
@@ -176,19 +118,16 @@ async function fetchMe(): Promise<MemberProfile | null> {
 }
 
 async function logout(): Promise<void> {
-  const refresh = read(REFRESH_KEY);
   try {
-    if (refresh) {
-      await fetch("/api/member/logout", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ refresh_token: refresh }),
-      });
-    }
+    await fetch("/api/member/logout", {
+      method: "POST",
+      credentials: "include",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    });
   } catch {
     // ignore
   }
-  clearTokens();
 }
 
 function replaceEntry(html: string): void {
@@ -209,6 +148,14 @@ function bindMenuDismiss(details: HTMLDetailsElement): void {
   });
 }
 
+function wireMenus(): void {
+  for (const details of document.querySelectorAll<HTMLDetailsElement>(
+    "details.member-menu",
+  )) {
+    bindMenuDismiss(details);
+  }
+}
+
 export function enhanceAccount(): void {
   document.addEventListener("click", (event) => {
     const target = event.target;
@@ -221,23 +168,23 @@ export function enhanceAccount(): void {
     });
   });
 
-  if (!hasTokens()) {
-    // SSR 登录链可能没带 redirect；补上当前路径
-    for (const link of document.querySelectorAll<HTMLAnchorElement>(
-      "a.member-entry",
-    )) {
-      link.href = loginHref();
-    }
+  // SSR 已输出登录菜单：只绑交互
+  if (document.querySelector("details.member-menu")) {
+    wireMenus();
     return;
   }
 
+  // 访客登录链：补 redirect
+  for (const link of document.querySelectorAll<HTMLAnchorElement>(
+    "a.member-entry",
+  )) {
+    link.href = loginHref();
+  }
+
+  // 兜底：cookie 有效但 SSR 仍画了访客（极少见）时升级菜单
   void fetchMe().then((member) => {
     if (!member) return;
     replaceEntry(menuHtml(member));
-    for (const details of document.querySelectorAll<HTMLDetailsElement>(
-      "details.member-menu",
-    )) {
-      bindMenuDismiss(details);
-    }
+    wireMenus();
   });
 }

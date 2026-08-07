@@ -30,6 +30,13 @@ export const THEME_SECTION_SPACING = {
 
 export interface ThemeSettings {
   logo_url?: string | null;
+  /**
+   * 站点级社交分享缩略图（og:image / twitter:image）的默认值。
+   *
+   * 页面可以逐页覆盖（`page.settings.og_image`）。**不**拿 logo 顶替：logo 通常是方形、
+   * 带透明背景，塞进 1.91:1 的分享卡片里会被裁得很难看。
+   */
+  og_image?: string | null;
   primary_color?: string | null;
   /** 整站画布背景（可带 alpha）；空 = 主题默认白底。 */
   bg_color?: string | null;
@@ -75,6 +82,21 @@ export function parseThemeSettings(value: unknown): ThemeSettings {
       out.logo_url = null;
     } else if (typeof raw.logo_url === "string") {
       out.logo_url = raw.logo_url.trim() === "" ? null : raw.logo_url.trim();
+    } else {
+      throw new Error("site.theme_settings_invalid");
+    }
+  }
+
+  if (raw.og_image !== undefined) {
+    if (raw.og_image === null) {
+      out.og_image = null;
+    } else if (typeof raw.og_image === "string") {
+      const trimmed = raw.og_image.trim();
+      // 与页面级同一口径：只放行站内相对路径与 http(s)
+      if (trimmed !== "" && !trimmed.startsWith("/") && !/^https?:\/\//iu.test(trimmed)) {
+        throw new Error("site.theme_settings_invalid");
+      }
+      out.og_image = trimmed === "" ? null : trimmed;
     } else {
       throw new Error("site.theme_settings_invalid");
     }
@@ -149,6 +171,7 @@ export function resolveThemeSettings(theme_settings: unknown): ThemeSettings {
   const fromJson = safeThemeSettings(theme_settings);
   return {
     logo_url: fromJson.logo_url ?? null,
+    og_image: fromJson.og_image ?? null,
     primary_color: fromJson.primary_color ?? null,
     bg_color: fromJson.bg_color ?? null,
     fg_color: fromJson.fg_color ?? null,

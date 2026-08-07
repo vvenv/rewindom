@@ -11,6 +11,7 @@ import {
   parseSettingValues,
   type SiteSection,
 } from "./section-schema.js";
+import { findSiteTheme } from "./site-themes.js";
 
 import type { UpdateMarketingSiteBody } from "./site-cms.js";
 import type { ThemeSettings } from "./theme-sections.js";
@@ -21,6 +22,10 @@ export interface SiteStarter {
   /** i18n key（`marketing` namespace） */
   label: string;
   description: string;
+  /** 用哪个主题包（`SITE_THEMES` 的 key）。 */
+  themeKey: string;
+  /** 建哪几页。空数组不合法——一个建不出任何页面的模板没有意义。 */
+  pages: SiteStarterPageSpec[];
 }
 
 export interface SiteStarterPageSpec {
@@ -37,11 +42,55 @@ export interface SiteStarterPayload {
   }>;
 }
 
+/**
+ * 起步模板 = **主题包 + 页面组合**。
+ *
+ * 一个模板就是「这类站点开局长什么样」：文档站要文档索引与详情页，落地页只要一屏首页。
+ * 都用同一批 `PAGE_PRESETS` 与 `SITE_THEMES` 拼，加一种 vertical 不用写新代码。
+ */
 export const SITE_STARTERS: SiteStarter[] = [
   {
     key: "default",
     label: "starter.default.label",
     description: "starter.default.description",
+    themeKey: "default",
+    pages: [{ presetKey: "home", sort_order: 0 }],
+  },
+  {
+    /** 产品官网：首页 + 定价 + 关于 + 联系，最常见的一套。 */
+    key: "product",
+    label: "starter.product.label",
+    description: "starter.product.description",
+    themeKey: "default",
+    pages: [
+      { presetKey: "home", sort_order: 0 },
+      { presetKey: "pricing", sort_order: 1 },
+      { presetKey: "about", sort_order: 2 },
+      { presetKey: "contact", sort_order: 3 },
+    ],
+  },
+  {
+    /** 文档站：索引页 + 一篇详情当范例，配窄栏主题。 */
+    key: "docs",
+    label: "starter.docs.label",
+    description: "starter.docs.description",
+    themeKey: "docs",
+    pages: [
+      { presetKey: "home", sort_order: 0 },
+      { presetKey: "docs", sort_order: 1 },
+      { presetKey: "docs-detail", sort_order: 2 },
+    ],
+  },
+  {
+    /** 单页落地：只有首页 + 联系，段间距拉开的主题。 */
+    key: "landing",
+    label: "starter.landing.label",
+    description: "starter.landing.description",
+    themeKey: "bold",
+    pages: [
+      { presetKey: "home", sort_order: 0 },
+      { presetKey: "contact", sort_order: 1 },
+    ],
   },
 ];
 
@@ -56,9 +105,15 @@ export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
   { presetKey: "home", sort_order: 0 },
 ];
 
-/** 默认官网风格的页头 / 页脚 + 主题 token。 */
+/**
+ * 起步模板的页头 / 页脚 + 主题 token。
+ *
+ * 页头页脚各模板都一样：区别在页面组合与主题包，不在 chrome 结构——真需要不同页头的
+ * 那天，再给 `SiteStarter` 加一个字段，而不是现在先造一层用不上的抽象。
+ */
 export function buildSiteStarterChrome(
   t: PresetTranslateFn,
+  themeKey = "default",
 ): Pick<UpdateMarketingSiteBody, "header" | "footer" | "theme_settings"> {
   const header = createSection("header");
   const footer = createSection("footer");
@@ -66,9 +121,9 @@ export function buildSiteStarterChrome(
   const siteName = t("starter.default.site_name");
 
   return {
+    // logo 不进主题包（那是品牌资产，不是外观风格），这里显式置空表示「还没传」
     theme_settings: {
-      primary_color: "#0369a1",
-      font_family: "system",
+      ...(findSiteTheme(themeKey) ?? findSiteTheme("default"))!.theme_settings,
       logo_url: null,
     } satisfies ThemeSettings,
     header: [
@@ -114,13 +169,15 @@ export function buildSiteStarter(
   key: string,
   t: PresetTranslateFn,
   _defaultLocale: AppLocale,
-  pageSpecs: SiteStarterPageSpec[] = DEFAULT_SITE_STARTER_PAGES,
+  /** 覆盖模板自带的页面组合（测试与「只建首页」的引导流程用）。 */
+  pageSpecs?: SiteStarterPageSpec[],
 ): SiteStarterPayload | null {
-  if (key !== "default") return null;
-  const chrome = buildSiteStarterChrome(t);
+  const starter = findSiteStarter(key);
+  if (!starter) return null;
+  const chrome = buildSiteStarterChrome(t, starter.themeKey);
   const pages: SiteStarterPayload["pages"] = [];
 
-  for (const spec of pageSpecs) {
+  for (const spec of pageSpecs ?? starter.pages) {
     const preset = findPagePreset(spec.presetKey);
     if (!preset) continue;
     pages.push({
@@ -135,6 +192,7 @@ export function buildSiteStarter(
   return {
     site: {
       ...chrome,
+      // 站名 / 标语各模板共用一份占位文案：租户开局第一件事就是改掉它
       site_name: t("starter.default.site_name"),
       tagline: t("starter.default.tagline"),
     },

@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 
-import { EMPTY_DISPLAY, displayOrEmpty, formatDuration } from "./display.js";
+import {
+  EMPTY_DISPLAY,
+  displayOrEmpty,
+  formatDuration,
+  formatTenantDisplayLabel,
+} from "./display.js";
 
 describe("display", () => {
   describe("displayOrEmpty", () => {
@@ -14,6 +19,19 @@ describe("display", () => {
       expect(displayOrEmpty(undefined)).toBe(EMPTY_DISPLAY);
       expect(displayOrEmpty("")).toBe(EMPTY_DISPLAY);
       expect(displayOrEmpty("   ")).toBe(EMPTY_DISPLAY);
+    });
+  });
+
+  describe("formatTenantDisplayLabel", () => {
+    it("formats name with slug", () => {
+      expect(formatTenantDisplayLabel("Acme", "acme")).toBe("Acme（acme）");
+    });
+
+    it("falls back to either part or empty display", () => {
+      expect(formatTenantDisplayLabel("Acme", null)).toBe("Acme");
+      expect(formatTenantDisplayLabel(null, "acme")).toBe("acme");
+      expect(formatTenantDisplayLabel(null, null)).toBe(EMPTY_DISPLAY);
+      expect(formatTenantDisplayLabel("  ", "  ")).toBe(EMPTY_DISPLAY);
     });
   });
 

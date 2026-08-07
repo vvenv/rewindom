@@ -28,6 +28,7 @@ import {
   type PublicMarketingSite,
   type SaveEditorDraftBody,
   parsePageVisibility,
+  safePageSettings,
   type UpdateMarketingPageBody,
   type UpdateMarketingSiteBody,
 } from "../shared/site-cms.js";
@@ -36,8 +37,10 @@ import {
   buildSiteStarter,
   findSiteStarter,
 } from "../shared/site-starters.js";
+import { findSiteTheme } from "../shared/site-themes.js";
 import { resolveThemeSettings } from "../shared/theme-sections.js";
 
+import { recordPageVersion } from "./site-page-version.service.js";
 import {
   toMarketingPage,
   toMarketingPageListItem,
@@ -762,6 +765,8 @@ export async function setPageStatus(
 export async function publishEditorDraft(
   tenant_id: string,
   page_id: string,
+  /** 触发发布的人，进版本历史的「谁改的」一列。 */
+  published_by = "",
 ): Promise<{ page: MarketingPage; site: MarketingSite }> {
   const existingPage = await prisma.marketingPage.findFirst({
     where: withTenantScope(tenant_id, { id: page_id }),
@@ -778,26 +783,41 @@ export async function publishEditorDraft(
   const header = siteChromeDraftHeader(existingSite);
   const footer = siteChromeDraftFooter(existingSite);
 
-  const [page, site] = await prisma.$transaction([
-    prisma.marketingPage.update({
-      where: { id: page_id, tenant_id },
-      data: {
-        // 没上线过的页面顺带上线：对用户是同一个动作
-        status: "published",
-        title: promoted.title,
-        description: promoted.description,
-        sections: promoted.sections as unknown as Prisma.InputJsonValue,
-        settings: promoted.settings as unknown as Prisma.InputJsonValue,
-      },
-    }),
-    prisma.marketingSite.update({
-      where: { tenant_id },
-      data: {
-        nav_json: header as unknown as Prisma.InputJsonValue,
-        footer_json: footer as unknown as Prisma.InputJsonValue,
-      },
-    }),
-  ]);
+  const [page, site] = await prisma.$transaction(async (tx) => {
+    /*
+     * 留档与发布同一个事务：分开写的话，发布成功而留档失败会出现一版上线过、
+     * 但历史里查不到的内容——回滚时看到的版本列表就是错的。
+     */
+    await recordPageVersion(tx, {
+      tenant_id,
+      page_id,
+      title: promoted.title,
+      description: promoted.description,
+      sections: promoted.sections,
+      settings: promoted.settings,
+      created_by: published_by,
+    });
+    return Promise.all([
+      tx.marketingPage.update({
+        where: { id: page_id, tenant_id },
+        data: {
+          // 没上线过的页面顺带上线：对用户是同一个动作
+          status: "published",
+          title: promoted.title,
+          description: promoted.description,
+          sections: promoted.sections as unknown as Prisma.InputJsonValue,
+          settings: promoted.settings as unknown as Prisma.InputJsonValue,
+        },
+      }),
+      tx.marketingSite.update({
+        where: { tenant_id },
+        data: {
+          nav_json: header as unknown as Prisma.InputJsonValue,
+          footer_json: footer as unknown as Prisma.InputJsonValue,
+        },
+      }),
+    ]);
+  });
 
   return { page: toMarketingPage(page), site: toMarketingSite(site) };
 }
@@ -932,7 +952,7 @@ export async function getPublishedPublicPage(
     page: toPublicMarketingPage(match, {
       siblings: pages,
       defaultLocale: default_locale,
-      // 公开端点不带会员 token：会员页只吐标题 + 摘要，正文走 /api/site/content/page
+      // 公开 JSON 端点匿名：会员页只吐标题 + 摘要；SSR / page-html 再按 cookie 解锁
       memberSummary: isMembersOnly,
     }),
   };
@@ -995,6 +1015,43 @@ export interface SitemapEntry {
  * 不能复用 `getPublishedPublicSite().pages`——那份按语言过滤过，只会输出一种语言；
  * 而过滤之前的原始清单又会让同一个 `path` 重复出现（每种语言一条、路径完全相同）。
  */
+/**
+ * 套用一个主题包：只改 `theme_settings` 的外观 token，内容与品牌资产原样保留。
+ *
+ * 「主题」在这里是一组预设值而不是运行时的一层——写下去之后 `theme_settings` 仍是唯一
+ * 真相源，租户接着微调哪一项就是哪一项（理由见 `shared/site-themes.ts`）。
+ *
+ * `logo_url` / `og_image` 不在包里也不被清空：那是品牌资产，不是外观风格，
+ * 换个配色不该把 logo 抹掉。
+ */
+export async function applySiteTheme(
+  tenant_id: string,
+  theme_key: string,
+): Promise<MarketingSite> {
+  const theme = findSiteTheme(theme_key);
+  if (!theme) throw new NotFoundError("site.theme_not_found");
+
+  await ensureSiteRow(tenant_id);
+  const existing = await prisma.marketingSite.findFirstOrThrow({
+    where: { tenant_id },
+  });
+  const current = resolveThemeSettings(existing.theme_settings);
+
+  const site = await prisma.marketingSite.update({
+    where: { tenant_id },
+    data: {
+      theme_settings: {
+        ...current,
+        ...theme.theme_settings,
+        // 品牌资产穿过主题切换活下来
+        logo_url: current.logo_url,
+        og_image: current.og_image,
+      } as unknown as Prisma.InputJsonValue,
+    },
+  });
+  return toMarketingSite(site);
+}
+
 export async function getPublishedSitemapEntries(
   tenant_id: string,
 ): Promise<SitemapEntry[] | null> {
@@ -1011,6 +1068,8 @@ export async function getPublishedSitemapEntries(
 
   return pages
     .filter((record) => parsePageVisibility(record.visibility) === "public")
+    // 标了 noindex 还列进 sitemap 是自相矛盾的信号：一边请你来收，一边说别收
+    .filter((record) => safePageSettings(record.settings).noindex !== true)
     .map((record) => {
       const view = toPublicMarketingPage(record, {
         siblings: pages,

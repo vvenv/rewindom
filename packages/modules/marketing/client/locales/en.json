@@ -392,7 +392,8 @@
       "appearance": "Appearance",
       "page": "Page",
       "headerItems": "Header items",
-      "form": "Form"
+      "form": "Form",
+      "seo": "Search & sharing"
     },
     "info": {
       "markdown": "Markdown is supported.",
@@ -423,7 +424,10 @@
       "show_theme_toggle": "The site always follows the visitor's device preference. Turn this on to also give them a manual switch. Off does not force light mode.",
       "success_message": "Leave empty to show just a checkmark.",
       "field_options": "One per line; used by “Dropdown” only.",
-      "field_wide": "Narrow screens are always single column; this affects desktop only."
+      "field_wide": "Narrow screens are always single column; this affects desktop only.",
+      "og_image": "Shown when the page is shared on social platforms. Falls back to the site default; 1200×630 recommended.",
+      "noindex": "The page stays reachable — it just won't appear in search results or the sitemap.",
+      "site_og_image": "Used by every page without its own. Avoid reusing the logo — square images get cropped in share cards."
     },
     "unit": {
       "columns": "cols",
@@ -508,7 +512,10 @@
       "placeholder": "Placeholder",
       "field_required": "Required",
       "field_options": "Options",
-      "field_wide": "Full width"
+      "field_wide": "Full width",
+      "og_image": "Share image",
+      "noindex": "Hide from search engines",
+      "site_og_image": "Default share image"
     },
     "option": {
       "align": {
@@ -810,6 +817,85 @@
       "time": "Time",
       "source": "Source",
       "content": "Content"
+    }
+  },
+  "redirects": {
+    "nav": "Redirects",
+    "title": "Redirects",
+    "pageDescription": "Point old URLs at new ones so inbound links and rankings survive.",
+    "create": "New redirect",
+    "createHint": "Source must be a site path; target can be a site path or a full http(s) URL.",
+    "from": "From",
+    "to": "To",
+    "type": "Type",
+    "permanent": "Permanent (301)",
+    "permanentHint": "Permanent redirects get cached hard by browsers and search engines — turn this off for temporary campaigns.",
+    "permanentShort": "301",
+    "temporaryShort": "302",
+    "empty": "No redirects yet",
+    "loading": "Loading…",
+    "saved": "Saved",
+    "saveFailed": "Couldn't save",
+    "delete": "Delete",
+    "deleted": "Deleted",
+    "deleteFailed": "Couldn't delete",
+    "deleteConfirmTitle": "Delete this redirect?",
+    "deleteConfirmDescription": "“{{from_path}}” will stop redirecting and inbound links to it will hit a 404."
+  },
+  "media": {
+    "nav": "Media",
+    "title": "Media library",
+    "pageDescription": "Images used across your site; the same file can be reused in any number of sections.",
+    "pick": "Choose",
+    "pickTitle": "Choose an image",
+    "pickHint": "Click an image to use it, or upload a new one right here.",
+    "empty": "No images yet",
+    "alt": "Alt text",
+    "altPlaceholder": "Describe this image (leave empty if decorative)",
+    "altSaved": "Saved",
+    "altSaveFailed": "Couldn't save",
+    "copyUrl": "Copy URL",
+    "urlCopied": "URL copied",
+    "delete": "Delete",
+    "deleted": "Deleted",
+    "deleteFailed": "Couldn't delete",
+    "deleteConfirmTitle": "Delete this image?",
+    "deleteConfirmDescription": "This can't be undone. Sections still using it will show a broken image — references aren't checked, so please confirm yourself."
+  },
+  "versions": {
+    "title": "Version history",
+    "hint": "Every publish saves a version. Restoring overwrites your current draft — the live page is untouched until you publish again.",
+    "empty": "Nothing published yet, so there's no history.",
+    "sectionCount": "{{count}} sections",
+    "restore": "Restore",
+    "restored": "Restored into the draft",
+    "restoreFailed": "Couldn't restore",
+    "restoreConfirmTitle": "Restore version {{version}}?",
+    "restoreConfirmDescription": "Your current draft will be replaced by this version. The live page stays as is until you publish."
+  },
+  "theme": {
+    "title": "Theme",
+    "hint": "A preset of colors and layout. You can still fine-tune each setting below afterwards.",
+    "apply": "Apply",
+    "applied": "Theme applied",
+    "applyFailed": "Couldn't apply",
+    "applyConfirmTitle": "Apply this theme?",
+    "applyConfirmDescription": "This overwrites your current accent color, font, page width and section spacing. Page content and your logo are untouched.",
+    "default": {
+      "label": "Default",
+      "description": "General-purpose site: neutral blue, standard width and spacing."
+    },
+    "docs": {
+      "label": "Docs",
+      "description": "Narrower text column and tighter spacing so long pages hold together."
+    },
+    "bold": {
+      "label": "Bold",
+      "description": "Saturated accent and generous spacing — good for landing and campaign pages."
+    },
+    "minimal": {
+      "label": "Minimal",
+      "description": "Near-black accent with a serif face; hierarchy comes from whitespace and weight."
     }
   }
 }

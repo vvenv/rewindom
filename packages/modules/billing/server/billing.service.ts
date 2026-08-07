@@ -5,6 +5,10 @@ import {
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { config } from "@be-water/server-kernel/lib/config.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import {
+  loadTenantLabelsByIds,
+  resolveTenantIdBySlug,
+} from "@be-water/server-kernel/lib/tenant-labels.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 
 import { updateTenantPlan } from "../../platform/server/services/tenant-management.service.js";
@@ -30,6 +34,36 @@ import {
   getCreemProvider,
   isCreemConfigured,
 } from "./providers/creem.provider.js";
+
+async function withTenantLabels<T extends { tenant_id: string }>(
+  items: T[],
+): Promise<
+  Array<T & { tenant_name: string | null; tenant_slug: string | null }>
+> {
+  const labels = await loadTenantLabelsByIds(items.map((item) => item.tenant_id));
+  return items.map((item) => {
+    const label = labels.get(item.tenant_id);
+    return {
+      ...item,
+      tenant_name: label?.name ?? null,
+      tenant_slug: label?.slug ?? null,
+    };
+  });
+}
+
+async function resolvePlatformTenantFilter(params: {
+  tenant_id?: string;
+  tenant_slug?: string;
+}): Promise<{ tenant_id?: string; empty: boolean }> {
+  if (params.tenant_id?.trim()) {
+    return { tenant_id: params.tenant_id.trim(), empty: false };
+  }
+  const slug = params.tenant_slug?.trim();
+  if (!slug) return { empty: false };
+  const tenantId = await resolveTenantIdBySlug(slug);
+  if (!tenantId) return { empty: true };
+  return { tenant_id: tenantId, empty: false };
+}
 
 const ACTIVE_STATUSES: SubscriptionStatus[] = [
   "active",
@@ -191,6 +225,7 @@ export async function listPlatformSubscriptions(params: {
   plan_slug?: string;
   status?: string;
   tenant_id?: string;
+  tenant_slug?: string;
   sort_by?: string;
   sort_dir?: "asc" | "desc";
 }): Promise<BillingListResult<BillingSubscription>> {
@@ -200,10 +235,20 @@ export async function listPlatformSubscriptions(params: {
     "updated_at",
   );
   const order = resolveSortOrder(params.sort_dir, "desc");
+  const tenantFilter = await resolvePlatformTenantFilter(params);
+  if (tenantFilter.empty) {
+    return {
+      items: [],
+      page: params.page,
+      page_size: params.page_size,
+      total: 0,
+      page_count: 0,
+    };
+  }
   const where = {
     ...(params.plan_slug ? { plan_slug: params.plan_slug } : {}),
     ...(params.status ? { status: params.status } : {}),
-    ...(params.tenant_id ? { tenant_id: params.tenant_id } : {}),
+    ...(tenantFilter.tenant_id ? { tenant_id: tenantFilter.tenant_id } : {}),
   };
   const skip = (params.page - 1) * params.page_size;
 
@@ -218,7 +263,7 @@ export async function listPlatformSubscriptions(params: {
   ]);
 
   return {
-    items: rows.map(toBillingSubscription),
+    items: await withTenantLabels(rows.map(toBillingSubscription)),
     page: params.page,
     page_size: params.page_size,
     total,
@@ -231,14 +276,25 @@ export async function listPlatformPayments(params: {
   page_size: number;
   status?: string;
   tenant_id?: string;
+  tenant_slug?: string;
   sort_by?: string;
   sort_dir?: "asc" | "desc";
 }): Promise<BillingListResult<BillingPayment>> {
   const field = resolveSortField(params.sort_by, PAYMENT_SORTABLE, "created_at");
   const order = resolveSortOrder(params.sort_dir, "desc");
+  const tenantFilter = await resolvePlatformTenantFilter(params);
+  if (tenantFilter.empty) {
+    return {
+      items: [],
+      page: params.page,
+      page_size: params.page_size,
+      total: 0,
+      page_count: 0,
+    };
+  }
   const where = {
     ...(params.status ? { status: params.status } : {}),
-    ...(params.tenant_id ? { tenant_id: params.tenant_id } : {}),
+    ...(tenantFilter.tenant_id ? { tenant_id: tenantFilter.tenant_id } : {}),
   };
   const skip = (params.page - 1) * params.page_size;
 
@@ -253,7 +309,7 @@ export async function listPlatformPayments(params: {
   ]);
 
   return {
-    items: rows.map(toBillingPayment),
+    items: await withTenantLabels(rows.map(toBillingPayment)),
     page: params.page,
     page_size: params.page_size,
     total,

@@ -18,11 +18,12 @@ export async function registerPlatformBillingRoutes(
     context: "PlatformBillingSubscriptionList",
     errorCode: "PLATFORM_BILLING_SUBSCRIPTION_LIST_FAILED",
     handler: async (request) => {
-      const { plan_slug, status, tenant_id, sort_by, sort_dir } =
+      const { plan_slug, status, tenant_id, tenant_slug, sort_by, sort_dir } =
         request.query as {
           plan_slug?: string;
           status?: string;
           tenant_id?: string;
+          tenant_slug?: string;
           sort_by?: string;
           sort_dir?: string;
         };
@@ -35,6 +36,7 @@ export async function registerPlatformBillingRoutes(
         plan_slug,
         status,
         tenant_id,
+        tenant_slug,
         sort_by,
         sort_dir: parseSortDir(sort_dir),
       });
@@ -47,12 +49,14 @@ export async function registerPlatformBillingRoutes(
     context: "PlatformBillingPaymentList",
     errorCode: "PLATFORM_BILLING_PAYMENT_LIST_FAILED",
     handler: async (request) => {
-      const { status, tenant_id, sort_by, sort_dir } = request.query as {
-        status?: string;
-        tenant_id?: string;
-        sort_by?: string;
-        sort_dir?: string;
-      };
+      const { status, tenant_id, tenant_slug, sort_by, sort_dir } =
+        request.query as {
+          status?: string;
+          tenant_id?: string;
+          tenant_slug?: string;
+          sort_by?: string;
+          sort_dir?: string;
+        };
       const { page, page_size } = parsePagination(
         request.query as Record<string, unknown>,
       );
@@ -61,6 +65,7 @@ export async function registerPlatformBillingRoutes(
         page_size,
         status,
         tenant_id,
+        tenant_slug,
         sort_by,
         sort_dir: parseSortDir(sort_dir),
       });

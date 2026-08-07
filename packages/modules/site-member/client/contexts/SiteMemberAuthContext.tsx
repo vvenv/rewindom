@@ -11,13 +11,7 @@ import {
 import { shouldClearAuthOnError } from "@be-water/client-kit";
 
 import { siteMemberApi, SITE_MEMBER_API_BASE } from "../lib/site-member-api.js";
-import {
-  clearMemberTokens,
-  getMemberRefreshToken,
-  hasMemberTokens,
-  MEMBER_AUTH_LOGOUT_EVENT,
-  setMemberTokens,
-} from "../lib/site-member-session.js";
+import { MEMBER_AUTH_LOGOUT_EVENT } from "../lib/site-member-session.js";
 
 import type {
   SiteMemberChangePasswordBody,
@@ -49,7 +43,7 @@ const SiteMemberAuthContext = createContext<
 >(undefined);
 
 /**
- * 站点会员会话。
+ * 站点会员会话（HttpOnly cookie）。
  *
  * 刻意不复用 `AuthProvider`：那套的 401 处理会把人重定向到工作台登录页，
  * 而会员失效时应该留在站点里、只是变回访客。
@@ -59,18 +53,13 @@ export function SiteMemberAuthProvider({
 }: {
   children: ReactNode;
 }): ReactNode {
-  const [state, setState] = useState<SiteMemberAuthState>(() => ({
+  const [state, setState] = useState<SiteMemberAuthState>({
     member: null,
-    isAuthenticated: hasMemberTokens(),
-    // 本地没有 token 就没有可恢复的会话，直接按访客渲染，省掉一次 /me
-    isLoading: hasMemberTokens(),
-  }));
+    isAuthenticated: false,
+    isLoading: true,
+  });
 
   const applySession = useCallback((session: SiteMemberSession) => {
-    setMemberTokens({
-      accessToken: session.access_token,
-      refreshToken: session.refresh_token,
-    });
     setState({
       member: session.member,
       isAuthenticated: true,
@@ -79,7 +68,6 @@ export function SiteMemberAuthProvider({
   }, []);
 
   const clearSession = useCallback(() => {
-    clearMemberTokens();
     setState({ member: null, isAuthenticated: false, isLoading: false });
   }, []);
 
@@ -112,16 +100,13 @@ export function SiteMemberAuthProvider({
   );
 
   const logout = useCallback(async () => {
-    const refreshToken = getMemberRefreshToken();
     try {
-      if (refreshToken) {
-        await siteMemberApi.post(
-          `${SITE_MEMBER_API_BASE}/logout`,
-          { refresh_token: refreshToken },
-          undefined,
-          true,
-        );
-      }
+      await siteMemberApi.post(
+        `${SITE_MEMBER_API_BASE}/logout`,
+        {},
+        undefined,
+        true,
+      );
     } finally {
       clearSession();
     }
@@ -145,7 +130,7 @@ export function SiteMemberAuthProvider({
         `${SITE_MEMBER_API_BASE}/change-password`,
         body,
       );
-      // 服务端会吊销全部 refresh token，本地会话必须一起作废
+      // 服务端会吊销全部 refresh token 并清 cookie
       clearSession();
     },
     [clearSession],
@@ -155,7 +140,6 @@ export function SiteMemberAuthProvider({
   useEffect(() => {
     if (hasInitialized.current) return;
     hasInitialized.current = true;
-    if (!hasMemberTokens()) return;
 
     void siteMemberApi
       .get<SiteMemberProfile>(`${SITE_MEMBER_API_BASE}/me`)

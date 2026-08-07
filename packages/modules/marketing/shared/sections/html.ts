@@ -10,12 +10,16 @@
  */
 
 import { escapeHtml } from "../html.js";
+import { registerSectionCss } from "../load-marketing-site-css.js";
 import {
+  getSectionDefinition,
   hasCustomSurface,
+  registerSectionDefinition,
   resolveSectionLayout,
   resolveSurfaceStyle,
   settingBool,
   surfaceStyleAttr,
+  type SectionDefinition,
 } from "../section-schema.js";
 
 import { renderBandHtml } from "./band/html.js";
@@ -42,6 +46,29 @@ export type {
   SectionHtmlRenderer,
   SectionRenderContext,
 } from "./render-context.js";
+
+/**
+ * 业务模块贡献一个段的 **SSR 侧**入口。
+ *
+ * 顺手把定义也登记了（`registerSectionDefinition`），所以贡献方只维护一份
+ * definition 对象、两端 import 同一个——不会出现 schema 与渲染各说各话。
+ * 在模块的 `onBoot` 里调；重复注册同一个定义是幂等的，撞名会抛。
+ *
+ * ```ts
+ * // site-member/server/module.ts
+ * onBoot: async () => registerSiteSectionHtml(memberGateSection, renderMemberGateHtml),
+ * ```
+ */
+export function registerSiteSectionHtml(
+  definition: SectionDefinition,
+  render: SectionHtmlRenderer,
+  /** 段自己的 CSS。内置段的样式构建期就打进来了，贡献段进不了那次打包。 */
+  options: { css?: string } = {},
+): void {
+  registerSectionDefinition(definition);
+  SECTION_HTML[definition.type] = render;
+  if (options.css) registerSectionCss(definition.type, options.css);
+}
 
 /**
  * 页面段流的渲染器表。
@@ -79,6 +106,15 @@ export function renderSectionHtml(
 ): string {
   const render = SECTION_HTML[section.type];
   if (!render) return "";
+  /*
+   * 贡献段的 entitlement 闸门。
+   *
+   * 渲染器是**进程级**注册的（模块装进这个部署就有），而开通与否是**租户级**的，
+   * 所以只能在这里按租户拦。未开通就什么都不输出——与「不认识的段」同一个观感，
+   * 而不是露出半个不该看见的功能。
+   */
+  const entitlement = getSectionDefinition(section.type)?.entitlement;
+  if (entitlement && !ctx.enabledEntitlements?.has(entitlement)) return "";
   // 容器段要能下钻回这里；注入而不是让它反向 import，见 render-context.ts
   const inner = render(section, { ...ctx, renderSection: renderSectionHtml });
   if (!inner) return "";

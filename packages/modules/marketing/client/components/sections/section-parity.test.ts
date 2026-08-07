@@ -12,7 +12,7 @@ import {
   AREA_SECTION_TYPES,
   PAGE_SECTION_TYPES,
   RESERVED_SECTION_TYPES,
-  SECTION_DEFINITIONS,
+  BUILTIN_SECTION_DEFINITIONS,
 } from "../../../shared/section-schema.js";
 import { SECTION_HTML } from "../../../shared/sections/html.js";
 
@@ -41,11 +41,11 @@ describe("section 两端渲染对齐", () => {
   });
 
   it.each(RESERVED_SECTION_TYPES)("%s 不出现在任何添加菜单里", (type) => {
-    expect(SECTION_DEFINITIONS[type].placements).toEqual([]);
+    expect(BUILTIN_SECTION_DEFINITIONS[type].placements).toEqual([]);
   });
 
   it("渲染器表里没有注册表以外的段", () => {
-    const known = new Set(Object.keys(SECTION_DEFINITIONS));
+    const known = new Set(Object.keys(BUILTIN_SECTION_DEFINITIONS));
     expect(Object.keys(SECTION_HTML).filter((t) => !known.has(t))).toEqual([]);
     expect(Object.keys(SECTION_VIEWS).filter((t) => !known.has(t))).toEqual([]);
   });

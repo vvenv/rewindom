@@ -84,6 +84,33 @@ pnpm check:modules              # 模块契约校验（注册表/租户列/开�
 node scripts/verify-module.mjs <id>   # 只查单个模块
 ```
 
+### 生成迁移：开发库不可信时走影子库
+
+`migrate dev` 是拿**开发库**和 schema 比对生成迁移的。开发库难免带着历史痕迹（曾经跑过的
+分支、别的产品残留的表），一比就会生成一堆意料之外的 `DROP`。这时改用**离线 diff**：
+重放迁移历史到一个空的影子库，再和 schema 比，与开发库现状无关。
+
+```bash
+docker exec be-water-dev-postgres psql -U be-water -d postgres -c 'CREATE DATABASE "be-water-shadow"'
+SHADOW_DATABASE_URL="postgresql://be-water:<pw>@localhost:5433/be-water-shadow" \
+  pnpm --filter server exec prisma migrate diff \
+    --from-migrations ./prisma/migrations --to-schema ./prisma --script
+# 取其中属于本次改动的语句 → 新建 migrations/<ts>_<name>/migration.sql → migrate deploy
+```
+
+`prisma.config.ts` 的 `shadowDatabaseUrl` 是**可选**的（只在生成迁移时才需要设），
+用 `env()` 声明会让每一条 prisma 命令在变量缺失时一起崩。
+
+**别试图「只在开发库里删表」来消除漂移。** `migrate dev` 会把迁移历史重放到影子库再与
+开发库比对，删库不改历史等于制造反向漂移，Prisma 会从「生成一条 drop」升级成
+「必须 reset 整个 schema」——整库清空，比原来严重得多。要让它干净只有一条路：
+让迁移历史与 schema 一致。
+
+> 历史教训：上一次 squash 是按当时的开发库生成的，把下游 estimation 产品的 7 张表
+> （`brands` / `sizes` / `styles` / `product_categories` / `shipping_channels` /
+> `estimation_rules` / `destinations`）烤进了 be-water 基线——每个全新部署都凭空多出这些表，
+> 拖到一年后才用一条 drop 迁移清掉。squash 迁移时务必核对生成物。
+
 新建模块的标准路径：**填 spec → `gen:module` → 补 service 业务逻辑 → `check:modules`**。
 spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 `check:modules` 是 `create-module` skill「交付前自检」的机器化版本，改动模块后必须跑。

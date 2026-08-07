@@ -15,7 +15,14 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
         "撤销官网页面未发布的更改「{{title}}」",
       "marketing.audit.page_unpublished": "取消发布官网页面「{{title}}」",
       "marketing.audit.form_submission_deleted": "删除官网表单提交",
+      "marketing.audit.redirect_saved": "保存官网重定向 {{from_path}} → {{to_path}}",
+      "marketing.audit.redirect_deleted": "删除官网重定向",
+      "marketing.audit.asset_deleted": "删除官网媒体",
+      "marketing.audit.page_version_restored": "恢复官网页面到第 {{version}} 版",
+      "site.page_version_not_found": "该版本不存在",
       "marketing.audit.starter_applied": "应用站点起步模板「{{key}}」（{{page_count}} 页）",
+      "marketing.audit.theme_applied": "套用站点主题「{{key}}」",
+      "site.theme_not_found": "主题不存在",
       "marketing.audit.chrome_published": "发布官网页头页脚「{{site_name}}」",
       "marketing.audit.chrome_reverted":
         "撤销官网页头页脚未发布的更改「{{site_name}}」",
@@ -39,6 +46,9 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.asset_not_found": "图片不存在",
       "site.theme_settings_invalid": "主题设置不正确",
       "site.locale_invalid": "语言代码不能为空",
+      "site.redirect_invalid": "重定向规则不合法：来源需为站内路径，目标为站内路径或 http(s) 地址",
+      "site.redirect_self": "来源与目标相同，会造成死循环",
+      "site.redirect_not_found": "重定向规则不存在",
     },
     en: {
       "marketing.audit.site_updated": 'Updated site "{{site_name}}"',
@@ -52,8 +62,17 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_content_reverted":
         'Discarded unpublished changes on site page "{{title}}"',
       "marketing.audit.page_unpublished": 'Unpublished site page "{{title}}"',
+      "marketing.audit.form_submission_deleted": "Deleted a form submission",
+      "marketing.audit.redirect_saved":
+        "Saved redirect {{from_path}} → {{to_path}}",
+      "marketing.audit.redirect_deleted": "Deleted a redirect",
+      "marketing.audit.asset_deleted": "Deleted a media file",
+      "marketing.audit.page_version_restored": "Restored page to version {{version}}",
+      "site.page_version_not_found": "Version not found",
       "marketing.audit.starter_applied":
         'Applied site starter "{{key}}" ({{page_count}} pages)',
+      "marketing.audit.theme_applied": 'Applied site theme "{{key}}"',
+      "site.theme_not_found": "Theme not found",
       "marketing.audit.chrome_published":
         'Published site header and footer for "{{site_name}}"',
       "marketing.audit.chrome_reverted":
@@ -78,6 +97,10 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.asset_not_found": "Image not found",
       "site.theme_settings_invalid": "Invalid theme settings",
       "site.locale_invalid": "Locale is required",
+      "site.redirect_invalid":
+        "Invalid redirect: source must be a site path; target must be a site path or http(s) URL",
+      "site.redirect_self": "Source and target are the same — that would loop",
+      "site.redirect_not_found": "Redirect not found",
     },
   },
 };

@@ -3,9 +3,11 @@ import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/regis
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { SITE_MEMBER_SERVER_I18N } from "./i18n.js";
+import { registerMemberGateSection } from "./member-gate-section.js";
 import { registerSiteMemberAccountEntry } from "./site-account-entry.js";
 import { siteMemberAdminRoutes } from "./site-member-admin.routes.js";
 import { siteMemberAuthRoutes } from "./site-member-auth.routes.js";
+import { registerSiteMemberSsrSessionResolver } from "./site-member-ssr-session.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
 
@@ -45,6 +47,9 @@ export const siteMemberServerModule: ServerAppModule = {
     // 站点前台页头的账户入口：marketing 定义注入点，这里填实现（见 site-account-entry.ts）
     onBoot: async () => {
       registerSiteMemberAccountEntry();
+      registerSiteMemberSsrSessionResolver();
+      // 「会员专属内容」段：定义在本模块，渲染器填进 marketing 的段注册表
+      registerMemberGateSection();
     },
     registerRoutes: async (app) => {
       /*

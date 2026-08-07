@@ -9,12 +9,26 @@ import {
 } from "@be-water/server-kernel/lib/upload-limits.js";
 import { authMiddleware } from "@be-water/server-kernel/middleware/auth.middleware.js";
 import { errorHandlerMiddleware } from "@be-water/server-kernel/middleware/error-handler.middleware.js";
+import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import multipart from "@fastify/multipart";
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 
 import { registerAllRoutes, registerModuleMiddleware } from "./routes/index.js";
+
+function corsAllowedOrigins(): Set<string> {
+  const origins = new Set<string>();
+  for (const raw of [config.frontend.url, config.platform.url]) {
+    if (!raw) continue;
+    try {
+      origins.add(new URL(raw).origin);
+    } catch {
+      // ignore invalid URL
+    }
+  }
+  return origins;
+}
 
 function localizeApiErrorPayload(
   request: FastifyRequest,
@@ -53,9 +67,21 @@ export async function buildApp(): Promise<FastifyInstance> {
     bodyLimit: MAX_UPLOAD_BYTES,
   });
 
+  const allowedOrigins = corsAllowedOrigins();
   await app.register(cors, {
-    origin: true,
+    // 会员 HttpOnly cookie 需要 credentials；禁止任意 Origin 反射。
+    credentials: true,
+    origin: (origin, callback) => {
+      // 同源 / 非浏览器（无 Origin）放行
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      callback(null, allowedOrigins.has(origin));
+    },
   });
+
+  await app.register(cookie);
 
   app.addHook("onSend", async (request, reply, payload) => {
     if (!request.url.startsWith("/api")) {

@@ -82,5 +82,16 @@
   },
   "errors": {
     "generic": "Something went wrong, please try again"
+  },
+  "section": {
+    "gate": {
+      "label": "Members-only content",
+      "body": "Content for members",
+      "bodyInfo": "Visible only to signed-in members; visitors see the locked notice below. It never appears in the page source.",
+      "locked": "Shown when signed out",
+      "lockedHeadline": "Locked headline",
+      "lockedBody": "Locked description",
+      "loginLabel": "Sign-in button"
+    }
   }
 }

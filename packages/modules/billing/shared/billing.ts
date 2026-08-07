@@ -33,6 +33,10 @@ export function isSelfServePlanSlug(slug: string): slug is SelfServePlanSlug {
 export interface BillingSubscription {
   id: string;
   tenant_id: string;
+  /** Platform list only — resolved from Tenant. */
+  tenant_name?: string | null;
+  /** Platform list only — resolved from Tenant. */
+  tenant_slug?: string | null;
   plan_slug: string;
   status: SubscriptionStatus;
   provider: string;
@@ -48,6 +52,10 @@ export interface BillingSubscription {
 export interface BillingPayment {
   id: string;
   tenant_id: string;
+  /** Platform list only — resolved from Tenant. */
+  tenant_name?: string | null;
+  /** Platform list only — resolved from Tenant. */
+  tenant_slug?: string | null;
   subscription_id: string | null;
   plan_slug: string | null;
   provider: string;

@@ -1,0 +1,115 @@
+/**
+ * SEO meta：分享卡片与逐页 noindex。
+ *
+ * 这些标签没有任何 UI 会暴露它们出错——写错了要等分享出去、或者等页面被收录了才发现，
+ * 所以口径全部钉在这里。
+ */
+
+import { describe, expect, it } from "vitest";
+
+import { renderMarketingHtml } from "./ssr-render.js";
+
+import type {
+  PublicMarketingPage,
+  PublicMarketingSite,
+} from "../shared/site-cms.js";
+
+const ORIGIN = "https://acme.example";
+
+function render(
+  pageSettings: Record<string, unknown> = {},
+  themeSettings: Record<string, unknown> = {},
+  overrides: { memberGate?: boolean } = {},
+): string {
+  const site = {
+    site_name: "Acme",
+    tagline: "标语",
+    theme_settings: themeSettings,
+    default_locale: "zh-CN",
+    pages: [],
+    header: [],
+    footer: [],
+  } as unknown as PublicMarketingSite;
+  const page = {
+    slug: "pricing",
+    locale: "zh-CN",
+    kind: "page",
+    title: "定价",
+    description: "按席位计费",
+    sections: [],
+    settings: pageSettings,
+    path: "/pricing",
+    alternates: [],
+    updated_at: "2026-08-07T00:00:00.000Z",
+  } as unknown as PublicMarketingPage;
+
+  return renderMarketingHtml({ origin: ORIGIN, site, page, ...overrides });
+}
+
+describe("分享卡片", () => {
+  it("站点级默认图会被用上，且补成绝对地址", () => {
+    const html = render({}, { og_image: "/uploads/og.png" });
+    expect(html).toContain(
+      `<meta property="og:image" content="${ORIGIN}/uploads/og.png" />`,
+    );
+    expect(html).toContain(
+      `<meta name="twitter:image" content="${ORIGIN}/uploads/og.png" />`,
+    );
+  });
+
+  it("页面级覆盖站点级", () => {
+    const html = render(
+      { og_image: "/uploads/page.png" },
+      { og_image: "/uploads/site.png" },
+    );
+    expect(html).toContain(`content="${ORIGIN}/uploads/page.png"`);
+    expect(html).not.toContain("site.png");
+  });
+
+  it("已经是绝对地址就原样用，不再拼一次 origin", () => {
+    const html = render({ og_image: "https://cdn.example/x.png" });
+    expect(html).toContain(`content="https://cdn.example/x.png"`);
+    expect(html).not.toContain(`${ORIGIN}https://`);
+  });
+
+  it("没图就不出图片标签——空 content 会被部分平台显示成裂图", () => {
+    const html = render();
+    expect(html).not.toContain("og:image");
+    expect(html).not.toContain("twitter:image");
+    // 也不该谎报大图卡片
+    expect(html).toContain(`<meta name="twitter:card" content="summary" />`);
+  });
+
+  it("有图才用大图卡片", () => {
+    expect(render({ og_image: "/a.png" })).toContain(
+      `content="summary_large_image"`,
+    );
+  });
+
+  it("标题描述与 <title> / description 同源，不另算一份", () => {
+    const html = render();
+    expect(html).toContain(`<meta property="og:title" content="定价 · Acme" />`);
+    expect(html).toContain(
+      `<meta property="og:description" content="按席位计费" />`,
+    );
+    expect(html).toContain(`<meta property="og:url" content="${ORIGIN}/pricing" />`);
+  });
+});
+
+describe("noindex", () => {
+  it("默认不出 robots 标签", () => {
+    expect(render()).not.toContain('name="robots"');
+  });
+
+  it("逐页开关只掐收录，不掐链接权重", () => {
+    expect(render({ noindex: true })).toContain(
+      `<meta name="robots" content="noindex" />`,
+    );
+  });
+
+  it("会员页连 follow 一起掐：SSR 只有占位，收录了也是空页", () => {
+    expect(render({}, {}, { memberGate: true })).toContain(
+      `<meta name="robots" content="noindex, nofollow" />`,
+    );
+  });
+});

@@ -1,7 +1,11 @@
 import { useMemo } from "react";
 
 import { DataTable, DataTableColumnHeader } from "@be-water/client-kit";
-import { displayOrEmpty, formatBusinessDate } from "@be-water/shared";
+import {
+  displayOrEmpty,
+  formatBusinessDate,
+  formatTenantDisplayLabel,
+} from "@be-water/shared";
 import { ScrollText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -34,8 +38,12 @@ function buildAuditLogColumns(
               <DataTableColumnHeader column={column} title={t("table.tenant")} />
             ),
             enableSorting: true,
-            meta: { cellClassName: "font-mono text-muted-foreground" },
-            cell: ({ row }) => displayOrEmpty(row.getValue("tenant_slug")),
+            meta: { cellClassName: "text-muted-foreground" },
+            cell: ({ row }) =>
+              formatTenantDisplayLabel(
+                row.original.tenant_name,
+                row.original.tenant_slug,
+              ),
           },
         ] satisfies ColumnDef<AuditLog>[])
       : []),

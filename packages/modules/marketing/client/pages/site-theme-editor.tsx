@@ -35,6 +35,7 @@ import {
   clearEditorCache,
 } from "../hooks/use-site-theme-editor.js";
 import { resolveEditorPublishState } from "../lib/editor-publish-state.js";
+import { sectionTypeLabel } from "../lib/section-type-label.js";
 import { siteMemberEntrySlot } from "../shell/site-member-slots.js";
 
 const DEVICE_ICONS: Array<[PreviewDevice, LucideIcon]> = [
@@ -49,11 +50,13 @@ function selectionTypeLabel(
   blockId: string | null,
   t: (key: string) => string,
 ): string {
-  const def = getSectionDefinition(section.type);
-  if (!blockId) return t(def.label);
+  const sectionLabel = sectionTypeLabel(t, section.type);
+  if (!blockId) return sectionLabel;
   const block = section.blocks.find((item) => item.id === blockId);
-  const blockDef = def.blocks?.find((item) => item.type === block?.type);
-  return blockDef ? t(blockDef.label) : (block?.type ?? t(def.label));
+  const blockDef = getSectionDefinition(section.type)?.blocks?.find(
+    (item) => item.type === block?.type,
+  );
+  return blockDef ? t(blockDef.label) : (block?.type ?? sectionLabel);
 }
 
 export function SiteThemeEditor() {
@@ -295,6 +298,7 @@ export function SiteThemeEditor() {
       {/* 三栏各自滚：页面不整体滚动，预览区吃满剩余高度 */}
       <div className="-mx-1 grid gap-3 lg:h-full lg:min-h-0 lg:grid-cols-[240px_minmax(0,1fr)_300px] lg:grid-rows-[minmax(0,1fr)]">
         <SectionTree
+          entitlements={editor.capabilities.entitlements}
           sections={editor.sections}
           header={editor.header}
           footer={editor.footer}

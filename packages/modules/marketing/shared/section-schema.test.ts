@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   PAGE_SECTION_TYPES,
-  SECTION_DEFINITIONS,
+  BUILTIN_SECTION_DEFINITIONS,
   splitSettingsByScope,
   createBlock,
   createSection,
@@ -23,7 +23,7 @@ import {
 } from "./section-schema.js";
 
 describe("parseSettingValues", () => {
-  const defs = SECTION_DEFINITIONS.cards.settings;
+  const defs = BUILTIN_SECTION_DEFINITIONS.cards.settings;
 
   it("fills defaults for missing values", () => {
     expect(parseSettingValues(defs, {})).toEqual({
@@ -59,7 +59,7 @@ describe("parseSettingValues", () => {
 
   it("throws when a required text setting is blank", () => {
     expect(() =>
-      parseSettingValues(SECTION_DEFINITIONS.hero.settings, { headline: "  " }),
+      parseSettingValues(BUILTIN_SECTION_DEFINITIONS.hero.settings, { headline: "  " }),
     ).toThrow("site.sections_invalid");
   });
 });
@@ -165,7 +165,7 @@ describe("parseSections", () => {
       },
     ]);
     expect(section?.blocks).toHaveLength(
-      SECTION_DEFINITIONS.cards.max_blocks ?? 0,
+      BUILTIN_SECTION_DEFINITIONS.cards.max_blocks ?? 0,
     );
   });
 
@@ -254,7 +254,7 @@ describe("页面区块流", () => {
 describe("section layout settings", () => {
   it("gives every page section the shared layout group", () => {
     for (const type of PAGE_SECTION_TYPES) {
-      const ids = SECTION_DEFINITIONS[type].settings
+      const ids = BUILTIN_SECTION_DEFINITIONS[type].settings
         .map((def) => ("id" in def ? def.id : ""))
         .filter(Boolean);
       expect(ids, type).toEqual(
@@ -310,7 +310,7 @@ describe("section layout settings", () => {
   });
 
   it("migrates the old single width setting onto the two axes", () => {
-    const defs = SECTION_DEFINITIONS.cards.settings;
+    const defs = BUILTIN_SECTION_DEFINITIONS.cards.settings;
     expect(parseSettingValues(defs, { width: "wide" })).toMatchObject({
       width: "page",
       content_width: "default",
@@ -402,7 +402,7 @@ describe("section layout settings", () => {
   });
 
   it("migrates the old divider checkboxes and band tone", () => {
-    const defs = SECTION_DEFINITIONS.band.settings;
+    const defs = BUILTIN_SECTION_DEFINITIONS.band.settings;
     expect(parseSettingValues(defs, { divider_bottom: true }).divider).toBe(
       "bottom",
     );
@@ -422,7 +422,7 @@ describe("section layout settings", () => {
   });
 
   it("migrates header login fields to the secondary button", () => {
-    const defs = SECTION_DEFINITIONS.header.settings;
+    const defs = BUILTIN_SECTION_DEFINITIONS.header.settings;
     const on = parseSettingValues(defs, {
       show_login: true,
       login_label: "登录",
@@ -450,7 +450,7 @@ describe("splitSettingsByScope", () => {
   it("puts layout and appearance in their own tabs and keeps copy in content", () => {
     for (const type of PAGE_SECTION_TYPES) {
       const { content, layout, appearance } = splitSettingsByScope(
-        SECTION_DEFINITIONS[type].settings,
+        BUILTIN_SECTION_DEFINITIONS[type].settings,
       );
       const ids = (defs: typeof content) =>
         defs.map((def) => ("id" in def ? def.id : "")).filter(Boolean);
@@ -462,7 +462,7 @@ describe("splitSettingsByScope", () => {
       );
       // 三边加起来仍是完整的一份，不丢字段
       expect(content.length + layout.length + appearance.length, type).toBe(
-        SECTION_DEFINITIONS[type].settings.length,
+        BUILTIN_SECTION_DEFINITIONS[type].settings.length,
       );
       expect(ids(content), type).not.toContain("padding_top");
       expect(ids(layout), type).not.toContain("bg_color");
@@ -471,11 +471,11 @@ describe("splitSettingsByScope", () => {
 
   it("gives header and footer an appearance tab", () => {
     expect(
-      splitSettingsByScope(SECTION_DEFINITIONS.header.settings).appearance
+      splitSettingsByScope(BUILTIN_SECTION_DEFINITIONS.header.settings).appearance
         .length,
     ).toBeGreaterThan(0);
     expect(
-      splitSettingsByScope(SECTION_DEFINITIONS.footer.settings).appearance
+      splitSettingsByScope(BUILTIN_SECTION_DEFINITIONS.footer.settings).appearance
         .length,
     ).toBeGreaterThan(0);
   });

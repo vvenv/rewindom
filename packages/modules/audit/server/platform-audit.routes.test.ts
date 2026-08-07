@@ -19,6 +19,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
     tenant: {
       findUnique: vi.fn().mockResolvedValue(null),
       findFirst: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
     },
     platformAdmin: {
       findUnique: vi.fn(),

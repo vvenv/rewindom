@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import { SitePageDuplicateSheet } from "../SitePageDuplicateSheet.js";
 
 import { PageSwitcher } from "./PageSwitcher.js";
+import { PageVersionsSheet } from "./PageVersionsSheet.js";
 import { PresetMenuItems } from "./PresetMenu.js";
 
 import type { SiteSection } from "../../../shared/section-schema.js";
@@ -145,6 +146,9 @@ export function EditorToolbar({
           </ButtonGroup>
         ) : null}
       </div>
+
+      {/* 版本历史与「撤销」是两回事：撤销只退到最近一次发布，这里能挑任意一版 */}
+      <PageVersionsSheet pageId={page.id} />
 
       <EditorStatus state={state} />
 

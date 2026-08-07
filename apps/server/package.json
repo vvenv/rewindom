@@ -24,16 +24,17 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@be-water/modules": "workspace:*",
+    "@be-water/server-kernel": "workspace:*",
+    "@be-water/shared": "workspace:*",
     "@fastify/caching": "^9.0.3",
+    "@fastify/cookie": "^11.1.2",
     "@fastify/cors": "^11.3.0",
     "@fastify/jwt": "^10.2.1",
     "@fastify/multipart": "^10.1.0",
     "@fastify/static": "^10.1.2",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
-    "@be-water/modules": "workspace:*",
-    "@be-water/server-kernel": "workspace:*",
-    "@be-water/shared": "workspace:*",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.81.2",
     "cron-parser": "^5.6.2",
@@ -51,9 +52,9 @@
     "thread-stream": "4.2.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@be-water/modules": "workspace:*",
     "@be-water/server-test": "workspace:*",
+    "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^26.1.1",
     "@types/pdf-parse": "^1.1.5",

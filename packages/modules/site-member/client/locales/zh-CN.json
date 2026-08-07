@@ -82,5 +82,16 @@
   },
   "errors": {
     "generic": "操作失败，请稍后重试"
+  },
+  "section": {
+    "gate": {
+      "label": "会员专属内容",
+      "body": "会员可见的正文",
+      "bodyInfo": "只有登录会员能看到；未登录访客看到下面的锁定提示。正文不会出现在页面源码里。",
+      "locked": "未登录时显示",
+      "lockedHeadline": "锁定标题",
+      "lockedBody": "锁定说明",
+      "loginLabel": "登录按钮文案"
+    }
   }
 }

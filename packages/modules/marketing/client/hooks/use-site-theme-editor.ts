@@ -339,6 +339,8 @@ export function useSiteThemeEditor(pageId: string | undefined) {
      */
     capabilities: {
       account_entry: capabilitiesQuery.data?.account_entry ?? false,
+      /** 贡献段的闸门：没开通的不该出现在「添加区块」菜单里。 */
+      entitlements: new Set(capabilitiesQuery.data?.entitlements ?? []),
     },
     page,
     path,

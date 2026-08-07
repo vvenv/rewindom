@@ -10,6 +10,9 @@ import {
 } from "../shared/site-locale.js";
 
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
+import { resolveSectionEntitlements } from "./site-entitlements.js";
+import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
+import { findSiteRedirect } from "./site-redirect.service.js";
 import {
   getPublishedPublicPage,
   getPublishedSitemapEntries,
@@ -24,6 +27,9 @@ import {
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 const SPA_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);
+
+/** 自定义 404 页的约定 slug。 */
+const NOT_FOUND_SLUG_PATH = "/404";
 
 function requestOrigin(request: FastifyRequest): string {
   const proto =
@@ -41,12 +47,75 @@ async function ensureHostTenant(request: FastifyRequest): Promise<void> {
   request.hostTenantContext = await resolveHostTenant(hostname);
 }
 
-function sendHtml(reply: FastifyReply, status: number, html: string): void {
+function sendHtml(
+  reply: FastifyReply,
+  status: number,
+  html: string,
+  options?: { privateCache?: boolean },
+): void {
+  const cacheControl = options?.privateCache
+    ? "private, no-store"
+    : "public, max-age=60";
   void reply
     .status(status)
     .header("content-type", "text/html; charset=utf-8")
-    .header("cache-control", "public, max-age=60")
+    .header("cache-control", cacheControl)
     .send(html);
+}
+
+/**
+ * 自定义 404：租户建一个 slug 为 `404` 的页面就是它，没有就用内置兜底页。
+ *
+ * 不另开一张表 / 一个 `kind`：它就是一张普通页面，租户用同一个编辑器排版、同一套发布
+ * 流程上线，也能预览。约定一个 slug 比多一种「特殊页面」类型便宜得多。
+ *
+ * 状态码仍然是 **404**——渲染出内容不代表这个地址存在，返 200 会让搜索引擎把每个
+ * 死链都当成一张真页面收录（俗称 soft 404）。
+ */
+async function renderNotFound(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  hostTenant: NonNullable<FastifyRequest["hostTenantContext"]>,
+  locale: AppLocale | null,
+): Promise<void> {
+  const custom = await getPublishedPublicPage(
+    hostTenant.tenant_id,
+    NOT_FOUND_SLUG_PATH,
+    hostTenant.tenant_slug,
+    locale,
+  );
+  if (!custom) {
+    sendHtml(
+      reply,
+      404,
+      renderUnavailableHtml({
+        title: "Page not found",
+        message: "This page is not published or does not exist.",
+      }),
+    );
+    return;
+  }
+
+  const [accountEntry, enabledEntitlements] = await Promise.all([
+    resolveSiteAccountEntry({
+      tenantId: hostTenant.tenant_id,
+      locale: normalizeLocale(custom.page.locale, custom.site.default_locale),
+    }),
+    resolveSectionEntitlements(hostTenant.tenant_id),
+  ]);
+
+  sendHtml(
+    reply,
+    404,
+    renderMarketingHtml({
+      origin: requestOrigin(request),
+      site: custom.site,
+      // 404 页不该被收录：它会出现在无数个不存在的地址上
+      page: { ...custom.page, settings: { ...custom.page.settings, noindex: true } },
+      accountEntryHtml: accountEntry.html,
+      enabledEntitlements,
+    }),
+  );
 }
 
 async function renderPath(
@@ -76,24 +145,48 @@ async function renderPath(
     locale,
   );
   if (!result) {
-    sendHtml(
-      reply,
-      404,
-      renderUnavailableHtml({
-        title: "Page not found",
-        message: "This page is not published or does not exist.",
-      }),
-    );
+    /*
+     * 顺序是刻意的：**先查真实页面，找不到才查重定向**。
+     *
+     * 反过来（重定向优先）的话，租户后来又建了一个同名页就永远打不开——而那种错很难
+     * 联想到是几个月前加的一条重定向造成的。重定向本来就是给「曾经存在的路径」用的。
+     */
+    const redirect = await findSiteRedirect(hostTenant.tenant_id, path);
+    if (redirect) {
+      void reply
+        .status(redirect.status_code)
+        .header("location", redirect.to_path)
+        // 301 会被浏览器长期缓存，别再让中间层多缓存一层：改规则时要能立刻生效
+        .header("cache-control", "no-store")
+        .send();
+      return;
+    }
+
+    await renderNotFound(request, reply, hostTenant, locale);
     return;
   }
 
-  const accountEntry = await resolveSiteAccountEntry({
+  const member = await resolveSiteMemberSsrSession({
+    request,
+    reply,
     tenantId: hostTenant.tenant_id,
-    locale: normalizeLocale(result.page.locale, result.site.default_locale),
   });
 
-  // localStorage 会员 token 不随 HTML 请求发送：SSR 只能输出「需登录」占位 + noindex，
-  // 正文由 site-enhance 带 Bearer 拉 `/api/site/content/page-html` 注入。
+  const [accountEntry, enabledEntitlements] = await Promise.all([
+    resolveSiteAccountEntry({
+      tenantId: hostTenant.tenant_id,
+      locale: normalizeLocale(result.page.locale, result.site.default_locale),
+      member,
+    }),
+    // 贡献段按租户开通与否决定渲不渲染，见 site-entitlements.ts
+    resolveSectionEntitlements(hostTenant.tenant_id),
+  ]);
+
+  const requiresMember = result.page.requires_member === true;
+  const memberAuthenticated = member !== null;
+  // 未登录才锁门；已登录 cookie 会话直接渲染正文。
+  const memberGate = requiresMember && !memberAuthenticated;
+
   sendHtml(
     reply,
     200,
@@ -101,9 +194,14 @@ async function renderPath(
       origin: requestOrigin(request),
       site: result.site,
       page: result.page,
-      memberGate: result.page.requires_member === true,
+      memberGate,
       accountEntryHtml: accountEntry.html,
+      enabledEntitlements,
     }),
+    {
+      // 登录态页头 / 解锁正文因人而异，禁止公共缓存。
+      privateCache: memberAuthenticated || requiresMember,
+    },
   );
 }
 

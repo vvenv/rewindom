@@ -2,6 +2,7 @@
 import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
 import { handleRouteError } from "@be-water/server-kernel/http/route-error-handler.js";
+import { loadTenantLabelsBySlugs } from "@be-water/server-kernel/lib/tenant-labels.js";
 import { success } from "@be-water/shared";
 
 import { AuditService } from "./audit.service.js";
@@ -50,10 +51,17 @@ export async function registerPlatformAuditRoutes(
         }),
       ]);
 
+      const labels = await loadTenantLabelsBySlugs(
+        logs.map((log) => log.tenant_slug ?? ""),
+      );
+
       return reply.send(
         success({
           items: logs.map((log) => ({
             ...log,
+            tenant_name: log.tenant_slug
+              ? (labels.get(log.tenant_slug)?.name ?? null)
+              : null,
             created_at: log.created_at.toISOString(),
           })),
           page: pageNum,

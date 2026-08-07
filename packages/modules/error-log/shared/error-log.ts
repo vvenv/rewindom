@@ -34,6 +34,8 @@ export interface ErrorLog {
   user_id: string | null;
   username: string | null;
   tenant_slug?: string | null;
+  /** 平台侧列表按 slug 回填的租户名称。 */
+  tenant_name?: string | null;
   route: string | null;
   method: string | null;
   ip_address: string | null;

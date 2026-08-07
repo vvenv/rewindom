@@ -189,4 +189,57 @@ describe("createApiClient isolation", () => {
 
     resume();
   });
+
+  it("cookie authMode uses credentials and skips Authorization", async () => {
+    const store = memoryTokenStore();
+    const client = createApiClient(
+      clientOptions(store, {
+        refreshPath: "/member/refresh",
+        refreshBodyKey: "refresh_token",
+        tokenRefreshedEvent: "tokenRefreshedMember",
+        authLogoutEvent: "authLogoutMember",
+        authMode: "cookie",
+        credentials: "include",
+      }),
+    );
+
+    let sawMe = false;
+    let sawRefresh = false;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.includes("/member/me")) {
+          sawMe = true;
+          expect(init?.credentials).toBe("include");
+          const auth = (init?.headers as Record<string, string> | undefined)
+            ?.Authorization;
+          expect(auth).toBeUndefined();
+          if (!sawRefresh) {
+            return new Response(JSON.stringify({ error: "unauthorized" }), {
+              status: 401,
+            });
+          }
+          return new Response(JSON.stringify({ data: { ok: true } }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/member/refresh")) {
+          sawRefresh = true;
+          expect(init?.credentials).toBe("include");
+          expect(init?.body).toBe("{}");
+          return new Response(JSON.stringify({ data: { refreshed: true } }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response("not found", { status: 404 });
+      }),
+    );
+
+    await expect(client.get("/member/me")).resolves.toEqual({ ok: true });
+    expect(sawMe).toBe(true);
+    expect(sawRefresh).toBe(true);
+  });
 });

@@ -3,7 +3,6 @@ import { useEffect, useState, type FormEvent, type ReactElement } from "react";
 import { useTenantModuleEnabled } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
 import {
   Select,
   SelectContent,
@@ -26,7 +25,10 @@ import {
   type ThemeSettings,
 } from "../../../shared/theme-sections.js";
 import { useSite, useSiteMutations } from "../../hooks/useSite.js";
+import { SiteImageField } from "../media/SiteImageField.js";
 import { SiteColorField } from "../SiteColorField.js";
+
+import { SiteThemePicker } from "./SiteThemePicker.js";
 
 const FALLBACK_COLOR = "#0f766e";
 
@@ -98,25 +100,42 @@ function SiteThemeForm({ canWrite }: SiteThemeCardProps): ReactElement | null {
         </p>
       </div>
 
+      <SiteThemePicker canWrite={canWrite} />
+
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="site_logo_url">
             {t("cms.fieldLogoUrl")}
           </FieldLabel>
-          <Input
+          <SiteImageField
             id="site_logo_url"
             disabled={!canWrite}
             placeholder={t("cms.fieldLogoUrlPlaceholder")}
             value={draft.logo_url ?? ""}
-            onChange={(event) =>
-              setDraft({
-                ...draft,
-                logo_url: event.target.value.trim() || null,
-              })
+            onChange={(next) =>
+              setDraft({ ...draft, logo_url: next.trim() || null })
             }
           />
           <p className="text-muted-foreground text-xs">
             {t("cms.fieldLogoUrlHint")}
+          </p>
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="site_og_image">
+            {t("editor.setting.site_og_image")}
+          </FieldLabel>
+          <SiteImageField
+            id="site_og_image"
+            disabled={!canWrite}
+            placeholder="/uploads/og.png"
+            value={draft.og_image ?? ""}
+            onChange={(next) =>
+              setDraft({ ...draft, og_image: next.trim() || null })
+            }
+          />
+          <p className="text-muted-foreground text-xs">
+            {t("editor.info.site_og_image")}
           </p>
         </Field>
 

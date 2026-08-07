@@ -43,10 +43,22 @@ export type Placement = (typeof PLACEMENTS)[number];
 export type PageSectionType = (typeof PAGE_SECTION_TYPES)[number];
 export type AreaSectionType = (typeof AREA_SECTION_TYPES)[number];
 export type ReservedSectionType = (typeof RESERVED_SECTION_TYPES)[number];
-export type SectionType =
+
+/** 本模块自带的段。仍是闭合联合，`Record<BuiltinSectionType, …>` 的穷尽检查照旧有效。 */
+export type BuiltinSectionType =
   | PageSectionType
   | AreaSectionType
   | ReservedSectionType;
+
+/**
+ * 段的 type。
+ *
+ * **不是闭合联合**：业务模块可以贡献自己的段（`registerSiteSectionHtml` /
+ * `registerSiteSectionView`），它们的 type 在编译期无从枚举。想拿到定义一律走
+ * `getSectionDefinition()`，它可能返回 `undefined`——那正是「这份代码不认识这个段」，
+ * 由 `unsupported` 那套口径接住。
+ */
+export type SectionType = string;
 
 export interface BlockDefinition {
   type: string;
@@ -77,6 +89,13 @@ export interface SectionDefinition {
   max_blocks?: number;
   /** 新建时预置的 blocks（对齐 Shopify preset）。 */
   preset_blocks?: Array<{ type: string; settings?: SettingValues }>;
+  /**
+   * 仅贡献段：租户开通了这项 entitlement 才可用。
+   *
+   * 未开通时不进「添加区块」菜单，也不渲染——已经摆在页面上的那一段会走
+   * `unsupported` 口径原样兜住，重新开通就自动回来（见 `section-schema.ts`）。
+   */
+  entitlement?: string;
 }
 
 /** 存储结构：section / block 都是 `{ id, type, settings }`。 */

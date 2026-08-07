@@ -117,6 +117,40 @@ export type MarketingPage = Prisma.MarketingPageModel
  */
 export type MarketingFormSubmission = Prisma.MarketingFormSubmissionModel
 /**
+ * Model MarketingRedirect
+ * *
+ *  * 站内 301/302 重定向。
+ *  *
+ *  * 迁站、改 slug、下线活动页时用来保住外部链接与既有排名。按 `from_path` 精确匹配，
+ *  * **不**做通配/正则：通配规则写错的后果是整站进重定向循环，而这类规则又恰恰最难在
+ *  * 编辑器里看出对不对。真需要批量时，多加几条明确的记录比一条聪明的规则可靠。
+ */
+export type MarketingRedirect = Prisma.MarketingRedirectModel
+/**
+ * Model MarketingAsset
+ * *
+ *  * 媒体库里的一张图。
+ *  *
+ *  * 以前上传只落盘、不落库：URL 一旦从编辑器里删掉，那个文件就再也找不回来，也没人知道
+ *  * 它还在不在被引用。有了这行才谈得上「列出来、复用、删掉、写 alt」。
+ *  *
+ *  * `alt` 存在这里而不是随每个引用点存一份：同一张图在十个地方用，无障碍文案不该抄十遍。
+ */
+export type MarketingAsset = Prisma.MarketingAssetModel
+/**
+ * Model MarketingPageVersion
+ * *
+ *  * 页面正文的一次发布快照。
+ *  *
+ *  * 现有的草稿 / 线上两列只回答「有没有未发布的改动」，答不了「上周三线上是什么样」。
+ *  * 每次发布存一份，才谈得上回滚到任意一版——而不是只能撤销到最近一次发布。
+ *  *
+ *  * 存**完整正文**而不是 diff：正文是一棵 section 树，逐版存 diff 要在读取时按序重放，
+ *  * 中间任何一版损坏就全线报废；而一页正文才几十 KB，直接存整份换来的是「任何一版都能
+ *  * 独立读出来」。
+ */
+export type MarketingPageVersion = Prisma.MarketingPageVersionModel
+/**
  * Model Note
  * 
  */

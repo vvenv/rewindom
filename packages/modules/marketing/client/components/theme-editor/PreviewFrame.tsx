@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { createPortal } from "react-dom";
 
-import { MARKETING_SITE_CSS } from "../../../shared/marketing-site-css.js";
+import { loadMarketingSiteCss } from "../../../shared/load-marketing-site-css.js";
 import { PreviewDocumentContext } from "../../lib/preview-document-context.js";
 
 /**
@@ -32,17 +32,23 @@ const STYLE_MARK = "data-marketing-site-style";
  * 用来告诉租户「这一块也点得动」——选中框画在 iframe 外面，光看静止画面
  * 分不出哪些是可选单元。
  */
-const FRAME_CSS = [
-  `html,body{height:100%}`,
-  `body{margin:0;color:var(--fg);background:var(--bg)}`,
-  `html::-webkit-scrollbar{width:10px;height:10px}`,
-  `html::-webkit-scrollbar-track{background:transparent}`,
-  `html::-webkit-scrollbar-thumb{background:color-mix(in srgb,currentColor 25%,transparent);border-radius:5px}`,
-  `html::-webkit-scrollbar-corner{background:transparent}`,
-  MARKETING_SITE_CSS,
-  `[data-block-id]{outline:1px dashed transparent;outline-offset:2px;transition:outline-color .12s}`,
-  `[data-block-id]:hover{outline-color:color-mix(in srgb,currentColor 30%,transparent)}`,
-].join("\n");
+/*
+ * 每次注入时重新拼，**不能**在模块顶层算好一份常量：贡献段的 CSS 是运行期注册的
+ *（`registerSiteSectionView`），模块顶层的常量会在它们注册之前就冻住。
+ */
+function frameCss(): string {
+  return [
+    `html,body{height:100%}`,
+    `body{margin:0;color:var(--fg);background:var(--bg)}`,
+    `html::-webkit-scrollbar{width:10px;height:10px}`,
+    `html::-webkit-scrollbar-track{background:transparent}`,
+    `html::-webkit-scrollbar-thumb{background:color-mix(in srgb,currentColor 25%,transparent);border-radius:5px}`,
+    `html::-webkit-scrollbar-corner{background:transparent}`,
+    loadMarketingSiteCss(),
+    `[data-block-id]{outline:1px dashed transparent;outline-offset:2px;transition:outline-color .12s}`,
+    `[data-block-id]:hover{outline-color:color-mix(in srgb,currentColor 30%,transparent)}`,
+  ].join("\n");
+}
 
 function injectMarketingStyles(to: Document): void {
   for (const stale of to.head.querySelectorAll(`[${STYLE_MARK}]`)) {
@@ -50,7 +56,7 @@ function injectMarketingStyles(to: Document): void {
   }
   const style = to.createElement("style");
   style.setAttribute(STYLE_MARK, "");
-  style.textContent = FRAME_CSS;
+  style.textContent = frameCss();
   to.head.append(style);
 }
 
@@ -216,13 +222,13 @@ export function PreviewFrame({
           >
             {highlightLabel ? (
               <span
-                className="absolute left-0 bg-primary/70 p-1 text-xs leading-none font-medium whitespace-nowrap text-primary-foreground"
+                className="absolute bg-primary/70 p-1 text-xs leading-none font-medium whitespace-nowrap text-primary-foreground"
                 // 标签默认贴在框**上方**；框已经顶到预览区顶端时翻到框内，
                 // 否则会被外层的 overflow-hidden 裁掉。
                 style={
                   primaryRect.top >= 18
-                    ? { bottom: "100%", marginBottom: 2 }
-                    : { top: 2 }
+                    ? { left: 0, bottom: "100%", marginBottom: 1 }
+                    : { left: 2, top: 2 }
                 }
               >
                 {highlightLabel}

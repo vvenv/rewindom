@@ -17,6 +17,22 @@ export function displayOrEmpty(
 }
 
 /**
+ * Platform console tenant column: prefer `名称（slug）`, fall back to either part.
+ * Matches the platform users table convention.
+ */
+export function formatTenantDisplayLabel(
+  name: string | null | undefined,
+  slug: string | null | undefined,
+): string {
+  const trimmedName = typeof name === "string" ? name.trim() : "";
+  const trimmedSlug = typeof slug === "string" ? slug.trim() : "";
+  if (trimmedName && trimmedSlug) return `${trimmedName}（${trimmedSlug}）`;
+  if (trimmedName) return trimmedName;
+  if (trimmedSlug) return trimmedSlug;
+  return EMPTY_DISPLAY;
+}
+
+/**
  * Format a duration in milliseconds to a human-readable string.
  * @param ms - Duration in milliseconds
  * @returns Formatted duration string (e.g., "500ms", "1.5s", "2m 30s")

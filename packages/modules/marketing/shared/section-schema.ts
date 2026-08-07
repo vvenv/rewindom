@@ -22,10 +22,10 @@ import {
 } from "./section-settings.js";
 import {
   getBlockDefinition,
+  getSectionDefinition,
   isContainerSection,
   isPageSectionType,
   resolveGroupSpans,
-  SECTION_DEFINITIONS,
   type AreaSectionType,
   type PageSectionType,
   type SectionDefinition,
@@ -73,7 +73,9 @@ export function createBlock(
 }
 
 export function createSection(type: SectionType): SiteSection {
-  const def = SECTION_DEFINITIONS[type];
+  const def = getSectionDefinition(type);
+  // 造一个不认识的段没有意义：调用方要么传了内置 type，要么传了已注册的贡献段
+  if (!def) throw new Error("site.sections_invalid");
   return {
     id: createSectionId(),
     type,
@@ -186,7 +188,8 @@ function buildSection(
   fallbackId: string,
   options: ParseOptions,
 ): SiteSection {
-  const def = SECTION_DEFINITIONS[type];
+  const def = getSectionDefinition(type);
+  if (!def) throw new Error("site.sections_invalid");
   const settings = rawSettingsOf(row);
   return {
     id:
@@ -231,7 +234,7 @@ function readUnsupportedSource(
  * 代码里，没有任何模块开关能让 `pricing` 变成合法的页头段，兜着它也永远复活不了。
  */
 function isKnownSectionType(value: unknown): value is SectionType {
-  return typeof value === "string" && Object.hasOwn(SECTION_DEFINITIONS, value);
+  return typeof value === "string" && getSectionDefinition(value) !== undefined;
 }
 
 function buildUnsupportedSection(
@@ -383,7 +386,9 @@ export function localizeSection(
   locale: AppLocale,
   defaultLocale: AppLocale,
 ): SiteSection {
-  const def = SECTION_DEFINITIONS[section.type];
+  const def = getSectionDefinition(section.type);
+  // 不认识的段（`unsupported` 占位）没有 schema 可压，原样带过去
+  if (!def) return section;
   const localize = (defs: SettingDef[], values: SettingValues): SettingValues =>
     localizeUrlSettings(
       defs,
@@ -464,7 +469,8 @@ export function relocalizeSection(
   defaultLocale: AppLocale,
 ): SiteSection {
   if (from === to) return section;
-  const def = SECTION_DEFINITIONS[section.type];
+  const def = getSectionDefinition(section.type);
+  if (!def) return section;
   return {
     ...section,
     settings: relocalizeValues(
@@ -535,7 +541,7 @@ function parseAreaSectionList(
         // 复活出来的段得真能放进这个区域；放不进就是坏数据，丢（口径见 isKnownSectionType）
         if (
           parsed.type !== UNSUPPORTED_TYPE &&
-          !SECTION_DEFINITIONS[parsed.type].placements.includes(area)
+          !getSectionDefinition(parsed.type)?.placements.includes(area)
         ) {
           throw new Error("site.sections_invalid");
         }
@@ -555,7 +561,7 @@ function parseAreaSectionList(
         );
         continue;
       }
-      if (!SECTION_DEFINITIONS[type].placements.includes(area)) {
+      if (!getSectionDefinition(type)?.placements.includes(area)) {
         throw new Error("site.sections_invalid");
       }
       sections.push(buildSection(type, raw, createSectionId(), options));

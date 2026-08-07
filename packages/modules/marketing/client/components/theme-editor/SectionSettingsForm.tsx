@@ -109,6 +109,14 @@ export function SectionSettingsForm({
   }
 
   const def = getSectionDefinition(section.type);
+  // 认不出来的段在上面那支就返回了；这里还拿不到定义只可能是贡献段没在客户端注册
+  if (!def) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("editor.unsupportedSection", { type: section.type })}
+      </p>
+    );
+  }
   return (
     <ScopedSettings
       label={t(def.label)}

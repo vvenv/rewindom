@@ -83,6 +83,14 @@ describe("renderHeaderHtml 账户入口", () => {
     expect(html).toContain('href="/member/login"');
   });
 
+  it("已登录菜单也能灌进页头", () => {
+    const menu =
+      '<details class="member-menu"><summary>Ada</summary></details>';
+    const html = renderHeader(header({ show_account: true }), menu);
+    expect(html).toContain("member-menu");
+    expect(html).not.toContain('href="/member/login"');
+  });
+
   it("开关关掉时不渲染", () => {
     const html = renderHeader(header({ show_account: false }), ENTRY_HTML);
     expect(html).not.toContain('href="/member/login"');

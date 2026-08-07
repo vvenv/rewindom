@@ -12,7 +12,10 @@ import {
 } from "../shared/site-cms.js";
 import { SITE_ENHANCE_HASH } from "../shared/site-enhance.js";
 import { withSiteLocale } from "../shared/site-locale.js";
-import { resolveThemeSettings } from "../shared/theme-sections.js";
+import {
+  resolveThemeSettings,
+  THEME_SECTION_SPACING,
+} from "../shared/theme-sections.js";
 
 import { renderPageSectionsHtml } from "./render-page-sections-html.js";
 import {
@@ -68,6 +71,50 @@ function localeSwitcherOptions(
   }));
 }
 
+/**
+ * 社交分享卡片（Open Graph + Twitter）。
+ *
+ * `og:image` 必须是**绝对地址**——抓取器不带页面上下文，相对路径一律取不到图。
+ * 页面级留空回落站点级默认；都没有就整组图片标签不出，而不是出一个空 `content`
+ *（空值会让部分平台显示成裂图占位）。
+ */
+function renderSocialMetaHtml(input: {
+  base: string;
+  canonical: string;
+  title: string;
+  description: string;
+  siteName: string;
+  image: string | null;
+  locale: string;
+}): string {
+  const absolute = input.image
+    ? input.image.startsWith("/")
+      ? `${input.base}${input.image}`
+      : input.image
+    : null;
+
+  const tags = [
+    `<meta property="og:type" content="website" />`,
+    `<meta property="og:site_name" content="${escapeHtml(input.siteName)}" />`,
+    `<meta property="og:title" content="${input.title}" />`,
+    `<meta property="og:url" content="${escapeHtml(input.canonical)}" />`,
+    `<meta property="og:locale" content="${escapeHtml(input.locale)}" />`,
+    input.description
+      ? `<meta property="og:description" content="${input.description}" />`
+      : "",
+    absolute ? `<meta property="og:image" content="${escapeHtml(absolute)}" />` : "",
+    // 有图走大图卡片，没图走摘要卡片——给 summary_large_image 却没有图会显示成空白框
+    `<meta name="twitter:card" content="${absolute ? "summary_large_image" : "summary"}" />`,
+    `<meta name="twitter:title" content="${input.title}" />`,
+    input.description
+      ? `<meta name="twitter:description" content="${input.description}" />`
+      : "",
+    absolute ? `<meta name="twitter:image" content="${escapeHtml(absolute)}" />` : "",
+  ].filter(Boolean);
+
+  return tags.join("\n  ");
+}
+
 function siteEnhanceScriptTag(): string {
   return `<script defer src="/api/public/site-enhance.js?v=${escapeHtml(SITE_ENHANCE_HASH)}"></script>`;
 }
@@ -76,10 +123,12 @@ export function renderMarketingHtml(input: {
   origin: string;
   site: PublicMarketingSite;
   page: PublicMarketingPage;
-  /** 会员专属页：正文占位 + robots noindex（token 不随 HTML 请求）。 */
+  /** 会员专属页且访客：正文占位 + robots noindex（已登录由 SSR 解锁）。 */
   memberGate?: boolean;
-  /** 页头账户入口（未登录态）的 HTML；见 `site-account-entry.ts`。 */
+  /** 页头账户入口 HTML（登录链或已登录菜单）；见 `site-account-entry.ts`。 */
   accountEntryHtml?: string;
+  /** 本租户已开通的 entitlement；贡献段据此决定渲不渲染，见 `site-entitlements.ts`。 */
+  enabledEntitlements?: ReadonlySet<string>;
 }): string {
   const {
     origin,
@@ -87,6 +136,7 @@ export function renderMarketingHtml(input: {
     page,
     memberGate = false,
     accountEntryHtml = "",
+    enabledEntitlements,
   } = input;
   const theme = resolveThemeSettings(site.theme_settings);
   const sectionCtx = {
@@ -94,6 +144,9 @@ export function renderMarketingHtml(input: {
     currentPath: page.path,
     locale: normalizeLocale(page.locale, site.default_locale),
     defaultLocale: site.default_locale,
+    sectionSpacing: theme.section_spacing ?? THEME_SECTION_SPACING.default,
+    // 贡献段据此决定渲不渲染；不传等于一个贡献段都不出（少了而不是多了，方向安全）
+    enabledEntitlements,
   };
   const base = origin.replace(/\/$/u, "");
   const locale = normalizeLocale(page.locale, site.default_locale);
@@ -125,6 +178,17 @@ export function renderMarketingHtml(input: {
       },
     }),
   );
+
+  const socialMeta = renderSocialMetaHtml({
+    base,
+    canonical,
+    title,
+    description,
+    siteName: site.site_name,
+    // 页面级覆盖站点级；都没有就不出图片标签
+    image: page.settings.og_image ?? theme.og_image ?? null,
+    locale,
+  });
 
   const logoUrl =
     theme.logo_url && theme.logo_url !== "" ? theme.logo_url : null;
@@ -159,16 +223,23 @@ export function renderMarketingHtml(input: {
     )
     .join("");
 
+  /*
+   * 两种 noindex：会员页是**结构性**的（SSR 只有占位，正文要登录才拉得到，收录了也
+   * 是一张空页），逐页开关是租户**主动**声明的。前者连 follow 一起掐，后者只是不收录
+   * 本页，页上的链接照常传递权重。
+   */
   const robotsMeta = memberGate
     ? `<meta name="robots" content="noindex, nofollow" />`
-    : "";
+    : page.settings.noindex
+      ? `<meta name="robots" content="noindex" />`
+      : "";
   const mainInner = memberGate
     ? `<div class="wrap" style="padding:4rem 1.5rem;text-align:center">
       <h1 style="font-size:1.5rem;font-weight:600;margin-bottom:.75rem">${escapeHtml(page.title)}</h1>
       <p class="muted" style="margin-bottom:1.5rem">${escapeHtml(page.description || "Sign in to read this content.")}</p>
       <p><a class="btn" href="/member/login?redirect=${encodeURIComponent(localizedPath)}">Sign in</a></p>
     </div>`
-    : renderPageSectionsHtml(site, page);
+    : renderPageSectionsHtml(site, page, enabledEntitlements);
 
   const mainStyle =
     page.settings.bg_color || page.settings.fg_color
@@ -195,6 +266,7 @@ export function renderMarketingHtml(input: {
   ${robotsMeta}
   <link rel="canonical" href="${escapeHtml(canonical)}" />
   ${alternateLinks}
+  ${socialMeta}
   <script type="application/ld+json">${jsonLd}</script>
   <script>${marketingSiteColorModeScript()}</script>
   <style>${siteCss(site.theme_settings)}</style>

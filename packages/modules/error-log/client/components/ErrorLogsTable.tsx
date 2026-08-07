@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { DataTable, DataTableColumnHeader } from "@be-water/client-kit";
-import { displayOrEmpty, formatBusinessDate } from "@be-water/shared";
+import { displayOrEmpty, formatBusinessDate, formatTenantDisplayLabel } from "@be-water/shared";
 import { Badge, type badgeVariants } from "@be-water/ui/badge";
 import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -74,8 +74,11 @@ function buildErrorLogColumns(
             ),
             enableSorting: true,
             cell: ({ row }) => (
-              <span className="font-mono text-muted-foreground">
-                {displayOrEmpty(row.getValue("tenant_slug"))}
+              <span className="text-muted-foreground">
+                {formatTenantDisplayLabel(
+                  row.original.tenant_name,
+                  row.original.tenant_slug,
+                )}
               </span>
             ),
           },

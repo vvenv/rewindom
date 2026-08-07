@@ -1,12 +1,5 @@
-import {
-  useId,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type ReactElement,
-} from "react";
+import { useId, type ReactElement } from "react";
 
-import { Button } from "@be-water/ui/button";
 import { Checkbox } from "@be-water/ui/checkbox";
 import {
   Field,
@@ -23,7 +16,6 @@ import {
   SelectValue,
 } from "@be-water/ui/select";
 import { Slider } from "@be-water/ui/slider";
-import { Spinner } from "@be-water/ui/spinner";
 import { Textarea } from "@be-water/ui/textarea";
 import {
   Tooltip,
@@ -32,7 +24,6 @@ import {
 } from "@be-water/ui/tooltip";
 import { Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 
 import {
   isInputSetting,
@@ -45,7 +36,7 @@ import {
   type SettingValue,
   type SettingValues,
 } from "../../../shared/section-schema.js";
-import { uploadSiteAsset } from "../../lib/site-api.js";
+import { SiteImageField } from "../media/SiteImageField.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 import { SiteColorField } from "../SiteColorField.js";
 
@@ -249,82 +240,6 @@ function SettingField({
   );
 }
 
-function ImageSettingControl({
-  fieldId,
-  value,
-  fallbackHint,
-  disabled,
-  onChange,
-  placeholder,
-}: {
-  fieldId: string;
-  value: string;
-  fallbackHint?: string;
-  disabled?: boolean;
-  onChange: (next: string) => void;
-  placeholder?: string;
-}): ReactElement {
-  const { t } = useTranslation("marketing");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-
-  const onFile = async (
-    event: ChangeEvent<HTMLInputElement>,
-  ): Promise<void> => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || disabled) return;
-    setUploading(true);
-    try {
-      const { url } = await uploadSiteAsset(file);
-      onChange(url);
-      toast.success(t("editor.toastImageUploaded"));
-    } catch {
-      toast.error(t("editor.toastImageUploadFailed"));
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-2">
-        <Input
-          id={fieldId}
-          disabled={disabled || uploading}
-          placeholder={fallbackHint || placeholder}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={disabled || uploading}
-          onClick={() => inputRef.current?.click()}
-        >
-          {uploading ? <Spinner className="size-4" /> : null}
-          {t("editor.uploadImage")}
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
-          className="hidden"
-          onChange={(event) => void onFile(event)}
-        />
-      </div>
-      {value ? (
-        <img
-          src={value}
-          alt=""
-          className="max-h-24 w-auto rounded-md border border-border/60 object-contain"
-        />
-      ) : null}
-    </div>
-  );
-}
-
 function SettingControl({
   def,
   fieldId,
@@ -351,12 +266,11 @@ function SettingControl({
 
     case "image":
       return (
-        <ImageSettingControl
-          fieldId={fieldId}
+        <SiteImageField
+          id={fieldId}
           value={text}
-          fallbackHint={fallbackHint}
           disabled={disabled}
-          placeholder={def.placeholder}
+          placeholder={fallbackHint || def.placeholder}
           onChange={onChange}
         />
       );

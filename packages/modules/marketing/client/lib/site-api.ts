@@ -34,6 +34,11 @@ export function fetchSiteCapabilities(): Promise<MarketingSiteCapabilities> {
   return api.get<MarketingSiteCapabilities>("/site/capabilities");
 }
 
+/** 套用主题包：只换外观 token，内容与 logo 不动。 */
+export function applySiteTheme(key: string): Promise<MarketingSite> {
+  return api.post<MarketingSite>(`/site/themes/${key}/apply`, {});
+}
+
 export function patchSite(
   body: UpdateMarketingSiteBody,
 ): Promise<MarketingSite> {

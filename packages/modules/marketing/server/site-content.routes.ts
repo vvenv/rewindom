@@ -4,6 +4,7 @@ import { isSiteMemberActor, type AppLocale } from "@be-water/shared";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
 import { renderPageSectionsHtml } from "./render-page-sections-html.js";
+import { resolveSectionEntitlements } from "./site-entitlements.js";
 import { getMemberContentPage } from "./site.service.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -126,7 +127,12 @@ export async function siteContentRoutes(app: FastifyInstance): Promise<void> {
       }
 
       return {
-        html: renderPageSectionsHtml(result.site, result.page),
+        html: renderPageSectionsHtml(
+          result.site,
+          result.page,
+          // 会员正文里同样可能有贡献段，闸门口径与公开 SSR 一致
+          await resolveSectionEntitlements(hostTenant.tenant_id),
+        ),
         title: result.page.title,
       };
     },

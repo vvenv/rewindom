@@ -10,6 +10,8 @@ export interface SlowQueryLogItem {
   route: string | null;
   method: string | null;
   tenant_slug: string | null;
+  /** 平台侧列表按 slug 回填的租户名称。 */
+  tenant_name?: string | null;
   user_id: string | null;
   username: string | null;
   request_id: string | null;

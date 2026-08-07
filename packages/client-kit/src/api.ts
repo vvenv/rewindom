@@ -65,6 +65,13 @@ export interface ApiClientOptions {
   tokenRefreshedEvent: string;
   /** 会话彻底失效时派发的 window 事件名。 */
   authLogoutEvent: string;
+  /**
+   * `bearer`（默认）：Authorization + localStorage tokenStore。
+   * `cookie`：HttpOnly cookie + credentials；不写 Authorization。
+   */
+  authMode?: "bearer" | "cookie";
+  /** fetch credentials；cookie 模式默认 `include`。 */
+  credentials?: RequestCredentials;
 }
 
 export interface ApiClient {
@@ -122,9 +129,11 @@ export interface ApiClient {
 function buildApiFetchInit(
   options: RequestInit,
   headers: Record<string, string>,
+  credentials?: RequestCredentials,
 ): RequestInit {
   return {
     cache: "no-store",
+    credentials,
     ...options,
     headers,
   };
@@ -156,7 +165,11 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
     refreshBodyKey,
     tokenRefreshedEvent,
     authLogoutEvent,
+    authMode = "bearer",
   } = options;
+  const credentials: RequestCredentials | undefined =
+    options.credentials ?? (authMode === "cookie" ? "include" : undefined);
+  const cookieAuth = authMode === "cookie";
 
   let isRefreshing = false;
   let tokenRefreshPaused = false;
@@ -176,16 +189,47 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
       throw new ApiError("令牌刷新已暂停", 401);
     }
 
-    const refreshToken = tokenStore.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error("没有可用的刷新令牌");
+    if (!cookieAuth) {
+      const refreshToken = tokenStore.getRefreshToken();
+      if (!refreshToken) {
+        throw new Error("没有可用的刷新令牌");
+      }
+
+      const response = await fetch(`${API_BASE}${refreshPath}`, {
+        method: "POST",
+        cache: "no-store",
+        credentials,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [refreshBodyKey]: refreshToken }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 401 || status === 403) {
+          tokenStore.clearTokens();
+        }
+        throw new ApiError("令牌刷新失败", status);
+      }
+
+      const data = await response.json();
+      const { accessToken, refreshToken: newRefreshToken } = data.data;
+      const tokens: AuthTokens = { accessToken, refreshToken: newRefreshToken };
+      tokenStore.setTokens(tokens);
+
+      window.dispatchEvent(
+        new CustomEvent(tokenRefreshedEvent, { detail: tokens }),
+      );
+
+      return tokens;
     }
 
+    // cookie 模式：refresh JWT 在 HttpOnly cookie 里，由浏览器自动带上。
     const response = await fetch(`${API_BASE}${refreshPath}`, {
       method: "POST",
       cache: "no-store",
+      credentials: credentials ?? "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [refreshBodyKey]: refreshToken }),
+      body: "{}",
     });
 
     if (!response.ok) {
@@ -196,15 +240,12 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
       throw new ApiError("令牌刷新失败", status);
     }
 
-    const data = await response.json();
-    const { accessToken, refreshToken: newRefreshToken } = data.data;
-    const tokens: AuthTokens = { accessToken, refreshToken: newRefreshToken };
+    // Set-Cookie 已由浏览器写入；占位 token 仅满足订阅者签名。
+    const tokens: AuthTokens = { accessToken: "", refreshToken: "" };
     tokenStore.setTokens(tokens);
-
     window.dispatchEvent(
       new CustomEvent(tokenRefreshedEvent, { detail: tokens }),
     );
-
     return tokens;
   }
 
@@ -229,14 +270,17 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
       headers["Content-Type"] = "application/json";
     }
 
-    if (!skipAuth) {
+    if (!skipAuth && !cookieAuth) {
       const token = tokenStore.getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
     }
 
-    const response = await fetch(url, buildApiFetchInit(fetchOptions, headers));
+    const response = await fetch(
+      url,
+      buildApiFetchInit(fetchOptions, headers, credentials),
+    );
 
     if (response.status === 401 && !skipAuth) {
       if (tokenRefreshPaused) {
@@ -246,8 +290,12 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
       if (isRefreshing) {
         return new Promise((resolve) => {
           subscribeTokenRefresh((tokens) => {
-            headers["Authorization"] = `Bearer ${tokens.accessToken}`;
-            resolve(fetch(url, buildApiFetchInit(fetchOptions, headers)));
+            if (!cookieAuth) {
+              headers["Authorization"] = `Bearer ${tokens.accessToken}`;
+            }
+            resolve(
+              fetch(url, buildApiFetchInit(fetchOptions, headers, credentials)),
+            );
           });
         });
       }
@@ -256,8 +304,13 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
       try {
         const tokens = await refreshAccessToken();
         onTokenRefreshed(tokens);
-        headers["Authorization"] = `Bearer ${tokens.accessToken}`;
-        return fetch(url, buildApiFetchInit(fetchOptions, headers));
+        if (!cookieAuth) {
+          headers["Authorization"] = `Bearer ${tokens.accessToken}`;
+        }
+        return fetch(
+          url,
+          buildApiFetchInit(fetchOptions, headers, credentials),
+        );
       } catch (error) {
         if (shouldClearAuthOnError(error)) {
           tokenStore.clearTokens();

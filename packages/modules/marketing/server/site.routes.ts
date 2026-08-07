@@ -9,13 +9,30 @@ import { AuditAction } from "../../audit/shared/index.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
-import { uploadSiteAsset } from "./site-asset.service.js";
+import {
+  deleteSiteAsset,
+  listSiteAssets,
+  updateSiteAssetAlt,
+  uploadSiteAsset,
+} from "./site-asset.service.js";
+import { resolveSectionEntitlements } from "./site-entitlements.js";
 import {
   deleteFormSubmission,
   listFormSubmissions,
 } from "./site-form.service.js";
 import {
+  getPageVersion,
+  listPageVersions,
+  restorePageVersion,
+} from "./site-page-version.service.js";
+import {
+  deleteSiteRedirect,
+  listSiteRedirects,
+  saveSiteRedirect,
+} from "./site-redirect.service.js";
+import {
   applySiteStarter,
+  applySiteTheme,
   createPage,
   deletePage,
   duplicatePage,
@@ -78,7 +95,14 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
         tenantId: tenant.tenant_id,
         locale: normalizeLocale(null),
       });
-      return { account_entry: entry.available } satisfies MarketingSiteCapabilities;
+      return {
+        account_entry: entry.available,
+        entitlements: [
+          ...(await resolveSectionEntitlements(
+            request.tenantContext!.tenant_id,
+          )),
+        ],
+      } satisfies MarketingSiteCapabilities;
     },
   });
 
@@ -402,6 +426,8 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
         const { page, site } = await publishEditorDraft(
           request.tenantContext!.tenant_id,
           pageId,
+          // 版本历史的「谁改的」一列；审计日志另有一条，两者用途不同
+          request.authUser!.username,
         );
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: request.authUser!.userId,
@@ -482,6 +508,238 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
         }
         throw err;
       }
+    },
+  });
+
+  /** 套用主题包：只换外观 token，内容与 logo 不动（见 `applySiteTheme`）。 */
+  defineRoute(app, {
+    method: "POST",
+    url: "/themes/:key/apply",
+    context: "SiteThemeApply",
+    errorCode: "SITE_THEME_APPLY_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const { key } = request.params as { key: string };
+        const site = await applySiteTheme(
+          request.tenantContext!.tenant_id,
+          key,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_UPDATE,
+          resource: site.id,
+          detail_key: "marketing.audit.theme_applied",
+          detail_params: { key },
+        });
+        return site;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  /* ------------------------------------------------------------ 版本历史 */
+
+  defineRoute(app, {
+    method: "GET",
+    url: "/pages/:pageId/versions",
+    context: "SitePageVersionList",
+    errorCode: "SITE_PAGE_VERSION_LIST_FAILED",
+    preHandler: [app.requirePermission("site.read")],
+    handler: async (request) => {
+      const { pageId } = request.params as { pageId: string };
+      return listPageVersions(request.tenantContext!.tenant_id, pageId);
+    },
+  });
+
+  defineRoute(app, {
+    method: "GET",
+    url: "/pages/:pageId/versions/:version",
+    context: "SitePageVersionDetail",
+    errorCode: "SITE_PAGE_VERSION_DETAIL_FAILED",
+    preHandler: [app.requirePermission("site.read")],
+    handler: async (request, reply) => {
+      const { pageId, version } = request.params as {
+        pageId: string;
+        version: string;
+      };
+      const detail = await getPageVersion(
+        request.tenantContext!.tenant_id,
+        pageId,
+        Number(version),
+      );
+      if (!detail) {
+        return sendCodedError(reply, 404, "site.page_version_not_found");
+      }
+      return detail;
+    },
+  });
+
+  /** 恢复到**草稿**，不直接覆盖线上——理由见 `restorePageVersion`。 */
+  defineRoute(app, {
+    method: "POST",
+    url: "/pages/:pageId/versions/:version/restore",
+    context: "SitePageVersionRestore",
+    errorCode: "SITE_PAGE_VERSION_RESTORE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      const { pageId, version } = request.params as {
+        pageId: string;
+        version: string;
+      };
+      const restored = await restorePageVersion(
+        request.tenantContext!.tenant_id,
+        pageId,
+        Number(version),
+      );
+      if (!restored) {
+        return sendCodedError(reply, 404, "site.page_version_not_found");
+      }
+      await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+        userId: request.authUser!.userId,
+        username: request.authUser!.username,
+        action: AuditAction.SITE_PAGE_VERSION_RESTORE,
+        resource: pageId,
+        detail_key: "marketing.audit.page_version_restored",
+        detail_params: { version },
+      });
+      return { restored: true };
+    },
+  });
+
+  /* -------------------------------------------------------------- 媒体库 */
+
+  defineRoute(app, {
+    method: "GET",
+    url: "/assets",
+    context: "SiteAssetList",
+    errorCode: "SITE_ASSET_LIST_FAILED",
+    preHandler: [app.requirePermission("site.read")],
+    handler: async (request) => {
+      const { tenant_id, tenant_slug } = request.tenantContext!;
+      return listSiteAssets(tenant_id, tenant_slug);
+    },
+  });
+
+  defineRoute(app, {
+    method: "PATCH",
+    url: "/assets/:id",
+    context: "SiteAssetUpdate",
+    errorCode: "SITE_ASSET_UPDATE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const { alt } = (request.body ?? {}) as { alt?: unknown };
+      const { tenant_id, tenant_slug } = request.tenantContext!;
+      const asset = await updateSiteAssetAlt(
+        tenant_id,
+        tenant_slug,
+        id,
+        typeof alt === "string" ? alt : "",
+      );
+      if (!asset) return sendCodedError(reply, 404, "site.asset_not_found");
+      return asset;
+    },
+  });
+
+  defineRoute(app, {
+    method: "DELETE",
+    url: "/assets/:id",
+    context: "SiteAssetDelete",
+    errorCode: "SITE_ASSET_DELETE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const removed = await deleteSiteAsset(
+        request.tenantContext!.tenant_id,
+        id,
+      );
+      if (!removed) return sendCodedError(reply, 404, "site.asset_not_found");
+      await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+        userId: request.authUser!.userId,
+        username: request.authUser!.username,
+        action: AuditAction.SITE_ASSET_DELETE,
+        resource: id,
+        detail_key: "marketing.audit.asset_deleted",
+      });
+      return { deleted: true };
+    },
+  });
+
+  /* -------------------------------------------------------------- 重定向 */
+
+  defineRoute(app, {
+    method: "GET",
+    url: "/redirects",
+    context: "SiteRedirectList",
+    errorCode: "SITE_REDIRECT_LIST_FAILED",
+    preHandler: [app.requirePermission("site.read")],
+    handler: async (request) =>
+      listSiteRedirects(request.tenantContext!.tenant_id),
+  });
+
+  /** 按 `from_path` upsert：同一个源只该有一条规则，重复添加即改目标。 */
+  defineRoute(app, {
+    method: "PUT",
+    url: "/redirects",
+    context: "SiteRedirectSave",
+    errorCode: "SITE_REDIRECT_SAVE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const redirect = await saveSiteRedirect(
+          request.tenantContext!.tenant_id,
+          request.body,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_REDIRECT_SAVE,
+          resource: redirect.id,
+          detail_key: "marketing.audit.redirect_saved",
+          detail_params: {
+            from_path: redirect.from_path,
+            to_path: redirect.to_path,
+          },
+        });
+        return redirect;
+      } catch (err) {
+        if (err instanceof Error && err.message.startsWith("site.")) {
+          return sendCodedError(reply, 400, err.message);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "DELETE",
+    url: "/redirects/:id",
+    context: "SiteRedirectDelete",
+    errorCode: "SITE_REDIRECT_DELETE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const removed = await deleteSiteRedirect(
+        request.tenantContext!.tenant_id,
+        id,
+      );
+      if (!removed) {
+        return sendCodedError(reply, 404, "site.redirect_not_found");
+      }
+      await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+        userId: request.authUser!.userId,
+        username: request.authUser!.username,
+        action: AuditAction.SITE_REDIRECT_DELETE,
+        resource: id,
+        detail_key: "marketing.audit.redirect_deleted",
+      });
+      return { deleted: true };
     },
   });
 

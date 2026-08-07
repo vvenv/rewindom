@@ -11,7 +11,7 @@ import {
 } from "./site-css/assemble.mjs";
 import { MARKETING_SITE_CSS } from "./marketing-site-css.js";
 import { loadMarketingSiteCss } from "./load-marketing-site-css.js";
-import { SECTION_DEFINITIONS } from "./sections/index.js";
+import { BUILTIN_SECTION_DEFINITIONS } from "./sections/index.js";
 import type { SectionType } from "./sections/types.js";
 
 const SHARED_ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -49,7 +49,7 @@ describe("marketing-site-css", () => {
 
   it("lists a styles.css for every registered section type", () => {
     const sources = new Set(listMarketingSiteCssSources());
-    const registered = Object.keys(SECTION_DEFINITIONS) as SectionType[];
+    const registered = Object.keys(BUILTIN_SECTION_DEFINITIONS) as SectionType[];
     for (const type of registered) {
       const rel = `sections/${type}/styles.css`;
       expect(sources.has(rel), `sources.json missing ${rel}`).toBe(true);

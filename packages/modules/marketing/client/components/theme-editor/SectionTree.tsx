@@ -30,7 +30,6 @@ import { useTranslation } from "react-i18next";
 import {
   getSectionDefinition,
   isContainerSection,
-  PAGE_SECTION_TYPES,
   sectionTypesFor,
   settingText,
   type SectionType,
@@ -41,6 +40,7 @@ import {
   type DropPlace,
   type SectionDropTarget,
 } from "../../lib/section-schema.js";
+import { sectionTypeLabel } from "../../lib/section-type-label.js";
 
 import { BLOCK_ICONS, SECTION_ICONS } from "./section-icons.js";
 
@@ -55,6 +55,8 @@ export type AddTarget =
   | { kind: "area"; area: "header" | "footer" };
 
 interface SectionTreeProps {
+  /** 本站已开通的 entitlement；贡献段据此从「添加区块」菜单里过滤掉。 */
+  entitlements?: ReadonlySet<string>;
   sections: SiteSection[];
   header: SiteSection[];
   footer: SiteSection[];
@@ -98,6 +100,7 @@ type DragState =
  * 增删与排序集中在树里，右侧设置面板只负责渲染 schema。
  */
 export function SectionTree({
+  entitlements,
   sections,
   header,
   footer,
@@ -205,12 +208,9 @@ export function SectionTree({
   const revealColumns = drag?.kind === "section" && !drag.container;
 
   /** 容器段的列里能放什么：除了容器段自己——嵌套只允许一层。 */
-  const childSectionOptions = PAGE_SECTION_TYPES.filter(
-    (type) => !isContainerSection(type),
-  ).map((type) => ({
-    value: type,
-    label: t(getSectionDefinition(type).label),
-  }));
+  const childSectionOptions = sectionTypesFor("page", entitlements)
+    .filter((type) => !isContainerSection(type))
+    .map((type) => ({ value: type, label: sectionTypeLabel(t, type) }));
 
   /**
    * 页头 / 页脚区：与页面区块**同构**的一串 section。
@@ -244,11 +244,11 @@ export function SectionTree({
         <AddMenu
           key={`add-${area}-${list.length}`}
           placeholder={t("editor.addSection")}
-          options={sectionTypesFor(area)
+          options={sectionTypesFor(area, entitlements)
             .filter((type) => type !== area)
             .map((type) => ({
               value: type,
-              label: t(getSectionDefinition(type).label),
+              label: sectionTypeLabel(t, type),
             }))}
           onSelect={(type) =>
             onAddSection(type as SectionType, { kind: "area", area })
@@ -276,9 +276,9 @@ export function SectionTree({
     const container = isContainerSection(section.type);
     const expanded =
       expandedIds.has(section.id) || (revealColumns && container);
-    const blockTypes = def.blocks ?? [];
+    const blockTypes = def?.blocks ?? [];
     const blocksFull =
-      def.max_blocks !== undefined && section.blocks.length >= def.max_blocks;
+      def?.max_blocks !== undefined && section.blocks.length >= def.max_blocks;
 
     return (
       <div key={section.id}>
@@ -295,7 +295,7 @@ export function SectionTree({
               <Icon className="size-3.5 shrink-0 text-muted-foreground" />
             ) : null
           }
-          label={sectionLabel(section, t(def.label))}
+          label={sectionLabel(section, sectionTypeLabel(t, section.type))}
           canWrite={canWrite}
           movable={options.movable}
           removable={options.removable}
@@ -495,9 +495,9 @@ export function SectionTree({
           <AddMenu
             key={`add-section-${sections.length}`}
             placeholder={t("editor.addSection")}
-            options={PAGE_SECTION_TYPES.map((type) => ({
+            options={sectionTypesFor("page", entitlements).map((type) => ({
               value: type,
-              label: t(getSectionDefinition(type).label),
+              label: sectionTypeLabel(t, type),
             }))}
             onSelect={(type) =>
               onAddSection(type as SectionType, { kind: "page" })

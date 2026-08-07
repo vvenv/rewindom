@@ -74,3 +74,81 @@ model MarketingFormSubmission {
   @@index([tenant_id, created_at])
   @@index([tenant_id, section_id])
 }
+
+/**
+ * 站内 301/302 重定向。
+ *
+ * 迁站、改 slug、下线活动页时用来保住外部链接与既有排名。按 `from_path` 精确匹配，
+ * **不**做通配/正则：通配规则写错的后果是整站进重定向循环，而这类规则又恰恰最难在
+ * 编辑器里看出对不对。真需要批量时，多加几条明确的记录比一条聪明的规则可靠。
+ */
+model MarketingRedirect {
+  id          String   @id @default(uuid())
+  tenant_id   String
+  /** 源路径，站内绝对路径（`/old-pricing`）；同租户唯一。 */
+  from_path   String
+  /** 目标：站内路径或 http(s) 绝对地址。 */
+  to_path     String
+  /** 301 永久（默认，会被浏览器与搜索引擎缓存）/ 302 临时。 */
+  status_code Int      @default(301)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@unique([tenant_id, from_path])
+  @@index([tenant_id])
+}
+
+/**
+ * 媒体库里的一张图。
+ *
+ * 以前上传只落盘、不落库：URL 一旦从编辑器里删掉，那个文件就再也找不回来，也没人知道
+ * 它还在不在被引用。有了这行才谈得上「列出来、复用、删掉、写 alt」。
+ *
+ * `alt` 存在这里而不是随每个引用点存一份：同一张图在十个地方用，无障碍文案不该抄十遍。
+ */
+model MarketingAsset {
+  id          String   @id @default(uuid())
+  tenant_id   String
+  /** 落盘文件名（`<id><ext>`），也是公开 URL 的最后一段。 */
+  filename    String
+  mime_type   String
+  size_bytes  Int
+  /** 原始像素尺寸；解析不出来时为 0（SVG 没有固有尺寸）。 */
+  width       Int      @default(0)
+  height      Int      @default(0)
+  /** 无障碍替代文本；空表示装饰性图片。 */
+  alt         String   @default("")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@unique([tenant_id, filename])
+  @@index([tenant_id, created_at])
+}
+
+/**
+ * 页面正文的一次发布快照。
+ *
+ * 现有的草稿 / 线上两列只回答「有没有未发布的改动」，答不了「上周三线上是什么样」。
+ * 每次发布存一份，才谈得上回滚到任意一版——而不是只能撤销到最近一次发布。
+ *
+ * 存**完整正文**而不是 diff：正文是一棵 section 树，逐版存 diff 要在读取时按序重放，
+ * 中间任何一版损坏就全线报废；而一页正文才几十 KB，直接存整份换来的是「任何一版都能
+ * 独立读出来」。
+ */
+model MarketingPageVersion {
+  id          String   @id @default(uuid())
+  tenant_id   String
+  page_id     String
+  /** 同一页内自增，从 1 开始；展示与排序都用它，不用时间戳。 */
+  version     Int
+  title       String
+  description String   @default("")
+  sections    Json     @default("[]")
+  settings    Json     @default("{}")
+  /** 触发这次发布的用户，供「谁改的」一列。 */
+  created_by  String   @default("")
+  created_at  DateTime @default(now())
+
+  @@unique([tenant_id, page_id, version])
+  @@index([tenant_id, page_id, created_at])
+}

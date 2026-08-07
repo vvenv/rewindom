@@ -1,3 +1,4 @@
+import { formatTenantDisplayLabel } from "@be-water/shared";
 import { useTranslation } from "react-i18next";
 
 import { formatAmountCents, formatBillingDate } from "../lib/billing-format.js";
@@ -8,10 +9,12 @@ export function BillingPaymentsTable({
   payments,
   isLoading,
   error,
+  showTenantColumn = false,
 }: {
   payments: BillingPayment[];
   isLoading: boolean;
   error: Error | null;
+  showTenantColumn?: boolean;
 }) {
   const { t } = useTranslation(["billing", "common"]);
 
@@ -42,6 +45,9 @@ export function BillingPaymentsTable({
       <table className="w-full text-sm">
         <thead className="bg-muted/50 text-left">
           <tr>
+            {showTenantColumn ? (
+              <th className="px-3 py-2 font-medium">{t("table.tenant")}</th>
+            ) : null}
             <th className="px-3 py-2 font-medium">{t("payments.time")}</th>
             <th className="px-3 py-2 font-medium">{t("payments.plan")}</th>
             <th className="px-3 py-2 font-medium">{t("payments.amount")}</th>
@@ -52,6 +58,14 @@ export function BillingPaymentsTable({
         <tbody>
           {payments.map((payment) => (
             <tr key={payment.id} className="border-t">
+              {showTenantColumn ? (
+                <td className="px-3 py-2 text-sm">
+                  {formatTenantDisplayLabel(
+                    payment.tenant_name,
+                    payment.tenant_slug,
+                  )}
+                </td>
+              ) : null}
               <td className="px-3 py-2">
                 {formatBillingDate(payment.paid_at ?? payment.created_at)}
               </td>

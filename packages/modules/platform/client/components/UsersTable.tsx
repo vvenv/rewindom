@@ -1,7 +1,12 @@
 import { useMemo, type ComponentType  } from "react";
 
 import { DataTable, DataTableColumnHeader, usePublicConfig } from "@be-water/client-kit";
-import { formatLoginIdentifier, formatBusinessDate, formatBusinessDateOrTimeAgo  } from "@be-water/shared";
+import {
+  formatLoginIdentifier,
+  formatBusinessDate,
+  formatBusinessDateOrTimeAgo,
+  formatTenantDisplayLabel,
+} from "@be-water/shared";
 import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Spinner } from "@be-water/ui/spinner";
 import { cn } from "@be-water/ui/utils";
@@ -27,7 +32,10 @@ function buildPlatformUserColumns(
     enableSorting: true,
     cell: ({ row }) => (
       <span className="font-mono text-sm">
-        {row.original.tenant_name}（{row.original.tenant_slug}）
+        {formatTenantDisplayLabel(
+          row.original.tenant_name,
+          row.original.tenant_slug,
+        )}
       </span>
     ),
   };

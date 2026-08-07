@@ -1,4 +1,5 @@
-import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
+import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID, MEMBER_ACCESS_COOKIE } from "@be-water/shared";
+import FastifyCookie from "@fastify/cookie";
 import FastifyJWT from "@fastify/jwt";
 import Fastify, { type FastifyInstance } from "fastify";
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -84,6 +85,7 @@ describe("auth.middleware", () => {
     vi.clearAllMocks();
     vi.mocked(prisma.tenant.findFirst).mockResolvedValue(null);
     app = Fastify({ logger: false });
+    await app.register(FastifyCookie);
     await app.register(FastifyJWT, {
       secret: "test-secret",
     });
@@ -516,6 +518,55 @@ describe("auth.middleware", () => {
       expect(response.statusCode).toBe(200);
       expect(response.json().actor_type).toBe("site_member");
       expect(prisma.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("allows member access cookie on /api/member when no Bearer", async () => {
+      mockSiteMember();
+      const token = app.jwt.sign(memberPayload, { expiresIn: "1h" });
+      app.get("/api/member/me", async (request) => request.authUser);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/member/me",
+        cookies: { [MEMBER_ACCESS_COOKIE]: token },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().actor_type).toBe("site_member");
+    });
+
+    it("prefers Bearer over member cookie", async () => {
+      mockSiteMember();
+      const bearerToken = app.jwt.sign(memberPayload, { expiresIn: "1h" });
+      const cookieToken = app.jwt.sign(
+        { ...memberPayload, userId: "other-member" },
+        { expiresIn: "1h" },
+      );
+      app.get("/api/member/me", async (request) => request.authUser);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/member/me",
+        headers: { authorization: `Bearer ${bearerToken}` },
+        cookies: { [MEMBER_ACCESS_COOKIE]: cookieToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().userId).toBe("member-1");
+    });
+
+    it("does not accept member cookie on workbench API", async () => {
+      mockSiteMember();
+      const token = app.jwt.sign(memberPayload, { expiresIn: "1h" });
+      app.get("/api/notes", async () => ({ ok: true }));
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/notes",
+        cookies: { [MEMBER_ACCESS_COOKIE]: token },
+      });
+
+      expect(response.statusCode).toBe(401);
     });
 
     it("denies member token on workbench API", async () => {

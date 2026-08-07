@@ -6,6 +6,11 @@ import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/aud
 import { AuditAction } from "../../audit/shared/index.js";
 import { getPlatformSettings } from "../../platform/server/services/platform-settings.service.js";
 
+import {
+  clearMemberAuthCookies,
+  readMemberRefreshCookie,
+  setMemberAuthCookies,
+} from "./member-auth-cookies.js";
 import { requireSiteMember } from "./require-site-member.js";
 import {
   SITE_MEMBER_ACCESS_TOKEN_TTL_SECONDS,
@@ -25,7 +30,7 @@ import type {
   SiteMemberSession,
   SiteMemberUpdateProfileBody,
 } from "../shared/site-member.js";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply } from "fastify";
 
 /**
  * 平台开启验证码时强制校验。
@@ -54,20 +59,20 @@ async function assertCaptchaIfRequired(
   }
 }
 
-interface RefreshBody {
-  refresh_token: string;
-}
-
 function toSessionResponse(result: {
   member: SiteMemberSession["member"];
-  tokens: { accessToken: string; refreshToken: string };
 }): SiteMemberSession {
   return {
     member: result.member,
-    access_token: result.tokens.accessToken,
-    refresh_token: result.tokens.refreshToken,
     expires_in: SITE_MEMBER_ACCESS_TOKEN_TTL_SECONDS,
   };
+}
+
+function issueSessionCookies(
+  reply: FastifyReply,
+  tokens: { accessToken: string; refreshToken: string },
+): void {
+  setMemberAuthCookies(reply, tokens);
 }
 
 export async function siteMemberAuthRoutes(
@@ -95,7 +100,7 @@ export async function siteMemberAuthRoutes(
     url: "/register",
     context: "SiteMemberRegister",
     errorCode: "SITE_MEMBER_REGISTER_FAILED",
-    handler: async (request) => {
+    handler: async (request, reply) => {
       const body = request.body as SiteMemberRegisterBody;
       await assertCaptchaIfRequired(body.captcha);
       const tenant = await resolveSiteTenant(
@@ -119,6 +124,7 @@ export async function siteMemberAuthRoutes(
         tenant_slug: tenant.slug,
       });
 
+      issueSessionCookies(reply, result.tokens);
       return toSessionResponse(result);
     },
   });
@@ -128,7 +134,7 @@ export async function siteMemberAuthRoutes(
     url: "/login",
     context: "SiteMemberLogin",
     errorCode: "SITE_MEMBER_LOGIN_FAILED",
-    handler: async (request) => {
+    handler: async (request, reply) => {
       const body = request.body as SiteMemberLoginBody;
       await assertCaptchaIfRequired(body.captcha);
       const tenant = await resolveSiteTenant(
@@ -140,6 +146,7 @@ export async function siteMemberAuthRoutes(
         tenant,
         app.jwt.sign.bind(app.jwt),
       );
+      issueSessionCookies(reply, result.tokens);
       return toSessionResponse(result);
     },
   });
@@ -149,15 +156,16 @@ export async function siteMemberAuthRoutes(
     url: "/refresh",
     context: "SiteMemberRefresh",
     errorCode: "SITE_MEMBER_REFRESH_FAILED",
-    handler: async (request) => {
-      const { refresh_token } = request.body as RefreshBody;
+    handler: async (request, reply) => {
+      const refreshToken = readMemberRefreshCookie(request) ?? "";
       const tokens = await SiteMemberAuthService.refresh(
-        refresh_token ?? "",
+        refreshToken,
         app.jwt.sign.bind(app.jwt),
         app.jwt.verify.bind(app.jwt),
       );
-      // 与内核 refresh 一致用驼峰：client-kit 的刷新逻辑读 accessToken / refreshToken。
-      return tokens;
+      issueSessionCookies(reply, tokens);
+      // cookie 模式客户端不读 body；保留空对象以兼容 `{ data }` 包装。
+      return { refreshed: true };
     },
   });
 
@@ -166,11 +174,12 @@ export async function siteMemberAuthRoutes(
     url: "/logout",
     context: "SiteMemberLogout",
     errorCode: "SITE_MEMBER_LOGOUT_FAILED",
-    handler: async (request) => {
-      const { refresh_token } = request.body as RefreshBody;
-      if (refresh_token) {
-        await SiteMemberAuthService.logout(refresh_token);
+    handler: async (request, reply) => {
+      const refreshToken = readMemberRefreshCookie(request);
+      if (refreshToken) {
+        await SiteMemberAuthService.logout(refreshToken);
       }
+      clearMemberAuthCookies(reply);
       return { logged_out: true };
     },
   });
@@ -209,7 +218,7 @@ export async function siteMemberAuthRoutes(
     context: "SiteMemberChangePassword",
     errorCode: "SITE_MEMBER_CHANGE_PASSWORD_FAILED",
     preHandler: [requireSiteMember],
-    handler: async (request) => {
+    handler: async (request, reply) => {
       const { userId, tenant_id, username } = request.authUser!;
       await SiteMemberAuthService.changePassword(
         userId,
@@ -227,6 +236,7 @@ export async function siteMemberAuthRoutes(
         detail_params: { email: username },
       });
 
+      clearMemberAuthCookies(reply);
       return { changed: true };
     },
   });

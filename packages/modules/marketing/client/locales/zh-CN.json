@@ -392,7 +392,8 @@
       "appearance": "外观",
       "page": "页面",
       "headerItems": "页头显示",
-      "form": "表单"
+      "form": "表单",
+      "seo": "搜索与分享"
     },
     "info": {
       "markdown": "支持 Markdown 语法。",
@@ -423,7 +424,10 @@
       "show_theme_toggle": "站点始终跟随访客设备的深浅色偏好；打开后额外给访客一枚手动切换按钮。关掉不会锁死浅色。",
       "success_message": "留空则只显示一个对勾。",
       "field_options": "一行一个，仅「下拉选择」使用。",
-      "field_wide": "窄屏永远一列；这里只影响桌面排布。"
+      "field_wide": "窄屏永远一列；这里只影响桌面排布。",
+      "og_image": "分享到社交平台时显示的图。留空用站点默认；建议 1200×630。",
+      "noindex": "页面照常能访问，只是不进搜索结果，也不会出现在 sitemap 里。",
+      "site_og_image": "没有单独设置的页面都用它。不建议直接用 logo：方形图在分享卡片里会被裁。"
     },
     "unit": {
       "columns": "列",
@@ -508,7 +512,10 @@
       "placeholder": "占位提示",
       "field_required": "必填",
       "field_options": "可选项",
-      "field_wide": "独占一行"
+      "field_wide": "独占一行",
+      "og_image": "分享缩略图",
+      "noindex": "不被搜索引擎收录",
+      "site_og_image": "默认分享缩略图"
     },
     "option": {
       "align": {
@@ -810,6 +817,85 @@
       "time": "时间",
       "source": "来源",
       "content": "内容"
+    }
+  },
+  "redirects": {
+    "nav": "重定向",
+    "title": "重定向",
+    "pageDescription": "把旧地址跳到新地址，保住外部链接与搜索排名。",
+    "create": "新建重定向",
+    "createHint": "来源填站内路径；目标可以是站内路径或完整的 http(s) 地址。",
+    "from": "来源",
+    "to": "目标",
+    "type": "类型",
+    "permanent": "永久（301）",
+    "permanentHint": "永久会被浏览器与搜索引擎长期缓存；临时活动请关掉它。",
+    "permanentShort": "301",
+    "temporaryShort": "302",
+    "empty": "还没有重定向规则",
+    "loading": "加载中…",
+    "saved": "已保存",
+    "saveFailed": "保存失败",
+    "delete": "删除",
+    "deleted": "已删除",
+    "deleteFailed": "删除失败",
+    "deleteConfirmTitle": "删除这条重定向？",
+    "deleteConfirmDescription": "「{{from_path}}」将不再跳转，指向它的外部链接会落到 404。"
+  },
+  "media": {
+    "nav": "媒体库",
+    "title": "媒体库",
+    "pageDescription": "站点用到的图片；同一张图可以在多个区块里复用。",
+    "pick": "选图",
+    "pickTitle": "选择图片",
+    "pickHint": "点一张图直接用；也可以就地上传新的。",
+    "empty": "还没有图片",
+    "alt": "替代文本",
+    "altPlaceholder": "描述这张图（留空表示纯装饰）",
+    "altSaved": "已保存",
+    "altSaveFailed": "保存失败",
+    "copyUrl": "复制链接",
+    "urlCopied": "链接已复制",
+    "delete": "删除",
+    "deleted": "已删除",
+    "deleteFailed": "删除失败",
+    "deleteConfirmTitle": "删除这张图？",
+    "deleteConfirmDescription": "删除后无法恢复。仍在使用它的区块会变成裂图——系统不检查引用，请自行确认。"
+  },
+  "versions": {
+    "title": "版本历史",
+    "hint": "每次发布都会存一版。恢复会覆盖当前草稿，线上内容不受影响——确认无误后再发布。",
+    "empty": "还没有发布过，所以没有历史版本。",
+    "sectionCount": "{{count}} 个区块",
+    "restore": "恢复",
+    "restored": "已恢复到草稿",
+    "restoreFailed": "恢复失败",
+    "restoreConfirmTitle": "恢复到第 {{version}} 版？",
+    "restoreConfirmDescription": "当前草稿会被这一版覆盖（线上内容不变）。想让访客看到，还需要再发布一次。"
+  },
+  "theme": {
+    "title": "主题",
+    "hint": "一套配色与排版的预设。套用后可以继续单独微调下面的每一项。",
+    "apply": "套用",
+    "applied": "已套用",
+    "applyFailed": "套用失败",
+    "applyConfirmTitle": "套用这个主题？",
+    "applyConfirmDescription": "会覆盖当前的主色、字体、页宽与区块间距。页面内容与 logo 不受影响。",
+    "default": {
+      "label": "默认",
+      "description": "通用官网：中性蓝，常规页宽与间距。"
+    },
+    "docs": {
+      "label": "文档",
+      "description": "正文窄一档、段间距收紧，长页读起来不散。"
+    },
+    "bold": {
+      "label": "张扬",
+      "description": "高饱和主色 + 大段间距，适合落地页与活动页。"
+    },
+    "minimal": {
+      "label": "极简",
+      "description": "近黑主色配衬线字体，靠留白与字重分层次。"
     }
   }
 }

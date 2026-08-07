@@ -20,6 +20,14 @@ export interface SectionRenderContext {
   /** 主题的「区块间距」；容器段要拿它算列内子段之间的缝。 */
   sectionSpacing?: number;
   /**
+   * 本租户已开通的 entitlement。
+   *
+   * 只有贡献段用得上：渲染器按进程注册（模块装进这个部署就有），开通与否却是按租户的，
+   * 所以要在渲染时按租户拦一道。不传等于「一个贡献段都不渲染」——公开渲染路径必须传，
+   * 漏传的后果是内容少了而不是多了，这个方向是安全的。
+   */
+  enabledEntitlements?: ReadonlySet<string>;
+  /**
    * 渲染一整段（含外层色块）——**只有容器段用得上**，由聚合层 `renderSectionHtml`
    * 在下钻时注入。
    *

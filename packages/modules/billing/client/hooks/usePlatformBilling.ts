@@ -14,7 +14,7 @@ export function usePlatformBillingSubscriptions(params: {
   pageSize?: number;
   plan_slug?: string;
   status?: string;
-  tenant_id?: string;
+  tenant_slug?: string;
   sortBy?: string;
   sortDir?: "asc" | "desc";
 }) {
@@ -27,7 +27,7 @@ export function usePlatformBillingSubscriptions(params: {
       if (params.pageSize !== undefined) query.page_size = params.pageSize;
       if (params.plan_slug) query.plan_slug = params.plan_slug;
       if (params.status) query.status = params.status;
-      if (params.tenant_id) query.tenant_id = params.tenant_id;
+      if (params.tenant_slug) query.tenant_slug = params.tenant_slug;
       if (params.sortBy?.trim()) query.sort_by = params.sortBy;
       if (params.sortDir) query.sort_dir = params.sortDir;
       return api.get<BillingListResult<BillingSubscription>>(
@@ -42,7 +42,7 @@ export function usePlatformBillingPayments(params: {
   page?: number;
   pageSize?: number;
   status?: string;
-  tenant_id?: string;
+  tenant_slug?: string;
   sortBy?: string;
   sortDir?: "asc" | "desc";
 }) {
@@ -54,7 +54,7 @@ export function usePlatformBillingPayments(params: {
       if (params.page !== undefined) query.page = params.page;
       if (params.pageSize !== undefined) query.page_size = params.pageSize;
       if (params.status) query.status = params.status;
-      if (params.tenant_id) query.tenant_id = params.tenant_id;
+      if (params.tenant_slug) query.tenant_slug = params.tenant_slug;
       if (params.sortBy?.trim()) query.sort_by = params.sortBy;
       if (params.sortDir) query.sort_dir = params.sortDir;
       return api.get<BillingListResult<BillingPayment>>(

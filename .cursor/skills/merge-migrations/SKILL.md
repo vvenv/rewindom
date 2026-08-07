@@ -34,6 +34,18 @@ description: 将多条 Prisma migration 收敛（squash）为单条 init migrati
 
 数据 seed 不进 init，收敛后由独立脚本初始化（若有）。
 
+## 关键坑：GIN/GiST 索引会被加上非法的 ASC
+
+`migrate diff` 从库里读出 GIN 索引后，会照排序索引的模板给列补上 `ASC`：
+
+```sql
+-- 生成物（PostgreSQL 直接报错 access method "gin" does not support ASC/DESC options）
+CREATE INDEX "ErrorLog_request_body_idx" ON "public"."ErrorLog" USING GIN ("request_body" jsonb_path_ops ASC);
+```
+
+必须手动删掉 `ASC`。本仓库目前有一条这样的索引（`ErrorLog_request_body_idx`），
+新 init 里已带注释标明。收敛后**务必跑第 4 步的空库验证**——这个坑只在真正 apply 时才暴露。
+
 ## 关键坑：Enum 需条件创建
 
 `prisma migrate diff` 生成的 `CREATE TYPE` 语句**没有条件判断**，直接 `CREATE TYPE "EnumName" AS ENUM (...)`。

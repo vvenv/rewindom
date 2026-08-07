@@ -16,6 +16,18 @@ const SiteFormSubmissions = lazy(() =>
   })),
 );
 
+const SiteMedia = lazy(() =>
+  import("../pages/site-media.js").then((module) => ({
+    default: module.SiteMedia,
+  })),
+);
+
+const SiteRedirects = lazy(() =>
+  import("../pages/site-redirects.js").then((module) => ({
+    default: module.SiteRedirects,
+  })),
+);
+
 const SiteThemeEditor = lazy(() =>
   import("../pages/site-theme-editor.js").then((module) => ({
     default: module.SiteThemeEditor,
@@ -42,6 +54,8 @@ export function renderSiteRoutes(): ReactNode {
           path="/app/site/form-submissions"
           element={<SiteFormSubmissions />}
         />
+        <Route path="/app/site/media" element={<SiteMedia />} />
+        <Route path="/app/site/redirects" element={<SiteRedirects />} />
         <Route path="/app/site/pages/:pageId" element={<SiteThemeEditor />} />
       </Route>
     </Route>

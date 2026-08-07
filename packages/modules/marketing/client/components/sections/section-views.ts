@@ -10,6 +10,13 @@
 
 import type { ComponentType } from "react";
 
+import { registerSectionCss } from "../../../shared/load-marketing-site-css.js";
+import {
+  registerSectionDefinition,
+  type SectionDefinition,
+  type SectionType,
+} from "../../../shared/section-schema.js";
+
 import { BandSection } from "./views/band.js";
 import { CardsSection } from "./views/cards.js";
 import { FaqSection } from "./views/faq.js";
@@ -24,8 +31,9 @@ import { ProseSection } from "./views/prose.js";
 import { SpecListSection } from "./views/spec-list.js";
 import { StepsSection } from "./views/steps.js";
 
+
+
 import type { SectionViewProps } from "./section-parts.js";
-import type { SectionType } from "../../../shared/section-schema.js";
 
 export const SECTION_VIEWS: Partial<
   Record<SectionType, ComponentType<SectionViewProps>>
@@ -44,3 +52,26 @@ export const SECTION_VIEWS: Partial<
   "page-header": PageHeaderSection,
   prose: ProseSection,
 };
+
+/**
+ * 业务模块贡献一个段的 **客户端**入口（编辑器预览与工作台侧渲染）。
+ *
+ * 与 SSR 侧的 `registerSiteSectionHtml` 成对：两边分开注册不是设计取舍，是 bundle
+ * 的事实——React 组件进不了 Fastify。两边 import 同一份 definition，所以 schema
+ * 只有一处。在模块的 client manifest 加载时调（模块文件顶层即可）。
+ *
+ * ```ts
+ * // site-member/client/module.tsx
+ * registerSiteSectionView(memberGateSection, MemberGateSection);
+ * ```
+ */
+export function registerSiteSectionView(
+  definition: SectionDefinition,
+  view: ComponentType<SectionViewProps>,
+  /** 与 SSR 侧传同一份 CSS：编辑器预览注入的是同一个 `loadMarketingSiteCss()`。 */
+  options: { css?: string } = {},
+): void {
+  registerSectionDefinition(definition);
+  SECTION_VIEWS[definition.type] = view;
+  if (options.css) registerSectionCss(definition.type, options.css);
+}

@@ -73,8 +73,7 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 | `show_theme_toggle`     | 关   | 明暗内置且**永远跟随设备**；关掉只是不给手动按钮 |
 | `show_account`          | 开   | 租户是否开通会员（site-member）                  |
 
-语言切换器曾经是站点级设置（`theme_settings.show_locale_switcher`，
-`20260804030000`）；`20260806030000_marketing_header_chrome_toggles` 把它搬回页头并回填
+语言切换器曾经是站点级设置（`theme_settings.show_locale_switcher`），后来搬回页头并回填了
 存量值。搬回来的理由是这四个开关本就该在一处配完，分成两处租户得跑两个地方排同一行按钮。
 
 ### 明暗模式
@@ -116,17 +115,17 @@ SSR 在 `show_theme_toggle` 时输出 `<button class="theme-toggle">`；点击�
 未登录显示「登录」，登录后换成头像 + 账户下拉（账户页 / 退出登录）。
 
 服务端注入点 `server/site-account-entry.ts`（`registerSiteAccountEntry`），site-member 在
-`onBoot` 里填。它回答两件事：本站有没有账户能力（`available`），以及未登录态入口的 HTML
-（`html`）。宿主口径：
+`onBoot` 里填。它回答两件事：本站有没有账户能力（`available`），以及入口 HTML（登录链或
+已登录菜单）。宿主口径：
 
-| 宿主           | 数据来源                        | 渲染                                                 |
-| -------------- | ------------------------------- | ---------------------------------------------------- |
-| SSR 首屏       | 服务端注入点                    | 未开通不输出；开通了直接给「登录」链接               |
-| 公开站交互     | site-enhance + `/api/member/me` | 有会员 token 时把 `.member-entry` 升级成账户菜单     |
-| 主题编辑器预览 | `GET /api/site/capabilities`    | 开通了才灌 `SiteAccountEntryPreview`（slot）         |
+| 宿主           | 数据来源                        | 渲染                                                              |
+| -------------- | ------------------------------- | ----------------------------------------------------------------- |
+| SSR 首屏       | cookie 会话 + 服务端注入点      | 未开通不输出；访客「登录」；已登录直接输出账户菜单并解锁门控正文 |
+| 公开站交互     | site-enhance                    | 绑登出；SSR 仍是访客时用 cookie 探测 `/api/member/me` 升级菜单   |
+| 主题编辑器预览 | `GET /api/site/capabilities`    | 开通了才灌 `SiteAccountEntryPreview`（slot）                      |
 
-SSR 只画未登录那一态：会员 token 在 localStorage，不随 HTML 请求发送。
-次按钮（secondary）**不**默认成登录：登录归账户入口管。
+会员 JWT 在 HttpOnly cookie（`be-water_member_*`）里，随 HTML / XHR 同源发送；SSR 可
+直接解锁。次按钮（secondary）**不**默认成登录：登录归账户入口管。
 
 ### 公开站 site-enhance（交互层）
 
@@ -140,10 +139,10 @@ nginx 把绑定域的**所有** HTML 文档反代给 Fastify SSR。公开站**�
 
 | 能力         | 行为                                                                   |
 | ------------ | ---------------------------------------------------------------------- |
-| 明暗         | 读写 `localStorage.site-color-mode`，同步 `data-site-color-mode`       |
-| 表单         | 拦截 `.site-form` → `POST /api/public/site/form`                       |
-| 账户菜单     | Bearer `/api/member/me`（可 refresh）后替换登录链                      |
-| 会员专属正文 | Bearer `GET /api/site/content/page-html`，写入 `main[data-member-gate]` |
+| 明暗         | 读写 `localStorage.site-color-mode`，同步 `data-site-color-mode`                |
+| 表单         | 拦截 `.site-form` → `POST /api/public/site/form`                                |
+| 账户菜单     | SSR 已登录则绑登出；否则 `credentials` 调 `/api/member/me`（可 refresh）升级    |
+| 会员专属正文 | SSR 未解锁时 `credentials` 调 `GET /api/site/content/page-html` 写入门控 main |
 
 `/app` `/login` `/register` `/member` `/platform` 仍走 SPA（`SITE_APP_PREFIXES` /
 nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
@@ -317,6 +316,40 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 `shared/sections/{header,footer}/html.ts`（SSR）与 `SiteChrome.tsx`（SPA），
 不套 `sec-band` 外壳，也不在上面两张渲染器表里。
 
+#### 业务模块贡献 section
+
+段不必都住在 marketing 里。业务模块可以贡献自己的段，方向与 `site-account-entry` 一致：
+**注册表定义在消费方**（marketing），模块自己把定义填进来；marketing 不知道任何业务模块的
+存在，也不反向 import。首个真实用例是 site-member 的「会员专属内容」段。
+
+一个贡献段要三样东西，**定义只写一份**（放贡献方的 `shared/`，两端 import 同一个对象）：
+
+| 位置 | 做什么 |
+| --- | --- |
+| `<模块>/shared/xxx-section.ts` | `SectionDefinition`（type 必须带模块前缀） |
+| `<模块>/server/…` → `registerSiteSectionHtml(def, render, { css })` | 在 `onBoot` 里注册 SSR 渲染器 |
+| `<模块>/client/module.tsx` → `registerSiteSectionView(def, View, { css })` | 注册编辑器视图 |
+
+**为什么是两次注册而不是一次**：客户端与服务端本来就是两个 bundle，React 组件进不了
+Fastify。两边 import 同一份 definition，所以 schema 只有一处，不会漂。
+
+**type 必须带模块前缀**（`site-member.gate`）：段 type 会落进租户页面的存储里，两个模块
+撞名的后果是页面内容被另一个模块的 schema 解析——所以注册表对撞名**直接抛**，启动时炸掉
+远好过在某个租户的页面上悄悄错乱。
+
+**entitlement**：定义里声明 `entitlement`，租户没开通就不进「添加区块」菜单
+（`/api/site/capabilities` 回传已开通列表），也不渲染（`SectionRenderContext.enabledEntitlements`，
+由 `site-entitlements.ts` 按租户解析）。渲染器是**进程级**注册的、开通与否是**租户级**的，
+所以闸门只能在渲染时按租户拦。忘了传集合按「都没开通」处理——少了而不是多了。
+
+**CSS** 随注册一起交进来：内置段的样式构建期就打进 `MARKETING_SITE_CSS` 了，贡献段进不了
+那次打包，所以 `loadMarketingSiteCss()` 会把它们拼在最后（覆盖内置类时不必打优先级战争）。
+
+**停用之后不丢内容**：模块被移除或租户退订时，页面上已经摆好的那一段走下面的
+`unsupported` 口径原样兜住，重新启用就自动回来。这是这个契约敢用的前提。
+
+用例见 `shared/section-contribution.test.ts`。
+
 #### 撞见不认识的段
 
 页面里可能存着这份代码解析不了的段：模块停用、租户退订、或页面是更新版本写的。
@@ -469,6 +502,116 @@ API：
 - Entitlement key：`tenant-marketing`
 
 现有租户管理员补权限：`pnpm --filter server exec tsx scripts/sync-builtin-admin-permissions.ts`
+
+## 主题包与起步模板
+
+**主题包 = 一组 `theme_settings` 预设值**（`shared/site-themes.ts`：default / docs / bold /
+minimal），套用时直接写进站点的 `theme_settings`。
+
+**刻意不做成运行时的一层**（包的值 + 租户覆盖）：那样每个读 token 的地方都要处理级联，
+而租户改完一个颜色后「到底哪一份在生效」也说不清。写下去之后 `theme_settings` 始终是唯一
+真相源，「我改了主色」的行为就和它看起来的一样。代价是套用新包会**覆盖**已有微调——所以
+确认框里写清楚了，而不是悄悄换掉。
+
+包里**只有外观 token**，不含 `logo_url` / `og_image`：那是品牌资产不是风格，换配色不该把
+logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
+
+**起步模板 = 主题包 + 页面组合**（`SITE_STARTERS`：default / product / docs / landing）。
+都用同一批 `PAGE_PRESETS` 与 `SITE_THEMES` 拼，加一种 vertical 不用写新代码，只多一条声明。
+`buildSiteStarter` 对不认识的 key 返回 `null` 而不是回落成默认模板——静默回落会让人以为
+自己选的模板生效了。
+
+页头 / 页脚各模板暂时共用一套：区别在页面组合与主题，不在 chrome 结构。真需要不同页头的
+那天再给 `SiteStarter` 加字段，不先造一层用不上的抽象。
+
+用例见 `shared/site-themes.test.ts`。
+
+## 版本历史
+
+草稿 / 线上两列与版本历史是**两回事**：那两列回答「有没有未发布的改动」（撤销只能回到
+最近一次发布），`MarketingPageVersion` 回答「上周三线上是什么样」。
+
+- **只在发布时留档**。草稿保存是每敲几个字就发一次的自动动作，逐次留档会把历史淹没在
+  几百条无意义的中间态里；发布是一次有意的「就它了」。
+- **留档与发布同一个事务**。分开写的话，发布成功而留档失败会出现一版上线过、但历史里
+  查不到的内容——回滚时看到的版本列表就是错的。
+- **存完整正文，不是 diff**。逐版存 diff 要在读取时按序重放，中间任何一版损坏就全线报废；
+  一页正文才几十 KB，直接存整份换来的是「任何一版都能独立读出来」。
+- **恢复只落草稿，不动线上**。直接覆盖线上等于一键把访客看到的页面换成三周前的样子，
+  没有复核余地；落草稿后能先预览再决定发不发布，而发布又会留下新的一版，恢复错了也退得回去。
+- 每页保留 50 版，**按 `version` 修剪**而不是按时间戳（同一毫秒连发两次会撞时间）。
+- 读某一版时按**当前**这份 schema 重新解析：期间删掉的段走 `unsupported` 兜住，不会让
+  一版历史整个打不开。
+
+用例见 `server/site-page-version.service.test.ts`。
+
+## 媒体库
+
+上传以前只落盘、不落库：URL 一旦从编辑器里删掉，那个文件就再也找不回来，也没人知道它还
+在不在被引用。`MarketingAsset` 这一行才让「列出来、复用、删掉、写 alt」谈得上。
+
+- **落盘再落库**。反过来的话，写库成功而落盘失败会留下一条指向不存在文件的记录——媒体库
+  里一张永远加载不出来的裂图，比多一个没人引用的孤儿文件难处理得多。删除时相反：先删库
+  再删盘，删盘失败也算删成功（目标是「媒体库里不再有它」）。
+- **`alt` 存在 asset 上**，不随每个引用点各存一份：同一张图在十个地方用，无障碍文案不该抄十遍。
+- **像素尺寸靠读文件头**（`server/image-dimensions.ts`，PNG / GIF / WebP / JPEG），
+  不引 sharp：唯一用途是选图器里显示一行 `1200 × 630`，为它加一个原生依赖会把镜像和
+  构建时间都拖上一截。认不出来（SVG）存 0。
+- **删除不检查引用**。引用散在 section settings 的 JSON 里、还分草稿与线上两份，富文本里
+  手写的 URL 更扫不到——与其给一个似是而非的「安全」承诺，不如在确认框里说清楚不可逆。
+- **所有吃图片地址的字段统一用 `SiteImageField`**（文本框 + 选图 + 预览）：站点 logo、
+  站点 / 页面的分享图、以及 section 的 `image` 设置。留一个裸 `<Input>` 在那儿等于让租户
+  自己去别处复制 URL 再粘回来，媒体库就白建了。仍然保留手填——CDN 上的外链图不该被强制
+  先传进媒体库。
+- 选图而不是直接上传：同一张图在多处用是常态，每次都重新传只会堆出一堆一模一样的文件。
+  弹层里照样能就地上传，传完直接选中。
+
+> 目前**没有内置 section 声明 `image` 设置**（站点上唯一的图是页头页脚的 logo）。
+> `SiteImageField` 已经接好，加一个带图的段（媒体位 / hero 背景）时不用再碰这一层。
+
+**未做：多尺寸派生（responsive srcset）。** 需要真正的图像处理（sharp 或等价物），那是一个
+原生依赖，会影响 Docker 镜像体积与构建链路——这个取舍该由你来定，不该顺手带进来。
+
+## 重定向与 404
+
+访客访问一个地址时的顺序是**页面 → 重定向 → 404**：
+
+1. `getPublishedPublicPage` 找到已发布页 → 正常渲染
+2. 没找到 → 查 `MarketingRedirect`（精确匹配 `from_path`），命中就 301/302
+3. 还没有 → 自定义 404（slug 为 `404` 的已发布页），没建就用内置兜底页
+
+**顺序不能反。** 让重定向抢在真实页面前面的话，租户后来又建了同名页就永远打不开
+——而那种错很难联想到是几个月前加的一条重定向造成的。
+
+**只精确匹配，不支持通配 / 正则**：写错一条通配规则的后果是整站进重定向循环，而这类
+规则恰恰最难在编辑器里一眼看出对不对。需要批量时，几条明确的记录比一条聪明的规则可靠。
+
+**只跳一跳**：目标又是另一条规则的源时不继续解析。多跳解析要防环、要限深，收益只是省
+访客一次请求——真串起来了浏览器自己会走完，且它本来就有环保护。
+
+**目标只放行站内路径与 `http(s)://`**。`//evil.example` 与 `/\evil.example` 单看都以 `/`
+开头，但浏览器把它们当协议相对的**外站**地址——只判首字符就是一个开放重定向，两种写法
+都单独挡掉了（`shared/site-redirect.ts`）。
+
+**自定义 404 就是一张普通页面**（约定 slug `404`），用同一个编辑器排版、同一套发布流程
+上线。不另开表 / 另加 `kind`：约定一个 slug 比多一种「特殊页面」类型便宜得多。
+状态码仍然是 **404**，且强制 `noindex`——渲染出内容不代表这个地址存在，返 200 会让搜索
+引擎把每个死链都当成一张真页面收录（soft 404）。
+
+用例见 `shared/site-redirect.test.ts`、`server/site-redirect.service.test.ts`。
+
+## SEO meta
+
+| 能力 | 存哪 | 口径 |
+| --- | --- | --- |
+| 分享缩略图 | `theme_settings.og_image`（站点级）+ `page.settings.og_image`（逐页覆盖） | 相对路径按 origin 补成**绝对地址**——抓取器不带页面上下文；没图就整组图片标签不出（空 `content` 会被部分平台画成裂图），`twitter:card` 也相应退成 `summary` |
+| 逐页 noindex | `page.settings.noindex` | 只掐收录，链接权重照常传递；同时从 sitemap 摘掉——留在 sitemap 又标 noindex 是自相矛盾的信号 |
+| 会员页 noindex | 自动（`requires_member`） | `noindex, nofollow`：SSR 只有占位，收录了也是空页，所以连 follow 一起掐 |
+
+og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算一份。
+`og_image` 只放行站内相对路径与 http(s)：同一个值也会进编辑器预览的 `<img src>`。
+
+用例见 `server/ssr-seo.test.ts`。
 
 ## 表单段（`form`）
 

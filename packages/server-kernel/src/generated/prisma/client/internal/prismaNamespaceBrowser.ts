@@ -65,6 +65,9 @@ export const ModelName = {
   MarketingSite: 'MarketingSite',
   MarketingPage: 'MarketingPage',
   MarketingFormSubmission: 'MarketingFormSubmission',
+  MarketingRedirect: 'MarketingRedirect',
+  MarketingAsset: 'MarketingAsset',
+  MarketingPageVersion: 'MarketingPageVersion',
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
@@ -341,6 +344,51 @@ export const MarketingFormSubmissionScalarFieldEnum = {
 } as const
 
 export type MarketingFormSubmissionScalarFieldEnum = (typeof MarketingFormSubmissionScalarFieldEnum)[keyof typeof MarketingFormSubmissionScalarFieldEnum]
+
+
+export const MarketingRedirectScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  from_path: 'from_path',
+  to_path: 'to_path',
+  status_code: 'status_code',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MarketingRedirectScalarFieldEnum = (typeof MarketingRedirectScalarFieldEnum)[keyof typeof MarketingRedirectScalarFieldEnum]
+
+
+export const MarketingAssetScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  filename: 'filename',
+  mime_type: 'mime_type',
+  size_bytes: 'size_bytes',
+  width: 'width',
+  height: 'height',
+  alt: 'alt',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MarketingAssetScalarFieldEnum = (typeof MarketingAssetScalarFieldEnum)[keyof typeof MarketingAssetScalarFieldEnum]
+
+
+export const MarketingPageVersionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  page_id: 'page_id',
+  version: 'version',
+  title: 'title',
+  description: 'description',
+  sections: 'sections',
+  settings: 'settings',
+  created_by: 'created_by',
+  created_at: 'created_at'
+} as const
+
+export type MarketingPageVersionScalarFieldEnum = (typeof MarketingPageVersionScalarFieldEnum)[keyof typeof MarketingPageVersionScalarFieldEnum]
 
 
 export const NoteScalarFieldEnum = {

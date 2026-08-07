@@ -1,5 +1,5 @@
 import { CopyButton } from "@be-water/client-kit";
-import { displayOrEmpty, formatBusinessDate } from "@be-water/shared";
+import { displayOrEmpty, formatBusinessDate, formatTenantDisplayLabel } from "@be-water/shared";
 import { Badge, type badgeVariants } from "@be-water/ui/badge";
 import {
   Sheet,
@@ -70,7 +70,9 @@ export function SlowQueryLogSheet({
               </div>
               <div className="flex flex-col gap-1">
                 <p className="text-muted-foreground">{t("sheet.tenant")}</p>
-                <p className="font-mono">{displayOrEmpty(log.tenant_slug)}</p>
+                <p>
+                  {formatTenantDisplayLabel(log.tenant_name, log.tenant_slug)}
+                </p>
               </div>
               <div className="flex flex-col gap-1">
                 <p className="text-muted-foreground">{t("sheet.user")}</p>

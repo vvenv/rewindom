@@ -19,12 +19,12 @@
 ## 与 marketing 的边界
 
 - marketing **不** import site-member
-- 公开 CMS 页不挂 React：SSR 未登录入口由 `registerSiteAccountEntry` 注入；已登录菜单 /
-  会员正文由 marketing `site-enhance` 调 `/api/member/*` 与 `/api/site/content/page-html`
-- `/member/*` 仍走 React（`renderPublicRoutes` + `SiteMemberAuthProvider`）
+- 公开 CMS：SSR 通过 `registerSiteAccountEntry` + `registerSiteMemberSsrSession` 读
+  HttpOnly cookie，首屏输出登录态菜单并解锁门控页；`site-enhance` 仅绑登出 / 兜底升级
+- `/member/*` 仍走 React（`renderPublicRoutes` + `SiteMemberAuthProvider`，cookie 会话）
 - Theme Editor 预览用 marketing 的 `siteMemberEntrySlot` + 静态 `SiteAccountEntryPreview`
 - `MarketingPage.visibility=members` 的公开端点只返回摘要；JSON 正文仍可走
-  `/api/site/content/page`，公开站注入优先 `page-html`
+  `/api/site/content/page`，公开站优先 SSR 解锁（失败时 enhance 拉 `page-html`）
 
 ## 权限与开关
 

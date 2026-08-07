@@ -8,8 +8,9 @@
   },
   "scripts": {
     "assemble:marketing-css": "node marketing/shared/site-css/assemble.mjs",
+    "assemble:section-icons": "node marketing/shared/section-icons/assemble.mjs",
     "assemble:site-enhance": "node marketing/shared/site-enhance/assemble.mjs",
-    "assemble": "pnpm assemble:marketing-css && pnpm assemble:site-enhance",
+    "assemble": "pnpm assemble:marketing-css && pnpm assemble:section-icons && pnpm assemble:site-enhance",
     "pretest": "pnpm assemble",
     "pretypecheck": "pnpm assemble",
     "test": "vitest --run",
@@ -23,6 +24,7 @@
     "@be-water/shared": "workspace:*",
     "@be-water/ui": "workspace:*",
     "@fastify/caching": "^9.0.3",
+    "@fastify/cookie": "^11.1.2",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-table": "^8.21.3",
     "creem": "^1.6.0",

@@ -17,7 +17,7 @@ JWT / 请求上下文用 `actor_type` 区分身份（见 `packages/shared/src/au
 | `api_key` | `TenantApiKey` | `/api` 白名单 | 机器调用；路径黑名单限制 |
 | `site_member` | `SiteMember` | 站点前台 + `/member/*` | 租户站点的终端会员；**不进工作台、不进 PBAC** |
 
-站点会员是独立身份层：独立 refresh token 表、独立 localStorage key、独立 `createApiClient` 实例。`marketing` 通过 Component Slot 接入会员入口与门控，不反向依赖 `site-member`。
+站点会员是独立身份层：独立 refresh token 表、**HttpOnly cookie** 会话（与工作台 localStorage Bearer 隔离）、独立 `createApiClient`（`authMode: "cookie"`）。`marketing` 通过 Component Slot / SSR 注入点接入会员入口与门控，不反向依赖 `site-member`。
 
 > **多租户**：登录标识为 `username@tenant_slug`，默认租户 `default` 可省略后缀；**租户侧 UI 无感知**；平台管理员见 [`tenant-config.md`](./tenant-config.md) §5.8、§10.3。单租户部署见 `SINGLE_TENANT`。
 
@@ -355,14 +355,20 @@ JWT_SECRET=your-secret-key-min-32-chars
 
 ### 5.5 Token 存储策略
 
-**客户端**：
+**工作台（`tenant_user` / `platform_admin`）客户端**：
 
-- Access Token: 内存存储（sessionStorage 或 React Context）
-- Refresh Token: localStorage
+- Access Token + Refresh Token：localStorage（`be-water_access_token` / `be-water_refresh_token`）
+- 请求头：`Authorization: Bearer`
+
+**站点会员（`site_member`）**：
+
+- Access + Refresh JWT：HttpOnly cookie（`be-water_member_access` / `be-water_member_refresh`，`SameSite=Lax`，Host-only）
+- JSON 登录响应**不**返回 token 字符串；API 请求 `credentials: "include"`
+- 官网 SSR 可读 cookie：首屏直接渲染账号菜单并解锁会员门控页
 
 **服务端**：
 
-- Refresh Token: 存储在数据库，支持撤销
+- Refresh Token：存储在数据库，支持撤销
 
 ## 六、API 路由设计
 
@@ -468,7 +474,7 @@ PLATFORM_ADMIN_PASSWORD=<generated-on-bootstrap>
 1. **JWT Secret 安全**：使用强随机密钥，至少 32 字符
 2. **HTTPS**：生产环境必须使用 HTTPS
 3. **密码策略**：强制复杂密码（至少 8 位，包含大小写字母、数字、特殊字符）
-4. **Token 存储**：Refresh Token 存 localStorage；Access Token 存内存
+4. **Token 存储**：工作台 Access/Refresh 存 localStorage + Bearer；站点会员用 HttpOnly cookie
 5. **日志记录**：记录登录失败、异常登录等安全事件
 6. **定期清理**：定期清理过期的 Refresh Token 和审计日志
 7. **多租户隔离**：所有业务查询必须带 `tenant_id` 过滤

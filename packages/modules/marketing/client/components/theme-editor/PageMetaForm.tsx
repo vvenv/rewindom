@@ -11,6 +11,7 @@ import { Switch } from "@be-water/ui/switch";
 import { Textarea } from "@be-water/ui/textarea";
 import { useTranslation } from "react-i18next";
 
+import { SiteImageField } from "../media/SiteImageField.js";
 import { SiteColorField } from "../SiteColorField.js";
 
 import type {
@@ -114,6 +115,45 @@ export function PageMetaForm({
               disabled={disabled}
               onCheckedChange={(checked) =>
                 onChangeVisibility(checked ? "members" : "public")
+              }
+            />
+          </div>
+        </Field>
+
+        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase not-first:mt-2">
+          {t("editor.group.seo")}
+        </p>
+
+        <Field>
+          <FieldLabel htmlFor="page-meta-og-image">
+            {t("editor.setting.og_image")}
+          </FieldLabel>
+          <SiteImageField
+            id="page-meta-og-image"
+            value={settings.og_image ?? ""}
+            disabled={disabled}
+            placeholder="/uploads/og.png"
+            onChange={(next) =>
+              onChangeSettings({ ...settings, og_image: next || null })
+            }
+          />
+          <FieldDescription>{t("editor.info.og_image")}</FieldDescription>
+        </Field>
+
+        <Field>
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-1">
+              <FieldLabel htmlFor="page-meta-noindex">
+                {t("editor.setting.noindex")}
+              </FieldLabel>
+              <FieldDescription>{t("editor.info.noindex")}</FieldDescription>
+            </div>
+            <Switch
+              id="page-meta-noindex"
+              checked={settings.noindex === true}
+              disabled={disabled}
+              onCheckedChange={(checked) =>
+                onChangeSettings({ ...settings, noindex: checked })
               }
             />
           </div>

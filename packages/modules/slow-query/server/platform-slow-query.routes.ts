@@ -1,6 +1,7 @@
 
 import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
 import { handleRouteError } from "@be-water/server-kernel/http/route-error-handler.js";
+import { loadTenantLabelsBySlugs } from "@be-water/server-kernel/lib/tenant-labels.js";
 import { success } from "@be-water/shared";
 
 import { SlowQueryService } from "./slow-query.service.js";
@@ -58,9 +59,18 @@ export async function registerPlatformSlowQueryRoutes(
         }),
       ]);
 
+      const labels = await loadTenantLabelsBySlugs(
+        logs.map((log) => log.tenant_slug ?? ""),
+      );
+
       return reply.send(
         success({
-          items: logs,
+          items: logs.map((log) => ({
+            ...log,
+            tenant_name: log.tenant_slug
+              ? (labels.get(log.tenant_slug)?.name ?? null)
+              : null,
+          })),
           page: pageNum,
           page_size: pageSize,
           total,

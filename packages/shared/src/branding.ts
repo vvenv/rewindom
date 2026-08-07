@@ -5,8 +5,8 @@
  * be-water 上游需要中性品牌，而 be-water 需保持现有值——若散落成字面量，
  * 上游化就要改十几处且每次 merge 都冲突；集中后上游只改这一行。
  *
- * **不要改动本值**：`STORAGE_PREFIX` 参与认证 token 的 localStorage key，
- * 改动会让所有已登录用户掉线，并重置其客户端偏好。
+ * **不要改动本值**：`STORAGE_PREFIX` 参与工作台认证 token 的 localStorage key 与
+ * 会员 HttpOnly cookie 名，改动会让已登录用户掉线，并重置客户端偏好。
  */
 export const STORAGE_PREFIX = "be-water";
 

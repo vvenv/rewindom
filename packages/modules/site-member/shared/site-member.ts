@@ -36,10 +36,9 @@ export interface SiteMemberCaptchaInput {
   y: number;
 }
 
+/** 登录/注册成功后的会话；JWT 只在 HttpOnly cookie 里，不进 JSON。 */
 export interface SiteMemberSession {
   member: SiteMemberProfile;
-  access_token: string;
-  refresh_token: string;
   expires_in: number;
 }
 

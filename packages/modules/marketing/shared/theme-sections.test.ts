@@ -23,6 +23,7 @@ describe("theme settings", () => {
       resolveThemeSettings({ logo_url: "/a.png", primary_color: "#111" }),
     ).toEqual({
       logo_url: "/a.png",
+      og_image: null,
       primary_color: "#111",
       bg_color: null,
       fg_color: null,
@@ -35,6 +36,7 @@ describe("theme settings", () => {
   it("resolveThemeSettings falls back to defaults on empty or broken input", () => {
     const empty = {
       logo_url: null,
+      og_image: null,
       primary_color: null,
       bg_color: null,
       fg_color: null,

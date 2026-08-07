@@ -1,4 +1,18 @@
-import { isPlatformAdminActor, isSiteMemberActor, type AuthActorType, isApiKeyBlockedPath, isApiKeyToken  } from "@be-water/shared";
+/*
+ * 类型副作用导入：`@fastify/cookie` 用模块增强给 `FastifyRequest` 挂上 `cookies`。
+ * 插件是在组装层注册的，没有任何 TS 文件 import 它，那份增强就不会进编译单元
+ * ——`request.cookies` 会报「属性不存在」。
+ */
+import type {} from "@fastify/cookie";
+
+import {
+  isPlatformAdminActor,
+  isSiteMemberActor,
+  type AuthActorType,
+  isApiKeyBlockedPath,
+  isApiKeyToken,
+  MEMBER_ACCESS_COOKIE,
+} from "@be-water/shared";
 
 import { sendCodedError } from "../http/coded-error.js";
 import {
@@ -12,6 +26,30 @@ import { updateRequestContext } from "../lib/request-context.js";
 import { isAttachmentContentRequest } from "./attachment-content-cache.js";
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+
+/**
+ * 提取 access JWT：Bearer 优先（脚本/测试）；否则在会员 API 路径读 HttpOnly cookie。
+ * 工作台路径不读会员 cookie，避免串会话。
+ */
+function resolveAccessToken(
+  request: FastifyRequest,
+  requestPath: string,
+): string | null {
+  const authHeader = request.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    const bearer = authHeader.slice(7).trim();
+    if (bearer) return bearer;
+  }
+
+  if (!isSiteMemberApiPath(requestPath)) {
+    return null;
+  }
+
+  const cookieToken = request.cookies?.[MEMBER_ACCESS_COOKIE];
+  return typeof cookieToken === "string" && cookieToken.length > 0
+    ? cookieToken
+    : null;
+}
 
 interface AuthJwtPayload {
   userId: string;
@@ -180,12 +218,10 @@ export async function authMiddleware(app: FastifyInstance) {
         return sendCodedError(reply, 403, "tenant.host_platform_forbidden");
       }
 
-      const authHeader = request.headers.authorization;
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      const token = resolveAccessToken(request, requestPath);
+      if (!token) {
         return sendCodedError(reply, 401, "common.unauthorized");
       }
-
-      const token = authHeader.slice(7);
 
       try {
         const decoded = app.jwt.verify<AuthJwtPayload>(token);
