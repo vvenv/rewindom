@@ -30,6 +30,9 @@ import {
   MicrosoftOAuthService,
 } from "../auth/microsoft-oauth.service.js";
 import {
+  buildMemberOAuthFrontendRedirect,
+  buildOAuthFrontendErrorRedirect,
+  isMemberOAuthStateTyp,
   mapOAuthErrorCode,
   oauthStateType,
   requestOriginFromHeaders,
@@ -37,6 +40,7 @@ import {
 } from "../auth/oauth-common.js";
 import { resolveOAuthCredentials } from "../auth/oauth-credentials.js";
 
+import type { MemberOAuthCallbackState } from "../../runtime/provider-contracts.js";
 import type { ResolvedOAuthCredentials } from "../auth/oauth-credentials.js";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
@@ -398,22 +402,61 @@ export async function authRoutes(app: FastifyInstance) {
         state?: string;
         error?: string;
       };
+      const origin = requestOriginFromHeaders(request);
+
+      let memberState: MemberOAuthCallbackState | null = null;
+      if (query.state) {
+        try {
+          const decoded = app.jwt.verify<MemberOAuthCallbackState>(query.state);
+          if (isMemberOAuthStateTyp(decoded.typ, provider.id)) {
+            memberState = decoded;
+          }
+        } catch {
+          // state 无效时下面按表面分别报错
+        }
+      }
+
+      if (memberState) {
+        const memberProvider = app.registry.getMemberOAuthCallbackProvider();
+        if (!memberProvider) {
+          return reply.redirect(
+            buildMemberOAuthFrontendRedirect({
+              returnOrigin:
+                memberState.return_origin ||
+                origin ||
+                "http://localhost:7300",
+              error: "site_member.not_enabled",
+              redirect: memberState.redirect,
+            }),
+          );
+        }
+        return memberProvider.handleCallback({
+          provider: provider.id,
+          query,
+          state: memberState,
+          request,
+          reply,
+          jwtSign: app.jwt.sign.bind(app.jwt),
+        });
+      }
 
       try {
         if (query.error) {
           return reply.redirect(
-            provider.service.buildFrontendErrorRedirect(
+            buildOAuthFrontendErrorRedirect(
               query.error === "access_denied"
                 ? "auth.oauth_denied"
                 : "auth.oauth_failed",
+              origin,
             ),
           );
         }
 
         if (!query.code || !query.state) {
           return reply.redirect(
-            provider.service.buildFrontendErrorRedirect(
+            buildOAuthFrontendErrorRedirect(
               "auth.oauth_state_invalid",
+              origin,
             ),
           );
         }
@@ -422,10 +465,9 @@ export async function authRoutes(app: FastifyInstance) {
           app.jwt.verify<{ typ?: string }>(token),
         );
 
-        const origin = requestOriginFromHeaders(request);
         if (!origin) {
           return reply.redirect(
-            provider.service.buildFrontendErrorRedirect("common.internal_error"),
+            buildOAuthFrontendErrorRedirect("common.internal_error"),
           );
         }
 
@@ -436,7 +478,7 @@ export async function authRoutes(app: FastifyInstance) {
         );
         if (!credentials.enabled) {
           return reply.redirect(
-            provider.service.buildFrontendErrorRedirect(
+            buildOAuthFrontendErrorRedirect(
               "auth.oauth_not_configured",
               origin,
             ),
@@ -478,12 +520,8 @@ export async function authRoutes(app: FastifyInstance) {
         );
       } catch (error) {
         app.log.error(error);
-        const origin = requestOriginFromHeaders(request);
         return reply.redirect(
-          provider.service.buildFrontendErrorRedirect(
-            mapOAuthErrorCode(error),
-            origin,
-          ),
+          buildOAuthFrontendErrorRedirect(mapOAuthErrorCode(error), origin),
         );
       }
     });

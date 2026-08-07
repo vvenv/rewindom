@@ -1,6 +1,7 @@
 import { AppError } from "../lib/app-errors.js";
 
 import type {
+  MemberOAuthCallbackProvider,
   PublicConfigProvider,
   TenantApiKeyAuthProvider,
   TenantRegistrationProvider,
@@ -80,6 +81,7 @@ export class ProviderRegistry {
     },
   };
   private tenantApiKeyAuth: TenantApiKeyAuthProvider | null = null;
+  private memberOAuthCallback: MemberOAuthCallbackProvider | null = null;
 
   setAuthzProvider(provider: AuthzProvider): void {
     this.authz = provider;
@@ -113,4 +115,11 @@ export class ProviderRegistry {
     return this.tenantApiKeyAuth;
   }
 
+  setMemberOAuthCallbackProvider(provider: MemberOAuthCallbackProvider): void {
+    this.memberOAuthCallback = provider;
+  }
+
+  getMemberOAuthCallbackProvider(): MemberOAuthCallbackProvider | null {
+    return this.memberOAuthCallback;
+  }
 }

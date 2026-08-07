@@ -3,6 +3,7 @@ import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/regis
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { SITE_MEMBER_SERVER_I18N } from "./i18n.js";
+import { createMemberOAuthCallbackProvider } from "./member-oauth-callback.provider.js";
 import { registerMemberGateSection } from "./member-gate-section.js";
 import { registerSiteMemberAccountEntry } from "./site-account-entry.js";
 import { siteMemberAdminRoutes } from "./site-member-admin.routes.js";
@@ -45,6 +46,12 @@ export const siteMemberServerModule: ServerAppModule = {
   },
   server: {
     i18n: SITE_MEMBER_SERVER_I18N,
+    // 统一 IdP 回调（/api/auth/oauth/:provider/callback）里按 state.typ 分流到本 provider
+    registerProviders: (registry) => {
+      registry.setMemberOAuthCallbackProvider(
+        createMemberOAuthCallbackProvider(),
+      );
+    },
     // 站点前台页头的账户入口：marketing 定义注入点，这里填实现（见 site-account-entry.ts）
     onBoot: async () => {
       registerSiteMemberAccountEntry();

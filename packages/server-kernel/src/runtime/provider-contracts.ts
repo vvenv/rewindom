@@ -1,6 +1,7 @@
 import { type AuthActorType, type AuthTokens, type PublicConfig  } from "@be-water/shared";
 
 import type { HostTenantContext } from "../lib/host-tenant.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
 
 export interface TenantApiKeyAuthResult {
   tenant_id: string;
@@ -84,5 +85,29 @@ export interface TenantRegistrationProvider {
     userAgent: string,
     options?: RegistrationOptions,
   ): Promise<TenantRegistrationResult>;
+}
+
+/** 统一 IdP 回调里识别出会员 state 后交给 site-member 处理。 */
+export interface MemberOAuthCallbackState {
+  typ: string;
+  nonce: string;
+  tenant_id: string;
+  return_origin: string;
+  redirect: string;
+}
+
+export interface MemberOAuthCallbackProvider {
+  /**
+   * 处理会员 OAuth 回调：种 Cookie 或发 exchange code，并 `reply.redirect`。
+   * 调用方已校验 `state.typ === member_oauth_{provider}_state`。
+   */
+  handleCallback(params: {
+    provider: string;
+    query: { code?: string; state?: string; error?: string };
+    state: MemberOAuthCallbackState;
+    request: FastifyRequest;
+    reply: FastifyReply;
+    jwtSign: JwtSignFn;
+  }): Promise<void>;
 }
 

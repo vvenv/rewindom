@@ -634,14 +634,12 @@ describe("auth.middleware", () => {
       }
     });
 
-    it("skips auth for member OAuth start/callback/exchange", async () => {
+    it("skips auth for member OAuth start/exchange", async () => {
       app.get("/api/member/oauth/github", async () => ({ ok: true }));
-      app.get("/api/member/oauth/github/callback", async () => ({ ok: true }));
       app.post("/api/member/oauth/exchange", async () => ({ ok: true }));
 
       for (const [method, url] of [
         ["GET", "/api/member/oauth/github"],
-        ["GET", "/api/member/oauth/github/callback"],
         ["POST", "/api/member/oauth/exchange"],
       ] as const) {
         const response = await app.inject({ method, url });

@@ -259,7 +259,7 @@ curl -sS -H "Host: portal.acme.com" https://portal.acme.com/api/public/config | 
 | 提示域名已被占用 | 其他租户已绑定同一 hostname | 换域名或先清除原绑定 |
 | 提示保留/无效域名 | 填了平台主域、localhost、带协议/端口等 | 按 §4 规则改正 |
 | 工作台 OAuth 回调跑回主域 | 未用当前域名发起登录，或回调 URL 写死主域 | 在绑定域名上点 OAuth；生产建议为各入口配置可达的回调（见部署文档） |
-| 会员 OAuth 无法在自定义域登录 | 平台应用未登记会员回调，或 exchange 失败 | 平台 OAuth 应用须登记 `{FRONTEND_URL}/api/member/oauth/{provider}/callback`；浏览器会先回主域再跳回绑定域种 Cookie |
+| 会员 OAuth 无法在自定义域登录 | 平台应用未登记统一回调，或 exchange 失败 | 平台 OAuth 应用须登记 `{FRONTEND_URL}/api/auth/oauth/{provider}/callback`（与工作台共用）；浏览器会先回主域再跳回绑定域种 Cookie |
 
 本阶段**不包含**：客户自助在租户设置里改域名、客户自定义域名的 DNS TXT 自动校验、每客户域名自动签发证书。平台通配子域与通配证书续期见 §0。
 

@@ -62,19 +62,31 @@ export function oauthStateType(provider: OAuthProviderId): string {
   return `oauth_${provider}_state`;
 }
 
-export type OAuthCallbackSurface = "auth" | "member";
+/** 会员 OAuth state typ：`member_oauth_{provider}_state` */
+export function memberOAuthStateType(provider: OAuthProviderId): string {
+  return `member_${oauthStateType(provider)}`;
+}
+
+export function isMemberOAuthStateTyp(
+  typ: string | undefined,
+  provider: OAuthProviderId,
+): boolean {
+  return typ === memberOAuthStateType(provider);
+}
 
 /**
- * 回调 URL 优先级：
- * 1. 解析后凭证上的 callbackUrl（租户覆盖或 env）
- * 2. FRONTEND_URL
- * 3. 请求 Origin
+ * 工作台与会员共用同一条 IdP Redirect URI（`/api/auth/oauth/{provider}/callback`），
+ * 回调里按 state JWT 的 `typ` 分流。
+ *
+ * 优先级：
+ * 1. 解析后凭证上的 callbackUrl（租户覆盖或 env `*_CALLBACK_URL`）
+ * 2. FRONTEND_URL + 统一路径
+ * 3. 请求 Origin + 统一路径（仅工作台 start 可回退；会员见 resolveMemberOAuthCallbackUrl）
  */
 export function resolveOAuthCallbackUrl(
   provider: OAuthProviderId,
   requestUrlOrigin: string,
   credentials?: Pick<ResolvedOAuthCredentials, "callbackUrl"> | null,
-  surface: OAuthCallbackSurface = "auth",
 ): string {
   const explicit = credentials?.callbackUrl?.trim();
   if (explicit) {
@@ -82,25 +94,21 @@ export function resolveOAuthCallbackUrl(
   }
   const frontend = config.frontend.url.trim();
   if (frontend) {
-    return `${frontend.replace(/\/$/, "")}/api/${surface}/oauth/${provider}/callback`;
+    return `${frontend.replace(/\/$/, "")}/api/auth/oauth/${provider}/callback`;
   }
-  return `${requestUrlOrigin.replace(/\/$/, "")}/api/${surface}/oauth/${provider}/callback`;
+  return `${requestUrlOrigin.replace(/\/$/, "")}/api/auth/oauth/${provider}/callback`;
 }
 
 /**
- * 会员 OAuth：平台应用须登记固定主域回调；租户覆盖可自带 callbackUrl。
+ * 会员 OAuth 回调 URL：与工作台同一条 URI。
  * 无显式 callback 时强制走 FRONTEND_URL（不回退发起 Host），以便 custom_domain 用 code 跳回。
- *
- * 平台 env 的 `*_CALLBACK_URL` 是工作台 `/api/auth/oauth/...` 地址，**不能**复用到会员流，
- * 否则 Google 会把带 `member_oauth_*_state` 的回调打到 auth handler → state typ 校验失败。
  */
 export function resolveMemberOAuthCallbackUrl(
   provider: OAuthProviderId,
   credentials: Pick<ResolvedOAuthCredentials, "callbackUrl">,
 ): string {
   const explicit = credentials.callbackUrl?.trim();
-  // 仅接受会员面回调；工作台 auth 回调（含平台 env 默认值）一律忽略。
-  if (explicit && /\/api\/member\/oauth\//u.test(explicit)) {
+  if (explicit) {
     return explicit;
   }
   const frontend = config.frontend.url.trim();
@@ -110,7 +118,7 @@ export function resolveMemberOAuthCallbackUrl(
       status: 503,
     });
   }
-  return `${frontend.replace(/\/$/, "")}/api/member/oauth/${provider}/callback`;
+  return `${frontend.replace(/\/$/, "")}/api/auth/oauth/${provider}/callback`;
 }
 
 export function verifyOAuthState(
@@ -213,6 +221,26 @@ export function buildOAuthFrontendErrorRedirect(
 ): string {
   const url = new URL("/auth/oauth/callback", oauthFrontendBase(requestOrigin));
   url.searchParams.set("error", errorCode);
+  return url.toString();
+}
+
+/** 会员 OAuth 前端落地页（非 IdP Redirect URI）。 */
+export function buildMemberOAuthFrontendRedirect(params: {
+  returnOrigin: string;
+  code?: string;
+  error?: string;
+  redirect?: string;
+}): string {
+  const url = new URL("/member/oauth/callback", params.returnOrigin);
+  if (params.code) {
+    url.searchParams.set("code", params.code);
+  }
+  if (params.error) {
+    url.searchParams.set("error", params.error);
+  }
+  if (params.redirect && params.redirect !== "/member/account") {
+    url.searchParams.set("redirect", params.redirect);
+  }
   return url.toString();
 }
 

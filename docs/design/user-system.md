@@ -198,11 +198,13 @@ POST /api/auth/register
 | 步骤 | 路径 |
 | --- | --- |
 | 启动 | `GET /api/member/oauth/{provider}?redirect=` |
-| 回调（固定主域） | `GET /api/member/oauth/{provider}/callback` |
+| IdP 回调（与工作台共用） | `GET /api/auth/oauth/{provider}/callback`（`state.typ = member_oauth_*`） |
 | 换票种 Cookie | `POST /api/member/oauth/exchange` `{ code }` |
 | 前端落地 | `/member/oauth/callback` |
 
-会员 Cookie 按 Host 隔离，平台 OAuth 应用只能登记少量 redirect URI → 回调落在 `FRONTEND_URL`，再发一次性 exchange code 跳回发起域名种 Cookie。绑定表 `SiteMemberOAuthAccount` 按 `(tenant_id, provider, provider_user_id)` 唯一；首次登录要求 IdP **已验证邮箱**，可自动绑定同邮箱已有会员或创建 `password: null` 的新会员。
+工作台与会员共用同一条 IdP Redirect URI（`*_CALLBACK_URL` / 默认 `{FRONTEND_URL}/api/auth/oauth/{provider}/callback`）；统一回调里按 state JWT 的 `typ` 分流（会员逻辑由 `MemberOAuthCallbackProvider` 注入）。
+
+会员 Cookie 按 Host 隔离：回调落在 `FRONTEND_URL` 后，若与发起 Host 不同源则发一次性 exchange code，再跳回发起域名种 Cookie。绑定表 `SiteMemberOAuthAccount` 按 `(tenant_id, provider, provider_user_id)` 唯一；首次登录要求 IdP **已验证邮箱**，可自动绑定同邮箱已有会员或创建 `password: null` 的新会员。
 
 **API 接口**：
 

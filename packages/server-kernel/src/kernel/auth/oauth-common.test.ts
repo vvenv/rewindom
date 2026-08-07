@@ -14,30 +14,52 @@ vi.mock("../../lib/config.js", async (importOriginal) => {
   };
 });
 
-import { resolveMemberOAuthCallbackUrl } from "./oauth-common.js";
+import {
+  isMemberOAuthStateTyp,
+  memberOAuthStateType,
+  oauthStateType,
+  resolveMemberOAuthCallbackUrl,
+  resolveOAuthCallbackUrl,
+} from "./oauth-common.js";
 
-describe("resolveMemberOAuthCallbackUrl", () => {
-  it("derives member callback from FRONTEND_URL when credentials carry auth CALLBACK_URL", () => {
+describe("OAuth callback URL unification", () => {
+  it("resolveOAuthCallbackUrl uses auth path by default", () => {
+    expect(
+      resolveOAuthCallbackUrl("google", "http://localhost:7300", {
+        callbackUrl: "",
+      }),
+    ).toBe("http://localhost:7300/api/auth/oauth/google/callback");
+  });
+
+  it("resolveOAuthCallbackUrl prefers explicit credentials callbackUrl", () => {
+    expect(
+      resolveOAuthCallbackUrl("google", "http://localhost:7300", {
+        callbackUrl: "https://app.example.com/api/auth/oauth/google/callback",
+      }),
+    ).toBe("https://app.example.com/api/auth/oauth/google/callback");
+  });
+
+  it("resolveMemberOAuthCallbackUrl shares the auth callback URL", () => {
     expect(
       resolveMemberOAuthCallbackUrl("google", {
         callbackUrl:
           "http://localhost:7300/api/auth/oauth/google/callback",
       }),
-    ).toBe("http://localhost:7300/api/member/oauth/google/callback");
+    ).toBe("http://localhost:7300/api/auth/oauth/google/callback");
   });
 
-  it("keeps an explicit member callback URL", () => {
-    expect(
-      resolveMemberOAuthCallbackUrl("google", {
-        callbackUrl:
-          "https://app.example.com/api/member/oauth/google/callback",
-      }),
-    ).toBe("https://app.example.com/api/member/oauth/google/callback");
-  });
-
-  it("derives member callback when callbackUrl is empty", () => {
+  it("resolveMemberOAuthCallbackUrl derives unified path when empty", () => {
     expect(
       resolveMemberOAuthCallbackUrl("github", { callbackUrl: "" }),
-    ).toBe("http://localhost:7300/api/member/oauth/github/callback");
+    ).toBe("http://localhost:7300/api/auth/oauth/github/callback");
+  });
+
+  it("member and workspace state typ helpers stay distinct", () => {
+    expect(oauthStateType("google")).toBe("oauth_google_state");
+    expect(memberOAuthStateType("google")).toBe("member_oauth_google_state");
+    expect(isMemberOAuthStateTyp("member_oauth_google_state", "google")).toBe(
+      true,
+    );
+    expect(isMemberOAuthStateTyp("oauth_google_state", "google")).toBe(false);
   });
 });

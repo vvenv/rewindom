@@ -13,7 +13,7 @@ import {
   MicrosoftOAuthService,
 } from "@be-water/server-kernel/kernel/auth/microsoft-oauth.service.js";
 import {
-  oauthStateType,
+  memberOAuthStateType,
   type OAuthProfile,
   type OAuthProviderId,
 } from "@be-water/server-kernel/kernel/auth/oauth-common.js";
@@ -143,7 +143,7 @@ async function fetchProfile(
 
 export class SiteMemberOAuthService {
   static memberOAuthStateType(provider: OAuthProviderId): string {
-    return `member_${oauthStateType(provider)}`;
+    return memberOAuthStateType(provider);
   }
 
   static async completeOAuthLogin(params: {

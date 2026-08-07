@@ -39,7 +39,7 @@
 
 GitHub / Google / Microsoft。凭证解析与工作台相同：平台 env → 站点 `/app/settings/oauth` 覆盖。
 
-会员 Cookie 为 Host-only：平台应用回调固定登记在 `FRONTEND_URL` 的 `/api/member/oauth/:provider/callback`，完成后发一次性 code，跳回发起 Host 的 `/member/oauth/callback` 再 `POST /api/member/oauth/exchange` 种 Cookie。
+会员 Cookie 为 Host-only：平台应用只需登记与工作台相同的 `{FRONTEND_URL}/api/auth/oauth/:provider/callback`（按 `state.typ` 分流）；完成后若与发起 Host 不同源则发一次性 code，跳回发起 Host 的 `/member/oauth/callback` 再 `POST /api/member/oauth/exchange` 种 Cookie。
 
 绑定表：`SiteMemberOAuthAccount`（`@@unique([tenant_id, provider, provider_user_id])`）；首次登录要求 IdP 已验证邮箱。
 
