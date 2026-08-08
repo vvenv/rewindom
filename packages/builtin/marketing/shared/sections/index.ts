@@ -11,6 +11,7 @@
 
 import { bandSection } from "./band/definition.js";
 import { cardsSection } from "./cards/definition.js";
+import { docSourceSection } from "./doc-source/definition.js";
 import { faqSection } from "./faq/definition.js";
 import { featureGridSection } from "./feature-grid/definition.js";
 import { footerSection } from "./footer/definition.js";
@@ -72,6 +73,7 @@ export const BUILTIN_SECTION_DEFINITIONS: Record<
   faq: faqSection,
   form: formSection,
   prose: proseSection,
+  "doc-source": docSourceSection,
   group: groupSection,
   band: bandSection,
   /* 保留：只由解析层产生，`placements: []` 保证它不出现在任何添加菜单里 */
@@ -127,8 +129,12 @@ export function resetSectionContributions(): void {
  * 返回 `undefined` 就是「这份代码不认识这个段」：模块停用、租户退订、页面是更新版本
  * 写的，都会走到这一支，由 `unsupported` 那套口径接住（见 `section-schema.ts`）。
  */
-export function getSectionDefinition(type: BuiltinSectionType): SectionDefinition;
-export function getSectionDefinition(type: string): SectionDefinition | undefined;
+export function getSectionDefinition(
+  type: BuiltinSectionType,
+): SectionDefinition;
+export function getSectionDefinition(
+  type: string,
+): SectionDefinition | undefined;
 export function getSectionDefinition(
   type: string,
 ): SectionDefinition | undefined {
@@ -139,7 +145,10 @@ export function getSectionDefinition(
 
 /** 内置段 + 已贡献段的全表（编辑器菜单、校验白名单用）。 */
 export function allSectionDefinitions(): SectionDefinition[] {
-  return [...Object.values(BUILTIN_SECTION_DEFINITIONS), ...CONTRIBUTED.values()];
+  return [
+    ...Object.values(BUILTIN_SECTION_DEFINITIONS),
+    ...CONTRIBUTED.values(),
+  ];
 }
 
 /**

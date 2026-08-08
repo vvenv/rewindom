@@ -273,6 +273,52 @@ export const PAGE_PRESETS: PagePreset[] = [
   },
 
   {
+    /*
+     * 平台文档：安装外部模块。
+     *
+     * 与 docs-detail 同版式（左同级菜单 + 右正文），但正文段用 doc-source 而非 prose——
+     * 内容来自 docs/ 注册表，跟代码版本走，不在数据库里。
+     */
+    key: "docs-install-external",
+    label: "preset.docs_install_external.label",
+    kind: "page",
+    slug: "docs/install-external-module",
+    titleKey: "preset.docs_install_external.title",
+    descriptionKey: "preset.docs_install_external.description",
+    sections: [
+      { type: "page-header", raw: { align: "left" } },
+      {
+        type: "group",
+        raw: { columns_layout: "1:3" },
+        blocks: [
+          {
+            type: "column",
+            raw: { sticky: true },
+            sections: [
+              {
+                type: "page-menu",
+                raw: { source: "siblings", style: "list", columns: 1 },
+              },
+            ],
+          },
+          {
+            type: "column",
+            sections: [
+              {
+                type: "doc-source",
+                raw: {
+                  doc_slug: "install-external-module",
+                  content_width: "narrow",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  {
     key: "about",
     label: "preset.about.label",
     kind: "page",

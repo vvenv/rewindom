@@ -1,0 +1,4 @@
+/*
+ * doc-source 段没有自己的样式——正文排版用的是 _common 里的 .prose
+ * （与 prose 段共用同一套 markdown 排版）。
+ */

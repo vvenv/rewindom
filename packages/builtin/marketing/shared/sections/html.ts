@@ -25,6 +25,7 @@ import {
 
 import { renderBandHtml } from "./band/html.js";
 import { renderCardsHtml } from "./cards/html.js";
+import { renderDocSourceHtml } from "./doc-source/html.js";
 import { renderFaqHtml } from "./faq/html.js";
 import { renderFeatureGridHtml } from "./feature-grid/html.js";
 import { renderFormHtml } from "./form/html.js";
@@ -91,6 +92,7 @@ export const SECTION_HTML: Partial<Record<SectionType, SectionHtmlRenderer>> = {
   group: renderGroupHtml,
   "page-header": renderPageHeaderHtml,
   prose: renderProseHtml,
+  "doc-source": renderDocSourceHtml,
 };
 
 /**
@@ -147,7 +149,9 @@ export function renderSectionHtml(
   // 外层只承外背景；内边距变量 + 内背景落在正文区（补白环显示内色）
   const style = surfaceStyleAttr(surface);
   const id = layout.anchor ? ` id="${escapeHtml(layout.anchor)}"` : "";
-  const glowHtml = glow ? `<div class="sec-glow" aria-hidden="true"></div>` : "";
+  const glowHtml = glow
+    ? `<div class="sec-glow" aria-hidden="true"></div>`
+    : "";
   const contentClass = [
     options.contained
       ? "sec-content sec-c-contained"

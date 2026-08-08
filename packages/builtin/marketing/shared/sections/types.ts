@@ -20,6 +20,7 @@ export const PAGE_SECTION_TYPES = [
   "faq",
   "form",
   "prose",
+  "doc-source",
   "group",
   "band",
 ] as const;

@@ -445,6 +445,7 @@
       "subheading": "Section description",
       "body": "Body",
       "body_md": "Body (Markdown)",
+      "doc_slug": "Document",
       "align": "Alignment",
       "width": "Width",
       "columns": "Columns",
@@ -612,6 +613,7 @@
       "pricing": "Pricing",
       "faq": "FAQ",
       "prose": "Rich text",
+      "doc-source": "Platform doc",
       "group": "Columns",
       "band": "CTA band",
       "page-header": "Page title",
@@ -765,6 +767,11 @@
       "title": "Guide",
       "description": "A docs page with sibling nav and markdown body.",
       "body_md": "## Getting started\n\nReplace this with your guide. Sibling pages appear in the left menu automatically when published."
+    },
+    "docs_install_external": {
+      "label": "Install external module",
+      "title": "Install external module",
+      "description": "Directory structure, boundary rules, and onboarding flow for external modules."
     },
     "about": {
       "label": "About us",

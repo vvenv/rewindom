@@ -19,6 +19,7 @@ import {
 
 import { BandSection } from "./views/band.js";
 import { CardsSection } from "./views/cards.js";
+import { DocSourceSection } from "./views/doc-source.js";
 import { FaqSection } from "./views/faq.js";
 import { FeatureGridSection } from "./views/feature-grid.js";
 import { FormSection } from "./views/form.js";
@@ -30,8 +31,6 @@ import { PricingSection } from "./views/pricing.js";
 import { ProseSection } from "./views/prose.js";
 import { SpecListSection } from "./views/spec-list.js";
 import { StepsSection } from "./views/steps.js";
-
-
 
 import type { SectionViewProps } from "./section-parts.js";
 
@@ -51,6 +50,7 @@ export const SECTION_VIEWS: Partial<
   group: GroupSection,
   "page-header": PageHeaderSection,
   prose: ProseSection,
+  "doc-source": DocSourceSection,
 };
 
 /**

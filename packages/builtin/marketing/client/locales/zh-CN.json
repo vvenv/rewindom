@@ -445,6 +445,7 @@
       "subheading": "区块描述",
       "body": "正文",
       "body_md": "正文（Markdown）",
+      "doc_slug": "文档",
       "align": "对齐",
       "width": "宽度",
       "columns": "列数",
@@ -612,6 +613,7 @@
       "pricing": "定价套餐",
       "faq": "常见问题",
       "prose": "富文本",
+      "doc-source": "平台文档",
       "group": "分栏",
       "band": "通栏 CTA",
       "page-header": "页面标题",
@@ -765,6 +767,11 @@
       "title": "指南",
       "description": "左侧同级菜单 + 右侧 Markdown 正文的文档页。",
       "body_md": "## 开始使用\n\n把这里换成你的正文。同级已发布页面会自动出现在左侧菜单。"
+    },
+    "docs_install_external": {
+      "label": "安装外部模块",
+      "title": "安装外部模块",
+      "description": "外部模块的目录结构、边界规则与接入流程。"
     },
     "about": {
       "label": "关于我们",
