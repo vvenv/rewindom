@@ -62,15 +62,15 @@ export type Subscription = Prisma.SubscriptionModel
  */
 export type Payment = Prisma.PaymentModel
 /**
+ * Model Bookmark
+ * 
+ */
+export type Bookmark = Prisma.BookmarkModel
+/**
  * Model ErrorLog
  * 
  */
 export type ErrorLog = Prisma.ErrorLogModel
-/**
- * Model ExternalBookmark
- * 
- */
-export type ExternalBookmark = Prisma.ExternalBookmarkModel
 /**
  * Model RefreshToken
  * 

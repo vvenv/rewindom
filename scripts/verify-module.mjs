@@ -26,8 +26,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const MODULES_DIR = path.join(ROOT, "packages", "modules");
-const EXTERNAL_MODULES_DIR = path.join(ROOT, "packages", "external-modules");
+const MODULES_DIR = path.join(ROOT, "packages", "builtin");
+const EXTERNAL_MODULES_DIR = path.join(ROOT, "modules");
 const SERVER_REGISTRY = path.join(
   ROOT,
   "apps",
@@ -181,7 +181,7 @@ function declaredAuditActions(mod) {
  * 所以要顺着 import 的局部名去 ENABLED_* 数组里找。
  *
  * 外部模块的注册表是 generated `external-modules.ts`（由 gen:external-modules 生成），
- * import 路径是包名（`<pkgName>/server/index.js`）而非 `@be-water/modules/<id>/...`。
+ * import 路径是包名（`<pkgName>/server/index.js`）而非 `@be-water/builtin/<id>/...`。
  */
 function checkRegistry(mod, add) {
   const isRegistered = (registryPath, modulePath, arrayName) => {
@@ -234,7 +234,7 @@ function checkRegistry(mod, add) {
       mod.serverManifestText &&
       !isRegistered(
         SERVER_REGISTRY,
-        `/modules/${mod.id}/server/index.js`,
+        `/builtin/${mod.id}/server/index.js`,
         "ENABLED_SERVER_MODULES",
       )
     ) {
@@ -248,7 +248,7 @@ function checkRegistry(mod, add) {
       mod.clientManifestText &&
       !isRegistered(
         CLIENT_REGISTRY,
-        `/modules/${mod.id}/client/module.js`,
+        `/builtin/${mod.id}/client/module.js`,
         "ENABLED_CLIENT_MODULES",
       )
     ) {
@@ -297,7 +297,16 @@ function checkPrisma(mod, add) {
       : /^\s*tenant_slug\s+/mu.test(body)
         ? "tenant_slug"
         : null;
-    if (!column) continue; // 全局模型（如 BackgroundJob）不强制租户列
+    if (!column) continue; // 无租户列的模型不强制登记
+    // guard 标记为 global 的模型（如 SiteMemberOAuthExchangeCode）虽有 tenant_id 列，
+    // 但由 service 校验而非守卫注入，不纳入 tenant-models.json（与 tenant-guard.test.ts 一致）
+    if (
+      guardText &&
+      new RegExp(`^  ${name}:\\s*\\{\\s*kind:\\s*"global"`, "mu").test(
+        guardText,
+      )
+    )
+      continue;
     const key = name[0].toLowerCase() + name.slice(1);
     if (!(key in tenantModels)) {
       add(
@@ -319,7 +328,7 @@ function checkPrisma(mod, add) {
     add(
       "error",
       "prisma",
-      `缺少符号链接 apps/server/prisma/models/${mod.id}.prisma → packages/modules/${mod.id}/schema.prisma`,
+      `缺少符号链接 apps/server/prisma/models/${mod.id}.prisma → ${mod.isExternal ? `modules/${mod.id}/prisma/schema.prisma` : `packages/builtin/${mod.id}/schema.prisma`}`,
     );
   } else if (!lstatSync(link).isSymbolicLink()) {
     add(
@@ -555,13 +564,13 @@ function checkDocs(mod, add) {
  *
  * 外部模块只许 import 自 `@be-water/module-sdk`（门面包）和 `@be-water/ui`（原语），
  * 不许直接 import 内核包（server-kernel / client-kit / shared）或内部模块包
- * （@be-water/modules/*）——否则外部模块与内核实现细节耦合，无法独立发布。
+ * （@be-water/builtin/*）——否则外部模块与内核实现细节耦合，无法独立发布。
  */
 const FORBIDDEN_EXTERNAL_PREFIXES = [
   "@be-water/server-kernel",
   "@be-water/client-kit",
   "@be-water/shared",
-  "@be-water/modules/",
+  "@be-water/builtin/",
   "@be-water/server-test",
   "@be-water/client-test",
 ];
@@ -587,7 +596,7 @@ function checkBoundary(mod, add) {
 
 // ---------------------------------------------------------------- 主流程
 
-// 内部模块：@be-water/modules 单包内的目录，靠 manifest 文件识别
+// 内部模块：@be-water/builtin 单包内的目录，靠 manifest 文件识别
 const internalIds = readdirSync(MODULES_DIR).filter((id) => {
   const dir = path.join(MODULES_DIR, id);
   if (id === "node_modules" || !statSync(dir).isDirectory()) return false;
@@ -597,7 +606,7 @@ const internalIds = readdirSync(MODULES_DIR).filter((id) => {
   );
 });
 
-// 外部模块：packages/external-modules/* 各自独立成包，靠 package.json 的 beWater.moduleId 识别
+// 外部模块：modules/* 各自独立成包，靠 package.json 的 beWater.moduleId 识别
 const externalIds = existsSync(EXTERNAL_MODULES_DIR)
   ? readdirSync(EXTERNAL_MODULES_DIR).filter((id) => {
       const dir = path.join(EXTERNAL_MODULES_DIR, id);

@@ -5,7 +5,7 @@
 import { setPrismaQueryEventListener } from "@be-water/server-kernel/lib/prisma.js";
 
 setPrismaQueryEventListener((event) => {
-  void import("@be-water/modules/slow-query/server/slow-query.service.js").then(
+  void import("@be-water/builtin/slow-query/server/slow-query.service.js").then(
     ({ SlowQueryService }) => {
       SlowQueryService.enqueue(
         event.duration,

@@ -55,8 +55,8 @@ export const ModelName = {
   BackgroundJob: 'BackgroundJob',
   Subscription: 'Subscription',
   Payment: 'Payment',
+  Bookmark: 'Bookmark',
   ErrorLog: 'ErrorLog',
-  ExternalBookmark: 'ExternalBookmark',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
   Tenant: 'Tenant',
@@ -178,6 +178,20 @@ export const PaymentScalarFieldEnum = {
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
 
 
+export const BookmarkScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  url: 'url',
+  title: 'title',
+  description: 'description',
+  created_by: 'created_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
+
+
 export const ErrorLogScalarFieldEnum = {
   id: 'id',
   level: 'level',
@@ -199,20 +213,6 @@ export const ErrorLogScalarFieldEnum = {
 } as const
 
 export type ErrorLogScalarFieldEnum = (typeof ErrorLogScalarFieldEnum)[keyof typeof ErrorLogScalarFieldEnum]
-
-
-export const ExternalBookmarkScalarFieldEnum = {
-  id: 'id',
-  tenant_id: 'tenant_id',
-  url: 'url',
-  title: 'title',
-  description: 'description',
-  created_by: 'created_by',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type ExternalBookmarkScalarFieldEnum = (typeof ExternalBookmarkScalarFieldEnum)[keyof typeof ExternalBookmarkScalarFieldEnum]
 
 
 export const RefreshTokenScalarFieldEnum = {

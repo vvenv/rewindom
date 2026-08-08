@@ -66,11 +66,7 @@ describe("partitionNavSections", () => {
       partitionNavSections(SECTIONS);
     expect(mainSections.map((s) => s.label)).toEqual(["示例", "个人"]);
     expect(endSections.map((s) => s.label)).toEqual(["系统管理"]);
-    expect(sections.map((s) => s.label)).toEqual([
-      "示例",
-      "个人",
-      "系统管理",
-    ]);
+    expect(sections.map((s) => s.label)).toEqual(["示例", "个人", "系统管理"]);
   });
 });
 
@@ -135,15 +131,18 @@ describe("getMobileTabItems", () => {
     const items = getMobileTabItems();
     expect(items.map((item) => item.path)).toEqual([
       "/app/dashboard",
+      "/app/bookmarks",
       "/app/notes",
       "/app/todos",
     ]);
   });
 
   it("tab 项携带图标与徽标键，标签为可延迟翻译的 namespace:key", () => {
-    const notes = getMobileTabItems().find((item) => item.path === "/app/notes");
+    const notes = getMobileTabItems().find(
+      (item) => item.path === "/app/notes",
+    );
     expect(notes).toBeDefined();
-    expect(notes!.label).toBe("notes:nav.notes");
+    expect(notes!.label).toBe("note:nav.notes");
     // lucide 图标是 forwardRef 对象而非普通函数，只断言拿到了组件
     expect(notes!.icon).toBeTruthy();
   });
@@ -163,19 +162,19 @@ describe("getMobileTabItems", () => {
 describe("filterMobileTabPaths", () => {
   const TAB_PATHS = ["/app/notes", "/app/todos"];
 
-  it("按权限过滤：无 notes.read 时该 tab 消失", () => {
+  it("按权限过滤：无 note.read 时该 tab 消失", () => {
     const result = filterMobileTabPaths(
       TAB_PATHS,
       { modules: {}, features: {} },
-      (permission) => permission !== "notes.read",
+      (permission) => permission !== "note.read",
     );
     expect(result).toEqual(["/app/todos"]);
   });
 
-  it("按 entitlement 过滤：租户关掉 todos 模块时该 tab 消失", () => {
+  it("按 entitlement 过滤：租户关掉 todo 模块时该 tab 消失", () => {
     const result = filterMobileTabPaths(
       TAB_PATHS,
-      { modules: { todos: false }, features: {} },
+      { modules: { todo: false }, features: {} },
       () => true,
     );
     expect(result).toEqual(["/app/notes"]);

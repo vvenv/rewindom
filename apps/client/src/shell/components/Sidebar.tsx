@@ -232,9 +232,7 @@ function SidebarFooter({
         <SidebarNavSections sections={endSections} onNavigate={onNavigate} />
       ) : null}
       <Separator />
-      <div className="flex p-3">
-        {UserMenu ? <UserMenu showLabel /> : null}
-      </div>
+      <div className="flex p-3">{UserMenu ? <UserMenu showLabel /> : null}</div>
     </div>
   );
 }
@@ -262,7 +260,9 @@ function SidebarContent({
         />
       </div>
 
-      <SidebarNavSections sections={navSections} onNavigate={onNavigate} />
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <SidebarNavSections sections={navSections} onNavigate={onNavigate} />
+      </div>
 
       {shellContributions.sidebarPanel.length > 0 ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-2">
@@ -280,13 +280,7 @@ function SidebarContent({
 
 function ShellBrandMark({ className }: { className?: string }) {
   const { data } = useTenantBranding();
-  return (
-    <BrandMark
-      src={data?.logo_url}
-      className={className}
-      alt="Logo"
-    />
-  );
+  return <BrandMark src={data?.logo_url} className={className} alt="Logo" />;
 }
 
 function MobileNavDrawer({
@@ -351,7 +345,7 @@ function MobileNavDrawer({
 
 function MobileTabBar() {
   const location = useLocation();
-  const { t } = useTranslation(["common", "dashboard", "notes", "todos"]);
+  const { t } = useTranslation(["common", "dashboard", "note", "todo"]);
   const { data: entitlements } = useTenantEntitlements();
   const { hasPermission } = usePermissions();
   const { getMobileTabItems, filterMobileTabPaths, isNavRouteActive } =
@@ -479,7 +473,9 @@ function DesktopSidebar() {
             <Component key={index} homePath={homePath} collapsed />
           )}
         />
-        <SidebarNavSections sections={mainSections} collapsed />
+        <div className="flex min-h-0 flex-1 flex-col items-center gap-2 overflow-y-auto">
+          <SidebarNavSections sections={mainSections} collapsed />
+        </div>
         <SidebarFooter collapsed endSections={endSections} />
       </aside>
     );

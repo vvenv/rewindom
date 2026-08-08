@@ -470,7 +470,7 @@ export const ${n.CONST}_ENTITLEMENT: TenantModuleEntitlement = {
   add(
     "schema.prisma",
     `
-// packages/modules/${n.id}/schema.prisma
+// packages/builtin/${n.id}/schema.prisma
 // 由 apps/server/prisma/models/${n.id}.prisma 符号链接汇入
 // --- module: ${n.id} ---
 model ${model.name} {
@@ -2055,7 +2055,7 @@ ${(spec.requires ?? []).map((r) => `- \`module-${r}\``).join("\n") || "- 无"}
 ## 如何单独测试
 
 \`\`\`bash
-pnpm --filter @be-water/modules test --project ${n.id}/client
+pnpm --filter @be-water/builtin test --project ${n.id}/client
 \`\`\`
 `,
   );
@@ -2079,7 +2079,7 @@ function patchRegistries(spec, n) {
       serverText
         .replace(
           /(import type \{ ServerAppModule)/u,
-          `import { ${serverConst} } from "@be-water/modules/${n.id}/server/index.js";\n\n$1`,
+          `import { ${serverConst} } from "@be-water/builtin/${n.id}/server/index.js";\n\n$1`,
         )
         .replace(
           /(\n\] as const satisfies readonly ServerAppModule)/u,
@@ -2097,7 +2097,7 @@ function patchRegistries(spec, n) {
       clientText
         .replace(
           /(import \{ appShellClientModule)/u,
-          `import { ${clientConst} } from "@be-water/modules/${n.id}/client/module.js";\n\n$1`,
+          `import { ${clientConst} } from "@be-water/builtin/${n.id}/client/module.js";\n\n$1`,
         )
         .replace(
           /(\n\] as const satisfies readonly ClientAppModule)/u,
@@ -2158,7 +2158,7 @@ function patchRegistries(spec, n) {
 
 /** 审计动作要在 audit 模块登记三处，漏一处标签就变 undefined */
 function patchAuditActions(auditActions, spec) {
-  const auditPath = path.join(ROOT, "packages/modules/audit/shared/audit.ts");
+  const auditPath = path.join(ROOT, "packages/builtin/audit/shared/audit.ts");
   let text = readFileSync(auditPath, "utf8");
   const missing = auditActions.filter((a) => !text.includes(`${a.action}:`));
   if (missing.length === 0) return [];
@@ -2186,9 +2186,9 @@ const spec = parseYaml(readFileSync(path.resolve(specPath), "utf8"));
 validateSpec(spec);
 const n = deriveNames(spec);
 
-const moduleDir = path.join(ROOT, "packages/modules", n.id);
+const moduleDir = path.join(ROOT, "packages/builtin", n.id);
 if (existsSync(moduleDir) && !FORCE) {
-  fail(`模块目录已存在：packages/modules/${n.id}（要覆盖加 --force）`);
+  fail(`模块目录已存在：packages/builtin/${n.id}（要覆盖加 --force）`);
 }
 
 const { files, auditActions } = buildFiles(spec, n);
@@ -2203,7 +2203,7 @@ const symlinkPath = path.join(
 );
 
 if (DRY) {
-  console.log(`将生成 packages/modules/${n.id}/：`);
+  console.log(`将生成 packages/builtin/${n.id}/：`);
   for (const rel of Object.keys(files).sort()) console.log(`  + ${rel}`);
   console.log("\n将修改：");
   for (const [p] of patches) console.log(`  ~ ${path.relative(ROOT, p)}`);
@@ -2223,7 +2223,7 @@ for (const [p, content] of patches) writeFileSync(p, content);
 
 if (!existsSync(symlinkPath)) {
   symlinkSync(
-    `../../../../packages/modules/${n.id}/schema.prisma`,
+    `../../../../packages/builtin/${n.id}/schema.prisma`,
     symlinkPath,
   );
 }
@@ -2246,7 +2246,7 @@ try {
 }
 
 console.log(
-  `✅ 已生成 packages/modules/${n.id}/（${Object.keys(files).length} 个文件）`,
+  `✅ 已生成 packages/builtin/${n.id}/（${Object.keys(files).length} 个文件）`,
 );
 for (const [p] of patches) console.log(`   ~ ${path.relative(ROOT, p)}`);
 console.log(`   + ${path.relative(ROOT, symlinkPath)}`);

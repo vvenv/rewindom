@@ -1,17 +1,15 @@
-import { auditClientModule } from "@be-water/modules/audit/client/module.js";
-import { backgroundJobClientModule } from "@be-water/modules/background-job/client/module.js";
-import { billingClientModule } from "@be-water/modules/billing/client/module.js";
-import { dashboardClientModule } from "@be-water/modules/dashboard/client/module.js";
-import { errorLogClientModule } from "@be-water/modules/error-log/client/module.js";
-import { marketingClientModule } from "@be-water/modules/marketing/client/module.js";
-import { notesClientModule } from "@be-water/modules/notes/client/module.js";
-import { notificationClientModule } from "@be-water/modules/notification/client/module.js";
-import { platformClientModule } from "@be-water/modules/platform/client/module.js";
-import { rbacClientModule } from "@be-water/modules/rbac/client/module.js";
-import { siteMemberClientModule } from "@be-water/modules/site-member/client/module.js";
-import { slowQueryClientModule } from "@be-water/modules/slow-query/client/module.js";
-import { todosClientModule } from "@be-water/modules/todos/client/module.js";
-import { userClientModule } from "@be-water/modules/user/client/module.js";
+import { auditClientModule } from "@be-water/builtin/audit/client/module.js";
+import { backgroundJobClientModule } from "@be-water/builtin/background-job/client/module.js";
+import { billingClientModule } from "@be-water/builtin/billing/client/module.js";
+import { dashboardClientModule } from "@be-water/builtin/dashboard/client/module.js";
+import { errorLogClientModule } from "@be-water/builtin/error-log/client/module.js";
+import { marketingClientModule } from "@be-water/builtin/marketing/client/module.js";
+import { notificationClientModule } from "@be-water/builtin/notification/client/module.js";
+import { platformClientModule } from "@be-water/builtin/platform/client/module.js";
+import { rbacClientModule } from "@be-water/builtin/rbac/client/module.js";
+import { siteMemberClientModule } from "@be-water/builtin/site-member/client/module.js";
+import { slowQueryClientModule } from "@be-water/builtin/slow-query/client/module.js";
+import { userClientModule } from "@be-water/builtin/user/client/module.js";
 
 import { appShellClientModule } from "@/shell/index";
 
@@ -33,8 +31,6 @@ export const ENABLED_CLIENT_MODULES = [
   dashboardClientModule,
   marketingClientModule,
   siteMemberClientModule,
-  notesClientModule,
-  todosClientModule,
   notificationClientModule,
   backgroundJobClientModule,
   platformClientModule,
@@ -45,6 +41,6 @@ export const ENABLED_CLIENT_MODULES = [
   auditClientModule,
   errorLogClientModule,
   slowQueryClientModule,
-  // 外部模块（packages/external-modules/*）由 `pnpm gen:external-modules` 生成
+  // 外部模块（modules/*）由 `pnpm gen:external-modules` 生成
   ...EXTERNAL_CLIENT_MODULES,
 ] as const satisfies readonly ClientAppModule[];

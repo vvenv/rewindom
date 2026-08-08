@@ -6,7 +6,7 @@ import {
   invalidateUserPermissionCache,
   PbacAuthzProvider,
   permissionMiddleware,
-} from "@be-water/modules/rbac/server/permission.middleware.js";
+} from "@be-water/builtin/rbac/server/permission.middleware.js";
 import { authMiddleware } from "@be-water/server-kernel/middleware/auth.middleware.js";
 import { errorHandlerMiddleware } from "@be-water/server-kernel/middleware/error-handler.middleware.js";
 import { ProviderRegistry } from "@be-water/server-kernel/runtime/provider-registry.js";

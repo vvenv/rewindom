@@ -1,0 +1,16 @@
+// 外部模块的 Prisma schema——由 gen:external-modules 符号链接到
+// apps/server/prisma/models/todo.prisma，汇入全局 schema。
+// 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard 自动注入。
+model Todo {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  title String
+  completed Boolean @default(false)
+  created_by String
+  updated_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, completed, updated_at])
+}

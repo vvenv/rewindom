@@ -401,8 +401,8 @@ export const ModelName = {
   BackgroundJob: 'BackgroundJob',
   Subscription: 'Subscription',
   Payment: 'Payment',
+  Bookmark: 'Bookmark',
   ErrorLog: 'ErrorLog',
-  ExternalBookmark: 'ExternalBookmark',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
   Tenant: 'Tenant',
@@ -446,7 +446,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "errorLog" | "externalBookmark" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -746,6 +746,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Bookmark: {
+      payload: Prisma.$BookmarkPayload<ExtArgs>
+      fields: Prisma.BookmarkFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BookmarkFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BookmarkFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload>
+        }
+        findFirst: {
+          args: Prisma.BookmarkFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BookmarkFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload>
+        }
+        findMany: {
+          args: Prisma.BookmarkFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload>[]
+        }
+        create: {
+          args: Prisma.BookmarkCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload>
+        }
+        createMany: {
+          args: Prisma.BookmarkCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BookmarkCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload>[]
+        }
+        delete: {
+          args: Prisma.BookmarkDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload>
+        }
+        update: {
+          args: Prisma.BookmarkUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload>
+        }
+        deleteMany: {
+          args: Prisma.BookmarkDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BookmarkUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BookmarkUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload>[]
+        }
+        upsert: {
+          args: Prisma.BookmarkUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookmarkPayload>
+        }
+        aggregate: {
+          args: Prisma.BookmarkAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBookmark>
+        }
+        groupBy: {
+          args: Prisma.BookmarkGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BookmarkGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BookmarkCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BookmarkCountAggregateOutputType> | number
+        }
+      }
+    }
     ErrorLog: {
       payload: Prisma.$ErrorLogPayload<ExtArgs>
       fields: Prisma.ErrorLogFieldRefs
@@ -817,80 +891,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ErrorLogCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ErrorLogCountAggregateOutputType> | number
-        }
-      }
-    }
-    ExternalBookmark: {
-      payload: Prisma.$ExternalBookmarkPayload<ExtArgs>
-      fields: Prisma.ExternalBookmarkFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.ExternalBookmarkFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.ExternalBookmarkFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
-        }
-        findFirst: {
-          args: Prisma.ExternalBookmarkFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.ExternalBookmarkFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
-        }
-        findMany: {
-          args: Prisma.ExternalBookmarkFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>[]
-        }
-        create: {
-          args: Prisma.ExternalBookmarkCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
-        }
-        createMany: {
-          args: Prisma.ExternalBookmarkCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.ExternalBookmarkCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>[]
-        }
-        delete: {
-          args: Prisma.ExternalBookmarkDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
-        }
-        update: {
-          args: Prisma.ExternalBookmarkUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
-        }
-        deleteMany: {
-          args: Prisma.ExternalBookmarkDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.ExternalBookmarkUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.ExternalBookmarkUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>[]
-        }
-        upsert: {
-          args: Prisma.ExternalBookmarkUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
-        }
-        aggregate: {
-          args: Prisma.ExternalBookmarkAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateExternalBookmark>
-        }
-        groupBy: {
-          args: Prisma.ExternalBookmarkGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ExternalBookmarkGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.ExternalBookmarkCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ExternalBookmarkCountAggregateOutputType> | number
         }
       }
     }
@@ -3080,6 +3080,20 @@ export const PaymentScalarFieldEnum = {
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
 
 
+export const BookmarkScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  url: 'url',
+  title: 'title',
+  description: 'description',
+  created_by: 'created_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
+
+
 export const ErrorLogScalarFieldEnum = {
   id: 'id',
   level: 'level',
@@ -3101,20 +3115,6 @@ export const ErrorLogScalarFieldEnum = {
 } as const
 
 export type ErrorLogScalarFieldEnum = (typeof ErrorLogScalarFieldEnum)[keyof typeof ErrorLogScalarFieldEnum]
-
-
-export const ExternalBookmarkScalarFieldEnum = {
-  id: 'id',
-  tenant_id: 'tenant_id',
-  url: 'url',
-  title: 'title',
-  description: 'description',
-  created_by: 'created_by',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type ExternalBookmarkScalarFieldEnum = (typeof ExternalBookmarkScalarFieldEnum)[keyof typeof ExternalBookmarkScalarFieldEnum]
 
 
 export const RefreshTokenScalarFieldEnum = {
@@ -3815,8 +3815,8 @@ export type GlobalOmitConfig = {
   backgroundJob?: Prisma.BackgroundJobOmit
   subscription?: Prisma.SubscriptionOmit
   payment?: Prisma.PaymentOmit
+  bookmark?: Prisma.BookmarkOmit
   errorLog?: Prisma.ErrorLogOmit
-  externalBookmark?: Prisma.ExternalBookmarkOmit
   refreshToken?: Prisma.RefreshTokenOmit
   oAuthAccount?: Prisma.OAuthAccountOmit
   tenant?: Prisma.TenantOmit

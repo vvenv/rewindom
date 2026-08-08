@@ -12,7 +12,7 @@ import {
   setApiAcceptLanguage,
   setupI18n,
 } from "@be-water/client-kit";
-import { clearImpersonationBackup } from "@be-water/modules/platform/client/lib/impersonation-storage.js";
+import { clearImpersonationBackup } from "@be-water/builtin/platform/client/lib/impersonation-storage.js";
 import { TooltipProvider } from "@be-water/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";

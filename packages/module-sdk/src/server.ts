@@ -6,6 +6,8 @@
  *
  * 包含：shared 契约 + server-kernel 的公共运行时 helper。
  */
+import "./fastify-augmentations.js";
+
 export * from "./shared.js";
 
 // ---- Server 契约与运行时 helper

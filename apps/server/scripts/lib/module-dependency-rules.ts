@@ -10,8 +10,8 @@ const SCHEMA_DIR = "prisma/models";
  * `prisma/models/*.prisma` 是指向各包内真实 schema 的符号链接：
  *
  *   packages/server-kernel/prisma/<name>.prisma   → 归 kernel
- *   packages/modules/<id>/schema.prisma           → 归该模块
- *   packages/external-modules/<id>/prisma/...     → 归外部模块（id 同目录名）
+ *   packages/builtin/<id>/schema.prisma           → 归该模块
+ *   modules/<id>/prisma/...                       → 归外部模块（id 同目录名）
  *   packages/<product>/prisma/<name>.prisma       → 归下游业务包（模块 id 同包名）
  *
  * Prisma 只认单一 schema 目录（且各文件间本就存在跨文件 `@relation`），
@@ -26,11 +26,20 @@ function readSchemaOwners(serverRoot: string): Map<string, string> {
     if (!entry.endsWith(".prisma")) continue;
     const target = readlinkSync(path.join(dir, entry));
     const parts = target.split(path.sep);
+
+    // 外部模块：modules/<id>/prisma/...
+    const modulesIdx = parts.indexOf("modules");
+    if (modulesIdx !== -1 && parts[modulesIdx + 1]) {
+      owners.set(entry, parts[modulesIdx + 1]!);
+      continue;
+    }
+
+    // 内核 / 内部模块 / 下游产品包：packages/<pkg>/...
     const pkgIdx = parts.indexOf("packages");
     if (pkgIdx === -1 || !parts[pkgIdx + 1]) {
       throw new Error(
         `无法从链接目标推导归属：${SCHEMA_DIR}/${entry} -> ${target}\n` +
-          `期望指向 packages/<pkg>/… 下的 schema 文件。`,
+          `期望指向 packages/<pkg>/… 或 modules/<id>/… 下的 schema 文件。`,
       );
     }
     const pkg = parts[pkgIdx + 1]!;
@@ -38,7 +47,7 @@ function readSchemaOwners(serverRoot: string): Map<string, string> {
       entry,
       pkg === "server-kernel"
         ? "kernel"
-        : pkg === "modules" || pkg === "external-modules"
+        : pkg === "builtin"
           ? parts[pkgIdx + 2]!
           : pkg,
     );
@@ -80,7 +89,7 @@ const CROSS_CUTTING_INFRA = new Set(["audit", "platform", "error-log"]);
 const CODE_IMPORT_EXCEPTIONS = new Set(["rbac->audit"]);
 
 /**
- * 模块同处一个包（`@be-water/modules`）后，跨模块引用是**包内相对路径**
+ * 模块同处一个包（`@be-water/builtin`）后，跨模块引用是**包内相对路径**
  * （如 `../platform/server/x.js`），不再是独立包规格。
  * 因此改为解析相对 specifier 的落点，判断是否落在兄弟模块目录下。
  */
@@ -88,7 +97,7 @@ const relativeImportPattern = /from\s+["'](\.[^"']*)["']/g;
 
 /** 以包规格引用基础设施模块（业务包 → 基础设施包，或 apps 侧）。 */
 const packageModuleImportPattern =
-  /from\s+["']@be-water\/modules\/([^/"']+)\//g;
+  /from\s+["']@be-water\/builtin\/([^/"']+)\//g;
 
 const foreignKeyRelationPattern =
   /^\s+\w+\s+(\w+)(\?)?\s+@relation\(\s*fields:/gm;
@@ -194,8 +203,8 @@ function directoryExists(dir: string): boolean {
 /**
  * 模块 server 目录的位置。
  *
- * 内部模块在 `packages/modules/<id>/server/`，外部模块在
- * `packages/external-modules/<id>/server/`。优先查内部，不存在再查外部。
+ * 内部模块在 `packages/builtin/<id>/server/`，外部模块在
+ * `modules/<id>/server/`。优先查内部，不存在再查外部。
  */
 function resolveModuleServerDir(
   monorepoRoot: string,
@@ -204,18 +213,12 @@ function resolveModuleServerDir(
   const internal = path.join(
     monorepoRoot,
     "packages",
-    "modules",
+    "builtin",
     moduleId,
     "server",
   );
   if (directoryExists(internal)) return internal;
-  return path.join(
-    monorepoRoot,
-    "packages",
-    "external-modules",
-    moduleId,
-    "server",
-  );
+  return path.join(monorepoRoot, "modules", moduleId, "server");
 }
 
 /** 相对 specifier 落在哪个兄弟模块下；不跨模块则返回 null。 */
@@ -227,7 +230,7 @@ function resolveSiblingModule(
   const target = path.resolve(path.dirname(fromFile), specifier);
   const rel = path.relative(modulesRoot, target);
   if (rel.startsWith("..") || path.isAbsolute(rel)) {
-    return null; // 逃出 packages/modules/，不是跨模块引用
+    return null; // 逃出 packages/builtin/，不是跨模块引用
   }
   const [owner] = rel.split(path.sep);
   return owner || null;
@@ -244,15 +247,11 @@ export function getCodeImpliedModuleDeps(
     return deps;
   }
 
-  // 外部模块的兄弟根是 packages/external-modules/，内部模块是 packages/modules/
-  const isExternal = moduleDir.startsWith(
-    path.join(monorepoRoot, "packages", "external-modules"),
-  );
-  const modulesRoot = path.join(
-    monorepoRoot,
-    "packages",
-    isExternal ? "external-modules" : "modules",
-  );
+  // 外部模块的兄弟根是 modules/，内部模块是 packages/builtin/
+  const isExternal = moduleDir.startsWith(path.join(monorepoRoot, "modules"));
+  const modulesRoot = isExternal
+    ? path.join(monorepoRoot, "modules")
+    : path.join(monorepoRoot, "packages", "builtin");
 
   for (const filePath of walkTypeScriptFiles(moduleDir)) {
     const content = readFileSync(filePath, "utf8");
@@ -269,7 +268,7 @@ export function getCodeImpliedModuleDeps(
       }
       deps.set(
         targetModuleId,
-        `${relativePath}: imports ${match[1]!} (${isExternal ? "packages/external-modules" : "packages/modules"}/${targetModuleId}/)`,
+        `${relativePath}: imports ${match[1]!} (${isExternal ? "modules" : "packages/builtin"}/${targetModuleId}/)`,
       );
     }
 
@@ -280,7 +279,7 @@ export function getCodeImpliedModuleDeps(
       }
       deps.set(
         targetModuleId,
-        `${relativePath}: imports @be-water/modules/${targetModuleId}`,
+        `${relativePath}: imports @be-water/builtin/${targetModuleId}`,
       );
     }
   }

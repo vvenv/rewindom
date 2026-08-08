@@ -1,0 +1,41 @@
+{
+  "name": "@be-water/bookmark",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server/index.js": "./server/index.ts",
+    "./client/module.js": "./client/module.tsx",
+    "./*": "./*"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@be-water/module-sdk": "workspace:*",
+    "@be-water/ui": "workspace:*",
+    "@tanstack/react-query": "^5.101.4",
+    "lucide-react": "^1.30.0",
+    "react-i18next": "^17.0.11"
+  },
+  "peerDependencies": {
+    "fastify": "^5.11.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "@typescript/native": "npm:typescript@^7.0.2"
+  },
+  "beWater": {
+    "moduleId": "bookmark",
+    "prismaSchema": "./prisma/schema.prisma",
+    "requires": [
+      "rbac",
+      "audit"
+    ]
+  }
+}

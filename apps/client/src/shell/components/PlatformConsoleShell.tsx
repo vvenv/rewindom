@@ -5,7 +5,7 @@ import {
   PlatformNavProvider,
   usePublicConfig,
 } from "@be-water/client-kit";
-import { PlatformLayout } from "@be-water/modules/platform/client/components/PlatformLayout.js";
+import { PlatformLayout } from "@be-water/builtin/platform/client/components/PlatformLayout.js";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";
 import { filterPlatformNavForSingleTenant } from "../lib/filter-platform-nav-single-tenant.js";

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "prebuild": "pnpm --filter @be-water/modules assemble",
+    "prebuild": "pnpm --filter @be-water/builtin assemble",
     "build": "tsc -p tsconfig.build.json --noEmit && node scripts/bundle.mjs",
     "start": "node dist/index.js",
     "lint": "eslint .",
@@ -24,8 +24,10 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "@be-water/example-external": "workspace:*",
-    "@be-water/modules": "workspace:*",
+    "@be-water/bookmark": "workspace:*",
+    "@be-water/builtin": "workspace:*",
+    "@be-water/note": "workspace:*",
+    "@be-water/todo": "workspace:*",
     "@be-water/server-kernel": "workspace:*",
     "@be-water/shared": "workspace:*",
     "@fastify/caching": "^9.0.3",
@@ -53,7 +55,7 @@
     "thread-stream": "4.2.0"
   },
   "devDependencies": {
-    "@be-water/modules": "workspace:*",
+    "@be-water/builtin": "workspace:*",
     "@be-water/server-test": "workspace:*",
     "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",

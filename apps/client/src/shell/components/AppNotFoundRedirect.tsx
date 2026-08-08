@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { isMarketingPublicPath } from "@be-water/modules/marketing/shared/site-locale.js";
+import { isMarketingPublicPath } from "@be-water/builtin/marketing/shared/site-locale.js";
 import { useLocation } from "react-router";
 
 import { AppHomeRedirect } from "./AppHomeRedirect.js";

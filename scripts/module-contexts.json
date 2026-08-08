@@ -1,14 +1,9 @@
 {
-  "_comment": "包分层（循环依赖棘轮）。键必须是 workspace 包名——check-circular-deps.mjs 的 ctxOf() 按 package.json 的 name 匹配。同层内部的环视为内聚、放行；只守跨层的环。未列出的包默认 lib。下游产品仓会额外增加 business 层并把自己的业务包放入，届时 modules → business 的依赖会被拦下。模块内部的文件级环由各包 eslint.config.js 的 import-x/no-cycle 检测。外部模块（packages/external-modules/*）各自独立成包，统一归 external 上下文——external → lib 的依赖是正常的，lib → external 的环会被拦下。",
+  "_comment": "包分层（循环依赖棘轮）。键必须是 workspace 包名——check-circular-deps.mjs 的 ctxOf() 按 package.json 的 name 匹配。同层内部的环视为内聚、放行；只守跨层的环。未列出的包默认 lib。下游产品仓会额外增加 business 层并把自己的业务包放入，届时 builtin → business 的依赖会被拦下。模块内部的文件级环由各包 eslint.config.js 的 import-x/no-cycle 检测。外部模块（modules/*）各自独立成包，统一归 external 上下文——external → lib 的依赖是正常的，lib → external 的环会被拦下。",
   "default": "lib",
   "contexts": {
-    "app": [
-      "@be-water/server",
-      "@be-water/client"
-    ],
-    "modules": [
-      "@be-water/modules"
-    ],
+    "app": ["@be-water/server", "@be-water/client"],
+    "builtin": ["@be-water/builtin"],
     "lib": [
       "@be-water/server-kernel",
       "@be-water/client-kit",
@@ -16,10 +11,7 @@
       "@be-water/ui",
       "@be-water/module-sdk"
     ],
-    "test": [
-      "@be-water/server-test",
-      "@be-water/client-test"
-    ],
+    "test": ["@be-water/server-test", "@be-water/client-test"],
     "external": []
   }
 }

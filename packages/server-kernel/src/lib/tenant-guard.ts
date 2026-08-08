@@ -40,7 +40,7 @@ type ModelPolicy =
   | { kind: "global"; reason: string };
 
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
-  ExternalBookmark: { kind: "tenant_id" },
+  Bookmark: { kind: "tenant_id" },
   Todo: { kind: "tenant_id" },
   Note: { kind: "tenant_id" },
   MarketingSite: { kind: "tenant_id" },

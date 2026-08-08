@@ -5,7 +5,7 @@ description: 按模块化架构创建新的 server/client 业务模块。新增�
 
 # 创建业务模块
 
-Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）  
+Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 设计文档：`docs/design/modular-architecture.md`（§3.4、§9.4、§10.5、§11.4）
 
 ## 何时使用
@@ -144,7 +144,7 @@ checklist 手工建。
    - 全站 tab 总数控制在 **5 个以内**，超出会挤成一行看不清
    - 路径必须是本模块 `nav` 里已有的 `path`，否则会被静默丢弃
    - 权限与 entitlement 过滤自动生效，无需在此重复声明
-   - nav `label` / `title` 用 `namespace:key`（如 `notes:nav.notes`），**禁止**模块加载时 `t()` 写死文案
+   - nav `label` / `title` 用 `namespace:key`（如 `note:nav.notes`），key 必须在模块 i18n 里真实存在，**禁止**模块加载时 `t()` 写死文案
 9. Client i18n：`client/locales/{zh-CN,en}.json` + `client/i18n.ts` → `client.i18n`（**不要**往 `client-kit/locales` 塞模块 JSON）
 10. Server i18n：`server/i18n.ts` 按稳定 **code** 提供 zh-CN/en → `server.i18n`；抛错用 `NotFoundError("notes.not_found")` 等，审计用 `detail_key` + `detail_params`（见 `docs/design/i18n.md`）
     - **租户无感知**：租户侧 locale / API `error` 兜底句 / 审计模板勿写「租户」「Tenant」（用 site / website / organization / 官网 / 组织）；平台侧可说租户（见 `tenancy-mode` rule、`tenant-config.md` §5.8）

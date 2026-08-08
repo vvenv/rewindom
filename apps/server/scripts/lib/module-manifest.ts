@@ -58,22 +58,23 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit", "platform", "marketing"],
   },
   {
-    id: "notes",
-    kind: "business",
-    requires: ["rbac", "audit"],
-  },
-  {
-    id: "todos",
-    kind: "business",
-    requires: ["rbac", "audit"],
-  },
-  {
     id: "billing",
     kind: "business",
     requires: ["rbac", "audit", "platform"],
   },
+  // 外部模块（modules/*）的 manifest 条目由 `pnpm gen:external-modules` 自动注入
   {
-    id: "example-external",
+    id: "bookmark",
+    kind: "business",
+    requires: ["rbac", "audit"],
+  },
+  {
+    id: "note",
+    kind: "business",
+    requires: ["rbac", "audit"],
+  },
+  {
+    id: "todo",
     kind: "business",
     requires: ["rbac", "audit"],
   },

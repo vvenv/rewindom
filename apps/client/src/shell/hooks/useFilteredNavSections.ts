@@ -33,8 +33,8 @@ export function useFilteredNavSections(): {
     "dashboard",
     "audit",
     "error-log",
-    "notes",
-    "todos",
+    "note",
+    "todo",
     "notification",
     "background-job",
   ]);
