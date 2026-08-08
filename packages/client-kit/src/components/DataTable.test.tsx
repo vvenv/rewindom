@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
+import { useState } from "react";
 import { MemoryRouter } from "react-router";
 import { describe, it, expect, vi } from "vitest";
 
@@ -159,6 +160,32 @@ describe("DataTable", () => {
     const checkboxes = screen.getAllByRole("checkbox");
     expect(checkboxes[1]).not.toBeDisabled(); // First row selectable
     expect(checkboxes[2]).toBeDisabled(); // Second row not selectable
+  });
+
+  it("onSelectionChange 接到受控 state 时不陷入无限渲染", () => {
+    // 回归：v9 的 useTable 每次渲染返回新包装对象，若选择通知 effect 把 table
+    // 放进依赖，会与父级 setState 形成死循环（Maximum update depth exceeded）。
+    // 用受控 selectedRows 的父组件复现真实用法。
+    function Wrapper() {
+      const [, setSelected] = useState<Row[]>([]);
+      return (
+        <MemoryRouter>
+          <DataTable<Row>
+            columns={columns}
+            data={mockData}
+            enableRowSelection
+            onSelectionChange={setSelected}
+          />
+        </MemoryRouter>
+      );
+    }
+
+    const { getAllByRole } = render(<Wrapper />);
+
+    // 渲染未抛「Maximum update depth exceeded」即视为通过；再验证交互仍可用
+    const checkboxes = getAllByRole("checkbox");
+    fireEvent.click(checkboxes[1]);
+    expect(checkboxes[1]).toBeChecked();
   });
 
   it("应该显示头部操作", () => {

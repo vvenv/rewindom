@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Card, CardContent } from "@be-water/ui/card";
@@ -214,15 +214,23 @@ export function DataTable<TData extends RowData>({
     },
   });
 
+  // v9 的 useTable 每次渲染都返回新的包装对象（options 是新对象字面量），
+  // 把它放进 effect 依赖会让 effect 每次渲染重跑，进而触发 onSelectionChange
+  // → 父级 setState → 本组件重渲染 → 新 table 引用 → effect 再跑，死循环。
+  // 这里用 ref 持有最新实例，仅在真正的选择状态 rowSelection 变化时通知父级。
+  const tableRef = useRef(table);
+  useEffect(() => {
+    tableRef.current = table;
+  });
+
   // Notify parent of selection changes
   useEffect(() => {
-    if (enableRowSelection && onSelectionChange) {
-      const selectedRows = table
-        .getFilteredSelectedRowModel()
-        .rows.map((row) => row.original);
-      onSelectionChange(selectedRows);
-    }
-  }, [rowSelection, enableRowSelection, onSelectionChange, table]);
+    if (!enableRowSelection || !onSelectionChange) return;
+    const selectedRows = tableRef.current
+      .getFilteredSelectedRowModel()
+      .rows.map((row) => row.original);
+    onSelectionChange(selectedRows);
+  }, [rowSelection, enableRowSelection, onSelectionChange]);
 
   if (isLoading) {
     return (
