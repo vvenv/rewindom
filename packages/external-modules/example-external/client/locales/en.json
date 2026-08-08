@@ -1,0 +1,32 @@
+{
+  "title": "External Bookmarks",
+  "pageDescription": "External module example — tenant bookmark management",
+  "nav": {
+    "bookmarks": "External Bookmarks"
+  },
+  "create": "New Bookmark",
+  "createTitle": "New Bookmark",
+  "createDescription": "Create a new external bookmark",
+  "url": "URL",
+  "urlPlaceholder": "https://example.com",
+  "titleField": "Title",
+  "titlePlaceholder": "Bookmark title",
+  "description": "Description",
+  "descriptionPlaceholder": "Optional description",
+  "cancel": "Cancel",
+  "save": "Save",
+  "createFailed": "Failed to create bookmark",
+  "urlRequired": "URL is required",
+  "titleRequired": "Title is required",
+  "empty": "No bookmarks yet",
+  "emptyHint": "Click the button above to create your first bookmark",
+  "deleteConfirm": "Delete this bookmark?",
+  "created": "Bookmark created",
+  "updated": "Bookmark updated",
+  "deleted": "Bookmark deleted",
+  "audit": {
+    "created": "Created bookmark: {{title}}",
+    "updated": "Updated bookmark: {{title}}",
+    "deleted": "Deleted bookmark: {{title}}"
+  }
+}

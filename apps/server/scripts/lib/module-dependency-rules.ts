@@ -11,6 +11,7 @@ const SCHEMA_DIR = "prisma/models";
  *
  *   packages/server-kernel/prisma/<name>.prisma   → 归 kernel
  *   packages/modules/<id>/schema.prisma           → 归该模块
+ *   packages/external-modules/<id>/prisma/...     → 归外部模块（id 同目录名）
  *   packages/<product>/prisma/<name>.prisma       → 归下游业务包（模块 id 同包名）
  *
  * Prisma 只认单一 schema 目录（且各文件间本就存在跨文件 `@relation`），
@@ -37,7 +38,7 @@ function readSchemaOwners(serverRoot: string): Map<string, string> {
       entry,
       pkg === "server-kernel"
         ? "kernel"
-        : pkg === "modules"
+        : pkg === "modules" || pkg === "external-modules"
           ? parts[pkgIdx + 2]!
           : pkg,
     );
@@ -45,7 +46,6 @@ function readSchemaOwners(serverRoot: string): Map<string, string> {
 
   return owners;
 }
-
 
 /** Prisma models owned by kernel schema — cross-relations do not imply module requires. */
 export const KERNEL_PRISMA_MODELS = new Set([
@@ -194,14 +194,28 @@ function directoryExists(dir: string): boolean {
 /**
  * 模块 server 目录的位置。
  *
- * 上游只有 `@be-water/modules` 一个模块包。下游产品仓若另有业务包
- * （其 server 直接在包根），在此追加分支即可。
+ * 内部模块在 `packages/modules/<id>/server/`，外部模块在
+ * `packages/external-modules/<id>/server/`。优先查内部，不存在再查外部。
  */
 function resolveModuleServerDir(
   monorepoRoot: string,
   moduleId: string,
 ): string {
-  return path.join(monorepoRoot, "packages", "modules", moduleId, "server");
+  const internal = path.join(
+    monorepoRoot,
+    "packages",
+    "modules",
+    moduleId,
+    "server",
+  );
+  if (directoryExists(internal)) return internal;
+  return path.join(
+    monorepoRoot,
+    "packages",
+    "external-modules",
+    moduleId,
+    "server",
+  );
 }
 
 /** 相对 specifier 落在哪个兄弟模块下；不跨模块则返回 null。 */
@@ -223,13 +237,22 @@ export function getCodeImpliedModuleDeps(
   monorepoRoot: string,
   moduleId: string,
 ): Map<string, string> {
-  const modulesRoot = path.join(monorepoRoot, "packages", "modules");
   const moduleDir = resolveModuleServerDir(monorepoRoot, moduleId);
   const deps = new Map<string, string>();
 
   if (!directoryExists(moduleDir)) {
     return deps;
   }
+
+  // 外部模块的兄弟根是 packages/external-modules/，内部模块是 packages/modules/
+  const isExternal = moduleDir.startsWith(
+    path.join(monorepoRoot, "packages", "external-modules"),
+  );
+  const modulesRoot = path.join(
+    monorepoRoot,
+    "packages",
+    isExternal ? "external-modules" : "modules",
+  );
 
   for (const filePath of walkTypeScriptFiles(moduleDir)) {
     const content = readFileSync(filePath, "utf8");
@@ -246,7 +269,7 @@ export function getCodeImpliedModuleDeps(
       }
       deps.set(
         targetModuleId,
-        `${relativePath}: imports ${match[1]!} (packages/modules/${targetModuleId}/)`,
+        `${relativePath}: imports ${match[1]!} (${isExternal ? "packages/external-modules" : "packages/modules"}/${targetModuleId}/)`,
       );
     }
 
@@ -260,7 +283,6 @@ export function getCodeImpliedModuleDeps(
         `${relativePath}: imports @be-water/modules/${targetModuleId}`,
       );
     }
-
   }
 
   return deps;

@@ -79,9 +79,13 @@ function tenantMarketingSsrProxy(): Plugin {
 export default defineConfig(() => ({
   plugins: [react(), tailwindcss(), tenantMarketingSsrProxy()],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+      {
+        find: /^@be-water\/ui\//,
+        replacement: path.resolve(__dirname, "../../packages/ui/src") + "/",
+      },
+    ],
   },
   build: {
     // 使用默认 outDir: "dist"

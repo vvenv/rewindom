@@ -12,6 +12,7 @@ import { slowQueryServerModule } from "@be-water/modules/slow-query/server/index
 import { todosServerModule } from "@be-water/modules/todos/server/index.js";
 import { userServerModule } from "@be-water/modules/user/server/index.js";
 
+import { EXTERNAL_SERVER_MODULES } from "./external-modules.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
 
@@ -29,4 +30,6 @@ export const ENABLED_SERVER_MODULES = [
   notesServerModule,
   todosServerModule,
   billingServerModule,
+  // 外部模块（packages/external-modules/*）由 `pnpm gen:external-modules` 生成
+  ...EXTERNAL_SERVER_MODULES,
 ] as const satisfies readonly ServerAppModule[];

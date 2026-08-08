@@ -15,6 +15,8 @@ import { userClientModule } from "@be-water/modules/user/client/module.js";
 
 import { appShellClientModule } from "@/shell/index";
 
+import { EXTERNAL_CLIENT_MODULES } from "./external-modules.js";
+
 import type { ClientAppModule } from "@be-water/client-kit";
 
 /**
@@ -43,4 +45,6 @@ export const ENABLED_CLIENT_MODULES = [
   auditClientModule,
   errorLogClientModule,
   slowQueryClientModule,
+  // 外部模块（packages/external-modules/*）由 `pnpm gen:external-modules` 生成
+  ...EXTERNAL_CLIENT_MODULES,
 ] as const satisfies readonly ClientAppModule[];

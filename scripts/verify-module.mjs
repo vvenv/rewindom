@@ -27,6 +27,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MODULES_DIR = path.join(ROOT, "packages", "modules");
+const EXTERNAL_MODULES_DIR = path.join(ROOT, "packages", "external-modules");
 const SERVER_REGISTRY = path.join(
   ROOT,
   "apps",
@@ -40,6 +41,20 @@ const CLIENT_REGISTRY = path.join(
   "client",
   "src",
   "enabled-modules.ts",
+);
+const SERVER_EXTERNAL_REGISTRY = path.join(
+  ROOT,
+  "apps",
+  "server",
+  "src",
+  "external-modules.ts",
+);
+const CLIENT_EXTERNAL_REGISTRY = path.join(
+  ROOT,
+  "apps",
+  "client",
+  "src",
+  "external-modules.ts",
 );
 const TENANT_MODELS = path.join(ROOT, "eslint-rules", "tenant-models.json");
 const STATIC_MANIFEST = path.join(
@@ -111,13 +126,22 @@ function arrayBlock(text, key) {
 
 // ---------------------------------------------------------------- 模块上下文
 
-function loadModule(id) {
-  const dir = path.join(MODULES_DIR, id);
+function loadModule(id, baseDir = MODULES_DIR, isExternal = false) {
+  const dir = path.join(baseDir, id);
   const serverManifest = path.join(dir, "server", "module.ts");
   const clientManifest = path.join(dir, "client", "module.tsx");
+  // 外部模块的 schema 可能在 prisma/schema.prisma（由 beWater.prismaSchema 指定）
+  const schemaCandidates = isExternal
+    ? [
+        path.join(dir, "schema.prisma"),
+        path.join(dir, "prisma", "schema.prisma"),
+      ]
+    : [path.join(dir, "schema.prisma")];
+  const schema = schemaCandidates.find((p) => existsSync(p)) ?? null;
   return {
     id,
     dir,
+    isExternal,
     serverManifestText: existsSync(serverManifest)
       ? read(serverManifest)
       : null,
@@ -130,9 +154,7 @@ function loadModule(id) {
     clientFiles: walk(path.join(dir, "client"), [".ts", ".tsx"]).filter(
       (f) => !f.endsWith(".test.ts") && !f.endsWith(".test.tsx"),
     ),
-    schema: existsSync(path.join(dir, "schema.prisma"))
-      ? path.join(dir, "schema.prisma")
-      : null,
+    schema,
   };
 }
 
@@ -157,6 +179,9 @@ function declaredAuditActions(mod) {
  *
  * 光看 import 路径不够——import 留着、数组里漏一行同样等于没启用，
  * 所以要顺着 import 的局部名去 ENABLED_* 数组里找。
+ *
+ * 外部模块的注册表是 generated `external-modules.ts`（由 gen:external-modules 生成），
+ * import 路径是包名（`<pkgName>/server/index.js`）而非 `@be-water/modules/<id>/...`。
  */
 function checkRegistry(mod, add) {
   const isRegistered = (registryPath, modulePath, arrayName) => {
@@ -172,44 +197,78 @@ function checkRegistry(mod, add) {
     );
   };
 
-  if (
-    mod.serverManifestText &&
-    !isRegistered(
-      SERVER_REGISTRY,
-      `/modules/${mod.id}/server/index.js`,
-      "ENABLED_SERVER_MODULES",
-    )
-  ) {
-    add(
-      "error",
-      "registry",
-      `未加入 apps/server/src/enabled-modules.ts 的 ENABLED_SERVER_MODULES`,
-    );
+  if (mod.isExternal) {
+    // 外部模块：检查 generated external-modules.ts
+    const pkgName = JSON.parse(read(path.join(mod.dir, "package.json"))).name;
+    if (
+      mod.serverManifestText &&
+      !isRegistered(
+        SERVER_EXTERNAL_REGISTRY,
+        `${pkgName}/server/index.js`,
+        "EXTERNAL_SERVER_MODULES",
+      )
+    ) {
+      add(
+        "error",
+        "registry",
+        `未在 apps/server/src/external-modules.ts 的 EXTERNAL_SERVER_MODULES 中找到——请运行 \`pnpm gen:external-modules\``,
+      );
+    }
+    if (
+      mod.clientManifestText &&
+      !isRegistered(
+        CLIENT_EXTERNAL_REGISTRY,
+        `${pkgName}/client/module.js`,
+        "EXTERNAL_CLIENT_MODULES",
+      )
+    ) {
+      add(
+        "error",
+        "registry",
+        `未在 apps/client/src/external-modules.ts 的 EXTERNAL_CLIENT_MODULES 中找到——请运行 \`pnpm gen:external-modules\``,
+      );
+    }
+  } else {
+    // 内部模块：检查 enabled-modules.ts
+    if (
+      mod.serverManifestText &&
+      !isRegistered(
+        SERVER_REGISTRY,
+        `/modules/${mod.id}/server/index.js`,
+        "ENABLED_SERVER_MODULES",
+      )
+    ) {
+      add(
+        "error",
+        "registry",
+        `未加入 apps/server/src/enabled-modules.ts 的 ENABLED_SERVER_MODULES`,
+      );
+    }
+    if (
+      mod.clientManifestText &&
+      !isRegistered(
+        CLIENT_REGISTRY,
+        `/modules/${mod.id}/client/module.js`,
+        "ENABLED_CLIENT_MODULES",
+      )
+    ) {
+      add(
+        "error",
+        "registry",
+        `未加入 apps/client/src/enabled-modules.ts 的 ENABLED_CLIENT_MODULES`,
+      );
+    }
   }
-  // CI 脚本用的静态清单，与运行时清单有单测做深比较；这里先抓「压根没加」
+
+  // CI 脚本用的静态清单（内外模块统一检查）
   if (mod.serverManifestText && existsSync(STATIC_MANIFEST)) {
     if (!read(STATIC_MANIFEST).includes(`id: "${mod.id}"`)) {
       add(
         "error",
         "registry",
-        `未加入 apps/server/scripts/lib/module-manifest.ts 的 SERVER_MODULE_MANIFEST`,
+        `未加入 apps/server/scripts/lib/module-manifest.ts 的 SERVER_MODULE_MANIFEST${mod.isExternal ? "——请运行 `pnpm gen:external-modules`" : ""}`,
       );
     }
-  }
-
-  if (
-    mod.clientManifestText &&
-    !isRegistered(
-      CLIENT_REGISTRY,
-      `/modules/${mod.id}/client/module.js`,
-      "ENABLED_CLIENT_MODULES",
-    )
-  ) {
-    add(
-      "error",
-      "registry",
-      `未加入 apps/client/src/enabled-modules.ts 的 ENABLED_CLIENT_MODULES`,
-    );
   }
 }
 
@@ -491,10 +550,45 @@ function checkDocs(mod, add) {
   }
 }
 
+/**
+ * 10. 外部模块边界校验
+ *
+ * 外部模块只许 import 自 `@be-water/module-sdk`（门面包）和 `@be-water/ui`（原语），
+ * 不许直接 import 内核包（server-kernel / client-kit / shared）或内部模块包
+ * （@be-water/modules/*）——否则外部模块与内核实现细节耦合，无法独立发布。
+ */
+const FORBIDDEN_EXTERNAL_PREFIXES = [
+  "@be-water/server-kernel",
+  "@be-water/client-kit",
+  "@be-water/shared",
+  "@be-water/modules/",
+  "@be-water/server-test",
+  "@be-water/client-test",
+];
+
+function checkBoundary(mod, add) {
+  if (!mod.isExternal) return;
+
+  for (const file of [...mod.serverFiles, ...mod.clientFiles]) {
+    const text = read(file);
+    for (const match of text.matchAll(/from\s+["']([^"']+)["']/gu)) {
+      const specifier = match[1];
+      if (specifier.startsWith(".")) continue; // 相对导入
+      if (FORBIDDEN_EXTERNAL_PREFIXES.some((p) => specifier.startsWith(p))) {
+        add(
+          "error",
+          "boundary",
+          `外部模块禁止直接 import "${specifier}"——只许 import @be-water/module-sdk / @be-water/ui（${path.relative(ROOT, file)}）`,
+        );
+      }
+    }
+  }
+}
+
 // ---------------------------------------------------------------- 主流程
 
-// 模块是 @be-water/modules 单包内的目录，靠 manifest 文件识别（无各自的 package.json）
-const ids = readdirSync(MODULES_DIR).filter((id) => {
+// 内部模块：@be-water/modules 单包内的目录，靠 manifest 文件识别
+const internalIds = readdirSync(MODULES_DIR).filter((id) => {
   const dir = path.join(MODULES_DIR, id);
   if (id === "node_modules" || !statSync(dir).isDirectory()) return false;
   return (
@@ -502,16 +596,33 @@ const ids = readdirSync(MODULES_DIR).filter((id) => {
     existsSync(path.join(dir, "client", "module.tsx"))
   );
 });
-const targets = ONLY.length > 0 ? ONLY : ids;
+
+// 外部模块：packages/external-modules/* 各自独立成包，靠 package.json 的 beWater.moduleId 识别
+const externalIds = existsSync(EXTERNAL_MODULES_DIR)
+  ? readdirSync(EXTERNAL_MODULES_DIR).filter((id) => {
+      const dir = path.join(EXTERNAL_MODULES_DIR, id);
+      if (!statSync(dir).isDirectory()) return false;
+      const pkgPath = path.join(dir, "package.json");
+      if (!existsSync(pkgPath)) return false;
+      const pkg = JSON.parse(read(pkgPath));
+      return pkg.beWater?.moduleId;
+    })
+  : [];
+
+const allIds = [...internalIds, ...externalIds];
+const targets = ONLY.length > 0 ? ONLY : allIds;
 
 for (const id of ONLY) {
-  if (!ids.includes(id)) {
-    console.error(`✗ 未找到模块 ${id}（可选：${ids.join(", ")}）`);
+  if (!allIds.includes(id)) {
+    console.error(`✗ 未找到模块 ${id}（可选：${allIds.join(", ")}）`);
     process.exit(1);
   }
 }
 
-const modules = ids.map(loadModule);
+const modules = [
+  ...internalIds.map((id) => loadModule(id)),
+  ...externalIds.map((id) => loadModule(id, EXTERNAL_MODULES_DIR, true)),
+];
 const declaredEverywhere = new Set(modules.flatMap(declaredPermissions));
 
 const findings = [];
@@ -527,6 +638,7 @@ for (const mod of modules) {
   checkAudit(mod, add);
   checkClientShell(mod, add);
   checkDocs(mod, add);
+  checkBoundary(mod, add);
 }
 
 const errors = findings.filter((f) => f.level === "error");

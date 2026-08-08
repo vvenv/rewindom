@@ -1,0 +1,32 @@
+{
+  "title": "外部书签",
+  "pageDescription": "外部模块示例——租户内书签管理",
+  "nav": {
+    "bookmarks": "外部书签"
+  },
+  "create": "新建书签",
+  "createTitle": "新建书签",
+  "createDescription": "创建一个新的外部书签",
+  "url": "URL",
+  "urlPlaceholder": "https://example.com",
+  "titleField": "标题",
+  "titlePlaceholder": "书签标题",
+  "description": "描述",
+  "descriptionPlaceholder": "可选描述",
+  "cancel": "取消",
+  "save": "保存",
+  "createFailed": "创建书签失败",
+  "urlRequired": "请输入 URL",
+  "titleRequired": "请输入标题",
+  "empty": "暂无书签",
+  "emptyHint": "点击右上角创建第一个书签",
+  "deleteConfirm": "确定删除此书签？",
+  "created": "书签已创建",
+  "updated": "书签已更新",
+  "deleted": "书签已删除",
+  "audit": {
+    "created": "创建书签：{{title}}",
+    "updated": "更新书签：{{title}}",
+    "deleted": "删除书签：{{title}}"
+  }
+}

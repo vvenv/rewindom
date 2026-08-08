@@ -24,6 +24,7 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@be-water/example-external": "workspace:*",
     "@be-water/modules": "workspace:*",
     "@be-water/server-kernel": "workspace:*",
     "@be-water/shared": "workspace:*",

@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "packages/external-modules/*"
 allowBuilds:
   "@prisma/client": true
   "@prisma/engines": true

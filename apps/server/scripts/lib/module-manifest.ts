@@ -72,4 +72,9 @@ export const SERVER_MODULE_MANIFEST = [
     kind: "business",
     requires: ["rbac", "audit", "platform"],
   },
+  {
+    id: "example-external",
+    kind: "business",
+    requires: ["rbac", "audit"],
+  },
 ] as const satisfies readonly ModuleManifestEntry[];

@@ -13,6 +13,7 @@
   "user": "tenant_id",
   "siteMember": "tenant_id",
   "siteMemberOAuthAccount": "tenant_id",
+  "siteMemberOAuthExchangeCode": "tenant_id",
   "role": "tenant_id",
   "tenant": "id",
   "auditLog": "tenant_slug",
@@ -20,5 +21,6 @@
   "slowQueryLog": "tenant_slug",
   "todo": "tenant_id",
   "subscription": "tenant_id",
-  "payment": "tenant_id"
+  "payment": "tenant_id",
+  "externalBookmark": "tenant_id"
 }

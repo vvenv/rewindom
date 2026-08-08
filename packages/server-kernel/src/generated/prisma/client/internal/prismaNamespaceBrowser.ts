@@ -56,6 +56,7 @@ export const ModelName = {
   Subscription: 'Subscription',
   Payment: 'Payment',
   ErrorLog: 'ErrorLog',
+  ExternalBookmark: 'ExternalBookmark',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
   Tenant: 'Tenant',
@@ -198,6 +199,20 @@ export const ErrorLogScalarFieldEnum = {
 } as const
 
 export type ErrorLogScalarFieldEnum = (typeof ErrorLogScalarFieldEnum)[keyof typeof ErrorLogScalarFieldEnum]
+
+
+export const ExternalBookmarkScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  url: 'url',
+  title: 'title',
+  description: 'description',
+  created_by: 'created_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ExternalBookmarkScalarFieldEnum = (typeof ExternalBookmarkScalarFieldEnum)[keyof typeof ExternalBookmarkScalarFieldEnum]
 
 
 export const RefreshTokenScalarFieldEnum = {

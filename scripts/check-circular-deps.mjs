@@ -31,7 +31,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BASELINE_PATH = path.join(ROOT, "scripts", "circular-deps-baseline.json");
 const CONTEXTS_PATH = path.join(ROOT, "scripts", "module-contexts.json");
-const WORKSPACE_GLOBS = ["apps", "packages"];
+const WORKSPACE_GLOBS = ["apps", "packages", "packages/external-modules"];
 /** 本仓的包分属两个 scope：@be-water/*（模板设施，与上游同名）与 @be-water/*（本产品业务）。 */
 const SCOPE_PREFIXES = ["@be-water/", "@be-water/"];
 /** 依赖种类：只有运行时耦合会阻碍「单独启用某模块」 */
@@ -41,7 +41,7 @@ const args = new Set(process.argv.slice(2));
 const UPDATE = args.has("--update-baseline");
 const AS_JSON = args.has("--json");
 
-/** 加载限界上下文映射；返回 ctxOf(pkgName) -> 上下文名（未列出的用 default） */
+/** 加载限界上下文映射；返回 ctxOf(pkgName, dir?) -> 上下文名（未列出的用 default） */
 function loadContexts() {
   if (!existsSync(CONTEXTS_PATH)) {
     return { ctxOf: () => "infra", defaultCtx: "infra" };
@@ -52,7 +52,18 @@ function loadContexts() {
   for (const [ctx, members] of Object.entries(data.contexts ?? {})) {
     for (const m of members) byPkg.set(m, ctx);
   }
-  return { ctxOf: (name) => byPkg.get(name) ?? defaultCtx, defaultCtx };
+  return {
+    ctxOf: (name, dir) => {
+      // 1. 显式列出的包名优先
+      if (byPkg.has(name)) return byPkg.get(name);
+      // 2. packages/external-modules/ 下的包归 external 上下文（无需手工登记）
+      if (dir && dir.startsWith("packages/external-modules/"))
+        return "external";
+      // 3. 回落到默认上下文
+      return defaultCtx;
+    },
+    defaultCtx,
+  };
 }
 
 /** 读取 workspace 内所有本地包，返回 name -> { name, dir, deps:Set<localName> } */
@@ -81,7 +92,9 @@ function loadGraph() {
     try {
       pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
     } catch (err) {
-      throw new Error(`无法解析 ${path.relative(ROOT, pkgPath)}: ${err.message}`);
+      throw new Error(
+        `无法解析 ${path.relative(ROOT, pkgPath)}: ${err.message}`,
+      );
     }
     if (!pkg.name) continue;
     raw.push({ pkg, pkgPath });
@@ -226,7 +239,7 @@ const { edges: allCyclicEdges, sccOf, sccs } = findCyclicEdges(graph);
 // 只守跨上下文的环上边；同一上下文内部的环视为内聚、放行。
 const edgeCrossesContext = (e) => {
   const [u, v] = e.split(" -> ");
-  return ctxOf(u) !== ctxOf(v);
+  return ctxOf(u, graph.get(u)?.dir) !== ctxOf(v, graph.get(v)?.dir);
 };
 const cyclicEdges = new Set([...allCyclicEdges].filter(edgeCrossesContext));
 const intraContextCount = allCyclicEdges.size - cyclicEdges.size;
@@ -263,7 +276,7 @@ if (AS_JSON) {
   process.exit(violations.length ? 1 : 0);
 }
 
-const ctxTag = (name) => `${short(name)}[${ctxOf(name)}]`;
+const ctxTag = (name) => `${short(name)}[${ctxOf(name, graph.get(name)?.dir)}]`;
 
 console.log(
   `循环依赖检查（上下文感知）：workspace 共 ${graph.size} 个本地包，` +
@@ -271,7 +284,9 @@ console.log(
 );
 
 if (violations.length) {
-  console.error(`✗ 检测到 ${violations.length} 条基线之外的新增跨上下文环上边：\n`);
+  console.error(
+    `✗ 检测到 ${violations.length} 条基线之外的新增跨上下文环上边：\n`,
+  );
   for (const e of violations) {
     const [u, v] = e.split(" -> ");
     const cycle = cycleThroughEdge(graph, u, v).map(short).join(" → ");

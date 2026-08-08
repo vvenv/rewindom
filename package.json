@@ -25,6 +25,7 @@
     "check:modules": "node scripts/verify-module.mjs",
     "check:section-css": "pnpm --filter @be-water/modules check:section-css",
     "gen:module": "node scripts/gen-module.mjs",
+    "gen:external-modules": "node scripts/gen-external-modules.mjs",
     "db:up": "docker compose -f docker-compose.dev.yml up -d --wait",
     "db:down": "docker compose -f docker-compose.dev.yml down",
     "db:logs": "docker compose -f docker-compose.dev.yml logs -f",

@@ -1,0 +1,31 @@
+{
+  "name": "@be-water/module-sdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./shared": "./src/shared.ts",
+    "./server": "./src/server.ts",
+    "./client": "./src/client.ts",
+    "./*": "./src/*"
+  },
+  "dependencies": {
+    "@be-water/client-kit": "workspace:*",
+    "@be-water/server-kernel": "workspace:*",
+    "@be-water/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "fastify": "^5.11.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^8.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "@typescript/native": "npm:typescript@^7.0.2"
+  }
+}

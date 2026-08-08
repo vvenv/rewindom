@@ -402,6 +402,7 @@ export const ModelName = {
   Subscription: 'Subscription',
   Payment: 'Payment',
   ErrorLog: 'ErrorLog',
+  ExternalBookmark: 'ExternalBookmark',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
   Tenant: 'Tenant',
@@ -445,7 +446,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "errorLog" | "externalBookmark" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -816,6 +817,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ErrorLogCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ErrorLogCountAggregateOutputType> | number
+        }
+      }
+    }
+    ExternalBookmark: {
+      payload: Prisma.$ExternalBookmarkPayload<ExtArgs>
+      fields: Prisma.ExternalBookmarkFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExternalBookmarkFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExternalBookmarkFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
+        }
+        findFirst: {
+          args: Prisma.ExternalBookmarkFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExternalBookmarkFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
+        }
+        findMany: {
+          args: Prisma.ExternalBookmarkFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>[]
+        }
+        create: {
+          args: Prisma.ExternalBookmarkCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
+        }
+        createMany: {
+          args: Prisma.ExternalBookmarkCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExternalBookmarkCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>[]
+        }
+        delete: {
+          args: Prisma.ExternalBookmarkDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
+        }
+        update: {
+          args: Prisma.ExternalBookmarkUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExternalBookmarkDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExternalBookmarkUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExternalBookmarkUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExternalBookmarkUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalBookmarkPayload>
+        }
+        aggregate: {
+          args: Prisma.ExternalBookmarkAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExternalBookmark>
+        }
+        groupBy: {
+          args: Prisma.ExternalBookmarkGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExternalBookmarkGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExternalBookmarkCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExternalBookmarkCountAggregateOutputType> | number
         }
       }
     }
@@ -3028,6 +3103,20 @@ export const ErrorLogScalarFieldEnum = {
 export type ErrorLogScalarFieldEnum = (typeof ErrorLogScalarFieldEnum)[keyof typeof ErrorLogScalarFieldEnum]
 
 
+export const ExternalBookmarkScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  url: 'url',
+  title: 'title',
+  description: 'description',
+  created_by: 'created_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ExternalBookmarkScalarFieldEnum = (typeof ExternalBookmarkScalarFieldEnum)[keyof typeof ExternalBookmarkScalarFieldEnum]
+
+
 export const RefreshTokenScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -3727,6 +3816,7 @@ export type GlobalOmitConfig = {
   subscription?: Prisma.SubscriptionOmit
   payment?: Prisma.PaymentOmit
   errorLog?: Prisma.ErrorLogOmit
+  externalBookmark?: Prisma.ExternalBookmarkOmit
   refreshToken?: Prisma.RefreshTokenOmit
   oAuthAccount?: Prisma.OAuthAccountOmit
   tenant?: Prisma.TenantOmit

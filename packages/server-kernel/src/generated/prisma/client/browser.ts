@@ -43,6 +43,11 @@ export type Payment = Prisma.PaymentModel
  */
 export type ErrorLog = Prisma.ErrorLogModel
 /**
+ * Model ExternalBookmark
+ * 
+ */
+export type ExternalBookmark = Prisma.ExternalBookmarkModel
+/**
  * Model RefreshToken
  * 
  */
