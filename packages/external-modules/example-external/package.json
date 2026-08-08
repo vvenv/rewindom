@@ -11,6 +11,7 @@
   "dependencies": {
     "@be-water/module-sdk": "workspace:*",
     "@be-water/ui": "workspace:*",
+    "@tanstack/react-query": "^5.101.4",
     "lucide-react": "^1.30.0",
     "react-i18next": "^17.0.11"
   },

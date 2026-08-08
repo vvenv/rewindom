@@ -18,6 +18,14 @@ export interface ExternalBookmarkListItem {
   updated_at: string;
 }
 
+export interface ExternalBookmarkListResult {
+  items: ExternalBookmarkListItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  page_count: number;
+}
+
 export interface CreateBookmarkBody {
   url: string;
   title: string;

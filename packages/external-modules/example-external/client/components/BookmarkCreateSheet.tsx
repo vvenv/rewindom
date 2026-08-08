@@ -23,6 +23,7 @@ import type { ExternalBookmark } from "../../shared/index.js";
 
 interface BookmarkCreateSheetProps {
   children?: ReactNode;
+  onCreated?: () => void;
 }
 
 interface BookmarkFormValues {
@@ -37,7 +38,10 @@ const INITIAL_FORM: BookmarkFormValues = {
   description: "",
 };
 
-export function BookmarkCreateSheet({ children }: BookmarkCreateSheetProps) {
+export function BookmarkCreateSheet({
+  children,
+  onCreated,
+}: BookmarkCreateSheetProps) {
   const { t } = useTranslation("example-external");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<BookmarkFormValues>(INITIAL_FORM);
@@ -71,6 +75,7 @@ export function BookmarkCreateSheet({ children }: BookmarkCreateSheetProps) {
       toast.success(t("created"));
       setOpen(false);
       reset();
+      onCreated?.();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("createFailed"));
     } finally {
