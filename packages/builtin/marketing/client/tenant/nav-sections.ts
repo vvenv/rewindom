@@ -15,7 +15,9 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: Globe,
         label: "marketing:cms.nav",
+        // end:true：精确匹配，避免与 /app/site/docs 等兄弟菜单同时高亮
         path: "/app/site",
+        end: true,
         title: "marketing:cms.nav",
         keywords: "site marketing cms 官网 站点",
         tenantModule: "tenant-marketing",
