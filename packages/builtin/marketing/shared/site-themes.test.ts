@@ -56,12 +56,12 @@ describe("起步模板", () => {
   });
 
   it("模板的主题 token 进到站点设置里", () => {
-    const docs = buildSiteStarter("docs", t, "zh-CN");
-    expect(docs!.site.theme_settings).toMatchObject(
-      findSiteTheme("docs")!.theme_settings,
+    const landing = buildSiteStarter("landing", t, "zh-CN");
+    expect(landing!.site.theme_settings).toMatchObject(
+      findSiteTheme("bold")!.theme_settings,
     );
     // 新站点还没传 logo
-    expect(docs!.site.theme_settings?.logo_url).toBeNull();
+    expect(landing!.site.theme_settings?.logo_url).toBeNull();
   });
 
   it("不同模板给出不同的页面组合", () => {

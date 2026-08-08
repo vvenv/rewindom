@@ -415,6 +415,7 @@ export const ModelName = {
   MarketingRedirect: 'MarketingRedirect',
   MarketingAsset: 'MarketingAsset',
   MarketingPageVersion: 'MarketingPageVersion',
+  MarketingDoc: 'MarketingDoc',
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
@@ -446,7 +447,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "marketingDoc" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1779,6 +1780,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MarketingPageVersionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MarketingPageVersionCountAggregateOutputType> | number
+        }
+      }
+    }
+    MarketingDoc: {
+      payload: Prisma.$MarketingDocPayload<ExtArgs>
+      fields: Prisma.MarketingDocFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MarketingDocFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MarketingDocFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
+        }
+        findFirst: {
+          args: Prisma.MarketingDocFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MarketingDocFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
+        }
+        findMany: {
+          args: Prisma.MarketingDocFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>[]
+        }
+        create: {
+          args: Prisma.MarketingDocCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
+        }
+        createMany: {
+          args: Prisma.MarketingDocCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MarketingDocCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>[]
+        }
+        delete: {
+          args: Prisma.MarketingDocDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
+        }
+        update: {
+          args: Prisma.MarketingDocUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
+        }
+        deleteMany: {
+          args: Prisma.MarketingDocDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MarketingDocUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MarketingDocUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>[]
+        }
+        upsert: {
+          args: Prisma.MarketingDocUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
+        }
+        aggregate: {
+          args: Prisma.MarketingDocAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMarketingDoc>
+        }
+        groupBy: {
+          args: Prisma.MarketingDocGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingDocGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MarketingDocCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingDocCountAggregateOutputType> | number
         }
       }
     }
@@ -3310,6 +3385,29 @@ export const MarketingPageVersionScalarFieldEnum = {
 export type MarketingPageVersionScalarFieldEnum = (typeof MarketingPageVersionScalarFieldEnum)[keyof typeof MarketingPageVersionScalarFieldEnum]
 
 
+export const MarketingDocScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  slug: 'slug',
+  locale: 'locale',
+  title: 'title',
+  description: 'description',
+  body_md: 'body_md',
+  category: 'category',
+  sort_order: 'sort_order',
+  status: 'status',
+  title_draft: 'title_draft',
+  description_draft: 'description_draft',
+  body_md_draft: 'body_md_draft',
+  category_draft: 'category_draft',
+  sort_order_draft: 'sort_order_draft',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MarketingDocScalarFieldEnum = (typeof MarketingDocScalarFieldEnum)[keyof typeof MarketingDocScalarFieldEnum]
+
+
 export const NoteScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -3829,6 +3927,7 @@ export type GlobalOmitConfig = {
   marketingRedirect?: Prisma.MarketingRedirectOmit
   marketingAsset?: Prisma.MarketingAssetOmit
   marketingPageVersion?: Prisma.MarketingPageVersionOmit
+  marketingDoc?: Prisma.MarketingDocOmit
   note?: Prisma.NoteOmit
   notification?: Prisma.NotificationOmit
   notificationLog?: Prisma.NotificationLogOmit

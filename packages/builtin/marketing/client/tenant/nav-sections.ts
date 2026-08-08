@@ -1,4 +1,10 @@
-import { Globe, Image as ImageIcon, Inbox, Signpost } from "lucide-react";
+import {
+  FileText,
+  Globe,
+  Image as ImageIcon,
+  Inbox,
+  Signpost,
+} from "lucide-react";
 
 import type { AppNavSection } from "@be-water/client-kit";
 
@@ -39,6 +45,15 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
         path: "/app/site/redirects",
         title: "marketing:redirects.title",
         keywords: "redirect 301 302 重定向 跳转",
+        tenantModule: "tenant-marketing",
+        anyPermission: ["site.read"],
+      },
+      {
+        icon: FileText,
+        label: "marketing:siteDocs.nav",
+        path: "/app/site/docs",
+        title: "marketing:siteDocs.title",
+        keywords: "docs documentation markdown 文档 手册",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
       },

@@ -6,6 +6,7 @@
   "marketingRedirect": "tenant_id",
   "marketingAsset": "tenant_id",
   "marketingPageVersion": "tenant_id",
+  "marketingDoc": "tenant_id",
   "notification": "tenant_id",
   "notificationLog": "tenant_id",
   "tenantApiKey": "tenant_id",

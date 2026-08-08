@@ -2,19 +2,21 @@ import {
   resolveHostTenant,
   resolveRequestHostname,
 } from "@be-water/server-kernel/lib/host-tenant.js";
-import { normalizeLocale, type AppLocale  } from "@be-water/shared";
+import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import {
   resolveLocaleSegment,
   SITE_APP_PREFIXES,
 } from "../shared/site-locale.js";
 
+import { renderDocLibrary } from "./marketing-doc.ssr.js";
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
 import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
 import { findSiteRedirect } from "./site-redirect.service.js";
 import {
   getPublishedPublicPage,
+  getPublishedPublicSite,
   getPublishedSitemapEntries,
 } from "./site.service.js";
 import {
@@ -111,7 +113,10 @@ async function renderNotFound(
       origin: requestOrigin(request),
       site: custom.site,
       // 404 页不该被收录：它会出现在无数个不存在的地址上
-      page: { ...custom.page, settings: { ...custom.page.settings, noindex: true } },
+      page: {
+        ...custom.page,
+        settings: { ...custom.page.settings, noindex: true },
+      },
       accountEntryHtml: accountEntry.html,
       enabledEntitlements,
     }),
@@ -135,6 +140,43 @@ async function renderPath(
         message: "This host is not bound to a site.",
       }),
     );
+    return;
+  }
+
+  /*
+   * 租户文档库：`/docs`（索引）与 `/docs/:slug`（详情）。独立于页面版式系统，
+   * 数据来自 `MarketingDoc` 表。复用站点 chrome + `.prose` 排版渲染。
+   * 拦截在 `renderPath` 里，所以 `/docs`、`/{locale}/docs` 都走这一条。
+   */
+  if (path === "/docs" || path.startsWith("/docs/")) {
+    const site = await getPublishedPublicSite(
+      hostTenant.tenant_id,
+      hostTenant.tenant_slug,
+      locale,
+    );
+    if (site) {
+      const [accountEntry, enabledEntitlements] = await Promise.all([
+        resolveSiteAccountEntry({
+          tenantId: hostTenant.tenant_id,
+          locale: normalizeLocale(site.default_locale),
+        }),
+        resolveSectionEntitlements(hostTenant.tenant_id),
+      ]);
+      const html = await renderDocLibrary({
+        tenantId: hostTenant.tenant_id,
+        origin: requestOrigin(request),
+        site,
+        accountEntryHtml: accountEntry.html,
+        enabledEntitlements,
+        path,
+        locale,
+      });
+      if (html) {
+        sendHtml(reply, 200, html);
+        return;
+      }
+    }
+    await renderNotFound(request, reply, hostTenant, locale);
     return;
   }
 
@@ -240,15 +282,6 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     await renderPath(request, reply, "/");
   });
 
-  app.get("/docs", async (request, reply) => {
-    await renderPath(request, reply, "/docs");
-  });
-
-  app.get("/docs/:slug", async (request, reply) => {
-    const { slug } = request.params as { slug: string };
-    await renderPath(request, reply, `/docs/${slug}`);
-  });
-
   /* ------------------------------------------------------ 其余语言（前缀树） */
 
   /*
@@ -256,8 +289,8 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
    *
    * 两者在 URL 上是同一个位置，只能靠取值区分——所以 locale 的 slug 必须占住
    * `RESERVED_PAGE_SLUGS`（见 shared/site-cms.ts），否则一个叫 `en` 的顶层页
-   * 会把整棵 `/en/*` 遮住。静态段（`/docs`、`/sitemap.xml`）由 Fastify 优先匹配，
-   * 不会落到这里。
+   * 会把整棵 `/en/*` 遮住。`/docs/*` 由 `renderPath` 内部拦截走文档库，
+   * `/sitemap.xml` / `/robots.txt` 由 Fastify 静态路由优先匹配，都不会落到这里。
    */
   app.get("/:first", async (request, reply) => {
     const { first } = request.params as { first: string };

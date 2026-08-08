@@ -324,8 +324,9 @@ export interface PublicMarketingPage {
 /**
  * 自定义 page slug 的**第一段**不可占用的保留字。
  *
- * `pricing` / `docs` 刻意**不**保留：绑定域名上的 `/pricing`、`/docs` 归租户自己的
- * 页面（可用多段 slug，如 `docs/quickstart`）；平台页只在平台域名下有意义。
+ * `pricing` 刻意**不**保留：绑定域名上的 `/pricing` 归租户自己的页面。
+ * `docs` **保留**给租户文档库（`/docs` 索引 + `/docs/:slug` 详情，见
+ * `MarketingDoc`）：它是一套独立于页面版式系统的 Markdown 文档库，不进 section 体系。
  */
 export const RESERVED_PAGE_SLUGS = new Set([
   // locale 前缀占掉了一级路径：slug 叫 `en` 的顶层页会把整棵 `/en/*` 遮住。
@@ -348,6 +349,8 @@ export const RESERVED_PAGE_SLUGS = new Set([
   "health",
   "sitemap.xml",
   "robots.txt",
+  // 租户文档库专属路径，见 MarketingDoc
+  "docs",
 ]);
 
 /** 规范化页面 kind / slug（home 固定 slug=`home`）。 */

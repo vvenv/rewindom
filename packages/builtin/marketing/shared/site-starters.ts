@@ -1,4 +1,3 @@
-
 import {
   buildPresetSections,
   findPagePreset,
@@ -70,18 +69,6 @@ export const SITE_STARTERS: SiteStarter[] = [
     ],
   },
   {
-    /** 文档站：索引页 + 一篇详情当范例，配窄栏主题。 */
-    key: "docs",
-    label: "starter.docs.label",
-    description: "starter.docs.description",
-    themeKey: "docs",
-    pages: [
-      { presetKey: "home", sort_order: 0 },
-      { presetKey: "docs", sort_order: 1 },
-      { presetKey: "docs-detail", sort_order: 2 },
-    ],
-  },
-  {
     /** 单页落地：只有首页 + 联系，段间距拉开的主题。 */
     key: "landing",
     label: "starter.landing.label",
@@ -99,7 +86,8 @@ export const SITE_STARTERS: SiteStarter[] = [
  *
  * 以前还顺带建了 `docs` 与 `pricing`。那是**本仓自己**的官网结构，不是通用租户的：
  * 一个做线下课程的站点拿到手，第一件事是删掉两个空文档页。想要它们的从「页面预设」
- * 里加一页即可（`PAGE_PRESETS` 里 docs / pricing / about / contact 都还在）。
+ * 里加一页即可（`PAGE_PRESETS` 里 pricing / about / contact 都还在）。
+ * `/docs` 现在是租户文档库（`MarketingDoc`）的专属路径，不再由页面预设生成。
  */
 export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
   { presetKey: "home", sort_order: 0 },

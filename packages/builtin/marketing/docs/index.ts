@@ -1,12 +1,18 @@
 /**
- * 平台文档注册表。
+ * 平台文档注册表（类型化 API）。
  *
  * 平台文档跟代码版本走，打包进 bundle。SSR 和客户端都直接 import 本模块，
  * 不需要文件系统访问或 API 端点。
  *
- * 新增文档：在 docs/ 下创建 <slug>.ts 导出 markdown 字符串，然后在这里登记。
+ * 真源是同目录下的 `*.md`（filename = slug，frontmatter = title/description），
+ * 由 `assemble-docs.mjs` 压进 `docs.generated.ts`。本文件只做类型化与派生，
+ * 不含数据——加一篇文档丢个 `.md` 进来，跑 `pnpm --filter @be-water/builtin
+ * assemble:marketing-docs` 即可，这里一行不改。
+ *
+ * 与租户文档库（`MarketingDoc`，DB 存储、按租户隔离）是两回事：平台文档是
+ * 代码版本化、给默认租户产品站用的；租户文档库由各自管理台维护。
  */
-import { INSTALL_EXTERNAL_MODULE_MD } from "./install-external-module.js";
+import { PLATFORM_DOCS_RAW } from "./docs.generated.js";
 
 export interface PlatformDoc {
   /** URL slug，用于 doc-source section 的 doc_slug 设置 */
@@ -19,14 +25,7 @@ export interface PlatformDoc {
   markdown: string;
 }
 
-export const PLATFORM_DOCS: readonly PlatformDoc[] = [
-  {
-    slug: "install-external-module",
-    title: "安装外部模块",
-    description: "外部模块的目录结构、边界规则与接入流程",
-    markdown: INSTALL_EXTERNAL_MODULE_MD,
-  },
-];
+export const PLATFORM_DOCS: readonly PlatformDoc[] = PLATFORM_DOCS_RAW;
 
 /** 查找一篇文档，找不到返回 undefined。 */
 export function getPlatformDoc(slug: string): PlatformDoc | undefined {

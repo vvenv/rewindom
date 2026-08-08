@@ -12,14 +12,20 @@ import {
 
 describe("page slug identity", () => {
   it("accepts nested page slugs", () => {
-    expect(validatePageSlug("page", "docs")).toBe("docs");
-    expect(validatePageSlug("page", "docs/quickstart")).toBe("docs/quickstart");
-    expect(validatePageSlug("page", "/Docs/Guide/")).toBe("docs/guide");
+    expect(validatePageSlug("page", "guides")).toBe("guides");
+    expect(validatePageSlug("page", "guides/quickstart")).toBe(
+      "guides/quickstart",
+    );
+    expect(validatePageSlug("page", "/Guides/Guide/")).toBe("guides/guide");
   });
 
   it("rejects reserved roots and bad segments", () => {
     expect(() => validatePageSlug("page", "app")).toThrow("site.slug_reserved");
     expect(() => validatePageSlug("page", "app/about")).toThrow(
+      "site.slug_reserved",
+    );
+    expect(() => validatePageSlug("page", "docs")).toThrow("site.slug_reserved");
+    expect(() => validatePageSlug("page", "docs/quickstart")).toThrow(
       "site.slug_reserved",
     );
     expect(() => validatePageSlug("page", "Bad_Slug")).toThrow(

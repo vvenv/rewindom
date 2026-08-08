@@ -28,6 +28,12 @@ const SiteRedirects = lazy(() =>
   })),
 );
 
+const SiteDocs = lazy(() =>
+  import("../pages/site-docs.js").then((module) => ({
+    default: module.SiteDocs,
+  })),
+);
+
 const SiteThemeEditor = lazy(() =>
   import("../pages/site-theme-editor.js").then((module) => ({
     default: module.SiteThemeEditor,
@@ -56,6 +62,7 @@ export function renderSiteRoutes(): ReactNode {
         />
         <Route path="/app/site/media" element={<SiteMedia />} />
         <Route path="/app/site/redirects" element={<SiteRedirects />} />
+        <Route path="/app/site/docs" element={<SiteDocs />} />
         <Route path="/app/site/pages/:pageId" element={<SiteThemeEditor />} />
       </Route>
     </Route>

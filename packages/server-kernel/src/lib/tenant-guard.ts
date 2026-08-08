@@ -49,6 +49,7 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   MarketingRedirect: { kind: "tenant_id" },
   MarketingAsset: { kind: "tenant_id" },
   MarketingPageVersion: { kind: "tenant_id" },
+  MarketingDoc: { kind: "tenant_id" },
   Subscription: { kind: "tenant_id" },
   Payment: { kind: "tenant_id" },
   Notification: { kind: "tenant_id" },

@@ -156,6 +156,27 @@ export type MarketingAsset = Prisma.MarketingAssetModel
  */
 export type MarketingPageVersion = Prisma.MarketingPageVersionModel
 /**
+ * Model MarketingDoc
+ * *
+ *  * 租户文档库里的一篇文档。
+ *  *
+ *  * 与 `MarketingPage`（页面版式系统）解耦：文档就是「标题 + Markdown 正文」，
+ *  * 不进 section / block 体系——文档作者只写 markdown，不碰 Theme Editor。每租户
+ *  * 默认有一个 `/docs` 索引与 `/docs/:slug` 详情路由（见 `docs.routes.ts`），渲染
+ *  * 复用站点 chrome + `.prose` 排版。
+ *  *
+ *  * 与平台文档（`docs/*.md`，代码版本化）的区别：平台文档跟代码走、给默认租户产品
+ *  * 站用；本表是租户自管、DB 存储、按租户隔离。
+ *  *
+ *  * draft / live 两列与 `MarketingPage` 同口径：无后缀是线上（访客看到的），`_draft`
+ *  * 是编辑器在改的那一份。`status` 为 `draft` 时文档对访客不可见（不出现在 `/docs`）。
+ *  * `locale` 与页面同口径（翻译组 key = `(tenant, slug)`），v1 管理台只编辑站点主语言，
+ *  * 非主语言回落主语言（整库回落，不逐篇 404）。
+ *  *
+ *  * 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard + withTenantScope 保证。
+ */
+export type MarketingDoc = Prisma.MarketingDocModel
+/**
  * Model Note
  * 
  */

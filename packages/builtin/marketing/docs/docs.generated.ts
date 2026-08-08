@@ -1,10 +1,24 @@
 /**
- * 平台文档：安装外部模块
- *
- * 内容跟代码版本走，打包进 bundle——不需要文件系统访问或 API 端点。
- * SSR 和客户端都直接 import 本模块。
+ * GENERATED — do not edit.
+ * Source: co-located `*.md` files under `docs/` (filename = slug, frontmatter = title/description).
+ * Regenerate: `pnpm --filter @be-water/builtin assemble:marketing-docs`
  */
-export const INSTALL_EXTERNAL_MODULE_MD = `# 安装外部模块
+
+/**
+ * 平台文档原始数据（按 slug 排序）。类型与派生 API 见 `./index.ts`——
+ * 生成物只管数据，不管展示口径。
+ */
+export const PLATFORM_DOCS_RAW: ReadonlyArray<{
+  slug: string;
+  title: string;
+  description: string;
+  markdown: string;
+}> = [
+  {
+    slug: `install-external-module`,
+    title: `安装外部模块`,
+    description: `外部模块的目录结构、边界规则与接入流程`,
+    markdown: `# 安装外部模块
 
 外部模块是内化了完整前后端定义的独立 workspace 包，通过 \`@be-water/module-sdk\` 门面与内核交互。
 
@@ -60,17 +74,18 @@ modules/
 
 ### beWater 字段
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| \`moduleId\` | string | 模块唯一标识，用于注册表、权限前缀、审计日志 |
-| \`prismaSchema\` | string? | Prisma schema 文件路径，存在则自动链接到主 schema |
-| \`requires\` | string[] | 依赖的其他模块 ID（如 \`["marketing"]\`） |
+| 字段           | 类型     | 说明                                              |
+| -------------- | -------- | ------------------------------------------------- |
+| \`moduleId\`     | string   | 模块唯一标识，用于注册表、权限前缀、审计日志      |
+| \`prismaSchema\` | string?  | Prisma schema 文件路径，存在则自动链接到主 schema |
+| \`requires\`     | string[] | 依赖的其他模块 ID（如 \`["marketing"]\`）           |
 
 ## 边界规则
 
 外部模块的 import 受 \`verify-module.mjs\` 强制校验：
 
 **允许导入：**
+
 - \`@be-water/module-sdk\` — shared 契约（无框架依赖，安全在任何上下文用）
 - \`@be-water/module-sdk/server\` — server 契约 + server-kernel 运行时（仅 server 代码）
 - \`@be-water/module-sdk/client\` — client 契约 + client-kit 运行时（仅 client 代码）
@@ -78,6 +93,7 @@ modules/
 - 第三方库（react / react-router / lucide-react / fastify 类型等）
 
 **禁止导入：**
+
 - \`@be-water/server-kernel\` / \`@be-water/client-kit\` / \`@be-water/shared\` — 必须通过 module-sdk 间接访问
 - \`@be-water/modules\` / \`@be-water/builtin\` — 不许直接依赖其他模块
 - 任何 \`apps/*\` 的代码
@@ -172,10 +188,11 @@ model MyEntity {
 
 ## 校验
 
-| 命令 | 说明 |
-|------|------|
-| \`pnpm check:modules\` | 模块契约 + 边界校验（import 白名单） |
-| \`pnpm check:deps\` | 循环依赖检测 |
-| \`pnpm typecheck\` | TypeScript 类型校验 |
-| \`node scripts/verify-module.mjs <id>\` | 单模块校验 |
-`;
+| 命令                                  | 说明                                 |
+| ------------------------------------- | ------------------------------------ |
+| \`pnpm check:modules\`                  | 模块契约 + 边界校验（import 白名单） |
+| \`pnpm check:deps\`                     | 循环依赖检测                         |
+| \`pnpm typecheck\`                      | TypeScript 类型校验                  |
+| \`node scripts/verify-module.mjs <id>\` | 单模块校验                           |`,
+  },
+];
