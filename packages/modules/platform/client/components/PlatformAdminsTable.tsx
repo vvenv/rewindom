@@ -4,6 +4,7 @@ import {
   ApiError,
   DataTable,
   DataTableColumnHeader,
+  type DataTableFeatures,
   useAuth,
   useConfirm,
 } from "@be-water/client-kit";
@@ -14,7 +15,6 @@ import { Switch } from "@be-water/ui/switch";
 import { toast } from "@be-water/ui/toast";
 import { Pencil, Plus, Trash2, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
 
 import {
   useDeletePlatformAdmin,
@@ -74,7 +74,9 @@ function AdminRowActions({
     try {
       await updateMutation.mutateAsync({ id: admin.id, enabled });
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t("common:updateFailed"));
+      toast.error(
+        err instanceof ApiError ? err.message : t("common:updateFailed"),
+      );
     }
   };
 
@@ -90,7 +92,9 @@ function AdminRowActions({
       await deleteMutation.mutateAsync(admin.id);
       toast.success(t("admins.deleted"));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t("admins.deleteFailed"));
+      toast.error(
+        err instanceof ApiError ? err.message : t("admins.deleteFailed"),
+      );
     }
   };
 
@@ -126,9 +130,7 @@ function AdminRowActions({
         <Switch
           checked={admin.enabled}
           onCheckedChange={(value) => void handleToggle(value)}
-          disabled={
-            updateMutation.isPending || admin.is_system_admin || isSelf
-          }
+          disabled={updateMutation.isPending || admin.is_system_admin || isSelf}
           aria-label={
             admin.enabled
               ? t("admins.disableAccount")
@@ -179,12 +181,17 @@ export function PlatformAdminsTable({
 }: PlatformAdminsTableProps) {
   const { t } = useTranslation(["platform", "common"]);
 
-  const columns = useMemo<ColumnDef<PlatformAdminListItem>[]>(
+  const columns = useMemo<
+    ColumnDef<DataTableFeatures, PlatformAdminListItem>[]
+  >(
     () => [
       {
         accessorKey: "username",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t("admins.table.username")} />
+          <DataTableColumnHeader
+            column={column}
+            title={t("admins.table.username")}
+          />
         ),
         enableSorting: true,
         cell: ({ row }) => (
@@ -194,7 +201,10 @@ export function PlatformAdminsTable({
       {
         accessorKey: "is_system_admin",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t("admins.table.type")} />
+          <DataTableColumnHeader
+            column={column}
+            title={t("admins.table.type")}
+          />
         ),
         enableSorting: true,
         cell: ({ row }) => (
@@ -214,7 +224,10 @@ export function PlatformAdminsTable({
       {
         accessorKey: "enabled",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t("admins.table.status")} />
+          <DataTableColumnHeader
+            column={column}
+            title={t("admins.table.status")}
+          />
         ),
         enableSorting: true,
         cell: ({ row }) => (
@@ -232,7 +245,10 @@ export function PlatformAdminsTable({
       {
         accessorKey: "last_login_at",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t("admins.table.lastLogin")} />
+          <DataTableColumnHeader
+            column={column}
+            title={t("admins.table.lastLogin")}
+          />
         ),
         enableSorting: true,
         meta: { cellClassName: "text-muted-foreground hidden sm:table-cell" },

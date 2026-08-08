@@ -1,8 +1,8 @@
 import { success } from "@be-water/shared";
 
-import { resolveOAuthEnabledFlags } from "../auth/oauth-credentials.js";
 import { handleRouteError } from "../../http/route-error-handler.js";
 import { config as appConfig } from "../../lib/config.js";
+import { resolveOAuthEnabledFlags } from "../auth/oauth-credentials.js";
 
 import type { FastifyInstance } from "fastify";
 

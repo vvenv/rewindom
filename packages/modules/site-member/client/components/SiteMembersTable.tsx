@@ -4,6 +4,7 @@ import {
   ApiError,
   DataTable,
   DataTableColumnHeader,
+  type DataTableFeatures,
   useConfirm,
   usePermissions,
 } from "@be-water/client-kit";
@@ -121,7 +122,7 @@ export function SiteMembersTable({
     [confirm, deleteMutation, t],
   );
 
-  const columns = useMemo<ColumnDef<SiteMemberListItem>[]>(
+  const columns = useMemo<ColumnDef<DataTableFeatures, SiteMemberListItem>[]>(
     () => [
       {
         accessorKey: "email",
@@ -173,8 +174,7 @@ export function SiteMembersTable({
             title={t("account.created_at")}
           />
         ),
-        cell: ({ row }) =>
-          formatBusinessDateOrTimeAgo(row.original.created_at),
+        cell: ({ row }) => formatBusinessDateOrTimeAgo(row.original.created_at),
       },
       ...(canWrite
         ? [
@@ -206,7 +206,7 @@ export function SiteMembersTable({
                   </Button>
                 </div>
               ),
-            } satisfies ColumnDef<SiteMemberListItem>,
+            } satisfies ColumnDef<DataTableFeatures, SiteMemberListItem>,
           ]
         : []),
     ],

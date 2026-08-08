@@ -1,3 +1,4 @@
+import { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 import {
   OAUTH_PROVIDER_IDS,
   OAUTH_PROVIDERS_SETTING_KEY,
@@ -5,18 +6,17 @@ import {
 } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
 import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 import {
   decryptTenantSecret,
   encryptTenantSecret,
 } from "@be-water/server-kernel/lib/tenant-secret-crypto.js";
 
-import type { OAuthProviderId } from "@be-water/server-kernel/kernel/auth/oauth-common.js";
 import type {
   TenantOAuthProviderStatus,
   TenantOAuthProvidersStatus,
   UpsertTenantOAuthProviderBody,
 } from "../../shared/tenant-oauth.js";
+import type { OAuthProviderId } from "@be-water/server-kernel/kernel/auth/oauth-common.js";
 
 interface StoredProviderOverride {
   client_id?: string;

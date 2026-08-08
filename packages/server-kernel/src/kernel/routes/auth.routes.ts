@@ -38,10 +38,9 @@ import {
   requestOriginFromHeaders,
   type OAuthProviderId,
 } from "../auth/oauth-common.js";
-import { resolveOAuthCredentials } from "../auth/oauth-credentials.js";
+import { resolveOAuthCredentials, type ResolvedOAuthCredentials  } from "../auth/oauth-credentials.js";
 
 import type { MemberOAuthCallbackState } from "../../runtime/provider-contracts.js";
-import type { ResolvedOAuthCredentials } from "../auth/oauth-credentials.js";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 const KERNEL_AUDIT_ACTIONS = {

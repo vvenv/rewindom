@@ -1,6 +1,11 @@
-import { useMemo, type ComponentType  } from "react";
+import { useMemo, type ComponentType } from "react";
 
-import { DataTable, DataTableColumnHeader, usePublicConfig } from "@be-water/client-kit";
+import {
+  DataTable,
+  DataTableColumnHeader,
+  type DataTableFeatures,
+  usePublicConfig,
+} from "@be-water/client-kit";
 import {
   formatLoginIdentifier,
   formatBusinessDate,
@@ -12,7 +17,6 @@ import { Spinner } from "@be-water/ui/spinner";
 import { cn } from "@be-water/ui/utils";
 import { useTranslation } from "react-i18next";
 
-
 import { type PlatformUserSummary } from "../../shared/index.js";
 import { userRoleBadgeSlot } from "../shell/platform-widget-slots.js";
 
@@ -23,8 +27,8 @@ function buildPlatformUserColumns(
   t: TFunction<"platform">,
   RoleBadge: ComponentType<{ isSystemAdmin: boolean }> | null,
   singleTenant: boolean,
-): ColumnDef<PlatformUserSummary>[] {
-  const tenantColumn: ColumnDef<PlatformUserSummary> = {
+): ColumnDef<DataTableFeatures, PlatformUserSummary>[] {
+  const tenantColumn: ColumnDef<DataTableFeatures, PlatformUserSummary> = {
     accessorKey: "tenant_slug",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={t("users.table.tenant")} />
@@ -41,79 +45,91 @@ function buildPlatformUserColumns(
   };
 
   return [
-  ...(singleTenant ? [] : [tenantColumn]),
-  {
-    accessorKey: "username",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t("users.table.loginAccount")} />
-    ),
-    enableSorting: true,
-    cell: ({ row }) => (
-      <span className="font-mono text-sm">
-        {singleTenant
-          ? row.original.username
-          : formatLoginIdentifier(
-              row.original.username,
-              row.original.tenant_slug,
-            )}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "is_system_admin",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t("users.table.type")} />
-    ),
-    enableSorting: true,
-    cell: ({ row }) =>
-      RoleBadge ? (
-        <RoleBadge isSystemAdmin={row.original.is_system_admin} />
-      ) : row.original.is_system_admin ? (
-        t("users.table.systemAdmin")
-      ) : (
-        t("users.table.regularUser")
+    ...(singleTenant ? [] : [tenantColumn]),
+    {
+      accessorKey: "username",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t("users.table.loginAccount")}
+        />
       ),
-  },
-  {
-    accessorKey: "enabled",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t("users.table.status")} />
-    ),
-    enableSorting: true,
-    cell: ({ row }) => (
-      <span
-        className={cn(
-          "inline-flex rounded-full px-2 py-0.5 text-xs",
-          row.original.enabled
-            ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-            : "bg-muted text-muted-foreground",
-        )}
-      >
-        {row.original.enabled ? t("common:enabled") : t("common:disabled")}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "last_login_at",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t("users.table.lastLogin")} />
-    ),
-    enableSorting: true,
-    meta: { cellClassName: "text-muted-foreground" },
-    cell: ({ row }) =>
-      row.original.last_login_at
-        ? formatBusinessDateOrTimeAgo(row.original.last_login_at)
-        : t("users.table.neverLoggedIn"),
-  },
-  {
-    accessorKey: "created_at",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t("users.table.createdAt")} />
-    ),
-    enableSorting: true,
-    meta: { cellClassName: "text-muted-foreground tabular-nums" },
-    cell: ({ row }) => formatBusinessDate(row.original.created_at),
-  },
+      enableSorting: true,
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">
+          {singleTenant
+            ? row.original.username
+            : formatLoginIdentifier(
+                row.original.username,
+                row.original.tenant_slug,
+              )}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "is_system_admin",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("users.table.type")} />
+      ),
+      enableSorting: true,
+      cell: ({ row }) =>
+        RoleBadge ? (
+          <RoleBadge isSystemAdmin={row.original.is_system_admin} />
+        ) : row.original.is_system_admin ? (
+          t("users.table.systemAdmin")
+        ) : (
+          t("users.table.regularUser")
+        ),
+    },
+    {
+      accessorKey: "enabled",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t("users.table.status")}
+        />
+      ),
+      enableSorting: true,
+      cell: ({ row }) => (
+        <span
+          className={cn(
+            "inline-flex rounded-full px-2 py-0.5 text-xs",
+            row.original.enabled
+              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+              : "bg-muted text-muted-foreground",
+          )}
+        >
+          {row.original.enabled ? t("common:enabled") : t("common:disabled")}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "last_login_at",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t("users.table.lastLogin")}
+        />
+      ),
+      enableSorting: true,
+      meta: { cellClassName: "text-muted-foreground" },
+      cell: ({ row }) =>
+        row.original.last_login_at
+          ? formatBusinessDateOrTimeAgo(row.original.last_login_at)
+          : t("users.table.neverLoggedIn"),
+    },
+    {
+      accessorKey: "created_at",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t("users.table.createdAt")}
+        />
+      ),
+      enableSorting: true,
+      meta: { cellClassName: "text-muted-foreground tabular-nums" },
+      cell: ({ row }) => formatBusinessDate(row.original.created_at),
+    },
   ];
 }
 

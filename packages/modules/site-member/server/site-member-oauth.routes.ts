@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
+import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 import {
   buildMemberOAuthFrontendRedirect,
   mapOAuthErrorCode,
@@ -8,7 +9,6 @@ import {
   resolveMemberOAuthCallbackUrl,
 } from "@be-water/server-kernel/kernel/auth/oauth-common.js";
 import { resolveOAuthCredentials } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
-import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 
 import { setMemberAuthCookies } from "./member-auth-cookies.js";
 import {

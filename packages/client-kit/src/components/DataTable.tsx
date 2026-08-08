@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 
-
 import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Card, CardContent } from "@be-water/ui/card";
 import { Checkbox } from "@be-water/ui/checkbox";
@@ -16,13 +15,16 @@ import {
 import { cn } from "@be-water/ui/utils";
 import {
   type ColumnDef,
+  createPaginatedRowModel,
+  createSortedRowModel,
   flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   type OnChangeFn,
+  type RowData,
   type SortingState,
-  useReactTable,
+  sortFns,
+  stockFeatures,
+  tableFeatures,
+  useTable,
 } from "@tanstack/react-table";
 
 import { Pagination } from "./Pagination";
@@ -34,6 +36,22 @@ export interface DataTableColumnMeta {
   /** 操作列等：收窄列宽并右对齐表头/单元格 */
   align?: "left" | "right";
 }
+
+/**
+ * v9 table features：stockFeatures 提供全部内置 feature，再补上 row model slots
+ * （sortedRowModel / paginatedRowModel）与内置 sortFns 注册表。stockFeatures 本身
+ * 不含 row model slots，需在此显式补充。columnMeta 类型槽让列 meta 复用
+ * DataTableColumnMeta（v9 不再走全局 declaration merging）。
+ */
+const dataTableFeatures = tableFeatures({
+  ...stockFeatures,
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  sortFns,
+  columnMeta: {} as DataTableColumnMeta,
+});
+
+export type DataTableFeatures = typeof dataTableFeatures;
 
 function resolveColumnAlignClass(
   align: DataTableColumnMeta["align"] | undefined,
@@ -55,8 +73,8 @@ function wrapColumnAlignEnd(
   return <div className="flex w-full min-w-0 justify-end">{content}</div>;
 }
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface DataTableProps<TData extends RowData> {
+  columns: ColumnDef<DataTableFeatures, TData>[];
   data: TData[];
   isLoading?: boolean;
   isError?: boolean;
@@ -80,7 +98,7 @@ interface DataTableProps<TData, TValue> {
   manualSorting?: boolean;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
   isLoading,
@@ -102,7 +120,7 @@ export function DataTable<TData, TValue>({
   sorting,
   onSortingChange,
   manualSorting = true,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   "use no memo";
 
   const isControlled = page !== undefined;
@@ -130,54 +148,54 @@ export function DataTable<TData, TValue>({
   };
 
   // Add checkbox column if row selection is enabled
-  const columnsWithSelection = useMemo(() => {
+  const columnsWithSelection = useMemo<
+    ColumnDef<DataTableFeatures, TData>[]
+  >(() => {
     if (!enableRowSelection) return columns;
-    return [
-      {
-        id: "select",
-        header: ({ table }) => (
+    const selectColumn: ColumnDef<DataTableFeatures, TData> = {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() ? "indeterminate" : false)
+          }
+          onCheckedChange={(value) =>
+            table.toggleAllPageRowsSelected(Boolean(value))
+          }
+          aria-label="全选"
+        />
+      ),
+      cell: ({ row }) => {
+        const isSelectable = isRowSelectable
+          ? isRowSelectable(row.original)
+          : true;
+        return (
           <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() ? "indeterminate" : false)
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(Boolean(value))
-            }
-            aria-label="全选"
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(Boolean(value))}
+            disabled={!isSelectable}
+            aria-label="选择行"
           />
-        ),
-        cell: ({ row }) => {
-          const isSelectable = isRowSelectable
-            ? isRowSelectable(row.original)
-            : true;
-          return (
-            <Checkbox
-              checked={row.getIsSelected()}
-              onCheckedChange={(value) => row.toggleSelected(Boolean(value))}
-              disabled={!isSelectable}
-              aria-label="选择行"
-            />
-          );
-        },
-        enableSorting: false,
-        enableHiding: false,
+        );
       },
-      ...columns,
-    ];
+      enableSorting: false,
+      enableHiding: false,
+    };
+    return [selectColumn, ...columns];
   }, [enableRowSelection, columns, isRowSelectable]);
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data,
     columns: columnsWithSelection,
-    getCoreRowModel: getCoreRowModel(),
-    // Only use client-side pagination if not controlled (server-side pagination)
+    // v9：core/sorted/paginated row model 总已注册，通过 flag 控制是否走客户端计算。
+    // 受控分页（page 传入）或无分页（pageSize 未传）时禁用客户端分页，等价 v8 不挂
+    // getPaginationRowModel；manualSorting 保留为 prop 控制客户端排序。
+    manualPagination: isControlled || pageSize === undefined,
     ...(!isControlled &&
       pageSize !== undefined && {
-        getPaginationRowModel: getPaginationRowModel(),
         onPaginationChange: handlePaginationChange,
-        state: { pagination },
       }),
     ...(enableRowSelection && {
       enableRowSelection: true,
@@ -188,7 +206,6 @@ export function DataTable<TData, TValue>({
         onSortingChange,
         manualSorting,
         enableSortingRemoval: false,
-        ...(!manualSorting && { getSortedRowModel: getSortedRowModel() }),
       }),
     state: {
       ...(enableRowSelection && { rowSelection }),
@@ -232,14 +249,10 @@ export function DataTable<TData, TValue>({
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
         {emptyIcon && (
-          <div className="rounded-full bg-muted p-4">
-            {emptyIcon}
-          </div>
+          <div className="rounded-full bg-muted p-4">{emptyIcon}</div>
         )}
         <div className="text-center space-y-1">
-          {emptyHeader && (
-            <p className="text-sm font-medium">{emptyHeader}</p>
-          )}
+          {emptyHeader && <p className="text-sm font-medium">{emptyHeader}</p>}
           <p className="text-sm text-muted-foreground">{emptyMessage}</p>
         </div>
       </div>
@@ -249,7 +262,7 @@ export function DataTable<TData, TValue>({
   const tablePageCount = table.getPageCount();
   const currentPage = isControlled
     ? pagination.pageIndex
-    : table.getState().pagination.pageIndex;
+    : table.state.pagination.pageIndex;
   const actualPageCount = pageCount ?? tablePageCount;
   const showPagination = pageSize !== undefined;
   // 上方分页器只负责翻页，单页时连翻页都无意义 → 不渲染，控件留给下方主分页器
@@ -288,27 +301,26 @@ export function DataTable<TData, TValue>({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     const meta = header.column.columnDef.meta as
-                      | DataTableColumnMeta
-                      | undefined;
+                      DataTableColumnMeta | undefined;
                     return (
-                    <TableHead
-                      key={header.id}
-                      className={cn(
-                        resolveColumnAlignClass(meta?.align),
-                        meta?.className,
-                        meta?.headerClassName,
-                      )}
-                    >
-                      {wrapColumnAlignEnd(
-                        meta?.align,
-                        header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            ),
-                      )}
-                    </TableHead>
+                      <TableHead
+                        key={header.id}
+                        className={cn(
+                          resolveColumnAlignClass(meta?.align),
+                          meta?.className,
+                          meta?.headerClassName,
+                        )}
+                      >
+                        {wrapColumnAlignEnd(
+                          meta?.align,
+                          header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              ),
+                        )}
+                      </TableHead>
                     );
                   })}
                 </TableRow>
@@ -318,32 +330,29 @@ export function DataTable<TData, TValue>({
               {table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className={cn(
-                    onRowClick && "cursor-pointer hover:bg-muted",
-                  )}
+                  className={cn(onRowClick && "cursor-pointer hover:bg-muted")}
                   onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as
-                      | DataTableColumnMeta
-                      | undefined;
+                      DataTableColumnMeta | undefined;
                     return (
-                    <TableCell
-                      key={cell.id}
-                      className={cn(
-                        resolveColumnAlignClass(meta?.align),
-                        meta?.className,
-                        meta?.cellClassName,
-                      )}
-                    >
-                      {wrapColumnAlignEnd(
-                        meta?.align,
-                        flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        ),
-                      )}
-                    </TableCell>
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          resolveColumnAlignClass(meta?.align),
+                          meta?.className,
+                          meta?.cellClassName,
+                        )}
+                      >
+                        {wrapColumnAlignEnd(
+                          meta?.align,
+                          flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          ),
+                        )}
+                      </TableCell>
                     );
                   })}
                 </TableRow>

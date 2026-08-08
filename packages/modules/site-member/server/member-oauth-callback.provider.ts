@@ -19,8 +19,8 @@ import { AuditAction } from "../../audit/shared/index.js";
 import { setMemberAuthCookies } from "./member-auth-cookies.js";
 import { SiteMemberOAuthService } from "./site-member-oauth.service.js";
 
-import type { MemberOAuthCallbackProvider } from "@be-water/server-kernel/runtime/provider-contracts.js";
 import type { JwtSignPayload } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import type { MemberOAuthCallbackProvider } from "@be-water/server-kernel/runtime/provider-contracts.js";
 
 function safeRedirectPath(raw: unknown): string {
   if (typeof raw !== "string" || !raw.startsWith("/") || raw.startsWith("//")) {
@@ -43,9 +43,9 @@ export function createMemberOAuthCallbackProvider(): MemberOAuthCallbackProvider
       const { request, reply } = params;
       const jwtSign = (payload: JwtSignPayload): string =>
         params.jwtSign(payload);
-      let returnOrigin =
+      const returnOrigin =
         params.state.return_origin?.trim() || "http://localhost:7300";
-      let redirectPath = safeRedirectPath(params.state.redirect);
+      const redirectPath = safeRedirectPath(params.state.redirect);
 
       try {
         if (!isOAuthProviderId(params.provider)) {

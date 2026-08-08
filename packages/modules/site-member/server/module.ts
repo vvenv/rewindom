@@ -3,8 +3,8 @@ import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/regis
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { SITE_MEMBER_SERVER_I18N } from "./i18n.js";
-import { createMemberOAuthCallbackProvider } from "./member-oauth-callback.provider.js";
 import { registerMemberGateSection } from "./member-gate-section.js";
+import { createMemberOAuthCallbackProvider } from "./member-oauth-callback.provider.js";
 import { registerSiteMemberAccountEntry } from "./site-account-entry.js";
 import { siteMemberAdminRoutes } from "./site-member-admin.routes.js";
 import { siteMemberAuthRoutes } from "./site-member-auth.routes.js";

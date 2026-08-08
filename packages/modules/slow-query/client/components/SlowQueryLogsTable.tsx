@@ -1,7 +1,15 @@
 import { useMemo } from "react";
 
-import { DataTable, DataTableColumnHeader } from "@be-water/client-kit";
-import { displayOrEmpty, formatBusinessDate, formatTenantDisplayLabel } from "@be-water/shared";
+import {
+  DataTable,
+  DataTableColumnHeader,
+  type DataTableFeatures,
+} from "@be-water/client-kit";
+import {
+  displayOrEmpty,
+  formatBusinessDate,
+  formatTenantDisplayLabel,
+} from "@be-water/shared";
 import { Badge } from "@be-water/ui/badge";
 import { Activity } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -24,7 +32,9 @@ function DurationBadge({ ms }: { ms: number }) {
   );
 }
 
-function buildSlowQueryColumns(t: TFunction): ColumnDef<SlowQueryLogItem>[] {
+function buildSlowQueryColumns(
+  t: TFunction,
+): ColumnDef<DataTableFeatures, SlowQueryLogItem>[] {
   return [
     {
       accessorKey: "created_at",

@@ -1,18 +1,18 @@
 import { cn } from "@be-water/ui/utils";
 import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 
+import type { DataTableFeatures } from "./DataTable";
+import type { Column, RowData } from "@tanstack/react-table";
 
-import type { Column } from "@tanstack/react-table";
-
-interface DataTableColumnHeaderProps<TData, TValue> {
-  column: Column<TData, TValue>;
+interface DataTableColumnHeaderProps<TData extends RowData, TValue> {
+  column: Column<DataTableFeatures, TData, TValue>;
   title: string;
   className?: string;
   /** 表头内容对齐；操作列等配合列 `meta.align: "right"` */
   align?: "start" | "end";
 }
 
-export function DataTableColumnHeader<TData, TValue>({
+export function DataTableColumnHeader<TData extends RowData, TValue>({
   column,
   title,
   className,

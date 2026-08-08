@@ -1,6 +1,10 @@
 import { useCallback, useMemo, type ReactElement } from "react";
 
-import { DataTable, useConfirm } from "@be-water/client-kit";
+import {
+  DataTable,
+  type DataTableFeatures,
+  useConfirm,
+} from "@be-water/client-kit";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { toast } from "@be-water/ui/toast";
@@ -52,7 +56,10 @@ function RedirectRowActions({
   );
 }
 
-function buildColumns(t: TFunction, canWrite: boolean): ColumnDef<SiteRedirect>[] {
+function buildColumns(
+  t: TFunction,
+  canWrite: boolean,
+): ColumnDef<DataTableFeatures, SiteRedirect>[] {
   return [
     {
       accessorKey: "from_path",
@@ -71,7 +78,9 @@ function buildColumns(t: TFunction, canWrite: boolean): ColumnDef<SiteRedirect>[
       header: t("redirects.type"),
       enableSorting: false,
       cell: ({ row }) => (
-        <Badge variant={row.original.status_code === 301 ? "default" : "outline"}>
+        <Badge
+          variant={row.original.status_code === 301 ? "default" : "outline"}
+        >
           {row.original.status_code === 301
             ? t("redirects.permanentShort")
             : t("redirects.temporaryShort")}
@@ -87,7 +96,7 @@ function buildColumns(t: TFunction, canWrite: boolean): ColumnDef<SiteRedirect>[
             meta: { align: "right" },
             cell: ({ row }) => <RedirectRowActions redirect={row.original} />,
           },
-        ] satisfies ColumnDef<SiteRedirect>[])
+        ] satisfies ColumnDef<DataTableFeatures, SiteRedirect>[])
       : []),
   ];
 }

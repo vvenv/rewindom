@@ -4,6 +4,7 @@ import {
   ApiError,
   DataTable,
   DataTableColumnHeader,
+  type DataTableFeatures,
   useConfirm,
   usePermissions,
 } from "@be-water/client-kit";
@@ -43,7 +44,7 @@ export function RolesTable({
 
   const canWrite = hasPermission("roles.write");
 
-  const columns = useMemo<ColumnDef<RoleDetail>[]>(() => {
+  const columns = useMemo<ColumnDef<DataTableFeatures, RoleDetail>[]>(() => {
     const handleDelete = async (role: RoleDetail) => {
       const ok = await confirm({
         title: t("table.deleteConfirmTitle"),
@@ -82,7 +83,10 @@ export function RolesTable({
       {
         accessorKey: "description",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t("table.description")} />
+          <DataTableColumnHeader
+            column={column}
+            title={t("table.description")}
+          />
         ),
         enableSorting: true,
         cell: ({ row }) => (

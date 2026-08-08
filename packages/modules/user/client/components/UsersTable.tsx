@@ -4,6 +4,7 @@ import {
   ApiError,
   DataTable,
   DataTableColumnHeader,
+  type DataTableFeatures,
   useAuth,
   useConfirm,
   usePermissions,
@@ -133,9 +134,7 @@ export function UsersTable({
     try {
       const userIds = selectedUsers.map((item) => item.id);
       await deleteUsersMutation.mutateAsync(userIds);
-      toast.success(
-        t("table.batchDeleted", { count: userIds.length }),
-      );
+      toast.success(t("table.batchDeleted", { count: userIds.length }));
       setSelectedUsers([]);
       setTableKey((prev) => prev + 1);
     } catch (err) {
@@ -147,7 +146,7 @@ export function UsersTable({
     }
   }, [selectedUsers, confirm, deleteUsersMutation, t]);
 
-  const columns: ColumnDef<TenantUserListItem>[] = useMemo(
+  const columns: ColumnDef<DataTableFeatures, TenantUserListItem>[] = useMemo(
     () => [
       {
         accessorKey: "username",
@@ -191,7 +190,9 @@ export function UsersTable({
                 !hasPermission("users.write")
               }
               aria-label={
-                user.enabled ? t("table.disableAccount") : t("table.enableAccount")
+                user.enabled
+                  ? t("table.disableAccount")
+                  : t("table.enableAccount")
               }
             />
           );
@@ -219,7 +220,10 @@ export function UsersTable({
         accessorKey: "last_access_at",
         id: "last_access_at",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t("table.lastAccess")} />
+          <DataTableColumnHeader
+            column={column}
+            title={t("table.lastAccess")}
+          />
         ),
         enableSorting: true,
         meta: { className: "hidden md:table-cell" },
@@ -227,7 +231,9 @@ export function UsersTable({
           const lastAccess = row.getValue("last_access_at") as string | null;
           return (
             <span className="text-muted-foreground tabular-nums">
-              {lastAccess ? formatBusinessDateOrTimeAgo(lastAccess) : t("table.never")}
+              {lastAccess
+                ? formatBusinessDateOrTimeAgo(lastAccess)
+                : t("table.never")}
             </span>
           );
         },

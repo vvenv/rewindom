@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, it, expect, vi } from "vitest";
 
-import { DataTable } from "./DataTable";
+import { DataTable, type DataTableFeatures } from "./DataTable";
 
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -14,15 +14,15 @@ interface Row {
 
 // 真实渲染：不再 mock 任何 UI 组件（Button/Table/Checkbox/Card/Pagination 等）。
 // Pagination 依赖 react-router，用 MemoryRouter 包裹即可。
-function renderTable(props: Parameters<typeof DataTable<Row, unknown>>[0]) {
+function renderTable(props: Parameters<typeof DataTable<Row>>[0]) {
   return render(
     <MemoryRouter>
-      <DataTable<Row, unknown> {...props} />
+      <DataTable<Row> {...props} />
     </MemoryRouter>,
   );
 }
 
-const columns: ColumnDef<Row>[] = [
+const columns: ColumnDef<DataTableFeatures, Row>[] = [
   { header: "Name", accessorKey: "name" },
   { header: "Age", accessorKey: "age" },
 ];
@@ -192,7 +192,7 @@ describe("DataTable", () => {
   });
 
   it("应该将 meta.align 应用到操作列并右对齐", () => {
-    const actionColumns: ColumnDef<Row>[] = [
+    const actionColumns: ColumnDef<DataTableFeatures, Row>[] = [
       { header: "Name", accessorKey: "name" },
       {
         id: "actions",

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { DataTable } from "@be-water/client-kit";
+import { DataTable, type DataTableFeatures } from "@be-water/client-kit";
 import { formatBusinessDate } from "@be-water/shared";
 import { Inbox } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -23,7 +23,7 @@ import type { TFunction } from "i18next";
 function buildColumns(
   t: TFunction,
   canWrite: boolean,
-): ColumnDef<FormSubmissionListItem>[] {
+): ColumnDef<DataTableFeatures, FormSubmissionListItem>[] {
   return [
     {
       accessorKey: "created_at",
@@ -57,7 +57,7 @@ function buildColumns(
               <FormSubmissionRowActions submission={row.original} />
             ),
           },
-        ] satisfies ColumnDef<FormSubmissionListItem>[])
+        ] satisfies ColumnDef<DataTableFeatures, FormSubmissionListItem>[])
       : []),
   ];
 }

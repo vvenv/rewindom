@@ -1,7 +1,15 @@
 import { useMemo } from "react";
 
-import { DataTable, DataTableColumnHeader } from "@be-water/client-kit";
-import { displayOrEmpty, formatBusinessDate, formatTenantDisplayLabel } from "@be-water/shared";
+import {
+  DataTable,
+  DataTableColumnHeader,
+  type DataTableFeatures,
+} from "@be-water/client-kit";
+import {
+  displayOrEmpty,
+  formatBusinessDate,
+  formatTenantDisplayLabel,
+} from "@be-water/shared";
 import { Badge, type badgeVariants } from "@be-water/ui/badge";
 import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -21,7 +29,7 @@ import type { TFunction } from "i18next";
 function buildErrorLogColumns(
   showTenantColumn: boolean,
   t: TFunction,
-): ColumnDef<ErrorLog>[] {
+): ColumnDef<DataTableFeatures, ErrorLog>[] {
   return [
     {
       accessorKey: "created_at",
@@ -70,7 +78,10 @@ function buildErrorLogColumns(
           {
             accessorKey: "tenant_slug",
             header: ({ column }) => (
-              <DataTableColumnHeader column={column} title={t("table.tenant")} />
+              <DataTableColumnHeader
+                column={column}
+                title={t("table.tenant")}
+              />
             ),
             enableSorting: true,
             cell: ({ row }) => (
@@ -82,7 +93,7 @@ function buildErrorLogColumns(
               </span>
             ),
           },
-        ] satisfies ColumnDef<ErrorLog>[])
+        ] satisfies ColumnDef<DataTableFeatures, ErrorLog>[])
       : []),
     {
       accessorKey: "username",

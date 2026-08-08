@@ -1,6 +1,10 @@
 import { useMemo } from "react";
 
-import { DataTable, DataTableColumnHeader } from "@be-water/client-kit";
+import {
+  DataTable,
+  DataTableColumnHeader,
+  type DataTableFeatures,
+} from "@be-water/client-kit";
 import {
   displayOrEmpty,
   formatBusinessDate,
@@ -19,7 +23,7 @@ import type { TFunction } from "i18next";
 function buildAuditLogColumns(
   showTenantColumn: boolean,
   t: TFunction,
-): ColumnDef<AuditLog>[] {
+): ColumnDef<DataTableFeatures, AuditLog>[] {
   return [
     {
       accessorKey: "created_at",
@@ -35,7 +39,10 @@ function buildAuditLogColumns(
           {
             accessorKey: "tenant_slug",
             header: ({ column }) => (
-              <DataTableColumnHeader column={column} title={t("table.tenant")} />
+              <DataTableColumnHeader
+                column={column}
+                title={t("table.tenant")}
+              />
             ),
             enableSorting: true,
             meta: { cellClassName: "text-muted-foreground" },
@@ -45,7 +52,7 @@ function buildAuditLogColumns(
                 row.original.tenant_slug,
               ),
           },
-        ] satisfies ColumnDef<AuditLog>[])
+        ] satisfies ColumnDef<DataTableFeatures, AuditLog>[])
       : []),
     {
       accessorKey: "action",
@@ -77,12 +84,7 @@ function buildAuditLogColumns(
     {
       id: "details",
       accessorFn: (row) =>
-        translateAuditDetail(
-          t,
-          row.detail_key,
-          row.detail_params,
-          row.details,
-        ),
+        translateAuditDetail(t, row.detail_key, row.detail_params, row.details),
       header: t("table.details"),
       enableSorting: false,
       meta: {
