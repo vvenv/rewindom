@@ -237,11 +237,11 @@ export async function authMiddleware(app: FastifyInstance) {
           }
 
           if (!isPlatformAdminApiPath(requestPath)) {
-          return sendCodedError(
-            reply,
-            403,
-            "auth.platform_admin_tenant_api_denied",
-          );
+            return sendCodedError(
+              reply,
+              403,
+              "auth.platform_admin_tenant_api_denied",
+            );
           }
 
           const admin = await prisma.platformAdmin.findUnique({
@@ -255,7 +255,7 @@ export async function authMiddleware(app: FastifyInstance) {
           });
 
           if (!admin || !admin.enabled) {
-          return sendCodedError(reply, 401, "user.not_found");
+            return sendCodedError(reply, 401, "user.not_found");
           }
 
           const ACCESS_THROTTLE_MS = 60_000;
@@ -393,7 +393,7 @@ export async function authMiddleware(app: FastifyInstance) {
         if (now - lastAccess > ACCESS_THROTTLE_MS) {
           prisma.user
             .update({
-              where: { id: decoded.userId },
+              where: { id: decoded.userId, tenant_id: decoded.tenant_id },
               data: { last_access_at: new Date() },
             })
             .catch(() => {});
@@ -486,11 +486,7 @@ export async function authMiddleware(app: FastifyInstance) {
         request.authUser.actor_type !== "tenant_user" ||
         !request.authUser.is_system_admin
       ) {
-        return sendCodedError(
-          reply,
-          403,
-          "auth.tenant_system_admin_required",
-        );
+        return sendCodedError(reply, 403, "auth.tenant_system_admin_required");
       }
     },
   );

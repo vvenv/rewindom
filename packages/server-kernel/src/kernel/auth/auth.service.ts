@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
 
-import { parseLoginIdentifier, type AuthActorType, type AuthTokens  } from "@be-water/shared";
+import {
+  parseLoginIdentifier,
+  type AuthActorType,
+  type AuthTokens,
+} from "@be-water/shared";
 import bcrypt from "bcrypt";
 
 import {
@@ -356,9 +360,7 @@ export class AuthService {
         data: { revoked: true },
       });
 
-      const refreshTokenExpiry = new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000,
-      );
+      const refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await prisma.platformAdminRefreshToken.create({
         data: {
           admin_id: storedToken.admin.id,
@@ -459,7 +461,7 @@ export class AuthService {
     const valid = await this.verifyPassword(oldPassword, user.password);
     if (!valid) throw new UnauthorizedError("auth.old_password_wrong");
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: userId, tenant_id: user.tenant_id },
       data: { password: await this.hashPassword(newPassword) },
     });
   }
