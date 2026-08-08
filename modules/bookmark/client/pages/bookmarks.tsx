@@ -29,7 +29,7 @@ export function Bookmarks() {
   const { data, isLoading, isError } = useQuery({
     queryKey: BOOKMARKS_QUERY_KEY,
     queryFn: () =>
-      api.get<BookmarkListResult>("/bookmark", {
+      api.get<BookmarkListResult>("/bookmarks", {
         page: 1,
         page_size: PAGE_SIZE,
       }),

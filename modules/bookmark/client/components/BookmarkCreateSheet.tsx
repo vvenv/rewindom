@@ -67,7 +67,7 @@ export function BookmarkCreateSheet({
 
     setSubmitting(true);
     try {
-      await api.post<Bookmark>("/bookmark", {
+      await api.post<Bookmark>("/bookmarks", {
         url: form.url.trim(),
         title: form.title.trim(),
         description: form.description.trim() || undefined,
