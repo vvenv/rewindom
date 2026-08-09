@@ -56,7 +56,7 @@ export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
     id: record.id,
     tenant_id: record.tenant_id,
     site_name: parseSiteNameValue(record.site_name),
-    tagline: record.tagline,
+    tagline: parseSiteNameValue(record.tagline),
     // 顶层两个字段是 theme_settings 的**派生值**，方便调用方直接取
     logo_url: theme_settings.logo_url ?? null,
     primary_color: theme_settings.primary_color ?? null,
@@ -164,7 +164,7 @@ export function toPublicMarketingSite(
 
   return {
     site_name: localizeSiteText(site.site_name, current, default_locale),
-    tagline: site.tagline,
+    tagline: localizeSiteText(site.tagline, current, default_locale),
     logo_url,
     primary_color: theme_settings.primary_color ?? null,
     theme_settings,

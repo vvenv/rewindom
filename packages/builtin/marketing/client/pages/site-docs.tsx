@@ -15,7 +15,11 @@ import { SiteDocTransferActions } from "../components/SiteDocTransferActions.js"
 import { useSiteDocActions } from "../hooks/use-site-doc-actions.js";
 import { useSiteDocsPage } from "../hooks/use-site-docs-page.js";
 import { useSiteDocs } from "../hooks/useSiteDocs.js";
-import { collectDocCategories, filterSiteDocs } from "../lib/site-doc-list.js";
+import {
+  collectDocCategories,
+  collectDocLocales,
+  filterSiteDocs,
+} from "../lib/site-doc-list.js";
 
 import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
 
@@ -30,6 +34,7 @@ export function SiteDocs(): ReactElement {
     q,
     category,
     status,
+    locale,
     sorting,
     handleSortingChange,
     handleFiltersChange,
@@ -42,9 +47,10 @@ export function SiteDocs(): ReactElement {
   const [editorOpen, setEditorOpen] = useState(false);
 
   const categories = useMemo(() => collectDocCategories(docs), [docs]);
+  const locales = useMemo(() => collectDocLocales(docs), [docs]);
   const visibleDocs = useMemo(
-    () => filterSiteDocs(docs, { q, category, status }),
-    [docs, q, category, status],
+    () => filterSiteDocs(docs, { q, category, status, locale }),
+    [docs, q, category, status, locale],
   );
 
   const openEdit = useCallback((doc: MarketingDocListItem) => {
@@ -78,8 +84,9 @@ export function SiteDocs(): ReactElement {
         {/* 一篇都还没有时不铺筛选栏——空表上面挂一排筛选只是噪音 */}
         {docs.length > 0 ? (
           <SiteDocFilters
-            filters={{ q, category, status }}
+            filters={{ q, category, status, locale }}
             categories={categories}
+            locales={locales}
             onFiltersChange={handleFiltersChange}
           />
         ) : null}
@@ -87,6 +94,7 @@ export function SiteDocs(): ReactElement {
         <SiteDocsTable
           docs={visibleDocs}
           totalCount={docs.length}
+          showLocale={locales.length > 1}
           isLoading={isLoading}
           isError={isError}
           error={error}

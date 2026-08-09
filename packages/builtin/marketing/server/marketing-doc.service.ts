@@ -22,6 +22,7 @@ import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import {
+  docFilename,
   formatDocAsMarkdown,
   parseCreateDocBody,
   parseMarkdownFile,
@@ -129,7 +130,7 @@ export async function createDoc(
   body: CreateMarketingDocBody,
 ): Promise<MarketingDoc> {
   const parsed = parseCreateDocBody(body);
-  const locale = await resolveDefaultLocale(tenant_id);
+  const locale = parsed.locale ?? (await resolveDefaultLocale(tenant_id));
   try {
     const created = await prisma.marketingDoc.create({
       data: {
@@ -297,6 +298,7 @@ export async function revertDoc(
  */
 export interface ImportedDoc {
   slug: string;
+  locale: AppLocale;
   title: string;
   created: boolean;
 }
@@ -307,7 +309,8 @@ export async function importDocFile(
   raw: string,
 ): Promise<ImportedDoc> {
   const parsed = parseMarkdownFile(filename, raw);
-  const locale = await resolveDefaultLocale(tenant_id);
+  // 文件自己说了是哪种语言就按它来（`faq.en.md` 或 frontmatter 的 `locale`）
+  const locale = parsed.locale ?? (await resolveDefaultLocale(tenant_id));
   const existing = await prisma.marketingDoc.findFirst({
     where: withTenantScope(tenant_id, { slug: parsed.slug, locale }),
   });
@@ -319,11 +322,21 @@ export async function importDocFile(
         description_draft: parsed.description,
         body_md_draft: parsed.body_md,
         category_draft: parsed.category,
+        // 文件没写 sort_order 就别动既有排序（见 `ParsedMarkdownFile.sort_order`）
+        ...(parsed.sort_order === null
+          ? {}
+          : { sort_order_draft: parsed.sort_order }),
       },
     });
-    return { slug: updated.slug, title: updated.title_draft, created: false };
+    return {
+      slug: updated.slug,
+      locale,
+      title: updated.title_draft,
+      created: false,
+    };
   }
   try {
+    const sort_order = parsed.sort_order ?? 0;
     const created = await prisma.marketingDoc.create({
       data: {
         tenant_id,
@@ -333,16 +346,21 @@ export async function importDocFile(
         description: parsed.description,
         body_md: parsed.body_md,
         category: parsed.category,
-        sort_order: 0,
+        sort_order,
         status: "draft",
         title_draft: parsed.title,
         description_draft: parsed.description,
         body_md_draft: parsed.body_md,
         category_draft: parsed.category,
-        sort_order_draft: 0,
+        sort_order_draft: sort_order,
       },
     });
-    return { slug: created.slug, title: created.title_draft, created: true };
+    return {
+      slug: created.slug,
+      locale,
+      title: created.title_draft,
+      created: true,
+    };
   } catch (err) {
     if (
       err &&
@@ -359,25 +377,31 @@ export async function importDocFile(
 /**
  * 从 `.md` 文件批量 seed 文档到租户：upsert 草稿 + 设排序 + 直接发布。
  *
- * 与 `importDocFile` 的区别：seed 自动发布并按传入顺序设 `sort_order`，用于初始化
+ * 与 `importDocFile` 的区别：seed 自动发布并按 frontmatter 设 `sort_order`，用于初始化
  * 默认租户的使用说明文档。幂等——反复执行覆盖草稿并重新发布，已存在的文档不会重复创建。
  *
  * 文件名即 slug（去 `.md`），frontmatter 提供 title/description/category/sort_order。
+ * 每份文件可自带 `locale`（一篇文档的各语言版本是**各自独立的行**，共用 slug）；
+ * 不带时落在站点主语言上。
  */
 export interface SeededDoc {
   slug: string;
+  locale: AppLocale;
   title: string;
   created: boolean;
 }
 
 export async function seedDocsFromFiles(
   tenant_id: string,
-  files: ReadonlyArray<{ filename: string; raw: string }>,
+  files: ReadonlyArray<{ filename: string; raw: string; locale?: AppLocale }>,
 ): Promise<SeededDoc[]> {
-  const locale = await resolveDefaultLocale(tenant_id);
+  const default_locale = await resolveDefaultLocale(tenant_id);
   const results: SeededDoc[] = [];
   for (const file of files) {
     const parsed = parseMarkdownFile(file.filename, file.raw);
+    const locale = file.locale ?? default_locale;
+    // seed 的来源是仓库里排好序的一整套文档，缺省当 0（与导入不同：那里要保护租户的排序）
+    const sort_order = parsed.sort_order ?? 0;
     const existing = await prisma.marketingDoc.findFirst({
       where: withTenantScope(tenant_id, { slug: parsed.slug, locale }),
     });
@@ -391,12 +415,12 @@ export async function seedDocsFromFiles(
           description: parsed.description,
           body_md: parsed.body_md,
           category: parsed.category,
-          sort_order: parsed.sort_order,
+          sort_order,
           title_draft: parsed.title,
           description_draft: parsed.description,
           body_md_draft: parsed.body_md,
           category_draft: parsed.category,
-          sort_order_draft: parsed.sort_order,
+          sort_order_draft: sort_order,
         },
       });
       created = false;
@@ -411,13 +435,13 @@ export async function seedDocsFromFiles(
             description: parsed.description,
             body_md: parsed.body_md,
             category: parsed.category,
-            sort_order: parsed.sort_order,
+            sort_order,
             status: "published",
             title_draft: parsed.title,
             description_draft: parsed.description,
             body_md_draft: parsed.body_md,
             category_draft: parsed.category,
-            sort_order_draft: parsed.sort_order,
+            sort_order_draft: sort_order,
           },
         });
         created = true;
@@ -433,7 +457,7 @@ export async function seedDocsFromFiles(
         throw err;
       }
     }
-    results.push({ slug: parsed.slug, title: parsed.title, created });
+    results.push({ slug: parsed.slug, locale, title: parsed.title, created });
   }
   return results;
 }
@@ -444,14 +468,17 @@ export async function getDocForExport(
   doc_id: string,
 ): Promise<{ filename: string; markdown: string; title: string }> {
   const doc = await getDoc(tenant_id, doc_id);
+  const default_locale = await resolveDefaultLocale(tenant_id);
   return {
-    filename: `${doc.slug}.md`,
+    filename: docFilename(doc.slug, doc.locale, default_locale),
     title: doc.title_draft,
     markdown: formatDocAsMarkdown({
       slug: doc.slug,
+      locale: doc.locale,
       title: doc.title_draft,
       description: doc.description_draft,
       category: doc.category_draft,
+      sort_order: doc.sort_order_draft,
       body_md: doc.body_md_draft,
     }),
   };
@@ -461,21 +488,27 @@ export async function getDocForExport(
 export async function getAllDocsForExport(
   tenant_id: string,
 ): Promise<Array<{ filename: string; markdown: string; title: string }>> {
+  const default_locale = await resolveDefaultLocale(tenant_id);
   const records = await prisma.marketingDoc.findMany({
     where: withTenantScope(tenant_id),
     orderBy: [{ category_draft: "asc" }, { sort_order_draft: "asc" }],
   });
-  return records.map((record) => ({
-    filename: `${record.slug}.md`,
-    title: record.title_draft,
-    markdown: formatDocAsMarkdown({
-      slug: record.slug,
+  return records.map((record) => {
+    const locale = normalizeLocale(record.locale, default_locale);
+    return {
+      filename: docFilename(record.slug, locale, default_locale),
       title: record.title_draft,
-      description: record.description_draft,
-      category: record.category_draft,
-      body_md: record.body_md_draft,
-    }),
-  }));
+      markdown: formatDocAsMarkdown({
+        slug: record.slug,
+        locale,
+        title: record.title_draft,
+        description: record.description_draft,
+        category: record.category_draft,
+        sort_order: record.sort_order_draft,
+        body_md: record.body_md_draft,
+      }),
+    };
+  });
 }
 
 /* ------------------------------------------------------------ 公开读路径 */

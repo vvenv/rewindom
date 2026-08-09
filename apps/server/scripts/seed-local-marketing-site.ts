@@ -41,8 +41,14 @@ async function main(): Promise<void> {
   if (docs.length > 0) {
     const seeded = await seedDocsFromFiles(tenant.id, docs);
     const created = seeded.filter((r) => r.created).length;
+    const byLocale = [...new Set(seeded.map((r) => r.locale))]
+      .map(
+        (locale) =>
+          `${locale}=${seeded.filter((r) => r.locale === locale).length}`,
+      )
+      .join(" ");
     console.log(
-      `[seed-local-marketing-site] seeded ${seeded.length} docs (created=${created}) for tenant=${slug}`,
+      `[seed-local-marketing-site] seeded ${seeded.length} docs (${byLocale}, created=${created}) for tenant=${slug}`,
     );
   } else {
     console.warn("[seed-local-marketing-site] no usage docs found");

@@ -291,11 +291,44 @@ export function validateSiteName(
   value: unknown,
   defaultLocale: string,
 ): SiteLocalizedText {
+  return validateSiteLocalizedText(value, defaultLocale, {
+    required: true,
+    maxLength: 120,
+    errorCode: "site.name_invalid",
+  });
+}
+
+/**
+ * 标语可空；形状与站名相同（纯字符串或 `__i18n`）。
+ */
+export function validateSiteTagline(
+  value: unknown,
+  defaultLocale: string,
+): SiteLocalizedText {
+  return validateSiteLocalizedText(value, defaultLocale, {
+    required: false,
+    maxLength: 240,
+    errorCode: "site.tagline_invalid",
+  });
+}
+
+function validateSiteLocalizedText(
+  value: unknown,
+  defaultLocale: string,
+  options: {
+    required: boolean;
+    maxLength: number;
+    errorCode: string;
+  },
+): SiteLocalizedText {
   const parsed = parseSiteNameValue(value);
   if (typeof parsed === "string") {
     const trimmed = parsed.trim();
-    if (!trimmed || trimmed.length > 120) {
-      throw new ValidationError("site.name_invalid");
+    if (trimmed.length > options.maxLength) {
+      throw new ValidationError(options.errorCode);
+    }
+    if (options.required && !trimmed) {
+      throw new ValidationError(options.errorCode);
     }
     return trimmed;
   }
@@ -303,22 +336,21 @@ export function validateSiteName(
   const cleaned: LocalizedText = { __i18n: {} };
   for (const [locale, text] of Object.entries(parsed.__i18n)) {
     const trimmed = text.trim();
-    if (trimmed.length > 120) {
-      throw new ValidationError("site.name_invalid");
+    if (trimmed.length > options.maxLength) {
+      throw new ValidationError(options.errorCode);
     }
     cleaned.__i18n[locale] = trimmed;
   }
-  // 主语言槽位必须有值——渲染回落不能代替「主入口还没起名」
   const primary = cleaned.__i18n[defaultLocale]?.trim() ?? "";
-  if (!primary) {
-    throw new ValidationError("site.name_invalid");
+  if (options.required && !primary) {
+    throw new ValidationError(options.errorCode);
   }
-  // 只有主语言一项时收成纯字符串，单语言站点形状与以前一致
   const locales = Object.keys(cleaned.__i18n).filter(
     (locale) => (cleaned.__i18n[locale] ?? "") !== "",
   );
+  if (locales.length === 0) return "";
   if (locales.length === 1 && locales[0] === defaultLocale) {
-    return primary;
+    return cleaned.__i18n[defaultLocale] ?? "";
   }
   return cleaned;
 }

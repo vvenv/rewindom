@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   collectDocCategories,
+  collectDocLocales,
   filterSiteDocs,
   hasActiveDocFilters,
   isSiteDocStatusFilter,
@@ -60,6 +61,20 @@ describe("collectDocCategories", () => {
   });
 });
 
+describe("collectDocLocales", () => {
+  it("单语言库只报一种——调用方据此不画语言列与筛选", () => {
+    expect(collectDocLocales(docs)).toEqual(["zh-CN"]);
+  });
+
+  it("按 APP_LOCALES 的顺序报，不随文档顺序抖动", () => {
+    const mixed = [
+      doc({ id: "e", slug: "faq", title: "FAQ", locale: "en" }),
+      doc({ id: "z", slug: "faq", title: "常见问题", locale: "zh-CN" }),
+    ];
+    expect(collectDocLocales(mixed)).toEqual(["zh-CN", "en"]);
+  });
+});
+
 describe("filterSiteDocs", () => {
   it("returns everything when no filter is set", () => {
     expect(filterSiteDocs(docs, {})).toHaveLength(3);
@@ -81,6 +96,17 @@ describe("filterSiteDocs", () => {
   it("filters by exact category", () => {
     expect(filterSiteDocs(docs, { category: "入门" })).toHaveLength(2);
     expect(filterSiteDocs(docs, { category: "指南" })).toHaveLength(0);
+  });
+
+  it("按语言筛——同 slug 的译文各是一行，只靠标题分不出来", () => {
+    const mixed = [
+      ...docs,
+      doc({ id: "4", slug: "faq", title: "FAQ", locale: "en" }),
+    ];
+    expect(filterSiteDocs(mixed, { locale: "en" }).map((d) => d.id)).toEqual([
+      "4",
+    ]);
+    expect(filterSiteDocs(mixed, { locale: "zh-CN" })).toHaveLength(3);
   });
 
   it("treats `dirty` as its own status filter, not a doc status", () => {

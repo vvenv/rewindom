@@ -6,6 +6,8 @@
  * 正好是服务端查询参数的形状。
  */
 
+import { APP_LOCALES, type AppLocale } from "@be-water/shared";
+
 import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
 
 /** 状态筛选：除了 draft / published，还要能单独捞出「已发布但草稿有改动」的。 */
@@ -17,6 +19,7 @@ export interface SiteDocFilterState {
   q?: string;
   category?: string;
   status?: string;
+  locale?: string;
 }
 
 export function isSiteDocStatusFilter(
@@ -39,6 +42,21 @@ export function collectDocCategories(
   return [...seen].sort((a, b) => a.localeCompare(b));
 }
 
+/**
+ * 列表里出现过的语言，按 `APP_LOCALES` 的顺序。
+ *
+ * 同一个 slug 每种语言各一行，只有一种语言时整列都是同一个值——那时列与筛选都不画，
+ * 单语言站点不该为一个恒定值让出一列宽度。
+ */
+export function collectDocLocales(
+  docs: readonly MarketingDocListItem[],
+): AppLocale[] {
+  const seen = new Set<string>(docs.map((doc) => doc.locale));
+  return APP_LOCALES.map((locale) => locale.slug).filter((slug) =>
+    seen.has(slug),
+  );
+}
+
 /** 搜索命中标题 / 路径 / 摘要 / 分类任一即可——用户记得住哪个是哪个不好说。 */
 export function matchesDocQuery(
   doc: MarketingDocListItem,
@@ -58,6 +76,7 @@ export function filterSiteDocs(
   return docs.filter((doc) => {
     if (filters.q && !matchesDocQuery(doc, filters.q)) return false;
     if (filters.category && doc.category !== filters.category) return false;
+    if (filters.locale && doc.locale !== filters.locale) return false;
     switch (filters.status) {
       case "published":
         return doc.status === "published";
@@ -72,7 +91,9 @@ export function filterSiteDocs(
 }
 
 export function hasActiveDocFilters(filters: SiteDocFilterState): boolean {
-  return Boolean(filters.q ?? filters.category ?? filters.status);
+  return Boolean(
+    filters.q ?? filters.category ?? filters.status ?? filters.locale,
+  );
 }
 
 /**

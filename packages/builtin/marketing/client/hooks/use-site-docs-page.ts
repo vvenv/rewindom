@@ -25,6 +25,7 @@ export function useSiteDocsPage() {
   const q = searchParams.get("q") || undefined;
   const category = searchParams.get("category") || undefined;
   const status = searchParams.get("status") || undefined;
+  const locale = searchParams.get("locale") || undefined;
   const { sortBy, sortDir } = parseListSort(searchParams);
   const sorting = toSortingState(sortBy, sortDir);
 
@@ -43,6 +44,7 @@ export function useSiteDocsPage() {
       setOrDeleteParam(next, "q", filters.q);
       setOrDeleteParam(next, "category", filters.category);
       setOrDeleteParam(next, "status", filters.status);
+      setOrDeleteParam(next, "locale", filters.locale);
       setSearchParams(next);
     },
     [searchParams, setSearchParams],
@@ -52,6 +54,7 @@ export function useSiteDocsPage() {
     q,
     category,
     status,
+    locale,
     sorting,
     handleSortingChange,
     handleFiltersChange,

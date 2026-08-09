@@ -5,6 +5,7 @@ import {
   DataTableColumnHeader,
   type DataTableFeatures,
 } from "@be-water/client-kit";
+import { getLocaleNativeLabel } from "@be-water/shared";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import {
@@ -143,6 +144,7 @@ function buildColumns(
   t: TFunction,
   locale: string,
   canWrite: boolean,
+  showLocale: boolean,
   actions: SiteDocActions,
   onEdit: (doc: MarketingDocListItem) => void,
 ): ColumnDef<DataTableFeatures, MarketingDocListItem>[] {
@@ -194,6 +196,30 @@ function buildColumns(
           <span className="text-muted-foreground">—</span>
         ),
     },
+    /*
+      语言列只在库里真有多种语言时才占位置：同一个 slug 每种语言各一行，没有这一列
+      时两行长得一模一样（标题是译文，一眼看不出哪行是哪种语言）。单语言站点则相反，
+      整列恒定值纯属噪音——所以按内容决定画不画。
+    */
+    ...(showLocale
+      ? [
+          {
+            accessorKey: "locale",
+            header: ({ column }) => (
+              <DataTableColumnHeader
+                column={column}
+                title={t("cms.fieldLocale")}
+              />
+            ),
+            meta: { className: "hidden lg:table-cell" },
+            cell: ({ row }) => (
+              <Badge variant="secondary">
+                {getLocaleNativeLabel(row.original.locale)}
+              </Badge>
+            ),
+          } satisfies ColumnDef<DataTableFeatures, MarketingDocListItem>,
+        ]
+      : []),
     {
       accessorKey: "status",
       header: ({ column }) => (
@@ -241,6 +267,7 @@ function buildColumns(
 export function SiteDocsTable({
   docs,
   totalCount,
+  showLocale,
   isLoading,
   isError,
   error,
@@ -253,6 +280,8 @@ export function SiteDocsTable({
   docs: MarketingDocListItem[];
   /** 未经筛选的总数：用来区分「一篇都还没有」和「筛掉了」两种空态。 */
   totalCount: number;
+  /** 库里有不止一种语言——按未筛选的全量算，别让「筛到只剩一种」把列筛没了。 */
+  showLocale: boolean;
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
@@ -264,8 +293,8 @@ export function SiteDocsTable({
 }): ReactElement {
   const { t, i18n } = useTranslation("marketing");
   const columns = useMemo(
-    () => buildColumns(t, i18n.language, canWrite, actions, onEdit),
-    [t, i18n.language, canWrite, actions, onEdit],
+    () => buildColumns(t, i18n.language, canWrite, showLocale, actions, onEdit),
+    [t, i18n.language, canWrite, showLocale, actions, onEdit],
   );
   const filteredEmpty = totalCount > 0;
 

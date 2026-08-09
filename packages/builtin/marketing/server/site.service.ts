@@ -20,6 +20,7 @@ import {
 import {
   canonicalizePageIdentity,
   DOC_TEMPLATE_SLUGS,
+  isDocTemplateKind,
   marketingPagePath,
   type DocTemplateKind,
   type ApplySiteStarterResponse,
@@ -72,6 +73,7 @@ import {
   validatePageSlug,
   validateSiteLocale,
   validateSiteName,
+  validateSiteTagline,
 } from "./site.util.js";
 import {
   createStarterTranslator,
@@ -166,7 +168,10 @@ export async function updateSite(
     ) as Prisma.InputJsonValue;
   }
   if (body.tagline !== undefined) {
-    data.tagline = body.tagline.trim();
+    data.tagline = validateSiteTagline(
+      body.tagline,
+      nextDefaultLocale,
+    ) as Prisma.InputJsonValue;
   }
   if (body.default_locale !== undefined) {
     data.default_locale = nextDefaultLocale;
@@ -270,6 +275,15 @@ export async function createPage(
     }
   }
 
+  if (isDocTemplateKind(kind)) {
+    const existingTemplate = await prisma.marketingPage.findFirst({
+      where: withTenantScope(tenant_id, { kind, locale }),
+    });
+    if (existingTemplate) {
+      throw new ConflictError("site.doc_template_exists");
+    }
+  }
+
   try {
     const created = await prisma.marketingPage.create({
       data: {
@@ -339,9 +353,12 @@ async function resolveDuplicateSlug(
   });
   const taken = new Set(rows.map((row) => row.slug));
   if (!taken.has(sourceSlug)) return sourceSlug;
-  // 首页的 slug 是固定的 `home`，同语言复制不出第二份
+  // 首页 / 文档模板页的 slug 是固定的，同语言复制不出第二份
   if (kind === "home") {
     throw new ConflictError("site.home_exists");
+  }
+  if (isDocTemplateKind(kind)) {
+    throw new ConflictError("site.doc_template_exists");
   }
   for (const candidate of copySlugCandidates(sourceSlug)) {
     if (taken.has(candidate)) continue;
@@ -510,7 +527,10 @@ export async function applySiteStarter(
     payload.site.site_name !== undefined
       ? validateSiteName(payload.site.site_name, locale)
       : undefined;
-  const tagline = payload.site.tagline?.trim();
+  const tagline =
+    payload.site.tagline !== undefined
+      ? validateSiteTagline(payload.site.tagline, locale)
+      : undefined;
 
   const pageWrites = payload.pages.map((item) => {
     const title = t(item.preset.titleKey).trim();
@@ -536,7 +556,9 @@ export async function applySiteStarter(
         ...(site_name !== undefined && {
           site_name: site_name as unknown as Prisma.InputJsonValue,
         }),
-        ...(tagline !== undefined && { tagline }),
+        ...(tagline !== undefined && {
+          tagline: tagline as unknown as Prisma.InputJsonValue,
+        }),
         theme_settings: theme_settings as unknown as Prisma.InputJsonValue,
         nav_json: header as unknown as Prisma.InputJsonValue,
         footer_json: footer as unknown as Prisma.InputJsonValue,

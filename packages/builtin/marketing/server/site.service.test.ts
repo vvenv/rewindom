@@ -175,6 +175,36 @@ describe("duplicatePage", () => {
     expect(prisma.marketingPage.create).not.toHaveBeenCalled();
   });
 
+  it("refuses a same-language copy of a doc template page", async () => {
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
+      sourceRow({ kind: "doc_index", slug: "docs", title: "文档" }) as never,
+    );
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([
+      { slug: "docs" },
+    ] as never);
+
+    await expect(
+      duplicatePage(TENANT, "page-1", { title: "文档副本" }),
+    ).rejects.toThrow("site.doc_template_exists");
+    expect(prisma.marketingPage.create).not.toHaveBeenCalled();
+  });
+
+  it("keeps the fixed doc template slug when copying into another language", async () => {
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
+      sourceRow({ kind: "doc_index", slug: "docs", title: "文档" }) as never,
+    );
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([] as never);
+
+    await duplicatePage(TENANT, "page-1", {
+      title: "Docs",
+      locale: "en",
+    });
+
+    expect(createdData().slug).toBe("docs");
+    expect(createdData().kind).toBe("doc_index");
+    expect(createdData().locale).toBe("en");
+  });
+
   it("rejects a blank title and an unknown locale", async () => {
     vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
       sourceRow() as never,

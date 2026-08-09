@@ -37,10 +37,11 @@ import { toast } from "sonner";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import { useSite, useSiteMutations, useSitePages } from "../hooks/useSite.js";
 
-import type {
-  MarketingPage,
-  MarketingPageKind,
-  MarketingPageListItem,
+import {
+  isDocTemplateKind,
+  type MarketingPage,
+  type MarketingPageKind,
+  type MarketingPageListItem,
 } from "../../shared/site-cms.js";
 
 /** 复制的源页面：列表项与详情都能满足。 */
@@ -93,6 +94,9 @@ export function SitePageDuplicateSheet({
   const pagesQuery = useSitePages();
   const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
   const existing = translatedLocales(pagesQuery.data, page);
+  /** 首页 / 文档模板页 slug 固定，同语言不能再复制一份。 */
+  const fixedSlug =
+    page.kind === "home" || isDocTemplateKind(page.kind);
   /** 默认选**还没建**的那门语言——复制的常见用途就是补译文。 */
   const suggestedLocale =
     siteLocaleOrder(defaultLocale).find((slug) => !existing.has(slug)) ??
@@ -106,6 +110,8 @@ export function SitePageDuplicateSheet({
   };
   const [title, setTitle] = useState(page.title);
   const [locale, setLocale] = useState<AppLocale>(suggestedLocale);
+  const localeTaken = existing.has(locale);
+  const blocked = fixedSlug && localeTaken;
 
   // 页面清单是异步来的，建议语言可能在打开面板后才算得出来
   useEffect(() => {
@@ -117,6 +123,7 @@ export function SitePageDuplicateSheet({
 
   const onSubmit = (event: FormEvent): void => {
     event.preventDefault();
+    if (blocked) return;
     duplicatePage.mutate(
       { pageId: page.id, body: { title: title.trim(), locale } },
       {
@@ -168,7 +175,11 @@ export function SitePageDuplicateSheet({
                 </SelectTrigger>
                 <SelectContent>
                   {siteLocaleOrder(defaultLocale).map((slug) => (
-                    <SelectItem key={slug} value={slug}>
+                    <SelectItem
+                      key={slug}
+                      value={slug}
+                      disabled={fixedSlug && existing.has(slug)}
+                    >
                       {getLocaleNativeLabel(slug)}
                       {existing.has(slug) ? ` · ${t("cms.localeTaken")}` : ""}
                     </SelectItem>
@@ -176,9 +187,11 @@ export function SitePageDuplicateSheet({
                 </SelectContent>
               </Select>
               <FieldDescription>
-                {existing.has(locale)
-                  ? t("cms.duplicateSlugSuffixHint")
-                  : t("cms.duplicateLocaleHint")}
+                {blocked
+                  ? t("cms.duplicateFixedSlugTakenHint")
+                  : localeTaken
+                    ? t("cms.duplicateSlugSuffixHint")
+                    : t("cms.duplicateLocaleHint")}
               </FieldDescription>
             </Field>
           </FieldGroup>
@@ -189,7 +202,10 @@ export function SitePageDuplicateSheet({
                 {t("common:cancel")}
               </Button>
             </SheetClose>
-            <Button type="submit" disabled={duplicatePage.isPending}>
+            <Button
+              type="submit"
+              disabled={duplicatePage.isPending || blocked}
+            >
               {duplicatePage.isPending ? <Spinner className="size-4" /> : null}
               {t("cms.duplicate")}
             </Button>

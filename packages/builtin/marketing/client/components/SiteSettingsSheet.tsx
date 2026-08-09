@@ -6,11 +6,15 @@ import {
   type AppLocale,
 } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
+import { ButtonGroup } from "@be-water/ui/button-group";
 import {
   Field,
+  FieldContent,
   FieldDescription,
   FieldGroup,
   FieldLabel,
+  FieldLegend,
+  FieldSet,
 } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
 import {
@@ -42,7 +46,10 @@ import {
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import { useSiteMutations } from "../hooks/useSite.js";
 
-import type { MarketingSite, SiteLocalizedText } from "../../shared/site-cms.js";
+import type {
+  MarketingSite,
+  SiteLocalizedText,
+} from "../../shared/site-cms.js";
 
 interface SiteSettingsSheetProps {
   site: MarketingSite;
@@ -55,27 +62,34 @@ interface SiteSettingsSheetProps {
  * 导航 / 页脚链接已改为 Theme Editor 里的**页头 / 页脚 section**（schema 驱动），
  * 品牌（Logo / 主色 / 字体）在「系统管理 → 品牌」。这里只留不属于版式的字段。
  *
- * 站名与页头文案同口径：逐字段 `__i18n`，编辑某一语言的槽位。
+ * 分三组：**站点信息**（多语言文案）、**语言**（主语言）、**可见性**（发布开关）。
+ *
+ * 站名 / 标语与页头文案同口径：逐字段 `__i18n`。译文切换按钮组挂在「站点信息」组的
+ * 标题行里——它只作用于这一组的输入框，和下面独立成组的「主语言」不是一回事：前者是
+ * 「正在填哪种译文」，后者是站点 URL 的默认语言。早先两者平铺成相邻的两项，几乎每个
+ * 人都会看错，所以宁可多一层分组也要把作用域画出来。
  */
 export function SiteSettingsSheet({ site, children }: SiteSettingsSheetProps) {
   const { t } = useTranslation("marketing");
   const { updateSite } = useSiteMutations();
   const [open, setOpen] = useState(false);
   const [siteName, setSiteName] = useState<SiteLocalizedText>(site.site_name);
-  const [nameLocale, setNameLocale] = useState<AppLocale>(
+  const [tagline, setTagline] = useState<SiteLocalizedText>(site.tagline);
+  const [editLocale, setEditLocale] = useState<AppLocale>(
     normalizeLocale(site.default_locale),
   );
-  const [tagline, setTagline] = useState(site.tagline);
   const [published, setPublished] = useState(site.published);
   const [defaultLocale, setDefaultLocale] = useState<AppLocale>(
     normalizeLocale(site.default_locale),
   );
 
+  const locales = siteLocaleOrder(defaultLocale);
+
   const reset = (): void => {
     const nextDefault = normalizeLocale(site.default_locale);
     setSiteName(site.site_name);
-    setNameLocale(nextDefault);
     setTagline(site.tagline);
+    setEditLocale(nextDefault);
     setPublished(site.published);
     setDefaultLocale(nextDefault);
   };
@@ -99,10 +113,15 @@ export function SiteSettingsSheet({ site, children }: SiteSettingsSheetProps) {
     );
   };
 
-  const nameValue = readLocalizedSetting(siteName, nameLocale, defaultLocale);
+  const nameValue = readLocalizedSetting(siteName, editLocale, defaultLocale);
   const nameFallback =
-    nameLocale !== defaultLocale
+    editLocale !== defaultLocale
       ? readLocalizedSetting(siteName, defaultLocale, defaultLocale)
+      : "";
+  const taglineValue = readLocalizedSetting(tagline, editLocale, defaultLocale);
+  const taglineFallback =
+    editLocale !== defaultLocale
+      ? readLocalizedSetting(tagline, defaultLocale, defaultLocale)
       : "";
 
   return (
@@ -121,106 +140,168 @@ export function SiteSettingsSheet({ site, children }: SiteSettingsSheetProps) {
             <SheetDescription>{t("cms.settingsDescription")}</SheetDescription>
           </SheetHeader>
 
-          <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
-            <Field>
-              <div className="flex items-center justify-between gap-2">
+          <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+            <FieldSet>
+              {/*
+                标题行右侧就是译文切换（与 Theme Editor 同款），紧挨着它作用的两个
+                输入框；单语言站点不渲染，标题下的说明也跟着换一句。
+
+                说明单独占一行、不和按钮组挤在同一个 flex 行里：说明有二三十个字，
+                塞进同一行会把按钮组挤到下一行去，"标题行右侧"就白设计了。
+              */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <FieldLegend variant="label" className="mb-0">
+                    {t("cms.settingsSectionBasics")}
+                  </FieldLegend>
+                  {locales.length > 1 ? (
+                    <ButtonGroup aria-label={t("cms.fieldEditLocale")}>
+                      {locales.map((slug) => {
+                        const active = slug === editLocale;
+                        return (
+                          <Button
+                            key={slug}
+                            type="button"
+                            size="sm"
+                            variant={active ? "secondary" : "outline"}
+                            aria-pressed={active}
+                            onClick={() => setEditLocale(slug)}
+                          >
+                            {getLocaleNativeLabel(slug)}
+                          </Button>
+                        );
+                      })}
+                    </ButtonGroup>
+                  ) : null}
+                </div>
+                <FieldDescription>
+                  {locales.length > 1
+                    ? t("cms.settingsSectionBasicsLocaleHint")
+                    : t("cms.settingsSectionBasicsHint")}
+                </FieldDescription>
+              </div>
+              <Field>
                 <FieldLabel htmlFor="site_name">
                   {t("cms.fieldSiteName")}
                 </FieldLabel>
+                <Input
+                  id="site_name"
+                  value={nameValue}
+                  placeholder={nameFallback || undefined}
+                  onChange={(e) =>
+                    setSiteName(
+                      writeLocalizedSetting(
+                        siteName,
+                        editLocale,
+                        defaultLocale,
+                        e.target.value,
+                      ) as SiteLocalizedText,
+                    )
+                  }
+                  required={editLocale === defaultLocale}
+                />
+                {editLocale !== defaultLocale ? (
+                  <FieldDescription>
+                    {nameFallback
+                      ? t("cms.fieldLocalizedFallbackHint", {
+                          fallback: nameFallback,
+                        })
+                      : t("cms.fieldLocalizedEmptyHint")}
+                  </FieldDescription>
+                ) : null}
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="tagline">
+                  {t("cms.fieldTagline")}
+                </FieldLabel>
+                <Input
+                  id="tagline"
+                  value={taglineValue}
+                  placeholder={taglineFallback || undefined}
+                  onChange={(e) =>
+                    setTagline(
+                      writeLocalizedSetting(
+                        tagline,
+                        editLocale,
+                        defaultLocale,
+                        e.target.value,
+                      ) as SiteLocalizedText,
+                    )
+                  }
+                />
+                {editLocale !== defaultLocale ? (
+                  <FieldDescription>
+                    {taglineFallback
+                      ? t("cms.fieldLocalizedFallbackHint", {
+                          fallback: taglineFallback,
+                        })
+                      : t("cms.fieldLocalizedEmptyHint")}
+                  </FieldDescription>
+                ) : null}
+              </Field>
+            </FieldSet>
+
+            <FieldSet>
+              <FieldLegend variant="label" className="mb-0">
+                {t("cms.settingsSectionLocale")}
+              </FieldLegend>
+              {/*
+                主语言 = URL 上**不带前缀**的那一种，改它会改掉全站已收录的链接结构。
+              */}
+              <Field>
+                <FieldLabel htmlFor="default_locale">
+                  {t("cms.fieldDefaultLocale")}
+                </FieldLabel>
                 <Select
-                  value={nameLocale}
-                  onValueChange={(value) => setNameLocale(value as AppLocale)}
+                  value={defaultLocale}
+                  onValueChange={(value) => {
+                    const next = value as AppLocale;
+                    setDefaultLocale(next);
+                    setEditLocale(next);
+                  }}
                 >
-                  <SelectTrigger
-                    size="sm"
-                    className="w-auto min-w-28"
-                    aria-label={t("cms.fieldSiteNameLocale")}
-                  >
+                  <SelectTrigger id="default_locale">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {siteLocaleOrder(defaultLocale).map((slug) => (
+                    {locales.map((slug) => (
                       <SelectItem key={slug} value={slug}>
                         {getLocaleNativeLabel(slug)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <Input
-                id="site_name"
-                value={nameValue}
-                placeholder={nameFallback || undefined}
-                onChange={(e) =>
-                  setSiteName(
-                    writeLocalizedSetting(
-                      siteName,
-                      nameLocale,
-                      defaultLocale,
-                      e.target.value,
-                    ) as SiteLocalizedText,
-                  )
-                }
-                required={nameLocale === defaultLocale}
-              />
-              <FieldDescription>
-                {t("cms.fieldSiteNameHint")}
-              </FieldDescription>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="tagline">{t("cms.fieldTagline")}</FieldLabel>
-              <Input
-                id="tagline"
-                value={tagline}
-                onChange={(e) => setTagline(e.target.value)}
-              />
-            </Field>
-            {/*
-              主语言 = URL 上**不带前缀**的那一种，改它会改掉全站已收录的链接结构，
-              所以放在站点设置里而不是各页面上。
-            */}
-            <Field>
-              <FieldLabel>{t("cms.fieldDefaultLocale")}</FieldLabel>
-              <Select
-                value={defaultLocale}
-                onValueChange={(value) => {
-                  const next = value as AppLocale;
-                  setDefaultLocale(next);
-                  // 主语言改了之后，站名编辑槽位跟过去，避免仍停在旧主语言
-                  setNameLocale(next);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {siteLocaleOrder(defaultLocale).map((slug) => (
-                    <SelectItem key={slug} value={slug}>
-                      {getLocaleNativeLabel(slug)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldDescription>
-                {t("cms.fieldDefaultLocaleHint")}
-              </FieldDescription>
-            </Field>
-            <Field orientation="horizontal">
-              <div className="flex flex-1 flex-col gap-1">
-                <FieldLabel htmlFor="published">
-                  {t("cms.fieldPublished")}
-                </FieldLabel>
                 <FieldDescription>
-                  {t("cms.fieldPublishedHint")}
+                  {t("cms.fieldDefaultLocaleHint")}
                 </FieldDescription>
-              </div>
-              <Switch
-                id="published"
-                checked={published}
-                onCheckedChange={setPublished}
-              />
-            </Field>
-            <FieldDescription>{t("cms.chromeMovedHint")}</FieldDescription>
+              </Field>
+            </FieldSet>
+
+            <FieldSet>
+              <FieldLegend variant="label" className="mb-0">
+                {t("cms.settingsSectionVisibility")}
+              </FieldLegend>
+              <Field orientation="horizontal">
+                <FieldContent>
+                  <FieldLabel htmlFor="published">
+                    {t("cms.fieldPublished")}
+                  </FieldLabel>
+                  <FieldDescription>
+                    {t("cms.fieldPublishedHint")}
+                  </FieldDescription>
+                </FieldContent>
+                <Switch
+                  id="published"
+                  checked={published}
+                  onCheckedChange={setPublished}
+                />
+              </Field>
+            </FieldSet>
+
+            {/* 「东西都搬哪去了」的路标，别混在可编辑项里当成又一条字段说明。 */}
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3">
+              <FieldDescription>{t("cms.chromeMovedHint")}</FieldDescription>
+            </div>
           </FieldGroup>
 
           <SheetFooter>

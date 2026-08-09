@@ -142,7 +142,7 @@ export interface MarketingSite {
   tenant_id: string;
   /** 管理端保留整张表；公开面经 `toPublicMarketingSite` 压成当前语言字符串。 */
   site_name: SiteLocalizedText;
-  tagline: string;
+  tagline: SiteLocalizedText;
   logo_url: string | null;
   primary_color: string | null;
   theme_settings: ThemeSettings;
@@ -193,7 +193,7 @@ export interface MarketingPageListItem {
 
 export interface UpdateMarketingSiteBody {
   site_name?: SiteLocalizedText;
-  tagline?: string;
+  tagline?: SiteLocalizedText;
   logo_url?: string | null;
   primary_color?: string | null;
   theme_settings?: ThemeSettings;

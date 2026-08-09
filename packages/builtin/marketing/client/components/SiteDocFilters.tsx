@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 
 import { PageFilterBar } from "@be-water/client-kit";
 import { optionsFromLabels } from "@be-water/client-kit/lib/filter-chip-options";
+import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -15,10 +16,13 @@ const MAX_VISIBLE_CATEGORIES = 6;
 export function SiteDocFilters({
   filters,
   categories,
+  locales,
   onFiltersChange,
 }: {
   filters: SiteDocFilterState;
   categories: readonly string[];
+  /** 列表里出现过的语言；只有一种时这组 chip 不渲染。 */
+  locales: readonly AppLocale[];
   onFiltersChange: (filters: SiteDocFilterState) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -33,6 +37,14 @@ export function SiteDocFilters({
   const categoryOptions = optionsFromLabels([
     { value: "", label: t("siteDocs.filterCategoryAll") },
     ...categories.map((category) => ({ value: category, label: category })),
+  ]);
+
+  const localeOptions = optionsFromLabels([
+    { value: "", label: t("siteDocs.filterLocaleAll") },
+    ...locales.map((locale) => ({
+      value: locale,
+      label: getLocaleNativeLabel(locale),
+    })),
   ]);
 
   return (
@@ -62,6 +74,15 @@ export function SiteDocFilters({
           onChange: (value) =>
             onFiltersChange({ ...filters, category: value || undefined }),
         },
+        {
+          // 同理：只写了一种语言的站点不需要这组
+          id: "locale",
+          options: locales.length > 1 ? localeOptions : [],
+          hideWhenEmpty: true,
+          value: filters.locale ?? "",
+          onChange: (value) =>
+            onFiltersChange({ ...filters, locale: value || undefined }),
+        },
       ]}
       hasActiveFilters={hasActiveDocFilters(filters)}
       onReset={() =>
@@ -69,6 +90,7 @@ export function SiteDocFilters({
           q: undefined,
           category: undefined,
           status: undefined,
+          locale: undefined,
         })
       }
     />

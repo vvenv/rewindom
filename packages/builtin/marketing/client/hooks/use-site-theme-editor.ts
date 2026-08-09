@@ -278,7 +278,11 @@ export function useSiteThemeEditor(pageId: string | undefined) {
           locale,
           defaultLocale,
         ),
-        tagline: siteQuery.data.tagline,
+        tagline: localizeSiteText(
+          siteQuery.data.tagline,
+          locale,
+          defaultLocale,
+        ),
         logo_url: previewLogoUrl,
         primary_color: siteQuery.data.theme_settings.primary_color ?? null,
         theme_settings: {

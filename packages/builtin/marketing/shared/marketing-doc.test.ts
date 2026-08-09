@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  docFilename,
   docHeadingAnchor,
   extractDocHeadings,
+  formatDocAsMarkdown,
   groupDocsByCategory,
   parseMarkdownFile,
   type PublicDocSummary,
@@ -92,11 +94,73 @@ sort_order: 15
     );
     expect(parsed).toEqual({
       slug: "guide",
+      locale: null,
       title: "指南",
       description: "简述",
       category: "入门",
       sort_order: 15,
       body_md: "## 正文",
+    });
+  });
+
+  it("没写 sort_order 时是 null，不是 0——导入不该重置既有排序", () => {
+    expect(parseMarkdownFile("guide.md", "正文").sort_order).toBeNull();
+    expect(
+      parseMarkdownFile("guide.md", "---\nsort_order: 0\n---\n正文").sort_order,
+    ).toBe(0);
+  });
+
+  it("文件名的语言后缀被认出来，slug 不带它", () => {
+    const parsed = parseMarkdownFile("faq.en.md", "正文");
+    expect(parsed.slug).toBe("faq");
+    expect(parsed.locale).toBe("en");
+    // 大小写不敏感：`zh-cn` 也认
+    expect(parseMarkdownFile("faq.zh-cn.md", "正文").locale).toBe("zh-CN");
+  });
+
+  it("frontmatter 的 locale 覆盖文件名——文件可能被改过名", () => {
+    const parsed = parseMarkdownFile(
+      "faq.en.md",
+      "---\nlocale: zh-CN\n---\n正文",
+    );
+    expect(parsed.locale).toBe("zh-CN");
+  });
+
+  it("点后面认不出语言时整段当 slug 校验", () => {
+    expect(() => parseMarkdownFile("faq.v2.md", "正文")).toThrow(
+      "site.doc_slug_invalid",
+    );
+  });
+});
+
+describe("docFilename", () => {
+  it("主语言不带后缀，其余语言带——否则导出全部会重名", () => {
+    expect(docFilename("faq", "zh-CN", "zh-CN")).toBe("faq.md");
+    expect(docFilename("faq", "en", "zh-CN")).toBe("faq.en.md");
+  });
+
+  it("导出再导入是闭环的", () => {
+    const markdown = formatDocAsMarkdown({
+      slug: "faq",
+      locale: "en",
+      title: "FAQ",
+      description: "Common questions",
+      category: "Getting started",
+      sort_order: 120,
+      body_md: "## Body",
+    });
+    const parsed = parseMarkdownFile(
+      docFilename("faq", "en", "zh-CN"),
+      markdown,
+    );
+    expect(parsed).toEqual({
+      slug: "faq",
+      locale: "en",
+      title: "FAQ",
+      description: "Common questions",
+      category: "Getting started",
+      sort_order: 120,
+      body_md: "## Body",
     });
   });
 });

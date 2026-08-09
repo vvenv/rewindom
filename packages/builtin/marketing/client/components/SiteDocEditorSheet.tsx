@@ -15,9 +15,22 @@ import {
   useMediaQuery,
   usePersistState,
 } from "@be-water/client-kit";
+import {
+  DEFAULT_LOCALE,
+  getLocaleNativeLabel,
+  normalizeLocale,
+  type AppLocale,
+} from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import { Field, FieldDescription, FieldLabel } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@be-water/ui/select";
 import {
   Sheet,
   SheetClose,
@@ -42,6 +55,8 @@ import {
   docPath,
   type MarketingDocListItem,
 } from "../../shared/marketing-doc.js";
+import { siteLocaleOrder } from "../../shared/site-locale.js";
+import { useSite } from "../hooks/useSite.js";
 import {
   useCreateSiteDoc,
   usePublishSiteDoc,
@@ -66,9 +81,10 @@ interface DocFormState {
   category: string;
   body_md: string;
   sort_order: number;
+  locale: AppLocale;
 }
 
-function emptyForm(): DocFormState {
+function emptyForm(locale: AppLocale = DEFAULT_LOCALE): DocFormState {
   return {
     slug: "",
     title: "",
@@ -76,6 +92,7 @@ function emptyForm(): DocFormState {
     category: "",
     body_md: "",
     sort_order: 0,
+    locale,
   };
 }
 
@@ -86,7 +103,8 @@ function isSameForm(a: DocFormState, b: DocFormState): boolean {
     a.description === b.description &&
     a.category === b.category &&
     a.body_md === b.body_md &&
-    a.sort_order === b.sort_order
+    a.sort_order === b.sort_order &&
+    a.locale === b.locale
   );
 }
 
@@ -129,6 +147,8 @@ export function SiteDocEditorSheet({
   const update = useUpdateSiteDoc();
   const publish = usePublishSiteDoc();
   const docsQuery = useSiteDocs();
+  const siteQuery = useSite();
+  const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
   const { data: fullDoc, isLoading: isLoadingDoc } = useSiteDoc(
     open && doc ? doc.id : null,
   );
@@ -159,6 +179,7 @@ export function SiteDocEditorSheet({
         category: fullDoc.category_draft,
         body_md: fullDoc.body_md_draft,
         sort_order: fullDoc.sort_order_draft,
+        locale: fullDoc.locale,
       };
       setForm(next);
       setBaseline(next);
@@ -167,11 +188,11 @@ export function SiteDocEditorSheet({
       return;
     }
     if (loadedIdRef.current === "new") return;
-    setForm(emptyForm());
-    setBaseline(emptyForm());
+    setForm(emptyForm(defaultLocale));
+    setBaseline(emptyForm(defaultLocale));
     setSlugTouched(false);
     loadedIdRef.current = "new";
-  }, [open, doc, fullDoc]);
+  }, [open, doc, fullDoc, defaultLocale]);
 
   const isDirty = !isSameForm(form, baseline);
   const isSaving = create.isPending || update.isPending || publish.isPending;
@@ -214,7 +235,8 @@ export function SiteDocEditorSheet({
         const saved =
           isEdit && doc
             ? await update.mutateAsync({ docId: doc.id, body: payload })
-            : await create.mutateAsync(payload);
+            : // 语言只在新建时定，改不了（见语言字段旁的说明）
+              await create.mutateAsync({ ...payload, locale: form.locale });
         if (publishAfter) {
           await publish.mutateAsync(saved.id);
           toast.success(t("siteDocs.publishedToast"));
@@ -360,7 +382,7 @@ export function SiteDocEditorSheet({
                     onChange={(event) => handleTitleChange(event.target.value)}
                   />
                 </Field>
-                <Field className="sm:col-span-3">
+                <Field className="sm:col-span-2">
                   <FieldLabel htmlFor="doc-slug">
                     {t("siteDocs.slug")}
                   </FieldLabel>
@@ -384,6 +406,37 @@ export function SiteDocEditorSheet({
                       {t("siteDocs.slugHint")}
                     </FieldDescription>
                   ) : null}
+                </Field>
+                {/*
+                  语言与 slug 一起构成一篇文档的身份：同一个 slug 每种语言各存一行。
+                  建好之后不能改——改语言等于把这一行搬到另一组译文里，而那一组可能
+                  已经有同 slug 的文档了；要换语言就在目标语言里新建一篇。
+                */}
+                <Field className="sm:col-span-1">
+                  <FieldLabel htmlFor="doc-locale">
+                    {t("cms.fieldLocale")}
+                  </FieldLabel>
+                  <Select
+                    value={form.locale}
+                    disabled={isEdit}
+                    onValueChange={(value) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        locale: value as AppLocale,
+                      }))
+                    }
+                  >
+                    <SelectTrigger id="doc-locale">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {siteLocaleOrder(defaultLocale).map((slug) => (
+                        <SelectItem key={slug} value={slug}>
+                          {getLocaleNativeLabel(slug)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
                 <Field className="sm:col-span-2">
                   <FieldLabel htmlFor="doc-category">

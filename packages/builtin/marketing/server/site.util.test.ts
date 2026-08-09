@@ -8,6 +8,7 @@ import {
   revertPageContentData,
   validatePageSlug,
   validateSiteName,
+  validateSiteTagline,
 } from "./site.util.js";
 
 describe("page slug identity", () => {
@@ -146,5 +147,27 @@ describe("validateSiteName", () => {
     expect(() =>
       validateSiteName({ __i18n: { en: "Acme" } }, "zh-CN"),
     ).toThrow("site.name_invalid");
+  });
+});
+
+describe("validateSiteTagline", () => {
+  it("allows an empty tagline", () => {
+    expect(validateSiteTagline("", "zh-CN")).toBe("");
+    expect(validateSiteTagline({ __i18n: {} }, "zh-CN")).toBe("");
+  });
+
+  it("stores __i18n when a second language is filled", () => {
+    expect(
+      validateSiteTagline(
+        { __i18n: { "zh-CN": "标语", en: "Tagline" } },
+        "zh-CN",
+      ),
+    ).toEqual({ __i18n: { "zh-CN": "标语", en: "Tagline" } });
+  });
+
+  it("collapses a single primary-locale entry back to a string", () => {
+    expect(
+      validateSiteTagline({ __i18n: { "zh-CN": "标语" } }, "zh-CN"),
+    ).toBe("标语");
   });
 });

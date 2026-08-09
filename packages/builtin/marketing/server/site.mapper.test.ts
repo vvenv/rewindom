@@ -14,7 +14,7 @@ function siteRecord(
     id: "site-1",
     tenant_id: "t-1",
     site_name: "Acme",
-    tagline: null,
+    tagline: "",
     theme_settings: {},
     default_locale: "zh-CN",
     nav_json: null,
@@ -161,6 +161,18 @@ describe("toPublicMarketingSite locale", () => {
       "en",
     );
     expect(site.site_name).toBe("Acme");
+  });
+
+  it("projects tagline into the requested language", () => {
+    const site = toPublicMarketingSite(
+      siteRecord({
+        tagline: { __i18n: { "zh-CN": "标语", en: "Tagline" } },
+      }),
+      pages,
+      null,
+      "en",
+    );
+    expect(site.tagline).toBe("Tagline");
   });
 });
 

@@ -70,6 +70,7 @@ export function Site() {
               pages={pages}
               defaultLocale={defaultLocale}
               canWrite={canWrite}
+              actions={actions}
             />
           ) : null}
         </CardContent>

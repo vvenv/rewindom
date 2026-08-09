@@ -14,6 +14,8 @@
 
 import { isAppLocale, type AppLocale } from "@be-water/shared";
 
+import { resolveLocaleSegment } from "./site-locale.js";
+
 export type MarketingDocStatus = "draft" | "published";
 
 /** 单段 slug：字母数字开头结尾，中间可含连字符，最长 63。 */
@@ -63,6 +65,8 @@ export interface CreateMarketingDocBody {
   body_md?: string;
   category?: string;
   sort_order?: number;
+  /** 省略即站点主语言。同 slug 的各语言版本是各自独立的行。 */
+  locale?: AppLocale;
 }
 
 export interface UpdateMarketingDocBody {
@@ -108,6 +112,7 @@ export function parseCreateDocBody(value: unknown): {
   body_md: string;
   category: string;
   sort_order: number;
+  locale: AppLocale | null;
 } {
   if (!value || typeof value !== "object") {
     throw new Error("site.doc_body_invalid");
@@ -126,6 +131,8 @@ export function parseCreateDocBody(value: unknown): {
       typeof raw.sort_order === "number" && Number.isFinite(raw.sort_order)
         ? Math.trunc(raw.sort_order)
         : 0,
+    // `null` = 未指定，由服务端落到站点主语言；给了就必须是支持的语言
+    locale: raw.locale === undefined ? null : validateDocLocale(raw.locale),
   };
 }
 
@@ -173,17 +180,42 @@ export function parseUpdateDocBody(value: unknown): {
 }
 
 /**
+ * 一篇文档导出成 `.md` 时的文件名。
+ *
+ * 主语言用光 slug，其余语言带语言后缀（`faq.en.md`）。不带后缀的话，「导出全部」在
+ * 多语言库上会下出两个都叫 `faq.md` 的文件，浏览器给第二个补个 `(1)`，谁也不知道
+ * 哪份是哪种语言。后缀能被 `parseMarkdownFile` 认回去，导出再导入是闭环的。
+ */
+export function docFilename(
+  slug: string,
+  locale: AppLocale,
+  defaultLocale: AppLocale,
+): string {
+  return locale === defaultLocale ? `${slug}.md` : `${slug}.${locale}.md`;
+}
+
+/**
  * 解析一篇 `.md` 文件内容为文档字段（导入用）。
  *
- * frontmatter 的 `title` / `description` / `category`，正文是 frontmatter 之后的
- * 全部内容。文件名即 slug（去掉 `.md`）。
+ * frontmatter 的 `title` / `description` / `category` / `sort_order` / `locale`，
+ * 正文是 frontmatter 之后的全部内容。文件名是 slug（去掉 `.md`），可带语言后缀
+ * （`faq.en.md`）——frontmatter 里的 `locale` 优先，两处都没有则由调用方落到主语言。
  */
 export interface ParsedMarkdownFile {
   slug: string;
+  /** 文件没指明语言时是 `null`，由调用方落到站点主语言。 */
+  locale: AppLocale | null;
   title: string;
   description: string;
   category: string;
-  sort_order: number;
+  /**
+   * frontmatter 没写 `sort_order` 时是 `null`，不是 `0`。
+   *
+   * 导入是**更新既有文档**的主要手段，而排序多半是在编辑器里拖出来的、不在文件里。
+   * 缺省折成 0 就等于「每导入一次，全库排序被重排一遍」——分不出「没写」与「写了 0」
+   * 的后果全落在租户身上。
+   */
+  sort_order: number | null;
   body_md: string;
 }
 
@@ -192,12 +224,26 @@ export function parseMarkdownFile(
   raw: string,
 ): ParsedMarkdownFile {
   const baseName = filename.replace(/\.md$/iu, "").replace(/[/\\]/gu, "");
-  const slug = validateDocSlug(baseName);
+
+  // `faq.en` → slug=faq + locale=en；`faq` → slug=faq。点后面认不出语言就整段当 slug
+  // 去校验（那时它多半本来就是个错的文件名，报 slug 非法比悄悄截断强）。
+  let slugPart = baseName;
+  let localeFromName: AppLocale | null = null;
+  const dot = baseName.lastIndexOf(".");
+  if (dot > 0) {
+    const candidate = resolveLocaleSegment(baseName.slice(dot + 1));
+    if (candidate) {
+      localeFromName = candidate;
+      slugPart = baseName.slice(0, dot);
+    }
+  }
+  const slug = validateDocSlug(slugPart);
 
   let title = slug;
   let description = "";
   let category = "";
-  let sort_order = 0;
+  let sort_order: number | null = null;
+  let locale: AppLocale | null = localeFromName;
   let body = raw;
   const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/u);
   if (fmMatch) {
@@ -213,6 +259,9 @@ export function parseMarkdownFile(
       else if (key === "sort_order") {
         const n = Number(val);
         if (Number.isFinite(n)) sort_order = Math.trunc(n);
+      } else if (key === "locale") {
+        // frontmatter 说了算：它是内容自带的，文件名可能被改名或另存过
+        locale = resolveLocaleSegment(val) ?? locale;
       }
     }
   }
@@ -222,6 +271,7 @@ export function parseMarkdownFile(
   }
   return {
     slug,
+    locale,
     title: title.slice(0, 200) || slug,
     description: description.slice(0, 500),
     category: category.slice(0, 100),
@@ -427,6 +477,7 @@ export function extractDocHeadings(
 /** 导出时把文档拼回带 frontmatter 的 `.md` 文本。 */
 export function formatDocAsMarkdown(doc: {
   slug: string;
+  locale?: AppLocale;
   title: string;
   description: string;
   category: string;
@@ -434,6 +485,8 @@ export function formatDocAsMarkdown(doc: {
   body_md: string;
 }): string {
   const fm: string[] = ["---", `title: ${doc.title}`, `slug: ${doc.slug}`];
+  // 语言随内容走，导入端据此认回是哪一组译文（文件名可能被改过）
+  if (doc.locale) fm.push(`locale: ${doc.locale}`);
   if (doc.description) fm.push(`description: ${doc.description}`);
   if (doc.category) fm.push(`category: ${doc.category}`);
   if (doc.sort_order !== undefined) fm.push(`sort_order: ${doc.sort_order}`);

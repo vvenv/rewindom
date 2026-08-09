@@ -54,6 +54,12 @@ export function SiteSummaryHeader({
     );
   }
 
+  const taglineText = localizeSiteText(
+    site.tagline,
+    defaultLocale,
+    defaultLocale,
+  );
+
   return (
     <CardHeader className="border-b">
       <CardTitle className="flex min-w-0 flex-wrap items-center gap-2">
@@ -64,8 +70,8 @@ export function SiteSummaryHeader({
           {site.published ? t("cms.statusPublished") : t("cms.statusDraft")}
         </Badge>
       </CardTitle>
-      {site.tagline ? (
-        <CardDescription className="truncate">{site.tagline}</CardDescription>
+      {taglineText ? (
+        <CardDescription className="truncate">{taglineText}</CardDescription>
       ) : null}
       {canWrite ? (
         <CardAction className="flex items-center gap-2">

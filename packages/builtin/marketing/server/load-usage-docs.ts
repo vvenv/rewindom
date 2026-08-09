@@ -1,26 +1,18 @@
-import { readdirSync, readFileSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+/**
+ * 默认租户文档库的初始内容（`docs/usage/<locale>/*.md`）。
+ *
+ * 内容来自构建期生成的 `usage-docs.generated.ts`，**不在运行时读 `fs`**：生产构建把
+ * `apps/server` 打成单文件 bundle，`import.meta.url` 指向 `dist/index.js`，任何相对
+ * 路径读取都会落到不存在的目录上。真源与再生成方式见 `docs/usage/assemble.mjs`。
+ */
 
-import { parseMarkdownFile } from "../shared/marketing-doc.js";
+import {
+  USAGE_DOCS,
+  type UsageDocFile,
+} from "./usage-docs.generated.js";
 
-const USAGE_DOCS_DIR = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../docs/usage",
-);
-
-/** 扫描 `docs/usage/*.md`，按 frontmatter 的 `sort_order` 排序。 */
-export function loadUsageDocs(): Array<{ filename: string; raw: string }> {
-  return readdirSync(USAGE_DOCS_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
-    .map((entry) => entry.name)
-    .map((file) => ({
-      filename: file,
-      raw: readFileSync(path.join(USAGE_DOCS_DIR, file), "utf8"),
-    }))
-    .sort((left, right) => {
-      const a = parseMarkdownFile(left.filename, left.raw);
-      const b = parseMarkdownFile(right.filename, right.raw);
-      return a.sort_order - b.sort_order || left.filename.localeCompare(right.filename);
-    });
+export function loadUsageDocs(): readonly UsageDocFile[] {
+  return USAGE_DOCS;
 }
+
+export type { UsageDocFile };
