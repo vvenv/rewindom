@@ -27,26 +27,30 @@ ENV DATABASE_URL=postgresql://be-water:build@localhost:5432/be-water
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/client/package.json apps/client/
 COPY apps/server/package.json apps/server/
+COPY packages/builtin/package.json packages/builtin/
 COPY packages/client-kit/package.json packages/client-kit/
 COPY packages/client-test/package.json packages/client-test/
-COPY packages/modules/package.json packages/modules/
+COPY packages/module-sdk/package.json packages/module-sdk/
 COPY packages/server-kernel/package.json packages/server-kernel/
 COPY packages/server-test/package.json packages/server-test/
 COPY packages/shared/package.json packages/shared/
 COPY packages/ui/package.json packages/ui/
+# 外部模块数量随仓库变化；--parents 保留 modules/<id>/ 结构
+COPY --parents modules/*/package.json ./
 
 RUN --mount=type=cache,id=be-water-pnpm-store,target=/pnpm/store \
   pnpm install --frozen-lockfile
 
 COPY apps apps
 COPY packages packages
+COPY modules modules
 
 RUN pnpm --filter server exec prisma generate \
   && pnpm build
 
 # 去掉开发依赖，保留 workspace 链接（prune --prod 会拆掉 @be-water/* 软链）
 RUN --mount=type=cache,id=be-water-pnpm-store,target=/pnpm/store \
-  rm -rf node_modules apps/*/node_modules packages/*/node_modules \
+  rm -rf node_modules apps/*/node_modules packages/*/node_modules modules/*/node_modules \
   && pnpm install --frozen-lockfile --prod
 
 FROM node:${NODE_VERSION}-bookworm-slim AS app
@@ -66,6 +70,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/server ./apps/server
 COPY --from=builder /app/apps/client/dist ./apps/client/dist
 COPY --from=builder /app/packages ./packages
+# Prisma schema 软链指向 modules/*；migrate deploy 需要它们在镜像内
+COPY --from=builder /app/modules ./modules
 
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

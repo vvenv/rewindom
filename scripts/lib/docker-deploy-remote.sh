@@ -106,6 +106,7 @@ docker_create_source_tarball() {
     --exclude='./apps/server/node_modules' \
     --exclude='./apps/client/node_modules' \
     --exclude='./packages/*/node_modules' \
+    --exclude='./modules/*/node_modules' \
     --exclude='./.git' \
     --exclude='./release' \
     --exclude='./*.tar.gz' \
@@ -123,7 +124,8 @@ docker_create_source_tarball() {
     pnpm-lock.yaml \
     pnpm-workspace.yaml \
     apps \
-    packages
+    packages \
+    modules
 }
 
 docker_write_remote_env_file() {
@@ -266,7 +268,7 @@ docker_deploy() {
     # 先清掉会被覆盖的源码树，避免 Docker COPY 打进陈旧 migration 导致 deploy 失败。
     _run_ssh "set -euo pipefail
 cd '${remote_dir}'
-rm -rf apps packages docker
+rm -rf apps packages modules docker
 rm -f docker-compose.prod.yml .dockerignore package.json pnpm-lock.yaml pnpm-workspace.yaml
 tar -xzf be-water-docker-src.tar.gz
 rm -f be-water-docker-src.tar.gz
