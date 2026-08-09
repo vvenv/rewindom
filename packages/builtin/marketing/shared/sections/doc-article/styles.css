@@ -1,0 +1,58 @@
+/*
+ * 文档正文的外框：返回链、元信息行、标题、导语。
+ * 正文本体的排版是 _common 的 `.prose`，这里不重复一份。
+ */
+.doc-article-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--muted-fg);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+.doc-article-back:hover {
+  color: var(--accent);
+}
+.doc-article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--muted-fg);
+}
+.doc-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.8125rem;
+}
+.doc-article h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0.75rem 0 0;
+}
+.doc-article-lead {
+  color: var(--muted-fg);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  margin: 0.75rem 0 0;
+}
+.doc-article .prose {
+  margin-top: 2rem;
+}
+
+/*
+ * 文档详情页三栏首段默认紧贴 header（首段 sec-gap=0），正文顶部缺呼吸。
+ * 给含 .doc-article 的页面首段补一点顶部留白；不覆盖 sec-pt 变量，左右栏 sticky
+ * 各自贴顶也不受影响。
+ */
+.site-main:has(.doc-article) > .sec:first-child {
+  padding-top: 2rem;
+}

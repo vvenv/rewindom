@@ -2,8 +2,8 @@
  * 租户文档库的读写。
  *
  * 与 `site.service.ts`（页面版式系统）解耦：文档就是「标题 + Markdown 正文 + 分类」，
- * 不进 section / block 体系。每租户默认有 `/docs`（索引）与 `/docs/:slug`（详情）
- * 路由，渲染复用站点 chrome + `.prose` 排版（见 `ssr.routes.ts` 的 `renderDocLibrary`）。
+ * 不进 section / block 体系。**版式**归两张文档模板页（`doc_index` / `doc_article`），
+ * 由 `doc-*` 段消费这里吐出来的数据，见 `marketing-doc.ssr.ts`。
  *
  * draft / live 语义与 `MarketingPage` 同口径：`_draft` 后缀是编辑器在改的那一份，
  * 无后缀是线上（访客看到的）。发布时把草稿复制到线上列，撤销时反向。
@@ -31,6 +31,8 @@ import {
   type MarketingDoc,
   type MarketingDocListItem,
   type MarketingDocStatus,
+  type PublicDocDetail,
+  type PublicDocSummary,
   type UpdateMarketingDocBody,
 } from "../shared/marketing-doc.js";
 
@@ -355,6 +357,91 @@ export async function importDocFile(
   }
 }
 
+/**
+ * 从 `.md` 文件批量 seed 文档到租户：upsert 草稿 + 设排序 + 直接发布。
+ *
+ * 与 `importDocFile` 的区别：seed 自动发布并按传入顺序设 `sort_order`，用于初始化
+ * 默认租户的使用说明文档。幂等——反复执行覆盖草稿并重新发布，已存在的文档不会重复创建。
+ *
+ * 文件名即 slug（去 `.md`），frontmatter 提供 title/description/category。`sort_order`
+ * 按传入顺序递增（建议调用方先按文件名排序，保证顺序稳定）。
+ */
+export interface SeededDoc {
+  slug: string;
+  title: string;
+  created: boolean;
+}
+
+export async function seedDocsFromFiles(
+  tenant_id: string,
+  files: ReadonlyArray<{ filename: string; raw: string }>,
+): Promise<SeededDoc[]> {
+  const locale = await resolveDefaultLocale(tenant_id);
+  const results: SeededDoc[] = [];
+  let sort_order = 0;
+  for (const file of files) {
+    const parsed = parseMarkdownFile(file.filename, file.raw);
+    const existing = await prisma.marketingDoc.findFirst({
+      where: withTenantScope(tenant_id, { slug: parsed.slug, locale }),
+    });
+    let created: boolean;
+    if (existing) {
+      await prisma.marketingDoc.update({
+        where: { id: existing.id, tenant_id },
+        data: {
+          status: "published",
+          title: parsed.title,
+          description: parsed.description,
+          body_md: parsed.body_md,
+          category: parsed.category,
+          sort_order,
+          title_draft: parsed.title,
+          description_draft: parsed.description,
+          body_md_draft: parsed.body_md,
+          category_draft: parsed.category,
+          sort_order_draft: sort_order,
+        },
+      });
+      created = false;
+    } else {
+      try {
+        await prisma.marketingDoc.create({
+          data: {
+            tenant_id,
+            slug: parsed.slug,
+            locale,
+            title: parsed.title,
+            description: parsed.description,
+            body_md: parsed.body_md,
+            category: parsed.category,
+            sort_order,
+            status: "published",
+            title_draft: parsed.title,
+            description_draft: parsed.description,
+            body_md_draft: parsed.body_md,
+            category_draft: parsed.category,
+            sort_order_draft: sort_order,
+          },
+        });
+        created = true;
+      } catch (err) {
+        if (
+          err &&
+          typeof err === "object" &&
+          "code" in err &&
+          (err as { code?: string }).code === "P2002"
+        ) {
+          throw new ConflictError("site.doc_slug_conflict");
+        }
+        throw err;
+      }
+    }
+    results.push({ slug: parsed.slug, title: parsed.title, created });
+    sort_order += 1;
+  }
+  return results;
+}
+
 /** 导出单篇文档为带 frontmatter 的 `.md` 文本（草稿内容，与编辑器一致）。 */
 export async function getDocForExport(
   tenant_id: string,
@@ -397,26 +484,19 @@ export async function getAllDocsForExport(
 
 /* ------------------------------------------------------------ 公开读路径 */
 
-export interface PublicMarketingDoc {
-  slug: string;
-  title: string;
-  description: string;
-  body_md: string;
-  category: string;
-  sort_order: number;
-  updated_at: string;
-}
-
-function toPublicDoc(record: MarketingDocRecord): PublicMarketingDoc {
+function toDocSummary(record: MarketingDocRecord): PublicDocSummary {
   return {
     slug: record.slug,
     title: record.title,
     description: record.description,
-    body_md: record.body_md,
     category: record.category,
     sort_order: record.sort_order,
     updated_at: record.updated_at.toISOString(),
   };
+}
+
+function toDocDetail(record: MarketingDocRecord): PublicDocDetail {
+  return { ...toDocSummary(record), body_md: record.body_md };
 }
 
 /**
@@ -430,7 +510,7 @@ export async function listPublishedDocs(
   tenant_id: string,
   locale: AppLocale | null,
 ): Promise<{
-  docs: PublicMarketingDoc[];
+  docs: PublicDocSummary[];
   locale: AppLocale;
 }> {
   const default_locale = await resolveDefaultLocale(tenant_id);
@@ -451,7 +531,8 @@ export async function listPublishedDocs(
             normalizeLocale(record.locale, default_locale) === default_locale,
         );
   return {
-    docs: effective.map(toPublicDoc),
+    // 列表不带正文：几百篇文档的 `body_md` 是几 MB 的无用 payload
+    docs: effective.map(toDocSummary),
     locale: inLocale.length > 0 ? current : default_locale,
   };
 }
@@ -461,7 +542,7 @@ export async function getPublishedDoc(
   tenant_id: string,
   slug: string,
   locale: AppLocale | null,
-): Promise<{ doc: PublicMarketingDoc; locale: AppLocale } | null> {
+): Promise<{ doc: PublicDocDetail; locale: AppLocale } | null> {
   const default_locale = await resolveDefaultLocale(tenant_id);
   const current = locale ?? default_locale;
   const records = await prisma.marketingDoc.findMany({
@@ -478,7 +559,7 @@ export async function getPublishedDoc(
   const match = inLocale ?? fallback;
   if (!match) return null;
   return {
-    doc: toPublicDoc(match),
+    doc: toDocDetail(match),
     locale: inLocale ? current : default_locale,
   };
 }

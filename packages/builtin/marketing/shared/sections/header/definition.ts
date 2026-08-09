@@ -97,7 +97,8 @@ export const headerSection: SectionDefinition = {
           required: true,
         },
         {
-          type: "url",
+          // 站内地址从下拉里选（页面 / 文档索引 / 单篇文档），外链照样手填
+          type: "link",
           id: "href",
           label: "editor.setting.href",
           default: "/",

@@ -14,6 +14,7 @@ import type {
   SaveEditorDraftResponse,
   UpdateMarketingSiteBody,
 } from "../../shared/site-cms.js";
+import type { SiteLinkTarget } from "../../shared/site-link-target.js";
 import type { AppLocale } from "@be-water/shared";
 
 export const SITE_QUERY_KEY = ["site"] as const;
@@ -23,6 +24,11 @@ export const SITE_QUERY_KEY = ["site"] as const;
  */
 export const SITE_CAPABILITIES_QUERY_KEY = ["site-capabilities"] as const;
 export const SITE_PAGES_QUERY_KEY = ["site", "pages"] as const;
+/*
+ * 同 capabilities 的理由不挂在 `["site", …]` 之下：候选表随页面 / 文档增删而变，
+ * 不随每次保存草稿而变；跟着 `["site"]` 一起作废只会白拉一遍全部文档标题。
+ */
+export const SITE_LINK_TARGETS_QUERY_KEY = ["site-link-targets"] as const;
 export const PUBLIC_SITE_QUERY_KEY = ["public", "site"] as const;
 
 export function fetchSite(): Promise<MarketingSite> {
@@ -32,6 +38,11 @@ export function fetchSite(): Promise<MarketingSite> {
 /** 本站具备哪些需要另外开通的能力（如页头账户入口）。 */
 export function fetchSiteCapabilities(): Promise<MarketingSiteCapabilities> {
   return api.get<MarketingSiteCapabilities>("/site/capabilities");
+}
+
+/** 编辑器填链接时的站内候选（页面 + 文档索引 + 各篇文档）。 */
+export function fetchSiteLinkTargets(): Promise<SiteLinkTarget[]> {
+  return api.get<SiteLinkTarget[]>("/site/link-targets");
 }
 
 /** 套用主题包：只换外观 token，内容与 logo 不动。 */

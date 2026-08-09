@@ -37,6 +37,9 @@ export function translateAppNavSections(
 ): AppNavSection[] {
   return sections.map((section) => ({
     ...section,
+    // 保留翻译前的原始 label（i18n key 或纯文本）作为跨语言稳定标识，
+    // 供侧栏分组折叠状态等需要稳定 key 的场景使用。
+    labelKey: section.labelKey ?? section.label,
     label: resolveNavLabel(section.label, t),
     items: section.items.map((item) => translateNavItem(item, t)),
   }));

@@ -7,6 +7,7 @@ import {
 } from "../shared/section-schema.js";
 import {
   canonicalizePageIdentity,
+  isDocTemplateKind,
   marketingPagePath,
   type MarketingPage,
   type MarketingPageKind,
@@ -176,6 +177,15 @@ export function toPublicMarketingSite(
       .filter(
         (page) => normalizeLocale(page.locale, default_locale) === current,
       )
+      /*
+       * 文档模板页不进页面目录。
+       *
+       * 目录是「站点有哪些页面」——导航、同级菜单、`page-menu` 都吃它。模板页不是
+       * 一张可以列出来的页面：`doc_article` 那张根本没有自己的地址，`doc_index`
+       * 想露在导航里应该由租户显式加一条链接（链接选择器里就有「文档」这一项），
+       * 而不是因为「碰巧自定义过版式」就自动冒出来——那会让导航跟着编辑器行为漂。
+       */
+      .filter((page) => !isDocTemplateKind(pageIdentity(page).kind))
       .map((page) => {
         const { kind, slug } = pageIdentity(page);
         const content = useDraftContent

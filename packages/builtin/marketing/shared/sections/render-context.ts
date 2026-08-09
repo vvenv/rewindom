@@ -8,11 +8,33 @@
  */
 
 import type { SiteSection } from "./types.js";
+import type { PublicDocDetail, PublicDocSummary } from "../marketing-doc.js";
 import type { PublicSitePage } from "../site-cms.js";
 import type { AppLocale } from "@be-water/shared";
 
+/**
+ * 文档库的渲染数据（`doc-*` 段的数据源）。
+ *
+ * 与 `pages` 并列而不是塞进 `pages`：文档不是页面，它们不进 section 体系、不参与
+ * 站点导航、也没有各自的版式——只有**两张模板页**（`doc_index` / `doc_article`）
+ * 负责画它们，见 `server/marketing-doc.ssr.ts`。
+ */
+export interface DocRenderContext {
+  /** 已发布文档目录（`doc-list` / `doc-nav`）。索引与详情页都有。 */
+  docs?: readonly PublicDocSummary[];
+  /**
+   * 当前正在看的那一篇（`doc-article` / `doc-toc`）。
+   *
+   * 只有详情模板页有；索引页与普通页面上是 `undefined`——那两个段因此什么都不渲染，
+   * 与「段放错了地方」同一个观感（不输出，而不是输出一块空壳）。
+   */
+  doc?: PublicDocDetail;
+  /** 文档索引的逻辑路径（`/docs`）；返回链与列表链接的基准。 */
+  docsIndexPath?: string;
+}
+
 /** `page-menu` 等需要站点目录的 section 渲染上下文。 */
-export interface SectionRenderContext {
+export interface SectionRenderContext extends DocRenderContext {
   pages?: PublicSitePage[];
   currentPath?: string;
   locale?: AppLocale;

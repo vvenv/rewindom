@@ -8,6 +8,7 @@
 import { Marked, Renderer } from "marked";
 
 import { escapeHtml } from "../../html.js";
+import { docHeadingAnchor } from "../../marketing-doc.js";
 import {
   resolveSurfaceStyle,
   surfaceStyleAttr,
@@ -26,6 +27,18 @@ const mdMarked = new Marked({
       // 表格套一层滚动容器：和 SPA 的 MarkdownProse 结构一致。
       // 直接给 table 上 `display:block;overflow:auto` 会让单元格缩成内容宽度，撑不满。
       return `<div class="table-wrap">${defaultTable.call(this, token)}</div>`;
+    },
+    /*
+     * 标题带锚点 id，且 `#` 降一级——两条都是为了跟客户端 `MarkdownProse` 对齐。
+     *
+     * 降级：正文外面已经有一个页面级 h1（文档标题 / hero），正文里的 `#` 再出一个
+     * 就是双 h1。id：`doc-toc` 生成的目录链接要在 SSR 出来的页面上点得动。
+     */
+    heading(token) {
+      const level = token.depth === 1 ? 2 : token.depth;
+      const anchor = escapeHtml(docHeadingAnchor(token.text));
+      const inner = this.parser.parseInline(token.tokens);
+      return `<h${level} id="${anchor}">${inner}</h${level}>\n`;
     },
   },
 });

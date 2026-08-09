@@ -121,3 +121,31 @@ describe("page settings", () => {
     expect(() => parsePageSettings("x")).toThrow("site.page_settings_invalid");
   });
 });
+
+describe("文档模板页", () => {
+  it("按显式 kind 认领固定 slug", () => {
+    expect(canonicalizePageIdentity("doc_index", "随便写")).toEqual({
+      kind: "doc_index",
+      slug: "docs",
+    });
+    expect(canonicalizePageIdentity("doc_article", "")).toEqual({
+      kind: "doc_article",
+      slug: "docs-article",
+    });
+  });
+
+  // `docs` 是保留 slug：想建一个叫 docs 的普通页应该被拒，而不是悄悄变成模板页
+  it("不按 slug 反推 kind", () => {
+    expect(canonicalizePageIdentity(undefined, "docs")).toEqual({
+      kind: "page",
+      slug: "docs",
+    });
+  });
+
+  it("索引页有真实地址，详情页只有模板路径", () => {
+    expect(marketingPagePath("doc_index", "docs")).toBe("/docs");
+    expect(marketingPagePath("doc_article", "docs-article")).toBe(
+      "/docs/:slug",
+    );
+  });
+});

@@ -46,6 +46,8 @@ export const GROUP_LAYOUT_OPTIONS = [
   { value: "1:3", label: "editor.option.columns_layout.1_3" },
   { value: "3:1", label: "editor.option.columns_layout.3_1" },
   { value: "1:1:1", label: "editor.option.columns_layout.1_1_1" },
+  // 文档版式：左目录 + 正文 + 右章节导航——左目录列全量文档（带分类），右大纲只列当前页标题，故左宽右窄
+  { value: "3:7:2", label: "editor.option.columns_layout.3_7_2" },
 ] as const;
 
 /** 比例 → 12 栏制的列宽。 */
@@ -56,6 +58,9 @@ const GROUP_COLUMN_SPANS: Record<string, number[]> = {
   "1:3": [3, 9],
   "3:1": [9, 3],
   "1:1:1": [4, 4, 4],
+  "3:7:2": [3, 7, 2],
+  // legacy：下拉已不再提供，仅用于渲染租户在改为 3:7:2 之前已存的文档模板
+  "1:2:1": [3, 6, 3],
 };
 
 /**
@@ -184,9 +189,7 @@ export function styleSettings(
       default: defaults?.bg_color ?? "",
       allow_empty: true,
       allow_alpha: true,
-      info: withInnerBg
-        ? "editor.info.outer_bg_color"
-        : "editor.info.bg_color",
+      info: withInnerBg ? "editor.info.outer_bg_color" : "editor.info.bg_color",
     },
     ...(withInnerBg
       ? ([

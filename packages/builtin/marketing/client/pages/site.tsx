@@ -5,6 +5,7 @@ import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
 import { Globe, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { SiteDocTemplateRows } from "../components/SiteDocTemplateRows.js";
 import { SitePageCreateSheet } from "../components/SitePageCreateSheet.js";
 import { SitePageList } from "../components/SitePageList.js";
 import { SiteSummaryHeader } from "../components/SiteSummaryHeader.js";
@@ -63,6 +64,14 @@ export function Site() {
             onRetry={() => void pagesQuery.refetch()}
             actions={actions}
           />
+          {/* 文档的两张模板页默认不落库，列表里看不到——单独常驻两行做入口 */}
+          {pagesQuery.isSuccess ? (
+            <SiteDocTemplateRows
+              pages={pages}
+              defaultLocale={defaultLocale}
+              canWrite={canWrite}
+            />
+          ) : null}
         </CardContent>
       </Card>
     </PageLayout>

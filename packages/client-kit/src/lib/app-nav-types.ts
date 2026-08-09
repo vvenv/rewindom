@@ -31,6 +31,12 @@ export interface AppNavSection {
    * `end` 沉底钉在用户菜单上方（如「系统管理」），顶栏布局则排在主分组之后。
    */
   placement?: "main" | "end";
+  /**
+   * 翻译前的原始 label（通常是 `namespace:key` 形式的 i18n key），由
+   * `translateAppNavSections` 在解析文案时回填。用作需要跨语言稳定的分组标识
+   * （如侧栏分组折叠状态的持久化 key），未翻译时与 `label` 相同。
+   */
+  labelKey?: string;
 }
 
 export interface MobileTabItem {

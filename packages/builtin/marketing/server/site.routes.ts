@@ -20,6 +20,7 @@ import {
   deleteFormSubmission,
   listFormSubmissions,
 } from "./site-form.service.js";
+import { listSiteLinkTargets } from "./site-link-target.service.js";
 import {
   getPageVersion,
   listPageVersions,
@@ -166,6 +167,24 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
     preHandler: [app.requirePermission("site.read")],
     handler: async (request) => {
       return listPages(request.tenantContext!.tenant_id);
+    },
+  });
+
+  /*
+   * 编辑器里「填链接」时的站内候选：页面 + 文档索引 + 每一篇文档。
+   *
+   * 候选是**按租户实时算**的，进不了 section schema 的静态 `options`——所以走一个
+   * 端点而不是把它塞进 `/site` 的返回里：填链接是低频动作，没必要让每次打开编辑器
+   * 都顺带拉一遍全部文档标题。
+   */
+  defineRoute(app, {
+    method: "GET",
+    url: "/link-targets",
+    context: "SiteLinkTargets",
+    errorCode: "SITE_LINK_TARGETS_FAILED",
+    preHandler: [app.requirePermission("site.read")],
+    handler: async (request) => {
+      return listSiteLinkTargets(request.tenantContext!.tenant_id);
     },
   });
 

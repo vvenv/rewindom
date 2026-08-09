@@ -30,6 +30,7 @@ import {
 import { SectionSettingsForm } from "../components/theme-editor/SectionSettingsForm.js";
 import { SectionTree } from "../components/theme-editor/SectionTree.js";
 import { SiteAccountEntryPreview } from "../components/theme-editor/SiteAccountEntryPreview.js";
+import { useDocPreviewData } from "../hooks/use-doc-preview-data.js";
 import {
   useSiteThemeEditor,
   clearEditorCache,
@@ -67,6 +68,8 @@ export function SiteThemeEditor() {
   const { confirm } = useConfirm();
   const canWrite = hasPermission("site.write");
   const editor = useSiteThemeEditor(pageId);
+  // 文档模板页的预览要有文档可画；普通页面这里什么都不拉（见 hook 内的 enabled）
+  const docPreview = useDocPreviewData(editor.page?.kind ?? "page");
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
@@ -251,6 +254,8 @@ export function SiteThemeEditor() {
       pageSettings={editor.pageSettings}
       headerOverride={editor.header}
       footerOverride={editor.footer}
+      docs={docPreview.docs}
+      doc={docPreview.doc}
       onSelectSection={(sectionId, blockId) =>
         editor.selectSection(sectionId, blockId)
       }

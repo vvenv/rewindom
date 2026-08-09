@@ -1,21 +1,34 @@
 /**
  * 租户文档库的 SSR 渲染：`/docs`（索引）与 `/docs/:slug`（详情）。
  *
- * 不另起一套 chrome：合成一个只含 `prose` 段的 `PublicMarketingPage`，复用
- * `renderMarketingHtml`——页头 / 页脚 / 主题 / SEO / `.prose` 排版全部走同一条路。
- * 文档不进 section / block 编辑器，所以合成是单向的（只读，不写回 DB）。
+ * 两张地址的**版式**来自两张模板页（`kind: doc_index` / `doc_article`）——和首页
+ * 一样是普通的 section 流，租户在同一个编辑器里排。这里只负责三件事：
  *
- * 正文不复用 prose 段渲染：通过 `renderMarketingHtml` 的 `mainHtml` 注入自定义 HTML，
- * 列表页出卡片网格（按分类分组），详情页出文档头（分类标签 + 更新时间 + 返回链）+ 正文。
- * 合成 page 仍带一个 prose 段，只为让按需 CSS 把 `.prose` 排版发出来。
+ * 1. 取版式：模板页在库里就用它，没有就用内置兜底版式（`DOC_TEMPLATE_PRESETS`）。
+ *    「没有」是常态而不是异常——租户没自定义过就不该有这条记录，见 `page-presets.ts`。
+ * 2. 取数据：已发布文档目录（+ 详情页的当前那一篇）塞进渲染上下文，`doc-*` 段吃它。
+ * 3. 合成一个 `PublicMarketingPage` 交给 `renderMarketingHtml`——页头 / 页脚 / 主题 /
+ *    SEO 全部走与普通页面同一条路。
+ *
+ * 合成是**单向**的（只读，不写回 DB）：详情页的 title/description 来自文档本身，
+ * 一篇一个值，不可能存成一张页面记录。
  */
 
 import { type AppLocale } from "@be-water/shared";
 
-import { escapeHtml } from "../shared/html.js";
-import { createSectionId, type SiteSection } from "../shared/section-schema.js";
-import { md } from "../shared/sections/_common/html.js";
 import {
+  DOCS_INDEX_PATH,
+  docPath,
+  type PublicDocDetail,
+  type PublicDocSummary,
+} from "../shared/marketing-doc.js";
+import {
+  buildDocTemplateSections,
+  DOC_TEMPLATE_PRESETS,
+} from "../shared/page-presets.js";
+import { type SiteSection } from "../shared/section-schema.js";
+import {
+  type DocTemplateKind,
   type MarketingPageSettings,
   type MarketingPageVisibility,
   type PageLocaleAlternate,
@@ -25,67 +38,46 @@ import {
 import { withSiteLocale } from "../shared/site-locale.js";
 
 import {
-  type PublicMarketingDoc,
   getPublishedDoc,
   listPublishedDocs,
 } from "./marketing-doc.service.js";
+import { getPublishedDocTemplate } from "./site.service.js";
 import { renderMarketingHtml } from "./ssr-render.js";
+import { createStarterTranslator } from "./starter-i18n.js";
 
-/** 索引页标题按语言给一个通用词；文档正文本身是租户写的，不需要翻译。 */
-function docIndexTitle(locale: AppLocale): string {
-  return locale.startsWith("zh") ? "文档" : "Docs";
+interface DocTemplate {
+  sections: SiteSection[];
+  title: string;
+  description: string;
 }
 
-function docIndexLead(locale: AppLocale): string {
-  return locale.startsWith("zh")
-    ? "浏览所有已发布文档"
-    : "Browse all published docs";
+/** 模板页的版式：租户自定义过的那一份，否则内置兜底。 */
+async function resolveDocTemplate(
+  tenantId: string,
+  kind: DocTemplateKind,
+  locale: AppLocale,
+): Promise<DocTemplate> {
+  const stored = await getPublishedDocTemplate(tenantId, kind, locale);
+  if (stored) return stored;
+  const t = createStarterTranslator(locale);
+  const preset = DOC_TEMPLATE_PRESETS[kind];
+  return {
+    sections: buildDocTemplateSections(kind, t),
+    title: t(preset.titleKey),
+    description: t(preset.descriptionKey),
+  };
 }
 
-function docBackLabel(locale: AppLocale): string {
-  return locale.startsWith("zh") ? "返回文档" : "Back to docs";
-}
-
-function docUpdatedLabel(locale: AppLocale): string {
-  return locale.startsWith("zh") ? "更新于" : "Updated";
-}
-
-function docOtherCategory(locale: AppLocale): string {
-  return locale.startsWith("zh") ? "其它" : "Other";
-}
-
-function docEmptyMessage(locale: AppLocale): string {
-  return locale.startsWith("zh")
-    ? "还没有已发布的文档。"
-    : "No published docs yet.";
-}
-
-function formatDate(iso: string, locale: AppLocale): string {
-  try {
-    return new Date(iso).toLocaleDateString(
-      locale.startsWith("zh") ? "zh-CN" : "en-US",
-      { year: "numeric", month: "short", day: "numeric" },
-    );
-  } catch {
-    return iso.slice(0, 10);
-  }
-}
-
-/** 合成一个只含一段 prose 的公开页面，供 `renderMarketingHtml` 渲染。 */
+/** 合成一个公开页面交给 `renderMarketingHtml`（不落库）。 */
 function synthesizeDocPage(input: {
   path: string;
   locale: AppLocale;
   defaultLocale: AppLocale;
   title: string;
   description: string;
-  bodyMd: string;
+  sections: SiteSection[];
+  updatedAt: string;
 }): PublicMarketingPage {
-  const section: SiteSection = {
-    id: createSectionId(),
-    type: "prose",
-    settings: { body_md: input.bodyMd, content_width: "narrow" },
-    blocks: [],
-  };
   const alternates: PageLocaleAlternate[] = [
     {
       locale: input.locale,
@@ -98,87 +90,13 @@ function synthesizeDocPage(input: {
     kind: "page",
     title: input.title,
     description: input.description,
-    sections: [section],
+    sections: input.sections,
     settings: {} as MarketingPageSettings,
     visibility: "public" as MarketingPageVisibility,
     path: input.path,
     alternates,
-    updated_at: new Date().toISOString(),
+    updated_at: input.updatedAt,
   };
-}
-
-/** 把文档按分类分组，渲染成卡片网格 HTML。 */
-function buildDocListHtml(
-  docs: PublicMarketingDoc[],
-  locale: AppLocale,
-  defaultLocale: AppLocale,
-): string {
-  if (docs.length === 0) {
-    return `<div class="wrap"><div class="doc-empty">${escapeHtml(docEmptyMessage(locale))}</div></div>`;
-  }
-  const otherLabel = docOtherCategory(locale);
-  const grouped = new Map<string, PublicMarketingDoc[]>();
-  for (const doc of docs) {
-    const category = doc.category || otherLabel;
-    const list = grouped.get(category);
-    if (list) list.push(doc);
-    else grouped.set(category, [doc]);
-  }
-  const groups: string[] = [];
-  for (const [category, items] of grouped) {
-    const cards = items
-      .map((doc) => {
-        const href = withSiteLocale(`/docs/${doc.slug}`, locale, defaultLocale);
-        return `<a class="card doc-card" href="${escapeHtml(href)}">
-  <span class="title">${escapeHtml(doc.title)}</span>${
-    doc.description
-      ? `\n  <span class="muted">${escapeHtml(doc.description)}</span>`
-      : ""
-  }
-</a>`;
-      })
-      .join("\n");
-    groups.push(
-      `<section class="doc-group">
-  <h2 class="doc-group-title">${escapeHtml(category)}</h2>
-  <div class="grid cols-2">
-${cards}
-  </div>
-</section>`,
-    );
-  }
-  return `<div class="wrap doc-index">
-  <header class="doc-index-head">
-    <p class="eyebrow">${escapeHtml(docIndexLead(locale))}</p>
-    <h1>${escapeHtml(docIndexTitle(locale))}</h1>
-  </header>
-${groups.join("\n")}
-</div>`;
-}
-
-/** 详情页正文：返回链 + 元信息（分类标签、更新时间）+ 标题 + 正文 prose。 */
-function buildDocDetailHtml(
-  doc: PublicMarketingDoc,
-  locale: AppLocale,
-  defaultLocale: AppLocale,
-): string {
-  const backHref = withSiteLocale("/docs", locale, defaultLocale);
-  const categoryTag = doc.category
-    ? `<span class="tag">${escapeHtml(doc.category)}</span>`
-    : "";
-  const date = `<span>${escapeHtml(docUpdatedLabel(locale))} ${escapeHtml(formatDate(doc.updated_at, locale))}</span>`;
-  return `<div class="wrap">
-  <article class="doc-detail">
-    <a class="doc-back" href="${escapeHtml(backHref)}">← ${escapeHtml(docBackLabel(locale))}</a>
-    <div class="doc-meta">${categoryTag}${date}</div>
-    <h1>${escapeHtml(doc.title)}</h1>${
-      doc.description
-        ? `\n    <p class="doc-lead">${escapeHtml(doc.description)}</p>`
-        : ""
-    }
-    <div class="prose">${md(doc.body_md)}</div>
-  </article>
-</div>`;
 }
 
 /**
@@ -198,48 +116,69 @@ export async function renderDocLibrary(input: {
   if (!site) return null;
 
   const defaultLocale = site.default_locale;
-  const slug = path === "/docs" ? null : path.slice("/docs/".length);
+  const slug =
+    path === DOCS_INDEX_PATH ? null : path.slice(DOCS_INDEX_PATH.length + 1);
+
+  const render = (
+    page: PublicMarketingPage,
+    docs: PublicDocSummary[],
+    doc?: PublicDocDetail,
+  ): string =>
+    renderMarketingHtml({
+      origin: input.origin,
+      site,
+      page,
+      accountEntryHtml: input.accountEntryHtml,
+      enabledEntitlements: input.enabledEntitlements,
+      docContext: { docs, doc, docsIndexPath: DOCS_INDEX_PATH },
+    });
 
   if (slug === null) {
     const { docs, locale: effectiveLocale } = await listPublishedDocs(
       input.tenantId,
       locale,
     );
-    const page = synthesizeDocPage({
-      path,
-      locale: effectiveLocale,
-      defaultLocale,
-      title: docIndexTitle(effectiveLocale),
-      description: docIndexLead(effectiveLocale),
-      bodyMd: "",
-    });
-    return renderMarketingHtml({
-      origin: input.origin,
-      site,
-      page,
-      accountEntryHtml: input.accountEntryHtml,
-      enabledEntitlements: input.enabledEntitlements,
-      mainHtml: buildDocListHtml(docs, effectiveLocale, defaultLocale),
-    });
+    const template = await resolveDocTemplate(
+      input.tenantId,
+      "doc_index",
+      effectiveLocale,
+    );
+    return render(
+      synthesizeDocPage({
+        path,
+        locale: effectiveLocale,
+        defaultLocale,
+        title: template.title,
+        description: template.description,
+        sections: template.sections,
+        // 索引页的「最后更新」就是最近改过的那篇文档
+        updatedAt: docs[0]?.updated_at ?? new Date().toISOString(),
+      }),
+      docs,
+    );
   }
 
   const result = await getPublishedDoc(input.tenantId, slug, locale);
   if (!result) return null;
 
-  const page = synthesizeDocPage({
-    path,
-    locale: result.locale,
-    defaultLocale,
-    title: result.doc.title,
-    description: result.doc.description,
-    bodyMd: result.doc.body_md,
-  });
-  return renderMarketingHtml({
-    origin: input.origin,
-    site,
-    page,
-    accountEntryHtml: input.accountEntryHtml,
-    enabledEntitlements: input.enabledEntitlements,
-    mainHtml: buildDocDetailHtml(result.doc, result.locale, defaultLocale),
-  });
+  // 目录也要取：详情页上的 `doc-nav` 列的是**整个文档库**，不只当前这一篇
+  const [{ docs }, template] = await Promise.all([
+    listPublishedDocs(input.tenantId, result.locale),
+    resolveDocTemplate(input.tenantId, "doc_article", result.locale),
+  ]);
+
+  return render(
+    synthesizeDocPage({
+      path: docPath(result.doc.slug),
+      locale: result.locale,
+      defaultLocale,
+      // SEO 跟着**文档**走，不是跟着模板页：每篇的标题 / 摘要各不相同
+      title: result.doc.title,
+      description: result.doc.description,
+      sections: template.sections,
+      updatedAt: result.doc.updated_at,
+    }),
+    docs,
+    result.doc,
+  );
 }

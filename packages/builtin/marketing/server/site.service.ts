@@ -12,10 +12,16 @@ import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import { getTenantBrandingUrls } from "../../platform/server/services/tenant-branding.service.js";
-import { relocalizeSections } from "../shared/section-schema.js";
+import {
+  localizeSections,
+  relocalizeSections,
+  type SiteSection,
+} from "../shared/section-schema.js";
 import {
   canonicalizePageIdentity,
+  DOC_TEMPLATE_SLUGS,
   marketingPagePath,
+  type DocTemplateKind,
   type ApplySiteStarterResponse,
   type CreateMarketingPageBody,
   type DuplicateMarketingPageBody,
@@ -50,6 +56,7 @@ import {
 } from "./site.mapper.js";
 import {
   pageContentDraft,
+  pageContentPublished,
   parsePageSections,
   parsePageSettings,
   parseSiteAreaSections,
@@ -955,6 +962,54 @@ export async function getPublishedPublicPage(
       // 公开 JSON 端点匿名：会员页只吐标题 + 摘要；SSR / page-html 再按 cookie 解锁
       memberSummary: isMembersOnly,
     }),
+  };
+}
+
+/**
+ * 文档模板页的**已发布**版式（`/docs` 与 `/docs/:slug` 的排版）。
+ *
+ * 返回 `null` 表示租户从没自定义过——调用方回落内置兜底版式（`DOC_TEMPLATE_PRESETS`），
+ * 而不是渲染出一张空页。这正是「懒落库」的另一半：不存在 ≠ 没有版式。
+ *
+ * 语言回落与文档本身同口径：先找当前语言那一份，没有就用站点主语言的。
+ */
+export async function getPublishedDocTemplate(
+  tenant_id: string,
+  kind: DocTemplateKind,
+  locale: AppLocale,
+): Promise<{
+  sections: SiteSection[];
+  title: string;
+  description: string;
+} | null> {
+  const siteRecord = await prisma.marketingSite.findFirst({
+    where: withTenantScope(tenant_id, { published: true }),
+  });
+  if (!siteRecord) return null;
+  const default_locale = normalizeLocale(siteRecord.default_locale);
+
+  const records = await prisma.marketingPage.findMany({
+    where: withTenantScope(tenant_id, {
+      status: "published",
+      kind,
+      slug: DOC_TEMPLATE_SLUGS[kind],
+    }),
+  });
+  const match =
+    records.find(
+      (record) => normalizeLocale(record.locale, default_locale) === locale,
+    ) ??
+    records.find(
+      (record) =>
+        normalizeLocale(record.locale, default_locale) === default_locale,
+    );
+  if (!match) return null;
+
+  const content = pageContentPublished(match);
+  return {
+    sections: localizeSections(content.sections, locale, default_locale),
+    title: content.title,
+    description: content.description,
   };
 }
 

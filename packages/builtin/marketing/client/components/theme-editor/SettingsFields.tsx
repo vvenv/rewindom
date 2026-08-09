@@ -35,6 +35,7 @@ import { SiteImageField } from "../media/SiteImageField.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 import { SiteColorField } from "../SiteColorField.js";
 
+import { SiteLinkField } from "./SiteLinkField.js";
 import { SpacingBoxField } from "./SpacingBoxField.js";
 
 import type { AppLocale } from "@be-water/shared";
@@ -253,6 +254,17 @@ function SettingControl({
           placeholder={fallbackHint || def.placeholder}
           value={text}
           onChange={(event) => onChange(event.target.value)}
+        />
+      );
+
+    case "link":
+      return (
+        <SiteLinkField
+          id={fieldId}
+          value={text}
+          disabled={disabled}
+          placeholder={fallbackHint || def.placeholder}
+          onChange={onChange}
         />
       );
 

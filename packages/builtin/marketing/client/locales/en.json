@@ -266,6 +266,11 @@
     "emptyPages": "Create a home page first, then publish the site.",
     "statusPublished": "Published",
     "statusDraft": "Draft",
+    "docTemplates": "Doc layouts",
+    "docTemplateDefault": "Built-in layout",
+    "docTemplateCustomize": "Customize",
+    "toastDocTemplateCreated": "Created — publish it to take effect",
+    "toastDocTemplateCreateFailed": "Could not create, try again",
     "statusDirty": "Unpublished edits",
     "statusDirtyHint": "The live page still shows the last published version; draft edits are not live yet.",
     "fieldSiteName": "Site name",
@@ -279,6 +284,8 @@
     "fieldKind": "Kind",
     "kindHome": "Home",
     "kindPage": "Custom page",
+    "kindDocIndex": "Docs index",
+    "kindDocArticle": "Doc detail",
     "fieldSlug": "Slug",
     "slugHintPage": "e.g. about → /about; docs/quickstart → /docs/quickstart",
     "fieldTitle": "Title",
@@ -407,6 +414,11 @@
       "content_width": "Full bleed + unconstrained gives edge-to-edge media; colored bands usually keep content at page width.",
       "spacing": "Distance to the neighbouring section; “Inherit” follows the site-wide section spacing.",
       "show_site_nav": "Lists published top-level pages (not nested under another page). Custom nav links below still appear after them.",
+      "doc_category_filter": "Enter a category exactly as used on the documents; leave empty to list all.",
+      "doc_limit": "0 means no limit. Use it for a \"latest docs\" block on the home page.",
+      "doc_show_meta": "Category tag and last-updated date.",
+      "doc_show_title": "Turn off when the document body already starts with its own heading.",
+      "doc_nav_sticky": "Wide screens only — on narrow ones the columns stack, and a stuck menu would push the body off screen.",
       "columns_layout": "Applies on desktop; columns stack on narrow screens. Ratios that do not match the column count fall back to equal widths.",
       "sticky_column": "The column stays in view while the other column scrolls. Best for a menu or a short summary.",
       "stack_order": "Only affects narrow screens, where columns stack vertically.",
@@ -446,6 +458,18 @@
       "body": "Body",
       "body_md": "Body (Markdown)",
       "doc_slug": "Document",
+      "doc_group_by": "Group by",
+      "doc_list_style": "Display style",
+      "doc_category_filter": "Only one category",
+      "doc_limit": "Show at most",
+      "doc_show_description": "Show summary",
+      "doc_show_updated": "Show last updated",
+      "doc_show_back": "Show back-to-docs link",
+      "doc_show_meta": "Show category and date",
+      "doc_show_title": "Show document title",
+      "doc_nav_show_category": "Group by category",
+      "doc_nav_sticky": "Stick while scrolling",
+      "doc_toc_depth": "Outline depth",
       "align": "Alignment",
       "width": "Width",
       "columns": "Columns",
@@ -547,6 +571,18 @@
         "children": "Child pages of this page",
         "siblings": "Sibling pages"
       },
+      "doc_group_by": {
+        "category": "By category",
+        "none": "No grouping"
+      },
+      "doc_list_style": {
+        "cards": "Cards",
+        "list": "List"
+      },
+      "doc_toc_depth": {
+        "2": "Top-level headings only",
+        "3": "Top-level + second level"
+      },
       "page_menu_style": {
         "list": "List",
         "cards": "Cards"
@@ -578,7 +614,8 @@
         "2_1": "Wide + narrow (2:1)",
         "1_3": "Sidebar + content (1:3)",
         "3_1": "Content + sidebar (3:1)",
-        "1_1_1": "Three equal columns"
+        "1_1_1": "Three equal columns",
+        "3_7_2": "Menu + content + outline (3:7:2)"
       },
       "align_items": {
         "start": "Top",
@@ -614,6 +651,10 @@
       "faq": "FAQ",
       "prose": "Rich text",
       "doc-source": "Platform doc",
+      "doc-list": "Doc list",
+      "doc-article": "Doc body",
+      "doc-nav": "Doc navigation",
+      "doc-toc": "On this page",
       "group": "Columns",
       "band": "CTA band",
       "page-header": "Page title",
@@ -658,6 +699,20 @@
     "locale": {
       "missing": "This page has no version in that language yet — create one from the page list"
     },
+    "docSample": {
+      "title": "Sample document",
+      "description": "Placeholder used in the preview while you have no documents yet.",
+      "category": "Guide",
+      "body": "## First section\n\nThis is sample body text. Once you publish a document, real content shows up here.\n\n## Second section\n\nThe outline on the side is generated from these headings."
+    },
+    "linkPick": "Pick…",
+    "linkLoading": "Loading…",
+    "linkEmpty": "No pages or documents to link to yet",
+    "linkDraft": "(draft)",
+    "linkGroup": {
+      "page": "Pages",
+      "doc": "Docs"
+    },
     "switchPage": "Switch page",
     "leaveConfirmTitle": "Leave without saving?",
     "leaveConfirmBody": "This page has unsaved changes. Leaving now discards them.",
@@ -698,6 +753,18 @@
     "themeSaved": "Site theme saved"
   },
   "preset": {
+    "doc_index": {
+      "label": "Docs index",
+      "title": "Docs",
+      "description": "Browse all published documents.",
+      "headline": "Docs",
+      "subhead": "Browse all published documents."
+    },
+    "doc_article": {
+      "label": "Doc detail",
+      "title": "Doc detail",
+      "description": "Layout for a single document (shared by every /docs/… address)."
+    },
     "home": {
       "label": "Home (default layout)",
       "title": "Home",
@@ -840,14 +907,13 @@
   },
   "siteDocs": {
     "nav": "Docs",
-    "title": "Docs",
+    "title": "Title",
     "pageDescription": "Manage Markdown documents under /docs. Published docs are visible on your custom domain.",
     "create": "New doc",
     "edit": "Edit",
     "createHint": "A doc is just a title + Markdown body — no section/block system. Publish to make it live.",
     "slug": "Slug",
     "slugHint": "Lowercase letters, digits, hyphens only (e.g. quickstart). Cannot be changed after saving.",
-    "title": "Title",
     "description": "Summary",
     "category": "Category",
     "categoryPlaceholder": "e.g. Getting started, Guides (optional)",
@@ -873,6 +939,7 @@
     "saved": "Saved",
     "created": "Created",
     "saveFailed": "Couldn't save",
+    "delete": "Delete",
     "deleted": "Deleted",
     "deleteFailed": "Couldn't delete",
     "deleteConfirmTitle": "Delete this doc?",
@@ -886,7 +953,26 @@
     "revertConfirmTitle": "Discard unpublished changes?",
     "revertConfirmDescription": "The draft will revert to the last published version.",
     "empty": "No docs yet",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "pageTitle": "Docs library",
+    "editTitle": "Edit doc",
+    "searchPlaceholder": "Search title, slug, summary",
+    "filterStatusAll": "All statuses",
+    "filterCategoryAll": "All categories",
+    "sortOrder": "Order",
+    "descriptionPlaceholder": "One line on what this covers (optional)",
+    "bodyPlaceholder": "# Heading\n\nBody…",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "saveAndPublish": "Save & publish",
+    "saveShortcut": "⌘/Ctrl + S to save",
+    "unsavedHint": "Unsaved changes",
+    "discardConfirmTitle": "Discard unsaved changes?",
+    "discardConfirmDescription": "What you edited here won't be kept.",
+    "discardConfirm": "Discard",
+    "emptyHint": "Create one, or bulk-import .md files.",
+    "emptyFiltered": "No matching docs",
+    "emptyFilteredHint": "Try another keyword, or clear the filters."
   },
   "media": {
     "nav": "Media",

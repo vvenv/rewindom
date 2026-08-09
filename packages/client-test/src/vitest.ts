@@ -81,6 +81,16 @@ function buildClientTestConfig(options: ClientVitestOptions) {
     },
     resolve: {
       alias,
+      /*
+       * i18next / react-i18next 必须**全局只有一份实例**。
+       *
+       * 文案是在 setup 文件里注册的（`module-i18n-setup.ts`，它从 client-test 自己的
+       * node_modules 解析 i18next），而被测组件的 `useTranslation` 是从模块自己的
+       * 依赖树解析的——pnpm 的隔离式 node_modules 下这是**两个** i18next 实例：
+       * 一个装着全部文案却没人用，另一个被组件用着却一条文案都没有，于是 `t()`
+       * 原样吐回 key，断言按中文文案找元素就找不到。
+       */
+      dedupe: ["i18next", "react-i18next", "react", "react-dom"],
     },
   };
 }

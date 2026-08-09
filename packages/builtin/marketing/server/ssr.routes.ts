@@ -4,11 +4,14 @@ import {
 } from "@be-water/server-kernel/lib/host-tenant.js";
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
+import { DOCS_INDEX_PATH, docPath } from "../shared/marketing-doc.js";
+import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import {
   resolveLocaleSegment,
   SITE_APP_PREFIXES,
 } from "../shared/site-locale.js";
 
+import { listPublishedDocs } from "./marketing-doc.service.js";
 import { renderDocLibrary } from "./marketing-doc.ssr.js";
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
@@ -144,11 +147,11 @@ async function renderPath(
   }
 
   /*
-   * 租户文档库：`/docs`（索引）与 `/docs/:slug`（详情）。独立于页面版式系统，
-   * 数据来自 `MarketingDoc` 表。复用站点 chrome + `.prose` 排版渲染。
+   * 租户文档库：`/docs`（索引）与 `/docs/:slug`（详情）。数据来自 `MarketingDoc` 表，
+   * 版式来自两张文档模板页（见 `marketing-doc.ssr.ts`）。
    * 拦截在 `renderPath` 里，所以 `/docs`、`/{locale}/docs` 都走这一条。
    */
-  if (path === "/docs" || path.startsWith("/docs/")) {
+  if (path === DOCS_INDEX_PATH || path.startsWith(`${DOCS_INDEX_PATH}/`)) {
     const site = await getPublishedPublicSite(
       hostTenant.tenant_id,
       hostTenant.tenant_slug,
@@ -224,6 +227,27 @@ async function renderPath(
     resolveSectionEntitlements(hostTenant.tenant_id),
   ]);
 
+  /*
+   * 普通页面上的 `doc-*` 段（首页的「最新文档」、页脚的文档目录……）也要有数据。
+   *
+   * 先看这一页（连同页头页脚）到底有没有摆过这类段——**有才查库**。文档目录与页面
+   * 渲染没有必然关系，为每一次页面请求多打一条 SQL 只为了几乎总是没人用的可能性，
+   * 是纯粹的浪费。
+   */
+  const usesDocSections = [
+    ...collectSectionTypes(result.site.header),
+    ...collectSectionTypes(result.site.footer),
+    ...collectSectionTypes(result.page.sections),
+  ].some((type) => type.startsWith("doc-"));
+  const docContext = usesDocSections
+    ? {
+        docs: (
+          await listPublishedDocs(hostTenant.tenant_id, result.page.locale)
+        ).docs,
+        docsIndexPath: DOCS_INDEX_PATH,
+      }
+    : undefined;
+
   const requiresMember = result.page.requires_member === true;
   const memberAuthenticated = member !== null;
   // 未登录才锁门；已登录 cookie 会话直接渲染正文。
@@ -239,6 +263,7 @@ async function renderPath(
       memberGate,
       accountEntryHtml: accountEntry.html,
       enabledEntitlements,
+      docContext,
     }),
     {
       // 登录态页头 / 解锁正文因人而异，禁止公共缓存。
@@ -258,7 +283,25 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     if (!entries) {
       return reply.status(404).send("Not Found");
     }
-    const xml = renderSitemapXml(requestOrigin(request), entries);
+    /*
+     * 文档不是页面，所以 `getPublishedSitemapEntries`（走 MarketingPage）看不见它们
+     * ——在这里补。索引页恒列；单篇按已发布的实际地址列，`lastmod` 用各自的更新时间。
+     */
+    // 只列站点主语言那一份：主语言 URL 不带前缀，非主语言的文档目前整库回落到它
+    const { docs } = await listPublishedDocs(hostTenant.tenant_id, null);
+    const docEntries = docs.length
+      ? [
+          { path: DOCS_INDEX_PATH, updated_at: docs[0]!.updated_at },
+          ...docs.map((doc) => ({
+            path: docPath(doc.slug),
+            updated_at: doc.updated_at,
+          })),
+        ]
+      : [];
+    const xml = renderSitemapXml(requestOrigin(request), [
+      ...entries,
+      ...docEntries,
+    ]);
     return reply
       .header("content-type", "application/xml; charset=utf-8")
       .header("cache-control", "public, max-age=3600")

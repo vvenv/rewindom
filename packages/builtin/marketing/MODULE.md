@@ -403,13 +403,64 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 
 未知 block type 直接丢弃；`safeSections` 只跳过损坏的单个 section，不再整页清空。
 
-路径约定：`home` → `/`；`page` → `/{slug}`（slug 可多段，如 `docs`、`docs/quickstart`）。
-文档站用普通 page + `page-menu` section 拼出来。
-`pricing` / `docs` 不在保留 slug 里——绑定域名上归租户（平台页只在平台域名下有意义）。
+路径约定：`home` → `/`；`page` → `/{slug}`（slug 可多段，如 `guide/quickstart`）。
+`pricing` 不在保留 slug 里——绑定域名上归租户（平台页只在平台域名下有意义）；
+`docs` **是**保留的，归租户文档库（见下）。
 
 **动态页面菜单**：在 Theme Editor 插入 `page-menu` section——父页选 `children`，子页选
 `siblings`；条目随已发布页面目录自动更新，无需手填链接。要做成左侧栏就把它放进
 `group` 的第一列（`1:3` + 列 sticky），没有 chrome 级的自动侧栏。
+
+### 文档库（`MarketingDoc`）与它的两张模板页
+
+文档**内容**不进 section 体系：一篇就是「标题 + Markdown + 分类」，存在 `MarketingDoc`
+表里，有自己的 draft/publish 语义（`shared/marketing-doc.ts`）。文档**版式**则完全在
+section 体系里，靠两张模板页承载：
+
+| kind | 地址 | 干什么 |
+| --- | --- | --- |
+| `doc_index` | `/docs` | 文档目录页的版式 |
+| `doc_article` | `/docs/:slug` | **所有**文档详情共用的一张版式 |
+
+两张页的 slug 固定（`docs` / `docs-article`），和 `home` 一样由 kind 决定；它们**不进页面
+目录**（不出现在站点导航、`page-menu`、sitemap 的页面部分里）——`doc_article` 根本没有
+自己的地址，`doc_index` 想露在页头则由租户显式加一条链接。
+
+**默认不落库**：库里没有这两条记录时，SSR 直接按内置兜底版式渲染
+（`DOC_TEMPLATE_PRESETS`，见 `shared/page-presets.ts`）。所以新租户零配置就有能用的文档站，
+存量租户也不需要数据迁移。租户在站点页面列表底部的「文档版式」两行点「自定义版式」，
+才从兜底版式复制出一条真实页面记录，之后就是普通页面的编辑 / 发布流程。
+
+四个段消费文档数据（数据经 `SectionRenderContext` 的 `docs` / `doc` 注入）：
+
+| 段 | 画什么 | 数据 |
+| --- | --- | --- |
+| `doc-list` | 文档目录（分组 / 卡片 / 列表、可按分类筛、可限条数） | `ctx.docs` |
+| `doc-article` | 当前这一篇的正文 | `ctx.doc` |
+| `doc-nav` | 篇与篇之间的导航（当前篇高亮） | `ctx.docs` |
+| `doc-toc` | 一篇之内的章节导航，从正文标题现抽 | `ctx.doc` |
+
+「导航菜单 / 章节导航要不要显示」因此不需要额外开关——**就是这一段加不加**。
+`doc-list` 放在任意普通页面上同样可用（首页放 `limit=3` 就是「最新文档」）；`doc-article`
+/ `doc-toc` 离开详情模板页就什么都不渲染，因为那时没有「当前文档」。
+
+普通页面只有在页面 / 页头 / 页脚里真的摆了 `doc-*` 段时才会去查文档表（见
+`ssr.routes.ts`），不给每次页面渲染都加一条 SQL。
+
+**链接到文档**：`link` 类型的设置项（页头导航链接、页脚链接）在编辑器里带一个下拉，
+候选是站内页面 + 文档索引 + 每一篇文档（`GET /api/site/link-targets`）。存的仍是一个
+普通 href 字符串，渲染端零改动。
+
+**管理页**（`/app/site/docs`）：列表 + 编辑弹层两件套。
+
+- 列表接口 `GET /api/site/docs` 一次返回全量（不分页），所以搜索 / 分类 / 状态筛选与
+  排序都在客户端做（`client/lib/site-doc-list.ts`），筛选态走 URL search params
+  （`use-site-docs-page.ts`）。状态筛选里的 `dirty` 不是文档状态，是「已发布但草稿有
+  改动」这一条横切条件
+- 编辑用 `SiteDocEditorSheet`，**弹层态 / 全屏态双模式**：同一棵 DOM 只换
+  `SheetContent` 宽度与正文区预览布局，切换时 textarea 不重挂，光标与撤销栈都还在；
+  展开偏好记在 localStorage。表单只写草稿列，保存后仍需发布才上线
+- 列表里的路径只作展示不做链接：站点跑在租户自己的域名上，管理端拼不出可点的绝对地址
 
 ### Theme Editor
 

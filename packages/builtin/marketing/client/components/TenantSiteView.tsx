@@ -2,6 +2,10 @@ import { type CSSProperties, type ReactNode } from "react";
 
 import { cn } from "@be-water/ui/utils";
 
+import {
+  type PublicDocDetail,
+  type PublicDocSummary,
+} from "../../shared/marketing-doc.js";
 import { MARKETING_SITE_ROOT_CLASS } from "../../shared/marketing-site-theme.js";
 import { type SiteSection } from "../../shared/section-schema.js";
 import {
@@ -48,6 +52,12 @@ interface TenantSiteViewProps {
   onSelectSection?: SelectSectionFn;
   /** 替换 main 区内容（会员门控占位等）；有值时不再渲染 sections。 */
   mainOverride?: ReactNode;
+  /**
+   * 文档库数据，供 `doc-*` 段渲染（编辑文档模板页时的预览）。
+   * 与 SSR 的 `DocRenderContext` 同一组字段，见 `sections/render-context.ts`。
+   */
+  docs?: readonly PublicDocSummary[];
+  doc?: PublicDocDetail;
 }
 
 /**
@@ -68,6 +78,9 @@ export function TenantSiteView({
   footerOverride,
   onSelectSection,
   mainOverride,
+  docs,
+  // `doc` 在这个组件里已经是那份 DOM Document 了，改个名避免撞车
+  doc: docDetail,
 }: TenantSiteViewProps) {
   const previewDoc = usePreviewDocument();
   const doc = embedded ? previewDoc : document;
@@ -123,6 +136,8 @@ export function TenantSiteView({
               sectionSpacing={theme.section_spacing}
               pages={site.pages}
               currentPath={path}
+              docs={docs}
+              doc={docDetail}
             />
           ),
         )}
@@ -144,6 +159,8 @@ export function TenantSiteView({
               sectionSpacing={theme.section_spacing}
               pages={site.pages}
               currentPath={path}
+              docs={docs}
+              doc={docDetail}
             />
           )}
         </main>
@@ -169,6 +186,8 @@ export function TenantSiteView({
               sectionSpacing={theme.section_spacing}
               pages={site.pages}
               currentPath={path}
+              docs={docs}
+              doc={docDetail}
             />
           ),
         )}

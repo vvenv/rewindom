@@ -1,0 +1,45 @@
+/*
+ * 文内章节导航。与 doc-nav 长得像但不共用类：它俩经常**同时**出现在一页的左右两栏，
+ * 共用一套类名的话，想单独调其中一个就没有着力点了。
+ */
+.doc-toc {
+  font-size: 0.875rem;
+  border-left: 1px solid var(--border);
+  padding-left: 1rem;
+}
+.doc-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.doc-toc a {
+  display: block;
+  padding: 0.25rem 0;
+  color: var(--muted-fg);
+  text-decoration: none;
+  line-height: 1.5;
+}
+.doc-toc a:hover {
+  color: var(--accent);
+}
+.doc-toc-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-fg);
+  margin: 0 0 0.5rem;
+}
+.doc-toc-l3 a {
+  padding-left: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 1024px) {
+  .doc-toc.is-sticky {
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+  }
+}

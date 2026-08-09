@@ -19,7 +19,11 @@ import {
 
 import { BandSection } from "./views/band.js";
 import { CardsSection } from "./views/cards.js";
+import { DocArticleSection } from "./views/doc-article.js";
+import { DocListSection } from "./views/doc-list.js";
+import { DocNavSection } from "./views/doc-nav.js";
 import { DocSourceSection } from "./views/doc-source.js";
+import { DocTocSection } from "./views/doc-toc.js";
 import { FaqSection } from "./views/faq.js";
 import { FeatureGridSection } from "./views/feature-grid.js";
 import { FormSection } from "./views/form.js";
@@ -51,6 +55,10 @@ export const SECTION_VIEWS: Partial<
   "page-header": PageHeaderSection,
   prose: ProseSection,
   "doc-source": DocSourceSection,
+  "doc-list": DocListSection,
+  "doc-article": DocArticleSection,
+  "doc-nav": DocNavSection,
+  "doc-toc": DocTocSection,
 };
 
 /**

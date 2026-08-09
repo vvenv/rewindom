@@ -223,6 +223,185 @@ export function parseMarkdownFile(
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* 公开面：doc-* 段的数据形状与派生                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 文档索引的逻辑路径（不带 locale 前缀）。
+ *
+ * 固定值：`RESERVED_PAGE_SLUGS` 为它占着 `docs` 这个一级 slug，路由也按这个前缀
+ * 拦截（见 `server/ssr.routes.ts`）。要改成可配置，那三处得一起动。
+ */
+export const DOCS_INDEX_PATH = "/docs";
+
+/** 单篇文档的逻辑路径。 */
+export function docPath(slug: string): string {
+  return `${DOCS_INDEX_PATH}/${slug}`;
+}
+
+/**
+ * 文档库的界面文案。
+ *
+ * 文档正文是租户自己写的、不需要翻译，但外框上这几个词（「更新于」「返回文档」）
+ * 是**产品**的一部分，得跟着访客语言走。与 `sections/header/messages.ts` 同一手法：
+ * 两三个词不值得拉一整套 i18n 运行时进 SSR。
+ */
+export function docMessages(locale: string): {
+  otherCategory: string;
+  updated: string;
+  back: string;
+  toc: string;
+  nav: string;
+} {
+  return locale.startsWith("zh")
+    ? {
+        otherCategory: "其它",
+        updated: "更新于",
+        back: "返回文档",
+        toc: "本页内容",
+        nav: "文档",
+      }
+    : {
+        otherCategory: "Other",
+        updated: "Updated",
+        back: "Back to docs",
+        toc: "On this page",
+        nav: "Docs",
+      };
+}
+
+/** 更新时间的展示形态；脏值退回 ISO 的日期部分，不因为一条坏时间戳炸掉整页。 */
+export function formatDocDate(iso: string, locale: string): string {
+  try {
+    return new Date(iso).toLocaleDateString(
+      locale.startsWith("zh") ? "zh-CN" : "en-US",
+      { year: "numeric", month: "short", day: "numeric" },
+    );
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
+
+/**
+ * 公开面的文档目录条目（不含正文）。
+ *
+ * `doc-list` / `doc-nav` 只需要这些字段——列表页不该把每篇的 `body_md` 都拖进内存，
+ * 一个租户几百篇文档时那是几 MB 的无用 payload。
+ */
+export interface PublicDocSummary {
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  sort_order: number;
+  updated_at: string;
+}
+
+/** 公开面的单篇文档（详情模板页渲染 `doc-article` / `doc-toc` 用）。 */
+export interface PublicDocDetail extends PublicDocSummary {
+  body_md: string;
+}
+
+/**
+ * 按分类分组，**保持传入顺序**（服务端已按 category / sort_order / title 排好）。
+ *
+ * 没填分类的归到 `fallbackLabel` 一组，且恒排在最后——「其它」出现在正经分类前面
+ * 会让目录看起来像是乱的。
+ */
+export function groupDocsByCategory<T extends { category: string }>(
+  docs: readonly T[],
+  fallbackLabel: string,
+): Array<{ category: string; items: T[] }> {
+  const grouped = new Map<string, T[]>();
+  const uncategorized: T[] = [];
+  for (const doc of docs) {
+    if (!doc.category) {
+      uncategorized.push(doc);
+      continue;
+    }
+    const list = grouped.get(doc.category);
+    if (list) list.push(doc);
+    else grouped.set(doc.category, [doc]);
+  }
+  const out = [...grouped].map(([category, items]) => ({ category, items }));
+  if (uncategorized.length > 0) {
+    out.push({ category: fallbackLabel, items: uncategorized });
+  }
+  return out;
+}
+
+/**
+ * 标题文本 → 锚点 id。
+ *
+ * 两端 markdown 渲染共用这一个算法（SSR 的 `md()` 与客户端的 `MarkdownProse`），
+ * 否则 `doc-toc` 生成的链接在其中一端点不动。刻意**不去重**：同名标题只锚到第一处，
+ * 比两端各编一套 `-2` 后缀然后对不上要好。
+ */
+export function docHeadingAnchor(text: string): string {
+  return (
+    text
+      .trim()
+      .toLowerCase()
+      // 保留 CJK：中文标题占多数，剥成空串的话整份目录都没有锚点
+      .replace(/[^\p{L}\p{N}\s-]/gu, "")
+      .replace(/\s+/gu, "-")
+      .replace(/^-+|-+$/gu, "") || "section"
+  );
+}
+
+export interface DocHeading {
+  /**
+   * **渲染后**的级别（2..6）。
+   *
+   * markdown 的 `#` 在两端都渲成 `<h2>`（正文外面已经有一个页面级 h1），所以这里
+   * 也把 1 归到 2——目录的缩进层次要跟正文看起来的层次一致，不是跟源码写法一致。
+   */
+  level: number;
+  text: string;
+  anchor: string;
+}
+
+/**
+ * 从 markdown 正文抽章节标题（`doc-toc` 的数据源）。
+ *
+ * 只认 ATX 标题（`## x`），且跳过围栏代码块里的 `#`——shell 注释、Python 注释里
+ * 全是 `#` 开头的行，不跳过的话目录里会混进一堆代码片段。
+ */
+export function extractDocHeadings(
+  body_md: string,
+  options: { min?: number; max?: number } = {},
+): DocHeading[] {
+  const min = options.min ?? 2;
+  const max = options.max ?? 3;
+  const out: DocHeading[] = [];
+  let fence: string | null = null;
+  for (const rawLine of body_md.split(/\r?\n/u)) {
+    const line = rawLine.trimEnd();
+    const fenceMatch = line.match(/^\s{0,3}(```+|~~~+)/u);
+    if (fenceMatch) {
+      const marker = fenceMatch[1]!;
+      if (fence === null) fence = marker[0]!;
+      else if (marker.startsWith(fence)) fence = null;
+      continue;
+    }
+    if (fence !== null) continue;
+    const match = line.match(/^(#{1,6})\s+(.+?)\s*#*$/u);
+    if (!match) continue;
+    const depth = match[1]!.length;
+    const level = depth === 1 ? 2 : depth;
+    if (level < min || level > max) continue;
+    // 标题里的行内标记（`**粗**`、`` `code` ``、链接）不该进目录文本
+    const text = match[2]!
+      .replace(/\[([^\]]*)\]\([^)]*\)/gu, "$1")
+      .replace(/[*_`]/gu, "")
+      .trim();
+    if (!text) continue;
+    out.push({ level, text, anchor: docHeadingAnchor(text) });
+  }
+  return out;
+}
+
 /** 导出时把文档拼回带 frontmatter 的 `.md` 文本。 */
 export function formatDocAsMarkdown(doc: {
   slug: string;

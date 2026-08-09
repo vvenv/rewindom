@@ -200,6 +200,19 @@ export type InputSettingDef =
         placeholder?: string;
       })
   | (SettingBase & { type: "url"; default?: string; placeholder?: string })
+  | (SettingBase & {
+      /**
+       * 站内外链接。存的仍是**一个 href 字符串**（与 `url` 完全一致），只是编辑器
+       * 多给一个「从站内选」的下拉：页面、文档索引、每一篇已发布文档。
+       *
+       * 刻意不存 `{type:"page",id:"..."}` 这类结构化引用：那样每个渲染端都要先解引用
+       * 才能画出一个 `<a>`，且页面删掉后引用会悬空。存字符串的代价是改 slug 后链接
+       * 会断——但站内重定向本来就是为这件事准备的（见 `MarketingRedirect`）。
+       */
+      type: "link";
+      default?: string;
+      placeholder?: string;
+    })
   | (SettingBase & { type: "image"; default?: string; placeholder?: string })
   | (SettingBase & {
       type: "select";
@@ -386,6 +399,7 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
       }
       return def.default ?? "";
     case "url":
+    case "link":
     case "image":
       return typeof raw === "string" ? raw.trim() : (def.default ?? "");
     case "icon": {

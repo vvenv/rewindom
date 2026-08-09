@@ -6,3 +6,4 @@ export * from "./theme-sections.js";
 export * from "./section-schema.js";
 export * from "./site-starters.js";
 export * from "./page-presets.js";
+export * from "./site-link-target.js";

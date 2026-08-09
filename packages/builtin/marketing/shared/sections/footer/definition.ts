@@ -48,7 +48,8 @@ export const footerSection: SectionDefinition = {
           required: true,
         },
         {
-          type: "url",
+          // 同页头导航链接：站内地址从下拉里选，外链手填
+          type: "link",
           id: "href",
           label: "editor.setting.href",
           default: "/",

@@ -1,5 +1,6 @@
 import { APP_LOCALES, type AppLocale } from "@be-water/shared";
 
+import { DOCS_INDEX_PATH } from "./marketing-doc.js";
 import { normalizeSiteColor } from "./site-color.js";
 
 import type { LocalizedText, SiteSection } from "./section-schema.js";
@@ -8,7 +9,32 @@ import type { ThemeSettings } from "./theme-sections.js";
 /** 站点级可本地化文案：单语言为纯字符串，多语言为 `__i18n` 表。 */
 export type SiteLocalizedText = string | LocalizedText;
 
-export type MarketingPageKind = "home" | "page";
+/**
+ * 页面的种类。
+ *
+ * `home` / `page` 是租户自己排的普通页面；`doc_index` / `doc_article` 是**文档库的
+ * 两张模板页**——版式归租户（同一个编辑器、同一套发布流程），内容归 `MarketingDoc`。
+ * 详情模板一张顶所有 `/docs/:slug`：访客点开哪篇，`doc-article` 段就渲哪篇。
+ *
+ * 模板页在 DB 里可以**不存在**：那时 SSR 用内置预设版式渲染（见 `page-presets.ts`
+ * 的 `DOC_TEMPLATE_PRESETS`）。不为每个租户预建两张空页，也就不需要数据迁移。
+ */
+export type MarketingPageKind = "home" | "page" | "doc_index" | "doc_article";
+
+export const DOC_TEMPLATE_KINDS = ["doc_index", "doc_article"] as const;
+export type DocTemplateKind = (typeof DOC_TEMPLATE_KINDS)[number];
+
+/** 模板页的固定 slug：同 `home`——kind 唯一，slug 不由租户填。 */
+export const DOC_TEMPLATE_SLUGS: Record<DocTemplateKind, string> = {
+  doc_index: "docs",
+  doc_article: "docs-article",
+};
+
+export function isDocTemplateKind(
+  kind: MarketingPageKind,
+): kind is DocTemplateKind {
+  return kind === "doc_index" || kind === "doc_article";
+}
 export type MarketingPageStatus = "draft" | "published";
 /** 页面可见性：`public` 所有人；`members` 需站点会员登录。 */
 export type MarketingPageVisibility = "public" | "members";
@@ -353,7 +379,13 @@ export const RESERVED_PAGE_SLUGS = new Set([
   "docs",
 ]);
 
-/** 规范化页面 kind / slug（home 固定 slug=`home`）。 */
+/**
+ * 规范化页面 kind / slug（`home` 与两张文档模板页都是「kind 唯一、slug 固定」）。
+ *
+ * 只按**显式的 kind** 认模板页，不按 slug 反推：`docs` 在 `RESERVED_PAGE_SLUGS` 里，
+ * 租户想建一个叫 `docs` 的普通页应该收到「这个地址被占用了」，而不是莫名其妙拿到
+ * 一张文档索引模板。
+ */
 export function canonicalizePageIdentity(
   kind: string | undefined,
   slug: string,
@@ -365,14 +397,26 @@ export function canonicalizePageIdentity(
   if (kind === "home" || trimmed === "home") {
     return { kind: "home", slug: "home" };
   }
+  if (kind === "doc_index" || kind === "doc_article") {
+    return { kind, slug: DOC_TEMPLATE_SLUGS[kind] };
+  }
   return { kind: "page", slug: trimmed };
 }
 
+/**
+ * 页面的逻辑路径（不带 locale 前缀）。
+ *
+ * `doc_article` 返回的是一个**模板路径**（`/docs/:slug`），不是能打开的地址——
+ * 那张页面对应的是「所有文档详情」，编辑器拿它显示「这一页管的是哪一段地址」。
+ * 真实请求由 `ssr.routes.ts` 在 `/docs/*` 上拦截，不走页面路径匹配。
+ */
 export function marketingPagePath(
   kind: MarketingPageKind,
   slug: string,
 ): string {
   if (kind === "home") return "/";
+  if (kind === "doc_index") return DOCS_INDEX_PATH;
+  if (kind === "doc_article") return `${DOCS_INDEX_PATH}/:slug`;
   return `/${slug}`;
 }
 export type PublicSitePage = PublicMarketingSite["pages"][number];

@@ -11,7 +11,11 @@
 
 import { bandSection } from "./band/definition.js";
 import { cardsSection } from "./cards/definition.js";
+import { docArticleSection } from "./doc-article/definition.js";
+import { docListSection } from "./doc-list/definition.js";
+import { docNavSection } from "./doc-nav/definition.js";
 import { docSourceSection } from "./doc-source/definition.js";
+import { docTocSection } from "./doc-toc/definition.js";
 import { faqSection } from "./faq/definition.js";
 import { featureGridSection } from "./feature-grid/definition.js";
 import { footerSection } from "./footer/definition.js";
@@ -74,6 +78,10 @@ export const BUILTIN_SECTION_DEFINITIONS: Record<
   form: formSection,
   prose: proseSection,
   "doc-source": docSourceSection,
+  "doc-list": docListSection,
+  "doc-article": docArticleSection,
+  "doc-nav": docNavSection,
+  "doc-toc": docTocSection,
   group: groupSection,
   band: bandSection,
   /* 保留：只由解析层产生，`placements: []` 保证它不出现在任何添加菜单里 */

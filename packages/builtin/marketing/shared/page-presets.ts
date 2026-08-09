@@ -7,8 +7,11 @@ import {
   type SettingValues,
   type SiteSection,
 } from "./section-schema.js";
-
-import type { MarketingPageKind } from "./site-cms.js";
+import {
+  DOC_TEMPLATE_SLUGS,
+  type DocTemplateKind,
+  type MarketingPageKind,
+} from "./site-cms.js";
 
 /** 解析预设里的 i18n key；客户端传 `t`，服务端传 locale 查表函数。 */
 export type PresetTranslateFn = (key: string) => string;
@@ -351,6 +354,89 @@ export const PAGE_PRESETS: PagePreset[] = [
     ],
   },
 ];
+
+/**
+ * 文档库两张模板页的**默认版式**。
+ *
+ * 与 `PAGE_PRESETS` 分开是因为它们不是「可选的起步模板」而是**兜底**：租户没自定义
+ * 过版式时，`/docs` 与 `/docs/:slug` 直接按这里渲染（见 `server/marketing-doc.ssr.ts`）。
+ * 所以这里不进「页面预设」菜单——那个菜单是让人往普通页面上铺内容的。
+ *
+ * 也正因为是兜底，这两份版式不落库：不给没用文档的租户塞两张空页，也就不需要
+ * 为存量租户写数据迁移。租户想改，在编辑器里保存一次即成为一条真实页面记录。
+ */
+export const DOC_TEMPLATE_PRESETS: Record<DocTemplateKind, PagePreset> = {
+  doc_index: {
+    key: "doc_index",
+    label: "preset.doc_index.label",
+    kind: "doc_index",
+    slug: DOC_TEMPLATE_SLUGS.doc_index,
+    titleKey: "preset.doc_index.title",
+    descriptionKey: "preset.doc_index.description",
+    sections: [
+      {
+        type: "page-header",
+        text: {
+          headline: "preset.doc_index.headline",
+          subhead: "preset.doc_index.subhead",
+        },
+      },
+      {
+        type: "doc-list",
+        raw: {
+          group_by: "category",
+          style: "cards",
+          columns: 2,
+          show_description: true,
+        },
+      },
+    ],
+  },
+  doc_article: {
+    key: "doc_article",
+    label: "preset.doc_article.label",
+    kind: "doc_article",
+    slug: DOC_TEMPLATE_SLUGS.doc_article,
+    titleKey: "preset.doc_article.title",
+    descriptionKey: "preset.doc_article.description",
+    sections: [
+      {
+        /*
+         * 三栏：左目录 + 正文 + 右章节导航——文档站的通行版式。
+         *
+         * 两个导航都是**独立的段**，不想要就在编辑器里删掉，不需要另开开关；
+         * 窄屏由 group 自己堆叠成上下（见 base.css 的 `.grp`），吸顶也自动失效。
+         */
+        type: "group",
+        raw: { columns_layout: "3:7:2", column_gap: 40 },
+        blocks: [
+          {
+            type: "column",
+            raw: { sticky: true },
+            sections: [{ type: "doc-nav", raw: { sticky: true } }],
+          },
+          {
+            type: "column",
+            sections: [{ type: "doc-article" }],
+          },
+          {
+            type: "column",
+            raw: { sticky: true },
+            sections: [{ type: "doc-toc", raw: { sticky: true } }],
+          },
+        ],
+      },
+    ],
+  },
+};
+
+/** 兜底版式落成真实 sections（同 `buildPresetSections`，只是入口按 kind 取）。 */
+export function buildDocTemplateSections(
+  kind: DocTemplateKind,
+  t: PresetTranslateFn,
+): SiteSection[] {
+  return buildPresetSections(DOC_TEMPLATE_PRESETS[kind], t);
+}
 
 function resolveValues(
   t: PresetTranslateFn,

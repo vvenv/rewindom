@@ -25,7 +25,11 @@ import {
 
 import { renderBandHtml } from "./band/html.js";
 import { renderCardsHtml } from "./cards/html.js";
+import { renderDocArticleHtml } from "./doc-article/html.js";
+import { renderDocListHtml } from "./doc-list/html.js";
+import { renderDocNavHtml } from "./doc-nav/html.js";
 import { renderDocSourceHtml } from "./doc-source/html.js";
+import { renderDocTocHtml } from "./doc-toc/html.js";
 import { renderFaqHtml } from "./faq/html.js";
 import { renderFeatureGridHtml } from "./feature-grid/html.js";
 import { renderFormHtml } from "./form/html.js";
@@ -93,6 +97,10 @@ export const SECTION_HTML: Partial<Record<SectionType, SectionHtmlRenderer>> = {
   "page-header": renderPageHeaderHtml,
   prose: renderProseHtml,
   "doc-source": renderDocSourceHtml,
+  "doc-list": renderDocListHtml,
+  "doc-article": renderDocArticleHtml,
+  "doc-nav": renderDocNavHtml,
+  "doc-toc": renderDocTocHtml,
 };
 
 /**

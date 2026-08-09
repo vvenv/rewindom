@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { SitePageDuplicateSheet } from "./SitePageDuplicateSheet.js";
+import { SitePublishStatus } from "./SitePublishStatus.js";
 
 import type {
   MarketingPageKind,
@@ -27,6 +28,8 @@ interface SitePageGroupRowProps {
 const KIND_LABEL_KEY = {
   home: "cms.kindHome",
   page: "cms.kindPage",
+  doc_index: "cms.kindDocIndex",
+  doc_article: "cms.kindDocArticle",
 } as const satisfies Record<MarketingPageKind, string>;
 
 /**
@@ -120,48 +123,16 @@ function PageRow({
     >
       <div className="min-w-0 flex-1">{children}</div>
       <div className="flex shrink-0 items-center gap-1">
-        <PageStatus page={page} />
+        {/* 窄屏只留状态点，文案挤掉——图标化的操作按钮已经把行占满 */}
+        <SitePublishStatus
+          status={page.status}
+          contentDirty={page.content_dirty}
+          className="sm:w-32"
+          labelClassName="sr-only sm:not-sr-only"
+        />
         {canWrite ? <PageActions page={page} actions={actions} /> : null}
       </div>
     </div>
-  );
-}
-
-/**
- * 状态点 + 文案：草稿灰、已发布绿、已发布但草稿更新过用琥珀色。
- * 窄屏只留点，文案挤掉——图标化的操作按钮已经把行占满。
- */
-function PageStatus({ page }: { page: MarketingPageListItem }) {
-  const { t } = useTranslation("marketing");
-  const published = page.status === "published";
-  const dirty = published && page.content_dirty;
-  const label = dirty
-    ? t("cms.statusDirty")
-    : published
-      ? t("cms.statusPublished")
-      : t("cms.statusDraft");
-
-  return (
-    <span
-      className="flex items-center gap-1.5 sm:w-32"
-      title={dirty ? t("cms.statusDirtyHint") : undefined}
-    >
-      <span
-        aria-hidden
-        className={cn(
-          "size-1.5 shrink-0 rounded-full",
-          dirty
-            ? "bg-amber-500"
-            : published
-              ? "bg-emerald-500"
-              : "bg-muted-foreground/40",
-        )}
-      />
-      {/* 窄屏只留点，但文案留在无障碍树里，屏幕阅读器两种宽度下读到的一样 */}
-      <span className="truncate text-xs text-muted-foreground sr-only sm:not-sr-only">
-        {label}
-      </span>
-    </span>
   );
 }
 

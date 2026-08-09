@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import {
   BrandMark,
@@ -21,7 +21,12 @@ import {
   SheetHeader,
 } from "@be-water/ui/sheet";
 import { cn } from "@be-water/ui/utils";
-import { PanelLeft, PanelLeftClose, type LucideIcon } from "lucide-react";
+import {
+  ChevronRight,
+  PanelLeft,
+  PanelLeftClose,
+  type LucideIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, useLocation } from "react-router";
 
@@ -116,6 +121,141 @@ function SidebarSectionLabel({ children }: { children: string }) {
   );
 }
 
+/**
+ * 各分组（section）的折叠状态：按 section.label 存取，持久化到 localStorage。
+ *
+ * 仅桌面侧栏启用——移动端抽屉为临时展开，折叠藏入口反而不友好；`SidebarNavSections`
+ * 默认 `collapsedSections = {}`，不传即不折叠任何分组（移动端走这条路径）。
+ */
+const NAV_SECTION_COLLAPSED_KEY = "sidebar_nav_sections_collapsed";
+
+/**
+ * 默认收起的分组（按翻译前的 `labelKey` 匹配，跨语言稳定）。底部管理类分组
+ * （系统管理 / 系统监控）日常用得少，默认收起减负；用户手动展开后由持久化值覆盖。
+ */
+const DEFAULT_COLLAPSED_LABEL_KEYS = new Set([
+  "common:nav.systemManagement",
+  "common:nav.systemMonitoring",
+]);
+
+function useNavSectionCollapse() {
+  const [collapsedSections, setCollapsedSections] = usePersistState<
+    Record<string, boolean>
+  >({
+    key: NAV_SECTION_COLLAPSED_KEY,
+    defaultValue: {},
+  });
+
+  const toggleSection = useCallback(
+    (label: string) => {
+      // 基于「当前实际折叠态」翻转：未记录时取默认值，否则取持久化值。
+      // 否则默认收起的分组首次点击会 `!undefined`=true 仍收起，点不动。
+      setCollapsedSections((prev) => ({
+        ...prev,
+        [label]: !(prev[label] ?? DEFAULT_COLLAPSED_LABEL_KEYS.has(label)),
+      }));
+    },
+    [setCollapsedSections],
+  );
+
+  return { collapsedSections, toggleSection };
+}
+
+/** 当前路由是否命中分组内任一页面——命中则该分组强制展开，避免折叠态下迷路。 */
+function useSectionHasActiveItem(items: AppNavItem[]): boolean {
+  const location = useLocation();
+  const { isNavRouteActive } = useAppShellConfig();
+  return useMemo(
+    () => items.some((item) => isNavRouteActive(location.pathname, item)),
+    [items, isNavRouteActive, location.pathname],
+  );
+}
+
+function SidebarSectionHeader({
+  label,
+  collapsed,
+  onToggle,
+}: {
+  label: string;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={!collapsed}
+      className="flex w-full items-center gap-1 rounded-md px-2 pb-1 pt-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+    >
+      <ChevronRight
+        className={cn(
+          "size-3.5 shrink-0 transition-transform",
+          !collapsed && "rotate-90",
+        )}
+      />
+      <span className="truncate">{label}</span>
+    </button>
+  );
+}
+
+/**
+ * 一个分组的渲染：单项分组直接平铺（折叠后只剩标题无法跳转，体验差，与 TopBar
+ * 单项不下拉一致）；多项分组的标题可点击折叠，当前路由命中时强制展开。
+ *
+ * 折叠状态按 `labelKey`（翻译前的 i18n key，跨语言稳定）存取：用户手动操作过的
+ * 取持久化值，否则取 `DEFAULT_COLLAPSED_LABEL_KEYS` 的默认值。移动端不传
+ * `onToggleSection`，此时不启用折叠（全展开）。
+ */
+function SidebarNavSection({
+  section,
+  onNavigate,
+  collapsedSections,
+  onToggleSection,
+}: {
+  section: AppNavSection;
+  onNavigate?: () => void;
+  collapsedSections: Record<string, boolean>;
+  onToggleSection?: (label: string) => void;
+}) {
+  const sectionKey = section.labelKey ?? section.label;
+  const collapsible = onToggleSection !== undefined && section.items.length > 1;
+  const hasActive = useSectionHasActiveItem(section.items);
+  const userOverride = collapsedSections[sectionKey];
+  const isCollapsed =
+    collapsible &&
+    (userOverride ?? DEFAULT_COLLAPSED_LABEL_KEYS.has(sectionKey)) &&
+    !hasActive;
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      {collapsible ? (
+        <SidebarSectionHeader
+          label={section.label}
+          collapsed={isCollapsed}
+          onToggle={() => onToggleSection?.(sectionKey)}
+        />
+      ) : (
+        <SidebarSectionLabel>{section.label}</SidebarSectionLabel>
+      )}
+      {!isCollapsed
+        ? section.items.map((item) => (
+            <SidebarNavItem
+              key={item.path}
+              to={item.path}
+              end={item.end}
+              activePrefix={item.activePrefix}
+              icon={item.icon}
+              label={item.label}
+              itemTitle={item.title}
+              onClick={onNavigate}
+              badgeKey={item.badgeKey}
+            />
+          ))
+        : null}
+    </div>
+  );
+}
+
 function SidebarGlobalActions({
   className,
   orientation = "horizontal",
@@ -145,15 +285,20 @@ function SidebarNavSections({
   sections,
   onNavigate,
   collapsed = false,
+  collapsedSections,
+  onToggleSection,
 }: {
   sections: AppNavSection[];
   onNavigate?: () => void;
   collapsed?: boolean;
+  collapsedSections?: Record<string, boolean>;
+  onToggleSection?: (label: string) => void;
 }) {
   if (sections.length === 0) {
     return null;
   }
 
+  // 窄模式（整体侧栏折叠）：图标平铺，无分组标题可点，不参与分组折叠。
   if (collapsed) {
     return (
       <>
@@ -180,22 +325,13 @@ function SidebarNavSections({
   return (
     <div className="flex flex-col gap-3 px-3 py-2">
       {sections.map((section) => (
-        <div key={section.label} className="flex flex-col gap-0.5">
-          <SidebarSectionLabel>{section.label}</SidebarSectionLabel>
-          {section.items.map((item) => (
-            <SidebarNavItem
-              key={item.path}
-              to={item.path}
-              end={item.end}
-              activePrefix={item.activePrefix}
-              icon={item.icon}
-              label={item.label}
-              itemTitle={item.title}
-              onClick={onNavigate}
-              badgeKey={item.badgeKey}
-            />
-          ))}
-        </div>
+        <SidebarNavSection
+          key={section.label}
+          section={section}
+          onNavigate={onNavigate}
+          collapsedSections={collapsedSections ?? {}}
+          onToggleSection={onToggleSection}
+        />
       ))}
     </div>
   );
@@ -205,10 +341,14 @@ function SidebarFooter({
   collapsed = false,
   endSections = [],
   onNavigate,
+  collapsedSections,
+  onToggleSection,
 }: {
   collapsed?: boolean;
   endSections?: AppNavSection[];
   onNavigate?: () => void;
+  collapsedSections?: Record<string, boolean>;
+  onToggleSection?: (label: string) => void;
 }) {
   const { shellContributions } = useAppShellConfig();
   const UserMenu = shellContributions.sidebarUserMenu[0];
@@ -229,7 +369,12 @@ function SidebarFooter({
   return (
     <div className="mt-auto flex flex-col">
       {endSections.length > 0 ? (
-        <SidebarNavSections sections={endSections} onNavigate={onNavigate} />
+        <SidebarNavSections
+          sections={endSections}
+          onNavigate={onNavigate}
+          collapsedSections={collapsedSections}
+          onToggleSection={onToggleSection}
+        />
       ) : null}
       <Separator />
       <div className="flex p-3">{UserMenu ? <UserMenu showLabel /> : null}</div>
@@ -241,10 +386,14 @@ function SidebarContent({
   onNavigate,
   homePath,
   navSections,
+  collapsedSections,
+  onToggleSection,
 }: {
   onNavigate?: () => void;
   homePath: string;
   navSections: AppNavSection[];
+  collapsedSections?: Record<string, boolean>;
+  onToggleSection?: (label: string) => void;
 }) {
   const { shellContributions } = useAppShellConfig();
   const slotProps = { homePath, onNavigate };
@@ -261,7 +410,12 @@ function SidebarContent({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <SidebarNavSections sections={navSections} onNavigate={onNavigate} />
+        <SidebarNavSections
+          sections={navSections}
+          onNavigate={onNavigate}
+          collapsedSections={collapsedSections}
+          onToggleSection={onToggleSection}
+        />
       </div>
 
       {shellContributions.sidebarPanel.length > 0 ? (
@@ -453,6 +607,7 @@ function DesktopSidebar() {
   const { mainSections, endSections } = useFilteredNavSections();
   const { shellContributions } = useAppShellConfig();
   const homePath = useAppHomePath();
+  const { collapsedSections, toggleSection } = useNavSectionCollapse();
 
   if (collapsed) {
     return (
@@ -499,8 +654,17 @@ function DesktopSidebar() {
           <PanelLeftClose />
         </Button>
       </div>
-      <SidebarContent homePath={homePath} navSections={mainSections} />
-      <SidebarFooter endSections={endSections} />
+      <SidebarContent
+        homePath={homePath}
+        navSections={mainSections}
+        collapsedSections={collapsedSections}
+        onToggleSection={toggleSection}
+      />
+      <SidebarFooter
+        endSections={endSections}
+        collapsedSections={collapsedSections}
+        onToggleSection={toggleSection}
+      />
     </aside>
   );
 }

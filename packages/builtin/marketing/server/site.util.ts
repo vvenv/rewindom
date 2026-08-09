@@ -14,6 +14,8 @@ import {
 } from "../shared/section-schema.js";
 import {
   canonicalizePageIdentity,
+  DOC_TEMPLATE_SLUGS,
+  isDocTemplateKind,
   parsePageSettings as parsePageSettingsSchema,
   RESERVED_PAGE_SLUGS,
   safePageSettings,
@@ -225,6 +227,15 @@ export function validatePageSlug(
       throw new ValidationError("site.home_slug_fixed");
     }
     return "home";
+  }
+
+  // 文档模板页同 home：kind 决定 slug，租户改不了（改了地址就路由不到了）
+  if (isDocTemplateKind(kind)) {
+    const expected = DOC_TEMPLATE_SLUGS[kind];
+    if (slug.trim().toLowerCase() !== expected) {
+      throw new ValidationError("site.doc_template_slug_fixed");
+    }
+    return expected;
   }
 
   const normalized = slug

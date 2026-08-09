@@ -7,6 +7,7 @@ import {
   marketingSiteThemeCss,
 } from "../shared/marketing-site-theme.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
+import { type DocRenderContext } from "../shared/sections/render-context.js";
 import {
   type PublicMarketingPage,
   type PublicMarketingSite,
@@ -134,8 +135,13 @@ export function renderMarketingHtml(input: {
   accountEntryHtml?: string;
   /** 本租户已开通的 entitlement；贡献段据此决定渲不渲染，见 `site-entitlements.ts`。 */
   enabledEntitlements?: ReadonlySet<string>;
-  /** 自定义正文 HTML（覆盖段落渲染）；文档库 SSR 用，普通页面不传。 */
-  mainHtml?: string;
+  /**
+   * 文档库数据（`doc-*` 段的数据源）。
+   *
+   * 文档模板页必须带；普通页面只有在页面 / 页头 / 页脚里真的摆了 `doc-*` 段时才需要
+   * ——不带等于那几段什么都不渲染，所以漏传的后果是内容少了而不是多了。
+   */
+  docContext?: DocRenderContext;
 }): string {
   const {
     origin,
@@ -144,7 +150,7 @@ export function renderMarketingHtml(input: {
     memberGate = false,
     accountEntryHtml = "",
     enabledEntitlements,
-    mainHtml,
+    docContext,
   } = input;
   const theme = resolveThemeSettings(site.theme_settings);
   const sectionCtx = {
@@ -155,6 +161,7 @@ export function renderMarketingHtml(input: {
     sectionSpacing: theme.section_spacing ?? THEME_SECTION_SPACING.default,
     // 贡献段据此决定渲不渲染；不传等于一个贡献段都不出（少了而不是多了，方向安全）
     enabledEntitlements,
+    ...docContext,
   };
   const base = origin.replace(/\/$/u, "");
   const locale = normalizeLocale(page.locale, site.default_locale);
@@ -247,7 +254,7 @@ export function renderMarketingHtml(input: {
       <p class="muted" style="margin-bottom:1.5rem">${escapeHtml(page.description || "Sign in to read this content.")}</p>
       <p><a class="btn" href="/member/login?redirect=${encodeURIComponent(localizedPath)}">Sign in</a></p>
     </div>`
-    : (mainHtml ?? renderPageSectionsHtml(site, page, enabledEntitlements));
+    : renderPageSectionsHtml(site, page, enabledEntitlements, docContext);
 
   const mainStyle =
     page.settings.bg_color || page.settings.fg_color

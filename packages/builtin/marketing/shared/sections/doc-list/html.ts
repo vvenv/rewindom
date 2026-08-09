@@ -1,0 +1,73 @@
+import { escapeHtml } from "../../html.js";
+import {
+  docMessages,
+  docPath,
+  formatDocDate,
+  type PublicDocSummary,
+} from "../../marketing-doc.js";
+import { withSiteLocale } from "../../site-locale.js";
+import { gridClass, sectionHeading } from "../_common/html.js";
+
+import { resolveDocList } from "./select.js";
+
+import type {
+  SectionHtmlRenderer,
+  SectionRenderContext,
+} from "../render-context.js";
+
+function docHref(doc: PublicDocSummary, ctx: SectionRenderContext): string {
+  const path = docPath(doc.slug);
+  return escapeHtml(
+    ctx.locale && ctx.defaultLocale
+      ? withSiteLocale(path, ctx.locale, ctx.defaultLocale)
+      : path,
+  );
+}
+
+export const renderDocListHtml: SectionHtmlRenderer = (section, ctx) => {
+  const locale = ctx.locale ?? "en";
+  const messages = docMessages(locale);
+  const view = resolveDocList(section.settings, ctx.docs ?? [], messages.otherCategory);
+  // 一篇都没有时整段不输出，与 page-menu 同口径：空目录不该占一块空白
+  if (view.groups.length === 0) return "";
+
+  const meta = (doc: PublicDocSummary): string =>
+    view.showUpdated
+      ? `<span class="doc-card-date">${escapeHtml(messages.updated)} ${escapeHtml(formatDocDate(doc.updated_at, locale))}</span>`
+      : "";
+
+  const description = (doc: PublicDocSummary): string =>
+    view.showDescription && doc.description
+      ? `<span class="muted">${escapeHtml(doc.description)}</span>`
+      : "";
+
+  const renderItems = (items: PublicDocSummary[]): string => {
+    if (view.style === "list") {
+      const rows = items
+        .map(
+          (doc) =>
+            `<li><a href="${docHref(doc, ctx)}"><span class="title">${escapeHtml(doc.title)}</span>${description(doc)}${meta(doc)}</a></li>`,
+        )
+        .join("");
+      return `<ul class="doc-list-rows">${rows}</ul>`;
+    }
+    const cards = items
+      .map(
+        (doc) =>
+          `<li><a class="card doc-card" href="${docHref(doc, ctx)}"><span class="title">${escapeHtml(doc.title)}</span>${description(doc)}${meta(doc)}</a></li>`,
+      )
+      .join("");
+    return `<ul class="${gridClass(view.columns)}">${cards}</ul>`;
+  };
+
+  const groups = view.groups
+    .map((group) =>
+      group.category
+        ? `<div class="doc-list-group"><h3 class="doc-list-group-title">${escapeHtml(group.category)}</h3>${renderItems(group.items)}</div>`
+        : renderItems(group.items),
+    )
+    .join("");
+
+  return `${sectionHeading(section.settings)}
+  <div class="doc-list">${groups}</div>`;
+};

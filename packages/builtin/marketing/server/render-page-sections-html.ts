@@ -15,6 +15,7 @@ import {
 
 import { renderSectionHtml } from "./ssr-sections.js";
 
+import type { DocRenderContext } from "../shared/sections/render-context.js";
 import type {
   PublicMarketingPage,
   PublicMarketingSite,
@@ -28,6 +29,8 @@ export function renderPageSectionsHtml(
    * 不传等于一个贡献段都不出——少了而不是多了，这个方向是安全的。
    */
   enabledEntitlements?: ReadonlySet<string>,
+  /** 文档库数据；只有页面上摆了 `doc-*` 段时才有意义，见 `render-context.ts`。 */
+  docContext?: DocRenderContext,
 ): string {
   const theme = resolveThemeSettings(site.theme_settings);
   const sections = page.sections;
@@ -42,6 +45,7 @@ export function renderPageSectionsHtml(
     defaultLocale: site.default_locale,
     sectionSpacing: theme.section_spacing ?? THEME_SECTION_SPACING.default,
     enabledEntitlements,
+    ...docContext,
   };
   return sections
     .map((section, index) =>

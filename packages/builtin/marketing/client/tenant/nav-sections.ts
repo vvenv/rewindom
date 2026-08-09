@@ -54,7 +54,8 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
         icon: FileText,
         label: "marketing:siteDocs.nav",
         path: "/app/site/docs",
-        title: "marketing:siteDocs.title",
+        // 不是 siteDocs.title——那个是列表里「标题」这一列的表头
+        title: "marketing:siteDocs.pageTitle",
         keywords: "docs documentation markdown 文档 手册",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
