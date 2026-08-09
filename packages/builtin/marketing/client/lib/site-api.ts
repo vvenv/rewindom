@@ -10,6 +10,7 @@ import type {
   PublicMarketingPage,
   PublicMarketingSite,
   ApplySiteStarterResponse,
+  ReorderMarketingPagesBody,
   SaveEditorDraftBody,
   SaveEditorDraftResponse,
   UpdateMarketingSiteBody,
@@ -70,6 +71,13 @@ export function createSitePage(
   return api.post<MarketingPage>("/site/pages", body);
 }
 
+/** 整批写入页面顺序（`sort_order` 是相对关系，一个事务写完）。 */
+export function reorderSitePages(
+  body: ReorderMarketingPagesBody,
+): Promise<MarketingPageListItem[]> {
+  return api.put<MarketingPageListItem[]>("/site/pages/order", body);
+}
+
 export function duplicateSitePage(
   pageId: string,
   body: DuplicateMarketingPageBody,
@@ -90,8 +98,6 @@ export function applySiteStarter(
 ): Promise<ApplySiteStarterResponse> {
   return api.post<ApplySiteStarterResponse>(`/site/starters/${key}/apply`, {});
 }
-
-
 
 export function uploadSiteAsset(file: File): Promise<{ url: string }> {
   const formData = new FormData();

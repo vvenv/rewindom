@@ -11,6 +11,7 @@ import {
   fetchSitePages,
   patchSite,
   publishSiteEditorDraft,
+  reorderSitePages,
   revertSiteEditorDraft,
   saveSiteEditorDraft,
   SITE_CAPABILITIES_QUERY_KEY,
@@ -22,6 +23,7 @@ import {
 import type {
   CreateMarketingPageBody,
   DuplicateMarketingPageBody,
+  ReorderMarketingPagesBody,
   SaveEditorDraftBody,
   UpdateMarketingSiteBody,
 } from "../../shared/site-cms.js";
@@ -120,6 +122,20 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
+  /**
+   * 整批重排页面顺序。
+   *
+   * 成功后直接把返回的清单写进缓存再作废：列表当场就是新顺序，不会先弹回旧顺序、
+   * 等重新拉取到了再跳一次——排序这种「肉眼盯着看」的操作最忌讳这一下回跳。
+   */
+  const reorderPages = useMutation({
+    mutationFn: (body: ReorderMarketingPagesBody) => reorderSitePages(body),
+    onSuccess: (pages) => {
+      queryClient.setQueryData(SITE_PAGES_QUERY_KEY, pages);
+      return invalidate();
+    },
+  });
+
   const removePage = useMutation({
     mutationFn: (pageId: string) => deleteSitePage(pageId),
     onSuccess: () => invalidate(),
@@ -138,6 +154,7 @@ export function useSiteMutations() {
     applyStarter,
     publishDraft,
     revertDraft,
+    reorderPages,
     removePage,
     unpublishPage,
   };

@@ -90,6 +90,18 @@ directly, for example `pricing` → `/pricing`.
 > The same applies to language codes (`en`, `zh-CN`) — they occupy the same position in
 > the URL.
 
+## Page order
+
+The order in the page list is the order visitors see: the header's "all pages" nav, page
+menus and the sitemap all follow it. Use the move up / move down buttons on each row —
+the change takes effect immediately, with nothing to publish.
+
+Every language version of a page counts as **one group** and moves together; in the nav
+they occupy the same position anyway.
+
+> The move buttons disappear while the list is filtered: what you see then is not the
+> real order, so moving rows would be moving blind. Clear the filters first.
+
 ## Status and visibility
 
 - **Status**: draft (invisible to visitors) or published. New pages start as drafts.

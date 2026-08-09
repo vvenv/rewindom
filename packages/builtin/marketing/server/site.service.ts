@@ -33,6 +33,7 @@ import {
   type PageLocaleAlternate,
   type PublicMarketingPage,
   type PublicMarketingSite,
+  type ReorderMarketingPagesBody,
   type SaveEditorDraftBody,
   parsePageVisibility,
   safePageSettings,
@@ -40,10 +41,7 @@ import {
   type UpdateMarketingSiteBody,
 } from "../shared/site-cms.js";
 import { withSiteLocale } from "../shared/site-locale.js";
-import {
-  buildSiteStarter,
-  findSiteStarter,
-} from "../shared/site-starters.js";
+import { buildSiteStarter, findSiteStarter } from "../shared/site-starters.js";
 import { findSiteTheme } from "../shared/site-themes.js";
 import { resolveThemeSettings } from "../shared/theme-sections.js";
 
@@ -741,6 +739,55 @@ export async function updatePage(
   }
 }
 
+/**
+ * 一次写入整批页面的 `sort_order`，返回重排后的页面清单。
+ *
+ * `sort_order` 决定页头「全部一级页面」、`page-menu` 与 sitemap 的先后，是一组**相对
+ * 关系**——所以整批一个事务写：逐页 PATCH 会在中途失败时留下一个谁也没要过的顺序。
+ * 不属于本租户的 id 直接拒（而不是静默跳过），否则调用方以为排好了，实际少排了一页。
+ */
+export async function reorderPages(
+  tenant_id: string,
+  body: ReorderMarketingPagesBody,
+): Promise<MarketingPageListItem[]> {
+  const items = body?.items;
+  if (!Array.isArray(items)) {
+    throw new ValidationError("site.page_order_invalid");
+  }
+  const seen = new Set<string>();
+  for (const item of items) {
+    if (
+      !item ||
+      typeof item.id !== "string" ||
+      !item.id ||
+      !Number.isSafeInteger(item.sort_order) ||
+      seen.has(item.id)
+    ) {
+      throw new ValidationError("site.page_order_invalid");
+    }
+    seen.add(item.id);
+  }
+
+  if (seen.size > 0) {
+    const owned = await prisma.marketingPage.count({
+      where: withTenantScope(tenant_id, { id: { in: [...seen] } }),
+    });
+    if (owned !== seen.size) {
+      throw new NotFoundError("site.page_not_found");
+    }
+    await prisma.$transaction(
+      items.map((item) =>
+        prisma.marketingPage.update({
+          where: { id: item.id, tenant_id },
+          data: { sort_order: item.sort_order },
+        }),
+      ),
+    );
+  }
+
+  return listPages(tenant_id);
+}
+
 export async function deletePage(
   tenant_id: string,
   page_id: string,
@@ -1144,21 +1191,23 @@ export async function getPublishedSitemapEntries(
   });
   const default_locale = normalizeLocale(siteRecord.default_locale);
 
-  return pages
-    .filter((record) => parsePageVisibility(record.visibility) === "public")
-    // 标了 noindex 还列进 sitemap 是自相矛盾的信号：一边请你来收，一边说别收
-    .filter((record) => safePageSettings(record.settings).noindex !== true)
-    .map((record) => {
-      const view = toPublicMarketingPage(record, {
-        siblings: pages,
-        defaultLocale: default_locale,
-      });
-      return {
-        path: withSiteLocale(view.path, view.locale, default_locale),
-        updated_at: view.updated_at,
-        alternates: view.alternates,
-      };
-    });
+  return (
+    pages
+      .filter((record) => parsePageVisibility(record.visibility) === "public")
+      // 标了 noindex 还列进 sitemap 是自相矛盾的信号：一边请你来收，一边说别收
+      .filter((record) => safePageSettings(record.settings).noindex !== true)
+      .map((record) => {
+        const view = toPublicMarketingPage(record, {
+          siblings: pages,
+          defaultLocale: default_locale,
+        });
+        return {
+          path: withSiteLocale(view.path, view.locale, default_locale),
+          updated_at: view.updated_at,
+          alternates: view.alternates,
+        };
+      })
+  );
 }
 
 /** 草稿预览：站点可不发布；页面可为 draft；chrome 读草稿列。 */

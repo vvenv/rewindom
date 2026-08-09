@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   applySiteStarter,
   duplicatePage,
+  reorderPages,
   revertEditorDraft,
   saveEditorDraft,
 } from "./site.service.js";
@@ -19,6 +20,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
     marketingPage: {
       findFirst: vi.fn(),
       findMany: vi.fn(),
+      count: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -53,9 +55,9 @@ const siteRow = {
 function sourceRow(overrides: Record<string, unknown> = {}) {
   const title = (overrides.title as string | undefined) ?? "关于我们";
   const description = (overrides.description as string | undefined) ?? "描述";
-  const sections =
-    (overrides.sections as unknown) ??
-    [{ type: "hero", settings: { headline: "你好" }, blocks: [] }];
+  const sections = (overrides.sections as unknown) ?? [
+    { type: "hero", settings: { headline: "你好" }, blocks: [] },
+  ];
   return {
     id: "page-1",
     tenant_id: TENANT,
@@ -250,8 +252,12 @@ describe("saveEditorDraft", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(pageRow as never);
-    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(siteRow as never);
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
+      pageRow as never,
+    );
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      siteRow as never,
+    );
     vi.mocked(prisma.$transaction).mockImplementation((async (ops: unknown) => {
       const results = [];
       for (const op of ops as Array<Promise<unknown>>) {
@@ -382,8 +388,9 @@ describe("revertEditorDraft", () => {
     expect(data.data.description_draft).toBe("线上描述");
     expect(data.data.settings_draft).toEqual({ bg_color: "#ffffff" });
     expect(
-      (data.data.sections_draft as Array<{ settings: { headline: unknown } }>)[0]
-        ?.settings.headline,
+      (
+        data.data.sections_draft as Array<{ settings: { headline: unknown } }>
+      )[0]?.settings.headline,
     ).toBe("线上");
     // 撤销后草稿等于线上，编辑器的「有未发布的更改」随之熄灭
     expect(page.title).toBe("线上标题");
@@ -419,7 +426,9 @@ describe("revertEditorDraft", () => {
 describe("applySiteStarter", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(siteRow as never);
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      siteRow as never,
+    );
     vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
     vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(null as never);
     vi.mocked(prisma.marketingPage.create).mockImplementation((async ({
@@ -458,5 +467,58 @@ describe("applySiteStarter", () => {
     await expect(applySiteStarter(TENANT, "unknown")).rejects.toThrow(
       "site.starter_not_found",
     );
+  });
+});
+
+describe("reorderPages", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([] as never);
+    vi.mocked(prisma.$transaction).mockResolvedValue([] as never);
+  });
+
+  it("writes every page's sort_order in one transaction", async () => {
+    vi.mocked(prisma.marketingPage.count).mockResolvedValue(2 as never);
+
+    await reorderPages(TENANT, {
+      items: [
+        { id: "page-1", sort_order: 0 },
+        { id: "page-2", sort_order: 1 },
+      ],
+    });
+
+    expect(prisma.$transaction).toHaveBeenCalledOnce();
+    // 写入本身也要租户闭合：只按 id 更新会让别的租户的页面被重排
+    expect(prisma.marketingPage.update).toHaveBeenCalledWith({
+      where: { id: "page-1", tenant_id: TENANT },
+      data: { sort_order: 0 },
+    });
+    expect(prisma.marketingPage.update).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects the whole batch when an id is not the tenant's", async () => {
+    // 少排一页比排错更难发现：一律拒收，而不是静默跳过不属于本租户的 id
+    vi.mocked(prisma.marketingPage.count).mockResolvedValue(1 as never);
+
+    await expect(
+      reorderPages(TENANT, {
+        items: [
+          { id: "page-1", sort_order: 0 },
+          { id: "stranger", sort_order: 1 },
+        ],
+      }),
+    ).rejects.toThrow("site.page_not_found");
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects duplicate ids", async () => {
+    await expect(
+      reorderPages(TENANT, {
+        items: [
+          { id: "page-1", sort_order: 0 },
+          { id: "page-1", sort_order: 1 },
+        ],
+      }),
+    ).rejects.toThrow("site.page_order_invalid");
   });
 });

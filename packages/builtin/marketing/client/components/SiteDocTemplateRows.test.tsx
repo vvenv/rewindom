@@ -28,8 +28,10 @@ const actions: SitePageActions = {
   publishPendingId: undefined,
   unpublishPendingId: undefined,
   deletePendingId: undefined,
+  reorderPending: false,
   togglePublish: vi.fn(),
   remove: vi.fn(async () => {}),
+  move: vi.fn(),
 };
 
 function page(
@@ -86,6 +88,8 @@ describe("SiteDocTemplateRows", () => {
     expect(rows).toHaveLength(2);
     expect(within(rows[0]!).getByText("中文")).toBeInTheDocument();
     expect(within(rows[1]!).getByText("English")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "自定义版式" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "自定义版式" }),
+    ).toBeInTheDocument();
   });
 });

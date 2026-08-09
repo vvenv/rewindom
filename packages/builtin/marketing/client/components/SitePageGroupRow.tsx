@@ -1,12 +1,32 @@
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
+import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@be-water/ui/dropdown-menu";
 import { Spinner } from "@be-water/ui/spinner";
 import { cn } from "@be-water/ui/utils";
-import { CloudOff, CloudUpload, Copy, Palette, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  CloudOff,
+  CloudUpload,
+  Copy,
+  Lock,
+  MoreVertical,
+  Palette,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+
+import { formatDocDate } from "../../shared/marketing-doc.js";
 
 import { SitePageDuplicateSheet } from "./SitePageDuplicateSheet.js";
 import { SitePublishStatus } from "./SitePublishStatus.js";
@@ -18,11 +38,21 @@ import type {
 import type { SitePageActions } from "../hooks/use-site-page-actions.js";
 import type { SitePageGroup } from "../lib/site-page-groups.js";
 
+/** 组能往哪儿挪；两端到头时按钮禁用而不是消失（行的操作数不该忽多忽少）。 */
+export interface SitePageGroupOrder {
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMove: (direction: -1 | 1) => void;
+  pending: boolean;
+}
+
 interface SitePageGroupRowProps {
   group: SitePageGroup;
   defaultLocale: AppLocale;
   canWrite: boolean;
   actions: SitePageActions;
+  /** 不给就没有排序入口（筛选中的列表、文档版式那两行）。 */
+  order?: SitePageGroupOrder;
 }
 
 const KIND_LABEL_KEY = {
@@ -44,18 +74,27 @@ export function SitePageGroupRow({
   defaultLocale,
   canWrite,
   actions,
+  order,
 }: SitePageGroupRowProps) {
   const { t } = useTranslation("marketing");
   const primary =
     group.pages.find((page) => page.locale === defaultLocale) ??
     group.pages[0]!;
 
-  const heading = (
+  const heading = (page: MarketingPageListItem, stretch: boolean) => (
     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
       {canWrite ? (
+        /*
+          `after:absolute after:inset-0` 把这个链接摊满整行：整行可点，但页面上仍然
+          只有一个真链接（右侧按钮靠 z-10 浮在它上面）。用 onClick 包整行的话，
+          键盘用户 Tab 不到，中键 / ⌘ 点也开不了新标签页。
+        */
         <Link
-          to={`/app/site/pages/${primary.id}`}
-          className="truncate font-medium hover:underline"
+          to={`/app/site/pages/${page.id}`}
+          className={cn(
+            "truncate font-medium hover:underline",
+            stretch && "after:absolute after:inset-0",
+          )}
         >
           {group.title}
         </Link>
@@ -73,22 +112,40 @@ export function SitePageGroupRow({
 
   if (group.pages.length === 1) {
     return (
-      <PageRow page={primary} canWrite={canWrite} actions={actions}>
-        {heading}
+      <PageRow
+        page={primary}
+        canWrite={canWrite}
+        actions={actions}
+        order={order}
+      >
+        {heading(primary, canWrite)}
       </PageRow>
     );
   }
 
   return (
     <div className="py-1">
-      <div className="px-4 py-2">{heading}</div>
+      {/* 顺序是整组的属性：多语言组的上下移挂在组头，而不是某一种语言那一行上 */}
+      <div className="relative flex items-center justify-between gap-2 px-4 py-2">
+        {heading(primary, false)}
+        {order ? <MoveButtons order={order} /> : null}
+      </div>
       <ul className="flex flex-col">
         {group.pages.map((page) => (
           <li key={page.id}>
             <PageRow page={page} canWrite={canWrite} actions={actions} indent>
-              <span className="truncate text-sm">
-                {getLocaleNativeLabel(page.locale)}
-              </span>
+              {canWrite ? (
+                <Link
+                  to={`/app/site/pages/${page.id}`}
+                  className="truncate text-sm after:absolute after:inset-0 hover:underline"
+                >
+                  {getLocaleNativeLabel(page.locale)}
+                </Link>
+              ) : (
+                <span className="truncate text-sm">
+                  {getLocaleNativeLabel(page.locale)}
+                </span>
+              )}
             </PageRow>
           </li>
         ))}
@@ -98,31 +155,47 @@ export function SitePageGroupRow({
 }
 
 /**
- * 一个页面（= 一个语言版本）占一行：左边是标识，右边是状态与操作。
+ * 一个页面（= 一个语言版本）占一行：左边是标识，右边是元信息、状态与操作。
  * `indent` 用于多语言组里的语言行，靠一条竖线挂在组头下面。
  */
 function PageRow({
   page,
   canWrite,
   actions,
+  order,
   indent,
   children,
 }: {
   page: MarketingPageListItem;
   canWrite: boolean;
   actions: SitePageActions;
+  order?: SitePageGroupOrder;
   indent?: boolean;
   children: ReactNode;
 }) {
+  const { t, i18n } = useTranslation("marketing");
+
   return (
+    // relative：给标题链接的 `after:inset-0` 当定位容器（整行热区）
     <div
       className={cn(
-        "flex items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-muted/40",
+        "relative flex items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-muted/40",
         indent && "ml-6 border-l py-1.5 pl-4",
       )}
     >
       <div className="min-w-0 flex-1">{children}</div>
-      <div className="flex shrink-0 items-center gap-1">
+      {/* z-10：浮在摊满整行的标题链接之上，否则这些按钮点下去全是「打开编辑器」 */}
+      <div className="relative z-10 flex shrink-0 items-center gap-1">
+        {page.visibility === "members" ? (
+          <Badge variant="outline" className="hidden gap-1 lg:inline-flex">
+            <Lock className="size-3" />
+            {t("cms.visibilityMembers")}
+          </Badge>
+        ) : null}
+        {/* 更新时间是「这页最近动过没有」的唯一线索，窄屏才让位给操作按钮 */}
+        <span className="hidden text-xs whitespace-nowrap text-muted-foreground xl:inline">
+          {formatDocDate(page.updated_at, i18n.language)}
+        </span>
         {/* 窄屏只留状态点，文案挤掉——图标化的操作按钮已经把行占满 */}
         <SitePublishStatus
           status={page.status}
@@ -130,12 +203,53 @@ function PageRow({
           className="sm:w-32"
           labelClassName="sr-only sm:not-sr-only"
         />
+        {order ? <MoveButtons order={order} /> : null}
         {canWrite ? <PageActions page={page} actions={actions} /> : null}
       </div>
     </div>
   );
 }
 
+/**
+ * 上移 / 下移。
+ *
+ * 是两枚常驻按钮而不是「更多」里的菜单项：排一次顺序往往要连点四五下，每一下都得
+ * 重新展开菜单的话，排到一半就不想排了。
+ */
+function MoveButtons({ order }: { order: SitePageGroupOrder }) {
+  const { t } = useTranslation("marketing");
+  return (
+    <div className="relative z-10 flex shrink-0 items-center gap-0.5 text-muted-foreground">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        title={t("cms.moveUp")}
+        aria-label={t("cms.moveUp")}
+        disabled={!order.canMoveUp || order.pending}
+        onClick={() => order.onMove(-1)}
+      >
+        <ArrowUp className="size-3.5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        title={t("cms.moveDown")}
+        aria-label={t("cms.moveDown")}
+        disabled={!order.canMoveDown || order.pending}
+        onClick={() => order.onMove(1)}
+      >
+        <ArrowDown className="size-3.5" />
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * 行内操作：发布 / 取消发布留在外面，其余收进「更多」。
+ *
+ * 与文档库同一套（`SiteDocsTable`）：发布是最高频的一步，不该埋进菜单；打开编辑器、
+ * 复制、删除各自一年用不了几次，全排成图标只会让每一行都像个工具栏。
+ */
 function PageActions({
   page,
   actions,
@@ -149,30 +263,10 @@ function PageActions({
     actions.publishPendingId === page.id ||
     actions.unpublishPendingId === page.id;
   const deletePending = actions.deletePendingId === page.id;
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
 
   return (
     <div className="flex shrink-0 items-center gap-0.5 text-muted-foreground">
-      <Button
-        asChild
-        variant="ghost"
-        size="icon-sm"
-        title={t("editor.open")}
-        aria-label={t("editor.open")}
-      >
-        <Link to={`/app/site/pages/${page.id}`}>
-          <Palette className="size-3.5" />
-        </Link>
-      </Button>
-      <SitePageDuplicateSheet page={page}>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title={t("cms.duplicate")}
-          aria-label={t("cms.duplicate")}
-        >
-          <Copy className="size-3.5" />
-        </Button>
-      </SitePageDuplicateSheet>
       <Button
         variant="ghost"
         size="icon-sm"
@@ -189,21 +283,44 @@ function PageActions({
           <CloudUpload className="size-3.5" />
         )}
       </Button>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className="hover:text-destructive"
-        title={t("cms.delete")}
-        aria-label={t("cms.delete")}
-        disabled={deletePending}
-        onClick={() => void actions.remove(page.id, page.title)}
-      >
-        {deletePending ? (
-          <Spinner className="size-3.5" />
-        ) : (
-          <Trash2 className="size-3.5" />
-        )}
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-sm" aria-label={t("cms.actions")}>
+            {deletePending ? (
+              <Spinner className="size-3.5" />
+            ) : (
+              <MoreVertical className="size-3.5" />
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link to={`/app/site/pages/${page.id}`}>
+              <Palette className="size-4" />
+              {t("editor.open")}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setDuplicateOpen(true)}>
+            <Copy className="size-4" />
+            {t("cms.duplicate")}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            disabled={deletePending}
+            onSelect={() => void actions.remove(page.id, page.title)}
+          >
+            <Trash2 className="size-4" />
+            {t("cms.delete")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {/* 菜单项当不了 SheetTrigger（一点菜单就关），所以受控地挂在外面 */}
+      <SitePageDuplicateSheet
+        page={page}
+        open={duplicateOpen}
+        onOpenChange={setDuplicateOpen}
+      />
     </div>
   );
 }

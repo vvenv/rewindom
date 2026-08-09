@@ -42,6 +42,7 @@ import {
   getPreviewSitePage,
   listPages,
   publishEditorDraft,
+  reorderPages,
   revertEditorDraft,
   saveEditorDraft,
   setPageStatus,
@@ -55,6 +56,7 @@ import type {
   DuplicateMarketingPageBody,
   MarketingSite,
   MarketingSiteCapabilities,
+  ReorderMarketingPagesBody,
   SaveEditorDraftBody,
   UpdateMarketingPageBody,
   UpdateMarketingSiteBody,
@@ -362,6 +364,43 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           detail_params: { site_name: auditSiteName(site) },
         });
         return { page, site };
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  /**
+   * 整批重排页面顺序。
+   *
+   * 顺序是相对关系，所以是一个「整批」端点而不是逐页 PATCH `sort_order`——见
+   * `reorderPages`。资源记站点自身：这一条审计说的是「站点的页面顺序变了」。
+   */
+  defineRoute(app, {
+    method: "PUT",
+    url: "/pages/order",
+    context: "SitePageReorder",
+    errorCode: "SITE_PAGE_REORDER_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const body = request.body as ReorderMarketingPagesBody;
+        const pages = await reorderPages(
+          request.tenantContext!.tenant_id,
+          body,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_PAGE_UPDATE,
+          resource: request.tenantContext!.tenant_id,
+          detail_key: "marketing.audit.pages_reordered",
+          detail_params: { count: body?.items?.length ?? 0 },
+        });
+        return pages;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

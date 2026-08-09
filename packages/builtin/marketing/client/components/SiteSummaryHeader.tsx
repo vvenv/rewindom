@@ -16,6 +16,7 @@ import { SiteSettingsSheet } from "./SiteSettingsSheet.js";
 import { SiteStarterMenu } from "./SiteStarterMenu.js";
 
 import type { MarketingSite } from "../../shared/site-cms.js";
+import type { SitePageSummary } from "../lib/site-page-order.js";
 import type { AppLocale } from "@be-water/shared";
 
 interface SiteSummaryHeaderProps {
@@ -25,6 +26,8 @@ interface SiteSummaryHeaderProps {
   canWrite: boolean;
   /** 起步模板会覆盖既有内容时先确认。 */
   hasStarterContent: boolean;
+  /** 页面计数概览；页面还没加载出来时不给。 */
+  summary?: SitePageSummary;
 }
 
 /**
@@ -39,6 +42,7 @@ export function SiteSummaryHeader({
   isLoading,
   canWrite,
   hasStarterContent,
+  summary,
 }: SiteSummaryHeaderProps) {
   const { t } = useTranslation("marketing");
 
@@ -72,6 +76,32 @@ export function SiteSummaryHeader({
       </CardTitle>
       {taglineText ? (
         <CardDescription className="truncate">{taglineText}</CardDescription>
+      ) : null}
+      {/*
+        计数与标语分开两行：标语是站点的文案，计数是这张列表的状态，挤在一行时
+        长标语会把计数顶掉。「有改动未发布」只在真的有的时候出现——它是待办，
+        平时恒定的「0 个」只是噪音。
+      */}
+      {summary ? (
+        <CardDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+          {/*
+            插值名各不相同、也不叫 `count`：`count` 会触发 i18next 的复数解析，
+            去找一个并不存在的 `_one` / `_other` 变体。
+          */}
+          <span>{t("cms.summaryPages", { total: summary.total })}</span>
+          <span aria-hidden>·</span>
+          <span>
+            {t("cms.summaryPublished", { published: summary.published })}
+          </span>
+          {summary.dirty > 0 ? (
+            <>
+              <span aria-hidden>·</span>
+              <span className="text-amber-600 dark:text-amber-500">
+                {t("cms.summaryDirty", { dirty: summary.dirty })}
+              </span>
+            </>
+          ) : null}
+        </CardDescription>
       ) : null}
       {canWrite ? (
         <CardAction className="flex items-center gap-2">

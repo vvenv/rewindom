@@ -8,6 +8,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_created": "创建官网页面「{{title}}」",
       "marketing.audit.page_duplicated": "复制官网页面「{{title}}」",
       "marketing.audit.page_updated": "更新官网页面「{{title}}」",
+      "marketing.audit.pages_reordered": "调整官网页面顺序（{{count}} 页）",
       "marketing.audit.page_deleted": "删除官网页面",
       "marketing.audit.page_published": "发布官网页面「{{title}}」",
       "marketing.audit.page_content_published": "发布官网页面内容「{{title}}」",
@@ -39,6 +40,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.doc_template_exists": "该语言下文档版式已存在",
       "site.doc_template_slug_fixed": "文档版式路径不可更改",
       "site.page_slug_conflict": "页面路径冲突",
+      "site.page_order_invalid": "页面顺序数据不合法",
       "site.name_invalid": "站点名称不合法",
       "site.tagline_invalid": "站点标语不合法",
       "site.color_invalid": "主色必须是 #RGB 或 #RRGGBB",
@@ -75,6 +77,8 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_created": 'Created site page "{{title}}"',
       "marketing.audit.page_duplicated": 'Duplicated site page "{{title}}"',
       "marketing.audit.page_updated": 'Updated site page "{{title}}"',
+      "marketing.audit.pages_reordered":
+        "Reordered site pages ({{count}} pages)",
       "marketing.audit.page_deleted": "Deleted site page",
       "marketing.audit.page_published": 'Published site page "{{title}}"',
       "marketing.audit.page_content_published":
@@ -108,6 +112,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.doc_template_exists": "A doc layout already exists for this locale",
       "site.doc_template_slug_fixed": "Doc layout path cannot be changed",
       "site.page_slug_conflict": "Page path conflict",
+      "site.page_order_invalid": "Invalid page order payload",
       "site.name_invalid": "Invalid site name",
       "site.tagline_invalid": "Invalid site tagline",
       "site.color_invalid": "Primary color must be #RGB or #RRGGBB",

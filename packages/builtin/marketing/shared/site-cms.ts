@@ -286,6 +286,16 @@ export interface UpdateMarketingPageBody {
 }
 
 /**
+ * 一次写入整批页面的 `sort_order`。
+ *
+ * 排序是**相对关系**，逐页 PATCH 会把它拆成 N 个各自可能失败的请求，中途断掉就留下
+ * 一个谁也没要过的顺序；这里一个事务写完，要么全成要么全不动。
+ */
+export interface ReorderMarketingPagesBody {
+  items: { id: string; sort_order: number }[];
+}
+
+/**
  * 公开站点（仅已发布内容），**按单一语言渲染过**。
  *
  * `pages` 只含 `locale` 这一种语言的页面——不过滤的话导航、同级菜单、sitemap

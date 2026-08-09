@@ -7,12 +7,22 @@ import { useTranslation } from "react-i18next";
 
 import { SiteDocTemplateRows } from "../components/SiteDocTemplateRows.js";
 import { SitePageCreateSheet } from "../components/SitePageCreateSheet.js";
+import { SitePageFilters } from "../components/SitePageFilters.js";
 import { SitePageList } from "../components/SitePageList.js";
 import { SiteSummaryHeader } from "../components/SiteSummaryHeader.js";
 import { useSitePageActions } from "../hooks/use-site-page-actions.js";
+import { useSitePagesPage } from "../hooks/use-site-pages-page.js";
 import { useSite, useSitePages } from "../hooks/useSite.js";
 import { hasSiteStarterContent } from "../lib/site-content-state.js";
 import { groupSitePages } from "../lib/site-page-groups.js";
+import {
+  collectSitePageLocales,
+  filterSitePageGroups,
+} from "../lib/site-page-list.js";
+import { summarizeSitePages } from "../lib/site-page-order.js";
+
+/** 页面少于这个数就不画筛选栏——三行东西上面顶一条搜索框只是占地方。 */
+const FILTER_BAR_MIN_GROUPS = 5;
 
 export function Site() {
   const { t } = useTranslation("marketing");
@@ -21,8 +31,21 @@ export function Site() {
   const siteQuery = useSite();
   const pagesQuery = useSitePages();
   const actions = useSitePageActions();
+  const { filters, handleFiltersChange, resetFilters } = useSitePagesPage();
   const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
   const pages = pagesQuery.data ?? [];
+
+  const allGroups = groupSitePages(pages, defaultLocale);
+  const isFiltered = Boolean(filters.q ?? filters.status ?? filters.locale);
+  const groups = isFiltered
+    ? filterSitePageGroups(allGroups, filters)
+    : allGroups;
+
+  // 筛到只剩一种语言时那组 chip 不该跟着消失，所以按未筛选的全量算
+  const locales = collectSitePageLocales(pages);
+  const showFilters =
+    pagesQuery.isSuccess &&
+    (allGroups.length >= FILTER_BAR_MIN_GROUPS || isFiltered);
 
   return (
     <PageLayout
@@ -40,41 +63,61 @@ export function Site() {
         ) : null
       }
     >
-      {/* 站点与它的页面是同一个对象，收进一张卡：卡头是站点，卡身是页面列表。 */}
-      <Card className="gap-0 pb-0">
-        <SiteSummaryHeader
-          site={siteQuery.data}
-          defaultLocale={defaultLocale}
-          isLoading={siteQuery.isLoading}
-          canWrite={canWrite}
-          hasStarterContent={hasSiteStarterContent(
-            siteQuery.data,
-            pages,
-            defaultLocale,
-          )}
-        />
-        <CardContent className="px-0">
-          <SitePageList
-            groups={groupSitePages(pages, defaultLocale)}
-            defaultLocale={defaultLocale}
-            canWrite={canWrite}
-            isLoading={pagesQuery.isLoading}
-            isError={pagesQuery.isError}
-            error={pagesQuery.error}
-            onRetry={() => void pagesQuery.refetch()}
-            actions={actions}
+      <div className="flex flex-col gap-4">
+        {showFilters ? (
+          <SitePageFilters
+            filters={filters}
+            locales={locales}
+            onFiltersChange={handleFiltersChange}
           />
-          {/* 文档的两张模板页默认不落库，列表里看不到——单独常驻两行做入口 */}
-          {pagesQuery.isSuccess ? (
-            <SiteDocTemplateRows
-              pages={pages}
+        ) : null}
+
+        {/* 站点与它的页面是同一个对象，收进一张卡：卡头是站点，卡身是页面列表。 */}
+        <Card className="gap-0 pb-0">
+          <SiteSummaryHeader
+            site={siteQuery.data}
+            defaultLocale={defaultLocale}
+            isLoading={siteQuery.isLoading}
+            canWrite={canWrite}
+            hasStarterContent={hasSiteStarterContent(
+              siteQuery.data,
+              pages,
+              defaultLocale,
+            )}
+            summary={
+              pagesQuery.isSuccess ? summarizeSitePages(pages) : undefined
+            }
+          />
+          <CardContent className="px-0">
+            <SitePageList
+              groups={groups}
+              allGroups={allGroups}
               defaultLocale={defaultLocale}
               canWrite={canWrite}
+              isLoading={pagesQuery.isLoading}
+              isError={pagesQuery.isError}
+              error={pagesQuery.error}
+              isFiltered={isFiltered}
+              onRetry={() => void pagesQuery.refetch()}
+              onResetFilters={resetFilters}
               actions={actions}
             />
-          ) : null}
-        </CardContent>
-      </Card>
+            {/*
+              文档的两张模板页默认不落库，列表里看不到——单独常驻两行做入口。
+              它们不进页面目录，也就没有顺序可排，筛选同样不作用于它们（筛出来的是
+              「页面」，把两行常驻入口一起筛掉只会让人以为版式功能没了）。
+            */}
+            {pagesQuery.isSuccess ? (
+              <SiteDocTemplateRows
+                pages={pages}
+                defaultLocale={defaultLocale}
+                canWrite={canWrite}
+                actions={actions}
+              />
+            ) : null}
+          </CardContent>
+        </Card>
+      </div>
     </PageLayout>
   );
 }
