@@ -11,6 +11,7 @@ import {
   createBookmark,
   deleteBookmark,
   getBookmark,
+  listBookmarkHosts,
   listBookmarks,
   updateBookmark,
 } from "./bookmark.service.js";
@@ -25,8 +26,9 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     errorCode: "BOOKMARK_LIST_FAILED",
     preHandler: [app.requirePermission("bookmark.read")],
     handler: async (request) => {
-      const { q, sort_by, sort_dir } = request.query as {
+      const { q, host, sort_by, sort_dir } = request.query as {
         q?: string;
+        host?: string;
         sort_by?: string;
         sort_dir?: string;
       };
@@ -39,10 +41,23 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
         page,
         page_size,
         q,
+        host,
         sort_by,
         sort_dir: parseSortDir(sort_dir),
       });
     },
+  });
+
+  // 站点分组供筛选栏用。放在 `/:bookmark_id` 之前注册，避免被当成 id 吃掉。
+  defineRoute(app, {
+    method: "GET",
+    url: "/hosts",
+    context: "BookmarkHosts",
+    errorCode: "BOOKMARK_HOSTS_FAILED",
+    preHandler: [app.requirePermission("bookmark.read")],
+    handler: async (request) => ({
+      items: await listBookmarkHosts(request.tenantContext!.tenant_id),
+    }),
   });
 
   defineRoute(app, {
@@ -81,7 +96,7 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
           tenant_id: request.tenantContext!.tenant_id,
           user_id: request.authUser!.userId,
           url: body.url ?? "",
-          title: body.title ?? "",
+          title: body.title,
           description: body.description,
         });
 

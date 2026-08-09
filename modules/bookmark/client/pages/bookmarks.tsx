@@ -1,49 +1,42 @@
-import {
-  api,
-  EmptyState,
-  PageLayout,
-  usePermissions,
-} from "@be-water/module-sdk/client";
-import { Button } from "@be-water/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@be-water/ui/card";
+import { PageLayout, usePermissions } from "@be-water/module-sdk/client";
 import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
-import { Spinner } from "@be-water/ui/spinner";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bookmark as BookmarkIcon, ExternalLink, Plus } from "lucide-react";
+import { Bookmark as BookmarkIcon, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkCreateSheet } from "../components/BookmarkCreateSheet.js";
-
-import type { BookmarkListResult } from "../../shared/index.js";
-
-const BOOKMARKS_QUERY_KEY = ["bookmark", "bookmarks"] as const;
-const PAGE_SIZE = 50;
-
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleString();
-}
+import { BookmarkFilters } from "../components/BookmarkFilters.js";
+import { BookmarksGrid } from "../components/BookmarksGrid.js";
+import { useBookmarkHosts, useBookmarks } from "../hooks/useBookmarks.js";
+import { useBookmarksPage } from "../hooks/useBookmarksPage.js";
 
 export function Bookmarks() {
   const { t } = useTranslation("bookmark");
+  const {
+    q,
+    host,
+    hostValue,
+    page,
+    pageSize,
+    sortBy,
+    sortDir,
+    sortValue,
+    isFiltered,
+    handleSortChange,
+    handleFiltersChange,
+    handleHostChange,
+    handleReset,
+  } = useBookmarksPage();
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("bookmark.write");
-  const queryClient = useQueryClient();
-
-  const { data, isLoading, isError } = useQuery({
-    queryKey: BOOKMARKS_QUERY_KEY,
-    queryFn: () =>
-      api.get<BookmarkListResult>("/bookmarks", {
-        page: 1,
-        page_size: PAGE_SIZE,
-      }),
+  const { data, isLoading, isError, error, refetch } = useBookmarks({
+    page,
+    pageSize,
+    q,
+    host,
+    sortBy,
+    sortDir,
   });
-
-  const refresh = () =>
-    queryClient.invalidateQueries({ queryKey: BOOKMARKS_QUERY_KEY });
-
-  const items = data?.items ?? [];
+  const { data: hostsData } = useBookmarkHosts();
 
   return (
     <PageLayout
@@ -52,8 +45,8 @@ export function Bookmarks() {
       description={t("pageDescription")}
       action={
         canWrite ? (
-          <BookmarkCreateSheet onCreated={refresh}>
-            <DraggableFabTrigger storageKey="example_external_create_fab">
+          <BookmarkCreateSheet>
+            <DraggableFabTrigger storageKey="bookmarks_create_fab">
               <Plus className="size-6 md:size-4" />
               <span className="hidden md:inline">{t("create")}</span>
             </DraggableFabTrigger>
@@ -61,73 +54,31 @@ export function Bookmarks() {
         ) : null
       }
     >
-      {isLoading ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
-          <Spinner className="size-4" />
-          <span className="text-sm">{t("loading")}</span>
-        </div>
-      ) : isError ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-          <p className="text-sm">{t("loadFailed")}</p>
-          <Button variant="outline" size="sm" onClick={refresh}>
-            {t("retry")}
-          </Button>
-        </div>
-      ) : items.length === 0 ? (
-        <EmptyState
-          icon={BookmarkIcon}
-          title={t("empty")}
-          description={t("emptyHint")}
-          action={
-            canWrite ? (
-              <BookmarkCreateSheet onCreated={refresh}>
-                <Button size="sm">
-                  <Plus className="size-4" />
-                  {t("create")}
-                </Button>
-              </BookmarkCreateSheet>
-            ) : null
-          }
+      <div className="flex flex-col gap-4">
+        <BookmarkFilters
+          q={q}
+          hostValue={hostValue}
+          hosts={hostsData?.items ?? []}
+          sortValue={sortValue}
+          isFiltered={isFiltered}
+          onFiltersChange={handleFiltersChange}
+          onHostChange={handleHostChange}
+          onSortChange={handleSortChange}
+          onReset={handleReset}
         />
-      ) : (
-        <div className="grid gap-3">
-          {items.map((item) => (
-            <Card key={item.id} size="sm">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between gap-2">
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate hover:underline"
-                  >
-                    {item.title}
-                  </a>
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    <ExternalLink className="size-3" />
-                    {t("open")}
-                  </a>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-1">
-                {item.description_preview ? (
-                  <p className="text-sm text-muted-foreground">
-                    {item.description_preview}
-                  </p>
-                ) : null}
-                <p className="text-xs text-muted-foreground">
-                  {t("updatedAt", { time: formatDate(item.updated_at) })}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+        <BookmarksGrid
+          bookmarks={data?.items ?? []}
+          isLoading={isLoading && !data}
+          isError={isError && !data}
+          error={error}
+          page={page}
+          pageSize={pageSize}
+          total={data?.total ?? 0}
+          pageCount={data?.page_count}
+          isFiltered={isFiltered}
+          onRetry={() => void refetch()}
+        />
+      </div>
     </PageLayout>
   );
 }

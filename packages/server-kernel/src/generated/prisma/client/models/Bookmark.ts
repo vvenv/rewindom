@@ -28,9 +28,11 @@ export type BookmarkMinAggregateOutputType = {
   id: string | null
   tenant_id: string | null
   url: string | null
+  host: string | null
   title: string | null
   description: string | null
   created_by: string | null
+  updated_by: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -39,9 +41,11 @@ export type BookmarkMaxAggregateOutputType = {
   id: string | null
   tenant_id: string | null
   url: string | null
+  host: string | null
   title: string | null
   description: string | null
   created_by: string | null
+  updated_by: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -50,9 +54,11 @@ export type BookmarkCountAggregateOutputType = {
   id: number
   tenant_id: number
   url: number
+  host: number
   title: number
   description: number
   created_by: number
+  updated_by: number
   created_at: number
   updated_at: number
   _all: number
@@ -63,9 +69,11 @@ export type BookmarkMinAggregateInputType = {
   id?: true
   tenant_id?: true
   url?: true
+  host?: true
   title?: true
   description?: true
   created_by?: true
+  updated_by?: true
   created_at?: true
   updated_at?: true
 }
@@ -74,9 +82,11 @@ export type BookmarkMaxAggregateInputType = {
   id?: true
   tenant_id?: true
   url?: true
+  host?: true
   title?: true
   description?: true
   created_by?: true
+  updated_by?: true
   created_at?: true
   updated_at?: true
 }
@@ -85,9 +95,11 @@ export type BookmarkCountAggregateInputType = {
   id?: true
   tenant_id?: true
   url?: true
+  host?: true
   title?: true
   description?: true
   created_by?: true
+  updated_by?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -169,9 +181,11 @@ export type BookmarkGroupByOutputType = {
   id: string
   tenant_id: string
   url: string
+  host: string
   title: string
   description: string
   created_by: string
+  updated_by: string | null
   created_at: Date
   updated_at: Date
   _count: BookmarkCountAggregateOutputType | null
@@ -201,9 +215,11 @@ export type BookmarkWhereInput = {
   id?: Prisma.StringFilter<"Bookmark"> | string
   tenant_id?: Prisma.StringFilter<"Bookmark"> | string
   url?: Prisma.StringFilter<"Bookmark"> | string
+  host?: Prisma.StringFilter<"Bookmark"> | string
   title?: Prisma.StringFilter<"Bookmark"> | string
   description?: Prisma.StringFilter<"Bookmark"> | string
   created_by?: Prisma.StringFilter<"Bookmark"> | string
+  updated_by?: Prisma.StringNullableFilter<"Bookmark"> | string | null
   created_at?: Prisma.DateTimeFilter<"Bookmark"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Bookmark"> | Date | string
 }
@@ -212,9 +228,11 @@ export type BookmarkOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
   url?: Prisma.SortOrder
+  host?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
+  updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -226,9 +244,11 @@ export type BookmarkWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.BookmarkWhereInput | Prisma.BookmarkWhereInput[]
   tenant_id?: Prisma.StringFilter<"Bookmark"> | string
   url?: Prisma.StringFilter<"Bookmark"> | string
+  host?: Prisma.StringFilter<"Bookmark"> | string
   title?: Prisma.StringFilter<"Bookmark"> | string
   description?: Prisma.StringFilter<"Bookmark"> | string
   created_by?: Prisma.StringFilter<"Bookmark"> | string
+  updated_by?: Prisma.StringNullableFilter<"Bookmark"> | string | null
   created_at?: Prisma.DateTimeFilter<"Bookmark"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Bookmark"> | Date | string
 }, "id">
@@ -237,9 +257,11 @@ export type BookmarkOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
   url?: Prisma.SortOrder
+  host?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
+  updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.BookmarkCountOrderByAggregateInput
@@ -254,9 +276,11 @@ export type BookmarkScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Bookmark"> | string
   tenant_id?: Prisma.StringWithAggregatesFilter<"Bookmark"> | string
   url?: Prisma.StringWithAggregatesFilter<"Bookmark"> | string
+  host?: Prisma.StringWithAggregatesFilter<"Bookmark"> | string
   title?: Prisma.StringWithAggregatesFilter<"Bookmark"> | string
   description?: Prisma.StringWithAggregatesFilter<"Bookmark"> | string
   created_by?: Prisma.StringWithAggregatesFilter<"Bookmark"> | string
+  updated_by?: Prisma.StringNullableWithAggregatesFilter<"Bookmark"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Bookmark"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Bookmark"> | Date | string
 }
@@ -265,9 +289,11 @@ export type BookmarkCreateInput = {
   id?: string
   tenant_id: string
   url: string
+  host?: string
   title: string
   description?: string
   created_by: string
+  updated_by?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -276,9 +302,11 @@ export type BookmarkUncheckedCreateInput = {
   id?: string
   tenant_id: string
   url: string
+  host?: string
   title: string
   description?: string
   created_by: string
+  updated_by?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -287,9 +315,11 @@ export type BookmarkUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   url?: Prisma.StringFieldUpdateOperationsInput | string
+  host?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -298,9 +328,11 @@ export type BookmarkUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   url?: Prisma.StringFieldUpdateOperationsInput | string
+  host?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -309,9 +341,11 @@ export type BookmarkCreateManyInput = {
   id?: string
   tenant_id: string
   url: string
+  host?: string
   title: string
   description?: string
   created_by: string
+  updated_by?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -320,9 +354,11 @@ export type BookmarkUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   url?: Prisma.StringFieldUpdateOperationsInput | string
+  host?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -331,9 +367,11 @@ export type BookmarkUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   url?: Prisma.StringFieldUpdateOperationsInput | string
+  host?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -342,9 +380,11 @@ export type BookmarkCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
   url?: Prisma.SortOrder
+  host?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
+  updated_by?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -353,9 +393,11 @@ export type BookmarkMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
   url?: Prisma.SortOrder
+  host?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
+  updated_by?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -364,9 +406,11 @@ export type BookmarkMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
   url?: Prisma.SortOrder
+  host?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
+  updated_by?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -377,9 +421,11 @@ export type BookmarkSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   id?: boolean
   tenant_id?: boolean
   url?: boolean
+  host?: boolean
   title?: boolean
   description?: boolean
   created_by?: boolean
+  updated_by?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["bookmark"]>
@@ -388,9 +434,11 @@ export type BookmarkSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   id?: boolean
   tenant_id?: boolean
   url?: boolean
+  host?: boolean
   title?: boolean
   description?: boolean
   created_by?: boolean
+  updated_by?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["bookmark"]>
@@ -399,9 +447,11 @@ export type BookmarkSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   id?: boolean
   tenant_id?: boolean
   url?: boolean
+  host?: boolean
   title?: boolean
   description?: boolean
   created_by?: boolean
+  updated_by?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["bookmark"]>
@@ -410,14 +460,16 @@ export type BookmarkSelectScalar = {
   id?: boolean
   tenant_id?: boolean
   url?: boolean
+  host?: boolean
   title?: boolean
   description?: boolean
   created_by?: boolean
+  updated_by?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type BookmarkOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "url" | "title" | "description" | "created_by" | "created_at" | "updated_at", ExtArgs["result"]["bookmark"]>
+export type BookmarkOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "url" | "host" | "title" | "description" | "created_by" | "updated_by" | "created_at" | "updated_at", ExtArgs["result"]["bookmark"]>
 
 export type $BookmarkPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Bookmark"
@@ -426,9 +478,14 @@ export type $BookmarkPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     id: string
     tenant_id: string
     url: string
+    /**
+     * * URL 的主机名（去 www.），列表按站点筛选与卡片展示都用它，避免每次现算。
+     */
+    host: string
     title: string
     description: string
     created_by: string
+    updated_by: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["bookmark"]>
@@ -857,9 +914,11 @@ export interface BookmarkFieldRefs {
   readonly id: Prisma.FieldRef<"Bookmark", 'String'>
   readonly tenant_id: Prisma.FieldRef<"Bookmark", 'String'>
   readonly url: Prisma.FieldRef<"Bookmark", 'String'>
+  readonly host: Prisma.FieldRef<"Bookmark", 'String'>
   readonly title: Prisma.FieldRef<"Bookmark", 'String'>
   readonly description: Prisma.FieldRef<"Bookmark", 'String'>
   readonly created_by: Prisma.FieldRef<"Bookmark", 'String'>
+  readonly updated_by: Prisma.FieldRef<"Bookmark", 'String'>
   readonly created_at: Prisma.FieldRef<"Bookmark", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Bookmark", 'DateTime'>
 }

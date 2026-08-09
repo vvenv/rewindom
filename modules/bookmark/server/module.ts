@@ -1,7 +1,6 @@
 import {
   registerTenantGatedRoutes,
   type ServerAppModule,
-  type ServerI18nBundle,
 } from "@be-water/module-sdk/server";
 
 import { BOOKMARK_ENTITLEMENT } from "../shared/entitlements.js";
@@ -39,17 +38,11 @@ export const bookmarkServerModule: ServerAppModule = {
     ],
   },
   server: {
-    i18n: BOOKMARK_SERVER_I18N as ServerI18nBundle,
+    i18n: BOOKMARK_SERVER_I18N,
     registerRoutes: async (app) => {
-      await registerTenantGatedRoutes(
-        app,
-        "bookmark",
-        async (scoped) => {
-          await scoped.register(bookmarkRoutes, {
-            prefix: "/api/bookmarks",
-          });
-        },
-      );
+      await registerTenantGatedRoutes(app, "bookmark", async (scoped) => {
+        await scoped.register(bookmarkRoutes, { prefix: "/api/bookmarks" });
+      });
     },
   },
 };

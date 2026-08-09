@@ -3159,9 +3159,11 @@ export const BookmarkScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
   url: 'url',
+  host: 'host',
   title: 'title',
   description: 'description',
   created_by: 'created_by',
+  updated_by: 'updated_by',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

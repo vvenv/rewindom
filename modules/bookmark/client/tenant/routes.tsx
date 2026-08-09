@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Route } from "react-router";
 
 const Bookmarks = lazy(() =>
-  import("./pages/bookmarks.js").then((module) => ({
+  import("../pages/bookmarks.js").then((module) => ({
     default: module.Bookmarks,
   })),
 );

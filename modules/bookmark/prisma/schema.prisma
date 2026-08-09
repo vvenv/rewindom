@@ -5,11 +5,16 @@ model Bookmark {
   id          String   @id @default(uuid())
   tenant_id   String
   url         String
+  /** URL 的主机名（去 www.），列表按站点筛选与卡片展示都用它，避免每次现算。 */
+  host        String   @default("")
   title       String
-  description String    @default("")
+  description String   @default("")
   created_by  String
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  updated_by  String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   @@index([tenant_id])
+  // 默认排序是 updated_at desc，单列 tenant_id 索引挡不住排序开销。
+  @@index([tenant_id, updated_at])
 }

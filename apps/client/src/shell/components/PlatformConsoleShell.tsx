@@ -1,11 +1,11 @@
 import { useMemo, type ReactNode } from "react";
 
+import { PlatformLayout } from "@be-water/builtin/platform/client/components/PlatformLayout.js";
 import {
   NavBadgeRegistryProvider,
   PlatformNavProvider,
   usePublicConfig,
 } from "@be-water/client-kit";
-import { PlatformLayout } from "@be-water/builtin/platform/client/components/PlatformLayout.js";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";
 import { filterPlatformNavForSingleTenant } from "../lib/filter-platform-nav-single-tenant.js";
