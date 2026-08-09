@@ -6,6 +6,11 @@ import {
   parseAreaSections,
   type SiteSection,
 } from "../../../shared/section-schema.js";
+import {
+  defaultMainMenu,
+  MAIN_MENU_KEY,
+  type SiteMenu,
+} from "../../../shared/site-menu.js";
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
 import { SiteHeader } from "./SiteChrome.js";
@@ -43,7 +48,7 @@ const pages = [
 
 function renderHeader(
   section: SiteSection,
-  options: { withSlot?: boolean } = {},
+  options: { withSlot?: boolean; menus?: readonly SiteMenu[] } = {},
 ) {
   const header = (
     <SiteHeader
@@ -53,6 +58,7 @@ function renderHeader(
       pages={pages}
       alternates={alternates}
       locale="zh-CN"
+      menus={options.menus ?? [defaultMainMenu()]}
     />
   );
   return render(
@@ -75,20 +81,22 @@ describe("SiteHeader 显示项开关", () => {
    */
   it("默认只露站点导航，语言与明暗要显式打开", () => {
     const settings = headerSection().settings;
-    expect(settings.show_site_nav).toBe(true);
+    expect(settings.menu).toBe(MAIN_MENU_KEY);
     expect(settings.show_locale_switcher).toBe(false);
     expect(settings.show_theme_toggle).toBe(false);
     expect(settings.show_account).toBe(true);
 
     renderHeader(headerSection());
-    expect(screen.getAllByRole("link", { name: "文档" }).length).toBeGreaterThan(
-      0,
-    );
+    expect(
+      screen.getAllByRole("link", { name: "文档" }).length,
+    ).toBeGreaterThan(0);
     expect(screen.queryByRole("navigation", { name: "Language" })).toBeNull();
   });
 
-  it("站点导航开关控制一级页进不进顶栏", () => {
-    renderHeader(headerSection({ show_site_nav: false }));
+  it("menu 指向空菜单时顶栏不列一级页", () => {
+    renderHeader(headerSection(), {
+      menus: [{ key: "main", title: "", items: [] }],
+    });
     expect(screen.queryByRole("link", { name: "文档" })).toBeNull();
   });
 
@@ -144,7 +152,10 @@ describe("SiteHeader 账户入口", () => {
 
   it("站长自己配的次按钮照常渲染", () => {
     renderHeader(
-      headerSection({ secondary_label: "联系我们", secondary_href: "/contact" }),
+      headerSection({
+        secondary_label: "联系我们",
+        secondary_href: "/contact",
+      }),
     );
     expect(screen.getByRole("link", { name: "联系我们" })).toHaveAttribute(
       "href",

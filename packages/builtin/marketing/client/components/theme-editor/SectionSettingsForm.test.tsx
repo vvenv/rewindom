@@ -1,4 +1,8 @@
 import { render, screen } from "@testing-library/react";
+import {
+  createQueryWrapper,
+  createTestQueryClient,
+} from "@be-water/client-test";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -7,6 +11,8 @@ import {
 } from "../../../shared/section-schema.js";
 
 import { SectionSettingsForm } from "./SectionSettingsForm.js";
+
+const wrapper = createQueryWrapper(createTestQueryClient());
 
 function renderForm(type: PageSectionType) {
   return render(
@@ -17,6 +23,7 @@ function renderForm(type: PageSectionType) {
       onChangeSettings={vi.fn()}
       onChangeBlockSettings={vi.fn()}
     />,
+    { wrapper },
   );
 }
 
@@ -51,6 +58,7 @@ describe("SectionSettingsForm 未开通的能力", () => {
         onChangeSettings={vi.fn()}
         onChangeBlockSettings={vi.fn()}
       />,
+      { wrapper },
     );
     return screen.getByRole("checkbox", { name: /账户入口/u });
   }

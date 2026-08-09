@@ -1,4 +1,5 @@
 import {
+  Fragment,
   type CSSProperties,
   type ReactElement,
   useEffect,
@@ -8,12 +9,16 @@ import {
 import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
 import { Link } from "react-router";
 
+
+import {
+  docMessages,
+  DOCS_INDEX_PATH, type PublicDocSummary 
+} from "../../../shared/marketing-doc.js";
 import {
   resolveSurfaceStyle,
   settingBool,
   settingText,
   surfaceStyleCss,
-  type SiteBlock,
   type SiteSection,
 } from "../../../shared/section-schema.js";
 import { themeToggleTitle } from "../../../shared/sections/header/messages.js";
@@ -22,10 +27,20 @@ import {
   type PageLocaleAlternate,
   type PublicSitePage,
 } from "../../../shared/site-cms.js";
+import { withSiteLocale } from "../../../shared/site-locale.js";
+import {
+  findSiteMenu,
+  resolveSiteMenu,
+  resolveSiteMenuTitle,
+  type ResolvedMenuItem,
+  type SiteMenu,
+  type SiteMenuContext,
+} from "../../../shared/site-menu.js";
 import { useSiteColorMode } from "../../hooks/use-marketing-site-document-theme.js";
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
 import { SiteLink } from "./SiteLink.js";
+
 
 const LOCALE_SWITCHER_ICON = (
   <svg
@@ -100,21 +115,134 @@ function SiteMemberEntry(): ReactElement | null {
   return Entry ? <Entry /> : null;
 }
 
-/** 页脚 blocks 按 `group` 聚成列；无 group 的归到一个匿名列。 */
-function groupFooterLinks(
-  blocks: SiteBlock[],
-): Array<{ group: string; links: SiteBlock[] }> {
-  const groups: Array<{ group: string; links: SiteBlock[] }> = [];
-  for (const block of blocks) {
-    const group = settingText(block.settings, "group").trim();
-    const existing = groups.find((item) => item.group === group);
-    if (existing) {
-      existing.links.push(block);
-    } else {
-      groups.push({ group, links: [block] });
+/**
+ * 页头的一条导航项：有子项就是下拉，没有就是普通链接。
+ *
+ * 与 SSR 的 `renderNavItemHtml` 同构，同样用原生 `<details>`——两端画出来的 DOM
+ * 结构一致，同一份 CSS 才管得住两边。
+ */
+function NavMenuItem({ item }: { item: ResolvedMenuItem }): ReactElement | null {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent): void {
+      const details = detailsRef.current;
+      if (!details?.open) return;
+      const target = event.target;
+      if (target instanceof Node && details.contains(target)) return;
+      details.open = false;
     }
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
+
+  if (item.children.length === 0) {
+    if (!item.href) return null;
+    return (
+      <SiteLink href={item.href} aria-current={item.current ? "page" : undefined}>
+        {item.label}
+      </SiteLink>
+    );
   }
-  return groups;
+
+  return (
+    <details ref={detailsRef} className="nav-menu">
+      <summary aria-current={item.current ? "page" : undefined}>
+        {item.label}
+      </summary>
+      <nav className="nav-menu-panel">
+        {item.children.map((child) =>
+          child.children.length > 0 ? (
+            <Fragment key={child.key}>
+              <p className="nav-menu-group">{child.label}</p>
+              {child.children.map((leaf) => (
+                <NavMenuLeaf key={leaf.key} item={leaf} />
+              ))}
+            </Fragment>
+          ) : (
+            <NavMenuLeaf key={child.key} item={child} />
+          ),
+        )}
+      </nav>
+    </details>
+  );
+}
+
+function NavMenuLeaf({ item }: { item: ResolvedMenuItem }): ReactElement {
+  if (!item.href) return <span>{item.label}</span>;
+  return (
+    <SiteLink href={item.href} aria-current={item.current ? "page" : undefined}>
+      {item.label}
+    </SiteLink>
+  );
+}
+
+const SEARCH_ICON = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+);
+
+/**
+ * 页头的文档搜索入口，与 SSR 的 `renderDocSearchHtml` 同构。
+ *
+ * 就是一个提交到文档索引的 `<form>`：没有 JS 也跳得过去，文档索引那边认 `?q=`。
+ */
+function DocSearchForm({
+  locale,
+  defaultLocale,
+}: {
+  locale?: string;
+  defaultLocale?: string;
+}): ReactElement {
+  const resolved = (locale ?? defaultLocale ?? "zh-CN") as AppLocale;
+  const label = docMessages(resolved).search;
+  const action =
+    locale && defaultLocale
+      ? withSiteLocale(
+          DOCS_INDEX_PATH,
+          locale as AppLocale,
+          defaultLocale as AppLocale,
+        )
+      : DOCS_INDEX_PATH;
+  return (
+    <form className="header-search" role="search" method="get" action={action}>
+      {SEARCH_ICON}
+      <input type="search" name="q" placeholder={label} aria-label={label} />
+    </form>
+  );
+}
+
+/** 页脚的一条链接；子项（文档分类那层）缩进列在下面。 */
+function FooterMenuItem({ item }: { item: ResolvedMenuItem }): ReactElement {
+  return (
+    <li>
+      {item.href ? (
+        <SiteLink href={item.href}>{item.label}</SiteLink>
+      ) : (
+        <span className="footer-group">{item.label}</span>
+      )}
+      {item.children.length > 0 ? (
+        <ul className="footer-sublist">
+          {item.children.map((child) => (
+            <FooterMenuItem key={child.key} item={child} />
+          ))}
+        </ul>
+      ) : null}
+    </li>
+  );
 }
 
 /**
@@ -234,36 +362,38 @@ function selectable(onSelect: ((blockId: string | null) => void) | undefined) {
   };
 }
 
-/** 页头导航链接：全站一级页 + 自定义 `nav_link` 块。 */
-function headerNavLinks(
-  section: SiteSection,
-  pages: PublicSitePage[],
-): Array<{ key: string; href: string; label: string; blockId?: string }> {
-  const links: Array<{
-    key: string;
-    href: string;
-    label: string;
-    blockId?: string;
-  }> = [];
-  if (settingBool(section.settings, "show_site_nav")) {
-    for (const page of siteNavPages(pages)) {
-      // 自动条目来自已发布的一级页，不是 block——编辑器里点它没有可改的设置
-      links.push({
-        key: `page:${page.path}`,
-        href: page.path,
-        label: page.title,
-      });
-    }
-  }
-  for (const block of section.blocks) {
-    links.push({
-      key: block.id,
-      blockId: block.id,
-      href: settingText(block.settings, "href"),
-      label: settingText(block.settings, "label"),
-    });
-  }
-  return links;
+/** 展开菜单要的内容快照；页头页脚共用。 */
+function chromeMenuContext(input: {
+  pages?: PublicSitePage[];
+  docs?: readonly PublicDocSummary[];
+  currentPath?: string;
+  locale?: string;
+  defaultLocale?: string;
+}): SiteMenuContext {
+  const defaultLocale = (input.defaultLocale ?? "zh-CN") as AppLocale;
+  return {
+    navPages: siteNavPages(input.pages ?? []),
+    docs: input.docs,
+    locale: (input.locale as AppLocale | undefined) ?? defaultLocale,
+    defaultLocale,
+    currentPath: input.currentPath ?? "",
+  };
+}
+
+/** 页头 / 页脚共有的菜单数据源。 */
+interface ChromeMenuProps {
+  /** 站点菜单表；按 `menu` 设置里的 key 取。 */
+  menus?: readonly SiteMenu[];
+  /** 全站导航（一级页）的数据源。 */
+  pages?: PublicSitePage[];
+  /** 已发布文档目录（菜单里的文档动态项吃它）。 */
+  docs?: readonly PublicDocSummary[];
+  /** 站里有没有已发布文档；页头搜索入口据此决定渲不渲染（见 SSR 侧同名参数）。 */
+  hasDocs?: boolean;
+  /** 当前逻辑路径，用于 `aria-current`。 */
+  currentPath?: string;
+  locale?: string;
+  defaultLocale?: string;
 }
 
 export function SiteHeader({
@@ -271,19 +401,19 @@ export function SiteHeader({
   siteName,
   logoUrl,
   onSelect,
+  menus = [],
   pages = [],
+  docs,
+  hasDocs,
   currentPath,
   alternates = [],
   locale,
-}: ChromeProps & {
-  /** 全站导航（一级页）的数据源；未传时开关打开也不渲染自动条目。 */
-  pages?: PublicSitePage[];
-  /** 当前逻辑路径，用于 `aria-current`。 */
-  currentPath?: string;
-  /** 本页各语言入口（语言切换器的候选）。 */
-  alternates?: PageLocaleAlternate[];
-  locale?: string;
-}): ReactElement {
+  defaultLocale,
+}: ChromeProps &
+  ChromeMenuProps & {
+    /** 本页各语言入口（语言切换器的候选）。 */
+    alternates?: PageLocaleAlternate[];
+  }): ReactElement {
   const s = section.settings;
   const secondaryLabel = settingText(s, "secondary_label");
   const secondaryHref = settingText(s, "secondary_href");
@@ -292,7 +422,10 @@ export function SiteHeader({
   const layout = settingText(s, "layout") || "split";
   const centered = layout === "centered";
   const select = selectable(onSelect);
-  const navLinks = headerNavLinks(section, pages);
+  const navItems = resolveSiteMenu(
+    findSiteMenu(menus, settingText(s, "menu")),
+    chromeMenuContext({ pages, docs, currentPath, locale, defaultLocale }),
+  );
   const surface = resolveSurfaceStyle(s);
   const surfaceCss = {
     ...surfaceStyleCss(surface),
@@ -327,19 +460,17 @@ export function SiteHeader({
         </SiteLink>
 
         <nav className="header-nav">
-          {navLinks.map((link) => (
-            <SiteLink
-              key={link.key}
-              href={link.href}
-              blockId={link.blockId}
-              aria-current={currentPath === link.href ? "page" : undefined}
-            >
-              {link.label}
-            </SiteLink>
+          {navItems.map((item) => (
+            <NavMenuItem key={item.key} item={item} />
           ))}
         </nav>
 
         <div className="header-actions">
+          {/* 一篇已发布文档都没有时不渲染：搜不出东西的搜索框比没有更糟 */}
+          {settingBool(s, "show_doc_search") &&
+          (hasDocs ?? (docs?.length ?? 0) > 0) ? (
+            <DocSearchForm locale={locale} defaultLocale={defaultLocale} />
+          ) : null}
           {settingBool(s, "show_locale_switcher") ? (
             <LocaleSwitcher alternates={alternates} current={locale ?? ""} />
           ) : null}
@@ -363,17 +494,10 @@ export function SiteHeader({
         </div>
       </div>
 
-      {navLinks.length > 0 ? (
+      {navItems.length > 0 ? (
         <nav className="header-mobile-nav wrap">
-          {navLinks.map((link) => (
-            <SiteLink
-              key={link.key}
-              href={link.href}
-              blockId={link.blockId}
-              aria-current={currentPath === link.href ? "page" : undefined}
-            >
-              {link.label}
-            </SiteLink>
+          {navItems.map((item) => (
+            <NavMenuItem key={item.key} item={item} />
           ))}
         </nav>
       ) : null}
@@ -386,12 +510,42 @@ export function SiteFooter({
   siteName,
   logoUrl,
   onSelect,
-}: ChromeProps): ReactElement {
+  menus = [],
+  pages = [],
+  docs,
+  currentPath,
+  locale,
+  defaultLocale,
+}: ChromeProps & ChromeMenuProps): ReactElement {
   const s = section.settings;
   const blurb = settingText(s, "blurb");
   const copyright =
     settingText(s, "copyright") || `© ${new Date().getFullYear()} ${siteName}`;
-  const groups = groupFooterLinks(section.blocks);
+  const ctx = chromeMenuContext({
+    pages,
+    docs,
+    currentPath,
+    locale,
+    defaultLocale,
+  });
+  const columns = section.blocks
+    .map((block) => {
+      const menu = findSiteMenu(menus, settingText(block.settings, "menu"));
+      return {
+        blockId: block.id,
+        title:
+          settingText(block.settings, "title") ||
+          resolveSiteMenuTitle(menu, ctx),
+        items: resolveSiteMenu(menu, ctx),
+      };
+    })
+    /*
+     * 展不出内容的列整列不画（菜单被删、或里面只有一条还没写文档的动态项）。
+     *
+     * 编辑器里例外：那边正在配置，画一个空列比让它凭空消失好——列没了就点不中，
+     * 也就没法给它选菜单。
+     */
+    .filter((column) => onSelect !== undefined || column.items.length > 0);
   const select = selectable(onSelect);
   const surface = resolveSurfaceStyle(s);
   const surfaceCss = {
@@ -417,19 +571,12 @@ export function SiteFooter({
           {blurb ? <p className="muted">{blurb}</p> : null}
         </div>
 
-        {groups.map((group, index) => (
-          <nav key={group.group || `group-${index}`}>
-            {group.group ? <h2>{group.group}</h2> : null}
+        {columns.map((column) => (
+          <nav key={column.blockId} data-block-id={column.blockId}>
+            {column.title ? <h2>{column.title}</h2> : null}
             <ul>
-              {group.links.map((block) => (
-                <li key={block.id}>
-                  <SiteLink
-                    href={settingText(block.settings, "href")}
-                    blockId={block.id}
-                  >
-                    {settingText(block.settings, "label")}
-                  </SiteLink>
-                </li>
+              {column.items.map((item) => (
+                <FooterMenuItem key={item.key} item={item} />
               ))}
             </ul>
           </nav>

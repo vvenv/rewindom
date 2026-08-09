@@ -98,8 +98,31 @@ describe("doc-list", () => {
       { show_description: false, show_updated: true },
       { docs: DOCS },
     );
-    expect(html).not.toContain("五分钟装好");
+    /*
+     * 断的是**渲染出来的那一段**，不是「原文有没有出现在 HTML 里」。
+     *
+     * 摘要另外还会进每条 `<li>` 的 `data-doc-search`（公开站的搜索靠它过滤），
+     * 而搜索该不该匹配摘要与「列表上显不显示摘要」是两件事——客户端的
+     * `matchesDocSearch` 也一直是无条件匹配摘要的。
+     */
+    expect(html).not.toContain(`<span class="muted">五分钟装好</span>`);
     expect(html).toContain("更新于");
+  });
+
+  /*
+   * 段内不再自带搜索框：唯一入口收到了页头（`show_doc_search`）。以前两个框会
+   * 同时出现在文档索引上，做的还是同一件事。
+   */
+  it("不再渲染段内搜索框", () => {
+    const html = render("doc-list", {}, { docs: DOCS });
+    expect(html).not.toContain("doc-list-search");
+    expect(html).not.toContain(`placeholder="搜索文档"`);
+  });
+
+  // 页头搜索跳过来的 `?q=` 靠这个属性过滤，缺了等于搜索整个失灵
+  it("每条都带可搜索文本，供页头搜索落地时过滤", () => {
+    const html = render("doc-list", {}, { docs: DOCS });
+    expect(html).toContain(`data-doc-search="安装 install 五分钟装好 入门"`);
   });
 });
 

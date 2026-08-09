@@ -8,7 +8,14 @@
   gap: 2rem;
   padding-top: 3rem;
   padding-bottom: 3rem;
-  grid-template-columns: 1.4fr repeat(3, 1fr);
+  /*
+   * 品牌列固定占宽，链接列有几个排几个。
+   *
+   * 原来写死 `repeat(3, 1fr)`——那时页脚的列是按自由文本 `group` 现分出来的，
+   * 三个是拍脑袋的常见值：分出两组会空一格，分出四组会挤成两行还各自宽度不一。
+   * 现在一列就是一个 `menu_column` 块，数量是租户明确加出来的，让轨道跟着走。
+   */
+  grid-template-columns: 1.4fr repeat(auto-fit, minmax(7rem, 1fr));
 }
 .footer-grid h2 {
   font-size: 0.75rem;
@@ -24,6 +31,23 @@
 }
 .footer-grid a {
   color: var(--muted-fg);
+}
+/* 文档分类那一层：列内的小标题，不可点 */
+.footer-group {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-fg);
+  opacity: 0.75;
+}
+.footer-sublist {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--border);
 }
 .footer-legal {
   position: relative;

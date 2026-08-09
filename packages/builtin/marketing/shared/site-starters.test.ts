@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { PAGE_PRESETS } from "./page-presets.js";
+import { MAIN_MENU_KEY } from "./site-menu.js";
 import {
   buildSiteStarter,
   buildSiteStarterChrome,
@@ -19,7 +20,7 @@ describe("buildSiteStarterChrome", () => {
 
     expect(chrome.header).toHaveLength(1);
     expect(chrome.header[0]?.type).toBe("header");
-    expect(chrome.header[0]?.settings.show_site_nav).toBe(true);
+    expect(chrome.header[0]?.settings.menu).toBe(MAIN_MENU_KEY);
     expect(chrome.header[0]?.blocks).toEqual([]);
     expect(chrome.footer).toHaveLength(1);
     expect(chrome.footer[0]?.type).toBe("footer");

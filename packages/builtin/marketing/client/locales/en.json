@@ -400,6 +400,7 @@
       "page": "Page",
       "headerItems": "Header items",
       "form": "Form",
+      "validation": "Validation",
       "seo": "Search & sharing"
     },
     "info": {
@@ -407,13 +408,11 @@
       "one_per_line": "One per line.",
       "code": "Rendered as monospace code, e.g. a shell command.",
       "footer_blurb": "One-line blurb under the brand.",
-      "footer_group": "Links sharing a group name form one column; leave empty to hide the column heading.",
       "copyright": "Leave empty to auto-generate “© year site name”.",
       "padding": "Desktop value; scaled down on narrow screens",
       "anchor": "Leave blank for none. With \"pricing\", link here via /#pricing",
       "content_width": "Full bleed + unconstrained gives edge-to-edge media; colored bands usually keep content at page width.",
       "spacing": "Distance to the neighbouring section; “Inherit” follows the site-wide section spacing.",
-      "show_site_nav": "Lists published top-level pages (not nested under another page). Custom nav links below still appear after them.",
       "doc_category_filter": "Enter a category exactly as used on the documents; leave empty to list all.",
       "doc_limit": "0 means no limit. Use it for a \"latest docs\" block on the home page.",
       "doc_show_meta": "Category tag and last-updated date.",
@@ -440,9 +439,15 @@
       "success_message": "Leave empty to show just a checkmark.",
       "field_options": "One per line; used by “Dropdown” only.",
       "field_wide": "Narrow screens are always single column; this affects desktop only.",
+      "field_pattern": "Used only when the rule is “Custom regex”. No // delimiters needed.",
+      "field_min_length": "0 means no minimum.",
+      "field_max_length": "0 means follow the default (200 single-line / 4000 long text).",
       "og_image": "Shown when the page is shared on social platforms. Falls back to the site default; 1200×630 recommended.",
       "noindex": "The page stays reachable — it just won't appear in search results or the sitemap.",
-      "site_og_image": "Used by every page without its own. Avoid reusing the logo — square images get cropped in share cards."
+      "site_og_image": "Used by every page without its own. Avoid reusing the logo — square images get cropped in share cards.",
+      "header_menu": "Which menu the header lists. Edit menus under “Manage menus” — the footer can point at the same one instead of repeating it.",
+      "column_title": "Leave empty to use the menu’s own name.",
+      "show_doc_search": "Puts a search box in the header that jumps to the doc index filtered by the term. It is the only doc search entry point; hidden until the site has published docs."
     },
     "unit": {
       "columns": "cols",
@@ -457,7 +462,6 @@
       "subheading": "Section description",
       "body": "Body",
       "body_md": "Body (Markdown)",
-      "doc_slug": "Document",
       "doc_group_by": "Group by",
       "doc_list_style": "Display style",
       "doc_category_filter": "Only one category",
@@ -484,7 +488,6 @@
       "page_menu_style": "Display style",
       "href": "Link",
       "label": "Label",
-      "group": "Group",
       "primary_label": "Primary button label",
       "primary_href": "Primary button href",
       "secondary_label": "Secondary button label",
@@ -512,7 +515,6 @@
       "show_glow": "Show glow backdrop",
       "show_logo": "Show logo",
       "show_site_name": "Show site name",
-      "show_site_nav": "Show site navigation",
       "sticky": "Stick to top on scroll",
       "header_layout": "Navigation layout",
       "blurb": "Blurb",
@@ -546,9 +548,17 @@
       "field_required": "Required",
       "field_options": "Options",
       "field_wide": "Full width",
+      "field_validation": "Validation rule",
+      "field_pattern": "Custom regex",
+      "field_min_length": "Min length",
+      "field_max_length": "Max length",
       "og_image": "Share image",
       "noindex": "Hide from search engines",
-      "site_og_image": "Default share image"
+      "site_og_image": "Default share image",
+      "header_menu": "Navigation menu",
+      "menu": "Menu",
+      "column_title": "Column heading",
+      "show_doc_search": "Show doc search"
     },
     "option": {
       "align": {
@@ -631,7 +641,16 @@
       "field_type.tel": "Phone",
       "field_type.textarea": "Long text",
       "field_type.select": "Dropdown",
-      "field_type.checkbox": "Checkbox"
+      "field_type.checkbox": "Checkbox",
+      "validation.none": "None",
+      "validation.email": "Email",
+      "validation.tel": "Phone",
+      "validation.url": "URL",
+      "validation.number": "Number",
+      "validation.integer": "Integer",
+      "validation.id_card": "ID card",
+      "validation.postal_code": "Postal code",
+      "validation.regex": "Custom regex"
     },
     "font": {
       "system": "System sans",
@@ -650,7 +669,6 @@
       "pricing": "Pricing",
       "faq": "FAQ",
       "prose": "Rich text",
-      "doc-source": "Platform doc",
       "doc-list": "Doc list",
       "doc-article": "Doc body",
       "doc-nav": "Doc navigation",
@@ -670,9 +688,8 @@
       "row": "Row",
       "plan": "Plan",
       "qa": "Q&A",
-      "nav_link": "Nav link",
-      "footer_link": "Footer link",
-      "field": "Field"
+      "field": "Field",
+      "menu_column": "Menu column"
     },
     "tabContent": "Content",
     "tabLayout": "Layout",
@@ -731,7 +748,36 @@
     "toastReverted": "Reset to the live version",
     "toastPublished": "Published — visitors can see it now",
     "toastPublishFailed": "Publish failed. Please try again.",
-    "accountEntryUnavailable": "Memberships are not enabled for this site, so the header shows no account entry. Turn it on once enabled."
+    "accountEntryUnavailable": "Memberships are not enabled for this site, so the header shows no account entry. Turn it on once enabled.",
+    "menuPick": "Pick a menu…",
+    "menuMissing": "Menu deleted ({{key}})",
+    "menuManage": "Manage menus",
+    "menuManageHint": "Every navigation menu on this site. Header and footer each point at one, so a link is edited in exactly one place.",
+    "menuAdd": "New menu",
+    "menuNewTitle": "New menu",
+    "menuTitle": "Menu name",
+    "menuTitleHint": "The footer uses it as the column heading. Key: {{key}}",
+    "menuRemove": "Delete menu",
+    "menuItemAdd": "Add item",
+    "menuItemAddChild": "Add sub-item",
+    "menuItemRemove": "Remove item",
+    "menuItemLabel": "Label",
+    "menuItemCategory": "Doc category name",
+    "menuSource": {
+      "link": "Link",
+      "pages": "All top-level pages",
+      "docs": "Doc library",
+      "doc_category": "One doc category"
+    },
+    "menuSourceDefaultLabel": {
+      "pages": "(pages listed automatically)",
+      "docs": "Docs",
+      "doc_category": "(uses category name)"
+    },
+    "menuExpand": {
+      "children": "Collapse into a dropdown",
+      "flat": "List inline"
+    }
   },
   "seo": {
     "home": {

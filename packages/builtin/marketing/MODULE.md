@@ -28,7 +28,7 @@
 
 | 模型            | 说明                                                                                                                                           |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布**页头页脚，`nav_draft_json` / `footer_draft_json` 为编辑器草稿 |
+| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` / `menus_json` 为**已发布** chrome，同名 `_draft_json` 三列为编辑器草稿（三者同进同退，共用一个 `chrome_dirty`） |
 | `MarketingPage` | `kind`: `home` \| `page`；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退） |
 
 ### Section schema（唯一真相源）
@@ -37,7 +37,7 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 | 文件                  | 职责                                                                                                                                                    |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `section-settings.ts` | setting 的类型系统 + 解析（`text`/`textarea`/`richtext`/`list`/`url`/`image`/`select`/`icon`/`range`/`checkbox`/`color` + 排版用 `header`/`paragraph`） |
+| `section-settings.ts` | setting 的类型系统 + 解析（`text`/`textarea`/`richtext`/`list`/`link`/`menu`/`image`/`select`/`icon`/`range`/`checkbox`/`color` + 排版用 `header`/`paragraph`） |
 | `sections/`           | **一段一个目录**：`<type>/definition.ts` 是声明，`<type>/html.ts` 是 SSR 渲染；`sections/index.ts` 聚合成 `SECTION_DEFINITIONS`，`sections/html.ts` 聚合成渲染器表 |
 | `section-schema.ts`   | 按 schema 解析脏数据、按 schema 造默认值                                                                                                                |
 
@@ -52,23 +52,61 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 | type     | settings                                                                 | blocks                                                                |
 | -------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| `header` | show_logo, show_site_name, sticky, layout(split\|centered), **显示项四开关**（见下）, primary/secondary 按钮（都无默认值） | `nav_link`{label\*, href}，最多 8（自定义链接，排在一级页之后） |
-| `footer` | show_logo, blurb, copyright                                              | `footer_link`{group, label\*, href}，最多 24；同 `group` 的排进同一列 |
+| `header` | show_logo, show_site_name, sticky, layout(split\|centered), `menu`（选一个站点菜单）, **显示项三开关**（见下）, primary/secondary 按钮（都无默认值） | 无——导航内容整个来自 `menu` |
+| `footer` | show_logo, blurb, copyright                                              | `menu_column`{menu, title}，最多 6：**一列 = 一个菜单**，`title` 留空用菜单名 |
 
 页头 / 页脚区渲染时**不许再包一层 `<header>` / `<footer>`**：`SiteHeader` 自己就是
 `<header>`，外面套一层等高的祖先，`sticky` 就没有可粘的余量（sticky 只在包含块内部
 移动），「吸顶」开关等于失效——编辑器预览若再包一层等高祖先就会犯这个错。
 顺带也避免了嵌套 landmark。
 
-### 页头右侧的四个显示项
+### 站点导航菜单（`shared/site-menu.ts`）
 
-`show_site_nav` / `show_locale_switcher` / `show_theme_toggle` / `show_account` 合成一组
-「页头显示」，因为它们回答的是**同一个问题**：这枚入口露不露。能力本身另有出处，开关
-只管露不露，关掉不等于关掉能力：
+链接**只在菜单里配一次**，页头 / 页脚各自引用一个 key。以前页头有 `nav_link` 块、
+页脚有 `footer_link` 块（还靠自由文本 `group` 分列）、外加一个 `show_site_nav` 开关，
+三套 schema 说的是同一件事：同一批链接要在页头页脚各配一遍，改一次也要改两遍。
+
+存储：`MarketingSite.menus_json` / `menus_draft_json`（与 chrome 同进同退）。
+形状：`{ key, title, items[] }`，item 为 `{ id, source, label, href, category, expand, children[] }`。
+`main` 恒存在且不可删——页头的 `menu` 默认指向它。
+
+| `source`       | 展开成                                       |
+| -------------- | -------------------------------------------- |
+| `link`         | 一条链接；可带**一层** `children` 做子菜单   |
+| `pages`        | 全部已发布一级页面（取代 `show_site_nav`）   |
+| `docs`         | 文档库目录，按分类分组                       |
+| `doc_category` | 指定分类下的全部已发布文档                   |
+
+动态项的 `expand`：`children` 收成可展开的父项（页头下拉 / 页脚列里的小标题），
+`flat` 就地铺平与静态项混排。展不出内容时**整条不渲染**——还没写文档的站点，页头
+不该出现一个点开是空的「文档」下拉。
+
+渲染两端同构：SSR 在 `sections/header|footer/html.ts`，SPA 在 `components/sections/SiteChrome.tsx`，
+都用原生 `<details>` 画下拉（首屏即可点，不等 `site-enhance` 绑事件）。
+chrome 的文档数据需求分两档（`ssr.routes.ts` 的 `resolveChromeDocs`）：菜单里的文档
+动态项、`doc-*` 段要**整份目录**（`chromeNeedsDocList`）；页头搜索只要一个布尔值
+（`chromeShowsDocSearch` + `hasPublishedDocs`）。搜索默认开，算进前一档的话每个页面
+请求都会为一枚按钮拉一遍全库目录。漏掉任一档的后果都是**同一个页头在文档页有、在
+别的页上没有**——而文档页恰好总是带着这份数据，本地随手一看还挺正常。
+
+### 文档搜索
+
+**唯一入口是页头**（`header.show_doc_search`，默认开，站里没有已发布文档时不渲染）。
+它是一个 `<form method="get" action="/docs">`，没有 JS 也跳得过去；落地由
+`enhance/doc-search.ts` 接住：按每条 `<li>` 的 `data-doc-search`（SSR 用
+`docSearchHaystack` 写入）过滤，并在列表上方画一枚「筛选：xxx ✕」的标签。
+
+`doc-list` 段**不再自带搜索框**。它曾经有一个（`show_search`），于是文档索引上会
+同时出现两个一模一样的框——页头那个跳过来，落进段里那个。现在段只负责列。
+
+### 页头右侧的三个显示项
+
+`show_locale_switcher` / `show_theme_toggle` / `show_account` 合成一组「页头显示」，因为
+它们回答的是**同一个问题**：这枚入口露不露。能力本身另有出处，开关只管露不露，关掉
+不等于关掉能力：
 
 | 开关                    | 默认 | 能力由谁保证                                     |
 | ----------------------- | ---- | ------------------------------------------------ |
-| `show_site_nav`         | 开   | 已发布的一级页面                                 |
 | `show_locale_switcher`  | 关   | 本页 `alternates`——没译文时开了也不会露          |
 | `show_theme_toggle`     | 关   | 明暗内置且**永远跟随设备**；关掉只是不给手动按钮 |
 | `show_account`          | 开   | 租户是否开通会员（site-member）                  |
@@ -501,7 +539,7 @@ block 不跨层：它的 schema 属于所在 section，一个 `card` 换不到 `
 （如分栏段设置全在版式下），两组都没有则只显示一句提示。只剩分组抬头的一组算空组。
 
 保存一次写页面 sections 与页头页脚草稿：`PUT /api/site/pages/:id/draft`（`saveEditorDraft`，同事务）。
-页头页脚上线：`POST /api/site/chrome/publish`（将草稿列复制到 `nav_json` / `footer_json`）。
+页头页脚上线：`POST /api/site/chrome/publish`（将草稿列复制到 `nav_json` / `footer_json` / `menus_json`）。
 已发布页面正文上线：`POST /api/site/pages/:id/content/publish`（将草稿列复制到 `title` / `description` / `sections` / `settings`）。
 首次发布页面：`POST /api/site/pages/:id/publish`（`status` → `published` 并同步正文草稿）。
 

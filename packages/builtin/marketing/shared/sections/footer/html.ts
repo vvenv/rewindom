@@ -2,14 +2,48 @@
 
 import { escapeHtml } from "../../html.js";
 import { settingBool, settingText } from "../../section-schema.js";
+import { siteNavPages, type PublicSitePage } from "../../site-cms.js";
+import {
+  findSiteMenu,
+  resolveSiteMenu,
+  resolveSiteMenuTitle,
+  type ResolvedMenuItem,
+  type SiteMenu,
+  type SiteMenuContext,
+} from "../../site-menu.js";
 import { blockSurfaceAttr, linkAttrs } from "../_common/html.js";
 
-import type { SiteBlock, SiteSection } from "../types.js";
+import type { PublicDocSummary } from "../../marketing-doc.js";
+import type { SiteSection } from "../types.js";
+import type { AppLocale } from "@be-water/shared";
+
+/**
+ * 一条页脚链接。子项（文档分类那一层）缩进列在下面——页脚列本来就是竖着排的，
+ * 不像页头要收成下拉。
+ */
+function renderFooterItemHtml(item: ResolvedMenuItem): string {
+  const label = escapeHtml(item.label);
+  const self = item.href
+    ? `<a${linkAttrs(item.href)}>${label}</a>`
+    : `<span class="footer-group">${label}</span>`;
+  if (item.children.length === 0) return `<li>${self}</li>`;
+  return `<li>${self}<ul class="footer-sublist">${item.children
+    .map(renderFooterItemHtml)
+    .join("")}</ul></li>`;
+}
 
 export function renderFooterHtml(input: {
   section: SiteSection;
   siteName: string;
   logoUrl: string | null;
+  /** 站点菜单表；每个 `menu_column` 块按 key 取一个当一列。 */
+  menus?: readonly SiteMenu[];
+  /** 菜单动态项的数据源（同页头）。 */
+  pages?: PublicSitePage[];
+  docs?: readonly PublicDocSummary[];
+  currentPath?: string;
+  locale?: AppLocale;
+  defaultLocale?: AppLocale;
 }): string {
   const { section, siteName, logoUrl } = input;
   const s = section.settings;
@@ -17,26 +51,30 @@ export function renderFooterHtml(input: {
   const copyright =
     settingText(s, "copyright") || `© ${new Date().getFullYear()} ${siteName}`;
 
-  const groups: Array<{ group: string; links: SiteBlock[] }> = [];
-  for (const block of section.blocks) {
-    const group = settingText(block.settings, "group").trim();
-    const existing = groups.find((item) => item.group === group);
-    if (existing) existing.links.push(block);
-    else groups.push({ group, links: [block] });
-  }
+  const defaultLocale = input.defaultLocale ?? "zh-CN";
+  const ctx: SiteMenuContext = {
+    navPages: siteNavPages(input.pages ?? []),
+    docs: input.docs,
+    locale: input.locale ?? defaultLocale,
+    defaultLocale,
+    currentPath: input.currentPath ?? "",
+  };
+  const menus = input.menus ?? [];
 
-  const columns = groups
-    .map(
-      (group) => `<nav>
-  ${group.group ? `<h2>${escapeHtml(group.group)}</h2>` : ""}
-  <ul>${group.links
-    .map(
-      (block) =>
-        `<li><a${linkAttrs(settingText(block.settings, "href"))}>${escapeHtml(settingText(block.settings, "label"))}</a></li>`,
-    )
-    .join("")}</ul>
-</nav>`,
-    )
+  const columns = section.blocks
+    .map((block) => {
+      const menu = findSiteMenu(menus, settingText(block.settings, "menu"));
+      const items = resolveSiteMenu(menu, ctx);
+      // 一列都展不出内容就整列不画（菜单删了、或里面只有一条还没写文档的动态项）
+      if (items.length === 0) return "";
+      const title =
+        settingText(block.settings, "title") ||
+        resolveSiteMenuTitle(menu, ctx);
+      return `<nav>
+  ${title ? `<h2>${escapeHtml(title)}</h2>` : ""}
+  <ul>${items.map(renderFooterItemHtml).join("")}</ul>
+</nav>`;
+    })
     .join("");
 
   return `<footer class="site-footer"${blockSurfaceAttr(s)}>

@@ -36,6 +36,7 @@ import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 import { SiteColorField } from "../SiteColorField.js";
 
 import { SiteLinkField } from "./SiteLinkField.js";
+import { SiteMenuField } from "./SiteMenuField.js";
 import { SpacingBoxField } from "./SpacingBoxField.js";
 
 import type { AppLocale } from "@be-water/shared";
@@ -246,7 +247,6 @@ function SettingControl({
 
   switch (def.type) {
     case "text":
-    case "url":
       return (
         <Input
           id={fieldId}
@@ -266,6 +266,11 @@ function SettingControl({
           placeholder={fallbackHint || def.placeholder}
           onChange={onChange}
         />
+      );
+
+    case "menu":
+      return (
+        <SiteMenuField id={fieldId} value={text} disabled={disabled} onChange={onChange} />
       );
 
     case "image":

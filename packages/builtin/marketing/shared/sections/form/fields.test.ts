@@ -9,9 +9,7 @@ import { createSection, type SiteSection } from "../../section-schema.js";
 import { resolveFormFields, validateFormValues } from "./fields.js";
 
 /** 造一个只含指定字段的表单段。 */
-function formWith(
-  fields: Array<Record<string, unknown>>,
-): SiteSection {
+function formWith(fields: Array<Record<string, unknown>>): SiteSection {
   const section = createSection("form");
   section.blocks = fields.map((settings, index) => ({
     id: `f${index}`,
@@ -125,9 +123,103 @@ describe("validateFormValues", () => {
     const fields = resolveFormFields(
       formWith([{ type: "email" }, { type: "tel" }]),
     );
-    expect(validateFormValues(fields, { f0: "a@b.co", f1: "+86 138 0000" }).ok)
-      .toBe(true);
+    expect(
+      validateFormValues(fields, { f0: "a@b.co", f1: "+86 138 0000" }).ok,
+    ).toBe(true);
     expect(validateFormValues(fields, { f0: "a@b" }).ok).toBe(false);
     expect(validateFormValues(fields, { f1: "abc" }).ok).toBe(false);
+  });
+
+  it("内置格式规则：通过/不通过各一条", () => {
+    const cases: Array<{
+      rule: string;
+      pass: string;
+      fail: string;
+      code: string;
+    }> = [
+      {
+        rule: "email",
+        pass: "a@b.co",
+        fail: "不是邮箱",
+        code: "site.form.email",
+      },
+      { rule: "tel", pass: "+86 138 0000", fail: "abc", code: "site.form.tel" },
+      {
+        rule: "url",
+        pass: "https://example.com",
+        fail: "not a url",
+        code: "site.form.url",
+      },
+      { rule: "number", pass: "-3.14", fail: "12a", code: "site.form.number" },
+      { rule: "integer", pass: "42", fail: "3.5", code: "site.form.integer" },
+      {
+        rule: "id_card",
+        pass: "11010119900307001X",
+        fail: "12345",
+        code: "site.form.id_card",
+      },
+      {
+        rule: "postal_code",
+        pass: "100000",
+        fail: "12345",
+        code: "site.form.postal_code",
+      },
+    ];
+    for (const { rule, pass, fail, code } of cases) {
+      const fields = resolveFormFields(formWith([{ validation: rule }]));
+      expect(validateFormValues(fields, { f0: pass }).ok).toBe(true);
+      expect(validateFormValues(fields, { f0: fail })).toEqual({
+        ok: false,
+        errors: { f0: code },
+      });
+    }
+  });
+
+  it("自定义正则：匹配放行，不匹配报 regex", () => {
+    const fields = resolveFormFields(
+      formWith([{ validation: "regex", pattern: "^\\d{4}-\\d{4}$" }]),
+    );
+    expect(validateFormValues(fields, { f0: "1234-5678" }).ok).toBe(true);
+    expect(validateFormValues(fields, { f0: "1234" })).toEqual({
+      ok: false,
+      errors: { f0: "site.form.regex" },
+    });
+  });
+
+  it("租户填了非法正则不会让校验崩掉，当作不匹配处理", () => {
+    const fields = resolveFormFields(
+      formWith([{ validation: "regex", pattern: "([invalid" }]),
+    );
+    expect(validateFormValues(fields, { f0: "anything" })).toEqual({
+      ok: false,
+      errors: { f0: "site.form.regex" },
+    });
+  });
+
+  it("自定义长度上下限：太短 / 太长 / 刚好都报对", () => {
+    const fields = resolveFormFields(
+      formWith([{ min_length: 5, max_length: 10 }]),
+    );
+    expect(validateFormValues(fields, { f0: "ab" })).toEqual({
+      ok: false,
+      errors: { f0: "site.form.too_short" },
+    });
+    expect(validateFormValues(fields, { f0: "abcdefghijk" })).toEqual({
+      ok: false,
+      errors: { f0: "site.form.too_long" },
+    });
+    expect(validateFormValues(fields, { f0: "刚好五个字" }).ok).toBe(true);
+  });
+
+  it("max_length 不能突破类型硬上限（单行 200）", () => {
+    const fields = resolveFormFields(formWith([{ max_length: 300 }]));
+    // 超过 200 的硬上限仍被拒——租户设的 300 不等于放宽
+    expect(validateFormValues(fields, { f0: "x".repeat(201) }).ok).toBe(false);
+  });
+
+  it("不认识的校验规则退回 none，不校验", () => {
+    const fields = resolveFormFields(formWith([{ validation: "weird" }]));
+    expect(fields[0]!.validation).toBe("none");
+    expect(validateFormValues(fields, { f0: "anything" }).ok).toBe(true);
   });
 });

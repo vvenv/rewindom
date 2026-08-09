@@ -6,7 +6,10 @@ import {
   formatDocDate,
   type PublicDocSummary,
 } from "../../../../shared/marketing-doc.js";
-import { resolveDocList } from "../../../../shared/sections/doc-list/select.js";
+import {
+  docSearchHaystack,
+  resolveDocList,
+} from "../../../../shared/sections/doc-list/select.js";
 import {
   gridClass,
   SectionHeading,
@@ -40,7 +43,7 @@ export function DocListSection({
     view.style === "list" ? (
       <ul className="doc-list-rows">
         {list.map((doc) => (
-          <li key={doc.slug}>
+          <li key={doc.slug} data-doc-search={docSearchHaystack(doc)}>
             <SiteLink href={docPath(doc.slug)}>
               <span className="title">{doc.title}</span>
               {description(doc)}
@@ -52,7 +55,7 @@ export function DocListSection({
     ) : (
       <ul className={gridClass(view.columns)}>
         {list.map((doc) => (
-          <li key={doc.slug}>
+          <li key={doc.slug} data-doc-search={docSearchHaystack(doc)}>
             <SiteLink href={docPath(doc.slug)} className="card doc-card">
               <span className="title">{doc.title}</span>
               {description(doc)}
@@ -66,6 +69,10 @@ export function DocListSection({
   return (
     <>
       <SectionHeading settings={section.settings} />
+      {/*
+        段内不再自带搜索框：文档搜索的唯一入口是页头。编辑器预览里同样没有，
+        与线上一致——`?q=` 的筛选标签是 `site-enhance` 在公开站上画的。
+      */}
       <div className="doc-list">
         {view.groups.map((group) =>
           group.category ? (

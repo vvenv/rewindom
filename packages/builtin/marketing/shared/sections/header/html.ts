@@ -6,9 +6,17 @@
  */
 
 import { escapeHtml } from "../../html.js";
+import { docMessages, DOCS_INDEX_PATH, type PublicDocSummary  } from "../../marketing-doc.js";
 import { settingBool, settingText } from "../../section-schema.js";
 import { siteNavPages, type PublicSitePage } from "../../site-cms.js";
 import { withSiteLocale } from "../../site-locale.js";
+import {
+  findSiteMenu,
+  resolveSiteMenu,
+  type ResolvedMenuItem,
+  type SiteMenu,
+  type SiteMenuContext,
+} from "../../site-menu.js";
 import { blockSurfaceAttr, linkAttrs } from "../_common/html.js";
 
 import { themeToggleTitle } from "./messages.js";
@@ -61,6 +69,86 @@ function renderLocaleSwitcherHtml(options: LocaleSwitcherOption[]): string {
 <script>(function(){var d=document.currentScript&&document.currentScript.previousElementSibling;if(!d||d.tagName!=="DETAILS")return;document.addEventListener("pointerdown",function(e){if(!d.open)return;if(e.target instanceof Node&&d.contains(e.target))return;d.open=false;});})();</script>`;
 }
 
+/**
+ * 一条导航项：有子项就画成下拉，没有就是普通链接。
+ *
+ * 下拉用原生 `<details>` 而不是 JS 菜单——页头首屏就要能点，等 `site-enhance`
+ * 加载完再绑事件的话，慢网络上前几秒的点击全是空的。`href` 为空的父项（文档分类
+ * 那一层）画成不可点的小标题，不是一个指向 `#` 的假链接。
+ */
+function renderNavItemHtml(item: ResolvedMenuItem): string {
+  const label = escapeHtml(item.label);
+  if (item.children.length === 0) {
+    if (!item.href) return "";
+    return `<a${linkAttrs(item.href)}${item.current ? ' aria-current="page"' : ""}>${label}</a>`;
+  }
+
+  const children = item.children
+    .map((child) => {
+      if (child.children.length > 0) {
+        // 分类小标题 + 组内链接：下拉最多铺到这两层，再深就没人点得到了
+        return `<p class="nav-menu-group">${escapeHtml(child.label)}</p>${child.children
+          .map((leaf) => renderNavLeafHtml(leaf))
+          .join("")}`;
+      }
+      return renderNavLeafHtml(child);
+    })
+    .join("");
+
+  return `<details class="nav-menu">
+  <summary${item.current ? ' aria-current="page"' : ""}>${label}</summary>
+  <nav class="nav-menu-panel">${children}</nav>
+</details>
+<script>(function(){var d=document.currentScript&&document.currentScript.previousElementSibling;if(!d||d.tagName!=="DETAILS")return;document.addEventListener("pointerdown",function(e){if(!d.open)return;if(e.target instanceof Node&&d.contains(e.target))return;d.open=false;});})();</script>`;
+}
+
+function renderNavLeafHtml(item: ResolvedMenuItem): string {
+  if (!item.href) return `<span>${escapeHtml(item.label)}</span>`;
+  return `<a${linkAttrs(item.href)}${item.current ? ' aria-current="page"' : ""}>${escapeHtml(item.label)}</a>`;
+}
+
+/**
+ * 页头的文档搜索入口：一个直接提交到文档索引的 `<form>`。
+ *
+ * 不用 JS 浮层——首屏就得能用，而这个表单在没有 JS 时也照样跳得过去（文档索引
+ * 那边的 `?q=` 由 `site-enhance` 接住做过滤，接不住时最坏也只是列出全部文档）。
+ */
+const SEARCH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
+
+function renderDocSearchHtml(input: {
+  locale?: AppLocale;
+  defaultLocale?: AppLocale;
+}): string {
+  const locale = input.locale ?? input.defaultLocale ?? "zh-CN";
+  const label = escapeHtml(docMessages(locale).search);
+  const action =
+    input.locale && input.defaultLocale
+      ? withSiteLocale(DOCS_INDEX_PATH, input.locale, input.defaultLocale)
+      : DOCS_INDEX_PATH;
+  return `<form class="header-search" role="search" method="get" action="${escapeHtml(action)}">
+  ${SEARCH_ICON}
+  <input type="search" name="q" placeholder="${label}" aria-label="${label}" />
+</form>`;
+}
+
+/** 展开菜单要的内容快照；页头与页脚各自组装一次，形状相同。 */
+function headerMenuContext(input: {
+  pages?: PublicSitePage[];
+  docs?: readonly PublicDocSummary[];
+  currentPath?: string;
+  locale?: AppLocale;
+  defaultLocale?: AppLocale;
+}): SiteMenuContext {
+  const defaultLocale = input.defaultLocale ?? "zh-CN";
+  return {
+    navPages: siteNavPages(input.pages ?? []),
+    docs: input.docs,
+    locale: input.locale ?? defaultLocale,
+    defaultLocale,
+    currentPath: input.currentPath ?? "",
+  };
+}
+
 export function renderHeaderHtml(input: {
   section: SiteSection;
   siteName: string;
@@ -68,8 +156,19 @@ export function renderHeaderHtml(input: {
   /** 品牌区指向的首页（当前语言）。 */
   homeHref: string;
   locales: LocaleSwitcherOption[];
-  /** 全站导航（一级页）数据源。 */
+  /** 站点菜单表；页头按 `menu` 设置里的 key 取一个来渲染。 */
+  menus?: readonly SiteMenu[];
+  /** 全站导航（一级页）数据源：菜单里的「全部一级页面」动态项吃它。 */
   pages?: PublicSitePage[];
+  /** 已发布文档目录：菜单里的文档动态项吃它。 */
+  docs?: readonly PublicDocSummary[];
+  /**
+   * 站里有没有已发布文档（搜索入口据此决定渲不渲染）。
+   *
+   * 与 `docs` 分开：搜索框只要这个布尔值，而它默认是开的——逼调用方为它查一遍
+   * 全库目录，等于每一次页面渲染都多背一份几百行的结果集。
+   */
+  hasDocs?: boolean;
   /** 当前逻辑路径（不带 locale 前缀），用于 `aria-current`。 */
   currentPath?: string;
   locale?: AppLocale;
@@ -82,40 +181,25 @@ export function renderHeaderHtml(input: {
 }): string {
   const { section, siteName, logoUrl, homeHref, locales } = input;
   const s = section.settings;
-  const pages = input.pages ?? [];
-  const currentPath = input.currentPath ?? "";
-  const navItems: Array<{ href: string; label: string; current: boolean }> = [];
-  if (settingBool(s, "show_site_nav")) {
-    for (const page of siteNavPages(pages)) {
-      const href =
-        input.locale && input.defaultLocale
-          ? withSiteLocale(page.path, input.locale, input.defaultLocale)
-          : page.path;
-      navItems.push({
-        href,
-        label: page.title,
-        current: page.path === currentPath,
-      });
-    }
-  }
-  for (const block of section.blocks) {
-    navItems.push({
-      href: settingText(block.settings, "href"),
-      label: settingText(block.settings, "label"),
-      // 自定义链接的 href 可能已带 locale 前缀，不好和逻辑路径对齐；只给一级页标 current。
-      current: false,
-    });
-  }
-  const links = navItems
-    .map(
-      (item) =>
-        `<a${linkAttrs(item.href)}${item.current ? ' aria-current="page"' : ""}>${escapeHtml(item.label)}</a>`,
-    )
-    .join("");
+  const navItems = resolveSiteMenu(
+    findSiteMenu(input.menus ?? [], settingText(s, "menu")),
+    headerMenuContext(input),
+  );
+  const links = navItems.map(renderNavItemHtml).join("");
   const secondaryLabel = settingText(s, "secondary_label");
   const secondaryHref = settingText(s, "secondary_href");
   const ctaLabel = settingText(s, "primary_label");
   const ctaHref = settingText(s, "primary_href");
+  /*
+   * 一篇已发布文档都没有时不渲染搜索框：搜不出任何东西的搜索框比没有更糟，
+   * 而且新站点的页头会平白多出一格。同 `show_locale_switcher` 的口径——开关只管
+   * 「露不露」，能力具不具备各由数据决定。
+   */
+  const docSearch =
+    settingBool(s, "show_doc_search") &&
+    (input.hasDocs ?? (input.docs?.length ?? 0) > 0)
+      ? renderDocSearchHtml(input)
+      : "";
   const switcher = settingBool(s, "show_locale_switcher")
     ? renderLocaleSwitcherHtml(locales)
     : "";
@@ -141,6 +225,7 @@ export function renderHeaderHtml(input: {
     </a>
     <nav class="header-nav">${links}</nav>
     <div class="header-actions">
+      ${docSearch}
       ${switcher}
       ${themeToggle}
       ${accountEntry}

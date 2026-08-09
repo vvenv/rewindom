@@ -31,6 +31,8 @@ import {
   siteChromeIsDirty,
   siteChromePublishedFooter,
   siteChromePublishedHeader,
+  siteMenusDraft,
+  siteMenusPublished,
 } from "./site.util.js";
 
 import type {
@@ -65,6 +67,7 @@ export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
     // 管理端读**草稿** chrome；`chrome_dirty` 标出与线上的差异
     header: siteChromeDraftHeader(record),
     footer: siteChromeDraftFooter(record),
+    menus: siteMenusDraft(record),
     chrome_dirty: siteChromeIsDirty(record),
     published: record.published,
     created_at: record.created_at.toISOString(),
@@ -161,6 +164,8 @@ export function toPublicMarketingSite(
   const footerSections = useDraftChrome
     ? siteChromeDraftFooter(site)
     : siteChromePublishedFooter(site);
+  // 菜单跟着 chrome 同一档：预览看草稿，公开面看线上
+  const menus = useDraftChrome ? siteMenusDraft(site) : siteMenusPublished(site);
 
   return {
     site_name: localizeSiteText(site.site_name, current, default_locale),
@@ -173,6 +178,7 @@ export function toPublicMarketingSite(
     available_locales: availableLocales(pages, default_locale),
     header: localizeSections(headerSections, current, default_locale),
     footer: localizeSections(footerSections, current, default_locale),
+    menus,
     pages: pages
       .filter(
         (page) => normalizeLocale(page.locale, default_locale) === current,

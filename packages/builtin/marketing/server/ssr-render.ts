@@ -142,6 +142,13 @@ export function renderMarketingHtml(input: {
    * ——不带等于那几段什么都不渲染，所以漏传的后果是内容少了而不是多了。
    */
   docContext?: DocRenderContext;
+  /**
+   * 站里有没有已发布文档（页头搜索入口据此决定渲不渲染）。
+   *
+   * 与 `docContext.docs` 分开传：搜索框只要这一个布尔值，不该逼调用方为它查一遍
+   * 全库目录——它默认是开的，那会落在每一次页面渲染上。
+   */
+  hasDocs?: boolean;
 }): string {
   const {
     origin,
@@ -217,7 +224,10 @@ export function renderMarketingHtml(input: {
             logoUrl,
             homeHref: withSiteLocale("/", locale, site.default_locale),
             locales: localeSwitcherOptions(page, locale),
+            menus: site.menus,
             pages: site.pages,
+            docs: docContext?.docs,
+            hasDocs: input.hasDocs ?? (docContext?.docs?.length ?? 0) > 0,
             currentPath: page.path,
             locale,
             defaultLocale: site.default_locale,
@@ -233,6 +243,12 @@ export function renderMarketingHtml(input: {
             section,
             siteName: site.site_name,
             logoUrl,
+            menus: site.menus,
+            pages: site.pages,
+            docs: docContext?.docs,
+            currentPath: page.path,
+            locale,
+            defaultLocale: site.default_locale,
           })
         : renderSectionHtml(section, 0, sectionCtx),
     )

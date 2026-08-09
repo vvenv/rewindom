@@ -8,10 +8,9 @@
   },
   "scripts": {
     "assemble:marketing-css": "node marketing/shared/site-css/assemble.mjs",
-    "assemble:marketing-docs": "node marketing/docs/assemble-docs.mjs",
     "assemble:section-icons": "node marketing/shared/section-icons/assemble.mjs",
     "assemble:site-enhance": "node marketing/shared/site-enhance/assemble.mjs",
-    "assemble": "pnpm assemble:marketing-css && pnpm assemble:marketing-docs && pnpm assemble:section-icons && pnpm assemble:site-enhance",
+    "assemble": "pnpm assemble:marketing-css && pnpm assemble:section-icons && pnpm assemble:site-enhance",
     "pretest": "pnpm assemble",
     "pretypecheck": "pnpm assemble",
     "test": "vitest --run",

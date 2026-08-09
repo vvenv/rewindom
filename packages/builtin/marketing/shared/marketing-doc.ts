@@ -175,8 +175,8 @@ export function parseUpdateDocBody(value: unknown): {
 /**
  * 解析一篇 `.md` 文件内容为文档字段（导入用）。
  *
- * 与平台文档的 `assemble-docs.mjs` 同口径：frontmatter 的 `title` / `description`
- * / `category`，正文是 frontmatter 之后的全部内容。文件名即 slug（去掉 `.md`）。
+ * frontmatter 的 `title` / `description` / `category`，正文是 frontmatter 之后的
+ * 全部内容。文件名即 slug（去掉 `.md`）。
  */
 export interface ParsedMarkdownFile {
   slug: string;
@@ -253,6 +253,8 @@ export function docMessages(locale: string): {
   back: string;
   toc: string;
   nav: string;
+  search: string;
+  searchNoResults: string;
 } {
   return locale.startsWith("zh")
     ? {
@@ -261,6 +263,8 @@ export function docMessages(locale: string): {
         back: "返回文档",
         toc: "本页内容",
         nav: "文档",
+        search: "搜索文档",
+        searchNoResults: "没有匹配的文档",
       }
     : {
         otherCategory: "Other",
@@ -268,6 +272,8 @@ export function docMessages(locale: string): {
         back: "Back to docs",
         toc: "On this page",
         nav: "Docs",
+        search: "Search docs",
+        searchNoResults: "No matching docs",
       };
 }
 

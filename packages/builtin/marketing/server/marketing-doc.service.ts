@@ -484,7 +484,20 @@ export async function getAllDocsForExport(
 
 /* ------------------------------------------------------------ 公开读路径 */
 
-function toDocSummary(record: MarketingDocRecord): PublicDocSummary {
+/**
+ * 摘要投影。
+ *
+ * 参数按**结构**收而不是收整条 `MarketingDocRecord`：目录查询已经用 `select` 只取
+ * 这几列（不拉 `body_md`），要求完整记录就等于逼调用方把正文也查出来。
+ */
+function toDocSummary(record: {
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  sort_order: number;
+  updated_at: Date;
+}): PublicDocSummary {
   return {
     slug: record.slug,
     title: record.title,
@@ -518,6 +531,20 @@ export async function listPublishedDocs(
   const records = await prisma.marketingDoc.findMany({
     where: withTenantScope(tenant_id, { status: "published" }),
     orderBy: [{ category: "asc" }, { sort_order: "asc" }, { title: "asc" }],
+    /*
+     * 显式列字段：不带 `select` 的 `findMany` 会把 `body_md` 也从库里拉出来，
+     * 再由 `toDocSummary` 丢掉——几百篇文档就是几 MB 白跑一趟网络与内存。
+     * 页头的文档入口让这条查询跑在很多页面上，这个浪费不能留。
+     */
+    select: {
+      slug: true,
+      title: true,
+      description: true,
+      category: true,
+      sort_order: true,
+      updated_at: true,
+      locale: true,
+    },
   });
   const inLocale = records.filter(
     (record) => normalizeLocale(record.locale, default_locale) === current,
@@ -565,3 +592,17 @@ export async function getPublishedDoc(
 }
 
 export { validateDocSlug };
+
+/**
+ * 站里有没有已发布文档。
+ *
+ * 页头的搜索入口只要这一个布尔值——为它拉一遍全库目录（默认开，等于每个页面都拉）
+ * 纯属浪费。`findFirst` 命中第一行就停，比 `count` 还省。
+ */
+export async function hasPublishedDocs(tenant_id: string): Promise<boolean> {
+  const found = await prisma.marketingDoc.findFirst({
+    where: withTenantScope(tenant_id, { status: "published" }),
+    select: { id: true },
+  });
+  return found !== null;
+}

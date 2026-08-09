@@ -14,7 +14,6 @@ import { cardsSection } from "./cards/definition.js";
 import { docArticleSection } from "./doc-article/definition.js";
 import { docListSection } from "./doc-list/definition.js";
 import { docNavSection } from "./doc-nav/definition.js";
-import { docSourceSection } from "./doc-source/definition.js";
 import { docTocSection } from "./doc-toc/definition.js";
 import { faqSection } from "./faq/definition.js";
 import { featureGridSection } from "./feature-grid/definition.js";
@@ -77,7 +76,6 @@ export const BUILTIN_SECTION_DEFINITIONS: Record<
   faq: faqSection,
   form: formSection,
   prose: proseSection,
-  "doc-source": docSourceSection,
   "doc-list": docListSection,
   "doc-article": docArticleSection,
   "doc-nav": docNavSection,

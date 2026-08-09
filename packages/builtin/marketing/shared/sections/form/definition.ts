@@ -4,7 +4,7 @@ import {
   styleSettings,
 } from "../_common/settings.js";
 
-import { FORM_FIELD_TYPES } from "./fields.js";
+import { FORM_FIELD_TYPES, FORM_VALIDATION_RULES } from "./fields.js";
 
 import type { SectionDefinition } from "../types.js";
 
@@ -94,6 +94,45 @@ export const formSection: SectionDefinition = {
           label: "editor.setting.field_wide",
           default: false,
           info: "editor.info.field_wide",
+        },
+        { type: "header", content: "editor.group.validation" },
+        {
+          type: "select",
+          id: "validation",
+          label: "editor.setting.field_validation",
+          default: "none",
+          options: FORM_VALIDATION_RULES.map((value) => ({
+            value,
+            label: `editor.option.validation.${value}`,
+          })),
+        },
+        {
+          type: "text",
+          id: "pattern",
+          label: "editor.setting.field_pattern",
+          localizable: false,
+          placeholder: "^\\d{4}-\\d{4}$",
+          info: "editor.info.field_pattern",
+        },
+        {
+          type: "range",
+          id: "min_length",
+          label: "editor.setting.field_min_length",
+          default: 0,
+          min: 0,
+          max: 200,
+          step: 1,
+          info: "editor.info.field_min_length",
+        },
+        {
+          type: "range",
+          id: "max_length",
+          label: "editor.setting.field_max_length",
+          default: 0,
+          min: 0,
+          max: 200,
+          step: 1,
+          info: "editor.info.field_max_length",
         },
         ...styleSettings(),
       ],

@@ -45,7 +45,6 @@ export const SECTION_ICONS: Record<SectionType, LucideIcon> = {
   faq: CircleHelp,
   form: TextCursorInput,
   prose: Text,
-  "doc-source": FileText,
   "doc-list": LibraryBig,
   "doc-article": FileText,
   "doc-nav": ListTree,

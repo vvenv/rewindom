@@ -408,7 +408,7 @@ export const DOC_TEMPLATE_PRESETS: Record<DocTemplateKind, PagePreset> = {
          * 窄屏由 group 自己堆叠成上下（见 base.css 的 `.grp`），吸顶也自动失效。
          */
         type: "group",
-        raw: { columns_layout: "3:7:2", column_gap: 40 },
+        raw: { columns_layout: "3:6:3", column_gap: 48 },
         blocks: [
           {
             type: "column",

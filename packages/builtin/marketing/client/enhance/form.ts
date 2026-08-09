@@ -8,6 +8,7 @@ import {
   validateFormValues,
   type FormField,
   type FormFieldType,
+  type FormValidationRule,
   type FormValues,
 } from "../../shared/sections/form/fields.js";
 import { formErrorText } from "../../shared/sections/form/messages.js";
@@ -28,17 +29,19 @@ function fieldsFromForm(form: HTMLFormElement): FormField[] {
   >("input[name], textarea[name], select[name]")) {
     const id = el.name;
     if (!id || fields.some((field) => field.id === id)) continue;
-    const type = (el instanceof HTMLSelectElement
-      ? "select"
-      : el instanceof HTMLTextAreaElement
-        ? "textarea"
-        : el.type === "checkbox"
-          ? "checkbox"
-          : el.type === "email"
-            ? "email"
-            : el.type === "tel"
-              ? "tel"
-              : "text") as FormFieldType;
+    const type = (
+      el instanceof HTMLSelectElement
+        ? "select"
+        : el instanceof HTMLTextAreaElement
+          ? "textarea"
+          : el.type === "checkbox"
+            ? "checkbox"
+            : el.type === "email"
+              ? "email"
+              : el.type === "tel"
+                ? "tel"
+                : "text"
+    ) as FormFieldType;
     const options =
       el instanceof HTMLSelectElement
         ? [...el.options]
@@ -50,6 +53,7 @@ function fieldsFromForm(form: HTMLFormElement): FormField[] {
       labelEl?.textContent?.replace(/\*$/u, "").trim() ||
       el.getAttribute("aria-label") ||
       id;
+    const validationAttr = el.getAttribute("data-validation") || "none";
     fields.push({
       id,
       label,
@@ -58,6 +62,10 @@ function fieldsFromForm(form: HTMLFormElement): FormField[] {
       required: el.required,
       options,
       wide: Boolean(el.closest(".form-field-wide")),
+      validation: validationAttr as FormValidationRule,
+      pattern: el.getAttribute("data-pattern") || "",
+      minLength: Number(el.getAttribute("data-min-length")) || 0,
+      maxLength: Number(el.getAttribute("data-max-length")) || 0,
     });
   }
   return fields;
@@ -69,10 +77,7 @@ function valuesFromForm(form: HTMLFormElement): FormValues {
   for (const [key, value] of data.entries()) {
     if (typeof value !== "string") continue;
     const control = form.elements.namedItem(key);
-    if (
-      control instanceof HTMLInputElement &&
-      control.type === "checkbox"
-    ) {
+    if (control instanceof HTMLInputElement && control.type === "checkbox") {
       values[key] = control.checked;
       continue;
     }
@@ -103,8 +108,7 @@ function showFieldError(
   locale: AppLocale,
 ): void {
   const control = form.elements.namedItem(fieldId);
-  const el =
-    control instanceof RadioNodeList ? control[0] : control;
+  const el = control instanceof RadioNodeList ? control[0] : control;
   if (!(el instanceof HTMLElement)) return;
   el.setAttribute("aria-invalid", "true");
   const wrap = el.closest(".form-field") ?? el.parentElement;
@@ -127,8 +131,7 @@ function showFormFailed(form: HTMLFormElement, locale: AppLocale): void {
 }
 
 function showSuccess(form: HTMLFormElement): void {
-  const message =
-    form.getAttribute("data-success-message")?.trim() || "✓";
+  const message = form.getAttribute("data-success-message")?.trim() || "✓";
   const success = document.createElement("p");
   success.className = "form-success";
   success.setAttribute("role", "status");

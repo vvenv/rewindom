@@ -294,7 +294,8 @@ export function linkSettings(
         : {}),
     },
     {
-      type: "url",
+      // 站内地址从下拉里选（页面 / 文档），外链手填——与导航链接同一个控件
+      type: "link",
       id: `${prefix}_href`,
       label: `editor.setting.${prefix}_href`,
       placeholder: options?.hrefPlaceholder ?? "/pricing",

@@ -17,6 +17,7 @@ function site(headerSettings: Record<string, unknown> = {}): PublicMarketingSite
     logo_url: null,
     primary_color: null,
     theme_settings: resolveThemeSettings({}),
+    menus: [],
     default_locale: "zh-CN",
     locale: "zh-CN",
     available_locales: ["zh-CN"],

@@ -18,9 +18,22 @@ function controlHtml(field: FormField): string {
   const placeholder = field.placeholder
     ? ` placeholder="${escapeHtml(field.placeholder)}"`
     : "";
+  // 校验规则透传给无 React 的增强脚本，让它前端预校验与服务端同一份口径
+  const validation =
+    field.validation !== "none"
+      ? ` data-validation="${escapeHtml(field.validation)}"`
+      : "";
+  const pattern =
+    field.validation === "regex" && field.pattern
+      ? ` data-pattern="${escapeHtml(field.pattern)}"`
+      : "";
+  const minLength =
+    field.minLength > 0 ? ` data-min-length="${field.minLength}"` : "";
+  const maxLength =
+    field.maxLength > 0 ? ` data-max-length="${field.maxLength}"` : "";
 
   if (field.type === "textarea") {
-    return `<textarea id="${id}" name="${name}" rows="4"${placeholder}${required}></textarea>`;
+    return `<textarea id="${id}" name="${name}" rows="4"${placeholder}${required}${validation}${pattern}${minLength}${maxLength}></textarea>`;
   }
   if (field.type === "select") {
     const options = field.options
@@ -29,12 +42,12 @@ function controlHtml(field: FormField): string {
           `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`,
       )
       .join("");
-    return `<select id="${id}" name="${name}"${required}><option value=""></option>${options}</select>`;
+    return `<select id="${id}" name="${name}"${required}${validation}${minLength}${maxLength}><option value=""></option>${options}</select>`;
   }
   if (field.type === "checkbox") {
     return `<input id="${id}" name="${name}" type="checkbox"${required} />`;
   }
-  return `<input id="${id}" name="${name}" type="${field.type}"${placeholder}${required} />`;
+  return `<input id="${id}" name="${name}" type="${field.type}"${placeholder}${required}${validation}${pattern}${minLength}${maxLength} />`;
 }
 
 function fieldHtml(field: FormField, surface: string): string {

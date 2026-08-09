@@ -28,31 +28,30 @@ export const footerSection: SectionDefinition = {
     },
     ...styleSettings(),
   ],
-  max_blocks: 24,
+  /*
+   * 页脚的一列 = 一个菜单。
+   *
+   * 以前是一堆 `footer_link` 块，靠一个**自由文本** `group` 字段分列：打错一个字
+   * 就凭空多出一列，列的顺序还只能按「哪一条先出现」，想整列换位置得把里面每条
+   * 链接的 group 都改一遍。现在列就是列，拖一下就换位；而且页脚能直接引用页头
+   * 那个菜单，不必把同一批链接抄第二遍。
+   */
+  max_blocks: 6,
   blocks: [
     {
-      type: "footer_link",
-      label: "editor.blockType.footer_link",
+      type: "menu_column",
+      label: "editor.blockType.menu_column",
       settings: [
         {
-          type: "text",
-          id: "group",
-          label: "editor.setting.group",
-          info: "editor.info.footer_group",
+          type: "menu",
+          id: "menu",
+          label: "editor.setting.menu",
         },
         {
           type: "text",
-          id: "label",
-          label: "editor.setting.label",
-          default: "Link",
-          required: true,
-        },
-        {
-          // 同页头导航链接：站内地址从下拉里选，外链手填
-          type: "link",
-          id: "href",
-          label: "editor.setting.href",
-          default: "/",
+          id: "title",
+          label: "editor.setting.column_title",
+          info: "editor.info.column_title",
         },
       ],
     },

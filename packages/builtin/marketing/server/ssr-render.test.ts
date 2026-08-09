@@ -8,6 +8,7 @@ import {
 
 import { renderMarketingHtml, renderSitemapXml } from "./ssr-render.js";
 
+import { defaultMainMenu } from "../shared/site-menu.js";
 import type {
   PublicMarketingPage,
   PublicMarketingSite,
@@ -32,6 +33,7 @@ function site(overrides: Partial<PublicMarketingSite> = {}) {
     header: [createSection("header")],
     footer: [createSection("footer")],
     pages: [],
+    menus: [defaultMainMenu()],
     ...overrides,
   } as PublicMarketingSite;
 }
@@ -100,7 +102,7 @@ describe("renderMarketingHtml SEO", () => {
     });
     expect(html).toContain(".btn{");
     expect(html).toContain(".sec-band");
-    expect(html).not.toContain("@import \"tailwindcss\"");
+    expect(html).not.toContain('@import "tailwindcss"');
   });
 
   it("只内联本页用到的段样式", () => {
@@ -209,7 +211,6 @@ describe("renderMarketingHtml SEO", () => {
     expect(html).toContain("d.open=false");
   });
 
-
   it("points the brand link at the current language's home", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
@@ -219,9 +220,8 @@ describe("renderMarketingHtml SEO", () => {
     expect(html).toContain('<a class="brand" href="/en">');
   });
 
-  it("lists top-level pages in the header when show_site_nav is on", () => {
+  it("lists top-level pages in the header via the default menu", () => {
     const header = createSection("header");
-    header.settings = { ...header.settings, show_site_nav: true };
     const html = renderMarketingHtml({
       origin: ORIGIN,
       site: site({
@@ -255,13 +255,13 @@ describe("renderMarketingHtml SEO", () => {
     expect(html).toContain('aria-current="page"');
   });
 
-  it("hides auto site nav when show_site_nav is off", () => {
+  it("hides site nav when the header menu is empty", () => {
     const header = createSection("header");
-    header.settings = { ...header.settings, show_site_nav: false };
     const html = renderMarketingHtml({
       origin: ORIGIN,
       site: site({
         header: [header],
+        menus: [{ key: "main", title: "", items: [] }],
         pages: [
           {
             slug: "docs",

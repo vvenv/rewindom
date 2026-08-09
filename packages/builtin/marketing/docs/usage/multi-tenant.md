@@ -35,7 +35,6 @@ const records = await prisma.marketingDoc.findMany({
 slug 为 `default` 的租户是产品主域隐式绑定的组织。访问 `FRONTEND_URL`（本地 `localhost`）看到的就是默认租户的站点。
 
 - 首次部署后用 `seed-local-marketing-site` 脚本初始化它的内容。
-- 平台文档（如本篇）跟代码版本走，给默认租户产品站用。
 
 ## 租户的创建与管理
 

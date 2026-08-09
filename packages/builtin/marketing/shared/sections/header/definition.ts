@@ -1,3 +1,4 @@
+import { MAIN_MENU_KEY } from "../../site-menu.js";
 import { linkSettings, styleSettings } from "../_common/settings.js";
 
 import type { SectionDefinition } from "../types.js";
@@ -35,13 +36,20 @@ export const headerSection: SectionDefinition = {
      * ——语言切换器原来就在站点设置里，租户得跑两个地方配同一排按钮。
      */
     { type: "header", content: "editor.group.headerItems" },
-    // 全站导航 = 已发布一级页面（父路径 `/`）；自定义 `nav_link` 块始终追加在后。
+    /*
+     * 导航内容整个交给菜单。
+     *
+     * 这里以前是「一个 `show_site_nav` 开关 + 一串 `nav_link` 块」：自动列出的一级
+     * 页面永远在前，自定义链接只能追加在后，想把「定价」插到「关于」前面做不到；
+     * 同一批链接要在页脚再出现一次就得原样配第二遍。现在两者都是菜单里的条目，
+     * 顺序随便拖，页脚指同一个 key 即可复用。
+     */
     {
-      type: "checkbox",
-      id: "show_site_nav",
-      label: "editor.setting.show_site_nav",
-      default: true,
-      info: "editor.info.show_site_nav",
+      type: "menu",
+      id: "menu",
+      label: "editor.setting.header_menu",
+      default: MAIN_MENU_KEY,
+      info: "editor.info.header_menu",
     },
     // 候选语言来自本页 `alternates`——只列真有译文的语言，所以单语言站点开了也不会露
     {
@@ -50,6 +58,22 @@ export const headerSection: SectionDefinition = {
       label: "editor.setting.show_locale_switcher",
       default: false,
       info: "editor.info.show_locale_switcher",
+    },
+    /*
+     * 文档搜索入口：一个直接提交到文档索引的搜索框（`/docs?q=`）。
+     *
+     * 刻意做成 `<form>` 而不是一枚要 JS 才展开的浮层——它在首屏就得能用，且文档
+     * 索引那边本来就认 `?q=`（没有 JS 时那一跳也只是列出全部文档，不会是空白页）。
+     * 站点还没有任何已发布文档时不渲染：一个搜不出东西的搜索框比没有更糟。
+     */
+    {
+      // 默认开：它是文档搜索的**唯一**入口（`doc-list` 段内那个框已经删了），
+      // 默认关等于默认没有搜索。站里没有已发布文档时它本来就不渲染。
+      type: "checkbox",
+      id: "show_doc_search",
+      label: "editor.setting.show_doc_search",
+      default: true,
+      info: "editor.info.show_doc_search",
     },
     /*
      * 明暗模式本身是内置的、且永远跟随设备；这个开关只决定**要不要给访客一枚
@@ -82,28 +106,5 @@ export const headerSection: SectionDefinition = {
     ...linkSettings("secondary"),
     ...linkSettings("primary"),
     ...styleSettings(),
-  ],
-  max_blocks: 8,
-  blocks: [
-    {
-      type: "nav_link",
-      label: "editor.blockType.nav_link",
-      settings: [
-        {
-          type: "text",
-          id: "label",
-          label: "editor.setting.label",
-          default: "Link",
-          required: true,
-        },
-        {
-          // 站内地址从下拉里选（页面 / 文档索引 / 单篇文档），外链照样手填
-          type: "link",
-          id: "href",
-          label: "editor.setting.href",
-          default: "/",
-        },
-      ],
-    },
   ],
 };

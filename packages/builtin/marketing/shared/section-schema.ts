@@ -341,8 +341,14 @@ export function safeSections(value: unknown): SiteSection[] {
 /* 多语言压平                                                                  */
 /* -------------------------------------------------------------------------- */
 
-/** 站内链接按语言改写（`url` 类型的设置项）。 */
-function localizeUrlSettings(
+/**
+ * 站内链接按语言改写（`link` 类型的设置项）。
+ *
+ * 类型判断必须跟着 `link` 走：这里曾经只认 `url`，而链接字段改成带站内下拉的 `link`
+ * 之后，非默认语言的页面上所有导航链接都丢了 locale 前缀——点「关于」会从 `/en/…`
+ * 掉回默认语言站。
+ */
+function localizeLinkSettings(
   defs: SettingDef[],
   values: SettingValues,
   locale: AppLocale,
@@ -350,7 +356,7 @@ function localizeUrlSettings(
 ): SettingValues {
   let out: SettingValues | null = null;
   for (const def of defs) {
-    if (!isInputSetting(def) || def.type !== "url") continue;
+    if (!isInputSetting(def) || def.type !== "link") continue;
     const value = values[def.id];
     if (typeof value !== "string" || value === "") continue;
     const next = localizeSiteHref(value, locale, defaultLocale);
@@ -379,7 +385,7 @@ export function localizeSection(
   // 不认识的段（`unsupported` 占位）没有 schema 可压，原样带过去
   if (!def) return section;
   const localize = (defs: SettingDef[], values: SettingValues): SettingValues =>
-    localizeUrlSettings(
+    localizeLinkSettings(
       defs,
       localizeSettingValues(values, locale, defaultLocale),
       locale,

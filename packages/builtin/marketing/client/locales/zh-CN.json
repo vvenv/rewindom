@@ -400,6 +400,7 @@
       "page": "页面",
       "headerItems": "页头显示",
       "form": "表单",
+      "validation": "校验",
       "seo": "搜索与分享"
     },
     "info": {
@@ -407,13 +408,11 @@
       "one_per_line": "每行一条。",
       "code": "显示为等宽代码，例如命令行。",
       "footer_blurb": "品牌下方的一句话简介。",
-      "footer_group": "同名分组的链接会排进同一列；留空则不显示分组标题。",
       "copyright": "留空则自动生成「© 年份 站点名」。",
       "padding": "桌面端数值；窄屏自动按比例收窄",
       "anchor": "留空则不生成；填 pricing 后可用 /#pricing 链到此区块",
       "content_width": "「通栏」+「不限宽」可做满屏大图；通栏色带一般配「跟随页宽」。",
       "spacing": "与相邻区块之间的距离；「继承」跟随站点的区块间距。",
-      "show_site_nav": "列出已发布的一级页面（不嵌套在其他页面下）。下方的自定义导航链接仍会排在它们后面。",
       "doc_category_filter": "填文档上的分类名，只列这一类；留空列出全部。",
       "doc_limit": "0 表示不限。用于在首页放「最新几篇」。",
       "doc_show_meta": "分类标签与最后更新日期。",
@@ -440,9 +439,15 @@
       "success_message": "留空则只显示一个对勾。",
       "field_options": "一行一个，仅「下拉选择」使用。",
       "field_wide": "窄屏永远一列；这里只影响桌面排布。",
+      "field_pattern": "选「自定义正则」时生效，不需带 // 包裹。",
+      "field_min_length": "0 表示不限。",
+      "field_max_length": "0 表示跟随默认（单行 200 / 多行 4000）。",
       "og_image": "分享到社交平台时显示的图。留空用站点默认；建议 1200×630。",
       "noindex": "页面照常能访问，只是不进搜索结果，也不会出现在 sitemap 里。",
-      "site_og_image": "没有单独设置的页面都用它。不建议直接用 logo：方形图在分享卡片里会被裁。"
+      "site_og_image": "没有单独设置的页面都用它。不建议直接用 logo：方形图在分享卡片里会被裁。",
+      "header_menu": "页头列出哪个菜单。菜单在「管理菜单」里编辑，页脚可以引用同一个，不必重复配置。",
+      "column_title": "留空则用菜单自己的名字。",
+      "show_doc_search": "页头放一个搜索框，提交后跳到文档索引并按关键词过滤。它是文档搜索的唯一入口；站点还没有已发布文档时不会显示。"
     },
     "unit": {
       "columns": "列",
@@ -457,7 +462,6 @@
       "subheading": "区块描述",
       "body": "正文",
       "body_md": "正文（Markdown）",
-      "doc_slug": "文档",
       "doc_group_by": "分组方式",
       "doc_list_style": "展示样式",
       "doc_category_filter": "只显示某个分类",
@@ -484,7 +488,6 @@
       "page_menu_style": "展示样式",
       "href": "链接",
       "label": "文案",
-      "group": "分组",
       "primary_label": "主按钮文案",
       "primary_href": "主按钮链接",
       "secondary_label": "次按钮文案",
@@ -512,7 +515,6 @@
       "show_glow": "显示光晕背景",
       "show_logo": "显示 Logo",
       "show_site_name": "显示站点名",
-      "show_site_nav": "显示全站导航",
       "sticky": "滚动时吸顶",
       "header_layout": "导航布局",
       "blurb": "简介",
@@ -546,9 +548,17 @@
       "field_required": "必填",
       "field_options": "可选项",
       "field_wide": "独占一行",
+      "field_validation": "校验规则",
+      "field_pattern": "自定义正则",
+      "field_min_length": "最小字数",
+      "field_max_length": "最大字数",
       "og_image": "分享缩略图",
       "noindex": "不被搜索引擎收录",
-      "site_og_image": "默认分享缩略图"
+      "site_og_image": "默认分享缩略图",
+      "header_menu": "导航菜单",
+      "menu": "菜单",
+      "column_title": "列标题",
+      "show_doc_search": "显示文档搜索"
     },
     "option": {
       "align": {
@@ -631,7 +641,16 @@
       "field_type.tel": "电话",
       "field_type.textarea": "多行文本",
       "field_type.select": "下拉选择",
-      "field_type.checkbox": "勾选框"
+      "field_type.checkbox": "勾选框",
+      "validation.none": "不校验",
+      "validation.email": "邮箱",
+      "validation.tel": "电话",
+      "validation.url": "网址",
+      "validation.number": "数字",
+      "validation.integer": "整数",
+      "validation.id_card": "身份证号",
+      "validation.postal_code": "邮政编码",
+      "validation.regex": "自定义正则"
     },
     "font": {
       "system": "系统无衬线",
@@ -650,7 +669,6 @@
       "pricing": "定价套餐",
       "faq": "常见问题",
       "prose": "富文本",
-      "doc-source": "平台文档",
       "doc-list": "文档列表",
       "doc-article": "文档正文",
       "doc-nav": "文档导航",
@@ -670,9 +688,8 @@
       "row": "行",
       "plan": "套餐",
       "qa": "问答",
-      "nav_link": "导航链接",
-      "footer_link": "页脚链接",
-      "field": "字段"
+      "field": "字段",
+      "menu_column": "菜单列"
     },
     "tabContent": "内容",
     "tabLayout": "版式",
@@ -731,7 +748,36 @@
     "toastReverted": "已还原成线上那一版",
     "toastPublished": "已上线，访客可见",
     "toastPublishFailed": "发布失败，请重试",
-    "accountEntryUnavailable": "本站未开通会员功能，页头不会显示账户入口。开通后这里即可打开。"
+    "accountEntryUnavailable": "本站未开通会员功能，页头不会显示账户入口。开通后这里即可打开。",
+    "menuPick": "选择菜单…",
+    "menuMissing": "菜单已删除（{{key}}）",
+    "menuManage": "管理菜单",
+    "menuManageHint": "站点的全部导航菜单。页头与页脚各自引用其中一个，链接只在这里编辑一次。",
+    "menuAdd": "新建菜单",
+    "menuNewTitle": "新菜单",
+    "menuTitle": "菜单名",
+    "menuTitleHint": "页脚把它当列标题；标识：{{key}}",
+    "menuRemove": "删除菜单",
+    "menuItemAdd": "添加条目",
+    "menuItemAddChild": "添加子项",
+    "menuItemRemove": "删除条目",
+    "menuItemLabel": "显示文字",
+    "menuItemCategory": "文档分类名",
+    "menuSource": {
+      "link": "链接",
+      "pages": "全部一级页面",
+      "docs": "文档库目录",
+      "doc_category": "某个文档分类"
+    },
+    "menuSourceDefaultLabel": {
+      "pages": "（自动列出页面）",
+      "docs": "文档",
+      "doc_category": "（用分类名）"
+    },
+    "menuExpand": {
+      "children": "收成下拉子菜单",
+      "flat": "就地平铺"
+    }
   },
   "seo": {
     "home": {

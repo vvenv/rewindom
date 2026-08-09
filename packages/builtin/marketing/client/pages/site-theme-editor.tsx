@@ -29,7 +29,9 @@ import {
 } from "../components/theme-editor/PreviewFrame.js";
 import { SectionSettingsForm } from "../components/theme-editor/SectionSettingsForm.js";
 import { SectionTree } from "../components/theme-editor/SectionTree.js";
+import { SiteMenusProvider } from "../components/theme-editor/site-menus-context.js";
 import { SiteAccountEntryPreview } from "../components/theme-editor/SiteAccountEntryPreview.js";
+import { SiteMenuManagerSheet } from "../components/theme-editor/SiteMenuManagerSheet.js";
 import { useDocPreviewData } from "../hooks/use-doc-preview-data.js";
 import {
   useSiteThemeEditor,
@@ -72,6 +74,7 @@ export function SiteThemeEditor() {
   const docPreview = useDocPreviewData(editor.page?.kind ?? "page");
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+  const [menuManagerOpen, setMenuManagerOpen] = useState(false);
 
   const { selectedSectionId, selectedBlockId } = editor;
   // 页头区里的段一律滚到顶部：页头本体是 sticky，scrollIntoView 会判定「已在视口内」
@@ -179,6 +182,7 @@ export function SiteThemeEditor() {
           sections: editor.sections,
           header: editor.header,
           footer: editor.footer,
+          menus: editor.menus,
           settings: editor.pageSettings,
           visibility: editor.visibility,
         },
@@ -270,6 +274,12 @@ export function SiteThemeEditor() {
   };
 
   return (
+    <SiteMenusProvider
+      value={{
+        menus: editor.menus,
+        openManager: () => setMenuManagerOpen(true),
+      }}
+    >
     <PageLayout
       icon={Palette}
       title={t("editor.title")}
@@ -417,6 +427,17 @@ export function SiteThemeEditor() {
           )}
         </aside>
       </div>
+
+      <SiteMenuManagerSheet
+        open={menuManagerOpen}
+        onOpenChange={setMenuManagerOpen}
+        menus={editor.menus}
+        onChange={editor.setMenus}
+        locale={editor.locale}
+        defaultLocale={editor.defaultLocale}
+        disabled={!canWrite}
+      />
     </PageLayout>
+    </SiteMenusProvider>
   );
 }

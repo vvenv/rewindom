@@ -4,14 +4,26 @@ import {
 } from "@be-water/server-kernel/lib/host-tenant.js";
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
-import { DOCS_INDEX_PATH, docPath } from "../shared/marketing-doc.js";
+import {
+  DOCS_INDEX_PATH,
+  docPath,
+  type PublicDocSummary,
+} from "../shared/marketing-doc.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
+import {
+  chromeNeedsDocList,
+  chromeShowsDocSearch,
+  type PublicMarketingSite,
+} from "../shared/site-cms.js";
 import {
   resolveLocaleSegment,
   SITE_APP_PREFIXES,
 } from "../shared/site-locale.js";
 
-import { listPublishedDocs } from "./marketing-doc.service.js";
+import {
+  hasPublishedDocs,
+  listPublishedDocs,
+} from "./marketing-doc.service.js";
 import { renderDocLibrary } from "./marketing-doc.ssr.js";
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
@@ -69,6 +81,40 @@ function sendHtml(
 }
 
 /**
+ * 这次渲染要给页头页脚哪些文档数据。
+ *
+ * 两档，按需求由重到轻取：
+ * 1. **整份目录**——页面/chrome 上有 `doc-*` 段，或导航菜单挂了文档动态项。逐篇的
+ *    标题与地址都要，只能查全量。
+ * 2. **只要一个布尔值**——页头开了文档搜索（默认开）。它只决定那枚搜索框渲不渲染，
+ *    为此拉一遍全库目录会让**每一个页面请求**都多背一份几百行的结果集。
+ *
+ * 收在一个函数里是因为正常页与 404 页各有一条渲染路径。两边各拼一次的话，下次再加
+ * 一种吃文档数据的东西必然漏掉其中一条——同一个站点两副页头就是这么来的。
+ */
+async function resolveChromeDocs(
+  tenantId: string,
+  site: PublicMarketingSite,
+  locale: AppLocale,
+  pageUsesDocSections = false,
+): Promise<{
+  context: { docs: PublicDocSummary[]; docsIndexPath: string } | undefined;
+  hasDocs: boolean;
+}> {
+  if (pageUsesDocSections || chromeNeedsDocList(site)) {
+    const { docs } = await listPublishedDocs(tenantId, locale);
+    return {
+      context: { docs, docsIndexPath: DOCS_INDEX_PATH },
+      hasDocs: docs.length > 0,
+    };
+  }
+  if (chromeShowsDocSearch(site)) {
+    return { context: undefined, hasDocs: await hasPublishedDocs(tenantId) };
+  }
+  return { context: undefined, hasDocs: false };
+}
+
+/**
  * 自定义 404：租户建一个 slug 为 `404` 的页面就是它，没有就用内置兜底页。
  *
  * 不另开一张表 / 一个 `kind`：它就是一张普通页面，租户用同一个编辑器排版、同一套发布
@@ -101,13 +147,29 @@ async function renderNotFound(
     return;
   }
 
+  const pageLocale = normalizeLocale(
+    custom.page.locale,
+    custom.site.default_locale,
+  );
   const [accountEntry, enabledEntitlements] = await Promise.all([
     resolveSiteAccountEntry({
       tenantId: hostTenant.tenant_id,
-      locale: normalizeLocale(custom.page.locale, custom.site.default_locale),
+      locale: pageLocale,
     }),
     resolveSectionEntitlements(hostTenant.tenant_id),
   ]);
+
+  /*
+   * 404 页的页头也要有文档目录 / 文档存在标记。
+   *
+   * 少了它，访客走到一个死链上会发现导航栏比别处少一块「文档」、少一个搜索框
+   * ——同一个站点两副页头，比 404 本身更让人以为站坏了。
+   */
+  const docs = await resolveChromeDocs(
+    hostTenant.tenant_id,
+    custom.site,
+    pageLocale,
+  );
 
   sendHtml(
     reply,
@@ -115,6 +177,8 @@ async function renderNotFound(
     renderMarketingHtml({
       origin: requestOrigin(request),
       site: custom.site,
+      docContext: docs.context,
+      hasDocs: docs.hasDocs,
       // 404 页不该被收录：它会出现在无数个不存在的地址上
       page: {
         ...custom.page,
@@ -227,26 +291,14 @@ async function renderPath(
     resolveSectionEntitlements(hostTenant.tenant_id),
   ]);
 
-  /*
-   * 普通页面上的 `doc-*` 段（首页的「最新文档」、页脚的文档目录……）也要有数据。
-   *
-   * 先看这一页（连同页头页脚）到底有没有摆过这类段——**有才查库**。文档目录与页面
-   * 渲染没有必然关系，为每一次页面请求多打一条 SQL 只为了几乎总是没人用的可能性，
-   * 是纯粹的浪费。
-   */
-  const usesDocSections = [
-    ...collectSectionTypes(result.site.header),
-    ...collectSectionTypes(result.site.footer),
-    ...collectSectionTypes(result.page.sections),
-  ].some((type) => type.startsWith("doc-"));
-  const docContext = usesDocSections
-    ? {
-        docs: (
-          await listPublishedDocs(hostTenant.tenant_id, result.page.locale)
-        ).docs,
-        docsIndexPath: DOCS_INDEX_PATH,
-      }
-    : undefined;
+  const docs = await resolveChromeDocs(
+    hostTenant.tenant_id,
+    result.site,
+    result.page.locale,
+    [...collectSectionTypes(result.page.sections)].some((type) =>
+      type.startsWith("doc-"),
+    ),
+  );
 
   const requiresMember = result.page.requires_member === true;
   const memberAuthenticated = member !== null;
@@ -263,7 +315,8 @@ async function renderPath(
       memberGate,
       accountEntryHtml: accountEntry.html,
       enabledEntitlements,
-      docContext,
+      docContext: docs.context,
+      hasDocs: docs.hasDocs,
     }),
     {
       // 登录态页头 / 解锁正文因人而异，禁止公共缓存。

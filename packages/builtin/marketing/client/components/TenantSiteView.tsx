@@ -118,10 +118,13 @@ export function TenantSiteView({
               section={section}
               siteName={site.site_name}
               logoUrl={theme.logo_url ?? null}
+              menus={site.menus}
               pages={site.pages}
+              docs={docs}
               currentPath={path}
               alternates={alternates}
               locale={site.locale}
+              defaultLocale={site.default_locale}
               onSelect={
                 onSelectSection
                   ? (blockId) => onSelectSection(section.id, blockId)
@@ -172,6 +175,12 @@ export function TenantSiteView({
               section={section}
               siteName={site.site_name}
               logoUrl={theme.logo_url ?? null}
+              menus={site.menus}
+              pages={site.pages}
+              docs={docs}
+              currentPath={path}
+              locale={site.locale}
+              defaultLocale={site.default_locale}
               onSelect={
                 onSelectSection
                   ? (blockId) => onSelectSection(section.id, blockId)

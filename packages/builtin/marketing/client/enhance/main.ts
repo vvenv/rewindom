@@ -5,6 +5,7 @@
  */
 
 import { enhanceAccount } from "./account.js";
+import { enhanceDocSearch } from "./doc-search.js";
 import { enhanceForms } from "./form.js";
 import { enhanceGated } from "./gated.js";
 import { enhanceTheme } from "./theme.js";
@@ -14,6 +15,7 @@ function boot(): void {
   enhanceForms();
   enhanceAccount();
   enhanceGated();
+  enhanceDocSearch();
 }
 
 if (document.readyState === "loading") {

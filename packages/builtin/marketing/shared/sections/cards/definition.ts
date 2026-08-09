@@ -48,7 +48,7 @@ export const cardsSection: SectionDefinition = {
           rows: 3,
         },
         {
-          type: "url",
+          type: "link",
           id: "href",
           label: "editor.setting.href",
           placeholder: "/docs",

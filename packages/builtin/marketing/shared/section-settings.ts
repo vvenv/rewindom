@@ -199,11 +199,13 @@ export type InputSettingDef =
         rows?: number;
         placeholder?: string;
       })
-  | (SettingBase & { type: "url"; default?: string; placeholder?: string })
   | (SettingBase & {
       /**
-       * 站内外链接。存的仍是**一个 href 字符串**（与 `url` 完全一致），只是编辑器
-       * 多给一个「从站内选」的下拉：页面、文档索引、每一篇已发布文档。
+       * 一个 href 字符串：站内地址从下拉里选（页面 / 文档索引 / 每一篇文档），外链手填。
+       *
+       * 曾经还有一个只能手打的 `url` 类型，两者存的东西**完全一样**，差别只是编辑器
+       * 给不给下拉。于是同一个站点里，页头的自定义链接能从站内选、页头右上角的主
+       * CTA 却要手打 `/pricing`——纯属历史遗留，已经删掉，全部走这一个类型。
        *
        * 刻意不存 `{type:"page",id:"..."}` 这类结构化引用：那样每个渲染端都要先解引用
        * 才能画出一个 `<a>`，且页面删掉后引用会悬空。存字符串的代价是改 slug 后链接
@@ -212,6 +214,17 @@ export type InputSettingDef =
       type: "link";
       default?: string;
       placeholder?: string;
+    })
+  | (SettingBase & {
+      /**
+       * 引用一个站点导航菜单，存的是菜单 key（见 `site-menu.ts`）。
+       *
+       * 选项表不在这里声明——菜单是**租户自己建的数据**，不是编译期常量，所以由编辑器
+       * 按站点当下的菜单填（`SettingsFields` 的 `menu` 分支）。指向一个已删菜单时
+       * 渲染端什么都不画，而不是报错：删菜单和改引用天然是两步。
+       */
+      type: "menu";
+      default?: string;
     })
   | (SettingBase & { type: "image"; default?: string; placeholder?: string })
   | (SettingBase & {
@@ -398,8 +411,8 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
         return cleanLocalizedText(raw.__i18n);
       }
       return def.default ?? "";
-    case "url":
     case "link":
+    case "menu":
     case "image":
       return typeof raw === "string" ? raw.trim() : (def.default ?? "");
     case "icon": {

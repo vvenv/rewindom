@@ -12,22 +12,21 @@ category: 站点管理
 
 Section 是页面的组成单元，每个 section 有自己的类型与设置：
 
-| Section       | 作用                       |
-| ------------- | -------------------------- |
-| `header`      | 页头（站点级）             |
-| `footer`      | 页脚（站点级）             |
-| `hero`        | 首屏大图                   |
-| `band`        | 通栏内容带                 |
-| `cards`       | 卡片网格                   |
-| `steps`       | 步骤列表                   |
-| `faq`         | 常见问题折叠列表           |
-| `pricing`     | 定价表                     |
-| `form`        | 表单（收集线索）           |
-| `prose`       | 内联 markdown 正文         |
-| `doc-source`  | 引用平台文档（代码版本化） |
-| `doc-list`    | 文档库索引                 |
-| `doc-nav`     | 文档侧边导航               |
-| `doc-toc`     | 文档目录                   |
+| Section    | 作用               |
+| ---------- | ------------------ |
+| `header`   | 页头（站点级）     |
+| `footer`   | 页脚（站点级）     |
+| `hero`     | 首屏大图           |
+| `band`     | 通栏内容带         |
+| `cards`    | 卡片网格           |
+| `steps`    | 步骤列表           |
+| `faq`      | 常见问题折叠列表   |
+| `pricing`  | 定价表             |
+| `form`     | 表单（收集线索）   |
+| `prose`    | 内联 markdown 正文 |
+| `doc-list` | 文档库索引         |
+| `doc-nav`  | 文档侧边导航       |
+| `doc-toc`  | 文档目录           |
 
 在页面编辑器里拖拽排序、增删 section、调整每个 section 的设置。
 
