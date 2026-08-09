@@ -65,9 +65,12 @@ docker_setup_host_nginx() {
   local domain="$1"
   local port="$2"
   local ssl_email="$3"
+  # 平台控制台默认 Host；与 compose PLATFORM_HOST 默认一致
+  local platform_host="${PLATFORM_HOST:-platform.${domain}}"
 
   _run_ssh "set -euo pipefail
 DOMAIN='${domain}'
+PLATFORM_HOST='${platform_host}'
 PORT='${port}'
 SSL_EMAIL='${ssl_email}'
 CONF='/etc/nginx/sites-available/${domain}'
@@ -88,12 +91,13 @@ rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 nginx -t
 systemctl reload nginx
 
+# 证书必须覆盖产品主域 + 平台控制台 Host；只签主域时访问 platform.* 会证书不匹配 / 落到错误 server。
 if [ -n \"\$SSL_EMAIL\" ] && command -v certbot >/dev/null 2>&1; then
-  certbot --nginx -d \"\$DOMAIN\" --non-interactive --agree-tos --redirect -m \"\$SSL_EMAIL\" || true
+  certbot --nginx -d \"\$DOMAIN\" -d \"\$PLATFORM_HOST\" --non-interactive --agree-tos --redirect -m \"\$SSL_EMAIL\" || true
 elif [ -n \"\$SSL_EMAIL\" ]; then
   apt-get update -qq
   apt-get install -y -qq certbot python3-certbot-nginx
-  certbot --nginx -d \"\$DOMAIN\" --non-interactive --agree-tos --redirect -m \"\$SSL_EMAIL\" || true
+  certbot --nginx -d \"\$DOMAIN\" -d \"\$PLATFORM_HOST\" --non-interactive --agree-tos --redirect -m \"\$SSL_EMAIL\" || true
 fi
 "
 }
