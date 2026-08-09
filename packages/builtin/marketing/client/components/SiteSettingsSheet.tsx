@@ -75,6 +75,22 @@ function sameLocalizedText(
 }
 
 /**
+ * 把纯字符串文案钉死在指定语言名下。
+ *
+ * 纯字符串存的是「**当时的**主语言那一份文案」——语言是隐含的。所以换主语言前必须
+ * 先钉一次：不然把主语言从中文改成 English，那串中文数据一个字节没动，含义却原地
+ * 变成了英文站名。钉完再改，原文留在原语言下，新主语言是空的、要另填，这才是用户
+ * 真正在做的那个决定。
+ */
+function pinToLocale(
+  value: SiteLocalizedText,
+  locale: AppLocale,
+): SiteLocalizedText {
+  if (typeof value !== "string" || value === "") return value;
+  return { __i18n: { [locale]: value } };
+}
+
+/**
  * 站点级设置：站名、标语与发布开关。
  *
  * 导航 / 页脚链接已改为 Theme Editor 里的**页头 / 页脚 section**（schema 驱动），
@@ -83,6 +99,9 @@ function sameLocalizedText(
  * 分三组：**站点信息**（多语言文案）、**语言**（主语言）、**可见性**（发布开关）。
  * 分组标题用 `FieldTitle` + `aria-labelledby` 而不是 `legend`——`legend` 必须是
  * `fieldset` 的首个子元素，而「站点信息」的标题行右侧还要放译文切换。
+ *
+ * 改主语言不只是改 URL 前缀：纯字符串文案的语言是**隐含**的（见 `pinToLocale`），
+ * 所以切换时要先把它钉在原语言下，再配合当场警告 + 保存前确认。
  *
  * 站名 / 标语与页头文案同口径：逐字段 `__i18n`。译文切换按钮组挂在「站点信息」组的
  * 标题行里——它只作用于这一组的输入框，和下面独立成组的「主语言」不是一回事：前者是
@@ -370,6 +389,14 @@ export function SiteSettingsSheet({ site, children }: SiteSettingsSheetProps) {
                   value={defaultLocale}
                   onValueChange={(value) => {
                     const next = value as AppLocale;
+                    if (next === defaultLocale) return;
+                    // 先把现有文案钉在原主语言下，再换——顺序反了原文就被改了语言标签
+                    setSiteName((current) =>
+                      pinToLocale(current, defaultLocale),
+                    );
+                    setTagline((current) =>
+                      pinToLocale(current, defaultLocale),
+                    );
                     setDefaultLocale(next);
                     setEditLocale(next);
                   }}
