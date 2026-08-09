@@ -1,4 +1,4 @@
-import { type ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@be-water/ui/tabs";
 import { cn } from "@be-water/ui/utils";
@@ -49,6 +49,8 @@ interface SettingsTab {
   icon: LucideIcon;
   defs: SettingDef[];
 }
+
+type SettingsTabValue = SettingsTab["value"];
 
 /**
  * 右侧设置面板：完全由 section-schema 驱动，不再按 type 手写表单。
@@ -181,6 +183,17 @@ function ScopedSettings({
     ] as const
   ).filter((tab) => hasFields(tab.defs));
 
+  /*
+   * 页签受控：切 section / block 时组件常被复用，不能靠 defaultValue。
+   * 当前激活页签若在新一组里不存在，回退到第一个，避免空白面板。
+   */
+  const [activeTab, setActiveTab] = useState<SettingsTabValue>(
+    () => tabs[0]?.value ?? "content",
+  );
+  const tabValue: SettingsTabValue = tabs.some((tab) => tab.value === activeTab)
+    ? activeTab
+    : (tabs[0]?.value ?? "content");
+
   const fieldsFor = (scopeDefs: SettingDef[]) => (
     <SettingsFields
       defs={scopeDefs}
@@ -198,7 +211,10 @@ function ScopedSettings({
     <div className="space-y-3">
       <PanelLabel>{label}</PanelLabel>
       {tabs.length > 1 ? (
-        <Tabs defaultValue={tabs[0]!.value}>
+        <Tabs
+          value={tabValue}
+          onValueChange={(next) => setActiveTab(next as SettingsTabValue)}
+        >
           <TabsList className="w-full">
             {tabs.map((tab) => {
               const Icon = tab.icon;

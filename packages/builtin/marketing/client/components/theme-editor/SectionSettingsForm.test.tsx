@@ -14,17 +14,18 @@ import { SectionSettingsForm } from "./SectionSettingsForm.js";
 
 const wrapper = createQueryWrapper(createTestQueryClient());
 
+function formProps(type: PageSectionType) {
+  return {
+    section: createSection(type),
+    locale: "zh-CN" as const,
+    defaultLocale: "zh-CN" as const,
+    onChangeSettings: vi.fn(),
+    onChangeBlockSettings: vi.fn(),
+  };
+}
+
 function renderForm(type: PageSectionType) {
-  return render(
-    <SectionSettingsForm
-      section={createSection(type)}
-      locale="zh-CN"
-      defaultLocale="zh-CN"
-      onChangeSettings={vi.fn()}
-      onChangeBlockSettings={vi.fn()}
-    />,
-    { wrapper },
-  );
+  return render(<SectionSettingsForm {...formProps(type)} />, { wrapper });
 }
 
 describe("SectionSettingsForm 页签", () => {
@@ -37,6 +38,17 @@ describe("SectionSettingsForm 页签", () => {
   it("只有部分组有字段时只渲染有字段的页签", () => {
     renderForm("group");
     expect(screen.getAllByRole("tab")).toHaveLength(2);
+    expect(screen.getByText("列宽")).toBeTruthy();
+  });
+
+  it("切换 section 时若当前页签不存在则回退到第一个", () => {
+    const { rerender } = renderForm("hero");
+    // hero 默认在「内容」；group 没有内容页签，应落到它的第一个（版式）
+    rerender(<SectionSettingsForm {...formProps("group")} />);
+
+    const tabs = screen.getAllByRole("tab");
+    expect(tabs).toHaveLength(2);
+    expect(tabs[0]).toHaveAttribute("data-state", "active");
     expect(screen.getByText("列宽")).toBeTruthy();
   });
 });
