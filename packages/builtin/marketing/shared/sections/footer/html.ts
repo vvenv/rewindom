@@ -4,13 +4,11 @@ import { escapeHtml } from "../../html.js";
 import { settingBool, settingText } from "../../section-schema.js";
 import { siteNavPages, type PublicSitePage } from "../../site-cms.js";
 import {
-  findSiteMenu,
-  resolveSiteMenu,
-  resolveSiteMenuTitle,
-  type ResolvedMenuItem,
-  type SiteMenu,
-  type SiteMenuContext,
-} from "../../site-menu.js";
+  resolveNavItems,
+  settingNavItems,
+  type ResolvedNavItem,
+  type SiteNavContext,
+} from "../../site-nav.js";
 import { blockSurfaceAttr, linkAttrs } from "../_common/html.js";
 
 import type { PublicDocSummary } from "../../marketing-doc.js";
@@ -21,7 +19,7 @@ import type { AppLocale } from "@be-water/shared";
  * 一条页脚链接。子项（文档分类那一层）缩进列在下面——页脚列本来就是竖着排的，
  * 不像页头要收成下拉。
  */
-function renderFooterItemHtml(item: ResolvedMenuItem): string {
+function renderFooterItemHtml(item: ResolvedNavItem): string {
   const label = escapeHtml(item.label);
   const self = item.href
     ? `<a${linkAttrs(item.href)}>${label}</a>`
@@ -36,9 +34,7 @@ export function renderFooterHtml(input: {
   section: SiteSection;
   siteName: string;
   logoUrl: string | null;
-  /** 站点菜单表；每个 `menu_column` 块按 key 取一个当一列。 */
-  menus?: readonly SiteMenu[];
-  /** 菜单动态项的数据源（同页头）。 */
+  /** 导航动态项的数据源（同页头）。 */
   pages?: PublicSitePage[];
   docs?: readonly PublicDocSummary[];
   currentPath?: string;
@@ -52,24 +48,20 @@ export function renderFooterHtml(input: {
     settingText(s, "copyright") || `© ${new Date().getFullYear()} ${siteName}`;
 
   const defaultLocale = input.defaultLocale ?? "zh-CN";
-  const ctx: SiteMenuContext = {
+  const ctx: SiteNavContext = {
     navPages: siteNavPages(input.pages ?? []),
     docs: input.docs,
     locale: input.locale ?? defaultLocale,
     defaultLocale,
     currentPath: input.currentPath ?? "",
   };
-  const menus = input.menus ?? [];
 
   const columns = section.blocks
     .map((block) => {
-      const menu = findSiteMenu(menus, settingText(block.settings, "menu"));
-      const items = resolveSiteMenu(menu, ctx);
-      // 一列都展不出内容就整列不画（菜单删了、或里面只有一条还没写文档的动态项）
+      const items = resolveNavItems(settingNavItems(block.settings), ctx);
+      // 一列都展不出内容就整列不画
       if (items.length === 0) return "";
-      const title =
-        settingText(block.settings, "title") ||
-        resolveSiteMenuTitle(menu, ctx);
+      const title = settingText(block.settings, "title");
       return `<nav>
   ${title ? `<h2>${escapeHtml(title)}</h2>` : ""}
   <ul>${items.map(renderFooterItemHtml).join("")}</ul>

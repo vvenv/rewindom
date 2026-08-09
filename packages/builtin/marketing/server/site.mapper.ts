@@ -31,8 +31,6 @@ import {
   siteChromeIsDirty,
   siteChromePublishedFooter,
   siteChromePublishedHeader,
-  siteMenusDraft,
-  siteMenusPublished,
 } from "./site.util.js";
 
 import type {
@@ -67,7 +65,6 @@ export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
     // 管理端读**草稿** chrome；`chrome_dirty` 标出与线上的差异
     header: siteChromeDraftHeader(record),
     footer: siteChromeDraftFooter(record),
-    menus: siteMenusDraft(record),
     chrome_dirty: siteChromeIsDirty(record),
     published: record.published,
     created_at: record.created_at.toISOString(),
@@ -164,8 +161,6 @@ export function toPublicMarketingSite(
   const footerSections = useDraftChrome
     ? siteChromeDraftFooter(site)
     : siteChromePublishedFooter(site);
-  // 菜单跟着 chrome 同一档：预览看草稿，公开面看线上
-  const menus = useDraftChrome ? siteMenusDraft(site) : siteMenusPublished(site);
 
   return {
     site_name: localizeSiteText(site.site_name, current, default_locale),
@@ -178,7 +173,6 @@ export function toPublicMarketingSite(
     available_locales: availableLocales(pages, default_locale),
     header: localizeSections(headerSections, current, default_locale),
     footer: localizeSections(footerSections, current, default_locale),
-    menus,
     pages: pages
       .filter(
         (page) => normalizeLocale(page.locale, default_locale) === current,
@@ -186,10 +180,10 @@ export function toPublicMarketingSite(
       /*
        * 文档模板页不进页面目录。
        *
-       * 目录是「站点有哪些页面」——导航、同级菜单、`page-menu` 都吃它。模板页不是
-       * 一张可以列出来的页面：`doc_article` 那张根本没有自己的地址，`doc_index`
-       * 想露在导航里应该由租户显式加一条链接（链接选择器里就有「文档」这一项），
-       * 而不是因为「碰巧自定义过版式」就自动冒出来——那会让导航跟着编辑器行为漂。
+       * 目录是「站点有哪些页面」——「全部一级页面」、同级菜单、`page-menu` 都吃它。
+       * 模板页不是一张可以列出来的页面：`doc_article` 那张根本没有自己的地址，
+       * `doc_index` 的导航入口走菜单里的 `docs` 动态项（建站默认就有），而不是因为
+       * 「碰巧自定义过版式」就自动冒出来——那会让导航跟着编辑器行为漂。
        */
       .filter((page) => !isDocTemplateKind(pageIdentity(page).kind))
       .map((page) => {

@@ -15,7 +15,6 @@ function site(): PublicMarketingSite {
     tagline: "",
     logo_url: null,
     primary_color: null,
-    menus: [],
     theme_settings: {},
     default_locale: "zh-CN",
     locale: "zh-CN",

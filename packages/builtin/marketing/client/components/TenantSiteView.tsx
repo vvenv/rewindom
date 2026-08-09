@@ -128,7 +128,6 @@ export function TenantSiteView({
               section={section}
               siteName={site.site_name}
               logoUrl={theme.logo_url ?? null}
-              menus={site.menus}
               pages={site.pages}
               docs={chromeDocs}
               currentPath={path}
@@ -185,7 +184,6 @@ export function TenantSiteView({
               section={section}
               siteName={site.site_name}
               logoUrl={theme.logo_url ?? null}
-              menus={site.menus}
               pages={site.pages}
               docs={chromeDocs}
               currentPath={path}

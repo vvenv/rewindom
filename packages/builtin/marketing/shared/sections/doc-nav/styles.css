@@ -1,11 +1,23 @@
 /*
  * 文档导航菜单（侧栏 / 页脚目录）。
  *
+ * 字号与层级跟页头的文档下拉（`.nav-menu-panel`）走同一套：同一份目录出现在两个
+ * 地方，看上去得是同一个东西。规矩也是那边那条——分类小标题比它统辖的链接**更深
+ * 更小写不了的字**（正文色 + 大写小字），链接退到次要色并缩进挂一条竖线，深浅与
+ * 缩进说的是同一件事。原来是反过来的：链接 0.9375rem 正常字重、分类标题 0.75rem
+ * 且比链接还淡，分类看起来像是链接的附注。
+ *
  * 不假设自己被放在哪一列：宽度跟着容器走，`is-sticky` 只在宽屏生效——
  * 窄屏是上下堆叠的，粘住的目录会把正文压到屏幕外面去。
  */
 .doc-nav {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
+  /*
+   * 链接的内边距整体往外让，文字因此落在**列的边**上，和正文列、右侧章节导航共用
+   * 同一条竖直基准线。少了这一手，侧栏所有文字比同页其它栏往里缩 0.625rem——三栏
+   * 的左边缘参差，而那 0.625rem 只是悬停底色要的余量，不该算进版心。
+   */
+  margin-inline: -0.625rem;
 }
 .doc-nav ul {
   list-style: none;
@@ -17,7 +29,7 @@
 }
 .doc-nav a {
   display: block;
-  padding: 0.3125rem 0.625rem;
+  padding: 0.375rem 0.625rem;
   border-radius: 0.375rem;
   color: var(--muted-fg);
   text-decoration: none;
@@ -25,28 +37,49 @@
 }
 .doc-nav a:hover {
   color: var(--fg);
-  background: color-mix(in srgb, currentColor 8%, transparent);
+  background: var(--muted-bg);
 }
 .doc-nav a[aria-current="page"] {
   color: var(--accent);
   font-weight: 500;
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
+/*
+ * 抬头与分类标题的行高钉死 1.5rem——正文那一栏的返回链也是这个高度，于是三栏
+ * 的第一行落在同一条水平线上，不因为字号不同而各起各的。
+ */
 .doc-nav-title {
+  margin: 0 0 0.75rem;
+  padding: 0 0.625rem;
   font-size: 0.875rem;
   font-weight: 600;
-  margin: 0 0 0.75rem;
+  line-height: 1.5rem;
 }
 .doc-nav-group + .doc-nav-group {
   margin-top: 1.25rem;
 }
 .doc-nav-group-title {
-  font-size: 0.75rem;
+  margin: 0 0 0.25rem;
+  padding: 0 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.06em;
+  line-height: 1.5rem;
   text-transform: uppercase;
-  color: var(--muted-fg);
-  margin: 0 0 0.375rem;
+  color: var(--fg);
+}
+/*
+ * 缩进 + 一条竖线：一个分类管到哪儿为止，不用靠数间距去猜（同页头下拉）。
+ * 线画在 `ul` 上而不是每条链接上——侧栏里一整根连续的竖线比一截截的更像「一组」。
+ * 没有标题的那一组（没填分类的散条目）自然不缩进：它不属于任何分类。
+ */
+.doc-nav-group-title + ul {
+  margin-left: 0.625rem;
+  padding-left: 0.375rem;
+  border-left: 1px solid var(--border);
+}
+.doc-nav-group-title + ul a {
+  border-radius: 0 0.375rem 0.375rem 0;
 }
 
 @media (min-width: 1024px) {

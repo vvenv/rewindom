@@ -6,11 +6,6 @@ import {
   parseAreaSections,
   type SiteSection,
 } from "../../../shared/section-schema.js";
-import {
-  defaultMainMenu,
-  MAIN_MENU_KEY,
-  type SiteMenu,
-} from "../../../shared/site-menu.js";
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
 import { SiteHeader } from "./SiteChrome.js";
@@ -48,7 +43,7 @@ const pages = [
 
 function renderHeader(
   section: SiteSection,
-  options: { withSlot?: boolean; menus?: readonly SiteMenu[] } = {},
+  options: { withSlot?: boolean } = {},
 ) {
   const header = (
     <SiteHeader
@@ -58,7 +53,6 @@ function renderHeader(
       pages={pages}
       alternates={alternates}
       locale="zh-CN"
-      menus={options.menus ?? [defaultMainMenu()]}
     />
   );
   return render(
@@ -79,9 +73,10 @@ describe("SiteHeader 显示项开关", () => {
    * 四项是同一类决定（这枚入口露不露），所以并排摆在页头里。能力本身另有出处：
    * 语言看有没有译文、明暗永远跟随设备、账户看租户有没有开通会员。
    */
-  it("默认只露站点导航，语言与明暗要显式打开", () => {
+  it("默认带导航条目，语言与明暗要显式打开", () => {
     const settings = headerSection().settings;
-    expect(settings.menu).toBe(MAIN_MENU_KEY);
+    expect(Array.isArray(settings.items)).toBe(true);
+    expect((settings.items as unknown[]).length).toBeGreaterThan(0);
     expect(settings.show_locale_switcher).toBe(false);
     expect(settings.show_theme_toggle).toBe(false);
     expect(settings.show_account).toBe(true);
@@ -93,10 +88,8 @@ describe("SiteHeader 显示项开关", () => {
     expect(screen.queryByRole("navigation", { name: "Language" })).toBeNull();
   });
 
-  it("menu 指向空菜单时顶栏不列一级页", () => {
-    renderHeader(headerSection(), {
-      menus: [{ key: "main", title: "", items: [] }],
-    });
+  it("items 为空时顶栏不列一级页", () => {
+    renderHeader(headerSection({ items: [] }));
     expect(screen.queryByRole("link", { name: "文档" })).toBeNull();
   });
 

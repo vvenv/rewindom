@@ -24,6 +24,13 @@ export function DocNavSection({
   const s = section.settings;
   const messages = docMessages(locale);
   const heading = settingText(s, "heading");
+  /*
+   * 分组只在真的分开了东西时才画标题，没填分类的那一组不套标题——
+   * 与 SSR 的 `doc-nav/html.ts` 同一口径，两端结构必须逐层一致。
+   */
+  const groups = settingBool(s, "show_category")
+    ? groupDocsByCategory(docs)
+    : [];
 
   const list = (items: readonly PublicDocSummary[]): ReactElement => (
     <ul>
@@ -46,10 +53,12 @@ export function DocNavSection({
       aria-label={heading || messages.nav}
     >
       {heading ? <p className="doc-nav-title">{heading}</p> : null}
-      {settingBool(s, "show_category")
-        ? groupDocsByCategory(docs, messages.otherCategory).map((group) => (
-            <div className="doc-nav-group" key={group.category}>
-              <p className="doc-nav-group-title">{group.category}</p>
+      {groups.length > 1
+        ? groups.map((group) => (
+            <div className="doc-nav-group" key={group.category || "loose"}>
+              {group.category ? (
+                <p className="doc-nav-group-title">{group.category}</p>
+              ) : null}
               {list(group.items)}
             </div>
           ))

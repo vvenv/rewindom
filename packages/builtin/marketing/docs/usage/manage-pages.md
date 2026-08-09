@@ -1,10 +1,9 @@
 ---
 title: 页面与版式
 description: Section 系统、草稿发布与页面预设
-category: 站点管理
+category: 建站与运营
+sort_order: 60
 ---
-
-# 页面与版式
 
 站点的每一页由若干 section（区块）按顺序拼成。本篇介绍 section 系统、草稿/发布语义，以及如何编排页面。
 

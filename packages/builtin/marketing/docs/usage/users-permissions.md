@@ -1,10 +1,9 @@
 ---
 title: 用户与权限
 description: 用户管理、角色与 RBAC 权限体系
-category: 管理后台
+category: 平台管理
+sort_order: 110
 ---
-
-# 用户与权限
 
 本篇介绍租户内部的用户管理与 RBAC 权限体系。这里的「用户」指租户管理员（工作台使用者），不是站点会员。
 

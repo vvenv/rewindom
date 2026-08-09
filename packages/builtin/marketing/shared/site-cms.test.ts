@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createSection,
+  getSectionDefinition,
+  parseSettingValues,
+  type SiteSection,
+} from "./section-schema.js";
+import {
   canonicalizePageIdentity,
+  chromeNeedsDocList,
+  chromeShowsDocSearch,
   marketingPagePath,
   pageDepth,
   pageParentPath,
@@ -11,6 +19,7 @@ import {
   siteNavPages,
   type PublicSitePage,
 } from "./site-cms.js";
+import { blankNavItem } from "./site-nav.js";
 
 describe("marketingPagePath", () => {
   it("maps home and nested page slugs", () => {
@@ -147,5 +156,54 @@ describe("文档模板页", () => {
     expect(marketingPagePath("doc_article", "docs-article")).toBe(
       "/docs/:slug",
     );
+  });
+});
+
+describe("chrome 的文档数据需求", () => {
+  function header(settings: Record<string, unknown>): SiteSection {
+    const section = createSection("header");
+    return {
+      ...section,
+      settings: parseSettingValues(getSectionDefinition("header").settings, {
+        ...section.settings,
+        ...settings,
+      }),
+    };
+  }
+
+  const plain = {
+    header: [header({ show_doc_search: false, items: [] })],
+    footer: [],
+  };
+
+  it("什么都没用到文档时两档都不要", () => {
+    expect(chromeNeedsDocList(plain)).toBe(false);
+    expect(chromeShowsDocSearch(plain)).toBe(false);
+  });
+
+  it("页头默认导航含文档库，要整份目录", () => {
+    expect(chromeNeedsDocList({ header: [header({})], footer: [] })).toBe(true);
+  });
+
+  it("导航条目挂了文档动态项要整份目录", () => {
+    const item = blankNavItem("docs");
+    expect(
+      chromeNeedsDocList({
+        ...plain,
+        header: [header({ items: [item] })],
+      }),
+    ).toBe(true);
+  });
+
+  it("页脚摆了 doc-* 段要整份目录", () => {
+    expect(
+      chromeNeedsDocList({ ...plain, footer: [createSection("doc-nav")] }),
+    ).toBe(true);
+  });
+
+  it("页头搜索只要「有没有文档」，不要整份目录", () => {
+    const withSearch = { ...plain, header: [header({ show_doc_search: true, items: [] })] };
+    expect(chromeShowsDocSearch(withSearch)).toBe(true);
+    expect(chromeNeedsDocList(withSearch)).toBe(false);
   });
 });

@@ -10,7 +10,6 @@ import {
   parseSettingValues,
   type SiteSection,
 } from "./section-schema.js";
-import { defaultMainMenu, MAIN_MENU_KEY } from "./site-menu.js";
 import { findSiteTheme } from "./site-themes.js";
 
 import type { UpdateMarketingSiteBody } from "./site-cms.js";
@@ -103,10 +102,11 @@ export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
 export function buildSiteStarterChrome(
   t: PresetTranslateFn,
   themeKey = "default",
-): Pick<
-  UpdateMarketingSiteBody,
-  "header" | "footer" | "menus" | "theme_settings"
-> {
+): Pick<UpdateMarketingSiteBody, "header" | "footer" | "theme_settings"> {
+  /*
+   * `createSection("header")` 已带上 definition 默认 `items`（一级页面 + 文档库）。
+   * 这里只覆盖品牌区开关与布局，不再写独立菜单实体。
+   */
   const header = createSection("header");
   const footer = createSection("footer");
   const year = new Date().getFullYear();
@@ -118,13 +118,6 @@ export function buildSiteStarterChrome(
       ...(findSiteTheme(themeKey) ?? findSiteTheme("default"))!.theme_settings,
       logo_url: null,
     } satisfies ThemeSettings,
-    /*
-     * 只建一个主导航，内容是一条「全部一级页面」动态项。
-     *
-     * 等价于原来那个默认打开的 `show_site_nav`，但现在它是菜单里可以拖走、可以
-     * 和自定义链接换顺序的一条；租户想在自动列出的页面之间插一条外链也做得到了。
-     */
-    menus: [defaultMainMenu()],
     header: [
       {
         ...header,
@@ -133,7 +126,6 @@ export function buildSiteStarterChrome(
           show_logo: true,
           show_site_name: true,
           sticky: true,
-          menu: MAIN_MENU_KEY,
           layout: "split",
           /*
            * 模板**不**配页头按钮。

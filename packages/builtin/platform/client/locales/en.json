@@ -382,9 +382,10 @@
     "uploading": "Uploading…",
     "clear": "Clear",
     "clearing": "Clearing…",
+    "unset": "Not set",
     "logo": {
       "title": "Logo",
-      "hint": "PNG / JPEG / WebP / SVG, max 1MB. Shown on login and in the shell."
+      "hint": "PNG / JPEG / WebP / SVG, max 1MB. Shown on login and in the shell; the public site header and footer inherit it too, and show no logo until one is uploaded."
     },
     "favicon": {
       "title": "Favicon",

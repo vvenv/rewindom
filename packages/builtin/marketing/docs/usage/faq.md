@@ -1,10 +1,8 @@
 ---
 title: 常见问题
 description: 部署、路由、模块与建站的常见疑问
-category: 常见问题
+sort_order: 120
 ---
-
-# 常见问题
 
 ## 本地开发
 

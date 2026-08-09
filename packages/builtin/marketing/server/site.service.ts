@@ -39,7 +39,6 @@ import {
   type UpdateMarketingSiteBody,
 } from "../shared/site-cms.js";
 import { withSiteLocale } from "../shared/site-locale.js";
-import { defaultMainMenu } from "../shared/site-menu.js";
 import {
   buildSiteStarter,
   findSiteStarter,
@@ -61,7 +60,6 @@ import {
   parsePageSections,
   parsePageSettings,
   parseSiteAreaSections,
-  parseSiteMenuList,
   parseSiteThemeSettings,
   promotePageContentData,
   resolvePageIdentity,
@@ -70,8 +68,6 @@ import {
   siteChromeDraftHeader,
   siteChromePublishedFooter,
   siteChromePublishedHeader,
-  siteMenusDraft,
-  siteMenusPublished,
   validateOptionalColor,
   validatePageSlug,
   validateSiteLocale,
@@ -132,13 +128,11 @@ async function ensureSiteRow(tenant_id: string): Promise<MarketingSite> {
       tagline: "",
       default_locale: "zh-CN",
       theme_settings: {},
+      // 空 chrome：导航默认项由起步模板 / 编辑器里 `createSection("header")` 写入
       nav_json: [],
       footer_json: [],
       nav_draft_json: [],
       footer_draft_json: [],
-      // 建站即给一份可用的主导航（一条「全部一级页面」），而不是一个空下拉
-      menus_json: [defaultMainMenu()] as unknown as Prisma.InputJsonValue,
-      menus_draft_json: [defaultMainMenu()] as unknown as Prisma.InputJsonValue,
       published: false,
     },
   });
@@ -187,11 +181,6 @@ export async function updateSite(
     data.footer_draft_json = parseSiteAreaSections(
       "footer",
       body.footer,
-    ) as unknown as Prisma.InputJsonValue;
-  }
-  if (body.menus !== undefined) {
-    data.menus_draft_json = parseSiteMenuList(
-      body.menus,
     ) as unknown as Prisma.InputJsonValue;
   }
   if (body.published !== undefined) {
@@ -464,7 +453,6 @@ export async function saveEditorDraft(
   const sections = parsePageSections(body.sections);
   const header = parseSiteAreaSections("header", body.header);
   const footer = parseSiteAreaSections("footer", body.footer);
-  const menus = parseSiteMenuList(body.menus);
   const settings =
     body.settings !== undefined ? parsePageSettings(body.settings) : undefined;
   const visibility =
@@ -490,7 +478,6 @@ export async function saveEditorDraft(
       data: {
         nav_draft_json: header as unknown as Prisma.InputJsonValue,
         footer_draft_json: footer as unknown as Prisma.InputJsonValue,
-        menus_draft_json: menus as unknown as Prisma.InputJsonValue,
       },
     }),
   ]);
@@ -519,7 +506,6 @@ export async function applySiteStarter(
   const theme_settings = parseSiteThemeSettings(payload.site.theme_settings);
   const header = parseSiteAreaSections("header", payload.site.header);
   const footer = parseSiteAreaSections("footer", payload.site.footer);
-  const menus = parseSiteMenuList(payload.site.menus);
   const site_name =
     payload.site.site_name !== undefined
       ? validateSiteName(payload.site.site_name, locale)
@@ -554,10 +540,8 @@ export async function applySiteStarter(
         theme_settings: theme_settings as unknown as Prisma.InputJsonValue,
         nav_json: header as unknown as Prisma.InputJsonValue,
         footer_json: footer as unknown as Prisma.InputJsonValue,
-        menus_json: menus as unknown as Prisma.InputJsonValue,
         nav_draft_json: header as unknown as Prisma.InputJsonValue,
         footer_draft_json: footer as unknown as Prisma.InputJsonValue,
-        menus_draft_json: menus as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -806,7 +790,6 @@ export async function publishEditorDraft(
   const promoted = promotePageContentData(existingPage);
   const header = siteChromeDraftHeader(existingSite);
   const footer = siteChromeDraftFooter(existingSite);
-  const menus = siteMenusDraft(existingSite);
 
   const [page, site] = await prisma.$transaction(async (tx) => {
     /*
@@ -839,7 +822,6 @@ export async function publishEditorDraft(
         data: {
           nav_json: header as unknown as Prisma.InputJsonValue,
           footer_json: footer as unknown as Prisma.InputJsonValue,
-          menus_json: menus as unknown as Prisma.InputJsonValue,
         },
       }),
     ]);
@@ -872,7 +854,6 @@ export async function revertEditorDraft(
   const live = revertPageContentData(existingPage);
   const header = siteChromePublishedHeader(existingSite);
   const footer = siteChromePublishedFooter(existingSite);
-  const menus = siteMenusPublished(existingSite);
 
   const [page, site] = await prisma.$transaction([
     prisma.marketingPage.update({
@@ -892,7 +873,6 @@ export async function revertEditorDraft(
       data: {
         nav_draft_json: header as unknown as Prisma.InputJsonValue,
         footer_draft_json: footer as unknown as Prisma.InputJsonValue,
-        menus_draft_json: menus as unknown as Prisma.InputJsonValue,
       },
     }),
   ]);

@@ -160,28 +160,23 @@ describe("renderHeaderHtml 文档下拉的层级", () => {
 
   function renderDocsMenu(docs = DOCS): string {
     return renderHeaderHtml({
-      section: header({}),
+      section: header({
+        items: [
+          {
+            id: "docs",
+            source: "docs",
+            label: "文档",
+            href: "",
+            category: "",
+            expand: "children",
+            children: [],
+          },
+        ],
+      }),
       siteName: "站点",
       logoUrl: null,
       homeHref: "/",
       locales: [],
-      menus: [
-        {
-          key: "main",
-          title: "",
-          items: [
-            {
-              id: "docs",
-              source: "docs",
-              label: "文档",
-              href: "",
-              category: "",
-              expand: "children",
-              children: [],
-            },
-          ],
-        },
-      ],
       docs,
     });
   }

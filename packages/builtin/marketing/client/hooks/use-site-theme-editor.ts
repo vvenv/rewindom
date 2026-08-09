@@ -23,7 +23,6 @@ import {
   type PublicMarketingSite,
 } from "../../shared/site-cms.js";
 import { siteLocaleOrder, withSiteLocale } from "../../shared/site-locale.js";
-import { type SiteMenu } from "../../shared/site-menu.js";
 import {
   addBlock,
   addSectionToColumn,
@@ -80,8 +79,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   const [sections, setSections] = useState<SiteSection[]>([]);
   const [header, setHeader] = useState<SiteSection[]>([]);
   const [footer, setFooter] = useState<SiteSection[]>([]);
-  // 菜单与页头页脚同属 chrome：同一份草稿、同一次保存、同一次发布
-  const [menus, setMenus] = useState<SiteMenu[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [pageSettings, setPageSettings] = useState<MarketingPageSettings>({});
@@ -99,7 +96,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     const serverSections = pageQuery.data.sections;
     const serverHeader = siteQuery.data.header;
     const serverFooter = siteQuery.data.footer;
-    const serverMenus = siteQuery.data.menus;
     const serverTitle = pageQuery.data.title;
     const serverDescription = pageQuery.data.description;
     const serverSettings = pageQuery.data.settings ?? {};
@@ -108,7 +104,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
       serverSections,
       serverHeader,
       serverFooter,
-      serverMenus,
       serverTitle,
       serverDescription,
       serverSettings,
@@ -123,7 +118,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
         cached.sections,
         cached.header,
         cached.footer,
-        cached.menus ?? serverMenus,
         cached.title,
         cached.description,
         cached.settings ?? {},
@@ -133,7 +127,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     const nextSections = useCache ? cached.sections : serverSections;
     const nextHeader = useCache ? cached.header : serverHeader;
     const nextFooter = useCache ? cached.footer : serverFooter;
-    const nextMenus = useCache ? (cached.menus ?? serverMenus) : serverMenus;
     const nextTitle = useCache ? cached.title : serverTitle;
     const nextDescription = useCache ? cached.description : serverDescription;
     const nextSettings = useCache
@@ -146,7 +139,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     setSections(nextSections);
     setHeader(nextHeader);
     setFooter(nextFooter);
-    setMenus(nextMenus);
     setTitle(nextTitle);
     setDescription(nextDescription);
     setPageSettings(nextSettings);
@@ -172,7 +164,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
         sections,
         header,
         footer,
-        menus,
         title,
         description,
         pageSettings,
@@ -187,7 +178,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
       sections,
       header,
       footer,
-      menus,
       title,
       description,
       settings: pageSettings,
@@ -201,7 +191,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     sections,
     header,
     footer,
-    menus,
     title,
     description,
     pageSettings,
@@ -305,8 +294,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
         // 否则 `settingText` 拿到对象会一律渲染成空
         header: localizeSections(header, locale, defaultLocale),
         footer: localizeSections(footer, locale, defaultLocale),
-        // 菜单不压：`resolveSiteMenu` 在渲染时自己按 locale 取文案与补前缀
-        menus,
         // `page-menu` section 与页头导航要能列出同语言下的其它页面
         pages: previewNavPages,
       }
@@ -378,8 +365,6 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     sections,
     header,
     footer,
-    menus,
-    setMenus,
     title,
     setTitle,
     description,
@@ -541,7 +526,6 @@ function draftSnapshot(
   sections: SiteSection[],
   header: SiteSection[],
   footer: SiteSection[],
-  menus: SiteMenu[],
   title: string,
   description: string,
   settings: MarketingPageSettings,
@@ -551,7 +535,6 @@ function draftSnapshot(
     sections,
     header,
     footer,
-    menus,
     title,
     description,
     settings,
@@ -568,8 +551,6 @@ interface EditorCachePayload {
   sections: SiteSection[];
   header: SiteSection[];
   footer: SiteSection[];
-  /** 旧缓存里没有这一项，回落服务端那份而不是当成「一个菜单都没有」。 */
-  menus?: SiteMenu[];
   title: string;
   description: string;
   settings?: MarketingPageSettings;

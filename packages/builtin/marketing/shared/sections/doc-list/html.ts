@@ -32,7 +32,7 @@ function searchAttr(doc: PublicDocSummary): string {
 export const renderDocListHtml: SectionHtmlRenderer = (section, ctx) => {
   const locale = ctx.locale ?? "en";
   const messages = docMessages(locale);
-  const view = resolveDocList(section.settings, ctx.docs ?? [], messages.otherCategory);
+  const view = resolveDocList(section.settings, ctx.docs ?? []);
   // 一篇都没有时整段不输出，与 page-menu 同口径：空目录不该占一块空白
   if (view.groups.length === 0) return "";
 
@@ -65,11 +65,18 @@ export const renderDocListHtml: SectionHtmlRenderer = (section, ctx) => {
     return `<ul class="${gridClass(view.columns)}">${cards}</ul>`;
   };
 
+  /*
+   * 每一组都套 `.doc-list-group`，没有分类的那一组只是少一行标题——组间距挂在
+   * 相邻的两个壳之间，散条目要是不套壳就会紧贴着上一组的卡片。
+   */
   const groups = view.groups
-    .map((group) =>
-      group.category
-        ? `<div class="doc-list-group"><h3 class="doc-list-group-title">${escapeHtml(group.category)}</h3>${renderItems(group.items)}</div>`
-        : renderItems(group.items),
+    .map(
+      (group) =>
+        `<div class="doc-list-group">${
+          group.category
+            ? `<h3 class="doc-list-group-title">${escapeHtml(group.category)}</h3>`
+            : ""
+        }${renderItems(group.items)}</div>`,
     )
     .join("");
 

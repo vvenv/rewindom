@@ -8,7 +8,6 @@ import { fetchSiteDocs, SITE_DOCS_QUERY_KEY } from "../lib/site-doc-api.js";
 
 import type { PublicDocSummary } from "../../shared/marketing-doc.js";
 import type { SiteSection } from "../../shared/section-schema.js";
-import type { SiteMenu } from "../../shared/site-menu.js";
 
 /**
  * 页头 / 页脚在预览里要用的文档数据，口径与 SSR 的 `resolveChromeDocs` 一致。
@@ -25,7 +24,6 @@ import type { SiteMenu } from "../../shared/site-menu.js";
 export function useChromeDocs(chrome: {
   header: SiteSection[];
   footer: SiteSection[];
-  menus: SiteMenu[];
 }): PublicDocSummary[] {
   const needed =
     chromeNeedsDocList(chrome) || chromeShowsDocSearch(chrome);

@@ -1,10 +1,14 @@
 /*
  * 文内章节导航。与 doc-nav 长得像但不共用类：它俩经常**同时**出现在一页的左右两栏，
  * 共用一套类名的话，想单独调其中一个就没有着力点了。
+ *
+ * 长得像是有意的——字号、悬停、抬头的处理都照 doc-nav（也就是页头文档下拉）那一套，
+ * 不像的地方只有缩进：这里的层级是标题级别，不是分类。
  */
 .doc-toc {
   font-size: 0.875rem;
-  padding-left: 0;
+  /* 同 doc-nav：内边距往外让，文字落在列的边上，三栏共一条竖直基准线 */
+  margin-inline: -0.625rem;
 }
 .doc-toc ul {
   list-style: none;
@@ -13,24 +17,29 @@
 }
 .doc-toc a {
   display: block;
-  padding: 0.25rem 0;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.375rem;
   color: var(--muted-fg);
   text-decoration: none;
   line-height: 1.5;
 }
 .doc-toc a:hover {
-  color: var(--accent);
+  color: var(--fg);
+  background: var(--muted-bg);
 }
+/* 行高与 doc-nav 的分类标题、正文的返回链一致：三栏第一行落在同一条水平线上 */
 .doc-toc-title {
-  font-size: 0.75rem;
+  margin: 0 0 0.25rem;
+  padding: 0 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.06em;
+  line-height: 1.5rem;
   text-transform: uppercase;
-  color: var(--muted-fg);
-  margin: 0 0 0.5rem;
+  color: var(--fg);
 }
 .doc-toc-l3 a {
-  padding-left: 0.75rem;
+  padding-left: 1.375rem;
   font-size: 0.8125rem;
 }
 

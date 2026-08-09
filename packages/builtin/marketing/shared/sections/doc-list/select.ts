@@ -21,17 +21,16 @@ export interface DocListView {
   columns: number;
   showDescription: boolean;
   showUpdated: boolean;
-  /** 分组后的文档；不分组时是**一组**且 `category` 为空串。 */
+  /**
+   * 分组后的文档。`category` 为空串的那一组**不画标题**：不分组时的唯一一组，
+   * 以及分组时没填分类的那些散条目，都走这条——没有分类就不硬造一个分类名。
+   */
   groups: Array<{ category: string; items: PublicDocSummary[] }>;
 }
 
-/**
- * @param otherLabel 没填分类的那一组的标题（按访客语言，见 `docMessages`）。
- */
 export function resolveDocList(
   settings: SettingValues,
   docs: readonly PublicDocSummary[],
-  otherLabel: string,
 ): DocListView {
   const filter = settingText(settings, "category").trim();
   const filtered = filter
@@ -46,7 +45,7 @@ export function resolveDocList(
       ? limited.length > 0
         ? [{ category: "", items: [...limited] }]
         : []
-      : groupDocsByCategory(limited, otherLabel);
+      : groupDocsByCategory(limited);
 
   return {
     style: settingText(settings, "style") === "list" ? "list" : "cards",

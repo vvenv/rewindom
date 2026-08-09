@@ -4,9 +4,9 @@ import {
   docMessages,
   formatDocDate,
 } from "../../marketing-doc.js";
-import { settingBool } from "../../section-schema.js";
+import { settingBool, settingText } from "../../section-schema.js";
 import { withSiteLocale } from "../../site-locale.js";
-import { md } from "../_common/html.js";
+import { isExternal, linkAttrs, md } from "../_common/html.js";
 
 import type { SectionHtmlRenderer } from "../render-context.js";
 
@@ -18,20 +18,33 @@ export const renderDocArticleHtml: SectionHtmlRenderer = (section, ctx) => {
   const locale = ctx.locale ?? "en";
   const messages = docMessages(locale);
 
-  const indexPath = ctx.docsIndexPath ?? DOCS_INDEX_PATH;
-  const backHref =
-    ctx.locale && ctx.defaultLocale
-      ? withSiteLocale(indexPath, ctx.locale, ctx.defaultLocale)
-      : indexPath;
-  const back = settingBool(s, "show_back")
-    ? `<a class="doc-article-back" href="${escapeHtml(backHref)}">← ${escapeHtml(messages.back)}</a>`
-    : "";
+  let back = "";
+  if (settingBool(s, "show_back")) {
+    const target =
+      settingText(s, "back_href") || ctx.docsIndexPath || DOCS_INDEX_PATH;
+    // 站内地址补当前语言前缀（同客户端 `SiteLink`）；外链 / 锚点原样输出
+    const href =
+      ctx.locale &&
+      ctx.defaultLocale &&
+      !isExternal(target) &&
+      !target.startsWith("#")
+        ? withSiteLocale(target, ctx.locale, ctx.defaultLocale)
+        : target;
+    const label = settingText(s, "back_label") || messages.back;
+    back = `<a class="doc-article-back"${linkAttrs(href)}>← ${escapeHtml(label)}</a>`;
+  }
 
-  const meta = settingBool(s, "show_meta")
-    ? `<div class="doc-article-meta">${
-        doc.category ? `<span class="doc-tag">${escapeHtml(doc.category)}</span>` : ""
-      }<span>${escapeHtml(messages.updated)} ${escapeHtml(formatDocDate(doc.updated_at, locale))}</span></div>`
+  const category =
+    settingBool(s, "show_category") && doc.category
+      ? `<span class="doc-tag">${escapeHtml(doc.category)}</span>`
+      : "";
+  const updated = settingBool(s, "show_updated")
+    ? `<span>${escapeHtml(messages.updated)} ${escapeHtml(formatDocDate(doc.updated_at, locale))}</span>`
     : "";
+  const meta =
+    category || updated
+      ? `<div class="doc-article-meta">${category}${updated}</div>`
+      : "";
 
   const title = settingBool(s, "show_title")
     ? `<h1>${escapeHtml(doc.title)}</h1>`
@@ -41,11 +54,18 @@ export const renderDocArticleHtml: SectionHtmlRenderer = (section, ctx) => {
       ? `<p class="doc-article-lead">${escapeHtml(doc.description)}</p>`
       : "";
 
-  return `<article class="doc-article">
+  const below = settingText(s, "meta_position") === "below";
+  const cls =
+    settingText(s, "align") === "center"
+      ? "doc-article doc-article-center"
+      : "doc-article";
+
+  return `<article class="${cls}">
   ${back}
-  ${meta}
+  ${below ? "" : meta}
   ${title}
   ${lead}
+  ${below ? meta : ""}
   <div class="prose">${md(doc.body_md)}</div>
 </article>`;
 };

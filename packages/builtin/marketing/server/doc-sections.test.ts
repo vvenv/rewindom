@@ -34,6 +34,16 @@ const DOCS = [
   },
 ];
 
+/** 没填分类的一篇：目录里应当直接列在顶层，而不是被归进一个编出来的分类。 */
+const LOOSE = {
+  slug: "changelog",
+  title: "更新日志",
+  description: "",
+  category: "",
+  sort_order: 9,
+  updated_at: "2026-03-03T00:00:00.000Z",
+};
+
 const DOC: PublicDocDetail = {
   ...DOCS[0]!,
   body_md: "## 准备\n\n正文\n\n### 依赖\n\n正文",
@@ -73,6 +83,14 @@ describe("doc-list", () => {
   it("group_by=none 时不出分组抬头", () => {
     const html = render("doc-list", { group_by: "none" }, { docs: DOCS });
     expect(html).not.toContain("doc-list-group-title");
+  });
+
+  // 没填分类的不该被塞进一个凭空冒出来的「其它」分类里
+  it("没填分类的条目照样列，但不编一个分类抬头出来", () => {
+    const html = render("doc-list", {}, { docs: [...DOCS, LOOSE] });
+    expect(html).toContain(docPath("changelog"));
+    expect(html).not.toContain("其它");
+    expect(html.match(/doc-list-group-title/gu)?.length).toBe(2);
   });
 
   it("按分类筛选，只列那一类", () => {
@@ -144,6 +162,23 @@ describe("doc-nav", () => {
   it("没有文档时整段不输出", () => {
     expect(render("doc-nav", {}, { docs: [] })).toBe("");
   });
+
+  /*
+   * 不为分类而分类：只有一个分类时那条抬头什么也没分开，没填分类的更是没有抬头
+   * 可画——条目直接铺在顶层。
+   */
+  it("只有一个分类时不画分类抬头", () => {
+    const html = render("doc-nav", {}, { docs: [DOCS[0]!] });
+    expect(html).toContain(docPath("install"));
+    expect(html).not.toContain("doc-nav-group-title");
+  });
+
+  it("没填分类的条目列在顶层，不编一个分类名出来", () => {
+    const html = render("doc-nav", {}, { docs: [...DOCS, LOOSE] });
+    expect(html).toContain(docPath("changelog"));
+    expect(html).not.toContain("其它");
+    expect(html.match(/doc-nav-group-title/gu)?.length).toBe(2);
+  });
 });
 
 describe("doc-article", () => {
@@ -163,12 +198,64 @@ describe("doc-article", () => {
   it("开关关掉后对应部件不出现", () => {
     const html = render(
       "doc-article",
-      { show_title: false, show_meta: false, show_back: false },
+      {
+        show_title: false,
+        show_category: false,
+        show_updated: false,
+        show_back: false,
+      },
       { doc: DOC },
     );
     expect(html).not.toContain("<h1>");
     expect(html).not.toContain("doc-article-meta");
     expect(html).not.toContain("doc-article-back");
+  });
+
+  // 分类与日期各是一个开关：只留其一是文档站里最常见的那种要求
+  it("元信息两项可以各开各的", () => {
+    const html = render("doc-article", { show_category: false }, { doc: DOC });
+    expect(html).toContain("doc-article-meta");
+    expect(html).not.toContain("doc-tag");
+    expect(html).toContain("更新于");
+  });
+
+  it("元信息可以移到标题下方", () => {
+    const html = render(
+      "doc-article",
+      { meta_position: "below" },
+      { doc: DOC },
+    );
+    expect(html.indexOf("doc-article-meta")).toBeGreaterThan(
+      html.indexOf("<h1>"),
+    );
+  });
+
+  it("返回链接的文案与目标可以自定义", () => {
+    const html = render(
+      "doc-article",
+      { back_label: "回到帮助中心", back_href: "/help" },
+      { doc: DOC },
+    );
+    expect(html).toContain('href="/help"');
+    expect(html).toContain("回到帮助中心");
+    expect(html).not.toContain("返回文档");
+  });
+
+  // 自定义站内目标同样要补语言前缀，否则英文页上的返回链会跳回中文站
+  it("自定义站内目标补当前语言前缀，外链原样", () => {
+    const zh = render(
+      "doc-article",
+      { back_href: "/help" },
+      { doc: DOC, locale: "en", defaultLocale: "zh-CN" },
+    );
+    expect(zh).toContain('href="/en/help"');
+
+    const external = render(
+      "doc-article",
+      { back_href: "https://example.com/help" },
+      { doc: DOC, locale: "en", defaultLocale: "zh-CN" },
+    );
+    expect(external).toContain('href="https://example.com/help"');
   });
 });
 

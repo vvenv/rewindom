@@ -250,7 +250,6 @@ describe("saveEditorDraft", () => {
       ],
       header: [{ type: "header", settings: {}, blocks: [] }],
       footer: [{ type: "footer", settings: {}, blocks: [] }],
-      menus: [],
     };
 
     const result = await saveEditorDraft(TENANT, "page-1", body);
@@ -285,7 +284,6 @@ describe("saveEditorDraft", () => {
       sections: [],
       header: [],
       footer: [],
-      menus: [],
       settings: { bg_color: "#101010" },
     });
 

@@ -2,12 +2,22 @@
  * 文档正文的外框：返回链、元信息行、标题、导语。
  * 正文本体的排版是 _common 的 `.prose`，这里不重复一份。
  */
+/*
+ * 返回链是正文栏的第一行，所以它同时是三栏对齐的基准：行高钉死 1.5rem，与左侧
+ * 目录的分类标题、右侧章节导航的抬头一样高，三栏的第一行因此落在同一条水平线上。
+ *
+ * 用块级 flex + `fit-content` 而不是 `inline-flex`：行内盒会被父级的 line-height
+ * 撑出一根更高的 strut，那 1.5rem 就白钉了。
+ */
 .doc-article-back {
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   align-items: center;
   gap: 0.375rem;
+  height: 1.5rem;
   color: var(--muted-fg);
   font-size: 0.875rem;
+  line-height: 1.5rem;
   text-decoration: none;
 }
 .doc-article-back:hover {
@@ -46,6 +56,24 @@
 }
 .doc-article .prose {
   margin-top: 2rem;
+}
+
+/*
+ * 居中抬头：只居中正文外面那一圈（返回链、元信息、标题、导语）。
+ * 正文本体强制回左对齐——居中的长段落是没法读的，而 text-align 会继承下去。
+ */
+.doc-article-center {
+  text-align: center;
+}
+/* 返回链是块级 `fit-content`，`text-align` 管不到它，得自己居中 */
+.doc-article-center .doc-article-back {
+  margin-inline: auto;
+}
+.doc-article-center .doc-article-meta {
+  justify-content: center;
+}
+.doc-article-center .prose {
+  text-align: left;
 }
 
 /*

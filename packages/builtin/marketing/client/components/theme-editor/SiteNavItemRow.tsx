@@ -1,13 +1,6 @@
-import { type DragEvent, type ReactElement } from "react";
+import { type DragEvent, type ReactElement, useState } from "react";
 
 import { Button } from "@be-water/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
 import { Input } from "@be-water/ui/input";
 import {
   Select,
@@ -32,65 +25,55 @@ import {
   writeLocalizedSetting,
 } from "../../../shared/section-schema.js";
 import {
-  resolveSiteMenuItem,
-  SITE_MENU_SOURCES,
-  type ResolvedMenuItem,
-  type SiteMenuContext,
-  type SiteMenuItem,
-  type SiteMenuSource,
-} from "../../../shared/site-menu.js";
+  resolveNavItem,
+  SITE_NAV_SOURCES,
+  type ResolvedNavItem,
+  type SiteNavContext,
+  type SiteNavItem,
+  type SiteNavSource,
+} from "../../../shared/site-nav.js";
 import {
-  menuItemSourcePatch,
-  type MenuDropPlace,
-} from "../../lib/site-menu-edit.js";
+  navItemSourcePatch,
+  type NavDropPlace,
+} from "../../lib/site-nav-edit.js";
 
 import { SiteLinkField } from "./SiteLinkField.js";
 
 import type { AppLocale } from "@be-water/shared";
 
-/** 就地预览最多列几条：再多在 300px 的侧栏里只会把控件挤到折叠线以下。 */
 const PREVIEW_LIMIT = 6;
 
-export interface MenuItemRowDnd {
+export interface NavItemRowDnd {
   draggable: boolean;
   dragging: boolean;
   accepts: boolean;
-  drop: { place: MenuDropPlace } | null;
+  drop: { place: NavDropPlace } | null;
   onDragStart: () => void;
-  onDragOver: (place: MenuDropPlace) => void;
-  onDrop: (place: MenuDropPlace) => void;
+  onDragOver: (place: NavDropPlace) => void;
+  onDrop: (place: NavDropPlace) => void;
   onDragEnd: () => void;
 }
 
-interface SiteMenuItemRowProps {
-  item: SiteMenuItem;
-  /** 子项：缩进 + 不给「添加子项」（只允许一层）。 */
+interface SiteNavItemRowProps {
+  item: SiteNavItem;
   nested?: boolean;
   expanded: boolean;
   onToggle: () => void;
   locale: AppLocale;
   defaultLocale: AppLocale;
-  /** 展开动态项用的内容快照。 */
-  preview: SiteMenuContext;
-  /** 文档分类候选（`doc_category` 用）。 */
+  preview: SiteNavContext;
   categories: readonly string[];
   disabled?: boolean;
-  onChange: (patch: Partial<SiteMenuItem>) => void;
+  onChange: (patch: Partial<SiteNavItem>) => void;
   onRemove: () => void;
   onMove: (delta: number) => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
-  /** 不传 = 这一条不能挂子项。 */
   onAddChild?: () => void;
-  dnd: MenuItemRowDnd;
+  dnd: NavItemRowDnd;
 }
 
-/**
- * 一条菜单项：**折叠时是一行，展开才是一张表单**。
- *
- * 排序交互对齐区块树：行内上下移、拖放换位，不把顺序藏进下拉里。
- */
-export function SiteMenuItemRow({
+export function SiteNavItemRow({
   item,
   nested,
   expanded,
@@ -107,14 +90,18 @@ export function SiteMenuItemRow({
   canMoveDown,
   onAddChild,
   dnd,
-}: SiteMenuItemRowProps): ReactElement {
+}: SiteNavItemRowProps): ReactElement {
   const { t } = useTranslation("marketing");
+  const [showMore, setShowMore] = useState(false);
   const isLink = item.source === "link";
   const label = readLocalizedSetting(item.label, locale, defaultLocale);
   const title =
-    label || (isLink ? t("editor.menuItemUntitled") : t(`editor.menuSource.${item.source}`));
+    label ||
+    (isLink
+      ? t("editor.menuItemUntitled")
+      : t(`editor.menuSource.${item.source}`));
 
-  const resolved = isLink ? [] : resolveSiteMenuItem(item, preview);
+  const resolved = isLink ? [] : resolveNavItem(item, preview);
   const leaves = leafLabels(resolved);
   const hint = isLink
     ? item.href || t("editor.menuItemNoHref")
@@ -129,7 +116,7 @@ export function SiteMenuItemRow({
         locale,
         defaultLocale,
         next,
-      ) as SiteMenuItem["label"],
+      ) as SiteNavItem["label"],
     });
 
   const showActions = !disabled;
@@ -260,14 +247,14 @@ export function SiteMenuItemRow({
             disabled={disabled}
             value={item.source}
             onValueChange={(next) =>
-              onChange(menuItemSourcePatch(next as SiteMenuSource))
+              onChange(navItemSourcePatch(next as SiteNavSource))
             }
           >
             <SelectTrigger size="sm" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {SITE_MENU_SOURCES.map((source) => (
+              {SITE_NAV_SOURCES.map((source) => (
                 <SelectItem key={source} value={source}>
                   {t(`editor.menuSource.${source}`)}
                 </SelectItem>
@@ -288,7 +275,7 @@ export function SiteMenuItemRow({
 
           {isLink ? (
             <SiteLinkField
-              id={`menu-item-href-${item.id}`}
+              id={`nav-item-href-${item.id}`}
               value={item.href}
               disabled={disabled}
               placeholder="/pricing"
@@ -297,36 +284,62 @@ export function SiteMenuItemRow({
           ) : null}
 
           {item.source === "doc_category" ? (
-            <DocCategoryField
-              value={item.category}
-              categories={categories}
-              disabled={disabled}
-              onChange={(category) => onChange({ category })}
-            />
+            <Select
+              disabled={disabled || categories.length === 0}
+              value={item.category || undefined}
+              onValueChange={(category) => onChange({ category })}
+            >
+              <SelectTrigger size="sm" className="w-full">
+                <SelectValue placeholder={t("editor.menuItemCategory")} />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           ) : null}
 
           {!isLink ? (
             <>
-              <Select
-                disabled={disabled}
-                value={item.expand}
-                onValueChange={(expand) =>
-                  onChange({ expand: expand as SiteMenuItem["expand"] })
-                }
-              >
-                <SelectTrigger size="sm" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="children">
-                    {t("editor.menuExpand.children")}
-                  </SelectItem>
-                  <SelectItem value="flat">
-                    {t("editor.menuExpand.flat")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <MenuItemPreview labels={leaves} />
+              <NavItemPreview
+                source={item.source}
+                labels={leaves}
+                category={item.category}
+              />
+              {showMore ? (
+                <Select
+                  disabled={disabled}
+                  value={item.expand}
+                  onValueChange={(expand) =>
+                    onChange({ expand: expand as SiteNavItem["expand"] })
+                  }
+                >
+                  <SelectTrigger size="sm" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="children">
+                      {t("editor.menuExpand.children")}
+                    </SelectItem>
+                    <SelectItem value="flat">
+                      {t("editor.menuExpand.flat")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="self-start px-0 text-xs text-muted-foreground"
+                  onClick={() => setShowMore(true)}
+                >
+                  {t("editor.navShowMore")}
+                </Button>
+              )}
             </>
           ) : null}
         </div>
@@ -335,18 +348,34 @@ export function SiteMenuItemRow({
   );
 }
 
-function dropPlaceOf(event: DragEvent<HTMLElement>): MenuDropPlace {
+function dropPlaceOf(event: DragEvent<HTMLElement>): NavDropPlace {
   const rect = event.currentTarget.getBoundingClientRect();
   return event.clientY - rect.top < rect.height / 2 ? "before" : "after";
 }
 
-function MenuItemPreview({ labels }: { labels: string[] }): ReactElement {
+function NavItemPreview({
+  source,
+  labels,
+  category,
+}: {
+  source: SiteNavSource;
+  labels: string[];
+  category: string;
+}): ReactElement {
   const { t } = useTranslation("marketing");
 
   if (labels.length === 0) {
+    const hintKey =
+      source === "pages"
+        ? "editor.navPreviewEmptyPages"
+        : source === "docs"
+          ? "editor.navPreviewEmptyDocs"
+          : category
+            ? "editor.navPreviewEmptyCategory"
+            : "editor.menuPreviewEmptyHint";
     return (
       <p className="text-xs text-muted-foreground">
-        {t("editor.menuPreviewEmptyHint")}
+        {t(hintKey, { category })}
       </p>
     );
   }
@@ -365,57 +394,7 @@ function MenuItemPreview({ labels }: { labels: string[] }): ReactElement {
   );
 }
 
-function DocCategoryField({
-  value,
-  categories,
-  disabled,
-  onChange,
-}: {
-  value: string;
-  categories: readonly string[];
-  disabled?: boolean;
-  onChange: (next: string) => void;
-}): ReactElement {
-  const { t } = useTranslation("marketing");
-
-  return (
-    <div className="flex gap-2">
-      <Input
-        disabled={disabled}
-        value={value}
-        placeholder={t("editor.menuItemCategory")}
-        onChange={(event) => onChange(event.target.value)}
-      />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={disabled || categories.length === 0}
-          >
-            {t("editor.menuCategoryPick")}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>
-            {t("editor.menuCategoryPickLabel")}
-          </DropdownMenuLabel>
-          {categories.map((category) => (
-            <DropdownMenuItem
-              key={category}
-              onSelect={() => onChange(category)}
-            >
-              {category}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
-}
-
-function leafLabels(items: readonly ResolvedMenuItem[]): string[] {
+function leafLabels(items: readonly ResolvedNavItem[]): string[] {
   return items.flatMap((item) =>
     item.children.length > 0 ? leafLabels(item.children) : [item.label],
   );

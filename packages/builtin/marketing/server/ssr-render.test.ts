@@ -8,7 +8,6 @@ import {
 
 import { renderMarketingHtml, renderSitemapXml } from "./ssr-render.js";
 
-import { defaultMainMenu } from "../shared/site-menu.js";
 import type {
   PublicMarketingPage,
   PublicMarketingSite,
@@ -33,7 +32,6 @@ function site(overrides: Partial<PublicMarketingSite> = {}) {
     header: [createSection("header")],
     footer: [createSection("footer")],
     pages: [],
-    menus: [defaultMainMenu()],
     ...overrides,
   } as PublicMarketingSite;
 }
@@ -255,13 +253,12 @@ describe("renderMarketingHtml SEO", () => {
     expect(html).toContain('aria-current="page"');
   });
 
-  it("hides site nav when the header menu is empty", () => {
-    const header = createSection("header");
+  it("hides site nav when the header items are empty", () => {
+    const header = headerWith({ items: [] });
     const html = renderMarketingHtml({
       origin: ORIGIN,
       site: site({
         header: [header],
-        menus: [{ key: "main", title: "", items: [] }],
         pages: [
           {
             slug: "docs",

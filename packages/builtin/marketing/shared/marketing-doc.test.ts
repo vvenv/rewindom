@@ -4,6 +4,7 @@ import {
   docHeadingAnchor,
   extractDocHeadings,
   groupDocsByCategory,
+  parseMarkdownFile,
   type PublicDocSummary,
 } from "./marketing-doc.js";
 
@@ -19,23 +20,26 @@ function doc(slug: string, category: string): PublicDocSummary {
 }
 
 describe("groupDocsByCategory", () => {
-  it("保留传入顺序，未分类的恒排最后", () => {
-    const groups = groupDocsByCategory(
-      [doc("a", ""), doc("b", "指南"), doc("c", "入门"), doc("d", "指南")],
-      "其它",
-    );
-    expect(groups.map((group) => group.category)).toEqual([
-      "指南",
-      "入门",
-      "其它",
+  it("保留传入顺序，未分类的恒排最后且不编一个分类名出来", () => {
+    const groups = groupDocsByCategory([
+      doc("a", ""),
+      doc("b", "指南"),
+      doc("c", "入门"),
+      doc("d", "指南"),
     ]);
+    expect(groups.map((group) => group.category)).toEqual(["指南", "入门", ""]);
     expect(groups[0]!.items.map((item) => item.slug)).toEqual(["b", "d"]);
     expect(groups[2]!.items.map((item) => item.slug)).toEqual(["a"]);
+  });
+
+  it("全都没分类时只有一组散条目", () => {
+    const groups = groupDocsByCategory([doc("a", ""), doc("b", "")]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]!.category).toBe("");
   });
 });
 
 describe("docHeadingAnchor", () => {
-  // 中文标题占多数：把非 ASCII 剥掉的话整份目录都锚不到任何地方
   it("保留中文", () => {
     expect(docHeadingAnchor("快速开始")).toBe("快速开始");
     expect(docHeadingAnchor("Getting Started!")).toBe("getting-started");
@@ -56,13 +60,9 @@ describe("extractDocHeadings", () => {
     expect(headings.map((item) => item.text)).toEqual(["安装", "使用"]);
   });
 
-  // `#` 与 `##` 两端都渲成 <h2>，目录层级必须跟**渲染结果**一致
-  it("把一级标题归到二级", () => {
+  it("跳过正文一级标题", () => {
     const headings = extractDocHeadings("# 标题\n\n### 三级\n");
-    expect(headings).toEqual([
-      { level: 2, text: "标题", anchor: "标题" },
-      { level: 3, text: "三级", anchor: "三级" },
-    ]);
+    expect(headings).toEqual([{ level: 3, text: "三级", anchor: "三级" }]);
   });
 
   it("按 depth 设置裁掉更深的层级", () => {
@@ -74,5 +74,29 @@ describe("extractDocHeadings", () => {
     const [heading] = extractDocHeadings("## `pnpm dev` 与 **构建**\n");
     expect(heading!.text).toBe("pnpm dev 与 构建");
     expect(heading!.anchor).toBe(docHeadingAnchor(heading!.text));
+  });
+});
+
+describe("parseMarkdownFile", () => {
+  it("解析 frontmatter 与正文", () => {
+    const parsed = parseMarkdownFile(
+      "guide.md",
+      `---
+title: 指南
+description: 简述
+category: 入门
+sort_order: 15
+---
+## 正文
+`,
+    );
+    expect(parsed).toEqual({
+      slug: "guide",
+      title: "指南",
+      description: "简述",
+      category: "入门",
+      sort_order: 15,
+      body_md: "## 正文",
+    });
   });
 });

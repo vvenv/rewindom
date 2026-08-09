@@ -28,13 +28,11 @@ import {
 } from "../../../shared/site-cms.js";
 import { withSiteLocale } from "../../../shared/site-locale.js";
 import {
-  findSiteMenu,
-  resolveSiteMenu,
-  resolveSiteMenuTitle,
-  type ResolvedMenuItem,
-  type SiteMenu,
-  type SiteMenuContext,
-} from "../../../shared/site-menu.js";
+  resolveNavItems,
+  settingNavItems,
+  type ResolvedNavItem,
+  type SiteNavContext,
+} from "../../../shared/site-nav.js";
 import { useSiteColorMode } from "../../hooks/use-marketing-site-document-theme.js";
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
@@ -120,7 +118,7 @@ function SiteMemberEntry(): ReactElement | null {
  * 与 SSR 的 `renderNavItemHtml` 同构，同样用原生 `<details>`——两端画出来的 DOM
  * 结构一致，同一份 CSS 才管得住两边。
  */
-function NavMenuItem({ item }: { item: ResolvedMenuItem }): ReactElement | null {
+function NavMenuItem({ item }: { item: ResolvedNavItem }): ReactElement | null {
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
@@ -168,7 +166,7 @@ function NavMenuItem({ item }: { item: ResolvedMenuItem }): ReactElement | null 
   );
 }
 
-function NavMenuLeaf({ item }: { item: ResolvedMenuItem }): ReactElement {
+function NavMenuLeaf({ item }: { item: ResolvedNavItem }): ReactElement {
   if (!item.href) return <span>{item.label}</span>;
   return (
     <SiteLink href={item.href} aria-current={item.current ? "page" : undefined}>
@@ -226,7 +224,7 @@ function DocSearchForm({
 }
 
 /** 页脚的一条链接；子项（文档分类那层）缩进列在下面。 */
-function FooterMenuItem({ item }: { item: ResolvedMenuItem }): ReactElement {
+function FooterMenuItem({ item }: { item: ResolvedNavItem }): ReactElement {
   return (
     <li>
       {item.href ? (
@@ -362,14 +360,14 @@ function selectable(onSelect: ((blockId: string | null) => void) | undefined) {
   };
 }
 
-/** 展开菜单要的内容快照；页头页脚共用。 */
-function chromeMenuContext(input: {
+/** 展开导航要的内容快照；页头页脚共用。 */
+function chromeNavContext(input: {
   pages?: PublicSitePage[];
   docs?: readonly PublicDocSummary[];
   currentPath?: string;
   locale?: string;
   defaultLocale?: string;
-}): SiteMenuContext {
+}): SiteNavContext {
   const defaultLocale = (input.defaultLocale ?? "zh-CN") as AppLocale;
   return {
     navPages: siteNavPages(input.pages ?? []),
@@ -380,15 +378,13 @@ function chromeMenuContext(input: {
   };
 }
 
-/** 页头 / 页脚共有的菜单数据源。 */
-interface ChromeMenuProps {
-  /** 站点菜单表；按 `menu` 设置里的 key 取。 */
-  menus?: readonly SiteMenu[];
+/** 页头 / 页脚共有的导航数据源。 */
+interface ChromeNavProps {
   /** 全站导航（一级页）的数据源。 */
   pages?: PublicSitePage[];
-  /** 已发布文档目录（菜单里的文档动态项吃它）。 */
+  /** 已发布文档目录（文档动态项吃它）。 */
   docs?: readonly PublicDocSummary[];
-  /** 站里有没有已发布文档；页头搜索入口据此决定渲不渲染（见 SSR 侧同名参数）。 */
+  /** 站里有没有已发布文档；页头搜索入口据此决定渲不渲染。 */
   hasDocs?: boolean;
   /** 当前逻辑路径，用于 `aria-current`。 */
   currentPath?: string;
@@ -401,7 +397,6 @@ export function SiteHeader({
   siteName,
   logoUrl,
   onSelect,
-  menus = [],
   pages = [],
   docs,
   hasDocs,
@@ -410,7 +405,7 @@ export function SiteHeader({
   locale,
   defaultLocale,
 }: ChromeProps &
-  ChromeMenuProps & {
+  ChromeNavProps & {
     /** 本页各语言入口（语言切换器的候选）。 */
     alternates?: PageLocaleAlternate[];
   }): ReactElement {
@@ -422,9 +417,9 @@ export function SiteHeader({
   const layout = settingText(s, "layout") || "split";
   const centered = layout === "centered";
   const select = selectable(onSelect);
-  const navItems = resolveSiteMenu(
-    findSiteMenu(menus, settingText(s, "menu")),
-    chromeMenuContext({ pages, docs, currentPath, locale, defaultLocale }),
+  const navItems = resolveNavItems(
+    settingNavItems(s),
+    chromeNavContext({ pages, docs, currentPath, locale, defaultLocale }),
   );
   const surface = resolveSurfaceStyle(s);
   const surfaceCss = {
@@ -510,18 +505,17 @@ export function SiteFooter({
   siteName,
   logoUrl,
   onSelect,
-  menus = [],
   pages = [],
   docs,
   currentPath,
   locale,
   defaultLocale,
-}: ChromeProps & ChromeMenuProps): ReactElement {
+}: ChromeProps & ChromeNavProps): ReactElement {
   const s = section.settings;
   const blurb = settingText(s, "blurb");
   const copyright =
     settingText(s, "copyright") || `© ${new Date().getFullYear()} ${siteName}`;
-  const ctx = chromeMenuContext({
+  const ctx = chromeNavContext({
     pages,
     docs,
     currentPath,
@@ -529,21 +523,15 @@ export function SiteFooter({
     defaultLocale,
   });
   const columns = section.blocks
-    .map((block) => {
-      const menu = findSiteMenu(menus, settingText(block.settings, "menu"));
-      return {
-        blockId: block.id,
-        title:
-          settingText(block.settings, "title") ||
-          resolveSiteMenuTitle(menu, ctx),
-        items: resolveSiteMenu(menu, ctx),
-      };
-    })
+    .map((block) => ({
+      blockId: block.id,
+      title: settingText(block.settings, "title"),
+      items: resolveNavItems(settingNavItems(block.settings), ctx),
+    }))
     /*
-     * 展不出内容的列整列不画（菜单被删、或里面只有一条还没写文档的动态项）。
+     * 展不出内容的列整列不画。
      *
-     * 编辑器里例外：那边正在配置，画一个空列比让它凭空消失好——列没了就点不中，
-     * 也就没法给它选菜单。
+     * 编辑器里例外：那边正在配置，画一个空列比让它凭空消失好——列没了就点不中。
      */
     .filter((column) => onSelect !== undefined || column.items.length > 0);
   const select = selectable(onSelect);

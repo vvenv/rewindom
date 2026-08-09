@@ -183,6 +183,7 @@ export interface ParsedMarkdownFile {
   title: string;
   description: string;
   category: string;
+  sort_order: number;
   body_md: string;
 }
 
@@ -196,6 +197,7 @@ export function parseMarkdownFile(
   let title = slug;
   let description = "";
   let category = "";
+  let sort_order = 0;
   let body = raw;
   const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/u);
   if (fmMatch) {
@@ -208,6 +210,10 @@ export function parseMarkdownFile(
       if (key === "title") title = val;
       else if (key === "description") description = val;
       else if (key === "category") category = val;
+      else if (key === "sort_order") {
+        const n = Number(val);
+        if (Number.isFinite(n)) sort_order = Math.trunc(n);
+      }
     }
   }
   const trimmedBody = body.trim();
@@ -219,6 +225,7 @@ export function parseMarkdownFile(
     title: title.slice(0, 200) || slug,
     description: description.slice(0, 500),
     category: category.slice(0, 100),
+    sort_order,
     body_md: trimmedBody,
   };
 }
@@ -248,7 +255,6 @@ export function docPath(slug: string): string {
  * 两三个词不值得拉一整套 i18n 运行时进 SSR。
  */
 export function docMessages(locale: string): {
-  otherCategory: string;
   updated: string;
   back: string;
   toc: string;
@@ -258,7 +264,6 @@ export function docMessages(locale: string): {
 } {
   return locale.startsWith("zh")
     ? {
-        otherCategory: "其它",
         updated: "更新于",
         back: "返回文档",
         toc: "本页内容",
@@ -267,7 +272,6 @@ export function docMessages(locale: string): {
         searchNoResults: "没有匹配的文档",
       }
     : {
-        otherCategory: "Other",
         updated: "Updated",
         back: "Back to docs",
         toc: "On this page",
@@ -312,18 +316,19 @@ export interface PublicDocDetail extends PublicDocSummary {
 /**
  * 按分类分组，**保持传入顺序**（服务端已按 category / sort_order / title 排好）。
  *
- * 没填分类的归到 `fallbackLabel` 一组，且恒排在最后——「其它」出现在正经分类前面
- * 会让目录看起来像是乱的。
+ * 没填分类的收在**最后一组**且 `category` 为空串——这一组是「散条目」，不是一个
+ * 叫「其它」的分类：目录里凭空多出一个谁都没建过的分类名，比几条没有归属的文档
+ * 更让人困惑，而各处渲染看到空标题就直接把条目铺在顶层（见 `doc-nav` / `doc-list`）。
+ * 恒排最后是因为分类过的那些才是目录的骨架，散条目挂在骨架后面。
  */
 export function groupDocsByCategory<T extends { category: string }>(
   docs: readonly T[],
-  fallbackLabel: string,
 ): Array<{ category: string; items: T[] }> {
   const grouped = new Map<string, T[]>();
-  const uncategorized: T[] = [];
+  const loose: T[] = [];
   for (const doc of docs) {
     if (!doc.category) {
-      uncategorized.push(doc);
+      loose.push(doc);
       continue;
     }
     const list = grouped.get(doc.category);
@@ -331,9 +336,7 @@ export function groupDocsByCategory<T extends { category: string }>(
     else grouped.set(doc.category, [doc]);
   }
   const out = [...grouped].map(([category, items]) => ({ category, items }));
-  if (uncategorized.length > 0) {
-    out.push({ category: fallbackLabel, items: uncategorized });
-  }
+  if (loose.length > 0) out.push({ category: "", items: loose });
   return out;
 }
 
@@ -383,8 +386,7 @@ export interface DocHeading {
 /**
  * 从 markdown 正文抽章节标题（`doc-toc` 的数据源）。
  *
- * 只认 ATX 标题（`## x`），且跳过围栏代码块里的 `#`——shell 注释、Python 注释里
- * 全是 `#` 开头的行，不跳过的话目录里会混进一堆代码片段。
+ * 只认 ATX 标题（`##` 起），跳过正文 `#`（页面标题走元数据）与围栏代码块里的 `#`。
  */
 export function extractDocHeadings(
   body_md: string,
@@ -407,7 +409,9 @@ export function extractDocHeadings(
     const match = line.match(/^(#{1,6})\s+(.+?)\s*#*$/u);
     if (!match) continue;
     const depth = match[1]!.length;
-    const level = depth === 1 ? 2 : depth;
+    // 页面标题走 doc.title；正文里的 `#` 不进目录
+    if (depth === 1) continue;
+    const level = depth;
     if (level < min || level > max) continue;
     // 标题里的行内标记（`**粗**`、`` `code` ``、链接）不该进目录文本
     const text = match[2]!
@@ -426,11 +430,13 @@ export function formatDocAsMarkdown(doc: {
   title: string;
   description: string;
   category: string;
+  sort_order?: number;
   body_md: string;
 }): string {
   const fm: string[] = ["---", `title: ${doc.title}`, `slug: ${doc.slug}`];
   if (doc.description) fm.push(`description: ${doc.description}`);
   if (doc.category) fm.push(`category: ${doc.category}`);
+  if (doc.sort_order !== undefined) fm.push(`sort_order: ${doc.sort_order}`);
   fm.push("---", "");
   return `${fm.join("\n")}\n${doc.body_md}\n`;
 }

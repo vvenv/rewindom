@@ -20,7 +20,6 @@ import {
   getSectionDefinition,
   type SiteSection,
 } from "../../shared/section-schema.js";
-import { siteNavPages } from "../../shared/site-cms.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";
 import { EditorToolbar } from "../components/theme-editor/EditorToolbar.js";
 import { PageMetaForm } from "../components/theme-editor/PageMetaForm.js";
@@ -30,8 +29,8 @@ import {
 } from "../components/theme-editor/PreviewFrame.js";
 import { SectionSettingsForm } from "../components/theme-editor/SectionSettingsForm.js";
 import { SectionTree } from "../components/theme-editor/SectionTree.js";
-import { SiteMenusProvider } from "../components/theme-editor/site-menus-context.js";
 import { SiteAccountEntryPreview } from "../components/theme-editor/SiteAccountEntryPreview.js";
+import { SiteNavPreviewProvider } from "../components/theme-editor/site-nav-preview-context.js";
 import { useChromeDocs } from "../hooks/use-chrome-docs.js";
 import { useDocPreviewData } from "../hooks/use-doc-preview-data.js";
 import {
@@ -40,8 +39,9 @@ import {
 } from "../hooks/use-site-theme-editor.js";
 import { resolveEditorPublishState } from "../lib/editor-publish-state.js";
 import { sectionTypeLabel } from "../lib/section-type-label.js";
-import { siteMenuUsage } from "../lib/site-menu-usage.js";
 import { siteMemberEntrySlot } from "../shell/site-member-slots.js";
+import { siteNavPages } from "../../shared/site-cms.js";
+import { settingNavItems } from "../../shared/site-nav.js";
 
 const DEVICE_ICONS: Array<[PreviewDevice, LucideIcon]> = [
   ["desktop", Monitor],
@@ -75,13 +75,12 @@ export function SiteThemeEditor() {
   // 文档模板页的预览要有文档可画；普通页面这里什么都不拉（见 hook 内的 enabled）
   const docPreview = useDocPreviewData(editor.page?.kind ?? "page");
   /*
-   * 页头页脚看到的文档目录：与线上同一口径（见 `useChromeDocs`），也喂给菜单编辑器
-   * 做动态项的就地预览。和 `docPreview` 分开，是因为那一份在零文档时会兜底成示例。
+   * 页头页脚看到的文档目录：与线上同一口径（见 `useChromeDocs`）。
+   * 和 `docPreview` 分开，是因为那一份在零文档时会兜底成示例。
    */
   const chromeDocs = useChromeDocs({
     header: editor.header,
     footer: editor.footer,
-    menus: editor.menus,
   });
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
@@ -192,7 +191,6 @@ export function SiteThemeEditor() {
           sections: editor.sections,
           header: editor.header,
           footer: editor.footer,
-          menus: editor.menus,
           settings: editor.pageSettings,
           visibility: editor.visibility,
         },
@@ -285,16 +283,14 @@ export function SiteThemeEditor() {
   };
 
   return (
-    <SiteMenusProvider
+    <SiteNavPreviewProvider
       value={{
-        menus: editor.menus,
-        setMenus: editor.setMenus,
-        // 页头页脚共用一套菜单，两边的引用一起算，才说得出「这个菜单还用在哪」
-        usage: siteMenuUsage([...editor.header, ...editor.footer], t),
-        preview: {
-          navPages: siteNavPages(editor.previewSite?.pages ?? []),
-          docs: chromeDocs,
-        },
+        navPages: siteNavPages(editor.previewSite?.pages ?? []).map((page) => ({
+          path: page.path,
+          title: page.title,
+        })),
+        docs: chromeDocs,
+        headerItems: settingNavItems(editor.header[0]?.settings ?? {}),
       }}
     >
     <PageLayout
@@ -445,6 +441,6 @@ export function SiteThemeEditor() {
         </aside>
       </div>
     </PageLayout>
-    </SiteMenusProvider>
+    </SiteNavPreviewProvider>
   );
 }

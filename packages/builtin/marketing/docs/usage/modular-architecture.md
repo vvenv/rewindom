@@ -2,9 +2,8 @@
 title: 模块化架构
 description: 内置模块、外部模块与模块注册表
 category: 核心概念
+sort_order: 40
 ---
-
-# 模块化架构
 
 平台采用模块化设计：功能以模块为单位组织，按需启用。`apps/server` 与 `apps/client` 只是极薄的组装层，业务逻辑全部在 `packages/modules/*`（或 `packages/builtin/*`）里。
 

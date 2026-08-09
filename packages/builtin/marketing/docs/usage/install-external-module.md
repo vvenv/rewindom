@@ -1,10 +1,9 @@
 ---
 title: 安装外部模块
 description: 外部模块的目录结构、边界规则与接入流程
-category: 站点管理
+category: 核心概念
+sort_order: 45
 ---
-
-# 安装外部模块
 
 外部模块是内化了完整前后端定义的独立 workspace 包，通过 `@be-water/module-sdk` 门面与内核交互。本篇介绍如何把一个外部模块接入平台。
 

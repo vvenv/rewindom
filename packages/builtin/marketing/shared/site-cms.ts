@@ -3,7 +3,7 @@ import { APP_LOCALES, type AppLocale } from "@be-water/shared";
 import { DOCS_INDEX_PATH } from "./marketing-doc.js";
 import { settingBool } from "./section-settings.js";
 import { normalizeSiteColor } from "./site-color.js";
-import { siteMenusNeedDocs, type SiteMenu } from "./site-menu.js";
+import { navItemsNeedDocs, settingNavItems } from "./site-nav.js";
 
 import type { LocalizedText, SiteSection } from "./section-schema.js";
 import type { ThemeSettings } from "./theme-sections.js";
@@ -150,13 +150,6 @@ export interface MarketingSite {
   /** 站点级区域：schema 驱动，出现在所有页面上（**草稿**，保存后不一定已上线）。 */
   header: SiteSection[];
   footer: SiteSection[];
-  /**
-   * 站点导航菜单，页头 / 页脚按 key 引用（见 `site-menu.ts`）。
-   *
-   * 与 header / footer 同属 chrome：同一次发布、同一个 `chrome_dirty`。改一条链接
-   * 却要分两次发布，租户看到的会是「页头已经指过去了，页脚还指着旧地址」。
-   */
-  menus: SiteMenu[];
   /** 草稿 chrome 是否与线上一致。 */
   chrome_dirty: boolean;
   published: boolean;
@@ -207,7 +200,6 @@ export interface UpdateMarketingSiteBody {
   default_locale?: string;
   header?: SiteSection[];
   footer?: SiteSection[];
-  menus?: SiteMenu[];
   published?: boolean;
 }
 
@@ -243,8 +235,6 @@ export interface SaveEditorDraftBody {
   sections: unknown;
   header: unknown;
   footer: unknown;
-  /** 站点导航菜单；与页头页脚同属 chrome，同一次保存。 */
-  menus: unknown;
   /** 页面画布外观（背景 / 前景）；与内容同一次保存。 */
   settings?: MarketingPageSettings;
   /** 可见性立即生效（不进草稿列）：改完保存即对公开面生效。 */
@@ -315,13 +305,6 @@ export interface PublicMarketingSite {
   available_locales: AppLocale[];
   header: SiteSection[];
   footer: SiteSection[];
-  /**
-   * 导航菜单**原样**带过来，不像 sections 那样先压成当前语言。
-   *
-   * 菜单要在渲染期才展开（动态项得看这个站点当下有哪些页面 / 文档），而
-   * `resolveSiteMenu` 本来就要收 locale——再多做一遍投影只是把同一件事做两次。
-   */
-  menus: SiteMenu[];
   /** `path` 是**逻辑路径**（不带 locale 前缀）；链接由渲染端按语言改写。 */
   pages: Array<{
     slug: string;
@@ -533,8 +516,8 @@ export function resolvePageMenu(
 /**
  * 这次渲染要不要先查一趟**完整**文档目录。
  *
- * 页面 / 页头 / 页脚上摆了 `doc-*` 段，或导航菜单里挂了文档动态项——这两种都要
- * 逐篇的标题与地址才画得出来。
+ * 页面 / 页头 / 页脚上摆了 `doc-*` 段，或 chrome 导航条目里挂了文档动态项——这两种
+ * 都要逐篇的标题与地址才画得出来。
  *
  * 页头的搜索框**不**在此列：它只需要知道「站里有没有文档」，见 `chromeShowsDocSearch`。
  * 而它默认是开的，算进来的话每一次页面渲染都会为一枚按钮拉一遍全库目录。
@@ -542,12 +525,15 @@ export function resolvePageMenu(
 export function chromeNeedsDocList(site: {
   header: SiteSection[];
   footer: SiteSection[];
-  menus: SiteMenu[];
 }): boolean {
-  if (siteMenusNeedDocs(site.menus)) return true;
-  return [...site.header, ...site.footer].some((section) =>
-    section.type.startsWith("doc-"),
-  );
+  for (const section of [...site.header, ...site.footer]) {
+    if (section.type.startsWith("doc-")) return true;
+    if (navItemsNeedDocs(settingNavItems(section.settings))) return true;
+    for (const block of section.blocks) {
+      if (navItemsNeedDocs(settingNavItems(block.settings))) return true;
+    }
+  }
+  return false;
 }
 
 /**

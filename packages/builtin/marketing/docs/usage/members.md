@@ -1,10 +1,9 @@
 ---
 title: 会员系统
 description: 站点会员、登录与会员专属内容
-category: 站点管理
+category: 建站与运营
+sort_order: 80
 ---
-
-# 会员系统
 
 会员（site-member）是租户站点面向访客的账户体系。与租户内部用户（工作台管理员）不同，会员是站点访客身份。
 

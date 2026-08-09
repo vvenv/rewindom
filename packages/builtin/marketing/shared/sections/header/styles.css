@@ -127,9 +127,16 @@
   display: grid;
   gap: 0.125rem;
 }
+/*
+ * 分组与散条目相邻处留一口气。两个方向都要：没填分类的文档挂在所有分类**后面**
+ * （见 `groupDocsByCategory`），只管 `a + section` 的话，那几条散条目会紧贴着上一组
+ * 的最后一条，看起来像是它的一部分。
+ */
 .nav-menu-section + .nav-menu-section,
 .nav-menu-panel > a + .nav-menu-section,
-.nav-menu-panel > span + .nav-menu-section {
+.nav-menu-panel > span + .nav-menu-section,
+.nav-menu-section + a,
+.nav-menu-section + span {
   margin-top: 0.375rem;
 }
 .nav-menu-group {

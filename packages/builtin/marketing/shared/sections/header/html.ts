@@ -7,16 +7,16 @@
 
 import { escapeHtml } from "../../html.js";
 import { docMessages, DOCS_INDEX_PATH, type PublicDocSummary  } from "../../marketing-doc.js";
-import { settingBool, settingText } from "../../section-schema.js";
+import { settingBool } from "../../section-schema.js";
 import { siteNavPages, type PublicSitePage } from "../../site-cms.js";
 import { withSiteLocale } from "../../site-locale.js";
 import {
-  findSiteMenu,
-  resolveSiteMenu,
-  type ResolvedMenuItem,
-  type SiteMenu,
-  type SiteMenuContext,
-} from "../../site-menu.js";
+  resolveNavItems,
+  settingNavItems,
+  type ResolvedNavItem,
+  type SiteNavContext,
+} from "../../site-nav.js";
+import { settingText } from "../../section-schema.js";
 import { blockSurfaceAttr, linkAttrs } from "../_common/html.js";
 
 import { themeToggleTitle } from "./messages.js";
@@ -76,7 +76,7 @@ function renderLocaleSwitcherHtml(options: LocaleSwitcherOption[]): string {
  * 加载完再绑事件的话，慢网络上前几秒的点击全是空的。`href` 为空的父项（文档分类
  * 那一层）画成不可点的小标题，不是一个指向 `#` 的假链接。
  */
-function renderNavItemHtml(item: ResolvedMenuItem): string {
+function renderNavItemHtml(item: ResolvedNavItem): string {
   const label = escapeHtml(item.label);
   if (item.children.length === 0) {
     if (!item.href) return "";
@@ -108,7 +108,7 @@ function renderNavItemHtml(item: ResolvedMenuItem): string {
 <script>(function(){var d=document.currentScript&&document.currentScript.previousElementSibling;if(!d||d.tagName!=="DETAILS")return;document.addEventListener("pointerdown",function(e){if(!d.open)return;if(e.target instanceof Node&&d.contains(e.target))return;d.open=false;});})();</script>`;
 }
 
-function renderNavLeafHtml(item: ResolvedMenuItem): string {
+function renderNavLeafHtml(item: ResolvedNavItem): string {
   if (!item.href) return `<span>${escapeHtml(item.label)}</span>`;
   return `<a${linkAttrs(item.href)}${item.current ? ' aria-current="page"' : ""}>${escapeHtml(item.label)}</a>`;
 }
@@ -137,14 +137,14 @@ function renderDocSearchHtml(input: {
 </form>`;
 }
 
-/** 展开菜单要的内容快照；页头与页脚各自组装一次，形状相同。 */
-function headerMenuContext(input: {
+/** 展开导航要的内容快照；页头与页脚各自组装一次，形状相同。 */
+function headerNavContext(input: {
   pages?: PublicSitePage[];
   docs?: readonly PublicDocSummary[];
   currentPath?: string;
   locale?: AppLocale;
   defaultLocale?: AppLocale;
-}): SiteMenuContext {
+}): SiteNavContext {
   const defaultLocale = input.defaultLocale ?? "zh-CN";
   return {
     navPages: siteNavPages(input.pages ?? []),
@@ -162,11 +162,9 @@ export function renderHeaderHtml(input: {
   /** 品牌区指向的首页（当前语言）。 */
   homeHref: string;
   locales: LocaleSwitcherOption[];
-  /** 站点菜单表；页头按 `menu` 设置里的 key 取一个来渲染。 */
-  menus?: readonly SiteMenu[];
-  /** 全站导航（一级页）数据源：菜单里的「全部一级页面」动态项吃它。 */
+  /** 全站导航（一级页）数据源：`pages` 动态项吃它。 */
   pages?: PublicSitePage[];
-  /** 已发布文档目录：菜单里的文档动态项吃它。 */
+  /** 已发布文档目录：文档动态项吃它。 */
   docs?: readonly PublicDocSummary[];
   /**
    * 站里有没有已发布文档（搜索入口据此决定渲不渲染）。
@@ -187,9 +185,9 @@ export function renderHeaderHtml(input: {
 }): string {
   const { section, siteName, logoUrl, homeHref, locales } = input;
   const s = section.settings;
-  const navItems = resolveSiteMenu(
-    findSiteMenu(input.menus ?? [], settingText(s, "menu")),
-    headerMenuContext(input),
+  const navItems = resolveNavItems(
+    settingNavItems(s),
+    headerNavContext(input),
   );
   const links = navItems.map(renderNavItemHtml).join("");
   const secondaryLabel = settingText(s, "secondary_label");

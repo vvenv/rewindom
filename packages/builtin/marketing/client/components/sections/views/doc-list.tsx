@@ -1,4 +1,4 @@
-import { Fragment, type ReactElement, type ReactNode } from "react";
+import { type ReactElement, type ReactNode } from "react";
 
 import {
   docMessages,
@@ -24,7 +24,7 @@ export function DocListSection({
 }: SectionViewProps): ReactElement | null {
   const locale = useSiteLocale();
   const messages = docMessages(locale);
-  const view = resolveDocList(section.settings, docs, messages.otherCategory);
+  const view = resolveDocList(section.settings, docs);
   if (view.groups.length === 0) return null;
 
   const description = (doc: PublicDocSummary): ReactNode =>
@@ -74,17 +74,15 @@ export function DocListSection({
         与线上一致——`?q=` 的筛选标签是 `site-enhance` 在公开站上画的。
       */}
       <div className="doc-list">
-        {view.groups.map((group) =>
-          group.category ? (
-            <div className="doc-list-group" key={group.category}>
+        {/* 没有分类的那一组照样套壳、只是少一行标题——组间距挂在相邻两个壳之间 */}
+        {view.groups.map((group) => (
+          <div className="doc-list-group" key={group.category || "loose"}>
+            {group.category ? (
               <h3 className="doc-list-group-title">{group.category}</h3>
-              {items(group.items)}
-            </div>
-          ) : (
-            // 不分组时 SSR 也是直接吐列表，不多包一层：结构必须逐层一致
-            <Fragment key="all">{items(group.items)}</Fragment>
-          ),
-        )}
+            ) : null}
+            {items(group.items)}
+          </div>
+        ))}
       </div>
     </>
   );

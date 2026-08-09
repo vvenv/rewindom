@@ -16,10 +16,6 @@ model MarketingSite {
   footer_json    Json     @default("[]")
   nav_draft_json Json     @default("[]")
   footer_draft_json Json  @default("[]")
-  // 站点导航菜单：页头 / 页脚按 key 引用同一份链接（见 shared/site-menu.ts）。
-  // 与 nav/footer 同属 chrome，所以同样是「线上一列 + 草稿一列」，一次发布全部生效。
-  menus_json       Json   @default("[]")
-  menus_draft_json Json   @default("[]")
   published      Boolean  @default(false)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt

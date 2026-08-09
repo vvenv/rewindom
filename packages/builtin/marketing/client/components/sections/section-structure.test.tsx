@@ -33,7 +33,12 @@ const PAGES = [
 
 const CURRENT_PATH = "/docs";
 
-/** `doc-*` 段的样本数据：没有它，那几段两端都渲染成空，这条守卫就白站了。 */
+/**
+ * `doc-*` 段的样本数据：没有它，那几段两端都渲染成空，这条守卫就白站了。
+ *
+ * 两个分类 + 一篇没填分类：目录与列表的顶层结构正是随这个形状变的（分组的套壳、
+ * 散条目不套抬头），一篇一分类的样本会让两端各走各的分支而这条守卫看不出来。
+ */
 const DOCS = [
   {
     slug: "intro",
@@ -42,6 +47,22 @@ const DOCS = [
     category: "Guide",
     sort_order: 0,
     updated_at: "2026-01-02T03:04:05.000Z",
+  },
+  {
+    slug: "api",
+    title: "API",
+    description: "Reference",
+    category: "Reference",
+    sort_order: 1,
+    updated_at: "2026-01-03T03:04:05.000Z",
+  },
+  {
+    slug: "changelog",
+    title: "Changelog",
+    description: "",
+    category: "",
+    sort_order: 2,
+    updated_at: "2026-01-04T03:04:05.000Z",
   },
 ];
 const DOC = { ...DOCS[0]!, body_md: "## 章节\n\n正文" };

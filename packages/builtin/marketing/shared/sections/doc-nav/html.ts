@@ -38,14 +38,25 @@ export const renderDocNavHtml: SectionHtmlRenderer = (section, ctx) => {
       })
       .join("")}</ul>`;
 
-  const body = showCategory
-    ? groupDocsByCategory(docs, messages.otherCategory)
-        .map(
-          (group) =>
-            `<div class="doc-nav-group"><p class="doc-nav-group-title">${escapeHtml(group.category)}</p>${items(group.items)}</div>`,
-        )
-        .join("")
-    : items(docs);
+  /*
+   * 分组只在**真的分开了东西**时才画标题（同 `site-nav` 的文档动态项）：
+   * 只有一组时那条标题什么也没分开，没填分类的那一组更是压根没有标题可画——
+   * 条目直接铺在顶层，不为分类而分类。
+   */
+  const groups = showCategory ? groupDocsByCategory(docs) : [];
+  const body =
+    groups.length > 1
+      ? groups
+          .map(
+            (group) =>
+              `<div class="doc-nav-group">${
+                group.category
+                  ? `<p class="doc-nav-group-title">${escapeHtml(group.category)}</p>`
+                  : ""
+              }${items(group.items)}</div>`,
+          )
+          .join("")
+      : items(docs);
 
   return `<nav class="doc-nav${settingBool(s, "sticky") ? " is-sticky" : ""}" aria-label="${escapeHtml(heading || messages.nav)}">
   ${heading ? `<p class="doc-nav-title">${escapeHtml(heading)}</p>` : ""}

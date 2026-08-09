@@ -37,9 +37,10 @@ import { SiteColorField } from "../SiteColorField.js";
 
 import { ColumnSpansField } from "./ColumnSpansField.js";
 import { SiteLinkField } from "./SiteLinkField.js";
-import { SiteMenuField } from "./SiteMenuField.js";
+import { SiteNavItemsField } from "./SiteNavItemsField.js";
 import { SpacingBoxField } from "./SpacingBoxField.js";
 
+import type { SiteNavItem } from "../../../shared/site-nav.js";
 import type { AppLocale } from "@be-water/shared";
 
 interface SettingsFieldsProps {
@@ -266,7 +267,9 @@ function SettingControl({
   fallbackHint,
   disabled,
   onChange,
-}: SettingFieldProps & { fieldId: string }): ReactElement | null {
+}: SettingFieldProps & {
+  fieldId: string;
+}): ReactElement | null {
   const { t } = useTranslation("marketing");
   const text = typeof value === "string" ? value : "";
 
@@ -304,15 +307,18 @@ function SettingControl({
         />
       );
 
-    case "menu":
+    case "nav_items":
       return (
-        <SiteMenuField
+        <SiteNavItemsField
           id={fieldId}
-          value={text}
+          value={Array.isArray(value) ? value : []}
           locale={locale}
           defaultLocale={defaultLocale}
           disabled={disabled}
-          onChange={onChange}
+          allowCopyFromHeader={def.copy_from_header === true}
+          onChange={(next: SiteNavItem[]) =>
+            onChange(next as unknown as SettingValue)
+          }
         />
       );
 

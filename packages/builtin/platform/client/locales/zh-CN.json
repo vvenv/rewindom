@@ -382,9 +382,10 @@
     "uploading": "上传中…",
     "clear": "清除",
     "clearing": "清除中…",
+    "unset": "未设置",
     "logo": {
       "title": "Logo",
-      "hint": "PNG / JPEG / WebP / SVG，最大 1MB。用于登录页与侧栏。"
+      "hint": "PNG / JPEG / WebP / SVG，最大 1MB。用于登录页与侧栏；官网页头 / 页脚也默认继承它，未上传时官网不显示 Logo。"
     },
     "favicon": {
       "title": "Favicon",

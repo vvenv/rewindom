@@ -22,7 +22,18 @@ export interface LocalizedText {
   __i18n: Record<string, string>;
 }
 
-export type SettingValue = string | number | boolean | LocalizedText;
+/**
+ * 导航条目数组（`type: "nav_items"`）也进 settings。
+ *
+ * 元素形状由 `site-nav.ts` 的 `safeNavItems` 清洗；这里用 `readonly unknown[]`
+ * 避免 section-settings ↔ site-nav 循环依赖。
+ */
+export type SettingValue =
+  | string
+  | number
+  | boolean
+  | LocalizedText
+  | readonly unknown[];
 export type SettingValues = Record<string, SettingValue>;
 
 export function isLocalizedText(value: unknown): value is LocalizedText {
@@ -217,14 +228,14 @@ export type InputSettingDef =
     })
   | (SettingBase & {
       /**
-       * 引用一个站点导航菜单，存的是菜单 key（见 `site-menu.ts`）。
+       * 导航条目列表，直接嵌在本段 / 本块的 settings 里（见 `site-nav.ts`）。
        *
-       * 选项表不在这里声明——菜单是**租户自己建的数据**，不是编译期常量，所以由编辑器
-       * 按站点当下的菜单填（`SettingsFields` 的 `menu` 分支）。指向一个已删菜单时
-       * 渲染端什么都不画，而不是报错：删菜单和改引用天然是两步。
+       * 不是「引用一份外部菜单」——页头与页脚列各自持有自己的 items；要共用就复制。
        */
-      type: "menu";
-      default?: string;
+      type: "nav_items";
+      default?: readonly unknown[];
+      /** 页脚列：编辑器显示「从页头复制」。 */
+      copy_from_header?: boolean;
     })
   | (SettingBase & { type: "image"; default?: string; placeholder?: string })
   | (SettingBase & {
@@ -373,6 +384,8 @@ export function defaultSettingValue(def: InputSettingDef): SettingValue {
     case "spacing_box":
       // 复合控件不落单一值；调用方应走 parseSettingValues
       return "";
+    case "nav_items":
+      return def.default ?? [];
     default:
       return def.default ?? "";
   }
@@ -423,10 +436,17 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
       }
       return def.default ?? "";
     case "link":
-    case "menu":
     case "image":
     case "column_spans":
       return typeof raw === "string" ? raw.trim() : (def.default ?? "");
+    case "nav_items":
+      // 结构清洗留给 `safeNavItems`；这里只保证是数组，避免循环依赖。
+      // 默认值必须拷贝——否则多处 createSection 会共享同一份引用被就地改脏。
+      if (Array.isArray(raw)) return raw;
+      if (Array.isArray(def.default)) {
+        return JSON.parse(JSON.stringify(def.default)) as unknown[];
+      }
+      return [];
     case "icon": {
       const value = typeof raw === "string" ? raw.trim() : "";
       return (SECTION_ICON_CHOICES as readonly string[]).includes(value)

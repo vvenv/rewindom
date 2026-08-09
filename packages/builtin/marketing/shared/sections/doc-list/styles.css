@@ -5,12 +5,17 @@
 .doc-list-group + .doc-list-group {
   margin-top: 2.5rem;
 }
+/*
+ * 分类抬头用正文色，不是次要色——它统辖的卡片标题就是正文色，抬头比被它管着的
+ * 东西还淡的话，一页分类多的索引读起来就是一串分不出层次的文字（同页头下拉、
+ * 侧栏目录的那条规矩）。
+ */
 .doc-list-group-title {
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted-fg);
+  color: var(--fg);
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border);
   margin: 0 0 1rem;

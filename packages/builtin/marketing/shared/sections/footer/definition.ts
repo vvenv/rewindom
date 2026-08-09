@@ -29,12 +29,9 @@ export const footerSection: SectionDefinition = {
     ...styleSettings(),
   ],
   /*
-   * 页脚的一列 = 一个菜单。
+   * 页脚的一列 = 自己的标题 + 自己的导航条目。
    *
-   * 以前是一堆 `footer_link` 块，靠一个**自由文本** `group` 字段分列：打错一个字
-   * 就凭空多出一列，列的顺序还只能按「哪一条先出现」，想整列换位置得把里面每条
-   * 链接的 group 都改一遍。现在列就是列，拖一下就换位；而且页脚能直接引用页头
-   * 那个菜单，不必把同一批链接抄第二遍。
+   * 不再引用外部菜单 key；要和页头一样时，在编辑器里「从页头复制」。
    */
   max_blocks: 6,
   blocks: [
@@ -43,15 +40,17 @@ export const footerSection: SectionDefinition = {
       label: "editor.blockType.menu_column",
       settings: [
         {
-          type: "menu",
-          id: "menu",
-          label: "editor.setting.menu",
-        },
-        {
           type: "text",
           id: "title",
           label: "editor.setting.column_title",
           info: "editor.info.column_title",
+        },
+        {
+          type: "nav_items",
+          id: "items",
+          label: "editor.setting.menu",
+          default: [],
+          copy_from_header: true,
         },
       ],
     },

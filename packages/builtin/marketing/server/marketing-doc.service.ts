@@ -104,7 +104,6 @@ export async function listDocs(
   const records = await prisma.marketingDoc.findMany({
     where: withTenantScope(tenant_id),
     orderBy: [
-      { category_draft: "asc" },
       { sort_order_draft: "asc" },
       { title_draft: "asc" },
     ],
@@ -363,8 +362,7 @@ export async function importDocFile(
  * 与 `importDocFile` 的区别：seed 自动发布并按传入顺序设 `sort_order`，用于初始化
  * 默认租户的使用说明文档。幂等——反复执行覆盖草稿并重新发布，已存在的文档不会重复创建。
  *
- * 文件名即 slug（去 `.md`），frontmatter 提供 title/description/category。`sort_order`
- * 按传入顺序递增（建议调用方先按文件名排序，保证顺序稳定）。
+ * 文件名即 slug（去 `.md`），frontmatter 提供 title/description/category/sort_order。
  */
 export interface SeededDoc {
   slug: string;
@@ -378,7 +376,6 @@ export async function seedDocsFromFiles(
 ): Promise<SeededDoc[]> {
   const locale = await resolveDefaultLocale(tenant_id);
   const results: SeededDoc[] = [];
-  let sort_order = 0;
   for (const file of files) {
     const parsed = parseMarkdownFile(file.filename, file.raw);
     const existing = await prisma.marketingDoc.findFirst({
@@ -394,12 +391,12 @@ export async function seedDocsFromFiles(
           description: parsed.description,
           body_md: parsed.body_md,
           category: parsed.category,
-          sort_order,
+          sort_order: parsed.sort_order,
           title_draft: parsed.title,
           description_draft: parsed.description,
           body_md_draft: parsed.body_md,
           category_draft: parsed.category,
-          sort_order_draft: sort_order,
+          sort_order_draft: parsed.sort_order,
         },
       });
       created = false;
@@ -414,13 +411,13 @@ export async function seedDocsFromFiles(
             description: parsed.description,
             body_md: parsed.body_md,
             category: parsed.category,
-            sort_order,
+            sort_order: parsed.sort_order,
             status: "published",
             title_draft: parsed.title,
             description_draft: parsed.description,
             body_md_draft: parsed.body_md,
             category_draft: parsed.category,
-            sort_order_draft: sort_order,
+            sort_order_draft: parsed.sort_order,
           },
         });
         created = true;
@@ -437,7 +434,6 @@ export async function seedDocsFromFiles(
       }
     }
     results.push({ slug: parsed.slug, title: parsed.title, created });
-    sort_order += 1;
   }
   return results;
 }
@@ -530,7 +526,7 @@ export async function listPublishedDocs(
   const current = locale ?? default_locale;
   const records = await prisma.marketingDoc.findMany({
     where: withTenantScope(tenant_id, { status: "published" }),
-    orderBy: [{ category: "asc" }, { sort_order: "asc" }, { title: "asc" }],
+    orderBy: [{ sort_order: "asc" }, { title: "asc" }],
     /*
      * 显式列字段：不带 `select` 的 `findMany` 会把 `body_md` 也从库里拉出来，
      * 再由 `toDocSummary` 丢掉——几百篇文档就是几 MB 白跑一趟网络与内存。

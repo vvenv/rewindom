@@ -24,11 +24,6 @@ import {
   type SiteLocalizedText,
 } from "../shared/site-cms.js";
 import {
-  parseSiteMenus,
-  safeSiteMenus,
-  type SiteMenu,
-} from "../shared/site-menu.js";
-import {
   parseThemeSettings,
   safeThemeSettings,
   type ThemeSettings,
@@ -113,51 +108,22 @@ export function siteChromePublishedFooter(record: {
   return safeSiteAreaSections("footer", record.footer_json);
 }
 
-/** 写路径：菜单形状不对当场拒收，不静默裁剪成另一份东西。 */
-export function parseSiteMenuList(value: unknown): SiteMenu[] {
-  try {
-    return parseSiteMenus(value);
-  } catch (err) {
-    if (err instanceof Error && err.message.startsWith("site.")) {
-      throw new ValidationError(err.message);
-    }
-    throw new ValidationError("site.menus_invalid");
-  }
-}
-
-export function siteMenusDraft(record: { menus_draft_json: unknown }): SiteMenu[] {
-  return safeSiteMenus(record.menus_draft_json);
-}
-
-export function siteMenusPublished(record: { menus_json: unknown }): SiteMenu[] {
-  return safeSiteMenus(record.menus_json);
-}
-
 function chromeFingerprint(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/**
- * 菜单一并算进 chrome 的脏值。
- *
- * 菜单是页头 / 页脚**共用**的那份数据，不跟着算的话会出现「改了导航，工具栏说没有
- * 未发布改动」——租户点不出发布按钮，线上永远是旧链接。
- */
+/** 草稿 chrome 与线上 chrome 是否不一致（页头 / 页脚）。 */
 export function siteChromeIsDirty(record: {
   nav_json: unknown;
   footer_json: unknown;
-  menus_json: unknown;
   nav_draft_json: unknown;
   footer_draft_json: unknown;
-  menus_draft_json: unknown;
 }): boolean {
   return (
     chromeFingerprint(siteChromePublishedHeader(record)) !==
       chromeFingerprint(siteChromeDraftHeader(record)) ||
     chromeFingerprint(siteChromePublishedFooter(record)) !==
-      chromeFingerprint(siteChromeDraftFooter(record)) ||
-    chromeFingerprint(siteMenusPublished(record)) !==
-      chromeFingerprint(siteMenusDraft(record))
+      chromeFingerprint(siteChromeDraftFooter(record))
   );
 }
 
