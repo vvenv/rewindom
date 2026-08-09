@@ -103,14 +103,18 @@ function renderSocialMetaHtml(input: {
     input.description
       ? `<meta property="og:description" content="${input.description}" />`
       : "",
-    absolute ? `<meta property="og:image" content="${escapeHtml(absolute)}" />` : "",
+    absolute
+      ? `<meta property="og:image" content="${escapeHtml(absolute)}" />`
+      : "",
     // 有图走大图卡片，没图走摘要卡片——给 summary_large_image 却没有图会显示成空白框
     `<meta name="twitter:card" content="${absolute ? "summary_large_image" : "summary"}" />`,
     `<meta name="twitter:title" content="${input.title}" />`,
     input.description
       ? `<meta name="twitter:description" content="${input.description}" />`
       : "",
-    absolute ? `<meta name="twitter:image" content="${escapeHtml(absolute)}" />` : "",
+    absolute
+      ? `<meta name="twitter:image" content="${escapeHtml(absolute)}" />`
+      : "",
   ].filter(Boolean);
 
   return tags.join("\n  ");
@@ -130,6 +134,8 @@ export function renderMarketingHtml(input: {
   accountEntryHtml?: string;
   /** 本租户已开通的 entitlement；贡献段据此决定渲不渲染，见 `site-entitlements.ts`。 */
   enabledEntitlements?: ReadonlySet<string>;
+  /** 自定义正文 HTML（覆盖段落渲染）；文档库 SSR 用，普通页面不传。 */
+  mainHtml?: string;
 }): string {
   const {
     origin,
@@ -138,6 +144,7 @@ export function renderMarketingHtml(input: {
     memberGate = false,
     accountEntryHtml = "",
     enabledEntitlements,
+    mainHtml,
   } = input;
   const theme = resolveThemeSettings(site.theme_settings);
   const sectionCtx = {
@@ -240,7 +247,7 @@ export function renderMarketingHtml(input: {
       <p class="muted" style="margin-bottom:1.5rem">${escapeHtml(page.description || "Sign in to read this content.")}</p>
       <p><a class="btn" href="/member/login?redirect=${encodeURIComponent(localizedPath)}">Sign in</a></p>
     </div>`
-    : renderPageSectionsHtml(site, page, enabledEntitlements);
+    : (mainHtml ?? renderPageSectionsHtml(site, page, enabledEntitlements));
 
   const mainStyle =
     page.settings.bg_color || page.settings.fg_color

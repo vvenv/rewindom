@@ -31,6 +31,7 @@ const OUT_PATH = path.join(SHARED_ROOT, "marketing-site-css.generated.ts");
 const ALWAYS_SOURCES = [
   "site-css/base.css",
   "site-css/member.css",
+  "site-css/docs.css",
   "sections/_common/styles.css",
 ];
 
