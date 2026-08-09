@@ -17,8 +17,8 @@
     "deleteConfirmDescription": "Delete role \"{{name}}\"? Members with this role will lose its permissions.",
     "roleDeleted": "Role deleted",
     "deleteFailed": "Delete failed, please retry",
-    "emptyHeader": "No roles yet",
-    "emptyMessage": "Create a role to assign permissions to members"
+    "empty": "No roles yet",
+    "emptyHint": "Create a role to assign permissions to members."
   },
   "sheet": {
     "createTitle": "New role",

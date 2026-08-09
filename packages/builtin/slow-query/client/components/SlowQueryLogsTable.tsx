@@ -115,6 +115,7 @@ export function SlowQueryLogsTable({
   logId,
   onSelectLog,
   onClearSelectedLog,
+  isFiltered = false,
 }: {
   logs: SlowQueryLogItem[];
   isLoading: boolean;
@@ -128,6 +129,8 @@ export function SlowQueryLogsTable({
   logId: string | null;
   onSelectLog: (log: SlowQueryLogItem) => void;
   onClearSelectedLog: (open: boolean) => void;
+  /** 带筛选条件时空态改说「没有匹配的记录」，避免误报成一条日志都没有 */
+  isFiltered?: boolean;
 }) {
   const { t } = useTranslation("slow-query");
   const columns = useMemo(() => buildSlowQueryColumns(t), [t]);
@@ -141,8 +144,11 @@ export function SlowQueryLogsTable({
         isLoading={isLoading}
         isError={Boolean(error)}
         error={error}
-        emptyMessage={t("table.empty")}
-        emptyIcon={<Activity className="size-8 text-muted-foreground" />}
+        emptyIcon={Activity}
+        emptyTitle={isFiltered ? t("table.emptyFiltered") : t("table.empty")}
+        emptyDescription={
+          isFiltered ? t("table.emptyFilteredHint") : t("table.emptyHint")
+        }
         loadingMessage={t("table.loading")}
         pageSize={pageSize}
         page={page}

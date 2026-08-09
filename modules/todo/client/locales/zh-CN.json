@@ -28,13 +28,13 @@
     "doubleClickEdit": "双击编辑"
   },
   "list": {
-    "emptyTitle": "暂无待办",
-    "loadFailed": "加载失败"
+    "loadFailed": "加载失败",
+    "empty": "暂无待办",
+    "emptyHint": "在上方输入框添加第一条待办。",
+    "emptyFiltered": "没有符合条件的待办",
+    "emptyFilteredHint": "换个筛选看看。"
   },
-  "page": {
-    "emptyFiltered": "没有符合条件的待办，换个筛选看看。",
-    "emptyInitial": "在上方输入框添加第一条待办。"
-  },
+  "page": {},
   "widget": {
     "activeCount": "未完成 {{count}}",
     "viewAll": "全部",

@@ -5,7 +5,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable, type DataTableFeatures } from "./DataTable";
 
-type Row = { id: string; name: string };
+interface Row {
+  id: string;
+  name: string;
+}
 
 const columns: ColumnDef<DataTableFeatures, Row>[] = [
   { accessorKey: "name", header: "Name" },

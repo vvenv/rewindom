@@ -66,15 +66,16 @@
     "enabled": "Enabled",
     "actions": "Actions",
     "empty": "No members yet",
-    "emptyDescription": "Members appear here after they register on your site",
-    "noMatch": "No members match your search",
     "resetPassword": "Reset password",
     "resetConfirmTitle": "Reset password?",
     "resetConfirmDescription": "A new password will be generated for {{email}} and copied to the clipboard.",
     "resetSuccess": "New password copied to clipboard",
     "deleteConfirmTitle": "Delete member?",
     "deleteConfirmDescription": "Delete {{email}}? This cannot be undone.",
-    "deleteSuccess": "Member deleted"
+    "deleteSuccess": "Member deleted",
+    "emptyHint": "Members appear here after they register on your site.",
+    "emptyFiltered": "No matching members",
+    "emptyFilteredHint": "Try a different keyword."
   },
   "captcha": {
     "required": "Please complete the captcha",

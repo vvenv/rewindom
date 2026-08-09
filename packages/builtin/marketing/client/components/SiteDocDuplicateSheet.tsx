@@ -35,11 +35,11 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { siteLocaleOrder } from "../../shared/site-locale.js";
+import { useSite } from "../hooks/useSite.js";
 import {
   useDuplicateSiteDoc,
   useSiteDocsCatalog,
 } from "../hooks/useSiteDocs.js";
-import { useSite } from "../hooks/useSite.js";
 
 import type {
   MarketingDoc,

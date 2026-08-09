@@ -1,4 +1,6 @@
+import { EmptyState } from "@be-water/client-kit";
 import { formatTenantDisplayLabel } from "@be-water/shared";
+import { Receipt } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { formatAmountCents, formatBillingDate } from "../lib/billing-format.js";
@@ -36,7 +38,12 @@ export function BillingPaymentsTable({
 
   if (payments.length === 0) {
     return (
-      <p className="text-muted-foreground text-sm">{t("payments.empty")}</p>
+      <EmptyState
+        size="panel"
+        icon={Receipt}
+        title={t("payments.empty")}
+        description={t("payments.emptyHint")}
+      />
     );
   }
 

@@ -43,8 +43,11 @@
     "route": "Route",
     "method": "Method",
     "errorCode": "Error code",
-    "empty": "No error logs",
-    "loading": "Loading…"
+    "empty": "No error logs yet",
+    "loading": "Loading…",
+    "emptyHint": "Exceptions caught on the server are recorded here automatically.",
+    "emptyFiltered": "No matching error logs",
+    "emptyFilteredHint": "Try a different time range or filter."
   },
   "sheet": {
     "title": "Error details",

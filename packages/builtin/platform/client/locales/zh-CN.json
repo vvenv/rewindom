@@ -184,8 +184,6 @@
     "description": "管理平台管理员账号与角色",
     "create": "新建管理员",
     "searchPlaceholder": "搜索账号...",
-    "emptyMessage": "暂无平台管理员",
-    "emptyHeader": "还没有平台管理员",
     "table": {
       "username": "账号",
       "type": "类型",
@@ -239,7 +237,11 @@
       "deleted": "角色已删除",
       "builtin": "内置角色",
       "custom": "自定义角色"
-    }
+    },
+    "empty": "还没有平台管理员",
+    "emptyHint": "添加管理员后，他们可以进入平台控制台。",
+    "emptyFiltered": "没有匹配的管理员",
+    "emptyFilteredHint": "换个关键词再试。"
   },
   "dashboard": {
     "description": "跨租户慢查询统计概览，帮助定位性能瓶颈",

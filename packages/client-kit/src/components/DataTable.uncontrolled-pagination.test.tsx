@@ -6,7 +6,10 @@ import { DataTable, type DataTableFeatures } from "./DataTable";
 
 import type { ColumnDef } from "@tanstack/react-table";
 
-type Row = { id: number; name: string };
+interface Row {
+  id: number;
+  name: string;
+}
 
 const columns: ColumnDef<DataTableFeatures, Row>[] = [
   { accessorKey: "name", header: "Name" },

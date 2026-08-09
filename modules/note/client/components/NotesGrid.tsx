@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 import {
   ApiError,
+  EmptyState,
   Pagination,
   useConfirm,
   usePermissions,
@@ -102,17 +103,11 @@ export function NotesGrid({
 
   if (notes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-16">
-        <div className="rounded-full bg-muted p-4">
-          <StickyNote className="size-10" />
-        </div>
-        <div className="space-y-1 text-center">
-          <p className="text-sm font-medium">{t("emptyTitle")}</p>
-          <p className="text-sm text-muted-foreground">
-            {q ? t("emptyWithSearch") : t("emptyNoSearch")}
-          </p>
-        </div>
-      </div>
+      <EmptyState
+        icon={StickyNote}
+        title={q ? t("emptyFiltered") : t("empty")}
+        description={q ? t("emptyFilteredHint") : t("emptyHint")}
+      />
     );
   }
 

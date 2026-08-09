@@ -306,11 +306,13 @@ export function UsersTable({
         isLoading={isLoading && users.length === 0}
         isError={isError && users.length === 0}
         error={error}
-        emptyMessage={
-          q || admin_type ? t("table.noMatch") : t("table.emptyHint")
+        emptyIcon={UsersIcon}
+        emptyTitle={
+          q || admin_type ? t("table.emptyFiltered") : t("table.empty")
         }
-        emptyIcon={<UsersIcon className="size-8 text-muted-foreground" />}
-        emptyHeader={q || admin_type ? undefined : t("table.emptyHeader")}
+        emptyDescription={
+          q || admin_type ? t("table.emptyFilteredHint") : t("table.emptyHint")
+        }
         loadingMessage={t("common:loading")}
         pageSize={pageSize}
         page={page}

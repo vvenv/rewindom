@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { api, useAuth  } from "@be-water/client-kit";
+import { api, EmptyState, useAuth  } from "@be-water/client-kit";
 import { formatBusinessDateOrTimeAgo, isPlatformAdminActor } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import { toast } from "@be-water/ui/toast";
@@ -437,10 +437,12 @@ export function TaskCenterContent() {
         )}
       >
         {tasks.length === 0 ? (
-          <div className="flex h-[200px] flex-col items-center justify-center text-muted-foreground">
-            <ListTodo className="mb-2 h-8 w-8 opacity-50" />
-            <p>{t("taskCenter.empty")}</p>
-          </div>
+          <EmptyState
+            size="panel"
+            icon={ListTodo}
+            title={t("taskCenter.empty")}
+            description={t("taskCenter.emptyHint")}
+          />
         ) : (
           <div className="flex flex-col gap-2">
             {tasks.map((task) => (

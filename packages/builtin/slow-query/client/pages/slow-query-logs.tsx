@@ -1,3 +1,4 @@
+import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
 import { useTranslation } from "react-i18next";
 
 import { SlowQueryLogFilters } from "../components/SlowQueryLogFilters.js";
@@ -62,6 +63,7 @@ export function SlowQueryLogs() {
         logId={logId}
         onSelectLog={(log) => selectLog(log.id)}
         onClearSelectedLog={clearSelectedLog}
+        isFiltered={hasActiveFilters(filters)}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import { EmptyState } from "@be-water/module-sdk/client";
 import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Button } from "@be-water/ui/button";
 import { Spinner } from "@be-water/ui/spinner";
@@ -14,7 +15,8 @@ interface TodoListProps {
   isError: boolean;
   error: Error | null;
   canWrite: boolean;
-  emptyMessage: string;
+  /** 带搜索/状态筛选时空态改说「没有符合条件的待办」 */
+  isFiltered: boolean;
   onToggle: (item: TodoListItem, completed: boolean) => Promise<boolean>;
   onRename: (item: TodoListItem, title: string) => Promise<boolean>;
   onRemove: (item: TodoListItem) => Promise<boolean>;
@@ -27,7 +29,7 @@ export function TodoList({
   isError,
   error,
   canWrite,
-  emptyMessage,
+  isFiltered,
   onToggle,
   onRename,
   onRemove,
@@ -61,15 +63,13 @@ export function TodoList({
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-16">
-        <div className="rounded-full bg-muted p-4">
-          <ListTodo className="size-10" />
-        </div>
-        <div className="space-y-1 text-center">
-          <p className="text-sm font-medium">{t("list.emptyTitle")}</p>
-          <p className="text-sm text-muted-foreground">{emptyMessage}</p>
-        </div>
-      </div>
+      <EmptyState
+        icon={ListTodo}
+        title={isFiltered ? t("list.emptyFiltered") : t("list.empty")}
+        description={
+          isFiltered ? t("list.emptyFilteredHint") : t("list.emptyHint")
+        }
+      />
     );
   }
 

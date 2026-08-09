@@ -1,4 +1,5 @@
 
+import { EmptyState } from "@be-water/client-kit";
 import { formatBusinessDateOrTimeAgo } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import { Switch } from "@be-water/ui/switch";
@@ -169,10 +170,12 @@ export function NotificationPanelContent({
             {t("panel.loading")}
           </p>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
-            <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-sm">{t("panel.empty")}</p>
-          </div>
+          <EmptyState
+            size="panel"
+            icon={MessageSquare}
+            title={t("panel.empty")}
+            description={t("panel.emptyHint")}
+          />
         ) : (
           <div className="flex flex-col gap-2">
             {items.map((item) => (

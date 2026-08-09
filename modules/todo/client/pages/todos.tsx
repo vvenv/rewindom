@@ -56,9 +56,7 @@ export function Todos() {
           isError={isError && items.length === 0}
           error={error}
           canWrite={canWrite}
-          emptyMessage={
-            isFiltered ? t("page.emptyFiltered") : t("page.emptyInitial")
-          }
+          isFiltered={isFiltered}
           onToggle={actions.setCompleted}
           onRename={actions.renameTodo}
           onRemove={actions.removeTodo}

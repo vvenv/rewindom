@@ -33,10 +33,11 @@
     "batchDeleted": "Deleted {{count}} users",
     "deleteFailed": "Delete failed, please retry",
     "batchDeleteFailed": "Batch delete failed, please retry",
-    "noMatch": "No matching users",
-    "emptyHint": "No users yet. Create one from the top-right button.",
-    "emptyHeader": "No users",
-    "deleteSelected": "Delete {{count}} users"
+    "emptyHint": "Create the first user from the top-right button.",
+    "deleteSelected": "Delete {{count}} users",
+    "empty": "No users yet",
+    "emptyFiltered": "No matching users",
+    "emptyFilteredHint": "Try a different keyword or filter."
   },
   "roleBadge": {
     "systemAdmin": "System admin",

@@ -22,7 +22,10 @@
     "tenant": "租户",
     "source": "来源",
     "empty": "暂无慢查询日志",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "emptyHint": "超过阈值的数据库查询会自动记录在这里。",
+    "emptyFiltered": "没有匹配的慢查询日志",
+    "emptyFilteredHint": "换个时间范围或筛选条件再试。"
   },
   "chart": {
     "loading": "加载中...",

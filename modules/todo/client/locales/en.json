@@ -28,13 +28,13 @@
     "doubleClickEdit": "Double-click to edit"
   },
   "list": {
-    "emptyTitle": "No todos yet",
-    "loadFailed": "Failed to load"
+    "loadFailed": "Failed to load",
+    "empty": "No todos yet",
+    "emptyHint": "Add your first todo in the field above.",
+    "emptyFiltered": "No matching todos",
+    "emptyFilteredHint": "Try changing the filters."
   },
-  "page": {
-    "emptyFiltered": "No todos match your filters. Try changing them.",
-    "emptyInitial": "Add your first todo in the field above."
-  },
+  "page": {},
   "widget": {
     "activeCount": "{{count}} active",
     "viewAll": "View all",

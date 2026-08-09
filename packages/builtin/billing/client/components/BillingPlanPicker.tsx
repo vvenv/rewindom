@@ -1,4 +1,6 @@
+import { EmptyState } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
+import { Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { translatePlanDescription, translatePlanName } from "../../../platform/client/lib/plan-i18n.js";
@@ -20,7 +22,12 @@ export function BillingPlanPicker({
 
   if (plans.length === 0) {
     return (
-      <p className="text-muted-foreground text-sm">{t("plans.empty")}</p>
+      <EmptyState
+        size="panel"
+        icon={Package}
+        title={t("plans.empty")}
+        description={t("plans.emptyHint")}
+      />
     );
   }
 

@@ -275,8 +275,6 @@
     "unpublish": "Unpublish",
     "delete": "Delete",
     "loadFailed": "Failed to load",
-    "emptyTitle": "No pages yet",
-    "emptyPages": "Create a home page first, then publish the site.",
     "statusPublished": "Published",
     "statusDraft": "Draft",
     "docTemplates": "Doc layouts",
@@ -330,7 +328,9 @@
     "fieldLocale": "Language",
     "localeHint": "Create one page per language under the same path. The primary language has no URL prefix; others live under /{locale}/…",
     "fieldDefaultLocale": "Primary language",
-    "fieldDefaultLocaleHint": "The default language visitors see; its pages have no language prefix in the URL. Changing it affects already-indexed links."
+    "fieldDefaultLocaleHint": "The default language visitors see; its pages have no language prefix in the URL. Changing it affects already-indexed links.",
+    "empty": "No pages yet",
+    "emptyHint": "Create a home page first, then publish the site."
   },
   "starter": {
     "menu": "Starter",
@@ -967,7 +967,8 @@
       "time": "Time",
       "source": "Source",
       "content": "Content"
-    }
+    },
+    "emptyHint": "Submissions from your site forms show up here."
   },
   "redirects": {
     "nav": "Redirects",
@@ -990,7 +991,8 @@
     "deleted": "Deleted",
     "deleteFailed": "Couldn't delete",
     "deleteConfirmTitle": "Delete this redirect?",
-    "deleteConfirmDescription": "“{{from_path}}” will stop redirecting and inbound links to it will hit a 404."
+    "deleteConfirmDescription": "“{{from_path}}” will stop redirecting and inbound links to it will hit a 404.",
+    "emptyHint": "Point old links at new addresses so nothing 404s after a redesign."
   },
   "siteDocs": {
     "nav": "Docs",
@@ -1088,18 +1090,20 @@
     "deleted": "Deleted",
     "deleteFailed": "Couldn't delete",
     "deleteConfirmTitle": "Delete this image?",
-    "deleteConfirmDescription": "This can't be undone. Sections still using it will show a broken image — references aren't checked, so please confirm yourself."
+    "deleteConfirmDescription": "This can't be undone. Sections still using it will show a broken image — references aren't checked, so please confirm yourself.",
+    "emptyHint": "Uploaded images can be used in page sections and docs."
   },
   "versions": {
     "title": "Version history",
     "hint": "Every publish saves a version. Restoring overwrites your current draft — the live page is untouched until you publish again.",
-    "empty": "Nothing published yet, so there's no history.",
+    "empty": "No version history yet",
     "sectionCount": "{{count}} sections",
     "restore": "Restore",
     "restored": "Restored into the draft",
     "restoreFailed": "Couldn't restore",
     "restoreConfirmTitle": "Restore version {{version}}?",
-    "restoreConfirmDescription": "Your current draft will be replaced by this version. The live page stays as is until you publish."
+    "restoreConfirmDescription": "Your current draft will be replaced by this version. The live page stays as is until you publish.",
+    "emptyHint": "Publishing a page leaves a version you can roll back to."
   },
   "theme": {
     "title": "Theme",

@@ -19,7 +19,7 @@
   "urlRequired": "URL is required",
   "titleRequired": "Title is required",
   "empty": "No bookmarks yet",
-  "emptyHint": "Click the button above to create your first bookmark",
+  "emptyHint": "Create your first bookmark from the top-right button.",
   "loading": "Loading…",
   "loadFailed": "Failed to load bookmarks",
   "retry": "Retry",

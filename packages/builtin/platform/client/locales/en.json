@@ -184,8 +184,6 @@
     "description": "Manage platform admin accounts and roles",
     "create": "New admin",
     "searchPlaceholder": "Search username…",
-    "emptyMessage": "No platform admins",
-    "emptyHeader": "No platform admins yet",
     "table": {
       "username": "Username",
       "type": "Type",
@@ -239,7 +237,11 @@
       "deleted": "Role deleted",
       "builtin": "Built-in role",
       "custom": "Custom role"
-    }
+    },
+    "empty": "No platform admins yet",
+    "emptyHint": "Add an admin to grant access to the platform console.",
+    "emptyFiltered": "No matching admins",
+    "emptyFilteredHint": "Try a different keyword."
   },
   "dashboard": {
     "description": "Cross-tenant slow query overview to find performance bottlenecks",

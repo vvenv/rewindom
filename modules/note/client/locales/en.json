@@ -21,9 +21,6 @@
   "updatedAt": "Updated {{time}}",
   "searchPlaceholder": "Search title or content…",
   "sortAriaLabel": "Sort by",
-  "emptyTitle": "No notes yet",
-  "emptyWithSearch": "No matching notes. Try adjusting your search.",
-  "emptyNoSearch": "Create your first note to get started.",
   "loadFailed": "Failed to load",
   "retry": "Retry",
   "toastCreated": "Note created",
@@ -57,5 +54,9 @@
     "created": "Created note: {{title}}",
     "updated": "Updated note: {{title}}",
     "deleted": "Deleted note: {{title}}"
-  }
+  },
+  "empty": "No notes yet",
+  "emptyHint": "Create your first note to get started.",
+  "emptyFiltered": "No matching notes",
+  "emptyFilteredHint": "Try a different keyword."
 }

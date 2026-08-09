@@ -21,8 +21,11 @@
     "route": "Route",
     "tenant": "Tenant",
     "source": "Source",
-    "empty": "No slow query logs",
-    "loading": "Loading…"
+    "empty": "No slow query logs yet",
+    "loading": "Loading…",
+    "emptyHint": "Database queries slower than the threshold are recorded here automatically.",
+    "emptyFiltered": "No matching slow query logs",
+    "emptyFilteredHint": "Try a different time range or filter."
   },
   "chart": {
     "loading": "Loading…",

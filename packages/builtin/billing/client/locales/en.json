@@ -28,7 +28,8 @@
     "customPrice": "Custom pricing",
     "perMonth": "${{price}}/mo",
     "upgradeButton": "Upgrade",
-    "notConfigured": "Product not configured"
+    "notConfigured": "Product not configured",
+    "emptyHint": "No purchasable plans are configured yet."
   },
   "payments": {
     "history": "Payment history",
@@ -40,7 +41,8 @@
     "plan": "Plan",
     "amount": "Amount",
     "status": "Status",
-    "orderId": "Order ID"
+    "orderId": "Order ID",
+    "emptyHint": "Payments show up here once a checkout completes."
   },
   "table": {
     "tenant": "Tenant",

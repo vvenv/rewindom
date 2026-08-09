@@ -66,15 +66,16 @@
     "enabled": "启用",
     "actions": "操作",
     "empty": "还没有会员",
-    "emptyDescription": "访客在站点注册后会出现在这里",
-    "noMatch": "没有匹配的会员",
     "resetPassword": "重置密码",
     "resetConfirmTitle": "重置密码？",
     "resetConfirmDescription": "将为 {{email}} 生成新密码并复制到剪贴板。",
     "resetSuccess": "新密码已复制到剪贴板",
     "deleteConfirmTitle": "删除会员？",
     "deleteConfirmDescription": "确定删除 {{email}}？此操作不可撤销。",
-    "deleteSuccess": "会员已删除"
+    "deleteSuccess": "会员已删除",
+    "emptyHint": "访客在站点注册后会出现在这里。",
+    "emptyFiltered": "没有匹配的会员",
+    "emptyFilteredHint": "换个关键词再试。"
   },
   "captcha": {
     "required": "请完成验证码",

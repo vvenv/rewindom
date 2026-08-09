@@ -19,7 +19,7 @@
   "urlRequired": "请输入 URL",
   "titleRequired": "请输入标题",
   "empty": "暂无书签",
-  "emptyHint": "点击右上角创建第一个书签",
+  "emptyHint": "点击右上角创建第一个书签。",
   "loading": "加载中…",
   "loadFailed": "加载书签失败",
   "retry": "重试",

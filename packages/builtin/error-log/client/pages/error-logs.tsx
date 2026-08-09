@@ -1,3 +1,4 @@
+import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
 import { useTranslation } from "react-i18next";
 
 import { ErrorLogFilters } from "../components/ErrorLogFilters.js";
@@ -65,6 +66,7 @@ export function ErrorLogs() {
           sorting={sorting}
           onSortingChange={handleSortingChange}
           showTenantColumn
+          isFiltered={hasActiveFilters(filters)}
         />
       </div>
     </div>

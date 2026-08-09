@@ -142,9 +142,9 @@ export function RolesTable({
       isError={isError}
       error={error}
       onRetry={onRetry}
-      emptyIcon={<ShieldCheck />}
-      emptyHeader={t("table.emptyHeader")}
-      emptyMessage={t("table.emptyMessage")}
+      emptyIcon={ShieldCheck}
+      emptyTitle={t("table.empty")}
+      emptyDescription={t("table.emptyHint")}
       sorting={sorting}
       onSortingChange={setSorting}
       manualSorting={false}

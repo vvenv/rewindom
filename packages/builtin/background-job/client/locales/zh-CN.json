@@ -14,7 +14,8 @@
     "viewSkipsCount": "查看跳过详情 ({{count}})",
     "collapseSkips": "收起跳过详情",
     "skipCount": "{{reason}}：{{count}} 条",
-    "truncated": "仅显示前 {{count}} 条记录，其余已省略"
+    "truncated": "仅显示前 {{count}} 条记录，其余已省略",
+    "emptyHint": "导出等后台任务会在这里显示进度。"
   },
   "toast": {
     "backupDownloadStarted": "备份文件已开始下载",

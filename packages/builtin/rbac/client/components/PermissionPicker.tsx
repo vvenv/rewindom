@@ -1,7 +1,9 @@
+import { EmptyState } from "@be-water/client-kit";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { Checkbox } from "@be-water/ui/checkbox";
 import { Spinner } from "@be-water/ui/spinner";
+import { KeyRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -41,9 +43,11 @@ export function PermissionPicker({
 
   if (groups.length === 0) {
     return (
-      <p className="text-muted-foreground py-4 text-sm">
-        {t("permissionPicker.empty")}
-      </p>
+      <EmptyState
+        size="panel"
+        icon={KeyRound}
+        title={t("permissionPicker.empty")}
+      />
     );
   }
 

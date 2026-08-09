@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactElement, type ReactNode } from "react";
 
+import { EmptyState } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import {
   Dialog,
@@ -11,7 +12,7 @@ import {
 } from "@be-water/ui/dialog";
 import { Spinner } from "@be-water/ui/spinner";
 import { toast } from "@be-water/ui/toast";
-import { Upload } from "lucide-react";
+import { ImageOff, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -75,9 +76,12 @@ export function MediaPickerDialog({
               <Spinner className="size-5" />
             </div>
           ) : (data?.length ?? 0) === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              {t("media.empty")}
-            </p>
+            <EmptyState
+              size="panel"
+              icon={ImageOff}
+              title={t("media.empty")}
+              description={t("media.emptyHint")}
+            />
           ) : (
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {data?.map((asset) => (

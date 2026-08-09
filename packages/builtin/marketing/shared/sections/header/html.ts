@@ -7,7 +7,7 @@
 
 import { escapeHtml } from "../../html.js";
 import { docMessages, DOCS_INDEX_PATH, type PublicDocSummary  } from "../../marketing-doc.js";
-import { settingBool } from "../../section-schema.js";
+import { settingBool, settingText  } from "../../section-schema.js";
 import { siteNavPages, type PublicSitePage } from "../../site-cms.js";
 import { withSiteLocale } from "../../site-locale.js";
 import {
@@ -16,7 +16,6 @@ import {
   type ResolvedNavItem,
   type SiteNavContext,
 } from "../../site-nav.js";
-import { settingText } from "../../section-schema.js";
 import { blockSurfaceAttr, linkAttrs } from "../_common/html.js";
 
 import { themeToggleTitle } from "./messages.js";

@@ -275,8 +275,6 @@
     "unpublish": "取消发布",
     "delete": "删除",
     "loadFailed": "加载失败",
-    "emptyTitle": "还没有页面",
-    "emptyPages": "先创建首页，再发布站点。",
     "statusPublished": "已发布",
     "statusDraft": "草稿",
     "docTemplates": "文档版式",
@@ -330,7 +328,9 @@
     "fieldLocale": "语言",
     "localeHint": "同一路径每种语言各建一页；主语言的 URL 不带前缀，其余为 /{locale}/…",
     "fieldDefaultLocale": "主语言",
-    "fieldDefaultLocaleHint": "访客默认看到的语言；其页面 URL 不带语言前缀。改动会影响已收录的链接。"
+    "fieldDefaultLocaleHint": "访客默认看到的语言；其页面 URL 不带语言前缀。改动会影响已收录的链接。",
+    "empty": "还没有页面",
+    "emptyHint": "先创建首页，再发布站点。"
   },
   "starter": {
     "menu": "起步模板",
@@ -967,7 +967,8 @@
       "time": "时间",
       "source": "来源",
       "content": "内容"
-    }
+    },
+    "emptyHint": "访客提交站点表单后会出现在这里。"
   },
   "redirects": {
     "nav": "重定向",
@@ -990,7 +991,8 @@
     "deleted": "已删除",
     "deleteFailed": "删除失败",
     "deleteConfirmTitle": "删除这条重定向？",
-    "deleteConfirmDescription": "「{{from_path}}」将不再跳转，指向它的外部链接会落到 404。"
+    "deleteConfirmDescription": "「{{from_path}}」将不再跳转，指向它的外部链接会落到 404。",
+    "emptyHint": "把旧链接指向新地址，避免站点改版后 404。"
   },
   "siteDocs": {
     "nav": "文档库",
@@ -1088,18 +1090,20 @@
     "deleted": "已删除",
     "deleteFailed": "删除失败",
     "deleteConfirmTitle": "删除这张图？",
-    "deleteConfirmDescription": "删除后无法恢复。仍在使用它的区块会变成裂图——系统不检查引用，请自行确认。"
+    "deleteConfirmDescription": "删除后无法恢复。仍在使用它的区块会变成裂图——系统不检查引用，请自行确认。",
+    "emptyHint": "上传图片后可在页面区块与文档里引用。"
   },
   "versions": {
     "title": "版本历史",
     "hint": "每次发布都会存一版。恢复会覆盖当前草稿，线上内容不受影响——确认无误后再发布。",
-    "empty": "还没有发布过，所以没有历史版本。",
+    "empty": "还没有历史版本",
     "sectionCount": "{{count}} 个区块",
     "restore": "恢复",
     "restored": "已恢复到草稿",
     "restoreFailed": "恢复失败",
     "restoreConfirmTitle": "恢复到第 {{version}} 版？",
-    "restoreConfirmDescription": "当前草稿会被这一版覆盖（线上内容不变）。想让访客看到，还需要再发布一次。"
+    "restoreConfirmDescription": "当前草稿会被这一版覆盖（线上内容不变）。想让访客看到，还需要再发布一次。",
+    "emptyHint": "页面发布后会留下可回滚的版本。"
   },
   "theme": {
     "title": "主题",

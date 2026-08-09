@@ -1,3 +1,4 @@
+import { EmptyState } from "@be-water/client-kit";
 import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Button } from "@be-water/ui/button";
 import { Skeleton } from "@be-water/ui/skeleton";
@@ -74,23 +75,21 @@ export function SitePageList({
 
   if (groups.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 px-6 py-16">
-        <div className="rounded-full bg-muted p-4">
-          <FileText className="size-10" />
-        </div>
-        <div className="space-y-1 text-center">
-          <p className="text-sm font-medium">{t("cms.emptyTitle")}</p>
-          <p className="text-sm text-muted-foreground">{t("cms.emptyPages")}</p>
-        </div>
-        {canWrite ? (
-          <SitePageCreateSheet>
-            <Button size="sm">
-              <Plus className="size-4" />
-              {t("cms.create")}
-            </Button>
-          </SitePageCreateSheet>
-        ) : null}
-      </div>
+      <EmptyState
+        icon={FileText}
+        title={t("cms.empty")}
+        description={t("cms.emptyHint")}
+        action={
+          canWrite ? (
+            <SitePageCreateSheet>
+              <Button size="sm">
+                <Plus className="size-4" />
+                {t("cms.create")}
+              </Button>
+            </SitePageCreateSheet>
+          ) : null
+        }
+      />
     );
   }
 

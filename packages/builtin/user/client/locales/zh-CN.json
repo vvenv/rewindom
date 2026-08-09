@@ -33,10 +33,11 @@
     "batchDeleted": "已删除 {{count}} 个用户",
     "deleteFailed": "删除失败，请重试",
     "batchDeleteFailed": "批量删除失败，请重试",
-    "noMatch": "未找到匹配的用户",
-    "emptyHint": "暂无用户，点击右上角新建用户",
-    "emptyHeader": "暂无用户",
-    "deleteSelected": "删除 {{count}} 个用户"
+    "emptyHint": "点击右上角新建第一个用户。",
+    "deleteSelected": "删除 {{count}} 个用户",
+    "empty": "暂无用户",
+    "emptyFiltered": "没有匹配的用户",
+    "emptyFilteredHint": "换个关键词或筛选条件再试。"
   },
   "roleBadge": {
     "systemAdmin": "系统管理员",

@@ -2,7 +2,8 @@
   "panel": {
     "loading": "加载中…",
     "empty": "暂无消息",
-    "markAllRead": "全部标为已读"
+    "markAllRead": "全部标为已读",
+    "emptyHint": "有新消息时会出现在这里。"
   },
   "desktop": {
     "denied": "桌面通知已被浏览器拒绝。请在浏览器地址栏左侧的站点设置中，将「通知」改为允许后刷新页面。",

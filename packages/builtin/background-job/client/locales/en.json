@@ -14,7 +14,8 @@
     "viewSkipsCount": "View skipped items ({{count}})",
     "collapseSkips": "Hide skipped items",
     "skipCount": "{{reason}}: {{count}}",
-    "truncated": "Showing first {{count}} records only; remainder omitted"
+    "truncated": "Showing first {{count}} records only; remainder omitted",
+    "emptyHint": "Background jobs such as exports report their progress here."
   },
   "toast": {
     "backupDownloadStarted": "Backup download started",

@@ -54,16 +54,22 @@ describe("DataTable", () => {
     expect(screen.getByText("Network error")).toBeInTheDocument();
   });
 
-  it("应该显示空数据消息", () => {
-    renderTable({ columns, data: [], emptyMessage: "暂无数据" });
+  it("空数据且没给文案时回落到 common:noData", () => {
+    renderTable({ columns, data: [] });
 
     expect(screen.getByText("暂无数据")).toBeInTheDocument();
   });
 
-  it("应该支持自定义空数据消息", () => {
-    renderTable({ columns, data: [], emptyMessage: "没有找到记录" });
+  it("应该支持自定义空态标题与说明", () => {
+    renderTable({
+      columns,
+      data: [],
+      emptyTitle: "没有找到记录",
+      emptyDescription: "换个筛选条件再试",
+    });
 
     expect(screen.getByText("没有找到记录")).toBeInTheDocument();
+    expect(screen.getByText("换个筛选条件再试")).toBeInTheDocument();
   });
 
   it("应该支持自定义加载消息", () => {

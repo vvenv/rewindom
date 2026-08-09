@@ -1,4 +1,9 @@
-import { api, PageLayout, usePermissions } from "@be-water/module-sdk/client";
+import {
+  api,
+  EmptyState,
+  PageLayout,
+  usePermissions,
+} from "@be-water/module-sdk/client";
 import { Button } from "@be-water/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@be-water/ui/card";
 import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
@@ -69,11 +74,21 @@ export function Bookmarks() {
           </Button>
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground">
-          <BookmarkIcon className="size-12 opacity-30" />
-          <p className="text-sm">{t("empty")}</p>
-          <p className="text-xs opacity-70">{t("emptyHint")}</p>
-        </div>
+        <EmptyState
+          icon={BookmarkIcon}
+          title={t("empty")}
+          description={t("emptyHint")}
+          action={
+            canWrite ? (
+              <BookmarkCreateSheet onCreated={refresh}>
+                <Button size="sm">
+                  <Plus className="size-4" />
+                  {t("create")}
+                </Button>
+              </BookmarkCreateSheet>
+            ) : null
+          }
+        />
       ) : (
         <div className="grid gap-3">
           {items.map((item) => (

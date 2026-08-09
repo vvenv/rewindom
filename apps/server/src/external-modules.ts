@@ -4,6 +4,7 @@
 import { bookmarkServerModule } from "@be-water/bookmark/server/index.js";
 import { noteServerModule } from "@be-water/note/server/index.js";
 import { todoServerModule } from "@be-water/todo/server/index.js";
+
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
 
 export const EXTERNAL_SERVER_MODULES = [

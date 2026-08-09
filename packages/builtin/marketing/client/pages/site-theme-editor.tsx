@@ -20,6 +20,8 @@ import {
   getSectionDefinition,
   type SiteSection,
 } from "../../shared/section-schema.js";
+import { siteNavPages } from "../../shared/site-cms.js";
+import { settingNavItems } from "../../shared/site-nav.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";
 import { EditorToolbar } from "../components/theme-editor/EditorToolbar.js";
 import { PageMetaForm } from "../components/theme-editor/PageMetaForm.js";
@@ -29,8 +31,8 @@ import {
 } from "../components/theme-editor/PreviewFrame.js";
 import { SectionSettingsForm } from "../components/theme-editor/SectionSettingsForm.js";
 import { SectionTree } from "../components/theme-editor/SectionTree.js";
-import { SiteAccountEntryPreview } from "../components/theme-editor/SiteAccountEntryPreview.js";
 import { SiteNavPreviewProvider } from "../components/theme-editor/site-nav-preview-context.js";
+import { SiteAccountEntryPreview } from "../components/theme-editor/SiteAccountEntryPreview.js";
 import { useChromeDocs } from "../hooks/use-chrome-docs.js";
 import { useDocPreviewData } from "../hooks/use-doc-preview-data.js";
 import {
@@ -40,8 +42,6 @@ import {
 import { resolveEditorPublishState } from "../lib/editor-publish-state.js";
 import { sectionTypeLabel } from "../lib/section-type-label.js";
 import { siteMemberEntrySlot } from "../shell/site-member-slots.js";
-import { siteNavPages } from "../../shared/site-cms.js";
-import { settingNavItems } from "../../shared/site-nav.js";
 
 const DEVICE_ICONS: Array<[PreviewDevice, LucideIcon]> = [
   ["desktop", Monitor],

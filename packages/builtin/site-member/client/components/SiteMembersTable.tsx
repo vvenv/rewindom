@@ -221,9 +221,11 @@ export function SiteMembersTable({
         isLoading={isLoading && members.length === 0}
         isError={isError && members.length === 0}
         error={error}
-        emptyMessage={q ? t("admin.noMatch") : t("admin.emptyDescription")}
-        emptyIcon={<Users className="size-8 text-muted-foreground" />}
-        emptyHeader={q ? undefined : t("admin.empty")}
+        emptyIcon={Users}
+        emptyTitle={q ? t("admin.emptyFiltered") : t("admin.empty")}
+        emptyDescription={
+          q ? t("admin.emptyFilteredHint") : t("admin.emptyHint")
+        }
         loadingMessage={t("common:loading")}
         pageSize={pageSize}
         page={page}

@@ -1,6 +1,6 @@
 import { useState, type ReactElement, type ReactNode } from "react";
 
-import { useConfirm } from "@be-water/client-kit";
+import { EmptyState, useConfirm } from "@be-water/client-kit";
 import { formatBusinessDate } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import {
@@ -78,9 +78,12 @@ export function PageVersionsSheet({
               <Spinner className="size-5" />
             </div>
           ) : (data?.length ?? 0) === 0 ? (
-            <p className="py-8 text-sm text-muted-foreground">
-              {t("versions.empty")}
-            </p>
+            <EmptyState
+              size="panel"
+              icon={History}
+              title={t("versions.empty")}
+              description={t("versions.emptyHint")}
+            />
           ) : (
             <ul className="flex flex-col gap-2">
               {data?.map((item) => (

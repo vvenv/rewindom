@@ -1,4 +1,5 @@
 import { PageLayout, usePermissions } from "@be-water/client-kit";
+import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
 import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -67,6 +68,7 @@ export function TenantErrorLogs() {
           sorting={sorting}
           onSortingChange={handleSortingChange}
           allowDelete
+          isFiltered={hasActiveFilters(filters)}
         />
       </div>
     </PageLayout>

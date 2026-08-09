@@ -1,3 +1,4 @@
+import { EmptyState } from "@be-water/client-kit";
 import { LayoutDashboard } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -6,14 +7,10 @@ export function DashboardEmptyState() {
   const { t } = useTranslation("dashboard");
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 py-16">
-      <div className="rounded-full bg-muted p-4">
-        <LayoutDashboard className="size-10" />
-      </div>
-      <div className="space-y-1 text-center">
-        <p className="text-sm font-medium">{t("emptyState.title")}</p>
-        <p className="text-sm text-muted-foreground">{t("emptyState.hint")}</p>
-      </div>
-    </div>
+    <EmptyState
+      icon={LayoutDashboard}
+      title={t("emptyState.title")}
+      description={t("emptyState.hint")}
+    />
   );
 }

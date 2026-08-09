@@ -8,10 +8,13 @@ import {
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { toast } from "@be-water/ui/toast";
-import { Signpost, Trash2 } from "lucide-react";
+import { Plus, Signpost, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useDeleteSiteRedirect } from "../../hooks/useSiteRedirects.js";
+
+import { SiteRedirectCreateSheet } from "./SiteRedirectCreateSheet.js";
+
 
 import type { SiteRedirect } from "../../../shared/site-redirect.js";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -122,8 +125,19 @@ export function SiteRedirectsTable({
       isLoading={isLoading && redirects.length === 0}
       isError={Boolean(error) && redirects.length === 0}
       error={error}
-      emptyMessage={t("redirects.empty")}
-      emptyIcon={<Signpost className="size-8 text-muted-foreground" />}
+      emptyIcon={Signpost}
+      emptyTitle={t("redirects.empty")}
+      emptyDescription={t("redirects.emptyHint")}
+      emptyAction={
+        canWrite ? (
+          <SiteRedirectCreateSheet>
+            <Button size="sm">
+              <Plus className="size-4" />
+              {t("redirects.create")}
+            </Button>
+          </SiteRedirectCreateSheet>
+        ) : null
+      }
       loadingMessage={t("redirects.loading")}
       manualSorting={false}
     />

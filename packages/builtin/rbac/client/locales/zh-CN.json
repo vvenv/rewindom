@@ -17,8 +17,8 @@
     "deleteConfirmDescription": "确定删除角色「{{name}}」？该角色下成员将失去由它带来的权限。",
     "roleDeleted": "角色已删除",
     "deleteFailed": "删除失败，请重试",
-    "emptyHeader": "暂无角色",
-    "emptyMessage": "创建角色后，即可为成员分配对应权限"
+    "empty": "暂无角色",
+    "emptyHint": "创建角色后，即可为成员分配对应权限。"
   },
   "sheet": {
     "createTitle": "新建角色",

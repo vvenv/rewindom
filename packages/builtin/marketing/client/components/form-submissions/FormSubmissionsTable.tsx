@@ -91,8 +91,9 @@ export function FormSubmissionsTable({
       isLoading={isLoading && submissions.length === 0}
       isError={Boolean(error) && submissions.length === 0}
       error={error}
-      emptyMessage={t("formSubmissions.empty")}
-      emptyIcon={<Inbox className="size-8 text-muted-foreground" />}
+      emptyIcon={Inbox}
+      emptyTitle={t("formSubmissions.empty")}
+      emptyDescription={t("formSubmissions.emptyHint")}
       loadingMessage={t("formSubmissions.loading")}
       pageSize={pageSize}
       page={page}

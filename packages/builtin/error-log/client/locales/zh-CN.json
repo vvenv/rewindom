@@ -44,7 +44,10 @@
     "method": "方法",
     "errorCode": "错误代码",
     "empty": "暂无错误日志",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "emptyHint": "服务端捕获到的异常会自动记录在这里。",
+    "emptyFiltered": "没有匹配的错误日志",
+    "emptyFilteredHint": "换个时间范围或筛选条件再试。"
   },
   "sheet": {
     "title": "错误详情",

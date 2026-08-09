@@ -311,9 +311,11 @@ export function PlatformAdminsTable({
         pageSize={pageSize}
         total={total}
         pageCount={pageCount}
-        emptyMessage={t("admins.emptyMessage")}
-        emptyHeader={t("admins.emptyHeader")}
-        emptyIcon={<Users className="size-6 text-muted-foreground" />}
+        emptyIcon={Users}
+        emptyTitle={search ? t("admins.emptyFiltered") : t("admins.empty")}
+        emptyDescription={
+          search ? t("admins.emptyFilteredHint") : t("admins.emptyHint")
+        }
         sorting={sorting}
         onSortingChange={onSortingChange}
       />

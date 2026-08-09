@@ -1,6 +1,6 @@
 import { useCallback, useState, type ReactElement } from "react";
 
-import { useConfirm } from "@be-water/client-kit";
+import { EmptyState, useConfirm } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { Input } from "@be-water/ui/input";
 import { Skeleton } from "@be-water/ui/skeleton";
@@ -122,10 +122,11 @@ export function MediaGrid({
 
   if (assets.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
-        <ImageOff className="size-8" />
-        <p className="text-sm">{t("media.empty")}</p>
-      </div>
+      <EmptyState
+        icon={ImageOff}
+        title={t("media.empty")}
+        description={t("media.emptyHint")}
+      />
     );
   }
 

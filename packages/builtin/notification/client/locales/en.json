@@ -2,7 +2,8 @@
   "panel": {
     "loading": "Loading…",
     "empty": "No notifications",
-    "markAllRead": "Mark all as read"
+    "markAllRead": "Mark all as read",
+    "emptyHint": "New notifications show up here."
   },
   "desktop": {
     "denied": "Desktop notifications were blocked by your browser. Allow notifications in site settings (address bar) and refresh.",

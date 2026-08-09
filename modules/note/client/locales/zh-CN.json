@@ -21,9 +21,6 @@
   "updatedAt": "更新于 {{time}}",
   "searchPlaceholder": "搜索标题或内容…",
   "sortAriaLabel": "排序方式",
-  "emptyTitle": "暂无笔记",
-  "emptyWithSearch": "没有匹配的笔记，请调整搜索条件。",
-  "emptyNoSearch": "创建第一条笔记开始使用。",
   "loadFailed": "加载失败",
   "retry": "重试",
   "toastCreated": "笔记已创建",
@@ -57,5 +54,9 @@
     "created": "创建笔记：{{title}}",
     "updated": "更新笔记：{{title}}",
     "deleted": "删除笔记：{{title}}"
-  }
+  },
+  "empty": "暂无笔记",
+  "emptyHint": "创建第一条笔记开始使用。",
+  "emptyFiltered": "没有匹配的笔记",
+  "emptyFilteredHint": "换个关键词再试。"
 }
