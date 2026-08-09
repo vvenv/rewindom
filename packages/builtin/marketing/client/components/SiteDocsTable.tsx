@@ -44,8 +44,8 @@ import type {
 } from "@tanstack/react-table";
 import type { TFunction } from "i18next";
 
-/** 每页条数：文档库接口不分页，这里纯客户端翻页，挡住上百篇时的长表。 */
-const PAGE_SIZE = 20;
+/** 默认每页条数；实际值来自 URL `page_size`。 */
+const DEFAULT_PAGE_SIZE = 20;
 
 function DocRowActions({
   doc,
@@ -266,7 +266,11 @@ function buildColumns(
 
 export function SiteDocsTable({
   docs,
+  filteredCount,
   totalCount,
+  page,
+  pageSize = DEFAULT_PAGE_SIZE,
+  pageCount,
   showLocale,
   isLoading,
   isError,
@@ -278,8 +282,13 @@ export function SiteDocsTable({
   onEdit,
 }: {
   docs: MarketingDocListItem[];
+  /** 筛选后的总数（分页 total）。 */
+  filteredCount: number;
   /** 未经筛选的总数：用来区分「一篇都还没有」和「筛掉了」两种空态。 */
   totalCount: number;
+  page: number;
+  pageSize?: number;
+  pageCount: number;
   /** 库里有不止一种语言——按未筛选的全量算，别让「筛到只剩一种」把列筛没了。 */
   showLocale: boolean;
   isLoading: boolean;
@@ -296,7 +305,7 @@ export function SiteDocsTable({
     () => buildColumns(t, i18n.language, canWrite, showLocale, actions, onEdit),
     [t, i18n.language, canWrite, showLocale, actions, onEdit],
   );
-  const filteredEmpty = totalCount > 0;
+  const filteredEmpty = totalCount > 0 && filteredCount === 0;
 
   return (
     <DataTable
@@ -315,10 +324,12 @@ export function SiteDocsTable({
       }
       emptyIcon={<FileText className="size-8 text-muted-foreground" />}
       loadingMessage={t("siteDocs.loading")}
-      pageSize={PAGE_SIZE}
+      page={page}
+      pageSize={pageSize}
+      total={filteredCount}
+      pageCount={pageCount}
       sorting={sorting}
       onSortingChange={onSortingChange}
-      manualSorting={false}
       onRowClick={canWrite ? onEdit : undefined}
     />
   );

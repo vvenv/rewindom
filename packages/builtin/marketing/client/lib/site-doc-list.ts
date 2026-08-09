@@ -96,6 +96,68 @@ export function hasActiveDocFilters(filters: SiteDocFilterState): boolean {
   );
 }
 
+/** 与表格列 accessorKey 对齐的可排序字段。 */
+export const SITE_DOC_SORTABLE_FIELDS = [
+  "title",
+  "slug",
+  "category",
+  "locale",
+  "status",
+  "updated_at",
+] as const;
+
+export type SiteDocSortField = (typeof SITE_DOC_SORTABLE_FIELDS)[number];
+
+function isSiteDocSortField(value: string | undefined): value is SiteDocSortField {
+  return (
+    value !== undefined &&
+    (SITE_DOC_SORTABLE_FIELDS as readonly string[]).includes(value)
+  );
+}
+
+/**
+ * 客户端排序：接口一次返回全量，排序也在本地做，口径跟 URL `sort_by` / `sort_dir` 一致。
+ */
+export function sortSiteDocs(
+  docs: readonly MarketingDocListItem[],
+  sortBy?: string,
+  sortDir?: "asc" | "desc",
+): MarketingDocListItem[] {
+  if (!isSiteDocSortField(sortBy)) return [...docs];
+  const direction = sortDir === "asc" ? 1 : -1;
+  return [...docs].sort((left, right) => {
+    const a = left[sortBy];
+    const b = right[sortBy];
+    if (typeof a === "boolean" && typeof b === "boolean") {
+      return (Number(a) - Number(b)) * direction;
+    }
+    return String(a).localeCompare(String(b), undefined, { numeric: true }) * direction;
+  });
+}
+
+/** 按 URL 的 page / page_size 切一页；page 越界时夹到末页，避免筛完后停在空白页。 */
+export function paginateSiteDocs(
+  docs: readonly MarketingDocListItem[],
+  page: number,
+  pageSize: number,
+): {
+  items: MarketingDocListItem[];
+  total: number;
+  page: number;
+  page_count: number;
+} {
+  const total = docs.length;
+  const page_count = Math.max(1, Math.ceil(total / pageSize) || 1);
+  const safePage = Math.min(Math.max(1, page), page_count);
+  const start = (safePage - 1) * pageSize;
+  return {
+    items: docs.slice(start, start + pageSize),
+    total,
+    page: safePage,
+    page_count,
+  };
+}
+
 /**
  * 标题 → slug 候选（新建时联动填充）。
  *

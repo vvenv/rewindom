@@ -19,6 +19,8 @@ import {
   collectDocCategories,
   collectDocLocales,
   filterSiteDocs,
+  paginateSiteDocs,
+  sortSiteDocs,
 } from "../lib/site-doc-list.js";
 
 import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
@@ -35,6 +37,10 @@ export function SiteDocs(): ReactElement {
     category,
     status,
     locale,
+    page,
+    pageSize,
+    sortBy,
+    sortDir,
     sorting,
     handleSortingChange,
     handleFiltersChange,
@@ -48,10 +54,12 @@ export function SiteDocs(): ReactElement {
 
   const categories = useMemo(() => collectDocCategories(docs), [docs]);
   const locales = useMemo(() => collectDocLocales(docs), [docs]);
-  const visibleDocs = useMemo(
-    () => filterSiteDocs(docs, { q, category, status, locale }),
-    [docs, q, category, status, locale],
-  );
+  // 全量接口 → 本地筛选 / 排序 / 切片；分页态仍走 URL，与其它列表页同口径
+  const listPage = useMemo(() => {
+    const filtered = filterSiteDocs(docs, { q, category, status, locale });
+    const sorted = sortSiteDocs(filtered, sortBy, sortDir);
+    return paginateSiteDocs(sorted, page, pageSize);
+  }, [docs, q, category, status, locale, sortBy, sortDir, page, pageSize]);
 
   const openEdit = useCallback((doc: MarketingDocListItem) => {
     setEditingDoc(doc);
@@ -92,8 +100,12 @@ export function SiteDocs(): ReactElement {
         ) : null}
 
         <SiteDocsTable
-          docs={visibleDocs}
+          docs={listPage.items}
+          filteredCount={listPage.total}
           totalCount={docs.length}
+          page={listPage.page}
+          pageSize={pageSize}
+          pageCount={listPage.page_count}
           showLocale={locales.length > 1}
           isLoading={isLoading}
           isError={isError}

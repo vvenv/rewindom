@@ -28,6 +28,11 @@ export interface PaginationProps {
   canNext: boolean;
   onPageSizeChange?: (size: number) => void;
   /**
+   * 本地分页（父级持有 page 态）时传入。有此回调则翻页不写 URL——
+   * 否则会改 location.search，但表格仍读内部 pageIndex，表现为「URL 变了、内容不变」。
+   */
+  onPageChange?: (page: number) => void;
+  /**
    * `full`（默认）：总数 + 每页条数 + 页码列表 + 跳页输入，用于列表下方的主分页器。
    * `simple`：只有总数与上/下一页，用于表格上方的副分页器——同一页出现两个
    * 分页器时，上面那个只承担「翻页」，控件都留给下面那个，避免两处重复。
@@ -45,6 +50,7 @@ export function Pagination({
   canPrev,
   canNext,
   onPageSizeChange,
+  onPageChange,
   variant = "full",
   pageParam = "page",
   pageSizeParam = "page_size",
@@ -52,14 +58,24 @@ export function Pagination({
   const [searchParams, setSearchParams] = useSearchParams();
   const jumpRef = useRef<HTMLInputElement>(null);
   const isSimple = variant === "simple";
+  const localPaging = onPageChange !== undefined;
 
   const handlePageChange = (pageIndex: number) => {
+    if (localPaging) {
+      onPageChange(pageIndex);
+      return;
+    }
     const params = new URLSearchParams(searchParams);
     params.set(pageParam, String(pageIndex));
     setSearchParams(params);
   };
 
   const handlePageSizeChange = (size: number) => {
+    if (localPaging) {
+      onPageSizeChange?.(size);
+      onPageChange(1);
+      return;
+    }
     const params = new URLSearchParams(searchParams);
     params.set(pageSizeParam, String(size));
     params.set(pageParam, "1");
@@ -96,13 +112,15 @@ export function Pagination({
       )}
 
       <div className="flex items-center gap-0.5">
-        <StepLink
+        <PageStep
+          localPaging={localPaging}
           search={canPrev ? buildUrl(currentPage - 1) : searchParams.toString()}
           disabled={!canPrev}
           label="上一页"
+          onClick={() => handlePageChange(currentPage - 1)}
         >
           <ChevronLeft className="size-3.5" />
-        </StepLink>
+        </PageStep>
         {!isSimple && (
           <div className="hidden sm:flex items-center gap-0.5">
             {pages.map((p, i) =>
@@ -110,12 +128,27 @@ export function Pagination({
                 <span key={`ellipsis-${i}`} className="px-1 text-sm">
                   …
                 </span>
+              ) : localPaging ? (
+                <Button
+                  key={p}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handlePageChange(p)}
+                  className={cn(
+                    "h-7 min-w-7 rounded-md px-1.5 text-sm",
+                    p === currentPage &&
+                      "border border-secondary bg-secondary text-secondary-foreground hover:bg-secondary",
+                  )}
+                >
+                  {p}
+                </Button>
               ) : (
                 <Link
                   key={p}
                   to={{ search: buildUrl(p) }}
                   className={cn(
-                    "h-7 min-w-[28px] rounded-md px-1.5 transition-colors flex items-center justify-center text-sm",
+                    "h-7 min-w-7 rounded-md px-1.5 transition-colors flex items-center justify-center text-sm",
                     p === currentPage
                       ? "border border-secondary bg-secondary text-secondary-foreground"
                       : "hover:bg-accent hover:text-accent-foreground",
@@ -135,13 +168,15 @@ export function Pagination({
         >
           {currentPage} / {pageCount}
         </span>
-        <StepLink
+        <PageStep
+          localPaging={localPaging}
           search={canNext ? buildUrl(currentPage + 1) : searchParams.toString()}
           disabled={!canNext}
           label="下一页"
+          onClick={() => handlePageChange(currentPage + 1)}
         >
           <ChevronRight className="size-3.5" />
-        </StepLink>
+        </PageStep>
       </div>
 
       {!isSimple && (
@@ -166,27 +201,40 @@ export function Pagination({
   );
 }
 
-function StepLink({
+function PageStep({
+  localPaging,
   search,
   disabled,
   label,
+  onClick,
   children,
 }: {
+  localPaging: boolean;
   search: string;
   disabled: boolean;
   label: string;
+  onClick: () => void;
   children: ReactNode;
 }) {
+  const button = (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      disabled={disabled}
+      aria-label={label}
+      onClick={localPaging ? onClick : undefined}
+    >
+      {children}
+    </Button>
+  );
+
+  if (localPaging) {
+    return <span className="inline-flex">{button}</span>;
+  }
+
   return (
     <Link to={{ search }} className="inline-flex">
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        disabled={disabled}
-        aria-label={label}
-      >
-        {children}
-      </Button>
+      {button}
     </Link>
   );
 }

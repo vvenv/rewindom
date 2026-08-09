@@ -268,14 +268,32 @@ export function DataTable<TData extends RowData>({
   }
 
   const tablePageCount = table.getPageCount();
+  // 受控：page 来自 URL，已是 1-based。非受控（仅 pageSize）：TanStack pageIndex 是 0-based。
+  // 列表页应始终传 page（URL 模式）；非受控只留给无 URL 分页的边角 / 测试。
   const currentPage = isControlled
     ? pagination.pageIndex
-    : table.state.pagination.pageIndex;
+    : table.state.pagination.pageIndex + 1;
   const actualPageCount = pageCount ?? tablePageCount;
   const showPagination = pageSize !== undefined;
   // 上方分页器只负责翻页，单页时连翻页都无意义 → 不渲染，控件留给下方主分页器
   const showHeaderPagination = showPagination && actualPageCount > 1;
   const displayTotal = total ?? data.length;
+
+  // 非受控时禁止 Pagination 写 URL（否则 search 变了、表格仍读内部态）。
+  // 正式列表页请传 page，走 URL 单一模式。
+  const localPagingProps = !isControlled
+    ? {
+        onPageChange: (nextPage: number) => {
+          setInternalPagination((prev) => ({
+            ...prev,
+            pageIndex: nextPage - 1,
+          }));
+        },
+        onPageSizeChange: (size: number) => {
+          setInternalPagination({ pageIndex: 0, pageSize: size });
+        },
+      }
+    : {};
 
   return (
     <div className="flex flex-col gap-3">
@@ -297,6 +315,7 @@ export function DataTable<TData extends RowData>({
                   : table.getCanNextPage()
               }
               variant="simple"
+              {...localPagingProps}
             />
           )}
         </div>
@@ -381,6 +400,7 @@ export function DataTable<TData extends RowData>({
               ? currentPage < actualPageCount
               : table.getCanNextPage()
           }
+          {...localPagingProps}
         />
       )}
     </div>

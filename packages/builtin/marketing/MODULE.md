@@ -507,10 +507,10 @@ section 体系里，靠两张模板页承载：
 
 **管理页**（`/app/site/docs`）：列表 + 编辑弹层两件套。
 
-- 列表接口 `GET /api/site/docs` 一次返回全量（不分页），所以搜索 / 分类 / 状态筛选与
-  排序都在客户端做（`client/lib/site-doc-list.ts`），筛选态走 URL search params
-  （`use-site-docs-page.ts`）。状态筛选里的 `dirty` 不是文档状态，是「已发布但草稿有
-  改动」这一条横切条件
+- 列表接口 `GET /api/site/docs` 一次返回全量，搜索 / 分类 / 状态 / 排序 / 分页切片
+  都在客户端做（`client/lib/site-doc-list.ts`），但 **page / page_size / 筛选 / 排序
+  一律走 URL**（`use-site-docs-page.ts`，与 `useUsersPage` 同口径），不另搞本地分页
+  模式。状态筛选里的 `dirty` 不是文档状态，是「已发布但草稿有改动」这一条横切条件
 - 编辑用 `SiteDocEditorSheet`，**弹层态 / 全屏态双模式**：同一棵 DOM 只换
   `SheetContent` 宽度与正文区预览布局，切换时 textarea 不重挂，光标与撤销栈都还在；
   展开偏好记在 localStorage。表单只写草稿列，保存后仍需发布才上线

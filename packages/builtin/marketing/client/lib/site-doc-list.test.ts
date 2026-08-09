@@ -6,7 +6,9 @@ import {
   filterSiteDocs,
   hasActiveDocFilters,
   isSiteDocStatusFilter,
+  paginateSiteDocs,
   slugifyDocTitle,
+  sortSiteDocs,
 } from "./site-doc-list.js";
 
 import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
@@ -129,6 +131,35 @@ describe("filterSiteDocs", () => {
     expect(
       filterSiteDocs(docs, { q: "安装", category: "入门", status: "dirty" }),
     ).toHaveLength(1);
+  });
+});
+
+describe("sortSiteDocs", () => {
+  it("sorts by title ascending / descending", () => {
+    const sortedAsc = sortSiteDocs(docs, "title", "asc").map((d) => d.id);
+    expect(sortedAsc).toEqual(["3", "2", "1"]);
+    const sortedDesc = sortSiteDocs(docs, "title", "desc").map((d) => d.id);
+    expect(sortedDesc).toEqual(["1", "2", "3"]);
+  });
+
+  it("ignores unknown sort fields", () => {
+    expect(sortSiteDocs(docs, "nope", "asc").map((d) => d.id)).toEqual([
+      "1",
+      "2",
+      "3",
+    ]);
+  });
+});
+
+describe("paginateSiteDocs", () => {
+  it("slices by page and clamps an out-of-range page", () => {
+    const page1 = paginateSiteDocs(docs, 1, 2);
+    expect(page1.items.map((d) => d.id)).toEqual(["1", "2"]);
+    expect(page1.page_count).toBe(2);
+
+    const clamped = paginateSiteDocs(docs, 99, 2);
+    expect(clamped.page).toBe(2);
+    expect(clamped.items.map((d) => d.id)).toEqual(["3"]);
   });
 });
 
