@@ -13,7 +13,10 @@ import {
   resolveSectionLayout,
   resolveSurfaceStyle,
   relocalizeSections,
+  parseGroupSpans,
+  refitGroupSpans,
   resolveGroupSpans,
+  groupColumnCss,
   groupColumns,
   localizeSections,
   safeAreaSections,
@@ -60,7 +63,9 @@ describe("parseSettingValues", () => {
 
   it("throws when a required text setting is blank", () => {
     expect(() =>
-      parseSettingValues(BUILTIN_SECTION_DEFINITIONS.hero.settings, { headline: "  " }),
+      parseSettingValues(BUILTIN_SECTION_DEFINITIONS.hero.settings, {
+        headline: "  ",
+      }),
     ).toThrow("site.sections_invalid");
   });
 });
@@ -411,7 +416,6 @@ describe("section layout settings", () => {
       paddingLeft: 4,
     });
   });
-
 });
 
 describe("splitSettingsByScope", () => {
@@ -445,12 +449,12 @@ describe("splitSettingsByScope", () => {
 
   it("gives header and footer an appearance tab", () => {
     expect(
-      splitSettingsByScope(BUILTIN_SECTION_DEFINITIONS.header.settings).appearance
-        .length,
+      splitSettingsByScope(BUILTIN_SECTION_DEFINITIONS.header.settings)
+        .appearance.length,
     ).toBeGreaterThan(0);
     expect(
-      splitSettingsByScope(BUILTIN_SECTION_DEFINITIONS.footer.settings).appearance
-        .length,
+      splitSettingsByScope(BUILTIN_SECTION_DEFINITIONS.footer.settings)
+        .appearance.length,
     ).toBeGreaterThan(0);
   });
 });
@@ -575,14 +579,49 @@ describe("容器段（group）", () => {
     expect(group.blocks[0]!.sections).toEqual([]);
   });
 
-  it("列宽按比例解析，比例与列数对不上时等分回落", () => {
-    expect(resolveGroupSpans("1:3", 2)).toEqual([3, 9]);
-    expect(resolveGroupSpans("1:1:1", 3)).toEqual([4, 4, 4]);
-    // 比例是两列、实际三列：按列数等分，总和仍是 12
-    expect(resolveGroupSpans("1:3", 3)).toEqual([4, 4, 4]);
-    expect(resolveGroupSpans("1:3", 1)).toEqual([12]);
+  it("列宽读成 12 栏份额，与列数对不上时等分回落", () => {
+    expect(resolveGroupSpans("3:9", 2)).toEqual([3, 9]);
+    expect(resolveGroupSpans("3:7:2", 3)).toEqual([3, 7, 2]);
+    expect(resolveGroupSpans("2:4:3:3", 4)).toEqual([2, 4, 3, 3]);
+    // 份额是两列、实际三列：按列数等分，总和仍是 12
+    expect(resolveGroupSpans("3:9", 3)).toEqual([4, 4, 4]);
+    expect(resolveGroupSpans("3:9", 1)).toEqual([12]);
     expect(resolveGroupSpans("zzz", 2)).toEqual([6, 6]);
-    expect(resolveGroupSpans("1:3", 0)).toEqual([]);
+    expect(resolveGroupSpans("3:9", 0)).toEqual([]);
+  });
+
+  /*
+   * 改版之前存的是**比例**（`1:3` = 一份对三份），现在存的是份额（`3:9`）。
+   * 靠「加起来是不是 12」区分：不读旧写法的话，租户早就排好的页面会在某次发布后
+   * 无声无息地变成等分。
+   */
+  it("列宽认得旧的比例写法", () => {
+    expect(resolveGroupSpans("1:3", 2)).toEqual([3, 9]);
+    expect(resolveGroupSpans("1:1", 2)).toEqual([6, 6]);
+    expect(resolveGroupSpans("2:1", 2)).toEqual([8, 4]);
+    expect(resolveGroupSpans("1:1:1", 3)).toEqual([4, 4, 4]);
+    expect(resolveGroupSpans("1:2:1", 3)).toEqual([3, 6, 3]);
+    // 旧写法与列数对不上，照样按列数等分
+    expect(resolveGroupSpans("1:3", 3)).toEqual([4, 4, 4]);
+  });
+
+  it("份额必须每列至少一栏且加起来正好一行", () => {
+    expect(parseGroupSpans("3:7:2")).toEqual([3, 7, 2]);
+    // 加起来不是 12 / 有 0 栏的列 / 不是整数：一律不认，交给回落
+    expect(parseGroupSpans("3:7")).toEqual([]);
+    expect(parseGroupSpans("0:12")).toEqual([]);
+    expect(parseGroupSpans("6.5:5.5")).toEqual([]);
+    expect(parseGroupSpans("")).toEqual([]);
+  });
+
+  it("加列从最宽那列匀一半，减列把宽度并进最后一列", () => {
+    // 3:9 加一列 → 从 9 里匀出 4
+    expect(refitGroupSpans("3:9", 2, 3)).toBe("3:5:4");
+    // 3:7:2 减一列 → 留前两列，差额补给新的最后一列
+    expect(refitGroupSpans("3:7:2", 3, 2)).toBe("3:9");
+    // 匀不出来（最宽的那列只有 1 栏）就退回等分
+    expect(refitGroupSpans("1:1:10", 3, 4)).toBe("1:1:5:5");
+    expect(refitGroupSpans("6:6", 2, 1)).toBe("12");
   });
 
   it("groupColumns 带出列宽与列设置", () => {
@@ -606,6 +645,74 @@ describe("容器段（group）", () => {
     expect(columns[0]!.stackOrder).toBe("last");
     expect(columns[1]!.stackOrder).toBe("auto");
     expect(columns[0]!.sections.map((s) => s.type)).toEqual(["prose"]);
+  });
+
+  it("分隔线逐列独立：没开的列为 null，开了的列各带各的线型", () => {
+    const [group] = parseSections([
+      {
+        type: "group",
+        settings: { columns_layout: "3:7:2" },
+        blocks: [
+          { type: "column", settings: { show_divider: true } },
+          {
+            type: "column",
+            settings: {
+              show_divider: true,
+              divider_style: "dashed",
+              divider_width: 3,
+              divider_color: "#0f766e80",
+            },
+          },
+          // 线型填了但没开开关：不画
+          { type: "column", settings: { divider_style: "dotted" } },
+        ],
+      },
+    ]);
+    const columns = groupColumns(group!);
+    expect(columns[0]!.divider).toEqual({
+      style: "solid",
+      width: 1,
+      color: null,
+    });
+    expect(columns[1]!.divider).toEqual({
+      style: "dashed",
+      width: 3,
+      color: "#0f766e80",
+    });
+    expect(columns[2]!.divider).toBeNull();
+    // 默认值不落 style，只有改过的那几项进 CSS 变量
+    expect(groupColumnCss(columns[0]!)).toEqual({});
+    expect(groupColumnCss(columns[1]!)).toEqual({
+      "--grp-divider-style": "dashed",
+      "--grp-divider-w": "3px",
+      "--grp-divider-color": "#0f766e80",
+    });
+    expect(groupColumnCss(columns[2]!)).toEqual({});
+  });
+
+  it("脏线型回落实线，线宽兜到 1px", () => {
+    const [group] = parseSections([
+      {
+        type: "group",
+        settings: {},
+        blocks: [
+          {
+            type: "column",
+            settings: {
+              show_divider: true,
+              divider_style: "groove",
+              divider_width: 0,
+            },
+          },
+          { type: "column", settings: {} },
+        ],
+      },
+    ]);
+    expect(groupColumns(group!)[0]!.divider).toEqual({
+      style: "solid",
+      width: 1,
+      color: null,
+    });
   });
 
   // 漏了递归的话，列里的文案在公开页会整片空白

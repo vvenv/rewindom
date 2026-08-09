@@ -213,6 +213,7 @@ dl {
 }
 .grp-col {
   min-width: 0;
+  position: relative;
 }
 @media (min-width: 768px) {
   .grp {
@@ -222,6 +223,37 @@ dl {
   }
   .grp.grp-stretch {
     align-items: stretch;
+  }
+  /*
+   * 列分割线：画在这一列右侧间隙的正中，恒**铺满整行的高**。
+   *
+   * 开了线的列自己拉满行高，不再要求整段是「等高」版式。原来只在 `.grp-stretch`
+   * 下才画——默认的 `align-items: start` 里勾上「分隔线」什么都不会发生，一个点了
+   * 没反应的开关比没有这个开关更糟。列里的内容仍从顶部排，拉满的只是列这个盒子。
+   *
+   * 吸顶列也一样铺满：粘的是里面那层 `.grp-col-inner`（见下），列本身照样拉伸，
+   * 所以「吸顶 + 分隔线」不再画出一小截线。
+   *
+   * 线型 / 线宽 / 颜色由列上的三个变量给，缺省即主题边框色的 1px 实线。用
+   * `border-left` 而不是背景色块：只有边框认 dashed / dotted。
+   */
+  .grp-col-divider {
+    align-self: stretch;
+  }
+  .grp-col-divider::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    /* 线的**中心**落在间隙正中：再往外挪半个线宽，粗线才不会偏向左边那列 */
+    right: calc(-1 * (var(--grp-gap, 40px) + var(--grp-divider-w, 1px)) / 2);
+    width: 0;
+    border-left: var(--grp-divider-w, 1px) var(--grp-divider-style, solid)
+      var(--grp-divider-color, var(--border));
+  }
+  /* 最后一列的线会挂在整段右边缘之外，那儿没有要分开的东西 */
+  .grp-col-divider:last-child::after {
+    display: none;
   }
   .grp-span-1 {
     grid-column: span 1 / span 1;
@@ -259,11 +291,20 @@ dl {
   .grp-span-12 {
     grid-column: span 12 / span 12;
   }
-  /* sticky 必须配 align-self:start：拉伸满高的列没有可滚动的余量，粘不住 */
+  /*
+   * 吸顶：粘的是列**里面**那层，不是列本身。
+   *
+   * 列本身拉满整行高，`.grp-col-inner` 只有内容那么高，于是它在这段行高里有可滚
+   * 的余量——这正是 sticky 需要的。让列自己 `position: sticky` 也能粘（它的包含块
+   * 是整个 grid area），但代价是列必须 `align-self: start`，画在它右边的分割线就
+   * 只有内容那么长。两者不可兼得，选了「线铺满」这一边。
+   */
   .grp-sticky {
+    align-self: stretch;
+  }
+  .grp-sticky > .grp-col-inner {
     position: sticky;
     top: 5rem;
-    align-self: start;
   }
 }
 /* 堆叠顺序只在窄屏有意义——桌面永远按声明顺序从左到右 */

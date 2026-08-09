@@ -1,5 +1,4 @@
 import {
-  Fragment,
   type CSSProperties,
   type ReactElement,
   useEffect,
@@ -153,12 +152,13 @@ function NavMenuItem({ item }: { item: ResolvedMenuItem }): ReactElement | null 
       <nav className="nav-menu-panel">
         {item.children.map((child) =>
           child.children.length > 0 ? (
-            <Fragment key={child.key}>
+            // 整组套一层，组内链接才缩得进去（与 SSR 的 `renderNavItemHtml` 同构）
+            <div key={child.key} className="nav-menu-section">
               <p className="nav-menu-group">{child.label}</p>
               {child.children.map((leaf) => (
                 <NavMenuLeaf key={leaf.key} item={leaf} />
               ))}
-            </Fragment>
+            </div>
           ) : (
             <NavMenuLeaf key={child.key} item={child} />
           ),

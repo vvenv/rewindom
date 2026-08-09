@@ -130,3 +130,78 @@ describe("renderHeaderHtml 文档搜索入口", () => {
     expect(html).toContain('placeholder="Search docs"');
   });
 });
+
+/*
+ * 文档下拉里「分类」和「文档」是两层，必须画得出层次来。
+ *
+ * 曾经是并排的兄弟节点、同一个左边距，只有字号差一点——一个分类多的文档库在下拉里
+ * 就是一串分不出层次的文字，读的人得先猜哪一条是分类名。现在整组套一层
+ * `.nav-menu-section`，CSS 才有地方把组内链接缩进去。
+ */
+describe("renderHeaderHtml 文档下拉的层级", () => {
+  const DOCS = [
+    {
+      slug: "start",
+      title: "快速开始",
+      description: "",
+      category: "入门",
+      sort_order: 0,
+      updated_at: "2026-01-01T00:00:00.000Z",
+    },
+    {
+      slug: "deploy",
+      title: "部署",
+      description: "",
+      category: "运维",
+      sort_order: 0,
+      updated_at: "2026-01-01T00:00:00.000Z",
+    },
+  ];
+
+  function renderDocsMenu(docs = DOCS): string {
+    return renderHeaderHtml({
+      section: header({}),
+      siteName: "站点",
+      logoUrl: null,
+      homeHref: "/",
+      locales: [],
+      menus: [
+        {
+          key: "main",
+          title: "",
+          items: [
+            {
+              id: "docs",
+              source: "docs",
+              label: "文档",
+              href: "",
+              category: "",
+              expand: "children",
+              children: [],
+            },
+          ],
+        },
+      ],
+      docs,
+    });
+  }
+
+  it("每个分类连同它的文档裹在一层里", () => {
+    const html = renderDocsMenu();
+    expect(html).toContain(
+      '<div class="nav-menu-section"><p class="nav-menu-group">入门</p><a',
+    );
+    expect(html).toContain(
+      '<div class="nav-menu-section"><p class="nav-menu-group">运维</p><a',
+    );
+    // 两个分类 = 两组，不是把小标题和链接平铺在面板里
+    expect(html.match(/nav-menu-section/gu)).toHaveLength(2);
+  });
+
+  /* 只有一个分类时不套这层壳（见 `resolveItem`），下拉里就是一列文档 */
+  it("只有一个分类时不画分组", () => {
+    const html = renderDocsMenu([DOCS[0]!]);
+    expect(html).not.toContain("nav-menu-section");
+    expect(html).toContain("快速开始");
+  });
+});

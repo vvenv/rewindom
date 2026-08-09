@@ -57,6 +57,15 @@ interface TenantSiteViewProps {
    * 与 SSR 的 `DocRenderContext` 同一组字段，见 `sections/render-context.ts`。
    */
   docs?: readonly PublicDocSummary[];
+  /**
+   * 页头 / 页脚看到的那份文档目录；不给就跟 `docs` 一样。
+   *
+   * 公开面只有一份文档数据，这里分成两个口子**只为编辑器**：一个文档都没有的站点，
+   * 编辑文档模板页时 `docs` 会被换成一篇示例（否则版式预览是一片空白，见
+   * `useDocPreviewData`），而那篇示例绝不能漏进页头——页头会因此长出一个线上不存在的
+   * 「文档」下拉和一个搜不出东西的搜索框，正是这个组件该避免的那种谎。
+   */
+  chromeDocs?: readonly PublicDocSummary[];
   doc?: PublicDocDetail;
 }
 
@@ -79,6 +88,7 @@ export function TenantSiteView({
   onSelectSection,
   mainOverride,
   docs,
+  chromeDocs = docs,
   // `doc` 在这个组件里已经是那份 DOM Document 了，改个名避免撞车
   doc: docDetail,
 }: TenantSiteViewProps) {
@@ -120,7 +130,7 @@ export function TenantSiteView({
               logoUrl={theme.logo_url ?? null}
               menus={site.menus}
               pages={site.pages}
-              docs={docs}
+              docs={chromeDocs}
               currentPath={path}
               alternates={alternates}
               locale={site.locale}
@@ -177,7 +187,7 @@ export function TenantSiteView({
               logoUrl={theme.logo_url ?? null}
               menus={site.menus}
               pages={site.pages}
-              docs={docs}
+              docs={chromeDocs}
               currentPath={path}
               locale={site.locale}
               defaultLocale={site.default_locale}

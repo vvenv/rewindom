@@ -125,6 +125,55 @@ describe("容器段（group）", () => {
     expect(html).toContain("--grp-gap:40px");
   });
 
+  /*
+   * 吸顶列包一层：粘的是内层，列本身能拉满行高——它右边的分隔线因此也是整行长。
+   * 没有这一层的话，「吸顶 + 分隔线」画出来只有菜单那么高的一小截。
+   */
+  it("吸顶列包一层 grp-col-inner，非吸顶列不包", () => {
+    const html = renderSectionHtml(docsGroup(), 0, {
+      pages,
+      currentPath: "/docs/a",
+    });
+    expect(html).toContain('grp-sticky"><div class="grp-col-inner">');
+    expect(html.match(/grp-col-inner/gu)).toHaveLength(1);
+  });
+
+  it("分隔线的线型 / 线宽 / 颜色落成列上的 CSS 变量", () => {
+    const [group] = parseSections([
+      {
+        type: "group",
+        settings: { columns_layout: "1:3" },
+        blocks: [
+          {
+            type: "column",
+            settings: {
+              show_divider: true,
+              divider_style: "dashed",
+              divider_width: 2,
+              divider_color: "#0f766e",
+            },
+            sections: [{ type: "prose", settings: { body_md: "左" } }],
+          },
+          {
+            // 同一段里的另一条线：只开开关，保持默认实线
+            type: "column",
+            settings: { show_divider: true },
+            sections: [{ type: "prose", settings: { body_md: "右" } }],
+          },
+        ],
+      },
+    ]);
+    const html = renderSectionHtml(group!, 0, {
+      pages,
+      currentPath: "/docs/a",
+    });
+    expect(html).toContain(
+      'class="grp-col grp-span-3 grp-col-divider" style="--grp-divider-style:dashed;--grp-divider-w:2px;--grp-divider-color:#0f766e"',
+    );
+    // 默认线型的那一列不该多出一个 style 属性
+    expect(html).toContain('class="grp-col grp-span-9 grp-col-divider">');
+  });
+
   it("列里的子段走 contained：full 退化成 page，正文不再自带 gutter", () => {
     const html = renderSectionHtml(docsGroup(), 0, {
       pages,

@@ -2,7 +2,10 @@ import {
   PAGE_SECTION_TYPES,
   createBlock,
   createSection,
+  groupColumns,
   isContainerSection,
+  refitGroupSpans,
+  settingText,
   type PageSectionType,
   type SettingValues,
   type SiteBlock,
@@ -276,9 +279,39 @@ function mapSectionBlocks(
 ): SiteSection[] {
   return mapTree(sections, (section) =>
     section.id === sectionId
-      ? { ...section, blocks: update(section.blocks) }
+      ? withFittedColumns(section, update(section.blocks))
       : section,
   );
+}
+
+/**
+ * 换掉一段的 blocks，顺带把容器段的列宽份额跟上列数。
+ *
+ * 列数是 blocks 数出来的，列宽是段上的一个设置——加一列却不动那个设置的话，两者长度
+ * 对不上，`resolveGroupSpans` 会整个回落成等分：租户刚调好的 3:9 在加第三列的瞬间
+ * 变成 4:4:4，而他并没有碰过列宽。放在这里而不是各个调用点，是因为加、删、以及以后
+ * 任何改 blocks 的操作都得守这条，漏一个就又是一次「列宽自己变了」。
+ */
+function withFittedColumns(
+  section: SiteSection,
+  blocks: SiteBlock[],
+): SiteSection {
+  const next: SiteSection = { ...section, blocks };
+  if (!isContainerSection(section.type)) return next;
+  const before = groupColumns(section).length;
+  const after = groupColumns(next).length;
+  if (after === 0 || before === after) return next;
+  return {
+    ...next,
+    settings: {
+      ...next.settings,
+      columns_layout: refitGroupSpans(
+        settingText(section.settings, "columns_layout"),
+        before,
+        after,
+      ),
+    },
+  };
 }
 
 export function addBlock(

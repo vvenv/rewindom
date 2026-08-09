@@ -91,6 +91,44 @@ describe("SiteSections 容器段", () => {
     expect(columns[0]!.className).toContain("grp-sticky");
     expect(columns[1]!.className).toContain("grp-span-9");
     expect(columns[1]!.className).not.toContain("grp-sticky");
+    // 吸顶列包一层，粘的是内层——列本身拉满行高，右侧分隔线才是整行长
+    expect(columns[0]!.querySelector(":scope > .grp-col-inner")).not.toBeNull();
+    expect(columns[1]!.querySelector(":scope > .grp-col-inner")).toBeNull();
+  });
+
+  it("分隔线的线型 / 线宽 / 颜色落成列上的 CSS 变量（与 SSR 同构）", () => {
+    const sections = parseSections([
+      {
+        type: "group",
+        settings: { columns_layout: "1:3" },
+        blocks: [
+          {
+            type: "column",
+            settings: {
+              show_divider: true,
+              divider_style: "dashed",
+              divider_width: 2,
+              divider_color: "#0f766e",
+            },
+            sections: [{ type: "prose", settings: { body_md: "左" } }],
+          },
+          {
+            type: "column",
+            settings: { show_divider: true },
+            sections: [{ type: "prose", settings: { body_md: "右" } }],
+          },
+        ],
+      },
+    ]);
+    const { container } = renderSections(sections);
+    const columns = container.querySelectorAll<HTMLElement>(".grp > .grp-col");
+    expect(columns[0]!.className).toContain("grp-col-divider");
+    expect(columns[0]!.getAttribute("style")).toBe(
+      "--grp-divider-style: dashed; --grp-divider-w: 2px; --grp-divider-color: #0f766e;",
+    );
+    // 默认线型：开了线但不需要任何变量
+    expect(columns[1]!.className).toContain("grp-col-divider");
+    expect(columns[1]!.getAttribute("style")).toBeNull();
   });
 
   it("列里的同级菜单是真链接，当前页标出来", () => {

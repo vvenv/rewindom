@@ -13,6 +13,7 @@ import {
   type SiteSection,
 } from "../../shared/section-schema.js";
 import {
+  isDocTemplateKind,
   marketingPagePath,
   type MarketingPage,
   type MarketingPageListItem,
@@ -239,6 +240,31 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   );
 
   /**
+   * 预览里的「站点页面目录」——必须与公开面**同一套口径**（见 `toPublicMarketingSite`）：
+   * 只算已发布的，且排除文档模板页。
+   *
+   * 少这两道过滤，预览的页头导航会比线上多出几条：草稿页面（还没发布，访客看不到）
+   * 和文档模板页（`doc_article` 根本没有自己的地址）。而页头导航默认就是一条「全部
+   * 一级页面」的动态项，所以每建一张草稿页，预览与实际就多差一条——差异恰好出现在
+   * 租户最信任预览的时候（刚建完页面、正在排版）。
+   *
+   * 正在编辑的这一页用编辑器里的标题，不用列表里那份：改了标题还没保存时，导航里
+   * 该跟着变。
+   */
+  const previewNavPages = localePages
+    .filter((item) => item.status === "published")
+    .filter((item) => !isDocTemplateKind(item.kind))
+    .map((item) => ({
+      slug: item.slug,
+      locale: item.locale,
+      kind: item.kind,
+      title: item.id === page?.id ? title : item.title,
+      description: item.id === page?.id ? description : item.description,
+      path: marketingPagePath(item.kind, item.slug),
+      settings: item.settings,
+    }));
+
+  /**
    * 预览用的语言入口：已经建出来的语言各一条。
    *
    * 与公开面的 `page.alternates` 同形状——页头的语言切换器（站点设置里的全局开关）
@@ -281,16 +307,8 @@ export function useSiteThemeEditor(pageId: string | undefined) {
         footer: localizeSections(footer, locale, defaultLocale),
         // 菜单不压：`resolveSiteMenu` 在渲染时自己按 locale 取文案与补前缀
         menus,
-        // `page-menu` section 要能列出同语言下的其它页面
-        pages: localePages.map((item) => ({
-          slug: item.slug,
-          locale: item.locale,
-          kind: item.kind,
-          title: item.id === page?.id ? title : item.title,
-          description: item.id === page?.id ? description : item.description,
-          path: marketingPagePath(item.kind, item.slug),
-          settings: item.settings,
-        })),
+        // `page-menu` section 与页头导航要能列出同语言下的其它页面
+        pages: previewNavPages,
       }
     : null;
 

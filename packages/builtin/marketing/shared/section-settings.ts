@@ -263,6 +263,17 @@ export type InputSettingDef =
     })
   | (SettingBase & {
       /**
+       * 容器段的列宽，存成 12 栏制的分配（`"3:7:2"`）。
+       *
+       * 没有 `options`：候选由**当前有几列**决定，而列是 block，租户随时增删——编译期
+       * 枚举不出来。编辑器画成一条多滑块（每个滑块是一处分栏点），所以「加起来不是
+       * 一整行」这种坏版式在控件层面就不可能配出来，不必再靠一份预设清单去堵。
+       */
+      type: "column_spans";
+      default?: string;
+    })
+  | (SettingBase & {
+      /**
        * 盒模型留白：展开为 `padding_*`（内四边）+ `spacing_above/below`（外上下）。
        * `id` 只作编辑器 key，不落 `settings[id]`。
        */
@@ -414,6 +425,7 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
     case "link":
     case "menu":
     case "image":
+    case "column_spans":
       return typeof raw === "string" ? raw.trim() : (def.default ?? "");
     case "icon": {
       const value = typeof raw === "string" ? raw.trim() : "";

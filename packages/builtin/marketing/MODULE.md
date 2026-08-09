@@ -81,6 +81,15 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 `flat` 就地铺平与静态项混排。展不出内容时**整条不渲染**——还没写文档的站点，页头
 不该出现一个点开是空的「文档」下拉。
 
+**编辑入口就是引用它的那个字段**（`SiteMenuField`，`type: "menu"` 的设置项）：条目
+直接铺在页头 / 页脚列的设置面板里增删排序，「换一份菜单 / 新建 / 重命名 / 删除」收进
+右上角齿轮。曾经是「一个下拉选菜单 + 一枚铅笔弹出全站菜单管理面板」，那要求租户先
+理解「菜单」是个可共享、有 key、页头只是引用它的实体——而这是实现细节，他想问的是
+「页头上都有什么」。共享没有被藏起来：一个菜单被两处以上引用时，字段底部写明还用在
+哪儿（`siteMenuUsage` 按 schema 扫 `type: "menu"` 的设置项算出来），且此时不许删。
+动态项旁边就地显示它当前展开成哪几条（`resolveSiteMenuItem`）——填错分类名的表现
+恰好是整条静默消失，不该等到发布后才发现。
+
 渲染两端同构：SSR 在 `sections/header|footer/html.ts`，SPA 在 `components/sections/SiteChrome.tsx`，
 都用原生 `<details>` 画下拉（首屏即可点，不等 `site-enhance` 绑事件）。
 chrome 的文档数据需求分两档（`ssr.routes.ts` 的 `resolveChromeDocs`）：菜单里的文档
@@ -209,7 +218,7 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 | `faq`          | 抬头                                                                   | `qa`{question\*, answer}，最多 20                                                       |
 | `page-header`  | headline, subhead, align（留空回落到页面 meta）                        | —                                                                                       |
 | `prose`        | body_md                                                                | —                                                                                       |
-| `group`        | columns_layout, column_gap, align_items                                | `column`{sticky, stack_order}，最多 3；**容器 block**，见下                             |
+| `group`        | columns_layout(12 栏份额), column_gap, align_items                     | `column`{sticky, show_divider + 线型/粗细/颜色, stack_order}，最多 4；**容器 block**，见下 |
 | `band`         | headline\*, body, align, primary/secondary 按钮                        | —                                                                                       |
 
 `*` = `required`，为空时该 section 校验失败。
@@ -222,13 +231,30 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 存量页面由 `20260805010000_marketing_page_header_section` 在原本会自动出标题的页面前面补一段，
 已发布官网的 h1 不会静默消失。
 
-**`group` 是唯一的分栏原语**：一段里并排 2–3 列，列是 block、列里装任意子段
-（`SiteBlock.sections`，由 `BlockDefinition.container` 声明）。列宽走一个比例预设
-（`1:1` / `1:2` / `2:1` / `1:3` / `3:1` / `1:1:1` → 12 栏制，`resolveGroupSpans`），
-比例与实际列数对不上时按列数等分回落；窄屏一律上下堆叠，顺序由列的 `stack_order` 调。
+**`group` 是唯一的分栏原语**：一段里并排 2–4 列，列是 block、列里装任意子段
+（`SiteBlock.sections`，由 `BlockDefinition.container` 声明）。列宽是 `columns_layout`
+里的一份 **12 栏份额**（`"3:7:2"`），编辑器画成一条多滑块——拖的是列与列之间的界线，
+所以总宽天然守恒，配不出「加起来不满一行」的版式。份额与实际列数对不上时按列数等分
+回落；加 / 删列时 `refitGroupSpans` 会把份额顺过来（加列从最宽那列匀一半，删列把宽度
+并进最后一列），否则租户没碰过列宽却会看到它跳成等分。窄屏一律上下堆叠，顺序由列的
+`stack_order` 调。
+
+**分隔线逐列独立**：`show_divider` 在这一列右侧的间隙正中画一条竖线（最后一列不画——
+它右边没有要分开的东西），线型 / 粗细 / 颜色（`divider_style`、`divider_width`、
+`divider_color`）也都挂在列上，所以一段里几条线可以各画各的。三者落成列上的 CSS 变量
+（`--grp-divider-*`，`groupColumnCss`）而不是一串类名——粗细是连续值、颜色更是任意值，
+类名枚举不出来；默认值写在 CSS 的 `var()` 兜底里，没配过的列连 `style` 属性都不会多。
+
+线**恒铺满整行的高**，与 `align_items` 无关：开了线的列自己 `align-self: stretch`。
+吸顶列也一样——吸的是列里多包的那层 `.grp-col-inner`，列这个盒子照常拉伸（让列自己
+`position: sticky` 就得 `align-self: start`，线会缩成内容那么长）。
+
+`columns_layout` 曾经是个七选一的**比例**预设（`1:3` 等），`resolveGroupSpans` 靠
+「几个数加起来是不是 12」区分两种写法——不是 12 就查那张旧比例表。留着它是因为改版
+之前存下来的页面不该在某次发布后无声无息地变成等分。
 **嵌套只允许一层**——容器段不能装容器段，写路径抛 `site.sections_invalid`、读路径跳过，
 编辑器的加段菜单里也不列出容器段。列内子段自动 `contained`：`width: full` 退化为 `page`、
-不再自带左右 gutter（列已经限过宽）。「左侧同级菜单 + 右侧正文」的文档版式 = `1:3` 的
+不再自带左右 gutter（列已经限过宽）。「左侧同级菜单 + 右侧正文」的文档版式 = `3:9` 的
 group + 左列放 `page-menu`(siblings/list, 列上勾 sticky)，不再有专门的侧栏机制。
 
 每个页面级 section 另有一组**通用版式**（`layoutSettings()`，编辑器「版式」页签）：
@@ -447,7 +473,7 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 
 **动态页面菜单**：在 Theme Editor 插入 `page-menu` section——父页选 `children`，子页选
 `siblings`；条目随已发布页面目录自动更新，无需手填链接。要做成左侧栏就把它放进
-`group` 的第一列（`1:3` + 列 sticky），没有 chrome 级的自动侧栏。
+`group` 的第一列（`3:9` + 列 sticky），没有 chrome 级的自动侧栏。
 
 ### 文档库（`MarketingDoc`）与它的两张模板页
 

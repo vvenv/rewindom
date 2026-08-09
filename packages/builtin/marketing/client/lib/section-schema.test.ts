@@ -6,8 +6,10 @@ import {
   addSectionToColumn,
   findSection,
   findSectionPath,
+  moveBlock,
   moveSection,
   moveSectionTo,
+  removeBlock,
   removeSection,
   reorderBlock,
   updateSectionSettings,
@@ -250,5 +252,53 @@ describe("容器段的列", () => {
       group.id,
       hero.id,
     ]);
+  });
+});
+
+/*
+ * 列数是 blocks 数出来的、列宽是段上的一个设置，两者必须一起动。
+ * 不一起动的话 `resolveGroupSpans` 会因为长度对不上整个回落等分——租户刚调好的
+ * 3:9 在加第三列的瞬间变成 4:4:4，而他并没有碰过列宽。
+ */
+describe("加减列时的列宽", () => {
+  function twoColumnGroup(spans: string): SiteSection {
+    const group = createSection("group");
+    return updateSectionSettings([group], group.id, {
+      ...group.settings,
+      columns_layout: spans,
+    })[0]!;
+  }
+
+  it("加一列从最宽那列匀出一半，不动其余列", () => {
+    const group = twoColumnGroup("3:9");
+    const next = addBlock([group], group.id, "column")[0]!;
+    expect(next.blocks).toHaveLength(3);
+    expect(next.settings.columns_layout).toBe("3:5:4");
+  });
+
+  it("删一列把宽度并进剩下的最后一列", () => {
+    const group = twoColumnGroup("3:9");
+    const three = addBlock([group], group.id, "column")[0]!;
+    const back = removeBlock([three], three.id, three.blocks[2]!.id)[0]!;
+    expect(back.blocks).toHaveLength(2);
+    expect(back.settings.columns_layout).toBe("3:9");
+  });
+
+  it("存量的旧比例写法先读懂再顺", () => {
+    const group = twoColumnGroup("1:3");
+    const next = addBlock([group], group.id, "column")[0]!;
+    expect(next.settings.columns_layout).toBe("3:5:4");
+  });
+
+  it("列数没变就不碰列宽", () => {
+    const group = twoColumnGroup("3:9");
+    const moved = moveBlock([group], group.id, 0, 1)[0]!;
+    expect(moved.settings.columns_layout).toBe("3:9");
+  });
+
+  it("非容器段的 block 增删不写列宽", () => {
+    const cards = createSection("cards");
+    const next = addBlock([cards], cards.id, "card")[0]!;
+    expect(next.settings.columns_layout).toBeUndefined();
   });
 });

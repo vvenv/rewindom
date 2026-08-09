@@ -436,6 +436,20 @@ function resolveItem(
   }
 }
 
+/**
+ * 展开**单条**菜单项——编辑器就地预览用。
+ *
+ * 动态项配的是一条规则，租户在配它的时候必须看得见「此刻会展开成哪几条」。没有这个
+ * 的话，判断「文档分类填对没有」只能靠保存 → 看预览 → 回来改，而填错的表现恰好是
+ * 整条静默消失（见 `resolveItem` 里展不出内容就返回空数组），最不该靠猜的一处。
+ */
+export function resolveSiteMenuItem(
+  item: SiteMenuItem,
+  ctx: SiteMenuContext,
+): ResolvedMenuItem[] {
+  return resolveItem(item, ctx);
+}
+
 /** 展开整个菜单。 */
 export function resolveSiteMenu(
   menu: SiteMenu | null,
@@ -469,19 +483,4 @@ export function siteMenusNeedDocs(menus: readonly SiteMenu[]): boolean {
     item.source === "doc_category" ||
     item.children.some(needsDocs);
   return menus.some((menu) => menu.items.some(needsDocs));
-}
-
-/** 编辑器下拉的选项表（`menu` 设置项的数据源）。 */
-export function siteMenuOptions(
-  menus: readonly SiteMenu[],
-  fallbackLabel: (key: string) => string,
-): Array<{ value: string; label: string }> {
-  return menus.map((menu) => ({
-    value: menu.key,
-    label:
-      (typeof menu.title === "string"
-        ? menu.title
-        : Object.values(menu.title.__i18n).find((text) => text.trim() !== "")) ||
-      fallbackLabel(menu.key),
-  }));
 }

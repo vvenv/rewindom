@@ -33,55 +33,132 @@ const CONTENT_WIDTH_OPTIONS = [
   { value: "full", label: "editor.option.content_width.full" },
 ] as const;
 
-/**
- * 容器段的列宽：一个比例预设，而不是每列自己填宽度。
- *
- * 比例总和恒定（12 栏），租户点不出「加起来不满一行」或「三列挤成一条」的坏版式；
- * 代价是列宽只能从这几档里选——真实排版需求（文档侧栏 1:3、图文 1:2、并排 1:1）都在里面。
- */
-export const GROUP_LAYOUT_OPTIONS = [
-  { value: "1:1", label: "editor.option.columns_layout.1_1" },
-  { value: "1:2", label: "editor.option.columns_layout.1_2" },
-  { value: "2:1", label: "editor.option.columns_layout.2_1" },
-  { value: "1:3", label: "editor.option.columns_layout.1_3" },
-  { value: "3:1", label: "editor.option.columns_layout.3_1" },
-  { value: "1:1:1", label: "editor.option.columns_layout.1_1_1" },
-  // 文档版式：左目录 + 正文 + 右章节导航——左目录列全量文档（带分类），右大纲只列当前页标题，故左宽右窄
-  { value: "3:7:2", label: "editor.option.columns_layout.3_7_2" },
-] as const;
+/** 容器段的栅格总宽：列宽都是它的整数份额。 */
+export const GROUP_GRID = 12;
 
-/** 比例 → 12 栏制的列宽。 */
-const GROUP_COLUMN_SPANS: Record<string, number[]> = {
+/**
+ * 旧的比例预设 → 12 栏制列宽。
+ *
+ * 列宽以前是一个七选一的下拉（`1:3`、`3:7:2` …），存的是**比例**；现在存的直接就是
+ * 12 栏里各占几栏，租户逐列拖。这张表只为读懂改版之前存下来的那些值——留着它比
+ * 让租户已经排好的页面在某次发布后突然变成等分要便宜得多。
+ *
+ * 不必往里加新条目：新值一律是「加起来正好 12」的份额，靠 `parseGroupSpans` 自己认。
+ */
+const LEGACY_RATIO_SPANS: Record<string, number[]> = {
   "1:1": [6, 6],
   "1:2": [4, 8],
   "2:1": [8, 4],
   "1:3": [3, 9],
   "3:1": [9, 3],
   "1:1:1": [4, 4, 4],
-  "3:7:2": [3, 7, 2],
-  // legacy：下拉已不再提供，仅用于渲染租户在改为 3:7:2 之前已存的文档模板
   "1:2:1": [3, 6, 3],
 };
 
+/** 等分；12 除不尽时（如 5 列）多出来的栏补给最后一列，总和仍是 12。 */
+function evenSpans(columnCount: number): number[] {
+  const base = Math.floor(GROUP_GRID / columnCount);
+  return Array.from({ length: columnCount }, (_, index) =>
+    index === columnCount - 1
+      ? GROUP_GRID - base * (columnCount - 1)
+      : base,
+  );
+}
+
 /**
- * 列宽解析（两处渲染共用）。
+ * 列宽解析（两处渲染 + 编辑器共用）。
  *
- * 实际列数与比例声明的列数对不上时以**列数**为准回落——列是 block，租户随时能加减，
- * 而比例是另一个下拉；两者短暂不一致是常态，不能因此渲染出一行空白。
+ * 认两种写法，靠**加起来是不是 12** 区分，不需要额外的版本标记：
+ * - 份额（新）：`"3:7:2"` 之和为 12，就是各列占几栏
+ * - 比例（旧）：`"1:3"` 之和不是 12，查上面那张表
+ *
+ * 两者不会撞车——一个比例写法要想恰好加到 12，本身就已经是份额了（`"6:6"` 读成
+ * 份额和读成比例是同一个结果）。
+ *
+ * 实际列数与声明的列数对不上时以**列数**为准回落成等分：列是 block、租户随时能加减，
+ * 而列宽是另一个设置，两者短暂不一致是常态，不能因此渲染出一行空白。
  */
 export function resolveGroupSpans(
   columnsLayout: string,
   columnCount: number,
 ): number[] {
   if (columnCount <= 0) return [];
-  if (columnCount === 1) return [12];
-  const spans = GROUP_COLUMN_SPANS[columnsLayout];
-  if (spans && spans.length === columnCount) return spans;
-  // 等分：12 除不尽时（如 5 列）多出来的栏补给最后一列，总和仍是 12
-  const base = Math.floor(12 / columnCount);
-  return Array.from({ length: columnCount }, (_, index) =>
-    index === columnCount - 1 ? 12 - base * (columnCount - 1) : base,
+  if (columnCount === 1) return [GROUP_GRID];
+
+  const parsed = parseGroupSpans(columnsLayout);
+  if (parsed.length === columnCount) return parsed;
+
+  const legacy = LEGACY_RATIO_SPANS[columnsLayout];
+  if (legacy && legacy.length === columnCount) return legacy;
+
+  return evenSpans(columnCount);
+}
+
+/**
+ * `"3:7:2"` → `[3, 7, 2]`；不是一份合法份额就返回空数组。
+ *
+ * 合法 = 每列至少一栏、加起来正好一整行。宽松一点（比如自动补齐差额）只会让「存进去
+ * 的」和「画出来的」不是一回事，而列宽恰恰是那种差一栏就看得出来的东西。
+ */
+export function parseGroupSpans(value: string): number[] {
+  const parts = value.split(":");
+  const spans = parts.map((part) => Number(part.trim()));
+  if (spans.some((span) => !Number.isInteger(span) || span < 1)) return [];
+  if (spans.reduce((sum, span) => sum + span, 0) !== GROUP_GRID) return [];
+  return spans;
+}
+
+/** `[3, 7, 2]` → `"3:7:2"`。 */
+export function formatGroupSpans(spans: readonly number[]): string {
+  return spans.join(":");
+}
+
+/**
+ * 加 / 删列之后该存的那份列宽。
+ *
+ * 不顺一遍的话，`resolveGroupSpans` 会因为「长度对不上」直接回落等分：租户刚调好的
+ * 3:9 会在加第三列的瞬间变成 4:4:4，而他并没有碰过列宽。
+ */
+export function refitGroupSpans(
+  value: string,
+  previousCount: number,
+  nextCount: number,
+): string {
+  return formatGroupSpans(
+    fitGroupSpans(resolveGroupSpans(value, previousCount), nextCount),
   );
+}
+
+/** 列数变了之后的一份合法份额：能保住的比例尽量保住，保不住就等分。 */
+export function fitGroupSpans(
+  spans: readonly number[],
+  columnCount: number,
+): number[] {
+  if (columnCount <= 0) return [];
+  if (columnCount === 1) return [GROUP_GRID];
+  if (spans.length === columnCount) return [...spans];
+  /*
+   * 加一列：从最宽的那列里匀出它的一半给新列——比整段推倒重来贴近租户的意图
+   * （他刚往一个 3:9 的版式里加了一列，想要的多半是 3:5:4 而不是 4:4:4）。
+   */
+  if (spans.length === columnCount - 1 && spans.length > 0) {
+    const widest = spans.indexOf(Math.max(...spans));
+    const taken = Math.floor(spans[widest]! / 2);
+    if (taken >= 1 && spans[widest]! - taken >= 1) {
+      const next = [...spans];
+      next[widest] = spans[widest]! - taken;
+      next.push(taken);
+      return next;
+    }
+  }
+  // 减一列：把删掉那些列的宽度并进最后一列，其余保持原样
+  if (spans.length > columnCount) {
+    const kept = spans.slice(0, columnCount);
+    const missing = GROUP_GRID - kept.reduce((sum, span) => sum + span, 0);
+    kept[columnCount - 1] = kept[columnCount - 1]! + missing;
+    return kept;
+  }
+  return evenSpans(columnCount);
 }
 
 const DIVIDER_OPTIONS = [

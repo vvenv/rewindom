@@ -35,6 +35,7 @@ import { SiteImageField } from "../media/SiteImageField.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 import { SiteColorField } from "../SiteColorField.js";
 
+import { ColumnSpansField } from "./ColumnSpansField.js";
 import { SiteLinkField } from "./SiteLinkField.js";
 import { SiteMenuField } from "./SiteMenuField.js";
 import { SpacingBoxField } from "./SpacingBoxField.js";
@@ -56,6 +57,8 @@ interface SettingsFieldsProps {
   locale: AppLocale;
   /** 站点默认语言：纯字符串存量值归它，也是未翻译时的占位来源。 */
   defaultLocale: AppLocale;
+  /** 容器段当前的列数；只有 `column_spans` 控件用得上。 */
+  columnCount?: number;
   onChange: (next: SettingValues) => void;
 }
 
@@ -70,6 +73,7 @@ export function SettingsFields({
   unavailable,
   locale,
   defaultLocale,
+  columnCount,
   onChange,
 }: SettingsFieldsProps): ReactElement {
   const { t } = useTranslation("marketing");
@@ -117,6 +121,9 @@ export function SettingsFields({
           <SettingField
             key={`${def.id}:${localized ? locale : ""}`}
             def={def}
+            locale={locale}
+            defaultLocale={defaultLocale}
+            columnCount={columnCount}
             value={
               localized
                 ? readLocalizedSetting(stored, locale, defaultLocale)
@@ -162,6 +169,15 @@ export function SettingsFields({
 interface SettingFieldProps {
   def: InputSettingDef;
   value: SettingValue | undefined;
+  /*
+   * 正在编辑的语言。字段值本身已经由上面按语言拆过了（`value` 是当前语言的槽位），
+   * 这两个只给**自己管着一串多语言文案**的控件用——`menu` 那个把整套菜单条目铺在
+   * 字段里，条目的标签同样是逐语言的，得自己读写。
+   */
+  locale: AppLocale;
+  defaultLocale: AppLocale;
+  /** 容器段当前的列数；只有 `column_spans` 控件用得上。 */
+  columnCount?: number;
   /** 该字段在默认语言下的原文，用作未翻译时的占位。 */
   fallbackHint?: string;
   disabled?: boolean;
@@ -173,6 +189,9 @@ interface SettingFieldProps {
 function SettingField({
   def,
   value,
+  locale,
+  defaultLocale,
+  columnCount,
   fallbackHint,
   disabled,
   unavailableHint,
@@ -223,6 +242,9 @@ function SettingField({
         def={def}
         fieldId={fieldId}
         value={value}
+        locale={locale}
+        defaultLocale={defaultLocale}
+        columnCount={columnCount}
         fallbackHint={fallbackHint}
         disabled={disabled}
         onChange={onChange}
@@ -238,6 +260,9 @@ function SettingControl({
   def,
   fieldId,
   value,
+  locale,
+  defaultLocale,
+  columnCount,
   fallbackHint,
   disabled,
   onChange,
@@ -268,9 +293,27 @@ function SettingControl({
         />
       );
 
+    case "column_spans":
+      return (
+        <ColumnSpansField
+          id={fieldId}
+          value={text}
+          columnCount={columnCount ?? 0}
+          disabled={disabled}
+          onChange={onChange}
+        />
+      );
+
     case "menu":
       return (
-        <SiteMenuField id={fieldId} value={text} disabled={disabled} onChange={onChange} />
+        <SiteMenuField
+          id={fieldId}
+          value={text}
+          locale={locale}
+          defaultLocale={defaultLocale}
+          disabled={disabled}
+          onChange={onChange}
+        />
       );
 
     case "image":

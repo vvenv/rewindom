@@ -86,10 +86,16 @@ function renderNavItemHtml(item: ResolvedMenuItem): string {
   const children = item.children
     .map((child) => {
       if (child.children.length > 0) {
-        // 分类小标题 + 组内链接：下拉最多铺到这两层，再深就没人点得到了
-        return `<p class="nav-menu-group">${escapeHtml(child.label)}</p>${child.children
-          .map((leaf) => renderNavLeafHtml(leaf))
-          .join("")}`;
+        /*
+         * 分类小标题 + 组内链接：下拉最多铺到这两层，再深就没人点得到了。
+         *
+         * 整组套一层 `.nav-menu-section`，让 CSS 能把组内链接缩进去。以前小标题和
+         * 链接是并排的兄弟节点、同一个左边距，一个分类多的文档库在下拉里就是一串
+         * 分不出层次的文字——哪一条是分类名、哪几条属于它，全靠字号那一点差别。
+         */
+        return `<div class="nav-menu-section"><p class="nav-menu-group">${escapeHtml(
+          child.label,
+        )}</p>${child.children.map((leaf) => renderNavLeafHtml(leaf)).join("")}</div>`;
       }
       return renderNavLeafHtml(child);
     })

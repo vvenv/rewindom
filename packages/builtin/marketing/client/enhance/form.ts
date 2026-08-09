@@ -24,9 +24,11 @@ function pagePath(): string {
 
 function fieldsFromForm(form: HTMLFormElement): FormField[] {
   const fields: FormField[] = [];
-  for (const el of form.querySelectorAll<
-    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-  >("input[name], textarea[name], select[name]")) {
+  for (const el of Array.from(
+    form.querySelectorAll<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >("input[name], textarea[name], select[name]"),
+  )) {
     const id = el.name;
     if (!id || fields.some((field) => field.id === id)) continue;
     const type = (
@@ -44,7 +46,7 @@ function fieldsFromForm(form: HTMLFormElement): FormField[] {
     ) as FormFieldType;
     const options =
       el instanceof HTMLSelectElement
-        ? [...el.options]
+        ? Array.from(el.options)
             .map((option) => option.value)
             .filter((value) => value !== "")
         : [];
@@ -74,18 +76,18 @@ function fieldsFromForm(form: HTMLFormElement): FormField[] {
 function valuesFromForm(form: HTMLFormElement): FormValues {
   const values: FormValues = {};
   const data = new FormData(form);
-  for (const [key, value] of data.entries()) {
-    if (typeof value !== "string") continue;
+  data.forEach((value, key) => {
+    if (typeof value !== "string") return;
     const control = form.elements.namedItem(key);
     if (control instanceof HTMLInputElement && control.type === "checkbox") {
       values[key] = control.checked;
-      continue;
+      return;
     }
     values[key] = value;
-  }
+  });
   // 未勾选的 checkbox 不进 FormData
-  for (const input of form.querySelectorAll<HTMLInputElement>(
-    'input[type="checkbox"][name]',
+  for (const input of Array.from(
+    form.querySelectorAll<HTMLInputElement>('input[type="checkbox"][name]'),
   )) {
     if (!(input.name in values)) values[input.name] = false;
   }
@@ -93,10 +95,10 @@ function valuesFromForm(form: HTMLFormElement): FormValues {
 }
 
 function clearErrors(form: HTMLFormElement): void {
-  for (const node of form.querySelectorAll(".form-error")) {
+  for (const node of Array.from(form.querySelectorAll(".form-error"))) {
     node.remove();
   }
-  for (const el of form.querySelectorAll("[aria-invalid]")) {
+  for (const el of Array.from(form.querySelectorAll("[aria-invalid]"))) {
     el.removeAttribute("aria-invalid");
   }
 }

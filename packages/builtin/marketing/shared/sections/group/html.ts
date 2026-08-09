@@ -1,4 +1,5 @@
 import {
+  groupColumnStyleAttr,
   groupColumns,
   resolveSectionGaps,
   resolveSectionLayout,
@@ -41,10 +42,18 @@ export const renderGroupHtml: SectionHtmlRenderer = (section, ctx) => {
         `grp-span-${column.span}`,
         column.stackOrder !== "auto" ? `grp-stack-${column.stackOrder}` : "",
         column.sticky ? "grp-sticky" : "",
+        column.divider ? "grp-col-divider" : "",
       ]
         .filter(Boolean)
         .join(" ");
-      return `<div class="${classes}">${inner}</div>`;
+      /*
+       * 吸顶列多包一层：粘的是**里面这层**，列这个盒子照样拉满整行高。
+       * 少了它，吸顶列只有内容那么高，画在它右边的分割线就成了一小截。
+       */
+      const body = column.sticky
+        ? `<div class="grp-col-inner">${inner}</div>`
+        : inner;
+      return `<div class="${classes}"${groupColumnStyleAttr(column)}>${body}</div>`;
     })
     .join("");
 

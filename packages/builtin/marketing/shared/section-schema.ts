@@ -235,7 +235,8 @@ function buildUnsupportedSection(
       ? (source.raw as Record<string, unknown>)
       : {};
   return {
-    id: typeof raw.id === "string" && raw.id.trim() ? raw.id.trim() : fallbackId,
+    id:
+      typeof raw.id === "string" && raw.id.trim() ? raw.id.trim() : fallbackId,
     type: UNSUPPORTED_TYPE,
     settings: {},
     blocks: [],
@@ -266,7 +267,11 @@ function parseUnsupported(
   if (!source) throw new Error("site.sections_invalid");
 
   // 模块又启用了 / 版本追上了：原样复活，不留痕迹——这是「可恢复」的那一半
-  if (source.raw && typeof source.raw === "object" && !Array.isArray(source.raw)) {
+  if (
+    source.raw &&
+    typeof source.raw === "object" &&
+    !Array.isArray(source.raw)
+  ) {
     const inner = source.raw as Record<string, unknown>;
     const innerType = resolvePageSectionType(inner.type);
     if (innerType && !(options.depth > 0 && isContainerSection(innerType))) {
@@ -709,8 +714,7 @@ export function resolveSurfaceStyle(settings: SettingValues): SurfaceStyle {
   const color = normalizeSiteColor(settingText(settings, "fg_color"));
   const borderColor = normalizeSiteColor(settingText(settings, "border_color"));
   const rawWidth = settingNumber(settings, "border_width", 0);
-  const borderWidth =
-    rawWidth > 0 ? rawWidth : borderColor !== null ? 1 : 0;
+  const borderWidth = rawWidth > 0 ? rawWidth : borderColor !== null ? 1 : 0;
   const radiusRaw = settingNumber(settings, "radius", -4);
   return {
     backgroundColor,
@@ -844,6 +848,15 @@ export function resolvePageHeaderText(
   };
 }
 
+/** 列右侧那条分割线的画法。 */
+export interface GroupDivider {
+  style: "solid" | "dashed" | "dotted";
+  /** 线宽，px。 */
+  width: number;
+  /** `null` = 跟随主题边框色（`--border`）。 */
+  color: string | null;
+}
+
 /** 容器段的一列：列 block 本身 + 它装的子段 + 已算好的 12 栏宽。 */
 export interface GroupColumn {
   block: SiteBlock;
@@ -851,8 +864,25 @@ export interface GroupColumn {
   /** 12 栏制列宽（桌面）。 */
   span: number;
   sticky: boolean;
+  /** 在列右侧画的分割线；`null` = 不画。逐列独立，最后一列恒不画（见 CSS）。 */
+  divider: GroupDivider | null;
   /** 窄屏堆叠顺序：`auto` 按声明顺序。 */
   stackOrder: "auto" | "first" | "last";
+}
+
+const DIVIDER_STYLES = new Set(["solid", "dashed", "dotted"]);
+
+function resolveGroupDivider(settings: SettingValues): GroupDivider | null {
+  if (!settingBool(settings, "show_divider")) return null;
+  const style = settingText(settings, "divider_style");
+  const width = settingNumber(settings, "divider_width", 1);
+  return {
+    style: DIVIDER_STYLES.has(style)
+      ? (style as GroupDivider["style"])
+      : "solid",
+    width: width > 0 ? width : 1,
+    color: normalizeSiteColor(settingText(settings, "divider_color")),
+  };
 }
 
 /**
@@ -876,10 +906,36 @@ export function groupColumns(section: SiteSection): GroupColumn[] {
       sections: block.sections ?? [],
       span: spans[index] ?? 12,
       sticky: settingBool(block.settings, "sticky"),
+      divider: resolveGroupDivider(block.settings),
       stackOrder:
         stackOrder === "first" || stackOrder === "last" ? stackOrder : "auto",
     };
   });
+}
+
+/**
+ * 列上要落到 `style` 的 CSS 变量（两处渲染共用）。
+ *
+ * 线型走变量而不是一堆 `grp-divider-dashed` 之类的类名：线宽是连续值（1–8px）、
+ * 颜色更是任意值，类名枚举不出来。默认值写在 CSS 的 `var()` 兜底里，这里只吐
+ * 真的被改过的那几项——没配过分隔线的列因此仍然连 `style` 属性都没有。
+ */
+export function groupColumnCss(
+  column: GroupColumn,
+): Record<string, string | number> {
+  const divider = column.divider;
+  if (!divider) return {};
+  const out: Record<string, string | number> = {};
+  if (divider.style !== "solid") out["--grp-divider-style"] = divider.style;
+  if (divider.width !== 1) out["--grp-divider-w"] = `${divider.width}px`;
+  if (divider.color) out["--grp-divider-color"] = divider.color;
+  return out;
+}
+
+/** SSR：列上的 ` style="..."`（没有可写的就不写这个属性）。 */
+export function groupColumnStyleAttr(column: GroupColumn): string {
+  const attr = cssRecordToAttr(groupColumnCss(column));
+  return attr ? ` style="${attr}"` : "";
 }
 
 export function gridColumnsClass(columns: number): string {

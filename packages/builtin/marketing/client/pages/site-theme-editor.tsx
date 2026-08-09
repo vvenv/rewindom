@@ -20,6 +20,7 @@ import {
   getSectionDefinition,
   type SiteSection,
 } from "../../shared/section-schema.js";
+import { siteNavPages } from "../../shared/site-cms.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";
 import { EditorToolbar } from "../components/theme-editor/EditorToolbar.js";
 import { PageMetaForm } from "../components/theme-editor/PageMetaForm.js";
@@ -31,7 +32,7 @@ import { SectionSettingsForm } from "../components/theme-editor/SectionSettingsF
 import { SectionTree } from "../components/theme-editor/SectionTree.js";
 import { SiteMenusProvider } from "../components/theme-editor/site-menus-context.js";
 import { SiteAccountEntryPreview } from "../components/theme-editor/SiteAccountEntryPreview.js";
-import { SiteMenuManagerSheet } from "../components/theme-editor/SiteMenuManagerSheet.js";
+import { useChromeDocs } from "../hooks/use-chrome-docs.js";
 import { useDocPreviewData } from "../hooks/use-doc-preview-data.js";
 import {
   useSiteThemeEditor,
@@ -39,6 +40,7 @@ import {
 } from "../hooks/use-site-theme-editor.js";
 import { resolveEditorPublishState } from "../lib/editor-publish-state.js";
 import { sectionTypeLabel } from "../lib/section-type-label.js";
+import { siteMenuUsage } from "../lib/site-menu-usage.js";
 import { siteMemberEntrySlot } from "../shell/site-member-slots.js";
 
 const DEVICE_ICONS: Array<[PreviewDevice, LucideIcon]> = [
@@ -72,9 +74,17 @@ export function SiteThemeEditor() {
   const editor = useSiteThemeEditor(pageId);
   // 文档模板页的预览要有文档可画；普通页面这里什么都不拉（见 hook 内的 enabled）
   const docPreview = useDocPreviewData(editor.page?.kind ?? "page");
+  /*
+   * 页头页脚看到的文档目录：与线上同一口径（见 `useChromeDocs`），也喂给菜单编辑器
+   * 做动态项的就地预览。和 `docPreview` 分开，是因为那一份在零文档时会兜底成示例。
+   */
+  const chromeDocs = useChromeDocs({
+    header: editor.header,
+    footer: editor.footer,
+    menus: editor.menus,
+  });
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
-  const [menuManagerOpen, setMenuManagerOpen] = useState(false);
 
   const { selectedSectionId, selectedBlockId } = editor;
   // 页头区里的段一律滚到顶部：页头本体是 sticky，scrollIntoView 会判定「已在视口内」
@@ -259,6 +269,7 @@ export function SiteThemeEditor() {
       headerOverride={editor.header}
       footerOverride={editor.footer}
       docs={docPreview.docs}
+      chromeDocs={chromeDocs}
       doc={docPreview.doc}
       onSelectSection={(sectionId, blockId) =>
         editor.selectSection(sectionId, blockId)
@@ -277,7 +288,13 @@ export function SiteThemeEditor() {
     <SiteMenusProvider
       value={{
         menus: editor.menus,
-        openManager: () => setMenuManagerOpen(true),
+        setMenus: editor.setMenus,
+        // 页头页脚共用一套菜单，两边的引用一起算，才说得出「这个菜单还用在哪」
+        usage: siteMenuUsage([...editor.header, ...editor.footer], t),
+        preview: {
+          navPages: siteNavPages(editor.previewSite?.pages ?? []),
+          docs: chromeDocs,
+        },
       }}
     >
     <PageLayout
@@ -427,16 +444,6 @@ export function SiteThemeEditor() {
           )}
         </aside>
       </div>
-
-      <SiteMenuManagerSheet
-        open={menuManagerOpen}
-        onOpenChange={setMenuManagerOpen}
-        menus={editor.menus}
-        onChange={editor.setMenus}
-        locale={editor.locale}
-        defaultLocale={editor.defaultLocale}
-        disabled={!canWrite}
-      />
     </PageLayout>
     </SiteMenusProvider>
   );

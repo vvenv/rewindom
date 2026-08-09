@@ -338,6 +338,18 @@ export function groupDocsByCategory<T extends { category: string }>(
 }
 
 /**
+ * 现有分类名（去重、保持传入顺序，不含未分类）。
+ *
+ * 编辑器给 `doc_category` 菜单项当候选：那个字段是**逐字匹配** `MarketingDoc.category`
+ * 的，打错一个字的表现是整条菜单项静默消失，不该靠租户自己去文档库抄。
+ */
+export function docCategories(
+  docs: readonly { category: string }[],
+): string[] {
+  return [...new Set(docs.map((doc) => doc.category).filter(Boolean))];
+}
+
+/**
  * 标题文本 → 锚点 id。
  *
  * 两端 markdown 渲染共用这一个算法（SSR 的 `md()` 与客户端的 `MarkdownProse`），

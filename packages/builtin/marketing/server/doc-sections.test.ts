@@ -217,6 +217,7 @@ describe("内置兜底版式", () => {
     expect(html).toContain("doc-nav");
     expect(html).toContain("doc-article");
     expect(html).toContain("doc-toc");
-    expect(html.match(/grp-col/gu)?.length).toBe(3);
+    // 匹配独立的 grp-col 类，不包含 grp-col-divider
+    expect(html.match(/grp-col(?!-)/gu)?.length).toBe(3);
   });
 });

@@ -1,6 +1,7 @@
 import { type CSSProperties, type ReactElement } from "react";
 
 import {
+  groupColumnCss,
   groupColumns,
   settingNumber,
   settingText,
@@ -35,13 +36,21 @@ export function GroupSection({
         const stackClass =
           column.stackOrder !== "auto" ? ` grp-stack-${column.stackOrder}` : "";
         const stickyClass = column.sticky ? " grp-sticky" : "";
+        const dividerClass = column.divider ? " grp-col-divider" : "";
+        const children = renderChildren(column.sections);
         return (
           <div
             key={column.block.id}
             data-block-id={column.block.id}
-            className={`grp-col grp-span-${column.span}${stackClass}${stickyClass}`}
+            className={`grp-col grp-span-${column.span}${stackClass}${stickyClass}${dividerClass}`}
+            style={groupColumnCss(column) as CSSProperties}
           >
-            {renderChildren(column.sections)}
+            {/* 吸顶列多包一层，理由同 SSR 的 `renderGroupHtml` */}
+            {column.sticky ? (
+              <div className="grp-col-inner">{children}</div>
+            ) : (
+              children
+            )}
           </div>
         );
       })}

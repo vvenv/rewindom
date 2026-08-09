@@ -115,19 +115,39 @@
   color: var(--fg);
   font-weight: 500;
 }
-/* 文档分类那一层：小标题，不可点 */
-.nav-menu-group {
-  margin: 0.375rem 0 0.125rem;
-  padding: 0 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted-fg);
-  opacity: 0.75;
+/*
+ * 文档分类那一层：小标题 + 一组缩进的链接。
+ *
+ * 层级必须一眼看得出来。小标题原来是 `--muted-fg` 再压 0.75 透明度——比它统辖的
+ * 链接还淡，于是一个分类多的文档库在下拉里就是一串分不出层次的文字，读的人得先
+ * 猜哪一条是分类名。现在标题用正文色、链接退到次要色并缩进，深浅与缩进说的是同
+ * 一件事。
+ */
+.nav-menu-section {
+  display: grid;
+  gap: 0.125rem;
 }
-.nav-menu-panel > .nav-menu-group:first-child {
-  margin-top: 0;
+.nav-menu-section + .nav-menu-section,
+.nav-menu-panel > a + .nav-menu-section,
+.nav-menu-panel > span + .nav-menu-section {
+  margin-top: 0.375rem;
+}
+.nav-menu-group {
+  margin: 0 0 0.125rem;
+  padding: 0 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+/* 缩进 + 一条竖线：分组的范围到哪儿结束，不用数间距 */
+.nav-menu-section a,
+.nav-menu-section span {
+  margin-left: 0.625rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--border);
+  border-radius: 0 0.375rem 0.375rem 0;
 }
 /* 语言切换：icon + dropdown，与 client SiteChrome LocaleSwitcher 对齐 */
 .locale-switcher {

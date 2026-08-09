@@ -234,7 +234,7 @@ export const PAGE_PRESETS: PagePreset[] = [
       },
       {
         type: "group",
-        raw: { columns_layout: "1:1", padding_top: 16, padding_bottom: 16 },
+        raw: { columns_layout: "6:6", padding_top: 16, padding_bottom: 16 },
         blocks: [
           {
             type: "column",
@@ -408,20 +408,26 @@ export const DOC_TEMPLATE_PRESETS: Record<DocTemplateKind, PagePreset> = {
          * 窄屏由 group 自己堆叠成上下（见 base.css 的 `.grp`），吸顶也自动失效。
          */
         type: "group",
-        raw: { columns_layout: "3:6:3", column_gap: 48 },
+        raw: {
+          columns_layout: "3:7:2",
+          column_gap: 40,
+          align_items: "stretch",
+        },
         blocks: [
           {
             type: "column",
-            raw: { sticky: true },
-            sections: [{ type: "doc-nav", raw: { sticky: true } }],
+            raw: { show_divider: true },
+            sections: [
+              { type: "doc-nav", raw: { sticky: true, show_category: true } },
+            ],
           },
           {
             type: "column",
+            raw: { show_divider: true },
             sections: [{ type: "doc-article" }],
           },
           {
             type: "column",
-            raw: { sticky: true },
             sections: [{ type: "doc-toc", raw: { sticky: true } }],
           },
         ],

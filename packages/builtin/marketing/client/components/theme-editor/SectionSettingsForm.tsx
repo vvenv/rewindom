@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import {
   getBlockDefinition,
   getSectionDefinition,
+  groupColumns,
   splitSettingsByScope,
   type SettingDef,
   type SettingValues,
@@ -126,6 +127,8 @@ export function SectionSettingsForm({
       unavailable={unavailable}
       locale={locale}
       defaultLocale={defaultLocale}
+      /* 列宽控件要知道这一段现在有几列——列是 block，schema 里数不出来 */
+      columnCount={groupColumns(section).length}
       onChange={onChangeSettings}
     />
   );
@@ -139,6 +142,7 @@ function ScopedSettings({
   unavailable,
   locale,
   defaultLocale,
+  columnCount,
   onChange,
 }: {
   label: string;
@@ -148,6 +152,8 @@ function ScopedSettings({
   unavailable?: Record<string, string>;
   locale: AppLocale;
   defaultLocale: AppLocale;
+  /** 容器段当前的列数；只有 `column_spans` 那个控件用得上。 */
+  columnCount?: number;
   onChange: (settings: SettingValues) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -183,6 +189,7 @@ function ScopedSettings({
       unavailable={unavailable}
       locale={locale}
       defaultLocale={defaultLocale}
+      columnCount={columnCount}
       onChange={onChange}
     />
   );

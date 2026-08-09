@@ -45,7 +45,12 @@ export * from "./types.js";
 // `render-context.js` 刻意不在这里 re-export：它引 `site-cms`，而 `site-cms` 引
 // `section-schema`（后者 re-export 本文件）——转出去就成环。要它的从 `./html.js` 拿。
 export {
+  fitGroupSpans,
+  formatGroupSpans,
+  GROUP_GRID,
   layoutSettings,
+  parseGroupSpans,
+  refitGroupSpans,
   resolveGroupSpans,
   splitSettingsByScope,
   styleSettings,
