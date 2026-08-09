@@ -6,7 +6,6 @@ import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import {
   DOCS_INDEX_PATH,
-  docPath,
   type PublicDocSummary,
 } from "../shared/marketing-doc.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
@@ -21,6 +20,7 @@ import {
 } from "../shared/site-locale.js";
 
 import {
+  getPublishedDocSitemapEntries,
   hasPublishedDocs,
   listPublishedDocs,
 } from "./marketing-doc.service.js";
@@ -338,19 +338,11 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     }
     /*
      * 文档不是页面，所以 `getPublishedSitemapEntries`（走 MarketingPage）看不见它们
-     * ——在这里补。索引页恒列；单篇按已发布的实际地址列，`lastmod` 用各自的更新时间。
+     * ——在这里补。索引页 + 每篇文档：每种已发布语言各一条，并挂全组 hreflang。
      */
-    // 只列站点主语言那一份：主语言 URL 不带前缀，非主语言的文档目前整库回落到它
-    const { docs } = await listPublishedDocs(hostTenant.tenant_id, null);
-    const docEntries = docs.length
-      ? [
-          { path: DOCS_INDEX_PATH, updated_at: docs[0]!.updated_at },
-          ...docs.map((doc) => ({
-            path: docPath(doc.slug),
-            updated_at: doc.updated_at,
-          })),
-        ]
-      : [];
+    const docEntries = await getPublishedDocSitemapEntries(
+      hostTenant.tenant_id,
+    );
     const xml = renderSitemapXml(requestOrigin(request), [
       ...entries,
       ...docEntries,

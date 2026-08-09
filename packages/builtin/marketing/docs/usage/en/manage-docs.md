@@ -60,9 +60,14 @@ result. To change a path, create a new document and unpublish the old one.
 ## Languages
 
 Each language is **its own row** under the same path, with independent draft and
-published state. Pick the language when creating; it cannot be changed afterwards,
-because that would move the row into another translation set that may already have a
-document with the same path. To move a document to another language, create it there.
+published state — the path is the translation-group key (same idea as pages: same
+path = translations of each other). Pick the language when creating; it cannot be
+changed afterwards, because that would move the row into another translation set that
+may already have a document with the same path.
+
+To add a translation of an existing document, use **Duplicate to another language** in
+the row menu. The path stays fixed, the body is copied as a starting point, and the
+copy is created as a draft — translate it, then publish.
 
 The public site picks the version matching the visitor:
 
@@ -70,6 +75,9 @@ The public site picks the version matching the visitor:
 - If the requested language has **no documents at all**, the whole library falls back to
   the primary language instead of showing an empty index or a 404
 - If one document is missing that language, only that document falls back
+- The header language switcher (`show_locale_switcher` in the header settings) lists
+  only **published** translations of the same path. With the switch on but no second
+  published locale, the switcher stays hidden.
 
 Once the library holds more than one language, the admin list gains a Language column
 and a language filter. With a single language, neither is shown.

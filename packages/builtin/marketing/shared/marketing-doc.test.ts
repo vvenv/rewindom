@@ -6,6 +6,7 @@ import {
   extractDocHeadings,
   formatDocAsMarkdown,
   groupDocsByCategory,
+  parseDuplicateDocBody,
   parseMarkdownFile,
   type PublicDocSummary,
 } from "./marketing-doc.js";
@@ -162,5 +163,29 @@ describe("docFilename", () => {
       sort_order: 120,
       body_md: "## Body",
     });
+  });
+});
+
+describe("parseDuplicateDocBody", () => {
+  it("accepts title and locale", () => {
+    expect(
+      parseDuplicateDocBody({ title: "Getting started", locale: "en" }),
+    ).toEqual({ title: "Getting started", locale: "en" });
+  });
+
+  it("allows omitting locale", () => {
+    expect(parseDuplicateDocBody({ title: "快速开始" })).toEqual({
+      title: "快速开始",
+      locale: null,
+    });
+  });
+
+  it("rejects blank title and unknown locale", () => {
+    expect(() => parseDuplicateDocBody({ title: "  " })).toThrow(
+      "site.doc_title_required",
+    );
+    expect(() =>
+      parseDuplicateDocBody({ title: "X", locale: "klingon" }),
+    ).toThrow("site.locale_invalid");
   });
 });

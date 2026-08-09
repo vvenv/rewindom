@@ -80,6 +80,10 @@ vi.mock("../components/SiteDocEditorSheet.js", () => ({
   SiteDocEditorSheet: () => null,
 }));
 
+vi.mock("../components/SiteDocDuplicateSheet.js", () => ({
+  SiteDocDuplicateSheet: () => null,
+}));
+
 vi.mock("../components/SiteDocTransferActions.js", () => ({
   SiteDocTransferActions: () => null,
 }));

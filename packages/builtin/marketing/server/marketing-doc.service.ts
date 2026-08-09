@@ -16,19 +16,24 @@ import {
 import {
   ConflictError,
   NotFoundError,
+  ValidationError,
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import {
+  DOCS_INDEX_PATH,
   docFilename,
+  docPath,
   formatDocAsMarkdown,
   parseCreateDocBody,
+  parseDuplicateDocBody,
   parseMarkdownFile,
   parseUpdateDocBody,
   validateDocSlug,
   type CreateMarketingDocBody,
+  type DuplicateMarketingDocBody,
   type MarketingDoc,
   type MarketingDocListItem,
   type MarketingDocStatus,
@@ -36,6 +41,8 @@ import {
   type PublicDocSummary,
   type UpdateMarketingDocBody,
 } from "../shared/marketing-doc.js";
+import { type PageLocaleAlternate } from "../shared/site-cms.js";
+import { siteLocaleOrder, withSiteLocale } from "../shared/site-locale.js";
 
 function asStatus(value: string): MarketingDocStatus {
   return value === "published" ? "published" : "draft";
@@ -218,6 +225,76 @@ export async function deleteDoc(
     throw new NotFoundError("site.doc_not_found");
   }
   await prisma.marketingDoc.delete({ where: { id: doc_id, tenant_id } });
+}
+
+/**
+ * 复制文档到另一语言（或同语言——同语言会撞 `(slug, locale)` 唯一键）。
+ *
+ * slug 固定沿用源文档：翻译组的 key 就是 slug，改路径就不成组了。
+ */
+export async function duplicateDoc(
+  tenant_id: string,
+  doc_id: string,
+  body: DuplicateMarketingDocBody,
+): Promise<MarketingDoc> {
+  const source = await prisma.marketingDoc.findFirst({
+    where: withTenantScope(tenant_id, { id: doc_id }),
+  });
+  if (!source) {
+    throw new NotFoundError("site.doc_not_found");
+  }
+
+  let parsed: { title: string; locale: AppLocale | null };
+  try {
+    parsed = parseDuplicateDocBody(body);
+  } catch (err) {
+    const code = err instanceof Error ? err.message : "site.doc_body_invalid";
+    throw new ValidationError(code);
+  }
+
+  const defaultLocale = await resolveDefaultLocale(tenant_id);
+  const sourceLocale = normalizeLocale(source.locale, defaultLocale);
+  const locale = parsed.locale ?? sourceLocale;
+
+  const clash = await prisma.marketingDoc.findFirst({
+    where: withTenantScope(tenant_id, { slug: source.slug, locale }),
+    select: { id: true },
+  });
+  if (clash) {
+    throw new ConflictError("site.doc_slug_conflict");
+  }
+
+  try {
+    const created = await prisma.marketingDoc.create({
+      data: {
+        tenant_id,
+        slug: source.slug,
+        locale,
+        title: parsed.title,
+        description: source.description_draft,
+        body_md: source.body_md_draft,
+        category: source.category_draft,
+        sort_order: source.sort_order_draft,
+        status: "draft",
+        title_draft: parsed.title,
+        description_draft: source.description_draft,
+        body_md_draft: source.body_md_draft,
+        category_draft: source.category_draft,
+        sort_order_draft: source.sort_order_draft,
+      },
+    });
+    return toMarketingDoc(created);
+  } catch (err) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      (err as { code?: string }).code === "P2002"
+    ) {
+      throw new ConflictError("site.doc_slug_conflict");
+    }
+    throw err;
+  }
 }
 
 /** 发布：把草稿列复制到线上列，并置 status=published。 */
@@ -542,11 +619,152 @@ function toDocDetail(record: MarketingDocRecord): PublicDocDetail {
 }
 
 /**
+ * 同一篇文档（同 slug）的其它语言入口。
+ *
+ * 翻译组的 key 是 `slug`——`@@unique([tenant_id, slug, locale])` 已经保证同 slug 的
+ * 不同语言行天然成组，不需要额外的关联列。
+ */
+export function buildDocAlternates(
+  logicalPath: string,
+  locales: readonly AppLocale[],
+  defaultLocale: AppLocale,
+): PageLocaleAlternate[] {
+  const seen = new Set<AppLocale>();
+  const out: PageLocaleAlternate[] = [];
+  for (const locale of locales) {
+    if (seen.has(locale)) continue;
+    seen.add(locale);
+    out.push({
+      locale,
+      path: withSiteLocale(logicalPath, locale, defaultLocale),
+    });
+  }
+  return out;
+}
+
+function orderLocales(
+  found: Iterable<AppLocale>,
+  defaultLocale: AppLocale,
+): AppLocale[] {
+  const set = new Set(found);
+  return siteLocaleOrder(defaultLocale).filter((locale) => set.has(locale));
+}
+
+/** 某 slug 已发布的语言列表（页头切换 / hreflang）。 */
+export async function listPublishedDocLocales(
+  tenant_id: string,
+  slug: string,
+): Promise<{ locales: AppLocale[]; defaultLocale: AppLocale }> {
+  const defaultLocale = await resolveDefaultLocale(tenant_id);
+  const records = await prisma.marketingDoc.findMany({
+    where: withTenantScope(tenant_id, { status: "published", slug }),
+    select: { locale: true },
+  });
+  const locales = orderLocales(
+    records.map((record) => normalizeLocale(record.locale, defaultLocale)),
+    defaultLocale,
+  );
+  return { locales, defaultLocale };
+}
+
+/** 文档库里至少有一篇已发布文档的语言（索引页切换器用）。 */
+export async function listPublishedLibraryLocales(
+  tenant_id: string,
+): Promise<{ locales: AppLocale[]; defaultLocale: AppLocale }> {
+  const defaultLocale = await resolveDefaultLocale(tenant_id);
+  const records = await prisma.marketingDoc.findMany({
+    where: withTenantScope(tenant_id, { status: "published" }),
+    select: { locale: true },
+  });
+  const locales = orderLocales(
+    records.map((record) => normalizeLocale(record.locale, defaultLocale)),
+    defaultLocale,
+  );
+  return { locales, defaultLocale };
+}
+
+export interface DocSitemapEntry {
+  path: string;
+  updated_at: string;
+  alternates: PageLocaleAlternate[];
+}
+
+/**
+ * sitemap 文档条目：索引页 + 每篇文档，每种已发布语言各一条，并挂全组 hreflang。
+ */
+export async function getPublishedDocSitemapEntries(
+  tenant_id: string,
+): Promise<DocSitemapEntry[]> {
+  const defaultLocale = await resolveDefaultLocale(tenant_id);
+  const records = await prisma.marketingDoc.findMany({
+    where: withTenantScope(tenant_id, { status: "published" }),
+    select: {
+      slug: true,
+      locale: true,
+      updated_at: true,
+    },
+    orderBy: [{ sort_order: "asc" }, { title: "asc" }],
+  });
+  if (records.length === 0) return [];
+
+  const libraryLocales = new Set<AppLocale>();
+  let indexUpdatedAt = records[0]!.updated_at;
+  const bySlug = new Map<
+    string,
+    Array<{ locale: AppLocale; updated_at: Date }>
+  >();
+  const slugOrder: string[] = [];
+
+  for (const record of records) {
+    const locale = normalizeLocale(record.locale, defaultLocale);
+    libraryLocales.add(locale);
+    if (record.updated_at > indexUpdatedAt) indexUpdatedAt = record.updated_at;
+    const existing = bySlug.get(record.slug);
+    if (existing) {
+      existing.push({ locale, updated_at: record.updated_at });
+      continue;
+    }
+    bySlug.set(record.slug, [{ locale, updated_at: record.updated_at }]);
+    slugOrder.push(record.slug);
+  }
+
+  const libraryAlternates = buildDocAlternates(
+    DOCS_INDEX_PATH,
+    orderLocales(libraryLocales, defaultLocale),
+    defaultLocale,
+  );
+  const entries: DocSitemapEntry[] = libraryAlternates.map((alternate) => ({
+    path: alternate.path,
+    updated_at: indexUpdatedAt.toISOString(),
+    alternates: libraryAlternates,
+  }));
+
+  for (const slug of slugOrder) {
+    const rows = bySlug.get(slug) ?? [];
+    const alternates = buildDocAlternates(
+      docPath(slug),
+      orderLocales(
+        rows.map((row) => row.locale),
+        defaultLocale,
+      ),
+      defaultLocale,
+    );
+    for (const row of rows) {
+      entries.push({
+        path: withSiteLocale(docPath(slug), row.locale, defaultLocale),
+        updated_at: row.updated_at.toISOString(),
+        alternates,
+      });
+    }
+  }
+  return entries;
+}
+
+/**
  * 公开文档列表（已发布 + 当前语言）。
  *
- * 与页面的 `effectiveLocale` 不同：文档库 v1 只编辑站点主语言，非主语言**整库回落**
- * 主语言——请求语言一篇都没有时，不 404 而是展示主语言内容。有该语言的文档时则按
- * 该语言展示。
+ * 与页面的 `effectiveLocale` 不同：文档库请求语言一篇都没有时，**整库回落**主语言——
+ * 不 404 而是展示主语言内容。有该语言的文档时则按该语言展示。
  */
 export async function listPublishedDocs(
   tenant_id: string,

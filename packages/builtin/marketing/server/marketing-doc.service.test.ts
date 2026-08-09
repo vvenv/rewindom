@@ -1,0 +1,248 @@
+import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  buildDocAlternates,
+  duplicateDoc,
+  getPublishedDocSitemapEntries,
+  listPublishedDocLocales,
+  listPublishedLibraryLocales,
+} from "./marketing-doc.service.js";
+
+vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+  prisma: {
+    marketingSite: {
+      findFirst: vi.fn(),
+    },
+    marketingDoc: {
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+    },
+  },
+}));
+
+const TENANT = "tenant-1";
+
+const siteRow = {
+  default_locale: "zh-CN",
+};
+
+function sourceDoc(overrides: Record<string, unknown> = {}) {
+  const title = (overrides.title as string | undefined) ?? "快速开始";
+  return {
+    id: "doc-1",
+    tenant_id: TENANT,
+    slug: "quickstart",
+    locale: "zh-CN",
+    title,
+    description: "摘要",
+    body_md: "# 你好",
+    category: "入门",
+    sort_order: 2,
+    status: "published",
+    title_draft: (overrides.title_draft as string | undefined) ?? title,
+    description_draft: "摘要",
+    body_md_draft: "# 你好",
+    category_draft: "入门",
+    sort_order_draft: 2,
+    created_at: new Date("2026-08-01T00:00:00.000Z"),
+    updated_at: new Date("2026-08-02T00:00:00.000Z"),
+    ...overrides,
+  };
+}
+
+function createdData(): Record<string, unknown> {
+  const call = vi.mocked(prisma.marketingDoc.create).mock.calls[0]?.[0] as {
+    data: Record<string, unknown>;
+  };
+  return call.data;
+}
+
+describe("buildDocAlternates", () => {
+  it("maps each locale to a prefixed path (default locale unprefixed)", () => {
+    expect(
+      buildDocAlternates("/docs/quickstart", ["zh-CN", "en"], "zh-CN"),
+    ).toEqual([
+      { locale: "zh-CN", path: "/docs/quickstart" },
+      { locale: "en", path: "/en/docs/quickstart" },
+    ]);
+  });
+
+  it("dedupes locales", () => {
+    expect(
+      buildDocAlternates("/docs", ["en", "en", "zh-CN"], "zh-CN"),
+    ).toEqual([
+      { locale: "en", path: "/en/docs" },
+      { locale: "zh-CN", path: "/docs" },
+    ]);
+  });
+});
+
+describe("listPublishedDocLocales / listPublishedLibraryLocales", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      siteRow as never,
+    );
+  });
+
+  it("orders sibling locales by siteLocaleOrder", async () => {
+    vi.mocked(prisma.marketingDoc.findMany).mockResolvedValue([
+      { locale: "en" },
+      { locale: "zh-CN" },
+    ] as never);
+
+    const { locales } = await listPublishedDocLocales(TENANT, "quickstart");
+    expect(locales).toEqual(["zh-CN", "en"]);
+  });
+
+  it("lists distinct library locales", async () => {
+    vi.mocked(prisma.marketingDoc.findMany).mockResolvedValue([
+      { locale: "en" },
+      { locale: "en" },
+      { locale: "zh-CN" },
+    ] as never);
+
+    const { locales } = await listPublishedLibraryLocales(TENANT);
+    expect(locales).toEqual(["zh-CN", "en"]);
+  });
+});
+
+describe("getPublishedDocSitemapEntries", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      siteRow as never,
+    );
+  });
+
+  it("emits index + article urls per locale with full alternate sets", async () => {
+    vi.mocked(prisma.marketingDoc.findMany).mockResolvedValue([
+      {
+        slug: "quickstart",
+        locale: "zh-CN",
+        updated_at: new Date("2026-08-02T00:00:00.000Z"),
+      },
+      {
+        slug: "quickstart",
+        locale: "en",
+        updated_at: new Date("2026-08-03T00:00:00.000Z"),
+      },
+    ] as never);
+
+    const entries = await getPublishedDocSitemapEntries(TENANT);
+    expect(entries).toEqual([
+      {
+        path: "/docs",
+        updated_at: "2026-08-03T00:00:00.000Z",
+        alternates: [
+          { locale: "zh-CN", path: "/docs" },
+          { locale: "en", path: "/en/docs" },
+        ],
+      },
+      {
+        path: "/en/docs",
+        updated_at: "2026-08-03T00:00:00.000Z",
+        alternates: [
+          { locale: "zh-CN", path: "/docs" },
+          { locale: "en", path: "/en/docs" },
+        ],
+      },
+      {
+        path: "/docs/quickstart",
+        updated_at: "2026-08-02T00:00:00.000Z",
+        alternates: [
+          { locale: "zh-CN", path: "/docs/quickstart" },
+          { locale: "en", path: "/en/docs/quickstart" },
+        ],
+      },
+      {
+        path: "/en/docs/quickstart",
+        updated_at: "2026-08-03T00:00:00.000Z",
+        alternates: [
+          { locale: "zh-CN", path: "/docs/quickstart" },
+          { locale: "en", path: "/en/docs/quickstart" },
+        ],
+      },
+    ]);
+  });
+
+  it("returns empty when the library has no published docs", async () => {
+    vi.mocked(prisma.marketingDoc.findMany).mockResolvedValue([] as never);
+    await expect(getPublishedDocSitemapEntries(TENANT)).resolves.toEqual([]);
+  });
+});
+
+describe("duplicateDoc", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      siteRow as never,
+    );
+    vi.mocked(prisma.marketingDoc.create).mockImplementation((async ({
+      data,
+    }: {
+      data: Record<string, unknown>;
+    }) => ({
+      ...sourceDoc(),
+      ...data,
+      id: "doc-2",
+    })) as never);
+  });
+
+  it("keeps the slug when copying into another language", async () => {
+    vi.mocked(prisma.marketingDoc.findFirst)
+      .mockResolvedValueOnce(sourceDoc() as never)
+      .mockResolvedValueOnce(null as never);
+
+    const doc = await duplicateDoc(TENANT, "doc-1", {
+      title: "Getting started",
+      locale: "en",
+    });
+
+    const data = createdData();
+    expect(data.slug).toBe("quickstart");
+    expect(data.locale).toBe("en");
+    expect(data.title).toBe("Getting started");
+    expect(data.title_draft).toBe("Getting started");
+    expect(data.body_md_draft).toBe("# 你好");
+    expect(data.status).toBe("draft");
+    expect(data.sort_order_draft).toBe(2);
+    expect(doc.id).toBe("doc-2");
+  });
+
+  it("conflicts when the target locale already has that slug", async () => {
+    vi.mocked(prisma.marketingDoc.findFirst)
+      .mockResolvedValueOnce(sourceDoc() as never)
+      .mockResolvedValueOnce(sourceDoc({ id: "doc-en", locale: "en" }) as never);
+
+    await expect(
+      duplicateDoc(TENANT, "doc-1", { title: "Getting started", locale: "en" }),
+    ).rejects.toThrow("site.doc_slug_conflict");
+    expect(prisma.marketingDoc.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a blank title and an unknown locale", async () => {
+    vi.mocked(prisma.marketingDoc.findFirst).mockResolvedValue(
+      sourceDoc() as never,
+    );
+
+    await expect(
+      duplicateDoc(TENANT, "doc-1", { title: "   " }),
+    ).rejects.toThrow("site.doc_title_required");
+    await expect(
+      duplicateDoc(TENANT, "doc-1", {
+        title: "Getting started",
+        locale: "klingon",
+      }),
+    ).rejects.toThrow("site.locale_invalid");
+  });
+
+  it("404s on a doc from another tenant", async () => {
+    vi.mocked(prisma.marketingDoc.findFirst).mockResolvedValue(null as never);
+    await expect(
+      duplicateDoc(TENANT, "doc-1", { title: "Getting started", locale: "en" }),
+    ).rejects.toThrow("site.doc_not_found");
+  });
+});

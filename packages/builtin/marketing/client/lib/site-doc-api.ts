@@ -2,6 +2,7 @@ import { api } from "@be-water/client-kit";
 
 import type {
   CreateMarketingDocBody,
+  DuplicateMarketingDocBody,
   MarketingDoc,
   MarketingDocListItem,
   UpdateMarketingDocBody,
@@ -21,6 +22,13 @@ export function createSiteDoc(
   body: CreateMarketingDocBody,
 ): Promise<MarketingDoc> {
   return api.post<MarketingDoc>("/site/docs", body);
+}
+
+export function duplicateSiteDoc(
+  docId: string,
+  body: DuplicateMarketingDocBody,
+): Promise<MarketingDoc> {
+  return api.post<MarketingDoc>(`/site/docs/${docId}/duplicate`, body);
 }
 
 export function updateSiteDoc(

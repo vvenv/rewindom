@@ -9,6 +9,7 @@ import { AuditAction } from "../../audit/shared/index.js";
 import {
   createDoc,
   deleteDoc,
+  duplicateDoc,
   getAllDocsForExport,
   getDoc,
   getDocForExport,
@@ -22,6 +23,7 @@ import {
 
 import type {
   CreateMarketingDocBody,
+  DuplicateMarketingDocBody,
   UpdateMarketingDocBody,
 } from "../shared/marketing-doc.js";
 import type { FastifyInstance } from "fastify";
@@ -109,6 +111,41 @@ export async function marketingDocRoutes(app: FastifyInstance): Promise<void> {
           detail_key: "marketing.audit.doc_updated",
           detail_params: { title: doc.title_draft },
         });
+        return doc;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  /** 复制文档：主要用来从一种语言快速铺出另一种语言的同一篇内容。 */
+  defineRoute(app, {
+    method: "POST",
+    url: "/docs/:docId/duplicate",
+    context: "SiteDocDuplicate",
+    errorCode: "SITE_DOC_DUPLICATE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const { docId } = request.params as { docId: string };
+        const body = request.body as DuplicateMarketingDocBody;
+        const doc = await duplicateDoc(
+          request.tenantContext!.tenant_id,
+          docId,
+          body,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_DOC_CREATE,
+          resource: doc.id,
+          detail_key: "marketing.audit.doc_duplicated",
+          detail_params: { title: doc.title_draft, source: docId },
+        });
+        void reply.code(201);
         return doc;
       } catch (err) {
         if (err instanceof AppError && err.code) {

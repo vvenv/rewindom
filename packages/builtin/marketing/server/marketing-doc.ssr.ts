@@ -35,11 +35,13 @@ import {
   type PublicMarketingPage,
   type PublicMarketingSite,
 } from "../shared/site-cms.js";
-import { withSiteLocale } from "../shared/site-locale.js";
 
 import {
+  buildDocAlternates,
   getPublishedDoc,
+  listPublishedDocLocales,
   listPublishedDocs,
+  listPublishedLibraryLocales,
 } from "./marketing-doc.service.js";
 import { getPublishedDocTemplate } from "./site.service.js";
 import { renderMarketingHtml } from "./ssr-render.js";
@@ -72,18 +74,12 @@ async function resolveDocTemplate(
 function synthesizeDocPage(input: {
   path: string;
   locale: AppLocale;
-  defaultLocale: AppLocale;
   title: string;
   description: string;
   sections: SiteSection[];
+  alternates: PageLocaleAlternate[];
   updatedAt: string;
 }): PublicMarketingPage {
-  const alternates: PageLocaleAlternate[] = [
-    {
-      locale: input.locale,
-      path: withSiteLocale(input.path, input.locale, input.defaultLocale),
-    },
-  ];
   return {
     slug: input.path,
     locale: input.locale,
@@ -94,7 +90,7 @@ function synthesizeDocPage(input: {
     settings: {} as MarketingPageSettings,
     visibility: "public" as MarketingPageVisibility,
     path: input.path,
-    alternates,
+    alternates: input.alternates,
     updated_at: input.updatedAt,
   };
 }
@@ -134,23 +130,30 @@ export async function renderDocLibrary(input: {
     });
 
   if (slug === null) {
-    const { docs, locale: effectiveLocale } = await listPublishedDocs(
-      input.tenantId,
-      locale,
-    );
+    const [{ docs, locale: effectiveLocale }, { locales }] = await Promise.all([
+      listPublishedDocs(input.tenantId, locale),
+      listPublishedLibraryLocales(input.tenantId),
+    ]);
     const template = await resolveDocTemplate(
       input.tenantId,
       "doc_index",
       effectiveLocale,
     );
+    // 索引页回落到主语言时，仍应用「库里实际有内容的语言」做切换候选
+    const alternateLocales =
+      locales.length > 0 ? locales : [effectiveLocale];
     return render(
       synthesizeDocPage({
         path,
         locale: effectiveLocale,
-        defaultLocale,
         title: template.title,
         description: template.description,
         sections: template.sections,
+        alternates: buildDocAlternates(
+          DOCS_INDEX_PATH,
+          alternateLocales,
+          defaultLocale,
+        ),
         // 索引页的「最后更新」就是最近改过的那篇文档
         updatedAt: docs[0]?.updated_at ?? new Date().toISOString(),
       }),
@@ -161,21 +164,29 @@ export async function renderDocLibrary(input: {
   const result = await getPublishedDoc(input.tenantId, slug, locale);
   if (!result) return null;
 
-  // 目录也要取：详情页上的 `doc-nav` 列的是**整个文档库**，不只当前这一篇
-  const [{ docs }, template] = await Promise.all([
+  // 目录也要取：详情页上的 `doc-nav` 列的是**整个文档库**，不只当前那一篇
+  const [{ docs }, template, { locales: siblingLocales }] = await Promise.all([
     listPublishedDocs(input.tenantId, result.locale),
     resolveDocTemplate(input.tenantId, "doc_article", result.locale),
+    listPublishedDocLocales(input.tenantId, result.doc.slug),
   ]);
+
+  const alternateLocales =
+    siblingLocales.length > 0 ? siblingLocales : [result.locale];
 
   return render(
     synthesizeDocPage({
       path: docPath(result.doc.slug),
       locale: result.locale,
-      defaultLocale,
       // SEO 跟着**文档**走，不是跟着模板页：每篇的标题 / 摘要各不相同
       title: result.doc.title,
       description: result.doc.description,
       sections: template.sections,
+      alternates: buildDocAlternates(
+        docPath(result.doc.slug),
+        alternateLocales,
+        defaultLocale,
+      ),
       updatedAt: result.doc.updated_at,
     }),
     docs,

@@ -4,6 +4,7 @@ import {
   SITE_DOCS_QUERY_KEY,
   createSiteDoc,
   deleteSiteDoc,
+  duplicateSiteDoc,
   exportSiteDoc,
   fetchAllDocsForExport,
   fetchSiteDoc,
@@ -17,6 +18,7 @@ import {
 
 import type {
   CreateMarketingDocBody,
+  DuplicateMarketingDocBody,
   UpdateMarketingDocBody,
 } from "../../shared/marketing-doc.js";
 
@@ -39,6 +41,21 @@ export function useCreateSiteDoc() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: CreateMarketingDocBody) => createSiteDoc(body),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: SITE_DOCS_QUERY_KEY }),
+  });
+}
+
+export function useDuplicateSiteDoc() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      docId,
+      body,
+    }: {
+      docId: string;
+      body: DuplicateMarketingDocBody;
+    }) => duplicateSiteDoc(docId, body),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: SITE_DOCS_QUERY_KEY }),
   });

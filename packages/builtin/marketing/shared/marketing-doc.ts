@@ -78,6 +78,17 @@ export interface UpdateMarketingDocBody {
   sort_order?: number;
 }
 
+/**
+ * 复制文档：主要用途是**从一种语言复制出另一种语言**的同一篇内容。
+ *
+ * slug 不让填：同 `slug` 就是翻译组的 key，复制到别的语言必须沿用源 slug 才能
+ * 自动成组；目标语言已存在时由服务端报冲突（不能像页面那样改成 `xxx-copy`）。
+ */
+export interface DuplicateMarketingDocBody {
+  title: string;
+  locale?: string;
+}
+
 /** 归一化并校验文档 slug（单段，与页面 slug 的多段语义不同）。 */
 export function validateDocSlug(value: unknown): string {
   if (typeof value !== "string") throw new Error("site.doc_slug_invalid");
@@ -177,6 +188,22 @@ export function parseUpdateDocBody(value: unknown): {
     out.sort_order = Math.trunc(raw.sort_order);
   }
   return out;
+}
+
+export function parseDuplicateDocBody(value: unknown): {
+  title: string;
+  locale: AppLocale | null;
+} {
+  if (!value || typeof value !== "object") {
+    throw new Error("site.doc_body_invalid");
+  }
+  const raw = value as Record<string, unknown>;
+  const title = trimString(raw.title, 200);
+  if (!title) throw new Error("site.doc_title_required");
+  return {
+    title,
+    locale: raw.locale === undefined ? null : validateDocLocale(raw.locale),
+  };
 }
 
 /**

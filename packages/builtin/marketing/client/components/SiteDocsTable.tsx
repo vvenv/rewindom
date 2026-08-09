@@ -1,4 +1,4 @@
-import { useMemo, type ReactElement } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 
 import {
   DataTable,
@@ -19,6 +19,7 @@ import { Spinner } from "@be-water/ui/spinner";
 import {
   CloudOff,
   CloudUpload,
+  Copy,
   Download,
   FileText,
   MoreVertical,
@@ -34,6 +35,7 @@ import {
   type MarketingDocListItem,
 } from "../../shared/marketing-doc.js";
 
+import { SiteDocDuplicateSheet } from "./SiteDocDuplicateSheet.js";
 import { SitePublishStatus } from "./SitePublishStatus.js";
 
 import type { SiteDocActions } from "../hooks/use-site-doc-actions.js";
@@ -61,6 +63,7 @@ function DocRowActions({
   const { t } = useTranslation("marketing");
   const isPublished = doc.status === "published";
   const pending = actions.pendingId === doc.id;
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
 
   // 只读用户唯一能做的就是导出，不值得为一项开一个菜单
   if (!canWrite) {
@@ -116,6 +119,10 @@ function DocRowActions({
             <Pencil className="size-4" />
             {t("siteDocs.edit")}
           </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setDuplicateOpen(true)}>
+            <Copy className="size-4" />
+            {t("siteDocs.duplicate")}
+          </DropdownMenuItem>
           {doc.content_dirty ? (
             <DropdownMenuItem onSelect={() => void actions.revert(doc)}>
               <RotateCcw className="size-4" />
@@ -136,6 +143,26 @@ function DocRowActions({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      {/* 菜单项当不了 SheetTrigger（一点菜单就关），所以受控地挂在外面 */}
+      <SiteDocDuplicateSheet
+        doc={doc}
+        open={duplicateOpen}
+        onOpenChange={setDuplicateOpen}
+        onDuplicated={(created) =>
+          onEdit({
+            id: created.id,
+            slug: created.slug,
+            locale: created.locale,
+            title: created.title_draft,
+            description: created.description_draft,
+            category: created.category_draft,
+            status: created.status,
+            content_dirty: created.content_dirty,
+            sort_order: created.sort_order_draft,
+            updated_at: created.updated_at,
+          })
+        }
+      />
     </div>
   );
 }
