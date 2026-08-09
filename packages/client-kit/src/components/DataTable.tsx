@@ -27,7 +27,10 @@ import {
   useTable,
 } from "@tanstack/react-table";
 
+import { EmptyState } from "./EmptyState";
 import { Pagination } from "./Pagination";
+
+import type { LucideIcon } from "lucide-react";
 
 export interface DataTableColumnMeta {
   className?: string;
@@ -79,9 +82,12 @@ interface DataTableProps<TData extends RowData> {
   isLoading?: boolean;
   isError?: boolean;
   error?: Error | null;
-  emptyMessage?: string;
-  emptyIcon?: React.ReactNode;
-  emptyHeader?: string;
+  /** 传 lucide 图标组件本身，尺寸交给 EmptyState 统一。 */
+  emptyIcon?: LucideIcon;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  /** 空态里的主动作，如「新建」按钮。 */
+  emptyAction?: React.ReactNode;
   loadingMessage?: string;
   onRetry?: () => void;
   pageSize?: number;
@@ -104,9 +110,10 @@ export function DataTable<TData extends RowData>({
   isLoading,
   isError,
   error,
-  emptyMessage = "暂无数据",
   emptyIcon,
-  emptyHeader,
+  emptyTitle,
+  emptyDescription,
+  emptyAction,
   loadingMessage = "加载中...",
   pageSize,
   onRowClick,
@@ -255,15 +262,12 @@ export function DataTable<TData extends RowData>({
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-4">
-        {emptyIcon && (
-          <div className="rounded-full bg-muted p-4">{emptyIcon}</div>
-        )}
-        <div className="text-center space-y-1">
-          {emptyHeader && <p className="text-sm font-medium">{emptyHeader}</p>}
-          <p className="text-sm text-muted-foreground">{emptyMessage}</p>
-        </div>
-      </div>
+      <EmptyState
+        icon={emptyIcon}
+        title={emptyTitle}
+        description={emptyDescription}
+        action={emptyAction}
+      />
     );
   }
 

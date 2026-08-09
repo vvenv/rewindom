@@ -161,6 +161,7 @@ export function ErrorLogsTable({
   onClearSelectedLog,
   showTenantColumn = false,
   allowDelete = false,
+  isFiltered = false,
 }: {
   logs: ErrorLog[];
   isLoading: boolean;
@@ -176,6 +177,8 @@ export function ErrorLogsTable({
   onClearSelectedLog: (open: boolean) => void;
   showTenantColumn?: boolean;
   allowDelete?: boolean;
+  /** 带筛选条件时空态改说「没有匹配的记录」，避免误报成一条日志都没有 */
+  isFiltered?: boolean;
 }) {
   const { t } = useTranslation("error-log");
   const columns = useMemo(
@@ -192,8 +195,11 @@ export function ErrorLogsTable({
         isLoading={isLoading && logs.length === 0}
         isError={Boolean(error) && logs.length === 0}
         error={error}
-        emptyMessage={t("table.empty")}
-        emptyIcon={<AlertTriangle className="size-8 text-muted-foreground" />}
+        emptyIcon={AlertTriangle}
+        emptyTitle={isFiltered ? t("table.emptyFiltered") : t("table.empty")}
+        emptyDescription={
+          isFiltered ? t("table.emptyFilteredHint") : t("table.emptyHint")
+        }
         loadingMessage={t("table.loading")}
         pageSize={pageSize}
         page={page}

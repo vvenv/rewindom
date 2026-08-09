@@ -106,6 +106,7 @@ export function AuditLogsTable({
   sorting,
   onSortingChange,
   showTenantColumn = false,
+  isFiltered = false,
 }: {
   logs: AuditLog[];
   isLoading: boolean;
@@ -117,6 +118,8 @@ export function AuditLogsTable({
   sorting: SortingState;
   onSortingChange: (updater: Updater<SortingState>) => void;
   showTenantColumn?: boolean;
+  /** 带筛选条件时空态改说「没有匹配的记录」，避免误报成一条日志都没有 */
+  isFiltered?: boolean;
 }) {
   // 详情模板分布在各业务 ns；t(..., { ns }) 可解析已 register 的任意命名空间
   const { t } = useTranslation([
@@ -143,8 +146,11 @@ export function AuditLogsTable({
       isLoading={isLoading && logs.length === 0}
       isError={Boolean(error) && logs.length === 0}
       error={error}
-      emptyMessage={t("table.empty")}
-      emptyIcon={<ScrollText className="size-8 text-muted-foreground" />}
+      emptyIcon={ScrollText}
+      emptyTitle={isFiltered ? t("table.emptyFiltered") : t("table.empty")}
+      emptyDescription={
+        isFiltered ? t("table.emptyFilteredHint") : t("table.emptyHint")
+      }
       loadingMessage={t("table.loading")}
       pageSize={pageSize}
       page={page}

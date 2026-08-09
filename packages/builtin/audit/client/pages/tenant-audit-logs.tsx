@@ -1,4 +1,5 @@
 import { PageLayout } from "@be-water/client-kit";
+import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
 import { ScrollText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -61,6 +62,7 @@ export function TenantAuditLogs() {
           pageCount={logs?.page_count}
           sorting={sorting}
           onSortingChange={handleSortingChange}
+          isFiltered={hasActiveFilters(filters)}
         />
       </div>
     </PageLayout>

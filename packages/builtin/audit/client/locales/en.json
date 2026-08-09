@@ -22,8 +22,11 @@
     "username": "Username",
     "resource": "Resource",
     "details": "Details",
-    "empty": "No audit logs",
-    "loading": "Loading…"
+    "empty": "No audit logs yet",
+    "loading": "Loading…",
+    "emptyHint": "Write operations in the system are recorded here automatically.",
+    "emptyFiltered": "No matching audit logs",
+    "emptyFilteredHint": "Try a different time range or filter."
   },
   "actions": {
     "LOGIN": "Sign in",

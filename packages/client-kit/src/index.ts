@@ -100,6 +100,7 @@ export {
   type KpiVariant,
 } from "./components/KpiCard";
 export { DataTable, type DataTableColumnMeta, type DataTableFeatures } from "./components/DataTable";
+export { EmptyState, type EmptyStateSize } from "./components/EmptyState";
 export { DataTableColumnHeader } from "./components/DataTableColumnHeader";
 export { Pagination } from "./components/Pagination";
 

@@ -158,6 +158,19 @@ export function parseSearchParamsPagination(searchParams: URLSearchParams): {
   };
 }
 
+/**
+ * 列表页是否处于「有筛选条件」状态：空态文案要据此在
+ * 「一条都还没有」与「没有匹配结果」之间切换（见 EmptyState 用法）。
+ * 空串 / undefined / `all` 都算没筛选——与 URL 参数的写入口径一致。
+ */
+export function hasActiveFilters(
+  filters: Record<string, string | undefined | null>,
+): boolean {
+  return Object.values(filters).some(
+    (value) => Boolean(value) && value !== SEARCH_PARAM_FILTER_ALL,
+  );
+}
+
 export function applyFiltersToSearchParams<
   T extends { [K in keyof T]?: string | undefined },
 >(searchParams: URLSearchParams, filters: T): URLSearchParams {

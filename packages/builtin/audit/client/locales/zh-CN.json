@@ -23,7 +23,10 @@
     "resource": "资源",
     "details": "详情",
     "empty": "暂无审计日志",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "emptyHint": "成员在系统内的写操作会自动记录在这里。",
+    "emptyFiltered": "没有匹配的审计日志",
+    "emptyFilteredHint": "换个时间范围或筛选条件再试。"
   },
   "actions": {
     "LOGIN": "登录",
