@@ -9,6 +9,7 @@ import {
   fetchAllDocsForExport,
   fetchSiteDoc,
   fetchSiteDocs,
+  fetchSiteDocsCatalog,
   importSiteDocs,
   publishSiteDoc,
   revertSiteDoc,
@@ -19,13 +20,42 @@ import {
 import type {
   CreateMarketingDocBody,
   DuplicateMarketingDocBody,
+  MarketingDocListQuery,
   UpdateMarketingDocBody,
 } from "../../shared/marketing-doc.js";
 
-export function useSiteDocs() {
+const DOC_FILTER_KEY_NAMES = ["q", "category", "status", "locale"] as const;
+
+function docFiltersEqual(
+  left: MarketingDocListQuery | undefined,
+  right: MarketingDocListQuery,
+): boolean {
+  if (!left) return false;
+  return DOC_FILTER_KEY_NAMES.every((key) => left[key] === right[key]);
+}
+
+/** 文档库列表页：服务端筛选 / 排序 / 分页。 */
+export function useSiteDocs(query: MarketingDocListQuery) {
   return useQuery({
-    queryKey: SITE_DOCS_QUERY_KEY,
-    queryFn: fetchSiteDocs,
+    queryKey: [...SITE_DOCS_QUERY_KEY, "list", query],
+    queryFn: () => fetchSiteDocs(query),
+    // 只在翻页时沿用上一页；换筛选时清空，避免表格仍显示旧结果像「重置无效」。
+    // queryKey = ["site","docs","list", query] → 筛选项在 index 3。
+    placeholderData: (previousData, previousQuery) => {
+      const previous = previousQuery?.queryKey[3] as
+        | MarketingDocListQuery
+        | undefined;
+      return docFiltersEqual(previous, query) ? previousData : undefined;
+    },
+  });
+}
+
+/** 编辑器 / 复制 / 页头预览：拉近似全量目录。 */
+export function useSiteDocsCatalog(enabled = true) {
+  return useQuery({
+    queryKey: [...SITE_DOCS_QUERY_KEY, "catalog"],
+    queryFn: fetchSiteDocsCatalog,
+    enabled,
   });
 }
 

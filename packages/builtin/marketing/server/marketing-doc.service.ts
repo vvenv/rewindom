@@ -20,7 +20,12 @@ import {
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import {
+  parseSortDir,
+  resolveSortField,
+  resolveSortOrder,
+} from "@be-water/server-kernel/http/list-sort.js";
+import { APP_LOCALES, normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import {
   DOCS_INDEX_PATH,
@@ -36,6 +41,8 @@ import {
   type DuplicateMarketingDocBody,
   type MarketingDoc,
   type MarketingDocListItem,
+  type MarketingDocListQuery,
+  type MarketingDocListResult,
   type MarketingDocStatus,
   type PublicDocDetail,
   type PublicDocSummary,
@@ -43,6 +50,27 @@ import {
 } from "../shared/marketing-doc.js";
 import { type PageLocaleAlternate } from "../shared/site-cms.js";
 import { siteLocaleOrder, withSiteLocale } from "../shared/site-locale.js";
+
+const DOC_LIST_SORT_FIELDS = new Set([
+  "title",
+  "slug",
+  "category",
+  "locale",
+  "status",
+  "updated_at",
+  "sort_order",
+]);
+
+/** API sort_by → Prisma 列（列表展示的是草稿列）。 */
+const DOC_LIST_SORT_COLUMN: Record<string, keyof MarketingDocRecord> = {
+  title: "title_draft",
+  slug: "slug",
+  category: "category_draft",
+  locale: "locale",
+  status: "status",
+  updated_at: "updated_at",
+  sort_order: "sort_order_draft",
+};
 
 function asStatus(value: string): MarketingDocStatus {
   return value === "published" ? "published" : "draft";
@@ -106,17 +134,137 @@ async function resolveDefaultLocale(tenant_id: string): Promise<AppLocale> {
   return normalizeLocale(site?.default_locale);
 }
 
+function buildDocListWhere(
+  tenant_id: string,
+  query: MarketingDocListQuery,
+): Prisma.MarketingDocWhereInput {
+  const and: Prisma.MarketingDocWhereInput[] = [];
+
+  const q = query.q?.trim();
+  if (q) {
+    and.push({
+      OR: [
+        { title_draft: { contains: q, mode: "insensitive" } },
+        { slug: { contains: q, mode: "insensitive" } },
+        { description_draft: { contains: q, mode: "insensitive" } },
+        { category_draft: { contains: q, mode: "insensitive" } },
+      ],
+    });
+  }
+  if (query.category) {
+    and.push({ category_draft: query.category });
+  }
+  if (query.locale) {
+    and.push({ locale: query.locale });
+  }
+  if (query.status === "published" || query.status === "draft") {
+    and.push({ status: query.status });
+  } else if (query.status === "dirty") {
+    // content_dirty 是计算字段：先收窄到已发布，再在内存里比草稿/线上列
+    and.push({ status: "published" });
+  }
+
+  // tenant_id 必须在 where 顶层：tenant-guard 不递归 AND/OR，嵌进去会误报 missing
+  // 并靠注入补救——筛选条件虽仍生效，但日志被污染。
+  return withTenantScope(
+    tenant_id,
+    and.length > 0 ? { AND: and } : {},
+  );
+}
+
+function resolveDocListOrderBy(
+  sortBy: string | undefined,
+  sortDir: "asc" | "desc" | undefined,
+): Prisma.MarketingDocOrderByWithRelationInput[] {
+  const field = resolveSortField(sortBy, DOC_LIST_SORT_FIELDS, "sort_order");
+  const dir = resolveSortOrder(
+    parseSortDir(sortDir),
+    field === "sort_order" ? "asc" : "desc",
+  );
+  const column = DOC_LIST_SORT_COLUMN[field] ?? "sort_order_draft";
+  if (column === "sort_order_draft") {
+    return [{ sort_order_draft: dir }, { title_draft: "asc" }];
+  }
+  return [{ [column]: dir } as Prisma.MarketingDocOrderByWithRelationInput];
+}
+
+function collectFacets(rows: Array<{ category_draft: string; locale: string }>): {
+  categories: string[];
+  locales: AppLocale[];
+} {
+  const categories = [
+    ...new Set(rows.map((row) => row.category_draft).filter(Boolean)),
+  ].sort((a, b) => a.localeCompare(b));
+  const seen = new Set(rows.map((row) => row.locale));
+  const locales = APP_LOCALES.map((locale) => locale.slug).filter((slug) =>
+    seen.has(slug),
+  );
+  return { categories, locales };
+}
+
 export async function listDocs(
   tenant_id: string,
-): Promise<MarketingDocListItem[]> {
-  const records = await prisma.marketingDoc.findMany({
-    where: withTenantScope(tenant_id),
-    orderBy: [
-      { sort_order_draft: "asc" },
-      { title_draft: "asc" },
-    ],
-  });
-  return records.map(toListItem);
+  query: MarketingDocListQuery = {},
+): Promise<MarketingDocListResult> {
+  const page = Math.max(1, query.page ?? 1);
+  const page_size = Math.min(999, Math.max(1, query.page_size ?? 20));
+  const where = buildDocListWhere(tenant_id, query);
+  const orderBy = resolveDocListOrderBy(query.sort_by, query.sort_dir);
+  const dirtyOnly = query.status === "dirty";
+
+  const [facetRows, total_all, matched] = await Promise.all([
+    prisma.marketingDoc.findMany({
+      where: withTenantScope(tenant_id),
+      select: { category_draft: true, locale: true },
+    }),
+    prisma.marketingDoc.count({ where: withTenantScope(tenant_id) }),
+    dirtyOnly
+      ? prisma.marketingDoc.findMany({ where, orderBy })
+      : Promise.all([
+          prisma.marketingDoc.findMany({
+            where,
+            orderBy,
+            skip: (page - 1) * page_size,
+            take: page_size,
+          }),
+          prisma.marketingDoc.count({ where }),
+        ]),
+  ]);
+
+  const { categories, locales } = collectFacets(facetRows);
+
+  if (dirtyOnly) {
+    const dirty = (matched as MarketingDocRecord[])
+      .filter(isContentDirty)
+      .map(toListItem);
+    const total = dirty.length;
+    const page_count = Math.max(1, Math.ceil(total / page_size) || 1);
+    const safePage = Math.min(page, page_count);
+    const start = (safePage - 1) * page_size;
+    return {
+      items: dirty.slice(start, start + page_size),
+      page: safePage,
+      page_size,
+      total,
+      page_count,
+      total_all,
+      categories,
+      locales,
+    };
+  }
+
+  const [records, total] = matched as [MarketingDocRecord[], number];
+  const page_count = Math.max(1, Math.ceil(total / page_size) || 1);
+  return {
+    items: records.map(toListItem),
+    page,
+    page_size,
+    total,
+    page_count,
+    total_all,
+    categories,
+    locales,
+  };
 }
 
 export async function getDoc(

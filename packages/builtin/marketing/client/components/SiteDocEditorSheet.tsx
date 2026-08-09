@@ -61,7 +61,7 @@ import {
   useCreateSiteDoc,
   usePublishSiteDoc,
   useSiteDoc,
-  useSiteDocs,
+  useSiteDocsCatalog,
   useUpdateSiteDoc,
 } from "../hooks/useSiteDocs.js";
 import { collectDocCategories, slugifyDocTitle } from "../lib/site-doc-list.js";
@@ -146,7 +146,8 @@ export function SiteDocEditorSheet({
   const create = useCreateSiteDoc();
   const update = useUpdateSiteDoc();
   const publish = usePublishSiteDoc();
-  const docsQuery = useSiteDocs();
+  // 关闭时不拉全量目录：文档库列表页会常驻挂载本 Sheet，避免每次进页多打 page_size=999
+  const docsQuery = useSiteDocsCatalog(open);
   const siteQuery = useSite();
   const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
   const { data: fullDoc, isLoading: isLoadingDoc } = useSiteDoc(

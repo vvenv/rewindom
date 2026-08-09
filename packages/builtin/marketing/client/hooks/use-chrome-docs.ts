@@ -4,7 +4,10 @@ import {
   chromeNeedsDocList,
   chromeShowsDocSearch,
 } from "../../shared/site-cms.js";
-import { fetchSiteDocs, SITE_DOCS_QUERY_KEY } from "../lib/site-doc-api.js";
+import {
+  fetchSiteDocsCatalog,
+  SITE_DOCS_QUERY_KEY,
+} from "../lib/site-doc-api.js";
 
 import type { PublicDocSummary } from "../../shared/marketing-doc.js";
 import type { SiteSection } from "../../shared/section-schema.js";
@@ -28,8 +31,8 @@ export function useChromeDocs(chrome: {
   const needed =
     chromeNeedsDocList(chrome) || chromeShowsDocSearch(chrome);
   const { data } = useQuery({
-    queryKey: SITE_DOCS_QUERY_KEY,
-    queryFn: fetchSiteDocs,
+    queryKey: [...SITE_DOCS_QUERY_KEY, "catalog"],
+    queryFn: fetchSiteDocsCatalog,
     enabled: needed,
   });
 

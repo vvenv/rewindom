@@ -5,6 +5,7 @@ import {
   buildDocAlternates,
   duplicateDoc,
   getPublishedDocSitemapEntries,
+  listDocs,
   listPublishedDocLocales,
   listPublishedLibraryLocales,
 } from "./marketing-doc.service.js";
@@ -17,6 +18,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
     marketingDoc: {
       findFirst: vi.fn(),
       findMany: vi.fn(),
+      count: vi.fn(),
       create: vi.fn(),
     },
   },
@@ -244,5 +246,71 @@ describe("duplicateDoc", () => {
     await expect(
       duplicateDoc(TENANT, "doc-1", { title: "Getting started", locale: "en" }),
     ).rejects.toThrow("site.doc_not_found");
+  });
+});
+
+describe("listDocs", () => {
+  beforeEach(() => {
+    vi.mocked(prisma.marketingDoc.findMany).mockReset();
+    vi.mocked(prisma.marketingDoc.count).mockReset();
+  });
+
+  it("returns paginated items with facets from the full library", async () => {
+    const published = sourceDoc();
+    const draft = sourceDoc({
+      id: "doc-2",
+      slug: "faq",
+      title: "FAQ",
+      title_draft: "FAQ",
+      status: "draft",
+      category: "",
+      category_draft: "",
+      locale: "en",
+    });
+
+    vi.mocked(prisma.marketingDoc.findMany)
+      .mockResolvedValueOnce([
+        { category_draft: "入门", locale: "zh-CN" },
+        { category_draft: "", locale: "en" },
+      ] as never)
+      .mockResolvedValueOnce([published] as never);
+    vi.mocked(prisma.marketingDoc.count)
+      .mockResolvedValueOnce(2)
+      .mockResolvedValueOnce(1);
+
+    const result = await listDocs(TENANT, {
+      status: "published",
+      page: 1,
+      page_size: 20,
+    });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.slug).toBe("quickstart");
+    expect(result.total).toBe(1);
+    expect(result.total_all).toBe(2);
+    expect(result.categories).toEqual(["入门"]);
+    expect(result.locales).toEqual(["zh-CN", "en"]);
+    expect(draft.slug).toBe("faq");
+  });
+
+  it("filters dirty docs in memory after narrowing to published", async () => {
+    const clean = sourceDoc({ id: "clean" });
+    const dirty = sourceDoc({
+      id: "dirty",
+      title_draft: "快速开始（改）",
+    });
+
+    vi.mocked(prisma.marketingDoc.findMany)
+      .mockResolvedValueOnce([
+        { category_draft: "入门", locale: "zh-CN" },
+      ] as never)
+      .mockResolvedValueOnce([clean, dirty] as never);
+    vi.mocked(prisma.marketingDoc.count).mockResolvedValueOnce(2);
+
+    const result = await listDocs(TENANT, { status: "dirty" });
+
+    expect(result.items.map((item) => item.id)).toEqual(["dirty"]);
+    expect(result.total).toBe(1);
+    expect(result.total_all).toBe(2);
   });
 });

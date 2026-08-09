@@ -48,6 +48,12 @@ export function useDebouncedInput({
 
   useEffect(() => {
     if (isComposingRef.current) return;
+    // 外部重置 / URL 回写时必须掐掉 pending commit，否则 300ms 后会把旧词再写回 URL，
+    // 表现为「点了重置，重置按钮还在 / 筛选条件幽灵复活」。
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
     setInputValue(value ?? "");
   }, [value]);
 

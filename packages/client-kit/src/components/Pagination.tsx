@@ -17,7 +17,11 @@ import { cn } from "@be-water/ui/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useSearchParams } from "react-router";
 
-import { LIST_PAGE_SIZE_OPTIONS } from "../lib/list-url-params";
+import {
+  applyListPageToSearchParams,
+  LIST_DEFAULT_PAGE_SIZE,
+  LIST_PAGE_SIZE_OPTIONS,
+} from "../lib/list-url-params";
 
 export interface PaginationProps {
   currentPage: number;
@@ -65,9 +69,9 @@ export function Pagination({
       onPageChange(pageIndex);
       return;
     }
-    const params = new URLSearchParams(searchParams);
-    params.set(pageParam, String(pageIndex));
-    setSearchParams(params);
+    setSearchParams(
+      applyListPageToSearchParams(searchParams, pageIndex, pageParam),
+    );
   };
 
   const handlePageSizeChange = (size: number) => {
@@ -76,17 +80,23 @@ export function Pagination({
       onPageChange(1);
       return;
     }
-    const params = new URLSearchParams(searchParams);
-    params.set(pageSizeParam, String(size));
-    params.set(pageParam, "1");
+    const params = applyListPageToSearchParams(searchParams, 1, pageParam);
+    if (size === LIST_DEFAULT_PAGE_SIZE) {
+      params.delete(pageSizeParam);
+    } else {
+      params.set(pageSizeParam, String(size));
+    }
     setSearchParams(params);
     onPageSizeChange?.(size);
   };
 
   const buildUrl = (pageIndex: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set(pageParam, String(pageIndex));
-    return `?${params.toString()}`;
+    const qs = applyListPageToSearchParams(
+      searchParams,
+      pageIndex,
+      pageParam,
+    ).toString();
+    return qs ? `?${qs}` : "";
   };
 
   const handleJump = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -228,7 +238,8 @@ function PageStep({
     </Button>
   );
 
-  if (localPaging) {
+  // 禁用时不能再包 Link：disabled 只挡住 Button，点到外层 Link 仍会导航
+  if (localPaging || disabled) {
     return <span className="inline-flex">{button}</span>;
   }
 

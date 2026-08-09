@@ -9,7 +9,10 @@ import {
   isDocTemplateKind,
   type MarketingPageKind,
 } from "../../shared/site-cms.js";
-import { fetchSiteDocs, SITE_DOCS_QUERY_KEY } from "../lib/site-doc-api.js";
+import {
+  fetchSiteDocsCatalog,
+  SITE_DOCS_QUERY_KEY,
+} from "../lib/site-doc-api.js";
 
 import { useSiteDoc } from "./useSiteDocs.js";
 
@@ -28,10 +31,10 @@ export function useDocPreviewData(kind: MarketingPageKind): {
 } {
   const { t } = useTranslation("marketing");
   const enabled = isDocTemplateKind(kind);
-  // 不用 `useSiteDocs()`：那个无条件拉；编辑普通页面时这份数据一行都用不上
+  // 列表页已改成分页查询；模板预览要近似全量目录
   const docsQuery = useQuery({
-    queryKey: SITE_DOCS_QUERY_KEY,
-    queryFn: fetchSiteDocs,
+    queryKey: [...SITE_DOCS_QUERY_KEY, "catalog"],
+    queryFn: fetchSiteDocsCatalog,
     enabled,
   });
   const items = docsQuery.data ?? [];

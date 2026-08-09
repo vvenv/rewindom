@@ -136,7 +136,8 @@ export function applySortingToSearchParams(
     params.delete(directionKey);
   }
 
-  params.set("page", "1");
+  // 默认第 1 页不进 URL（与 applyEnumSearchParam.resetPage 同口径）
+  params.delete("page");
   return params;
 }
 
@@ -171,6 +172,12 @@ export function hasActiveFilters(
   );
 }
 
+/**
+ * 写入筛选条件，并把页码重置到默认第 1 页。
+ *
+ * 第 1 页是缺省值，**删除** `page` 而不是写成 `page=1`——否则重置筛选后
+ * URL 会永远挂着 `?page=1`，看起来像「没清干净」。
+ */
 export function applyFiltersToSearchParams<
   T extends { [K in keyof T]?: string | undefined },
 >(searchParams: URLSearchParams, filters: T): URLSearchParams {
@@ -186,6 +193,21 @@ export function applyFiltersToSearchParams<
     }
   }
 
-  params.set("page", "1");
+  params.delete("page");
+  return params;
+}
+
+/** 列表页码写入 URL：第 1 页省略，其它页才带 `page=`。 */
+export function applyListPageToSearchParams(
+  searchParams: URLSearchParams,
+  page: number,
+  pageParam = "page",
+): URLSearchParams {
+  const params = new URLSearchParams(searchParams);
+  if (page <= 1) {
+    params.delete(pageParam);
+  } else {
+    params.set(pageParam, String(page));
+  }
   return params;
 }

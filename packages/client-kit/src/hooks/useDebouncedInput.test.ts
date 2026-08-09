@@ -162,6 +162,34 @@ describe("useDebouncedInput", () => {
     expect(onCommit).toHaveBeenCalledWith("new-value");
   });
 
+  it("cancels pending commit when value prop is reset externally", () => {
+    const onCommit = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ value }) =>
+        useDebouncedInput({ value, onCommit, debounceMs: 100 }),
+      { initialProps: { value: "initial" as string | undefined } },
+    );
+
+    act(() => {
+      result.current.inputProps.onChange({
+        target: { value: "pending" },
+      } as unknown as React.ChangeEvent<HTMLInputElement>);
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(50);
+    });
+
+    rerender({ value: undefined });
+    expect(result.current.inputValue).toBe("");
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    expect(onCommit).not.toHaveBeenCalled();
+  });
+
   it("should cancel previous debounce timer on new input", () => {
     const onCommit = vi.fn();
     const { result } = renderHook(() =>

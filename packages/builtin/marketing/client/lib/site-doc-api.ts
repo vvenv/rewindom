@@ -5,13 +5,37 @@ import type {
   DuplicateMarketingDocBody,
   MarketingDoc,
   MarketingDocListItem,
+  MarketingDocListQuery,
+  MarketingDocListResult,
   UpdateMarketingDocBody,
 } from "../../shared/marketing-doc.js";
 
 export const SITE_DOCS_QUERY_KEY = ["site", "docs"] as const;
 
-export function fetchSiteDocs(): Promise<MarketingDocListItem[]> {
-  return api.get<MarketingDocListItem[]>("/site/docs");
+/** 编辑器 / 页头预览用的「近似全量」目录上限。 */
+export const SITE_DOCS_CATALOG_PAGE_SIZE = 999;
+
+export function fetchSiteDocs(
+  query: MarketingDocListQuery = {},
+): Promise<MarketingDocListResult> {
+  const params: Record<string, string | number> = {};
+  if (query.q) params.q = query.q;
+  if (query.category) params.category = query.category;
+  if (query.status) params.status = query.status;
+  if (query.locale) params.locale = query.locale;
+  if (query.page !== undefined) params.page = query.page;
+  if (query.page_size !== undefined) params.page_size = query.page_size;
+  if (query.sort_by) params.sort_by = query.sort_by;
+  if (query.sort_dir) params.sort_dir = query.sort_dir;
+  return api.get<MarketingDocListResult>("/site/docs", params);
+}
+
+/** 需要整库目录时用（分类建议、翻译组、页头文档导航）。 */
+export function fetchSiteDocsCatalog(): Promise<MarketingDocListItem[]> {
+  return fetchSiteDocs({
+    page: 1,
+    page_size: SITE_DOCS_CATALOG_PAGE_SIZE,
+  }).then((result) => result.items);
 }
 
 export function fetchSiteDoc(docId: string): Promise<MarketingDoc> {

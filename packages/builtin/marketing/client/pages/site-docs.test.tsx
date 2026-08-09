@@ -8,7 +8,43 @@ import { describe, expect, it, vi } from "vitest";
 import { MARKETING_I18N } from "../i18n.js";
 import { SiteDocs } from "./site-docs.js";
 
-import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
+import type { MarketingDocListResult } from "../../shared/marketing-doc.js";
+
+const listResult: MarketingDocListResult = {
+  items: [
+    {
+      id: "1",
+      slug: "quickstart",
+      title: "快速开始",
+      description: "",
+      category: "入门",
+      locale: "zh-CN",
+      status: "published",
+      content_dirty: false,
+      sort_order: 0,
+      updated_at: "2026-01-01T00:00:00.000Z",
+    },
+    {
+      id: "2",
+      slug: "faq",
+      title: "FAQ",
+      description: "",
+      category: "",
+      locale: "zh-CN",
+      status: "draft",
+      content_dirty: false,
+      sort_order: 0,
+      updated_at: "2026-01-01T00:00:00.000Z",
+    },
+  ],
+  page: 1,
+  page_size: 20,
+  total: 2,
+  page_count: 1,
+  total_all: 2,
+  categories: ["入门"],
+  locales: ["zh-CN"],
+};
 
 vi.mock("@be-water/client-kit", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@be-water/client-kit")>();
@@ -31,38 +67,10 @@ vi.mock("@be-water/client-kit", async (importOriginal) => {
   };
 });
 
+const useSiteDocsMock = vi.fn();
+
 vi.mock("../hooks/useSiteDocs.js", () => ({
-  useSiteDocs: () => ({
-    data: [
-      {
-        id: "1",
-        slug: "quickstart",
-        title: "快速开始",
-        description: "",
-        category: "入门",
-        locale: "zh-CN",
-        status: "published",
-        content_dirty: false,
-        sort_order: 0,
-        updated_at: "2026-01-01T00:00:00.000Z",
-      },
-      {
-        id: "2",
-        slug: "faq",
-        title: "FAQ",
-        description: "",
-        category: "",
-        locale: "zh-CN",
-        status: "draft",
-        content_dirty: false,
-        sort_order: 0,
-        updated_at: "2026-01-01T00:00:00.000Z",
-      },
-    ] satisfies MarketingDocListItem[],
-    isLoading: false,
-    isError: false,
-    error: null,
-  }),
+  useSiteDocs: (query: unknown) => useSiteDocsMock(query),
 }));
 
 vi.mock("../hooks/use-site-doc-actions.js", () => ({
@@ -105,26 +113,44 @@ function renderPage(initialUrl = "/app/site/docs") {
 }
 
 describe("SiteDocs filtering", () => {
-  it("filters the table when a status chip is clicked", () => {
-    renderPage();
+  it("passes URL filters to the list query", () => {
+    useSiteDocsMock.mockReturnValue({
+      data: {
+        ...listResult,
+        items: [listResult.items[1]!],
+        total: 1,
+      },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+    });
 
-    expect(screen.getByText("快速开始")).toBeInTheDocument();
-    expect(screen.getByText("FAQ")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "草稿" }));
-
-    expect(screen.queryByText("快速开始")).not.toBeInTheDocument();
-    expect(screen.getByText("FAQ")).toBeInTheDocument();
-  });
-
-  it("respects status from the initial URL", () => {
     renderPage("/app/site/docs?status=draft");
 
+    expect(useSiteDocsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "draft" }),
+    );
     expect(screen.queryByText("快速开始")).not.toBeInTheDocument();
     expect(screen.getByText("FAQ")).toBeInTheDocument();
   });
 
   it("clears filters when reset is clicked", () => {
+    useSiteDocsMock.mockImplementation((query: { status?: string }) => ({
+      data:
+        query.status === "draft"
+          ? {
+              ...listResult,
+              items: [listResult.items[1]!],
+              total: 1,
+            }
+          : listResult,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+    }));
+
     renderPage("/app/site/docs?status=draft");
 
     expect(screen.queryByText("快速开始")).not.toBeInTheDocument();
@@ -133,5 +159,27 @@ describe("SiteDocs filtering", () => {
 
     expect(screen.getByText("快速开始")).toBeInTheDocument();
     expect(screen.getByText("FAQ")).toBeInTheDocument();
+    expect(screen.queryByTitle("重置所有筛选")).not.toBeInTheDocument();
+  });
+
+  it("shows filtered empty state instead of crashing when nothing matches", () => {
+    useSiteDocsMock.mockReturnValue({
+      data: {
+        ...listResult,
+        items: [],
+        total: 0,
+        page_count: 1,
+      },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: null,
+    });
+
+    renderPage("/app/site/docs?status=dirty");
+
+    expect(screen.queryByText("快速开始")).not.toBeInTheDocument();
+    expect(screen.queryByText("FAQ")).not.toBeInTheDocument();
+    expect(screen.getByText("没有匹配的文档")).toBeInTheDocument();
   });
 });

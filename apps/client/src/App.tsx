@@ -20,8 +20,10 @@ function PageLoader() {
 export function App() {
   const appShellConfig = prepareAppRoutes(ENABLED_CLIENT_MODULES);
 
+  // RR 8 默认把 location 更新包进 startTransition，列表筛选项的 URL 写入会被
+  // 并发渲染推迟/打断（chip 偶发不刷新、重置「无效」）。管理台要即时 URL 状态。
   return (
-    <BrowserRouter>
+    <BrowserRouter useTransitions={false}>
       <AppShellConfigProvider value={appShellConfig}>
         <Suspense fallback={<PageLoader />}>
           <Routes>

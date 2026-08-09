@@ -341,15 +341,15 @@ export function SiteDocsTable({
       isLoading={isLoading && totalCount === 0}
       isError={isError && totalCount === 0}
       error={error}
-      emptyHeader={
+      emptyIcon={FileText}
+      emptyTitle={
         filteredEmpty ? t("siteDocs.emptyFiltered") : t("siteDocs.empty")
       }
-      emptyMessage={
+      emptyDescription={
         filteredEmpty
           ? t("siteDocs.emptyFilteredHint")
           : t("siteDocs.emptyHint")
       }
-      emptyIcon={<FileText className="size-8 text-muted-foreground" />}
       loadingMessage={t("siteDocs.loading")}
       page={page}
       pageSize={pageSize}

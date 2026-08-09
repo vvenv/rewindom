@@ -2,13 +2,11 @@ import type { ReactElement } from "react";
 
 import { PageFilterBar } from "@be-water/client-kit";
 import { optionsFromLabels } from "@be-water/client-kit/lib/filter-chip-options";
+import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
 import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
 import { useTranslation } from "react-i18next";
 
-import {
-  hasActiveDocFilters,
-  type SiteDocFilterState,
-} from "../lib/site-doc-list.js";
+import type { SiteDocFilterState } from "../lib/site-doc-list.js";
 
 /** 分类 chip 超过这个数就折叠——分类是租户自定义的，可能有十几个。 */
 const MAX_VISIBLE_CATEGORIES = 6;
@@ -51,18 +49,28 @@ export function SiteDocFilters({
     <PageFilterBar
       search={{
         value: filters.q,
+        // 只传变更项：由 page hook 与 URL prev 合并，避免连点时散到过期 filters
         onCommit: (value) =>
-          onFiltersChange({ ...filters, q: value.trim() || undefined }),
+          onFiltersChange({ q: value.trim() || undefined }),
         placeholder: t("siteDocs.searchPlaceholder"),
         className: "max-w-56",
       }}
       groups={[
         {
+          // 语言放第一组：多语言站点这是最高频筛选，别埋进「更多筛选」
+          id: "locale",
+          options: locales.length > 1 ? localeOptions : [],
+          hideWhenEmpty: true,
+          value: filters.locale ?? "",
+          onChange: (value) =>
+            onFiltersChange({ locale: value || undefined }),
+        },
+        {
           id: "status",
           options: statusOptions,
           value: filters.status ?? "",
           onChange: (value) =>
-            onFiltersChange({ ...filters, status: value || undefined }),
+            onFiltersChange({ status: value || undefined }),
         },
         {
           // 只有一个分类时这组 chip 等于没筛选，直接不渲染
@@ -72,19 +80,15 @@ export function SiteDocFilters({
           maxVisibleOptions: MAX_VISIBLE_CATEGORIES,
           value: filters.category ?? "",
           onChange: (value) =>
-            onFiltersChange({ ...filters, category: value || undefined }),
-        },
-        {
-          // 同理：只写了一种语言的站点不需要这组
-          id: "locale",
-          options: locales.length > 1 ? localeOptions : [],
-          hideWhenEmpty: true,
-          value: filters.locale ?? "",
-          onChange: (value) =>
-            onFiltersChange({ ...filters, locale: value || undefined }),
+            onFiltersChange({ category: value || undefined }),
         },
       ]}
-      hasActiveFilters={hasActiveDocFilters(filters)}
+      hasActiveFilters={hasActiveFilters({
+        q: filters.q,
+        category: filters.category,
+        status: filters.status,
+        locale: filters.locale,
+      })}
       onReset={() =>
         onFiltersChange({
           q: undefined,

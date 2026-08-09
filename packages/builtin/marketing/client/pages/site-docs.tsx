@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState, type ReactElement } from "react";
+import { useCallback, useRef, useState, type ReactElement } from "react";
 
 import { PageLayout, usePermissions } from "@be-water/client-kit";
+import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
 import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
 import { FileText, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -15,22 +16,14 @@ import { SiteDocTransferActions } from "../components/SiteDocTransferActions.js"
 import { useSiteDocActions } from "../hooks/use-site-doc-actions.js";
 import { useSiteDocsPage } from "../hooks/use-site-docs-page.js";
 import { useSiteDocs } from "../hooks/useSiteDocs.js";
-import {
-  collectDocCategories,
-  collectDocLocales,
-  filterSiteDocs,
-  paginateSiteDocs,
-  sortSiteDocs,
-} from "../lib/site-doc-list.js";
 
 import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
+import type { AppLocale } from "@be-water/shared";
 
 export function SiteDocs(): ReactElement {
   const { t } = useTranslation("marketing");
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("site.write");
-  const { data, isLoading, isError, error } = useSiteDocs();
-  const docs = useMemo(() => data ?? [], [data]);
 
   const {
     q,
@@ -45,26 +38,59 @@ export function SiteDocs(): ReactElement {
     handleSortingChange,
     handleFiltersChange,
   } = useSiteDocsPage();
+
+  const filters = { q, category, status, locale };
+  const listQuery = {
+    q,
+    category,
+    status,
+    locale,
+    page,
+    page_size: pageSize,
+    sort_by: sortBy,
+    sort_dir: sortDir,
+  };
+  const { data, isLoading, isFetching, isError, error } = useSiteDocs(listQuery);
+
+  const items = data?.items ?? [];
+  const filteredCount = data?.total ?? 0;
   const actions = useSiteDocActions();
+
+  // 筛选切换时 data 短暂为空：用上一轮 facets，避免筛选栏整块卸载再挂载
+  const facetsRef = useRef<{
+    total_all: number;
+    categories: string[];
+    locales: AppLocale[];
+  }>({ total_all: 0, categories: [], locales: [] });
+  if (data) {
+    facetsRef.current = {
+      total_all: data.total_all,
+      categories: data.categories,
+      locales: data.locales,
+    };
+  }
+  const totalAll = data?.total_all ?? facetsRef.current.total_all;
+  const categories = data?.categories ?? facetsRef.current.categories;
+  const locales = data?.locales ?? facetsRef.current.locales;
 
   const [editingDoc, setEditingDoc] = useState<MarketingDocListItem | null>(
     null,
   );
   const [editorOpen, setEditorOpen] = useState(false);
 
-  const categories = useMemo(() => collectDocCategories(docs), [docs]);
-  const locales = useMemo(() => collectDocLocales(docs), [docs]);
-  // 全量接口 → 本地筛选 / 排序 / 切片；分页态仍走 URL，与其它列表页同口径
-  const listPage = useMemo(() => {
-    const filtered = filterSiteDocs(docs, { q, category, status, locale });
-    const sorted = sortSiteDocs(filtered, sortBy, sortDir);
-    return paginateSiteDocs(sorted, page, pageSize);
-  }, [docs, q, category, status, locale, sortBy, sortDir, page, pageSize]);
-
   const openEdit = useCallback((doc: MarketingDocListItem) => {
     setEditingDoc(doc);
     setEditorOpen(true);
   }, []);
+
+  const showFilters =
+    totalAll > 0 ||
+    hasActiveFilters({
+      q: filters.q,
+      category: filters.category,
+      status: filters.status,
+      locale: filters.locale,
+    });
 
   return (
     <PageLayout
@@ -75,7 +101,7 @@ export function SiteDocs(): ReactElement {
         <>
           <SiteDocTransferActions
             canWrite={canWrite}
-            hasDocs={docs.length > 0}
+            hasDocs={totalAll > 0}
           />
           {canWrite ? (
             <SiteDocCreateSheet>
@@ -89,10 +115,9 @@ export function SiteDocs(): ReactElement {
       }
     >
       <div className="flex flex-col gap-4">
-        {/* 一篇都还没有时不铺筛选栏——空表上面挂一排筛选只是噪音 */}
-        {docs.length > 0 ? (
+        {showFilters ? (
           <SiteDocFilters
-            filters={{ q, category, status, locale }}
+            filters={filters}
             categories={categories}
             locales={locales}
             onFiltersChange={handleFiltersChange}
@@ -100,14 +125,14 @@ export function SiteDocs(): ReactElement {
         ) : null}
 
         <SiteDocsTable
-          docs={listPage.items}
-          filteredCount={listPage.total}
-          totalCount={docs.length}
-          page={listPage.page}
+          docs={items}
+          filteredCount={filteredCount}
+          totalCount={totalAll}
+          page={data?.page ?? page}
           pageSize={pageSize}
-          pageCount={listPage.page_count}
+          pageCount={data?.page_count ?? 1}
           showLocale={locales.length > 1}
-          isLoading={isLoading}
+          isLoading={isLoading || (isFetching && items.length === 0)}
           isError={isError}
           error={error}
           canWrite={canWrite}

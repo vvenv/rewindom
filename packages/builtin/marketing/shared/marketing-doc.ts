@@ -58,6 +58,32 @@ export interface MarketingDocListItem {
   updated_at: string;
 }
 
+/** 管理端文档库列表查询（与 URL / API 同形）。 */
+export interface MarketingDocListQuery {
+  q?: string;
+  category?: string;
+  /** published | draft | dirty */
+  status?: string;
+  locale?: string;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_dir?: "asc" | "desc";
+}
+
+export interface MarketingDocListResult {
+  items: MarketingDocListItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  page_count: number;
+  /** 未筛选的总数：用来区分「一篇都没有」与「筛空了」。 */
+  total_all: number;
+  /** 全库分类 / 语言（不受当前筛选影响），供筛选 chip 使用。 */
+  categories: string[];
+  locales: AppLocale[];
+}
+
 export interface CreateMarketingDocBody {
   slug: string;
   title: string;

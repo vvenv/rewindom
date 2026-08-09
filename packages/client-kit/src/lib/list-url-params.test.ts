@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   applyEnumSearchParam,
   applyFiltersToSearchParams,
+  applyListPageToSearchParams,
+  applySortingToSearchParams,
   getOptionalSearchParam,
   parseListPage,
   parseListPageSize,
@@ -39,15 +41,36 @@ describe("list-url-params", () => {
     ]);
   });
 
-  it("applies filters and resets page", () => {
+  it("applies filters and clears page (default page 1 is omitted)", () => {
     const params = new URLSearchParams("page=3&q=old");
     const next = applyFiltersToSearchParams(params, {
       q: "new",
       role: undefined,
     });
     expect(next.get("q")).toBe("new");
-    expect(next.get("page")).toBe("1");
+    expect(next.get("page")).toBeNull();
     expect(next.get("role")).toBeNull();
+  });
+
+  it("omits page=1 from the URL and keeps higher pages", () => {
+    expect(
+      applyListPageToSearchParams(new URLSearchParams("page=3&q=x"), 1).toString(),
+    ).toBe("q=x");
+    expect(
+      applyListPageToSearchParams(new URLSearchParams("q=x"), 2).toString(),
+    ).toBe("q=x&page=2");
+  });
+
+  it("resets page when sorting changes without writing page=1", () => {
+    const next = applySortingToSearchParams(
+      new URLSearchParams("page=3&q=x"),
+      [{ id: "title", desc: false }],
+      [],
+    );
+    expect(next.get("sort_by")).toBe("title");
+    expect(next.get("sort_dir")).toBe("asc");
+    expect(next.get("page")).toBeNull();
+    expect(next.get("q")).toBe("x");
   });
 
   it("reads optional params and pagination", () => {

@@ -1,9 +1,9 @@
 /**
- * 文档库列表页的纯逻辑：筛选、分类归集、slug 联动。
+ * 文档库列表的纯辅助：分类归集、slug 联动、筛选语义单测。
  *
- * 文档列表接口一次返回全量（一个租户几十上百篇，不分页），所以搜索/筛选都在客户端
- * 做——比为三个筛选项去服务端加一轮查询参数划算。真到需要分页那天，这里的签名
- * 正好是服务端查询参数的形状。
+ * 管理端列表已走服务端筛选 / 分页（`listDocs`）；这里的 `filterSiteDocs` /
+ * `sortSiteDocs` 仍保留，用来钉住与服务端一致的筛选语义，并给编辑器目录复用
+ * `collectDocCategories` 等。
  */
 
 import { APP_LOCALES, type AppLocale } from "@be-water/shared";

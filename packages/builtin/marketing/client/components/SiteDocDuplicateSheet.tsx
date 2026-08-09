@@ -35,7 +35,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { siteLocaleOrder } from "../../shared/site-locale.js";
-import { useDuplicateSiteDoc, useSiteDocs } from "../hooks/useSiteDocs.js";
+import {
+  useDuplicateSiteDoc,
+  useSiteDocsCatalog,
+} from "../hooks/useSiteDocs.js";
 import { useSite } from "../hooks/useSite.js";
 
 import type {
@@ -88,20 +91,19 @@ export function SiteDocDuplicateSheet({
   const { t } = useTranslation("marketing");
   const duplicateDoc = useDuplicateSiteDoc();
   const siteQuery = useSite();
-  const docsQuery = useSiteDocs();
-  const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
-  const existing = translatedLocales(docsQuery.data, doc.slug);
-  /** 默认选**还没建**的那门语言——复制的常见用途就是补译文。 */
-  const suggestedLocale =
-    siteLocaleOrder(defaultLocale).find((slug) => !existing.has(slug)) ??
-    doc.locale;
-
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const open = controlledOpen ?? uncontrolledOpen;
   const setOpen = (next: boolean): void => {
     setUncontrolledOpen(next);
     onOpenChange?.(next);
   };
+  const docsQuery = useSiteDocsCatalog(open);
+  const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
+  const existing = translatedLocales(docsQuery.data, doc.slug);
+  /** 默认选**还没建**的那门语言——复制的常见用途就是补译文。 */
+  const suggestedLocale =
+    siteLocaleOrder(defaultLocale).find((slug) => !existing.has(slug)) ??
+    doc.locale;
   const [title, setTitle] = useState(doc.title);
   const [locale, setLocale] = useState<AppLocale>(suggestedLocale);
   const localeTaken = existing.has(locale);
