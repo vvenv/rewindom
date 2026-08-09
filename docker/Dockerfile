@@ -35,8 +35,9 @@ COPY packages/server-kernel/package.json packages/server-kernel/
 COPY packages/server-test/package.json packages/server-test/
 COPY packages/shared/package.json packages/shared/
 COPY packages/ui/package.json packages/ui/
-# 外部模块数量随仓库变化；--parents 保留 modules/<id>/ 结构
-COPY --parents modules/*/package.json ./
+COPY modules/bookmark/package.json modules/bookmark/
+COPY modules/note/package.json modules/note/
+COPY modules/todo/package.json modules/todo/
 
 RUN --mount=type=cache,id=be-water-pnpm-store,target=/pnpm/store \
   pnpm install --frozen-lockfile
