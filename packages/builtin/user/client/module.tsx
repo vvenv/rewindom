@@ -2,7 +2,7 @@ import { USER_DASHBOARD_WIDGETS } from "./dashboard-widgets.js";
 import { USER_I18N } from "./i18n.js";
 import { USER_NAV_SECTIONS } from "./shell/user-nav.js";
 import { UserSidebarMenu, UserShellSlots } from "./shell/user-shell-slots.js";
-import { renderUserSuperUserRoutes } from "./UserRoutes.js";
+import { renderUserSuperUserRoutes } from "./tenant/routes.js";
 
 import type { ClientAppModule } from "@be-water/client-kit";
 

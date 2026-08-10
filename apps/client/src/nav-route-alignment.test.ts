@@ -10,8 +10,8 @@ import { ENABLED_CLIENT_MODULES } from "./enabled-modules";
  * 侧栏每一项都必须真的有一条路由接得住。
  *
  * 这类不一致 typecheck 与普通单测都发现不了——nav 里的 `path` 只是个字符串，
- * 点下去才 404。租户路由整体迁到 `/app/*` 时就漏了两处：`RbacRoutes.tsx` /
- * `UserRoutes.tsx` 不在 `client/tenant/routes.tsx`（它们挂在 superUser 树上），
+ * 点下去才 404。租户路由整体迁到 `/app/*` 时就漏了两处：`rbac` / `user` 的
+ * `client/tenant/routes.tsx`（它们挂在 superUser 树上），
  * 批量改动没覆盖到，于是 nav 指向 `/app/roles` 而路由还停在 `/roles`，
  * 侧栏那两个入口直接点不开。
  *

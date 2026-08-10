@@ -3,7 +3,7 @@ import { lazy, type ReactNode } from "react";
 import { Route } from "react-router";
 
 const PlatformSlowQueryLogs = lazy(() =>
-  import("./pages/slow-query-logs.js").then((module) => ({
+  import("../pages/slow-query-logs.js").then((module) => ({
     default: module.SlowQueryLogs,
   })),
 );

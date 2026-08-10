@@ -1,6 +1,6 @@
 import { SLOW_QUERY_I18N } from "./i18n.js";
 import { slowQueryPlatformNavContributions } from "./platform/nav-contributions.js";
-import { renderSlowQueryPlatformRoutes } from "./SlowQueryRoutes.js";
+import { renderSlowQueryPlatformRoutes } from "./platform/routes.js";
 
 import type { ClientAppModule } from "@be-water/client-kit";
 

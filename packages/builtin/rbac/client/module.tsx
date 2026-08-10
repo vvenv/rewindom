@@ -1,5 +1,5 @@
 import { RBAC_I18N } from "./i18n.js";
-import { renderRbacSuperUserRoutes } from "./RbacRoutes.js";
+import { renderRbacSuperUserRoutes } from "./tenant/routes.js";
 import { RBAC_NAV_SECTIONS } from "./shell/rbac-nav.js";
 import { RbacPermissionProvider } from "./shell/rbac-permission-provider.js";
 

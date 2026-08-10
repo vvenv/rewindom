@@ -4,27 +4,27 @@ import { PermissionRoute, usePublicConfig } from "@be-water/client-kit";
 import { Navigate, Route } from "react-router";
 
 const PlatformDashboard = lazy(() =>
-  import("./pages/dashboard.js").then((module) => ({
+  import("../pages/dashboard.js").then((module) => ({
     default: module.Dashboard,
   })),
 );
 const PlatformTenants = lazy(() =>
-  import("./pages/tenants.js").then((module) => ({
+  import("../pages/tenants.js").then((module) => ({
     default: module.Tenants,
   })),
 );
 const PlatformUsers = lazy(() =>
-  import("./pages/users.js").then((module) => ({
+  import("../pages/users.js").then((module) => ({
     default: module.Users,
   })),
 );
 const PlatformAdmins = lazy(() =>
-  import("./pages/platform-admins.js").then((module) => ({
+  import("../pages/platform-admins.js").then((module) => ({
     default: module.PlatformAdmins,
   })),
 );
 const PlatformSettings = lazy(() =>
-  import("./pages/platform-settings.js").then(
+  import("../pages/platform-settings.js").then(
     (module) => ({
       default: module.PlatformSettings,
     }),
