@@ -48,6 +48,22 @@ CREATE TABLE "public"."BackgroundJob" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."Bookmark" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL DEFAULT '',
+    "created_by" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "host" TEXT NOT NULL DEFAULT '',
+    "updated_by" TEXT,
+
+    CONSTRAINT "Bookmark_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."ErrorLog" (
     "id" TEXT NOT NULL,
     "level" TEXT NOT NULL,
@@ -84,6 +100,29 @@ CREATE TABLE "public"."MarketingAsset" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "MarketingAsset_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."MarketingDoc" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "locale" TEXT NOT NULL DEFAULT 'zh-CN',
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL DEFAULT '',
+    "body_md" TEXT NOT NULL DEFAULT '',
+    "category" TEXT NOT NULL DEFAULT '',
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'draft',
+    "title_draft" TEXT NOT NULL,
+    "description_draft" TEXT NOT NULL DEFAULT '',
+    "body_md_draft" TEXT NOT NULL DEFAULT '',
+    "category_draft" TEXT NOT NULL DEFAULT '',
+    "sort_order_draft" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "MarketingDoc_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -160,7 +199,7 @@ CREATE TABLE "public"."MarketingSite" (
     "id" TEXT NOT NULL,
     "tenant_id" TEXT NOT NULL,
     "site_name" JSONB NOT NULL,
-    "tagline" TEXT NOT NULL DEFAULT '',
+    "tagline" JSONB NOT NULL DEFAULT '""',
     "default_locale" TEXT NOT NULL DEFAULT 'zh-CN',
     "nav_json" JSONB NOT NULL DEFAULT '[]',
     "footer_json" JSONB NOT NULL DEFAULT '[]',
@@ -534,6 +573,12 @@ CREATE INDEX "AuditLog_user_id_idx" ON "public"."AuditLog"("user_id" ASC);
 CREATE INDEX "BackgroundJob_user_id_created_at_idx" ON "public"."BackgroundJob"("user_id" ASC, "created_at" DESC);
 
 -- CreateIndex
+CREATE INDEX "Bookmark_tenant_id_idx" ON "public"."Bookmark"("tenant_id" ASC);
+
+-- CreateIndex
+CREATE INDEX "Bookmark_tenant_id_updated_at_idx" ON "public"."Bookmark"("tenant_id" ASC, "updated_at" ASC);
+
+-- CreateIndex
 CREATE INDEX "ErrorLog_created_at_idx" ON "public"."ErrorLog"("created_at" ASC);
 
 -- CreateIndex
@@ -543,8 +588,7 @@ CREATE INDEX "ErrorLog_error_code_idx" ON "public"."ErrorLog"("error_code" ASC);
 CREATE INDEX "ErrorLog_level_idx" ON "public"."ErrorLog"("level" ASC);
 
 -- CreateIndex
--- NOTE: `prisma migrate diff` 会给 GIN 索引列错误地加上 ASC，PostgreSQL 会报
--- `access method "gin" does not support ASC/DESC options`，这里手动去掉。
+-- GIN does not support ASC/DESC; migrate diff may emit ASC — strip it.
 CREATE INDEX "ErrorLog_request_body_idx" ON "public"."ErrorLog" USING GIN ("request_body" jsonb_path_ops);
 
 -- CreateIndex
@@ -558,6 +602,18 @@ CREATE INDEX "MarketingAsset_tenant_id_created_at_idx" ON "public"."MarketingAss
 
 -- CreateIndex
 CREATE UNIQUE INDEX "MarketingAsset_tenant_id_filename_key" ON "public"."MarketingAsset"("tenant_id" ASC, "filename" ASC);
+
+-- CreateIndex
+CREATE INDEX "MarketingDoc_tenant_id_category_sort_order_idx" ON "public"."MarketingDoc"("tenant_id" ASC, "category" ASC, "sort_order" ASC);
+
+-- CreateIndex
+CREATE INDEX "MarketingDoc_tenant_id_idx" ON "public"."MarketingDoc"("tenant_id" ASC);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "MarketingDoc_tenant_id_slug_locale_key" ON "public"."MarketingDoc"("tenant_id" ASC, "slug" ASC, "locale" ASC);
+
+-- CreateIndex
+CREATE INDEX "MarketingDoc_tenant_id_status_idx" ON "public"."MarketingDoc"("tenant_id" ASC, "status" ASC);
 
 -- CreateIndex
 CREATE INDEX "MarketingFormSubmission_tenant_id_created_at_idx" ON "public"."MarketingFormSubmission"("tenant_id" ASC, "created_at" ASC);
@@ -804,5 +860,4 @@ ALTER TABLE "public"."UserRole" ADD CONSTRAINT "UserRole_role_id_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "public"."UserRole" ADD CONSTRAINT "UserRole_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
 
