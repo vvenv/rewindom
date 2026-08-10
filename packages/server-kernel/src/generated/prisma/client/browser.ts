@@ -43,6 +43,11 @@ export type Payment = Prisma.PaymentModel
  */
 export type Bookmark = Prisma.BookmarkModel
 /**
+ * Model DashboardPreference
+ * 
+ */
+export type DashboardPreference = Prisma.DashboardPreferenceModel
+/**
  * Model ErrorLog
  * 
  */

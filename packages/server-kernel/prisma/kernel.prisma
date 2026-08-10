@@ -75,6 +75,10 @@ model User {
   background_jobs BackgroundJob[]
   notifications   Notification[]
 
+  // 复合主键是 [tenant_id, user_id]，从 Prisma 看不是 1-1（user_id 本身没 unique），
+  // 因此声明为列表；实际每个用户在其所属租户下至多一行。
+  dashboard_preferences DashboardPreference[]
+
   @@unique([tenant_id, username])
   @@index([tenant_id])
 }

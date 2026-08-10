@@ -1,3 +1,4 @@
+import type { DashboardPreference } from "../../shared/index.js";
 import type { DashboardWidget } from "@be-water/client-kit";
 import type { Permission, TenantEntitlementsResponse } from "@be-water/shared";
 
@@ -54,6 +55,9 @@ export function isDashboardWidgetVisible(
 /**
  * 过滤 + 排序。`order` 相同的按传入顺序（即 `ENABLED_CLIENT_MODULES` 的注册顺序），
  * 依赖 `Array.prototype.sort` 的稳定性。
+ *
+ * 这里只做「租户/权限**允许**看到哪些卡片」；用户自己的显隐与排序偏好是下一层
+ * （`applyDashboardPreference`），两者顺序不能反——用户不该能把无权访问的卡片显示出来。
  */
 export function selectVisibleDashboardWidgets(
   widgets: readonly DashboardWidget[],
@@ -68,4 +72,48 @@ export function selectVisibleDashboardWidgets(
       (a, b) =>
         (a.order ?? DEFAULT_WIDGET_ORDER) - (b.order ?? DEFAULT_WIDGET_ORDER),
     );
+}
+
+/**
+ * 按用户偏好排序：`widget_order` 里的卡片按其中次序排在最前，其余（用户排序之后
+ * 才装上的模块）保持传入的默认次序、跟在后面。
+ *
+ * 新卡片排在末尾而不是插回默认位置：用户排过序之后，任何「自作主张插队」都会打乱
+ * 他刚摆好的布局；排在末尾至少是可预期的，用户想调再拖一次。
+ */
+export function sortDashboardWidgetsByPreference(
+  widgets: readonly DashboardWidget[],
+  widgetOrder: readonly string[],
+): DashboardWidget[] {
+  if (widgetOrder.length === 0) {
+    return [...widgets];
+  }
+
+  const rankById = new Map(widgetOrder.map((id, index) => [id, index]));
+  return [...widgets].sort((a, b) => {
+    const rankA = rankById.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+    const rankB = rankById.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+    return rankA - rankB;
+  });
+}
+
+/**
+ * 应用用户偏好：先按偏好排序，再剔除用户隐藏的卡片。
+ *
+ * 传入的必须是**已经过 `selectVisibleDashboardWidgets`** 的列表——偏好只在用户本就
+ * 可见的卡片集合内生效。偏好里残留的已卸载模块 id 自然落空，无需清理。
+ */
+export function applyDashboardPreference(
+  widgets: readonly DashboardWidget[],
+  preference?: DashboardPreference,
+): DashboardWidget[] {
+  if (!preference) {
+    return [...widgets];
+  }
+
+  const hidden = new Set(preference.hidden_widgets);
+  return sortDashboardWidgetsByPreference(
+    widgets,
+    preference.widget_order,
+  ).filter((widget) => !hidden.has(widget.id));
 }

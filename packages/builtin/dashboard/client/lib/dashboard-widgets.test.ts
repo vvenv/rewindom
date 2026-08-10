@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  applyDashboardPreference,
   isDashboardWidgetVisible,
   selectVisibleDashboardWidgets,
+  sortDashboardWidgetsByPreference,
   type DashboardEntitlements,
 } from "./dashboard-widgets.js";
 
@@ -11,7 +13,7 @@ import type { DashboardWidget } from "@be-water/client-kit";
 const Stub = () => null;
 
 function widget(overrides: Partial<DashboardWidget> = {}): DashboardWidget {
-  return { id: "x", component: Stub, ...overrides };
+  return { id: "x", title: "x:title", component: Stub, ...overrides };
 }
 
 const noEntitlements: DashboardEntitlements = { modules: {}, features: {} };
@@ -114,5 +116,59 @@ describe("selectVisibleDashboardWidgets", () => {
     selectVisibleDashboardWidgets(widgets, noEntitlements, () => true);
 
     expect(widgets.map((w) => w.id)).toEqual(["b", "a"]);
+  });
+});
+
+describe("sortDashboardWidgetsByPreference", () => {
+  const widgets = [widget({ id: "a" }), widget({ id: "b" }), widget({ id: "c" })];
+
+  it("keeps the default order when the user never sorted anything", () => {
+    expect(sortDashboardWidgetsByPreference(widgets, []).map((w) => w.id)).toEqual([
+      "a",
+      "b",
+      "c",
+    ]);
+  });
+
+  it("puts widgets the user never sorted after the ones they did", () => {
+    expect(
+      sortDashboardWidgetsByPreference(widgets, ["c", "a"]).map((w) => w.id),
+    ).toEqual(["c", "a", "b"]);
+  });
+
+  it("ignores ids of widgets that no longer exist", () => {
+    expect(
+      sortDashboardWidgetsByPreference(widgets, ["gone", "b"]).map((w) => w.id),
+    ).toEqual(["b", "a", "c"]);
+  });
+});
+
+describe("applyDashboardPreference", () => {
+  const widgets = [widget({ id: "a" }), widget({ id: "b" }), widget({ id: "c" })];
+
+  it("renders everything when the user has no preference yet", () => {
+    expect(applyDashboardPreference(widgets, undefined).map((w) => w.id)).toEqual(
+      ["a", "b", "c"],
+    );
+  });
+
+  it("drops hidden widgets and applies the custom order", () => {
+    expect(
+      applyDashboardPreference(widgets, {
+        hidden_widgets: ["a"],
+        widget_order: ["c", "b", "a"],
+        updated_at: "2026-08-10T00:00:00.000Z",
+      }).map((w) => w.id),
+    ).toEqual(["c", "b"]);
+  });
+
+  it("does not mutate the input array", () => {
+    const input = [widget({ id: "b" }), widget({ id: "a" })];
+    applyDashboardPreference(input, {
+      hidden_widgets: [],
+      widget_order: ["a", "b"],
+      updated_at: null,
+    });
+    expect(input.map((w) => w.id)).toEqual(["b", "a"]);
   });
 });

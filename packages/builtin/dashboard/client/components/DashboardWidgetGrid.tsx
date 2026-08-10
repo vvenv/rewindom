@@ -22,8 +22,11 @@ function DashboardWidgetSkeleton() {
 
 export function DashboardWidgetGrid({
   widgets,
+  placeholderCount = 0,
 }: {
   widgets: readonly DashboardWidget[];
+  /** 个人布局尚未落定时先铺这么多张骨架，避免栅格高度跳动。 */
+  placeholderCount?: number;
 }) {
   return (
     <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -40,6 +43,9 @@ export function DashboardWidgetGrid({
             </Suspense>
           </DashboardWidgetBoundary>
         </div>
+      ))}
+      {Array.from({ length: placeholderCount }, (_, index) => (
+        <DashboardWidgetSkeleton key={`placeholder-${index}`} />
       ))}
     </div>
   );

@@ -22,5 +22,6 @@
   "todo": "tenant_id",
   "subscription": "tenant_id",
   "payment": "tenant_id",
-  "bookmark": "tenant_id"
+  "bookmark": "tenant_id",
+  "dashboardPreference": "tenant_id"
 }

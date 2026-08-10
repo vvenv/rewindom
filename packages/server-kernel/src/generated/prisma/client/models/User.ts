@@ -279,6 +279,7 @@ export type UserWhereInput = {
   audit_logs?: Prisma.AuditLogListRelationFilter
   background_jobs?: Prisma.BackgroundJobListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  dashboard_preferences?: Prisma.DashboardPreferenceListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -301,6 +302,7 @@ export type UserOrderByWithRelationInput = {
   audit_logs?: Prisma.AuditLogOrderByRelationAggregateInput
   background_jobs?: Prisma.BackgroundJobOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  dashboard_preferences?: Prisma.DashboardPreferenceOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -327,6 +329,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   audit_logs?: Prisma.AuditLogListRelationFilter
   background_jobs?: Prisma.BackgroundJobListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  dashboard_preferences?: Prisma.DashboardPreferenceListRelationFilter
 }, "id" | "tenant_id_username">
 
 export type UserOrderByWithAggregationInput = {
@@ -386,6 +389,7 @@ export type UserCreateInput = {
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -407,6 +411,7 @@ export type UserUncheckedCreateInput = {
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -428,6 +433,7 @@ export type UserUpdateInput = {
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -449,6 +455,7 @@ export type UserUncheckedUpdateInput = {
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -603,6 +610,20 @@ export type UserUpdateOneRequiredWithoutBackground_jobsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBackground_jobsInput, Prisma.UserUpdateWithoutBackground_jobsInput>, Prisma.UserUncheckedUpdateWithoutBackground_jobsInput>
 }
 
+export type UserCreateNestedOneWithoutDashboard_preferencesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDashboard_preferencesInput, Prisma.UserUncheckedCreateWithoutDashboard_preferencesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDashboard_preferencesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDashboard_preferencesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDashboard_preferencesInput, Prisma.UserUncheckedCreateWithoutDashboard_preferencesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDashboard_preferencesInput
+  upsert?: Prisma.UserUpsertWithoutDashboard_preferencesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDashboard_preferencesInput, Prisma.UserUpdateWithoutDashboard_preferencesInput>, Prisma.UserUncheckedUpdateWithoutDashboard_preferencesInput>
+}
+
 export type UserCreateNestedOneWithoutRefresh_tokensInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutRefresh_tokensInput, Prisma.UserUncheckedCreateWithoutRefresh_tokensInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutRefresh_tokensInput
@@ -719,6 +740,7 @@ export type UserCreateWithoutAudit_logsInput = {
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAudit_logsInput = {
@@ -739,6 +761,7 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAudit_logsInput = {
@@ -775,6 +798,7 @@ export type UserUpdateWithoutAudit_logsInput = {
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAudit_logsInput = {
@@ -795,6 +819,7 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBackground_jobsInput = {
@@ -815,6 +840,7 @@ export type UserCreateWithoutBackground_jobsInput = {
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutBackground_jobsInput = {
@@ -835,6 +861,7 @@ export type UserUncheckedCreateWithoutBackground_jobsInput = {
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBackground_jobsInput = {
@@ -871,6 +898,7 @@ export type UserUpdateWithoutBackground_jobsInput = {
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBackground_jobsInput = {
@@ -890,6 +918,107 @@ export type UserUncheckedUpdateWithoutBackground_jobsInput = {
   oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutDashboard_preferencesInput = {
+  id?: string
+  username: string
+  password?: string | null
+  is_system_admin?: boolean
+  enabled?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  last_login_at?: Date | string | null
+  last_access_at?: Date | string | null
+  failed_login_attempts?: number
+  locked_until?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutUsersInput
+  refresh_tokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountCreateNestedManyWithoutUserInput
+  user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutDashboard_preferencesInput = {
+  id?: string
+  tenant_id: string
+  username: string
+  password?: string | null
+  is_system_admin?: boolean
+  enabled?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  last_login_at?: Date | string | null
+  last_access_at?: Date | string | null
+  failed_login_attempts?: number
+  locked_until?: Date | string | null
+  refresh_tokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+  user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutDashboard_preferencesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDashboard_preferencesInput, Prisma.UserUncheckedCreateWithoutDashboard_preferencesInput>
+}
+
+export type UserUpsertWithoutDashboard_preferencesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDashboard_preferencesInput, Prisma.UserUncheckedUpdateWithoutDashboard_preferencesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDashboard_preferencesInput, Prisma.UserUncheckedCreateWithoutDashboard_preferencesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDashboard_preferencesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDashboard_preferencesInput, Prisma.UserUncheckedUpdateWithoutDashboard_preferencesInput>
+}
+
+export type UserUpdateWithoutDashboard_preferencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutUsersNestedInput
+  refresh_tokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUpdateManyWithoutUserNestedInput
+  user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDashboard_preferencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_system_admin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_access_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failed_login_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  locked_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_tokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  oauth_accounts?: Prisma.OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+  user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -911,6 +1040,7 @@ export type UserCreateWithoutRefresh_tokensInput = {
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRefresh_tokensInput = {
@@ -931,6 +1061,7 @@ export type UserUncheckedCreateWithoutRefresh_tokensInput = {
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRefresh_tokensInput = {
@@ -967,6 +1098,7 @@ export type UserUpdateWithoutRefresh_tokensInput = {
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRefresh_tokensInput = {
@@ -987,6 +1119,7 @@ export type UserUncheckedUpdateWithoutRefresh_tokensInput = {
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOauth_accountsInput = {
@@ -1007,6 +1140,7 @@ export type UserCreateWithoutOauth_accountsInput = {
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOauth_accountsInput = {
@@ -1027,6 +1161,7 @@ export type UserUncheckedCreateWithoutOauth_accountsInput = {
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOauth_accountsInput = {
@@ -1063,6 +1198,7 @@ export type UserUpdateWithoutOauth_accountsInput = {
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOauth_accountsInput = {
@@ -1083,6 +1219,7 @@ export type UserUncheckedUpdateWithoutOauth_accountsInput = {
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTenantInput = {
@@ -1103,6 +1240,7 @@ export type UserCreateWithoutTenantInput = {
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTenantInput = {
@@ -1123,6 +1261,7 @@ export type UserUncheckedCreateWithoutTenantInput = {
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTenantInput = {
@@ -1187,6 +1326,7 @@ export type UserCreateWithoutNotificationsInput = {
   user_roles?: Prisma.UserRoleCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -1207,6 +1347,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   user_roles?: Prisma.UserRoleUncheckedCreateNestedManyWithoutUserInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -1243,6 +1384,7 @@ export type UserUpdateWithoutNotificationsInput = {
   user_roles?: Prisma.UserRoleUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -1263,6 +1405,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   user_roles?: Prisma.UserRoleUncheckedUpdateManyWithoutUserNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUser_rolesInput = {
@@ -1283,6 +1426,7 @@ export type UserCreateWithoutUser_rolesInput = {
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutUser_rolesInput = {
@@ -1303,6 +1447,7 @@ export type UserUncheckedCreateWithoutUser_rolesInput = {
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
   background_jobs?: Prisma.BackgroundJobUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUser_rolesInput = {
@@ -1339,6 +1484,7 @@ export type UserUpdateWithoutUser_rolesInput = {
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUser_rolesInput = {
@@ -1359,6 +1505,7 @@ export type UserUncheckedUpdateWithoutUser_rolesInput = {
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyTenantInput = {
@@ -1393,6 +1540,7 @@ export type UserUpdateWithoutTenantInput = {
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTenantInput = {
@@ -1413,6 +1561,7 @@ export type UserUncheckedUpdateWithoutTenantInput = {
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
   background_jobs?: Prisma.BackgroundJobUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  dashboard_preferences?: Prisma.DashboardPreferenceUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutTenantInput = {
@@ -1441,6 +1590,7 @@ export type UserCountOutputType = {
   audit_logs: number
   background_jobs: number
   notifications: number
+  dashboard_preferences: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1450,6 +1600,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   audit_logs?: boolean | UserCountOutputTypeCountAudit_logsArgs
   background_jobs?: boolean | UserCountOutputTypeCountBackground_jobsArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
+  dashboard_preferences?: boolean | UserCountOutputTypeCountDashboard_preferencesArgs
 }
 
 /**
@@ -1504,6 +1655,13 @@ export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.NotificationWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDashboard_preferencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DashboardPreferenceWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1525,6 +1683,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   background_jobs?: boolean | Prisma.User$background_jobsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
+  dashboard_preferences?: boolean | Prisma.User$dashboard_preferencesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1584,6 +1743,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   background_jobs?: boolean | Prisma.User$background_jobsArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
+  dashboard_preferences?: boolean | Prisma.User$dashboard_preferencesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1603,6 +1763,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     audit_logs: Prisma.$AuditLogPayload<ExtArgs>[]
     background_jobs: Prisma.$BackgroundJobPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    dashboard_preferences: Prisma.$DashboardPreferencePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2021,6 +2182,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   audit_logs<T extends Prisma.User$audit_logsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$audit_logsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   background_jobs<T extends Prisma.User$background_jobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$background_jobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BackgroundJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  dashboard_preferences<T extends Prisma.User$dashboard_preferencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$dashboard_preferencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DashboardPreferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2604,6 +2766,30 @@ export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * User.dashboard_preferences
+ */
+export type User$dashboard_preferencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DashboardPreference
+   */
+  select?: Prisma.DashboardPreferenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DashboardPreference
+   */
+  omit?: Prisma.DashboardPreferenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DashboardPreferenceInclude<ExtArgs> | null
+  where?: Prisma.DashboardPreferenceWhereInput
+  orderBy?: Prisma.DashboardPreferenceOrderByWithRelationInput | Prisma.DashboardPreferenceOrderByWithRelationInput[]
+  cursor?: Prisma.DashboardPreferenceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DashboardPreferenceScalarFieldEnum | Prisma.DashboardPreferenceScalarFieldEnum[]
 }
 
 /**

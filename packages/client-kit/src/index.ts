@@ -101,6 +101,13 @@ export {
 } from "./components/KpiCard";
 export { DataTable, type DataTableColumnMeta, type DataTableFeatures } from "./components/DataTable";
 export { EmptyState, type EmptyStateSize } from "./components/EmptyState";
+
+export {
+  DashboardWidgetCard,
+  DashboardWidgetList,
+  DashboardWidgetRow,
+  type DashboardWidgetCardProps,
+} from "./components/DashboardWidgetCard";
 export { DataTableColumnHeader } from "./components/DataTableColumnHeader";
 export { Pagination } from "./components/Pagination";
 

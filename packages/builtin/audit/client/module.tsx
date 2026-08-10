@@ -1,6 +1,7 @@
 import { renderAuditPlatformRoutes } from "./AuditRoutes.js";
 import { AUDIT_I18N } from "./i18n.js";
 import { auditPlatformNavContributions } from "./platform/nav-contributions.js";
+import { AUDIT_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { AUDIT_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderAuditTenantRoutes } from "./tenant/routes.js";
 
@@ -16,6 +17,7 @@ export const auditClientModule: ClientAppModule = {
     i18n: AUDIT_I18N,
     renderRoutes: renderAuditTenantRoutes,
     nav: AUDIT_NAV_SECTIONS,
+    dashboardWidgets: AUDIT_DASHBOARD_WIDGETS,
     renderPlatformRoutes: renderAuditPlatformRoutes,
     platformNav: auditPlatformNavContributions,
   },

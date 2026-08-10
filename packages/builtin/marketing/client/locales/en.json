@@ -1143,5 +1143,14 @@
       "label": "Minimal",
       "description": "Near-black accent with a serif face; hierarchy comes from whitespace and weight."
     }
+  },
+  "dashboard": {
+    "title": "Website",
+    "viewAll": "Open",
+    "published": "Published",
+    "unpublished": "Unpublished",
+    "publishedPages": "Published pages",
+    "draftPages": "Draft pages",
+    "pendingChanges": "{{count}} unpublished change(s)"
   }
 }

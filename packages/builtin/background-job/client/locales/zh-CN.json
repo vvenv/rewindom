@@ -34,5 +34,16 @@
   "audit": {
     "cancelled": "取消后台任务 {{job}}",
     "cancelled_not_running": "取消后台任务 {{job}}（任务已不在运行）"
+  },
+  "dashboard": {
+    "title": "后台任务",
+    "empty": "暂无后台任务",
+    "status": {
+      "running": "运行中",
+      "success": "已完成",
+      "warning": "有警告",
+      "error": "失败",
+      "cancelled": "已取消"
+    }
   }
 }

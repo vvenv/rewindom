@@ -3,6 +3,7 @@ import { BILLING_ENTITLEMENT } from "../shared/index.js";
 import { BILLING_I18N } from "./i18n.js";
 import { billingPlatformNavContributions } from "./platform/nav-contributions.js";
 import { renderBillingPlatformRoutes } from "./platform/routes.js";
+import { BILLING_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { BILLING_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderBillingTenantRoutes } from "./tenant/routes.js";
 
@@ -19,6 +20,7 @@ export const billingClientModule: ClientAppModule = {
     i18n: BILLING_I18N,
     renderRoutes: renderBillingTenantRoutes,
     nav: BILLING_NAV_SECTIONS,
+    dashboardWidgets: BILLING_DASHBOARD_WIDGETS,
     renderPlatformRoutes: renderBillingPlatformRoutes,
     platformNav: billingPlatformNavContributions,
   },

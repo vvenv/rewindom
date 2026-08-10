@@ -65,5 +65,9 @@
     "checkout_created": "创建结账：套餐 {{plan_slug}}",
     "subscription_cancelled": "取消订阅：{{provider_subscription_id}}",
     "webhook_synced": "Creem webhook {{event_type}}：{{detail}}"
+  },
+  "dashboard": {
+    "title": "订阅",
+    "viewAll": "详情"
   }
 }

@@ -1,3 +1,4 @@
+import { Bookmark } from "lucide-react";
 import { lazy } from "react";
 
 import type { DashboardWidget } from "@be-water/module-sdk/client";
@@ -12,6 +13,8 @@ const BookmarksDashboardWidget = lazy(() =>
 export const BOOKMARK_DASHBOARD_WIDGETS: readonly DashboardWidget[] = [
   {
     id: "bookmark.recent",
+    title: "bookmark:dashboardTitle",
+    icon: Bookmark,
     component: BookmarksDashboardWidget,
     order: 40,
     tenantModule: "bookmark",

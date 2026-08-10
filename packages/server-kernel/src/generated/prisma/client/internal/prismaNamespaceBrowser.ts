@@ -56,6 +56,7 @@ export const ModelName = {
   Subscription: 'Subscription',
   Payment: 'Payment',
   Bookmark: 'Bookmark',
+  DashboardPreference: 'DashboardPreference',
   ErrorLog: 'ErrorLog',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
@@ -193,6 +194,17 @@ export const BookmarkScalarFieldEnum = {
 } as const
 
 export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
+
+
+export const DashboardPreferenceScalarFieldEnum = {
+  tenant_id: 'tenant_id',
+  user_id: 'user_id',
+  hidden_widgets: 'hidden_widgets',
+  widget_order: 'widget_order',
+  updated_at: 'updated_at'
+} as const
+
+export type DashboardPreferenceScalarFieldEnum = (typeof DashboardPreferenceScalarFieldEnum)[keyof typeof DashboardPreferenceScalarFieldEnum]
 
 
 export const ErrorLogScalarFieldEnum = {

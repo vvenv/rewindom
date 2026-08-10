@@ -1143,5 +1143,14 @@
       "label": "极简",
       "description": "近黑主色配衬线字体，靠留白与字重分层次。"
     }
+  },
+  "dashboard": {
+    "title": "官网",
+    "viewAll": "进入",
+    "published": "已发布",
+    "unpublished": "未发布",
+    "publishedPages": "已发布页面",
+    "draftPages": "草稿页面",
+    "pendingChanges": "有 {{count}} 处改动尚未发布"
   }
 }

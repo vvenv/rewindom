@@ -14,5 +14,9 @@
   "activityCenter": {
     "title": "Activity center",
     "backgroundTasks": "Background tasks"
+  },
+  "dashboard": {
+    "title": "Unread notifications",
+    "empty": "No unread notifications"
   }
 }

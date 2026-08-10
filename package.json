@@ -23,6 +23,7 @@
     "check:deps:update": "node scripts/check-circular-deps.mjs --update-baseline",
     "check:prod-app-env": "node scripts/check-prod-app-env.mjs",
     "check:modules": "node scripts/verify-module.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "check:section-css": "pnpm --filter @be-water/builtin check:section-css",
     "gen:module": "node scripts/gen-module.mjs",
     "gen:external-modules": "node scripts/gen-external-modules.mjs",

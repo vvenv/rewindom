@@ -1,3 +1,4 @@
+import { USER_DASHBOARD_WIDGETS } from "./dashboard-widgets.js";
 import { USER_I18N } from "./i18n.js";
 import { USER_NAV_SECTIONS } from "./shell/user-nav.js";
 import { UserSidebarMenu, UserShellSlots } from "./shell/user-shell-slots.js";
@@ -15,6 +16,7 @@ export const userClientModule: ClientAppModule = {
     i18n: USER_I18N,
     renderSuperUserRoutes: renderUserSuperUserRoutes,
     nav: USER_NAV_SECTIONS,
+    dashboardWidgets: USER_DASHBOARD_WIDGETS,
     shell: {
       sidebarUserMenu: UserSidebarMenu,
       shellProviders: [UserShellSlots],

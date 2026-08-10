@@ -34,5 +34,16 @@
   "audit": {
     "cancelled": "Cancelled background job {{job}}",
     "cancelled_not_running": "Cancelled background job {{job}} (not running)"
+  },
+  "dashboard": {
+    "title": "Background jobs",
+    "empty": "No background jobs",
+    "status": {
+      "running": "Running",
+      "success": "Done",
+      "warning": "Warning",
+      "error": "Failed",
+      "cancelled": "Cancelled"
+    }
   }
 }

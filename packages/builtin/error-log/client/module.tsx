@@ -1,6 +1,7 @@
 import { renderErrorLogPlatformRoutes } from "./ErrorLogRoutes.js";
 import { ERROR_LOG_I18N } from "./i18n.js";
 import { errorLogPlatformNavContributions } from "./platform/nav-contributions.js";
+import { ERROR_LOG_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { ERROR_LOG_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderErrorLogTenantRoutes } from "./tenant/routes.js";
 
@@ -16,6 +17,7 @@ export const errorLogClientModule: ClientAppModule = {
     i18n: ERROR_LOG_I18N,
     renderRoutes: renderErrorLogTenantRoutes,
     nav: ERROR_LOG_NAV_SECTIONS,
+    dashboardWidgets: ERROR_LOG_DASHBOARD_WIDGETS,
     renderPlatformRoutes: renderErrorLogPlatformRoutes,
     platformNav: errorLogPlatformNavContributions,
   },

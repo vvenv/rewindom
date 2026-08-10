@@ -1,3 +1,4 @@
+import { ListTodo } from "lucide-react";
 import { lazy } from "react";
 
 import type { DashboardWidget } from "@be-water/module-sdk/client";
@@ -12,6 +13,8 @@ const TodosDashboardWidget = lazy(() =>
 export const TODO_DASHBOARD_WIDGETS: readonly DashboardWidget[] = [
   {
     id: "todo.pending",
+    title: "todo:title",
+    icon: ListTodo,
     component: TodosDashboardWidget,
     order: 30,
     tenantModule: "todo",

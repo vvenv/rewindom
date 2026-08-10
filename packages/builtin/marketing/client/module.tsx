@@ -2,6 +2,7 @@ import { TENANT_MARKETING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { MARKETING_I18N } from "./i18n.js";
 import { MarketingShellSlots } from "./shell/marketing-shell-slots.js";
+import { MARKETING_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { SITE_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderSiteRoutes } from "./tenant/routes.js";
 
@@ -20,6 +21,7 @@ export const marketingClientModule: ClientAppModule = {
     i18n: MARKETING_I18N,
     renderRoutes: renderSiteRoutes,
     nav: SITE_NAV_SECTIONS,
+    dashboardWidgets: MARKETING_DASHBOARD_WIDGETS,
     shell: {
       shellProviders: [MarketingShellSlots],
     },

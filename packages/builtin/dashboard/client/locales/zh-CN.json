@@ -11,9 +11,25 @@
   },
   "emptyState": {
     "title": "工作台还没有卡片",
-    "hint": "从左侧导航进入具体模块开始使用。"
+    "hint": "从左侧导航进入具体模块开始使用。",
+    "allHiddenTitle": "卡片都被隐藏了",
+    "allHiddenHint": "点右上角「自定义」把需要的卡片打开。"
   },
   "widget": {
     "loadFailed": "该卡片加载失败，刷新页面可重试。"
+  },
+  "settings": {
+    "trigger": "自定义",
+    "title": "自定义工作台",
+    "description": "拖动排序，开关控制显示；共 {{total}} 张卡片，已隐藏 {{hidden}} 张。",
+    "empty": "当前没有可配置的卡片。",
+    "dragHandle": "拖动排序：{{name}}",
+    "toggleVisibility": "显示/隐藏：{{name}}",
+    "save": "保存",
+    "cancel": "取消",
+    "restoreDefaults": "恢复默认",
+    "saved": "工作台布局已保存",
+    "restored": "已恢复默认布局",
+    "saveFailed": "保存失败，请重试"
   }
 }

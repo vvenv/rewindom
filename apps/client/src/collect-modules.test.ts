@@ -152,7 +152,12 @@ describe("collect-modules", () => {
         kind: "business",
         client: {
           dashboardWidgets: [
-            { id: "notes.recent", component: Widget, order: 20 },
+            {
+              id: "notes.recent",
+              title: "notes:dashboardTitle",
+              component: Widget,
+              order: 20,
+            },
           ],
         },
       },
@@ -163,9 +168,18 @@ describe("collect-modules", () => {
         kind: "business",
         client: {
           dashboardWidgets: [
-            { id: "todos.pending", component: Widget },
+            {
+              id: "todos.pending",
+              title: "todos:dashboardTitle",
+              component: Widget,
+            },
             // 复制粘贴出来的重复 id：只保留先注册的那个
-            { id: "notes.recent", component: Widget, order: 99 },
+            {
+              id: "notes.recent",
+              title: "notes:dashboardTitle",
+              component: Widget,
+              order: 99,
+            },
           ],
         },
       },

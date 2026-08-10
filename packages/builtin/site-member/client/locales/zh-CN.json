@@ -113,5 +113,10 @@
       "lockedBody": "锁定说明",
       "loginLabel": "登录按钮文案"
     }
+  },
+  "dashboard": {
+    "title": "站点会员",
+    "viewAll": "全部",
+    "empty": "还没有会员"
   }
 }

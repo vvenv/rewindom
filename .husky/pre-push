@@ -1,1 +1,1 @@
-pnpm check:deps && pnpm lint && pnpm test -- --run && pnpm build
+pnpm check:deps && pnpm check:i18n && pnpm lint && pnpm test -- --run && pnpm build

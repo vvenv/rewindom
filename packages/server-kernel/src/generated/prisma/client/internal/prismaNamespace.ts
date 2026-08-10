@@ -402,6 +402,7 @@ export const ModelName = {
   Subscription: 'Subscription',
   Payment: 'Payment',
   Bookmark: 'Bookmark',
+  DashboardPreference: 'DashboardPreference',
   ErrorLog: 'ErrorLog',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
@@ -447,7 +448,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "marketingDoc" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "marketingDoc" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -818,6 +819,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.BookmarkCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.BookmarkCountAggregateOutputType> | number
+        }
+      }
+    }
+    DashboardPreference: {
+      payload: Prisma.$DashboardPreferencePayload<ExtArgs>
+      fields: Prisma.DashboardPreferenceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DashboardPreferenceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DashboardPreferenceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload>
+        }
+        findFirst: {
+          args: Prisma.DashboardPreferenceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DashboardPreferenceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload>
+        }
+        findMany: {
+          args: Prisma.DashboardPreferenceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload>[]
+        }
+        create: {
+          args: Prisma.DashboardPreferenceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload>
+        }
+        createMany: {
+          args: Prisma.DashboardPreferenceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DashboardPreferenceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload>[]
+        }
+        delete: {
+          args: Prisma.DashboardPreferenceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload>
+        }
+        update: {
+          args: Prisma.DashboardPreferenceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload>
+        }
+        deleteMany: {
+          args: Prisma.DashboardPreferenceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DashboardPreferenceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DashboardPreferenceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload>[]
+        }
+        upsert: {
+          args: Prisma.DashboardPreferenceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DashboardPreferencePayload>
+        }
+        aggregate: {
+          args: Prisma.DashboardPreferenceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDashboardPreference>
+        }
+        groupBy: {
+          args: Prisma.DashboardPreferenceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DashboardPreferenceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DashboardPreferenceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DashboardPreferenceCountAggregateOutputType> | number
         }
       }
     }
@@ -3171,6 +3246,17 @@ export const BookmarkScalarFieldEnum = {
 export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
 
 
+export const DashboardPreferenceScalarFieldEnum = {
+  tenant_id: 'tenant_id',
+  user_id: 'user_id',
+  hidden_widgets: 'hidden_widgets',
+  widget_order: 'widget_order',
+  updated_at: 'updated_at'
+} as const
+
+export type DashboardPreferenceScalarFieldEnum = (typeof DashboardPreferenceScalarFieldEnum)[keyof typeof DashboardPreferenceScalarFieldEnum]
+
+
 export const ErrorLogScalarFieldEnum = {
   id: 'id',
   level: 'level',
@@ -3916,6 +4002,7 @@ export type GlobalOmitConfig = {
   subscription?: Prisma.SubscriptionOmit
   payment?: Prisma.PaymentOmit
   bookmark?: Prisma.BookmarkOmit
+  dashboardPreference?: Prisma.DashboardPreferenceOmit
   errorLog?: Prisma.ErrorLogOmit
   refreshToken?: Prisma.RefreshTokenOmit
   oAuthAccount?: Prisma.OAuthAccountOmit

@@ -97,5 +97,11 @@
     "auth.audit.login_success": "User signed in",
     "auth.audit.logout_success": "User signed out",
     "auth.audit.password_changed": "User changed password"
+  },
+  "dashboard": {
+    "title": "Recent activity",
+    "viewAll": "View all",
+    "empty": "No activity yet",
+    "entry": "{{username}} · {{action}}"
   }
 }

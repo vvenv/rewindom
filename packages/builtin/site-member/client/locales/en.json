@@ -113,5 +113,10 @@
       "lockedBody": "Locked description",
       "loginLabel": "Sign-in button"
     }
+  },
+  "dashboard": {
+    "title": "Site members",
+    "viewAll": "View all",
+    "empty": "No members yet"
   }
 }

@@ -33,6 +33,22 @@ jobs:
       - name: Check circular dependencies (ratchet)
         run: node scripts/check-circular-deps.mjs
 
+  i18n:
+    name: 客户端文案完整性
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Check i18n key coverage and locale parity
+        run: node scripts/check-i18n.mjs
+
   prod-app-env:
     name: 生产 compose 环境变量透传
     runs-on: ubuntu-latest

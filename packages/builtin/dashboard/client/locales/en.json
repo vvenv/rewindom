@@ -11,9 +11,25 @@
   },
   "emptyState": {
     "title": "No dashboard widgets yet",
-    "hint": "Open a module from the sidebar to get started."
+    "hint": "Open a module from the sidebar to get started.",
+    "allHiddenTitle": "All widgets are hidden",
+    "allHiddenHint": "Use “Customize” in the top right to turn widgets back on."
   },
   "widget": {
     "loadFailed": "This widget failed to load. Refresh the page to retry."
+  },
+  "settings": {
+    "trigger": "Customize",
+    "title": "Customize dashboard",
+    "description": "Drag to reorder, toggle to show or hide. {{total}} widgets, {{hidden}} hidden.",
+    "empty": "No widgets available to configure.",
+    "dragHandle": "Reorder {{name}}",
+    "toggleVisibility": "Show or hide {{name}}",
+    "save": "Save",
+    "cancel": "Cancel",
+    "restoreDefaults": "Restore defaults",
+    "saved": "Dashboard layout saved",
+    "restored": "Default layout restored",
+    "saveFailed": "Could not save. Please try again."
   }
 }

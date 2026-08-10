@@ -705,8 +705,11 @@ client: {
   dashboardWidgets: [
     {
       id: "notes.recent",        // 约定 `<moduleId>.<name>`，重复 id 只保留先注册的
+                                 // 同时是用户布局偏好的持久化键——发布后不要再改
+      title: "notes:dashboard.title", // 配置面板里的名称，`namespace:key`，渲染时才解析
+      icon: StickyNote,          // 配置面板列表项图标
       component: LazyWidget,     // 用 lazy()，落地页不该背业务代码
-      order: 20,                 // 升序，默认 100；相同值按模块注册顺序
+      order: 20,                 // 默认顺序，升序，默认 100；相同值按模块注册顺序
       span: 1,                   // 2 = 桌面端横跨两列
       tenantModule: "notes",     // 与导航项同义：租户没开通就不渲染
       anyPermission: ["notes.read"],
@@ -721,7 +724,12 @@ client: {
 
 可见性口径与导航项一致：权限 fail-closed（未加载先隐藏）、entitlement fail-open。
 `/app/dashboard` 本身不设开关也不设权限——它是落地页兜底，关掉就等于登录后无处可去。
-详见 `packages/modules/dashboard/MODULE.md`。
+
+在这之上还有一层**用户级布局**：每个用户可自行隐藏卡片、拖拽排序，存在
+`DashboardPreference`（`dashboard` 模块的 server 面，`GET/PUT/DELETE /api/dashboard/preferences`）。
+两层顺序不能反——先按租户/权限算出「允许看到什么」，再套用户的「想看什么」，
+否则用户能把无权访问的卡片显示出来。卡片外壳统一用 `client-kit` 的 `DashboardWidgetCard`。
+详见 `packages/builtin/dashboard/MODULE.md`。
 
 ### 10.6 `ClientShellContributions`
 

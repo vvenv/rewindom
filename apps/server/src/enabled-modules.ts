@@ -1,6 +1,7 @@
 import { auditServerModule } from "@be-water/builtin/audit/server/index.js";
 import { backgroundJobServerModule } from "@be-water/builtin/background-job/server/index.js";
 import { billingServerModule } from "@be-water/builtin/billing/server/index.js";
+import { dashboardServerModule } from "@be-water/builtin/dashboard/server/index.js";
 import { errorLogServerModule } from "@be-water/builtin/error-log/server/index.js";
 import { marketingServerModule } from "@be-water/builtin/marketing/server/index.js";
 import { notificationServerModule } from "@be-water/builtin/notification/server/index.js";
@@ -21,6 +22,7 @@ export const ENABLED_SERVER_MODULES = [
   errorLogServerModule,
   slowQueryServerModule,
   notificationServerModule,
+  dashboardServerModule,
   userServerModule,
   platformServerModule,
   marketingServerModule,

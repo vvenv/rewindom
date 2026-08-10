@@ -65,5 +65,9 @@
     "checkout_created": "Created checkout for plan {{plan_slug}}",
     "subscription_cancelled": "Cancelled subscription {{provider_subscription_id}}",
     "webhook_synced": "Synced Creem webhook {{event_type}}: {{detail}}"
+  },
+  "dashboard": {
+    "title": "Subscription",
+    "viewAll": "Details"
   }
 }

@@ -32,7 +32,7 @@
 | Server 启用模块   | `apps/server/src/enabled-modules.ts`（infra → shell → 业务域）                |
 | Client 启用模块   | `apps/client/src/enabled-modules.ts`                                          |
 | 官网（租户 CMS）  | `packages/modules/marketing/`（主域=默认租户 SSR；平台控制台见 `PLATFORM_URL`） |
-| 工作台卡片        | 各模块 `client.dashboardWidgets` → `packages/modules/dashboard` 聚合渲染      |
+| 工作台卡片        | 各模块 `client.dashboardWidgets` → `packages/builtin/dashboard` 聚合渲染（含用户级显隐/排序）|
 | 登录落地页        | `apps/client/src/home-path-candidates.ts`（默认 `/app/dashboard`；入口统一走 `/app`） |
 | 内核路由          | `packages/server-kernel/src/kernel/kernel-routes.ts`                          |
 | App Shell（前端） | `packages/client-kit/` + `apps/client/src/app-shell-routes.tsx`               |
@@ -82,7 +82,12 @@ pnpm --filter server exec prisma migrate deploy
 pnpm gen:module <spec.yaml>     # 由 MODULE.spec.yaml 生成模块骨架（含两处注册表 + 审计动作 + 符号链接）
 pnpm check:modules              # 模块契约校验（注册表/租户列/开关/权限/排序/外壳/nav）
 node scripts/verify-module.mjs <id>   # 只查单个模块
+pnpm check:i18n                 # 客户端文案门禁（ns 唯一/各语言 key 对齐/调用点 key 存在）
 ```
+
+`check:i18n` 补的是编译期盲区：namespace 改名或漏加 key，`build`/`typecheck`/`lint`
+一个都不报错，i18next 会把 key 原样渲染到界面上（线上出现过 `widget.viewAll`）。
+新增文案或改 `ns` 后必须跑；已接入 pre-push 与 Architecture workflow。
 
 ### 生成迁移：开发库不可信时走影子库
 

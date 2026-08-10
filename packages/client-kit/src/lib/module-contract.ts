@@ -7,8 +7,10 @@ import {
   type TenantFeatureKey,
 } from "@be-water/shared";
 
+
 import type { AppNavSection } from "./app-nav-types.js";
 import type { PlatformNavContribution } from "./platform-nav-types.js";
+import type { LucideIcon } from "lucide-react";
 
 /**
  * 模块贡献的 i18next 文案包。
@@ -32,12 +34,31 @@ export interface ClientI18nBundle {
  * 模块的代码全塞进首屏 chunk。
  */
 export interface DashboardWidget {
-  /** 全局唯一，约定 `<moduleId>.<name>`；用作 React key 与重复声明的去重依据。 */
+  /**
+   * 全局唯一，约定 `<moduleId>.<name>`；用作 React key、重复声明的去重依据，
+   * 以及**用户偏好的持久化键**——改 id 等于让老用户的显隐/排序配置对不上，
+   * 会退回默认布局，因此 id 一经发布不要再改。
+   */
   id: string;
+  /**
+   * 配置面板里这张卡片的名称，用 `namespace:key`（与导航项同口径），
+   * 由面板在渲染时解析。禁止在模块加载时 `t()`——那会锁死首屏语言。
+   *
+   * 卡片自身的标题仍由卡片组件自己渲染，这里只服务于「显示/隐藏 + 排序」列表：
+   * 卡片被隐藏时组件根本不挂载，面板拿不到它的标题。
+   */
+  title: string;
+  /** 配置面板里的副标题，同为 `namespace:key`。 */
+  description?: string;
+  /** 配置面板列表项的图标，通常与该模块导航项同一个。 */
+  icon?: LucideIcon;
   component: ComponentType;
   /** 桌面端栅格跨度：`1` 占一列，`2` 横跨两列。默认 `1`。 */
   span?: 1 | 2;
-  /** 升序；默认 100。相同 order 按 `ENABLED_CLIENT_MODULES` 的注册顺序。 */
+  /**
+   * 默认顺序，升序，默认 100；相同 order 按 `ENABLED_CLIENT_MODULES` 的注册顺序。
+   * 用户在工作台配置面板里自定义排序后，这里只决定「用户还没排过的卡片」落在哪。
+   */
   order?: number;
   /** 租户未开通该模块时不渲染（与导航项同义）。 */
   tenantModule?: string;

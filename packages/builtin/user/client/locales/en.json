@@ -120,5 +120,10 @@
     "deleted": "Deleted user {{username}}",
     "password_reset": "Reset password for user {{username}}",
     "batch_deleted": "Deleted users {{usernames}}"
+  },
+  "dashboard": {
+    "title": "Members",
+    "viewAll": "View all",
+    "empty": "No members yet"
   }
 }

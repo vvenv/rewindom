@@ -72,5 +72,10 @@
     "tenant_cleaned": "清理租户内 {{days}} 天前的错误日志，删除 {{deleted_count}} 条",
     "user_cleaned": "清理本人 {{days}} 天前的错误日志，删除 {{deleted_count}} 条",
     "deleted": "删除错误日志 {{id}}"
+  },
+  "dashboard": {
+    "title": "近期错误",
+    "viewAll": "全部",
+    "empty": "近期没有错误"
   }
 }

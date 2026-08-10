@@ -35,6 +35,10 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac"],
   },
   {
+    id: "dashboard",
+    kind: "infrastructure",
+  },
+  {
     id: "user",
     kind: "infrastructure",
     requires: ["rbac", "audit", "platform"],

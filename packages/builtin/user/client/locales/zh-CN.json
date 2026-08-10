@@ -120,5 +120,10 @@
     "deleted": "删除用户 {{username}}",
     "password_reset": "重置用户 {{username}} 的密码",
     "batch_deleted": "删除用户 {{usernames}}"
+  },
+  "dashboard": {
+    "title": "成员",
+    "viewAll": "全部",
+    "empty": "还没有成员"
   }
 }

@@ -1,3 +1,4 @@
+import { StickyNote } from "lucide-react";
 import { lazy } from "react";
 
 import type { DashboardWidget } from "@be-water/module-sdk/client";
@@ -12,6 +13,8 @@ const NotesDashboardWidget = lazy(() =>
 export const NOTE_DASHBOARD_WIDGETS: readonly DashboardWidget[] = [
   {
     id: "note.recent",
+    title: "note:dashboardTitle",
+    icon: StickyNote,
     component: NotesDashboardWidget,
     order: 20,
     tenantModule: "note",

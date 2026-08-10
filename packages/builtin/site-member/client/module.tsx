@@ -7,6 +7,7 @@ import { MemberGateSection } from "./components/MemberGateSection.js";
 import { SITE_MEMBER_I18N } from "./i18n.js";
 import { renderSiteMemberPublicRoutes } from "./public/routes.js";
 import { SiteMemberPublicProviders } from "./shell/SiteMemberPublicProviders.js";
+import { SITE_MEMBER_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { SITE_MEMBER_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderSiteMemberRoutes } from "./tenant/routes.js";
 
@@ -34,6 +35,7 @@ export const siteMemberClientModule: ClientAppModule = {
     renderPublicRoutes: renderSiteMemberPublicRoutes,
     renderRoutes: renderSiteMemberRoutes,
     nav: SITE_MEMBER_NAV_SECTIONS,
+    dashboardWidgets: SITE_MEMBER_DASHBOARD_WIDGETS,
     shell: {
       publicProviders: [SiteMemberPublicProviders],
     },

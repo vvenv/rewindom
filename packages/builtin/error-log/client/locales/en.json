@@ -72,5 +72,10 @@
     "tenant_cleaned": "Cleaned tenant error logs older than {{days}} days; deleted {{deleted_count}}",
     "user_cleaned": "Cleaned own error logs older than {{days}} days; deleted {{deleted_count}}",
     "deleted": "Deleted error log {{id}}"
+  },
+  "dashboard": {
+    "title": "Recent errors",
+    "viewAll": "View all",
+    "empty": "No recent errors"
   }
 }

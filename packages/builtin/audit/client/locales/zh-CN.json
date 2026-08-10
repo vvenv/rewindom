@@ -97,5 +97,11 @@
     "auth.audit.login_success": "用户成功登录",
     "auth.audit.logout_success": "用户成功登出",
     "auth.audit.password_changed": "用户成功修改密码"
+  },
+  "dashboard": {
+    "title": "最近操作",
+    "viewAll": "全部",
+    "empty": "还没有操作记录",
+    "entry": "{{username}} · {{action}}"
   }
 }

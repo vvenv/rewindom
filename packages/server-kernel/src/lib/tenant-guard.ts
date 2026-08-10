@@ -52,6 +52,7 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   MarketingDoc: { kind: "tenant_id" },
   Subscription: { kind: "tenant_id" },
   Payment: { kind: "tenant_id" },
+  DashboardPreference: { kind: "tenant_id" },
   Notification: { kind: "tenant_id" },
   NotificationLog: { kind: "tenant_id" },
   TenantApiKey: { kind: "tenant_id" },

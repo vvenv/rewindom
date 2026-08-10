@@ -14,5 +14,9 @@
   "activityCenter": {
     "title": "活动中心",
     "backgroundTasks": "后台任务"
+  },
+  "dashboard": {
+    "title": "未读通知",
+    "empty": "没有未读通知"
   }
 }

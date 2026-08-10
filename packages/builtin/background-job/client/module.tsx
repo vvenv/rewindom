@@ -1,3 +1,4 @@
+import { BACKGROUND_JOB_DASHBOARD_WIDGETS } from "./dashboard-widgets.js";
 import { BACKGROUND_JOB_I18N } from "./i18n.js";
 import { BackgroundJobShellProvider } from "./shell/background-job-shell-slots.js";
 
@@ -11,6 +12,7 @@ export const backgroundJobClientModule: ClientAppModule = {
   description: "后台任务中心与租户布局 Provider",
   client: {
     i18n: BACKGROUND_JOB_I18N,
+    dashboardWidgets: BACKGROUND_JOB_DASHBOARD_WIDGETS,
     shell: {
       shellProviders: [BackgroundJobShellProvider],
     },
