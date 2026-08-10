@@ -26,6 +26,7 @@ import {
   ValidationError,
 } from "@be-water/server-kernel/lib/app-errors.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import { type AuthTokens } from "@be-water/shared";
 
 import { toSiteMemberProfile } from "./site-member.mapper.js";
@@ -178,7 +179,7 @@ export class SiteMemberOAuthService {
         throw new ValidationError("site_member.oauth_tenant_mismatch");
       }
       const updated = await prisma.siteMember.update({
-        where: { id: existing.member_id },
+        where: withTenantScope(params.tenant.id, { id: existing.member_id }),
         data: {
           last_login_at: new Date(),
           failed_login_attempts: 0,
@@ -243,7 +244,7 @@ export class SiteMemberOAuthService {
 
     if (!isNew) {
       member = await prisma.siteMember.update({
-        where: { id: member.id },
+        where: withTenantScope(params.tenant.id, { id: member.id }),
         data: {
           last_login_at: new Date(),
           failed_login_attempts: 0,
