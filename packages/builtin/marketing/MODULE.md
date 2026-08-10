@@ -790,9 +790,10 @@ Theme Editor 预览里的 React `FormSection` 共用同一份校验。
 
 | 内容 | 位置 | 说明 |
 | --- | --- | --- |
-| 起步模板 | `shared/site-starters.ts` + `page-presets.ts` | key=`default`（home/docs/pricing） |
-| 站点元信息 | `client/locales` · `starter.default.*` | starter 站名 / 标语 / 页脚简介 |
-| Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等 apply + 发布 |
+| 通用起步模板 | `shared/site-starters.ts` + `page-presets.ts` | key=`default`（仅首页占位，给任意租户） |
+| **默认租户产品站** | `server/default-product-site-content.ts` | be-water 终稿：首页 + 定价，中英双语；文案来自 `client/locales` 的 `site` / `hero` / `features` / `landing` / `pricing` / `seo` |
+| Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等铺产品站并发布；已是产品站则跳过 |
+| 文档库 | `docs/usage/<locale>/*.md` | 启动时按语言补齐已发布文档 |
 
 新增页面：在 CMS Theme Editor 创建/发布即可；SEO 由 SSR + sitemap 动态生成。
 
@@ -807,14 +808,14 @@ SSR HTML 为 SEO 真相源；site-enhance 补交互层（会员入口、明暗�
 ## 本地种子数据
 
 ```bash
-# 给指定租户铺 default starter 并发布（默认 slug=default）
+# 默认租户：铺产品站终稿并发布；其它 slug：通用 starter
 pnpm --filter server exec tsx scripts/seed-local-marketing-site.ts [tenantSlug]
 
 # 只发首页的最小 SSR 冒烟
 pnpm --filter server exec tsx scripts/seed-tenant-site-smoke.ts
 ```
 
-`seed-local-marketing-site.ts` 调用 `applySiteStarter("default")` 后整站发布，可反复执行。
+`seed-local-marketing-site.ts` 对 `default` 走 `applyDefaultProductSite`，可反复执行覆盖终稿。
 
 ## 如何单独测试
 

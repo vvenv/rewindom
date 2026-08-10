@@ -1,16 +1,25 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_ID } from "@be-water/shared";
 
+import { parseSiteNameValue } from "../shared/section-settings.js";
+
+import { applyDefaultProductSite } from "./apply-default-product-site.js";
+import { isGenericStarterSiteName } from "./default-product-site-content.js";
 import { loadUsageDocs } from "./load-usage-docs.js";
 import { seedDocsFromFiles } from "./marketing-doc.service.js";
-import { applySiteStarter, setPageStatus, updateSite } from "./site.service.js";
 
 /**
  * 确保默认租户有已发布的 Marketing CMS 站（产品主域前台）。
  *
- * 幂等：已有已发布首页则跳过；否则 apply `default` starter 并全部发布。
+ * 幂等：
+ * - 已是产品站（站名含 be-water）→ 只补文档
+ * - 仍是通用 starter 占位（「我的站点」）或尚未发布 → 铺产品站终稿并发布
  */
 export async function ensureDefaultMarketingSite(): Promise<void> {
+  const site = await prisma.marketingSite.findUnique({
+    where: { tenant_id: DEFAULT_TENANT_ID },
+    select: { published: true, site_name: true },
+  });
   const existingPublishedHome = await prisma.marketingPage.findFirst({
     where: {
       tenant_id: DEFAULT_TENANT_ID,
@@ -19,23 +28,33 @@ export async function ensureDefaultMarketingSite(): Promise<void> {
     },
     select: { id: true },
   });
-  const site = await prisma.marketingSite.findUnique({
-    where: { tenant_id: DEFAULT_TENANT_ID },
-    select: { published: true },
-  });
-  if (existingPublishedHome && site?.published) {
+
+  const displayName = resolveSiteNameScalar(site?.site_name);
+  const alreadyProduct =
+    Boolean(site?.published) &&
+    Boolean(existingPublishedHome) &&
+    displayName.toLowerCase().includes("be-water");
+  const stillPlaceholder =
+    !displayName || isGenericStarterSiteName(displayName);
+
+  if (alreadyProduct && !stillPlaceholder) {
     await ensureDefaultMarketingDocs();
     return;
   }
 
-  const applied = await applySiteStarter(DEFAULT_TENANT_ID, "default");
-  await updateSite(DEFAULT_TENANT_ID, { published: true });
-  for (const page of applied.pages) {
-    if (page.status !== "published") {
-      await setPageStatus(DEFAULT_TENANT_ID, page.id, "published");
-    }
-  }
+  await applyDefaultProductSite(DEFAULT_TENANT_ID);
   await ensureDefaultMarketingDocs();
+}
+
+function resolveSiteNameScalar(value: unknown): string {
+  const parsed = parseSiteNameValue(value ?? "");
+  if (typeof parsed === "string") return parsed.trim();
+  return (
+    parsed.__i18n["zh-CN"]?.trim() ||
+    parsed.__i18n.en?.trim() ||
+    Object.values(parsed.__i18n).find((text) => text.trim())?.trim() ||
+    ""
+  );
 }
 
 /**
