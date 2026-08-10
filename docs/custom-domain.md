@@ -2,7 +2,7 @@
 
 单实例部署下，租户可通过两类域名访问并锁定身份：
 
-1. **平台通配子域**（推荐默认）：`{slug}.{TENANT_BASE_DOMAIN}`，例如 `acme.moms.plus`——创建租户即有，**无需客户配 DNS**
+1. **平台通配子域**（推荐默认）：`{slug}.{TENANT_BASE_DOMAIN}`，例如 `acme.water.moms.plus`——创建租户即有，**无需客户配 DNS**
 2. **客户自定义域名**：如 `portal.acme.com`——客户配 DNS，平台控制台绑定
 
 两类域名上效果相同：开放营销前台与租户中台，禁止平台控制台；登录/注册无需再写 `@租户标识`。若租户在「品牌」设置上传了 Logo / Favicon，Host 绑定登录页与浏览器标签会展示该租户品牌（见 `design/tenant-config.md` §2.4）。
@@ -13,16 +13,16 @@
 
 ---
 
-## 0. 平台通配子域（`*.moms.plus`）
+## 0. 平台通配子域（`*.water.moms.plus`）
 
 ### 0.1 配置
 
 | 项 | 值 |
 | --- | --- |
-| env | `TENANT_BASE_DOMAIN=moms.plus`（须透传 compose；见 `tenancy-mode` / `check:prod-app-env`） |
-| DNS（一次） | `*.moms.plus` → 平台入口（A/CNAME） |
-| TLS（一次） | 证书 SAN 含 `moms.plus` + `*.moms.plus`（Let's Encrypt **DNS-01**） |
-| Nginx | `server_name moms.plus *.moms.plus;`，透传 `Host` |
+| env | `TENANT_BASE_DOMAIN=water.moms.plus`（须透传 compose；见 `tenancy-mode` / `check:prod-app-env`） |
+| DNS（一次） | `*.water.moms.plus` → 平台入口（A/CNAME） |
+| TLS（一次） | 证书 SAN 含 `water.moms.plus` + `*.water.moms.plus`（Let's Encrypt **DNS-01**） |
+| Nginx | `server_name water.moms.plus *.water.moms.plus;`，透传 `Host` |
 
 应用解析优先级：
 
@@ -61,14 +61,14 @@ chmod 600 /root/.secrets/certbot/dnspod-109.ini
   --authenticator dns-dnspod-109 \
   --dns-dnspod-109-credentials /root/.secrets/certbot/dnspod-109.ini \
   --dns-dnspod-109-propagation-seconds 60 \
-  -d moms.plus -d '*.moms.plus' \
-  --cert-name moms.plus \
+  -d water.moms.plus -d '*.water.moms.plus' \
+  --cert-name water.moms.plus \
   --agree-tos -m <SSL_EMAIL> --non-interactive
 ```
 
 **续期配置：**
 
-- `/etc/letsencrypt/renewal/moms.plus.conf`：`authenticator = dns-dnspod-109`，并指向上述 credentials；`pref_challs = dns-01`
+- `/etc/letsencrypt/renewal/water.moms.plus.conf`：`authenticator = dns-dnspod-109`，并指向上述 credentials；`pref_challs = dns-01`
 - systemd drop-in `/etc/systemd/system/certbot.service.d/override.conf`：
 
 ```ini
@@ -82,7 +82,7 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 **验收：**
 
 ```bash
-/opt/certbot-dns/bin/certbot renew --cert-name moms.plus --dry-run
+/opt/certbot-dns/bin/certbot renew --cert-name water.moms.plus --dry-run
 ```
 
 成功应看到 `Congratulations, all simulated renewals succeeded`。勿把 Secret 写进仓库或 compose；凭证仅放服务器 `600` 文件。
@@ -111,7 +111,7 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 
 ## 2. 成功后的效果
 
-假设产品主域为 `https://app.example.com`，平台控制台为 `https://platform.app.example.com`，租户绑定了 `portal.acme.com`：
+假设产品主域为 `https://app.example.com`，平台控制台为 `https://admin.app.example.com`，租户绑定了 `portal.acme.com`：
 
 | 访问方式 | 行为 |
 | --- | --- |
@@ -121,7 +121,7 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 | `https://portal.acme.com/app` | 租户中台 |
 | `https://portal.acme.com/platform` | **不可用**（前端跳转；API 403） |
 | `https://app.example.com` | 默认租户 CMS SSR；登录锁定 default；禁平台控制台 |
-| `https://platform.app.example.com/platform` | 平台控制台（不绑定租户） |
+| `https://admin.app.example.com/platform` | 平台控制台（不绑定租户） |
 
 同一域名全局只能绑一个租户；不可绑定产品主域、平台控制台 Host（`APP_DOMAIN` / `FRONTEND_URL` / `PLATFORM_URL`）或 `localhost` / `127.0.0.1`。
 

@@ -68,7 +68,7 @@ services:
       EXPORT_BASE_DIR: /data/exports
       ATTACHMENT_BASE_DIR: /data/attachments
       FRONTEND_URL: ${FRONTEND_URL:-https://${APP_DOMAIN}}
-      PLATFORM_URL: ${PLATFORM_URL:-https://platform.${APP_DOMAIN}}
+      PLATFORM_URL: ${PLATFORM_URL:-https://admin.${APP_DOMAIN}}
       LOG_LEVEL: ${LOG_LEVEL:-warn}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
@@ -103,7 +103,7 @@ services:
     environment:
       # nginx map：仅平台控制台 Host 走静态 SPA；产品主域与其它 Host 反代 Marketing SSR
       APP_DOMAIN: ${APP_DOMAIN}
-      PLATFORM_HOST: ${PLATFORM_HOST:-platform.${APP_DOMAIN}}
+      PLATFORM_HOST: ${PLATFORM_HOST:-admin.${APP_DOMAIN}}
     ports:
       - "127.0.0.1:${APP_PORT:-3700}:80"
     depends_on:

@@ -83,17 +83,17 @@ TENANT_BASE_DOMAIN=localhost
 
 ### 生产
 
-当前生产（`.env.production`）：`APP_DOMAIN=moms.plus`，`TENANT_BASE_DOMAIN=moms.plus`。
+当前生产（`.env.production`）：`APP_DOMAIN=water.moms.plus`，`TENANT_BASE_DOMAIN=water.moms.plus`。
 由 Host 决定，与本地同构：
 
 | 要进哪儿   | 地址 | env |
 | ---------- | ---- | --- |
-| 产品站     | https://moms.plus/ | `FRONTEND_URL` |
-| 租户管理台（工作台） | https://moms.plus/app | 同上 |
-| 租户登录   | https://moms.plus/login | 同上；未登录访问 `/app` 会转到此页 |
-| 其他租户登录 | `https://{slug}.moms.plus/login` 或租户 `custom_domain` 上的 `/login` | `TENANT_BASE_DOMAIN` |
-| 租户站点   | 租户 `custom_domain` 或 `https://{slug}.moms.plus` | `TENANT_BASE_DOMAIN` |
-| 平台控制台 | https://platform.moms.plus/platform | `PLATFORM_URL` / `PLATFORM_HOST` |
+| 产品站     | https://water.moms.plus/ | `FRONTEND_URL` |
+| 租户管理台（工作台） | https://water.moms.plus/app | 同上 |
+| 租户登录   | https://water.moms.plus/login | 同上；未登录访问 `/app` 会转到此页 |
+| 其他租户登录 | `https://{slug}.water.moms.plus/login` 或租户 `custom_domain` 上的 `/login` | `TENANT_BASE_DOMAIN` |
+| 租户站点   | 租户 `custom_domain` 或 `https://{slug}.water.moms.plus` | `TENANT_BASE_DOMAIN` |
+| 平台控制台 | https://admin.water.moms.plus/platform | `PLATFORM_URL` / `PLATFORM_HOST` |
 
 `PLATFORM_URL` 必须与 `FRONTEND_URL` **不同 Host**：nginx 按 Host 分流（见
 `docker/nginx/default.conf.template` 的 `$use_tenant_ssr`），平台 Host 走静态 SPA，
@@ -102,16 +102,16 @@ TENANT_BASE_DOMAIN=localhost
 
 #### 生产：登录租户管理台
 
-1. **默认租户（产品站 Host）**：打开 https://moms.plus/login ，或 https://moms.plus/app （未登录自动转 `/login`）。
-2. **其他租户**：`https://{slug}.moms.plus/login`，或该租户绑定域名上的 `/login`（Host 锁定租户，可用裸用户名）。
+1. **默认租户（产品站 Host）**：打开 https://water.moms.plus/login ，或 https://water.moms.plus/app （未登录自动转 `/login`）。
+2. **其他租户**：`https://{slug}.water.moms.plus/login`，或该租户绑定域名上的 `/login`（Host 锁定租户，可用裸用户名）。
 3. **凭据**：租户 User（工作台账号），与平台管理员不是同一套身份；多租户登录标识见 [tenant-config.md](docs/design/tenant-config.md)。
 
 #### 生产：登录平台管理后台
 
-1. **DNS**：`platform.moms.plus` 需 A/CNAME 指向与 `moms.plus` 相同的服务器；TLS 证书须覆盖该 Host（通配 `*.moms.plus` 或单独签发 `platform.moms.plus`）。
-2. **打开** https://platform.moms.plus/platform （不要用 `moms.plus`）。未登录会转到同 Host 的 `/login`。
-   - 入口用 **`/platform`**，不要只打开 https://platform.moms.plus/ ——根路径在控制台 Host 上没有官网，旧版会把自己硬跳进死循环（已修：根路径会转到 `/platform`）。
-   - 在 https://moms.plus/platform 会被送到平台 Host。
+1. **DNS**：`admin.water.moms.plus` 需 A/CNAME 指向与 `water.moms.plus` 相同的服务器；TLS 证书须覆盖该 Host（通配 `*.water.moms.plus` 或单独签发 `admin.water.moms.plus`）。
+2. **打开** https://admin.water.moms.plus/platform （不要用 `water.moms.plus`）。未登录会转到同 Host 的 `/login`。
+   - 入口用 **`/platform`**，不要只打开 https://admin.water.moms.plus/ ——根路径在控制台 Host 上没有官网，旧版会把自己硬跳进死循环（已修：根路径会转到 `/platform`）。
+   - 在 https://water.moms.plus/platform 会被送到平台 Host。
 3. **凭据**（`.env.production`，首次启动写入 `PlatformAdmin`）：
 
    | | |
