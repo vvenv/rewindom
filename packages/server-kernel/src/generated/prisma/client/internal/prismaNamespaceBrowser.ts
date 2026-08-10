@@ -70,6 +70,7 @@ export const ModelName = {
   MarketingRedirect: 'MarketingRedirect',
   MarketingAsset: 'MarketingAsset',
   MarketingPageVersion: 'MarketingPageVersion',
+  MarketingDocCategory: 'MarketingDocCategory',
   MarketingDoc: 'MarketingDoc',
   Note: 'Note',
   Notification: 'Notification',
@@ -421,6 +422,19 @@ export const MarketingPageVersionScalarFieldEnum = {
 } as const
 
 export type MarketingPageVersionScalarFieldEnum = (typeof MarketingPageVersionScalarFieldEnum)[keyof typeof MarketingPageVersionScalarFieldEnum]
+
+
+export const MarketingDocCategoryScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  key: 'key',
+  label: 'label',
+  sort_order: 'sort_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MarketingDocCategoryScalarFieldEnum = (typeof MarketingDocCategoryScalarFieldEnum)[keyof typeof MarketingDocCategoryScalarFieldEnum]
 
 
 export const MarketingDocScalarFieldEnum = {

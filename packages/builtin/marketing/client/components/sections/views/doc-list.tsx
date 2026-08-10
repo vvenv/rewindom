@@ -78,7 +78,7 @@ export function DocListSection({
         {view.groups.map((group) => (
           <div className="doc-list-group" key={group.category || "loose"}>
             {group.category ? (
-              <h3 className="doc-list-group-title">{group.category}</h3>
+              <h3 className="doc-list-group-title">{group.category_label}</h3>
             ) : null}
             {items(group.items)}
           </div>

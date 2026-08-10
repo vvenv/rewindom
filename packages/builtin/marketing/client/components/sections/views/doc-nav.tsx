@@ -57,7 +57,7 @@ export function DocNavSection({
         ? groups.map((group) => (
             <div className="doc-nav-group" key={group.category || "loose"}>
               {group.category ? (
-                <p className="doc-nav-group-title">{group.category}</p>
+                <p className="doc-nav-group-title">{group.category_label}</p>
               ) : null}
               {list(group.items)}
             </div>

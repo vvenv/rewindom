@@ -59,8 +59,8 @@
     "register": "Create account"
   },
   "admin": {
-    "nav": "Site members",
-    "title": "Site members",
+    "nav": "Members",
+    "title": "Members",
     "description": "Members who registered on your site. Enable, disable, or reset passwords.",
     "searchPlaceholder": "Search by email or name",
     "enabled": "Enabled",

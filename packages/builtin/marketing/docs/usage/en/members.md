@@ -1,7 +1,7 @@
 ---
 title: Site members
 description: Member accounts, sign-in options and members-only content
-category: Build and operate
+category: build-operate
 sort_order: 80
 ---
 

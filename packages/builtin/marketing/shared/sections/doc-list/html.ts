@@ -74,7 +74,7 @@ export const renderDocListHtml: SectionHtmlRenderer = (section, ctx) => {
       (group) =>
         `<div class="doc-list-group">${
           group.category
-            ? `<h3 class="doc-list-group-title">${escapeHtml(group.category)}</h3>`
+            ? `<h3 class="doc-list-group-title">${escapeHtml(group.category_label)}</h3>`
             : ""
         }${renderItems(group.items)}</div>`,
     )

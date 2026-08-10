@@ -1,7 +1,7 @@
 ---
 title: Documentation library
 description: Creating, publishing and translating docs, plus import and export
-category: Build and operate
+category: build-operate
 sort_order: 70
 ---
 
@@ -84,15 +84,22 @@ and a language filter. With a single language, neither is shown.
 
 ## Categories and ordering
 
-- The index groups by category; the **order of the groups** comes from the sort weight
-  of the first document in each
-- Within a category, documents sort by sort weight, then by title
+- A category is a **site-level entity**: each locale has its own display name, but all
+  languages share the same **category key**. Every translation of a document should pick
+  the same category; visitors see the label for their language.
+- Use **Manage categories** in the document editor to create keys and fill in labels per
+  locale; pick a category from the dropdown when editing a document.
+- The index groups by category; **group order** follows `MarketingDocCategory.sort_order`.
+- Within a category, documents sort by sort weight, then by title.
 - An empty category means **uncategorized**: those documents are listed at the top
   level, always last, and are never swept into a group called "Other". Don't invent
   categories just to fill the field — a category with one document has a heading that
-  separates nothing
+  separates nothing.
 - If every document shares one category, neither the sidebar nor the header dropdown
-  draws category headings
+  draws category headings.
+
+In import/export frontmatter, `category` is the **category key** (e.g. `getting-started`)
+and must already exist under **Manage categories**.
 
 ## Import and export
 
@@ -105,7 +112,7 @@ title: Document title
 slug: quickstart
 locale: en
 description: One-line summary
-category: Category name
+category: getting-started
 sort_order: 10
 ---
 

@@ -1,6 +1,7 @@
 import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
 import { isAppLocale, type AppLocale } from "@be-water/shared";
 
+import { getPageTemplateKind } from "../shared/page-templates.js";
 import {
   localizeSiteText,
   parseAreaSections,
@@ -12,7 +13,6 @@ import {
   type LocalizedText,
   type SiteSection,
 } from "../shared/section-schema.js";
-import { getPageTemplateKind } from "../shared/page-templates.js";
 import {
   canonicalizePageIdentity,
   parsePageSettings as parsePageSettingsSchema,

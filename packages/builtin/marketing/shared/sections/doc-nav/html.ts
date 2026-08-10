@@ -51,7 +51,7 @@ export const renderDocNavHtml: SectionHtmlRenderer = (section, ctx) => {
             (group) =>
               `<div class="doc-nav-group">${
                 group.category
-                  ? `<p class="doc-nav-group-title">${escapeHtml(group.category)}</p>`
+                  ? `<p class="doc-nav-group-title">${escapeHtml(group.category_label)}</p>`
                   : ""
               }${items(group.items)}</div>`,
           )

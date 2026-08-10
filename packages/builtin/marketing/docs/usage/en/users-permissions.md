@@ -1,7 +1,7 @@
 ---
 title: Users and permissions
 description: User management, roles and the RBAC permission model
-category: Platform admin
+category: platform-admin
 sort_order: 110
 ---
 

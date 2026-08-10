@@ -1,7 +1,7 @@
 ---
 title: Installation and deployment
 description: Builds, environment variables, Docker images and single-tenant mode
-category: Getting started
+category: getting-started
 sort_order: 10
 ---
 

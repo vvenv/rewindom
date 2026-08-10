@@ -68,7 +68,7 @@ export function resolveDocList(
  * `enhance/doc-search.ts` 里、按这个属性做，所以那两个也一并去掉。
  */
 export function docSearchHaystack(doc: PublicDocSummary): string {
-  return [doc.title, doc.slug, doc.description, doc.category]
+  return [doc.title, doc.slug, doc.description, doc.category, doc.category_label]
     .join(" ")
     .toLowerCase();
 }

@@ -1,7 +1,7 @@
 ---
 title: 会员系统
 description: 站点会员、登录方式与会员专属内容
-category: 建站与运营
+category: build-operate
 sort_order: 80
 ---
 

@@ -3,6 +3,7 @@ import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/regis
 import { TENANT_MARKETING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { MARKETING_SERVER_I18N } from "./i18n.js";
+import { marketingDocCategoryRoutes } from "./marketing-doc-category.routes.js";
 import { marketingDocRoutes } from "./marketing-doc.routes.js";
 import { publicSiteRoutes } from "./public-site.routes.js";
 import { siteContentRoutes } from "./site-content.routes.js";
@@ -67,6 +68,9 @@ export const marketingServerModule: ServerAppModule = {
         async (scoped) => {
           await scoped.register(siteRoutes, { prefix: "/api/site" });
           await scoped.register(marketingDocRoutes, { prefix: "/api/site" });
+          await scoped.register(marketingDocCategoryRoutes, {
+            prefix: "/api/site",
+          });
         },
       );
       await app.register(marketingSsrRoutes);

@@ -21,6 +21,9 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
       count: vi.fn(),
       create: vi.fn(),
     },
+    marketingDocCategory: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
@@ -253,6 +256,7 @@ describe("listDocs", () => {
   beforeEach(() => {
     vi.mocked(prisma.marketingDoc.findMany).mockReset();
     vi.mocked(prisma.marketingDoc.count).mockReset();
+    vi.mocked(prisma.marketingDocCategory.findMany).mockResolvedValue([]);
   });
 
   it("returns paginated items with facets from the full library", async () => {
@@ -289,6 +293,7 @@ describe("listDocs", () => {
     expect(result.total).toBe(1);
     expect(result.total_all).toBe(2);
     expect(result.categories).toEqual(["入门"]);
+    expect(result.category_catalog).toEqual([]);
     expect(result.locales).toEqual(["zh-CN", "en"]);
     expect(draft.slug).toBe("faq");
   });

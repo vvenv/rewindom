@@ -737,6 +737,9 @@ export type $MarketingDocPayload<ExtArgs extends runtime.Types.Extensions.Intern
     title: string
     description: string
     body_md: string
+    /**
+     * * 分类 key，对应 `MarketingDocCategory.key`；空串表示未分类。
+     */
     category: string
     sort_order: number
     status: string

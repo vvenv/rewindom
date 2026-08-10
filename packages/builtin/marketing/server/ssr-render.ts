@@ -277,7 +277,13 @@ export function renderMarketingHtml(input: {
       <p class="muted" style="margin-bottom:1.5rem">${escapeHtml(page.description || "Sign in to read this content.")}</p>
       <p><a class="btn" href="/member/login?redirect=${encodeURIComponent(localizedPath)}">Sign in</a></p>
     </div>`
-    : renderPageSectionsHtml(site, page, enabledEntitlements, docContext);
+    : renderPageSectionsHtml(
+        site,
+        page,
+        enabledEntitlements,
+        docContext,
+        contributed,
+      );
 
   const mainStyle =
     page.settings.bg_color || page.settings.fg_color

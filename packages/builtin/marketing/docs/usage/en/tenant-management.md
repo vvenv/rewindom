@@ -1,7 +1,7 @@
 ---
 title: Tenant administration
 description: Tenants, quotas, entitlements and domains in the platform console
-category: Platform admin
+category: platform-admin
 sort_order: 100
 ---
 

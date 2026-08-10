@@ -1,7 +1,7 @@
 ---
 title: 安装外部模块
 description: 外部模块的目录结构、边界规则与接入流程
-category: 核心概念
+category: core-concepts
 sort_order: 45
 ---
 

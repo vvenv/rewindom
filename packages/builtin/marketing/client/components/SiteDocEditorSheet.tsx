@@ -1,22 +1,14 @@
 import {
   useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type KeyboardEvent,
   type ReactElement,
   type ReactNode,
 } from "react";
 
+import { ApiError, useConfirm } from "@be-water/client-kit";
 import {
-  ApiError,
-  useConfirm,
-  useMediaQuery,
-  usePersistState,
-} from "@be-water/client-kit";
-import {
-  DEFAULT_LOCALE,
   getLocaleNativeLabel,
   normalizeLocale,
   type AppLocale,
@@ -47,15 +39,19 @@ import { toast } from "@be-water/ui/toast";
 import { cn } from "@be-water/ui/utils";
 import MDEditor from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
-import { Maximize2, Minimize2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 
+import {
+  categoryOptions,
+} from "../../shared/marketing-doc-category.js";
 import {
   docPath,
   type MarketingDocListItem,
 } from "../../shared/marketing-doc.js";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
+import { useSiteDocEditorForm } from "../hooks/use-site-doc-editor-form.js";
 import { useSite } from "../hooks/useSite.js";
 import {
   useCreateSiteDoc,
@@ -64,60 +60,20 @@ import {
   useSiteDocsCatalog,
   useUpdateSiteDoc,
 } from "../hooks/useSiteDocs.js";
-import { collectDocCategories, slugifyDocTitle } from "../lib/site-doc-list.js";
+import { slugifyDocTitle } from "../lib/site-doc-list.js";
 
+import { SiteDocCategorySheet } from "./SiteDocCategorySheet.js";
 import { SitePublishStatus } from "./SitePublishStatus.js";
 
-/** 展开态是编辑习惯，不是一次性选择——记住它，别每次打开都要再点一下。 */
-const FULLSCREEN_STORAGE_KEY = "site_doc_editor_fullscreen";
-
-/** 分类快捷键：超过这个数就不铺了，手打比在一排 chip 里找更快。 */
+/** 分类快捷键：超过这个数就不铺了，下拉比在一排 chip 里找更快。 */
 const MAX_CATEGORY_SUGGESTIONS = 8;
 
-interface DocFormState {
-  slug: string;
-  title: string;
-  description: string;
-  category: string;
-  body_md: string;
-  sort_order: number;
-  locale: AppLocale;
-}
-
-function emptyForm(locale: AppLocale = DEFAULT_LOCALE): DocFormState {
-  return {
-    slug: "",
-    title: "",
-    description: "",
-    category: "",
-    body_md: "",
-    sort_order: 0,
-    locale,
-  };
-}
-
-function isSameForm(a: DocFormState, b: DocFormState): boolean {
-  return (
-    a.slug === b.slug &&
-    a.title === b.title &&
-    a.description === b.description &&
-    a.category === b.category &&
-    a.body_md === b.body_md &&
-    a.sort_order === b.sort_order &&
-    a.locale === b.locale
-  );
-}
-
 /**
- * 文档编辑弹层：create 与 edit 共用，**弹层态 / 全屏态双模式**。
+ * 文档编辑弹层：create 与 edit 共用。
  *
  * 受控组件——`open` / `onOpenChange` 由父级管理。`doc` 为 null 时是新建，否则编辑该
  * 文档（拉取草稿正文填充表单）。编辑模式下只改草稿列——保存后还需点「发布」才上线，
- * 与页面版式系统同口径。
- *
- * 两种模式共用同一棵 DOM，只换 `SheetContent` 的宽度与正文区的预览布局：切换时
- * textarea 不重挂，光标位置、滚动位置、撤销栈都还在。写长文时切全屏（源码 + 预览
- * 并排），回头改个摘要再收回侧栏——这个来回不该让人丢掉正在编辑的上下文。
+ * 与页面版式系统同口径。正文区用 `@uiw/react-md-editor`，全屏与预览由其自带工具栏控制。
  */
 export function SiteDocEditorSheet({
   open,
@@ -133,14 +89,7 @@ export function SiteDocEditorSheet({
   const { t } = useTranslation("marketing");
   const { confirm } = useConfirm();
   const { resolvedTheme } = useTheme();
-  const isWide = useMediaQuery("(min-width: 1024px)");
-  const [fullscreen, setFullscreen] = usePersistState<boolean>({
-    key: FULLSCREEN_STORAGE_KEY,
-    defaultValue: false,
-  });
-  const [form, setForm] = useState<DocFormState>(emptyForm());
-  const [baseline, setBaseline] = useState<DocFormState>(emptyForm());
-  const [slugTouched, setSlugTouched] = useState(false);
+  const [categorySheetOpen, setCategorySheetOpen] = useState(false);
   const isEdit = Boolean(doc);
 
   const create = useCreateSiteDoc();
@@ -150,54 +99,43 @@ export function SiteDocEditorSheet({
   const docsQuery = useSiteDocsCatalog(open);
   const siteQuery = useSite();
   const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
-  const { data: fullDoc, isLoading: isLoadingDoc } = useSiteDoc(
-    open && doc ? doc.id : null,
-  );
+  const { data: fullDoc } = useSiteDoc(open && doc ? doc.id : null);
+  const {
+    form,
+    slugTouched,
+    setSlugTouched,
+    editorKey,
+    isDirty,
+    isLoading: isLoadingDoc,
+    sessionReady,
+    commitBaseline,
+    patchForm,
+  } = useSiteDocEditorForm({
+    open,
+    doc,
+    fullDoc,
+    defaultLocale,
+  });
 
   const categories = useMemo(
-    () => collectDocCategories(docsQuery.data ?? []),
-    [docsQuery.data],
+    () =>
+      categoryOptions(
+        docsQuery.data?.category_catalog ?? [],
+        form.locale,
+        defaultLocale,
+      ),
+    [docsQuery.data?.category_catalog, form.locale, defaultLocale],
   );
 
-  /**
-   * 只在「换了一篇文档」时灌表单。
-   *
-   * 之前是 `[open, doc, fullDoc]` 一变就 `setForm`：保存会 `setQueryData` 刷新
-   * `fullDoc`，于是正在编辑的内容被服务端返回值盖掉。这里用 ref 记住已经灌过哪一篇。
-   */
-  const loadedIdRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!open) {
-      loadedIdRef.current = null;
-      return;
-    }
-    if (doc) {
-      if (!fullDoc || loadedIdRef.current === fullDoc.id) return;
-      const next: DocFormState = {
-        slug: fullDoc.slug,
-        title: fullDoc.title_draft,
-        description: fullDoc.description_draft,
-        category: fullDoc.category_draft,
-        body_md: fullDoc.body_md_draft,
-        sort_order: fullDoc.sort_order_draft,
-        locale: fullDoc.locale,
-      };
-      setForm(next);
-      setBaseline(next);
-      setSlugTouched(true);
-      loadedIdRef.current = fullDoc.id;
-      return;
-    }
-    if (loadedIdRef.current === "new") return;
-    setForm(emptyForm(defaultLocale));
-    setBaseline(emptyForm(defaultLocale));
-    setSlugTouched(false);
-    loadedIdRef.current = "new";
-  }, [open, doc, fullDoc, defaultLocale]);
-
-  const isDirty = !isSameForm(form, baseline);
   const isSaving = create.isPending || update.isPending || publish.isPending;
   const showSkeleton = isEdit && isLoadingDoc;
+  const showForm = sessionReady && !showSkeleton;
+  const categoryKeys = useMemo(
+    () => new Set(categories.map((category) => category.key)),
+    [categories],
+  );
+  const categorySelectReady =
+    !form.category || categoryKeys.has(form.category);
 
   /** 关闭前拦一道：Esc、点遮罩、点关闭都会走到这里。 */
   const handleOpenChange = useCallback(
@@ -244,7 +182,7 @@ export function SiteDocEditorSheet({
         } else {
           toast.success(t(isEdit ? "siteDocs.saved" : "siteDocs.created"));
         }
-        setBaseline(form);
+        commitBaseline();
         onOpenChange(false);
       } catch (error) {
         toast.error(
@@ -252,19 +190,18 @@ export function SiteDocEditorSheet({
         );
       }
     },
-    [create, doc, form, isEdit, onOpenChange, publish, t, update],
+    [commitBaseline, create, doc, form, isEdit, onOpenChange, publish, t, update],
   );
 
   const handleTitleChange = useCallback(
     (value: string): void => {
-      setForm((prev) => ({
+      patchForm((prev) => ({
         ...prev,
         title: value,
-        // 新建且用户没自己动过 slug 时联动；slug 保存后不可改，编辑态不参与
         slug: !isEdit && !slugTouched ? slugifyDocTitle(value) : prev.slug,
       }));
     },
-    [isEdit, slugTouched],
+    [isEdit, patchForm, slugTouched],
   );
 
   /** ⌘S / Ctrl+S 保存——正文编辑器里手离不开键盘。 */
@@ -288,10 +225,7 @@ export function SiteDocEditorSheet({
           "gap-0 p-0",
           // twMerge 会按「相同修饰符 + 相同工具类组」把基础样式里的
           // `data-[side=right]:w-3/4` / `sm:max-w-sm` 顶掉，宽度才真的可控
-          "data-[side=right]:w-full",
-          fullscreen
-            ? "data-[side=right]:sm:max-w-none"
-            : "data-[side=right]:sm:max-w-3xl",
+          "data-[side=right]:w-full data-[side=right]:sm:max-w-3xl",
         )}
       >
         <form
@@ -318,31 +252,6 @@ export function SiteDocEditorSheet({
               </SheetDescription>
             </div>
             <div className="flex shrink-0 items-center gap-1">
-              {/* 窄屏的弹层本来就快占满整屏，没有可展开的余地 */}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="hidden md:inline-flex"
-                title={t(
-                  fullscreen
-                    ? "siteDocs.exitFullscreen"
-                    : "siteDocs.fullscreen",
-                )}
-                aria-label={t(
-                  fullscreen
-                    ? "siteDocs.exitFullscreen"
-                    : "siteDocs.fullscreen",
-                )}
-                aria-pressed={fullscreen}
-                onClick={() => setFullscreen((prev) => !prev)}
-              >
-                {fullscreen ? (
-                  <Minimize2 className="size-4" />
-                ) : (
-                  <Maximize2 className="size-4" />
-                )}
-              </Button>
               <SheetClose asChild>
                 <Button
                   type="button"
@@ -358,19 +267,13 @@ export function SiteDocEditorSheet({
 
           {showSkeleton ? (
             <DocFormSkeleton />
-          ) : (
+          ) : showForm ? (
             <>
               {/*
                 元信息压成一行半的网格：原来四个字段纵向堆叠，正文编辑器被挤到
-                首屏之外，进来第一眼看不到要写的东西。全屏时再摊成一行。
+                首屏之外，进来第一眼看不到要写的东西。
               */}
-              <div
-                className={cn(
-                  // 各列跨度合计 12：6 栏时排两行，全屏 12 栏时并成一行
-                  "grid shrink-0 gap-4 border-b p-4 sm:grid-cols-6",
-                  fullscreen && "xl:grid-cols-12",
-                )}
-              >
+              <div className="grid shrink-0 gap-4 border-b p-4 sm:grid-cols-6">
                 <Field className="sm:col-span-3">
                   <FieldLabel htmlFor="doc-title">
                     {t("siteDocs.title")}
@@ -396,10 +299,7 @@ export function SiteDocEditorSheet({
                     className="font-mono"
                     onChange={(event) => {
                       setSlugTouched(true);
-                      setForm((prev) => ({
-                        ...prev,
-                        slug: event.target.value,
-                      }));
+                      patchForm({ slug: event.target.value });
                     }}
                   />
                   {!isEdit ? (
@@ -421,10 +321,7 @@ export function SiteDocEditorSheet({
                     value={form.locale}
                     disabled={isEdit}
                     onValueChange={(value) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        locale: value as AppLocale,
-                      }))
+                      patchForm({ locale: value as AppLocale })
                     }
                   >
                     <SelectTrigger id="doc-locale">
@@ -440,25 +337,56 @@ export function SiteDocEditorSheet({
                   </Select>
                 </Field>
                 <Field className="sm:col-span-2">
-                  <FieldLabel htmlFor="doc-category">
-                    {t("siteDocs.category")}
-                  </FieldLabel>
-                  <Input
-                    id="doc-category"
-                    value={form.category}
-                    placeholder={t("siteDocs.categoryPlaceholder")}
-                    onChange={(event) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        category: event.target.value,
-                      }))
-                    }
-                  />
+                  <div className="flex items-center justify-between gap-2">
+                    <FieldLabel htmlFor="doc-category">
+                      {t("siteDocs.category")}
+                    </FieldLabel>
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      className="h-auto px-0"
+                      onClick={() => setCategorySheetOpen(true)}
+                    >
+                      {t("siteDocs.manageCategories")}
+                    </Button>
+                  </div>
+                  {categorySelectReady ? (
+                    <Select
+                      value={form.category || "__none__"}
+                      onValueChange={(value) =>
+                        patchForm({
+                          category: value === "__none__" ? "" : value,
+                        })
+                      }
+                    >
+                      <SelectTrigger id="doc-category">
+                        <SelectValue placeholder={t("siteDocs.categoryNone")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">
+                          {t("siteDocs.categoryNone")}
+                        </SelectItem>
+                        {!categoryKeys.has(form.category) && form.category ? (
+                          <SelectItem value={form.category}>
+                            {form.category}
+                          </SelectItem>
+                        ) : null}
+                        {categories.map((category) => (
+                          <SelectItem key={category.key} value={category.key}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Skeleton className="h-9 w-full" />
+                  )}
                   <CategorySuggestions
-                    categories={categories}
+                    options={categories}
                     value={form.category}
                     onPick={(category) =>
-                      setForm((prev) => ({
+                      patchForm((prev) => ({
                         ...prev,
                         category: prev.category === category ? "" : category,
                       }))
@@ -476,11 +404,10 @@ export function SiteDocEditorSheet({
                     inputMode="numeric"
                     value={String(form.sort_order)}
                     onChange={(event) =>
-                      setForm((prev) => ({
-                        ...prev,
+                      patchForm({
                         sort_order:
                           Number.parseInt(event.target.value, 10) || 0,
-                      }))
+                      })
                     }
                   />
                 </Field>
@@ -493,10 +420,7 @@ export function SiteDocEditorSheet({
                     value={form.description}
                     placeholder={t("siteDocs.descriptionPlaceholder")}
                     onChange={(event) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        description: event.target.value,
-                      }))
+                      patchForm({ description: event.target.value })
                     }
                   />
                 </Field>
@@ -512,15 +436,16 @@ export function SiteDocEditorSheet({
                   </span>
                 </div>
                 {/*
-                  `height="100%"` 让编辑器吃满剩余高度（原来写死 400px，全屏时下面
+                  `height="100%"` 让编辑器吃满剩余高度（原来写死 400px，下面
                   一大片空白）。`.w-md-editor-content` 自带 height:100%，在这个
                   flex 列里要改成 flex-1 + min-h-0 才不会把工具条挤扁。
                 */}
                 <MDEditor
+                  key={editorKey}
                   value={form.body_md}
                   height="100%"
                   visibleDragbar={false}
-                  preview={fullscreen && isWide ? "live" : "edit"}
+                  preview="edit"
                   data-color-mode={resolvedTheme === "dark" ? "dark" : "light"}
                   className="min-h-0 flex-1 [&_.w-md-editor-content]:h-auto [&_.w-md-editor-content]:min-h-0 [&_.w-md-editor-content]:flex-1 [&_.w-md-editor-toolbar]:shrink-0"
                   textareaProps={{
@@ -529,13 +454,15 @@ export function SiteDocEditorSheet({
                     id: "doc-body",
                     placeholder: t("siteDocs.bodyPlaceholder"),
                   }}
-                  onChange={(value) =>
-                    setForm((prev) => ({ ...prev, body_md: value ?? "" }))
-                  }
+                  onChange={(value, event) => {
+                    const next = value ?? "";
+                    const trusted = event?.nativeEvent?.isTrusted !== false;
+                    patchForm({ body_md: next }, { user: trusted });
+                  }}
                 />
               </div>
             </>
-          )}
+          ) : null}
 
           <SheetFooter className="flex-row items-center justify-between gap-3 border-t p-4">
             <span className="truncate text-xs text-muted-foreground">
@@ -565,6 +492,10 @@ export function SiteDocEditorSheet({
           </SheetFooter>
         </form>
       </SheetContent>
+      <SiteDocCategorySheet
+        open={categorySheetOpen}
+        onOpenChange={setCategorySheetOpen}
+      />
     </Sheet>
   );
 }
@@ -590,27 +521,27 @@ export function SiteDocCreateSheet({
  * 换成纯下拉反而挡住了「新建分类」这条路。
  */
 function CategorySuggestions({
-  categories,
+  options,
   value,
   onPick,
 }: {
-  categories: readonly string[];
+  options: ReadonlyArray<{ key: string; label: string }>;
   value: string;
-  onPick: (category: string) => void;
+  onPick: (categoryKey: string) => void;
 }): ReactElement | null {
-  if (categories.length === 0) return null;
+  if (options.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-1">
-      {categories.slice(0, MAX_CATEGORY_SUGGESTIONS).map((category) => (
+      {options.slice(0, MAX_CATEGORY_SUGGESTIONS).map((option) => (
         <Button
-          key={category}
+          key={option.key}
           type="button"
           size="xs"
-          variant={value === category ? "secondary" : "ghost"}
+          variant={value === option.key ? "secondary" : "ghost"}
           className="text-muted-foreground"
-          onClick={() => onPick(category)}
+          onClick={() => onPick(option.key)}
         >
-          {category}
+          {option.label}
         </Button>
       ))}
     </div>

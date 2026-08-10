@@ -65,7 +65,7 @@ export interface SiteNavItem {
   label: string | LocalizedText;
   /** 仅 `link`：逻辑路径或外链。 */
   href: string;
-  /** 仅 `doc_category`：分类名，与 `MarketingDoc.category` 逐字匹配。 */
+  /** 仅 `doc_category`：分类 key，与 `MarketingDoc.category` 匹配。 */
   category: string;
   /** 仅动态项。 */
   expand: SiteNavExpand;
@@ -365,9 +365,11 @@ function resolveItem(
       );
       if (docs.length === 0) return [];
       const items = docItems(docs, ctx, item.id);
+      const fallbackLabel =
+        docs[0]?.category_label?.trim() || item.category;
       return item.expand === "flat"
         ? items
-        : [makeLink(item.id, label || item.category, "", ctx, items)];
+        : [makeLink(item.id, label || fallbackLabel, "", ctx, items)];
     }
 
     default:

@@ -1,7 +1,7 @@
 ---
 title: 多租户架构
 description: 租户隔离、数据范围、默认租户与单租户模式
-category: 核心概念
+category: core-concepts
 sort_order: 30
 ---
 

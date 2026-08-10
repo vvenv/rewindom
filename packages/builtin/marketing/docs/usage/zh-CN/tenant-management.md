@@ -1,7 +1,7 @@
 ---
 title: 租户管理
 description: 平台控制台里的租户、配额、功能开关与域名
-category: 平台管理
+category: platform-admin
 sort_order: 100
 ---
 

@@ -50,6 +50,7 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   MarketingAsset: { kind: "tenant_id" },
   MarketingPageVersion: { kind: "tenant_id" },
   MarketingDoc: { kind: "tenant_id" },
+  MarketingDocCategory: { kind: "tenant_id" },
   Subscription: { kind: "tenant_id" },
   Payment: { kind: "tenant_id" },
   DashboardPreference: { kind: "tenant_id" },

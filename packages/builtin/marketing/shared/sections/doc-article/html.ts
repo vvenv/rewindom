@@ -36,7 +36,7 @@ export const renderDocArticleHtml: SectionHtmlRenderer = (section, ctx) => {
 
   const category =
     settingBool(s, "show_category") && doc.category
-      ? `<span class="doc-tag">${escapeHtml(doc.category)}</span>`
+      ? `<span class="doc-tag">${escapeHtml(doc.category_label)}</span>`
       : "";
   const updated = settingBool(s, "show_updated")
     ? `<span>${escapeHtml(messages.updated)} ${escapeHtml(formatDocDate(doc.updated_at, locale))}</span>`

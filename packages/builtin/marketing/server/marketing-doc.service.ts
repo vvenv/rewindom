@@ -49,6 +49,12 @@ import {
   type PublicDocSummary,
   type UpdateMarketingDocBody,
 } from "../shared/marketing-doc.js";
+import {
+  resolveDocCategoryKey,
+  loadCategoryContext,
+  resolveDocCategoryLabel,
+  seedDefaultDocCategories,
+} from "./marketing-doc-category.service.js";
 import { type PageLocaleAlternate } from "../shared/site-cms.js";
 import { siteLocaleOrder, withSiteLocale } from "../shared/site-locale.js";
 
@@ -112,14 +118,26 @@ export function toMarketingDoc(record: MarketingDocRecord): MarketingDoc {
   };
 }
 
-function toListItem(record: MarketingDocRecord): MarketingDocListItem {
+function toListItem(
+  record: MarketingDocRecord,
+  categories: Parameters<typeof resolveDocCategoryLabel>[0],
+  defaultLocale: AppLocale,
+): MarketingDocListItem {
+  const locale = normalizeLocale(record.locale);
+  const category = record.category_draft;
   return {
     id: record.id,
     slug: record.slug,
-    locale: normalizeLocale(record.locale),
+    locale,
     title: record.title_draft,
     description: record.description_draft,
-    category: record.category_draft,
+    category,
+    category_label: resolveDocCategoryLabel(
+      categories,
+      category,
+      locale,
+      defaultLocale,
+    ),
     status: asStatus(record.status),
     content_dirty: isContentDirty(record),
     sort_order: record.sort_order_draft,
@@ -189,18 +207,28 @@ function resolveDocListOrderBy(
   return [{ [column]: dir } as Prisma.MarketingDocOrderByWithRelationInput];
 }
 
-function collectFacets(rows: Array<{ category_draft: string; locale: string }>): {
+function collectFacets(
+  rows: Array<{ category_draft: string; locale: string }>,
+  categories: Parameters<typeof resolveDocCategoryLabel>[0],
+): {
   categories: string[];
   locales: AppLocale[];
 } {
-  const categories = [
-    ...new Set(rows.map((row) => row.category_draft).filter(Boolean)),
-  ].sort((a, b) => a.localeCompare(b));
+  const keys = new Set<string>();
+  for (const row of rows) {
+    if (row.category_draft) keys.add(row.category_draft);
+  }
+  const ordered = categories
+    .map((category) => category.key)
+    .filter((key) => keys.has(key));
+  for (const key of keys) {
+    if (!ordered.includes(key)) ordered.push(key);
+  }
   const seen = new Set(rows.map((row) => row.locale));
   const locales = APP_LOCALES.map((locale) => locale.slug).filter((slug) =>
     seen.has(slug),
   );
-  return { categories, locales };
+  return { categories: ordered, locales };
 }
 
 export async function listDocs(
@@ -212,6 +240,7 @@ export async function listDocs(
   const where = buildDocListWhere(tenant_id, query);
   const orderBy = resolveDocListOrderBy(query.sort_by, query.sort_dir);
   const dirtyOnly = query.status === "dirty";
+  const { categories, defaultLocale } = await loadCategoryContext(tenant_id);
 
   const [facetRows, total_all, matched] = await Promise.all([
     prisma.marketingDoc.findMany({
@@ -232,12 +261,15 @@ export async function listDocs(
         ]),
   ]);
 
-  const { categories, locales } = collectFacets(facetRows);
+  const { categories: categoryKeys, locales } = collectFacets(
+    facetRows,
+    categories,
+  );
 
   if (dirtyOnly) {
     const dirty = (matched as MarketingDocRecord[])
       .filter(isContentDirty)
-      .map(toListItem);
+      .map((record) => toListItem(record, categories, defaultLocale));
     const total = dirty.length;
     const page_count = Math.max(1, Math.ceil(total / page_size) || 1);
     const safePage = Math.min(page, page_count);
@@ -249,7 +281,8 @@ export async function listDocs(
       total,
       page_count,
       total_all,
-      categories,
+      categories: categoryKeys,
+      category_catalog: categories,
       locales,
     };
   }
@@ -257,13 +290,16 @@ export async function listDocs(
   const [records, total] = matched as [MarketingDocRecord[], number];
   const page_count = Math.max(1, Math.ceil(total / page_size) || 1);
   return {
-    items: records.map(toListItem),
+    items: records.map((record) =>
+      toListItem(record, categories, defaultLocale),
+    ),
     page,
     page_size,
     total,
     page_count,
     total_all,
-    categories,
+    categories: categoryKeys,
+    category_catalog: categories,
     locales,
   };
 }
@@ -287,6 +323,9 @@ export async function createDoc(
 ): Promise<MarketingDoc> {
   const parsed = parseCreateDocBody(body);
   const locale = parsed.locale ?? (await resolveDefaultLocale(tenant_id));
+  const category = parsed.category
+    ? await resolveDocCategoryKey(tenant_id, parsed.category)
+    : "";
   try {
     const created = await prisma.marketingDoc.create({
       data: {
@@ -296,13 +335,13 @@ export async function createDoc(
         title: parsed.title,
         description: parsed.description,
         body_md: parsed.body_md,
-        category: parsed.category,
+        category,
         sort_order: parsed.sort_order,
         status: "draft",
         title_draft: parsed.title,
         description_draft: parsed.description,
         body_md_draft: parsed.body_md,
-        category_draft: parsed.category,
+        category_draft: category,
         sort_order_draft: parsed.sort_order,
       },
     });
@@ -340,7 +379,11 @@ export async function updateDoc(
   if (parsed.description !== undefined)
     data.description_draft = parsed.description;
   if (parsed.body_md !== undefined) data.body_md_draft = parsed.body_md;
-  if (parsed.category !== undefined) data.category_draft = parsed.category;
+  if (parsed.category !== undefined) {
+    data.category_draft = parsed.category
+      ? await resolveDocCategoryKey(tenant_id, parsed.category)
+      : "";
+  }
   if (parsed.sort_order !== undefined)
     data.sort_order_draft = parsed.sort_order;
 
@@ -537,6 +580,9 @@ export async function importDocFile(
   const parsed = parseMarkdownFile(filename, raw);
   // 文件自己说了是哪种语言就按它来（`faq.en.md` 或 frontmatter 的 `locale`）
   const locale = parsed.locale ?? (await resolveDefaultLocale(tenant_id));
+  const category = parsed.category
+    ? await resolveDocCategoryKey(tenant_id, parsed.category)
+    : "";
   const existing = await prisma.marketingDoc.findFirst({
     where: withTenantScope(tenant_id, { slug: parsed.slug, locale }),
   });
@@ -547,7 +593,7 @@ export async function importDocFile(
         title_draft: parsed.title,
         description_draft: parsed.description,
         body_md_draft: parsed.body_md,
-        category_draft: parsed.category,
+        category_draft: category,
         // 文件没写 sort_order 就别动既有排序（见 `ParsedMarkdownFile.sort_order`）
         ...(parsed.sort_order === null
           ? {}
@@ -571,13 +617,13 @@ export async function importDocFile(
         title: parsed.title,
         description: parsed.description,
         body_md: parsed.body_md,
-        category: parsed.category,
+        category,
         sort_order,
         status: "draft",
         title_draft: parsed.title,
         description_draft: parsed.description,
         body_md_draft: parsed.body_md,
-        category_draft: parsed.category,
+        category_draft: category,
         sort_order_draft: sort_order,
       },
     });
@@ -622,10 +668,14 @@ export async function seedDocsFromFiles(
   files: ReadonlyArray<{ filename: string; raw: string; locale?: AppLocale }>,
 ): Promise<SeededDoc[]> {
   const default_locale = await resolveDefaultLocale(tenant_id);
+  await seedDefaultDocCategories(tenant_id);
   const results: SeededDoc[] = [];
   for (const file of files) {
     const parsed = parseMarkdownFile(file.filename, file.raw);
     const locale = file.locale ?? default_locale;
+    const category = parsed.category
+      ? await resolveDocCategoryKey(tenant_id, parsed.category)
+      : "";
     // seed 的来源是仓库里排好序的一整套文档，缺省当 0（与导入不同：那里要保护租户的排序）
     const sort_order = parsed.sort_order ?? 0;
     const existing = await prisma.marketingDoc.findFirst({
@@ -640,12 +690,12 @@ export async function seedDocsFromFiles(
           title: parsed.title,
           description: parsed.description,
           body_md: parsed.body_md,
-          category: parsed.category,
+          category,
           sort_order,
           title_draft: parsed.title,
           description_draft: parsed.description,
           body_md_draft: parsed.body_md,
-          category_draft: parsed.category,
+          category_draft: category,
           sort_order_draft: sort_order,
         },
       });
@@ -660,13 +710,13 @@ export async function seedDocsFromFiles(
             title: parsed.title,
             description: parsed.description,
             body_md: parsed.body_md,
-            category: parsed.category,
+            category,
             sort_order,
             status: "published",
             title_draft: parsed.title,
             description_draft: parsed.description,
             body_md_draft: parsed.body_md,
-            category_draft: parsed.category,
+            category_draft: category,
             sort_order_draft: sort_order,
           },
         });
@@ -745,26 +795,45 @@ export async function getAllDocsForExport(
  * 参数按**结构**收而不是收整条 `MarketingDocRecord`：目录查询已经用 `select` 只取
  * 这几列（不拉 `body_md`），要求完整记录就等于逼调用方把正文也查出来。
  */
-function toDocSummary(record: {
-  slug: string;
-  title: string;
-  description: string;
-  category: string;
-  sort_order: number;
-  updated_at: Date;
-}): PublicDocSummary {
+function toDocSummary(
+  record: {
+    slug: string;
+    title: string;
+    description: string;
+    category: string;
+    sort_order: number;
+    updated_at: Date;
+  },
+  categories: Parameters<typeof resolveDocCategoryLabel>[0],
+  locale: AppLocale,
+  defaultLocale: AppLocale,
+): PublicDocSummary {
   return {
     slug: record.slug,
     title: record.title,
     description: record.description,
     category: record.category,
+    category_label: resolveDocCategoryLabel(
+      categories,
+      record.category,
+      locale,
+      defaultLocale,
+    ),
     sort_order: record.sort_order,
     updated_at: record.updated_at.toISOString(),
   };
 }
 
-function toDocDetail(record: MarketingDocRecord): PublicDocDetail {
-  return { ...toDocSummary(record), body_md: record.body_md };
+function toDocDetail(
+  record: MarketingDocRecord,
+  categories: Parameters<typeof resolveDocCategoryLabel>[0],
+  locale: AppLocale,
+  defaultLocale: AppLocale,
+): PublicDocDetail {
+  return {
+    ...toDocSummary(record, categories, locale, defaultLocale),
+    body_md: record.body_md,
+  };
 }
 
 /**
@@ -924,6 +993,7 @@ export async function listPublishedDocs(
 }> {
   const default_locale = await resolveDefaultLocale(tenant_id);
   const current = locale ?? default_locale;
+  const { categories } = await loadCategoryContext(tenant_id);
   const records = await prisma.marketingDoc.findMany({
     where: withTenantScope(tenant_id, { status: "published" }),
     orderBy: [{ sort_order: "asc" }, { title: "asc" }],
@@ -946,7 +1016,9 @@ export async function listPublishedDocs(
   const effective = docsInLocale(records, current, default_locale);
   return {
     // 列表不带正文：几百篇文档的 `body_md` 是几 MB 的无用 payload
-    docs: effective.docs.map(toDocSummary),
+    docs: effective.docs.map((record) =>
+      toDocSummary(record, categories, effective.locale, default_locale),
+    ),
     locale: effective.locale,
   };
 }
@@ -959,6 +1031,7 @@ export async function getPublishedDoc(
 ): Promise<{ doc: PublicDocDetail; locale: AppLocale } | null> {
   const default_locale = await resolveDefaultLocale(tenant_id);
   const current = locale ?? default_locale;
+  const { categories } = await loadCategoryContext(tenant_id);
   const records = await prisma.marketingDoc.findMany({
     where: withTenantScope(tenant_id, { status: "published", slug }),
   });
@@ -972,9 +1045,10 @@ export async function getPublishedDoc(
   );
   const match = inLocale ?? fallback;
   if (!match) return null;
+  const effectiveLocale = inLocale ? current : default_locale;
   return {
-    doc: toDocDetail(match),
-    locale: inLocale ? current : default_locale,
+    doc: toDocDetail(match, categories, effectiveLocale, default_locale),
+    locale: effectiveLocale,
   };
 }
 

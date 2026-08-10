@@ -29,7 +29,26 @@
 | 模型            | 说明                                                                                                                                           |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `chrome_dirty`）。导航条目嵌在页头 / 页脚列的 `settings.items` 里 |
-| `MarketingPage` | `kind`: `home` \| `page`；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退） |
+| `MarketingPage` | `kind`: `home` \| `page` \| **模板页 kind**（见下）；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退） |
+
+### 模板页（`shared/page-templates.ts`）
+
+「kind 唯一、slug 固定」的那一类页面：文档库的 `/docs` 与 `/docs/:slug`，以及业务模块
+贡献的（如 site-member 的 `/member/login`）。与普通页面只差三条：
+
+- **地址不由租户填**——kind 决定 slug（`validatePageSlug` 按注册表锁死）
+- **每种语言最多一张**——重复建页报 `site.template_page_exists`
+- **可以有一段必备段**——`required_section` 声明后，编辑器不给删，服务端保存时校验
+  「有且仅有一段」（`site.template_section_required`）；段自己用 `page_kinds` 声明
+  只能落在哪张页面上
+
+版式本身仍是普通的 section 流，租户在同一个编辑器里排、同一套发布流程上线。
+
+**默认不落库**：没有记录是常态而不是异常——那时各自的 SSR 用内置预设版式渲染
+（`registerPageTemplatePreset`），所以新增模板页种类**不需要数据迁移**。
+
+注册表定义在 marketing，业务模块自己填（同 `registerSectionDefinition` 的方向）：
+`/member/login` 的版式属于 site-member，marketing 不认识「会员」这个概念。
 
 ### Section schema（唯一真相源）
 

@@ -1,7 +1,7 @@
 ---
 title: 用户与权限
 description: 用户管理、角色与 RBAC 权限体系
-category: 平台管理
+category: platform-admin
 sort_order: 110
 ---
 

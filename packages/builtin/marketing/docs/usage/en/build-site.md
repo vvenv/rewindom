@@ -1,7 +1,7 @@
 ---
 title: Building a site
 description: Starters, themes, header and footer, navigation
-category: Build and operate
+category: build-operate
 sort_order: 50
 ---
 

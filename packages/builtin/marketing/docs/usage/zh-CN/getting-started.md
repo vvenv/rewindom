@@ -1,7 +1,7 @@
 ---
 title: 快速入门
 description: 十分钟在本地把平台跑起来，并弄清「从哪个地址进」
-category: 快速入门
+category: getting-started
 sort_order: 0
 ---
 

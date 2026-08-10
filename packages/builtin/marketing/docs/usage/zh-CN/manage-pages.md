@@ -1,7 +1,7 @@
 ---
 title: 页面与版式
 description: Section 系统、分栏、草稿发布与页面预设
-category: 建站与运营
+category: build-operate
 sort_order: 60
 ---
 

@@ -15,6 +15,7 @@
 import { isAppLocale, normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import { resolveLocaleSegment } from "./site-locale.js";
+import type { MarketingDocCategory } from "./marketing-doc-category.js";
 
 export type MarketingDocStatus = "draft" | "published";
 
@@ -51,7 +52,10 @@ export interface MarketingDocListItem {
   locale: AppLocale;
   title: string;
   description: string;
+  /** 分类 key；空串表示未分类。 */
   category: string;
+  /** 当前列表语境下的分类显示名（管理端表格 / 筛选用）。 */
+  category_label: string;
   status: MarketingDocStatus;
   content_dirty: boolean;
   sort_order: number;
@@ -79,8 +83,10 @@ export interface MarketingDocListResult {
   page_count: number;
   /** 未筛选的总数：用来区分「一篇都没有」与「筛空了」。 */
   total_all: number;
-  /** 全库分类 / 语言（不受当前筛选影响），供筛选 chip 使用。 */
+  /** 全库分类 key / 语言（不受当前筛选影响），供筛选 chip 使用。 */
   categories: string[];
+  /** 分类目录（含多语言 label），供筛选与编辑器下拉使用。 */
+  category_catalog: MarketingDocCategory[];
   locales: AppLocale[];
 }
 
@@ -406,7 +412,10 @@ export interface PublicDocSummary {
   slug: string;
   title: string;
   description: string;
+  /** 分类 key；空串表示未分类。 */
   category: string;
+  /** 当前语言下的分类显示名。 */
+  category_label: string;
   sort_order: number;
   updated_at: string;
 }
@@ -444,16 +453,17 @@ export function docsInLocale<T extends { locale: unknown }>(
 }
 
 /**
- * 按分类分组，**保持传入顺序**（服务端已按 category / sort_order / title 排好）。
+ * 按分类 key 分组，**保持传入顺序**（服务端已按 category / sort_order / title 排好）。
  *
  * 没填分类的收在**最后一组**且 `category` 为空串——这一组是「散条目」，不是一个
- * 叫「其它」的分类：目录里凭空多出一个谁都没建过的分类名，比几条没有归属的文档
- * 更让人困惑，而各处渲染看到空标题就直接把条目铺在顶层（见 `doc-nav` / `doc-list`）。
- * 恒排最后是因为分类过的那些才是目录的骨架，散条目挂在骨架后面。
+ * 叫「其它」的分类。`category_label` 来自组内第一篇文档；空组标题直接铺在顶层。
  */
-export function groupDocsByCategory<T extends { category: string }>(
+export function groupDocsByCategory<T extends {
+  category: string;
+  category_label?: string;
+}>(
   docs: readonly T[],
-): Array<{ category: string; items: T[] }> {
+): Array<{ category: string; category_label: string; items: T[] }> {
   const grouped = new Map<string, T[]>();
   const loose: T[] = [];
   for (const doc of docs) {
@@ -465,16 +475,22 @@ export function groupDocsByCategory<T extends { category: string }>(
     if (list) list.push(doc);
     else grouped.set(doc.category, [doc]);
   }
-  const out = [...grouped].map(([category, items]) => ({ category, items }));
-  if (loose.length > 0) out.push({ category: "", items: loose });
+  const out = [...grouped].map(([category, items]) => ({
+    category,
+    category_label: items[0]?.category_label ?? category,
+    items,
+  }));
+  if (loose.length > 0) {
+    out.push({ category: "", category_label: "", items: loose });
+  }
   return out;
 }
 
 /**
- * 现有分类名（去重、保持传入顺序，不含未分类）。
+ * 现有分类 key（去重、保持传入顺序，不含未分类）。
  *
- * 编辑器给 `doc_category` 菜单项当候选：那个字段是**逐字匹配** `MarketingDoc.category`
- * 的，打错一个字的表现是整条菜单项静默消失，不该靠租户自己去文档库抄。
+ * 编辑器给 `doc_category` 菜单项当候选：那个字段存的是 **key**，显示名由
+ * `MarketingDocCategory.label` 解析。
  */
 export function docCategories(docs: readonly { category: string }[]): string[] {
   return [...new Set(docs.map((doc) => doc.category).filter(Boolean))];

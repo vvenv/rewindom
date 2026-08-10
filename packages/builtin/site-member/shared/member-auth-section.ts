@@ -17,8 +17,8 @@ import {
 
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
 
-import type { SectionRenderContext } from "../../marketing/shared/sections/render-context.js";
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
+import type { SectionRenderContext } from "../../marketing/shared/sections/render-context.js";
 
 export const MEMBER_LOGIN_FORM_SECTION_TYPE = "site-member.login-form";
 export const MEMBER_REGISTER_FORM_SECTION_TYPE = "site-member.register-form";

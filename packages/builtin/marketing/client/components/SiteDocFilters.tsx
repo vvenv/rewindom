@@ -8,22 +8,30 @@ import { useTranslation } from "react-i18next";
 
 import type { SiteDocFilterState } from "../lib/site-doc-list.js";
 
+import type { MarketingDocCategory } from "../../shared/marketing-doc-category.js";
+import { categoryLabelMap } from "../../shared/marketing-doc-category.js";
+
 /** 分类 chip 超过这个数就折叠——分类是租户自定义的，可能有十几个。 */
 const MAX_VISIBLE_CATEGORIES = 6;
 
 export function SiteDocFilters({
   filters,
   categories,
+  categoryCatalog,
   locales,
+  defaultLocale,
   onFiltersChange,
 }: {
   filters: SiteDocFilterState;
   categories: readonly string[];
+  categoryCatalog: readonly MarketingDocCategory[];
   /** 列表里出现过的语言；只有一种时这组 chip 不渲染。 */
   locales: readonly AppLocale[];
+  defaultLocale: AppLocale;
   onFiltersChange: (filters: SiteDocFilterState) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
+  const labelMap = categoryLabelMap(categoryCatalog, defaultLocale, defaultLocale);
 
   const statusOptions = optionsFromLabels([
     { value: "", label: t("siteDocs.filterStatusAll") },
@@ -34,7 +42,10 @@ export function SiteDocFilters({
 
   const categoryOptions = optionsFromLabels([
     { value: "", label: t("siteDocs.filterCategoryAll") },
-    ...categories.map((category) => ({ value: category, label: category })),
+    ...categories.map((category) => ({
+      value: category,
+      label: labelMap.get(category) ?? category,
+    })),
   ]);
 
   const localeOptions = optionsFromLabels([

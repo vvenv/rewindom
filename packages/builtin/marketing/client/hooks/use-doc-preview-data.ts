@@ -42,7 +42,8 @@ export function useDocPreviewData(
     queryFn: fetchSiteDocsCatalog,
     enabled,
   });
-  const items = docsQuery.data ?? [];
+  const catalog = docsQuery.data;
+  const items = catalog?.items ?? [];
   const published = items.filter((item) => item.status === "published");
   /*
    * 只留正在编辑的这个语言（整库回落主语言，口径同 SSR 的 `listPublishedDocs`）：
@@ -63,6 +64,7 @@ export function useDocPreviewData(
     title: item.title,
     description: item.description,
     category: item.category,
+    category_label: item.category_label,
     sort_order: item.sort_order,
     updated_at: item.updated_at,
   }));
@@ -77,6 +79,7 @@ export function useDocPreviewData(
             title: sample.title_draft || sample.title,
             description: sample.description_draft || sample.description,
             category: sample.category_draft || sample.category,
+            category_label: sample.category_draft || sample.category,
             sort_order: sample.sort_order_draft,
             updated_at: sample.updated_at,
             body_md: sample.body_md_draft || sample.body_md,
@@ -86,6 +89,7 @@ export function useDocPreviewData(
             title: t("editor.docSample.title"),
             description: t("editor.docSample.description"),
             category: t("editor.docSample.category"),
+            category_label: t("editor.docSample.category"),
             sort_order: 0,
             updated_at: new Date().toISOString(),
             body_md: t("editor.docSample.body"),
@@ -97,12 +101,14 @@ export function useDocPreviewData(
 
 /** 零文档时的示例目录：让侧栏 / 列表在预览里有东西可画。 */
 function SAMPLE_DOCS(t: (key: string) => string): PublicDocSummary[] {
+  const label = t("editor.docSample.category");
   return [
     {
       slug: "sample",
       title: t("editor.docSample.title"),
       description: t("editor.docSample.description"),
-      category: t("editor.docSample.category"),
+      category: label,
+      category_label: label,
       sort_order: 0,
       updated_at: new Date().toISOString(),
     },

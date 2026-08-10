@@ -2,6 +2,7 @@ import { useCallback, useRef, useState, type ReactElement } from "react";
 
 import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
+import { normalizeLocale } from "@be-water/shared";
 import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
 import { FileText, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +17,7 @@ import { SiteDocTransferActions } from "../components/SiteDocTransferActions.js"
 import { useSiteDocActions } from "../hooks/use-site-doc-actions.js";
 import { useSiteDocsPage } from "../hooks/use-site-docs-page.js";
 import { useSiteDocs } from "../hooks/useSiteDocs.js";
+import { useSite } from "../hooks/useSite.js";
 
 import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
 import type { AppLocale } from "@be-water/shared";
@@ -57,20 +59,27 @@ export function SiteDocs(): ReactElement {
   const actions = useSiteDocActions();
 
   // 筛选切换时 data 短暂为空：用上一轮 facets，避免筛选栏整块卸载再挂载
+  const siteQuery = useSite();
+  const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
+
   const facetsRef = useRef<{
     total_all: number;
     categories: string[];
+    category_catalog: import("../../shared/marketing-doc-category.js").MarketingDocCategory[];
     locales: AppLocale[];
-  }>({ total_all: 0, categories: [], locales: [] });
+  }>({ total_all: 0, categories: [], category_catalog: [], locales: [] });
   if (data) {
     facetsRef.current = {
       total_all: data.total_all,
       categories: data.categories,
+      category_catalog: data.category_catalog,
       locales: data.locales,
     };
   }
   const totalAll = data?.total_all ?? facetsRef.current.total_all;
   const categories = data?.categories ?? facetsRef.current.categories;
+  const categoryCatalog =
+    data?.category_catalog ?? facetsRef.current.category_catalog;
   const locales = data?.locales ?? facetsRef.current.locales;
 
   const [editingDoc, setEditingDoc] = useState<MarketingDocListItem | null>(
@@ -119,7 +128,9 @@ export function SiteDocs(): ReactElement {
           <SiteDocFilters
             filters={filters}
             categories={categories}
+            categoryCatalog={categoryCatalog}
             locales={locales}
+            defaultLocale={defaultLocale}
             onFiltersChange={handleFiltersChange}
           />
         ) : null}

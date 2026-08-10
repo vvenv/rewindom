@@ -20,7 +20,8 @@ const DOCS = [
     slug: "install",
     title: "安装",
     description: "五分钟装好",
-    category: "入门",
+    category: "intro",
+    category_label: "入门",
     sort_order: 0,
     updated_at: "2026-03-01T00:00:00.000Z",
   },
@@ -28,7 +29,8 @@ const DOCS = [
     slug: "modules",
     title: "模块",
     description: "",
-    category: "进阶",
+    category: "advanced",
+    category_label: "进阶",
     sort_order: 0,
     updated_at: "2026-03-02T00:00:00.000Z",
   },
@@ -40,6 +42,7 @@ const LOOSE = {
   title: "更新日志",
   description: "",
   category: "",
+  category_label: "",
   sort_order: 9,
   updated_at: "2026-03-03T00:00:00.000Z",
 };
@@ -94,7 +97,7 @@ describe("doc-list", () => {
   });
 
   it("按分类筛选，只列那一类", () => {
-    const html = render("doc-list", { category: "进阶" }, { docs: DOCS });
+    const html = render("doc-list", { category: "advanced" }, { docs: DOCS });
     expect(html).toContain(docPath("modules"));
     expect(html).not.toContain(docPath("install"));
   });
@@ -140,7 +143,9 @@ describe("doc-list", () => {
   // 页头搜索跳过来的 `?q=` 靠这个属性过滤，缺了等于搜索整个失灵
   it("每条都带可搜索文本，供页头搜索落地时过滤", () => {
     const html = render("doc-list", {}, { docs: DOCS });
-    expect(html).toContain(`data-doc-search="安装 install 五分钟装好 入门"`);
+    expect(html).toContain(
+      `data-doc-search="安装 install 五分钟装好 intro 入门"`,
+    );
   });
 });
 

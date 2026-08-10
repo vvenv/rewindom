@@ -17,7 +17,8 @@ const listResult: MarketingDocListResult = {
       slug: "quickstart",
       title: "快速开始",
       description: "",
-      category: "入门",
+      category: "intro",
+      category_label: "入门",
       locale: "zh-CN",
       status: "published",
       content_dirty: false,
@@ -30,6 +31,7 @@ const listResult: MarketingDocListResult = {
       title: "FAQ",
       description: "",
       category: "",
+      category_label: "",
       locale: "zh-CN",
       status: "draft",
       content_dirty: false,
@@ -42,7 +44,18 @@ const listResult: MarketingDocListResult = {
   total: 2,
   page_count: 1,
   total_all: 2,
-  categories: ["入门"],
+  categories: ["intro"],
+  category_catalog: [
+    {
+      id: "cat-1",
+      tenant_id: "t1",
+      key: "intro",
+      label: "入门",
+      sort_order: 0,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    },
+  ],
   locales: ["zh-CN"],
 };
 
@@ -68,6 +81,12 @@ vi.mock("@be-water/client-kit", async (importOriginal) => {
 });
 
 const useSiteDocsMock = vi.fn();
+
+vi.mock("../hooks/useSite.js", () => ({
+  useSite: () => ({
+    data: { default_locale: "zh-CN" },
+  }),
+}));
 
 vi.mock("../hooks/useSiteDocs.js", () => ({
   useSiteDocs: (query: unknown) => useSiteDocsMock(query),

@@ -60,6 +60,17 @@ server {
         try_files $uri =404;
     }
 
+    # 会员登录 / 注册页：租户可排版的 SSR 模板页，必须进后端（其余 /member/* 仍是 SPA）。
+    # 必须与 `SITE_SSR_EXCEPTION_PATHS`（packages/builtin/marketing/shared/site-locale.ts）一致。
+    location ~ ^/member/(login|register)$ {
+        error_page 418 = @tenant_ssr;
+        if ($use_tenant_ssr = 1) {
+            return 418;
+        }
+        try_files $uri /index.html;
+        add_header Cache-Control "no-cache" always;
+    }
+
     # 应用壳层路径：仍走 SPA，不进 Marketing SSR。
     # 必须与 `SITE_APP_PREFIXES`（packages/modules/marketing/shared/site-locale.ts）保持一致。
     location ~ ^/(app|login|register|auth|member|platform)(/|$) {

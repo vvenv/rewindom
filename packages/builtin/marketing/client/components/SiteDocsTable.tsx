@@ -214,7 +214,7 @@ function buildColumns(
       meta: { className: "hidden lg:table-cell" },
       cell: ({ row }) =>
         row.original.category ? (
-          <Badge variant="outline">{row.original.category}</Badge>
+          <Badge variant="outline">{row.original.category_label}</Badge>
         ) : (
           <span className="text-muted-foreground">—</span>
         ),

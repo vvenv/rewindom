@@ -1,7 +1,7 @@
 ---
 title: Multi-tenancy
 description: Tenant isolation, data scoping, the default tenant and single-tenant mode
-category: Core concepts
+category: core-concepts
 sort_order: 30
 ---
 

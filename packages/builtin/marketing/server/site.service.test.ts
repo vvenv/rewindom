@@ -1,6 +1,9 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { registerPageTemplateKind } from "../shared/page-templates.js";
+import { registerSectionDefinition } from "../shared/section-schema.js";
+
 import {
   applySiteStarter,
   duplicatePage,
@@ -187,7 +190,7 @@ describe("duplicatePage", () => {
 
     await expect(
       duplicatePage(TENANT, "page-1", { title: "文档副本" }),
-    ).rejects.toThrow("site.doc_template_exists");
+    ).rejects.toThrow("site.template_page_exists");
     expect(prisma.marketingPage.create).not.toHaveBeenCalled();
   });
 
@@ -327,6 +330,93 @@ describe("saveEditorDraft", () => {
       .calls[0]?.[0] as unknown as { data: Record<string, unknown> };
     expect(data.data.settings_draft).toEqual({ bg_color: "#101010" });
     expect(data.data.settings).toBeUndefined();
+  });
+
+  /*
+   * 模板页的必备段：编辑器已经不给删，但校验必须**同时**落在服务端——中台之外还有
+   * API，而这条约束一旦破掉，租户是在自己的登录页上发现的（表单没了 = 登不进来）。
+   */
+  describe("模板页的必备段", () => {
+    // 定义与登记都是幂等的，但必须是**同一个对象**——注册表对撞名直接抛
+    const REQUIRED = "demo.required-form";
+    const requiredSection = {
+      type: REQUIRED,
+      label: "demo:required",
+      placements: ["page"] as const,
+      page_kinds: ["demo_template"],
+      settings: [],
+    };
+    const templateKind = {
+      kind: "demo_template",
+      slug: "demo-template",
+      path: "/demo/template",
+      group: "demo:group",
+      label: "demo:label",
+      required_section: REQUIRED,
+    };
+
+    beforeEach(() => {
+      registerSectionDefinition(requiredSection);
+      registerPageTemplateKind(templateKind);
+      vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue({
+        ...pageRow,
+        kind: "demo_template",
+        slug: "demo-template",
+      } as never);
+    });
+
+    const draft = (sections: unknown[]) => ({
+      title: "登录",
+      description: "",
+      sections,
+      header: [],
+      footer: [],
+    });
+
+    it("删掉必备段直接拒绝保存", async () => {
+      await expect(
+        saveEditorDraft(TENANT, "page-1", draft([])),
+      ).rejects.toThrow("site.template_section_required");
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it("留两段也拒绝——两个都能提交的表单，错误落在哪个由 DOM 顺序决定", async () => {
+      await expect(
+        saveEditorDraft(
+          TENANT,
+          "page-1",
+          draft([
+            { type: REQUIRED, settings: {}, blocks: [] },
+            { type: REQUIRED, settings: {}, blocks: [] },
+          ]),
+        ),
+      ).rejects.toThrow("site.template_section_required");
+    });
+
+    it("有且仅有一段就放行，别的段随便加", async () => {
+      await saveEditorDraft(
+        TENANT,
+        "page-1",
+        draft([
+          { type: "hero", settings: { headline: "欢迎" }, blocks: [] },
+          { type: REQUIRED, settings: {}, blocks: [] },
+        ]),
+      );
+      expect(prisma.$transaction).toHaveBeenCalledOnce();
+    });
+
+    it("声明了 page_kinds 的段不能落在别的页面上", async () => {
+      vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
+        pageRow as never,
+      );
+      await expect(
+        saveEditorDraft(
+          TENANT,
+          "page-1",
+          draft([{ type: REQUIRED, settings: {}, blocks: [] }]),
+        ),
+      ).rejects.toThrow("site.section_page_kind_invalid");
+    });
   });
 });
 

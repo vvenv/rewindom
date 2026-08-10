@@ -1,7 +1,7 @@
 ---
 title: Getting started
 description: Run the platform locally in ten minutes, and learn which address to open
-category: Getting started
+category: getting-started
 sort_order: 0
 ---
 

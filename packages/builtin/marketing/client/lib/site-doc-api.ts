@@ -9,6 +9,11 @@ import type {
   MarketingDocListResult,
   UpdateMarketingDocBody,
 } from "../../shared/marketing-doc.js";
+import type {
+  CreateMarketingDocCategoryBody,
+  MarketingDocCategory,
+  UpdateMarketingDocCategoryBody,
+} from "../../shared/marketing-doc-category.js";
 
 export const SITE_DOCS_QUERY_KEY = ["site", "docs"] as const;
 
@@ -31,11 +36,17 @@ export function fetchSiteDocs(
 }
 
 /** 需要整库目录时用（分类建议、翻译组、页头文档导航）。 */
-export function fetchSiteDocsCatalog(): Promise<MarketingDocListItem[]> {
+export function fetchSiteDocsCatalog(): Promise<{
+  items: MarketingDocListItem[];
+  category_catalog: MarketingDocCategory[];
+}> {
   return fetchSiteDocs({
     page: 1,
     page_size: SITE_DOCS_CATALOG_PAGE_SIZE,
-  }).then((result) => result.items);
+  }).then((result) => ({
+    items: result.items,
+    category_catalog: result.category_catalog,
+  }));
 }
 
 export function fetchSiteDoc(docId: string): Promise<MarketingDoc> {
@@ -107,4 +118,35 @@ export function fetchAllDocsForExport(): Promise<{
   return api.get<{
     docs: Array<{ filename: string; markdown: string; title: string }>;
   }>("/site/docs-export-all");
+}
+
+export const SITE_DOC_CATEGORIES_QUERY_KEY = [
+  ...SITE_DOCS_QUERY_KEY,
+  "categories",
+] as const;
+
+export function fetchSiteDocCategories(): Promise<MarketingDocCategory[]> {
+  return api.get<MarketingDocCategory[]>("/site/doc-categories");
+}
+
+export function createSiteDocCategory(
+  body: CreateMarketingDocCategoryBody,
+): Promise<MarketingDocCategory> {
+  return api.post<MarketingDocCategory>("/site/doc-categories", body);
+}
+
+export function updateSiteDocCategory(
+  categoryId: string,
+  body: UpdateMarketingDocCategoryBody,
+): Promise<MarketingDocCategory> {
+  return api.patch<MarketingDocCategory>(
+    `/site/doc-categories/${categoryId}`,
+    body,
+  );
+}
+
+export function deleteSiteDocCategory(
+  categoryId: string,
+): Promise<{ ok: boolean }> {
+  return api.delete<{ ok: boolean }>(`/site/doc-categories/${categoryId}`);
 }

@@ -59,8 +59,8 @@
     "register": "注册"
   },
   "admin": {
-    "nav": "站点会员",
-    "title": "站点会员",
+    "nav": "会员",
+    "title": "会员",
     "description": "在站点前台注册的会员。可启用、停用或重置密码。",
     "searchPlaceholder": "按邮箱或昵称搜索",
     "enabled": "启用",

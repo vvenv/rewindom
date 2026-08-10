@@ -154,6 +154,25 @@ model MarketingPageVersion {
 }
 
 /**
+ * 文档库分类：稳定 key + 多语言显示名。
+ *
+ * 各语言版本的文档共用同一个 `key`（存在 `MarketingDoc.category`），显示名走
+ * `label`（纯字符串或 `{ __i18n }`）。与「每语言各填一个分类名字符串」解耦。
+ */
+model MarketingDocCategory {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  key        String
+  label      Json
+  sort_order Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([tenant_id, key])
+  @@index([tenant_id, sort_order])
+}
+
+/**
  * 租户文档库里的一篇文档。
  *
  * 与 `MarketingPage`（页面版式系统）解耦：文档就是「标题 + Markdown 正文」，
@@ -180,6 +199,7 @@ model MarketingDoc {
   title             String
   description       String   @default("")
   body_md           String   @default("")
+  /** 分类 key，对应 `MarketingDocCategory.key`；空串表示未分类。 */
   category          String   @default("")
   sort_order        Int      @default(0)
   status            String   @default("draft")

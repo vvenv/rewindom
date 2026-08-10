@@ -1,7 +1,7 @@
 ---
 title: Installing an external module
 description: Layout, boundary rules and the wiring steps for external modules
-category: Core concepts
+category: core-concepts
 sort_order: 45
 ---
 

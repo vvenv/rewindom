@@ -2,12 +2,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   SITE_DOCS_QUERY_KEY,
+  SITE_DOC_CATEGORIES_QUERY_KEY,
   createSiteDoc,
+  createSiteDocCategory,
   deleteSiteDoc,
+  deleteSiteDocCategory,
   duplicateSiteDoc,
   exportSiteDoc,
   fetchAllDocsForExport,
   fetchSiteDoc,
+  fetchSiteDocCategories,
   fetchSiteDocs,
   fetchSiteDocsCatalog,
   importSiteDocs,
@@ -15,6 +19,7 @@ import {
   revertSiteDoc,
   unpublishSiteDoc,
   updateSiteDoc,
+  updateSiteDocCategory,
 } from "../lib/site-doc-api.js";
 
 import type {
@@ -23,6 +28,10 @@ import type {
   MarketingDocListQuery,
   UpdateMarketingDocBody,
 } from "../../shared/marketing-doc.js";
+import type {
+  CreateMarketingDocCategoryBody,
+  UpdateMarketingDocCategoryBody,
+} from "../../shared/marketing-doc-category.js";
 
 const DOC_FILTER_KEY_NAMES = ["q", "category", "status", "locale"] as const;
 
@@ -64,6 +73,60 @@ export function useSiteDoc(docId: string | null) {
     queryKey: [...SITE_DOCS_QUERY_KEY, docId],
     queryFn: () => fetchSiteDoc(docId!),
     enabled: Boolean(docId),
+  });
+}
+
+export function useSiteDocCategories(enabled = true) {
+  return useQuery({
+    queryKey: SITE_DOC_CATEGORIES_QUERY_KEY,
+    queryFn: fetchSiteDocCategories,
+    enabled,
+  });
+}
+
+export function useCreateSiteDocCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateMarketingDocCategoryBody) =>
+      createSiteDocCategory(body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: SITE_DOCS_QUERY_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: SITE_DOC_CATEGORIES_QUERY_KEY,
+      });
+    },
+  });
+}
+
+export function useUpdateSiteDocCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      categoryId,
+      body,
+    }: {
+      categoryId: string;
+      body: UpdateMarketingDocCategoryBody;
+    }) => updateSiteDocCategory(categoryId, body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: SITE_DOCS_QUERY_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: SITE_DOC_CATEGORIES_QUERY_KEY,
+      });
+    },
+  });
+}
+
+export function useDeleteSiteDocCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (categoryId: string) => deleteSiteDocCategory(categoryId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: SITE_DOCS_QUERY_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: SITE_DOC_CATEGORIES_QUERY_KEY,
+      });
+    },
   });
 }
 

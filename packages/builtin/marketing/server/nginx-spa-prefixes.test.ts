@@ -3,7 +3,10 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { SITE_APP_PREFIXES } from "../shared/site-locale.js";
+import {
+  SITE_APP_PREFIXES,
+  SITE_SSR_EXCEPTION_PATHS,
+} from "../shared/site-locale.js";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../../../..");
 
@@ -41,6 +44,39 @@ describe("SPA 前缀三处对齐", () => {
     );
     expect(matched).not.toBeNull();
     expectCoveredBy(new Set(matched![1]!.split("|")));
+  });
+
+  /*
+   * 例外路径反过来：它们落在应用区前缀下，却**必须**打到后端 SSR。
+   * 少一处的后果是登录页在那个环境下渲染成 SPA 的 404——SPA 上已经没有这两条路由了。
+   */
+  it("nginx 为 SSR 例外路径单开了 location", () => {
+    const conf = read("docker/nginx/default.conf.template");
+    const matched = /location\s+~\s+\^\/member\/\(([^)]+)\)\$/u.exec(conf);
+    expect(matched).not.toBeNull();
+    const covered = new Set(
+      matched![1]!.split("|").map((name) => `/member/${name}`),
+    );
+    expect(
+      SITE_SSR_EXCEPTION_PATHS.filter((path) => !covered.has(path)),
+    ).toEqual([]);
+    // 顺序要紧：写在应用壳层那条 location 之后就永远匹配不到
+    expect(conf.indexOf("location ~ ^/member/")).toBeLessThan(
+      conf.indexOf("location ~ ^/(app|"),
+    );
+  });
+
+  it("vite dev 代理放行 SSR 例外路径", () => {
+    const matched = /SSR_EXCEPTION_PATHS\s*=\s*\[([\s\S]*?)\]\s*as const/u.exec(
+      read("apps/client/vite-marketing-ssr-proxy.ts"),
+    );
+    expect(matched).not.toBeNull();
+    const covered = new Set(
+      [...matched![1]!.matchAll(/"([^"]+)"/gu)].map((m) => m[1]!),
+    );
+    expect(
+      SITE_SSR_EXCEPTION_PATHS.filter((path) => !covered.has(path)),
+    ).toEqual([]);
   });
 
   it("vite dev 代理的 SPA_PREFIX_RE 覆盖全部前缀", () => {

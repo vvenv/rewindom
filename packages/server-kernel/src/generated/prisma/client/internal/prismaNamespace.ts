@@ -416,6 +416,7 @@ export const ModelName = {
   MarketingRedirect: 'MarketingRedirect',
   MarketingAsset: 'MarketingAsset',
   MarketingPageVersion: 'MarketingPageVersion',
+  MarketingDocCategory: 'MarketingDocCategory',
   MarketingDoc: 'MarketingDoc',
   Note: 'Note',
   Notification: 'Notification',
@@ -448,7 +449,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "marketingDoc" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "marketingDocCategory" | "marketingDoc" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1855,6 +1856,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MarketingPageVersionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MarketingPageVersionCountAggregateOutputType> | number
+        }
+      }
+    }
+    MarketingDocCategory: {
+      payload: Prisma.$MarketingDocCategoryPayload<ExtArgs>
+      fields: Prisma.MarketingDocCategoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MarketingDocCategoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MarketingDocCategoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
+        }
+        findFirst: {
+          args: Prisma.MarketingDocCategoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MarketingDocCategoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
+        }
+        findMany: {
+          args: Prisma.MarketingDocCategoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>[]
+        }
+        create: {
+          args: Prisma.MarketingDocCategoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
+        }
+        createMany: {
+          args: Prisma.MarketingDocCategoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MarketingDocCategoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>[]
+        }
+        delete: {
+          args: Prisma.MarketingDocCategoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
+        }
+        update: {
+          args: Prisma.MarketingDocCategoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.MarketingDocCategoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MarketingDocCategoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MarketingDocCategoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.MarketingDocCategoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
+        }
+        aggregate: {
+          args: Prisma.MarketingDocCategoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMarketingDocCategory>
+        }
+        groupBy: {
+          args: Prisma.MarketingDocCategoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingDocCategoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MarketingDocCategoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketingDocCategoryCountAggregateOutputType> | number
         }
       }
     }
@@ -3473,6 +3548,19 @@ export const MarketingPageVersionScalarFieldEnum = {
 export type MarketingPageVersionScalarFieldEnum = (typeof MarketingPageVersionScalarFieldEnum)[keyof typeof MarketingPageVersionScalarFieldEnum]
 
 
+export const MarketingDocCategoryScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  key: 'key',
+  label: 'label',
+  sort_order: 'sort_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MarketingDocCategoryScalarFieldEnum = (typeof MarketingDocCategoryScalarFieldEnum)[keyof typeof MarketingDocCategoryScalarFieldEnum]
+
+
 export const MarketingDocScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -4016,6 +4104,7 @@ export type GlobalOmitConfig = {
   marketingRedirect?: Prisma.MarketingRedirectOmit
   marketingAsset?: Prisma.MarketingAssetOmit
   marketingPageVersion?: Prisma.MarketingPageVersionOmit
+  marketingDocCategory?: Prisma.MarketingDocCategoryOmit
   marketingDoc?: Prisma.MarketingDocOmit
   note?: Prisma.NoteOmit
   notification?: Prisma.NotificationOmit

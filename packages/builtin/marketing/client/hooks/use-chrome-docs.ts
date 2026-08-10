@@ -49,13 +49,16 @@ export function useChromeDocs(
    * 只认已发布的：导航里的文档链接指向公开面，草稿在那儿是 404。预览显示一条点过去
    * 打不开的链接，比不显示更难查。
    */
-  const published = (data ?? []).filter((item) => item.status === "published");
+  const published = (data?.items ?? []).filter(
+    (item) => item.status === "published",
+  );
   // 再按当前语言收一遍，口径与 SSR 的 `listPublishedDocs` 同一个函数
   return docsInLocale(published, locale, defaultLocale).docs.map((item) => ({
     slug: item.slug,
     title: item.title,
     description: item.description,
     category: item.category,
+    category_label: item.category_label,
     sort_order: item.sort_order,
     updated_at: item.updated_at,
   }));

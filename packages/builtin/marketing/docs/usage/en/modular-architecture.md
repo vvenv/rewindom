@@ -1,7 +1,7 @@
 ---
 title: Modular architecture
 description: Built-in modules, external modules, registries and contract checks
-category: Core concepts
+category: core-concepts
 sort_order: 40
 ---
 

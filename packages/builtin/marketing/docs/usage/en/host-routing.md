@@ -1,7 +1,7 @@
 ---
 title: Host-based routing
 description: One process, split by Host into product site, console and tenant sites
-category: Core concepts
+category: core-concepts
 sort_order: 20
 ---
 

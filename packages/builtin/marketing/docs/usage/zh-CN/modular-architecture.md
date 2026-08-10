@@ -1,7 +1,7 @@
 ---
 title: 模块化架构
 description: 内置模块、外部模块、注册表与模块契约校验
-category: 核心概念
+category: core-concepts
 sort_order: 40
 ---
 

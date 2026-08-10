@@ -99,7 +99,7 @@ export function SiteDocDuplicateSheet({
   };
   const docsQuery = useSiteDocsCatalog(open);
   const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
-  const existing = translatedLocales(docsQuery.data, doc.slug);
+  const existing = translatedLocales(docsQuery.data?.items, doc.slug);
   /** 默认选**还没建**的那门语言——复制的常见用途就是补译文。 */
   const suggestedLocale =
     siteLocaleOrder(defaultLocale).find((slug) => !existing.has(slug)) ??

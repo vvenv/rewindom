@@ -1,7 +1,7 @@
 ---
 title: Host 分流机制
 description: 同一个进程按 Host 分流到产品站、控制台与租户站点
-category: 核心概念
+category: core-concepts
 sort_order: 20
 ---
 

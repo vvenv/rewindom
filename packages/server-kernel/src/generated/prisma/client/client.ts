@@ -161,6 +161,15 @@ export type MarketingAsset = Prisma.MarketingAssetModel
  */
 export type MarketingPageVersion = Prisma.MarketingPageVersionModel
 /**
+ * Model MarketingDocCategory
+ * *
+ *  * 文档库分类：稳定 key + 多语言显示名。
+ *  *
+ *  * 各语言版本的文档共用同一个 `key`（存在 `MarketingDoc.category`），显示名走
+ *  * `label`（纯字符串或 `{ __i18n }`）。与「每语言各填一个分类名字符串」解耦。
+ */
+export type MarketingDocCategory = Prisma.MarketingDocCategoryModel
+/**
  * Model MarketingDoc
  * *
  *  * 租户文档库里的一篇文档。

@@ -1,7 +1,7 @@
 ---
 title: 安装与部署
 description: 构建、环境变量、Docker 镜像与单租户部署
-category: 快速入门
+category: getting-started
 sort_order: 10
 ---
 

@@ -17,7 +17,7 @@ import {
   listPageTemplateKinds,
   type PageTemplateKindDefinition,
 } from "../../shared/page-templates.js";
-import { marketingPagePath } from "../../shared/site-cms.js";
+import { marketingPagePath, type MarketingPageListItem  } from "../../shared/site-cms.js";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import { useSiteMutations } from "../hooks/useSite.js";
 import { buildPresetSections } from "../lib/page-presets.js";
@@ -26,7 +26,6 @@ import { SitePageGroupRow } from "./SitePageGroupRow.js";
 
 import type { SitePageActions } from "../hooks/use-site-page-actions.js";
 import type { SitePageGroup } from "../lib/site-page-groups.js";
-import type { MarketingPageListItem } from "../../shared/site-cms.js";
 
 /**
  * 模板页的常驻入口：文档库的两张版式、会员登录 / 注册页的版式……

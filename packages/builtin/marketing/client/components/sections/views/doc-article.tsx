@@ -25,7 +25,7 @@ export function DocArticleSection({
   const meta =
     showCategory || showUpdated ? (
       <div className="doc-article-meta">
-        {showCategory ? <span className="doc-tag">{doc.category}</span> : null}
+        {showCategory ? <span className="doc-tag">{doc.category_label}</span> : null}
         {showUpdated ? (
           <span>
             {messages.updated} {formatDocDate(doc.updated_at, locale)}

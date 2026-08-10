@@ -10,7 +10,7 @@ import {
 import { Copy, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { docCategories } from "../../../shared/marketing-doc.js";
+import { docCategorySelectOptions } from "../../../shared/marketing-doc-category.js";
 import {
   cloneNavItems,
   safeNavItems,
@@ -71,7 +71,7 @@ export function SiteNavItemsField({
   );
 
   const items = safeNavItems(value);
-  const categories = docCategories(preview.docs);
+  const categories = docCategorySelectOptions(preview.docs);
   const previewCtx = {
     navPages: preview.navPages,
     docs: preview.docs,

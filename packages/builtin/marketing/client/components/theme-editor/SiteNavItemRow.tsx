@@ -62,7 +62,7 @@ interface SiteNavItemRowProps {
   locale: AppLocale;
   defaultLocale: AppLocale;
   preview: SiteNavContext;
-  categories: readonly string[];
+  categories: ReadonlyArray<{ key: string; label: string }>;
   disabled?: boolean;
   onChange: (patch: Partial<SiteNavItem>) => void;
   onRemove: () => void;
@@ -294,8 +294,8 @@ export function SiteNavItemRow({
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                  <SelectItem key={category.key} value={category.key}>
+                    {category.label}
                   </SelectItem>
                 ))}
               </SelectContent>

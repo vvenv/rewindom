@@ -13,6 +13,10 @@ import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import { getTenantBrandingUrls } from "../../platform/server/services/tenant-branding.service.js";
 import {
+  getPageTemplateKind,
+  isTemplatePageKind,
+} from "../shared/page-templates.js";
+import {
   getSectionDefinition,
   localizeSections,
   localizeSiteText,
@@ -21,10 +25,6 @@ import {
   type SiteSection,
 } from "../shared/section-schema.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
-import {
-  getPageTemplateKind,
-  isTemplatePageKind,
-} from "../shared/page-templates.js";
 import {
   canonicalizePageIdentity,
   marketingPagePath,

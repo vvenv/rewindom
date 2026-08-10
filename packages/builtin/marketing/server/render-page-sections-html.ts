@@ -31,6 +31,14 @@ export function renderPageSectionsHtml(
   enabledEntitlements?: ReadonlySet<string>,
   /** 文档库数据；只有页面上摆了 `doc-*` 段时才有意义，见 `render-context.ts`。 */
   docContext?: DocRenderContext,
+  /**
+   * 贡献段的按请求数据（见 `SectionRenderContext.contributed`）。
+   *
+   * 必须一路传到这里：页面段流走的是本函数自己拼的 ctx，不是 `ssr-render` 里给
+   * 页头页脚用的那一份。漏传的表现是那一段**静默不渲染**（渲染器拿不到上下文就
+   * 什么都不吐），会员登录页因此曾经是一张空白页。
+   */
+  contributed?: Readonly<Record<string, unknown>>,
 ): string {
   const theme = resolveThemeSettings(site.theme_settings);
   const sections = page.sections;
@@ -45,6 +53,7 @@ export function renderPageSectionsHtml(
     defaultLocale: site.default_locale,
     sectionSpacing: theme.section_spacing ?? THEME_SECTION_SPACING.default,
     enabledEntitlements,
+    contributed,
     ...docContext,
   };
   return sections

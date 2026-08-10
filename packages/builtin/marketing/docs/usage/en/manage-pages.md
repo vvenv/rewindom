@@ -1,7 +1,7 @@
 ---
 title: Pages and layout
 description: The section system, columns, drafts and page presets
-category: Build and operate
+category: build-operate
 sort_order: 60
 ---
 

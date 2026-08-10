@@ -12,12 +12,13 @@ import {
   type PublicDocSummary,
 } from "./marketing-doc.js";
 
-function doc(slug: string, category: string): PublicDocSummary {
+function doc(slug: string, category: string, category_label = category): PublicDocSummary {
   return {
     slug,
     title: slug,
     description: "",
     category,
+    category_label,
     sort_order: 0,
     updated_at: "2026-01-01T00:00:00.000Z",
   };
@@ -27,11 +28,16 @@ describe("groupDocsByCategory", () => {
   it("保留传入顺序，未分类的恒排最后且不编一个分类名出来", () => {
     const groups = groupDocsByCategory([
       doc("a", ""),
-      doc("b", "指南"),
-      doc("c", "入门"),
-      doc("d", "指南"),
+      doc("b", "guides", "指南"),
+      doc("c", "intro", "入门"),
+      doc("d", "guides", "指南"),
     ]);
-    expect(groups.map((group) => group.category)).toEqual(["指南", "入门", ""]);
+    expect(groups.map((group) => group.category)).toEqual(["guides", "intro", ""]);
+    expect(groups.map((group) => group.category_label)).toEqual([
+      "指南",
+      "入门",
+      "",
+    ]);
     expect(groups[0]!.items.map((item) => item.slug)).toEqual(["b", "d"]);
     expect(groups[2]!.items.map((item) => item.slug)).toEqual(["a"]);
   });

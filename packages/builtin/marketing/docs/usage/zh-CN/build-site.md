@@ -1,7 +1,7 @@
 ---
 title: 建站与主题
 description: 起步模板、主题、页头页脚与导航
-category: 建站与运营
+category: build-operate
 sort_order: 50
 ---
 

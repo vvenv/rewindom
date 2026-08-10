@@ -30,7 +30,18 @@ export const SPA_PREFIX_RE = new RegExp(
 export const VITE_DEV_INTERNAL_RE =
   /^\/(@vite|@react-refresh|@fs|@id|\.vite)(\/|$)/u;
 
+/**
+ * 应用区前缀下的**例外**：这几条路径归 Fastify SSR（租户可排版的会员认证页）。
+ * 须与 `SITE_SSR_EXCEPTION_PATHS`（marketing/shared/site-locale.ts）及 nginx location 对齐。
+ */
+const SSR_EXCEPTION_PATHS = ["/member/login", "/member/register"] as const;
+
+function isSsrExceptionPath(url: string): boolean {
+  return (SSR_EXCEPTION_PATHS as readonly string[]).includes(url);
+}
+
 export function shouldBypassMarketingSsrProxy(url: string): boolean {
+  if (isSsrExceptionPath(url)) return false;
   return SPA_PREFIX_RE.test(url) || VITE_DEV_INTERNAL_RE.test(url);
 }
 
@@ -40,6 +51,8 @@ export function shouldProxyDocumentToMarketingSsr(
   accept: string,
 ): boolean {
   if (shouldBypassMarketingSsrProxy(url)) return false;
+  // 认证页的表单是真 POST，开发态也得代理过去，否则本地登录只会打到 Vite 上
+  if (isSsrExceptionPath(url)) return true;
   if (method !== "GET" && method !== "HEAD") return false;
   return (
     url === "/sitemap.xml" ||
