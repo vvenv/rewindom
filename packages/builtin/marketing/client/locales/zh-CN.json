@@ -375,7 +375,6 @@
   },
   "editor": {
     "title": "主题编辑器",
-    "open": "编辑页面",
     "back": "返回列表",
     "sections": "区块",
     "addSection": "添加区块",
@@ -1015,7 +1014,6 @@
     "title": "标题",
     "pageDescription": "管理站点 /docs 下的 Markdown 文档；发布后访客可在绑定域名上查看。",
     "create": "新建文档",
-    "edit": "编辑",
     "duplicate": "复制到其它语言",
     "duplicateDocTitle": "复制文档",
     "duplicateDocDescription": "从「{{title}}」（{{locale}}）复制一份：路径不变，正文先沿用原文当翻译起点，复制出来的是草稿。",

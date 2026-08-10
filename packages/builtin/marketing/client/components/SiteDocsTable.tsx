@@ -23,7 +23,6 @@ import {
   Download,
   FileText,
   MoreVertical,
-  Pencil,
   RotateCcw,
   Trash2,
 } from "lucide-react";
@@ -115,10 +114,7 @@ function DocRowActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => onEdit(doc)}>
-            <Pencil className="size-4" />
-            {t("siteDocs.edit")}
-          </DropdownMenuItem>
+          {/* 进编辑靠行点击（onRowClick），菜单里不再重复放「编辑」 */}
           <DropdownMenuItem onSelect={() => setDuplicateOpen(true)}>
             <Copy className="size-4" />
             {t("siteDocs.duplicate")}

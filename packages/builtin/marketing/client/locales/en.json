@@ -375,7 +375,6 @@
   },
   "editor": {
     "title": "Theme Editor",
-    "open": "Edit theme",
     "back": "Back to list",
     "sections": "Sections",
     "addSection": "Add section",
@@ -1015,7 +1014,6 @@
     "title": "Title",
     "pageDescription": "Manage Markdown documents under /docs. Published docs are visible on your custom domain.",
     "create": "New doc",
-    "edit": "Edit",
     "duplicate": "Duplicate to another language",
     "duplicateDocTitle": "Duplicate document",
     "duplicateDocDescription": "Copies “{{title}}” ({{locale}}): same path, body seeded from the original as a starting point for translation. The copy is created as a draft.",

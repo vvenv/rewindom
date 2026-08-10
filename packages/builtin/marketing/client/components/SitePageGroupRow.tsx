@@ -20,7 +20,6 @@ import {
   Copy,
   Lock,
   MoreVertical,
-  Palette,
   Trash2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -247,8 +246,9 @@ function MoveButtons({ order }: { order: SitePageGroupOrder }) {
 /**
  * 行内操作：发布 / 取消发布留在外面，其余收进「更多」。
  *
- * 与文档库同一套（`SiteDocsTable`）：发布是最高频的一步，不该埋进菜单；打开编辑器、
- * 复制、删除各自一年用不了几次，全排成图标只会让每一行都像个工具栏。
+ * 与文档库同一套（`SiteDocsTable`）：发布是最高频的一步，不该埋进菜单；复制、删除
+ * 一年用不了几次，全排成图标只会让每一行都像个工具栏。进编辑器靠标题 / 整行热区，
+ * 不必再在菜单里放一份。
  */
 function PageActions({
   page,
@@ -294,12 +294,6 @@ function PageActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <Link to={`/app/site/pages/${page.id}`}>
-              <Palette className="size-4" />
-              {t("editor.open")}
-            </Link>
-          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setDuplicateOpen(true)}>
             <Copy className="size-4" />
             {t("cms.duplicate")}
