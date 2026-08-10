@@ -7,7 +7,7 @@
  * 坐标写进隐藏字段 `captcha`，随表单一起 POST。
  *
  * **不**先打 `/api/captcha/verify`：挑战一次性消费，得留给服务端在 login/register 里
- * 校验（同 SPA 侧 `MemberCaptcha` 的约定）。
+ * 校验（同 `/api/member/login` 那条 JSON 链路的约定）。
  */
 
 import { pageLocale } from "./locale.js";
@@ -19,7 +19,7 @@ interface CaptchaChallenge {
   targetY: number;
 }
 
-/** 与 SPA 侧同一组常数：轨道 260px 对应挑战图 268px + 16px 起点。 */
+/** 与工作台登录页同一组常数：轨道 260px 对应挑战图 268px + 16px 起点。 */
 const TRACK_WIDTH = 260;
 const HANDLE_WIDTH = 40;
 const IMAGE_WIDTH = 268;

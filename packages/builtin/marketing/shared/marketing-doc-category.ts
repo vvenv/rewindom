@@ -39,6 +39,24 @@ export interface UpdateMarketingDocCategoryBody {
   sort_order?: number;
 }
 
+export interface ReorderMarketingDocCategoriesBody {
+  items: Array<{ id: string; sort_order: number }>;
+}
+
+/** 与 `listDocCategories` 的 `orderBy` 一致。 */
+export function compareDocCategories(
+  a: Pick<MarketingDocCategory, "sort_order" | "key">,
+  b: Pick<MarketingDocCategory, "sort_order" | "key">,
+): number {
+  return a.sort_order - b.sort_order || a.key.localeCompare(b.key);
+}
+
+export function sortDocCategories<T extends MarketingDocCategory>(
+  categories: readonly T[],
+): T[] {
+  return [...categories].sort(compareDocCategories);
+}
+
 /** 默认租户产品文档库的 canonical 分类（usage docs seed 用）。 */
 export const DEFAULT_DOC_CATEGORY_LABELS: Record<
   string,
@@ -73,14 +91,6 @@ export function validateCategoryKey(value: unknown): string {
 
 export function parseCategoryLabel(value: unknown): string | LocalizedText {
   return parseSiteNameValue(value);
-}
-
-function trimLabel(value: unknown, max: number): string {
-  if (typeof value !== "string") throw new Error("site.doc_category_label_invalid");
-  const trimmed = value.trim();
-  if (!trimmed) throw new Error("site.doc_category_label_required");
-  if (trimmed.length > max) throw new Error("site.doc_category_label_invalid");
-  return trimmed;
 }
 
 export function parseCreateCategoryBody(value: unknown): {

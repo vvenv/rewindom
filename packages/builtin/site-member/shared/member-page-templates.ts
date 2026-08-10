@@ -1,12 +1,12 @@
 /**
- * 会员登录 / 注册页的**模板页**登记与兜底版式。
+ * 会员那三张页面（登录 / 注册 / 我的账户）的**模板页**登记与兜底版式。
  *
  * 与文档库的两张版式同一套机制（`marketing/shared/page-templates.ts`）：kind 唯一、
  * slug 固定、默认不落库——租户没自定义过时 SSR 按这里的预设渲染，自定义之后就是一张
  * 普通页面记录，走同一个编辑器、同一套发布流程。
  *
- * 元数据在**两端**都要登记（写路径要按 kind 校验 slug，中台要列出这两行），所以由
- * `registerMemberAuthTemplates()` 统一暴露，server 的 `onBoot` 与 client manifest
+ * 元数据在**两端**都要登记（写路径要按 kind 校验 slug，中台要列出这几行），所以由
+ * `registerMemberPageTemplates()` 统一暴露，server 的 `onBoot` 与 client manifest
  * 各调一次；重复登记是幂等的。
  */
 
@@ -16,6 +16,11 @@ import {
 } from "../../marketing/shared/page-templates.js";
 
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
+import {
+  MEMBER_ACCOUNT_PAGE_KIND,
+  MEMBER_ACCOUNT_PANEL_SECTION_TYPE,
+  MEMBER_ACCOUNT_PATH,
+} from "./member-account-section.js";
 import {
   MEMBER_LOGIN_FORM_SECTION_TYPE,
   MEMBER_LOGIN_PAGE_KIND,
@@ -30,6 +35,7 @@ import type { PagePreset } from "../../marketing/shared/page-presets.types.js";
 /** 固定 slug：kind 决定地址，租户改不了（改了会员就找不到登录页了）。 */
 export const MEMBER_LOGIN_TEMPLATE_SLUG = "member-login";
 export const MEMBER_REGISTER_TEMPLATE_SLUG = "member-register";
+export const MEMBER_ACCOUNT_TEMPLATE_SLUG = "member-account";
 
 /**
  * 兜底版式：一句标题 + 表单，就这两段。
@@ -86,8 +92,41 @@ export const MEMBER_REGISTER_TEMPLATE_PRESET: PagePreset = {
   ],
 };
 
-/** 登记两张模板页（幂等）；server `onBoot` 与 client manifest 各调一次。 */
-export function registerMemberAuthTemplates(): void {
+export const MEMBER_ACCOUNT_TEMPLATE_PRESET: PagePreset = {
+  key: MEMBER_ACCOUNT_PAGE_KIND,
+  label: "site-member:template.account.label",
+  kind: MEMBER_ACCOUNT_PAGE_KIND,
+  slug: MEMBER_ACCOUNT_TEMPLATE_SLUG,
+  titleKey: "site-member:account.title",
+  descriptionKey: "site-member:account.subtitle",
+  sections: [
+    {
+      type: MEMBER_ACCOUNT_PANEL_SECTION_TYPE,
+      text: {
+        heading: "site-member:account.title",
+        subheading: "site-member:account.subtitle",
+        profile_title: "site-member:account.profile_title",
+        profile_desc: "site-member:account.profile_desc",
+        email_label: "site-member:fields.email",
+        email_note: "site-member:account.email_readonly",
+        display_name_label: "site-member:fields.display_name",
+        save_label: "site-member:account.save",
+        created_label: "site-member:account.created_at",
+        last_login_label: "site-member:account.last_login_at",
+        password_divider: "site-member:account.password_title",
+        password_desc: "site-member:account.password_desc",
+        old_password_label: "site-member:fields.old_password",
+        new_password_label: "site-member:fields.new_password",
+        confirm_password_label: "site-member:fields.confirm_password",
+        password_submit_label: "site-member:account.password_title",
+        logout_label: "site-member:account.logout",
+      },
+    },
+  ],
+};
+
+/** 登记三张模板页（幂等）；server `onBoot` 与 client manifest 各调一次。 */
+export function registerMemberPageTemplates(): void {
   registerPageTemplateKind({
     kind: MEMBER_LOGIN_PAGE_KIND,
     slug: MEMBER_LOGIN_TEMPLATE_SLUG,
@@ -113,5 +152,18 @@ export function registerMemberAuthTemplates(): void {
   registerPageTemplatePreset(
     MEMBER_REGISTER_PAGE_KIND,
     MEMBER_REGISTER_TEMPLATE_PRESET,
+  );
+  registerPageTemplateKind({
+    kind: MEMBER_ACCOUNT_PAGE_KIND,
+    slug: MEMBER_ACCOUNT_TEMPLATE_SLUG,
+    path: MEMBER_ACCOUNT_PATH,
+    group: "site-member:template.group",
+    label: "site-member:template.account.label",
+    required_section: MEMBER_ACCOUNT_PANEL_SECTION_TYPE,
+    entitlement: TENANT_SITE_MEMBER_ENTITLEMENT.key,
+  });
+  registerPageTemplatePreset(
+    MEMBER_ACCOUNT_PAGE_KIND,
+    MEMBER_ACCOUNT_TEMPLATE_PRESET,
   );
 }

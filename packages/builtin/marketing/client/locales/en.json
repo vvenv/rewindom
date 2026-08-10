@@ -966,7 +966,10 @@
     "page_content_published": "Published site page content for \"{{title}}\"",
     "page_unpublished": "Unpublished site page \"{{title}}\"",
     "starter_applied": "Applied site starter \"{{key}}\" ({{page_count}} pages)",
-    "chrome_published": "Published site header and footer for \"{{site_name}}\""
+    "chrome_published": "Published site header and footer for \"{{site_name}}\"",
+    "doc_category_created": "Created doc category \"{{key}}\"",
+    "doc_category_updated": "Updated doc category \"{{key}}\"",
+    "doc_category_deleted": "Deleted a doc category"
   },
   "formSubmissions": {
     "nav": "Submissions",
@@ -1028,10 +1031,10 @@
     "slugHint": "Lowercase letters, digits, hyphens only (e.g. quickstart). Cannot be changed after saving.",
     "description": "Summary",
     "category": "Category",
-    "categoryPlaceholder": "e.g. Getting started, Guides (optional)",
+    "categoryPlaceholder": "e.g. getting-started (optional; create in category manager)",
     "categoryNone": "Uncategorized",
     "manageCategories": "Manage categories",
-    "manageCategoriesHint": "Categories share one key across languages; set the display name for each locale here.",
+    "manageCategoriesHint": "Categories share one key across locales; order controls grouping on the docs index page.",
     "newCategory": "New category",
     "editCategory": "Edit “{{key}}”",
     "categoryKey": "Key",
@@ -1043,6 +1046,7 @@
     "categorySaveFailed": "Could not save category",
     "categoryDeleted": "Category deleted",
     "categoryDeleteFailed": "Cannot delete: documents still use this category",
+    "categoryReorderFailed": "Could not reorder categories — try again",
     "deleteCategory": "Delete",
     "cancelCategoryEdit": "Cancel edit",
     "saveCategory": "Save",

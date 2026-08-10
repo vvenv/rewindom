@@ -152,6 +152,12 @@ function DocRowActions({
             title: created.title_draft,
             description: created.description_draft,
             category: created.category_draft,
+            /*
+             * 复制接口返回的是文档本身，不带分类显示名——这条只是拿去开编辑抽屉
+             *（抽屉用的是 key），列表刷新后会带上服务端解析好的那份。同 `groupDocsByCategory`
+             * 的口径：解析不出来就退回 key，绝不留空。
+             */
+            category_label: created.category_draft,
             status: created.status,
             content_dirty: created.content_dirty,
             sort_order: created.sort_order_draft,

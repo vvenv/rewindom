@@ -495,6 +495,7 @@ export function SiteDocEditorSheet({
       <SiteDocCategorySheet
         open={categorySheetOpen}
         onOpenChange={setCategorySheetOpen}
+        categories={docsQuery.data?.category_catalog}
       />
     </Sheet>
   );

@@ -16,6 +16,7 @@ import {
   fetchSiteDocsCatalog,
   importSiteDocs,
   publishSiteDoc,
+  reorderSiteDocCategories,
   revertSiteDoc,
   unpublishSiteDoc,
   updateSiteDoc,
@@ -30,6 +31,7 @@ import type {
 } from "../../shared/marketing-doc.js";
 import type {
   CreateMarketingDocCategoryBody,
+  ReorderMarketingDocCategoriesBody,
   UpdateMarketingDocCategoryBody,
 } from "../../shared/marketing-doc-category.js";
 
@@ -121,6 +123,20 @@ export function useDeleteSiteDocCategory() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (categoryId: string) => deleteSiteDocCategory(categoryId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: SITE_DOCS_QUERY_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: SITE_DOC_CATEGORIES_QUERY_KEY,
+      });
+    },
+  });
+}
+
+export function useReorderSiteDocCategories() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: ReorderMarketingDocCategoriesBody) =>
+      reorderSiteDocCategories(body),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: SITE_DOCS_QUERY_KEY });
       void queryClient.invalidateQueries({

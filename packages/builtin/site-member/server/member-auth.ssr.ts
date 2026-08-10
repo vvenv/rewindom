@@ -9,20 +9,16 @@
  *    登录得了。只有平台开了滑块验证码时才需要 JS（拖动没有无 JS 的等价物）。
  *
  * 路由是**静态**的（`/member/login`），比 marketing SSR 的 `/:first/:second` 更具体，
- * find-my-way 优先匹配到这里；`/member/account` 等其余会员页仍落到 SPA 兜底。
+ * find-my-way 优先匹配到这里。账户页同一条链路，在 `member-account.ssr.ts`；
+ * `/member/oauth/callback` 没有版式可言，仍落到 SPA 兜底。
  */
 
 import { CaptchaService } from "@be-water/server-kernel/kernel/auth/captcha.service.js";
 import { resolveOAuthEnabledFlags } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
 import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
-import {
-  resolveHostTenant,
-  resolveRequestHostname,
-} from "@be-water/server-kernel/lib/host-tenant.js";
-import { translateServerMessage } from "@be-water/server-kernel/lib/i18n/registry.js";
 import { resolveRequestLocale } from "@be-water/server-kernel/lib/i18n/translate.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import { normalizeLocale } from "@be-water/shared";
 
 import { AuditAction } from "../../audit/shared/index.js";
 import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
@@ -37,6 +33,7 @@ import {
 } from "../../marketing/server/ssr-render.js";
 import { buildPresetSections } from "../../marketing/shared/page-presets.js";
 import { getPlatformSettings } from "../../platform/server/services/platform-settings.service.js";
+import { MEMBER_ACCOUNT_PATH } from "../shared/member-account-section.js";
 import {
   MEMBER_LOGIN_PAGE_KIND,
   MEMBER_LOGIN_PATH,
@@ -48,10 +45,19 @@ import {
 import {
   MEMBER_LOGIN_TEMPLATE_PRESET,
   MEMBER_REGISTER_TEMPLATE_PRESET,
-} from "../shared/member-auth-templates.js";
+} from "../shared/member-page-templates.js";
 
 import { setMemberAuthCookies } from "./member-auth-cookies.js";
 import { createMemberPresetTranslator } from "./member-preset-i18n.js";
+import {
+  assertSameOrigin,
+  ensureHostTenant,
+  errorMessage,
+  formBodyParser,
+  requestOrigin,
+  safeRedirect,
+  sendHtml,
+} from "./member-ssr-common.js";
 import { SiteMemberAuthService } from "./site-member-auth.service.js";
 import { resolveMemberSsrSession } from "./site-member-ssr-session.js";
 import { readSiteMembersEnabled, resolveSiteTenant } from "./site-member-tenant.js";
@@ -88,73 +94,6 @@ const SPECS: Record<AuthMode, AuthPageSpec> = {
   },
 };
 
-/** 登录后回哪儿：只认站内相对路径（`//evil.com` 是一个协议相对的**站外**地址）。 */
-function safeRedirect(raw: unknown): string {
-  if (typeof raw !== "string" || !raw.startsWith("/") || raw.startsWith("//")) {
-    return "/member/account";
-  }
-  return raw;
-}
-
-function requestOrigin(request: FastifyRequest): string {
-  const proto =
-    (request.headers["x-forwarded-proto"] as string | undefined)
-      ?.split(",")[0]
-      ?.trim() || "https";
-  const host =
-    resolveRequestHostname(request.headers) || request.hostname || "localhost";
-  return `${proto}://${host}`;
-}
-
-async function ensureHostTenant(request: FastifyRequest): Promise<void> {
-  if (request.hostTenantContext !== undefined) return;
-  request.hostTenantContext = await resolveHostTenant(
-    resolveRequestHostname(request.headers),
-  );
-}
-
-function sendHtml(reply: FastifyReply, status: number, html: string): void {
-  void reply
-    .status(status)
-    .header("content-type", "text/html; charset=utf-8")
-    // 表单里回填着邮箱与错误，且登录态因人而异——绝不能进任何共享缓存
-    .header("cache-control", "private, no-store")
-    .send(html);
-}
-
-/** `Origin` 头里的 hostname；缺失或不是合法 URL 都返回空串。 */
-function originHostname(origin: string | undefined): string {
-  if (!origin) return "";
-  try {
-    return new URL(origin).hostname;
-  } catch {
-    return "";
-  }
-}
-
-/**
- * 表单 POST 的 CSRF 闸门。
- *
- * 会员 cookie 是 `SameSite=lax`，读操作拦得住，但**登录本身**没有 cookie 可拦：
- * 攻击者从自己的页面 POST 过来，就能把访客登进攻击者的账号（login CSRF），之后
- * 访客在「自己的」账号里做的事全落在对方账号下。跨站表单 POST 一定带 `Origin`，
- * 同 Host 才放行；没有 `Origin` 的（极老的浏览器 / 非浏览器客户端）一并拒绝——
- * 那条路还有 `/api/member/login` 可走，不必在这里开口子。
- *
- * 只比 **hostname**，不比协议与端口：拦的是「别的站点发过来的」，而攻击者拿不到
- * 同一个 hostname。比全 origin 反而会在本地与反代后误伤——那时请求进程看到的协议
- * 常常是 http，浏览器发的 `Origin` 却是 https（`x-forwarded-proto` 缺失或不一致）。
- */
-function assertSameOrigin(request: FastifyRequest): void {
-  const origin = request.headers.origin;
-  const expected =
-    resolveRequestHostname(request.headers) || request.hostname || "";
-  const actual = originHostname(origin);
-  if (!actual || !expected || actual !== expected) {
-    throw new AppError({ code: "site_member.form_origin_invalid", status: 403 });
-  }
-}
-
 /** 表单里的验证码：增强脚本写进隐藏字段的 JSON 串。 */
 function parseCaptchaField(raw: unknown): SiteMemberCaptchaInput | null {
   if (typeof raw !== "string" || raw.trim() === "") return null;
@@ -184,15 +123,6 @@ async function assertCaptchaIfRequired(
   if (!CaptchaService.verify(captcha)) {
     throw new AppError({ code: "auth.captcha_invalid", status: 400 });
   }
-}
-
-/** 错误 → 访客语言下的一句话（表单顶部那条红字）。 */
-function errorMessage(error: unknown, locale: AppLocale): string {
-  const code =
-    error instanceof AppError && error.code
-      ? error.code
-      : "common.internal_error";
-  return translateServerMessage(locale, { code, message: code });
 }
 
 /**
@@ -259,6 +189,7 @@ async function renderAuthPage(
 
   const redirect = safeRedirect(
     (request.query as { redirect?: string } | undefined)?.redirect,
+    MEMBER_ACCOUNT_PATH,
   );
   const redirectQuery = `?redirect=${encodeURIComponent(redirect)}`;
   const [accountEntry, entitlements, platformSettings, oauthFlags] =
@@ -324,6 +255,7 @@ async function redirectIfSignedIn(
   if (!member) return false;
   const redirect = safeRedirect(
     (request.query as { redirect?: string } | undefined)?.redirect,
+    MEMBER_ACCOUNT_PATH,
   );
   void reply.header("cache-control", "private, no-store").redirect(redirect);
   return true;
@@ -340,7 +272,7 @@ async function handleSubmit(
   const password = typeof body.password === "string" ? body.password : "";
   const displayName =
     typeof body.display_name === "string" ? body.display_name.trim() : "";
-  const redirect = safeRedirect(body.redirect);
+  const redirect = safeRedirect(body.redirect, MEMBER_ACCOUNT_PATH);
 
   try {
     assertSameOrigin(request);
@@ -405,17 +337,7 @@ async function handleSubmit(
 export async function memberAuthPageRoutes(
   app: FastifyInstance,
 ): Promise<void> {
-  app.addContentTypeParser(
-    "application/x-www-form-urlencoded",
-    { parseAs: "string" },
-    (_request, body, done) => {
-      try {
-        done(null, Object.fromEntries(new URLSearchParams(body as string)));
-      } catch (error) {
-        done(error as Error);
-      }
-    },
-  );
+  formBodyParser(app);
 
   for (const spec of Object.values(SPECS)) {
     app.get(spec.path, async (request, reply) => {

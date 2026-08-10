@@ -51,7 +51,8 @@ describe("AuthLoginHero", () => {
     expect(container.querySelector("svg")).not.toBeNull();
   });
 
-  it("renders tenant logo img when bound_tenant.logo_url is set", () => {
+  // 租户 logo 现在由 `BrandMark` 用 mask 着色（一个 role="img" 的 span），不再是 <img>
+  it("renders tenant logo mask when bound_tenant.logo_url is set", () => {
     vi.mocked(usePublicConfig).mockReturnValue({
       data: {
         registration_enabled: false,
@@ -77,9 +78,9 @@ describe("AuthLoginHero", () => {
     } as never);
 
     render(<AuthLoginHero variant="compact" />);
-    expect(screen.getByAltText("Acme")).toHaveAttribute(
-      "src",
-      "/api/public/tenants/acme/branding/logo",
+    const mark = screen.getByRole("img", { name: "Acme" });
+    expect(mark.style.maskImage).toBe(
+      'url("/api/public/tenants/acme/branding/logo")',
     );
     expect(screen.getByText("Acme")).toBeInTheDocument();
   });

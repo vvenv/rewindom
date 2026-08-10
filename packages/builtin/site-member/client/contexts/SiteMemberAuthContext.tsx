@@ -14,12 +14,8 @@ import { siteMemberApi, SITE_MEMBER_API_BASE } from "../lib/site-member-api.js";
 import { MEMBER_AUTH_LOGOUT_EVENT } from "../lib/site-member-session.js";
 
 import type {
-  SiteMemberChangePasswordBody,
-  SiteMemberLoginBody,
   SiteMemberProfile,
-  SiteMemberRegisterBody,
   SiteMemberSession,
-  SiteMemberUpdateProfileBody,
 } from "../../shared/site-member.js";
 
 interface SiteMemberAuthState {
@@ -28,15 +24,16 @@ interface SiteMemberAuthState {
   isLoading: boolean;
 }
 
+/**
+ * SPA 侧只剩三件事：读会话、走完 OAuth 回调、退出。
+ *
+ * 登录 / 注册 / 改资料 / 改密码都在 SSR 页面上用真表单做（`/member/login`、
+ * `/member/account`），JSON 接口仍在（`/api/member/*`），只是这个 Provider 不再
+ * 代理它们——留着四个没人调的方法，下一个人会以为 SPA 上还有那些页面。
+ */
 export interface SiteMemberAuthContextValue extends SiteMemberAuthState {
-  login: (body: SiteMemberLoginBody) => Promise<SiteMemberProfile>;
-  register: (body: SiteMemberRegisterBody) => Promise<SiteMemberProfile>;
   completeOAuthExchange: (code: string) => Promise<SiteMemberProfile>;
   logout: () => Promise<void>;
-  updateProfile: (
-    body: SiteMemberUpdateProfileBody,
-  ) => Promise<SiteMemberProfile>;
-  changePassword: (body: SiteMemberChangePasswordBody) => Promise<void>;
 }
 
 const SiteMemberAuthContext = createContext<
@@ -72,34 +69,6 @@ export function SiteMemberAuthProvider({
     setState({ member: null, isAuthenticated: false, isLoading: false });
   }, []);
 
-  const login = useCallback(
-    async (body: SiteMemberLoginBody) => {
-      const session = await siteMemberApi.post<SiteMemberSession>(
-        `${SITE_MEMBER_API_BASE}/login`,
-        body,
-        undefined,
-        true,
-      );
-      applySession(session);
-      return session.member;
-    },
-    [applySession],
-  );
-
-  const register = useCallback(
-    async (body: SiteMemberRegisterBody) => {
-      const session = await siteMemberApi.post<SiteMemberSession>(
-        `${SITE_MEMBER_API_BASE}/register`,
-        body,
-        undefined,
-        true,
-      );
-      applySession(session);
-      return session.member;
-    },
-    [applySession],
-  );
-
   const completeOAuthExchange = useCallback(
     async (code: string) => {
       const session = await siteMemberApi.post<SiteMemberSession>(
@@ -126,30 +95,6 @@ export function SiteMemberAuthProvider({
       clearSession();
     }
   }, [clearSession]);
-
-  const updateProfile = useCallback(
-    async (body: SiteMemberUpdateProfileBody) => {
-      const member = await siteMemberApi.patch<SiteMemberProfile>(
-        `${SITE_MEMBER_API_BASE}/profile`,
-        body,
-      );
-      setState((prev) => ({ ...prev, member }));
-      return member;
-    },
-    [],
-  );
-
-  const changePassword = useCallback(
-    async (body: SiteMemberChangePasswordBody) => {
-      await siteMemberApi.post(
-        `${SITE_MEMBER_API_BASE}/change-password`,
-        body,
-      );
-      // 服务端会吊销全部 refresh token 并清 cookie
-      clearSession();
-    },
-    [clearSession],
-  );
 
   const hasInitialized = useRef(false);
   useEffect(() => {
@@ -181,12 +126,8 @@ export function SiteMemberAuthProvider({
     <SiteMemberAuthContext.Provider
       value={{
         ...state,
-        login,
-        register,
         completeOAuthExchange,
         logout,
-        updateProfile,
-        changePassword,
       }}
     >
       {children}

@@ -44,12 +44,13 @@ export const SITE_APP_PREFIXES = [
 /**
  * 应用区前缀下的**例外**：这些具体路径由服务端渲染，不交回 SPA。
  *
- * 会员登录 / 注册页是租户可排版的模板页（版式在 Theme Editor 里排，表单由代码渲染），
- * 所以它们必须走 Fastify SSR；`/member/*` 下的其余页面（`/member/account` 等）仍是 SPA。
+ * 会员的登录 / 注册 / 我的账户都是租户可排版的模板页（版式在 Theme Editor 里排，
+ * 表单由代码渲染），所以它们必须走 Fastify SSR；`/member/*` 下的其余页面
+ *（`/member/oauth/callback`）仍是 SPA。
  *
  * 与 `SITE_APP_PREFIXES` 一样，这份表在 nginx location 与 vite dev 代理里各有一份副本，
  * 由 `nginx-spa-prefixes.test.ts` 盯着三处对齐——漏掉一处的后果是登录页在那个环境下
- * 打开的是 SPA 的 404（SPA 上已经没有这两条路由了）。
+ * 打开的是 SPA 的 404（SPA 上已经没有这几条路由了）。
  *
  * marketing 在这里写死 `/member/...` 是刻意的：`enhance/account.ts` 的登录链、
  * SSR 的不可用页也都写着同一个地址。这是**部署拓扑**，不是模块依赖——运行期的注册表
@@ -58,6 +59,7 @@ export const SITE_APP_PREFIXES = [
 export const SITE_SSR_EXCEPTION_PATHS = [
   "/member/login",
   "/member/register",
+  "/member/account",
 ] as const;
 
 const APP_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);

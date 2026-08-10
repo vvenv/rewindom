@@ -9,11 +9,13 @@ import {
   createDocCategory,
   deleteDocCategory,
   listDocCategories,
+  reorderDocCategories,
   updateDocCategory,
 } from "./marketing-doc-category.service.js";
 
 import type {
   CreateMarketingDocCategoryBody,
+  ReorderMarketingDocCategoriesBody,
   UpdateMarketingDocCategoryBody,
 } from "../shared/marketing-doc-category.js";
 import type { FastifyInstance } from "fastify";
@@ -33,6 +35,37 @@ export async function marketingDocCategoryRoutes(
   });
 
   defineRoute(app, {
+    method: "PUT",
+    url: "/doc-categories/order",
+    context: "SiteDocCategoryReorder",
+    errorCode: "SITE_DOC_CATEGORY_REORDER_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const body = request.body as ReorderMarketingDocCategoriesBody;
+        const categories = await reorderDocCategories(
+          request.tenantContext!.tenant_id,
+          body,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_DOC_CATEGORY_UPDATE,
+          resource: request.tenantContext!.tenant_id,
+          detail_key: "marketing.audit.doc_categories_reordered",
+          detail_params: { count: body?.items?.length ?? 0 },
+        });
+        return categories;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
     method: "POST",
     url: "/doc-categories",
     context: "SiteDocCategoryCreate",
@@ -48,7 +81,7 @@ export async function marketingDocCategoryRoutes(
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: request.authUser!.userId,
           username: request.authUser!.username,
-          action: AuditAction.SITE_DOC_UPDATE,
+          action: AuditAction.SITE_DOC_CATEGORY_CREATE,
           resource: category.id,
           detail_key: "marketing.audit.doc_category_created",
           detail_params: { key: category.key },
@@ -82,7 +115,7 @@ export async function marketingDocCategoryRoutes(
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: request.authUser!.userId,
           username: request.authUser!.username,
-          action: AuditAction.SITE_DOC_UPDATE,
+          action: AuditAction.SITE_DOC_CATEGORY_UPDATE,
           resource: category.id,
           detail_key: "marketing.audit.doc_category_updated",
           detail_params: { key: category.key },
@@ -110,7 +143,7 @@ export async function marketingDocCategoryRoutes(
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: request.authUser!.userId,
           username: request.authUser!.username,
-          action: AuditAction.SITE_DOC_UPDATE,
+          action: AuditAction.SITE_DOC_CATEGORY_DELETE,
           resource: categoryId,
           detail_key: "marketing.audit.doc_category_deleted",
           detail_params: {},

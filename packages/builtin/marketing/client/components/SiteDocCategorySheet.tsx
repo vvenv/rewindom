@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactElement } from "react";
 
+import { ApiError } from "@be-water/client-kit";
 import { getLocaleNativeLabel, normalizeLocale, type AppLocale } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import { Field, FieldLabel } from "@be-water/ui/field";
@@ -13,12 +14,13 @@ import {
   SheetTitle,
 } from "@be-water/ui/sheet";
 import { toast } from "@be-water/ui/toast";
-import { Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
   categoryKeyFromLabel,
   resolveCategoryLabel,
+  sortDocCategories,
   validateCategoryKey,
   type MarketingDocCategory,
 } from "../../shared/marketing-doc-category.js";
@@ -28,9 +30,14 @@ import { useSite } from "../hooks/useSite.js";
 import {
   useCreateSiteDocCategory,
   useDeleteSiteDocCategory,
+  useReorderSiteDocCategories,
   useSiteDocCategories,
   useUpdateSiteDocCategory,
 } from "../hooks/useSiteDocs.js";
+import {
+  canMoveDocCategory,
+  moveDocCategory,
+} from "../lib/site-doc-category-order.js";
 
 interface LabelForm {
   key: string;
@@ -77,9 +84,12 @@ function formToLabel(
 export function SiteDocCategorySheet({
   open,
   onOpenChange,
+  categories: categoriesSeed,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** 列表/编辑器已带的分类表，避免重复请求。 */
+  categories?: MarketingDocCategory[];
 }): ReactElement {
   const { t } = useTranslation("marketing");
   const siteQuery = useSite();
@@ -88,10 +98,17 @@ export function SiteDocCategorySheet({
     () => siteLocaleOrder(defaultLocale),
     [defaultLocale],
   );
-  const { data: categories = [], isLoading } = useSiteDocCategories(open);
+  const { data: fetchedCategories = [], isLoading } = useSiteDocCategories(
+    open && categoriesSeed === undefined,
+  );
+  const categories = useMemo(
+    () => sortDocCategories(categoriesSeed ?? fetchedCategories),
+    [categoriesSeed, fetchedCategories],
+  );
   const create = useCreateSiteDocCategory();
   const update = useUpdateSiteDocCategory();
   const remove = useDeleteSiteDocCategory();
+  const reorder = useReorderSiteDocCategories();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<LabelForm>(() => emptyLabelForm(locales));
 
@@ -142,9 +159,25 @@ export function SiteDocCategorySheet({
       await create.mutateAsync({ key, label });
       toast.success(t("siteDocs.categoryCreated"));
       setForm(emptyLabelForm(locales));
-    } catch {
-      toast.error(t("siteDocs.categorySaveFailed"));
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : t("siteDocs.categorySaveFailed"),
+      );
     }
+  };
+
+  const moveCategory = (index: number, direction: -1 | 1): void => {
+    const writes = moveDocCategory(categories, index, direction);
+    if (writes.length === 0) return;
+    void reorder.mutateAsync({ items: writes }).catch((error: unknown) => {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : t("siteDocs.categoryReorderFailed"),
+      );
+    });
   };
 
   return (
@@ -166,22 +199,54 @@ export function SiteDocCategorySheet({
                 {t("siteDocs.noCategories")}
               </p>
             ) : (
-              categories.map((category) => (
-                <button
+              categories.map((category, index) => (
+                <div
                   key={category.id}
-                  type="button"
-                  className="flex items-center justify-between rounded-md border px-3 py-2 text-left text-sm hover:bg-muted/50"
-                  onClick={() => setEditingId(category.id)}
+                  className="group flex items-center gap-1 rounded-md border px-1 py-1"
                 >
-                  <span className="font-medium">{category.key}</span>
-                  <span className="truncate text-muted-foreground">
-                    {resolveCategoryLabel(
-                      category.label,
-                      defaultLocale,
-                      defaultLocale,
-                    )}
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-muted/50"
+                    onClick={() => setEditingId(category.id)}
+                  >
+                    <span className="font-medium">{category.key}</span>
+                    <span className="truncate text-muted-foreground">
+                      {resolveCategoryLabel(
+                        category.label,
+                        defaultLocale,
+                        defaultLocale,
+                      )}
+                    </span>
+                  </button>
+                  <div className="flex shrink-0 gap-0.5 pr-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label={t("editor.moveUp")}
+                      disabled={
+                        reorder.isPending ||
+                        !canMoveDocCategory(categories, index, -1)
+                      }
+                      onClick={() => moveCategory(index, -1)}
+                    >
+                      <ArrowUp className="size-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label={t("editor.moveDown")}
+                      disabled={
+                        reorder.isPending ||
+                        !canMoveDocCategory(categories, index, 1)
+                      }
+                      onClick={() => moveCategory(index, 1)}
+                    >
+                      <ArrowDown className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
               ))
             )}
           </div>
@@ -244,7 +309,12 @@ export function SiteDocCategorySheet({
                     toast.success(t("siteDocs.categoryDeleted"));
                     setEditingId(null);
                   },
-                  () => toast.error(t("siteDocs.categoryDeleteFailed")),
+                  (error: unknown) =>
+                    toast.error(
+                      error instanceof ApiError
+                        ? error.message
+                        : t("siteDocs.categoryDeleteFailed"),
+                    ),
                 );
               }}
             >

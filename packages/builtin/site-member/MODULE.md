@@ -12,39 +12,47 @@
 | 面 | 路由 | 目录 | 所需权限 / 门控 |
 | --- | --- | --- | --- |
 | 公开（SSR） | `/member/login`、`/member/register`（GET 渲染 + POST 提交） | `server/member-auth.ssr.ts` | 无；Host 绑定 + entitlement |
-| 公开（SPA） | `/member/oauth/callback`、`/member/account` | `client/public/`、`client/pages/member-*.tsx` | 无；走 `renderPublicRoutes` + `publicProviders` |
+| 公开（SSR） | `/member/account`（GET 渲染 + POST 三种 intent） | `server/member-account.ssr.ts` | 会员会话；未登录 302 去登录页 |
+| 公开（SPA） | `/member/oauth/callback` | `client/public/routes.tsx` | 无；走 `renderPublicRoutes` + `publicProviders` |
 | 租户侧 | `/app/site-members` | `client/tenant/`、`client/pages/site-members.tsx` | `site_members.read`（写操作另需 `site_members.write`） |
 | 会员 API | `/api/member/*` | `server/site-member-auth.routes.ts`、`site-member-oauth.routes.ts` | 登录态；路径白名单；OAuth 前缀免认证 |
 | 管理 API | `/api/site-members` | `server/site-member-admin.routes.ts` | PBAC + entitlement `tenant-site-member` |
 
-## 登录 / 注册页：租户可排版的模板页
+## 三张会员页：租户可排版的模板页
 
-这两页**不是 SPA 路由**，是两张模板页（`member_login` / `member_register`），与文档库
-的两张版式同一套机制（`marketing/shared/page-templates.ts`）：
+登录 / 注册 / 我的账户**都不是 SPA 路由**，是三张模板页（`member_login` /
+`member_register` / `member_account`），与文档库的两张版式同一套机制
+（`marketing/shared/page-templates.ts`）：
 
 | 项 | 口径 |
 | --- | --- |
 | 版式 | 租户在 `/app/site` →「会员页版式」建页，Theme Editor 里排；默认**不落库**，没建过就按内置预设渲染 |
-| 地址 | kind 决定 slug（`member-login` / `member-register`），租户改不了 |
-| 必备段 | `site-member.login-form` / `site-member.register-form`：编辑器不给删，服务端保存时校验有且仅有一段（`site.template_section_required`） |
-| 段的落脚点 | 两段都声明了 `page_kinds`，只能出现在自己那张模板页上 |
-| 表单 | 真 `<form method="post">`，**无 JS 也能登录**；只有平台开了滑块验证码时才需要 JS（`enhance/member-auth.ts` 填滑块） |
+| 地址 | kind 决定 slug（`member-login` / `member-register` / `member-account`），租户改不了 |
+| 必备段 | `site-member.login-form` / `.register-form` / `.account-panel`：编辑器不给删，服务端保存时校验有且仅有一段（`site.template_section_required`） |
+| 段的落脚点 | 三段都声明了 `page_kinds`，只能出现在自己那张模板页上 |
+| 表单 | 真 `<form method="post">`，**无 JS 也能登录 / 改密码 / 退出**；只有平台开了滑块验证码时才需要 JS（`enhance/member-auth.ts` 填滑块） |
+| 版式共用 | 三段共用一张居中认证卡（`member-auth-css.ts`）与同一组版式默认值（`member-page-settings.ts`：narrow + 64/80 内补白 + 卡片外框开关） |
 | CSRF | 表单 POST 校验 `Origin` 同源（`site_member.form_origin_invalid`）——登录本身没有 cookie 可依赖 SameSite 拦 |
 | 成功 | 种 cookie + **303** 跳 `redirect`（只认站内相对路径）；失败则原页回渲，带错误与回填的邮箱 |
 | 站点未发布 | 照常渲染（`getSiteChromeOrFallback`）：登录是入口不是内容，租户没发官网时会员也得能登 |
 
-JSON 接口（`POST /api/member/login`）**保留**：SPA 的 `/member/account` 与 OAuth 交换仍在用。
+账户页一张卡里三张表单，靠隐藏字段 `intent` 分流：`profile` 改昵称（303 回本页带
+`?saved=1`）、`password` 改密码（吊销全部会话 + 清 cookie → 去登录页）、`logout` 退出
+（清 cookie → 回首页）。全是 POST-重定向-GET，刷新不会重放提交。
 
-路由分流：`/member/login` 是静态路径，比 marketing SSR 的 `/:first/:second` 更具体，
-Fastify 先命中；`/member/*` 其余路径仍落到 SPA。nginx 与 vite dev 各有一条例外规则，
-三处由 `nginx-spa-prefixes.test.ts` 盯着对齐（真相源 `SITE_SSR_EXCEPTION_PATHS`）。
+JSON 接口（`POST /api/member/login`、`PATCH /api/member/profile` …）**保留**：OAuth
+交换与第三方集成仍在用，只是 SPA 自己不再有会员表单页。
+
+路由分流：这三条都是静态路径，比 marketing SSR 的 `/:first/:second` 更具体，
+Fastify 先命中；`/member/oauth/callback` 仍落到 SPA。nginx 与 vite dev 各有一条例外
+规则，三处由 `nginx-spa-prefixes.test.ts` 盯着对齐（真相源 `SITE_SSR_EXCEPTION_PATHS`）。
 
 ## 与 marketing 的边界
 
 - marketing **不** import site-member（模板页 / 段 / SSR 会话都是「注册表定义在消费方，本模块填」）
 - 公开 CMS：SSR 通过 `registerSiteAccountEntry` + `registerSiteMemberSsrSession` 读
   HttpOnly cookie，首屏输出登录态菜单并解锁门控页；`site-enhance` 仅绑登出 / 兜底升级
-- `/member/*` 仍走 React（`renderPublicRoutes` + `SiteMemberAuthProvider`，cookie 会话）
+- SPA 上只剩 `/member/oauth/callback`（`renderPublicRoutes` + `SiteMemberAuthProvider`，cookie 会话）
 - Theme Editor 预览用 marketing 的 `siteMemberEntrySlot` + 静态 `SiteAccountEntryPreview`
 - `MarketingPage.visibility=members` 的公开端点只返回摘要；JSON 正文仍可走
   `/api/site/content/page`，公开站优先 SSR 解锁（失败时 enhance 拉 `page-html`）

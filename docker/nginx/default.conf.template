@@ -60,9 +60,10 @@ server {
         try_files $uri =404;
     }
 
-    # 会员登录 / 注册页：租户可排版的 SSR 模板页，必须进后端（其余 /member/* 仍是 SPA）。
+    # 会员的登录 / 注册 / 我的账户：租户可排版的 SSR 模板页，必须进后端
+    # （其余 /member/* —— OAuth 回调 —— 仍是 SPA）。
     # 必须与 `SITE_SSR_EXCEPTION_PATHS`（packages/builtin/marketing/shared/site-locale.ts）一致。
-    location ~ ^/member/(login|register)$ {
+    location ~ ^/member/(login|register|account)$ {
         error_page 418 = @tenant_ssr;
         if ($use_tenant_ssr = 1) {
             return 418;

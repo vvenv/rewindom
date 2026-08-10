@@ -1,19 +1,58 @@
 /**
- * 会员登录 / 注册表单段的样式。
+ * 会员登录 / 注册页的样式。
+ *
+ * 版式是一张**居中的认证卡**：抬头、第三方登录、表单、另一张页面的入口全收在 26rem
+ * 的卡里。收进卡之前这几块各自为政——抬头按 section 的 48rem 左对齐、表单 26rem 居中，
+ * 一张页面上两条不同的左边缘，那是登录页最显廉价的地方。
  *
  * 同 `member-gate-css.ts`：贡献段进不了官网 CSS 的那次构建，所以随注册一起交给
- * marketing 拼在末尾。只用它已有的 token（`--border` / `--muted-fg` / `--accent` /
- * `--radius`），换主题时跟着变。
+ * marketing 拼在末尾。只用它已有的 token（`--surface` / `--border` / `--muted-fg` /
+ * `--accent` / `--radius`），换主题、切明暗都跟着变。
  *
  * 输入框的观感刻意与 `form` 段（`sections/form/styles.css`）一致：同一个站上两个表单
- * 长得不一样，比两个都朴素更显廉价。
+ * 长得不一样，比两个都朴素更显廉价。重新设计动的是版式与层次，不是把输入框改成
+ * 另一套——那会让「联系我们」和「登录」看起来像两个站。
  */
 export const MEMBER_AUTH_CSS = `
+.member-auth-card {
+  max-width: 26rem;
+  margin-inline: auto;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + .25rem);
+  background: var(--surface);
+  /* 两层阴影：近处一条把卡与底色分开，远处一片给它一点浮起来的重量 */
+  box-shadow: 0 1px 2px rgb(0 0 0 / .04), 0 12px 32px -16px rgb(0 0 0 / .18);
+}
+/* 站长关掉卡片外框：只剩居中限宽，页面自己的底图 / 底色直接透上来 */
+.member-auth-card.is-plain {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+@media (max-width: 480px) {
+  .member-auth-card {
+    padding: 1.5rem 1.25rem;
+  }
+}
+.member-auth-head {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.member-auth-head h2 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+.member-auth-head p {
+  margin-top: .5rem;
+  font-size: .875rem;
+  color: var(--muted-fg);
+}
 .member-auth {
   display: grid;
   gap: 1rem;
-  max-width: 26rem;
-  margin-inline: auto;
 }
 .member-auth-field {
   display: grid;
@@ -40,21 +79,41 @@ export const MEMBER_AUTH_CSS = `
 .member-auth-submit {
   width: 100%;
   justify-content: center;
+  /* 提交键与最后一个字段之间比字段间距再宽一点：它是这张卡的落点 */
+  margin-top: .25rem;
 }
 .member-auth-error {
   border: 1px solid #dc2626;
   border-radius: var(--radius);
+  background: color-mix(in srgb, #dc2626 8%, transparent);
   color: #dc2626;
   font-size: .875rem;
   padding: .5rem .75rem;
   margin: 0;
 }
+/*
+ * 第三方登录排在表单**上面**：一键登录是多数访客的首选，把它压在密码框下面等于
+ * 让人先读完自己用不上的那一半。分隔线因此读作「或者用邮箱」。
+ */
+.member-auth-oauth-row {
+  display: grid;
+  gap: .5rem;
+}
+.member-auth-oauth {
+  width: 100%;
+  justify-content: center;
+  gap: .5rem;
+}
+.member-auth-mark svg {
+  width: 1rem;
+  height: 1rem;
+  display: block;
+}
 .member-auth-divider {
   display: flex;
   align-items: center;
   gap: .75rem;
-  max-width: 26rem;
-  margin: 1.25rem auto .75rem;
+  margin: 1.25rem 0;
   color: var(--muted-fg);
   font-size: .8125rem;
 }
@@ -65,27 +124,15 @@ export const MEMBER_AUTH_CSS = `
   height: 1px;
   background: var(--border);
 }
-.member-auth-oauth-row {
-  display: grid;
-  gap: .5rem;
-  max-width: 26rem;
-  margin-inline: auto;
-}
-.member-auth-oauth {
-  justify-content: center;
-  gap: .5rem;
-}
-.member-auth-mark svg {
-  width: 1rem;
-  height: 1rem;
-  display: block;
-}
 .member-auth-alt {
-  max-width: 26rem;
-  margin: 1rem auto 0;
+  margin: 1.5rem 0 0;
   text-align: center;
   font-size: .875rem;
   color: var(--muted-fg);
+}
+.member-auth-alt a {
+  color: var(--accent);
+  text-underline-offset: 2px;
 }
 /* 滑块由 site-enhance 填进来；没有 JS 时这块是空的，不占位也不留一条空框 */
 .member-auth-captcha:empty {

@@ -45,7 +45,8 @@
     "password_changed": "Password changed, please sign in again",
     "password_mismatch": "The new passwords do not match",
     "logout": "Sign out",
-    "logged_out": "Signed out"
+    "logged_out": "Signed out",
+    "subtitle": "Manage your profile and how you sign in"
   },
   "entry": {
     "login": "Sign in",
@@ -133,6 +134,36 @@
       "altLink": "Link to the other page",
       "altPrompt": "Prompt text",
       "altLabel": "Link text"
+    },
+    "frame": {
+      "header": "Card frame",
+      "showCard": "Show card frame",
+      "showCardInfo": "Off leaves only the centred column, so the page's own background shows through"
+    },
+    "account": {
+      "profile": "Profile",
+      "profileTitle": "Profile title",
+      "profileDesc": "Profile description",
+      "emailNote": "Email note",
+      "saveLabel": "Save button",
+      "showMeta": "Show join date and last sign-in",
+      "showMetaInfo": "Off leaves only the two editable rows",
+      "createdLabel": "Member-since label",
+      "lastLoginLabel": "Last sign-in label",
+      "password": "Change password",
+      "showPassword": "Show change password",
+      "showPasswordInfo": "Members who signed up via OAuth have no password to change",
+      "passwordTitle": "Password section title",
+      "passwordDesc": "Password section description",
+      "oldPasswordLabel": "Current password label",
+      "newPasswordLabel": "New password label",
+      "confirmPasswordLabel": "Confirm password label",
+      "passwordSubmitLabel": "Submit button",
+      "session": "Session",
+      "logoutLabel": "Log out button"
+    },
+    "accountPanel": {
+      "label": "Account panel"
     }
   },
   "dashboard": {
@@ -147,6 +178,16 @@
     },
     "register": {
       "label": "Sign-up page"
+    },
+    "account": {
+      "label": "My account"
+    }
+  },
+  "editor": {
+    "accountSample": {
+      "email": "member@example.com",
+      "displayName": "Sample member",
+      "date": "1 Jan 2026, 09:00"
     }
   }
 }

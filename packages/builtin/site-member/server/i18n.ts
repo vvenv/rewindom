@@ -34,6 +34,7 @@ export const SITE_MEMBER_SERVER_I18N: ServerI18nBundle = {
       "site_member.oauth_exchange_invalid": "登录凭证无效或已过期，请重试",
       "site_member.oauth_tenant_mismatch": "账号与当前站点不匹配",
       "site_member.form_origin_invalid": "请求来源不合法，请从本站页面提交",
+      "site_member.password_mismatch": "两次输入的新密码不一致",
       "site_member.audit.registered": "会员注册：{{email}}",
       "site_member.audit.oauth_registered":
         "会员通过 {{provider}} 注册：{{email}}",
@@ -77,6 +78,7 @@ export const SITE_MEMBER_SERVER_I18N: ServerI18nBundle = {
         "This account does not belong to the current site",
       "site_member.form_origin_invalid":
         "Invalid request origin — please submit from this site",
+      "site_member.password_mismatch": "The two new passwords do not match",
       "site_member.audit.registered": "Member registered: {{email}}",
       "site_member.audit.oauth_registered":
         "Member registered via {{provider}}: {{email}}",

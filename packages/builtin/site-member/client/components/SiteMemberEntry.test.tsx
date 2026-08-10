@@ -57,12 +57,8 @@ function signedIn(
     member: profile,
     isAuthenticated: true,
     isLoading: false,
-    login: vi.fn(),
-    register: vi.fn(),
     completeOAuthExchange: vi.fn(),
     logout,
-    updateProfile: vi.fn(),
-    changePassword: vi.fn(),
   };
 }
 

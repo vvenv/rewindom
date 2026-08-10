@@ -966,7 +966,10 @@
     "page_content_published": "发布官网页面内容「{{title}}」",
     "page_unpublished": "取消发布官网页面「{{title}}」",
     "starter_applied": "应用站点起步模板「{{key}}」（{{page_count}} 页）",
-    "chrome_published": "发布官网页头页脚「{{site_name}}」"
+    "chrome_published": "发布官网页头页脚「{{site_name}}」",
+    "doc_category_created": "创建文档分类「{{key}}」",
+    "doc_category_updated": "更新文档分类「{{key}}」",
+    "doc_category_deleted": "删除文档分类"
   },
   "formSubmissions": {
     "nav": "表单提交",
@@ -1028,10 +1031,10 @@
     "slugHint": "仅小写字母、数字、连字符，如 quickstart。保存后不可修改。",
     "description": "摘要",
     "category": "分类",
-    "categoryPlaceholder": "如：入门、指南（可选）",
+    "categoryPlaceholder": "如 getting-started（可选，从分类管理创建）",
     "categoryNone": "不分类",
     "manageCategories": "管理分类",
-    "manageCategoriesHint": "分类在各语言间共用同一个标识；这里设置每种语言的显示名。",
+    "manageCategoriesHint": "分类在各语言间共用同一个标识；顺序决定文档目录页的分组先后。",
     "newCategory": "新建分类",
     "editCategory": "编辑「{{key}}」",
     "categoryKey": "标识",
@@ -1043,6 +1046,7 @@
     "categorySaveFailed": "保存分类失败",
     "categoryDeleted": "分类已删除",
     "categoryDeleteFailed": "删除失败：仍有文档在使用此分类",
+    "categoryReorderFailed": "调整分类顺序失败，请重试",
     "deleteCategory": "删除分类",
     "cancelCategoryEdit": "取消编辑",
     "saveCategory": "保存",

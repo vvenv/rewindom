@@ -9,13 +9,13 @@
  * 要么什么都渲染不出（拿不到按请求的上下文），要么就是官网上凭空多一个登录框。
  */
 
-import {
-  headingSettings,
-  layoutSettings,
-  styleSettings,
-} from "../../marketing/shared/sections/_common/settings.js";
+import { headingSettings } from "../../marketing/shared/sections/_common/settings.js";
 
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
+import {
+  memberCardSettings,
+  memberPageLayoutSettings,
+} from "./member-page-settings.js";
 
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 import type { SectionRenderContext } from "../../marketing/shared/sections/render-context.js";
@@ -113,6 +113,7 @@ function sharedAuthSettings(
       label: "site-member:section.auth.oauthDivider",
       default: "or",
     },
+    ...memberCardSettings(),
   ];
 }
 
@@ -147,9 +148,7 @@ export const memberLoginFormSection: SectionDefinition = {
   settings: [
     ...sharedAuthSettings("Sign in"),
     ...altLinkSettings("New here?", "Create an account"),
-    // 认证卡本来就窄，默认收进 narrow：铺满整幅的登录框没人这么排
-    ...layoutSettings({ content_width: "narrow" }),
-    ...styleSettings(),
+    ...memberPageLayoutSettings(),
   ],
 };
 
@@ -174,7 +173,6 @@ export const memberRegisterFormSection: SectionDefinition = {
       default: "Display name",
     },
     ...altLinkSettings("Already have an account?", "Sign in"),
-    ...layoutSettings({ content_width: "narrow" }),
-    ...styleSettings(),
+    ...memberPageLayoutSettings(),
   ],
 };

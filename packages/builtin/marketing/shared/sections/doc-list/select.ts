@@ -24,8 +24,15 @@ export interface DocListView {
   /**
    * 分组后的文档。`category` 为空串的那一组**不画标题**：不分组时的唯一一组，
    * 以及分组时没填分类的那些散条目，都走这条——没有分类就不硬造一个分类名。
+   *
+   * `category_label` 是这一组的显示名（`MarketingDocCategory.label` 解析后的那份），
+   * 画标题时用它；`category` 本身是 key，不该出现在页面上。
    */
-  groups: Array<{ category: string; items: PublicDocSummary[] }>;
+  groups: Array<{
+    category: string;
+    category_label: string;
+    items: PublicDocSummary[];
+  }>;
 }
 
 export function resolveDocList(
@@ -43,7 +50,7 @@ export function resolveDocList(
   const groups =
     settingText(settings, "group_by") === "none"
       ? limited.length > 0
-        ? [{ category: "", items: [...limited] }]
+        ? [{ category: "", category_label: "", items: [...limited] }]
         : []
       : groupDocsByCategory(limited);
 

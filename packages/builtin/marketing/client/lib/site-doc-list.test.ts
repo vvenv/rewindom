@@ -21,6 +21,7 @@ function doc(
     locale: "zh-CN",
     description: "",
     category: "",
+    category_label: "",
     status: "draft",
     content_dirty: false,
     sort_order: 0,

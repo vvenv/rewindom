@@ -485,9 +485,14 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 
 ### 文档库（`MarketingDoc`）与它的两张模板页
 
-文档**内容**不进 section 体系：一篇就是「标题 + Markdown + 分类」，存在 `MarketingDoc`
-表里，有自己的 draft/publish 语义（`shared/marketing-doc.ts`）。文档**版式**则完全在
-section 体系里，靠两张模板页承载：
+文档**内容**不进 section 体系：一篇就是「标题 + Markdown + 分类 key」，存在 `MarketingDoc`
+表里，有自己的 draft/publish 语义（`shared/marketing-doc.ts`）。**分类显示名**在
+`MarketingDocCategory`（`key` + 多语言 `label`），各语言文档共用同一个 `category` key。
+管理端 `GET /api/site/doc-categories` 维护分类表；`PUT /api/site/doc-categories/order`
+整批调整 `sort_order`（文档目录分组顺序）；`GET /api/site/docs` 额外返回
+`category_catalog`（完整分类行）与 `categories`（当前筛选结果里出现的 key 列表）。
+存量自由文本分类用 `apps/server/scripts/migrate-doc-categories.ts` 一次性迁成 canonical key。
+文档**版式**则完全在 section 体系里，靠两张模板页承载：
 
 | kind | 地址 | 干什么 |
 | --- | --- | --- |

@@ -54,6 +54,9 @@ export const marketingServerModule: ServerAppModule = {
       { action: "SITE_DOC_PUBLISH", label: "发布文档" },
       { action: "SITE_DOC_UNPUBLISH", label: "取消发布文档" },
       { action: "SITE_DOC_IMPORT", label: "导入文档" },
+      { action: "SITE_DOC_CATEGORY_CREATE", label: "创建文档分类" },
+      { action: "SITE_DOC_CATEGORY_UPDATE", label: "更新文档分类" },
+      { action: "SITE_DOC_CATEGORY_DELETE", label: "删除文档分类" },
     ],
   },
   server: {

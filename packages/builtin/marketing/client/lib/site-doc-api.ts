@@ -12,6 +12,7 @@ import type {
 import type {
   CreateMarketingDocCategoryBody,
   MarketingDocCategory,
+  ReorderMarketingDocCategoriesBody,
   UpdateMarketingDocCategoryBody,
 } from "../../shared/marketing-doc-category.js";
 
@@ -149,4 +150,10 @@ export function deleteSiteDocCategory(
   categoryId: string,
 ): Promise<{ ok: boolean }> {
   return api.delete<{ ok: boolean }>(`/site/doc-categories/${categoryId}`);
+}
+
+export function reorderSiteDocCategories(
+  body: ReorderMarketingDocCategoriesBody,
+): Promise<MarketingDocCategory[]> {
+  return api.put<MarketingDocCategory[]>("/site/doc-categories/order", body);
 }

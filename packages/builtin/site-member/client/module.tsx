@@ -1,14 +1,17 @@
 import { registerSiteSectionView } from "../../marketing/client/components/sections/section-views.js";
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
+import { MEMBER_ACCOUNT_CSS } from "../shared/member-account-css.js";
+import { memberAccountPanelSection } from "../shared/member-account-section.js";
 import { MEMBER_AUTH_CSS } from "../shared/member-auth-css.js";
 import {
   memberLoginFormSection,
   memberRegisterFormSection,
 } from "../shared/member-auth-section.js";
-import { registerMemberAuthTemplates } from "../shared/member-auth-templates.js";
 import { MEMBER_GATE_CSS } from "../shared/member-gate-css.js";
 import { memberGateSection } from "../shared/member-gate-section.js";
+import { registerMemberPageTemplates } from "../shared/member-page-templates.js";
 
+import { MemberAccountPanelSection } from "./components/MemberAccountPanelSection.js";
 import {
   MemberLoginFormSection,
   MemberRegisterFormSection,
@@ -32,16 +35,19 @@ registerSiteSectionView(memberGateSection, MemberGateSection, {
 });
 
 /*
- * 会员登录 / 注册页的两张模板页与它们的必备段。
+ * 会员那三张模板页（登录 / 注册 / 我的账户）与它们的必备段。
  *
- * 模板页元数据两端都要登记：中台要列出这两行，写路径要按 kind 校验 slug。
+ * 模板页元数据两端都要登记：中台要列出这几行，写路径要按 kind 校验 slug。
  */
-registerMemberAuthTemplates();
+registerMemberPageTemplates();
 registerSiteSectionView(memberLoginFormSection, MemberLoginFormSection, {
   css: MEMBER_AUTH_CSS,
 });
 registerSiteSectionView(memberRegisterFormSection, MemberRegisterFormSection, {
   css: MEMBER_AUTH_CSS,
+});
+registerSiteSectionView(memberAccountPanelSection, MemberAccountPanelSection, {
+  css: MEMBER_ACCOUNT_CSS,
 });
 
 export const siteMemberClientModule: ClientAppModule = {

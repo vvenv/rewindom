@@ -34,7 +34,11 @@ export const VITE_DEV_INTERNAL_RE =
  * 应用区前缀下的**例外**：这几条路径归 Fastify SSR（租户可排版的会员认证页）。
  * 须与 `SITE_SSR_EXCEPTION_PATHS`（marketing/shared/site-locale.ts）及 nginx location 对齐。
  */
-const SSR_EXCEPTION_PATHS = ["/member/login", "/member/register"] as const;
+const SSR_EXCEPTION_PATHS = [
+  "/member/login",
+  "/member/register",
+  "/member/account",
+] as const;
 
 function isSsrExceptionPath(url: string): boolean {
   return (SSR_EXCEPTION_PATHS as readonly string[]).includes(url);
