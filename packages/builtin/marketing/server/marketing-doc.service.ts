@@ -31,6 +31,7 @@ import {
   DOCS_INDEX_PATH,
   docFilename,
   docPath,
+  docsInLocale,
   formatDocAsMarkdown,
   parseCreateDocBody,
   parseDuplicateDocBody,
@@ -941,21 +942,12 @@ export async function listPublishedDocs(
       locale: true,
     },
   });
-  const inLocale = records.filter(
-    (record) => normalizeLocale(record.locale, default_locale) === current,
-  );
-  // 当前语言有内容就用它；没有则整库回落主语言
-  const effective =
-    inLocale.length > 0
-      ? inLocale
-      : records.filter(
-          (record) =>
-            normalizeLocale(record.locale, default_locale) === default_locale,
-        );
+  // 当前语言有内容就用它；没有则整库回落主语言（口径与编辑器预览共用同一函数）
+  const effective = docsInLocale(records, current, default_locale);
   return {
     // 列表不带正文：几百篇文档的 `body_md` 是几 MB 的无用 payload
-    docs: effective.map(toDocSummary),
-    locale: inLocale.length > 0 ? current : default_locale,
+    docs: effective.docs.map(toDocSummary),
+    locale: effective.locale,
   };
 }
 

@@ -72,16 +72,24 @@ export function SiteThemeEditor() {
   const { confirm } = useConfirm();
   const canWrite = hasPermission("site.write");
   const editor = useSiteThemeEditor(pageId);
-  // 文档模板页的预览要有文档可画；普通页面这里什么都不拉（见 hook 内的 enabled）
-  const docPreview = useDocPreviewData(editor.page?.kind ?? "page");
+  /*
+   * 文档模板页的预览要有文档可画；普通页面这里什么都不拉（见 hook 内的 enabled）。
+   * 两份目录都按当前编辑的语言筛：编辑器切到英文，预览里的文档列表也得是英文那些。
+   */
+  const docPreview = useDocPreviewData(
+    editor.page?.kind ?? "page",
+    editor.locale,
+    editor.defaultLocale,
+  );
   /*
    * 页头页脚看到的文档目录：与线上同一口径（见 `useChromeDocs`）。
    * 和 `docPreview` 分开，是因为那一份在零文档时会兜底成示例。
    */
-  const chromeDocs = useChromeDocs({
-    header: editor.header,
-    footer: editor.footer,
-  });
+  const chromeDocs = useChromeDocs(
+    { header: editor.header, footer: editor.footer },
+    editor.locale,
+    editor.defaultLocale,
+  );
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import {
+  docsInLocale,
   type PublicDocDetail,
   type PublicDocSummary,
 } from "../../shared/marketing-doc.js";
@@ -16,6 +17,8 @@ import {
 
 import { useSiteDoc } from "./useSiteDocs.js";
 
+import type { AppLocale } from "@be-water/shared";
+
 /**
  * 编辑文档模板页时，预览里的 `doc-*` 段该拿什么数据。
  *
@@ -25,7 +28,11 @@ import { useSiteDoc } from "./useSiteDocs.js";
  * 只在编辑那两张模板页时才拉（`enabled` 由 kind 决定）：普通页面上的 `doc-list`
  * 同样吃这份数据，但那是首页放"最新几篇"的少数用法，让它跟着模板页一起拿就够了。
  */
-export function useDocPreviewData(kind: MarketingPageKind): {
+export function useDocPreviewData(
+  kind: MarketingPageKind,
+  locale: AppLocale,
+  defaultLocale: AppLocale,
+): {
   docs: PublicDocSummary[];
   doc: PublicDocDetail | undefined;
 } {
@@ -39,19 +46,28 @@ export function useDocPreviewData(kind: MarketingPageKind): {
   });
   const items = docsQuery.data ?? [];
   const published = items.filter((item) => item.status === "published");
+  /*
+   * 只留正在编辑的这个语言（整库回落主语言，口径同 SSR 的 `listPublishedDocs`）：
+   * 编辑英文模板页时预览里铺一份中文目录，等于预览撒谎——线上那一版按访客语言
+   * 早就筛过了。样本文档跟着同一份池子走，否则详情模板会拿另一语言的正文排版。
+   */
+  const pool = docsInLocale(
+    published.length > 0 ? published : items,
+    locale,
+    defaultLocale,
+  ).docs;
   // 详情模板的样本取第一篇已发布的；全是草稿时也认草稿（编辑器里看得到就行）
-  const sampleId = (published[0] ?? items[0])?.id ?? null;
+  const sampleId = pool[0]?.id ?? null;
   const sampleQuery = useSiteDoc(kind === "doc_article" ? sampleId : null);
 
-  const docs: PublicDocSummary[] = (published.length > 0 ? published : items)
-    .map((item) => ({
-      slug: item.slug,
-      title: item.title,
-      description: item.description,
-      category: item.category,
-      sort_order: item.sort_order,
-      updated_at: item.updated_at,
-    }));
+  const docs: PublicDocSummary[] = pool.map((item) => ({
+    slug: item.slug,
+    title: item.title,
+    description: item.description,
+    category: item.category,
+    sort_order: item.sort_order,
+    updated_at: item.updated_at,
+  }));
 
   const sample = sampleQuery.data;
   const doc: PublicDocDetail | undefined =

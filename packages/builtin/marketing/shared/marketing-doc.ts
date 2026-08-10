@@ -12,7 +12,7 @@
  * 是编辑器在改的那一份。`status=draft` 时文档对访客不可见（不出现在 `/docs`）。
  */
 
-import { isAppLocale, type AppLocale } from "@be-water/shared";
+import { isAppLocale, normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import { resolveLocaleSegment } from "./site-locale.js";
 
@@ -417,6 +417,33 @@ export interface PublicDocDetail extends PublicDocSummary {
 }
 
 /**
+ * 从整库目录里挑出**一种语言**的那些，附带实际生效的语言。
+ *
+ * 与页面的 `effectiveLocale` 不同：请求语言一篇都没有时**整库回落**主语言，
+ * 而不是逐篇回落——目录里中英混排比缺几篇更难看懂。
+ *
+ * 住在 shared 是因为三处都要它、且必须同一口径：SSR 的 `listPublishedDocs`、
+ * 编辑器预览的 `useDocPreviewData`、页头页脚预览的 `useChromeDocs`。少了任何
+ * 一处，切到英文的编辑器里就会画出一份线上不存在的中文目录。
+ */
+export function docsInLocale<T extends { locale: unknown }>(
+  docs: readonly T[],
+  locale: AppLocale,
+  defaultLocale: AppLocale,
+): { docs: T[]; locale: AppLocale } {
+  const inLocale = docs.filter(
+    (doc) => normalizeLocale(doc.locale, defaultLocale) === locale,
+  );
+  if (inLocale.length > 0) return { docs: inLocale, locale };
+  return {
+    docs: docs.filter(
+      (doc) => normalizeLocale(doc.locale, defaultLocale) === defaultLocale,
+    ),
+    locale: defaultLocale,
+  };
+}
+
+/**
  * 按分类分组，**保持传入顺序**（服务端已按 category / sort_order / title 排好）。
  *
  * 没填分类的收在**最后一组**且 `category` 为空串——这一组是「散条目」，不是一个
@@ -449,9 +476,7 @@ export function groupDocsByCategory<T extends { category: string }>(
  * 编辑器给 `doc_category` 菜单项当候选：那个字段是**逐字匹配** `MarketingDoc.category`
  * 的，打错一个字的表现是整条菜单项静默消失，不该靠租户自己去文档库抄。
  */
-export function docCategories(
-  docs: readonly { category: string }[],
-): string[] {
+export function docCategories(docs: readonly { category: string }[]): string[] {
   return [...new Set(docs.map((doc) => doc.category).filter(Boolean))];
 }
 

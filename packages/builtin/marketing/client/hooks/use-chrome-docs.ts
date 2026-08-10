@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 
 import {
+  docsInLocale,
+  type PublicDocSummary,
+} from "../../shared/marketing-doc.js";
+import {
   chromeNeedsDocList,
   chromeShowsDocSearch,
 } from "../../shared/site-cms.js";
@@ -9,8 +13,8 @@ import {
   SITE_DOCS_QUERY_KEY,
 } from "../lib/site-doc-api.js";
 
-import type { PublicDocSummary } from "../../shared/marketing-doc.js";
 import type { SiteSection } from "../../shared/section-schema.js";
+import type { AppLocale } from "@be-water/shared";
 
 /**
  * 页头 / 页脚在预览里要用的文档数据，口径与 SSR 的 `resolveChromeDocs` 一致。
@@ -24,12 +28,15 @@ import type { SiteSection } from "../../shared/section-schema.js";
  * 访客请求**的一次全库查询，而这里是一个编辑器会话拉一次。何况 `show_doc_search`
  * 默认开，分档在这儿几乎永远走不到便宜的那条路。
  */
-export function useChromeDocs(chrome: {
-  header: SiteSection[];
-  footer: SiteSection[];
-}): PublicDocSummary[] {
-  const needed =
-    chromeNeedsDocList(chrome) || chromeShowsDocSearch(chrome);
+export function useChromeDocs(
+  chrome: {
+    header: SiteSection[];
+    footer: SiteSection[];
+  },
+  locale: AppLocale,
+  defaultLocale: AppLocale,
+): PublicDocSummary[] {
+  const needed = chromeNeedsDocList(chrome) || chromeShowsDocSearch(chrome);
   const { data } = useQuery({
     queryKey: [...SITE_DOCS_QUERY_KEY, "catalog"],
     queryFn: fetchSiteDocsCatalog,
@@ -42,14 +49,14 @@ export function useChromeDocs(chrome: {
    * 只认已发布的：导航里的文档链接指向公开面，草稿在那儿是 404。预览显示一条点过去
    * 打不开的链接，比不显示更难查。
    */
-  return (data ?? [])
-    .filter((item) => item.status === "published")
-    .map((item) => ({
-      slug: item.slug,
-      title: item.title,
-      description: item.description,
-      category: item.category,
-      sort_order: item.sort_order,
-      updated_at: item.updated_at,
-    }));
+  const published = (data ?? []).filter((item) => item.status === "published");
+  // 再按当前语言收一遍，口径与 SSR 的 `listPublishedDocs` 同一个函数
+  return docsInLocale(published, locale, defaultLocale).docs.map((item) => ({
+    slug: item.slug,
+    title: item.title,
+    description: item.description,
+    category: item.category,
+    sort_order: item.sort_order,
+    updated_at: item.updated_at,
+  }));
 }

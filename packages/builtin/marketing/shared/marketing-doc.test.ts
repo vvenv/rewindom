@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   docFilename,
   docHeadingAnchor,
+  docsInLocale,
   extractDocHeadings,
   formatDocAsMarkdown,
   groupDocsByCategory,
@@ -42,6 +43,35 @@ describe("groupDocsByCategory", () => {
   });
 });
 
+describe("docsInLocale", () => {
+  const rows = [
+    { slug: "a", locale: "zh-CN" },
+    { slug: "b", locale: "en" },
+    { slug: "c", locale: "zh-CN" },
+  ];
+
+  it("只留请求语言的那些", () => {
+    const picked = docsInLocale(rows, "en", "zh-CN");
+    expect(picked.locale).toBe("en");
+    expect(picked.docs.map((row) => row.slug)).toEqual(["b"]);
+  });
+
+  it("该语言一篇都没有时整库回落主语言（不逐篇混排）", () => {
+    const picked = docsInLocale(rows.slice(0, 1), "en", "zh-CN");
+    expect(picked.locale).toBe("zh-CN");
+    expect(picked.docs.map((row) => row.slug)).toEqual(["a"]);
+  });
+
+  it("locale 是脏值时按主语言算", () => {
+    const picked = docsInLocale(
+      [{ slug: "x", locale: "klingon" }],
+      "zh-CN",
+      "zh-CN",
+    );
+    expect(picked.docs.map((row) => row.slug)).toEqual(["x"]);
+  });
+});
+
 describe("docHeadingAnchor", () => {
   it("保留中文", () => {
     expect(docHeadingAnchor("快速开始")).toBe("快速开始");
@@ -56,9 +86,15 @@ describe("docHeadingAnchor", () => {
 describe("extractDocHeadings", () => {
   it("跳过围栏代码块里的 # 行", () => {
     const headings = extractDocHeadings(
-      ["## 安装", "", "```bash", "# 这是注释，不是标题", "```", "", "## 使用"].join(
-        "\n",
-      ),
+      [
+        "## 安装",
+        "",
+        "```bash",
+        "# 这是注释，不是标题",
+        "```",
+        "",
+        "## 使用",
+      ].join("\n"),
     );
     expect(headings.map((item) => item.text)).toEqual(["安装", "使用"]);
   });
