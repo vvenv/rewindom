@@ -6,8 +6,6 @@
  * 那一套（`site` / `hero` / `features` / `landing` / `pricing` / `seo`）。
  */
 
-import type { AppLocale } from "@be-water/shared";
-
 import en from "../client/locales/en.json" with { type: "json" };
 import zhCN from "../client/locales/zh-CN.json" with { type: "json" };
 import {
@@ -17,11 +15,16 @@ import {
   parseSettingValues,
   type SiteSection,
 } from "../shared/section-schema.js";
-import type { LocalizedText, SettingValues } from "../shared/section-settings.js";
-import type { UpdateMarketingSiteBody } from "../shared/site-cms.js";
 import { createNavItemId, type SiteNavItem } from "../shared/site-nav.js";
 import { findSiteTheme } from "../shared/site-themes.js";
+
+import type {
+  LocalizedText,
+  SettingValues,
+} from "../shared/section-settings.js";
+import type { UpdateMarketingSiteBody } from "../shared/site-cms.js";
 import type { ThemeSettings } from "../shared/theme-sections.js";
+import type { AppLocale } from "@be-water/shared";
 
 type LocaleMessages = typeof zhCN;
 
@@ -68,14 +71,16 @@ const PLAN_PRICES: Record<(typeof PLAN_SLUGS)[number], number | null> = {
   enterprise: null,
 };
 
-const TECH_STACK_ROWS: ReadonlyArray<{ layer: keyof LocaleMessages["techStack"]["layerLabels"]; detail: string }> =
-  [
-    { layer: "backend", detail: "Fastify 5 · TypeScript 6 · Prisma 7" },
-    { layer: "data", detail: "PostgreSQL 16 · Redis" },
-    { layer: "frontend", detail: "React 19 · Vite 8 · React Router" },
-    { layer: "ui", detail: "shadcn/ui · Tailwind CSS 4" },
-    { layer: "deploy", detail: "Docker Compose" },
-  ];
+const TECH_STACK_ROWS: ReadonlyArray<{
+  layer: keyof LocaleMessages["techStack"]["layerLabels"];
+  detail: string;
+}> = [
+  { layer: "backend", detail: "Fastify 5 · TypeScript 6 · Prisma 7" },
+  { layer: "data", detail: "PostgreSQL 16 · Redis" },
+  { layer: "frontend", detail: "React 19 · Vite 8 · React Router" },
+  { layer: "ui", detail: "shadcn/ui · Tailwind CSS 4" },
+  { layer: "deploy", detail: "Docker Compose" },
+];
 
 export interface ProductSitePageWrite {
   kind: "home" | "page";
@@ -119,7 +124,10 @@ function tList(locale: AppLocale, path: string): string[] {
 }
 
 function interpolate(template: string, vars: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => vars[key] ?? "");
+  return template.replace(
+    /\{\{(\w+)\}\}/g,
+    (_, key: string) => vars[key] ?? "",
+  );
 }
 
 function i18n(path: string): LocalizedText {
@@ -139,10 +147,14 @@ function section(
   values: SettingValues,
   blocks: SiteSection["blocks"] = [],
 ): SiteSection {
+  const definition = getSectionDefinition(type);
+  if (!definition) {
+    throw new Error(`Unknown section type: ${type}`);
+  }
   const base = createSection(type);
   return {
     ...base,
-    settings: parseSettingValues(getSectionDefinition(type).settings, {
+    settings: parseSettingValues(definition.settings, {
       ...base.settings,
       ...values,
     }),
@@ -167,6 +179,11 @@ function buildChrome(): Pick<
   "header" | "footer" | "theme_settings" | "site_name" | "tagline"
 > {
   const year = new Date().getFullYear();
+  const headerDef = getSectionDefinition("header");
+  const footerDef = getSectionDefinition("footer");
+  if (!headerDef || !footerDef) {
+    throw new Error("Missing header/footer section definitions");
+  }
   const header = createSection("header");
   const footer = createSection("footer");
 
@@ -219,7 +236,7 @@ function buildChrome(): Pick<
     header: [
       {
         ...header,
-        settings: parseSettingValues(getSectionDefinition("header").settings, {
+        settings: parseSettingValues(headerDef.settings, {
           ...header.settings,
           show_logo: true,
           show_site_name: true,
@@ -239,7 +256,7 @@ function buildChrome(): Pick<
     footer: [
       {
         ...footer,
-        settings: parseSettingValues(getSectionDefinition("footer").settings, {
+        settings: parseSettingValues(footerDef.settings, {
           ...footer.settings,
           show_logo: true,
           blurb: i18n("site.description"),
@@ -255,7 +272,9 @@ function buildChrome(): Pick<
 }
 
 function buildHomeSections(locale: AppLocale): SiteSection[] {
-  const infraCount = String(Object.keys(MESSAGES[locale].builtinModules).length);
+  const infraCount = String(
+    Object.keys(MESSAGES[locale].builtinModules).length,
+  );
 
   const heroStats = (
     ["agentLoop", "infraModules", "tenantIsolation"] as const
@@ -375,7 +394,10 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
   ];
 }
 
-function formatPlanPrice(locale: AppLocale, slug: (typeof PLAN_SLUGS)[number]): string {
+function formatPlanPrice(
+  locale: AppLocale,
+  slug: (typeof PLAN_SLUGS)[number],
+): string {
   const amount = PLAN_PRICES[slug];
   if (amount === null) return t(locale, "pricing.priceCustom");
   if (amount === 0) return t(locale, "pricing.priceFree");
@@ -393,7 +415,10 @@ function buildPricingSections(locale: AppLocale): SiteSection[] {
       name: t(locale, `pricing.platformPlans.${slug}.name`),
       audience: t(locale, `pricing.plans.${slug}.audience`),
       price: formatPlanPrice(locale, slug),
-      price_note: slug === "enterprise" || slug === "free" ? "" : t(locale, "pricing.perMonth"),
+      price_note:
+        slug === "enterprise" || slug === "free"
+          ? ""
+          : t(locale, "pricing.perMonth"),
       highlights,
       featured: slug === "pro",
       primary_label: t(locale, `pricing.plans.${slug}.cta`),
