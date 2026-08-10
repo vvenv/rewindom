@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 
@@ -30,10 +30,17 @@ function site(headerSettings: Record<string, unknown> = {}): PublicMarketingSite
   };
 }
 
-function renderSite(headerSettings: Record<string, unknown> = {}) {
+function renderSite(
+  headerSettings: Record<string, unknown> = {},
+  options: { headerOverride?: ReturnType<typeof parseAreaSections> } = {},
+) {
   return render(
     <MemoryRouter>
-      <TenantSiteView site={site(headerSettings)} path="/" />
+      <TenantSiteView
+        site={site(headerSettings)}
+        path="/"
+        headerOverride={options.headerOverride}
+      />
     </MemoryRouter>,
   );
 }
@@ -74,6 +81,29 @@ describe("TenantSiteView 页面外壳", () => {
   });
 
   /* 访客明暗落在站点自己的标记上，工作台的 `.dark` / `localStorage.theme` 不参与。 */
+  it("headerOverride 会把多语言主按钮压平后再渲染", () => {
+    const [headerSection] = parseAreaSections("header", [
+      {
+        type: "header",
+        settings: {
+          items: [],
+          primary_label: { __i18n: { "zh-CN": "免费开始" } },
+          primary_href: "/contact",
+        },
+        blocks: [],
+      },
+    ]);
+    render(
+      <MemoryRouter>
+        <TenantSiteView site={site()} path="/" headerOverride={[headerSection!]} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("link", { name: "免费开始" })).toHaveAttribute(
+      "href",
+      "/contact",
+    );
+  });
+
   it("把访客明暗打在 document 上，且不碰工作台那份偏好", () => {
     localStorage.setItem("theme", "dark");
     renderSite();

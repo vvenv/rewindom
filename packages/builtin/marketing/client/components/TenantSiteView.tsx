@@ -7,7 +7,10 @@ import {
   type PublicDocSummary,
 } from "../../shared/marketing-doc.js";
 import { MARKETING_SITE_ROOT_CLASS } from "../../shared/marketing-site-theme.js";
-import { type SiteSection } from "../../shared/section-schema.js";
+import {
+  localizeSections,
+  type SiteSection,
+} from "../../shared/section-schema.js";
 import {
   marketingPagePath,
   type MarketingPageSettings,
@@ -105,8 +108,16 @@ export function TenantSiteView({
     ...(pageFg ? { color: pageFg } : {}),
   };
 
-  const header = headerOverride ?? site.header;
-  const footer = footerOverride ?? site.footer;
+  /*
+   * 覆盖项来自编辑器草稿，仍是管理端形状（多语言文案是整张表）。公开读路径一律
+   * 先压成当前语言，否则 `settingText` 拿到对象会渲染成空——页头主按钮就是典型。
+   */
+  const header = headerOverride
+    ? localizeSections(headerOverride, site.locale, site.default_locale)
+    : site.header;
+  const footer = footerOverride
+    ? localizeSections(footerOverride, site.locale, site.default_locale)
+    : site.footer;
   const hasOwnContent = sections.length > 0;
   const content = (
     <SiteLocaleProvider
