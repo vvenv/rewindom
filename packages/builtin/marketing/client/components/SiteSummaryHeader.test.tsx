@@ -66,4 +66,13 @@ describe("SiteSummaryHeader", () => {
 
     expect(screen.queryByText(/个页面/)).toBeNull();
   });
+
+  // 只读也该能看官网，所以入口不在 canWrite 分支里
+  it("offers a new-window entrance to the live site without write permission", () => {
+    renderHeader();
+
+    const link = screen.getByRole("link", { name: "查看官网" });
+    expect(link).toHaveAttribute("href", "/");
+    expect(link).toHaveAttribute("target", "_blank");
+  });
 });

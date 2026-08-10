@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@be-water/ui/card";
 import { Skeleton } from "@be-water/ui/skeleton";
-import { Settings2 } from "lucide-react";
+import { ExternalLink, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { localizeSiteText } from "../../shared/section-schema.js";
@@ -103,17 +103,35 @@ export function SiteSummaryHeader({
           ) : null}
         </CardDescription>
       ) : null}
-      {canWrite ? (
-        <CardAction className="flex items-center gap-2">
-          <SiteStarterMenu hasContent={hasStarterContent} />
-          <SiteSettingsSheet site={site}>
-            <Button variant="outline" size="sm">
-              <Settings2 className="size-4" />
-              <span className="hidden sm:inline">{t("cms.settings")}</span>
-            </Button>
-          </SiteSettingsSheet>
-        </CardAction>
-      ) : null}
+      <CardAction className="flex items-center gap-2">
+        {/*
+          官网就挂在当前 Host 的 `/`（见 Host 分流），所以用相对地址即可——写死
+          域名会在自定义域名 / 本地 `{slug}.localhost` 上指错站点。只读也能看，
+          所以放在 `canWrite` 之外。
+        */}
+        <Button asChild variant="outline" size="sm">
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label={t("cms.viewSite")}
+          >
+            <ExternalLink className="size-4" />
+            <span className="hidden sm:inline">{t("cms.viewSite")}</span>
+          </a>
+        </Button>
+        {canWrite ? (
+          <>
+            <SiteStarterMenu hasContent={hasStarterContent} />
+            <SiteSettingsSheet site={site}>
+              <Button variant="outline" size="sm">
+                <Settings2 className="size-4" />
+                <span className="hidden sm:inline">{t("cms.settings")}</span>
+              </Button>
+            </SiteSettingsSheet>
+          </>
+        ) : null}
+      </CardAction>
     </CardHeader>
   );
 }

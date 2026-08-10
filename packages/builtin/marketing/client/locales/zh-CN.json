@@ -245,6 +245,7 @@
     "title": "官网",
     "pageDescription": "编辑绑定域名上的官网内容；发布后搜索引擎可抓取完整正文。",
     "disabledHint": "该组织未开通官网",
+    "viewSite": "查看官网",
     "settings": "站点设置",
     "settingsTitle": "站点设置",
     "settingsDescription": "站点名称、语言与对外可见性。",

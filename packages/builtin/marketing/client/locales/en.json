@@ -245,6 +245,7 @@
     "title": "Website",
     "pageDescription": "Edit marketing content for your bound host. Published pages are SSR’d for SEO.",
     "disabledHint": "Website is not enabled for this organization",
+    "viewSite": "View site",
     "settings": "Site settings",
     "settingsTitle": "Site settings",
     "settingsDescription": "Site name, language and public visibility.",
