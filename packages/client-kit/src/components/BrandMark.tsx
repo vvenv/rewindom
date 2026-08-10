@@ -9,7 +9,7 @@ export interface BrandMarkProps {
   alt?: string;
 }
 
-/** 侧栏 / 登录英雄区品牌图：有自定义 logo 用 `<img>`，否则用产品 SVG Logo。 */
+/** 侧栏 / 登录英雄区品牌图：有自定义 logo 用 mask 着色，否则用产品 SVG Logo。 */
 export function BrandMark({
   src,
   className,
@@ -17,10 +17,20 @@ export function BrandMark({
 }: BrandMarkProps) {
   if (src) {
     return (
-      <img
-        src={src}
-        alt={alt}
-        className={cn("object-contain", className)}
+      <span
+        role="img"
+        aria-label={alt}
+        className={cn("inline-block bg-current", className)}
+        style={{
+          maskImage: `url("${src}")`,
+          WebkitMaskImage: `url("${src}")`,
+          maskSize: "contain",
+          WebkitMaskSize: "contain",
+          maskRepeat: "no-repeat",
+          WebkitMaskRepeat: "no-repeat",
+          maskPosition: "center",
+          WebkitMaskPosition: "center",
+        }}
       />
     );
   }
