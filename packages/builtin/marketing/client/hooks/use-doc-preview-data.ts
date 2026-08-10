@@ -6,10 +6,8 @@ import {
   type PublicDocDetail,
   type PublicDocSummary,
 } from "../../shared/marketing-doc.js";
-import {
-  isDocTemplateKind,
-  type MarketingPageKind,
-} from "../../shared/site-cms.js";
+import { isDocTemplateKind } from "../../shared/page-templates.js";
+import { type MarketingPageKind } from "../../shared/site-cms.js";
 import {
   fetchSiteDocsCatalog,
   SITE_DOCS_QUERY_KEY,

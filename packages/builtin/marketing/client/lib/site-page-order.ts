@@ -1,7 +1,5 @@
-import {
-  isDocTemplateKind,
-  type MarketingPageListItem,
-} from "../../shared/site-cms.js";
+import { isTemplatePageKind } from "../../shared/page-templates.js";
+import { type MarketingPageListItem } from "../../shared/site-cms.js";
 
 import type { SitePageGroup } from "./site-page-groups.js";
 
@@ -88,7 +86,7 @@ export function summarizeSitePages(
   let published = 0;
   let dirty = 0;
   for (const page of pages) {
-    if (isDocTemplateKind(page.kind)) continue;
+    if (isTemplatePageKind(page.kind)) continue;
     total += 1;
     if (page.status === "published") published += 1;
     if (page.status === "published" && page.content_dirty) dirty += 1;

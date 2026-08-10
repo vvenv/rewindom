@@ -13,16 +13,21 @@ import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import { getTenantBrandingUrls } from "../../platform/server/services/tenant-branding.service.js";
 import {
+  getSectionDefinition,
   localizeSections,
+  localizeSiteText,
+  parseSiteNameValue,
   relocalizeSections,
   type SiteSection,
 } from "../shared/section-schema.js";
+import { collectSectionTypes } from "../shared/sections/collect-types.js";
+import {
+  getPageTemplateKind,
+  isTemplatePageKind,
+} from "../shared/page-templates.js";
 import {
   canonicalizePageIdentity,
-  DOC_TEMPLATE_SLUGS,
-  isDocTemplateKind,
   marketingPagePath,
-  type DocTemplateKind,
   type ApplySiteStarterResponse,
   type CreateMarketingPageBody,
   type DuplicateMarketingPageBody,
@@ -245,6 +250,55 @@ export async function getPage(
   return toMarketingPage(record);
 }
 
+/** 段流里某个 type 出现了几次（含容器段列里的子段）。 */
+function countSectionsOfType(
+  sections: readonly SiteSection[],
+  type: string,
+): number {
+  let count = 0;
+  for (const section of sections) {
+    if (section.type === type) count += 1;
+    for (const block of section.blocks ?? []) {
+      if (block.sections) count += countSectionsOfType(block.sections, type);
+    }
+  }
+  return count;
+}
+
+/**
+ * 模板页的必备段：有且仅有一段。
+ *
+ * 它是这张模板存在的理由本身——会员登录版式里删掉登录表单，会员就再也登不进来了；
+ * 留两段则是两个都能提交的表单，错误提示落在哪一个由 DOM 顺序决定。编辑器已经不给
+ * 删（`SectionTree` 按 `required_section` 关掉删除），但校验必须**同时**落在服务端：
+ * 中台之外还有 API，而这条约束一旦破掉，租户是在自己的登录页上发现的。
+ *
+ * 放进列里（`group` 的某一栏）是允许的：那是版式选择，不是把段删掉。
+ */
+function assertTemplateRequiredSection(
+  kind: MarketingPageKind,
+  sections: readonly SiteSection[],
+): void {
+  /*
+   * 声明了 `page_kinds` 的段只能落在它自己那张页面上。
+   *
+   * 与必备段是同一条约束的两半：登录表单在别的页面上渲染不出有意义的东西，
+   * 而编辑器的「添加区块」菜单已经按 kind 过滤过——这里补的是直接打 API 的那条路。
+   */
+  for (const type of collectSectionTypes(sections)) {
+    const allowed = getSectionDefinition(type)?.page_kinds;
+    if (allowed && !allowed.includes(kind)) {
+      throw new ValidationError("site.section_page_kind_invalid");
+    }
+  }
+
+  const required = getPageTemplateKind(kind)?.required_section;
+  if (!required) return;
+  if (countSectionsOfType(sections, required) !== 1) {
+    throw new ValidationError("site.template_section_required");
+  }
+}
+
 export async function createPage(
   tenant_id: string,
   body: CreateMarketingPageBody,
@@ -273,14 +327,15 @@ export async function createPage(
     }
   }
 
-  if (isDocTemplateKind(kind)) {
+  if (isTemplatePageKind(kind)) {
     const existingTemplate = await prisma.marketingPage.findFirst({
       where: withTenantScope(tenant_id, { kind, locale }),
     });
     if (existingTemplate) {
-      throw new ConflictError("site.doc_template_exists");
+      throw new ConflictError("site.template_page_exists");
     }
   }
+  assertTemplateRequiredSection(kind, sections);
 
   try {
     const created = await prisma.marketingPage.create({
@@ -351,12 +406,12 @@ async function resolveDuplicateSlug(
   });
   const taken = new Set(rows.map((row) => row.slug));
   if (!taken.has(sourceSlug)) return sourceSlug;
-  // 首页 / 文档模板页的 slug 是固定的，同语言复制不出第二份
+  // 首页 / 模板页的 slug 是固定的，同语言复制不出第二份
   if (kind === "home") {
     throw new ConflictError("site.home_exists");
   }
-  if (isDocTemplateKind(kind)) {
-    throw new ConflictError("site.doc_template_exists");
+  if (isTemplatePageKind(kind)) {
+    throw new ConflictError("site.template_page_exists");
   }
   for (const candidate of copySlugCandidates(sourceSlug)) {
     if (taken.has(candidate)) continue;
@@ -466,6 +521,7 @@ export async function saveEditorDraft(
 
   // 校验全部先做完再进事务：解析失败不该留下任何写入
   const sections = parsePageSections(body.sections);
+  assertTemplateRequiredSection(existing.kind, sections);
   const header = parseSiteAreaSections("header", body.header);
   const footer = parseSiteAreaSections("footer", body.footer);
   const settings =
@@ -683,6 +739,12 @@ export async function updatePage(
     }
   }
 
+  const nextSections =
+    body.sections !== undefined ? parsePageSections(body.sections) : undefined;
+  if (nextSections) {
+    assertTemplateRequiredSection(nextKind, nextSections);
+  }
+
   try {
     const updated = await prisma.marketingPage.update({
       // 带上 tenant_id：上面的存在性校验是 check-then-act，写入本身也要租户闭合
@@ -703,11 +765,9 @@ export async function updatePage(
         ...(body.description !== undefined
           ? { description_draft: body.description.trim() }
           : {}),
-        ...(body.sections !== undefined
+        ...(nextSections !== undefined
           ? {
-              sections_draft: parsePageSections(
-                body.sections,
-              ) as unknown as Prisma.InputJsonValue,
+              sections_draft: nextSections as unknown as Prisma.InputJsonValue,
             }
           : {}),
         ...(body.settings !== undefined
@@ -985,6 +1045,47 @@ export async function getPublishedPublicSite(
 }
 
 /**
+ * 「入口页」用的站点 chrome：站点已发布就用它的，否则给一份**最小可渲染**的。
+ *
+ * 会员登录页不是官网内容而是入口——租户还没发布官网时会员照样得能登录，那时
+ * 不该因为「站点未发布」整页 404。拿不到已发布站点时退回一份只有站名与主题默认值
+ * 的空 chrome：没有页头页脚，但表单、主题、语言这些照常。
+ */
+export async function getSiteChromeOrFallback(
+  tenant_id: string,
+  tenant_slug: string,
+  fallbackName: string,
+  locale?: AppLocale | null,
+): Promise<PublicMarketingSite> {
+  const published = await getPublishedPublicSite(tenant_id, tenant_slug, locale);
+  if (published) return published;
+
+  const site = await prisma.marketingSite.findFirst({
+    where: withTenantScope(tenant_id),
+  });
+  const defaultLocale = normalizeLocale(site?.default_locale);
+  const effective = locale ?? defaultLocale;
+  return {
+    site_name:
+      localizeSiteText(
+        parseSiteNameValue(site?.site_name),
+        effective,
+        defaultLocale,
+      ) || fallbackName,
+    tagline: "",
+    logo_url: await brandingLogoUrl(tenant_id, tenant_slug),
+    primary_color: null,
+    theme_settings: resolveThemeSettings(site?.theme_settings),
+    default_locale: defaultLocale,
+    locale: effective,
+    available_locales: [defaultLocale],
+    header: [],
+    footer: [],
+    pages: [],
+  };
+}
+
+/**
  * 公开页面：**按语言**选行。
  *
  * 这里以前只按 path 匹配，同一个 slug 存了两种语言时返回哪一行取决于数据库的
@@ -1036,33 +1137,40 @@ export async function getPublishedPublicPage(
 }
 
 /**
- * 文档模板页的**已发布**版式（`/docs` 与 `/docs/:slug` 的排版）。
+ * 模板页的**已发布**版式（文档库的 `/docs`、会员登录页……）。
  *
- * 返回 `null` 表示租户从没自定义过——调用方回落内置兜底版式（`DOC_TEMPLATE_PRESETS`），
- * 而不是渲染出一张空页。这正是「懒落库」的另一半：不存在 ≠ 没有版式。
+ * 返回 `null` 表示租户从没自定义过——调用方回落自己的内置兜底版式，而不是渲染出
+ * 一张空页。这正是「懒落库」的另一半：不存在 ≠ 没有版式。
  *
- * 语言回落与文档本身同口径：先找当前语言那一份，没有就用站点主语言的。
+ * 语言回落：先找当前语言那一份，没有就用站点主语言的。
+ *
+ * `requireSite` 为 false 时**不要求站点已发布**。文档库那种「站点的一部分」当然
+ * 要站点先发布，但会员登录页不是内容而是**入口**：租户还没发布官网时会员照样得
+ * 能登录，那时用兜底版式渲染。
  */
-export async function getPublishedDocTemplate(
+export async function getPublishedTemplatePage(
   tenant_id: string,
-  kind: DocTemplateKind,
+  kind: MarketingPageKind,
   locale: AppLocale,
+  options: { requireSite?: boolean } = {},
 ): Promise<{
   sections: SiteSection[];
   title: string;
   description: string;
 } | null> {
+  const template = getPageTemplateKind(kind);
+  if (!template) return null;
   const siteRecord = await prisma.marketingSite.findFirst({
     where: withTenantScope(tenant_id, { published: true }),
   });
-  if (!siteRecord) return null;
-  const default_locale = normalizeLocale(siteRecord.default_locale);
+  if (!siteRecord && options.requireSite !== false) return null;
+  const default_locale = normalizeLocale(siteRecord?.default_locale);
 
   const records = await prisma.marketingPage.findMany({
     where: withTenantScope(tenant_id, {
       status: "published",
       kind,
-      slug: DOC_TEMPLATE_SLUGS[kind],
+      slug: template.slug,
     }),
   });
   const match =

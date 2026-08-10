@@ -33,6 +33,7 @@ export const SITE_MEMBER_SERVER_I18N: ServerI18nBundle = {
       "site_member.oauth_email_unverified": "请使用已验证邮箱的第三方账号",
       "site_member.oauth_exchange_invalid": "登录凭证无效或已过期，请重试",
       "site_member.oauth_tenant_mismatch": "账号与当前站点不匹配",
+      "site_member.form_origin_invalid": "请求来源不合法，请从本站页面提交",
       "site_member.audit.registered": "会员注册：{{email}}",
       "site_member.audit.oauth_registered":
         "会员通过 {{provider}} 注册：{{email}}",
@@ -74,6 +75,8 @@ export const SITE_MEMBER_SERVER_I18N: ServerI18nBundle = {
         "Sign-in code is invalid or expired, please try again",
       "site_member.oauth_tenant_mismatch":
         "This account does not belong to the current site",
+      "site_member.form_origin_invalid":
+        "Invalid request origin — please submit from this site",
       "site_member.audit.registered": "Member registered: {{email}}",
       "site_member.audit.oauth_registered":
         "Member registered via {{provider}}: {{email}}",

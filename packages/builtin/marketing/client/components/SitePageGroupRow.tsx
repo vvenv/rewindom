@@ -26,6 +26,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { formatDocDate } from "../../shared/marketing-doc.js";
+import { getPageTemplateKind } from "../../shared/page-templates.js";
 
 import { SitePageDuplicateSheet } from "./SitePageDuplicateSheet.js";
 import { SitePublishStatus } from "./SitePublishStatus.js";
@@ -54,12 +55,16 @@ interface SitePageGroupRowProps {
   order?: SitePageGroupOrder;
 }
 
-const KIND_LABEL_KEY = {
-  home: "cms.kindHome",
-  page: "cms.kindPage",
-  doc_index: "cms.kindDocIndex",
-  doc_article: "cms.kindDocArticle",
-} as const satisfies Record<MarketingPageKind, string>;
+/**
+ * kind 的显示名。
+ *
+ * 模板页的 kind 由注册表提供（贡献方的 key 带命名空间，i18next 认前缀），
+ * 这里只兜住 marketing 自己的两种普通页面。
+ */
+function kindLabelKey(kind: MarketingPageKind): string {
+  if (kind === "home") return "cms.kindHome";
+  return getPageTemplateKind(kind)?.label ?? "cms.kindPage";
+}
 
 /**
  * 翻译组一块：一个逻辑 URL 下的各语言页面。
@@ -101,7 +106,7 @@ export function SitePageGroupRow({
         <span className="truncate font-medium">{group.title}</span>
       )}
       <span className="text-xs text-muted-foreground">
-        {t(KIND_LABEL_KEY[group.kind])}
+        {t(kindLabelKey(group.kind))}
       </span>
       <span className="truncate font-mono text-xs text-muted-foreground">
         {group.path}

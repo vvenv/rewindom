@@ -112,11 +112,41 @@
       "lockedHeadline": "锁定标题",
       "lockedBody": "锁定说明",
       "loginLabel": "登录按钮文案"
+    },
+    "loginForm": {
+      "label": "登录表单"
+    },
+    "registerForm": {
+      "label": "注册表单"
+    },
+    "auth": {
+      "fields": "表单字段",
+      "emailLabel": "邮箱标签",
+      "passwordLabel": "密码标签",
+      "submitLabel": "提交按钮文案",
+      "displayNameLabel": "昵称标签",
+      "showDisplayName": "显示昵称字段",
+      "oauth": "第三方登录",
+      "showOauth": "显示第三方登录",
+      "showOauthInfo": "是否可用由「设置 - 第三方登录」决定；这里只管露不露",
+      "oauthDivider": "分隔文案",
+      "altLink": "另一张页面的入口",
+      "altPrompt": "提示文案",
+      "altLabel": "链接文案"
     }
   },
   "dashboard": {
     "title": "站点会员",
     "viewAll": "全部",
     "empty": "还没有会员"
+  },
+  "template": {
+    "group": "会员页版式",
+    "login": {
+      "label": "登录页"
+    },
+    "register": {
+      "label": "注册页"
+    }
   }
 }

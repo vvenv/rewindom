@@ -3,6 +3,7 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useTenantBranding } from "@be-water/client-kit";
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
+import { isTemplatePageKind } from "../../shared/page-templates.js";
 import {
   localizeSections,
   localizeSiteText,
@@ -13,7 +14,6 @@ import {
   type SiteSection,
 } from "../../shared/section-schema.js";
 import {
-  isDocTemplateKind,
   marketingPagePath,
   type MarketingPage,
   type MarketingPageListItem,
@@ -242,7 +242,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
    */
   const previewNavPages = localePages
     .filter((item) => item.status === "published")
-    .filter((item) => !isDocTemplateKind(item.kind))
+    .filter((item) => !isTemplatePageKind(item.kind))
     .map((item) => ({
       slug: item.slug,
       locale: item.locale,

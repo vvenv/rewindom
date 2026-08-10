@@ -34,8 +34,8 @@ import { Spinner } from "@be-water/ui/spinner";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { isTemplatePageKind } from "../../shared/page-templates.js";
 import {
-  isDocTemplateKind,
   type MarketingPage,
   type MarketingPageKind,
   type MarketingPageListItem,
@@ -96,7 +96,7 @@ export function SitePageDuplicateSheet({
   const existing = translatedLocales(pagesQuery.data, page);
   /** 首页 / 文档模板页 slug 固定，同语言不能再复制一份。 */
   const fixedSlug =
-    page.kind === "home" || isDocTemplateKind(page.kind);
+    page.kind === "home" || isTemplatePageKind(page.kind);
   /** 默认选**还没建**的那门语言——复制的常见用途就是补译文。 */
   const suggestedLocale =
     siteLocaleOrder(defaultLocale).find((slug) => !existing.has(slug)) ??

@@ -1,8 +1,11 @@
 import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/register-tenant-gated-routes.js";
 
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
+import { registerMemberAuthTemplates } from "../shared/member-auth-templates.js";
 
 import { SITE_MEMBER_SERVER_I18N } from "./i18n.js";
+import { memberAuthPageRoutes } from "./member-auth.ssr.js";
+import { registerMemberAuthSections } from "./member-auth-section.js";
 import { registerMemberGateSection } from "./member-gate-section.js";
 import { createMemberOAuthCallbackProvider } from "./member-oauth-callback.provider.js";
 import { registerSiteMemberAccountEntry } from "./site-account-entry.js";
@@ -58,6 +61,9 @@ export const siteMemberServerModule: ServerAppModule = {
       registerSiteMemberSsrSessionResolver();
       // 「会员专属内容」段：定义在本模块，渲染器填进 marketing 的段注册表
       registerMemberGateSection();
+      // 会员登录 / 注册页：两张模板页 + 它们的必备段（版式归租户，表单归代码）
+      registerMemberAuthTemplates();
+      registerMemberAuthSections();
     },
     registerRoutes: async (app) => {
       /*
@@ -76,6 +82,13 @@ export const siteMemberServerModule: ServerAppModule = {
       await app.register(siteMemberOAuthRoutes, {
         prefix: "/api/member",
       });
+
+      /*
+       * 会员登录 / 注册**页面**（不是接口）：挂在根路径上，与官网 SSR 同一条渲染
+       * 管线。静态路径比 marketing 的 `/:first/:second` 更具体，find-my-way 先命中
+       * 这里；`/member/account` 等其余会员页仍落到 SPA 兜底。
+       */
+      await app.register(memberAuthPageRoutes);
 
       await registerTenantGatedRoutes(
         app,

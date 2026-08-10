@@ -335,6 +335,7 @@ export function SiteThemeEditor() {
       <div className="-mx-1 grid gap-3 lg:h-full lg:min-h-0 lg:grid-cols-[240px_minmax(0,1fr)_300px] lg:grid-rows-[minmax(0,1fr)]">
         <SectionTree
           entitlements={editor.capabilities.entitlements}
+          pageKind={editor.page?.kind}
           sections={editor.sections}
           header={editor.header}
           footer={editor.footer}

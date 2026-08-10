@@ -26,9 +26,9 @@ import {
   buildDocTemplateSections,
   DOC_TEMPLATE_PRESETS,
 } from "../shared/page-presets.js";
+import { type DocTemplateKind } from "../shared/page-templates.js";
 import { type SiteSection } from "../shared/section-schema.js";
 import {
-  type DocTemplateKind,
   type MarketingPageSettings,
   type MarketingPageVisibility,
   type PageLocaleAlternate,
@@ -43,7 +43,7 @@ import {
   listPublishedDocs,
   listPublishedLibraryLocales,
 } from "./marketing-doc.service.js";
-import { getPublishedDocTemplate } from "./site.service.js";
+import { getPublishedTemplatePage } from "./site.service.js";
 import { renderMarketingHtml } from "./ssr-render.js";
 import { createStarterTranslator } from "./starter-i18n.js";
 
@@ -59,7 +59,7 @@ async function resolveDocTemplate(
   kind: DocTemplateKind,
   locale: AppLocale,
 ): Promise<DocTemplate> {
-  const stored = await getPublishedDocTemplate(tenantId, kind, locale);
+  const stored = await getPublishedTemplatePage(tenantId, kind, locale);
   if (stored) return stored;
   const t = createStarterTranslator(locale);
   const preset = DOC_TEMPLATE_PRESETS[kind];

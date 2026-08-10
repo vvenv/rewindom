@@ -98,11 +98,23 @@ async function trySilentRefresh(
   }
 }
 
+/**
+ * 从 cookie 解析会员会话（access 直读，过期则静默 refresh）。
+ *
+ * 导出而不是只填进注入点：会员登录页自己也要问一次「这人是不是已经登录了」，
+ * 那条路径不经过 marketing 的页面渲染，走不到注入点上。
+ */
+export async function resolveMemberSsrSession(input: {
+  request: FastifyRequest;
+  reply: FastifyReply;
+  tenantId: string;
+}): Promise<{ id: string; email: string; display_name: string } | null> {
+  const fromAccess = await tryAccessCookie(input.request, input.tenantId);
+  if (fromAccess) return fromAccess;
+  return trySilentRefresh(input.request, input.reply, input.tenantId);
+}
+
 /** 把 SSR 会员会话解析填进 marketing 注入点。 */
 export function registerSiteMemberSsrSessionResolver(): void {
-  registerSiteMemberSsrSession(async ({ request, reply, tenantId }) => {
-    const fromAccess = await tryAccessCookie(request, tenantId);
-    if (fromAccess) return fromAccess;
-    return trySilentRefresh(request, reply, tenantId);
-  });
+  registerSiteMemberSsrSession(resolveMemberSsrSession);
 }

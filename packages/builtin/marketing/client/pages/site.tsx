@@ -5,14 +5,18 @@ import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
 import { Globe, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { SiteDocTemplateRows } from "../components/SiteDocTemplateRows.js";
 import { SitePageCreateSheet } from "../components/SitePageCreateSheet.js";
 import { SitePageFilters } from "../components/SitePageFilters.js";
 import { SitePageList } from "../components/SitePageList.js";
 import { SiteSummaryHeader } from "../components/SiteSummaryHeader.js";
+import { SiteTemplatePageRows } from "../components/SiteTemplatePageRows.js";
 import { useSitePageActions } from "../hooks/use-site-page-actions.js";
 import { useSitePagesPage } from "../hooks/use-site-pages-page.js";
-import { useSite, useSitePages } from "../hooks/useSite.js";
+import {
+  useSite,
+  useSiteCapabilities,
+  useSitePages,
+} from "../hooks/useSite.js";
 import { hasSiteStarterContent } from "../lib/site-content-state.js";
 import { groupSitePages } from "../lib/site-page-groups.js";
 import {
@@ -31,6 +35,8 @@ export function Site() {
   const siteQuery = useSite();
   const pagesQuery = useSitePages();
   const actions = useSitePageActions();
+  const capabilitiesQuery = useSiteCapabilities();
+  const entitlements = new Set(capabilitiesQuery.data?.entitlements ?? []);
   const { filters, handleFiltersChange, resetFilters } = useSitePagesPage();
   const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
   const pages = pagesQuery.data ?? [];
@@ -103,15 +109,16 @@ export function Site() {
               actions={actions}
             />
             {/*
-              文档的两张模板页默认不落库，列表里看不到——单独常驻两行做入口。
-              它们不进页面目录，也就没有顺序可排，筛选同样不作用于它们（筛出来的是
-              「页面」，把两行常驻入口一起筛掉只会让人以为版式功能没了）。
+              模板页（文档版式、会员页版式…）默认不落库，列表里看不到——单独常驻
+              几行做入口。它们不进页面目录，也就没有顺序可排，筛选同样不作用于它们
+              （筛出来的是「页面」，把常驻入口一起筛掉只会让人以为版式功能没了）。
             */}
             {pagesQuery.isSuccess ? (
-              <SiteDocTemplateRows
+              <SiteTemplatePageRows
                 pages={pages}
                 defaultLocale={defaultLocale}
                 canWrite={canWrite}
+                entitlements={entitlements}
                 actions={actions}
               />
             ) : null}

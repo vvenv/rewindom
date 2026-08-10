@@ -1,5 +1,6 @@
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
+import { isTemplatePageKind } from "../shared/page-templates.js";
 import {
   localizeSections,
   localizeSiteText,
@@ -7,7 +8,6 @@ import {
 } from "../shared/section-schema.js";
 import {
   canonicalizePageIdentity,
-  isDocTemplateKind,
   marketingPagePath,
   type MarketingPage,
   type MarketingPageKind,
@@ -185,7 +185,7 @@ export function toPublicMarketingSite(
        * `doc_index` 的导航入口走菜单里的 `docs` 动态项（建站默认就有），而不是因为
        * 「碰巧自定义过版式」就自动冒出来——那会让导航跟着编辑器行为漂。
        */
-      .filter((page) => !isDocTemplateKind(pageIdentity(page).kind))
+      .filter((page) => !isTemplatePageKind(pageIdentity(page).kind))
       .map((page) => {
         const { kind, slug } = pageIdentity(page);
         const content = useDraftContent

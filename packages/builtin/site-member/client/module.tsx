@@ -1,8 +1,18 @@
 import { registerSiteSectionView } from "../../marketing/client/components/sections/section-views.js";
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
+import { MEMBER_AUTH_CSS } from "../shared/member-auth-css.js";
+import {
+  memberLoginFormSection,
+  memberRegisterFormSection,
+} from "../shared/member-auth-section.js";
+import { registerMemberAuthTemplates } from "../shared/member-auth-templates.js";
 import { MEMBER_GATE_CSS } from "../shared/member-gate-css.js";
 import { memberGateSection } from "../shared/member-gate-section.js";
 
+import {
+  MemberLoginFormSection,
+  MemberRegisterFormSection,
+} from "./components/MemberAuthFormSection.js";
 import { MemberGateSection } from "./components/MemberGateSection.js";
 import { SITE_MEMBER_I18N } from "./i18n.js";
 import { renderSiteMemberPublicRoutes } from "./public/routes.js";
@@ -19,6 +29,19 @@ import type { ClientAppModule } from "@be-water/client-kit";
  */
 registerSiteSectionView(memberGateSection, MemberGateSection, {
   css: MEMBER_GATE_CSS,
+});
+
+/*
+ * 会员登录 / 注册页的两张模板页与它们的必备段。
+ *
+ * 模板页元数据两端都要登记：中台要列出这两行，写路径要按 kind 校验 slug。
+ */
+registerMemberAuthTemplates();
+registerSiteSectionView(memberLoginFormSection, MemberLoginFormSection, {
+  css: MEMBER_AUTH_CSS,
+});
+registerSiteSectionView(memberRegisterFormSection, MemberRegisterFormSection, {
+  css: MEMBER_AUTH_CSS,
 });
 
 export const siteMemberClientModule: ClientAppModule = {

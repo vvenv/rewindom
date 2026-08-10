@@ -50,6 +50,18 @@ export interface SectionRenderContext extends DocRenderContext {
    */
   enabledEntitlements?: ReadonlySet<string>;
   /**
+   * 贡献段的按请求数据。
+   *
+   * key 用**模块 id** 做命名空间，值的形状由贡献方自己定义与断言——marketing 不认识
+   * 任何业务模块的类型（同 `registerSectionDefinition` 的方向）。会员登录表单要知道
+   * 「验证码开没开、哪几家 OAuth 可用、上一次提交错在哪」，这些都是按请求变的，
+   * 塞不进段的 settings 里。
+   *
+   * 贡献方自己导出一个读取函数（如 `readMemberAuthContext(ctx)`）收口断言，别让每个
+   * 渲染器各写一遍 `as`。
+   */
+  contributed?: Readonly<Record<string, unknown>>;
+  /**
    * 渲染一整段（含外层色块）——**只有容器段用得上**，由聚合层 `renderSectionHtml`
    * 在下钻时注入。
    *

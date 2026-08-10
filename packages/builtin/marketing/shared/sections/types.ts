@@ -101,6 +101,14 @@ export interface SectionDefinition {
    * `unsupported` 口径原样兜住，重新开通就自动回来（见 `section-schema.ts`）。
    */
   entitlement?: string;
+  /**
+   * 这一段只在这些 kind 的页面上可用（不声明 = 哪张页面都能加）。
+   *
+   * 给模板页的**必备段**用：会员登录表单只在 `/member/login` 那张版式上有意义，
+   * 加到普通页面上要么什么都渲染不出，要么在官网中间冒出第二个登录框。与
+   * `placements` 是两个维度——那个说的是「页面流还是页头页脚」，这个说的是「哪张页面」。
+   */
+  page_kinds?: readonly string[];
 }
 
 /** 存储结构：section / block 都是 `{ id, type, settings }`。 */

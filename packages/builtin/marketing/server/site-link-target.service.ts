@@ -15,9 +15,9 @@ import {
   docMessages,
   docPath,
 } from "../shared/marketing-doc.js";
+import { isTemplatePageKind } from "../shared/page-templates.js";
 import {
   canonicalizePageIdentity,
-  isDocTemplateKind,
   marketingPagePath,
 } from "../shared/site-cms.js";
 import { type SiteLinkTarget } from "../shared/site-link-target.js";
@@ -61,7 +61,7 @@ export async function listSiteLinkTargets(
     }
     const { kind, slug } = canonicalizePageIdentity(record.kind, record.slug);
     // 文档模板页没有自己的地址：`/docs` 由下面的文档索引项代表，详情模板更是没有
-    if (isDocTemplateKind(kind)) continue;
+    if (isTemplatePageKind(kind)) continue;
     targets.push({
       value: marketingPagePath(kind, slug),
       label: record.title_draft || record.title,

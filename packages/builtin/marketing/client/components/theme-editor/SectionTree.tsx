@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { getPageTemplateKind } from "../../../shared/page-templates.js";
 import {
   getSectionDefinition,
   isContainerSection,
@@ -57,6 +58,13 @@ export type AddTarget =
 interface SectionTreeProps {
   /** 本站已开通的 entitlement；贡献段据此从「添加区块」菜单里过滤掉。 */
   entitlements?: ReadonlySet<string>;
+  /**
+   * 正在编辑的页面 kind。
+   *
+   * 两件事靠它：只声明了 `page_kinds` 的段按 kind 过滤出「添加区块」菜单；模板页的
+   * 必备段（登录表单那种）不给删——它是这张模板存在的理由本身。
+   */
+  pageKind?: string;
   sections: SiteSection[];
   header: SiteSection[];
   footer: SiteSection[];
@@ -101,6 +109,7 @@ type DragState =
  */
 export function SectionTree({
   entitlements,
+  pageKind,
   sections,
   header,
   footer,
@@ -207,10 +216,24 @@ export function SectionTree({
    */
   const revealColumns = drag?.kind === "section" && !drag.container;
 
-  /** 容器段的列里能放什么：除了容器段自己——嵌套只允许一层。 */
-  const childSectionOptions = sectionTypesFor("page", entitlements)
-    .filter((type) => !isContainerSection(type))
+  /**
+   * 这张模板页的必备段：不给删，也不给再加第二个。
+   *
+   * 加不了是因为「有且仅有一段」——服务端按同一条规则拒绝保存（见
+   * `assertTemplateRequiredSection`），菜单里留着一个必然报错的选项只是陷阱。
+   */
+  const requiredSectionType = pageKind
+    ? (getPageTemplateKind(pageKind)?.required_section ?? null)
+    : null;
+
+  const pageSectionOptions = sectionTypesFor("page", entitlements, pageKind)
+    .filter((type) => type !== requiredSectionType)
     .map((type) => ({ value: type, label: sectionTypeLabel(t, type) }));
+
+  /** 容器段的列里能放什么：除了容器段自己——嵌套只允许一层。 */
+  const childSectionOptions = pageSectionOptions.filter(
+    (option) => !isContainerSection(option.value),
+  );
 
   /**
    * 页头 / 页脚区：与页面区块**同构**的一串 section。
@@ -244,7 +267,7 @@ export function SectionTree({
         <AddMenu
           key={`add-${area}-${list.length}`}
           placeholder={t("editor.addSection")}
-          options={sectionTypesFor(area, entitlements)
+          options={sectionTypesFor(area, entitlements, pageKind)
             .filter((type) => type !== area)
             .map((type) => ({
               value: type,
@@ -378,7 +401,7 @@ export function SectionTree({
                         renderSection(child, {
                           index: childIndex,
                           total: block.sections?.length,
-                          removable: true,
+                          removable: child.type !== requiredSectionType,
                           movable: true,
                           inColumn: true,
                         }),
@@ -479,7 +502,7 @@ export function SectionTree({
           renderSection(section, {
             index,
             total: sections.length,
-            removable: true,
+            removable: section.type !== requiredSectionType,
             movable: true,
             inColumn: false,
           }),
@@ -495,10 +518,7 @@ export function SectionTree({
           <AddMenu
             key={`add-section-${sections.length}`}
             placeholder={t("editor.addSection")}
-            options={sectionTypesFor("page", entitlements).map((type) => ({
-              value: type,
-              label: sectionTypeLabel(t, type),
-            }))}
+            options={pageSectionOptions}
             onSelect={(type) =>
               onAddSection(type as SectionType, { kind: "page" })
             }

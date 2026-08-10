@@ -12,10 +12,9 @@ import {
   type LocalizedText,
   type SiteSection,
 } from "../shared/section-schema.js";
+import { getPageTemplateKind } from "../shared/page-templates.js";
 import {
   canonicalizePageIdentity,
-  DOC_TEMPLATE_SLUGS,
-  isDocTemplateKind,
   parsePageSettings as parsePageSettingsSchema,
   RESERVED_PAGE_SLUGS,
   safePageSettings,
@@ -230,13 +229,13 @@ export function validatePageSlug(
     return "home";
   }
 
-  // 文档模板页同 home：kind 决定 slug，租户改不了（改了地址就路由不到了）
-  if (isDocTemplateKind(kind)) {
-    const expected = DOC_TEMPLATE_SLUGS[kind];
-    if (slug.trim().toLowerCase() !== expected) {
-      throw new ValidationError("site.doc_template_slug_fixed");
+  // 模板页同 home：kind 决定 slug，租户改不了（改了地址就路由不到了）
+  const template = getPageTemplateKind(kind);
+  if (template) {
+    if (slug.trim().toLowerCase() !== template.slug) {
+      throw new ValidationError("site.template_page_slug_fixed");
     }
-    return expected;
+    return template.slug;
   }
 
   const normalized = slug

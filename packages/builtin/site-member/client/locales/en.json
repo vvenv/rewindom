@@ -112,11 +112,41 @@
       "lockedHeadline": "Locked headline",
       "lockedBody": "Locked description",
       "loginLabel": "Sign-in button"
+    },
+    "loginForm": {
+      "label": "Sign-in form"
+    },
+    "registerForm": {
+      "label": "Sign-up form"
+    },
+    "auth": {
+      "fields": "Form fields",
+      "emailLabel": "Email label",
+      "passwordLabel": "Password label",
+      "submitLabel": "Submit button",
+      "displayNameLabel": "Display name label",
+      "showDisplayName": "Show display name field",
+      "oauth": "Social sign-in",
+      "showOauth": "Show social sign-in",
+      "showOauthInfo": "Availability comes from Settings → Social sign-in; this only controls visibility",
+      "oauthDivider": "Divider text",
+      "altLink": "Link to the other page",
+      "altPrompt": "Prompt text",
+      "altLabel": "Link text"
     }
   },
   "dashboard": {
     "title": "Site members",
     "viewAll": "View all",
     "empty": "No members yet"
+  },
+  "template": {
+    "group": "Member page layouts",
+    "login": {
+      "label": "Sign-in page"
+    },
+    "register": {
+      "label": "Sign-up page"
+    }
   }
 }

@@ -8,6 +8,7 @@ import { enhanceAccount } from "./account.js";
 import { enhanceDocSearch } from "./doc-search.js";
 import { enhanceForms } from "./form.js";
 import { enhanceGated } from "./gated.js";
+import { enhanceMemberAuth } from "./member-auth.js";
 import { enhanceTheme } from "./theme.js";
 
 function boot(): void {
@@ -16,6 +17,7 @@ function boot(): void {
   enhanceAccount();
   enhanceGated();
   enhanceDocSearch();
+  enhanceMemberAuth();
 }
 
 if (document.readyState === "loading") {

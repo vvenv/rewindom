@@ -1,5 +1,5 @@
+import { isTemplatePageKind } from "../../shared/page-templates.js";
 import {
-  isDocTemplateKind,
   marketingPagePath,
   type MarketingPageKind,
   type MarketingPageListItem,
@@ -38,7 +38,7 @@ export function groupSitePages(
   for (const page of pages) {
     // 文档模板页有自己的常驻两行（`SiteDocTemplateRows`）：它们默认不存在，
     // 只在列表里露出「建过的那一张」会让人以为另一张不可编辑
-    if (isDocTemplateKind(page.kind)) continue;
+    if (isTemplatePageKind(page.kind)) continue;
     const key = `${page.kind}\0${page.slug}`;
     const existing = byKey.get(key);
     if (existing) {

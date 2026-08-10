@@ -1,55 +1,29 @@
 import {
+  DOC_TEMPLATE_SLUGS,
+  registerPageTemplatePreset,
+  type DocTemplateKind,
+} from "./page-templates.js";
+import {
   createBlock,
   createSection,
   getSectionDefinition,
   parseSettingValues,
-  type PageSectionType,
   type SettingValues,
   type SiteSection,
 } from "./section-schema.js";
-import {
-  DOC_TEMPLATE_SLUGS,
-  type DocTemplateKind,
-  type MarketingPageKind,
-} from "./site-cms.js";
 
-/** 解析预设里的 i18n key；客户端传 `t`，服务端传 locale 查表函数。 */
-export type PresetTranslateFn = (key: string) => string;
+import type {
+  PagePreset,
+  PresetSection,
+  PresetTranslateFn,
+} from "./page-presets.types.js";
 
-/**
- * 页面预设：一键铺出「默认官网」那套版式。
- *
- * 预设只描述**结构 + i18n key**，文案在创建时用 `t()` 落成当前语言的实际值——
- * schema 与存储层不掺 i18n，租户拿到的是可以随便改的普通内容。
- */
-
-interface PresetBlock {
-  type: string;
-  /** setting id → i18n key（值会被 `t()` 解析） */
-  text?: Record<string, string>;
-  /** setting id → 字面量（图标名、布尔、数字这类不翻译的值） */
-  raw?: SettingValues;
-  /** 仅容器 block（`group` 的列）：列里装的子段。 */
-  sections?: PresetSection[];
-}
-
-interface PresetSection {
-  type: PageSectionType;
-  text?: Record<string, string>;
-  raw?: SettingValues;
-  blocks?: PresetBlock[];
-}
-
-export interface PagePreset {
-  key: string;
-  /** i18n key */
-  label: string;
-  kind: MarketingPageKind;
-  slug: string;
-  titleKey: string;
-  descriptionKey: string;
-  sections: PresetSection[];
-}
+export type {
+  PagePreset,
+  PresetBlock,
+  PresetSection,
+  PresetTranslateFn,
+} from "./page-presets.types.js";
 
 export const PAGE_PRESETS: PagePreset[] = [
   {
@@ -444,6 +418,13 @@ export function buildDocTemplateSections(
   return buildPresetSections(DOC_TEMPLATE_PRESETS[kind], t);
 }
 
+/*
+ * 把兜底版式登记进模板页注册表，中台的「自定义版式」按钮按 kind 取它建页。
+ * 元数据（slug / path）在 `page-templates.ts` 里就登记好了，与预设分开的理由见那边。
+ */
+registerPageTemplatePreset("doc_index", DOC_TEMPLATE_PRESETS.doc_index);
+registerPageTemplatePreset("doc_article", DOC_TEMPLATE_PRESETS.doc_article);
+
 function resolveValues(
   t: PresetTranslateFn,
   text: Record<string, string> | undefined,
@@ -479,9 +460,11 @@ function buildPresetSection(
           : created;
       })
     : base.blocks;
+  // `createSection` 已经对认不出来的 type 抛过了，这里的定义必然存在
+  const definition = getSectionDefinition(spec.type)!;
   return {
     ...base,
-    settings: parseSettingValues(getSectionDefinition(spec.type).settings, {
+    settings: parseSettingValues(definition.settings, {
       ...base.settings,
       ...resolveValues(t, spec.text, spec.raw),
     }),

@@ -179,16 +179,23 @@ export function isPageSectionType(value: unknown): value is PageSectionType {
  *
  * `enabled` 给编辑器用：贡献段可以声明 `entitlement`，租户没开通就不该出现在菜单里
  *（列了也加不出可用的东西）。不传则不过滤，渲染与校验路径走这一支。
+ *
+ * `pageKind` 同理管 `page_kinds`：会员登录表单那种段只在它自己那张模板页上有意义，
+ * 加到普通页面上要么渲染不出东西，要么渲染出第二个登录框。不传则不按 kind 过滤。
  */
 export function sectionTypesFor(
   placement: Placement,
   enabled?: ReadonlySet<string>,
+  pageKind?: string,
 ): SectionType[] {
   return allSectionDefinitions()
     .filter(
       (def) =>
         def.placements.includes(placement) &&
-        (!def.entitlement || !enabled || enabled.has(def.entitlement)),
+        (!def.entitlement || !enabled || enabled.has(def.entitlement)) &&
+        (!def.page_kinds ||
+          pageKind === undefined ||
+          def.page_kinds.includes(pageKind)),
     )
     .map((def) => def.type);
 }
