@@ -1,6 +1,10 @@
 import { registerSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
 import { isTenantModuleEnabled } from "../../platform/server/services/tenant-module.service.js";
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
+import {
+  memberDisplayName,
+  memberInitials,
+} from "../shared/member-identity.js";
 
 import type { SiteMemberSsrProfile } from "../../marketing/server/site-member-ssr-session.js";
 import type { AppLocale } from "@be-water/shared";
@@ -39,26 +43,6 @@ function escapeHtml(value: string): string {
     .replace(/"/gu, "&quot;");
 }
 
-function displayName(member: SiteMemberSsrProfile): string {
-  const name = member.display_name?.trim();
-  if (name) return name;
-  return member.email.trim();
-}
-
-function initials(member: SiteMemberSsrProfile): string {
-  const source = displayName(member);
-  if (!source) return "";
-  const words = source.split(/\s+/u).filter(Boolean);
-  if (words.length > 1) {
-    return words
-      .slice(0, 2)
-      .map((word) => [...word][0] ?? "")
-      .join("")
-      .toUpperCase();
-  }
-  return [...(words[0] ?? "")].slice(0, 2).join("");
-}
-
 /** 与 `SiteMemberEntry` 未登录态同一份 class（`btn btn-ghost member-entry`）与图标。 */
 function loginEntryHtml(locale: AppLocale): string {
   const label = LOGIN_LABEL[locale] ?? LOGIN_LABEL["zh-CN"];
@@ -70,10 +54,10 @@ function memberMenuHtml(
   locale: AppLocale,
   member: SiteMemberSsrProfile,
 ): string {
-  const name = escapeHtml(displayName(member));
+  const name = escapeHtml(memberDisplayName(member));
   const email = escapeHtml(member.email);
-  const avatar = escapeHtml(initials(member));
-  const showEmail = member.email && member.email !== displayName(member);
+  const avatar = escapeHtml(memberInitials(member));
+  const showEmail = member.email && member.email !== memberDisplayName(member);
   const accountLabel = ACCOUNT_LABEL[locale] ?? ACCOUNT_LABEL["zh-CN"];
   const logoutLabel = LOGOUT_LABEL[locale] ?? LOGOUT_LABEL["zh-CN"];
   const menuLabel = MENU_LABEL[locale] ?? MENU_LABEL["zh-CN"];

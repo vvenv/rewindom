@@ -47,6 +47,7 @@ export async function registerModuleMiddleware(
 export async function registerAllRoutes(app: FastifyInstance): Promise<void> {
   await registerKernelRoutes(app);
   const loader = getModuleLoader();
+  // 各模块的 server.i18n 由 `registerRoutes` 一并合并，这里不用再调一次
   await loader.registerRoutes(app);
   loader.registerJobs(app);
 }

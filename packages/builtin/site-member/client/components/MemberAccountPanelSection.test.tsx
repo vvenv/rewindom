@@ -29,24 +29,34 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+/** 与预览里的样例数据同形（`editor.accountSample.*`），两端的形状才比得起来。 */
 const ACCOUNT: MemberAccountRenderContext = {
   action: "/member/account",
-  email: "member@example.com",
-  display_name: "示例会员",
-  created_at: "2026年1月1日 09:00",
-  last_login_at: "2026年1月2日 09:00",
+  email: "editor.accountSample.email",
+  display_name: "editor.accountSample.displayName",
+  created_at: "editor.accountSample.date",
+  last_login_at: "editor.accountSample.date",
   error: null,
   notice: null,
+  intent: null,
 };
 
-/** 卡与卡里各块的「标签 + class」。 */
-function shapeOf(nodes: Iterable<Element>): string[] {
-  return [...nodes].flatMap((el) => [
-    `${el.tagName.toLowerCase()}.${el.className || "-"}`,
-    ...[...el.children].map(
-      (child) => `  ${child.tagName.toLowerCase()}.${child.className || "-"}`,
-    ),
-  ]);
+/**
+ * 整棵树的「标签 + class」，逐层缩进。
+ *
+ * 只到卡的直接子节点是不够的：那样「预览漏画了保存按钮」「密码块少了一栏」都照样
+ * 过——而这恰恰是两端最容易走散的地方。属性不比（预览的 `readOnly` / `tabIndex`、
+ * SSR 的 `open` / `type="submit"` 都是刻意的差别）。
+ */
+function shapeOf(nodes: Iterable<Element>, depth = 0): string[] {
+  return [...nodes].flatMap((el) => {
+    // SSR 的 intent 隐藏字段是 POST 的分流开关；预览不提交，没有它才对
+    if (el instanceof HTMLInputElement && el.type === "hidden") return [];
+    return [
+      `${"  ".repeat(depth)}${el.tagName.toLowerCase()}.${el.className || "-"}`,
+      ...shapeOf(el.children, depth + 1),
+    ];
+  });
 }
 
 function fixture(settings: Record<string, unknown> = {}): SiteSection {
@@ -92,18 +102,24 @@ describe("账户面板：预览与 SSR 同构", () => {
     expect(previewShape(section)).toEqual(ssrShape(section));
   });
 
-  it("关掉修改密码：那一整块（标题 + 表单）一起消失", () => {
+  it("关掉修改密码：整个抽屉（summary + 表单）一起消失", () => {
     const section = fixture({ show_password: false });
     const shape = previewShape(section);
     expect(shape).toEqual(ssrShape(section));
     expect(
-      shape.filter((row) => row.includes("member-account-block")),
-    ).toHaveLength(1);
+      shape.filter((row) => row.includes("member-account-disclosure")),
+    ).toHaveLength(0);
+    // 资料块还在（卡的直接子节点，带 shapeOf 的两格缩进）
+    expect(shape).toContain("  section.member-account-block");
   });
 
   it("关掉注册时间 / 上次登录", () => {
     const section = fixture({ show_meta: false });
-    expect(previewShape(section)).toEqual(ssrShape(section));
+    const shape = previewShape(section);
+    expect(shape).toEqual(ssrShape(section));
+    expect(
+      shape.filter((row) => row.includes("member-account-meta")),
+    ).toHaveLength(0);
   });
 
   it("关掉卡片外框：两端都退成 is-plain", () => {
@@ -136,12 +152,70 @@ describe("SSR 面板", () => {
     expect(html.match(/method="post"/gu)).toHaveLength(3);
   });
 
-  it("邮箱只读回填，昵称可改", () => {
+  it("邮箱只在身份条上露个面，卡里唯一能改的是昵称", () => {
     const html = SECTION_HTML[MEMBER_ACCOUNT_PANEL_SECTION_TYPE]!(fixture(), {
+      contributed: memberAccountContextEntry({
+        ...ACCOUNT,
+        email: "member@example.com",
+        display_name: "示例会员",
+      }),
+    });
+    expect(html).toContain(
+      '<p class="member-account-who-email">member@example.com</p>',
+    );
+    // 头像取昵称的前两个字；邮箱不再是任何一个输入框的值
+    expect(html).toContain(
+      '<span class="member-account-avatar" aria-hidden="true">示例</span>',
+    );
+    expect(html).not.toContain("member@example.com\" />");
+    expect(html.match(/<input id=/gu)).toHaveLength(4);
+    expect(html).toContain('name="display_name"');
+  });
+
+  it("没填昵称的会员：名字位顶邮箱，底下不再重复一遍", () => {
+    const html = SECTION_HTML[MEMBER_ACCOUNT_PANEL_SECTION_TYPE]!(fixture(), {
+      contributed: memberAccountContextEntry({
+        ...ACCOUNT,
+        email: "member@example.com",
+        display_name: "",
+      }),
+    });
+    expect(html).toContain(
+      '<p class="member-account-who-name">member@example.com</p>',
+    );
+    expect(html).not.toContain("member-account-who-email");
+  });
+
+  it("改密码平时收着；这一块填错了就展开着回来", () => {
+    const closed = SECTION_HTML[MEMBER_ACCOUNT_PANEL_SECTION_TYPE]!(fixture(), {
       contributed: memberAccountContextEntry(ACCOUNT),
     });
-    expect(html).toContain('readonly value="member@example.com"');
-    expect(html).toContain('name="display_name"');
+    expect(closed).toContain('<details class="member-account-block member-account-disclosure">');
+
+    const reopened = SECTION_HTML[MEMBER_ACCOUNT_PANEL_SECTION_TYPE]!(
+      fixture(),
+      {
+        contributed: memberAccountContextEntry({
+          ...ACCOUNT,
+          error: "原密码不正确",
+          intent: "password",
+        }),
+      },
+    );
+    expect(reopened).toContain(
+      '<details class="member-account-block member-account-disclosure" open>',
+    );
+  });
+
+  it("改昵称填错了不牵连改密码那一块", () => {
+    const html = SECTION_HTML[MEMBER_ACCOUNT_PANEL_SECTION_TYPE]!(fixture(), {
+      contributed: memberAccountContextEntry({
+        ...ACCOUNT,
+        error: "昵称太长",
+        intent: "profile",
+      }),
+    });
+    expect(html).not.toContain("member-account-disclosure\" open");
   });
 
   it("提示与错误各走各的样式钩子", () => {

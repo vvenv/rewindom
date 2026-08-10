@@ -30,6 +30,15 @@ export const MEMBER_ACCOUNT_PATH = "/member/account";
 /** 三张表单各自的意图，随 POST 一起发上来（一张页面上三个 form）。 */
 export type MemberAccountIntent = "profile" | "password" | "logout";
 
+/** 收窄用户输入：认不出的 `intent` 一律当没填（调用方按「改资料」兜底）。 */
+export function parseMemberAccountIntent(
+  value: unknown,
+): MemberAccountIntent | null {
+  return value === "profile" || value === "password" || value === "logout"
+    ? value
+    : null;
+}
+
 /**
  * 账户面板的按请求数据（走 `SectionRenderContext.contributed["site-member.account"]`）。
  *
@@ -47,6 +56,14 @@ export interface MemberAccountRenderContext {
   /** 上一次提交的结果，服务端已按访客语言翻好的整句。 */
   error: string | null;
   notice: string | null;
+  /**
+   * 上一次提交来自哪张表单（没提交过就是 `null`）。
+   *
+   * 「改密码」平时是折叠的。改密码填错了却折回去，会员看到的是一句错误提示和一块
+   * 关着的抽屉——错在哪一栏、要重填什么，全得自己再点开找。带着这个字段回来，那一块
+   * 就展开着渲染。
+   */
+  intent: MemberAccountIntent | null;
 }
 
 const CONTEXT_KEY = "site-member.account";
@@ -75,6 +92,10 @@ export const memberAccountPanelSection: SectionDefinition = {
   page_kinds: [MEMBER_ACCOUNT_PAGE_KIND],
   settings: [
     ...headingSettings(),
+    /*
+     * 邮箱没有「标签 / 说明」两项设置：它不再是一个 `readonly` 的输入框，而是身份条上
+     * 的一行文字。一个长得能改、点进去又不让改的框，比一句「邮箱不可修改」更难懂。
+     */
     { type: "header", content: "site-member:section.account.profile" },
     {
       type: "text",
@@ -87,19 +108,6 @@ export const memberAccountPanelSection: SectionDefinition = {
       id: "profile_desc",
       label: "site-member:section.account.profileDesc",
       default: "",
-    },
-    {
-      type: "text",
-      id: "email_label",
-      label: "site-member:section.auth.emailLabel",
-      default: "Email",
-      required: true,
-    },
-    {
-      type: "text",
-      id: "email_note",
-      label: "site-member:section.account.emailNote",
-      default: "Your email cannot be changed",
     },
     {
       type: "text",

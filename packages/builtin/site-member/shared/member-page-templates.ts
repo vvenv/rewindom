@@ -107,8 +107,6 @@ export const MEMBER_ACCOUNT_TEMPLATE_PRESET: PagePreset = {
         subheading: "site-member:account.subtitle",
         profile_title: "site-member:account.profile_title",
         profile_desc: "site-member:account.profile_desc",
-        email_label: "site-member:fields.email",
-        email_note: "site-member:account.email_readonly",
         display_name_label: "site-member:fields.display_name",
         save_label: "site-member:account.save",
         created_label: "site-member:account.created_at",

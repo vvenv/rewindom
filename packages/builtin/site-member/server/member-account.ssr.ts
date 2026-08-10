@@ -36,6 +36,8 @@ import {
   MEMBER_ACCOUNT_PAGE_KIND,
   MEMBER_ACCOUNT_PATH,
   memberAccountContextEntry,
+  parseMemberAccountIntent,
+  type MemberAccountIntent,
   type MemberAccountRenderContext,
 } from "../shared/member-account-section.js";
 import { MEMBER_LOGIN_PATH } from "../shared/member-auth-section.js";
@@ -75,6 +77,12 @@ interface AccountState {
    * `Accept-Language` 翻，就会在一个中文站上冒出一句英文。
    */
   noticeKey: string | null;
+  /**
+   * 这一次渲染是哪张表单打回来的。
+   *
+   * 只为一件事：改密码填错了要展开着那一块回来（见 `member-account-section.ts`）。
+   */
+  intent: MemberAccountIntent | null;
 }
 
 /**
@@ -182,6 +190,7 @@ async function renderAccountPage(
     last_login_at: formatMoment(profile.last_login_at, locale, never),
     error: state.error,
     notice: state.noticeKey ? translate(state.noticeKey) : null,
+    intent: state.intent,
   };
 
   sendHtml(
@@ -234,7 +243,8 @@ async function handleSubmit(
   reply: FastifyReply,
 ): Promise<void> {
   const body = (request.body ?? {}) as Record<string, unknown>;
-  const intent = typeof body.intent === "string" ? body.intent : "";
+  // 认不出的 intent 按「改资料」走：表单坏了也不该把人静默登出
+  const intent = parseMemberAccountIntent(body.intent);
 
   try {
     assertSameOrigin(request);
@@ -296,6 +306,7 @@ async function handleSubmit(
       status: error instanceof AppError ? error.status : 400,
       error: errorMessage(error, locale),
       noticeKey: null,
+      intent,
     });
     if (!rendered) redirectTo(reply, LOGIN_WITH_REDIRECT, 303);
   }
@@ -317,6 +328,7 @@ export async function memberAccountPageRoutes(
       status: 200,
       error: null,
       noticeKey: query?.saved ? "account.saved" : null,
+      intent: null,
     });
     if (!rendered) redirectTo(reply, LOGIN_WITH_REDIRECT);
   });

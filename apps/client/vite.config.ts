@@ -68,7 +68,18 @@ function tenantMarketingSsrProxy(): Plugin {
           proxyReq.on("error", () => {
             next();
           });
-          proxyReq.end();
+          /*
+           * 必须把请求体接过去，不能直接 `end()`。
+           *
+           * 会员那三张页面的表单是真 POST（见 `vite-marketing-ssr-proxy.ts`）。只发头
+           * 不发体的话，Fastify 拿着一个 `content-length: N` 却永远等不到那 N 个字节，
+           * 请求挂到超时 → 这里 `error` → `next()` → Vite 兜底吐 index.html，而 SPA 没有
+           * `/member/*` 这几条路由，浏览器上就是一张 404：点「退出登录」退不掉、
+           * 本地登录也提交不上去，全是同一个原因。
+           *
+           * GET / HEAD 没有体，pipe 会立刻结束请求，与原来的 `end()` 等价。
+           */
+          req.pipe(proxyReq);
         });
       });
     },
