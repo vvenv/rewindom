@@ -26,8 +26,6 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_reset_to_preset":
         "重设官网页面「{{title}}」为最新版式",
       "site.page_reset_unsupported": "该页面没有可重设的内置版式",
-      "marketing.audit.starter_applied":
-        "应用站点起步模板「{{key}}」（{{page_count}} 页）",
       "marketing.audit.theme_applied": "套用站点主题「{{key}}」",
       "site.theme_not_found": "主题不存在",
       "marketing.audit.site_draft_published":
@@ -43,6 +41,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.home_exists": "该语言下首页已存在",
       "site.template_page_exists": "该语言下这张版式已存在",
       "site.template_page_slug_fixed": "版式页路径不可更改",
+      "site.template_page_not_deletable": "系统版式页不可删除",
       "site.template_section_required": "这张版式必须保留它的核心区块",
       "site.section_page_kind_invalid": "该区块不能放在这张页面上",
       "site.page_slug_conflict": "页面路径冲突",
@@ -52,8 +51,6 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.color_invalid": "主色必须是 #RGB 或 #RRGGBB",
       "site.links_invalid": "导航或页脚链接格式不正确",
       "site.sections_invalid": "页面区块配置不正确",
-      "site.starter_not_found": "站点起步模板不存在",
-      "site.starter_invalid": "站点起步模板无效",
       "site.asset_required": "请选择要上传的图片",
       "site.asset_invalid_mime": "不支持的图片格式",
       "site.asset_too_large": "图片过大（最大 {{max_bytes}} 字节）",
@@ -116,8 +113,6 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_reset_to_preset":
         'Reset site page "{{title}}" to the latest layout',
       "site.page_reset_unsupported": "This page has no built-in layout to reset to",
-      "marketing.audit.starter_applied":
-        'Applied site starter "{{key}}" ({{page_count}} pages)',
       "marketing.audit.theme_applied": 'Applied site theme "{{key}}"',
       "site.theme_not_found": "Theme not found",
       "marketing.audit.site_draft_published":
@@ -133,6 +128,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.home_exists": "A home page already exists for this locale",
       "site.template_page_exists": "This layout already exists for this locale",
       "site.template_page_slug_fixed": "Layout page path cannot be changed",
+      "site.template_page_not_deletable": "Built-in layout pages cannot be deleted",
       "site.template_section_required": "This layout must keep its core section",
       "site.section_page_kind_invalid": "This section cannot be placed on this page",
       "site.page_slug_conflict": "Page path conflict",
@@ -142,8 +138,6 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.color_invalid": "Primary color must be #RGB or #RRGGBB",
       "site.links_invalid": "Invalid nav or footer links",
       "site.sections_invalid": "Invalid page sections",
-      "site.starter_not_found": "Site starter not found",
-      "site.starter_invalid": "Invalid site starter",
       "site.asset_required": "Image file is required",
       "site.asset_invalid_mime": "Unsupported image format",
       "site.asset_too_large": "Image is too large (max {{max_bytes}} bytes)",

@@ -285,13 +285,6 @@ export interface MarketingSiteCapabilities {
   entitlements: string[];
 }
 
-/** 应用站点起步模板的响应。 */
-export interface ApplySiteStarterResponse {
-  site: MarketingSite;
-  pages: MarketingPage[];
-  home_page_id: string;
-}
-
 export interface UpdateMarketingPageBody {
   slug?: string;
   locale?: string;

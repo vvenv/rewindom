@@ -11,11 +11,11 @@ import type { AppNavSection } from "@be-water/client-kit";
  * `/app/site/editor` 的两层共用同一个路径，侧栏没法分辨——不管在改主题还是在排某一页，
  * 高亮的永远是同一项。两个入口指同一个界面，本来也说不清点哪个会去哪。
  *
- * 编辑器的入口因此**统一在官网卡片上**（`SiteSummaryHeader`：外观 / 页头页脚）与页面
- * 列表的行上（`?page=<id>`）——都是「从要编辑的那个东西点进去」。
+ * 编辑器的入口因此**统一在页面列表的行上**（`?page=<id>`）——从要编辑的那个
+ * 东西点进去；卡头不再挂「编辑某某」，避免和列表重复、也避免按钮名对不齐落点。
  *
  * **重定向**同理不在这里：它是「旧地址怎么处理」的一条路由规则，配完就不再回来，
- * 已并入站点设置（`/app/site/settings?tab=redirects`）。
+ * 已并入站点设置 Sheet（官网卡片 →「站点设置」→ 重定向分区）。
  */
 export const SITE_NAV_SECTIONS: AppNavSection[] = [
   {

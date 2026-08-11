@@ -4,15 +4,9 @@ import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import {
-  applySiteThemeSettings,
-  type SiteTheme,
-} from "../../shared/site-themes.js";
-import {
   pinToLocale,
   primaryText,
   sameLocalizedText,
-  sameThemeSettings,
-  type SiteSettingsTab,
 } from "../lib/site-settings-form.js";
 
 import { useSiteMutations } from "./useSite.js";
@@ -22,7 +16,6 @@ import type {
   SiteLocalizedText,
   UpdateMarketingSiteBody,
 } from "../../shared/site-cms.js";
-import type { ThemeSettings } from "../../shared/theme-sections.js";
 
 interface SaveOptions {
   onSuccess?: () => void;
@@ -30,18 +23,17 @@ interface SaveOptions {
 }
 
 /**
- * 站点设置页的草稿。
+ * 站点设置的草稿。
  *
- * **一份草稿、多个保存按钮**：四个分区共用这一个 hook，切分区不丢改动（分区只是
- * 视图，不是四张互相独立的表单）；但每个分区只提交自己那几个字段，审计日志里
- * 「改了主色」与「换了主语言」因此是两条不同的记录，而不是一次糊在一起的整存。
+ * **控件即提交**：分区共用这一份 hook（切着改不丢），但落库由控件自己触发——
+ * 站名 / 标语 blur 存、主语言确认后存、发布开关即存。审计里「改了站名」与
+ * 「换了主语言」仍是两条不同的记录。
  *
  * 例外是**主语言**：换它必须连带把文案钉在原语言下（见 `pinToLocale`），所以
- * 「语言」分区的提交一定带着站名 / 标语。这不是耦合没拆干净，是那个操作本身就
- * 包含这一步——拆开存会在两次请求之间留下一个「文案语言已失真」的中间态。
+ * 那一次提交一定带着站名 / 标语。这不是耦合没拆干净，是那个操作本身就包含这一步
+ * ——拆开存会在两次请求之间留下一个「文案语言已失真」的中间态。
  *
- * 站点数据回来（或被别处保存刷新）后按 `updated_at` 重新灌一次草稿，与两个
- * 全屏编辑器同一口径。
+ * 站点数据回来（或被别处保存刷新）后按 `updated_at` 重新灌一次草稿。
  */
 export function useSiteSettingsForm(site: MarketingSite | undefined) {
   const { updateSite } = useSiteMutations();
@@ -52,7 +44,6 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
   const [tagline, setTagline] = useState<SiteLocalizedText>("");
   const [editLocale, setEditLocale] = useState<AppLocale>(savedLocale);
   const [defaultLocale, setDefaultLocale] = useState<AppLocale>(savedLocale);
-  const [theme, setTheme] = useState<ThemeSettings>({});
   const [published, setPublished] = useState(false);
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
 
@@ -63,16 +54,14 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
     setTagline(site.tagline);
     setEditLocale(locale);
     setDefaultLocale(locale);
-    setTheme(site.theme_settings);
     setPublished(site.published);
     setHydratedKey(site.updated_at);
   }, [site, hydratedKey]);
 
   const locales = siteLocaleOrder(defaultLocale);
-  const localeChanged = Boolean(site) && defaultLocale !== savedLocale;
 
   /*
-   * 脏检查按**已保存的**主语言读两边：主语言本身改没改由 localeChanged 单独兜住，
+   * 脏检查按**已保存的**主语言读两边：主语言本身改没改由 locale.commit 单独处理，
    * 混进来的话「换了主语言」会让基本信息也跟着变脏。
    */
   const savedLocales = siteLocaleOrder(savedLocale);
@@ -81,17 +70,18 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
     (!sameLocalizedText(siteName, site.site_name, savedLocales, savedLocale) ||
       !sameLocalizedText(tagline, site.tagline, savedLocales, savedLocale)),
   );
-  const appearanceDirty = Boolean(
-    site && !sameThemeSettings(theme, site.theme_settings),
-  );
 
-  /*
-   * 只标设置页那几个分区；外观自己一整页，脏不脏由它自己的保存按钮表达，
-   * 不需要页签上的点。
-   */
-  const dirtyTabs = new Set<SiteSettingsTab>();
-  if (basicsDirty) dirtyTabs.add("basics");
-  if (localeChanged) dirtyTabs.add("locale");
+  /** 放弃未提交改动：把草稿灌回线上那一版（开 Sheet 时清一次）。 */
+  const reset = (): void => {
+    if (!site) return;
+    const locale = normalizeLocale(site.default_locale);
+    setSiteName(site.site_name);
+    setTagline(site.tagline);
+    setEditLocale(locale);
+    setDefaultLocale(locale);
+    setPublished(site.published);
+    setHydratedKey(site.updated_at);
+  };
 
   const save = (body: UpdateMarketingSiteBody, options?: SaveOptions): void => {
     updateSite.mutate(body, {
@@ -100,11 +90,17 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
     });
   };
 
+  const restoreBasics = (): void => {
+    if (!site) return;
+    setSiteName(site.site_name);
+    setTagline(site.tagline);
+  };
+
   return {
     /** 站点还没拉到时表单整体不可用（草稿是空的，存下去会把站名清掉）。 */
     ready: Boolean(site),
     saving: updateSite.isPending,
-    dirtyTabs,
+    reset,
 
     basics: {
       siteName,
@@ -118,44 +114,54 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
       dirty: basicsDirty,
       /** 主语言那一份站名——空了整站没名字，提交前要拦。 */
       primaryName: primaryText(siteName, defaultLocale),
-      save: (options?: SaveOptions) =>
-        save({ site_name: siteName, tagline }, options),
-    },
-
-    appearance: {
-      theme,
-      setTheme,
-      dirty: appearanceDirty,
-      applyThemePack: (pack: SiteTheme) =>
-        setTheme((current) => applySiteThemeSettings(current, pack)),
-      save: (options?: SaveOptions) => save({ theme_settings: theme }, options),
+      restore: restoreBasics,
+      /**
+       * blur / 关 Sheet 时调用。返回是否发出了请求——调用方据此决定要不要 toast
+       * 「必填」或切回主语言编辑。
+       */
+      commit: (options?: SaveOptions): boolean => {
+        if (!site || !basicsDirty || updateSite.isPending) return false;
+        if (!primaryText(siteName, defaultLocale)) return false;
+        save({ site_name: siteName, tagline }, options);
+        return true;
+      },
     },
 
     locale: {
       defaultLocale,
       savedLocale,
       locales,
-      changed: localeChanged,
-      /** 先把现有文案钉在原主语言下，再换——顺序反了原文就被改了语言标签。 */
-      change: (next: AppLocale): void => {
-        if (next === defaultLocale) return;
-        setSiteName((current) => pinToLocale(current, defaultLocale));
-        setTagline((current) => pinToLocale(current, defaultLocale));
+      /**
+       * 确认后一次提交：先钉文案再换主语言，body 用算好的值而不是等 setState。
+       * 失败则整段拨回线上那一版。
+       */
+      commit: (next: AppLocale, options?: SaveOptions): void => {
+        if (!site || next === defaultLocale || updateSite.isPending) return;
+        const fromLocale = defaultLocale;
+        const pinnedName = pinToLocale(siteName, fromLocale);
+        const pinnedTagline = pinToLocale(tagline, fromLocale);
+        setSiteName(pinnedName);
+        setTagline(pinnedTagline);
         setDefaultLocale(next);
         setEditLocale(next);
-      },
-      reset: (): void => {
-        if (!site) return;
-        setSiteName(site.site_name);
-        setTagline(site.tagline);
-        setDefaultLocale(savedLocale);
-        setEditLocale(savedLocale);
-      },
-      save: (options?: SaveOptions) =>
         save(
-          { default_locale: defaultLocale, site_name: siteName, tagline },
-          options,
-        ),
+          {
+            default_locale: next,
+            site_name: pinnedName,
+            tagline: pinnedTagline,
+          },
+          {
+            onSuccess: options?.onSuccess,
+            onError: () => {
+              setSiteName(site.site_name);
+              setTagline(site.tagline);
+              setDefaultLocale(fromLocale);
+              setEditLocale(fromLocale);
+              options?.onError?.();
+            },
+          },
+        );
+      },
     },
 
     visibility: {

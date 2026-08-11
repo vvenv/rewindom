@@ -5,6 +5,7 @@ import { getLocaleNativeLabel } from "@be-water/shared";
 import { Button } from "@be-water/ui/button";
 import { ButtonGroup } from "@be-water/ui/button-group";
 import { Spinner } from "@be-water/ui/spinner";
+import { cn } from "@be-water/ui/utils";
 import {
   ArrowLeft,
   Monitor,
@@ -25,7 +26,6 @@ import { collectHeaderNavItems } from "../../shared/sections/_common/chrome-bloc
 import { siteNavPages } from "../../shared/site-cms.js";
 import { SiteThemeSettingsForm } from "../components/appearance/SiteThemeSettingsForm.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";
-import { EditorScopeSwitcher } from "../components/theme-editor/EditorScopeSwitcher.js";
 import { EditorToolbar } from "../components/theme-editor/EditorToolbar.js";
 import { PageEditorToolbar } from "../components/theme-editor/PageEditorToolbar.js";
 import { PageMetaForm } from "../components/theme-editor/PageMetaForm.js";
@@ -68,14 +68,14 @@ function selectionTypeLabel(
 }
 
 /**
- * 站点编辑器：**页面区块、页头页脚、主题**都在这里改，一块预览、一条发布链。
+ * 站点编辑器：**页面区块、页头页脚、主题设置**都在这里改，一块预览、一条发布链。
  *
  * 以前是三个界面——逐页编辑器、页头页脚编辑器、外观页——各自一份三栏壳、各自一份
  * 预览接线；外观那份预览还是只读的静态首页，改配色等于盲改。它们改的是同一个站点、
  * 看的是同一块预览，差别只是「在调哪一层」，所以合成一个（口径同 Shopify 主题编辑器）。
  *
  * - `?page=` 决定树里有没有「页面区块」那一段；不带就只有页头页脚，改导航不必先挑页面
- * - `?scope=theme` 切到主题层，字段进右侧设置栏——它不是树上的对象，选不中
+ * - `?scope=theme` 切到主题设置层，字段进右侧设置栏——它不是树上的对象，选不中
  *
  * 保存 / 发布只有两枚按钮：有页面时正文与站点级草稿同事务落库，没有页面时只落站点级；
  * 主题跟着页头页脚同一条链，改完先存草稿、发布才对访客生效。
@@ -402,8 +402,6 @@ export function SiteEditor() {
         {/* 三栏各自滚：页面不整体滚动，预览区吃满剩余高度 */}
         <div className="-mx-1 grid gap-3 lg:h-full lg:min-h-0 lg:grid-cols-[240px_minmax(0,1fr)_300px] lg:grid-rows-[minmax(0,1fr)]">
           <div className="flex min-h-0 flex-col gap-2">
-            <EditorScopeSwitcher scope={scope} onChange={setScope} />
-
             {pageMissing ? (
               <p className="px-1 text-xs text-destructive">
                 {t("editor.pageMissing")}
@@ -440,36 +438,69 @@ export function SiteEditor() {
               </div>
             ) : null}
 
-            {scope === "sections" ? (
-              <SectionTree
-                chromeOnly={!page}
-                entitlements={editor.capabilities.entitlements}
-                pageKind={editor.page?.kind}
-                sections={editor.sections}
-                header={editor.header}
-                footer={editor.footer}
-                selectedSectionId={editor.selectedSectionId}
-                selectedBlockId={editor.selectedBlockId}
-                metaSelected={editor.metaSelected}
-                canWrite={canWrite}
-                onSelect={(sectionId, blockId) =>
-                  editor.selectSection(sectionId, blockId)
-                }
-                onSelectMeta={editor.selectMeta}
-                onAddSection={editor.addSection}
-                onRemoveSection={editor.removeSection}
-                onMoveSection={editor.moveSection}
-                onMoveSectionTo={editor.moveSectionTo}
-                onAddBlock={editor.addBlock}
-                onRemoveBlock={editor.removeBlock}
-                onMoveBlock={editor.moveBlock}
-                onReorderBlock={editor.reorderBlock}
-              />
-            ) : (
-              <p className="px-1 text-xs text-muted-foreground">
-                {t("editor.scope.themeHint")}
-              </p>
-            )}
+            {/*
+              树全程可见，不再有与它平行的「主题」tab——主题选中时树上的段落高亮
+              压掉（右栏正在显示主题字段）；点回任何树行自动切回 sections 层，
+              增删区块也一样（新段会被自动选中，右栏得跟上）。
+            */}
+            <SectionTree
+              chromeOnly={!page}
+              entitlements={editor.capabilities.entitlements}
+              pageKind={editor.page?.kind}
+              sections={editor.sections}
+              header={editor.header}
+              footer={editor.footer}
+              selectedSectionId={
+                scope === "sections" ? editor.selectedSectionId : null
+              }
+              selectedBlockId={
+                scope === "sections" ? editor.selectedBlockId : null
+              }
+              metaSelected={scope === "sections" && editor.metaSelected}
+              canWrite={canWrite}
+              onSelect={(sectionId, blockId) => {
+                setScope("sections");
+                editor.selectSection(sectionId, blockId);
+              }}
+              onSelectMeta={() => {
+                setScope("sections");
+                editor.selectMeta();
+              }}
+              onAddSection={(type, target) => {
+                setScope("sections");
+                editor.addSection(type, target);
+              }}
+              onRemoveSection={editor.removeSection}
+              onMoveSection={editor.moveSection}
+              onMoveSectionTo={editor.moveSectionTo}
+              onAddBlock={(sectionId, blockType) => {
+                setScope("sections");
+                editor.addBlock(sectionId, blockType);
+              }}
+              onRemoveBlock={editor.removeBlock}
+              onMoveBlock={editor.moveBlock}
+              onReorderBlock={editor.reorderBlock}
+            />
+
+            {/*
+              主题设置钉在左栏**滚动区之外**的底部：树再长它也不动、不被顶出视野
+              （口径同 Shopify 主题编辑器左栏底部的 Theme settings）。它是站点级
+              的一层参数、不是树上的对象，点它 = 选中它，字段进右侧设置栏。
+            */}
+            <button
+              type="button"
+              onClick={() => setScope("theme")}
+              aria-pressed={scope === "theme"}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-left text-sm",
+                scope === "theme"
+                  ? "border-primary bg-muted/60"
+                  : "hover:bg-muted/40",
+              )}
+            >
+              <Palette className="size-3.5 shrink-0 text-muted-foreground" />
+              <span className="truncate">{t("editor.scope.theme")}</span>
+            </button>
           </div>
 
           <div className="flex h-[70vh] flex-col overflow-hidden rounded-lg border bg-background lg:h-full">
@@ -528,13 +559,18 @@ export function SiteEditor() {
 
           <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto rounded-lg border p-3">
             {scope === "theme" ? (
-              <SiteThemeSettingsForm
-                theme={editor.theme}
-                themeKey={editor.themeKey}
-                canWrite={canWrite}
-                onChange={editor.setTheme}
-                onThemeKeyChange={editor.setThemeKey}
-              />
+              <>
+                <p className="text-xs text-muted-foreground">
+                  {t("editor.scope.themeHint")}
+                </p>
+                <SiteThemeSettingsForm
+                  theme={editor.theme}
+                  themeKey={editor.themeKey}
+                  canWrite={canWrite}
+                  onChange={editor.setTheme}
+                  onThemeKeyChange={editor.setThemeKey}
+                />
+              </>
             ) : editor.metaSelected && page ? (
               <PageMetaForm
                 title={editor.title}

@@ -52,10 +52,9 @@ boot.
 ## Creating and managing tenants
 
 New tenants are created in the platform console (`PLATFORM_URL`, locally
-`127.0.0.1`). A new tenant is active but its **site is empty** — automatic
-initialization only applies to the default tenant. Two ways to give it content: the
-tenant's own administrator applies a starter from the workspace, or a platform
-administrator does it for them.
+`127.0.0.1`). A new tenant is active; creation also lays down default header / footer
+and a primary-language home page (`initializeTenantSite`). Admins open the home page row
+to edit.
 
 ## Single-tenant mode
 

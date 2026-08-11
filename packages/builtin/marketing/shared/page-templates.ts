@@ -100,6 +100,9 @@ export function listPageTemplateKinds(): PageTemplateKindDefinition[] {
  *
  * 普通页面列表 / 排序 / 站点导航 / 复制规则都按它排除模板页：模板页没有租户自填的
  * 地址，混进那些列表里会给出「可以改 slug」「可以拖排序」的错误暗示。
+ *
+ * 模板页一旦落库也**不可删除**（只许重设预设）——首页、文档版式等由系统初始化或
+ * 「自定义版式」建出，删掉就失去对应路由上的可编辑版式。
  */
 export function isTemplatePageKind(kind: string): boolean {
   return TEMPLATE_KINDS.has(kind);

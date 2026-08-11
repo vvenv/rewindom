@@ -1,28 +1,7 @@
 import { readLocalizedSetting } from "../../shared/section-schema.js";
 
 import type { SiteLocalizedText } from "../../shared/site-cms.js";
-import type { ThemeSettings } from "../../shared/theme-sections.js";
 import type { AppLocale } from "@be-water/shared";
-
-/**
- * 站点设置的分区；同时是 URL 上 `?tab=` 的取值。
- *
- * 没有 `appearance`——主题是编辑器的一层（`/app/site/editor?scope=theme`），从官网卡片进。
- */
-export const SITE_SETTINGS_TABS = [
-  "basics",
-  "locale",
-  "redirects",
-  "visibility",
-] as const;
-
-export type SiteSettingsTab = (typeof SITE_SETTINGS_TABS)[number];
-
-export function parseSiteSettingsTab(raw: string | null): SiteSettingsTab {
-  return SITE_SETTINGS_TABS.includes(raw as SiteSettingsTab)
-    ? (raw as SiteSettingsTab)
-    : "basics";
-}
 
 /**
  * 同一段文案的两种存储形态（纯字符串 / `__i18n`）表达的可能是同一份内容，
@@ -55,26 +34,6 @@ export function pinToLocale(
 ): SiteLocalizedText {
   if (typeof value !== "string" || value === "") return value;
   return { __i18n: { [locale]: value } };
-}
-
-/**
- * 表单会碰到的全部 `theme_settings` 字段。脏检查逐项比，而不是 `JSON.stringify`——
- * 后者会把「键的顺序变了」当成改动。
- */
-export const THEME_KEYS = [
-  "logo_url",
-  "og_image",
-  "primary_color",
-  "bg_color",
-  "fg_color",
-  "font_family",
-  "page_width",
-  "section_spacing",
-] as const satisfies readonly (keyof ThemeSettings)[];
-
-/** `undefined`（没设过）与 `null`（设过又清空）在表单里都是空，不该算改动。 */
-export function sameThemeSettings(a: ThemeSettings, b: ThemeSettings): boolean {
-  return THEME_KEYS.every((key) => (a[key] ?? null) === (b[key] ?? null));
 }
 
 /** 主语言的站名是所有语言的兜底，空了整站没名字——它不随「正在编辑哪种译文」变。 */

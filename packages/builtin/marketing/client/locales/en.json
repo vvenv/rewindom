@@ -245,7 +245,7 @@
     "title": "Website",
     "pageDescription": "Edit marketing content for your bound host. Published pages are SSR’d for SEO.",
     "disabledHint": "Website is not enabled for this organization",
-    "viewSite": "View site",
+    "viewSite": "View website",
     "settings": "Site settings",
     "settingsSectionBasics": "Basics",
     "settingsSectionBasicsHint": "Name and tagline — shown in the header, the browser tab and share cards.",
@@ -255,7 +255,6 @@
     "settingsSectionLocaleHint": "The site's primary language decides which pages live at URLs without a prefix.",
     "settingsSectionVisibility": "Publishing",
     "settingsSectionVisibilityHint": "The site-wide switch; pages and docs each have their own published state on top of it.",
-    "discardConfirm": "Discard",
     "unpublishConfirmTitle": "Take the site offline?",
     "unpublishConfirmDescription": "Visitors will immediately see a placeholder page and no published page or doc stays reachable. Nothing is deleted — you can put it back online at any time.",
     "unpublishConfirm": "Take offline",
@@ -264,7 +263,6 @@
     "defaultLocaleConfirmTitle": "Switch the primary language to {{to}}?",
     "defaultLocaleConfirmDescription": "{{to}} pages lose their language prefix, and the current primary language ({{from}}) moves under /{{fromSlug}}/ — links already indexed or shared will break. The current name and tagline are kept as the {{from}} translation, so nothing is lost.",
     "defaultLocaleConfirm": "Switch primary language",
-    "fieldDefaultLocaleWarning": "Saving moves the site's URL structure from {{from}} to {{to}} and breaks already-indexed links. The current name and tagline stay under {{from}}; the {{to}} ones need filling in.",
     "toastSiteNameRequired": "Fill in the site name for the primary language ({{locale}}) first.",
     "create": "New page",
     "createPageTitle": "New page",
@@ -327,14 +325,12 @@
     "toastPageDuplicateFailed": "Failed to duplicate page",
     "toastPageDeleted": "Page deleted",
     "toastPageDeleteFailed": "Failed to delete page",
-    "chromeMovedHint": "Edit the header and footer under Header & footer; page sections in the Theme Editor; the tenant logo and favicon under System → Branding.",
-    "chromeEditor": "Header & footer",
     "deleteConfirmTitle": "Delete this page?",
     "deleteConfirmDescription": "“{{title}}” and all of its sections will be permanently deleted. This cannot be undone.",
-    "resetPreset": "Reset to latest layout",
+    "resetPreset": "Reset layout",
     "resetPresetConfirmTitle": "Reset to the latest layout?",
     "resetPresetConfirmDescription": "The structure of “{{title}}” will be updated to the latest built-in layout, keeping your content and settings where possible. The result is saved as a draft — publish when you're happy, or discard the changes.",
-    "toastPageResetToPreset": "Reset to the latest layout (draft)",
+    "toastPageResetToPreset": "Layout reset (draft)",
     "toastPageResetToPresetFailed": "Failed to reset layout",
     "fieldLogoUrlPlaceholder": "Defaults to the brand logo",
     "fieldLogoUrlHint": "Leave empty to follow the logo uploaded under System → Branding; set it only when the site needs a different version (wordmark, dark variant).",
@@ -356,28 +352,17 @@
     "filterLocaleAll": "All languages",
     "emptyFiltered": "No matching pages",
     "emptyFilteredHint": "Try another keyword, or clear the filters.",
-    "toastPageReorderFailed": "Could not reorder pages — try again",
-    "appearance": "Appearance"
+    "toastPageReorderFailed": "Could not reorder pages — try again"
   },
   "starter": {
-    "menu": "Starter",
-    "apply": "Apply site template",
     "default": {
-      "label": "Default marketing site",
-      "description": "Header, footer, theme colors and a three-section home page",
       "site_name": "My site",
       "tagline": "A one-line introduction to your site",
       "footer_blurb": "A short blurb visitors see in the site footer."
-    },
-    "confirmTitle": "Replace existing site content?",
-    "confirmBody": "This replaces the header, footer and theme colors, and creates or updates the starter's pages in the primary language. This cannot be undone.",
-    "confirmAction": "Apply",
-    "cancel": "Cancel",
-    "toastApplied": "Site template applied",
-    "toastApplyFailed": "Failed to apply site template"
+    }
   },
   "editor": {
-    "title": "Theme Editor",
+    "title": "Website editor",
     "back": "Back to list",
     "sections": "Sections",
     "addSection": "Add section",
@@ -848,9 +833,8 @@
       "flat": "List inline"
     },
     "scope": {
-      "sections": "Sections",
-      "theme": "Theme",
-      "themeHint": "The theme applies site-wide. Its fields are on the right and show up in the preview as you type."
+      "theme": "Theme settings",
+      "themeHint": "Site-wide colours, fonts and layout. Changes show up in the preview as you type."
     },
     "pageDescription": "Edit page sections, header and footer, and the site theme. Saving keeps a draft; publishing makes it public.",
     "publishSite": "Publish",
@@ -858,25 +842,10 @@
   },
   "settings": {
     "pageTitle": "Site settings",
-    "pageDescription": "Name, language, redirects and publishing — each section saves on its own. Appearance has its own sidebar entry.",
-    "unsaved": "Unsaved changes",
-    "previewTitle": "Live preview"
+    "pageDescription": "Changes save as you go. Appearance and layout are in the page editor."
   },
   "chromeEditor": {
-    "title": "Header & footer",
-    "pageDescription": "Configure site-wide navigation, footer and announcement bars. Publishing updates every page at once.",
-    "editLocale": "Editing language",
-    "preview": "Preview",
-    "publish": "Publish header & footer",
-    "revert": "Revert unpublished changes",
-    "revertConfirmTitle": "Revert unpublished header & footer changes?",
-    "revertConfirmBody": "The header and footer are reset to the live version. Saved but unpublished changes are lost. The live site is untouched.",
-    "toastSaved": "Header and footer saved",
-    "toastSaveFailed": "Save failed",
-    "toastPublished": "Header and footer published",
-    "toastPublishFailed": "Publish failed",
-    "toastReverted": "Reverted to live version",
-    "toastRevertFailed": "Revert failed"
+    "editLocale": "Editing language"
   },
   "seo": {
     "home": {
@@ -933,7 +902,6 @@
     "page_published": "Published site page \"{{title}}\"",
     "page_content_published": "Published site page content for \"{{title}}\"",
     "page_unpublished": "Unpublished site page \"{{title}}\"",
-    "starter_applied": "Applied site starter \"{{key}}\" ({{page_count}} pages)",
     "site_draft_published": "Published site header, footer and theme for \"{{site_name}}\"",
     "site_draft_reverted": "Discarded unpublished header, footer and theme changes for \"{{site_name}}\"",
     "doc_category_created": "Created doc category \"{{key}}\"",

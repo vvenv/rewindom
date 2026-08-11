@@ -1,10 +1,10 @@
 import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import { MARKETING_I18N } from "../i18n.js";
-import { groupSitePages } from "../lib/site-page-groups.js";
+import { groupSitePages, type SitePageGroup } from "../lib/site-page-groups.js";
 
 import {
   SitePageGroupRow,
@@ -60,6 +60,13 @@ function renderGroup(
   order?: Partial<SitePageGroupOrder>,
 ) {
   const group = groupSitePages(pages, "zh-CN")[0]!;
+  return renderRow(group, order);
+}
+
+function renderRow(
+  group: SitePageGroup,
+  order?: Partial<SitePageGroupOrder>,
+) {
   return render(
     <MemoryRouter>
       <SitePageGroupRow
@@ -81,6 +88,16 @@ function renderGroup(
       />
     </MemoryRouter>,
   );
+}
+
+async function openMoreMenu(): Promise<void> {
+  const trigger = screen.getByRole("button", { name: "更多操作" });
+  // Radix Dropdown 靠 pointer 打开；纯 click 在 jsdom 里经常不开
+  fireEvent.pointerDown(trigger, { button: 0, ctrlX: 0, ctrlY: 0 });
+  fireEvent.click(trigger);
+  await waitFor(() => {
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+  });
 }
 
 describe("SitePageGroupRow", () => {
@@ -184,5 +201,34 @@ describe("SitePageGroupRow", () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "删除" })).toBeNull();
     expect(screen.queryByRole("button", { name: "复制" })).toBeNull();
+  });
+
+  it("omits delete for built-in template pages (home / docs layouts)", async () => {
+    const home = page({
+      id: "home-zh",
+      locale: "zh-CN",
+      kind: "home",
+      slug: "home",
+      title: "首页",
+    });
+    // 模板页不进 groupSitePages，模板行自己组 SitePageGroup
+    renderRow({
+      kind: "home",
+      slug: "home",
+      path: "/",
+      title: "首页",
+      pages: [home],
+    });
+
+    await openMoreMenu();
+    expect(screen.getByRole("menuitem", { name: "复制" })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "删除" })).toBeNull();
+  });
+
+  it("offers delete for ordinary pages", async () => {
+    renderGroup([page({ id: "zh", locale: "zh-CN" })]);
+
+    await openMoreMenu();
+    expect(screen.getByRole("menuitem", { name: "删除" })).toBeInTheDocument();
   });
 });

@@ -17,7 +17,6 @@ import {
   useSiteCapabilities,
   useSitePages,
 } from "../hooks/useSite.js";
-import { hasSiteStarterContent } from "../lib/site-content-state.js";
 import { groupSitePages } from "../lib/site-page-groups.js";
 import {
   collectSitePageLocales,
@@ -84,12 +83,6 @@ export function Site() {
             site={siteQuery.data}
             defaultLocale={defaultLocale}
             isLoading={siteQuery.isLoading}
-            canWrite={canWrite}
-            hasStarterContent={hasSiteStarterContent(
-              siteQuery.data,
-              pages,
-              defaultLocale,
-            )}
             summary={
               pagesQuery.isSuccess ? summarizeSitePages(pages) : undefined
             }

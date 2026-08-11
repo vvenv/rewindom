@@ -1,38 +1,44 @@
 ---
 title: Building a site
-description: Starters, themes, header and footer, navigation
+description: Page editing, theme settings, header and footer, navigation
 category: build-operate
 sort_order: 50
 ---
 
 Every site has one marketing site made of pages, a theme, and a header and footer.
-This is the path from starter template to a published site.
+New tenants get a default home page and chrome when the organization is created. From
+there the path is: open a page row → change sections → publish.
 
-## Starters
+## Opening the editor
 
-A new site begins from a starter: one theme plus a set of pages.
+The site card header has two actions; enter the editor from a page row below:
 
-| Starter              | Good for            | Pages it creates                       |
-| -------------------- | ------------------- | -------------------------------------- |
-| Default marketing    | General purpose     | Home                                   |
-| Product site         | Product marketing   | Home + Pricing + About + Contact       |
-| Landing page         | Single-page landing | Home + Contact (a more spacious theme) |
+| Action / entry | Opens                                              |
+| -------------- | -------------------------------------------------- |
+| View website   | The live site in a new tab                         |
+| Site settings  | A sheet for name, language, publishing, redirects  |
+| Page row       | The website editor (that page + header/footer/theme) |
 
-Apply one from the site management page. Applying a starter **overwrites the content of
-pages it owns**, but never deletes pages you created yourself.
+Built-in template pages (home, docs layouts, …) **cannot be deleted** — only reset to
+the latest layout. Ordinary pages you create can still be deleted.
 
-> The default marketing starter creating only a home page is deliberate. Whatever a
-> starter lays down, the first thing most people do is delete it. Adding a pricing page
-> from the page presets costs far less than cleaning up four pages you didn't want.
+Inside the editor:
 
-## Themes
+- **Sections** — page meta, header, page sections, footer in one tree
+- **Theme settings** — theme pack, colours, fonts, spacing, brand assets
+
+## Theme settings
 
 A theme is a set of design tokens — colours, fonts, spacing, radii — that set the
 visual tone:
 
-- Switch theme packs in site settings
+- Switch theme packs under Theme settings in the editor
 - Individual tokens can be overridden per site (say, only the brand colour)
-- The logo is a brand asset, configured separately from the theme
+- The logo is a brand asset, configured separately from the theme pack tokens
+
+To pull the latest built-in layout for a template page, use **Reset layout** on the
+page row. To re-apply a theme pack's defaults, use **Reset to latest** on that pack
+in Theme settings.
 
 ## Header and footer
 
@@ -46,11 +52,9 @@ The language and theme blocks ship by default because they **render nothing when
 not apply**: a single-language site shows no switcher, and it appears by itself once you
 publish your first translation. Don't want them? Delete them from the left tree.
 
-Open the editor with **Header & footer** at the top right of the site management page —
-no need to open a page in the Theme Editor. Saving and publishing chrome does not touch
-page content.
+Open any page from its list row and edit header / footer in the left tree.
 
-> Starters deliberately ship **no** header button. If you want a "Get started" call to
+> Defaults deliberately ship **no** header button. If you want a "Get started" call to
 > action, add it yourself in the header settings — a prepopulated button pointing at a
 > feature you haven't enabled is worse than no button.
 
@@ -79,8 +83,8 @@ header" — it copies a snapshot, after which the two are edited independently.
 
 ## Name and tagline
 
-The site name and tagline appear in the header and in SEO metadata; both can be filled in per language. Replacing the
-starter's placeholder copy is job number one.
+The site name and tagline appear in the header and in SEO metadata; both can be filled in
+per language. Replacing the placeholder copy from initialization is job number one.
 
 ## Languages
 

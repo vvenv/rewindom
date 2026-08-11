@@ -1,24 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  parseSiteSettingsTab,
-  pinToLocale,
-  primaryText,
-  sameLocalizedText,
-  sameThemeSettings,
-} from "./site-settings-form.js";
-
-describe("parseSiteSettingsTab", () => {
-  it("认识合法分区", () => {
-    expect(parseSiteSettingsTab("redirects")).toBe("redirects");
-  });
-
-  /** URL 是用户能手改的，认不出来就回第一个分区，不该白屏。 */
-  it("认不出来的一律回基本信息", () => {
-    expect(parseSiteSettingsTab(null)).toBe("basics");
-    expect(parseSiteSettingsTab("nope")).toBe("basics");
-  });
-});
+import { pinToLocale, primaryText, sameLocalizedText } from "./site-settings-form.js";
 
 describe("sameLocalizedText", () => {
   const locales = ["zh-CN", "en"] as const;
@@ -61,37 +43,6 @@ describe("pinToLocale", () => {
 
   it("空串不钉——钉了就凭空造出一份空译文", () => {
     expect(pinToLocale("", "zh-CN")).toBe("");
-  });
-});
-
-describe("sameThemeSettings", () => {
-  it("没设过与设过又清空都算空", () => {
-    expect(sameThemeSettings({}, { primary_color: null })).toBe(true);
-  });
-
-  it("键的顺序不影响比较", () => {
-    expect(
-      sameThemeSettings(
-        { primary_color: "#111111", font_family: "serif" },
-        { font_family: "serif", primary_color: "#111111" },
-      ),
-    ).toBe(true);
-  });
-
-  it("值不同就算改过", () => {
-    expect(
-      sameThemeSettings({ section_spacing: 16 }, { section_spacing: 24 }),
-    ).toBe(false);
-  });
-
-  /** 表单碰不到的键不参与比较，否则服务端多回一个字段就永远「脏」着。 */
-  it("忽略表单之外的字段", () => {
-    expect(
-      sameThemeSettings({ primary_color: "#111111" }, {
-        primary_color: "#111111",
-        radius: 8,
-      } as never),
-    ).toBe(true);
   });
 });
 

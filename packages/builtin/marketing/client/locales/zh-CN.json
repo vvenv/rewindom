@@ -255,7 +255,6 @@
     "settingsSectionLocaleHint": "站点的主语言，决定哪一种语言的页面不带 URL 前缀。",
     "settingsSectionVisibility": "发布",
     "settingsSectionVisibilityHint": "站点总开关；单个页面与文档另有各自的发布状态。",
-    "discardConfirm": "放弃修改",
     "unpublishConfirmTitle": "把站点下线？",
     "unpublishConfirmDescription": "访客会立刻看到占位页，已发布的页面与文档都不再对外可见。内容不会丢，随时可以再上线。",
     "unpublishConfirm": "下线站点",
@@ -265,7 +264,6 @@
     "defaultLocaleConfirmDescription": "「{{to}}」的页面将改为不带语言前缀，原主语言「{{from}}」的页面则移到 /{{fromSlug}}/ 之下，已被搜索引擎收录或已分享出去的链接会失效。现有站名与标语会保留为「{{from}}」的译文，不会丢。",
     "toastSiteNameRequired": "请先填写主语言（{{locale}}）的站点名称。",
     "defaultLocaleConfirm": "改主语言",
-    "fieldDefaultLocaleWarning": "保存后站点 URL 结构会从「{{from}}」切到「{{to}}」，已收录的链接会失效；现有站名与标语留在「{{from}}」名下，「{{to}}」的需要另填。",
     "create": "新建页面",
     "createPageTitle": "新建页面",
     "createPageDescription": "填写访问路径（可用多段，如 about、about/contact）；首页在下方「默认版式」里自定义。",
@@ -327,14 +325,12 @@
     "toastPageDuplicateFailed": "复制页面失败",
     "toastPageDeleted": "页面已删除",
     "toastPageDeleteFailed": "删除页面失败",
-    "chromeMovedHint": "页头与页脚可在「页头页脚」里单独编辑；页面区块在 Theme Editor；租户 Logo 与 Favicon 在「系统管理 → 品牌」。",
-    "chromeEditor": "页头页脚",
     "deleteConfirmTitle": "删除该页面？",
     "deleteConfirmDescription": "「{{title}}」及其全部区块将被永久删除，此操作不可撤销。",
-    "resetPreset": "重设为最新版式",
+    "resetPreset": "重设版式",
     "resetPresetConfirmTitle": "重设为最新版式？",
     "resetPresetConfirmDescription": "「{{title}}」的结构将更新到最新内置版式，已填的文案与配置会尽量保留。结果只写入草稿——满意后发布，不满意可撤销更改。",
-    "toastPageResetToPreset": "已重设为最新版式（草稿）",
+    "toastPageResetToPreset": "已重设版式（草稿）",
     "toastPageResetToPresetFailed": "重设版式失败",
     "fieldLogoUrlPlaceholder": "默认使用品牌 Logo",
     "fieldLogoUrlHint": "留空即跟随「系统管理 → 品牌」里上传的 Logo；只有官网想用不同版本（横版 / 深色版）时才填。",
@@ -356,28 +352,17 @@
     "filterLocaleAll": "全部语言",
     "emptyFiltered": "没有匹配的页面",
     "emptyFilteredHint": "换个关键词，或清空筛选条件。",
-    "toastPageReorderFailed": "调整顺序失败，请重试",
-    "appearance": "外观"
+    "toastPageReorderFailed": "调整顺序失败，请重试"
   },
   "starter": {
-    "menu": "起步模板",
-    "apply": "应用站点模板",
     "default": {
-      "label": "默认营销站",
-      "description": "页头、页脚、主题色与一张三段式首页",
       "site_name": "我的站点",
       "tagline": "一句话介绍你的站点",
       "footer_blurb": "在这里写一句站点简介，访客会在页脚看到。"
-    },
-    "confirmTitle": "覆盖现有站点内容？",
-    "confirmBody": "将替换页头、页脚、主题色，并在主语言下创建或更新模板自带的页面。此操作不可撤销。",
-    "confirmAction": "应用",
-    "cancel": "取消",
-    "toastApplied": "站点模板已应用",
-    "toastApplyFailed": "应用站点模板失败"
+    }
   },
   "editor": {
-    "title": "主题编辑器",
+    "title": "官网编辑器",
     "back": "返回列表",
     "sections": "区块",
     "addSection": "添加区块",
@@ -848,9 +833,8 @@
       "flat": "就地平铺"
     },
     "scope": {
-      "sections": "区块",
-      "theme": "主题",
-      "themeHint": "主题作用于整站；字段在右侧，改动实时反映在预览上。"
+      "theme": "主题设置",
+      "themeHint": "作用于整站的配色、字体与版式；改动实时反映在预览上。"
     },
     "pageDescription": "编辑页面区块、页头页脚与站点主题；保存进草稿，发布后对访客生效。",
     "publishSite": "发布",
@@ -858,25 +842,10 @@
   },
   "settings": {
     "pageTitle": "站点设置",
-    "pageDescription": "站名、语言、重定向与发布状态；分区各自保存。外观在侧栏「外观」。",
-    "unsaved": "有未保存的修改",
-    "previewTitle": "实时预览"
+    "pageDescription": "改完即存；外观与版式点页面行进编辑器再调。"
   },
   "chromeEditor": {
-    "title": "页头页脚",
-    "pageDescription": "配置全站共用的导航、页脚与公告条；发布后所有页面同步更新。",
-    "editLocale": "编辑语言",
-    "preview": "预览",
-    "publish": "发布页头页脚",
-    "revert": "撤销未发布更改",
-    "revertConfirmTitle": "撤销页头页脚的未发布更改？",
-    "revertConfirmBody": "页头页脚将还原为线上版本。已保存但未发布的更改会丢失，线上站点不受影响。",
-    "toastSaved": "页头页脚已保存",
-    "toastSaveFailed": "保存失败",
-    "toastPublished": "页头页脚已发布",
-    "toastPublishFailed": "发布失败",
-    "toastReverted": "已还原为线上版本",
-    "toastRevertFailed": "撤销失败"
+    "editLocale": "编辑语言"
   },
   "seo": {
     "home": {
@@ -933,7 +902,6 @@
     "page_published": "发布官网页面「{{title}}」",
     "page_content_published": "发布官网页面内容「{{title}}」",
     "page_unpublished": "取消发布官网页面「{{title}}」",
-    "starter_applied": "应用站点起步模板「{{key}}」（{{page_count}} 页）",
     "site_draft_published": "发布官网页头页脚与主题「{{site_name}}」",
     "site_draft_reverted": "撤销官网页头页脚与主题未发布的更改「{{site_name}}」",
     "doc_category_created": "创建文档分类「{{key}}」",

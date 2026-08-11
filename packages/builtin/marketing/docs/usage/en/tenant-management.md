@@ -34,9 +34,9 @@ You provide:
 - **default language** — the site's primary language, which decides whose URLs go
   without a prefix
 
-A new tenant is active but its **site is empty**; automatic content only happens for the
-default tenant. Either the tenant's administrator applies a starter from the workspace,
-or a platform administrator does it for them.
+A new tenant is active; creation lays down default header / footer and a primary-language
+home page. Admins open the home page row in the workspace to edit. The default tenant's
+product-site copy and docs library are still filled in idempotently on server boot.
 
 ## Quotas
 

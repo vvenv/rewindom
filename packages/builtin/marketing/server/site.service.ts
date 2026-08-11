@@ -35,7 +35,6 @@ import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import {
   canonicalizePageIdentity,
   marketingPagePath,
-  type ApplySiteStarterResponse,
   type CreateMarketingPageBody,
   type DuplicateMarketingPageBody,
   type MarketingPage,
@@ -56,8 +55,6 @@ import {
 import { withSiteLocale } from "../shared/site-locale.js";
 import {
   buildMinimalSiteChrome,
-  buildSiteStarter,
-  findSiteStarter,
 } from "../shared/site-starters.js";
 import {
   applySiteThemeSettings,
@@ -94,10 +91,7 @@ import {
   validateSiteName,
   validateSiteTagline,
 } from "./site.util.js";
-import {
-  createStarterTranslator,
-  starterLocaleForSite,
-} from "./starter-i18n.js";
+import { createStarterTranslator } from "./starter-i18n.js";
 
 /** 公开读路径共用的返回形状。 */
 export interface SitePageView {
@@ -679,160 +673,6 @@ export async function revertSiteDraft(
 }
 
 /**
- * 应用站点起步模板：chrome + 主题色 + 主语言下的若干页面**同一事务**落库。
- */
-export async function applySiteStarter(
-  tenant_id: string,
-  key: string,
-): Promise<ApplySiteStarterResponse> {
-  if (!findSiteStarter(key)) {
-    throw new ValidationError("site.starter_not_found");
-  }
-
-  const siteRow = await ensureSiteRow(tenant_id);
-  const locale = starterLocaleForSite(siteRow.default_locale);
-  const t = createStarterTranslator(locale);
-  const payload = buildSiteStarter(key, t, locale);
-  if (!payload) {
-    throw new ValidationError("site.starter_not_found");
-  }
-
-  const theme_settings = parseSiteThemeSettings(payload.site.theme_settings);
-  const header = parseSiteAreaSections("header", payload.site.header);
-  const footer = parseSiteAreaSections("footer", payload.site.footer);
-  const site_name =
-    payload.site.site_name !== undefined
-      ? validateSiteName(payload.site.site_name, locale)
-      : undefined;
-  const tagline =
-    payload.site.tagline !== undefined
-      ? validateSiteTagline(payload.site.tagline, locale)
-      : undefined;
-
-  const pageWrites = payload.pages.map((item) => {
-    const title = t(item.preset.titleKey).trim();
-    if (!title) {
-      throw new ValidationError("site.page_title_required");
-    }
-    return {
-      kind: item.preset.kind,
-      slug: item.preset.slug,
-      locale,
-      title,
-      description: t(item.preset.descriptionKey).trim(),
-      sections: parsePageSections(item.sections),
-      sort_order: item.sort_order,
-    };
-  });
-
-  const result = await prisma.$transaction(async (tx) => {
-    const site = await tx.marketingSite.update({
-      where: { tenant_id },
-      data: {
-        // `site_name` 是 `string | {__i18n}`，与 updateSite 一样要转成 Json 入参
-        ...(site_name !== undefined && {
-          site_name: site_name as unknown as Prisma.InputJsonValue,
-        }),
-        ...(tagline !== undefined && {
-          tagline: tagline as unknown as Prisma.InputJsonValue,
-        }),
-        // 起步模板是「铺一套现成的」，草稿与线上一起写：套完立刻就是站点的样子，
-        // 不该让人再去发布一次才看得见（与 chrome 同一口径）
-        theme_settings: theme_settings as unknown as Prisma.InputJsonValue,
-        theme_settings_draft: theme_settings as unknown as Prisma.InputJsonValue,
-        theme_key: findSiteStarter(key)?.themeKey ?? null,
-        nav_json: header as unknown as Prisma.InputJsonValue,
-        footer_json: footer as unknown as Prisma.InputJsonValue,
-        nav_draft_json: header as unknown as Prisma.InputJsonValue,
-        footer_draft_json: footer as unknown as Prisma.InputJsonValue,
-      },
-    });
-
-    const pages: MarketingPageRecord[] = [];
-    for (const write of pageWrites) {
-      const existing = await tx.marketingPage.findFirst({
-        where: withTenantScope(tenant_id, {
-          kind: write.kind,
-          slug: write.slug,
-          locale: write.locale,
-        }),
-      });
-
-      const data = {
-        title: write.title,
-        description: write.description,
-        sections: write.sections as unknown as Prisma.InputJsonValue,
-        title_draft: write.title,
-        description_draft: write.description,
-        sections_draft: write.sections as unknown as Prisma.InputJsonValue,
-        sort_order: write.sort_order,
-      };
-
-      if (existing) {
-        pages.push(
-          await tx.marketingPage.update({
-            where: { id: existing.id, tenant_id },
-            data,
-          }),
-        );
-      } else {
-        if (write.kind === "home") {
-          const otherHome = await tx.marketingPage.findFirst({
-            where: withTenantScope(tenant_id, {
-              kind: "home",
-              locale: write.locale,
-            }),
-          });
-          if (otherHome) {
-            throw new ConflictError("site.home_exists");
-          }
-        }
-        try {
-          pages.push(
-            await tx.marketingPage.create({
-              data: {
-                tenant_id,
-                kind: write.kind,
-                slug: write.slug,
-                locale: write.locale,
-                status: "draft",
-                settings: {} as Prisma.InputJsonValue,
-                settings_draft: {} as Prisma.InputJsonValue,
-                ...data,
-              },
-            }),
-          );
-        } catch (err) {
-          if (
-            err &&
-            typeof err === "object" &&
-            "code" in err &&
-            (err as { code?: string }).code === "P2002"
-          ) {
-            throw new ConflictError("site.page_slug_conflict");
-          }
-          throw err;
-        }
-      }
-    }
-
-    return { site, pages };
-  });
-
-  const mappedPages = result.pages.map(toMarketingPage);
-  const homePage = mappedPages.find((page) => page.kind === "home");
-  if (!homePage) {
-    throw new ValidationError("site.starter_invalid");
-  }
-
-  return {
-    site: toMarketingSite(result.site),
-    pages: mappedPages,
-    home_page_id: homePage.id,
-  };
-}
-
-/**
  * 把页面**结构**重设为该 kind 的最新内置版式，尽量保留租户内容（合并语义见
  * `shared/preset-merge.ts`）。
  *
@@ -1028,6 +868,11 @@ export async function deletePage(
   });
   if (!existing) {
     throw new NotFoundError("site.page_not_found");
+  }
+  // 模板页（首页 / 文档版式 / 会员版式等）由系统初始化或「自定义版式」落库，
+  // 删掉就失去对应路由的可编辑版式；只许重设预设，不许删。
+  if (isTemplatePageKind(existing.kind)) {
+    throw new ConflictError("site.template_page_not_deletable");
   }
   await prisma.marketingPage.delete({ where: { id: page_id, tenant_id } });
 }

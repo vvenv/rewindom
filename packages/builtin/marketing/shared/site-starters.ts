@@ -13,9 +13,6 @@ import type { AppLocale } from "@be-water/shared";
 
 export interface SiteStarter {
   key: string;
-  /** i18n key（`marketing` namespace） */
-  label: string;
-  description: string;
   /** 用哪个主题包（`SITE_THEMES` 的 key）。 */
   themeKey: string;
   /** 建哪几页。空数组不合法——一个建不出任何页面的模板没有意义。 */
@@ -37,15 +34,14 @@ export interface SiteStarterPayload {
 }
 
 /**
- * 起步模板 = **主题包 + 页面组合**。
+ * 租户初始化用的默认站内容配方 = **主题包 + 页面组合**。
  *
- * 一个模板就是「这类站点开局长什么样」：默认只铺一张三段式首页。
+ * 产品面不再提供「一键应用起步模板」；建站靠 `initializeTenantSite`，日常回到最新
+ * 靠页面「重设为最新版式」与主题包「重设为最新」。
  */
 export const SITE_STARTERS: SiteStarter[] = [
   {
     key: "default",
-    label: "starter.default.label",
-    description: "starter.default.description",
     themeKey: "default",
     pages: [{ presetKey: "home", sort_order: 0 }],
   },

@@ -32,7 +32,6 @@ import {
   saveSiteRedirect,
 } from "./site-redirect.service.js";
 import {
-  applySiteStarter,
   applySiteTheme,
   createPage,
   deletePage,
@@ -297,37 +296,6 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           buffer: uploaded.buffer,
           mime_type: uploaded.mimetype,
         });
-      } catch (err) {
-        if (err instanceof AppError && err.code) {
-          return sendCodedError(reply, err.status, err.code, err.params);
-        }
-        throw err;
-      }
-    },
-  });
-
-  defineRoute(app, {
-    method: "POST",
-    url: "/starters/:key/apply",
-    context: "SiteStarterApply",
-    errorCode: "SITE_STARTER_APPLY_FAILED",
-    preHandler: [app.requirePermission("site.write")],
-    handler: async (request, reply) => {
-      try {
-        const { key } = request.params as { key: string };
-        const result = await applySiteStarter(
-          request.tenantContext!.tenant_id,
-          key,
-        );
-        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
-          userId: request.authUser!.userId,
-          username: request.authUser!.username,
-          action: AuditAction.SITE_UPDATE,
-          resource: result.site.id,
-          detail_key: "marketing.audit.starter_applied",
-          detail_params: { key, page_count: result.pages.length },
-        });
-        return result;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

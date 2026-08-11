@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
-  applySiteStarter,
   createSitePage,
   deleteSitePage,
   duplicateSitePage,
@@ -125,11 +124,6 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
-  const applyStarter = useMutation({
-    mutationFn: (key: string) => applySiteStarter(key),
-    onSuccess: () => invalidate(),
-  });
-
   /** 一次发布：正文 + 页头页脚。 */
   const publishDraft = useMutation({
     mutationFn: (pageId: string) => publishSiteEditorDraft(pageId),
@@ -180,7 +174,6 @@ export function useSiteMutations() {
     saveSiteDraft: saveSiteDraftMutation,
     publishSiteDraft: publishSiteDraftMutation,
     revertSiteDraft: revertSiteDraftMutation,
-    applyStarter,
     publishDraft,
     revertDraft,
     reorderPages,

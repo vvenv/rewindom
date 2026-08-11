@@ -59,12 +59,12 @@ containers, run `pnpm --filter server exec prisma migrate deploy` once.
 
 ### Why does a new site only have a home page?
 
-The default marketing starter creates just a home page, on purpose. Add pricing, about
-or contact pages from the page presets, or use the product-site starter.
+Initialization creates just a home page on purpose. Add pricing, about or contact pages
+from the page presets when you need them.
 
 ### Where did the "Get started" header button go?
 
-Starters no longer ship a header button — it used to point at member registration, which
+Defaults no longer ship a header button — it used to point at member registration, which
 403s while members are disabled. Add your own call to action in the header settings.
 
 ### Can I use `/docs` as a page path?

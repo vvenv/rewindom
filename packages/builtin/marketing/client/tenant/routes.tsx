@@ -34,12 +34,6 @@ const SiteEditor = lazy(() =>
   })),
 );
 
-const SiteSettings = lazy(() =>
-  import("../pages/site-settings.js").then((module) => ({
-    default: module.SiteSettings,
-  })),
-);
-
 function SiteModuleRoute() {
   const { t } = useTranslation("marketing");
   return (
@@ -63,7 +57,6 @@ export function renderSiteRoutes(): ReactNode {
         <Route path="/app/site/media" element={<SiteMedia />} />
         <Route path="/app/site/docs" element={<SiteDocs />} />
         <Route path="/app/site/editor" element={<SiteEditor />} />
-        <Route path="/app/site/settings" element={<SiteSettings />} />
       </Route>
     </Route>
   );

@@ -1,48 +1,35 @@
 import type { ReactElement, ReactNode } from "react";
 
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@be-water/ui/card";
-
 /**
- * 设置分区的统一外壳：标题 + 说明 + 内容 + 右下角的保存按钮。
+ * 设置分区外壳（站点设置 Sheet 里上下排布的一组）。
  *
- * 四个分区各写一遍 Card 结构的话，保存按钮的位置、标题字号迟早会各长各的——
- * 设置页最忌讳这个：用户在分区之间来回切，动的却是同一件事。
- *
- * `footer` 为空（只读用户）时整条页脚不渲染，卡片不会剩一条空的分隔线。
+ * 不套 Card：Sheet 里再嵌卡片只会多一层边框。标题 + 说明 + 正文，
+ * 各组自己收尾，整张 Sheet 一条滚动。
  */
 export function SettingsSection({
   title,
   description,
   aside,
-  footer,
   children,
 }: {
   title: string;
   description?: string;
-  /** 标题行右侧的附属控件（如译文切换）。 */
+  /** 标题行右侧的附属控件（译文切换、新建重定向…）。 */
   aside?: ReactNode;
-  footer?: ReactNode;
   children: ReactNode;
 }): ReactElement {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description ? <CardDescription>{description}</CardDescription> : null}
-        {aside ? <CardAction>{aside}</CardAction> : null}
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-      {footer ? (
-        <CardFooter className="justify-end">{footer}</CardFooter>
-      ) : null}
-    </Card>
+    <section className="space-y-4">
+      <div className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <h3 className="text-sm font-medium">{title}</h3>
+          {aside ? <div className="shrink-0">{aside}</div> : null}
+        </div>
+        {description ? (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
   );
 }

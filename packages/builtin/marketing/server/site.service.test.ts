@@ -5,7 +5,7 @@ import { registerPageTemplateKind } from "../shared/page-templates.js";
 import { registerSectionDefinition } from "../shared/section-schema.js";
 
 import {
-  applySiteStarter,
+  deletePage,
   duplicatePage,
   publishSiteDraft,
   reorderPages,
@@ -640,53 +640,6 @@ describe("revertEditorDraft", () => {
   });
 });
 
-describe("applySiteStarter", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
-      siteRow as never,
-    );
-    vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
-    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(null as never);
-    vi.mocked(prisma.marketingPage.create).mockImplementation((async ({
-      data,
-    }: {
-      data: Record<string, unknown>;
-    }) => ({
-      id: `page-${data.slug}`,
-      tenant_id: TENANT,
-      status: "draft",
-      settings: {},
-      created_at: new Date("2026-08-01T00:00:00.000Z"),
-      updated_at: new Date("2026-08-03T00:00:00.000Z"),
-      ...data,
-    })) as never);
-    vi.mocked(prisma.$transaction).mockImplementation((async (fn: unknown) => {
-      if (typeof fn === "function") {
-        return fn(prisma);
-      }
-      return fn;
-    }) as never);
-  });
-
-  it("creates chrome and starter pages in one transaction", async () => {
-    const result = await applySiteStarter(TENANT, "default");
-
-    expect(prisma.$transaction).toHaveBeenCalledOnce();
-    expect(prisma.marketingSite.update).toHaveBeenCalled();
-    // 起步模板只建首页；docs / pricing 已降级为按需添加的页面预设
-    expect(prisma.marketingPage.create).toHaveBeenCalledTimes(1);
-    expect(result.pages).toHaveLength(1);
-    expect(result.home_page_id).toBe("page-home");
-  });
-
-  it("rejects unknown starter keys", async () => {
-    await expect(applySiteStarter(TENANT, "unknown")).rejects.toThrow(
-      "site.starter_not_found",
-    );
-  });
-});
-
 describe("reorderPages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -737,5 +690,37 @@ describe("reorderPages", () => {
         ],
       }),
     ).rejects.toThrow("site.page_order_invalid");
+  });
+});
+
+describe("deletePage", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("deletes ordinary pages", async () => {
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
+      sourceRow() as never,
+    );
+    vi.mocked(prisma.marketingPage.delete).mockResolvedValue(
+      sourceRow() as never,
+    );
+
+    await deletePage(TENANT, "page-1");
+
+    expect(prisma.marketingPage.delete).toHaveBeenCalledWith({
+      where: { id: "page-1", tenant_id: TENANT },
+    });
+  });
+
+  it("refuses to delete built-in template pages", async () => {
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
+      sourceRow({ kind: "home", slug: "home", title: "首页" }) as never,
+    );
+
+    await expect(deletePage(TENANT, "page-1")).rejects.toThrow(
+      "site.template_page_not_deletable",
+    );
+    expect(prisma.marketingPage.delete).not.toHaveBeenCalled();
   });
 });

@@ -13,7 +13,7 @@
 | 面           | 路由                                                                  | 目录                                         | 守卫                                           |
 | ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
 | 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
-| 租户中台     | `/app/site`、`/app/site/editor`（编辑器：区块 / 主题，`?page=` / `?scope=`）、`/app/site/settings`（站点设置） | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
+| 租户中台     | `/app/site`、`/app/site/editor`（编辑器：区块 / 主题设置，`?page=` / `?scope=`）；站点设置为官网卡片上的 Sheet | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
 挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / 编辑器）。
 公开站**不**挂 React；交互由 `site-enhance`（无 React IIFE）渐进增强。
@@ -570,7 +570,7 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 
 ### 站点管理页（`/app/site`）
 
-一张卡：卡头是站点（站名 / 发布状态 / 计数 / 起步模板 / 站点设置），卡身是页面列表，
+一张卡：卡头是站点（站名 / 发布状态 / 计数 / 站点设置 / 查看官网），卡身是页面列表，
 底下常驻文档版式两行。页面与它所在的站点是同一个对象，不拆成两张卡。
 
 - **一行 = 一个页面**，同 `(kind, slug)` 的各语言合成一个**翻译组**（`site-page-groups.ts`）。
@@ -590,8 +590,10 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
   语言**落地；建完直接进编辑器——一张空白页留在列表里什么也说明不了
 - 列表里的路径只作展示不做链接（同文档库）：站点跑在租户自己的域名上，管理端拼不出
   可点的绝对地址
-- **页头页脚**不带页面也能编（`/app/site/editor`，入口在站点卡片上）：不必为了改导航而
-  打开某一页；保存 / 发布 / 撤销走 `PUT|POST /api/site/draft*`，与页面正文解耦
+- **进编辑器**：点页面行。页头页脚在区块树里改，主题设置用左栏层切换——卡片上不再挂
+  「编辑某某 / 外观 / 页头页脚」平行入口。
+- **模板页不可删**：`isTemplatePageKind`（首页、文档版式、会员版式等）只许重设预设，
+  服务端 `deletePage` 也拦；普通 `page` 仍可删。
 
 ### 站点编辑器（`/app/site/editor`）
 
@@ -605,10 +607,14 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 三样以前是三个界面——逐页编辑器、页头页脚编辑器、外观页——各自一份三栏壳、各自一份
 预览接线，外观那份预览还是只读的静态首页（改配色等于盲改，站点没首页时干脆是空白）。
 它们改的是同一个站点、看的是同一块预览，差别只是「在调哪一层」，所以合成一个
-（口径同 Shopify 主题编辑器）。官网卡片上的「外观」按钮直接链到 `?scope=theme`。
+（口径同 Shopify 主题编辑器）。从页面行进编辑器；主题设置是钉在左栏底部、
+滚动区之外的常驻入口（`?scope=theme`），不是与树平行的 tab——树再长它也不动，
+切主题时树不消失，段落与主题来回对比不用换语境。
 
 **主题为什么不是树上的一项**：树上选中的都是对象（某一段、某个块、页面自己），
-而主题是整站的一层参数，没有可选中的对象，所以用左栏顶部的层切换（`EditorScopeSwitcher`）。
+而主题是整站的一层参数，没有可选中的对象。所以它是树**下方**一枚独立的固定入口：
+点它 = 选中它，字段进右侧设置栏（交互与选中一段一致）；放在滚动区外是为了树再长
+也不会把它顶出视野。
 
 没打开页面时右上角那枚发布是 `EditorToolbar`（站点级链），打开了则是 `PageEditorToolbar`
 （正文 + 站点级同事务）。页面被删 / 链接过期不整页失败：站点级那两层照样能编。
@@ -705,11 +711,11 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 **页面预设 / 模板页**（`shared/page-presets.ts`，客户端 re-export）描述默认版式结构 + i18n key：
 首页模板（`home`）、文档索引 / 详情两张模板页（`doc_index` / `doc_article`）。文案在创建时用 `t()` 落成当前语言的普通内容，套完随便改。
 
-**站点起步模板**（`shared/site-starters.ts` + `SiteStarterMenu`）在页面列表一键铺好页头 / 页脚 /
-主题色，并在主语言下创建或更新**首页**（复用页面预设）。应用走
-`POST /api/site/starters/:key/apply`，chrome 与页面**同一事务**落库。
+**站点初始化**（`server/site-init.service.ts` + `shared/site-starters.ts` 的 chrome 构建）在
+租户创建时铺好默认页头 / 页脚 / 主题与主语言首页等模板页。产品面**不再**提供「一键应用
+起步模板」；日常回到最新靠页面「重设为最新版式」与主题包「重设为最新」。
 
-起步模板刻意很轻：首页只有 hero / 富文本 / CTA 三段，文案是可替换的占位，
+初始化刻意很轻：首页只有 hero / 富文本 / CTA 三段，文案是可替换的占位，
 页头不预设按钮、页脚不预设链接组，且不再顺带建 docs 与其它自定义页。关于我们、联系、
 定价等页面由租户自己在 CMS 里新建，或用 `prose` / `group` / `form` 自由拼版式。
 
@@ -718,41 +724,39 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 会看到 SaaS 运营方的注册表单。首页 CTA 因此走页内锚点（`#contact` → band 段的 `anchor`），
 `SiteLink` 会把 `#` 开头的 href 原样交给 `<a>`，不再当相对路径去补 locale 前缀。
 
-### 站点设置（`/app/site/settings`）
+### 站点设置（官网卡片 → Sheet）
 
 站点级的东西按**是不是要看着预览调**分两处：
 
 | 在哪                                   | 内容                                                       |
 | -------------------------------------- | ---------------------------------------------------------- |
-| 编辑器主题层（官网卡片 →「外观」）     | 主题包、站点 Logo、分享图、配色、字体、页宽、区块间距       |
-| 站点设置（官网卡片 →「站点设置」）     | 基本信息、语言、重定向、发布（四个分区）                     |
+| 编辑器主题设置层（页面行 → 主题设置） | 主题包、站点 Logo、分享图、配色、字体、页宽、区块间距       |
+| 站点设置 Sheet（官网卡片 →「站点设置」） | 基本信息、语言、重定向、发布（四个分区，控件即存）         |
 
 外观进编辑器而不是留在设置页，是因为它要**看着预览调**。它曾经是设置页的一个页签，
 又曾经是一张带只读预览的独立页——前者太深（官网 → 站点设置 → 外观），后者的预览是
 第四份实现且点不动。
 
-设置页的四个分区：
+设置 Sheet 的四个分区上下排布（窄 Sheet 不用页签）：
 
 | 分区     | 字段                           | 提交                                     |
 | -------- | ------------------------------ | ---------------------------------------- |
-| 基本信息 | 站名 / 标语（逐字段 `__i18n`） | `{ site_name, tagline }`                 |
-| 语言     | 主语言                         | `{ default_locale, site_name, tagline }` |
-| 重定向   | 旧地址 → 新地址                | 各自的 `/site/redirects` 接口            |
+| 基本信息 | 站名 / 标语（逐字段 `__i18n`） | `{ site_name, tagline }`，**失焦即存**   |
+| 语言     | 主语言                         | `{ default_locale, site_name, tagline }`，**确认即存** |
 | 发布     | 站点总开关                     | `{ published }`，**开关即存**            |
+| 重定向   | 旧地址 → 新地址                | 各自的 `/site/redirects` 接口            |
 
-**一份草稿、多个保存按钮**：分区共用 `use-site-settings-form`，每个分区只提交自己那几个
-字段，审计里「改了站名」与「换了主语言」是两条记录。分区脏了就在页签上打一个点——走开
-会丢，得让人在切过去之前就看见。
+**控件即提交**：分区共用 `use-site-settings-form`，每个分区只提交自己那几个字段，审计里
+「改了站名」与「换了主语言」是两条记录。不另配保存按钮——改完关 Sheet 就当已经生效。
 
 「语言」是唯一带别的字段的：换主语言必须连带把文案钉在原语言下（`pinToLocale`），
 拆成两次请求会留下一个「文案语言已失真」的中间态。
 
-设置页**不进侧栏**：那几组设完就不太回来，从官网卡片进去。当前分区放 URL（`?tab=`），
-刷新与深链都成立。
+设置**不进侧栏**：那几组设完就不太回来，从官网卡片开 Sheet。
 
-只读用户（`site.read` 无 `site.write`）两处都能进：字段禁用、保存按钮不渲染。
+只读用户（`site.read` 无 `site.write`）也能开 Sheet：字段禁用、不触发提交。
 
-**重定向**从侧栏挪进了设置页：侧栏「站点」分组每一项都是一类内容集合，而重定向是
+**重定向**从侧栏挪进了设置 Sheet：侧栏「站点」分组每一项都是一类内容集合，而重定向是
 「旧地址怎么处理」的一条路由规则，配完就不再回来。媒体库留在侧栏——图片是内容。
 
 ### 站点主题的归属
@@ -798,7 +802,7 @@ API：
 
 现有租户管理员补权限：`pnpm --filter server exec tsx scripts/sync-builtin-admin-permissions.ts`
 
-## 主题包与起步模板
+## 主题包与站点初始化
 
 **主题包 = 一组 `theme_settings` 预设值**（`shared/site-themes.ts`：default / docs / bold /
 minimal），套用时直接写进站点的 `theme_settings`。
@@ -811,13 +815,12 @@ minimal），套用时直接写进站点的 `theme_settings`。
 包里**只有外观 token**，不含 `logo_url` / `og_image`：那是品牌资产不是风格，换配色不该把
 logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
 
-**起步模板 = 主题包 + 页面组合**（`SITE_STARTERS`：default / product / docs / landing）。
-都用同一批 `PAGE_PRESETS` 与 `SITE_THEMES` 拼，加一种 vertical 不用写新代码，只多一条声明。
-`buildSiteStarter` 对不认识的 key 返回 `null` 而不是回落成默认模板——静默回落会让人以为
-自己选的模板生效了。
+**初始化配方 = 主题包 + 页面组合**（`SITE_STARTERS` / `buildSiteStarterChrome`，当前仅
+`default`）。租户创建时由 `initializeTenantSite` 落库；**没有**产品面「应用起步模板」API。
+`buildSiteStarter` 仍可供测试与内部拼装，对不认识的 key 返回 `null`。
 
 页头 / 页脚各模板暂时共用一套：区别在页面组合与主题，不在 chrome 结构。真需要不同页头的
-那天再给 `SiteStarter` 加字段，不先造一层用不上的抽象。
+那天再给配方加字段，不先造一层用不上的抽象。
 
 用例见 `shared/site-themes.test.ts`。
 
@@ -869,7 +872,7 @@ logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
 
 ## 重定向与 404
 
-管理入口在**站点设置 →「重定向」**（`/app/site/settings?tab=redirects`），不在侧栏。
+管理入口在**站点设置 Sheet →「重定向」**（官网卡片），不在侧栏。
 
 访客访问一个地址时的顺序是**页面 → 重定向 → 404**：
 
@@ -940,7 +943,7 @@ og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算
 
 | 内容 | 位置 | 说明 |
 | --- | --- | --- |
-| 通用起步模板 | `shared/site-starters.ts` + `page-presets.ts` | key=`default`（仅首页占位，给任意租户） |
+| 通用初始化配方 | `shared/site-starters.ts` + `page-presets.ts` | key=`default`（仅首页占位，给任意租户；由 `site-init` 落库） |
 | **默认租户产品站** | `server/default-product-site-content.ts` | be-water 终稿：中英双语首页（hero + 多段 prose + band）；文案来自 `client/locales` 的 `site` / `hero` / `features` / `landing` / `seo` |
 | Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等铺产品站并发布；已是产品站则跳过 |
 | 文档库 | `docs/usage/<locale>/*.md` | 启动时按语言补齐已发布文档 |

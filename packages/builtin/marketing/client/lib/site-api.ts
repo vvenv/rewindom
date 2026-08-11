@@ -9,7 +9,6 @@ import type {
   MarketingSiteCapabilities,
   PublicMarketingPage,
   PublicMarketingSite,
-  ApplySiteStarterResponse,
   ReorderMarketingPagesBody,
   SaveSiteDraftBody,
   SaveSiteDraftResponse,
@@ -105,12 +104,6 @@ export function publishSiteDraft(): Promise<SaveSiteDraftResponse> {
 /** 站点级草稿还原为线上那一版（不影响页面正文）。 */
 export function revertSiteDraft(): Promise<SaveSiteDraftResponse> {
   return api.post<SaveSiteDraftResponse>("/site/draft/revert", {});
-}
-
-export function applySiteStarter(
-  key: string,
-): Promise<ApplySiteStarterResponse> {
-  return api.post<ApplySiteStarterResponse>(`/site/starters/${key}/apply`, {});
 }
 
 export function uploadSiteAsset(file: File): Promise<{ url: string }> {
