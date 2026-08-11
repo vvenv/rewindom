@@ -38,8 +38,11 @@ visual tone:
 
 Header and footer are **site-level** sections shared by every page:
 
-- Header: logo, site name, navigation, sticky behaviour, layout
-- Footer: logo, blurb, copyright, link groups
+- Header: logo, site name, navigation, sticky behaviour
+- Footer: by default only a copyright line; add a blurb or link groups when you need them
+
+Edit them under **Site → Header & footer** (`/app/site/chrome`) without opening a page in
+the Theme Editor. Saving and publishing chrome does not touch page content.
 
 > Starters deliberately ship **no** header button. If you want a "Get started" call to
 > action, add it yourself in the header settings — a prepopulated button pointing at a
@@ -61,10 +64,9 @@ The last three are **rules**, not fixed entries: what they expand into depends o
 content, and the editor tells you what will show. When a rule expands to nothing, it is
 not rendered at all — you never end up with an entrance that leads to an empty list.
 
-The default configuration is "all top-level pages" plus "docs library". So the moment
-you publish your first document, a Docs entry appears in the header; before that, it
-quietly isn't there. The docs index itself doesn't count as a top-level page, so it
-never appears twice.
+The default is **all top-level pages** only — publish a page and it joins the nav
+automatically. Add a docs-library entry, locale switcher, and so on in the header
+settings when you need them; a docs rule only renders once you have published documents.
 
 Each footer column has its own list of links. To match the header, use "copy from
 header" — it copies a snapshot, after which the two are edited independently.

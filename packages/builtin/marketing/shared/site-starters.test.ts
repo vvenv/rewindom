@@ -2,10 +2,28 @@ import { describe, expect, it, vi } from "vitest";
 
 import { HOME_STARTER_PRESET } from "./page-presets.js";
 import {
+  buildMinimalSiteChrome,
   buildSiteStarter,
   buildSiteStarterChrome,
   DEFAULT_SITE_STARTER_PAGES,
 } from "./site-starters.js";
+
+describe("buildMinimalSiteChrome", () => {
+  it("ships default header nav and a copyright-only footer", () => {
+    const chrome = buildMinimalSiteChrome("Acme");
+
+    expect(chrome.header).toHaveLength(1);
+    expect(chrome.header[0]?.type).toBe("header");
+    expect(chrome.header[0]?.settings.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ source: "pages" }),
+      ]),
+    );
+    expect(chrome.footer).toHaveLength(1);
+    expect(chrome.footer[0]?.blocks).toEqual([]);
+    expect(chrome.footer[0]?.settings.copyright).toContain("Acme");
+  });
+});
 
 describe("buildSiteStarterChrome", () => {
   it("builds header and footer; header ships default nav items", () => {

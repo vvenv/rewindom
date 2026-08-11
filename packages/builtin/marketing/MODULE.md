@@ -13,7 +13,7 @@
 | 面           | 路由                                                                  | 目录                                         | 守卫                                           |
 | ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
 | 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
-| 租户中台     | `/app/site`、`/app/site/pages/:pageId`（Theme Editor）                        | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
+| 租户中台     | `/app/site`、`/app/site/chrome`（页头页脚）、`/app/site/pages/:pageId`（Theme Editor） | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
 挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / Theme Editor）。
 公开站**不**挂 React；交互由 `site-enhance`（无 React IIFE）渐进增强。
@@ -566,6 +566,8 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
   语言**落地；建完直接进编辑器——一张空白页留在列表里什么也说明不了
 - 列表里的路径只作展示不做链接（同文档库）：站点跑在租户自己的域名上，管理端拼不出
   可点的绝对地址
+- **页头页脚**有独立入口（`/app/site/chrome`）：不必为了改导航而打开某一页的
+  Theme Editor；保存 / 发布 / 撤销走 `PUT|POST /api/site/chrome/*`，与页面正文解耦
 
 ### Theme Editor
 
@@ -605,8 +607,13 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 设置面板的「内容 / 版式」页签按**该 section 真有没有字段**渲染：只有一组有字段就直接铺开不套页签
 （如分栏段设置全在版式下），两组都没有则只显示一句提示。只剩分组抬头的一组算空组。
 
-保存一次写页面 sections 与页头页脚草稿：`PUT /api/site/pages/:id/draft`（`saveEditorDraft`，同事务）。
-页头页脚上线：`POST /api/site/chrome/publish`（将草稿列复制到 `nav_json` / `footer_json`）。
+**页头页脚编辑器**（`/app/site/chrome`）：只编辑站点级 chrome，左树只有页头 / 页脚两组；
+保存 `PUT /api/site/chrome/draft`，发布 `POST /api/site/chrome/publish`，撤销
+`POST /api/site/chrome/revert`。与页面草稿列无关，但共用同一套 section schema 与预览组件。
+
+Theme Editor 保存一次写页面 sections 与页头页脚草稿：`PUT /api/site/pages/:id/draft`（`saveEditorDraft`，同事务）。
+页头页脚也可单独发布：`POST /api/site/chrome/publish`（将草稿列复制到 `nav_json` / `footer_json`）；
+在 Theme Editor 里点发布则与本页正文同一事务上线。
 已发布页面正文上线：`POST /api/site/pages/:id/content/publish`（将草稿列复制到 `title` / `description` / `sections` / `settings`）。
 首次发布页面：`POST /api/site/pages/:id/publish`（`status` → `published` 并同步正文草稿）。
 
@@ -671,7 +678,7 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 
 API：
 
-- 租户：`/api/site`、`/api/site/capabilities`、`/api/site/pages…`（含 `POST /pages/:id/duplicate`）、`/api/site/preview`（权限 `site.read` / `site.write`）
+- 租户：`/api/site`、`/api/site/capabilities`、`/api/site/chrome/*`、`/api/site/pages…`（含 `POST /pages/:id/duplicate`）、`/api/site/preview`（权限 `site.read` / `site.write`）
 - 公开：`GET /api/public/site`、`GET /api/public/site/page?path=`
 - Entitlement key：`tenant-marketing`
 

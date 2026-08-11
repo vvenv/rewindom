@@ -52,7 +52,7 @@ import {
   type UpdateMarketingSiteBody,
 } from "../shared/site-cms.js";
 import { withSiteLocale } from "../shared/site-locale.js";
-import { buildSiteStarter, findSiteStarter } from "../shared/site-starters.js";
+import { buildMinimalSiteChrome, buildSiteStarter, findSiteStarter } from "../shared/site-starters.js";
 import { findSiteTheme } from "../shared/site-themes.js";
 import { resolveThemeSettings } from "../shared/theme-sections.js";
 
@@ -132,6 +132,10 @@ async function ensureSiteRow(tenant_id: string): Promise<MarketingSite> {
     return toMarketingSite(existing);
   }
 
+  const minimalChrome = buildMinimalSiteChrome("My Site");
+  const header = parseSiteAreaSections("header", minimalChrome.header);
+  const footer = parseSiteAreaSections("footer", minimalChrome.footer);
+
   const created = await prisma.marketingSite.create({
     data: {
       tenant_id,
@@ -139,11 +143,10 @@ async function ensureSiteRow(tenant_id: string): Promise<MarketingSite> {
       tagline: "",
       default_locale: "zh-CN",
       theme_settings: {},
-      // 空 chrome：导航默认项由起步模板 / 编辑器里 `createSection("header")` 写入
-      nav_json: [],
-      footer_json: [],
-      nav_draft_json: [],
-      footer_draft_json: [],
+      nav_json: header as unknown as Prisma.InputJsonValue,
+      footer_json: footer as unknown as Prisma.InputJsonValue,
+      nav_draft_json: header as unknown as Prisma.InputJsonValue,
+      footer_draft_json: footer as unknown as Prisma.InputJsonValue,
       published: false,
     },
   });

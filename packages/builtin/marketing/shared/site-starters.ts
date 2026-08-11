@@ -66,6 +66,37 @@ export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
 ];
 
 /**
+ * 最简页头页脚：definition 默认页头 + 一行版权页脚。
+ *
+ * 建站、起步模板、页头页脚编辑器的空状态都走这一套，避免各处各写一份。
+ */
+export function buildMinimalSiteChrome(
+  siteName: string,
+): Pick<UpdateMarketingSiteBody, "header" | "footer"> {
+  const header = createSection("header");
+  const footer = createSection("footer");
+  const footerDef = getSectionDefinition("footer");
+  if (!footerDef) {
+    throw new Error("Missing footer section definition");
+  }
+  const year = new Date().getFullYear();
+
+  return {
+    header: [header],
+    footer: [
+      {
+        ...footer,
+        settings: parseSettingValues(footerDef.settings, {
+          ...footer.settings,
+          copyright: `© ${year} ${siteName}`,
+        }),
+        blocks: [],
+      },
+    ],
+  };
+}
+
+/**
  * 起步模板的页头 / 页脚 + 主题 token。
  *
  * 页头页脚各模板都一样：区别在页面组合与主题包，不在 chrome 结构——真需要不同页头的
@@ -78,14 +109,7 @@ export function buildSiteStarterChrome(
   t: PresetTranslateFn,
   themeKey = "default",
 ): Pick<UpdateMarketingSiteBody, "header" | "footer" | "theme_settings"> {
-  const header = createSection("header");
-  const footer = createSection("footer");
-  const footerDef = getSectionDefinition("footer");
-  if (!footerDef) {
-    throw new Error("Missing footer section definition");
-  }
-  const year = new Date().getFullYear();
-  const siteName = t("starter.default.site_name");
+  const chrome = buildMinimalSiteChrome(t("starter.default.site_name"));
 
   return {
     // logo 不进主题包（那是品牌资产，不是外观风格），这里显式置空表示「还没传」
@@ -93,18 +117,7 @@ export function buildSiteStarterChrome(
       ...(findSiteTheme(themeKey) ?? findSiteTheme("default"))!.theme_settings,
       logo_url: null,
     } satisfies ThemeSettings,
-    // 页头走 definition 默认：Logo + 站名 + 一级页面导航，无按钮与扩展开关
-    header: [header],
-    footer: [
-      {
-        ...footer,
-        settings: parseSettingValues(footerDef.settings, {
-          ...footer.settings,
-          copyright: `© ${year} ${siteName}`,
-        }),
-        blocks: [],
-      },
-    ],
+    ...chrome,
   };
 }
 
