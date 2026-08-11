@@ -10,7 +10,7 @@ import {
 } from "@be-water/ui/dropdown-menu";
 import { Spinner } from "@be-water/ui/spinner";
 import { cn } from "@be-water/ui/utils";
-import { ArrowLeft, MoreHorizontal, RotateCcw, Undo2 } from "lucide-react";
+import { MoreHorizontal, RotateCcw, Undo2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { EditorPublishState } from "../../lib/editor-publish-state.js";
@@ -27,7 +27,6 @@ interface EditorToolbarProps {
   pending: EditorToolbarPending;
   /** 发布按钮的文案 key：本页正文是「发布」，站点级区域是「发布页头页脚」。 */
   publishLabelKey: string;
-  onBack: () => void;
   onSave: () => void;
   onPublish: () => void;
   onDiscardLocal: () => void;
@@ -66,7 +65,6 @@ export function EditorToolbar({
   canWrite,
   pending,
   publishLabelKey,
-  onBack,
   onSave,
   onPublish,
   onDiscardLocal,
@@ -82,12 +80,6 @@ export function EditorToolbar({
   return (
     // 移动端 `PageLayout` 把 action 放进固定层，所以自己收成右下角悬浮条
     <div className="pointer-events-auto fixed right-4 bottom-4 z-10 flex items-center gap-2 rounded-lg border bg-background p-2 shadow-lg md:static md:border-0 md:bg-transparent md:p-0 md:shadow-none">
-      <div className="hidden items-center md:flex">
-        <Button size="sm" variant="ghost" onClick={onBack}>
-          <ArrowLeft className="size-4" />
-          <span className="hidden lg:inline">{t("editor.back")}</span>
-        </Button>
-      </div>
       {nav}
 
       <EditorStatus state={state} />

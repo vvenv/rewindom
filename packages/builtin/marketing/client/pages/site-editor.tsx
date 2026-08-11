@@ -184,7 +184,10 @@ export function SiteEditor() {
     dirty: editor.dirty,
     // 没打开页面时只有站点级那条链，走 chrome 口径（默认值即「已上线的那一份」）
     ...(page
-      ? { published: page.status === "published", contentDirty: editor.contentDirty }
+      ? {
+          published: page.status === "published",
+          contentDirty: editor.contentDirty,
+        }
       : { scope: "chrome" as const }),
     // 页头页脚 / 主题与正文同属一条发布链：只改了页头也要算「有未发布的更改」，
     // 否则状态点会报「线上已是最新」，而访客看到的还是旧页头
@@ -354,7 +357,6 @@ export function SiteEditor() {
         state={publishState}
         canWrite={canWrite}
         pending={{ saving, publishing, reverting }}
-        onBack={() => void leaveTo("/app/site")}
         onGoToPage={goToPage}
         onDuplicated={(created) =>
           void navigate(siteEditorPath({ pageId: created.id }))
@@ -371,7 +373,6 @@ export function SiteEditor() {
         canWrite={canWrite}
         pending={{ saving, publishing, reverting }}
         publishLabelKey="editor.publishSite"
-        onBack={() => void leaveTo("/app/site")}
         onSave={save}
         onPublish={publish}
         onDiscardLocal={() => void discardLocal()}

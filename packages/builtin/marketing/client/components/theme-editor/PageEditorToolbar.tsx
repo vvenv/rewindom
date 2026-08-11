@@ -34,7 +34,6 @@ interface PageEditorToolbarProps {
   state: EditorPublishState;
   canWrite: boolean;
   pending: EditorToolbarPending;
-  onBack: () => void;
   onGoToPage: (pageId: string) => void;
   onDuplicated: (page: MarketingPage) => void;
   onSave: () => void;
@@ -60,7 +59,6 @@ export function PageEditorToolbar({
   state,
   canWrite,
   pending,
-  onBack,
   onGoToPage,
   onDuplicated,
   onSave,
@@ -79,7 +77,6 @@ export function PageEditorToolbar({
         canWrite={canWrite}
         pending={pending}
         publishLabelKey="cms.publish"
-        onBack={onBack}
         onSave={onSave}
         onPublish={onPublish}
         onDiscardLocal={onDiscardLocal}
