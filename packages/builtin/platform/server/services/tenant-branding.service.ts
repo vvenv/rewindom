@@ -92,15 +92,21 @@ export async function uploadTenantBrandingAsset(input: {
   buffer: Buffer;
   mime_type: string;
 }): Promise<TenantBrandingUrls> {
-  const mime = validateImageUpload(input.buffer, input.mime_type, {
-    allowed_mime_types: allowedMimeTypes(input.kind),
-    max_bytes: maxBytes(input.kind),
-    error_codes: {
-      invalid_mime: "branding.invalid_mime",
-      empty: "branding.file_required",
-      too_large: "branding.file_too_large",
+  // buffer 是消毒后的字节（SVG 会被改写），后面一律用它，别再碰 input.buffer
+  const { mime_type: mime, buffer } = await validateImageUpload(
+    input.buffer,
+    input.mime_type,
+    {
+      allowed_mime_types: allowedMimeTypes(input.kind),
+      max_bytes: maxBytes(input.kind),
+      error_codes: {
+        invalid_mime: "branding.invalid_mime",
+        empty: "branding.file_required",
+        too_large: "branding.file_too_large",
+        unsafe_svg: "branding.unsafe_svg",
+      },
     },
-  });
+  );
 
   const current = await getTenantBranding(input.tenant_id);
   const storage = getFileStorageProvider();
@@ -111,7 +117,7 @@ export async function uploadTenantBrandingAsset(input: {
   );
   const previous = current[input.kind];
 
-  await storage.put(storage_key, input.buffer, {
+  await storage.put(storage_key, buffer, {
     mime_type: mime,
     visibility: "public",
   });

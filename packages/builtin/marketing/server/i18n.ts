@@ -53,6 +53,7 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.asset_required": "请选择要上传的图片",
       "site.asset_invalid_mime": "不支持的图片格式",
       "site.asset_too_large": "图片过大（最大 {{max_bytes}} 字节）",
+      "site.asset_unsafe_svg": "这个 SVG 无法安全处理，请换一张图片",
       "site.asset_not_found": "图片不存在",
       "site.theme_settings_invalid": "主题设置不正确",
       "site.locale_invalid": "语言代码不能为空",
@@ -139,6 +140,8 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.asset_required": "Image file is required",
       "site.asset_invalid_mime": "Unsupported image format",
       "site.asset_too_large": "Image is too large (max {{max_bytes}} bytes)",
+      "site.asset_unsafe_svg":
+        "This SVG could not be processed safely — please use another image",
       "site.asset_not_found": "Image not found",
       "site.theme_settings_invalid": "Invalid theme settings",
       "site.locale_invalid": "Locale is required",

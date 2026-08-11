@@ -74,15 +74,21 @@ export async function uploadSiteAsset(input: {
   buffer: Buffer;
   mime_type: string;
 }): Promise<SiteAsset> {
-  const mime = validateImageUpload(input.buffer, input.mime_type, {
-    allowed_mime_types: ALLOWED_MIME_TYPES,
-    max_bytes: MAX_BYTES,
-    error_codes: {
-      invalid_mime: "site.asset_invalid_mime",
-      empty: "site.asset_required",
-      too_large: "site.asset_too_large",
+  // buffer 是消毒后的字节（SVG 会被改写），后面一律用它，别再碰 input.buffer
+  const { mime_type: mime, buffer } = await validateImageUpload(
+    input.buffer,
+    input.mime_type,
+    {
+      allowed_mime_types: ALLOWED_MIME_TYPES,
+      max_bytes: MAX_BYTES,
+      error_codes: {
+        invalid_mime: "site.asset_invalid_mime",
+        empty: "site.asset_required",
+        too_large: "site.asset_too_large",
+        unsafe_svg: "site.asset_unsafe_svg",
+      },
     },
-  });
+  );
 
   const assetId = randomUUID();
   const ext = mimeTypeToExtension(mime) || ".bin";
@@ -92,7 +98,7 @@ export async function uploadSiteAsset(input: {
     assetId,
     mime,
   );
-  await getFileStorageProvider().put(storageKey, input.buffer, {
+  await getFileStorageProvider().put(storageKey, buffer, {
     mime_type: mime,
     visibility: "public",
   });
@@ -101,14 +107,14 @@ export async function uploadSiteAsset(input: {
    * 先落盘再落库。反过来的话，写库成功但落盘失败会留下一条指向不存在文件的记录——
    * 媒体库里一张永远加载不出来的裂图，比多一个没人引用的孤儿文件难处理得多。
    */
-  const dimensions = readImageDimensions(input.buffer);
+  const dimensions = readImageDimensions(buffer);
   const row = await prisma.marketingAsset.create({
     data: {
       id: assetId,
       tenant_id: input.tenant_id,
       filename,
       mime_type: mime,
-      size_bytes: input.buffer.byteLength,
+      size_bytes: buffer.byteLength,
       width: dimensions?.width ?? 0,
       height: dimensions?.height ?? 0,
     },

@@ -51,7 +51,37 @@ interface FileStorageProvider {
 ## 写路径：`validateImageUpload`
 
 `lib/image-upload.ts` 是「什么算一张可接受的图片」的唯一答案（白名单 + 大小 + 规范化
-MIME），错误码由调用方给（各域 i18n key 不同）。后续要加的内容嗅探、SVG 消毒都落这里。
+MIME + SVG 消毒），错误码由调用方给（各域 i18n key 不同）。
+
+它返回的 `buffer` **才是该落盘的字节**——SVG 会被改写。调用方别再用自己手上那份原始
+buffer，尺寸解析、`size_bytes` 也都要用返回的这份。
+
+## SVG 是可执行文档
+
+SVG 是唯一一种「图片即代码」的上传类型：`<script>`、`on*` 事件、`javascript:` URL 都会在
+**提供它的那个源**上执行。租户站点的源同时挂着 `/app/*` 工作台，所以一张恶意 SVG =
+对工作台的同源 XSS，只要骗到一次直接访问资源 URL 或把它塞进 iframe。媒体库和品牌
+资源（logo / favicon）都收 SVG，两条路都得管。
+
+两道防线：
+
+1. **上传时消毒**（`lib/svg-sanitize.ts`）：DOMPurify + jsdom，SVG profile 白名单，
+   额外禁掉 `foreignObject`（往 SVG 里塞任意 HTML 的常见跳板）。按 `image/svg+xml`
+   进出，保证输出仍是良构 XML——浏览器对这个 MIME 走 XML 解析器，不良构就显示
+   parser error。消毒后不剩根元素的，直接拒收（`*.unsafe_svg`）。
+   
+   **不要改成正则剥标签**：SVG 是 XML，实体编码、CDATA、命名空间、畸形标记的浏览器
+   容错恢复，每一样都能绕过字符串过滤。攻击载荷用例见 `svg-sanitize.test.ts`。
+   
+   jsdom 按需 `await import()`，不进启动路径。
+
+2. **提供时加固**（`sendStorageObject`）：`Content-Security-Policy: default-src 'none';
+   img-src data:; style-src 'unsafe-inline'; sandbox` + `X-Content-Type-Options: nosniff`。
+   管的是存量文件和消毒漏网的。
+
+⚠️ 走直链 302 之后第 2 道就失效了——内容由对象存储/CDN 直接回。接 OSS/S3 时必须在
+bucket / CDN 侧配同等的 CSP 与 nosniff，或者（更好）把用户内容放到**独立域名**上，
+让它天然不同源。
 
 ## 接 OSS / S3 要做什么
 

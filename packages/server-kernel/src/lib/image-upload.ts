@@ -8,20 +8,32 @@ export interface ImageUploadRules {
     invalid_mime: string;
     empty: string;
     too_large: string;
+    /** SVG 消毒后不剩一份可用的图。 */
+    unsafe_svg: string;
   };
 }
 
+export interface ValidatedImageUpload {
+  mime_type: string;
+  /** **要落盘的就是这份字节**：SVG 已消毒，和传进来的不是同一个 buffer。 */
+  buffer: Buffer;
+}
+
+const SVG_MIME_TYPE = "image/svg+xml";
+
 /**
- * 图片上传的统一准入校验，返回规范化（trim + 小写）后的 MIME。
+ * 图片上传的统一准入校验：白名单 + 大小 + 规范化 MIME + SVG 消毒。
  *
  * 收在一处是为了让「什么算一张可接受的图片」只有一个答案：媒体库与品牌资源
- * 各自维护一套白名单时，两边迟早会漂移。后续要加的内容嗅探、SVG 消毒也落在这里。
+ * 各自维护一套规则时，两边迟早会漂移——尤其是 SVG 这种一处漏掉就等于开了个 XSS 口子的。
+ *
+ * 返回值里的 `buffer` 才是该存的字节，别再用调用方原来那份。
  */
-export function validateImageUpload(
+export async function validateImageUpload(
   buffer: Buffer,
   mimeType: string,
   rules: ImageUploadRules,
-): string {
+): Promise<ValidatedImageUpload> {
   const mime = mimeType.trim().toLowerCase();
   if (!rules.allowed_mime_types.includes(mime)) {
     throw new ValidationError(rules.error_codes.invalid_mime);
@@ -34,5 +46,16 @@ export function validateImageUpload(
       max_bytes: rules.max_bytes,
     });
   }
-  return mime;
+
+  if (mime !== SVG_MIME_TYPE) {
+    return { mime_type: mime, buffer };
+  }
+
+  // 按需加载：jsdom 不便宜，多数部署一次 SVG 都不会传，不该进启动路径
+  const { sanitizeSvg } = await import("./svg-sanitize.js");
+  const clean = sanitizeSvg(buffer.toString("utf8"));
+  if (!clean) {
+    throw new ValidationError(rules.error_codes.unsafe_svg);
+  }
+  return { mime_type: mime, buffer: Buffer.from(clean, "utf8") };
 }
