@@ -64,7 +64,7 @@ export const HOME_STARTER_PRESET: PagePreset = {
         heading: "preset.home.features.heading",
         subheading: "preset.home.features.subheading",
       },
-      raw: { columns: 3, show_icons: true },
+      raw: { columns: 3, show_icons: true, padding_top: 48, padding_bottom: 48 },
       blocks: [
         {
           type: "feature",
@@ -104,6 +104,9 @@ export const HOME_STARTER_PRESET: PagePreset = {
         primary_href: "mailto:hello@example.com",
         align: "center",
         background: "muted",
+        spacing_above: 32,
+        padding_top: 48,
+        padding_bottom: 48,
       },
     },
   ],

@@ -65,6 +65,15 @@ const TECH_STACK_ROWS: ReadonlyArray<{
   { layer: "deploy", detail: "Docker Compose" },
 ];
 
+/**
+ * 首页内容区段的上下留白。段与段之间仍走主题 `section_spacing`；
+ * 这里补的是段内呼吸感——schema 默认 padding 为 0，六段叠在一起会挤成一团。
+ */
+const PAGE_SECTION_PADDING = {
+  padding_top: 48,
+  padding_bottom: 48,
+} as const;
+
 export interface ProductSitePageWrite {
   kind: "home" | "page";
   slug: string;
@@ -197,6 +206,8 @@ function buildChrome(): Pick<
     tagline: i18n("site.tagline"),
     theme_settings: {
       ...findSiteTheme("default")!.theme_settings,
+      // 六段营销首页：默认主题的 16px 段间距太紧
+      section_spacing: 32,
       logo_url: null,
     } satisfies ThemeSettings,
     header: [
@@ -309,6 +320,7 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
         subheading: "",
         columns: 3,
         show_icons: true,
+        ...PAGE_SECTION_PADDING,
       },
       features,
     ),
@@ -322,6 +334,7 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
         columns: 3,
         show_number: true,
         anchor: "agent-first",
+        ...PAGE_SECTION_PADDING,
       },
       steps,
     ),
@@ -332,6 +345,7 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
         subheading: t(locale, "landing.builtinModules.description"),
         columns: 4,
         card_style: "bordered",
+        ...PAGE_SECTION_PADDING,
       },
       moduleCards,
     ),
@@ -343,6 +357,7 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
         primary_label: t(locale, "landing.techStack.readDocs"),
         primary_href: "/docs",
         layout: "split",
+        ...PAGE_SECTION_PADDING,
       },
       techRows,
     ),
@@ -354,6 +369,7 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
       align: "center",
       background: "muted",
       anchor: "get-started",
+      spacing_above: 48,
     }),
   ];
 }
