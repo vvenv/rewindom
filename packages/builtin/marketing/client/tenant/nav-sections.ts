@@ -3,6 +3,7 @@ import {
   Globe,
   Image as ImageIcon,
   Inbox,
+  LayoutTemplate,
   Signpost,
 } from "lucide-react";
 
@@ -20,6 +21,15 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
         end: true,
         title: "marketing:cms.nav",
         keywords: "site marketing cms 官网 站点",
+        tenantModule: "tenant-marketing",
+        anyPermission: ["site.read"],
+      },
+      {
+        icon: LayoutTemplate,
+        label: "marketing:chromeEditor.nav",
+        path: "/app/site/chrome",
+        title: "marketing:chromeEditor.title",
+        keywords: "header footer chrome navigation 页头 页脚 导航",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
       },

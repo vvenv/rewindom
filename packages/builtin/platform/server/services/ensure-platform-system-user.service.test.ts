@@ -1,32 +1,21 @@
 import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { upsertMock } = vi.hoisted(() => ({
+const { findUniqueMock, upsertMock } = vi.hoisted(() => ({
+  findUniqueMock: vi.fn(),
   upsertMock: vi.fn(),
 }));
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", async (importOriginal) => {
-  const actual = (await importOriginal()) as Record<string, unknown>;
-  return {
-    prisma: {
-      ...(actual.prisma as Record<string, unknown>),
-      tenant: {
-        ...((actual.prisma as Record<string, unknown>).tenant as Record<
-          string,
-          unknown
-        >),
-        upsert: vi.fn().mockResolvedValue({}),
-      },
-      user: {
-        ...((actual.prisma as Record<string, unknown>).user as Record<
-          string,
-          unknown
-        >),
-        upsert: upsertMock,
-      },
+vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+  prisma: {
+    tenant: {
+      findUnique: findUniqueMock,
     },
-  };
-});
+    user: {
+      upsert: upsertMock,
+    },
+  },
+}));
 
 import {
   ensurePlatformSystemUser,
@@ -36,12 +25,17 @@ import {
 describe("ensurePlatformSystemUser", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    findUniqueMock.mockResolvedValue({ id: DEFAULT_TENANT_ID });
     upsertMock.mockResolvedValue({});
   });
 
-  it("upserts disabled system user for platform admin job FK", async () => {
+  it("upserts disabled system user when default tenant exists", async () => {
     await ensurePlatformSystemUser();
 
+    expect(findUniqueMock).toHaveBeenCalledWith({
+      where: { id: DEFAULT_TENANT_ID },
+      select: { id: true },
+    });
     expect(upsertMock).toHaveBeenCalledWith({
       where: { id: PLATFORM_ADMIN_USER_ID },
       create: {
@@ -54,5 +48,13 @@ describe("ensurePlatformSystemUser", () => {
       },
       update: {},
     });
+  });
+
+  it("skips when default tenant has not been created yet", async () => {
+    findUniqueMock.mockResolvedValue(null);
+
+    await ensurePlatformSystemUser();
+
+    expect(upsertMock).not.toHaveBeenCalled();
   });
 });

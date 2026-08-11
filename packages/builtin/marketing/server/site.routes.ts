@@ -42,8 +42,11 @@ import {
   getPreviewSitePage,
   listPages,
   publishEditorDraft,
+  publishChrome,
   reorderPages,
+  revertChrome,
   revertEditorDraft,
+  saveChromeDraft,
   saveEditorDraft,
   setPageStatus,
   updatePage,
@@ -57,6 +60,7 @@ import type {
   MarketingSite,
   MarketingSiteCapabilities,
   ReorderMarketingPagesBody,
+  SaveChromeDraftBody,
   SaveEditorDraftBody,
   UpdateMarketingPageBody,
   UpdateMarketingSiteBody,
@@ -323,6 +327,91 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           detail_params: { key, page_count: result.pages.length },
         });
         return result;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "PUT",
+    url: "/chrome/draft",
+    context: "SiteChromeDraftSave",
+    errorCode: "SITE_CHROME_DRAFT_SAVE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const body = request.body as SaveChromeDraftBody;
+        const site = await saveChromeDraft(
+          request.tenantContext!.tenant_id,
+          body,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_UPDATE,
+          resource: site.id,
+          detail_key: "marketing.audit.site_updated",
+          detail_params: { site_name: auditSiteName(site) },
+        });
+        return { site };
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/chrome/publish",
+    context: "SiteChromePublish",
+    errorCode: "SITE_CHROME_PUBLISH_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const site = await publishChrome(request.tenantContext!.tenant_id);
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_UPDATE,
+          resource: site.id,
+          detail_key: "marketing.audit.chrome_published",
+          detail_params: { site_name: auditSiteName(site) },
+        });
+        return { site };
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/chrome/revert",
+    context: "SiteChromeRevert",
+    errorCode: "SITE_CHROME_REVERT_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const site = await revertChrome(request.tenantContext!.tenant_id);
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_UPDATE,
+          resource: site.id,
+          detail_key: "marketing.audit.chrome_reverted",
+          detail_params: { site_name: auditSiteName(site) },
+        });
+        return { site };
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

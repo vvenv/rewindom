@@ -1,9 +1,6 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID  } from "@be-water/shared";
 
-
-import { ensureDefaultTenant } from "./ensure-default-tenant.service.js";
-
 import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 
 /** Internal User row backing platform admin background jobs (FK target). */
@@ -16,7 +13,11 @@ export const excludePlatformSystemUserWhere: Pick<Prisma.UserWhereInput, "id"> =
   };
 
 export async function ensurePlatformSystemUser(): Promise<void> {
-  await ensureDefaultTenant();
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: DEFAULT_TENANT_ID },
+    select: { id: true },
+  });
+  if (!tenant) return;
 
   await prisma.user.upsert({
     where: { id: PLATFORM_ADMIN_USER_ID },

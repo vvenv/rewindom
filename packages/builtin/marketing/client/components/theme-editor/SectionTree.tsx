@@ -56,6 +56,8 @@ export type AddTarget =
   | { kind: "area"; area: "header" | "footer" };
 
 interface SectionTreeProps {
+  /** 只编辑页头页脚：隐藏页面元数据与正文区块区。 */
+  chromeOnly?: boolean;
   /** 本站已开通的 entitlement；贡献段据此从「添加区块」菜单里过滤掉。 */
   entitlements?: ReadonlySet<string>;
   /**
@@ -108,6 +110,7 @@ type DragState =
  * 增删与排序集中在树里，右侧设置面板只负责渲染 schema。
  */
 export function SectionTree({
+  chromeOnly = false,
   entitlements,
   pageKind,
   sections,
@@ -475,56 +478,56 @@ export function SectionTree({
     // 滚动落在 aside 上，三个分组一律 `shrink-0`：它们是 column flex item，
     // 默认会被压到比内容还矮，压缩后内容溢出、直接盖住后面的分组
     <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto rounded-lg border p-3">
-      {/*
-        页面自己也占一行：标题 / SEO 描述改起来不用退回页面列表，
-        而且它跟区块一样会即时反映到中间的预览上。
-      */}
-      <div className="flex shrink-0 flex-col gap-0.5">
-        <GroupLabel>{t("editor.group.page")}</GroupLabel>
-        <MetaRow
-          selected={metaSelected}
-          label={t("editor.pageMeta")}
-          onSelect={onSelectMeta}
-        />
-      </div>
+      {!chromeOnly ? (
+        <div className="flex shrink-0 flex-col gap-0.5">
+          <GroupLabel>{t("editor.group.page")}</GroupLabel>
+          <MetaRow
+            selected={metaSelected}
+            label={t("editor.pageMeta")}
+            onSelect={onSelectMeta}
+          />
+        </div>
+      ) : null}
 
       {renderArea("header", header)}
 
-      <div className="flex shrink-0 flex-col gap-0.5">
-        <GroupLabel>
-          {t("editor.group.template")}
-          <Badge variant="outline" className="ml-auto">
-            {sections.length}
-          </Badge>
-        </GroupLabel>
+      {!chromeOnly ? (
+        <div className="flex shrink-0 flex-col gap-0.5">
+          <GroupLabel>
+            {t("editor.group.template")}
+            <Badge variant="outline" className="ml-auto">
+              {sections.length}
+            </Badge>
+          </GroupLabel>
 
-        {sections.map((section, index) =>
-          renderSection(section, {
-            index,
-            total: sections.length,
-            removable: section.type !== requiredSectionType,
-            movable: true,
-            inColumn: false,
-          }),
-        )}
+          {sections.map((section, index) =>
+            renderSection(section, {
+              index,
+              total: sections.length,
+              removable: section.type !== requiredSectionType,
+              movable: true,
+              inColumn: false,
+            }),
+          )}
 
-        {sections.length === 0 ? (
-          <p className="px-1 py-4 text-xs text-muted-foreground">
-            {t("editor.emptySections")}
-          </p>
-        ) : null}
+          {sections.length === 0 ? (
+            <p className="px-1 py-4 text-xs text-muted-foreground">
+              {t("editor.emptySections")}
+            </p>
+          ) : null}
 
-        {canWrite ? (
-          <AddMenu
-            key={`add-section-${sections.length}`}
-            placeholder={t("editor.addSection")}
-            options={pageSectionOptions}
-            onSelect={(type) =>
-              onAddSection(type as SectionType, { kind: "page" })
-            }
-          />
-        ) : null}
-      </div>
+          {canWrite ? (
+            <AddMenu
+              key={`add-section-${sections.length}`}
+              placeholder={t("editor.addSection")}
+              options={pageSectionOptions}
+              onSelect={(type) =>
+                onAddSection(type as SectionType, { kind: "page" })
+              }
+            />
+          ) : null}
+        </div>
+      ) : null}
 
       {renderArea("footer", footer)}
     </aside>

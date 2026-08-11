@@ -11,6 +11,8 @@ import type {
   PublicMarketingSite,
   ApplySiteStarterResponse,
   ReorderMarketingPagesBody,
+  SaveChromeDraftBody,
+  SaveChromeDraftResponse,
   SaveEditorDraftBody,
   SaveEditorDraftResponse,
   UpdateMarketingSiteBody,
@@ -91,6 +93,23 @@ export function saveSiteEditorDraft(
   body: SaveEditorDraftBody,
 ): Promise<SaveEditorDraftResponse> {
   return api.put<SaveEditorDraftResponse>(`/site/pages/${pageId}/draft`, body);
+}
+
+/** 页头页脚编辑器：只保存 chrome 草稿。 */
+export function saveSiteChromeDraft(
+  body: SaveChromeDraftBody,
+): Promise<SaveChromeDraftResponse> {
+  return api.put<SaveChromeDraftResponse>("/site/chrome/draft", body);
+}
+
+/** 发布页头页脚草稿到线上（不影响页面正文）。 */
+export function publishSiteChrome(): Promise<SaveChromeDraftResponse> {
+  return api.post<SaveChromeDraftResponse>("/site/chrome/publish", {});
+}
+
+/** 将页头页脚草稿还原为线上版本（不影响页面正文）。 */
+export function revertSiteChrome(): Promise<SaveChromeDraftResponse> {
+  return api.post<SaveChromeDraftResponse>("/site/chrome/revert", {});
 }
 
 export function applySiteStarter(

@@ -4,7 +4,7 @@
 
 统一租户 CMS 官网（Fastify SSR）：
 
-1. **产品主域**（`FRONTEND_URL` / `APP_DOMAIN` / 本地 `localhost`）：隐式绑定**默认租户**；bootstrap 幂等 apply `default` starter 并发布
+1. **产品主域**（`FRONTEND_URL` / `APP_DOMAIN` / 本地 `localhost`）：隐式绑定**默认租户**（须先建租户行；官网内容用 `seed-local-marketing-site` 铺，不在 server 启动时自动写）
 2. **其它绑定域**（`custom_domain` / `{slug}.{TENANT_BASE_DOMAIN}`）：对应租户的已发布站点
 3. **平台控制台**在独立 Host（`PLATFORM_URL` / 本地 `127.0.0.1`），**不**走本模块 SSR
 

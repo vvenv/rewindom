@@ -322,7 +322,8 @@
     "toastPageDuplicateFailed": "Failed to duplicate page",
     "toastPageDeleted": "Page deleted",
     "toastPageDeleteFailed": "Failed to delete page",
-    "chromeMovedHint": "Header, footer and page sections live in the Theme Editor; logo, accent colour and font live under System → Branding.",
+    "chromeMovedHint": "Edit the header and footer under Header & footer; page sections in the Theme Editor; logo, accent and font under System → Branding.",
+    "chromeEditor": "Header & footer",
     "deleteConfirmTitle": "Delete this page?",
     "deleteConfirmDescription": "“{{title}}” and all of its sections will be permanently deleted. This cannot be undone.",
     "fieldLogoUrlPlaceholder": "Defaults to the brand logo above",
@@ -813,6 +814,26 @@
     "menuExpand": {
       "children": "Collapse into a dropdown",
       "flat": "List inline"
+    }
+  },
+  "chromeEditor": {
+    "nav": "Header & footer",
+    "title": "Header & footer",
+    "pageDescription": "Configure site-wide navigation, footer and announcement bars. Publishing updates every page at once.",
+    "editLocale": "Editing language",
+    "preview": "Preview",
+    "publish": "Publish header & footer",
+    "revert": "Revert unpublished changes",
+    "revertConfirmTitle": "Revert unpublished header & footer changes?",
+    "revertConfirmBody": "The header and footer are reset to the live version. Saved but unpublished changes are lost. The live site is untouched.",
+    "toastSaved": "Header and footer saved",
+    "toastSaveFailed": "Save failed",
+    "toastPublished": "Header and footer published",
+    "toastPublishFailed": "Publish failed",
+    "toastReverted": "Reverted to live version",
+    "toastRevertFailed": "Revert failed",
+    "state": {
+      "stale": "Header & footer have unpublished changes"
     }
   },
   "seo": {

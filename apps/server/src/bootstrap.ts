@@ -3,8 +3,6 @@ import "./server-assembly.js";
 import {
   failOrphanedFileJobsOnStartup,
 } from "@be-water/builtin/background-job/server/job-exports.js";
-import { ensureDefaultMarketingSite } from "@be-water/builtin/marketing/server/ensure-default-marketing-site.js";
-import { ensureDefaultTenant } from "@be-water/builtin/platform/server/services/ensure-default-tenant.service.js";
 import { ensurePlatformSystemUser } from "@be-water/builtin/platform/server/services/ensure-platform-system-user.service.js";
 import { startBackgroundScheduler } from "@be-water/server-kernel/infra/scheduler.service.js";
 import { config } from "@be-water/server-kernel/lib/config.js";
@@ -20,8 +18,6 @@ export async function bootstrap(): Promise<void> {
 
   try {
     await withDbConnectionRetry(async () => {
-      await ensureDefaultTenant();
-      await ensureDefaultMarketingSite();
       await ensurePlatformSystemUser();
       await runModuleBootHooks(app);
     }, app.log);

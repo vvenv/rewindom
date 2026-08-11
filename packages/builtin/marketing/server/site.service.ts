@@ -44,6 +44,7 @@ import {
   type PublicMarketingPage,
   type PublicMarketingSite,
   type ReorderMarketingPagesBody,
+  type SaveChromeDraftBody,
   type SaveEditorDraftBody,
   parsePageVisibility,
   safePageSettings,
@@ -550,6 +551,69 @@ export async function saveEditorDraft(
     }),
   ]);
   return { page: toMarketingPage(page), site: toMarketingSite(site) };
+}
+
+/**
+ * 只保存页头页脚草稿，不动任何页面正文。
+ *
+ * 给独立的页头页脚编辑器用——不必为了改导航而打开某一页的 Theme Editor。
+ */
+export async function saveChromeDraft(
+  tenant_id: string,
+  body: SaveChromeDraftBody,
+): Promise<MarketingSite> {
+  await ensureSiteRow(tenant_id);
+  const header = parseSiteAreaSections("header", body.header);
+  const footer = parseSiteAreaSections("footer", body.footer);
+
+  const site = await prisma.marketingSite.update({
+    where: { tenant_id },
+    data: {
+      nav_draft_json: header as unknown as Prisma.InputJsonValue,
+      footer_draft_json: footer as unknown as Prisma.InputJsonValue,
+    },
+  });
+  return toMarketingSite(site);
+}
+
+/** 将页头页脚草稿发布到线上（不影响任何页面正文）。 */
+export async function publishChrome(tenant_id: string): Promise<MarketingSite> {
+  await ensureSiteRow(tenant_id);
+  const existingSite = await prisma.marketingSite.findFirstOrThrow({
+    where: { tenant_id },
+  });
+
+  const header = siteChromeDraftHeader(existingSite);
+  const footer = siteChromeDraftFooter(existingSite);
+
+  const site = await prisma.marketingSite.update({
+    where: { tenant_id },
+    data: {
+      nav_json: header as unknown as Prisma.InputJsonValue,
+      footer_json: footer as unknown as Prisma.InputJsonValue,
+    },
+  });
+  return toMarketingSite(site);
+}
+
+/** 将页头页脚草稿还原为线上版本（不影响任何页面正文）。 */
+export async function revertChrome(tenant_id: string): Promise<MarketingSite> {
+  await ensureSiteRow(tenant_id);
+  const existingSite = await prisma.marketingSite.findFirstOrThrow({
+    where: { tenant_id },
+  });
+
+  const header = siteChromePublishedHeader(existingSite);
+  const footer = siteChromePublishedFooter(existingSite);
+
+  const site = await prisma.marketingSite.update({
+    where: { tenant_id },
+    data: {
+      nav_draft_json: header as unknown as Prisma.InputJsonValue,
+      footer_draft_json: footer as unknown as Prisma.InputJsonValue,
+    },
+  });
+  return toMarketingSite(site);
 }
 
 /**

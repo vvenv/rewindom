@@ -2,8 +2,9 @@ import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { CardAction, CardHeader, CardTitle } from "@be-water/ui/card";
 import { Skeleton } from "@be-water/ui/skeleton";
-import { ExternalLink, Settings2 } from "lucide-react";
+import { ExternalLink, LayoutTemplate, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
 import { localizeSiteText } from "../../shared/section-schema.js";
 
@@ -103,6 +104,14 @@ export function SiteSummaryHeader({
         </Button>
         {canWrite ? (
           <>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/app/site/chrome">
+                <LayoutTemplate className="size-4" />
+                <span className="hidden sm:inline">
+                  {t("cms.chromeEditor")}
+                </span>
+              </Link>
+            </Button>
             <SiteStarterMenu hasContent={hasStarterContent} />
             <SiteSettingsSheet site={site}>
               <Button variant="outline" size="sm">

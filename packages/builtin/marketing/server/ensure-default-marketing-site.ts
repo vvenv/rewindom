@@ -11,6 +11,8 @@ import { seedDocsFromFiles } from "./marketing-doc.service.js";
 /**
  * 确保默认租户有已发布的 Marketing CMS 站（产品主域前台）。
  *
+ * **不在 server 启动时调用**——由 `seed-local-marketing-site.ts` 等运维脚本按需执行。
+ *
  * 幂等：
  * - 已是产品站（站名含 be-water）→ 只补文档
  * - 仍是通用 starter 占位（「我的站点」）或尚未发布 → 铺产品站终稿并发布

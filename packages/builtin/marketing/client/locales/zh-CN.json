@@ -322,7 +322,8 @@
     "toastPageDuplicateFailed": "复制页面失败",
     "toastPageDeleted": "页面已删除",
     "toastPageDeleteFailed": "删除页面失败",
-    "chromeMovedHint": "页头、页脚与页面区块在 Theme Editor 里编辑；Logo、主色与字体在「系统管理 → 品牌」。",
+    "chromeMovedHint": "页头与页脚可在「页头页脚」里单独编辑；页面区块在 Theme Editor；Logo、主色与字体在「系统管理 → 品牌」。",
+    "chromeEditor": "页头页脚",
     "deleteConfirmTitle": "删除该页面？",
     "deleteConfirmDescription": "「{{title}}」及其全部区块将被永久删除，此操作不可撤销。",
     "fieldLogoUrlPlaceholder": "默认使用上方的品牌 Logo",
@@ -813,6 +814,26 @@
     "menuExpand": {
       "children": "收成下拉子菜单",
       "flat": "就地平铺"
+    }
+  },
+  "chromeEditor": {
+    "nav": "页头页脚",
+    "title": "页头页脚",
+    "pageDescription": "配置全站共用的导航、页脚与公告条；发布后所有页面同步更新。",
+    "editLocale": "编辑语言",
+    "preview": "预览",
+    "publish": "发布页头页脚",
+    "revert": "撤销未发布更改",
+    "revertConfirmTitle": "撤销页头页脚的未发布更改？",
+    "revertConfirmBody": "页头页脚将还原为线上版本。已保存但未发布的更改会丢失，线上站点不受影响。",
+    "toastSaved": "页头页脚已保存",
+    "toastSaveFailed": "保存失败",
+    "toastPublished": "页头页脚已发布",
+    "toastPublishFailed": "发布失败",
+    "toastReverted": "已还原为线上版本",
+    "toastRevertFailed": "撤销失败",
+    "state": {
+      "stale": "页头页脚有未发布更改"
     }
   },
   "seo": {

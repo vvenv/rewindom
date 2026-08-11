@@ -242,6 +242,17 @@ export interface SaveEditorDraftResponse {
   site: MarketingSite;
 }
 
+/** 页头页脚编辑器的保存体：只写站点 chrome 草稿列。 */
+export interface SaveChromeDraftBody {
+  header: unknown;
+  footer: unknown;
+}
+
+/** 页头页脚草稿保存的响应。 */
+export interface SaveChromeDraftResponse {
+  site: MarketingSite;
+}
+
 /**
  * 站点当前具备哪些「需要另外开通」的能力。
  *

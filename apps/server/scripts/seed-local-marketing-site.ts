@@ -14,6 +14,7 @@ import { DEFAULT_TENANT_SLUG } from "@be-water/shared";
 import { applyDefaultProductSite } from "../../../packages/builtin/marketing/server/apply-default-product-site.js";
 import { loadUsageDocs } from "../../../packages/builtin/marketing/server/load-usage-docs.js";
 import { seedDocsFromFiles } from "../../../packages/builtin/marketing/server/marketing-doc.service.js";
+import { ensureDefaultTenant } from "../../../packages/builtin/platform/server/services/ensure-default-tenant.service.js";
 import {
   applySiteStarter,
   setPageStatus,
@@ -22,6 +23,9 @@ import {
 
 async function main(): Promise<void> {
   const slug = process.argv[2]?.trim() || DEFAULT_TENANT_SLUG;
+  if (slug === DEFAULT_TENANT_SLUG) {
+    await ensureDefaultTenant();
+  }
   const tenant = await prisma.tenant.findUnique({ where: { slug } });
   if (!tenant) {
     throw new Error(`Tenant not found: ${slug}`);

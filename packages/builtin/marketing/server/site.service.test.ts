@@ -7,8 +7,11 @@ import { registerSectionDefinition } from "../shared/section-schema.js";
 import {
   applySiteStarter,
   duplicatePage,
+  publishChrome,
   reorderPages,
+  revertChrome,
   revertEditorDraft,
+  saveChromeDraft,
   saveEditorDraft,
 } from "./site.service.js";
 
@@ -330,6 +333,92 @@ describe("saveEditorDraft", () => {
       .calls[0]?.[0] as unknown as { data: Record<string, unknown> };
     expect(data.data.settings_draft).toEqual({ bg_color: "#101010" });
     expect(data.data.settings).toBeUndefined();
+  });
+
+  /*
+   * 独立的页头页脚编辑器：只写 chrome 草稿列，不碰页面表。
+   */
+  describe("saveChromeDraft", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+        siteRow as never,
+      );
+      vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
+    });
+
+    it("updates only chrome draft columns", async () => {
+      const body = {
+        header: [{ type: "header", settings: { sticky: true }, blocks: [] }],
+        footer: [{ type: "footer", settings: {}, blocks: [] }],
+      };
+
+      await saveChromeDraft(TENANT, body);
+
+      expect(prisma.marketingPage.update).not.toHaveBeenCalled();
+      expect(prisma.marketingSite.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            nav_draft_json: expect.anything(),
+            footer_draft_json: expect.anything(),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe("publishChrome", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(prisma.marketingSite.findFirstOrThrow).mockResolvedValue({
+        ...siteRow,
+        nav_draft_json: [{ type: "header", settings: {}, blocks: [] }],
+        footer_draft_json: [{ type: "footer", settings: {}, blocks: [] }],
+      } as never);
+      vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
+    });
+
+    it("copies draft chrome to published columns", async () => {
+      await publishChrome(TENANT);
+
+      expect(prisma.marketingPage.update).not.toHaveBeenCalled();
+      expect(prisma.marketingSite.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            nav_json: expect.anything(),
+            footer_json: expect.anything(),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe("revertChrome", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(prisma.marketingSite.findFirstOrThrow).mockResolvedValue({
+        ...siteRow,
+        nav_json: [{ type: "header", settings: {}, blocks: [] }],
+        footer_json: [{ type: "footer", settings: {}, blocks: [] }],
+        nav_draft_json: [{ type: "header", settings: { sticky: false }, blocks: [] }],
+        footer_draft_json: [],
+      } as never);
+      vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
+    });
+
+    it("copies published chrome back to draft columns", async () => {
+      await revertChrome(TENANT);
+
+      expect(prisma.marketingPage.update).not.toHaveBeenCalled();
+      expect(prisma.marketingSite.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            nav_draft_json: expect.anything(),
+            footer_draft_json: expect.anything(),
+          }),
+        }),
+      );
+    });
   });
 
   /*
