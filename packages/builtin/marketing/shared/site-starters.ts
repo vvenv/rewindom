@@ -116,11 +116,12 @@ export function buildSiteStarterChrome(
         ...footer,
         settings: parseSettingValues(getSectionDefinition("footer").settings, {
           ...footer.settings,
-          show_logo: true,
-          blurb: t("starter.default.footer_blurb"),
+          /*
+           * 页脚默认只留站名 + 版权行：不预填简介、不挂链接列、不假设已有 Logo。
+           * 租户要简介或导航组时在编辑器里自己加。
+           */
           copyright: `© ${year} ${siteName}`,
         }),
-        // 起步只建首页，页脚链接组指不到任何地址；租户加了页面再自己配
         blocks: [],
       },
     ],

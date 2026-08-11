@@ -102,10 +102,11 @@ export function blankNavItem(
 }
 
 /**
- * 建站默认页头导航：一级页面平铺 + 文档库下拉。
+ * 建站默认页头导航：仅「全部一级页面」平铺。
  *
- * 库空时文档那条不渲染（见 `resolveNavItem`）。故意不把 `doc_index` 塞进「全部
- * 一级页面」——模板页不是页面目录成员。
+ * 新站通常只有首页，文档库 / 会员也多半还没开——默认只挂页面目录，要文档入口或
+ * 分类下拉时租户自己在编辑器里加。故意不把 `doc_index` 塞进一级页面——模板页不是
+ * 页面目录成员。
  */
 export function defaultHeaderNavItems(): SiteNavItem[] {
   return [
@@ -116,15 +117,6 @@ export function defaultHeaderNavItems(): SiteNavItem[] {
       href: "",
       category: "",
       expand: "flat",
-      children: [],
-    },
-    {
-      id: createNavItemId(),
-      source: "docs",
-      label: "",
-      href: "",
-      category: "",
-      expand: "children",
       children: [],
     },
   ];

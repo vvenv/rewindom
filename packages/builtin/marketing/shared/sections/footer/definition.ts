@@ -11,7 +11,7 @@ export const footerSection: SectionDefinition = {
       type: "checkbox",
       id: "show_logo",
       label: "editor.setting.show_logo",
-      default: true,
+      default: false,
     },
     {
       type: "textarea",

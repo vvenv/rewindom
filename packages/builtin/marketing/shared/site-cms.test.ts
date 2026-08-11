@@ -181,8 +181,10 @@ describe("chrome 的文档数据需求", () => {
     expect(chromeShowsDocSearch(plain)).toBe(false);
   });
 
-  it("页头默认导航含文档库，要整份目录", () => {
-    expect(chromeNeedsDocList({ header: [header({})], footer: [] })).toBe(true);
+  it("页头默认导航只有一级页面，不要整份目录", () => {
+    expect(chromeNeedsDocList({ header: [header({})], footer: [] })).toBe(
+      false,
+    );
   });
 
   it("导航条目挂了文档动态项要整份目录", () => {

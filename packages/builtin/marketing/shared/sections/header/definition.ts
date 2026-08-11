@@ -52,7 +52,7 @@ export const headerSection: SectionDefinition = {
       type: "checkbox",
       id: "show_doc_search",
       label: "editor.setting.show_doc_search",
-      default: true,
+      default: false,
       info: "editor.info.show_doc_search",
     },
     {
@@ -66,7 +66,7 @@ export const headerSection: SectionDefinition = {
       type: "checkbox",
       id: "show_account",
       label: "editor.setting.show_account",
-      default: true,
+      default: false,
       info: "editor.info.show_account",
     },
     { type: "header", content: "editor.group.buttons" },

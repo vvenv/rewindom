@@ -32,12 +32,16 @@ describe("buildSiteStarterChrome", () => {
    * 起步模板一个内链都不该带死的：`/member/register` 在未开通会员的站点上是 403，
    * 页脚链接组指向的 docs / pricing 现在也根本不会被建出来。
    */
-  it("页头不预设按钮，页脚不预设链接组", () => {
+  it("页头不预设按钮，页脚不预设简介与链接组", () => {
     const chrome = buildSiteStarterChrome((key) => key);
 
     expect(chrome.header?.[0]?.settings.primary_label).toBe("");
     expect(chrome.header?.[0]?.settings.primary_href).toBe("");
     expect(chrome.header?.[0]?.settings.secondary_label).toBe("");
+    expect(chrome.header?.[0]?.settings.show_doc_search).toBe(false);
+    expect(chrome.header?.[0]?.settings.show_account).toBe(false);
+    expect(chrome.footer?.[0]?.settings.blurb).toBe("");
+    expect(chrome.footer?.[0]?.settings.show_logo).toBe(false);
     expect(chrome.footer?.[0]?.blocks).toEqual([]);
   });
 });

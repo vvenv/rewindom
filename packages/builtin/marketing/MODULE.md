@@ -87,8 +87,8 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 （编辑器「从页头复制」）。
 
 条目形状：`{ id, source, label, href, category, expand, children[] }`。
-建站默认页头是「全部一级页面」（flat）+「文档库」（children）：库空时文档那条不渲染，
-有已发布文档后自动出现「文档」入口并链到 `/docs`。不把 `doc_index` 塞进一级页面目录。
+建站默认页头只有「全部一级页面」（flat）：新站通常只有首页，文档库入口要时在编辑器里加。
+不把 `doc_index` 塞进一级页面目录。
 
 | `source`       | 展开成                                       |
 | -------------- | -------------------------------------------- |
@@ -108,7 +108,7 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 ### 文档搜索
 
-**唯一入口是页头**（`header.show_doc_search`，默认开，站里没有已发布文档时不渲染）。
+**唯一入口是页头**（`header.show_doc_search`，默认关，打开且站里有已发布文档时才渲染）。
 它是一个 `<form method="get" action="/docs">`，没有 JS 也跳得过去；落地由
 `enhance/doc-search.ts` 接住：按每条 `<li>` 的 `data-doc-search`（SSR 用
 `docSearchHaystack` 写入）过滤，并在列表上方画一枚「筛选：xxx ✕」的标签。
@@ -126,7 +126,7 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 | ----------------------- | ---- | ------------------------------------------------ |
 | `show_locale_switcher`  | 关   | 本页 `alternates`——没译文时开了也不会露          |
 | `show_theme_toggle`     | 关   | 明暗内置且**永远跟随设备**；关掉只是不给手动按钮 |
-| `show_account`          | 开   | 租户是否开通会员（site-member）                  |
+| `show_account`          | 关   | 租户是否开通会员（site-member）                  |
 
 语言切换器曾经是站点级设置（`theme_settings.show_locale_switcher`），后来搬回页头并回填了
 存量值。搬回来的理由是这四个开关本就该在一处配完，分成两处租户得跑两个地方排同一行按钮。

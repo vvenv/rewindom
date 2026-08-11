@@ -73,19 +73,21 @@ describe("SiteHeader 显示项开关", () => {
    * 四项是同一类决定（这枚入口露不露），所以并排摆在页头里。能力本身另有出处：
    * 语言看有没有译文、明暗永远跟随设备、账户看租户有没有开通会员。
    */
-  it("默认带导航条目，语言与明暗要显式打开", () => {
+  it("默认带导航条目，语言/明暗/账户要显式打开", () => {
     const settings = headerSection().settings;
     expect(Array.isArray(settings.items)).toBe(true);
     expect((settings.items as unknown[]).length).toBeGreaterThan(0);
     expect(settings.show_locale_switcher).toBe(false);
     expect(settings.show_theme_toggle).toBe(false);
-    expect(settings.show_account).toBe(true);
+    expect(settings.show_doc_search).toBe(false);
+    expect(settings.show_account).toBe(false);
 
     renderHeader(headerSection());
     expect(
       screen.getAllByRole("link", { name: "文档" }).length,
     ).toBeGreaterThan(0);
     expect(screen.queryByRole("navigation", { name: "Language" })).toBeNull();
+    expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
   });
 
   it("items 为空时顶栏不列一级页", () => {
@@ -112,15 +114,18 @@ describe("SiteHeader 显示项开关", () => {
 });
 
 describe("SiteHeader 账户入口", () => {
-  it("默认露出会员入口", () => {
-    expect(headerSection().settings.show_account).toBe(true);
+  it("默认不露出会员入口", () => {
+    expect(headerSection().settings.show_account).toBe(false);
     renderHeader(headerSection());
-    expect(screen.getByTestId("member-entry")).toBeInTheDocument();
+    expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
   });
 
-  it("关掉开关后整块不出现", () => {
-    renderHeader(headerSection({ show_account: false }));
-    expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
+  it("打开开关后渲染 slot 提供方", () => {
+    expect(headerSection({ show_account: true }).settings.show_account).toBe(
+      true,
+    );
+    renderHeader(headerSection({ show_account: true }));
+    expect(screen.getByTestId("member-entry")).toBeInTheDocument();
   });
 
   /*
@@ -128,9 +133,17 @@ describe("SiteHeader 账户入口", () => {
    * 这时必须什么都不画——否则静态 HTML 会先亮一枚登录按钮，SPA 接管后又抹掉。
    */
   it("没有提供方时不留占位", () => {
-    const { container } = renderHeader(headerSection(), { withSlot: false });
+    const { container } = renderHeader(
+      headerSection({ show_account: true }),
+      { withSlot: false },
+    );
     expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
     expect(container.querySelector("header")).toBeInTheDocument();
+  });
+
+  it("关掉开关后整块不出现", () => {
+    renderHeader(headerSection({ show_account: false }));
+    expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
   });
 
   // 登录/账户由会员入口负责，次按钮不该再默认成第二个「登录」
@@ -146,6 +159,7 @@ describe("SiteHeader 账户入口", () => {
   it("站长自己配的次按钮照常渲染", () => {
     renderHeader(
       headerSection({
+        show_account: true,
         secondary_label: "联系我们",
         secondary_href: "/contact",
       }),

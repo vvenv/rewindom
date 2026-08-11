@@ -60,22 +60,15 @@ function ctx(partial: Partial<SiteNavContext> = {}): SiteNavContext {
 }
 
 describe("defaultHeaderNavItems", () => {
-  it("默认是一级页面平铺 + 文档库下拉", () => {
+  it("默认只有一级页面平铺", () => {
     expect(
       defaultHeaderNavItems().map((entry) => [entry.source, entry.expand]),
-    ).toEqual([
-      ["pages", "flat"],
-      ["docs", "children"],
-    ]);
+    ).toEqual([["pages", "flat"]]);
   });
 
-  it("有文档时展开出页面与文档父项；库空时文档那条消失", () => {
-    const withDocs = resolveNavItems(defaultHeaderNavItems(), ctx());
-    expect(withDocs.map((entry) => entry.href)).toEqual([
-      "/about",
-      "/pricing",
-      "/docs",
-    ]);
+  it("展开出一级页面；无文档动态项", () => {
+    const resolved = resolveNavItems(defaultHeaderNavItems(), ctx());
+    expect(resolved.map((entry) => entry.href)).toEqual(["/about", "/pricing"]);
     const empty = resolveNavItems(defaultHeaderNavItems(), ctx({ docs: [] }));
     expect(empty.map((entry) => entry.href)).toEqual(["/about", "/pricing"]);
   });
@@ -116,24 +109,28 @@ describe("navItemsNeedDocs / chromeNeedsDocList", () => {
     );
   });
 
-  it("默认页头含 docs，需要文档", () => {
-    expect(navItemsNeedDocs(defaultHeaderNavItems())).toBe(true);
+  it("默认页头只有 pages，不需要文档", () => {
+    expect(navItemsNeedDocs(defaultHeaderNavItems())).toBe(false);
   });
 
   it("chrome 扫 header settings.items", () => {
     const header = createSection("header");
     expect(
       chromeNeedsDocList({ header: [header], footer: [] }),
-    ).toBe(true);
+    ).toBe(false);
+
+    const withDocs = createSection("header");
+    withDocs.settings.items = [item({ source: "docs", expand: "children" })];
+    expect(chromeNeedsDocList({ header: [withDocs], footer: [] })).toBe(true);
 
     const plain = createSection("header");
     plain.settings.items = [item({ source: "pages", expand: "flat" })];
     expect(chromeNeedsDocList({ header: [plain], footer: [] })).toBe(false);
   });
 
-  it("页头搜索默认开", () => {
+  it("页头搜索默认关", () => {
     expect(chromeShowsDocSearch({ header: [createSection("header")] })).toBe(
-      true,
+      false,
     );
   });
 });

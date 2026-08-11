@@ -848,7 +848,7 @@
       "description": "单篇文档的版式（所有 /docs/… 地址共用这一张）。"
     },
     "home": {
-      "label": "首页（默认版式）",
+      "label": "首页",
       "title": "首页",
       "description": "一句话说明这个站点是做什么的。",
       "hero": {
