@@ -70,17 +70,20 @@ export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
  *
  * 页头页脚各模板都一样：区别在页面组合与主题包，不在 chrome 结构——真需要不同页头的
  * 那天，再给 `SiteStarter` 加一个字段，而不是现在先造一层用不上的抽象。
+ *
+ * 默认内容刻意极简：`createSection` 的 definition 默认（Logo + 站名 + 一级页面导航；
+ * 页脚只留一行版权），不预填按钮、简介、链接列或文档入口。
  */
 export function buildSiteStarterChrome(
   t: PresetTranslateFn,
   themeKey = "default",
 ): Pick<UpdateMarketingSiteBody, "header" | "footer" | "theme_settings"> {
-  /*
-   * `createSection("header")` 已带上 definition 默认 `items`（一级页面 + 文档库）。
-   * 这里只覆盖品牌区开关与布局，不再写独立菜单实体。
-   */
   const header = createSection("header");
   const footer = createSection("footer");
+  const footerDef = getSectionDefinition("footer");
+  if (!footerDef) {
+    throw new Error("Missing footer section definition");
+  }
   const year = new Date().getFullYear();
   const siteName = t("starter.default.site_name");
 
@@ -90,36 +93,13 @@ export function buildSiteStarterChrome(
       ...(findSiteTheme(themeKey) ?? findSiteTheme("default"))!.theme_settings,
       logo_url: null,
     } satisfies ThemeSettings,
-    header: [
-      {
-        ...header,
-        settings: parseSettingValues(getSectionDefinition("header").settings, {
-          ...header.settings,
-          show_logo: true,
-          show_site_name: true,
-          sticky: true,
-          layout: "split",
-          /*
-           * 模板**不**配页头按钮。
-           *
-           * 原来这里写死 `/member/register`：会员是按租户开通的能力，默认关着，
-           * 于是新站点的页头第一眼就挂着一枚点进去 403 的「免费开始」。登录 /
-           * 账户入口另有 `show_account` 开关（由会员模块填内容），要 CTA 的租户
-           * 自己在页头设置里加一条即可。
-           */
-        }),
-        blocks: [],
-      },
-    ],
+    // 页头走 definition 默认：Logo + 站名 + 一级页面导航，无按钮与扩展开关
+    header: [header],
     footer: [
       {
         ...footer,
-        settings: parseSettingValues(getSectionDefinition("footer").settings, {
+        settings: parseSettingValues(footerDef.settings, {
           ...footer.settings,
-          /*
-           * 页脚默认只留站名 + 版权行：不预填简介、不挂链接列、不假设已有 Logo。
-           * 租户要简介或导航组时在编辑器里自己加。
-           */
           copyright: `© ${year} ${siteName}`,
         }),
         blocks: [],

@@ -15,7 +15,6 @@ import {
   parseSettingValues,
   type SiteSection,
 } from "../shared/section-schema.js";
-import { createNavItemId, type SiteNavItem } from "../shared/site-nav.js";
 import { findSiteTheme } from "../shared/site-themes.js";
 
 import type {
@@ -133,66 +132,17 @@ function section(
   };
 }
 
-function navLink(label: LocalizedText | string, href: string): SiteNavItem {
-  return {
-    id: createNavItemId(),
-    source: "link",
-    label,
-    href,
-    category: "",
-    expand: "children",
-    children: [],
-  };
-}
-
 function buildChrome(): Pick<
   UpdateMarketingSiteBody,
   "header" | "footer" | "theme_settings" | "site_name" | "tagline"
 > {
   const year = new Date().getFullYear();
-  const headerDef = getSectionDefinition("header");
   const footerDef = getSectionDefinition("footer");
-  if (!headerDef || !footerDef) {
-    throw new Error("Missing header/footer section definitions");
+  if (!footerDef) {
+    throw new Error("Missing footer section definition");
   }
   const header = createSection("header");
   const footer = createSection("footer");
-
-  const headerItems: SiteNavItem[] = [
-    {
-      id: createNavItemId(),
-      source: "pages",
-      label: "",
-      href: "",
-      category: "",
-      expand: "flat",
-      children: [],
-    },
-    {
-      id: createNavItemId(),
-      source: "docs",
-      label: "",
-      href: "",
-      category: "",
-      expand: "children",
-      children: [],
-    },
-  ];
-
-  const productColumn = createBlock("footer", "menu_column", {
-    title: i18nLiteral({ "zh-CN": "产品", en: "Product" }),
-    items: [navLink(i18nLiteral({ "zh-CN": "首页", en: "Home" }), "/")],
-  });
-  const docsColumn = createBlock("footer", "menu_column", {
-    title: i18n("nav.docs"),
-    items: [
-      navLink(i18n("nav.docs"), "/docs"),
-      navLink(
-        i18nLiteral({ "zh-CN": "快速入门", en: "Getting started" }),
-        "/docs/getting-started",
-      ),
-    ],
-  });
 
   return {
     site_name: i18nLiteral({ "zh-CN": "be-water", en: "be-water" }),
@@ -203,39 +153,19 @@ function buildChrome(): Pick<
       section_spacing: 32,
       logo_url: null,
     } satisfies ThemeSettings,
-    header: [
-      {
-        ...header,
-        settings: parseSettingValues(headerDef.settings, {
-          ...header.settings,
-          show_logo: true,
-          show_site_name: true,
-          sticky: true,
-          layout: "split",
-          items: headerItems,
-          show_locale_switcher: true,
-          show_doc_search: true,
-          show_theme_toggle: true,
-          show_account: true,
-          primary_label: i18n("header.getStarted"),
-          primary_href: "/docs/getting-started",
-        }),
-        blocks: [],
-      },
-    ],
+    // 页头走 `createSection("header")` 默认：Logo + 站名 + 一级页面导航，无按钮与扩展开关
+    header: [header],
     footer: [
       {
         ...footer,
         settings: parseSettingValues(footerDef.settings, {
           ...footer.settings,
-          show_logo: true,
-          blurb: i18n("site.description"),
           copyright: i18nLiteral({
             "zh-CN": `© ${year} be-water`,
             en: `© ${year} be-water`,
           }),
         }),
-        blocks: [productColumn, docsColumn],
+        blocks: [],
       },
     ],
   };
