@@ -32,8 +32,7 @@ interface SiteStarterMenuProps {
 }
 
 /**
- * 站点起步模板：一次铺好页头 / 页脚 / 主题色，并在主语言下创建或更新首页、文档与定价页。
- * 与页面预设互补——后者只管单页 sections，不管全站 chrome。
+ * 站点起步模板：一次铺好页头 / 页脚 / 主题色，并在主语言下创建或更新首页。
  */
 export function SiteStarterMenu({
   hasContent,

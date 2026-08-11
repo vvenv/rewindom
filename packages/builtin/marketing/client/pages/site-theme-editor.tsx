@@ -315,14 +315,12 @@ export function SiteThemeEditor() {
           locale={editor.locale}
           state={publishState}
           canWrite={canWrite}
-          hasSections={editor.sections.length > 0}
           pending={{ saving, publishing, reverting }}
           onBack={() => void leaveTo("/app/site")}
           onGoToPage={goToPage}
           onDuplicated={(created) =>
             void navigate(`/app/site/pages/${created.id}`)
           }
-          onApplyPreset={editor.replaceSections}
           onSave={saveAll}
           onPublish={publish}
           onUnpublish={unpublish}

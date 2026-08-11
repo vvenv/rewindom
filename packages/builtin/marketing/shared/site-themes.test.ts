@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { findPagePreset } from "./page-presets.js";
+import { findStarterPagePreset } from "./page-presets.js";
 import { buildSiteStarter, SITE_STARTERS } from "./site-starters.js";
 import { findSiteTheme, SITE_THEMES } from "./site-themes.js";
 
@@ -45,7 +45,7 @@ describe("起步模板", () => {
   it.each(SITE_STARTERS)("$key 引用的页面预设都存在", (starter) => {
     expect(starter.pages.length).toBeGreaterThan(0);
     for (const spec of starter.pages) {
-      expect(findPagePreset(spec.presetKey), spec.presetKey).toBeDefined();
+      expect(findStarterPagePreset(spec.presetKey), spec.presetKey).toBeDefined();
     }
   });
 
@@ -56,18 +56,12 @@ describe("起步模板", () => {
   });
 
   it("模板的主题 token 进到站点设置里", () => {
-    const landing = buildSiteStarter("landing", t, "zh-CN");
-    expect(landing!.site.theme_settings).toMatchObject(
-      findSiteTheme("bold")!.theme_settings,
+    const payload = buildSiteStarter("default", t, "zh-CN");
+    expect(payload!.site.theme_settings).toMatchObject(
+      findSiteTheme("default")!.theme_settings,
     );
     // 新站点还没传 logo
-    expect(landing!.site.theme_settings?.logo_url).toBeNull();
-  });
-
-  it("不同模板给出不同的页面组合", () => {
-    const landing = buildSiteStarter("landing", t, "zh-CN");
-    const product = buildSiteStarter("product", t, "zh-CN");
-    expect(landing!.pages.length).toBeLessThan(product!.pages.length);
+    expect(payload!.site.theme_settings?.logo_url).toBeNull();
   });
 
   it("不认识的 key 返回 null，而不是悄悄回落成默认模板", () => {

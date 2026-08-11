@@ -26,9 +26,6 @@ import { SitePageDuplicateSheet } from "../SitePageDuplicateSheet.js";
 
 import { PageSwitcher } from "./PageSwitcher.js";
 import { PageVersionsSheet } from "./PageVersionsSheet.js";
-import { PresetMenuItems } from "./PresetMenu.js";
-
-import type { SiteSection } from "../../../shared/section-schema.js";
 import type {
   MarketingPage,
   MarketingPageListItem,
@@ -49,12 +46,10 @@ interface EditorToolbarProps {
   locale: AppLocale;
   state: EditorPublishState;
   canWrite: boolean;
-  hasSections: boolean;
   pending: { saving: boolean; publishing: boolean; reverting: boolean };
   onBack: () => void;
   onGoToPage: (pageId: string) => void;
   onDuplicated: (page: MarketingPage) => void;
-  onApplyPreset: (sections: SiteSection[]) => void;
   onSave: () => void;
   onPublish: () => void;
   onUnpublish: () => void;
@@ -70,7 +65,7 @@ interface EditorToolbarProps {
  * 页头页脚一起（服务端同一事务）。曾经把它们拆成两条发布链，工具栏就长出了第三种
  * 状态、第三个主按钮和第三条撤销，而站长的心智始终只有一个「发过去」。
  *
- * 低频动作（复制、预设、撤销、取消发布）收进「更多」；同一时刻只有一枚 primary，
+ * 低频动作（复制、撤销、取消发布）收进「更多」；同一时刻只有一枚 primary，
  * 由 `EditorPublishState` 决定，工具栏因此永远只有一个重点。
  */
 export function EditorToolbar({
@@ -81,12 +76,10 @@ export function EditorToolbar({
   locale,
   state,
   canWrite,
-  hasSections,
   pending,
   onBack,
   onGoToPage,
   onDuplicated,
-  onApplyPreset,
   onSave,
   onPublish,
   onUnpublish,
@@ -170,10 +163,6 @@ export function EditorToolbar({
                 <Copy className="size-4" />
                 {t("cms.duplicate")}
               </DropdownMenuItem>
-              <PresetMenuItems
-                hasContent={hasSections}
-                onApply={onApplyPreset}
-              />
               {/*
                 撤销分两级，与状态点说的是同一条链：内存 →(保存) 草稿 →(发布) 线上。
                 每一项只在真有东西可撤时出现，菜单里通常至多一两条。

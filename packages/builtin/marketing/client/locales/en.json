@@ -344,10 +344,7 @@
     "filterLocaleAll": "All languages",
     "emptyFiltered": "No matching pages",
     "emptyFilteredHint": "Try another keyword, or clear the filters.",
-    "toastPageReorderFailed": "Could not reorder pages — try again",
-    "fieldPreset": "Starting layout",
-    "presetBlank": "Blank page",
-    "presetHint": "Start from a ready-made layout and edit it in the editor; picking one fills in the path and title too."
+    "toastPageReorderFailed": "Could not reorder pages — try again"
   },
   "starter": {
     "menu": "Starter",
@@ -358,14 +355,6 @@
       "site_name": "My site",
       "tagline": "A one-line introduction to your site",
       "footer_blurb": "A short blurb visitors see in the site footer."
-    },
-    "product": {
-      "label": "Product site",
-      "description": "Home, pricing, about and contact — a typical product marketing set"
-    },
-    "landing": {
-      "label": "Landing page",
-      "description": "Home plus contact, with a more spacious theme"
     },
     "confirmTitle": "Replace existing site content?",
     "confirmBody": "This replaces the header, footer and theme colors, and creates or updates the starter's pages in the primary language. This cannot be undone.",
@@ -381,7 +370,7 @@
     "addSection": "Add section",
     "addBlock": "Add block",
     "blockCount": "{{count}} blocks",
-    "emptySections": "No sections yet. Add one below, or use Presets in the toolbar.",
+    "emptySections": "No sections yet. Add one below.",
     "preview": "Preview",
     "selectSection": "Select a section on the left to edit its settings.",
     "unsupportedSection": "This block ({{type}}) comes from a module that is not enabled, so it can't be edited or displayed right now. Its content is kept intact and will come back when the module is re-enabled — or just delete it if you no longer need it.",
@@ -418,11 +407,6 @@
     "uploadImage": "Upload",
     "toastImageUploaded": "Image uploaded",
     "toastImageUploadFailed": "Image upload failed",
-    "applyPreset": "Apply page preset",
-    "presets": "Presets",
-    "presetConfirmTitle": "Replace this page's content?",
-    "presetConfirmBody": "Applying a preset replaces every section on this page. Header, footer and theme are untouched, and nothing is written until you save.",
-    "presetConfirmApply": "Replace and apply",
     "fieldFontFamily": "Font",
     "group": {
       "content": "Content",
@@ -892,68 +876,6 @@
         "body": "Replace this with your call to action, and point the button at your own address.",
         "primary_label": "Email us"
       }
-    },
-    "pricing": {
-      "label": "Pricing page",
-      "title": "Pricing",
-      "description": "Plans, quotas and common questions.",
-      "heading": "Pick a plan",
-      "subheading": "Per-seat pricing, change tiers any time.",
-      "footnote": "Prices are monthly and tax-inclusive; annual billing is discounted. Every plan includes the full platform and security updates.",
-      "badge": "Recommended",
-      "p1_name": "Free",
-      "p1_audience": "Solo / evaluating",
-      "p1_price": "Free",
-      "p1_highlights": "1 seat\nAll core capabilities\nCommunity support",
-      "p2_name": "Pro",
-      "p2_audience": "Growing teams",
-      "p2_price": "$29",
-      "p2_highlights": "10 seats\nCustom roles and permissions\nAudit log export\nPriority email support",
-      "p3_name": "Enterprise",
-      "p3_audience": "Custom deployments",
-      "p3_price": "Talk to us",
-      "p3_highlights": "Unlimited seats\nSelf-hosting and custom modules\nSLA and security review\nDedicated success manager",
-      "per_month": "/ month",
-      "cta_start": "Start free",
-      "cta_contact": "Contact us",
-      "faq_heading": "Common questions",
-      "faq1_q": "Can I change plans at any time?",
-      "faq1_a": "Yes. Upgrades apply immediately; downgrades take effect at the end of the billing period, and your data is untouched either way.",
-      "faq2_q": "How are seats counted?",
-      "faq2_a": "A seat is an active member. Deactivated members free their seat, and adding one past the limit is blocked with an upgrade prompt."
-    },
-    "about": {
-      "label": "About us",
-      "title": "About us",
-      "description": "Who we are and why we build this.",
-      "hero_headline": "About us",
-      "hero_subhead": "One sentence on who you are and whose problem you solve.",
-      "intro_title": "What we do",
-      "intro_body": "Two or three sentences on where the product came from and who it is for. Skip the vague vision statement.",
-      "intro_aside": "### A few facts\n\n- Founded in 20XX\n- Serving XXX customers\n- Team across X cities",
-      "values_heading": "What we believe",
-      "v1_title": "Do it properly",
-      "v1_body": "We would rather ship one fewer feature than ship a half-built one.",
-      "v2_title": "Stay close to customers",
-      "v2_body": "Requirements come from real usage, not from meeting rooms.",
-      "v3_title": "Play the long game",
-      "v3_body": "Stability and compatibility beat chasing whatever is new."
-    },
-    "contact": {
-      "label": "Contact us",
-      "title": "Contact us",
-      "description": "Sales enquiries and support.",
-      "hero_headline": "Contact us",
-      "hero_subhead": "Sales, support or product feedback — reach us directly.",
-      "c1_title": "Email",
-      "c1_body": "hello@example.com — we reply within one business day.",
-      "c2_title": "Phone",
-      "c2_body": "+1 000 000 0000, weekdays 9:00–18:00.",
-      "c3_title": "Address",
-      "c3_body": "Put your office address here.",
-      "faq_heading": "Common questions",
-      "faq1_q": "How quickly will I hear back?",
-      "faq1_a": "Usually within one business day. For anything urgent, please call."
     }
   },
   "audit": {

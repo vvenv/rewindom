@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { PAGE_PRESETS } from "./page-presets.js";
+import { HOME_STARTER_PRESET } from "./page-presets.js";
 import {
   buildSiteStarter,
   buildSiteStarterChrome,
@@ -70,11 +70,11 @@ describe("buildSiteStarter", () => {
 
 /*
  * `/register` 是**工作台的员工注册页**（`apps/client/src/shell/guest-routes.tsx`）。
- * 预设里写上它，租户站点的访客点「免费开始」会掉进 SaaS 运营方的注册表单。
+ * 起步首页预设里写上它，租户站点的访客点「免费开始」会掉进 SaaS 运营方的注册表单。
  */
-describe("页面预设", () => {
-  it("没有任何预设指向工作台的注册页", () => {
-    const hrefs = JSON.stringify(PAGE_PRESETS);
+describe("起步首页版式", () => {
+  it("不指向工作台的注册页", () => {
+    const hrefs = JSON.stringify(HOME_STARTER_PRESET);
     expect(hrefs).not.toContain('"/register"');
   });
 });

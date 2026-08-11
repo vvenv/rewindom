@@ -1,6 +1,6 @@
 import {
   buildPresetSections,
-  findPagePreset,
+  findStarterPagePreset,
   type PagePreset,
   type PresetTranslateFn,
 } from "./page-presets.js";
@@ -44,8 +44,7 @@ export interface SiteStarterPayload {
 /**
  * 起步模板 = **主题包 + 页面组合**。
  *
- * 一个模板就是「这类站点开局长什么样」：文档站要文档索引与详情页，落地页只要一屏首页。
- * 都用同一批 `PAGE_PRESETS` 与 `SITE_THEMES` 拼，加一种 vertical 不用写新代码。
+ * 一个模板就是「这类站点开局长什么样」：默认只铺一张三段式首页。
  */
 export const SITE_STARTERS: SiteStarter[] = [
   {
@@ -55,39 +54,12 @@ export const SITE_STARTERS: SiteStarter[] = [
     themeKey: "default",
     pages: [{ presetKey: "home", sort_order: 0 }],
   },
-  {
-    /** 产品官网：首页 + 定价 + 关于 + 联系，最常见的一套。 */
-    key: "product",
-    label: "starter.product.label",
-    description: "starter.product.description",
-    themeKey: "default",
-    pages: [
-      { presetKey: "home", sort_order: 0 },
-      { presetKey: "pricing", sort_order: 1 },
-      { presetKey: "about", sort_order: 2 },
-      { presetKey: "contact", sort_order: 3 },
-    ],
-  },
-  {
-    /** 单页落地：只有首页 + 联系，段间距拉开的主题。 */
-    key: "landing",
-    label: "starter.landing.label",
-    description: "starter.landing.description",
-    themeKey: "bold",
-    pages: [
-      { presetKey: "home", sort_order: 0 },
-      { presetKey: "contact", sort_order: 1 },
-    ],
-  },
 ];
 
 /**
  * 默认营销站起步模板包含的页面（主语言）：只建首页。
  *
- * 以前还顺带建了 `docs` 与 `pricing`。那是**本仓自己**的官网结构，不是通用租户的：
- * 一个做线下课程的站点拿到手，第一件事是删掉两个空文档页。想要它们的从「页面预设」
- * 里加一页即可（`PAGE_PRESETS` 里 pricing / about / contact 都还在）。
- * `/docs` 现在是租户文档库（`MarketingDoc`）的专属路径，不再由页面预设生成。
+ * `/docs` 是租户文档库（`MarketingDoc`）的专属路径，不由页面预设生成。
  */
 export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
   { presetKey: "home", sort_order: 0 },
@@ -168,7 +140,7 @@ export function buildSiteStarter(
   const pages: SiteStarterPayload["pages"] = [];
 
   for (const spec of pageSpecs ?? starter.pages) {
-    const preset = findPagePreset(spec.presetKey);
+    const preset = findStarterPagePreset(spec.presetKey);
     if (!preset) continue;
     pages.push({
       preset,

@@ -344,10 +344,7 @@
     "filterLocaleAll": "全部语言",
     "emptyFiltered": "没有匹配的页面",
     "emptyFilteredHint": "换个关键词，或清空筛选条件。",
-    "toastPageReorderFailed": "调整顺序失败，请重试",
-    "fieldPreset": "起步版式",
-    "presetBlank": "空白页",
-    "presetHint": "选一套现成版式，建完直接在编辑器里改；选了会顺带填好路径与标题。"
+    "toastPageReorderFailed": "调整顺序失败，请重试"
   },
   "starter": {
     "menu": "起步模板",
@@ -358,14 +355,6 @@
       "site_name": "我的站点",
       "tagline": "一句话介绍你的站点",
       "footer_blurb": "在这里写一句站点简介，访客会在页脚看到。"
-    },
-    "product": {
-      "label": "产品官网",
-      "description": "首页、定价、关于与联系页，适合产品介绍站"
-    },
-    "landing": {
-      "label": "单页落地",
-      "description": "首页加联系页，留白更大的主题"
     },
     "confirmTitle": "覆盖现有站点内容？",
     "confirmBody": "将替换页头、页脚、主题色，并在主语言下创建或更新模板自带的页面。此操作不可撤销。",
@@ -381,7 +370,7 @@
     "addSection": "添加区块",
     "addBlock": "添加子项",
     "blockCount": "{{count}} 个子项",
-    "emptySections": "还没有区块，从下方添加，或用顶部工具栏的「预设」一键铺版式。",
+    "emptySections": "还没有区块，从下方添加。",
     "preview": "预览",
     "selectSection": "在左侧选择区块以编辑设置。",
     "unsupportedSection": "这个区块（{{type}}）由当前未启用的模块提供，暂时无法编辑或显示。内容仍完整保留：模块重新启用后会自动恢复；不再需要就直接删除它。",
@@ -418,11 +407,6 @@
     "uploadImage": "上传",
     "toastImageUploaded": "图片已上传",
     "toastImageUploadFailed": "图片上传失败",
-    "applyPreset": "套用页面预设",
-    "presets": "预设",
-    "presetConfirmTitle": "覆盖当前页面内容？",
-    "presetConfirmBody": "套用预设会替换本页现有的全部区块，页头页脚与主题不受影响。此操作在保存前可以直接离开放弃。",
-    "presetConfirmApply": "覆盖并套用",
     "fieldFontFamily": "字体",
     "group": {
       "content": "内容",
@@ -892,68 +876,6 @@
         "body": "把这段换成你的联系方式或行动号召，按钮链接改成自己的邮箱。",
         "primary_label": "发邮件给我们"
       }
-    },
-    "pricing": {
-      "label": "定价页",
-      "title": "定价",
-      "description": "套餐、配额与常见问题。",
-      "heading": "选择合适的套餐",
-      "subheading": "按席位计费，随时升降级。",
-      "footnote": "价格为含税月付价，年付享折扣。所有套餐都包含完整的基础能力与安全更新。",
-      "badge": "推荐",
-      "p1_name": "免费版",
-      "p1_audience": "个人 / 试用",
-      "p1_price": "免费",
-      "p1_highlights": "1 个成员席位\n全部基础能力\n社区支持",
-      "p2_name": "专业版",
-      "p2_audience": "成长期团队",
-      "p2_price": "¥199",
-      "p2_highlights": "10 个成员席位\n角色与权限自定义\n审计日志导出\n优先邮件支持",
-      "p3_name": "企业版",
-      "p3_audience": "大客户定制",
-      "p3_price": "按需报价",
-      "p3_highlights": "不限席位\n私有化部署与定制\nSLA 与安全评审\n专属客户成功经理",
-      "per_month": "/ 月",
-      "cta_start": "免费开始",
-      "cta_contact": "联系我们",
-      "faq_heading": "常见问题",
-      "faq1_q": "套餐可以随时升降级吗？",
-      "faq1_a": "可以。升级立即生效；降级在当前计费周期结束后生效，期间不影响已有数据。",
-      "faq2_q": "席位是怎么算的？",
-      "faq2_a": "席位即启用状态的成员数。停用成员不占席位，超出上限时新增会被拦下并提示升级。"
-    },
-    "about": {
-      "label": "关于我们",
-      "title": "关于我们",
-      "description": "我们是谁，为什么做这件事。",
-      "hero_headline": "关于我们",
-      "hero_subhead": "一句话讲清楚你们是谁、在为谁解决什么问题。",
-      "intro_title": "我们做什么",
-      "intro_body": "两三句话说清产品从哪来、给谁用。别写空泛的愿景。",
-      "intro_aside": "### 几个事实\n\n- 成立于 20XX 年\n- 服务 XXX 家客户\n- 团队分布在 X 个城市",
-      "values_heading": "我们相信什么",
-      "v1_title": "把事做对",
-      "v1_body": "宁可少做一个功能，也不交付半成品。",
-      "v2_title": "离客户近",
-      "v2_body": "需求来自真实场景，不来自会议室。",
-      "v3_title": "长期主义",
-      "v3_body": "稳定与兼容优先于追逐新概念。"
-    },
-    "contact": {
-      "label": "联系我们",
-      "title": "联系我们",
-      "description": "商务合作与技术支持。",
-      "hero_headline": "联系我们",
-      "hero_subhead": "商务合作、技术支持或产品建议，都可以直接找我们。",
-      "c1_title": "邮件",
-      "c1_body": "hello@example.com，工作日 24 小时内回复。",
-      "c2_title": "电话",
-      "c2_body": "400-000-0000，工作日 9:00–18:00。",
-      "c3_title": "地址",
-      "c3_body": "请填写你的办公地址。",
-      "faq_heading": "常见问题",
-      "faq1_q": "多久能收到回复？",
-      "faq1_a": "工作日通常 24 小时内回复；紧急问题请直接致电。"
     }
   },
   "audit": {
