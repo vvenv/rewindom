@@ -40,10 +40,7 @@ import { useSite, useSiteMutations } from "../hooks/useSite.js";
 
 import { SitePageMetaCoreFields } from "./SitePageMetaCoreFields.js";
 
-import type {
-  MarketingPageKind,
-  MarketingPageSettings,
-} from "../../shared/site-cms.js";
+import type { MarketingPageSettings } from "../../shared/site-cms.js";
 
 interface SitePageCreateSheetProps {
   children: ReactNode;
@@ -61,7 +58,6 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
   const siteQuery = useSite();
   const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
   const [open, setOpen] = useState(false);
-  const [kind, setKind] = useState<MarketingPageKind>("page");
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -75,16 +71,15 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
     setTitle("");
     setDescription("");
     setSettings({});
-    setKind("page");
     setLocale(null);
   };
 
   const onSubmit = (event: FormEvent): void => {
     event.preventDefault();
-    const nextSlug = kind === "home" ? "home" : slug.trim().toLowerCase();
+    const nextSlug = slug.trim().toLowerCase();
     createPage.mutate(
       {
-        kind,
+        kind: "page",
         slug: nextSlug,
         title: title.trim(),
         description: description.trim(),
@@ -123,33 +118,16 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
 
           <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
             <Field>
-              <FieldLabel>{t("cms.fieldKind")}</FieldLabel>
-              <Select
-                value={kind}
-                onValueChange={(value) => setKind(value as MarketingPageKind)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="home">{t("cms.kindHome")}</SelectItem>
-                  <SelectItem value="page">{t("cms.kindPage")}</SelectItem>
-                </SelectContent>
-              </Select>
+              <FieldLabel htmlFor="slug">{t("cms.fieldSlug")}</FieldLabel>
+              <Input
+                id="slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="about/contact"
+                required
+              />
+              <FieldDescription>{t("cms.slugHintPage")}</FieldDescription>
             </Field>
-            {kind !== "home" ? (
-              <Field>
-                <FieldLabel htmlFor="slug">{t("cms.fieldSlug")}</FieldLabel>
-                <Input
-                  id="slug"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder="about/contact"
-                  required
-                />
-                <FieldDescription>{t("cms.slugHintPage")}</FieldDescription>
-              </Field>
-            ) : null}
             <SitePageMetaCoreFields
               idPrefix="create-page"
               title={title}

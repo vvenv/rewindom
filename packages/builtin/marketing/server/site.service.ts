@@ -1,6 +1,7 @@
 import {
   type Prisma,
   type MarketingPage as MarketingPageRecord,
+  type MarketingSite as MarketingSiteRecord,
 } from "@be-water/server-kernel/generated/prisma/client/client.js";
 import {
   ConflictError,
@@ -16,6 +17,10 @@ import {
   getPageTemplateKind,
   isTemplatePageKind,
 } from "../shared/page-templates.js";
+import {
+  buildHomeTemplateSections,
+  HOME_STARTER_PRESET,
+} from "../shared/page-presets.js";
 import {
   getSectionDefinition,
   localizeSections,
@@ -318,21 +323,14 @@ export async function createPage(
   const settings = parsePageSettings(body.settings ?? {});
   const description = body.description?.trim() ?? "";
 
-  if (kind === "home") {
-    const existingHome = await prisma.marketingPage.findFirst({
-      where: withTenantScope(tenant_id, { kind: "home", locale }),
-    });
-    if (existingHome) {
-      throw new ConflictError("site.home_exists");
-    }
-  }
-
   if (isTemplatePageKind(kind)) {
     const existingTemplate = await prisma.marketingPage.findFirst({
       where: withTenantScope(tenant_id, { kind, locale }),
     });
     if (existingTemplate) {
-      throw new ConflictError("site.template_page_exists");
+      throw new ConflictError(
+        kind === "home" ? "site.home_exists" : "site.template_page_exists",
+      );
     }
   }
   assertTemplateRequiredSection(kind, sections);
@@ -407,11 +405,10 @@ async function resolveDuplicateSlug(
   const taken = new Set(rows.map((row) => row.slug));
   if (!taken.has(sourceSlug)) return sourceSlug;
   // 首页 / 模板页的 slug 是固定的，同语言复制不出第二份
-  if (kind === "home") {
-    throw new ConflictError("site.home_exists");
-  }
   if (isTemplatePageKind(kind)) {
-    throw new ConflictError("site.template_page_exists");
+    throw new ConflictError(
+      kind === "home" ? "site.home_exists" : "site.template_page_exists",
+    );
   }
   for (const candidate of copySlugCandidates(sourceSlug)) {
     if (taken.has(candidate)) continue;
@@ -1086,6 +1083,66 @@ export async function getSiteChromeOrFallback(
 }
 
 /**
+ * 首页没有落库时的合成公开页：与文档模板页同一口径——站点已发布就有版式，
+ * 不必先建一张空白页。
+ */
+function buildDefaultHomePageView(input: {
+  siteRecord: MarketingSiteRecord;
+  pages: MarketingPageRecord[];
+  brandingLogoUrl: string | null;
+  locale: AppLocale;
+  default_locale: AppLocale;
+}): SitePageView {
+  const t = createStarterTranslator(input.locale);
+  const sections = buildHomeTemplateSections(t);
+  const homeSiblings = input.pages.filter((page) => page.kind === "home");
+  const seen = new Set<AppLocale>();
+  const alternates: PageLocaleAlternate[] = [];
+  for (const page of homeSiblings) {
+    const locale = normalizeLocale(page.locale, input.default_locale);
+    if (seen.has(locale)) continue;
+    seen.add(locale);
+    alternates.push({
+      locale,
+      path: withSiteLocale("/", locale, input.default_locale),
+    });
+  }
+  if (!seen.has(input.locale)) {
+    alternates.push({
+      locale: input.locale,
+      path: withSiteLocale("/", input.locale, input.default_locale),
+    });
+  }
+  alternates.sort(
+    (a, b) =>
+      (a.locale === input.default_locale ? 0 : 1) -
+      (b.locale === input.default_locale ? 0 : 1),
+  );
+
+  return {
+    site: toPublicMarketingSite(
+      input.siteRecord,
+      input.pages,
+      input.brandingLogoUrl,
+      input.locale,
+    ),
+    page: {
+      slug: "home",
+      locale: input.locale,
+      kind: "home",
+      title: t(HOME_STARTER_PRESET.titleKey),
+      description: t(HOME_STARTER_PRESET.descriptionKey),
+      sections,
+      settings: {},
+      visibility: "public",
+      path: "/",
+      alternates,
+      updated_at: input.siteRecord.updated_at.toISOString(),
+    },
+  };
+}
+
+/**
  * 公开页面：**按语言**选行。
  *
  * 这里以前只按 path 匹配，同一个 slug 存了两种语言时返回哪一行取决于数据库的
@@ -1116,7 +1173,16 @@ export async function getPublishedPublicPage(
       normalizeLocale(page.locale, default_locale) === current &&
       matchesPath(page, normalized),
   );
-  if (!match) return null;
+  if (!match) {
+    if (normalized !== "/") return null;
+    return buildDefaultHomePageView({
+      siteRecord,
+      pages,
+      brandingLogoUrl: await brandingLogoUrl(tenant_id, tenant_slug),
+      locale: current,
+      default_locale,
+    });
+  }
 
   const isMembersOnly = parsePageVisibility(match.visibility) === "members";
 
@@ -1299,23 +1365,52 @@ export async function getPublishedSitemapEntries(
   });
   const default_locale = normalizeLocale(siteRecord.default_locale);
 
-  return (
+  const entries = pages
+    .filter((record) => parsePageVisibility(record.visibility) === "public")
+    // 标了 noindex 还列进 sitemap 是自相矛盾的信号：一边请你来收，一边说别收
+    .filter((record) => safePageSettings(record.settings).noindex !== true)
+    .map((record) => {
+      const view = toPublicMarketingPage(record, {
+        siblings: pages,
+        defaultLocale: default_locale,
+      });
+      return {
+        path: withSiteLocale(view.path, view.locale, default_locale),
+        updated_at: view.updated_at,
+        alternates: view.alternates,
+      };
+    });
+
+  const siteLocales = new Set<AppLocale>([default_locale]);
+  for (const page of pages) {
+    siteLocales.add(normalizeLocale(page.locale, default_locale));
+  }
+  const publishedHomeLocales = new Set(
     pages
+      .filter((record) => record.kind === "home")
       .filter((record) => parsePageVisibility(record.visibility) === "public")
-      // 标了 noindex 还列进 sitemap 是自相矛盾的信号：一边请你来收，一边说别收
       .filter((record) => safePageSettings(record.settings).noindex !== true)
-      .map((record) => {
-        const view = toPublicMarketingPage(record, {
-          siblings: pages,
-          defaultLocale: default_locale,
-        });
-        return {
-          path: withSiteLocale(view.path, view.locale, default_locale),
-          updated_at: view.updated_at,
-          alternates: view.alternates,
-        };
-      })
+      .map((record) => normalizeLocale(record.locale, default_locale)),
   );
+  const localesNeedingFallbackHome = [...siteLocales].filter(
+    (locale) => !publishedHomeLocales.has(locale),
+  );
+  if (localesNeedingFallbackHome.length > 0) {
+    const allHomeLocales = [...new Set([...publishedHomeLocales, ...siteLocales])];
+    const alternates = allHomeLocales.map((locale) => ({
+      locale,
+      path: withSiteLocale("/", locale, default_locale),
+    }));
+    for (const locale of localesNeedingFallbackHome) {
+      entries.unshift({
+        path: withSiteLocale("/", locale, default_locale),
+        updated_at: siteRecord.updated_at.toISOString(),
+        alternates,
+      });
+    }
+  }
+
+  return entries;
 }
 
 /** 草稿预览：站点可不发布；页面可为 draft；chrome 读草稿列。 */

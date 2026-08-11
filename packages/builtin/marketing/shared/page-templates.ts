@@ -122,6 +122,19 @@ export function isDocTemplateKind(kind: string): kind is DocTemplateKind {
   return kind === "doc_index" || kind === "doc_article";
 }
 
+/* -------------------------------------------------------------------------- */
+/* 首页：kind 唯一、slug 固定，默认不落库，SSR 用内置三段式版式兜底            */
+/* -------------------------------------------------------------------------- */
+
+registerPageTemplateKind({
+  kind: "home",
+  slug: "home",
+  path: "/",
+  group: "cms.homeTemplate",
+  label: "preset.home.label",
+  required_section: null,
+});
+
 registerPageTemplateKind({
   kind: "doc_index",
   slug: DOC_TEMPLATE_SLUGS.doc_index,

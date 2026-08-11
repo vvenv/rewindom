@@ -14,8 +14,9 @@ export type SiteLocalizedText = string | LocalizedText;
 /**
  * 页面的种类。
  *
- * **不是闭合联合**：`home` / `page` 是租户自己排的普通页面，其余都是**模板页**
- *（kind 唯一、slug 固定），而模板页可由业务模块贡献——`member_login` 的版式属于
+ * **不是闭合联合**：`page` 是租户自己排的普通页面（slug 自填）；`home` 与各张**模板页**
+ *（kind 唯一、slug 固定）一样默认不落库、SSR 用内置版式兜底，但历史上 `home` 也出现在
+ * 起步模板与页面列表里，所以仍单独保留 kind 名。其余模板页可由业务模块贡献——`member_login` 的版式属于
  * site-member，它的 kind 在 marketing 的编译期无从枚举（同 `SectionType` 的处理）。
  * 想知道一个 kind 是不是模板页、它的固定 slug 与路径是什么，一律查
  * `page-templates.ts` 的注册表。
@@ -29,7 +30,7 @@ export type SiteLocalizedText = string | LocalizedText;
  */
 export type MarketingPageKind = string;
 
-/** 租户自己排的普通页面：只有这两种 kind 的 slug 由租户填。 */
+/** 租户自己排的普通页面：只有 `page` 的 slug 由租户填（`home` 见模板页注册表）。 */
 export type BuiltinPageKind = "home" | "page";
 export type MarketingPageStatus = "draft" | "published";
 /** 页面可见性：`public` 所有人；`members` 需站点会员登录。 */

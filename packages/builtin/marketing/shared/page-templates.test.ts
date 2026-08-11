@@ -16,7 +16,7 @@ describe("模板页注册表", () => {
     expect(isTemplatePageKind("doc_index")).toBe(true);
     expect(isTemplatePageKind("doc_article")).toBe(true);
     expect(isTemplatePageKind("page")).toBe(false);
-    expect(isTemplatePageKind("home")).toBe(false);
+    expect(isTemplatePageKind("home")).toBe(true);
   });
 
   it("kind 决定 slug 与路径——租户改不了地址", () => {

@@ -49,7 +49,7 @@ describe("groupSitePages", () => {
       "zh-CN",
     );
 
-    expect(groups).toHaveLength(2);
+    expect(groups).toHaveLength(1);
     expect(groups[0]).toMatchObject({
       kind: "page",
       slug: "about",
@@ -60,23 +60,11 @@ describe("groupSitePages", () => {
       "zh-CN",
       "en",
     ]);
-    expect(groups[1]).toMatchObject({
-      kind: "home",
-      path: "/",
-      title: "首页",
-    });
   });
 
   it("keeps first-seen group order from the input list", () => {
     const groups = groupSitePages(
       [
-        page({
-          id: "1",
-          slug: "home",
-          locale: "en",
-          kind: "home",
-          title: "Home",
-        }),
         page({
           id: "2",
           slug: "about",
@@ -84,9 +72,16 @@ describe("groupSitePages", () => {
           kind: "page",
           title: "About",
         }),
+        page({
+          id: "1",
+          slug: "pricing",
+          locale: "en",
+          kind: "page",
+          title: "Pricing",
+        }),
       ],
       "en",
     );
-    expect(groups.map((group) => group.path)).toEqual(["/", "/about"]);
+    expect(groups.map((group) => group.path)).toEqual(["/about", "/pricing"]);
   });
 });

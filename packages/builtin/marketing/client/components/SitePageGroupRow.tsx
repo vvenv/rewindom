@@ -62,7 +62,6 @@ interface SitePageGroupRowProps {
  * 这里只兜住 marketing 自己的两种普通页面。
  */
 function kindLabelKey(kind: MarketingPageKind): string {
-  if (kind === "home") return "cms.kindHome";
   return getPageTemplateKind(kind)?.label ?? "cms.kindPage";
 }
 

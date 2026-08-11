@@ -201,8 +201,16 @@ export function buildDocTemplateSections(
  * 把兜底版式登记进模板页注册表，中台的「自定义版式」按钮按 kind 取它建页。
  * 元数据（slug / path）在 `page-templates.ts` 里就登记好了，与预设分开的理由见那边。
  */
+registerPageTemplatePreset("home", HOME_STARTER_PRESET);
 registerPageTemplatePreset("doc_index", DOC_TEMPLATE_PRESETS.doc_index);
 registerPageTemplatePreset("doc_article", DOC_TEMPLATE_PRESETS.doc_article);
+
+/** 首页兜底版式落成真实 sections（同 `buildPresetSections`，只是入口固定为 home）。 */
+export function buildHomeTemplateSections(
+  t: PresetTranslateFn,
+): SiteSection[] {
+  return buildPresetSections(HOME_STARTER_PRESET, t);
+}
 
 function resolveValues(
   t: PresetTranslateFn,
