@@ -295,7 +295,7 @@ describe("内置兜底版式", () => {
     expect(html).toContain(docPath("install"));
   });
 
-  // 三栏（目录 + 正文 + 章节）是文档站的通行版式，也是 3:7:2 这档列宽的用例
+  // 三栏（目录 + 正文 + 章节）是文档站的通行版式，也是 2:8:2 这档列宽的用例
   it("详情页默认三栏：目录 + 正文 + 章节导航", () => {
     const html = buildDocTemplateSections("doc_article", t)
       .map((section) =>

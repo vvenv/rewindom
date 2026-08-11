@@ -140,7 +140,7 @@ export const DOC_TEMPLATE_PRESETS: Record<DocTemplateKind, PagePreset> = {
          */
         type: "group",
         raw: {
-          columns_layout: "3:7:2",
+          columns_layout: "2:8:2",
           column_gap: 40,
           align_items: "stretch",
         },
