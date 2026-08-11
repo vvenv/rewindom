@@ -90,7 +90,7 @@ describe("写路径：占位能原样回存，裸的未知 type 拒收", () => {
 describe("模块回来了：占位自动复活", () => {
   it("兜着的 type 重新被认识时，原样解析回真正的段", () => {
     // 用一个当前合法的 type 模拟「模块回来了、type 重新被认识」：
-    // 占位兜着 source.raw.type = feature-grid，parseSections 认出后复活成真段
+    // 占位兜着 source.raw.type = hero，parseSections 认出后复活成真段
     const wrapped: SiteSection[] = [
       {
         id: "sec-x",
@@ -98,15 +98,15 @@ describe("模块回来了：占位自动复活", () => {
         settings: {},
         blocks: [],
         source: {
-          type: "feature-grid",
-          raw: { id: "sec-x", type: "feature-grid", settings: {}, blocks: [] },
+          type: "hero",
+          raw: { id: "sec-x", type: "hero", settings: {}, blocks: [] },
         },
       },
     ];
 
     const revived = parseSections(wrapped);
 
-    expect(revived[0]?.type).toBe("feature-grid");
+    expect(revived[0]?.type).toBe("hero");
     expect(revived[0]?.id).toBe("sec-x");
     expect(revived[0]?.source).toBeUndefined();
   });

@@ -24,22 +24,16 @@ import {
 } from "../section-schema.js";
 
 import { renderBandHtml } from "./band/html.js";
-import { renderCardsHtml } from "./cards/html.js";
 import { renderDocArticleHtml } from "./doc-article/html.js";
 import { renderDocListHtml } from "./doc-list/html.js";
 import { renderDocNavHtml } from "./doc-nav/html.js";
 import { renderDocTocHtml } from "./doc-toc/html.js";
-import { renderFaqHtml } from "./faq/html.js";
-import { renderFeatureGridHtml } from "./feature-grid/html.js";
 import { renderFormHtml } from "./form/html.js";
 import { renderGroupHtml } from "./group/html.js";
 import { renderHeroHtml } from "./hero/html.js";
 import { renderPageHeaderHtml } from "./page-header/html.js";
 import { renderPageMenuHtml } from "./page-menu/html.js";
-import { renderPricingHtml } from "./pricing/html.js";
 import { renderProseHtml } from "./prose/html.js";
-import { renderSpecListHtml } from "./spec-list/html.js";
-import { renderStepsHtml } from "./steps/html.js";
 
 import type {
   SectionHtmlRenderer,
@@ -83,13 +77,7 @@ export function registerSiteSectionHtml(
  */
 export const SECTION_HTML: Partial<Record<SectionType, SectionHtmlRenderer>> = {
   hero: renderHeroHtml,
-  "feature-grid": renderFeatureGridHtml,
-  steps: renderStepsHtml,
-  "spec-list": renderSpecListHtml,
-  cards: renderCardsHtml,
   "page-menu": renderPageMenuHtml,
-  pricing: renderPricingHtml,
-  faq: renderFaqHtml,
   form: renderFormHtml,
   band: renderBandHtml,
   group: renderGroupHtml,

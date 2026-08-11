@@ -59,10 +59,10 @@ describe("buildSiteStarter", () => {
 
     expect(sections.map((section) => section.type)).toEqual([
       "hero",
-      "feature-grid",
+      "prose",
       "band",
     ]);
-    expect(sections[1]?.blocks).toHaveLength(3);
+    expect(sections[1]?.settings.body_md).toContain("preset.home.prose.body_md");
     expect(sections[0]?.settings.primary_href).toBe("#contact");
     expect(sections[2]?.settings.anchor).toBe("contact");
   });

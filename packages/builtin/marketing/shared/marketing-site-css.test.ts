@@ -41,34 +41,32 @@ describe("marketing-site-css", () => {
 
   it("段样式按 type 分开，各在各的条目里", () => {
     expect(MARKETING_SECTION_CSS.hero).toContain(".hero");
-    expect(MARKETING_SECTION_CSS.faq).toContain(".qa");
-    expect(MARKETING_SECTION_CSS.pricing).toContain(".plan");
+    expect(MARKETING_SECTION_CSS.band).toContain(".band");
     expect(MARKETING_SECTION_CSS.form).toContain(".form-grid");
     // 别的段的类不该混进来
-    expect(MARKETING_SECTION_CSS.hero).not.toContain(".qa");
-    expect(MARKETING_SECTION_CSS.faq).not.toContain(".plan");
+    expect(MARKETING_SECTION_CSS.hero).not.toContain(".form-grid");
+    expect(MARKETING_SECTION_CSS.band).not.toContain(".hero");
   });
 
   it("全量表 = 常驻 + 所有段", () => {
     expect(MARKETING_SITE_CSS).toContain(".btn{");
     expect(MARKETING_SITE_CSS).toContain(".hero");
-    expect(MARKETING_SITE_CSS).toContain(".plan");
+    expect(MARKETING_SITE_CSS).toContain(".band");
     expect(loadMarketingSiteCss()).toBe(MARKETING_SITE_CSS);
   });
 
   it("按需只发用到的段——没上页的段不该出现", () => {
-    const css = loadMarketingSiteCssFor(new Set(["hero", "faq"]));
+    const css = loadMarketingSiteCssFor(new Set(["hero", "band"]));
     expect(css).toContain(".btn{"); // 常驻照发
     expect(css).toContain(".hero");
-    expect(css).toContain(".qa");
-    expect(css).not.toContain(".plan{");
+    expect(css).toContain(".band");
     expect(css).not.toContain(".form-grid");
     expect(css.length).toBeLessThan(MARKETING_SITE_CSS.length);
   });
 
   it("按需的顺序由注册顺序定，与传入顺序无关", () => {
-    const a = loadMarketingSiteCssFor(new Set(["pricing", "hero"]));
-    const b = loadMarketingSiteCssFor(new Set(["hero", "pricing"]));
+    const a = loadMarketingSiteCssFor(new Set(["band", "hero"]));
+    const b = loadMarketingSiteCssFor(new Set(["hero", "band"]));
     // 顺序若随页面上段的排列走，同特异性规则的胜负就会随租户拖拽而变
     expect(a).toBe(b);
   });

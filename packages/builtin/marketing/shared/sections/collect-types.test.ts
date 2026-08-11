@@ -17,8 +17,8 @@ const section = (type: string, blocks: SiteSection["blocks"] = []): SiteSection 
 
 describe("collectSectionTypes", () => {
   it("收顶层段的 type", () => {
-    const types = collectSectionTypes([section("hero"), section("faq")]);
-    expect([...types].sort()).toEqual(["faq", "hero"]);
+    const types = collectSectionTypes([section("hero"), section("prose")]);
+    expect([...types].sort()).toEqual(["hero", "prose"]);
   });
 
   it("同 type 出现多次只算一次", () => {
@@ -31,11 +31,11 @@ describe("collectSectionTypes", () => {
         id: "col-1",
         type: "column",
         settings: {},
-        sections: [section("pricing"), section("form")],
+        sections: [section("band"), section("form")],
       },
     ]);
     const types = collectSectionTypes([group]);
-    expect([...types].sort()).toEqual(["form", "group", "pricing"]);
+    expect([...types].sort()).toEqual(["band", "form", "group"]);
   });
 
   it("累加进同一个集合（页头 / 页脚 / 正文分三次收）", () => {
@@ -46,9 +46,9 @@ describe("collectSectionTypes", () => {
   });
 
   it("非容器 block 没有 sections，不该炸", () => {
-    const withBlocks = section("faq", [
-      { id: "b1", type: "qa", settings: { q: "?" } },
+    const withBlocks = section("form", [
+      { id: "b1", type: "field", settings: { label: "?" } },
     ]);
-    expect([...collectSectionTypes([withBlocks])]).toEqual(["faq"]);
+    expect([...collectSectionTypes([withBlocks])]).toEqual(["form"]);
   });
 });

@@ -18,22 +18,16 @@ import {
 } from "../../../shared/section-schema.js";
 
 import { BandSection } from "./views/band.js";
-import { CardsSection } from "./views/cards.js";
 import { DocArticleSection } from "./views/doc-article.js";
 import { DocListSection } from "./views/doc-list.js";
 import { DocNavSection } from "./views/doc-nav.js";
 import { DocTocSection } from "./views/doc-toc.js";
-import { FaqSection } from "./views/faq.js";
-import { FeatureGridSection } from "./views/feature-grid.js";
 import { FormSection } from "./views/form.js";
 import { GroupSection } from "./views/group.js";
 import { HeroSection } from "./views/hero.js";
 import { PageHeaderSection } from "./views/page-header.js";
 import { PageMenuSection } from "./views/page-menu.js";
-import { PricingSection } from "./views/pricing.js";
 import { ProseSection } from "./views/prose.js";
-import { SpecListSection } from "./views/spec-list.js";
-import { StepsSection } from "./views/steps.js";
 
 import type { SectionViewProps } from "./section-parts.js";
 
@@ -41,13 +35,7 @@ export const SECTION_VIEWS: Partial<
   Record<SectionType, ComponentType<SectionViewProps>>
 > = {
   hero: HeroSection,
-  "feature-grid": FeatureGridSection,
-  steps: StepsSection,
-  "spec-list": SpecListSection,
-  cards: CardsSection,
   "page-menu": PageMenuSection,
-  pricing: PricingSection,
-  faq: FaqSection,
   form: FormSection,
   band: BandSection,
   group: GroupSection,

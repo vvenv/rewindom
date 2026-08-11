@@ -59,38 +59,11 @@ export const HOME_STARTER_PRESET: PagePreset = {
       },
     },
     {
-      type: "feature-grid",
+      type: "prose",
       text: {
-        heading: "preset.home.features.heading",
-        subheading: "preset.home.features.subheading",
+        body_md: "preset.home.prose.body_md",
       },
-      raw: { columns: 3, show_icons: true, padding_top: 48, padding_bottom: 48 },
-      blocks: [
-        {
-          type: "feature",
-          text: {
-            title: "preset.home.features.f1_title",
-            body: "preset.home.features.f1_body",
-          },
-          raw: { icon: "Sparkles" },
-        },
-        {
-          type: "feature",
-          text: {
-            title: "preset.home.features.f2_title",
-            body: "preset.home.features.f2_body",
-          },
-          raw: { icon: "Layers" },
-        },
-        {
-          type: "feature",
-          text: {
-            title: "preset.home.features.f3_title",
-            body: "preset.home.features.f3_body",
-          },
-          raw: { icon: "Users" },
-        },
-      ],
+      raw: { padding_top: 48, padding_bottom: 48 },
     },
     {
       type: "band",

@@ -36,15 +36,6 @@ const MESSAGES: Record<AppLocale, LocaleMessages> = {
 /** 产品站对外公开的语言（与 usage docs / 落地页文案对齐）。 */
 export const PRODUCT_SITE_LOCALES: readonly AppLocale[] = ["zh-CN", "en"];
 
-const FEATURE_ICONS = [
-  "Bot",
-  "Layers",
-  "Blocks",
-  "Plug",
-  "Shield",
-  "Server",
-] as const;
-
 const FEATURE_KEYS = [
   "bot",
   "layers",
@@ -53,6 +44,8 @@ const FEATURE_KEYS = [
   "shield",
   "server",
 ] as const;
+
+const AGENT_FIRST_STEP_KEYS = ["spec", "gen", "check"] as const;
 
 const TECH_STACK_ROWS: ReadonlyArray<{
   layer: keyof LocaleMessages["techStack"]["layerLabels"];
@@ -248,6 +241,68 @@ function buildChrome(): Pick<
   };
 }
 
+function buildFeaturesMarkdown(locale: AppLocale): string {
+  const lines: string[] = [];
+  for (const key of FEATURE_KEYS) {
+    lines.push(
+      `### ${t(locale, `features.${key}.title`)}`,
+      "",
+      t(locale, `features.${key}.description`),
+      "",
+    );
+  }
+  return lines.join("\n").trim();
+}
+
+function buildAgentFirstMarkdown(locale: AppLocale): string {
+  const lines = [
+    `## ${t(locale, "landing.agentFirst.title")}`,
+    "",
+    t(locale, "landing.agentFirst.description"),
+    "",
+  ];
+  AGENT_FIRST_STEP_KEYS.forEach((key, index) => {
+    lines.push(
+      `${index + 1}. **${t(locale, `landing.agentFirst.steps.${key}.title`)}** — ${t(locale, `landing.agentFirst.steps.${key}.description`)}`,
+    );
+  });
+  lines.push("", `[${t(locale, "landing.agentFirst.readMore")}](/docs/modular-architecture)`);
+  return lines.join("\n").trim();
+}
+
+function buildModulesMarkdown(locale: AppLocale): string {
+  const lines = [
+    `## ${t(locale, "landing.builtinModules.title")}`,
+    "",
+    t(locale, "landing.builtinModules.description"),
+    "",
+  ];
+  for (const key of Object.keys(MESSAGES[locale].builtinModules) as Array<
+    keyof LocaleMessages["builtinModules"]
+  >) {
+    lines.push(`- ${t(locale, `builtinModules.${key}`)}`);
+  }
+  return lines.join("\n").trim();
+}
+
+function buildTechStackMarkdown(locale: AppLocale): string {
+  const lines = [
+    `## ${t(locale, "landing.techStack.title")}`,
+    "",
+    t(locale, "landing.techStack.description"),
+    "",
+    "| | |",
+    "| --- | --- |",
+  ];
+  for (const row of TECH_STACK_ROWS) {
+    lines.push(
+      `| ${t(locale, `techStack.layerLabels.${row.layer}`)} | ${row.detail} |`,
+    );
+  }
+  lines.push("", `[${t(locale, "landing.techStack.readDocs")}](/docs)`);
+  return lines.join("\n").trim();
+}
+
 function buildHomeSections(locale: AppLocale): SiteSection[] {
   const infraCount = String(
     Object.keys(MESSAGES[locale].builtinModules).length,
@@ -262,40 +317,6 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
       detail: interpolate(detailTemplate, { count: infraCount }),
     });
   });
-
-  const features = FEATURE_KEYS.map((key, index) =>
-    createBlock("feature-grid", "feature", {
-      title: t(locale, `features.${key}.title`),
-      body: t(locale, `features.${key}.description`),
-      icon: FEATURE_ICONS[index]!,
-    }),
-  );
-
-  const steps = (["spec", "gen", "check"] as const).map((key) =>
-    createBlock("steps", "step", {
-      title: t(locale, `landing.agentFirst.steps.${key}.title`),
-      body: t(locale, `landing.agentFirst.steps.${key}.description`),
-    }),
-  );
-
-  const moduleCards = (
-    Object.keys(MESSAGES[locale].builtinModules) as Array<
-      keyof LocaleMessages["builtinModules"]
-    >
-  ).map((key) =>
-    createBlock("cards", "card", {
-      // locales 里每个模块只有一句说明，直接做卡片标题
-      title: t(locale, `builtinModules.${key}`),
-      body: "",
-    }),
-  );
-
-  const techRows = TECH_STACK_ROWS.map((row) =>
-    createBlock("spec-list", "row", {
-      term: t(locale, `techStack.layerLabels.${row.layer}`),
-      detail: row.detail,
-    }),
-  );
 
   return [
     section(
@@ -312,55 +333,24 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
       },
       heroStats,
     ),
-    section(
-      "feature-grid",
-      {
-        // 六项能力本身带标题，不再叠一段与 hero 重复的抬头
-        heading: "",
-        subheading: "",
-        columns: 3,
-        show_icons: true,
-        ...PAGE_SECTION_PADDING,
-      },
-      features,
-    ),
-    section(
-      "steps",
-      {
-        heading: t(locale, "landing.agentFirst.title"),
-        subheading: t(locale, "landing.agentFirst.description"),
-        primary_label: t(locale, "landing.agentFirst.readMore"),
-        primary_href: "/docs/modular-architecture",
-        columns: 3,
-        show_number: true,
-        anchor: "agent-first",
-        ...PAGE_SECTION_PADDING,
-      },
-      steps,
-    ),
-    section(
-      "cards",
-      {
-        heading: t(locale, "landing.builtinModules.title"),
-        subheading: t(locale, "landing.builtinModules.description"),
-        columns: 4,
-        card_style: "bordered",
-        ...PAGE_SECTION_PADDING,
-      },
-      moduleCards,
-    ),
-    section(
-      "spec-list",
-      {
-        heading: t(locale, "landing.techStack.title"),
-        subheading: t(locale, "landing.techStack.description"),
-        primary_label: t(locale, "landing.techStack.readDocs"),
-        primary_href: "/docs",
-        layout: "split",
-        ...PAGE_SECTION_PADDING,
-      },
-      techRows,
-    ),
+    section("prose", {
+      body_md: buildFeaturesMarkdown(locale),
+      anchor: "features",
+      ...PAGE_SECTION_PADDING,
+    }),
+    section("prose", {
+      body_md: buildAgentFirstMarkdown(locale),
+      anchor: "agent-first",
+      ...PAGE_SECTION_PADDING,
+    }),
+    section("prose", {
+      body_md: buildModulesMarkdown(locale),
+      ...PAGE_SECTION_PADDING,
+    }),
+    section("prose", {
+      body_md: buildTechStackMarkdown(locale),
+      ...PAGE_SECTION_PADDING,
+    }),
     section("band", {
       headline: t(locale, "landing.closingCta.title"),
       body: t(locale, "landing.closingCta.description"),

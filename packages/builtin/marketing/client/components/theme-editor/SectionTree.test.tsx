@@ -25,18 +25,18 @@ function dataTransfer(): DataTransfer {
 }
 
 /**
- * 一页：hero / cards（带 block）/ 分栏（左列有一段 page-menu、右列空着）/ faq。
+ * 一页：hero / form（带 block）/ 分栏（左列有一段 page-menu、右列空着）/ band。
  * 右列空着是关键——新建的分栏就是这样，「拖进分栏」最常见的一下落在那儿。
  */
 function buildPage() {
   const hero = createSection("hero");
-  const faq = createSection("faq");
+  const band = createSection("band");
 
-  const cardsBase = createSection("cards");
+  const formBase = createSection("form");
   const withBlocks = addBlock(
-    addBlock([cardsBase], cardsBase.id, "card"),
-    cardsBase.id,
-    "card",
+    addBlock([formBase], formBase.id, "field"),
+    formBase.id,
+    "field",
   )[0]!;
 
   const groupBase = createSection("group");
@@ -49,10 +49,10 @@ function buildPage() {
 
   return {
     hero,
-    cards: withBlocks,
+    form: withBlocks,
     group,
     menu,
-    faq,
+    band,
     leftColumnId: group.blocks[0]!.id,
     emptyColumnId: group.blocks[1]!.id,
     blocks: withBlocks.blocks.slice(-2),
@@ -130,21 +130,21 @@ async function dragTo(
 
 describe("SectionTree 拖放", () => {
   it("拖到目标行下半 → 落在它之后", async () => {
-    const { hero, faq } = buildPage();
-    const { row, onMoveSectionTo } = setup([hero, faq], null);
-    await dragTo(row(hero.id), row(faq.id), 15);
+    const { hero, band } = buildPage();
+    const { row, onMoveSectionTo } = setup([hero, band], null);
+    await dragTo(row(hero.id), row(band.id), 15);
     expect(onMoveSectionTo).toHaveBeenCalledWith(hero.id, {
       kind: "section",
-      targetId: faq.id,
+      targetId: band.id,
       place: "after",
     });
   });
 
   it("拖到目标行上半 → 落在它之前", async () => {
-    const { hero, faq } = buildPage();
-    const { row, onMoveSectionTo } = setup([hero, faq], null);
-    await dragTo(row(faq.id), row(hero.id), 5);
-    expect(onMoveSectionTo).toHaveBeenCalledWith(faq.id, {
+    const { hero, band } = buildPage();
+    const { row, onMoveSectionTo } = setup([hero, band], null);
+    await dragTo(row(band.id), row(hero.id), 5);
+    expect(onMoveSectionTo).toHaveBeenCalledWith(band.id, {
       kind: "section",
       targetId: hero.id,
       place: "before",
@@ -152,18 +152,18 @@ describe("SectionTree 拖放", () => {
   });
 
   it("拖到自己身上不触发搬移", async () => {
-    const { hero, faq } = buildPage();
-    const { row, onMoveSectionTo } = setup([hero, faq], null);
+    const { hero, band } = buildPage();
+    const { row, onMoveSectionTo } = setup([hero, band], null);
     await dragTo(row(hero.id), row(hero.id), 15);
     expect(onMoveSectionTo).not.toHaveBeenCalled();
   });
 
   it("block 在所属 section 内换位", async () => {
-    const { cards, blocks } = buildPage();
-    const { row, onReorderBlock } = setup([cards], cards.id);
+    const { form, blocks } = buildPage();
+    const { row, onReorderBlock } = setup([form], form.id);
     await dragTo(row(blocks[0]!.id), row(blocks[1]!.id), 15);
     expect(onReorderBlock).toHaveBeenCalledWith(
-      cards.id,
+      form.id,
       blocks[0]!.id,
       blocks[1]!.id,
       "after",
@@ -171,10 +171,10 @@ describe("SectionTree 拖放", () => {
   });
 
   it("section 与 block 互相落不下去", async () => {
-    const { cards, hero, blocks } = buildPage();
+    const { form, hero, blocks } = buildPage();
     const { row, onMoveSectionTo, onReorderBlock } = setup(
-      [hero, cards],
-      cards.id,
+      [hero, form],
+      form.id,
     );
     await dragTo(row(hero.id), row(blocks[0]!.id), 15);
     await dragTo(row(blocks[0]!.id), row(hero.id), 15);

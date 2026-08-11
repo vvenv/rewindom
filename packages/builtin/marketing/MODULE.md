@@ -212,22 +212,26 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 硬跳回 SSR 文档。
 
 **页面级**（`placements` 含 `page`）。`band` / `prose` 三处都能放——通栏 CTA 摆进页头区
-就是公告条，prose 摆进页脚就是备案号，不另造类型：
+就是公告条，prose 摆进页脚就是备案号，不另造类型。
+
+内置段只保留**通用积木**（首屏、富文本、分栏、CTA、表单、页面菜单、文档库专用段）。
+曾经的 `feature-grid` / `steps` / `spec-list` / `cards` / `pricing` / `faq` 等营销专用版式
+已移除——卖点网格、步骤、定价表、FAQ 等用 `prose`（Markdown）或 `group` 分栏组合即可；
+存量页面里若仍引用已删 type，读路径会落成 `unsupported` 占位（见下）。
 
 | type           | settings                                                               | blocks                                                                                  |
 | -------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `hero`         | eyebrow, headline\*, subhead, align, show_glow, primary/secondary 按钮 | `stat`{term\*, detail}，最多 4                                                          |
-| `feature-grid` | 抬头, columns(2–4), show_icons                                         | `feature`{icon, title\*, body}，最多 12                                                 |
-| `steps`        | 抬头, primary 按钮, columns, show_number                               | `step`{title\*, body, code}，最多 8                                                     |
-| `spec-list`    | 抬头, primary 按钮, layout(split/stacked)                              | `row`{term\*, detail}，最多 12                                                          |
-| `cards`        | 抬头, columns, card_style                                              | `card`{title\*, body, href}、`stat`{value\*, label}，最多 12                            |
-| `page-menu`    | 抬头, source(children\|siblings), style(list\|cards), columns          | —（动态菜单：父页 children / 子页 siblings；条目来自已发布 `site.pages`）               |
-| `pricing`      | 抬头, columns, footnote, featured_badge                                | `plan`{name\*, audience, price, price_note, highlights, featured, primary 按钮}，最多 6 |
-| `faq`          | 抬头                                                                   | `qa`{question\*, answer}，最多 20                                                       |
 | `page-header`  | headline, subhead, align（留空回落到页面 meta）                        | —                                                                                       |
+| `page-menu`    | 抬头, source(children\|siblings), style(list\|cards), columns          | —（动态菜单：父页 children / 子页 siblings；条目来自已发布 `site.pages`）               |
+| `form`         | 抬头, submit_label\*, success_message                                  | `field`{label\*, type, placeholder, required, options, validation…}，最多 16            |
 | `prose`        | body_md                                                                | —                                                                                       |
 | `group`        | columns_layout(12 栏份额), column_gap, align_items                     | `column`{sticky, show_divider + 线型/粗细/颜色, stack_order}，最多 4；**容器 block**，见下 |
 | `band`         | headline\*, body, align, primary/secondary 按钮                        | —                                                                                       |
+| `doc-list`     | 抬头, group_by, style(cards\|list), category, limit, columns…          | —（数据来自 `ctx.docs`，见下）                                                          |
+| `doc-article`  | align                                                                  | —（数据来自 `ctx.doc`）                                                                 |
+| `doc-nav`      | heading, show_category, sticky                                           | —（数据来自 `ctx.docs`）                                                                |
+| `doc-toc`      | sticky                                                                 | —（从 `ctx.doc` 正文标题抽取）                                                          |
 
 `*` = `required`，为空时该 section 校验失败。
 
@@ -280,7 +284,7 @@ group + 左列放 `page-menu`(siblings/list, 列上勾 sticky)，不再有专门
 所有留白存的都是**桌面 px**，窄屏两处渲染统一 ×0.7；`anchor` 归一化成 slug 后作为
 `<section id>`，供页内导航链 `#anchor`。
 
-页头 / 页脚本体、卡片类 block（feature / card / plan / qa 等）同样挂 `styleSettings()`。
+页头 / 页脚 / 页面正文、以及各段的 block（如 `field`）同样挂 `styleSettings()`。
 站点主题另有整站画布 `bg_color` / `fg_color`；页面设置可覆盖正文区画布色。
 
 ### 多语言
@@ -460,7 +464,7 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 等于一次保存就永久烧掉内容，重新启用模块也回不来。占位把原始条目原封不动放在
 `section.source.raw` 里，写路径原样回存；等 type 重新被认识，解析时自动复活成真正的段
 （`parseUnsupported`），不留痕迹。**丢掉**则是因为 `placements` 写死在代码里，没有任何
-模块开关能让 `pricing` 变成合法的页头段——兜着它也永远复活不了。
+模块开关能让 `hero` 变成合法的页头段——兜着它也永远复活不了。
 
 **拒收**是因为编辑器手上的未知段一定已经是占位（读路径给的），写路径上再冒出一个裸的
 未知 type，只可能是客户端 bug 或构造的请求。
@@ -590,7 +594,7 @@ section 能跨层搬——页面顶层 ⇄ 分栏的列，是「摘掉再插回�
 > 症状极具迷惑性：**只有带分栏的页面整个拖不动**（只有它会因 `revealColumns` 插节点），
 > 没有分栏的页面一切正常。jsdom 没有真正的拖放实现，测不出来，只能测「dragstart 当场不动 DOM」这个不变量。
 
-block 不跨层：它的 schema 属于所在 section，一个 `card` 换不到 `faq` 段上去，
+block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 `band` 段上去，
 `reorderBlock` 用 `reorderItem` 认死同一个列表。
 
 排序两条路：拖放 + 上下移按钮。上下移只在自己那一层内动，**跨层只能靠拖放**——
@@ -635,17 +639,16 @@ block 不跨层：它的 schema 属于所在 section，一个 `card` 换不到 `
 复制到别的语言必须沿用源 slug 才能自动成组；目标语言已占用该 slug 时（即同语言复制）
 才派生 `about-copy` / `about-copy-2`，首页因为 slug 固定为 `home` 直接返回 `site.home_exists`。
 
-**页面预设**（`shared/page-presets.ts`，客户端 re-export）一键铺出默认官网版式：首页 / 定价 / 文档 / 关于 / 联系。
-预设只描述结构 + i18n key，文案在创建时用 `t()` 落成当前语言的普通内容，套完随便改。
+**页面预设 / 模板页**（`shared/page-presets.ts`，客户端 re-export）描述默认版式结构 + i18n key：
+首页模板（`home`）、文档索引 / 详情两张模板页（`doc_index` / `doc_article`）。文案在创建时用 `t()` 落成当前语言的普通内容，套完随便改。
 
 **站点起步模板**（`shared/site-starters.ts` + `SiteStarterMenu`）在页面列表一键铺好页头 / 页脚 /
 主题色，并在主语言下创建或更新**首页**（复用页面预设）。应用走
 `POST /api/site/starters/:key/apply`，chrome 与页面**同一事务**落库。
 
-起步模板刻意很轻：首页只有 hero / 三项功能 / CTA 三段，文案是可替换的占位，
-页头不预设按钮、页脚不预设链接组，且不再顺带建 docs 与 pricing。那三样是**本仓自己**
-官网的结构与文案（写死了 Fastify / Prisma / `pnpm gen:module`），真实租户拿到手第一件事
-是删。想要文档 / 定价 / 关于 / 联系的从「页面预设」里按需加，预设都还在。
+起步模板刻意很轻：首页只有 hero / 富文本 / CTA 三段，文案是可替换的占位，
+页头不预设按钮、页脚不预设链接组，且不再顺带建 docs 与其它自定义页。关于我们、联系、
+定价等页面由租户自己在 CMS 里新建，或用 `prose` / `group` / `form` 自由拼版式。
 
 模板里的链接也不能写死站内地址：起步只建首页，别处都指不到；`/register` 更是
 **工作台的员工注册页**（`apps/client/src/shell/guest-routes.tsx`），租户站点的访客点进去
@@ -815,7 +818,7 @@ Theme Editor 预览里的 React `FormSection` 共用同一份校验。
 | 内容 | 位置 | 说明 |
 | --- | --- | --- |
 | 通用起步模板 | `shared/site-starters.ts` + `page-presets.ts` | key=`default`（仅首页占位，给任意租户） |
-| **默认租户产品站** | `server/default-product-site-content.ts` | be-water 终稿：首页 + 定价，中英双语；文案来自 `client/locales` 的 `site` / `hero` / `features` / `landing` / `pricing` / `seo` |
+| **默认租户产品站** | `server/default-product-site-content.ts` | be-water 终稿：中英双语首页（hero + 多段 prose + band）；文案来自 `client/locales` 的 `site` / `hero` / `features` / `landing` / `seo` |
 | Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等铺产品站并发布；已是产品站则跳过 |
 | 文档库 | `docs/usage/<locale>/*.md` | 启动时按语言补齐已发布文档 |
 

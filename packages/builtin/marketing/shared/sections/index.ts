@@ -5,18 +5,15 @@
  * 渲染，客户端的 React 视图在 `client/components/sections/views/<type>.tsx`。
  * 本文件只做聚合，不含任何一段的具体内容——**加一段不改这里的任何逻辑，只多一行**。
  *
- * 覆盖面以「能配出默认官网的效果」为准：hero + 特性网格 + 步骤 + 规格表 +
- * 卡片 + 页面菜单 + 定价 + FAQ + 通栏 CTA，外加站点级的页头 / 页脚。
+ * 内置段只保留通用积木：首屏、富文本、分栏、CTA、表单、页面菜单与文档库专用段。
+ * 特性网格 / 步骤 / 定价等营销专用版式已移除——用 prose + group 组合即可。
  */
 
 import { bandSection } from "./band/definition.js";
-import { cardsSection } from "./cards/definition.js";
 import { docArticleSection } from "./doc-article/definition.js";
 import { docListSection } from "./doc-list/definition.js";
 import { docNavSection } from "./doc-nav/definition.js";
 import { docTocSection } from "./doc-toc/definition.js";
-import { faqSection } from "./faq/definition.js";
-import { featureGridSection } from "./feature-grid/definition.js";
 import { footerSection } from "./footer/definition.js";
 import { formSection } from "./form/definition.js";
 import { groupSection } from "./group/definition.js";
@@ -24,10 +21,7 @@ import { headerSection } from "./header/definition.js";
 import { heroSection } from "./hero/definition.js";
 import { pageHeaderSection } from "./page-header/definition.js";
 import { pageMenuSection } from "./page-menu/definition.js";
-import { pricingSection } from "./pricing/definition.js";
 import { proseSection } from "./prose/definition.js";
-import { specListSection } from "./spec-list/definition.js";
-import { stepsSection } from "./steps/definition.js";
 import {
   AREA_SECTION_TYPES,
   PAGE_SECTION_TYPES,
@@ -72,13 +66,7 @@ export const BUILTIN_SECTION_DEFINITIONS: Record<
   /* 页面级 */
   "page-header": pageHeaderSection,
   hero: heroSection,
-  "feature-grid": featureGridSection,
-  steps: stepsSection,
-  "spec-list": specListSection,
-  cards: cardsSection,
   "page-menu": pageMenuSection,
-  pricing: pricingSection,
-  faq: faqSection,
   form: formSection,
   prose: proseSection,
   "doc-list": docListSection,

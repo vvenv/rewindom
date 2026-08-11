@@ -51,7 +51,7 @@ describe("getPublishedPublicPage home fallback", () => {
     expect(result!.page.kind).toBe("home");
     expect(result!.page.sections.map((section) => section.type)).toEqual([
       "hero",
-      "feature-grid",
+      "prose",
       "band",
     ]);
     expect(result!.page.title).toBe("首页");

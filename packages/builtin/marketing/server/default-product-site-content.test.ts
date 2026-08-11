@@ -22,10 +22,10 @@ describe("buildDefaultProductSite", () => {
     expect(zhHome?.title).toContain("be-water");
     expect(zhHome?.sections.map((section) => section.type)).toEqual([
       "hero",
-      "feature-grid",
-      "steps",
-      "cards",
-      "spec-list",
+      "prose",
+      "prose",
+      "prose",
+      "prose",
       "band",
     ]);
     expect(zhHome?.sections[0]?.settings.headline).toContain("Agent-first");

@@ -696,13 +696,7 @@
       "header": "Header",
       "footer": "Footer",
       "hero": "Hero",
-      "feature-grid": "Feature grid",
-      "steps": "Steps",
-      "spec-list": "Spec list",
-      "cards": "Cards",
       "page-menu": "Page menu",
-      "pricing": "Pricing",
-      "faq": "FAQ",
       "prose": "Rich text",
       "doc-list": "Doc list",
       "doc-article": "Doc body",
@@ -862,15 +856,8 @@
         "subhead": "Then one more line: what you solve and for whom. Keep it under two lines.",
         "primary_label": "Get in touch"
       },
-      "features": {
-        "heading": "What we offer",
-        "subheading": "Three is enough. Each one says what it does for the visitor.",
-        "f1_title": "First highlight",
-        "f1_body": "A sentence or two about this one. Replace this placeholder text.",
-        "f2_title": "Second highlight",
-        "f2_body": "A sentence or two about this one. Replace this placeholder text.",
-        "f3_title": "Third highlight",
-        "f3_body": "A sentence or two about this one. Replace this placeholder text."
+      "prose": {
+        "body_md": "## What we offer\n\n### First highlight\n\nA sentence or two about this one. Replace this placeholder text.\n\n### Second highlight\n\nA sentence or two about this one. Replace this placeholder text.\n\n### Third highlight\n\nA sentence or two about this one. Replace this placeholder text."
       },
       "cta": {
         "headline": "Want to talk?",

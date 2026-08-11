@@ -11,13 +11,7 @@ import type { SettingDef, SettingValues } from "../section-settings.js";
 export const PAGE_SECTION_TYPES = [
   "page-header",
   "hero",
-  "feature-grid",
-  "steps",
-  "spec-list",
-  "cards",
   "page-menu",
-  "pricing",
-  "faq",
   "form",
   "prose",
   // 租户文档库：目录 / 单篇正文 / 篇间导航 / 篇内章节导航，数据来自 `MarketingDoc`

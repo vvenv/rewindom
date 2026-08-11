@@ -203,14 +203,14 @@ describe("页面标题段", () => {
  * 编辑器右侧表单与预览高亮都靠这一对返回值决定画什么，所以两种落点都要钉住。
  */
 describe("SiteSections 选中", () => {
-  function featureGrid(): SiteSection[] {
+  function heroWithStats(): SiteSection[] {
     return parseSections([
       {
-        type: "feature-grid",
-        settings: { heading: "核心能力", columns: 3 },
+        type: "hero",
+        settings: { headline: "核心能力", subhead: "" },
         blocks: [
-          { type: "feature", settings: { title: "第一项" } },
-          { type: "feature", settings: { title: "第二项" } },
+          { type: "stat", settings: { term: "第一项", detail: "" } },
+          { type: "stat", settings: { term: "第二项", detail: "" } },
         ],
       },
     ]);
@@ -232,7 +232,7 @@ describe("SiteSections 选中", () => {
   }
 
   it("点在块上带回 blockId", () => {
-    const sections = featureGrid();
+    const sections = heroWithStats();
     const { onSelectSection } = renderSelectable(sections);
     const section = sections[0]!;
 
@@ -245,7 +245,7 @@ describe("SiteSections 选中", () => {
   });
 
   it("点在段的抬头上只选中段", () => {
-    const sections = featureGrid();
+    const sections = heroWithStats();
     const { onSelectSection } = renderSelectable(sections);
 
     fireEvent.click(screen.getByText("核心能力"));
