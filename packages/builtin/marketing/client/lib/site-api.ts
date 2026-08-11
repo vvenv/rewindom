@@ -11,8 +11,8 @@ import type {
   PublicMarketingSite,
   ApplySiteStarterResponse,
   ReorderMarketingPagesBody,
-  SaveChromeDraftBody,
-  SaveChromeDraftResponse,
+  SaveSiteDraftBody,
+  SaveSiteDraftResponse,
   SaveEditorDraftBody,
   SaveEditorDraftResponse,
   UpdateMarketingSiteBody,
@@ -46,11 +46,6 @@ export function fetchSiteCapabilities(): Promise<MarketingSiteCapabilities> {
 /** 编辑器填链接时的站内候选（页面 + 文档索引 + 各篇文档）。 */
 export function fetchSiteLinkTargets(): Promise<SiteLinkTarget[]> {
   return api.get<SiteLinkTarget[]>("/site/link-targets");
-}
-
-/** 套用主题包：只换外观 token，内容与 logo 不动。 */
-export function applySiteTheme(key: string): Promise<MarketingSite> {
-  return api.post<MarketingSite>(`/site/themes/${key}/apply`, {});
 }
 
 export function patchSite(
@@ -95,21 +90,21 @@ export function saveSiteEditorDraft(
   return api.put<SaveEditorDraftResponse>(`/site/pages/${pageId}/draft`, body);
 }
 
-/** 页头页脚编辑器：只保存 chrome 草稿。 */
-export function saveSiteChromeDraft(
-  body: SaveChromeDraftBody,
-): Promise<SaveChromeDraftResponse> {
-  return api.put<SaveChromeDraftResponse>("/site/chrome/draft", body);
+/** 只保存**站点级**草稿（页头 / 页脚 / 主题），不带任何页面正文。 */
+export function saveSiteDraft(
+  body: SaveSiteDraftBody,
+): Promise<SaveSiteDraftResponse> {
+  return api.put<SaveSiteDraftResponse>("/site/draft", body);
 }
 
-/** 发布页头页脚草稿到线上（不影响页面正文）。 */
-export function publishSiteChrome(): Promise<SaveChromeDraftResponse> {
-  return api.post<SaveChromeDraftResponse>("/site/chrome/publish", {});
+/** 站点级草稿上线（页头 / 页脚 / 主题；不影响页面正文）。 */
+export function publishSiteDraft(): Promise<SaveSiteDraftResponse> {
+  return api.post<SaveSiteDraftResponse>("/site/draft/publish", {});
 }
 
-/** 将页头页脚草稿还原为线上版本（不影响页面正文）。 */
-export function revertSiteChrome(): Promise<SaveChromeDraftResponse> {
-  return api.post<SaveChromeDraftResponse>("/site/chrome/revert", {});
+/** 站点级草稿还原为线上那一版（不影响页面正文）。 */
+export function revertSiteDraft(): Promise<SaveSiteDraftResponse> {
+  return api.post<SaveSiteDraftResponse>("/site/draft/revert", {});
 }
 
 export function applySiteStarter(

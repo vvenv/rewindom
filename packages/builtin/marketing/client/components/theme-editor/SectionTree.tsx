@@ -46,7 +46,7 @@ import { sectionTypeLabel } from "../../lib/section-type-label.js";
 
 import { BLOCK_ICONS, SECTION_ICONS } from "./section-icons.js";
 
-import type { ThemeEditorSelection } from "../../hooks/use-site-theme-editor.js";
+import type { ThemeEditorSelection } from "../../hooks/use-site-editor.js";
 
 export type { ThemeEditorSelection };
 

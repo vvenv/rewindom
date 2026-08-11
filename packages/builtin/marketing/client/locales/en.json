@@ -247,15 +247,20 @@
     "disabledHint": "Website is not enabled for this organization",
     "viewSite": "View site",
     "settings": "Site settings",
-    "settingsTitle": "Site settings",
-    "settingsDescription": "Site name, language and public visibility.",
-    "settingsSectionBasics": "Site info",
-    "settingsSectionBasicsHint": "Shown in the header, the browser tab and share cards.",
+    "settingsSectionBasics": "Basics",
+    "settingsSectionBasicsHint": "Name and tagline — shown in the header, the browser tab and share cards.",
+    "settingsSectionTheme": "Appearance",
+    "settingsSectionThemeHint": "Site-wide logo, colors and layout. Applies to the public site only, not the workspace.",
     "settingsSectionLocale": "Language",
-    "settingsSectionVisibility": "Visibility",
-    "discardConfirmTitle": "Discard unsaved changes?",
-    "discardConfirmDescription": "What you edited here won't be kept.",
+    "settingsSectionLocaleHint": "The site's primary language decides which pages live at URLs without a prefix.",
+    "settingsSectionVisibility": "Publishing",
+    "settingsSectionVisibilityHint": "The site-wide switch; pages and docs each have their own published state on top of it.",
     "discardConfirm": "Discard",
+    "unpublishConfirmTitle": "Take the site offline?",
+    "unpublishConfirmDescription": "Visitors will immediately see a placeholder page and no published page or doc stays reachable. Nothing is deleted — you can put it back online at any time.",
+    "unpublishConfirm": "Take offline",
+    "toastSitePublished": "Site is live",
+    "toastSiteUnpublished": "Site taken offline",
     "defaultLocaleConfirmTitle": "Switch the primary language to {{to}}?",
     "defaultLocaleConfirmDescription": "{{to}} pages lose their language prefix, and the current primary language ({{from}}) moves under /{{fromSlug}}/ — links already indexed or shared will break. The current name and tagline are kept as the {{from}} translation, so nothing is lost.",
     "defaultLocaleConfirm": "Switch primary language",
@@ -322,12 +327,12 @@
     "toastPageDuplicateFailed": "Failed to duplicate page",
     "toastPageDeleted": "Page deleted",
     "toastPageDeleteFailed": "Failed to delete page",
-    "chromeMovedHint": "Edit the header and footer under Header & footer; page sections in the Theme Editor; logo, accent and font under System → Branding.",
+    "chromeMovedHint": "Edit the header and footer under Header & footer; page sections in the Theme Editor; the tenant logo and favicon under System → Branding.",
     "chromeEditor": "Header & footer",
     "deleteConfirmTitle": "Delete this page?",
     "deleteConfirmDescription": "“{{title}}” and all of its sections will be permanently deleted. This cannot be undone.",
-    "fieldLogoUrlPlaceholder": "Defaults to the brand logo above",
-    "fieldLogoUrlHint": "Leave empty to follow the logo uploaded under Branding; set it only when the site needs a different version (wordmark, dark variant).",
+    "fieldLogoUrlPlaceholder": "Defaults to the brand logo",
+    "fieldLogoUrlHint": "Leave empty to follow the logo uploaded under System → Branding; set it only when the site needs a different version (wordmark, dark variant).",
     "fieldLocale": "Language",
     "localeHint": "Create one page per language under the same path. The primary language has no URL prefix; others live under /{locale}/…",
     "fieldDefaultLocale": "Primary language",
@@ -346,7 +351,8 @@
     "filterLocaleAll": "All languages",
     "emptyFiltered": "No matching pages",
     "emptyFilteredHint": "Try another keyword, or clear the filters.",
-    "toastPageReorderFailed": "Could not reorder pages — try again"
+    "toastPageReorderFailed": "Could not reorder pages — try again",
+    "appearance": "Appearance"
   },
   "starter": {
     "menu": "Starter",
@@ -395,7 +401,8 @@
       "unsaved": "Unsaved changes",
       "unpublished": "Draft — not live",
       "stale": "Live version is behind",
-      "live": "Live is up to date"
+      "live": "Live is up to date",
+      "siteDraftStale": "Site-wide changes not published"
     },
     "discardLocal": "Discard unsaved changes",
     "discardLocalHint": "Back to the last saved draft — nothing on the server changes.",
@@ -834,7 +841,21 @@
     "menuExpand": {
       "children": "Collapse into a dropdown",
       "flat": "List inline"
-    }
+    },
+    "scope": {
+      "sections": "Sections",
+      "theme": "Theme",
+      "themeHint": "The theme applies site-wide. Its fields are on the right and show up in the preview as you type."
+    },
+    "pageDescription": "Edit page sections, header and footer, and the site theme. Saving keeps a draft; publishing makes it public.",
+    "publishSite": "Publish",
+    "pageMissing": "That page is gone or was deleted. Header, footer and theme are still editable."
+  },
+  "settings": {
+    "pageTitle": "Site settings",
+    "pageDescription": "Name, language, redirects and publishing — each section saves on its own. Appearance has its own sidebar entry.",
+    "unsaved": "Unsaved changes",
+    "previewTitle": "Live preview"
   },
   "chromeEditor": {
     "title": "Header & footer",
@@ -850,10 +871,7 @@
     "toastPublished": "Header and footer published",
     "toastPublishFailed": "Publish failed",
     "toastReverted": "Reverted to live version",
-    "toastRevertFailed": "Revert failed",
-    "state": {
-      "stale": "Header & footer have unpublished changes"
-    }
+    "toastRevertFailed": "Revert failed"
   },
   "seo": {
     "home": {
@@ -868,11 +886,6 @@
       "title": "Docs",
       "description": "be-water docs: quick start, agent-first, modular architecture, multi-tenancy and permissions, deployment."
     }
-  },
-  "branding": {
-    "themeTitle": "Site theme",
-    "themeHint": "Logo, accent color and font for your public website on the bound domain.",
-    "themeSaved": "Site theme saved"
   },
   "preset": {
     "doc_index": {
@@ -916,7 +929,8 @@
     "page_content_published": "Published site page content for \"{{title}}\"",
     "page_unpublished": "Unpublished site page \"{{title}}\"",
     "starter_applied": "Applied site starter \"{{key}}\" ({{page_count}} pages)",
-    "chrome_published": "Published site header and footer for \"{{site_name}}\"",
+    "site_draft_published": "Published site header, footer and theme for \"{{site_name}}\"",
+    "site_draft_reverted": "Discarded unpublished header, footer and theme changes for \"{{site_name}}\"",
     "doc_category_created": "Created doc category \"{{key}}\"",
     "doc_category_updated": "Updated doc category \"{{key}}\"",
     "doc_category_deleted": "Deleted a doc category"
@@ -940,7 +954,6 @@
     "emptyHint": "Submissions from your site forms show up here."
   },
   "redirects": {
-    "nav": "Redirects",
     "title": "Redirects",
     "pageDescription": "Point old URLs at new ones so inbound links and rankings survive.",
     "create": "New redirect",
@@ -1093,12 +1106,8 @@
   },
   "theme": {
     "title": "Theme",
-    "hint": "A preset of colors and layout. You can still fine-tune each setting below afterwards.",
+    "hint": "A preset of colors and layout. Applying it overwrites the accent color, font, page width and section spacing below (logo and share image are kept); fine-tune afterwards and save to publish the change.",
     "apply": "Apply",
-    "applied": "Theme applied",
-    "applyFailed": "Couldn't apply",
-    "applyConfirmTitle": "Apply this theme?",
-    "applyConfirmDescription": "This overwrites your current accent color, font, page width and section spacing. Page content and your logo are untouched.",
     "default": {
       "label": "Default",
       "description": "General-purpose site: neutral blue, standard width and spacing."

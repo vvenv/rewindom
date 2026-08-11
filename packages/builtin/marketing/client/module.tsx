@@ -1,7 +1,6 @@
 import { TENANT_MARKETING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { MARKETING_I18N } from "./i18n.js";
-import { MarketingShellSlots } from "./shell/marketing-shell-slots.js";
 import { MARKETING_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { SITE_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderSiteRoutes } from "./tenant/routes.js";
@@ -13,8 +12,7 @@ export const marketingClientModule: ClientAppModule = {
   version: "1.0.0",
   label: "官网",
   kind: "infrastructure",
-  description:
-    "租户自助 Marketing CMS（主域绑定默认租户；其它 Host SSR）",
+  description: "租户自助 Marketing CMS（主域绑定默认租户；其它 Host SSR）",
   requires: ["platform"],
   tenantEntitlements: [TENANT_MARKETING_ENTITLEMENT],
   client: {
@@ -22,8 +20,5 @@ export const marketingClientModule: ClientAppModule = {
     renderRoutes: renderSiteRoutes,
     nav: SITE_NAV_SECTIONS,
     dashboardWidgets: MARKETING_DASHBOARD_WIDGETS,
-    shell: {
-      shellProviders: [MarketingShellSlots],
-    },
   },
 };

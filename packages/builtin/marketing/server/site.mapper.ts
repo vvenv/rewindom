@@ -28,7 +28,7 @@ import {
   pageContentPublished,
   siteChromeDraftFooter,
   siteChromeDraftHeader,
-  siteChromeIsDirty,
+  siteDraftIsDirty,
   siteChromePublishedFooter,
   siteChromePublishedHeader,
 } from "./site.util.js";
@@ -51,7 +51,11 @@ function asStatus(value: string): MarketingPageStatus {
 }
 
 export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
-  const theme_settings = resolveThemeSettings(record.theme_settings);
+  /*
+   * 管理端读**草稿**主题（与草稿 chrome 同一口径）：编辑器改的、预览渲染的都是它，
+   * 访客看到的那一份要等发布。读线上那一列的话，编辑器一打开就把已保存的草稿冲掉了。
+   */
+  const theme_settings = resolveThemeSettings(record.theme_settings_draft);
   return {
     id: record.id,
     tenant_id: record.tenant_id,
@@ -62,10 +66,10 @@ export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
     primary_color: theme_settings.primary_color ?? null,
     theme_settings,
     default_locale: normalizeLocale(record.default_locale),
-    // 管理端读**草稿** chrome；`chrome_dirty` 标出与线上的差异
+    // 管理端读**草稿** chrome；`site_draft_dirty` 标出草稿与线上的差异（含主题）
     header: siteChromeDraftHeader(record),
     footer: siteChromeDraftFooter(record),
-    chrome_dirty: siteChromeIsDirty(record),
+    site_draft_dirty: siteDraftIsDirty(record),
     published: record.published,
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),

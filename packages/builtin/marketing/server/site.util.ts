@@ -111,18 +111,30 @@ function chromeFingerprint(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/** 草稿 chrome 与线上 chrome 是否不一致（页头 / 页脚）。 */
-export function siteChromeIsDirty(record: {
+/**
+ * 站点级草稿与线上是否不一致——**页头 / 页脚 / 主题**三样一起算。
+ *
+ * 三样共用一条发布链：它们都是「改一次影响所有页面」的站点级东西，拆成两个脏标记
+ * 只会让工具栏长出第二个状态和第二个发布按钮，而站长心里始终只有一个「发过去」。
+ *
+ * 主题按**归一化后**的值比（`resolveThemeSettings`）：库里存的是自由 JSON，
+ * 键序不同或多一个表单碰不到的字段都不该算成「有改动待发布」。
+ */
+export function siteDraftIsDirty(record: {
   nav_json: unknown;
   footer_json: unknown;
   nav_draft_json: unknown;
   footer_draft_json: unknown;
+  theme_settings: unknown;
+  theme_settings_draft: unknown;
 }): boolean {
   return (
     chromeFingerprint(siteChromePublishedHeader(record)) !==
       chromeFingerprint(siteChromeDraftHeader(record)) ||
     chromeFingerprint(siteChromePublishedFooter(record)) !==
-      chromeFingerprint(siteChromeDraftFooter(record))
+      chromeFingerprint(siteChromeDraftFooter(record)) ||
+    chromeFingerprint(safeSiteThemeSettings(record.theme_settings)) !==
+      chromeFingerprint(safeSiteThemeSettings(record.theme_settings_draft))
   );
 }
 

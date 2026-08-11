@@ -41,7 +41,7 @@ function site(partial: Partial<MarketingSite> = {}): MarketingSite {
     default_locale: "zh-CN",
     header: [section("header", [])],
     footer: [section("footer", [])],
-    chrome_dirty: false,
+    site_draft_dirty: false,
     published: false,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",

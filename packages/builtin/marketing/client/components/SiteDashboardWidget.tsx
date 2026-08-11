@@ -17,7 +17,7 @@ export function SiteDashboardWidget() {
   // 草稿与线上不一致的页面：提示「有改动没发布」，这是 CMS 上最常被忘掉的一件事
   const dirtyCount =
     (pages?.filter((page) => page.content_dirty).length ?? 0) +
-    (site?.chrome_dirty ? 1 : 0);
+    (site?.site_draft_dirty ? 1 : 0);
 
   return (
     <DashboardWidgetCard

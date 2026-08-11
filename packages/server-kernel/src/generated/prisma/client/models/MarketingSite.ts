@@ -48,6 +48,7 @@ export type MarketingSiteCountAggregateOutputType = {
   site_name: number
   tagline: number
   theme_settings: number
+  theme_settings_draft: number
   default_locale: number
   nav_json: number
   footer_json: number
@@ -84,6 +85,7 @@ export type MarketingSiteCountAggregateInputType = {
   site_name?: true
   tagline?: true
   theme_settings?: true
+  theme_settings_draft?: true
   default_locale?: true
   nav_json?: true
   footer_json?: true
@@ -173,6 +175,7 @@ export type MarketingSiteGroupByOutputType = {
   site_name: runtime.JsonValue
   tagline: runtime.JsonValue
   theme_settings: runtime.JsonValue
+  theme_settings_draft: runtime.JsonValue
   default_locale: string
   nav_json: runtime.JsonValue
   footer_json: runtime.JsonValue
@@ -210,6 +213,7 @@ export type MarketingSiteWhereInput = {
   site_name?: Prisma.JsonFilter<"MarketingSite">
   tagline?: Prisma.JsonFilter<"MarketingSite">
   theme_settings?: Prisma.JsonFilter<"MarketingSite">
+  theme_settings_draft?: Prisma.JsonFilter<"MarketingSite">
   default_locale?: Prisma.StringFilter<"MarketingSite"> | string
   nav_json?: Prisma.JsonFilter<"MarketingSite">
   footer_json?: Prisma.JsonFilter<"MarketingSite">
@@ -226,6 +230,7 @@ export type MarketingSiteOrderByWithRelationInput = {
   site_name?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   theme_settings?: Prisma.SortOrder
+  theme_settings_draft?: Prisma.SortOrder
   default_locale?: Prisma.SortOrder
   nav_json?: Prisma.SortOrder
   footer_json?: Prisma.SortOrder
@@ -245,6 +250,7 @@ export type MarketingSiteWhereUniqueInput = Prisma.AtLeast<{
   site_name?: Prisma.JsonFilter<"MarketingSite">
   tagline?: Prisma.JsonFilter<"MarketingSite">
   theme_settings?: Prisma.JsonFilter<"MarketingSite">
+  theme_settings_draft?: Prisma.JsonFilter<"MarketingSite">
   default_locale?: Prisma.StringFilter<"MarketingSite"> | string
   nav_json?: Prisma.JsonFilter<"MarketingSite">
   footer_json?: Prisma.JsonFilter<"MarketingSite">
@@ -261,6 +267,7 @@ export type MarketingSiteOrderByWithAggregationInput = {
   site_name?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   theme_settings?: Prisma.SortOrder
+  theme_settings_draft?: Prisma.SortOrder
   default_locale?: Prisma.SortOrder
   nav_json?: Prisma.SortOrder
   footer_json?: Prisma.SortOrder
@@ -283,6 +290,7 @@ export type MarketingSiteScalarWhereWithAggregatesInput = {
   site_name?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
   tagline?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
   theme_settings?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
+  theme_settings_draft?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
   default_locale?: Prisma.StringWithAggregatesFilter<"MarketingSite"> | string
   nav_json?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
   footer_json?: Prisma.JsonWithAggregatesFilter<"MarketingSite">
@@ -299,6 +307,7 @@ export type MarketingSiteCreateInput = {
   site_name: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  theme_settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -315,6 +324,7 @@ export type MarketingSiteUncheckedCreateInput = {
   site_name: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  theme_settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -331,6 +341,7 @@ export type MarketingSiteUpdateInput = {
   site_name?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  theme_settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: Prisma.StringFieldUpdateOperationsInput | string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -347,6 +358,7 @@ export type MarketingSiteUncheckedUpdateInput = {
   site_name?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  theme_settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: Prisma.StringFieldUpdateOperationsInput | string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -363,6 +375,7 @@ export type MarketingSiteCreateManyInput = {
   site_name: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  theme_settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -379,6 +392,7 @@ export type MarketingSiteUpdateManyMutationInput = {
   site_name?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  theme_settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: Prisma.StringFieldUpdateOperationsInput | string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -395,6 +409,7 @@ export type MarketingSiteUncheckedUpdateManyInput = {
   site_name?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   tagline?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   theme_settings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  theme_settings_draft?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   default_locale?: Prisma.StringFieldUpdateOperationsInput | string
   nav_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   footer_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -411,6 +426,7 @@ export type MarketingSiteCountOrderByAggregateInput = {
   site_name?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   theme_settings?: Prisma.SortOrder
+  theme_settings_draft?: Prisma.SortOrder
   default_locale?: Prisma.SortOrder
   nav_json?: Prisma.SortOrder
   footer_json?: Prisma.SortOrder
@@ -447,6 +463,7 @@ export type MarketingSiteSelect<ExtArgs extends runtime.Types.Extensions.Interna
   site_name?: boolean
   tagline?: boolean
   theme_settings?: boolean
+  theme_settings_draft?: boolean
   default_locale?: boolean
   nav_json?: boolean
   footer_json?: boolean
@@ -463,6 +480,7 @@ export type MarketingSiteSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   site_name?: boolean
   tagline?: boolean
   theme_settings?: boolean
+  theme_settings_draft?: boolean
   default_locale?: boolean
   nav_json?: boolean
   footer_json?: boolean
@@ -479,6 +497,7 @@ export type MarketingSiteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   site_name?: boolean
   tagline?: boolean
   theme_settings?: boolean
+  theme_settings_draft?: boolean
   default_locale?: boolean
   nav_json?: boolean
   footer_json?: boolean
@@ -495,6 +514,7 @@ export type MarketingSiteSelectScalar = {
   site_name?: boolean
   tagline?: boolean
   theme_settings?: boolean
+  theme_settings_draft?: boolean
   default_locale?: boolean
   nav_json?: boolean
   footer_json?: boolean
@@ -505,7 +525,7 @@ export type MarketingSiteSelectScalar = {
   updated_at?: boolean
 }
 
-export type MarketingSiteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "site_name" | "tagline" | "theme_settings" | "default_locale" | "nav_json" | "footer_json" | "nav_draft_json" | "footer_draft_json" | "published" | "created_at" | "updated_at", ExtArgs["result"]["marketingSite"]>
+export type MarketingSiteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "site_name" | "tagline" | "theme_settings" | "theme_settings_draft" | "default_locale" | "nav_json" | "footer_json" | "nav_draft_json" | "footer_draft_json" | "published" | "created_at" | "updated_at", ExtArgs["result"]["marketingSite"]>
 
 export type $MarketingSitePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MarketingSite"
@@ -516,6 +536,7 @@ export type $MarketingSitePayload<ExtArgs extends runtime.Types.Extensions.Inter
     site_name: runtime.JsonValue
     tagline: runtime.JsonValue
     theme_settings: runtime.JsonValue
+    theme_settings_draft: runtime.JsonValue
     default_locale: string
     nav_json: runtime.JsonValue
     footer_json: runtime.JsonValue
@@ -952,6 +973,7 @@ export interface MarketingSiteFieldRefs {
   readonly site_name: Prisma.FieldRef<"MarketingSite", 'Json'>
   readonly tagline: Prisma.FieldRef<"MarketingSite", 'Json'>
   readonly theme_settings: Prisma.FieldRef<"MarketingSite", 'Json'>
+  readonly theme_settings_draft: Prisma.FieldRef<"MarketingSite", 'Json'>
   readonly default_locale: Prisma.FieldRef<"MarketingSite", 'String'>
   readonly nav_json: Prisma.FieldRef<"MarketingSite", 'Json'>
   readonly footer_json: Prisma.FieldRef<"MarketingSite", 'Json'>

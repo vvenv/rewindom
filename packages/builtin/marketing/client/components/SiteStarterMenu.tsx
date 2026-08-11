@@ -24,6 +24,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { useSiteMutations } from "../hooks/useSite.js";
+import { siteEditorPath } from "../lib/site-editor-url.js";
 import { findSiteStarter, SITE_STARTERS } from "../lib/site-starters.js";
 
 interface SiteStarterMenuProps {
@@ -47,7 +48,7 @@ export function SiteStarterMenu({
     applyStarter.mutate(key, {
       onSuccess: (result) => {
         toast.success(t("starter.toastApplied"));
-        void navigate(`/app/site/pages/${result.home_page_id}`);
+        void navigate(siteEditorPath({ pageId: result.home_page_id }));
         setPending(null);
       },
       onError: () => toast.error(t("starter.toastApplyFailed")),

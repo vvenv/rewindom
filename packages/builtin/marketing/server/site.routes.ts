@@ -42,11 +42,11 @@ import {
   getPreviewSitePage,
   listPages,
   publishEditorDraft,
-  publishChrome,
+  publishSiteDraft,
   reorderPages,
-  revertChrome,
+  revertSiteDraft,
   revertEditorDraft,
-  saveChromeDraft,
+  saveSiteDraft,
   saveEditorDraft,
   setPageStatus,
   updatePage,
@@ -60,7 +60,7 @@ import type {
   MarketingSite,
   MarketingSiteCapabilities,
   ReorderMarketingPagesBody,
-  SaveChromeDraftBody,
+  SaveSiteDraftBody,
   SaveEditorDraftBody,
   UpdateMarketingPageBody,
   UpdateMarketingSiteBody,
@@ -338,14 +338,14 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
 
   defineRoute(app, {
     method: "PUT",
-    url: "/chrome/draft",
-    context: "SiteChromeDraftSave",
-    errorCode: "SITE_CHROME_DRAFT_SAVE_FAILED",
+    url: "/draft",
+    context: "SiteDraftSave",
+    errorCode: "SITE_DRAFT_SAVE_FAILED",
     preHandler: [app.requirePermission("site.write")],
     handler: async (request, reply) => {
       try {
-        const body = request.body as SaveChromeDraftBody;
-        const site = await saveChromeDraft(
+        const body = request.body as SaveSiteDraftBody;
+        const site = await saveSiteDraft(
           request.tenantContext!.tenant_id,
           body,
         );
@@ -369,19 +369,19 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
 
   defineRoute(app, {
     method: "POST",
-    url: "/chrome/publish",
-    context: "SiteChromePublish",
-    errorCode: "SITE_CHROME_PUBLISH_FAILED",
+    url: "/draft/publish",
+    context: "SiteDraftPublish",
+    errorCode: "SITE_DRAFT_PUBLISH_FAILED",
     preHandler: [app.requirePermission("site.write")],
     handler: async (request, reply) => {
       try {
-        const site = await publishChrome(request.tenantContext!.tenant_id);
+        const site = await publishSiteDraft(request.tenantContext!.tenant_id);
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: request.authUser!.userId,
           username: request.authUser!.username,
           action: AuditAction.SITE_UPDATE,
           resource: site.id,
-          detail_key: "marketing.audit.chrome_published",
+          detail_key: "marketing.audit.site_draft_published",
           detail_params: { site_name: auditSiteName(site) },
         });
         return { site };
@@ -396,19 +396,19 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
 
   defineRoute(app, {
     method: "POST",
-    url: "/chrome/revert",
-    context: "SiteChromeRevert",
-    errorCode: "SITE_CHROME_REVERT_FAILED",
+    url: "/draft/revert",
+    context: "SiteDraftRevert",
+    errorCode: "SITE_DRAFT_REVERT_FAILED",
     preHandler: [app.requirePermission("site.write")],
     handler: async (request, reply) => {
       try {
-        const site = await revertChrome(request.tenantContext!.tenant_id);
+        const site = await revertSiteDraft(request.tenantContext!.tenant_id);
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: request.authUser!.userId,
           username: request.authUser!.username,
           action: AuditAction.SITE_UPDATE,
           resource: site.id,
-          detail_key: "marketing.audit.chrome_reverted",
+          detail_key: "marketing.audit.site_draft_reverted",
           detail_params: { site_name: auditSiteName(site) },
         });
         return { site };

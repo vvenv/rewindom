@@ -78,3 +78,24 @@ export const SITE_THEMES: SiteTheme[] = [
 export function findSiteTheme(key: string): SiteTheme | undefined {
   return SITE_THEMES.find((theme) => theme.key === key);
 }
+
+/**
+ * 把一个包盖到现有 token 上。
+ *
+ * 品牌资产（logo / 分享图）穿过主题切换活下来——包里本来就没有这两项，但 `current` 里
+ * 有，展开顺序一写反就被 `undefined` 顶掉了，所以显式写回来。
+ *
+ * 服务端的 `POST /site/themes/:key/apply` 与站点设置里的主题选择器共用这一份语义：
+ * 一个直接落库、一个先改草稿等保存，覆盖哪些项必须是同一个答案。
+ */
+export function applySiteThemeSettings(
+  current: ThemeSettings,
+  theme: SiteTheme,
+): ThemeSettings {
+  return {
+    ...current,
+    ...theme.theme_settings,
+    logo_url: current.logo_url,
+    og_image: current.og_image,
+  };
+}

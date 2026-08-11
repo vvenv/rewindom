@@ -1,14 +1,21 @@
-import { FileText, Globe, Image as ImageIcon, Inbox, Signpost } from "lucide-react";
+import { FileText, Globe, Image as ImageIcon, Inbox } from "lucide-react";
 
 import type { AppNavSection } from "@be-water/client-kit";
 
 /**
- * 「站点」分组：一项一类**内容集合**（页面、表单提交、媒体、重定向、文档）。
+ * 「站点」分组：一项一类**内容集合**（页面、表单提交、媒体、文档）——租户在那里
+ * 写东西、看东西，会反复回来。媒体库留在这里：图片是内容，会被反复挑选、上传、替换。
  *
- * 页头页脚编辑器（`/app/site/chrome`）**刻意不在这里**：它和 Theme Editor
- * （`/app/site/pages/:pageId`）是同一种东西——一个对象的全屏编辑器，不是一类内容。
- * 编辑器从它编辑的东西点进去，所以入口在官网卡片上（`SiteSummaryHeader`），
- * 与 Theme Editor 从页面列表点进去同一口径。
+ * **编辑器不在这里，一项都没有。** 它曾经占过两项（「外观」指主题层、页面从列表进），
+ * 三个编辑器合成一个之后这不成立了：`isNavRouteActive` 只看 pathname，
+ * `/app/site/editor` 的两层共用同一个路径，侧栏没法分辨——不管在改主题还是在排某一页，
+ * 高亮的永远是同一项。两个入口指同一个界面，本来也说不清点哪个会去哪。
+ *
+ * 编辑器的入口因此**统一在官网卡片上**（`SiteSummaryHeader`：外观 / 页头页脚）与页面
+ * 列表的行上（`?page=<id>`）——都是「从要编辑的那个东西点进去」。
+ *
+ * **重定向**同理不在这里：它是「旧地址怎么处理」的一条路由规则，配完就不再回来，
+ * 已并入站点设置（`/app/site/settings?tab=redirects`）。
  */
 export const SITE_NAV_SECTIONS: AppNavSection[] = [
   {
@@ -37,14 +44,6 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
         label: "marketing:media.nav",
         path: "/app/site/media",
         title: "marketing:media.title",
-        tenantModule: "tenant-marketing",
-        anyPermission: ["site.read"],
-      },
-      {
-        icon: Signpost,
-        label: "marketing:redirects.nav",
-        path: "/app/site/redirects",
-        title: "marketing:redirects.title",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
       },

@@ -247,15 +247,20 @@
     "disabledHint": "该组织未开通官网",
     "viewSite": "查看官网",
     "settings": "站点设置",
-    "settingsTitle": "站点设置",
-    "settingsDescription": "站点名称、语言与对外可见性。",
-    "settingsSectionBasics": "站点信息",
-    "settingsSectionBasicsHint": "显示在页头、浏览器标签页与分享卡片上。",
+    "settingsSectionBasics": "基本信息",
+    "settingsSectionBasicsHint": "站名与标语，显示在页头、浏览器标签页与分享卡片上。",
+    "settingsSectionTheme": "外观",
+    "settingsSectionThemeHint": "整站通用的 Logo、配色与排版；只影响对外官网，不影响工作台。",
     "settingsSectionLocale": "语言",
-    "settingsSectionVisibility": "可见性",
-    "discardConfirmTitle": "放弃未保存的修改？",
-    "discardConfirmDescription": "关闭后这次编辑的内容不会保留。",
+    "settingsSectionLocaleHint": "站点的主语言，决定哪一种语言的页面不带 URL 前缀。",
+    "settingsSectionVisibility": "发布",
+    "settingsSectionVisibilityHint": "站点总开关；单个页面与文档另有各自的发布状态。",
     "discardConfirm": "放弃修改",
+    "unpublishConfirmTitle": "把站点下线？",
+    "unpublishConfirmDescription": "访客会立刻看到占位页，已发布的页面与文档都不再对外可见。内容不会丢，随时可以再上线。",
+    "unpublishConfirm": "下线站点",
+    "toastSitePublished": "站点已上线",
+    "toastSiteUnpublished": "站点已下线",
     "defaultLocaleConfirmTitle": "把主语言改成「{{to}}」？",
     "defaultLocaleConfirmDescription": "「{{to}}」的页面将改为不带语言前缀，原主语言「{{from}}」的页面则移到 /{{fromSlug}}/ 之下，已被搜索引擎收录或已分享出去的链接会失效。现有站名与标语会保留为「{{from}}」的译文，不会丢。",
     "toastSiteNameRequired": "请先填写主语言（{{locale}}）的站点名称。",
@@ -322,12 +327,12 @@
     "toastPageDuplicateFailed": "复制页面失败",
     "toastPageDeleted": "页面已删除",
     "toastPageDeleteFailed": "删除页面失败",
-    "chromeMovedHint": "页头与页脚可在「页头页脚」里单独编辑；页面区块在 Theme Editor；Logo、主色与字体在「系统管理 → 品牌」。",
+    "chromeMovedHint": "页头与页脚可在「页头页脚」里单独编辑；页面区块在 Theme Editor；租户 Logo 与 Favicon 在「系统管理 → 品牌」。",
     "chromeEditor": "页头页脚",
     "deleteConfirmTitle": "删除该页面？",
     "deleteConfirmDescription": "「{{title}}」及其全部区块将被永久删除，此操作不可撤销。",
-    "fieldLogoUrlPlaceholder": "默认使用上方的品牌 Logo",
-    "fieldLogoUrlHint": "留空即跟随「品牌」里上传的 Logo；只有官网想用不同版本（横版 / 深色版）时才填。",
+    "fieldLogoUrlPlaceholder": "默认使用品牌 Logo",
+    "fieldLogoUrlHint": "留空即跟随「系统管理 → 品牌」里上传的 Logo；只有官网想用不同版本（横版 / 深色版）时才填。",
     "fieldLocale": "语言",
     "localeHint": "同一路径每种语言各建一页；主语言的 URL 不带前缀，其余为 /{locale}/…",
     "fieldDefaultLocale": "主语言",
@@ -346,7 +351,8 @@
     "filterLocaleAll": "全部语言",
     "emptyFiltered": "没有匹配的页面",
     "emptyFilteredHint": "换个关键词，或清空筛选条件。",
-    "toastPageReorderFailed": "调整顺序失败，请重试"
+    "toastPageReorderFailed": "调整顺序失败，请重试",
+    "appearance": "外观"
   },
   "starter": {
     "menu": "起步模板",
@@ -395,7 +401,8 @@
       "unsaved": "有未保存的改动",
       "unpublished": "草稿未上线",
       "stale": "线上不是最新",
-      "live": "线上已是最新"
+      "live": "线上已是最新",
+      "siteDraftStale": "站点级更改未发布"
     },
     "discardLocal": "撤销未保存的改动",
     "discardLocalHint": "回到上次保存的草稿，只影响本机这一版。",
@@ -834,7 +841,21 @@
     "menuExpand": {
       "children": "收成下拉子菜单",
       "flat": "就地平铺"
-    }
+    },
+    "scope": {
+      "sections": "区块",
+      "theme": "主题",
+      "themeHint": "主题作用于整站；字段在右侧，改动实时反映在预览上。"
+    },
+    "pageDescription": "编辑页面区块、页头页脚与站点主题；保存进草稿，发布后对访客生效。",
+    "publishSite": "发布",
+    "pageMissing": "这一页不存在或已被删除；页头页脚与主题仍可编辑。"
+  },
+  "settings": {
+    "pageTitle": "站点设置",
+    "pageDescription": "站名、语言、重定向与发布状态；分区各自保存。外观在侧栏「外观」。",
+    "unsaved": "有未保存的修改",
+    "previewTitle": "实时预览"
   },
   "chromeEditor": {
     "title": "页头页脚",
@@ -850,10 +871,7 @@
     "toastPublished": "页头页脚已发布",
     "toastPublishFailed": "发布失败",
     "toastReverted": "已还原为线上版本",
-    "toastRevertFailed": "撤销失败",
-    "state": {
-      "stale": "页头页脚有未发布更改"
-    }
+    "toastRevertFailed": "撤销失败"
   },
   "seo": {
     "home": {
@@ -868,11 +886,6 @@
       "title": "文档",
       "description": "be-water 使用文档：快速开始、Agent-first、模块化架构、多租户与权限、部署。"
     }
-  },
-  "branding": {
-    "themeTitle": "官网主题",
-    "themeHint": "官网的站点 Logo、主色与字体；影响绑定域名上的对外页面。",
-    "themeSaved": "官网主题已保存"
   },
   "preset": {
     "doc_index": {
@@ -916,7 +929,8 @@
     "page_content_published": "发布官网页面内容「{{title}}」",
     "page_unpublished": "取消发布官网页面「{{title}}」",
     "starter_applied": "应用站点起步模板「{{key}}」（{{page_count}} 页）",
-    "chrome_published": "发布官网页头页脚「{{site_name}}」",
+    "site_draft_published": "发布官网页头页脚与主题「{{site_name}}」",
+    "site_draft_reverted": "撤销官网页头页脚与主题未发布的更改「{{site_name}}」",
     "doc_category_created": "创建文档分类「{{key}}」",
     "doc_category_updated": "更新文档分类「{{key}}」",
     "doc_category_deleted": "删除文档分类"
@@ -940,7 +954,6 @@
     "emptyHint": "访客提交站点表单后会出现在这里。"
   },
   "redirects": {
-    "nav": "重定向",
     "title": "重定向",
     "pageDescription": "把旧地址跳到新地址，保住外部链接与搜索排名。",
     "create": "新建重定向",
@@ -1093,12 +1106,8 @@
   },
   "theme": {
     "title": "主题",
-    "hint": "一套配色与排版的预设。套用后可以继续单独微调下面的每一项。",
+    "hint": "一套配色与排版的预设。套用会覆盖下面的主色、字体、页宽与区块间距（Logo 与分享图不动），之后仍可逐项微调，保存后生效。",
     "apply": "套用",
-    "applied": "已套用",
-    "applyFailed": "套用失败",
-    "applyConfirmTitle": "套用这个主题？",
-    "applyConfirmDescription": "会覆盖当前的主色、字体、页宽与区块间距。页面内容与 logo 不受影响。",
     "default": {
       "label": "默认",
       "description": "通用官网：中性蓝，常规页宽与间距。"

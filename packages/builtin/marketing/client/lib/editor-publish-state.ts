@@ -1,5 +1,5 @@
 /**
- * Theme Editor 顶部工具栏的状态机。
+ * 站点编辑器工具栏的状态机（打开页面与否共用一份）。
  *
  * 编辑器里有两级「未同步」，工具栏原来把它们摆成两个长得一样的按钮，谁也分不清：
  *
@@ -12,10 +12,15 @@
  * 提升到线上，所以「发布页面」与「发布页面更改」对用户是同一个动作，这里合成
  * 一个 `publish`，由调用方按 `published` 选路由。
  *
- * **页头页脚是站点级的，单独一条发布链**（改一次影响所有页面，所以不并进本页的
- * 发布）。但它同样要进这个状态机——否则「只改了页头并保存」会落进 `live`，
- * 状态点报「线上已是最新」，而草稿其实还没上线：租户照着这个绿点就走了，
+ * **站点级那几样（页头 / 页脚 / 主题）自成一条发布链**（改一次影响所有页面，所以不
+ * 并进本页的发布）。但它们同样要进这个状态机——否则「只改了页头并保存」会落进
+ * `live`，状态点报「线上已是最新」，而草稿其实还没上线：租户照着这个绿点就走了，
  * 改动永远停在草稿里。
+ *
+ * 页头页脚编辑器曾经另有一份 `resolveChromePublishState`：同样的四个字段、同样的
+ * 分支，只有 `stale` 那句文案不同。两份状态机意味着往其中一个加一档就会漏掉另一个，
+ * 所以合成这一个，差异收敛成 `scope`。没打开页面时没有「本页正文」这一维——站点级
+ * 那几样始终是已上线的那一份，于是 `published` / `contentDirty` 给了默认值。
  */
 export type EditorStage = "unsaved" | "unpublished" | "stale" | "live";
 
@@ -41,16 +46,21 @@ export interface EditorPublishState {
   publishBlockedKey: string | undefined;
 }
 
+/** 在编辑哪一层——只影响 `stale` 那句文案该说「本页」还是「站点级那几样」。 */
+export type EditorScope = "page" | "chrome";
+
 export function resolveEditorPublishState({
   dirty,
-  published,
-  contentDirty,
+  published = true,
+  contentDirty = false,
   chromeDirty = false,
+  scope = "page",
 }: {
   dirty: boolean;
-  published: boolean;
-  contentDirty: boolean;
+  published?: boolean;
+  contentDirty?: boolean;
   chromeDirty?: boolean;
+  scope?: EditorScope;
 }): EditorPublishState {
   // 撤销与发布是同一条链的两个方向，两级各自独立成立：内存有改动就能退回草稿，
   // 草稿领先线上就能退回线上——所以不并进下面的四选一分支。
@@ -93,7 +103,10 @@ export function resolveEditorPublishState({
       canSave: false,
       canPublish: true,
       ...revert,
-      statusKey: "editor.state.stale",
+      statusKey:
+        scope === "chrome"
+          ? "editor.state.siteDraftStale"
+          : "editor.state.stale",
       tone: "amber",
       publishBlockedKey: undefined,
     };

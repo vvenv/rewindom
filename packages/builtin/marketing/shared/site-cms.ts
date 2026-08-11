@@ -144,8 +144,8 @@ export interface MarketingSite {
   /** 站点级区域：schema 驱动，出现在所有页面上（**草稿**，保存后不一定已上线）。 */
   header: SiteSection[];
   footer: SiteSection[];
-  /** 草稿 chrome 是否与线上一致。 */
-  chrome_dirty: boolean;
+  /** 站点级草稿（页头 / 页脚 / 主题）是否领先线上，即有东西待发布。 */
+  site_draft_dirty: boolean;
   published: boolean;
   created_at: string;
   updated_at: string;
@@ -233,6 +233,8 @@ export interface SaveEditorDraftBody {
   settings?: MarketingPageSettings;
   /** 可见性立即生效（不进草稿列）：改完保存即对公开面生效。 */
   visibility?: MarketingPageVisibility;
+  /** 站点级主题草稿；不传表示这次没改主题。 */
+  theme_settings?: ThemeSettings;
 }
 
 /** Theme Editor 事务保存的响应：页面与站点 chrome 同批落库。 */
@@ -242,13 +244,16 @@ export interface SaveEditorDraftResponse {
 }
 
 /** 页头页脚编辑器的保存体：只写站点 chrome 草稿列。 */
-export interface SaveChromeDraftBody {
+/** 站点级草稿（页头 / 页脚 / 主题）——不带任何页面正文。 */
+export interface SaveSiteDraftBody {
   header: unknown;
   footer: unknown;
+  /** 不传表示这次没改主题。 */
+  theme_settings?: ThemeSettings;
 }
 
-/** 页头页脚草稿保存的响应。 */
-export interface SaveChromeDraftResponse {
+/** 站点级草稿保存的响应。 */
+export interface SaveSiteDraftResponse {
   site: MarketingSite;
 }
 

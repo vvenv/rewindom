@@ -44,7 +44,7 @@ import {
   type PublicMarketingPage,
   type PublicMarketingSite,
   type ReorderMarketingPagesBody,
-  type SaveChromeDraftBody,
+  type SaveSiteDraftBody,
   type SaveEditorDraftBody,
   parsePageVisibility,
   safePageSettings,
@@ -52,8 +52,15 @@ import {
   type UpdateMarketingSiteBody,
 } from "../shared/site-cms.js";
 import { withSiteLocale } from "../shared/site-locale.js";
-import { buildMinimalSiteChrome, buildSiteStarter, findSiteStarter } from "../shared/site-starters.js";
-import { findSiteTheme } from "../shared/site-themes.js";
+import {
+  buildMinimalSiteChrome,
+  buildSiteStarter,
+  findSiteStarter,
+} from "../shared/site-starters.js";
+import {
+  applySiteThemeSettings,
+  findSiteTheme,
+} from "../shared/site-themes.js";
 import { resolveThemeSettings } from "../shared/theme-sections.js";
 
 import { recordPageVersion } from "./site-page-version.service.js";
@@ -71,6 +78,7 @@ import {
   parsePageSettings,
   parseSiteAreaSections,
   parseSiteThemeSettings,
+  safeSiteThemeSettings,
   promotePageContentData,
   resolvePageIdentity,
   revertPageContentData,
@@ -204,7 +212,8 @@ export async function updateSite(
     data.published = Boolean(body.published);
   }
 
-  const nextTheme = resolveThemeSettings(existing.theme_settings);
+  // 主题改动一律进**草稿**列，与页头页脚同一条发布链；线上那一列只有发布才动
+  const nextTheme = resolveThemeSettings(existing.theme_settings_draft);
 
   if (body.theme_settings !== undefined) {
     const parsed = parseSiteThemeSettings(body.theme_settings);
@@ -226,7 +235,7 @@ export async function updateSite(
     body.primary_color !== undefined
   ) {
     // theme_settings 是唯一真相源；logo / 主色的独立列已随迁移删除
-    data.theme_settings = nextTheme as Prisma.InputJsonValue;
+    data.theme_settings_draft = nextTheme as Prisma.InputJsonValue;
   }
 
   const updated = await prisma.marketingSite.update({
@@ -550,6 +559,7 @@ export async function saveEditorDraft(
       data: {
         nav_draft_json: header as unknown as Prisma.InputJsonValue,
         footer_draft_json: footer as unknown as Prisma.InputJsonValue,
+        ...siteThemeDraftData(body.theme_settings),
       },
     }),
   ]);
@@ -557,13 +567,28 @@ export async function saveEditorDraft(
 }
 
 /**
- * 只保存页头页脚草稿，不动任何页面正文。
- *
- * 给独立的页头页脚编辑器用——不必为了改导航而打开某一页的 Theme Editor。
+ * 保存请求里带了主题就写草稿列，没带就不动——编辑器一次保存可能只改了正文。
+ * 两个保存入口（带页面 / 不带页面）共用这一份，省得一边加了另一边忘了。
  */
-export async function saveChromeDraft(
+function siteThemeDraftData(
+  theme_settings: unknown,
+): { theme_settings_draft?: Prisma.InputJsonValue } {
+  if (theme_settings === undefined) return {};
+  return {
+    theme_settings_draft: parseSiteThemeSettings(
+      theme_settings,
+    ) as Prisma.InputJsonValue,
+  };
+}
+
+/**
+ * 只保存**站点级**草稿（页头 / 页脚 / 主题），不动任何页面正文。
+ *
+ * 给编辑器在没打开任何页面时用——改导航或换配色不必先挑一个页面。
+ */
+export async function saveSiteDraft(
   tenant_id: string,
-  body: SaveChromeDraftBody,
+  body: SaveSiteDraftBody,
 ): Promise<MarketingSite> {
   await ensureSiteRow(tenant_id);
   const header = parseSiteAreaSections("header", body.header);
@@ -574,46 +599,64 @@ export async function saveChromeDraft(
     data: {
       nav_draft_json: header as unknown as Prisma.InputJsonValue,
       footer_draft_json: footer as unknown as Prisma.InputJsonValue,
+      ...siteThemeDraftData(body.theme_settings),
     },
   });
   return toMarketingSite(site);
 }
 
-/** 将页头页脚草稿发布到线上（不影响任何页面正文）。 */
-export async function publishChrome(tenant_id: string): Promise<MarketingSite> {
+/**
+ * 站点级草稿 → 线上：页头 / 页脚 / 主题一起上线，不影响任何页面正文。
+ *
+ * 主题跟着这条链而不是「一存就生效」：改配色是全站可见的动作，与改导航同一量级，
+ * 没有理由让它绕过发布这一步。
+ */
+export async function publishSiteDraft(
+  tenant_id: string,
+): Promise<MarketingSite> {
   await ensureSiteRow(tenant_id);
   const existingSite = await prisma.marketingSite.findFirstOrThrow({
     where: { tenant_id },
   });
 
-  const header = siteChromeDraftHeader(existingSite);
-  const footer = siteChromeDraftFooter(existingSite);
-
   const site = await prisma.marketingSite.update({
     where: { tenant_id },
     data: {
-      nav_json: header as unknown as Prisma.InputJsonValue,
-      footer_json: footer as unknown as Prisma.InputJsonValue,
+      nav_json: siteChromeDraftHeader(
+        existingSite,
+      ) as unknown as Prisma.InputJsonValue,
+      footer_json: siteChromeDraftFooter(
+        existingSite,
+      ) as unknown as Prisma.InputJsonValue,
+      theme_settings: safeSiteThemeSettings(
+        existingSite.theme_settings_draft,
+      ) as Prisma.InputJsonValue,
     },
   });
   return toMarketingSite(site);
 }
 
-/** 将页头页脚草稿还原为线上版本（不影响任何页面正文）。 */
-export async function revertChrome(tenant_id: string): Promise<MarketingSite> {
+/** 站点级草稿还原为线上那一版（页头 / 页脚 / 主题），不影响任何页面正文。 */
+export async function revertSiteDraft(
+  tenant_id: string,
+): Promise<MarketingSite> {
   await ensureSiteRow(tenant_id);
   const existingSite = await prisma.marketingSite.findFirstOrThrow({
     where: { tenant_id },
   });
 
-  const header = siteChromePublishedHeader(existingSite);
-  const footer = siteChromePublishedFooter(existingSite);
-
   const site = await prisma.marketingSite.update({
     where: { tenant_id },
     data: {
-      nav_draft_json: header as unknown as Prisma.InputJsonValue,
-      footer_draft_json: footer as unknown as Prisma.InputJsonValue,
+      nav_draft_json: siteChromePublishedHeader(
+        existingSite,
+      ) as unknown as Prisma.InputJsonValue,
+      footer_draft_json: siteChromePublishedFooter(
+        existingSite,
+      ) as unknown as Prisma.InputJsonValue,
+      theme_settings_draft: safeSiteThemeSettings(
+        existingSite.theme_settings,
+      ) as Prisma.InputJsonValue,
     },
   });
   return toMarketingSite(site);
@@ -677,7 +720,10 @@ export async function applySiteStarter(
         ...(tagline !== undefined && {
           tagline: tagline as unknown as Prisma.InputJsonValue,
         }),
+        // 起步模板是「铺一套现成的」，草稿与线上一起写：套完立刻就是站点的样子，
+        // 不该让人再去发布一次才看得见（与 chrome 同一口径）
         theme_settings: theme_settings as unknown as Prisma.InputJsonValue,
+        theme_settings_draft: theme_settings as unknown as Prisma.InputJsonValue,
         nav_json: header as unknown as Prisma.InputJsonValue,
         footer_json: footer as unknown as Prisma.InputJsonValue,
         nav_draft_json: header as unknown as Prisma.InputJsonValue,
@@ -1015,6 +1061,10 @@ export async function publishEditorDraft(
         data: {
           nav_json: header as unknown as Prisma.InputJsonValue,
           footer_json: footer as unknown as Prisma.InputJsonValue,
+          // 主题与页头页脚同属站点级草稿，一次发布一起上线
+          theme_settings: safeSiteThemeSettings(
+            existingSite.theme_settings_draft,
+          ) as Prisma.InputJsonValue,
         },
       }),
     ]);
@@ -1066,6 +1116,9 @@ export async function revertEditorDraft(
       data: {
         nav_draft_json: header as unknown as Prisma.InputJsonValue,
         footer_draft_json: footer as unknown as Prisma.InputJsonValue,
+        theme_settings_draft: safeSiteThemeSettings(
+          existingSite.theme_settings,
+        ) as Prisma.InputJsonValue,
       },
     }),
   ]);
@@ -1121,7 +1174,11 @@ export async function getSiteChromeOrFallback(
   fallbackName: string,
   locale?: AppLocale | null,
 ): Promise<PublicMarketingSite> {
-  const published = await getPublishedPublicSite(tenant_id, tenant_slug, locale);
+  const published = await getPublishedPublicSite(
+    tenant_id,
+    tenant_slug,
+    locale,
+  );
   if (published) return published;
 
   const site = await prisma.marketingSite.findFirst({
@@ -1401,18 +1458,16 @@ export async function applySiteTheme(
   const existing = await prisma.marketingSite.findFirstOrThrow({
     where: { tenant_id },
   });
-  const current = resolveThemeSettings(existing.theme_settings);
+  // 套主题包改的是**草稿**，与编辑器里逐项微调同一条链——发布才对访客生效
+  const current = resolveThemeSettings(existing.theme_settings_draft);
 
   const site = await prisma.marketingSite.update({
     where: { tenant_id },
     data: {
-      theme_settings: {
-        ...current,
-        ...theme.theme_settings,
-        // 品牌资产穿过主题切换活下来
-        logo_url: current.logo_url,
-        og_image: current.og_image,
-      } as unknown as Prisma.InputJsonValue,
+      theme_settings_draft: applySiteThemeSettings(
+        current,
+        theme,
+      ) as unknown as Prisma.InputJsonValue,
     },
   });
   return toMarketingSite(site);
@@ -1463,7 +1518,9 @@ export async function getPublishedSitemapEntries(
     (locale) => !publishedHomeLocales.has(locale),
   );
   if (localesNeedingFallbackHome.length > 0) {
-    const allHomeLocales = [...new Set([...publishedHomeLocales, ...siteLocales])];
+    const allHomeLocales = [
+      ...new Set([...publishedHomeLocales, ...siteLocales]),
+    ];
     const alternates = allHomeLocales.map((locale) => ({
       locale,
       path: withSiteLocale("/", locale, default_locale),

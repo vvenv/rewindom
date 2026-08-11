@@ -13,22 +13,22 @@
 | 面           | 路由                                                                  | 目录                                         | 守卫                                           |
 | ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
 | 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
-| 租户中台     | `/app/site`、`/app/site/chrome`（页头页脚）、`/app/site/pages/:pageId`（Theme Editor） | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
+| 租户中台     | `/app/site`、`/app/site/editor`（编辑器：区块 / 主题，`?page=` / `?scope=`）、`/app/site/settings`（站点设置） | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
-挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / Theme Editor）。
+挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / 编辑器）。
 公开站**不**挂 React；交互由 `site-enhance`（无 React IIFE）渐进增强。
 
 `/` 由本模块占据，因此**登录后的落地页不是 `/`**，而是 `HOME_PATH_CANDIDATES` 解析出的路径。
 外部链接想进应用一律指向 `/app`。平台管理员入口在 `PLATFORM_URL`。
 
-公开页 chrome 由 SSR HTML 产出；Theme Editor 预览用 React `SiteChrome` / `TenantSiteView`。
+公开页 chrome 由 SSR HTML 产出；编辑器预览用 React `SiteChrome` / `TenantSiteView`。
 工作台页用 `PageLayout`。
 
 ## 租户 CMS 数据
 
 | 模型            | 说明                                                                                                                                           |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `chrome_dirty`）。导航条目嵌在页头 `chrome_nav` / 页脚 `menu_column` 块的 `settings.items` 里 |
+| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `site_draft_dirty`）。导航条目嵌在页头 `chrome_nav` / 页脚 `menu_column` 块的 `settings.items` 里 |
 | `MarketingPage` | `kind`: `home` \| `page` \| **模板页 kind**（见下）；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退） |
 
 ### 模板页（`shared/page-templates.ts`）
@@ -507,7 +507,7 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 `pricing` 不在保留 slug 里——绑定域名上归租户（平台页只在平台域名下有意义）；
 `docs` **是**保留的，归租户文档库（见下）。
 
-**动态页面菜单**：在 Theme Editor 插入 `page-menu` section——父页选 `children`，子页选
+**动态页面菜单**：在编辑器里插入 `page-menu` section——父页选 `children`，子页选
 `siblings`；条目随已发布页面目录自动更新，无需手填链接。要做成左侧栏就把它放进
 `group` 的第一列（`3:9` + 列 sticky），没有 chrome 级的自动侧栏。
 
@@ -590,12 +590,30 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
   语言**落地；建完直接进编辑器——一张空白页留在列表里什么也说明不了
 - 列表里的路径只作展示不做链接（同文档库）：站点跑在租户自己的域名上，管理端拼不出
   可点的绝对地址
-- **页头页脚**有独立路由（`/app/site/chrome`，入口在站点卡片上）：不必为了改导航而
-  打开某一页的 Theme Editor；保存 / 发布 / 撤销走 `PUT|POST /api/site/chrome/*`，与页面正文解耦
+- **页头页脚**不带页面也能编（`/app/site/editor`，入口在站点卡片上）：不必为了改导航而
+  打开某一页；保存 / 发布 / 撤销走 `PUT|POST /api/site/draft*`，与页面正文解耦
 
-### Theme Editor
+### 站点编辑器（`/app/site/editor`）
 
-`/app/site/pages/:pageId` 三栏：
+**一个编辑器管三样**：页面区块、页头页脚、站点主题。URL 上两个参数决定看到什么：
+
+| 参数              | 作用                                                            |
+| ----------------- | --------------------------------------------------------------- |
+| `?page=<id>`      | 树里多出「页面区块」那一段；不带就只有页头页脚，改导航不必先挑页面 |
+| `?scope=theme`    | 切到主题层，字段进右侧设置栏（默认 `sections`）                   |
+
+三样以前是三个界面——逐页编辑器、页头页脚编辑器、外观页——各自一份三栏壳、各自一份
+预览接线，外观那份预览还是只读的静态首页（改配色等于盲改，站点没首页时干脆是空白）。
+它们改的是同一个站点、看的是同一块预览，差别只是「在调哪一层」，所以合成一个
+（口径同 Shopify 主题编辑器）。官网卡片上的「外观」按钮直接链到 `?scope=theme`。
+
+**主题为什么不是树上的一项**：树上选中的都是对象（某一段、某个块、页面自己），
+而主题是整站的一层参数，没有可选中的对象，所以用左栏顶部的层切换（`EditorScopeSwitcher`）。
+
+没打开页面时右上角那枚发布是 `EditorToolbar`（站点级链），打开了则是 `PageEditorToolbar`
+（正文 + 站点级同事务）。页面被删 / 链接过期不整页失败：站点级那两层照样能编。
+
+三栏：
 
 - **左**：页面 / 页头 / 页面区块 / 页脚四组。最上面「页面」那一行不是 section，是**页面自己**（标题 / SEO 描述），选中后右栏出 `PageMetaForm`——改元数据不用退回页面列表，且即时反映到中间预览。其余三组是区块树（对齐 Shopify sections group），section → blocks 两层，容器段再多一层（列 → 子段 → 子段的 blocks），增删排序都在这里；页头页脚不可删不可移。树上的操作一律**按 id 定位**（`client/lib/section-schema.ts`），不用下标——下标只在自己那一层有意义
 - **中**：同页预览（`TenantSiteView`），点击任意区块即选中；点在某个 block 上直接选中该 block，点在段的其余部分选中整段
@@ -631,13 +649,13 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 设置面板的「内容 / 版式」页签按**该 section 真有没有字段**渲染：只有一组有字段就直接铺开不套页签
 （如分栏段设置全在版式下），两组都没有则只显示一句提示。只剩分组抬头的一组算空组。
 
-**页头页脚编辑器**（`/app/site/chrome`）：只编辑站点级 chrome，左树只有页头 / 页脚两组；
-保存 `PUT /api/site/chrome/draft`，发布 `POST /api/site/chrome/publish`，撤销
-`POST /api/site/chrome/revert`。与页面草稿列无关，但共用同一套 section schema 与预览组件。
+**不带页面进编辑器**（`/app/site/editor`）：左树只有页头 / 页脚两组；保存
+`PUT /api/site/draft`，发布 `POST /api/site/draft/publish`，撤销 `POST /api/site/draft/revert`
+——这三个接口连主题一起处理。与页面草稿列无关，但共用同一套 section schema 与预览组件。
 
-Theme Editor 保存一次写页面 sections 与页头页脚草稿：`PUT /api/site/pages/:id/draft`（`saveEditorDraft`，同事务）。
-页头页脚也可单独发布：`POST /api/site/chrome/publish`（将草稿列复制到 `nav_json` / `footer_json`）；
-在 Theme Editor 里点发布则与本页正文同一事务上线。
+打开页面时保存一次写页面 sections 与站点级草稿（页头页脚 + 主题）：`PUT /api/site/pages/:id/draft`（`saveEditorDraft`，同事务）。
+站点级那几样也可单独发布：`POST /api/site/draft/publish`（草稿列复制到 `nav_json` / `footer_json` / `theme_settings`）；
+在编辑器里打开某一页点发布，则与本页正文同一事务上线。
 已发布页面正文上线：`POST /api/site/pages/:id/content/publish`（将草稿列复制到 `title` / `description` / `sections` / `settings`）。
 首次发布页面：`POST /api/site/pages/:id/publish`（`status` → `published` 并同步正文草稿）。
 
@@ -647,7 +665,7 @@ Theme Editor 保存一次写页面 sections 与页头页脚草稿：`PUT /api/si
 | -------------------- | ----------------------------------------------- | ------------------------ |
 | 内存 → 已保存的草稿  | 纯前端（清 sessionStorage 缓存后重新灌入）      | `dirty`                  |
 | 页面草稿 → 线上      | `POST /api/site/pages/:id/content/revert`       | 页面 `published` 且脏     |
-| 页头页脚草稿 → 线上  | `POST /api/site/chrome/revert`                  | `chrome_dirty`           |
+| 站点级草稿 → 线上    | `POST /api/site/draft/revert`                   | `site_draft_dirty`       |
 
 服务端两条 revert 是 publish 的镜像：把无后缀列回灌进 `_draft` 列。页面级那条只对
 **已发布**页面开放——没上线过的页面，无后缀列里躺的是建页初值，拿它当还原目标只会
@@ -660,8 +678,22 @@ Theme Editor 保存一次写页面 sections 与页头页脚草稿：`PUT /api/si
 语言按钮组、复制、预设、发布、保存。整页替换 sections 的「预设」放这里而不是区块树里——
 它与「添加区块」不是一档操作，挨着摆成同样的下拉太容易误点。
 
+**工具栏只有一份**（`components/theme-editor/EditorToolbar.tsx`）：容器、返回、状态、
+保存 / 发布此一份，差异收成三个插槽——`nav`（换页 / 换语言 / 版本历史）、
+`menuItemsBefore` / `menuItemsAfter`（复制、取消发布）、`publishLabelKey`。打开页面时那
+几样特有的东西装在 `PageEditorToolbar` 里（复制那张 Sheet 必须挂在工具栏**外面**：
+菜单项当不了 `SheetTrigger`，而菜单内容关闭时会卸载）。
+
+原先两份工具栏逐字重复，状态却长歪了：一个画彩色胶囊、一个画小圆点，撤销项一个带说明
+一个不带，页头页脚那份还把不可点的按钮直接藏掉。收敛后统一成「小圆点 + 文案」、
+按钮留在原位置置灰（`publishBlockedKey` 在 tooltip 里说明为什么发不了）。
+状态机同理只剩 `resolveEditorPublishState` 一个——没打开页面时除了 `stale` 一句文案
+完全一样，靠 `scope: "chrome"` 区分；那时没有「本页正文」这一维，`published` /
+`contentDirty` 走默认值。
+
 编辑器状态全在本地草稿里，**离开就丢**（返回列表 / 换页 / 换语言都是重新加载），
-所以这三处导航统一走 `leaveTo()`：`useSiteThemeEditor` 用灌入时的快照算 `dirty`，脏了先弹确认。
+所以这三处导航统一走 `leaveTo()`：`useSiteEditor` 用灌入时的快照算 `dirty`，脏了先弹确认。
+草稿也进 sessionStorage（`?page=` 一份、没有页面时共用 `site` 那一份）。
 
 **复制页面**（`POST /api/site/pages/:id/duplicate`，只要标题 + 目标语言）：区块结构照搬，
 复制件一律是**草稿**。文案会把源语言槽位里的原文搬进目标语言槽位（`relocalizeSections`）——
@@ -686,10 +718,68 @@ Theme Editor 保存一次写页面 sections 与页头页脚草稿：`PUT /api/si
 会看到 SaaS 运营方的注册表单。首页 CTA 因此走页内锚点（`#contact` → band 段的 `anchor`），
 `SiteLink` 会把 `#` 开头的 href 原样交给 `<a>`，不再当相对路径去补 locale 前缀。
 
-**站点主题**（Logo / 主色 / 字体 / 页宽 / 区块间距）已从编辑器移出，并入「系统管理 → 品牌」（`/app/settings`）：
-`platform` 开 `settingsBrandingExtraSlot`，本模块通过 `client.shell.shellProviders`
-注入 `SiteThemeCard`（`platform` 不得反向 import 业务模块）。未开通 `tenant-marketing`
-的租户不渲染该卡片也不发请求。
+### 站点设置（`/app/site/settings`）
+
+站点级的东西按**是不是要看着预览调**分两处：
+
+| 在哪                                   | 内容                                                       |
+| -------------------------------------- | ---------------------------------------------------------- |
+| 编辑器主题层（官网卡片 →「外观」）     | 主题包、站点 Logo、分享图、配色、字体、页宽、区块间距       |
+| 站点设置（官网卡片 →「站点设置」）     | 基本信息、语言、重定向、发布（四个分区）                     |
+
+外观进编辑器而不是留在设置页，是因为它要**看着预览调**。它曾经是设置页的一个页签，
+又曾经是一张带只读预览的独立页——前者太深（官网 → 站点设置 → 外观），后者的预览是
+第四份实现且点不动。
+
+设置页的四个分区：
+
+| 分区     | 字段                           | 提交                                     |
+| -------- | ------------------------------ | ---------------------------------------- |
+| 基本信息 | 站名 / 标语（逐字段 `__i18n`） | `{ site_name, tagline }`                 |
+| 语言     | 主语言                         | `{ default_locale, site_name, tagline }` |
+| 重定向   | 旧地址 → 新地址                | 各自的 `/site/redirects` 接口            |
+| 发布     | 站点总开关                     | `{ published }`，**开关即存**            |
+
+**一份草稿、多个保存按钮**：分区共用 `use-site-settings-form`，每个分区只提交自己那几个
+字段，审计里「改了站名」与「换了主语言」是两条记录。分区脏了就在页签上打一个点——走开
+会丢，得让人在切过去之前就看见。
+
+「语言」是唯一带别的字段的：换主语言必须连带把文案钉在原语言下（`pinToLocale`），
+拆成两次请求会留下一个「文案语言已失真」的中间态。
+
+设置页**不进侧栏**：那几组设完就不太回来，从官网卡片进去。当前分区放 URL（`?tab=`），
+刷新与深链都成立。
+
+只读用户（`site.read` 无 `site.write`）两处都能进：字段禁用、保存按钮不渲染。
+
+**重定向**从侧栏挪进了设置页：侧栏「站点」分组每一项都是一类内容集合，而重定向是
+「旧地址怎么处理」的一条路由规则，配完就不再回来。媒体库留在侧栏——图片是内容。
+
+### 站点主题的归属
+
+**站点主题**（Logo / 分享图 / 配色 / 字体 / 页宽 / 区块间距）不在「系统管理 → 品牌」，
+而是编辑器的**主题层**（`/app/site/editor?scope=theme`）。
+
+曾经借 `platform` 的 `settingsBrandingExtraSlot` 注入到品牌页，撤掉了：那页按
+`settings.*` 授权，而这些字段落库走 `PATCH /api/site`（`site.write`）、读要 `site.read`，
+两套权限对不上——有官网权限的人在那儿只能看不能存，有设置权限但没有 `site.read` 的人
+连表单都拉不出来，还得靠 `useTenantModuleEnabled` 把整张卡片藏起来。跟着一起删的还有
+`platform` 那个只为它开的槽。
+
+品牌页现在只留**跨模块共用**的租户 Logo / Favicon（工作台 + 登录页 + 官网都读它）。
+
+**主题有自己的草稿列**（`theme_settings_draft`，迁移 `20260811114014_marketing_theme_draft`
+带回填），与页头页脚**同一条发布链**：改完存草稿、发布才对访客生效，撤销一起回滚。
+`site_draft_dirty`（原 `chrome_dirty`）三样一起算——只改了配色也要标「未发布」，否则
+状态点报绿而访客看到的还是旧配色。管理端 `toMarketingSite` 读草稿列，公开面读线上列。
+
+以前主题是「一存就全站生效」，与同屏的页头页脚草稿两种语义，塞进一个编辑器后一个
+「保存」按钮说不清自己干了什么。
+
+**主题包**同样只改草稿，跟着工具栏的「保存草稿」落库——所以不再弹确认框（改了什么在
+右侧字段与中间预览里当场可见，不保存就不算数）。覆盖语义与服务端一键套用共用
+`shared/site-themes.ts` 的 `applySiteThemeSettings`。
+`POST /site/themes/:key/apply`（写草稿 + 审计）保留给 Agent / API 调用方。
 
 `theme_settings` 是站点主题的**唯一真相源**——`logo_url` / `primary_color` 曾经另有独立列，
 已由 `20260804020000_marketing_site_theme_only` 回填后删除；API 上的同名顶层字段是派生值。
@@ -702,7 +792,7 @@ Theme Editor 保存一次写页面 sections 与页头页脚草稿：`PUT /api/si
 
 API：
 
-- 租户：`/api/site`、`/api/site/capabilities`、`/api/site/chrome/*`、`/api/site/pages…`（含 `POST /pages/:id/duplicate`）、`/api/site/preview`（权限 `site.read` / `site.write`）
+- 租户：`/api/site`、`/api/site/capabilities`、`/api/site/draft`（站点级草稿：`PUT` 存 / `POST /publish` / `POST /revert`）、`/api/site/pages…`（含 `POST /pages/:id/duplicate`）、`/api/site/preview`（权限 `site.read` / `site.write`）
 - 公开：`GET /api/public/site`、`GET /api/public/site/page?path=`
 - Entitlement key：`tenant-marketing`
 
@@ -779,6 +869,8 @@ logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
 
 ## 重定向与 404
 
+管理入口在**站点设置 →「重定向」**（`/app/site/settings?tab=redirects`），不在侧栏。
+
 访客访问一个地址时的顺序是**页面 → 重定向 → 404**：
 
 1. `getPublishedPublicPage` 找到已发布页 → 正常渲染
@@ -842,7 +934,7 @@ og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算
 租户随时会改标题、删字段、调顺序，按 id 存的话三个月后回头看只剩一堆 uuid 对不上任何东西。
 
 **SSR 只出静态结构**；提交由 site-enhance 拦截（`validateFormValues` + `POST /api/public/site/form`）。
-Theme Editor 预览里的 React `FormSection` 共用同一份校验。
+编辑器预览里的 React `FormSection` 共用同一份校验。
 
 ## 默认内容从哪来
 

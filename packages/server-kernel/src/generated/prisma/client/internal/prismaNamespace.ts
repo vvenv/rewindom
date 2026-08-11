@@ -3450,6 +3450,7 @@ export const MarketingSiteScalarFieldEnum = {
   site_name: 'site_name',
   tagline: 'tagline',
   theme_settings: 'theme_settings',
+  theme_settings_draft: 'theme_settings_draft',
   default_locale: 'default_locale',
   nav_json: 'nav_json',
   footer_json: 'footer_json',

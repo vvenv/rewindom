@@ -37,6 +37,7 @@ import { toast } from "sonner";
 
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import { useSite, useSiteMutations } from "../hooks/useSite.js";
+import { siteEditorPath } from "../lib/site-editor-url.js";
 
 import { SitePageMetaCoreFields } from "./SitePageMetaCoreFields.js";
 
@@ -91,7 +92,7 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
           toast.success(t("cms.toastPageCreated"));
           setOpen(false);
           reset();
-          navigate(`/app/site/pages/${page.id}`);
+          navigate(siteEditorPath({ pageId: page.id }));
         },
         onError: () => toast.error(t("cms.toastPageCreateFailed")),
       },

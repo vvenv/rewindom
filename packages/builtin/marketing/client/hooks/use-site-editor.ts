@@ -47,6 +47,8 @@ import {
   useSitePages,
 } from "./useSite.js";
 
+import type { ThemeSettings } from "../../shared/theme-sections.js";
+
 /**
  * 当前选中项。
  *
@@ -66,7 +68,14 @@ export type AddSectionTarget =
 /** 页头 / 页脚是站点级的：与页面 sections 分开存、分开存盘。 */
 export type EditorArea = "header" | "footer";
 
-export function useSiteThemeEditor(pageId: string | undefined) {
+/**
+ * 一个编辑器管三样：**页面正文、页头页脚、主题**。
+ *
+ * `pageId` 可选——改导航或换配色不必先挑一张页面（站点一张页面都没有时也进得来）。
+ * 有页面时保存走 `saveEditorDraft`（正文 + 站点级草稿同事务），没有则走
+ * `saveSiteDraft`（只站点级）。
+ */
+export function useSiteEditor(pageId: string | undefined) {
   const siteQuery = useSite();
   const capabilitiesQuery = useSiteCapabilities();
   const pagesQuery = useSitePages();
@@ -84,26 +93,38 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   const [pageSettings, setPageSettings] = useState<MarketingPageSettings>({});
   const [visibility, setVisibility] =
     useState<MarketingPageVisibility>("public");
+  const [theme, setTheme] = useState<ThemeSettings>({});
+  const [chromeLocale, setChromeLocale] = useState<AppLocale>("zh-CN");
   const [selection, setSelection] = useState<ThemeEditorSelection | null>(null);
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
   const [baseline, setBaseline] = useState<string | null>(null);
 
+  /*
+   * 没打开页面时只等站点数据：页头页脚与主题本来就不依赖任何一张页面，
+   * 一张页面都没有的站点照样要能改导航和配色。
+   */
   useEffect(() => {
-    if (!pageQuery.data || !siteQuery.data || !pageId) return;
-    const key = `${pageQuery.data.id}:${pageQuery.data.updated_at}:${siteQuery.data.updated_at}`;
+    if (!siteQuery.data) return;
+    if (pageId && !pageQuery.data) return;
+    const pageKey = pageQuery.data
+      ? `${pageQuery.data.id}:${pageQuery.data.updated_at}`
+      : "site";
+    const key = `${pageKey}:${siteQuery.data.updated_at}`;
     if (hydratedKey === key) return;
 
-    const serverSections = pageQuery.data.sections;
+    const serverSections = pageQuery.data?.sections ?? [];
     const serverHeader = siteQuery.data.header;
     const serverFooter = siteQuery.data.footer;
-    const serverTitle = pageQuery.data.title;
-    const serverDescription = pageQuery.data.description;
-    const serverSettings = pageQuery.data.settings ?? {};
-    const serverVisibility = pageQuery.data.visibility ?? "public";
+    const serverTheme = siteQuery.data.theme_settings;
+    const serverTitle = pageQuery.data?.title ?? "";
+    const serverDescription = pageQuery.data?.description ?? "";
+    const serverSettings = pageQuery.data?.settings ?? {};
+    const serverVisibility = pageQuery.data?.visibility ?? "public";
     const serverSnapshot = draftSnapshot(
       serverSections,
       serverHeader,
       serverFooter,
+      serverTheme,
       serverTitle,
       serverDescription,
       serverSettings,
@@ -118,6 +139,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
         cached.sections,
         cached.header,
         cached.footer,
+        cached.theme ?? serverTheme,
         cached.title,
         cached.description,
         cached.settings ?? {},
@@ -127,6 +149,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     const nextSections = useCache ? cached.sections : serverSections;
     const nextHeader = useCache ? cached.header : serverHeader;
     const nextFooter = useCache ? cached.footer : serverFooter;
+    const nextTheme = useCache ? (cached.theme ?? serverTheme) : serverTheme;
     const nextTitle = useCache ? cached.title : serverTitle;
     const nextDescription = useCache ? cached.description : serverDescription;
     const nextSettings = useCache
@@ -139,15 +162,21 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     setSections(nextSections);
     setHeader(nextHeader);
     setFooter(nextFooter);
+    setTheme(nextTheme);
     setTitle(nextTitle);
     setDescription(nextDescription);
     setPageSettings(nextSettings);
     setVisibility(nextVisibility);
     const firstId = nextSections[0]?.id ?? null;
     setSelection(
-      firstId
-        ? { kind: "section", sectionId: firstId, blockId: null }
-        : { kind: "meta" },
+      pageId
+        ? firstId
+          ? { kind: "section", sectionId: firstId, blockId: null }
+          : { kind: "meta" }
+        : // 没有页面就没有 meta 那一行，落在页头第一段上
+          (nextHeader[0]?.id ?? null) !== null
+          ? { kind: "section", sectionId: nextHeader[0]!.id, blockId: null }
+          : null,
     );
     setBaseline(serverSnapshot);
     setHydratedKey(key);
@@ -164,6 +193,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
         sections,
         header,
         footer,
+        theme,
         title,
         description,
         pageSettings,
@@ -171,13 +201,14 @@ export function useSiteThemeEditor(pageId: string | undefined) {
       );
 
   useEffect(() => {
-    if (!pageId || !hydratedKey || baseline === null) return;
+    if (!hydratedKey || baseline === null) return;
     if (!dirty) return;
     writeEditorCache(pageId, {
       serverKey: hydratedKey,
       sections,
       header,
       footer,
+      theme,
       title,
       description,
       settings: pageSettings,
@@ -191,6 +222,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     sections,
     header,
     footer,
+    theme,
     title,
     description,
     pageSettings,
@@ -208,7 +240,17 @@ export function useSiteThemeEditor(pageId: string | undefined) {
   const defaultLocale: AppLocale = normalizeLocale(
     siteQuery.data?.default_locale,
   );
-  const locale: AppLocale = page ? page.locale : defaultLocale;
+  /*
+   * 有页面时语言就是**这一行页面的语言**（页面按语言分行存，切语言 = 切到同 slug
+   * 的另一行）。没有页面时页头页脚仍然要能逐语言校对文案——它们是逐字段翻译的，
+   * 不依赖任何一行页面，所以另给一个本地的编辑语言。
+   */
+  const locale: AppLocale = page ? page.locale : chromeLocale;
+
+  // 站点主语言拉回来之后把本地编辑语言对齐过去（初值只是个占位）
+  useEffect(() => {
+    setChromeLocale(defaultLocale);
+  }, [defaultLocale]);
 
   /** 同一篇内容的各语言行；`pageId` 为 null 表示该语言还没建。 */
   const localeVariants: Array<{ locale: AppLocale; pageId: string | null }> =
@@ -266,11 +308,8 @@ export function useSiteThemeEditor(pageId: string | undefined) {
       path: withSiteLocale(path, variant.locale, defaultLocale),
     }));
 
-  // 主题设置已并入「系统管理 → 品牌」，编辑器只读取它做预览。
-  const previewLogoUrl =
-    siteQuery.data?.theme_settings.logo_url ??
-    brandingQuery.data?.logo_url ??
-    null;
+  // 预览吃**草稿**主题：改一个色号右边当场就变，不用先保存
+  const previewLogoUrl = theme.logo_url ?? brandingQuery.data?.logo_url ?? null;
   const previewSite: PublicMarketingSite | null = siteQuery.data
     ? {
         site_name: localizeSiteText(
@@ -284,11 +323,8 @@ export function useSiteThemeEditor(pageId: string | undefined) {
           defaultLocale,
         ),
         logo_url: previewLogoUrl,
-        primary_color: siteQuery.data.theme_settings.primary_color ?? null,
-        theme_settings: {
-          ...siteQuery.data.theme_settings,
-          logo_url: previewLogoUrl,
-        },
+        primary_color: theme.primary_color ?? null,
+        theme_settings: { ...theme, logo_url: previewLogoUrl },
         default_locale: defaultLocale,
         locale,
         available_locales: localeVariants
@@ -377,6 +413,8 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     setPageSettings,
     visibility,
     setVisibility,
+    theme,
+    setTheme,
     selection,
     setSelection,
     selectedSectionId,
@@ -389,11 +427,14 @@ export function useSiteThemeEditor(pageId: string | undefined) {
     previewSections,
     previewAlternates,
     locale,
+    /** 只在没打开页面时有意义：有页面时语言由那一行决定，换语言得换页。 */
+    setLocale: setChromeLocale,
     defaultLocale,
     localeVariants,
     localePages,
     dirty,
-    chromeDirty: siteQuery.data?.chrome_dirty ?? false,
+    /** 站点级草稿（页头 / 页脚 / 主题）领先线上。 */
+    siteDraftDirty: siteQuery.data?.site_draft_dirty ?? false,
     contentDirty: pageQuery.data?.content_dirty ?? false,
     mutations,
 
@@ -404,7 +445,7 @@ export function useSiteThemeEditor(pageId: string | undefined) {
      * ——服务端草稿是什么样，编辑器就回到什么样，多一条还原路径就多一处能对不齐。
      */
     discardLocalChanges: (): void => {
-      if (pageId) clearEditorCache(pageId);
+      clearEditorCache(pageId);
       setHydratedKey(null);
     },
 
@@ -530,6 +571,7 @@ function draftSnapshot(
   sections: SiteSection[],
   header: SiteSection[],
   footer: SiteSection[],
+  theme: ThemeSettings,
   title: string,
   description: string,
   settings: MarketingPageSettings,
@@ -539,6 +581,7 @@ function draftSnapshot(
     sections,
     header,
     footer,
+    theme,
     title,
     description,
     settings,
@@ -546,8 +589,9 @@ function draftSnapshot(
   ]);
 }
 
-function editorCacheKey(pageId: string): string {
-  return `marketing-theme-editor:${pageId}`;
+/** 没打开页面时也缓存一份（页头页脚 / 主题的草稿），共用同一套键。 */
+function editorCacheKey(pageId: string | undefined): string {
+  return `marketing-site-editor:${pageId ?? "site"}`;
 }
 
 interface EditorCachePayload {
@@ -555,13 +599,16 @@ interface EditorCachePayload {
   sections: SiteSection[];
   header: SiteSection[];
   footer: SiteSection[];
+  theme?: ThemeSettings;
   title: string;
   description: string;
   settings?: MarketingPageSettings;
   visibility?: MarketingPageVisibility;
 }
 
-function readEditorCache(pageId: string): EditorCachePayload | null {
+function readEditorCache(
+  pageId: string | undefined,
+): EditorCachePayload | null {
   try {
     const raw = sessionStorage.getItem(editorCacheKey(pageId));
     if (!raw) return null;
@@ -572,7 +619,7 @@ function readEditorCache(pageId: string): EditorCachePayload | null {
 }
 
 export function writeEditorCache(
-  pageId: string,
+  pageId: string | undefined,
   payload: EditorCachePayload,
 ): void {
   try {
@@ -582,7 +629,7 @@ export function writeEditorCache(
   }
 }
 
-export function clearEditorCache(pageId: string): void {
+export function clearEditorCache(pageId: string | undefined): void {
   try {
     sessionStorage.removeItem(editorCacheKey(pageId));
   } catch {

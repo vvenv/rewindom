@@ -1,57 +1,35 @@
-import { useState, type ReactElement } from "react";
+import type { ReactElement } from "react";
 
-import { useConfirm } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
-import { toast } from "@be-water/ui/toast";
-import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { SITE_THEMES } from "../../../shared/site-themes.js";
-import { applySiteTheme, SITE_QUERY_KEY } from "../../lib/site-api.js";
+import { SITE_THEMES, type SiteTheme } from "../../../shared/site-themes.js";
 
 /**
  * 主题包选择器。
  *
  * 「主题」是一组预设值，选中即写进 `theme_settings`（不是运行时的一层，理由见
- * `shared/site-themes.ts`）。所以它会**覆盖**租户已有的微调——确认框必须把这句说明白，
- * 不能让人以为只是换个皮肤预览一下。
+ * `shared/site-themes.ts`）。所以它会**覆盖**下面那些微调项——但覆盖的是草稿：
+ * 改了什么下面各字段与右侧预览当场就变，不保存就不算数，所以这里不再拦一道确认框。
  *
  * 当前用的是哪个包不做高亮：写下去之后 token 就归租户了，改过一个颜色还标着「当前：极简」
  * 反而是错的信息。
  */
 export function SiteThemePicker({
-  canWrite,
+  onPick,
+  disabled,
 }: {
-  canWrite: boolean;
+  onPick: (theme: SiteTheme) => void;
+  disabled?: boolean;
 }): ReactElement {
   const { t } = useTranslation("marketing");
-  const { confirm } = useConfirm();
-  const queryClient = useQueryClient();
-  const [applying, setApplying] = useState<string | null>(null);
-
-  const apply = async (key: string): Promise<void> => {
-    const confirmed = await confirm({
-      title: t("theme.applyConfirmTitle"),
-      description: t("theme.applyConfirmDescription"),
-    });
-    if (!confirmed) return;
-    setApplying(key);
-    try {
-      await applySiteTheme(key);
-      await queryClient.invalidateQueries({ queryKey: SITE_QUERY_KEY });
-      toast.success(t("theme.applied"));
-    } catch {
-      toast.error(t("theme.applyFailed"));
-    } finally {
-      setApplying(null);
-    }
-  };
 
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium">{t("theme.title")}</p>
       <p className="text-muted-foreground text-xs">{t("theme.hint")}</p>
-      <ul className="grid gap-2 sm:grid-cols-2">
+      {/* 单列：它挂在 300px 的设置栏里，两列会把「默认」这种两字标题拆行 */}
+      <ul className="grid gap-2">
         {SITE_THEMES.map((theme) => (
           <li
             key={theme.key}
@@ -73,11 +51,13 @@ export function SiteThemePicker({
                 {t(theme.description)}
               </p>
             </div>
+            {/* type="button"：它在站点设置那张表单里，默认的 submit 会当场把草稿存了 */}
             <Button
+              type="button"
               variant="outline"
               size="sm"
-              disabled={!canWrite || applying !== null}
-              onClick={() => void apply(theme.key)}
+              disabled={disabled}
+              onClick={() => onPick(theme)}
             >
               {t("theme.apply")}
             </Button>

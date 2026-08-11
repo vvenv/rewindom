@@ -13,8 +13,14 @@ import {
   useUploadTenantBranding,
   type BrandingAssetKind,
 } from "../hooks/useTenantBrandingMutations.js";
-import { settingsBrandingExtraSlot } from "../shell/settings-slots.js";
 
+/**
+ * 租户品牌资产：应用外壳、登录页与官网**共用**的那一份 Logo / Favicon。
+ *
+ * 官网自己的外观（站点 Logo 覆盖、主色、字体、页宽…）**不在这里**——那些落库走
+ * `PATCH /api/site`（`site.write`），与本页的 `settings.*` 不是同一套授权，曾经靠
+ * 一个扩展槽注进来，结果两边权限对不上。现在归「官网 → 设置」。
+ */
 export function SettingsBrandingPage() {
   const { t } = useTranslation("platform");
   const { hasPermission } = usePermissions();
@@ -22,7 +28,6 @@ export function SettingsBrandingPage() {
   const brandingQuery = useTenantBranding();
   const uploadMutation = useUploadTenantBranding();
   const clearMutation = useClearTenantBranding();
-  const BrandingExtra = settingsBrandingExtraSlot.useSlot();
 
   const logoUrl = brandingQuery.data?.logo_url ?? null;
   const faviconUrl = brandingQuery.data?.favicon_url ?? null;
@@ -96,8 +101,6 @@ export function SettingsBrandingPage() {
             accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,.ico"
             hint={t("branding.favicon.hint")}
           />
-
-          {BrandingExtra ? <BrandingExtra canWrite={canWrite} /> : null}
         </div>
       )}
     </PageLayout>

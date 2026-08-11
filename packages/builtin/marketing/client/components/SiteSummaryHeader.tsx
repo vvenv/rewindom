@@ -1,14 +1,20 @@
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
+import { ButtonGroup } from "@be-water/ui/button-group";
 import { CardAction, CardHeader, CardTitle } from "@be-water/ui/card";
 import { Skeleton } from "@be-water/ui/skeleton";
-import { ExternalLink, LayoutTemplate, Settings2 } from "lucide-react";
+import {
+  ExternalLink,
+  LayoutTemplate,
+  Paintbrush,
+  Settings2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { localizeSiteText } from "../../shared/section-schema.js";
+import { siteEditorPath } from "../lib/site-editor-url.js";
 
-import { SiteSettingsSheet } from "./SiteSettingsSheet.js";
 import { SiteStarterMenu } from "./SiteStarterMenu.js";
 
 import type { MarketingSite } from "../../shared/site-cms.js";
@@ -88,8 +94,7 @@ export function SiteSummaryHeader({
       <CardAction className="flex items-center gap-2">
         {/*
           官网就挂在当前 Host 的 `/`（见 Host 分流），所以用相对地址即可——写死
-          域名会在自定义域名 / 本地 `{slug}.localhost` 上指错站点。只读也能看，
-          所以放在 `canWrite` 之外。
+          域名会在自定义域名 / 本地 `{slug}.localhost` 上指错站点。
         */}
         <Button asChild variant="outline" size="sm">
           <a
@@ -99,31 +104,63 @@ export function SiteSummaryHeader({
             aria-label={t("cms.viewSite")}
           >
             <ExternalLink className="size-4" />
-            <span className="hidden sm:inline">{t("cms.viewSite")}</span>
+            <span className="hidden lg:inline">{t("cms.viewSite")}</span>
           </a>
         </Button>
+
         {/*
-          页头页脚入口不进 `canWrite`：编辑器本身按 `site.write` 逐个禁用操作，只读的人
-          进去能看不能改。左侧导航那条也只要 `site.read`——两处门槛不一致的话，只读的人
-          从菜单进得去、从卡片进不去。
+          三个「去别处配置这个站点」的入口归一组：平铺成四五个按钮时主次分不出来，
+          窄一点就挤成一排图标。文案到 `lg` 才出现——中等宽度下图标 + tooltip 已经够认，
+          硬留文案反而会把统计信息挤到第二行。
+
+          **编辑器的入口都在这里**（外观 / 页头页脚，同一个编辑器的两层），侧栏一项都
+          不给：两层共用 `/app/site/editor` 这一个路径，侧栏高亮只认 pathname，分不出
+          在改哪一层——见 `tenant/nav-sections.ts`。
+
+          都不进 `canWrite`：目标页都按 `site.write` 逐项禁用，只读的人进去能看不能改。
         */}
-        <Button asChild variant="outline" size="sm">
-          <Link to="/app/site/chrome">
-            <LayoutTemplate className="size-4" />
-            <span className="hidden sm:inline">{t("cms.chromeEditor")}</span>
-          </Link>
-        </Button>
-        {canWrite ? (
-          <>
-            <SiteStarterMenu hasContent={hasStarterContent} />
-            <SiteSettingsSheet site={site}>
-              <Button variant="outline" size="sm">
-                <Settings2 className="size-4" />
-                <span className="hidden sm:inline">{t("cms.settings")}</span>
-              </Button>
-            </SiteSettingsSheet>
-          </>
-        ) : null}
+        <ButtonGroup>
+          <Button asChild variant="outline" size="sm" title={t("cms.settings")}>
+            <Link to="/app/site/settings">
+              <Settings2 className="size-4" />
+              {/*
+                `sr-only lg:not-sr-only` 而不是「藏一个 + 另给一个 sr-only」：后者
+                两个节点都在无障碍树里，读屏会把标签念两遍。
+              */}
+              <span className="sr-only lg:not-sr-only">
+                {t("cms.settings")}
+              </span>
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            title={t("cms.appearance")}
+          >
+            <Link to={siteEditorPath({ scope: "theme" })}>
+              <Paintbrush className="size-4" />
+              <span className="sr-only lg:not-sr-only">
+                {t("cms.appearance")}
+              </span>
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            title={t("cms.chromeEditor")}
+          >
+            <Link to={siteEditorPath()}>
+              <LayoutTemplate className="size-4" />
+              <span className="sr-only lg:not-sr-only">
+                {t("cms.chromeEditor")}
+              </span>
+            </Link>
+          </Button>
+        </ButtonGroup>
+
+        {canWrite ? <SiteStarterMenu hasContent={hasStarterContent} /> : null}
       </CardAction>
     </CardHeader>
   );

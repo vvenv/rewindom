@@ -7,11 +7,11 @@ import { registerSectionDefinition } from "../shared/section-schema.js";
 import {
   applySiteStarter,
   duplicatePage,
-  publishChrome,
+  publishSiteDraft,
   reorderPages,
-  revertChrome,
+  revertSiteDraft,
   revertEditorDraft,
-  saveChromeDraft,
+  saveSiteDraft,
   saveEditorDraft,
 } from "./site.service.js";
 
@@ -338,7 +338,7 @@ describe("saveEditorDraft", () => {
   /*
    * 独立的页头页脚编辑器：只写 chrome 草稿列，不碰页面表。
    */
-  describe("saveChromeDraft", () => {
+  describe("saveSiteDraft", () => {
     beforeEach(() => {
       vi.clearAllMocks();
       vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
@@ -353,7 +353,7 @@ describe("saveEditorDraft", () => {
         footer: [{ type: "footer", settings: {}, blocks: [] }],
       };
 
-      await saveChromeDraft(TENANT, body);
+      await saveSiteDraft(TENANT, body);
 
       expect(prisma.marketingPage.update).not.toHaveBeenCalled();
       expect(prisma.marketingSite.update).toHaveBeenCalledWith(
@@ -365,21 +365,51 @@ describe("saveEditorDraft", () => {
         }),
       );
     });
+
+    /** 没带主题就别写那一列，否则「只改了导航」的一次保存会把主题草稿抹平。 */
+    it("leaves the theme draft alone when the body carries no theme", async () => {
+      await saveSiteDraft(TENANT, { header: [], footer: [] });
+
+      expect(prisma.marketingSite.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.not.objectContaining({
+            theme_settings_draft: expect.anything(),
+          }),
+        }),
+      );
+    });
+
+    it("writes the theme into the draft column, never the live one", async () => {
+      await saveSiteDraft(TENANT, {
+        header: [],
+        footer: [],
+        theme_settings: { primary_color: "#c026d3" },
+      });
+
+      const call = vi.mocked(prisma.marketingSite.update).mock.calls[0]?.[0];
+      expect(call?.data).toMatchObject({
+        theme_settings_draft: { primary_color: "#c026d3" },
+      });
+      expect(call?.data).not.toHaveProperty("theme_settings");
+    });
   });
 
-  describe("publishChrome", () => {
+  describe("publishSiteDraft", () => {
     beforeEach(() => {
       vi.clearAllMocks();
       vi.mocked(prisma.marketingSite.findFirstOrThrow).mockResolvedValue({
         ...siteRow,
         nav_draft_json: [{ type: "header", settings: {}, blocks: [] }],
         footer_draft_json: [{ type: "footer", settings: {}, blocks: [] }],
+        theme_settings: { primary_color: "#0369a1" },
+        theme_settings_draft: { primary_color: "#c026d3" },
       } as never);
       vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
     });
 
-    it("copies draft chrome to published columns", async () => {
-      await publishChrome(TENANT);
+    /** 主题与页头页脚同一条链：一次发布把三样一起送上线。 */
+    it("copies draft chrome and theme to the published columns", async () => {
+      await publishSiteDraft(TENANT);
 
       expect(prisma.marketingPage.update).not.toHaveBeenCalled();
       expect(prisma.marketingSite.update).toHaveBeenCalledWith(
@@ -387,13 +417,16 @@ describe("saveEditorDraft", () => {
           data: expect.objectContaining({
             nav_json: expect.anything(),
             footer_json: expect.anything(),
+            theme_settings: expect.objectContaining({
+              primary_color: "#c026d3",
+            }),
           }),
         }),
       );
     });
   });
 
-  describe("revertChrome", () => {
+  describe("revertSiteDraft", () => {
     beforeEach(() => {
       vi.clearAllMocks();
       vi.mocked(prisma.marketingSite.findFirstOrThrow).mockResolvedValue({
@@ -402,12 +435,14 @@ describe("saveEditorDraft", () => {
         footer_json: [{ type: "footer", settings: {}, blocks: [] }],
         nav_draft_json: [{ type: "header", settings: { sticky: false }, blocks: [] }],
         footer_draft_json: [],
+        theme_settings: { primary_color: "#0369a1" },
+        theme_settings_draft: { primary_color: "#c026d3" },
       } as never);
       vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
     });
 
-    it("copies published chrome back to draft columns", async () => {
-      await revertChrome(TENANT);
+    it("copies the published chrome and theme back onto the draft columns", async () => {
+      await revertSiteDraft(TENANT);
 
       expect(prisma.marketingPage.update).not.toHaveBeenCalled();
       expect(prisma.marketingSite.update).toHaveBeenCalledWith(
@@ -415,6 +450,9 @@ describe("saveEditorDraft", () => {
           data: expect.objectContaining({
             nav_draft_json: expect.anything(),
             footer_draft_json: expect.anything(),
+            theme_settings_draft: expect.objectContaining({
+              primary_color: "#0369a1",
+            }),
           }),
         }),
       );

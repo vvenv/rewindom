@@ -376,7 +376,7 @@
     "nav": "Branding",
     "page": {
       "title": "Branding",
-      "description": "Tenant logo, favicon and site theme — one place for the app shell, login page and public website."
+      "description": "Tenant logo and favicon — one asset shared by the app shell, the login page and the public site. Colors and layout for the site live under Website → Site settings."
     },
     "loading": "Loading…",
     "loadFailed": "Failed to load branding",

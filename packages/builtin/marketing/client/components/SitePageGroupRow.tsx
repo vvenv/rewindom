@@ -25,8 +25,10 @@ import {
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
+
 import { formatDocDate } from "../../shared/marketing-doc.js";
 import { getPageTemplateKind } from "../../shared/page-templates.js";
+import { siteEditorPath } from "../lib/site-editor-url.js";
 
 import { SitePageDuplicateSheet } from "./SitePageDuplicateSheet.js";
 import { SitePublishStatus } from "./SitePublishStatus.js";
@@ -93,7 +95,7 @@ export function SitePageGroupRow({
           键盘用户 Tab 不到，中键 / ⌘ 点也开不了新标签页。
         */
         <Link
-          to={`/app/site/pages/${page.id}`}
+          to={siteEditorPath({ pageId: page.id })}
           className={cn(
             "truncate font-medium hover:underline",
             stretch && "after:absolute after:inset-0",
@@ -139,7 +141,7 @@ export function SitePageGroupRow({
             <PageRow page={page} canWrite={canWrite} actions={actions} indent>
               {canWrite ? (
                 <Link
-                  to={`/app/site/pages/${page.id}`}
+                  to={siteEditorPath({ pageId: page.id })}
                   className="truncate text-sm after:absolute after:inset-0 hover:underline"
                 >
                   {getLocaleNativeLabel(page.locale)}

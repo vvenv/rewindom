@@ -9,8 +9,10 @@ model MarketingSite {
   // 纯字符串（单语言）或 { __i18n: { [locale]: text } }（同页头文案）
   site_name      Json
   tagline        Json     @default("\"\"")
-  // 品牌相关（logo / 主色 / 字体 / 版式）统一放 theme_settings，不再单独开列
+  // 品牌相关（logo / 主色 / 字体 / 版式）统一放 theme_settings，不再单独开列。
+  // 与 chrome 同一口径：无后缀的是线上（访客看到的），`_draft` 的是编辑器在改的那一份。
   theme_settings Json     @default("{}")
+  theme_settings_draft Json @default("{}")
   default_locale String   @default("zh-CN")
   nav_json       Json     @default("[]")
   footer_json    Json     @default("[]")

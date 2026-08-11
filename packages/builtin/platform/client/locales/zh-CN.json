@@ -376,7 +376,7 @@
     "nav": "品牌",
     "page": {
       "title": "品牌",
-      "description": "租户 Logo、Favicon 与官网主题；应用外壳、登录页与对外官网共用一处配置。"
+      "description": "租户 Logo 与 Favicon；应用外壳、登录页与对外官网共用这一份资产。官网的配色与排版在「官网 → 站点设置」。"
     },
     "loading": "加载中…",
     "loadFailed": "加载品牌配置失败",

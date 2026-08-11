@@ -157,3 +157,50 @@ describe("页头页脚并入同一条发布链", () => {
     expect(state.canRevert).toBe(true);
   });
 });
+
+/**
+ * 没打开页面时走同一个状态机（原来另有一份 `resolveChromePublishState`）：
+ * 不传 `published` / `contentDirty`，只有 `stale` 那句文案换成站点级的说法。
+ */
+describe("resolveEditorPublishState（站点级：页头页脚 + 主题）", () => {
+  it("有未保存改动时先保存，不让直接发布", () => {
+    const state = resolveEditorPublishState({
+      dirty: true,
+      chromeDirty: true,
+      scope: "chrome",
+    });
+
+    expect(state.primary).toBe("save");
+    expect(state.canPublish).toBe(false);
+  });
+
+  it("草稿领先线上时给发布，文案指名是站点级那几样", () => {
+    const state = resolveEditorPublishState({
+      dirty: false,
+      chromeDirty: true,
+      scope: "chrome",
+    });
+
+    expect(state.primary).toBe("publish");
+    expect(state.canRevert).toBe(true);
+    expect(state.statusKey).toBe("editor.state.siteDraftStale");
+  });
+
+  it("都不脏就是线上最新", () => {
+    const state = resolveEditorPublishState({
+      dirty: false,
+      chromeDirty: false,
+      scope: "chrome",
+    });
+
+    expect(state.stage).toBe("live");
+    expect(state.primary).toBeNull();
+  });
+
+  /** 缺省 `published: true` 不能让页面编辑器的「未上线」档意外走进页头页脚。 */
+  it("不传 published 时不会落进未上线档", () => {
+    const state = resolveEditorPublishState({ dirty: false, scope: "chrome" });
+
+    expect(state.stage).not.toBe("unpublished");
+  });
+});

@@ -22,27 +22,21 @@ const SiteMedia = lazy(() =>
   })),
 );
 
-const SiteRedirects = lazy(() =>
-  import("../pages/site-redirects.js").then((module) => ({
-    default: module.SiteRedirects,
-  })),
-);
-
 const SiteDocs = lazy(() =>
   import("../pages/site-docs.js").then((module) => ({
     default: module.SiteDocs,
   })),
 );
 
-const SiteChromeEditor = lazy(() =>
-  import("../pages/site-chrome-editor.js").then((module) => ({
-    default: module.SiteChromeEditor,
+const SiteEditor = lazy(() =>
+  import("../pages/site-editor.js").then((module) => ({
+    default: module.SiteEditor,
   })),
 );
 
-const SiteThemeEditor = lazy(() =>
-  import("../pages/site-theme-editor.js").then((module) => ({
-    default: module.SiteThemeEditor,
+const SiteSettings = lazy(() =>
+  import("../pages/site-settings.js").then((module) => ({
+    default: module.SiteSettings,
   })),
 );
 
@@ -67,10 +61,9 @@ export function renderSiteRoutes(): ReactNode {
           element={<SiteFormSubmissions />}
         />
         <Route path="/app/site/media" element={<SiteMedia />} />
-        <Route path="/app/site/redirects" element={<SiteRedirects />} />
         <Route path="/app/site/docs" element={<SiteDocs />} />
-        <Route path="/app/site/chrome" element={<SiteChromeEditor />} />
-        <Route path="/app/site/pages/:pageId" element={<SiteThemeEditor />} />
+        <Route path="/app/site/editor" element={<SiteEditor />} />
+        <Route path="/app/site/settings" element={<SiteSettings />} />
       </Route>
     </Route>
   );

@@ -27,9 +27,10 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
         "应用站点起步模板「{{key}}」（{{page_count}} 页）",
       "marketing.audit.theme_applied": "套用站点主题「{{key}}」",
       "site.theme_not_found": "主题不存在",
-      "marketing.audit.chrome_published": "发布官网页头页脚「{{site_name}}」",
-      "marketing.audit.chrome_reverted":
-        "撤销官网页头页脚未发布的更改「{{site_name}}」",
+      "marketing.audit.site_draft_published":
+        "发布官网页头页脚与主题「{{site_name}}」",
+      "marketing.audit.site_draft_reverted":
+        "撤销官网页头页脚与主题未发布的更改「{{site_name}}」",
       "site.page_not_found": "页面不存在",
       "site.page_not_published": "页面尚未发布",
       "site.page_title_required": "页面标题不能为空",
@@ -113,10 +114,10 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
         'Applied site starter "{{key}}" ({{page_count}} pages)',
       "marketing.audit.theme_applied": 'Applied site theme "{{key}}"',
       "site.theme_not_found": "Theme not found",
-      "marketing.audit.chrome_published":
-        'Published site header and footer for "{{site_name}}"',
-      "marketing.audit.chrome_reverted":
-        'Discarded unpublished header and footer changes for "{{site_name}}"',
+      "marketing.audit.site_draft_published":
+        'Published site header, footer and theme for "{{site_name}}"',
+      "marketing.audit.site_draft_reverted":
+        'Discarded unpublished header, footer and theme changes for "{{site_name}}"',
       "site.page_not_found": "Page not found",
       "site.page_not_published": "Page is not published",
       "site.page_title_required": "Page title is required",

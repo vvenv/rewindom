@@ -87,7 +87,7 @@ describe("SitePageGroupRow", () => {
 
     expect(screen.getByRole("link", { name: "关于我们" })).toHaveAttribute(
       "href",
-      "/app/site/pages/zh",
+      "/app/site/editor?page=zh",
     );
     expect(screen.getByText("/about")).toBeInTheDocument();
     // 语言名是多语言组才有的第二层，单语言时不该出现
@@ -106,7 +106,7 @@ describe("SitePageGroupRow", () => {
     // 语言行本身就是进那一语言编辑器的链接（整行热区）
     expect(
       within(rows[0]!).getByRole("link", { name: "中文" }),
-    ).toHaveAttribute("href", "/app/site/pages/zh");
+    ).toHaveAttribute("href", "/app/site/editor?page=zh");
     expect(within(rows[1]!).getByText("English")).toBeInTheDocument();
     // 组头只出现一次，标题不在语言行里重复
     expect(screen.getAllByRole("link", { name: "关于我们" })).toHaveLength(1);

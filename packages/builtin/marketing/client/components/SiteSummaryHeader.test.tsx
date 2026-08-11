@@ -22,15 +22,15 @@ const site = {
   default_locale: "zh-CN",
   header: [],
   footer: [],
-  chrome_dirty: false,
+  site_draft_dirty: false,
   published: true,
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
 } as unknown as MarketingSite;
 
 /**
- * `canWrite={false}`：起步模板与设置抽屉自带数据请求，计数这一行与它们无关。
- * 只读下仍会渲染页头页脚那颗 `<Link>`，所以要套一层 router。
+ * `canWrite={false}`：起步模板那颗自带数据请求，计数这一行与它无关。
+ * 只读下仍会渲染站点设置与页头页脚两颗 `<Link>`，所以要套一层 router。
  */
 function renderHeader(summary?: {
   total: number;
@@ -92,7 +92,7 @@ describe("SiteSummaryHeader", () => {
 
     expect(screen.getByRole("link", { name: "页头页脚" })).toHaveAttribute(
       "href",
-      "/app/site/chrome",
+      "/app/site/editor",
     );
   });
 });

@@ -10,12 +10,12 @@ import {
   fetchSitePage,
   fetchSitePages,
   patchSite,
-  publishSiteChrome,
+  publishSiteDraft,
   publishSiteEditorDraft,
   reorderSitePages,
-  revertSiteChrome,
+  revertSiteDraft,
   revertSiteEditorDraft,
-  saveSiteChromeDraft,
+  saveSiteDraft,
   saveSiteEditorDraft,
   SITE_CAPABILITIES_QUERY_KEY,
   SITE_PAGES_QUERY_KEY,
@@ -27,7 +27,7 @@ import type {
   CreateMarketingPageBody,
   DuplicateMarketingPageBody,
   ReorderMarketingPagesBody,
-  SaveChromeDraftBody,
+  SaveSiteDraftBody,
   SaveEditorDraftBody,
   UpdateMarketingSiteBody,
 } from "../../shared/site-cms.js";
@@ -109,18 +109,18 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
-  const saveChromeDraft = useMutation({
-    mutationFn: (body: SaveChromeDraftBody) => saveSiteChromeDraft(body),
+  const saveSiteDraftMutation = useMutation({
+    mutationFn: (body: SaveSiteDraftBody) => saveSiteDraft(body),
     onSuccess: () => invalidate(),
   });
 
-  const publishChrome = useMutation({
-    mutationFn: () => publishSiteChrome(),
+  const publishSiteDraftMutation = useMutation({
+    mutationFn: () => publishSiteDraft(),
     onSuccess: () => invalidate(),
   });
 
-  const revertChrome = useMutation({
-    mutationFn: () => revertSiteChrome(),
+  const revertSiteDraftMutation = useMutation({
+    mutationFn: () => revertSiteDraft(),
     onSuccess: () => invalidate(),
   });
 
@@ -170,9 +170,9 @@ export function useSiteMutations() {
     createPage,
     duplicatePage,
     saveEditorDraft,
-    saveChromeDraft,
-    publishChrome,
-    revertChrome,
+    saveSiteDraft: saveSiteDraftMutation,
+    publishSiteDraft: publishSiteDraftMutation,
+    revertSiteDraft: revertSiteDraftMutation,
     applyStarter,
     publishDraft,
     revertDraft,
