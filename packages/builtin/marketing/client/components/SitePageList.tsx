@@ -2,12 +2,11 @@ import { EmptyState } from "@be-water/client-kit";
 import { Alert, AlertDescription } from "@be-water/ui/alert";
 import { Button } from "@be-water/ui/button";
 import { Skeleton } from "@be-water/ui/skeleton";
-import { FileText, Plus, SearchX } from "lucide-react";
+import { SearchX } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { canMoveSitePageGroup } from "../lib/site-page-order.js";
 
-import { SitePageCreateSheet } from "./SitePageCreateSheet.js";
 import { SitePageGroupRow } from "./SitePageGroupRow.js";
 
 import type { SitePageActions } from "../hooks/use-site-page-actions.js";
@@ -90,34 +89,25 @@ export function SitePageList({
   }
 
   if (groups.length === 0) {
-    return isFiltered ? (
-      <EmptyState
-        icon={SearchX}
-        title={t("cms.emptyFiltered")}
-        description={t("cms.emptyFilteredHint")}
-        action={
-          <Button variant="outline" size="sm" onClick={onResetFilters}>
-            {t("common:reset")}
-          </Button>
-        }
-      />
-    ) : (
-      <EmptyState
-        icon={FileText}
-        title={t("cms.empty")}
-        description={t("cms.emptyHint")}
-        action={
-          canWrite ? (
-            <SitePageCreateSheet>
-              <Button size="sm">
-                <Plus className="size-4" />
-                {t("cms.create")}
-              </Button>
-            </SitePageCreateSheet>
-          ) : null
-        }
-      />
-    );
+    if (isFiltered) {
+      return (
+        <EmptyState
+          icon={SearchX}
+          title={t("cms.emptyFiltered")}
+          description={t("cms.emptyFilteredHint")}
+          action={
+            <Button variant="outline" size="sm" onClick={onResetFilters}>
+              {t("common:reset")}
+            </Button>
+          }
+        />
+      );
+    }
+    /*
+     * 自定义页为空是常态：首页 / 文档版式等模板页在下方常驻，且多数自带默认版式。
+     * 这里再画「还没有页面」会让人以为站点一片空白。
+     */
+    return null;
   }
 
   // 筛选中不给排序：可见的先后与真实先后不是一回事，点下去等于盲排

@@ -3,7 +3,7 @@
  *
  * 与通用起步模板（`site-starters` / `page-presets` 的占位文案）分开：那些是给任意
  * 租户开局用的；这里是 be-water 自己的产品站，文案来自 `client/locales` 里历史落地页
- * 那一套（`site` / `hero` / `features` / `landing` / `pricing` / `seo`）。
+ * 那一套（`site` / `hero` / `features` / `landing` / `seo`）。
  */
 
 import en from "../client/locales/en.json" with { type: "json" };
@@ -54,23 +54,6 @@ const FEATURE_KEYS = [
   "server",
 ] as const;
 
-const PLAN_SLUGS = [
-  "free",
-  "starter",
-  "pro",
-  "business",
-  "enterprise",
-] as const;
-
-/** 与 `packages/builtin/platform/shared/pricing-plans.ts` 对齐的月价展示。 */
-const PLAN_PRICES: Record<(typeof PLAN_SLUGS)[number], number | null> = {
-  free: 0,
-  starter: 99,
-  pro: 399,
-  business: 999,
-  enterprise: null,
-};
-
 const TECH_STACK_ROWS: ReadonlyArray<{
   layer: keyof LocaleMessages["techStack"]["layerLabels"];
   detail: string;
@@ -107,20 +90,6 @@ function t(locale: AppLocale, path: string): string {
     current = (current as Record<string, unknown>)[part];
   }
   return typeof current === "string" ? current : path;
-}
-
-function tList(locale: AppLocale, path: string): string[] {
-  const parts = path.split(".");
-  let current: unknown = MESSAGES[locale];
-  for (const part of parts) {
-    if (!current || typeof current !== "object" || !(part in current)) {
-      return [];
-    }
-    current = (current as Record<string, unknown>)[part];
-  }
-  return Array.isArray(current)
-    ? current.filter((item): item is string => typeof item === "string")
-    : [];
 }
 
 function interpolate(template: string, vars: Record<string, string>): string {
@@ -210,10 +179,7 @@ function buildChrome(): Pick<
 
   const productColumn = createBlock("footer", "menu_column", {
     title: i18nLiteral({ "zh-CN": "产品", en: "Product" }),
-    items: [
-      navLink(i18nLiteral({ "zh-CN": "首页", en: "Home" }), "/"),
-      navLink(i18n("nav.pricing"), "/pricing"),
-    ],
+    items: [navLink(i18nLiteral({ "zh-CN": "首页", en: "Home" }), "/")],
   });
   const docsColumn = createBlock("footer", "menu_column", {
     title: i18n("nav.docs"),
@@ -385,8 +351,6 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
       body: t(locale, "landing.closingCta.description"),
       primary_label: t(locale, "landing.closingCta.getStarted"),
       primary_href: "/docs/getting-started",
-      secondary_label: t(locale, "landing.closingCta.viewPricing"),
-      secondary_href: "/pricing",
       align: "center",
       background: "muted",
       anchor: "get-started",
@@ -394,68 +358,7 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
   ];
 }
 
-function formatPlanPrice(
-  locale: AppLocale,
-  slug: (typeof PLAN_SLUGS)[number],
-): string {
-  const amount = PLAN_PRICES[slug];
-  if (amount === null) return t(locale, "pricing.priceCustom");
-  if (amount === 0) return t(locale, "pricing.priceFree");
-  return interpolate(t(locale, "pricing.priceAmount"), {
-    price: String(amount),
-  });
-}
-
-function buildPricingSections(locale: AppLocale): SiteSection[] {
-  const plans = PLAN_SLUGS.map((slug) => {
-    const highlights = tList(locale, `pricing.plans.${slug}.highlights`).join(
-      "\n",
-    );
-    return createBlock("pricing", "plan", {
-      name: t(locale, `pricing.platformPlans.${slug}.name`),
-      audience: t(locale, `pricing.plans.${slug}.audience`),
-      price: formatPlanPrice(locale, slug),
-      price_note:
-        slug === "enterprise" || slug === "free"
-          ? ""
-          : t(locale, "pricing.perMonth"),
-      highlights,
-      featured: slug === "pro",
-      primary_label: t(locale, `pricing.plans.${slug}.cta`),
-      primary_href:
-        slug === "enterprise" ? "/docs/installation" : "/docs/getting-started",
-    });
-  });
-
-  const faqItems = (
-    MESSAGES[locale].pricing.faq.items as Array<{
-      question: string;
-      answer: string;
-    }>
-  ).map((item) =>
-    createBlock("faq", "qa", {
-      question: item.question,
-      answer: item.answer,
-    }),
-  );
-
-  return [
-    section(
-      "pricing",
-      {
-        heading: t(locale, "pricing.pageTitle"),
-        subheading: t(locale, "pricing.pageDescription"),
-        footnote: t(locale, "pricing.footnote"),
-        featured_badge: t(locale, "pricing.recommended"),
-        columns: 3,
-      },
-      plans,
-    ),
-    section("faq", { heading: t(locale, "pricing.faqTitle") }, faqItems),
-  ];
-}
-
-/** 组装默认租户产品站：中英双语页面 + 带 `__i18n` 的页头页脚。 */
+/** 组装默认租户产品站：中英双语首页 + 带 `__i18n` 的页头页脚。 */
 export function buildDefaultProductSite(): ProductSitePayload {
   const chrome = buildChrome();
   const pages: ProductSitePageWrite[] = [];
@@ -469,15 +372,6 @@ export function buildDefaultProductSite(): ProductSitePayload {
       description: t(locale, "seo.home.description"),
       sections: buildHomeSections(locale),
       sort_order: 0,
-    });
-    pages.push({
-      kind: "page",
-      slug: "pricing",
-      locale,
-      title: t(locale, "seo.pricing.title"),
-      description: t(locale, "seo.pricing.description"),
-      sections: buildPricingSections(locale),
-      sort_order: 1,
     });
   }
 

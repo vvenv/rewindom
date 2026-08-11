@@ -18,9 +18,10 @@ import {
 } from "./site.util.js";
 
 /**
- * 把默认租户铺成 be-water 产品官网（首页 + 定价，中英双语）并整站发布。
+ * 把默认租户铺成 be-water 产品官网（首页，中英双语）并整站发布。
  *
- * 可反复执行：覆盖 chrome 与模板页正文，不会删租户后来加的其它页面。
+ * 可反复执行：覆盖 chrome 与模板页正文，并删掉产品站曾自带的 `pricing` 页；
+ * 不会删租户后来加的其它页面。
  */
 export async function applyDefaultProductSite(
   tenant_id: string = DEFAULT_TENANT_ID,
@@ -51,6 +52,10 @@ export async function applyDefaultProductSite(
         footer_draft_json: footer as unknown as Prisma.InputJsonValue,
         published: true,
       },
+    });
+
+    await tx.marketingPage.deleteMany({
+      where: withTenantScope(tenant_id, { kind: "page", slug: "pricing" }),
     });
 
     const ids: string[] = [];

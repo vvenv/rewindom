@@ -7,14 +7,14 @@ import {
 } from "./default-product-site-content.js";
 
 describe("buildDefaultProductSite", () => {
-  it("builds bilingual home + pricing with product copy", () => {
+  it("builds bilingual home pages with product copy", () => {
     const payload = buildDefaultProductSite();
 
     expect(payload.site.published).toBe(true);
     expect(payload.site.site_name).toEqual({
       __i18n: { "zh-CN": "be-water", en: "be-water" },
     });
-    expect(payload.pages).toHaveLength(PRODUCT_SITE_LOCALES.length * 2);
+    expect(payload.pages).toHaveLength(PRODUCT_SITE_LOCALES.length);
 
     const zhHome = payload.pages.find(
       (page) => page.locale === "zh-CN" && page.kind === "home",
@@ -29,12 +29,7 @@ describe("buildDefaultProductSite", () => {
       "band",
     ]);
     expect(zhHome?.sections[0]?.settings.headline).toContain("Agent-first");
-
-    const enPricing = payload.pages.find(
-      (page) => page.locale === "en" && page.slug === "pricing",
-    );
-    expect(enPricing?.title).toBe("Pricing");
-    expect(enPricing?.sections[0]?.blocks).toHaveLength(5);
+    expect(payload.pages.some((page) => page.slug === "pricing")).toBe(false);
   });
 
   it("recognizes generic starter placeholder names", () => {
