@@ -22,7 +22,10 @@ import {
   type SiteSection,
 } from "../../../shared/section-schema.js";
 import { partitionHeaderBlocks } from "../../../shared/sections/_common/chrome-blocks.js";
-import { themeToggleTitle } from "../../../shared/sections/header/messages.js";
+import {
+  headerNavLabel,
+  themeToggleTitle,
+} from "../../../shared/sections/header/messages.js";
 import {
   siteNavPages,
   type PageLocaleAlternate,
@@ -425,6 +428,7 @@ export function SiteHeader({
     defaultLocale,
   });
   const { brand, nav, actions } = partitionHeaderBlocks(section.blocks);
+  const navLocale = ((locale ?? defaultLocale) as AppLocale | undefined) ?? "zh-CN";
   const surface = resolveSurfaceStyle(s);
   const surfaceCss = {
     ...surfaceStyleCss(surface),
@@ -478,7 +482,12 @@ export function SiteHeader({
           );
           if (navItems.length === 0) return null;
           return (
-            <nav key={block.id} className="header-nav" data-block-id={block.id}>
+            <nav
+              key={block.id}
+              className="header-nav"
+              aria-label={headerNavLabel(navLocale)}
+              data-block-id={block.id}
+            >
               {navItems.map((item) => (
                 <NavMenuItem key={item.key} item={item} />
               ))}
@@ -504,7 +513,10 @@ export function SiteHeader({
       </div>
 
       {mobileNavItems.length > 0 ? (
-        <nav className="header-mobile-nav wrap">
+        <nav
+          className="header-mobile-nav wrap"
+          aria-label={headerNavLabel(navLocale, "mobile")}
+        >
           {mobileNavItems.map((item) => (
             <NavMenuItem key={item.key} item={item} />
           ))}
@@ -614,15 +626,25 @@ export function SiteFooter({
         const items = resolveNavItems(settingNavItems(block.settings), ctx);
         if (onSelect === undefined && items.length === 0) break;
         const title = settingText(block.settings, "title");
+        const list = (
+          <ul>
+            {items.map((item) => (
+              <FooterMenuItem key={item.key} item={item} />
+            ))}
+          </ul>
+        );
+        // 有列标题才当 landmark（口径与 SSR 的 renderFooterMenuColumnHtml 一致）
         gridBlocks.push(
-          <nav key={block.id} data-block-id={block.id}>
-            {title ? <h2>{title}</h2> : null}
-            <ul>
-              {items.map((item) => (
-                <FooterMenuItem key={item.key} item={item} />
-              ))}
-            </ul>
-          </nav>,
+          title ? (
+            <nav key={block.id} aria-label={title} data-block-id={block.id}>
+              <h2>{title}</h2>
+              {list}
+            </nav>
+          ) : (
+            <div key={block.id} data-block-id={block.id}>
+              {list}
+            </div>
+          ),
         );
         break;
       }

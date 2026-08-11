@@ -1,7 +1,7 @@
 /** 页脚的 SSR 渲染（block 组合版）。 */
 
 import { escapeHtml } from "../../html.js";
-import { settingBool, settingText } from "../../section-schema.js";
+import { settingBool, settingText, type SiteBlock  } from "../../section-schema.js";
 import { siteNavPages, type PublicSitePage } from "../../site-cms.js";
 import {
   resolveNavItems,
@@ -12,7 +12,6 @@ import {
 import { blockSurfaceAttr, linkAttrs } from "../_common/html.js";
 
 import type { PublicDocSummary } from "../../marketing-doc.js";
-import type { SiteBlock } from "../../section-schema.js";
 import type { SiteSection } from "../types.js";
 import type { AppLocale } from "@be-water/shared";
 
@@ -43,6 +42,13 @@ function renderFooterBrandHtml(input: {
     </div>`;
 }
 
+/**
+ * 一列页脚链接。与 React `SiteFooter` 的 `menu_column` 分支同构。
+ *
+ * 有列标题才用 `<nav>`：landmark 得有名字才有用，一排全叫「导航」的无名 landmark
+ * 只会把读屏器的跳转列表撑满。没标题的那列就是一组链接，用 `<div>` 装着即可——
+ * CSS 认的是 `.footer-grid ul / h2 / a`，换成 div 不影响排版。
+ */
 function renderFooterMenuColumnHtml(input: {
   block: SiteBlock;
   ctx: SiteNavContext;
@@ -50,9 +56,12 @@ function renderFooterMenuColumnHtml(input: {
   const items = resolveNavItems(settingNavItems(input.block.settings), input.ctx);
   if (items.length === 0) return "";
   const title = settingText(input.block.settings, "title");
-  return `<nav data-block-id="${escapeHtml(input.block.id)}">
-  ${title ? `<h2>${escapeHtml(title)}</h2>` : ""}
-  <ul>${items.map(renderFooterItemHtml).join("")}</ul>
+  const list = `<ul>${items.map(renderFooterItemHtml).join("")}</ul>`;
+  const idAttr = ` data-block-id="${escapeHtml(input.block.id)}"`;
+  if (!title) return `<div${idAttr}>${list}</div>`;
+  return `<nav aria-label="${escapeHtml(title)}"${idAttr}>
+  <h2>${escapeHtml(title)}</h2>
+  ${list}
 </nav>`;
 }
 

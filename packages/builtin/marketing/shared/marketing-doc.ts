@@ -15,6 +15,7 @@
 import { isAppLocale, normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import { resolveLocaleSegment } from "./site-locale.js";
+
 import type { MarketingDocCategory } from "./marketing-doc-category.js";
 
 export type MarketingDocStatus = "draft" | "published";

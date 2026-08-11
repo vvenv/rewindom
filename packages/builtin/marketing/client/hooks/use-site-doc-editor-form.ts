@@ -9,8 +9,7 @@ import {
 
 import { DEFAULT_LOCALE, type AppLocale } from "@be-water/shared";
 
-import type { MarketingDoc } from "../../shared/marketing-doc.js";
-import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
+import { type MarketingDoc, type MarketingDocListItem  } from "../../shared/marketing-doc.js";
 
 export interface DocFormState {
   slug: string;

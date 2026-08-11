@@ -1,6 +1,6 @@
-import { renderErrorLogPlatformRoutes } from "./platform/routes.js";
 import { ERROR_LOG_I18N } from "./i18n.js";
 import { errorLogPlatformNavContributions } from "./platform/nav-contributions.js";
+import { renderErrorLogPlatformRoutes } from "./platform/routes.js";
 import { ERROR_LOG_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { ERROR_LOG_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderErrorLogTenantRoutes } from "./tenant/routes.js";

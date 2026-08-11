@@ -1,6 +1,6 @@
-import { renderAuditPlatformRoutes } from "./platform/routes.js";
 import { AUDIT_I18N } from "./i18n.js";
 import { auditPlatformNavContributions } from "./platform/nav-contributions.js";
+import { renderAuditPlatformRoutes } from "./platform/routes.js";
 import { AUDIT_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { AUDIT_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderAuditTenantRoutes } from "./tenant/routes.js";

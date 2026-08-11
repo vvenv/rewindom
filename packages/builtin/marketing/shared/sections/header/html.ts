@@ -24,7 +24,7 @@ import {
 import { partitionHeaderBlocks } from "../_common/chrome-blocks.js";
 import { blockSurfaceAttr, linkAttrs } from "../_common/html.js";
 
-import { themeToggleTitle } from "./messages.js";
+import { headerNavLabel, themeToggleTitle } from "./messages.js";
 
 import type { SiteSection } from "../types.js";
 import type { AppLocale } from "@be-water/shared";
@@ -139,13 +139,14 @@ function renderHeaderBrandHtml(input: {
 function renderHeaderNavHtml(input: {
   block: SiteBlock;
   ctx: SiteNavContext;
+  label: string;
 }): string {
   const items = resolveNavItems(
     settingNavItems(input.block.settings),
     input.ctx,
   );
   if (items.length === 0) return "";
-  return `<nav class="header-nav" data-block-id="${escapeHtml(input.block.id)}">${items.map(renderNavItemHtml).join("")}</nav>`;
+  return `<nav class="header-nav" aria-label="${escapeHtml(input.label)}" data-block-id="${escapeHtml(input.block.id)}">${items.map(renderNavItemHtml).join("")}</nav>`;
 }
 
 function renderHeaderButtonHtml(block: SiteBlock): string {
@@ -182,6 +183,7 @@ export function renderHeaderHtml(input: {
   const centered = layout === "centered";
   const ctx = headerNavContext(input);
   const { brand, nav, actions } = partitionHeaderBlocks(section.blocks);
+  const navLocale = input.locale ?? input.defaultLocale ?? "zh-CN";
 
   const brandHtml = brand
     .map((block) =>
@@ -189,7 +191,9 @@ export function renderHeaderHtml(input: {
     )
     .join("");
   const navHtml = nav
-    .map((block) => renderHeaderNavHtml({ block, ctx }))
+    .map((block) =>
+      renderHeaderNavHtml({ block, ctx, label: headerNavLabel(navLocale) }),
+    )
     .join("");
 
   const actionsHtml = actions
@@ -221,7 +225,7 @@ export function renderHeaderHtml(input: {
   );
   const mobileNav =
     mobileNavItems.length > 0
-      ? `<nav class="header-mobile-nav wrap">${mobileNavItems.map(renderNavItemHtml).join("")}</nav>`
+      ? `<nav class="header-mobile-nav wrap" aria-label="${escapeHtml(headerNavLabel(navLocale, "mobile"))}">${mobileNavItems.map(renderNavItemHtml).join("")}</nav>`
       : "";
 
   const rowClass = [

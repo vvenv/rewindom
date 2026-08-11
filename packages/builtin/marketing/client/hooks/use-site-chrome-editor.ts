@@ -42,11 +42,11 @@ import {
 
 import type { AddSectionTarget, EditorArea } from "./use-site-theme-editor.js";
 
-export type ChromeEditorSelection = {
+export interface ChromeEditorSelection {
   kind: "section";
   sectionId: string;
   blockId: string | null;
-};
+}
 
 function normalizeChrome(header: SiteSection[], footer: SiteSection[]) {
   return {

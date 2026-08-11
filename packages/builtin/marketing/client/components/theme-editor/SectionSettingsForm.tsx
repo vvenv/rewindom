@@ -84,11 +84,11 @@ export function SectionSettingsForm({
       );
     }
     return (
-      <ScopedSettings
-        label={t(blockDef.label)}
-        defs={blockDef.settings}
-        values={block.settings}
+      <ChromeBlockSettings
+        block={block}
+        blockDef={blockDef}
         disabled={disabled}
+        unavailable={unavailable}
         locale={locale}
         defaultLocale={defaultLocale}
         onChange={(settings) => onChangeBlockSettings(block.id, settings)}
@@ -132,6 +132,53 @@ export function SectionSettingsForm({
       /* 列宽控件要知道这一段现在有几列——列是 block，schema 里数不出来 */
       columnCount={groupColumns(section).length}
       onChange={onChangeSettings}
+    />
+  );
+}
+
+function ChromeBlockSettings({
+  block,
+  blockDef,
+  disabled,
+  unavailable,
+  locale,
+  defaultLocale,
+  onChange,
+}: {
+  block: { id: string; type: string; settings: SettingValues };
+  blockDef: { label: string; settings: SettingDef[] };
+  disabled?: boolean;
+  unavailable?: Record<string, string>;
+  locale: AppLocale;
+  defaultLocale: AppLocale;
+  onChange: (settings: SettingValues) => void;
+}): ReactElement {
+  const { t } = useTranslation("marketing");
+  const hint = unavailable?.[block.type];
+
+  if (blockDef.settings.length === 0) {
+    return (
+      <div className="space-y-3">
+        <PanelLabel>{t(blockDef.label)}</PanelLabel>
+        {hint ? (
+          <p className="text-sm text-muted-foreground">{hint}</p>
+        ) : (
+          <EmptySettings />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <ScopedSettings
+      label={t(blockDef.label)}
+      defs={blockDef.settings}
+      values={block.settings}
+      disabled={disabled || Boolean(hint)}
+      unavailable={unavailable}
+      locale={locale}
+      defaultLocale={defaultLocale}
+      onChange={onChange}
     />
   );
 }

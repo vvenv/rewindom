@@ -1,6 +1,12 @@
 import { api } from "@be-water/client-kit";
 
 import type {
+  CreateMarketingDocCategoryBody,
+  MarketingDocCategory,
+  ReorderMarketingDocCategoriesBody,
+  UpdateMarketingDocCategoryBody,
+} from "../../shared/marketing-doc-category.js";
+import type {
   CreateMarketingDocBody,
   DuplicateMarketingDocBody,
   MarketingDoc,
@@ -9,12 +15,6 @@ import type {
   MarketingDocListResult,
   UpdateMarketingDocBody,
 } from "../../shared/marketing-doc.js";
-import type {
-  CreateMarketingDocCategoryBody,
-  MarketingDocCategory,
-  ReorderMarketingDocCategoriesBody,
-  UpdateMarketingDocCategoryBody,
-} from "../../shared/marketing-doc-category.js";
 
 export const SITE_DOCS_QUERY_KEY = ["site", "docs"] as const;
 

@@ -120,6 +120,7 @@ describe("toPublicMarketingSite locale", () => {
             type: "header",
             settings: {
               secondary_label: { __i18n: { "zh-CN": "登录", en: "Sign in" } },
+              secondary_href: "/login",
             },
             blocks: [],
           },
@@ -129,7 +130,10 @@ describe("toPublicMarketingSite locale", () => {
       null,
       "en",
     );
-    expect(site.header[0]!.settings.secondary_label).toBe("Sign in");
+    const button = site.header[0]!.blocks.find(
+      (block) => block.type === "chrome_button",
+    );
+    expect(button?.settings.label).toBe("Sign in");
   });
 
   it("falls back to the default language for untranslated chrome text", () => {
@@ -138,7 +142,10 @@ describe("toPublicMarketingSite locale", () => {
         nav_json: [
           {
             type: "header",
-            settings: { secondary_label: { __i18n: { "zh-CN": "登录" } } },
+            settings: {
+              secondary_label: { __i18n: { "zh-CN": "登录" } },
+              secondary_href: "/login",
+            },
             blocks: [],
           },
         ],
@@ -147,8 +154,10 @@ describe("toPublicMarketingSite locale", () => {
       null,
       "en",
     );
-    // 缺译文时显示原文，而不是留白
-    expect(site.header[0]!.settings.secondary_label).toBe("登录");
+    const button = site.header[0]!.blocks.find(
+      (block) => block.type === "chrome_button",
+    );
+    expect(button?.settings.label).toBe("登录");
   });
 
   it("projects site_name into the requested language", () => {

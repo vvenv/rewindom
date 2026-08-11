@@ -24,16 +24,16 @@ import {
 } from "../lib/site-doc-api.js";
 
 import type {
+  CreateMarketingDocCategoryBody,
+  ReorderMarketingDocCategoriesBody,
+  UpdateMarketingDocCategoryBody,
+} from "../../shared/marketing-doc-category.js";
+import type {
   CreateMarketingDocBody,
   DuplicateMarketingDocBody,
   MarketingDocListQuery,
   UpdateMarketingDocBody,
 } from "../../shared/marketing-doc.js";
-import type {
-  CreateMarketingDocCategoryBody,
-  ReorderMarketingDocCategoriesBody,
-  UpdateMarketingDocCategoryBody,
-} from "../../shared/marketing-doc-category.js";
 
 const DOC_FILTER_KEY_NAMES = ["q", "category", "status", "locale"] as const;
 

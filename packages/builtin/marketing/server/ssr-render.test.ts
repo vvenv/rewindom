@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createSection,
+  parseAreaSections,
   type SettingValue,
   type SiteSection,
 } from "../shared/section-schema.js";
@@ -15,8 +16,9 @@ import type {
 
 /** 页头 section + 若干覆盖设置（默认值仍由 schema 兜底）。 */
 function headerWith(settings: Record<string, SettingValue>): SiteSection {
-  const section = createSection("header");
-  return { ...section, settings: { ...section.settings, ...settings } };
+  return parseAreaSections("header", [
+    { type: "header", settings, blocks: [] },
+  ])[0]!;
 }
 
 function site(overrides: Partial<PublicMarketingSite> = {}) {
@@ -214,7 +216,8 @@ describe("renderMarketingHtml SEO", () => {
       site: site({ locale: "en" }),
       page: page({ locale: "en" }),
     });
-    expect(html).toContain('<a class="brand" href="/en">');
+    expect(html).toContain('class="brand"');
+    expect(html).toContain('href="/en"');
   });
 
   it("lists top-level pages in the header via the default menu", () => {

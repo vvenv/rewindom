@@ -1,7 +1,4 @@
-import {
-  FOOTER_CHROME_BLOCKS,
-  FOOTER_MENU_COLUMN_BLOCK,
-} from "../_common/chrome-blocks.js";
+import { FOOTER_CHROME_BLOCKS } from "../_common/chrome-blocks.js";
 import { styleSettings } from "../_common/settings.js";
 
 import type { SectionDefinition } from "../types.js";
@@ -15,6 +12,3 @@ export const footerSection: SectionDefinition = {
   blocks: FOOTER_CHROME_BLOCKS,
   settings: [...styleSettings()],
 };
-
-/** @deprecated 仅 re-export，定义已迁入 chrome-blocks。 */
-export { FOOTER_MENU_COLUMN_BLOCK };

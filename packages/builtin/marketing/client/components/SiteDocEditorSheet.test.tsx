@@ -1,13 +1,12 @@
 import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { createElement, type ReactNode } from "react";
+import { createElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { MARKETING_I18N } from "../i18n.js";
 import { SiteDocEditorSheet } from "./SiteDocEditorSheet.js";
 
-import type { MarketingDoc } from "../../shared/marketing-doc.js";
-import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
+import { type MarketingDoc, type MarketingDocListItem  } from "../../shared/marketing-doc.js";
 
 registerI18nBundles([MARKETING_I18N]);
 setupI18n("zh-CN");

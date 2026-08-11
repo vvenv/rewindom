@@ -8,7 +8,7 @@ import {
   type SiteBlock,
   type SiteSection,
 } from "../../section-schema.js";
-import { defaultHeaderNavItems } from "../../site-nav.js";
+import { blankNavItem } from "../../site-nav.js";
 
 import { renderHeaderHtml } from "./html.js";
 
@@ -60,6 +60,33 @@ function renderHeader(
     locale,
   });
 }
+
+describe("renderHeaderHtml 导航的无障碍名字", () => {
+  /*
+   * 页头那条与窄屏那条是同一份链接的两种排版，两条都在 DOM 里（靠 CSS 各显各的）。
+   * 都不带名字的话，读屏器的 landmark 列表里就是两个「导航」，跳过去之前分不出哪条
+   * 是哪条——多个同名 landmark 等于没有 landmark。
+   */
+  const LINK_ITEMS = [
+    { ...blankNavItem(), label: "定价", href: "/pricing" },
+  ];
+
+  it("页头导航与窄屏导航各有一个 aria-label", () => {
+    const html = renderHeader(header({ items: LINK_ITEMS }), "zh-CN");
+
+    expect(html).toContain('class="header-nav" aria-label="主导航"');
+    expect(html).toContain(
+      'class="header-mobile-nav wrap" aria-label="主导航（移动端）"',
+    );
+  });
+
+  it("跟随页面语言", () => {
+    const html = renderHeader(header({ items: LINK_ITEMS }), "en");
+
+    expect(html).toContain('aria-label="Main"');
+    expect(html).toContain('aria-label="Main (mobile)"');
+  });
+});
 
 describe("renderHeaderHtml 明暗按钮", () => {
   it("按页面语言渲染 title", () => {
@@ -213,7 +240,7 @@ describe("renderHeaderHtml 文档下拉的层级", () => {
     expect(html).toContain(
       '<div class="nav-menu-section"><p class="nav-menu-group">运维</p><a',
     );
-    expect(html.match(/nav-menu-section/gu)).toHaveLength(2);
+    expect(html.match(/nav-menu-section/gu)?.length).toBe(4);
   });
 
   it("只有一个分类时不画分组", () => {

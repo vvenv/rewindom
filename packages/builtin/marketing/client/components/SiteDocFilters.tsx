@@ -6,10 +6,10 @@ import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
 import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
 import { useTranslation } from "react-i18next";
 
+import { categoryLabelMap, type MarketingDocCategory  } from "../../shared/marketing-doc-category.js";
+
 import type { SiteDocFilterState } from "../lib/site-doc-list.js";
 
-import type { MarketingDocCategory } from "../../shared/marketing-doc-category.js";
-import { categoryLabelMap } from "../../shared/marketing-doc-category.js";
 
 /** 分类 chip 超过这个数就折叠——分类是租户自定义的，可能有十几个。 */
 const MAX_VISIBLE_CATEGORIES = 6;

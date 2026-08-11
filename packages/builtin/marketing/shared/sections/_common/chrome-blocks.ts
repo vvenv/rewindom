@@ -5,13 +5,14 @@
  * 改成 block 之后可以在编辑器里增删、排序，页头页脚也能共用同一套块类型。
  */
 
-import { defaultHeaderNavItems } from "../../site-nav.js";
+import { defaultHeaderNavItems, settingNavItems, type SiteNavItem  } from "../../site-nav.js";
 
-import type { BlockDefinition, SiteBlock } from "../types.js";
+import type { BlockDefinition, SiteBlock, SiteSection } from "../types.js";
 
 export const CHROME_BRAND_BLOCK: BlockDefinition = {
   type: "chrome_brand",
   label: "editor.blockType.chrome_brand",
+  singleton: true,
   settings: [
     {
       type: "checkbox",
@@ -38,6 +39,7 @@ export const CHROME_BRAND_BLOCK: BlockDefinition = {
 export const CHROME_NAV_BLOCK: BlockDefinition = {
   type: "chrome_nav",
   label: "editor.blockType.chrome_nav",
+  singleton: true,
   settings: [
     {
       type: "nav_items",
@@ -81,30 +83,35 @@ export const CHROME_BUTTON_BLOCK: BlockDefinition = {
 export const CHROME_DOC_SEARCH_BLOCK: BlockDefinition = {
   type: "chrome_doc_search",
   label: "editor.blockType.chrome_doc_search",
+  singleton: true,
   settings: [],
 };
 
 export const CHROME_LOCALE_BLOCK: BlockDefinition = {
   type: "chrome_locale",
   label: "editor.blockType.chrome_locale",
+  singleton: true,
   settings: [],
 };
 
 export const CHROME_THEME_BLOCK: BlockDefinition = {
   type: "chrome_theme",
   label: "editor.blockType.chrome_theme",
+  singleton: true,
   settings: [],
 };
 
 export const CHROME_ACCOUNT_BLOCK: BlockDefinition = {
   type: "chrome_account",
   label: "editor.blockType.chrome_account",
+  singleton: true,
   settings: [],
 };
 
 export const CHROME_COPYRIGHT_BLOCK: BlockDefinition = {
   type: "chrome_copyright",
   label: "editor.blockType.chrome_copyright",
+  singleton: true,
   settings: [
     {
       type: "text",
@@ -163,6 +170,22 @@ const HEADER_ACTION_BLOCK_TYPES = new Set([
 
 export function isHeaderActionBlockType(type: string): boolean {
   return HEADER_ACTION_BLOCK_TYPES.has(type);
+}
+
+/**
+ * 页头上现在挂着的导航条目（跨页头区所有段的所有导航块，按出现顺序拼起来）。
+ *
+ * 页脚列的「从页头复制」拿它当源。**不能**去读页头 section 的 settings：导航条目
+ * 早就搬进 `chrome_nav` 块里了，从 settings 取永远是空数组，按钮于是一直是灰的。
+ */
+export function collectHeaderNavItems(
+  sections: readonly SiteSection[],
+): SiteNavItem[] {
+  return sections.flatMap((section) =>
+    section.blocks
+      .filter((block) => block.type === "chrome_nav")
+      .flatMap((block) => settingNavItems(block.settings)),
+  );
 }
 
 export function partitionHeaderBlocks(blocks: readonly SiteBlock[]): {

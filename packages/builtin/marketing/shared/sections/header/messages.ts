@@ -29,3 +29,23 @@ export function themeToggleTitle(
     THEME_TOGGLE_TITLE[locale]?.[mode] ?? THEME_TOGGLE_TITLE["zh-CN"][mode]
   );
 }
+
+/**
+ * 导航区的无障碍名字。
+ *
+ * 一个页面上有好几个 `<nav>`（页头一条、窄屏那条、页脚每列各一条），读屏器的
+ * landmark 列表里全叫「导航」的话，跳过去之前根本分不出哪条是哪条——多个同名
+ * landmark 等于没有 landmark。窄屏那条与页头是同一份链接的两种排版，所以标注成
+ * 「移动端」而不是再叫一次「主导航」。
+ */
+const NAV_LABELS: Record<AppLocale, { main: string; mobile: string }> = {
+  "zh-CN": { main: "主导航", mobile: "主导航（移动端）" },
+  en: { main: "Main", mobile: "Main (mobile)" },
+};
+
+export function headerNavLabel(
+  locale: AppLocale,
+  variant: "main" | "mobile" = "main",
+): string {
+  return NAV_LABELS[locale]?.[variant] ?? NAV_LABELS["zh-CN"][variant];
+}

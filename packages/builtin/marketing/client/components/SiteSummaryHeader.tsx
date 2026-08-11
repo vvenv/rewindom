@@ -102,16 +102,19 @@ export function SiteSummaryHeader({
             <span className="hidden sm:inline">{t("cms.viewSite")}</span>
           </a>
         </Button>
+        {/*
+          页头页脚入口不进 `canWrite`：编辑器本身按 `site.write` 逐个禁用操作，只读的人
+          进去能看不能改。左侧导航那条也只要 `site.read`——两处门槛不一致的话，只读的人
+          从菜单进得去、从卡片进不去。
+        */}
+        <Button asChild variant="outline" size="sm">
+          <Link to="/app/site/chrome">
+            <LayoutTemplate className="size-4" />
+            <span className="hidden sm:inline">{t("cms.chromeEditor")}</span>
+          </Link>
+        </Button>
         {canWrite ? (
           <>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/app/site/chrome">
-                <LayoutTemplate className="size-4" />
-                <span className="hidden sm:inline">
-                  {t("cms.chromeEditor")}
-                </span>
-              </Link>
-            </Button>
             <SiteStarterMenu hasContent={hasStarterContent} />
             <SiteSettingsSheet site={site}>
               <Button variant="outline" size="sm">

@@ -21,7 +21,7 @@ import {
   getSectionDefinition,
   type SiteSection,
 } from "../../shared/section-schema.js";
-import { settingNavItems } from "../../shared/site-nav.js";
+import { collectHeaderNavItems } from "../../shared/sections/_common/chrome-blocks.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";
 import { ChromeEditorToolbar } from "../components/theme-editor/ChromeEditorToolbar.js";
 import {
@@ -221,7 +221,7 @@ export function SiteChromeEditor() {
           title: page.title,
         })),
         docs: chromeDocs,
-        headerItems: settingNavItems(editor.header[0]?.settings ?? {}),
+        headerItems: collectHeaderNavItems(editor.header),
       }}
     >
       <PageLayout
@@ -336,7 +336,7 @@ export function SiteChromeEditor() {
                 unavailable={
                   accountEntryAvailable
                     ? undefined
-                    : { show_account: t("editor.accountEntryUnavailable") }
+                    : { chrome_account: t("editor.accountEntryUnavailable") }
                 }
                 locale={editor.locale}
                 defaultLocale={editor.defaultLocale}

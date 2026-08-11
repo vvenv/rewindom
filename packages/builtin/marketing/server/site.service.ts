@@ -14,13 +14,13 @@ import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import { getTenantBrandingUrls } from "../../platform/server/services/tenant-branding.service.js";
 import {
-  getPageTemplateKind,
-  isTemplatePageKind,
-} from "../shared/page-templates.js";
-import {
   buildHomeTemplateSections,
   HOME_STARTER_PRESET,
 } from "../shared/page-presets.js";
+import {
+  getPageTemplateKind,
+  isTemplatePageKind,
+} from "../shared/page-templates.js";
 import {
   getSectionDefinition,
   localizeSections,
@@ -132,7 +132,7 @@ async function ensureSiteRow(tenant_id: string): Promise<MarketingSite> {
     return toMarketingSite(existing);
   }
 
-  const minimalChrome = buildMinimalSiteChrome("My Site");
+  const minimalChrome = buildMinimalSiteChrome();
   const header = parseSiteAreaSections("header", minimalChrome.header);
   const footer = parseSiteAreaSections("footer", minimalChrome.footer);
 

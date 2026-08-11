@@ -1,7 +1,7 @@
 import { HEADER_CHROME_BLOCKS } from "../_common/chrome-blocks.js";
 import { styleSettings } from "../_common/settings.js";
 
-import type { SectionDefinition } from "./types.js";
+import type { SectionDefinition } from "../types.js";
 
 export const headerSection: SectionDefinition = {
   type: "header",

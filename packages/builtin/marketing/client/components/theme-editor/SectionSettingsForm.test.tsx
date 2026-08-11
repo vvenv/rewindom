@@ -6,6 +6,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  createBlock,
   createSection,
   type PageSectionType,
 } from "../../../shared/section-schema.js";
@@ -34,7 +35,6 @@ describe("SectionSettingsForm 页签", () => {
     expect(screen.getAllByRole("tab")).toHaveLength(3);
   });
 
-  // 分栏段没有正文字段，只有版式 + 外观——两个页签，不硬塞空的「内容」
   it("只有部分组有字段时只渲染有字段的页签", () => {
     renderForm("group");
     expect(screen.getAllByRole("tab")).toHaveLength(2);
@@ -43,7 +43,6 @@ describe("SectionSettingsForm 页签", () => {
 
   it("切换 section 时若当前页签不存在则回退到第一个", () => {
     const { rerender } = renderForm("hero");
-    // hero 默认在「内容」；group 没有内容页签，应落到它的第一个（版式）
     rerender(<SectionSettingsForm {...formProps("group")} />);
 
     const tabs = screen.getAllByRole("tab");
@@ -53,17 +52,17 @@ describe("SectionSettingsForm 页签", () => {
   });
 });
 
-/*
- * 「账户入口」这个开关照常显示、但点不动并写明原因。
- *
- * 藏起来的话租户会以为页头本来就没有账户入口这回事；照常可点的话（原来的行为）
- * 他打开开关、预览里看得见按钮，线上却什么都不出现，也没人告诉他为什么。
- */
 describe("SectionSettingsForm 未开通的能力", () => {
-  function renderHeaderForm(unavailable?: Record<string, string>) {
+  function renderAccountBlock(unavailable?: Record<string, string>) {
+    const accountBlock = createBlock("header", "chrome_account", {});
+    const section = {
+      ...createSection("header"),
+      blocks: [...createSection("header").blocks, accountBlock],
+    };
     render(
       <SectionSettingsForm
-        section={createSection("header")}
+        section={section}
+        blockId={accountBlock.id}
         unavailable={unavailable}
         locale="zh-CN"
         defaultLocale="zh-CN"
@@ -72,18 +71,16 @@ describe("SectionSettingsForm 未开通的能力", () => {
       />,
       { wrapper },
     );
-    return screen.getByRole("checkbox", { name: /账户入口/u });
   }
 
-  it("能力具备时开关可点，也不显示说明", () => {
-    const checkbox = renderHeaderForm();
-    expect(checkbox).not.toBeDisabled();
+  it("账户 block 无字段时只显示块名", () => {
+    renderAccountBlock();
+    expect(screen.getByText("账户入口")).toBeTruthy();
     expect(screen.queryByText("未开通会员")).toBeNull();
   });
 
-  it("能力不具备时置灰并写明原因", () => {
-    const checkbox = renderHeaderForm({ show_account: "未开通会员" });
-    expect(checkbox).toBeDisabled();
+  it("能力不具备时选中账户 block 会写明原因", () => {
+    renderAccountBlock({ chrome_account: "未开通会员" });
     expect(screen.getByText("未开通会员")).toBeTruthy();
   });
 });

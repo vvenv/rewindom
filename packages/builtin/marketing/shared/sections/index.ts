@@ -32,6 +32,7 @@ import {
   type Placement,
   type SectionDefinition,
   type SectionType,
+  type SiteSection,
 } from "./types.js";
 import { unsupportedSection } from "./unsupported/definition.js";
 
@@ -186,6 +187,21 @@ export function sectionTypesFor(
           def.page_kinds.includes(pageKind)),
     )
     .map((def) => def.type);
+}
+
+/**
+ * 这一段还能添加哪些 block——「添加区块」菜单读它。
+ *
+ * 单例块（`BlockDefinition.singleton`）加过一次就不再出现：第二个语言切换器、第二条
+ * 版权不是一种配置，是个一眼能看出来的错误。灰着留在菜单里也不行——那只是把「点了
+ * 没用」推迟到点下去之后。
+ */
+export function addableBlockDefinitions(
+  section: SiteSection,
+): BlockDefinition[] {
+  const blocks = getSectionDefinition(section.type)?.blocks ?? [];
+  const used = new Set(section.blocks.map((block) => block.type));
+  return blocks.filter((def) => !(def.singleton && used.has(def.type)));
 }
 
 export function isAreaSectionType(value: unknown): value is AreaSectionType {

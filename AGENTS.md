@@ -22,6 +22,7 @@
 - Migration：禁止随意 `reset`，优先增量 migration
 - 单租户部署：`SINGLE_TENANT=true`（见 `tenancy-mode` rule）；生产 env 透传门禁：`pnpm check:prod-app-env`
 - 租户无感知：租户侧 / 公开面文案不出现「租户」「Tenant」（见 `tenancy-mode` rule、`tenant-config.md` §5.8）
+- 向后兼容：**默认不做**，废弃的字段 / 类型 / 导出直接删（见 `coding-standards` rule「变更与兼容性」）
 
 ## 模块化开发
 
@@ -49,6 +50,9 @@
 提改动方案时**不要**以「会与上游冲突」或「先进上游再同步」为由——那套约束已作废。
 
 内核与基础设施仍**不得**依赖业务模块，但理由是单向依赖分层，不是合并成本。
+
+同理**默认不做向后兼容**：没有外部消费者要兼容，废弃的东西直接删干净。只有库里的存量数据
+需要一次性升级函数接住。细则见 `coding-standards` rule 的「变更与兼容性」。
 
 ## Host 分流（本地与生产同构）
 

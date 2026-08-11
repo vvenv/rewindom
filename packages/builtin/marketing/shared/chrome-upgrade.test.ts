@@ -1,8 +1,9 @@
-import { createSection } from "./section-schema.js";
+import { describe, expect, it } from "vitest";
+
 import { upgradeChromeSection } from "./chrome-upgrade.js";
+import { createSection, type SiteSection  } from "./section-schema.js";
 import { defaultHeaderNavItems } from "./site-nav.js";
 
-import type { SiteSection } from "./section-schema.js";
 
 function legacyHeader(settings: Record<string, unknown> = {}): SiteSection {
   return {
@@ -69,5 +70,24 @@ describe("upgradeChromeSection", () => {
     const once = upgradeChromeSection(createSection("header"));
     const twice = upgradeChromeSection(once);
     expect(twice).toEqual(once);
+  });
+
+  /*
+   * 「没有 brand 块」曾被当成旧数据的信号，于是默认页脚（只有一个版权块）每读一次
+   * 就被塞回一个品牌块——租户删掉，刷新又长回来。
+   */
+  it("默认页脚原样返回，不塞回品牌块", () => {
+    const footer = createSection("footer");
+    expect(footer.blocks.map((block) => block.type)).toEqual([
+      "chrome_copyright",
+    ]);
+    expect(upgradeChromeSection(footer)).toEqual(footer);
+  });
+
+  it("块被删光也不复活——那是当前格式的合法形态，不是旧数据", () => {
+    for (const type of ["header", "footer"] as const) {
+      const emptied: SiteSection = { ...createSection(type), blocks: [] };
+      expect(upgradeChromeSection(emptied).blocks).toEqual([]);
+    }
   });
 });

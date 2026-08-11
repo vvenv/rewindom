@@ -28,7 +28,7 @@
 
 | 模型            | 说明                                                                                                                                           |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `chrome_dirty`）。导航条目嵌在页头 / 页脚列的 `settings.items` 里 |
+| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `chrome_dirty`）。导航条目嵌在页头 `chrome_nav` / 页脚 `menu_column` 块的 `settings.items` 里 |
 | `MarketingPage` | `kind`: `home` \| `page` \| **模板页 kind**（见下）；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退） |
 
 ### 模板页（`shared/page-templates.ts`）
@@ -69,10 +69,23 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 某个段能放进哪个区域由它自己的 `placements` 声明（`sectionTypesFor(area)` 读它），
 所以「页头加公告条」= 往区域里加一段 `band`，不用给 header 的 schema 再长字段：
 
-| type     | settings                                                                 | blocks                                                                |
-| -------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| `header` | show_logo, show_site_name, sticky, layout(split\|centered), `items`（导航条目）, **显示项三开关**（见下）, primary/secondary 按钮（都无默认值） | 无——导航即 `settings.items` |
-| `footer` | show_logo, blurb, copyright                                              | `menu_column`{title, items}，最多 6：一列 = 标题 + 自己的导航条目 |
+页头 / 页脚**自身的 settings 只剩外壳**（吸顶、排版、配色）；里面摆什么一律是 block，
+可增删可排序，两个区域共用同一套块类型（`sections/_common/chrome-blocks.ts`）：
+
+| type     | settings                          | blocks                                                                                   |
+| -------- | --------------------------------- | ---------------------------------------------------------------------------------------- |
+| `header` | sticky, layout(split\|centered), 配色 | `chrome_brand` / `chrome_nav` / `chrome_button` / `chrome_doc_search` / `chrome_locale` / `chrome_theme` / `chrome_account`，最多 12。默认预置 brand + nav |
+| `footer` | 配色                              | `chrome_brand` / `menu_column`{title, items} / `chrome_copyright`，最多 8。默认只预置 copyright |
+
+渲染按块的**角色**分区，不按下标：`partitionHeaderBlocks` 把页头的块分成品牌 / 导航 /
+右侧操作区三堆（`chrome_button` 及各入口块归操作区）。
+
+除按钮与页脚链接列外，其余块都是 **`singleton`**（`BlockDefinition.singleton`）：加过一次
+就从「添加区块」菜单里消失。第二个语言切换器、第二条版权不是一种配置，是个一眼能看出
+来的错误——菜单里灰着留一项，只是把「点了没用」推迟到点下去之后。
+
+**版权文案默认留空**，两端渲染兜底成「© 当年 站名」。建站那天把 `© 2026 Acme` 写死进
+settings，跨年之后页脚就一直停在去年，改站名也不跟着变——而这两件事本来一行都不用配。
 
 页头 / 页脚区渲染时**不许再包一层 `<header>` / `<footer>`**：`SiteHeader` 自己就是
 `<header>`，外面套一层等高的祖先，`sticky` 就没有可粘的余量（sticky 只在包含块内部
@@ -81,10 +94,11 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 ### 站点导航（`shared/site-nav.ts`）
 
-导航条目**直接嵌在**页头 `settings.items` 与页脚列块 `settings.items` 里，没有独立的
-菜单实体 / key / 共享库。以前做过一份 `menus_json` 让页头页脚按 key 引用——「共用」
-是真需求，但做成带齿轮切换的菜单库是过渡设计；现在页脚要和页头一样时**复制**一份
-（编辑器「从页头复制」）。
+导航条目**直接嵌在**页头 `chrome_nav` 块与页脚 `menu_column` 块的 `settings.items` 里，
+没有独立的菜单实体 / key / 共享库。以前做过一份 `menus_json` 让页头页脚按 key 引用——
+「共用」是真需求，但做成带齿轮切换的菜单库是过渡设计；现在页脚要和页头一样时**复制**
+一份（编辑器「从页头复制」，源由 `collectHeaderNavItems(header)` across 所有 `chrome_nav`
+块收集——**别**去读页头 section 的 settings，那儿早就没有 items 了）。
 
 条目形状：`{ id, source, label, href, category, expand, children[] }`。
 建站默认页头只有「全部一级页面」（flat）：新站通常只有首页，文档库入口要时在编辑器里加。
@@ -108,7 +122,7 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 ### 文档搜索
 
-**唯一入口是页头**（`header.show_doc_search`，默认关，打开且站里有已发布文档时才渲染）。
+**唯一入口是页头**（`chrome_doc_search` 块，默认不预置，加了且站里有已发布文档时才渲染）。
 它是一个 `<form method="get" action="/docs">`，没有 JS 也跳得过去；落地由
 `enhance/doc-search.ts` 接住：按每条 `<li>` 的 `data-doc-search`（SSR 用
 `docSearchHaystack` 写入）过滤，并在列表上方画一枚「筛选：xxx ✕」的标签。
@@ -116,20 +130,24 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 `doc-list` 段**不再自带搜索框**。它曾经有一个（`show_search`），于是文档索引上会
 同时出现两个一模一样的框——页头那个跳过来，落进段里那个。现在段只负责列。
 
-### 页头右侧的三个显示项
+### 页头右侧的入口块
 
-`show_locale_switcher` / `show_theme_toggle` / `show_account` 合成一组「页头显示」，因为
-它们回答的是**同一个问题**：这枚入口露不露。能力本身另有出处，开关只管露不露，关掉
-不等于关掉能力：
+语言 / 明暗 / 会员三枚入口曾是页头 settings 上的三个 `show_*` 开关，现在各是一个
+**block**：加进页头就是露，删掉就是不露，与按钮、搜索框在同一排里一起排序。能力本身
+另有出处，块只管露不露，删掉不等于关掉能力：
 
-| 开关                    | 默认 | 能力由谁保证                                     |
-| ----------------------- | ---- | ------------------------------------------------ |
-| `show_locale_switcher`  | 关   | 本页 `alternates`——没译文时开了也不会露          |
-| `show_theme_toggle`     | 关   | 明暗内置且**永远跟随设备**；关掉只是不给手动按钮 |
-| `show_account`          | 关   | 租户是否开通会员（site-member）                  |
+| block            | 默认预置 | 能力由谁保证                                     |
+| ---------------- | -------- | ------------------------------------------------ |
+| `chrome_locale`  | 否       | 本页 `alternates`——没译文时加了也不会露          |
+| `chrome_theme`   | 否       | 明暗内置且**永远跟随设备**；删掉只是不给手动按钮 |
+| `chrome_account` | 否       | 租户是否开通会员（site-member）                  |
 
-语言切换器曾经是站点级设置（`theme_settings.show_locale_switcher`），后来搬回页头并回填了
-存量值。搬回来的理由是这四个开关本就该在一处配完，分成两处租户得跑两个地方排同一行按钮。
+改成块的理由与「显示项」时代是同一个：这一排东西回答的是同一个问题（这枚入口露不露），
+就该在同一处配完。开关做不到的是**排序**——三个布尔值渲染顺序写死在代码里，租户想把
+登录按钮挪到语言切换右边就只能改代码。
+
+语言切换器更早还是站点级设置（`theme_settings.show_locale_switcher`），搬进页头时回填过
+存量值；现在再由 `chrome-upgrade.ts` 从开关搬成块。
 
 ### 明暗模式
 
@@ -169,10 +187,10 @@ esbuild SSR / Vitest 共用，勿在运行时 `fs` 读旁路 css）。改样式�
 于是深色设备拿到的是一张真正的深色页而不是白底。同理，section 级的 surface 颜色是内联
 样式，两态都生效。
 
-SSR 在 `show_theme_toggle` 时输出 `<button class="theme-toggle">`；点击与图标同步由
+SSR 在页头有 `chrome_theme` 块时输出 `<button class="theme-toggle">`；点击与图标同步由
 `site-enhance` 完成（语言切换器仍是纯 `<details>`，不依赖 enhance）。
 
-### 会员入口（`show_account`）
+### 会员入口（`chrome_account` 块）
 
 未登录显示「登录」，登录后换成头像 + 账户下拉（账户页 / 退出登录）。
 
@@ -314,7 +332,7 @@ URL 对齐 Shopify Markets：站点**主语言不带前缀**（`MarketingSite.de
 - 某字段缺译文 → 回落主语言原文，不留白
 - **不**按 `Accept-Language` 自动跳转：那会让爬虫只看到一种语言
 
-页头的**语言切换器**是页头 section 的一个开关（`show_locale_switcher`，与站点导航 / 明暗 /
+页头的**语言切换器**是页头里的一个 `chrome_locale` 块（与站点导航 / 明暗 /
 账户入口同组，见上）。候选语言逐页算（`page.alternates`），只列真的有已发布译文的语言
 ——所以单语言站点即使把开关打开也不会露出按钮。
 

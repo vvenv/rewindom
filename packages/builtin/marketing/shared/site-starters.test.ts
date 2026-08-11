@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { HOME_STARTER_PRESET } from "./page-presets.js";
 import {
@@ -10,7 +10,7 @@ import {
 
 describe("buildMinimalSiteChrome", () => {
   it("ships default header nav and a copyright-only footer", () => {
-    const chrome = buildMinimalSiteChrome("Acme");
+    const chrome = buildMinimalSiteChrome();
 
     expect(chrome.header).toHaveLength(1);
     expect(chrome.header[0]?.type).toBe("header");
@@ -21,21 +21,24 @@ describe("buildMinimalSiteChrome", () => {
       expect.arrayContaining([expect.objectContaining({ source: "pages" })]),
     );
     expect(chrome.footer).toHaveLength(1);
-    const copyright = chrome.footer[0]?.blocks.find(
+    expect(chrome.footer[0]?.blocks.map((block) => block.type)).toEqual([
+      "chrome_copyright",
+    ]);
+  });
+
+  it("版权文案留空，交给渲染层兜底成「© 当年 站名」", () => {
+    const copyright = buildMinimalSiteChrome().footer[0]?.blocks.find(
       (block) => block.type === "chrome_copyright",
     );
-    expect(copyright?.settings.text).toContain("Acme");
+
+    // 建站那天写死 `© 2026 Acme`，跨年就停在去年、改站名也不跟着变
+    expect(copyright?.settings.text).toBe("");
   });
 });
 
 describe("buildSiteStarterChrome", () => {
   it("builds header and footer; header ships default nav items", () => {
-    const t = vi.fn((key: string) => key);
-    const chrome = buildSiteStarterChrome(t);
-
-    expect(chrome.header).toBeDefined();
-    expect(chrome.footer).toBeDefined();
-    if (!chrome.header || !chrome.footer) return;
+    const chrome = buildSiteStarterChrome();
 
     expect(chrome.header).toHaveLength(1);
     expect(chrome.header[0]?.type).toBe("header");
@@ -51,25 +54,25 @@ describe("buildSiteStarterChrome", () => {
   });
 
   it("页头不预设按钮，页脚不预设简介与链接组", () => {
-    const chrome = buildSiteStarterChrome((key) => key);
+    const chrome = buildSiteStarterChrome();
 
     expect(
-      chrome.header?.[0]?.blocks.some((block) => block.type === "chrome_button"),
+      chrome.header[0]?.blocks.some((block) => block.type === "chrome_button"),
     ).toBe(false);
     expect(
-      chrome.header?.[0]?.blocks.some(
+      chrome.header[0]?.blocks.some(
         (block) => block.type === "chrome_doc_search",
       ),
     ).toBe(false);
     expect(
-      chrome.header?.[0]?.blocks.some((block) => block.type === "chrome_account"),
+      chrome.header[0]?.blocks.some((block) => block.type === "chrome_account"),
     ).toBe(false);
-    const brand = chrome.footer?.[0]?.blocks.find(
+    const brand = chrome.footer[0]?.blocks.find(
       (block) => block.type === "chrome_brand",
     );
     expect(brand).toBeUndefined();
     expect(
-      chrome.footer?.[0]?.blocks.some((block) => block.type === "menu_column"),
+      chrome.footer[0]?.blocks.some((block) => block.type === "menu_column"),
     ).toBe(false);
   });
 });

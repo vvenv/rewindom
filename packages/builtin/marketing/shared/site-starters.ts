@@ -4,11 +4,7 @@ import {
   type PagePreset,
   type PresetTranslateFn,
 } from "./page-presets.js";
-import {
-  createSection,
-  type SiteBlock,
-  type SiteSection,
-} from "./section-schema.js";
+import { createSection, type SiteSection } from "./section-schema.js";
 import { findSiteTheme } from "./site-themes.js";
 
 import type { UpdateMarketingSiteBody } from "./site-cms.js";
@@ -64,37 +60,24 @@ export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
   { presetKey: "home", sort_order: 0 },
 ];
 
-function withFooterCopyright(
-  footer: SiteSection,
-  copyrightText: string,
-): SiteSection {
-  return {
-    ...footer,
-    blocks: footer.blocks.map((block: SiteBlock) =>
-      block.type === "chrome_copyright"
-        ? { ...block, settings: { ...block.settings, text: copyrightText } }
-        : block,
-    ),
-  };
+export interface SiteChrome {
+  header: SiteSection[];
+  footer: SiteSection[];
 }
 
 /**
  * 最简页头页脚：definition 默认页头 + 一行版权页脚。
  *
  * 建站、起步模板、页头页脚编辑器的空状态都走这一套，避免各处各写一份。
+ *
+ * 版权文案**故意留空**：两端渲染都会兜底成「© 当年 站名」（见 `renderFooterHtml`
+ * / `SiteFooter`）。建站那天把 `© 2026 Acme` 写死进 settings，跨年之后页脚就一直
+ * 停在去年，租户改了站名也不跟着变——而这两件事本来一行都不用配。
  */
-export function buildMinimalSiteChrome(
-  siteName: string,
-): Pick<UpdateMarketingSiteBody, "header" | "footer"> {
-  const header = createSection("header");
-  const footer = withFooterCopyright(
-    createSection("footer"),
-    `© ${new Date().getFullYear()} ${siteName}`,
-  );
-
+export function buildMinimalSiteChrome(): SiteChrome {
   return {
-    header: [header],
-    footer: [footer],
+    header: [createSection("header")],
+    footer: [createSection("footer")],
   };
 }
 
@@ -108,10 +91,9 @@ export function buildMinimalSiteChrome(
  * 页脚只留一行版权），不预填按钮、简介、链接列或文档入口。
  */
 export function buildSiteStarterChrome(
-  t: PresetTranslateFn,
   themeKey = "default",
-): Pick<UpdateMarketingSiteBody, "header" | "footer" | "theme_settings"> {
-  const chrome = buildMinimalSiteChrome(t("starter.default.site_name"));
+): SiteChrome & Pick<UpdateMarketingSiteBody, "theme_settings"> {
+  const chrome = buildMinimalSiteChrome();
 
   return {
     // logo 不进主题包（那是品牌资产，不是外观风格），这里显式置空表示「还没传」
@@ -132,7 +114,7 @@ export function buildSiteStarter(
 ): SiteStarterPayload | null {
   const starter = findSiteStarter(key);
   if (!starter) return null;
-  const chrome = buildSiteStarterChrome(t, starter.themeKey);
+  const chrome = buildSiteStarterChrome(starter.themeKey);
   const pages: SiteStarterPayload["pages"] = [];
 
   for (const spec of pageSpecs ?? starter.pages) {

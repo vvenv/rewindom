@@ -7,6 +7,10 @@
  */
 
 import {
+  mergeLegacyChromeSettings,
+  upgradeChromeSection,
+} from "./chrome-upgrade.js";
+import {
   isInputSetting,
   isLocalizableSetting,
   isLocalizedText,
@@ -37,7 +41,6 @@ import {
 import { normalizeSiteColor } from "./site-color.js";
 import { localizeSiteHref } from "./site-locale.js";
 
-import { upgradeChromeSections } from "./chrome-upgrade.js";
 
 import type { AppLocale } from "@be-water/shared";
 
@@ -182,13 +185,17 @@ function buildSection(
   const def = getSectionDefinition(type);
   if (!def) throw new Error("site.sections_invalid");
   const settings = rawSettingsOf(row);
-  return {
+  let section: SiteSection = {
     id:
       typeof row.id === "string" && row.id.trim() ? row.id.trim() : fallbackId,
     type,
     settings: parseSettingValues(def.settings, settings),
     blocks: parseBlocks(def, row.blocks, options),
   };
+  if (type === "header" || type === "footer") {
+    section = upgradeChromeSection(mergeLegacyChromeSettings(section, settings));
+  }
+  return section;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -590,9 +597,8 @@ function ensureAreaBody(
   const body = sections.filter((section) => section.type === area);
   const rest = sections.filter((section) => section.type !== area);
   const kept = body[0] ?? createSection(area);
-  const ordered =
-    area === "header" ? [...rest, kept] : [kept, ...rest];
-  return upgradeChromeSections(ordered);
+  // 旧版升级已在 `buildSection` 里逐段做过，补出来的那段本就是新格式：这里不必再跑一遍
+  return area === "header" ? [...rest, kept] : [kept, ...rest];
 }
 
 /**

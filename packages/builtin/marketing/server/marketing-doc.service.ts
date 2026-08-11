@@ -49,14 +49,15 @@ import {
   type PublicDocSummary,
   type UpdateMarketingDocBody,
 } from "../shared/marketing-doc.js";
+import { type PageLocaleAlternate } from "../shared/site-cms.js";
+import { siteLocaleOrder, withSiteLocale } from "../shared/site-locale.js";
+
 import {
   resolveDocCategoryKey,
   loadCategoryContext,
   resolveDocCategoryLabel,
   seedDefaultDocCategories,
 } from "./marketing-doc-category.service.js";
-import { type PageLocaleAlternate } from "../shared/site-cms.js";
-import { siteLocaleOrder, withSiteLocale } from "../shared/site-locale.js";
 
 const DOC_LIST_SORT_FIELDS = new Set([
   "title",

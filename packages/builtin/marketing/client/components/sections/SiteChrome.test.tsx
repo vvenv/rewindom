@@ -11,7 +11,7 @@ import {
 } from "../../../shared/section-schema.js";
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
-import { SiteHeader } from "./SiteChrome.js";
+import { SiteFooter, SiteHeader } from "./SiteChrome.js";
 
 import type { ReactNode } from "react";
 
@@ -203,6 +203,75 @@ describe("SiteHeader 账户入口", () => {
       "/contact",
     );
     expect(screen.getByTestId("member-entry")).toBeInTheDocument();
+  });
+});
+
+describe("SiteHeader 导航的无障碍名字", () => {
+  it("页头导航与窄屏导航各有一个名字，不是两个同名 landmark", () => {
+    renderHeader(
+      headerSection({
+        navItems: [
+          {
+            id: "pricing",
+            source: "link",
+            label: "定价",
+            href: "/pricing",
+            category: "",
+            expand: "children",
+            children: [],
+          },
+        ],
+      }),
+    );
+
+    expect(screen.getByRole("navigation", { name: "主导航" })).toBeVisible();
+    expect(
+      screen.getByRole("navigation", { name: "主导航（移动端）" }),
+    ).toBeVisible();
+  });
+});
+
+describe("SiteFooter 链接列", () => {
+  function renderFooter(blocks: SiteBlock[]) {
+    return render(
+      <MemoryRouter>
+        <SiteFooter
+          section={{ ...createSection("footer"), blocks }}
+          siteName="Acme"
+          logoUrl={null}
+          pages={pages}
+          locale="zh-CN"
+        />
+      </MemoryRouter>,
+    );
+  }
+
+  const ITEMS = [
+    {
+      id: "pricing",
+      source: "link",
+      label: "定价",
+      href: "/pricing",
+      category: "",
+      expand: "children",
+      children: [],
+    },
+  ];
+
+  it("有列标题才当 landmark，标题就是它的名字", () => {
+    renderFooter([
+      createBlock("footer", "menu_column", { title: "产品", items: ITEMS }),
+    ]);
+
+    expect(screen.getByRole("navigation", { name: "产品" })).toBeVisible();
+  });
+
+  /* 无名 landmark 只会把读屏器的跳转列表撑满，那一列就是一组链接而已 */
+  it("没有列标题就不制造无名 landmark", () => {
+    renderFooter([createBlock("footer", "menu_column", { items: ITEMS })]);
+
+    expect(screen.queryByRole("navigation")).toBeNull();
+    expect(screen.getByRole("link", { name: "定价" })).toBeVisible();
   });
 });
 

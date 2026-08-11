@@ -69,6 +69,14 @@ export interface BlockDefinition {
    * 嵌套只允许一层——容器里的子段不能再是容器段，见 `parsePageSection` 的深度闸门。
    */
   container?: true;
+  /**
+   * 一段里最多一个：加过之后就从「添加区块」菜单里消失。
+   *
+   * 给「这个东西本身只有一份」的块用——页头的品牌、语言切换、明暗切换、会员入口，
+   * 页脚的版权。第二个语言切换器不是一种配置，是个一眼能看出来的错误，菜单里不该
+   * 让人点得到。按钮、页脚链接列这类天生要摆好几个的**不要**声明。
+   */
+  singleton?: true;
 }
 
 export interface SectionDefinition {

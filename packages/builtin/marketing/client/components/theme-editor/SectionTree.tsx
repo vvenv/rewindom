@@ -29,6 +29,7 @@ import { useTranslation } from "react-i18next";
 
 import { getPageTemplateKind } from "../../../shared/page-templates.js";
 import {
+  addableBlockDefinitions,
   getSectionDefinition,
   isContainerSection,
   sectionTypesFor,
@@ -305,6 +306,8 @@ export function SectionTree({
     const blockTypes = def?.blocks ?? [];
     const blocksFull =
       def?.max_blocks !== undefined && section.blocks.length >= def.max_blocks;
+    // 单例块加过就不再进菜单（口径见 `addableBlockDefinitions`）
+    const addableBlockTypes = addableBlockDefinitions(section);
 
     return (
       <div key={section.id}>
@@ -460,8 +463,8 @@ export function SectionTree({
               <AddMenu
                 key={`add-block-${section.id}-${section.blocks.length}`}
                 placeholder={t("editor.addBlock")}
-                disabled={blocksFull}
-                options={blockTypes.map((block) => ({
+                disabled={blocksFull || addableBlockTypes.length === 0}
+                options={addableBlockTypes.map((block) => ({
                   value: block.type,
                   label: t(block.label),
                 }))}

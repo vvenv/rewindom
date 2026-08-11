@@ -1,5 +1,6 @@
 import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 
 import { MARKETING_I18N } from "../i18n.js";
@@ -27,21 +28,26 @@ const site = {
   updated_at: "2026-01-01T00:00:00.000Z",
 } as unknown as MarketingSite;
 
-/** `canWrite={false}`：起步模板与设置抽屉自带数据请求，计数这一行与它们无关。 */
+/**
+ * `canWrite={false}`：起步模板与设置抽屉自带数据请求，计数这一行与它们无关。
+ * 只读下仍会渲染页头页脚那颗 `<Link>`，所以要套一层 router。
+ */
 function renderHeader(summary?: {
   total: number;
   published: number;
   dirty: number;
 }) {
   return render(
-    <SiteSummaryHeader
-      site={site}
-      defaultLocale="zh-CN"
-      isLoading={false}
-      canWrite={false}
-      hasStarterContent={false}
-      summary={summary}
-    />,
+    <MemoryRouter>
+      <SiteSummaryHeader
+        site={site}
+        defaultLocale="zh-CN"
+        isLoading={false}
+        canWrite={false}
+        hasStarterContent={false}
+        summary={summary}
+      />
+    </MemoryRouter>,
   );
 }
 
@@ -74,5 +80,19 @@ describe("SiteSummaryHeader", () => {
     const link = screen.getByRole("link", { name: "查看官网" });
     expect(link).toHaveAttribute("href", "/");
     expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  /*
+   * 页头页脚编辑器自己按 `site.write` 逐个禁用操作，只读的人进去能看不能改；左侧
+   * 导航那条也只要 `site.read`。卡片上这颗曾锁在 canWrite 里，于是只读的人从菜单
+   * 进得去、从卡片进不去。
+   */
+  it("keeps the header & footer entrance reachable without write permission", () => {
+    renderHeader();
+
+    expect(screen.getByRole("link", { name: "页头页脚" })).toHaveAttribute(
+      "href",
+      "/app/site/chrome",
+    );
   });
 });
