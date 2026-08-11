@@ -263,7 +263,7 @@
     "toastSiteNameRequired": "Fill in the site name for the primary language ({{locale}}) first.",
     "create": "New page",
     "createPageTitle": "New page",
-    "createPageDescription": "Pick Home or a custom page; custom pages need a path (nested ok: docs, docs/quickstart).",
+    "createPageDescription": "Pick Home or a custom page; custom pages need a path (nested ok: about、about/contact).",
     "duplicate": "Duplicate",
     "duplicatePageTitle": "Duplicate page",
     "duplicatePageDescription": "Copies “{{title}}” ({{locale}}): same sections, text seeded from the original as a starting point for translation. The copy is created as a draft.",
