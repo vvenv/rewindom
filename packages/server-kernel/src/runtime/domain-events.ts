@@ -2,6 +2,7 @@
  * Typed domain event catalog for EventBus.
  * Add new events here when introducing cross-module side effects.
  */
+import type { AppLocale } from "@be-water/shared";
 /**
  * 审计详情：优先 `detail_key` + `detail_params`（可按查看者语言渲染）；
  * `details` 仅作遗留纯文本或落库时的 zh-CN 检索副本。
@@ -38,9 +39,17 @@ export interface NotificationCreateEventPayload {
   dedupe_key?: string;
 }
 
+/** 新租户创建完成（事务提交后）。订阅方拿它做租户级初始化（如官网默认页面）。 */
+export interface TenantCreatedEventPayload {
+  tenant_id: string;
+  /** 平台默认语言（发布方解析好，订阅方不用反查平台设置）。 */
+  default_locale: AppLocale;
+}
+
 export interface DomainEventMap {
   "audit.log": AuditLogEventPayload;
   "notification.create": NotificationCreateEventPayload;
+  "tenant.created": TenantCreatedEventPayload;
 }
 
 export type DomainEventName = keyof DomainEventMap & string;

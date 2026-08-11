@@ -94,6 +94,8 @@ export function useSiteEditor(pageId: string | undefined) {
   const [visibility, setVisibility] =
     useState<MarketingPageVisibility>("public");
   const [theme, setTheme] = useState<ThemeSettings>({});
+  // 主题「出发点」：套用主题包时记下 key，保存时随主题草稿一起落库
+  const [themeKey, setThemeKey] = useState<string | null>(null);
   const [chromeLocale, setChromeLocale] = useState<AppLocale>("zh-CN");
   const [selection, setSelection] = useState<ThemeEditorSelection | null>(null);
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
@@ -163,6 +165,11 @@ export function useSiteEditor(pageId: string | undefined) {
     setHeader(nextHeader);
     setFooter(nextFooter);
     setTheme(nextTheme);
+    setThemeKey(
+      useCache
+        ? (cached.themeKey ?? siteQuery.data.theme_key)
+        : siteQuery.data.theme_key,
+    );
     setTitle(nextTitle);
     setDescription(nextDescription);
     setPageSettings(nextSettings);
@@ -209,6 +216,7 @@ export function useSiteEditor(pageId: string | undefined) {
       header,
       footer,
       theme,
+      themeKey,
       title,
       description,
       settings: pageSettings,
@@ -223,6 +231,7 @@ export function useSiteEditor(pageId: string | undefined) {
     header,
     footer,
     theme,
+    themeKey,
     title,
     description,
     pageSettings,
@@ -415,6 +424,8 @@ export function useSiteEditor(pageId: string | undefined) {
     setVisibility,
     theme,
     setTheme,
+    themeKey,
+    setThemeKey,
     selection,
     setSelection,
     selectedSectionId,
@@ -600,6 +611,7 @@ interface EditorCachePayload {
   header: SiteSection[];
   footer: SiteSection[];
   theme?: ThemeSettings;
+  themeKey?: string | null;
   title: string;
   description: string;
   settings?: MarketingPageSettings;

@@ -20,6 +20,7 @@ import {
   Copy,
   Lock,
   MoreVertical,
+  RotateCcw,
   Trash2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -27,7 +28,10 @@ import { Link } from "react-router";
 
 
 import { formatDocDate } from "../../shared/marketing-doc.js";
-import { getPageTemplateKind } from "../../shared/page-templates.js";
+import {
+  getPageTemplateKind,
+  getPageTemplatePreset,
+} from "../../shared/page-templates.js";
 import { siteEditorPath } from "../lib/site-editor-url.js";
 
 import { SitePageDuplicateSheet } from "./SitePageDuplicateSheet.js";
@@ -269,6 +273,9 @@ function PageActions({
     actions.publishPendingId === page.id ||
     actions.unpublishPendingId === page.id;
   const deletePending = actions.deletePendingId === page.id;
+  const resetPending = actions.resetPresetPendingId === page.id;
+  // 只有注册了内置版式的 kind（首页 / 各模板页）才有「最新版式」可重设
+  const canResetPreset = Boolean(getPageTemplatePreset(page.kind));
   const [duplicateOpen, setDuplicateOpen] = useState(false);
 
   return (
@@ -304,6 +311,15 @@ function PageActions({
             <Copy className="size-4" />
             {t("cms.duplicate")}
           </DropdownMenuItem>
+          {canResetPreset ? (
+            <DropdownMenuItem
+              disabled={resetPending}
+              onSelect={() => void actions.resetPreset(page)}
+            >
+              <RotateCcw className="size-4" />
+              {t("cms.resetPreset")}
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"

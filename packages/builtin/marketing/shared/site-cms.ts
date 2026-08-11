@@ -140,6 +140,11 @@ export interface MarketingSite {
   logo_url: string | null;
   primary_color: string | null;
   theme_settings: ThemeSettings;
+  /**
+   * 最近一次套用的主题包 key（`SITE_THEMES`）。记录的是「从哪个包出发」——
+   * 租户逐项微调不清除它；「重设为最新主题」按它重新套用包的最新 token。
+   */
+  theme_key: string | null;
   default_locale: AppLocale;
   /** 站点级区域：schema 驱动，出现在所有页面上（**草稿**，保存后不一定已上线）。 */
   header: SiteSection[];
@@ -235,6 +240,8 @@ export interface SaveEditorDraftBody {
   visibility?: MarketingPageVisibility;
   /** 站点级主题草稿；不传表示这次没改主题。 */
   theme_settings?: ThemeSettings;
+  /** 本次编辑里套用过主题包时带上，记录新的出发点；不传不动。 */
+  theme_key?: string;
 }
 
 /** Theme Editor 事务保存的响应：页面与站点 chrome 同批落库。 */
@@ -250,6 +257,8 @@ export interface SaveSiteDraftBody {
   footer: unknown;
   /** 不传表示这次没改主题。 */
   theme_settings?: ThemeSettings;
+  /** 本次编辑里套用过主题包时带上，记录新的出发点；不传不动。 */
+  theme_key?: string;
 }
 
 /** 站点级草稿保存的响应。 */

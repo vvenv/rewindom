@@ -65,6 +65,7 @@ export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
     logo_url: theme_settings.logo_url ?? null,
     primary_color: theme_settings.primary_color ?? null,
     theme_settings,
+    theme_key: record.theme_key,
     default_locale: normalizeLocale(record.default_locale),
     // 管理端读**草稿** chrome；`site_draft_dirty` 标出草稿与线上的差异（含主题）
     header: siteChromeDraftHeader(record),

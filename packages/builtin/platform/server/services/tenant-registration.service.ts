@@ -14,6 +14,7 @@ import {
 } from "@be-water/server-kernel/lib/host-tenant.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { emitDetachedAuditLogSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
+import { emitDetachedDomainEventSafe } from "@be-water/server-kernel/runtime/domain-event-emit.js";
 import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
 import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
 import {
@@ -431,6 +432,11 @@ export async function registerTenant(
   // 新租户的 `{slug}.{base}` 之前解析为「无租户」，那个否定结果可能还在缓存里
   invalidateHostTenantCache();
 
+  await emitDetachedDomainEventSafe(undefined, "tenant.created", {
+    tenant_id: tenant.id,
+    default_locale: config.default_locale,
+  });
+
   await RoleService.ensureBuiltinTenantRoles(
     tenant.id,
     getServerPermissionCatalog(),
@@ -644,6 +650,11 @@ export async function registerOAuthTenant(
 
   // 新租户的 `{slug}.{base}` 之前解析为「无租户」，那个否定结果可能还在缓存里
   invalidateHostTenantCache();
+
+  await emitDetachedDomainEventSafe(undefined, "tenant.created", {
+    tenant_id: tenant.id,
+    default_locale: settings.default_locale,
+  });
 
   await RoleService.ensureBuiltinTenantRoles(
     tenant.id,

@@ -19,6 +19,7 @@ const site = {
   logo_url: null,
   primary_color: null,
   theme_settings: {},
+  theme_key: null,
   default_locale: "zh-CN",
   header: [],
   footer: [],

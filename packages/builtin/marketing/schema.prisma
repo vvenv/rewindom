@@ -13,6 +13,9 @@ model MarketingSite {
   // 与 chrome 同一口径：无后缀的是线上（访客看到的），`_draft` 的是编辑器在改的那一份。
   theme_settings Json     @default("{}")
   theme_settings_draft Json @default("{}")
+  // 最近一次套用的主题包 key（SITE_THEMES）。「重设为最新主题」按它取包的最新 token；
+  // 租户逐项微调不清除它——它记录的是「从哪个包出发」，不是「与包完全一致」。
+  theme_key      String?
   default_locale String   @default("zh-CN")
   nav_json       Json     @default("[]")
   footer_json    Json     @default("[]")

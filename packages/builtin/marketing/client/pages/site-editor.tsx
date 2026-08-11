@@ -236,6 +236,7 @@ export function SiteEditor() {
             settings: editor.pageSettings,
             visibility: editor.visibility,
             theme_settings: editor.theme,
+            ...(editor.themeKey ? { theme_key: editor.themeKey } : {}),
           },
         },
         { onSuccess, onError },
@@ -248,6 +249,7 @@ export function SiteEditor() {
         header: editor.header,
         footer: editor.footer,
         theme_settings: editor.theme,
+        ...(editor.themeKey ? { theme_key: editor.themeKey } : {}),
       },
       { onSuccess, onError },
     );
@@ -528,8 +530,10 @@ export function SiteEditor() {
             {scope === "theme" ? (
               <SiteThemeSettingsForm
                 theme={editor.theme}
+                themeKey={editor.themeKey}
                 canWrite={canWrite}
                 onChange={editor.setTheme}
+                onThemeKeyChange={editor.setThemeKey}
               />
             ) : editor.metaSelected && page ? (
               <PageMetaForm

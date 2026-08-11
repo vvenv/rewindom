@@ -141,6 +141,11 @@ export function unpublishSitePage(pageId: string): Promise<MarketingPage> {
   return api.post<MarketingPage>(`/site/pages/${pageId}/unpublish`, {});
 }
 
+/** 重设为最新版式：结构对齐最新预设、内容尽量保留，只写草稿（发布才对访客生效）。 */
+export function resetSitePagePreset(pageId: string): Promise<MarketingPage> {
+  return api.post<MarketingPage>(`/site/pages/${pageId}/reset-preset`, {});
+}
+
 export function fetchPublicSite(
   locale?: AppLocale,
 ): Promise<PublicMarketingSite> {

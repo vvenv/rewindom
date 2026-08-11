@@ -12,14 +12,19 @@ import { SITE_THEMES, type SiteTheme } from "../../../shared/site-themes.js";
  * `shared/site-themes.ts`）。所以它会**覆盖**下面那些微调项——但覆盖的是草稿：
  * 改了什么下面各字段与右侧预览当场就变，不保存就不算数，所以这里不再拦一道确认框。
  *
- * 当前用的是哪个包不做高亮：写下去之后 token 就归租户了，改过一个颜色还标着「当前：极简」
- * 反而是错的信息。
+ * 当前用的是哪个包不做「当前主题」式高亮：写下去之后 token 就归租户了，改过一个
+ * 颜色还标着「当前：极简」反而是错的信息。`currentKey` 记录的是**出发点**
+ * （`theme_key`），对应包的按钮改叫「重设为最新」——系统更新了包的 token 后，
+ * 点它即重新套用最新值（logo / og 图不受影响）。
  */
 export function SiteThemePicker({
   onPick,
+  currentKey,
   disabled,
 }: {
   onPick: (theme: SiteTheme) => void;
+  /** 站点主题的出发点包 key（`MarketingSite.theme_key`）。 */
+  currentKey?: string | null;
   disabled?: boolean;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -59,7 +64,7 @@ export function SiteThemePicker({
               disabled={disabled}
               onClick={() => onPick(theme)}
             >
-              {t("theme.apply")}
+              {t(theme.key === currentKey ? "theme.reapply" : "theme.apply")}
             </Button>
           </li>
         ))}

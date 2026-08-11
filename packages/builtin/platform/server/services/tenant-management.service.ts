@@ -12,6 +12,7 @@ import {
   normalizeCustomDomain,
 } from "@be-water/server-kernel/lib/host-tenant.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { emitDetachedDomainEventSafe } from "@be-water/server-kernel/runtime/domain-event-emit.js";
 import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug  } from "@be-water/shared";
 
 import { isValidPlanSlug, PRICING_PLANS, TENANT_FEATURES_STORAGE_KEY, TENANT_INITIAL_ADMIN_USERNAME, TENANT_LIMITS_STORAGE_KEY, type CreateTenantBody, type ImpersonateTenantResult, type PatchTenantBody, type PlanSlug, type PlatformUserSummary, type TenantAdminCredentials, type TenantCreated, type TenantIntegrationStatus, type TenantStats, type TenantSummary, type TenantStatus, type UpdateTenantPlanBody } from "../../shared/index.js";
@@ -21,6 +22,7 @@ import {
   excludeInternalUsersWhere,
 } from "./ensure-tenant-impersonation-user.service.js";
 import { resolvePlanLimitsForSlug } from "./plan-limit-templates.service.js";
+import { getPlatformSettings } from "./platform-settings.service.js";
 import { saveTenantJsonSetting } from "./tenant-json-setting.service.js";
 import { startOfLocalDay, startOfLocalMonth } from "./tenant-limit.service.js";
 import { countTenantMetric } from "./tenant-metrics.registry.js";
@@ -154,6 +156,17 @@ export async function createTenant(
 
   // 新租户的 `{slug}.{base}` 之前解析为「无租户」，那个否定结果可能还在缓存里
   invalidateHostTenantCache();
+
+  // 事件是尽力而为的广播：locale 反查失败也不该让已建成的租户报错回去
+  try {
+    const { default_locale } = await getPlatformSettings();
+    await emitDetachedDomainEventSafe(undefined, "tenant.created", {
+      tenant_id: tenant.id,
+      default_locale,
+    });
+  } catch {
+    /* noop */
+  }
 
   return {
     ...toTenantSummary(tenant),

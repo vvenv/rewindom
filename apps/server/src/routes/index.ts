@@ -1,5 +1,6 @@
 import { registerKernelRoutes as mountKernelRoutes } from "@be-water/server-kernel/kernel/kernel-routes.js";
 import { bindAuditEventBus } from "@be-water/server-kernel/runtime/audit-log-emit.js";
+import { bindDomainEventBus } from "@be-water/server-kernel/runtime/domain-event-emit.js";
 import { ModuleLoader } from "@be-water/server-kernel/runtime/module-loader.js";
 import { bindNotificationEventBus } from "@be-water/server-kernel/runtime/notification-emit.js";
 
@@ -30,6 +31,7 @@ export function attachKernelContext(app: FastifyInstance): void {
     app.decorate("events", loader.getEventBus());
     bindAuditEventBus(loader.getEventBus());
     bindNotificationEventBus(loader.getEventBus());
+    bindDomainEventBus(loader.getEventBus());
   }
   if (!app.hasDecorator("registry")) {
     app.decorate("registry", loader.getProviderRegistry());

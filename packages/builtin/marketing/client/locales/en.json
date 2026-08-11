@@ -331,6 +331,11 @@
     "chromeEditor": "Header & footer",
     "deleteConfirmTitle": "Delete this page?",
     "deleteConfirmDescription": "“{{title}}” and all of its sections will be permanently deleted. This cannot be undone.",
+    "resetPreset": "Reset to latest layout",
+    "resetPresetConfirmTitle": "Reset to the latest layout?",
+    "resetPresetConfirmDescription": "The structure of “{{title}}” will be updated to the latest built-in layout, keeping your content and settings where possible. The result is saved as a draft — publish when you're happy, or discard the changes.",
+    "toastPageResetToPreset": "Reset to the latest layout (draft)",
+    "toastPageResetToPresetFailed": "Failed to reset layout",
     "fieldLogoUrlPlaceholder": "Defaults to the brand logo",
     "fieldLogoUrlHint": "Leave empty to follow the logo uploaded under System → Branding; set it only when the site needs a different version (wordmark, dark variant).",
     "fieldLocale": "Language",
@@ -1108,6 +1113,7 @@
     "title": "Theme",
     "hint": "A preset of colors and layout. Applying it overwrites the accent color, font, page width and section spacing below (logo and share image are kept); fine-tune afterwards and save to publish the change.",
     "apply": "Apply",
+    "reapply": "Reset to latest",
     "default": {
       "label": "Default",
       "description": "General-purpose site: neutral blue, standard width and spacing."

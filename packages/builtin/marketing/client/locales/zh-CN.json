@@ -331,6 +331,11 @@
     "chromeEditor": "页头页脚",
     "deleteConfirmTitle": "删除该页面？",
     "deleteConfirmDescription": "「{{title}}」及其全部区块将被永久删除，此操作不可撤销。",
+    "resetPreset": "重设为最新版式",
+    "resetPresetConfirmTitle": "重设为最新版式？",
+    "resetPresetConfirmDescription": "「{{title}}」的结构将更新到最新内置版式，已填的文案与配置会尽量保留。结果只写入草稿——满意后发布，不满意可撤销更改。",
+    "toastPageResetToPreset": "已重设为最新版式（草稿）",
+    "toastPageResetToPresetFailed": "重设版式失败",
     "fieldLogoUrlPlaceholder": "默认使用品牌 Logo",
     "fieldLogoUrlHint": "留空即跟随「系统管理 → 品牌」里上传的 Logo；只有官网想用不同版本（横版 / 深色版）时才填。",
     "fieldLocale": "语言",
@@ -1108,6 +1113,7 @@
     "title": "主题",
     "hint": "一套配色与排版的预设。套用会覆盖下面的主色、字体、页宽与区块间距（Logo 与分享图不动），之后仍可逐项微调，保存后生效。",
     "apply": "套用",
+    "reapply": "重设为最新",
     "default": {
       "label": "默认",
       "description": "通用官网：中性蓝，常规页宽与间距。"

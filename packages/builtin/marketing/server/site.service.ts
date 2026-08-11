@@ -19,8 +19,10 @@ import {
 } from "../shared/page-presets.js";
 import {
   getPageTemplateKind,
+  getPageTemplatePreset,
   isTemplatePageKind,
 } from "../shared/page-templates.js";
+import { mergeSectionsWithPreset } from "../shared/preset-merge.js";
 import {
   getSectionDefinition,
   localizeSections,
@@ -559,7 +561,7 @@ export async function saveEditorDraft(
       data: {
         nav_draft_json: header as unknown as Prisma.InputJsonValue,
         footer_draft_json: footer as unknown as Prisma.InputJsonValue,
-        ...siteThemeDraftData(body.theme_settings),
+        ...siteThemeDraftData(body),
       },
     }),
   ]);
@@ -569,16 +571,30 @@ export async function saveEditorDraft(
 /**
  * 保存请求里带了主题就写草稿列，没带就不动——编辑器一次保存可能只改了正文。
  * 两个保存入口（带页面 / 不带页面）共用这一份，省得一边加了另一边忘了。
+ *
+ * `theme_key` 同理：编辑器里套用了主题包才带上，记录新的「出发点」，供
+ * 「重设为最新主题」找回该包。
  */
-function siteThemeDraftData(
-  theme_settings: unknown,
-): { theme_settings_draft?: Prisma.InputJsonValue } {
-  if (theme_settings === undefined) return {};
-  return {
-    theme_settings_draft: parseSiteThemeSettings(
-      theme_settings,
-    ) as Prisma.InputJsonValue,
-  };
+function siteThemeDraftData(body: {
+  theme_settings?: unknown;
+  theme_key?: string;
+}): { theme_settings_draft?: Prisma.InputJsonValue; theme_key?: string } {
+  const data: {
+    theme_settings_draft?: Prisma.InputJsonValue;
+    theme_key?: string;
+  } = {};
+  if (body.theme_settings !== undefined) {
+    data.theme_settings_draft = parseSiteThemeSettings(
+      body.theme_settings,
+    ) as Prisma.InputJsonValue;
+  }
+  if (body.theme_key !== undefined) {
+    if (!findSiteTheme(body.theme_key)) {
+      throw new ValidationError("site.theme_not_found");
+    }
+    data.theme_key = body.theme_key;
+  }
+  return data;
 }
 
 /**
@@ -599,7 +615,7 @@ export async function saveSiteDraft(
     data: {
       nav_draft_json: header as unknown as Prisma.InputJsonValue,
       footer_draft_json: footer as unknown as Prisma.InputJsonValue,
-      ...siteThemeDraftData(body.theme_settings),
+      ...siteThemeDraftData(body),
     },
   });
   return toMarketingSite(site);
@@ -724,6 +740,7 @@ export async function applySiteStarter(
         // 不该让人再去发布一次才看得见（与 chrome 同一口径）
         theme_settings: theme_settings as unknown as Prisma.InputJsonValue,
         theme_settings_draft: theme_settings as unknown as Prisma.InputJsonValue,
+        theme_key: findSiteStarter(key)?.themeKey ?? null,
         nav_json: header as unknown as Prisma.InputJsonValue,
         footer_json: footer as unknown as Prisma.InputJsonValue,
         nav_draft_json: header as unknown as Prisma.InputJsonValue,
@@ -813,6 +830,50 @@ export async function applySiteStarter(
     pages: mappedPages,
     home_page_id: homePage.id,
   };
+}
+
+/**
+ * 把页面**结构**重设为该 kind 的最新内置版式，尽量保留租户内容（合并语义见
+ * `shared/preset-merge.ts`）。
+ *
+ * 只写草稿：结果先进编辑器让人过目，线上那一版一个字都不动——满意再发布，
+ * 不满意「撤销更改」就回来了。title / description 也保留租户的，空了才用预设补。
+ */
+export async function resetPageToPreset(
+  tenant_id: string,
+  page_id: string,
+): Promise<MarketingPage> {
+  const existing = await prisma.marketingPage.findFirst({
+    where: withTenantScope(tenant_id, { id: page_id }),
+  });
+  if (!existing) {
+    throw new NotFoundError("site.page_not_found");
+  }
+
+  const preset = getPageTemplatePreset(existing.kind);
+  // 普通页面没有「官方最新版式」可言，重设无从谈起
+  if (!preset) {
+    throw new ValidationError("site.page_reset_unsupported");
+  }
+
+  const locale = normalizeLocale(existing.locale);
+  const t = createStarterTranslator(locale);
+  const draft = pageContentDraft(existing);
+  const sections = parsePageSections(
+    mergeSectionsWithPreset(draft.sections, preset, t),
+  );
+  assertTemplateRequiredSection(existing.kind, sections);
+
+  const updated = await prisma.marketingPage.update({
+    where: { id: existing.id, tenant_id },
+    data: {
+      sections_draft: sections as unknown as Prisma.InputJsonValue,
+      title_draft: existing.title_draft.trim() || t(preset.titleKey).trim(),
+      description_draft:
+        existing.description_draft.trim() || t(preset.descriptionKey).trim(),
+    },
+  });
+  return toMarketingPage(updated);
 }
 
 export async function updatePage(
@@ -1468,6 +1529,8 @@ export async function applySiteTheme(
         current,
         theme,
       ) as unknown as Prisma.InputJsonValue,
+      // 记住「从哪个包出发」：主题包升级后「重设为最新主题」按它重新套
+      theme_key: theme.key,
     },
   });
   return toMarketingSite(site);

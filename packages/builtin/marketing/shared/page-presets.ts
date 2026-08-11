@@ -9,11 +9,13 @@ import {
   getSectionDefinition,
   parseSettingValues,
   type SettingValues,
+  type SiteBlock,
   type SiteSection,
 } from "./section-schema.js";
 
 import type {
   PagePreset,
+  PresetBlock,
   PresetSection,
   PresetTranslateFn,
 } from "./page-presets.types.js";
@@ -200,28 +202,34 @@ function resolveValues(
   return out;
 }
 
-function buildPresetSection(
+/** 把预设里的一个 block 落成真实 block（容器列里的子段一并展开）。 */
+export function buildPresetBlock(
+  sectionType: string,
+  spec: PresetBlock,
+  t: PresetTranslateFn,
+): SiteBlock {
+  const created = createBlock(
+    sectionType,
+    spec.type,
+    resolveValues(t, spec.text, spec.raw),
+  );
+  // 容器 block（列）里的子段同样走一遍预设展开
+  return spec.sections
+    ? {
+        ...created,
+        sections: spec.sections.map((child) => buildPresetSection(child, t)),
+      }
+    : created;
+}
+
+/** 把预设里的一段落成真实 section（`preset-merge` 按段补缺时也用它）。 */
+export function buildPresetSection(
   spec: PresetSection,
   t: PresetTranslateFn,
 ): SiteSection {
   const base = createSection(spec.type);
   const blocks = spec.blocks
-    ? spec.blocks.map((block) => {
-        const created = createBlock(
-          spec.type,
-          block.type,
-          resolveValues(t, block.text, block.raw),
-        );
-        // 容器 block（列）里的子段同样走一遍预设展开
-        return block.sections
-          ? {
-              ...created,
-              sections: block.sections.map((child) =>
-                buildPresetSection(child, t),
-              ),
-            }
-          : created;
-      })
+    ? spec.blocks.map((block) => buildPresetBlock(spec.type, block, t))
     : base.blocks;
   // `createSection` 已经对认不出来的 type 抛过了，这里的定义必然存在
   const definition = getSectionDefinition(spec.type)!;

@@ -46,11 +46,17 @@ const FALLBACK_PRIMARY_COLOR = "#0f766e";
  */
 export function SiteThemeSettingsForm({
   theme,
+  themeKey,
   onChange,
+  onThemeKeyChange,
   canWrite,
 }: {
   theme: ThemeSettings;
+  /** 站点主题的「出发点」包（`MarketingSite.theme_key`）；对应包的按钮变成「重设为最新」。 */
+  themeKey?: string | null;
   onChange: (next: ThemeSettings) => void;
+  /** 套用主题包时记录新的出发点，随保存一起落库。 */
+  onThemeKeyChange?: (key: string) => void;
   canWrite: boolean;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -59,12 +65,18 @@ export function SiteThemeSettingsForm({
     onChange({ ...theme, ...next });
 
   /** 套主题包同样只改草稿；覆盖语义与服务端一键套用共用一份。 */
-  const applyPack = (pack: SiteTheme): void =>
+  const applyPack = (pack: SiteTheme): void => {
     onChange(applySiteThemeSettings(theme, pack));
+    onThemeKeyChange?.(pack.key);
+  };
 
   return (
     <div className="flex flex-col gap-6">
-      <SiteThemePicker disabled={!canWrite} onPick={applyPack} />
+      <SiteThemePicker
+        disabled={!canWrite}
+        currentKey={themeKey}
+        onPick={applyPack}
+      />
 
       <FieldGroup>
         <Field>

@@ -28,9 +28,11 @@ const actions: SitePageActions = {
   publishPendingId: undefined,
   unpublishPendingId: undefined,
   deletePendingId: undefined,
+  resetPresetPendingId: undefined,
   reorderPending: false,
   togglePublish: vi.fn(),
   remove: vi.fn(async () => {}),
+  resetPreset: vi.fn(async () => {}),
   move: vi.fn(),
 };
 

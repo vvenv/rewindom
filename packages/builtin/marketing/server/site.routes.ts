@@ -44,6 +44,7 @@ import {
   publishEditorDraft,
   publishSiteDraft,
   reorderPages,
+  resetPageToPreset,
   revertSiteDraft,
   revertEditorDraft,
   saveSiteDraft,
@@ -551,6 +552,41 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           detail_params: {},
         });
         return { ok: true };
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  /**
+   * 重设为最新版式：结构对齐最新内置预设、租户内容尽量保留，**只写草稿**。
+   * 合并语义见 `shared/preset-merge.ts`；满意再走发布，不满意「撤销更改」即可回退。
+   */
+  defineRoute(app, {
+    method: "POST",
+    url: "/pages/:pageId/reset-preset",
+    context: "SitePageResetPreset",
+    errorCode: "SITE_PAGE_RESET_PRESET_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const { pageId } = request.params as { pageId: string };
+        const page = await resetPageToPreset(
+          request.tenantContext!.tenant_id,
+          pageId,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_PAGE_UPDATE,
+          resource: page.id,
+          detail_key: "marketing.audit.page_reset_to_preset",
+          detail_params: { title: page.title },
+        });
+        return page;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

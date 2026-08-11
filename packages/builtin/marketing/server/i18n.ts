@@ -23,6 +23,9 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_version_restored":
         "恢复官网页面到第 {{version}} 版",
       "site.page_version_not_found": "该版本不存在",
+      "marketing.audit.page_reset_to_preset":
+        "重设官网页面「{{title}}」为最新版式",
+      "site.page_reset_unsupported": "该页面没有可重设的内置版式",
       "marketing.audit.starter_applied":
         "应用站点起步模板「{{key}}」（{{page_count}} 页）",
       "marketing.audit.theme_applied": "套用站点主题「{{key}}」",
@@ -110,6 +113,9 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_version_restored":
         "Restored page to version {{version}}",
       "site.page_version_not_found": "Version not found",
+      "marketing.audit.page_reset_to_preset":
+        'Reset site page "{{title}}" to the latest layout',
+      "site.page_reset_unsupported": "This page has no built-in layout to reset to",
       "marketing.audit.starter_applied":
         'Applied site starter "{{key}}" ({{page_count}} pages)',
       "marketing.audit.theme_applied": 'Applied site theme "{{key}}"',

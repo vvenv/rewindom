@@ -13,6 +13,7 @@ import {
   publishSiteDraft,
   publishSiteEditorDraft,
   reorderSitePages,
+  resetSitePagePreset,
   revertSiteDraft,
   revertSiteEditorDraft,
   saveSiteDraft,
@@ -165,6 +166,12 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
+  /** 重设为最新版式（只写草稿）。 */
+  const resetPagePreset = useMutation({
+    mutationFn: (pageId: string) => resetSitePagePreset(pageId),
+    onSuccess: () => invalidate(),
+  });
+
   return {
     updateSite,
     createPage,
@@ -179,5 +186,6 @@ export function useSiteMutations() {
     reorderPages,
     removePage,
     unpublishPage,
+    resetPagePreset,
   };
 }
