@@ -1,14 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
 
+import { getFileStorageProvider } from "@be-water/server-kernel/infra/file-storage/index.js";
+import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
+import { validateImageUpload } from "@be-water/server-kernel/lib/image-upload.js";
 import {
-  getFileStorageProvider,
+  extensionToMimeType,
   mimeTypeToExtension,
-} from "@be-water/server-kernel/infra/file-storage/local-file-storage.js";
-import {
-  NotFoundError,
-  ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
+} from "@be-water/server-kernel/lib/mime.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 
@@ -75,16 +74,15 @@ export async function uploadSiteAsset(input: {
   buffer: Buffer;
   mime_type: string;
 }): Promise<SiteAsset> {
-  const mime = input.mime_type.trim().toLowerCase();
-  if (!(ALLOWED_MIME_TYPES as readonly string[]).includes(mime)) {
-    throw new ValidationError("site.asset_invalid_mime");
-  }
-  if (input.buffer.byteLength === 0) {
-    throw new ValidationError("site.asset_required");
-  }
-  if (input.buffer.byteLength > MAX_BYTES) {
-    throw new ValidationError("site.asset_too_large", { max_bytes: MAX_BYTES });
-  }
+  const mime = validateImageUpload(input.buffer, input.mime_type, {
+    allowed_mime_types: ALLOWED_MIME_TYPES,
+    max_bytes: MAX_BYTES,
+    error_codes: {
+      invalid_mime: "site.asset_invalid_mime",
+      empty: "site.asset_required",
+      too_large: "site.asset_too_large",
+    },
+  });
 
   const assetId = randomUUID();
   const ext = mimeTypeToExtension(mime) || ".bin";
@@ -96,6 +94,7 @@ export async function uploadSiteAsset(input: {
   );
   await getFileStorageProvider().put(storageKey, input.buffer, {
     mime_type: mime,
+    visibility: "public",
   });
 
   /*
@@ -173,10 +172,16 @@ export async function deleteSiteAsset(
   return true;
 }
 
-export async function openSiteAssetStream(input: {
+/**
+ * 把公开 URL 的 `:slug/:filename` 解析成存储键。
+ *
+ * 只做定位，不碰字节——取字节是存储后端的事（见 `sendStorageObject`），
+ * 这样接对象存储时这里一行不用改。
+ */
+export async function resolveSiteAssetStorageKey(input: {
   tenant_slug: string;
   filename: string;
-}): Promise<{ stream: ReturnType<ReturnType<typeof getFileStorageProvider>["createReadStream"]>; mime_type: string; size: number }> {
+}): Promise<{ storage_key: string; mime_type: string }> {
   const slug = input.tenant_slug.trim().toLowerCase();
   const filename = input.filename.trim();
   if (!slug || !filename || filename.includes("/") || filename.includes("..")) {
@@ -199,36 +204,9 @@ export async function openSiteAssetStream(input: {
     throw new NotFoundError("site.asset_not_found");
   }
 
-  const storageKey = buildSiteAssetStorageKey(tenant.id, assetId, guessMime(ext));
-  const storage = getFileStorageProvider();
-  const absolutePath = storage.resolveAbsolutePath(storageKey);
-  const { stat } = await import("node:fs/promises");
-  const fileStat = await stat(absolutePath).catch(() => null);
-  if (!fileStat || !fileStat.isFile()) {
-    throw new NotFoundError("site.asset_not_found");
-  }
-
+  const mime_type = extensionToMimeType(ext);
   return {
-    stream: storage.createReadStream(storageKey),
-    mime_type: guessMime(ext),
-    size: fileStat.size,
+    storage_key: buildSiteAssetStorageKey(tenant.id, assetId, mime_type),
+    mime_type,
   };
-}
-
-function guessMime(ext: string): string {
-  switch (ext) {
-    case ".jpg":
-    case ".jpeg":
-      return "image/jpeg";
-    case ".png":
-      return "image/png";
-    case ".gif":
-      return "image/gif";
-    case ".webp":
-      return "image/webp";
-    case ".svg":
-      return "image/svg+xml";
-    default:
-      return "application/octet-stream";
-  }
 }

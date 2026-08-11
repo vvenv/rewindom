@@ -28,6 +28,7 @@
 | [i18n.md](./design/i18n.md)                       | 多语言（zh-CN / en） |
 | [tenant-features.md](./design/tenant-features.md) | 功能开关与配额 |
 | [user-system.md](./design/user-system.md)         | 用户与认证     |
+| [file-storage.md](./design/file-storage.md)       | 媒体库 / 图片上传的存储抽象；接 OSS/S3 的落点 |
 
 ### 权限 / 规范
 

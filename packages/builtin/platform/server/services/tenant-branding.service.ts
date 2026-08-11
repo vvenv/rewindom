@@ -1,13 +1,7 @@
-import { stat } from "node:fs/promises";
-
-import {
-  getFileStorageProvider,
-  buildTenantBrandingStorageKey,
-} from "@be-water/server-kernel/infra/file-storage/local-file-storage.js";
-import {
-  NotFoundError,
-  ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
+import { getFileStorageProvider } from "@be-water/server-kernel/infra/file-storage/index.js";
+import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
+import { validateImageUpload } from "@be-water/server-kernel/lib/image-upload.js";
+import { mimeTypeToExtension } from "@be-water/server-kernel/lib/mime.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 
 import {
@@ -28,6 +22,16 @@ import {
   getTenantJsonSetting,
   saveTenantJsonSetting,
 } from "./tenant-json-setting.service.js";
+
+/** 品牌资源每种只有一份，存储键固定，覆盖上传即替换。 */
+function buildTenantBrandingStorageKey(
+  tenantId: string,
+  kind: TenantBrandingAssetKind,
+  mimeType: string,
+): string {
+  const ext = mimeTypeToExtension(mimeType) || ".bin";
+  return `${tenantId}/branding/${kind}${ext}`;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -88,18 +92,15 @@ export async function uploadTenantBrandingAsset(input: {
   buffer: Buffer;
   mime_type: string;
 }): Promise<TenantBrandingUrls> {
-  const mime = input.mime_type.trim().toLowerCase();
-  if (!allowedMimeTypes(input.kind).includes(mime)) {
-    throw new ValidationError("branding.invalid_mime");
-  }
-  if (input.buffer.byteLength === 0) {
-    throw new ValidationError("branding.file_required");
-  }
-  if (input.buffer.byteLength > maxBytes(input.kind)) {
-    throw new ValidationError("branding.file_too_large", {
-      max_bytes: maxBytes(input.kind),
-    });
-  }
+  const mime = validateImageUpload(input.buffer, input.mime_type, {
+    allowed_mime_types: allowedMimeTypes(input.kind),
+    max_bytes: maxBytes(input.kind),
+    error_codes: {
+      invalid_mime: "branding.invalid_mime",
+      empty: "branding.file_required",
+      too_large: "branding.file_too_large",
+    },
+  });
 
   const current = await getTenantBranding(input.tenant_id);
   const storage = getFileStorageProvider();
@@ -110,7 +111,10 @@ export async function uploadTenantBrandingAsset(input: {
   );
   const previous = current[input.kind];
 
-  await storage.put(storage_key, input.buffer, { mime_type: mime });
+  await storage.put(storage_key, input.buffer, {
+    mime_type: mime,
+    visibility: "public",
+  });
 
   const nextAsset: TenantBrandingAsset = {
     storage_key,
@@ -162,16 +166,11 @@ export async function clearTenantBrandingAsset(input: {
   return brandingUrlsFromAssets(input.tenant_slug, next);
 }
 
-export async function openTenantBrandingAssetStream(input: {
+/** 把公开 URL 的 `:slug/:kind` 解析成存储键；取字节交给 `sendStorageObject`。 */
+export async function resolveTenantBrandingStorageKey(input: {
   tenant_slug: string;
   kind: TenantBrandingAssetKind;
-}): Promise<{
-  stream: ReturnType<
-    ReturnType<typeof getFileStorageProvider>["createReadStream"]
-  >;
-  mime_type: string;
-  size: number;
-}> {
+}): Promise<{ storage_key: string; mime_type: string }> {
   const tenant = await prisma.tenant.findUnique({
     where: { slug: input.tenant_slug },
     select: { id: true },
@@ -186,19 +185,5 @@ export async function openTenantBrandingAssetStream(input: {
     throw new NotFoundError("branding.not_found");
   }
 
-  const storage = getFileStorageProvider();
-  const absolutePath = storage.resolveAbsolutePath(asset.storage_key);
-  // 不给初值：catch 一定抛，赋值前不可能被读到，给了反而是无用赋值
-  let size: number;
-  try {
-    size = (await stat(absolutePath)).size;
-  } catch {
-    throw new NotFoundError("branding.not_found");
-  }
-
-  return {
-    stream: storage.createReadStream(asset.storage_key),
-    mime_type: asset.mime_type,
-    size,
-  };
+  return { storage_key: asset.storage_key, mime_type: asset.mime_type };
 }

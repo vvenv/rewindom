@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const put = vi.fn();
 const del = vi.fn();
-const createReadStream = vi.fn();
-const resolveAbsolutePath = vi.fn();
+const open = vi.fn();
+const resolveUrl = vi.fn(async () => null);
 
 vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   prisma: {
@@ -21,18 +21,8 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   },
 }));
 
-vi.mock("@be-water/server-kernel/infra/file-storage/local-file-storage.js", () => ({
-  getFileStorageProvider: () => ({
-    put,
-    delete: del,
-    createReadStream,
-    resolveAbsolutePath,
-  }),
-  buildTenantBrandingStorageKey: (
-    tenantId: string,
-    kind: string,
-    mimeType: string,
-  ) => `${tenantId}/branding/${kind}.${mimeType.split("/")[1] ?? "bin"}`,
+vi.mock("@be-water/server-kernel/infra/file-storage/index.js", () => ({
+  getFileStorageProvider: () => ({ put, delete: del, open, resolveUrl }),
 }));
 
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";

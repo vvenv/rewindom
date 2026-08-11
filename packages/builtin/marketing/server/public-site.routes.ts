@@ -1,5 +1,6 @@
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
 import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
+import { sendStorageObject } from "@be-water/server-kernel/http/send-storage-object.js";
 import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
 
 import {
@@ -8,7 +9,7 @@ import {
 } from "../shared/site-enhance.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
-import { openSiteAssetStream } from "./site-asset.service.js";
+import { resolveSiteAssetStorageKey } from "./site-asset.service.js";
 import { submitSiteForm } from "./site-form.service.js";
 import {
   getPublishedPublicPage,
@@ -172,14 +173,19 @@ export async function publicSiteRoutes(app: FastifyInstance): Promise<void> {
           slug: string;
           filename: string;
         };
-        const { stream, mime_type, size } = await openSiteAssetStream({
+        const { storage_key, mime_type } = await resolveSiteAssetStorageKey({
           tenant_slug: slug,
           filename,
         });
-        reply.header("Content-Type", mime_type);
-        reply.header("Content-Length", String(size));
-        reply.header("Cache-Control", "public, max-age=31536000, immutable");
-        return reply.send(stream);
+        const sent = await sendStorageObject(reply, storage_key, {
+          mime_type,
+          // 文件名带资产 id，内容永不改写
+          cache_control: "public, max-age=31536000, immutable",
+        });
+        if (!sent) {
+          return sendCodedError(reply, 404, "site.asset_not_found");
+        }
+        return reply;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

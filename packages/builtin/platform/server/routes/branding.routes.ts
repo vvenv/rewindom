@@ -4,6 +4,7 @@ import {
   handleValidationError,
   sendCodedError,
 } from "@be-water/server-kernel/http/route-error-handler.js";
+import { sendStorageObject } from "@be-water/server-kernel/http/send-storage-object.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 import { success } from "@be-water/shared";
 
@@ -11,7 +12,7 @@ import { AuditAction } from "../../../audit/shared/index.js";
 import {
   clearTenantBrandingAsset,
   getTenantBrandingUrls,
-  openTenantBrandingAssetStream,
+  resolveTenantBrandingStorageKey,
   uploadTenantBrandingAsset,
 } from "../services/tenant-branding.service.js";
 
@@ -167,16 +168,21 @@ export async function publicTenantBrandingRoutes(
           return sendCodedError(reply, 404, "branding.not_found");
         }
 
-        const { stream, mime_type, size } =
-          await openTenantBrandingAssetStream({
+        const { storage_key, mime_type } =
+          await resolveTenantBrandingStorageKey({
             tenant_slug: slug,
             kind,
           });
 
-        reply.header("Content-Type", mime_type);
-        reply.header("Content-Length", String(size));
-        reply.header("Cache-Control", "public, max-age=300");
-        return reply.send(stream);
+        const sent = await sendStorageObject(reply, storage_key, {
+          mime_type,
+          // 存储键固定，换 logo 是覆盖写，不能长缓存
+          cache_control: "public, max-age=300",
+        });
+        if (!sent) {
+          return sendCodedError(reply, 404, "branding.not_found");
+        }
+        return reply;
       } catch (err) {
         return handleRouteError(
           reply,
