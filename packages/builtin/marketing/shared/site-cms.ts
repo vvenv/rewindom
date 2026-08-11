@@ -428,7 +428,7 @@ export function marketingPagePath(
 }
 export type PublicSitePage = PublicMarketingSite["pages"][number];
 
-/** 父路径：`/docs/quickstart` → `/docs`；`/about` → `/`。 */
+/** 父路径：`/about/contact` → `/about`；`/about` → `/`。 */
 export function pageParentPath(path: string): string {
   const normalized =
     path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
@@ -436,7 +436,7 @@ export function pageParentPath(path: string): string {
   return normalized.slice(0, normalized.lastIndexOf("/")) || "/";
 }
 
-/** 路径深度：`/` → 0，`/about` → 1，`/docs/quickstart` → 2。 */
+/** 路径深度：`/` → 0，`/about` → 1，`/about/contact` → 2。 */
 export function pageDepth(path: string): number {
   return path.split("/").filter(Boolean).length;
 }
@@ -444,7 +444,7 @@ export function pageDepth(path: string): number {
 /**
  * 同级页面：与 `path` 共享同一父路径的所有页面 + 父页面本身。
  *
- * 与页面 kind 无关——`/docs/*` 的兄弟是其它文档页，顶层页的兄弟是其它顶层页。
+ * 与页面 kind 无关——`/about/*` 的兄弟是其它自定义页，顶层页的兄弟是其它顶层页。
  * 顺序沿用传入的 `pages`（服务端按 sort_order 排好）。
  */
 export function siblingPages(
@@ -485,7 +485,7 @@ export function siteNavPages(pages: PublicSitePage[]): PublicSitePage[] {
 /**
  * 解析页面菜单：`page-menu` section 与详情侧栏共用。
  *
- * - `children`：列当前路径下的直接子页（`/docs` → `/docs/*`）
+ * - `children`：列当前路径下的直接子页（`/about` → `/about/*`）
  * - `siblings`：列与当前页同级的页面（详情侧栏）
  */
 export function resolvePageMenu(

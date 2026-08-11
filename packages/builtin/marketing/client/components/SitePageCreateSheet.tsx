@@ -38,7 +38,12 @@ import { toast } from "sonner";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import { useSite, useSiteMutations } from "../hooks/useSite.js";
 
-import type { MarketingPageKind } from "../../shared/site-cms.js";
+import { SitePageMetaCoreFields } from "./SitePageMetaCoreFields.js";
+
+import type {
+  MarketingPageKind,
+  MarketingPageSettings,
+} from "../../shared/site-cms.js";
 
 interface SitePageCreateSheetProps {
   children: ReactNode;
@@ -59,6 +64,8 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
   const [kind, setKind] = useState<MarketingPageKind>("page");
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [settings, setSettings] = useState<MarketingPageSettings>({});
   const [locale, setLocale] = useState<AppLocale | null>(null);
 
   const targetLocale = locale ?? defaultLocale;
@@ -66,6 +73,8 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
   const reset = (): void => {
     setSlug("");
     setTitle("");
+    setDescription("");
+    setSettings({});
     setKind("page");
     setLocale(null);
   };
@@ -78,6 +87,8 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
         kind,
         slug: nextSlug,
         title: title.trim(),
+        description: description.trim(),
+        settings,
         locale: targetLocale,
       },
       {
@@ -133,21 +144,21 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
                   id="slug"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  placeholder="docs/quickstart"
+                  placeholder="about/contact"
                   required
                 />
                 <FieldDescription>{t("cms.slugHintPage")}</FieldDescription>
               </Field>
             ) : null}
-            <Field>
-              <FieldLabel htmlFor="title">{t("cms.fieldTitle")}</FieldLabel>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </Field>
+            <SitePageMetaCoreFields
+              idPrefix="create-page"
+              title={title}
+              description={description}
+              settings={settings}
+              onChangeTitle={setTitle}
+              onChangeDescription={setDescription}
+              onChangeSettings={setSettings}
+            />
             {/*
               页面按语言分行存：同一个 slug 每种语言各建一页，
               它们靠 (kind, slug) 自动成为一组译文（hreflang / 语言切换器据此生成）。

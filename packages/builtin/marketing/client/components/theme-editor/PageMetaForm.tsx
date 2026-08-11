@@ -4,11 +4,10 @@ import { FieldInfoTip } from "@be-water/client-kit";
 import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
 import { Switch } from "@be-water/ui/switch";
-import { Textarea } from "@be-water/ui/textarea";
 import { useTranslation } from "react-i18next";
 
-import { SiteImageField } from "../media/SiteImageField.js";
 import { SiteColorField } from "../SiteColorField.js";
+import { SitePageMetaCoreFields } from "../SitePageMetaCoreFields.js";
 
 import type {
   MarketingPageSettings,
@@ -61,35 +60,16 @@ export function PageMetaForm({
       </p>
 
       <FieldGroup>
-        <Field>
-          <FieldLabel htmlFor="page-meta-title" className={LABEL_CLASS}>
-            {t("cms.fieldTitle")}
-            <FieldInfoTip text={t("editor.info.page_title")} side="left" />
-          </FieldLabel>
-          <Input
-            id="page-meta-title"
-            value={title}
-            disabled={disabled}
-            onChange={(event) => onChangeTitle(event.target.value)}
-          />
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor="page-meta-description" className={LABEL_CLASS}>
-            {t("cms.fieldDescription")}
-            <FieldInfoTip
-              text={t("editor.info.page_description")}
-              side="left"
-            />
-          </FieldLabel>
-          <Textarea
-            id="page-meta-description"
-            rows={3}
-            value={description}
-            disabled={disabled}
-            onChange={(event) => onChangeDescription(event.target.value)}
-          />
-        </Field>
+        <SitePageMetaCoreFields
+          idPrefix="page-meta"
+          title={title}
+          description={description}
+          settings={settings}
+          disabled={disabled}
+          onChangeTitle={onChangeTitle}
+          onChangeDescription={onChangeDescription}
+          onChangeSettings={onChangeSettings}
+        />
 
         <Field>
           <FieldLabel htmlFor="page-meta-path" className={LABEL_CLASS}>
@@ -117,43 +97,6 @@ export function PageMetaForm({
               disabled={disabled}
               onCheckedChange={(checked) =>
                 onChangeVisibility(checked ? "members" : "public")
-              }
-            />
-          </div>
-        </Field>
-
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase not-first:mt-2">
-          {t("editor.group.seo")}
-        </p>
-
-        <Field>
-          <FieldLabel htmlFor="page-meta-og-image" className={LABEL_CLASS}>
-            {t("editor.setting.og_image")}
-            <FieldInfoTip text={t("editor.info.og_image")} side="left" />
-          </FieldLabel>
-          <SiteImageField
-            id="page-meta-og-image"
-            value={settings.og_image ?? ""}
-            disabled={disabled}
-            placeholder="/uploads/og.png"
-            onChange={(next) =>
-              onChangeSettings({ ...settings, og_image: next || null })
-            }
-          />
-        </Field>
-
-        <Field>
-          <div className="flex items-center justify-between gap-3">
-            <FieldLabel htmlFor="page-meta-noindex" className={LABEL_CLASS}>
-              {t("editor.setting.noindex")}
-              <FieldInfoTip text={t("editor.info.noindex")} side="left" />
-            </FieldLabel>
-            <Switch
-              id="page-meta-noindex"
-              checked={settings.noindex === true}
-              disabled={disabled}
-              onCheckedChange={(checked) =>
-                onChangeSettings({ ...settings, noindex: checked })
               }
             />
           </div>
