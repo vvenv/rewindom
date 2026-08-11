@@ -1,5 +1,4 @@
 import {
-  registerAppNavQuickLinksProvider,
   type AppNavItem,
   type AppNavSection,
   type MobileTabItem,
@@ -119,15 +118,6 @@ export function getAppNavItems(): AppNavItem[] {
   return getAppNavSections().flatMap((section) => section.items);
 }
 
-export function getAppNavQuickLinks(): (AppNavItem & {
-  keywords: string;
-})[] {
-  return getAppNavItems().filter(
-    (item): item is AppNavItem & { keywords: string } =>
-      item.keywords !== undefined,
-  );
-}
-
 export function getMobileTabItems(): MobileTabItem[] {
   const byPath = new Map(getAppNavItems().map((item) => [item.path, item]));
   return collectMobileTabPaths(ENABLED_CLIENT_MODULES).flatMap((path) => {
@@ -149,5 +139,3 @@ export function getMobileTabItems(): MobileTabItem[] {
     ];
   });
 }
-
-registerAppNavQuickLinksProvider(getAppNavQuickLinks);

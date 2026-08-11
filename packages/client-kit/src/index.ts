@@ -215,7 +215,6 @@ export {
   snapshotInputFiles,
 } from "./lib/text-attachment-upload";
 export { optionsFromLabels } from "./lib/filter-chip-options";
-export * from "./lib/app-nav-quick-links";
 export {
   registerDashboardWidgetsProvider,
   getDashboardWidgets,

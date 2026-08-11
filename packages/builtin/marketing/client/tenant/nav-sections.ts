@@ -1,14 +1,15 @@
-import {
-  FileText,
-  Globe,
-  Image as ImageIcon,
-  Inbox,
-  LayoutTemplate,
-  Signpost,
-} from "lucide-react";
+import { FileText, Globe, Image as ImageIcon, Inbox, Signpost } from "lucide-react";
 
 import type { AppNavSection } from "@be-water/client-kit";
 
+/**
+ * 「站点」分组：一项一类**内容集合**（页面、表单提交、媒体、重定向、文档）。
+ *
+ * 页头页脚编辑器（`/app/site/chrome`）**刻意不在这里**：它和 Theme Editor
+ * （`/app/site/pages/:pageId`）是同一种东西——一个对象的全屏编辑器，不是一类内容。
+ * 编辑器从它编辑的东西点进去，所以入口在官网卡片上（`SiteSummaryHeader`），
+ * 与 Theme Editor 从页面列表点进去同一口径。
+ */
 export const SITE_NAV_SECTIONS: AppNavSection[] = [
   {
     label: "marketing:cms.navSection",
@@ -20,16 +21,6 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
         path: "/app/site",
         end: true,
         title: "marketing:cms.nav",
-        keywords: "site marketing cms 官网 站点",
-        tenantModule: "tenant-marketing",
-        anyPermission: ["site.read"],
-      },
-      {
-        icon: LayoutTemplate,
-        label: "marketing:chromeEditor.nav",
-        path: "/app/site/chrome",
-        title: "marketing:chromeEditor.title",
-        keywords: "header footer chrome navigation 页头 页脚 导航",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
       },
@@ -38,7 +29,6 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
         label: "marketing:formSubmissions.nav",
         path: "/app/site/form-submissions",
         title: "marketing:formSubmissions.title",
-        keywords: "form submissions leads 表单 提交 线索",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
       },
@@ -47,7 +37,6 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
         label: "marketing:media.nav",
         path: "/app/site/media",
         title: "marketing:media.title",
-        keywords: "media library image assets 媒体 图片 素材",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
       },
@@ -56,7 +45,6 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
         label: "marketing:redirects.nav",
         path: "/app/site/redirects",
         title: "marketing:redirects.title",
-        keywords: "redirect 301 302 重定向 跳转",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
       },
@@ -66,7 +54,6 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
         path: "/app/site/docs",
         // 不是 siteDocs.title——那个是列表里「标题」这一列的表头
         title: "marketing:siteDocs.pageTitle",
-        keywords: "docs documentation markdown 文档 手册",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
       },

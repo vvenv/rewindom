@@ -38,11 +38,17 @@ visual tone:
 
 Header and footer are **site-level** sections shared by every page:
 
-- Header: logo, site name, navigation, sticky behaviour
+- Header: four blocks by default — brand, navigation, language switcher, theme toggle —
+  which you can add to, remove and reorder
 - Footer: by default only a copyright line; add a blurb or link groups when you need them
 
-Edit them under **Site → Header & footer** (`/app/site/chrome`) without opening a page in
-the Theme Editor. Saving and publishing chrome does not touch page content.
+The language and theme blocks ship by default because they **render nothing when they do
+not apply**: a single-language site shows no switcher, and it appears by itself once you
+publish your first translation. Don't want them? Delete them from the left tree.
+
+Open the editor with **Header & footer** at the top right of the site management page —
+no need to open a page in the Theme Editor. Saving and publishing chrome does not touch
+page content.
 
 > Starters deliberately ship **no** header button. If you want a "Get started" call to
 > action, add it yourself in the header settings — a prepopulated button pointing at a
@@ -65,8 +71,8 @@ content, and the editor tells you what will show. When a rule expands to nothing
 not rendered at all — you never end up with an entrance that leads to an empty list.
 
 The default is **all top-level pages** only — publish a page and it joins the nav
-automatically. Add a docs-library entry, locale switcher, and so on in the header
-settings when you need them; a docs rule only renders once you have published documents.
+automatically. Add a docs-library entry when you need one; a docs rule only renders once
+you have published documents.
 
 Each footer column has its own list of links. To match the header, use "copy from
 header" — it copies a snapshot, after which the two are edited independently.

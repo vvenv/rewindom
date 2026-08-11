@@ -56,9 +56,15 @@
   font-size: 0.75rem;
   color: var(--muted-fg);
 }
-/* 分隔线跟正文列同宽。`.footer-legal` 自己就是 `.wrap`，border 画在 border box 上会
-   连 gutter 一起横过去，比上面那排页脚链接宽出 3rem，所以让伪元素退到 padding 里画 */
-.footer-legal::before {
+/*
+ * 分隔线跟正文列同宽。`.footer-legal` 自己就是 `.wrap`，border 画在 border box 上会
+ * 连 gutter 一起横过去，比上面那排页脚链接宽出 3rem，所以让伪元素退到 padding 里画。
+ *
+ * `:not(:first-child)` 是必须的：默认页脚只有一行版权，没有链接列，这条线上面就没有
+ * 要分隔的东西了——它会紧贴着 `.site-footer` 自己的 `border-top` 画出**第二条**横线，
+ * 一宽一窄叠在一起，中间什么都没有。
+ */
+.site-footer > .footer-legal:not(:first-child)::before {
   content: "";
   position: absolute;
   inset: 0 1.5rem auto;

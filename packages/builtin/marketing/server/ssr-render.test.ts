@@ -191,15 +191,15 @@ describe("renderMarketingHtml SEO", () => {
     expect(html).not.toContain("hreflang");
   });
 
-  it("renders the language switcher from the header setting", () => {
-    // 开关回到页头 section，与站点导航 / 明暗 / 账户入口并排（默认关）
-    expect(
-      renderMarketingHtml({ origin: ORIGIN, site: site(), page: page() }),
-    ).not.toContain('class="locale-switcher"');
-
+  /*
+   * 语言切换器随**默认页头**出厂（`chrome_locale` 块），因为它自己会判断该不该露：
+   * 只有本页真有其他语言的已发布译文时才渲染。不预置的话，租户翻完一版页面发布，
+   * 前台什么都不会变——访客没有入口过去，也没有任何地方提示他还差一个块。
+   */
+  it("renders the language switcher once the page has a translation", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
-      site: site({ header: [headerWith({ show_locale_switcher: true })] }),
+      site: site(),
       page: page(),
     });
     expect(html).toContain('class="locale-switcher"');
@@ -208,6 +208,15 @@ describe("renderMarketingHtml SEO", () => {
     expect(html).toContain('href="/en/about"');
     // 点外部收起：内联脚本绑定同一枚 details
     expect(html).toContain("d.open=false");
+  });
+
+  it("keeps it out of single-language pages", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page({ alternates: [{ locale: "zh-CN", path: "/about" }] }),
+    });
+    expect(html).not.toContain('class="locale-switcher"');
   });
 
   it("points the brand link at the current language's home", () => {

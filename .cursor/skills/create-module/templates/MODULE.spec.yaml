@@ -74,7 +74,6 @@ client:
     label: 笔记
     title: 笔记 # 移动端标题来源（resolve-mobile-header），不可省
     icon: StickyNote # lucide-react 图标名
-    keywords: notes 备忘 示例
   page:
     layout: list-filter-table # list-filter-table | form | detail | dashboard
     form_fields: [title, content]

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 
@@ -92,31 +92,55 @@ function renderHeader(
   );
 }
 
-describe("SiteHeader 显示项开关", () => {
-  it("默认带导航条目，语言/明暗/账户要加对应 block 才出现", () => {
+describe("SiteHeader 默认块", () => {
+  /*
+   * 语言与明暗随默认页头出厂，理由见 `header/definition.ts`：不预置等于悄悄关掉
+   * 一整个功能（翻译发布了没入口、明暗那套存储访客够不着）。内容与能力决策
+   * （按钮 / 文档搜索 / 会员入口）仍然不预置。
+   */
+  it("默认是品牌 + 导航 + 语言 + 明暗，不含按钮 / 搜索 / 会员", () => {
     const section = headerSection();
-    const navBlock = section.blocks.find((block) => block.type === "chrome_nav");
-    expect(Array.isArray(navBlock?.settings.items)).toBe(true);
-    expect((navBlock?.settings.items as unknown[]).length).toBeGreaterThan(0);
-    expect(
-      section.blocks.some((block) => block.type === "chrome_locale"),
-    ).toBe(false);
-    expect(
-      section.blocks.some((block) => block.type === "chrome_theme"),
-    ).toBe(false);
-    expect(
-      section.blocks.some((block) => block.type === "chrome_doc_search"),
-    ).toBe(false);
-    expect(
-      section.blocks.some((block) => block.type === "chrome_account"),
-    ).toBe(false);
 
-    renderHeader(section);
+    expect(section.blocks.map((block) => block.type)).toEqual([
+      "chrome_brand",
+      "chrome_nav",
+      "chrome_locale",
+      "chrome_theme",
+    ]);
+
+    const navBlock = section.blocks.find((block) => block.type === "chrome_nav");
+    expect((navBlock?.settings.items as unknown[]).length).toBeGreaterThan(0);
+  });
+
+  it("默认页头就能切语言和明暗", () => {
+    renderHeader(headerSection());
+
     expect(
       screen.getAllByRole("link", { name: "文档" }).length,
     ).toBeGreaterThan(0);
-    expect(screen.queryByRole("navigation", { name: "Language" })).toBeNull();
+    expect(document.querySelector(".locale-switcher")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /当前主题/u }),
+    ).toBeInTheDocument();
+    // 会员入口仍要自己加
     expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
+  });
+
+  it("只有一种语言时语言切换器不渲染", () => {
+    render(
+      <MemoryRouter>
+        <SiteHeader
+          section={headerSection()}
+          siteName="Acme"
+          logoUrl={null}
+          pages={pages}
+          alternates={[{ locale: "zh-CN", path: "/about" }]}
+          locale="zh-CN"
+        />
+      </MemoryRouter>,
+    );
+
+    expect(document.querySelector(".locale-switcher")).toBeNull();
   });
 
   it("items 为空时顶栏不列一级页", () => {
@@ -124,28 +148,17 @@ describe("SiteHeader 显示项开关", () => {
     expect(screen.queryByRole("link", { name: "文档" })).toBeNull();
   });
 
-  it("语言切换按 block 出现", () => {
-    renderHeader(
-      headerSection({
-        blocks: [createBlock("header", "chrome_locale", {})],
-      }),
-    );
-    expect(document.querySelector(".locale-switcher")).toBeInTheDocument();
-  });
+  it("删掉块就不再渲染", () => {
+    const section = headerSection();
+    renderHeader({
+      ...section,
+      blocks: section.blocks.filter(
+        (block) => block.type !== "chrome_locale" && block.type !== "chrome_theme",
+      ),
+    });
 
-  it("深色模式切换按 block 出现", () => {
-    renderHeader(headerSection());
+    expect(document.querySelector(".locale-switcher")).toBeNull();
     expect(screen.queryByRole("button", { name: /当前主题/u })).toBeNull();
-
-    cleanup();
-    renderHeader(
-      headerSection({
-        blocks: [createBlock("header", "chrome_theme", {})],
-      }),
-    );
-    expect(
-      screen.getByRole("button", { name: /当前主题/u }),
-    ).toBeInTheDocument();
   });
 });
 

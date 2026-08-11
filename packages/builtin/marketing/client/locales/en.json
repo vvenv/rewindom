@@ -477,6 +477,7 @@
       "noindex": "The page stays reachable — it just won't appear in search results or the sitemap.",
       "site_og_image": "Used by every page without its own. Avoid reusing the logo — square images get cropped in share cards.",
       "header_menu": "The links in your header — add, remove and reorder them below. Footer columns can copy this list.",
+      "header_layout": "Split lines up brand, nav and actions in one row. Centered keeps the brand on the left and actions on the right, with navigation in the middle.",
       "column_title": "Optional heading above this column’s links.",
       "show_doc_search": "Puts a search box in the header that jumps to the doc index filtered by the term. It is the only doc search entry point; hidden until the site has published docs."
     },
@@ -836,7 +837,6 @@
     }
   },
   "chromeEditor": {
-    "nav": "Header & footer",
     "title": "Header & footer",
     "pageDescription": "Configure site-wide navigation, footer and announcement bars. Publishing updates every page at once.",
     "editLocale": "Editing language",

@@ -16,7 +16,6 @@ export const NOTE_NAV_SECTIONS: AppNavSection[] = [
         label: "note:nav.notes",
         path: "/app/notes",
         title: "note:title",
-        keywords: "note 备忘 memo",
         tenantModule: "note",
         anyPermission: ["note.read"],
       },

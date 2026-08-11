@@ -1043,7 +1043,6 @@ export const ${n.CONST}_NAV_SECTIONS: AppNavSection[] = [
         label: "${spec.client.nav.label}",
         path: "${spec.client.route_path}",
         title: "${spec.client.nav.title}",
-        keywords: "${spec.client.nav.keywords ?? `${n.id} ${spec.client.nav.label}`}",
         tenantModule: "${n.entitlementKey}",
         anyPermission: ["${n.readPerm}"],
       },

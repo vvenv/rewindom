@@ -56,14 +56,22 @@ describe("addableBlockDefinitions", () => {
     const header = createSection("header");
     const addable = addableBlockDefinitions(header).map((def) => def.type);
 
-    // 默认预置了品牌与导航，两个都是单例
+    // 默认预置的四个都是单例，一个都不该再出现
     expect(header.blocks.map((block) => block.type)).toEqual([
       "chrome_brand",
       "chrome_nav",
+      "chrome_locale",
+      "chrome_theme",
     ]);
     expect(addable).not.toContain("chrome_brand");
     expect(addable).not.toContain("chrome_nav");
-    expect(addable).toContain("chrome_locale");
+    expect(addable).not.toContain("chrome_locale");
+    expect(addable).not.toContain("chrome_theme");
+    // 没预置的还在：会员入口与文档搜索按需自己加
+    expect(addable).toContain("chrome_account");
+    expect(addable).toContain("chrome_doc_search");
+    // 按钮不是单例，永远在
+    expect(addable).toContain("chrome_button");
   });
 
   it("按钮与页脚链接列不是单例，加了还能再加", () => {

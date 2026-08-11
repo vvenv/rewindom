@@ -12,7 +12,6 @@ export const SITE_MEMBER_NAV_SECTIONS: AppNavSection[] = [
         label: "site-member:admin.nav",
         path: "/app/site-members",
         title: "site-member:admin.nav",
-        keywords: "site member members 会员 站点会员",
         tenantModule: "tenant-site-member",
         anyPermission: ["site_members.read"],
       },

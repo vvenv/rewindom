@@ -11,7 +11,6 @@ export const DASHBOARD_NAV_SECTIONS: AppNavSection[] = [
         label: "dashboard:nav.dashboard",
         path: "/app/dashboard",
         title: "dashboard:nav.dashboard",
-        keywords: "dashboard 工作台 首页 概览",
         end: true,
       },
     ],

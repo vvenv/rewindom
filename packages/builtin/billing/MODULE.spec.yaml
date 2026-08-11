@@ -68,7 +68,6 @@ client:
     label: 订阅与付款
     title: 订阅与付款
     icon: CreditCard
-    keywords: billing subscription payment 订阅 付款 套餐
   page:
     layout: detail
     form_fields: []

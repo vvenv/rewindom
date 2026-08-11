@@ -18,7 +18,6 @@ export const PLATFORM_TENANT_NAV_SECTIONS: AppNavSection[] = [
         path: "/app/settings/branding",
         end: true,
         title: "platform:branding.nav",
-        keywords: "settings branding logo favicon 品牌 设置",
         anyPermission: ["settings.read"],
       },
       {
@@ -27,7 +26,6 @@ export const PLATFORM_TENANT_NAV_SECTIONS: AppNavSection[] = [
         path: "/app/settings/oauth",
         end: true,
         title: "platform:oauth.nav",
-        keywords: "oauth github google microsoft 登录 第三方",
         anyPermission: ["settings.read"],
       },
     ],

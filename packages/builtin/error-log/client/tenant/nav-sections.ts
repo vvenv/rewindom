@@ -16,7 +16,6 @@ export const ERROR_LOG_NAV_SECTIONS: AppNavSection[] = [
         label: "error-log:nav.errorLogs",
         path: "/app/error-logs",
         title: "error-log:nav.errorLogs",
-        keywords: "error logs 错误日志",
         anyPermission: ["error_logs.read"],
       },
     ],

@@ -16,7 +16,6 @@ export const BOOKMARK_NAV_SECTIONS: AppNavSection[] = [
         label: "bookmark:nav.bookmarks",
         path: "/app/bookmarks",
         title: "bookmark:title",
-        keywords: "bookmark 书签 收藏 网址 link",
         tenantModule: "bookmark",
         anyPermission: ["bookmark.read"],
       },

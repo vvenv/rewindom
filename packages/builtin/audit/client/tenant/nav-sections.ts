@@ -16,7 +16,6 @@ export const AUDIT_NAV_SECTIONS: AppNavSection[] = [
         label: "audit:nav.auditLogs",
         path: "/app/audit-logs",
         title: "audit:nav.auditLogs",
-        keywords: "audit logs 审计 日志 操作记录",
         anyPermission: ["audit_logs.read"],
       },
     ],

@@ -74,7 +74,7 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 | type     | settings                          | blocks                                                                                   |
 | -------- | --------------------------------- | ---------------------------------------------------------------------------------------- |
-| `header` | sticky, layout(split\|centered), 配色 | `chrome_brand` / `chrome_nav` / `chrome_button` / `chrome_doc_search` / `chrome_locale` / `chrome_theme` / `chrome_account`，最多 12。默认预置 brand + nav |
+| `header` | sticky, layout(split\|centered), 配色 | `chrome_brand` / `chrome_nav` / `chrome_button` / `chrome_doc_search` / `chrome_locale` / `chrome_theme` / `chrome_account`，最多 12。默认预置 brand + nav + locale + theme |
 | `footer` | 配色                              | `chrome_brand` / `menu_column`{title, items} / `chrome_copyright`，最多 8。默认只预置 copyright |
 
 渲染按块的**角色**分区，不按下标：`partitionHeaderBlocks` 把页头的块分成品牌 / 导航 /
@@ -138,9 +138,15 @@ settings，跨年之后页脚就一直停在去年，改站名也不跟着变—
 
 | block            | 默认预置 | 能力由谁保证                                     |
 | ---------------- | -------- | ------------------------------------------------ |
-| `chrome_locale`  | 否       | 本页 `alternates`——没译文时加了也不会露          |
-| `chrome_theme`   | 否       | 明暗内置且**永远跟随设备**；删掉只是不给手动按钮 |
+| `chrome_locale`  | **是**   | 本页 `alternates`——没译文时露不出来              |
+| `chrome_theme`   | **是**   | 明暗内置且**永远跟随设备**；删掉只是不给手动按钮 |
 | `chrome_account` | 否       | 租户是否开通会员（site-member）                  |
+
+前两个**预置**，第三个不预置，分界不是「哪个更常用」而是**不预置会不会悄悄废掉一个功能**：
+语言切换器不在页头，租户翻完一版页面发布，前台什么都不会变——访客没有入口过去，也没有
+任何地方提示他还差一个块；明暗那套存储与 SSR 注入脚本一直在跑，没有这个块访客就够不着。
+两者都是「不适用时渲染不出任何东西」的块，预置的代价是零。会员入口则相反：能力由租户
+开没开通会员决定，预置一个开不出来的入口只会在编辑器树里多一行永远没反应的东西。
 
 改成块的理由与「显示项」时代是同一个：这一排东西回答的是同一个问题（这枚入口露不露），
 就该在同一处配完。开关做不到的是**排序**——三个布尔值渲染顺序写死在代码里，租户想把
@@ -584,8 +590,8 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
   语言**落地；建完直接进编辑器——一张空白页留在列表里什么也说明不了
 - 列表里的路径只作展示不做链接（同文档库）：站点跑在租户自己的域名上，管理端拼不出
   可点的绝对地址
-- **页头页脚**有独立入口（`/app/site/chrome`）：不必为了改导航而打开某一页的
-  Theme Editor；保存 / 发布 / 撤销走 `PUT|POST /api/site/chrome/*`，与页面正文解耦
+- **页头页脚**有独立路由（`/app/site/chrome`，入口在站点卡片上）：不必为了改导航而
+  打开某一页的 Theme Editor；保存 / 发布 / 撤销走 `PUT|POST /api/site/chrome/*`，与页面正文解耦
 
 ### Theme Editor
 

@@ -6,7 +6,6 @@ export interface AppNavItem {
   label: string;
   path: string;
   title?: string;
-  keywords?: string;
   mobileLabel?: string;
   end?: boolean;
   badgeKey?: "tasks";

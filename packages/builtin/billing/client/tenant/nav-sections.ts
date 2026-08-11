@@ -17,7 +17,6 @@ export const BILLING_NAV_SECTIONS: AppNavSection[] = [
         label: "billing:nav.billing",
         path: "/app/billing",
         title: "billing:nav.billing",
-        keywords: "billing subscription payment 订阅 付款 套餐",
         tenantModule: "billing",
         anyPermission: ["billing.read"],
       },
