@@ -300,7 +300,7 @@
     "kindDocIndex": "Docs index",
     "kindDocArticle": "Doc detail",
     "fieldSlug": "Path",
-    "slugHintPage": "e.g. about → /about; docs/quickstart → /docs/quickstart",
+    "slugHintPage": "e.g. about → /about; about/contact → /about/contact",
     "fieldTitle": "Title",
     "fieldDescription": "SEO description",
     "fieldBodyMd": "Markdown body",

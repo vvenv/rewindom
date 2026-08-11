@@ -300,7 +300,7 @@
     "kindDocIndex": "文档索引",
     "kindDocArticle": "文档详情",
     "fieldSlug": "路径",
-    "slugHintPage": "例如 about → /about；docs/quickstart → /docs/quickstart",
+    "slugHintPage": "例如 about → /about；about/contact → /about/contact",
     "fieldTitle": "标题",
     "fieldDescription": "SEO 描述",
     "fieldBodyMd": "Markdown 正文",
