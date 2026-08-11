@@ -49,6 +49,15 @@ describe("renderSectionHtml", () => {
     expect(renderSectionHtml(hero({}), 48)).toContain("--sec-gap:48px");
     expect(renderSectionHtml(hero({}))).toContain("--sec-gap:0px");
   });
+
+  it("skips page-header when show_header is off", () => {
+    const section = createSection("page-header");
+    section.settings = {
+      ...section.settings,
+      show_header: false,
+    } as never;
+    expect(renderSectionHtml(section)).toBe("");
+  });
 });
 
 describe("容器段（group）", () => {

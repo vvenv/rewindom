@@ -1,5 +1,9 @@
 import { escapeHtml } from "../../html.js";
-import { resolvePageHeaderText, settingText } from "../../section-schema.js";
+import {
+  isPageHeaderVisible,
+  resolvePageHeaderText,
+  settingText,
+} from "../../section-schema.js";
 
 import type { SectionHtmlRenderer } from "../render-context.js";
 
@@ -8,6 +12,7 @@ import type { SectionHtmlRenderer } from "../render-context.js";
  * （`resolvePageHeaderText`），否则 SSR 出的 h1 会和 hydrate 后的对不上。
  */
 export const renderPageHeaderHtml: SectionHtmlRenderer = (section, ctx) => {
+  if (!isPageHeaderVisible(section.settings)) return "";
   const page = ctx.pages?.find(
     (item) => item.path === (ctx.currentPath ?? "/"),
   );

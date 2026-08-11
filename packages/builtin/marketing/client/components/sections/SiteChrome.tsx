@@ -8,18 +8,20 @@ import {
 import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
 import { Link } from "react-router";
 
-
 import {
   docMessages,
-  DOCS_INDEX_PATH, type PublicDocSummary 
+  DOCS_INDEX_PATH,
+  type PublicDocSummary,
 } from "../../../shared/marketing-doc.js";
 import {
   resolveSurfaceStyle,
   settingBool,
   settingText,
   surfaceStyleCss,
+  type SiteBlock,
   type SiteSection,
 } from "../../../shared/section-schema.js";
+import { partitionHeaderBlocks } from "../../../shared/sections/_common/chrome-blocks.js";
 import { themeToggleTitle } from "../../../shared/sections/header/messages.js";
 import {
   siteNavPages,
@@ -37,7 +39,6 @@ import { useSiteColorMode } from "../../hooks/use-marketing-site-document-theme.
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
 import { SiteLink } from "./SiteLink.js";
-
 
 const LOCALE_SWITCHER_ICON = (
   <svg
@@ -136,7 +137,10 @@ function NavMenuItem({ item }: { item: ResolvedNavItem }): ReactElement | null {
   if (item.children.length === 0) {
     if (!item.href) return null;
     return (
-      <SiteLink href={item.href} aria-current={item.current ? "page" : undefined}>
+      <SiteLink
+        href={item.href}
+        aria-current={item.current ? "page" : undefined}
+      >
         {item.label}
       </SiteLink>
     );
@@ -410,17 +414,17 @@ export function SiteHeader({
     alternates?: PageLocaleAlternate[];
   }): ReactElement {
   const s = section.settings;
-  const secondaryLabel = settingText(s, "secondary_label");
-  const secondaryHref = settingText(s, "secondary_href");
-  const ctaLabel = settingText(s, "primary_label");
-  const ctaHref = settingText(s, "primary_href");
   const layout = settingText(s, "layout") || "split";
   const centered = layout === "centered";
   const select = selectable(onSelect);
-  const navItems = resolveNavItems(
-    settingNavItems(s),
-    chromeNavContext({ pages, docs, currentPath, locale, defaultLocale }),
-  );
+  const ctx = chromeNavContext({
+    pages,
+    docs,
+    currentPath,
+    locale,
+    defaultLocale,
+  });
+  const { brand, nav, actions } = partitionHeaderBlocks(section.blocks);
   const surface = resolveSurfaceStyle(s);
   const surfaceCss = {
     ...surfaceStyleCss(surface),
@@ -439,6 +443,10 @@ export function SiteHeader({
     .filter(Boolean)
     .join(" ");
 
+  const mobileNavItems = nav.flatMap((block) =>
+    resolveNavItems(settingNavItems(block.settings), ctx),
+  );
+
   return (
     <header
       {...select}
@@ -447,57 +455,111 @@ export function SiteHeader({
       style={surfaceCss}
     >
       <div className={rowClass}>
-        <SiteLink href="/" className="brand">
-          {settingBool(s, "show_logo") && logoUrl ? (
-            <img src={logoUrl} alt={siteName} className="logo" />
-          ) : null}
-          {settingBool(s, "show_site_name") ? <span>{siteName}</span> : null}
-        </SiteLink>
+        {brand.map((block) => (
+          <SiteLink
+            key={block.id}
+            href="/"
+            className="brand"
+            data-block-id={block.id}
+          >
+            {settingBool(block.settings, "show_logo") && logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="logo" />
+            ) : null}
+            {settingBool(block.settings, "show_site_name") ? (
+              <span>{siteName}</span>
+            ) : null}
+          </SiteLink>
+        ))}
 
-        <nav className="header-nav">
-          {navItems.map((item) => (
-            <NavMenuItem key={item.key} item={item} />
-          ))}
-        </nav>
+        {nav.map((block) => {
+          const navItems = resolveNavItems(
+            settingNavItems(block.settings),
+            ctx,
+          );
+          if (navItems.length === 0) return null;
+          return (
+            <nav key={block.id} className="header-nav" data-block-id={block.id}>
+              {navItems.map((item) => (
+                <NavMenuItem key={item.key} item={item} />
+              ))}
+            </nav>
+          );
+        })}
 
-        <div className="header-actions">
-          {/* 一篇已发布文档都没有时不渲染：搜不出东西的搜索框比没有更糟 */}
-          {settingBool(s, "show_doc_search") &&
-          (hasDocs ?? (docs?.length ?? 0) > 0) ? (
-            <DocSearchForm locale={locale} defaultLocale={defaultLocale} />
-          ) : null}
-          {settingBool(s, "show_locale_switcher") ? (
-            <LocaleSwitcher alternates={alternates} current={locale ?? ""} />
-          ) : null}
-          {/*
-            明暗默认跟随设备；这枚按钮只是让访客手动改，关掉不等于锁死浅色。
-          */}
-          {settingBool(s, "show_theme_toggle") ? (
-            <SiteThemeToggle locale={locale === "en" ? "en" : "zh-CN"} />
-          ) : null}
-          {settingBool(s, "show_account") ? <SiteMemberEntry /> : null}
-          {secondaryLabel && secondaryHref ? (
-            <SiteLink href={secondaryHref} className="btn btn-ghost">
-              {secondaryLabel}
-            </SiteLink>
-          ) : null}
-          {ctaLabel && ctaHref ? (
-            <SiteLink href={ctaHref} className="btn">
-              {ctaLabel}
-            </SiteLink>
-          ) : null}
-        </div>
+        {actions.length > 0 ? (
+          <div className="header-actions">
+            {actions.map((block) => (
+              <HeaderActionBlock
+                key={block.id}
+                block={block}
+                hasDocs={hasDocs}
+                docs={docs}
+                locale={locale}
+                defaultLocale={defaultLocale}
+                alternates={alternates}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
 
-      {navItems.length > 0 ? (
+      {mobileNavItems.length > 0 ? (
         <nav className="header-mobile-nav wrap">
-          {navItems.map((item) => (
+          {mobileNavItems.map((item) => (
             <NavMenuItem key={item.key} item={item} />
           ))}
         </nav>
       ) : null}
     </header>
   );
+}
+
+function HeaderActionBlock({
+  block,
+  hasDocs,
+  docs,
+  locale,
+  defaultLocale,
+  alternates,
+}: {
+  block: SiteBlock;
+  hasDocs?: boolean;
+  docs?: readonly PublicDocSummary[];
+  locale?: string;
+  defaultLocale?: string;
+  alternates: PageLocaleAlternate[];
+}): ReactElement | null {
+  switch (block.type) {
+    case "chrome_doc_search":
+      return (hasDocs ?? (docs?.length ?? 0) > 0) ? (
+        <DocSearchForm locale={locale} defaultLocale={defaultLocale} />
+      ) : null;
+    case "chrome_locale":
+      return <LocaleSwitcher alternates={alternates} current={locale ?? ""} />;
+    case "chrome_theme":
+      return <SiteThemeToggle locale={locale === "en" ? "en" : "zh-CN"} />;
+    case "chrome_account":
+      return <SiteMemberEntry />;
+    case "chrome_button": {
+      const label = settingText(block.settings, "label");
+      const href = settingText(block.settings, "href");
+      if (!label || !href) return null;
+      const variant = settingText(block.settings, "variant") || "primary";
+      const className =
+        variant === "ghost"
+          ? "btn btn-ghost"
+          : variant === "secondary"
+            ? "btn btn-secondary"
+            : "btn";
+      return (
+        <SiteLink href={href} className={className} data-block-id={block.id}>
+          {label}
+        </SiteLink>
+      );
+    }
+    default:
+      return null;
+  }
 }
 
 export function SiteFooter({
@@ -512,9 +574,6 @@ export function SiteFooter({
   defaultLocale,
 }: ChromeProps & ChromeNavProps): ReactElement {
   const s = section.settings;
-  const blurb = settingText(s, "blurb");
-  const copyright =
-    settingText(s, "copyright") || `© ${new Date().getFullYear()} ${siteName}`;
   const ctx = chromeNavContext({
     pages,
     docs,
@@ -522,24 +581,70 @@ export function SiteFooter({
     locale,
     defaultLocale,
   });
-  const columns = section.blocks
-    .map((block) => ({
-      blockId: block.id,
-      title: settingText(block.settings, "title"),
-      items: resolveNavItems(settingNavItems(block.settings), ctx),
-    }))
-    /*
-     * 展不出内容的列整列不画。
-     *
-     * 编辑器里例外：那边正在配置，画一个空列比让它凭空消失好——列没了就点不中。
-     */
-    .filter((column) => onSelect !== undefined || column.items.length > 0);
   const select = selectable(onSelect);
   const surface = resolveSurfaceStyle(s);
   const surfaceCss = {
     ...surfaceStyleCss(surface),
     ...select.style,
   } as CSSProperties;
+
+  const gridBlocks: ReactElement[] = [];
+  const legalBlocks: ReactElement[] = [];
+
+  for (const block of section.blocks) {
+    switch (block.type) {
+      case "chrome_brand": {
+        const blurb = settingText(block.settings, "blurb");
+        gridBlocks.push(
+          <div key={block.id} data-block-id={block.id}>
+            <div className="brand">
+              {settingBool(block.settings, "show_logo") && logoUrl ? (
+                <img src={logoUrl} alt={siteName} className="logo" />
+              ) : null}
+              {settingBool(block.settings, "show_site_name") ? (
+                <span>{siteName}</span>
+              ) : null}
+            </div>
+            {blurb ? <p className="muted">{blurb}</p> : null}
+          </div>,
+        );
+        break;
+      }
+      case "menu_column": {
+        const items = resolveNavItems(settingNavItems(block.settings), ctx);
+        if (onSelect === undefined && items.length === 0) break;
+        const title = settingText(block.settings, "title");
+        gridBlocks.push(
+          <nav key={block.id} data-block-id={block.id}>
+            {title ? <h2>{title}</h2> : null}
+            <ul>
+              {items.map((item) => (
+                <FooterMenuItem key={item.key} item={item} />
+              ))}
+            </ul>
+          </nav>,
+        );
+        break;
+      }
+      case "chrome_copyright": {
+        const text =
+          settingText(block.settings, "text") ||
+          `© ${new Date().getFullYear()} ${siteName}`;
+        legalBlocks.push(
+          <div
+            key={block.id}
+            className="wrap footer-legal"
+            data-block-id={block.id}
+          >
+            {text}
+          </div>,
+        );
+        break;
+      }
+      default:
+        break;
+    }
+  }
 
   return (
     <footer
@@ -548,30 +653,10 @@ export function SiteFooter({
       className="site-footer"
       style={surfaceCss}
     >
-      <div className="wrap footer-grid">
-        <div>
-          <div className="brand">
-            {settingBool(s, "show_logo") && logoUrl ? (
-              <img src={logoUrl} alt={siteName} className="logo" />
-            ) : null}
-            <span>{siteName}</span>
-          </div>
-          {blurb ? <p className="muted">{blurb}</p> : null}
-        </div>
-
-        {columns.map((column) => (
-          <nav key={column.blockId} data-block-id={column.blockId}>
-            {column.title ? <h2>{column.title}</h2> : null}
-            <ul>
-              {column.items.map((item) => (
-                <FooterMenuItem key={item.key} item={item} />
-              ))}
-            </ul>
-          </nav>
-        ))}
-      </div>
-
-      <div className="wrap footer-legal">{copyright}</div>
+      {gridBlocks.length > 0 ? (
+        <div className="wrap footer-grid">{gridBlocks}</div>
+      ) : null}
+      {legalBlocks}
     </footer>
   );
 }

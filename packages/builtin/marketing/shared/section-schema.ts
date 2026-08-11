@@ -37,6 +37,8 @@ import {
 import { normalizeSiteColor } from "./site-color.js";
 import { localizeSiteHref } from "./site-locale.js";
 
+import { upgradeChromeSections } from "./chrome-upgrade.js";
+
 import type { AppLocale } from "@be-water/shared";
 
 export * from "./section-settings.js";
@@ -587,10 +589,10 @@ function ensureAreaBody(
 ): SiteSection[] {
   const body = sections.filter((section) => section.type === area);
   const rest = sections.filter((section) => section.type !== area);
-  if (body.length === 1) return sections;
   const kept = body[0] ?? createSection(area);
-  // 页头本体排最后（公告条在导航条上方是通例），页脚本体排最前
-  return area === "header" ? [...rest, kept] : [kept, ...rest];
+  const ordered =
+    area === "header" ? [...rest, kept] : [kept, ...rest];
+  return upgradeChromeSections(ordered);
 }
 
 /**
@@ -837,6 +839,11 @@ export function resolveSectionGaps(
  * 想让展示标题与 SEO 标题不一样时再填。客户端与 SSR 共用这一份，避免两边算出
  * 不同的 h1。
  */
+/** `page-header` 段是否对外展示（关闭后仍保留段配置与页面 meta 回落文案）。 */
+export function isPageHeaderVisible(settings: SettingValues): boolean {
+  return settingBool(settings, "show_header");
+}
+
 export function resolvePageHeaderText(
   settings: SettingValues,
   page?: { title?: string; description?: string } | null,

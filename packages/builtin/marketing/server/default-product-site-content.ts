@@ -137,12 +137,12 @@ function buildChrome(): Pick<
   "header" | "footer" | "theme_settings" | "site_name" | "tagline"
 > {
   const year = new Date().getFullYear();
-  const footerDef = getSectionDefinition("footer");
-  if (!footerDef) {
-    throw new Error("Missing footer section definition");
-  }
   const header = createSection("header");
   const footer = createSection("footer");
+  const copyright = i18nLiteral({
+    "zh-CN": `© ${year} be-water`,
+    en: `© ${year} be-water`,
+  });
 
   return {
     site_name: i18nLiteral({ "zh-CN": "be-water", en: "be-water" }),
@@ -158,14 +158,11 @@ function buildChrome(): Pick<
     footer: [
       {
         ...footer,
-        settings: parseSettingValues(footerDef.settings, {
-          ...footer.settings,
-          copyright: i18nLiteral({
-            "zh-CN": `© ${year} be-water`,
-            en: `© ${year} be-water`,
-          }),
-        }),
-        blocks: [],
+        blocks: footer.blocks.map((block) =>
+          block.type === "chrome_copyright"
+            ? { ...block, settings: { ...block.settings, text: copyright } }
+            : block,
+        ),
       },
     ],
   };

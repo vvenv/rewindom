@@ -1,4 +1,4 @@
-import { ALIGN_OPTIONS, layoutSettings } from "../_common/settings.js";
+import { contentLayoutSettings, layoutSettings } from "../_common/settings.js";
 
 import type { SectionDefinition } from "../types.js";
 
@@ -18,6 +18,14 @@ export const pageHeaderSection: SectionDefinition = {
   placements: ["page"],
   settings: [
     {
+      type: "checkbox",
+      id: "show_header",
+      label: "editor.setting.show_page_header",
+      default: true,
+      info: "editor.info.show_page_header",
+    },
+    { type: "header", content: "editor.group.content" },
+    {
       type: "text",
       id: "headline",
       label: "editor.setting.headline",
@@ -30,13 +38,10 @@ export const pageHeaderSection: SectionDefinition = {
       rows: 2,
       info: "editor.info.page_header_subhead",
     },
-    {
-      type: "select",
-      id: "align",
-      label: "editor.setting.align",
-      default: "left",
-      options: ALIGN_OPTIONS,
-    },
-    ...layoutSettings(),
+    ...contentLayoutSettings(),
+    ...layoutSettings({
+      padding_top: 48,
+      padding_bottom: 24,
+    }),
   ],
 };

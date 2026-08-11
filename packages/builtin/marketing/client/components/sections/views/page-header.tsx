@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 
 import {
+  isPageHeaderVisible,
   resolvePageHeaderText,
   settingText,
 } from "../../../../shared/section-schema.js";
@@ -12,6 +13,7 @@ export function PageHeaderSection({
   pages,
   currentPath,
 }: SectionViewProps): ReactElement | null {
+  if (!isPageHeaderVisible(section.settings)) return null;
   const page = pages.find((item) => item.path === currentPath);
   const { headline, subhead } = resolvePageHeaderText(section.settings, page);
   if (!headline && !subhead) return null;

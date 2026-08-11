@@ -1,6 +1,7 @@
 import {
   Columns2,
   FileText,
+  Globe,
   Heading1,
   LayoutList,
   LayoutPanelTop,
@@ -9,12 +10,15 @@ import {
   List,
   ListTree,
   Megaphone,
+  Moon,
   PanelBottom,
   PanelTop,
   RectangleVertical,
+  Search,
   Text,
   TextCursorInput,
   TriangleAlert,
+  User,
   type LucideIcon,
 } from "lucide-react";
 
@@ -44,4 +48,13 @@ export const BLOCK_ICONS: Record<string, LucideIcon> = {
   field: TextCursorInput,
   nav_link: Link2,
   footer_link: Link2,
+  chrome_brand: PanelTop,
+  chrome_nav: LayoutList,
+  chrome_button: Link2,
+  chrome_doc_search: Search,
+  chrome_locale: Globe,
+  chrome_theme: Moon,
+  chrome_account: User,
+  chrome_copyright: Text,
+  menu_column: Columns2,
 };

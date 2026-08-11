@@ -14,6 +14,7 @@ import {
 import {
   contentSurfaceStyleCss,
   hasCustomSurface,
+  isPageHeaderVisible,
   resolveSectionGaps,
   resolveSectionLayout,
   resolveSurfaceStyle,
@@ -100,6 +101,9 @@ export function SiteSections({
   );
 
   return sections.map((section, index) => {
+    if (section.type === "page-header" && !isPageHeaderVisible(section.settings)) {
+      return null;
+    }
     const View = SECTION_VIEWS[section.type];
     if (!View) return null;
     const layout = layouts[index]!;

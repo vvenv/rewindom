@@ -222,7 +222,7 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 | type           | settings                                                               | blocks                                                                                  |
 | -------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `hero`         | eyebrow, headline\*, subhead, align, show_glow, primary/secondary 按钮 | `stat`{term\*, detail}，最多 4                                                          |
-| `page-header`  | headline, subhead, align（留空回落到页面 meta）                        | —                                                                                       |
+| `page-header`  | show_header, headline, subhead（留空回落到页面 meta）；版式页签：align、通用 `layoutSettings`（默认上 48 / 下 24 px） | —                                                                                       |
 | `page-menu`    | 抬头, source(children\|siblings), style(list\|cards), columns          | —（动态菜单：父页 children / 子页 siblings；条目来自已发布 `site.pages`）               |
 | `form`         | 抬头, submit_label\*, success_message                                  | `field`{label\*, type, placeholder, required, options, validation…}，最多 16            |
 | `prose`        | body_md                                                                | —                                                                                       |

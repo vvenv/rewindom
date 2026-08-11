@@ -1,7 +1,6 @@
 import { APP_LOCALES, type AppLocale } from "@be-water/shared";
 
 import { getPageTemplateKind } from "./page-templates.js";
-import { settingBool } from "./section-settings.js";
 import { normalizeSiteColor } from "./site-color.js";
 import { navItemsNeedDocs, settingNavItems } from "./site-nav.js";
 
@@ -564,6 +563,6 @@ export function chromeShowsDocSearch(site: { header: SiteSection[] }): boolean {
   return site.header.some(
     (section) =>
       section.type === "header" &&
-      settingBool(section.settings, "show_doc_search"),
+      section.blocks.some((block) => block.type === "chrome_doc_search"),
   );
 }

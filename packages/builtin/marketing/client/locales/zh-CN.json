@@ -420,6 +420,7 @@
       "template": "页面区块",
       "footerArea": "页脚",
       "section": "区块版式",
+      "content_layout": "内容布局",
       "appearance": "外观",
       "doc_meta": "元信息",
       "doc_back": "返回链接",
@@ -455,6 +456,7 @@
       "page_path": "改地址请回页面列表——换路径等于换 URL。",
       "page_header_headline": "留空则用页面设置里的标题。",
       "page_header_subhead": "留空则用页面设置里的描述。",
+      "show_page_header": "关闭后页面上不显示标题区；页面设置里的标题仍用于 SEO 与浏览器标签。",
       "bg_color": "留空则无自定义底色。支持透明度（如 #0f766e80）。",
       "outer_bg_color": "色块外壳底色（不含内边距环）。留空则无；支持透明度。",
       "inner_bg_color": "正文区底色，内边距环也是这个色。留空则透明，外背景会透出来。",
@@ -551,6 +553,7 @@
       "show_glow": "显示光晕背景",
       "show_logo": "显示 Logo",
       "show_site_name": "显示站点名",
+      "show_page_header": "显示页面标题",
       "sticky": "滚动时吸顶",
       "header_layout": "导航布局",
       "blurb": "简介",
@@ -592,6 +595,9 @@
       "noindex": "不被搜索引擎收录",
       "site_og_image": "默认分享缩略图",
       "header_menu": "导航链接",
+      "button_label": "按钮文案",
+      "button_href": "按钮链接",
+      "button_variant": "按钮样式",
       "menu": "这一列的链接",
       "column_title": "列标题",
       "show_doc_search": "显示文档搜索"
@@ -604,6 +610,11 @@
       "header_layout": {
         "split": "品牌左 · 导航旁 · 按钮右",
         "centered": "导航居中"
+      },
+      "button_variant": {
+        "primary": "主按钮",
+        "secondary": "次按钮",
+        "ghost": "文字按钮"
       },
       "width": {
         "page": "页面宽度",
@@ -719,7 +730,15 @@
       "plan": "套餐",
       "qa": "问答",
       "field": "字段",
-      "menu_column": "菜单列"
+      "menu_column": "菜单列",
+      "chrome_brand": "品牌",
+      "chrome_nav": "导航",
+      "chrome_button": "按钮",
+      "chrome_doc_search": "文档搜索",
+      "chrome_locale": "语言切换",
+      "chrome_theme": "深色模式",
+      "chrome_account": "账户入口",
+      "chrome_copyright": "版权信息"
     },
     "tabContent": "内容",
     "tabLayout": "版式",

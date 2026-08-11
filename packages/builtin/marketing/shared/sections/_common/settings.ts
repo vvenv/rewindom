@@ -169,6 +169,24 @@ const DIVIDER_OPTIONS = [
 ] as const;
 
 /**
+ * 正文在段内的排布（对齐等），排在版式页签最前、段外壳（宽度 / 留白）之前。
+ */
+export function contentLayoutSettings(options?: {
+  alignDefault?: "left" | "center";
+}): SettingDef[] {
+  return [
+    { type: "header", content: "editor.group.content_layout", group: "layout" },
+    {
+      type: "select",
+      id: "align",
+      label: "editor.setting.align",
+      default: options?.alignDefault ?? "left",
+      options: ALIGN_OPTIONS,
+    },
+  ];
+}
+
+/**
  * 所有页面 section 共有的布局设置（对齐 Shopify 的 section padding）。
  *
  * 放在各自设置的**末尾**：编辑器里内容在前、版式 / 外观在后。版式：

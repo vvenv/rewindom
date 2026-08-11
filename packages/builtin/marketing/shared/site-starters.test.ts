@@ -14,14 +14,17 @@ describe("buildMinimalSiteChrome", () => {
 
     expect(chrome.header).toHaveLength(1);
     expect(chrome.header[0]?.type).toBe("header");
-    expect(chrome.header[0]?.settings.items).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ source: "pages" }),
-      ]),
+    const navBlock = chrome.header[0]?.blocks.find(
+      (block) => block.type === "chrome_nav",
+    );
+    expect(navBlock?.settings.items).toEqual(
+      expect.arrayContaining([expect.objectContaining({ source: "pages" })]),
     );
     expect(chrome.footer).toHaveLength(1);
-    expect(chrome.footer[0]?.blocks).toEqual([]);
-    expect(chrome.footer[0]?.settings.copyright).toContain("Acme");
+    const copyright = chrome.footer[0]?.blocks.find(
+      (block) => block.type === "chrome_copyright",
+    );
+    expect(copyright?.settings.text).toContain("Acme");
   });
 });
 
@@ -30,37 +33,44 @@ describe("buildSiteStarterChrome", () => {
     const t = vi.fn((key: string) => key);
     const chrome = buildSiteStarterChrome(t);
 
-    // 返回类型来自 `UpdateMarketingSiteBody`（字段皆可选），断言窄化后再取下标
     expect(chrome.header).toBeDefined();
     expect(chrome.footer).toBeDefined();
     if (!chrome.header || !chrome.footer) return;
 
     expect(chrome.header).toHaveLength(1);
     expect(chrome.header[0]?.type).toBe("header");
-    const items = chrome.header[0]?.settings.items;
+    const navBlock = chrome.header[0]?.blocks.find(
+      (block) => block.type === "chrome_nav",
+    );
+    const items = navBlock?.settings.items;
     expect(Array.isArray(items)).toBe(true);
     expect((items as unknown[]).length).toBeGreaterThan(0);
-    expect(chrome.header[0]?.blocks).toEqual([]);
     expect(chrome.footer).toHaveLength(1);
     expect(chrome.footer[0]?.type).toBe("footer");
     expect(chrome.theme_settings?.primary_color).toBe("#0369a1");
   });
 
-  /*
-   * 起步模板一个内链都不该带死的：`/member/register` 在未开通会员的站点上是 403，
-   * 页脚链接组指向的 docs / pricing 现在也根本不会被建出来。
-   */
   it("页头不预设按钮，页脚不预设简介与链接组", () => {
     const chrome = buildSiteStarterChrome((key) => key);
 
-    expect(chrome.header?.[0]?.settings.primary_label).toBe("");
-    expect(chrome.header?.[0]?.settings.primary_href).toBe("");
-    expect(chrome.header?.[0]?.settings.secondary_label).toBe("");
-    expect(chrome.header?.[0]?.settings.show_doc_search).toBe(false);
-    expect(chrome.header?.[0]?.settings.show_account).toBe(false);
-    expect(chrome.footer?.[0]?.settings.blurb).toBe("");
-    expect(chrome.footer?.[0]?.settings.show_logo).toBe(false);
-    expect(chrome.footer?.[0]?.blocks).toEqual([]);
+    expect(
+      chrome.header?.[0]?.blocks.some((block) => block.type === "chrome_button"),
+    ).toBe(false);
+    expect(
+      chrome.header?.[0]?.blocks.some(
+        (block) => block.type === "chrome_doc_search",
+      ),
+    ).toBe(false);
+    expect(
+      chrome.header?.[0]?.blocks.some((block) => block.type === "chrome_account"),
+    ).toBe(false);
+    const brand = chrome.footer?.[0]?.blocks.find(
+      (block) => block.type === "chrome_brand",
+    );
+    expect(brand).toBeUndefined();
+    expect(
+      chrome.footer?.[0]?.blocks.some((block) => block.type === "menu_column"),
+    ).toBe(false);
   });
 });
 
@@ -90,10 +100,6 @@ describe("buildSiteStarter", () => {
   });
 });
 
-/*
- * `/register` 是**工作台的员工注册页**（`apps/client/src/shell/guest-routes.tsx`）。
- * 起步首页预设里写上它，租户站点的访客点「免费开始」会掉进 SaaS 运营方的注册表单。
- */
 describe("起步首页版式", () => {
   it("不指向工作台的注册页", () => {
     const hrefs = JSON.stringify(HOME_STARTER_PRESET);

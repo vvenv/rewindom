@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createBlock,
   createSection,
-  getSectionDefinition,
-  parseSettingValues,
+  type SiteBlock,
   type SiteSection,
 } from "./section-schema.js";
 import {
@@ -160,19 +160,23 @@ describe("文档模板页", () => {
 });
 
 describe("chrome 的文档数据需求", () => {
-  function header(settings: Record<string, unknown>): SiteSection {
-    const section = createSection("header");
-    return {
-      ...section,
-      settings: parseSettingValues(getSectionDefinition("header").settings, {
-        ...section.settings,
-        ...settings,
-      }),
-    };
+  function header(blocks: SiteBlock[] = [], navItems?: unknown[]): SiteSection {
+    let section = createSection("header");
+    if (navItems) {
+      section = {
+        ...section,
+        blocks: section.blocks.map((block) =>
+          block.type === "chrome_nav"
+            ? { ...block, settings: { ...block.settings, items: navItems } }
+            : block,
+        ),
+      };
+    }
+    return { ...section, blocks: [...section.blocks, ...blocks] };
   }
 
   const plain = {
-    header: [header({ show_doc_search: false, items: [] })],
+    header: [header()],
     footer: [],
   };
 
@@ -182,9 +186,7 @@ describe("chrome 的文档数据需求", () => {
   });
 
   it("页头默认导航只有一级页面，不要整份目录", () => {
-    expect(chromeNeedsDocList({ header: [header({})], footer: [] })).toBe(
-      false,
-    );
+    expect(chromeNeedsDocList({ header: [header()], footer: [] })).toBe(false);
   });
 
   it("导航条目挂了文档动态项要整份目录", () => {
@@ -192,7 +194,7 @@ describe("chrome 的文档数据需求", () => {
     expect(
       chromeNeedsDocList({
         ...plain,
-        header: [header({ items: [item] })],
+        header: [header([], [item])],
       }),
     ).toBe(true);
   });
@@ -204,7 +206,12 @@ describe("chrome 的文档数据需求", () => {
   });
 
   it("页头搜索只要「有没有文档」，不要整份目录", () => {
-    const withSearch = { ...plain, header: [header({ show_doc_search: true, items: [] })] };
+    const withSearch = {
+      ...plain,
+      header: [
+        header([createBlock("header", "chrome_doc_search", {})], []),
+      ],
+    };
     expect(chromeShowsDocSearch(withSearch)).toBe(true);
     expect(chromeNeedsDocList(withSearch)).toBe(false);
   });

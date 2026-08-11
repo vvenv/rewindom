@@ -442,14 +442,32 @@ describe("splitSettingsByScope", () => {
   });
 
   it("gives header and footer an appearance tab", () => {
-    expect(
-      splitSettingsByScope(BUILTIN_SECTION_DEFINITIONS.header.settings)
-        .appearance.length,
-    ).toBeGreaterThan(0);
+    const headerScopes = splitSettingsByScope(
+      BUILTIN_SECTION_DEFINITIONS.header.settings,
+    );
+    expect(headerScopes.appearance.length).toBeGreaterThan(0);
+    expect(headerScopes.layout.map((def) => ("id" in def ? def.id : ""))).toEqual(
+      expect.arrayContaining(["sticky", "layout"]),
+    );
     expect(
       splitSettingsByScope(BUILTIN_SECTION_DEFINITIONS.footer.settings)
         .appearance.length,
     ).toBeGreaterThan(0);
+  });
+
+  it("puts page-header align in the layout tab", () => {
+    const { content, layout } = splitSettingsByScope(
+      BUILTIN_SECTION_DEFINITIONS["page-header"].settings,
+    );
+    const contentIds = content
+      .map((def) => ("id" in def ? def.id : ""))
+      .filter(Boolean);
+    const layoutIds = layout
+      .map((def) => ("id" in def ? def.id : ""))
+      .filter(Boolean);
+    expect(contentIds).not.toContain("align");
+    expect(layoutIds).toContain("align");
+    expect(layoutIds).toContain("width");
   });
 });
 

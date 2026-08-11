@@ -6,8 +6,7 @@ import {
 } from "./page-presets.js";
 import {
   createSection,
-  getSectionDefinition,
-  parseSettingValues,
+  type SiteBlock,
   type SiteSection,
 } from "./section-schema.js";
 import { findSiteTheme } from "./site-themes.js";
@@ -65,6 +64,20 @@ export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
   { presetKey: "home", sort_order: 0 },
 ];
 
+function withFooterCopyright(
+  footer: SiteSection,
+  copyrightText: string,
+): SiteSection {
+  return {
+    ...footer,
+    blocks: footer.blocks.map((block: SiteBlock) =>
+      block.type === "chrome_copyright"
+        ? { ...block, settings: { ...block.settings, text: copyrightText } }
+        : block,
+    ),
+  };
+}
+
 /**
  * 最简页头页脚：definition 默认页头 + 一行版权页脚。
  *
@@ -74,25 +87,14 @@ export function buildMinimalSiteChrome(
   siteName: string,
 ): Pick<UpdateMarketingSiteBody, "header" | "footer"> {
   const header = createSection("header");
-  const footer = createSection("footer");
-  const footerDef = getSectionDefinition("footer");
-  if (!footerDef) {
-    throw new Error("Missing footer section definition");
-  }
-  const year = new Date().getFullYear();
+  const footer = withFooterCopyright(
+    createSection("footer"),
+    `© ${new Date().getFullYear()} ${siteName}`,
+  );
 
   return {
     header: [header],
-    footer: [
-      {
-        ...footer,
-        settings: parseSettingValues(footerDef.settings, {
-          ...footer.settings,
-          copyright: `© ${year} ${siteName}`,
-        }),
-        blocks: [],
-      },
-    ],
+    footer: [footer],
   };
 }
 

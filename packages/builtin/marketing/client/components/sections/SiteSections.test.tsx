@@ -188,6 +188,18 @@ describe("页面标题段", () => {
     expect(screen.getByText("五分钟跑起来")).toBeTruthy();
   });
 
+  it("关闭显示时不渲染标题区", () => {
+    renderSections(
+      parseSections([
+        {
+          type: "page-header",
+          settings: { show_header: false },
+        },
+      ]),
+    );
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+  });
+
   // 不加这一段就没有 h1——标题不再凭第一段的类型自动冒出来
   it("没有这一段就不出 h1", () => {
     renderSections(

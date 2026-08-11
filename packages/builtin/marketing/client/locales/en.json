@@ -420,6 +420,7 @@
       "template": "Page sections",
       "footerArea": "Footer",
       "section": "Section layout",
+      "content_layout": "Content layout",
       "appearance": "Appearance",
       "doc_meta": "Metadata",
       "doc_back": "Back link",
@@ -455,6 +456,7 @@
       "page_path": "Change the address from the page list — a new path means a new URL.",
       "page_header_headline": "Leave empty to use the title from page settings.",
       "page_header_subhead": "Leave empty to use the description from page settings.",
+      "show_page_header": "Off hides the title block on the page; page settings still apply to SEO and the browser tab.",
       "bg_color": "Leave empty for no custom fill. Supports alpha (e.g. #0f766e80).",
       "outer_bg_color": "Band shell fill (not the padding ring). Leave empty for none; supports alpha.",
       "inner_bg_color": "Content-area fill — the padding ring uses this color too. Leave empty for transparent so the outer background shows through.",
@@ -551,6 +553,7 @@
       "show_glow": "Show glow backdrop",
       "show_logo": "Show logo",
       "show_site_name": "Show site name",
+      "show_page_header": "Show page title",
       "sticky": "Stick to top on scroll",
       "header_layout": "Navigation layout",
       "blurb": "Blurb",
@@ -592,6 +595,9 @@
       "noindex": "Hide from search engines",
       "site_og_image": "Default share image",
       "header_menu": "Navigation links",
+      "button_label": "Button label",
+      "button_href": "Button link",
+      "button_variant": "Button style",
       "menu": "Links in this column",
       "column_title": "Column heading",
       "show_doc_search": "Show doc search"
@@ -604,6 +610,11 @@
       "header_layout": {
         "split": "Brand left · nav beside · actions right",
         "centered": "Centered navigation"
+      },
+      "button_variant": {
+        "primary": "Primary",
+        "secondary": "Secondary",
+        "ghost": "Ghost"
       },
       "width": {
         "page": "Page width",
@@ -719,7 +730,15 @@
       "plan": "Plan",
       "qa": "Q&A",
       "field": "Field",
-      "menu_column": "Menu column"
+      "menu_column": "Menu column",
+      "chrome_brand": "Brand",
+      "chrome_nav": "Navigation",
+      "chrome_button": "Button",
+      "chrome_doc_search": "Doc search",
+      "chrome_locale": "Language",
+      "chrome_theme": "Theme",
+      "chrome_account": "Account",
+      "chrome_copyright": "Copyright"
     },
     "tabContent": "Content",
     "tabLayout": "Layout",
