@@ -10,14 +10,13 @@ describe("BrandMark", () => {
     expect(container.querySelector("img")).toBeNull();
   });
 
-  it("renders colorable mask when src is provided", () => {
+  it("renders img when src is provided", () => {
     const src = "/api/public/tenants/acme/branding/logo";
     const { container } = render(<BrandMark src={src} alt="Acme" />);
-    const mark = container.querySelector("[role='img']");
-    expect(mark).not.toBeNull();
-    expect(mark?.getAttribute("aria-label")).toBe("Acme");
-    expect(mark?.className).toContain("bg-current");
-    expect(mark?.style.maskImage).toBe(`url("${src}")`);
-    expect(container.querySelector("img")).toBeNull();
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute("src")).toBe(src);
+    expect(img?.getAttribute("alt")).toBe("Acme");
+    expect(img?.className).toContain("object-contain");
   });
 });
