@@ -1,11 +1,6 @@
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
-import {
-  CardAction,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@be-water/ui/card";
+import { CardAction, CardHeader, CardTitle } from "@be-water/ui/card";
 import { Skeleton } from "@be-water/ui/skeleton";
 import { ExternalLink, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -58,51 +53,37 @@ export function SiteSummaryHeader({
     );
   }
 
-  const taglineText = localizeSiteText(
-    site.tagline,
-    defaultLocale,
-    defaultLocale,
-  );
-
   return (
-    <CardHeader className="border-b">
-      <CardTitle className="flex min-w-0 flex-wrap items-center gap-2">
+    <CardHeader className="border-b flex items-center justify-between gap-2">
+      <CardTitle className="flex items-center gap-2">
         <span className="truncate">
           {localizeSiteText(site.site_name, defaultLocale, defaultLocale)}
         </span>
         <Badge variant={site.published ? "default" : "secondary"}>
           {site.published ? t("cms.statusPublished") : t("cms.statusDraft")}
         </Badge>
-      </CardTitle>
-      {taglineText ? (
-        <CardDescription className="truncate">{taglineText}</CardDescription>
-      ) : null}
-      {/*
-        计数与标语分开两行：标语是站点的文案，计数是这张列表的状态，挤在一行时
-        长标语会把计数顶掉。「有改动未发布」只在真的有的时候出现——它是待办，
-        平时恒定的「0 个」只是噪音。
-      */}
-      {summary ? (
-        <CardDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-          {/*
-            插值名各不相同、也不叫 `count`：`count` 会触发 i18next 的复数解析，
-            去找一个并不存在的 `_one` / `_other` 变体。
-          */}
-          <span>{t("cms.summaryPages", { total: summary.total })}</span>
-          <span aria-hidden>·</span>
-          <span>
-            {t("cms.summaryPublished", { published: summary.published })}
+        {summary ? (
+          <span className="flex items-center gap-x-2 gap-y-1 text-xs font-normal text-muted-foreground">
+            {/*
+              插值名各不相同、也不叫 `count`：`count` 会触发 i18next 的复数解析，
+              去找一个并不存在的 `_one` / `_other` 变体。
+            */}
+            <span>{t("cms.summaryPages", { total: summary.total })}</span>
+            <span aria-hidden>·</span>
+            <span>
+              {t("cms.summaryPublished", { published: summary.published })}
+            </span>
+            {summary.dirty > 0 ? (
+              <>
+                <span aria-hidden>·</span>
+                <span className="text-amber-600 dark:text-amber-500">
+                  {t("cms.summaryDirty", { dirty: summary.dirty })}
+                </span>
+              </>
+            ) : null}
           </span>
-          {summary.dirty > 0 ? (
-            <>
-              <span aria-hidden>·</span>
-              <span className="text-amber-600 dark:text-amber-500">
-                {t("cms.summaryDirty", { dirty: summary.dirty })}
-              </span>
-            </>
-          ) : null}
-        </CardDescription>
-      ) : null}
+        ) : null}
+      </CardTitle>
       <CardAction className="flex items-center gap-2">
         {/*
           官网就挂在当前 Host 的 `/`（见 Host 分流），所以用相对地址即可——写死
