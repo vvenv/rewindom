@@ -475,9 +475,13 @@ describe("splitSettingsByScope", () => {
       BUILTIN_SECTION_DEFINITIONS.header.settings,
     );
     expect(headerScopes.appearance.length).toBeGreaterThan(0);
+    // 版式下拉已经删掉了：排法由每个块自己的 row / align 决定，页头只剩外壳设置
     expect(headerScopes.layout.map((def) => ("id" in def ? def.id : ""))).toEqual(
-      expect.arrayContaining(["sticky", "layout"]),
+      expect.arrayContaining(["sticky", "padding_top", "show_divider"]),
     );
+    expect(
+      headerScopes.layout.map((def) => ("id" in def ? def.id : "")),
+    ).not.toContain("layout");
     expect(
       splitSettingsByScope(BUILTIN_SECTION_DEFINITIONS.footer.settings)
         .appearance.length,

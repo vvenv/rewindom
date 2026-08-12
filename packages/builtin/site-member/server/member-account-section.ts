@@ -26,6 +26,7 @@ import {
   type SectionHtmlRenderer,
 } from "../../marketing/shared/sections/html.js";
 import {
+  MEMBER_ACCOUNT_PATH,
   memberAccountPanelSection,
   readMemberAccountContext,
   type MemberAccountRenderContext,
@@ -34,7 +35,7 @@ import {
   memberDisplayName,
   memberInitials,
 } from "../shared/member-identity.js";
-import { renderMemberAccountLinksHtml } from "../shared/member-menu-links.js";
+import { renderMemberSiblingLinksHtml } from "../shared/member-menu-links.js";
 import { memberCardClass } from "../shared/member-page-settings.js";
 import { MEMBER_ACCOUNT_CSS } from "../shared/site-css.generated.js";
 
@@ -142,7 +143,9 @@ const renderAccountPanelHtml: SectionHtmlRenderer = (section, ctx) => {
 
   const identity = identityHtml(account, settingText(s, "logout_label"));
   const locale = (ctx.locale ?? ctx.defaultLocale ?? "zh-CN") as AppLocale;
-  const links = renderMemberAccountLinksHtml(locale);
+  const links = renderMemberSiblingLinksHtml(locale, {
+    excludeHref: MEMBER_ACCOUNT_PATH,
+  });
 
   const meta = settingBool(s, "show_meta")
     ? metaHtml(

@@ -1,6 +1,7 @@
 import {
   type CSSProperties,
   type ReactElement,
+  type ReactNode,
   useEffect,
   useRef,
 } from "react";
@@ -16,20 +17,27 @@ import {
 import {
   resolveSurfaceStyle,
   settingBool,
+  settingNumber,
   settingText,
   surfaceStyleCss,
   type SiteBlock,
   type SiteSection,
 } from "../../../shared/section-schema.js";
-import { partitionHeaderBlocks } from "../../../shared/sections/_common/chrome-blocks.js";
+import { blockMobile } from "../../../shared/sections/_common/chrome-blocks.js";
 import {
-  flattenLegalItems,
-  footerLegalNavLabel,
-} from "../../../shared/sections/footer/legal-links.js";
+  chromeBlockClass,
+  chromeRows,
+} from "../../../shared/sections/_common/chrome-layout.js";
 import {
-  headerNavLabel,
+  chromeMenuLabel,
+  mainNavLabel,
   themeToggleTitle,
-} from "../../../shared/sections/header/messages.js";
+} from "../../../shared/sections/_common/chrome-messages.js";
+import {
+  chromeShellVarsAttr,
+  resolveChromeShell,
+} from "../../../shared/sections/_common/chrome-shell.js";
+import { resolveChromeText } from "../../../shared/sections/_common/chrome-text.js";
 import {
   siteNavPages,
   type PageLocaleAlternate,
@@ -47,19 +55,26 @@ import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
 import { SiteLink } from "./SiteLink.js";
 
-const LOCALE_SWITCHER_ICON = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden
-  >
+
+/* -------------------------------------------------------------------------- */
+/* 图标                                                                        */
+/* -------------------------------------------------------------------------- */
+
+const ICON_PROPS = {
+  xmlns: "http://www.w3.org/2000/svg",
+  width: 16,
+  height: 16,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": true,
+} as const;
+
+const LOCALE_ICON = (
+  <svg {...ICON_PROPS}>
     <path d="m5 8 6 6" />
     <path d="m4 14 6-6 2-3" />
     <path d="M2 5h12" />
@@ -70,18 +85,7 @@ const LOCALE_SWITCHER_ICON = (
 );
 
 const SUN_ICON = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden
-  >
+  <svg {...ICON_PROPS}>
     <circle cx="12" cy="12" r="4" />
     <path d="M12 2v2" />
     <path d="M12 20v2" />
@@ -95,43 +99,33 @@ const SUN_ICON = (
 );
 
 const MOON_ICON = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden
-  >
+  <svg {...ICON_PROPS}>
     <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
   </svg>
 );
 
-/**
- * 会员入口由 slot 填入（Theme Editor 灌 `SiteAccountEntryPreview`）。
- * 公开站页头走 SSR HTML，不经过本组件。
- */
-function SiteMemberEntry(): ReactElement | null {
+const SEARCH_ICON = (
+  <svg {...ICON_PROPS}>
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+);
+
+/* -------------------------------------------------------------------------- */
+/* 块                                                                          */
+/* -------------------------------------------------------------------------- */
+
+/** 会员入口由 slot 填入；公开站页头走 SSR HTML，不经过本组件。 */
+function MemberEntry(): ReactElement | null {
   const Entry = siteMemberEntrySlot.useSlot();
   return Entry ? <Entry /> : null;
 }
 
-/**
- * 页头的一条导航项：有子项就是下拉，没有就是普通链接。
- *
- * 与 SSR 的 `renderNavItemHtml` 同构，同样用原生 `<details>`——两端画出来的 DOM
- * 结构一致，同一份 CSS 才管得住两边。
- */
-function NavMenuItem({ item }: { item: ResolvedNavItem }): ReactElement | null {
-  const detailsRef = useRef<HTMLDetailsElement>(null);
-
+/** 点开外面收起来。与 SSR 那段内联脚本同一行为。 */
+function useCloseOnOutside(ref: React.RefObject<HTMLDetailsElement | null>): void {
   useEffect(() => {
     function handlePointerDown(event: PointerEvent): void {
-      const details = detailsRef.current;
+      const details = ref.current;
       if (!details?.open) return;
       const target = event.target;
       if (target instanceof Node && details.contains(target)) return;
@@ -139,15 +133,18 @@ function NavMenuItem({ item }: { item: ResolvedNavItem }): ReactElement | null {
     }
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, []);
+  }, [ref]);
+}
+
+/** 横排导航的一条：有子项就是下拉。与 SSR 的 `renderNavItemHtml` 同构。 */
+function NavMenuItem({ item }: { item: ResolvedNavItem }): ReactElement | null {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  useCloseOnOutside(detailsRef);
 
   if (item.children.length === 0) {
     if (!item.href) return null;
     return (
-      <SiteLink
-        href={item.href}
-        aria-current={item.current ? "page" : undefined}
-      >
+      <SiteLink href={item.href} aria-current={item.current ? "page" : undefined}>
         {item.label}
       </SiteLink>
     );
@@ -161,7 +158,6 @@ function NavMenuItem({ item }: { item: ResolvedNavItem }): ReactElement | null {
       <nav className="nav-menu-panel">
         {item.children.map((child) =>
           child.children.length > 0 ? (
-            // 整组套一层，组内链接才缩得进去（与 SSR 的 `renderNavItemHtml` 同构）
             <div key={child.key} className="nav-menu-section">
               <p className="nav-menu-group">{child.label}</p>
               {child.children.map((leaf) => (
@@ -186,67 +182,19 @@ function NavMenuLeaf({ item }: { item: ResolvedNavItem }): ReactElement {
   );
 }
 
-const SEARCH_ICON = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-/**
- * 页头的文档搜索入口，与 SSR 的 `renderDocSearchHtml` 同构。
- *
- * 就是一个提交到文档索引的 `<form>`：没有 JS 也跳得过去，文档索引那边认 `?q=`。
- */
-function DocSearchForm({
-  locale,
-  defaultLocale,
-}: {
-  locale?: string;
-  defaultLocale?: string;
-}): ReactElement {
-  const resolved = (locale ?? defaultLocale ?? "zh-CN") as AppLocale;
-  const label = docMessages(resolved).search;
-  const action =
-    locale && defaultLocale
-      ? withSiteLocale(
-          DOCS_INDEX_PATH,
-          locale as AppLocale,
-          defaultLocale as AppLocale,
-        )
-      : DOCS_INDEX_PATH;
-  return (
-    <form className="header-search" role="search" method="get" action={action}>
-      {SEARCH_ICON}
-      <input type="search" name="q" placeholder={label} aria-label={label} />
-    </form>
-  );
-}
-
-/** 页脚的一条链接；子项（文档分类那层）缩进列在下面。 */
-function FooterMenuItem({ item }: { item: ResolvedNavItem }): ReactElement {
+/** 竖列导航的一条：子项就地缩进列在下面。 */
+function NavColumnItem({ item }: { item: ResolvedNavItem }): ReactElement {
   return (
     <li>
       {item.href ? (
         <SiteLink href={item.href}>{item.label}</SiteLink>
       ) : (
-        <span className="footer-group">{item.label}</span>
+        <span className="nav-group">{item.label}</span>
       )}
       {item.children.length > 0 ? (
-        <ul className="footer-sublist">
+        <ul className="nav-sublist">
           {item.children.map((child) => (
-            <FooterMenuItem key={child.key} item={child} />
+            <NavColumnItem key={child.key} item={child} />
           ))}
         </ul>
       ) : null}
@@ -254,12 +202,61 @@ function FooterMenuItem({ item }: { item: ResolvedNavItem }): ReactElement {
   );
 }
 
+function ChromeNav({
+  block,
+  ctx,
+  fallbackLabel,
+}: {
+  block: SiteBlock;
+  ctx: SiteNavContext;
+  fallbackLabel?: string;
+}): ReactElement | null {
+  const items = resolveNavItems(settingNavItems(block.settings), ctx);
+  if (items.length === 0) return null;
+  const column = settingText(block.settings, "display") === "column";
+  const title = settingText(block.settings, "title");
+  const label = title || fallbackLabel || "";
+  const className = `chrome-nav ${column ? "chrome-nav-column" : "chrome-nav-inline"}`;
+  const body = column ? (
+    <>
+      {title ? <h2>{title}</h2> : null}
+      <ul>
+        {items.map((item) => (
+          <NavColumnItem key={item.key} item={item} />
+        ))}
+      </ul>
+    </>
+  ) : (
+    items.map((item) => <NavMenuItem key={item.key} item={item} />)
+  );
+
+  // 有名字才当 landmark：一排无名 `<nav>` 只会把读屏器的跳转列表撑满
+  return label ? (
+    <nav className={className} aria-label={label}>
+      {body}
+    </nav>
+  ) : (
+    <div className={className}>{body}</div>
+  );
+}
+
+function DocSearchForm({ ctx }: { ctx: SiteNavContext }): ReactElement {
+  const label = docMessages(ctx.locale).search;
+  const action = withSiteLocale(DOCS_INDEX_PATH, ctx.locale, ctx.defaultLocale);
+  return (
+    <form className="chrome-search" role="search" method="get" action={action}>
+      {SEARCH_ICON}
+      <input type="search" name="q" placeholder={label} aria-label={label} />
+    </form>
+  );
+}
+
 /**
- * 语言切换：icon + `<details>` dropdown，**不**按 `Accept-Language` 自动跳转。
+ * 语言切换：**不**按 `Accept-Language` 自动跳转。
  *
- * 自动跳转会让爬虫只看到一种语言，各语言页面互相收录不到（Shopify 同样只做显式切换）。
- * 候选来自本页 `alternates`——只列真的有已发布译文的语言，点进去不会是 404。
- * 目标路径已带 locale 前缀，所以直接用 `Link` 而不是会再改写一次的 `SiteLink`。
+ * 自动跳转会让爬虫只看到一种语言，各语言页面互相收录不到。候选来自本页 `alternates`
+ * ——只列真的有已发布译文的语言，点进去不会是 404。目标路径已带 locale 前缀，所以用
+ * `Link` 而不是会再改写一次的 `SiteLink`。
  */
 function LocaleSwitcher({
   alternates,
@@ -269,56 +266,37 @@ function LocaleSwitcher({
   current: string;
 }): ReactElement | null {
   const detailsRef = useRef<HTMLDetailsElement>(null);
-
-  useEffect(() => {
-    function handlePointerDown(event: PointerEvent): void {
-      const details = detailsRef.current;
-      if (!details?.open) return;
-      const target = event.target;
-      if (target instanceof Node && details.contains(target)) return;
-      details.open = false;
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, []);
+  useCloseOnOutside(detailsRef);
 
   if (alternates.length < 2) return null;
-  const currentLabel = getLocaleNativeLabel(current);
 
   return (
     <details ref={detailsRef} className="locale-switcher">
-      <summary aria-label="Language" title={currentLabel}>
-        {LOCALE_SWITCHER_ICON}
+      <summary aria-label="Language" title={getLocaleNativeLabel(current)}>
+        {LOCALE_ICON}
       </summary>
       <nav className="locale-switcher-menu" aria-label="Language">
-        {alternates.map((alternate) => {
-          const active = alternate.locale === current;
-          return (
-            <Link
-              key={alternate.locale}
-              to={alternate.path}
-              hrefLang={alternate.locale}
-              aria-current={active ? "true" : undefined}
-            >
-              {getLocaleNativeLabel(alternate.locale)}
-            </Link>
-          );
-        })}
+        {alternates.map((alternate) => (
+          <Link
+            key={alternate.locale}
+            to={alternate.path}
+            hrefLang={alternate.locale}
+            aria-current={alternate.locale === current ? "true" : undefined}
+          >
+            {getLocaleNativeLabel(alternate.locale)}
+          </Link>
+        ))}
       </nav>
     </details>
   );
 }
 
 /**
- * 明暗切换：点击在 light / dark 间切换。
- *
- * 用站点自己的偏好而**不是**工作台的 `next-themes`：两者同源同一个 SPA，共用
- * `localStorage.theme` 会让访客的选择顺带改掉租户管理台的明暗。
+ * 明暗切换：用站点自己的偏好而**不是**工作台的 `next-themes`——两者同源同一个 SPA，
+ * 共用 `localStorage.theme` 会让访客的选择顺带改掉租户管理台的明暗。
  */
 function SiteThemeToggle({ locale }: { locale: AppLocale }): ReactElement {
   const { mode, resolved, setMode } = useSiteColorMode();
-
   return (
     <button
       type="button"
@@ -331,11 +309,23 @@ function SiteThemeToggle({ locale }: { locale: AppLocale }): ReactElement {
   );
 }
 
-interface ChromeProps {
+/* -------------------------------------------------------------------------- */
+/* 区域                                                                        */
+/* -------------------------------------------------------------------------- */
+
+export interface SiteChromeProps {
   section: SiteSection;
   siteName: string;
   logoUrl: string | null;
-  /** 编辑器里点击整块可选中；`blockId` 非空表示点在某条链接（block）上。 */
+  pages?: PublicSitePage[];
+  docs?: readonly PublicDocSummary[];
+  hasDocs?: boolean;
+  currentPath?: string;
+  locale?: string;
+  defaultLocale?: string;
+  /** 本页各语言入口（语言块的候选）。 */
+  alternates?: PageLocaleAlternate[];
+  /** 编辑器里点击整块可选中；`blockId` 非空表示点在某个块上。 */
   onSelect?: (blockId: string | null) => void;
 }
 
@@ -371,338 +361,178 @@ function selectable(onSelect: ((blockId: string | null) => void) | undefined) {
   };
 }
 
-/** 展开导航要的内容快照；页头页脚共用。 */
-function chromeNavContext(input: {
-  pages?: PublicSitePage[];
-  docs?: readonly PublicDocSummary[];
-  currentPath?: string;
-  locale?: string;
-  defaultLocale?: string;
-}): SiteNavContext {
-  const defaultLocale = (input.defaultLocale ?? "zh-CN") as AppLocale;
+function chromeNavContext(props: SiteChromeProps): SiteNavContext {
+  const defaultLocale = (props.defaultLocale ?? "zh-CN") as AppLocale;
   return {
-    navPages: siteNavPages(input.pages ?? []),
-    docs: input.docs,
-    locale: (input.locale as AppLocale | undefined) ?? defaultLocale,
+    navPages: siteNavPages(props.pages ?? []),
+    docs: props.docs,
+    locale: (props.locale as AppLocale | undefined) ?? defaultLocale,
     defaultLocale,
-    currentPath: input.currentPath ?? "",
+    currentPath: props.currentPath ?? "",
   };
 }
 
-/** 页头 / 页脚共有的导航数据源。 */
-interface ChromeNavProps {
-  /** 全站导航（一级页）的数据源。 */
-  pages?: PublicSitePage[];
-  /** 已发布文档目录（文档动态项吃它）。 */
-  docs?: readonly PublicDocSummary[];
-  /** 站里有没有已发布文档；页头搜索入口据此决定渲不渲染。 */
-  hasDocs?: boolean;
-  /** 当前逻辑路径，用于 `aria-current`。 */
-  currentPath?: string;
-  locale?: string;
-  defaultLocale?: string;
-}
-
-export function SiteHeader({
-  section,
-  siteName,
-  logoUrl,
-  onSelect,
-  pages = [],
-  docs,
-  hasDocs,
-  currentPath,
-  alternates = [],
-  locale,
-  defaultLocale,
-}: ChromeProps &
-  ChromeNavProps & {
-    /** 本页各语言入口（语言切换器的候选）。 */
-    alternates?: PageLocaleAlternate[];
-  }): ReactElement {
+/**
+ * 页头 / 页脚 —— **一个组件**。差别只有语义元素、吸顶、以及 `spacing_above`。
+ * 与 SSR 的 `renderChromeHtml` 同构：同一批 class、同一套 DOM。
+ */
+export function SiteChrome({
+  tag,
+  ...props
+}: SiteChromeProps & { tag: "header" | "footer" }): ReactElement {
+  const { section, siteName, logoUrl, onSelect, alternates = [] } = props;
   const s = section.settings;
-  const layout = settingText(s, "layout") || "split";
-  const centered = layout === "centered";
+  const ctx = chromeNavContext(props);
   const select = selectable(onSelect);
-  const ctx = chromeNavContext({
-    pages,
-    docs,
-    currentPath,
-    locale,
-    defaultLocale,
-  });
-  const { brand, nav, actions } = partitionHeaderBlocks(section.blocks);
-  const navLocale = ((locale ?? defaultLocale) as AppLocale | undefined) ?? "zh-CN";
-  const surface = resolveSurfaceStyle(s);
-  const surfaceCss = {
-    ...surfaceStyleCss(surface),
+  const shell = resolveChromeShell(
+    tag === "header" ? "site-header" : "site-footer",
+    s,
+  );
+  const className =
+    tag === "header" && settingBool(s, "sticky")
+      ? `${shell.className} sticky`
+      : shell.className;
+  const style = {
+    ...surfaceStyleCss(resolveSurfaceStyle(s)),
+    ...shell.vars,
+    ...(tag === "footer"
+      ? { "--chrome-mt": `${settingNumber(s, "spacing_above", 48)}px` }
+      : {}),
     ...select.style,
   } as CSSProperties;
 
-  const headerClass = ["site-header", settingBool(s, "sticky") ? "sticky" : ""]
-    .filter(Boolean)
-    .join(" ");
+  const hasDocs = props.hasDocs ?? (props.docs?.length ?? 0) > 0;
+  let mainNavUsed = false;
 
-  const rowClass = [
-    "wrap",
-    "header-row",
-    centered ? "header-layout-centered" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const mobileNavItems = nav.flatMap((block) =>
-    resolveNavItems(settingNavItems(block.settings), ctx),
-  );
-
-  return (
-    <header
-      {...select}
-      data-section-id={section.id}
-      className={headerClass}
-      style={surfaceCss}
-    >
-      <div className={rowClass}>
-        {brand.map((block) => (
-          <SiteLink
-            key={block.id}
-            href="/"
-            className="brand"
-            data-block-id={block.id}
-          >
-            {settingBool(block.settings, "show_logo") && logoUrl ? (
-              <img src={logoUrl} alt={siteName} className="logo" />
-            ) : null}
-            {settingBool(block.settings, "show_site_name") ? (
-              <span>{siteName}</span>
-            ) : null}
-          </SiteLink>
-        ))}
-
-        {nav.map((block) => {
-          const navItems = resolveNavItems(
-            settingNavItems(block.settings),
-            ctx,
-          );
-          if (navItems.length === 0) return null;
-          return (
-            <nav
-              key={block.id}
-              className="header-nav"
-              aria-label={headerNavLabel(navLocale)}
-              data-block-id={block.id}
-            >
-              {navItems.map((item) => (
-                <NavMenuItem key={item.key} item={item} />
-              ))}
-            </nav>
-          );
-        })}
-
-        {actions.length > 0 ? (
-          <div className="header-actions">
-            {actions.map((block) => (
-              <HeaderActionBlock
-                key={block.id}
-                block={block}
-                hasDocs={hasDocs}
-                docs={docs}
-                locale={locale}
-                defaultLocale={defaultLocale}
-                alternates={alternates}
-              />
-            ))}
-          </div>
-        ) : null}
-      </div>
-
-      {mobileNavItems.length > 0 ? (
-        <nav
-          className="header-mobile-nav wrap"
-          aria-label={headerNavLabel(navLocale, "mobile")}
-        >
-          {mobileNavItems.map((item) => (
-            <NavMenuItem key={item.key} item={item} />
-          ))}
-        </nav>
-      ) : null}
-    </header>
-  );
-}
-
-function HeaderActionBlock({
-  block,
-  hasDocs,
-  docs,
-  locale,
-  defaultLocale,
-  alternates,
-}: {
-  block: SiteBlock;
-  hasDocs?: boolean;
-  docs?: readonly PublicDocSummary[];
-  locale?: string;
-  defaultLocale?: string;
-  alternates: PageLocaleAlternate[];
-}): ReactElement | null {
-  switch (block.type) {
-    case "chrome_doc_search":
-      return (hasDocs ?? (docs?.length ?? 0) > 0) ? (
-        <DocSearchForm locale={locale} defaultLocale={defaultLocale} />
-      ) : null;
-    case "chrome_locale":
-      return <LocaleSwitcher alternates={alternates} current={locale ?? ""} />;
-    case "chrome_theme":
-      return <SiteThemeToggle locale={locale === "en" ? "en" : "zh-CN"} />;
-    case "chrome_account":
-      return <SiteMemberEntry />;
-    case "chrome_button": {
-      const label = settingText(block.settings, "label");
-      const href = settingText(block.settings, "href");
-      if (!label || !href) return null;
-      const variant = settingText(block.settings, "variant") || "primary";
-      const className =
-        variant === "ghost"
-          ? "btn btn-ghost"
-          : variant === "secondary"
-            ? "btn btn-secondary"
-            : "btn";
-      return (
-        <SiteLink href={href} className={className} data-block-id={block.id}>
-          {label}
-        </SiteLink>
-      );
-    }
-    default:
-      return null;
-  }
-}
-
-export function SiteFooter({
-  section,
-  siteName,
-  logoUrl,
-  onSelect,
-  pages = [],
-  docs,
-  currentPath,
-  locale,
-  defaultLocale,
-}: ChromeProps & ChromeNavProps): ReactElement {
-  const s = section.settings;
-  const ctx = chromeNavContext({
-    pages,
-    docs,
-    currentPath,
-    locale,
-    defaultLocale,
-  });
-  const select = selectable(onSelect);
-  const surface = resolveSurfaceStyle(s);
-  const surfaceCss = {
-    ...surfaceStyleCss(surface),
-    ...select.style,
-  } as CSSProperties;
-
-  const gridBlocks: ReactElement[] = [];
-  const legalBlocks: ReactElement[] = [];
-
-  for (const block of section.blocks) {
+  function renderBlock(block: SiteBlock): ReactNode {
     switch (block.type) {
       case "chrome_brand": {
         const blurb = settingText(block.settings, "blurb");
-        gridBlocks.push(
-          <div key={block.id} className="footer-brand" data-block-id={block.id}>
-            <div className="brand">
+        return (
+          <div className="chrome-brand">
+            <SiteLink href="/" className="brand">
               {settingBool(block.settings, "show_logo") && logoUrl ? (
                 <img src={logoUrl} alt={siteName} className="logo" />
               ) : null}
               {settingBool(block.settings, "show_site_name") ? (
                 <span>{siteName}</span>
               ) : null}
-            </div>
+            </SiteLink>
             {blurb ? <p className="muted">{blurb}</p> : null}
-          </div>,
+          </div>
         );
-        break;
       }
-      case "menu_column": {
-        const items = resolveNavItems(settingNavItems(block.settings), ctx);
-        if (onSelect === undefined && items.length === 0) break;
-        const title = settingText(block.settings, "title");
-        const list = (
-          <ul>
-            {items.map((item) => (
-              <FooterMenuItem key={item.key} item={item} />
-            ))}
-          </ul>
+      case "chrome_nav": {
+        const isMain = !mainNavUsed;
+        mainNavUsed = true;
+        return (
+          <ChromeNav
+            block={block}
+            ctx={ctx}
+            fallbackLabel={isMain ? mainNavLabel(ctx.locale) : undefined}
+          />
         );
-        // 有列标题才当 landmark（口径与 SSR 的 renderFooterMenuColumnHtml 一致）
-        gridBlocks.push(
-          title ? (
-            <nav
-              key={block.id}
-              className="footer-col"
-              aria-label={title}
-              data-block-id={block.id}
-            >
-              <h2>{title}</h2>
-              {list}
-            </nav>
-          ) : (
-            <div key={block.id} className="footer-col" data-block-id={block.id}>
-              {list}
-            </div>
-          ),
-        );
-        break;
       }
-      case "chrome_copyright": {
-        const text =
-          settingText(block.settings, "text") ||
-          `© ${new Date().getFullYear()} ${siteName}`;
-        const legalLinks = flattenLegalItems(
-          resolveNavItems(settingNavItems(block.settings, "links"), ctx),
-        );
-        legalBlocks.push(
-          <div
-            key={block.id}
-            className="wrap footer-legal"
-            data-block-id={block.id}
+      case "chrome_text": {
+        const text = resolveChromeText(settingText(block.settings, "text"), {
+          siteName,
+        });
+        return text ? <p className="chrome-text">{text}</p> : null;
+      }
+      case "chrome_button": {
+        const label = settingText(block.settings, "label");
+        const href = settingText(block.settings, "href");
+        if (!label || !href) return null;
+        const variant = settingText(block.settings, "variant") || "primary";
+        return (
+          <SiteLink
+            href={href}
+            className={
+              variant === "ghost"
+                ? "btn btn-ghost"
+                : variant === "secondary"
+                  ? "btn btn-secondary"
+                  : "btn"
+            }
           >
-            <span>{text}</span>
-            {legalLinks.length > 0 ? (
-              <nav
-                className="footer-legal-links"
-                aria-label={footerLegalNavLabel(ctx.locale)}
-              >
-                {legalLinks.map((item) => (
-                  <SiteLink key={item.key} href={item.href}>
-                    {item.label}
-                  </SiteLink>
-                ))}
-              </nav>
-            ) : null}
-          </div>,
+            {label}
+          </SiteLink>
         );
-        break;
       }
+      case "chrome_search":
+        return hasDocs ? <DocSearchForm ctx={ctx} /> : null;
+      case "chrome_locale":
+        return (
+          <LocaleSwitcher alternates={alternates} current={props.locale ?? ""} />
+        );
+      case "chrome_theme":
+        return <SiteThemeToggle locale={ctx.locale} />;
+      case "chrome_account":
+        return <MemberEntry />;
       default:
-        break;
+        return null;
     }
   }
 
+  const Tag = tag;
   return (
-    <footer
+    <Tag
       {...select}
       data-section-id={section.id}
-      className="site-footer"
-      style={surfaceCss}
+      className={className}
+      style={style}
     >
-      {gridBlocks.length > 0 ? (
-        <div className="wrap footer-grid">{gridBlocks}</div>
-      ) : null}
-      {legalBlocks}
-    </footer>
+      {chromeRows(section.blocks).map((row) => (
+        <div key={row.index} className={`wrap chrome-row chrome-row-${row.index}`}>
+          {row.zones.map((zone) => (
+            <div
+              key={zone.align}
+              className={`chrome-zone chrome-zone-${zone.align}`}
+            >
+              {zone.blocks.map((block) => {
+                const inner = renderBlock(block);
+                if (!inner) return null;
+                const shellEl = (
+                  <div
+                    className={chromeBlockClass(block, "chrome-block")}
+                    data-block-id={block.id}
+                  >
+                    {inner}
+                  </div>
+                );
+                // 窄屏收进菜单的块多包一层；桌面上它是 `display: contents`，等于不存在
+                return blockMobile(block) === "menu" ? (
+                  <div key={block.id} className="chrome-drawer">
+                    {shellEl}
+                  </div>
+                ) : (
+                  <span key={block.id} style={{ display: "contents" }}>
+                    {shellEl}
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+          {row.hasMenu ? (
+            <input
+              type="checkbox"
+              className="chrome-menu-toggle"
+              aria-label={chromeMenuLabel(ctx.locale)}
+            />
+          ) : null}
+        </div>
+      ))}
+    </Tag>
   );
 }
+
+/** 便利包装：区域本体的两种形态。渲染时**不许**再包一层同名元素（sticky 会失效）。 */
+export function SiteHeader(props: SiteChromeProps): ReactElement {
+  return <SiteChrome tag="header" {...props} />;
+}
+
+export function SiteFooter(props: SiteChromeProps): ReactElement {
+  return <SiteChrome tag="footer" {...props} />;
+}
+
+export { chromeShellVarsAttr };

@@ -42,57 +42,98 @@ in Theme settings.
 
 ## Header and footer
 
-Header and footer are **site-level** sections shared by every page:
+Header and footer are **site-level** sections shared by every page — and they are the
+**same thing**: the same blocks, the same placement rules. Only two things differ: a
+header can stick to the top, a footer can set its distance from the page content.
 
-- Header: four blocks by default — brand, navigation, language switcher, theme toggle —
-  which you can add to, remove and reorder
-- Footer: by default only a copyright line; add a blurb or link groups when you need them
+The default header is logo + site name + top-level page navigation + language + dark mode.
+The default footer is a single copyright line.
 
-The language and theme blocks ship by default because they **render nothing when they do
-not apply**: a single-language site shows no switcher, and it appears by itself once you
-publish your first translation. Don't want them? Delete them from the left tree.
+> Language and dark mode ship by default because they **render nothing when they do not
+> apply**: a single-language site shows no switcher, and it appears by itself once you
+> publish your first translation. Don't want them? Delete them from the left tree.
+> Buttons, doc search and the account entry are deliberately **not** preset — a
+> prepopulated button pointing at a feature you haven't enabled is worse than no button.
 
-Open any page from its list row and edit header / footer in the left tree.
+### Where a block sits is the block's own setting
 
-> Defaults deliberately ship **no** header button. If you want a "Get started" call to
-> action, add it yourself in the header settings — a prepopulated button pointing at a
-> feature you haven't enabled is worse than no button.
+Select any block and its "Placement" group has three settings:
+
+| Setting   | What it does                                            |
+| --------- | ------------------------------------------------------- |
+| Row       | Up to three rows; empty rows are not rendered           |
+| Align     | Left / center / right within the row                    |
+| On mobile | Keep outside / in menu / hide                           |
+
+Every common arrangement is those three combined — there is no "layout" dropdown:
+
+- **Centered navigation**: set the nav block's align to center
+- **Header with an announcement bar**: put a text block in row 1, brand and nav in row 2
+- **A typical multi-column footer**: row 1 holds the brand plus a few *stacked* nav blocks;
+  row 2 holds the copyright (left) with language and dark mode (right)
+- **Privacy / terms / licence links in the bottom bar**: an *inline* nav block in row 2,
+  aligned right
+
+### The blocks
+
+| Block        | What it is                                                        |
+| ------------ | ----------------------------------------------------------------- |
+| Brand        | Logo, site name, one-line blurb                                   |
+| Navigation   | A set of links. **Inline** suits headers and bottom bars, **stacked** suits footer columns |
+| Text         | Copyright, compliance notices, announcements                      |
+| Button       | A call to action                                                  |
+| Doc search   | Only rendered once the site has published documents               |
+| Language     | Only rendered when the page has translations                      |
+| Dark mode    | Light / dark toggle                                               |
+| Account      | Member sign-in / account menu (requires the member module)        |
+
+All eight can go in either area — moving the language switcher down to the footer, or
+putting a line of announcement text in the header, is a single change.
+
+### Placeholders in text
+
+The text block supports two placeholders: `{year}` for the current year and `{site}` for
+the site name. That is why the default `© {year} {site}` keeps up with new years and
+renames on its own. Want "© 2020–{year} Acme, Inc."? Just type it.
+
+### On mobile
+
+Blocks set to "in menu" collapse into the hamburger in the top-right and show normally on
+desktop. Keep small controls like the brand and dark-mode toggle outside; set things that
+simply don't fit, like the search box, to "hide".
 
 ### Navigation links
 
-Select the header and the "navigation links" panel on the right is exactly the row your
-visitors see. Four kinds of entry are available:
+Select a navigation block and its "Links" panel is exactly what your visitors see. Four
+kinds of entry are available:
 
-| Source           | Expands into                                          |
-| ---------------- | ----------------------------------------------------- |
-| Custom link      | One link you write, optionally with a submenu          |
+| Source              | Expands into                                          |
+| ------------------- | ----------------------------------------------------- |
+| Custom link         | One link you write, optionally with a submenu          |
 | All top-level pages | Every published top-level page; new pages join automatically |
-| Docs library     | The whole library, grouped by category (parent links to `/docs`) |
-| One doc category | Every published doc in that category                   |
+| Docs library        | The whole library, grouped by category (parent links to `/docs`) |
+| One doc category    | Every published doc in that category                   |
 
 The last three are **rules**, not fixed entries: what they expand into depends on your
 content, and the editor tells you what will show. When a rule expands to nothing, it is
 not rendered at all — you never end up with an entrance that leads to an empty list.
 
-The default is **all top-level pages** only — publish a page and it joins the nav
-automatically. Add a docs-library entry when you need one; a docs rule only renders once
-you have published documents.
+The default is all top-level pages only. To match the header in a footer nav block, use
+"copy from header" — it copies a snapshot, after which the two are edited independently.
 
-Each footer column has its own list of links. To match the header, use "copy from
-header" — it copies a snapshot, after which the two are edited independently.
+### Spacing and dividers
 
-### How the footer lays out
+Header and footer settings cover top and bottom padding, the gap within a row, and the
+divider on the side facing the page content (below a header, above a footer). Give the
+footer a dark background and you will usually want that divider off.
 
-The footer body does one thing: brand on the left, link columns sized **to their content**
-to its right, and the copyright plus its "bottom bar links" (privacy, terms, licence
-number) sharing the last row. Columns are never stretched to fill the row — two short
-columns stay two short columns.
+For a footer that needs real columns — proportional widths, a paragraph or a signup form
+inside one — **add a "Columns" section** to the footer group. It is the same section you
+use on pages: drag the split points to set the widths. The header and footer bodies do not
+ship a second, area-only set of column settings.
 
-For a footer that really needs a layout — how wide each column is, the gap between them,
-a paragraph or a signup form inside one — **add a "Columns" section** to the footer group
-in the left tree. It is the same section you use on pages: drag the split points to set
-the widths, then put whatever you want inside each column. The footer body does not ship
-a second, footer-only set of column settings.
+> There is no dedicated block for social platform icons (GitHub / X / WeChat…) yet. To add
+> them, use a Columns section with a rich-text section inside and write image links there.
 
 ## Name and tagline
 

@@ -573,10 +573,12 @@ export function chromeNeedsDocList(site: {
  * **同一个页头在文档页有搜索框、在别的页上没有**，而文档页恰好总是带着文档数据，
  * 本地随手一看还挺正常。
  */
-export function chromeShowsDocSearch(site: { header: SiteSection[] }): boolean {
-  return site.header.some(
-    (section) =>
-      section.type === "header" &&
-      section.blocks.some((block) => block.type === "chrome_doc_search"),
+export function chromeShowsDocSearch(site: {
+  header: SiteSection[];
+  footer: SiteSection[];
+}): boolean {
+  // 页头页脚共用一套块，搜索框哪边都能摆——只看页头会漏掉「搜索收在页脚」的站
+  return [...site.header, ...site.footer].some((section) =>
+    section.blocks.some((block) => block.type === "chrome_search"),
   );
 }

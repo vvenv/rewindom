@@ -28,7 +28,7 @@
 
 | 模型            | 说明                                                                                                                                           |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `site_draft_dirty`）。导航条目嵌在页头 `chrome_nav` / 页脚 `menu_column` 块的 `settings.items` 里 |
+| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `site_draft_dirty`）。导航条目嵌在 `chrome_nav` 块的 `settings.items` 里 |
 | `MarketingPage` | `kind`: `home` \| `page` \| **模板页 kind**（见下）；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退） |
 
 ### 模板页（`shared/page-templates.ts`）
@@ -69,30 +69,81 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 某个段能放进哪个区域由它自己的 `placements` 声明（`sectionTypesFor(area)` 读它），
 所以「页头加公告条」= 往区域里加一段 `band`，不用给 header 的 schema 再长字段：
 
-页头 / 页脚**自身的 settings 只剩外壳**（吸顶、排版、配色）；里面摆什么一律是 block，
-可增删可排序，两个区域共用同一套块类型（`sections/_common/chrome-blocks.ts`）：
+页头与页脚是**同一套东西**：同一张块表（`sections/_common/chrome-blocks.ts`）、同一个
+SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChrome`）、同一份 CSS
+（`_common/styles.css` 的 chrome 段）。差别只有三样：语义元素（`<header>` / `<footer>`）、
+吸顶（只页头有意义）、`spacing_above`（只页脚有意义）。
 
-| type     | settings                          | blocks                                                                                   |
-| -------- | --------------------------------- | ---------------------------------------------------------------------------------------- |
-| `header` | sticky, layout(split\|centered), 配色 | `chrome_brand` / `chrome_nav` / `chrome_button` / `chrome_doc_search` / `chrome_locale` / `chrome_theme` / `chrome_account`，最多 12。默认预置 brand + nav + locale + theme |
-| `footer` | 配色                              | `chrome_brand` / `menu_column`{title, items} / `chrome_copyright`{text, links}，最多 8。默认只预置 copyright |
+### 位置由**块**说了算，不由块的 type 说了算
 
-渲染按块的**角色**分区，不按下标：`partitionHeaderBlocks` 把页头的块分成品牌 / 导航 /
-右侧操作区三堆（`chrome_button` 及各入口块归操作区）。页脚同理分两行：品牌与链接列进
-`.footer-grid`，版权与它的 `links`（隐私 / 条款 / 备案号）进底栏 `.footer-legal` 同一行。
+这是整套 chrome 的核心。每个块带三个定位设置：
 
-**页脚没有版式设置**，链接列一律按内容宽排（`.footer-col` 是 `flex: 0 1 auto`）。曾经是
-`grid-template-columns: 1.4fr repeat(auto-fit, minmax(7rem, 1fr))`：auto-fit 折叠掉空轨道
-之后，剩下的 `1fr` 会把整行**分光**，两列短链接于是各摊掉三成宽。修法不是给页脚加一份
-列宽 / 版式配置——要真正排版的多栏页脚（各栏占几份、栏间距、栏里装 prose 或表单），往
-页脚区里加一个 `group`（分栏）段，那是全站唯一的布局原语，`placements` 已放行页脚。
+| 设置     | 取值                          | 说明                                   |
+| -------- | ----------------------------- | -------------------------------------- |
+| `row`    | 1 / 2 / 3                     | 第几行；空行不渲染                     |
+| `align`  | start / center / end          | 行内靠左 / 居中 / 靠右                 |
+| `mobile` | pin / menu / hide             | 窄屏：留在外面 / 收进汉堡 / 不显示     |
 
-除按钮与页脚链接列外，其余块都是 **`singleton`**（`BlockDefinition.singleton`）：加过一次
-就从「添加区块」菜单里消失。第二个语言切换器、第二条版权不是一种配置，是个一眼能看出
-来的错误——菜单里灰着留一项，只是把「点了没用」推迟到点下去之后。
+行是 `grid-template-columns: 1fr auto 1fr` 的三格（`chromeRows()` 把块摊成行 × 对齐区）。
+「导航居中」= 导航块 `align: center`；「页脚底栏」= 版权块 `row: 2`；「页头分两行」= 把块
+分到两行。
 
-**版权文案默认留空**，两端渲染兜底成「© 当年 站名」。建站那天把 `© 2026 Acme` 写死进
-settings，跨年之后页脚就一直停在去年，改站名也不跟着变——而这两件事本来一行都不用配。
+**以前是反过来的**：`partitionHeaderBlocks` 把品牌钉在左、导航钉在中、按钮钉在右，页脚则
+把链接列钉在上排、语言钉在底栏。租户能调的只有同一堆里的先后顺序，想把按钮排到导航
+左边就得改代码；于是每来一种排法就多一个枚举值去兜（`layout: split | centered`）——而
+那条路本来就走不下去，「品牌居中 + 导航靠右」该叫什么？定位交给块自己之后，`layout`
+下拉、`partitionHeaderBlocks`、`isFooterToolBlockType` 全部删掉。
+
+| type              | settings                                    |
+| ----------------- | ------------------------------------------- |
+| `chrome_brand`    | show_logo, show_site_name, blurb            |
+| `chrome_nav`      | title, items, display(inline\|column)       |
+| `chrome_text`     | text（支持 `{year}` / `{site}` 占位符）      |
+| `chrome_button`   | label, href, variant                        |
+| `chrome_search`   | —                                           |
+| `chrome_locale`   | —                                           |
+| `chrome_theme`    | —                                           |
+| `chrome_account`  | —                                           |
+
+**`chrome_nav` 一个块管横排与竖列。** 以前是 `chrome_nav`（页头）与 `menu_column`（页脚）
+两个 type，存的东西一模一样（都是 `settings.items`），差别只在画成一排还是一列——那是
+显示方式，不是两种东西。分成两个 type 的直接后果是页头摆不出竖列、页脚摆不出横排，
+底栏那排法务链接因此只能作为字段（`links`）塞进版权块里。现在它就是一个
+`display: inline` 的导航块放在第二行。
+
+**`chrome_text` 的占位符替掉了 `chrome_copyright` 的隐藏行为。** 那个块的语义是「留空则
+自动生成 © 当年 站名」：输入框里空着、前台却有字，想改成「© 2020–{year} Acme, Inc.」
+无从下手。现在默认值就是 `© {year} {site}`，看得见改得动，跨年与改站名照样自己跟上
+（`_common/chrome-text.ts`）。
+
+区域自身的 settings 只剩外壳（`_common/chrome-shell.ts`）：`padding_top` / `padding_bottom` /
+`row_gap` / `show_divider`，页头另加 `sticky`、页脚另加 `spacing_above`，再加通用配色。
+留白走 CSS 变量而不是直接算 `padding`：chrome 有多行，上下留白落在第一行与最后一行上，
+而只有一行时两者落在同一行——往哪儿放由 CSS 的 `:first-child` / `:last-child` 决定。
+
+### 窄屏：一份 DOM
+
+`mobile: "menu"` 的块外面套一层 `.chrome-drawer`。**桌面上这层是 `display: contents`**，
+块因此直接落在自己的对齐区里，排版与没有抽屉时逐像素一致；窄屏才把它变成真容器收起来，
+由行末那枚 `.chrome-menu-toggle`（画成汉堡的 checkbox）驱动，展开靠 `:has()` 从行选到
+抽屉——抽屉分散在各个对齐区里，和 checkbox 不是兄弟，`~` 够不着。
+
+汉堡用 checkbox 而不是 `<button>` + JS，也不是 label 包隐藏 input：前者纯 CSS 就能展开、
+无 JS 可用，且自带开关状态与键盘操作（空格）；后者键盘根本聚焦不到。
+
+以前是把整份导航**复制一遍**塞进 `.header-mobile-nav`，靠 `display: none` 二选一——同一批
+链接在 DOM 里出现两次，读屏器念两遍、`aria-current` 也重复。
+
+### 没有读时升级层
+
+`chrome-upgrade.ts` 整个删掉了。它做的是「把旧版 settings 里的导航与开关翻译成 block」，
+代价是**每次读都要判一次这段是不是旧的**，而判据只能靠「有没有留着已删除的旧键」这种
+间接信号——判错就把租户删掉的块塞回去，刷新一次长回来一次。schema 认不出的块由
+`parseBlocks` 丢弃，区域本体由 `ensureAreaBody` 补，就这两条。
+
+> ⚠️ 这次改版**不兼容**旧 chrome 数据：块 type 换了名字（`menu_column` / `chrome_copyright`
+> / `chrome_doc_search` 已不存在），旧站点的页头页脚读出来会只剩一个空本体。开发库重跑
+> `pnpm seed` 即可；已有租户数据需要各自重配一次页头页脚。
 
 页头 / 页脚区渲染时**不许再包一层 `<header>` / `<footer>`**：`SiteHeader` 自己就是
 `<header>`，外面套一层等高的祖先，`sticky` 就没有可粘的余量（sticky 只在包含块内部
@@ -101,7 +152,7 @@ settings，跨年之后页脚就一直停在去年，改站名也不跟着变—
 
 ### 站点导航（`shared/site-nav.ts`）
 
-导航条目**直接嵌在**页头 `chrome_nav` 块与页脚 `menu_column` 块的 `settings.items` 里，
+导航条目**直接嵌在** `chrome_nav` 块的 `settings.items` 里（页头页脚同一个块类型），
 没有独立的菜单实体 / key / 共享库。以前做过一份 `menus_json` 让页头页脚按 key 引用——
 「共用」是真需求，但做成带齿轮切换的菜单库是过渡设计；现在页脚要和页头一样时**复制**
 一份（编辑器「从页头复制」，源由 `collectHeaderNavItems(header)` across 所有 `chrome_nav`

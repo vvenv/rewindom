@@ -169,17 +169,26 @@ function ChromeBlockSettings({
     );
   }
 
+  /*
+   * 原因写在设置**上面**，不是只在「这个块没有任何设置」时才写。
+   *
+   * chrome 块现在都带定位设置（所在行 / 对齐 / 窄屏），一个都不为空——只在空面板那
+   * 一支写原因的话，未开通的会员入口就变成「一整面点不动的灰字段，没有任何解释」。
+   */
   return (
-    <ScopedSettings
-      label={t(blockDef.label)}
-      defs={blockDef.settings}
-      values={block.settings}
-      disabled={disabled || Boolean(hint)}
-      unavailable={unavailable}
-      locale={locale}
-      defaultLocale={defaultLocale}
-      onChange={onChange}
-    />
+    <div className="space-y-3">
+      {hint ? <p className="text-sm text-muted-foreground">{hint}</p> : null}
+      <ScopedSettings
+        label={t(blockDef.label)}
+        defs={blockDef.settings}
+        values={block.settings}
+        disabled={disabled || Boolean(hint)}
+        unavailable={unavailable}
+        locale={locale}
+        defaultLocale={defaultLocale}
+        onChange={onChange}
+      />
+    </div>
   );
 }
 

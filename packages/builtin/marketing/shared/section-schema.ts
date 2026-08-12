@@ -7,10 +7,6 @@
  */
 
 import {
-  mergeLegacyChromeSettings,
-  upgradeChromeSection,
-} from "./chrome-upgrade.js";
-import {
   isInputSetting,
   isLocalizableSetting,
   isLocalizedText,
@@ -185,17 +181,22 @@ function buildSection(
   const def = getSectionDefinition(type);
   if (!def) throw new Error("site.sections_invalid");
   const settings = rawSettingsOf(row);
-  let section: SiteSection = {
+  /*
+   * 页头 / 页脚不再有读时升级层。
+   *
+   * 曾经有一整个 `chrome-upgrade.ts`：把旧版「导航与开关塞在 section settings 里」的
+   * 页头页脚翻译成 block 组合。它带来的是**每次读都要判一次这段是不是旧的**，而判据
+   * 只能靠「有没有留着已删除的旧键」这种间接信号——一旦判错就把租户删掉的块塞回去，
+   * 刷新一次长回来一次。chrome 改成「行 × 对齐区」之后旧结构本来也翻译不过去，索性
+   * 一并删掉：schema 认不出的块由 `parseBlocks` 丢弃，区域本体由 `ensureAreaBody` 补。
+   */
+  return {
     id:
       typeof row.id === "string" && row.id.trim() ? row.id.trim() : fallbackId,
     type,
     settings: parseSettingValues(def.settings, settings),
     blocks: parseBlocks(def, row.blocks, options),
   };
-  if (type === "header" || type === "footer") {
-    section = upgradeChromeSection(mergeLegacyChromeSettings(section, settings));
-  }
-  return section;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -5,53 +5,19 @@ import { describe, expect, it } from "vitest";
 import {
   createBlock,
   createSection,
-  parseAreaSections,
+  type SettingValues,
   type SiteBlock,
   type SiteSection,
 } from "../../../shared/section-schema.js";
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
-import { SiteFooter, SiteHeader } from "./SiteChrome.js";
+import { SiteChrome } from "./SiteChrome.js";
 
 import type { ReactNode } from "react";
 
 function EntryStub(): ReactNode {
   return <span data-testid="member-entry">会员入口</span>;
 }
-
-function withNavItems(section: SiteSection, items: unknown[]): SiteSection {
-  return {
-    ...section,
-    blocks: section.blocks.map((block) =>
-      block.type === "chrome_nav"
-        ? { ...block, settings: { ...block.settings, items } }
-        : block,
-    ),
-  };
-}
-
-function withBlocks(section: SiteSection, blocks: SiteBlock[]): SiteSection {
-  return { ...section, blocks: [...section.blocks, ...blocks] };
-}
-
-function headerSection(options: {
-  navItems?: unknown[];
-  blocks?: SiteBlock[];
-} = {}): SiteSection {
-  let section = createSection("header");
-  if (options.navItems) {
-    section = withNavItems(section, options.navItems);
-  }
-  if (options.blocks) {
-    section = withBlocks(section, options.blocks);
-  }
-  return section;
-}
-
-const alternates = [
-  { locale: "zh-CN" as const, path: "/about" },
-  { locale: "en" as const, path: "/en/about" },
-];
 
 const pages = [
   {
@@ -65,328 +31,230 @@ const pages = [
   },
 ];
 
-function renderHeader(
-  section: SiteSection,
-  options: { withSlot?: boolean } = {},
+const alternates = [
+  { locale: "zh-CN" as const, path: "/", title: "首页" },
+  { locale: "en" as const, path: "/en", title: "Home" },
+];
+
+const LINK_ITEMS = [
+  {
+    id: "pricing",
+    source: "link",
+    label: "定价",
+    href: "/pricing",
+    category: "",
+    expand: "children",
+    children: [],
+  },
+];
+
+function area(
+  tag: "header" | "footer",
+  blocks: SiteBlock[],
+  settings: SettingValues = {},
 ) {
-  const header = (
-    <SiteHeader
-      section={section}
-      siteName="Acme"
-      logoUrl={null}
-      pages={pages}
-      alternates={alternates}
-      locale="zh-CN"
-    />
-  );
+  const base = createSection(tag);
+  const section: SiteSection = {
+    ...base,
+    settings: { ...base.settings, ...settings },
+    blocks,
+  };
   return render(
     <MemoryRouter>
-      {options.withSlot === false ? (
-        header
-      ) : (
-        <siteMemberEntrySlot.Provider component={EntryStub}>
-          {header}
-        </siteMemberEntrySlot.Provider>
-      )}
+      <siteMemberEntrySlot.Provider component={EntryStub}>
+        <SiteChrome
+          tag={tag}
+          section={section}
+          siteName="Acme"
+          logoUrl={null}
+          pages={pages}
+          alternates={alternates}
+          locale="zh-CN"
+          defaultLocale="zh-CN"
+        />
+      </siteMemberEntrySlot.Provider>
     </MemoryRouter>,
   );
 }
 
-describe("SiteHeader 默认块", () => {
-  /*
-   * 语言与明暗随默认页头出厂，理由见 `header/definition.ts`：不预置等于悄悄关掉
-   * 一整个功能（翻译发布了没入口、明暗那套存储访客够不着）。内容与能力决策
-   * （按钮 / 文档搜索 / 会员入口）仍然不预置。
-   */
-  it("默认是品牌 + 导航 + 语言 + 明暗，不含按钮 / 搜索 / 会员", () => {
-    const section = headerSection();
+function block(type: string, settings: SettingValues = {}): SiteBlock {
+  return createBlock("header", type, settings);
+}
 
-    expect(section.blocks.map((block) => block.type)).toEqual([
-      "chrome_brand",
-      "chrome_nav",
-      "chrome_locale",
-      "chrome_theme",
+describe("SiteChrome 定位", () => {
+  /*
+   * 这是整套 chrome 的核心：块落在哪里由**块自己**说了算。以前是 type 说了算
+   * （按钮永远靠右、导航永远在中间），于是每来一种排法就得多一个「版式」枚举。
+   */
+  it("块按自己的 row / align 落位，不看 type", () => {
+    const { container } = area("header", [
+      block("chrome_brand", { row: "1", align: "start" }),
+      // 按钮**靠左**、导航**居中**——旧模型里这两个位置都排不出来
+      block("chrome_button", {
+        label: "免费开始",
+        href: "/signup",
+        row: "1",
+        align: "start",
+      }),
+      block("chrome_nav", { items: LINK_ITEMS, row: "1", align: "center" }),
+      block("chrome_text", { text: "限时优惠", row: "2", align: "end" }),
     ]);
 
-    const navBlock = section.blocks.find((block) => block.type === "chrome_nav");
-    expect((navBlock?.settings.items as unknown[]).length).toBeGreaterThan(0);
-  });
+    const rows = container.querySelectorAll(".chrome-row");
+    expect(rows).toHaveLength(2);
 
-  it("默认页头就能切语言和明暗", () => {
-    renderHeader(headerSection());
-
-    expect(
-      screen.getAllByRole("link", { name: "文档" }).length,
-    ).toBeGreaterThan(0);
-    expect(document.querySelector(".locale-switcher")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /当前主题/u }),
-    ).toBeInTheDocument();
-    // 会员入口仍要自己加
-    expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
-  });
-
-  it("只有一种语言时语言切换器不渲染", () => {
-    render(
-      <MemoryRouter>
-        <SiteHeader
-          section={headerSection()}
-          siteName="Acme"
-          logoUrl={null}
-          pages={pages}
-          alternates={[{ locale: "zh-CN", path: "/about" }]}
-          locale="zh-CN"
-        />
-      </MemoryRouter>,
+    const start = rows[0]!.querySelector(".chrome-zone-start")!;
+    expect(start.querySelector(".brand")).not.toBeNull();
+    expect(start.querySelector("a.btn")?.textContent).toBe("免费开始");
+    expect(rows[0]!.querySelector(".chrome-zone-center .chrome-nav")).not.toBeNull();
+    expect(rows[1]!.querySelector(".chrome-zone-end .chrome-text")?.textContent).toBe(
+      "限时优惠",
     );
-
-    expect(document.querySelector(".locale-switcher")).toBeNull();
   });
 
-  it("items 为空时顶栏不列一级页", () => {
-    renderHeader(headerSection({ navItems: [] }));
-    expect(screen.queryByRole("link", { name: "文档" })).toBeNull();
+  it("空行不渲染", () => {
+    const { container } = area("header", [
+      block("chrome_brand", { row: "3" }),
+    ]);
+    expect(container.querySelectorAll(".chrome-row")).toHaveLength(1);
+    expect(container.querySelector(".chrome-row-3")).not.toBeNull();
   });
 
-  it("删掉块就不再渲染", () => {
-    const section = headerSection();
-    renderHeader({
-      ...section,
-      blocks: section.blocks.filter(
-        (block) => block.type !== "chrome_locale" && block.type !== "chrome_theme",
-      ),
-    });
+  /* 一份 DOM 走到底：窄屏收进菜单的块外面套一层，桌面上那层是 display:contents */
+  it("窄屏收进菜单的块只出现一次，且有汉堡", () => {
+    const { container } = area("header", [
+      block("chrome_nav", { items: LINK_ITEMS, mobile: "menu" }),
+    ]);
 
-    expect(document.querySelector(".locale-switcher")).toBeNull();
-    expect(screen.queryByRole("button", { name: /当前主题/u })).toBeNull();
+    expect(container.querySelectorAll(".chrome-drawer")).toHaveLength(1);
+    expect(container.querySelectorAll(".chrome-menu-toggle")).toHaveLength(1);
+    // 同一批链接不许在 DOM 里出现两次（旧的 .header-mobile-nav 就是复制了一份）
+    expect(screen.getAllByRole("link", { name: "定价" })).toHaveLength(1);
+  });
+
+  it("没有「收进菜单」的块就没有汉堡", () => {
+    const { container } = area("header", [
+      block("chrome_brand", { mobile: "pin" }),
+    ]);
+    expect(container.querySelector(".chrome-menu-toggle")).toBeNull();
   });
 });
 
-describe("SiteHeader 账户入口", () => {
-  it("默认不露出会员入口", () => {
-    renderHeader(headerSection());
-    expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
+describe("SiteChrome 导航", () => {
+  /* 横排与竖列是同一个块的两种排列，不再是两个 type */
+  it("同一个导航块能横排也能竖列", () => {
+    const inline = area("header", [
+      block("chrome_nav", { items: LINK_ITEMS, display: "inline" }),
+    ]);
+    expect(
+      inline.container.querySelector(".chrome-nav-inline"),
+    ).not.toBeNull();
+    inline.unmount();
+
+    const column = area("footer", [
+      block("chrome_nav", { items: LINK_ITEMS, display: "column" }),
+    ]);
+    expect(
+      column.container.querySelector(".chrome-nav-column ul li a"),
+    ).not.toBeNull();
   });
 
-  it("加上账户 block 后渲染 slot 提供方", () => {
-    renderHeader(
-      headerSection({
-        blocks: [createBlock("header", "chrome_account", {})],
-      }),
-    );
-    expect(screen.getByTestId("member-entry")).toBeInTheDocument();
-  });
-
-  it("没有提供方时不留占位", () => {
-    const { container } = renderHeader(
-      headerSection({
-        blocks: [createBlock("header", "chrome_account", {})],
-      }),
-      { withSlot: false },
-    );
-    expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
-    expect(container.querySelector("header")).toBeInTheDocument();
-  });
-
-  it("没有账户 block 时整块不出现", () => {
-    renderHeader(headerSection());
-    expect(screen.queryByTestId("member-entry")).not.toBeInTheDocument();
-  });
-
-  it("默认不预设次按钮", () => {
-    renderHeader(headerSection());
-    expect(screen.queryByRole("link", { name: /登录|Login/u })).toBeNull();
-  });
-
-  it("站长自己配的按钮 block 照常渲染", () => {
-    renderHeader(
-      headerSection({
-        blocks: [
-          createBlock("header", "chrome_account", {}),
-          createBlock("header", "chrome_button", {
-            label: "联系我们",
-            href: "/contact",
-            variant: "ghost",
-          }),
-        ],
-      }),
-    );
-    expect(screen.getByRole("link", { name: "联系我们" })).toHaveAttribute(
-      "href",
-      "/contact",
-    );
-    expect(screen.getByTestId("member-entry")).toBeInTheDocument();
-  });
-});
-
-describe("SiteHeader 导航的无障碍名字", () => {
-  it("页头导航与窄屏导航各有一个名字，不是两个同名 landmark", () => {
-    renderHeader(
-      headerSection({
-        navItems: [
-          {
-            id: "pricing",
-            source: "link",
-            label: "定价",
-            href: "/pricing",
-            category: "",
-            expand: "children",
-            children: [],
-          },
-        ],
-      }),
-    );
+  /*
+   * 无名 landmark 只会把读屏器的跳转列表撑满：填了标题才当 `<nav>`。
+   * 页头**第一个**导航是唯一例外——它天然是「主导航」。
+   */
+  it("第一条导航叫主导航，其余要自己的标题才当 landmark", () => {
+    const { container } = area("header", [
+      block("chrome_nav", { items: LINK_ITEMS }),
+      block("chrome_nav", { items: LINK_ITEMS, title: "产品" }),
+      block("chrome_nav", { items: LINK_ITEMS, row: "2" }),
+    ]);
 
     expect(screen.getByRole("navigation", { name: "主导航" })).toBeVisible();
-    expect(
-      screen.getByRole("navigation", { name: "主导航（移动端）" }),
-    ).toBeVisible();
-  });
-});
-
-describe("SiteFooter 链接列", () => {
-  function renderFooter(blocks: SiteBlock[]) {
-    return render(
-      <MemoryRouter>
-        <SiteFooter
-          section={{ ...createSection("footer"), blocks }}
-          siteName="Acme"
-          logoUrl={null}
-          pages={pages}
-          locale="zh-CN"
-        />
-      </MemoryRouter>,
-    );
-  }
-
-  const ITEMS = [
-    {
-      id: "pricing",
-      source: "link",
-      label: "定价",
-      href: "/pricing",
-      category: "",
-      expand: "children",
-      children: [],
-    },
-  ];
-
-  it("有列标题才当 landmark，标题就是它的名字", () => {
-    renderFooter([
-      createBlock("footer", "menu_column", { title: "产品", items: ITEMS }),
-    ]);
-
     expect(screen.getByRole("navigation", { name: "产品" })).toBeVisible();
+    // 第三条既不是主导航也没有标题：退回 div，不制造无名 landmark
+    expect(screen.getAllByRole("navigation")).toHaveLength(2);
+    expect(container.querySelectorAll("div.chrome-nav")).toHaveLength(1);
   });
 
-  /* 无名 landmark 只会把读屏器的跳转列表撑满，那一列就是一组链接而已 */
-  it("没有列标题就不制造无名 landmark", () => {
-    renderFooter([createBlock("footer", "menu_column", { items: ITEMS })]);
-
-    expect(screen.queryByRole("navigation")).toBeNull();
-    expect(screen.getByRole("link", { name: "定价" })).toBeVisible();
-  });
-
-  /*
-   * 列宽由 `.footer-col` 说了算（按内容宽），有没有列标题只决定它是不是 landmark。
-   * 漏了这个类，那一列就退回「等分整行」的老样子——四条短链接摊掉三成宽。
-   */
-  it("链接列不论有没有标题都带 .footer-col", () => {
-    const { container } = renderFooter([
-      createBlock("footer", "menu_column", { title: "产品", items: ITEMS }),
-      createBlock("footer", "menu_column", { items: ITEMS }),
-    ]);
-
-    expect(container.querySelectorAll(".footer-grid > .footer-col")).toHaveLength(
-      2,
-    );
+  it("展开不出任何条目的导航不渲染", () => {
+    const { container } = area("header", [block("chrome_nav", { items: [] })]);
+    expect(container.querySelector(".chrome-nav")).toBeNull();
   });
 });
 
-describe("SiteFooter 底栏", () => {
-  function renderFooter(blocks: SiteBlock[]) {
-    return render(
+describe("SiteChrome 文本占位符", () => {
+  it("{year} 与 {site} 在渲染期解析", () => {
+    const { container } = area("footer", [
+      block("chrome_text", { text: "© {year} {site}" }),
+    ]);
+    expect(container.querySelector(".chrome-text")?.textContent).toBe(
+      `© ${new Date().getFullYear()} Acme`,
+    );
+  });
+
+  it("空文本不留空标签", () => {
+    const { container } = area("footer", [block("chrome_text", { text: "" })]);
+    expect(container.querySelector(".chrome-text")).toBeNull();
+  });
+});
+
+describe("SiteChrome 区域差异", () => {
+  it("页头是 header 元素、能吸顶；页脚是 footer 元素、吃 spacing_above", () => {
+    const header = area("header", [block("chrome_brand", {})], {
+      sticky: true,
+    });
+    const headerEl = header.container.querySelector("header")!;
+    expect(headerEl.className).toContain("site-header");
+    expect(headerEl.className).toContain("sticky");
+    header.unmount();
+
+    const footer = area("footer", [block("chrome_text", {})], {
+      spacing_above: 80,
+      show_divider: false,
+    });
+    const footerEl = footer.container.querySelector("footer")!;
+    expect(footerEl.className).toBe("site-footer");
+    expect(footerEl.style.getPropertyValue("--chrome-mt")).toBe("80px");
+  });
+
+  it("留白设置灌进 CSS 变量", () => {
+    const { container } = area("header", [block("chrome_brand", {})], {
+      padding_top: 24,
+      padding_bottom: 8,
+      row_gap: 4,
+    });
+    const el = container.querySelector("header")!;
+    expect(el.style.getPropertyValue("--chrome-pt")).toBe("24px");
+    expect(el.style.getPropertyValue("--chrome-pb")).toBe("8px");
+    expect(el.style.getPropertyValue("--chrome-row-gap")).toBe("4px");
+  });
+
+  /* 语言 / 明暗 / 会员入口页头页脚都能加——同一张块表 */
+  it("语言与会员入口在页脚照样渲染", () => {
+    const { container } = area("footer", [
+      block("chrome_locale", {}),
+      block("chrome_account", {}),
+    ]);
+
+    expect(container.querySelector("footer .locale-switcher")).not.toBeNull();
+    expect(screen.getByTestId("member-entry")).toBeVisible();
+  });
+
+  it("只有一种语言时语言块不渲染", () => {
+    const base = createSection("footer");
+    const { container } = render(
       <MemoryRouter>
-        <SiteFooter
-          section={{ ...createSection("footer"), blocks }}
+        <SiteChrome
+          tag="footer"
+          section={{ ...base, blocks: [block("chrome_locale", {})] }}
           siteName="Acme"
           logoUrl={null}
-          pages={pages}
           locale="zh-CN"
+          alternates={[alternates[0]!]}
         />
       </MemoryRouter>,
     );
-  }
-
-  it("法务链接与版权同处底栏一行", () => {
-    const { container } = renderFooter([
-      createBlock("footer", "chrome_copyright", {
-        text: "© 2026 Acme",
-        links: [
-          {
-            id: "privacy",
-            source: "link",
-            label: "隐私政策",
-            href: "/privacy",
-            category: "",
-            expand: "children",
-            children: [],
-          },
-        ],
-      }),
-    ]);
-
-    const legal = container.querySelector(".footer-legal");
-    expect(legal?.textContent).toContain("© 2026 Acme");
-    expect(
-      screen.getByRole("navigation", { name: "法务链接" }),
-    ).toBeVisible();
-    expect(legal?.querySelector(".footer-legal-links a")?.textContent).toBe(
-      "隐私政策",
-    );
-  });
-
-  /* 底栏是一行文字，塞不下下拉——父项本身不可点，摊平后只留真能点的那几条 */
-  it("动态项摊平成并排链接", () => {
-    renderFooter([
-      createBlock("footer", "chrome_copyright", {
-        links: [
-          {
-            id: "pages",
-            source: "pages",
-            label: "",
-            href: "",
-            category: "",
-            expand: "children",
-            children: [],
-          },
-        ],
-      }),
-    ]);
-
-    const nav = screen.getByRole("navigation", { name: "法务链接" });
-    expect(nav.querySelectorAll("a").length).toBe(pages.length);
-    expect(nav.querySelectorAll("ul, details").length).toBe(0);
-  });
-
-  it("没配链接就不制造空的 landmark", () => {
-    renderFooter([createBlock("footer", "chrome_copyright", {})]);
-
-    expect(screen.queryByRole("navigation")).toBeNull();
-  });
-});
-
-describe("parseAreaSections 升级旧版页头", () => {
-  it("把 legacy settings 迁成 blocks", () => {
-    const [section] = parseAreaSections("header", [
-      {
-        type: "header",
-        settings: { show_account: true, items: [] },
-        blocks: [],
-      },
-    ]);
-    expect(section?.blocks.some((block) => block.type === "chrome_account")).toBe(
-      true,
-    );
+    expect(container.querySelector(".locale-switcher")).toBeNull();
   });
 });

@@ -428,15 +428,13 @@
       "headerItems": "页头显示",
       "form": "表单",
       "validation": "校验",
-      "seo": "搜索与分享"
+      "seo": "搜索与分享",
+      "chrome_slot": "位置"
     },
     "info": {
       "markdown": "支持 Markdown 语法。",
       "one_per_line": "每行一条。",
       "code": "显示为等宽代码，例如命令行。",
-      "footer_blurb": "品牌下方的一句话简介。",
-      "copyright": "留空则自动生成「© 年份 站点名」。",
-      "legal_links": "与版权同一行、靠右排的几条链接（隐私政策、服务条款、备案号）。多层菜单会被摊平成并排的链接。",
       "padding": "桌面端数值；窄屏自动按比例收窄",
       "anchor": "留空则不生成；填 pricing 后可用 /#pricing 链到此区块",
       "content_width": "「通栏」+「不限宽」可做满屏大图；通栏色带一般配「跟随页宽」。",
@@ -465,9 +463,6 @@
       "radius": "「继承」保留该表面的默认圆角。",
       "spacing_box": "外圈是与相邻区块的距离（可继承站点设置）；内圈是正文内边距（与内背景同一层）。桌面数值，窄屏自动收窄。",
       "page_bg_color": "只给页面正文区上色；页头页脚仍用各自的设置。",
-      "show_account": "未登录显示「登录」，登录后显示账户菜单。站点未开通会员时不显示。",
-      "show_locale_switcher": "只在本页有其它语言的译文时才会出现。是否翻译由页面列表决定，这里只管按钮露不露。",
-      "show_theme_toggle": "站点始终跟随访客设备的深浅色偏好；打开后额外给访客一枚手动切换按钮。关掉不会锁死浅色。",
       "success_message": "留空则只显示一个对勾。",
       "field_options": "一行一个，仅「下拉选择」使用。",
       "field_wide": "窄屏永远一列；这里只影响桌面排布。",
@@ -477,10 +472,16 @@
       "og_image": "分享到社交平台时显示的图。留空用站点默认；建议 1200×630。",
       "noindex": "页面照常能访问，只是不进搜索结果，也不会出现在 sitemap 里。",
       "site_og_image": "没有单独设置的页面都用它。不建议直接用 logo：方形图在分享卡片里会被裁。",
-      "header_menu": "页头列出的链接，就在下面直接增删排序。页脚列可用「从页头复制」。",
-      "header_layout": "「分列」把品牌、导航和按钮排在同一行；「居中」时品牌仍在左、按钮在右，导航移到页头正中。",
-      "column_title": "这一列链接上方的小标题，可留空。",
-      "show_doc_search": "页头放一个搜索框，提交后跳到文档索引并按关键词过滤。它是文档搜索的唯一入口；站点还没有已发布文档时不会显示。"
+      "chrome_row": "页头 / 页脚最多三行，空行不显示。把块分到不同的行就排出多行版式。",
+      "chrome_mobile": "「收进菜单」的块窄屏时藏进汉堡菜单，桌面上照常显示。品牌、明暗这类小控件适合「留在外面」。",
+      "chrome_nav_title": "列标题，只在竖列排列时显示。填了它这一组链接才会成为读屏器的跳转目标。",
+      "chrome_nav_items": "点「添加」可选四种来源：自定义链接、全部一级页面、文档库、某个文档分类。后三种是规则，展开成哪些链接由内容决定。",
+      "chrome_nav_display": "横排适合页头导航与底栏的法务链接；竖列适合页脚的链接列。",
+      "chrome_text": "支持两个占位符：{year} 当前年份、{site} 站点名。默认的「© {year} {site}」因此跨年与改站名都会自己跟上。",
+      "chrome_row_gap": "同一行里块与块之间、以及行与行之间的距离。",
+      "chrome_divider": "朝着正文那一侧的分隔线（页头在下、页脚在上）。换成深色底时通常关掉。",
+      "chrome_spacing_above": "页脚与正文之间的距离。",
+      "chrome_blurb": "品牌下方的一句话简介。页头上通常不填。"
     },
     "unit": {
       "columns": "列",
@@ -557,10 +558,7 @@
       "show_site_name": "显示站点名",
       "show_page_header": "显示页面标题",
       "sticky": "滚动时吸顶",
-      "header_layout": "导航布局",
       "blurb": "简介",
-      "copyright": "版权信息",
-      "legal_links": "底栏链接",
       "padding_top": "上内边距",
       "padding_right": "右内边距",
       "padding_bottom": "下内边距",
@@ -579,9 +577,6 @@
       "border_color": "边框色",
       "border_width": "边框宽度",
       "radius": "圆角",
-      "show_account": "账户入口",
-      "show_locale_switcher": "语言切换",
-      "show_theme_toggle": "深色模式切换",
       "submit_label": "提交按钮文案",
       "success_message": "提交成功提示",
       "field_label": "字段名称",
@@ -597,22 +592,24 @@
       "og_image": "分享缩略图",
       "noindex": "不被搜索引擎收录",
       "site_og_image": "默认分享缩略图",
-      "header_menu": "导航链接",
       "button_label": "按钮文案",
       "button_href": "按钮链接",
       "button_variant": "按钮样式",
-      "menu": "这一列的链接",
-      "column_title": "列标题",
-      "show_doc_search": "显示文档搜索"
+      "chrome_row": "所在行",
+      "chrome_align": "行内对齐",
+      "chrome_mobile": "窄屏",
+      "chrome_nav_title": "标题",
+      "chrome_nav_items": "链接",
+      "chrome_nav_display": "排列",
+      "chrome_text": "文字",
+      "chrome_row_gap": "行内间距",
+      "chrome_divider": "分隔线",
+      "chrome_spacing_above": "与正文的距离"
     },
     "option": {
       "align": {
         "left": "左对齐",
         "center": "居中"
-      },
-      "header_layout": {
-        "split": "品牌左 · 导航旁 · 按钮右",
-        "centered": "导航居中"
       },
       "button_variant": {
         "primary": "主按钮",
@@ -700,7 +697,26 @@
       "validation.integer": "整数",
       "validation.id_card": "身份证号",
       "validation.postal_code": "邮政编码",
-      "validation.regex": "自定义正则"
+      "validation.regex": "自定义正则",
+      "chrome_row": {
+        "1": "第一行",
+        "2": "第二行",
+        "3": "第三行"
+      },
+      "chrome_align": {
+        "start": "靠左",
+        "center": "居中",
+        "end": "靠右"
+      },
+      "chrome_mobile": {
+        "pin": "留在外面",
+        "menu": "收进菜单",
+        "hide": "不显示"
+      },
+      "chrome_nav_display": {
+        "inline": "横排",
+        "column": "竖列"
+      }
     },
     "font": {
       "system": "系统无衬线",
@@ -733,15 +749,14 @@
       "plan": "套餐",
       "qa": "问答",
       "field": "字段",
-      "menu_column": "菜单列",
       "chrome_brand": "品牌",
       "chrome_nav": "导航",
       "chrome_button": "按钮",
-      "chrome_doc_search": "文档搜索",
       "chrome_locale": "语言切换",
       "chrome_theme": "深色模式",
       "chrome_account": "账户入口",
-      "chrome_copyright": "版权信息"
+      "chrome_text": "文字",
+      "chrome_search": "文档搜索"
     },
     "tabContent": "内容",
     "tabLayout": "版式",

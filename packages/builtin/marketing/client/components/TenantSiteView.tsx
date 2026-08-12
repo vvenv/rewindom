@@ -198,6 +198,7 @@ export function TenantSiteView({
               pages={site.pages}
               docs={chromeDocs}
               currentPath={path}
+              alternates={alternates}
               locale={site.locale}
               defaultLocale={site.default_locale}
               onSelect={

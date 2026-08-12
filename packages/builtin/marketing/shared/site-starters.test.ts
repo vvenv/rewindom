@@ -22,17 +22,17 @@ describe("buildMinimalSiteChrome", () => {
     );
     expect(chrome.footer).toHaveLength(1);
     expect(chrome.footer[0]?.blocks.map((block) => block.type)).toEqual([
-      "chrome_copyright",
+      "chrome_text",
     ]);
   });
 
-  it("版权文案留空，交给渲染层兜底成「© 当年 站名」", () => {
-    const copyright = buildMinimalSiteChrome().footer[0]?.blocks.find(
-      (block) => block.type === "chrome_copyright",
+  it("版权是带占位符的文本块，不烤死年份与站名", () => {
+    const text = buildMinimalSiteChrome().footer[0]?.blocks.find(
+      (block) => block.type === "chrome_text",
     );
 
     // 建站那天写死 `© 2026 Acme`，跨年就停在去年、改站名也不跟着变
-    expect(copyright?.settings.text).toBe("");
+    expect(text?.settings.text).toBe("© {year} {site}");
   });
 });
 
@@ -60,9 +60,7 @@ describe("buildSiteStarterChrome", () => {
       chrome.header[0]?.blocks.some((block) => block.type === "chrome_button"),
     ).toBe(false);
     expect(
-      chrome.header[0]?.blocks.some(
-        (block) => block.type === "chrome_doc_search",
-      ),
+      chrome.header[0]?.blocks.some((block) => block.type === "chrome_search"),
     ).toBe(false);
     expect(
       chrome.header[0]?.blocks.some((block) => block.type === "chrome_account"),
@@ -72,7 +70,7 @@ describe("buildSiteStarterChrome", () => {
     );
     expect(brand).toBeUndefined();
     expect(
-      chrome.footer[0]?.blocks.some((block) => block.type === "menu_column"),
+      chrome.footer[0]?.blocks.some((block) => block.type === "chrome_nav"),
     ).toBe(false);
   });
 });

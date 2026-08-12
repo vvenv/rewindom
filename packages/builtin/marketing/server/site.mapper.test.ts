@@ -109,11 +109,16 @@ describe("toPublicMarketingSite locale", () => {
         nav_json: [
           {
             type: "header",
-            settings: {
-              secondary_label: { __i18n: { "zh-CN": "登录", en: "Sign in" } },
-              secondary_href: "/login",
-            },
-            blocks: [],
+            settings: {},
+            blocks: [
+              {
+                type: "chrome_button",
+                settings: {
+                  label: { __i18n: { "zh-CN": "登录", en: "Sign in" } },
+                  href: "/login",
+                },
+              },
+            ],
           },
         ],
       }),
@@ -132,11 +137,16 @@ describe("toPublicMarketingSite locale", () => {
         nav_json: [
           {
             type: "header",
-            settings: {
-              secondary_label: { __i18n: { "zh-CN": "登录" } },
-              secondary_href: "/login",
-            },
-            blocks: [],
+            settings: {},
+            blocks: [
+              {
+                type: "chrome_button",
+                settings: {
+                  label: { __i18n: { "zh-CN": "登录" } },
+                  href: "/login",
+                },
+              },
+            ],
           },
         ],
       }),

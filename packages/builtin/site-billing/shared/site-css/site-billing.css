@@ -122,6 +122,28 @@
 
 .mbill-hint { color: var(--muted-fg); font-size: .85rem; margin: 0; }
 
+/* 与账户页同款互链行——订阅页 SSR 只发本段 CSS，规则必须自带 */
+.member-account-links {
+  display: grid;
+  gap: .125rem;
+  margin: 0 0 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.member-account-links a {
+  display: flex;
+  align-items: center;
+  padding: .375rem .625rem;
+  margin: 0 -.625rem;
+  border-radius: .375rem;
+  font-size: .875rem;
+  color: var(--muted-fg);
+}
+.member-account-links a:hover {
+  background: var(--muted-bg);
+  color: var(--fg);
+}
+
 .mbill-payments {
   margin-top: 1.25rem;
   padding-top: 1.25rem;

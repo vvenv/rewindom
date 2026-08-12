@@ -5,7 +5,7 @@
  * `localStorage.site-color-mode` + `<html data-site-color-mode>`。
  */
 
-import { themeToggleTitle } from "../../shared/sections/header/messages.js";
+import { themeToggleTitle } from "../../shared/sections/_common/chrome-messages.js";
 
 import { pageLocale } from "./locale.js";
 

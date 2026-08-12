@@ -11,21 +11,27 @@ import type { ReactElement } from "react";
 
 import { useTranslation } from "react-i18next";
 
-import type { SectionViewProps } from "../../../../marketing/client/components/sections/section-parts.js";
 import {
   settingBool,
   settingText,
 } from "../../../../marketing/shared/section-schema.js";
+import { listMemberSiblingLinks } from "../../../../site-member/shared/member-menu-links.js";
 import { memberCardClass } from "../../../../site-member/shared/member-page-settings.js";
+import { MEMBER_BILLING_PATH } from "../../../shared/plans-section.js";
+
+import type { SectionViewProps } from "../../../../marketing/client/components/sections/section-parts.js";
 
 export function MemberBillingAccountSection({
   section,
 }: SectionViewProps): ReactElement {
-  const { t } = useTranslation(["site-billing"]);
+  const { t, i18n } = useTranslation(["site-billing", "site-member"]);
   const s = section.settings;
   const heading = settingText(s, "heading");
   const subheading = settingText(s, "subheading");
   const hint = settingText(s, "cancel_hint");
+  const siblingLinks = listMemberSiblingLinks({
+    excludeHref: MEMBER_BILLING_PATH,
+  });
 
   const rows = [
     { label: t("account.planLabel"), value: t("section.plans.label") },
@@ -41,6 +47,19 @@ export function MemberBillingAccountSection({
           {heading ? <h2>{heading}</h2> : null}
           {subheading ? <p>{subheading}</p> : null}
         </div>
+      ) : null}
+      {siblingLinks.length > 0 ? (
+        <nav className="member-account-links" aria-label={t("site-member:entry.links")}>
+          {siblingLinks.map((link) => (
+            <a key={link.id} href={link.href}>
+              {link.label_key
+                ? i18n.t(link.label_key)
+                : (link.labels[
+                    i18n.language as keyof typeof link.labels
+                  ] ?? link.labels["zh-CN"])}
+            </a>
+          ))}
+        </nav>
       ) : null}
       <dl className="member-account-meta mbill-meta">
         {rows.map((row) => (

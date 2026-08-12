@@ -136,14 +136,6 @@ function buildChrome(): Pick<
   UpdateMarketingSiteBody,
   "header" | "footer" | "theme_settings" | "site_name" | "tagline"
 > {
-  const year = new Date().getFullYear();
-  const header = createSection("header");
-  const footer = createSection("footer");
-  const copyright = i18nLiteral({
-    "zh-CN": `© ${year} be-water`,
-    en: `© ${year} be-water`,
-  });
-
   return {
     site_name: i18nLiteral({ "zh-CN": "be-water", en: "be-water" }),
     tagline: i18n("site.tagline"),
@@ -153,18 +145,15 @@ function buildChrome(): Pick<
       section_spacing: 32,
       logo_url: null,
     } satisfies ThemeSettings,
-    // 页头走 `createSection("header")` 默认：Logo + 站名 + 一级页面导航，无按钮与扩展开关
-    header: [header],
-    footer: [
-      {
-        ...footer,
-        blocks: footer.blocks.map((block) =>
-          block.type === "chrome_copyright"
-            ? { ...block, settings: { ...block.settings, text: copyright } }
-            : block,
-        ),
-      },
-    ],
+    /*
+     * 页头页脚都走 definition 默认：页头是 Logo + 站名 + 一级页面导航 + 语言 + 明暗，
+     * 页脚是一行 `© {year} {site}`。
+     *
+     * 版权**不再**在这里烤死成 `© 2026 be-water`：文本块的占位符自己会算当年年份与
+     * 当前站名，建站那天写死的话跨年之后页脚就一直停在去年。
+     */
+    header: [createSection("header")],
+    footer: [createSection("footer")],
   };
 }
 

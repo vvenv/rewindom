@@ -6,11 +6,12 @@ import {
   settingBool,
   settingText,
 } from "../../../marketing/shared/section-schema.js";
+import { MEMBER_ACCOUNT_PATH } from "../../shared/member-account-section.js";
 import {
   memberDisplayName,
   memberInitials,
 } from "../../shared/member-identity.js";
-import { listMemberMenuLinks } from "../../shared/member-menu-links.js";
+import { listMemberSiblingLinks } from "../../shared/member-menu-links.js";
 import { memberCardClass } from "../../shared/member-page-settings.js";
 
 import type { SectionViewProps } from "../../../marketing/client/components/sections/section-parts.js";
@@ -105,7 +106,9 @@ function AccountPanelPreview({ section }: SectionViewProps): ReactElement {
   const heading = settingText(s, "heading");
   const subheading = settingText(s, "subheading");
   const passwordDesc = settingText(s, "password_desc");
-  const contributedLinks = listMemberMenuLinks();
+  const contributedLinks = listMemberSiblingLinks({
+    excludeHref: MEMBER_ACCOUNT_PATH,
+  });
 
   const sample = {
     display_name: t("editor.accountSample.displayName"),

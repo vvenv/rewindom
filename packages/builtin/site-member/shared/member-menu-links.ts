@@ -1,15 +1,16 @@
 /**
- * 会员页头菜单的**可贡献链接**。
+ * 会员页头菜单的**可贡献链接**，以及自助页之间的**互链**。
  *
  * 账户入口（登录 / 头像菜单）由 site-member 拥有；订阅等依赖方要在菜单里挂入口时，
  * 往这里登记，而不是改 site-member 的 HTML、也不要在 marketing 的 enhance 里写死路径。
  *
- * 三处消费同一份清单，顺序与文案才不会各写各的：
- * - SSR 页头菜单（`site-account-entry.ts`）
- * - 编辑器 React 预览（`SiteMemberEntry`）
- * - 公开站 site-enhance 升级菜单（读 SSR 埋的 JSON）
- * - 「我的账户」面板上的次要入口
+ * 两份清单：
+ * - **菜单贡献**（`listMemberMenuLinks`）：插在「账户」与「退出」之间——账户本体不进这里
+ * - **自助页互链**（`listMemberSiblingLinks`）：「我的账户」+ 全部贡献项；当前页把自己剔掉，
+ *   账户 ↔ 订阅才对称，不会在订阅页上只剩单向入口
  */
+
+import { MEMBER_ACCOUNT_PATH } from "./member-account-section.js";
 
 import type { AppLocale } from "@be-water/shared";
 
@@ -28,6 +29,18 @@ export interface MemberMenuLink {
   order?: number;
 }
 
+/** 自助页互链里的「我的账户」——永远在第一位，不进菜单贡献清单。 */
+const ACCOUNT_SIBLING_LINK: MemberMenuLink = {
+  id: "account",
+  href: MEMBER_ACCOUNT_PATH,
+  labels: {
+    "zh-CN": "我的账户",
+    en: "My account",
+  },
+  label_key: "site-member:entry.account",
+  order: 0,
+};
+
 const LINKS = new Map<string, MemberMenuLink>();
 
 /** 登记一条菜单链接（幂等覆盖）。 */
@@ -40,12 +53,28 @@ export function resetMemberMenuLinks(): void {
   LINKS.clear();
 }
 
+function byOrderThenId(a: MemberMenuLink, b: MemberMenuLink): number {
+  const order = (a.order ?? 100) - (b.order ?? 100);
+  return order !== 0 ? order : a.id.localeCompare(b.id);
+}
+
 /** 登记顺序按 `order` 再按 id，稳定可测。 */
 export function listMemberMenuLinks(): MemberMenuLink[] {
-  return [...LINKS.values()].sort((a, b) => {
-    const order = (a.order ?? 100) - (b.order ?? 100);
-    return order !== 0 ? order : a.id.localeCompare(b.id);
-  });
+  return [...LINKS.values()].sort(byOrderThenId);
+}
+
+/**
+ * 自助页之间的互链：账户 + 贡献项。
+ *
+ * `excludeHref` 剔掉当前页自己——人已经在订阅页上，再给一条「我的订阅」没意义。
+ */
+export function listMemberSiblingLinks(options?: {
+  excludeHref?: string;
+}): MemberMenuLink[] {
+  const exclude = options?.excludeHref;
+  return [ACCOUNT_SIBLING_LINK, ...listMemberMenuLinks()]
+    .filter((link) => link.href !== exclude)
+    .sort(byOrderThenId);
 }
 
 export function memberMenuLinkLabel(
@@ -92,16 +121,25 @@ export function renderMemberMenuLinksJsonScript(locale: AppLocale): string {
   return `<script type="application/json" id="member-menu-links">${payload}</script>`;
 }
 
-/** 「我的账户」面板上的次要入口（同清单，换一套 class）。 */
-export function renderMemberAccountLinksHtml(locale: AppLocale): string {
-  const links = memberMenuLinksForLocale(locale);
+/**
+ * 自助页卡内互链（账户 ↔ 订阅…）。
+ *
+ * 传入当前页 `excludeHref`，避免「你已经在这儿了」再链一次。
+ */
+export function renderMemberSiblingLinksHtml(
+  locale: AppLocale,
+  options: { excludeHref: string },
+): string {
+  const links = listMemberSiblingLinks(options);
   if (links.length === 0) return "";
   return `<nav class="member-account-links" aria-label="${escapeHtml(
     locale === "en" ? "Account links" : "账户入口",
   )}">${links
     .map(
       (link) =>
-        `<a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a>`,
+        `<a href="${escapeHtml(link.href)}">${escapeHtml(
+          memberMenuLinkLabel(link, locale),
+        )}</a>`,
     )
     .join("")}</nav>`;
 }

@@ -1,13 +1,89 @@
 /**
- * 页头 / 页脚共用的 chrome block 定义。
+ * 页头 / 页脚的块定义 —— 两个区域**完全共用**一套。
  *
- * 以前导航、按钮、开关都塞在 section settings 里，布局写死（品牌 | 导航 | 操作区）。
- * 改成 block 之后可以在编辑器里增删、排序，页头页脚也能共用同一套块类型。
+ * 核心口径：**块落在哪里由块自己说了算，不由它的 type 说了算**。
+ *
+ * 以前是反过来的：`partitionHeaderBlocks` 把品牌钉在左、导航钉在中、按钮钉在右，
+ * 页脚则把链接列钉在上排、语言钉在底栏。租户能调的只有同一堆里的先后顺序，想把
+ * 按钮放到导航左边、把语言收进页头，都得改代码；于是每来一种新排法就多一个
+ * 「版式」下拉（`layout: split | centered`）去兜——那是缺少定位能力的补丁。
+ *
+ * 现在每个块带三个定位设置：
+ *
+ * | 设置     | 说明                                                       |
+ * | -------- | ---------------------------------------------------------- |
+ * | `row`    | 第几行（最多 3 行，空行不渲染）                            |
+ * | `align`  | 行内靠左 / 居中 / 靠右                                     |
+ * | `mobile` | 窄屏：留在外面 / 收进汉堡菜单 / 不显示                     |
+ *
+ * 「导航居中」= 导航块 `align: center`。「页脚底栏」= 版权块 `row: 2`。
+ * 「页头分两行」= 把块分到两行。不再需要任何版式预设。
  */
 
-import { defaultHeaderNavItems, settingNavItems, type SiteNavItem  } from "../../site-nav.js";
+import {
+  defaultHeaderNavItems,
+  settingNavItems,
+  type SiteNavItem,
+} from "../../site-nav.js";
 
-import type { BlockDefinition, SiteBlock, SiteSection } from "../types.js";
+import type { SettingDef } from "../../section-settings.js";
+import type { BlockDefinition, SiteBlock } from "../types.js";
+
+/** 一个 chrome 区域最多几行。三行足够（主行 + 副行 + 底栏），再多就该用段了。 */
+export const CHROME_ROW_COUNT = 3;
+
+export type ChromeAlign = "start" | "center" | "end";
+export type ChromeMobile = "pin" | "menu" | "hide";
+
+/**
+ * 每个 chrome 块都有的定位设置。
+ *
+ * 单独一个函数而不是抄到每个块里：漏一个，那个块就永远只能待在第一行左边，而这种
+ * 「某个块的设置面板少一项」在编辑器里非常难发现。
+ */
+function chromeSlotSettings(defaults: {
+  row?: number;
+  align?: ChromeAlign;
+  mobile?: ChromeMobile;
+}): SettingDef[] {
+  return [
+    { type: "header", content: "editor.group.chrome_slot", group: "layout" },
+    {
+      type: "select",
+      id: "row",
+      label: "editor.setting.chrome_row",
+      default: String(defaults.row ?? 1),
+      options: Array.from({ length: CHROME_ROW_COUNT }, (_, index) => ({
+        value: String(index + 1),
+        label: `editor.option.chrome_row.${index + 1}`,
+      })),
+      info: "editor.info.chrome_row",
+    },
+    {
+      type: "select",
+      id: "align",
+      label: "editor.setting.chrome_align",
+      default: defaults.align ?? "start",
+      options: [
+        { value: "start", label: "editor.option.chrome_align.start" },
+        { value: "center", label: "editor.option.chrome_align.center" },
+        { value: "end", label: "editor.option.chrome_align.end" },
+      ],
+    },
+    {
+      type: "select",
+      id: "mobile",
+      label: "editor.setting.chrome_mobile",
+      default: defaults.mobile ?? "menu",
+      options: [
+        { value: "pin", label: "editor.option.chrome_mobile.pin" },
+        { value: "menu", label: "editor.option.chrome_mobile.menu" },
+        { value: "hide", label: "editor.option.chrome_mobile.hide" },
+      ],
+      info: "editor.info.chrome_mobile",
+    },
+  ];
+}
 
 export const CHROME_BRAND_BLOCK: BlockDefinition = {
   type: "chrome_brand",
@@ -31,23 +107,74 @@ export const CHROME_BRAND_BLOCK: BlockDefinition = {
       id: "blurb",
       label: "editor.setting.blurb",
       rows: 2,
-      info: "editor.info.footer_blurb",
+      info: "editor.info.chrome_blurb",
     },
+    // 品牌是站点身份，窄屏永远留在外面
+    ...chromeSlotSettings({ align: "start", mobile: "pin" }),
   ],
 };
 
+/**
+ * 导航：一份条目 + 一个「横排还是竖列」。
+ *
+ * 以前是两个 type——页头的 `chrome_nav` 与页脚的 `menu_column`，存的东西一模一样
+ * （都是 `settings.items`），差别只在画成一排还是一列。那是**显示方式**，不是两种
+ * 东西；分成两个 type 的直接后果是页头摆不出竖列、页脚摆不出横排（底栏那排法务
+ * 链接因此只能作为字段塞进版权块里）。
+ */
 export const CHROME_NAV_BLOCK: BlockDefinition = {
   type: "chrome_nav",
   label: "editor.blockType.chrome_nav",
-  singleton: true,
   settings: [
+    {
+      type: "text",
+      id: "title",
+      label: "editor.setting.chrome_nav_title",
+      info: "editor.info.chrome_nav_title",
+    },
     {
       type: "nav_items",
       id: "items",
-      label: "editor.setting.header_menu",
-      default: defaultHeaderNavItems(),
-      info: "editor.info.header_menu",
+      label: "editor.setting.chrome_nav_items",
+      default: [],
+      copy_from_header: true,
+      info: "editor.info.chrome_nav_items",
     },
+    {
+      type: "select",
+      id: "display",
+      label: "editor.setting.chrome_nav_display",
+      default: "inline",
+      options: [
+        { value: "inline", label: "editor.option.chrome_nav_display.inline" },
+        { value: "column", label: "editor.option.chrome_nav_display.column" },
+      ],
+      info: "editor.info.chrome_nav_display",
+    },
+    ...chromeSlotSettings({ align: "start", mobile: "menu" }),
+  ],
+};
+
+/**
+ * 一小段文字：版权、备案说明、页头公告。
+ *
+ * 支持两个占位符，`{year}` 与 `{site}`——版权行的默认值就是 `© {year} {site}`。
+ * 以前这是 `chrome_copyright` 一个专用块 + 「留空则自动生成」的隐藏行为：租户在输入
+ * 框里看到的是空的，前台却有字，想改成「© 2020–{year}」就没有下手的地方。占位符把
+ * 那个行为摆到台面上——看得见、改得动，跨年与改站名照样自己跟上。
+ */
+export const CHROME_TEXT_BLOCK: BlockDefinition = {
+  type: "chrome_text",
+  label: "editor.blockType.chrome_text",
+  settings: [
+    {
+      type: "text",
+      id: "text",
+      label: "editor.setting.chrome_text",
+      default: "© {year} {site}",
+      info: "editor.info.chrome_text",
+    },
+    ...chromeSlotSettings({ align: "start", mobile: "pin" }),
   ],
 };
 
@@ -55,11 +182,7 @@ export const CHROME_BUTTON_BLOCK: BlockDefinition = {
   type: "chrome_button",
   label: "editor.blockType.chrome_button",
   settings: [
-    {
-      type: "text",
-      id: "label",
-      label: "editor.setting.button_label",
-    },
+    { type: "text", id: "label", label: "editor.setting.button_label" },
     {
       type: "link",
       id: "href",
@@ -77,121 +200,80 @@ export const CHROME_BUTTON_BLOCK: BlockDefinition = {
         { value: "ghost", label: "editor.option.button_variant.ghost" },
       ],
     },
+    ...chromeSlotSettings({ align: "end", mobile: "menu" }),
   ],
 };
 
-export const CHROME_DOC_SEARCH_BLOCK: BlockDefinition = {
-  type: "chrome_doc_search",
-  label: "editor.blockType.chrome_doc_search",
+export const CHROME_SEARCH_BLOCK: BlockDefinition = {
+  type: "chrome_search",
+  label: "editor.blockType.chrome_search",
   singleton: true,
-  settings: [],
+  settings: [...chromeSlotSettings({ align: "end", mobile: "hide" })],
 };
 
 export const CHROME_LOCALE_BLOCK: BlockDefinition = {
   type: "chrome_locale",
   label: "editor.blockType.chrome_locale",
   singleton: true,
-  settings: [],
+  settings: [...chromeSlotSettings({ align: "end", mobile: "pin" })],
 };
 
 export const CHROME_THEME_BLOCK: BlockDefinition = {
   type: "chrome_theme",
   label: "editor.blockType.chrome_theme",
   singleton: true,
-  settings: [],
+  settings: [...chromeSlotSettings({ align: "end", mobile: "pin" })],
 };
 
 export const CHROME_ACCOUNT_BLOCK: BlockDefinition = {
   type: "chrome_account",
   label: "editor.blockType.chrome_account",
   singleton: true,
-  settings: [],
+  settings: [...chromeSlotSettings({ align: "end", mobile: "pin" })],
 };
 
-export const CHROME_COPYRIGHT_BLOCK: BlockDefinition = {
-  type: "chrome_copyright",
-  label: "editor.blockType.chrome_copyright",
-  singleton: true,
-  settings: [
-    {
-      type: "text",
-      id: "text",
-      label: "editor.setting.copyright",
-      info: "editor.info.copyright",
-    },
-    /*
-     * 底栏的那几条法务链接（隐私 / 条款 / 备案号）跟版权同属一行，所以挂在版权块上
-     * 而不是再开一个块：它们不是「一列链接」，做成 `menu_column` 会被排进上面的
-     * 链接网格里，租户得靠调顺序去凑出「和版权同一行」的效果。
-     */
-    {
-      type: "nav_items",
-      id: "links",
-      label: "editor.setting.legal_links",
-      default: [],
-      info: "editor.info.legal_links",
-    },
-  ],
-};
-
-/** 页头可添加的 chrome block（不含页脚专用列）。 */
-export const HEADER_CHROME_BLOCKS: BlockDefinition[] = [
+/**
+ * 页头页脚可添加的块——**同一张表**。
+ *
+ * 「这个块只能放页头」是过时的限制：语言选择器摆页脚是多语言站点的通行做法，页脚
+ * CTA、页头公告文字同理。哪个块在哪个区域有意义，由租户摆出来决定。
+ */
+export const CHROME_BLOCKS: BlockDefinition[] = [
   CHROME_BRAND_BLOCK,
   CHROME_NAV_BLOCK,
+  CHROME_TEXT_BLOCK,
   CHROME_BUTTON_BLOCK,
-  CHROME_DOC_SEARCH_BLOCK,
+  CHROME_SEARCH_BLOCK,
   CHROME_LOCALE_BLOCK,
   CHROME_THEME_BLOCK,
   CHROME_ACCOUNT_BLOCK,
 ];
 
-/** 页脚导航列（保留原 type 名，避免存量数据失效）。 */
-export const FOOTER_MENU_COLUMN_BLOCK: BlockDefinition = {
-  type: "menu_column",
-  label: "editor.blockType.menu_column",
-  settings: [
-    {
-      type: "text",
-      id: "title",
-      label: "editor.setting.column_title",
-      info: "editor.info.column_title",
-    },
-    {
-      type: "nav_items",
-      id: "items",
-      label: "editor.setting.menu",
-      default: [],
-      copy_from_header: true,
-    },
-  ],
-};
+/* -------------------------------------------------------------------------- */
+/* 取值（渲染端与编辑器共用，别到处写 as string）                              */
+/* -------------------------------------------------------------------------- */
 
-export const FOOTER_CHROME_BLOCKS: BlockDefinition[] = [
-  CHROME_BRAND_BLOCK,
-  FOOTER_MENU_COLUMN_BLOCK,
-  CHROME_COPYRIGHT_BLOCK,
-];
+export function blockRow(block: SiteBlock): number {
+  const raw = Number(block.settings.row);
+  return Number.isInteger(raw) && raw >= 1 && raw <= CHROME_ROW_COUNT ? raw : 1;
+}
 
-const HEADER_ACTION_BLOCK_TYPES = new Set([
-  "chrome_button",
-  "chrome_doc_search",
-  "chrome_locale",
-  "chrome_theme",
-  "chrome_account",
-]);
+export function blockAlign(block: SiteBlock): ChromeAlign {
+  const raw = block.settings.align;
+  return raw === "center" || raw === "end" ? raw : "start";
+}
 
-export function isHeaderActionBlockType(type: string): boolean {
-  return HEADER_ACTION_BLOCK_TYPES.has(type);
+export function blockMobile(block: SiteBlock): ChromeMobile {
+  const raw = block.settings.mobile;
+  return raw === "pin" || raw === "hide" ? raw : "menu";
 }
 
 /**
  * 页头上现在挂着的导航条目（跨页头区所有段的所有导航块，按出现顺序拼起来）。
- *
- * 页脚列的「从页头复制」拿它当源。**不能**去读页头 section 的 settings：导航条目
- * 早就搬进 `chrome_nav` 块里了，从 settings 取永远是空数组，按钮于是一直是灰的。
+ * 页脚导航的「从页头复制」拿它当源。
  */
 export function collectHeaderNavItems(
-  sections: readonly SiteSection[],
+  sections: readonly { blocks: readonly SiteBlock[] }[],
 ): SiteNavItem[] {
   return sections.flatMap((section) =>
     section.blocks
@@ -200,13 +282,7 @@ export function collectHeaderNavItems(
   );
 }
 
-export function partitionHeaderBlocks(blocks: readonly SiteBlock[]): {
-  brand: SiteBlock[];
-  nav: SiteBlock[];
-  actions: SiteBlock[];
-} {
-  const brand = blocks.filter((block) => block.type === "chrome_brand");
-  const nav = blocks.filter((block) => block.type === "chrome_nav");
-  const actions = blocks.filter((block) => isHeaderActionBlockType(block.type));
-  return { brand, nav, actions };
+/** 建站默认页头导航：仅「全部一级页面」平铺。 */
+export function defaultChromeNavItems(): SiteNavItem[] {
+  return defaultHeaderNavItems();
 }

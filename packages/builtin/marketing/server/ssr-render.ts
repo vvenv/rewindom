@@ -261,15 +261,20 @@ export function renderMarketingHtml(input: {
   const footerHtml = site.footer
     .map((section) =>
       section.type === "footer"
-        ? renderFooterHtml({
+        ? // 页头页脚共用一套块，所以喂给它们的也是同一份上下文
+          renderFooterHtml({
             section,
             siteName: site.site_name,
             logoUrl,
+            homeHref: withSiteLocale("/", locale, site.default_locale),
+            locales: localeSwitcherOptions(page, locale),
             pages: site.pages,
             docs: docContext?.docs,
+            hasDocs: input.hasDocs ?? (docContext?.docs?.length ?? 0) > 0,
             currentPath: page.path,
             locale,
             defaultLocale: site.default_locale,
+            accountEntryHtml,
           })
         : renderSectionHtml(section, 0, sectionCtx),
     )

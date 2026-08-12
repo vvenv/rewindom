@@ -97,9 +97,10 @@ describe("renderHeaderHtml 账户入口", () => {
     expect(html).not.toContain("member-entry");
   });
 
-  it("legacy show_account 经解析升级后也能渲染", () => {
+  /* 块经过一次读-写往返仍要认得出来（settings 里现在还多了 row / align / mobile） */
+  it("存过一轮再读回来照样渲染", () => {
     const [section] = parseAreaSections("header", [
-      { type: "header", settings: { show_account: true }, blocks: [] },
+      headerWithAccount(true) as unknown as Record<string, unknown>,
     ]);
     const html = renderHeader(section!, ENTRY_HTML);
     expect(html).toContain('href="/member/login"');

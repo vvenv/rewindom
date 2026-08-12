@@ -53,7 +53,8 @@ Fastify 先命中；`/member/oauth/callback` 仍落到 SPA。nginx 与 vite dev 
 - 公开 CMS：SSR 通过 `registerSiteAccountEntry` + `registerSiteMemberSsrSession` 读
   HttpOnly cookie，首屏输出登录态菜单并解锁门控页；`site-enhance` 仅绑登出 / 兜底升级
 - 页头菜单可贡献链接：`shared/member-menu-links.ts`（依赖方如 site-billing 登记「我的订阅」；
-  SSR / React / enhance / 账户面板同读一份清单）
+  SSR / React / enhance 同读一份清单）。自助页互链另走 `listMemberSiblingLinks`（账户 +
+  贡献项，当前页剔自己），账户 ↔ 订阅对称。
 - SPA 上只剩 `/member/oauth/callback`（`renderPublicRoutes` + `SiteMemberAuthProvider`，cookie 会话）
 - Theme Editor 预览用 marketing 的 `siteMemberEntrySlot` + 静态 `SiteAccountEntryPreview`
 - `MarketingPage.visibility=members` 的公开端点只返回摘要；JSON 正文仍可走

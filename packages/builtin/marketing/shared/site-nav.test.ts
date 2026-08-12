@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createSection } from "./section-schema.js";
+import { createBlock, createSection } from "./section-schema.js";
 import { chromeNeedsDocList, chromeShowsDocSearch } from "./site-cms.js";
 import {
   defaultHeaderNavItems,
@@ -128,9 +128,17 @@ describe("navItemsNeedDocs / chromeNeedsDocList", () => {
     expect(chromeNeedsDocList({ header: [plain], footer: [] })).toBe(false);
   });
 
-  it("页头搜索默认关", () => {
-    expect(chromeShowsDocSearch({ header: [createSection("header")] })).toBe(
+  it("搜索块默认不预置，页头页脚哪边摆了都算", () => {
+    const header = createSection("header");
+    const footer = createSection("footer");
+    expect(chromeShowsDocSearch({ header: [header], footer: [footer] })).toBe(
       false,
+    );
+
+    // 搜索收在页脚的站也得让 SSR 把 hasDocs 查出来，只看页头会漏
+    footer.blocks = [createBlock("footer", "chrome_search", {})];
+    expect(chromeShowsDocSearch({ header: [header], footer: [footer] })).toBe(
+      true,
     );
   });
 });

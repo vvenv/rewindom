@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import { MEMBER_ACCOUNT_PATH } from "./member-account-section.js";
 import {
   listMemberMenuLinks,
+  listMemberSiblingLinks,
   memberMenuLinksForLocale,
   registerMemberMenuLink,
   renderMemberMenuLinksHtml,
   renderMemberMenuLinksJsonScript,
+  renderMemberSiblingLinksHtml,
   resetMemberMenuLinks,
 } from "./member-menu-links.js";
 
@@ -59,5 +62,33 @@ describe("member-menu-links", () => {
     expect(renderMemberMenuLinksJsonScript("en")).toContain(
       '"label":"Billing"',
     );
+  });
+
+  it("自助页互链含账户，并剔掉当前页", () => {
+    resetMemberMenuLinks();
+    registerMemberMenuLink({
+      id: "billing",
+      href: "/member/billing",
+      labels: { "zh-CN": "我的订阅", en: "Billing" },
+      order: 10,
+    });
+
+    expect(
+      listMemberSiblingLinks({ excludeHref: MEMBER_ACCOUNT_PATH }).map(
+        (link) => link.href,
+      ),
+    ).toEqual(["/member/billing"]);
+    expect(
+      listMemberSiblingLinks({ excludeHref: "/member/billing" }).map(
+        (link) => link.href,
+      ),
+    ).toEqual([MEMBER_ACCOUNT_PATH]);
+
+    const billingPageNav = renderMemberSiblingLinksHtml("zh-CN", {
+      excludeHref: "/member/billing",
+    });
+    expect(billingPageNav).toContain('href="/member/account"');
+    expect(billingPageNav).toContain("我的账户");
+    expect(billingPageNav).not.toContain("/member/billing");
   });
 });

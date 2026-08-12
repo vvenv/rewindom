@@ -428,15 +428,13 @@
       "headerItems": "Header items",
       "form": "Form",
       "validation": "Validation",
-      "seo": "Search & sharing"
+      "seo": "Search & sharing",
+      "chrome_slot": "Placement"
     },
     "info": {
       "markdown": "Markdown is supported.",
       "one_per_line": "One per line.",
       "code": "Rendered as monospace code, e.g. a shell command.",
-      "footer_blurb": "One-line blurb under the brand.",
-      "copyright": "Leave empty to auto-generate “© year site name”.",
-      "legal_links": "Links pinned to the right of the copyright line (privacy, terms, licence number). Nested menus are flattened into one row.",
       "padding": "Desktop value; scaled down on narrow screens",
       "anchor": "Leave blank for none. With \"pricing\", link here via /#pricing",
       "content_width": "Full bleed + unconstrained gives edge-to-edge media; colored bands usually keep content at page width.",
@@ -465,9 +463,6 @@
       "radius": "Inherit keeps the default corner radius for this surface.",
       "spacing_box": "Outer values are space to neighbouring sections (can inherit the site default). Inner values are content padding (same layer as the inner background). Desktop values; scaled on narrow screens.",
       "page_bg_color": "Colors the page content area only; header and footer keep their own settings.",
-      "show_account": "Shows “Sign in” when signed out, and an account menu once signed in. Hidden on sites without members.",
-      "show_locale_switcher": "Only appears when this page has translations. Whether a page is translated is decided in the page list; this only controls the button.",
-      "show_theme_toggle": "The site always follows the visitor's device preference. Turn this on to also give them a manual switch. Off does not force light mode.",
       "success_message": "Leave empty to show just a checkmark.",
       "field_options": "One per line; used by “Dropdown” only.",
       "field_wide": "Narrow screens are always single column; this affects desktop only.",
@@ -477,10 +472,16 @@
       "og_image": "Shown when the page is shared on social platforms. Falls back to the site default; 1200×630 recommended.",
       "noindex": "The page stays reachable — it just won't appear in search results or the sitemap.",
       "site_og_image": "Used by every page without its own. Avoid reusing the logo — square images get cropped in share cards.",
-      "header_menu": "The links in your header — add, remove and reorder them below. Footer columns can copy this list.",
-      "header_layout": "Split lines up brand, nav and actions in one row. Centered keeps the brand on the left and actions on the right, with navigation in the middle.",
-      "column_title": "Optional heading above this column’s links.",
-      "show_doc_search": "Puts a search box in the header that jumps to the doc index filtered by the term. It is the only doc search entry point; hidden until the site has published docs."
+      "chrome_row": "A header or footer holds up to three rows; empty rows are not rendered. Split blocks across rows to build a multi-row layout.",
+      "chrome_mobile": "Blocks set to “in menu” collapse into the hamburger on narrow screens and show normally on desktop. Keep small controls like the brand and theme toggle outside.",
+      "chrome_nav_title": "Column heading, shown only in the stacked arrangement. Filling it in is also what makes this group a screen-reader landmark.",
+      "chrome_nav_items": "Add entries from four sources: a custom link, all top-level pages, the docs library, or one doc category. The last three are rules — what they expand into depends on your content.",
+      "chrome_nav_display": "Inline suits header navigation and the legal links in a bottom bar; stacked suits footer link columns.",
+      "chrome_text": "Two placeholders are available: {year} for the current year and {site} for the site name. That is why the default “© {year} {site}” keeps up with new years and renames on its own.",
+      "chrome_row_gap": "Distance between blocks within a row, and between rows.",
+      "chrome_divider": "The hairline on the side facing the page content (below a header, above a footer). Usually turned off once the bar has a dark background.",
+      "chrome_spacing_above": "Gap between the page content and the footer.",
+      "chrome_blurb": "One-line blurb under the brand. Usually left empty in a header."
     },
     "unit": {
       "columns": "cols",
@@ -557,10 +558,7 @@
       "show_site_name": "Show site name",
       "show_page_header": "Show page title",
       "sticky": "Stick to top on scroll",
-      "header_layout": "Navigation layout",
       "blurb": "Blurb",
-      "copyright": "Copyright line",
-      "legal_links": "Bottom bar links",
       "padding_top": "Top padding",
       "padding_right": "Right padding",
       "padding_bottom": "Bottom padding",
@@ -579,9 +577,6 @@
       "border_color": "Border color",
       "border_width": "Border width",
       "radius": "Corner radius",
-      "show_account": "Account entry",
-      "show_locale_switcher": "Language switcher",
-      "show_theme_toggle": "Dark mode switch",
       "submit_label": "Submit button",
       "success_message": "Success message",
       "field_label": "Field label",
@@ -597,22 +592,24 @@
       "og_image": "Share image",
       "noindex": "Hide from search engines",
       "site_og_image": "Default share image",
-      "header_menu": "Navigation links",
       "button_label": "Button label",
       "button_href": "Button link",
       "button_variant": "Button style",
-      "menu": "Links in this column",
-      "column_title": "Column heading",
-      "show_doc_search": "Show doc search"
+      "chrome_row": "Row",
+      "chrome_align": "Align",
+      "chrome_mobile": "On mobile",
+      "chrome_nav_title": "Title",
+      "chrome_nav_items": "Links",
+      "chrome_nav_display": "Arrangement",
+      "chrome_text": "Text",
+      "chrome_row_gap": "Gap",
+      "chrome_divider": "Divider",
+      "chrome_spacing_above": "Space above"
     },
     "option": {
       "align": {
         "left": "Left",
         "center": "Center"
-      },
-      "header_layout": {
-        "split": "Brand left · nav beside · actions right",
-        "centered": "Centered navigation"
       },
       "button_variant": {
         "primary": "Primary",
@@ -700,7 +697,26 @@
       "validation.integer": "Integer",
       "validation.id_card": "ID card",
       "validation.postal_code": "Postal code",
-      "validation.regex": "Custom regex"
+      "validation.regex": "Custom regex",
+      "chrome_row": {
+        "1": "Row 1",
+        "2": "Row 2",
+        "3": "Row 3"
+      },
+      "chrome_align": {
+        "start": "Left",
+        "center": "Center",
+        "end": "Right"
+      },
+      "chrome_mobile": {
+        "pin": "Keep outside",
+        "menu": "In menu",
+        "hide": "Hide"
+      },
+      "chrome_nav_display": {
+        "inline": "Inline",
+        "column": "Stacked"
+      }
     },
     "font": {
       "system": "System sans",
@@ -733,15 +749,14 @@
       "plan": "Plan",
       "qa": "Q&A",
       "field": "Field",
-      "menu_column": "Menu column",
       "chrome_brand": "Brand",
       "chrome_nav": "Navigation",
       "chrome_button": "Button",
-      "chrome_doc_search": "Doc search",
       "chrome_locale": "Language",
       "chrome_theme": "Theme",
       "chrome_account": "Account",
-      "chrome_copyright": "Copyright"
+      "chrome_text": "Text",
+      "chrome_search": "Doc search"
     },
     "tabContent": "Content",
     "tabLayout": "Layout",

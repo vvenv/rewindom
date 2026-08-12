@@ -15,15 +15,18 @@ import {
   registerSiteSectionHtml,
   type SectionHtmlRenderer,
 } from "../../marketing/shared/sections/html.js";
+import { renderMemberSiblingLinksHtml } from "../../site-member/shared/member-menu-links.js";
 import { memberCardClass } from "../../site-member/shared/member-page-settings.js";
 import { memberBillingAccountSection } from "../shared/account-section.js";
 import {
+  MEMBER_BILLING_PATH,
   readSiteBillingContext,
   type SiteBillingRenderContext,
 } from "../shared/plans-section.js";
 import { SITE_BILLING_CSS } from "../shared/site-css.generated.js";
 
 import type { SettingValues } from "../../marketing/shared/section-settings.js";
+import type { AppLocale } from "@be-water/shared";
 
 /** 与账户页 `member-auth-error` / `notice` 同构，收进卡里。 */
 function messageHtml(ctx: SiteBillingRenderContext): string {
@@ -112,7 +115,11 @@ const renderMemberBillingAccountHtml: SectionHtmlRenderer = (section, ctx) => {
   if (!context) return "";
 
   const s = section.settings;
-  return `<div class="${memberCardClass(s, "member-billing-card")}">${headHtml(s)}${messageHtml(context)}${subscriptionBodyHtml(s, context)}</div>`;
+  const locale = (ctx.locale ?? ctx.defaultLocale ?? "zh-CN") as AppLocale;
+  const links = renderMemberSiblingLinksHtml(locale, {
+    excludeHref: MEMBER_BILLING_PATH,
+  });
+  return `<div class="${memberCardClass(s, "member-billing-card")}">${headHtml(s)}${messageHtml(context)}${links}${subscriptionBodyHtml(s, context)}</div>`;
 };
 
 export function registerMemberBillingAccountSection(): void {

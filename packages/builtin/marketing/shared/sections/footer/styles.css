@@ -1,128 +1,14 @@
+/*
+ * 页脚自己的样式只剩三条：与正文的距离、底色、朝着正文那一侧的分隔线。
+ *
+ * 行 / 对齐区 / 各个块的样式全在 `_common/styles.css`——页头页脚共用同一套结构，
+ * 谁都不该拥有它们（段样式有硬规矩：一个段定义的 class 只准这个段自己用）。
+ */
 .site-footer {
-  margin-top: 3rem;
-  border-top: 1px solid var(--border);
+  margin-top: var(--chrome-mt, 3rem);
   background: var(--muted-bg);
 }
-/*
- * 页脚主区是一行 flex，不是等分栅格。
- *
- * 原来写的是 `grid-template-columns: 1.4fr repeat(auto-fit, minmax(7rem, 1fr))`。
- * auto-fit 把空轨道折叠掉之后，**剩下的 1fr 轨道会把整行分光**：两列链接于是各占
- * 三成宽，四五条短链接稀稀拉拉摊在一格里，列与列之间隔着上百 px 的空白。链接列的
- * 宽度该由最长的那条链接决定，不该由「这一行还剩多少」决定。
- *
- * 这里只保证「一排链接列排得好看」这一件事，**没有**列宽 / 版式设置：要按份额分栏、
- * 要每栏装别的东西，往页脚区里加一个「分栏」段，那是全站统一的布局原语。
- */
-.footer-grid {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 2rem 2.5rem;
-  padding-top: 3rem;
-  padding-bottom: 3rem;
-}
-/*
- * 品牌列吃掉整行剩下的宽度，链接列因此被顶到右边。
- * 不给它设 max-width：一封顶，多出来的空白就落在**行尾**，链接列会卡在半路。
- * 该限宽的是简介那段文字本身（一行 60~70 字符才读得动）。
- */
-.footer-brand {
-  flex: 1 1 14rem;
-}
-.footer-brand p {
-  max-width: 28rem;
-}
-.footer-col {
-  flex: 0 1 auto;
-  min-width: 6rem;
-  /* 链接长到一定程度就该折行，而不是把整行推成横向滚动 */
-  max-width: 16rem;
-}
-.footer-grid h2 {
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted-fg);
-  margin-bottom: 0.75rem;
-}
-.footer-grid ul {
-  display: grid;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-.footer-grid a {
-  color: var(--muted-fg);
-}
-.footer-grid a:hover {
-  color: var(--fg);
-}
-/* 文档分类那一层：列内的小标题，不可点 */
-.footer-group {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted-fg);
-  opacity: 0.75;
-}
-.footer-sublist {
-  display: grid;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding-left: 0.75rem;
-  border-left: 1px solid var(--border);
-}
-/*
- * 底栏：版权在左、法务链接在右，挤不下就各自换行。
- * 只有版权时 `space-between` 与靠左等价，所以不必为「没链接」再分一种情况。
- */
-.footer-legal {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1.5rem;
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
-  font-size: 0.75rem;
-  color: var(--muted-fg);
-}
-.footer-legal-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.25rem;
-}
-.footer-legal-links a {
-  color: var(--muted-fg);
-}
-.footer-legal-links a:hover {
-  color: var(--fg);
-}
-/*
- * 分隔线跟正文列同宽。`.footer-legal` 自己就是 `.wrap`，border 画在 border box 上会
- * 连 gutter 一起横过去，比上面那排页脚链接宽出 3rem，所以让伪元素退到 padding 里画。
- *
- * `:not(:first-child)` 是必须的：默认页脚只有一行版权，没有链接列，这条线上面就没有
- * 要分隔的东西了——它会紧贴着 `.site-footer` 自己的 `border-top` 画出**第二条**横线，
- * 一宽一窄叠在一起，中间什么都没有。
- */
-.site-footer > .footer-legal:not(:first-child)::before {
-  content: "";
-  position: absolute;
-  inset: 0 1.5rem auto;
+/* 深色页脚通常要关掉：正文与页脚之间横一条浅色缝很扎眼 */
+.site-footer.has-divider {
   border-top: 1px solid var(--border);
-}
-/* 窄屏一律上下堆叠：一格 6rem 的链接列在手机上会把列标题挤成竖排单字 */
-@media (max-width: 640px) {
-  .footer-grid {
-    flex-direction: column;
-  }
-  .footer-grid > * {
-    flex: 0 0 auto;
-    max-width: none;
-    width: 100%;
-  }
 }

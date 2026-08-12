@@ -205,12 +205,10 @@ describe("chrome 的文档数据需求", () => {
     ).toBe(true);
   });
 
-  it("页头搜索只要「有没有文档」，不要整份目录", () => {
+  it("搜索块只要「有没有文档」，不要整份目录", () => {
     const withSearch = {
       ...plain,
-      header: [
-        header([createBlock("header", "chrome_doc_search", {})], []),
-      ],
+      header: [header([createBlock("header", "chrome_search", {})], [])],
     };
     expect(chromeShowsDocSearch(withSearch)).toBe(true);
     expect(chromeNeedsDocList(withSearch)).toBe(false);

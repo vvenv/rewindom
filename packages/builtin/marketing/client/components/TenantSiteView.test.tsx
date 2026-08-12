@@ -81,16 +81,20 @@ describe("TenantSiteView 页面外壳", () => {
   });
 
   /* 访客明暗落在站点自己的标记上，工作台的 `.dark` / `localStorage.theme` 不参与。 */
-  it("headerOverride 会把多语言主按钮压平后再渲染", () => {
+  it("headerOverride 会把多语言按钮压平后再渲染", () => {
     const [headerSection] = parseAreaSections("header", [
       {
         type: "header",
-        settings: {
-          items: [],
-          primary_label: { __i18n: { "zh-CN": "免费开始" } },
-          primary_href: "/contact",
-        },
-        blocks: [],
+        settings: {},
+        blocks: [
+          {
+            type: "chrome_button",
+            settings: {
+              label: { __i18n: { "zh-CN": "免费开始" } },
+              href: "/contact",
+            },
+          },
+        ],
       },
     ]);
     render(

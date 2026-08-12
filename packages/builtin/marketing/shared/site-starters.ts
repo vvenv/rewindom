@@ -66,8 +66,8 @@ export interface SiteChrome {
  *
  * 建站、起步模板、页头页脚编辑器的空状态都走这一套，避免各处各写一份。
  *
- * 版权文案**故意留空**：两端渲染都会兜底成「© 当年 站名」（见 `renderFooterHtml`
- * / `SiteFooter`）。建站那天把 `© 2026 Acme` 写死进 settings，跨年之后页脚就一直
+ * 版权文案是文本块的默认值 `© {year} {site}`：占位符在渲染期解析（见
+ * `chrome-text.ts`）。建站那天把 `© 2026 Acme` 写死进 settings，跨年之后页脚就一直
  * 停在去年，租户改了站名也不跟着变——而这两件事本来一行都不用配。
  */
 export function buildMinimalSiteChrome(): SiteChrome {

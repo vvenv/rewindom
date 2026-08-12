@@ -41,7 +41,7 @@
 | 入口 | 实现 |
 | --- | --- |
 | 页头账户菜单 | `registerMemberMenuLink` →「我的订阅」，与「账户」并列 |
-| 「我的账户」面板 | 同一条贡献链接，身份条下的次要入口 |
+| 「我的账户」↔「我的订阅」卡内互链 | 同一份 `listMemberSiblingLinks`（当前页剔自己），两边同款 `member-account-links` |
 | 套餐段「当前套餐」 | 「管理订阅」链到 `/member/billing` |
 
 两个段都是**真 `<form method="post">`**，action 固定 `/member/billing`，靠隐藏字段
