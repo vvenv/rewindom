@@ -10,11 +10,16 @@ import type {
 
 const BILLING_KEY = ["billing"] as const;
 
-export function useBillingSubscription() {
+/**
+ * `refetchInterval` 只在付款回跳后的等待窗口里给值（见 `use-billing-page.ts`）：
+ * 开通由 webhook 落库，回跳先到是常态，这段时间不轮询就只能让用户自己刷新。
+ */
+export function useBillingSubscription(refetchInterval: number | false = false) {
   return useQuery({
     queryKey: [...BILLING_KEY, "subscription"],
     queryFn: () =>
       api.get<BillingSubscription | null>("/billing/subscription"),
+    refetchInterval,
   });
 }
 

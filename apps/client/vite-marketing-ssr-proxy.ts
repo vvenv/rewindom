@@ -38,6 +38,7 @@ const SSR_EXCEPTION_PATHS = [
   "/member/login",
   "/member/register",
   "/member/account",
+  "/member/billing",
 ] as const;
 
 function isSsrExceptionPath(url: string): boolean {

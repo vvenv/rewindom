@@ -25,7 +25,6 @@ import {
   registerSiteSectionHtml,
   type SectionHtmlRenderer,
 } from "../../marketing/shared/sections/html.js";
-import { MEMBER_ACCOUNT_CSS } from "../shared/member-account-css.js";
 import {
   memberAccountPanelSection,
   readMemberAccountContext,
@@ -36,6 +35,7 @@ import {
   memberInitials,
 } from "../shared/member-identity.js";
 import { memberCardClass } from "../shared/member-page-settings.js";
+import { MEMBER_ACCOUNT_CSS } from "../shared/site-css.generated.js";
 
 function fieldHtml(input: {
   id: string;

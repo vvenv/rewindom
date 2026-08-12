@@ -2,7 +2,11 @@
 
 ## 用途
 
-租户自助管理订阅与付款；平台侧查看跨租户订阅/付款。首期通过抽象 Payment Provider 接入 Creem。
+**平台租户付费**：组织自助购买平台套餐（`PRICING_PLANS`），钱进平台的 Creem 账号。
+平台侧可查看跨租户订阅 / 付款。
+
+站点会员向站点付费是**另一个领域**，在 [`site-billing`](../site-billing/MODULE.md)——
+两边共用的只有支付通道那层壳（本模块的 `PaymentProvider` 抽象与 `createCreemProvider`）。
 
 ## 面划分
 
@@ -38,9 +42,22 @@
 
 Webhook URL：`POST /api/billing/webhooks/creem`（免 JWT，校验 `creem-signature`）。
 
+## 官网段 `billing.plans`
+
+产品站的定价区：`billing` 向 marketing 贡献一个段（同 `site-member` 的路子），
+在主题编辑器「添加区块」里叫「套餐」。
+
+**排版与文案归租户，价格与套餐名归代码**：租户挑哪几档、排顺序、写卖点、改按钮文案；
+价格从 `PRICING_PLANS` 取、套餐名从 `platform` 的 locale JSON 取（`planName(slug, locale)`）。
+段的 settings 里没有价格字段——「官网写 ¥99、结账收 ¥399」这类事故从配置面上就杜绝了。
+
+CTA 是一条普通链接（默认 `/register`）：SSR 渲染的是公开页，服务端不知道访客登没登录
+（工作台会话在另一个 Host 上），做不出「已登录去升级」的分支，也就别装作能做。
+
 ## 扩展点
 
 - 权限：`billing.read` / `billing.write`
+- 官网段：`billing.plans`（`entitlement: billing`）
 - 审计：`BILLING_CHECKOUT_CREATE` / `BILLING_SUBSCRIPTION_CANCEL` / `BILLING_WEBHOOK_SYNC`
 - Entitlement：`billing`（默认开启）
 - Provider：`shared/payment-provider.ts`；实现见 `server/providers/creem.provider.ts`
@@ -74,6 +91,16 @@ https://<ngrok-host>/api/billing/webhooks/creem
 Secret 与 `CREEM_WEBHOOK_SECRET` 一致；改 env 后重启 server。
 
 5. 浏览器 `http://localhost:7300/app/billing` 升级并用 test 卡付款。  
-   开通以 webhook 为准（日志 `[billing] creem webhook processed`）；`?checkout=success` 只是回跳。
+   开通以 webhook 为准（日志 `[billing] creem webhook processed`）；`?checkout=success` 只是回跳，
+   页面读到它会显示「正在开通」并轮询订阅（最多 30s），到账后自动刷新套餐卡。
+
+## 两条容易踩的口径
+
+- **订阅进终态后不要直接降级**：一律走 `reconcileTenantPlan(tenant_id)` 按**剩下还生效的**
+  订阅重算。升档的正常路径就会触发旧订阅的 `subscription.canceled`——无条件降到 free 会让
+  刚付完钱的组织当场失权。
+- **webhook 落库走 `upsert`**，唯一键含 `tenant_id`（`@@unique([tenant_id, provider, …])`）。
+  重投与并发是常态，先查再建会撞唯一键 → 400 → 通道反复重试。tenant-guard 认得复合唯一键里的
+  `tenant_id`（`findTenantPredicate`），所以租户隔离照旧生效。
 
 角色需 `billing.read` / `billing.write`（系统管理员自带）。商品建议用 **recurring**，纯 `onetime` 可能收不到完整 `subscription.*` 事件。

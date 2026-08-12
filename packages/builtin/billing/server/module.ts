@@ -4,6 +4,7 @@ import { BILLING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { billingRoutes, billingWebhookRoutes } from "./billing.routes.js";
 import { BILLING_SERVER_I18N } from "./i18n.js";
+import { registerBillingPlansSection } from "./plans-section.js";
 import { registerPlatformBillingRoutes } from "./platform-billing.routes.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
@@ -13,8 +14,9 @@ export const billingServerModule: ServerAppModule = {
   version: "1.0.0",
   label: "Billing",
   kind: "business",
-  description: "租户订阅与付款（Creem Payment Provider）",
-  requires: ["rbac", "audit", "platform"],
+  description: "组织订阅与付款（Creem Payment Provider）",
+  // marketing：把「套餐」段的渲染器填进它的段注册表（marketing 不反向依赖）
+  requires: ["rbac", "audit", "platform", "marketing"],
   tenantEntitlements: [BILLING_ENTITLEMENT],
   shared: {
     permissions: [
@@ -39,6 +41,10 @@ export const billingServerModule: ServerAppModule = {
   },
   server: {
     i18n: BILLING_SERVER_I18N,
+    // 官网的「套餐」段：定义在本模块，渲染器填进 marketing 的段注册表
+    onBoot: async () => {
+      registerBillingPlansSection();
+    },
     registerRoutes: async (app) => {
       await app.register(billingWebhookRoutes, {
         prefix: "/api/billing/webhooks",

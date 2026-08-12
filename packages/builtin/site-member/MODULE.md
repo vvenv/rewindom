@@ -31,7 +31,7 @@
 | 必备段 | `site-member.login-form` / `.register-form` / `.account-panel`：编辑器不给删，服务端保存时校验有且仅有一段（`site.template_section_required`） |
 | 段的落脚点 | 三段都声明了 `page_kinds`，只能出现在自己那张模板页上 |
 | 表单 | 真 `<form method="post">`，**无 JS 也能登录 / 改密码 / 退出**；只有平台开了滑块验证码时才需要 JS（`enhance/member-auth.ts` 填滑块） |
-| 版式共用 | 三段共用一张居中认证卡（`member-auth-css.ts`）与同一组版式默认值（`member-page-settings.ts`：narrow + 64/80 内补白 + 卡片外框开关） |
+| 版式共用 | 三段共用一张居中认证卡（`shared/site-css/member-auth.css`，assemble 后进 `site-css.generated.ts`）与同一组版式默认值（`member-page-settings.ts`：narrow + 64/80 内补白 + 卡片外框开关） |
 | CSRF | 表单 POST 校验 `Origin` 同源（`site_member.form_origin_invalid`）——登录本身没有 cookie 可依赖 SameSite 拦 |
 | 成功 | 种 cookie + **303** 跳 `redirect`（只认站内相对路径）；失败则原页回渲，带错误与回填的邮箱 |
 | 站点未发布 | 照常渲染（`getSiteChromeOrFallback`）：登录是入口不是内容，租户没发官网时会员也得能登 |

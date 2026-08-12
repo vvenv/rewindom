@@ -1,0 +1,144 @@
+{
+  "nav": {
+    "siteBilling": "会员付费"
+  },
+  "page": {
+    "title": "会员付费",
+    "description": "管理会员套餐、收款通道与会员的订阅付款记录"
+  },
+  "plans": {
+    "heading": "会员套餐",
+    "add": "新建套餐",
+    "edit": "编辑",
+    "delete": "删除",
+    "empty": "还没有会员套餐",
+    "emptyHint": "建一档套餐并填上收款商品 ID，官网的「会员套餐」段就能卖了。",
+    "slug": "套餐标识",
+    "slugHint": "落进订阅记录，建好后不建议再改",
+    "name": "套餐名",
+    "description": "说明",
+    "price": "价格",
+    "priceHint": "单位：元，保存时换算成分",
+    "currency": "币种",
+    "interval": "计费周期",
+    "productId": "收款商品 ID",
+    "productIdHint": "通道后台里的 prod_… ；留空则这一档在官网上不出现",
+    "sortOrder": "排序",
+    "enabled": "上架",
+    "notPurchasable": "未配商品",
+    "deleteConfirm": "确定删除套餐「{{name}}」？",
+    "saved": "套餐已保存",
+    "deleted": "套餐已删除"
+  },
+  "interval": {
+    "month": "按月",
+    "year": "按年",
+    "onetime": "一次性"
+  },
+  "subscriptions": {
+    "heading": "会员订阅",
+    "empty": "还没有会员订阅",
+    "emptyHint": "会员在官网上完成付款后，订阅会出现在这里。",
+    "member": "会员",
+    "plan": "套餐",
+    "status": "状态",
+    "periodEnd": "周期结束",
+    "cancelAtPeriodEnd": "周期末取消"
+  },
+  "payments": {
+    "heading": "付款记录",
+    "empty": "还没有付款记录",
+    "emptyHint": "完成一次付款后，记录会出现在这里。",
+    "member": "会员",
+    "time": "时间",
+    "plan": "套餐",
+    "amount": "金额",
+    "status": "状态"
+  },
+  "provider": {
+    "heading": "收款通道",
+    "description": "会员付的钱进哪个账号，由这里决定。",
+    "sourcePlatform": "当前使用平台默认账号收款",
+    "sourceTenant": "当前使用本站点自己的账号收款",
+    "apiKey": "API Key",
+    "apiKeyHint": "留空则继续用平台默认账号；填写后本站点的收款走自己的账号",
+    "apiKeyCurrent": "已配置（{{hint}}）",
+    "webhookSecret": "Webhook 签名密钥",
+    "webhookSecretSet": "已配置",
+    "webhookSecretMissing": "未配置——没有它就收不到开通通知",
+    "webhookUrl": "Webhook 地址",
+    "webhookUrlHint": "把它填到通道后台的 Webhook 里",
+    "save": "保存",
+    "saved": "收款通道已更新"
+  },
+  "status": {
+    "active": "生效中",
+    "trialing": "试用中",
+    "past_due": "逾期",
+    "canceled": "已取消",
+    "expired": "已过期",
+    "unpaid": "未支付",
+    "paused": "已暂停"
+  },
+  "paymentStatus": {
+    "pending": "处理中",
+    "paid": "已付款",
+    "failed": "失败",
+    "refunded": "已退款"
+  },
+  "account": {
+    "title": "我的订阅",
+    "subtitle": "查看当前套餐与付款记录",
+    "none": "你还没有订阅任何套餐。",
+    "cancel": "取消订阅",
+    "cancelHint": "取消后仍可使用到当前周期结束。",
+    "cancelScheduled": "已安排在周期结束时取消。",
+    "checkoutPending": "已收到付款，正在开通；稍后刷新本页即可看到。",
+    "paymentsTitle": "付款记录",
+    "paymentsEmpty": "还没有付款记录。",
+    "planLabel": "套餐",
+    "statusLabel": "状态",
+    "periodEndLabel": "当前周期结束",
+    "cancelAtPeriodEndLabel": "周期末取消",
+    "yes": "是",
+    "no": "否",
+    "empty": "—"
+  },
+  "template": {
+    "group": "会员页版式",
+    "billing": {
+      "label": "我的订阅"
+    }
+  },
+  "section": {
+    "plans": {
+      "label": "会员套餐",
+      "display": "展示",
+      "showDescription": "显示套餐说明",
+      "ctaLabel": "按钮文案",
+      "currentLabel": "当前套餐提示",
+      "currentLabelInfo": "会员已订阅的那一档不出按钮，改为显示这句话。",
+      "emptyText": "无可售套餐时的提示",
+      "emptyTextInfo": "留空则一档都没上架时整段不显示。"
+    },
+    "account": {
+      "label": "我的订阅与付款",
+      "subscription": "订阅",
+      "noneText": "没有订阅时的提示",
+      "cancelLabel": "取消按钮文案",
+      "cancelHint": "取消说明",
+      "cancelHintInfo": "写清楚取消之后还能用到什么时候，能挡掉大半客服提问。",
+      "payments": "付款记录",
+      "showPayments": "显示付款记录",
+      "paymentsTitle": "付款记录标题",
+      "paymentsEmpty": "无记录时的提示"
+    }
+  },
+  "audit": {
+    "plan_created": "新建会员套餐：{{slug}}",
+    "plan_updated": "修改会员套餐：{{slug}}",
+    "plan_deleted": "删除会员套餐：{{plan_id}}",
+    "provider_updated": "更新会员付费收款通道配置",
+    "webhook_synced": "会员付费 webhook {{event_type}}：{{detail}}"
+  }
+}

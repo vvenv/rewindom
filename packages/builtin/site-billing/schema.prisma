@@ -1,0 +1,79 @@
+// packages/builtin/site-billing/schema.prisma
+// 由 apps/server/prisma/models/site-billing.prisma 符号链接汇入
+// --- module: site-billing ---
+//
+// 官网**会员**的订阅与付款：站点会员（SiteMember）向站点付钱，与 billing 的
+// 「组织向平台付钱」是两个领域，两套表、两条 webhook、两份商品配置。
+//
+// 刻意不声明到 Tenant / SiteMember 的 relation：跨模块不连外键（同 billing 的口径），
+// 租户隔离由 tenant-guard 注入 tenant_id。
+
+/// 站点自己定义的会员套餐（价格、周期、对应通道商品）。
+model MemberPlan {
+  id                  String   @id @default(uuid())
+  tenant_id           String
+  slug                String
+  /// LocalizedText：{ __i18n: { "zh-CN": "…", en: "…" } }，站点是双语的，套餐名也得是
+  name                Json
+  description         Json?
+  /// 以分为单位，同 Payment.amount_cents——浮点数不该出现在钱上
+  price_cents         Int
+  currency            String   @default("CNY")
+  /// month | year | onetime
+  interval            String   @default("month")
+  /// 通道侧商品 ID（Creem `prod_…`）；没配就是「这一档还不能买」
+  provider_product_id String?
+  sort_order          Int      @default(0)
+  enabled             Boolean  @default(true)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  @@unique([tenant_id, slug])
+  @@index([tenant_id, enabled, sort_order])
+}
+
+model MemberSubscription {
+  id                       String    @id @default(uuid())
+  tenant_id                String
+  member_id                String
+  plan_id                  String?
+  /// 冗余一份 slug：套餐被删之后，历史订阅仍要说得清买的是什么
+  plan_slug                String
+  status                   String
+  provider                 String    @default("creem")
+  provider_subscription_id String
+  provider_customer_id     String?
+  current_period_start     DateTime?
+  current_period_end       DateTime?
+  cancel_at_period_end     Boolean   @default(false)
+  metadata                 Json?
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
+
+  // 带 tenant_id：webhook 落库走 upsert，tenant-guard 只认复合唯一键里的 tenant_id
+  @@unique([tenant_id, provider, provider_subscription_id])
+  @@index([tenant_id, member_id])
+  @@index([tenant_id, status])
+}
+
+model MemberPayment {
+  id                String    @id @default(uuid())
+  tenant_id         String
+  member_id         String
+  subscription_id   String?
+  plan_slug         String?
+  provider          String    @default("creem")
+  provider_order_id String
+  amount_cents      Int
+  currency          String    @default("CNY")
+  status            String
+  paid_at           DateTime?
+  description       String?
+  raw_event         Json?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  @@unique([tenant_id, provider, provider_order_id])
+  @@index([tenant_id, member_id])
+  @@index([tenant_id, created_at])
+}

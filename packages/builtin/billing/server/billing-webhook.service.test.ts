@@ -17,80 +17,84 @@ vi.mock("@be-water/server-kernel/lib/config.js", () => ({
 }));
 
 const findFirstSubscription = vi.fn();
-const createSubscription = vi.fn();
+const upsertSubscription = vi.fn();
 const updateSubscription = vi.fn();
-const findFirstPayment = vi.fn();
-const createPayment = vi.fn();
-const updatePayment = vi.fn();
+const upsertPayment = vi.fn();
 
 vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   prisma: {
     subscription: {
       findFirst: (...args: unknown[]) => findFirstSubscription(...args),
-      create: (...args: unknown[]) => createSubscription(...args),
+      upsert: (...args: unknown[]) => upsertSubscription(...args),
       update: (...args: unknown[]) => updateSubscription(...args),
     },
     payment: {
-      findFirst: (...args: unknown[]) => findFirstPayment(...args),
-      create: (...args: unknown[]) => createPayment(...args),
-      update: (...args: unknown[]) => updatePayment(...args),
+      upsert: (...args: unknown[]) => upsertPayment(...args),
     },
   },
 }));
 
 const applyGrantedPlan = vi.fn();
-const revokeToFreePlan = vi.fn();
+const reconcileTenantPlan = vi.fn();
 
 vi.mock("./billing.service.js", () => ({
   applyGrantedPlan: (...args: unknown[]) => applyGrantedPlan(...args),
-  revokeToFreePlan: (...args: unknown[]) => revokeToFreePlan(...args),
+  reconcileTenantPlan: (...args: unknown[]) => reconcileTenantPlan(...args),
 }));
+
+function signedEvent(body: Record<string, unknown>): {
+  payload: string;
+  signature: string;
+} {
+  const payload = JSON.stringify(body);
+  return {
+    payload,
+    signature: createHmac("sha256", "whsec_test").update(payload).digest("hex"),
+  };
+}
+
+const PAID_EVENT = {
+  id: "evt_1",
+  eventType: "subscription.paid",
+  object: {
+    id: "sub_abc",
+    status: "active",
+    customer: { id: "cus_1" },
+    metadata: { tenant_id: "tenant-1", plan_slug: "starter" },
+    order: {
+      id: "ord_1",
+      amount: 9900,
+      currency: "CNY",
+    },
+  },
+};
+
+async function deliver(body: Record<string, unknown>) {
+  const { payload, signature } = signedEvent(body);
+  const { verifyAndParseCreemWebhook, handleCreemWebhookEvent } = await import(
+    "./billing-webhook.service.js"
+  );
+  const event = await verifyAndParseCreemWebhook(payload, {
+    "creem-signature": signature,
+  });
+  return handleCreemWebhookEvent(event);
+}
 
 describe("billing webhook", () => {
   beforeEach(() => {
     findFirstSubscription.mockReset();
-    createSubscription.mockReset();
+    upsertSubscription.mockReset();
     updateSubscription.mockReset();
-    findFirstPayment.mockReset();
-    createPayment.mockReset();
-    updatePayment.mockReset();
+    upsertPayment.mockReset();
     applyGrantedPlan.mockReset();
-    revokeToFreePlan.mockReset();
+    reconcileTenantPlan.mockReset();
   });
 
   it("verifies signature and grants plan on subscription.paid", async () => {
-    const payload = JSON.stringify({
-      id: "evt_1",
-      eventType: "subscription.paid",
-      object: {
-        id: "sub_abc",
-        status: "active",
-        customer: { id: "cus_1" },
-        metadata: { tenant_id: "tenant-1", plan_slug: "starter" },
-        order: {
-          id: "ord_1",
-          amount: 9900,
-          currency: "CNY",
-        },
-      },
-    });
-    const signature = createHmac("sha256", "whsec_test")
-      .update(payload)
-      .digest("hex");
+    upsertSubscription.mockResolvedValue({ id: "local-sub-1" });
+    upsertPayment.mockResolvedValue({});
 
-    findFirstSubscription.mockResolvedValueOnce(null);
-    createSubscription.mockResolvedValueOnce({ id: "local-sub-1" });
-    findFirstPayment.mockResolvedValueOnce(null);
-    createPayment.mockResolvedValueOnce({});
-    applyGrantedPlan.mockResolvedValueOnce(undefined);
-
-    const { verifyAndParseCreemWebhook, handleCreemWebhookEvent } =
-      await import("./billing-webhook.service.js");
-
-    const event = await verifyAndParseCreemWebhook(payload, {
-      "creem-signature": signature,
-    });
-    const result = await handleCreemWebhookEvent(event);
+    const result = await deliver(PAID_EVENT);
 
     expect(result.handled).toBe(true);
     expect(applyGrantedPlan).toHaveBeenCalledWith(
@@ -99,7 +103,70 @@ describe("billing webhook", () => {
         plan_slug: "starter",
       }),
     );
-    expect(createSubscription).toHaveBeenCalled();
-    expect(createPayment).toHaveBeenCalled();
+    expect(upsertSubscription).toHaveBeenCalled();
+    expect(upsertPayment).toHaveBeenCalled();
+  });
+
+  /*
+   * 重投是 webhook 的常态（网络抖动、通道重试）。用 upsert 之后同一个事件投几次
+   * 都只落一行；先查再建的写法在这里会撞唯一键，把重试变成一场循环。
+   */
+  it("落库按唯一键 upsert，重投同一个事件不重复建行", async () => {
+    upsertSubscription.mockResolvedValue({ id: "local-sub-1" });
+    upsertPayment.mockResolvedValue({});
+
+    await deliver(PAID_EVENT);
+    await deliver(PAID_EVENT);
+
+    expect(upsertSubscription).toHaveBeenCalledTimes(2);
+    for (const [args] of upsertSubscription.mock.calls) {
+      expect(args.where).toEqual({
+        tenant_id_provider_provider_subscription_id: {
+          tenant_id: "tenant-1",
+          provider: "creem",
+          provider_subscription_id: "sub_abc",
+        },
+      });
+    }
+    for (const [args] of upsertPayment.mock.calls) {
+      expect(args.where).toEqual({
+        tenant_id_provider_provider_order_id: {
+          tenant_id: "tenant-1",
+          provider: "creem",
+          provider_order_id: "ord_1",
+        },
+      });
+    }
+  });
+
+  /*
+   * 升档时旧订阅会在通道侧被取消。以前这里是无条件降到 free，付完钱的组织当场失权；
+   * 现在只把那条订阅置终态，套餐交给 `reconcileTenantPlan` 按剩下的订阅重算。
+   */
+  it("订阅取消只置终态，套餐交给 reconcile 重算", async () => {
+    findFirstSubscription.mockResolvedValueOnce({
+      id: "local-sub-old",
+      cancel_at_period_end: false,
+      current_period_end: null,
+    });
+    updateSubscription.mockResolvedValueOnce({});
+
+    const result = await deliver({
+      id: "evt_2",
+      eventType: "subscription.canceled",
+      object: {
+        id: "sub_old",
+        status: "canceled",
+        metadata: { tenant_id: "tenant-1", plan_slug: "starter" },
+      },
+    });
+
+    expect(result.handled).toBe(true);
+    expect(updateSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "canceled" }),
+      }),
+    );
+    expect(reconcileTenantPlan).toHaveBeenCalledWith("tenant-1");
   });
 });

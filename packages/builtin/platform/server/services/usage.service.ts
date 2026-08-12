@@ -68,7 +68,6 @@ export async function getTenantUsage(tenantId: string): Promise<UsageStats> {
   return {
     plan: {
       slug: planSlug,
-      name: plan.name,
       price_monthly: plan.price_monthly,
     },
     limits: {

@@ -1,15 +1,17 @@
 import { registerSiteSectionView } from "../../marketing/client/components/sections/section-views.js";
 import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
-import { MEMBER_ACCOUNT_CSS } from "../shared/member-account-css.js";
 import { memberAccountPanelSection } from "../shared/member-account-section.js";
-import { MEMBER_AUTH_CSS } from "../shared/member-auth-css.js";
 import {
   memberLoginFormSection,
   memberRegisterFormSection,
 } from "../shared/member-auth-section.js";
-import { MEMBER_GATE_CSS } from "../shared/member-gate-css.js";
 import { memberGateSection } from "../shared/member-gate-section.js";
 import { registerMemberPageTemplates } from "../shared/member-page-templates.js";
+import {
+  MEMBER_ACCOUNT_CSS,
+  MEMBER_AUTH_CSS,
+  MEMBER_GATE_CSS,
+} from "../shared/site-css.generated.js";
 
 import { MemberAccountPanelSection } from "./components/MemberAccountPanelSection.js";
 import {

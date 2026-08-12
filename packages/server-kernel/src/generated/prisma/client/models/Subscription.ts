@@ -262,7 +262,7 @@ export type SubscriptionOrderByWithRelationInput = {
 
 export type SubscriptionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  provider_provider_subscription_id?: Prisma.SubscriptionProviderProvider_subscription_idCompoundUniqueInput
+  tenant_id_provider_provider_subscription_id?: Prisma.SubscriptionTenant_idProviderProvider_subscription_idCompoundUniqueInput
   AND?: Prisma.SubscriptionWhereInput | Prisma.SubscriptionWhereInput[]
   OR?: Prisma.SubscriptionWhereInput[]
   NOT?: Prisma.SubscriptionWhereInput | Prisma.SubscriptionWhereInput[]
@@ -278,7 +278,7 @@ export type SubscriptionWhereUniqueInput = Prisma.AtLeast<{
   metadata?: Prisma.JsonNullableFilter<"Subscription">
   created_at?: Prisma.DateTimeFilter<"Subscription"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Subscription"> | Date | string
-}, "id" | "provider_provider_subscription_id">
+}, "id" | "tenant_id_provider_provider_subscription_id">
 
 export type SubscriptionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -430,7 +430,8 @@ export type SubscriptionUncheckedUpdateManyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type SubscriptionProviderProvider_subscription_idCompoundUniqueInput = {
+export type SubscriptionTenant_idProviderProvider_subscription_idCompoundUniqueInput = {
+  tenant_id: string
   provider: string
   provider_subscription_id: string
 }

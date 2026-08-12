@@ -1,19 +1,20 @@
-/**
+/*
  * 会员登录 / 注册页的样式。
+ *
+ * 真源在此；`pnpm --filter @be-water/builtin assemble:module-css` 压缩后写入
+ * ../site-css.generated.ts，再随注册交给 marketing 拼在官网 CSS 末尾（贡献段
+ * 进不了 marketing 构建期那次打包）。只用它已有的 token（`--surface` / `--border` /
+ * `--muted-fg` / `--accent` / `--radius`），换主题、切明暗都跟着变。
  *
  * 版式是一张**居中的认证卡**：抬头、第三方登录、表单、另一张页面的入口全收在 26rem
  * 的卡里。收进卡之前这几块各自为政——抬头按 section 的 48rem 左对齐、表单 26rem 居中，
  * 一张页面上两条不同的左边缘，那是登录页最显廉价的地方。
  *
- * 同 `member-gate-css.ts`：贡献段进不了官网 CSS 的那次构建，所以随注册一起交给
- * marketing 拼在末尾。只用它已有的 token（`--surface` / `--border` / `--muted-fg` /
- * `--accent` / `--radius`），换主题、切明暗都跟着变。
- *
- * 输入框的观感刻意与 `form` 段（`sections/form/styles.css`）一致：同一个站上两个表单
- * 长得不一样，比两个都朴素更显廉价。重新设计动的是版式与层次，不是把输入框改成
- * 另一套——那会让「联系我们」和「登录」看起来像两个站。
+ * 输入框的观感刻意与 `form` 段（marketing sections/form/styles.css）一致：同一个站上
+ * 两个表单长得不一样，比两个都朴素更显廉价。重新设计动的是版式与层次，不是把输入框
+ * 改成另一套——那会让「联系我们」和「登录」看起来像两个站。
  */
-export const MEMBER_AUTH_CSS = `
+
 .member-auth-card {
   max-width: 26rem;
   margin-inline: auto;
@@ -176,4 +177,3 @@ export const MEMBER_AUTH_CSS = `
   position: absolute;
   top: 0;
 }
-`;

@@ -60,6 +60,7 @@ export const SITE_SSR_EXCEPTION_PATHS = [
   "/member/login",
   "/member/register",
   "/member/account",
+  "/member/billing",
 ] as const;
 
 const APP_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);

@@ -8,9 +8,12 @@ export interface UsageItem {
 }
 
 export interface UsageStats {
+  /**
+   * 只带 slug 与价格：套餐名是按语言的（`PlanDefinition.name`），服务端替消费方
+   * 挑一门语言只会挑错——消费方拿 slug 自己译（`translatePlanName` / `planName`）。
+   */
   plan: {
     slug: PlanSlug;
-    name: string;
     price_monthly: number | null;
   };
   /**

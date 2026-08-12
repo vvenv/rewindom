@@ -13,7 +13,7 @@ import {
   type SubscriptionStatus,
 } from "../shared/index.js";
 
-import { applyGrantedPlan, revokeToFreePlan } from "./billing.service.js";
+import { applyGrantedPlan, reconcileTenantPlan } from "./billing.service.js";
 
 import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
 
@@ -130,6 +130,17 @@ function extractOrderPayload(data: UnknownRecord): {
   };
 }
 
+/**
+ * 落一条订阅 —— **单条 `upsert`**，不是先查再写。
+ *
+ * webhook 会重投，也会并发（`checkout.completed` 与 `subscription.active` 几乎同时到）。
+ * 先 `findFirst` 再 `create` 的写法里，两个请求可以都查到「不存在」，然后一起 create，
+ * 后到的那条撞上唯一键抛 P2002 → 路由回 400 → Creem 认为投递失败，继续重投。
+ * 交给 `upsert` 由数据库自己判，这条竞态就没有了。
+ *
+ * `where` 用含 `tenant_id` 的复合唯一键：tenant-guard 认得复合唯一键里的嵌套
+ * `tenant_id`（见 `findTenantPredicate`），所以租户隔离照旧生效。
+ */
 async function upsertSubscription(input: {
   tenant_id: string;
   plan_slug: string;
@@ -141,31 +152,24 @@ async function upsertSubscription(input: {
   cancel_at_period_end?: boolean;
   metadata?: UnknownRecord;
 }): Promise<{ id: string }> {
-  const existing = await prisma.subscription.findFirst({
-    where: withTenantScope(input.tenant_id, {
-      provider: BILLING_PROVIDER_CREEM,
-      provider_subscription_id: input.provider_subscription_id,
-    }),
-  });
-
-  if (existing) {
-    const row = await prisma.subscription.update({
-      where: withTenantScope(input.tenant_id, { id: existing.id }),
-      data: {
-        plan_slug: input.plan_slug,
-        status: input.status,
-        provider_customer_id: input.provider_customer_id ?? undefined,
-        current_period_start: input.current_period_start ?? undefined,
-        current_period_end: input.current_period_end ?? undefined,
-        cancel_at_period_end: input.cancel_at_period_end,
-        metadata: input.metadata as Prisma.InputJsonValue | undefined,
+  const row = await prisma.subscription.upsert({
+    where: {
+      tenant_id_provider_provider_subscription_id: {
+        tenant_id: input.tenant_id,
+        provider: BILLING_PROVIDER_CREEM,
+        provider_subscription_id: input.provider_subscription_id,
       },
-    });
-    return { id: row.id };
-  }
-
-  const row = await prisma.subscription.create({
-    data: {
+    },
+    update: {
+      plan_slug: input.plan_slug,
+      status: input.status,
+      provider_customer_id: input.provider_customer_id ?? undefined,
+      current_period_start: input.current_period_start ?? undefined,
+      current_period_end: input.current_period_end ?? undefined,
+      cancel_at_period_end: input.cancel_at_period_end,
+      metadata: input.metadata as Prisma.InputJsonValue | undefined,
+    },
+    create: {
       tenant_id: input.tenant_id,
       plan_slug: input.plan_slug,
       status: input.status,
@@ -193,32 +197,25 @@ async function upsertPayment(input: {
   description?: string;
   raw_event: unknown;
 }): Promise<void> {
-  const existing = await prisma.payment.findFirst({
-    where: withTenantScope(input.tenant_id, {
-      provider: BILLING_PROVIDER_CREEM,
-      provider_order_id: input.provider_order_id,
-    }),
-  });
-
-  if (existing) {
-    await prisma.payment.update({
-      where: withTenantScope(input.tenant_id, { id: existing.id }),
-      data: {
-        subscription_id: input.subscription_id ?? undefined,
-        plan_slug: input.plan_slug ?? undefined,
-        amount_cents: input.amount_cents,
-        currency: input.currency,
-        status: input.status,
-        paid_at: input.paid_at ?? undefined,
-        description: input.description ?? undefined,
-        raw_event: input.raw_event as Prisma.InputJsonValue,
+  await prisma.payment.upsert({
+    where: {
+      tenant_id_provider_provider_order_id: {
+        tenant_id: input.tenant_id,
+        provider: BILLING_PROVIDER_CREEM,
+        provider_order_id: input.provider_order_id,
       },
-    });
-    return;
-  }
-
-  await prisma.payment.create({
-    data: {
+    },
+    update: {
+      subscription_id: input.subscription_id ?? undefined,
+      plan_slug: input.plan_slug ?? undefined,
+      amount_cents: input.amount_cents,
+      currency: input.currency,
+      status: input.status,
+      paid_at: input.paid_at ?? undefined,
+      description: input.description ?? undefined,
+      raw_event: input.raw_event as Prisma.InputJsonValue,
+    },
+    create: {
       tenant_id: input.tenant_id,
       subscription_id: input.subscription_id ?? null,
       plan_slug: input.plan_slug ?? null,
@@ -347,12 +344,20 @@ export async function handleCreemWebhookEvent(
       }
     }
 
-    if (REVOKE_EVENTS.has(eventType)) {
-      await revokeToFreePlan(tenant_id);
-      return { handled: true, detail: "revoked to free" };
-    }
+    /*
+     * 先把那条订阅置成终态，再**按剩下的订阅重算**套餐。
+     *
+     * 这里以前是无条件 `revokeToFreePlan`。升档的正常路径就会踩中：新订阅开好之后
+     * 旧那笔在 Creem 侧被取消，取消事件一到，刚付完钱的组织被打回 free。
+     */
+    await reconcileTenantPlan(tenant_id);
 
-    return { handled: true, detail: "marked past_due" };
+    return {
+      handled: true,
+      detail: REVOKE_EVENTS.has(eventType)
+        ? "revoked, plan reconciled"
+        : "marked past_due, plan reconciled",
+    };
   }
 
   if (

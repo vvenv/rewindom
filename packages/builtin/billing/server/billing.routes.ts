@@ -83,7 +83,13 @@ export async function billingRoutes(app: FastifyInstance): Promise<void> {
     context: "BillingPlanList",
     errorCode: "BILLING_PLAN_LIST_FAILED",
     preHandler: [app.requirePermission("billing.read")],
-    handler: async () => listBillingPlanOffers(),
+    handler: async (request) => {
+      // 每一档是升是降取决于现在用的是哪一档，这一条决定按钮上写什么
+      const current = await getCurrentSubscription(
+        request.tenantContext!.tenant_id,
+      );
+      return listBillingPlanOffers(current?.plan_slug ?? null);
+    },
   });
 
   defineRoute(app, {
@@ -102,7 +108,6 @@ export async function billingRoutes(app: FastifyInstance): Promise<void> {
           tenant_id: request.tenantContext!.tenant_id,
           plan_slug: body.plan_slug.trim(),
           user_id: request.authUser!.userId,
-          customer_email: undefined,
         });
 
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {

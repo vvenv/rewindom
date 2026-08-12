@@ -191,7 +191,10 @@ export async function authMiddleware(app: FastifyInstance) {
         request.url.startsWith("/api/captcha") ||
         request.url.startsWith("/api/public/") ||
         request.url.startsWith("/api/system-info") ||
+        // 支付通道的 webhook 没有 JWT 可带，身份由各自的签名校验确定：
+        // billing = 平台密钥，site-billing = 按站点取的密钥（见两个 webhook service）
         request.url.startsWith("/api/billing/webhooks/") ||
+        request.url.startsWith("/api/site-billing/webhooks/") ||
         isSiteMemberPublicPath(request.url.split("?")[0] ?? "")
       ) {
         return;

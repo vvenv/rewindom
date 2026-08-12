@@ -82,6 +82,9 @@ export const ModelName = {
   Role: 'Role',
   RolePermission: 'RolePermission',
   UserRole: 'UserRole',
+  MemberPlan: 'MemberPlan',
+  MemberSubscription: 'MemberSubscription',
+  MemberPayment: 'MemberPayment',
   SiteMember: 'SiteMember',
   SiteMemberRefreshToken: 'SiteMemberRefreshToken',
   SiteMemberOAuthAccount: 'SiteMemberOAuthAccount',
@@ -587,6 +590,67 @@ export const UserRoleScalarFieldEnum = {
 } as const
 
 export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
+
+
+export const MemberPlanScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  slug: 'slug',
+  name: 'name',
+  description: 'description',
+  price_cents: 'price_cents',
+  currency: 'currency',
+  interval: 'interval',
+  provider_product_id: 'provider_product_id',
+  sort_order: 'sort_order',
+  enabled: 'enabled',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MemberPlanScalarFieldEnum = (typeof MemberPlanScalarFieldEnum)[keyof typeof MemberPlanScalarFieldEnum]
+
+
+export const MemberSubscriptionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  member_id: 'member_id',
+  plan_id: 'plan_id',
+  plan_slug: 'plan_slug',
+  status: 'status',
+  provider: 'provider',
+  provider_subscription_id: 'provider_subscription_id',
+  provider_customer_id: 'provider_customer_id',
+  current_period_start: 'current_period_start',
+  current_period_end: 'current_period_end',
+  cancel_at_period_end: 'cancel_at_period_end',
+  metadata: 'metadata',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MemberSubscriptionScalarFieldEnum = (typeof MemberSubscriptionScalarFieldEnum)[keyof typeof MemberSubscriptionScalarFieldEnum]
+
+
+export const MemberPaymentScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  member_id: 'member_id',
+  subscription_id: 'subscription_id',
+  plan_slug: 'plan_slug',
+  provider: 'provider',
+  provider_order_id: 'provider_order_id',
+  amount_cents: 'amount_cents',
+  currency: 'currency',
+  status: 'status',
+  paid_at: 'paid_at',
+  description: 'description',
+  raw_event: 'raw_event',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MemberPaymentScalarFieldEnum = (typeof MemberPaymentScalarFieldEnum)[keyof typeof MemberPaymentScalarFieldEnum]
 
 
 export const SiteMemberScalarFieldEnum = {

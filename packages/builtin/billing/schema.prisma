@@ -18,7 +18,9 @@ model Subscription {
   created_at               DateTime  @default(now())
   updated_at               DateTime  @updatedAt
 
-  @@unique([provider, provider_subscription_id])
+  // 带上 tenant_id：webhook 落库走 upsert，而 tenant-guard 只认得复合唯一键里的
+  // tenant_id（findTenantPredicate）——不带的话 upsert 的 where 就逃出了租户隔离。
+  @@unique([tenant_id, provider, provider_subscription_id])
   @@index([tenant_id])
   @@index([tenant_id, status])
 }
@@ -39,7 +41,7 @@ model Payment {
   created_at        DateTime  @default(now())
   updated_at        DateTime  @updatedAt
 
-  @@unique([provider, provider_order_id])
+  @@unique([tenant_id, provider, provider_order_id])
   @@index([tenant_id, created_at])
   @@index([tenant_id])
 }

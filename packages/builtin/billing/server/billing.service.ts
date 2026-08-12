@@ -13,6 +13,7 @@ import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 
 import { updateTenantPlan } from "../../platform/server/services/tenant-management.service.js";
 import {
+  comparePlanRank,
   getPlanBySlug,
   PRICING_PLANS,
   type PlanSlug,
@@ -25,6 +26,7 @@ import {
   type BillingPayment,
   type BillingPlanOffer,
   type BillingSubscription,
+  type PlanChangeKind,
   type SubscriptionStatus,
 } from "../shared/index.js";
 
@@ -85,28 +87,53 @@ const SUBSCRIPTION_SORTABLE = new Set([
   "plan_slug",
 ]);
 
-export function listBillingPlanOffers(): BillingPlanOffer[] {
-  return SELF_SERVE_PLAN_SLUGS.map((slug) => {
-    const plan = PRICING_PLANS[slug];
-    return {
-      plan_slug: slug,
-      name: plan.name,
-      price_monthly: plan.price_monthly,
-      description: plan.description,
-      checkout_available: Boolean(getCreemProductId(slug)),
-    };
-  });
+function planChangeKind(
+  slug: string,
+  currentPlanSlug: string | null,
+): PlanChangeKind {
+  if (!currentPlanSlug) return "none";
+  if (slug === currentPlanSlug) return "current";
+  return comparePlanRank(slug, currentPlanSlug) > 0 ? "upgrade" : "downgrade";
+}
+
+export function listBillingPlanOffers(
+  currentPlanSlug: string | null = null,
+): BillingPlanOffer[] {
+  return SELF_SERVE_PLAN_SLUGS.map((slug) => ({
+    plan_slug: slug,
+    price_monthly: PRICING_PLANS[slug].price_monthly,
+    checkout_available: Boolean(getCreemProductId(slug)),
+    change_kind: planChangeKind(slug, currentPlanSlug),
+  }));
+}
+
+/**
+ * 「当前订阅」的唯一口径 —— 读与写都走它。
+ *
+ * 排序不能只看 `updated_at`：升档时新旧两条订阅可能同时处于生效状态，而 webhook
+ * 是并发到的，`updated_at` 谁在前完全看投递顺序。先按周期末（买得更远的那条更新），
+ * 再按 `updated_at`，最后拿 `id` 兜底 —— 三层下来结果是确定的，同一份数据不会
+ * 在两次请求里给出两个答案。
+ */
+function currentSubscriptionQuery(tenantId: string) {
+  return {
+    where: withTenantScope(tenantId, {
+      status: { in: ACTIVE_STATUSES },
+    }),
+    orderBy: [
+      { current_period_end: "desc" as const },
+      { updated_at: "desc" as const },
+      { id: "desc" as const },
+    ],
+  };
 }
 
 export async function getCurrentSubscription(
   tenantId: string,
 ): Promise<BillingSubscription | null> {
-  const row = await prisma.subscription.findFirst({
-    where: withTenantScope(tenantId, {
-      status: { in: ACTIVE_STATUSES },
-    }),
-    orderBy: { updated_at: "desc" },
-  });
+  const row = await prisma.subscription.findFirst(
+    currentSubscriptionQuery(tenantId),
+  );
   return row ? toBillingSubscription(row) : null;
 }
 
@@ -142,10 +169,29 @@ export async function listTenantPayments(params: {
   };
 }
 
+/**
+ * 这个组织在通道侧的 customer id（没买过就没有）。
+ *
+ * 不限生效状态：退订之后再回来的还是同一个买家，重开一个 customer 只会让通道后台
+ * 里同一家组织散成好几条。
+ */
+async function findProviderCustomerId(
+  tenantId: string,
+): Promise<string | undefined> {
+  const row = await prisma.subscription.findFirst({
+    where: withTenantScope(tenantId, {
+      provider: BILLING_PROVIDER_CREEM,
+      provider_customer_id: { not: null },
+    }),
+    orderBy: { updated_at: "desc" },
+    select: { provider_customer_id: true },
+  });
+  return row?.provider_customer_id ?? undefined;
+}
+
 export async function createCheckoutSession(input: {
   tenant_id: string;
   plan_slug: string;
-  customer_email?: string;
   user_id: string;
 }): Promise<{ checkout_url: string }> {
   if (!isSelfServePlanSlug(input.plan_slug)) {
@@ -174,8 +220,12 @@ export async function createCheckoutSession(input: {
   const result = await provider.createCheckout({
     product_id: productId,
     success_url: successUrl,
-    customer_email: input.customer_email,
-    request_id: `${input.tenant_id}:${input.plan_slug}:${Date.now()}`,
+    customer_id: await findProviderCustomerId(input.tenant_id),
+    /*
+     * 幂等键，所以**不带时间戳**。带上 `Date.now()` 等于每次点击都是一笔新订单，
+     * 这个字段也就白留了：连点两下升级会开出两个 checkout，两边都付掉就是两笔订阅。
+     */
+    request_id: `${input.tenant_id}:${input.plan_slug}`,
     metadata: {
       tenant_id: input.tenant_id,
       plan_slug: input.plan_slug,
@@ -189,12 +239,9 @@ export async function createCheckoutSession(input: {
 export async function cancelCurrentSubscription(input: {
   tenant_id: string;
 }): Promise<BillingSubscription> {
-  const current = await prisma.subscription.findFirst({
-    where: withTenantScope(input.tenant_id, {
-      status: { in: ACTIVE_STATUSES },
-    }),
-    orderBy: { updated_at: "desc" },
-  });
+  const current = await prisma.subscription.findFirst(
+    currentSubscriptionQuery(input.tenant_id),
+  );
   if (!current) {
     throw new NotFoundError("billing.no_cancellable_subscription");
   }
@@ -333,10 +380,42 @@ export async function applyGrantedPlan(input: {
   });
 }
 
-export async function revokeToFreePlan(tenantId: string): Promise<void> {
+async function revokeToFreePlan(tenantId: string): Promise<void> {
   await updateTenantPlan(tenantId, {
     plan: "free",
     plan_ends_at: null,
+  });
+}
+
+/**
+ * 按**当前还生效的订阅**重算组织套餐 —— 订阅进终态后一律走这里，别再直接降级。
+ *
+ * 以前 `subscription.canceled` 是无条件 `revokeToFreePlan`。升档的正常路径恰好会
+ * 触发它：新订阅开好之后，旧那笔在 Creem 侧被取消，取消事件一到就把整个组织从
+ * pro 打回 free —— 用户刚付完钱，权限先没了。
+ *
+ * 一条不剩才落 free；还剩的按价格取最高那档（同 `comparePlanRank`），因为同时留着
+ * 两笔订阅时用户买到的是其中更贵的那份权益。
+ */
+export async function reconcileTenantPlan(tenantId: string): Promise<void> {
+  const alive = await prisma.subscription.findMany({
+    where: withTenantScope(tenantId, { status: { in: ACTIVE_STATUSES } }),
+    select: { plan_slug: true, current_period_end: true },
+  });
+
+  const best = alive
+    .filter((row) => getPlanBySlug(row.plan_slug))
+    .sort((a, b) => comparePlanRank(b.plan_slug, a.plan_slug))[0];
+
+  if (!best) {
+    await revokeToFreePlan(tenantId);
+    return;
+  }
+
+  await applyGrantedPlan({
+    tenant_id: tenantId,
+    plan_slug: best.plan_slug,
+    plan_ends_at: best.current_period_end?.toISOString() ?? null,
   });
 }
 

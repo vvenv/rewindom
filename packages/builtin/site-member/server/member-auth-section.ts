@@ -18,13 +18,13 @@ import {
   registerSiteSectionHtml,
   type SectionHtmlRenderer,
 } from "../../marketing/shared/sections/html.js";
-import { MEMBER_AUTH_CSS } from "../shared/member-auth-css.js";
 import {
   memberLoginFormSection,
   memberRegisterFormSection,
   readMemberAuthContext,
   type MemberAuthRenderContext,
 } from "../shared/member-auth-section.js";
+import { MEMBER_AUTH_CSS } from "../shared/site-css.generated.js";
 
 /** 各家 IdP 的 mark，与预览侧 `MemberAuthFormSection` 同源（那边是 JSX，这边是字符串）。 */
 const OAUTH_MARKS: Record<string, string> = {

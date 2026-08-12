@@ -1,0 +1,144 @@
+{
+  "nav": {
+    "siteBilling": "Member billing"
+  },
+  "page": {
+    "title": "Member billing",
+    "description": "Manage member plans, the payment provider, and member subscriptions"
+  },
+  "plans": {
+    "heading": "Member plans",
+    "add": "New plan",
+    "edit": "Edit",
+    "delete": "Delete",
+    "empty": "No member plans yet",
+    "emptyHint": "Create a plan and add its payment product ID — the “Member plans” section can then sell it on your site.",
+    "slug": "Plan key",
+    "slugHint": "Stored on every subscription — avoid changing it later",
+    "name": "Plan name",
+    "description": "Description",
+    "price": "Price",
+    "priceHint": "In whole currency units; stored as cents",
+    "currency": "Currency",
+    "interval": "Billing interval",
+    "productId": "Payment product ID",
+    "productIdHint": "The prod_… from your provider dashboard; leave empty to hide this plan on the site",
+    "sortOrder": "Order",
+    "enabled": "On sale",
+    "notPurchasable": "No product",
+    "deleteConfirm": "Delete the plan “{{name}}”?",
+    "saved": "Plan saved",
+    "deleted": "Plan deleted"
+  },
+  "interval": {
+    "month": "Monthly",
+    "year": "Yearly",
+    "onetime": "One-time"
+  },
+  "subscriptions": {
+    "heading": "Member subscriptions",
+    "empty": "No subscriptions yet",
+    "emptyHint": "Subscriptions show up here once a member completes a payment.",
+    "member": "Member",
+    "plan": "Plan",
+    "status": "Status",
+    "periodEnd": "Period ends",
+    "cancelAtPeriodEnd": "Cancels at period end"
+  },
+  "payments": {
+    "heading": "Payments",
+    "empty": "No payments yet",
+    "emptyHint": "Payments show up here once a checkout completes.",
+    "member": "Member",
+    "time": "Time",
+    "plan": "Plan",
+    "amount": "Amount",
+    "status": "Status"
+  },
+  "provider": {
+    "heading": "Payment provider",
+    "description": "This decides which account member payments land in.",
+    "sourcePlatform": "Currently collecting into the platform's default account",
+    "sourceTenant": "Currently collecting into this site's own account",
+    "apiKey": "API key",
+    "apiKeyHint": "Leave empty to keep using the platform default; set it to collect into your own account",
+    "apiKeyCurrent": "Configured ({{hint}})",
+    "webhookSecret": "Webhook signing secret",
+    "webhookSecretSet": "Configured",
+    "webhookSecretMissing": "Not set — activations cannot be received without it",
+    "webhookUrl": "Webhook URL",
+    "webhookUrlHint": "Register this URL in your provider dashboard",
+    "save": "Save",
+    "saved": "Payment provider updated"
+  },
+  "status": {
+    "active": "Active",
+    "trialing": "Trialing",
+    "past_due": "Past due",
+    "canceled": "Canceled",
+    "expired": "Expired",
+    "unpaid": "Unpaid",
+    "paused": "Paused"
+  },
+  "paymentStatus": {
+    "pending": "Pending",
+    "paid": "Paid",
+    "failed": "Failed",
+    "refunded": "Refunded"
+  },
+  "account": {
+    "title": "My subscription",
+    "subtitle": "Your current plan and payment history",
+    "none": "You have no active subscription.",
+    "cancel": "Cancel subscription",
+    "cancelHint": "You keep access until the end of the current period.",
+    "cancelScheduled": "Cancellation scheduled at period end.",
+    "checkoutPending": "Payment received — activating. Refresh this page shortly.",
+    "paymentsTitle": "Payment history",
+    "paymentsEmpty": "No payments yet.",
+    "planLabel": "Plan",
+    "statusLabel": "Status",
+    "periodEndLabel": "Current period ends",
+    "cancelAtPeriodEndLabel": "Cancels at period end",
+    "yes": "Yes",
+    "no": "No",
+    "empty": "—"
+  },
+  "template": {
+    "group": "Member page layouts",
+    "billing": {
+      "label": "My subscription"
+    }
+  },
+  "section": {
+    "plans": {
+      "label": "Member plans",
+      "display": "Display",
+      "showDescription": "Show plan description",
+      "ctaLabel": "Button label",
+      "currentLabel": "Current-plan note",
+      "currentLabelInfo": "The plan a member already has shows this line instead of a button.",
+      "emptyText": "Text when nothing is on sale",
+      "emptyTextInfo": "Leave empty to hide the whole section when no plan is on sale."
+    },
+    "account": {
+      "label": "My subscription & payments",
+      "subscription": "Subscription",
+      "noneText": "Text when there is no subscription",
+      "cancelLabel": "Cancel button label",
+      "cancelHint": "Cancellation note",
+      "cancelHintInfo": "Spelling out how long access lasts prevents most support questions.",
+      "payments": "Payments",
+      "showPayments": "Show payment history",
+      "paymentsTitle": "Payments heading",
+      "paymentsEmpty": "Text when there are no payments"
+    }
+  },
+  "audit": {
+    "plan_created": "Created member plan {{slug}}",
+    "plan_updated": "Updated member plan {{slug}}",
+    "plan_deleted": "Deleted member plan {{plan_id}}",
+    "provider_updated": "Updated member billing payment provider settings",
+    "webhook_synced": "Synced member billing webhook {{event_type}}: {{detail}}"
+  }
+}

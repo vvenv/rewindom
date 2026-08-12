@@ -6,7 +6,11 @@
  * 客户端的 i18next 直接解开（编辑器里建页也走同一份预设）。
  */
 
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import {
+  normalizeLocale,
+  resolveLocaleMessage,
+  type AppLocale,
+} from "@be-water/shared";
 
 import en from "../client/locales/en.json" with { type: "json" };
 import zhCN from "../client/locales/zh-CN.json" with { type: "json" };
@@ -20,19 +24,6 @@ const MESSAGES: Record<string, Record<string, unknown>> = {
 
 const NAMESPACE = "site-member:";
 
-function resolveMessage(
-  messages: Record<string, unknown>,
-  key: string,
-): string | undefined {
-  let current: unknown = messages;
-  for (const part of key.split(".")) {
-    if (!current || typeof current !== "object" || !(part in current)) {
-      return undefined;
-    }
-    current = (current as Record<string, unknown>)[part];
-  }
-  return typeof current === "string" ? current : undefined;
-}
 
 export function createMemberPresetTranslator(
   locale: AppLocale,
@@ -42,6 +33,6 @@ export function createMemberPresetTranslator(
 
   return (raw: string): string => {
     const key = raw.startsWith(NAMESPACE) ? raw.slice(NAMESPACE.length) : raw;
-    return resolveMessage(primary, key) ?? resolveMessage(fallback, key) ?? raw;
+    return resolveLocaleMessage(primary, key) ?? resolveLocaleMessage(fallback, key) ?? raw;
   };
 }

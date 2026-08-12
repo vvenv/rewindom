@@ -217,6 +217,21 @@ export type RolePermission = Prisma.RolePermissionModel
  */
 export type UserRole = Prisma.UserRoleModel
 /**
+ * Model MemberPlan
+ * 站点自己定义的会员套餐（价格、周期、对应通道商品）。
+ */
+export type MemberPlan = Prisma.MemberPlanModel
+/**
+ * Model MemberSubscription
+ * 
+ */
+export type MemberSubscription = Prisma.MemberSubscriptionModel
+/**
+ * Model MemberPayment
+ * 
+ */
+export type MemberPayment = Prisma.MemberPaymentModel
+/**
  * Model SiteMember
  * 
  */

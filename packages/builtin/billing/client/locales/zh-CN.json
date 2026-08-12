@@ -27,9 +27,35 @@
     "empty": "暂无可售套餐",
     "customPrice": "议价",
     "perMonth": "¥{{price}}/月",
-    "upgradeButton": "升级",
+    "upgradeButton": "升级到此套餐",
     "notConfigured": "未配置商品",
-    "emptyHint": "平台还没有配置可购买的套餐。"
+    "emptyHint": "平台还没有配置可购买的套餐。",
+    "heading": "可选套餐",
+    "subscribeButton": "立即开通",
+    "downgradeButton": "切换到此套餐",
+    "currentButton": "当前套餐"
+  },
+  "checkout": {
+    "processing": "支付成功，正在开通…",
+    "activated": "已开通「{{plan}}」",
+    "pending": "已收到付款，开通稍有延迟；稍后刷新本页即可看到。"
+  },
+  "section": {
+    "plans": {
+      "label": "套餐",
+      "display": "展示",
+      "pricePrefix": "价格前缀",
+      "priceSuffix": "价格后缀",
+      "priceSuffixInfo": "价格数字来自平台套餐配置，这里只填前后缀（如「¥」与「/月」）。",
+      "customPriceLabel": "议价档文案",
+      "showDescription": "显示套餐说明",
+      "cta": "按钮",
+      "blockLabel": "套餐卡",
+      "planSlug": "套餐",
+      "badge": "角标",
+      "badgeInfo": "填了就把这张卡描边突出（如「推荐」）。",
+      "features": "卖点（每行一条）"
+    }
   },
   "payments": {
     "history": "付款历史",

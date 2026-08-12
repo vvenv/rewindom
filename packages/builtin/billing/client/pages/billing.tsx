@@ -2,19 +2,10 @@ import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { CreditCard } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 
 import { BillingPaymentsTable } from "../components/BillingPaymentsTable.js";
 import { BillingPlanPicker } from "../components/BillingPlanPicker.js";
-import {
-  useBillingPayments,
-  useBillingPlans,
-  useBillingSubscription,
-} from "../hooks/useBilling.js";
-import {
-  useCancelSubscription,
-  useCreateCheckout,
-} from "../hooks/useBillingMutations.js";
+import { useBillingPage } from "../hooks/use-billing-page.js";
 import {
   formatBillingDate,
   subscriptionStatusLabel,
@@ -25,36 +16,17 @@ export function BillingPage() {
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("billing.write");
 
-  const subscriptionQuery = useBillingSubscription();
-  const plansQuery = useBillingPlans();
-  const paymentsQuery = useBillingPayments(1, 20, "created_at", "desc");
-
-  const createCheckout = useCreateCheckout();
-  const cancelSubscription = useCancelSubscription();
-
-  const subscription = subscriptionQuery.data ?? null;
-
-  async function handleCheckout(planSlug: string): Promise<void> {
-    try {
-      const result = await createCheckout.mutateAsync(planSlug);
-      window.location.assign(result.checkout_url);
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : t("toast.checkoutFailed"),
-      );
-    }
-  }
-
-  async function handleCancel(): Promise<void> {
-    try {
-      await cancelSubscription.mutateAsync();
-      toast.success(t("subscription.cancelScheduled"));
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : t("subscription.cancelFailed"),
-      );
-    }
-  }
+  const {
+    subscription,
+    subscriptionLoading,
+    plans,
+    payments,
+    activation,
+    isCheckingOut,
+    isCancelling,
+    checkout,
+    cancel,
+  } = useBillingPage();
 
   return (
     <PageLayout
@@ -65,7 +37,7 @@ export function BillingPage() {
       <div className="flex flex-col gap-8">
         <section className="flex flex-col gap-3">
           <h2 className="text-base font-medium">{t("subscription.current")}</h2>
-          {subscriptionQuery.isLoading ? (
+          {subscriptionLoading ? (
             <p className="text-muted-foreground text-sm">{t("common:loading")}</p>
           ) : subscription ? (
             <div className="rounded-md border p-4">
@@ -100,37 +72,44 @@ export function BillingPage() {
                   type="button"
                   variant="outline"
                   className="mt-4"
-                  disabled={cancelSubscription.isPending}
-                  onClick={() => void handleCancel()}
+                  disabled={isCancelling}
+                  onClick={() => void cancel()}
                 >
                   {t("subscription.cancel")}
                 </Button>
               ) : null}
             </div>
+          ) : activation === "waiting" ? (
+            /* 付款回跳后 webhook 还没到：这不是「没有订阅」，别把它画成没有 */
+            <p className="text-muted-foreground text-sm">
+              {t("checkout.processing")}
+            </p>
+          ) : activation === "timeout" ? (
+            <p className="text-muted-foreground text-sm">{t("checkout.pending")}</p>
           ) : (
             <p className="text-muted-foreground text-sm">{t("subscription.none")}</p>
           )}
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="text-base font-medium">{t("plans.upgrade")}</h2>
+          <h2 className="text-base font-medium">{t("plans.heading")}</h2>
           <BillingPlanPicker
-            plans={plansQuery.data ?? []}
+            plans={plans.data ?? []}
             canWrite={canWrite}
-            isCheckingOut={createCheckout.isPending}
-            onCheckout={(planSlug) => void handleCheckout(planSlug)}
+            isCheckingOut={isCheckingOut}
+            onCheckout={(planSlug) => void checkout(planSlug)}
           />
         </section>
 
         <section className="flex flex-col gap-3">
           <h2 className="text-base font-medium">{t("payments.history")}</h2>
           <BillingPaymentsTable
-            payments={paymentsQuery.data?.items ?? []}
-            isLoading={paymentsQuery.isLoading}
+            payments={payments.data?.items ?? []}
+            isLoading={payments.isLoading}
             error={
-              paymentsQuery.error instanceof Error
-                ? paymentsQuery.error
-                : paymentsQuery.error
+              payments.error instanceof Error
+                ? payments.error
+                : payments.error
                   ? new Error(t("common:loadFailed"))
                   : null
             }

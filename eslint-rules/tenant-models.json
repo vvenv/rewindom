@@ -23,6 +23,9 @@
   "todo": "tenant_id",
   "subscription": "tenant_id",
   "payment": "tenant_id",
+  "memberPlan": "tenant_id",
+  "memberSubscription": "tenant_id",
+  "memberPayment": "tenant_id",
   "bookmark": "tenant_id",
   "dashboardPreference": "tenant_id"
 }

@@ -27,9 +27,35 @@
     "empty": "No plans available",
     "customPrice": "Custom pricing",
     "perMonth": "${{price}}/mo",
-    "upgradeButton": "Upgrade",
+    "upgradeButton": "Upgrade to this plan",
     "notConfigured": "Product not configured",
-    "emptyHint": "No purchasable plans are configured yet."
+    "emptyHint": "No purchasable plans are configured yet.",
+    "heading": "Available plans",
+    "subscribeButton": "Subscribe",
+    "downgradeButton": "Switch to this plan",
+    "currentButton": "Current plan"
+  },
+  "checkout": {
+    "processing": "Payment received — activating…",
+    "activated": "{{plan}} is now active",
+    "pending": "Payment received. Activation is taking a moment — refresh this page shortly."
+  },
+  "section": {
+    "plans": {
+      "label": "Plans",
+      "display": "Display",
+      "pricePrefix": "Price prefix",
+      "priceSuffix": "Price suffix",
+      "priceSuffixInfo": "The number comes from the platform plan config — fill in only the affixes (e.g. “$” and “/mo”).",
+      "customPriceLabel": "Custom-pricing label",
+      "showDescription": "Show plan description",
+      "cta": "Button",
+      "blockLabel": "Plan card",
+      "planSlug": "Plan",
+      "badge": "Badge",
+      "badgeInfo": "Setting a badge outlines this card (e.g. “Recommended”).",
+      "features": "Highlights (one per line)"
+    }
   },
   "payments": {
     "history": "Payment history",

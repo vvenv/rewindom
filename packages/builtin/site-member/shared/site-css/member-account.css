@@ -1,24 +1,23 @@
-/**
+/*
  * 「我的账户」面板的样式 = 认证卡那一套 + 这一页多出来的东西。
  *
- * 直接把 `MEMBER_AUTH_CSS` 拼在前面，而不是让账户页去「蹭」登录页注册的那份：SSR
- * 只发本页用到的段的 CSS（`loadMarketingSiteCssFor`），而账户页上没有登录表单段——
- * 蹭来的样式在那一页根本不会被发出去，卡就裸了。
+ * 直接 @import 整份 member-auth.css（assemble 时内联进来），而不是让账户页去「蹭」
+ * 登录页注册的那份：SSR 只发本页用到的段的 CSS（`loadMarketingSiteCssFor`），而
+ * 账户页上没有登录表单段——蹭来的样式在那一页根本不会被发出去，卡就裸了。
  *
  * 版式上这一页与登录卡是两件事，差别都写在下面的注释里：登录卡是一道**关口**，
  * 居中、单列、一个落点；账户页是一份**资料**，左对齐、有身份条、有轻重之分。
  */
 
-import { MEMBER_AUTH_CSS } from "./member-auth-css.js";
+@import "./member-auth.css";
 
-export const MEMBER_ACCOUNT_CSS = `${MEMBER_AUTH_CSS}
 /* 账户页比登录卡略宽：身份条上要并排放头像、名字和退出 */
 .member-auth-card.member-account-card {
   max-width: 34rem;
 }
 /*
  * 抬头改成左对齐。居中的抬头压在左对齐的身份条上面，一张卡里两条左边缘——正是
- * member-auth-css.ts 里说的那种「最显廉价的地方」。
+ * member-auth.css 里说的那种「最显廉价的地方」。
  */
 .member-account-card .member-auth-head {
   margin-bottom: 1.25rem;
@@ -249,4 +248,3 @@ export const MEMBER_ACCOUNT_CSS = `${MEMBER_AUTH_CSS}
     width: 100%;
   }
 }
-`;

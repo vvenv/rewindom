@@ -1,3 +1,9 @@
+import {
+  PLAN_SLUGS,
+  PRICING_PLANS,
+  type PlanSlug,
+} from "../../platform/shared/pricing-plans.js";
+
 export const BILLING_PROVIDER_CREEM = "creem" as const;
 
 export const SUBSCRIPTION_STATUSES = [
@@ -21,12 +27,19 @@ export const PAYMENT_STATUSES = [
 
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
-/** 可通过自助 checkout 购买的套餐（排除 free / 议价 / 内部）。 */
-export const SELF_SERVE_PLAN_SLUGS = ["starter", "pro", "business"] as const;
+/**
+ * 可通过自助 checkout 购买的套餐 —— **从 `PRICING_PLANS` 推导**，不再另存一份。
+ *
+ * 判据就是「不是免费版、而且标了价」：`free` 不用买，`enterprise` / `ultimate`
+ * 的 `price_monthly` 是 null（议价 / 内部），自助结账付不出一个没有的价钱。
+ * 以前这里是硬编码的 `["starter","pro","business"]`，加一档套餐要改两处，
+ * 漏改的那一处不会报错，只会让新套餐在结账页上凭空消失。
+ */
+export const SELF_SERVE_PLAN_SLUGS: readonly PlanSlug[] = PLAN_SLUGS.filter(
+  (slug) => slug !== "free" && PRICING_PLANS[slug].price_monthly != null,
+);
 
-export type SelfServePlanSlug = (typeof SELF_SERVE_PLAN_SLUGS)[number];
-
-export function isSelfServePlanSlug(slug: string): slug is SelfServePlanSlug {
+export function isSelfServePlanSlug(slug: string): slug is PlanSlug {
   return (SELF_SERVE_PLAN_SLUGS as readonly string[]).includes(slug);
 }
 
@@ -69,12 +82,20 @@ export interface BillingPayment {
   updated_at: string;
 }
 
+/**
+ * 换挡方向 —— 决定按钮上写什么。
+ *
+ * `none` 是「当前没有订阅」，此时每一档都是首次开通；`current` 那一档的按钮不该
+ * 是可点的「升级」，它是用户现在正在用的东西。
+ */
+export type PlanChangeKind = "none" | "current" | "upgrade" | "downgrade";
+
 export interface BillingPlanOffer {
   plan_slug: string;
-  name: string;
   price_monthly: number | null;
-  description: string;
+  /** 套餐名与说明按 slug + 语言现取（`translatePlanName` / `planName`），不随接口下发。 */
   checkout_available: boolean;
+  change_kind: PlanChangeKind;
 }
 
 export interface CreateCheckoutBody {

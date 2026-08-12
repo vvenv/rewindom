@@ -7,6 +7,7 @@ import { marketingClientModule } from "@be-water/builtin/marketing/client/module
 import { notificationClientModule } from "@be-water/builtin/notification/client/module.js";
 import { platformClientModule } from "@be-water/builtin/platform/client/module.js";
 import { rbacClientModule } from "@be-water/builtin/rbac/client/module.js";
+import { siteBillingClientModule } from "@be-water/builtin/site-billing/client/module.js";
 import { siteMemberClientModule } from "@be-water/builtin/site-member/client/module.js";
 import { slowQueryClientModule } from "@be-water/builtin/slow-query/client/module.js";
 import { userClientModule } from "@be-water/builtin/user/client/module.js";
@@ -31,6 +32,7 @@ export const ENABLED_CLIENT_MODULES = [
   dashboardClientModule,
   marketingClientModule,
   siteMemberClientModule,
+  siteBillingClientModule,
   notificationClientModule,
   backgroundJobClientModule,
   platformClientModule,

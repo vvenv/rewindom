@@ -83,7 +83,6 @@ describe("usage.service", () => {
     const result = await getTenantUsage(TENANT_ID);
 
     expect(result.plan.slug).toBe("starter");
-    expect(result.plan.name).toBeDefined();
     expect(typeof result.plan.price_monthly).toBe("number");
   });
 

@@ -20,9 +20,7 @@ export interface TenantLimitValues {
 
 export interface PlanDefinition {
   slug: PlanSlug;
-  name: string;
   price_monthly: number | null;
-  description: string;
   shows_usage_card: boolean;
   features: Partial<TenantFeatureFlags>;
   limits: Partial<TenantLimitValues>;
@@ -31,9 +29,7 @@ export interface PlanDefinition {
 export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   free: {
     slug: "free",
-    name: "免费版",
     price_monthly: 0,
-    description: "适合个人试用",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -42,9 +38,7 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   starter: {
     slug: "starter",
-    name: "基础版",
     price_monthly: 99,
-    description: "适合小团队起步",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -53,9 +47,7 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   pro: {
     slug: "pro",
-    name: "专业版",
     price_monthly: 399,
-    description: "适合成长期团队",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -64,9 +56,7 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   business: {
     slug: "business",
-    name: "商业版",
     price_monthly: 999,
-    description: "适合中大型企业",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -75,9 +65,7 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   enterprise: {
     slug: "enterprise",
-    name: "企业版",
     price_monthly: null,
-    description: "大客户定制方案，联系销售",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -86,9 +74,7 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   ultimate: {
     slug: "ultimate",
-    name: "终极版",
     price_monthly: null,
-    description: "内部租户，无用量限制",
     shows_usage_card: false,
     features: {},
     limits: {
@@ -111,21 +97,12 @@ export function isValidPlanSlug(slug: string): slug is PlanSlug {
   return slug in PRICING_PLANS;
 }
 
-export function formatPlanChangeAuditDetails(
-  tenantSlug: string,
-  before: { plan: string; plan_ends_at: string | null },
-  after: { plan: string; plan_ends_at: string | null },
-): string {
-  const parts = [`tenant=${tenantSlug}`];
-  if (before.plan !== after.plan) {
-    const beforeName = getPlanBySlug(before.plan)?.name ?? before.plan;
-    const afterName = getPlanBySlug(after.plan)?.name ?? after.plan;
-    parts.push(`套餐=${beforeName}→${afterName}`);
-  }
-  if (before.plan_ends_at !== after.plan_ends_at) {
-    parts.push(
-      `到期=${after.plan_ends_at ? after.plan_ends_at.slice(0, 10) : "不限"}`,
-    );
-  }
-  return parts.join("，");
+/** 价格高低即套餐高低；未定价（enterprise / ultimate）排在最后。 */
+export function comparePlanRank(a: string, b: string): number {
+  const priceA = getPlanBySlug(a)?.price_monthly;
+  const priceB = getPlanBySlug(b)?.price_monthly;
+  if (priceA == null && priceB == null) return 0;
+  if (priceA == null) return 1;
+  if (priceB == null) return -1;
+  return priceA - priceB;
 }

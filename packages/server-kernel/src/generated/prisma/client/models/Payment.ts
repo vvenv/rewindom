@@ -305,7 +305,7 @@ export type PaymentOrderByWithRelationInput = {
 
 export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  provider_provider_order_id?: Prisma.PaymentProviderProvider_order_idCompoundUniqueInput
+  tenant_id_provider_provider_order_id?: Prisma.PaymentTenant_idProviderProvider_order_idCompoundUniqueInput
   AND?: Prisma.PaymentWhereInput | Prisma.PaymentWhereInput[]
   OR?: Prisma.PaymentWhereInput[]
   NOT?: Prisma.PaymentWhereInput | Prisma.PaymentWhereInput[]
@@ -322,7 +322,7 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   raw_event?: Prisma.JsonNullableFilter<"Payment">
   created_at?: Prisma.DateTimeFilter<"Payment"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Payment"> | Date | string
-}, "id" | "provider_provider_order_id">
+}, "id" | "tenant_id_provider_provider_order_id">
 
 export type PaymentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -485,7 +485,8 @@ export type PaymentUncheckedUpdateManyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type PaymentProviderProvider_order_idCompoundUniqueInput = {
+export type PaymentTenant_idProviderProvider_order_idCompoundUniqueInput = {
+  tenant_id: string
   provider: string
   provider_order_id: string
 }

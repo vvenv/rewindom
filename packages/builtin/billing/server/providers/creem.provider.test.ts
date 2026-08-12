@@ -38,7 +38,7 @@ describe("CreemProvider", () => {
     });
 
     const { CreemProvider } = await import("./creem.provider.js");
-    const provider = new CreemProvider();
+    const provider = new CreemProvider({ apiKey: "test_key", server: "test" });
     const result = await provider.createCheckout({
       product_id: "prod_starter",
       success_url: "http://localhost:7300/app/billing",
@@ -53,7 +53,7 @@ describe("CreemProvider", () => {
 
   it("rejects non-prod_ product ids before calling Creem", async () => {
     const { CreemProvider } = await import("./creem.provider.js");
-    const provider = new CreemProvider();
+    const provider = new CreemProvider({ apiKey: "test_key", server: "test" });
     await expect(
       provider.createCheckout({
         product_id: "starter",
@@ -71,7 +71,7 @@ describe("CreemProvider", () => {
     });
 
     const { CreemProvider } = await import("./creem.provider.js");
-    const provider = new CreemProvider();
+    const provider = new CreemProvider({ apiKey: "test_key", server: "test" });
     const result = await provider.cancelSubscription({
       provider_subscription_id: "sub_1",
       mode: "scheduled",

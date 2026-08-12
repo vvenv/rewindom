@@ -64,7 +64,21 @@ export const SERVER_MODULE_MANIFEST = [
   {
     id: "billing",
     kind: "business",
-    requires: ["rbac", "audit", "platform"],
+    // marketing：把「套餐」段的渲染器填进它的段注册表（marketing 不反向依赖）
+    requires: ["rbac", "audit", "platform", "marketing"],
+  },
+  {
+    id: "site-billing",
+    kind: "business",
+    // billing：只借它的支付通道抽象（`createCreemProvider`），两个领域各收各的钱
+    requires: [
+      "rbac",
+      "audit",
+      "platform",
+      "marketing",
+      "site-member",
+      "billing",
+    ],
   },
   // 外部模块（modules/*）的 manifest 条目由 `pnpm gen:external-modules` 自动注入
   {

@@ -10,7 +10,6 @@ describe("pricing-plans", () => {
   it("defines ultimate plan with unlimited limits and hidden usage card", () => {
     const ultimate = PRICING_PLANS.ultimate;
 
-    expect(ultimate.name).toBe("终极版");
     expect(ultimate.shows_usage_card).toBe(false);
     expect(ultimate.limits.max_users).toBeNull();
   });

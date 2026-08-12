@@ -7,6 +7,7 @@ import { marketingServerModule } from "@be-water/builtin/marketing/server/index.
 import { notificationServerModule } from "@be-water/builtin/notification/server/index.js";
 import { platformServerModule } from "@be-water/builtin/platform/server/index.js";
 import { rbacServerModule } from "@be-water/builtin/rbac/server/index.js";
+import { siteBillingServerModule } from "@be-water/builtin/site-billing/server/index.js";
 import { siteMemberServerModule } from "@be-water/builtin/site-member/server/index.js";
 import { slowQueryServerModule } from "@be-water/builtin/slow-query/server/index.js";
 import { userServerModule } from "@be-water/builtin/user/server/index.js";
@@ -28,6 +29,7 @@ export const ENABLED_SERVER_MODULES = [
   marketingServerModule,
   siteMemberServerModule,
   billingServerModule,
+  siteBillingServerModule,
   // 外部模块（modules/*）由 `pnpm gen:external-modules` 生成
   ...EXTERNAL_SERVER_MODULES,
 ] as const satisfies readonly ServerAppModule[];

@@ -138,6 +138,11 @@ export const AuditAction = {
   BILLING_CHECKOUT_CREATE: "BILLING_CHECKOUT_CREATE",
   BILLING_SUBSCRIPTION_CANCEL: "BILLING_SUBSCRIPTION_CANCEL",
   BILLING_WEBHOOK_SYNC: "BILLING_WEBHOOK_SYNC",
+  SITE_BILLING_PLAN_CREATE: "SITE_BILLING_PLAN_CREATE",
+  SITE_BILLING_PLAN_UPDATE: "SITE_BILLING_PLAN_UPDATE",
+  SITE_BILLING_PLAN_DELETE: "SITE_BILLING_PLAN_DELETE",
+  SITE_BILLING_PROVIDER_UPDATE: "SITE_BILLING_PROVIDER_UPDATE",
+  SITE_BILLING_WEBHOOK_SYNC: "SITE_BILLING_WEBHOOK_SYNC",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -271,6 +276,11 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.BILLING_CHECKOUT_CREATE]: "创建付款结账",
   [AuditAction.BILLING_SUBSCRIPTION_CANCEL]: "取消订阅",
   [AuditAction.BILLING_WEBHOOK_SYNC]: "同步付款 webhook",
+  [AuditAction.SITE_BILLING_PLAN_CREATE]: "新建会员套餐",
+  [AuditAction.SITE_BILLING_PLAN_UPDATE]: "修改会员套餐",
+  [AuditAction.SITE_BILLING_PLAN_DELETE]: "删除会员套餐",
+  [AuditAction.SITE_BILLING_PROVIDER_UPDATE]: "更新会员收款通道",
+  [AuditAction.SITE_BILLING_WEBHOOK_SYNC]: "同步会员付费 webhook",
 };
 
 export function getAuditActionLabel(action: AuditActionType): string {
@@ -380,6 +390,16 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.BILLING_CHECKOUT_CREATE,
       AuditAction.BILLING_SUBSCRIPTION_CANCEL,
       AuditAction.BILLING_WEBHOOK_SYNC,
+    ],
+  },
+  {
+    label: "会员付费",
+    actions: [
+      AuditAction.SITE_BILLING_PLAN_CREATE,
+      AuditAction.SITE_BILLING_PLAN_UPDATE,
+      AuditAction.SITE_BILLING_PLAN_DELETE,
+      AuditAction.SITE_BILLING_PROVIDER_UPDATE,
+      AuditAction.SITE_BILLING_WEBHOOK_SYNC,
     ],
   },
 ] as const;
