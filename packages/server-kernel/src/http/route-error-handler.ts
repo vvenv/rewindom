@@ -3,8 +3,6 @@
  * Standardized error logging and response functions
  */
 
-import { success, type ImportPreviewResult } from "@be-water/shared";
-
 import { AppError, hasErrorCode } from "../lib/app-errors.js";
 
 import {
@@ -57,26 +55,6 @@ export function handleValidationError(
   params?: CodedErrorParams,
 ): void {
   reply.code(400).send(resolveMessageOrCode(reply, messageOrCode, errorCode, params));
-}
-
-export function handleImportValidationError(
-  reply: FastifyReply,
-  preview: ImportPreviewResult,
-): void {
-  reply.code(400).send(success(preview));
-}
-
-export function getImportValidationErrors(
-  err: unknown,
-): ImportPreviewResult["errors"] | undefined {
-  if (
-    err instanceof Error &&
-    "validationErrors" in err &&
-    Array.isArray(err.validationErrors)
-  ) {
-    return err.validationErrors as ImportPreviewResult["errors"];
-  }
-  return undefined;
 }
 
 /**

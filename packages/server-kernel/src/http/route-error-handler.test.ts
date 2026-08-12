@@ -3,8 +3,6 @@ import { describe, it, expect, vi } from "vitest";
 import {
   handleRouteError,
   handleValidationError,
-  handleImportValidationError,
-  getImportValidationErrors,
   handleNotFoundError,
   handleForbiddenError,
 } from "./route-error-handler.js";
@@ -106,50 +104,6 @@ describe("handleValidationError", () => {
       error: "Invalid input",
       code: "INVALID_INPUT",
     });
-  });
-});
-
-describe("handleImportValidationError", () => {
-  it("sends 400 with the preview result", () => {
-    const reply = makeMockReply();
-    const preview = {
-      errors: [{ row: 1, message: "bad row" }],
-      warnings: [],
-      summary: { total: 1, valid: 0, invalid: 1 },
-    };
-
-    handleImportValidationError(reply, preview as never);
-
-    expect(reply.code).toHaveBeenCalledWith(400);
-    expect(reply.send).toHaveBeenCalledWith(
-      expect.objectContaining({ data: preview }),
-    );
-  });
-});
-
-describe("getImportValidationErrors", () => {
-  it("returns validation errors when present on the error", () => {
-    const err = Object.assign(new Error("val error"), {
-      validationErrors: [{ row: 1, message: "bad" }],
-    });
-
-    const result = getImportValidationErrors(err);
-
-    expect(result).toEqual([{ row: 1, message: "bad" }]);
-  });
-
-  it("returns undefined for non-Error values", () => {
-    expect(getImportValidationErrors("string")).toBeUndefined();
-    expect(getImportValidationErrors(null)).toBeUndefined();
-  });
-
-  it("returns undefined when validationErrors is not an array", () => {
-    const err = Object.assign(new Error("e"), { validationErrors: "oops" });
-    expect(getImportValidationErrors(err)).toBeUndefined();
-  });
-
-  it("returns undefined when validationErrors is absent", () => {
-    expect(getImportValidationErrors(new Error("plain"))).toBeUndefined();
   });
 });
 

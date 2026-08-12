@@ -1,5 +1,6 @@
 export * from "./platform-admin.js";
 export * from "./platform-settings.js";
+export * from "./backup.js";
 export * from "./usage.js";
 export * from "./auth.js";
 export * from "./tenant.js";

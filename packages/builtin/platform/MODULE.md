@@ -46,6 +46,27 @@
 **新增一种布局**：`SHELL_LAYOUTS` 追加一项 + 在 `AppShellFrame` 加一个分支。
 两处配置 UI 都从注册表渲染，本模块无需改动。
 
+## 数据备份与还原
+
+整库级别（`pg_dump -Fc` / `pg_restore`），入口在平台设置页底部的 `PlatformBackupCard`。
+备份与还原都是后台任务：接口只回 `job_id`，进度与下载按钮都在任务中心。
+
+| 方法 | 路径                                          | 作用                             |
+| ---- | --------------------------------------------- | -------------------------------- |
+| POST | `/api/platform/database-backup`               | 发起整库备份任务                 |
+| POST | `/api/platform/backup/jobs/:job_id/download-token` | 换一次性下载令牌            |
+| GET  | `/api/platform/backup/jobs/:job_id/download`  | 下载 dump（可用令牌免登录）      |
+| GET  | `/api/platform/restore/local-candidates`      | 列白名单目录下的可还原文件       |
+| POST | `/api/platform/restore/local`                 | 用服务器上已有文件还原           |
+| POST | `/api/platform/restore`                       | 上传 dump 文件还原（multipart）  |
+
+- 任务标题前缀（`DATABASE_BACKUP_TASK_TITLE_PREFIX` / `DATABASE_RESTORE_TASK_TITLE_PREFIX`）
+  决定任务中心是否给该任务显示下载按钮，改文案会连带影响那个判断
+- 本地还原只接受 `DATABASE_RESTORE_LOCAL_PATHS` 白名单目录内的绝对路径，服务端用
+  `realpath` 复核，防目录穿越
+- 还原会先 `DROP SCHEMA public CASCADE`，因此前端强制走 `destructive` 二次确认
+- 上传前只按 `.dump` 扩展名预检；最终以文件头魔数（`PGDMP`）为准
+
 ## 目录结构（server）
 
 ```
