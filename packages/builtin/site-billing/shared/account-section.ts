@@ -4,11 +4,16 @@
  * 钉在 `member_billing` 模板页上（`page_kinds`）：它读的是当前会员的订阅，摆到官网
  * 某张普通页面中间要么什么都渲染不出，要么在公开页上露出别人的账单入口。
  *
- * 与会员账户页同一套做派：真 `<form method="post">`，取消订阅不依赖 JS。
+ * 外壳与登录 / 账户同一套（`memberCardSettings` + `memberPageLayoutSettings`）：访客
+ * 从账户菜单点进来，不该突然掉进一张无边宽页。真 `<form method="post">`，取消订阅
+ * 不依赖 JS。
  */
 
 import { headingSettings } from "../../marketing/shared/sections/_common/settings.js";
-
+import {
+  memberCardSettings,
+  memberPageLayoutSettings,
+} from "../../site-member/shared/member-page-settings.js";
 
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 
@@ -63,5 +68,7 @@ export const memberBillingAccountSection: SectionDefinition = {
       label: "site-billing:section.account.paymentsEmpty",
       default: "No payments yet.",
     },
+    ...memberCardSettings(),
+    ...memberPageLayoutSettings(),
   ],
 };

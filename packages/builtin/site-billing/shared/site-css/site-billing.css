@@ -5,10 +5,16 @@
  *（`registerSiteSectionHtml` / `registerSiteSectionView` 的 `css` 选项），由
  * marketing 拼在官网 CSS 末尾。
  *
+ * 订阅页（`site-billing.account`）与登录 / 账户共用 `member-auth-card` 外壳——
+ * @import 把认证卡样式打进本包产物，SSR 只发本段 CSS 时卡也不会裸。套餐段
+ *（`site-billing.plans`）仍是营销页上的网格，与认证卡无关。
+ *
  * 只用 marketing 已有的 token，换主题时跟着变。套餐卡刻意与 `billing.plans` 用
  * **不同的 class 前缀**（`mplan-` vs `plan-`）：两个段可以出现在同一张页面上，
  * 共用 class 会让改其中一段的样式悄悄改到另一段。
  */
+
+@import "../../../site-member/shared/site-css/member-auth.css";
 
 .mplan-grid {
   display: grid;
@@ -39,8 +45,8 @@
   font-weight: 500;
 }
 /*
- * 「管理订阅」嵌在状态句里，不是第二颗按钮，也不是强调色下划线。
- * 字色略退一档，hover 回到实色——与会员菜单行、账户页次要入口同一「静音可点」口径。
+ * 「管理订阅」嵌在状态句里，不是第二颗按钮。
+ * 字色略退一档，hover 回到实色——静音可点。
  */
 .mplan-card .mplan-manage {
   margin-left: .5rem;
@@ -55,26 +61,78 @@
 .mplan-card .btn { width: 100%; text-align: center; }
 .mplan-card p { margin: 0; }
 
-.mbill-panel {
-  display: grid;
-  gap: 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
+/* 订阅页比登录卡略宽：套餐字段 + 付款表要并排得开 */
+.member-auth-card.member-billing-card {
+  max-width: 34rem;
 }
-.mbill-panel dl {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: .75rem 1.5rem;
+.member-billing-card .member-auth-head {
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+.member-auth-card > .member-auth-error,
+.member-auth-card > .member-auth-notice {
+  margin: 0 0 1.25rem;
+}
+.member-auth-notice {
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--fg);
+  font-size: .875rem;
+  padding: .5rem .75rem;
   margin: 0;
 }
-.mbill-panel dt { color: var(--muted-fg); font-size: .85rem; }
-.mbill-panel dd { margin: 0; font-weight: 500; }
-.mbill-panel .mbill-hint { color: var(--muted-fg); font-size: .85rem; }
-.mbill-panel p { margin: 0; }
 
-.mbill-payments { margin-top: 1.5rem; }
-.mbill-payments h3 { font-size: 1rem; margin: 0 0 .75rem; }
+/* 订阅字段：与账户页 meta 同骨架（本段 CSS 自带，不依赖账户页是否在同一请求里） */
+.member-account-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem 1rem;
+  margin: 0 0 1.5rem;
+}
+.member-account-meta > div {
+  min-width: 0;
+}
+.member-account-meta dt {
+  font-size: .75rem;
+  line-height: 1.4;
+  color: var(--muted-fg);
+}
+.member-account-meta dd {
+  margin: .1875rem 0 0;
+  font-size: .875rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.mbill-meta {
+  margin: 0 0 1.25rem;
+}
+.member-account-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: .25rem;
+}
+.member-billing-card .member-account-actions {
+  margin: 0 0 .75rem;
+  justify-content: flex-start;
+}
+.member-billing-card .member-account-actions .btn {
+  width: auto;
+}
+
+.mbill-hint { color: var(--muted-fg); font-size: .85rem; margin: 0; }
+
+.mbill-payments {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+.mbill-payments .member-account-block-title {
+  display: block;
+  margin: 0 0 .75rem;
+  font-size: .9375rem;
+  font-weight: 600;
+}
 .mbill-payments .table-wrap { overflow-x: auto; }
 .mbill-payments table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .mbill-payments th,
@@ -85,11 +143,12 @@
 }
 .mbill-payments th { color: var(--muted-fg); font-weight: 500; }
 
-/* 提交结果：与会员账户页的提示条同一副长相 */
+/* 套餐段上的提交结果（不在认证卡里） */
 .mbill-alert {
   border-radius: var(--radius);
   padding: .75rem 1rem;
   font-size: .9rem;
+  margin: 0 0 1rem;
 }
 .mbill-alert.error {
   background: color-mix(in srgb, var(--danger, #d33) 10%, transparent);

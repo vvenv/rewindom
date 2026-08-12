@@ -31,7 +31,7 @@
 | 项 | type / kind | 落脚点 |
 | --- | --- | --- |
 | 会员套餐 | `site-billing.plans` | 任意页面（定价页通常不是会员页） |
-| 我的订阅与付款 | `site-billing.account` | 只在 `member_billing` 模板页上（`page_kinds`） |
+| 我的订阅与付款 | `site-billing.account` | 只在 `member_billing` 模板页上（`page_kinds`）；外壳与登录 / 账户共用 `member-auth-card`（`memberCardSettings` + narrow 版式） |
 | 模板页 | `member_billing` → `/member/billing` | 必备段是 `site-billing.account`，编辑器不给删；中台分组复用 site-member 的 `MEMBER_PAGE_TEMPLATE_GROUP`（「会员页版式」），不另开一组 |
 
 ## 访客入口
