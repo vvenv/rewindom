@@ -102,15 +102,21 @@ interface SectionTreeProps {
   ) => void;
 }
 
+/** 编辑器里三棵互不相干的 section 树。 */
+type EditorTree = "page" | "header" | "footer";
+
 /**
  * 正在拖的行。
  *
  * section 与 block 的搬移规矩不同，所以分开：block 认死 `listId`（一个 `card`
  * 换不到 `faq` 段上去，它的 schema 属于所在 section），section 则可以跨层——
- * 页面顶层 ⇄ 分栏的列，规矩见 `moveSectionTo`。
+ * 同一棵树里的顶层 ⇄ 分栏的列，规矩见 `moveSectionTo`。
+ *
+ * section 记 `tree`：跨树搬移会把那一段搬丢（先摘后插，插的那步落空），所以拖起来
+ * 的那一刻就得知道自己是从哪棵树出发的。
  */
 type DragState =
-  | { kind: "section"; id: string; container: boolean }
+  | { kind: "section"; id: string; tree: EditorTree; container: boolean }
   | { kind: "block"; id: string; listId: string };
 
 /**
@@ -144,23 +150,33 @@ export function SectionTree({
   const [drag, setDrag] = useState<DragState | null>(null);
   const [drop, setDrop] = useState<TreeRowDnd["drop"]>(null);
 
+  /** 同屏三棵互不相干的树：页面区块、页头区、页脚区。 */
+  const treeOf = (tree: EditorTree): SiteSection[] =>
+    tree === "header" ? header : tree === "footer" ? footer : sections;
+
   /**
-   * 拖着的这一段能不能落到某个「页面区块」落点上。
+   * 拖着的这一段能不能落到某个落点上。
    *
-   * `targetId` 为 null = 落到空列上（那儿没有行可瞄）。三条规矩与 `moveSectionTo`
+   * `targetId` 为 null = 落到空列上（那儿没有行可瞄）。规矩与 `moveSectionTo`
    * 一致，UI 先拦一道：落不下去（光标显示禁止）比落下去被静默丢弃清楚。
+   *
+   * `tree` 是**落点**所在的那棵树。跨树一律不接：搬移是「先摘后插」，摘的是源树、
+   * 插的是目标树，两边不是同一棵时插不进去，那一段就没了。分栏段放行页脚之后，
+   * 「把页面上的一段拖进页脚分栏的空列」是一下点得到的操作，不拦就是删数据。
    */
   const acceptsSection = (
+    tree: EditorTree,
     targetId: string | null,
     inColumn: boolean,
   ): boolean => {
     if (drag?.kind !== "section") return false;
+    if (drag.tree !== tree) return false;
     // 嵌套只允许一层：容器段进不了列
     if (inColumn && drag.container) return false;
     if (targetId === null) return true;
     if (targetId === drag.id) return false;
     // 落点在自己的子树里：搬完自己就没地方挂了
-    return !findSectionPath(sections, targetId).includes(drag.id);
+    return !findSectionPath(treeOf(tree), targetId).includes(drag.id);
   };
 
   /**
@@ -267,6 +283,7 @@ export function SectionTree({
       </GroupLabel>
       {list.map((section, index) =>
         renderSection(section, {
+          tree: area,
           index,
           total: list.length,
           // 本体是这个区域自己，别让它被删掉或挪走
@@ -296,6 +313,8 @@ export function SectionTree({
   const renderSection = (
     section: SiteSection,
     options: {
+      /** 这一行长在哪棵树上（页面 / 页头 / 页脚）——拖放不跨树。 */
+      tree: EditorTree;
       index?: number;
       total?: number;
       removable: boolean;
@@ -349,8 +368,14 @@ export function SectionTree({
             enabled: options.movable,
             // 页头页脚不在页面区块那棵树上，别人落不到它旁边
             accepts:
-              options.movable && acceptsSection(section.id, options.inColumn),
-            start: () => ({ kind: "section", id: section.id, container }),
+              options.movable &&
+              acceptsSection(options.tree, section.id, options.inColumn),
+            start: () => ({
+              kind: "section",
+              id: section.id,
+              tree: options.tree,
+              container,
+            }),
             // 同层换位也走这条：摘掉再插回目标旁边，本来就是「同层换位」的定义
             commit: (sourceId, place) =>
               onMoveSectionTo(sourceId, {
@@ -413,6 +438,7 @@ export function SectionTree({
                     <div className="ml-4 border-l pl-2">
                       {block.sections.map((child, childIndex) =>
                         renderSection(child, {
+                          tree: options.tree,
                           index: childIndex,
                           total: block.sections?.length,
                           removable: child.type !== requiredSectionType,
@@ -425,7 +451,7 @@ export function SectionTree({
                         是两个空列，「拖进分栏」最常见的一下就落在这儿。
                       */}
                       {block.sections.length === 0 &&
-                      acceptsSection(null, true) ? (
+                      acceptsSection(options.tree, null, true) ? (
                         <ColumnDropZone
                           columnBlockId={block.id}
                           active={drop?.id === block.id}
@@ -513,6 +539,7 @@ export function SectionTree({
 
           {sections.map((section, index) =>
             renderSection(section, {
+              tree: "page",
               index,
               total: sections.length,
               removable: section.type !== requiredSectionType,

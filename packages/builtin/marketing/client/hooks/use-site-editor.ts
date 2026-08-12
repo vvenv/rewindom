@@ -26,6 +26,7 @@ import {
   addBlock,
   addSectionToColumn,
   findSection,
+  hasColumnBlock,
   moveBlock,
   moveSection,
   moveSectionTo,
@@ -372,6 +373,19 @@ export function useSiteEditor(pageId: string | undefined) {
     return null;
   };
 
+  /**
+   * 分栏的某一列落在哪一串里。
+   *
+   * 分栏段现在页面和页脚都能放，「往列里加一段」于是不能再写死改页面那一串——
+   * 那样往页脚分栏里加东西会静默落空（`appendToColumn` 找不到列就原样返回）。
+   */
+  const areaOfColumn = (columnBlockId: string): EditorArea | "page" | null => {
+    if (hasColumnBlock(header, columnBlockId)) return "header";
+    if (hasColumnBlock(footer, columnBlockId)) return "footer";
+    if (hasColumnBlock(sections, columnBlockId)) return "page";
+    return null;
+  };
+
   const selectedSection: SiteSection | null = selectedSectionId
     ? (findSection(sections, selectedSectionId) ??
       findSection(header, selectedSectionId) ??
@@ -485,7 +499,9 @@ export function useSiteEditor(pageId: string | undefined) {
     /** 往页面末尾 / 某一列 / 页头页脚区加一段。 */
     addSection: (type: SectionType, target: AddSectionTarget): void => {
       if (target.kind === "column") {
-        setSections((s) => {
+        const area = areaOfColumn(target.columnBlockId);
+        if (area === null) return;
+        setterFor(area)((s) => {
           const { sections: next, created } = addSectionToColumn(
             s,
             target.columnBlockId,

@@ -34,7 +34,13 @@ export interface PageTemplateKindDefinition {
    * 「所有文档详情」，中台拿它显示「这一页管的是哪一段地址」。
    */
   path: string;
-  /** 中台页面列表里的分组标题（i18n key，贡献方用带命名空间的 key）。 */
+  /**
+   * 中台常驻模板区的分组标题（i18n key，贡献方用带命名空间的 key）。
+   *
+   * **同一 key = 同一组**：跨模块贡献的模板若同属一个产品概念（如全部 `/member/*`），
+   * 必须共用这一个 key，由概念归属方持有文案；各写一份「碰巧相同」的文案会在中台
+   * 渲染出两个同名分组。
+   */
   group: string;
   /** 这张模板页的名字（i18n key）。 */
   label: string;

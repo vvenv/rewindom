@@ -50,7 +50,8 @@
   "entry": {
     "login": "登录",
     "account": "我的账户",
-    "menu": "账户菜单"
+    "menu": "账户菜单",
+    "links": "账户入口"
   },
   "gate": {
     "title": "该内容需要登录后查看",

@@ -24,7 +24,12 @@ import {
 
 import type { SectionType } from "../../../shared/section-schema.js";
 
-/** 图标是纯展示层关注点，不进 shared schema。 */
+/**
+ * 图标是纯展示层关注点，不进 shared schema。
+ *
+ * 内置段写在这里；贡献段经 `registerSectionIcon`（由 `registerSiteSectionView`
+ * 的 `icon` 选项触发）填进来——marketing 不该硬编码业务模块的 type。
+ */
 export const SECTION_ICONS: Partial<Record<SectionType, LucideIcon>> = {
   header: PanelTop,
   footer: PanelBottom,
@@ -42,6 +47,14 @@ export const SECTION_ICONS: Partial<Record<SectionType, LucideIcon>> = {
   // 这份代码不认识的段：树上要看得见、能选中、能删，所以给它一个明确的警示图标
   unsupported: TriangleAlert,
 };
+
+/** 贡献段登记左侧树图标；同 type 覆盖。 */
+export function registerSectionIcon(
+  type: SectionType,
+  icon: LucideIcon,
+): void {
+  SECTION_ICONS[type] = icon;
+}
 
 export const BLOCK_ICONS: Record<string, LucideIcon> = {
   column: RectangleVertical,

@@ -55,6 +55,37 @@ function isEnglish(): boolean {
   return pageLocale() === "en";
 }
 
+interface MenuLink {
+  href: string;
+  label: string;
+}
+
+/**
+ * SSR 在账户入口旁埋的贡献链接（见 `renderMemberMenuLinksJsonScript`）。
+ * 升级菜单时读它，避免 enhance 写死 `/member/billing` 这类业务路径。
+ */
+function contributedMenuLinks(): MenuLink[] {
+  const node = document.getElementById("member-menu-links");
+  if (!node?.textContent) return [];
+  try {
+    const parsed: unknown = JSON.parse(node.textContent);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap((item) => {
+      if (
+        item &&
+        typeof item === "object" &&
+        typeof (item as MenuLink).href === "string" &&
+        typeof (item as MenuLink).label === "string"
+      ) {
+        return [item as MenuLink];
+      }
+      return [];
+    });
+  } catch {
+    return [];
+  }
+}
+
 function menuHtml(member: MemberProfile): string {
   const name = escapeHtml(displayName(member));
   const email = escapeHtml(member.email);
@@ -63,6 +94,13 @@ function menuHtml(member: MemberProfile): string {
   const accountLabel = isEnglish() ? "Account" : "账户";
   const logoutLabel = isEnglish() ? "Log out" : "退出登录";
   const menuLabel = isEnglish() ? "Account" : "账户菜单";
+  const extra = contributedMenuLinks()
+    .map(
+      (link) =>
+        `<a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a>`,
+    )
+    .join("\n    ");
+  const extraBlock = extra ? `\n    ${extra}` : "";
   return `<details class="member-menu">
   <summary aria-label="${menuLabel}">
     <span class="member-avatar" aria-hidden>${avatar}</span>
@@ -76,7 +114,7 @@ function menuHtml(member: MemberProfile): string {
         ${showEmail ? `<span class="muted">${email}</span>` : ""}
       </div>
     </div>
-    <a href="/member/account">${accountLabel}</a>
+    <a href="/member/account">${accountLabel}</a>${extraBlock}
     <button type="button" data-member-logout>${logoutLabel}</button>
   </div>
 </details>`;

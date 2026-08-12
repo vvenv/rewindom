@@ -31,6 +31,15 @@ import {
 
 import type { PagePreset } from "../../marketing/shared/page-presets.types.js";
 
+/**
+ * 中台「会员页版式」分组。
+ *
+ * 所有 `/member/*` 模板页共用这一 key——登录 / 注册 / 账户由本模块登记，订阅页由
+ * `site-billing`（`requires: site-member`）复用。分组身份是 key，不是各模块各写一份
+ * 碰巧同名的文案。
+ */
+export const MEMBER_PAGE_TEMPLATE_GROUP = "site-member:template.group";
+
 /** 固定 slug：kind 决定地址，租户改不了（改了会员就找不到登录页了）。 */
 export const MEMBER_LOGIN_TEMPLATE_SLUG = "member-login";
 export const MEMBER_REGISTER_TEMPLATE_SLUG = "member-register";
@@ -128,7 +137,7 @@ export function registerMemberPageTemplates(): void {
     kind: MEMBER_LOGIN_PAGE_KIND,
     slug: MEMBER_LOGIN_TEMPLATE_SLUG,
     path: MEMBER_LOGIN_PATH,
-    group: "site-member:template.group",
+    group: MEMBER_PAGE_TEMPLATE_GROUP,
     label: "site-member:template.login.label",
     required_section: MEMBER_LOGIN_FORM_SECTION_TYPE,
   });
@@ -136,7 +145,7 @@ export function registerMemberPageTemplates(): void {
     kind: MEMBER_REGISTER_PAGE_KIND,
     slug: MEMBER_REGISTER_TEMPLATE_SLUG,
     path: MEMBER_REGISTER_PATH,
-    group: "site-member:template.group",
+    group: MEMBER_PAGE_TEMPLATE_GROUP,
     label: "site-member:template.register.label",
     required_section: MEMBER_REGISTER_FORM_SECTION_TYPE,
   });
@@ -152,7 +161,7 @@ export function registerMemberPageTemplates(): void {
     kind: MEMBER_ACCOUNT_PAGE_KIND,
     slug: MEMBER_ACCOUNT_TEMPLATE_SLUG,
     path: MEMBER_ACCOUNT_PATH,
-    group: "site-member:template.group",
+    group: MEMBER_PAGE_TEMPLATE_GROUP,
     label: "site-member:template.account.label",
     required_section: MEMBER_ACCOUNT_PANEL_SECTION_TYPE,
   });

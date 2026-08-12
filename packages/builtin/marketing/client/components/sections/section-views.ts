@@ -16,6 +16,7 @@ import {
   type SectionDefinition,
   type SectionType,
 } from "../../../shared/section-schema.js";
+import { registerSectionIcon } from "../theme-editor/section-icons.js";
 
 import { BandSection } from "./views/band.js";
 import { DocArticleSection } from "./views/doc-article.js";
@@ -30,6 +31,7 @@ import { PageMenuSection } from "./views/page-menu.js";
 import { ProseSection } from "./views/prose.js";
 
 import type { SectionViewProps } from "./section-parts.js";
+import type { LucideIcon } from "lucide-react";
 
 export const SECTION_VIEWS: Partial<
   Record<SectionType, ComponentType<SectionViewProps>>
@@ -62,10 +64,15 @@ export const SECTION_VIEWS: Partial<
 export function registerSiteSectionView(
   definition: SectionDefinition,
   view: ComponentType<SectionViewProps>,
-  /** 与 SSR 侧传同一份 CSS：编辑器预览注入的是同一个 `loadMarketingSiteCss()`。 */
-  options: { css?: string } = {},
+  options: {
+    /** 与 SSR 侧传同一份 CSS：编辑器预览注入的是同一个 `loadMarketingSiteCss()`。 */
+    css?: string;
+    /** 左侧区块树图标；不传则树上这一行没有 icon。 */
+    icon?: LucideIcon;
+  } = {},
 ): void {
   registerSectionDefinition(definition);
   SECTION_VIEWS[definition.type] = view;
   if (options.css) registerSectionCss(definition.type, options.css);
+  if (options.icon) registerSectionIcon(definition.type, options.icon);
 }

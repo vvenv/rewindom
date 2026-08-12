@@ -10,6 +10,7 @@ import {
   memberDisplayName,
   memberInitials,
 } from "../../shared/member-identity.js";
+import { listMemberMenuLinks } from "../../shared/member-menu-links.js";
 import { memberCardClass } from "../../shared/member-page-settings.js";
 
 import type { SectionViewProps } from "../../../marketing/client/components/sections/section-parts.js";
@@ -99,11 +100,12 @@ function PreviewForm({
  * 就是——让预览默认展开，改完文案发布出去才发现线上是折叠的，那才是坑。
  */
 function AccountPanelPreview({ section }: SectionViewProps): ReactElement {
-  const { t } = useTranslation("site-member");
+  const { t, i18n } = useTranslation("site-member");
   const s = section.settings;
   const heading = settingText(s, "heading");
   const subheading = settingText(s, "subheading");
   const passwordDesc = settingText(s, "password_desc");
+  const contributedLinks = listMemberMenuLinks();
 
   const sample = {
     display_name: t("editor.accountSample.displayName"),
@@ -139,6 +141,19 @@ function AccountPanelPreview({ section }: SectionViewProps): ReactElement {
           </button>
         </form>
       </div>
+      {contributedLinks.length > 0 ? (
+        <nav className="member-account-links" aria-label={t("entry.links")}>
+          {contributedLinks.map((link) => (
+            <a key={link.id} href={link.href}>
+              {link.label_key
+                ? i18n.t(link.label_key)
+                : (link.labels[
+                    i18n.language as keyof typeof link.labels
+                  ] ?? link.labels["zh-CN"])}
+            </a>
+          ))}
+        </nav>
+      ) : null}
       {settingBool(s, "show_meta") ? (
         <dl className="member-account-meta">
           <div>

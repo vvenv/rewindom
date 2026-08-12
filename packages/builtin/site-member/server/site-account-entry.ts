@@ -3,6 +3,10 @@ import {
   memberDisplayName,
   memberInitials,
 } from "../shared/member-identity.js";
+import {
+  renderMemberMenuLinksHtml,
+  renderMemberMenuLinksJsonScript,
+} from "../shared/member-menu-links.js";
 
 import type { SiteMemberSsrProfile } from "../../marketing/server/site-member-ssr-session.js";
 import type { AppLocale } from "@be-water/shared";
@@ -44,7 +48,7 @@ function escapeHtml(value: string): string {
 /** 与 `SiteMemberEntry` 未登录态同一份 class（`btn btn-ghost member-entry`）与图标。 */
 function loginEntryHtml(locale: AppLocale): string {
   const label = LOGIN_LABEL[locale] ?? LOGIN_LABEL["zh-CN"];
-  return `<a class="btn btn-ghost member-entry" href="/member/login"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${label}</a>`;
+  return `${renderMemberMenuLinksJsonScript(locale)}<a class="btn btn-ghost member-entry" href="/member/login"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${label}</a>`;
 }
 
 /** 与 site-enhance `menuHtml` 同构，便于首屏已登录与客户端升级一致。 */
@@ -59,7 +63,9 @@ function memberMenuHtml(
   const accountLabel = ACCOUNT_LABEL[locale] ?? ACCOUNT_LABEL["zh-CN"];
   const logoutLabel = LOGOUT_LABEL[locale] ?? LOGOUT_LABEL["zh-CN"];
   const menuLabel = MENU_LABEL[locale] ?? MENU_LABEL["zh-CN"];
-  return `<details class="member-menu">
+  const contributed = renderMemberMenuLinksHtml(locale);
+  const contributedBlock = contributed ? `\n    ${contributed}` : "";
+  return `${renderMemberMenuLinksJsonScript(locale)}<details class="member-menu">
   <summary aria-label="${menuLabel}">
     <span class="member-avatar" aria-hidden>${avatar}</span>
     <span class="member-name">${name}</span>
@@ -72,7 +78,7 @@ function memberMenuHtml(
         ${showEmail ? `<span class="muted">${email}</span>` : ""}
       </div>
     </div>
-    <a href="/member/account">${accountLabel}</a>
+    <a href="/member/account">${accountLabel}</a>${contributedBlock}
     <button type="button" data-member-logout>${logoutLabel}</button>
   </div>
 </details>`;

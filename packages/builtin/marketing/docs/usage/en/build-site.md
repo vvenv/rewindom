@@ -81,6 +81,19 @@ you have published documents.
 Each footer column has its own list of links. To match the header, use "copy from
 header" — it copies a snapshot, after which the two are edited independently.
 
+### How the footer lays out
+
+The footer body does one thing: brand on the left, link columns sized **to their content**
+to its right, and the copyright plus its "bottom bar links" (privacy, terms, licence
+number) sharing the last row. Columns are never stretched to fill the row — two short
+columns stay two short columns.
+
+For a footer that really needs a layout — how wide each column is, the gap between them,
+a paragraph or a signup form inside one — **add a "Columns" section** to the footer group
+in the left tree. It is the same section you use on pages: drag the split points to set
+the widths, then put whatever you want inside each column. The footer body does not ship
+a second, footer-only set of column settings.
+
 ## Name and tagline
 
 The site name and tagline appear in the header and in SEO metadata; both can be filled in

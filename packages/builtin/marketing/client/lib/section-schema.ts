@@ -129,6 +129,27 @@ export function findSection(
 }
 
 /**
+ * 这棵树里有没有这一列。
+ *
+ * 编辑器同屏有**三棵**互不相干的树：页面区块、页头区、页脚区。分栏段现在页面和页脚
+ * 都能放，于是「这个列 id 属于哪棵树」不再显然——搬移与新建都得先问一句，否则会拿
+ * 页面那棵树去找页脚里的列。
+ */
+export function hasColumnBlock(
+  sections: SiteSection[],
+  columnBlockId: string,
+): boolean {
+  for (const section of sections) {
+    for (const block of section.blocks) {
+      if (!isColumn(block)) continue;
+      if (block.id === columnBlockId) return true;
+      if (hasColumnBlock(block.sections ?? [], columnBlockId)) return true;
+    }
+  }
+  return false;
+}
+
+/**
  * 从根到目标的 section id 链（含目标自己）；找不到返回空数组。
  * 区块树用它决定「哪些行要展开」——选中列里的子段时，外面的容器段得跟着展开。
  */
@@ -232,9 +253,10 @@ export type SectionDropTarget =
  * 表达不了「从页面顶层搬进某一列」。搬移不动 settings：列内子段的 `contained`
  * 收窄是渲染期的事（见 `SiteSections`），不落库。
  *
- * 两条规矩，违反了原样返回（宁可拖不动，也不搬出一棵服务端会拒收的树）：
+ * 三条规矩，违反了原样返回（宁可拖不动，也不搬出一棵服务端会拒收的树）：
  * 1. **嵌套只允许一层**——容器段进不了列（服务端 `site.sections_invalid`）
  * 2. 不能拖进自己里面——含自己列里的子段
+ * 3. **落点必须在同一棵树里**——见下面那段注释
  */
 export function moveSectionTo(
   sections: SiteSection[],
@@ -253,6 +275,20 @@ export function moveSectionTo(
     (target.kind === "section" &&
       findSectionPath(sections, target.targetId).length > 1);
   if (intoColumn && isContainerSection(moved.type)) return sections;
+
+  /*
+   * 落点不在这棵树里 → 原样返回。
+   *
+   * 本函数是**先摘后插**：落点找不到时，插的那一步是空操作，摘掉的那一段就此蒸发。
+   * 页面 / 页头 / 页脚是三棵独立的树，调用方按**拖的那一段**在哪棵树里挑 setter，
+   * 落点却可能在另一棵——分栏段放行页脚之后，「把页面上的一段拖进页脚分栏的空列」
+   * 就是一下点得到的操作，而它会把那一段直接删掉，撤销都没有。
+   */
+  const landable =
+    target.kind === "column"
+      ? hasColumnBlock(sections, target.columnBlockId)
+      : findSection(sections, target.targetId) !== null;
+  if (!landable) return sections;
 
   const without = removeSection(sections, sourceId);
   if (target.kind === "column") {

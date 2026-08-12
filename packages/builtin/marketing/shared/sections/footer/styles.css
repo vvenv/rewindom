@@ -3,19 +3,41 @@
   border-top: 1px solid var(--border);
   background: var(--muted-bg);
 }
+/*
+ * 页脚主区是一行 flex，不是等分栅格。
+ *
+ * 原来写的是 `grid-template-columns: 1.4fr repeat(auto-fit, minmax(7rem, 1fr))`。
+ * auto-fit 把空轨道折叠掉之后，**剩下的 1fr 轨道会把整行分光**：两列链接于是各占
+ * 三成宽，四五条短链接稀稀拉拉摊在一格里，列与列之间隔着上百 px 的空白。链接列的
+ * 宽度该由最长的那条链接决定，不该由「这一行还剩多少」决定。
+ *
+ * 这里只保证「一排链接列排得好看」这一件事，**没有**列宽 / 版式设置：要按份额分栏、
+ * 要每栏装别的东西，往页脚区里加一个「分栏」段，那是全站统一的布局原语。
+ */
 .footer-grid {
-  display: grid;
-  gap: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 2rem 2.5rem;
   padding-top: 3rem;
   padding-bottom: 3rem;
-  /*
-   * 品牌列固定占宽，链接列有几个排几个。
-   *
-   * 原来写死 `repeat(3, 1fr)`——那时页脚的列是按自由文本 `group` 现分出来的，
-   * 三个是拍脑袋的常见值：分出两组会空一格，分出四组会挤成两行还各自宽度不一。
-   * 现在一列就是一个 `menu_column` 块，数量是租户明确加出来的，让轨道跟着走。
-   */
-  grid-template-columns: 1.4fr repeat(auto-fit, minmax(7rem, 1fr));
+}
+/*
+ * 品牌列吃掉整行剩下的宽度，链接列因此被顶到右边。
+ * 不给它设 max-width：一封顶，多出来的空白就落在**行尾**，链接列会卡在半路。
+ * 该限宽的是简介那段文字本身（一行 60~70 字符才读得动）。
+ */
+.footer-brand {
+  flex: 1 1 14rem;
+}
+.footer-brand p {
+  max-width: 28rem;
+}
+.footer-col {
+  flex: 0 1 auto;
+  min-width: 6rem;
+  /* 链接长到一定程度就该折行，而不是把整行推成横向滚动 */
+  max-width: 16rem;
 }
 .footer-grid h2 {
   font-size: 0.75rem;
@@ -31,6 +53,9 @@
 }
 .footer-grid a {
   color: var(--muted-fg);
+}
+.footer-grid a:hover {
+  color: var(--fg);
 }
 /* 文档分类那一层：列内的小标题，不可点 */
 .footer-group {
@@ -49,12 +74,32 @@
   padding-left: 0.75rem;
   border-left: 1px solid var(--border);
 }
+/*
+ * 底栏：版权在左、法务链接在右，挤不下就各自换行。
+ * 只有版权时 `space-between` 与靠左等价，所以不必为「没链接」再分一种情况。
+ */
 .footer-legal {
   position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
   font-size: 0.75rem;
   color: var(--muted-fg);
+}
+.footer-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+.footer-legal-links a {
+  color: var(--muted-fg);
+}
+.footer-legal-links a:hover {
+  color: var(--fg);
 }
 /*
  * 分隔线跟正文列同宽。`.footer-legal` 自己就是 `.wrap`，border 画在 border box 上会
@@ -70,13 +115,14 @@
   inset: 0 1.5rem auto;
   border-top: 1px solid var(--border);
 }
-@media (max-width: 900px) {
-  .footer-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
+/* 窄屏一律上下堆叠：一格 6rem 的链接列在手机上会把列标题挤成竖排单字 */
 @media (max-width: 640px) {
   .footer-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+  .footer-grid > * {
+    flex: 0 0 auto;
+    max-width: none;
+    width: 100%;
   }
 }

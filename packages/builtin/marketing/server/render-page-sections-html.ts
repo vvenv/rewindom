@@ -8,12 +8,11 @@ import {
   resolveSectionGaps,
   resolveSectionLayout,
 } from "../shared/section-schema.js";
+import { renderSectionHtml } from "../shared/sections/html.js";
 import {
   resolveThemeSettings,
   THEME_SECTION_SPACING,
 } from "../shared/theme-sections.js";
-
-import { renderSectionHtml } from "./ssr-sections.js";
 
 import type { DocRenderContext } from "../shared/sections/render-context.js";
 import type {
@@ -21,16 +20,14 @@ import type {
   PublicMarketingSite,
 } from "../shared/site-cms.js";
 
-export function renderPageSectionsHtml(
-  site: PublicMarketingSite,
-  page: PublicMarketingPage,
+export interface RenderPageSectionsOptions {
   /**
    * 本租户已开通的 entitlement；贡献段据此决定渲不渲染（见 `site-entitlements.ts`）。
    * 不传等于一个贡献段都不出——少了而不是多了，这个方向是安全的。
    */
-  enabledEntitlements?: ReadonlySet<string>,
+  enabledEntitlements?: ReadonlySet<string>;
   /** 文档库数据；只有页面上摆了 `doc-*` 段时才有意义，见 `render-context.ts`。 */
-  docContext?: DocRenderContext,
+  docContext?: DocRenderContext;
   /**
    * 贡献段的按请求数据（见 `SectionRenderContext.contributed`）。
    *
@@ -38,8 +35,24 @@ export function renderPageSectionsHtml(
    * 页头页脚用的那一份。漏传的表现是那一段**静默不渲染**（渲染器拿不到上下文就
    * 什么都不吐），会员登录页因此曾经是一张空白页。
    */
-  contributed?: Readonly<Record<string, unknown>>,
+  contributed?: Readonly<Record<string, unknown>>;
+  /**
+   * 声明了 `default_tenant_only` 的段据此决定渲不渲染。
+   *
+   * 与 `contributed` 同病：页头页脚走 `ssr-render` 自己那份 ctx，页面正文走这里。
+   * 漏传按 false 算——平台套餐区（`billing.plans`）会在产品站上也整段消失，
+   * 编辑器预览却正常（React 视图不走这条闸门）。
+   */
+  isDefaultTenant?: boolean;
+}
+
+export function renderPageSectionsHtml(
+  site: PublicMarketingSite,
+  page: PublicMarketingPage,
+  options: RenderPageSectionsOptions = {},
 ): string {
+  const { enabledEntitlements, docContext, contributed, isDefaultTenant } =
+    options;
   const theme = resolveThemeSettings(site.theme_settings);
   const sections = page.sections;
   const gaps = resolveSectionGaps(
@@ -54,6 +67,7 @@ export function renderPageSectionsHtml(
     sectionSpacing: theme.section_spacing ?? THEME_SECTION_SPACING.default,
     enabledEntitlements,
     contributed,
+    isDefaultTenant,
     ...docContext,
   };
   return sections

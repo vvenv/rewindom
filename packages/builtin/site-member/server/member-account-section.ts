@@ -34,8 +34,11 @@ import {
   memberDisplayName,
   memberInitials,
 } from "../shared/member-identity.js";
+import { renderMemberAccountLinksHtml } from "../shared/member-menu-links.js";
 import { memberCardClass } from "../shared/member-page-settings.js";
 import { MEMBER_ACCOUNT_CSS } from "../shared/site-css.generated.js";
+
+import type { AppLocale } from "@be-water/shared";
 
 function fieldHtml(input: {
   id: string;
@@ -138,6 +141,8 @@ const renderAccountPanelHtml: SectionHtmlRenderer = (section, ctx) => {
       : "";
 
   const identity = identityHtml(account, settingText(s, "logout_label"));
+  const locale = (ctx.locale ?? ctx.defaultLocale ?? "zh-CN") as AppLocale;
+  const links = renderMemberAccountLinksHtml(locale);
 
   const meta = settingBool(s, "show_meta")
     ? metaHtml(
@@ -205,7 +210,7 @@ const renderAccountPanelHtml: SectionHtmlRenderer = (section, ctx) => {
 </details>`
     : "";
 
-  return `<div class="${memberCardClass(s, "member-account-card")}">${head}${message}${identity}${meta}${profile}${password}</div>`;
+  return `<div class="${memberCardClass(s, "member-account-card")}">${head}${message}${identity}${links}${meta}${profile}${password}</div>`;
 };
 
 /** 在模块 `onBoot` 里调；顺手把定义也登记进 marketing 的注册表。 */

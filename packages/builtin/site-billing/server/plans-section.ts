@@ -15,11 +15,23 @@ import {
   registerSiteSectionHtml,
   type SectionHtmlRenderer,
 } from "../../marketing/shared/sections/html.js";
-import { memberPlansSection, readSiteBillingContext, type SiteBillingRenderContext  } from "../shared/plans-section.js";
+import {
+  MEMBER_BILLING_PATH,
+  memberPlansSection,
+  readSiteBillingContext,
+  type SiteBillingRenderContext,
+} from "../shared/plans-section.js";
 import { SITE_BILLING_CSS } from "../shared/site-css.generated.js";
 
 import type { SettingValues } from "../../marketing/shared/section-settings.js";
 import type { MemberPlanSummary } from "../shared/site-billing.js";
+import type { AppLocale } from "@be-water/shared";
+
+/** 当前套餐旁的管理入口；与页头菜单同一去处。 */
+const MANAGE_LABEL: Record<AppLocale, string> = {
+  "zh-CN": "管理订阅",
+  en: "Manage",
+};
 
 /** 提交结果条：与会员账户页的提示同一副长相。 */
 export function alertHtml(ctx: SiteBillingRenderContext): string {
@@ -36,6 +48,7 @@ function planCardHtml(
   plan: MemberPlanSummary,
   s: SettingValues,
   ctx: SiteBillingRenderContext,
+  manageLabel: string,
 ): string {
   const isCurrent = ctx.subscription?.plan_slug === plan.slug;
   const price = ctx.price_labels[plan.id] ?? "";
@@ -44,10 +57,10 @@ function planCardHtml(
 
   /*
    * 当前这一档不出「订阅」按钮：它已经是用户在用的东西了，再放一个可点的按钮，
-   * 点下去就是重复下一单。
+   * 点下去就是重复下一单。改成「管理订阅」链到账单页——取消、看付款记录都在那里。
    */
   const action = isCurrent
-    ? `<p class="mplan-current">${escapeHtml(settingText(s, "current_label"))}</p>`
+    ? `<p class="mplan-current">${escapeHtml(settingText(s, "current_label"))} <a class="mplan-manage" href="${escapeHtml(MEMBER_BILLING_PATH)}">${escapeHtml(manageLabel)}</a></p>`
     : ctx.signed_in
       ? `<form method="post" action="${escapeHtml(ctx.action)}">
       <input type="hidden" name="intent" value="checkout" />
@@ -78,8 +91,10 @@ const renderMemberPlansHtml: SectionHtmlRenderer = (section, ctx) => {
       : "";
   }
 
+  const locale = (ctx.locale ?? ctx.defaultLocale ?? "zh-CN") as AppLocale;
+  const manageLabel = MANAGE_LABEL[locale] ?? MANAGE_LABEL["zh-CN"];
   const cards = context.plans
-    .map((plan) => planCardHtml(plan, s, context))
+    .map((plan) => planCardHtml(plan, s, context, manageLabel))
     .join("");
 
   return `${sectionHeading(s)}${alertHtml(context)}<div class="mplan-grid">${cards}</div>`;

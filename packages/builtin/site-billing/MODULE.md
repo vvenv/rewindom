@@ -32,7 +32,17 @@
 | --- | --- | --- |
 | 会员套餐 | `site-billing.plans` | 任意页面（定价页通常不是会员页） |
 | 我的订阅与付款 | `site-billing.account` | 只在 `member_billing` 模板页上（`page_kinds`） |
-| 模板页 | `member_billing` → `/member/billing` | 必备段是 `site-billing.account`，编辑器不给删 |
+| 模板页 | `member_billing` → `/member/billing` | 必备段是 `site-billing.account`，编辑器不给删；中台分组复用 site-member 的 `MEMBER_PAGE_TEMPLATE_GROUP`（「会员页版式」），不另开一组 |
+
+## 访客入口
+
+页面本身默认不落库，但**入口必须有**——否则会员找不到账单页：
+
+| 入口 | 实现 |
+| --- | --- |
+| 页头账户菜单 | `registerMemberMenuLink` →「我的订阅」，与「账户」并列 |
+| 「我的账户」面板 | 同一条贡献链接，身份条下的次要入口 |
+| 套餐段「当前套餐」 | 「管理订阅」链到 `/member/billing` |
 
 两个段都是**真 `<form method="post">`**，action 固定 `/member/billing`，靠隐藏字段
 `intent` 分流（`checkout` / `cancel`）——**没有 JS 也能下单和退订**，同会员登录表单的
@@ -90,6 +100,7 @@
 - 审计：`SITE_BILLING_PLAN_CREATE` / `_UPDATE` / `_DELETE` / `SITE_BILLING_PROVIDER_UPDATE` / `SITE_BILLING_WEBHOOK_SYNC`
 - 段：`site-billing.plans` / `site-billing.account`
 - 模板页：`member_billing`
+- 会员菜单链接：`registerSiteBillingMemberMenuLink`（挂进 site-member 的 `member-menu-links`）
 
 ## 路径三处对齐
 

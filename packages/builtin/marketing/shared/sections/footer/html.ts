@@ -11,6 +11,8 @@ import {
 } from "../../site-nav.js";
 import { blockSurfaceAttr, linkAttrs } from "../_common/html.js";
 
+import { flattenLegalItems, footerLegalNavLabel } from "./legal-links.js";
+
 import type { PublicDocSummary } from "../../marketing-doc.js";
 import type { SiteSection } from "../types.js";
 import type { AppLocale } from "@be-water/shared";
@@ -33,7 +35,7 @@ function renderFooterBrandHtml(input: {
 }): string {
   const s = input.block.settings;
   const blurb = settingText(s, "blurb");
-  return `<div data-block-id="${escapeHtml(input.block.id)}">
+  return `<div class="footer-brand" data-block-id="${escapeHtml(input.block.id)}">
       <div class="brand">
         ${settingBool(s, "show_logo") && input.logoUrl ? `<img class="logo" src="${escapeHtml(input.logoUrl)}" alt="${escapeHtml(input.siteName)}" />` : ""}
         ${settingBool(s, "show_site_name") ? `<span>${escapeHtml(input.siteName)}</span>` : ""}
@@ -47,7 +49,7 @@ function renderFooterBrandHtml(input: {
  *
  * 有列标题才用 `<nav>`：landmark 得有名字才有用，一排全叫「导航」的无名 landmark
  * 只会把读屏器的跳转列表撑满。没标题的那列就是一组链接，用 `<div>` 装着即可——
- * CSS 认的是 `.footer-grid ul / h2 / a`，换成 div 不影响排版。
+ * CSS 认的是 `.footer-col` 与 `.footer-grid ul / h2 / a`，换成 div 不影响排版。
  */
 function renderFooterMenuColumnHtml(input: {
   block: SiteBlock;
@@ -58,8 +60,8 @@ function renderFooterMenuColumnHtml(input: {
   const title = settingText(input.block.settings, "title");
   const list = `<ul>${items.map(renderFooterItemHtml).join("")}</ul>`;
   const idAttr = ` data-block-id="${escapeHtml(input.block.id)}"`;
-  if (!title) return `<div${idAttr}>${list}</div>`;
-  return `<nav aria-label="${escapeHtml(title)}"${idAttr}>
+  if (!title) return `<div class="footer-col"${idAttr}>${list}</div>`;
+  return `<nav class="footer-col" aria-label="${escapeHtml(title)}"${idAttr}>
   <h2>${escapeHtml(title)}</h2>
   ${list}
 </nav>`;
@@ -68,11 +70,24 @@ function renderFooterMenuColumnHtml(input: {
 function renderFooterCopyrightHtml(input: {
   block: SiteBlock;
   siteName: string;
+  ctx: SiteNavContext;
 }): string {
   const text =
     settingText(input.block.settings, "text") ||
     `© ${new Date().getFullYear()} ${input.siteName}`;
-  return `<div class="wrap footer-legal" data-block-id="${escapeHtml(input.block.id)}">${escapeHtml(text)}</div>`;
+  const links = flattenLegalItems(
+    resolveNavItems(
+      settingNavItems(input.block.settings, "links"),
+      input.ctx,
+    ),
+  );
+  const linksHtml =
+    links.length > 0
+      ? `<nav class="footer-legal-links" aria-label="${escapeHtml(footerLegalNavLabel(input.ctx.locale))}">${links
+          .map((item) => `<a${linkAttrs(item.href)}>${escapeHtml(item.label)}</a>`)
+          .join("")}</nav>`
+      : "";
+  return `<div class="wrap footer-legal" data-block-id="${escapeHtml(input.block.id)}"><span>${escapeHtml(text)}</span>${linksHtml}</div>`;
 }
 
 export function renderFooterHtml(input: {
@@ -110,7 +125,7 @@ export function renderFooterHtml(input: {
         break;
       }
       case "chrome_copyright":
-        legalBlocks.push(renderFooterCopyrightHtml({ block, siteName }));
+        legalBlocks.push(renderFooterCopyrightHtml({ block, siteName, ctx }));
         break;
       default:
         break;

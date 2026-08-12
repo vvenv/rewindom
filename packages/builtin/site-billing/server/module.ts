@@ -1,4 +1,5 @@
 import { registerSiteBillingPageTemplates } from "../shared/member-billing-templates.js";
+import { registerSiteBillingMemberMenuLink } from "../shared/member-menu-link.js";
 
 import { registerMemberBillingAccountSection } from "./account-section.js";
 import { SITE_BILLING_SERVER_I18N } from "./i18n.js";
@@ -48,6 +49,7 @@ export const siteBillingServerModule: ServerAppModule = {
     onBoot: async () => {
       // 官网的两个段与一张模板页：定义在本模块，填进 marketing 的注册表
       registerSiteBillingPageTemplates();
+      registerSiteBillingMemberMenuLink();
       registerMemberPlansSection();
       registerMemberBillingAccountSection();
     },

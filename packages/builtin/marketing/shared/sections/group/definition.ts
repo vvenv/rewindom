@@ -9,11 +9,15 @@ import type { SectionDefinition } from "../types.js";
  * 12 栏份额（`columns_layout`，如 `"3:9"`）——总和恒为一整行，租户配不出「加起来
  * 不足一行」的坏版式，但每一栏占多少可以自己拖。「左侧 page-menu + 右侧正文」的
  * 文档版式就是 `3:9` 的一个用例，不再单独做特例。
+ *
+ * 页脚区也放行：页脚本体（`footer`）只管品牌 + 一排按内容宽的链接列 + 底栏，真正
+ * 要排版的多栏页脚——各栏占几份、栏间距、栏里装 prose / 表单——加一个分栏段即可。
+ * 页脚不再自造一套只在那里生效的列宽配置，布局原语全站就这一个。
  */
 export const groupSection: SectionDefinition = {
   type: "group",
   label: "editor.sectionType.group",
-  placements: ["page"],
+  placements: ["page", "footer"],
   settings: [
     { type: "header", content: "editor.group.layout", group: "layout" },
     {

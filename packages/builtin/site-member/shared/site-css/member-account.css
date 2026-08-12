@@ -105,6 +105,34 @@
 }
 
 /*
+ * 贡献方挂进来的次要入口（订阅等）。
+ *
+ * 与页头 `.member-menu-panel a` 同一套语汇：静音字 + hover 底，不下划线、不上强调色。
+ * 同一份 `member-menu-links` 清单，菜单里是行、这里也是行——换一套「链接强调色」
+ * 会让人以为账户页上的订阅是另一类东西。
+ */
+.member-account-links {
+  display: grid;
+  gap: .125rem;
+  margin: 0 0 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.member-account-links a {
+  display: flex;
+  align-items: center;
+  padding: .375rem .625rem;
+  margin: 0 -.625rem;
+  border-radius: .375rem;
+  font-size: .875rem;
+  color: var(--muted-fg);
+}
+.member-account-links a:hover {
+  background: var(--muted-bg);
+  color: var(--fg);
+}
+
+/*
  * 注册时间 / 上次登录：两栏只读的事实，摆在身份条底下。
  * 以前它夹在昵称和「保存」中间，读起来像是这张表单的一部分——其实一个字也改不了。
  * 仍是 <dl>：成对的名值，读屏软件按对念出来才对得上。

@@ -286,6 +286,94 @@ describe("SiteFooter 链接列", () => {
     expect(screen.queryByRole("navigation")).toBeNull();
     expect(screen.getByRole("link", { name: "定价" })).toBeVisible();
   });
+
+  /*
+   * 列宽由 `.footer-col` 说了算（按内容宽），有没有列标题只决定它是不是 landmark。
+   * 漏了这个类，那一列就退回「等分整行」的老样子——四条短链接摊掉三成宽。
+   */
+  it("链接列不论有没有标题都带 .footer-col", () => {
+    const { container } = renderFooter([
+      createBlock("footer", "menu_column", { title: "产品", items: ITEMS }),
+      createBlock("footer", "menu_column", { items: ITEMS }),
+    ]);
+
+    expect(container.querySelectorAll(".footer-grid > .footer-col")).toHaveLength(
+      2,
+    );
+  });
+});
+
+describe("SiteFooter 底栏", () => {
+  function renderFooter(blocks: SiteBlock[]) {
+    return render(
+      <MemoryRouter>
+        <SiteFooter
+          section={{ ...createSection("footer"), blocks }}
+          siteName="Acme"
+          logoUrl={null}
+          pages={pages}
+          locale="zh-CN"
+        />
+      </MemoryRouter>,
+    );
+  }
+
+  it("法务链接与版权同处底栏一行", () => {
+    const { container } = renderFooter([
+      createBlock("footer", "chrome_copyright", {
+        text: "© 2026 Acme",
+        links: [
+          {
+            id: "privacy",
+            source: "link",
+            label: "隐私政策",
+            href: "/privacy",
+            category: "",
+            expand: "children",
+            children: [],
+          },
+        ],
+      }),
+    ]);
+
+    const legal = container.querySelector(".footer-legal");
+    expect(legal?.textContent).toContain("© 2026 Acme");
+    expect(
+      screen.getByRole("navigation", { name: "法务链接" }),
+    ).toBeVisible();
+    expect(legal?.querySelector(".footer-legal-links a")?.textContent).toBe(
+      "隐私政策",
+    );
+  });
+
+  /* 底栏是一行文字，塞不下下拉——父项本身不可点，摊平后只留真能点的那几条 */
+  it("动态项摊平成并排链接", () => {
+    renderFooter([
+      createBlock("footer", "chrome_copyright", {
+        links: [
+          {
+            id: "pages",
+            source: "pages",
+            label: "",
+            href: "",
+            category: "",
+            expand: "children",
+            children: [],
+          },
+        ],
+      }),
+    ]);
+
+    const nav = screen.getByRole("navigation", { name: "法务链接" });
+    expect(nav.querySelectorAll("a").length).toBe(pages.length);
+    expect(nav.querySelectorAll("ul, details").length).toBe(0);
+  });
+
+  it("没配链接就不制造空的 landmark", () => {
+    renderFooter([createBlock("footer", "chrome_copyright", {})]);
+
+    expect(screen.queryByRole("navigation")).toBeNull();
+  });
 });
 
 describe("parseAreaSections 升级旧版页头", () => {

@@ -122,8 +122,10 @@
     "no": "否",
     "empty": "—"
   },
+  "entry": {
+    "billing": "我的订阅"
+  },
   "template": {
-    "group": "会员页版式",
     "billing": {
       "label": "我的订阅"
     }

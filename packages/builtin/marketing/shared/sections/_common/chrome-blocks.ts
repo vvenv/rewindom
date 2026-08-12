@@ -119,6 +119,18 @@ export const CHROME_COPYRIGHT_BLOCK: BlockDefinition = {
       label: "editor.setting.copyright",
       info: "editor.info.copyright",
     },
+    /*
+     * 底栏的那几条法务链接（隐私 / 条款 / 备案号）跟版权同属一行，所以挂在版权块上
+     * 而不是再开一个块：它们不是「一列链接」，做成 `menu_column` 会被排进上面的
+     * 链接网格里，租户得靠调顺序去凑出「和版权同一行」的效果。
+     */
+    {
+      type: "nav_items",
+      id: "links",
+      label: "editor.setting.legal_links",
+      default: [],
+      info: "editor.info.legal_links",
+    },
   ],
 };
 

@@ -199,6 +199,35 @@ describe("parseAreaSections", () => {
     ]);
     expect(footer.map((s) => s.type)).toEqual(["footer", "prose"]);
   });
+
+  /*
+   * 多栏页脚走分栏段，页脚本体不自造列宽配置——所以分栏必须进得了页脚区，
+   * 且列里的子段要跟着一起存下来。
+   */
+  it("分栏段能放进页脚区，列里的子段照常存取", () => {
+    const footer = parseAreaSections("footer", [
+      {
+        type: "group",
+        settings: { columns_layout: "4:4:4" },
+        blocks: [
+          {
+            type: "column",
+            settings: {},
+            sections: [
+              { type: "prose", settings: { body_md: "产品" }, blocks: [] },
+            ],
+          },
+          { type: "column", settings: {}, sections: [] },
+          { type: "column", settings: {}, sections: [] },
+        ],
+      },
+    ]);
+
+    expect(footer.map((s) => s.type)).toEqual(["footer", "group"]);
+    const group = footer[1]!;
+    expect(group.blocks).toHaveLength(3);
+    expect(group.blocks[0]!.sections?.map((s) => s.type)).toEqual(["prose"]);
+  });
 });
 
 describe("页面区块流", () => {

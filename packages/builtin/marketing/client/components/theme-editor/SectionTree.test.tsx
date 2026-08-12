@@ -59,14 +59,18 @@ function buildPage() {
   };
 }
 
-function setup(sections: SiteSection[], selected: string | null) {
+function setup(
+  sections: SiteSection[],
+  selected: string | null,
+  area: { header?: SiteSection[]; footer?: SiteSection[] } = {},
+) {
   const onMoveSectionTo = vi.fn();
   const onReorderBlock = vi.fn();
   const { container } = render(
     <SectionTree
       sections={sections}
-      header={[]}
-      footer={[]}
+      header={area.header ?? []}
+      footer={area.footer ?? []}
       selectedSectionId={selected}
       selectedBlockId={null}
       metaSelected={false}
@@ -254,6 +258,54 @@ describe("SectionTree 拖进分栏", () => {
     expect(
       container.querySelector(`[data-column-drop="${emptyColumnId}"]`),
     ).not.toBeNull();
+  });
+
+  /*
+   * 页面 / 页头 / 页脚是三棵独立的树，搬移只在**同一棵**里做。
+   *
+   * 分栏段放行页脚之后，页脚里也会有空列的放置区——但页面上的一段落进去接不住：
+   * 搬移是先摘后插，摘的是页面那棵树、插的是页脚那棵，插不进去那一段就没了。
+   * 所以 UI 这一层就不给落（光标显禁止），别让它掉进 `moveSectionTo` 的兜底里。
+   */
+  it("页面上的一段拖不进页脚分栏的列", async () => {
+    const { hero, group: footerGroup, menu, emptyColumnId } = buildPage();
+    const { container, row, onMoveSectionTo } = setup([hero], null, {
+      footer: [createSection("footer"), footerGroup],
+    });
+
+    await startDrag(row(hero.id));
+    // 页脚那个分栏照常摊开，但它的空列不给落
+    expect(container.querySelector(`[data-row-id="${menu.id}"]`)).not.toBeNull();
+    expect(
+      container.querySelector(`[data-column-drop="${emptyColumnId}"]`),
+    ).toBeNull();
+
+    // 落到页脚列里那一段旁边同样不接
+    fireDrag("dragOver", row(menu.id), 5);
+    fireDrag("drop", row(menu.id), 5);
+    expect(onMoveSectionTo).not.toHaveBeenCalled();
+  });
+
+  // 页脚自己那棵树里照常搬——拦的是跨树，不是「页脚不能拖」
+  it("页脚里的段能搬进页脚分栏的空列", async () => {
+    const { group: footerGroup, emptyColumnId } = buildPage();
+    const notice = createSection("prose");
+    const { container, row, onMoveSectionTo } = setup([], null, {
+      footer: [createSection("footer"), notice, footerGroup],
+    });
+
+    await startDrag(row(notice.id));
+    const zone = container.querySelector<HTMLElement>(
+      `[data-column-drop="${emptyColumnId}"]`,
+    );
+    expect(zone).not.toBeNull();
+    fireEvent.dragOver(zone!, { dataTransfer: dataTransfer() });
+    fireEvent.drop(zone!, { dataTransfer: dataTransfer() });
+
+    expect(onMoveSectionTo).toHaveBeenCalledWith(notice.id, {
+      kind: "column",
+      columnBlockId: emptyColumnId,
+    });
   });
 
   // 嵌套只允许一层：容器段进不了列，服务端会拒收整棵树

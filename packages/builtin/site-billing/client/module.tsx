@@ -1,6 +1,7 @@
 import { registerSiteSectionView } from "../../marketing/client/components/sections/section-views.js";
 import { memberBillingAccountSection } from "../shared/account-section.js";
 import { registerSiteBillingPageTemplates } from "../shared/member-billing-templates.js";
+import { registerSiteBillingMemberMenuLink } from "../shared/member-menu-link.js";
 import { memberPlansSection } from "../shared/plans-section.js";
 import { SITE_BILLING_CSS } from "../shared/site-css.generated.js";
 
@@ -24,6 +25,7 @@ registerSiteSectionView(memberBillingAccountSection, MemberBillingAccountSection
   css: SITE_BILLING_CSS,
 });
 registerSiteBillingPageTemplates();
+registerSiteBillingMemberMenuLink();
 
 export const siteBillingClientModule: ClientAppModule = {
   id: "site-billing",

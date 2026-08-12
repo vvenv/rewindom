@@ -75,10 +75,17 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 | type     | settings                          | blocks                                                                                   |
 | -------- | --------------------------------- | ---------------------------------------------------------------------------------------- |
 | `header` | sticky, layout(split\|centered), 配色 | `chrome_brand` / `chrome_nav` / `chrome_button` / `chrome_doc_search` / `chrome_locale` / `chrome_theme` / `chrome_account`，最多 12。默认预置 brand + nav + locale + theme |
-| `footer` | 配色                              | `chrome_brand` / `menu_column`{title, items} / `chrome_copyright`，最多 8。默认只预置 copyright |
+| `footer` | 配色                              | `chrome_brand` / `menu_column`{title, items} / `chrome_copyright`{text, links}，最多 8。默认只预置 copyright |
 
 渲染按块的**角色**分区，不按下标：`partitionHeaderBlocks` 把页头的块分成品牌 / 导航 /
-右侧操作区三堆（`chrome_button` 及各入口块归操作区）。
+右侧操作区三堆（`chrome_button` 及各入口块归操作区）。页脚同理分两行：品牌与链接列进
+`.footer-grid`，版权与它的 `links`（隐私 / 条款 / 备案号）进底栏 `.footer-legal` 同一行。
+
+**页脚没有版式设置**，链接列一律按内容宽排（`.footer-col` 是 `flex: 0 1 auto`）。曾经是
+`grid-template-columns: 1.4fr repeat(auto-fit, minmax(7rem, 1fr))`：auto-fit 折叠掉空轨道
+之后，剩下的 `1fr` 会把整行**分光**，两列短链接于是各摊掉三成宽。修法不是给页脚加一份
+列宽 / 版式配置——要真正排版的多栏页脚（各栏占几份、栏间距、栏里装 prose 或表单），往
+页脚区里加一个 `group`（分栏）段，那是全站唯一的布局原语，`placements` 已放行页脚。
 
 除按钮与页脚链接列外，其余块都是 **`singleton`**（`BlockDefinition.singleton`）：加过一次
 就从「添加区块」菜单里消失。第二个语言切换器、第二条版权不是一种配置，是个一眼能看出
@@ -236,7 +243,8 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 硬跳回 SSR 文档。
 
 **页面级**（`placements` 含 `page`）。`band` / `prose` 三处都能放——通栏 CTA 摆进页头区
-就是公告条，prose 摆进页脚就是备案号，不另造类型。
+就是公告条，prose 摆进页脚就是备案号，不另造类型。`group`（分栏）另外放行页脚区：
+多栏页脚是布局问题，用同一个布局原语解，不在页脚 schema 里再长一套列宽字段。
 
 内置段只保留**通用积木**（首屏、富文本、分栏、CTA、表单、页面菜单、文档库专用段）。
 ### 贡献段要按请求查库：`registerSectionContextProvider`

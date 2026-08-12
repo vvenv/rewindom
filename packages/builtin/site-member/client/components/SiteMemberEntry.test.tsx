@@ -123,6 +123,28 @@ describe("SiteMemberEntry", () => {
     ).toBeInTheDocument();
   });
 
+  it("renders contributed menu links between account and logout", async () => {
+    const { registerMemberMenuLink, resetMemberMenuLinks } = await import(
+      "../../shared/member-menu-links.js"
+    );
+    resetMemberMenuLinks();
+    registerMemberMenuLink({
+      id: "billing",
+      href: "/member/billing",
+      labels: { "zh-CN": "我的订阅", en: "Billing" },
+    });
+
+    auth = signedIn();
+    renderEntry();
+    const menu = openMenu();
+    expect(within(menu).getByRole("link", { name: /我的订阅/u })).toHaveAttribute(
+      "href",
+      "/member/billing",
+    );
+
+    resetMemberMenuLinks();
+  });
+
   it("falls back to the email without repeating it", () => {
     auth = signedIn(member({ display_name: "" }));
     renderEntry();

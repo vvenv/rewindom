@@ -50,7 +50,8 @@
   "entry": {
     "login": "Sign in",
     "account": "My account",
-    "menu": "Account menu"
+    "menu": "Account menu",
+    "links": "Account links"
   },
   "gate": {
     "title": "Sign in to read this content",

@@ -71,11 +71,42 @@ describe("renderPageSectionsHtml", () => {
     const withCtx = renderPageSectionsHtml(
       site(),
       page([createSection(type)]),
-      undefined,
-      undefined,
-      { demo: { hello: "有上下文才渲染" } },
+      { contributed: { demo: { hello: "有上下文才渲染" } } },
     );
     expect(withCtx).toContain("有上下文才渲染");
+  });
+
+  /*
+   * 与 contributed 同病：页头页脚走 ssr-render 自己那份 ctx，页面正文走这里。
+   * 漏传 `isDefaultTenant` 时 `default_tenant_only` 段按 false 算——产品站上的
+   * 平台套餐区会整段消失，编辑器预览却正常。
+   */
+  it("把 isDefaultTenant 透传给贡献段", () => {
+    const type = "demo.default-tenant-only";
+    registerSiteSectionHtml(
+      {
+        type,
+        label: "demo:default-only",
+        placements: ["page"],
+        settings: [],
+        default_tenant_only: true,
+      },
+      () => `<p>产品站专属</p>`,
+    );
+
+    expect(
+      renderPageSectionsHtml(site(), page([createSection(type)])),
+    ).toBe("");
+    expect(
+      renderPageSectionsHtml(site(), page([createSection(type)]), {
+        isDefaultTenant: false,
+      }),
+    ).toBe("");
+    expect(
+      renderPageSectionsHtml(site(), page([createSection(type)]), {
+        isDefaultTenant: true,
+      }),
+    ).toContain("产品站专属");
   });
 
   it("渲出与 SSR 同构的 section HTML", () => {

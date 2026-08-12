@@ -1,5 +1,9 @@
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { isSiteMemberActor, type AppLocale } from "@be-water/shared";
+import {
+  DEFAULT_TENANT_ID,
+  isSiteMemberActor,
+  type AppLocale,
+} from "@be-water/shared";
 
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
@@ -127,12 +131,13 @@ export async function siteContentRoutes(app: FastifyInstance): Promise<void> {
       }
 
       return {
-        html: renderPageSectionsHtml(
-          result.site,
-          result.page,
+        html: renderPageSectionsHtml(result.site, result.page, {
           // 会员正文里同样可能有贡献段，闸门口径与公开 SSR 一致
-          await resolveSectionEntitlements(hostTenant.tenant_id),
-        ),
+          enabledEntitlements: await resolveSectionEntitlements(
+            hostTenant.tenant_id,
+          ),
+          isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
+        }),
         title: result.page.title,
       };
     },

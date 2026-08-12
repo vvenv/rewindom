@@ -122,8 +122,10 @@
     "no": "No",
     "empty": "—"
   },
+  "entry": {
+    "billing": "Billing"
+  },
   "template": {
-    "group": "Member page layouts",
     "billing": {
       "label": "My subscription"
     }

@@ -23,6 +23,10 @@ import {
 } from "../../../shared/section-schema.js";
 import { partitionHeaderBlocks } from "../../../shared/sections/_common/chrome-blocks.js";
 import {
+  flattenLegalItems,
+  footerLegalNavLabel,
+} from "../../../shared/sections/footer/legal-links.js";
+import {
   headerNavLabel,
   themeToggleTitle,
 } from "../../../shared/sections/header/messages.js";
@@ -608,7 +612,7 @@ export function SiteFooter({
       case "chrome_brand": {
         const blurb = settingText(block.settings, "blurb");
         gridBlocks.push(
-          <div key={block.id} data-block-id={block.id}>
+          <div key={block.id} className="footer-brand" data-block-id={block.id}>
             <div className="brand">
               {settingBool(block.settings, "show_logo") && logoUrl ? (
                 <img src={logoUrl} alt={siteName} className="logo" />
@@ -636,12 +640,17 @@ export function SiteFooter({
         // 有列标题才当 landmark（口径与 SSR 的 renderFooterMenuColumnHtml 一致）
         gridBlocks.push(
           title ? (
-            <nav key={block.id} aria-label={title} data-block-id={block.id}>
+            <nav
+              key={block.id}
+              className="footer-col"
+              aria-label={title}
+              data-block-id={block.id}
+            >
               <h2>{title}</h2>
               {list}
             </nav>
           ) : (
-            <div key={block.id} data-block-id={block.id}>
+            <div key={block.id} className="footer-col" data-block-id={block.id}>
               {list}
             </div>
           ),
@@ -652,13 +661,28 @@ export function SiteFooter({
         const text =
           settingText(block.settings, "text") ||
           `© ${new Date().getFullYear()} ${siteName}`;
+        const legalLinks = flattenLegalItems(
+          resolveNavItems(settingNavItems(block.settings, "links"), ctx),
+        );
         legalBlocks.push(
           <div
             key={block.id}
             className="wrap footer-legal"
             data-block-id={block.id}
           >
-            {text}
+            <span>{text}</span>
+            {legalLinks.length > 0 ? (
+              <nav
+                className="footer-legal-links"
+                aria-label={footerLegalNavLabel(ctx.locale)}
+              >
+                {legalLinks.map((item) => (
+                  <SiteLink key={item.key} href={item.href}>
+                    {item.label}
+                  </SiteLink>
+                ))}
+              </nav>
+            ) : null}
           </div>,
         );
         break;

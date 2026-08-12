@@ -1,3 +1,5 @@
+import { CreditCard } from "lucide-react";
+
 import { registerSiteSectionView } from "../../marketing/client/components/sections/section-views.js";
 import { BILLING_ENTITLEMENT } from "../shared/index.js";
 import { billingPlansSection } from "../shared/plans-section.js";
@@ -19,6 +21,7 @@ import type { ClientAppModule } from "@be-water/client-kit";
  */
 registerSiteSectionView(billingPlansSection, BillingPlansSection, {
   css: BILLING_PLANS_CSS,
+  icon: CreditCard,
 });
 
 export const billingClientModule: ClientAppModule = {

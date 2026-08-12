@@ -38,6 +38,19 @@
   color: var(--accent);
   font-weight: 500;
 }
+/*
+ * 「管理订阅」嵌在状态句里，不是第二颗按钮，也不是强调色下划线。
+ * 字色略退一档，hover 回到实色——与会员菜单行、账户页次要入口同一「静音可点」口径。
+ */
+.mplan-card .mplan-manage {
+  margin-left: .5rem;
+  color: var(--muted-fg);
+  font-weight: 500;
+  text-decoration: none;
+}
+.mplan-card .mplan-manage:hover {
+  color: var(--fg);
+}
 .mplan-card form { margin-top: auto; }
 .mplan-card .btn { width: 100%; text-align: center; }
 .mplan-card p { margin: 0; }

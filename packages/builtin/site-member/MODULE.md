@@ -26,7 +26,7 @@
 
 | 项 | 口径 |
 | --- | --- |
-| 版式 | 租户在 `/app/site` →「会员页版式」建页，Theme Editor 里排；默认**不落库**，没建过就按内置预设渲染 |
+| 版式 | 租户在 `/app/site` →「会员页版式」建页，Theme Editor 里排；默认**不落库**，没建过就按内置预设渲染。分组 key 是 `MEMBER_PAGE_TEMPLATE_GROUP`（本模块持有文案）；依赖方贡献的 `/member/*` 模板（如 site-billing 订阅页）必须复用，不得另开同名组 |
 | 地址 | kind 决定 slug（`member-login` / `member-register` / `member-account`），租户改不了 |
 | 必备段 | `site-member.login-form` / `.register-form` / `.account-panel`：编辑器不给删，服务端保存时校验有且仅有一段（`site.template_section_required`） |
 | 段的落脚点 | 三段都声明了 `page_kinds`，只能出现在自己那张模板页上 |
@@ -52,6 +52,8 @@ Fastify 先命中；`/member/oauth/callback` 仍落到 SPA。nginx 与 vite dev 
 - marketing **不** import site-member（模板页 / 段 / SSR 会话都是「注册表定义在消费方，本模块填」）
 - 公开 CMS：SSR 通过 `registerSiteAccountEntry` + `registerSiteMemberSsrSession` 读
   HttpOnly cookie，首屏输出登录态菜单并解锁门控页；`site-enhance` 仅绑登出 / 兜底升级
+- 页头菜单可贡献链接：`shared/member-menu-links.ts`（依赖方如 site-billing 登记「我的订阅」；
+  SSR / React / enhance / 账户面板同读一份清单）
 - SPA 上只剩 `/member/oauth/callback`（`renderPublicRoutes` + `SiteMemberAuthProvider`，cookie 会话）
 - Theme Editor 预览用 marketing 的 `siteMemberEntrySlot` + 静态 `SiteAccountEntryPreview`
 - `MarketingPage.visibility=members` 的公开端点只返回摘要；JSON 正文仍可走

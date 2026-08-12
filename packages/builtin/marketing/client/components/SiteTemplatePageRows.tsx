@@ -34,8 +34,9 @@ import type { SitePageGroup } from "../lib/site-page-groups.js";
  * 没有的东西，租户根本不知道这些地址的版式是可以改的。这几行常驻：没建过就给一枚
  *「自定义版式」，建过就和普通页面一样按语言组分行，用复制铺出其它语言。
  *
- * 分组来自注册表本身（`group` 是 i18n key，贡献方用带命名空间的 key），所以业务模块
- * 贡献一张模板页时这里不用改：注册进去就多一组。
+ * 分组来自注册表本身（`group` 是 i18n key；**同一 key = 同一组**）。跨模块贡献的
+ * `/member/*` 模板应共用同一 group key（见 `MEMBER_PAGE_TEMPLATE_GROUP`），而不是各写
+ * 一份碰巧同名的文案。业务模块贡献一张模板页时这里不用改：注册进去就出现在对应组里。
  */
 export function SiteTemplatePageRows({
   pages,

@@ -6,6 +6,7 @@ import {
   addSectionToColumn,
   findSection,
   findSectionPath,
+  hasColumnBlock,
   moveBlock,
   moveSection,
   moveSectionTo,
@@ -49,6 +50,21 @@ describe("section-schema helpers", () => {
       headline: "New",
     });
     expect(removeSection(withBand, a.id)).toHaveLength(1);
+  });
+
+  /*
+   * 「这个列属于哪棵树」——分栏段页面和页脚都能放之后，往列里加一段不能再写死改
+   * 页面那一串（`appendToColumn` 找不到列只会原样返回，加进去的东西静默落空）。
+   */
+  it("hasColumnBlock 只认自己这棵树里的列", () => {
+    const { group } = groupWithMenu();
+    const columnId = group.blocks[0]!.id;
+
+    expect(hasColumnBlock([group], columnId)).toBe(true);
+    expect(hasColumnBlock([createSection("hero")], columnId)).toBe(false);
+    expect(hasColumnBlock([], columnId)).toBe(false);
+    // 段自己的 id 不是列 id
+    expect(hasColumnBlock([group], group.id)).toBe(false);
   });
 });
 
@@ -161,6 +177,35 @@ describe("拖放排序", () => {
         columnBlockId: group.blocks[0]!.id,
       }),
     ).toEqual(tree);
+  });
+
+  /*
+   * 跨树（页面 / 页头 / 页脚）搬移必须是空操作。
+   *
+   * 搬移是「先摘后插」：落点不在这棵树里时插的那一步落空，被摘掉的那一段就此蒸发。
+   * 分栏段放行页脚之后，「把页面上的一段拖进页脚分栏的空列」是一下点得到的操作。
+   */
+  it("落点不在这棵树里就不搬（否则那一段会被摘掉后凭空消失）", () => {
+    const hero = createSection("hero");
+    const form = createSection("form");
+    const pageTree = [hero, form];
+    // 另一棵树（页脚）里的分栏与它的列
+    const { group } = groupWithMenu();
+
+    expect(
+      moveSectionTo(pageTree, hero.id, {
+        kind: "column",
+        columnBlockId: group.blocks[0]!.id,
+      }),
+    ).toEqual(pageTree);
+
+    expect(
+      moveSectionTo(pageTree, hero.id, {
+        kind: "section",
+        targetId: group.id,
+        place: "after",
+      }),
+    ).toEqual(pageTree);
   });
 
   // 落点在自己的子树里：搬完自己就没地方挂了

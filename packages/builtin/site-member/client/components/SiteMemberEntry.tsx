@@ -8,6 +8,7 @@ import { toast } from "@be-water/ui/toast";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router";
 
+import { listMemberMenuLinks } from "../../shared/member-menu-links.js";
 import { useOptionalSiteMemberAuth } from "../contexts/SiteMemberAuthContext.js";
 import { useSiteMemberEnabled } from "../hooks/use-site-member-enabled.js";
 import { memberDisplayName, memberInitials } from "../lib/member-display.js";
@@ -52,12 +53,13 @@ export function SiteMemberEntry({
 }: {
   className?: string;
 }): ReactNode {
-  const { t } = useTranslation("site-member");
+  const { t, i18n } = useTranslation("site-member");
   const auth = useOptionalSiteMemberAuth();
   const enabled = useSiteMemberEnabled();
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
+  const contributedLinks = listMemberMenuLinks();
 
   useEffect(() => {
     const details = detailsRef.current;
@@ -137,6 +139,21 @@ export function SiteMemberEntry({
         }}>
           {t("entry.account")}
         </Link>
+        {contributedLinks.map((link) => (
+          <Link
+            key={link.id}
+            to={link.href}
+            onClick={() => {
+              if (detailsRef.current) detailsRef.current.open = false;
+            }}
+          >
+            {link.label_key
+              ? i18n.t(link.label_key)
+              : (link.labels[
+                  i18n.language as keyof typeof link.labels
+                ] ?? link.labels["zh-CN"])}
+          </Link>
+        ))}
         <button type="button" onClick={() => void handleLogout()}>
           {t("account.logout")}
         </button>
