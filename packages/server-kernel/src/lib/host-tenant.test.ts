@@ -22,7 +22,6 @@ vi.mock("./prisma.js", () => ({
 
 import { ValidationError } from "./app-errors.js";
 import {
-  buildTenantDefaultUrl,
   extractTenantSubdomainLabel,
   getDefaultTenantHostnames,
   getPlatformConsoleHostnames,
@@ -70,17 +69,15 @@ describe("hostname sets", () => {
   });
 });
 
-describe("extractTenantSubdomainLabel / buildTenantDefaultUrl", () => {
+describe("extractTenantSubdomainLabel", () => {
   it("解析单标签子域", () => {
-    expect(
-      extractTenantSubdomainLabel("acme.moms.plus", "moms.plus"),
-    ).toBe("acme");
+    expect(extractTenantSubdomainLabel("acme.moms.plus", "moms.plus")).toBe(
+      "acme",
+    );
   });
 
   it("拒绝基域本身、多级与保留前缀", () => {
-    expect(
-      extractTenantSubdomainLabel("moms.plus", "moms.plus"),
-    ).toBeNull();
+    expect(extractTenantSubdomainLabel("moms.plus", "moms.plus")).toBeNull();
     expect(
       extractTenantSubdomainLabel("a.b.moms.plus", "moms.plus"),
     ).toBeNull();
@@ -103,17 +100,11 @@ describe("extractTenantSubdomainLabel / buildTenantDefaultUrl", () => {
       "acme",
     );
     // 基域本身仍是产品站，不该被当成某个租户的子域
-    expect(
-      extractTenantSubdomainLabel("localhost", "localhost"),
-    ).toBeNull();
+    expect(extractTenantSubdomainLabel("localhost", "localhost")).toBeNull();
     // 保留前缀照旧挡住，免得和 /app、/platform 这类入口撞名
     expect(
       extractTenantSubdomainLabel("app.localhost", "localhost"),
     ).toBeNull();
-  });
-
-  it("拼默认访问 URL", () => {
-    expect(buildTenantDefaultUrl("acme")).toBe("https://acme.moms.plus");
   });
 });
 
@@ -142,9 +133,7 @@ describe("normalizeCustomDomain", () => {
   });
 
   it("拒绝产品主域、平台控制台 Host 与通配子域", () => {
-    expect(() => normalizeCustomDomain("moms.plus")).toThrow(
-      ValidationError,
-    );
+    expect(() => normalizeCustomDomain("moms.plus")).toThrow(ValidationError);
     expect(() => normalizeCustomDomain("platform.moms.plus")).toThrow(
       ValidationError,
     );

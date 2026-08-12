@@ -54,7 +54,9 @@ export function hostnameFromUrl(url: string): string | null {
   const trimmed = url.trim();
   if (!trimmed) return null;
   try {
-    const parsed = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`);
+    const parsed = new URL(
+      trimmed.includes("://") ? trimmed : `https://${trimmed}`,
+    );
     return parsed.hostname.toLowerCase().replace(/\.$/u, "") || null;
   } catch {
     return null;
@@ -127,13 +129,6 @@ export function extractTenantSubdomainLabel(
   if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u.test(label)) return null;
   if (RESERVED_SUBDOMAIN_LABELS.has(label)) return null;
   return label;
-}
-
-/** 租户默认访问 URL（平台通配子域）；未配置基域时返回 null。 */
-export function buildTenantDefaultUrl(slug: string): string | null {
-  const base = getTenantBaseDomain();
-  if (!base) return null;
-  return `https://${slug}.${base}`;
 }
 
 /**
