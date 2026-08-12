@@ -20,16 +20,35 @@ export interface TenantLimitValues {
 
 export interface PlanDefinition {
   slug: PlanSlug;
-  price_monthly: number | null;
+  /**
+   * 每月价格，**单位是分**（同 `MemberPlan.price_cents`）——钱不用浮点数。
+   *
+   * `null` = 议价档（enterprise / ultimate），定价区上写「联系我们」而不是一个假数字。
+   */
+  price_cents: number | null;
+  /** ISO 4217；展示交给 `Intl.NumberFormat`，符号与位置随访客语言自动适配。 */
+  currency: string;
   shows_usage_card: boolean;
   features: Partial<TenantFeatureFlags>;
   limits: Partial<TenantLimitValues>;
+  /**
+   * 这一档要不要出现在官网定价区上。
+   *
+   * 在**数据**这一侧而不是段的设置里：官网的套餐区是数据驱动的，编辑器只管版式与
+   * 样式，不管「展示哪几档」。`ultimate` 是内部组织用的，摆到公开面上只会让访客
+   * 看见一个买不到也不该知道的东西。
+   */
+  public_listed: boolean;
+  /** 定价区里描边突出的那一档（「推荐」）。同样是数据，不是段的设置。 */
+  highlighted?: boolean;
 }
 
 export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   free: {
     slug: "free",
-    price_monthly: 0,
+    public_listed: true,
+    price_cents: 0,
+    currency: "CNY",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -38,7 +57,9 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   starter: {
     slug: "starter",
-    price_monthly: 99,
+    public_listed: true,
+    price_cents: 9900,
+    currency: "CNY",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -47,7 +68,10 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   pro: {
     slug: "pro",
-    price_monthly: 399,
+    public_listed: true,
+    highlighted: true,
+    price_cents: 39900,
+    currency: "CNY",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -56,7 +80,9 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   business: {
     slug: "business",
-    price_monthly: 999,
+    public_listed: true,
+    price_cents: 99900,
+    currency: "CNY",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -65,7 +91,9 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   enterprise: {
     slug: "enterprise",
-    price_monthly: null,
+    public_listed: true,
+    price_cents: null,
+    currency: "CNY",
     shows_usage_card: true,
     features: {},
     limits: {
@@ -74,7 +102,9 @@ export const PRICING_PLANS: Record<PlanSlug, PlanDefinition> = {
   },
   ultimate: {
     slug: "ultimate",
-    price_monthly: null,
+    public_listed: false,
+    price_cents: null,
+    currency: "CNY",
     shows_usage_card: false,
     features: {},
     limits: {
@@ -99,8 +129,8 @@ export function isValidPlanSlug(slug: string): slug is PlanSlug {
 
 /** 价格高低即套餐高低；未定价（enterprise / ultimate）排在最后。 */
 export function comparePlanRank(a: string, b: string): number {
-  const priceA = getPlanBySlug(a)?.price_monthly;
-  const priceB = getPlanBySlug(b)?.price_monthly;
+  const priceA = getPlanBySlug(a)?.price_cents;
+  const priceB = getPlanBySlug(b)?.price_cents;
   if (priceA == null && priceB == null) return 0;
   if (priceA == null) return 1;
   if (priceB == null) return -1;

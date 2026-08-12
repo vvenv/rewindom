@@ -57,7 +57,6 @@ import {
   listPurchasablePlans,
 } from "./member-billing.service.js";
 import { createSiteBillingTranslator } from "./site-billing-i18n.js";
-import { readSiteBillingEnabled } from "./site-billing-tenant.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -107,18 +106,6 @@ async function renderBillingPage(
       renderUnavailableHtml({
         title: "Site not found",
         message: "This host is not bound to a site.",
-      }),
-    );
-    return true;
-  }
-
-  if (!(await readSiteBillingEnabled(hostTenant))) {
-    sendHtml(
-      reply,
-      404,
-      renderUnavailableHtml({
-        title: "Not available",
-        message: "Paid memberships are not enabled for this site.",
       }),
     );
     return true;

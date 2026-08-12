@@ -50,6 +50,13 @@ export interface SectionRenderContext extends DocRenderContext {
    */
   enabledEntitlements?: ReadonlySet<string>;
   /**
+   * 当前渲染的是不是**默认租户**（产品站）的站点。
+   *
+   * 声明了 `default_tenant_only` 的段据此决定渲不渲染。不传按 `false` 处理——
+   * 漏传的后果是那一段不出现，而不是把平台自己的东西渲染到别人的站上。
+   */
+  isDefaultTenant?: boolean;
+  /**
    * 贡献段的按请求数据。
    *
    * key 用**模块 id** 做命名空间，值的形状由贡献方自己定义与断言——marketing 不认识

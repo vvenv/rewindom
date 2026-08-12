@@ -22,8 +22,10 @@
       "/platform/error-logs": "错误日志",
       "/platform/slow-query-logs": "慢查询",
       "/platform/settings": "平台设置",
-      "/platform/billing": "订阅与付款"
-    }
+      "/platform/billing": "订阅与付款",
+      "/platform/plans": "套餐配置"
+    },
+    "plans": "套餐配置"
   },
   "layout": {
     "home": "首页",
@@ -312,28 +314,54 @@
   "plans": {
     "free": {
       "name": "免费版",
-      "description": "适合个人试用"
+      "description": "适合个人试用",
+      "features": [
+        "1 个成员",
+        "官网与基础模块",
+        "社区支持"
+      ]
     },
     "starter": {
       "name": "基础版",
-      "description": "适合小团队起步"
+      "description": "适合小团队起步",
+      "features": [
+        "3 个成员",
+        "全部基础模块",
+        "邮件支持"
+      ]
     },
     "pro": {
       "name": "专业版",
-      "description": "适合成长期团队"
+      "description": "适合成长期团队",
+      "features": [
+        "10 个成员",
+        "自定义域名",
+        "优先支持"
+      ]
     },
     "business": {
       "name": "商业版",
-      "description": "适合中大型企业"
+      "description": "适合中大型企业",
+      "features": [
+        "30 个成员",
+        "审计日志与用量报表",
+        "专属支持"
+      ]
     },
     "enterprise": {
       "name": "企业版",
-      "description": "大客户定制方案，联系销售"
+      "description": "大客户定制方案，联系销售",
+      "features": [
+        "100 个成员起",
+        "私有化部署可选",
+        "专属客户成功"
+      ]
     },
     "ultimate": {
       "name": "终极版",
       "description": "内部租户，无用量限制"
-    }
+    },
+    "customPrice": "联系我们"
   },
   "limits": {
     "max_users": {
@@ -443,5 +471,25 @@
       "cleared": "已恢复为平台默认凭证",
       "clearFailed": "清除失败"
     }
+  },
+  "plansConfig": {
+    "description": "一档一个页签，配完这一档的全部：定价与展示给官网定价区用，配额在开通套餐时写进组织。留空的文案回落到内置默认值。",
+    "price": "价格（元）",
+    "priceHint": "留空表示议价档，定价区上写「联系我们」",
+    "priceInvalid": "价格必须是不小于 0 的数字",
+    "currency": "币种",
+    "sortOrder": "排序",
+    "publicListed": "在官网定价区展示",
+    "highlighted": "标为推荐（描边突出）",
+    "name": "套餐名",
+    "summary": "一句话说明",
+    "features": "卖点",
+    "featuresHint": "每行一条；留空则用内置文案",
+    "saved": "套餐配置已保存",
+    "sectionPricing": "定价与展示",
+    "sectionCopy": "文案",
+    "sectionCopyHint": "留空则用内置文案；官网定价区按访客语言取。",
+    "sectionLimits": "用量配额",
+    "sectionLimitsHint": "开通该套餐时写进组织；留空表示不限。"
   }
 }

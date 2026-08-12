@@ -111,6 +111,17 @@ export interface SectionDefinition {
    * `placements` 是两个维度——那个说的是「页面流还是页头页脚」，这个说的是「哪张页面」。
    */
   page_kinds?: readonly string[];
+  /**
+   * 只在**默认租户**（产品站）上可用。
+   *
+   * 给「卖的是平台自己的东西」那类段用：平台套餐区渲染的是这套部署的定价，摆到某个
+   * 租户的站点上，等于让访客在别人的站上看见并购买平台的套餐。租户要在自己站上卖东西
+   * 走的是自己那份数据（如会员套餐），不是这一段。
+   *
+   * 与 `entitlement` 是两个维度：那个说的是「这个组织开通了没有」，这个说的是
+   *「这一段属不属于这个站」。
+   */
+  default_tenant_only?: true;
 }
 
 /** 存储结构：section / block 都是 `{ id, type, settings }`。 */

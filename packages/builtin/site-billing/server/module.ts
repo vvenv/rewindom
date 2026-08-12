@@ -1,6 +1,3 @@
-import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/register-tenant-gated-routes.js";
-
-import { TENANT_SITE_BILLING_ENTITLEMENT } from "../shared/entitlements.js";
 import { registerSiteBillingPageTemplates } from "../shared/member-billing-templates.js";
 
 import { registerMemberBillingAccountSection } from "./account-section.js";
@@ -23,7 +20,6 @@ export const siteBillingServerModule: ServerAppModule = {
    * 单向依赖，不成环。
    */
   requires: ["rbac", "audit", "platform", "marketing", "site-member", "billing"],
-  tenantEntitlements: [TENANT_SITE_BILLING_ENTITLEMENT],
   shared: {
     permissions: [
       {
@@ -70,15 +66,8 @@ export const siteBillingServerModule: ServerAppModule = {
        */
       await app.register(memberBillingPageRoutes);
 
-      await registerTenantGatedRoutes(
-        app,
-        TENANT_SITE_BILLING_ENTITLEMENT.key,
-        async (scoped) => {
-          await scoped.register(siteBillingRoutes, {
-            prefix: "/api/site-billing",
-          });
-        },
-      );
+      // 不套租户开关网关：会员付费是每个站点都具备的能力，不可禁用
+      await app.register(siteBillingRoutes, { prefix: "/api/site-billing" });
     },
   },
 };

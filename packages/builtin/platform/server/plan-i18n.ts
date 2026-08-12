@@ -34,3 +34,36 @@ export function planName(slug: string, locale: AppLocale): string {
 export function planDescription(slug: string, locale: AppLocale): string {
   return lookup(locale, `plans.${slug}.description`) ?? "";
 }
+
+/** 议价档在价格位上写的那句话（enterprise 那种没有标价的档）。 */
+export function planCustomPriceLabel(locale: AppLocale): string {
+  return lookup(locale, "plans.customPrice") ?? "";
+}
+
+/**
+ * 套餐卖点（官网定价卡上那几行）。
+ *
+ * 与套餐名同一份 JSON —— 卖点是**数据**，不是段的设置：官网的定价区数据驱动，
+ * 编辑器只管版式与样式。改一档的卖点改这里，所有摆了定价区的页面跟着变。
+ */
+export function planFeatures(slug: string, locale: AppLocale): string[] {
+  const primary = MESSAGES[normalizeLocale(locale)] ?? MESSAGES["zh-CN"]!;
+  return (
+    readStringList(primary, slug) ??
+    readStringList(MESSAGES["zh-CN"]!, slug) ??
+    []
+  );
+}
+
+function readStringList(
+  messages: Record<string, unknown>,
+  slug: string,
+): string[] | undefined {
+  const plans = messages.plans;
+  if (!plans || typeof plans !== "object") return undefined;
+  const plan = (plans as Record<string, unknown>)[slug];
+  if (!plan || typeof plan !== "object") return undefined;
+  const features = (plan as Record<string, unknown>).features;
+  if (!Array.isArray(features)) return undefined;
+  return features.filter((item): item is string => typeof item === "string");
+}

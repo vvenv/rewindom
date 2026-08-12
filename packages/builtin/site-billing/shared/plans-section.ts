@@ -14,7 +14,6 @@ import {
   layoutSettings,
 } from "../../marketing/shared/sections/_common/settings.js";
 
-import { TENANT_SITE_BILLING_ENTITLEMENT } from "./entitlements.js";
 
 import type {
   MemberPlanInterval,
@@ -94,7 +93,6 @@ export const memberPlansSection: SectionDefinition = {
   type: MEMBER_PLANS_SECTION_TYPE,
   label: "site-billing:section.plans.label",
   placements: ["page"],
-  entitlement: TENANT_SITE_BILLING_ENTITLEMENT.key,
   settings: [
     ...headingSettings(),
     { type: "header", content: "site-billing:section.plans.display" },

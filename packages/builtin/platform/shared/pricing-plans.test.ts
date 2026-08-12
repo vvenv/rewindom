@@ -34,9 +34,9 @@ describe("pricing-plans", () => {
     const business = PRICING_PLANS.business;
 
     // Pricing should be monotonically increasing
-    expect(starter.price_monthly).toBeGreaterThan(free.price_monthly!);
-    expect(pro.price_monthly!).toBeGreaterThan(starter.price_monthly!);
-    expect(business.price_monthly!).toBeGreaterThan(pro.price_monthly!);
+    expect(starter.price_cents).toBeGreaterThan(free.price_cents!);
+    expect(pro.price_cents!).toBeGreaterThan(starter.price_cents!);
+    expect(business.price_cents!).toBeGreaterThan(pro.price_cents!);
 
     // Limits should be monotonically increasing
     expect(starter.limits.max_users!).toBeGreaterThan(free.limits.max_users!);

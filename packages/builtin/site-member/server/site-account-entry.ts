@@ -1,6 +1,4 @@
 import { registerSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
-import { isTenantModuleEnabled } from "../../platform/server/services/tenant-module.service.js";
-import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
 import {
   memberDisplayName,
   memberInitials,
@@ -84,16 +82,11 @@ function memberMenuHtml(
  * 把账户入口填进 marketing 的服务端注入点。
  *
  * 方向与 client 侧一致：slot 定义在 marketing（消费方），site-member 来填。
- * 站点没开通会员时返回 `available: false`——编辑器据此把「账户入口」开关置灰，
- * 预览也不画那枚按钮，与线上保持同一口径。
+ * 会员体系不再有开关（每个站点都具备），所以这里恒为 `available: true`——
+ * 要不要在页头摆这枚按钮，由租户在编辑器里自己决定。
  */
 export function registerSiteMemberAccountEntry(): void {
-  registerSiteAccountEntry(async ({ tenantId, locale, member }) => {
-    const enabled = await isTenantModuleEnabled(
-      tenantId,
-      TENANT_SITE_MEMBER_ENTITLEMENT.key,
-    );
-    if (!enabled) return { available: false, html: "" };
+  registerSiteAccountEntry(async ({ locale, member }) => {
     if (member) {
       return { available: true, html: memberMenuHtml(locale, member) };
     }

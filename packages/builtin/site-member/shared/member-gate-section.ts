@@ -8,7 +8,6 @@
  * 后果是页面内容被另一个模块的 schema 解析。marketing 的注册表对撞名直接抛错。
  */
 
-import { TENANT_SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
 
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 
@@ -19,8 +18,6 @@ export const memberGateSection: SectionDefinition = {
   // 带命名空间的 key：文案在本模块的 i18n 包里，marketing 的编辑器认前缀
   label: "site-member:section.gate.label",
   placements: ["page"],
-  // 租户没开通会员时不进「添加区块」菜单，也不渲染；已摆上的那段原样兜住
-  entitlement: TENANT_SITE_MEMBER_ENTITLEMENT.key,
   settings: [
     {
       type: "richtext",

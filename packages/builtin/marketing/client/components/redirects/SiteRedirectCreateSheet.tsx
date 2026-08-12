@@ -6,6 +6,7 @@ import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
 import { Input } from "@be-water/ui/input";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -13,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@be-water/ui/sheet";
+import { Spinner } from "@be-water/ui/spinner";
 import { Switch } from "@be-water/ui/switch";
 import { toast } from "@be-water/ui/toast";
 import { Plus } from "lucide-react";
@@ -26,7 +28,7 @@ export function SiteRedirectCreateSheet({
 }: {
   children?: ReactNode;
 }): ReactElement {
-  const { t } = useTranslation("marketing");
+  const { t } = useTranslation(["marketing", "common"]);
   const [open, setOpen] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -125,7 +127,13 @@ export function SiteRedirectCreateSheet({
             </Field>
           </FieldGroup>
           <SheetFooter>
+            <SheetClose asChild>
+              <Button type="button" variant="outline" disabled={save.isPending}>
+                {t("common:cancel")}
+              </Button>
+            </SheetClose>
             <Button type="submit" disabled={save.isPending}>
+              {save.isPending && <Spinner />}
               {t("cms.save")}
             </Button>
           </SheetFooter>

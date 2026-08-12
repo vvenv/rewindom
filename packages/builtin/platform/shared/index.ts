@@ -12,4 +12,5 @@ export * from "./tenant-branding.js";
 export * from "./tenant-oauth.js";
 export * from "./collect-tenant-catalog.js";
 export * from "./pricing-plans.js";
+export * from "./plan-pricing.js";
 export * from "./plan-limit-templates.js";

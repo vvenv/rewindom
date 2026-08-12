@@ -47,17 +47,47 @@ Webhook URL：`POST /api/billing/webhooks/creem`（免 JWT，校验 `creem-signa
 产品站的定价区：`billing` 向 marketing 贡献一个段（同 `site-member` 的路子），
 在主题编辑器「添加区块」里叫「套餐」。
 
-**排版与文案归租户，价格与套餐名归代码**：租户挑哪几档、排顺序、写卖点、改按钮文案；
-价格从 `PRICING_PLANS` 取、套餐名从 `platform` 的 locale JSON 取（`planName(slug, locale)`）。
-段的 settings 里没有价格字段——「官网写 ¥99、结账收 ¥399」这类事故从配置面上就杜绝了。
+**只在默认租户（产品站）可用**（`default_tenant_only`）。这一段卖的是这套部署自己的
+套餐，摆到某个租户的站点上等于让访客在别人的站上买平台的东西。租户要在自己站上卖，
+用的是自己那份数据——会员套餐（`site-billing.plans`），两份数据各归各的：
 
-CTA 是一条普通链接（默认 `/register`）：SSR 渲染的是公开页，服务端不知道访客登没登录
-（工作台会话在另一个 Host 上），做不出「已登录去升级」的分支，也就别装作能做。
+| 站点 | 套餐数据从哪来 | 配置入口 |
+| --- | --- | --- |
+| 默认租户（产品站） | 平台套餐 | `/platform/plans` |
+| 其它租户 | 该站自己的会员套餐 | `/app/site-billing`；未配置则段不渲染 |
+
+编辑器与 SSR 两道闸门都拦：菜单里不列（`sectionTypesFor` 的第 4 个维度），
+渲染时不出（`renderSectionHtml` 的归属闸门，漏传按「非默认租户」算）。
+
+**数据驱动 + 免配置**：段里既没有配数据的地方，也没有配价格写法的地方。
+
+| 归谁 | 是什么 | 改在哪 |
+| --- | --- | --- |
+| 数据 | 展示哪几档、价格、币种、名称、说明、卖点、推荐哪档、排序 | 平台控制台 **/platform/plans**「套餐配置」 |
+| 自动 | 价格符号与写法（`¥399` / `CN¥399`）、议价档文案 | `Intl.NumberFormat` 按访客语言现算 |
+| 版式 | 抬头、显示/隐藏说明与卖点、按钮文案与去向、分栏留白底色 | 段的 settings |
+
+改一次定价，所有摆了这一段的页面（各语言）自动跟着变。段里因此**没有** blocks
+——那是第二份套餐数据；也**没有**价格前后缀——手填的前后缀换个币种或换个语言就会
+集体失真，而 `Intl` 本来就知道人民币写「¥399」、美元写「$399」。
+
+数据链路：平台控制台写 `AppSetting["plan_pricing"]`（只存被改过的字段，其余回落
+`PRICING_PLANS` 与 `platform` 的 locale JSON）→ `getPlanCatalog()` 合并 →
+`registerSectionContextProvider` 在渲染前把这一页要用的那份塞进 `contributed`。
+段渲染器是同步的，自己查不了库；provider 只在页面真的摆了这一段时才跑，其余页面
+一次查询都不发。
+
+编辑器预览读同一份数据（公开接口 `GET /api/public/plans`，免认证——它本就印在
+公开定价页上），所见即访客所见。
+
+CTA 是一组管所有卡的链接（默认 `/register`）：按钮去哪儿是**页面**的事，不是某一档
+套餐的属性。SSR 渲染的是公开页，服务端不知道访客登没登录（工作台会话在另一个
+Host 上），做不出「已登录去升级」的分支，也就别装作能做。
 
 ## 扩展点
 
 - 权限：`billing.read` / `billing.write`
-- 官网段：`billing.plans`（`entitlement: billing`）
+- 官网段：`billing.plans`（`entitlement: billing`；数据来自平台控制台的套餐配置）
 - 审计：`BILLING_CHECKOUT_CREATE` / `BILLING_SUBSCRIPTION_CANCEL` / `BILLING_WEBHOOK_SYNC`
 - Entitlement：`billing`（默认开启）
 - Provider：`shared/payment-provider.ts`；实现见 `server/providers/creem.provider.ts`

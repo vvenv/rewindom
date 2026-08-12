@@ -22,8 +22,10 @@
       "/platform/error-logs": "Error logs",
       "/platform/slow-query-logs": "Slow queries",
       "/platform/settings": "Platform settings",
-      "/platform/billing": "Subscription & billing"
-    }
+      "/platform/billing": "Subscription & billing",
+      "/platform/plans": "Plans"
+    },
+    "plans": "Plans"
   },
   "layout": {
     "home": "Home",
@@ -312,28 +314,54 @@
   "plans": {
     "free": {
       "name": "Free",
-      "description": "For personal trials"
+      "description": "For personal trials",
+      "features": [
+        "1 member",
+        "Website and core modules",
+        "Community support"
+      ]
     },
     "starter": {
       "name": "Starter",
-      "description": "For small teams getting started"
+      "description": "For small teams getting started",
+      "features": [
+        "3 members",
+        "All core modules",
+        "Email support"
+      ]
     },
     "pro": {
       "name": "Pro",
-      "description": "For growing teams"
+      "description": "For growing teams",
+      "features": [
+        "10 members",
+        "Custom domain",
+        "Priority support"
+      ]
     },
     "business": {
       "name": "Business",
-      "description": "For mid-to-large organizations"
+      "description": "For mid-to-large organizations",
+      "features": [
+        "30 members",
+        "Audit logs and usage reports",
+        "Dedicated support"
+      ]
     },
     "enterprise": {
       "name": "Enterprise",
-      "description": "Custom for large customers — contact sales"
+      "description": "Custom for large customers — contact sales",
+      "features": [
+        "From 100 members",
+        "Self-hosting available",
+        "Dedicated success manager"
+      ]
     },
     "ultimate": {
       "name": "Ultimate",
       "description": "Internal tenants with no usage limits"
-    }
+    },
+    "customPrice": "Contact us"
   },
   "limits": {
     "max_users": {
@@ -443,5 +471,25 @@
       "cleared": "Restored platform credentials",
       "clearFailed": "Clear failed"
     }
+  },
+  "plansConfig": {
+    "description": "One tab per plan, everything in one place: pricing and copy feed the public pricing section, quotas are written to the organization when the plan is granted. Empty copy falls back to the built-in defaults.",
+    "price": "Price",
+    "priceHint": "Leave empty for custom pricing — the section shows “Contact us”",
+    "priceInvalid": "Price must be a number, zero or greater",
+    "currency": "Currency",
+    "sortOrder": "Order",
+    "publicListed": "Show in the public pricing section",
+    "highlighted": "Mark as recommended (outlined)",
+    "name": "Plan name",
+    "summary": "One-line summary",
+    "features": "Highlights",
+    "featuresHint": "One per line; leave empty to use the built-in copy",
+    "saved": "Plan configuration saved",
+    "sectionPricing": "Pricing & display",
+    "sectionCopy": "Copy",
+    "sectionCopyHint": "Leave empty to use the built-in copy; the pricing section picks the visitor's language.",
+    "sectionLimits": "Usage quotas",
+    "sectionLimitsHint": "Written to the organization when this plan is granted; empty means unlimited."
   }
 }

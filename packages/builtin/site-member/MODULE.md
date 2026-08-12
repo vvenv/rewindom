@@ -16,7 +16,7 @@
 | 公开（SPA） | `/member/oauth/callback` | `client/public/routes.tsx` | 无；走 `renderPublicRoutes` + `publicProviders` |
 | 租户侧 | `/app/site-members` | `client/tenant/`、`client/pages/site-members.tsx` | `site_members.read`（写操作另需 `site_members.write`） |
 | 会员 API | `/api/member/*` | `server/site-member-auth.routes.ts`、`site-member-oauth.routes.ts` | 登录态；路径白名单；OAuth 前缀免认证 |
-| 管理 API | `/api/site-members` | `server/site-member-admin.routes.ts` | PBAC + entitlement `tenant-site-member` |
+| 管理 API | `/api/site-members` | `server/site-member-admin.routes.ts` | PBAC |
 
 ## 三张会员页：租户可排版的模板页
 
@@ -63,8 +63,8 @@ Fastify 先命中；`/member/oauth/callback` 仍落到 SPA。nginx 与 vite dev 
 | --- | --- |
 | 管理路由 | `requirePermission("site_members.read" / "site_members.write")` |
 | 导航 | `anyPermission: ["site_members.read"]`；挂在「官网 CMS」分组 |
-| entitlement | `tenant-site-member`（默认关闭） |
-| 会员自助 API | **不**套 `registerTenantGatedRoutes`（未登录时无 tenantContext）；entitlement 在 `resolveSiteTenant` 校验 |
+| entitlement | **没有**——会员体系是每个站点都具备的能力，不可禁用；能不能管归权限 |
+| 会员自助 API | **不**套 `registerTenantGatedRoutes`（未登录时无 tenantContext）；站点归属在 `resolveSiteTenant` 校验 |
 
 ## 第三方登录（OAuth）
 

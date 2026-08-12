@@ -229,7 +229,9 @@ describe("TenantResetPasswordSheet", () => {
     fireEvent.click(screen.getByRole("button", { name: "重设密码" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "重设密码" })).toBeDisabled();
+      // pending 时按钮里多了个 Spinner（`role="status" aria-label="Loading"`），
+      // 无障碍名会变成「Loading 重设密码」——按子串匹配，与本文件其余查询同口径
+      expect(screen.getByRole("button", { name: /重设密码/ })).toBeDisabled();
     });
   });
 

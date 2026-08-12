@@ -15,7 +15,6 @@ import {
   registerPageTemplatePreset,
 } from "../../marketing/shared/page-templates.js";
 
-import { TENANT_SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
 import {
   MEMBER_ACCOUNT_PAGE_KIND,
   MEMBER_ACCOUNT_PANEL_SECTION_TYPE,
@@ -132,7 +131,6 @@ export function registerMemberPageTemplates(): void {
     group: "site-member:template.group",
     label: "site-member:template.login.label",
     required_section: MEMBER_LOGIN_FORM_SECTION_TYPE,
-    entitlement: TENANT_SITE_MEMBER_ENTITLEMENT.key,
   });
   registerPageTemplateKind({
     kind: MEMBER_REGISTER_PAGE_KIND,
@@ -141,7 +139,6 @@ export function registerMemberPageTemplates(): void {
     group: "site-member:template.group",
     label: "site-member:template.register.label",
     required_section: MEMBER_REGISTER_FORM_SECTION_TYPE,
-    entitlement: TENANT_SITE_MEMBER_ENTITLEMENT.key,
   });
   registerPageTemplatePreset(
     MEMBER_LOGIN_PAGE_KIND,
@@ -158,7 +155,6 @@ export function registerMemberPageTemplates(): void {
     group: "site-member:template.group",
     label: "site-member:template.account.label",
     required_section: MEMBER_ACCOUNT_PANEL_SECTION_TYPE,
-    entitlement: TENANT_SITE_MEMBER_ENTITLEMENT.key,
   });
   registerPageTemplatePreset(
     MEMBER_ACCOUNT_PAGE_KIND,

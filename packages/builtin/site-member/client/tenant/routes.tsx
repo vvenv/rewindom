@@ -1,7 +1,6 @@
 import { lazy, type ReactNode } from "react";
 
-import { PermissionRoute, TenantModuleRoute } from "@be-water/client-kit";
-import { useTranslation } from "react-i18next";
+import { PermissionRoute } from "@be-water/client-kit";
 import { Route } from "react-router";
 
 const SiteMembers = lazy(() =>
@@ -10,22 +9,14 @@ const SiteMembers = lazy(() =>
   })),
 );
 
-function SiteMemberModuleRoute() {
-  const { t } = useTranslation("site-member");
-  return (
-    <TenantModuleRoute
-      moduleId="tenant-site-member"
-      label={t("admin.title")}
-    />
-  );
-}
-
+/**
+ * 不套 `TenantModuleRoute`：会员体系是每个站点都具备的能力，没有开关可关。
+ * 剩下的只有权限——能不能管这批会员仍归角色管。
+ */
 export function renderSiteMemberRoutes(): ReactNode {
   return (
-    <Route element={<SiteMemberModuleRoute />}>
-      <Route element={<PermissionRoute permission="site_members.read" />}>
-        <Route path="/app/site-members" element={<SiteMembers />} />
-      </Route>
+    <Route element={<PermissionRoute permission="site_members.read" />}>
+      <Route path="/app/site-members" element={<SiteMembers />} />
     </Route>
   );
 }

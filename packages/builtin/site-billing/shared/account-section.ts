@@ -9,7 +9,6 @@
 
 import { headingSettings } from "../../marketing/shared/sections/_common/settings.js";
 
-import { TENANT_SITE_BILLING_ENTITLEMENT } from "./entitlements.js";
 
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 
@@ -20,7 +19,6 @@ export const memberBillingAccountSection: SectionDefinition = {
   type: MEMBER_BILLING_ACCOUNT_SECTION_TYPE,
   label: "site-billing:section.account.label",
   placements: ["page"],
-  entitlement: TENANT_SITE_BILLING_ENTITLEMENT.key,
   page_kinds: [MEMBER_BILLING_PAGE_KIND],
   settings: [
     ...headingSettings(),

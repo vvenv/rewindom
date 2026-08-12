@@ -29,6 +29,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@be-water/ui/sheet";
+import { Spinner } from "@be-water/ui/spinner";
 import { toast } from "@be-water/ui/toast";
 import { Crown } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -156,11 +157,13 @@ export function TenantPlanSheet({
             <Button
               type="button"
               variant="outline"
+              disabled={updateMutation.isPending}
               onClick={() => setOpen(false)}
             >
               {t("common:cancel")}
             </Button>
             <Button type="submit" disabled={updateMutation.isPending}>
+              {updateMutation.isPending && <Spinner />}
               {t("common:save")}
             </Button>
           </SheetFooter>

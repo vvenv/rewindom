@@ -20,9 +20,10 @@
 | 面 | 路由 | 目录 | 所需权限 / 门控 |
 | --- | --- | --- | --- |
 | 公开（SSR） | `/member/billing`（GET 渲染 + POST 两种 intent） | `server/member-billing.ssr.ts` | 会员会话；未登录 302 去登录页 |
-| 公开（段） | 任意页面上的 `site-billing.plans` | `server/plans-section.ts` | entitlement + 会员会话 |
-| 租户侧 | `/app/site-billing` | `client/tenant/`、`client/pages/site-billing.tsx` | `site_billing.read`（写另需 `site_billing.write`） |
-| 管理 API | `/api/site-billing` | `server/site-billing.routes.ts` | PBAC + entitlement |
+| 公开（段） | 任意页面上的 `site-billing.plans` | `server/plans-section.ts` | 会员会话（下单时） |
+| 租户侧（套餐） | `/app/site-billing` | `client/pages/member-plans.tsx` | `site_billing.read`（写另需 `site_billing.write`） |
+| 租户侧（流水） | `/app/site-billing/records` | `client/pages/member-records.tsx` | 同上（只读） |
+| 管理 API | `/api/site-billing` | `server/site-billing.routes.ts` | PBAC |
 | Webhook | `POST /api/site-billing/webhooks/creem` | 同上 | 免 JWT，按站点密钥验签 |
 
 ## 两个官网段 + 一张模板页
@@ -40,6 +41,11 @@
 段的 settings 里**没有价格**：价格在 `MemberPlan` 上。官网写一个数、结账收另一个数是
 这类页面最容易出的事故，把它从可配置项里去掉就不会发生。
 
+**未配置套餐时**：公开面整段不渲染（访客不该看见一个空的定价区），但编辑器里**能加**
+并显示一句「本站还没有可售的会员套餐」+ 去配置的链接——先排版后补数据是正常顺序，
+而加完看见一片空白只会让人以为段坏了。section 视图只在主题编辑器渲染，所以这条提示
+不会漏到公开面上。
+
 按请求数据走 `SectionRenderContext.contributed["site-billing"]`，读写各收口在
 `readSiteBillingContext` / `siteBillingContextEntry`。
 
@@ -51,6 +57,10 @@
 
 设置页上明示当前来源（平台默认 / 本站点自己）——收款不像 OAuth，静默地用了别人的凭证
 是要出事的，所以宁可多显示一行。
+
+密钥表单收在 `SiteBillingProviderSheet` 里（三个字段常驻在套餐页上会把流水挤到折叠线
+以下），但**当前来源与「缺 Webhook 密钥」留在套餐页的一行状态里**：套餐配得再好，收款
+账号错了或没有验签密钥就一分钱也落不了地，这件事不该藏在一次点击之后。
 
 ## Webhook 的先有鸡还是先有蛋
 
@@ -71,7 +81,8 @@
 
 - Server：`apps/server/src/enabled-modules.ts`
 - Client：`apps/client/src/enabled-modules.ts`
-- entitlement `tenant-site-billing`（**默认关闭**，且要求 `tenant-site-member` 也开着）
+- **没有 entitlement**：会员付费是每个站点都具备的能力，不可禁用。装了模块就在，
+  能不能进那一页归权限（`site_billing.read` / `.write`）管。
 
 ## 扩展点
 

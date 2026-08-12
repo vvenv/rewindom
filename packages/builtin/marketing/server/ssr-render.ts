@@ -156,6 +156,8 @@ export function renderMarketingHtml(input: {
    * 这类东西按请求变，塞不进段的 settings，也不该让 marketing 认识它们的形状。
    */
   contributed?: Readonly<Record<string, unknown>>;
+  /** 声明了 `default_tenant_only` 的段据此决定渲不渲染（见 `sections/html.ts`）。 */
+  isDefaultTenant?: boolean;
 }): string {
   const {
     origin,
@@ -166,6 +168,7 @@ export function renderMarketingHtml(input: {
     enabledEntitlements,
     docContext,
     contributed,
+    isDefaultTenant,
   } = input;
   const theme = resolveThemeSettings(site.theme_settings);
   const sectionCtx = {
@@ -177,6 +180,7 @@ export function renderMarketingHtml(input: {
     // 贡献段据此决定渲不渲染；不传等于一个贡献段都不出（少了而不是多了，方向安全）
     enabledEntitlements,
     contributed,
+    isDefaultTenant,
     ...docContext,
   };
   const base = origin.replace(/\/$/u, "");

@@ -17,13 +17,12 @@
 
 ## 这是什么
 
-**Agent-first** 的多租户 SaaS **模块化单体**：内核 + 基础设施模块 + 示例业务模块。用 `AGENTS.md`、Cursor/Claude Skills 与 `gen:module` → `check:modules` 闭环，让编码 Agent 在强制边界内扩展业务。内核与基础设施**不含业务领域代码**；业务以模块挂载，`notes` 为金标准复制起点。
+**Agent-first** 的多租户 SaaS **模块化单体**：内核 + 内置基础设施 + 可选外部业务模块。用 `AGENTS.md`、Cursor/Claude Skills 与 `gen:module` → `check:modules` 闭环，让编码 Agent 在强制边界内扩展业务。内核与基础设施**不含业务领域代码**；业务以模块挂载，外部示例以 `modules/note` 为金标准。
 
 | 类型 | 模块 |
 | --- | --- |
-| 基础设施 | `user` 认证/JWT · `platform` 租户/套餐/配额 · `rbac` PBAC（未启用则登录即可访问）· `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 · `marketing` 官网 CMS（主域=默认租户 SSR） |
-| 业务 | `billing` 租户订阅与付款（Creem） |
-| 示例 | `notes` 金标准 CRUD · `todos` 由 `gen:module` 生成并手工定制的列表示例 |
+| 基础设施（`packages/builtin/`） | `user` 认证/JWT · `platform` 租户/套餐/配额 · `rbac` PBAC（未启用则登录即可访问）· `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 · `dashboard` 工作台 · `marketing` 官网 CMS（主域=默认租户 SSR） · `site-member` 站点会员 · `billing` 平台租户订阅（Creem） · `site-billing` 站点会员订阅 |
+| 外部业务（`modules/`） | `note` 金标准 CRUD · `todo` 列表示例 · `bookmark` 书签示例（由 `pnpm gen:external-modules` 装进组装层） |
 
 **不是**：无约束的脚手架喷发器、微服务框架、低代码平台。Agent 写代码，闸门与契约由框架强制。详见 [agent-first.md](docs/design/agent-first.md)。
 
@@ -133,7 +132,12 @@ TENANT_BASE_DOMAIN=localhost
 3. **模块间禁止直接 import** — 跨模块走 manifest `requires` + Event Bus / Provider / Slot
 4. **模块可按租户开关** — 未开通不挂路由、不进侧栏
 
-边界由 `pnpm check:deps` 强制（包层环 + manifest/schema FK + 文件级环）。新模块：`pnpm gen:module <spec.yaml>` 或复制 `packages/modules/notes/`。详见 [modular-architecture.md](docs/design/modular-architecture.md) 与 [agent-first.md](docs/design/agent-first.md)。
+边界由 `pnpm check:deps` 强制（包层环 + manifest/schema FK + 文件级环）。
+
+- **内置能力**改 `packages/builtin/<id>/`，在两处 `enabled-modules.ts` 手写注册
+- **业务模块**用 `pnpm gen:module <spec.yaml>` 生成到 `modules/<id>/`（经 `@be-water/module-sdk` 门面，不直连内核），再 `pnpm gen:external-modules` 装进组装层；金标准是 `modules/note`
+
+详见 [modular-architecture.md](docs/design/modular-architecture.md) 与 [agent-first.md](docs/design/agent-first.md)。
 
 前端有四类路由挂载点：`renderPublicRoutes`（无守卫，租户 CMS 前台）、`renderGuestRoutes`（登录注册，已登录会被弹走）、`renderTenantRoutes`（租户应用）、`renderPlatformRoutes`（平台控制台，仅 `PLATFORM_URL` Host）。公开页 SEO 由 Fastify SSR 输出；SPA 接管后补交互层。
 
@@ -159,20 +163,21 @@ TENANT_BASE_DOMAIN=localhost
 be-water/
 ├── apps/
 │   ├── server/              # Fastify 组装 + Prisma schema/migrations
-│   │   └── src/enabled-modules.ts
+│   │   └── src/enabled-modules.ts   # 内置 + …EXTERNAL_SERVER_MODULES
 │   └── client/              # React 组装 + 产品壳（登录、Layout、Sidebar）
-│       ├── src/enabled-modules.ts
-│       └── src/shell/
+│       └── src/enabled-modules.ts
 ├── packages/
-│   ├── modules/             # 业务与基础设施（server + client + shared）
+│   ├── builtin/             # 内置基础设施（user / platform / billing / marketing …）
+│   ├── module-sdk/          # 外部模块门面（禁止直连 server-kernel / client-kit）
 │   ├── server-kernel/       # 内核：HTTP、认证、ModuleLoader、EventBus
 │   ├── client-kit/          # api、守卫、PageLayout、Slot
 │   ├── shared/ · ui/        # 跨端类型 · shadcn 基础组件
 │   └── server-test/ · client-test/
+├── modules/                 # 外部业务包（note / todo / bookmark …）
 ├── docker/ · docs/ · scripts/
 ```
 
-模块加载只看两处 `enabled-modules.ts`。
+内置模块在两处 `enabled-modules.ts` 手写；外部模块由 `pnpm gen:external-modules` 生成聚合文件再展开。
 
 ---
 
@@ -185,8 +190,9 @@ be-water/
 | `pnpm db:pull` / `seed` | 拉取远程库到本地 / 初始化种子数据 |
 | `pnpm build` / `pnpm start` | 构建 / 生产模式启动 |
 | `pnpm test` / `pnpm check` | 测试 / lint + test |
-| `pnpm check:deps` / `check:modules` | 模块边界校验 / 契约校验（注册表、权限、nav） |
-| `pnpm gen:module <spec.yaml>` | 从 spec 生成模块骨架 |
+| `pnpm check:deps` / `check:modules` / `check:i18n` | 模块边界 / 契约（注册表、权限、nav）/ 客户端文案 |
+| `pnpm gen:module <spec.yaml>` | 从 spec 生成外部业务模块骨架（`modules/<id>/`） |
+| `pnpm gen:external-modules` | 聚合 `modules/*` 到组装层（通常由 gen:module 触发） |
 | `pnpm docker:stack:up` | 本地生产 Docker 栈（需 `.env.docker.local`） |
 | `pnpm bootstrap` / `deploy` / `release` | 远程首次部署 / 更新 / 发版 |
 
@@ -216,9 +222,27 @@ be-water/
 
 ---
 
+## 套餐定价与官网段
+
+平台套餐分两层：
+
+| 层 | 内容 | 改在哪 |
+| --- | --- | --- |
+| 结构 | 有哪几个 slug、配额、功能开关 | 代码 `PRICING_PLANS`（发版） |
+| 运营 | 价格、上架、推荐、排序、名称/卖点文案 | 平台控制台套餐配置（`AppSetting.plan_pricing`） |
+
+官网段 `billing.plans`（平台套餐）是**数据驱动**的：段 settings 只管版式与 CTA，不存第二份价格。SSR 渲染前由 `registerSectionContextProvider` 按需注入目录；公开只读接口 `GET /api/public/plans` 与编辑器预览读同一份合并结果（未配置字段回落到代码默认值）。
+
+站点会员定价段 `site-billing.plans` 读的是站点自建的 `MemberPlan`，与平台套餐无关——见 [`packages/builtin/site-billing/MODULE.md`](packages/builtin/site-billing/MODULE.md)。
+
 ## 本地测试 Creem 付款
 
-Webhook 打的是 **API（3700）**，不是前端（7300）。
+两条付款域、两套 webhook，都打 **API（3700）**，不是前端（7300）。
+
+| 域 | 谁付钱 | 工作台 / 会员入口 | Webhook |
+| --- | --- | --- | --- |
+| 平台租户付费（`billing`） | 组织（工作台用户） | `http://localhost:7300/app/billing` | `/api/billing/webhooks/creem` |
+| 站点会员付费（`site-billing`） | 站点会员 | `http://localhost:7300/member/billing` | `/api/site-billing/webhooks/creem` |
 
 1. `.env.local` 配好上表 Creem 变量，`pnpm dev`
 2. 隧道指向 API：
@@ -228,17 +252,11 @@ ngrok http 3700
 # 或：cloudflared tunnel --url http://localhost:3700
 ```
 
-3. Creem Dashboard（**Test Mode**）→ Developers → Webhooks，Endpoint 填：
+3. Creem Dashboard（**Test Mode**）→ Developers → Webhooks，Endpoint 填对应路径；Signing secret 与 `CREEM_WEBHOOK_SECRET`（或站点覆盖密钥）一致；改配置后重启 server。
 
-```
-https://<ngrok-host>/api/billing/webhooks/creem
-```
+4. 浏览器走对应入口 → 用 test 卡付款。开通以 webhook 为准（看 server 日志），回跳 URL 只是页面返回。
 
-Signing secret 与 `CREEM_WEBHOOK_SECRET` 一致；改配置后重启 server。
-
-4. 浏览器打开 `http://localhost:7300/app/billing` → 升级 → 用 test 卡付款。开通以 webhook 为准（看 server 日志 `[billing] creem webhook processed`），回跳 URL 只是页面返回。
-
-详情与权限说明见 [`packages/modules/billing/MODULE.md`](packages/modules/billing/MODULE.md)。
+详情见 [`packages/builtin/billing/MODULE.md`](packages/builtin/billing/MODULE.md) 与 [`packages/builtin/site-billing/MODULE.md`](packages/builtin/site-billing/MODULE.md)。
 
 ---
 

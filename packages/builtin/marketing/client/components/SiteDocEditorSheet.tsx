@@ -464,7 +464,7 @@ export function SiteDocEditorSheet({
             </>
           ) : null}
 
-          <SheetFooter className="flex-row items-center justify-between gap-3 border-t p-4">
+          <SheetFooter className="border-t @xl/sheet-content:items-center @xl/sheet-content:justify-between">
             <span className="truncate text-xs text-muted-foreground">
               {isDirty ? t("siteDocs.unsavedHint") : t("siteDocs.saveShortcut")}
             </span>

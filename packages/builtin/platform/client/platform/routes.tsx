@@ -23,6 +23,11 @@ const PlatformAdmins = lazy(() =>
     default: module.PlatformAdmins,
   })),
 );
+const PlatformPlans = lazy(() =>
+  import("../pages/platform-plans.js").then((module) => ({
+    default: module.PlatformPlans,
+  })),
+);
 const PlatformSettings = lazy(() =>
   import("../pages/platform-settings.js").then(
     (module) => ({
@@ -52,6 +57,7 @@ export function renderPlatformRoutes(): ReactNode {
       >
         <Route path="/platform/admins" element={<PlatformAdmins />} />
       </Route>
+      <Route path="/platform/plans" element={<PlatformPlans />} />
       <Route path="/platform/settings" element={<PlatformSettings />} />
     </>
   );

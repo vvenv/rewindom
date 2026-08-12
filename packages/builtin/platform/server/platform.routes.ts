@@ -2,6 +2,7 @@ import { isPlatformBackupDownloadTokenBypass } from "@be-water/server-kernel/mid
 
 import { registerAdminRoutes } from "./routes/admin.routes.js";
 import { registerBackupRoutes } from "./routes/backup.routes.js";
+import { registerPlanPricingRoutes } from "./routes/plan-pricing.routes.js";
 import { registerPlatformAdminRoutes } from "./routes/platform-admin.routes.js";
 import { registerSettingsRoutes } from "./routes/settings.routes.js";
 import { registerTenantRoutes } from "./routes/tenant.routes.js";
@@ -23,4 +24,5 @@ export async function platformRoutes(app: FastifyInstance): Promise<void> {
   await registerBackupRoutes(app);
   await registerTenantRoutes(app);
   await registerSettingsRoutes(app);
+  await registerPlanPricingRoutes(app);
 }

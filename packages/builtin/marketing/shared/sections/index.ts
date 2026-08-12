@@ -176,6 +176,7 @@ export function sectionTypesFor(
   placement: Placement,
   enabled?: ReadonlySet<string>,
   pageKind?: string,
+  isDefaultTenant?: boolean,
 ): SectionType[] {
   return allSectionDefinitions()
     .filter(
@@ -184,7 +185,10 @@ export function sectionTypesFor(
         (!def.entitlement || !enabled || enabled.has(def.entitlement)) &&
         (!def.page_kinds ||
           pageKind === undefined ||
-          def.page_kinds.includes(pageKind)),
+          def.page_kinds.includes(pageKind)) &&
+        (!def.default_tenant_only ||
+          isDefaultTenant === undefined ||
+          isDefaultTenant),
     )
     .map((def) => def.type);
 }

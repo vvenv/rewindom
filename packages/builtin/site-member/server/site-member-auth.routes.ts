@@ -18,7 +18,7 @@ import {
   SiteMemberAuthService,
 } from "./site-member-auth.service.js";
 import {
-  readSiteMembersEnabled,
+  hasSiteForHost,
   resolveSiteTenant,
 } from "./site-member-tenant.js";
 
@@ -87,7 +87,7 @@ export async function siteMemberAuthRoutes(
     handler: async (request) => {
       const hostTenant = request.hostTenantContext ?? null;
       const [enabled, settings, oauthFlags] = await Promise.all([
-        readSiteMembersEnabled(hostTenant),
+        hasSiteForHost(hostTenant),
         getPlatformSettings(),
         resolveOAuthEnabledFlags(hostTenant?.tenant_id ?? null),
       ]);

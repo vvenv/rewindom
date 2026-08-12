@@ -110,8 +110,15 @@ export function renderSectionHtml(
    * 所以只能在这里按租户拦。未开通就什么都不输出——与「不认识的段」同一个观感，
    * 而不是露出半个不该看见的功能。
    */
-  const entitlement = getSectionDefinition(section.type)?.entitlement;
+  const definition = getSectionDefinition(section.type);
+  const entitlement = definition?.entitlement;
   if (entitlement && !ctx.enabledEntitlements?.has(entitlement)) return "";
+  /*
+   * 「这一段属不属于这个站」——与 entitlement 是两个维度。平台套餐区渲染的是这套
+   * 部署自己的定价，出现在某个租户的站点上就是把平台的东西摆到了别人门口。
+   * 不传 `isDefaultTenant` 按 false 算：方向与 entitlement 一致，少了而不是多了。
+   */
+  if (definition?.default_tenant_only && !ctx.isDefaultTenant) return "";
   // 容器段要能下钻回这里；注入而不是让它反向 import，见 render-context.ts
   const inner = render(section, { ...ctx, renderSection: renderSectionHtml });
   if (!inner) return "";

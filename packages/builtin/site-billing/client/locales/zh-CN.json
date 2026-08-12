@@ -1,14 +1,28 @@
 {
   "nav": {
-    "siteBilling": "会员付费"
+    "plans": "会员套餐",
+    "records": "订阅与付款"
   },
   "page": {
-    "title": "会员付费",
-    "description": "管理会员套餐、收款通道与会员的订阅付款记录"
+    "plans": {
+      "title": "会员套餐",
+      "description": "定义卖给会员的套餐，并指定这笔钱进哪个账号"
+    },
+    "records": {
+      "title": "订阅与付款",
+      "description": "查看会员的订阅状态与历史付款记录"
+    }
+  },
+  "records": {
+    "tabs": {
+      "subscriptions": "会员订阅",
+      "payments": "付款记录"
+    },
+    "statusAll": "全部状态"
   },
   "plans": {
-    "heading": "会员套餐",
     "add": "新建套餐",
+    "sheetHint": "填上收款商品 ID 并上架，官网的「会员套餐」段就能卖它了。",
     "edit": "编辑",
     "delete": "删除",
     "empty": "还没有会员套餐",
@@ -36,19 +50,22 @@
     "onetime": "一次性"
   },
   "subscriptions": {
-    "heading": "会员订阅",
     "empty": "还没有会员订阅",
     "emptyHint": "会员在官网上完成付款后，订阅会出现在这里。",
+    "emptyFiltered": "没有符合筛选的订阅",
+    "emptyFilteredHint": "换个状态再看，或清掉筛选。",
     "member": "会员",
     "plan": "套餐",
     "status": "状态",
     "periodEnd": "周期结束",
-    "cancelAtPeriodEnd": "周期末取消"
+    "cancelAtPeriodEnd": "周期末取消",
+    "updatedAt": "更新时间"
   },
   "payments": {
-    "heading": "付款记录",
     "empty": "还没有付款记录",
     "emptyHint": "完成一次付款后，记录会出现在这里。",
+    "emptyFiltered": "没有符合筛选的付款记录",
+    "emptyFilteredHint": "换个状态再看，或清掉筛选。",
     "member": "会员",
     "time": "时间",
     "plan": "套餐",
@@ -58,6 +75,8 @@
   "provider": {
     "heading": "收款通道",
     "description": "会员付的钱进哪个账号，由这里决定。",
+    "configure": "配置",
+    "webhookSecretMissingShort": "缺 Webhook 密钥",
     "sourcePlatform": "当前使用平台默认账号收款",
     "sourceTenant": "当前使用本站点自己的账号收款",
     "apiKey": "API Key",
@@ -68,7 +87,6 @@
     "webhookSecretMissing": "未配置——没有它就收不到开通通知",
     "webhookUrl": "Webhook 地址",
     "webhookUrlHint": "把它填到通道后台的 Webhook 里",
-    "save": "保存",
     "saved": "收款通道已更新"
   },
   "status": {
@@ -119,7 +137,9 @@
       "currentLabel": "当前套餐提示",
       "currentLabelInfo": "会员已订阅的那一档不出按钮，改为显示这句话。",
       "emptyText": "无可售套餐时的提示",
-      "emptyTextInfo": "留空则一档都没上架时整段不显示。"
+      "emptyTextInfo": "留空则一档都没上架时整段不显示。",
+      "unconfigured": "本站还没有可售的会员套餐，访客看不到这一段。",
+      "unconfiguredCta": "前往配置套餐"
     },
     "account": {
       "label": "我的订阅与付款",

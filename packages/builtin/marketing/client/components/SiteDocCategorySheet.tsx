@@ -296,7 +296,7 @@ export function SiteDocCategorySheet({
           </div>
         </div>
 
-        <SheetFooter className="flex-row flex-wrap gap-2 sm:justify-between">
+        <SheetFooter className="@xl/sheet-content:flex-wrap @xl/sheet-content:justify-between">
           {editing ? (
             <Button
               type="button"

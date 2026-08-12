@@ -14,7 +14,9 @@ export interface UsageStats {
    */
   plan: {
     slug: PlanSlug;
-    price_monthly: number | null;
+    /** 单位分；展示由消费方按语言格式化（`formatPlanPrice`）。 */
+    price_cents: number | null;
+    currency: string;
   };
   /**
    * 内置维度只有 `max_users`（`User` 是内核 model）。业务维度由模块经

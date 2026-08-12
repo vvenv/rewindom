@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@be-water/ui/sheet";
+import { Spinner } from "@be-water/ui/spinner";
 import { Textarea } from "@be-water/ui/textarea";
 import { toast } from "@be-water/ui/toast";
 import { Pencil } from "lucide-react";
@@ -187,11 +188,13 @@ export function TenantEditSheet({
             <Button
               type="button"
               variant="outline"
+              disabled={patchMutation.isPending}
               onClick={() => setOpen(false)}
             >
               {t("common:cancel")}
             </Button>
             <Button type="submit" disabled={patchMutation.isPending}>
+              {patchMutation.isPending && <Spinner />}
               {t("common:save")}
             </Button>
           </SheetFooter>

@@ -408,6 +408,7 @@ export function useSiteEditor(pageId: string | undefined) {
       account_entry: capabilitiesQuery.data?.account_entry ?? false,
       /** 贡献段的闸门：没开通的不该出现在「添加区块」菜单里。 */
       entitlements: new Set(capabilitiesQuery.data?.entitlements ?? []),
+      is_default_tenant: capabilitiesQuery.data?.is_default_tenant ?? false,
     },
     page,
     path,

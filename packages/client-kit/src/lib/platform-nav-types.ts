@@ -103,6 +103,7 @@ export function getPlatformPageTitle(
     "/platform/error-logs": "platform:nav.pageTitles./platform/error-logs",
     "/platform/slow-query-logs":
       "platform:nav.pageTitles./platform/slow-query-logs",
+    "/platform/plans": "platform:nav.pageTitles./platform/plans",
     "/platform/settings": "platform:nav.pageTitles./platform/settings",
     "/platform/billing": "platform:nav.pageTitles./platform/billing",
   };

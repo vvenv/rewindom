@@ -36,7 +36,7 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
  * 漏改的那一处不会报错，只会让新套餐在结账页上凭空消失。
  */
 export const SELF_SERVE_PLAN_SLUGS: readonly PlanSlug[] = PLAN_SLUGS.filter(
-  (slug) => slug !== "free" && PRICING_PLANS[slug].price_monthly != null,
+  (slug) => slug !== "free" && PRICING_PLANS[slug].price_cents != null,
 );
 
 export function isSelfServePlanSlug(slug: string): slug is PlanSlug {
@@ -92,7 +92,9 @@ export type PlanChangeKind = "none" | "current" | "upgrade" | "downgrade";
 
 export interface BillingPlanOffer {
   plan_slug: string;
-  price_monthly: number | null;
+  /** 单位分；展示交给 `formatPlanPrice`，符号与写法随界面语言自动适配。 */
+  price_cents: number | null;
+  currency: string;
   /** 套餐名与说明按 slug + 语言现取（`translatePlanName` / `planName`），不随接口下发。 */
   checkout_available: boolean;
   change_kind: PlanChangeKind;

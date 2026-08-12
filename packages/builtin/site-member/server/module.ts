@@ -1,6 +1,3 @@
-import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/register-tenant-gated-routes.js";
-
-import { TENANT_SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
 import { registerMemberPageTemplates } from "../shared/member-page-templates.js";
 
 import { SITE_MEMBER_SERVER_I18N } from "./i18n.js";
@@ -26,7 +23,6 @@ export const siteMemberServerModule: ServerAppModule = {
   description: "站点前台会员身份（注册/登录/账户）与运营侧会员管理",
   // marketing：客户端把会员入口 / 门控组件填进站点前台的 slot（marketing 不反向依赖）
   requires: ["rbac", "audit", "platform", "marketing"],
-  tenantEntitlements: [TENANT_SITE_MEMBER_ENTITLEMENT],
   shared: {
     permissions: [
       {
@@ -94,15 +90,8 @@ export const siteMemberServerModule: ServerAppModule = {
       await app.register(memberAuthPageRoutes);
       await app.register(memberAccountPageRoutes);
 
-      await registerTenantGatedRoutes(
-        app,
-        TENANT_SITE_MEMBER_ENTITLEMENT.key,
-        async (scoped) => {
-          await scoped.register(siteMemberAdminRoutes, {
-            prefix: "/api/site-members",
-          });
-        },
-      );
+      // 不套租户开关网关：会员体系是每个站点都具备的能力，不可禁用
+      await app.register(siteMemberAdminRoutes, { prefix: "/api/site-members" });
     },
   },
 };

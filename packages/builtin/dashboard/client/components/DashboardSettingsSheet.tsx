@@ -116,7 +116,7 @@ export function DashboardSettingsSheet({
           )}
         </div>
 
-        <SheetFooter className="flex-row justify-between gap-2">
+        <SheetFooter className="@xl/sheet-content:justify-between">
           <Button
             variant="ghost"
             onClick={restoreDefaults}

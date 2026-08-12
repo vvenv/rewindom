@@ -1,28 +1,29 @@
 import { lazy, type ReactNode } from "react";
 
-import { PermissionRoute, TenantModuleRoute } from "@be-water/client-kit";
-import { useTranslation } from "react-i18next";
+import { PermissionRoute } from "@be-water/client-kit";
 import { Route } from "react-router";
 
-const SiteBilling = lazy(() =>
-  import("../pages/site-billing.js").then((module) => ({
-    default: module.SiteBillingPage,
+const MemberPlans = lazy(() =>
+  import("../pages/member-plans.js").then((module) => ({
+    default: module.MemberPlansPage,
   })),
 );
 
-function SiteBillingModuleRoute() {
-  const { t } = useTranslation("site-billing");
-  return (
-    <TenantModuleRoute moduleId="tenant-site-billing" label={t("page.title")} />
-  );
-}
+const MemberRecords = lazy(() =>
+  import("../pages/member-records.js").then((module) => ({
+    default: module.MemberRecordsPage,
+  })),
+);
 
+/**
+ * 不套 `TenantModuleRoute`：会员付费是每个站点都具备的能力，没有开关可关。
+ * 剩下的只有权限——能不能看这一页仍归角色管。
+ */
 export function renderSiteBillingRoutes(): ReactNode {
   return (
-    <Route element={<SiteBillingModuleRoute />}>
-      <Route element={<PermissionRoute permission="site_billing.read" />}>
-        <Route path="/app/site-billing" element={<SiteBilling />} />
-      </Route>
+    <Route element={<PermissionRoute permission="site_billing.read" />}>
+      <Route path="/app/site-billing" element={<MemberPlans />} />
+      <Route path="/app/site-billing/records" element={<MemberRecords />} />
     </Route>
   );
 }

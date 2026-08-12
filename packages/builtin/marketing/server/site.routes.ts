@@ -3,7 +3,7 @@ import { parseMultipartFileUpload } from "@be-water/server-kernel/http/multipart
 import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
 import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { normalizeLocale } from "@be-water/shared";
+import { DEFAULT_TENANT_ID, normalizeLocale } from "@be-water/shared";
 
 import { AuditAction } from "../../audit/shared/index.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
@@ -109,6 +109,7 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
             request.tenantContext!.tenant_id,
           )),
         ],
+        is_default_tenant: tenant.tenant_id === DEFAULT_TENANT_ID,
       } satisfies MarketingSiteCapabilities;
     },
   });

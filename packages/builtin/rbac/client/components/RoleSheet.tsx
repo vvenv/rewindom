@@ -14,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@be-water/ui/sheet";
+import { Spinner } from "@be-water/ui/spinner";
 import { Textarea } from "@be-water/ui/textarea";
 import { toast } from "@be-water/ui/toast";
 import { Pencil, Plus } from "lucide-react";
@@ -147,14 +148,15 @@ function RoleForm({ role, onClose }: RoleFormProps) {
       </div>
 
       <SheetFooter>
-        <Button type="submit" disabled={isPending}>
-          {isPending ? t("sheet.saving") : t("common:save")}
-        </Button>
         <SheetClose asChild>
           <Button type="button" variant="outline" disabled={isPending}>
             {t("common:cancel")}
           </Button>
         </SheetClose>
+        <Button type="submit" disabled={isPending}>
+          {isPending && <Spinner />}
+          {t("common:save")}
+        </Button>
       </SheetFooter>
     </form>
   );

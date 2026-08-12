@@ -2,7 +2,7 @@ import {
   resolveHostTenant,
   resolveRequestHostname,
 } from "@be-water/server-kernel/lib/host-tenant.js";
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import { DEFAULT_TENANT_ID, normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import {
   DOCS_INDEX_PATH,
@@ -25,6 +25,7 @@ import {
   listPublishedDocs,
 } from "./marketing-doc.service.js";
 import { renderDocLibrary } from "./marketing-doc.ssr.js";
+import { resolveSectionContexts } from "./section-context-providers.js";
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
 import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
@@ -291,14 +292,33 @@ async function renderPath(
     resolveSectionEntitlements(hostTenant.tenant_id),
   ]);
 
-  const docs = await resolveChromeDocs(
-    hostTenant.tenant_id,
-    result.site,
+  /*
+   * 这张页面（含页头页脚）到底摆了哪些段——两处都要用：文档目录按它决定查不查，
+   * 贡献段的 provider 也按它决定跑不跑（见 section-context-providers.ts）。
+   */
+  const usedSectionTypes = collectSectionTypes(result.site.header);
+  collectSectionTypes(result.site.footer, usedSectionTypes);
+  collectSectionTypes(result.page.sections, usedSectionTypes);
+
+  const pageLocale = normalizeLocale(
     result.page.locale,
-    [...collectSectionTypes(result.page.sections)].some((type) =>
-      type.startsWith("doc-"),
-    ),
+    result.site.default_locale,
   );
+
+  const [docs, contributed] = await Promise.all([
+    resolveChromeDocs(
+      hostTenant.tenant_id,
+      result.site,
+      result.page.locale,
+      [...usedSectionTypes].some((type) => type.startsWith("doc-")),
+    ),
+    resolveSectionContexts({
+      tenantId: hostTenant.tenant_id,
+      locale: pageLocale,
+      defaultLocale: result.site.default_locale,
+      usedSectionTypes,
+    }),
+  ]);
 
   const requiresMember = result.page.requires_member === true;
   const memberAuthenticated = member !== null;
@@ -317,6 +337,8 @@ async function renderPath(
       enabledEntitlements,
       docContext: docs.context,
       hasDocs: docs.hasDocs,
+      contributed,
+      isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
     }),
     {
       // 登录态页头 / 解锁正文因人而异，禁止公共缓存。

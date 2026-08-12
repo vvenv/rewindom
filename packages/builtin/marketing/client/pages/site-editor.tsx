@@ -447,6 +447,7 @@ export function SiteEditor() {
             <SectionTree
               chromeOnly={!page}
               entitlements={editor.capabilities.entitlements}
+              isDefaultTenant={editor.capabilities.is_default_tenant}
               pageKind={editor.page?.kind}
               sections={editor.sections}
               header={editor.header}

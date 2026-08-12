@@ -83,7 +83,7 @@ describe("usage.service", () => {
     const result = await getTenantUsage(TENANT_ID);
 
     expect(result.plan.slug).toBe("starter");
-    expect(typeof result.plan.price_monthly).toBe("number");
+    expect(typeof result.plan.price_cents).toBe("number");
   });
 
   it("返回用量限制信息", async () => {

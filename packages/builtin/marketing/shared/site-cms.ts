@@ -283,6 +283,13 @@ export interface MarketingSiteCapabilities {
    * 可用的东西（渲染那边同样会拦，见 `site-entitlements.ts`）。
    */
   entitlements: string[];
+  /**
+   * 本站是不是默认租户（产品站）。
+   *
+   * 编辑器拿它过滤声明了 `default_tenant_only` 的段——平台自己的套餐区不该出现在
+   * 别人的站点编辑器里（渲染那边同样会拦，见 `sections/html.ts`）。
+   */
+  is_default_tenant: boolean;
 }
 
 export interface UpdateMarketingPageBody {

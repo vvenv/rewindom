@@ -11,7 +11,6 @@
 
 import { headingSettings } from "../../marketing/shared/sections/_common/settings.js";
 
-import { TENANT_SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
 import {
   memberCardSettings,
   memberPageLayoutSettings,
@@ -143,7 +142,6 @@ export const memberLoginFormSection: SectionDefinition = {
   type: MEMBER_LOGIN_FORM_SECTION_TYPE,
   label: "site-member:section.loginForm.label",
   placements: ["page"],
-  entitlement: TENANT_SITE_MEMBER_ENTITLEMENT.key,
   page_kinds: [MEMBER_LOGIN_PAGE_KIND],
   settings: [
     ...sharedAuthSettings("Sign in"),
@@ -156,7 +154,6 @@ export const memberRegisterFormSection: SectionDefinition = {
   type: MEMBER_REGISTER_FORM_SECTION_TYPE,
   label: "site-member:section.registerForm.label",
   placements: ["page"],
-  entitlement: TENANT_SITE_MEMBER_ENTITLEMENT.key,
   page_kinds: [MEMBER_REGISTER_PAGE_KIND],
   settings: [
     ...sharedAuthSettings("Create account"),

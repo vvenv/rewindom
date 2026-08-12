@@ -1,107 +1,181 @@
-import type { ReactElement } from "react";
+import { useMemo, useState } from "react";
 
-import { EmptyState } from "@be-water/client-kit";
+import {
+  ApiError,
+  DataTable,
+  DataTableColumnHeader,
+  useConfirm,
+  type DataTableFeatures,
+} from "@be-water/client-kit";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
-import { Package } from "lucide-react";
+import { toast } from "@be-water/ui/toast";
+import { Package, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { readLocalizedSetting } from "../../../marketing/shared/section-settings.js";
-import { formatPlanPrice } from "../lib/site-billing-format.js";
+import { useDeleteMemberPlan } from "../hooks/useSiteBillingMutations.js";
+import {
+  formatPlanPrice,
+  memberPlanDisplayName,
+} from "../lib/site-billing-format.js";
+
+import { MemberPlanEditSheet } from "./MemberPlanSheet.js";
 
 import type { MemberPlanDetail } from "../../shared/site-billing.js";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
 export function MemberPlansTable({
   plans,
+  isLoading,
+  isError,
+  error,
   canWrite,
-  locale,
-  onEdit,
-  onDelete,
 }: {
   plans: MemberPlanDetail[];
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
   canWrite: boolean;
-  locale: string;
-  onEdit: (plan: MemberPlanDetail) => void;
-  onDelete: (plan: MemberPlanDetail) => void;
-}): ReactElement {
-  const { t } = useTranslation(["site-billing"]);
+}) {
+  const { t, i18n } = useTranslation(["site-billing", "common"]);
+  const { confirm } = useConfirm();
+  const deletePlan = useDeleteMemberPlan();
+  // 全量表（套餐一档一行，没有分页），排序在客户端做
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const locale = i18n.language;
 
-  if (plans.length === 0) {
-    return (
-      <EmptyState
-        size="panel"
-        icon={Package}
-        title={t("plans.empty")}
-        description={t("plans.emptyHint")}
-      />
-    );
-  }
+  const columns = useMemo<ColumnDef<DataTableFeatures, MemberPlanDetail>[]>(() => {
+    const handleDelete = async (plan: MemberPlanDetail) => {
+      const ok = await confirm({
+        title: t("plans.delete"),
+        description: t("plans.deleteConfirm", {
+          name: memberPlanDisplayName(plan, locale),
+        }),
+        confirmText: t("common:delete"),
+        destructive: true,
+      });
+      if (!ok) return;
+
+      try {
+        await deletePlan.mutateAsync(plan.id);
+        toast.success(t("plans.deleted"));
+      } catch (err) {
+        // 「还有人在订」就是走这条：服务端已经把原因翻好了，别覆盖成一句泛化的失败
+        toast.error(
+          err instanceof ApiError || err instanceof Error
+            ? err.message
+            : t("common:requestFailed"),
+        );
+      }
+    };
+
+    return [
+      {
+        id: "name",
+        accessorFn: (plan) => memberPlanDisplayName(plan, locale),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("plans.name")} />
+        ),
+        enableSorting: true,
+        cell: ({ row }) => (
+          <span className="font-medium">
+            {memberPlanDisplayName(row.original, locale)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "slug",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("plans.slug")} />
+        ),
+        enableSorting: true,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground font-mono text-xs">
+            {row.original.slug}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "price_cents",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("plans.price")} />
+        ),
+        enableSorting: true,
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatPlanPrice(row.original.price_cents, row.original.currency)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "interval",
+        header: t("plans.interval"),
+        enableSorting: false,
+        cell: ({ row }) => t(`interval.${row.original.interval}`),
+      },
+      {
+        accessorKey: "sort_order",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("plans.sortOrder")} />
+        ),
+        enableSorting: true,
+        cell: ({ row }) => (
+          <span className="tabular-nums">{row.original.sort_order}</span>
+        ),
+      },
+      {
+        id: "enabled",
+        header: t("plans.enabled"),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const plan = row.original;
+          // 「上架」与「买得到」是两件事：没配商品 ID 的那一档即使上架了，
+          // 官网上也不会出现——把这一条直接标出来，省得站长对着空定价页排查。
+          if (!plan.enabled) return <Badge variant="outline">{t("common:no")}</Badge>;
+          if (!plan.purchasable) {
+            return <Badge variant="destructive">{t("plans.notPurchasable")}</Badge>;
+          }
+          return <Badge>{t("common:yes")}</Badge>;
+        },
+      },
+      {
+        id: "actions",
+        header: "",
+        enableSorting: false,
+        meta: { align: "right" },
+        cell: ({ row }) =>
+          canWrite ? (
+            <div className="flex gap-1">
+              <MemberPlanEditSheet plan={row.original} />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                title={t("plans.delete")}
+                disabled={deletePlan.isPending}
+                onClick={() => void handleDelete(row.original)}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          ) : null,
+      },
+    ];
+  }, [canWrite, confirm, deletePlan, locale, t]);
 
   return (
-    <div className="overflow-x-auto rounded-md border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50 text-left">
-          <tr>
-            <th className="px-3 py-2 font-medium">{t("plans.name")}</th>
-            <th className="px-3 py-2 font-medium">{t("plans.slug")}</th>
-            <th className="px-3 py-2 font-medium">{t("plans.price")}</th>
-            <th className="px-3 py-2 font-medium">{t("plans.interval")}</th>
-            <th className="px-3 py-2 font-medium">{t("plans.enabled")}</th>
-            {canWrite ? <th className="px-3 py-2" /> : null}
-          </tr>
-        </thead>
-        <tbody>
-          {plans.map((plan) => (
-            <tr key={plan.id} className="border-t">
-              <td className="px-3 py-2">
-                {readLocalizedSetting(plan.name, locale, locale) ||
-                  Object.values(plan.name.__i18n).find(Boolean) ||
-                  plan.slug}
-              </td>
-              <td className="text-muted-foreground px-3 py-2 font-mono text-xs">
-                {plan.slug}
-              </td>
-              <td className="px-3 py-2">
-                {formatPlanPrice(plan.price_cents, plan.currency)}
-              </td>
-              <td className="px-3 py-2">{t(`interval.${plan.interval}`)}</td>
-              <td className="px-3 py-2">
-                {/*
-                  「上架」与「买得到」是两件事：没配商品 ID 的那一档即使上架了，
-                  官网上也不会出现——把这一条直接标出来，省得站长对着空定价页排查。
-                */}
-                {!plan.enabled ? (
-                  <Badge variant="outline">{t("common:no", { ns: "common" })}</Badge>
-                ) : plan.purchasable ? (
-                  <Badge>{t("common:yes", { ns: "common" })}</Badge>
-                ) : (
-                  <Badge variant="destructive">{t("plans.notPurchasable")}</Badge>
-                )}
-              </td>
-              {canWrite ? (
-                <td className="px-3 py-2 text-right whitespace-nowrap">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onEdit(plan)}
-                  >
-                    {t("plans.edit")}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onDelete(plan)}
-                  >
-                    {t("plans.delete")}
-                  </Button>
-                </td>
-              ) : null}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      columns={columns}
+      data={plans}
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      emptyIcon={Package}
+      emptyTitle={t("plans.empty")}
+      emptyDescription={t("plans.emptyHint")}
+      sorting={sorting}
+      onSortingChange={setSorting}
+      manualSorting={false}
+    />
   );
 }

@@ -143,6 +143,7 @@ export const AuditAction = {
   SITE_BILLING_PLAN_DELETE: "SITE_BILLING_PLAN_DELETE",
   SITE_BILLING_PROVIDER_UPDATE: "SITE_BILLING_PROVIDER_UPDATE",
   SITE_BILLING_WEBHOOK_SYNC: "SITE_BILLING_WEBHOOK_SYNC",
+  PLAN_PRICING_UPDATE: "PLAN_PRICING_UPDATE",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -281,6 +282,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.SITE_BILLING_PLAN_DELETE]: "删除会员套餐",
   [AuditAction.SITE_BILLING_PROVIDER_UPDATE]: "更新会员收款通道",
   [AuditAction.SITE_BILLING_WEBHOOK_SYNC]: "同步会员付费 webhook",
+  [AuditAction.PLAN_PRICING_UPDATE]: "更新套餐定价配置",
 };
 
 export function getAuditActionLabel(action: AuditActionType): string {
@@ -401,6 +403,10 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.SITE_BILLING_PROVIDER_UPDATE,
       AuditAction.SITE_BILLING_WEBHOOK_SYNC,
     ],
+  },
+  {
+    label: "套餐配置",
+    actions: [AuditAction.PLAN_PRICING_UPDATE],
   },
 ] as const;
 

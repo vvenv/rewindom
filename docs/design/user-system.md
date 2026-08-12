@@ -193,7 +193,7 @@ POST /api/auth/register
 
 ### 4.2.2 站点会员第三方登录（`SiteMember`）
 
-会员身份独立于工作台 `User`。启用 entitlement `tenant-site-member` 后，`GET /api/member/config` 返回三家 `*_oauth_enabled`；登录/注册页展示按钮。
+会员身份独立于工作台 `User`。会员体系每个站点都具备（没有开关），`GET /api/member/config` 返回三家 `*_oauth_enabled`；登录/注册页展示按钮。
 
 | 步骤 | 路径 |
 | --- | --- |

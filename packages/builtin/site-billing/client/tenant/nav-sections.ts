@@ -1,4 +1,4 @@
-import { CreditCard } from "lucide-react";
+import { CreditCard, Receipt } from "lucide-react";
 
 import type { AppNavSection } from "@be-water/client-kit";
 
@@ -9,10 +9,18 @@ export const SITE_BILLING_NAV_SECTIONS: AppNavSection[] = [
     items: [
       {
         icon: CreditCard,
-        label: "site-billing:nav.siteBilling",
+        label: "site-billing:nav.plans",
         path: "/app/site-billing",
-        title: "site-billing:nav.siteBilling",
-        tenantModule: "tenant-site-billing",
+        title: "site-billing:nav.plans",
+        // 记录页挂在它下面，不 end 的话两项会同时高亮
+        end: true,
+        anyPermission: ["site_billing.read"],
+      },
+      {
+        icon: Receipt,
+        label: "site-billing:nav.records",
+        path: "/app/site-billing/records",
+        title: "site-billing:nav.records",
         anyPermission: ["site_billing.read"],
       },
     ],

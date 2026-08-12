@@ -62,6 +62,13 @@ interface SectionTreeProps {
   /** 本站已开通的 entitlement；贡献段据此从「添加区块」菜单里过滤掉。 */
   entitlements?: ReadonlySet<string>;
   /**
+   * 本站是不是默认租户（产品站）。
+   *
+   * 声明了 `default_tenant_only` 的段据此过滤——平台自己的套餐区不该出现在别人的
+   * 站点编辑器里（渲染那边同样会拦）。
+   */
+  isDefaultTenant?: boolean;
+  /**
    * 正在编辑的页面 kind。
    *
    * 两件事靠它：只声明了 `page_kinds` 的段按 kind 过滤出「添加区块」菜单；模板页的
@@ -113,6 +120,7 @@ type DragState =
 export function SectionTree({
   chromeOnly = false,
   entitlements,
+  isDefaultTenant,
   pageKind,
   sections,
   header,
@@ -230,7 +238,7 @@ export function SectionTree({
     ? (getPageTemplateKind(pageKind)?.required_section ?? null)
     : null;
 
-  const pageSectionOptions = sectionTypesFor("page", entitlements, pageKind)
+  const pageSectionOptions = sectionTypesFor("page", entitlements, pageKind, isDefaultTenant)
     .filter((type) => type !== requiredSectionType)
     .map((type) => ({ value: type, label: sectionTypeLabel(t, type) }));
 
@@ -271,7 +279,7 @@ export function SectionTree({
         <AddMenu
           key={`add-${area}-${list.length}`}
           placeholder={t("editor.addSection")}
-          options={sectionTypesFor(area, entitlements, pageKind)
+          options={sectionTypesFor(area, entitlements, pageKind, isDefaultTenant)
             .filter((type) => type !== area)
             .map((type) => ({
               value: type,

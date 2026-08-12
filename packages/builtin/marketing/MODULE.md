@@ -239,6 +239,16 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 就是公告条，prose 摆进页脚就是备案号，不另造类型。
 
 内置段只保留**通用积木**（首屏、富文本、分栏、CTA、表单、页面菜单、文档库专用段）。
+### 贡献段要按请求查库：`registerSectionContextProvider`
+
+`SectionRenderContext.contributed` 一直都有，但只有**模块自有的 SSR 路由**填得上
+（会员登录页、会员账单页都是自己那条 handler）。一个能摆在**任意页面**上、又需要
+查库的段（billing 的定价区要读平台套餐配置）就没地方拿数据——段渲染器是同步的。
+
+`server/section-context-providers.ts` 补上这个注入点：模块声明自己服务哪几个
+section type，通用 SSR 路由在渲染前按**页面实际用到的段**调用并合并进 `contributed`。
+没摆那些段就一次查询都不发；单个 provider 抛错也只让它那一段不渲染，不炸整页。
+
 曾经的 `feature-grid` / `steps` / `spec-list` / `cards` / `pricing` / `faq` 等营销专用版式
 已移除——卖点网格、步骤、定价表、FAQ 等用 `prose`（Markdown）或 `group` 分栏组合即可；
 存量页面里若仍引用已删 type，读路径会落成 `unsupported` 占位（见下）。

@@ -188,6 +188,7 @@ export function TenantImpersonateSheet({
             <Button
               type="button"
               variant="outline"
+              disabled={impersonateMutation.isPending}
               onClick={() => setOpen(false)}
             >
               {t("common:cancel")}
@@ -201,6 +202,7 @@ export function TenantImpersonateSheet({
                 impersonateMutation.isPending
               }
             >
+              {impersonateMutation.isPending && <Spinner />}
               {t("tenants.impersonate.confirm")}
             </Button>
           </SheetFooter>

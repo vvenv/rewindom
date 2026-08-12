@@ -101,7 +101,8 @@ export function listBillingPlanOffers(
 ): BillingPlanOffer[] {
   return SELF_SERVE_PLAN_SLUGS.map((slug) => ({
     plan_slug: slug,
-    price_monthly: PRICING_PLANS[slug].price_monthly,
+    price_cents: PRICING_PLANS[slug].price_cents,
+    currency: PRICING_PLANS[slug].currency,
     checkout_available: Boolean(getCreemProductId(slug)),
     change_kind: planChangeKind(slug, currentPlanSlug),
   }));

@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@be-water/ui/sheet";
+import { Spinner } from "@be-water/ui/spinner";
 import { toast } from "@be-water/ui/toast";
 import { KeyRound, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -149,11 +150,13 @@ export function TenantResetPasswordSheet({
                 <Button
                   type="button"
                   variant="outline"
+                  disabled={resetMutation.isPending}
                   onClick={() => setOpen(false)}
                 >
                   {t("common:cancel")}
                 </Button>
                 <Button type="submit" disabled={resetMutation.isPending}>
+                  {resetMutation.isPending && <Spinner />}
                   {t("tenants.resetPassword.submit")}
                 </Button>
               </SheetFooter>

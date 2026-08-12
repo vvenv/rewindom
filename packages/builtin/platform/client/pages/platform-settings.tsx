@@ -31,7 +31,6 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { AppearanceOptionGroup } from "../components/AppearanceOptionGroup.js";
-import { PlanLimitTemplatesCard } from "../components/PlanLimitTemplatesCard.js";
 import { usePlatformSettings } from "../hooks/usePlatformSettings.js";
 import { useUpdatePlatformSettings } from "../hooks/useUpdatePlatformSettings.js";
 
@@ -310,7 +309,6 @@ export function PlatformSettings() {
         </CardContent>
       </Card>
 
-      <PlanLimitTemplatesCard />
     </div>
   );
 }

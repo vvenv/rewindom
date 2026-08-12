@@ -8,6 +8,7 @@ import {
   tenantBrandingRoutes,
 } from "./routes/branding.routes.js";
 import { tenantOAuthProvidersRoutes } from "./routes/oauth-providers.routes.js";
+import { registerPublicPlanRoutes } from "./routes/plan-pricing.routes.js";
 import { tenantEntitlementsRoutes } from "./routes/tenant-entitlements.routes.js";
 import { getPlatformSettings } from "./services/platform-settings.service.js";
 import { getTenantBrandingUrls } from "./services/tenant-branding.service.js";
@@ -162,6 +163,8 @@ export const platformServerModule: ServerAppModule = {
       await app.register(tenantBrandingRoutes, { prefix: "/api/settings" });
       await app.register(tenantOAuthProvidersRoutes, { prefix: "/api/settings" });
       await app.register(publicTenantBrandingRoutes, { prefix: "/api/public" });
+      // 公开定价：官网定价区与主题编辑器预览都读它，免认证（本就印在公开页上）
+      await app.register(registerPublicPlanRoutes, { prefix: "/api/public" });
     },
   },
 };

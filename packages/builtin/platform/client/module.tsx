@@ -1,4 +1,5 @@
 import { PLATFORM_I18N } from "./i18n.js";
+import { platformNavContributions } from "./platform/nav-contributions.js";
 import { renderPlatformRoutes } from "./platform/routes.js";
 import { usePlatformImpersonationActive } from "./shell/platform-shell-slots.js";
 import { PlatformTenantFilterProvider } from "./shell/tenant-filter-provider.js";
@@ -18,6 +19,7 @@ export const platformClientModule: ClientAppModule = {
     renderRoutes: renderPlatformTenantRoutes,
     nav: PLATFORM_TENANT_NAV_SECTIONS,
     renderPlatformRoutes,
+    platformNav: platformNavContributions,
     shell: {
       useImpersonationActive: usePlatformImpersonationActive,
       shellProviders: [PlatformTenantFilterProvider],

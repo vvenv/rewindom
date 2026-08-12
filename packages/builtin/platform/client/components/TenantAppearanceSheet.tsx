@@ -191,7 +191,7 @@ export function TenantAppearanceSheet({
           )}
         </div>
 
-        <SheetFooter className="flex-row justify-end gap-2">
+        <SheetFooter>
           <Button
             variant="outline"
             onClick={() => handleOpenChange(false)}
@@ -203,6 +203,7 @@ export function TenantAppearanceSheet({
             onClick={handleSave}
             disabled={isLoading || updateMutation.isPending}
           >
+            {updateMutation.isPending && <Spinner />}
             {t("common:save")}
           </Button>
         </SheetFooter>

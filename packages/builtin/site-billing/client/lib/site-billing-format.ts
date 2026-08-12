@@ -1,7 +1,11 @@
 import { getI18n } from "@be-water/client-kit";
 import { normalizeLocale } from "@be-water/shared";
 
-import { formatMemberPrice } from "../../shared/site-billing.js";
+import { readLocalizedSetting } from "../../../marketing/shared/section-settings.js";
+import {
+  formatMemberPrice,
+  type MemberPlanDetail,
+} from "../../shared/site-billing.js";
 
 /** 工作台里的展示格式跟界面语言走（公开面走站点语言，见 SSR 侧）。 */
 function uiLocale() {
@@ -36,4 +40,21 @@ export function yuanToCents(input: string): number {
 
 export function centsToYuan(cents: number): string {
   return (cents / 100).toString();
+}
+
+/**
+ * 套餐在管理端的显示名。
+ *
+ * 当前语言没填就退到任意一种填过的语言，最后退到 slug——一档只填了英文名的套餐，
+ * 在中文界面上也得能被认出来，不能显示成空白。
+ */
+export function memberPlanDisplayName(
+  plan: Pick<MemberPlanDetail, "name" | "slug">,
+  locale: string,
+): string {
+  return (
+    readLocalizedSetting(plan.name, locale, locale) ||
+    Object.values(plan.name.__i18n).find(Boolean) ||
+    plan.slug
+  );
 }

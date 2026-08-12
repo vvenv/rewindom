@@ -7,6 +7,7 @@ import {
   translatePlanDescription,
   translatePlanName,
 } from "../../../platform/client/lib/plan-i18n.js";
+import { formatPlanPrice } from "../../../platform/shared/plan-pricing.js";
 
 import type { BillingPlanOffer, PlanChangeKind } from "../../shared/index.js";
 
@@ -29,7 +30,7 @@ export function BillingPlanPicker({
   isCheckingOut: boolean;
   onCheckout: (planSlug: string) => void;
 }) {
-  const { t } = useTranslation(["billing", "platform"]);
+  const { t, i18n } = useTranslation(["billing", "platform"]);
 
   if (plans.length === 0) {
     return (
@@ -62,9 +63,10 @@ export function BillingPlanPicker({
               </p>
             </div>
             <p className="text-lg font-semibold">
-              {plan.price_monthly == null
-                ? t("plans.customPrice")
-                : t("plans.perMonth", { price: plan.price_monthly })}
+              {/* 符号与写法交给 Intl，与官网定价区同一个格式化口径 */}
+              {plan.price_cents == null
+                ? t("platform:plans.customPrice")
+                : formatPlanPrice(plan.price_cents, plan.currency, i18n.language)}
             </p>
             {canWrite ? (
               <Button

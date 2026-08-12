@@ -14,7 +14,6 @@
 
 import { headingSettings } from "../../marketing/shared/sections/_common/settings.js";
 
-import { TENANT_SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
 import {
   memberCardSettings,
   memberPageLayoutSettings,
@@ -87,7 +86,6 @@ export const memberAccountPanelSection: SectionDefinition = {
   type: MEMBER_ACCOUNT_PANEL_SECTION_TYPE,
   label: "site-member:section.accountPanel.label",
   placements: ["page"],
-  entitlement: TENANT_SITE_MEMBER_ENTITLEMENT.key,
   // 钉在自己那张模板页上：账户面板出现在官网某张普通页面中间什么都渲染不出来
   page_kinds: [MEMBER_ACCOUNT_PAGE_KIND],
   settings: [
