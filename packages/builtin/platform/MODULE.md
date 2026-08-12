@@ -48,7 +48,7 @@
 
 ## 数据备份与还原
 
-整库级别（`pg_dump -Fc` / `pg_restore`），入口在平台设置页底部的 `PlatformBackupCard`。
+整库级别（`pg_dump -Fc` / `pg_restore`），入口在平台运维侧栏「数据备份」（`/platform/backup`）。
 备份与还原都是后台任务：接口只回 `job_id`，进度与下载按钮都在任务中心。
 
 | 方法 | 路径                                          | 作用                             |

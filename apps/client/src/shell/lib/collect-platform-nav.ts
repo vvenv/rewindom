@@ -66,8 +66,11 @@ function collectContributions(modules: readonly ClientAppModule[]): {
   groupChildren: Partial<Record<PlatformNavGroupKey, PlatformNavChild[]>>;
   rootLinks: PlatformNavLink[];
 } {
-  const groupChildren: Partial<
-    Record<PlatformNavGroupKey, PlatformNavChild[]>
+  const groupChildItems: Partial<
+    Record<
+      PlatformNavGroupKey,
+      Array<{ order: number; children: readonly PlatformNavChild[] }>
+    >
   > = {};
   const rootLinkItems: Array<{ order: number; link: PlatformNavLink }> = [];
 
@@ -76,9 +79,12 @@ function collectContributions(modules: readonly ClientAppModule[]): {
       module.client?.platformNav ?? [];
     for (const contribution of contributions) {
       if (contribution.kind === "group-children") {
-        const bucket = groupChildren[contribution.group] ?? [];
-        bucket.push(...contribution.children);
-        groupChildren[contribution.group] = bucket;
+        const bucket = groupChildItems[contribution.group] ?? [];
+        bucket.push({
+          order: contribution.order ?? 100,
+          children: contribution.children,
+        });
+        groupChildItems[contribution.group] = bucket;
         continue;
       }
 
@@ -96,6 +102,18 @@ function collectContributions(modules: readonly ClientAppModule[]): {
   }
 
   rootLinkItems.sort((left, right) => left.order - right.order);
+
+  const groupChildren: Partial<Record<PlatformNavGroupKey, PlatformNavChild[]>> =
+    {};
+  for (const [group, items] of Object.entries(groupChildItems) as Array<
+    [
+      PlatformNavGroupKey,
+      Array<{ order: number; children: readonly PlatformNavChild[] }>,
+    ]
+  >) {
+    items.sort((left, right) => left.order - right.order);
+    groupChildren[group] = items.flatMap((item) => [...item.children]);
+  }
 
   return {
     groupChildren,

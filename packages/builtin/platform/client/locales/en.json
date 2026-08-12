@@ -12,6 +12,7 @@
     "auditLogs": "Audit logs",
     "errorLogs": "Error logs",
     "slowQueryLogs": "Slow queries",
+    "backup": "Backup",
     "billing": "Subscription & billing",
     "pageTitles": {
       "/platform": "Monitor",
@@ -21,6 +22,7 @@
       "/platform/audit-logs": "Audit logs",
       "/platform/error-logs": "Error logs",
       "/platform/slow-query-logs": "Slow queries",
+      "/platform/backup": "Backup",
       "/platform/settings": "Platform settings",
       "/platform/billing": "Subscription & billing",
       "/platform/plans": "Plans"
@@ -309,41 +311,6 @@
       "title": "Default layout",
       "description": "Default shell layout for tenants. Applies on tablet/desktop (≥768px); mobile always uses top bar + bottom nav",
       "updated": "Default layout updated"
-    },
-    "backup": {
-      "title": "Backup and restore",
-      "description": "Whole-database PostgreSQL backup and restore, covering every tenant's data",
-      "backup": {
-        "label": "Create a backup",
-        "hint": "Exports a full database dump. Runs in the background; download it from the task center when it finishes",
-        "trigger": "Start backup",
-        "started": "Backup started — track it in the task center",
-        "startFailed": "Could not start the backup"
-      },
-      "restore": {
-        "label": "Restore from a backup",
-        "hint": "Overwrites the current database with a backup file. Make sure you have a usable backup first",
-        "trigger": "Restore data",
-        "title": "Restore database from a backup",
-        "description": "Pick a backup already on the server, or upload a dump file",
-        "warningTitle": "This cannot be undone",
-        "warningDescription": "Restoring drops the current public schema before importing the backup. Every tenant will be unavailable while it runs, and existing data will not be kept.",
-        "sourceLabel": "Backup source",
-        "sourceLocal": "Backup file on the server",
-        "sourceUpload": "Upload a backup file",
-        "localFilesLabel": "Choose a backup file",
-        "noLocalFiles": "No dump files found in the backup directories. Check DATABASE_RESTORE_LOCAL_PATHS, or upload a file instead.",
-        "uploadLabel": "Choose a dump file",
-        "selectFileFirst": "Pick a backup file first",
-        "chooseFileFirst": "Choose the backup file to upload first",
-        "wrongFormat": "Only pg_dump custom-format (.dump) files are supported",
-        "confirmTitle": "Restore the database?",
-        "confirmDescription": "This overwrites the current database with \"{{filename}}\". Existing data will not be kept and this cannot be undone.",
-        "confirmSubmit": "Restore",
-        "submit": "Start restore",
-        "started": "Restore started — track it in the task center",
-        "startFailed": "Could not start the restore"
-      }
     }
   },
   "plans": {
@@ -453,5 +420,39 @@
     "sectionCopyHint": "Leave empty to use the built-in copy; the pricing section picks the visitor's language.",
     "sectionLimits": "Usage quotas",
     "sectionLimitsHint": "Written to the organization when this plan is granted; empty means unlimited."
+  },
+  "backup": {
+    "description": "Whole-database PostgreSQL backup and restore, covering every tenant's data",
+    "backup": {
+      "label": "Create a backup",
+      "hint": "Exports a full database dump. Runs in the background; download it from the task center when it finishes",
+      "trigger": "Start backup",
+      "started": "Backup started — track it in the task center",
+      "startFailed": "Could not start the backup"
+    },
+    "restore": {
+      "label": "Restore from a backup",
+      "hint": "Overwrites the current database with a backup file. Make sure you have a usable backup first",
+      "trigger": "Restore data",
+      "title": "Restore database from a backup",
+      "description": "Pick a backup already on the server, or upload a dump file",
+      "warningTitle": "This cannot be undone",
+      "warningDescription": "Restoring drops the current public schema before importing the backup. Every tenant will be unavailable while it runs, and existing data will not be kept.",
+      "sourceLabel": "Backup source",
+      "sourceLocal": "Backup file on the server",
+      "sourceUpload": "Upload a backup file",
+      "localFilesLabel": "Choose a backup file",
+      "noLocalFiles": "No dump files found in the backup directories. Check DATABASE_RESTORE_LOCAL_PATHS, or upload a file instead.",
+      "uploadLabel": "Choose a dump file",
+      "selectFileFirst": "Pick a backup file first",
+      "chooseFileFirst": "Choose the backup file to upload first",
+      "wrongFormat": "Only pg_dump custom-format (.dump) files are supported",
+      "confirmTitle": "Restore the database?",
+      "confirmDescription": "This overwrites the current database with \"{{filename}}\". Existing data will not be kept and this cannot be undone.",
+      "confirmSubmit": "Restore",
+      "submit": "Start restore",
+      "started": "Restore started — track it in the task center",
+      "startFailed": "Could not start the restore"
+    }
   }
 }

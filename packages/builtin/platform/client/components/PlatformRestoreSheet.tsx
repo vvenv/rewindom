@@ -85,26 +85,26 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
         : null;
 
     if (source === "local" && !picked) {
-      toast.error(t("platform:settings.backup.restore.selectFileFirst"));
+      toast.error(t("platform:backup.restore.selectFileFirst"));
       return;
     }
     if (source === "upload" && !file) {
-      toast.error(t("platform:settings.backup.restore.chooseFileFirst"));
+      toast.error(t("platform:backup.restore.chooseFileFirst"));
       return;
     }
     if (source === "upload" && file && !isDatabaseDumpFilename(file.name)) {
-      toast.error(t("platform:settings.backup.restore.wrongFormat"));
+      toast.error(t("platform:backup.restore.wrongFormat"));
       return;
     }
 
     const label = source === "local" ? picked!.filename : file!.name;
 
     const confirmed = await confirm({
-      title: t("platform:settings.backup.restore.confirmTitle"),
-      description: t("platform:settings.backup.restore.confirmDescription", {
+      title: t("platform:backup.restore.confirmTitle"),
+      description: t("platform:backup.restore.confirmDescription", {
         filename: label,
       }),
-      confirmText: t("platform:settings.backup.restore.confirmSubmit"),
+      confirmText: t("platform:backup.restore.confirmSubmit"),
       cancelText: t("common:cancel"),
       destructive: true,
     });
@@ -121,12 +121,12 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
       });
       setOpen(false);
       openTaskCenter();
-      toast.success(t("platform:settings.backup.restore.started"));
+      toast.success(t("platform:backup.restore.started"));
     } catch (err) {
       toast.error(
         err instanceof ApiError
           ? err.message
-          : t("platform:settings.backup.restore.startFailed"),
+          : t("platform:backup.restore.startFailed"),
       );
     } finally {
       setSubmitting(false);
@@ -139,17 +139,17 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
         {children ?? (
           <Button variant="outline" size="sm">
             <RotateCcw className="size-3.5" />
-            {t("platform:settings.backup.restore.trigger")}
+            {t("platform:backup.restore.trigger")}
           </Button>
         )}
       </SheetTrigger>
       <SheetContent side="right" className="flex w-full flex-col sm:max-w-lg">
         <SheetHeader className="shrink-0 border-b pb-4">
           <SheetTitle className="pr-8">
-            {t("platform:settings.backup.restore.title")}
+            {t("platform:backup.restore.title")}
           </SheetTitle>
           <SheetDescription>
-            {t("platform:settings.backup.restore.description")}
+            {t("platform:backup.restore.description")}
           </SheetDescription>
         </SheetHeader>
         <form
@@ -160,17 +160,17 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
             <Alert variant="destructive">
               <AlertTriangle className="size-4" />
               <AlertTitle>
-                {t("platform:settings.backup.restore.warningTitle")}
+                {t("platform:backup.restore.warningTitle")}
               </AlertTitle>
               <AlertDescription>
-                {t("platform:settings.backup.restore.warningDescription")}
+                {t("platform:backup.restore.warningDescription")}
               </AlertDescription>
             </Alert>
 
             <FieldGroup className="mt-4">
               <Field>
                 <FieldLabel>
-                  {t("platform:settings.backup.restore.sourceLabel")}
+                  {t("platform:backup.restore.sourceLabel")}
                 </FieldLabel>
                 <RadioGroup
                   value={source}
@@ -180,13 +180,13 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
                   <label className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm">
                     <RadioGroupItem value="local" id="restore-source-local" />
                     <span className="flex-1">
-                      {t("platform:settings.backup.restore.sourceLocal")}
+                      {t("platform:backup.restore.sourceLocal")}
                     </span>
                   </label>
                   <label className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm">
                     <RadioGroupItem value="upload" id="restore-source-upload" />
                     <span className="flex-1">
-                      {t("platform:settings.backup.restore.sourceUpload")}
+                      {t("platform:backup.restore.sourceUpload")}
                     </span>
                   </label>
                 </RadioGroup>
@@ -195,7 +195,7 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
               {source === "local" ? (
                 <Field>
                   <FieldLabel>
-                    {t("platform:settings.backup.restore.localFilesLabel")}
+                    {t("platform:backup.restore.localFilesLabel")}
                   </FieldLabel>
                   {candidatesLoading ? (
                     <div className="flex justify-center py-6">
@@ -203,7 +203,7 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
                     </div>
                   ) : candidates.length === 0 ? (
                     <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                      {t("platform:settings.backup.restore.noLocalFiles")}
+                      {t("platform:backup.restore.noLocalFiles")}
                     </p>
                   ) : (
                     <RadioGroup
@@ -239,7 +239,7 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
               ) : (
                 <Field>
                   <FieldLabel htmlFor="restore-upload-file">
-                    {t("platform:settings.backup.restore.uploadLabel")}
+                    {t("platform:backup.restore.uploadLabel")}
                   </FieldLabel>
                   <Input
                     ref={fileInputRef}
@@ -270,7 +270,7 @@ export function PlatformRestoreSheet({ children }: PlatformRestoreSheetProps) {
             </Button>
             <Button type="submit" variant="destructive" disabled={submitting}>
               {submitting ? <Spinner /> : <DatabaseBackup className="size-4" />}
-              {t("platform:settings.backup.restore.submit")}
+              {t("platform:backup.restore.submit")}
             </Button>
           </SheetFooter>
         </form>

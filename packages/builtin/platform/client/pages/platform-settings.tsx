@@ -31,7 +31,6 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { AppearanceOptionGroup } from "../components/AppearanceOptionGroup.js";
-import { PlatformBackupCard } from "../components/PlatformBackupCard.js";
 import { usePlatformSettings } from "../hooks/usePlatformSettings.js";
 import { useUpdatePlatformSettings } from "../hooks/useUpdatePlatformSettings.js";
 
@@ -309,8 +308,6 @@ export function PlatformSettings() {
           />
         </CardContent>
       </Card>
-
-      <PlatformBackupCard />
     </div>
   );
 }

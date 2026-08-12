@@ -37,6 +37,11 @@ export type PlatformNavContribution =
   | {
       kind: "group-children";
       group: PlatformNavGroupKey;
+      /**
+       * Order within the group; lower appears earlier.
+       * Defaults to 100 so destructive/ops entries can sit after log viewers.
+       */
+      order?: number;
       children: readonly PlatformNavChild[];
     }
   | {
@@ -103,6 +108,7 @@ export function getPlatformPageTitle(
     "/platform/error-logs": "platform:nav.pageTitles./platform/error-logs",
     "/platform/slow-query-logs":
       "platform:nav.pageTitles./platform/slow-query-logs",
+    "/platform/backup": "platform:nav.pageTitles./platform/backup",
     "/platform/plans": "platform:nav.pageTitles./platform/plans",
     "/platform/settings": "platform:nav.pageTitles./platform/settings",
     "/platform/billing": "platform:nav.pageTitles./platform/billing",

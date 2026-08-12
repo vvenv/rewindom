@@ -35,6 +35,11 @@ const PlatformSettings = lazy(() =>
     }),
   ),
 );
+const PlatformBackup = lazy(() =>
+  import("../pages/platform-backup.js").then((module) => ({
+    default: module.PlatformBackup,
+  })),
+);
 
 function PlatformTenantsRoute(): ReactNode {
   const {
@@ -58,6 +63,7 @@ export function renderPlatformRoutes(): ReactNode {
         <Route path="/platform/admins" element={<PlatformAdmins />} />
       </Route>
       <Route path="/platform/plans" element={<PlatformPlans />} />
+      <Route path="/platform/backup" element={<PlatformBackup />} />
       <Route path="/platform/settings" element={<PlatformSettings />} />
     </>
   );

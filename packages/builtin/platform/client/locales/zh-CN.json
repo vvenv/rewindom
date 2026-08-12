@@ -12,6 +12,7 @@
     "auditLogs": "审计日志",
     "errorLogs": "错误日志",
     "slowQueryLogs": "慢查询",
+    "backup": "数据备份",
     "billing": "订阅与付款",
     "pageTitles": {
       "/platform": "监控面板",
@@ -21,6 +22,7 @@
       "/platform/audit-logs": "审计日志",
       "/platform/error-logs": "错误日志",
       "/platform/slow-query-logs": "慢查询",
+      "/platform/backup": "数据备份",
       "/platform/settings": "平台设置",
       "/platform/billing": "订阅与付款",
       "/platform/plans": "套餐配置"
@@ -309,41 +311,6 @@
       "title": "默认布局",
       "description": "租户侧外壳的默认排布。仅在平板/桌面（≥768px）生效，手机端恒为顶部标题栏 + 底部导航",
       "updated": "默认布局已更新"
-    },
-    "backup": {
-      "title": "数据备份与还原",
-      "description": "整库级别的 PostgreSQL 备份与还原，覆盖所有租户的数据",
-      "backup": {
-        "label": "创建备份",
-        "hint": "导出整库 dump 文件。任务在后台执行，完成后可在任务中心下载",
-        "trigger": "开始备份",
-        "started": "备份任务已开始，进度见任务中心",
-        "startFailed": "备份任务启动失败"
-      },
-      "restore": {
-        "label": "从备份还原",
-        "hint": "用备份文件覆盖当前数据库。请先确认已有一份可用备份",
-        "trigger": "还原数据",
-        "title": "从备份还原数据库",
-        "description": "选择服务器上已有的备份文件，或上传一份 dump 文件",
-        "warningTitle": "此操作不可撤销",
-        "warningDescription": "还原会先清空当前数据库的 public schema，再导入备份内容。期间所有租户都将无法正常使用，且现有数据不会保留。",
-        "sourceLabel": "备份来源",
-        "sourceLocal": "服务器上的备份文件",
-        "sourceUpload": "上传备份文件",
-        "localFilesLabel": "选择备份文件",
-        "noLocalFiles": "备份目录下没有可用的 dump 文件。请检查 DATABASE_RESTORE_LOCAL_PATHS 配置，或改用上传方式。",
-        "uploadLabel": "选择 dump 文件",
-        "selectFileFirst": "请先选择一个备份文件",
-        "chooseFileFirst": "请先选择要上传的备份文件",
-        "wrongFormat": "只支持 pg_dump 自定义格式（.dump）文件",
-        "confirmTitle": "确认还原数据库？",
-        "confirmDescription": "将用「{{filename}}」覆盖当前数据库，现有数据不保留。此操作不可撤销。",
-        "confirmSubmit": "确认还原",
-        "submit": "开始还原",
-        "started": "还原任务已开始，进度见任务中心",
-        "startFailed": "还原任务启动失败"
-      }
     }
   },
   "plans": {
@@ -453,5 +420,39 @@
     "sectionCopyHint": "留空则用内置文案；官网定价区按访客语言取。",
     "sectionLimits": "用量配额",
     "sectionLimitsHint": "开通该套餐时写进组织；留空表示不限。"
+  },
+  "backup": {
+    "description": "整库级别的 PostgreSQL 备份与还原，覆盖所有租户的数据",
+    "backup": {
+      "label": "创建备份",
+      "hint": "导出整库 dump 文件。任务在后台执行，完成后可在任务中心下载",
+      "trigger": "开始备份",
+      "started": "备份任务已开始，进度见任务中心",
+      "startFailed": "备份任务启动失败"
+    },
+    "restore": {
+      "label": "从备份还原",
+      "hint": "用备份文件覆盖当前数据库。请先确认已有一份可用备份",
+      "trigger": "还原数据",
+      "title": "从备份还原数据库",
+      "description": "选择服务器上已有的备份文件，或上传一份 dump 文件",
+      "warningTitle": "此操作不可撤销",
+      "warningDescription": "还原会先清空当前数据库的 public schema，再导入备份内容。期间所有租户都将无法正常使用，且现有数据不会保留。",
+      "sourceLabel": "备份来源",
+      "sourceLocal": "服务器上的备份文件",
+      "sourceUpload": "上传备份文件",
+      "localFilesLabel": "选择备份文件",
+      "noLocalFiles": "备份目录下没有可用的 dump 文件。请检查 DATABASE_RESTORE_LOCAL_PATHS 配置，或改用上传方式。",
+      "uploadLabel": "选择 dump 文件",
+      "selectFileFirst": "请先选择一个备份文件",
+      "chooseFileFirst": "请先选择要上传的备份文件",
+      "wrongFormat": "只支持 pg_dump 自定义格式（.dump）文件",
+      "confirmTitle": "确认还原数据库？",
+      "confirmDescription": "将用「{{filename}}」覆盖当前数据库，现有数据不保留。此操作不可撤销。",
+      "confirmSubmit": "确认还原",
+      "submit": "开始还原",
+      "started": "还原任务已开始，进度见任务中心",
+      "startFailed": "还原任务启动失败"
+    }
   }
 }
