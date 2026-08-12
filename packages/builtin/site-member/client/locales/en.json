@@ -4,7 +4,7 @@
   },
   "login": {
     "title": "Sign in",
-    "subtitle": "Sign in with your email and password",
+    "subtitle": "Sign in to access member content",
     "submit": "Sign in",
     "submitting": "Signing in…",
     "no_account": "Don't have an account?",

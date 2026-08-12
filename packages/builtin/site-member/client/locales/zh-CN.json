@@ -4,7 +4,7 @@
   },
   "login": {
     "title": "登录",
-    "subtitle": "使用邮箱和密码登录",
+    "subtitle": "登录后即可访问会员内容",
     "submit": "登录",
     "submitting": "登录中…",
     "no_account": "还没有账户？",
