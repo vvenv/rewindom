@@ -1,7 +1,7 @@
 /**
  * 把 `client/enhance/main.ts` 打成 IIFE，写入 `site-enhance.generated.ts`。
  *
- *   node packages/modules/marketing/shared/site-enhance/assemble.mjs
+ *   node packages/builtin/marketing/shared/site-enhance/assemble.mjs
  */
 
 import { createHash } from "node:crypto";

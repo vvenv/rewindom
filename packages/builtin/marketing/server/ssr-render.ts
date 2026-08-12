@@ -227,6 +227,16 @@ export function renderMarketingHtml(input: {
 
   const logoUrl =
     theme.logo_url && theme.logo_url !== "" ? theme.logo_url : null;
+
+  /*
+   * 站点没传 favicon 就回落产品默认 `/favicon.svg`——**必须显式输出这一行**：
+   * 不写 `<link rel="icon">` 时浏览器会去猜 `/favicon.ico`，官网这个路径上没有东西，
+   * 结果是标签页挂一个空白图标。
+   */
+  const faviconUrl =
+    theme.favicon_url && theme.favicon_url !== ""
+      ? theme.favicon_url
+      : "/favicon.svg";
   // 页头 / 页脚区各是一串 section：本体走专用渲染，其余（公告条等）走通用那套
   const headerHtml = site.header
     .map((section) =>
@@ -322,6 +332,7 @@ export function renderMarketingHtml(input: {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${title}</title>
   <meta name="description" content="${description}" />
+  <link rel="icon" href="${escapeHtml(faviconUrl)}" />
   ${robotsMeta}
   <link rel="canonical" href="${escapeHtml(canonical)}" />
   ${alternateLinks}

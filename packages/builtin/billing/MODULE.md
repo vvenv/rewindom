@@ -97,7 +97,7 @@ Host 上），做不出「已登录去升级」的分支，也就别装作能做
 单元测试：
 
 ```bash
-pnpm --filter modules exec vitest --run --project 'billing/*'
+pnpm --filter @be-water/builtin exec vitest --run --project 'billing/*'
 ```
 
 ### 本地完整流程（Checkout → Webhook → 改套餐）

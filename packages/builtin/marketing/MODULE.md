@@ -165,7 +165,7 @@ settings，跨年之后页脚就一直停在去年，改站名也不跟着变—
 需要同步的清单；`assemble.mjs` 压缩后写进 `marketing-site-css.generated.ts`——常驻部分是
 `MARKETING_SITE_CSS_BASE`，各段样式按 type 落在 `MARKETING_SECTION_CSS`（Vite 客户端 /
 esbuild SSR / Vitest 共用，勿在运行时 `fs` 读旁路 css）。改样式只改 `.css`，再跑
-`pnpm --filter @be-water/modules assemble:marketing-css`。
+`pnpm --filter @be-water/builtin assemble:marketing-css`。
 
 **SSR 只发本页用到的段样式**：`ssr-render` 用 `collectSectionTypes()` 收齐页头 / 页脚 /
 正文（含 `group` 列里的子段）的 type，交给 `loadMarketingSiteCssFor()`。顺序由
@@ -220,7 +220,7 @@ nginx 把绑定域的**所有** HTML 文档反代给 Fastify SSR。公开站**�
 
 1. SSR 输出挂点（theme 按钮、`.member-entry`、`form.site-form`、`main[data-member-gate]`）
 2. `<script defer src="/api/public/site-enhance.js?v=…">`——源码在
-   `client/enhance/`，`pnpm --filter @be-water/modules assemble:site-enhance` 打成 IIFE
+   `client/enhance/`，`pnpm --filter @be-water/builtin assemble:site-enhance` 打成 IIFE
    写入 `shared/site-enhance.generated.ts`
 
 | 能力         | 行为                                                                   |
@@ -771,16 +771,16 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 
 ### 站点主题的归属
 
-**站点主题**（Logo / 分享图 / 配色 / 字体 / 页宽 / 区块间距）不在「系统管理 → 品牌」，
-而是编辑器的**主题层**（`/app/site/editor?scope=theme`）。
+**站点主题**（Logo / Favicon / 分享图 / 配色 / 字体 / 页宽 / 区块间距）全在编辑器的
+**主题层**（`/app/site/editor?scope=theme`）。中台那边**没有**品牌页了。
 
-曾经借 `platform` 的 `settingsBrandingExtraSlot` 注入到品牌页，撤掉了：那页按
-`settings.*` 授权，而这些字段落库走 `PATCH /api/site`（`site.write`）、读要 `site.read`，
-两套权限对不上——有官网权限的人在那儿只能看不能存，有设置权限但没有 `site.read` 的人
-连表单都拉不出来，还得靠 `useTenantModuleEnabled` 把整张卡片藏起来。跟着一起删的还有
-`platform` 那个只为它开的槽。
+历史上分过两次家又合回来：先是借 `platform` 的 `settingsBrandingExtraSlot` 把主题字段
+注入品牌页——那页按 `settings.*` 授权，而这些字段落库走 `PATCH /api/site`（`site.write`），
+两套权限对不上，撤掉了；后来品牌页只留跨模块共用的 Logo / Favicon，官网继承它——
+这层继承也删了，因为中台不再消费品牌资产（见 `docs/design/tenant-config.md` §2.4），
+一份只服务官网的资产没有理由住在中台。
 
-品牌页现在只留**跨模块共用**的租户 Logo / Favicon（工作台 + 登录页 + 官网都读它）。
+`logo_url` / `favicon_url` 都用 `SiteImageField`（媒体库选图或外链），与 `og_image` 同一套控件。
 
 **主题有自己的草稿列**（`theme_settings_draft`，迁移 `20260811114014_marketing_theme_draft`
 带回填），与页头页脚**同一条发布链**：改完存草稿、发布才对访客生效，撤销一起回滚。
@@ -798,11 +798,9 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 `theme_settings` 是站点主题的**唯一真相源**——`logo_url` / `primary_color` 曾经另有独立列，
 已由 `20260804020000_marketing_site_theme_only` 回填后删除；API 上的同名顶层字段是派生值。
 
-**官网 logo 默认继承租户品牌资产**（platform 的 `branding` 设置），`theme_settings.logo_url`
-只是可选覆盖。回落只发生在**公开面**（`toPublicMarketingSite`）与编辑器预览
-（`use-site-theme-editor` 用 `useTenantBranding` 自己兜）：管理端 `toMarketingSite` 必须保持原样，
-那份数据要灌进设置表单，填进去一存就把继承关系写死了。也**不能**直接拼公开路径当默认值——
-没上传过资产时那个端点是 404，会渲染成破图，所以要真读一次 branding 设置。
+**Favicon 必须显式输出**：SSR 的 `<head>` 无条件写 `<link rel="icon">`，站点没填就指向产品
+默认 `/favicon.svg`。不写这一行时浏览器会去猜 `/favicon.ico`，官网这个路径上没有东西，
+结果是标签页挂一个空白图标。
 
 API：
 
@@ -983,6 +981,6 @@ pnpm --filter server exec tsx scripts/seed-tenant-site-smoke.ts
 ## 如何单独测试
 
 ```bash
-pnpm --filter modules exec vitest --run --project 'marketing/*'
+pnpm --filter @be-water/builtin exec vitest --run --project 'marketing/*'
 curl -sS -H 'Host: {slug}.{TENANT_BASE_DOMAIN}' http://127.0.0.1:3700/ | head
 ```

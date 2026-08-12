@@ -8,7 +8,7 @@
  * 段样式按 type 分开导出，SSR 只发本页真正用到的那几段（见 `loadMarketingSiteCssFor`）。
  * 拆表的前提是段样式互不越界，由 `pnpm check:section-css` 守着。
  *
- *   node packages/modules/marketing/shared/site-css/assemble.mjs
+ *   node packages/builtin/marketing/shared/site-css/assemble.mjs
  */
 
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";

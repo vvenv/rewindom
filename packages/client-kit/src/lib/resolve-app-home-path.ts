@@ -19,8 +19,13 @@ export const EXAMPLE_HOME_PATH_CANDIDATES: readonly HomePathCandidate[] = [
   { path: "/app/notes", tenantModule: "notes", permission: "notes.read" },
 ];
 
-/** 候选全部不可用时的兜底（租户什么业务模块都没开通时也要有地方去）。 */
-export const DEFAULT_HOME_PATH = "/app/settings";
+/**
+ * 候选全部不可用时的兜底（租户什么业务模块都没开通时也要有地方去）。
+ *
+ * 曾经是 `/app/settings`——那条路由随品牌页一起没了（品牌并进站点外观）。
+ * 仪表盘是唯一一个不挂在任何业务模块下、也不需要额外权限的页。
+ */
+export const DEFAULT_HOME_PATH = "/app/dashboard";
 
 function isTenantModuleEnabled(
   entitlements: HomeEntitlements | undefined,

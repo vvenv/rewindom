@@ -94,6 +94,20 @@ export function SiteThemeSettingsForm({
         </Field>
 
         <Field>
+          <FieldLabel htmlFor="site_favicon_url">
+            {t("cms.fieldFaviconUrl")}
+            <FieldInfoTip text={t("cms.fieldFaviconUrlHint")} />
+          </FieldLabel>
+          <SiteImageField
+            id="site_favicon_url"
+            disabled={!canWrite}
+            placeholder={t("cms.fieldFaviconUrlPlaceholder")}
+            value={theme.favicon_url ?? ""}
+            onChange={(next) => patch({ favicon_url: next.trim() || null })}
+          />
+        </Field>
+
+        <Field>
           <FieldLabel htmlFor="site_og_image">
             {t("editor.setting.site_og_image")}
             <FieldInfoTip text={t("editor.info.site_og_image")} />

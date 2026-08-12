@@ -15,7 +15,7 @@ import type { LucideIcon } from "lucide-react";
 /**
  * 模块贡献的 i18next 文案包。
  *
- * 文件放在 `packages/modules/<id>/client/locales/{zh-CN,en}.json`，
+ * 文件放在 `packages/builtin/<id>/client/locales/{zh-CN,en}.json`，
  * 由组装层 `registerI18nBundles(collectClientI18nBundles(...))` 注册。
  * `client-kit` 只保留 `common` / `shell`。
  */

@@ -8,7 +8,7 @@ import {
   requestOriginFromHeaders,
   resolveMemberOAuthCallbackUrl,
 } from "@be-water/server-kernel/kernel/auth/oauth-common.js";
-import { resolveOAuthCredentials } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
+import { resolveSiteOAuthCredentials } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
 
 import { setMemberAuthCookies } from "./member-auth-cookies.js";
 import {
@@ -54,7 +54,7 @@ export async function siteMemberOAuthRoutes(
         const tenant = await resolveSiteTenant(
           request.hostTenantContext ?? null,
         );
-        const credentials = await resolveOAuthCredentials(
+        const credentials = await resolveSiteOAuthCredentials(
           provider,
           tenant.id,
         );

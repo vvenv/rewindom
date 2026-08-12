@@ -35,11 +35,6 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   },
 }));
 
-// 品牌资产只在公开读路径用得上，复制页面不该碰它
-vi.mock("../../platform/server/services/tenant-branding.service.js", () => ({
-  getTenantBrandingUrls: vi.fn(async () => ({ logo_url: null })),
-}));
-
 const TENANT = "tenant-1";
 
 const siteRow = {

@@ -5,7 +5,7 @@ description: ErrorLog 模型、ErrorService、全局 error-handler、查询 API�
 
 # 错误日志
 
-设计文档：`docs/design/error-logging.md`　模块：`packages/modules/error-log/`
+设计文档：`docs/design/error-logging.md`　模块：`packages/builtin/error-log/`
 
 ## 数据
 

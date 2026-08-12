@@ -7,7 +7,6 @@ import {
   type AppNavItem,
   type AppNavSection,
   useNavBadgeCount,
-  useTenantBranding,
   useTenantEntitlements,
   usePermissions,
 } from "@be-water/client-kit";
@@ -433,8 +432,8 @@ function SidebarContent({
 }
 
 function ShellBrandMark({ className }: { className?: string }) {
-  const { data } = useTenantBranding();
-  return <BrandMark src={data?.logo_url} className={className} alt="Logo" />;
+  // 中台外壳一律用产品 Logo：品牌是站点的资产，只作用于官网
+  return <BrandMark className={className} alt="Logo" />;
 }
 
 function MobileNavDrawer({

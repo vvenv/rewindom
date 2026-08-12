@@ -66,7 +66,7 @@ model User {
 
 ### SiteMember 表（站点会员）
 
-终端客户，独立于 `User`。字段含 `email`、`password?`、`display_name`、`email_verified_at?`、`enabled`、登录锁定计数等；`@@unique([tenant_id, email])`。配套 `SiteMemberRefreshToken`。详见 `packages/modules/site-member/schema.prisma`。
+终端客户，独立于 `User`。字段含 `email`、`password?`、`display_name`、`email_verified_at?`、`enabled`、登录锁定计数等；`@@unique([tenant_id, email])`。配套 `SiteMemberRefreshToken`。详见 `packages/builtin/site-member/schema.prisma`。
 
 ### RefreshToken 表
 
@@ -170,7 +170,9 @@ POST /api/auth/register
 
 ### 4.2.1 第三方 OAuth 登录（GitHub / Google / Microsoft）
 
-**凭证分层**：平台默认用 env（`GITHUB_*` / `GOOGLE_*` / `MICROSOFT_*`）；站点可在工作台 `/app/settings/oauth` 覆盖（加密存 `TenantSetting.secret`，key=`oauth_providers`）。`GET /api/public/config` 按当前 Host 解析后的凭证返回 `github_oauth_enabled` / `google_oauth_enabled` / `microsoft_oauth_enabled`。
+**凭证只有平台一层**：env（`GITHUB_*` / `GOOGLE_*` / `MICROSOFT_*`），`resolvePlatformOAuthCredentials()`，**不查库**。`GET /api/public/config` 返回 `github_oauth_enabled` / `google_oauth_enabled` / `microsoft_oauth_enabled`，与当前 Host 绑定哪个租户无关。
+
+站点覆盖只作用于**会员登录**（见 §4.2.2）：工作台成员是平台的客户，授权页上显示平台的应用名才是对的归属；给中台开租户覆盖等于让「Acme 的员工用 Acme 的 App 登平台的后台」这条链路存在。代价是多租户下 Acme 员工在授权页看到的是平台名而不是 Acme——这是有意为之，不是 bug。
 
 | Provider | 启动 | 回调 |
 | --- | --- | --- |
@@ -194,6 +196,8 @@ POST /api/auth/register
 ### 4.2.2 站点会员第三方登录（`SiteMember`）
 
 会员身份独立于工作台 `User`。会员体系每个站点都具备（没有开关），`GET /api/member/config` 返回三家 `*_oauth_enabled`；登录/注册页展示按钮。
+
+**凭证分层**（与工作台不同，这条**有**站点覆盖）：平台 env → 站点覆盖，`resolveSiteOAuthCredentials(provider, tenantId)`，加密存 `TenantSetting.secret`，key=`site_oauth_providers`。站长在**会员页顶部**（`/app/site-members`）的「第三方登录」一行配置，权限 `site_members.read` / `site_members.write`；配了自己的 App，访客在授权页看到的就是站点自己的名字与图标。与 `site-billing` 的收款凭证同一形态。
 
 | 步骤 | 路径 |
 | --- | --- |

@@ -38,6 +38,6 @@ export default defineClientVitestConfig({
 ## 运行
 
 ```bash
-pnpm --filter @be-water/modules test
+pnpm --filter @be-water/builtin test
 pnpm --filter client test
 ```

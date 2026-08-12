@@ -3,15 +3,9 @@ import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
 
 import { PLATFORM_SERVER_I18N } from "./i18n.js";
 import { platformRoutes } from "./platform.routes.js";
-import {
-  publicTenantBrandingRoutes,
-  tenantBrandingRoutes,
-} from "./routes/branding.routes.js";
-import { tenantOAuthProvidersRoutes } from "./routes/oauth-providers.routes.js";
 import { registerPublicPlanRoutes } from "./routes/plan-pricing.routes.js";
 import { tenantEntitlementsRoutes } from "./routes/tenant-entitlements.routes.js";
 import { getPlatformSettings } from "./services/platform-settings.service.js";
-import { getTenantBrandingUrls } from "./services/tenant-branding.service.js";
 import {
   registerOAuthTenant,
   registerTenant,
@@ -28,6 +22,13 @@ export const platformServerModule: ServerAppModule = {
   requires: ["rbac", "audit", "background-job"],
   shared: {
     permissions: [
+      /*
+       * 目前**没有任何页面或路由消费**这两个权限：品牌页已并入站点外观、
+       * 第三方登录已并入会员页（各自改用 `site.*` / `site_members.*`）。
+       *
+       * 刻意保留：`docs/design/tenant-config.md` §2.2 排着队的租户级 BYOK
+       *（`openai_api_key` 等）落地时就是它俩。别当死代码删。
+       */
       {
         key: "settings.read",
         label: "查看租户设置",
@@ -118,31 +119,17 @@ export const platformServerModule: ServerAppModule = {
         getPublicConfig: async (options) => {
           const settings = await getPlatformSettings();
           const hostTenant = options?.bound_tenant ?? null;
-          let bound_tenant: {
-            slug: string;
-            name: string;
-            logo_url: string | null;
-            favicon_url: string | null;
-          } | null = null;
-          if (hostTenant) {
-            const urls = await getTenantBrandingUrls(
-              hostTenant.tenant_id,
-              hostTenant.tenant_slug,
-            );
-            bound_tenant = {
-              slug: hostTenant.tenant_slug,
-              name: hostTenant.name,
-              logo_url: urls.logo_url,
-              favicon_url: urls.favicon_url,
-            };
-          }
+          /*
+           * 绑定域名的登录页**不再挂租户品牌**：中台外壳一律是产品自己的 Logo /
+           * Favicon。品牌是站点的资产（`theme_settings`），只作用于官网。
+           */
+          const bound_tenant = hostTenant
+            ? { slug: hostTenant.tenant_slug, name: hostTenant.name }
+            : null;
           return {
             registration_enabled: settings.registration_enabled,
             captcha_enabled: settings.captcha_enabled,
             default_locale: settings.default_locale,
-            github_oauth_enabled: false,
-            google_oauth_enabled: false,
-            microsoft_oauth_enabled: false,
             single_tenant: appConfig.tenant.singleTenant,
             bound_tenant,
             tenant_base_domain: appConfig.tenant.baseDomain.trim() || null,
@@ -160,9 +147,6 @@ export const platformServerModule: ServerAppModule = {
     registerRoutes: async (app) => {
       await app.register(platformRoutes, { prefix: "/api/platform" });
       await app.register(tenantEntitlementsRoutes, { prefix: "/api/settings" });
-      await app.register(tenantBrandingRoutes, { prefix: "/api/settings" });
-      await app.register(tenantOAuthProvidersRoutes, { prefix: "/api/settings" });
-      await app.register(publicTenantBrandingRoutes, { prefix: "/api/public" });
       // 公开定价：官网定价区与主题编辑器预览都读它，免认证（本就印在公开页上）
       await app.register(registerPublicPlanRoutes, { prefix: "/api/public" });
     },

@@ -53,7 +53,7 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 
 - 必问项缺失且用户未回答 → **停，不生成**。禁止「先建着回头改」。
 - 用户答案与仓库约定冲突（如 permission key 或字段名用 camelCase）→ 按 AGENTS.md「前置约束」先给最佳实践方案再确认。
-- spec 落盘为 `packages/modules/<id>/MODULE.spec.yaml`；后续改需求走 **spec diff → 再生成**，保证幂等。
+- spec 落盘为 `modules/<id>/MODULE.spec.yaml`；后续改需求走 **spec diff → 再生成**，保证幂等。
 
 ## 第 1 步：优先用脚手架生成
 
@@ -110,23 +110,23 @@ checklist 手工建。
 3. 在 `server/module.ts` 的 `registerRoutes` 追加注册（租户路由用 `registerTenantGatedRoutes(app, "<entitlement-key>", …)`）
 4. 在 `client/module.tsx` 追加 `renderRoutes` / `nav` / `shell` 贡献
 
-参考 `packages/modules/notes/` 与 `docs/design/modular-architecture.md` §11.2。
+参考 `modules/note/` 与 `docs/design/modular-architecture.md` §11.2。
 
 ## Server checklist
 
-1. 复制 `packages/modules/notes/`（金标准）为 `packages/modules/<id>/`，改写 `package.json` 与 `MODULE.md`
+1. 复制 `modules/note/`（金标准）为 `modules/<id>/`，改写 `package.json` 与 `MODULE.md`
 2. 实现 `ServerAppModule`（`id`, `version`, `label`, `kind`, `requires?`, `server.registerRoutes`）
 3. 租户路由：`*.routes.ts`，前缀 `/api`，`defineRoute` + `app.requirePermission`
 4. 平台路由（如有）：`platform-*.routes.ts`，注册到 `/api/platform`，`requirePlatformAdmin`
-5. 域类型放在 `packages/modules/<id>/shared/`；`entitlements.ts` 声明租户功能 slice
+5. 域类型放在 `modules/<id>/shared/`；`entitlements.ts` 声明租户功能 slice
 6. 写操作审计：优先 `events.emit('audit.log', ...)` 或 `events.emit('<resource>.<action>', ...)`；避免新业务直接 import `AuditService`
-7. 在 `apps/server/src/enabled-modules.ts` 注册 `@be-water/modules/<id>/server/index.js`
-8. Prisma：`packages/modules/<id>/schema.prisma`，并在 `apps/server/prisma/models/<id>.prisma` 建**符号链接**指向它（`ln -s ../../../../packages/modules/<id>/schema.prisma`）；模型含 `tenant_id`；内核 `Tenant`/`User` 不声明业务反向 relation
+7. 注册：外部模块跑 `pnpm gen:external-modules`（写进 `apps/server/src/external-modules.ts`）；内置模块在 `apps/server/src/enabled-modules.ts` 手写 `@be-water/builtin/<id>/server/index.js`
+8. Prisma：`modules/<id>/prisma/schema.prisma`（内置模块为 `packages/builtin/<id>/schema.prisma`），并在 `apps/server/prisma/models/<id>.prisma` 建**符号链接**指向它（`ln -s ../../../../modules/<id>/prisma/schema.prisma`，`gen:external-modules` 会自动建）；模型含 `tenant_id`；内核 `Tenant`/`User` 不声明业务反向 relation
 
 ## Client checklist
 
-1. 业务 UI 放在 `packages/modules/<id>/client/`：
-   - `pages/`、`hooks/`、`components/`、`lib/` 在 `client/` **根目录**（见 `notes`、`user`、`platform`）
+1. 业务 UI 放在 `modules/<id>/client/`：
+   - `pages/`、`hooks/`、`components/`、`lib/` 在 `client/` **根目录**（见 `note`、`user`、`platform`）
    - `tenant/` — 只放租户侧装配：`routes.tsx` + `nav-sections.ts`
    - `platform/` — 只放平台侧装配：`routes.tsx` + `nav.ts`（导出 platformNav child）
    - `shell/` — 跨模块 slot 贡献
@@ -134,8 +134,8 @@ checklist 手工建。
 3. `client.renderPlatformRoutes`（如有）→ 平台侧，挂载到 `PlatformLayout`
 4. 基础设施模块按挂载点注册：`renderGuestRoutes` / `renderSuperUserRoutes`
 5. 跨模块 UI slot：通过 `shell.shellProviders` 注册 Provider
-   - 平台控制台：`@be-water/modules/platform/client/shell/platform-widget-slots`
-   - 用户菜单：`@be-water/modules/user/client/shell/user-menu-slots`
+   - 平台控制台：`@be-water/builtin/platform/client/shell/platform-widget-slots`
+   - 用户菜单：`@be-water/builtin/user/client/shell/user-menu-slots`
    - 业务自有 slot 在**消费方**模块的 `client/<subdomain>/shell/` 下定义
 6. 平台导航角标：`shell.platformNavBadge` + `NavBadgeRegistryProvider`
 7. 可选：`client.routes` 声明式路由（`renderAppRoutes` 自动套 `PermissionRoute`）
@@ -154,7 +154,7 @@ checklist 手工建。
 ## 金标准（notes）
 
 - CRUD + `PermissionRoute` + 审计事件 + Vitest
-- 服务与路由在 `packages/modules/notes/server/`；UI 在 `packages/modules/notes/client/tenant/`
+- 服务与路由在 `modules/note/server/`；UI 在 `modules/note/client/tenant/`
 
 ## 禁止
 

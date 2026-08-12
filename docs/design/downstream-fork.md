@@ -19,7 +19,7 @@ Agent 执行时同步遵循 `frontend-page-structure` skill 的「产品升级�
 
 租户页（`renderRoutes` / `renderSuperUserRoutes`）**必须**用 `PageLayout`：
 
-- 金标准：`packages/modules/notes/client/pages/notes.tsx`
+- 金标准：`modules/note/client/pages/notes.tsx`
 - 平台页（`renderPlatformRoutes`）**不要**套 `PageLayout`（`PlatformLayout` 已有 header）
 - 导航项必须有 `title`（移动端 `AppMobileHeader` 标题来源）
 - 向导/多区块页：说明文字进 `PageLayout.description`，不要额外 `<p className="text-muted-foreground">`
@@ -78,7 +78,7 @@ export const HOME_PATH_CANDIDATES: readonly HomePathCandidate[] = [
    （be-water 默认就是 `/app/dashboard` 单项：所有用户登录后落在工作台）
 2. 每个**带门控**的候选必须带 `tenantModule`（= manifest `tenantEntitlements[].key`）
 3. `resolveAppHomePath` 会跳过 `entitlements.modules[id] === false` 的候选
-4. 全部不可用时回退 `DEFAULT_HOME_PATH`（`/app/settings`）
+4. 全部不可用时回退 `DEFAULT_HOME_PATH`（`/app/dashboard`）
 5. 缺 `tenantModule` 时**无法**按 entitlement 跳过——升级时这是常见回归
 
 导航项同样要写 `tenantModule` / `tenantFeature`，侧栏与顶栏过滤逻辑才与落地页一致。

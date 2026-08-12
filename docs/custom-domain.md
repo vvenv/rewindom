@@ -5,11 +5,11 @@
 1. **平台通配子域**（推荐默认）：`{slug}.{TENANT_BASE_DOMAIN}`，例如 `acme.water.moms.plus`——创建租户即有，**无需客户配 DNS**
 2. **客户自定义域名**：如 `portal.acme.com`——客户配 DNS，平台控制台绑定
 
-两类域名上效果相同：开放营销前台与租户中台，禁止平台控制台；登录/注册无需再写 `@租户标识`。若租户在「品牌」设置上传了 Logo / Favicon，Host 绑定登录页与浏览器标签会展示该租户品牌（见 `design/tenant-config.md` §2.4）。
+两类域名上效果相同：开放营销前台与租户中台，禁止平台控制台；登录/注册无需再写 `@租户标识`。绑定域名下的**中台登录页仍是产品品牌**——Logo / Favicon 是站点的资产，只作用于官网（见 `design/tenant-config.md` §2.4）。
 
 营销前台一律是**租户 CMS**（`/app/site` 自助编辑）：产品主域隐式绑定默认租户，其它 Host 按 custom_domain / 通配子域绑定。未发布站点时 SSR 返回「未开通」页。平台控制台在独立 `PLATFORM_URL` Host。
 
-> 设计口径见 [`design/tenant-config.md`](./design/tenant-config.md) §5.9；CMS 细节见 [`packages/modules/marketing/MODULE.md`](../packages/modules/marketing/MODULE.md)。
+> 设计口径见 [`design/tenant-config.md`](./design/tenant-config.md) §5.9；CMS 细节见 [`packages/builtin/marketing/MODULE.md`](../packages/builtin/marketing/MODULE.md)。
 
 ---
 
@@ -243,7 +243,7 @@ DNS 未生效前，请勿要求平台「绑定失败」；先把解析做对。
 
 ```bash
 curl -sS -H "Host: portal.acme.com" https://portal.acme.com/api/public/config | jq .
-# data.bound_tenant 应为 { "slug": "<租户slug>", "name": "...", "logo_url": null|string, "favicon_url": null|string }
+# data.bound_tenant 应为 { "slug": "<租户slug>", "name": "..." }
 ```
 
 ---

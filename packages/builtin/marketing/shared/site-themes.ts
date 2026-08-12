@@ -19,8 +19,8 @@ export interface SiteTheme {
   /**
    * 这个包定的 token。
    *
-   * 刻意**不含** `logo_url` / `og_image`：那是租户的品牌资产，不是外观风格，
-   * 换主题不该把 logo 抹掉。
+   * 刻意**不含** `logo_url` / `favicon_url` / `og_image`：那是站点的品牌资产，
+   * 不是外观风格，换主题不该把 logo 抹掉。
    */
   theme_settings: ThemeSettings;
 }
@@ -96,6 +96,7 @@ export function applySiteThemeSettings(
     ...current,
     ...theme.theme_settings,
     logo_url: current.logo_url,
+    favicon_url: current.favicon_url,
     og_image: current.og_image,
   };
 }

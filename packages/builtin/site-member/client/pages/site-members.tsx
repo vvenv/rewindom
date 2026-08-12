@@ -1,14 +1,19 @@
-import { PageLayout } from "@be-water/client-kit";
+import { PageLayout, usePermissions } from "@be-water/client-kit";
 import { Input } from "@be-water/ui/input";
 import { Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { SiteMembersTable } from "../components/SiteMembersTable.js";
+import { SiteOAuthStatusRow } from "../components/SiteOAuthStatusRow.js";
 import { useSiteMembersPage } from "../hooks/use-site-members-page.js";
 import { useSiteMembers } from "../hooks/use-site-members.js";
+import { useSiteOAuthProviders } from "../hooks/useSiteOAuth.js";
 
 export function SiteMembers() {
   const { t } = useTranslation("site-member");
+  const { hasPermission } = usePermissions();
+  const canWrite = hasPermission("site_members.write");
+  const oauth = useSiteOAuthProviders();
   const {
     q,
     page,
@@ -34,6 +39,10 @@ export function SiteMembers() {
       description={t("admin.description")}
     >
       <div className="flex flex-col gap-4">
+        <SiteOAuthStatusRow
+          providers={oauth.data?.providers}
+          canWrite={canWrite}
+        />
         <Input
           value={q ?? ""}
           placeholder={t("admin.searchPlaceholder")}

@@ -53,14 +53,14 @@
 - Client `PermissionsProvider`：`RbacPermissionProvider`（`client.shell.shellProviders` 注入）
 - 权限目录：各模块 `shared.permissions` 合并（见 `collect-module-permissions.ts`）
 
-业务模块只 import `@be-water/client-kit` 的 `usePermissions` / `PermissionRoute`；权限管理 UI hooks（`usePermissionCatalog` 等）从 `@be-water/modules/rbac/client` 引入。
+业务模块只 import `@be-water/client-kit` 的 `usePermissions` / `PermissionRoute`；权限管理 UI hooks（`usePermissionCatalog` 等）从 `@be-water/builtin/rbac/client` 引入。
 
 ## 如何单独测试
 
 ```bash
 # 每个模块的 server / client / shared 各是一个 vitest project，
 # 位置参数只按 project root 的相对路径过滤，跑全模块要用 --project。
-pnpm --filter modules exec vitest --run --project 'rbac/*'
+pnpm --filter @be-water/builtin exec vitest --run --project 'rbac/*'
 ```
 
 ## 禁止

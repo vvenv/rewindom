@@ -6,7 +6,7 @@ import {
 } from "@be-water/server-kernel/kernel/auth/oauth-common.js";
 import {
   isOAuthProviderId,
-  resolveOAuthCredentials,
+  resolveSiteOAuthCredentials,
 } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import {
@@ -107,7 +107,10 @@ export function createMemberOAuthCallbackProvider(): MemberOAuthCallbackProvider
         }
 
         const tenant = { id: tenantRow.id, slug: tenantRow.slug };
-        const credentials = await resolveOAuthCredentials(provider, tenant.id);
+        const credentials = await resolveSiteOAuthCredentials(
+          provider,
+          tenant.id,
+        );
         if (!credentials.enabled) {
           return reply.redirect(
             buildMemberOAuthFrontendRedirect({

@@ -5,7 +5,7 @@
  * 自己的。`source` 一路带到设置页上，站长看得见这笔钱进的是谁的账号——收款不像
  * OAuth，静默地用了别人的凭证是要出事的，所以宁可多显示一行。
  *
- * 密钥整包 JSON 加密后落在 `TenantSetting.secret`（同 `tenant-oauth.service.ts`），
+ * 密钥整包 JSON 加密后落在 `TenantSetting.secret`（同 `site-oauth.service.ts`），
  * 读出来只在服务端用，**任何接口都不回传明文**。
  */
 

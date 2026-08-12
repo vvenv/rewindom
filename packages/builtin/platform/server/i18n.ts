@@ -20,19 +20,7 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
         "更新租户 {{slug}} 的能力开关",
       "platform.audit.tenant_appearance_updated":
         "更新租户 {{slug}} 的外观配置",
-      "platform.audit.tenant_branding_updated":
-        "更新租户 {{slug}} 的品牌（{{kind}} / {{action}}）",
-      "platform.audit.tenant_oauth_updated":
-        "更新站点 {{slug}} 的 OAuth（{{provider}} / {{action}}）",
       "platform.audit.tenant_plan_updated": "更新租户 {{slug}} 的套餐",
-      "branding.file_required": "请上传图片文件",
-      "branding.invalid_mime": "不支持的图片格式",
-      "branding.file_too_large": "图片过大（上限 {{max_bytes}} 字节）",
-      "branding.unsafe_svg": "这个 SVG 无法安全处理，请换一张图片",
-      "branding.kind_invalid": "无效的品牌资源类型",
-      "branding.not_found": "品牌资源不存在",
-      "platform.oauth.credentials_required": "请填写 Client ID 与 Client Secret",
-      "platform.oauth.provider_invalid": "不支持的 OAuth 提供方",
       "platform.audit.tenant_registered":
         "注册租户 {{tenant_name}}（{{tenant_slug}}）",
       "platform.audit.user_joined_default":
@@ -76,21 +64,7 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
         "Updated entitlements for tenant {{slug}}",
       "platform.audit.tenant_appearance_updated":
         "Updated appearance for tenant {{slug}}",
-      "platform.audit.tenant_branding_updated":
-        "Updated branding for tenant {{slug}} ({{kind}} / {{action}})",
-      "platform.audit.tenant_oauth_updated":
-        "Updated site OAuth for {{slug}} ({{provider}} / {{action}})",
       "platform.audit.tenant_plan_updated": "Updated plan for tenant {{slug}}",
-      "branding.file_required": "Please upload an image file",
-      "branding.invalid_mime": "Unsupported image format",
-      "branding.file_too_large": "Image too large (max {{max_bytes}} bytes)",
-      "branding.unsafe_svg":
-        "This SVG could not be processed safely — please use another image",
-      "branding.kind_invalid": "Invalid branding asset kind",
-      "branding.not_found": "Branding asset not found",
-      "platform.oauth.credentials_required":
-        "Client ID and Client Secret are required",
-      "platform.oauth.provider_invalid": "Unsupported OAuth provider",
       "platform.audit.tenant_registered":
         "Registered tenant {{tenant_name}} ({{tenant_slug}})",
       "platform.audit.user_joined_default":

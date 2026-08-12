@@ -56,7 +56,7 @@ dashboard 服务端不代理任何业务查询。
 | 登录             | `apps/client/src/shell/pages/login.tsx`                         | 租户用户 → `/app`        |
 | 注册（自动登录） | `apps/client/src/shell/pages/register.tsx`                      | → `/app`                 |
 | 已登录访问登录页 | `shell/components/GuestOnlyRoute.tsx`                           | → `/app`                 |
-| 平台代登录       | `modules/platform/client/components/TenantImpersonateSheet.tsx` | 整页跳 `/app`            |
+| 平台代登录       | `packages/builtin/platform/client/components/TenantImpersonateSheet.tsx` | 整页跳 `/app`            |
 | 未匹配路由       | `shell/components/AppNotFoundRedirect.tsx`                      | → `AppHomeRedirect`      |
 | 权限不足         | `PermissionRoute` / `SuperUserRoute` / `PlatformAdminRoute`     | → `useDefaultHomePath()` |
 
@@ -75,7 +75,7 @@ dashboard 服务端不代理任何业务查询。
 在业务模块里声明，无需改 dashboard 模块：
 
 ```ts
-// packages/modules/<id>/client/tenant/dashboard-widgets.ts
+// packages/builtin/<id>/client/tenant/dashboard-widgets.ts（外部模块为 modules/<id>/...）
 const XxxWidget = lazy(() =>
   import("../components/XxxDashboardWidget.js").then((m) => ({
     default: m.XxxDashboardWidget,

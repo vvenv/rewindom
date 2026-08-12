@@ -20,7 +20,7 @@ import { PageLayout, DataTable, useAuth } from "@be-water/client-kit";
 import type { ClientAppModule } from "@be-water/client-kit";
 ```
 
-业务模块 client 包应依赖本包，禁止 import 宿主 `apps/client/src/components`。
+业务模块 client 包应依赖本包，禁止 import 宿主 `apps/client/src/shell`。
 
 ## 相关文档
 

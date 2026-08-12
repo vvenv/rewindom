@@ -29,7 +29,7 @@ be-water 当前为**单实例部署**：业务配置分散在 `.env`（进程环
 | `.env`       | `DATABASE_URL`、`JWT_SECRET`、`OPENAI_API_KEY` | SSH / 部署脚本 | 需重启 |
 | `AppSetting` | `ai_model_config`、`search_settings`           | Settings API   | 即时   |
 
-环境变量在 `apps/server/src/lib/config.ts` 启动时通过 `dotenv` 一次性加载，运行中不可变。
+环境变量在 `packages/server-kernel/src/lib/config.ts` 启动时通过 `dotenv` 一次性加载，运行中不可变。
 
 调用 LLM 的业务模块若直接读取 `config.openai.apiKey`，则全实例共用同一 Key，无法按租户隔离。
 
@@ -90,7 +90,9 @@ flowchart TB
 
 **存储**：`TenantSetting` 表（见 §4）。
 
-**管理者**：租户管理员（`settings.read` / `settings.write`）。
+**管理者**：租户管理员（`settings.read` / `settings.write`）。这两个权限**当前没有页面消费**
+——品牌并进了站点外观、第三方登录并进了会员页，各自改用 `site.*` / `site_members.*`；
+它们留着就是给下面这批 BYOK 用的。
 
 **特征**：运行时读写；保存即生效；按 `tenant_id` 隔离。
 
@@ -109,7 +111,6 @@ flowchart TB
 | 配置 key     | 形状                                                | 租户可编辑 | 说明                                            |
 | ------------ | --------------------------------------------------- | ---------- | ----------------------------------------------- |
 | `appearance` | `{ theme: string \| null, layout: string \| null }` | ❌         | 租户侧默认主题与布局；`null` 表示继承平台默认。见 §2.3 |
-| `branding`   | `{ logo, favicon }`（各为 `{ storage_key, mime_type, updated_at } \| null`） | ✅（`settings.read` / `settings.write`） | 租户 Logo / Favicon；文件存本地附件目录。见 §2.4 |
 
 ### 2.3 外观：主题与布局
 
@@ -154,22 +155,19 @@ Provider 里——偏好与生效条件分开，窗口缩到窄屏再拉回来�
 新增：配色 = `THEME_PALETTES` 追加一项 + `index.css` 补两个 token 块；
 布局 = `SHELL_LAYOUTS` 追加一项 + `AppShellFrame` 加一个分支。两处配置 UI 自动列出。
 
-### 2.4 品牌：Logo / Favicon
+### 2.4 品牌：**不是租户级配置**
 
-租户管理员在 `/app/settings`（权限 `settings.read` / `settings.write`）自助上传：
+**中台没有品牌设置。**工作台外壳（侧栏 / 顶栏 / 登录页 / 浏览器标签）一律是产品自己的
+Logo 与 `favicon.svg`；绑定域名下也一样。产品仓要换成自己的品牌，改壳层资产，见
+[`downstream-fork.md`](./downstream-fork.md) §2。
 
-| 资源 | MIME | 大小上限 | 展示位置 |
-| --- | --- | --- | --- |
-| Logo | png / jpeg / webp / svg | 1MB | Host 绑定登录页、登录后侧栏 / 顶栏、官网页头 / 页脚（默认继承） |
-| Favicon | 同上 + ico | 256KB | 浏览器标签（登录页与租户壳） |
+Logo / Favicon 是**站点**的资产，落在 `marketing` 的 `theme_settings.{logo_url,favicon_url}`
+（权限 `site.*`），从站点编辑器的「外观」填——控件是 `SiteImageField`（媒体库选图或外链），
+与分享图 `og_image` 同一套。只作用于官网。
 
-- **存储**：`TenantSetting[branding]` 存元数据；文件进本地附件目录（`{tenantId}/branding/logo|favicon.*`）
-- **公开读**：`GET /api/public/tenants/:slug/branding/{logo\|favicon}`（品牌图非机密，供 `<img>` / `<link rel="icon">`）
-- **公开配置**：Host 绑定时 `GET /api/public/config` → `bound_tenant.{logo_url,favicon_url}`
-- **未配置**：回退产品默认 Logo / `favicon.svg`；官网未上传时不显示 Logo（不拿产品默认顶替）
-- **只到这里为止**：官网自己的配色 / 字体 / 页宽属 `marketing` 的 `theme_settings`（权限
-  `site.*`），在编辑器的主题层（官网卡片 →「外观」），不进本页——见 `marketing/MODULE.md`。
-  `theme_settings.logo_url` 是官网侧对上表 Logo 的可选覆盖
+这样切的理由：一份资产两个消费方（中台 + 官网）时，必然要在「继承 / 覆盖」上再造一层
+概念，而中台那半边的白标价值远小于它带来的复杂度。真要做白标登录页，从站点的
+`theme_settings` 反向读一次即可——那是一条明确的单向依赖，不是双向纠缠。
 
 ---
 

@@ -12,7 +12,6 @@ import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
-import { getTenantBrandingUrls } from "../../platform/server/services/tenant-branding.service.js";
 import {
   buildHomeTemplateSections,
   HOME_STARTER_PRESET,
@@ -1032,19 +1031,6 @@ export async function revertEditorDraft(
   return { page: toMarketingPage(page), site: toMarketingSite(site) };
 }
 
-/**
- * 官网 logo 默认继承租户品牌资产；没上传过时为 `null`，交由站点自己填的 URL 兜底。
- *
- * 不能直接把公开路径拼出来当默认值——没资产时那个端点是 404，会渲染成破图。
- */
-async function brandingLogoUrl(
-  tenant_id: string,
-  tenant_slug: string,
-): Promise<string | null> {
-  const { logo_url } = await getTenantBrandingUrls(tenant_id, tenant_slug);
-  return logo_url;
-}
-
 export async function getPublishedPublicSite(
   tenant_id: string,
   tenant_slug: string,
@@ -1062,7 +1048,6 @@ export async function getPublishedPublicSite(
   return toPublicMarketingSite(
     site,
     pages,
-    await brandingLogoUrl(tenant_id, tenant_slug),
     effectiveLocale(locale, normalizeLocale(site.default_locale), pages),
   );
 }
@@ -1100,7 +1085,7 @@ export async function getSiteChromeOrFallback(
         defaultLocale,
       ) || fallbackName,
     tagline: "",
-    logo_url: await brandingLogoUrl(tenant_id, tenant_slug),
+    logo_url: resolveThemeSettings(site?.theme_settings).logo_url ?? null,
     primary_color: null,
     theme_settings: resolveThemeSettings(site?.theme_settings),
     default_locale: defaultLocale,
@@ -1119,7 +1104,6 @@ export async function getSiteChromeOrFallback(
 function buildDefaultHomePageView(input: {
   siteRecord: MarketingSiteRecord;
   pages: MarketingPageRecord[];
-  brandingLogoUrl: string | null;
   locale: AppLocale;
   default_locale: AppLocale;
 }): SitePageView {
@@ -1153,7 +1137,6 @@ function buildDefaultHomePageView(input: {
     site: toPublicMarketingSite(
       input.siteRecord,
       input.pages,
-      input.brandingLogoUrl,
       input.locale,
     ),
     page: {
@@ -1208,7 +1191,6 @@ export async function getPublishedPublicPage(
     return buildDefaultHomePageView({
       siteRecord,
       pages,
-      brandingLogoUrl: await brandingLogoUrl(tenant_id, tenant_slug),
       locale: current,
       default_locale,
     });
@@ -1220,8 +1202,7 @@ export async function getPublishedPublicPage(
     site: toPublicMarketingSite(
       siteRecord,
       pages,
-      await brandingLogoUrl(tenant_id, tenant_slug),
-      current,
+        current,
     ),
     page: toPublicMarketingPage(match, {
       siblings: pages,
@@ -1321,8 +1302,7 @@ export async function getMemberContentPage(
     site: toPublicMarketingSite(
       siteRecord,
       pages,
-      await brandingLogoUrl(tenant_id, tenant_slug),
-      current,
+        current,
     ),
     page: toPublicMarketingPage(match, {
       siblings: pages,
@@ -1477,8 +1457,7 @@ export async function getPreviewSitePage(
     site: toPublicMarketingSite(
       siteRecord,
       pages,
-      await brandingLogoUrl(tenant_id, tenant_slug),
-      current,
+        current,
       { draftChrome: true, draftContent: true },
     ),
     page: toPublicMarketingPage(match, {

@@ -5,7 +5,7 @@ id: todos
 label: Todos
 description: 租户内待办清单
 kind: business
-placement: packages/modules/todos
+placement: modules/todo
 resource:
   singular: todo
   plural: todos

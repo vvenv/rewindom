@@ -1,8 +1,8 @@
 # 文件存储（媒体库 / 图片上传）
 
 字节落在哪里，由**一个接口**说了算：`FileStorageProvider`
-（`packages/server-kernel/src/infra/file-storage/`）。业务侧（官网媒体库、租户品牌
-资源、后续的附件）只见到这个接口，本地磁盘还是 OSS/S3 由 `ATTACHMENT_STORAGE` 决定。
+（`packages/server-kernel/src/infra/file-storage/`）。业务侧（官网媒体库资源、
+后续的附件）只见到这个接口，本地磁盘还是 OSS/S3 由 `ATTACHMENT_STORAGE` 决定。
 
 ## 接口
 
@@ -40,7 +40,6 @@ interface FileStorageProvider {
 | 业务         | 键                                     | 位置                        |
 | ------------ | -------------------------------------- | --------------------------- |
 | 官网媒体库   | `{tenant_id}/site-assets/{asset_id}{ext}` | `marketing/server/site-asset.service.ts` |
-| 租户品牌资源 | `{tenant_id}/branding/{logo\|favicon}{ext}` | `platform/server/services/tenant-branding.service.ts` |
 
 一律以 `tenant_id` 打头，迁移和按租户清理时才好下手。
 
@@ -60,8 +59,8 @@ buffer，尺寸解析、`size_bytes` 也都要用返回的这份。
 
 SVG 是唯一一种「图片即代码」的上传类型：`<script>`、`on*` 事件、`javascript:` URL 都会在
 **提供它的那个源**上执行。租户站点的源同时挂着 `/app/*` 工作台，所以一张恶意 SVG =
-对工作台的同源 XSS，只要骗到一次直接访问资源 URL 或把它塞进 iframe。媒体库和品牌
-资源（logo / favicon）都收 SVG，两条路都得管。
+对工作台的同源 XSS，只要骗到一次直接访问资源 URL 或把它塞进 iframe。媒体库收 SVG
+（站点 logo / favicon 也从媒体库来），这条路得管。
 
 两道防线：
 

@@ -1,4 +1,4 @@
-import { BrandMark, Wordmark, usePublicConfig } from "@be-water/client-kit";
+import { BrandMark, Wordmark } from "@be-water/client-kit";
 import { Button } from "@be-water/ui/button";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
@@ -6,11 +6,6 @@ import { Link, useNavigate } from "react-router";
 export function RegisterDisabledView() {
   const { t } = useTranslation("shell");
   const navigate = useNavigate();
-  const {
-    data: { bound_tenant },
-  } = usePublicConfig();
-  const logoUrl = bound_tenant?.logo_url ?? null;
-  const brandName = bound_tenant?.name ?? "be-water";
 
   return (
     <div className="auth-glass-card relative overflow-hidden rounded-2xl">
@@ -21,19 +16,9 @@ export function RegisterDisabledView() {
 
       <div className="relative p-8 sm:p-10">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <BrandMark
-            src={logoUrl}
-            alt={brandName}
-            className="auth-logo-glow h-14 w-14 text-primary"
-          />
+          <BrandMark className="auth-logo-glow h-14 w-14 text-primary" />
           <div className="flex flex-col items-center gap-2">
-            {logoUrl ? (
-              <span className="auth-logo-glow text-lg font-semibold text-foreground">
-                {brandName}
-              </span>
-            ) : (
-              <Wordmark className="auth-logo-glow h-6 text-foreground" />
-            )}
+            <Wordmark className="auth-logo-glow h-6 text-foreground" />
             <p className="mt-1 text-sm text-muted-foreground">
               {t("auth.registerDisabledTitle")}
             </p>

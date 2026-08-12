@@ -5,10 +5,8 @@ import {
   ShellLayoutProvider,
   ThemePaletteProvider,
   useAuth,
-  useDocumentFavicon,
   useMediaQuery,
   useShellLayout,
-  useTenantBranding,
 } from "@be-water/client-kit";
 import { Spinner } from "@be-water/ui/spinner";
 import { cn } from "@be-water/ui/utils";
@@ -111,12 +109,6 @@ function AppShellFrame({
   );
 }
 
-function TenantDocumentFavicon(): null {
-  const { data } = useTenantBranding();
-  useDocumentFavicon(data?.favicon_url);
-  return null;
-}
-
 export function AppLayout() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -138,7 +130,6 @@ export function AppLayout() {
     <ThemePaletteProvider>
       <ShellLayoutProvider>
         <ShellProviders>
-          <TenantDocumentFavicon />
           {/* 徽标注册表要同时覆盖顶栏/侧边栏与移动端 tab bar，故提到骨架之外 */}
           <NavBadgeRegistryProvider>
             <NavBadgeContributors />

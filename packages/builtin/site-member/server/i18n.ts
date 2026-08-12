@@ -42,6 +42,10 @@ export const SITE_MEMBER_SERVER_I18N: ServerI18nBundle = {
       "site_member.audit.updated": "更新会员：{{email}}",
       "site_member.audit.deleted": "删除会员：{{email}}",
       "site_member.audit.password_reset": "重置会员密码：{{email}}",
+      "site_member.oauth_credentials_required":
+        "请填写 Client ID 与 Client Secret",
+      "site_member.audit.oauth_updated":
+        "更新会员第三方登录（{{provider}} / {{action}}）",
     },
     en: {
       "site_member.site_unbound": "No site is bound to this address",
@@ -86,6 +90,10 @@ export const SITE_MEMBER_SERVER_I18N: ServerI18nBundle = {
       "site_member.audit.updated": "Updated member: {{email}}",
       "site_member.audit.deleted": "Deleted member: {{email}}",
       "site_member.audit.password_reset": "Reset member password: {{email}}",
+      "site_member.oauth_credentials_required":
+        "Client ID and Client Secret are required",
+      "site_member.audit.oauth_updated":
+        "Updated member sign-in providers ({{provider}} / {{action}})",
     },
   },
 };

@@ -41,50 +41,100 @@ vi.mock("../../lib/config.js", () => ({
   },
 }));
 
-describe("resolveOAuthCredentials", () => {
-  beforeEach(() => {
-    findUnique.mockReset();
-    decryptMock.mockReset();
-    vi.resetModules();
-  });
+beforeEach(() => {
+  findUnique.mockReset();
+  decryptMock.mockReset();
+  vi.resetModules();
+});
 
-  it("falls back to platform env when no tenant override", async () => {
+describe("resolveSiteOAuthCredentials", () => {
+  it("falls back to platform env when the site has no override", async () => {
     findUnique.mockResolvedValue(null);
-    const { resolveOAuthCredentials } = await import("./oauth-credentials.js");
-    const resolved = await resolveOAuthCredentials("github", "tenant-1");
+    const { resolveSiteOAuthCredentials } = await import(
+      "./oauth-credentials.js"
+    );
+    const resolved = await resolveSiteOAuthCredentials("github", "tenant-1");
     expect(resolved.source).toBe("platform");
     expect(resolved.enabled).toBe(true);
     expect(resolved.clientId).toBe("platform-gh-id");
   });
 
-  it("uses tenant override when both client_id and client_secret are set", async () => {
+  it("uses the site override when both client_id and client_secret are set", async () => {
     findUnique.mockResolvedValue({ secret: "cipher" });
     decryptMock.mockReturnValue(
       JSON.stringify({
         github: {
-          client_id: "tenant-gh-id",
-          client_secret: "tenant-gh-secret",
+          client_id: "site-gh-id",
+          client_secret: "site-gh-secret",
           callback_url: "https://acme.example/callback",
         },
       }),
     );
-    const { resolveOAuthCredentials } = await import("./oauth-credentials.js");
-    const resolved = await resolveOAuthCredentials("github", "tenant-1");
+    const { resolveSiteOAuthCredentials } = await import(
+      "./oauth-credentials.js"
+    );
+    const resolved = await resolveSiteOAuthCredentials("github", "tenant-1");
     expect(resolved.source).toBe("tenant");
-    expect(resolved.clientId).toBe("tenant-gh-id");
+    expect(resolved.clientId).toBe("site-gh-id");
     expect(resolved.callbackUrl).toBe("https://acme.example/callback");
   });
 
-  it("ignores incomplete tenant override", async () => {
+  it("ignores an incomplete site override", async () => {
     findUnique.mockResolvedValue({ secret: "cipher" });
     decryptMock.mockReturnValue(
       JSON.stringify({
         github: { client_id: "only-id" },
       }),
     );
-    const { resolveOAuthCredentials } = await import("./oauth-credentials.js");
-    const resolved = await resolveOAuthCredentials("github", "tenant-1");
+    const { resolveSiteOAuthCredentials } = await import(
+      "./oauth-credentials.js"
+    );
+    const resolved = await resolveSiteOAuthCredentials("github", "tenant-1");
     expect(resolved.source).toBe("platform");
     expect(resolved.clientId).toBe("platform-gh-id");
+  });
+
+  it("reads the site-scoped setting key", async () => {
+    findUnique.mockResolvedValue(null);
+    const { resolveSiteOAuthCredentials, SITE_OAUTH_PROVIDERS_SETTING_KEY } =
+      await import("./oauth-credentials.js");
+    await resolveSiteOAuthCredentials("github", "tenant-1");
+    expect(SITE_OAUTH_PROVIDERS_SETTING_KEY).toBe("site_oauth_providers");
+    expect(findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          tenant_id_key: {
+            tenant_id: "tenant-1",
+            key: "site_oauth_providers",
+          },
+        },
+      }),
+    );
+  });
+});
+
+describe("resolvePlatformOAuthCredentials", () => {
+  /*
+   * 中台登录不认站点覆盖——这是「品牌与第三方登录不影响中台」那次调整的核心约束。
+   * 用「一次库都没查」来钉死它：只要有人把 tenantId 塞回中台那条路，这条就会红。
+   */
+  it("never touches the database", async () => {
+    const { resolvePlatformOAuthCredentials } = await import(
+      "./oauth-credentials.js"
+    );
+    const resolved = resolvePlatformOAuthCredentials("github");
+    expect(resolved.source).toBe("platform");
+    expect(resolved.clientId).toBe("platform-gh-id");
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
+  it("reports platform-only enabled flags", async () => {
+    const { platformOAuthEnabledFlags } = await import("./oauth-credentials.js");
+    expect(platformOAuthEnabledFlags()).toEqual({
+      github_oauth_enabled: true,
+      google_oauth_enabled: false,
+      microsoft_oauth_enabled: true,
+    });
+    expect(findUnique).not.toHaveBeenCalled();
   });
 });

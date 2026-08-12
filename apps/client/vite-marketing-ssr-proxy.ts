@@ -1,6 +1,6 @@
 /**
  * 应用区一级路径：开发态不代理给 Marketing SSR，交回 Vite SPA。
- * 须与 `SITE_APP_PREFIXES`（`packages/modules/marketing/shared/site-locale.ts`）
+ * 须与 `SITE_APP_PREFIXES`（`packages/builtin/marketing/shared/site-locale.ts`）
  * 及 nginx SPA location 对齐——见 `nginx-spa-prefixes.test.ts`。
  */
 const SPA_ROUTE_PREFIXES = [

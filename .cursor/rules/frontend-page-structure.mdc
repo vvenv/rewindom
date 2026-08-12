@@ -1,6 +1,6 @@
 ---
 description: 前端 Page 分层与页面外壳 — PageLayout、Page 编排、Hook 状态、Lib 纯函数、Component UI
-globs: apps/client/**/*.{tsx,ts},packages/modules/*/client/**/*.{tsx,ts}
+globs: apps/client/**/*.{tsx,ts},packages/client-kit/**/*.{tsx,ts},packages/builtin/*/client/**/*.{tsx,ts},modules/*/client/**/*.{tsx,ts}
 alwaysApply: false
 ---
 

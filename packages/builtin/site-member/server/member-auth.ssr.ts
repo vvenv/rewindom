@@ -14,7 +14,7 @@
  */
 
 import { CaptchaService } from "@be-water/server-kernel/kernel/auth/captcha.service.js";
-import { resolveOAuthEnabledFlags } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
+import { siteOAuthEnabledFlags } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
 import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
 import { resolveRequestLocale } from "@be-water/server-kernel/lib/i18n/translate.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
@@ -197,7 +197,7 @@ async function renderAuthPage(
       resolveSiteAccountEntry({ tenantId: hostTenant.tenant_id, locale }),
       resolveSectionEntitlements(hostTenant.tenant_id),
       getPlatformSettings(),
-      resolveOAuthEnabledFlags(hostTenant.tenant_id),
+      siteOAuthEnabledFlags(hostTenant.tenant_id),
     ]);
 
   const authContext: MemberAuthRenderContext = {

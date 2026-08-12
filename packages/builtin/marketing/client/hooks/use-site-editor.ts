@@ -1,6 +1,5 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
-import { useTenantBranding } from "@be-water/client-kit";
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import { isTemplatePageKind } from "../../shared/page-templates.js";
@@ -83,7 +82,6 @@ export function useSiteEditor(pageId: string | undefined) {
   const mutations = useSiteMutations();
   // 官网 logo 默认继承品牌资产。服务端只对**公开**站点做这个回落，管理端那份保持原样
   // （它要灌进设置表单，填进去一存就把继承关系写死了），所以预览在这里自己兜。
-  const brandingQuery = useTenantBranding();
 
   const [sections, setSections] = useState<SiteSection[]>([]);
   const [header, setHeader] = useState<SiteSection[]>([]);
@@ -318,7 +316,7 @@ export function useSiteEditor(pageId: string | undefined) {
     }));
 
   // 预览吃**草稿**主题：改一个色号右边当场就变，不用先保存
-  const previewLogoUrl = theme.logo_url ?? brandingQuery.data?.logo_url ?? null;
+  const previewLogoUrl = theme.logo_url ?? null;
   const previewSite: PublicMarketingSite | null = siteQuery.data
     ? {
         site_name: localizeSiteText(

@@ -2,7 +2,7 @@
 
 内核与横切契约：API 响应格式、认证类型、模块 manifest、权限机制、租户目录等。
 
-**不含**业务域 DTO/枚举（见 `packages/modules/<id>/shared/` 与 `packages/be-water/shared/`）。
+**不含**业务域 DTO/枚举（见 `packages/builtin/<id>/shared/` 与 `modules/<id>/shared/`）。
 通用工具函数（日期、格式化、导入导出等）已并入本包。
 
 ## 主要内容

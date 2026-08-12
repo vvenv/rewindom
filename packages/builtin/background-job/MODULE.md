@@ -16,14 +16,14 @@
 ## 扩展点
 
 - `server.registerJobs` — 注册 cron / interval handler
-- Job 实现仍在 `modules/background-job/`（由路由与 worker 调用）
+- Job 实现仍在 `packages/builtin/background-job/`（由路由与 worker 调用）
 
 ## 如何单独测试
 
 ```bash
 # 每个模块的 server / client / shared 各是一个 vitest project，
 # 位置参数只按 project root 的相对路径过滤，跑全模块要用 --project。
-pnpm --filter modules exec vitest --run --project 'background-job/*'
+pnpm --filter @be-water/builtin exec vitest --run --project 'background-job/*'
 ```
 
 ## 禁止

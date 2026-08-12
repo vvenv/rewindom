@@ -1,6 +1,6 @@
 ---
 description: 前端 UI 组件规范（shadcn/ui、表格、样式、URL 参数）
-globs: packages/ui/**/*.{tsx,ts},packages/client-shell/**/*.{tsx,ts},packages/client-app-shell/**/*.{tsx,ts},apps/client/**/*.{tsx,ts},packages/modules/module-*/client/**/*.{tsx,ts}
+globs: packages/ui/**/*.{tsx,ts},packages/client-kit/**/*.{tsx,ts},apps/client/**/*.{tsx,ts},packages/builtin/*/client/**/*.{tsx,ts},modules/*/client/**/*.{tsx,ts}
 alwaysApply: false
 ---
 
@@ -19,7 +19,7 @@ packages/ui/src/
 ├── field.tsx
 └── …
 
-packages/client-shell/src/components/
+packages/client-kit/src/components/
 └── data-table/            # 通用表格等业务基建
 ```
 
@@ -64,7 +64,7 @@ import {
 **Dialog / Sheet 内聚（金标准）— 创建按钮与弹层表单是同一组件：**
 
 业务层 `*CreateSheet` / `*Dialog` 须把 trigger + 弹层 + 表单 + mutation + toast 装在一起
-（金标准：`notes/client/components/NoteCreateSheet.tsx`）。列表 Page 的 `PageLayout.action`
+（金标准：`modules/note/client/components/NoteCreateSheet.tsx`）。列表 Page 的 `PageLayout.action`
 只**放置**该组件（`children` 传 `DraggableFabTrigger`），禁止 Page 维护 `createOpen` 再
 头部 Button + 底部受控 Sheet 三处打散。详见 `frontend-page-structure` rule「Dialog / Sheet 内聚」。
 

@@ -380,7 +380,6 @@
     "tenant_features_updated": "更新租户 {{slug}} 的功能开关",
     "tenant_entitlements_updated": "更新租户 {{slug}} 的能力开关",
     "tenant_appearance_updated": "更新租户 {{slug}} 的外观配置",
-    "tenant_branding_updated": "更新租户 {{slug}} 的品牌（{{kind}} / {{action}}）",
     "tenant_plan_updated": "更新租户 {{slug}} 的套餐",
     "tenant_registered": "注册租户 {{tenant_name}}（{{tenant_slug}}）",
     "user_joined_default": "用户自助注册加入默认租户 {{tenant_slug}}",
@@ -399,78 +398,6 @@
     "admin_deleted": "删除平台管理员 {{username}}",
     "admin_password_reset": "重置平台管理员 {{username}} 的密码",
     "admin_roles_updated": "更新平台管理员 {{username}} 的角色：{{roles_text}}"
-  },
-  "branding": {
-    "nav": "品牌",
-    "page": {
-      "title": "品牌",
-      "description": "租户 Logo 与 Favicon；应用外壳、登录页与对外官网共用这一份资产。官网的配色与排版在「官网 → 站点设置」。"
-    },
-    "loading": "加载中…",
-    "loadFailed": "加载品牌配置失败",
-    "upload": "上传",
-    "uploading": "上传中…",
-    "clear": "清除",
-    "clearing": "清除中…",
-    "unset": "未设置",
-    "logo": {
-      "title": "Logo",
-      "hint": "PNG / JPEG / WebP / SVG，最大 1MB。用于登录页与侧栏；官网页头 / 页脚也默认继承它，未上传时官网不显示 Logo。"
-    },
-    "favicon": {
-      "title": "Favicon",
-      "hint": "PNG / JPEG / WebP / SVG / ICO，最大 256KB。用于浏览器标签页图标。"
-    },
-    "toast": {
-      "uploaded": "品牌图片已更新",
-      "uploadFailed": "上传失败",
-      "cleared": "已恢复为默认品牌",
-      "clearFailed": "清除失败"
-    }
-  },
-  "oauth": {
-    "nav": "第三方登录",
-    "page": {
-      "title": "第三方登录",
-      "description": "覆盖平台默认的 GitHub / Google / Microsoft OAuth 应用。未配置时使用平台凭证。"
-    },
-    "hint": "自建 OAuth 应用时，授权页会显示你的应用名与图标。Client Secret 加密存储，保存后不可回显。",
-    "loading": "加载中…",
-    "loadFailed": "加载 OAuth 配置失败",
-    "save": "保存覆盖",
-    "saving": "保存中…",
-    "clear": "清除覆盖",
-    "clearing": "清除中…",
-    "providers": {
-      "github": "GitHub",
-      "google": "Google",
-      "microsoft": "Microsoft"
-    },
-    "source": {
-      "platform": "平台默认",
-      "tenant": "本站覆盖"
-    },
-    "status": {
-      "enabled": "当前可用（{{source}}）",
-      "disabled": "当前不可用",
-      "overrideActive": "已保存本站凭证",
-      "usingPlatform": "使用平台凭证"
-    },
-    "fields": {
-      "clientId": "Client ID",
-      "clientSecret": "Client Secret",
-      "secretPlaceholder": "粘贴 Client Secret",
-      "secretPlaceholderReplace": "输入新 Secret 以替换",
-      "callbackUrl": "回调 URL（可选）",
-      "callbackPlaceholder": "留空则使用平台默认回调",
-      "authority": "Microsoft Authority（可选）"
-    },
-    "toast": {
-      "saved": "OAuth 覆盖已保存",
-      "saveFailed": "保存失败",
-      "cleared": "已恢复为平台默认凭证",
-      "clearFailed": "清除失败"
-    }
   },
   "plansConfig": {
     "description": "一档一个页签，配完这一档的全部：定价与展示给官网定价区用，配额在开通套餐时写进组织。留空的文案回落到内置默认值。",

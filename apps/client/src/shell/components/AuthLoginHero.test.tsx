@@ -45,13 +45,17 @@ describe("AuthLoginHero", () => {
     } as never);
   });
 
-  it("renders product wordmark when no bound tenant logo", () => {
+  it("renders the product wordmark", () => {
     const { container } = render(<AuthLoginHero variant="compact" />);
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector("svg")).not.toBeNull();
   });
 
-  it("renders tenant logo img when bound_tenant.logo_url is set", () => {
+  /*
+   * 中台登录页**不挂租户品牌**，绑定域名下也一样：品牌是站点的资产
+   * （`theme_settings`），只作用于官网。曾经这里会渲染租户 logo。
+   */
+  it("still renders the product wordmark on a bound domain", () => {
     vi.mocked(usePublicConfig).mockReturnValue({
       data: {
         registration_enabled: false,
@@ -61,12 +65,7 @@ describe("AuthLoginHero", () => {
         google_oauth_enabled: false,
         microsoft_oauth_enabled: false,
         single_tenant: false,
-        bound_tenant: {
-          slug: "acme",
-          name: "Acme",
-          logo_url: "/api/public/tenants/acme/branding/logo",
-          favicon_url: null,
-        },
+        bound_tenant: { slug: "acme", name: "Acme" },
         tenant_base_domain: null,
         platform_url: null,
       },
@@ -76,12 +75,9 @@ describe("AuthLoginHero", () => {
       refetch: vi.fn(),
     } as never);
 
-    render(<AuthLoginHero variant="compact" />);
-    const img = screen.getByRole("img", { name: "Acme" });
-    expect(img).toHaveAttribute(
-      "src",
-      "/api/public/tenants/acme/branding/logo",
-    );
-    expect(screen.getByText("Acme")).toBeInTheDocument();
+    const { container } = render(<AuthLoginHero variant="compact" />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("svg")).not.toBeNull();
+    expect(screen.queryByText("Acme")).not.toBeInTheDocument();
   });
 });

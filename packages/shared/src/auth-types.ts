@@ -138,10 +138,6 @@ export interface PublicConfig {
   bound_tenant: {
     slug: string;
     name: string;
-    /** 公开 logo URL；未配置则为 null（前端回退产品 Logo）。 */
-    logo_url: string | null;
-    /** 公开 favicon URL；未配置则为 null（前端回退产品 favicon）。 */
-    favicon_url: string | null;
   } | null;
   /**
    * 平台通配子域基域（如 `water.moms.plus`）；空则前端不展示默认访问地址。

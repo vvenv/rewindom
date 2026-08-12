@@ -68,7 +68,16 @@ Fastify 先命中；`/member/oauth/callback` 仍落到 SPA。nginx 与 vite dev 
 
 ## 第三方登录（OAuth）
 
-GitHub / Google / Microsoft。凭证解析与工作台相同：平台 env → 站点 `/app/settings/oauth` 覆盖。
+GitHub / Google / Microsoft。凭证走**平台 env → 站点覆盖**（`resolveSiteOAuthCredentials`，key=`site_oauth_providers`），
+与工作台**不同**——工作台固定用平台凭证（`resolvePlatformOAuthCredentials`，不查库），
+两条链路在类型上就是两个函数，谁也拿不到对方的入参。
+
+配置入口在会员页顶部一行（`SiteOAuthStatusRow` + `SiteOAuthSheet`，`/api/site-members/oauth-providers`，
+权限 `site_members.*`），与 `site-billing` 的收款凭证同一形态：一次性配置贴着它服务的那批数据。
+
+Sheet 里三家上下排布，但只有脚上一颗保存：提交时逐个 PUT **改过**的那几家（三家覆盖存在
+同一行 `TenantSetting`，并发会互相覆盖）。`client_secret` 留空表示沿用已存的，所以改回调
+地址不必重新去 IdP 生成密钥；首次配置才要求 ID 与 secret 一起给全。
 
 会员 Cookie 为 Host-only：平台应用只需登记与工作台相同的 `{FRONTEND_URL}/api/auth/oauth/:provider/callback`（按 `state.typ` 分流）；完成后若与发起 Host 不同源则发一次性 code，跳回发起 Host 的 `/member/oauth/callback` 再 `POST /api/member/oauth/exchange` 种 Cookie。
 

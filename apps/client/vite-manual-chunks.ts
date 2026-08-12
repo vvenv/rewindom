@@ -18,14 +18,12 @@ export function manualChunks(id: string): string | undefined {
 
   if (!normalized.includes("/node_modules/")) {
     if (normalized.includes("/packages/ui/src/")) return "ui-components";
-    if (normalized.includes("/packages/client-shell/src/")) return "client-shell";
-    if (normalized.includes("/packages/client-api/src/")) return "client-api";
+    if (normalized.includes("/packages/client-kit/src/")) return "client-kit";
     if (normalized.includes("/src/lib/")) return "lib";
     return undefined;
   }
 
   // Large or on-demand deps — keep out of the main vendor catch-all
-  if (inNodeModules(id, "exceljs")) return "exceljs-vendor";
   if (inNodeModules(id, "recharts")) return "recharts-vendor";
 
   // React runtime (exact package paths only — never `id.includes("react-dom")`)

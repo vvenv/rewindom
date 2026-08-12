@@ -15,9 +15,11 @@ Frontend (React SPA) → Fastify API (:3700) → PostgreSQL + Prisma
 | 路径 | 角色 |
 | --- | --- |
 | `apps/server` / `apps/client` | 极薄组装层，只做启用模块的注册 |
-| `packages/modules/<id>/` | 业务与基础设施模块（`shared` + `server` + `client` + 可选 `schema.prisma`） |
+| `packages/builtin/<id>/` | 内置模块（`shared` + `server` + `client` + 可选 `schema.prisma`），同属 `@be-water/builtin` |
+| `modules/<id>/` | 外部业务模块（`@be-water/<id>`），由 `pnpm gen:module` 生成 |
 | `packages/server-kernel` | 后端内核：Prisma、认证、中间件、模块契约 |
 | `packages/client-kit` / `packages/ui` | 前端 App Shell 与组件库 |
+| `packages/module-sdk` | 外部模块的稳定门面，避免业务直连内核 |
 | `packages/shared` | 前后端共享类型与工具 |
 
 内核与基础设施**不含业务领域代码**。详见 `docs/design/modular-architecture.md`。
@@ -36,12 +38,13 @@ Frontend (React SPA) → Fastify API (:3700) → PostgreSQL + Prisma
 
 ## 内置模块
 
-`packages/modules/` 下，注册于 `apps/server/src/enabled-modules.ts`（infra → shell → 业务域）：
+`packages/builtin/` 下，注册于 `apps/server/src/enabled-modules.ts`（infra → shell → 业务域）：
 
 | 类型 | 模块 |
 | --- | --- |
-| 基础设施 | `user` 认证/JWT · `rbac` PBAC · `platform` 租户/套餐/配额 · `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 |
-| 示例业务 | `notes` 金标准 CRUD · `todos` 由 `gen:module` 生成的列表示例 |
+| 基础设施 | `user` 认证/JWT · `rbac` PBAC · `platform` 租户/套餐/配额 · `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 · `dashboard` 工作台卡片聚合 |
+| 站点与计费 | `marketing` 租户 CMS/SSR · `billing` 组织向平台付费 · `site-member` 站点会员 · `site-billing` 会员向站点付费 |
+| 示例业务（`modules/`） | `note` 金标准 CRUD · `todo` / `bookmark` 由 `gen:module` 生成的列表示例 |
 
 新增模块：填 `MODULE.spec.yaml` → `pnpm gen:module` → 补 service → `pnpm check:modules`。
 

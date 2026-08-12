@@ -3,8 +3,6 @@ import { platformNavContributions } from "./platform/nav-contributions.js";
 import { renderPlatformRoutes } from "./platform/routes.js";
 import { usePlatformImpersonationActive } from "./shell/platform-shell-slots.js";
 import { PlatformTenantFilterProvider } from "./shell/tenant-filter-provider.js";
-import { PLATFORM_TENANT_NAV_SECTIONS } from "./tenant/nav-sections.js";
-import { renderPlatformTenantRoutes } from "./tenant/routes.js";
 
 import type { ClientAppModule } from "@be-water/client-kit";
 
@@ -16,8 +14,7 @@ export const platformClientModule: ClientAppModule = {
   description: "平台管理端页面、组件与 hooks",
   client: {
     i18n: PLATFORM_I18N,
-    renderRoutes: renderPlatformTenantRoutes,
-    nav: PLATFORM_TENANT_NAV_SECTIONS,
+    // 租户侧没有页面了：品牌并进站点外观，第三方登录并进会员页
     renderPlatformRoutes,
     platformNav: platformNavContributions,
     shell: {

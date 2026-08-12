@@ -1,4 +1,4 @@
-// packages/modules/audit/schema.prisma
+// packages/builtin/audit/schema.prisma
 // 由 apps/server/prisma/models/audit.prisma 符号链接汇入
 model AuditLog {
   id          String   @id @default(uuid())

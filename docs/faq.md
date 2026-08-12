@@ -160,11 +160,11 @@
 业务权限由**所属模块**声明，不再集中在 `packages/shared`：
 
 1. 在模块 manifest 的 `shared.permissions` 中追加条目（样板见
-   `packages/modules/notes/server/module.ts`）
+   `modules/note/server/module.ts`）
 2. 路由上用 `app.requirePermission("<key>")` 守卫
 3. 运行测试：
    ```bash
-   pnpm --filter @be-water/modules test
+   pnpm --filter @be-water/builtin test
    ```
 
 ### Q11: 如何创建新的 API 路由？
@@ -217,7 +217,7 @@ pnpm --filter client test
 pnpm --filter shared test
 
 # 运行所有业务模块测试
-pnpm --filter @be-water/modules test
+pnpm --filter @be-water/builtin test
 
 # 运行单个测试文件
 pnpm --filter server test <file>.test.ts

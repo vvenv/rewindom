@@ -121,10 +121,6 @@ export {
   type PermissionsValue,
 } from "./permission-context.js";
 export { usePublicConfig } from "./hooks/usePublicConfig.js";
-export {
-  useTenantBranding,
-  TENANT_BRANDING_QUERY_KEY,
-} from "./hooks/useTenantBranding.js";
 export { useDocumentFavicon } from "./hooks/useDocumentFavicon.js";
 export {
   useTenantEntitlements,

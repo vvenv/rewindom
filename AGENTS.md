@@ -32,17 +32,20 @@
 | ----------------- | ----------------------------------------------------------------------------- |
 | Server 启用模块   | `apps/server/src/enabled-modules.ts`（infra → shell → 业务域）                |
 | Client 启用模块   | `apps/client/src/enabled-modules.ts`                                          |
-| 官网（租户 CMS）  | `packages/modules/marketing/`（主域=默认租户 SSR；平台控制台见 `PLATFORM_URL`） |
+| 官网（租户 CMS）  | `packages/builtin/marketing/`（主域=默认租户 SSR；平台控制台见 `PLATFORM_URL`） |
 | 工作台卡片        | 各模块 `client.dashboardWidgets` → `packages/builtin/dashboard` 聚合渲染（含用户级显隐/排序）|
 | 登录落地页        | `apps/client/src/home-path-candidates.ts`（默认 `/app/dashboard`；入口统一走 `/app`） |
 | 内核路由          | `packages/server-kernel/src/kernel/kernel-routes.ts`                          |
 | App Shell（前端） | `packages/client-kit/` + `apps/client/src/app-shell-routes.tsx`               |
 
-新功能：创建 `packages/modules/<name>/` + `MODULE.md`，在 `enabled-modules.ts` 注册。Skill：`create-module`。
+新功能：业务模块用 `pnpm gen:module` 生成到 `modules/<name>/`；内置能力放 `packages/builtin/<name>/` 并在两处 `enabled-modules.ts` 注册。都要配 `MODULE.md`。Skill：`create-module`。
 
 ## 模块包布局
 
-业务模块为独立 workspace 包 `packages/modules/<id>/`（`shared` + `server` + `client` + 可选 `prisma`）。`apps/server` / `apps/client` 为极薄组装层。
+- **内置模块** `packages/builtin/<id>/`（`shared` + `server` + `client` + 可选 `schema.prisma`），同属 workspace 包 `@be-water/builtin`，在 `enabled-modules.ts` 手写注册
+- **外部业务模块** `modules/<id>/`（独立包 `@be-water/<id>`，只依赖 `@be-water/module-sdk`），由 `pnpm gen:external-modules` 汇入组装层
+
+`apps/server` / `apps/client` 为极薄组装层。
 
 ## 维护模式
 
@@ -140,7 +143,7 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 | 文件存储 / 媒体库 | `design/file-storage.md`                           | —                                 |
 | 租户功能开关/配额 | `design/tenant-features.md`                        | —                                 |
 | 前端 Page 分层    | —                                                  | `frontend-page-structure`         |
-| 官网 / SEO        | `packages/modules/marketing/MODULE.md`             | —                                 |
+| 官网 / SEO        | `packages/builtin/marketing/MODULE.md`             | —                                 |
 | 产品仓升级检查    | `design/downstream-fork.md`                        | `frontend-page-structure`         |
 | 单元测试          | `design/unit-testing.md`                           | —                                 |
 | 部署 / FAQ        | `deployment.md`、`faq.md`                          | —                                 |
@@ -148,6 +151,6 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 
 ## Agent 配置（Cursor + Claude Code）
 
-- **Rules**（`.cursor/rules/*.mdc`，仅 Cursor）— `architecture`、`extension-points`、`coding-standards`、`field-naming`、`permissions`、`docs-reference`、`tenancy-mode`、`ui-components`、`frontend-page-structure`、`audit-logging`、`prisma-migration`、`plan-tracking`、`auto-execute-scripts`
+- **Rules**（`.cursor/rules/*.mdc`，仅 Cursor）— `architecture`、`extension-points`、`coding-standards`、`field-naming`、`permissions`、`docs-reference`、`tenancy-mode`、`ui-components`、`frontend-page-structure`、`audit-logging`、`prisma-migration`、`auto-execute-scripts`
 - **Skills**（`.cursor/skills/`，单一真相源）— `create-module`、`extract-module`、`error-logging`、`frontend-page-structure`、`prisma-sync-fix`、`merge-migrations`
 - **Claude Code**：根目录 `CLAUDE.md` 指向本文件；`.claude/skills/` 由 `pnpm sync-skills` 生成（`prepare` 自动跑）；只改 `.cursor/skills/`，勿手改生成物

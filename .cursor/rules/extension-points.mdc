@@ -15,17 +15,15 @@ alwaysApply: true
 | `packages/server-kernel/src/lib/`        | prisma、config、logger、tenant-scope、app-errors、openai-client 等基础设施                              | 仅内核基建              |
 | `packages/server-kernel/src/runtime/`    | 模块契约、加载器、ProviderRegistry、租户路由门控                                                         | 仅内核基建              |
 | `packages/server-kernel/src/kernel/`   | 内核 HTTP 路由、AuthService、captcha、平台管理员认证辅助                                                   | 仅内核基建              |
-| `packages/modules/<id>/`                   | 业务/基础设施模块包（`shared/`、`server/`、`client/`、`prisma/`）                                                | 新 API、域类型、业务 UI |
+| `packages/builtin/<id>/`                   | 内置模块包（`shared/`、`server/`、`client/`、`schema.prisma`）                                                | 内置能力 |
+| `modules/<id>/`                            | 外部业务模块包（`@be-water/<id>`，经 `@be-water/module-sdk` 门面）                                              | 新 API、域类型、业务 UI |
 | `@be-water/server-kernel`                  | kernel、lib、generated Prisma — HTTP 内核与基础设施                                                              | 仅内核基建              |
-| `apps/server/src/enabled-modules.ts`     | 启用模块列表（`@be-water/modules/<id>/server`）                                                                        | 注册新 server 模块      |
-| `packages/client-app-shell/`             | 产品壳层（认证页、Layout、Sidebar、路由守卫）                                                                    | 仅壳层基建              |
-| `apps/client/src/`                       | app-shell-routes、collectModuleNav、render-app-routes、enabled-modules                                          | 仅模块化任务            |
-| `packages/modules/<id>/client/`            | 业务 UI + `module.tsx`、`*Routes.tsx` 模块注册                                                                   | 新 API、域类型、业务 UI |
+| `apps/server/src/enabled-modules.ts`     | 内置模块列表（`@be-water/builtin/<id>/server/index.js`）；外部模块由 `external-modules.ts` 汇入                | 注册新 server 模块      |
+| `apps/client/src/shell/`                 | 产品壳层（认证页、Layout、Sidebar、路由守卫）                                                                    | 仅壳层基建              |
+| `apps/client/src/`                       | app-shell-routes、collect-modules、render-app-routes、enabled-modules、app-nav                                  | 仅模块化任务            |
 | `packages/ui/`                           | `@be-water/ui` — shadcn 基础组件、toast；CLI 配置见 `components.json`                                            | 仅 shadcn CLI 同步更新；禁止为业务需求直接改源码 |
-| `packages/client-api/`                   | `@be-water/client-kit` — api、auth token store 注入                                                                | 仅 API 基建             |
-| `packages/client-kit/` | `@be-water/client-kit` — PageLayout、DataTable、DataTableColumnHeader、list-url-params、api | 仅 API/Shell 基建 |
-| `apps/client/src/lib/`                   | 组装层导航契约（`app-nav.ts`）                                                                                   | 仅横切组装              |
-| `apps/client/src/test/`                  | Vitest/MSW 全局 setup                                                                                            | 测试基建                |
+| `packages/client-kit/` | `@be-water/client-kit` — api、PageLayout、DataTable、DataTableColumnHeader、list-url-params、component-slot | 仅 API/Shell 基建 |
+| `packages/client-test/` | Vitest/MSW 共享 setup 与 mocks | 测试基建 |
 | `apps/client/src/enabled-modules.ts`     | 启用模块列表                                                                                                     | 注册新 client 模块      |
 | `packages/shared/src/module-contract.ts` | 跨端模块类型                                                                                                     | 仅扩展契约时修改        |
 
@@ -34,20 +32,20 @@ alwaysApply: true
 - 不要在 `apps/client/src/` 组装层内 import `modules/` 下的具体业务实现（Loader 通过 `ENABLED_*_MODULES` 组装）
 - 不要向 `routes/index.ts` 直接追加业务路由；应创建模块并在 `enabled-modules.ts` 注册
 - 不要向 `App.tsx` 直接追加业务 `<Route>`；使用模块 `client.renderRoutes` 或 `client.routes`
-- `packages/modules/module-*/server/**` 禁止 import 宿主 `apps/server/src/lib/`、`kernel/` 等；应使用 `@be-water/server-kernel`、`@be-water/shared`、本模块内相对路径，或兄弟模块的相对路径（测试文件暂不受限）
-- `packages/modules/module-*/client/**` 禁止 import 宿主 `@/components`、`@/hooks`；允许 `@/app-nav` 等组装层契约（测试文件可用 `@/test/*`）
-- client 模块包应使用 `@be-water/ui`、`@be-water/client-kit`、`@be-water/client-kit` 及本模块内部路径
+- 模块包 `server/**` 禁止 import 宿主 `apps/server/src/lib/`、`kernel/` 等；应使用 `@be-water/server-kernel`、`@be-water/shared`、本模块内相对路径，或兄弟模块的相对路径（测试文件暂不受限）
+- 模块包 `client/**` 禁止 import 宿主 `@/components`、`@/hooks`；允许 `@/app-nav` 等组装层契约
+- client 模块包应使用 `@be-water/ui`、`@be-water/client-kit` 及本模块内部路径
 
 ## 新功能 checklist
 
-1. 复制 `packages/modules/notes/`（金标准）为 `packages/modules/<name>/`，改写 `package.json` 与 `MODULE.md`
-2. 实现 `ServerAppModule` 并在 `enabled-modules.ts` 注册 `@be-water/modules/<name>/server/index.js`
-3. 前端：`packages/modules/<name>/client/`（业务 UI + `module.tsx` + `*Routes.tsx`）+ `enabled-modules.ts`
-4. 参照 `notes` 与 `docs/design/modular-architecture.md` 附录 A
+1. 业务模块：填 `MODULE.spec.yaml` → `pnpm gen:module` 生成到 `modules/<name>/` → `pnpm gen:external-modules`
+2. 内置能力：复制 `packages/builtin/<近似模块>/` 为 `packages/builtin/<name>/`，两处 `enabled-modules.ts` 手写注册
+3. 实现 `ServerAppModule`；前端 `client/`（业务 UI + `module.tsx` + `*Routes.tsx`）
+4. 参照 `modules/note`（金标准）与 `docs/design/modular-architecture.md` 附录 A
 
 ## 模块依赖（`requires`）
 
-`ServerAppModule.requires` 必须与实际依赖一致，由 `scripts/validate-module-dependencies.ts` 校验：
+`ServerAppModule.requires` 必须与实际依赖一致，由 `apps/server/scripts/validate-module-dependencies.ts` 校验：
 
 | 来源       | 规则                                                                                         |
 | ---------- | -------------------------------------------------------------------------------------------- |
@@ -58,8 +56,8 @@ alwaysApply: true
 
 - Kernel model（`User`、`Tenant` 等）不触发 `requires`
 - Infra 模块调用 `audit` / `platform` / `error-log` 可不声明（横切能力）
-- 会形成环的代码 import 记入 `CODE_IMPORT_EXCEPTIONS`（`scripts/lib/module-dependency-rules.ts`），优先用 EventBus / Provider 解耦
-- `requires` 图必须无环（`topologicalSortModules`）；同步更新 `scripts/lib/module-manifest.ts`
+- 会形成环的代码 import 记入 `CODE_IMPORT_EXCEPTIONS`（`apps/server/scripts/lib/module-dependency-rules.ts`），优先用 EventBus / Provider 解耦
+- `requires` 图必须无环（`topologicalSortModules`）；同步更新 `apps/server/scripts/lib/module-manifest.ts`
 
 ```bash
 pnpm check:deps                    # 循环依赖棘轮 + requires/import 校验
@@ -85,37 +83,36 @@ pnpm --filter server validate:module-deps
 
 ## 物理包 vs Entitlement key
 
-完整说明见 `docs/design/modular-architecture.md` §3.4、`docs/design/be-water-consolidation.md`。
+完整说明见 `docs/design/modular-architecture.md` §3.4。
 
-- **一包一 manifest**：模块 id 与物理包（部署单元）一一对应。`be-water` 只导出 `productServerModule` / `productClientModule`
-- **业务**：单物理包 `be-water`（子域为包内目录）；**禁止**再新建 `module-<business>` 包
-- **Shell / Infra**：`rbac`、`audit`、`user`、`platform` 等通用 SaaS 保持独立（be-water fork）
-- **租户开关**用 `tenantEntitlements[].key` 声明，按子域粒度（`compliance-analysis` 等），**与 manifest `id` 解耦**——key 是租户设置里的持久化标识，改动会令存量开关失效
-- 包内子域可共物理包；跨子域用包内 import 或 Event Bus
+- **一包一 manifest**：模块 id 与物理包（部署单元）一一对应
+- **内置能力**（`rbac`、`audit`、`user`、`platform`、`marketing` 等通用 SaaS）住在 `packages/builtin/<id>/`，共享 `@be-water/builtin` 这一个 workspace 包
+- **业务模块**是独立 workspace 包 `modules/<id>/`（`@be-water/<id>`），只依赖 `@be-water/module-sdk`
+- **租户开关**用 `tenantEntitlements[].key` 声明，**与 manifest `id` 解耦**——key 是租户设置里的持久化标识，改动会令存量开关失效
+- 紧耦合子域可共物理包（包内目录）；跨子域用包内 import 或 Event Bus
 - **禁止**仅为「模块数量」或目录整齐而拆 npm 包
 
 ## 前端 Component Slot
 
 完整说明见 `docs/design/modular-architecture.md` §10.5–10.6。
 
-- 机制：`packages/client-shell/src/component-slot.tsx`（`createComponentSlot`）
-- **平台控制台 slot**：`packages/modules/platform/client/shell/platform-widget-slots.ts`
-- **用户菜单用量 slot**：`packages/modules/user/client/shell/user-menu-slots.ts`（提供方：`be-water/settings`）
-- **产品详情 slot**：`packages/be-water/client/product/shell/product-detail-slots.ts`
-- **SKU 快照 slot**：`packages/be-water/client/sku-matrix/shell/sku-snapshot-slots.ts`
-- **React Query 缓存键**：`packages/shared/src/react-query-keys.ts`（跨模块 invalidate，避免 client hook 互引）
+- 机制：`packages/client-kit/src/component-slot.tsx`（`createComponentSlot`）
+- **平台控制台 slot**：`packages/builtin/platform/client/shell/platform-widget-slots.ts`
+- **用户菜单 slot**：`packages/builtin/user/client/shell/user-menu-slots.ts`
+- **任务中心 slot**：`packages/builtin/background-job/client/shell/task-center-slots.ts`
+- **站点会员 slot**：`packages/builtin/marketing/client/shell/site-member-slots.ts`
 - 提供方：`client.shell.shellProviders` 挂载 `<slot.Provider component={...}>`
 - 消费方：视图内 `slot.useSlot()` 渲染，**不得** import 提供方业务组件
-- 新 slot 优先靠近消费方模块，避免 `client-shell` 堆积业务专用 slot 名
-- **工作台卡片**（`/dashboard`）不用 slot：多模块往同一网格追加，走 `client.dashboardWidgets`
-  注册表（`packages/modules/dashboard/MODULE.md`）；`dashboard` 同样不得 import 业务组件
+- 新 slot 优先靠近消费方模块，避免 `client-kit` 堆积业务专用 slot 名
+- **工作台卡片**（`/app/dashboard`）不用 slot：多模块往同一网格追加，走 `client.dashboardWidgets`
+  注册表（`packages/builtin/dashboard/MODULE.md`）；`dashboard` 同样不得 import 业务组件
 - `platform` **不得** import 具体业务实现；平台头部/租户卡片/widget 均通过 slot 组装
 
 `ClientShellContributions` 另含：`sidebarToolbar`、`sidebarPrimaryAction`、`navBadge`、`platformNavBadge`、`mobileHeaderRoutes` 等。
 
 ## App Shell
 
-- **Server**：`kernel-routes.ts`（auth/public/captcha/system）+ `user` / `platform`（settings 已并入 `be-water/settings`）
+- **Server**：`kernel-routes.ts`（auth/public/captcha/system）+ `user` / `platform`
 - **Client**：`app-shell-routes.tsx`（纯壳层守卫与布局）+ `renderAppRoutes(ENABLED_CLIENT_MODULES)`（各模块 `render*Routes` 自注册）
 
 ## 模块组织（SRP + 租户/平台二分）

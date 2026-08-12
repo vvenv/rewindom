@@ -77,6 +77,42 @@
     "emptyFiltered": "No matching members",
     "emptyFilteredHint": "Try a different keyword."
   },
+  "oauthAdmin": {
+    "heading": "Member sign-in providers",
+    "description": "The OAuth apps members use to sign in with GitHub / Google / Microsoft. Leave blank to use the platform defaults; with your own app, the consent screen shows your name and icon. Client secrets are stored encrypted and never shown again.",
+    "configure": "Configure",
+    "noneEnabled": "None enabled",
+    "incomplete": "A first-time setup needs both the Client ID and the Client Secret. To turn it off, use \"Clear override\".",
+    "clear": "Clear override",
+    "providers": {
+      "github": "GitHub",
+      "google": "Google",
+      "microsoft": "Microsoft"
+    },
+    "source": {
+      "platform": "platform default",
+      "site": "this site's"
+    },
+    "status": {
+      "enabled": "Available ({{source}} credentials)",
+      "disabled": "Unavailable: not configured by the platform or this site"
+    },
+    "fields": {
+      "clientId": "Client ID",
+      "clientSecret": "Client Secret",
+      "secretPlaceholder": "Paste the client secret",
+      "secretPlaceholderKeep": "Leave blank to keep the saved secret",
+      "callbackUrl": "Callback URL (optional)",
+      "callbackPlaceholder": "Leave blank to use the platform callback",
+      "authority": "Microsoft authority (optional)"
+    },
+    "toast": {
+      "saved": "Site credentials saved",
+      "saveFailed": "Save failed",
+      "cleared": "Restored the platform default credentials",
+      "clearFailed": "Clear failed"
+    }
+  },
   "captcha": {
     "required": "Please complete the captcha",
     "failed": "Captcha verification failed, please try again"
@@ -128,7 +164,7 @@
       "showDisplayName": "Show display name field",
       "oauth": "Social sign-in",
       "showOauth": "Show social sign-in",
-      "showOauthInfo": "Availability comes from Settings → Social sign-in; this only controls visibility",
+      "showOauthInfo": "Availability is set on the Members page (sign-in providers); this only controls whether the block shows",
       "oauthDivider": "Divider text",
       "altLink": "Link to the other page",
       "altPrompt": "Prompt text",

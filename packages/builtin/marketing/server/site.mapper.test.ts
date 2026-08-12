@@ -53,29 +53,20 @@ function pageRecord(
   } as MarketingPageRecord;
 }
 
-const BRANDING = "/api/public/tenants/acme/branding/logo?v=2026-08-04";
-
 describe("toPublicMarketingSite logo", () => {
-  it("inherits the tenant branding logo when the site has none", () => {
-    const site = toPublicMarketingSite(siteRecord(), [], BRANDING);
-    expect(site.logo_url).toBe(BRANDING);
-    // 两处渲染都读 theme_settings，回落值必须同时落在那里
-    expect(site.theme_settings.logo_url).toBe(BRANDING);
-  });
-
-  it("lets the site override the branding logo", () => {
+  it("takes the logo from theme_settings", () => {
     const site = toPublicMarketingSite(
       siteRecord({ theme_settings: { logo_url: "https://cdn/x.svg" } }),
       [],
-      BRANDING,
     );
     expect(site.logo_url).toBe("https://cdn/x.svg");
+    // 两处渲染都读 theme_settings，顶层 logo_url 只是派生值
     expect(site.theme_settings.logo_url).toBe("https://cdn/x.svg");
   });
 
-  it("stays null when neither side has a logo", () => {
-    // 没上传过品牌资产时公开端点是 404，不能拼个 URL 顶上去
-    const site = toPublicMarketingSite(siteRecord(), [], null);
+  it("stays null when the site has no logo", () => {
+    // 没有第二处来源可回落——品牌资产是站点自己的
+    const site = toPublicMarketingSite(siteRecord(), []);
     expect(site.logo_url).toBeNull();
     expect(site.theme_settings.logo_url).toBeNull();
   });
@@ -90,25 +81,25 @@ describe("toPublicMarketingSite locale", () => {
 
   it("keeps only the requested language in pages", () => {
     // 不过滤的话导航 / 同级菜单 / sitemap 会为同一个 slug 出现多条
-    const site = toPublicMarketingSite(siteRecord(), pages, null, "en");
+    const site = toPublicMarketingSite(siteRecord(), pages, "en");
     expect(site.pages).toHaveLength(1);
     expect(site.pages[0]?.title).toBe("About");
     expect(site.locale).toBe("en");
   });
 
   it("defaults to the site default language", () => {
-    const site = toPublicMarketingSite(siteRecord(), pages, null);
+    const site = toPublicMarketingSite(siteRecord(), pages);
     expect(site.locale).toBe("zh-CN");
     expect(site.pages.map((p) => p.slug)).toEqual(["about", "pricing"]);
   });
 
   it("reports which languages actually have content", () => {
     expect(
-      toPublicMarketingSite(siteRecord(), pages, null).available_locales,
+      toPublicMarketingSite(siteRecord(), pages).available_locales,
     ).toEqual(["zh-CN", "en"]);
     // 默认语言恒在列，否则切换器会把无前缀的主入口漏掉
     expect(
-      toPublicMarketingSite(siteRecord(), [], null).available_locales,
+      toPublicMarketingSite(siteRecord(), []).available_locales,
     ).toEqual(["zh-CN"]);
   });
 
@@ -127,7 +118,6 @@ describe("toPublicMarketingSite locale", () => {
         ],
       }),
       pages,
-      null,
       "en",
     );
     const button = site.header[0]!.blocks.find(
@@ -151,7 +141,6 @@ describe("toPublicMarketingSite locale", () => {
         ],
       }),
       pages,
-      null,
       "en",
     );
     const button = site.header[0]!.blocks.find(
@@ -166,7 +155,6 @@ describe("toPublicMarketingSite locale", () => {
         site_name: { __i18n: { "zh-CN": "艾克米", en: "Acme" } },
       }),
       pages,
-      null,
       "en",
     );
     expect(site.site_name).toBe("Acme");
@@ -178,7 +166,6 @@ describe("toPublicMarketingSite locale", () => {
         tagline: { __i18n: { "zh-CN": "标语", en: "Tagline" } },
       }),
       pages,
-      null,
       "en",
     );
     expect(site.tagline).toBe("Tagline");

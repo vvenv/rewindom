@@ -77,6 +77,42 @@
     "emptyFiltered": "没有匹配的会员",
     "emptyFilteredHint": "换个关键词再试。"
   },
+  "oauthAdmin": {
+    "heading": "第三方登录",
+    "description": "会员用 GitHub / Google / Microsoft 登录本站时使用的 OAuth 应用。留空则用平台默认凭证；填了自己的，授权页会显示你的应用名与图标。Client Secret 加密存储，保存后不可回显。",
+    "configure": "配置",
+    "noneEnabled": "均未启用",
+    "incomplete": "首次配置需同时填写 Client ID 与 Client Secret；只想停用请点「清除覆盖」。",
+    "clear": "清除覆盖",
+    "providers": {
+      "github": "GitHub",
+      "google": "Google",
+      "microsoft": "Microsoft"
+    },
+    "source": {
+      "platform": "平台默认",
+      "site": "本站"
+    },
+    "status": {
+      "enabled": "可用（{{source}}凭证）",
+      "disabled": "不可用：平台未配置，本站也未填"
+    },
+    "fields": {
+      "clientId": "Client ID",
+      "clientSecret": "Client Secret",
+      "secretPlaceholder": "粘贴 Client Secret",
+      "secretPlaceholderKeep": "留空则沿用已保存的 Secret",
+      "callbackUrl": "回调 URL（可选）",
+      "callbackPlaceholder": "留空则使用平台默认回调",
+      "authority": "Microsoft Authority（可选）"
+    },
+    "toast": {
+      "saved": "已保存本站凭证",
+      "saveFailed": "保存失败",
+      "cleared": "已恢复为平台默认凭证",
+      "clearFailed": "清除失败"
+    }
+  },
   "captcha": {
     "required": "请完成验证码",
     "failed": "验证码校验失败，请重试"
@@ -128,7 +164,7 @@
       "showDisplayName": "显示昵称字段",
       "oauth": "第三方登录",
       "showOauth": "显示第三方登录",
-      "showOauthInfo": "是否可用由「设置 - 第三方登录」决定；这里只管露不露",
+      "showOauthInfo": "是否可用由「会员」页顶部的「第三方登录」决定；这里只管露不露",
       "oauthDivider": "分隔文案",
       "altLink": "另一张页面的入口",
       "altPrompt": "提示文案",

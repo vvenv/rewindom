@@ -4,7 +4,7 @@
 
 本文定义 be-water monorepo 的 **Modular Monolith（模块化单体）** 目标形态：**Kernel（内核）+ Module（模块）**，编译期组装、单进程部署。模块分为**基础设施模块**（如 RBAC、审计、后台任务）与**业务模块**（由各产品自行定义）。应用通过 `ENABLED_*_MODULES` 注册表启用所需能力，实现即插即用。
 
-**当前状态**：Phase 0–5 已完成。模块为单一 workspace 包 `@be-water/modules` 内的目录（`packages/modules/<id>/`）——包化历史与收敛理由见 §2.3。本文描述**目标态与契约**，迁移 checklist 见 §14。
+**当前状态**：Phase 0–5 已完成。模块分两类落盘——**内置模块**是单一 workspace 包 `@be-water/builtin` 内的目录（`packages/builtin/<id>/`），**外部业务模块**是独立包 `modules/<id>/`（`@be-water/<id>`，只依赖 `@be-water/module-sdk`），由 `pnpm gen:module` 生成、`pnpm gen:external-modules` 汇入组装层。包化历史与收敛理由见 §2.3。本文描述**目标态与契约**，迁移 checklist 见 §14。
 
 **设计原则**：
 
@@ -12,7 +12,7 @@
 - **授权可插拔**：细粒度权限（PBAC/RBAC）作为 `rbac` 模块可选启用；未启用时仅保留 `authenticate` + 可选 `requireSuperuser`
 - **模块自包含**：每个模块目录自带 server routes/services、shared 类型、client 页面与 `MODULE.md`（Prisma schema 因单根约束集中存放，见 §8.1）
 - **单向依赖**：业务模块可依赖基础设施模块；基础设施模块可依赖内核；禁止内核依赖任何模块实现
-- **编译期组装**：TypeScript monorepo 内通过 `ENABLED_MODULES` 注册，优先保证类型安全与 AI 可读性；运行时动态 npm 插件为二期能力
+- **编译期组装**：TypeScript monorepo 内通过 `ENABLED_*_MODULES` 注册，优先保证类型安全与 AI 可读性；运行时动态 npm 插件为二期能力
 - **渐进迁移**：分阶段从现有单体拆分，每个阶段保持可部署、可测试，避免大爆炸重写
 - **限界上下文优先**：模块按 bounded context 划分（业务收敛为单个业务包）；模块 id 与模块目录一一对应，租户开关另由 entitlement key 承载（§3.4）
 
@@ -42,7 +42,7 @@
 | 权限 | `AVAILABLE_PERMISSIONS` 写死在 `@be-water/shared`；`permission.ts` 在中间件层全局注册 | 无法「关闭细粒度权限」；新业务权限必须改共享常量 |
 | 路由 | `apps/server/src/routes/index.ts` 中央注册 20+ 路由插件 | 每增业务必改内核入口 |
 | 前端路由 | `apps/client/src/App.tsx` 300+ 行 lazy import | 同上 |
-| 导航 | `apps/client/src/lib/app-nav.ts` 硬编码业务菜单 | Sidebar 与具体业务强绑定 |
+| 导航 | `apps/client/src/app-nav.ts` 硬编码业务菜单 | Sidebar 与具体业务强绑定 |
 | 调度器 | `scheduler.service.ts` 直接 import 业务服务 | 内核依赖业务 |
 | Prisma | 单 `schema.prisma`，`Tenant`/`User` 挂大量业务反向 relation | 删业务需改底座 model |
 | 审计 | 各 route 直接调用 `AuditService` | 横切逻辑散落，难以整体禁用 |
@@ -52,7 +52,7 @@
 1. **底座与业务分离**：内核与基础设施不含业务域知识，只启用所需模块
 2. **即插即用**：RBAC、审计、通知等作为可选模块安装/卸载（编译期）
 3. **AI 友好**：模块边界清晰，每个模块有 `MODULE.md` 与固定目录结构
-4. **人类友好**：`ENABLED_MODULES` 配置一目了然；金标准示例模块（`notes`）可复制
+4. **人类友好**：`ENABLED_*_MODULES` 配置一目了然；金标准示例模块（`note`）可复制
 
 ### 1.3 明确不做（一期）
 
@@ -70,7 +70,7 @@
 ```mermaid
 flowchart TB
   subgraph app_shell [App Shell 组装层]
-    EM[ENABLED_MODULES 配置]
+    EM[ENABLED_*_MODULES 配置]
     ML[ModuleLoader]
   end
 
@@ -92,7 +92,7 @@ flowchart TB
   end
 
   subgraph biz_mod [Business Modules]
-    Notes[notes 示例]
+    Notes[note 示例]
     Product["&lt;product&gt;（按需新增）"]
   end
 
@@ -115,7 +115,7 @@ flowchart TB
 | --- | --- | --- |
 | **Kernel** | HTTP、认证身份、租户上下文、错误处理、模块加载、事件总线（可选 no-op） | 否 |
 | **Infrastructure Module** | 横切 SaaS 能力：RBAC、审计、任务队列、通知、可观测性 | 是（按模块） |
-| **Business Module** | 领域功能：按产品需要定义（当前仅含 `notes` 示例） | 是（按模块） |
+| **Business Module** | 领域功能：按产品需要定义（当前仅含 `note` 示例） | 是（按模块） |
 
 ### 2.3 仓库结构（当前）
 
@@ -134,14 +134,16 @@ be-water/
 │       ├── src/collect-modules.ts      # collectModuleNav, collectAppRouteTrees
 │       ├── src/app-shell-routes.tsx    # 纯壳层守卫与布局
 │       └── src/shell/                  # 产品壳层：认证页、Layout、Sidebar
+├── modules/                            # 外部业务模块，一模块一包（@be-water/<id>）
+│   └── <id>/                           # note（金标准）todo bookmark
+│       ├── MODULE.md  MODULE.spec.yaml
+│       └── shared/  server/  client/  prisma/
 ├── packages/
-│   ├── modules/                        # @be-water/modules — 基础设施 / 壳层模块 + notes 示例
+│   ├── builtin/                        # @be-water/builtin — 基础设施 / 壳层 / 站点模块
 │   │   └── <id>/                       # rbac audit background-job error-log slow-query
-│   │       ├── MODULE.md               #   notification user platform notes
-│   │       ├── shared/  server/  client/
-│   ├── <product>/                      # 业务模块包（**当前无**，按需新增，见 §11.2）
-│   │   ├── MODULE.md
-│   │   └── shared/  server/  client/   # 子域目录在这三层内
+│   │       ├── MODULE.md               #   notification user platform dashboard
+│   │       ├── shared/  server/  client/  #   marketing billing site-member site-billing
+│   ├── module-sdk/                     # @be-water/module-sdk — 外部模块的稳定门面
 │   ├── server-kernel/src/              # @be-water/server-kernel
 │   │   ├── kernel/                     # HTTP 壳层路由与认证
 │   │   ├── runtime/                    # ModuleLoader、ProviderRegistry、EventBus、JobRegistry
@@ -156,10 +158,11 @@ be-water/
 └── AGENTS.md
 ```
 
-**为什么业务单独成包**：业务包对 `@be-water/modules` 是**单向引用，零反向**。
+**为什么业务单独成包**：业务包对 `@be-water/builtin` 是**单向引用，零反向**。
 拆成两个包后，「基础设施不得依赖业务」由**包边界强制**——`check-circular-deps` 把二者
-划在不同层（`scripts/module-contexts.json`），任何 `modules → business` 依赖都会被拦下。
-同一个包里这条规则只是文档约定，工具看不见。
+划在不同层（`scripts/module-contexts.json`），任何 `builtin → business` 依赖都会被拦下。
+同一个包里这条规则只是文档约定，工具看不见。业务包只依赖 `@be-water/module-sdk`
+这层门面，不直连内核，内核内部重构才不会波及每个产品模块。
 
 **为什么模块是一个包而不是每模块一个包**：拆包时统计过，模块间的 `@be-water/module-*` 引用有 **967 处来自 modules 内部，仅 47 处来自 apps/packages**。20:1 的比例说明绝大多数"跨包 API"其实是同一限界上下文内部的调用，被包边界强行升格成了公共契约——业务单包那张 44 条的 `exports` 映射表就是代价。收敛为单包后它们退化为相对 import，映射表整体消失。
 
@@ -167,7 +170,7 @@ be-water/
 
 | 守护 | 位置 | 管什么 |
 | --- | --- | --- |
-| `import-x/no-cycle` | `packages/modules/eslint.config.js` | 模块间文件级循环依赖 |
+| `import-x/no-cycle` | `packages/builtin/eslint.config.js` | 模块间文件级循环依赖 |
 | `validate-module-dependencies` | `apps/server/scripts/` | manifest `requires` 是否覆盖真实的代码 import 与 schema FK |
 | `check-circular-deps` | `scripts/` | 包层之间（app / modules / lib / test）的环 |
 
@@ -186,7 +189,7 @@ be-water/
 
 - `packages/shared/src/module-contract.ts` — `ModuleManifestBase`、`TenantModuleEntitlement`
 - `packages/server-kernel/src/runtime/module-contract.ts` — `ServerAppModule`
-- `packages/client-shell/src/lib/module-contract.ts` — `ClientAppModule`、`ClientShellContributions`
+- `packages/client-kit/src/lib/module-contract.ts` — `ClientAppModule`、`ClientShellContributions`
 
 ```typescript
 /** packages/shared/src/module-contract.ts（摘要） */
@@ -220,7 +223,7 @@ export interface ServerAppModule extends ModuleManifestBase {
   };
 }
 
-/** packages/client-shell/src/lib/module-contract.ts（摘要） */
+/** packages/client-kit/src/lib/module-contract.ts（摘要） */
 
 export interface ClientAppModule extends ModuleManifestBase {
   client?: {
@@ -238,15 +241,16 @@ export interface ClientAppModule extends ModuleManifestBase {
 }
 ```
 
-一个模块导出**一个** client manifest（如 `notes` → `notesClientModule`）。子域的路由、导航、shell 贡献在 `client/module.tsx` 合并后一次注册；租户可开关能力由 `tenantEntitlements` 声明。
+一个模块导出**一个** client manifest（如 `note` → `noteClientModule`）。子域的路由、导航、shell 贡献在 `client/module.tsx` 合并后一次注册；租户可开关能力由 `tenantEntitlements` 声明。
 
 ### 3.2 模块目录约定
 
-模块是 `@be-water/modules` 包内的一个目录，不是独立 npm 包（理由见 §2.3）。
-每个 `packages/modules/<id>/` 必须包含：
+内置模块是 `@be-water/builtin` 包内的一个目录，不是独立 npm 包（理由见 §2.3）；
+外部业务模块是独立包 `modules/<id>/`，目录结构相同，仅多 `MODULE.spec.yaml` 与 `prisma/`。
+每个 `packages/builtin/<id>/`（或 `modules/<id>/`）必须包含：
 
 ```
-packages/modules/<id>/
+packages/builtin/<id>/
 ├── MODULE.md                 # 人类 + AI 说明（必选）
 ├── shared/index.ts           # 跨端类型、权限常量（无跨端 DTO 的模块可省略，如 user/rbac）
 ├── server/
@@ -259,7 +263,7 @@ packages/modules/<id>/
     └── components/
 ```
 
-**Prisma schema 在模块目录内**（`packages/modules/<id>/schema.prisma`）。
+**Prisma schema 在模块目录内**（`packages/builtin/<id>/schema.prisma`）。
 Prisma 只认单一 schema 目录，故 `apps/server/prisma/models/` 下放**符号链接**指向各包内的真实文件——
 汇合点是 Prisma 的要求，所有权仍属各包，链接目标即归属声明（见 §8.1）。
 
@@ -269,13 +273,14 @@ Prisma 只认单一 schema 目录，故 `apps/server/prisma/models/` 下放**符
 | --- | --- | --- |
 | 模块内部 | 本模块 | 相对路径 `./x.js` |
 | 模块 | 兄弟模块 | 相对路径 `../<other>/server/x.js`；须在 manifest `requires` 声明 |
-| apps / packages | 模块 | 包规格 `@be-water/modules/<id>/server/index.js` |
+| apps / packages | 内置模块 | 包规格 `@be-water/builtin/<id>/server/index.js` |
+| apps / packages | 外部业务模块 | 包规格 `@be-water/<id>/server` |
 | 模块 | 宿主 app（`@be-water/server`） | **禁止**，含测试；模块测试须自足 |
 
-大域可在目录内按子域再分层（不必新建模块），例如业务包：
+大域可在包内按子域再分层（不必新建模块），例如业务包：
 
 ```
-packages/<product>/
+modules/<domain>/
   client/<subdomain-a>/    # entitlement key: <subdomain-a>
   client/<subdomain-b>/
   server/<subdomain-a>/
@@ -316,16 +321,16 @@ packages/<product>/
 
 | 维度 | 规则 | 示例 |
 | --- | --- | --- |
-| **模块 id** | 与模块目录（部署单元）**一一对应**，一目录一 manifest | `notes`、`rbac`、`audit` |
-| **Entitlement key** | 租户可开关能力；持久化在租户设置中，**与模块 id 解耦** | `notes`、`<product>/<subdomain>` |
-| **何时新建模块** | 独立 bounded context、无紧耦合、可被单独禁用 | 业务子域进 `packages/<product>/<subdomain>/`，不新建物理模块 |
+| **模块 id** | 与模块目录（部署单元）**一一对应**，一目录一 manifest | `note`、`rbac`、`audit` |
+| **Entitlement key** | 租户可开关能力；持久化在租户设置中，**与模块 id 解耦** | `note`、`<domain>.<subdomain>` |
+| **何时新建模块** | 独立 bounded context、无紧耦合、可被单独禁用 | 业务子域进 `modules/<domain>/<subdomain>/`，不新建物理模块 |
 | **何时勿新建** | 仅为「模块数量」或目录整齐 | — |
 
 **为何解耦**：entitlement key 是租户设置中的持久化标识。若它等同 manifest `id`，
 合并或拆分模块就会改变 key，令所有租户的存量开关状态失效。解耦后 `be-water`
 一个模块提供 10 个 entitlement，子域合并对租户完全透明。
 
-**新增模块 = 新增目录**，不再需要新建 npm 包：复制 `packages/modules/notes/`（金标准），
+**新增模块 = 新增目录**，不再需要新建 npm 包：复制 `modules/note/`（金标准），
 在两个 `enabled-modules.ts` 注册即可。
 
 ---
@@ -446,7 +451,7 @@ class AuthenticatedOnlyAuthz implements AuthzProvider {
 | 控制粒度 | 部署 / 编译期 | 单租户运行时（模块级） | 单租户运行时（功能级） |
 | 配置位置 | `enabled-modules.ts`、`.env` | 租户 entitlement 配置 | `TenantSetting` / entitlement |
 | 效果 | 路由/代码是否加载 | 租户是否开通该业务模块 | 租户能否使用该子功能 |
-| 示例 | 部署含 `notes` | 租户开通 `notes` | 租户开通某细粒度 feature key |
+| 示例 | 部署含 `note` | 租户开通 `note` | 租户开通某细粒度 feature key |
 | manifest 字段 | `ENABLED_*_MODULES` | `tenantEntitlements[].key` | `tenantEntitlements[].features[].key` |
 
 **路由守卫顺序**：
@@ -468,24 +473,24 @@ class AuthenticatedOnlyAuthz implements AuthzProvider {
 
 ```typescript
 // apps/server/src/enabled-modules.ts
-import { rbacServerModule } from "@be-water/modules/rbac/server";
-import { notesServerModule } from "@be-water/modules/notes/server";
+import { rbacServerModule } from "@be-water/builtin/rbac/server";
+import { noteServerModule } from "@be-water/note/server";
 // ...
 
 export const ENABLED_SERVER_MODULES = [
   rbacServerModule,
-  notesServerModule,
+  noteServerModule,
   // ...
 ] as const satisfies readonly ServerAppModule[];
 ```
 
 ```typescript
 // apps/client/src/enabled-modules.ts
-import { notesClientModule } from "@be-water/modules/notes/client/module";
+import { noteClientModule } from "@be-water/note/client/module";
 // ...
 
 export const ENABLED_CLIENT_MODULES = [
-  notesClientModule,
+  noteClientModule,
   // ...
 ] as const satisfies readonly ClientAppModule[];
 ```
@@ -494,7 +499,7 @@ export const ENABLED_CLIENT_MODULES = [
 
 ```bash
 # 逗号分隔，须与模块 id 一致；未设置则用 enabled-modules.ts 默认
-ENABLED_MODULES=rbac,audit,notes
+ENABLED_SERVER_MODULES = [rbac, audit, note, …]
 ```
 
 ### 7.2 `ModuleLoader` 流程
@@ -506,7 +511,7 @@ sequenceDiagram
   participant K as Kernel
   participant M as Modules
 
-  Boot->>ML: load(ENABLED_MODULES)
+  Boot->>ML: load(ENABLED_*_MODULES)
   ML->>ML: 拓扑排序 requires
   ML->>ML: 校验依赖已满足
   ML->>M: registerProviders (rbac 等)
@@ -539,8 +544,8 @@ apps/server/prisma/
   migrations/            # 单一迁移目录（§8.3）
 
 packages/server-kernel/prisma/kernel.prisma      # 内核 model
-packages/modules/<id>/schema.prisma              # 基础设施模块
-packages/<product>/prisma/<name>.prisma          # 业务包（按需）
+packages/builtin/<id>/schema.prisma              # 内置模块
+modules/<id>/prisma/schema.prisma                # 外部业务模块
 ```
 
 `db:generate` 就是裸 `prisma generate`，**无生成步骤、无 profile 裁剪、无 stash**。
@@ -553,7 +558,7 @@ packages/<product>/prisma/<name>.prisma          # 业务包（按需）
 （`SCHEMA_FILE_OWNER`）承载——加模块必须记得同步改表，漏改则归属静默错误。改回链接后：
 
 - 归属由**链接目标**推导——`packages/server-kernel/prisma/…` → kernel，
-  `packages/modules/<id>/…` → 该模块，`packages/<product>/…` → 业务包
+  `packages/builtin/<id>/…` → 该内置模块，`modules/<id>/…` → 该业务模块
 - 那张映射表整体删除，`module-dependency-rules.ts` 改为 `readlinkSync` 反推
 - 新增模块只需建链接，无第二处登记
 
@@ -617,7 +622,7 @@ events.on("note.created", (payload) => AuditService.log(...));
 
 ### 9.4 跨模块通信决策表
 
-模块间协作应优先选 **最弱耦合** 机制；`scripts/validate-module-dependencies.ts` 校验 `requires` 与代码 import 图。
+模块间协作应优先选 **最弱耦合** 机制；`apps/server/scripts/validate-module-dependencies.ts` 校验 `requires` 与代码 import 图。
 
 | 场景 | 推荐 | 避免 |
 | --- | --- | --- |
@@ -656,11 +661,11 @@ const routeTrees = collectAppRouteTrees(ENABLED_CLIENT_MODULES);
 
 ### 10.4 代码分割
 
-各模块页面保持 `React.lazy`；`vite-manual-chunks` 可按 `packages/modules/<id>` 分包。
+各模块页面保持 `React.lazy`；`vite-manual-chunks` 可按 `packages/builtin/<id>` 分包。
 
 ### 10.5 Component Slot（跨模块 UI）
 
-壳层提供通用注入机制（`packages/client-shell/src/component-slot.tsx`）：
+壳层提供通用注入机制（`packages/client-kit/src/component-slot.tsx`）：
 
 ```typescript
 export function createComponentSlot<P>(displayName: string): ComponentSlot<P> {
@@ -704,15 +709,15 @@ shell: {
 client: {
   dashboardWidgets: [
     {
-      id: "notes.recent",        // 约定 `<moduleId>.<name>`，重复 id 只保留先注册的
+      id: "note.recent",        // 约定 `<moduleId>.<name>`，重复 id 只保留先注册的
                                  // 同时是用户布局偏好的持久化键——发布后不要再改
-      title: "notes:dashboard.title", // 配置面板里的名称，`namespace:key`，渲染时才解析
+      title: "note:dashboard.title", // 配置面板里的名称，`namespace:key`，渲染时才解析
       icon: StickyNote,          // 配置面板列表项图标
       component: LazyWidget,     // 用 lazy()，落地页不该背业务代码
       order: 20,                 // 默认顺序，升序，默认 100；相同值按模块注册顺序
       span: 1,                   // 2 = 桌面端横跨两列
-      tenantModule: "notes",     // 与导航项同义：租户没开通就不渲染
-      anyPermission: ["notes.read"],
+      tenantModule: "note",     // 与导航项同义：租户没开通就不渲染
+      anyPermission: ["note.read"],
     },
   ],
 }
@@ -752,14 +757,14 @@ client: {
 
 | 模块 id | 说明 | 包路径 |
 | --- | --- | --- |
-| `rbac` | PBAC / 未来 RBAC | `packages/modules/rbac` |
-| `audit` | 审计日志 | `packages/modules/audit` |
-| `background-job` | 后台任务 | `packages/modules/background-job` |
-| `error-log` | 错误日志 | `packages/modules/error-log` |
-| `slow-query` | 慢查询 | `packages/modules/slow-query` |
-| `notification` | 站内通知 | `packages/modules/notification` |
-| `user` | 用户 CRUD | `packages/modules/user` |
-| `platform` | 平台控制台壳层 | `packages/modules/platform` |
+| `rbac` | PBAC / 未来 RBAC | `packages/builtin/rbac` |
+| `audit` | 审计日志 | `packages/builtin/audit` |
+| `background-job` | 后台任务 | `packages/builtin/background-job` |
+| `error-log` | 错误日志 | `packages/builtin/error-log` |
+| `slow-query` | 慢查询 | `packages/builtin/slow-query` |
+| `notification` | 站内通知 | `packages/builtin/notification` |
+| `user` | 用户 CRUD | `packages/builtin/user` |
+| `platform` | 平台控制台壳层 | `packages/builtin/platform` |
 
 平台数据备份等能力在 `platform` 内（无独立 `data-backup` 包）。租户设置 / API Key / 用量（逻辑 id `settings`）属业务，作为 `settings/` 子域并入业务包，不再有独立 `settings` 包。
 
@@ -767,10 +772,10 @@ client: {
 
 ### 11.2 业务模块
 
-当前仓库只有 `notes`（id `notes`，entitlement key `notes`，`requires`: `rbac`、`audit`）
+当前仓库只有 `note`（id `note`，entitlement key `note`，`requires`: `rbac`、`audit`）
 一个业务模块，同时充当金标准示例——新模块从它复制起步。
 
-产品业务增长到需要与 infra 分离时，在 `packages/<product>/` 下建业务包（`kind: "business"`），
+产品业务增长到需要与 infra 分离时，在 `modules/<id>/` 下建业务包（`kind: "business"`），
 由 `scripts/module-contexts.json` 的 `business` 层承接，`check:deps` 即可拦住「基础设施依赖业务」。
 
 **单包 vs 多包**：业务子域建议收敛为**一个包 + 一个 manifest**，子域作为包内目录，不各自导出 manifest。
@@ -814,10 +819,10 @@ client: {
 
 #### 业务模块（`kind: business`）— 租户侧 / 平台侧二分
 
-每个业务域一个 `packages/modules/<domain>/` 目录，**目录内**按面拆分：
+每个业务域一个 `modules/<domain>/` 包，**包内**按面拆分：
 
 ```
-packages/modules/<domain>/
+modules/<domain>/
   client/
     tenant/           # 租户侧：renderRoutes、nav、pages
     platform/         # 平台侧：renderPlatformRoutes、platformNav
@@ -852,7 +857,7 @@ packages/modules/<domain>/
 
 ```bash
 # 启用模块列表（可选，覆盖 modules.ts）
-ENABLED_MODULES=rbac,audit,notes
+ENABLED_SERVER_MODULES = [rbac, audit, note, …]
 
 # 严格启动：任一模块 onBoot 失败则 exit(1)
 MODULE_STRICT_BOOT=0
@@ -863,7 +868,7 @@ MODULE_STRICT_BOOT=0
 Platform 层 env（`DATABASE_URL`、`JWT_SECRET` 等）不变，见 [tenant-config.md](./tenant-config.md)。模块特有配置使用前缀：
 
 ```bash
-# <product>/<subdomain>（示例）
+# <domain>/<subdomain>（示例）
 MY_SUBDOMAIN_TIMEOUT_MS=30000
 ```
 
@@ -876,7 +881,7 @@ MY_SUBDOMAIN_TIMEOUT_MS=30000
 | 内核 | 单元测试 + 无模块启动 smoke test |
 | 基础设施模块 | 独立 vitest；mock `AuthzProvider` |
 | 业务模块 | 契约测试 + 与依赖模块的集成测试 |
-| 组装层 | `ENABLED_MODULES` 最小集 E2E（notes only） |
+| 组装层 | 启用模块最小集 E2E（note only） |
 | CI | Matrix：`kernel+rbac`（saas-kit profile smoke）、`full-be-water`（默认 test job） |
 
 每个模块需提供 `MODULE.md` 中「如何单独测试」小节。
@@ -906,7 +911,7 @@ MY_SUBDOMAIN_TIMEOUT_MS=30000
 ### Phase 3：Prisma 与业务模块
 
 - [x] 内核 schema 去掉业务反向 relation
-- [x] 按 §11.2 逐个迁业务模块（`notes` 金标准 + 其余域路由/导航拆分）
+- [x] 按 §11.2 逐个迁业务模块（`note` 金标准 + 其余域路由/导航拆分）
 - [x] 删除 `legacy`（已拆为 kernel routes + user/platform/settings + 各业务模块）
 
 ### Phase 4：模块清单与文档
@@ -915,14 +920,14 @@ MY_SUBDOMAIN_TIMEOUT_MS=30000
 > 不再充当上游模板，也不再有下游同步（见 §2.3）。以下条目按当时的完成情况保留为历史记录。
 
 - [x] ~~monorepo 内 `init-project.ts` 模块清单与拓扑校验~~（已删除：以字符串字面量维护第二份产品源码，不可维护）
-- [x] `kernel` + 默认 infra modules + `notes` 的模块划分落地
+- [x] `kernel` + 默认 infra modules + `note` 的模块划分落地
 - [x] `MODULE.md` 完善
 
 每阶段完成后：**可部署、可跑 `pnpm check`、可写迁移说明**。
 
 ### Phase 3.5：物理收拢（已完成）
 
-行为拆分（Phase 3）完成后，`routes/` 与 `services/` 中仍有历史文件。新代码应直接写在 `packages/modules/<id>/`；遗留目录按模块逐步清空：
+行为拆分（Phase 3）完成后，`routes/` 与 `services/` 中仍有历史文件。新代码应直接写在 `packages/builtin/<id>/`；遗留目录按模块逐步清空：
 
 | 批次 | 内容 | 状态 |
 | --- | --- | --- |
@@ -930,17 +935,18 @@ MY_SUBDOMAIN_TIMEOUT_MS=30000
 | 3.5b | `platform/*` 路由迁入 `platform` | 已完成 |
 | 3.5c | `services/infra/*`、`services/background-job/*`、`services/platform/*`、`services/document/*` 迁入对应模块；内核 auth/redis/scheduler/translation 迁入 `kernel/services/` | 已完成 |
 | 3.5d | `routes/shared/define-route`、`pagination` 迁入 `kernel/http/`；内核路由迁入 `kernel/routes/` | 已完成 |
-| 3.5e | `src/errors`、`src/middleware`、`src/utils`、`src/data` 按归属迁入 `kernel/` 或 `packages/modules/<id>/`；Prisma schema co-locate 到 `packages/modules/<id>/schema.prisma`；`TenantApiKeyAuthProvider` 解耦 kernel auth | 已完成 |
+| 3.5e | `src/errors`、`src/middleware`、`src/utils`、`src/data` 按归属迁入 `kernel/` 或 `packages/builtin/<id>/`；Prisma schema co-locate 到 `packages/builtin/<id>/schema.prisma`；`TenantApiKeyAuthProvider` 解耦 kernel auth | 已完成 |
 
-`apps/server/src/routes/` 仅保留 `index.ts` 组装入口；`services/` 目录已删除。`apps/server/src/modules/` 已清空（业务代码在 `packages/modules/<id>/`）。
+`apps/server/src/routes/` 仅保留 `index.ts` 组装入口；`services/` 目录已删除。`apps/server/src/modules/` 已清空（业务代码在 `packages/builtin/<id>/`）。
 
 ### Phase 5：业务模块目录化（已完成）
 
-模块曾各自是扁平 workspace 包 `packages/modules/module-<id>/`；后收敛为**单一包
-`@be-water/modules`** 内的目录 `packages/modules/<id>/`（理由与统计见 §2.3）：
+内置模块曾各自是扁平 workspace 包 `packages/modules/module-<id>/`；后收敛为**单一包
+`@be-water/builtin`** 内的目录 `packages/builtin/<id>/`（理由与统计见 §2.3）。
+外部业务模块走相反方向：一模块一包 `modules/<id>/`，只依赖 `@be-water/module-sdk`。
 
 ```
-modules/                  # @be-water/modules，exports 仅 "./*": "./*"
+packages/builtin/         # @be-water/builtin，exports 仅 "./*": "./*"
 ├── package.json
 ├── eslint.config.js      # import-x/no-cycle
 ├── vitest.config.ts      # 展开 <id>/{server,client,shared} 三类 project
@@ -951,16 +957,16 @@ modules/                  # @be-water/modules，exports 仅 "./*": "./*"
     └── client/           # pages、hooks、components
 ```
 
-- **Server 组装**：`apps/server/src/enabled-modules.ts` 仅从 `@be-water/modules/<id>/server/index.js` import
-- `apps/client/src/enabled-modules.ts` 从 `@be-water/modules/<id>/client/module.js` 与 `@/shell` import
+- **Server 组装**：`apps/server/src/enabled-modules.ts` 仅从 `@be-water/builtin/<id>/server/index.js` import；外部模块经 `src/external-modules.ts`（`pnpm gen:external-modules` 生成）汇入
+- `apps/client/src/enabled-modules.ts` 从 `@be-water/builtin/<id>/client/module.js` 与 `@/shell` import
 - **Prisma**：schema 集中在 `apps/server/prisma/models/`，migrations 同目录（§8）
 - **@be-water/shared**：域 DTO 在各模块 `shared/`；内核/横切契约留在包内
-- **工具链**：`validate-module-dependencies.ts` + `check-circular-deps.mjs` + `packages/modules/eslint.config.js`
+- **工具链**：`validate-module-dependencies.ts` + `check-circular-deps.mjs` + `packages/builtin/eslint.config.js`
 
 **禁止**（更新）：
 
 - `kernel/` 不得 `import` 业务模块实现（模块通过 `ProviderRegistry`、Event Bus 或路由注册反向挂接内核）
-- `modules/*/server/**` 不得 `import` 宿主 `apps/server/`（含测试）；使用 `@be-water/server-kernel`、`@be-water/shared`、本模块内相对路径，或兄弟模块的相对路径
+- 模块 `server/**` 不得 `import` 宿主 `apps/server/`（含测试）；内置模块用 `@be-water/server-kernel`、`@be-water/shared`、本模块内相对路径或兄弟模块相对路径，外部业务模块只用 `@be-water/module-sdk`
 
 平台管理员凭据（`platform-admin.service`）、内部用户过滤（`internal-users`）属于内核认证范畴，留在 `kernel/services/`。
 
@@ -983,7 +989,7 @@ modules/                  # @be-water/modules，exports 仅 "./*": "./*"
 
 | 任务 | 允许修改 |
 | --- | --- |
-| 新增业务功能 | `packages/modules/<id>/` + `enabled-modules.ts` 注册 |
+| 新增业务功能 | `modules/<id>/`（`gen:module`）或 `packages/builtin/<id>/` + `enabled-modules.ts` 注册 |
 | 修改权限模型 | `rbac` only |
 | 修改 HTTP 约定 | kernel only（需 RFC） |
 | 新增租户功能开关 | 模块 manifest `tenantEntitlements` + 平台 UI |
@@ -1039,13 +1045,13 @@ modules/                  # @be-water/modules，exports 仅 "./*": "./*"
 
 ---
 
-## 附录 A：`notes` 金标准检查清单
+## 附录 A：`note` 金标准检查清单
 
 新建业务模块时应满足：
 
 - [x] `MODULE.md` 完整
 - [x] Prisma model 含 `tenant_id`
-- [x] `shared.permissions` 声明 `notes.read` / `notes.write`
+- [x] `shared.permissions` 声明 `note.read` / `note.write`
 - [x] `server.registerRoutes` 使用 `defineRoute` + `requirePermission`
 - [x] 写操作发布 `note.*` 事件或调用审计
 - [x] 前端 Page 四层拆分 + `PermissionRoute`

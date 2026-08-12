@@ -2,7 +2,7 @@ import { success } from "@be-water/shared";
 
 import { handleRouteError } from "../../http/route-error-handler.js";
 import { config as appConfig } from "../../lib/config.js";
-import { resolveOAuthEnabledFlags } from "../auth/oauth-credentials.js";
+import { platformOAuthEnabledFlags } from "../auth/oauth-credentials.js";
 
 import type { FastifyInstance } from "fastify";
 
@@ -15,9 +15,8 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
         .getPublicConfig({ bound_tenant: bound ?? null });
       const baseDomain = appConfig.tenant.baseDomain.trim() || null;
       const platformUrl = appConfig.platform.url.trim() || null;
-      const oauthFlags = await resolveOAuthEnabledFlags(
-        bound?.tenant_id ?? null,
-      );
+      // 这份 config 只喂中台登录页；官网会员登录页的 flags 走 member-auth.ssr.ts
+      const oauthFlags = platformOAuthEnabledFlags();
       return reply.send(
         success({
           registration_enabled: config.registration_enabled,

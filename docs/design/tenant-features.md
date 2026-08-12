@@ -39,7 +39,7 @@
 
 1. **模块自带的开关** — 各模块在 manifest 的 `tenantEntitlements` 中声明，加载时由
    `collectTenantCatalogFromManifests` 合并进租户目录。样板见
-   `packages/modules/notes/shared/entitlements.ts`：
+   `modules/note/shared/entitlements.ts`：
 
    ```typescript
    export const NOTES_ENTITLEMENT: TenantModuleEntitlement = {
@@ -51,7 +51,7 @@
    };
    ```
 
-2. **套餐级 feature flag** — 定义在 `packages/modules/platform/shared/pricing-plans.ts`
+2. **套餐级 feature flag** — 定义在 `packages/builtin/platform/shared/pricing-plans.ts`
    的 `TenantFeatureFlags` 中，跨模块共享。
 
 > ⚠️ `pricing-plans.ts` 中现存的 `chat` / `advanced_analysis` / `vector_search` /
@@ -61,7 +61,7 @@
 ### 2.2 功能映射
 
 模块自带的 entitlement 由 `registerTenantGatedRoutes(app, "<key>", …)` 在路由注册时统一守卫，
-未开通则整组路由不挂载。示例见 `packages/modules/notes/server/module.ts`。
+未开通则整组路由不挂载。示例见 `modules/note/server/module.ts`。
 
 跨模块的 feature flag 用 `createTenantFeaturePreHandler("<flag>")` 做路由级守卫。
 
@@ -92,7 +92,7 @@ const enabled = await isTenantFeatureEnabled(tenantId, "<flag>");
 ### 3.1 注册表
 
 ```typescript
-// packages/modules/platform/shared/pricing-plans.ts
+// packages/builtin/platform/shared/pricing-plans.ts
 export type TenantLimitKey =
   | "max_users"
   | "max_documents"
@@ -109,7 +109,7 @@ export interface TenantLimitDefinition {
   min: number;
 }
 
-// packages/modules/platform/shared/tenant-limits.ts
+// packages/builtin/platform/shared/tenant-limits.ts
 export const TENANT_LIMIT_REGISTRY = {
   max_users: {
     key: "max_users",
@@ -145,7 +145,9 @@ export const TENANT_LIMIT_REGISTRY = {
 
 ---
 
-## 4. 存量迁移（一次性脚本）
+## 4. 存量迁移（一次性脚本，随 Phase B 落地）
+
+> 下面两个脚本**尚未实现**（见 §9 Phase B）；此处只定下语义与执行顺序。
 
 ### 4.1 backfill-tenant-features
 
@@ -175,7 +177,7 @@ export const TENANT_LIMIT_REGISTRY = {
 prisma migrate deploy
 node apps/server/scripts/backfill-tenant-features.mjs
 node apps/server/scripts/backfill-tenant-limits.mjs
-pm2 reload / 发版
+pnpm deploy
 ```
 
 ---
@@ -271,9 +273,9 @@ pm2 reload / 发版
 
 ### Phase B — 用量配额
 
-- [x] `TENANT_LIMIT_REGISTRY` 定义（`packages/modules/platform/shared`）
+- [x] `TENANT_LIMIT_REGISTRY` 定义（`packages/builtin/platform/shared`）
 - [ ] `tenant-limit.service.ts` 实现
-- [ ] `scripts/backfill-tenant-limits.mjs`
+- [ ] `apps/server/scripts/backfill-tenant-limits.mjs`
 - [ ] 平台 `GET/PUT /tenants/:id/limits` + Dialog
 - [ ] 所有校验点拦截实现
 - [ ] `GET /api/settings/usage` + 前端用量展示

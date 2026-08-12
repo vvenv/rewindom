@@ -73,7 +73,7 @@ server {
     }
 
     # 应用壳层路径：仍走 SPA，不进 Marketing SSR。
-    # 必须与 `SITE_APP_PREFIXES`（packages/modules/marketing/shared/site-locale.ts）保持一致。
+    # 必须与 `SITE_APP_PREFIXES`（packages/builtin/marketing/shared/site-locale.ts）保持一致。
     location ~ ^/(app|login|register|auth|member|platform)(/|$) {
         try_files $uri /index.html;
         add_header Cache-Control "no-cache" always;

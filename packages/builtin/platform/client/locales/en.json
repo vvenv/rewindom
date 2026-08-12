@@ -380,7 +380,6 @@
     "tenant_features_updated": "Updated feature flags for tenant {{slug}}",
     "tenant_entitlements_updated": "Updated entitlements for tenant {{slug}}",
     "tenant_appearance_updated": "Updated appearance for tenant {{slug}}",
-    "tenant_branding_updated": "Updated branding for tenant {{slug}} ({{kind}} / {{action}})",
     "tenant_plan_updated": "Updated plan for tenant {{slug}}",
     "tenant_registered": "Registered tenant {{tenant_name}} ({{tenant_slug}})",
     "user_joined_default": "User self-registered into default tenant {{tenant_slug}}",
@@ -399,78 +398,6 @@
     "admin_deleted": "Deleted platform admin {{username}}",
     "admin_password_reset": "Reset password for platform admin {{username}}",
     "admin_roles_updated": "Updated roles for platform admin {{username}}: {{roles_text}}"
-  },
-  "branding": {
-    "nav": "Branding",
-    "page": {
-      "title": "Branding",
-      "description": "Tenant logo and favicon — one asset shared by the app shell, the login page and the public site. Colors and layout for the site live under Website → Site settings."
-    },
-    "loading": "Loading…",
-    "loadFailed": "Failed to load branding",
-    "upload": "Upload",
-    "uploading": "Uploading…",
-    "clear": "Clear",
-    "clearing": "Clearing…",
-    "unset": "Not set",
-    "logo": {
-      "title": "Logo",
-      "hint": "PNG / JPEG / WebP / SVG, max 1MB. Shown on login and in the shell; the public site header and footer inherit it too, and show no logo until one is uploaded."
-    },
-    "favicon": {
-      "title": "Favicon",
-      "hint": "PNG / JPEG / WebP / SVG / ICO, max 256KB. Browser tab icon."
-    },
-    "toast": {
-      "uploaded": "Branding image updated",
-      "uploadFailed": "Upload failed",
-      "cleared": "Restored default branding",
-      "clearFailed": "Clear failed"
-    }
-  },
-  "oauth": {
-    "nav": "Sign-in providers",
-    "page": {
-      "title": "Sign-in providers",
-      "description": "Override the platform GitHub / Google / Microsoft OAuth apps. Leave empty to use platform credentials."
-    },
-    "hint": "With your own OAuth app, the consent screen shows your app name and icon. Client secrets are encrypted and never shown again after save.",
-    "loading": "Loading…",
-    "loadFailed": "Failed to load OAuth settings",
-    "save": "Save override",
-    "saving": "Saving…",
-    "clear": "Clear override",
-    "clearing": "Clearing…",
-    "providers": {
-      "github": "GitHub",
-      "google": "Google",
-      "microsoft": "Microsoft"
-    },
-    "source": {
-      "platform": "platform default",
-      "tenant": "site override"
-    },
-    "status": {
-      "enabled": "Available ({{source}})",
-      "disabled": "Unavailable",
-      "overrideActive": "site credentials saved",
-      "usingPlatform": "using platform credentials"
-    },
-    "fields": {
-      "clientId": "Client ID",
-      "clientSecret": "Client Secret",
-      "secretPlaceholder": "Paste client secret",
-      "secretPlaceholderReplace": "Enter a new secret to replace",
-      "callbackUrl": "Callback URL (optional)",
-      "callbackPlaceholder": "Leave empty for the platform default callback",
-      "authority": "Microsoft authority (optional)"
-    },
-    "toast": {
-      "saved": "OAuth override saved",
-      "saveFailed": "Save failed",
-      "cleared": "Restored platform credentials",
-      "clearFailed": "Clear failed"
-    }
   },
   "plansConfig": {
     "description": "One tab per plan, everything in one place: pricing and copy feed the public pricing section, quotas are written to the organization when the plan is granted. Empty copy falls back to the built-in defaults.",

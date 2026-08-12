@@ -31,6 +31,13 @@ export const THEME_SECTION_SPACING = {
 export interface ThemeSettings {
   logo_url?: string | null;
   /**
+   * 浏览器标签页图标。空 = 用产品默认 `/favicon.svg`。
+   *
+   * 与 logo 分开一个字段：logo 是页头上那张横的，favicon 要在 16px 见方里还认得出，
+   * 通常是另一张图。拿 logo 顶替只会糊成一团。
+   */
+  favicon_url?: string | null;
+  /**
    * 站点级社交分享缩略图（og:image / twitter:image）的默认值。
    *
    * 页面可以逐页覆盖（`page.settings.og_image`）。**不**拿 logo 顶替：logo 通常是方形、
@@ -82,6 +89,17 @@ export function parseThemeSettings(value: unknown): ThemeSettings {
       out.logo_url = null;
     } else if (typeof raw.logo_url === "string") {
       out.logo_url = raw.logo_url.trim() === "" ? null : raw.logo_url.trim();
+    } else {
+      throw new Error("site.theme_settings_invalid");
+    }
+  }
+
+  if (raw.favicon_url !== undefined) {
+    if (raw.favicon_url === null) {
+      out.favicon_url = null;
+    } else if (typeof raw.favicon_url === "string") {
+      const trimmed = raw.favicon_url.trim();
+      out.favicon_url = trimmed === "" ? null : trimmed;
     } else {
       throw new Error("site.theme_settings_invalid");
     }
@@ -171,6 +189,7 @@ export function resolveThemeSettings(theme_settings: unknown): ThemeSettings {
   const fromJson = safeThemeSettings(theme_settings);
   return {
     logo_url: fromJson.logo_url ?? null,
+    favicon_url: fromJson.favicon_url ?? null,
     og_image: fromJson.og_image ?? null,
     primary_color: fromJson.primary_color ?? null,
     bg_color: fromJson.bg_color ?? null,

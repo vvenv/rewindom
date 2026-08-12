@@ -38,7 +38,7 @@ import {
   requestOriginFromHeaders,
   type OAuthProviderId,
 } from "../auth/oauth-common.js";
-import { resolveOAuthCredentials, type ResolvedOAuthCredentials  } from "../auth/oauth-credentials.js";
+import { resolvePlatformOAuthCredentials, type ResolvedOAuthCredentials  } from "../auth/oauth-credentials.js";
 
 import type { MemberOAuthCallbackState } from "../../runtime/provider-contracts.js";
 import type { FastifyInstance, FastifyRequest } from "fastify";
@@ -357,11 +357,8 @@ export async function authRoutes(app: FastifyInstance) {
   for (const provider of oauthProviders) {
     app.get(`/oauth/${provider.id}`, async (request, reply) => {
       try {
-        const hostTenant = request.hostTenantContext ?? null;
-        const credentials = await resolveOAuthCredentials(
-          provider.id,
-          hostTenant?.tenant_id ?? null,
-        );
+        // 中台登录固定用平台凭证：绑定域名下也一样，租户覆盖只作用于官网会员
+        const credentials = resolvePlatformOAuthCredentials(provider.id);
         if (!credentials.enabled) {
           return sendCodedError(reply, 503, "auth.oauth_not_configured");
         }
@@ -471,10 +468,7 @@ export async function authRoutes(app: FastifyInstance) {
         }
 
         const hostTenant = request.hostTenantContext ?? null;
-        const credentials = await resolveOAuthCredentials(
-          provider.id,
-          hostTenant?.tenant_id ?? null,
-        );
+        const credentials = resolvePlatformOAuthCredentials(provider.id);
         if (!credentials.enabled) {
           return reply.redirect(
             buildOAuthFrontendErrorRedirect(

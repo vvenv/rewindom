@@ -2,7 +2,7 @@ id: billing
 label: Billing
 description: 租户订阅与付款（Creem Payment Provider）
 kind: business
-placement: packages/modules/billing
+placement: packages/builtin/billing
 resource:
   singular: subscription
   plural: subscriptions

@@ -1,70 +1,5 @@
 import { TENANT_IMPERSONATION_USERNAME } from "@be-water/shared";
 
-/** 审计日志中表示空值的占位符 */
-export const AUDIT_NONE = "无";
-
-/** 审计日志中表示敏感字段已变更的占位符（不记录明文） */
-export const AUDIT_SENSITIVE_CHANGED = "已修改";
-
-const AUDIT_SENSITIVE_FIELD_KEYS = new Set([
-  "password",
-  "newPassword",
-  "new_password",
-  "app_secret",
-  "access_token",
-  "refresh_token",
-]);
-
-const AUDIT_FIELD_LABELS: Record<string, string> = {
-  access_token: "访问令牌",
-  address: "地址",
-  app_secret: "应用密钥",
-  description: "描述",
-  enabled: "启用状态",
-  name: "名称",
-  new_password: "密码",
-  newPassword: "密码",
-  note: "系统备注",
-  notes: "备注",
-  password: "密码",
-  phone: "电话",
-  remark: "备注",
-  role: "角色",
-  status: "状态",
-  username: "用户名",
-};
-
-export function formatAuditValue(value: unknown): string {
-  if (value === null || value === undefined || value === "") {
-    return AUDIT_NONE;
-  }
-  if (typeof value === "boolean") {
-    return value ? "是" : "否";
-  }
-  return String(value);
-}
-
-export function formatAuditFieldChanges(data: Record<string, unknown>): string {
-  return Object.entries(data)
-    .flatMap(([key, value]) => {
-      if (value === undefined) {
-        return [];
-      }
-
-      const label = AUDIT_FIELD_LABELS[key] ?? key;
-
-      if (AUDIT_SENSITIVE_FIELD_KEYS.has(key)) {
-        if (value === null || value === "") {
-          return [];
-        }
-        return [`${label}=${AUDIT_SENSITIVE_CHANGED}`];
-      }
-
-      return [`${label}=${formatAuditValue(value)}`];
-    })
-    .join("，");
-}
-
 export const AuditAction = {
   LOGIN: "LOGIN",
   LOGOUT: "LOGOUT",
@@ -84,8 +19,6 @@ export const AuditAction = {
   TENANT_MODULES_UPDATE: "TENANT_MODULES_UPDATE",
   TENANT_ENTITLEMENTS_UPDATE: "TENANT_ENTITLEMENTS_UPDATE",
   TENANT_APPEARANCE_UPDATE: "TENANT_APPEARANCE_UPDATE",
-  TENANT_BRANDING_UPDATE: "TENANT_BRANDING_UPDATE",
-  TENANT_OAUTH_UPDATE: "TENANT_OAUTH_UPDATE",
   SETTINGS_UPDATE: "SETTINGS_UPDATE",
   TENANT_CREATE: "TENANT_CREATE",
   TENANT_UPDATE: "TENANT_UPDATE",
@@ -130,6 +63,7 @@ export const AuditAction = {
   SITE_MEMBER_UPDATE: "SITE_MEMBER_UPDATE",
   SITE_MEMBER_DELETE: "SITE_MEMBER_DELETE",
   SITE_MEMBER_PASSWORD_RESET: "SITE_MEMBER_PASSWORD_RESET",
+  SITE_MEMBER_OAUTH_UPDATE: "SITE_MEMBER_OAUTH_UPDATE",
   TODO_CREATE: "TODO_CREATE",
   TODO_UPDATE: "TODO_UPDATE",
   TODO_DELETE: "TODO_DELETE",
@@ -223,8 +157,6 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.TENANT_MODULES_UPDATE]: "更新租户模块开关",
   [AuditAction.TENANT_ENTITLEMENTS_UPDATE]: "更新租户模块与功能开关",
   [AuditAction.TENANT_APPEARANCE_UPDATE]: "更新租户默认主题",
-  [AuditAction.TENANT_BRANDING_UPDATE]: "更新租户品牌",
-  [AuditAction.TENANT_OAUTH_UPDATE]: "更新站点 OAuth",
   [AuditAction.SETTINGS_UPDATE]: "更新系统设置",
   [AuditAction.TENANT_CREATE]: "创建租户",
   [AuditAction.TENANT_UPDATE]: "更新租户",
@@ -269,6 +201,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.SITE_MEMBER_UPDATE]: "更新会员",
   [AuditAction.SITE_MEMBER_DELETE]: "删除会员",
   [AuditAction.SITE_MEMBER_PASSWORD_RESET]: "重置会员密码",
+  [AuditAction.SITE_MEMBER_OAUTH_UPDATE]: "更新会员第三方登录",
   [AuditAction.TODO_CREATE]: "创建待办",
   [AuditAction.TODO_UPDATE]: "更新待办",
   [AuditAction.TODO_DELETE]: "删除待办",
@@ -284,10 +217,6 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.SITE_BILLING_WEBHOOK_SYNC]: "同步会员付费 webhook",
   [AuditAction.PLAN_PRICING_UPDATE]: "更新套餐定价配置",
 };
-
-export function getAuditActionLabel(action: AuditActionType): string {
-  return AUDIT_ACTION_LABELS[action];
-}
 
 export const AUDIT_ACTION_GROUPS = [
   {
@@ -321,8 +250,6 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.TENANT_MODULES_UPDATE,
       AuditAction.TENANT_ENTITLEMENTS_UPDATE,
       AuditAction.TENANT_APPEARANCE_UPDATE,
-      AuditAction.TENANT_BRANDING_UPDATE,
-      AuditAction.TENANT_OAUTH_UPDATE,
       AuditAction.SETTINGS_UPDATE,
       AuditAction.TENANT_API_KEY_CREATE,
       AuditAction.TENANT_API_KEY_REVOKE,
@@ -374,6 +301,7 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.SITE_MEMBER_UPDATE,
       AuditAction.SITE_MEMBER_DELETE,
       AuditAction.SITE_MEMBER_PASSWORD_RESET,
+      AuditAction.SITE_MEMBER_OAUTH_UPDATE,
     ],
   },
   {

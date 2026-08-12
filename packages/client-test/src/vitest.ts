@@ -113,7 +113,7 @@ export function createModuleClientTestProject(moduleRoot: string) {
   });
 }
 
-/** Vitest multi-project config for a single module dir (`packages/modules/<id>/`). */
+/** Vitest multi-project config for a single module dir (`packages/builtin/<id>/`). */
 export function defineModuleVitestConfig(moduleRoot: string) {
   return defineConfig({
     test: {

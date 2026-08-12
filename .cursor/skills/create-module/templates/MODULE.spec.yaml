@@ -1,7 +1,7 @@
 # 模块生成契约 —— create-module skill 的输入
 #
 # 用法：复制本文件填写后 `node scripts/gen-module.mjs <本文件>` 生成模块，
-#       生成器会把它拷进 packages/modules/<id>/MODULE.spec.yaml 作为该模块的契约。
+#       生成器会把它拷进 modules/<id>/MODULE.spec.yaml 作为该模块的契约。
 # 规则：必填项留空 = 阻塞，agent 必须追问，不得猜；可选项留空 = 采用 SKILL.md 的默认值表。
 # 下面的示例值取自金标准模块 notes，可直接对照改写。
 
@@ -10,7 +10,7 @@ id: notes # 包目录名 / manifest id，kebab-case
 label: Notes
 description: 租户内笔记 CRUD 金标准示例模块
 kind: business # business | infrastructure
-placement: packages/modules/notes # 业务子域则写 packages/<product>/<subdomain>
+placement: modules/note # 业务子域则写 packages/<product>/<subdomain>
 resource:
   singular: note # 文件名、路径参数（note_id）、service 函数名
   plural: notes # URL 前缀（/api/notes）、queryKey

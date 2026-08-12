@@ -47,8 +47,6 @@
     "TENANT_MODULES_UPDATE": "更新租户模块开关",
     "TENANT_ENTITLEMENTS_UPDATE": "更新租户模块与功能开关",
     "TENANT_APPEARANCE_UPDATE": "更新租户默认主题",
-    "TENANT_BRANDING_UPDATE": "更新租户品牌",
-    "TENANT_OAUTH_UPDATE": "更新站点 OAuth",
     "SETTINGS_UPDATE": "更新系统设置",
     "TENANT_CREATE": "创建租户",
     "TENANT_UPDATE": "更新租户",

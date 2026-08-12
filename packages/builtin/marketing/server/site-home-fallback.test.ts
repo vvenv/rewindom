@@ -14,10 +14,6 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   },
 }));
 
-vi.mock("../../platform/server/services/tenant-branding.service.js", () => ({
-  getTenantBrandingUrls: vi.fn(async () => ({ logo_url: null })),
-}));
-
 const TENANT = "tenant-1";
 
 const siteRow = {

@@ -1,6 +1,6 @@
 # 错误日志
 
-模块：`packages/modules/error-log/`（Skill：`error-logging`）
+模块：`packages/builtin/error-log/`（Skill：`error-logging`）
 
 全局 error-handler 捕获未处理异常并落库，提供租户内查询、统计与清理。与慢查询（`slow-query`）同属可观测性基础设施模块。
 
@@ -80,7 +80,7 @@ SELECT * FROM "ErrorLog" WHERE request_body @> '{"user_id":"u-1"}';
 
 ## ErrorService
 
-`packages/modules/error-log/server/error.service.ts`，**静态类**（不是实例单例）。
+`packages/builtin/error-log/server/error.service.ts`，**静态类**（不是实例单例）。
 
 ```ts
 class ErrorService {
@@ -267,7 +267,7 @@ DELETE /api/error-logs/cleanup/my?days=30
 
 ## 权限
 
-`packages/modules/error-log/server/module.ts` 声明，分组「系统监控」：
+`packages/builtin/error-log/server/module.ts` 声明，分组「系统监控」：
 
 | 权限 | 说明 |
 | --- | --- |
@@ -278,7 +278,7 @@ DELETE /api/error-logs/cleanup/my?days=30
 
 ## 前端
 
-`packages/modules/error-log/client/`，页面路径 `/app/error-logs`（平台侧另有 `usePlatformErrorLogs`）。
+`packages/builtin/error-log/client/`，页面路径 `/app/error-logs`（平台侧另有 `usePlatformErrorLogs`）。
 
 | 文件 | 职责 |
 | --- | --- |

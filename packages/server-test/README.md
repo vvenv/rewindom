@@ -44,6 +44,6 @@ import { createTestApp } from "@be-water/server/test";
 ## 运行
 
 ```bash
-pnpm --filter @be-water/modules test
+pnpm --filter @be-water/builtin test
 pnpm --filter @be-water/server-kernel test
 ```

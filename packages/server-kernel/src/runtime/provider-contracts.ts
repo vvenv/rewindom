@@ -15,10 +15,18 @@ export interface TenantApiKeyAuthProvider {
 }
 
 
+/**
+ * OAuth 开关由内核按 Host 自行解析（平台 env vs 站点覆盖是两条链），provider 不参与。
+ */
+export type ProvidedPublicConfig = Omit<
+  PublicConfig,
+  "github_oauth_enabled" | "google_oauth_enabled" | "microsoft_oauth_enabled"
+>;
+
 export interface PublicConfigProvider {
   getPublicConfig(options?: {
     bound_tenant?: HostTenantContext | null;
-  }): Promise<PublicConfig>;
+  }): Promise<ProvidedPublicConfig>;
 }
 
 export interface TenantRegistrationInput {

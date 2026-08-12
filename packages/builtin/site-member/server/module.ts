@@ -12,6 +12,7 @@ import { siteMemberAdminRoutes } from "./site-member-admin.routes.js";
 import { siteMemberAuthRoutes } from "./site-member-auth.routes.js";
 import { siteMemberOAuthRoutes } from "./site-member-oauth.routes.js";
 import { registerSiteMemberSsrSessionResolver } from "./site-member-ssr-session.js";
+import { siteOAuthProvidersRoutes } from "./site-oauth.routes.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
 
@@ -43,6 +44,7 @@ export const siteMemberServerModule: ServerAppModule = {
       { action: "SITE_MEMBER_UPDATE", label: "更新会员" },
       { action: "SITE_MEMBER_DELETE", label: "删除会员" },
       { action: "SITE_MEMBER_PASSWORD_RESET", label: "重置会员密码" },
+      { action: "SITE_MEMBER_OAUTH_UPDATE", label: "更新会员第三方登录" },
     ],
   },
   server: {
@@ -92,6 +94,10 @@ export const siteMemberServerModule: ServerAppModule = {
 
       // 不套租户开关网关：会员体系是每个站点都具备的能力，不可禁用
       await app.register(siteMemberAdminRoutes, { prefix: "/api/site-members" });
+      // 会员登录的 OAuth 覆盖：与会员管理同一命名空间、同一套权限
+      await app.register(siteOAuthProvidersRoutes, {
+        prefix: "/api/site-members",
+      });
     },
   },
 };

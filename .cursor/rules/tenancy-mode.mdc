@@ -46,7 +46,7 @@ alwaysApply: true
 2. [`scripts/env.production.example`](scripts/env.production.example)（及按需 `.env.example` / `env.docker.local.example`）
 3. **[`docker-compose.prod.yml`](docker-compose.prod.yml)** `app.environment`（形如 `FOO: ${FOO:-}`）
 4. 若属「compose 故意不透传、有安全默认」的键 → 加入 [`scripts/check-prod-app-env.mjs`](scripts/check-prod-app-env.mjs) 的 `COMPOSE_PASSTHROUGH_DENY`
-5. [`docs/deployment.md`](docs/deployment.md) 环境变量表（运维常用项）
+5. [`docs/deployment.md`](../../docs/deployment.md) 环境变量表（运维常用项）
 
 **机器门禁（防漏）**：`pnpm check:prod-app-env`（CI `Architecture` workflow）。  
 从 `config.ts` 收集键 − deny-list，要求 ⊆ compose 透传项且 ⊆ `env.production.example`。

@@ -1,6 +1,9 @@
 import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
 import { CaptchaService } from "@be-water/server-kernel/kernel/auth/captcha.service.js";
-import { resolveOAuthEnabledFlags } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
+import {
+  platformOAuthEnabledFlags,
+  siteOAuthEnabledFlags,
+} from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
 import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
 
@@ -89,7 +92,10 @@ export async function siteMemberAuthRoutes(
       const [enabled, settings, oauthFlags] = await Promise.all([
         hasSiteForHost(hostTenant),
         getPlatformSettings(),
-        resolveOAuthEnabledFlags(hostTenant?.tenant_id ?? null),
+        // 没绑站点时 enabled 已经是 false，这里给平台口径即可
+        hostTenant
+          ? siteOAuthEnabledFlags(hostTenant.tenant_id)
+          : platformOAuthEnabledFlags(),
       ]);
       return {
         enabled,

@@ -59,6 +59,30 @@ function page(overrides: Partial<PublicMarketingPage> = {}) {
 
 const ORIGIN = "https://acme.example";
 
+describe("renderMarketingHtml favicon", () => {
+  /*
+   * 这一行必须无条件输出：不写 `<link rel="icon">` 时浏览器会去猜 `/favicon.ico`，
+   * 官网这个路径上没有东西，标签页就挂一个空白图标。
+   */
+  it("falls back to the product favicon when the site has none", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page(),
+    });
+    expect(html).toContain('<link rel="icon" href="/favicon.svg" />');
+  });
+
+  it("uses the site's own favicon when set", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site({ theme_settings: { favicon_url: "/uploads/acme.png" } }),
+      page: page(),
+    });
+    expect(html).toContain('<link rel="icon" href="/uploads/acme.png" />');
+  });
+});
+
 describe("renderMarketingHtml SEO", () => {
   it("declares the page's own language, not the site default", () => {
     const html = renderMarketingHtml({

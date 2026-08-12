@@ -140,22 +140,17 @@ function availableLocales(
  *    会为同一个 slug 出现多条（每种语言一条，路径还完全相同）。
  * 2. 页头 / 页脚的多语言文案压成当前语言。
  *
- * `brandingLogoUrl` 是租户在「系统管理 → 品牌」上传的 logo：官网**默认继承**它，
- * 站点自己填的 `theme_settings.logo_url` 只是可选覆盖。只在这里回落，不动
- * 管理端的 `toMarketingSite`——那份数据会灌进设置表单，填进去一存就把继承关系写死了。
+ * logo / favicon 就在 `theme_settings` 里，没有第二处来源可回落——它们是站点自己的
+ * 资产，从站点编辑器的「外观」填（`SiteImageField`，媒体库选图或外链）。
  */
 export function toPublicMarketingSite(
   site: MarketingSiteRecord,
   pages: MarketingPageRecord[],
-  brandingLogoUrl: string | null = null,
   locale?: AppLocale,
   options?: { draftChrome?: boolean; draftContent?: boolean },
 ): PublicMarketingSite {
-  const resolved = resolveThemeSettings(site.theme_settings);
-  const logo_url = resolved.logo_url ?? brandingLogoUrl;
-  // 两处渲染都走 `resolveThemeSettings`，回落后的值要同时落在 theme_settings 上，
-  // 否则那边的 `fromJson.logo_url !== undefined` 会用显式 null 把它盖回去
-  const theme_settings = { ...resolved, logo_url };
+  const theme_settings = resolveThemeSettings(site.theme_settings);
+  const logo_url = theme_settings.logo_url ?? null;
   const default_locale = normalizeLocale(site.default_locale);
   const current = locale ?? default_locale;
   const useDraftChrome = options?.draftChrome === true;

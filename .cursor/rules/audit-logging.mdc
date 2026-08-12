@@ -24,4 +24,4 @@ try {
 
 ## 新增操作类型
 
-同时更新 `packages/shared/src/index.ts` 中的 `AuditAction` 和 `AUDIT_ACTION_LABELS`。完整 action 列表以该文件为准。
+同时更新 `packages/builtin/audit/shared/audit.ts` 中的 `AuditAction`、`AUDIT_ACTION_LABELS` 与 `AUDIT_ACTION_GROUPS`，并在 `packages/builtin/audit/client/locales/{zh-CN,en}.json` 的 `actions` 下补文案。完整 action 列表以该文件为准。

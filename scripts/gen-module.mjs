@@ -968,8 +968,6 @@ ${formFields.map((f) => `          ${f.name}: body.${f.name},`).join("\n")}
   );
 
   // ---- client manifest / routes / nav
-  add("client/index.ts", "export {};");
-
   add(
     "client/module.tsx",
     `
@@ -2167,7 +2165,7 @@ function patchAuditActions(auditActions, spec) {
     `\n${missing.map((a) => `  ${a.action}: "${a.action}",`).join("\n")}\n} as const;\n\nexport type AuditActionType`,
   );
   text = text.replace(
-    /(\n\};\n\nexport function getAuditActionLabel)/u,
+    /(\n\};\n\nexport const AUDIT_ACTION_GROUPS)/u,
     `\n${missing.map((a) => `  [AuditAction.${a.action}]: "${a.label}",`).join("\n")}$1`,
   );
   text = text.replace(
