@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { registerShopStorefrontSections } from "./register.js";
 import { productGridSection } from "../../shared/product-grid-section.js";
+import { productSection } from "../../shared/product-section.js";
 import { checkoutSection } from "../../shared/checkout-section.js";
 import {
   emptyShopContext,
@@ -30,6 +31,28 @@ describe("shop storefront section html", () => {
     expect(html).toContain("/shop/mug");
     expect(html).toContain("Mug");
     expect(html).toContain("$12.00");
+  });
+
+  it("商品详情把 description 当 Markdown 渲染，而不是纯文本转义", () => {
+    const section = createSection(productSection.type);
+    const html = SECTION_HTML[productSection.type]?.(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          product: {
+            title: "Mug",
+            description: "A **ceramic** mug.\n\n- dishwasher safe",
+            variants: [
+              { id: "v1", label: "Default", price: "$12.00", stock: 4 },
+            ],
+          },
+        }),
+      ),
+    });
+    expect(html).toContain("shop-product-description prose");
+    expect(html).toContain("<strong>ceramic</strong>");
+    expect(html).toContain("<li>");
+    expect(html).toContain("dishwasher safe");
+    expect(html).not.toContain("**ceramic**");
   });
 
   it("结账段是一张包含收件地址与付款按钮的 form", () => {

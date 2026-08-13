@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { sampleShopContext } from "../../lib/shop-sample.js";
 
+import { MarkdownProse } from "../../../../../packages/builtin/marketing/client/components/MarkdownProse.js";
 import { type SectionViewProps } from "../../../../../packages/builtin/marketing/client/components/sections/section-parts.js";
 import { settingText } from "../../../../../packages/builtin/marketing/shared/section-schema.js";
 
@@ -26,7 +27,11 @@ export function ProductSection({ section }: SectionViewProps): ReactElement {
             );
           }
           if (block.type === "description") {
-            return <p key={block.id}>{t("editor.sampleDescription")}</p>;
+            return (
+              <div key={block.id} className="shop-product-description">
+                <MarkdownProse markdown={t("editor.sampleDescription")} />
+              </div>
+            );
           }
           return null;
         })}

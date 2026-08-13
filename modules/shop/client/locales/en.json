@@ -99,6 +99,7 @@
   "toastSetting": "Settings saved",
   "toastProvider": "Payment settings saved",
   "infoSlug": "Appears as /shop/slug. Use lowercase letters, numbers and hyphens.",
+  "infoDescription": "Markdown is supported. Headings, lists, links and images render on the storefront.",
   "infoHs": "Harmonized System code for customs; snapshotted onto the shipment.",
   "infoIoss": "Import One-Stop Shop number for EU shipments. Optional.",
   "infoSecretKey": "Leave blank to keep the saved key. Filling this in switches the site onto its own Stripe account.",
@@ -267,7 +268,7 @@
   },
   "editor": {
     "sampleTitle": "Sample product",
-    "sampleDescription": "Placeholder used in the editor. Visitors see live catalog data.",
+    "sampleDescription": "Placeholder used in the editor. Visitors see **live** catalog data.",
     "samplePrice": "$12.00",
     "sampleSku": "SKU-001",
     "sampleVariant": "Default",

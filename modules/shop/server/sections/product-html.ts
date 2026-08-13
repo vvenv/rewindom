@@ -8,6 +8,7 @@ import {
   settingText,
   type SiteBlock,
 } from "../../../../packages/builtin/marketing/shared/section-schema.js";
+import { md } from "../../../../packages/builtin/marketing/shared/sections/_common/html.js";
 import {
   registerSiteSectionHtml,
   type SectionHtmlRenderer,
@@ -78,7 +79,7 @@ function renderBlock(
     }
     case "description":
       return product.description
-        ? `<div class="shop-product-description">${escapeHtml(product.description)}</div>`
+        ? `<div class="shop-product-description prose">${md(product.description)}</div>`
         : "";
     case "buy":
       return buyHtml(product, shop, block.settings);

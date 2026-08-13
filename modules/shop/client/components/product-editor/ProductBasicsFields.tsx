@@ -38,10 +38,14 @@ export function ProductBasicsFields({
         />
       </Field>
       <Field>
-        <FieldLabel htmlFor="shop-description">{t("fieldDescription")}</FieldLabel>
+        <FieldLabel htmlFor="shop-description" className="flex items-center gap-1">
+          {t("fieldDescription")}
+          <FieldInfoTip text={t("infoDescription")} side="left" />
+        </FieldLabel>
         <Textarea
           id="shop-description"
-          rows={6}
+          rows={10}
+          className="font-mono text-sm"
           value={form.description[contentLocale] ?? ""}
           disabled={!canWrite}
           onChange={(event) =>

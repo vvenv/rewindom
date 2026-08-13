@@ -99,6 +99,7 @@
   "toastSetting": "设置已保存",
   "toastProvider": "收款配置已保存",
   "infoSlug": "出现在 /shop/路径。只用小写字母、数字和连字符。",
+  "infoDescription": "支持 Markdown。标题、列表、链接和图片会在店面渲染。",
   "infoHs": "报关用的协调制度编码，发货单会快照下来。",
   "infoIoss": "向欧盟寄送时的进口一站式服务编号，可留空。",
   "infoSecretKey": "留空表示不改已保存的密钥。填了会覆盖本站点自己的 Stripe 账号。",
@@ -267,7 +268,7 @@
   },
   "editor": {
     "sampleTitle": "示例商品",
-    "sampleDescription": "编辑器预览用的占位商品，访客看到的是真实在售数据。",
+    "sampleDescription": "编辑器预览用的**占位商品**。访客看到的是真实在售数据。",
     "samplePrice": "¥99.00",
     "sampleSku": "SKU-001",
     "sampleVariant": "默认规格",
