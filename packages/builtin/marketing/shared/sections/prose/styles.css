@@ -1,5 +1,5 @@
 /*
  * 正文排版样式已移至 sections/_common/styles.css（.prose）。
- * prose 与 doc-article 都包一层 .prose 容器，共用同一套排版——
+ * prose 与贡献的文档正文段都包一层 .prose 容器，共用同一套排版——
  * 拆到任一段自己都会在「有它没另一个」的页面上裸掉，所以归 _common 常驻。
  */

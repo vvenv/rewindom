@@ -10,7 +10,7 @@
     "assemble:marketing-css": "node marketing/shared/site-css/assemble.mjs",
     "assemble:section-icons": "node marketing/shared/section-icons/assemble.mjs",
     "assemble:site-enhance": "node marketing/shared/site-enhance/assemble.mjs",
-    "assemble:usage-docs": "node marketing/docs/usage/assemble.mjs",
+    "assemble:usage-docs": "node site-docs/docs/usage/assemble.mjs",
     "assemble:module-css": "node scripts/assemble-module-css.mjs",
     "assemble": "pnpm assemble:marketing-css && pnpm assemble:section-icons && pnpm assemble:site-enhance && pnpm assemble:usage-docs && pnpm assemble:module-css",
     "pretest": "pnpm assemble",

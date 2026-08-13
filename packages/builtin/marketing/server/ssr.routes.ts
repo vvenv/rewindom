@@ -5,31 +5,18 @@ import {
 } from "@rewindom/server-kernel/lib/host-tenant.js";
 import { DEFAULT_TENANT_ID, normalizeLocale, type AppLocale } from "@rewindom/shared";
 
-import {
-  DOCS_INDEX_PATH,
-  type PublicDocSummary,
-} from "../shared/marketing-doc.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
-import {
-  chromeNeedsDocList,
-  chromeShowsDocSearch,
-  type PublicMarketingSite,
-} from "../shared/site-cms.js";
+import { matchSitePathHandler } from "../shared/site-path-handlers.js";
 import {
   resolveLocaleSegment,
   SITE_APP_PREFIXES,
 } from "../shared/site-locale.js";
 
 import {
-  getPublishedDocSitemapEntries,
-  hasPublishedDocs,
-  listPublishedDocs,
-} from "./marketing-doc.service.js";
-import { renderDocLibrary } from "./marketing-doc.ssr.js";
-import {
   cookiesFromHeader,
   resolveSectionContexts,
 } from "./section-context-providers.js";
+import { resolveContributedSitemapEntries } from "./sitemap-providers.js";
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
 import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
@@ -81,38 +68,16 @@ function sendHtml(
     .send(html);
 }
 
-/**
- * 这次渲染要给页头页脚哪些文档数据。
- *
- * 两档，按需求由重到轻取：
- * 1. **整份目录**——页面/chrome 上有 `doc-*` 段，或导航菜单挂了文档动态项。逐篇的
- *    标题与地址都要，只能查全量。
- * 2. **只要一个布尔值**——页头开了文档搜索（默认开）。它只决定那枚搜索框渲不渲染，
- *    为此拉一遍全库目录会让**每一个页面请求**都多背一份几百行的结果集。
- *
- * 收在一个函数里是因为正常页与 404 页各有一条渲染路径。两边各拼一次的话，下次再加
- * 一种吃文档数据的东西必然漏掉其中一条——同一个站点两副页头就是这么来的。
- */
-async function resolveChromeDocs(
-  tenantId: string,
-  site: PublicMarketingSite,
-  locale: AppLocale,
-  pageUsesDocSections = false,
-): Promise<{
-  context: { docs: PublicDocSummary[]; docsIndexPath: string } | undefined;
-  hasDocs: boolean;
-}> {
-  if (pageUsesDocSections || chromeNeedsDocList(site)) {
-    const { docs } = await listPublishedDocs(tenantId, locale);
-    return {
-      context: { docs, docsIndexPath: DOCS_INDEX_PATH },
-      hasDocs: docs.length > 0,
-    };
+function flattenQuery(query: unknown): Record<string, string> {
+  if (!query || typeof query !== "object") return {};
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value === "string") out[key] = value;
+    else if (Array.isArray(value) && typeof value[0] === "string") {
+      out[key] = value[0];
+    }
   }
-  if (chromeShowsDocSearch(site)) {
-    return { context: undefined, hasDocs: await hasPublishedDocs(tenantId) };
-  }
-  return { context: undefined, hasDocs: false };
+  return out;
 }
 
 /**
@@ -152,25 +117,24 @@ async function renderNotFound(
     custom.page.locale,
     custom.site.default_locale,
   );
-  const [accountEntry, enabledEntitlements] = await Promise.all([
+  const usedSectionTypes = collectSectionTypes(custom.site.header);
+  collectSectionTypes(custom.site.footer, usedSectionTypes);
+  collectSectionTypes(custom.page.sections, usedSectionTypes);
+
+  const [accountEntry, enabledEntitlements, contributed] = await Promise.all([
     resolveSiteAccountEntry({
       tenantId: hostTenant.tenant_id,
       locale: pageLocale,
     }),
     resolveSectionEntitlements(hostTenant.tenant_id),
+    resolveSectionContexts({
+      tenantId: hostTenant.tenant_id,
+      locale: pageLocale,
+      defaultLocale: custom.site.default_locale,
+      usedSectionTypes,
+      cookies: cookiesFromHeader(request.headers.cookie),
+    }),
   ]);
-
-  /*
-   * 404 页的页头也要有文档目录 / 文档存在标记。
-   *
-   * 少了它，访客走到一个死链上会发现导航栏比别处少一块「文档」、少一个搜索框
-   * ——同一个站点两副页头，比 404 本身更让人以为站坏了。
-   */
-  const docs = await resolveChromeDocs(
-    hostTenant.tenant_id,
-    custom.site,
-    pageLocale,
-  );
 
   sendHtml(
     reply,
@@ -178,8 +142,7 @@ async function renderNotFound(
     renderMarketingHtml({
       origin: requestOrigin(request),
       site: custom.site,
-      docContext: docs.context,
-      hasDocs: docs.hasDocs,
+      contributed,
       // 404 页不该被收录：它会出现在无数个不存在的地址上
       page: {
         ...custom.page,
@@ -212,39 +175,39 @@ async function renderPath(
   }
 
   /*
-   * 租户文档库：`/docs`（索引）与 `/docs/:slug`（详情）。数据来自 `MarketingDoc` 表，
-   * 版式来自两张文档模板页（见 `marketing-doc.ssr.ts`）。
-   * 拦截在 `renderPath` 里，所以 `/docs`、`/{locale}/docs` 都走这一条。
+   * 贡献路径（文档库 `/docs` 等）在查 MarketingPage 之前问注册表。
+   * 匹配的是去掉 locale 前缀后的逻辑路径，所以 `/en/docs` 与 `/docs` 同一条。
    */
-  if (path === DOCS_INDEX_PATH || path.startsWith(`${DOCS_INDEX_PATH}/`)) {
+  const enabledEntitlements = await resolveSectionEntitlements(
+    hostTenant.tenant_id,
+  );
+  const handler = matchSitePathHandler(path, enabledEntitlements);
+  if (handler) {
     const site = await getPublishedPublicSite(
       hostTenant.tenant_id,
       hostTenant.tenant_slug,
       locale,
     );
-    if (site) {
-      const [accountEntry, enabledEntitlements] = await Promise.all([
-        resolveSiteAccountEntry({
-          tenantId: hostTenant.tenant_id,
-          locale: normalizeLocale(site.default_locale),
-        }),
-        resolveSectionEntitlements(hostTenant.tenant_id),
-      ]);
-      const html = await renderDocLibrary({
-        tenantId: hostTenant.tenant_id,
-        origin: requestOrigin(request),
-        site,
-        accountEntryHtml: accountEntry.html,
-        enabledEntitlements,
-        path,
-        locale,
-      });
-      if (html) {
-        sendHtml(reply, 200, html);
-        return;
-      }
+    const accountEntry = await resolveSiteAccountEntry({
+      tenantId: hostTenant.tenant_id,
+      locale: normalizeLocale(site?.default_locale, locale ?? undefined),
+    });
+    const html = await handler.render({
+      tenantId: hostTenant.tenant_id,
+      tenantSlug: hostTenant.tenant_slug,
+      origin: requestOrigin(request),
+      path,
+      locale,
+      enabledEntitlements,
+      accountEntryHtml: accountEntry.html,
+      cookies: cookiesFromHeader(request.headers.cookie),
+      query: flattenQuery(request.query),
+    });
+    if (html === null) {
+      await renderNotFound(request, reply, hostTenant, locale);
+      return;
     }
-    await renderNotFound(request, reply, hostTenant, locale);
+    sendHtml(reply, 200, html);
     return;
   }
 
@@ -282,19 +245,18 @@ async function renderPath(
     tenantId: hostTenant.tenant_id,
   });
 
-  const [accountEntry, enabledEntitlements] = await Promise.all([
+  const [accountEntry] = await Promise.all([
     resolveSiteAccountEntry({
       tenantId: hostTenant.tenant_id,
       locale: normalizeLocale(result.page.locale, result.site.default_locale),
       member,
     }),
-    // 贡献段按租户开通与否决定渲不渲染，见 site-entitlements.ts
-    resolveSectionEntitlements(hostTenant.tenant_id),
   ]);
 
   /*
-   * 这张页面（含页头页脚）到底摆了哪些段——两处都要用：文档目录按它决定查不查，
-   * 贡献段的 provider 也按它决定跑不跑（见 section-context-providers.ts）。
+   * 这张页面（含页头页脚）到底摆了哪些段——贡献段的 provider 按它决定跑不跑
+   *（见 section-context-providers.ts）。导航 source 也收进来，页头挂了
+   * `site-docs` 但页面上没有文档段时，目录数据照样要查。
    */
   const usedSectionTypes = collectSectionTypes(result.site.header);
   collectSectionTypes(result.site.footer, usedSectionTypes);
@@ -305,22 +267,14 @@ async function renderPath(
     result.site.default_locale,
   );
 
-  const [docs, contributed] = await Promise.all([
-    resolveChromeDocs(
-      hostTenant.tenant_id,
-      result.site,
-      result.page.locale,
-      [...usedSectionTypes].some((type) => type.startsWith("doc-")),
-    ),
-    resolveSectionContexts({
-      tenantId: hostTenant.tenant_id,
-      locale: pageLocale,
-      defaultLocale: result.site.default_locale,
-      usedSectionTypes,
-      cookies: cookiesFromHeader(request.headers.cookie),
-      memberId: member?.id ?? null,
-    }),
-  ]);
+  const contributed = await resolveSectionContexts({
+    tenantId: hostTenant.tenant_id,
+    locale: pageLocale,
+    defaultLocale: result.site.default_locale,
+    usedSectionTypes,
+    cookies: cookiesFromHeader(request.headers.cookie),
+    memberId: member?.id ?? null,
+  });
 
   const requiresMember = result.page.requires_member === true;
   const memberAuthenticated = member !== null;
@@ -337,8 +291,6 @@ async function renderPath(
       memberGate,
       accountEntryHtml: accountEntry.html,
       enabledEntitlements,
-      docContext: docs.context,
-      hasDocs: docs.hasDocs,
       contributed,
       isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
     }),
@@ -360,16 +312,10 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     if (!entries) {
       return reply.status(404).send("Not Found");
     }
-    /*
-     * 文档不是页面，所以 `getPublishedSitemapEntries`（走 MarketingPage）看不见它们
-     * ——在这里补。索引页 + 每篇文档：每种已发布语言各一条，并挂全组 hreflang。
-     */
-    const docEntries = await getPublishedDocSitemapEntries(
-      hostTenant.tenant_id,
-    );
+    const extra = await resolveContributedSitemapEntries(hostTenant.tenant_id);
     const xml = renderSitemapXml(requestOrigin(request), [
       ...entries,
-      ...docEntries,
+      ...extra,
     ]);
     return reply
       .header("content-type", "application/xml; charset=utf-8")
@@ -400,9 +346,9 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
    * 一级参数路由同时承担两件事：`/{locale}` 与 `/{slug}`。
    *
    * 两者在 URL 上是同一个位置，只能靠取值区分——所以 locale 的 slug 必须占住
-   * `RESERVED_PAGE_SLUGS`（见 shared/site-cms.ts），否则一个叫 `en` 的顶层页
-   * 会把整棵 `/en/*` 遮住。`/docs/*` 由 `renderPath` 内部拦截走文档库，
-   * `/sitemap.xml` / `/robots.txt` 由 Fastify 静态路由优先匹配，都不会落到这里。
+   * `RESERVED_PAGE_SLUGS`（见 shared/reserved-slugs.ts），否则一个叫 `en` 的顶层页
+   * 会把整棵 `/en/*` 遮住。贡献路径（`/docs/*` 等）由 `renderPath` 问 path handler
+   * 表；`/sitemap.xml` / `/robots.txt` 由 Fastify 静态路由优先匹配，都不会落到这里。
    */
   app.get("/:first", async (request, reply) => {
     const { first } = request.params as { first: string };
@@ -431,7 +377,7 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
       await renderPath(request, reply, `/${second}`, locale);
       return;
     }
-    // 非 locale 的两级路径：应用区交回 SPA，其余当租户嵌套页（`/docs/x`）
+    // 非 locale 的两级路径：应用区交回 SPA，其余当租户嵌套页或贡献路径
     if (SPA_PREFIX_SET.has(first)) {
       return reply.callNotFound();
     }

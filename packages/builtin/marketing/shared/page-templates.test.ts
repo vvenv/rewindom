@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
+import { registerDocsPageTemplates } from "../../site-docs/shared/page-templates.js";
 import { canonicalizePageIdentity, marketingPagePath } from "./site-cms.js";
 import {
   getPageTemplateKind,
@@ -10,23 +11,18 @@ import {
 } from "./page-templates.js";
 
 describe("模板页注册表", () => {
-  it("marketing 自带文档库的两张版式", () => {
-    expect(isTemplatePageKind("doc_index")).toBe(true);
-    expect(isTemplatePageKind("doc_article")).toBe(true);
-    expect(isTemplatePageKind("page")).toBe(false);
+  it("marketing 自带首页", () => {
     expect(isTemplatePageKind("home")).toBe(true);
+    expect(isTemplatePageKind("page")).toBe(false);
+    expect(isTemplatePageKind("doc_index")).toBe(false);
   });
 
   it("kind 决定 slug 与路径——租户改不了地址", () => {
-    expect(canonicalizePageIdentity("doc_index", "随便填")).toEqual({
-      kind: "doc_index",
-      slug: "docs",
+    expect(canonicalizePageIdentity("home", "随便填")).toEqual({
+      kind: "home",
+      slug: "home",
     });
-    expect(marketingPagePath("doc_index", "docs")).toBe("/docs");
-    // 详情模板是一个**模板路径**，不是能打开的地址
-    expect(marketingPagePath("doc_article", "docs-article")).toBe(
-      "/docs/:slug",
-    );
+    expect(marketingPagePath("home", "home")).toBe("/");
   });
 
   it("贡献一张模板页后，路径解析立刻跟着走", () => {
@@ -57,14 +53,14 @@ describe("模板页注册表", () => {
   it("撞名直接抛——两个模块共用一个 kind 会让版式被对方接管", () => {
     expect(() =>
       registerPageTemplateKind({
-        kind: "doc_index",
-        slug: "docs",
-        path: "/docs",
+        kind: "home",
+        slug: "other",
+        path: "/other",
         group: "x",
         label: "x",
         required_section: null,
       }),
-    ).toThrow("site.page_kind_conflict:doc_index");
+    ).toThrow("site.page_kind_conflict:home");
   });
 
   it("认不出来的 kind 一律当普通页面（slug 归租户）", () => {
@@ -91,5 +87,24 @@ describe("模板页注册表", () => {
     expect(isPageTemplateRelevant(alwaysOn, none)).toBe(true);
     expect(isPageTemplateRelevant(gated, none)).toBe(false);
     expect(isPageTemplateRelevant(gated, shopOn)).toBe(true);
+  });
+});
+
+describe("site-docs 贡献的模板页", () => {
+  beforeAll(() => {
+    registerDocsPageTemplates();
+  });
+
+  it("登记后 kind 决定 slug 与路径", () => {
+    expect(isTemplatePageKind("docs_index")).toBe(true);
+    expect(isTemplatePageKind("docs_article")).toBe(true);
+    expect(canonicalizePageIdentity("docs_index", "随便填")).toEqual({
+      kind: "docs_index",
+      slug: "docs",
+    });
+    expect(marketingPagePath("docs_index", "docs")).toBe("/docs");
+    expect(marketingPagePath("docs_article", "docs-article")).toBe(
+      "/docs/:slug",
+    );
   });
 });

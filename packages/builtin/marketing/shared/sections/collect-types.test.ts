@@ -63,4 +63,27 @@ describe("collectSectionTypes", () => {
       "shop.cart-link",
     ]);
   });
+
+  it("导航 source 也要收——页头挂了贡献源但页面上没有对应段时 context 仍要跑", () => {
+    const header = section("header", [
+      {
+        id: "nav",
+        type: "chrome_nav",
+        settings: {
+          items: [
+            {
+              id: "d",
+              source: "site-docs",
+              label: "文档",
+              href: "/docs",
+              category: "",
+              expand: "children",
+              children: [],
+            },
+          ],
+        },
+      },
+    ]);
+    expect([...collectSectionTypes([header])]).toContain("site-docs");
+  });
 });

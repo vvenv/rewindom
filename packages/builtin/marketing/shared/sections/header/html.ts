@@ -20,7 +20,6 @@ import {
   resolveChromeShell,
 } from "../_common/chrome-shell.js";
 
-import type { PublicDocSummary } from "../../marketing-doc.js";
 import type { SiteNavContext } from "../../site-nav.js";
 import type { SiteSection } from "../types.js";
 import type { AppLocale } from "@rewindom/shared";
@@ -32,8 +31,6 @@ export interface ChromeAreaInput {
   siteName: string;
   logoUrl: string | null;
   pages?: PublicSitePage[];
-  docs?: readonly PublicDocSummary[];
-  hasDocs?: boolean;
   currentPath?: string;
   locale?: AppLocale;
   defaultLocale?: AppLocale;
@@ -48,10 +45,10 @@ export function chromeNavContext(input: ChromeAreaInput): SiteNavContext {
   const defaultLocale = input.defaultLocale ?? "zh-CN";
   return {
     navPages: siteNavPages(input.pages ?? []),
-    docs: input.docs,
     locale: input.locale ?? defaultLocale,
     defaultLocale,
     currentPath: input.currentPath ?? "",
+    contributed: input.contributed,
   };
 }
 
@@ -74,7 +71,6 @@ export function renderHeaderHtml(
     homeHref: input.homeHref,
     ctx: chromeNavContext(input),
     locales: input.locales ?? [],
-    hasDocs: input.hasDocs ?? (input.docs?.length ?? 0) > 0,
     accountEntryHtml: input.accountEntryHtml,
     contributed: input.contributed,
     enabledEntitlements: input.enabledEntitlements,

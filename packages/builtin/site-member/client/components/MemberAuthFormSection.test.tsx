@@ -115,7 +115,6 @@ function previewShape(section: SiteSection): string[] {
       section={section}
       pages={[]}
       currentPath="/member/login"
-      docs={[]}
       renderChildren={() => null}
     />,
   );
@@ -192,7 +191,6 @@ describe("预览不是第二个登录入口", () => {
         section={fixture(MEMBER_LOGIN_FORM_SECTION_TYPE)}
         pages={[]}
         currentPath="/member/login"
-        docs={[]}
         renderChildren={() => null}
       />,
     );
@@ -214,7 +212,6 @@ describe("预览不是第二个登录入口", () => {
         section={fixture(MEMBER_LOGIN_FORM_SECTION_TYPE)}
         pages={[]}
         currentPath="/member/login"
-        docs={[]}
         renderChildren={() => null}
       />,
     );

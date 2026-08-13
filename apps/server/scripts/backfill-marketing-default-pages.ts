@@ -21,8 +21,10 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import { initializeTenantSite } from "../../../packages/builtin/marketing/server/site-init.service.js";
 import { getPlatformSettings } from "../../../packages/builtin/platform/server/services/platform-settings.service.js";
+import { registerDocsPageTemplates } from "../../../packages/builtin/site-docs/shared/page-templates.js";
 
 async function main(): Promise<void> {
+  registerDocsPageTemplates();
   const dryRun = process.argv.includes("--dry-run");
   const { default_locale } = await getPlatformSettings();
 

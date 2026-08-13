@@ -15,8 +15,8 @@ import {
 } from "../shared/section-schema.js";
 import {
   canonicalizePageIdentity,
+  isReservedPageSlug,
   parsePageSettings as parsePageSettingsSchema,
-  RESERVED_PAGE_SLUGS,
   safePageSettings,
   type MarketingPageKind,
   type MarketingPageSettings,
@@ -294,7 +294,7 @@ export function validatePageSlug(
     throw new ValidationError("site.slug_invalid");
   }
   const root = segments[0]!;
-  if (RESERVED_PAGE_SLUGS.has(root)) {
+  if (isReservedPageSlug(root)) {
     throw new ValidationError("site.slug_reserved");
   }
   return segments.join("/");

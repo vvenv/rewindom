@@ -87,12 +87,11 @@ describe("initializeTenantSite", () => {
       id: "page-new",
     } as never);
     vi.mocked(prisma.marketingPage.findFirst).mockImplementation(
-      async (args) => {
-        const kind = (args as { where?: { kind?: string } } | undefined)?.where
-          ?.kind;
+      (async (args: { where?: { kind?: string } } | undefined) => {
+        const kind = args?.where?.kind;
         if (kind === GATED_KIND) return null;
         return { id: "existing" } as never;
-      },
+      }) as never,
     );
   });
 

@@ -10,9 +10,10 @@ import {
 import { Copy, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { docCategorySelectOptions } from "../../../shared/marketing-doc-category.js";
 import {
   cloneNavItems,
+  getNavSource,
+  listNavSources,
   safeNavItems,
   type SiteNavItem,
   type SiteNavSource,
@@ -71,13 +72,14 @@ export function SiteNavItemsField({
   );
 
   const items = safeNavItems(value);
-  const categories = docCategorySelectOptions(preview.docs);
   const previewCtx = {
     navPages: preview.navPages,
-    docs: preview.docs,
+    contributed: preview.contributed,
     locale,
     defaultLocale,
   };
+  const categories = categoryOptionsFromContributed(preview.contributed);
+  const sources = listNavSources();
 
   const commit = (next: SiteNavItem[]): void => onChange(next);
 
@@ -195,21 +197,19 @@ export function SiteNavItemsField({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <DropdownMenuItem onSelect={() => add("link")}>
-              {t("editor.menuSource.link")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => add("pages")}>
-              {t("editor.menuSource.pages")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => add("docs")}>
-              {t("editor.menuSource.docs")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              disabled={categories.length === 0}
-              onSelect={() => add("doc_category")}
-            >
-              {t("editor.menuSource.doc_category")}
-            </DropdownMenuItem>
+            {sources.map((source) => {
+              const def = getNavSource(source);
+              const usesCategory = def?.usesCategory === true;
+              return (
+                <DropdownMenuItem
+                  key={source}
+                  disabled={usesCategory && categories.length === 0}
+                  onSelect={() => add(source as SiteNavSource)}
+                >
+                  {def ? t(def.label) : t(`editor.menuSource.${source}`)}
+                </DropdownMenuItem>
+              );
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -228,4 +228,27 @@ export function SiteNavItemsField({
       </div>
     </div>
   );
+}
+
+function categoryOptionsFromContributed(
+  contributed: Readonly<Record<string, unknown>> | undefined,
+): Array<{ key: string; label: string }> {
+  const map = new Map<string, string>();
+  for (const value of Object.values(contributed ?? {})) {
+    if (!value || typeof value !== "object") continue;
+    const docs = (value as { docs?: unknown }).docs;
+    if (!Array.isArray(docs)) continue;
+    for (const doc of docs) {
+      if (!doc || typeof doc !== "object") continue;
+      const rec = doc as Record<string, unknown>;
+      if (typeof rec.category !== "string" || !rec.category) continue;
+      if (map.has(rec.category)) continue;
+      const label =
+        typeof rec.category_label === "string" && rec.category_label.trim()
+          ? rec.category_label.trim()
+          : rec.category;
+      map.set(rec.category, label);
+    }
+  }
+  return [...map].map(([key, label]) => ({ key, label }));
 }

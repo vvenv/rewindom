@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { PageLayout, useConfirm, usePermissions } from "@rewindom/client-kit";
 import { getLocaleNativeLabel } from "@rewindom/shared";
@@ -6,6 +6,7 @@ import { Button } from "@rewindom/ui/button";
 import { ButtonGroup } from "@rewindom/ui/button-group";
 import { Spinner } from "@rewindom/ui/spinner";
 import { cn } from "@rewindom/ui/utils";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Monitor,
@@ -22,6 +23,7 @@ import {
   getSectionDefinition,
   type SiteSection,
 } from "../../shared/section-schema.js";
+import { collectSectionTypes } from "../../shared/sections/collect-types.js";
 import { collectHeaderNavItems } from "../../shared/sections/_common/chrome-blocks.js";
 import { siteNavPages } from "../../shared/site-cms.js";
 import { SiteThemeSettingsForm } from "../components/appearance/SiteThemeSettingsForm.js";
@@ -37,8 +39,7 @@ import { SectionSettingsForm } from "../components/theme-editor/SectionSettingsF
 import { SectionTree } from "../components/theme-editor/SectionTree.js";
 import { SiteNavPreviewProvider } from "../components/theme-editor/site-nav-preview-context.js";
 import { SiteAccountEntryPreview } from "../components/theme-editor/SiteAccountEntryPreview.js";
-import { useChromeDocs } from "../hooks/use-chrome-docs.js";
-import { useDocPreviewData } from "../hooks/use-doc-preview-data.js";
+import { resolveEditorContexts } from "../editor-context-providers.js";
 import { useSiteEditorPage } from "../hooks/use-site-editor-page.js";
 import { clearEditorCache, useSiteEditor } from "../hooks/use-site-editor.js";
 import { resolveEditorPublishState } from "../lib/editor-publish-state.js";
@@ -88,24 +89,29 @@ export function SiteEditor() {
   const canWrite = hasPermission("site.write");
   const { pageId, scope, setScope } = useSiteEditorPage();
   const editor = useSiteEditor(pageId);
-  /*
-   * 文档模板页的预览要有文档可画；普通页面这里什么都不拉（见 hook 内的 enabled）。
-   * 两份目录都按当前编辑的语言筛：编辑器切到英文，预览里的文档列表也得是英文那些。
-   */
-  const docPreview = useDocPreviewData(
-    editor.page?.kind ?? "page",
-    editor.locale,
-    editor.defaultLocale,
-  );
-  /*
-   * 页头页脚看到的文档目录：与线上同一口径（见 `useChromeDocs`）。
-   * 和 `docPreview` 分开，是因为那一份在零文档时会兜底成示例。
-   */
-  const chromeDocs = useChromeDocs(
-    { header: editor.header, footer: editor.footer },
-    editor.locale,
-    editor.defaultLocale,
-  );
+  const usedTypes = useMemo(() => {
+    const types = collectSectionTypes(editor.header);
+    collectSectionTypes(editor.footer, types);
+    collectSectionTypes(editor.previewSections, types);
+    return types;
+  }, [editor.header, editor.footer, editor.previewSections]);
+  const usedTypesKey = [...usedTypes].sort().join(",");
+  const { data: editorCtx = {} } = useQuery({
+    queryKey: [
+      "marketing-editor-contexts",
+      editor.locale,
+      editor.defaultLocale,
+      editor.page?.kind,
+      usedTypesKey,
+    ],
+    queryFn: () =>
+      resolveEditorContexts({
+        locale: editor.locale,
+        defaultLocale: editor.defaultLocale,
+        pageKind: editor.page?.kind,
+        usedTypes,
+      }),
+  });
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
@@ -337,9 +343,7 @@ export function SiteEditor() {
       pageSettings={editor.pageSettings}
       headerOverride={editor.header}
       footerOverride={editor.footer}
-      docs={docPreview.docs}
-      chromeDocs={chromeDocs}
-      doc={docPreview.doc}
+      contributed={editorCtx}
       onSelectSection={(sectionId, blockId) =>
         editor.selectSection(sectionId, blockId)
       }
@@ -387,7 +391,7 @@ export function SiteEditor() {
           path: item.path,
           title: item.title,
         })),
-        docs: chromeDocs,
+        contributed: editorCtx,
         headerItems: collectHeaderNavItems(editor.header),
       }}
     >

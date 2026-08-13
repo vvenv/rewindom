@@ -70,8 +70,6 @@ export const ModelName = {
   MarketingRedirect: 'MarketingRedirect',
   MarketingAsset: 'MarketingAsset',
   MarketingPageVersion: 'MarketingPageVersion',
-  MarketingDocCategory: 'MarketingDocCategory',
-  MarketingDoc: 'MarketingDoc',
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
@@ -99,6 +97,8 @@ export const ModelName = {
   MemberPlan: 'MemberPlan',
   MemberSubscription: 'MemberSubscription',
   MemberPayment: 'MemberPayment',
+  SiteDocCategory: 'SiteDocCategory',
+  SiteDoc: 'SiteDoc',
   SiteMember: 'SiteMember',
   SiteMemberRefreshToken: 'SiteMemberRefreshToken',
   SiteMemberOAuthAccount: 'SiteMemberOAuthAccount',
@@ -441,42 +441,6 @@ export const MarketingPageVersionScalarFieldEnum = {
 } as const
 
 export type MarketingPageVersionScalarFieldEnum = (typeof MarketingPageVersionScalarFieldEnum)[keyof typeof MarketingPageVersionScalarFieldEnum]
-
-
-export const MarketingDocCategoryScalarFieldEnum = {
-  id: 'id',
-  tenant_id: 'tenant_id',
-  key: 'key',
-  label: 'label',
-  sort_order: 'sort_order',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type MarketingDocCategoryScalarFieldEnum = (typeof MarketingDocCategoryScalarFieldEnum)[keyof typeof MarketingDocCategoryScalarFieldEnum]
-
-
-export const MarketingDocScalarFieldEnum = {
-  id: 'id',
-  tenant_id: 'tenant_id',
-  slug: 'slug',
-  locale: 'locale',
-  title: 'title',
-  description: 'description',
-  body_md: 'body_md',
-  category: 'category',
-  sort_order: 'sort_order',
-  status: 'status',
-  title_draft: 'title_draft',
-  description_draft: 'description_draft',
-  body_md_draft: 'body_md_draft',
-  category_draft: 'category_draft',
-  sort_order_draft: 'sort_order_draft',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type MarketingDocScalarFieldEnum = (typeof MarketingDocScalarFieldEnum)[keyof typeof MarketingDocScalarFieldEnum]
 
 
 export const NoteScalarFieldEnum = {
@@ -916,6 +880,42 @@ export const MemberPaymentScalarFieldEnum = {
 } as const
 
 export type MemberPaymentScalarFieldEnum = (typeof MemberPaymentScalarFieldEnum)[keyof typeof MemberPaymentScalarFieldEnum]
+
+
+export const SiteDocCategoryScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  key: 'key',
+  label: 'label',
+  sort_order: 'sort_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SiteDocCategoryScalarFieldEnum = (typeof SiteDocCategoryScalarFieldEnum)[keyof typeof SiteDocCategoryScalarFieldEnum]
+
+
+export const SiteDocScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  slug: 'slug',
+  locale: 'locale',
+  title: 'title',
+  description: 'description',
+  body_md: 'body_md',
+  category: 'category',
+  sort_order: 'sort_order',
+  status: 'status',
+  title_draft: 'title_draft',
+  description_draft: 'description_draft',
+  body_md_draft: 'body_md_draft',
+  category_draft: 'category_draft',
+  sort_order_draft: 'sort_order_draft',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SiteDocScalarFieldEnum = (typeof SiteDocScalarFieldEnum)[keyof typeof SiteDocScalarFieldEnum]
 
 
 export const SiteMemberScalarFieldEnum = {

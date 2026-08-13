@@ -48,7 +48,6 @@ function header(blocks: SiteBlock[], settings: SettingValues = {}) {
     homeHref: "/",
     locales: LOCALES,
     locale: "zh-CN",
-    hasDocs: true,
   });
 }
 
@@ -113,7 +112,7 @@ describe("chrome 窄屏", () => {
   });
 
   it("窄屏隐藏的块带 chrome-mobile-hide", () => {
-    const html = header([block("chrome_search", { mobile: "hide" })]);
+    const html = header([block("chrome_text", { mobile: "hide" })]);
     expect(html).toContain("chrome-block chrome-mobile-hide");
   });
 });
@@ -195,7 +194,7 @@ describe("chrome 页头页脚同构", () => {
       block("chrome_nav", { items: LINK_ITEMS, title: "产品" }),
       block("chrome_locale", {}),
       block("chrome_theme", {}),
-      block("chrome_search", {}),
+      block("chrome_button", { label: "开始", href: "/s" }),
       block("chrome_text", { text: "© {year} {site}", row: "2" }),
     ]);
     const common = {
@@ -204,7 +203,6 @@ describe("chrome 页头页脚同构", () => {
       logoUrl: null,
       locales: LOCALES,
       locale: "zh-CN" as const,
-      hasDocs: true,
     };
     const inner = (html: string) =>
       html.slice(html.indexOf(">") + 1, html.lastIndexOf("</"));

@@ -1,0 +1,35 @@
+/*
+ * 页头文档搜索框（`.chrome-search`）。
+ *
+ * 从 marketing 内置 chrome 段拷出：贡献块进不了 MARKETING_SECTION_CSS，
+ * 必须随 registerChromeBlockHtml / View 交一份构建期字符串。
+ */
+.chrome-search {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.chrome-search > svg {
+  position: absolute;
+  left: 0.5rem;
+  color: var(--muted-fg);
+  pointer-events: none;
+}
+.chrome-search input {
+  width: 12rem;
+  height: 2rem;
+  padding: 0 0.5rem 0 1.875rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--bg);
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+}
+.chrome-search input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.chrome-search input::-webkit-search-cancel-button {
+  appearance: none;
+}

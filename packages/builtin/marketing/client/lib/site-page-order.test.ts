@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { registerPageTemplateKind } from "../../shared/page-templates.js";
 import { groupSitePages } from "./site-page-groups.js";
 import {
   canMoveSitePageGroup,
@@ -8,6 +9,15 @@ import {
 } from "./site-page-order.js";
 
 import type { MarketingPageListItem } from "../../shared/site-cms.js";
+
+registerPageTemplateKind({
+  kind: "demo_layout",
+  slug: "demo-layout",
+  path: "/demo-layout",
+  group: "x",
+  label: "x",
+  required_section: null,
+});
 
 function page(
   partial: Partial<MarketingPageListItem> &
@@ -102,7 +112,7 @@ describe("canMoveSitePageGroup", () => {
 });
 
 describe("summarizeSitePages", () => {
-  it("counts pages, published and dirty — doc layouts excluded", () => {
+  it("counts pages, published and dirty — template pages excluded", () => {
     const summary = summarizeSitePages([
       page({ id: "a", slug: "about", status: "published" }),
       page({
@@ -112,8 +122,12 @@ describe("summarizeSitePages", () => {
         content_dirty: true,
       }),
       page({ id: "c", slug: "contact" }),
-      // 模板页不计进卡头概览（它们在下方常驻区）
-      page({ id: "d", slug: "docs", kind: "doc_index", status: "published" }),
+      page({
+        id: "d",
+        slug: "demo-layout",
+        kind: "demo_layout",
+        status: "published",
+      }),
     ]);
 
     expect(summary).toEqual({ total: 3, published: 2, dirty: 1 });

@@ -2,10 +2,6 @@ import { type CSSProperties, type ReactNode } from "react";
 
 import { cn } from "@rewindom/ui/utils";
 
-import {
-  type PublicDocDetail,
-  type PublicDocSummary,
-} from "../../shared/marketing-doc.js";
 import { MARKETING_SITE_ROOT_CLASS } from "../../shared/marketing-site-theme.js";
 import {
   localizeSections,
@@ -55,21 +51,8 @@ interface TenantSiteViewProps {
   onSelectSection?: SelectSectionFn;
   /** 替换 main 区内容（会员门控占位等）；有值时不再渲染 sections。 */
   mainOverride?: ReactNode;
-  /**
-   * 文档库数据，供 `doc-*` 段渲染（编辑文档模板页时的预览）。
-   * 与 SSR 的 `DocRenderContext` 同一组字段，见 `sections/render-context.ts`。
-   */
-  docs?: readonly PublicDocSummary[];
-  /**
-   * 页头 / 页脚看到的那份文档目录；不给就跟 `docs` 一样。
-   *
-   * 公开面只有一份文档数据，这里分成两个口子**只为编辑器**：一个文档都没有的站点，
-   * 编辑文档模板页时 `docs` 会被换成一篇示例（否则版式预览是一片空白，见
-   * `useDocPreviewData`），而那篇示例绝不能漏进页头——页头会因此长出一个线上不存在的
-   * 「文档」下拉和一个搜不出东西的搜索框，正是这个组件该避免的那种谎。
-   */
-  chromeDocs?: readonly PublicDocSummary[];
-  doc?: PublicDocDetail;
+  /** 贡献段 / 贡献导航源的按请求数据。 */
+  contributed?: Readonly<Record<string, unknown>>;
 }
 
 /**
@@ -90,10 +73,7 @@ export function TenantSiteView({
   footerOverride,
   onSelectSection,
   mainOverride,
-  docs,
-  chromeDocs = docs,
-  // `doc` 在这个组件里已经是那份 DOM Document 了，改个名避免撞车
-  doc: docDetail,
+  contributed,
 }: TenantSiteViewProps) {
   const previewDoc = usePreviewDocument();
   const doc = embedded ? previewDoc : document;
@@ -140,7 +120,7 @@ export function TenantSiteView({
               siteName={site.site_name}
               logoUrl={theme.logo_url ?? null}
               pages={site.pages}
-              docs={chromeDocs}
+              contributed={contributed}
               currentPath={path}
               alternates={alternates}
               locale={site.locale}
@@ -159,8 +139,7 @@ export function TenantSiteView({
               sectionSpacing={theme.section_spacing}
               pages={site.pages}
               currentPath={path}
-              docs={docs}
-              doc={docDetail}
+              contributed={contributed}
             />
           ),
         )}
@@ -182,8 +161,7 @@ export function TenantSiteView({
               sectionSpacing={theme.section_spacing}
               pages={site.pages}
               currentPath={path}
-              docs={docs}
-              doc={docDetail}
+              contributed={contributed}
             />
           )}
         </main>
@@ -196,7 +174,7 @@ export function TenantSiteView({
               siteName={site.site_name}
               logoUrl={theme.logo_url ?? null}
               pages={site.pages}
-              docs={chromeDocs}
+              contributed={contributed}
               currentPath={path}
               alternates={alternates}
               locale={site.locale}
@@ -215,8 +193,7 @@ export function TenantSiteView({
               sectionSpacing={theme.section_spacing}
               pages={site.pages}
               currentPath={path}
-              docs={docs}
-              doc={docDetail}
+              contributed={contributed}
             />
           ),
         )}

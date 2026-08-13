@@ -3,8 +3,6 @@ import { registerTenantGatedRoutes } from "@rewindom/server-kernel/runtime/regis
 import { TENANT_MARKETING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { MARKETING_SERVER_I18N } from "./i18n.js";
-import { marketingDocCategoryRoutes } from "./marketing-doc-category.routes.js";
-import { marketingDocRoutes } from "./marketing-doc.routes.js";
 import { publicSiteRoutes } from "./public-site.routes.js";
 import { siteContentRoutes } from "./site-content.routes.js";
 import {
@@ -51,15 +49,6 @@ export const marketingServerModule: ServerAppModule = {
       { action: "SITE_REDIRECT_DELETE", label: "删除官网重定向" },
       { action: "SITE_ASSET_DELETE", label: "删除官网媒体" },
       { action: "SITE_PAGE_VERSION_RESTORE", label: "恢复官网页面历史版本" },
-      { action: "SITE_DOC_CREATE", label: "创建文档" },
-      { action: "SITE_DOC_UPDATE", label: "更新文档" },
-      { action: "SITE_DOC_DELETE", label: "删除文档" },
-      { action: "SITE_DOC_PUBLISH", label: "发布文档" },
-      { action: "SITE_DOC_UNPUBLISH", label: "取消发布文档" },
-      { action: "SITE_DOC_IMPORT", label: "导入文档" },
-      { action: "SITE_DOC_CATEGORY_CREATE", label: "创建文档分类" },
-      { action: "SITE_DOC_CATEGORY_UPDATE", label: "更新文档分类" },
-      { action: "SITE_DOC_CATEGORY_DELETE", label: "删除文档分类" },
     ],
   },
   server: {
@@ -73,10 +62,6 @@ export const marketingServerModule: ServerAppModule = {
         "tenant-marketing",
         async (scoped) => {
           await scoped.register(siteRoutes, { prefix: "/api/site" });
-          await scoped.register(marketingDocRoutes, { prefix: "/api/site" });
-          await scoped.register(marketingDocCategoryRoutes, {
-            prefix: "/api/site",
-          });
         },
       );
       await app.register(marketingSsrRoutes);

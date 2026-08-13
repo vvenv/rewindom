@@ -8,13 +8,26 @@
 import { Marked, Renderer } from "marked";
 
 import { escapeHtml } from "../../html.js";
-import { docHeadingAnchor } from "../../marketing-doc.js";
 import {
   resolveSurfaceStyle,
   surfaceStyleAttr,
   settingText,
   type SettingValues,
 } from "../../section-schema.js";
+
+/**
+ * 标题文本 → 锚点 id。保留 CJK：中文标题占多数，剥成空串的话目录链接点不动。
+ */
+function headingAnchor(text: string): string {
+  return (
+    text
+      .trim()
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s-]/gu, "")
+      .replace(/\s+/gu, "-")
+      .replace(/^-+|-+$/gu, "") || "section"
+  );
+}
 
 const defaultTable = Renderer.prototype.table;
 
@@ -32,11 +45,11 @@ const mdMarked = new Marked({
      * 标题带锚点 id，且 `#` 降一级——两条都是为了跟客户端 `MarkdownProse` 对齐。
      *
      * 降级：正文外面已经有一个页面级 h1（文档标题 / hero），正文里的 `#` 再出一个
-     * 就是双 h1。id：`doc-toc` 生成的目录链接要在 SSR 出来的页面上点得动。
+     * 就是双 h1。id：目录链接要在 SSR 出来的页面上点得动。
      */
     heading(token) {
       const level = token.depth === 1 ? 2 : token.depth;
-      const anchor = escapeHtml(docHeadingAnchor(token.text));
+      const anchor = escapeHtml(headingAnchor(token.text));
       const inner = this.parser.parseInline(token.tokens);
       return `<h${level} id="${anchor}">${inner}</h${level}>\n`;
     },

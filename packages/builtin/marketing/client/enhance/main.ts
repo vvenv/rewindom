@@ -5,7 +5,6 @@
  */
 
 import { enhanceAccount } from "./account.js";
-import { enhanceDocSearch } from "./doc-search.js";
 import { enhanceForms } from "./form.js";
 import { enhanceGated } from "./gated.js";
 import { enhanceMemberAuth } from "./member-auth.js";
@@ -16,7 +15,6 @@ function boot(): void {
   enhanceForms();
   enhanceAccount();
   enhanceGated();
-  enhanceDocSearch();
   enhanceMemberAuth();
 }
 

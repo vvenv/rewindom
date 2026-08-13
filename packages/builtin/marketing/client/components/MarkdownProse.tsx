@@ -3,14 +3,27 @@ import { type ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { docHeadingAnchor } from "../../shared/marketing-doc.js";
+/**
+ * 标题文本 → 锚点 id。保留 CJK：中文标题占多数，剥成空串的话目录链接点不动。
+ * 与 SSR `md()` 同一算法，两端锚点才对得上。
+ */
+function headingAnchor(text: string): string {
+  return (
+    text
+      .trim()
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s-]/gu, "")
+      .replace(/\s+/gu, "-")
+      .replace(/^-+|-+$/gu, "") || "section"
+  );
+}
 
 /**
  * 标题的纯文本形态，用来算锚点 id。
  *
  * 只能从已经渲染好的 children 里捞：react-markdown 给到组件的是 ReactNode 树，
  * 拿不到原始 markdown 行。`**粗体**` 这类行内标记渲染后就是纯文本，所以递归拼
- * 出来的结果和 SSR 那边喂给 `docHeadingAnchor` 的 `token.text` 是一致的。
+ * 出来的结果和 SSR 那边喂给 `headingAnchor` 的 `token.text` 是一致的。
  */
 function headingText(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") return String(node);
@@ -29,9 +42,9 @@ function headingText(node: ReactNode): string {
  */
 export const MARKDOWN_PROSE_COMPONENTS: Components = {
   // 页面外壳已有 h1（文档标题 / hero），正文里的 `#` 降一级，避免双 h1
-  h1: ({ children }) => <h2 id={docHeadingAnchor(headingText(children))}>{children}</h2>,
-  h2: ({ children }) => <h2 id={docHeadingAnchor(headingText(children))}>{children}</h2>,
-  h3: ({ children }) => <h3 id={docHeadingAnchor(headingText(children))}>{children}</h3>,
+  h1: ({ children }) => <h2 id={headingAnchor(headingText(children))}>{children}</h2>,
+  h2: ({ children }) => <h2 id={headingAnchor(headingText(children))}>{children}</h2>,
+  h3: ({ children }) => <h3 id={headingAnchor(headingText(children))}>{children}</h3>,
   p: ({ children }) => <p>{children}</p>,
   ul: ({ children }) => <ul>{children}</ul>,
   ol: ({ children }) => <ol>{children}</ol>,

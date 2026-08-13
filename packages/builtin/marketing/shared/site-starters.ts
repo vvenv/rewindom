@@ -50,7 +50,7 @@ export const SITE_STARTERS: SiteStarter[] = [
 /**
  * 默认营销站起步模板包含的页面（主语言）：只建首页。
  *
- * `/docs` 是租户文档库（`MarketingDoc`）的专属路径，不由页面预设生成。
+ * `/docs` 由 site-docs 模块在装上时保留，不由页面预设生成。
  */
 export const DEFAULT_SITE_STARTER_PAGES: SiteStarterPageSpec[] = [
   { presetKey: "home", sort_order: 0 },

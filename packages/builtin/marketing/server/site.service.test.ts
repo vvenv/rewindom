@@ -1,9 +1,9 @@
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { registerDocsPageTemplates } from "../../site-docs/shared/page-templates.js";
 import { registerPageTemplateKind } from "../shared/page-templates.js";
 import { registerSectionDefinition } from "../shared/section-schema.js";
-
 import {
   deletePage,
   duplicatePage,
@@ -14,6 +14,8 @@ import {
   saveSiteDraft,
   saveEditorDraft,
 } from "./site.service.js";
+
+registerDocsPageTemplates();
 
 vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
@@ -180,7 +182,7 @@ describe("duplicatePage", () => {
 
   it("refuses a same-language copy of a doc template page", async () => {
     vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
-      sourceRow({ kind: "doc_index", slug: "docs", title: "文档" }) as never,
+      sourceRow({ kind: "docs_index", slug: "docs", title: "文档" }) as never,
     );
     vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([
       { slug: "docs" },
@@ -194,7 +196,7 @@ describe("duplicatePage", () => {
 
   it("keeps the fixed doc template slug when copying into another language", async () => {
     vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
-      sourceRow({ kind: "doc_index", slug: "docs", title: "文档" }) as never,
+      sourceRow({ kind: "docs_index", slug: "docs", title: "文档" }) as never,
     );
     vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([] as never);
 
@@ -204,7 +206,7 @@ describe("duplicatePage", () => {
     });
 
     expect(createdData().slug).toBe("docs");
-    expect(createdData().kind).toBe("doc_index");
+    expect(createdData().kind).toBe("docs_index");
     expect(createdData().locale).toBe("en");
   });
 

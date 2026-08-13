@@ -2,15 +2,50 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildPresetSections,
-  DOC_TEMPLATE_PRESETS,
   HOME_STARTER_PRESET,
 } from "./page-presets.js";
 import { mergeSectionsWithPreset } from "./preset-merge.js";
 import { createSection } from "./section-schema.js";
 
-import type { PresetTranslateFn } from "./page-presets.types.js";
+import type { PagePreset, PresetTranslateFn } from "./page-presets.types.js";
 
 const t: PresetTranslateFn = (key) => `t:${key}`;
+
+/** 三列容器：测 merge 递归补列 / 补子段，不依赖贡献模块。 */
+const GROUP_PRESET: PagePreset = {
+  key: "group",
+  label: "group",
+  kind: "home",
+  slug: "home",
+  titleKey: "x",
+  descriptionKey: "x",
+  sections: [
+    {
+      type: "group",
+      raw: {
+        columns_layout: "2:8:2",
+        column_gap: 40,
+        align_items: "stretch",
+      },
+      blocks: [
+        {
+          type: "column",
+          raw: { show_divider: true },
+          sections: [{ type: "prose" }],
+        },
+        {
+          type: "column",
+          raw: { show_divider: true },
+          sections: [{ type: "hero" }],
+        },
+        {
+          type: "column",
+          sections: [{ type: "band" }],
+        },
+      ],
+    },
+  ],
+};
 
 describe("mergeSectionsWithPreset", () => {
   it("匹配到的段保留租户内容，预设新增的段补建", () => {
@@ -90,55 +125,42 @@ describe("mergeSectionsWithPreset", () => {
   });
 
   it("容器段递归：缺的列补建，已有列与列内子段保留", () => {
-    // 现有 doc_article 只有两列（旧版式没有右侧章节导航）
-    const [group] = buildPresetSections(DOC_TEMPLATE_PRESETS.doc_article, t);
+    const [group] = buildPresetSections(GROUP_PRESET, t);
     const existingGroup = {
       ...group!,
       blocks: group!.blocks.slice(0, 2),
     };
-    const navSection = existingGroup.blocks[0]!.sections![0]!;
-    navSection.settings.show_category = false;
+    const firstChild = existingGroup.blocks[0]!.sections![0]!;
+    firstChild.settings.body_md = "租户改过的列";
 
-    const merged = mergeSectionsWithPreset(
-      [existingGroup],
-      DOC_TEMPLATE_PRESETS.doc_article,
-      t,
-    );
+    const merged = mergeSectionsWithPreset([existingGroup], GROUP_PRESET, t);
 
     expect(merged).toHaveLength(1);
     const mergedGroup = merged[0]!;
     expect(mergedGroup.id).toBe(existingGroup.id);
     expect(mergedGroup.blocks).toHaveLength(3);
-    // 前两列是租户原有的列（含子段的用户配置）
     expect(mergedGroup.blocks[0]?.id).toBe(existingGroup.blocks[0]!.id);
-    expect(mergedGroup.blocks[0]?.sections?.[0]?.settings.show_category).toBe(
-      false,
+    expect(mergedGroup.blocks[0]?.sections?.[0]?.settings.body_md).toBe(
+      "租户改过的列",
     );
-    expect(mergedGroup.blocks[1]?.sections?.[0]?.type).toBe("doc-article");
-    // 第三列按最新预设补建
-    expect(mergedGroup.blocks[2]?.sections?.[0]?.type).toBe("doc-toc");
+    expect(mergedGroup.blocks[1]?.sections?.[0]?.type).toBe("hero");
+    expect(mergedGroup.blocks[2]?.sections?.[0]?.type).toBe("band");
   });
 
   it("列内租户自加的子段保留，缺的子段补建", () => {
-    const [group] = buildPresetSections(DOC_TEMPLATE_PRESETS.doc_article, t);
-    // 第一列：删掉 doc-nav，换成租户自加的 prose
+    const [group] = buildPresetSections(GROUP_PRESET, t);
     const firstColumn = group!.blocks[0]!;
-    const customProse = createSection("prose");
-    customProse.settings.body_md = "列里的自定义内容";
-    firstColumn.sections = [customProse];
+    const customHero = createSection("hero");
+    customHero.settings.headline = "列里的自定义内容";
+    firstColumn.sections = [customHero];
 
-    const merged = mergeSectionsWithPreset(
-      [group!],
-      DOC_TEMPLATE_PRESETS.doc_article,
-      t,
-    );
+    const merged = mergeSectionsWithPreset([group!], GROUP_PRESET, t);
 
     const mergedFirst = merged[0]!.blocks[0]!;
-    // doc-nav 按预设补回，自加的 prose 追加在后
     expect(mergedFirst.sections?.map((section) => section.type)).toEqual([
-      "doc-nav",
       "prose",
+      "hero",
     ]);
-    expect(mergedFirst.sections?.[1]?.settings.body_md).toBe("列里的自定义内容");
+    expect(mergedFirst.sections?.[1]?.settings.headline).toBe("列里的自定义内容");
   });
 });

@@ -24,10 +24,6 @@ import {
 } from "../section-schema.js";
 
 import { renderBandHtml } from "./band/html.js";
-import { renderDocArticleHtml } from "./doc-article/html.js";
-import { renderDocListHtml } from "./doc-list/html.js";
-import { renderDocNavHtml } from "./doc-nav/html.js";
-import { renderDocTocHtml } from "./doc-toc/html.js";
 import { renderFormHtml } from "./form/html.js";
 import { renderGroupHtml } from "./group/html.js";
 import { renderHeroHtml } from "./hero/html.js";
@@ -83,10 +79,6 @@ export const SECTION_HTML: Partial<Record<SectionType, SectionHtmlRenderer>> = {
   group: renderGroupHtml,
   "page-header": renderPageHeaderHtml,
   prose: renderProseHtml,
-  "doc-list": renderDocListHtml,
-  "doc-article": renderDocArticleHtml,
-  "doc-nav": renderDocNavHtml,
-  "doc-toc": renderDocTocHtml,
 };
 
 /**

@@ -1,15 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  createBlock,
-  createSection,
-  type SiteBlock,
-  type SiteSection,
-} from "./section-schema.js";
-import {
   canonicalizePageIdentity,
-  chromeNeedsDocList,
-  chromeShowsDocSearch,
   marketingPagePath,
   pageDepth,
   pageParentPath,
@@ -19,7 +11,6 @@ import {
   siteNavPages,
   type PublicSitePage,
 } from "./site-cms.js";
-import { blankNavItem } from "./site-nav.js";
 
 describe("marketingPagePath", () => {
   it("maps home and nested page slugs", () => {
@@ -131,86 +122,19 @@ describe("page settings", () => {
   });
 });
 
-describe("文档模板页", () => {
-  it("按显式 kind 认领固定 slug", () => {
+describe("未登记的模板 kind", () => {
+  it("canonicalizePageIdentity 把未登记 kind 当普通页面", () => {
     expect(canonicalizePageIdentity("doc_index", "随便写")).toEqual({
-      kind: "doc_index",
-      slug: "docs",
-    });
-    expect(canonicalizePageIdentity("doc_article", "")).toEqual({
-      kind: "doc_article",
-      slug: "docs-article",
+      kind: "page",
+      slug: "随便写",
     });
   });
 
-  // `docs` 是保留 slug：想建一个叫 docs 的普通页应该被拒，而不是悄悄变成模板页
+  // 没装 site-docs 时 `docs` 不是保留 slug：想建一个叫 docs 的普通页可以
   it("不按 slug 反推 kind", () => {
     expect(canonicalizePageIdentity(undefined, "docs")).toEqual({
       kind: "page",
       slug: "docs",
     });
-  });
-
-  it("索引页有真实地址，详情页只有模板路径", () => {
-    expect(marketingPagePath("doc_index", "docs")).toBe("/docs");
-    expect(marketingPagePath("doc_article", "docs-article")).toBe(
-      "/docs/:slug",
-    );
-  });
-});
-
-describe("chrome 的文档数据需求", () => {
-  function header(blocks: SiteBlock[] = [], navItems?: unknown[]): SiteSection {
-    let section = createSection("header");
-    if (navItems) {
-      section = {
-        ...section,
-        blocks: section.blocks.map((block) =>
-          block.type === "chrome_nav"
-            ? { ...block, settings: { ...block.settings, items: navItems } }
-            : block,
-        ),
-      };
-    }
-    return { ...section, blocks: [...section.blocks, ...blocks] };
-  }
-
-  const plain = {
-    header: [header()],
-    footer: [],
-  };
-
-  it("什么都没用到文档时两档都不要", () => {
-    expect(chromeNeedsDocList(plain)).toBe(false);
-    expect(chromeShowsDocSearch(plain)).toBe(false);
-  });
-
-  it("页头默认导航只有一级页面，不要整份目录", () => {
-    expect(chromeNeedsDocList({ header: [header()], footer: [] })).toBe(false);
-  });
-
-  it("导航条目挂了文档动态项要整份目录", () => {
-    const item = blankNavItem("docs");
-    expect(
-      chromeNeedsDocList({
-        ...plain,
-        header: [header([], [item])],
-      }),
-    ).toBe(true);
-  });
-
-  it("页脚摆了 doc-* 段要整份目录", () => {
-    expect(
-      chromeNeedsDocList({ ...plain, footer: [createSection("doc-nav")] }),
-    ).toBe(true);
-  });
-
-  it("搜索块只要「有没有文档」，不要整份目录", () => {
-    const withSearch = {
-      ...plain,
-      header: [header([createBlock("header", "chrome_search", {})], [])],
-    };
-    expect(chromeShowsDocSearch(withSearch)).toBe(true);
-    expect(chromeNeedsDocList(withSearch)).toBe(false);
   });
 });

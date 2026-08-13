@@ -8,6 +8,7 @@ import { notificationClientModule } from "@rewindom/builtin/notification/client/
 import { platformClientModule } from "@rewindom/builtin/platform/client/module.js";
 import { rbacClientModule } from "@rewindom/builtin/rbac/client/module.js";
 import { siteBillingClientModule } from "@rewindom/builtin/site-billing/client/module.js";
+import { siteDocsClientModule } from "@rewindom/builtin/site-docs/client/module.js";
 import { siteMemberClientModule } from "@rewindom/builtin/site-member/client/module.js";
 import { slowQueryClientModule } from "@rewindom/builtin/slow-query/client/module.js";
 import { userClientModule } from "@rewindom/builtin/user/client/module.js";
@@ -31,6 +32,7 @@ export const ENABLED_CLIENT_MODULES = [
   appShellClientModule,
   dashboardClientModule,
   marketingClientModule,
+  siteDocsClientModule,
   siteMemberClientModule,
   siteBillingClientModule,
   notificationClientModule,

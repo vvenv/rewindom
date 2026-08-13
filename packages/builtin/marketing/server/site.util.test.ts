@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  registerReservedPageSlug,
+  resetReservedPageSlugContributions,
+} from "../shared/reserved-slugs.js";
+import {
   normalizePageKind,
   pageContentIsDirty,
   promotePageContentData,
@@ -25,16 +29,28 @@ describe("page slug identity", () => {
     expect(() => validatePageSlug("page", "app/about")).toThrow(
       "site.slug_reserved",
     );
-    expect(() => validatePageSlug("page", "docs")).toThrow("site.slug_reserved");
-    expect(() => validatePageSlug("page", "docs/quickstart")).toThrow(
-      "site.slug_reserved",
-    );
+    expect(validatePageSlug("page", "docs")).toBe("docs");
+    expect(validatePageSlug("page", "docs/quickstart")).toBe("docs/quickstart");
     expect(() => validatePageSlug("page", "Bad_Slug")).toThrow(
       "site.slug_invalid",
     );
     expect(() => validatePageSlug("page", "a/b/c/d")).toThrow(
       "site.slug_invalid",
     );
+  });
+
+  it("rejects a contributed reserved slug after registration", () => {
+    registerReservedPageSlug("docs");
+    try {
+      expect(() => validatePageSlug("page", "docs")).toThrow(
+        "site.slug_reserved",
+      );
+      expect(() => validatePageSlug("page", "docs/quickstart")).toThrow(
+        "site.slug_reserved",
+      );
+    } finally {
+      resetReservedPageSlugContributions();
+    }
   });
 
   it("maps unknown kind to page", () => {

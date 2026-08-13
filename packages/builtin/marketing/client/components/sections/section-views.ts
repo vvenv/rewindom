@@ -19,10 +19,6 @@ import {
 import { registerSectionIcon } from "../theme-editor/section-icons.js";
 
 import { BandSection } from "./views/band.js";
-import { DocArticleSection } from "./views/doc-article.js";
-import { DocListSection } from "./views/doc-list.js";
-import { DocNavSection } from "./views/doc-nav.js";
-import { DocTocSection } from "./views/doc-toc.js";
 import { FormSection } from "./views/form.js";
 import { GroupSection } from "./views/group.js";
 import { HeroSection } from "./views/hero.js";
@@ -43,10 +39,6 @@ export const SECTION_VIEWS: Partial<
   group: GroupSection,
   "page-header": PageHeaderSection,
   prose: ProseSection,
-  "doc-list": DocListSection,
-  "doc-article": DocArticleSection,
-  "doc-nav": DocNavSection,
-  "doc-toc": DocTocSection,
 };
 
 /**

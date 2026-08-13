@@ -7,7 +7,6 @@ import {
   marketingSiteThemeCss,
 } from "../shared/marketing-site-theme.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
-import { type DocRenderContext } from "../shared/sections/render-context.js";
 import {
   type PublicMarketingPage,
   type PublicMarketingSite,
@@ -136,20 +135,6 @@ export function renderMarketingHtml(input: {
   /** 本租户已开通的 entitlement；贡献段据此决定渲不渲染，见 `site-entitlements.ts`。 */
   enabledEntitlements?: ReadonlySet<string>;
   /**
-   * 文档库数据（`doc-*` 段的数据源）。
-   *
-   * 文档模板页必须带；普通页面只有在页面 / 页头 / 页脚里真的摆了 `doc-*` 段时才需要
-   * ——不带等于那几段什么都不渲染，所以漏传的后果是内容少了而不是多了。
-   */
-  docContext?: DocRenderContext;
-  /**
-   * 站里有没有已发布文档（页头搜索入口据此决定渲不渲染）。
-   *
-   * 与 `docContext.docs` 分开传：搜索框只要这一个布尔值，不该逼调用方为它查一遍
-   * 全库目录——它默认是开的，那会落在每一次页面渲染上。
-   */
-  hasDocs?: boolean;
-  /**
    * 贡献段的按请求数据，按模块 id 分键（见 `SectionRenderContext.contributed`）。
    *
    * marketing 只负责原样透传：会员登录表单要的「验证码开没开、上次提交错在哪」
@@ -166,7 +151,6 @@ export function renderMarketingHtml(input: {
     memberGate = false,
     accountEntryHtml = "",
     enabledEntitlements,
-    docContext,
     contributed,
     isDefaultTenant,
   } = input;
@@ -181,7 +165,6 @@ export function renderMarketingHtml(input: {
     enabledEntitlements,
     contributed,
     isDefaultTenant,
-    ...docContext,
   };
   const base = origin.replace(/\/$/u, "");
   const locale = normalizeLocale(page.locale, site.default_locale);
@@ -248,8 +231,6 @@ export function renderMarketingHtml(input: {
             homeHref: withSiteLocale("/", locale, site.default_locale),
             locales: localeSwitcherOptions(page, locale),
             pages: site.pages,
-            docs: docContext?.docs,
-            hasDocs: input.hasDocs ?? (docContext?.docs?.length ?? 0) > 0,
             currentPath: page.path,
             locale,
             defaultLocale: site.default_locale,
@@ -271,8 +252,6 @@ export function renderMarketingHtml(input: {
             homeHref: withSiteLocale("/", locale, site.default_locale),
             locales: localeSwitcherOptions(page, locale),
             pages: site.pages,
-            docs: docContext?.docs,
-            hasDocs: input.hasDocs ?? (docContext?.docs?.length ?? 0) > 0,
             currentPath: page.path,
             locale,
             defaultLocale: site.default_locale,
@@ -302,7 +281,6 @@ export function renderMarketingHtml(input: {
     </div>`
     : renderPageSectionsHtml(site, page, {
         enabledEntitlements,
-        docContext,
         contributed,
         isDefaultTenant,
       });

@@ -3,6 +3,8 @@
  * provider 也按它决定跑不跑。
  */
 
+import { settingNavItems } from "../site-nav.js";
+
 import type { SiteSection } from "./types.js";
 
 /**
@@ -15,6 +17,9 @@ import type { SiteSection } from "./types.js";
  * 贡献块的 CSS 与按需查库（购物车件数）都不会跑。内置块 type 没有对应 CSS 条目，
  * 多收进集合是空转，无害。
  *
+ * **导航 source 也要收**：页头 `chrome_nav` 可以挂 `site-docs` 这类贡献源，页面上
+ * 却没有对应的文档段。漏了它，贡献方的 context provider 不会跑，导航展开是空的。
+ *
  * 刻意不过滤 entitlement 未开通的贡献段：那要在这里复刻一遍渲染期的闸门逻辑，
  * 两处判断早晚会不一致。多收一个段的代价是几百字节，少收一个是页面花掉。
  */
@@ -24,8 +29,14 @@ export function collectSectionTypes(
 ): Set<string> {
   for (const section of sections) {
     into.add(section.type);
+    for (const item of settingNavItems(section.settings)) {
+      into.add(item.source);
+    }
     for (const block of section.blocks ?? []) {
       into.add(block.type);
+      for (const item of settingNavItems(block.settings)) {
+        into.add(item.source);
+      }
       if (block.sections) collectSectionTypes(block.sections, into);
     }
   }

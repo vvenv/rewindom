@@ -1,8 +1,7 @@
-import { APP_LOCALES, type AppLocale } from "@rewindom/shared";
+import { type AppLocale } from "@rewindom/shared";
 
 import { getPageTemplateKind } from "./page-templates.js";
 import { normalizeSiteColor } from "./site-color.js";
-import { navItemsNeedDocs, settingNavItems } from "./site-nav.js";
 
 import type { LocalizedText, SiteSection } from "./section-schema.js";
 import type { ThemeSettings } from "./theme-sections.js";
@@ -21,9 +20,8 @@ export type SiteLocalizedText = string | LocalizedText;
  * 想知道一个 kind 是不是模板页、它的固定 slug 与路径是什么，一律查
  * `page-templates.ts` 的注册表。
  *
- * marketing 自带的两张模板页是文档库的 `doc_index` / `doc_article`——版式归租户
- *（同一个编辑器、同一套发布流程），内容归 `MarketingDoc`。详情模板一张顶所有
- * `/docs/:slug`：访客点开哪篇，`doc-article` 段就渲哪篇。
+ * marketing 自带的模板页只有 `home`。文档库、会员登录等由业务模块
+ * `registerPageTemplateKind` 贡献——marketing 不认识那些 kind。
  *
  * SSR 在库里没有记录时仍用内置预设渲染——那是快照前的缺口，不是「默认不落库」的产品路径。
  */
@@ -378,45 +376,17 @@ export interface PublicMarketingPage {
   updated_at: string;
 }
 
-/**
- * 自定义 page slug 的**第一段**不可占用的保留字。
- *
- * `pricing` 刻意**不**保留：绑定域名上的 `/pricing` 归租户自己的页面。
- * `docs` **保留**给租户文档库（`/docs` 索引 + `/docs/:slug` 详情，见
- * `MarketingDoc`）：它是一套独立于页面版式系统的 Markdown 文档库，不进 section 体系。
- */
-export const RESERVED_PAGE_SLUGS = new Set([
-  // locale 前缀占掉了一级路径：slug 叫 `en` 的顶层页会把整棵 `/en/*` 遮住。
-  // slug 在写入前已小写，这里也存小写形态。
-  ...APP_LOCALES.map((locale) => locale.slug.toLowerCase()),
-  "home",
-  /*
-   * 应用区一级路径，与 `SITE_APP_PREFIXES` 同源（那边是「交回 SPA」，
-   * 这边是「租户不能拿它当页面 slug」）。租户工作台已统一收进 `/app/*`，
-   * 所以这里也只剩一个 `app`——`/notes`、`/site` 这些顶层地址还给了租户。
-   */
-  "app",
-  "login",
-  "register",
-  "auth",
-  "member",
-  "shop",
-  "platform",
-  "api",
-  "assets",
-  "health",
-  "sitemap.xml",
-  "robots.txt",
-  // 租户文档库专属路径，见 MarketingDoc
-  "docs",
-]);
+export {
+  isReservedPageSlug,
+  getReservedPageSlugs,
+  RESERVED_PAGE_SLUGS,
+} from "./reserved-slugs.js";
 
 /**
  * 规范化页面 kind / slug（`home` 与各张模板页都是「kind 唯一、slug 固定」）。
  *
- * 只按**显式的 kind** 认模板页，不按 slug 反推：`docs` 在 `RESERVED_PAGE_SLUGS` 里，
- * 租户想建一个叫 `docs` 的普通页应该收到「这个地址被占用了」，而不是莫名其妙拿到
- * 一张文档索引模板。
+ * 只按**显式的 kind** 认模板页，不按 slug 反推：贡献模块登记的保留 slug
+ *（如 site-docs 的 `docs`）会在写入时被拒，而不是悄悄变成一张模板页。
  */
 export function canonicalizePageIdentity(
   kind: string | undefined,
@@ -439,9 +409,9 @@ export function canonicalizePageIdentity(
 /**
  * 页面的逻辑路径（不带 locale 前缀）。
  *
- * 模板页返回的可能是一个**模板路径**（`doc_article` 的 `/docs/:slug`），不是能打开
- * 的地址——那张页面对应的是「所有文档详情」，编辑器拿它显示「这一页管的是哪一段
- * 地址」。真实请求由各自的 SSR 路由拦截，不走页面路径匹配。
+ * 模板页返回的可能是一个**模板路径**（如 `/docs/:slug`），不是能打开的地址——
+ * 那张页面对应的是「这一类内容的全部详情」，编辑器拿它显示「这一页管的是哪一段
+ * 地址」。真实请求由贡献模块的 path handler 拦截，不走页面路径匹配。
  */
 export function marketingPagePath(
   kind: MarketingPageKind,
@@ -542,44 +512,4 @@ export function resolvePageMenu(
     title_path: parent?.path ?? null,
     items,
   };
-}
-
-/**
- * 这次渲染要不要先查一趟**完整**文档目录。
- *
- * 页面 / 页头 / 页脚上摆了 `doc-*` 段，或 chrome 导航条目里挂了文档动态项——这两种
- * 都要逐篇的标题与地址才画得出来。
- *
- * 页头的搜索框**不**在此列：它只需要知道「站里有没有文档」，见 `chromeShowsDocSearch`。
- * 而它默认是开的，算进来的话每一次页面渲染都会为一枚按钮拉一遍全库目录。
- */
-export function chromeNeedsDocList(site: {
-  header: SiteSection[];
-  footer: SiteSection[];
-}): boolean {
-  for (const section of [...site.header, ...site.footer]) {
-    if (section.type.startsWith("doc-")) return true;
-    if (navItemsNeedDocs(settingNavItems(section.settings))) return true;
-    for (const block of section.blocks) {
-      if (navItemsNeedDocs(settingNavItems(block.settings))) return true;
-    }
-  }
-  return false;
-}
-
-/**
- * 页头是否要渲染文档搜索入口（还要「站里确实有文档」才真的画）。
- *
- * 单独一条是因为它的数据需求便宜得多——一个布尔值，不是整份目录。漏了它的后果是
- * **同一个页头在文档页有搜索框、在别的页上没有**，而文档页恰好总是带着文档数据，
- * 本地随手一看还挺正常。
- */
-export function chromeShowsDocSearch(site: {
-  header: SiteSection[];
-  footer: SiteSection[];
-}): boolean {
-  // 页头页脚共用一套块，搜索框哪边都能摆——只看页头会漏掉「搜索收在页脚」的站
-  return [...site.header, ...site.footer].some((section) =>
-    section.blocks.some((block) => block.type === "chrome_search"),
-  );
 }

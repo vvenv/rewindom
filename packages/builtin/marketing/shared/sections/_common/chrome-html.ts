@@ -10,9 +10,7 @@
 
 import { escapeHtml } from "../../html.js";
 import { registerSectionCss } from "../../load-marketing-site-css.js";
-import { docMessages, DOCS_INDEX_PATH } from "../../marketing-doc.js";
 import { settingBool, settingText } from "../../section-schema.js";
-import { withSiteLocale } from "../../site-locale.js";
 import {
   resolveNavItems,
   settingNavItems,
@@ -48,8 +46,6 @@ export interface ChromeRenderInput {
   homeHref: string;
   ctx: SiteNavContext;
   locales: LocaleSwitcherOption[];
-  /** 站里有没有已发布文档；搜索块据此决定渲不渲染。 */
-  hasDocs: boolean;
   /** 会员入口的 SSR 片段（由 site-member 模块灌进来）。 */
   accountEntryHtml?: string;
   /** 贡献段 / 贡献 chrome 块的按请求数据。 */
@@ -89,7 +85,6 @@ export function resetChromeBlockHtml(): void {
 const ICON = {
   locale: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>`,
   sun: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
-  search: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`,
 } as const;
 
 /** 点开外面收起来。每个下拉自带一份，所以同页出现几个都各管各的。 */
@@ -194,15 +189,6 @@ function renderButtonHtml(block: SiteBlock): string {
   return `<a class="${className}"${linkAttrs(href)}>${escapeHtml(label)}</a>`;
 }
 
-function renderSearchHtml(ctx: SiteNavContext): string {
-  const label = escapeHtml(docMessages(ctx.locale).search);
-  const action = withSiteLocale(DOCS_INDEX_PATH, ctx.locale, ctx.defaultLocale);
-  return `<form class="chrome-search" role="search" method="get" action="${escapeHtml(action)}">
-  ${ICON.search}
-  <input type="search" name="q" placeholder="${label}" aria-label="${label}" />
-</form>`;
-}
-
 function renderLocaleHtml(options: LocaleSwitcherOption[]): string {
   if (options.length < 2) return "";
   const items = options
@@ -251,8 +237,6 @@ function renderBlockHtml(block: SiteBlock, input: ChromeRenderInput, isMainNav: 
     }
     case "chrome_button":
       return renderButtonHtml(block);
-    case "chrome_search":
-      return input.hasDocs ? renderSearchHtml(input.ctx) : "";
     case "chrome_locale":
       return renderLocaleHtml(input.locales);
     case "chrome_theme":

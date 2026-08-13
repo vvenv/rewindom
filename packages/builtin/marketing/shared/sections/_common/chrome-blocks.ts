@@ -205,13 +205,6 @@ export const CHROME_BUTTON_BLOCK: BlockDefinition = {
   ],
 };
 
-export const CHROME_SEARCH_BLOCK: BlockDefinition = {
-  type: "chrome_search",
-  label: "editor.blockType.chrome_search",
-  singleton: true,
-  settings: [...chromeSlotSettings({ align: "end", mobile: "hide" })],
-};
-
 export const CHROME_LOCALE_BLOCK: BlockDefinition = {
   type: "chrome_locale",
   label: "editor.blockType.chrome_locale",
@@ -244,7 +237,6 @@ export const CHROME_BLOCKS: BlockDefinition[] = [
   CHROME_NAV_BLOCK,
   CHROME_TEXT_BLOCK,
   CHROME_BUTTON_BLOCK,
-  CHROME_SEARCH_BLOCK,
   CHROME_LOCALE_BLOCK,
   CHROME_THEME_BLOCK,
   CHROME_ACCOUNT_BLOCK,

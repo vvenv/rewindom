@@ -22,12 +22,6 @@ const SiteMedia = lazy(() =>
   })),
 );
 
-const SiteDocs = lazy(() =>
-  import("../pages/site-docs.js").then((module) => ({
-    default: module.SiteDocs,
-  })),
-);
-
 const SiteEditor = lazy(() =>
   import("../pages/site-editor.js").then((module) => ({
     default: module.SiteEditor,
@@ -55,7 +49,6 @@ export function renderSiteRoutes(): ReactNode {
           element={<SiteFormSubmissions />}
         />
         <Route path="/app/site/media" element={<SiteMedia />} />
-        <Route path="/app/site/docs" element={<SiteDocs />} />
         <Route path="/app/site/editor" element={<SiteEditor />} />
       </Route>
     </Route>

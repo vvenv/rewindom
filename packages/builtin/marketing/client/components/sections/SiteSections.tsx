@@ -8,10 +8,6 @@
 import { type CSSProperties, type ReactNode } from "react";
 
 import {
-  type PublicDocDetail,
-  type PublicDocSummary,
-} from "../../../shared/marketing-doc.js";
-import {
   contentSurfaceStyleCss,
   hasCustomSurface,
   isPageHeaderVisible,
@@ -63,9 +59,7 @@ interface SiteSectionsProps {
   contained?: boolean;
   pages?: PublicSitePage[];
   currentPath?: string;
-  /** 文档库数据，供 `doc-*` 段渲染；与 SSR 的 `SectionRenderContext` 同一组字段。 */
-  docs?: readonly PublicDocSummary[];
-  doc?: PublicDocDetail;
+  contributed?: Readonly<Record<string, unknown>>;
 }
 
 export function SiteSections({
@@ -75,8 +69,7 @@ export function SiteSections({
   contained = false,
   pages = [],
   currentPath = "/",
-  docs = [],
-  doc,
+  contributed,
 }: SiteSectionsProps): ReactNode {
   const layouts = sections.map((section) =>
     resolveSectionLayout(section.settings),
@@ -94,8 +87,7 @@ export function SiteSections({
       sectionSpacing={sectionSpacing}
       pages={pages}
       currentPath={currentPath}
-      docs={docs}
-      doc={doc}
+      contributed={contributed}
       onSelectSection={onSelectSection}
     />
   );
@@ -196,8 +188,7 @@ export function SiteSections({
               section={section}
               pages={pages}
               currentPath={currentPath}
-              docs={docs}
-              doc={doc}
+              contributed={contributed}
               renderChildren={renderChildren}
             />
           </div>

@@ -12,13 +12,15 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 
 import { applyDefaultProductSite } from "../../../packages/builtin/marketing/server/apply-default-product-site.js";
-import { loadUsageDocs } from "../../../packages/builtin/marketing/server/load-usage-docs.js";
-import { seedDocsFromFiles } from "../../../packages/builtin/marketing/server/marketing-doc.service.js";
 import { initializeTenantSite } from "../../../packages/builtin/marketing/server/site-init.service.js";
+import { loadUsageDocs } from "../../../packages/builtin/site-docs/server/load-usage-docs.js";
+import { seedDocsFromFiles } from "../../../packages/builtin/site-docs/server/site-doc.service.js";
+import { registerDocsPageTemplates } from "../../../packages/builtin/site-docs/shared/page-templates.js";
 import { updateSite } from "../../../packages/builtin/marketing/server/site.service.js";
 import { ensureDefaultTenant } from "../../../packages/builtin/platform/server/services/ensure-default-tenant.service.js";
 
 async function main(): Promise<void> {
+  registerDocsPageTemplates();
   const slug = process.argv[2]?.trim() || DEFAULT_TENANT_SLUG;
   if (slug === DEFAULT_TENANT_SLUG) {
     await ensureDefaultTenant();
@@ -33,6 +35,7 @@ async function main(): Promise<void> {
 
   if (slug === DEFAULT_TENANT_SLUG) {
     const { page_count } = await applyDefaultProductSite(tenant.id);
+    await initializeTenantSite(tenant.id, "zh-CN");
     const docs = loadUsageDocs();
     if (docs.length > 0) {
       const seeded = await seedDocsFromFiles(tenant.id, docs);

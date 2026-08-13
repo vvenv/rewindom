@@ -1,23 +1,12 @@
 /**
  * 站点导航条目：嵌在页头设置 / 页脚列块里，**不是**独立可共享实体。
  *
- * 以前有一份 `menus_json` + key 引用——页头页脚「共用同一份」是真需求，但做成
- * 带 key / 齿轮切换的菜单库是过渡设计：租户要问的是「页头上都有什么」，不是
- * 「这份导航叫 main」。现在条目就写在 chrome 里；页脚要和页头一样时**复制**一份。
+ * 内核只认识 `link`（手填）和 `pages`（一级页面目录）。其它动态源由业务模块
+ * `registerNavSource` 填进来——marketing 展开时按表调度，不 import 文档库。
  *
- * 与 `site-cms` 无依赖（页面目录由调用方以 `{ path, title }` 传入），避免和
- * `import-x/no-cycle` 打架。本文件可以依赖 `section-settings`（LocalizedText）；
- * 反过来 `section-settings` **不得** import 本文件——`nav_items` 的 coerce 只做
- * 数组透传，清洗交给 `safeNavItems`。
+ * 与 `site-cms` 无依赖（页面目录由调用方以 `{ path, title }` 传入）。
  */
 
-import {
-  docMessages,
-  docPath,
-  DOCS_INDEX_PATH,
-  groupDocsByCategory,
-  type PublicDocSummary,
-} from "./marketing-doc.js";
 import {
   isLocalizedText,
   resolveLocalizedText,
@@ -28,50 +17,96 @@ import { localizeSiteHref } from "./site-locale.js";
 
 import type { AppLocale } from "@rewindom/shared";
 
-/* -------------------------------------------------------------------------- */
-/* 存储结构                                                                    */
-/* -------------------------------------------------------------------------- */
+export const BUILTIN_NAV_SOURCES = ["link", "pages"] as const;
+export type BuiltinNavSource = (typeof BUILTIN_NAV_SOURCES)[number];
 
-/**
- * 一条导航项的来源。
- *
- * `link` 之外的三种是**动态项**：租户配的是一条规则，展开成哪些链接由内容决定。
- */
-export const SITE_NAV_SOURCES = [
-  "link",
-  "pages",
-  "docs",
-  "doc_category",
-] as const;
+/** 一条导航项的来源。内置两项 + 贡献源（`site-docs` 等）。 */
+export type SiteNavSource = string;
 
-export type SiteNavSource = (typeof SITE_NAV_SOURCES)[number];
-
-/**
- * 动态项展开成什么形状。
- *
- * - `children`：收成一个可展开的父项（页头下拉、页脚列里的小标题）
- * - `flat`：就地铺平，与前后的静态项混在同一层
- */
 export const SITE_NAV_EXPANDS = ["children", "flat"] as const;
 export type SiteNavExpand = (typeof SITE_NAV_EXPANDS)[number];
 
 export interface SiteNavItem {
   id: string;
   source: SiteNavSource;
-  /**
-   * 显示文案。多语言表与 section 设置同一形状（`{ __i18n: {...} }`）。
-   * 动态项留空即用内置文案（如文档库的「文档」），所以只有 `link` 项是必填。
-   */
   label: string | LocalizedText;
-  /** 仅 `link`：逻辑路径或外链。 */
   href: string;
-  /** 仅 `doc_category`：分类 key，与 `MarketingDoc.category` 匹配。 */
+  /** 贡献源需要一个分类 key 时用。 */
   category: string;
-  /** 仅动态项。 */
   expand: SiteNavExpand;
-  /** 仅 `link`：一层子菜单。 */
   children: SiteNavItem[];
 }
+
+export interface SiteNavContext {
+  navPages?: readonly { path: string; title: string }[];
+  locale: AppLocale;
+  defaultLocale: AppLocale;
+  currentPath?: string;
+  contributed?: Readonly<Record<string, unknown>>;
+}
+
+export interface ResolvedNavItem {
+  key: string;
+  label: string;
+  href: string;
+  current: boolean;
+  children: ResolvedNavItem[];
+}
+
+export interface NavSourceDefinition {
+  source: string;
+  /** i18n key，可带命名空间。 */
+  label: string;
+  defaultLabel?: string;
+  entitlement?: string;
+  defaultExpand?: SiteNavExpand;
+  usesCategory?: boolean;
+  expand: (item: SiteNavItem, ctx: SiteNavContext) => ResolvedNavItem[];
+}
+
+const CONTRIBUTED = new Map<string, NavSourceDefinition>();
+
+/** 存量数据：旧内置源 → 贡献源。解析时改写一次，不是双读。 */
+const NAV_SOURCE_ALIASES: Record<string, string> = {
+  docs: "site-docs",
+  doc_category: "site-docs.category",
+};
+
+export function registerNavSource(definition: NavSourceDefinition): void {
+  if ((BUILTIN_NAV_SOURCES as readonly string[]).includes(definition.source)) {
+    throw new Error(`site.nav_source_conflict:${definition.source}`);
+  }
+  const existing = CONTRIBUTED.get(definition.source);
+  if (existing && existing !== definition) {
+    throw new Error(`site.nav_source_conflict:${definition.source}`);
+  }
+  CONTRIBUTED.set(definition.source, definition);
+}
+
+export function resetNavSourceContributions(): void {
+  CONTRIBUTED.clear();
+}
+
+export function getNavSource(
+  source: string,
+): NavSourceDefinition | undefined {
+  return CONTRIBUTED.get(source);
+}
+
+export function listNavSources(
+  enabled?: ReadonlySet<string>,
+): string[] {
+  const contributed = [...CONTRIBUTED.values()]
+    .filter(
+      (def) =>
+        !def.entitlement || !enabled || enabled.has(def.entitlement),
+    )
+    .map((def) => def.source);
+  return [...BUILTIN_NAV_SOURCES, ...contributed];
+}
+
+/** 未过滤的全表（编辑器「添加」菜单在拿到 entitlement 集合前用）。 */
+export const SITE_NAV_SOURCES: readonly string[] = BUILTIN_NAV_SOURCES;
 
 const MAX_ITEMS = 40;
 const MAX_CHILDREN = 20;
@@ -82,9 +117,9 @@ export function createNavItemId(): string {
   return crypto.randomUUID();
 }
 
-/** 换 source 时的默认 expand。 */
 export function defaultExpandForSource(source: SiteNavSource): SiteNavExpand {
-  return source === "pages" ? "flat" : "children";
+  if (source === "pages") return "flat";
+  return getNavSource(source)?.defaultExpand ?? "children";
 }
 
 export function blankNavItem(
@@ -101,13 +136,6 @@ export function blankNavItem(
   };
 }
 
-/**
- * 建站默认页头导航：仅「全部一级页面」平铺。
- *
- * 新站通常只有首页，文档库 / 会员也多半还没开——默认只挂页面目录，要文档入口或
- * 分类下拉时租户自己在编辑器里加。故意不把 `doc_index` 塞进一级页面——模板页不是
- * 页面目录成员。
- */
 export function defaultHeaderNavItems(): SiteNavItem[] {
   return [
     {
@@ -121,10 +149,6 @@ export function defaultHeaderNavItems(): SiteNavItem[] {
     },
   ];
 }
-
-/* -------------------------------------------------------------------------- */
-/* 解析                                                                        */
-/* -------------------------------------------------------------------------- */
 
 function parseLabel(raw: unknown): string | LocalizedText {
   if (typeof raw === "string") return raw.slice(0, MAX_LABEL_LENGTH);
@@ -141,9 +165,8 @@ function parseLabel(raw: unknown): string | LocalizedText {
 }
 
 function parseSource(raw: unknown): SiteNavSource {
-  return (SITE_NAV_SOURCES as readonly string[]).includes(raw as string)
-    ? (raw as SiteNavSource)
-    : "link";
+  if (typeof raw !== "string" || !raw.trim()) return "link";
+  return NAV_SOURCE_ALIASES[raw] ?? raw.trim();
 }
 
 function labelIsEmpty(label: string | LocalizedText): boolean {
@@ -152,7 +175,9 @@ function labelIsEmpty(label: string | LocalizedText): boolean {
 }
 
 function parseItem(raw: unknown, depth: number): SiteNavItem | null {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    return null;
+  }
   const record = raw as Record<string, unknown>;
   const source = parseSource(record.source);
   const label = parseLabel(record.label);
@@ -160,12 +185,8 @@ function parseItem(raw: unknown, depth: number): SiteNavItem | null {
     typeof record.href === "string"
       ? record.href.trim().slice(0, MAX_HREF_LENGTH)
       : "";
+  const usesCategory = getNavSource(source)?.usesCategory === true;
 
-  /*
-   * 空标签的 link **留给编辑器**——否则「添加自定义链接」刚写进 settings，读回来
-   * 就被丢掉，租户看到的是点了没反应。公开面由 `resolveNavItem` 再拦一道：
-   * 没填完的条目不进页头。
-   */
   const children =
     source === "link" && depth === 0 && Array.isArray(record.children)
       ? record.children
@@ -175,12 +196,15 @@ function parseItem(raw: unknown, depth: number): SiteNavItem | null {
       : [];
 
   return {
-    id: typeof record.id === "string" && record.id ? record.id : createNavItemId(),
+    id:
+      typeof record.id === "string" && record.id
+        ? record.id
+        : createNavItemId(),
     source,
     label,
     href: source === "link" ? href : "",
     category:
-      source === "doc_category" && typeof record.category === "string"
+      usesCategory && typeof record.category === "string"
         ? record.category.trim().slice(0, MAX_LABEL_LENGTH)
         : "",
     expand: record.expand === "flat" ? "flat" : "children",
@@ -188,11 +212,6 @@ function parseItem(raw: unknown, depth: number): SiteNavItem | null {
   };
 }
 
-/**
- * 读库容错：坏条目逐条跳过。
- *
- * 写路径走 `parseNavItems`——形状不对当场拒收。
- */
 export function safeNavItems(value: unknown): SiteNavItem[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -201,7 +220,6 @@ export function safeNavItems(value: unknown): SiteNavItem[] {
     .slice(0, MAX_ITEMS);
 }
 
-/** 写路径：非数组 / 超长直接拒收；坏条目与空 link 跳过。 */
 export function parseNavItems(value: unknown): SiteNavItem[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) throw new Error("site.nav_items_invalid");
@@ -211,7 +229,6 @@ export function parseNavItems(value: unknown): SiteNavItem[] {
     .filter((item): item is SiteNavItem => item !== null);
 }
 
-/** 从 section / block settings 取导航条目。 */
 export function settingNavItems(
   values: SettingValues,
   id = "items",
@@ -219,7 +236,6 @@ export function settingNavItems(
   return safeNavItems(values[id]);
 }
 
-/** 深拷贝一份条目（页脚「从页头复制」用）；换新 id，避免两处共用同一个 React key。 */
 export function cloneNavItems(items: readonly SiteNavItem[]): SiteNavItem[] {
   return items.map((item) => ({
     ...item,
@@ -232,37 +248,7 @@ export function cloneNavItems(items: readonly SiteNavItem[]): SiteNavItem[] {
   }));
 }
 
-/* -------------------------------------------------------------------------- */
-/* 渲染期展开                                                                  */
-/* -------------------------------------------------------------------------- */
-
-export interface SiteNavContext {
-  navPages?: readonly { path: string; title: string }[];
-  docs?: readonly PublicDocSummary[];
-  locale: AppLocale;
-  defaultLocale: AppLocale;
-  currentPath?: string;
-}
-
-export interface ResolvedNavItem {
-  key: string;
-  label: string;
-  /** 空串 = 纯分组标题。 */
-  href: string;
-  current: boolean;
-  children: ResolvedNavItem[];
-}
-
-function localizeLabel(
-  label: string | LocalizedText,
-  ctx: SiteNavContext,
-): string {
-  return typeof label === "string"
-    ? label
-    : resolveLocalizedText(label, ctx.locale, ctx.defaultLocale);
-}
-
-function makeLink(
+export function makeNavLink(
   key: string,
   label: string,
   logicalPath: string,
@@ -280,14 +266,13 @@ function makeLink(
   };
 }
 
-function docItems(
-  docs: readonly PublicDocSummary[],
+function localizeLabel(
+  label: string | LocalizedText,
   ctx: SiteNavContext,
-  keyPrefix: string,
-): ResolvedNavItem[] {
-  return docs.map((doc) =>
-    makeLink(`${keyPrefix}:${doc.slug}`, doc.title, docPath(doc.slug), ctx),
-  );
+): string {
+  return typeof label === "string"
+    ? label
+    : resolveLocalizedText(label, ctx.locale, ctx.defaultLocale);
 }
 
 function resolveItem(
@@ -296,80 +281,29 @@ function resolveItem(
 ): ResolvedNavItem[] {
   const label = localizeLabel(item.label, ctx);
 
-  switch (item.source) {
-    case "link": {
-      // 没填标签的草稿条目不进公开导航（编辑器里仍保留，见 parseItem）
-      if (labelIsEmpty(item.label)) return [];
-      if (!item.href && item.children.length === 0) return [];
-      const children = item.children.flatMap((child) =>
-        resolveItem(child, ctx),
-      );
-      return [makeLink(item.id, label, item.href, ctx, children)];
-    }
-
-    case "pages": {
-      const pages = ctx.navPages ?? [];
-      if (pages.length === 0) return [];
-      const items = pages.map((page) =>
-        makeLink(`${item.id}:${page.path}`, page.title, page.path, ctx),
-      );
-      return item.expand === "flat"
-        ? items
-        : [makeLink(item.id, label, "", ctx, items)];
-    }
-
-    case "docs": {
-      const docs = ctx.docs ?? [];
-      const messages = docMessages(ctx.locale);
-      if (docs.length === 0) return [];
-      if (item.expand === "flat") {
-        return docItems(docs, ctx, item.id);
-      }
-      const groups = groupDocsByCategory(docs);
-      const children =
-        groups.length > 1
-          ? groups.flatMap((group) =>
-              group.category
-                ? [
-                    {
-                      key: `${item.id}:${group.category}`,
-                      label: group.category,
-                      href: "",
-                      current: false,
-                      children: docItems(
-                        group.items,
-                        ctx,
-                        `${item.id}:${group.category}`,
-                      ),
-                    },
-                  ]
-                : docItems(group.items, ctx, item.id),
-            )
-          : docItems(docs, ctx, item.id);
-      return [
-        makeLink(item.id, label || messages.nav, DOCS_INDEX_PATH, ctx, children),
-      ];
-    }
-
-    case "doc_category": {
-      const docs = (ctx.docs ?? []).filter(
-        (doc) => doc.category === item.category,
-      );
-      if (docs.length === 0) return [];
-      const items = docItems(docs, ctx, item.id);
-      const fallbackLabel =
-        docs[0]?.category_label?.trim() || item.category;
-      return item.expand === "flat"
-        ? items
-        : [makeLink(item.id, label || fallbackLabel, "", ctx, items)];
-    }
-
-    default:
-      return [];
+  if (item.source === "link") {
+    if (labelIsEmpty(item.label)) return [];
+    if (!item.href && item.children.length === 0) return [];
+    const children = item.children.flatMap((child) => resolveItem(child, ctx));
+    return [makeNavLink(item.id, label, item.href, ctx, children)];
   }
+
+  if (item.source === "pages") {
+    const pages = ctx.navPages ?? [];
+    if (pages.length === 0) return [];
+    const items = pages.map((page) =>
+      makeNavLink(`${item.id}:${page.path}`, page.title, page.path, ctx),
+    );
+    return item.expand === "flat"
+      ? items
+      : [makeNavLink(item.id, label, "", ctx, items)];
+  }
+
+  const contributed = getNavSource(item.source);
+  if (!contributed) return [];
+  return contributed.expand(item, ctx);
 }
 
-/** 展开单条——编辑器就地预览用。 */
 export function resolveNavItem(
   item: SiteNavItem,
   ctx: SiteNavContext,
@@ -377,7 +311,6 @@ export function resolveNavItem(
   return resolveItem(item, ctx);
 }
 
-/** 展开一整列导航条目。 */
 export function resolveNavItems(
   items: readonly SiteNavItem[],
   ctx: SiteNavContext,
@@ -385,24 +318,23 @@ export function resolveNavItems(
   return items.flatMap((item) => resolveItem(item, ctx));
 }
 
-export function navItemsNeedDocs(items: readonly SiteNavItem[]): boolean {
-  const needsDocs = (item: SiteNavItem): boolean =>
-    item.source === "docs" ||
-    item.source === "doc_category" ||
-    item.children.some(needsDocs);
-  return items.some(needsDocs);
+export function navItemsNeedSource(
+  items: readonly SiteNavItem[],
+  source: string,
+): boolean {
+  const matches = (item: SiteNavItem): boolean =>
+    item.source === source || item.children.some(matches);
+  return items.some(matches);
 }
 
-/**
- * 换来源时要一起写进去的补丁：清掉上一种来源专属字段，并套上默认 expand。
- */
 export function navItemSourcePatch(
   source: SiteNavSource,
 ): Partial<SiteNavItem> {
+  const def = getNavSource(source);
   return {
     source,
     expand: defaultExpandForSource(source),
     ...(source === "link" ? {} : { href: "", children: [] }),
-    ...(source === "doc_category" ? {} : { category: "" }),
+    ...(def?.usesCategory ? {} : { category: "" }),
   };
 }

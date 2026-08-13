@@ -26,8 +26,6 @@ import {
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
-
-import { formatDocDate } from "../../shared/marketing-doc.js";
 import {
   getPageTemplateKind,
   getPageTemplatePreset,
@@ -44,6 +42,17 @@ import type {
 } from "../../shared/site-cms.js";
 import type { SitePageActions } from "../hooks/use-site-page-actions.js";
 import type { SitePageGroup } from "../lib/site-page-groups.js";
+
+function formatPageDate(iso: string, locale: string): string {
+  try {
+    return new Date(iso).toLocaleDateString(
+      locale.startsWith("zh") ? "zh-CN" : "en-US",
+      { year: "numeric", month: "short", day: "numeric" },
+    );
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
 
 /** 组能往哪儿挪；两端到头时按钮禁用而不是消失（行的操作数不该忽多忽少）。 */
 export interface SitePageGroupOrder {
@@ -204,7 +213,7 @@ function PageRow({
         ) : null}
         {/* 更新时间是「这页最近动过没有」的唯一线索，窄屏才让位给操作按钮 */}
         <span className="hidden text-xs whitespace-nowrap text-muted-foreground xl:inline">
-          {formatDocDate(page.updated_at, i18n.language)}
+          {formatPageDate(page.updated_at, i18n.language)}
         </span>
         {/* 窄屏只留状态点，文案挤掉——图标化的操作按钮已经把行占满 */}
         <SitePublishStatus

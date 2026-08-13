@@ -10,11 +10,6 @@ import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
 import { Link } from "react-router";
 
 import {
-  docMessages,
-  DOCS_INDEX_PATH,
-  type PublicDocSummary,
-} from "../../../shared/marketing-doc.js";
-import {
   resolveSurfaceStyle,
   settingBool,
   settingNumber,
@@ -43,7 +38,6 @@ import {
   type PageLocaleAlternate,
   type PublicSitePage,
 } from "../../../shared/site-cms.js";
-import { withSiteLocale } from "../../../shared/site-locale.js";
 import {
   resolveNavItems,
   settingNavItems,
@@ -102,13 +96,6 @@ const SUN_ICON = (
 const MOON_ICON = (
   <svg {...ICON_PROPS}>
     <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-  </svg>
-);
-
-const SEARCH_ICON = (
-  <svg {...ICON_PROPS}>
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
   </svg>
 );
 
@@ -241,17 +228,6 @@ function ChromeNav({
   );
 }
 
-function DocSearchForm({ ctx }: { ctx: SiteNavContext }): ReactElement {
-  const label = docMessages(ctx.locale).search;
-  const action = withSiteLocale(DOCS_INDEX_PATH, ctx.locale, ctx.defaultLocale);
-  return (
-    <form className="chrome-search" role="search" method="get" action={action}>
-      {SEARCH_ICON}
-      <input type="search" name="q" placeholder={label} aria-label={label} />
-    </form>
-  );
-}
-
 /**
  * 语言切换：**不**按 `Accept-Language` 自动跳转。
  *
@@ -319,8 +295,7 @@ export interface SiteChromeProps {
   siteName: string;
   logoUrl: string | null;
   pages?: PublicSitePage[];
-  docs?: readonly PublicDocSummary[];
-  hasDocs?: boolean;
+  contributed?: Readonly<Record<string, unknown>>;
   currentPath?: string;
   locale?: string;
   defaultLocale?: string;
@@ -366,10 +341,10 @@ function chromeNavContext(props: SiteChromeProps): SiteNavContext {
   const defaultLocale = (props.defaultLocale ?? "zh-CN") as AppLocale;
   return {
     navPages: siteNavPages(props.pages ?? []),
-    docs: props.docs,
     locale: (props.locale as AppLocale | undefined) ?? defaultLocale,
     defaultLocale,
     currentPath: props.currentPath ?? "",
+    contributed: props.contributed,
   };
 }
 
@@ -402,7 +377,6 @@ export function SiteChrome({
     ...select.style,
   } as CSSProperties;
 
-  const hasDocs = props.hasDocs ?? (props.docs?.length ?? 0) > 0;
   let mainNavUsed = false;
 
   function renderBlock(block: SiteBlock): ReactNode {
@@ -460,8 +434,6 @@ export function SiteChrome({
           </SiteLink>
         );
       }
-      case "chrome_search":
-        return hasDocs ? <DocSearchForm ctx={ctx} /> : null;
       case "chrome_locale":
         return (
           <LocaleSwitcher alternates={alternates} current={props.locale ?? ""} />

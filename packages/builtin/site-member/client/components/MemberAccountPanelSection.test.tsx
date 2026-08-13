@@ -85,7 +85,6 @@ function previewShape(section: SiteSection): string[] {
       section={section}
       pages={[]}
       currentPath="/member/account"
-      docs={[]}
       renderChildren={() => null}
     />,
   );

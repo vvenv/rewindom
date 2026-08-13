@@ -13,8 +13,6 @@
  * 打开 `/app/site`）。SSR 仍能在记录尚未落库时用内置预设兜底，那是缺口不是产品路径。
  */
 
-import { DOCS_INDEX_PATH } from "./marketing-doc.js";
-
 import type { PagePreset } from "./page-presets.types.js";
 
 export interface PageTemplateKindDefinition {
@@ -48,7 +46,7 @@ export interface PageTemplateKindDefinition {
    * 必备段的 type：编辑器不给删，服务端保存时校验必须有且仅有一段。
    *
    * 它是这张模板存在的理由本身——登录版式里删掉登录表单，会员就再也登不进来了。
-   * `null` 表示没有必备段（文档模板页就是：`doc-*` 段删光了只是页面空着）。
+   * `null` 表示没有必备段（首页就是：段删光了只是页面空着）。
    */
   required_section: string | null;
   /** 仅贡献的模板页：租户开通了这项 entitlement 才在中台露出。 */
@@ -117,7 +115,7 @@ export function isTemplatePageKind(kind: string): boolean {
 /**
  * 这张模板页现在对这个站点是否相关。
  *
- * 没有 `entitlement` 的常驻（首页 / 文档 / 会员登录）；声明了的要等对应开关打开。
+ * 没有 `entitlement` 的常驻（首页）；声明了的要等对应开关打开。
  * 中台列表、快照落库、SSR 露出都走这一条，避免三处各写一个「要不要出现」。
  */
 export function isPageTemplateRelevant(
@@ -128,24 +126,7 @@ export function isPageTemplateRelevant(
 }
 
 /* -------------------------------------------------------------------------- */
-/* marketing 自带的模板页：租户文档库的两张版式                                */
-/* -------------------------------------------------------------------------- */
-
-export const DOC_TEMPLATE_KINDS = ["doc_index", "doc_article"] as const;
-export type DocTemplateKind = (typeof DOC_TEMPLATE_KINDS)[number];
-
-/** 模板页的固定 slug：同 `home`——kind 唯一，slug 不由租户填。 */
-export const DOC_TEMPLATE_SLUGS: Record<DocTemplateKind, string> = {
-  doc_index: "docs",
-  doc_article: "docs-article",
-};
-
-export function isDocTemplateKind(kind: string): kind is DocTemplateKind {
-  return kind === "doc_index" || kind === "doc_article";
-}
-
-/* -------------------------------------------------------------------------- */
-/* 首页：kind 唯一、slug 固定；相关时快照落库，SSR 在缺口里用内置版式兜底      */
+/* marketing 自带的模板页：首页                                                */
 /* -------------------------------------------------------------------------- */
 
 registerPageTemplateKind({
@@ -154,23 +135,5 @@ registerPageTemplateKind({
   path: "/",
   group: "cms.homeTemplate",
   label: "preset.home.label",
-  required_section: null,
-});
-
-registerPageTemplateKind({
-  kind: "doc_index",
-  slug: DOC_TEMPLATE_SLUGS.doc_index,
-  path: DOCS_INDEX_PATH,
-  group: "cms.docTemplates",
-  label: "cms.kindDocIndex",
-  required_section: null,
-});
-
-registerPageTemplateKind({
-  kind: "doc_article",
-  slug: DOC_TEMPLATE_SLUGS.doc_article,
-  path: `${DOCS_INDEX_PATH}/:slug`,
-  group: "cms.docTemplates",
-  label: "cms.kindDocArticle",
   required_section: null,
 });

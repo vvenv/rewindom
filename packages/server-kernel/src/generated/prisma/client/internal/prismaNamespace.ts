@@ -416,8 +416,6 @@ export const ModelName = {
   MarketingRedirect: 'MarketingRedirect',
   MarketingAsset: 'MarketingAsset',
   MarketingPageVersion: 'MarketingPageVersion',
-  MarketingDocCategory: 'MarketingDocCategory',
-  MarketingDoc: 'MarketingDoc',
   Note: 'Note',
   Notification: 'Notification',
   NotificationLog: 'NotificationLog',
@@ -445,6 +443,8 @@ export const ModelName = {
   MemberPlan: 'MemberPlan',
   MemberSubscription: 'MemberSubscription',
   MemberPayment: 'MemberPayment',
+  SiteDocCategory: 'SiteDocCategory',
+  SiteDoc: 'SiteDoc',
   SiteMember: 'SiteMember',
   SiteMemberRefreshToken: 'SiteMemberRefreshToken',
   SiteMemberOAuthAccount: 'SiteMemberOAuthAccount',
@@ -466,7 +466,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "marketingDocCategory" | "marketingDoc" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1873,154 +1873,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MarketingPageVersionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MarketingPageVersionCountAggregateOutputType> | number
-        }
-      }
-    }
-    MarketingDocCategory: {
-      payload: Prisma.$MarketingDocCategoryPayload<ExtArgs>
-      fields: Prisma.MarketingDocCategoryFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.MarketingDocCategoryFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.MarketingDocCategoryFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
-        }
-        findFirst: {
-          args: Prisma.MarketingDocCategoryFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.MarketingDocCategoryFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
-        }
-        findMany: {
-          args: Prisma.MarketingDocCategoryFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>[]
-        }
-        create: {
-          args: Prisma.MarketingDocCategoryCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
-        }
-        createMany: {
-          args: Prisma.MarketingDocCategoryCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.MarketingDocCategoryCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>[]
-        }
-        delete: {
-          args: Prisma.MarketingDocCategoryDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
-        }
-        update: {
-          args: Prisma.MarketingDocCategoryUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
-        }
-        deleteMany: {
-          args: Prisma.MarketingDocCategoryDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.MarketingDocCategoryUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.MarketingDocCategoryUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>[]
-        }
-        upsert: {
-          args: Prisma.MarketingDocCategoryUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocCategoryPayload>
-        }
-        aggregate: {
-          args: Prisma.MarketingDocCategoryAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateMarketingDocCategory>
-        }
-        groupBy: {
-          args: Prisma.MarketingDocCategoryGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MarketingDocCategoryGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.MarketingDocCategoryCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MarketingDocCategoryCountAggregateOutputType> | number
-        }
-      }
-    }
-    MarketingDoc: {
-      payload: Prisma.$MarketingDocPayload<ExtArgs>
-      fields: Prisma.MarketingDocFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.MarketingDocFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.MarketingDocFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
-        }
-        findFirst: {
-          args: Prisma.MarketingDocFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.MarketingDocFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
-        }
-        findMany: {
-          args: Prisma.MarketingDocFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>[]
-        }
-        create: {
-          args: Prisma.MarketingDocCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
-        }
-        createMany: {
-          args: Prisma.MarketingDocCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.MarketingDocCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>[]
-        }
-        delete: {
-          args: Prisma.MarketingDocDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
-        }
-        update: {
-          args: Prisma.MarketingDocUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
-        }
-        deleteMany: {
-          args: Prisma.MarketingDocDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.MarketingDocUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.MarketingDocUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>[]
-        }
-        upsert: {
-          args: Prisma.MarketingDocUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingDocPayload>
-        }
-        aggregate: {
-          args: Prisma.MarketingDocAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateMarketingDoc>
-        }
-        groupBy: {
-          args: Prisma.MarketingDocGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MarketingDocGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.MarketingDocCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MarketingDocCountAggregateOutputType> | number
         }
       }
     }
@@ -4022,6 +3874,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SiteDocCategory: {
+      payload: Prisma.$SiteDocCategoryPayload<ExtArgs>
+      fields: Prisma.SiteDocCategoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SiteDocCategoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SiteDocCategoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload>
+        }
+        findFirst: {
+          args: Prisma.SiteDocCategoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SiteDocCategoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload>
+        }
+        findMany: {
+          args: Prisma.SiteDocCategoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload>[]
+        }
+        create: {
+          args: Prisma.SiteDocCategoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload>
+        }
+        createMany: {
+          args: Prisma.SiteDocCategoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SiteDocCategoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload>[]
+        }
+        delete: {
+          args: Prisma.SiteDocCategoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload>
+        }
+        update: {
+          args: Prisma.SiteDocCategoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.SiteDocCategoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SiteDocCategoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SiteDocCategoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.SiteDocCategoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocCategoryPayload>
+        }
+        aggregate: {
+          args: Prisma.SiteDocCategoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSiteDocCategory>
+        }
+        groupBy: {
+          args: Prisma.SiteDocCategoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteDocCategoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SiteDocCategoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteDocCategoryCountAggregateOutputType> | number
+        }
+      }
+    }
+    SiteDoc: {
+      payload: Prisma.$SiteDocPayload<ExtArgs>
+      fields: Prisma.SiteDocFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SiteDocFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SiteDocFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload>
+        }
+        findFirst: {
+          args: Prisma.SiteDocFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SiteDocFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload>
+        }
+        findMany: {
+          args: Prisma.SiteDocFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload>[]
+        }
+        create: {
+          args: Prisma.SiteDocCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload>
+        }
+        createMany: {
+          args: Prisma.SiteDocCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SiteDocCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload>[]
+        }
+        delete: {
+          args: Prisma.SiteDocDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload>
+        }
+        update: {
+          args: Prisma.SiteDocUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload>
+        }
+        deleteMany: {
+          args: Prisma.SiteDocDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SiteDocUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SiteDocUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload>[]
+        }
+        upsert: {
+          args: Prisma.SiteDocUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteDocPayload>
+        }
+        aggregate: {
+          args: Prisma.SiteDocAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSiteDoc>
+        }
+        groupBy: {
+          args: Prisma.SiteDocGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteDocGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SiteDocCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteDocCountAggregateOutputType> | number
+        }
+      }
+    }
     SiteMember: {
       payload: Prisma.$SiteMemberPayload<ExtArgs>
       fields: Prisma.SiteMemberFieldRefs
@@ -4825,42 +4825,6 @@ export const MarketingPageVersionScalarFieldEnum = {
 export type MarketingPageVersionScalarFieldEnum = (typeof MarketingPageVersionScalarFieldEnum)[keyof typeof MarketingPageVersionScalarFieldEnum]
 
 
-export const MarketingDocCategoryScalarFieldEnum = {
-  id: 'id',
-  tenant_id: 'tenant_id',
-  key: 'key',
-  label: 'label',
-  sort_order: 'sort_order',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type MarketingDocCategoryScalarFieldEnum = (typeof MarketingDocCategoryScalarFieldEnum)[keyof typeof MarketingDocCategoryScalarFieldEnum]
-
-
-export const MarketingDocScalarFieldEnum = {
-  id: 'id',
-  tenant_id: 'tenant_id',
-  slug: 'slug',
-  locale: 'locale',
-  title: 'title',
-  description: 'description',
-  body_md: 'body_md',
-  category: 'category',
-  sort_order: 'sort_order',
-  status: 'status',
-  title_draft: 'title_draft',
-  description_draft: 'description_draft',
-  body_md_draft: 'body_md_draft',
-  category_draft: 'category_draft',
-  sort_order_draft: 'sort_order_draft',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type MarketingDocScalarFieldEnum = (typeof MarketingDocScalarFieldEnum)[keyof typeof MarketingDocScalarFieldEnum]
-
-
 export const NoteScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -5300,6 +5264,42 @@ export const MemberPaymentScalarFieldEnum = {
 export type MemberPaymentScalarFieldEnum = (typeof MemberPaymentScalarFieldEnum)[keyof typeof MemberPaymentScalarFieldEnum]
 
 
+export const SiteDocCategoryScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  key: 'key',
+  label: 'label',
+  sort_order: 'sort_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SiteDocCategoryScalarFieldEnum = (typeof SiteDocCategoryScalarFieldEnum)[keyof typeof SiteDocCategoryScalarFieldEnum]
+
+
+export const SiteDocScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  slug: 'slug',
+  locale: 'locale',
+  title: 'title',
+  description: 'description',
+  body_md: 'body_md',
+  category: 'category',
+  sort_order: 'sort_order',
+  status: 'status',
+  title_draft: 'title_draft',
+  description_draft: 'description_draft',
+  body_md_draft: 'body_md_draft',
+  category_draft: 'category_draft',
+  sort_order_draft: 'sort_order_draft',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SiteDocScalarFieldEnum = (typeof SiteDocScalarFieldEnum)[keyof typeof SiteDocScalarFieldEnum]
+
+
 export const SiteMemberScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -5693,8 +5693,6 @@ export type GlobalOmitConfig = {
   marketingRedirect?: Prisma.MarketingRedirectOmit
   marketingAsset?: Prisma.MarketingAssetOmit
   marketingPageVersion?: Prisma.MarketingPageVersionOmit
-  marketingDocCategory?: Prisma.MarketingDocCategoryOmit
-  marketingDoc?: Prisma.MarketingDocOmit
   note?: Prisma.NoteOmit
   notification?: Prisma.NotificationOmit
   notificationLog?: Prisma.NotificationLogOmit
@@ -5722,6 +5720,8 @@ export type GlobalOmitConfig = {
   memberPlan?: Prisma.MemberPlanOmit
   memberSubscription?: Prisma.MemberSubscriptionOmit
   memberPayment?: Prisma.MemberPaymentOmit
+  siteDocCategory?: Prisma.SiteDocCategoryOmit
+  siteDoc?: Prisma.SiteDocOmit
   siteMember?: Prisma.SiteMemberOmit
   siteMemberRefreshToken?: Prisma.SiteMemberRefreshTokenOmit
   siteMemberOAuthAccount?: Prisma.SiteMemberOAuthAccountOmit

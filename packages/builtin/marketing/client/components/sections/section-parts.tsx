@@ -8,10 +8,6 @@
 import { type CSSProperties, type ReactElement, type ReactNode } from "react";
 
 import {
-  type PublicDocDetail,
-  type PublicDocSummary,
-} from "../../../shared/marketing-doc.js";
-import {
   resolveSurfaceStyle,
   settingText,
   surfaceStyleCss,
@@ -28,10 +24,10 @@ export interface SectionViewProps {
   section: SiteSection;
   pages: PublicSitePage[];
   currentPath: string;
-  /** 文档目录（`doc-list` / `doc-nav`）；与 SSR 的 `ctx.docs` 同一份数据。 */
-  docs: readonly PublicDocSummary[];
-  /** 当前文档（`doc-article` / `doc-toc`）；只有文档详情模板页上有。 */
-  doc?: PublicDocDetail;
+  /**
+   * 贡献段的按请求数据——与 SSR 的 `SectionRenderContext.contributed` 同一份。
+   */
+  contributed?: Readonly<Record<string, unknown>>;
   /**
    * 渲染一串子段——**只有容器段用得上**，由 `SiteSections` 注入。
    *

@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { createBlock, createSection } from "./section-schema.js";
-import { chromeNeedsDocList, chromeShowsDocSearch } from "./site-cms.js";
+import { createSection } from "./section-schema.js";
 import {
   defaultHeaderNavItems,
-  navItemsNeedDocs,
+  navItemsNeedSource,
   resolveNavItems,
   safeNavItems,
   type SiteNavContext,
@@ -28,31 +27,9 @@ const NAV_PAGES = [
   { path: "/pricing", title: "定价" },
 ];
 
-const DOCS = [
-  {
-    slug: "intro",
-    title: "介绍",
-    description: "",
-    category: "入门",
-    category_label: "入门",
-    sort_order: 0,
-    updated_at: "2026-01-01T00:00:00.000Z",
-  },
-  {
-    slug: "install",
-    title: "安装",
-    description: "",
-    category: "入门",
-    category_label: "入门",
-    sort_order: 1,
-    updated_at: "2026-01-01T00:00:00.000Z",
-  },
-];
-
 function ctx(partial: Partial<SiteNavContext> = {}): SiteNavContext {
   return {
     navPages: NAV_PAGES,
-    docs: DOCS,
     locale: "zh-CN",
     defaultLocale: "zh-CN",
     ...partial,
@@ -66,11 +43,9 @@ describe("defaultHeaderNavItems", () => {
     ).toEqual([["pages", "flat"]]);
   });
 
-  it("展开出一级页面；无文档动态项", () => {
+  it("展开出一级页面", () => {
     const resolved = resolveNavItems(defaultHeaderNavItems(), ctx());
     expect(resolved.map((entry) => entry.href)).toEqual(["/about", "/pricing"]);
-    const empty = resolveNavItems(defaultHeaderNavItems(), ctx({ docs: [] }));
-    expect(empty.map((entry) => entry.href)).toEqual(["/about", "/pricing"]);
   });
 });
 
@@ -95,56 +70,72 @@ describe("resolveNavItems", () => {
     ).toEqual([]);
   });
 
-  it("docs 库空整条消失", () => {
+  it("未登记的贡献源整条消失", () => {
     expect(
-      resolveNavItems([item({ source: "docs" })], ctx({ docs: [] })),
+      resolveNavItems([item({ source: "site-docs" })], ctx()),
     ).toEqual([]);
   });
 });
 
-describe("navItemsNeedDocs / chromeNeedsDocList", () => {
-  it("只有 pages 时不需要文档", () => {
-    expect(navItemsNeedDocs([item({ source: "pages", expand: "flat" })])).toBe(
-      false,
-    );
+describe("navItemsNeedSource", () => {
+  it("只有 pages 时不匹配 site-docs", () => {
+    expect(
+      navItemsNeedSource(
+        [item({ source: "pages", expand: "flat" })],
+        "site-docs",
+      ),
+    ).toBe(false);
   });
 
-  it("默认页头只有 pages，不需要文档", () => {
-    expect(navItemsNeedDocs(defaultHeaderNavItems())).toBe(false);
+  it("默认页头只有 pages", () => {
+    expect(navItemsNeedSource(defaultHeaderNavItems(), "site-docs")).toBe(
+      false,
+    );
   });
 
   it("chrome 扫 header settings.items", () => {
     const header = createSection("header");
     expect(
-      chromeNeedsDocList({ header: [header], footer: [] }),
+      navItemsNeedSource(
+        header.blocks.flatMap((block) =>
+          Array.isArray(block.settings.items)
+            ? (block.settings.items as SiteNavItem[])
+            : [],
+        ),
+        "site-docs",
+      ),
     ).toBe(false);
 
     const withDocs = createSection("header");
-    withDocs.settings.items = [item({ source: "docs", expand: "children" })];
-    expect(chromeNeedsDocList({ header: [withDocs], footer: [] })).toBe(true);
-
-    const plain = createSection("header");
-    plain.settings.items = [item({ source: "pages", expand: "flat" })];
-    expect(chromeNeedsDocList({ header: [plain], footer: [] })).toBe(false);
-  });
-
-  it("搜索块默认不预置，页头页脚哪边摆了都算", () => {
-    const header = createSection("header");
-    const footer = createSection("footer");
-    expect(chromeShowsDocSearch({ header: [header], footer: [footer] })).toBe(
-      false,
-    );
-
-    // 搜索收在页脚的站也得让 SSR 把 hasDocs 查出来，只看页头会漏
-    footer.blocks = [createBlock("footer", "chrome_search", {})];
-    expect(chromeShowsDocSearch({ header: [header], footer: [footer] })).toBe(
-      true,
-    );
+    withDocs.settings.items = [
+      item({ source: "site-docs", expand: "children" }),
+    ];
+    expect(
+      navItemsNeedSource(
+        (withDocs.settings.items as SiteNavItem[]) ?? [],
+        "site-docs",
+      ),
+    ).toBe(true);
   });
 });
 
 describe("safeNavItems", () => {
   it("非数组回落空", () => {
     expect(safeNavItems("x")).toEqual([]);
+  });
+
+  it("存量 docs 源解析时改写成 site-docs", () => {
+    const parsed = safeNavItems([
+      {
+        id: "x",
+        source: "docs",
+        label: "",
+        href: "",
+        category: "",
+        expand: "children",
+        children: [],
+      },
+    ]);
+    expect(parsed[0]?.source).toBe("site-docs");
   });
 });

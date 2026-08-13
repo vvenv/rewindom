@@ -140,6 +140,11 @@ function parseChildSections(
   return out;
 }
 
+/** 存量 chrome 块 type：解析时改写一次，不是双读。 */
+const CHROME_BLOCK_ALIASES: Record<string, string> = {
+  chrome_search: "site-docs.search",
+};
+
 function parseBlocks(
   def: SectionDefinition,
   rawBlocks: unknown,
@@ -154,7 +159,8 @@ function parseBlocks(
   for (const item of source) {
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
     const row = item as Record<string, unknown>;
-    const type = typeof row.type === "string" ? row.type : defaultBlockType;
+    const rawType = typeof row.type === "string" ? row.type : defaultBlockType;
+    const type = CHROME_BLOCK_ALIASES[rawType] ?? rawType;
     const blockDef = getBlockDefinition(def.type, type);
     // 未知 block type 直接丢弃：schema 是唯一真相源。
     if (!blockDef) continue;
@@ -174,9 +180,18 @@ function parseBlocks(
   return def.max_blocks ? blocks.slice(0, def.max_blocks) : blocks;
 }
 
+/** 存量段 type：解析时改写一次，不是双读。 */
+const SECTION_TYPE_ALIASES: Record<string, string> = {
+  "doc-list": "site-docs.list",
+  "doc-article": "site-docs.article",
+  "doc-nav": "site-docs.nav",
+  "doc-toc": "site-docs.toc",
+};
+
 function resolvePageSectionType(rawType: unknown): PageSectionType | null {
   if (typeof rawType !== "string") return null;
-  return isPageSectionType(rawType) ? rawType : null;
+  const type = SECTION_TYPE_ALIASES[rawType] ?? rawType;
+  return isPageSectionType(type) ? type : null;
 }
 
 function rawSettingsOf(row: Record<string, unknown>): Record<string, unknown> {

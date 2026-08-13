@@ -1,8 +1,4 @@
-import {
-  DOC_TEMPLATE_SLUGS,
-  registerPageTemplatePreset,
-  type DocTemplateKind,
-} from "./page-templates.js";
+import { registerPageTemplatePreset } from "./page-templates.js";
 import {
   createBlock,
   createSection,
@@ -87,101 +83,11 @@ export const HOME_STARTER_PRESET: PagePreset = {
   ],
 };
 
-/**
- * 文档库两张模板页的**默认版式**。
- *
- * 它们是**兜底**：快照尚未落库时，`/docs` 与 `/docs/:slug` 直接按这里渲染
- * （见 `server/marketing-doc.ssr.ts`）。所以不进新建页面的可选菜单。
- *
- * 相关时由 `initializeTenantSite` 快照落库；SSR 这条路径只接住缺口（开关刚开、
- * 事件还没跑完）。租户要跟进最新预设，走「重设为最新版式」。
- */
-export const DOC_TEMPLATE_PRESETS: Record<DocTemplateKind, PagePreset> = {
-  doc_index: {
-    key: "doc_index",
-    label: "preset.doc_index.label",
-    kind: "doc_index",
-    slug: DOC_TEMPLATE_SLUGS.doc_index,
-    titleKey: "preset.doc_index.title",
-    descriptionKey: "preset.doc_index.description",
-    sections: [
-      {
-        type: "page-header",
-        text: {
-          headline: "preset.doc_index.headline",
-          subhead: "preset.doc_index.subhead",
-        },
-      },
-      {
-        type: "doc-list",
-        raw: {
-          group_by: "category",
-          style: "cards",
-          columns: 2,
-          show_description: true,
-        },
-      },
-    ],
-  },
-  doc_article: {
-    key: "doc_article",
-    label: "preset.doc_article.label",
-    kind: "doc_article",
-    slug: DOC_TEMPLATE_SLUGS.doc_article,
-    titleKey: "preset.doc_article.title",
-    descriptionKey: "preset.doc_article.description",
-    sections: [
-      {
-        /*
-         * 三栏：左目录 + 正文 + 右章节导航——文档站的通行版式。
-         *
-         * 两个导航都是**独立的段**，不想要就在编辑器里删掉，不需要另开开关；
-         * 窄屏由 group 自己堆叠成上下（见 base.css 的 `.grp`），吸顶也自动失效。
-         */
-        type: "group",
-        raw: {
-          columns_layout: "2:8:2",
-          column_gap: 40,
-          align_items: "stretch",
-        },
-        blocks: [
-          {
-            type: "column",
-            raw: { show_divider: true },
-            sections: [
-              { type: "doc-nav", raw: { sticky: true, show_category: true } },
-            ],
-          },
-          {
-            type: "column",
-            raw: { show_divider: true },
-            sections: [{ type: "doc-article" }],
-          },
-          {
-            type: "column",
-            sections: [{ type: "doc-toc", raw: { sticky: true } }],
-          },
-        ],
-      },
-    ],
-  },
-};
-
-/** 兜底版式落成真实 sections（同 `buildPresetSections`，只是入口按 kind 取）。 */
-export function buildDocTemplateSections(
-  kind: DocTemplateKind,
-  t: PresetTranslateFn,
-): SiteSection[] {
-  return buildPresetSections(DOC_TEMPLATE_PRESETS[kind], t);
-}
-
 /*
  * 把兜底版式登记进模板页注册表，快照落库与「重设为最新版式」按 kind 取它。
  * 元数据（slug / path）在 `page-templates.ts` 里就登记好了，与预设分开的理由见那边。
  */
 registerPageTemplatePreset("home", HOME_STARTER_PRESET);
-registerPageTemplatePreset("doc_index", DOC_TEMPLATE_PRESETS.doc_index);
-registerPageTemplatePreset("doc_article", DOC_TEMPLATE_PRESETS.doc_article);
 
 /** 首页兜底版式落成真实 sections（同 `buildPresetSections`，只是入口固定为 home）。 */
 export function buildHomeTemplateSections(

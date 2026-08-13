@@ -25,8 +25,9 @@ import {
   writeLocalizedSetting,
 } from "../../../shared/section-schema.js";
 import {
+  getNavSource,
+  listNavSources,
   resolveNavItem,
-  SITE_NAV_SOURCES,
   type ResolvedNavItem,
   type SiteNavContext,
   type SiteNavItem,
@@ -254,11 +255,14 @@ export function SiteNavItemRow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {SITE_NAV_SOURCES.map((source) => (
-                <SelectItem key={source} value={source}>
-                  {t(`editor.menuSource.${source}`)}
-                </SelectItem>
-              ))}
+              {listNavSources().map((source) => {
+                const def = getNavSource(source);
+                return (
+                  <SelectItem key={source} value={source}>
+                    {def ? t(def.label) : t(`editor.menuSource.${source}`)}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
 
@@ -283,7 +287,7 @@ export function SiteNavItemRow({
             />
           ) : null}
 
-          {item.source === "doc_category" ? (
+          {getNavSource(item.source)?.usesCategory ? (
             <Select
               disabled={disabled || categories.length === 0}
               value={item.category || undefined}
@@ -368,10 +372,12 @@ function NavItemPreview({
     const hintKey =
       source === "pages"
         ? "editor.navPreviewEmptyPages"
-        : source === "docs"
-          ? "editor.navPreviewEmptyDocs"
-          : category
+        : getNavSource(source)?.usesCategory
+          ? category
             ? "editor.navPreviewEmptyCategory"
+            : "editor.menuPreviewEmptyHint"
+          : source === "link"
+            ? "editor.menuPreviewEmptyHint"
             : "editor.menuPreviewEmptyHint";
     return (
       <p className="text-xs text-muted-foreground">

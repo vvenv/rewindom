@@ -33,8 +33,8 @@
 
 ### 模板页（`shared/page-templates.ts`）
 
-「kind 唯一、slug 固定」的那一类页面：文档库的 `/docs` 与 `/docs/:slug`，以及业务模块
-贡献的（如 site-member 的 `/member/login`）。与普通页面只差三条：
+「kind 唯一、slug 固定」的那一类页面：marketing 自带 `home`，业务模块再贡献
+（如 site-docs 的 `/docs`、site-member 的 `/member/login`）。与普通页面只差三条：
 
 - **地址不由租户填**——kind 决定 slug（`validatePageSlug` 按注册表锁死）
 - **每种语言最多一张**——重复建页报 `site.template_page_exists`
@@ -102,7 +102,6 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 | `chrome_nav`      | title, items, display(inline\|column)       |
 | `chrome_text`     | text（支持 `{year}` / `{site}` 占位符）      |
 | `chrome_button`   | label, href, variant                        |
-| `chrome_search`   | —                                           |
 | `chrome_locale`   | —                                           |
 | `chrome_theme`    | —                                           |
 | `chrome_account`  | —                                           |
@@ -164,34 +163,23 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 块收集——**别**去读页头 section 的 settings，那儿早就没有 items 了）。
 
 条目形状：`{ id, source, label, href, category, expand, children[] }`。
-建站默认页头只有「全部一级页面」（flat）：新站通常只有首页，文档库入口要时在编辑器里加。
-不把 `doc_index` 塞进一级页面目录。
+建站默认页头只有「全部一级页面」（flat）：新站通常只有首页。
 
-| `source`       | 展开成                                       |
-| -------------- | -------------------------------------------- |
-| `link`         | 一条链接；可带**一层** `children` 做子菜单   |
-| `pages`        | 全部已发布一级页面（取代 `show_site_nav`）   |
-| `docs`         | 文档库目录，按分类分组                       |
-| `doc_category` | 指定分类下的全部已发布文档                   |
+| `source` | 展开成 |
+| -------- | ------ |
+| `link`   | 一条链接；可带**一层** `children` 做子菜单 |
+| `pages`  | 全部已发布一级页面 |
+
+其它动态源由模块 `registerNavSource` 填进来（site-docs 登记 `site-docs` /
+`site-docs.category`）。存量数据里的 `docs` / `doc_category` 在解析时改写成这两项，
+不是双读 API。
 
 动态项的 `expand`：`children` 收成可展开的父项，`flat` 就地铺平。展不出内容时**整条
-不渲染**。编辑器（`SiteNavItemsField`，`type: "nav_items"`）用预设添加（链接 / 页面 /
-文档 / 分类），展开方式默认按来源、收在「更多」里；分类只选自已有文档分类。
+不渲染**。编辑器（`SiteNavItemsField`，`type: "nav_items"`）按已登记源列出添加菜单。
 
 渲染两端同构：SSR 在 `sections/header|footer/html.ts`，SPA 在 `SiteChrome.tsx`，
-都用原生 `<details>` 画下拉。chrome 的文档数据需求分两档（`resolveChromeDocs`）：
-导航里的文档动态项、`doc-*` 段要**整份目录**（`chromeNeedsDocList`）；页头搜索只要
-一个布尔值（`chromeShowsDocSearch`）。
-
-### 文档搜索
-
-**唯一入口是页头**（`chrome_doc_search` 块，默认不预置，加了且站里有已发布文档时才渲染）。
-它是一个 `<form method="get" action="/docs">`，没有 JS 也跳得过去；落地由
-`enhance/doc-search.ts` 接住：按每条 `<li>` 的 `data-doc-search`（SSR 用
-`docSearchHaystack` 写入）过滤，并在列表上方画一枚「筛选：xxx ✕」的标签。
-
-`doc-list` 段**不再自带搜索框**。它曾经有一个（`show_search`），于是文档索引上会
-同时出现两个一模一样的框——页头那个跳过来，落进段里那个。现在段只负责列。
+都用原生 `<details>` 画下拉。贡献源展开所需的数据走 `SiteNavContext.contributed`
+（与段渲染同一份）。
 
 ### 页头右侧的入口块
 
@@ -305,7 +293,7 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 就是公告条，prose 摆进页脚就是备案号，不另造类型。`group`（分栏）另外放行页脚区：
 多栏页脚是布局问题，用同一个布局原语解，不在页脚 schema 里再长一套列宽字段。
 
-内置段只保留**通用积木**（首屏、富文本、分栏、CTA、表单、页面菜单、文档库专用段）。
+内置段只保留**通用积木**（首屏、富文本、分栏、CTA、表单、页面菜单）。文档库等业务段由模块贡献。
 ### 贡献段要按请求查库：`registerSectionContextProvider`
 
 `SectionRenderContext.contributed` 一直都有，但只有**模块自有的 SSR 路由**填得上
@@ -329,10 +317,6 @@ section type，通用 SSR 路由在渲染前按**页面实际用到的段**调�
 | `prose`        | body_md                                                                | —                                                                                       |
 | `group`        | columns_layout(12 栏份额), column_gap, align_items                     | `column`{sticky, show_divider + 线型/粗细/颜色, stack_order}，最多 4；**容器 block**，见下 |
 | `band`         | headline\*, body, align, primary/secondary 按钮                        | —                                                                                       |
-| `doc-list`     | 抬头, group_by, style(cards\|list), category, limit, columns…          | —（数据来自 `ctx.docs`，见下）                                                          |
-| `doc-article`  | align                                                                  | —（数据来自 `ctx.doc`）                                                                 |
-| `doc-nav`      | heading, show_category, sticky                                           | —（数据来自 `ctx.docs`）                                                                |
-| `doc-toc`      | sticky                                                                 | —（从 `ctx.doc` 正文标题抽取）                                                          |
 
 `*` = `required`，为空时该 section 校验失败。
 
@@ -586,6 +570,17 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 金标准：`site-member/shared/member-page-templates.ts`、`shop/shared/shop-page-templates.ts`。
 `pnpm check:modules` 会查 kind/preset 成对、有开关则声明了 entitlement、客户端没有「自定义版式」。
 
+#### 贡献公开路径、保留 slug、sitemap、链接候选
+
+不是 `MarketingPage` 的公开地址（文档库 `/docs`）不要写进 `renderPath`。模块登记：
+
+- `registerSitePathHandler` — locale 剥离后、查页面前接管路径
+- `registerReservedPageSlug` — 自定义页不能占用该一级 slug
+- sitemap / link-target providers — `sitemap.xml` 与编辑器链接下拉的额外条目
+
+存量段 type `doc-list` 等、chrome `chrome_search`、导航源 `docs` / `doc_category`
+在解析时改写成 site-docs 的贡献名，不是双读 API。金标准：`site-docs`。
+
 #### 撞见不认识的段
 
 页面里可能存着这份代码解析不了的段：模块停用、租户退订、或页面是更新版本写的。
@@ -616,68 +611,17 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 未知 block type 直接丢弃；`safeSections` 只跳过损坏的单个 section，不再整页清空。
 
 路径约定：`home` → `/`；`page` → `/{slug}`（slug 可多段，如 `guide/quickstart`）。
-`pricing` 不在保留 slug 里——绑定域名上归租户（平台页只在平台域名下有意义）；
-`docs` **是**保留的，归租户文档库（见下）。
+`pricing` 不在保留 slug 里——绑定域名上归租户（平台页只在平台域名下有意义）。
+内核保留 slug 只有 locale、应用区、`SITE_APP_PREFIXES`；`docs` 由 site-docs
+`registerReservedPageSlug` 登记，没装该模块时租户可以建一张叫 `docs` 的普通页。
 
 **动态页面菜单**：在编辑器里插入 `page-menu` section——父页选 `children`，子页选
 `siblings`；条目随已发布页面目录自动更新，无需手填链接。要做成左侧栏就把它放进
 `group` 的第一列（`3:9` + 列 sticky），没有 chrome 级的自动侧栏。
 
-### 文档库（`MarketingDoc`）与它的两张模板页
-
-文档**内容**不进 section 体系：一篇就是「标题 + Markdown + 分类 key」，存在 `MarketingDoc`
-表里，有自己的 draft/publish 语义（`shared/marketing-doc.ts`）。**分类显示名**在
-`MarketingDocCategory`（`key` + 多语言 `label`），各语言文档共用同一个 `category` key。
-管理端 `GET /api/site/doc-categories` 维护分类表；`PUT /api/site/doc-categories/order`
-整批调整 `sort_order`（文档目录分组顺序）；`GET /api/site/docs` 额外返回
-`category_catalog`（完整分类行）与 `categories`（当前筛选结果里出现的 key 列表）。
-文档**版式**则完全在 section 体系里，靠两张模板页承载：
-
-| kind | 地址 | 干什么 |
-| --- | --- | --- |
-| `doc_index` | `/docs` | 文档目录页的版式 |
-| `doc_article` | `/docs/:slug` | **所有**文档详情共用的一张版式 |
-
-两张页的 slug 固定（`docs` / `docs-article`），和 `home` 一样由 kind 决定；它们**不进页面
-目录**（不出现在「全部一级页面」、`page-menu`、sitemap 的页面部分里）——`doc_article` 根本没有
-自己的地址，`doc_index` 的导航入口走页头 `items` 里的 `docs` 动态项（建站默认就有；库空时不渲染），
-而不是因为「碰巧自定义过版式」就自动冒出来。
-
-**相关时快照落库**：建租户（或打开 `/app/site`）时把这两张版式写成页面记录
-（`initializeTenantSite`）。SSR 在记录尚未落库时仍按内置兜底版式渲染
-（`DOC_TEMPLATE_PRESETS`，见 `shared/page-presets.ts`）。租户要跟进最新预设，
-走页面行上的「重设为最新版式」。
-
-四个段消费文档数据（数据经 `SectionRenderContext` 的 `docs` / `doc` 注入）：
-
-| 段 | 画什么 | 数据 |
-| --- | --- | --- |
-| `doc-list` | 文档目录（分组 / 卡片 / 列表、可按分类筛、可限条数） | `ctx.docs` |
-| `doc-article` | 当前这一篇的正文 | `ctx.doc` |
-| `doc-nav` | 篇与篇之间的导航（当前篇高亮） | `ctx.docs` |
-| `doc-toc` | 一篇之内的章节导航，从正文标题现抽 | `ctx.doc` |
-
-「导航菜单 / 章节导航要不要显示」因此不需要额外开关——**就是这一段加不加**。
-`doc-list` 放在任意普通页面上同样可用（首页放 `limit=3` 就是「最新文档」）；`doc-article`
-/ `doc-toc` 离开详情模板页就什么都不渲染，因为那时没有「当前文档」。
-
-普通页面只有在页面 / 页头 / 页脚里真的摆了 `doc-*` 段时才会去查文档表（见
-`ssr.routes.ts`），不给每次页面渲染都加一条 SQL。
-
-**链接到文档**：`link` 类型的设置项（页头导航链接、页脚链接）在编辑器里带一个下拉，
-候选是站内页面 + 文档索引 + 每一篇文档（`GET /api/site/link-targets`）。存的仍是一个
-普通 href 字符串，渲染端零改动。
-
-**管理页**（`/app/site/docs`）：列表 + 编辑弹层两件套。
-
-- 列表接口 `GET /api/site/docs` 一次返回全量，搜索 / 分类 / 状态 / 排序 / 分页切片
-  都在客户端做（`client/lib/site-doc-list.ts`），但 **page / page_size / 筛选 / 排序
-  一律走 URL**（`use-site-docs-page.ts`，与 `useUsersPage` 同口径），不另搞本地分页
-  模式。状态筛选里的 `dirty` 不是文档状态，是「已发布但草稿有改动」这一条横切条件
-- 编辑用 `SiteDocEditorSheet`，**弹层态 / 全屏态双模式**：同一棵 DOM 只换
-  `SheetContent` 宽度与正文区预览布局，切换时 textarea 不重挂，光标与撤销栈都还在；
-  展开偏好记在 localStorage。表单只写草稿列，保存后仍需发布才上线
-- 列表里的路径只作展示不做链接：站点跑在租户自己的域名上，管理端拼不出可点的绝对地址
+**链接候选**：`GET /api/site/link-targets` 先列 `MarketingPage`，再合并
+`resolveContributedLinkTargets`（文档等分组由贡献方填；`SITE_LINK_TARGET_GROUPS`
+仍保留 `"doc"` 给贡献方用）。存的仍是普通 href。
 
 ### 站点管理页（`/app/site`）
 
@@ -820,7 +764,7 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 才派生 `about-copy` / `about-copy-2`，首页因为 slug 固定为 `home` 直接返回 `site.home_exists`。
 
 **页面预设 / 模板页**（`shared/page-presets.ts`，客户端 re-export）描述默认版式结构 + i18n key：
-首页模板（`home`）、文档索引 / 详情两张模板页（`doc_index` / `doc_article`）。文案在创建时用 `t()` 落成当前语言的普通内容，套完随便改。
+marketing 自带首页模板（`home`）；文档版式由 site-docs 登记。文案在创建时用 `t()` 落成当前语言的普通内容，套完随便改。
 
 **站点初始化**（`server/site-init.service.ts` + `shared/site-starters.ts` 的 chrome 构建）在
 租户创建时铺好默认页头 / 页脚 / 主题与主语言首页等模板页。产品面**不再**提供「一键应用
@@ -1056,7 +1000,6 @@ og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算
 | 通用初始化配方 | `shared/site-starters.ts` + `page-presets.ts` + `site-init.service.ts` | chrome + 对该站点已相关的模板页（常驻页建租户时快照；有开关的页开通时补建） |
 | **默认租户产品站** | `server/default-product-site-content.ts` | Rewindom 终稿：中英双语首页（hero + 多段 prose + band）；文案来自 `client/locales` 的 `site` / `hero` / `features` / `landing` / `seo` |
 | Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等铺产品站并发布；已是产品站则跳过 |
-| 文档库 | `docs/usage/<locale>/*.md` | 启动时按语言补齐已发布文档 |
 
 新增页面：在 CMS Theme Editor 创建/发布即可；SEO 由 SSR + sitemap 动态生成。
 
