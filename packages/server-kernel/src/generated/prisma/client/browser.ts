@@ -217,6 +217,61 @@ export type RolePermission = Prisma.RolePermissionModel
  */
 export type UserRole = Prisma.UserRoleModel
 /**
+ * Model ShopSetting
+ * 
+ */
+export type ShopSetting = Prisma.ShopSettingModel
+/**
+ * Model ShopProduct
+ * 
+ */
+export type ShopProduct = Prisma.ShopProductModel
+/**
+ * Model ShopVariant
+ * 
+ */
+export type ShopVariant = Prisma.ShopVariantModel
+/**
+ * Model ShopCart
+ * 
+ */
+export type ShopCart = Prisma.ShopCartModel
+/**
+ * Model ShopCartItem
+ * 
+ */
+export type ShopCartItem = Prisma.ShopCartItemModel
+/**
+ * Model ShopShippingZone
+ * 
+ */
+export type ShopShippingZone = Prisma.ShopShippingZoneModel
+/**
+ * Model ShopShippingRate
+ * 
+ */
+export type ShopShippingRate = Prisma.ShopShippingRateModel
+/**
+ * Model ShopOrder
+ * 
+ */
+export type ShopOrder = Prisma.ShopOrderModel
+/**
+ * Model ShopOrderLine
+ * 
+ */
+export type ShopOrderLine = Prisma.ShopOrderLineModel
+/**
+ * Model ShopShipment
+ * 
+ */
+export type ShopShipment = Prisma.ShopShipmentModel
+/**
+ * Model ShopPayment
+ * 
+ */
+export type ShopPayment = Prisma.ShopPaymentModel
+/**
  * Model MemberPlan
  * 站点自己定义的会员套餐（价格、周期、对应通道商品）。
  */

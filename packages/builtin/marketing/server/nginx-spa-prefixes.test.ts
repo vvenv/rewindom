@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest";
 import {
   SITE_APP_PREFIXES,
   SITE_SSR_EXCEPTION_PATHS,
+  SITE_SSR_PREFIX_EXCEPTIONS,
+  isSiteSsrExceptionPath,
 } from "../shared/site-locale.js";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../../../..");
@@ -64,19 +66,18 @@ describe("SPA 前缀三处对齐", () => {
     expect(conf.indexOf("location ~ ^/member/")).toBeLessThan(
       conf.indexOf("location ~ ^/(app|"),
     );
+    for (const prefix of SITE_SSR_PREFIX_EXCEPTIONS) {
+      expect(conf).toContain(`location ~ ^${prefix}(/|$)`);
+      expect(conf.indexOf(`location ~ ^${prefix}(/|$)`)).toBeLessThan(
+        conf.indexOf("location ~ ^/(app|"),
+      );
+    }
   });
 
   it("vite dev 代理放行 SSR 例外路径", () => {
-    const matched = /SSR_EXCEPTION_PATHS\s*=\s*\[([\s\S]*?)\]\s*as const/u.exec(
-      read("apps/client/vite-marketing-ssr-proxy.ts"),
-    );
-    expect(matched).not.toBeNull();
-    const covered = new Set(
-      [...matched![1]!.matchAll(/"([^"]+)"/gu)].map((m) => m[1]!),
-    );
-    expect(
-      SITE_SSR_EXCEPTION_PATHS.filter((path) => !covered.has(path)),
-    ).toEqual([]);
+    const src = read("apps/client/vite-marketing-ssr-proxy.ts");
+    expect(src).toContain("isSiteSsrExceptionPath");
+    expect(src).not.toContain("SSR_EXCEPTION_PATHS");
   });
 
   it("vite dev 代理的 SPA_PREFIX_RE 覆盖全部前缀", () => {
@@ -88,5 +89,12 @@ describe("SPA 前缀三处对齐", () => {
       [...matched![1]!.matchAll(/"([^"]+)"/gu)].map((m) => m[1]!),
     );
     expectCoveredBy(routed);
+  });
+
+  it("isSiteSsrExceptionPath 前缀匹配店面并精确匹配会员例外", () => {
+    expect(isSiteSsrExceptionPath("/shop")).toBe(true);
+    expect(isSiteSsrExceptionPath("/shop/mug")).toBe(true);
+    expect(isSiteSsrExceptionPath("/member/orders")).toBe(true);
+    expect(isSiteSsrExceptionPath("/member/oauth/callback")).toBe(false);
   });
 });

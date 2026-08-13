@@ -770,7 +770,7 @@ export type $AuditLogPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     action: string
     resource: string | null
     /**
-     * * 遗留纯文本，或 detail_key 渲染出的 zh-CN 检索副本
+     * * detail_key 渲染出的 zh-CN 检索副本
      */
     details: string | null
     /**

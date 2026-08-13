@@ -400,6 +400,7 @@ export const RESERVED_PAGE_SLUGS = new Set([
   "register",
   "auth",
   "member",
+  "shop",
   "platform",
   "api",
   "assets",

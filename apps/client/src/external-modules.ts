@@ -2,6 +2,7 @@
 // 外部模块（modules/*）的 client manifest 聚合。
 import { bookmarkClientModule } from "@be-water/bookmark/client/module.js";
 import { noteClientModule } from "@be-water/note/client/module.js";
+import { shopClientModule } from "@be-water/shop/client/module.js";
 import { todoClientModule } from "@be-water/todo/client/module.js";
 
 import type { ClientAppModule } from "@be-water/client-kit";
@@ -9,5 +10,6 @@ import type { ClientAppModule } from "@be-water/client-kit";
 export const EXTERNAL_CLIENT_MODULES = [
   bookmarkClientModule,
   noteClientModule,
+  shopClientModule,
   todoClientModule,
 ] as const satisfies readonly ClientAppModule[];

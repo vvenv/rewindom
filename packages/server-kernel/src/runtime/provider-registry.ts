@@ -1,8 +1,10 @@
 import { AppError } from "../lib/app-errors.js";
 
 import type {
+  MemberMenuLinksProvider,
   MemberOAuthCallbackProvider,
   PublicConfigProvider,
+  SiteMemberSessionProvider,
   TenantApiKeyAuthProvider,
   TenantRegistrationProvider,
 } from "./provider-contracts.js";
@@ -79,6 +81,8 @@ export class ProviderRegistry {
   };
   private tenantApiKeyAuth: TenantApiKeyAuthProvider | null = null;
   private memberOAuthCallback: MemberOAuthCallbackProvider | null = null;
+  private siteMemberSession: SiteMemberSessionProvider | null = null;
+  private memberMenuLinks: MemberMenuLinksProvider | null = null;
 
   setAuthzProvider(provider: AuthzProvider): void {
     this.authz = provider;
@@ -118,5 +122,21 @@ export class ProviderRegistry {
 
   getMemberOAuthCallbackProvider(): MemberOAuthCallbackProvider | null {
     return this.memberOAuthCallback;
+  }
+
+  setSiteMemberSessionProvider(provider: SiteMemberSessionProvider): void {
+    this.siteMemberSession = provider;
+  }
+
+  getSiteMemberSessionProvider(): SiteMemberSessionProvider | null {
+    return this.siteMemberSession;
+  }
+
+  setMemberMenuLinksProvider(provider: MemberMenuLinksProvider): void {
+    this.memberMenuLinks = provider;
+  }
+
+  getMemberMenuLinksProvider(): MemberMenuLinksProvider | null {
+    return this.memberMenuLinks;
   }
 }

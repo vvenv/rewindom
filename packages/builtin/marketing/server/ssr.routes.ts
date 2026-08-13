@@ -423,6 +423,9 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     };
     const locale = resolveLocaleSegment(first);
     if (locale) {
+      if (SPA_PREFIX_SET.has(second)) {
+        return reply.callNotFound();
+      }
       await renderPath(request, reply, `/${second}`, locale);
       return;
     }

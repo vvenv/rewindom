@@ -104,6 +104,33 @@ export interface MemberOAuthCallbackState {
   redirect: string;
 }
 
+export interface SiteMemberSession {
+  id: string;
+  email: string;
+  display_name: string;
+}
+
+export interface SiteMemberSessionProvider {
+  resolve(input: {
+    request: FastifyRequest;
+    reply: FastifyReply;
+    tenantId: string;
+  }): Promise<SiteMemberSession | null>;
+}
+
+/** 会员页头菜单贡献（「我的订单」等）。登记表在 site-member。 */
+export interface MemberMenuLinkContribution {
+  id: string;
+  href: string;
+  labels: { "zh-CN": string; en: string };
+  label_key?: string;
+  order?: number;
+}
+
+export interface MemberMenuLinksProvider {
+  register(link: MemberMenuLinkContribution): void;
+}
+
 export interface MemberOAuthCallbackProvider {
   /**
    * 处理会员 OAuth 回调：种 Cookie 或发 exchange code，并 `reply.redirect`。

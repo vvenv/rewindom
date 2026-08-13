@@ -40,6 +40,17 @@ type ModelPolicy =
   | { kind: "global"; reason: string };
 
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
+  ShopPayment: { kind: "tenant_id" },
+  ShopShipment: { kind: "tenant_id" },
+  ShopOrderLine: { kind: "tenant_id" },
+  ShopOrder: { kind: "tenant_id" },
+  ShopShippingRate: { kind: "tenant_id" },
+  ShopShippingZone: { kind: "tenant_id" },
+  ShopCartItem: { kind: "tenant_id" },
+  ShopCart: { kind: "tenant_id" },
+  ShopVariant: { kind: "tenant_id" },
+  ShopProduct: { kind: "tenant_id" },
+  ShopSetting: { kind: "tenant_id" },
   Bookmark: { kind: "tenant_id" },
   Todo: { kind: "tenant_id" },
   Note: { kind: "tenant_id" },

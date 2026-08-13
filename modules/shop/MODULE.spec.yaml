@@ -1,0 +1,71 @@
+# 商店履约模块。gen-module 只支持单资源列表 CRUD，本模块为多模型手写。
+id: shop
+label: Shop
+description: 商品目录、购物车、结账与履约
+kind: business
+placement: modules/shop
+resource:
+  singular: product
+  plural: products
+surfaces: [tenant]
+requires: [rbac, audit, marketing, site-member]
+
+entitlement:
+  key: shop
+  label: 商店
+  description: 商品目录、购物车、结账与履约
+  disabled_hint: 该站点未开通商店
+  default_enabled: false
+
+permissions:
+  - {
+      key: shop.read,
+      label: 查看商店,
+      group: 商店,
+      description: 查看商品、订单与运费表,
+    }
+  - {
+      key: shop.write,
+      label: 管理商店,
+      group: 商店,
+      description: 编辑商品、发货、配置运费与收款,
+    }
+
+models:
+  - name: ShopProduct
+    fields:
+      - { name: slug, type: String, required: true, label: 路径 }
+      - { name: status, type: String, required: true, label: 状态 }
+      - { name: title, type: Json, required: true, label: 名称 }
+      - { name: created_by, type: String, required: true }
+    indexes:
+      - [tenant_id, slug]
+      - [tenant_id, status, updated_at]
+  - name: ShopOrder
+    fields:
+      - { name: number, type: String, required: true, label: 订单号 }
+      - { name: status, type: String, required: true, label: 状态 }
+      - { name: email, type: String, required: true }
+    indexes:
+      - [tenant_id, number]
+      - [tenant_id, status, created_at]
+
+api:
+  prefix: /api/shop
+  operations: [list, detail, create, update, delete]
+  list:
+    search_fields: [slug]
+    sort_whitelist: [slug, status, updated_at]
+    default_sort: { by: updated_at, dir: desc }
+
+client:
+  mount: renderRoutes
+  route_path: /app/shop
+  nav:
+    section: 商店
+    label: 商品
+    title: 商品
+    icon: Package
+  page:
+    layout: list-filter-table
+    form_fields: [slug, status, title]

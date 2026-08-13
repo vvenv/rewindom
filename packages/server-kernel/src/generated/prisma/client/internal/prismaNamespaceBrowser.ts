@@ -82,6 +82,17 @@ export const ModelName = {
   Role: 'Role',
   RolePermission: 'RolePermission',
   UserRole: 'UserRole',
+  ShopSetting: 'ShopSetting',
+  ShopProduct: 'ShopProduct',
+  ShopVariant: 'ShopVariant',
+  ShopCart: 'ShopCart',
+  ShopCartItem: 'ShopCartItem',
+  ShopShippingZone: 'ShopShippingZone',
+  ShopShippingRate: 'ShopShippingRate',
+  ShopOrder: 'ShopOrder',
+  ShopOrderLine: 'ShopOrderLine',
+  ShopShipment: 'ShopShipment',
+  ShopPayment: 'ShopPayment',
   MemberPlan: 'MemberPlan',
   MemberSubscription: 'MemberSubscription',
   MemberPayment: 'MemberPayment',
@@ -590,6 +601,188 @@ export const UserRoleScalarFieldEnum = {
 } as const
 
 export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
+
+
+export const ShopSettingScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  currency: 'currency',
+  origin_country: 'origin_country',
+  ioss_number: 'ioss_number',
+  eori_number: 'eori_number',
+  stripe_tax_enabled: 'stripe_tax_enabled',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopSettingScalarFieldEnum = (typeof ShopSettingScalarFieldEnum)[keyof typeof ShopSettingScalarFieldEnum]
+
+
+export const ShopProductScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  slug: 'slug',
+  status: 'status',
+  title: 'title',
+  description: 'description',
+  created_by: 'created_by',
+  updated_by: 'updated_by',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopProductScalarFieldEnum = (typeof ShopProductScalarFieldEnum)[keyof typeof ShopProductScalarFieldEnum]
+
+
+export const ShopVariantScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  product_id: 'product_id',
+  sku: 'sku',
+  title: 'title',
+  price_cents: 'price_cents',
+  currency: 'currency',
+  stock_qty: 'stock_qty',
+  weight_g: 'weight_g',
+  hs_code: 'hs_code',
+  origin_country: 'origin_country',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopVariantScalarFieldEnum = (typeof ShopVariantScalarFieldEnum)[keyof typeof ShopVariantScalarFieldEnum]
+
+
+export const ShopCartScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  member_id: 'member_id',
+  guest_token: 'guest_token',
+  currency: 'currency',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopCartScalarFieldEnum = (typeof ShopCartScalarFieldEnum)[keyof typeof ShopCartScalarFieldEnum]
+
+
+export const ShopCartItemScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  cart_id: 'cart_id',
+  variant_id: 'variant_id',
+  quantity: 'quantity',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopCartItemScalarFieldEnum = (typeof ShopCartItemScalarFieldEnum)[keyof typeof ShopCartItemScalarFieldEnum]
+
+
+export const ShopShippingZoneScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  name: 'name',
+  countries: 'countries',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopShippingZoneScalarFieldEnum = (typeof ShopShippingZoneScalarFieldEnum)[keyof typeof ShopShippingZoneScalarFieldEnum]
+
+
+export const ShopShippingRateScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  zone_id: 'zone_id',
+  name: 'name',
+  carrier_code: 'carrier_code',
+  price_cents: 'price_cents',
+  min_days: 'min_days',
+  max_days: 'max_days',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopShippingRateScalarFieldEnum = (typeof ShopShippingRateScalarFieldEnum)[keyof typeof ShopShippingRateScalarFieldEnum]
+
+
+export const ShopOrderScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  number: 'number',
+  status: 'status',
+  email: 'email',
+  member_id: 'member_id',
+  guest_token: 'guest_token',
+  currency: 'currency',
+  subtotal_cents: 'subtotal_cents',
+  shipping_cents: 'shipping_cents',
+  tax_cents: 'tax_cents',
+  total_cents: 'total_cents',
+  shipping_address: 'shipping_address',
+  billing_address: 'billing_address',
+  shipping_rate_id: 'shipping_rate_id',
+  shipping_rate_name: 'shipping_rate_name',
+  carrier_code: 'carrier_code',
+  stripe_checkout_session_id: 'stripe_checkout_session_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  paid_at: 'paid_at'
+} as const
+
+export type ShopOrderScalarFieldEnum = (typeof ShopOrderScalarFieldEnum)[keyof typeof ShopOrderScalarFieldEnum]
+
+
+export const ShopOrderLineScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  order_id: 'order_id',
+  variant_id: 'variant_id',
+  sku: 'sku',
+  title: 'title',
+  quantity: 'quantity',
+  unit_price_cents: 'unit_price_cents',
+  weight_g: 'weight_g',
+  hs_code: 'hs_code',
+  origin_country: 'origin_country',
+  created_at: 'created_at'
+} as const
+
+export type ShopOrderLineScalarFieldEnum = (typeof ShopOrderLineScalarFieldEnum)[keyof typeof ShopOrderLineScalarFieldEnum]
+
+
+export const ShopShipmentScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  order_id: 'order_id',
+  carrier_code: 'carrier_code',
+  tracking_number: 'tracking_number',
+  shipped_at: 'shipped_at',
+  customs_snapshot: 'customs_snapshot',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopShipmentScalarFieldEnum = (typeof ShopShipmentScalarFieldEnum)[keyof typeof ShopShipmentScalarFieldEnum]
+
+
+export const ShopPaymentScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  order_id: 'order_id',
+  provider: 'provider',
+  provider_ref: 'provider_ref',
+  amount_cents: 'amount_cents',
+  currency: 'currency',
+  status: 'status',
+  paid_at: 'paid_at',
+  raw_event: 'raw_event',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopPaymentScalarFieldEnum = (typeof ShopPaymentScalarFieldEnum)[keyof typeof ShopPaymentScalarFieldEnum]
 
 
 export const MemberPlanScalarFieldEnum = {

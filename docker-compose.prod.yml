@@ -85,6 +85,9 @@ services:
       CREEM_STORE_ID: ${CREEM_STORE_ID:-}
       CREEM_SERVER: ${CREEM_SERVER:-}
       CREEM_PRODUCT_MAP: ${CREEM_PRODUCT_MAP:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
     volumes:
       - be_water_storage:/data
     depends_on:

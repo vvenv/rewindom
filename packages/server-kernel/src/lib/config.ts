@@ -326,6 +326,16 @@ function buildBillingConfig() {
   };
 }
 
+function buildShopConfig() {
+  return {
+    stripe: {
+      secretKey: strEnv("STRIPE_SECRET_KEY", ""),
+      webhookSecret: strEnv("STRIPE_WEBHOOK_SECRET", ""),
+      publishableKey: strEnv("STRIPE_PUBLISHABLE_KEY", ""),
+    },
+  };
+}
+
 function resolveTenantGuardMode(): "off" | "audit" | "enforce" {
   const value = strEnv("TENANT_GUARD_MODE", "enforce").toLowerCase();
   if (value === "off" || value === "audit" || value === "enforce") {
@@ -356,6 +366,7 @@ export const config = {
   infra: buildInfraConfig(),
   openai: buildOpenAiConfig(),
   billing: buildBillingConfig(),
+  shop: buildShopConfig(),
   tenant: {
     secretEncryptionKey: resolveTenantSecretEncryptionKey(),
     // 租户守卫：enforce 强制注入租户谓词；audit 只上报不改写（灰度用）；off 关闭。

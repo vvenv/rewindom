@@ -1,0 +1,197 @@
+// 外部模块 Prisma schema——由 gen:external-modules 符号链接到
+// apps/server/prisma/models/shop.prisma。
+// 刻意不声明到 Tenant / SiteMember 的 relation：跨模块不连外键，
+// 租户隔离由 tenant-guard 注入 tenant_id。
+
+model ShopSetting {
+  id                  String   @id @default(uuid())
+  tenant_id           String   @unique
+  currency            String   @default("USD")
+  origin_country      String   @default("CN")
+  ioss_number         String?
+  eori_number         String?
+  stripe_tax_enabled  Boolean  @default(false)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+}
+
+model ShopProduct {
+  id          String        @id @default(uuid())
+  tenant_id   String
+  slug        String
+  status      String        @default("draft")
+  /// 扁平 locale → 文案，如 { "zh-CN": "…", "en": "…" }
+  title       Json
+  description Json?
+  created_by  String
+  updated_by  String?
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  variants    ShopVariant[]
+
+  @@unique([tenant_id, slug])
+  @@index([tenant_id, status, updated_at])
+}
+
+model ShopVariant {
+  id             String          @id @default(uuid())
+  tenant_id      String
+  product_id     String
+  sku            String
+  title          Json?
+  price_cents    Int
+  currency       String          @default("USD")
+  stock_qty      Int             @default(0)
+  weight_g       Int             @default(0)
+  hs_code        String?
+  origin_country String?
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  product        ShopProduct     @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  cart_items     ShopCartItem[]
+
+  @@unique([tenant_id, sku])
+  @@index([tenant_id, product_id])
+}
+
+model ShopCart {
+  id          String         @id @default(uuid())
+  tenant_id   String
+  member_id   String?
+  guest_token String?
+  currency    String         @default("USD")
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+  items       ShopCartItem[]
+
+  @@index([tenant_id, member_id])
+  @@unique([tenant_id, guest_token])
+}
+
+model ShopCartItem {
+  id         String      @id @default(uuid())
+  tenant_id  String
+  cart_id    String
+  variant_id String
+  quantity   Int
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+  cart       ShopCart    @relation(fields: [cart_id], references: [id], onDelete: Cascade)
+  variant    ShopVariant @relation(fields: [variant_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, cart_id, variant_id])
+  @@index([tenant_id, cart_id])
+}
+
+model ShopShippingZone {
+  id         String             @id @default(uuid())
+  tenant_id  String
+  name       String
+  countries  Json
+  created_at DateTime           @default(now())
+  updated_at DateTime           @updatedAt
+  rates      ShopShippingRate[]
+
+  @@index([tenant_id])
+}
+
+model ShopShippingRate {
+  id            String           @id @default(uuid())
+  tenant_id     String
+  zone_id       String
+  name          String
+  carrier_code  String
+  price_cents   Int
+  min_days      Int?
+  max_days      Int?
+  created_at    DateTime         @default(now())
+  updated_at    DateTime         @updatedAt
+  zone          ShopShippingZone @relation(fields: [zone_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id, zone_id])
+}
+
+model ShopOrder {
+  id                         String          @id @default(uuid())
+  tenant_id                  String
+  number                     String
+  status                     String
+  email                      String
+  member_id                  String?
+  guest_token                String
+  currency                   String
+  subtotal_cents             Int
+  shipping_cents             Int
+  tax_cents                  Int             @default(0)
+  total_cents                Int
+  shipping_address           Json
+  billing_address            Json?
+  shipping_rate_id           String?
+  shipping_rate_name         String?
+  carrier_code               String?
+  stripe_checkout_session_id String?
+  created_at                 DateTime        @default(now())
+  updated_at                 DateTime        @updatedAt
+  paid_at                    DateTime?
+  lines                      ShopOrderLine[]
+  shipments                  ShopShipment[]
+  payments                   ShopPayment[]
+
+  @@unique([tenant_id, number])
+  @@index([tenant_id, status, created_at])
+  @@index([tenant_id, member_id])
+  @@index([tenant_id, email])
+  @@index([tenant_id, stripe_checkout_session_id])
+}
+
+model ShopOrderLine {
+  id             String    @id @default(uuid())
+  tenant_id      String
+  order_id       String
+  variant_id     String?
+  sku            String
+  title          String
+  quantity       Int
+  unit_price_cents Int
+  weight_g       Int       @default(0)
+  hs_code        String?
+  origin_country String?
+  created_at     DateTime  @default(now())
+  order          ShopOrder @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id, order_id])
+}
+
+model ShopShipment {
+  id               String    @id @default(uuid())
+  tenant_id        String
+  order_id         String
+  carrier_code     String
+  tracking_number  String
+  shipped_at       DateTime  @default(now())
+  customs_snapshot Json?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  order            ShopOrder @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id, order_id])
+}
+
+model ShopPayment {
+  id            String    @id @default(uuid())
+  tenant_id     String
+  order_id      String
+  provider      String    @default("stripe")
+  provider_ref  String
+  amount_cents  Int
+  currency      String
+  status        String
+  paid_at       DateTime?
+  raw_event     Json?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  order         ShopOrder @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, provider, provider_ref])
+  @@index([tenant_id, order_id])
+}

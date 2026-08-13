@@ -1,3 +1,5 @@
+import { isSiteSsrExceptionPath } from "@be-water/builtin/marketing/shared/site-locale.js";
+
 /**
  * 应用区一级路径：开发态不代理给 Marketing SSR，交回 Vite SPA。
  * 须与 `SITE_APP_PREFIXES`（`packages/builtin/marketing/shared/site-locale.ts`）
@@ -10,6 +12,7 @@ const SPA_ROUTE_PREFIXES = [
   "register",
   "auth",
   "member",
+  "shop",
   "platform",
   "api",
   "assets",
@@ -30,23 +33,12 @@ export const SPA_PREFIX_RE = new RegExp(
 export const VITE_DEV_INTERNAL_RE =
   /^\/(@vite|@react-refresh|@fs|@id|\.vite)(\/|$)/u;
 
-/**
- * 应用区前缀下的**例外**：这几条路径归 Fastify SSR（租户可排版的会员认证页）。
- * 须与 `SITE_SSR_EXCEPTION_PATHS`（marketing/shared/site-locale.ts）及 nginx location 对齐。
- */
-const SSR_EXCEPTION_PATHS = [
-  "/member/login",
-  "/member/register",
-  "/member/account",
-  "/member/billing",
-] as const;
-
-function isSsrExceptionPath(url: string): boolean {
-  return (SSR_EXCEPTION_PATHS as readonly string[]).includes(url);
+function pathOnly(url: string): string {
+  return url.split(/[?#]/u)[0] ?? url;
 }
 
 export function shouldBypassMarketingSsrProxy(url: string): boolean {
-  if (isSsrExceptionPath(url)) return false;
+  if (isSiteSsrExceptionPath(pathOnly(url))) return false;
   return SPA_PREFIX_RE.test(url) || VITE_DEV_INTERNAL_RE.test(url);
 }
 
@@ -56,8 +48,8 @@ export function shouldProxyDocumentToMarketingSsr(
   accept: string,
 ): boolean {
   if (shouldBypassMarketingSsrProxy(url)) return false;
-  // 认证页的表单是真 POST，开发态也得代理过去，否则本地登录只会打到 Vite 上
-  if (isSsrExceptionPath(url)) return true;
+  // 认证页 / 店面的表单是真 POST，开发态也得代理过去
+  if (isSiteSsrExceptionPath(pathOnly(url))) return true;
   if (method !== "GET" && method !== "HEAD") return false;
   return (
     url === "/sitemap.xml" ||

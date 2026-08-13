@@ -1,0 +1,47 @@
+{
+  "name": "@be-water/shop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server/index.js": "./server/index.ts",
+    "./client/module.js": "./client/module.tsx",
+    "./*": "./*"
+  },
+  "scripts": {
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@be-water/module-sdk": "workspace:*",
+    "@be-water/ui": "workspace:*",
+    "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-table": "^9.1.0",
+    "lucide-react": "^1.30.0",
+    "react-i18next": "^17.0.11",
+    "stripe": "^20.0.0"
+  },
+  "peerDependencies": {
+    "fastify": "^5.11.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^8.0.0"
+  },
+  "devDependencies": {
+    "@be-water/server-test": "workspace:*",
+    "@be-water/client-test": "workspace:*",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "happy-dom": "^20.11.2",
+    "msw": "^2.15.0",
+    "vitest": "^4.1.10"
+  },
+  "beWater": {
+    "moduleId": "shop",
+    "prismaSchema": "./prisma/schema.prisma",
+    "requires": ["rbac", "audit", "marketing", "site-member"]
+  }
+}

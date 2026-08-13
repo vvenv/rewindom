@@ -26,3 +26,10 @@ export * from "@be-water/server-kernel/http/coded-error.js";
 export * from "@be-water/server-kernel/lib/app-errors.js";
 export * from "@be-water/server-kernel/lib/prisma.js";
 export * from "@be-water/server-kernel/lib/tenant-scope.js";
+export * from "@be-water/server-kernel/lib/config.js";
+export * from "@be-water/server-kernel/lib/host-tenant.js";
+export * from "@be-water/server-kernel/lib/tenant-secret-crypto.js";
+export {
+  translateServerMessage,
+} from "@be-water/server-kernel/lib/i18n/registry.js";
+export { resolveRequestLocale } from "@be-water/server-kernel/lib/i18n/translate.js";

@@ -60,10 +60,21 @@ server {
         try_files $uri =404;
     }
 
-    # 会员的登录 / 注册 / 我的账户：租户可排版的 SSR 模板页，必须进后端
+    # 店面：整段 /shop/* 走 Fastify SSR（不能只精确匹配 /shop，否则详情页会掉进 CMS）。
+    # 必须写在应用壳层 location 之前。
+    location ~ ^/shop(/|$) {
+        error_page 418 = @tenant_ssr;
+        if ($use_tenant_ssr = 1) {
+            return 418;
+        }
+        try_files $uri /index.html;
+        add_header Cache-Control "no-cache" always;
+    }
+
+    # 会员的登录 / 注册 / 我的账户 / 我的订单：租户可排版的 SSR 模板页，必须进后端
     # （其余 /member/* —— OAuth 回调 —— 仍是 SPA）。
     # 必须与 `SITE_SSR_EXCEPTION_PATHS`（packages/builtin/marketing/shared/site-locale.ts）一致。
-    location ~ ^/member/(login|register|account|billing)$ {
+    location ~ ^/member/(login|register|account|billing|orders)$ {
         error_page 418 = @tenant_ssr;
         if ($use_tenant_ssr = 1) {
             return 418;
@@ -74,7 +85,7 @@ server {
 
     # 应用壳层路径：仍走 SPA，不进 Marketing SSR。
     # 必须与 `SITE_APP_PREFIXES`（packages/builtin/marketing/shared/site-locale.ts）保持一致。
-    location ~ ^/(app|login|register|auth|member|platform)(/|$) {
+    location ~ ^/(app|login|register|auth|member|platform|shop)(/|$) {
         try_files $uri /index.html;
         add_header Cache-Control "no-cache" always;
     }

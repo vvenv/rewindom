@@ -80,7 +80,15 @@
     "TODO_TOGGLE_ALL": "Toggle all todos",
     "BILLING_CHECKOUT_CREATE": "Create checkout",
     "BILLING_SUBSCRIPTION_CANCEL": "Cancel subscription",
-    "BILLING_WEBHOOK_SYNC": "Sync billing webhook"
+    "BILLING_WEBHOOK_SYNC": "Sync billing webhook",
+    "SHOP_PRODUCT_CREATE": "Create product",
+    "SHOP_PRODUCT_UPDATE": "Update product",
+    "SHOP_PRODUCT_DELETE": "Delete product",
+    "SHOP_ORDER_FULFILL": "Fulfill order",
+    "SHOP_SHIPPING_SAVE": "Update shipping",
+    "SHOP_SETTING_UPDATE": "Update shop settings",
+    "SHOP_PROVIDER_UPDATE": "Update shop payment provider",
+    "SHOP_WEBHOOK_SYNC": "Sync shop payment webhook"
   },
   "groups": {
     "auth": "Authentication",
@@ -89,7 +97,8 @@
     "notes": "Sample module",
     "site": "Tenant site",
     "todos": "Todos",
-    "billing": "Billing"
+    "billing": "Billing",
+    "shop": "Shop"
   },
   "detailTemplates": {
     "auth.audit.login_success": "User signed in",

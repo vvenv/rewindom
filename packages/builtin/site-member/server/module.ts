@@ -1,3 +1,4 @@
+import { registerMemberMenuLink } from "../shared/member-menu-links.js";
 import { registerMemberPageTemplates } from "../shared/member-page-templates.js";
 
 import { SITE_MEMBER_SERVER_I18N } from "./i18n.js";
@@ -11,7 +12,10 @@ import { registerSiteMemberAccountEntry } from "./site-account-entry.js";
 import { siteMemberAdminRoutes } from "./site-member-admin.routes.js";
 import { siteMemberAuthRoutes } from "./site-member-auth.routes.js";
 import { siteMemberOAuthRoutes } from "./site-member-oauth.routes.js";
-import { registerSiteMemberSsrSessionResolver } from "./site-member-ssr-session.js";
+import {
+  registerSiteMemberSsrSessionResolver,
+  resolveMemberSsrSession,
+} from "./site-member-ssr-session.js";
 import { siteOAuthProvidersRoutes } from "./site-oauth.routes.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
@@ -54,6 +58,12 @@ export const siteMemberServerModule: ServerAppModule = {
       registry.setMemberOAuthCallbackProvider(
         createMemberOAuthCallbackProvider(),
       );
+      registry.setSiteMemberSessionProvider({
+        resolve: resolveMemberSsrSession,
+      });
+      registry.setMemberMenuLinksProvider({
+        register: (link) => registerMemberMenuLink(link),
+      });
     },
     // 站点前台页头的账户入口：marketing 定义注入点，这里填实现（见 site-account-entry.ts）
     onBoot: async () => {

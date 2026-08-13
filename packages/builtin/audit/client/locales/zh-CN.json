@@ -80,7 +80,15 @@
     "TODO_TOGGLE_ALL": "批量切换待办完成态",
     "BILLING_CHECKOUT_CREATE": "创建付款结账",
     "BILLING_SUBSCRIPTION_CANCEL": "取消订阅",
-    "BILLING_WEBHOOK_SYNC": "同步付款 webhook"
+    "BILLING_WEBHOOK_SYNC": "同步付款 webhook",
+    "SHOP_PRODUCT_CREATE": "创建商品",
+    "SHOP_PRODUCT_UPDATE": "更新商品",
+    "SHOP_PRODUCT_DELETE": "删除商品",
+    "SHOP_ORDER_FULFILL": "订单发货",
+    "SHOP_SHIPPING_SAVE": "更新运费",
+    "SHOP_SETTING_UPDATE": "更新商店设置",
+    "SHOP_PROVIDER_UPDATE": "更新商店收款通道",
+    "SHOP_WEBHOOK_SYNC": "同步商店付款 webhook"
   },
   "groups": {
     "auth": "认证",
@@ -89,7 +97,8 @@
     "notes": "示例模块",
     "site": "官网",
     "todos": "Todos",
-    "billing": "订阅与付款"
+    "billing": "订阅与付款",
+    "shop": "商店"
   },
   "detailTemplates": {
     "auth.audit.login_success": "用户成功登录",

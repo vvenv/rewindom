@@ -33,6 +33,8 @@ export const SITE_APP_PREFIXES = [
   "auth",
   // 站点会员的登录/注册/我的账户；不加进来 SSR 会把 /member/login 当 CMS 页面找
   "member",
+  // 店面 SSR（/shop、/shop/:slug）；nginx / vite 再以 SSR 例外前缀打回 Fastify
+  "shop",
   // 平台控制台
   "platform",
   // 非文档路径，由各自的 location / 中间件处理
@@ -61,14 +63,22 @@ export const SITE_SSR_EXCEPTION_PATHS = [
   "/member/register",
   "/member/account",
   "/member/billing",
+  "/member/orders",
 ] as const;
+
+/** 整段前缀走 SSR 的例外（店面 `/shop` 与 `/shop/:slug`）。 */
+export const SITE_SSR_PREFIX_EXCEPTIONS = ["/shop"] as const;
 
 const APP_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);
 const SSR_EXCEPTION_SET = new Set<string>(SITE_SSR_EXCEPTION_PATHS);
 
 /** 这条路径虽然落在应用区前缀下，但归服务端渲染。 */
 export function isSiteSsrExceptionPath(path: string): boolean {
-  return SSR_EXCEPTION_SET.has(path);
+  const normalized = normalizeSitePath(path.split(/[?#]/u)[0] ?? path);
+  if (SSR_EXCEPTION_SET.has(normalized)) return true;
+  return SITE_SSR_PREFIX_EXCEPTIONS.some(
+    (prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`),
+  );
 }
 
 /** 大小写不敏感地把一段路径解析成 locale（`zh-cn` → `zh-CN`）。 */

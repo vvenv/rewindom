@@ -27,5 +27,16 @@
   "memberSubscription": "tenant_id",
   "memberPayment": "tenant_id",
   "bookmark": "tenant_id",
-  "dashboardPreference": "tenant_id"
+  "dashboardPreference": "tenant_id",
+  "shopSetting": "tenant_id",
+  "shopProduct": "tenant_id",
+  "shopVariant": "tenant_id",
+  "shopCart": "tenant_id",
+  "shopCartItem": "tenant_id",
+  "shopShippingZone": "tenant_id",
+  "shopShippingRate": "tenant_id",
+  "shopOrder": "tenant_id",
+  "shopOrderLine": "tenant_id",
+  "shopShipment": "tenant_id",
+  "shopPayment": "tenant_id"
 }

@@ -3,6 +3,7 @@
 // 内部模块仍在 enabled-modules.ts 里手写；本文件只管外部。
 import { bookmarkServerModule } from "@be-water/bookmark/server/index.js";
 import { noteServerModule } from "@be-water/note/server/index.js";
+import { shopServerModule } from "@be-water/shop/server/index.js";
 import { todoServerModule } from "@be-water/todo/server/index.js";
 
 import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
@@ -10,5 +11,6 @@ import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-con
 export const EXTERNAL_SERVER_MODULES = [
   bookmarkServerModule,
   noteServerModule,
+  shopServerModule,
   todoServerModule,
 ] as const satisfies readonly ServerAppModule[];

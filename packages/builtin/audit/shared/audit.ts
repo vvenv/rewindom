@@ -78,6 +78,14 @@ export const AuditAction = {
   SITE_BILLING_PROVIDER_UPDATE: "SITE_BILLING_PROVIDER_UPDATE",
   SITE_BILLING_WEBHOOK_SYNC: "SITE_BILLING_WEBHOOK_SYNC",
   PLAN_PRICING_UPDATE: "PLAN_PRICING_UPDATE",
+  SHOP_PRODUCT_CREATE: "SHOP_PRODUCT_CREATE",
+  SHOP_PRODUCT_UPDATE: "SHOP_PRODUCT_UPDATE",
+  SHOP_PRODUCT_DELETE: "SHOP_PRODUCT_DELETE",
+  SHOP_ORDER_FULFILL: "SHOP_ORDER_FULFILL",
+  SHOP_SHIPPING_SAVE: "SHOP_SHIPPING_SAVE",
+  SHOP_SETTING_UPDATE: "SHOP_SETTING_UPDATE",
+  SHOP_PROVIDER_UPDATE: "SHOP_PROVIDER_UPDATE",
+  SHOP_WEBHOOK_SYNC: "SHOP_WEBHOOK_SYNC",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -216,6 +224,14 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.SITE_BILLING_PROVIDER_UPDATE]: "更新会员收款通道",
   [AuditAction.SITE_BILLING_WEBHOOK_SYNC]: "同步会员付费 webhook",
   [AuditAction.PLAN_PRICING_UPDATE]: "更新套餐定价配置",
+  [AuditAction.SHOP_PRODUCT_CREATE]: "创建商品",
+  [AuditAction.SHOP_PRODUCT_UPDATE]: "更新商品",
+  [AuditAction.SHOP_PRODUCT_DELETE]: "删除商品",
+  [AuditAction.SHOP_ORDER_FULFILL]: "订单发货",
+  [AuditAction.SHOP_SHIPPING_SAVE]: "更新运费",
+  [AuditAction.SHOP_SETTING_UPDATE]: "更新商店设置",
+  [AuditAction.SHOP_PROVIDER_UPDATE]: "更新商店收款通道",
+  [AuditAction.SHOP_WEBHOOK_SYNC]: "同步商店付款 webhook",
 };
 
 export const AUDIT_ACTION_GROUPS = [
@@ -335,6 +351,19 @@ export const AUDIT_ACTION_GROUPS = [
   {
     label: "套餐配置",
     actions: [AuditAction.PLAN_PRICING_UPDATE],
+  },
+  {
+    label: "商店",
+    actions: [
+      AuditAction.SHOP_PRODUCT_CREATE,
+      AuditAction.SHOP_PRODUCT_UPDATE,
+      AuditAction.SHOP_PRODUCT_DELETE,
+      AuditAction.SHOP_ORDER_FULFILL,
+      AuditAction.SHOP_SHIPPING_SAVE,
+      AuditAction.SHOP_SETTING_UPDATE,
+      AuditAction.SHOP_PROVIDER_UPDATE,
+      AuditAction.SHOP_WEBHOOK_SYNC,
+    ],
   },
 ] as const;
 
