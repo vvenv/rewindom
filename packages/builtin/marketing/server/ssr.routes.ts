@@ -1,6 +1,7 @@
 import {
   resolveHostTenant,
   resolveRequestHostname,
+  requestOriginFromHeaders,
 } from "@rewindom/server-kernel/lib/host-tenant.js";
 import { DEFAULT_TENANT_ID, normalizeLocale, type AppLocale } from "@rewindom/shared";
 
@@ -53,13 +54,9 @@ const SPA_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);
 const NOT_FOUND_SLUG_PATH = "/404";
 
 function requestOrigin(request: FastifyRequest): string {
-  const proto =
-    (request.headers["x-forwarded-proto"] as string | undefined)
-      ?.split(",")[0]
-      ?.trim() || "https";
-  const host =
-    resolveRequestHostname(request.headers) || request.hostname || "localhost";
-  return `${proto}://${host}`;
+  return (
+    requestOriginFromHeaders(request) ?? `http://${request.hostname}`
+  );
 }
 
 async function ensureHostTenant(request: FastifyRequest): Promise<void> {

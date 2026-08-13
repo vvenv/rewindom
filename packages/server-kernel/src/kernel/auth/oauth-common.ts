@@ -257,20 +257,4 @@ export function mapOAuthErrorCode(error: unknown): string {
   return "auth.oauth_failed";
 }
 
-export function requestOriginFromHeaders(request: {
-  protocol: string;
-  headers: Record<string, string | string[] | undefined>;
-}): string | null {
-  const protoHeader = request.headers["x-forwarded-proto"];
-  const hostHeader = request.headers["x-forwarded-host"] ?? request.headers.host;
-  const proto = (
-    Array.isArray(protoHeader) ? protoHeader[0] : protoHeader
-  )
-    ?.split(",")[0]
-    ?.trim() || request.protocol;
-  const host = (Array.isArray(hostHeader) ? hostHeader[0] : hostHeader)
-    ?.split(",")[0]
-    ?.trim();
-  if (!host) return null;
-  return `${proto}://${host}`;
-}
+export { requestOriginFromHeaders } from "../../lib/host-tenant.js";

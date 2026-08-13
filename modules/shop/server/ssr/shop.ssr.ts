@@ -1,5 +1,6 @@
 import {
   AppError,
+  requestOriginFromHeaders,
   resolveHostTenant,
   resolveRequestHostname,
   resolveRequestLocale,
@@ -70,13 +71,9 @@ import type { ShopRenderContext } from "../../shared/shop-section-context.js";
 const GUEST_ORDER_COOKIE = "shop_guest_token";
 
 function requestOrigin(request: FastifyRequest): string {
-  const proto =
-    (request.headers["x-forwarded-proto"] as string | undefined)
-      ?.split(",")[0]
-      ?.trim() || "https";
-  const host =
-    resolveRequestHostname(request.headers) || request.hostname || "localhost";
-  return `${proto}://${host}`;
+  return (
+    requestOriginFromHeaders(request) ?? `http://${request.hostname}`
+  );
 }
 
 async function ensureHostTenant(request: FastifyRequest): Promise<void> {

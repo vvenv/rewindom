@@ -10,6 +10,7 @@ import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
 import {
   resolveHostTenant,
   resolveRequestHostname,
+  requestOriginFromHeaders,
 } from "@rewindom/server-kernel/lib/host-tenant.js";
 import { translateServerMessage } from "@rewindom/server-kernel/lib/i18n/registry.js";
 import { type AppLocale } from "@rewindom/shared";
@@ -25,13 +26,9 @@ export function safeRedirect(raw: unknown, fallback: string): string {
 }
 
 export function requestOrigin(request: FastifyRequest): string {
-  const proto =
-    (request.headers["x-forwarded-proto"] as string | undefined)
-      ?.split(",")[0]
-      ?.trim() || "https";
-  const host =
-    resolveRequestHostname(request.headers) || request.hostname || "localhost";
-  return `${proto}://${host}`;
+  return (
+    requestOriginFromHeaders(request) ?? `http://${request.hostname}`
+  );
 }
 
 export async function ensureHostTenant(request: FastifyRequest): Promise<void> {

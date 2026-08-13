@@ -28,6 +28,7 @@ import {
   getReservedHostnames,
   hostnameFromUrl,
   normalizeCustomDomain,
+  requestOriginFromHeaders,
   resolveHostTenant,
   resolveRequestHostname,
 } from "./host-tenant.js";
@@ -45,6 +46,54 @@ describe("resolveRequestHostname", () => {
 
   it("支持 IPv6 括号形式", () => {
     expect(resolveRequestHostname({ host: "[::1]:7300" })).toBe("::1");
+  });
+});
+
+describe("requestOriginFromHeaders", () => {
+  it("保留端口，协议回退 request.protocol", () => {
+    expect(
+      requestOriginFromHeaders({
+        protocol: "http",
+        headers: { host: "localhost:7300" },
+      }),
+    ).toBe("http://localhost:7300");
+  });
+
+  it("认 x-forwarded-proto 与 x-forwarded-host", () => {
+    expect(
+      requestOriginFromHeaders({
+        protocol: "http",
+        headers: {
+          host: "127.0.0.1:3700",
+          "x-forwarded-proto": "https",
+          "x-forwarded-host": "shop.example.com",
+        },
+      }),
+    ).toBe("https://shop.example.com");
+  });
+
+  it("Origin 与 Host 同 hostname 时用 Origin（含端口与协议）", () => {
+    expect(
+      requestOriginFromHeaders({
+        protocol: "http",
+        headers: {
+          host: "localhost:3700",
+          origin: "http://localhost:7300",
+        },
+      }),
+    ).toBe("http://localhost:7300");
+  });
+
+  it("跨站 Origin 不用来拼回跳地址", () => {
+    expect(
+      requestOriginFromHeaders({
+        protocol: "http",
+        headers: {
+          host: "localhost:7300",
+          origin: "https://evil.example",
+        },
+      }),
+    ).toBe("http://localhost:7300");
   });
 });
 

@@ -49,6 +49,49 @@ export function resolveRequestHostname(headers: {
   return normalized.length > 0 ? normalized : null;
 }
 
+/**
+ * 浏览器可见的站点 origin（含协议与端口）。
+ *
+ * 租户匹配请用 {@link resolveRequestHostname}（去端口）。拼绝对 URL 必须保留端口，
+ * 且缺 `x-forwarded-proto` 时回退 `request.protocol`，不能默认 https——本地 Vite
+ * 反代是 `http://localhost:7300`。有 `Origin` 且 hostname 一致时优先用它（表单 POST
+ * 的回跳地址与用户实际打开的站点一致）。
+ */
+export function requestOriginFromHeaders(request: {
+  protocol: string;
+  headers: Record<string, string | string[] | undefined>;
+}): string | null {
+  const protoHeader = request.headers["x-forwarded-proto"];
+  const hostHeader = request.headers["x-forwarded-host"] ?? request.headers.host;
+  const proto = (
+    Array.isArray(protoHeader) ? protoHeader[0] : protoHeader
+  )
+    ?.split(",")[0]
+    ?.trim() || request.protocol;
+  const host = (Array.isArray(hostHeader) ? hostHeader[0] : hostHeader)
+    ?.split(",")[0]
+    ?.trim();
+  if (!host) return null;
+  const fromHeaders = `${proto}://${host}`;
+  const originRaw = request.headers.origin;
+  const originValue = Array.isArray(originRaw) ? originRaw[0] : originRaw;
+  if (originValue && originValue !== "null") {
+    try {
+      const originUrl = new URL(originValue);
+      const headerUrl = new URL(fromHeaders);
+      if (
+        (originUrl.protocol === "http:" || originUrl.protocol === "https:") &&
+        originUrl.hostname.toLowerCase() === headerUrl.hostname.toLowerCase()
+      ) {
+        return originUrl.origin;
+      }
+    } catch {
+      // Origin 非法则用转发头
+    }
+  }
+  return fromHeaders;
+}
+
 /** 从 URL 字符串解析 hostname；非法则 null。 */
 export function hostnameFromUrl(url: string): string | null {
   const trimmed = url.trim();
