@@ -1,10 +1,10 @@
 import { useEffect, useState, type ReactNode, type FormEvent } from "react";
 
-import { api, ApiError } from "@rewindom/module-sdk/client";
+import { ApiError } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
-import { FieldError } from "@rewindom/ui/field";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetFooter,
   SheetHeader,
@@ -16,7 +16,7 @@ import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 
 import { DiscountFields } from "./DiscountFields.js";
-import { useUpdateDiscount } from "../hooks/useShop.js";
+import { useDiscount, useUpdateDiscount } from "../hooks/useShop.js";
 import {
   buildDiscountPayload,
   discountToForm,
@@ -25,7 +25,7 @@ import {
   type DiscountFormValues,
 } from "../lib/discount-form.js";
 
-import type { ShopDiscount, ShopDiscountListItem } from "../../shared/index.js";
+import type { ShopDiscountListItem } from "../../shared/index.js";
 
 export function DiscountEditSheet({
   discount,
@@ -38,30 +38,15 @@ export function DiscountEditSheet({
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<DiscountFormValues>(INITIAL_DISCOUNT_FORM);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { data, isLoading, isError, error: loadError } = useDiscount(
+    discount.id,
+    open,
+  );
   const updateDiscount = useUpdateDiscount();
 
   useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    setLoading(true);
-    void api
-      .get<ShopDiscount>(`/shop/discounts/${discount.id}`)
-      .then((data) => {
-        if (!cancelled) setForm(discountToForm(data));
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setError(err instanceof ApiError ? err.message : t("loadFailed"));
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [discount.id, open, t]);
+    if (data) setForm(discountToForm(data));
+  }, [data]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -82,6 +67,14 @@ export function DiscountEditSheet({
     }
   };
 
+  const displayError =
+    error ||
+    (isError
+      ? loadError instanceof ApiError
+        ? loadError.message
+        : t("loadFailed")
+      : "");
+
   return (
     <Sheet
       open={open}
@@ -99,19 +92,24 @@ export function DiscountEditSheet({
           <SheetHeader>
             <SheetTitle>{t("editDiscountTitle")}</SheetTitle>
           </SheetHeader>
-          {loading ? (
-            <div className="px-4">
+          {isLoading ? (
+            <div className="min-h-0 flex-1 overflow-y-auto px-4">
               <Spinner className="size-4" />
             </div>
           ) : (
             <DiscountFields
               form={form}
               onChange={(partial) => setForm((current) => ({ ...current, ...partial }))}
+              error={displayError}
             />
           )}
-          {error ? <FieldError className="px-4">{error}</FieldError> : null}
           <SheetFooter>
-            <Button type="submit" disabled={updateDiscount.isPending || loading}>
+            <SheetClose asChild>
+              <Button type="button" variant="outline">
+                {t("cancel")}
+              </Button>
+            </SheetClose>
+            <Button type="submit" disabled={updateDiscount.isPending || isLoading}>
               {updateDiscount.isPending ? <Spinner className="size-4" /> : null}
               {t("save")}
             </Button>

@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 
-import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
 import { Input } from "@rewindom/ui/input";
 import {
   Select,
@@ -16,9 +16,11 @@ import type { DiscountFormValues } from "../lib/discount-form.js";
 export function DiscountFields({
   form,
   onChange,
+  error,
 }: {
   form: DiscountFormValues;
   onChange: (partial: Partial<DiscountFormValues>) => void;
+  error?: string;
 }): ReactElement {
   const { t } = useTranslation("shop");
   return (
@@ -122,6 +124,7 @@ export function DiscountFields({
           </SelectContent>
         </Select>
       </Field>
+      {error ? <FieldError>{error}</FieldError> : null}
     </FieldGroup>
   );
 }

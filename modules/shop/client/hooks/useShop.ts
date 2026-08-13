@@ -370,6 +370,14 @@ export function useDiscounts(
   });
 }
 
+export function useDiscount(id: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ["shop-discounts", "detail", id],
+    enabled: Boolean(id) && enabled,
+    queryFn: () => api.get<ShopDiscount>(`/shop/discounts/${id}`),
+  });
+}
+
 export function useCreateDiscount() {
   const queryClient = useQueryClient();
   return useMutation({

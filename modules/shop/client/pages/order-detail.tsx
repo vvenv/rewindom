@@ -1,24 +1,13 @@
-import { useState, type FormEvent } from "react";
-import { useParams } from "react-router";
-
 import { ApiError, PageLayout, usePermissions } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
-import { Input } from "@rewindom/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@rewindom/ui/sheet";
 import { toast } from "@rewindom/ui/toast";
 import { Receipt } from "lucide-react";
+import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { OrderFulfillSheet } from "../components/OrderFulfillSheet.js";
 import { OrderRefundSheet } from "../components/OrderRefundSheet.js";
-import { useCompleteOrder, useFulfillOrder, useOrder } from "../hooks/useShop.js";
+import { useCompleteOrder, useOrder } from "../hooks/useShop.js";
 import { isShopOrderRefundable } from "../../shared/order.js";
 
 export function OrderDetailPage() {
@@ -27,27 +16,7 @@ export function OrderDetailPage() {
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("shop.write");
   const { data: order, isLoading } = useOrder(orderId);
-  const fulfill = useFulfillOrder();
   const complete = useCompleteOrder();
-  const [open, setOpen] = useState(false);
-  const [carrier, setCarrier] = useState("");
-  const [tracking, setTracking] = useState("");
-
-  const handleFulfill = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!order) return;
-    try {
-      await fulfill.mutateAsync({
-        id: order.id,
-        carrier_code: carrier,
-        tracking_number: tracking,
-      });
-      toast.success(t("toastFulfilled"));
-      setOpen(false);
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : t("updateFailed"));
-    }
-  };
 
   return (
     <PageLayout
@@ -61,41 +30,7 @@ export function OrderDetailPage() {
               <OrderRefundSheet order={order} />
             ) : null}
             {order.status === "paid" || order.status === "fulfilling" ? (
-              <Sheet open={open} onOpenChange={setOpen}>
-                <SheetTrigger asChild>
-                  <Button>{t("fulfill")}</Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <form className="flex h-full flex-col" onSubmit={handleFulfill}>
-                    <SheetHeader>
-                      <SheetTitle>{t("fulfillTitle")}</SheetTitle>
-                    </SheetHeader>
-                    <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
-                      <Field>
-                        <FieldLabel htmlFor="carrier">{t("carrier")}</FieldLabel>
-                        <Input
-                          id="carrier"
-                          value={carrier}
-                          onChange={(event) => setCarrier(event.target.value)}
-                        />
-                      </Field>
-                      <Field>
-                        <FieldLabel htmlFor="tracking">{t("tracking")}</FieldLabel>
-                        <Input
-                          id="tracking"
-                          value={tracking}
-                          onChange={(event) => setTracking(event.target.value)}
-                        />
-                      </Field>
-                    </FieldGroup>
-                    <SheetFooter>
-                      <Button type="submit" disabled={fulfill.isPending}>
-                        {t("save")}
-                      </Button>
-                    </SheetFooter>
-                  </form>
-                </SheetContent>
-              </Sheet>
+              <OrderFulfillSheet order={order} />
             ) : null}
           </div>
         ) : null

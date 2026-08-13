@@ -2,9 +2,9 @@ import { useState, type ReactNode, type FormEvent } from "react";
 
 import { ApiError } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
-import { FieldError } from "@rewindom/ui/field";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetFooter,
   SheetHeader,
@@ -78,9 +78,14 @@ export function DiscountCreateSheet({ children }: { children?: ReactNode }) {
           <DiscountFields
             form={form}
             onChange={(partial) => setForm((current) => ({ ...current, ...partial }))}
+            error={error}
           />
-          {error ? <FieldError className="px-4">{error}</FieldError> : null}
           <SheetFooter>
+            <SheetClose asChild>
+              <Button type="button" variant="outline">
+                {t("cancel")}
+              </Button>
+            </SheetClose>
             <Button type="submit" disabled={createDiscount.isPending}>
               {createDiscount.isPending ? <Spinner className="size-4" /> : null}
               {t("save")}
