@@ -134,8 +134,8 @@
     "hasAccount": "Already have an account?",
     "loginNow": "Sign in",
     "heroBadge": "Modular monolith foundation",
-    "heroTitleLine1": "Water takes no form",
-    "heroTitleLine2": "until it meets its vessel",
+    "heroTitleLine1": "A modular foundation",
+    "heroTitleLine2": "shaped to the product",
     "heroSubtitle": "Auth, tenancy, permissions, and audit form the foundation; business modules plug in as needed—so the platform shapes to the product, not the other way around.",
     "heroFeatures": {
       "tenancy": {

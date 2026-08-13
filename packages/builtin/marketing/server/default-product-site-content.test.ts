@@ -12,14 +12,14 @@ describe("buildDefaultProductSite", () => {
 
     expect(payload.site.published).toBe(true);
     expect(payload.site.site_name).toEqual({
-      __i18n: { "zh-CN": "be-water", en: "be-water" },
+      __i18n: { "zh-CN": "Rewindom", en: "Rewindom" },
     });
     expect(payload.pages).toHaveLength(PRODUCT_SITE_LOCALES.length);
 
     const zhHome = payload.pages.find(
       (page) => page.locale === "zh-CN" && page.kind === "home",
     );
-    expect(zhHome?.title).toContain("be-water");
+    expect(zhHome?.title).toContain("Rewindom");
     expect(zhHome?.sections.map((section) => section.type)).toEqual([
       "hero",
       "prose",
@@ -35,6 +35,6 @@ describe("buildDefaultProductSite", () => {
   it("recognizes generic starter placeholder names", () => {
     expect(isGenericStarterSiteName("我的站点")).toBe(true);
     expect(isGenericStarterSiteName("My site")).toBe(true);
-    expect(isGenericStarterSiteName("be-water")).toBe(false);
+    expect(isGenericStarterSiteName("Rewindom")).toBe(false);
   });
 });

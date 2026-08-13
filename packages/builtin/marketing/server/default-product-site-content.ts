@@ -2,9 +2,11 @@
  * 默认租户（产品主域）官网的**最终** CMS 内容。
  *
  * 与通用起步模板（`site-starters` / `page-presets` 的占位文案）分开：那些是给任意
- * 租户开局用的；这里是 be-water 自己的产品站，文案来自 `client/locales` 里历史落地页
+ * 租户开局用的；这里是 Rewindom 自己的产品站，文案来自 `client/locales` 里历史落地页
  * 那一套（`site` / `hero` / `features` / `landing` / `seo`）。
  */
+
+import { APP_DISPLAY_NAME, type AppLocale } from "@be-water/shared";
 
 import en from "../client/locales/en.json" with { type: "json" };
 import zhCN from "../client/locales/zh-CN.json" with { type: "json" };
@@ -23,7 +25,6 @@ import type {
 } from "../shared/section-settings.js";
 import type { UpdateMarketingSiteBody } from "../shared/site-cms.js";
 import type { ThemeSettings } from "../shared/theme-sections.js";
-import type { AppLocale } from "@be-water/shared";
 
 type LocaleMessages = typeof zhCN;
 
@@ -137,7 +138,7 @@ function buildChrome(): Pick<
   "header" | "footer" | "theme_settings" | "site_name" | "tagline"
 > {
   return {
-    site_name: i18nLiteral({ "zh-CN": "be-water", en: "be-water" }),
+    site_name: i18nLiteral({ "zh-CN": APP_DISPLAY_NAME, en: APP_DISPLAY_NAME }),
     tagline: i18n("site.tagline"),
     theme_settings: {
       ...findSiteTheme("default")!.theme_settings,
@@ -149,7 +150,7 @@ function buildChrome(): Pick<
      * 页头页脚都走 definition 默认：页头是 Logo + 站名 + 一级页面导航 + 语言 + 明暗，
      * 页脚是一行 `© {year} {site}`。
      *
-     * 版权**不再**在这里烤死成 `© 2026 be-water`：文本块的占位符自己会算当年年份与
+     * 版权**不再**在这里烤死成 `© 2026 Rewindom`：文本块的占位符自己会算当年年份与
      * 当前站名，建站那天写死的话跨年之后页脚就一直停在去年。
      */
     header: [createSection("header")],

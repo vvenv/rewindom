@@ -1,12 +1,8 @@
 /**
- * 品牌标识：圆器盛水，水面为太极 S 曲线。
+ * 品牌标识：外环 + 内里回放箭头（rewind）。
  *
- * 取自李小龙「Be water, my friend」——水倒进杯子就成为杯子。
- * 外环是「器」，内里的水满至器壁、与器融为一体，即「水随器形」；
- * 水面用太极 S 而非平线，兼表「能流亦能击」的刚柔两面。
- *
- * 水的半径 88 = 外环内壁半径（98 - 20/2），二者刻意相接：留缝会在 16px
- * 下糊成一圈噪点，且「水未成器」与寓意相悖。与 public/favicon.svg 保持同一几何。
+ * 外环与旧版同几何（r=98 / stroke 20），内里换成 Material replay 形的回放箭头，
+ * 落在环的内接圆里，16px 下仍能读成「圆里有箭头」。与 public/favicon.svg 保持同一几何。
  */
 export function Logo({ className }: { className?: string }) {
   return (
@@ -28,7 +24,8 @@ export function Logo({ className }: { className?: string }) {
       />
       <path
         fill="currentColor"
-        d="M40 128 A44 44 0 0 1 128 128 A44 44 0 0 0 216 128 A88 88 0 0 1 40 128 Z"
+        transform="translate(40 40) scale(7.333333)"
+        d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
       />
     </svg>
   );

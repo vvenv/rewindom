@@ -2,7 +2,7 @@
 
 ## 概述
 
-be-water 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Cursor、Claude Code 等）设计边界与闭环，使人与 Agent 能用同一套契约安全地扩展多租户 SaaS，而不是依赖「提示词碰运气」。
+Rewindom 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Cursor、Claude Code 等）设计边界与闭环，使人与 Agent 能用同一套契约安全地扩展多租户 SaaS，而不是依赖「提示词碰运气」。
 
 本文定义 **什么叫达成 Agent-first**、仓库里的真相源，以及对外口径。实现细节以代码与 Skills 为准；模块边界见 [modular-architecture.md](./modular-architecture.md)。
 
@@ -85,4 +85,4 @@ be-water 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 
 ## 5. 对外口径（一句话）
 
-**be-water 是 Agent-first 的多租户 SaaS 模块化单体：用 AGENTS.md、Skills 与 gen/check 闭环，让编码 Agent 在强制边界内扩展业务，而不是在无约束仓库里碰运气。**
+**Rewindom 是 Agent-first 的多租户 SaaS 模块化单体：用 AGENTS.md、Skills 与 gen/check 闭环，让编码 Agent 在强制边界内扩展业务，而不是在无约束仓库里碰运气。**

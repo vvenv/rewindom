@@ -1,4 +1,4 @@
-# be-water（Claude Code）
+# rewindom（Claude Code）
 
 本仓库是 **Agent-first** 多租户 SaaS 底座。Claude Code 请以根目录 [`AGENTS.md`](./AGENTS.md) 为唯一约定入口。
 

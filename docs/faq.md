@@ -2,7 +2,7 @@
 
 ## 概述
 
-本文档汇总了 be-water 系统常见问题及解决方案。
+本文档汇总了 Rewindom 系统常见问题及解决方案。
 
 ## 技术问题
 
@@ -377,7 +377,7 @@ curl http://localhost:3000/health
 
 请通过以下方式联系技术支持：
 
-- 邮箱：support@be-water.com
+- 邮箱：support@rewindom.com
 - 钉钉群：XXX
 - GitHub Issues：提交问题到项目仓库
 

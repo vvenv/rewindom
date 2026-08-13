@@ -5,14 +5,14 @@ import type {
   AppNavItem,
   ClientAppModule,
 } from "@be-water/client-kit";
-
+import { APP_DISPLAY_NAME } from "@be-water/shared";
 
 export function resolveMobileHeaderState(
   pathname: string,
   modules: readonly ClientAppModule[],
   getNavItems: () => AppNavItem[],
   isNavItemActive: (pathname: string, item: AppNavItem) => boolean,
-  fallbackTitle = "be-water",
+  fallbackTitle = APP_DISPLAY_NAME,
 ): AppMobileHeaderState {
   const { mobileHeaderRoutes } = collectShellContributions(modules);
 

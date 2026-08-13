@@ -2,14 +2,14 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
-  <img src="docs/assets/logo.svg" width="88" height="88" alt="be-water">
+  <img src="docs/assets/logo.svg" width="88" height="88" alt="Rewindom">
 </picture>
 
-# be-water
+# Rewindom
 
 **Agent-first · 多租户 SaaS 底座 — 模块化 Monolith**
 
-水无定形，遇器成形。底座随业务成形，而不是业务迁就底座。
+底座随业务成形，而不是业务迁就底座。
 
 </div>
 
@@ -33,7 +33,7 @@
 前置：Node.js 22+、pnpm 11+、Docker。
 
 ```bash
-git clone <repo-url> && cd be-water
+git clone <repo-url> && cd rewindom
 pnpm install
 pnpm setup    # 幂等：.env.local + Postgres/Redis + migration
 pnpm dev
@@ -161,7 +161,7 @@ TENANT_BASE_DOMAIN=localhost
 ## 目录结构
 
 ```
-be-water/
+rewindom/
 ├── apps/
 │   ├── server/              # Fastify 组装 + Prisma schema/migrations
 │   │   └── src/enabled-modules.ts   # 内置 + …EXTERNAL_SERVER_MODULES

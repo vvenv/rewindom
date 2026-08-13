@@ -4,7 +4,7 @@
 
 ## 一、系统概述
 
-本文档描述 be-water 的用户认证与授权系统，采用标准的 JWT Token 机制，支持用户注册、登录、密码加密、滑块验证码、Access Token 与 Refresh Token 刷新等功能。
+本文档描述 Rewindom 的用户认证与授权系统，采用标准的 JWT Token 机制，支持用户注册、登录、密码加密、滑块验证码、Access Token 与 Refresh Token 刷新等功能。
 
 ### 1.1 四类 Actor
 

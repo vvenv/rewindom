@@ -1,6 +1,6 @@
 # @be-water/client
 
-be-water 前端组装层：Vite + React SPA，聚合各模块 UI 与 App Shell 路由。
+rewindom 前端组装层：Vite + React SPA，聚合各模块 UI 与 App Shell 路由。
 
 ## 职责
 

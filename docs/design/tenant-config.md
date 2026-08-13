@@ -2,7 +2,7 @@
 
 ## 概述
 
-be-water 当前为**单实例部署**：业务配置分散在 `.env`（进程环境变量）与 `AppSetting` 表（运行时 JSON）两处。随着产品向 **SaaS 多租户**演进，部分集成凭据（如 OpenAI API Key）需要由**租户自行提供（BYOK）**，且必须在 Web UI（Settings）中可配置、保存即生效，**不应**通过修改 `.env` 或重启进程实现。
+Rewindom 当前为**单实例部署**：业务配置分散在 `.env`（进程环境变量）与 `AppSetting` 表（运行时 JSON）两处。随着产品向 **SaaS 多租户**演进，部分集成凭据（如 OpenAI API Key）需要由**租户自行提供（BYOK）**，且必须在 Web UI（Settings）中可配置、保存即生效，**不应**通过修改 `.env` 或重启进程实现。
 
 **设计原则**：
 

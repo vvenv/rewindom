@@ -3,16 +3,10 @@ import { useEffect, useRef, type RefObject } from "react";
 import { cn } from "@be-water/ui/utils";
 
 /**
- * 认证页背景装饰：水。
- *
- * 品牌语言取自 Logo（圆器盛水，水面为太极 S 曲线）与 Wordmark（monoline 单线手写），
- * 所以背景也只用这三样：单线波纹（同一条 S 曲线）、涟漪、上浮气泡。
- *
- * 涟漪全部由指针触发，不自动生成：指针划过留下一串小圈（微风掠过水面），
- * 点击则在该处荡开一圈大的（像有东西从水下游过）。静置时水面只剩缓慢的波纹。
+ * 认证页背景装饰：涟漪与微粒。
  *
  * 颜色不写死在 JS 里：从容器上的 `--auth-water-*` 变量读，随主题 token 走。
- * hero 面板恒为深色（与文档主题无关），用 `data-surface="deep"` 强制取深水色。
+ * hero 面板恒为深色（与文档主题无关），用 `data-surface="deep"` 强制取深色。
  */
 
 interface Mote {

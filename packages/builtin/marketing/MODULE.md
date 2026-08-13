@@ -1009,7 +1009,7 @@ og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算
 | 内容 | 位置 | 说明 |
 | --- | --- | --- |
 | 通用初始化配方 | `shared/site-starters.ts` + `page-presets.ts` | key=`default`（仅首页占位，给任意租户；由 `site-init` 落库） |
-| **默认租户产品站** | `server/default-product-site-content.ts` | be-water 终稿：中英双语首页（hero + 多段 prose + band）；文案来自 `client/locales` 的 `site` / `hero` / `features` / `landing` / `seo` |
+| **默认租户产品站** | `server/default-product-site-content.ts` | Rewindom 终稿：中英双语首页（hero + 多段 prose + band）；文案来自 `client/locales` 的 `site` / `hero` / `features` / `landing` / `seo` |
 | Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等铺产品站并发布；已是产品站则跳过 |
 | 文档库 | `docs/usage/<locale>/*.md` | 启动时按语言补齐已发布文档 |
 

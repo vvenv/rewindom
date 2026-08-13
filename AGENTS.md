@@ -1,4 +1,4 @@
-# be-water
+# rewindom
 
 **Agent-first** 多租户 SaaS 底座 monorepo（`apps/server` + `apps/client` + `packages/*`）。
 

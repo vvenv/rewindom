@@ -9,7 +9,7 @@ export { PLATFORM_HOME_PATH } from "../lib/platform-console-url.js";
 
 /**
  * 租户控制台的稳定入口：`AppHomeRedirect` 再按 `HOME_PATH_CANDIDATES`
- * 解析出真实首页（be-water 默认 `/dashboard`）。
+ * 解析出真实首页（rewindom 默认 `/dashboard`）。
  */
 export const APP_HOME_ENTRY_PATH = "/app";
 

@@ -2,7 +2,7 @@
 
 ## 概述
 
-be-water 采用 **Docker Compose** 统一部署：
+Rewindom 采用 **Docker Compose** 统一部署：
 
 - **本地开发**：`docker-compose.dev.yml` 提供 PostgreSQL + Redis；应用在宿主机 `pnpm dev`
 - **生产/测试**：`docker-compose.prod.yml` 在服务器构建运行完整栈；宿主机 Nginx 终结 SSL
@@ -28,7 +28,7 @@ Docker 只跑 **Postgres + Redis**，应用在宿主机热更新：
 
 ```bash
 git clone <repository-url>
-cd be-water
+cd rewindom
 pnpm install
 pnpm setup          # 创建 .env.local、启动 DB、执行 migrate
 pnpm dev            # 前端 :7300，API :3700

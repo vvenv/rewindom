@@ -133,8 +133,8 @@
     "hasAccount": "已有账号？",
     "loginNow": "立即登录",
     "heroBadge": "模块化 Monolith 底座",
-    "heroTitleLine1": "水无定形",
-    "heroTitleLine2": "遇器成形",
+    "heroTitleLine1": "模块化底座",
+    "heroTitleLine2": "随业务成形",
     "heroSubtitle": "认证、租户、权限、审计沉淀为底座，业务模块按需注入——让平台随业务成形，而不是业务迁就平台。",
     "heroFeatures": {
       "tenancy": {

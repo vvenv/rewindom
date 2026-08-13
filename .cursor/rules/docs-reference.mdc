@@ -11,7 +11,7 @@ alwaysApply: true
 | --- | --- | --- |
 | 模块化 / 插件化架构 | `create-module`、`extract-module` | `docs/design/modular-architecture.md` |
 | Agent-first 开发框架 | `create-module` 等 Skills | `docs/design/agent-first.md` |
-| 产品仓升级到 be-water | `frontend-page-structure`（升级检查节） | `docs/design/downstream-fork.md` |
+| 产品仓升级到 rewindom | `frontend-page-structure`（升级检查节） | `docs/design/downstream-fork.md` |
 | 权限（PBAC） | — | `docs/design/permission-system.md` |
 | 用户体系 | — | `docs/design/user-system.md` |
 | 多租户配置分层 / 单租户部署 | —（rule：`tenancy-mode`） | `docs/design/tenant-config.md` |

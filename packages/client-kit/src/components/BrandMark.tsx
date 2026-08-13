@@ -1,3 +1,4 @@
+import { APP_DISPLAY_NAME } from "@be-water/shared";
 import { cn } from "@be-water/ui/utils";
 
 import { Logo } from "./Logo.js";
@@ -13,7 +14,7 @@ export interface BrandMarkProps {
 export function BrandMark({
   src,
   className,
-  alt = "Logo",
+  alt = APP_DISPLAY_NAME,
 }: BrandMarkProps) {
   if (src) {
     return (

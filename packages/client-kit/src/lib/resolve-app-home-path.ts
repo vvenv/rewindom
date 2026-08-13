@@ -10,7 +10,7 @@ export interface HomePathCandidate {
 }
 
 /**
- * be-water 示例业务入口。产品仓应在 `apps/client` 组装层覆盖
+ * rewindom 示例业务入口。产品仓应在 `apps/client` 组装层覆盖
  * `homePathCandidates`，把业务首页插在前面，并去掉未启用的示例模块。
  *
  * 列表顺序即优先级；禁用模块（`entitlements.modules[id] === false`）会被跳过。

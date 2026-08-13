@@ -1,3 +1,5 @@
+import { APP_DISPLAY_NAME } from "@be-water/shared";
+
 import { AppError } from "../../lib/app-errors.js";
 
 import {
@@ -105,7 +107,7 @@ export async function fetchGithubProfile(
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${accessToken}`,
-      "User-Agent": "be-water",
+      "User-Agent": APP_DISPLAY_NAME,
       "X-GitHub-Api-Version": "2022-11-28",
     },
   });
@@ -121,7 +123,7 @@ export async function fetchGithubProfile(
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${accessToken}`,
-      "User-Agent": "be-water",
+      "User-Agent": APP_DISPLAY_NAME,
       "X-GitHub-Api-Version": "2022-11-28",
     },
   });

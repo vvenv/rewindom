@@ -10,7 +10,7 @@ import {
  * 默认首页，卡片才按模块开关/权限逐张过滤，所以这一项永远命中，后面的候选实际上
  * 只在移除 `dashboard` 模块时才会用到。
  *
- * 产品仓升级到 be-water 时：
+ * 产品仓升级到 rewindom 时：
  * 1. 想换默认首页就把业务首页插到 `/dashboard` 之前
  * 2. 每个带门控的候选必须带 `tenantModule`（与 manifest `tenantEntitlements[].key` 一致）
  * 3. 未启用的示例模块（notes / todos）从 `enabled-modules` 移除后，也从本列表去掉

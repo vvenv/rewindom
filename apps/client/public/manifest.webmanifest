@@ -1,6 +1,6 @@
 {
-  "name": "be-water",
-  "short_name": "be-water",
+  "name": "Rewindom",
+  "short_name": "Rewindom",
   "description": "多租户 SaaS 平台",
   "start_url": "/",
   "display": "standalone",

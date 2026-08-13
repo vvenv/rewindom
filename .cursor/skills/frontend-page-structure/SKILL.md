@@ -139,7 +139,7 @@ export function Roles() {
 
 向导类租户页同样**必须** `PageLayout`（icon + title + description）；步骤条与业务 Card 放在 `children` 内，说明文字写入 `description` 而非额外 `<p>`。多 Card 区块用 `Card` + `CardHeader` 分组，避免与 `PageLayout` 标题重复。
 
-## 产品升级检查（对齐 be-water 时）
+## 产品升级检查（对齐 rewindom 时）
 
 完整说明见 `docs/design/downstream-fork.md`。升级时**必查**这三类回归：
 
@@ -149,7 +149,7 @@ export function Roles() {
 - [ ] 导航项 `title` 与 `PageLayout.title` 语义一致（移动端标题来源）
 - [ ] 平台页未套 `PageLayout`
 
-### Logo / favicon（从旧仓保留，勿被 be-water 资产覆盖）
+### Logo / favicon（从旧仓保留，勿被 rewindom 资产覆盖）
 
 - [ ] `packages/client-kit/src/components/Logo.tsx` + `Wordmark.tsx` 已用旧版
 - [ ] `apps/client/public/favicon.svg`（及 `manifest.webmanifest`）已用旧版；与 Logo 同几何

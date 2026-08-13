@@ -1,6 +1,6 @@
 # @be-water/server
 
-be-water 后端组装层：启动 Fastify 进程、合并 Prisma schema、注册已启用的业务模块。
+rewindom 后端组装层：启动 Fastify 进程、合并 Prisma schema、注册已启用的业务模块。
 
 ## 职责
 

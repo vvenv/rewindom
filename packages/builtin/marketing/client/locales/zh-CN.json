@@ -1,9 +1,9 @@
 {
   "site": {
-    "title": "be-water · Agent-first 多租户 SaaS 底座",
-    "tagline": "水无定形，遇器成形",
-    "description": "be-water 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。",
-    "homeAriaLabel": "be-water 首页"
+    "title": "Rewindom · Agent-first 多租户 SaaS 底座",
+    "tagline": "底座随业务成形",
+    "description": "Rewindom 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。",
+    "homeAriaLabel": "Rewindom 首页"
   },
   "nav": {
     "main": "主导航",
@@ -218,7 +218,7 @@
         },
         {
           "question": "可以私有化部署吗？",
-          "answer": "可以。be-water 是单进程的模块化单体，生产环境用 Docker Compose 交付，企业版支持部署到你自己的服务器或私有云。"
+          "answer": "可以。Rewindom 是单进程的模块化单体，生产环境用 Docker Compose 交付，企业版支持部署到你自己的服务器或私有云。"
         },
         {
           "question": "能只买其中几个模块吗？",
@@ -869,16 +869,16 @@
   },
   "seo": {
     "home": {
-      "title": "be-water · Agent-first 多租户 SaaS 底座",
-      "description": "be-water 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。"
+      "title": "Rewindom · Agent-first 多租户 SaaS 底座",
+      "description": "Rewindom 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。"
     },
     "pricing": {
       "title": "定价",
-      "description": "be-water 各套餐的价格、席位配额与功能范围：免费版起步，企业版支持私有化部署与定制模块。"
+      "description": "Rewindom 各套餐的价格、席位配额与功能范围：免费版起步，企业版支持私有化部署与定制模块。"
     },
     "docs": {
       "title": "文档",
-      "description": "be-water 使用文档：快速开始、Agent-first、模块化架构、多租户与权限、部署。"
+      "description": "Rewindom 使用文档：快速开始、Agent-first、模块化架构、多租户与权限、部署。"
     }
   },
   "preset": {

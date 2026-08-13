@@ -1,7 +1,7 @@
-# 产品仓升级到 be-water
+# 产品仓升级到 rewindom
 
-将既有产品（moms / regora / shipest 等）对齐 be-water 底座时的检查清单。
-be-water **独立维护**，不是可反复 `git merge` 的上游模板；升级是一次性对齐架构与约定。
+将既有产品（moms / regora / shipest 等）对齐 rewindom 底座时的检查清单。
+rewindom **独立维护**，不是可反复 `git merge` 的上游模板；升级是一次性对齐架构与约定。
 
 Agent 执行时同步遵循 `frontend-page-structure` skill 的「产品升级检查」一节。
 
@@ -10,7 +10,7 @@ Agent 执行时同步遵循 `frontend-page-structure` skill 的「产品升级�
 | 问题 | 现象 | 处理 |
 | --- | --- | --- |
 | 页面布局未对齐 | 租户页手写 `<div>` + `<p>` 页头，与 notes 不一致；移动端双标题 | 全部 `renderRoutes` 页套 `PageLayout` |
-| Logo / favicon 被覆盖 | 登录页、侧栏、浏览器标签变成 be-water 品牌 | 从旧仓**保留/复制**品牌资产后再合入壳层 |
+| Logo / favicon 被覆盖 | 登录页、侧栏、浏览器标签变成 Rewindom 品牌 | 从旧仓**保留/复制**品牌资产后再合入壳层 |
 | 默认路由命中禁用模块 | 登录后进 `/app/notes` 或业务模块虽已关 entitlement 仍落地 | 在组装层配置 `HOME_PATH_CANDIDATES`，每项带 `tenantModule` |
 
 ---
@@ -30,7 +30,7 @@ Agent 执行时同步遵循 `frontend-page-structure` skill 的「产品升级�
 
 ## 2. Logo / favicon（保留旧版）
 
-升级时先从**旧产品仓**拷回以下文件，再改壳层代码；不要直接用 be-water 的几何覆盖产品品牌。
+升级时先从**旧产品仓**拷回以下文件，再改壳层代码；不要直接用 rewindom 的几何覆盖产品品牌。
 
 | 资产 | 路径 |
 | --- | --- |
@@ -75,7 +75,7 @@ export const HOME_PATH_CANDIDATES: readonly HomePathCandidate[] = [
 规则：
 
 1. **顺序即优先级**——业务首页在前，无门控的 `/app/dashboard` 放最后当兜底
-   （be-water 默认就是 `/app/dashboard` 单项：所有用户登录后落在工作台）
+   （rewindom 默认就是 `/app/dashboard` 单项：所有用户登录后落在工作台）
 2. 每个**带门控**的候选必须带 `tenantModule`（= manifest `tenantEntitlements[].key`）
 3. `resolveAppHomePath` 会跳过 `entitlements.modules[id] === false` 的候选
 4. 全部不可用时回退 `DEFAULT_HOME_PATH`（`/app/dashboard`）

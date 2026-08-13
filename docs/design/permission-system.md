@@ -2,7 +2,7 @@
 
 ## 概述
 
-be-water 采用 **标准 RBAC + PBAC** 模型：
+Rewindom 采用 **标准 RBAC + PBAC** 模型：
 
 - **用户 → 角色 → 权限**（`UserRole` / `RolePermission`）
 - 权限目录由各模块 `shared.permissions` 声明，内核聚合

@@ -8,6 +8,7 @@ import {
   type AppNavItem,
   type AppNavSection,
 } from "@be-water/client-kit";
+import { APP_DISPLAY_NAME } from "@be-water/shared";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import {
@@ -272,9 +273,9 @@ export function TopBar(): ReactNode {
 
   return (
     <header className="hidden h-14 shrink-0 items-center gap-2 border-b bg-sidebar px-3 text-sidebar-foreground md:flex">
-      <Link to={homePath} title="be-water" className="shrink-0">
+      <Link to={homePath} title={APP_DISPLAY_NAME} className="shrink-0">
         <BrandMark className="size-9 text-primary" />
-        <span className="sr-only">be-water</span>
+        <span className="sr-only">{APP_DISPLAY_NAME}</span>
       </Link>
 
       <nav

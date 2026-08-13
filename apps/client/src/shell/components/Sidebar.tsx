@@ -10,6 +10,7 @@ import {
   useTenantEntitlements,
   usePermissions,
 } from "@be-water/client-kit";
+import { APP_DISPLAY_NAME } from "@be-water/shared";
 import { Badge } from "@be-water/ui/badge";
 import { Button } from "@be-water/ui/button";
 import { Separator } from "@be-water/ui/separator";
@@ -433,7 +434,7 @@ function SidebarContent({
 
 function ShellBrandMark({ className }: { className?: string }) {
   // 中台外壳一律用产品 Logo：品牌是站点的资产，只作用于官网
-  return <BrandMark className={className} alt="Logo" />;
+  return <BrandMark className={className} alt={APP_DISPLAY_NAME} />;
 }
 
 function MobileNavDrawer({
@@ -462,7 +463,7 @@ function MobileNavDrawer({
           <Button variant="ghost" size="sm" className="px-1" asChild>
             <Link to={homePath} onClick={closeNav}>
               <ShellBrandMark className="size-8 text-primary" />
-              <span className="sr-only">be-water</span>
+              <span className="sr-only">{APP_DISPLAY_NAME}</span>
             </Link>
           </Button>
           <div className="flex items-center">
@@ -638,9 +639,9 @@ function DesktopSidebar() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex">
       <div className="flex items-center justify-between p-3">
-        <Link to={homePath} title="be-water">
+        <Link to={homePath} title={APP_DISPLAY_NAME}>
           <ShellBrandMark className="size-12 text-primary" />
-          <span className="sr-only">be-water</span>
+          <span className="sr-only">{APP_DISPLAY_NAME}</span>
         </Link>
         <SidebarGlobalActions className="ml-auto" />
         <Button

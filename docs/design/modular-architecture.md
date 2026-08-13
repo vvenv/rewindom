@@ -2,7 +2,7 @@
 
 ## 概述
 
-本文定义 be-water monorepo 的 **Modular Monolith（模块化单体）** 目标形态：**Kernel（内核）+ Module（模块）**，编译期组装、单进程部署。模块分为**基础设施模块**（如 RBAC、审计、后台任务）与**业务模块**（由各产品自行定义）。应用通过 `ENABLED_*_MODULES` 注册表启用所需能力，实现即插即用。
+本文定义 rewindom monorepo 的 **Modular Monolith（模块化单体）** 目标形态：**Kernel（内核）+ Module（模块）**，编译期组装、单进程部署。模块分为**基础设施模块**（如 RBAC、审计、后台任务）与**业务模块**（由各产品自行定义）。应用通过 `ENABLED_*_MODULES` 注册表启用所需能力，实现即插即用。
 
 **当前状态**：Phase 0–5 已完成。模块分两类落盘——**内置模块**是单一 workspace 包 `@be-water/builtin` 内的目录（`packages/builtin/<id>/`），**外部业务模块**是独立包 `modules/<id>/`（`@be-water/<id>`，只依赖 `@be-water/module-sdk`），由 `pnpm gen:module` 生成、`pnpm gen:external-modules` 汇入组装层。包化历史与收敛理由见 §2.3。本文描述**目标态与契约**，迁移 checklist 见 §14。
 
@@ -327,7 +327,7 @@ modules/<domain>/
 | **何时勿新建** | 仅为「模块数量」或目录整齐 | — |
 
 **为何解耦**：entitlement key 是租户设置中的持久化标识。若它等同 manifest `id`，
-合并或拆分模块就会改变 key，令所有租户的存量开关状态失效。解耦后 `be-water`
+合并或拆分模块就会改变 key，令所有租户的存量开关状态失效。解耦后 rewindom
 一个模块提供 10 个 entitlement，子域合并对租户完全透明。
 
 **新增模块 = 新增目录**，不再需要新建 npm 包：复制 `modules/note/`（金标准），
@@ -751,7 +751,7 @@ client: {
 
 ---
 
-## 11. 模块目录（be-water 映射）
+## 11. 模块目录（rewindom 映射）
 
 ### 11.1 基础设施模块
 
@@ -1041,7 +1041,7 @@ packages/builtin/         # @be-water/builtin，exports 仅 "./*": "./*"
 | **Authn** | 认证：你是谁 |
 | **Authz** | 授权：你能做什么 |
 | **Provider** | 可替换的内核扩展实现（`ProviderRegistry`） |
-| **be-water** | 本仓库：多租户 SaaS 模块化单体（kernel + infra modules + notes） |
+| **rewindom** | 本仓库：多租户 SaaS 模块化单体（kernel + infra modules + notes） |
 
 ---
 

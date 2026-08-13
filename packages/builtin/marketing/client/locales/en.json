@@ -1,9 +1,9 @@
 {
   "site": {
-    "title": "be-water · Agent-first multi-tenant SaaS foundation",
-    "tagline": "Shapeless as water, it takes the form of its container",
-    "description": "be-water is an agent-first multi-tenant SaaS modular monolith: AGENTS.md, Skills, and a gen/check loop let coding agents extend the product inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production.",
-    "homeAriaLabel": "be-water home"
+    "title": "Rewindom · Agent-first multi-tenant SaaS foundation",
+    "tagline": "The foundation takes the shape of the product",
+    "description": "Rewindom is an agent-first multi-tenant SaaS modular monolith: AGENTS.md, Skills, and a gen/check loop let coding agents extend the product inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production.",
+    "homeAriaLabel": "Rewindom home"
   },
   "nav": {
     "main": "Main navigation",
@@ -218,7 +218,7 @@
         },
         {
           "question": "Do you support private deployment?",
-          "answer": "Yes. be-water is a single-process modular monolith, delivered with Docker Compose in production. Enterprise supports your own servers or private cloud."
+          "answer": "Yes. Rewindom is a single-process modular monolith, delivered with Docker Compose in production. Enterprise supports your own servers or private cloud."
         },
         {
           "question": "Can I buy only some modules?",
@@ -869,16 +869,16 @@
   },
   "seo": {
     "home": {
-      "title": "be-water · Agent-first multi-tenant SaaS foundation",
-      "description": "be-water is an agent-first multi-tenant SaaS modular monolith: AGENTS.md, Skills, and a gen/check loop let coding agents extend inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production."
+      "title": "Rewindom · Agent-first multi-tenant SaaS foundation",
+      "description": "Rewindom is an agent-first multi-tenant SaaS modular monolith: AGENTS.md, Skills, and a gen/check loop let coding agents extend inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production."
     },
     "pricing": {
       "title": "Pricing",
-      "description": "be-water plans, seat quotas, and scope: start free; enterprise supports private deployment and custom modules."
+      "description": "Rewindom plans, seat quotas, and scope: start free; enterprise supports private deployment and custom modules."
     },
     "docs": {
       "title": "Docs",
-      "description": "be-water docs: quick start, agent-first, modular architecture, multi-tenancy and permissions, deployment."
+      "description": "Rewindom docs: quick start, agent-first, modular architecture, multi-tenancy and permissions, deployment."
     }
   },
   "preset": {
