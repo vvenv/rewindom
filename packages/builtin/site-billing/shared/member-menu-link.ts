@@ -7,6 +7,7 @@
 
 import { registerMemberMenuLink } from "../../site-member/shared/member-menu-links.js";
 
+import { SITE_BILLING_ENTITLEMENT } from "./entitlements.js";
 import { MEMBER_BILLING_PATH } from "./plans-section.js";
 
 export function registerSiteBillingMemberMenuLink(): void {
@@ -19,5 +20,6 @@ export function registerSiteBillingMemberMenuLink(): void {
     },
     label_key: "site-billing:entry.billing",
     order: 10,
+    entitlement: SITE_BILLING_ENTITLEMENT.key,
   });
 }

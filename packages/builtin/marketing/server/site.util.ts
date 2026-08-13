@@ -33,9 +33,12 @@ const SEGMENT_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u;
 /** 最多三段，够用 `docs/guide/intro` 这类文档树。 */
 const MAX_SLUG_SEGMENTS = 3;
 
-export function parsePageSections(value: unknown): SiteSection[] {
+export function parsePageSections(
+  value: unknown,
+  enabledEntitlements?: ReadonlySet<string>,
+): SiteSection[] {
   try {
-    return parseSections(value);
+    return parseSections(value, enabledEntitlements);
   } catch (err) {
     if (err instanceof Error && err.message.startsWith("site.")) {
       throw new ValidationError(err.message);
@@ -55,17 +58,21 @@ export function parsePageSettings(value: unknown): MarketingPageSettings {
   }
 }
 
-export function safePageSections(value: unknown): SiteSection[] {
-  return safeSections(value);
+export function safePageSections(
+  value: unknown,
+  enabledEntitlements?: ReadonlySet<string>,
+): SiteSection[] {
+  return safeSections(value, enabledEntitlements);
 }
 
 /** 页头 / 页脚区（各是一串 section）：写路径严格校验，失败转 ValidationError。 */
 export function parseSiteAreaSections(
   area: AreaSectionType,
   value: unknown,
+  enabledEntitlements?: ReadonlySet<string>,
 ): SiteSection[] {
   try {
-    return parseAreaSections(area, value);
+    return parseAreaSections(area, value, enabledEntitlements);
   } catch (err) {
     if (err instanceof Error && err.message.startsWith("site.")) {
       throw new ValidationError(err.message);
@@ -77,34 +84,47 @@ export function parseSiteAreaSections(
 export function safeSiteAreaSections(
   area: AreaSectionType,
   value: unknown,
+  enabledEntitlements?: ReadonlySet<string>,
 ): SiteSection[] {
-  return safeAreaSections(area, value);
+  return safeAreaSections(area, value, enabledEntitlements);
 }
 
 /** Theme Editor / 预览读草稿 chrome。 */
-export function siteChromeDraftHeader(record: {
-  nav_draft_json: unknown;
-}): SiteSection[] {
-  return safeSiteAreaSections("header", record.nav_draft_json);
+export function siteChromeDraftHeader(
+  record: { nav_draft_json: unknown },
+  enabledEntitlements?: ReadonlySet<string>,
+): SiteSection[] {
+  return safeSiteAreaSections(
+    "header",
+    record.nav_draft_json,
+    enabledEntitlements,
+  );
 }
 
-export function siteChromeDraftFooter(record: {
-  footer_draft_json: unknown;
-}): SiteSection[] {
-  return safeSiteAreaSections("footer", record.footer_draft_json);
+export function siteChromeDraftFooter(
+  record: { footer_draft_json: unknown },
+  enabledEntitlements?: ReadonlySet<string>,
+): SiteSection[] {
+  return safeSiteAreaSections(
+    "footer",
+    record.footer_draft_json,
+    enabledEntitlements,
+  );
 }
 
 /** 公开面读已发布 chrome。 */
-export function siteChromePublishedHeader(record: {
-  nav_json: unknown;
-}): SiteSection[] {
-  return safeSiteAreaSections("header", record.nav_json);
+export function siteChromePublishedHeader(
+  record: { nav_json: unknown },
+  enabledEntitlements?: ReadonlySet<string>,
+): SiteSection[] {
+  return safeSiteAreaSections("header", record.nav_json, enabledEntitlements);
 }
 
-export function siteChromePublishedFooter(record: {
-  footer_json: unknown;
-}): SiteSection[] {
-  return safeSiteAreaSections("footer", record.footer_json);
+export function siteChromePublishedFooter(
+  record: { footer_json: unknown },
+  enabledEntitlements?: ReadonlySet<string>,
+): SiteSection[] {
+  return safeSiteAreaSections("footer", record.footer_json, enabledEntitlements);
 }
 
 function chromeFingerprint(value: unknown): string {
@@ -167,21 +187,27 @@ function pageContentFingerprint(parts: PageContent): string {
 }
 
 /** Theme Editor / 预览读草稿页面内容。 */
-export function pageContentDraft(record: PageDraftRecord): PageContent {
+export function pageContentDraft(
+  record: PageDraftRecord,
+  enabledEntitlements?: ReadonlySet<string>,
+): PageContent {
   return {
     title: record.title_draft,
     description: record.description_draft,
-    sections: safePageSections(record.sections_draft),
+    sections: safePageSections(record.sections_draft, enabledEntitlements),
     settings: safePageSettings(record.settings_draft),
   };
 }
 
 /** 公开面读已发布页面内容。 */
-export function pageContentPublished(record: PagePublishedRecord): PageContent {
+export function pageContentPublished(
+  record: PagePublishedRecord,
+  enabledEntitlements?: ReadonlySet<string>,
+): PageContent {
   return {
     title: record.title,
     description: record.description,
-    sections: safePageSections(record.sections),
+    sections: safePageSections(record.sections, enabledEntitlements),
     settings: safePageSettings(record.settings),
   };
 }
@@ -196,15 +222,19 @@ export function pageContentIsDirty(
 }
 
 /** 将草稿页面内容提升为已发布列（`publish` / `content/publish` 共用）。 */
-export function promotePageContentData(record: PageDraftRecord): PageContent {
-  return pageContentDraft(record);
+export function promotePageContentData(
+  record: PageDraftRecord,
+  enabledEntitlements?: ReadonlySet<string>,
+): PageContent {
+  return pageContentDraft(record, enabledEntitlements);
 }
 
 /** 反向：把线上内容回灌进草稿列（撤销未发布的更改）。 */
 export function revertPageContentData(
   record: PagePublishedRecord,
+  enabledEntitlements?: ReadonlySet<string>,
 ): PageContent {
-  return pageContentPublished(record);
+  return pageContentPublished(record, enabledEntitlements);
 }
 
 export function parseSiteThemeSettings(value: unknown): ThemeSettings {

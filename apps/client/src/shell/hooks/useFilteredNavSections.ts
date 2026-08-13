@@ -37,6 +37,7 @@ export function useFilteredNavSections(): {
     "todo",
     "notification",
     "background-job",
+    "site-billing",
   ]);
 
   const filtered = useMemo(

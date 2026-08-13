@@ -27,6 +27,8 @@ export interface MemberMenuLink {
   label_key?: string;
   /** 越小越靠前；默认 100。账户本体链接由 site-member 自己画，不进这份清单。 */
   order?: number;
+  /** 租户未开通这项 entitlement 时不进菜单 / 互链。 */
+  entitlement?: string;
 }
 
 /** 自助页互链里的「我的账户」——永远在第一位，不进菜单贡献清单。 */
@@ -58,9 +60,34 @@ function byOrderThenId(a: MemberMenuLink, b: MemberMenuLink): number {
   return order !== 0 ? order : a.id.localeCompare(b.id);
 }
 
+function isLinkVisible(
+  link: MemberMenuLink,
+  enabledEntitlements?: ReadonlySet<string>,
+): boolean {
+  if (!link.entitlement) return true;
+  // 不传集合 = 不过滤（测试与没有开通表的调用方）
+  if (!enabledEntitlements) return true;
+  return enabledEntitlements.has(link.entitlement);
+}
+
+/** 已登记链接上出现过的 entitlement key；给 SSR 去查开通表。 */
+export function memberMenuLinkEntitlementKeys(): string[] {
+  return [
+    ...new Set(
+      [...LINKS.values()]
+        .map((link) => link.entitlement)
+        .filter((key): key is string => Boolean(key)),
+    ),
+  ];
+}
+
 /** 登记顺序按 `order` 再按 id，稳定可测。 */
-export function listMemberMenuLinks(): MemberMenuLink[] {
-  return [...LINKS.values()].sort(byOrderThenId);
+export function listMemberMenuLinks(
+  enabledEntitlements?: ReadonlySet<string>,
+): MemberMenuLink[] {
+  return [...LINKS.values()]
+    .filter((link) => isLinkVisible(link, enabledEntitlements))
+    .sort(byOrderThenId);
 }
 
 /**
@@ -70,9 +97,10 @@ export function listMemberMenuLinks(): MemberMenuLink[] {
  */
 export function listMemberSiblingLinks(options?: {
   excludeHref?: string;
+  enabledEntitlements?: ReadonlySet<string>;
 }): MemberMenuLink[] {
   const exclude = options?.excludeHref;
-  return [ACCOUNT_SIBLING_LINK, ...listMemberMenuLinks()]
+  return [ACCOUNT_SIBLING_LINK, ...listMemberMenuLinks(options?.enabledEntitlements)]
     .filter((link) => link.href !== exclude)
     .sort(byOrderThenId);
 }
@@ -87,8 +115,9 @@ export function memberMenuLinkLabel(
 /** 当前语言下的 `{ href, label }`，给 HTML / enhance JSON 用。 */
 export function memberMenuLinksForLocale(
   locale: AppLocale,
+  enabledEntitlements?: ReadonlySet<string>,
 ): Array<{ href: string; label: string }> {
-  return listMemberMenuLinks().map((link) => ({
+  return listMemberMenuLinks(enabledEntitlements).map((link) => ({
     href: link.href,
     label: memberMenuLinkLabel(link, locale),
   }));
@@ -103,8 +132,11 @@ function escapeHtml(value: string): string {
 }
 
 /** 菜单里账户链接之后、退出之前的那几条 `<a>`。 */
-export function renderMemberMenuLinksHtml(locale: AppLocale): string {
-  return memberMenuLinksForLocale(locale)
+export function renderMemberMenuLinksHtml(
+  locale: AppLocale,
+  enabledEntitlements?: ReadonlySet<string>,
+): string {
+  return memberMenuLinksForLocale(locale, enabledEntitlements)
     .map(
       (link) =>
         `<a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a>`,
@@ -116,8 +148,13 @@ export function renderMemberMenuLinksHtml(locale: AppLocale): string {
  * 埋在账户入口旁的 JSON：访客态 SSR 只有登录钮时，site-enhance 升级成菜单仍能
  * 读到贡献链接。id 固定，enhance 按这个找。
  */
-export function renderMemberMenuLinksJsonScript(locale: AppLocale): string {
-  const payload = JSON.stringify(memberMenuLinksForLocale(locale));
+export function renderMemberMenuLinksJsonScript(
+  locale: AppLocale,
+  enabledEntitlements?: ReadonlySet<string>,
+): string {
+  const payload = JSON.stringify(
+    memberMenuLinksForLocale(locale, enabledEntitlements),
+  );
   return `<script type="application/json" id="member-menu-links">${payload}</script>`;
 }
 
@@ -128,7 +165,10 @@ export function renderMemberMenuLinksJsonScript(locale: AppLocale): string {
  */
 export function renderMemberSiblingLinksHtml(
   locale: AppLocale,
-  options: { excludeHref: string },
+  options: {
+    excludeHref: string;
+    enabledEntitlements?: ReadonlySet<string>;
+  },
 ): string {
   const links = listMemberSiblingLinks(options);
   if (links.length === 0) return "";

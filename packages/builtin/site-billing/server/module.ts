@@ -1,3 +1,6 @@
+import { registerTenantGatedRoutes } from "@rewindom/server-kernel/runtime/register-tenant-gated-routes.js";
+
+import { SITE_BILLING_ENTITLEMENT } from "../shared/entitlements.js";
 import { registerSiteBillingPageTemplates } from "../shared/member-billing-templates.js";
 import { registerSiteBillingMemberMenuLink } from "../shared/member-menu-link.js";
 
@@ -21,6 +24,7 @@ export const siteBillingServerModule: ServerAppModule = {
    * 单向依赖，不成环。
    */
   requires: ["rbac", "audit", "platform", "marketing", "site-member", "billing"],
+  tenantEntitlements: [SITE_BILLING_ENTITLEMENT],
   shared: {
     permissions: [
       {
@@ -68,8 +72,9 @@ export const siteBillingServerModule: ServerAppModule = {
        */
       await app.register(memberBillingPageRoutes);
 
-      // 不套租户开关网关：会员付费是每个站点都具备的能力，不可禁用
-      await app.register(siteBillingRoutes, { prefix: "/api/site-billing" });
+      await registerTenantGatedRoutes(app, SITE_BILLING_ENTITLEMENT.key, async (scoped) => {
+        await scoped.register(siteBillingRoutes, { prefix: "/api/site-billing" });
+      });
     },
   },
 };

@@ -4,6 +4,7 @@ import { MEMBER_ACCOUNT_PATH } from "./member-account-section.js";
 import {
   listMemberMenuLinks,
   listMemberSiblingLinks,
+  memberMenuLinkEntitlementKeys,
   memberMenuLinksForLocale,
   registerMemberMenuLink,
   renderMemberMenuLinksHtml,
@@ -90,5 +91,34 @@ describe("member-menu-links", () => {
     expect(billingPageNav).toContain('href="/member/account"');
     expect(billingPageNav).toContain("我的账户");
     expect(billingPageNav).not.toContain("/member/billing");
+  });
+
+  it("声明了 entitlement 的链接在未开通时从菜单和互链里拿掉", () => {
+    resetMemberMenuLinks();
+    registerMemberMenuLink({
+      id: "billing",
+      href: "/member/billing",
+      labels: { "zh-CN": "我的订阅", en: "Billing" },
+      entitlement: "site-billing",
+    });
+    registerMemberMenuLink({
+      id: "orders",
+      href: "/member/orders",
+      labels: { "zh-CN": "我的订单", en: "Orders" },
+    });
+
+    expect(memberMenuLinkEntitlementKeys()).toEqual(["site-billing"]);
+    expect(
+      listMemberMenuLinks(new Set()).map((link) => link.href),
+    ).toEqual(["/member/orders"]);
+    expect(
+      listMemberMenuLinks(new Set(["site-billing"])).map((link) => link.href),
+    ).toEqual(["/member/billing", "/member/orders"]);
+    expect(
+      listMemberSiblingLinks({
+        excludeHref: MEMBER_ACCOUNT_PATH,
+        enabledEntitlements: new Set(),
+      }).map((link) => link.href),
+    ).toEqual(["/member/orders"]);
   });
 });

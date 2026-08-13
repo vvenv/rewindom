@@ -1,5 +1,6 @@
 import { registerSiteSectionView } from "../../marketing/client/components/sections/section-views.js";
 import { memberBillingAccountSection } from "../shared/account-section.js";
+import { SITE_BILLING_ENTITLEMENT } from "../shared/entitlements.js";
 import { registerSiteBillingPageTemplates } from "../shared/member-billing-templates.js";
 import { registerSiteBillingMemberMenuLink } from "../shared/member-menu-link.js";
 import { memberPlansSection } from "../shared/plans-section.js";
@@ -33,6 +34,7 @@ export const siteBillingClientModule: ClientAppModule = {
   label: "Site billing",
   kind: "business",
   description: "站点会员的订阅套餐、结账与付款记录",
+  tenantEntitlements: [SITE_BILLING_ENTITLEMENT],
   client: {
     i18n: SITE_BILLING_I18N,
     renderRoutes: renderSiteBillingRoutes,

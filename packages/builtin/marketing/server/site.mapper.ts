@@ -50,7 +50,10 @@ function asStatus(value: string): MarketingPageStatus {
   return value === "published" ? "published" : "draft";
 }
 
-export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
+export function toMarketingSite(
+  record: MarketingSiteRecord,
+  enabledEntitlements?: ReadonlySet<string>,
+): MarketingSite {
   /*
    * 管理端读**草稿**主题（与草稿 chrome 同一口径）：编辑器改的、预览渲染的都是它，
    * 访客看到的那一份要等发布。读线上那一列的话，编辑器一打开就把已保存的草稿冲掉了。
@@ -68,8 +71,8 @@ export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
     theme_key: record.theme_key,
     default_locale: normalizeLocale(record.default_locale),
     // 管理端读**草稿** chrome；`site_draft_dirty` 标出草稿与线上的差异（含主题）
-    header: siteChromeDraftHeader(record),
-    footer: siteChromeDraftFooter(record),
+    header: siteChromeDraftHeader(record, enabledEntitlements),
+    footer: siteChromeDraftFooter(record, enabledEntitlements),
     site_draft_dirty: siteDraftIsDirty(record),
     published: record.published,
     created_at: record.created_at.toISOString(),
@@ -77,9 +80,12 @@ export function toMarketingSite(record: MarketingSiteRecord): MarketingSite {
   };
 }
 
-export function toMarketingPage(record: MarketingPageRecord): MarketingPage {
+export function toMarketingPage(
+  record: MarketingPageRecord,
+  enabledEntitlements?: ReadonlySet<string>,
+): MarketingPage {
   const { kind, slug } = pageIdentity(record);
-  const draft = pageContentDraft(record);
+  const draft = pageContentDraft(record, enabledEntitlements);
   return {
     id: record.id,
     tenant_id: record.tenant_id,

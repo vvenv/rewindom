@@ -19,5 +19,8 @@ describe("会员付费模板页", () => {
     expect(getPageTemplateKind(MEMBER_BILLING_PAGE_KIND)?.group).toBe(
       MEMBER_PAGE_TEMPLATE_GROUP,
     );
+    expect(getPageTemplateKind(MEMBER_BILLING_PAGE_KIND)?.entitlement).toBe(
+      "site-billing",
+    );
   });
 });

@@ -1,9 +1,11 @@
 import { registerSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
+import { isTenantModuleEnabled } from "../../platform/server/services/tenant-module.service.js";
 import {
   memberDisplayName,
   memberInitials,
 } from "../shared/member-identity.js";
 import {
+  memberMenuLinkEntitlementKeys,
   renderMemberMenuLinksHtml,
   renderMemberMenuLinksJsonScript,
 } from "../shared/member-menu-links.js";
@@ -45,16 +47,34 @@ function escapeHtml(value: string): string {
     .replace(/"/gu, "&quot;");
 }
 
+async function entitlementsForMenu(
+  tenantId: string,
+): Promise<ReadonlySet<string>> {
+  const keys = memberMenuLinkEntitlementKeys();
+  if (keys.length === 0) return new Set();
+  const flags = await Promise.all(
+    keys.map(
+      async (key) =>
+        [key, await isTenantModuleEnabled(tenantId, key)] as const,
+    ),
+  );
+  return new Set(flags.filter(([, on]) => on).map(([key]) => key));
+}
+
 /** 与 `SiteMemberEntry` 未登录态同一份 class（`btn btn-ghost member-entry`）与图标。 */
-function loginEntryHtml(locale: AppLocale): string {
+function loginEntryHtml(
+  locale: AppLocale,
+  enabledEntitlements?: ReadonlySet<string>,
+): string {
   const label = LOGIN_LABEL[locale] ?? LOGIN_LABEL["zh-CN"];
-  return `${renderMemberMenuLinksJsonScript(locale)}<a class="btn btn-ghost member-entry" href="/member/login"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${label}</a>`;
+  return `${renderMemberMenuLinksJsonScript(locale, enabledEntitlements)}<a class="btn btn-ghost member-entry" href="/member/login"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${label}</a>`;
 }
 
 /** 与 site-enhance `menuHtml` 同构，便于首屏已登录与客户端升级一致。 */
 function memberMenuHtml(
   locale: AppLocale,
   member: SiteMemberSsrProfile,
+  enabledEntitlements?: ReadonlySet<string>,
 ): string {
   const name = escapeHtml(memberDisplayName(member));
   const email = escapeHtml(member.email);
@@ -63,9 +83,9 @@ function memberMenuHtml(
   const accountLabel = ACCOUNT_LABEL[locale] ?? ACCOUNT_LABEL["zh-CN"];
   const logoutLabel = LOGOUT_LABEL[locale] ?? LOGOUT_LABEL["zh-CN"];
   const menuLabel = MENU_LABEL[locale] ?? MENU_LABEL["zh-CN"];
-  const contributed = renderMemberMenuLinksHtml(locale);
+  const contributed = renderMemberMenuLinksHtml(locale, enabledEntitlements);
   const contributedBlock = contributed ? `\n    ${contributed}` : "";
-  return `${renderMemberMenuLinksJsonScript(locale)}<details class="member-menu">
+  return `${renderMemberMenuLinksJsonScript(locale, enabledEntitlements)}<details class="member-menu">
   <summary aria-label="${menuLabel}">
     <span class="member-avatar" aria-hidden>${avatar}</span>
     <span class="member-name">${name}</span>
@@ -92,10 +112,17 @@ function memberMenuHtml(
  * 要不要在页头摆这枚按钮，由租户在编辑器里自己决定。
  */
 export function registerSiteMemberAccountEntry(): void {
-  registerSiteAccountEntry(async ({ locale, member }) => {
+  registerSiteAccountEntry(async ({ tenantId, locale, member }) => {
+    const enabledEntitlements = await entitlementsForMenu(tenantId);
     if (member) {
-      return { available: true, html: memberMenuHtml(locale, member) };
+      return {
+        available: true,
+        html: memberMenuHtml(locale, member, enabledEntitlements),
+      };
     }
-    return { available: true, html: loginEntryHtml(locale) };
+    return {
+      available: true,
+      html: loginEntryHtml(locale, enabledEntitlements),
+    };
   });
 }

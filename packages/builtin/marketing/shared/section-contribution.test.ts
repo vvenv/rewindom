@@ -169,4 +169,67 @@ describe("entitlement 闸门", () => {
     // 内置段没有 entitlement，任何时候都在
     expect(sectionTypesFor("page", new Set())).toContain("hero");
   });
+
+  it("未开通时已经摆上去的段读成占位，内容留在 source.raw", () => {
+    contribute();
+    const raw = { id: "s1", type: TYPE, settings: { heading: "预约" } };
+    const [section] = safeSections([raw], new Set());
+
+    expect(section?.type).toBe("unsupported");
+    expect(section?.source?.type).toBe(TYPE);
+    expect(section?.source?.raw).toEqual(raw);
+  });
+
+  it("写路径在未开通时也不复活——打开编辑器顺手保存不能把占位写回真段", () => {
+    contribute();
+    const raw = { id: "s1", type: TYPE, settings: { heading: "预约" } };
+    const parked = safeSections([raw], new Set());
+    const [written] = parseSections(parked, new Set());
+
+    expect(written?.type).toBe("unsupported");
+    expect(written?.source?.raw).toEqual(raw);
+  });
+
+  it("重新开通后占位复活成真段", () => {
+    contribute();
+    const raw = { id: "s1", type: TYPE, settings: { heading: "预约" } };
+    const parked = safeSections([raw], new Set());
+    const [revived] = parseSections(parked, new Set(["tenant-demo"]));
+
+    expect(revived?.type).toBe(TYPE);
+    expect(settingText(revived!.settings, "heading")).toBe("预约");
+    expect(revived?.source).toBeUndefined();
+  });
+
+  it("不传开通表时不过滤——种子和单测不必带开关", () => {
+    contribute();
+    const [section] = parseSections([
+      { id: "s1", type: TYPE, settings: { heading: "预约" } },
+    ]);
+    expect(section?.type).toBe(TYPE);
+  });
+
+  it("分栏里的子段同样停成占位", () => {
+    contribute();
+    const [group] = safeSections(
+      [
+        {
+          type: "group",
+          settings: {},
+          blocks: [
+            {
+              type: "column",
+              settings: {},
+              sections: [
+                { id: "s1", type: TYPE, settings: { heading: "预约" } },
+              ],
+            },
+          ],
+        },
+      ],
+      new Set(),
+    );
+    expect(group?.blocks[0]?.sections?.[0]?.type).toBe("unsupported");
+    expect(group?.blocks[0]?.sections?.[0]?.source?.type).toBe(TYPE);
+  });
 });

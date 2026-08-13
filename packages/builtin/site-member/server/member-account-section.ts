@@ -145,6 +145,7 @@ const renderAccountPanelHtml: SectionHtmlRenderer = (section, ctx) => {
   const locale = (ctx.locale ?? ctx.defaultLocale ?? "zh-CN") as AppLocale;
   const links = renderMemberSiblingLinksHtml(locale, {
     excludeHref: MEMBER_ACCOUNT_PATH,
+    enabledEntitlements: ctx.enabledEntitlements,
   });
 
   const meta = settingBool(s, "show_meta")

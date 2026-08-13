@@ -14,6 +14,7 @@ export const SITE_BILLING_NAV_SECTIONS: AppNavSection[] = [
         title: "site-billing:nav.plans",
         // 记录页挂在它下面，不 end 的话两项会同时高亮
         end: true,
+        tenantModule: "site-billing",
         anyPermission: ["site_billing.read"],
       },
       {
@@ -21,6 +22,7 @@ export const SITE_BILLING_NAV_SECTIONS: AppNavSection[] = [
         label: "site-billing:nav.records",
         path: "/app/site-billing/records",
         title: "site-billing:nav.records",
+        tenantModule: "site-billing",
         anyPermission: ["site_billing.read"],
       },
     ],

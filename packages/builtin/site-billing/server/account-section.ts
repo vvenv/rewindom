@@ -118,6 +118,7 @@ const renderMemberBillingAccountHtml: SectionHtmlRenderer = (section, ctx) => {
   const locale = (ctx.locale ?? ctx.defaultLocale ?? "zh-CN") as AppLocale;
   const links = renderMemberSiblingLinksHtml(locale, {
     excludeHref: MEMBER_BILLING_PATH,
+    enabledEntitlements: ctx.enabledEntitlements,
   });
   return `<div class="${memberCardClass(s, "member-billing-card")}">${headHtml(s)}${messageHtml(context)}${links}${subscriptionBodyHtml(s, context)}</div>`;
 };

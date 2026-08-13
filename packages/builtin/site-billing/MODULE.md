@@ -91,16 +91,18 @@
 
 - Server：`apps/server/src/enabled-modules.ts`
 - Client：`apps/client/src/enabled-modules.ts`
-- **没有 entitlement**：会员付费是每个站点都具备的能力，不可禁用。装了模块就在，
-  能不能进那一页归权限（`site_billing.read` / `.write`）管。
+- Entitlement `site-billing`（平台控制台「会员付费」，默认开通）。关掉后租户侧导航 /
+  工作台页 / 管理 API / 主题编辑器里的段与模板页全部隐藏；公开面的套餐段、账单页
+  与「我的订阅」菜单也不再出现。Webhook 仍收（存量订阅要能落账）。能不能进那一页
+  另归权限（`site_billing.read` / `.write`）。
 
 ## 扩展点
 
 - 权限：`site_billing.read` / `site_billing.write`
 - 审计：`SITE_BILLING_PLAN_CREATE` / `_UPDATE` / `_DELETE` / `SITE_BILLING_PROVIDER_UPDATE` / `SITE_BILLING_WEBHOOK_SYNC`
-- 段：`site-billing.plans` / `site-billing.account`
-- 模板页：`member_billing`
-- 会员菜单链接：`registerSiteBillingMemberMenuLink`（挂进 site-member 的 `member-menu-links`）
+- 段：`site-billing.plans` / `site-billing.account`（`entitlement: site-billing`）
+- 模板页：`member_billing`（同上）
+- 会员菜单链接：`registerSiteBillingMemberMenuLink`（挂进 site-member 的 `member-menu-links`，带同一 entitlement）
 
 ## 路径三处对齐
 

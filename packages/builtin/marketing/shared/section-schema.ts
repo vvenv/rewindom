@@ -97,10 +97,24 @@ export function createSection(type: SectionType): SiteSection {
  * - `depth`：当前嵌套层数，`0` 是页面直挂的段。容器段只允许出现在 `0` 层。
  * - `strict`：写路径（`parseSections`）为真，坏数据抛错；读路径（`safeSections`）为假，
  *   坏的子段逐个跳过——一列里有一段脏数据不该把整个容器段连坐掉。
+ * - `enabledEntitlements`：本租户已开通的贡献段开关。声明了 `entitlement` 但未开通
+ *   的段按 `unsupported` 兜住（编辑器不再画出真实预览；重新开通后从 `source.raw` 复活）。
+ *   不传则不过滤——种子 / 单测不必带开通表。
  */
 interface ParseOptions {
   depth: number;
   strict: boolean;
+  enabledEntitlements?: ReadonlySet<string>;
+}
+
+function entitlementAllows(
+  type: string,
+  enabled: ReadonlySet<string> | undefined,
+): boolean {
+  const required = getSectionDefinition(type)?.entitlement;
+  if (!required) return true;
+  if (!enabled) return true;
+  return enabled.has(required);
 }
 
 /** 容器 block 里的子段：同一套解析，深度 +1。 */
@@ -112,6 +126,7 @@ function parseChildSections(
   const child: ParseOptions = {
     depth: options.depth + 1,
     strict: options.strict,
+    enabledEntitlements: options.enabledEntitlements,
   };
   const out: SiteSection[] = [];
   value.forEach((item, index) => {
@@ -276,6 +291,9 @@ function parseUnsupported(
     const inner = source.raw as Record<string, unknown>;
     const innerType = resolvePageSectionType(inner.type);
     if (innerType && !(options.depth > 0 && isContainerSection(innerType))) {
+      if (!entitlementAllows(innerType, options.enabledEntitlements)) {
+        return buildUnsupportedSection(source, fallbackId);
+      }
       return buildSection(innerType, inner, fallbackId, options);
     }
   }
@@ -298,6 +316,9 @@ function parsePageSection(
   }
 
   const type = resolvePageSectionType(row.type);
+  if (type && !entitlementAllows(type, options.enabledEntitlements)) {
+    return buildUnsupportedSection({ type, raw: row }, fallbackId);
+  }
   if (!type) {
     // 认识但不该出现在页面段流里（`header` / `footer`）：坏数据，丢
     if (options.strict || isKnownSectionType(row.type)) {
@@ -317,7 +338,10 @@ function parsePageSection(
 }
 
 /** 写路径严格校验；失败抛 Error（code 字符串）由 service 转 ValidationError。 */
-export function parseSections(value: unknown): SiteSection[] {
+export function parseSections(
+  value: unknown,
+  enabledEntitlements?: ReadonlySet<string>,
+): SiteSection[] {
   if (value === undefined || value === null) {
     return [];
   }
@@ -325,17 +349,30 @@ export function parseSections(value: unknown): SiteSection[] {
     throw new Error("site.sections_invalid");
   }
   return value.map((item, index) =>
-    parsePageSection(item, index, { depth: 0, strict: true }),
+    parsePageSection(item, index, {
+      depth: 0,
+      strict: true,
+      enabledEntitlements,
+    }),
   );
 }
 
 /** 读库容错：逐个跳过损坏 section，不因一条脏数据丢掉整页。 */
-export function safeSections(value: unknown): SiteSection[] {
+export function safeSections(
+  value: unknown,
+  enabledEntitlements?: ReadonlySet<string>,
+): SiteSection[] {
   if (!Array.isArray(value)) return [];
   const out: SiteSection[] = [];
   value.forEach((item, index) => {
     try {
-      out.push(parsePageSection(item, index, { depth: 0, strict: false }));
+      out.push(
+        parsePageSection(item, index, {
+          depth: 0,
+          strict: false,
+          enabledEntitlements,
+        }),
+      );
     } catch {
       /* skip broken section */
     }
@@ -528,9 +565,10 @@ function parseAreaSectionList(
   area: AreaSectionType,
   value: unknown,
   strict: boolean,
+  enabledEntitlements?: ReadonlySet<string>,
 ): SiteSection[] {
   const rows = Array.isArray(value) ? value : [];
-  const options: ParseOptions = { depth: 0, strict };
+  const options: ParseOptions = { depth: 0, strict, enabledEntitlements };
   const sections: SiteSection[] = [];
   for (const row of rows) {
     if (!row || typeof row !== "object" || Array.isArray(row)) continue;
@@ -565,6 +603,17 @@ function parseAreaSectionList(
       if (!getSectionDefinition(type)?.placements.includes(area)) {
         throw new Error("site.sections_invalid");
       }
+      if (!entitlementAllows(type, enabledEntitlements)) {
+        sections.push(
+          buildUnsupportedSection(
+            { type, raw },
+            typeof raw.id === "string" && raw.id.trim()
+              ? raw.id.trim()
+              : createSectionId(),
+          ),
+        );
+        continue;
+      }
       sections.push(buildSection(type, raw, createSectionId(), options));
     } catch (error) {
       // 读路径逐段跳过：一段坏了不该把整个页头 / 页脚连坐重置
@@ -577,8 +626,9 @@ function parseAreaSectionList(
 export function parseAreaSections(
   area: AreaSectionType,
   value: unknown,
+  enabledEntitlements?: ReadonlySet<string>,
 ): SiteSection[] {
-  return parseAreaSectionList(area, value, true);
+  return parseAreaSectionList(area, value, true, enabledEntitlements);
 }
 
 /** 区域本体（导航条 / 页脚本体）只能有一段，且必须在：缺了补、多了删。 */
@@ -601,9 +651,10 @@ function ensureAreaBody(
 export function safeAreaSections(
   area: AreaSectionType,
   value: unknown,
+  enabledEntitlements?: ReadonlySet<string>,
 ): SiteSection[] {
   try {
-    return parseAreaSectionList(area, value, false);
+    return parseAreaSectionList(area, value, false, enabledEntitlements);
   } catch {
     return [createSection(area)];
   }

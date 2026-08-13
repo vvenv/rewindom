@@ -49,6 +49,7 @@ import {
 } from "../shared/plans-section.js";
 import { formatMemberPrice } from "../shared/site-billing.js";
 
+import { isSiteBillingEnabled } from "./entitlement.js";
 import {
   cancelMemberSubscription,
   createMemberCheckout,
@@ -106,6 +107,18 @@ async function renderBillingPage(
       renderUnavailableHtml({
         title: "Site not found",
         message: "This host is not bound to a site.",
+      }),
+    );
+    return true;
+  }
+
+  if (!(await isSiteBillingEnabled(hostTenant.tenant_id))) {
+    sendHtml(
+      reply,
+      404,
+      renderUnavailableHtml({
+        title: "Not found",
+        message: "This page is not available.",
       }),
     );
     return true;
@@ -261,6 +274,18 @@ async function handleSubmit(
     const hostTenant = request.hostTenantContext;
     if (!hostTenant) {
       redirectTo(reply, LOGIN_WITH_REDIRECT, 303);
+      return;
+    }
+
+    if (!(await isSiteBillingEnabled(hostTenant.tenant_id))) {
+      sendHtml(
+        reply,
+        404,
+        renderUnavailableHtml({
+          title: "Not found",
+          message: "This page is not available.",
+        }),
+      );
       return;
     }
 

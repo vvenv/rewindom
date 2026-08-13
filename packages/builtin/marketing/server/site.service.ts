@@ -62,6 +62,7 @@ import {
 import { resolveThemeSettings } from "../shared/theme-sections.js";
 
 import { recordPageVersion } from "./site-page-version.service.js";
+import { resolveSectionEntitlements } from "./site-entitlements.js";
 import {
   toMarketingPage,
   toMarketingPageListItem,
@@ -127,12 +128,44 @@ function effectiveLocale(
   return exists ? requested : defaultLocale;
 }
 
+async function presentPage(
+  record: MarketingPageRecord,
+  enabled?: ReadonlySet<string>,
+): Promise<MarketingPage> {
+  return toMarketingPage(
+    record,
+    enabled ?? (await resolveSectionEntitlements(record.tenant_id)),
+  );
+}
+
+async function presentSite(
+  record: MarketingSiteRecord,
+  enabled?: ReadonlySet<string>,
+): Promise<MarketingSite> {
+  return toMarketingSite(
+    record,
+    enabled ?? (await resolveSectionEntitlements(record.tenant_id)),
+  );
+}
+
+async function presentEditor(
+  page: MarketingPageRecord,
+  site: MarketingSiteRecord,
+  enabled?: ReadonlySet<string>,
+): Promise<{ page: MarketingPage; site: MarketingSite }> {
+  const flags = enabled ?? (await resolveSectionEntitlements(page.tenant_id));
+  return {
+    page: toMarketingPage(page, flags),
+    site: toMarketingSite(site, flags),
+  };
+}
+
 async function ensureSiteRow(tenant_id: string): Promise<MarketingSite> {
   const existing = await prisma.marketingSite.findFirst({
     where: withTenantScope(tenant_id),
   });
   if (existing) {
-    return toMarketingSite(existing);
+    return presentSite(existing);
   }
 
   const minimalChrome = buildMinimalSiteChrome();
@@ -153,7 +186,7 @@ async function ensureSiteRow(tenant_id: string): Promise<MarketingSite> {
       published: false,
     },
   });
-  return toMarketingSite(created);
+  return presentSite(created);
 }
 
 export async function getOrCreateSite(
@@ -170,6 +203,7 @@ export async function updateSite(
   const existing = await prisma.marketingSite.findFirstOrThrow({
     where: { tenant_id },
   });
+  const enabled = await resolveSectionEntitlements(tenant_id);
 
   const data: Record<string, unknown> = {};
   const nextDefaultLocale =
@@ -195,12 +229,14 @@ export async function updateSite(
     data.nav_draft_json = parseSiteAreaSections(
       "header",
       body.header,
+      enabled,
     ) as unknown as Prisma.InputJsonValue;
   }
   if (body.footer !== undefined) {
     data.footer_draft_json = parseSiteAreaSections(
       "footer",
       body.footer,
+      enabled,
     ) as unknown as Prisma.InputJsonValue;
   }
   if (body.published !== undefined) {
@@ -237,7 +273,7 @@ export async function updateSite(
     where: { tenant_id },
     data,
   });
-  return toMarketingSite(updated);
+  return presentSite(updated, enabled);
 }
 
 export async function listPages(
@@ -260,7 +296,7 @@ export async function getPage(
   if (!record) {
     throw new NotFoundError("site.page_not_found");
   }
-  return toMarketingPage(record);
+  return presentPage(record);
 }
 
 /** 段流里某个 type 出现了几次（含容器段列里的子段）。 */
@@ -270,7 +306,12 @@ function countSectionsOfType(
 ): number {
   let count = 0;
   for (const section of sections) {
-    if (section.type === type) count += 1;
+    if (
+      section.type === type ||
+      (section.type === "unsupported" && section.source?.type === type)
+    ) {
+      count += 1;
+    }
     for (const block of section.blocks ?? []) {
       if (block.sections) count += countSectionsOfType(block.sections, type);
     }
@@ -327,7 +368,8 @@ export async function createPage(
     body.locale !== undefined
       ? validateSiteLocale(body.locale)
       : normalizeLocale((await ensureSiteRow(tenant_id)).default_locale);
-  const sections = parsePageSections(body.sections ?? []);
+  const enabled = await resolveSectionEntitlements(tenant_id);
+  const sections = parsePageSections(body.sections ?? [], enabled);
   const settings = parsePageSettings(body.settings ?? {});
   const description = body.description?.trim() ?? "";
 
@@ -362,7 +404,7 @@ export async function createPage(
         sort_order: body.sort_order ?? 0,
       },
     });
-    return toMarketingPage(created);
+    return presentPage(created, enabled);
   } catch (err) {
     if (
       err &&
@@ -462,7 +504,8 @@ export async function duplicatePage(
     source.slug,
   );
   const slug = await resolveDuplicateSlug(tenant_id, kind, sourceSlug, locale);
-  const sourceContent = pageContentDraft(source);
+  const enabled = await resolveSectionEntitlements(tenant_id);
+  const sourceContent = pageContentDraft(source, enabled);
   const sections = relocalizeSections(
     sourceContent.sections,
     sourceLocale,
@@ -490,7 +533,7 @@ export async function duplicatePage(
         sort_order: source.sort_order,
       },
     });
-    return toMarketingPage(created);
+    return presentPage(created, enabled);
   } catch (err) {
     if (
       err &&
@@ -524,11 +567,12 @@ export async function saveEditorDraft(
   }
   await ensureSiteRow(tenant_id);
 
+  const enabled = await resolveSectionEntitlements(tenant_id);
   // 校验全部先做完再进事务：解析失败不该留下任何写入
-  const sections = parsePageSections(body.sections);
+  const sections = parsePageSections(body.sections, enabled);
   assertTemplateRequiredSection(existing.kind, sections);
-  const header = parseSiteAreaSections("header", body.header);
-  const footer = parseSiteAreaSections("footer", body.footer);
+  const header = parseSiteAreaSections("header", body.header, enabled);
+  const footer = parseSiteAreaSections("footer", body.footer, enabled);
   const settings =
     body.settings !== undefined ? parsePageSettings(body.settings) : undefined;
   const visibility =
@@ -558,7 +602,7 @@ export async function saveEditorDraft(
       },
     }),
   ]);
-  return { page: toMarketingPage(page), site: toMarketingSite(site) };
+  return presentEditor(page, site, enabled);
 }
 
 /**
@@ -600,8 +644,9 @@ export async function saveSiteDraft(
   body: SaveSiteDraftBody,
 ): Promise<MarketingSite> {
   await ensureSiteRow(tenant_id);
-  const header = parseSiteAreaSections("header", body.header);
-  const footer = parseSiteAreaSections("footer", body.footer);
+  const enabled = await resolveSectionEntitlements(tenant_id);
+  const header = parseSiteAreaSections("header", body.header, enabled);
+  const footer = parseSiteAreaSections("footer", body.footer, enabled);
 
   const site = await prisma.marketingSite.update({
     where: { tenant_id },
@@ -611,7 +656,7 @@ export async function saveSiteDraft(
       ...siteThemeDraftData(body),
     },
   });
-  return toMarketingSite(site);
+  return presentSite(site, enabled);
 }
 
 /**
@@ -627,22 +672,25 @@ export async function publishSiteDraft(
   const existingSite = await prisma.marketingSite.findFirstOrThrow({
     where: { tenant_id },
   });
+  const enabled = await resolveSectionEntitlements(tenant_id);
 
   const site = await prisma.marketingSite.update({
     where: { tenant_id },
     data: {
       nav_json: siteChromeDraftHeader(
         existingSite,
+        enabled,
       ) as unknown as Prisma.InputJsonValue,
       footer_json: siteChromeDraftFooter(
         existingSite,
+        enabled,
       ) as unknown as Prisma.InputJsonValue,
       theme_settings: safeSiteThemeSettings(
         existingSite.theme_settings_draft,
       ) as Prisma.InputJsonValue,
     },
   });
-  return toMarketingSite(site);
+  return presentSite(site, enabled);
 }
 
 /** 站点级草稿还原为线上那一版（页头 / 页脚 / 主题），不影响任何页面正文。 */
@@ -653,22 +701,25 @@ export async function revertSiteDraft(
   const existingSite = await prisma.marketingSite.findFirstOrThrow({
     where: { tenant_id },
   });
+  const enabled = await resolveSectionEntitlements(tenant_id);
 
   const site = await prisma.marketingSite.update({
     where: { tenant_id },
     data: {
       nav_draft_json: siteChromePublishedHeader(
         existingSite,
+        enabled,
       ) as unknown as Prisma.InputJsonValue,
       footer_draft_json: siteChromePublishedFooter(
         existingSite,
+        enabled,
       ) as unknown as Prisma.InputJsonValue,
       theme_settings_draft: safeSiteThemeSettings(
         existingSite.theme_settings,
       ) as Prisma.InputJsonValue,
     },
   });
-  return toMarketingSite(site);
+  return presentSite(site, enabled);
 }
 
 /**
@@ -697,9 +748,11 @@ export async function resetPageToPreset(
 
   const locale = normalizeLocale(existing.locale);
   const t = createStarterTranslator(locale);
-  const draft = pageContentDraft(existing);
+  const enabled = await resolveSectionEntitlements(tenant_id);
+  const draft = pageContentDraft(existing, enabled);
   const sections = parsePageSections(
     mergeSectionsWithPreset(draft.sections, preset, t),
+    enabled,
   );
   assertTemplateRequiredSection(existing.kind, sections);
 
@@ -712,7 +765,7 @@ export async function resetPageToPreset(
         existing.description_draft.trim() || t(preset.descriptionKey).trim(),
     },
   });
-  return toMarketingPage(updated);
+  return presentPage(updated, enabled);
 }
 
 export async function updatePage(
@@ -749,8 +802,11 @@ export async function updatePage(
     }
   }
 
+  const enabled = await resolveSectionEntitlements(tenant_id);
   const nextSections =
-    body.sections !== undefined ? parsePageSections(body.sections) : undefined;
+    body.sections !== undefined
+      ? parsePageSections(body.sections, enabled)
+      : undefined;
   if (nextSections) {
     assertTemplateRequiredSection(nextKind, nextSections);
   }
@@ -795,7 +851,7 @@ export async function updatePage(
           : {}),
       },
     });
-    return toMarketingPage(updated);
+    return presentPage(updated, enabled);
   } catch (err) {
     if (
       err &&
@@ -888,8 +944,9 @@ export async function setPageStatus(
     throw new NotFoundError("site.page_not_found");
   }
   const data: Prisma.MarketingPageUpdateInput = { status };
+  const enabled = await resolveSectionEntitlements(tenant_id);
   if (status === "published") {
-    const promoted = promotePageContentData(existing);
+    const promoted = promotePageContentData(existing, enabled);
     data.title = promoted.title;
     data.description = promoted.description;
     data.sections = promoted.sections as unknown as Prisma.InputJsonValue;
@@ -899,7 +956,7 @@ export async function setPageStatus(
     where: { id: page_id, tenant_id },
     data,
   });
-  return toMarketingPage(updated);
+  return presentPage(updated, enabled);
 }
 
 /** 将草稿页面内容发布到线上（页面须已是 `published` 状态）。 */
@@ -930,10 +987,11 @@ export async function publishEditorDraft(
   const existingSite = await prisma.marketingSite.findFirstOrThrow({
     where: { tenant_id },
   });
+  const enabled = await resolveSectionEntitlements(tenant_id);
 
-  const promoted = promotePageContentData(existingPage);
-  const header = siteChromeDraftHeader(existingSite);
-  const footer = siteChromeDraftFooter(existingSite);
+  const promoted = promotePageContentData(existingPage, enabled);
+  const header = siteChromeDraftHeader(existingSite, enabled);
+  const footer = siteChromeDraftFooter(existingSite, enabled);
 
   const [page, site] = await prisma.$transaction(async (tx) => {
     /*
@@ -975,7 +1033,7 @@ export async function publishEditorDraft(
     ]);
   });
 
-  return { page: toMarketingPage(page), site: toMarketingSite(site) };
+  return presentEditor(page, site, enabled);
 }
 
 /**
@@ -998,10 +1056,11 @@ export async function revertEditorDraft(
   const existingSite = await prisma.marketingSite.findFirstOrThrow({
     where: { tenant_id },
   });
+  const enabled = await resolveSectionEntitlements(tenant_id);
 
-  const live = revertPageContentData(existingPage);
-  const header = siteChromePublishedHeader(existingSite);
-  const footer = siteChromePublishedFooter(existingSite);
+  const live = revertPageContentData(existingPage, enabled);
+  const header = siteChromePublishedHeader(existingSite, enabled);
+  const footer = siteChromePublishedFooter(existingSite, enabled);
 
   const [page, site] = await prisma.$transaction([
     prisma.marketingPage.update({
@@ -1028,7 +1087,7 @@ export async function revertEditorDraft(
     }),
   ]);
 
-  return { page: toMarketingPage(page), site: toMarketingSite(site) };
+  return presentEditor(page, site, enabled);
 }
 
 export async function getPublishedPublicSite(
@@ -1358,7 +1417,7 @@ export async function applySiteTheme(
       theme_key: theme.key,
     },
   });
-  return toMarketingSite(site);
+  return presentSite(site);
 }
 
 export async function getPublishedSitemapEntries(

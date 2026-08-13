@@ -22,6 +22,7 @@ import {
   MEMBER_BILLING_ACCOUNT_SECTION_TYPE,
   MEMBER_BILLING_PAGE_KIND,
 } from "./account-section.js";
+import { SITE_BILLING_ENTITLEMENT } from "./entitlements.js";
 import { MEMBER_BILLING_PATH } from "./plans-section.js";
 
 import type { PagePreset } from "../../marketing/shared/page-presets.types.js";
@@ -60,6 +61,7 @@ export function registerSiteBillingPageTemplates(): void {
     group: MEMBER_PAGE_TEMPLATE_GROUP,
     label: "site-billing:template.billing.label",
     required_section: MEMBER_BILLING_ACCOUNT_SECTION_TYPE,
+    entitlement: SITE_BILLING_ENTITLEMENT.key,
   });
   registerPageTemplatePreset(
     MEMBER_BILLING_PAGE_KIND,
