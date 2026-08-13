@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+
+import { registerDocsPageTemplates } from "../../site-docs/shared/page-templates.js";
+import { registerPageTemplateKind } from "../shared/page-templates.js";
 
 import { toPublicMarketingPage, toPublicMarketingSite } from "./site.mapper.js";
 
@@ -257,5 +260,63 @@ describe("toPublicMarketingPage alternates", () => {
     expect(live.sections[0]?.settings.headline).toBe("Live");
     expect(draft.title).toBe("Draft title");
     expect(draft.sections[0]?.settings.headline).toBe("Draft");
+  });
+});
+
+describe("toPublicMarketingSite pages catalog", () => {
+  beforeAll(() => {
+    registerDocsPageTemplates();
+    registerPageTemplateKind({
+      kind: "nav_shop_index",
+      slug: "shop",
+      path: "/shop",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+    registerPageTemplateKind({
+      kind: "nav_shop_product",
+      slug: "shop-product",
+      path: "/shop/:slug",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+  });
+
+  it("keeps first-level index templates and ordinary pages", () => {
+    const site = toPublicMarketingSite(siteRecord(), [
+      pageRecord({ id: "home", kind: "home", slug: "home", title: "首页" }),
+      pageRecord({ id: "about", kind: "page", slug: "about", title: "关于" }),
+      pageRecord({
+        id: "docs",
+        kind: "docs_index",
+        slug: "docs",
+        title: "文档",
+      }),
+      pageRecord({
+        id: "article",
+        kind: "docs_article",
+        slug: "docs-article",
+        title: "文档详情",
+      }),
+      pageRecord({
+        id: "shop",
+        kind: "nav_shop_index",
+        slug: "shop",
+        title: "商店",
+      }),
+      pageRecord({
+        id: "product",
+        kind: "nav_shop_product",
+        slug: "shop-product",
+        title: "商品",
+      }),
+    ]);
+    expect(site.pages.map((page) => page.path)).toEqual([
+      "/about",
+      "/docs",
+      "/shop",
+    ]);
   });
 });

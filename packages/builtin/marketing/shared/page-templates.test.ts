@@ -4,7 +4,9 @@ import { registerDocsPageTemplates } from "../../site-docs/shared/page-templates
 import { canonicalizePageIdentity, marketingPagePath } from "./site-cms.js";
 import {
   getPageTemplateKind,
+  isFirstLevelCatalogPath,
   isPageTemplateRelevant,
+  isPublicCatalogPageKind,
   isTemplatePageKind,
   listPageTemplateKinds,
   registerPageTemplateKind,
@@ -106,5 +108,54 @@ describe("site-docs 贡献的模板页", () => {
     expect(marketingPagePath("docs_article", "docs-article")).toBe(
       "/docs/:slug",
     );
+  });
+
+  it("文档索引进公开目录，详情模板不进", () => {
+    expect(isPublicCatalogPageKind("docs_index")).toBe(true);
+    expect(isPublicCatalogPageKind("docs_article")).toBe(false);
+  });
+});
+
+describe("公开页面目录", () => {
+  it("一级可打开路径才进目录", () => {
+    expect(isFirstLevelCatalogPath("/docs")).toBe(true);
+    expect(isFirstLevelCatalogPath("/shop")).toBe(true);
+    expect(isFirstLevelCatalogPath("/")).toBe(false);
+    expect(isFirstLevelCatalogPath("/docs/:slug")).toBe(false);
+    expect(isFirstLevelCatalogPath("/shop/cart")).toBe(false);
+    expect(isFirstLevelCatalogPath("/member/login")).toBe(false);
+  });
+
+  it("普通页进目录；首页、详情模板、二级功能页不进", () => {
+    registerPageTemplateKind({
+      kind: "nav_demo_index",
+      slug: "demo",
+      path: "/demo",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+    registerPageTemplateKind({
+      kind: "nav_demo_item",
+      slug: "demo-item",
+      path: "/demo/:slug",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+    registerPageTemplateKind({
+      kind: "nav_demo_cart",
+      slug: "demo-cart",
+      path: "/demo/cart",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+
+    expect(isPublicCatalogPageKind("page")).toBe(true);
+    expect(isPublicCatalogPageKind("home")).toBe(false);
+    expect(isPublicCatalogPageKind("nav_demo_index")).toBe(true);
+    expect(isPublicCatalogPageKind("nav_demo_item")).toBe(false);
+    expect(isPublicCatalogPageKind("nav_demo_cart")).toBe(false);
   });
 });

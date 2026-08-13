@@ -2,7 +2,7 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
-import { isTemplatePageKind } from "../../shared/page-templates.js";
+import { isPublicCatalogPageKind } from "../../shared/page-templates.js";
 import {
   localizeSections,
   localizeSiteText,
@@ -280,10 +280,10 @@ export function useSiteEditor(pageId: string | undefined) {
 
   /**
    * 预览里的「站点页面目录」——必须与公开面**同一套口径**（见 `toPublicMarketingSite`）：
-   * 只算已发布的，且排除文档模板页。
+   * 只算已发布的，且只收公开目录 kind（普通页 + `/docs` `/shop` 这类一级索引模板）。
    *
    * 少这两道过滤，预览的页头导航会比线上多出几条：草稿页面（还没发布，访客看不到）
-   * 和文档模板页（`doc_article` 根本没有自己的地址）。而页头导航默认就是一条「全部
+   * 和详情模板页（`docs_article` 根本没有自己的地址）。而页头导航默认就是一条「全部
    * 一级页面」的动态项，所以每建一张草稿页，预览与实际就多差一条——差异恰好出现在
    * 租户最信任预览的时候（刚建完页面、正在排版）。
    *
@@ -292,7 +292,7 @@ export function useSiteEditor(pageId: string | undefined) {
    */
   const previewNavPages = localePages
     .filter((item) => item.status === "published")
-    .filter((item) => !isTemplatePageKind(item.kind))
+    .filter((item) => isPublicCatalogPageKind(item.kind))
     .map((item) => ({
       slug: item.slug,
       locale: item.locale,

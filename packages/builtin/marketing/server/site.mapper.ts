@@ -1,6 +1,6 @@
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
-import { isTemplatePageKind } from "../shared/page-templates.js";
+import { isPublicCatalogPageKind } from "../shared/page-templates.js";
 import {
   localizeSections,
   localizeSiteText,
@@ -184,14 +184,15 @@ export function toPublicMarketingSite(
         (page) => normalizeLocale(page.locale, default_locale) === current,
       )
       /*
-       * 模板页（含首页）不进页面目录。
+       * 公开目录是「访客能点进的站点页面」——「全部一级页面」、同级菜单、
+       * `page-menu` 都吃它。
        *
-       * 目录是「站点有哪些页面」——「全部一级页面」、同级菜单、`page-menu` 都吃它。
-       * 模板页不是一张可以列出来的页面：详情模板往往没有自己的地址，
-       * 首页 `/` 由顶栏品牌链单独处理；贡献内容的导航入口走菜单里的动态源，
-       * 而不是因为「碰巧自定义过版式」就自动冒出来——那会让导航跟着编辑器行为漂。
+       * 普通页面全收。模板页只收可打开的一级地址（`/docs`、`/shop`）：它们和
+       * 「关于」「定价」一样是顶层入口。首页由品牌链处理；详情模板（`/docs/:slug`）
+       * 没有自己的地址；购物车 / 会员登录是二级功能页。口径见
+       * `isPublicCatalogPageKind`。
        */
-      .filter((page) => !isTemplatePageKind(pageIdentity(page).kind))
+      .filter((page) => isPublicCatalogPageKind(pageIdentity(page).kind))
       .map((page) => {
         const { kind, slug } = pageIdentity(page);
         const content = useDraftContent

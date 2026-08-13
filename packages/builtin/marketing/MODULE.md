@@ -163,12 +163,15 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 块收集——**别**去读页头 section 的 settings，那儿早就没有 items 了）。
 
 条目形状：`{ id, source, label, href, category, expand, children[] }`。
-建站默认页头只有「全部一级页面」（flat）：新站通常只有首页。
+建站默认页头只有「全部一级页面」（flat）：新站通常只有首页。`pages` 展开的是公开
+页面目录里父路径为 `/` 的已发布页——含文档索引 `/docs`、商店 `/shop` 这类**可打开
+的一级模板页**；首页由品牌链处理，详情模板（`/docs/:slug`）和购物车等二级功能页
+不进目录（`isPublicCatalogPageKind`）。
 
 | `source` | 展开成 |
 | -------- | ------ |
 | `link`   | 一条链接；可带**一层** `children` 做子菜单 |
-| `pages`  | 全部已发布一级页面 |
+| `pages`  | 全部已发布一级页面（含 `/docs`、`/shop` 索引） |
 
 其它动态源由模块 `registerNavSource` 填进来（site-docs 登记 `site-docs` /
 `site-docs.category`）。存量数据里的 `docs` / `doc_category` 在解析时改写成这两项，

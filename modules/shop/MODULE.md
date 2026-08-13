@@ -60,6 +60,8 @@ shop/
 | kind                 | 路径                      | 必备段              | 区块                                                                                                                               |
 | -------------------- | ------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `shop_index`         | `/shop`                   | `shop.product-grid` | —（条目来自已发布商品；`collection_slug` 可只出某一类；也能摆上首页，`limit` 控制条数）                                            |
+
+`shop_index`（`/shop`）是可打开的一级页面，会进页头「全部一级页面」。商品详情、分类、购物车、结账不进——它们不是顶层目录入口。
 | `shop_product`       | `/shop/:slug`             | `shop.product`      | `media` / `title` / `price` / `description` / `buy`                                                                                |
 | `shop_collection`    | `/shop/collections/:slug` | `shop.product-grid` | —（按分类过滤；SEO 用分类的 `seo_*`）                                                                                              |
 | `shop_cart`          | `/shop/cart`              | `shop.cart`         | `lines` / `summary`（另 POST `intent=discount` 应用优惠码）                                                                        |

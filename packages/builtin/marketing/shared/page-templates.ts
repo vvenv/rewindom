@@ -102,14 +102,40 @@ export function listPageTemplateKinds(): PageTemplateKindDefinition[] {
 /**
  * 是不是模板页。
  *
- * 普通页面列表 / 排序 / 站点导航 / 复制规则都按它排除模板页：模板页没有租户自填的
- * 地址，混进那些列表里会给出「可以改 slug」「可以拖排序」的错误暗示。
+ * 中台普通页面列表 / 排序 / 复制规则按它排除模板页：模板页没有租户自填的地址，
+ * 混进那些列表里会给出「可以改 slug」「可以拖排序」的错误暗示。
+ *
+ * 公开导航目录不走这一条——见 `isPublicCatalogPageKind`。
  *
  * 模板页一旦落库也**不可删除**（只许重设预设）——由系统在相关时快照建出，
  * 删掉就失去对应路由上的可编辑版式。
  */
 export function isTemplatePageKind(kind: string): boolean {
   return TEMPLATE_KINDS.has(kind);
+}
+
+/**
+ * 这张模板管的是不是一条**可打开的一级地址**（`/docs`、`/shop`）。
+ *
+ * `/` 是首页（页头品牌链）；带 `:param` 的是详情版式；`/shop/cart` 这类是二级
+ * 功能页。这三类都不是「全部一级页面」该列的站点目录成员。
+ */
+export function isFirstLevelCatalogPath(path: string): boolean {
+  if (!path.startsWith("/") || path === "/") return false;
+  if (path.includes(":")) return false;
+  return !path.slice(1).includes("/");
+}
+
+/**
+ * 公开页面目录收哪些 kind——「全部一级页面」、`page-menu` 都吃它。
+ *
+ * 普通 `page` 全收。模板页只收可打开的一级地址：文档索引、商店首页访客本来就会
+ * 当一级入口用；详情模板没有自己的地址，会员登录 / 购物车也不是目录页。
+ */
+export function isPublicCatalogPageKind(kind: string): boolean {
+  if (!isTemplatePageKind(kind)) return true;
+  const template = getPageTemplateKind(kind);
+  return template ? isFirstLevelCatalogPath(template.path) : false;
 }
 
 /**

@@ -33,6 +33,10 @@
 `registerNavSource`：`site-docs`（整库）与 `site-docs.category`（某一分类）。
 存量 `docs` / `doc_category` 由 marketing 解析时改写，本模块只认新名。
 
+文档索引 `/docs` 本身是可打开的一级页面，会进页头「全部一级页面」（`docs_index`）；
+详情模板 `docs_article` 没有自己的地址，不进。要按分类展开目录时另加 `site-docs`
+动态源，不要和「全部一级页面」里那条索引链接混为一谈。
+
 ## 权限与开关
 
 | 位置 | 收窄方式 |
