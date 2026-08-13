@@ -23,7 +23,7 @@ import {
 import type { PublicDocSummary } from "../../marketing-doc.js";
 import type { SiteNavContext } from "../../site-nav.js";
 import type { SiteSection } from "../types.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export type { LocaleSwitcherOption };
 

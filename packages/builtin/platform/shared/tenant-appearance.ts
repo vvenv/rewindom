@@ -5,7 +5,7 @@ import {
   type AppLocale,
   type ShellLayoutSlug,
   type ThemePaletteSlug,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 /** `TenantSetting.key` —— 租户外观配置（主题 + 布局 + 语言）。 */
 export const TENANT_SETTING_KEY_APPEARANCE = "appearance";

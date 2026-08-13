@@ -1,23 +1,23 @@
-# @be-water/client-test
+# @rewindom/client-test
 
 前端单元测试基建：MSW、React Query wrapper、Vitest 配置工厂。
 
 ## 用法
 
 ```typescript
-import { server } from "@be-water/client-test/server";
+import { server } from "@rewindom/client-test/server";
 import {
   createQueryWrapper,
   createTestQueryClient,
-} from "@be-water/client-test";
+} from "@rewindom/client-test";
 ```
 
-Mock `@be-water/client-kit` 筛选组件：
+Mock `@rewindom/client-kit` 筛选组件：
 
 ```typescript
-vi.mock("@be-water/client-kit", async () => {
+vi.mock("@rewindom/client-kit", async () => {
   const { clientShellTestMock } = await import(
-    "@be-water/client-test/mocks/client-shell"
+    "@rewindom/client-test/mocks/client-shell"
   );
   return clientShellTestMock;
 });
@@ -26,18 +26,18 @@ vi.mock("@be-water/client-kit", async () => {
 ### Vitest 配置
 
 ```typescript
-import { defineClientVitestConfig } from "@be-water/client-test/vitest";
+import { defineClientVitestConfig } from "@rewindom/client-test/vitest";
 
 export default defineClientVitestConfig({
   root: import.meta.dirname,
 });
 ```
 
-模块包使用 `defineModuleVitestConfig`（见 `@be-water/server-test` README）。
+模块包使用 `defineModuleVitestConfig`（见 `@rewindom/server-test` README）。
 
 ## 运行
 
 ```bash
-pnpm --filter @be-water/builtin test
+pnpm --filter @rewindom/builtin test
 pnpm --filter client test
 ```

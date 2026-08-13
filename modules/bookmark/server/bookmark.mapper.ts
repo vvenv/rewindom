@@ -1,4 +1,4 @@
-import { prisma } from "@be-water/module-sdk/server";
+import { prisma } from "@rewindom/module-sdk/server";
 
 import { buildDescriptionPreview } from "./bookmark.util.js";
 

@@ -1,7 +1,7 @@
 import {
   PLATFORM_ADMIN_USER_ID,
   TENANT_IMPERSONATION_USERNAME,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import { describe, it, expect } from "vitest";
 
 import { excludeInternalUsersWhere } from "./internal-users.js";

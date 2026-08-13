@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { api } from "../api.js";
 
-import type { PublicConfig } from "@be-water/shared";
+import type { PublicConfig } from "@rewindom/shared";
 
 const DEFAULT_PUBLIC_CONFIG: PublicConfig = {
   registration_enabled: false,

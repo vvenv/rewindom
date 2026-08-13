@@ -1,7 +1,7 @@
 /**
  * GENERATED — do not edit.
  * Source: co-located `.css` files under `site-css/` and `sections/<type>/`.
- * Regenerate: `pnpm --filter @be-water/builtin assemble:marketing-css`
+ * Regenerate: `pnpm --filter @rewindom/builtin assemble:marketing-css`
  */
 
 /** 每页都发：base + 会员 chrome + 段共用原子。 */

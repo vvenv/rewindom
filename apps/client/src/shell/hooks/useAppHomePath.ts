@@ -1,4 +1,4 @@
-import { useAppHomePath as useResolveAppHomePath } from "@be-water/client-kit";
+import { useAppHomePath as useResolveAppHomePath } from "@rewindom/client-kit";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";
 

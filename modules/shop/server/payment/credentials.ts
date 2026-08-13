@@ -4,7 +4,7 @@ import {
   decryptTenantSecret,
   prisma,
   ValidationError,
-} from "@be-water/module-sdk/server";
+} from "@rewindom/module-sdk/server";
 
 import type {
   ShopProviderStatus,

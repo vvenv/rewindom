@@ -3,4 +3,4 @@
  *
  * 安全在任何上下文（server / client / shared）中 import。
  */
-export * from "@be-water/shared";
+export * from "@rewindom/shared";

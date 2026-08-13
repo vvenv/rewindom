@@ -1,4 +1,4 @@
-import type { AuthActorType } from "@be-water/shared";
+import type { AuthActorType } from "@rewindom/shared";
 
 export interface JwtPayload {
   userId: string;

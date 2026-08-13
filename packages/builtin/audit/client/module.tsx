@@ -5,7 +5,7 @@ import { AUDIT_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { AUDIT_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderAuditTenantRoutes } from "./tenant/routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const auditClientModule: ClientAppModule = {
   id: "audit",

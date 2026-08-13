@@ -1,4 +1,4 @@
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import { useTranslation } from "react-i18next";
 
 import type { TenantAdminCredentials } from "../../shared/index.js";

@@ -1,13 +1,13 @@
-import { useAuth, useConfirm, usePermissions  } from "@be-water/client-kit";
-import { displayOrEmpty, formatBusinessDate, type JsonValue } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
+import { useAuth, useConfirm, usePermissions  } from "@rewindom/client-kit";
+import { displayOrEmpty, formatBusinessDate, type JsonValue } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@be-water/ui/sheet";
+} from "@rewindom/ui/sheet";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

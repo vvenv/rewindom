@@ -30,7 +30,7 @@ import {
   createTestUserFast,
   type TestApp,
   type TestUser,
-} from "@be-water/server-test";
+} from "@rewindom/server-test";
 
 import { slowQueryLogRoutes } from "./slow-query-log.routes.js";
 

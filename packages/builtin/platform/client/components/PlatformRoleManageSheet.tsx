@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { ApiError, useConfirm } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
-import { Checkbox } from "@be-water/ui/checkbox";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+import { ApiError, useConfirm } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
+import { Checkbox } from "@rewindom/ui/checkbox";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Sheet,
   SheetClose,
@@ -14,9 +14,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { Settings2, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -29,7 +29,7 @@ import {
 } from "../hooks/usePlatformAdmins.js";
 
 import type { PlatformRoleSummary } from "../../shared/index.js";
-import type { Permission } from "@be-water/shared";
+import type { Permission } from "@rewindom/shared";
 
 function RoleEditor({
   role,

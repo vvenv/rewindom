@@ -1,15 +1,15 @@
 import { type ReactElement } from "react";
 
-import { useConfirm } from "@be-water/client-kit";
-import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
-import { Field, FieldDescription, FieldLabel } from "@be-water/ui/field";
+import { useConfirm } from "@rewindom/client-kit";
+import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
+import { Field, FieldDescription, FieldLabel } from "@rewindom/ui/field";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 

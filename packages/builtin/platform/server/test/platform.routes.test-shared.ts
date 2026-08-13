@@ -1,12 +1,12 @@
 import FastifyJWT from "@fastify/jwt";
-import { ProviderRegistry } from "@be-water/server-kernel/runtime/provider-registry.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { authMiddleware } from "@be-water/server-kernel/middleware/auth.middleware.js";
-import { installTestPermissionCatalog } from "@be-water/server-test/permission-catalog";
+import { ProviderRegistry } from "@rewindom/server-kernel/runtime/provider-registry.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { authMiddleware } from "@rewindom/server-kernel/middleware/auth.middleware.js";
+import { installTestPermissionCatalog } from "@rewindom/server-test/permission-catalog";
 import {
   DEFAULT_TENANT_ID,
   PLATFORM_ADMIN_USER_ID,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import Fastify, { type FastifyInstance } from "fastify";
 import { vi } from "vitest";
 

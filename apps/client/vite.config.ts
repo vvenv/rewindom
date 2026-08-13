@@ -85,7 +85,7 @@ export default defineConfig(() => ({
     alias: [
       { find: "@", replacement: path.resolve(__dirname, "./src") },
       {
-        find: /^@be-water\/ui\//,
+        find: /^@rewindom\/ui\//,
         replacement: path.resolve(__dirname, "../../packages/ui/src") + "/",
       },
     ],

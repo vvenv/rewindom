@@ -1,5 +1,5 @@
 
-import { type TenantEntitlementsResponse } from "@be-water/shared";
+import { type TenantEntitlementsResponse } from "@rewindom/shared";
 
 import { type UpdateTenantEntitlementsBody } from "../../shared/index.js";
 

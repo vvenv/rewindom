@@ -43,7 +43,7 @@ Under `packages/builtin/*`, shipped with the platform:
 Third-party and bespoke features live in `modules/*` at the repo root (the shipped
 examples are `note`, `todo` and `bookmark`):
 
-- They talk to the kernel only through the `@be-water/module-sdk` facade
+- They talk to the kernel only through the `@rewindom/module-sdk` facade
 - Import boundaries are enforced by `verify-module.mjs`
 - They bring their own Prisma schema; migrations stay with `apps/server`
 

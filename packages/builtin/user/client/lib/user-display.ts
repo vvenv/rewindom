@@ -2,7 +2,7 @@ import {
   isPlatformAdminActor,
   TENANT_IMPERSONATION_USERNAME,
   type User,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import type { ImpersonationMeta } from "../../../platform/client/lib/impersonation-storage.js";
 import type { TFunction } from "i18next";

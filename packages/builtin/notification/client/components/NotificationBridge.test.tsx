@@ -1,5 +1,5 @@
-import { createQueryWrapper, createTestQueryClient } from "@be-water/client-test";
-import { server } from "@be-water/client-test/server";
+import { createQueryWrapper, createTestQueryClient } from "@rewindom/client-test";
+import { server } from "@rewindom/client-test/server";
 import { render, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { MemoryRouter } from "react-router";

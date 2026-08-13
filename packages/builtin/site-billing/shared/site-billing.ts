@@ -4,7 +4,7 @@ import {
   type LocalizedText,
 } from "../../marketing/shared/section-settings.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export const SITE_BILLING_PROVIDER_CREEM = "creem" as const;
 

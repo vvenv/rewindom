@@ -1,7 +1,7 @@
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
-import { sendStorageObject } from "@be-water/server-kernel/http/send-storage-object.js";
-import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { sendStorageObject } from "@rewindom/server-kernel/http/send-storage-object.js";
+import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
 
 import {
   SITE_ENHANCE_HASH,
@@ -16,7 +16,7 @@ import {
   getPublishedPublicSite,
 } from "./site.service.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 /** 非法 / 缺失的 `locale` 一律当没传，由服务层回落站点默认语言。 */

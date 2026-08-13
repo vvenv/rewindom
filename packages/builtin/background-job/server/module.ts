@@ -1,7 +1,7 @@
 import { BACKGROUND_JOB_SERVER_I18N } from "./i18n.js";
 import { backgroundJobRoutes } from "./routes.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const backgroundJobServerModule: ServerAppModule = {
   id: "background-job",

@@ -7,7 +7,7 @@ import {
   parseListPageSize,
   parseListSort,
   toSortingState,
-} from "@be-water/module-sdk/client";
+} from "@rewindom/module-sdk/client";
 import { useSearchParams } from "react-router";
 
 import type { SortingState, Updater } from "@tanstack/react-table";

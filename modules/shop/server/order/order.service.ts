@@ -8,8 +8,8 @@ import {
   resolveSortField,
   resolveSortOrder,
   withTenantScope,
-} from "@be-water/module-sdk/server";
-import type { AppLocale } from "@be-water/module-sdk";
+} from "@rewindom/module-sdk/server";
+import type { AppLocale } from "@rewindom/module-sdk";
 import Stripe from "stripe";
 
 import type {

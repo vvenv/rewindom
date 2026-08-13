@@ -1,4 +1,4 @@
-# @be-water/server-kernel
+# @rewindom/server-kernel
 
 HTTP 内核：Fastify 基建、插件运行时、认证中间件、内核路由与基础设施服务。
 
@@ -37,12 +37,12 @@ src/
 ## 使用
 
 ```typescript
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
-import { ModuleLoader } from "@be-water/server-kernel/runtime/module-loader.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { AuthService } from "@be-water/server-kernel/kernel/auth/auth.service.js";
-import { translateText } from "@be-water/server-kernel/infra/translation/translation.service.js";
-import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
+import { ModuleLoader } from "@rewindom/server-kernel/runtime/module-loader.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { AuthService } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
+import { translateText } from "@rewindom/server-kernel/infra/translation/translation.service.js";
+import { NotFoundError } from "@rewindom/server-kernel/lib/app-errors.js";
 ```
 
 ## 注意

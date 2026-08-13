@@ -4,7 +4,7 @@ import * as React from "react"
 
 import * as RechartsPrimitive from "recharts"
 
-import { cn } from "@be-water/ui/utils"
+import { cn } from "@rewindom/ui/utils"
 
 import type { TooltipValueType } from "recharts"
 

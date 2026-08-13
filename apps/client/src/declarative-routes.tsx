@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 
-import { PermissionRoute, TenantEntitlementRoute, type ClientRouteDefinition   } from "@be-water/client-kit";
+import { PermissionRoute, TenantEntitlementRoute, type ClientRouteDefinition   } from "@rewindom/client-kit";
 import { Route } from "react-router";
 
 

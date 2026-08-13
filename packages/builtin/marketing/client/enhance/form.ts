@@ -15,7 +15,7 @@ import { formErrorText } from "../../shared/sections/form/messages.js";
 
 import { pageLocale } from "./locale.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 function pagePath(): string {
   const root = document.querySelector(".marketing-site-root");

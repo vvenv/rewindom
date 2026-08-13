@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { TenantFilterProvider, usePublicConfig } from "@be-water/client-kit";
+import { TenantFilterProvider, usePublicConfig } from "@rewindom/client-kit";
 
 import { TenantCombobox } from "../components/TenantCombobox.js";
 

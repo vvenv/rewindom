@@ -1,7 +1,7 @@
-import { PageLayout, usePermissions } from "@be-water/client-kit";
-import { normalizeLocale } from "@be-water/shared";
-import { Card, CardContent } from "@be-water/ui/card";
-import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
+import { PageLayout, usePermissions } from "@rewindom/client-kit";
+import { normalizeLocale } from "@rewindom/shared";
+import { Card, CardContent } from "@rewindom/ui/card";
+import { DraggableFabTrigger } from "@rewindom/ui/draggable-fab";
 import { Globe, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

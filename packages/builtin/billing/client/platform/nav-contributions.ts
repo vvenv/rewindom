@@ -1,6 +1,6 @@
 import { CreditCard } from "lucide-react";
 
-import type { PlatformNavContribution } from "@be-water/client-kit";
+import type { PlatformNavContribution } from "@rewindom/client-kit";
 
 export const billingPlatformNavContributions: readonly PlatformNavContribution[] =
   [

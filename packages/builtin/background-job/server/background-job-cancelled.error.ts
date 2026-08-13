@@ -1,4 +1,4 @@
-import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
+import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
 
 export class BackgroundJobCancelledError extends AppError {
   constructor() {

@@ -1,7 +1,7 @@
 /**
  * GENERATED — do not edit.
  * Source: co-located `.css` files under `shared/site-css/`.
- * Regenerate: `pnpm --filter @be-water/builtin assemble:module-css`
+ * Regenerate: `pnpm --filter @rewindom/builtin assemble:module-css`
  */
 
 export const BILLING_PLANS_CSS = `.plan-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));align-items:stretch}.plan-card{display:flex;flex-direction:column;gap:.75rem;border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;position:relative}.plan-card.featured{border-color:var(--accent);border-width:2px}.plan-card .plan-badge{position:absolute;top:-.7rem;inset-inline-start:1.25rem;background:var(--accent);color:var(--accent-fg, #fff);border-radius:999px;padding:.1rem .6rem;font-size:.75rem;line-height:1.4}.plan-card .plan-name{font-weight:600;font-size:1.05rem}.plan-card .plan-desc{color:var(--muted-fg);font-size:.9rem}.plan-card .plan-price{font-size:1.75rem;font-weight:700;line-height:1.2}.plan-card .plan-price .unit{font-size:.9rem;font-weight:400;color:var(--muted-fg)}.plan-card ul.plan-features{list-style:none;margin:0;padding:0;display:grid;gap:.4rem;font-size:.9rem}.plan-card ul.plan-features li{display:flex;gap:.5rem;align-items:flex-start}.plan-card ul.plan-features li:before{content:"";flex:none;width:.4rem;height:.4rem;margin-top:.45rem;border-radius:999px;background:var(--accent)}.plan-card .plan-cta{margin-top:auto}.plan-card .plan-cta .btn{width:100%;text-align:center}.plan-card p{margin:0}`;

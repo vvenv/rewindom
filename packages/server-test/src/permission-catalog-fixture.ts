@@ -1,4 +1,4 @@
-import { configureServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
+import { configureServerPermissionCatalog } from "@rewindom/server-kernel/runtime/permission-catalog.js";
 
 /**
  * 测试用权限目录 fixture。

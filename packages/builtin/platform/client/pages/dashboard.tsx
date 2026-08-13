@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 
 
-import { DateTimeRangePicker } from "@be-water/client-kit";
-import { Alert, AlertDescription } from "@be-water/ui/alert";
+import { DateTimeRangePicker } from "@rewindom/client-kit";
+import { Alert, AlertDescription } from "@rewindom/ui/alert";
 import { useTranslation } from "react-i18next";
 
 import { SlowQueryBarChart } from "../../../slow-query/client/components/SlowQueryBarChart.js";

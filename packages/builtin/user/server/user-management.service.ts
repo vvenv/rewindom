@@ -1,14 +1,14 @@
-import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
-import { AuthService } from "@be-water/server-kernel/kernel/auth/auth.service.js";
-import { excludeInternalUsersWhere } from "@be-water/server-kernel/kernel/auth/internal-users.js";
+import { resolveSortField, resolveSortOrder } from "@rewindom/server-kernel/http/list-sort.js";
+import { AuthService } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
+import { excludeInternalUsersWhere } from "@rewindom/server-kernel/kernel/auth/internal-users.js";
 import {
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { isReservedTenantUsername } from "@be-water/shared";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
+import { isReservedTenantUsername } from "@rewindom/shared";
 
 export interface CreateUserInput {
   tenant_id: string;

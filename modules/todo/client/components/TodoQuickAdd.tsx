@@ -1,8 +1,8 @@
 import { useState, type SubmitEvent } from "react";
 
-import { Checkbox } from "@be-water/ui/checkbox";
-import { Input } from "@be-water/ui/input";
-import { toast } from "@be-water/ui/toast";
+import { Checkbox } from "@rewindom/ui/checkbox";
+import { Input } from "@rewindom/ui/input";
+import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 
 import { TODO_TITLE_MAX_LENGTH, validateTodoTitle } from "../lib/todos.js";

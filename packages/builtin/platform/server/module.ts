@@ -1,5 +1,5 @@
-import { ensureBootstrapPlatformAdmin } from "@be-water/server-kernel/kernel/auth/platform-admin.service.js";
-import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
+import { ensureBootstrapPlatformAdmin } from "@rewindom/server-kernel/kernel/auth/platform-admin.service.js";
+import { config as appConfig } from "@rewindom/server-kernel/lib/config.js";
 
 import { PLATFORM_SERVER_I18N } from "./i18n.js";
 import { platformRoutes } from "./platform.routes.js";
@@ -11,7 +11,7 @@ import {
   registerTenant,
 } from "./services/tenant-registration.service.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const platformServerModule: ServerAppModule = {
   id: "platform",

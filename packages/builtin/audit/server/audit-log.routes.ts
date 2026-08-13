@@ -1,7 +1,7 @@
-import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
-import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
-import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
-import { success } from "@be-water/shared";
+import { parseSortDir } from "@rewindom/server-kernel/http/list-sort.js";
+import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
+import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { success } from "@rewindom/shared";
 
 import { AuditScope } from "../shared/index.js";
 

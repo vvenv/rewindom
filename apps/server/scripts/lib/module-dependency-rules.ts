@@ -92,7 +92,7 @@ const CROSS_CUTTING_INFRA = new Set(["audit", "platform", "error-log"]);
 const CODE_IMPORT_EXCEPTIONS = new Set(["rbac->audit"]);
 
 /**
- * 模块同处一个包（`@be-water/builtin`）后，跨模块引用是**包内相对路径**
+ * 模块同处一个包（`@rewindom/builtin`）后，跨模块引用是**包内相对路径**
  * （如 `../platform/server/x.js`），不再是独立包规格。
  * 因此改为解析相对 specifier 的落点，判断是否落在兄弟模块目录下。
  */
@@ -100,7 +100,7 @@ const relativeImportPattern = /from\s+["'](\.[^"']*)["']/g;
 
 /** 以包规格引用基础设施模块（业务包 → 基础设施包，或 apps 侧）。 */
 const packageModuleImportPattern =
-  /from\s+["']@be-water\/builtin\/([^/"']+)\//g;
+  /from\s+["']@rewindom\/builtin\/([^/"']+)\//g;
 
 const foreignKeyRelationPattern =
   /^\s+\w+\s+(\w+)(\?)?\s+@relation\(\s*fields:/gm;
@@ -282,7 +282,7 @@ export function getCodeImpliedModuleDeps(
       }
       deps.set(
         targetModuleId,
-        `${relativePath}: imports @be-water/builtin/${targetModuleId}`,
+        `${relativePath}: imports @rewindom/builtin/${targetModuleId}`,
       );
     }
   }

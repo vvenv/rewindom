@@ -1,4 +1,4 @@
-import { api } from "@be-water/module-sdk/client";
+import { api } from "@rewindom/module-sdk/client";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type {

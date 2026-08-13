@@ -1,4 +1,4 @@
-import type { ServerI18nBundle } from "@be-water/module-sdk/server";
+import type { ServerI18nBundle } from "@rewindom/module-sdk/server";
 
 export const NOTE_SERVER_I18N: ServerI18nBundle = {
   id: "note",

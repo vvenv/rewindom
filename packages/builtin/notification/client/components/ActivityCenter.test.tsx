@@ -1,4 +1,4 @@
-import { createQueryWrapper, createTestQueryClient } from "@be-water/client-test";
+import { createQueryWrapper, createTestQueryClient } from "@rewindom/client-test";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 

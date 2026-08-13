@@ -27,7 +27,7 @@ import {
   createTestUserFast,
   type TestApp,
   type TestUser,
-} from "@be-water/server-test";
+} from "@rewindom/server-test";
 
 import { notificationRoutes } from "./notification.routes.js";
 

@@ -2,7 +2,7 @@ import {
   ExternalOrNavigate,
   useAuth,
   useDefaultHomePath,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import { Outlet } from "react-router";
 
 export function GuestOnlyRoute() {

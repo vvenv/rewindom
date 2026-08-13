@@ -6,7 +6,7 @@ import {
   useRef,
 } from "react";
 
-import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
+import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
 import { Link } from "react-router";
 
 import {

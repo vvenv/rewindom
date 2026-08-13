@@ -1,15 +1,15 @@
 import { type DragEvent, type ReactElement, useState } from "react";
 
-import { Button } from "@be-water/ui/button";
-import { Input } from "@be-water/ui/input";
+import { Button } from "@rewindom/ui/button";
+import { Input } from "@rewindom/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/select";
+import { cn } from "@rewindom/ui/utils";
 import {
   ArrowDown,
   ArrowUp,
@@ -39,7 +39,7 @@ import {
 
 import { SiteLinkField } from "./SiteLinkField.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 const PREVIEW_LIMIT = 6;
 

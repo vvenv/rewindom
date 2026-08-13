@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-import { Button } from "@be-water/ui/button";
-import { Card, CardContent } from "@be-water/ui/card";
-import { cn } from "@be-water/ui/utils";
+import { Button } from "@rewindom/ui/button";
+import { Card, CardContent } from "@rewindom/ui/card";
+import { cn } from "@rewindom/ui/utils";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router";
 

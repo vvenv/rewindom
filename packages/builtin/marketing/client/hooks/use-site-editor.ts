@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { isTemplatePageKind } from "../../shared/page-templates.js";
 import {

@@ -43,7 +43,7 @@
 
 2. 验证数据库连接：
    ```bash
-   psql -U be-water -d be-water -h localhost
+   psql -U rewindom -d rewindom -h localhost
    ```
 
 3. 检查环境变量配置：
@@ -98,7 +98,7 @@
 
 2. 检查 Nginx 配置：
    ```nginx
-   root /path/to/be-water/apps/client/dist;
+   root /path/to/rewindom/apps/client/dist;
    ```
 
 3. 查看浏览器控制台错误信息。
@@ -164,7 +164,7 @@
 2. 路由上用 `app.requirePermission("<key>")` 守卫
 3. 运行测试：
    ```bash
-   pnpm --filter @be-water/builtin test
+   pnpm --filter @rewindom/builtin test
    ```
 
 ### Q11: 如何创建新的 API 路由？
@@ -217,7 +217,7 @@ pnpm --filter client test
 pnpm --filter shared test
 
 # 运行所有业务模块测试
-pnpm --filter @be-water/builtin test
+pnpm --filter @rewindom/builtin test
 
 # 运行单个测试文件
 pnpm --filter server test <file>.test.ts
@@ -238,7 +238,7 @@ pnpm test -- --coverage
 在服务器上以 root 运行备份脚本（备份 PostgreSQL + Redis）：
 
 ```bash
-bash /etc/be-water/scripts/backup.sh --env production   # 或 --env test
+bash /etc/rewindom/scripts/backup.sh --env production   # 或 --env test
 ```
 
 产物在 `/var/backups/app`：`app_backup_<时间戳>.dump`（PG）、`app_redis_backup_<时间戳>.rdb.gz`（Redis）。
@@ -251,15 +251,15 @@ bash /etc/be-water/scripts/backup.sh --env production   # 或 --env test
 在服务器上以 root 运行还原脚本（与备份对称，还原前自动做安全备份）：
 
 ```bash
-bash /etc/be-water/scripts/restore.sh --env production --list      # 列出可用备份
-bash /etc/be-water/scripts/restore.sh --env production --latest    # 还原最新 PG 备份
+bash /etc/rewindom/scripts/restore.sh --env production --list      # 列出可用备份
+bash /etc/rewindom/scripts/restore.sh --env production --latest    # 还原最新 PG 备份
 ```
 
 也可在本地把备份推到远程还原：`./scripts/db-remote.sh push --env production --file <pg.dump> --yes`。
 
 若要还原到本地开发库（macOS，复用 `db:pull` 拉取的备份）：`./scripts/restore-local.sh --latest`（先 `pnpm db:pull -- --env production --fresh` 拉取）。
 
-注意：还原会清空当前数据库。PG 还原后会把对象所有权归还 `be-water`，Prisma migration 可正常工作。
+注意：还原会清空当前数据库。PG 还原后会把对象所有权归还 `rewindom`，Prisma migration 可正常工作。
 
 ### Q18: 如何更新系统版本？
 
@@ -267,7 +267,7 @@ bash /etc/be-water/scripts/restore.sh --env production --latest    # 还原最�
 git pull
 pnpm install
 pnpm build
-pm2 restart be-water-server
+pm2 restart rewindom-server
 ```
 
 ### Q19: 如何配置 HTTPS？

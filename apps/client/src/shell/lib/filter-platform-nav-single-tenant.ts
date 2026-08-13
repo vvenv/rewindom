@@ -1,4 +1,4 @@
-import type { PlatformNavEntry } from "@be-water/client-kit";
+import type { PlatformNavEntry } from "@rewindom/client-kit";
 
 const TENANTS_PATH = "/platform/tenants";
 

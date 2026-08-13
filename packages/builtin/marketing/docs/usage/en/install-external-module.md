@@ -7,14 +7,14 @@ sort_order: 45
 
 An external module is a self-contained workspace package holding both ends of a
 feature. It lives under `modules/` at the repo root and talks to the kernel through the
-`@be-water/module-sdk` facade.
+`@rewindom/module-sdk` facade.
 
 ## Layout
 
 ```
 modules/
 └── my-module/
-    ├── package.json          # declares the beWater field
+    ├── package.json          # declares the rewindom field
     ├── tsconfig.json
     ├── MODULE.md             # what this module is for
     ├── shared/               # cross-end contracts
@@ -27,11 +27,11 @@ modules/
 
 ```json
 {
-  "name": "@be-water/my-module",
+  "name": "@rewindom/my-module",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "beWater": {
+  "rewindom": {
     "moduleId": "my-module",
     "prismaSchema": "./prisma/schema.prisma",
     "requires": ["rbac", "audit"]
@@ -51,15 +51,15 @@ Imports are enforced by `verify-module.mjs`.
 
 **Allowed:**
 
-- `@be-water/module-sdk` — shared contracts
-- `@be-water/module-sdk/server` — server contracts and runtime (server side only)
-- `@be-water/module-sdk/client` — client contracts and runtime (client side only)
-- `@be-water/ui` — UI primitives
+- `@rewindom/module-sdk` — shared contracts
+- `@rewindom/module-sdk/server` — server contracts and runtime (server side only)
+- `@rewindom/module-sdk/client` — client contracts and runtime (client side only)
+- `@rewindom/ui` — UI primitives
 - Third-party libraries (react, react-router, lucide-react, …)
 
 **Forbidden:**
 
-- `@be-water/server-kernel` / `@be-water/client-kit` / `@be-water/shared` — always go
+- `@rewindom/server-kernel` / `@rewindom/client-kit` / `@rewindom/shared` — always go
   through module-sdk; the kernel's internals should not become part of a module's
   dependency surface
 - Other modules' packages — cross-module work goes through extension points

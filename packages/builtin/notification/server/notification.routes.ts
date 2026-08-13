@@ -1,7 +1,7 @@
 
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
-import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
+import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
 
 import {
   getUnreadCount,

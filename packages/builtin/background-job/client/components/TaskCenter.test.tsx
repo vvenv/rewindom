@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { server } from "@be-water/client-test/server";
+import { server } from "@rewindom/client-test/server";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -131,8 +131,8 @@ vi.mock("../shell/task-center-slots.js", () => ({
 
 // 只覆盖 useAuth，其余保留真实实现——`api` 也在本包内，整包 mock 会让
 // 请求发不出去（下载用例依赖真实 api.post 命中 MSW）。
-vi.mock("@be-water/client-kit", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@be-water/client-kit")>()),
+vi.mock("@rewindom/client-kit", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@rewindom/client-kit")>()),
   useAuth: vi.fn(() => ({
     user: { role: "ADMIN" },
     isAuthenticated: true,

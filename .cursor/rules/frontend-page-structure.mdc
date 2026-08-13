@@ -72,7 +72,7 @@ alwaysApply: false
 
 ## 复用工具
 
-- **列表 URL**：`@be-water/client-kit/lib/list-url-params`
+- **列表 URL**：`@rewindom/client-kit/lib/list-url-params`
   - 分页/筛选：`parseSearchParamsPagination`、`getOptionalSearchParam`、`applyFiltersToSearchParams`
   - 排序：`parseListSort`、`toSortingState`、`applySortingToSearchParams`（URL 键 `sort_by` + `sort_dir`）
 - **文件 input**：先 `Array.from(input.files ?? [])` 再清空 `input.value`（见 `snapshotInputFiles`）
@@ -114,7 +114,7 @@ isLoading={isLoading && rows.length === 0}
 
 ### 后端
 
-- 路由解析 `sort_by`、`sort_dir`（`parseSortDir` from `@be-water/server-kernel/http/list-sort.js`）
+- 路由解析 `sort_by`、`sort_dir`（`parseSortDir` from `@rewindom/server-kernel/http/list-sort.js`）
 - Service 用 `resolveSortField` + `resolveSortOrder` 白名单字段后生成 Prisma `orderBy`
 - 未传或非法字段时回退默认排序（如 `created_at desc`）
 

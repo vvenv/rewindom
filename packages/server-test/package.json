@@ -1,5 +1,5 @@
 {
-  "name": "@be-water/server-test",
+  "name": "@rewindom/server-test",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,9 +12,9 @@
   },
   "dependencies": {
     "@fastify/jwt": "^10.2.1",
-    "@be-water/builtin": "workspace:*",
-    "@be-water/server-kernel": "workspace:*",
-    "@be-water/shared": "workspace:*",
+    "@rewindom/builtin": "workspace:*",
+    "@rewindom/server-kernel": "workspace:*",
+    "@rewindom/shared": "workspace:*",
     "fastify": "^5.11.2"
   },
   "peerDependencies": {

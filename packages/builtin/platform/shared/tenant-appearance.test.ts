@@ -9,11 +9,11 @@ describe("formatTenantAppearanceAuditDetails", () => {
   it("只记录真正变动的轴", () => {
     const details = formatTenantAppearanceAuditDetails(
       "acme",
-      { theme: "water", layout: "sidebar", locale: null },
+      { theme: "azure", layout: "sidebar", locale: null },
       { theme: "slate", layout: "sidebar", locale: null },
     );
 
-    expect(details).toBe("tenant=acme，默认主题：水蓝 → 石墨");
+    expect(details).toBe("tenant=acme，默认主题：青蓝 → 石墨");
     expect(details).not.toContain("布局");
   });
 
@@ -21,11 +21,11 @@ describe("formatTenantAppearanceAuditDetails", () => {
     expect(
       formatTenantAppearanceAuditDetails(
         "acme",
-        { theme: "water", layout: "sidebar", locale: "zh-CN" },
+        { theme: "azure", layout: "sidebar", locale: "zh-CN" },
         { theme: "slate", layout: "topbar", locale: "en" },
       ),
     ).toBe(
-      "tenant=acme，默认主题：水蓝 → 石墨，默认布局：左右 → 上下，默认语言：中文 → English",
+      "tenant=acme，默认主题：青蓝 → 石墨，默认布局：左右 → 上下，默认语言：中文 → English",
     );
   });
 

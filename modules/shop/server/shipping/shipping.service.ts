@@ -3,7 +3,7 @@ import {
   ValidationError,
   prisma,
   withTenantScope,
-} from "@be-water/module-sdk/server";
+} from "@rewindom/module-sdk/server";
 
 import type {
   CarrierProvider,

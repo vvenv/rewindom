@@ -1,7 +1,7 @@
 import { Bookmark } from "lucide-react";
 import { lazy } from "react";
 
-import type { DashboardWidget } from "@be-water/module-sdk/client";
+import type { DashboardWidget } from "@rewindom/module-sdk/client";
 
 /** lazy：工作台是落地页，书签卡片不该把书签模块的代码带进首屏 chunk。 */
 const BookmarksDashboardWidget = lazy(() =>

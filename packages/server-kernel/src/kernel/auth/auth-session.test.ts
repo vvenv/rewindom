@@ -1,4 +1,4 @@
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
+import { DEFAULT_TENANT_ID } from "@rewindom/shared";
 import bcrypt from "bcrypt";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

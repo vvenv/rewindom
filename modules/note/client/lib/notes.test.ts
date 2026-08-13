@@ -1,4 +1,4 @@
-import { registerI18nBundles, setupI18n } from "@be-water/module-sdk/client";
+import { registerI18nBundles, setupI18n } from "@rewindom/module-sdk/client";
 import { describe, expect, it } from "vitest";
 
 import { NOTE_I18N } from "../i18n.js";

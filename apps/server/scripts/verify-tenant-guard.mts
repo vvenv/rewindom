@@ -9,28 +9,28 @@
  * 用法（需要本地 Postgres，会创建/清空一个一次性库，不碰开发库）：
  *
  *   docker compose -f docker-compose.dev.yml up -d postgres
- *   docker exec be-water-dev-postgres psql -U be-water -d postgres \
+ *   docker exec rewindom-dev-postgres psql -U rewindom -d postgres \
  *     -c "CREATE DATABASE guardcheck TEMPLATE template0;"
  *   printf 'DATABASE_URL=%s\n' \
- *     'postgresql://be-water:<密码>@localhost:5433/guardcheck' > .env.guardcheck
+ *     'postgresql://rewindom:<密码>@localhost:5433/guardcheck' > .env.guardcheck
  *   (cd apps/server && APP_ENV_FILE=.env.guardcheck pnpm exec prisma db push)
- *   (cd apps/server && DATABASE_URL='postgresql://be-water:<密码>@localhost:5433/guardcheck' \
+ *   (cd apps/server && DATABASE_URL='postgresql://rewindom:<密码>@localhost:5433/guardcheck' \
  *     pnpm exec tsx scripts/verify-tenant-guard.mts)
  *
- * 收尾：rm .env.guardcheck && docker exec be-water-dev-postgres \
- *   psql -U be-water -d postgres -c "DROP DATABASE guardcheck;"
+ * 收尾：rm .env.guardcheck && docker exec rewindom-dev-postgres \
+ *   psql -U rewindom -d postgres -c "DROP DATABASE guardcheck;"
  */
 import { PrismaPg } from "@prisma/adapter-pg";
 
-import { PrismaClient } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import { PrismaClient } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 import {
   runWithRequestContext,
   type RequestContext,
-} from "@be-water/server-kernel/lib/request-context.js";
+} from "@rewindom/server-kernel/lib/request-context.js";
 import {
   createTenantGuardExtension,
   CrossTenantAccessError,
-} from "@be-water/server-kernel/lib/tenant-guard.js";
+} from "@rewindom/server-kernel/lib/tenant-guard.js";
 
 const URL = process.env.DATABASE_URL;
 if (!URL || !/guardcheck/u.test(URL)) {

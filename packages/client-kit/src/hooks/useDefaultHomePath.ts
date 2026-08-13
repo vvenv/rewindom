@@ -1,4 +1,4 @@
-import { isPlatformAdminActor } from "@be-water/shared";
+import { isPlatformAdminActor } from "@rewindom/shared";
 
 import { buildPlatformConsoleUrl } from "../lib/platform-console-url.js";
 

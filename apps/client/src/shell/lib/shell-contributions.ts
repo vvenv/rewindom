@@ -7,7 +7,7 @@ import type {
   MobileHeaderRouteDefinition,
   SidebarSlotProps,
   SidebarUserMenuSlotProps,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 
 export interface CollectedShellContributions {
   authLoginHero?: ComponentType<AuthLoginHeroProps>;

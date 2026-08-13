@@ -3,7 +3,7 @@
  *
  * 真源是共置的 .css（site-css/base.css、sections/<type>/styles.css），
  * 由 site-css/assemble.mjs 压缩后写入 marketing-site-css.generated.ts。
- * 改样式只改 .css，再跑 pnpm --filter @be-water/builtin assemble:marketing-css。
+ * 改样式只改 .css，再跑 pnpm --filter @rewindom/builtin assemble:marketing-css。
  */
 
 import {

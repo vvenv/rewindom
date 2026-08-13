@@ -100,8 +100,8 @@ jobs:
             LINES="${{ inputs.lines }}"
 
             case "$ENVIRONMENT" in
-              production) DOCKER_DIR="/opt/be-water-docker" ;;
-              test) DOCKER_DIR="/opt/be-water-docker-test" ;;
+              production) DOCKER_DIR="/opt/rewindom-docker" ;;
+              test) DOCKER_DIR="/opt/rewindom-docker-test" ;;
               *)
                 echo "无效环境: $ENVIRONMENT"
                 exit 1

@@ -1,4 +1,4 @@
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 
 import type {
   SiteMemberListItem,

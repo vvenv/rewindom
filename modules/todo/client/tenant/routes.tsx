@@ -1,6 +1,6 @@
 import { lazy, type ReactNode } from "react";
 
-import { PermissionRoute, TenantModuleRoute } from "@be-water/module-sdk/client";
+import { PermissionRoute, TenantModuleRoute } from "@rewindom/module-sdk/client";
 import { useTranslation } from "react-i18next";
 import { Route } from "react-router";
 

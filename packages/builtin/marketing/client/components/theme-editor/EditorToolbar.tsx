@@ -1,15 +1,15 @@
 import { type ReactNode } from "react";
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
-import { Spinner } from "@be-water/ui/spinner";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/dropdown-menu";
+import { Spinner } from "@rewindom/ui/spinner";
+import { cn } from "@rewindom/ui/utils";
 import { MoreHorizontal, RotateCcw, Undo2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

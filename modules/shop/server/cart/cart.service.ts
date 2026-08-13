@@ -5,8 +5,8 @@ import {
   ValidationError,
   prisma,
   withTenantScope,
-} from "@be-water/module-sdk/server";
-import type { AppLocale } from "@be-water/module-sdk";
+} from "@rewindom/module-sdk/server";
+import type { AppLocale } from "@rewindom/module-sdk";
 
 import type { ShopCartView } from "../../shared/index.js";
 import { displayTitle } from "../lib/format.js";

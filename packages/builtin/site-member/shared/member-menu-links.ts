@@ -12,7 +12,7 @@
 
 import { MEMBER_ACCOUNT_PATH } from "./member-account-section.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export interface MemberMenuLink {
   /** 稳定 id；同 id 再登记为幂等覆盖。 */

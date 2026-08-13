@@ -1,15 +1,15 @@
 import { type ReactElement } from "react";
 
-import { getLocaleNativeLabel } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
-import { ButtonGroup } from "@be-water/ui/button-group";
+import { getLocaleNativeLabel } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
+import { ButtonGroup } from "@rewindom/ui/button-group";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+} from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 

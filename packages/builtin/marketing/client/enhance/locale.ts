@@ -5,7 +5,7 @@
  * `<html lang>` 只作兜底（例如 enhance 跑在没有 root 容器的片段上）。
  */
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export function pageLocale(): AppLocale {
   const root = document.querySelector(".marketing-site-root");

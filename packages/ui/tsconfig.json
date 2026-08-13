@@ -13,7 +13,7 @@
       "#components/*": ["./src/*"],
       "#lib/*": ["./src/*"],
       "#hooks/*": ["./src/hooks/*"],
-      "@be-water/ui/*": ["./src/*"]
+      "@rewindom/ui/*": ["./src/*"]
     }
   },
   "include": ["src"]

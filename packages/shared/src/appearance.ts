@@ -10,7 +10,7 @@ export type AppearanceSource = "tenant" | "platform";
  *
  * 三根轴（主题、布局、语言）各自独立解析——租户可以只覆盖其中一根，其余继续继承平台。
  *
- * 放在 `@be-water/shared` 而非 platform 模块，是因为消费方是 client-kit
+ * 放在 `@rewindom/shared` 而非 platform 模块，是因为消费方是 client-kit
  * （底座设施，不能依赖业务模块），与 `TenantEntitlementsResponse` 同理。
  */
 export interface ResolvedTenantAppearance {

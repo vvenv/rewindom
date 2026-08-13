@@ -39,7 +39,7 @@ export async function writeSiteEnhanceGenerated() {
   const body = `/**
  * GENERATED — do not edit.
  * Source: \`client/enhance/main.ts\`.
- * Regenerate: \`pnpm --filter @be-water/builtin assemble:site-enhance\`
+ * Regenerate: \`pnpm --filter @rewindom/builtin assemble:site-enhance\`
  */
 
 export const SITE_ENHANCE_JS = \`${escapeForTemplateLiteral(js)}\`;

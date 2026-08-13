@@ -1,4 +1,4 @@
-import { STORAGE_PREFIX, type AuthTokens  } from "@be-water/shared";
+import { STORAGE_PREFIX, type AuthTokens  } from "@rewindom/shared";
 
 
 export const ACCESS_TOKEN_KEY = `${STORAGE_PREFIX}_access_token`;

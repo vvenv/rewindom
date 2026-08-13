@@ -62,7 +62,7 @@ model ErrorLog {
 
 - 写入侧传纯 JSON 值，服务内部不再 `JSON.stringify`
 - 读出侧拿到的就是结构化对象，前端直接 `JSON.stringify(value, null, 2)` 展示即可
-- 共享类型是 `JsonValue | null`（`@be-water/shared`）
+- 共享类型是 `JsonValue | null`（`@rewindom/shared`）
 
 只有 `request_body` 建了 GIN 索引，用 `jsonb_path_ops`——体积约为默认 `jsonb_ops` 的 1/3，代价是只支持 `@>` / `@?` / `@@`，不支持键存在查询（`?` / `?|` / `?&`）。其余三列不建索引：`request_params` / `request_query` 的信息基本已被 `route` 覆盖，`context` 目前只装小字段，日志表写入频繁，不为没有的查询预付索引维护成本。
 

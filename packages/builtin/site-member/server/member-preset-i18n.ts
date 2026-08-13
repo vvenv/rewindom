@@ -10,7 +10,7 @@ import {
   normalizeLocale,
   resolveLocaleMessage,
   type AppLocale,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import en from "../client/locales/en.json" with { type: "json" };
 import zhCN from "../client/locales/zh-CN.json" with { type: "json" };

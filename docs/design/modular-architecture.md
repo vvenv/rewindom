@@ -4,7 +4,7 @@
 
 本文定义 rewindom monorepo 的 **Modular Monolith（模块化单体）** 目标形态：**Kernel（内核）+ Module（模块）**，编译期组装、单进程部署。模块分为**基础设施模块**（如 RBAC、审计、后台任务）与**业务模块**（由各产品自行定义）。应用通过 `ENABLED_*_MODULES` 注册表启用所需能力，实现即插即用。
 
-**当前状态**：Phase 0–5 已完成。模块分两类落盘——**内置模块**是单一 workspace 包 `@be-water/builtin` 内的目录（`packages/builtin/<id>/`），**外部业务模块**是独立包 `modules/<id>/`（`@be-water/<id>`，只依赖 `@be-water/module-sdk`），由 `pnpm gen:module` 生成、`pnpm gen:external-modules` 汇入组装层。包化历史与收敛理由见 §2.3。本文描述**目标态与契约**，迁移 checklist 见 §14。
+**当前状态**：Phase 0–5 已完成。模块分两类落盘——**内置模块**是单一 workspace 包 `@rewindom/builtin` 内的目录（`packages/builtin/<id>/`），**外部业务模块**是独立包 `modules/<id>/`（`@rewindom/<id>`，只依赖 `@rewindom/module-sdk`），由 `pnpm gen:module` 生成、`pnpm gen:external-modules` 汇入组装层。包化历史与收敛理由见 §2.3。本文描述**目标态与契约**，迁移 checklist 见 §14。
 
 **设计原则**：
 
@@ -39,7 +39,7 @@
 
 | 耦合点 | 现状 | 后果 |
 | --- | --- | --- |
-| 权限 | `AVAILABLE_PERMISSIONS` 写死在 `@be-water/shared`；`permission.ts` 在中间件层全局注册 | 无法「关闭细粒度权限」；新业务权限必须改共享常量 |
+| 权限 | `AVAILABLE_PERMISSIONS` 写死在 `@rewindom/shared`；`permission.ts` 在中间件层全局注册 | 无法「关闭细粒度权限」；新业务权限必须改共享常量 |
 | 路由 | `apps/server/src/routes/index.ts` 中央注册 20+ 路由插件 | 每增业务必改内核入口 |
 | 前端路由 | `apps/client/src/App.tsx` 300+ 行 lazy import | 同上 |
 | 导航 | `apps/client/src/app-nav.ts` 硬编码业务菜单 | Sidebar 与具体业务强绑定 |
@@ -122,49 +122,49 @@ flowchart TB
 **10 个 workspace 包**：2 个 app、2 个模块包、4 个库、2 个测试设施。
 
 ```
-be-water/
+rewindom/
 ├── apps/
-│   ├── server/                         # @be-water/server
+│   ├── server/                         # @rewindom/server
 │   │   ├── src/enabled-modules.ts      # ENABLED_SERVER_MODULES
 │   │   ├── src/test/                   # 宿主侧测试装配（createTestApp）
 │   │   ├── scripts/                    # 运维/数据脚本 + lib/module-dependency-rules.ts
 │   │   └── prisma/                     # schema.prisma + models/ + migrations/
-│   └── client/                         # @be-water/client
+│   └── client/                         # @rewindom/client
 │       ├── src/enabled-modules.ts      # ENABLED_CLIENT_MODULES
 │       ├── src/collect-modules.ts      # collectModuleNav, collectAppRouteTrees
 │       ├── src/app-shell-routes.tsx    # 纯壳层守卫与布局
 │       └── src/shell/                  # 产品壳层：认证页、Layout、Sidebar
-├── modules/                            # 外部业务模块，一模块一包（@be-water/<id>）
+├── modules/                            # 外部业务模块，一模块一包（@rewindom/<id>）
 │   └── <id>/                           # note（金标准）todo bookmark
 │       ├── MODULE.md  MODULE.spec.yaml
 │       └── shared/  server/  client/  prisma/
 ├── packages/
-│   ├── builtin/                        # @be-water/builtin — 基础设施 / 壳层 / 站点模块
+│   ├── builtin/                        # @rewindom/builtin — 基础设施 / 壳层 / 站点模块
 │   │   └── <id>/                       # rbac audit background-job error-log slow-query
 │   │       ├── MODULE.md               #   notification user platform dashboard
 │   │       ├── shared/  server/  client/  #   marketing billing site-member site-billing
-│   ├── module-sdk/                     # @be-water/module-sdk — 外部模块的稳定门面
-│   ├── server-kernel/src/              # @be-water/server-kernel
+│   ├── module-sdk/                     # @rewindom/module-sdk — 外部模块的稳定门面
+│   ├── server-kernel/src/              # @rewindom/server-kernel
 │   │   ├── kernel/                     # HTTP 壳层路由与认证
 │   │   ├── runtime/                    # ModuleLoader、ProviderRegistry、EventBus、JobRegistry
 │   │   │                               #   + tenant-catalog / permission-catalog 注入点
 │   │   └── infra/  http/  middleware/  lib/
-│   ├── client-kit/                     # @be-water/client-kit — api、auth、PageLayout、守卫、slot 机制
-│   ├── shared/                         # @be-water/shared — 跨端契约、日期/格式化工具、平台管理员契约
-│   ├── ui/                             # @be-water/ui — shadcn 基础组件
-│   ├── server-test/                    # @be-water/server-test — 服务端测试装配
-│   └── client-test/                    # @be-water/client-test — 前端测试装配
+│   ├── client-kit/                     # @rewindom/client-kit — api、auth、PageLayout、守卫、slot 机制
+│   ├── shared/                         # @rewindom/shared — 跨端契约、日期/格式化工具、平台管理员契约
+│   ├── ui/                             # @rewindom/ui — shadcn 基础组件
+│   ├── server-test/                    # @rewindom/server-test — 服务端测试装配
+│   └── client-test/                    # @rewindom/client-test — 前端测试装配
 ├── docs/design/modular-architecture.md
 └── AGENTS.md
 ```
 
-**为什么业务单独成包**：业务包对 `@be-water/builtin` 是**单向引用，零反向**。
+**为什么业务单独成包**：业务包对 `@rewindom/builtin` 是**单向引用，零反向**。
 拆成两个包后，「基础设施不得依赖业务」由**包边界强制**——`check-circular-deps` 把二者
 划在不同层（`scripts/module-contexts.json`），任何 `builtin → business` 依赖都会被拦下。
-同一个包里这条规则只是文档约定，工具看不见。业务包只依赖 `@be-water/module-sdk`
+同一个包里这条规则只是文档约定，工具看不见。业务包只依赖 `@rewindom/module-sdk`
 这层门面，不直连内核，内核内部重构才不会波及每个产品模块。
 
-**为什么模块是一个包而不是每模块一个包**：拆包时统计过，模块间的 `@be-water/module-*` 引用有 **967 处来自 modules 内部，仅 47 处来自 apps/packages**。20:1 的比例说明绝大多数"跨包 API"其实是同一限界上下文内部的调用，被包边界强行升格成了公共契约——业务单包那张 44 条的 `exports` 映射表就是代价。收敛为单包后它们退化为相对 import，映射表整体消失。
+**为什么模块是一个包而不是每模块一个包**：拆包时统计过，模块间的 `@rewindom/module-*` 引用有 **967 处来自 modules 内部，仅 47 处来自 apps/packages**。20:1 的比例说明绝大多数"跨包 API"其实是同一限界上下文内部的调用，被包边界强行升格成了公共契约——业务单包那张 44 条的 `exports` 映射表就是代价。收敛为单包后它们退化为相对 import，映射表整体消失。
 
 模块边界改由三道守护替代 npm 包边界：
 
@@ -185,7 +185,7 @@ be-water/
 
 ### 3.1 双 Manifest：`ServerAppModule` / `ClientAppModule`
 
-服务端与前端分别实现 manifest，共享 `ModuleManifestBase`（`@be-water/shared`）。类型完整定义见：
+服务端与前端分别实现 manifest，共享 `ModuleManifestBase`（`@rewindom/shared`）。类型完整定义见：
 
 - `packages/shared/src/module-contract.ts` — `ModuleManifestBase`、`TenantModuleEntitlement`
 - `packages/server-kernel/src/runtime/module-contract.ts` — `ServerAppModule`
@@ -245,7 +245,7 @@ export interface ClientAppModule extends ModuleManifestBase {
 
 ### 3.2 模块目录约定
 
-内置模块是 `@be-water/builtin` 包内的一个目录，不是独立 npm 包（理由见 §2.3）；
+内置模块是 `@rewindom/builtin` 包内的一个目录，不是独立 npm 包（理由见 §2.3）；
 外部业务模块是独立包 `modules/<id>/`，目录结构相同，仅多 `MODULE.spec.yaml` 与 `prisma/`。
 每个 `packages/builtin/<id>/`（或 `modules/<id>/`）必须包含：
 
@@ -273,9 +273,9 @@ Prisma 只认单一 schema 目录，故 `apps/server/prisma/models/` 下放**符
 | --- | --- | --- |
 | 模块内部 | 本模块 | 相对路径 `./x.js` |
 | 模块 | 兄弟模块 | 相对路径 `../<other>/server/x.js`；须在 manifest `requires` 声明 |
-| apps / packages | 内置模块 | 包规格 `@be-water/builtin/<id>/server/index.js` |
-| apps / packages | 外部业务模块 | 包规格 `@be-water/<id>/server` |
-| 模块 | 宿主 app（`@be-water/server`） | **禁止**，含测试；模块测试须自足 |
+| apps / packages | 内置模块 | 包规格 `@rewindom/builtin/<id>/server/index.js` |
+| apps / packages | 外部业务模块 | 包规格 `@rewindom/<id>/server` |
+| 模块 | 宿主 app（`@rewindom/server`） | **禁止**，含测试；模块测试须自足 |
 
 大域可在包内按子域再分层（不必新建模块），例如业务包：
 
@@ -314,7 +314,7 @@ modules/<domain>/
 
 ## 禁止
 - 不要直接修改 kernel/...
-- `server/**` 不要 import 宿主 `apps/server/src/`；使用 `@be-water/server-kernel`、本包路径
+- `server/**` 不要 import 宿主 `apps/server/src/`；使用 `@rewindom/server-kernel`、本包路径
 ```
 
 ### 3.4 模块 id vs Entitlement key
@@ -461,7 +461,7 @@ class AuthenticatedOnlyAuthz implements AuthzProvider {
 3. `AuthzProvider.check`（若启用 rbac）
 4. entitlement 守卫（`TenantModuleRoute` / `TenantEntitlementRoute`、`registerTenantGatedRoutes`）
 
-各模块在 manifest 声明 `tenantEntitlements`；加载时由 `collectTenantCatalogFromManifests` 合并进租户目录，按 **entitlement key** 建索引，不再在 `@be-water/shared` 硬编码业务专用 key。
+各模块在 manifest 声明 `tenantEntitlements`；加载时由 `collectTenantCatalogFromManifests` 合并进租户目录，按 **entitlement key** 建索引，不再在 `@rewindom/shared` 硬编码业务专用 key。
 
 **为何与模块 id 解耦**：entitlement key 是租户设置中的持久化标识。若它等同 manifest `id`，则合并/拆分物理模块会改变 key，令所有租户的存量开关状态失效。解耦后一个物理模块可提供多个 entitlement，子域合并对租户完全透明。
 
@@ -473,8 +473,8 @@ class AuthenticatedOnlyAuthz implements AuthzProvider {
 
 ```typescript
 // apps/server/src/enabled-modules.ts
-import { rbacServerModule } from "@be-water/builtin/rbac/server";
-import { noteServerModule } from "@be-water/note/server";
+import { rbacServerModule } from "@rewindom/builtin/rbac/server";
+import { noteServerModule } from "@rewindom/note/server";
 // ...
 
 export const ENABLED_SERVER_MODULES = [
@@ -486,7 +486,7 @@ export const ENABLED_SERVER_MODULES = [
 
 ```typescript
 // apps/client/src/enabled-modules.ts
-import { noteClientModule } from "@be-water/note/client/module";
+import { noteClientModule } from "@rewindom/note/client/module";
 // ...
 
 export const ENABLED_CLIENT_MODULES = [
@@ -882,7 +882,7 @@ MY_SUBDOMAIN_TIMEOUT_MS=30000
 | 基础设施模块 | 独立 vitest；mock `AuthzProvider` |
 | 业务模块 | 契约测试 + 与依赖模块的集成测试 |
 | 组装层 | 启用模块最小集 E2E（note only） |
-| CI | Matrix：`kernel+rbac`（saas-kit profile smoke）、`full-be-water`（默认 test job） |
+| CI | Matrix：`kernel+rbac`（saas-kit profile smoke）、`full-rewindom`（默认 test job） |
 
 每个模块需提供 `MODULE.md` 中「如何单独测试」小节。
 
@@ -942,11 +942,11 @@ MY_SUBDOMAIN_TIMEOUT_MS=30000
 ### Phase 5：业务模块目录化（已完成）
 
 内置模块曾各自是扁平 workspace 包 `packages/modules/module-<id>/`；后收敛为**单一包
-`@be-water/builtin`** 内的目录 `packages/builtin/<id>/`（理由与统计见 §2.3）。
-外部业务模块走相反方向：一模块一包 `modules/<id>/`，只依赖 `@be-water/module-sdk`。
+`@rewindom/builtin`** 内的目录 `packages/builtin/<id>/`（理由与统计见 §2.3）。
+外部业务模块走相反方向：一模块一包 `modules/<id>/`，只依赖 `@rewindom/module-sdk`。
 
 ```
-packages/builtin/         # @be-water/builtin，exports 仅 "./*": "./*"
+packages/builtin/         # @rewindom/builtin，exports 仅 "./*": "./*"
 ├── package.json
 ├── eslint.config.js      # import-x/no-cycle
 ├── vitest.config.ts      # 展开 <id>/{server,client,shared} 三类 project
@@ -957,16 +957,16 @@ packages/builtin/         # @be-water/builtin，exports 仅 "./*": "./*"
     └── client/           # pages、hooks、components
 ```
 
-- **Server 组装**：`apps/server/src/enabled-modules.ts` 仅从 `@be-water/builtin/<id>/server/index.js` import；外部模块经 `src/external-modules.ts`（`pnpm gen:external-modules` 生成）汇入
-- `apps/client/src/enabled-modules.ts` 从 `@be-water/builtin/<id>/client/module.js` 与 `@/shell` import
+- **Server 组装**：`apps/server/src/enabled-modules.ts` 仅从 `@rewindom/builtin/<id>/server/index.js` import；外部模块经 `src/external-modules.ts`（`pnpm gen:external-modules` 生成）汇入
+- `apps/client/src/enabled-modules.ts` 从 `@rewindom/builtin/<id>/client/module.js` 与 `@/shell` import
 - **Prisma**：schema 集中在 `apps/server/prisma/models/`，migrations 同目录（§8）
-- **@be-water/shared**：域 DTO 在各模块 `shared/`；内核/横切契约留在包内
+- **@rewindom/shared**：域 DTO 在各模块 `shared/`；内核/横切契约留在包内
 - **工具链**：`validate-module-dependencies.ts` + `check-circular-deps.mjs` + `packages/builtin/eslint.config.js`
 
 **禁止**（更新）：
 
 - `kernel/` 不得 `import` 业务模块实现（模块通过 `ProviderRegistry`、Event Bus 或路由注册反向挂接内核）
-- 模块 `server/**` 不得 `import` 宿主 `apps/server/`（含测试）；内置模块用 `@be-water/server-kernel`、`@be-water/shared`、本模块内相对路径或兄弟模块相对路径，外部业务模块只用 `@be-water/module-sdk`
+- 模块 `server/**` 不得 `import` 宿主 `apps/server/`（含测试）；内置模块用 `@rewindom/server-kernel`、`@rewindom/shared`、本模块内相对路径或兄弟模块相对路径，外部业务模块只用 `@rewindom/module-sdk`
 
 平台管理员凭据（`platform-admin.service`）、内部用户过滤（`internal-users`）属于内核认证范畴，留在 `kernel/services/`。
 
@@ -1065,7 +1065,7 @@ packages/builtin/         # @be-water/builtin，exports 仅 "./*": "./*"
 
 | 项 | 现行 | 目标 |
 | --- | --- | --- |
-| 权限常量位置 | `@be-water/shared` 全局 | 各模块 `shared.permissions` 合并 |
+| 权限常量位置 | `@rewindom/shared` 全局 | 各模块 `shared.permissions` 合并 |
 | `SUPERUSER` | 内核 role | 仍在内核；绕过 `AuthzProvider` |
 | `PLATFORM_ADMIN` | 内核 | 仍在内核 |
 | 权限 API | 全局 | `rbac` |

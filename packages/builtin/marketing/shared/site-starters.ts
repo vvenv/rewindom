@@ -9,7 +9,7 @@ import { findSiteTheme } from "./site-themes.js";
 
 import type { UpdateMarketingSiteBody } from "./site-cms.js";
 import type { ThemeSettings } from "./theme-sections.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export interface SiteStarter {
   key: string;

@@ -1,5 +1,5 @@
-import { Label } from "@be-water/ui/label";
-import { RadioGroup, RadioGroupItem } from "@be-water/ui/radio-group";
+import { Label } from "@rewindom/ui/label";
+import { RadioGroup, RadioGroupItem } from "@rewindom/ui/radio-group";
 
 /** RadioGroup 的值只能是字符串，用空串表示「继承 / 跟随上一级」。 */
 export const INHERIT_VALUE = "";

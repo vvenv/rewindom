@@ -1,7 +1,7 @@
 import { useCallback, useMemo, type ReactNode } from "react";
 
-import { api, PermissionsProvider, useAuth  } from "@be-water/client-kit";
-import { hasAllPermissions as checkAllPermissions, hasAnyPermission as checkAnyPermission, hasPermission as checkPermission, type Permission } from "@be-water/shared";
+import { api, PermissionsProvider, useAuth  } from "@rewindom/client-kit";
+import { hasAllPermissions as checkAllPermissions, hasAnyPermission as checkAnyPermission, hasPermission as checkPermission, type Permission } from "@rewindom/shared";
 import { useQuery } from "@tanstack/react-query";
 
 export const PERMISSIONS_QUERY_KEY = ["permissions"] as const;

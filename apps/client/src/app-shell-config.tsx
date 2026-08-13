@@ -17,7 +17,7 @@ import {
 } from "@/shell/index";
 
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export function buildAppShellConfig(
   modules: readonly ClientAppModule[],

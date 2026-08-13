@@ -1,15 +1,15 @@
 import { useState, type SubmitEvent } from "react";
 
-import { ApiError } from "@be-water/client-kit";
-import { formatLoginIdentifier, generateRandomPassword } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
+import { ApiError } from "@rewindom/client-kit";
+import { formatLoginIdentifier, generateRandomPassword } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+} from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -17,9 +17,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { KeyRound, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

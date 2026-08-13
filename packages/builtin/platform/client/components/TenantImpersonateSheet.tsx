@@ -5,21 +5,21 @@ import { ApiError, pauseTokenRefresh,
   getStoredAccessToken,
   getStoredRefreshToken,
   setStoredAuthTokens,
-  APP_HOME_ENTRY_PATH } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+  APP_HOME_ENTRY_PATH } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@be-water/ui/field";
+} from "@rewindom/ui/field";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -27,9 +27,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { LogIn } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

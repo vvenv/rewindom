@@ -135,5 +135,5 @@ client 在 [apps/client/src/enabled-modules.ts](../../../apps/client/src/enabled
 ## 如何单独测试
 
 ```bash
-pnpm --filter @be-water/builtin exec vitest --run --project 'dashboard/*'
+pnpm --filter @rewindom/builtin exec vitest --run --project 'dashboard/*'
 ```

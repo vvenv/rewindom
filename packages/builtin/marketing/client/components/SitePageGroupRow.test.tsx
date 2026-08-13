@@ -1,4 +1,4 @@
-import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
+import { registerI18nBundles, setupI18n } from "@rewindom/client-kit";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";

@@ -1,5 +1,5 @@
-import { createQueryWrapper, createTestQueryClient } from "@be-water/client-test";
-import { server } from "@be-water/client-test/server";
+import { createQueryWrapper, createTestQueryClient } from "@rewindom/client-test";
+import { server } from "@rewindom/client-test/server";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -13,16 +13,16 @@ import type {
 } from "../../shared/index.js";
 
 // 真实渲染：不再 mock UI 组件（Sheet/Button/Input/Label/Field）与 useResetTenantAdminPassword。
-// 保留 @be-water/ui/toast mock（sonner 副作用隔离）
+// 保留 @rewindom/ui/toast mock（sonner 副作用隔离）
 
-vi.mock("@be-water/ui/toast", () => ({
+vi.mock("@rewindom/ui/toast", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
   },
 }));
 
-const { toast } = await import("@be-water/ui/toast");
+const { toast } = await import("@rewindom/ui/toast");
 
 const RESET_URL = "/api/platform/tenants/:id/admin/reset-password";
 

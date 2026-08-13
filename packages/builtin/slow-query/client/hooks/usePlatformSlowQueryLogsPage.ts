@@ -7,7 +7,7 @@ import {
   parseListSort,
   parseSearchParamsPagination,
   toSortingState,
-} from "@be-water/client-kit/lib/list-url-params";
+} from "@rewindom/client-kit/lib/list-url-params";
 import { useSearchParams } from "react-router";
 
 import type { SlowQueryLogFilterValues } from "../components/SlowQueryLogFilters.js";

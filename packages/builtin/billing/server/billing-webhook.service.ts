@@ -1,7 +1,7 @@
-import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+import { ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import {
   constructWebhookEvent,
   type CreemWebhookEvent,
@@ -15,7 +15,7 @@ import {
 
 import { applyGrantedPlan, reconcileTenantPlan } from "./billing.service.js";
 
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 type UnknownRecord = Record<string, unknown>;
 

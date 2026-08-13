@@ -1,7 +1,7 @@
-import { type TenantEntitlementCatalog, type TenantFeatureKey  } from "@be-water/shared";
+import { type TenantEntitlementCatalog, type TenantFeatureKey  } from "@rewindom/shared";
 
 /**
- * 目录构建本身在 `@be-water/shared`（`collectTenantCatalogFromManifests`）——
+ * 目录构建本身在 `@rewindom/shared`（`collectTenantCatalogFromManifests`）——
  * 此处只保留平台侧的查询辅助，避免两份实现漂移。
  */
 export function getFeatureModuleId(

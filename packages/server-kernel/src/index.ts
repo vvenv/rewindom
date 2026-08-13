@@ -1,7 +1,7 @@
 /**
- * @be-water/server-kernel
+ * @rewindom/server-kernel
  *
- * Package layout (import via subpaths, e.g. `@be-water/server-kernel/lib/prisma.js`):
+ * Package layout (import via subpaths, e.g. `@rewindom/server-kernel/lib/prisma.js`):
  * - kernel/   — HTTP shell routes & auth
  * - runtime/  — plugin loader, ProviderRegistry, tenant gating
  * - infra/    — Redis, scheduler, file storage

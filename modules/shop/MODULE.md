@@ -1,12 +1,12 @@
 # shop
 
-外部模块：商品目录、购物车、结账与履约。包名 `@be-water/shop`。
+外部模块：商品目录、购物车、结账与履约。包名 `@rewindom/shop`。
 
 一期打通 **商品 → 购物车 → 游客/会员结账 → Stripe Checkout → 商家填运单号发货**。物流商 API、17track、自动关税只留 Provider 接口。
 
 ## 定位
 
-- 独立 workspace 包，内核 API 只走 `@be-water/module-sdk`
+- 独立 workspace 包，内核 API 只走 `@rewindom/module-sdk`
 - 一个业务域一个物理包：catalog / cart / checkout / order / shipping / tax 都在本包内
 - Entitlement `shop`，**默认关闭**（不是每个站点都开店）
 - 未开通时公开店面与买家接口 404，不漏出商店
@@ -91,5 +91,5 @@ pnpm check:modules
 ## 如何单独测试
 
 ```bash
-pnpm --filter @be-water/shop test
+pnpm --filter @rewindom/shop test
 ```

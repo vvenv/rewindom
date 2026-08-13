@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
-import { PageLayout, useConfirm, usePermissions } from "@be-water/client-kit";
-import { getLocaleNativeLabel } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
-import { ButtonGroup } from "@be-water/ui/button-group";
-import { Spinner } from "@be-water/ui/spinner";
-import { cn } from "@be-water/ui/utils";
+import { PageLayout, useConfirm, usePermissions } from "@rewindom/client-kit";
+import { getLocaleNativeLabel } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
+import { ButtonGroup } from "@rewindom/ui/button-group";
+import { Spinner } from "@rewindom/ui/spinner";
+import { cn } from "@rewindom/ui/utils";
 import {
   ArrowLeft,
   Monitor,

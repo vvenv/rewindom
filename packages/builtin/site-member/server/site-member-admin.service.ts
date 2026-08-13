@@ -1,6 +1,6 @@
-import { resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
-import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { resolveSortOrder } from "@rewindom/server-kernel/http/list-sort.js";
+import { NotFoundError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import {
   SITE_MEMBER_SORTABLE_FIELDS,
@@ -12,7 +12,7 @@ import {
 import { toSiteMemberListItem } from "./site-member.mapper.js";
 
 
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 export interface ListSiteMembersInput {
   tenant_id: string;

@@ -6,8 +6,8 @@
  * 字段、改一个下拉选项、把必填改成选填，都过不来。
  */
 
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
 import { settingText, type SiteSection } from "../shared/section-schema.js";
 import {
@@ -19,7 +19,7 @@ import {
 
 import { getPublishedPublicPage } from "./site.service.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /** 一个 IP 在一个租户站点上，每个窗口能提交多少次。 */
 const RATE_LIMIT = 5;

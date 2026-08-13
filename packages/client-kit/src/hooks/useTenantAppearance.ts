@@ -4,7 +4,7 @@ import { api } from "../api.js";
 
 import { useTenantApiEnabled } from "./use-tenant-api-enabled.js";
 
-import type { ResolvedTenantAppearance } from "@be-water/shared";
+import type { ResolvedTenantAppearance } from "@rewindom/shared";
 
 export const TENANT_APPEARANCE_QUERY_KEY = ["tenant-appearance"] as const;
 

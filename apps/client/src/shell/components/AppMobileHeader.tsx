@@ -1,5 +1,5 @@
-import { resolveNavLabel } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+import { resolveNavLabel } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
 import { ChevronLeft, Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";

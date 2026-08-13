@@ -4,7 +4,7 @@ import type {
   DashboardPreference,
   UpdateDashboardPreferenceInput,
 } from "../../shared/index.js";
-import type { DashboardWidget } from "@be-water/client-kit";
+import type { DashboardWidget } from "@rewindom/client-kit";
 import type { LucideIcon } from "lucide-react";
 
 /**

@@ -17,7 +17,7 @@
  * 破坏性动作（删除）与次要动作（恢复默认）靠左是允许的例外，用
  * `@xl/sheet-content:justify-between` 表达——它们本来就不该和主按钮挤在一起。
  *
- * 放在 client-kit：`SheetFooter` 是 `@be-water/ui` 的组件，而这条约束跨所有模块，
+ * 放在 client-kit：`SheetFooter` 是 `@rewindom/ui` 的组件，而这条约束跨所有模块，
  * 挂在任何一个业务模块下都名不副实。零依赖遍历，同 `verify-module.mjs` 的做法。
  */
 

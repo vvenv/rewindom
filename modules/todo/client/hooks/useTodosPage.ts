@@ -4,7 +4,7 @@ import {
   applyFiltersToSearchParams,
   parseListPage,
   parseListPageSize,
-} from "@be-water/module-sdk/client";
+} from "@rewindom/module-sdk/client";
 import { useSearchParams } from "react-router";
 
 import {

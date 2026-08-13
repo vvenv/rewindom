@@ -1,7 +1,7 @@
-import { EmptyState } from "@be-water/client-kit";
-import { Alert, AlertDescription } from "@be-water/ui/alert";
-import { Button } from "@be-water/ui/button";
-import { Skeleton } from "@be-water/ui/skeleton";
+import { EmptyState } from "@rewindom/client-kit";
+import { Alert, AlertDescription } from "@rewindom/ui/alert";
+import { Button } from "@rewindom/ui/button";
+import { Skeleton } from "@rewindom/ui/skeleton";
 import { SearchX } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -11,7 +11,7 @@ import { SitePageGroupRow } from "./SitePageGroupRow.js";
 
 import type { SitePageActions } from "../hooks/use-site-page-actions.js";
 import type { SitePageGroup } from "../lib/site-page-groups.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /** 骨架行数：铺满首屏一屏内的常见页面数即可。 */
 const SKELETON_COUNT = 3;

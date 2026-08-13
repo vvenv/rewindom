@@ -1,7 +1,7 @@
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { useQuery } from "@tanstack/react-query";
 
-import type { PermissionCatalogEntry } from "@be-water/shared";
+import type { PermissionCatalogEntry } from "@rewindom/shared";
 
 export interface PermissionCatalogResponse {
   permissions: PermissionCatalogEntry[];

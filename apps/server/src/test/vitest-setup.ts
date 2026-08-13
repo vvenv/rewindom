@@ -1,4 +1,4 @@
-import { getDefaultPlanLimitTemplates } from "@be-water/builtin/platform/shared/index.js";
+import { getDefaultPlanLimitTemplates } from "@rewindom/builtin/platform/shared/index.js";
 import { vi } from "vitest";
 
 const DEFAULT_PLAN_LIMITS_BY_SLUG = getDefaultPlanLimitTemplates();

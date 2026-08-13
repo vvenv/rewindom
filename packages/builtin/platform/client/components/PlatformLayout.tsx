@@ -6,15 +6,15 @@ import {
   Logo,
   Wordmark,
   type PlatformNavGroup,
-} from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+} from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/dropdown-menu";
+import { cn } from "@rewindom/ui/utils";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, Outlet, useLocation } from "react-router";

@@ -3,8 +3,8 @@ import {
   createTestUserFast,
   type TestApp,
   type TestUser,
-} from "@be-water/server-test";
-import { DEFAULT_TENANT_SLUG, TENANT_IMPERSONATION_USERNAME  } from "@be-water/shared";
+} from "@rewindom/server-test";
+import { DEFAULT_TENANT_SLUG, TENANT_IMPERSONATION_USERNAME  } from "@rewindom/shared";
 import {
   describe,
   it,

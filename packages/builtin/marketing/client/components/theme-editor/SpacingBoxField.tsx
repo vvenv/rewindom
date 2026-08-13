@@ -6,16 +6,16 @@ import {
   type ReactElement,
 } from "react";
 
-import { FieldInfoTip } from "@be-water/client-kit";
-import { Field, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+import { FieldInfoTip } from "@rewindom/client-kit";
+import { Field, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@be-water/ui/tooltip";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/tooltip";
+import { cn } from "@rewindom/ui/utils";
 import { MoveHorizontal, MoveVertical, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

@@ -1,5 +1,5 @@
-import { EmptyState } from "@be-water/client-kit";
-import { formatTenantDisplayLabel } from "@be-water/shared";
+import { EmptyState } from "@rewindom/client-kit";
+import { formatTenantDisplayLabel } from "@rewindom/shared";
 import { Receipt } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

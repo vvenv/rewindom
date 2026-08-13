@@ -6,12 +6,12 @@ import {
   Pagination,
   useConfirm,
   usePermissions,
-} from "@be-water/module-sdk/client";
-import { Alert, AlertDescription } from "@be-water/ui/alert";
-import { Button } from "@be-water/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@be-water/ui/card";
-import { Skeleton } from "@be-water/ui/skeleton";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/module-sdk/client";
+import { Alert, AlertDescription } from "@rewindom/ui/alert";
+import { Button } from "@rewindom/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@rewindom/ui/card";
+import { Skeleton } from "@rewindom/ui/skeleton";
+import { toast } from "@rewindom/ui/toast";
 import { Bookmark as BookmarkIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

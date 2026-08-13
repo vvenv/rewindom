@@ -1,11 +1,11 @@
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
 import { createEmptyNotificationUnreadCount, NOTIFICATION_SEVERITIES, type NotificationItem, type NotificationSeverity, type NotificationType, type NotificationUnreadCount, type NotificationsPage } from "../shared/index.js";
 
 import type {
   Prisma,
   PrismaClient,
-} from "@be-water/server-kernel/generated/prisma/client/client.js";
+} from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 const NOTIFICATION_RETENTION_DAYS = 90;
 const MAX_UNREAD_PER_USER = 500;

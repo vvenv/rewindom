@@ -5,7 +5,7 @@ import {
   type AppLocale,
   type ShellLayoutSlug,
   type ThemePaletteSlug,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 export const APP_SETTING_KEY_PLATFORM_SETTINGS = "platform_settings";
 

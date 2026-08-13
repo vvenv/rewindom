@@ -1,7 +1,7 @@
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
-import { CardAction, CardHeader, CardTitle } from "@be-water/ui/card";
-import { Skeleton } from "@be-water/ui/skeleton";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
+import { CardAction, CardHeader, CardTitle } from "@rewindom/ui/card";
+import { Skeleton } from "@rewindom/ui/skeleton";
 import { ExternalLink, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -11,7 +11,7 @@ import { SiteSettingsSheet } from "./SiteSettingsSheet.js";
 
 import type { MarketingSite } from "../../shared/site-cms.js";
 import type { SitePageSummary } from "../lib/site-page-order.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 interface SiteSummaryHeaderProps {
   site: MarketingSite | undefined;

@@ -42,7 +42,7 @@ const { publicConfig } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@be-water/client-kit", () => ({
+vi.mock("@rewindom/client-kit", () => ({
   usePublicConfig: () => ({ data: publicConfig, isLoading: false }),
 }));
 

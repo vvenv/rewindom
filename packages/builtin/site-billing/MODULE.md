@@ -114,7 +114,7 @@
 ## 如何单独测试
 
 ```bash
-pnpm --filter @be-water/builtin exec vitest --run --project 'site-billing/*'
+pnpm --filter @rewindom/builtin exec vitest --run --project 'site-billing/*'
 ```
 
 本地完整流程与 `billing/MODULE.md` 的一致，只有三处不同：webhook 打到

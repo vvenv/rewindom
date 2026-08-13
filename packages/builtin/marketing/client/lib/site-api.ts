@@ -1,4 +1,4 @@
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 
 import type {
   CreateMarketingPageBody,
@@ -17,7 +17,7 @@ import type {
   UpdateMarketingSiteBody,
 } from "../../shared/site-cms.js";
 import type { SiteLinkTarget } from "../../shared/site-link-target.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export const SITE_QUERY_KEY = ["site"] as const;
 /*

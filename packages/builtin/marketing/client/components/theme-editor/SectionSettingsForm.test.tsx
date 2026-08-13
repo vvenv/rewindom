@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import {
   createQueryWrapper,
   createTestQueryClient,
-} from "@be-water/client-test";
+} from "@rewindom/client-test";
 import { describe, expect, it, vi } from "vitest";
 
 import {

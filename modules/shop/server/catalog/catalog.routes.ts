@@ -6,7 +6,7 @@ import {
   parseSortDir,
   resolveRequestLocale,
   sendCodedError,
-} from "@be-water/module-sdk/server";
+} from "@rewindom/module-sdk/server";
 
 import {
   addVariant,

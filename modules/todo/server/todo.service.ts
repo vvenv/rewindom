@@ -5,7 +5,7 @@ import {
   ValidationError,
   prisma,
   withTenantScope,
-} from "@be-water/module-sdk/server";
+} from "@rewindom/module-sdk/server";
 
 import { toTodo, toTodoListItem } from "./todo.mapper.js";
 import { validateTodoInput } from "./todo.util.js";

@@ -1,12 +1,12 @@
 import { useState, type ReactElement } from "react";
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
+} from "@rewindom/ui/dropdown-menu";
 import { Copy, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -30,7 +30,7 @@ import {
 import { useSiteNavPreview } from "./site-nav-preview-context.js";
 import { SiteNavItemRow, type NavItemRowDnd } from "./SiteNavItemRow.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 const ROOT_LIST_ID = "root";
 

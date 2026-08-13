@@ -1,8 +1,8 @@
-import { EmptyState } from "@be-water/client-kit";
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
-import { Checkbox } from "@be-water/ui/checkbox";
-import { Spinner } from "@be-water/ui/spinner";
+import { EmptyState } from "@rewindom/client-kit";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
+import { Checkbox } from "@rewindom/ui/checkbox";
+import { Spinner } from "@rewindom/ui/spinner";
 import { KeyRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -13,7 +13,7 @@ import {
   togglePermission,
 } from "../lib/role-form.js";
 
-import type { PermissionCatalogEntry } from "@be-water/shared";
+import type { PermissionCatalogEntry } from "@rewindom/shared";
 
 interface PermissionPickerProps {
   catalog: readonly PermissionCatalogEntry[];

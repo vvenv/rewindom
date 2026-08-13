@@ -1,4 +1,4 @@
-import { type ModuleId } from "@be-water/shared";
+import { type ModuleId } from "@rewindom/shared";
 import { describe, expect, it } from "vitest";
 
 import { topologicalSortModules } from "./topological-sort.js";

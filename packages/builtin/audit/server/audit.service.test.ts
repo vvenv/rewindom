@@ -1,14 +1,14 @@
-import { type Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import { type Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 import {
   registerServerI18nBundles,
   resetServerI18nCatalogsForTests,
-} from "@be-water/server-kernel/lib/i18n/registry.js";
-import type { ServerI18nBundle } from "@be-water/server-kernel/lib/i18n/types.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+} from "@rewindom/server-kernel/lib/i18n/registry.js";
+import type { ServerI18nBundle } from "@rewindom/server-kernel/lib/i18n/types.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import {
   PLATFORM_ADMIN_USER_ID,
   TENANT_IMPERSONATION_USERNAME,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { AuditAction, AuditScope } from "../shared/index.js";
@@ -50,7 +50,7 @@ interface MockAuditLogRow {
 }
 
 // Mock prisma
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     auditLog: {
       create: vi.fn(),

@@ -1,6 +1,6 @@
-import { ProviderRegistry } from "@be-water/server-kernel/runtime/provider-registry.js";
-import { installTestPermissionCatalog } from "@be-water/server-test/permission-catalog";
-import { userPermissionCacheKey } from "@be-water/shared";
+import { ProviderRegistry } from "@rewindom/server-kernel/runtime/provider-registry.js";
+import { installTestPermissionCatalog } from "@rewindom/server-test/permission-catalog";
+import { userPermissionCacheKey } from "@rewindom/shared";
 import Fastify, { type FastifyInstance } from "fastify";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -11,7 +11,7 @@ import {
   type PermissionCache,
 } from "./permission.middleware.js";
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     userRole: {
       findMany: vi.fn(),
@@ -34,7 +34,7 @@ vi.mock("@fastify/caching", () => ({
   })),
 }));
 
-const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
 
 installTestPermissionCatalog([
   {

@@ -6,7 +6,7 @@ alwaysApply: false
 
 # 权限系统
 
-详见 `docs/design/permission-system.md`；**同一 PATCH 内字段级写权限**的判定工具在 `@be-water/shared` 的 `field-permission-utils.ts`。
+详见 `docs/design/permission-system.md`；**同一 PATCH 内字段级写权限**的判定工具在 `@rewindom/shared` 的 `field-permission-utils.ts`。
 
 ## 模型
 

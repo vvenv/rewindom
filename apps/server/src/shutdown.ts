@@ -1,5 +1,5 @@
-import { closeRedisConnection } from "@be-water/server-kernel/infra/redis.service.js";
-import { stopBackgroundScheduler } from "@be-water/server-kernel/infra/scheduler.service.js";
+import { closeRedisConnection } from "@rewindom/server-kernel/infra/redis.service.js";
+import { stopBackgroundScheduler } from "@rewindom/server-kernel/infra/scheduler.service.js";
 
 import type { FastifyInstance } from "fastify";
 

@@ -1,7 +1,7 @@
 /**
  * 本地 SEO SSR 冒烟：为指定 slug（默认 local → vvenv）发布首页。
  */
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import {
   createPage,

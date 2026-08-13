@@ -11,7 +11,7 @@ import {
 
 import { type LinkProps, Link } from "react-router";
 
-import { cn } from "@be-water/ui/utils";
+import { cn } from "@rewindom/ui/utils";
 
 const FAB_SIZE = 56;
 const TAB_BAR_HEIGHT = 64;

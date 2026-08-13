@@ -1,13 +1,13 @@
-import { configureServerTenantCatalog, getServerTenantCatalog  } from "@be-water/server-kernel/runtime/tenant-catalog.js";
+import { configureServerTenantCatalog, getServerTenantCatalog  } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { TENANT_MODULES_STORAGE_KEY, createDefaultTenantModuleFlags } from "../../shared/index.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 /**
- * 本地 fixture：platform 是基础设施模块，既不能依赖业务模块（be-water），
- * 也不能依赖宿主 app（@be-water/server）。这里只声明本测试断言所需的
+ * 本地 fixture：platform 是基础设施模块，既不能依赖业务模块（rewindom），
+ * 也不能依赖宿主 app（@rewindom/server）。这里只声明本测试断言所需的
  * entitlement / feature，与真实 catalog 的具体内容解耦。
  */
 const FIXTURE_MODULES: readonly ServerAppModule[] = [

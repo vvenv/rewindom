@@ -6,15 +6,15 @@ import {
   translateShellLayoutOptions,
   translateThemePaletteLabel,
   translateThemePaletteOptions,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import {
   APP_LOCALES,
   getLocaleNativeLabel,
   normalizeOptionalLocale,
   normalizeOptionalShellLayout,
   normalizeOptionalThemePalette,
-} from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
+} from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -23,9 +23,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { Palette } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

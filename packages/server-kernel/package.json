@@ -1,5 +1,5 @@
 {
-  "name": "@be-water/server-kernel",
+  "name": "@rewindom/server-kernel",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "./*": "./src/*"
   },
   "dependencies": {
-    "@be-water/shared": "workspace:*",
+    "@rewindom/shared": "workspace:*",
     "@fastify/cookie": "^11.1.2",
     "@fastify/jwt": "^10.2.1",
     "@fastify/multipart": "^10.1.0",
@@ -26,7 +26,7 @@
     "pino": "^10.3.1"
   },
   "devDependencies": {
-    "@be-water/server-test": "workspace:*",
+    "@rewindom/server-test": "workspace:*",
     "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
     "@types/jsdom": "^30.0.0",

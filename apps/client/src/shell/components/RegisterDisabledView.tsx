@@ -1,5 +1,5 @@
-import { BrandMark, Wordmark } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+import { BrandMark, Wordmark } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 

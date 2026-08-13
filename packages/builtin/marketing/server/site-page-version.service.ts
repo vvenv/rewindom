@@ -8,14 +8,14 @@
  * 逐次留档会把历史淹没在几百条无意义的中间态里。发布是一次有意的「就它了」。
  */
 
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
 import { safePageSections } from "./site.util.js";
 
 import type { SiteSection } from "../shared/section-schema.js";
 import type { MarketingPageSettings } from "../shared/site-cms.js";
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 /** 每页保留多少版；超出的从最旧开始丢。 */
 const KEEP_VERSIONS = 50;

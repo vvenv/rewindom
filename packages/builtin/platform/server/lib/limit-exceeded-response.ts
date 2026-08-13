@@ -1,5 +1,5 @@
-import { buildCodedErrorBody } from "@be-water/server-kernel/http/coded-error.js";
-import { resolveRequestLocale } from "@be-water/server-kernel/lib/i18n/translate.js";
+import { buildCodedErrorBody } from "@rewindom/server-kernel/http/coded-error.js";
+import { resolveRequestLocale } from "@rewindom/server-kernel/lib/i18n/translate.js";
 
 import { TENANT_LIMIT_REGISTRY } from "../../shared/index.js";
 

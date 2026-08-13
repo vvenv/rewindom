@@ -13,7 +13,7 @@ import { AuthService, type JwtSignPayload } from "./auth.service.js";
 import type { ResolvedOAuthCredentials } from "./oauth-credentials.js";
 import type { HostTenantContext } from "../../lib/host-tenant.js";
 import type { ProviderRegistry } from "../../runtime/provider-registry.js";
-import type { AuthActorType, AuthTokens } from "@be-water/shared";
+import type { AuthActorType, AuthTokens } from "@rewindom/shared";
 
 export type OAuthProviderId = "github" | "google" | "microsoft";
 

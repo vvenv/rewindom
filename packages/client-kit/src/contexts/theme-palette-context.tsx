@@ -11,7 +11,7 @@ import {
   normalizeOptionalThemePalette,
   normalizeThemePalette,
   type ThemePaletteSlug,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { useResolvedPreference } from "../hooks/useResolvedPreference.js";
 import { useTenantAppearance } from "../hooks/useTenantAppearance.js";
@@ -22,7 +22,7 @@ const USER_CHOICE_KEY = "theme-palette";
 const CACHED_DEFAULT_KEY = "theme-palette-default";
 
 export interface ThemePaletteValue {
-  /** 当前实际生效的主题：用户选择 > 租户默认 > 平台默认 > water。 */
+  /** 当前实际生效的主题：用户选择 > 租户默认 > 平台默认 > azure。 */
   palette: ThemePaletteSlug;
   /** 用户的显式选择；`null` 表示跟随默认。 */
   userChoice: ThemePaletteSlug | null;
@@ -38,7 +38,7 @@ const ThemePaletteContext = createContext<ThemePaletteValue | null>(null);
  * 主题（配色方案）轴的 Provider——与 next-themes 的明暗轴正交。
  *
  * 只挂在租户外壳里（`AppLayout`）：卸载时移除 `data-theme`，于是登录页与平台
- * 控制台始终落在 `index.css` 的 `:root` / `.dark`（water）上，不受租户配色影响。
+ * 控制台始终落在 `index.css` 的 `:root` / `.dark`（azure）上，不受租户配色影响。
  */
 export function ThemePaletteProvider({
   children,
@@ -55,7 +55,7 @@ export function ThemePaletteProvider({
     normalizeOptional: normalizeOptionalThemePalette,
   });
 
-  // useLayoutEffect：在首帧绘制前打上 data-theme，避免 water → 目标配色的闪烁
+  // useLayoutEffect：在首帧绘制前打上 data-theme，避免 azure → 目标配色的闪烁
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = value;

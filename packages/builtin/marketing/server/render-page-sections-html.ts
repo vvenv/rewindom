@@ -2,7 +2,7 @@
  * 把已发布页的 sections 渲成 main 内层 HTML（SSR 与会员 page-html 共用）。
  */
 
-import { normalizeLocale } from "@be-water/shared";
+import { normalizeLocale } from "@rewindom/shared";
 
 import {
   resolveSectionGaps,

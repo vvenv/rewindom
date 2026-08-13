@@ -4,8 +4,8 @@ import { useState } from "react";
 import { api, useAuth,
   usePublicConfig,
   APP_HOME_ENTRY_PATH,
-} from "@be-water/client-kit";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/client-kit";
+import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 

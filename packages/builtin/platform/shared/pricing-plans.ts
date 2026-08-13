@@ -1,4 +1,4 @@
-import type { TenantFeatureFlags } from "@be-water/shared";
+import type { TenantFeatureFlags } from "@rewindom/shared";
 
 export type PlanSlug =
   | "free"

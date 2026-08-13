@@ -1,10 +1,10 @@
-import { config } from "@be-water/server-kernel/lib/config.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
 import {
   MEMBER_ACCESS_COOKIE,
   MEMBER_ACCESS_COOKIE_MAX_AGE,
   MEMBER_REFRESH_COOKIE,
   MEMBER_REFRESH_COOKIE_MAX_AGE,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 

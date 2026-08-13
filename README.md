@@ -136,7 +136,7 @@ TENANT_BASE_DOMAIN=localhost
 边界由 `pnpm check:deps` 强制（包层环 + manifest/schema FK + 文件级环）。
 
 - **内置能力**改 `packages/builtin/<id>/`，在两处 `enabled-modules.ts` 手写注册
-- **业务模块**用 `pnpm gen:module <spec.yaml>` 生成到 `modules/<id>/`（经 `@be-water/module-sdk` 门面，不直连内核），再 `pnpm gen:external-modules` 装进组装层；金标准是 `modules/note`
+- **业务模块**用 `pnpm gen:module <spec.yaml>` 生成到 `modules/<id>/`（经 `@rewindom/module-sdk` 门面，不直连内核），再 `pnpm gen:external-modules` 装进组装层；金标准是 `modules/note`
 
 详见 [modular-architecture.md](docs/design/modular-architecture.md) 与 [agent-first.md](docs/design/agent-first.md)。
 
@@ -205,7 +205,7 @@ rewindom/
 
 | 变量                           | 说明                                                |
 | ------------------------------ | --------------------------------------------------- |
-| `DATABASE_URL`                 | `postgresql://be-water:...@localhost:5433/be-water` |
+| `DATABASE_URL`                 | `postgresql://rewindom:...@localhost:5433/rewindom` |
 | `JWT_SECRET`                   | ≥32 字符随机串                                      |
 | `TENANT_SECRET_ENCRYPTION_KEY` | 32 字节 hex（`openssl rand -hex 32`）               |
 

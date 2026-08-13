@@ -5,7 +5,7 @@ import {
   type ModuleManifestBase,
   type Permission,
   type TenantFeatureKey,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 
 import type { AppNavSection } from "./app-nav-types.js";

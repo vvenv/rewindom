@@ -1,4 +1,4 @@
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { PERMISSIONS_QUERY_KEY } from "../shell/rbac-permission-provider.js";
@@ -6,7 +6,7 @@ import { PERMISSIONS_QUERY_KEY } from "../shell/rbac-permission-provider.js";
 import { ROLES_KEY } from "./useRoles.js";
 
 import type { RolePayload } from "../lib/role-form.js";
-import type { RoleDetail } from "@be-water/shared";
+import type { RoleDetail } from "@rewindom/shared";
 
 /**
  * 角色变更会改动当前用户的有效权限（改的可能正是自己所属的角色），

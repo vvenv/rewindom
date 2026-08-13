@@ -1,6 +1,6 @@
-import { Field, FieldError, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
-import { Textarea } from "@be-water/ui/textarea";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
+import { Textarea } from "@rewindom/ui/textarea";
 import { useTranslation } from "react-i18next";
 
 import { guessBookmarkHost } from "../lib/bookmarks.js";

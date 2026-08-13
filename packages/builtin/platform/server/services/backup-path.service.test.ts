@@ -6,7 +6,7 @@ import {
   resolveAllowedLocalRestorePath,
 } from "./backup-path.service.js";
 
-vi.mock("@be-water/server-kernel/lib/config.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
     database: {
       restore: {

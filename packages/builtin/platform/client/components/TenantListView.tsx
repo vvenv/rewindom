@@ -1,7 +1,7 @@
 
-import { Alert, AlertAction, AlertDescription } from "@be-water/ui/alert";
-import { Button } from "@be-water/ui/button";
-import { Spinner } from "@be-water/ui/spinner";
+import { Alert, AlertAction, AlertDescription } from "@rewindom/ui/alert";
+import { Button } from "@rewindom/ui/button";
+import { Spinner } from "@rewindom/ui/spinner";
 import { Building2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

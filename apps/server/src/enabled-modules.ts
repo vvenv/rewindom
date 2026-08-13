@@ -1,20 +1,20 @@
-import { auditServerModule } from "@be-water/builtin/audit/server/index.js";
-import { backgroundJobServerModule } from "@be-water/builtin/background-job/server/index.js";
-import { billingServerModule } from "@be-water/builtin/billing/server/index.js";
-import { dashboardServerModule } from "@be-water/builtin/dashboard/server/index.js";
-import { errorLogServerModule } from "@be-water/builtin/error-log/server/index.js";
-import { marketingServerModule } from "@be-water/builtin/marketing/server/index.js";
-import { notificationServerModule } from "@be-water/builtin/notification/server/index.js";
-import { platformServerModule } from "@be-water/builtin/platform/server/index.js";
-import { rbacServerModule } from "@be-water/builtin/rbac/server/index.js";
-import { siteBillingServerModule } from "@be-water/builtin/site-billing/server/index.js";
-import { siteMemberServerModule } from "@be-water/builtin/site-member/server/index.js";
-import { slowQueryServerModule } from "@be-water/builtin/slow-query/server/index.js";
-import { userServerModule } from "@be-water/builtin/user/server/index.js";
+import { auditServerModule } from "@rewindom/builtin/audit/server/index.js";
+import { backgroundJobServerModule } from "@rewindom/builtin/background-job/server/index.js";
+import { billingServerModule } from "@rewindom/builtin/billing/server/index.js";
+import { dashboardServerModule } from "@rewindom/builtin/dashboard/server/index.js";
+import { errorLogServerModule } from "@rewindom/builtin/error-log/server/index.js";
+import { marketingServerModule } from "@rewindom/builtin/marketing/server/index.js";
+import { notificationServerModule } from "@rewindom/builtin/notification/server/index.js";
+import { platformServerModule } from "@rewindom/builtin/platform/server/index.js";
+import { rbacServerModule } from "@rewindom/builtin/rbac/server/index.js";
+import { siteBillingServerModule } from "@rewindom/builtin/site-billing/server/index.js";
+import { siteMemberServerModule } from "@rewindom/builtin/site-member/server/index.js";
+import { slowQueryServerModule } from "@rewindom/builtin/slow-query/server/index.js";
+import { userServerModule } from "@rewindom/builtin/user/server/index.js";
 
 import { EXTERNAL_SERVER_MODULES } from "./external-modules.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const ENABLED_SERVER_MODULES = [
   rbacServerModule,

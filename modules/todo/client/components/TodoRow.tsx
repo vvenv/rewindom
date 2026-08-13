@@ -1,10 +1,10 @@
 import { useRef, useState, type KeyboardEvent } from "react";
 
-import { Button } from "@be-water/ui/button";
-import { Checkbox } from "@be-water/ui/checkbox";
-import { Input } from "@be-water/ui/input";
-import { toast } from "@be-water/ui/toast";
-import { cn } from "@be-water/ui/utils";
+import { Button } from "@rewindom/ui/button";
+import { Checkbox } from "@rewindom/ui/checkbox";
+import { Input } from "@rewindom/ui/input";
+import { toast } from "@rewindom/ui/toast";
+import { cn } from "@rewindom/ui/utils";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

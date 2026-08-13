@@ -8,15 +8,15 @@ import {
   useAuth,
   useConfirm,
   usePermissions,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import {
   formatBusinessDate,
   formatBusinessDateOrTimeAgo,
   type TenantUserListItem,
-} from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
-import { Switch } from "@be-water/ui/switch";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
+import { Switch } from "@rewindom/ui/switch";
+import { toast } from "@rewindom/ui/toast";
 import { Trash2, Users as UsersIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

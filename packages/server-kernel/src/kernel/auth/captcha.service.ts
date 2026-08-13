@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-import type { CaptchaChallenge, CaptchaVerifyInput } from "@be-water/shared";
+import type { CaptchaChallenge, CaptchaVerifyInput } from "@rewindom/shared";
 
 /**
  * Simple slider captcha service

@@ -1,7 +1,7 @@
 import FastifyJWT from "@fastify/jwt";
-import { authMiddleware } from "@be-water/server-kernel/middleware/auth.middleware.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
+import { authMiddleware } from "@rewindom/server-kernel/middleware/auth.middleware.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { PLATFORM_ADMIN_USER_ID } from "@rewindom/shared";
 import Fastify, { type FastifyInstance } from "fastify";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -12,7 +12,7 @@ vi.mock("./audit.service.js", () => ({
   },
 }));
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     // auth 中间件对每个 /api 请求都会 `resolveHostTenant()` 查一次租户；
     // 返回空 = 这个 Host 没绑定租户，平台路由才放行

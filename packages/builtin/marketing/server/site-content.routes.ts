@@ -1,9 +1,9 @@
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
 import {
   DEFAULT_TENANT_ID,
   isSiteMemberActor,
   type AppLocale,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 

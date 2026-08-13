@@ -1,5 +1,5 @@
-import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
-import { type TenantModuleFlags } from "@be-water/shared";
+import { getServerTenantCatalog } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
+import { type TenantModuleFlags } from "@rewindom/shared";
 
 import { TENANT_MODULES_STORAGE_KEY, createDefaultTenantModuleFlags } from "../../shared/index.js";
 

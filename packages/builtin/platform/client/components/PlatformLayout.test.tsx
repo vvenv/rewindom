@@ -1,6 +1,6 @@
-import { PlatformNavProvider } from "@be-water/client-kit";
-import { createTestQueryClient } from "@be-water/client-test";
-import { server } from "@be-water/client-test/server";
+import { PlatformNavProvider } from "@rewindom/client-kit";
+import { createTestQueryClient } from "@rewindom/client-test";
+import { server } from "@rewindom/client-test/server";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { MemoryRouter } from "react-router";
@@ -30,8 +30,8 @@ const platformNavEntries = [
   },
 ];
 
-vi.mock("@be-water/client-kit", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@be-water/client-kit")>();
+vi.mock("@rewindom/client-kit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@rewindom/client-kit")>();
   return {
     ...actual,
     usePersistState: ({ defaultValue }: { defaultValue: boolean }) => [

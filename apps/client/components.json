@@ -14,8 +14,8 @@
   "rtl": false,
   "aliases": {
     "components": "@/components",
-    "utils": "@be-water/ui/utils",
-    "ui": "@be-water/ui",
+    "utils": "@rewindom/ui/utils",
+    "ui": "@rewindom/ui",
     "lib": "@/lib",
     "hooks": "@/hooks"
   },

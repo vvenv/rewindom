@@ -7,10 +7,10 @@ import {
   useOverflowRow,
   type AppNavItem,
   type AppNavSection,
-} from "@be-water/client-kit";
-import { APP_DISPLAY_NAME } from "@be-water/shared";
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
+} from "@rewindom/client-kit";
+import { APP_DISPLAY_NAME } from "@rewindom/shared";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,8 +18,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/dropdown-menu";
+import { cn } from "@rewindom/ui/utils";
 import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, useLocation } from "react-router";

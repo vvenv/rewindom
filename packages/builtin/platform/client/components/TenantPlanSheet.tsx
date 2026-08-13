@@ -1,25 +1,25 @@
 import { useState, type SubmitEvent } from "react";
 
-import { ApiError } from "@be-water/client-kit";
+import { ApiError } from "@rewindom/client-kit";
 import {
   fromDatetimeLocalValue,
   toDatetimeLocalValue,
-} from "@be-water/client-kit/lib/datetime-local";
-import { Button } from "@be-water/ui/button";
+} from "@rewindom/client-kit/lib/datetime-local";
+import { Button } from "@rewindom/ui/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+} from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -28,9 +28,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { Crown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

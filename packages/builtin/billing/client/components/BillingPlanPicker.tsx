@@ -1,5 +1,5 @@
-import { EmptyState } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+import { EmptyState } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
 import { Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

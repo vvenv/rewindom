@@ -15,9 +15,9 @@
  *（定价页通常不是这一张），所以 action 固定写死本页地址。
  */
 
-import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
-import { resolveRequestLocale } from "@be-water/server-kernel/lib/i18n/translate.js";
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { resolveRequestLocale } from "@rewindom/server-kernel/lib/i18n/translate.js";
+import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "../../marketing/server/site-entitlements.js";

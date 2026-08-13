@@ -20,8 +20,8 @@ source "$ROOT/scripts/lib/log.sh"
 # shellcheck source=scripts/lib/deploy-remote.sh
 source "$ROOT/scripts/lib/deploy-remote.sh"
 
-APP_OPS_DIR="/etc/be-water/scripts"
-REMOTE_RESTORE_STAGING="/tmp/be-water-restore-staging"
+APP_OPS_DIR="/etc/rewindom/scripts"
+REMOTE_RESTORE_STAGING="/tmp/rewindom-restore-staging"
 
 usage() {
   sed -n '3,13p' "$0"
@@ -42,7 +42,7 @@ validate_env() {
   esac
 }
 
-# 同步 backup.sh / restore.sh / lib/log.sh 到远程 /etc/be-water/scripts/
+# 同步 backup.sh / restore.sh / lib/log.sh 到远程 /etc/rewindom/scripts/
 sync_remote_scripts() {
   log_info "同步脚本到远程 ${APP_OPS_DIR} ..."
   _run_ssh "mkdir -p '${APP_OPS_DIR}/lib'"

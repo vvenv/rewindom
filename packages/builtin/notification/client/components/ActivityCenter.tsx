@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/sheet";
+import { cn } from "@rewindom/ui/utils";
 import { Inbox } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

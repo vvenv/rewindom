@@ -1,4 +1,4 @@
-import { PlatformNavProvider } from "@be-water/client-kit";
+import { PlatformNavProvider } from "@rewindom/client-kit";
 import { render, screen } from "@testing-library/react";
 import { Building2, LayoutDashboard, Settings } from "lucide-react";
 import { MemoryRouter } from "react-router";

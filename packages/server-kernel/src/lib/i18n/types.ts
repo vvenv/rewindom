@@ -1,4 +1,4 @@
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /**
  * 服务端消息包：按 **稳定 code** 索引（如 `notes.not_found`），

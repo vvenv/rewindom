@@ -1,4 +1,4 @@
-import { createComponentSlot } from "@be-water/client-kit";
+import { createComponentSlot } from "@rewindom/client-kit";
 
 /**
  * Platform-console widget slots (owned by module-platform views).

@@ -1,4 +1,4 @@
-import { api, TENANT_APPEARANCE_QUERY_KEY } from "@be-water/client-kit";
+import { api, TENANT_APPEARANCE_QUERY_KEY } from "@rewindom/client-kit";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type {

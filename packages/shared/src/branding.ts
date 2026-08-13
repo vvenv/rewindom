@@ -1,11 +1,9 @@
 /**
  * 品牌常量。
  *
- * 展示名 / 标语面向用户；`STORAGE_PREFIX` 是历史 localStorage / cookie 前缀，
- * **不要改动**：它参与工作台认证 token 的 key 与会员 HttpOnly cookie 名，
- * 改动会让已登录用户掉线，并重置客户端偏好。
+ * `STORAGE_PREFIX` 参与工作台认证 token 的 localStorage key 与会员 HttpOnly cookie 名。
  */
-export const STORAGE_PREFIX = "be-water";
+export const STORAGE_PREFIX = "rewindom";
 
 /** 备份文件名前缀（`<prefix>_backup_<ts>.dump` 等）。 */
 export const BACKUP_FILE_PREFIX = STORAGE_PREFIX;

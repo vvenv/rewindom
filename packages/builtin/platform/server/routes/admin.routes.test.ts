@@ -1,5 +1,5 @@
 import "../test/platform.routes.test-mocks.js";
-import { PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
+import { PLATFORM_ADMIN_USER_ID } from "@rewindom/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {

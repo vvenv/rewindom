@@ -1,5 +1,5 @@
-import { readPersistedValue, writePersistedValue } from "@be-water/client-kit/lib/persist-storage";
-import { STORAGE_PREFIX } from "@be-water/shared";
+import { readPersistedValue, writePersistedValue } from "@rewindom/client-kit/lib/persist-storage";
+import { STORAGE_PREFIX } from "@rewindom/shared";
 
 import type { BackgroundTask } from "../contexts/TaskContext.js";
 

@@ -1,4 +1,4 @@
-import { cn } from "@be-water/ui/utils";
+import { cn } from "@rewindom/ui/utils";
 
 import { useAppVersion } from "../hooks/useAppVersion.js";
 

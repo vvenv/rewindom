@@ -1,4 +1,4 @@
-import { isSiteSsrExceptionPath } from "@be-water/builtin/marketing/shared/site-locale.js";
+import { isSiteSsrExceptionPath } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 /**
  * 应用区一级路径：开发态不代理给 Marketing SSR，交回 Vite SPA。

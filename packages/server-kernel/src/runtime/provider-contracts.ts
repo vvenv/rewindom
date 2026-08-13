@@ -1,4 +1,4 @@
-import { type AuthActorType, type AuthTokens, type PublicConfig  } from "@be-water/shared";
+import { type AuthActorType, type AuthTokens, type PublicConfig  } from "@rewindom/shared";
 
 import type { HostTenantContext } from "../lib/host-tenant.js";
 import type { FastifyReply, FastifyRequest } from "fastify";

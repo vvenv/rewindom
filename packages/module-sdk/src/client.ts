@@ -9,4 +9,4 @@
 export * from "./shared.js";
 
 // ---- Client 契约与 UI 运行时
-export * from "@be-water/client-kit";
+export * from "@rewindom/client-kit";

@@ -1,14 +1,14 @@
 
-import { Button } from "@be-water/ui/button";
-import { Field, FieldDescription, FieldGroup } from "@be-water/ui/field";
+import { Button } from "@rewindom/ui/button";
+import { Field, FieldDescription, FieldGroup } from "@rewindom/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@be-water/ui/input-group";
-import { Spinner } from "@be-water/ui/spinner";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/input-group";
+import { Spinner } from "@rewindom/ui/spinner";
+import { cn } from "@rewindom/ui/utils";
 import { Eye, EyeOff, KeyRound, ShieldCheck, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { registerI18nBundles, setupI18n } from "@be-water/module-sdk/client";
+import { registerI18nBundles, setupI18n } from "@rewindom/module-sdk/client";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { TODO_I18N } from "../i18n.js";

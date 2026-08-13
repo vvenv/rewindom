@@ -1,4 +1,4 @@
-import { useConfirm } from "@be-water/client-kit";
+import { useConfirm } from "@rewindom/client-kit";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 

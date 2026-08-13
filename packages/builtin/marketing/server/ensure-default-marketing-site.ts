@@ -1,5 +1,5 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { DEFAULT_TENANT_ID } from "@rewindom/shared";
 
 import { parseSiteNameValue } from "../shared/section-settings.js";
 

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { APP_LOCALES, isAppLocale } from "@be-water/shared";
+import { APP_LOCALES, isAppLocale } from "@rewindom/shared";
 import { describe, expect, it } from "vitest";
 
 import { parseMarkdownFile } from "../shared/marketing-doc.js";

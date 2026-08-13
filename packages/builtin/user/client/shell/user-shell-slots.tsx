@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { type SidebarUserMenuSlotProps } from "@be-water/client-kit";
+import { type SidebarUserMenuSlotProps } from "@rewindom/client-kit";
 
 import {
   userAvatarSlot,

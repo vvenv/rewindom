@@ -1,11 +1,11 @@
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { CaptchaService } from "@be-water/server-kernel/kernel/auth/captcha.service.js";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { CaptchaService } from "@rewindom/server-kernel/kernel/auth/captcha.service.js";
 import {
   platformOAuthEnabledFlags,
   siteOAuthEnabledFlags,
-} from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
-import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
+} from "@rewindom/server-kernel/kernel/auth/oauth-credentials.js";
+import { ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
 import { getPlatformSettings } from "../../platform/server/services/platform-settings.service.js";

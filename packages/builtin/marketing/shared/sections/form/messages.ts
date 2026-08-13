@@ -4,7 +4,7 @@
  * React `FormSection` 与 site-enhance 共用，避免两端各写一份。
  */
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export const FORM_ERROR_TEXT: Record<AppLocale, Record<string, string>> = {
   "zh-CN": {

@@ -1,10 +1,10 @@
-import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
+import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { DEFAULT_TENANT_ID } from "@rewindom/shared";
 
 
-import type { HostTenantContext } from "@be-water/server-kernel/lib/host-tenant.js";
+import type { HostTenantContext } from "@rewindom/server-kernel/lib/host-tenant.js";
 
 export interface SiteTenant {
   id: string;

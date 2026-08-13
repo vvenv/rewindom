@@ -1,5 +1,5 @@
 {
-  "name": "@be-water/module-sdk",
+  "name": "@rewindom/module-sdk",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,9 +11,9 @@
     "./*": "./src/*"
   },
   "dependencies": {
-    "@be-water/client-kit": "workspace:*",
-    "@be-water/server-kernel": "workspace:*",
-    "@be-water/shared": "workspace:*"
+    "@rewindom/client-kit": "workspace:*",
+    "@rewindom/server-kernel": "workspace:*",
+    "@rewindom/shared": "workspace:*"
   },
   "peerDependencies": {
     "fastify": "^5.11.2",

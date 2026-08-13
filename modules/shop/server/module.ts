@@ -1,7 +1,7 @@
 import {
   registerTenantGatedRoutes,
   type ServerAppModule,
-} from "@be-water/module-sdk/server";
+} from "@rewindom/module-sdk/server";
 
 import { SHOP_ENTITLEMENT } from "../shared/entitlements.js";
 

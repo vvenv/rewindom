@@ -16,13 +16,13 @@ alwaysApply: true
 | `packages/server-kernel/src/runtime/`    | 模块契约、加载器、ProviderRegistry、租户路由门控                                                         | 仅内核基建              |
 | `packages/server-kernel/src/kernel/`   | 内核 HTTP 路由、AuthService、captcha、平台管理员认证辅助                                                   | 仅内核基建              |
 | `packages/builtin/<id>/`                   | 内置模块包（`shared/`、`server/`、`client/`、`models.prisma`）                                                | 内置能力 |
-| `modules/<id>/`                            | 外部业务模块包（`@be-water/<id>`，经 `@be-water/module-sdk` 门面）                                              | 新 API、域类型、业务 UI |
-| `@be-water/server-kernel`                  | kernel、lib、generated Prisma — HTTP 内核与基础设施                                                              | 仅内核基建              |
-| `apps/server/src/enabled-modules.ts`     | 内置模块列表（`@be-water/builtin/<id>/server/index.js`）；外部模块由 `external-modules.ts` 汇入                | 注册新 server 模块      |
+| `modules/<id>/`                            | 外部业务模块包（`@rewindom/<id>`，经 `@rewindom/module-sdk` 门面）                                              | 新 API、域类型、业务 UI |
+| `@rewindom/server-kernel`                  | kernel、lib、generated Prisma — HTTP 内核与基础设施                                                              | 仅内核基建              |
+| `apps/server/src/enabled-modules.ts`     | 内置模块列表（`@rewindom/builtin/<id>/server/index.js`）；外部模块由 `external-modules.ts` 汇入                | 注册新 server 模块      |
 | `apps/client/src/shell/`                 | 产品壳层（认证页、Layout、Sidebar、路由守卫）                                                                    | 仅壳层基建              |
 | `apps/client/src/`                       | app-shell-routes、collect-modules、render-app-routes、enabled-modules、app-nav                                  | 仅模块化任务            |
-| `packages/ui/`                           | `@be-water/ui` — shadcn 基础组件、toast；CLI 配置见 `components.json`                                            | 仅 shadcn CLI 同步更新；禁止为业务需求直接改源码 |
-| `packages/client-kit/` | `@be-water/client-kit` — api、PageLayout、DataTable、DataTableColumnHeader、list-url-params、component-slot | 仅 API/Shell 基建 |
+| `packages/ui/`                           | `@rewindom/ui` — shadcn 基础组件、toast；CLI 配置见 `components.json`                                            | 仅 shadcn CLI 同步更新；禁止为业务需求直接改源码 |
+| `packages/client-kit/` | `@rewindom/client-kit` — api、PageLayout、DataTable、DataTableColumnHeader、list-url-params、component-slot | 仅 API/Shell 基建 |
 | `packages/client-test/` | Vitest/MSW 共享 setup 与 mocks | 测试基建 |
 | `apps/client/src/enabled-modules.ts`     | 启用模块列表                                                                                                     | 注册新 client 模块      |
 | `packages/shared/src/module-contract.ts` | 跨端模块类型                                                                                                     | 仅扩展契约时修改        |
@@ -32,9 +32,9 @@ alwaysApply: true
 - 不要在 `apps/client/src/` 组装层内 import `modules/` 下的具体业务实现（Loader 通过 `ENABLED_*_MODULES` 组装）
 - 不要向 `routes/index.ts` 直接追加业务路由；应创建模块并在 `enabled-modules.ts` 注册
 - 不要向 `App.tsx` 直接追加业务 `<Route>`；使用模块 `client.renderRoutes` 或 `client.routes`
-- 模块包 `server/**` 禁止 import 宿主 `apps/server/src/lib/`、`kernel/` 等；应使用 `@be-water/server-kernel`、`@be-water/shared`、本模块内相对路径，或兄弟模块的相对路径（测试文件暂不受限）
+- 模块包 `server/**` 禁止 import 宿主 `apps/server/src/lib/`、`kernel/` 等；应使用 `@rewindom/server-kernel`、`@rewindom/shared`、本模块内相对路径，或兄弟模块的相对路径（测试文件暂不受限）
 - 模块包 `client/**` 禁止 import 宿主 `@/components`、`@/hooks`；允许 `@/app-nav` 等组装层契约
-- client 模块包应使用 `@be-water/ui`、`@be-water/client-kit` 及本模块内部路径
+- client 模块包应使用 `@rewindom/ui`、`@rewindom/client-kit` 及本模块内部路径
 
 ## 新功能 checklist
 
@@ -86,8 +86,8 @@ pnpm --filter server validate:module-deps
 完整说明见 `docs/design/modular-architecture.md` §3.4。
 
 - **一包一 manifest**：模块 id 与物理包（部署单元）一一对应
-- **内置能力**（`rbac`、`audit`、`user`、`platform`、`marketing` 等通用 SaaS）住在 `packages/builtin/<id>/`，共享 `@be-water/builtin` 这一个 workspace 包
-- **业务模块**是独立 workspace 包 `modules/<id>/`（`@be-water/<id>`），只依赖 `@be-water/module-sdk`
+- **内置能力**（`rbac`、`audit`、`user`、`platform`、`marketing` 等通用 SaaS）住在 `packages/builtin/<id>/`，共享 `@rewindom/builtin` 这一个 workspace 包
+- **业务模块**是独立 workspace 包 `modules/<id>/`（`@rewindom/<id>`），只依赖 `@rewindom/module-sdk`
 - **租户开关**用 `tenantEntitlements[].key` 声明，**与 manifest `id` 解耦**——key 是租户设置里的持久化标识，改动会令存量开关失效
 - 紧耦合子域可共物理包（包内目录）；跨子域用包内 import 或 Event Bus
 - **禁止**仅为「模块数量」或目录整齐而拆 npm 包

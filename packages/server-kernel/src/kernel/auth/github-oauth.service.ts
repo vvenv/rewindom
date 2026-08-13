@@ -1,4 +1,4 @@
-import { APP_DISPLAY_NAME } from "@be-water/shared";
+import { APP_DISPLAY_NAME } from "@rewindom/shared";
 
 import { AppError } from "../../lib/app-errors.js";
 

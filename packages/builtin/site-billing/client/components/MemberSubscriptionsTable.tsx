@@ -4,8 +4,8 @@ import {
   DataTable,
   DataTableColumnHeader,
   type DataTableFeatures,
-} from "@be-water/client-kit";
-import { Badge } from "@be-water/ui/badge";
+} from "@rewindom/client-kit";
+import { Badge } from "@rewindom/ui/badge";
 import { Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

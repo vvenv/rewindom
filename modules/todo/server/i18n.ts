@@ -1,4 +1,4 @@
-import type { ServerI18nBundle } from "@be-water/module-sdk/server";
+import type { ServerI18nBundle } from "@rewindom/module-sdk/server";
 
 export const TODO_SERVER_I18N: ServerI18nBundle = {
   id: "todo",

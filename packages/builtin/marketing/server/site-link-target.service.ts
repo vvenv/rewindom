@@ -6,9 +6,9 @@
  * 则相反。它本来就是**给编辑器看的一张聚合视图**，独立成文件最诚实。
  */
 
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
+import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import {
   DOCS_INDEX_PATH,

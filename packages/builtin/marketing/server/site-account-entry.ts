@@ -1,5 +1,5 @@
 import type { SiteMemberSsrProfile } from "./site-member-ssr-session.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /**
  * 页头账户入口的**服务端**注入点，与 client 的 `siteMemberEntrySlot` 一一对应。

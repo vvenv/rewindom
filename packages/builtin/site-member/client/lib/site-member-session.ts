@@ -1,4 +1,4 @@
-import type { AuthTokenStore } from "@be-water/client-kit";
+import type { AuthTokenStore } from "@rewindom/client-kit";
 
 /**
  * Cookie 模式下 token 在 HttpOnly cookie 里，JS 不可读。

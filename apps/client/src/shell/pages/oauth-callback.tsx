@@ -5,9 +5,9 @@ import {
   goToPlatformConsole,
   useAuth,
   usePublicConfig,
-} from "@be-water/client-kit";
-import { isPlatformAdminActor } from "@be-water/shared";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/client-kit";
+import { isPlatformAdminActor } from "@rewindom/shared";
+import { Spinner } from "@rewindom/ui/spinner";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 

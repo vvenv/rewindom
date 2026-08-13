@@ -9,7 +9,7 @@ import {
 } from "./dashboard-settings.js";
 
 import type { DashboardPreference } from "../../shared/index.js";
-import type { DashboardWidget } from "@be-water/client-kit";
+import type { DashboardWidget } from "@rewindom/client-kit";
 
 const Stub = () => null;
 

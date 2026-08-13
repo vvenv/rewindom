@@ -9,7 +9,7 @@ import {
 } from "../lib/auth-token-storage.js";
 
 import type { AuthState } from "../auth-types.js";
-import type { AuthTokens, ChangePasswordData, LoginCredentials, User } from "@be-water/shared";
+import type { AuthTokens, ChangePasswordData, LoginCredentials, User } from "@rewindom/shared";
 
 
 export interface AuthContextType extends AuthState {

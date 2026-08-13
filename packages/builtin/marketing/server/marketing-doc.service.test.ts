@@ -1,4 +1,4 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -10,7 +10,7 @@ import {
   listPublishedLibraryLocales,
 } from "./marketing-doc.service.js";
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     marketingSite: {
       findFirst: vi.fn(),

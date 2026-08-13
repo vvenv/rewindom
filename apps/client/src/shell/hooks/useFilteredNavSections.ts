@@ -6,7 +6,7 @@ import {
   usePermissions,
   type AppNavItem,
   type AppNavSection,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import { useTranslation } from "react-i18next";
 
 import { partitionNavSections } from "@/app-nav";

@@ -2,14 +2,14 @@ import {
   DEFAULT_TENANT_ID,
   PLATFORM_ADMIN_USER_ID,
   TENANT_IMPERSONATION_USERNAME,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { upsertMock } = vi.hoisted(() => ({
   upsertMock: vi.fn(),
 }));
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     user: {
       upsert: upsertMock,

@@ -17,9 +17,9 @@
  * 全都是 POST-重定向-GET：不这么做，刷新一次就重放上一次提交。
  */
 
-import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
-import { resolveRequestLocale } from "@be-water/server-kernel/lib/i18n/translate.js";
-import { normalizeLocale, type AppLocale  } from "@be-water/shared";
+import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { resolveRequestLocale } from "@rewindom/server-kernel/lib/i18n/translate.js";
+import { normalizeLocale, type AppLocale  } from "@rewindom/shared";
 
 import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "../../marketing/server/site-entitlements.js";

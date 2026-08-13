@@ -1,4 +1,4 @@
-import type { AppLocale } from "@be-water/module-sdk";
+import type { AppLocale } from "@rewindom/module-sdk";
 
 import { isShopLocalizedMap, resolveShopLocaleText } from "../../shared/locale.js";
 

@@ -1,12 +1,12 @@
 import {
   handleValidationError,
   sendCodedError,
-} from "@be-water/server-kernel/http/route-error-handler.js";
-import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
+} from "@rewindom/server-kernel/http/route-error-handler.js";
+import { hasErrorCode } from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { getServerPermissionCatalog } from "@rewindom/server-kernel/runtime/permission-catalog.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
 

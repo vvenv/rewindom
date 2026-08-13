@@ -1,7 +1,7 @@
-import { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
-import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { type JsonValue } from "@be-water/shared";
+import { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
+import { resolveSortField, resolveSortOrder } from "@rewindom/server-kernel/http/list-sort.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { type JsonValue } from "@rewindom/shared";
 
 import { type ErrorStats } from "../shared/index.js";
 

@@ -1,8 +1,8 @@
-import * as auditLogEmit from "@be-water/server-kernel/runtime/audit-log-emit.js";
+import * as auditLogEmit from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 import {
   ConflictError,
   NotFoundError,
-} from "@be-water/server-kernel/lib/app-errors.js";
+} from "@rewindom/server-kernel/lib/app-errors.js";
 import {
   createRouteTestApp,
   createTestUserFast,
@@ -10,9 +10,9 @@ import {
   resetUserPermissions,
   type TestApp,
   type TestUser,
-} from "@be-water/server-test";
-import { installTestPermissionCatalog } from "@be-water/server-test/permission-catalog";
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
+} from "@rewindom/server-test";
+import { installTestPermissionCatalog } from "@rewindom/server-test/permission-catalog";
+import { DEFAULT_TENANT_ID } from "@rewindom/shared";
 import {
   describe,
   it,

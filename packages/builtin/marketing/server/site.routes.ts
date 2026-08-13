@@ -1,9 +1,9 @@
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { parseMultipartFileUpload } from "@be-water/server-kernel/http/multipart-upload.js";
-import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
-import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { DEFAULT_TENANT_ID, normalizeLocale } from "@be-water/shared";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { parseMultipartFileUpload } from "@rewindom/server-kernel/http/multipart-upload.js";
+import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { DEFAULT_TENANT_ID, normalizeLocale } from "@rewindom/shared";
 
 import { AuditAction } from "../../audit/shared/index.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";

@@ -57,7 +57,7 @@ parse_args() {
     DB_NAME="app_test"
     BACKUP_DIR="/backups/test"
   else
-    DB_NAME="be-water"
+    DB_NAME="rewindom"
     BACKUP_DIR="/var/backups/app"
   fi
 

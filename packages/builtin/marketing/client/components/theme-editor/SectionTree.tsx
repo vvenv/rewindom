@@ -5,16 +5,16 @@ import {
   type ReactNode,
 } from "react";
 
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/select";
+import { cn } from "@rewindom/ui/utils";
 import {
   ArrowDown,
   ArrowUp,

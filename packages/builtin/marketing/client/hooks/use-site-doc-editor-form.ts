@@ -7,7 +7,7 @@ import {
   type SetStateAction,
 } from "react";
 
-import { DEFAULT_LOCALE, type AppLocale } from "@be-water/shared";
+import { DEFAULT_LOCALE, type AppLocale } from "@rewindom/shared";
 
 import { type MarketingDoc, type MarketingDocListItem  } from "../../shared/marketing-doc.js";
 

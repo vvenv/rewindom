@@ -1,17 +1,17 @@
 import { useState, type ReactNode } from "react";
 
-import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
+import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
-import { Spinner } from "@be-water/ui/spinner";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/dropdown-menu";
+import { Spinner } from "@rewindom/ui/spinner";
+import { cn } from "@rewindom/ui/utils";
 import {
   ArrowDown,
   ArrowUp,

@@ -8,8 +8,8 @@ import {
   type Locale,
 } from "react-day-picker"
 
-import { Button, buttonVariants } from "@be-water/ui/button"
-import { cn } from "@be-water/ui/utils"
+import { Button, buttonVariants } from "@rewindom/ui/button"
+import { cn } from "@rewindom/ui/utils"
 
 function Calendar({
   className,

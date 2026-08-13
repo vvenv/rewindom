@@ -1,10 +1,10 @@
 import {
   resolveSortField,
   resolveSortOrder,
-} from "@be-water/server-kernel/http/list-sort.js";
-import { translateServerMessage } from "@be-water/server-kernel/lib/i18n/registry.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
+} from "@rewindom/server-kernel/http/list-sort.js";
+import { translateServerMessage } from "@rewindom/server-kernel/lib/i18n/registry.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { PLATFORM_ADMIN_USER_ID } from "@rewindom/shared";
 
 import {
   resolveAuditLogScope,
@@ -12,8 +12,8 @@ import {
   type AuditScopeType,
 } from "../shared/index.js";
 
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
-import type { AuditDetailParams } from "@be-water/server-kernel/runtime/domain-events.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
+import type { AuditDetailParams } from "@rewindom/server-kernel/runtime/domain-events.js";
 
 const AUDIT_LOG_SORTABLE_FIELDS = new Set([
   "created_at",

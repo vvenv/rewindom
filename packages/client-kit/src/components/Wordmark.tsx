@@ -1,8 +1,7 @@
 /**
  * 文字标：几何等线体手绘小写 "rewindom"。
  *
- * 单线（stroke）构图，与 {@link Logo} 同为 monoline 语言。
- * 基线 y=131、x 高顶 y=51、上伸部顶 y=11，圆形字母半径 40。
+ * 单线（stroke）构图。基线 y=131、x 高顶 y=51、上伸部顶 y=11，圆形字母半径 40。
  * 字距 32。调用方只设高度（`h-5` 等），宽度交给 `w-auto` 以保持 910:142 比例。
  */
 export function Wordmark({ className }: { className?: string }) {

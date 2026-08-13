@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 管理 be-water 备份定时任务
+# 管理 rewindom 备份定时任务
 # 用法:
 #   ./scripts/backup-cron.sh install --env production|test
 #   ./scripts/backup-cron.sh disable --env production|test
@@ -12,8 +12,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/log.sh
 source "${SCRIPT_DIR}/lib/log.sh"
 
-CRON_TAG_PREFIX="be-water-backup"
-APP_OPS_DIR="/etc/be-water/scripts"
+CRON_TAG_PREFIX="rewindom-backup"
+APP_OPS_DIR="/etc/rewindom/scripts"
 ACTION=""
 ENVIRONMENT="production"
 
@@ -72,7 +72,7 @@ set_env_vars() {
     fi
 
     CRON_TAG="# ${CRON_TAG_PREFIX}-${ENVIRONMENT}"
-    LOG_FILE="/var/log/be-water-backup-${ENVIRONMENT}.log"
+    LOG_FILE="/var/log/rewindom-backup-${ENVIRONMENT}.log"
     BACKUP_SCRIPT="${APP_OPS_DIR}/backup.sh"
 }
 
@@ -179,11 +179,11 @@ show_status() {
 
     matches=$(printf '%s\n' "$current" | grep -F "$CRON_TAG_PREFIX" || true)
     if [ -z "$matches" ]; then
-        log_warn "未找到 be-water 备份定时任务"
+        log_warn "未找到 rewindom 备份定时任务"
         exit 0
     fi
 
-    log_info "当前 be-water 备份定时任务:"
+    log_info "当前 rewindom 备份定时任务:"
     printf '%s\n' "$matches"
 }
 

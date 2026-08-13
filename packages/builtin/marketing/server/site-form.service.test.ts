@@ -2,7 +2,7 @@
  * 公开表单提交 —— 这是模块唯一一条匿名写库的路径，所以这里守的全是「能不能骗过去」。
  */
 
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createSection, type SiteSection } from "../shared/section-schema.js";
@@ -13,7 +13,7 @@ import {
 } from "./site-form.service.js";
 import { getPublishedPublicPage } from "./site.service.js";
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: { marketingFormSubmission: { create: vi.fn() } },
 }));
 

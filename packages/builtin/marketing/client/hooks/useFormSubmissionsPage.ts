@@ -1,7 +1,7 @@
 import {
   parseListPage,
   parseListPageSize,
-} from "@be-water/client-kit/lib/list-url-params";
+} from "@rewindom/client-kit/lib/list-url-params";
 import { useSearchParams } from "react-router";
 
 /**

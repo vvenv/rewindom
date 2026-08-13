@@ -5,9 +5,9 @@ import {
   usePublicConfig,
   APP_HOME_ENTRY_PATH,
   goToPlatformConsole,
-} from "@be-water/client-kit";
-import { isPlatformAdminActor } from "@be-water/shared";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/client-kit";
+import { isPlatformAdminActor } from "@rewindom/shared";
+import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 

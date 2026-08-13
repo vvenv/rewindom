@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import { useTranslation } from "react-i18next";
 
 import { SITE_THEMES, type SiteTheme } from "../../../shared/site-themes.js";

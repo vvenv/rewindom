@@ -21,7 +21,7 @@
 
 ## 外观（主题 + 布局）
 
-两根正交的轴，注册表都在 `@be-water/shared`：
+两根正交的轴，注册表都在 `@rewindom/shared`：
 
 - **主题**（配色方案）— `theme-palette.ts`，token 在 `apps/client/src/index.css`
 - **布局**（左右 / 上下）— `shell-layout.ts`，渲染在 `apps/client/src/shell/`
@@ -85,7 +85,7 @@ server/src/
 ```bash
 # 每个模块的 server / client / shared 各是一个 vitest project，
 # 位置参数只按 project root 的相对路径过滤，跑全模块要用 --project。
-pnpm --filter @be-water/builtin exec vitest --run --project 'platform/*'
+pnpm --filter @rewindom/builtin exec vitest --run --project 'platform/*'
 ```
 
 ## 禁止

@@ -2,10 +2,10 @@
 import {
   type Prisma,
   type User,
-} from "@be-water/server-kernel/generated/prisma/client/client.js";
-import { excludeInternalUsersWhere } from "@be-water/server-kernel/kernel/auth/internal-users.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { TENANT_IMPERSONATION_USERNAME } from "@be-water/shared";
+} from "@rewindom/server-kernel/generated/prisma/client/client.js";
+import { excludeInternalUsersWhere } from "@rewindom/server-kernel/kernel/auth/internal-users.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { TENANT_IMPERSONATION_USERNAME } from "@rewindom/shared";
 
 export { excludeInternalUsersWhere };
 

@@ -1,4 +1,4 @@
-import type { AppLocale } from "@be-water/module-sdk";
+import type { AppLocale } from "@rewindom/module-sdk";
 
 /** 扁平 locale → 文案。缺当前语言时回落 zh-CN，再回落任意非空值。 */
 export type ShopLocalizedMap = Record<string, string>;

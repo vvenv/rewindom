@@ -3,37 +3,37 @@ import { randomBytes, randomUUID } from "node:crypto";
 import {
   buildGithubAuthorizeUrl,
   GithubOAuthService,
-} from "@be-water/server-kernel/kernel/auth/github-oauth.service.js";
+} from "@rewindom/server-kernel/kernel/auth/github-oauth.service.js";
 import {
   buildGoogleAuthorizeUrl,
   GoogleOAuthService,
-} from "@be-water/server-kernel/kernel/auth/google-oauth.service.js";
+} from "@rewindom/server-kernel/kernel/auth/google-oauth.service.js";
 import {
   buildMicrosoftAuthorizeUrl,
   MicrosoftOAuthService,
-} from "@be-water/server-kernel/kernel/auth/microsoft-oauth.service.js";
+} from "@rewindom/server-kernel/kernel/auth/microsoft-oauth.service.js";
 import {
   memberOAuthStateType,
   type OAuthProfile,
   type OAuthProviderId,
-} from "@be-water/server-kernel/kernel/auth/oauth-common.js";
+} from "@rewindom/server-kernel/kernel/auth/oauth-common.js";
 import {
   isOAuthProviderId,
   type ResolvedOAuthCredentials,
-} from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
+} from "@rewindom/server-kernel/kernel/auth/oauth-credentials.js";
 import {
   UnauthorizedError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { type AuthTokens } from "@be-water/shared";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
+import { type AuthTokens } from "@rewindom/shared";
 
 import { toSiteMemberProfile } from "./site-member.mapper.js";
 
 import type { SiteTenant } from "./site-member-tenant.js";
 import type { SiteMemberProfile } from "../shared/site-member.js";
-import type { JwtSignPayload } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import type { JwtSignPayload } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
 
 const EXCHANGE_CODE_TTL_MS = 2 * 60 * 1000;
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;

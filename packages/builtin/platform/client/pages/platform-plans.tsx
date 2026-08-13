@@ -18,17 +18,17 @@
 
 import { useEffect, useState } from "react";
 
-import { ApiError } from "@be-water/client-kit";
-import { APP_LOCALES, getLocaleNativeLabel } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
-import { Field, FieldDescription, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
-import { Separator } from "@be-water/ui/separator";
-import { Spinner } from "@be-water/ui/spinner";
-import { Switch } from "@be-water/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@be-water/ui/tabs";
-import { Textarea } from "@be-water/ui/textarea";
-import { toast } from "@be-water/ui/toast";
+import { ApiError } from "@rewindom/client-kit";
+import { APP_LOCALES, getLocaleNativeLabel } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
+import { Field, FieldDescription, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
+import { Separator } from "@rewindom/ui/separator";
+import { Spinner } from "@rewindom/ui/spinner";
+import { Switch } from "@rewindom/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rewindom/ui/tabs";
+import { Textarea } from "@rewindom/ui/textarea";
+import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 
 import {

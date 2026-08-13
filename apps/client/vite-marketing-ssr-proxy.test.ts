@@ -1,4 +1,4 @@
-import { SITE_APP_PREFIXES } from "@be-water/builtin/marketing/shared/site-locale.js";
+import { SITE_APP_PREFIXES } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import { describe, expect, it } from "vitest";
 
 import {

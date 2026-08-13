@@ -1,5 +1,5 @@
 {
-  "name": "@be-water/server",
+  "name": "@rewindom/server",
   "version": "0.6.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "prebuild": "pnpm --filter @be-water/builtin assemble",
+    "prebuild": "pnpm --filter @rewindom/builtin assemble",
     "build": "tsc -p tsconfig.build.json --noEmit && node scripts/bundle.mjs",
     "start": "node dist/index.js",
     "lint": "eslint .",
@@ -24,13 +24,13 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "@be-water/bookmark": "workspace:*",
-    "@be-water/builtin": "workspace:*",
-    "@be-water/note": "workspace:*",
-    "@be-water/server-kernel": "workspace:*",
-    "@be-water/shared": "workspace:*",
-    "@be-water/shop": "workspace:*",
-    "@be-water/todo": "workspace:*",
+    "@rewindom/bookmark": "workspace:*",
+    "@rewindom/builtin": "workspace:*",
+    "@rewindom/note": "workspace:*",
+    "@rewindom/server-kernel": "workspace:*",
+    "@rewindom/shared": "workspace:*",
+    "@rewindom/shop": "workspace:*",
+    "@rewindom/todo": "workspace:*",
     "@fastify/caching": "^9.0.3",
     "@fastify/cookie": "^11.1.2",
     "@fastify/cors": "^11.3.0",
@@ -56,8 +56,8 @@
     "thread-stream": "4.2.0"
   },
   "devDependencies": {
-    "@be-water/builtin": "workspace:*",
-    "@be-water/server-test": "workspace:*",
+    "@rewindom/builtin": "workspace:*",
+    "@rewindom/server-test": "workspace:*",
     "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^26.2.0",

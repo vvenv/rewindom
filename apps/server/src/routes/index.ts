@@ -1,8 +1,8 @@
-import { registerKernelRoutes as mountKernelRoutes } from "@be-water/server-kernel/kernel/kernel-routes.js";
-import { bindAuditEventBus } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { bindDomainEventBus } from "@be-water/server-kernel/runtime/domain-event-emit.js";
-import { ModuleLoader } from "@be-water/server-kernel/runtime/module-loader.js";
-import { bindNotificationEventBus } from "@be-water/server-kernel/runtime/notification-emit.js";
+import { registerKernelRoutes as mountKernelRoutes } from "@rewindom/server-kernel/kernel/kernel-routes.js";
+import { bindAuditEventBus } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { bindDomainEventBus } from "@rewindom/server-kernel/runtime/domain-event-emit.js";
+import { ModuleLoader } from "@rewindom/server-kernel/runtime/module-loader.js";
+import { bindNotificationEventBus } from "@rewindom/server-kernel/runtime/notification-emit.js";
 
 import { ENABLED_SERVER_MODULES } from "../enabled-modules.js";
 

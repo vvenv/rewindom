@@ -1,4 +1,4 @@
-import type { Permission, TenantFeatureKey } from "@be-water/shared";
+import type { Permission, TenantFeatureKey } from "@rewindom/shared";
 import type { LucideIcon } from "lucide-react";
 
 export interface AppNavItem {

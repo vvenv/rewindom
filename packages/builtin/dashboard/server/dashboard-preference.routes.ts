@@ -1,4 +1,4 @@
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
 
 import { normalizeDashboardPreferenceInput } from "../shared/index.js";
 

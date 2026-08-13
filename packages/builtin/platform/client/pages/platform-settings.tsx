@@ -3,23 +3,23 @@ import {
   translateThemePaletteOptions,
   useConfirm,
   usePublicConfig,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import {
   APP_LOCALES,
   isAppLocale,
   isShellLayoutSlug,
   isThemePaletteSlug,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@be-water/ui/card";
-import { Spinner } from "@be-water/ui/spinner";
-import { Switch } from "@be-water/ui/switch";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/card";
+import { Spinner } from "@rewindom/ui/spinner";
+import { Switch } from "@rewindom/ui/switch";
+import { toast } from "@rewindom/ui/toast";
 import {
   ShieldCheck,
   UserCheck,

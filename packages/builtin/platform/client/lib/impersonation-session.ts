@@ -2,7 +2,7 @@ import {
   api,
   goToPlatformConsole,
   setStoredAuthTokens,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 
 import {
   clearImpersonationBackup,
@@ -10,7 +10,7 @@ import {
   readImpersonationMeta,
 } from "./impersonation-storage.js";
 
-import type { PublicConfig } from "@be-water/shared";
+import type { PublicConfig } from "@rewindom/shared";
 
 export function isInImpersonationSession(): boolean {
   return readImpersonationMeta() !== null && readImpersonationBackup() !== null;

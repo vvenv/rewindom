@@ -4,7 +4,7 @@ import {
   type ClientAppModule,
   type AppNavSection,
   type DashboardWidget,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 
 import { renderModuleDeclarativeRoutes } from "./declarative-routes";
 

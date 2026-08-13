@@ -2,7 +2,7 @@ import { type ChildProcess, type exec as ExecFn } from "child_process";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { BACKUP_FILE_PREFIX } from "@be-water/shared";
+import { BACKUP_FILE_PREFIX } from "@rewindom/shared";
 
 import {
   BackupService,
@@ -49,14 +49,14 @@ const { mockLogInfo, mockExecEmpty, mockExecError, asExecMock } = vi.hoisted(
   },
 );
 
-vi.mock("@be-water/server-kernel/lib/logger.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/logger.js", () => ({
   createModuleLogger: vi.fn(() => ({
     info: mockLogInfo,
     error: vi.fn(),
   })),
 }));
 
-vi.mock("@be-water/server-kernel/lib/config.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
     database: {
       url: "postgresql://localhost:5432/test",

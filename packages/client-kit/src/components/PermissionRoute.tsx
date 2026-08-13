@@ -1,4 +1,4 @@
-import { Spinner } from "@be-water/ui/spinner";
+import { Spinner } from "@rewindom/ui/spinner";
 import { Outlet } from "react-router";
 
 import { useDefaultHomePath } from "../hooks/useDefaultHomePath.js";
@@ -6,7 +6,7 @@ import { usePermissions } from "../hooks/usePermissions.js";
 
 import { ExternalOrNavigate } from "./ExternalOrNavigate.js";
 
-import type { Permission } from "@be-water/shared";
+import type { Permission } from "@rewindom/shared";
 
 interface PermissionRouteProps {
   permission?: Permission;

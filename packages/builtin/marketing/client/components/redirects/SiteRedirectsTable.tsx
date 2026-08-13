@@ -4,10 +4,10 @@ import {
   DataTable,
   type DataTableFeatures,
   useConfirm,
-} from "@be-water/client-kit";
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/client-kit";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
+import { toast } from "@rewindom/ui/toast";
 import { Signpost, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

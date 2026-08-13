@@ -1,14 +1,14 @@
 import { type ReactElement } from "react";
 
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
+} from "@rewindom/ui/dropdown-menu";
 import { Check, ChevronsUpDown, FileText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

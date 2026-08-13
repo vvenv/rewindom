@@ -3,7 +3,7 @@ import {
   normalizeLocale,
   parseAcceptLanguage,
   type AppLocale,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { translateServerMessage } from "./registry.js";
 

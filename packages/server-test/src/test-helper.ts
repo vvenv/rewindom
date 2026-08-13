@@ -6,24 +6,24 @@ import {
   invalidateUserPermissionCache,
   PbacAuthzProvider,
   permissionMiddleware,
-} from "@be-water/builtin/rbac/server/permission.middleware.js";
-import { authMiddleware } from "@be-water/server-kernel/middleware/auth.middleware.js";
-import { errorHandlerMiddleware } from "@be-water/server-kernel/middleware/error-handler.middleware.js";
-import { ProviderRegistry } from "@be-water/server-kernel/runtime/provider-registry.js";
-import { AuthService } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+} from "@rewindom/builtin/rbac/server/permission.middleware.js";
+import { authMiddleware } from "@rewindom/server-kernel/middleware/auth.middleware.js";
+import { errorHandlerMiddleware } from "@rewindom/server-kernel/middleware/error-handler.middleware.js";
+import { ProviderRegistry } from "@rewindom/server-kernel/runtime/provider-registry.js";
+import { AuthService } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
 import {
   DEFAULT_TENANT_ID,
   DEFAULT_TENANT_SLUG,
   platformAdminPermissionCacheKey,
   userPermissionCacheKey,
   type AuthActorType,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import Fastify, { type FastifyInstance } from "fastify";
 import { vi } from "vitest";
 
 import { prismaMock } from "./register-prisma-mock.js";
 
-vi.mock("@be-water/server-kernel/lib/config.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
     auth: {
       jwtSecret: "test-secret",

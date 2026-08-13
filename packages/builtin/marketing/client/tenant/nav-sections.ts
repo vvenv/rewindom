@@ -1,6 +1,6 @@
 import { FileText, Globe, Image as ImageIcon, Inbox } from "lucide-react";
 
-import type { AppNavSection } from "@be-water/client-kit";
+import type { AppNavSection } from "@rewindom/client-kit";
 
 /**
  * 「站点」分组：一项一类**内容集合**（页面、表单提交、媒体、文档）——租户在那里

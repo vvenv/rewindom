@@ -1,4 +1,4 @@
-import { collectTenantCatalogFromManifests, type TenantEntitlementCatalog } from "@be-water/shared";
+import { collectTenantCatalogFromManifests, type TenantEntitlementCatalog } from "@rewindom/shared";
 
 import type { ServerAppModule } from "./module-contract.js";
 

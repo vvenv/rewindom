@@ -1,9 +1,9 @@
-import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
+import { getServerTenantCatalog } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { createDefaultTenantFeatureFlags, TENANT_FEATURES_STORAGE_KEY } from "../../shared/index.js";
 
-vi.mock("@be-water/server-kernel/runtime/tenant-catalog.js", () => ({
+vi.mock("@rewindom/server-kernel/runtime/tenant-catalog.js", () => ({
   getServerTenantCatalog: vi.fn(),
 }));
 

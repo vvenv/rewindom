@@ -1,4 +1,4 @@
-import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
+import { registerI18nBundles, setupI18n } from "@rewindom/client-kit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
@@ -59,8 +59,8 @@ const listResult: MarketingDocListResult = {
   locales: ["zh-CN"],
 };
 
-vi.mock("@be-water/client-kit", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@be-water/client-kit")>();
+vi.mock("@rewindom/client-kit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@rewindom/client-kit")>();
   return {
     ...actual,
     usePermissions: () => ({ hasPermission: () => true }),

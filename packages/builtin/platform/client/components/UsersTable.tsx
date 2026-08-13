@@ -5,16 +5,16 @@ import {
   DataTableColumnHeader,
   type DataTableFeatures,
   usePublicConfig,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import {
   formatLoginIdentifier,
   formatBusinessDate,
   formatBusinessDateOrTimeAgo,
   formatTenantDisplayLabel,
-} from "@be-water/shared";
-import { Alert, AlertDescription } from "@be-water/ui/alert";
-import { Spinner } from "@be-water/ui/spinner";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/shared";
+import { Alert, AlertDescription } from "@rewindom/ui/alert";
+import { Spinner } from "@rewindom/ui/spinner";
+import { cn } from "@rewindom/ui/utils";
 import { useTranslation } from "react-i18next";
 
 import { type PlatformUserSummary } from "../../shared/index.js";

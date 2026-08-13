@@ -2,7 +2,7 @@ import { NOTIFICATION_DASHBOARD_WIDGETS } from "./dashboard-widgets.js";
 import { NOTIFICATION_I18N } from "./i18n.js";
 import { NotificationShellSlots } from "./shell/notification-shell-slots.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const notificationClientModule: ClientAppModule = {
   id: "notification",

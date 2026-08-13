@@ -1,5 +1,5 @@
-import { Button } from "@be-water/ui/button";
-import { cn } from "@be-water/ui/utils";
+import { Button } from "@rewindom/ui/button";
+import { cn } from "@rewindom/ui/utils";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";

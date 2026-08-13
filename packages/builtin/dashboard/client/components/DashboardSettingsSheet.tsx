@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -9,8 +9,8 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
 import {
   DndContext,
   KeyboardSensor,
@@ -33,7 +33,7 @@ import { useDashboardSettings } from "../hooks/useDashboardSettings.js";
 import { DashboardSettingsRow } from "./DashboardSettingsRow.js";
 
 import type { DashboardPreference } from "../../shared/index.js";
-import type { DashboardWidget } from "@be-water/client-kit";
+import type { DashboardWidget } from "@rewindom/client-kit";
 
 export function DashboardSettingsSheet({
   open,

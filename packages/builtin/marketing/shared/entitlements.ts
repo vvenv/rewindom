@@ -1,4 +1,4 @@
-import type { TenantModuleEntitlement } from "@be-water/shared";
+import type { TenantModuleEntitlement } from "@rewindom/shared";
 
 /** 租户自助 Marketing CMS（含产品主域默认租户站）。 */
 export const TENANT_MARKETING_ENTITLEMENT: TenantModuleEntitlement = {

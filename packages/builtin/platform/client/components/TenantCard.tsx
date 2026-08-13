@@ -1,13 +1,13 @@
-import { usePublicConfig } from "@be-water/client-kit";
-import { formatBusinessDate } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
+import { usePublicConfig } from "@rewindom/client-kit";
+import { formatBusinessDate } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-} from "@be-water/ui/card";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/card";
+import { cn } from "@rewindom/ui/utils";
 import { Archive, ExternalLink, PauseCircle, PlayCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     tenantSetting: {
       findUnique: vi.fn(),
@@ -30,7 +30,7 @@ async function stub(options: {
   tenant?: Record<string, unknown>;
   platform?: Record<string, unknown>;
 }): Promise<void> {
-  const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+  const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
   vi.mocked(prisma.tenantSetting.findUnique).mockResolvedValue(
     options.tenant === undefined
       ? null
@@ -84,7 +84,7 @@ describe("tenant-appearance.service", () => {
       await stub({
         tenant: { theme: "slate", layout: "topbar", locale: "en" },
         platform: {
-          default_theme: "water",
+          default_theme: "azure",
           default_layout: "sidebar",
           default_locale: "zh-CN",
         },
@@ -121,7 +121,7 @@ describe("tenant-appearance.service", () => {
     it("两级都没配时回落到代码默认", async () => {
       await stub({});
       expect(await resolveTenantAppearance(TENANT_ID)).toEqual({
-        theme: "water",
+        theme: "azure",
         theme_source: "platform",
         layout: "sidebar",
         layout_source: "platform",
@@ -155,7 +155,7 @@ describe("tenant-appearance.service", () => {
 
   describe("saveTenantAppearance", () => {
     async function savedValue(): Promise<unknown> {
-      const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+      const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
       const call = vi.mocked(prisma.tenantSetting.upsert).mock.calls[0]?.[0] as
         | { create?: { value?: unknown } }
         | undefined;

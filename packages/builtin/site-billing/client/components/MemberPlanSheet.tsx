@@ -1,22 +1,22 @@
 import { useState, type ReactNode } from "react";
 
-import { ApiError, FieldInfoTip } from "@be-water/client-kit";
+import { ApiError, FieldInfoTip } from "@rewindom/client-kit";
 import {
   APP_LOCALES,
   getLocaleNativeLabel,
   type AppLocale,
-} from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
-import { Checkbox } from "@be-water/ui/checkbox";
-import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+} from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
+import { Checkbox } from "@rewindom/ui/checkbox";
+import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import {
   Sheet,
   SheetClose,
@@ -26,9 +26,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { Pencil, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

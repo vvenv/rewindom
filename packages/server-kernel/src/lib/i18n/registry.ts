@@ -3,7 +3,7 @@ import {
   DEFAULT_LOCALE,
   normalizeLocale,
   type AppLocale,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { KERNEL_MESSAGES_EN } from "./catalogs/kernel-en.js";
 import { KERNEL_MESSAGES_ZH } from "./catalogs/kernel-zh-CN.js";

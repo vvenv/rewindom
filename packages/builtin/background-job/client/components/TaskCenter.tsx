@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
 
-import { api, EmptyState, useAuth  } from "@be-water/client-kit";
-import { formatBusinessDateOrTimeAgo, isPlatformAdminActor } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
-import { toast } from "@be-water/ui/toast";
-import { cn } from "@be-water/ui/utils";
+import { api, EmptyState, useAuth  } from "@rewindom/client-kit";
+import { formatBusinessDateOrTimeAgo, isPlatformAdminActor } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
+import { toast } from "@rewindom/ui/toast";
+import { cn } from "@rewindom/ui/utils";
 import {
   Ban,
   ChevronDown,

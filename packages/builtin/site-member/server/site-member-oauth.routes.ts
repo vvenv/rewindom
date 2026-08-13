@@ -1,14 +1,14 @@
 import { randomUUID } from "node:crypto";
 
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
 import {
   buildMemberOAuthFrontendRedirect,
   mapOAuthErrorCode,
   requestOriginFromHeaders,
   resolveMemberOAuthCallbackUrl,
-} from "@be-water/server-kernel/kernel/auth/oauth-common.js";
-import { resolveSiteOAuthCredentials } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
+} from "@rewindom/server-kernel/kernel/auth/oauth-common.js";
+import { resolveSiteOAuthCredentials } from "@rewindom/server-kernel/kernel/auth/oauth-credentials.js";
 
 import { setMemberAuthCookies } from "./member-auth-cookies.js";
 import {

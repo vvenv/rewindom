@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppNotFoundRedirect } from "./AppNotFoundRedirect.js";
 
-import type * as ClientKit from "@be-water/client-kit";
+import type * as ClientKit from "@rewindom/client-kit";
 
 const publicConfig = vi.hoisted(() => ({
   value: {
@@ -13,7 +13,7 @@ const publicConfig = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@be-water/client-kit", async (importOriginal) => {
+vi.mock("@rewindom/client-kit", async (importOriginal) => {
   const actual = await importOriginal<typeof ClientKit>();
   return {
     ...actual,

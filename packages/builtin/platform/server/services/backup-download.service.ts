@@ -2,9 +2,9 @@ import { randomBytes } from "node:crypto";
 import { type createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 
-import { getRedisClient } from "@be-water/server-kernel/infra/redis.service.js";
-import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
-import { BACKUP_FILE_PREFIX } from "@be-water/shared";
+import { getRedisClient } from "@rewindom/server-kernel/infra/redis.service.js";
+import { NotFoundError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { BACKUP_FILE_PREFIX } from "@rewindom/shared";
 
 import {
   assertCustomDumpFile,

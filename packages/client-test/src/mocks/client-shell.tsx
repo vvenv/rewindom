@@ -1,4 +1,4 @@
-import type { PublicConfig } from "@be-water/shared";
+import type { PublicConfig } from "@rewindom/shared";
 import type { ReactNode } from "react";
 
 interface MockFilterGroup {
@@ -85,7 +85,7 @@ export function mockDebouncedSearchInput({
 /**
  * `usePublicConfig` 的默认返回：与 client-kit 里的 `DEFAULT_PUBLIC_CONFIG` 同形。
  *
- * 这里不 import 真实常量——本对象正是用来**替换**整个 `@be-water/client-kit` 的，
+ * 这里不 import 真实常量——本对象正是用来**替换**整个 `@rewindom/client-kit` 的，
  * 再 import 回去等于绕开 mock。字段有增减时跟着 `PublicConfig` 补齐即可。
  */
 const mockPublicConfig: PublicConfig = {

@@ -17,7 +17,7 @@ describe("theme-palette", () => {
   });
 
   it("isThemePaletteSlug 只认注册过的字符串", () => {
-    expect(isThemePaletteSlug("water")).toBe(true);
+    expect(isThemePaletteSlug("azure")).toBe(true);
     expect(isThemePaletteSlug("slate")).toBe(true);
     expect(isThemePaletteSlug("neon")).toBe(false);
     expect(isThemePaletteSlug(null)).toBe(false);
@@ -40,7 +40,7 @@ describe("theme-palette", () => {
   });
 
   it("getThemePaletteLabel 未知 slug 原样返回", () => {
-    expect(getThemePaletteLabel("water")).toBe("水蓝");
+    expect(getThemePaletteLabel("azure")).toBe("青蓝");
     expect(getThemePaletteLabel("neon")).toBe("neon");
   });
 });

@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { defineClientVitestConfig } from "@be-water/client-test/vitest";
+import { defineClientVitestConfig } from "@rewindom/client-test/vitest";
 
 export default defineClientVitestConfig({
   root: import.meta.dirname,

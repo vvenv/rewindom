@@ -6,7 +6,7 @@
  * `collectDocCategories` 等。
  */
 
-import { APP_LOCALES, type AppLocale } from "@be-water/shared";
+import { APP_LOCALES, type AppLocale } from "@rewindom/shared";
 
 import type { MarketingDocListItem } from "../../shared/marketing-doc.js";
 

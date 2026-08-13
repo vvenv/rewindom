@@ -1,22 +1,22 @@
 import {
   AuthService,
   type JwtSignPayload,
-} from "@be-water/server-kernel/kernel/auth/auth.service.js";
+} from "@rewindom/server-kernel/kernel/auth/auth.service.js";
 import {
   AppError,
   ConflictError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { config as appConfig } from "@rewindom/server-kernel/lib/config.js";
 import {
   invalidateHostTenantCache,
   type HostTenantContext,
-} from "@be-water/server-kernel/lib/host-tenant.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { emitDetachedAuditLogSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { emitDetachedDomainEventSafe } from "@be-water/server-kernel/runtime/domain-event-emit.js";
-import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
-import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
+} from "@rewindom/server-kernel/lib/host-tenant.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { emitDetachedAuditLogSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { emitDetachedDomainEventSafe } from "@rewindom/server-kernel/runtime/domain-event-emit.js";
+import { getServerPermissionCatalog } from "@rewindom/server-kernel/runtime/permission-catalog.js";
+import { getServerTenantCatalog } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
 import {
   assertValidTenantSlug,
   DEFAULT_TENANT_ID,
@@ -24,7 +24,7 @@ import {
   ReservedTenantSlugError,
   type AuthTokens,
   type RegisterTenantInput,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 
 import { AuditAction } from "../../../audit/shared/index.js";
@@ -44,7 +44,7 @@ import { saveTenantJsonSetting } from "./tenant-json-setting.service.js";
 import type {
   OAuthTenantRegistrationInput,
   RegistrationOptions,
-} from "@be-water/server-kernel/runtime/provider-contracts.js";
+} from "@rewindom/server-kernel/runtime/provider-contracts.js";
 
 export type { RegisterTenantInput };
 

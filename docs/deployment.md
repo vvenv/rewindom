@@ -58,7 +58,7 @@ pnpm docker:stack:up
 pnpm docker:stack:down
 ```
 
-与 `pnpm db:up` 使用不同 Compose 项目名，可同时存在；容器名也已区分（`be-water-dev-*` vs `be-water-*`）。
+与 `pnpm db:up` 使用不同 Compose 项目名，可同时存在；容器名也已区分（`rewindom-dev-*` vs `rewindom-*`）。
 
 ## 生产环境（Docker）
 
@@ -101,7 +101,7 @@ pnpm deploy -- --env production --env-only
 
 见上文「生产镜像本地验证」：`pnpm docker:stack:up`（`.env.docker.local`）。
 
-远程目录：`/opt/be-water-docker`（production）、`/opt/be-water-docker-test`（test）。
+远程目录：`/opt/rewindom-docker`（production）、`/opt/rewindom-docker-test`（test）。
 
 ## 发布
 
@@ -122,7 +122,7 @@ pnpm release patch -- --no-check --deploy-local --env production
 
 ```bash
 # 服务器上
-cd /opt/be-water-docker
+cd /opt/rewindom-docker
 docker compose -f docker-compose.prod.yml logs -f app
 ```
 
@@ -131,7 +131,7 @@ GitHub Actions → **Ops** workflow：`status` / `logs` / `health-check` / `rest
 ### 数据库备份
 
 ```bash
-bash /etc/be-water/scripts/backup.sh --env production
+bash /etc/rewindom/scripts/backup.sh --env production
 ```
 
 详见 `scripts/backup.sh`、`scripts/restore.sh`。

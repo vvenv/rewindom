@@ -1,15 +1,15 @@
-import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
-import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
+import { parseSortDir } from "@rewindom/server-kernel/http/list-sort.js";
+import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
 import {
   handleValidationError,
   handleRouteError,
   sendCodedError,
   sendAppErrorOr,
-} from "@be-water/server-kernel/http/route-error-handler.js";
-import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
-import { success } from "@be-water/shared";
+} from "@rewindom/server-kernel/http/route-error-handler.js";
+import { hasErrorCode } from "@rewindom/server-kernel/lib/app-errors.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { getServerPermissionCatalog } from "@rewindom/server-kernel/runtime/permission-catalog.js";
+import { success } from "@rewindom/shared";
 
 import { AuditAction, AuditScope } from "../../../audit/shared/index.js";
 import { setPlatformAdminRoles } from "../../../rbac/server/permission-resolver.js";

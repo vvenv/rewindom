@@ -35,5 +35,5 @@ api.get("/documents", { tenant_id, status });
 ## JSON 列
 
 - 存结构化数据用 `Json?`（jsonb），**不要**把 `JSON.stringify` 的结果塞进 `String?`
-- 共享类型用 `JsonValue | null`（`@be-water/shared`），读写两侧都不再手工序列化
+- 共享类型用 `JsonValue | null`（`@rewindom/shared`），读写两侧都不再手工序列化
 - 示例：`ErrorLog.request_body` / `request_params` / `request_query` / `context`

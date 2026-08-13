@@ -1,4 +1,4 @@
-import { getI18n } from "@be-water/client-kit";
+import { getI18n } from "@rewindom/client-kit";
 
 export function formatAmountCents(
   amountCents: number,

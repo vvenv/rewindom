@@ -104,7 +104,7 @@ export function writeModuleSiteCssGenerated(moduleId) {
     `/**
  * GENERATED — do not edit.
  * Source: co-located \`.css\` files under \`shared/site-css/\`.
- * Regenerate: \`pnpm --filter @be-water/builtin assemble:module-css\`
+ * Regenerate: \`pnpm --filter @rewindom/builtin assemble:module-css\`
  */
 
 ${body}

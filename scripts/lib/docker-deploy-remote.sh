@@ -22,8 +22,8 @@ docker_default_port_for_env() {
 
 docker_remote_dir_for_env() {
   case "${1:-production}" in
-    test) echo "/opt/be-water-docker-test" ;;
-    *) echo "/opt/be-water-docker" ;;
+    test) echo "/opt/rewindom-docker-test" ;;
+    *) echo "/opt/rewindom-docker" ;;
   esac
 }
 
@@ -39,7 +39,7 @@ docker_render_host_nginx_proxy() {
   local port="$2"
 
   cat <<NGINX
-# be-water-docker-managed
+# rewindom-docker-managed
 server {
     listen 80;
     # 平台主域 + 通配子域（{slug}.${domain}）；证书需含 *.${domain}
@@ -260,11 +260,11 @@ docker_deploy() {
   if [ "$env_only" -eq 0 ]; then
     local tarball staging
     staging="$(mktemp -d)"
-    tarball="${staging}/be-water-docker-src.tar.gz"
+    tarball="${staging}/rewindom-docker-src.tar.gz"
     docker_create_source_tarball "$tarball"
 
     log_info "上传源码包到服务器..."
-    _run_scp "$tarball" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${remote_dir}/be-water-docker-src.tar.gz"
+    _run_scp "$tarball" "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${remote_dir}/rewindom-docker-src.tar.gz"
     rm -rf "$staging"
 
     log_info "在服务器构建并启动 Docker 栈（可能需数分钟）..."
@@ -274,8 +274,8 @@ docker_deploy() {
 cd '${remote_dir}'
 rm -rf apps packages modules docker
 rm -f docker-compose.prod.yml .dockerignore package.json pnpm-lock.yaml pnpm-workspace.yaml
-tar -xzf be-water-docker-src.tar.gz
-rm -f be-water-docker-src.tar.gz
+tar -xzf rewindom-docker-src.tar.gz
+rm -f rewindom-docker-src.tar.gz
 "
     docker_remote_compose_up "$remote_dir" "$remote_env_file" "$pull_base"
   else

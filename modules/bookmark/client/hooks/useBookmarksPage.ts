@@ -9,7 +9,7 @@ import {
   parseListSort,
   SEARCH_PARAM_FILTER_ALL,
   toSortingState,
-} from "@be-water/module-sdk/client";
+} from "@rewindom/module-sdk/client";
 import { useSearchParams } from "react-router";
 
 import {

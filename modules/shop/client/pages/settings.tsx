@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import { ApiError, FieldInfoTip, PageLayout, usePermissions } from "@be-water/module-sdk/client";
-import { Button } from "@be-water/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
-import { Switch } from "@be-water/ui/switch";
-import { toast } from "@be-water/ui/toast";
+import { ApiError, FieldInfoTip, PageLayout, usePermissions } from "@rewindom/module-sdk/client";
+import { Button } from "@rewindom/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
+import { Switch } from "@rewindom/ui/switch";
+import { toast } from "@rewindom/ui/toast";
 import { Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

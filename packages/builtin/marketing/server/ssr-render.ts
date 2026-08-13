@@ -1,4 +1,4 @@
-import { getLocaleNativeLabel, normalizeLocale } from "@be-water/shared";
+import { getLocaleNativeLabel, normalizeLocale } from "@rewindom/shared";
 
 import { escapeHtml } from "../shared/html.js";
 import { loadMarketingSiteCssFor } from "../shared/load-marketing-site-css.js";

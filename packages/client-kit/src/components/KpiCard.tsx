@@ -1,8 +1,8 @@
 import type { ComponentProps, ReactNode } from "react";
 
 
-import { Card, CardContent } from "@be-water/ui/card";
-import { cn } from "@be-water/ui/utils";
+import { Card, CardContent } from "@rewindom/ui/card";
+import { cn } from "@rewindom/ui/utils";
 import { ArrowRight } from "lucide-react";
 
 /**

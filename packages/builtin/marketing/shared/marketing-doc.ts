@@ -12,7 +12,7 @@
  * 是编辑器在改的那一份。`status=draft` 时文档对访客不可见（不出现在 `/docs`）。
  */
 
-import { isAppLocale, normalizeLocale, type AppLocale } from "@be-water/shared";
+import { isAppLocale, normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { resolveLocaleSegment } from "./site-locale.js";
 

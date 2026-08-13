@@ -1,14 +1,14 @@
 import {
   PageFilterBar,
   SEARCH_PARAM_FILTER_ALL,
-} from "@be-water/module-sdk/client";
+} from "@rewindom/module-sdk/client";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import { useTranslation } from "react-i18next";
 
 import { getBookmarkSortOptions } from "../lib/bookmark-sort.js";

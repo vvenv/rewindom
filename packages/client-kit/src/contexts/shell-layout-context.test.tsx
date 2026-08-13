@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ShellLayoutProvider, useShellLayout } from "./shell-layout-context.js";
 
-import type { ResolvedTenantAppearance } from "@be-water/shared";
+import type { ResolvedTenantAppearance } from "@rewindom/shared";
 
 const mockAppearance = vi.hoisted(() => ({
   data: undefined as ResolvedTenantAppearance | undefined,
@@ -18,7 +18,7 @@ function appearance(
   overrides: Partial<ResolvedTenantAppearance>,
 ): ResolvedTenantAppearance {
   return {
-    theme: "water",
+    theme: "azure",
     theme_source: "platform",
     layout: "sidebar",
     layout_source: "platform",

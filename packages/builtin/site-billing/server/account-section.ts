@@ -26,7 +26,7 @@ import {
 import { SITE_BILLING_CSS } from "../shared/site-css.generated.js";
 
 import type { SettingValues } from "../../marketing/shared/section-settings.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /** 与账户页 `member-auth-error` / `notice` 同构，收进卡里。 */
 function messageHtml(ctx: SiteBillingRenderContext): string {

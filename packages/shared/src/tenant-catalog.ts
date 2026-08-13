@@ -34,7 +34,7 @@ export interface TenantEntitlementsResponse {
  *
  * Catalog entries are keyed by `TenantModuleEntitlement.key`, **not** by the
  * declaring module's `id` — a single module may contribute several entitlements
- * (see `module-be-water`). `TenantModuleDefinition.module_id` therefore carries
+ * (see `module-rewindom`). `TenantModuleDefinition.module_id` therefore carries
  * the entitlement key; the name is kept for wire compatibility with stored
  * tenant settings and the platform console API.
  */

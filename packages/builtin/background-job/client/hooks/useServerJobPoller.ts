@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
-import { api, getI18n, useAuth } from "@be-water/client-kit";
-import { isPlatformAdminActor } from "@be-water/shared";
-import { toast } from "@be-water/ui/toast";
+import { api, getI18n, useAuth } from "@rewindom/client-kit";
+import { isPlatformAdminActor } from "@rewindom/shared";
+import { toast } from "@rewindom/ui/toast";
 
 import { type BackgroundJobDto } from "../../shared/index.js";
 import {

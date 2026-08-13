@@ -6,7 +6,7 @@ import {
 } from "../../shared/site-cms.js";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /** CMS 列表里同一逻辑 URL 的翻译组（key = `kind` + `slug`）。 */
 export interface SitePageGroup {

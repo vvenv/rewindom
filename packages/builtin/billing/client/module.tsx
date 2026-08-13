@@ -13,7 +13,7 @@ import { BILLING_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { BILLING_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderBillingTenantRoutes } from "./tenant/routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 /*
  * 「套餐」段：定义在 shared（与服务端 import 同一份），视图填进 marketing 的视图表。

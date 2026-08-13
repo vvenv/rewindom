@@ -1,7 +1,7 @@
 /*
  * 会员登录 / 注册页的样式。
  *
- * 真源在此；`pnpm --filter @be-water/builtin assemble:module-css` 压缩后写入
+ * 真源在此；`pnpm --filter @rewindom/builtin assemble:module-css` 压缩后写入
  * ../site-css.generated.ts，再随注册交给 marketing 拼在官网 CSS 末尾（贡献段
  * 进不了 marketing 构建期那次打包）。只用它已有的 token（`--surface` / `--border` /
  * `--muted-fg` / `--accent` / `--radius`），换主题、切明暗都跟着变。

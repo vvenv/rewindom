@@ -1,4 +1,4 @@
-import { collectTenantCatalogFromManifests, type TenantEntitlementCatalog, type ModuleManifestBase  } from "@be-water/shared";
+import { collectTenantCatalogFromManifests, type TenantEntitlementCatalog, type ModuleManifestBase  } from "@rewindom/shared";
 
 let clientTenantCatalog: TenantEntitlementCatalog | null = null;
 

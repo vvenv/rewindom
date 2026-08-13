@@ -18,7 +18,7 @@ import {
 } from "./site-member-ssr-session.js";
 import { siteOAuthProvidersRoutes } from "./site-oauth.routes.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const siteMemberServerModule: ServerAppModule = {
   id: "site-member",

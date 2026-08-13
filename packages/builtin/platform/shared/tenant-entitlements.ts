@@ -1,6 +1,6 @@
 import { type TenantFeatureFlags, type TenantModuleFlags, type TenantModuleDefinition ,
   type MergedTenantFeatureDefinition,
-  type TenantEntitlementCatalog } from "@be-water/shared";
+  type TenantEntitlementCatalog } from "@rewindom/shared";
 
 import { formatTenantFeatureAuditDetails } from "./tenant-features.js";
 import { type UpdateTenantModuleFlagsBody, formatTenantModuleAuditDetails } from "./tenant-modules.js";

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { useDebouncedValue } from "@be-water/client-kit";
+import { useDebouncedValue } from "@rewindom/client-kit";
 import {
   Combobox,
   ComboboxContent,
@@ -8,8 +8,8 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-} from "@be-water/ui/combobox";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/combobox";
+import { cn } from "@rewindom/ui/utils";
 import { useTranslation } from "react-i18next";
 
 import { usePlatformTenants } from "../hooks/usePlatformTenants.js";

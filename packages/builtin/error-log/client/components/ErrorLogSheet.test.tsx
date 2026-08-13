@@ -1,7 +1,7 @@
 import {
   createQueryWrapper,
   createTestQueryClient,
-} from "@be-water/client-test/react-query";
+} from "@rewindom/client-test/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -11,7 +11,7 @@ import { ErrorLogSheet } from "./ErrorLogSheet.js";
 
 const permissionState = vi.hoisted(() => ({ canManage: true }));
 
-vi.mock("@be-water/client-kit", () => ({
+vi.mock("@rewindom/client-kit", () => ({
   useAuth: () => ({
     user: { id: "user1", is_system_admin: true },
   }),

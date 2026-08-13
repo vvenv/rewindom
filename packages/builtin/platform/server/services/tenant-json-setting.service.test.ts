@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     tenantSetting: {
       findUnique: vi.fn(),
@@ -13,7 +13,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   },
 }));
 
-vi.mock("@be-water/shared", async (importOriginal) => {
+vi.mock("@rewindom/shared", async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
@@ -34,7 +34,7 @@ describe("getTenantJsonSetting", () => {
   });
 
   it("tenantSetting 存在时应返回 normalize 后的值", async () => {
-    const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+    const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
     vi.mocked(prisma.tenantSetting.findUnique).mockResolvedValue({
       value: { theme: "dark" },
     } as never);
@@ -50,7 +50,7 @@ describe("getTenantJsonSetting", () => {
   });
 
   it("DEFAULT_TENANT_ID 时 tenantSetting 不存在也返回 defaultValue(不再回退 appSetting)", async () => {
-    const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+    const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
     vi.mocked(prisma.tenantSetting.findUnique).mockResolvedValue(null);
 
     const result = await getTenantJsonSetting(
@@ -66,7 +66,7 @@ describe("getTenantJsonSetting", () => {
   });
 
   it("两者都不存在时应返回 defaultValue 的 normalize 结果", async () => {
-    const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+    const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
     vi.mocked(prisma.tenantSetting.findUnique).mockResolvedValue(null);
     vi.mocked(prisma.appSetting.findUnique).mockResolvedValue(null);
 
@@ -81,7 +81,7 @@ describe("getTenantJsonSetting", () => {
   });
 
   it("非 DEFAULT_TENANT_ID 不存在时直接返回 defaultValue 的 normalize 结果", async () => {
-    const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+    const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
     vi.mocked(prisma.tenantSetting.findUnique).mockResolvedValue(null);
 
     const result = await getTenantJsonSetting(
@@ -102,7 +102,7 @@ describe("saveTenantJsonSetting", () => {
   });
 
   it("应 upsert tenantSetting 并返回 value", async () => {
-    const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+    const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
     vi.mocked(prisma.tenantSetting.upsert).mockResolvedValue({} as never);
     vi.mocked(prisma.appSetting.deleteMany).mockResolvedValue({ count: 0 });
 
@@ -118,7 +118,7 @@ describe("saveTenantJsonSetting", () => {
   });
 
   it("DEFAULT_TENANT_ID 时也走 upsert tenantSetting(不清理 appSetting)", async () => {
-    const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+    const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
     vi.mocked(prisma.tenantSetting.upsert).mockResolvedValue({} as never);
 
     await saveTenantJsonSetting(DEFAULT_TENANT_ID, "ui_config", {

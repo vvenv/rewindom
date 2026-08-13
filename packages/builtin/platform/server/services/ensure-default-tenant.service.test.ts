@@ -1,11 +1,11 @@
-import { DEFAULT_TENANT_ID, DEFAULT_TENANT_SLUG } from "@be-water/shared";
+import { DEFAULT_TENANT_ID, DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { upsertMock } = vi.hoisted(() => ({
   upsertMock: vi.fn(),
 }));
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     tenant: {
       upsert: upsertMock,

@@ -3,7 +3,7 @@ import {
   normalizeOptionalShellLayout,
   normalizeOptionalThemePalette,
   type ResolvedTenantAppearance,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import {
   type TenantAppearance,

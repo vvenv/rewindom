@@ -3,7 +3,7 @@ import { RBAC_NAV_SECTIONS } from "./shell/rbac-nav.js";
 import { RbacPermissionProvider } from "./shell/rbac-permission-provider.js";
 import { renderRbacSuperUserRoutes } from "./tenant/routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const rbacClientModule: ClientAppModule = {
   id: "rbac",

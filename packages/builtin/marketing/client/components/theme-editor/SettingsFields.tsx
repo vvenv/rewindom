@@ -1,23 +1,23 @@
 import { useId, type ReactElement } from "react";
 
-import { FieldInfoTip } from "@be-water/client-kit";
-import { Checkbox } from "@be-water/ui/checkbox";
+import { FieldInfoTip } from "@rewindom/client-kit";
+import { Checkbox } from "@rewindom/ui/checkbox";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+} from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
-import { Slider } from "@be-water/ui/slider";
-import { Textarea } from "@be-water/ui/textarea";
+} from "@rewindom/ui/select";
+import { Slider } from "@rewindom/ui/slider";
+import { Textarea } from "@rewindom/ui/textarea";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -41,7 +41,7 @@ import { SiteNavItemsField } from "./SiteNavItemsField.js";
 import { SpacingBoxField } from "./SpacingBoxField.js";
 
 import type { SiteNavItem } from "../../../shared/site-nav.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 interface SettingsFieldsProps {
   defs: SettingDef[];

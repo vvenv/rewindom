@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 
-import type { AuditLogEmitInput } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import type { AuditLogEventPayload } from "@be-water/server-kernel/runtime/domain-events.js";
+import type { AuditLogEmitInput } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import type { AuditLogEventPayload } from "@rewindom/server-kernel/runtime/domain-events.js";
 import type { FastifyRequest } from "fastify";
 
 export function createAuditEmitMock(): {

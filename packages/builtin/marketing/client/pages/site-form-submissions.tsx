@@ -1,4 +1,4 @@
-import { PageLayout, usePermissions } from "@be-water/client-kit";
+import { PageLayout, usePermissions } from "@rewindom/client-kit";
 import { Inbox } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

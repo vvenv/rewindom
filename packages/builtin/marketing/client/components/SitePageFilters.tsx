@@ -1,9 +1,9 @@
 import type { ReactElement } from "react";
 
-import { PageFilterBar } from "@be-water/client-kit";
-import { optionsFromLabels } from "@be-water/client-kit/lib/filter-chip-options";
-import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
-import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
+import { PageFilterBar } from "@rewindom/client-kit";
+import { optionsFromLabels } from "@rewindom/client-kit/lib/filter-chip-options";
+import { hasActiveFilters } from "@rewindom/client-kit/lib/list-url-params";
+import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
 import { useTranslation } from "react-i18next";
 
 import type { SitePageFilterState } from "../lib/site-page-list.js";

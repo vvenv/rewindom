@@ -1,10 +1,10 @@
 import { useCallback, useState, type ReactElement } from "react";
 
-import { EmptyState, useConfirm } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
-import { Input } from "@be-water/ui/input";
-import { Skeleton } from "@be-water/ui/skeleton";
-import { toast } from "@be-water/ui/toast";
+import { EmptyState, useConfirm } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
+import { Input } from "@rewindom/ui/input";
+import { Skeleton } from "@rewindom/ui/skeleton";
+import { toast } from "@rewindom/ui/toast";
 import { Copy, ImageOff, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

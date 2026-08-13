@@ -1,4 +1,4 @@
-import { createComponentSlot } from "@be-water/client-kit";
+import { createComponentSlot } from "@rewindom/client-kit";
 
 import type { BackgroundTask } from "../contexts/TaskContext.js";
 

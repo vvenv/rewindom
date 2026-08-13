@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 
-import { usePublicConfig } from "@be-water/client-kit";
+import { usePublicConfig } from "@rewindom/client-kit";
 
 import { useSiteLocale } from "../../../marketing/client/components/sections/site-locale-context.js";
 import { settingBool, settingText } from "../../../marketing/shared/section-schema.js";

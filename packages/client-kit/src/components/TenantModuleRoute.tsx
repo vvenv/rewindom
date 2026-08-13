@@ -1,10 +1,10 @@
-import { Spinner } from "@be-water/ui/spinner";
+import { Spinner } from "@rewindom/ui/spinner";
 import { Outlet } from "react-router";
 
 import { useTenantModuleEnabled } from "../hooks/useTenantEntitlements.js";
 import { getClientTenantCatalog } from "../lib/tenant-catalog.js";
 
-import type { TenantModuleDefinition } from "@be-water/shared";
+import type { TenantModuleDefinition } from "@rewindom/shared";
 
 interface TenantModuleRouteProps {
   moduleId: string;

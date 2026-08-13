@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
 
-import { ApiError, PageLayout, usePermissions } from "@be-water/module-sdk/client";
-import { Button } from "@be-water/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@be-water/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+import { ApiError, PageLayout, usePermissions } from "@rewindom/module-sdk/client";
+import { Button } from "@rewindom/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -12,9 +12,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { DraggableFabTrigger } from "@rewindom/ui/draggable-fab";
+import { toast } from "@rewindom/ui/toast";
 import { Plus, Truck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

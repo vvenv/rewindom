@@ -4,8 +4,8 @@ import type {
   AppMobileHeaderState,
   AppNavItem,
   ClientAppModule,
-} from "@be-water/client-kit";
-import { APP_DISPLAY_NAME } from "@be-water/shared";
+} from "@rewindom/client-kit";
+import { APP_DISPLAY_NAME } from "@rewindom/shared";
 
 export function resolveMobileHeaderState(
   pathname: string,

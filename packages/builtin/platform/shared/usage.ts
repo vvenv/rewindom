@@ -1,5 +1,5 @@
 import type { PlanSlug } from "./pricing-plans.js";
-import type { TenantFeatureFlags } from "@be-water/shared";
+import type { TenantFeatureFlags } from "@rewindom/shared";
 
 export interface UsageItem {
   used: number;

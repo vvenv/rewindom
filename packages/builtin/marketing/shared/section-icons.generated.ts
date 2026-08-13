@@ -1,7 +1,7 @@
 /**
  * GENERATED — do not edit.
  * Source: lucide-react components listed in `SECTION_ICON_CHOICES`.
- * Regenerate: `pnpm --filter @be-water/builtin assemble:section-icons`
+ * Regenerate: `pnpm --filter @rewindom/builtin assemble:section-icons`
  */
 import type { SectionIconName } from "./section-settings.js";
 

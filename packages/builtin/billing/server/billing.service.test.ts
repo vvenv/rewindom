@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-vi.mock("@be-water/server-kernel/lib/config.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
     billing: {
       creem: {
@@ -18,7 +18,7 @@ vi.mock("@be-water/server-kernel/lib/config.js", () => ({
 const findManySubscription = vi.fn();
 const findFirstSubscription = vi.fn();
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     subscription: {
       findMany: (...args: unknown[]) => findManySubscription(...args),

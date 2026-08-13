@@ -1,10 +1,10 @@
-import { AuthService } from "@be-water/server-kernel/kernel/auth/auth.service.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
+import { AuthService } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { DEFAULT_TENANT_ID } from "@rewindom/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     tenant: {
       findMany: vi.fn(),
@@ -35,7 +35,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   },
 }));
 
-vi.mock("@be-water/server-kernel/kernel/auth/auth.service.js", () => ({
+vi.mock("@rewindom/server-kernel/kernel/auth/auth.service.js", () => ({
   AuthService: {
     hashPassword: vi.fn(),
     revokeAllUserTokens: vi.fn(),

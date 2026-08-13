@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, type ReactNode } from "react";
 
 import { localizeSiteHref } from "../../../shared/site-locale.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 interface SiteLocaleValue {
   locale: AppLocale;

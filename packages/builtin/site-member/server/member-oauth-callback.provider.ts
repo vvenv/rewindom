@@ -3,24 +3,24 @@ import {
   isMemberOAuthStateTyp,
   mapOAuthErrorCode,
   resolveMemberOAuthCallbackUrl,
-} from "@be-water/server-kernel/kernel/auth/oauth-common.js";
+} from "@rewindom/server-kernel/kernel/auth/oauth-common.js";
 import {
   isOAuthProviderId,
   resolveSiteOAuthCredentials,
-} from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+} from "@rewindom/server-kernel/kernel/auth/oauth-credentials.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import {
   emitAuditLogFromRequestSafe,
   getAuditEventBus,
-} from "@be-water/server-kernel/runtime/audit-log-emit.js";
+} from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
 
 import { setMemberAuthCookies } from "./member-auth-cookies.js";
 import { SiteMemberOAuthService } from "./site-member-oauth.service.js";
 
-import type { JwtSignPayload } from "@be-water/server-kernel/kernel/auth/auth.service.js";
-import type { MemberOAuthCallbackProvider } from "@be-water/server-kernel/runtime/provider-contracts.js";
+import type { JwtSignPayload } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
+import type { MemberOAuthCallbackProvider } from "@rewindom/server-kernel/runtime/provider-contracts.js";
 
 function safeRedirectPath(raw: unknown): string {
   if (typeof raw !== "string" || !raw.startsWith("/") || raw.startsWith("//")) {

@@ -15,7 +15,7 @@ import {
 
 import { useSiteDoc } from "./useSiteDocs.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /**
  * 编辑文档模板页时，预览里的 `doc-*` 段该拿什么数据。

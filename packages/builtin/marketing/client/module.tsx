@@ -5,7 +5,7 @@ import { MARKETING_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { SITE_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderSiteRoutes } from "./tenant/routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const marketingClientModule: ClientAppModule = {
   id: "marketing",

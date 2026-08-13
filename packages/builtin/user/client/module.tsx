@@ -4,7 +4,7 @@ import { USER_NAV_SECTIONS } from "./shell/user-nav.js";
 import { UserSidebarMenu, UserShellSlots } from "./shell/user-shell-slots.js";
 import { renderUserSuperUserRoutes } from "./tenant/routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const userClientModule: ClientAppModule = {
   id: "user",

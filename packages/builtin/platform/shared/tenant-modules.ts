@@ -2,7 +2,7 @@
 export const TENANT_MODULES_STORAGE_KEY = "tenant_modules";
 
 
-import type { TenantModuleDefinition, TenantModuleFlags } from "@be-water/shared";
+import type { TenantModuleDefinition, TenantModuleFlags } from "@rewindom/shared";
 
 export interface TenantModuleFlagsResponse {
   modules: TenantModuleFlags;

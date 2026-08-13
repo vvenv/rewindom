@@ -9,7 +9,7 @@ import {
 } from "./useDefaultHomePath.js";
 
 import type { ReactNode } from "react";
-import type { AuthActorType, User } from "@be-water/shared";
+import type { AuthActorType, User } from "@rewindom/shared";
 
 vi.mock("./usePublicConfig.js", () => ({
   usePublicConfig: () => ({

@@ -1,4 +1,4 @@
-import { EmptyState } from "@be-water/client-kit";
+import { EmptyState } from "@rewindom/client-kit";
 import { EyeOff, LayoutDashboard } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

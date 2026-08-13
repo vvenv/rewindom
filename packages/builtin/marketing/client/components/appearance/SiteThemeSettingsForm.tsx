@@ -1,15 +1,15 @@
 import { type ReactElement } from "react";
 
-import { FieldInfoTip } from "@be-water/client-kit";
-import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
+import { FieldInfoTip } from "@rewindom/client-kit";
+import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
-import { Slider } from "@be-water/ui/slider";
+} from "@rewindom/ui/select";
+import { Slider } from "@rewindom/ui/slider";
 import { useTranslation } from "react-i18next";
 
 import {

@@ -1,14 +1,14 @@
-import { sendCodedError } from "@be-water/server-kernel/http/coded-error.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
-import { translateForRequest } from "@be-water/server-kernel/lib/i18n/translate.js";
-import { setupPrisma } from "@be-water/server-kernel/lib/prisma.js";
-import { runWithRequestContext } from "@be-water/server-kernel/lib/request-context.js";
+import { sendCodedError } from "@rewindom/server-kernel/http/coded-error.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
+import { translateForRequest } from "@rewindom/server-kernel/lib/i18n/translate.js";
+import { setupPrisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { runWithRequestContext } from "@rewindom/server-kernel/lib/request-context.js";
 import {
   IMPORT_MAX_FILE_BYTES,
   MAX_UPLOAD_BYTES,
-} from "@be-water/server-kernel/lib/upload-limits.js";
-import { authMiddleware } from "@be-water/server-kernel/middleware/auth.middleware.js";
-import { errorHandlerMiddleware } from "@be-water/server-kernel/middleware/error-handler.middleware.js";
+} from "@rewindom/server-kernel/lib/upload-limits.js";
+import { authMiddleware } from "@rewindom/server-kernel/middleware/auth.middleware.js";
+import { errorHandlerMiddleware } from "@rewindom/server-kernel/middleware/error-handler.middleware.js";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";

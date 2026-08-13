@@ -5,7 +5,7 @@ import {
   type CalendarRangePreset,
   type DateRange as ApiDateRange,
   formatBusinessDate,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import type { DateRange } from "react-day-picker";
 

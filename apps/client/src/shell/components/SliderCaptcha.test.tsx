@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 
 import { SliderCaptcha } from "./SliderCaptcha";
 
-vi.mock("@be-water/client-kit", () => ({
+vi.mock("@rewindom/client-kit", () => ({
   api: {
     get: vi.fn().mockResolvedValue({
       id: "captcha1",
@@ -26,7 +26,7 @@ describe("SliderCaptcha", () => {
   });
 
   it("加载失败应显示错误信息", async () => {
-    const { api } = await import("@be-water/client-kit");
+    const { api } = await import("@rewindom/client-kit");
     vi.mocked(api.get).mockRejectedValueOnce(new Error("网络错误"));
 
     render(<SliderCaptcha onSuccess={vi.fn()} onError={vi.fn()} />);

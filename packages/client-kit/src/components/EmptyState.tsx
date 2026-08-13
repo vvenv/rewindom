@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { cn } from "@be-water/ui/utils";
+import { cn } from "@rewindom/ui/utils";
 import { useTranslation } from "react-i18next";
 
 import type { LucideIcon } from "lucide-react";

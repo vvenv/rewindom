@@ -1,7 +1,7 @@
 import {
   createTestQueryClient,
   createQueryWrapper,
-} from "@be-water/client-test/react-query";
+} from "@rewindom/client-test/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 

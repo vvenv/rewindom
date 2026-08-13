@@ -1,5 +1,5 @@
-import { PageLayout, usePermissions } from "@be-water/client-kit";
-import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
+import { PageLayout, usePermissions } from "@rewindom/client-kit";
+import { hasActiveFilters } from "@rewindom/client-kit/lib/list-url-params";
 import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

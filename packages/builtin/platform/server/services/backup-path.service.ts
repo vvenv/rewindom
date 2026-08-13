@@ -4,8 +4,8 @@ import path, { basename } from "node:path";
 import {
   NotFoundError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
 
 import { assertCustomDumpFile } from "./backup.service.js";
 

@@ -1,4 +1,4 @@
-import { success } from "@be-water/shared";
+import { success } from "@rewindom/shared";
 
 import { handleRouteError } from "../../http/route-error-handler.js";
 import { config as appConfig } from "../../lib/config.js";

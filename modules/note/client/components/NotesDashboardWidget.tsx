@@ -1,12 +1,12 @@
-import { formatBusinessDateOrTimeAgo } from "@be-water/module-sdk/client";
+import { formatBusinessDateOrTimeAgo } from "@rewindom/module-sdk/client";
 import {
   Card,
   CardAction,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@be-water/ui/card";
-import { Skeleton } from "@be-water/ui/skeleton";
+} from "@rewindom/ui/card";
+import { Skeleton } from "@rewindom/ui/skeleton";
 import { ArrowRight, StickyNote } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";

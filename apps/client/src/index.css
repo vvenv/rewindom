@@ -126,15 +126,15 @@
 
 /* ──────────────────────────────────────────────────────────────
    主题（配色方案）轴：`<html data-theme="...">`，与明暗轴 `.dark` 正交。
-   `:root` / `.dark` 即 water，不带 data-theme 时（登录页、平台控制台）自然命中。
+   `:root` / `.dark` 即 azure，不带 data-theme 时（登录页、平台控制台）自然命中。
 
    胜出关系靠特异性，不靠源码顺序（`:root` vs `.dark` 那一对除外）：
-     :root                       (0,1,0)  water light
-     .dark                       (0,1,0)  water dark —— 同特异性，靠写在后面压过 :root
+     :root                       (0,1,0)  azure light
+     .dark                       (0,1,0)  azure dark —— 同特异性，靠写在后面压过 :root
      html[data-theme="slate"]    (0,1,1)  slate light —— 高于 .dark
      html.dark[data-theme=slate] (0,2,1)  slate dark  —— 高于以上全部
    正因为配色块是靠特异性赢的，它必须声明**完整**的 token 集：漏掉哪个，
-   哪个就会掉回 water 的值。新增配色照抄这两个块即可。
+   哪个就会掉回 azure 的值。新增配色照抄这两个块即可。
 
    `--chart-1..5` 是 `var(--brand)` 之类的别名，与 `--brand` 声明在同一个
    元素（html）上，会跟着本块的 --brand 一起重算，故无需在配色块里重复。
@@ -261,7 +261,7 @@ html:not(.dark) body {
     fixed;
 }
 
-/* body 底图同样按配色覆盖：(0,2,2) / (0,2,2) 均高于上面两条 water 规则 */
+/* body 底图同样按配色覆盖：(0,2,2) / (0,2,2) 均高于上面两条 azure 规则 */
 html[data-theme="slate"]:not(.dark) body {
   background: radial-gradient(
       circle at 20% 0%,
@@ -430,7 +430,7 @@ html.dark[data-theme="slate"] body {
   }
 }
 
-@keyframes auth-waterline-pulse {
+@keyframes auth-horizon-pulse {
   0%,
   100% {
     opacity: 0.35;
@@ -718,17 +718,17 @@ html.dark[data-theme="slate"] body {
 
   /* 画布配色由 CSS 变量下发，JS 只负责取值——换主题 token 时不必改 canvas 代码。
      hero 面板恒为深色，用 data-surface="deep" 强制取深水色。 */
-  .auth-water-field {
-    --auth-water-line: #0891b2;
-    --auth-water-ripple: #0369a1;
-    --auth-water-mote: #38bdf8;
+  .auth-ambient-field {
+    --auth-ambient-line: #0891b2;
+    --auth-ambient-ripple: #0369a1;
+    --auth-ambient-mote: #38bdf8;
   }
 
-  .dark .auth-water-field,
-  .auth-water-field[data-surface="deep"] {
-    --auth-water-line: #22d3ee;
-    --auth-water-ripple: #7dd3fc;
-    --auth-water-mote: #a5e9f7;
+  .dark .auth-ambient-field,
+  .auth-ambient-field[data-surface="deep"] {
+    --auth-ambient-line: #22d3ee;
+    --auth-ambient-ripple: #7dd3fc;
+    --auth-ambient-mote: #a5e9f7;
   }
 
   /* 浅滩：自上而下由天光过渡到水色，比纯 background 平铺更有「一池水」的纵深 */
@@ -775,20 +775,20 @@ html.dark[data-theme="slate"] body {
   }
 
   /* 按 surface 而非主题区分：hero 面板在浅色主题下依然是深水 */
-  .auth-water-field[data-surface="shallow"] .auth-caustics {
+  .auth-ambient-field[data-surface="shallow"] .auth-caustics {
     mix-blend-mode: overlay;
     opacity: 0.12;
   }
 
   /* 水线：底部透上来的光，对应 Logo 里「水满至器壁」的那道水面。
      只在深水层渲染，不需要按主题再关一次（hero 在浅色主题下同样是深水）。 */
-  .auth-waterline-glow {
+  .auth-horizon-glow {
     background: linear-gradient(
       to top,
       color-mix(in oklch, var(--brand) 9%, transparent),
       transparent 70%
     );
-    animation: auth-waterline-pulse 22s ease-in-out infinite;
+    animation: auth-horizon-pulse 22s ease-in-out infinite;
   }
 
   html:not(.dark) .auth-theme-toggle {
@@ -825,7 +825,7 @@ html.dark[data-theme="slate"] body {
       animation: none;
     }
 
-    .auth-waterline-glow,
+    .auth-horizon-glow,
     .auth-caustics {
       animation: none;
     }

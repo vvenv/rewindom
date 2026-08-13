@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { createModuleClientTestProject } from "@be-water/client-test/vitest";
-import { createModuleServerTestProject, createModuleSharedTestProject } from "@be-water/server-test/vitest";
+import { createModuleClientTestProject } from "@rewindom/client-test/vitest";
+import { createModuleServerTestProject, createModuleSharedTestProject } from "@rewindom/server-test/vitest";
 import { defineConfig } from "vitest/config";
 
 const ROOT = import.meta.dirname;

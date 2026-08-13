@@ -4,7 +4,7 @@ import {
   useRef,
 } from "react";
 
-import { toast } from "@be-water/ui/toast";
+import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router";
 

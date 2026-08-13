@@ -6,14 +6,14 @@ sort_order: 45
 ---
 
 外部模块是一个自带前后端定义的独立 workspace 包，放在仓库根的 `modules/` 下，通过
-`@be-water/module-sdk` 门面与内核交互。
+`@rewindom/module-sdk` 门面与内核交互。
 
 ## 目录结构
 
 ```
 modules/
 └── my-module/
-    ├── package.json          # 声明 beWater 字段
+    ├── package.json          # 声明 rewindom 字段
     ├── tsconfig.json
     ├── MODULE.md             # 这个模块是干什么的
     ├── shared/               # 跨端契约
@@ -26,11 +26,11 @@ modules/
 
 ```json
 {
-  "name": "@be-water/my-module",
+  "name": "@rewindom/my-module",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "beWater": {
+  "rewindom": {
     "moduleId": "my-module",
     "prismaSchema": "./prisma/schema.prisma",
     "requires": ["rbac", "audit"]
@@ -50,15 +50,15 @@ import 由 `verify-module.mjs` 强制校验。
 
 **允许：**
 
-- `@be-water/module-sdk` — shared 契约
-- `@be-water/module-sdk/server` — server 契约与运行时（仅 server 侧）
-- `@be-water/module-sdk/client` — client 契约与运行时（仅 client 侧）
-- `@be-water/ui` — UI 原语
+- `@rewindom/module-sdk` — shared 契约
+- `@rewindom/module-sdk/server` — server 契约与运行时（仅 server 侧）
+- `@rewindom/module-sdk/client` — client 契约与运行时（仅 client 侧）
+- `@rewindom/ui` — UI 原语
 - 第三方库（react、react-router、lucide-react 等）
 
 **禁止：**
 
-- `@be-water/server-kernel` / `@be-water/client-kit` / `@be-water/shared` — 一律经
+- `@rewindom/server-kernel` / `@rewindom/client-kit` / `@rewindom/shared` — 一律经
   module-sdk 间接访问，内核的内部结构不该成为模块的依赖面
 - 其它模块的包 — 跨模块走扩展点，不走 import
 - `apps/*` 里的任何代码

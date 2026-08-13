@@ -8,10 +8,10 @@ import {
   useConfirm,
   usePermissions,
   type DataTableFeatures,
-} from "@be-water/module-sdk/client";
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/module-sdk/client";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
+import { toast } from "@rewindom/ui/toast";
 import { Package, Pencil, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

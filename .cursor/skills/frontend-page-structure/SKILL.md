@@ -238,7 +238,7 @@ const [createOpen, setCreateOpen] = useState(false);
 ## 字段说明用气泡，不用常驻灰字
 
 字段的**使用说明**（这项是什么、留空会怎样、怎么操作）挂 `FieldInfoTip`
-（`@be-water/client-kit`，标签后的 ⓘ；窄侧栏传 `side="left"`），不要用 `FieldDescription`
+（`@rewindom/client-kit`，标签后的 ⓘ；窄侧栏传 `side="left"`），不要用 `FieldDescription`
 压在控件下面——一屏十来个字段各带两行灰字，控件全被挤到折叠线以下。
 
 ```tsx
@@ -258,7 +258,7 @@ const [createOpen, setCreateOpen] = useState(false);
 1. **Page hook**：`parseListSort` + `applySortingToSearchParams`（`sort_by` / `sort_dir`）
 2. **Data hook**：`keepPreviousData`；API 传 `sort_by` / `sort_dir`
 3. **Table**：`DataTableColumnHeader`；列 `accessorKey` = 服务端白名单字段名；操作列 `meta: { align: "right" }`（`DataTable` 内聚右对齐，单元格按钮 `flex gap-1`）
-4. **Service**：`@be-water/server-kernel/http/list-sort.js`（`parseSortDir`、`resolveSortField`、`resolveSortOrder`）
+4. **Service**：`@rewindom/server-kernel/http/list-sort.js`（`parseSortDir`、`resolveSortField`、`resolveSortOrder`）
 5. **无分页全量表**：`manualSorting={false}` + 组件内 `useState<SortingState>`
 
 ## 文案（租户无感知）

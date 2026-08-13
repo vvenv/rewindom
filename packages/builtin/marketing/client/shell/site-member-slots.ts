@@ -1,4 +1,4 @@
-import { createComponentSlot } from "@be-water/client-kit";
+import { createComponentSlot } from "@rewindom/client-kit";
 
 /**
  * 站点会员相关的注入点，放在 marketing（消费方）一侧。

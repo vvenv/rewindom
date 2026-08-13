@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { cn } from "@be-water/ui/utils";
+import { cn } from "@rewindom/ui/utils";
 import { NavLink, useLocation } from "react-router";
 
 import {

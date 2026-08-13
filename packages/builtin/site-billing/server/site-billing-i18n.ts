@@ -10,7 +10,7 @@
  * 那种形式，客户端建页时由 i18next 直接解开。
  */
 
-import { normalizeLocale, resolveLocaleMessage, type AppLocale } from "@be-water/shared";
+import { normalizeLocale, resolveLocaleMessage, type AppLocale } from "@rewindom/shared";
 
 import en from "../client/locales/en.json" with { type: "json" };
 import zhCN from "../client/locales/zh-CN.json" with { type: "json" };

@@ -6,8 +6,8 @@
  * 几个月前加的重定向造成的。
  */
 
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
 import {
   normalizeRedirectFrom,

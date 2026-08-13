@@ -1,4 +1,4 @@
-# @be-water/shared
+# @rewindom/shared
 
 内核与横切契约：API 响应格式、认证类型、模块 manifest、权限机制、租户目录等。
 
@@ -17,12 +17,12 @@
 ## 使用
 
 ```typescript
-import { success, type User } from "@be-water/shared";
-import { formatBusinessDate } from "@be-water/shared";
+import { success, type User } from "@rewindom/shared";
+import { formatBusinessDate } from "@rewindom/shared";
 ```
 
 ## 构建
 
 ```bash
-pnpm --filter @be-water/shared build
+pnpm --filter @rewindom/shared build
 ```

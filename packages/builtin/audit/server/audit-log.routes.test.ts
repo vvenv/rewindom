@@ -1,6 +1,6 @@
 import { AuditScope } from "../shared/index.js";
 
-import { DEFAULT_TENANT_SLUG } from "@be-water/shared";
+import { DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 import {
   describe,
   it,
@@ -26,8 +26,8 @@ import {
   resetUserPermissions,
   type TestApp,
   type TestUser,
-} from "@be-water/server-test";
-import { installTestPermissionCatalog } from "@be-water/server-test/permission-catalog";
+} from "@rewindom/server-test";
+import { installTestPermissionCatalog } from "@rewindom/server-test/permission-catalog";
 
 import { auditLogRoutes } from "./audit-log.routes.js";
 

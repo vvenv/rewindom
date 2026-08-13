@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 
-import { clearImpersonationBackup } from "@be-water/builtin/platform/client/lib/impersonation-storage.js";
+import { clearImpersonationBackup } from "@rewindom/builtin/platform/client/lib/impersonation-storage.js";
 import {
   AuthProvider,
   ConfirmProvider,
@@ -12,8 +12,8 @@ import {
   registerI18nBundles,
   setApiAcceptLanguage,
   setupI18n,
-} from "@be-water/client-kit";
-import { TooltipProvider } from "@be-water/ui/tooltip";
+} from "@rewindom/client-kit";
+import { TooltipProvider } from "@rewindom/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { createRoot } from "react-dom/client";

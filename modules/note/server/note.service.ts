@@ -5,7 +5,7 @@ import {
   ValidationError,
   prisma,
   withTenantScope,
-} from "@be-water/module-sdk/server";
+} from "@rewindom/module-sdk/server";
 
 import { toNote, toNoteListItem } from "./note.mapper.js";
 import { validateNoteInput } from "./note.util.js";

@@ -6,8 +6,8 @@ import {
   DataTableColumnHeader,
   PageLayout,
   type DataTableFeatures,
-} from "@be-water/module-sdk/client";
-import { Badge } from "@be-water/ui/badge";
+} from "@rewindom/module-sdk/client";
+import { Badge } from "@rewindom/ui/badge";
 import { Receipt } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

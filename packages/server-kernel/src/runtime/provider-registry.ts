@@ -8,7 +8,7 @@ import type {
   TenantApiKeyAuthProvider,
   TenantRegistrationProvider,
 } from "./provider-contracts.js";
-import type { PermissionCatalogEntry } from "@be-water/shared";
+import type { PermissionCatalogEntry } from "@rewindom/shared";
 import type { FastifyRequest } from "fastify";
 
 export interface AuthzResult {

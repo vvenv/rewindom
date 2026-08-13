@@ -7,13 +7,13 @@ import {
   handleRouteError,
   handleValidationError,
   sendCodedError,
-} from "@be-water/server-kernel/http/route-error-handler.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
+} from "@rewindom/server-kernel/http/route-error-handler.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
 import {
   DATABASE_RESTORE_MAX_FILE_BYTES,
   formatMaxUploadSize,
-} from "@be-water/server-kernel/lib/upload-limits.js";
-import { BACKUP_FILE_PREFIX, success } from "@be-water/shared";
+} from "@rewindom/server-kernel/lib/upload-limits.js";
+import { BACKUP_FILE_PREFIX, success } from "@rewindom/shared";
 
 import {
   getDatabaseBackupJobForUser,

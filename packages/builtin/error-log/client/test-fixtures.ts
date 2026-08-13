@@ -3,7 +3,7 @@ import type { ErrorLog } from "../shared/index.js";
 /**
  * 本模块的测试 fixture。
  *
- * 放在模块内而非 `@be-water/client-test`：测试设施包被 apps、modules、
+ * 放在模块内而非 `@rewindom/client-test`：测试设施包被 apps、modules、
  * server-kernel 三方共用，若它反向依赖具体模块会形成包级环。
  */
 export function createMockErrorLog(overrides: Partial<ErrorLog> = {}): ErrorLog {

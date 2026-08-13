@@ -2,7 +2,7 @@ import { BACKGROUND_JOB_DASHBOARD_WIDGETS } from "./dashboard-widgets.js";
 import { BACKGROUND_JOB_I18N } from "./i18n.js";
 import { BackgroundJobShellProvider } from "./shell/background-job-shell-slots.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const backgroundJobClientModule: ClientAppModule = {
   id: "background-job",

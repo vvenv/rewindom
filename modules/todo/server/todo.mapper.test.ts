@@ -1,4 +1,4 @@
-import { prisma } from "@be-water/module-sdk/server";
+import { prisma } from "@rewindom/module-sdk/server";
 import { describe, it, expect } from "vitest";
 
 import { toTodo, toTodoListItem } from "./todo.mapper.js";

@@ -3,7 +3,7 @@ import {
   DEFAULT_LOCALE,
   normalizeLocale,
   type AppLocale,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 

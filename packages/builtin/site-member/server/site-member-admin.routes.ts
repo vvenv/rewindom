@@ -1,8 +1,8 @@
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
-import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
-import { handleValidationError } from "@be-water/server-kernel/http/route-error-handler.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { parseSortDir } from "@rewindom/server-kernel/http/list-sort.js";
+import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
+import { handleValidationError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
 

@@ -54,5 +54,5 @@ postgres-backup*.sql
 release/
 *.tar.gz
 
-# be-water export backup (transient)
+# rewindom export backup (transient)
 .cache/

@@ -1,9 +1,9 @@
 
-import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
-import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
-import { handleRouteError } from "@be-water/server-kernel/http/route-error-handler.js";
-import { loadTenantLabelsBySlugs } from "@be-water/server-kernel/lib/tenant-labels.js";
-import { success } from "@be-water/shared";
+import { parseSortDir } from "@rewindom/server-kernel/http/list-sort.js";
+import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
+import { handleRouteError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { loadTenantLabelsBySlugs } from "@rewindom/server-kernel/lib/tenant-labels.js";
+import { success } from "@rewindom/shared";
 
 import { ErrorService } from "./error.service.js";
 

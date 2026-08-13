@@ -1,8 +1,8 @@
 import { useState, type SubmitEvent, type ReactNode } from "react";
 
-import { useAuth } from "@be-water/client-kit";
-import { Alert, AlertDescription } from "@be-water/ui/alert";
-import { Button } from "@be-water/ui/button";
+import { useAuth } from "@rewindom/client-kit";
+import { Alert, AlertDescription } from "@rewindom/ui/alert";
+import { Button } from "@rewindom/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,15 +11,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@be-water/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
+} from "@rewindom/ui/dialog";
+import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@be-water/ui/input-group";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/ui/input-group";
+import { Spinner } from "@rewindom/ui/spinner";
 import { AlertCircle, CheckCircle, Eye, EyeOff, KeyRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

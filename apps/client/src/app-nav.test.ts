@@ -9,7 +9,7 @@ import {
   partitionNavSections,
 } from "./app-nav";
 
-import type { AppNavSection } from "@be-water/client-kit";
+import type { AppNavSection } from "@rewindom/client-kit";
 
 const SECTIONS: AppNavSection[] = [
   {

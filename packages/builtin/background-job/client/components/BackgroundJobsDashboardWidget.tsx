@@ -2,9 +2,9 @@ import {
   DashboardWidgetCard,
   DashboardWidgetList,
   DashboardWidgetRow,
-} from "@be-water/client-kit";
-import { formatBusinessDateOrTimeAgo } from "@be-water/shared";
-import { Badge } from "@be-water/ui/badge";
+} from "@rewindom/client-kit";
+import { formatBusinessDateOrTimeAgo } from "@rewindom/shared";
+import { Badge } from "@rewindom/ui/badge";
 import { Loader } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

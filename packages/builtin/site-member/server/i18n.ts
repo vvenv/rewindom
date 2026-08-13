@@ -1,4 +1,4 @@
-import type { ServerI18nBundle } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerI18nBundle } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 /**
  * 会员可见文案属于「站点公开面」：不得出现「租户」「Tenant」，

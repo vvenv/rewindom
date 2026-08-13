@@ -1,7 +1,7 @@
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { useQuery } from "@tanstack/react-query";
 
-import type { RoleDetail } from "@be-water/shared";
+import type { RoleDetail } from "@rewindom/shared";
 
 export const ROLES_KEY = ["roles"] as const;
 

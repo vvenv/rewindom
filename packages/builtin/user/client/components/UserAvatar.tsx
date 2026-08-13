@@ -9,7 +9,7 @@ import {
   useThemePalette,
   translateShellLayoutOptions,
   translateThemePaletteOptions,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import {
   APP_LOCALES,
   formatBusinessDateOrTimeAgo,
@@ -17,9 +17,9 @@ import {
   normalizeLocale,
   normalizeShellLayout,
   normalizeThemePalette,
-} from "@be-water/shared";
-import { Avatar, AvatarFallback } from "@be-water/ui/avatar";
-import { Button } from "@be-water/ui/button";
+} from "@rewindom/shared";
+import { Avatar, AvatarFallback } from "@rewindom/ui/avatar";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,8 +32,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/dropdown-menu";
+import { cn } from "@rewindom/ui/utils";
 import {
   ArrowLeft,
   Key,

@@ -1,4 +1,4 @@
-import { APP_LOCALES, type AppLocale } from "@be-water/shared";
+import { APP_LOCALES, type AppLocale } from "@rewindom/shared";
 
 import type { SitePageGroup } from "./site-page-groups.js";
 import type { MarketingPageListItem } from "../../shared/site-cms.js";

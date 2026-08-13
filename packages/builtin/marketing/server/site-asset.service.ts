@@ -1,15 +1,15 @@
 import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
 
-import { getFileStorageProvider } from "@be-water/server-kernel/infra/file-storage/index.js";
-import { NotFoundError } from "@be-water/server-kernel/lib/app-errors.js";
-import { validateImageUpload } from "@be-water/server-kernel/lib/image-upload.js";
+import { getFileStorageProvider } from "@rewindom/server-kernel/infra/file-storage/index.js";
+import { NotFoundError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { validateImageUpload } from "@rewindom/server-kernel/lib/image-upload.js";
 import {
   extensionToMimeType,
   mimeTypeToExtension,
-} from "@be-water/server-kernel/lib/mime.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+} from "@rewindom/server-kernel/lib/mime.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
 import { readImageDimensions } from "./image-dimensions.js";
 

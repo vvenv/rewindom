@@ -39,7 +39,7 @@ import {
 } from "../shared/plans-section.js";
 import { BILLING_PLANS_CSS } from "../shared/site-css.generated.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /** 覆盖文案优先，空则回落内置文案（`platform` 的 locale JSON）——两者是同一套 key。 */
 function textOf(

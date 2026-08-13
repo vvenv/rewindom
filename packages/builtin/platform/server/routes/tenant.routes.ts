@@ -2,10 +2,10 @@ import {
   handleRouteError,
   handleValidationError,
   sendCodedError,
-} from "@be-water/server-kernel/http/route-error-handler.js";
-import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
+} from "@rewindom/server-kernel/http/route-error-handler.js";
+import { hasErrorCode } from "@rewindom/server-kernel/lib/app-errors.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { getServerTenantCatalog } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
 import {
   success,
   isAppLocale,
@@ -13,7 +13,7 @@ import {
   isThemePaletteSlug,
   InvalidTenantSlugError,
   ReservedTenantSlugError,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import {
   AuditAction,

@@ -8,7 +8,7 @@
  * 于是文案的唯一真相源就是 `client/locales/*.json`，也就自动进了 `pnpm check:i18n`。
  */
 
-import { normalizeLocale, resolveLocaleMessage, type AppLocale } from "@be-water/shared";
+import { normalizeLocale, resolveLocaleMessage, type AppLocale } from "@rewindom/shared";
 
 import en from "../client/locales/en.json" with { type: "json" };
 import zhCN from "../client/locales/zh-CN.json" with { type: "json" };

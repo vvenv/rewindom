@@ -8,17 +8,14 @@
  *
  *   pnpm --filter server exec tsx scripts/seed-local-marketing-site.ts [tenantSlug]
  */
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_SLUG } from "@be-water/shared";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 
 import { applyDefaultProductSite } from "../../../packages/builtin/marketing/server/apply-default-product-site.js";
 import { loadUsageDocs } from "../../../packages/builtin/marketing/server/load-usage-docs.js";
 import { seedDocsFromFiles } from "../../../packages/builtin/marketing/server/marketing-doc.service.js";
-import {
-  applySiteStarter,
-  setPageStatus,
-  updateSite,
-} from "../../../packages/builtin/marketing/server/site.service.js";
+import { initializeTenantSite } from "../../../packages/builtin/marketing/server/site-init.service.js";
+import { updateSite } from "../../../packages/builtin/marketing/server/site.service.js";
 import { ensureDefaultTenant } from "../../../packages/builtin/platform/server/services/ensure-default-tenant.service.js";
 
 async function main(): Promise<void> {
@@ -58,17 +55,13 @@ async function main(): Promise<void> {
     return;
   }
 
-  const applied = await applySiteStarter(tenant.id, "default");
+  const applied = await initializeTenantSite(tenant.id, "zh-CN", {
+    page_status: "published",
+  });
   await updateSite(tenant.id, { published: true });
 
-  for (const page of applied.pages) {
-    if (page.status !== "published") {
-      await setPageStatus(tenant.id, page.id, "published");
-    }
-  }
-
   console.log(
-    `[seed-local-marketing-site] published default starter for tenant=${slug} pages=${applied.pages.length}`,
+    `[seed-local-marketing-site] published default starter for tenant=${slug} created_site=${applied.created_site} pages=${applied.created_pages.length}`,
   );
 }
 

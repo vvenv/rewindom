@@ -12,7 +12,7 @@ import {
   validateRoleForm,
 } from "./role-form.js";
 
-import type { PermissionCatalogEntry, RoleDetail } from "@be-water/shared";
+import type { PermissionCatalogEntry, RoleDetail } from "@rewindom/shared";
 
 function entry(
   key: string,

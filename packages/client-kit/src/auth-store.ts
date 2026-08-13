@@ -1,4 +1,4 @@
-import type { AuthTokens } from "@be-water/shared";
+import type { AuthTokens } from "@rewindom/shared";
 
 export interface AuthTokenStore {
   getAccessToken(): string | null;

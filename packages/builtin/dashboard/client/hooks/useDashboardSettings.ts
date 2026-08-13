@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { toast } from "@be-water/ui/toast";
+import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -18,7 +18,7 @@ import {
 } from "./useDashboardPreference.js";
 
 import type { DashboardPreference } from "../../shared/index.js";
-import type { DashboardWidget } from "@be-water/client-kit";
+import type { DashboardWidget } from "@rewindom/client-kit";
 
 export interface UseDashboardSettingsOptions {
   open: boolean;

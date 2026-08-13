@@ -1,10 +1,10 @@
-import { createQueryWrapper, createTestQueryClient } from "@be-water/client-test";
-import { server } from "@be-water/client-test/server";
+import { createQueryWrapper, createTestQueryClient } from "@rewindom/client-test";
+import { server } from "@rewindom/client-test/server";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, it, expect } from "vitest";
 
-import type { TenantUserListItem } from "@be-water/shared";
+import type { TenantUserListItem } from "@rewindom/shared";
 
 import { UserCreateSheet, UserEditSheet } from "./UserSheet.js";
 

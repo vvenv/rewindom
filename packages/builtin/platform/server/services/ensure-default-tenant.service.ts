@@ -1,5 +1,5 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_ID, DEFAULT_TENANT_SLUG } from "@be-water/shared";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { DEFAULT_TENANT_ID, DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 
 
 export async function ensureDefaultTenant(): Promise<void> {

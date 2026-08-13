@@ -1,6 +1,6 @@
-import { buildCodedErrorBody } from "@be-water/server-kernel/http/coded-error.js";
-import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
-import { findCatalogFeature, type TenantFeatureKey } from "@be-water/shared";
+import { buildCodedErrorBody } from "@rewindom/server-kernel/http/coded-error.js";
+import { getServerTenantCatalog } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
+import { findCatalogFeature, type TenantFeatureKey } from "@rewindom/shared";
 
 import { isTenantFeatureEnabled } from "../services/tenant-feature.service.js";
 

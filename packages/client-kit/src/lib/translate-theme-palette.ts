@@ -1,4 +1,4 @@
-import { THEME_PALETTES, getThemePaletteLabel } from "@be-water/shared";
+import { THEME_PALETTES, getThemePaletteLabel } from "@rewindom/shared";
 
 import type { TFunction } from "i18next";
 

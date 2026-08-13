@@ -1,15 +1,15 @@
 import { useState, type ReactNode } from "react";
 
-import { ApiError, CopyButton, FieldInfoTip } from "@be-water/client-kit";
-import { Alert, AlertDescription } from "@be-water/ui/alert";
-import { Button } from "@be-water/ui/button";
+import { ApiError, CopyButton, FieldInfoTip } from "@rewindom/client-kit";
+import { Alert, AlertDescription } from "@rewindom/ui/alert";
+import { Button } from "@rewindom/ui/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+} from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Sheet,
   SheetClose,
@@ -19,9 +19,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 
 import { useSaveSiteBillingProvider } from "../hooks/useSiteBillingMutations.js";

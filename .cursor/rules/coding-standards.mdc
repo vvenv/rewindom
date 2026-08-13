@@ -50,7 +50,7 @@ interface Document {
 
 ### 请求规范
 
-**禁止**在组件或 Context 中直接使用 `fetch`，必须使用 `@be-water/client-kit` 中的 `api` 工具。
+**禁止**在组件或 Context 中直接使用 `fetch`，必须使用 `@rewindom/client-kit` 中的 `api` 工具。
 
 ```typescript
 import { api } from "@/lib/api";
@@ -60,7 +60,7 @@ await api.get("/users", { page, page_size, sort_by, sort_dir, search });
 await api.post("/documents", { title, content }, true);
 ```
 
-列表页排序、分页、筛选参数读写统一走 `@be-water/client-kit/lib/list-url-params`（见 `frontend-page-structure` rule）。
+列表页排序、分页、筛选参数读写统一走 `@rewindom/client-kit/lib/list-url-params`（见 `frontend-page-structure` rule）。
 
 **Token 管理：**
 

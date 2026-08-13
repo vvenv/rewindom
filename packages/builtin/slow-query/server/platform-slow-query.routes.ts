@@ -1,8 +1,8 @@
 
-import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
-import { handleRouteError } from "@be-water/server-kernel/http/route-error-handler.js";
-import { loadTenantLabelsBySlugs } from "@be-water/server-kernel/lib/tenant-labels.js";
-import { success } from "@be-water/shared";
+import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
+import { handleRouteError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { loadTenantLabelsBySlugs } from "@rewindom/server-kernel/lib/tenant-labels.js";
+import { success } from "@rewindom/shared";
 
 import { SlowQueryService } from "./slow-query.service.js";
 

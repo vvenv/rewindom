@@ -5,7 +5,7 @@ import { ERROR_LOG_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { ERROR_LOG_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderErrorLogTenantRoutes } from "./tenant/routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const errorLogClientModule: ClientAppModule = {
   id: "error-log",

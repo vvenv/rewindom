@@ -1,4 +1,4 @@
-import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
+import { getServerPermissionCatalog } from "@rewindom/server-kernel/runtime/permission-catalog.js";
 
 import { RBAC_SERVER_I18N } from "./i18n.js";
 import {
@@ -9,7 +9,7 @@ import {
 import { permissionRoutes } from "./permission.routes.js";
 import { RoleService } from "./role.service.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const rbacServerModule: ServerAppModule = {
   id: "rbac",

@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 
-import { Button } from "@be-water/ui/button";
-import { Input } from "@be-water/ui/input";
+import { Button } from "@rewindom/ui/button";
+import { Input } from "@rewindom/ui/input";
 import { useTranslation } from "react-i18next";
 
 import { MediaPickerDialog } from "./MediaPickerDialog.js";

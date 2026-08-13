@@ -1,10 +1,10 @@
 import { useState } from "react";
 
-import { ApiError } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
-import { Card, CardContent } from "@be-water/ui/card";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+import { ApiError } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
+import { Card, CardContent } from "@rewindom/ui/card";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { HardDriveDownload, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

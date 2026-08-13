@@ -1,15 +1,15 @@
-import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
+import { parseSortDir } from "@rewindom/server-kernel/http/list-sort.js";
 import {
   parseDisplayCatalogPagination,
   parsePagination,
-} from "@be-water/server-kernel/http/pagination.js";
+} from "@rewindom/server-kernel/http/pagination.js";
 import {
   handleValidationError,
   sendCodedError,
-} from "@be-water/server-kernel/http/route-error-handler.js";
-import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { success } from "@be-water/shared";
+} from "@rewindom/server-kernel/http/route-error-handler.js";
+import { hasErrorCode } from "@rewindom/server-kernel/lib/app-errors.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { success } from "@rewindom/shared";
 
 import { AuditAction } from "../../audit/shared/index.js";
 import {

@@ -1,4 +1,4 @@
-import { usePermissions } from "@be-water/client-kit";
+import { usePermissions } from "@rewindom/client-kit";
 
 import { PlatformAdminsTable } from "../components/PlatformAdminsTable.js";
 import { usePlatformAdmins } from "../hooks/usePlatformAdmins.js";

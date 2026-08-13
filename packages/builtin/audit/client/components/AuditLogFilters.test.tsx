@@ -1,7 +1,7 @@
 import {
   registerI18nBundles,
   setupI18n,
-} from "@be-water/client-kit/i18n/setup";
+} from "@rewindom/client-kit/i18n/setup";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
@@ -11,9 +11,9 @@ import { AuditLogFilters } from "./AuditLogFilters.js";
 registerI18nBundles([AUDIT_I18N]);
 setupI18n("zh-CN");
 
-vi.mock("@be-water/client-kit", async () => {
+vi.mock("@rewindom/client-kit", async () => {
   const { clientShellTestMock } =
-    await import("@be-water/client-test/mocks/client-shell");
+    await import("@rewindom/client-test/mocks/client-shell");
   return {
     ...clientShellTestMock,
     DateTimeRangePicker: () => <div data-testid="datetime-range-picker" />,

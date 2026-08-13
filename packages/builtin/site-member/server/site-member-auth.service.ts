@@ -3,14 +3,14 @@ import { randomBytes, randomUUID } from "node:crypto";
 import {
   AuthService,
   type JwtSignPayload,
-} from "@be-water/server-kernel/kernel/auth/auth.service.js";
+} from "@rewindom/server-kernel/kernel/auth/auth.service.js";
 import {
   ConflictError,
   UnauthorizedError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { type AuthTokens } from "@be-water/shared";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { type AuthTokens } from "@rewindom/shared";
 
 import { toSiteMemberProfile } from "./site-member.mapper.js";
 

@@ -1,6 +1,6 @@
 import { type ReactElement } from "react";
 
-import { Slider } from "@be-water/ui/slider";
+import { Slider } from "@rewindom/ui/slider";
 import { useTranslation } from "react-i18next";
 
 import {

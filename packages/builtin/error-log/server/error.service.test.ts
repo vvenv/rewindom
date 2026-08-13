@@ -1,11 +1,11 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 
 import { ErrorService, type ErrorLogRow } from "./error.service.js";
 
 // Mock prisma
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     errorLog: {
       create: vi.fn(),

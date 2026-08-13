@@ -4,22 +4,22 @@ import {
   getLocaleNativeLabel,
   normalizeLocale,
   type AppLocale,
-} from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
+} from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+} from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import {
   Sheet,
   SheetClose,
@@ -29,8 +29,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 

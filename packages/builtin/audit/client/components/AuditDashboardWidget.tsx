@@ -2,8 +2,8 @@ import {
   DashboardWidgetCard,
   DashboardWidgetList,
   DashboardWidgetRow,
-} from "@be-water/client-kit";
-import { formatBusinessDateOrTimeAgo } from "@be-water/shared";
+} from "@rewindom/client-kit";
+import { formatBusinessDateOrTimeAgo } from "@rewindom/shared";
 import { ScrollText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

@@ -14,7 +14,7 @@ import {
 } from "../lib/site-doc-api.js";
 
 import type { SiteSection } from "../../shared/section-schema.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /**
  * 页头 / 页脚在预览里要用的文档数据，口径与 SSR 的 `resolveChromeDocs` 一致。

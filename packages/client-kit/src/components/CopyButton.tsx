@@ -1,4 +1,4 @@
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import { Check, Copy } from "lucide-react";
 
 import { useClipboard } from "../hooks/useClipboard";

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { Field, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+import { Field, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import { describe, expect, it } from "vitest";
 
 import { FieldInfoTip } from "./FieldInfoTip.js";

@@ -1,6 +1,6 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { isSiteMemberActor, type AuthActorType } from "@be-water/shared";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
+import { isSiteMemberActor, type AuthActorType } from "@rewindom/shared";
 
 import { registerSiteMemberSsrSession } from "../../marketing/server/site-member-ssr-session.js";
 
@@ -12,7 +12,7 @@ import {
 import { SiteMemberAuthService } from "./site-member-auth.service.js";
 import { toSiteMemberProfile } from "./site-member.mapper.js";
 
-import type { JwtSignPayload } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import type { JwtSignPayload } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 interface AccessJwtPayload {

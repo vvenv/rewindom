@@ -1,11 +1,11 @@
-import "@be-water/server-kernel/kernel/auth/auth.service.test-mocks.js";
-import { hasErrorCode } from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import "@rewindom/server-kernel/kernel/auth/auth.service.test-mocks.js";
+import { hasErrorCode } from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import {
   DEFAULT_TENANT_ID,
   PLATFORM_ADMIN_USER_ID,
   TENANT_IMPERSONATION_USERNAME,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import bcrypt from "bcrypt";
 import { describe, it, expect, vi } from "vitest";
 

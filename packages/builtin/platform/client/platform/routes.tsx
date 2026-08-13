@@ -1,6 +1,6 @@
 import { lazy, type ReactNode } from "react";
 
-import { PermissionRoute, usePublicConfig } from "@be-water/client-kit";
+import { PermissionRoute, usePublicConfig } from "@rewindom/client-kit";
 import { Navigate, Route } from "react-router";
 
 const PlatformDashboard = lazy(() =>

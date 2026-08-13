@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Bundle apps/server for production:
- * - Inline workspace packages (@be-water/*) that ship TypeScript source
+ * - Inline workspace packages (@rewindom/*) that ship TypeScript source
  * - Inline transitive deps that only those packages declare (e.g. pinyin-pro)
  * - Leave apps/server's own dependencies + native/engine packages external
  *
@@ -42,7 +42,7 @@ function packageNameOf(id) {
 }
 
 function isWorkspacePackage(name) {
-  return name.startsWith("@be-water/");
+  return name.startsWith("@rewindom/");
 }
 
 function isBarePackageImport(id) {
@@ -91,7 +91,7 @@ await esbuild.build({
   target: "node22",
   sourcemap: true,
   banner: {
-    js: 'import { createRequire as __beWaterCreateRequire } from "node:module";\nconst require = __beWaterCreateRequire(import.meta.url);',
+    js: 'import { createRequire as __rewindomCreateRequire } from "node:module";\nconst require = __rewindomCreateRequire(import.meta.url);',
   },
   logLevel: "info",
   plugins: [externalPackagesPlugin],

@@ -1,4 +1,4 @@
-import { getRedisClient } from "@be-water/server-kernel/infra/redis.service.js";
+import { getRedisClient } from "@rewindom/server-kernel/infra/redis.service.js";
 
 import { type BackgroundJobDto } from "../shared/index.js";
 

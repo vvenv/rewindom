@@ -8,7 +8,7 @@ import {
   type DashboardEntitlements,
 } from "./dashboard-widgets.js";
 
-import type { DashboardWidget } from "@be-water/client-kit";
+import type { DashboardWidget } from "@rewindom/client-kit";
 
 const Stub = () => null;
 

@@ -25,7 +25,7 @@ import { SITE_BILLING_CSS } from "../shared/site-css.generated.js";
 
 import type { SettingValues } from "../../marketing/shared/section-settings.js";
 import type { MemberPlanSummary } from "../shared/site-billing.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /** 当前套餐旁的管理入口；与页头菜单同一去处。 */
 const MANAGE_LABEL: Record<AppLocale, string> = {

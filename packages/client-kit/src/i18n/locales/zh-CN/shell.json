@@ -10,9 +10,9 @@
     "system": "跟随系统"
   },
   "themePalettes": {
-    "water": {
-      "label": "水蓝",
-      "description": "默认配色：水蓝主色搭配青色数据强调"
+    "azure": {
+      "label": "青蓝",
+      "description": "默认配色：青蓝主色搭配青色数据强调"
     },
     "slate": {
       "label": "石墨",

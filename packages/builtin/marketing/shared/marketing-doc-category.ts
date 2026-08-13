@@ -6,7 +6,7 @@
  * 页头文案同口径。不再靠「中文一篇一个分类名、英文一篇另一个分类名」凑多语言。
  */
 
-import { type AppLocale } from "@be-water/shared";
+import { type AppLocale } from "@rewindom/shared";
 
 import {
   isLocalizedText,

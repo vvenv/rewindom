@@ -1,10 +1,10 @@
 import { type ReactElement } from "react";
 
-import { FieldInfoTip } from "@be-water/client-kit";
-import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
-import { Switch } from "@be-water/ui/switch";
-import { Textarea } from "@be-water/ui/textarea";
+import { FieldInfoTip } from "@rewindom/client-kit";
+import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
+import { Switch } from "@rewindom/ui/switch";
+import { Textarea } from "@rewindom/ui/textarea";
 import { useTranslation } from "react-i18next";
 
 import { SiteImageField } from "./media/SiteImageField.js";

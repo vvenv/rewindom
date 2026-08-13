@@ -1,6 +1,6 @@
 import { CreditCard } from "lucide-react";
 
-import type { AppNavSection } from "@be-water/client-kit";
+import type { AppNavSection } from "@rewindom/client-kit";
 
 /**
  * section label 与 `user` / `rbac` 的一致，collectModuleNav 会合并为同一分组；

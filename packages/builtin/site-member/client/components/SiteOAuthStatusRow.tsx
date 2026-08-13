@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 
-import { Badge } from "@be-water/ui/badge";
+import { Badge } from "@rewindom/ui/badge";
 import { KeyRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

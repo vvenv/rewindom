@@ -1,11 +1,11 @@
-import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
-import { AuthService } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import { resolveSortField, resolveSortOrder } from "@rewindom/server-kernel/http/list-sort.js";
+import { AuthService } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
 import {
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 const PLATFORM_ADMIN_SORTABLE_FIELDS = new Set([
   "username",

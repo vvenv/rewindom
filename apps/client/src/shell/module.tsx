@@ -1,7 +1,7 @@
 import { renderAppShellGuestRoutes } from "./guest-routes.js";
 import { renderAppShellPublicRoutes } from "./public-routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const appShellClientModule: ClientAppModule = {
   id: "app-shell",

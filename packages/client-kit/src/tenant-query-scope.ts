@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import {
   isTenantUserActor,
   type AuthActorType,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { useAuth } from "./hooks/useAuth";
 import { getStoredAccessToken } from "./lib/auth-token-storage";

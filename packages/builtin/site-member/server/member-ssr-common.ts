@@ -6,13 +6,13 @@
  * 三个文件里各有一份，改对两处漏掉一处不会有任何测试变红。
  */
 
-import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
+import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
 import {
   resolveHostTenant,
   resolveRequestHostname,
-} from "@be-water/server-kernel/lib/host-tenant.js";
-import { translateServerMessage } from "@be-water/server-kernel/lib/i18n/registry.js";
-import { type AppLocale } from "@be-water/shared";
+} from "@rewindom/server-kernel/lib/host-tenant.js";
+import { translateServerMessage } from "@rewindom/server-kernel/lib/i18n/registry.js";
+import { type AppLocale } from "@rewindom/shared";
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 

@@ -1,12 +1,12 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { DEFAULT_TENANT_ID } from "@rewindom/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ensureDefaultMarketingDocs } from "./ensure-default-marketing-site.js";
 import { loadUsageDocs } from "./load-usage-docs.js";
 import { seedDocsFromFiles } from "./marketing-doc.service.js";
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     marketingDoc: { findMany: vi.fn() },
   },

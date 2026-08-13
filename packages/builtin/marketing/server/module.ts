@@ -1,4 +1,4 @@
-import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/register-tenant-gated-routes.js";
+import { registerTenantGatedRoutes } from "@rewindom/server-kernel/runtime/register-tenant-gated-routes.js";
 
 import { TENANT_MARKETING_ENTITLEMENT } from "../shared/entitlements.js";
 
@@ -11,7 +11,7 @@ import { initializeTenantSite } from "./site-init.service.js";
 import { siteRoutes } from "./site.routes.js";
 import { marketingSsrRoutes } from "./ssr.routes.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const marketingServerModule: ServerAppModule = {
   id: "marketing",

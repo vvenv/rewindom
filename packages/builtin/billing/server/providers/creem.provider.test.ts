@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-vi.mock("@be-water/server-kernel/lib/config.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
     billing: {
       creem: {

@@ -1,7 +1,7 @@
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import type { TenantUserListItem } from "@be-water/shared";
+import type { TenantUserListItem } from "@rewindom/shared";
 
 const USERS_KEY = ["users"] as const;
 

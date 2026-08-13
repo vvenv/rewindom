@@ -1,7 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { topologicalSortModules } from "@be-water/server-kernel/runtime/topological-sort.js";
+import { topologicalSortModules } from "@rewindom/server-kernel/runtime/topological-sort.js";
 import { describe, expect, it } from "vitest";
 
 import { ENABLED_SERVER_MODULES } from "../src/enabled-modules.js";

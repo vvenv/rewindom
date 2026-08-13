@@ -12,7 +12,7 @@ const updateSubscription = vi.fn();
 const upsertPayment = vi.fn();
 const findFirstPlan = vi.fn();
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     memberSubscription: {
       findFirst: (...a: unknown[]) => findFirstSubscription(...a),

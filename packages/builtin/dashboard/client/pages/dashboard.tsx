@@ -1,4 +1,4 @@
-import { PageLayout } from "@be-water/client-kit";
+import { PageLayout } from "@rewindom/client-kit";
 import { LayoutDashboard } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

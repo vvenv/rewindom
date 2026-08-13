@@ -2,8 +2,8 @@ import {
   readPersistedValue,
   removePersistedValue,
   writePersistedValue,
-} from "@be-water/client-kit";
-import { STORAGE_PREFIX, type AuthTokens } from "@be-water/shared";
+} from "@rewindom/client-kit";
+import { STORAGE_PREFIX, type AuthTokens } from "@rewindom/shared";
 
 const IMPERSONATION_BACKUP_KEY = `${STORAGE_PREFIX}_impersonation_backup`;
 const IMPERSONATION_META_KEY = `${STORAGE_PREFIX}_impersonation_meta`;

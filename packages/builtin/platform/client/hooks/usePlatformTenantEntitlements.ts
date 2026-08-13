@@ -1,9 +1,9 @@
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 import type { UpdateTenantEntitlementsBody } from "../../shared/index.js";
-import type { TenantEntitlementCatalog, TenantEntitlementsResponse } from "@be-water/shared";
+import type { TenantEntitlementCatalog, TenantEntitlementsResponse } from "@rewindom/shared";
 
 interface PlatformTenantEntitlementsPayload {
   catalog: TenantEntitlementCatalog;

@@ -5,7 +5,7 @@ import { toPublicMarketingPage, toPublicMarketingSite } from "./site.mapper.js";
 import type {
   MarketingPage as MarketingPageRecord,
   MarketingSite as MarketingSiteRecord,
-} from "@be-water/server-kernel/generated/prisma/client/client.js";
+} from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 function siteRecord(
   overrides: Partial<MarketingSiteRecord> = {},

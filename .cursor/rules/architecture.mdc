@@ -15,8 +15,8 @@ Frontend (React SPA) → Fastify API (:3700) → PostgreSQL + Prisma
 | 路径 | 角色 |
 | --- | --- |
 | `apps/server` / `apps/client` | 极薄组装层，只做启用模块的注册 |
-| `packages/builtin/<id>/` | 内置模块（`shared` + `server` + `client` + 可选 `schema.prisma`），同属 `@be-water/builtin` |
-| `modules/<id>/` | 外部业务模块（`@be-water/<id>`），由 `pnpm gen:module` 生成 |
+| `packages/builtin/<id>/` | 内置模块（`shared` + `server` + `client` + 可选 `schema.prisma`），同属 `@rewindom/builtin` |
+| `modules/<id>/` | 外部业务模块（`@rewindom/<id>`），由 `pnpm gen:module` 生成 |
 | `packages/server-kernel` | 后端内核：Prisma、认证、中间件、模块契约 |
 | `packages/client-kit` / `packages/ui` | 前端 App Shell 与组件库 |
 | `packages/module-sdk` | 外部模块的稳定门面，避免业务直连内核 |

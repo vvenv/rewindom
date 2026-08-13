@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-vi.mock("@be-water/server-kernel/lib/config.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
     auth: {
       jwtSecret: "test-secret",
@@ -70,7 +70,7 @@ vi.mock("../services/backup.service.js", () => ({
   },
 }));
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     tenant: {
       findMany: vi.fn(),
@@ -103,7 +103,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   },
 }));
 
-vi.mock("@be-water/server-kernel/kernel/auth/auth.service.js", () => ({
+vi.mock("@rewindom/server-kernel/kernel/auth/auth.service.js", () => ({
   AuthService: {
     hashPassword: vi.fn().mockResolvedValue("hashed_password"),
     revokeAllUserTokens: vi.fn(),

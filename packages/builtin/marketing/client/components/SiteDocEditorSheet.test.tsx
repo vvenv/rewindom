@@ -1,4 +1,4 @@
-import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
+import { registerI18nBundles, setupI18n } from "@rewindom/client-kit";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createElement } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -13,8 +13,8 @@ setupI18n("zh-CN");
 
 const confirmMock = vi.fn();
 
-vi.mock("@be-water/client-kit", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@be-water/client-kit")>();
+vi.mock("@rewindom/client-kit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@rewindom/client-kit")>();
   return {
     ...actual,
     useConfirm: () => ({ confirm: confirmMock }),

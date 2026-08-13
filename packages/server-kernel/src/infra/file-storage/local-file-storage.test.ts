@@ -21,7 +21,7 @@ async function drain(stream: NodeJS.ReadableStream): Promise<string> {
 }
 
 beforeAll(async () => {
-  baseDir = await mkdtemp(join(tmpdir(), "be-water-storage-"));
+  baseDir = await mkdtemp(join(tmpdir(), "rewindom-storage-"));
   originalBaseDir = config.storage.attachment.baseDir;
   config.storage.attachment.baseDir = baseDir;
 });

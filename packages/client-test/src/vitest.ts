@@ -6,7 +6,7 @@ import react from "@vitejs/plugin-react";
 import {
   createModuleServerTestProject,
   createModuleSharedTestProject,
-} from "@be-water/server-test/vitest";
+} from "@rewindom/server-test/vitest";
 import { defineConfig, defineProject, type UserConfig } from "vitest/config";
 
 const PACKAGE_ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -76,7 +76,7 @@ function buildClientTestConfig(options: ClientVitestOptions) {
       exclude,
       coverage: options.coverage ?? DEFAULT_COVERAGE,
       ...(moduleI18nPath
-        ? { env: { BE_WATER_CLIENT_I18N: moduleI18nPath } }
+        ? { env: { REWINDOM_CLIENT_I18N: moduleI18nPath } }
         : {}),
     },
     resolve: {

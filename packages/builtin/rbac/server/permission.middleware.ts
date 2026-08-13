@@ -1,17 +1,17 @@
-import { sendCodedError } from "@be-water/server-kernel/http/coded-error.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { getRequestContext } from "@be-water/server-kernel/lib/request-context.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+import { sendCodedError } from "@rewindom/server-kernel/http/coded-error.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { getRequestContext } from "@rewindom/server-kernel/lib/request-context.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import {
   isValidModulePermission,
   type MergedPermissionCatalog,
-} from "@be-water/server-kernel/runtime/collect-module-permissions.js";
-import { getServerPermissionCatalog } from "@be-water/server-kernel/runtime/permission-catalog.js";
+} from "@rewindom/server-kernel/runtime/collect-module-permissions.js";
+import { getServerPermissionCatalog } from "@rewindom/server-kernel/runtime/permission-catalog.js";
 import {
   API_CLIENT_PERMISSIONS,
   platformAdminPermissionCacheKey,
   userPermissionCacheKey, type AuthActorType 
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import {
   resolvePlatformAdminPermissions,
@@ -23,7 +23,7 @@ import type {
   AuthzResult,
   PermissionCatalog,
   ProviderRegistry,
-} from "@be-water/server-kernel/runtime/provider-registry.js";
+} from "@rewindom/server-kernel/runtime/provider-registry.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 declare module "fastify" {

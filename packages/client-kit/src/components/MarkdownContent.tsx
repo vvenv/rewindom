@@ -1,4 +1,4 @@
-import { cn } from "@be-water/ui/utils";
+import { cn } from "@rewindom/ui/utils";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 

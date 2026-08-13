@@ -1,4 +1,4 @@
-import { STORAGE_PREFIX, type AuthTokens } from "@be-water/shared";
+import { STORAGE_PREFIX, type AuthTokens } from "@rewindom/shared";
 import { describe, it, expect, beforeEach } from "vitest";
 
 import {

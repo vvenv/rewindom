@@ -7,7 +7,7 @@ PRISMA_BIN="/app/node_modules/.pnpm/node_modules/.bin/prisma"
 
 db_host="${DATABASE_HOST:-postgres}"
 db_port="${DATABASE_PORT:-5432}"
-db_user="${DATABASE_USER:-be-water}"
+db_user="${DATABASE_USER:-rewindom}"
 
 echo "[entrypoint] 等待 PostgreSQL (${db_host}:${db_port})..."
 for i in $(seq 1 60); do

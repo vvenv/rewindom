@@ -1,22 +1,22 @@
-import { auditClientModule } from "@be-water/builtin/audit/client/module.js";
-import { backgroundJobClientModule } from "@be-water/builtin/background-job/client/module.js";
-import { billingClientModule } from "@be-water/builtin/billing/client/module.js";
-import { dashboardClientModule } from "@be-water/builtin/dashboard/client/module.js";
-import { errorLogClientModule } from "@be-water/builtin/error-log/client/module.js";
-import { marketingClientModule } from "@be-water/builtin/marketing/client/module.js";
-import { notificationClientModule } from "@be-water/builtin/notification/client/module.js";
-import { platformClientModule } from "@be-water/builtin/platform/client/module.js";
-import { rbacClientModule } from "@be-water/builtin/rbac/client/module.js";
-import { siteBillingClientModule } from "@be-water/builtin/site-billing/client/module.js";
-import { siteMemberClientModule } from "@be-water/builtin/site-member/client/module.js";
-import { slowQueryClientModule } from "@be-water/builtin/slow-query/client/module.js";
-import { userClientModule } from "@be-water/builtin/user/client/module.js";
+import { auditClientModule } from "@rewindom/builtin/audit/client/module.js";
+import { backgroundJobClientModule } from "@rewindom/builtin/background-job/client/module.js";
+import { billingClientModule } from "@rewindom/builtin/billing/client/module.js";
+import { dashboardClientModule } from "@rewindom/builtin/dashboard/client/module.js";
+import { errorLogClientModule } from "@rewindom/builtin/error-log/client/module.js";
+import { marketingClientModule } from "@rewindom/builtin/marketing/client/module.js";
+import { notificationClientModule } from "@rewindom/builtin/notification/client/module.js";
+import { platformClientModule } from "@rewindom/builtin/platform/client/module.js";
+import { rbacClientModule } from "@rewindom/builtin/rbac/client/module.js";
+import { siteBillingClientModule } from "@rewindom/builtin/site-billing/client/module.js";
+import { siteMemberClientModule } from "@rewindom/builtin/site-member/client/module.js";
+import { slowQueryClientModule } from "@rewindom/builtin/slow-query/client/module.js";
+import { userClientModule } from "@rewindom/builtin/user/client/module.js";
 
 import { appShellClientModule } from "@/shell/index";
 
 import { EXTERNAL_CLIENT_MODULES } from "./external-modules.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 /**
  * 模块顺序决定侧栏 section 顺序与组内 items 顺序（见 collect-modules.ts）。

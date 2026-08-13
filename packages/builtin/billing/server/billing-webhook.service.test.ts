@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-vi.mock("@be-water/server-kernel/lib/config.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
     billing: {
       creem: {
@@ -21,7 +21,7 @@ const upsertSubscription = vi.fn();
 const updateSubscription = vi.fn();
 const upsertPayment = vi.fn();
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     subscription: {
       findFirst: (...args: unknown[]) => findFirstSubscription(...args),

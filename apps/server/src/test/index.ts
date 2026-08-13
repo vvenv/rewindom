@@ -1,6 +1,6 @@
 /**
  * Server assembly test utilities.
- * Generic helpers live in @be-water/server-test.
+ * Generic helpers live in @rewindom/server-test.
  */
 export {
   createPrismaMock,
@@ -17,12 +17,12 @@ export {
   resetUserPermissions,
   revokePermission,
   userPermissionCacheKey,
-} from "@be-water/server-test";
+} from "@rewindom/server-test";
 export type {
   PrismaMock,
   RouteTestAppOptions,
   TestApp,
   TestUser,
-} from "@be-water/server-test";
+} from "@rewindom/server-test";
 
 export { createTestApp } from "./create-test-app.js";

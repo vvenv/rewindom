@@ -1,4 +1,4 @@
-import { type ModuleManifestBase } from "@be-water/shared";
+import { type ModuleManifestBase } from "@rewindom/shared";
 
 import type { EventBus } from "./event-bus.js";
 import type { JobRegistryContext } from "./job-registry.js";

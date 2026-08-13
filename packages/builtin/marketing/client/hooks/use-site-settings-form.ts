@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import {

@@ -1,12 +1,12 @@
-import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
+import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
 import {
   handleRouteError,
   sendCodedError,
-} from "@be-water/server-kernel/http/route-error-handler.js";
-import { getAppEnvironment } from "@be-water/server-kernel/lib/app-environment.js";
-import { getAppVersion } from "@be-water/server-kernel/lib/app-version.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { success } from "@be-water/shared";
+} from "@rewindom/server-kernel/http/route-error-handler.js";
+import { getAppEnvironment } from "@rewindom/server-kernel/lib/app-environment.js";
+import { getAppVersion } from "@rewindom/server-kernel/lib/app-version.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { success } from "@rewindom/shared";
 
 import { AuditAction, AuditScope } from "../../../audit/shared/index.js";
 import {

@@ -1,6 +1,6 @@
 import { type ReactElement } from "react";
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

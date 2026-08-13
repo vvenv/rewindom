@@ -16,7 +16,7 @@
  *   pnpm --filter server exec tsx scripts/backfill-marketing-default-pages.ts --dry-run
  *   pnpm --filter server exec tsx scripts/backfill-marketing-default-pages.ts
  */
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import { initializeTenantSite } from "../../../packages/builtin/marketing/server/site-init.service.js";
 import { getPlatformSettings } from "../../../packages/builtin/platform/server/services/platform-settings.service.js";

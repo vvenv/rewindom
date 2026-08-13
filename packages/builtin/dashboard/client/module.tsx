@@ -2,7 +2,7 @@ import { DASHBOARD_I18N } from "./i18n.js";
 import { DASHBOARD_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderDashboardRoutes } from "./tenant/routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 /**
  * 纯前端模块：没有 server 面，也**不声明** `tenantEntitlements`——

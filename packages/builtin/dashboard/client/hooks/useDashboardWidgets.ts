@@ -5,7 +5,7 @@ import {
   usePermissions,
   useTenantEntitlements,
   type DashboardWidget,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 
 import {
   applyDashboardPreference,

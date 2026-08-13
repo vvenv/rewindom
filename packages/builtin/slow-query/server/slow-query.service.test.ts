@@ -13,7 +13,7 @@ const { mockSlowQueryLogCreateMany, mockSlowQueryLogFindMany,
   }));
 
 // Config mock
-vi.mock("@be-water/server-kernel/lib/config.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
   config: {
     observability: {
       slowQuery: {
@@ -29,7 +29,7 @@ vi.mock("@be-water/server-kernel/lib/config.js", () => ({
 }));
 
 // Prisma mock
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     slowQueryLog: {
       createMany: mockSlowQueryLogCreateMany,
@@ -42,7 +42,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
 }));
 
 // Request context mock
-vi.mock("@be-water/server-kernel/lib/request-context.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/request-context.js", () => ({
   getRequestContext: (...args: unknown[]) => mockGetRequestContext(...args),
 }));
 

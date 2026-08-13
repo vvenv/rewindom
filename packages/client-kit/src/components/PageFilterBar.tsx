@@ -1,12 +1,12 @@
 import { useState, type ReactNode } from "react";
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@be-water/ui/popover";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/popover";
+import { cn } from "@rewindom/ui/utils";
 import { ChevronDown, ChevronUp, CircleHelp } from "lucide-react";
 
 import { useMediaQuery } from "../hooks/useMediaQuery";

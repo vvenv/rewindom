@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
-import { Toaster } from "@be-water/ui/sonner";
-import { Spinner } from "@be-water/ui/spinner";
+import { Toaster } from "@rewindom/ui/sonner";
+import { Spinner } from "@rewindom/ui/spinner";
 import { BrowserRouter, Route, Routes } from "react-router";
 
 import { AppShellConfigProvider } from "@/app-shell-config";

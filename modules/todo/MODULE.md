@@ -4,8 +4,8 @@
 
 ## 定位
 
-- 独立 workspace 包 `@be-water/todo`（`modules/todo/`），非内部模块
-- 所有内核 API 通过 `@be-water/module-sdk` 门面包访问——不直接 import `server-kernel` / `client-kit` / `shared`
+- 独立 workspace 包 `@rewindom/todo`（`modules/todo/`），非内部模块
+- 所有内核 API 通过 `@rewindom/module-sdk` 门面包访问——不直接 import `server-kernel` / `client-kit` / `shared`
 - 边界由 `verify-module.mjs` 的 `checkBoundary` 强制
 
 ## 用途
@@ -73,19 +73,19 @@
 
 外部模块**只许** import 自：
 
-- `@be-water/module-sdk` — shared 契约（无框架依赖，安全在任何上下文用）
-- `@be-water/module-sdk/server` — server 契约 + server-kernel 运行时（仅 server 代码用）
-- `@be-water/module-sdk/client` — client 契约 + client-kit 运行时（仅 client 代码用）
-- `@be-water/ui` — UI 原语
+- `@rewindom/module-sdk` — shared 契约（无框架依赖，安全在任何上下文用）
+- `@rewindom/module-sdk/server` — server 契约 + server-kernel 运行时（仅 server 代码用）
+- `@rewindom/module-sdk/client` — client 契约 + client-kit 运行时（仅 client 代码用）
+- `@rewindom/ui` — UI 原语
 - 第三方库（react / react-router / lucide-react / react-i18next / fastify 类型 等）
 
 ## Prisma 类型推导
 
-外部模块不直接 import 生成的 Prisma client 类型（那在 `@be-water/server-kernel/generated/` 下，属于禁止路径）。
+外部模块不直接 import 生成的 Prisma client 类型（那在 `@rewindom/server-kernel/generated/` 下，属于禁止路径）。
 mapper 通过 `typeof prisma` 推导记录类型：
 
 ```typescript
-import { prisma } from "@be-water/module-sdk/server";
+import { prisma } from "@rewindom/module-sdk/server";
 type TodoRecord = NonNullable<Awaited<ReturnType<typeof prisma.todo.findFirst>>>;
 ```
 
@@ -110,5 +110,5 @@ await emitAuditLogFromRequestSafe(app.events, app.log, request, {
 ```bash
 # 每个模块的 server / client / shared 各是一个 vitest project，
 # 位置参数只按 project root 的相对路径过滤，跑全模块要用 --project。
-pnpm --filter @be-water/todo exec vitest --run
+pnpm --filter @rewindom/todo exec vitest --run
 ```

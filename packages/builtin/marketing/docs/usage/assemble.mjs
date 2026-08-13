@@ -54,9 +54,9 @@ export function assembleUsageDocs() {
   return `/**
  * GENERATED — do not edit.
  * Source: \`packages/builtin/marketing/docs/usage/<locale>/*.md\`
- * Regenerate: \`pnpm --filter @be-water/builtin assemble:usage-docs\`
+ * Regenerate: \`pnpm --filter @rewindom/builtin assemble:usage-docs\`
  */
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export interface UsageDocFile {
   locale: AppLocale;

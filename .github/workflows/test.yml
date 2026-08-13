@@ -132,7 +132,7 @@ jobs:
           fail_ci_if_error: true
 
   # 内核 + 基础设施模块的隔离 smoke test：守护「不启用业务模块也能跑通」，
-  # 即 kernel / infra 未偷偷依赖 module-be-water。be-water 上游仓有自己的 CI。
+  # 即 kernel / infra 未偷偷依赖 module-rewindom。rewindom 上游仓有自己的 CI。
   kernel-infra-smoke:
     name: kernel + infra smoke
     runs-on: ubuntu-latest

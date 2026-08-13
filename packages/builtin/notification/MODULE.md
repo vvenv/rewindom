@@ -26,7 +26,7 @@
 ```bash
 # 每个模块的 server / client / shared 各是一个 vitest project，
 # 位置参数只按 project root 的相对路径过滤，跑全模块要用 --project。
-pnpm --filter @be-water/builtin exec vitest --run --project 'notification/*'
+pnpm --filter @rewindom/builtin exec vitest --run --project 'notification/*'
 ```
 
 ## 禁止

@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 
-import { Alert, AlertDescription } from "@be-water/ui/alert";
-import { Card, CardContent } from "@be-water/ui/card";
-import { Checkbox } from "@be-water/ui/checkbox";
-import { Spinner } from "@be-water/ui/spinner";
+import { Alert, AlertDescription } from "@rewindom/ui/alert";
+import { Card, CardContent } from "@rewindom/ui/card";
+import { Checkbox } from "@rewindom/ui/checkbox";
+import { Spinner } from "@rewindom/ui/spinner";
 import {
   Table,
   TableBody,
@@ -11,8 +11,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@be-water/ui/table";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/table";
+import { cn } from "@rewindom/ui/utils";
 import {
   type ColumnDef,
   createPaginatedRowModel,

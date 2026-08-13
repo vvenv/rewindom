@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/order
 import { mockTenant } from "./auth.service.test-mocks.js";
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
+import { DEFAULT_TENANT_ID } from "@rewindom/shared";
 import { describe, it, expect, vi } from "vitest";
 
 import { prisma } from "../../lib/prisma.js";

@@ -5,7 +5,7 @@ import {
   grantPermission,
   type TestApp,
   type TestUser,
-} from "@be-water/server-test";
+} from "@rewindom/server-test";
 
 import { backgroundJobRoutes } from "./routes.js";
 

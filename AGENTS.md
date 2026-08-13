@@ -42,8 +42,8 @@
 
 ## 模块包布局
 
-- **内置模块** `packages/builtin/<id>/`（`shared` + `server` + `client` + 可选 `models.prisma`），同属 workspace 包 `@be-water/builtin`，在 `enabled-modules.ts` 手写注册
-- **外部业务模块** `modules/<id>/`（独立包 `@be-water/<id>`，只依赖 `@be-water/module-sdk`），由 `pnpm gen:external-modules` 汇入组装层
+- **内置模块** `packages/builtin/<id>/`（`shared` + `server` + `client` + 可选 `models.prisma`），同属 workspace 包 `@rewindom/builtin`，在 `enabled-modules.ts` 手写注册
+- **外部业务模块** `modules/<id>/`（独立包 `@rewindom/<id>`，只依赖 `@rewindom/module-sdk`），由 `pnpm gen:external-modules` 汇入组装层
 
 `apps/server` / `apps/client` 为极薄组装层。
 
@@ -103,8 +103,8 @@ pnpm check:i18n                 # 客户端文案门禁（ns 唯一/各语言 ke
 重放迁移历史到一个空的影子库，再和 schema 比，与开发库现状无关。
 
 ```bash
-docker exec be-water-dev-postgres psql -U be-water -d postgres -c 'CREATE DATABASE "be-water-shadow"'
-SHADOW_DATABASE_URL="postgresql://be-water:<pw>@localhost:5433/be-water-shadow" \
+docker exec rewindom-dev-postgres psql -U rewindom -d postgres -c 'CREATE DATABASE "rewindom-shadow"'
+SHADOW_DATABASE_URL="postgresql://rewindom:<pw>@localhost:5433/rewindom-shadow" \
   pnpm --filter server exec prisma migrate diff \
     --from-migrations ./prisma/migrations --to-schema ./prisma --script
 # 取其中属于本次改动的语句 → 新建 migrations/<ts>_<name>/migration.sql → migrate deploy
@@ -120,7 +120,7 @@ SHADOW_DATABASE_URL="postgresql://be-water:<pw>@localhost:5433/be-water-shadow" 
 
 > 历史教训：上一次 squash 是按当时的开发库生成的，把下游 estimation 产品的 7 张表
 > （`brands` / `sizes` / `styles` / `product_categories` / `shipping_channels` /
-> `estimation_rules` / `destinations`）烤进了 be-water 基线——每个全新部署都凭空多出这些表，
+> `estimation_rules` / `destinations`）烤进了 rewindom 基线——每个全新部署都凭空多出这些表，
 > 拖到一年后才用一条 drop 迁移清掉。squash 迁移时务必核对生成物。
 
 新建模块的标准路径：**填 spec → `gen:module` → 补 service 业务逻辑 → `check:modules`**。

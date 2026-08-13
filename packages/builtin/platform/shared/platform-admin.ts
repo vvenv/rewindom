@@ -1,4 +1,4 @@
-import type { RoleSummary } from "@be-water/shared";
+import type { RoleSummary } from "@rewindom/shared";
 
 export interface PlatformAdminListItem {
   id: string;

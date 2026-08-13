@@ -3,7 +3,7 @@ import {
   normalizeLocale,
   normalizeOptionalLocale,
   type AppLocale,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { readPersistedValue } from "./persist-storage.js";
 

@@ -1,6 +1,6 @@
 /** Topological sort for module dependency order (requires first). */
 
-import { type ModuleId } from "@be-water/shared";
+import { type ModuleId } from "@rewindom/shared";
 
 export class ModuleDependencyError extends Error {
   constructor(message: string) {

@@ -1,4 +1,4 @@
-import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
+import { registerI18nBundles, setupI18n } from "@rewindom/client-kit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,8 +15,8 @@ import type { MarketingSite } from "../../../shared/site-cms.js";
 const confirmMock = vi.fn<(options: unknown) => Promise<boolean>>();
 const mutateMock = vi.fn();
 
-vi.mock("@be-water/client-kit", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@be-water/client-kit")>()),
+vi.mock("@rewindom/client-kit", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@rewindom/client-kit")>()),
   useConfirm: () => ({ confirm: confirmMock }),
 }));
 

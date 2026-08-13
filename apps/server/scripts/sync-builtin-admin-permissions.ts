@@ -5,8 +5,8 @@
  * Usage:
  *   pnpm --filter server exec tsx scripts/sync-builtin-admin-permissions.ts
  */
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { collectModulePermissions } from "@be-water/server-kernel/runtime/collect-module-permissions.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { collectModulePermissions } from "@rewindom/server-kernel/runtime/collect-module-permissions.js";
 
 import { ENABLED_SERVER_MODULES } from "../src/enabled-modules.js";
 

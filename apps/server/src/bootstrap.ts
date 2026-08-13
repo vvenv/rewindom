@@ -2,11 +2,11 @@ import "./kernel-hooks.js";
 import "./server-assembly.js";
 import {
   failOrphanedFileJobsOnStartup,
-} from "@be-water/builtin/background-job/server/job-exports.js";
-import { ensurePlatformSystemUser } from "@be-water/builtin/platform/server/services/ensure-platform-system-user.service.js";
-import { startBackgroundScheduler } from "@be-water/server-kernel/infra/scheduler.service.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
-import { withDbConnectionRetry } from "@be-water/server-kernel/lib/db-connection-retry.js";
+} from "@rewindom/builtin/background-job/server/job-exports.js";
+import { ensurePlatformSystemUser } from "@rewindom/builtin/platform/server/services/ensure-platform-system-user.service.js";
+import { startBackgroundScheduler } from "@rewindom/server-kernel/infra/scheduler.service.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
+import { withDbConnectionRetry } from "@rewindom/server-kernel/lib/db-connection-retry.js";
 
 import { buildApp } from "./app.js";
 import { runModuleBootHooks, getServerModuleLoader } from "./routes/index.js";

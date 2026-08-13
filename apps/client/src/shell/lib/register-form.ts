@@ -4,7 +4,7 @@ import {
   generateTenantSlugFromName,
   InvalidTenantSlugError,
   ReservedTenantSlugError,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 export interface RegisterFormValues {
   tenantName: string;

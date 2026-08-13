@@ -1,4 +1,4 @@
-import { AuthProvider, useAuth  } from "@be-water/client-kit";
+import { AuthProvider, useAuth  } from "@rewindom/client-kit";
 import { renderHook } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 

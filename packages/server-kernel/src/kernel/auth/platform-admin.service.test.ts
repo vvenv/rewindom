@@ -1,4 +1,4 @@
-import { PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
+import { PLATFORM_ADMIN_USER_ID } from "@rewindom/shared";
 import bcrypt from "bcrypt";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

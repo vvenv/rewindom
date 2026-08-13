@@ -5,12 +5,12 @@
  * 以及租户后来建的同名页打不打得开。
  */
 
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { findSiteRedirect, saveSiteRedirect } from "./site-redirect.service.js";
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     marketingRedirect: { findFirst: vi.fn(), upsert: vi.fn() },
   },

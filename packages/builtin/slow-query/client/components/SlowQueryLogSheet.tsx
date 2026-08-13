@@ -1,12 +1,12 @@
-import { CopyButton } from "@be-water/client-kit";
-import { displayOrEmpty, formatBusinessDate, formatTenantDisplayLabel } from "@be-water/shared";
-import { Badge, type badgeVariants } from "@be-water/ui/badge";
+import { CopyButton } from "@rewindom/client-kit";
+import { displayOrEmpty, formatBusinessDate, formatTenantDisplayLabel } from "@rewindom/shared";
+import { Badge, type badgeVariants } from "@rewindom/ui/badge";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@be-water/ui/sheet";
+} from "@rewindom/ui/sheet";
 import { Activity } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

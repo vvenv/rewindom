@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
-import { ApiError, useConfirm } from "@be-water/module-sdk/client";
-import { toast } from "@be-water/ui/toast";
+import { ApiError, useConfirm } from "@rewindom/module-sdk/client";
+import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 
 import {

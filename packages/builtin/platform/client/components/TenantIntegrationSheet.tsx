@@ -1,16 +1,16 @@
 import { useState } from "react";
 
-import { formatBusinessDateOrTimeAgo } from "@be-water/shared";
-import { Alert, AlertDescription } from "@be-water/ui/alert";
-import { Button } from "@be-water/ui/button";
+import { formatBusinessDateOrTimeAgo } from "@rewindom/shared";
+import { Alert, AlertDescription } from "@rewindom/ui/alert";
+import { Button } from "@rewindom/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
 import { Plug } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

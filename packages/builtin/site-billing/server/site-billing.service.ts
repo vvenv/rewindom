@@ -6,13 +6,13 @@
  * 「会员能看自己的」和「运营能看所有人的」写成同一个查询。
  */
 
-import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
+import { resolveSortField, resolveSortOrder } from "@rewindom/server-kernel/http/list-sort.js";
 import {
   NotFoundError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
 import {
   isMemberPlanInterval,
@@ -30,7 +30,7 @@ import {
   toMemberSubscription,
 } from "./site-billing.mapper.js";
 
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 const SUBSCRIPTION_SORTABLE = new Set([
   "created_at",

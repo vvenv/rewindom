@@ -14,7 +14,7 @@
 #
 # 行为:
 #   - 默认在还原前自动做一次「安全备份」(app_backup_safety_<ts>.dump)，作为回滚兜底。
-#   - PG 还原：终止连接 → DROP/CREATE DATABASE（WITH FORCE）→ pg_restore → 把对象 re-own 给 be-water。
+#   - PG 还原：终止连接 → DROP/CREATE DATABASE（WITH FORCE）→ pg_restore → 把对象 re-own 给 rewindom。
 #     （不用 --clean，避免扩展/依赖顺序冲突；清库重建最干净。）
 #   - Redis 还原：停服 → 用备份 RDB 替换 dump.rdb → 启服。
 #   - 破坏性操作前要求交互确认（输入大写 YES），非交互终端需 --yes。
@@ -35,8 +35,8 @@ ASSUME_YES=0
 NO_SAFETY_BACKUP=0
 LIST_ONLY=0
 
-# 应用 DB 用户恒为 be-water（与 bootstrap-ci.sh 一致），库按环境区分
-DB_USER="be-water"
+# 应用 DB 用户恒为 rewindom（与 bootstrap-ci.sh 一致），库按环境区分
+DB_USER="rewindom"
 
 usage() {
   sed -n '3,21p' "$0"
@@ -68,7 +68,7 @@ parse_args() {
     DB_NAME="app_test"
     BACKUP_DIR="/backups/test"
   else
-    DB_NAME="be-water"
+    DB_NAME="rewindom"
     BACKUP_DIR="/var/backups/app"
   fi
 

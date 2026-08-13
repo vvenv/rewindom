@@ -2,8 +2,8 @@ import {
   type AppNavItem,
   type AppNavSection,
   type MobileTabItem,
-} from "@be-water/client-kit";
-import { type Permission, type TenantEntitlementsResponse } from "@be-water/shared";
+} from "@rewindom/client-kit";
+import { type Permission, type TenantEntitlementsResponse } from "@rewindom/shared";
 
 import { collectMobileTabPaths, collectModuleNav } from "@/collect-modules";
 import { ENABLED_CLIENT_MODULES } from "@/enabled-modules";

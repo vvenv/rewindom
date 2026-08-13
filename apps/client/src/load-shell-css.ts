@@ -1,5 +1,5 @@
-import { MARKETING_SITE_CSS } from "@be-water/builtin/marketing/shared/marketing-site-css.js";
-import { isMarketingPublicPath } from "@be-water/builtin/marketing/shared/site-locale.js";
+import { MARKETING_SITE_CSS } from "@rewindom/builtin/marketing/shared/marketing-site-css.js";
+import { isMarketingPublicPath } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 function isPlatformConsoleHost(): boolean {
   const host = window.location.hostname;

@@ -13,10 +13,10 @@ const auditEmit = vi.hoisted(() => ({
 }));
 
 vi.mock(
-  "@be-water/server-kernel/runtime/audit-log-emit.js",
+  "@rewindom/server-kernel/runtime/audit-log-emit.js",
   async (importOriginal) => ({
     ...(await importOriginal<
-      typeof import("@be-water/server-kernel/runtime/audit-log-emit.js")
+      typeof import("@rewindom/server-kernel/runtime/audit-log-emit.js")
     >()),
     emitAuditLogFromRequestSafe: auditEmit.emitAuditLogFromRequestSafe,
   }),

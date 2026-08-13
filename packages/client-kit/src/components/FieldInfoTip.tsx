@@ -5,8 +5,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@be-water/ui/tooltip";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/tooltip";
+import { cn } from "@rewindom/ui/utils";
 import { Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

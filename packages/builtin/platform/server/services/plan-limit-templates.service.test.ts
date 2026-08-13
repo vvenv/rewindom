@@ -1,11 +1,11 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getDefaultPlanLimitTemplates } from "../../shared/index.js";
 
 vi.unmock("./plan-limit-templates.service.js");
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     appSetting: {
       findUnique: vi.fn(),

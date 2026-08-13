@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 
-import { Card, CardContent } from "@be-water/ui/card";
-import { Skeleton } from "@be-water/ui/skeleton";
-import { cn } from "@be-water/ui/utils";
+import { Card, CardContent } from "@rewindom/ui/card";
+import { Skeleton } from "@rewindom/ui/skeleton";
+import { cn } from "@rewindom/ui/utils";
 
 import { DashboardWidgetBoundary } from "./DashboardWidgetBoundary.js";
 
-import type { DashboardWidget } from "@be-water/client-kit";
+import type { DashboardWidget } from "@rewindom/client-kit";
 
 function DashboardWidgetSkeleton() {
   return (

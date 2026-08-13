@@ -6,7 +6,7 @@ import {
   isRegularUser,
   ReservedTenantSlugError,
   success,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import {
   handleForbiddenError,

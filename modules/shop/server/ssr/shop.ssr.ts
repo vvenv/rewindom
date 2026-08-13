@@ -4,8 +4,8 @@ import {
   resolveRequestHostname,
   resolveRequestLocale,
   translateServerMessage,
-} from "@be-water/module-sdk/server";
-import type { AppLocale } from "@be-water/module-sdk";
+} from "@rewindom/module-sdk/server";
+import type { AppLocale } from "@rewindom/module-sdk";
 
 import {
   addToCart,

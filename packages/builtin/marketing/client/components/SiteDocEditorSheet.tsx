@@ -7,22 +7,22 @@ import {
   type ReactNode,
 } from "react";
 
-import { ApiError, useConfirm } from "@be-water/client-kit";
+import { ApiError, useConfirm } from "@rewindom/client-kit";
 import {
   getLocaleNativeLabel,
   normalizeLocale,
   type AppLocale,
-} from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
-import { Field, FieldDescription, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+} from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
+import { Field, FieldDescription, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import {
   Sheet,
   SheetClose,
@@ -32,11 +32,11 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Skeleton } from "@be-water/ui/skeleton";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/sheet";
+import { Skeleton } from "@rewindom/ui/skeleton";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
+import { cn } from "@rewindom/ui/utils";
 import MDEditor from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
 import { X } from "lucide-react";

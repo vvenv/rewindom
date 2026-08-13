@@ -6,7 +6,7 @@ import {
   parseListPageSize,
   parseListSort,
   toSortingState,
-} from "@be-water/client-kit/lib/list-url-params";
+} from "@rewindom/client-kit/lib/list-url-params";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import type { SiteDocFilterState } from "../lib/site-doc-list.js";

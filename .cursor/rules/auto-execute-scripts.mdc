@@ -30,7 +30,7 @@ alwaysApply: true
 
 1. **不要**等 release 部署后再跑；本机写好并完成本地验证后，立即 `scp` 到 Docker 部署目录并 `ssh` 执行
 2. 凭证与 SSH 封装：`source scripts/lib/deploy-remote.sh` → `load_deploy_credentials production|test` → `_run_scp` / `_run_ssh`
-3. Docker 部署目录：`/opt/be-water-docker`（production）或 `/opt/be-water-docker-test`（test）
+3. Docker 部署目录：`/opt/rewindom-docker`（production）或 `/opt/rewindom-docker-test`（test）
 4. 推荐流程：先 `--dry-run`，确认命中后再正式执行；在部署目录用 `docker compose exec app pnpm --filter server exec tsx scripts/<name>.ts`
 5. 应用代码随 `pnpm deploy` 上线；一次性数据脚本可 scp 到 `apps/server/scripts/` 后 exec 进容器执行
 
@@ -39,7 +39,7 @@ alwaysApply: true
 pnpm --filter server exec tsx scripts/foo.ts --dry-run
 pnpm --filter server exec tsx scripts/foo.ts
 
-REMOTE_DIR=/opt/be-water-docker
+REMOTE_DIR=/opt/rewindom-docker
 _run_scp apps/server/scripts/foo.ts \
   "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:${REMOTE_DIR}/apps/server/scripts/foo.ts"
 _run_ssh "cd '${REMOTE_DIR}' && docker compose exec -T app pnpm --filter server exec tsx scripts/foo.ts --dry-run"

@@ -3,7 +3,7 @@ import {
   useAuth,
   useDefaultHomePath,
   usePermissions,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import { Navigate, Outlet, useLocation } from "react-router";
 
 export function SuperUserRoute() {

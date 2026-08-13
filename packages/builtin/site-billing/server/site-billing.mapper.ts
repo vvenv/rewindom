@@ -15,8 +15,8 @@ import type {
   MemberPayment,
   MemberPlan,
   MemberSubscription,
-} from "@be-water/server-kernel/generated/prisma/client/client.js";
-import type { AppLocale } from "@be-water/shared";
+} from "@rewindom/server-kernel/generated/prisma/client/client.js";
+import type { AppLocale } from "@rewindom/shared";
 
 /** 库里的脏值不该炸掉整张列表：认不出的 interval 按最常见的「按月」算。 */
 function planInterval(raw: string): MemberPlanInterval {

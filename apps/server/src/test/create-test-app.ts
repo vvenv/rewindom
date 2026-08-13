@@ -1,5 +1,5 @@
 
-import { createRouteTestApp, type RouteTestAppOptions, type TestApp } from "@be-water/server-test";
+import { createRouteTestApp, type RouteTestAppOptions, type TestApp } from "@rewindom/server-test";
 
 import { attachKernelContext, registerAllRoutes } from "../routes/index.js";
 

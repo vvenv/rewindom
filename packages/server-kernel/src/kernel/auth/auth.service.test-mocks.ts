@@ -1,4 +1,4 @@
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
+import { DEFAULT_TENANT_ID } from "@rewindom/shared";
 import { beforeEach, vi } from "vitest";
 
 import { prisma } from "../../lib/prisma.js";

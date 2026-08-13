@@ -14,9 +14,9 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@be-water/ui/*": ["../../packages/ui/src/*"],
-      "@be-water/client-kit": ["../../packages/client-kit/src/index.ts"],
-      "@be-water/client-kit/*": ["../../packages/client-kit/src/*"]
+      "@rewindom/ui/*": ["../../packages/ui/src/*"],
+      "@rewindom/client-kit": ["../../packages/client-kit/src/index.ts"],
+      "@rewindom/client-kit/*": ["../../packages/client-kit/src/*"]
     },
     "noUnusedLocals": true,
     "noUnusedParameters": true,

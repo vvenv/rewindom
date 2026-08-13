@@ -1,6 +1,6 @@
 # 用户系统设计文档
 
-> **重要说明**：本文档中的代码示例使用的是概念性的 API 调用，仅供参考。实际开发中，**必须**使用 `@be-water/client-kit` 的 `api`（或 `createApiClient`）进行所有 API 调用。该工具已封装了 Token 管理、自动刷新、错误处理等功能。详见项目编码规范 `.cursor/rules/coding-standards.mdc`。
+> **重要说明**：本文档中的代码示例使用的是概念性的 API 调用，仅供参考。实际开发中，**必须**使用 `@rewindom/client-kit` 的 `api`（或 `createApiClient`）进行所有 API 调用。该工具已封装了 Token 管理、自动刷新、错误处理等功能。详见项目编码规范 `.cursor/rules/coding-standards.mdc`。
 
 ## 一、系统概述
 
@@ -379,12 +379,12 @@ JWT_SECRET=your-secret-key-min-32-chars
 
 **工作台（`tenant_user` / `platform_admin`）客户端**：
 
-- Access Token + Refresh Token：localStorage（`be-water_access_token` / `be-water_refresh_token`）
+- Access Token + Refresh Token：localStorage（`rewindom_access_token` / `rewindom_refresh_token`）
 - 请求头：`Authorization: Bearer`
 
 **站点会员（`site_member`）**：
 
-- Access + Refresh JWT：HttpOnly cookie（`be-water_member_access` / `be-water_member_refresh`，`SameSite=Lax`，Host-only）
+- Access + Refresh JWT：HttpOnly cookie（`rewindom_member_access` / `rewindom_member_refresh`，`SameSite=Lax`，Host-only）
 - JSON 登录响应**不**返回 token 字符串；API 请求 `credentials: "include"`
 - 官网 SSR 可读 cookie：首屏直接渲染账号菜单并解锁会员门控页
 
@@ -423,7 +423,7 @@ JWT_SECRET=your-secret-key-min-32-chars
 JWT_SECRET=your-super-secret-key-at-least-32-characters-long
 
 # 数据库
-DATABASE_URL="postgresql://be-water:password@localhost:5432/app"
+DATABASE_URL="postgresql://rewindom:password@localhost:5432/app"
 
 # Redis（BullMQ 任务队列）
 REDIS_URL="redis://localhost:6379"

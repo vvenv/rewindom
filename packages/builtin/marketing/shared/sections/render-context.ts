@@ -10,7 +10,7 @@
 import type { SiteSection } from "./types.js";
 import type { PublicDocDetail, PublicDocSummary } from "../marketing-doc.js";
 import type { PublicSitePage } from "../site-cms.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /**
  * 文档库的渲染数据（`doc-*` 段的数据源）。

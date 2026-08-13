@@ -1,6 +1,6 @@
 import { lazy, type ReactNode } from "react";
 
-import { PermissionRoute } from "@be-water/client-kit";
+import { PermissionRoute } from "@rewindom/client-kit";
 import { Route } from "react-router";
 
 const SiteMembers = lazy(() =>

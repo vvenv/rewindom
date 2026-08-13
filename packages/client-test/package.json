@@ -1,5 +1,5 @@
 {
-  "name": "@be-water/client-test",
+  "name": "@rewindom/client-test",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,9 +12,9 @@
     "./react-query": "./src/react-query.ts"
   },
   "dependencies": {
-    "@be-water/client-kit": "workspace:*",
-    "@be-water/server-test": "workspace:*",
-    "@be-water/shared": "workspace:*",
+    "@rewindom/client-kit": "workspace:*",
+    "@rewindom/server-test": "workspace:*",
+    "@rewindom/shared": "workspace:*",
     "@tanstack/react-query": "^5.101.4",
     "msw": "^2.15.0"
   },

@@ -8,7 +8,7 @@ alwaysApply: false
 
 ## shadcn/ui 使用规范
 
-本项目使用 **shadcn/ui**（Base UI + Tailwind CSS）。基础组件在 `@be-water/ui` 包中维护。
+本项目使用 **shadcn/ui**（Base UI + Tailwind CSS）。基础组件在 `@rewindom/ui` 包中维护。
 
 **组件目录：**
 
@@ -49,7 +49,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 
 <Select value={value} onValueChange={(val) => setValue(val ?? "")}>
   <SelectTrigger className="w-32">
@@ -160,17 +160,17 @@ Dialog 同理：`DialogHeader` / `DialogFooter` 自带内边距，自定义正�
 
 **使用规范：**
 
-1. 所有 shadcn 组件从 `@be-water/ui/<component>` 导入（如 `@be-water/ui/button`）
+1. 所有 shadcn 组件从 `@rewindom/ui/<component>` 导入（如 `@rewindom/ui/button`）
 2. 仅在需要合并**动态/条件**类名时使用 `cn()`；静态覆盖直接写 `className` 字符串
 3. **极简原则**：禁止重复添加组件已有的 className
 
 **Form Field 组件 — 禁止手写 `div` + `Label` 包装表单字段：**
 
-Dialog / Sheet / 卡片内表单字段统一使用 `Field` + `FieldLabel`（来自 `@be-water/ui/field`）。**使用说明用 `FieldInfoTip` 气泡**（见下），校验错误用 `FieldError`。Switch 等横向控件用 `Field orientation="horizontal"`。
+Dialog / Sheet / 卡片内表单字段统一使用 `Field` + `FieldLabel`（来自 `@rewindom/ui/field`）。**使用说明用 `FieldInfoTip` 气泡**（见下），校验错误用 `FieldError`。Switch 等横向控件用 `Field orientation="horizontal"`。
 
 ```tsx
-import { FieldInfoTip } from "@be-water/client-kit";
-import { Field, FieldError, FieldLabel } from "@be-water/ui/field";
+import { FieldInfoTip } from "@rewindom/client-kit";
+import { Field, FieldError, FieldLabel } from "@rewindom/ui/field";
 
 <form className="flex flex-col gap-4">
   <Field>
@@ -191,7 +191,7 @@ import { Field, FieldError, FieldLabel } from "@be-water/ui/field";
 
 **使用说明优先 tooltip，不要常驻灰字：**
 
-字段的**使用说明**（这项是什么、留空会怎样、怎么操作）挂 `FieldInfoTip`（`@be-water/client-kit`，标签后的 ⓘ 气泡，窄侧栏传 `side="left"`），**不要**用 `FieldDescription` 压在控件下面。一屏十来个字段、每个再带两行灰字，面板会糊成一片，真正要动的控件被挤到折叠线以下——侧栏 / 设置面板尤其明显。说明里要分段就在 `text` 里换行（气泡按 `whitespace-pre-line` 渲染）。
+字段的**使用说明**（这项是什么、留空会怎样、怎么操作）挂 `FieldInfoTip`（`@rewindom/client-kit`，标签后的 ⓘ 气泡，窄侧栏传 `side="left"`），**不要**用 `FieldDescription` 压在控件下面。一屏十来个字段、每个再带两行灰字，面板会糊成一片，真正要动的控件被挤到折叠线以下——侧栏 / 设置面板尤其明显。说明里要分段就在 `text` 里换行（气泡按 `whitespace-pre-line` 渲染）。
 
 `FieldDescription` 只留给**必须常驻可见**的三类：
 
@@ -217,7 +217,7 @@ import { Field, FieldError, FieldLabel } from "@be-water/ui/field";
 
 ## className 使用偏好
 
-**先查 `@be-water/ui/*` 默认样式，只写差异。**
+**先查 `@rewindom/ui/*` 默认样式，只写差异。**
 
 | 场景                | 不写                                          | 只写                                   |
 | ------------------- | --------------------------------------------- | -------------------------------------- |
@@ -236,7 +236,7 @@ import { Field, FieldError, FieldLabel } from "@be-water/ui/field";
 
 ## 表格组件规范
 
-- **封装组件**: `@be-water/client-kit` 的 `DataTable` + `DataTableColumnHeader`
+- **封装组件**: `@rewindom/client-kit` 的 `DataTable` + `DataTableColumnHeader`
 - **逻辑层**: TanStack Table (`@tanstack/react-table`)
 - **禁止**: 原生 HTML `<table>`、在 Page 内手写 `useReactTable`（除非 `DataTable` 确实不满足）
 
@@ -339,7 +339,7 @@ import { displayOrEmpty, EMPTY_DISPLAY } from "@/lib/display";
 | `gap-4` | 表单字段组、页面内相关区块、`PageSection` |
 | `gap-6` | 页面大分区（产品组之间、详情多 Section） |
 
-壳层：`WorkbenchPageShell` 为 `gap-4 md:gap-6`；`PageLayout` children 同档。shadcn `@be-water/ui/*` 内建间距勿为对齐而改。
+壳层：`WorkbenchPageShell` 为 `gap-4 md:gap-6`；`PageLayout` children 同档。shadcn `@rewindom/ui/*` 内建间距勿为对齐而改。
 
 ## URL 查询参数持久化
 

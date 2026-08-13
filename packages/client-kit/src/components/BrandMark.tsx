@@ -1,5 +1,5 @@
-import { APP_DISPLAY_NAME } from "@be-water/shared";
-import { cn } from "@be-water/ui/utils";
+import { APP_DISPLAY_NAME } from "@rewindom/shared";
+import { cn } from "@rewindom/ui/utils";
 
 import { Logo } from "./Logo.js";
 

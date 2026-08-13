@@ -5,11 +5,11 @@ import {
   type ReactElement,
 } from "react";
 
-import { ApiError } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
-import { ButtonGroup } from "@be-water/ui/button-group";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+import { ApiError } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
+import { ButtonGroup } from "@rewindom/ui/button-group";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { Download, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

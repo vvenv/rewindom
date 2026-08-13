@@ -39,7 +39,7 @@ import { renderMemberSiblingLinksHtml } from "../shared/member-menu-links.js";
 import { memberCardClass } from "../shared/member-page-settings.js";
 import { MEMBER_ACCOUNT_CSS } from "../shared/site-css.generated.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 function fieldHtml(input: {
   id: string;

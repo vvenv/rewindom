@@ -4,15 +4,15 @@
 
 ## 定位
 
-- 独立 workspace 包（`modules/note/`），包名 `@be-water/note`
-- 所有内核 API 通过 `@be-water/module-sdk` 门面包访问——不直接 import `server-kernel` / `client-kit` / `shared`
+- 独立 workspace 包（`modules/note/`），包名 `@rewindom/note`
+- 所有内核 API 通过 `@rewindom/module-sdk` 门面包访问——不直接 import `server-kernel` / `client-kit` / `shared`
 - 边界由 `verify-module.mjs` 的 `checkBoundary` 强制
 
 ## 结构
 
 ```
 note/
-├── package.json          # beWater 字段声明 moduleId / prismaSchema / requires
+├── package.json          # rewindom 字段声明 moduleId / prismaSchema / requires
 ├── tsconfig.json
 ├── vitest.config.ts      # server / client / shared 各一个 vitest project
 ├── prisma/schema.prisma  # Note 模型（tenant_id 隔离）
@@ -90,5 +90,5 @@ pnpm check:modules   # 模块契约 + 边界
 ## 如何单独测试
 
 ```bash
-pnpm --filter @be-water/note test
+pnpm --filter @rewindom/note test
 ```

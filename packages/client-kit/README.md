@@ -1,4 +1,4 @@
-# @be-water/client-kit
+# @rewindom/client-kit
 
 前端 Shell 基建：通用组件、Hooks、路由守卫契约与列表页工具。
 
@@ -16,8 +16,8 @@
 ## 使用
 
 ```typescript
-import { PageLayout, DataTable, useAuth } from "@be-water/client-kit";
-import type { ClientAppModule } from "@be-water/client-kit";
+import { PageLayout, DataTable, useAuth } from "@rewindom/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 ```
 
 业务模块 client 包应依赖本包，禁止 import 宿主 `apps/client/src/shell`。

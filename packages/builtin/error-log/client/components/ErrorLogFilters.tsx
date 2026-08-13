@@ -4,15 +4,15 @@ import {
   DateTimeRangePicker,
   FilterBar,
   useTenantFilter,
-} from "@be-water/client-kit";
-import { formatBusinessDate } from "@be-water/shared";
+} from "@rewindom/client-kit";
+import { formatBusinessDate } from "@rewindom/shared";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import { useTranslation } from "react-i18next";
 
 import {

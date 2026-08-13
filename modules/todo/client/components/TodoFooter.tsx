@@ -1,5 +1,5 @@
-import { DebouncedSearchInput, Pagination } from "@be-water/module-sdk/client";
-import { Button } from "@be-water/ui/button";
+import { DebouncedSearchInput, Pagination } from "@rewindom/module-sdk/client";
+import { Button } from "@rewindom/ui/button";
 import { useTranslation } from "react-i18next";
 
 import {

@@ -7,9 +7,9 @@ import {
   useAuth,
   useMediaQuery,
   useShellLayout,
-} from "@be-water/client-kit";
-import { Spinner } from "@be-water/ui/spinner";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/client-kit";
+import { Spinner } from "@rewindom/ui/spinner";
+import { cn } from "@rewindom/ui/utils";
 import { Outlet, useNavigate } from "react-router";
 
 import { useAppShellConfig } from "../contexts/app-shell-context.js";

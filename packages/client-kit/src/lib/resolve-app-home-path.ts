@@ -1,4 +1,4 @@
-import { type Permission, type TenantEntitlementsResponse } from "@be-water/shared";
+import { type Permission, type TenantEntitlementsResponse } from "@rewindom/shared";
 
 type HomeEntitlements = Pick<TenantEntitlementsResponse, "modules" | "features">;
 

@@ -3,7 +3,7 @@ import { registerSlowQueryCleanupJobs } from "./scheduler-jobs.js";
 import { slowQueryLogRoutes } from "./slow-query-log.routes.js";
 
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const slowQueryServerModule: ServerAppModule = {
   id: "slow-query",

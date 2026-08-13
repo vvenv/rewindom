@@ -1,5 +1,5 @@
-import { createQueryWrapper, createTestQueryClient } from "@be-water/client-test";
-import { server } from "@be-water/client-test/server";
+import { createQueryWrapper, createTestQueryClient } from "@rewindom/client-test";
+import { server } from "@rewindom/client-test/server";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -18,8 +18,8 @@ interface ConfirmArgs {
 
 const confirmMock = vi.fn<(options: ConfirmArgs) => Promise<boolean>>();
 
-vi.mock("@be-water/client-kit", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@be-water/client-kit")>();
+vi.mock("@rewindom/client-kit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@rewindom/client-kit")>();
   return {
     ...actual,
     useConfirm: () => ({ confirm: confirmMock }),
@@ -39,8 +39,8 @@ function candidate(
   overrides: Partial<LocalRestoreCandidate> = {},
 ): LocalRestoreCandidate {
   return {
-    file_path: "/var/backups/be-water_backup_1.dump",
-    filename: "be-water_backup_1.dump",
+    file_path: "/var/backups/rewindom_backup_1.dump",
+    filename: "rewindom_backup_1.dump",
     size_bytes: 5 * 1024 * 1024,
     modified_at: 1_700_000_000_000,
     ...overrides,
@@ -94,7 +94,7 @@ describe("PlatformRestoreSheet", () => {
     openSheet();
 
     expect(
-      await screen.findByText("be-water_backup_1.dump"),
+      await screen.findByText("rewindom_backup_1.dump"),
     ).toBeInTheDocument();
     expect(screen.getByText(/5\.0 MB/)).toBeInTheDocument();
   });
@@ -114,7 +114,7 @@ describe("PlatformRestoreSheet", () => {
     mockCandidates([candidate()]);
     renderSheet();
     openSheet();
-    await screen.findByText("be-water_backup_1.dump");
+    await screen.findByText("rewindom_backup_1.dump");
 
     fireEvent.click(screen.getByRole("button", { name: /开始还原/ }));
 
@@ -128,7 +128,7 @@ describe("PlatformRestoreSheet", () => {
     renderSheet();
     openSheet();
 
-    fireEvent.click(await screen.findByText("be-water_backup_1.dump"));
+    fireEvent.click(await screen.findByText("rewindom_backup_1.dump"));
     fireEvent.click(screen.getByRole("button", { name: /开始还原/ }));
 
     await waitFor(() => expect(confirmMock).toHaveBeenCalled());
@@ -141,7 +141,7 @@ describe("PlatformRestoreSheet", () => {
     renderSheet();
     openSheet();
 
-    fireEvent.click(await screen.findByText("be-water_backup_1.dump"));
+    fireEvent.click(await screen.findByText("rewindom_backup_1.dump"));
     fireEvent.click(screen.getByRole("button", { name: /开始还原/ }));
 
     await waitFor(() => expect(runServerBackedTask).toHaveBeenCalledTimes(1));
@@ -149,7 +149,7 @@ describe("PlatformRestoreSheet", () => {
       title: string;
       startJob: () => Promise<{ job_id: string }>;
     };
-    expect(options.title).toBe("数据还原：be-water_backup_1.dump");
+    expect(options.title).toBe("数据还原：rewindom_backup_1.dump");
     expect(openTaskCenter).toHaveBeenCalled();
   });
 
@@ -159,12 +159,12 @@ describe("PlatformRestoreSheet", () => {
     renderSheet();
     openSheet();
 
-    fireEvent.click(await screen.findByText("be-water_backup_1.dump"));
+    fireEvent.click(await screen.findByText("rewindom_backup_1.dump"));
     fireEvent.click(screen.getByRole("button", { name: /开始还原/ }));
 
     await waitFor(() => expect(confirmMock).toHaveBeenCalled());
     const options = confirmMock.mock.calls[0]![0];
     expect(options.destructive).toBe(true);
-    expect(String(options.description)).toContain("be-water_backup_1.dump");
+    expect(String(options.description)).toContain("rewindom_backup_1.dump");
   });
 });

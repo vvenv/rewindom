@@ -2,15 +2,15 @@ import {
   type Prisma,
   type MarketingPage as MarketingPageRecord,
   type MarketingSite as MarketingSiteRecord,
-} from "@be-water/server-kernel/generated/prisma/client/client.js";
+} from "@rewindom/server-kernel/generated/prisma/client/client.js";
 import {
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
+import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import {
   buildHomeTemplateSections,

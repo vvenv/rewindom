@@ -1,5 +1,5 @@
 import type { RegisterCaptchaData } from "./register-form.js";
-import type { LoginCredentials } from "@be-water/shared";
+import type { LoginCredentials } from "@rewindom/shared";
 
 export interface LoginFormValues {
   username: string;

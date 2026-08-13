@@ -1,4 +1,4 @@
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { useQuery } from "@tanstack/react-query";
 
 import type { ResolvedPlan } from "../../../platform/shared/plan-pricing.js";

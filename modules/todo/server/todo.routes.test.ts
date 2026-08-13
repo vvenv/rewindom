@@ -1,4 +1,4 @@
-import { installTestPermissionCatalog } from "@be-water/server-test/permission-catalog";
+import { installTestPermissionCatalog } from "@rewindom/server-test/permission-catalog";
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 
 vi.mock("./todo.service.js", () => ({
@@ -25,7 +25,7 @@ import {
   grantPermission,
   type TestApp,
   type TestUser,
-} from "@be-water/server-test";
+} from "@rewindom/server-test";
 
 import { todoRoutes } from "./todo.routes.js";
 import {

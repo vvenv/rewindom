@@ -1,7 +1,7 @@
 /**
  * 租户官网画布 token：SSR 与 SPA（含编辑器预览）共用同一套中性色 / 主色映射。
  *
- * 公开站**不能**沿用工作台 `index.css` 的水蓝 `--background`；否则预览 iframe
+ * 公开站**不能**沿用工作台 `index.css` 的青蓝 `--background`；否则预览 iframe
  * 克隆宿主样式后，会和 SSR 首屏（白底 + `--accent-fg`）以及访客实站对不上。
  */
 

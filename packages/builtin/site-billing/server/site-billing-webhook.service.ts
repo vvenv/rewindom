@@ -12,8 +12,8 @@
  * 一个 tenant_id 进来，最坏的结果是拿错密钥、验签失败、请求被拒。
  */
 
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import {
   constructWebhookEvent,
   type CreemWebhookEvent,
@@ -26,7 +26,7 @@ import {
 
 import { resolveSiteBillingCreem } from "./provider-credentials.js";
 
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 type UnknownRecord = Record<string, unknown>;
 

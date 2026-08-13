@@ -1,4 +1,4 @@
-import { PageLayout, usePermissions } from "@be-water/module-sdk/client";
+import { PageLayout, usePermissions } from "@rewindom/module-sdk/client";
 import { ListTodo } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

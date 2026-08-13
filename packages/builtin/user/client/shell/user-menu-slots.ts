@@ -1,4 +1,4 @@
-import { createComponentSlot } from "@be-water/client-kit";
+import { createComponentSlot } from "@rewindom/client-kit";
 
 /**
  * 用户菜单用量卡 slot：module-user 只声明与消费；

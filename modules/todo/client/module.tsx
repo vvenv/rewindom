@@ -1,4 +1,4 @@
-import type { ClientAppModule } from "@be-water/module-sdk/client";
+import type { ClientAppModule } from "@rewindom/module-sdk/client";
 
 import { TODO_ENTITLEMENT } from "../shared/index.js";
 

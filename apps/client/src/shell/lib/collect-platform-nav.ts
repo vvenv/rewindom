@@ -14,7 +14,7 @@ import type {
   PlatformNavGroup,
   PlatformNavGroupKey,
   PlatformNavLink,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 
 const DASHBOARD_LINK: PlatformNavLink = {
   type: "link",

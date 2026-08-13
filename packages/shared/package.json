@@ -1,5 +1,5 @@
 {
-  "name": "@be-water/shared",
+  "name": "@rewindom/shared",
   "version": "0.6.0",
   "private": true,
   "type": "module",
@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@be-water/server-test": "workspace:*",
+    "@rewindom/server-test": "workspace:*",
     "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",

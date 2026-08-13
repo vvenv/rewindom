@@ -6,28 +6,28 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: be-water-dev-postgres
+    container_name: rewindom-dev-postgres
     environment:
-      POSTGRES_USER: be-water
+      POSTGRES_USER: rewindom
       POSTGRES_PASSWORD: ${DB_PASSWORD:-dev-password}
-      POSTGRES_DB: be-water
+      POSTGRES_DB: rewindom
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     volumes:
-      - be_water_pg:/var/lib/postgresql/data
+      - rewindom_pg:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U be-water -d be-water"]
+      test: ["CMD-SHELL", "pg_isready -U rewindom -d rewindom"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
     image: redis:7-alpine
-    container_name: be-water-dev-redis
+    container_name: rewindom-dev-redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
-      - be_water_redis:/data
+      - rewindom_redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -35,5 +35,5 @@ services:
       retries: 10
 
 volumes:
-  be_water_pg:
-  be_water_redis:
+  rewindom_pg:
+  rewindom_redis:

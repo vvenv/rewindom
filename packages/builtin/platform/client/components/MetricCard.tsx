@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@be-water/ui/card";
-import { cn } from "@be-water/ui/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
+import { cn } from "@rewindom/ui/utils";
 
 export type MetricColor = "blue" | "amber" | "orange" | "red";
 

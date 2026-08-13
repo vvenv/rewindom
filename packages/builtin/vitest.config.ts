@@ -1,16 +1,16 @@
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 
-import { createModuleClientTestProject } from "@be-water/client-test/vitest";
+import { createModuleClientTestProject } from "@rewindom/client-test/vitest";
 import {
   createModuleServerTestProject,
   createModuleSharedTestProject,
-} from "@be-water/server-test/vitest";
+} from "@rewindom/server-test/vitest";
 import { defineConfig } from "vitest/config";
 
 const ROOT = import.meta.dirname;
 
-/** 模块目录：本包下除 node_modules 外的一级目录（业务模块 be-water 在 @be-water/be-water）。 */
+/** 模块目录：本包下除 node_modules 外的一级目录（业务模块 rewindom 在 @rewindom/rewindom）。 */
 const MODULE_IDS = readdirSync(ROOT, { withFileTypes: true })
   .filter(
     (entry) =>

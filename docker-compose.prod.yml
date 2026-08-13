@@ -4,15 +4,15 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: be-water-postgres
+    container_name: rewindom-postgres
     environment:
-      POSTGRES_USER: be-water
+      POSTGRES_USER: rewindom
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: be-water
+      POSTGRES_DB: rewindom
     volumes:
-      - be_water_pg:/var/lib/postgresql/data
+      - rewindom_pg:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U be-water -d be-water"]
+      test: ["CMD-SHELL", "pg_isready -U rewindom -d rewindom"]
       interval: 5s
       timeout: 5s
       retries: 15
@@ -20,7 +20,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: be-water-redis
+    container_name: rewindom-redis
     command: >
       sh -c 'if [ -n "$${REDIS_PASSWORD}" ]; then
         exec redis-server --requirepass "$${REDIS_PASSWORD}";
@@ -30,7 +30,7 @@ services:
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     volumes:
-      - be_water_redis:/data
+      - rewindom_redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -43,15 +43,15 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: app
-    container_name: be-water-app
+    container_name: rewindom-app
     environment:
       NODE_ENV: production
       PORT: 3700
       HOST: 0.0.0.0
-      DATABASE_URL: postgresql://be-water:${DB_PASSWORD}@postgres:5432/be-water
+      DATABASE_URL: postgresql://rewindom:${DB_PASSWORD}@postgres:5432/rewindom
       DATABASE_HOST: postgres
       DATABASE_PORT: "5432"
-      DATABASE_USER: be-water
+      DATABASE_USER: rewindom
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
@@ -89,7 +89,7 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
     volumes:
-      - be_water_storage:/data
+      - rewindom_storage:/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,7 +102,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: web
-    container_name: be-water-web
+    container_name: rewindom-web
     environment:
       # nginx map：仅平台控制台 Host 走静态 SPA；产品主域与其它 Host 反代 Marketing SSR
       APP_DOMAIN: ${APP_DOMAIN}
@@ -114,6 +114,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  be_water_pg:
-  be_water_redis:
-  be_water_storage:
+  rewindom_pg:
+  rewindom_redis:
+  rewindom_storage:

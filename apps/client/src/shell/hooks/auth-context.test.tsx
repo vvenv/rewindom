@@ -1,10 +1,10 @@
 import { useContext } from "react";
 
-import { api, ApiError, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, AuthProvider, AuthContext   } from "@be-water/client-kit";
+import { api, ApiError, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, AuthProvider, AuthContext   } from "@rewindom/client-kit";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-import type { AuthTokens } from "@be-water/shared";
+import type { AuthTokens } from "@rewindom/shared";
 
 
 
@@ -15,7 +15,7 @@ function useAuth() {
 
 // mock 目标必须是 `api` 所在的具体模块：client-kit 内部走相对 import，
 // mock barrel 拦不到；且 barrel 自引会让 importActual 取到半初始化对象。
-vi.mock("@be-water/client-kit/api.js", async (importActual) => {
+vi.mock("@rewindom/client-kit/api.js", async (importActual) => {
   const actual = (await importActual()) as Record<string, unknown>;
   return {
     ...actual,

@@ -1,5 +1,5 @@
-import { PageFilterBar } from "@be-water/client-kit";
-import { optionsFromLabels } from "@be-water/client-kit/lib/filter-chip-options";
+import { PageFilterBar } from "@rewindom/client-kit";
+import { optionsFromLabels } from "@rewindom/client-kit/lib/filter-chip-options";
 import { useTranslation } from "react-i18next";
 
 import {

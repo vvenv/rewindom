@@ -1,4 +1,4 @@
-import { getServerTenantCatalog } from "@be-water/server-kernel/runtime/tenant-catalog.js";
+import { getServerTenantCatalog } from "@rewindom/server-kernel/runtime/tenant-catalog.js";
 
 import { isTenantModuleEnabled } from "../services/tenant-module.service.js";
 

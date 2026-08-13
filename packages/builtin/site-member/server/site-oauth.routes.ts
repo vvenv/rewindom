@@ -1,10 +1,10 @@
 import {
   handleRouteError,
   handleValidationError,
-} from "@be-water/server-kernel/http/route-error-handler.js";
-import { isOAuthProviderId } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { success } from "@be-water/shared";
+} from "@rewindom/server-kernel/http/route-error-handler.js";
+import { isOAuthProviderId } from "@rewindom/server-kernel/kernel/auth/oauth-credentials.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { success } from "@rewindom/shared";
 
 import { AuditAction } from "../../audit/shared/index.js";
 

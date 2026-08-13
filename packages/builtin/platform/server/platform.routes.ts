@@ -1,4 +1,4 @@
-import { isPlatformBackupDownloadTokenBypass } from "@be-water/server-kernel/middleware/auth.middleware.js";
+import { isPlatformBackupDownloadTokenBypass } from "@rewindom/server-kernel/middleware/auth.middleware.js";
 
 import { registerAdminRoutes } from "./routes/admin.routes.js";
 import { registerBackupRoutes } from "./routes/backup.routes.js";

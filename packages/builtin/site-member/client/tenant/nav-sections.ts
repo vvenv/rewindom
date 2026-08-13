@@ -1,6 +1,6 @@
 import { Users } from "lucide-react";
 
-import type { AppNavSection } from "@be-water/client-kit";
+import type { AppNavSection } from "@rewindom/client-kit";
 
 /** 挂在「官网 CMS」分组下，与 marketing 的 `/site` 同组。 */
 export const SITE_MEMBER_NAV_SECTIONS: AppNavSection[] = [

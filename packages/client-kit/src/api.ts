@@ -1,4 +1,4 @@
-import { type ApiDataResponse, type ApiErrorResponse, type AuthTokens  } from "@be-water/shared";
+import { type ApiDataResponse, type ApiErrorResponse, type AuthTokens  } from "@rewindom/shared";
 
 import {
   clearAuthTokens,

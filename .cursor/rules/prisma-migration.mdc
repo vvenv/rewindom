@@ -43,7 +43,7 @@ alwaysApply: false
 # 开发库跑在 docker 里（docker-compose.dev.yml，映射 5433），用容器内的 pg_dump，
 # 版本与服务端一致。宿主机 pg_dump 若是更高大版本，产出的 dump 会带 PG17+ 才认识的
 # SET（如 transaction_timeout），恢复到 PG16 时报 unrecognized configuration parameter。
-docker exec be-water-dev-postgres pg_dump -U be-water be-water \
+docker exec rewindom-dev-postgres pg_dump -U rewindom rewindom \
   > "data/postgres-backup-$(date +%Y%m%d-%H%M%S).sql"
 ```
 

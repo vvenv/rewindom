@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 
-import { useConfirm } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
-import { toast } from "@be-water/ui/toast";
+import { useConfirm } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
+import { toast } from "@rewindom/ui/toast";
 import { Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

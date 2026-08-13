@@ -2,13 +2,13 @@ import { useCallback, useMemo } from "react";
 
 
 
-import { Card, CardContent, CardHeader, CardTitle } from "@be-water/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@be-water/ui/chart";
+} from "@rewindom/ui/chart";
 import { useTranslation } from "react-i18next";
 import {
   Bar,

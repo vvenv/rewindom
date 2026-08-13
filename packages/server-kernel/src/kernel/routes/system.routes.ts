@@ -1,4 +1,4 @@
-import { success } from "@be-water/shared";
+import { success } from "@rewindom/shared";
 
 import { getAppVersion } from "../../lib/app-version.js";
 

@@ -1,5 +1,5 @@
-import { PageLayout, usePermissions } from "@be-water/client-kit";
-import { Input } from "@be-water/ui/input";
+import { PageLayout, usePermissions } from "@rewindom/client-kit";
+import { Input } from "@rewindom/ui/input";
 import { Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

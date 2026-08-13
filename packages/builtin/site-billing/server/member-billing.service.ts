@@ -9,9 +9,9 @@
 import {
   NotFoundError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
 import { createCreemProvider } from "../../billing/server/providers/creem.provider.js";
 import {
@@ -29,7 +29,7 @@ import {
   toMemberSubscription,
 } from "./site-billing.mapper.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /** 公开面能看到的档：启用 + 配了通道商品。没配商品的那档点下去只会报错。 */
 export async function listPurchasablePlans(input: {

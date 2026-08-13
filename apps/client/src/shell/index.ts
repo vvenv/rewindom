@@ -29,7 +29,7 @@ export {
   NavBadgeRegistryProvider,
   useNavBadgeCount,
   useNavBadgeRegistry,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 
 export { collectShellContributions } from "./lib/shell-contributions.js";
 export { collectPlatformNav } from "./lib/collect-platform-nav.js";

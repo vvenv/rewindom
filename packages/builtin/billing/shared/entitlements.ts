@@ -1,4 +1,4 @@
-import type { TenantModuleEntitlement } from "@be-water/shared";
+import type { TenantModuleEntitlement } from "@rewindom/shared";
 
 export const BILLING_ENTITLEMENT: TenantModuleEntitlement = {
   key: "billing",

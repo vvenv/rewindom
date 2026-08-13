@@ -1,8 +1,8 @@
 import {
   resolveHostTenant,
   resolveRequestHostname,
-} from "@be-water/server-kernel/lib/host-tenant.js";
-import { DEFAULT_TENANT_ID, normalizeLocale, type AppLocale } from "@be-water/shared";
+} from "@rewindom/server-kernel/lib/host-tenant.js";
+import { DEFAULT_TENANT_ID, normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import {
   DOCS_INDEX_PATH,

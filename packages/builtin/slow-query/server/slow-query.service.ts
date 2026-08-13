@@ -1,9 +1,9 @@
-import { config } from "@be-water/server-kernel/lib/config.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import {
   getRequestContext,
   type RequestContext,
-} from "@be-water/server-kernel/lib/request-context.js";
+} from "@rewindom/server-kernel/lib/request-context.js";
 
 import { fingerprintSql } from "./sql-fingerprint.js";
 

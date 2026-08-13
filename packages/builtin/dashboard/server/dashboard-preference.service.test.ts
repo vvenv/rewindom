@@ -1,4 +1,4 @@
-import { prismaMock } from "@be-water/server-test/register-prisma-mock";
+import { prismaMock } from "@rewindom/server-test/register-prisma-mock";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
@@ -7,7 +7,7 @@ import {
   saveDashboardPreference,
 } from "./dashboard-preference.service.js";
 
-import type { PrismaClient } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { PrismaClient } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 const prisma = prismaMock as unknown as PrismaClient;
 const TENANT_ID = "tenant-1";

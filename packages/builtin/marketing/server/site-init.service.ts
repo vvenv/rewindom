@@ -1,7 +1,7 @@
-import { type Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import { type Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
+import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { buildPresetSections } from "../shared/page-presets.js";
 import {

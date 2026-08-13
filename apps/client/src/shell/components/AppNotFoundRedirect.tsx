@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 
-import { isMarketingPublicPath } from "@be-water/builtin/marketing/shared/site-locale.js";
+import { isMarketingPublicPath } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import {
   isPlatformConsoleOrigin,
   PLATFORM_HOME_PATH,
   usePublicConfig,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import { Navigate, useLocation } from "react-router";
 
 import { AppHomeRedirect } from "./AppHomeRedirect.js";

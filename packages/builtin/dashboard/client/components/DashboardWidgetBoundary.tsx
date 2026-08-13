@@ -1,7 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { getI18n } from "@be-water/client-kit";
-import { Card, CardContent } from "@be-water/ui/card";
+import { getI18n } from "@rewindom/client-kit";
+import { Card, CardContent } from "@rewindom/ui/card";
 import { AlertTriangle } from "lucide-react";
 
 interface DashboardWidgetBoundaryProps {

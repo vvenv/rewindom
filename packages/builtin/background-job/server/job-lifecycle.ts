@@ -2,9 +2,9 @@
 import {
   Prisma,
   type BackgroundJob,
-} from "@be-water/server-kernel/generated/prisma/client/client.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { DATABASE_BACKUP_IDLE_TIMEOUT_MS, DATABASE_RESTORE_IDLE_TIMEOUT_MS } from "@be-water/shared";
+} from "@rewindom/server-kernel/generated/prisma/client/client.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { DATABASE_BACKUP_IDLE_TIMEOUT_MS, DATABASE_RESTORE_IDLE_TIMEOUT_MS } from "@rewindom/shared";
 
 import { type BackgroundJobDto, type BackgroundJobStatus, type BackgroundJobType } from "../shared/index.js";
 

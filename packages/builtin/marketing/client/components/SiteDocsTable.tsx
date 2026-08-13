@@ -4,18 +4,18 @@ import {
   DataTable,
   DataTableColumnHeader,
   type DataTableFeatures,
-} from "@be-water/client-kit";
-import { getLocaleNativeLabel } from "@be-water/shared";
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
+} from "@rewindom/client-kit";
+import { getLocaleNativeLabel } from "@rewindom/shared";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/ui/dropdown-menu";
+import { Spinner } from "@rewindom/ui/spinner";
 import {
   CloudOff,
   CloudUpload,

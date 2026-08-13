@@ -53,17 +53,17 @@ export default defineConfig([
             {
               group: ["@/components", "@/components/*"],
               message:
-                "Modules must use @be-water/ui or @be-water/client-shell instead of host @/components.",
+                "Modules must use @rewindom/ui or @rewindom/client-shell instead of host @/components.",
             },
             {
               group: ["@/hooks", "@/hooks/*"],
               message:
-                "Modules must use @be-water/client-shell instead of host @/hooks.",
+                "Modules must use @rewindom/client-shell instead of host @/hooks.",
             },
             {
               group: ["@/lib/*", "!@/app-nav"],
               message:
-                "Modules must use @be-water/client-api or @be-water/client-shell instead of host @/lib.",
+                "Modules must use @rewindom/client-api or @rewindom/client-shell instead of host @/lib.",
             },
           ],
         },

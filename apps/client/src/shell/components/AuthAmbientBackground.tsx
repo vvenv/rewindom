@@ -1,11 +1,11 @@
 import { useEffect, useRef, type RefObject } from "react";
 
-import { cn } from "@be-water/ui/utils";
+import { cn } from "@rewindom/ui/utils";
 
 /**
  * 认证页背景装饰：涟漪与微粒。
  *
- * 颜色不写死在 JS 里：从容器上的 `--auth-water-*` 变量读，随主题 token 走。
+ * 颜色不写死在 JS 里：从容器上的 `--auth-ambient-*` 变量读，随主题 token 走。
  * hero 面板恒为深色（与文档主题无关），用 `data-surface="deep"` 强制取深色。
  */
 
@@ -33,7 +33,7 @@ interface Ripple {
   lineWidth: number;
 }
 
-interface AuthWaterBackgroundProps {
+interface AuthAmbientBackgroundProps {
   /** 深水（深色）还是浅水（浅色）配色 */
   isDark: boolean;
   targetRef?: RefObject<HTMLElement | null>;
@@ -95,11 +95,11 @@ function createRipple(x: number, y: number, kind: "breeze" | "dive"): Ripple {
   };
 }
 
-export function AuthWaterBackground({
+export function AuthAmbientBackground({
   isDark,
   targetRef,
   className,
-}: AuthWaterBackgroundProps) {
+}: AuthAmbientBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const motesRef = useRef<Mote[]>([]);
@@ -127,8 +127,8 @@ export function AuthWaterBackground({
     const styles = getComputedStyle(container);
     const readColor = (name: string, fallback: string): string =>
       styles.getPropertyValue(name).trim() || fallback;
-    const rippleColor = readColor("--auth-water-ripple", "#0369a1");
-    const moteColor = readColor("--auth-water-mote", "#38bdf8");
+    const rippleColor = readColor("--auth-ambient-ripple", "#0369a1");
+    const moteColor = readColor("--auth-ambient-mote", "#38bdf8");
 
     const setSize = (): void => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -316,7 +316,7 @@ export function AuthWaterBackground({
       aria-hidden
       data-surface={isDark ? "deep" : "shallow"}
       className={cn(
-        "auth-water-field pointer-events-none absolute inset-0 overflow-hidden",
+        "auth-ambient-field pointer-events-none absolute inset-0 overflow-hidden",
         className,
       )}
     >
@@ -327,7 +327,7 @@ export function AuthWaterBackground({
           <div className="animate-auth-current-b absolute top-1/4 -right-1/4 size-2/3 rounded-full bg-brand/8 blur-3xl" />
           <div className="animate-auth-current-c absolute -bottom-1/4 left-1/5 size-3/5 rounded-full bg-brand/6 blur-3xl" />
           <div className="auth-caustics absolute inset-0" />
-          <div className="auth-waterline-glow absolute inset-x-0 bottom-0 h-1/3" />
+          <div className="auth-horizon-glow absolute inset-x-0 bottom-0 h-1/3" />
         </>
       ) : (
         <>

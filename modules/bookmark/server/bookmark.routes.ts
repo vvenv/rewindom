@@ -5,7 +5,7 @@ import {
   sendCodedError,
   AppError,
   emitAuditLogFromRequestSafe,
-} from "@be-water/module-sdk/server";
+} from "@rewindom/module-sdk/server";
 
 import {
   createBookmark,

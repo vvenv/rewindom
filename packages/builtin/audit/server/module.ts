@@ -2,7 +2,7 @@ import { auditLogRoutes } from "./audit-log.routes.js";
 import { AuditService, type AuditLogInput } from "./audit.service.js";
 import { registerPlatformAuditRoutes } from "./platform-audit.routes.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const auditServerModule: ServerAppModule = {
   id: "audit",

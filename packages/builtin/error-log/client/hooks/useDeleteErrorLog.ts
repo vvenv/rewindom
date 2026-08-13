@@ -1,6 +1,6 @@
 
-import { api } from "@be-water/client-kit";
-import { toast } from "@be-water/ui/toast";
+import { api } from "@rewindom/client-kit";
+import { toast } from "@rewindom/ui/toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 

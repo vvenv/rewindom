@@ -5,7 +5,7 @@
  * 一天也改不了一次。写路径主动失效，所以缓存不会过期到看得见的程度。
  */
 
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import {
   APP_SETTING_KEY_PLAN_PRICING,
@@ -15,7 +15,7 @@ import {
   type ResolvedPlan,
 } from "../../shared/plan-pricing.js";
 
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 let cached: PlanPricingConfig | null = null;
 

@@ -1,5 +1,5 @@
-import { PageLayout, usePermissions } from "@be-water/module-sdk/client";
-import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
+import { PageLayout, usePermissions } from "@rewindom/module-sdk/client";
+import { DraggableFabTrigger } from "@rewindom/ui/draggable-fab";
 import { Package, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

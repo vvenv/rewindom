@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PlatformAdminRoute } from "./PlatformAdminRoute";
 
-import type * as ClientKit from "@be-water/client-kit";
-import type { PublicConfig } from "@be-water/shared";
+import type * as ClientKit from "@rewindom/client-kit";
+import type { PublicConfig } from "@rewindom/shared";
 
 type ClientKitModule = typeof ClientKit;
 
@@ -17,9 +17,9 @@ const auth = vi.hoisted(() => ({
 const config = vi.hoisted(() => ({ value: {} as Partial<PublicConfig> }));
 const assign = vi.hoisted(() => vi.fn());
 
-vi.mock("@be-water/client-kit", async () => {
+vi.mock("@rewindom/client-kit", async () => {
   const actual =
-    await vi.importActual<ClientKitModule>("@be-water/client-kit");
+    await vi.importActual<ClientKitModule>("@rewindom/client-kit");
   return {
     ...actual,
     useAuth: () => auth,

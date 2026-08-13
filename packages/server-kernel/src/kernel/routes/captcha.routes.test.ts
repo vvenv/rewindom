@@ -1,4 +1,4 @@
-import { createRouteTestApp, type TestApp } from "@be-water/server-test";
+import { createRouteTestApp, type TestApp } from "@rewindom/server-test";
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 
 

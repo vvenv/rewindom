@@ -11,7 +11,7 @@ import { SITE_BILLING_I18N } from "./i18n.js";
 import { SITE_BILLING_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderSiteBillingRoutes } from "./tenant/routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 /*
  * 两个段与一张模板页：定义在 shared（与服务端 import 同一份），视图与模板元数据

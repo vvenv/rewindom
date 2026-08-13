@@ -4,7 +4,7 @@ import { api } from "../api.js";
 
 import { useTenantApiEnabled } from "./use-tenant-api-enabled.js";
 
-import type { TenantEntitlementsResponse, TenantFeatureKey } from "@be-water/shared";
+import type { TenantEntitlementsResponse, TenantFeatureKey } from "@rewindom/shared";
 
 export const TENANT_ENTITLEMENTS_QUERY_KEY = ["tenant-entitlements"] as const;
 

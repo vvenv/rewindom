@@ -5,9 +5,9 @@ import {
   useAuth,
   useDefaultHomePath,
   usePublicConfig,
-} from "@be-water/client-kit";
-import { isPlatformAdminActor } from "@be-water/shared";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/client-kit";
+import { isPlatformAdminActor } from "@rewindom/shared";
+import { Spinner } from "@rewindom/ui/spinner";
 import { Navigate, Outlet, useLocation } from "react-router";
 
 export function PlatformAdminRoute() {

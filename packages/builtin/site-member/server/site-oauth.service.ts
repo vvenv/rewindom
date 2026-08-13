@@ -6,25 +6,25 @@
  * `oauth-credentials.ts` 顶部那段说明。
  */
 
-import { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 import {
   OAUTH_PROVIDER_IDS,
   SITE_OAUTH_PROVIDERS_SETTING_KEY,
   resolveSiteOAuthCredentials,
-} from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
-import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+} from "@rewindom/server-kernel/kernel/auth/oauth-credentials.js";
+import { ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import {
   decryptTenantSecret,
   encryptTenantSecret,
-} from "@be-water/server-kernel/lib/tenant-secret-crypto.js";
+} from "@rewindom/server-kernel/lib/tenant-secret-crypto.js";
 
 import type {
   SiteOAuthProviderStatus,
   SiteOAuthProvidersStatus,
   UpsertSiteOAuthProviderBody,
 } from "../shared/site-oauth.js";
-import type { OAuthProviderId } from "@be-water/server-kernel/kernel/auth/oauth-common.js";
+import type { OAuthProviderId } from "@rewindom/server-kernel/kernel/auth/oauth-common.js";
 
 interface StoredProviderOverride {
   client_id?: string;

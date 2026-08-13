@@ -9,7 +9,7 @@ import {
 } from "../shared/member-menu-links.js";
 
 import type { SiteMemberSsrProfile } from "../../marketing/server/site-member-ssr-session.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /**
  * 页头账户入口的未登录态文案。

@@ -38,7 +38,7 @@ import { normalizeSiteColor } from "./site-color.js";
 import { localizeSiteHref } from "./site-locale.js";
 
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export * from "./section-settings.js";
 export * from "./sections/index.js";

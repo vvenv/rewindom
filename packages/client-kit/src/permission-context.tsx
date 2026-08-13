@@ -8,7 +8,7 @@ import {
 
 import { useAuth } from "./hooks/useAuth.js";
 
-import type { Permission } from "@be-water/shared";
+import type { Permission } from "@rewindom/shared";
 
 
 export type { Permission };

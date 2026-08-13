@@ -5,7 +5,7 @@ export const TENANT_FEATURES_STORAGE_KEY = "tenant_features";
 export const TENANT_LIMITS_STORAGE_KEY = "tenant_limits";
 
 
-import type { TenantFeatureKey, TenantFeatureFlags } from "@be-water/shared";
+import type { TenantFeatureKey, TenantFeatureFlags } from "@rewindom/shared";
 
 export interface TenantFeatureFlagsResponse {
   features: TenantFeatureFlags;

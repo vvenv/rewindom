@@ -1,4 +1,4 @@
-import type { ServerI18nBundle } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerI18nBundle } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const BILLING_SERVER_I18N: ServerI18nBundle = {
   id: "billing",

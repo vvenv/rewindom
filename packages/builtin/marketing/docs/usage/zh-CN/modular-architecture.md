@@ -41,7 +41,7 @@ sort_order: 40
 
 第三方与定制功能放在仓库根的 `modules/*`（示例：`note`、`todo`、`bookmark`）：
 
-- 只通过 `@be-water/module-sdk` 门面与内核交互
+- 只通过 `@rewindom/module-sdk` 门面与内核交互
 - import 边界由 `verify-module.mjs` 强制校验
 - 自带 Prisma schema，迁移统一由 `apps/server` 管理
 

@@ -1,5 +1,5 @@
-import { getI18n } from "@be-water/client-kit";
-import { normalizeLocale } from "@be-water/shared";
+import { getI18n } from "@rewindom/client-kit";
+import { normalizeLocale } from "@rewindom/shared";
 
 import { readLocalizedSetting } from "../../../marketing/shared/section-settings.js";
 import {

@@ -1,4 +1,4 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import { type BackgroundJobDto, type BackgroundJobType } from "../shared/index.js";
 

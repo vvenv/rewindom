@@ -1,5 +1,5 @@
-import { useAuth, type AuthContextType } from "@be-water/client-kit";
-import { TENANT_IMPERSONATION_USERNAME } from "@be-water/shared";
+import { useAuth, type AuthContextType } from "@rewindom/client-kit";
+import { TENANT_IMPERSONATION_USERNAME } from "@rewindom/shared";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, it, expect, vi } from "vitest";
@@ -36,8 +36,8 @@ function createMockAuthContext(
   } as unknown as AuthContextType;
 }
 
-vi.mock("@be-water/client-kit", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@be-water/client-kit")>()),
+vi.mock("@rewindom/client-kit", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@rewindom/client-kit")>()),
   useAuth: vi.fn(),
   useColorMode: () => ({
     colorMode: "system" as const,

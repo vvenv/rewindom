@@ -4,12 +4,12 @@ import {
   DataTable,
   DataTableColumnHeader,
   type DataTableFeatures,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import {
   displayOrEmpty,
   formatBusinessDate,
   formatTenantDisplayLabel,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import { ScrollText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

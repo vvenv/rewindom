@@ -1,6 +1,6 @@
 import { Package, Receipt, Settings, Truck } from "lucide-react";
 
-import type { AppNavSection } from "@be-water/module-sdk/client";
+import type { AppNavSection } from "@rewindom/module-sdk/client";
 
 export const SHOP_NAV_SECTIONS: AppNavSection[] = [
   {

@@ -1,4 +1,4 @@
-import type { JsonValue } from "@be-water/shared";
+import type { JsonValue } from "@rewindom/shared";
 
 export const ErrorLevel = {
   ERROR: "error",

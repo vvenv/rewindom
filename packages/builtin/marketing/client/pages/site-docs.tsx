@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState, type ReactElement } from "react";
 
-import { PageLayout, usePermissions } from "@be-water/client-kit";
-import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
-import { normalizeLocale, type AppLocale  } from "@be-water/shared";
-import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
+import { PageLayout, usePermissions } from "@rewindom/client-kit";
+import { hasActiveFilters } from "@rewindom/client-kit/lib/list-url-params";
+import { normalizeLocale, type AppLocale  } from "@rewindom/shared";
+import { DraggableFabTrigger } from "@rewindom/ui/draggable-fab";
 import { FileText, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

@@ -7,7 +7,7 @@ import { memberBillingPageRoutes } from "./member-billing.ssr.js";
 import { registerMemberPlansSection } from "./plans-section.js";
 import { siteBillingRoutes, siteBillingWebhookRoutes } from "./site-billing.routes.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const siteBillingServerModule: ServerAppModule = {
   id: "site-billing",

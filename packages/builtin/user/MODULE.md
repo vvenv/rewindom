@@ -33,14 +33,14 @@
 
 ## 扩展点
 
-- `client/src/shell/user-menu-slots.ts`：`userMenuUsageSlot` — 用户菜单用量卡注入点；提供方为 `module-be-water/settings`（`SettingsShellSlots`）。未注册时菜单不展示用量卡。
+- `client/src/shell/user-menu-slots.ts`：`userMenuUsageSlot` — 用户菜单用量卡注入点；提供方为 `module-rewindom/settings`（`SettingsShellSlots`）。未注册时菜单不展示用量卡。
 
 ## 如何单独测试
 
 ```bash
 # 每个模块的 server / client / shared 各是一个 vitest project，
 # 位置参数只按 project root 的相对路径过滤，跑全模块要用 --project。
-pnpm --filter @be-water/builtin exec vitest --run --project 'user/*'
+pnpm --filter @rewindom/builtin exec vitest --run --project 'user/*'
 ```
 
 ## 禁止

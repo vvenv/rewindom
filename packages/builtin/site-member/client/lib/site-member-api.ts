@@ -1,4 +1,4 @@
-import { createApiClient } from "@be-water/client-kit";
+import { createApiClient } from "@rewindom/client-kit";
 
 import {
   MEMBER_AUTH_LOGOUT_EVENT,

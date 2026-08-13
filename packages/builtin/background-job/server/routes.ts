@@ -1,6 +1,6 @@
-import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { success } from "@be-water/shared";
+import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { success } from "@rewindom/shared";
 
 import { AuditAction } from "../../audit/shared/index.js";
 

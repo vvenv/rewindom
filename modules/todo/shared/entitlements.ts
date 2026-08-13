@@ -1,4 +1,4 @@
-import type { TenantModuleEntitlement } from "@be-water/module-sdk";
+import type { TenantModuleEntitlement } from "@rewindom/module-sdk";
 
 export const TODO_ENTITLEMENT: TenantModuleEntitlement = {
   key: "todo",

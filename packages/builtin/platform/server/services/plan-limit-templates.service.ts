@@ -1,9 +1,9 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import { APP_SETTING_KEY_PLAN_LIMIT_TEMPLATES, resolvePlanLimitTemplates, validatePlanLimitTemplates, type PlanLimitTemplateOverrides, type PlanLimitTemplates, type PlanSlug, type TenantLimitValues } from "../../shared/index.js";
 
 
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 function normalizeOverrides(raw: unknown): PlanLimitTemplateOverrides {
   if (!raw || typeof raw !== "object") {

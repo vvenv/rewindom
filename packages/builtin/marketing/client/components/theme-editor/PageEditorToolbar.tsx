@@ -1,9 +1,9 @@
 import { useState } from "react";
 
-import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
-import { ButtonGroup } from "@be-water/ui/button-group";
-import { DropdownMenuItem } from "@be-water/ui/dropdown-menu";
+import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
+import { ButtonGroup } from "@rewindom/ui/button-group";
+import { DropdownMenuItem } from "@rewindom/ui/dropdown-menu";
 import { CloudOff, Copy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

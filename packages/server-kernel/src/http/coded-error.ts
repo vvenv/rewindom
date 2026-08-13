@@ -1,4 +1,4 @@
-import { error as errorResponse } from "@be-water/shared";
+import { error as errorResponse } from "@rewindom/shared";
 
 import { AppError } from "../lib/app-errors.js";
 import { isServerMessageCode } from "../lib/i18n/format-message.js";

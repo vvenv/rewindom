@@ -1,9 +1,9 @@
-import { getMsUntilLocalTime } from "@be-water/server-kernel/infra/scheduler.service.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
+import { getMsUntilLocalTime } from "@rewindom/server-kernel/infra/scheduler.service.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
 
 import { SlowQueryService } from "./slow-query.service.js";
 
-import type { JobRegistryContext } from "@be-water/server-kernel/runtime/job-registry.js";
+import type { JobRegistryContext } from "@rewindom/server-kernel/runtime/job-registry.js";
 
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 const SLOW_QUERY_CLEANUP_HOUR = 8;

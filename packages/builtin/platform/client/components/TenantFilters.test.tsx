@@ -4,9 +4,9 @@ import { describe, it, expect, vi } from "vitest";
 
 import { TenantFilters } from "./TenantFilters.js";
 
-vi.mock("@be-water/client-kit", async () => {
+vi.mock("@rewindom/client-kit", async () => {
   const { clientShellTestMock } =
-    await import("@be-water/client-test/mocks/client-shell");
+    await import("@rewindom/client-test/mocks/client-shell");
   return clientShellTestMock;
 });
 

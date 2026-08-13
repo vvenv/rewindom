@@ -1,4 +1,4 @@
-import { api, useTenantQueryScope  } from "@be-water/client-kit";
+import { api, useTenantQueryScope  } from "@rewindom/client-kit";
 import { useQuery } from "@tanstack/react-query";
 
 

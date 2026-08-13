@@ -4,13 +4,13 @@ import {
   DataTable,
   DataTableColumnHeader,
   type DataTableFeatures,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import {
   displayOrEmpty,
   formatBusinessDate,
   formatTenantDisplayLabel,
-} from "@be-water/shared";
-import { Badge, type badgeVariants } from "@be-water/ui/badge";
+} from "@rewindom/shared";
+import { Badge, type badgeVariants } from "@rewindom/ui/badge";
 import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

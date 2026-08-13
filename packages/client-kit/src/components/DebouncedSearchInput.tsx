@@ -1,11 +1,11 @@
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@be-water/ui/input-group";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/input-group";
+import { cn } from "@rewindom/ui/utils";
 import { Search, X } from "lucide-react";
 
 import { useDebouncedInput } from "../hooks/useDebouncedInput";

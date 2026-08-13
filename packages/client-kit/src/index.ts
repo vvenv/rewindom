@@ -230,7 +230,7 @@ export {
 export type { AuthContextType } from "./contexts/AuthContext";
 export type { ConfirmContextValue } from "./contexts/ConfirmContext";
 
-// 原 @be-water/client-api
+// 原 @rewindom/client-api
 export {
   api,
   apiRequest,

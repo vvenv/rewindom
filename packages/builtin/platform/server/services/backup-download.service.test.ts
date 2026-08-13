@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 
-import { BACKUP_FILE_PREFIX } from "@be-water/shared";
+import { BACKUP_FILE_PREFIX } from "@rewindom/shared";
 
 import {
   createDatabaseBackupDownloadToken,
@@ -30,12 +30,12 @@ const { redisClientMock } = vi.hoisted(() => ({
 // ---------------------------------------------------------------------------
 // Module mocks
 // ---------------------------------------------------------------------------
-vi.mock("@be-water/server-kernel/infra/redis.service.js", () => ({
+vi.mock("@rewindom/server-kernel/infra/redis.service.js", () => ({
   getRedisClient: () => redisClientMock,
   closeRedisConnection: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@be-water/server-kernel/lib/logger.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/logger.js", () => ({
   createModuleLogger: vi.fn(() => ({ info: vi.fn(), error: vi.fn() })),
 }));
 

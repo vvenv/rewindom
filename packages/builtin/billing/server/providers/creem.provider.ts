@@ -1,5 +1,5 @@
-import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
+import { ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
 import { Creem } from "creem";
 
 import type {

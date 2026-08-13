@@ -1,4 +1,4 @@
-import { TENANT_IMPERSONATION_USERNAME } from "@be-water/shared";
+import { TENANT_IMPERSONATION_USERNAME } from "@rewindom/shared";
 
 export const AuditAction = {
   LOGIN: "LOGIN",

@@ -1,4 +1,4 @@
-import type { PermissionCatalogEntry, RoleDetail } from "@be-water/shared";
+import type { PermissionCatalogEntry, RoleDetail } from "@rewindom/shared";
 
 export interface RoleFormState {
   name: string;

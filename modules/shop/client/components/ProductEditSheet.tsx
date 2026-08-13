@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
-import { ApiError, FieldInfoTip } from "@be-water/module-sdk/client";
-import { Button } from "@be-water/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+import { ApiError, FieldInfoTip } from "@rewindom/module-sdk/client";
+import { Button } from "@rewindom/ui/button";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Sheet,
   SheetClose,
@@ -13,10 +13,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { Switch } from "@be-water/ui/switch";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { Switch } from "@rewindom/ui/switch";
+import { toast } from "@rewindom/ui/toast";
 import { Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

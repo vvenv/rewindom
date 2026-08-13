@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# be-water 生产镜像：builder → app（Node API）→ web（Nginx + 静态资源）
+# rewindom 生产镜像：builder → app（Node API）→ web（Nginx + 静态资源）
 # 与 sibling shipest 同构：依赖清单分层 + BuildKit pnpm store 缓存 + prod prune
 ARG NODE_VERSION=22
 ARG PNPM_VERSION=11.20.0
@@ -21,7 +21,7 @@ RUN corepack enable \
 WORKDIR /app
 
 # prisma.config.ts 在 generate 阶段需要 DATABASE_URL（仅构建占位，非运行时连接）
-ENV DATABASE_URL=postgresql://be-water:build@localhost:5432/be-water
+ENV DATABASE_URL=postgresql://rewindom:build@localhost:5432/rewindom
 
 # 仅依赖清单：业务代码变更不失效 install 层
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -39,7 +39,7 @@ COPY modules/bookmark/package.json modules/bookmark/
 COPY modules/note/package.json modules/note/
 COPY modules/todo/package.json modules/todo/
 
-RUN --mount=type=cache,id=be-water-pnpm-store,target=/pnpm/store \
+RUN --mount=type=cache,id=rewindom-pnpm-store,target=/pnpm/store \
   pnpm install --frozen-lockfile
 
 COPY apps apps
@@ -49,8 +49,8 @@ COPY modules modules
 RUN pnpm --filter server exec prisma generate \
   && pnpm build
 
-# 去掉开发依赖，保留 workspace 链接（prune --prod 会拆掉 @be-water/* 软链）
-RUN --mount=type=cache,id=be-water-pnpm-store,target=/pnpm/store \
+# 去掉开发依赖，保留 workspace 链接（prune --prod 会拆掉 @rewindom/* 软链）
+RUN --mount=type=cache,id=rewindom-pnpm-store,target=/pnpm/store \
   rm -rf node_modules apps/*/node_modules packages/*/node_modules modules/*/node_modules \
   && pnpm install --frozen-lockfile --prod
 

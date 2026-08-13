@@ -5,7 +5,7 @@ import {
   withTenantScope,
   resolveSortField,
   resolveSortOrder,
-} from "@be-water/module-sdk/server";
+} from "@rewindom/module-sdk/server";
 
 import { toBookmark, toBookmarkListItem } from "./bookmark.mapper.js";
 import {

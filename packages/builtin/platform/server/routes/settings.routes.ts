@@ -1,14 +1,14 @@
 import {
   handleRouteError,
   handleValidationError,
-} from "@be-water/server-kernel/http/route-error-handler.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
+} from "@rewindom/server-kernel/http/route-error-handler.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 import {
   isAppLocale,
   isShellLayoutSlug,
   isThemePaletteSlug,
   success,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { AuditAction } from "../../../audit/shared/index.js";
 import { type PlatformSettings } from "../../shared/index.js";

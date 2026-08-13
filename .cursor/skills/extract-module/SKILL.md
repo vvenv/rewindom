@@ -51,7 +51,7 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 ## 验证
 
 ```bash
-pnpm --filter @be-water/builtin test
+pnpm --filter @rewindom/builtin test
 pnpm check:modules
 pnpm check:deps
 pnpm check

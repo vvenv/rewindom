@@ -1,4 +1,4 @@
-import { installTestPermissionCatalog } from "@be-water/server-test/permission-catalog";
+import { installTestPermissionCatalog } from "@rewindom/server-test/permission-catalog";
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 
 vi.mock("./note.service.js", () => ({
@@ -21,7 +21,7 @@ import {
   grantPermission,
   type TestApp,
   type TestUser,
-} from "@be-water/server-test";
+} from "@rewindom/server-test";
 
 import { noteRoutes } from "./note.routes.js";
 

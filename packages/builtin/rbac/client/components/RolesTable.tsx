@@ -7,10 +7,10 @@ import {
   type DataTableFeatures,
   useConfirm,
   usePermissions,
-} from "@be-water/client-kit";
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/client-kit";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
+import { toast } from "@rewindom/ui/toast";
 import { ShieldCheck, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -18,7 +18,7 @@ import { useDeleteRole } from "../hooks/useRoleMutations.js";
 
 import { RoleEditSheet } from "./RoleSheet.js";
 
-import type { RoleDetail } from "@be-water/shared";
+import type { RoleDetail } from "@rewindom/shared";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
 interface RolesTableProps {

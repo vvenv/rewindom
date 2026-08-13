@@ -1,11 +1,11 @@
-import { PageFilterBar } from "@be-water/module-sdk/client";
+import { PageFilterBar } from "@rewindom/module-sdk/client";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import { useTranslation } from "react-i18next";
 
 import { getNoteSortOptions } from "../lib/note-sort.js";

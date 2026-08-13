@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
-import { THEME_PALETTES, getThemePaletteLabel } from "@be-water/shared";
+import { THEME_PALETTES, getThemePaletteLabel } from "@rewindom/shared";
 
 import {
   translateThemePaletteLabel,
@@ -20,11 +20,11 @@ function makeT(map: Record<string, string>) {
 describe("translate-theme-palette", () => {
   describe("translateThemePaletteLabel", () => {
     it("命中翻译时返回翻译值", () => {
-      const t = makeT({ "themePalettes.water.label": "Water" });
-      expect(translateThemePaletteLabel(t, "water")).toBe("Water");
+      const t = makeT({ "themePalettes.azure.label": "Azure" });
+      expect(translateThemePaletteLabel(t, "azure")).toBe("Azure");
       expect(t).toHaveBeenCalledWith(
-        "themePalettes.water.label",
-        expect.objectContaining({ ns: "shell", defaultValue: "水蓝" }),
+        "themePalettes.azure.label",
+        expect.objectContaining({ ns: "shell", defaultValue: "青蓝" }),
       );
     });
 
@@ -42,7 +42,7 @@ describe("translate-theme-palette", () => {
   describe("translateThemePaletteOptions", () => {
     it("返回所有配色,每项带 slug/label/description", () => {
       const t = makeT({
-        "themePalettes.water.label": "Water",
+        "themePalettes.azure.label": "Azure",
         "themePalettes.slate.description": "Neutral slate",
       });
 
@@ -50,11 +50,11 @@ describe("translate-theme-palette", () => {
 
       expect(options).toHaveLength(THEME_PALETTES.length);
       const slugs = options.map((o) => o.slug);
-      expect(slugs).toEqual(["water", "slate"]);
+      expect(slugs).toEqual(["azure", "slate"]);
 
-      const water = options.find((o) => o.slug === "water")!;
-      expect(water.label).toBe("Water");
-      expect(water.description).toBe("默认配色：水蓝主色搭配青色数据强调");
+      const azure = options.find((o) => o.slug === "azure")!;
+      expect(azure.label).toBe("Azure");
+      expect(azure.description).toBe("默认配色：青蓝主色搭配青色数据强调");
 
       const slate = options.find((o) => o.slug === "slate")!;
       expect(slate.description).toBe("Neutral slate");

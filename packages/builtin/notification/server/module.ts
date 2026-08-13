@@ -1,4 +1,4 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import { notificationRoutes } from "./notification.routes.js";
 import {
@@ -6,8 +6,8 @@ import {
   type CreateNotificationInput,
 } from "./notification.service.js";
 
-import type { NotificationCreateEventPayload } from "@be-water/server-kernel/runtime/domain-events.js";
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { NotificationCreateEventPayload } from "@rewindom/server-kernel/runtime/domain-events.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 function toCreateNotificationInput(
   payload: NotificationCreateEventPayload,

@@ -13,12 +13,12 @@
  * `/member/oauth/callback` 没有版式可言，仍落到 SPA 兜底。
  */
 
-import { CaptchaService } from "@be-water/server-kernel/kernel/auth/captcha.service.js";
-import { siteOAuthEnabledFlags } from "@be-water/server-kernel/kernel/auth/oauth-credentials.js";
-import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
-import { resolveRequestLocale } from "@be-water/server-kernel/lib/i18n/translate.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
-import { normalizeLocale } from "@be-water/shared";
+import { CaptchaService } from "@rewindom/server-kernel/kernel/auth/captcha.service.js";
+import { siteOAuthEnabledFlags } from "@rewindom/server-kernel/kernel/auth/oauth-credentials.js";
+import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { resolveRequestLocale } from "@rewindom/server-kernel/lib/i18n/translate.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+import { normalizeLocale } from "@rewindom/shared";
 
 import { AuditAction } from "../../audit/shared/index.js";
 import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";

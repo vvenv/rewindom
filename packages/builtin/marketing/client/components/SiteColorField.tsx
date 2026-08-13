@@ -1,9 +1,9 @@
 import { type CSSProperties } from "react";
 
-import { Input } from "@be-water/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@be-water/ui/popover";
-import { Slider } from "@be-water/ui/slider";
-import { cn } from "@be-water/ui/utils";
+import { Input } from "@rewindom/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@rewindom/ui/popover";
+import { Slider } from "@rewindom/ui/slider";
+import { cn } from "@rewindom/ui/utils";
 import { useTranslation } from "react-i18next";
 
 import { composeSiteColor } from "../../shared/site-color.js";

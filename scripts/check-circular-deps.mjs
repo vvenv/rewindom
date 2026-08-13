@@ -2,13 +2,13 @@
 /**
  * 循环依赖检测（棘轮门禁 / ratchet gate）
  *
- * 扫描 workspace 内所有 `@be-water/*` 包的运行时依赖（package.json 的 `dependencies`），
+ * 扫描 workspace 内所有 `@rewindom/*` 包的运行时依赖（package.json 的 `dependencies`），
  * 用 Tarjan 求强连通分量（SCC）；一条依赖边若两端落在同一个 >1 成员的 SCC 内，
  * 即为「环上边」（cyclic edge）——它一定参与了至少一个循环。
  *
  * 包分层（scripts/module-contexts.json）：把包分到 app / modules / lib / test 等层。
  * **同层内部的环视为内聚、放行；只把跨层的环上边纳入守护**。
- * 模块之间的环已不在此守护范围（同属 @be-water/builtin 一个包），由
+ * 模块之间的环已不在此守护范围（同属 @rewindom/builtin 一个包），由
  * packages/builtin/eslint.config.js 的 import-x/no-cycle 做文件级检测。
  *
  * 语义（关键）：不追求「一次清零」，而是把现存的**跨上下文环上边**记入 baseline，
@@ -32,8 +32,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BASELINE_PATH = path.join(ROOT, "scripts", "circular-deps-baseline.json");
 const CONTEXTS_PATH = path.join(ROOT, "scripts", "module-contexts.json");
 const WORKSPACE_GLOBS = ["apps", "packages", "modules"];
-/** 本仓的包分属两个 scope：@be-water/*（模板设施，与上游同名）与 @be-water/*（本产品业务）。 */
-const SCOPE_PREFIXES = ["@be-water/", "@be-water/"];
+const SCOPE_PREFIXES = ["@rewindom/"];
 /** 依赖种类：只有运行时耦合会阻碍「单独启用某模块」 */
 const DEP_FIELDS = ["dependencies"];
 
@@ -105,7 +104,7 @@ function loadGraph() {
     });
   }
 
-  // 只保留指向本地 @be-water/* 包的边
+  // 只保留指向本地 @rewindom/* 包的边
   for (const { pkg } of raw) {
     const node = byName.get(pkg.name);
     for (const field of DEP_FIELDS) {

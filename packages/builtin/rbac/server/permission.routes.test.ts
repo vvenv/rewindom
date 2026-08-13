@@ -1,5 +1,5 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
 import {
   createRouteTestApp,
   createTestUserFast,
@@ -7,9 +7,9 @@ import {
   resetUserPermissions,
   type TestApp,
   type TestUser,
-} from "@be-water/server-test";
-import { installTestPermissionCatalog } from "@be-water/server-test/permission-catalog";
-import { userPermissionCacheKey } from "@be-water/shared";
+} from "@rewindom/server-test";
+import { installTestPermissionCatalog } from "@rewindom/server-test/permission-catalog";
+import { userPermissionCacheKey } from "@rewindom/shared";
 import {
   describe,
   it,
@@ -32,10 +32,10 @@ const auditEmit = vi.hoisted(() => ({
 }));
 
 vi.mock(
-  "@be-water/server-kernel/runtime/audit-log-emit.js",
+  "@rewindom/server-kernel/runtime/audit-log-emit.js",
   async (importOriginal) => ({
     ...(await importOriginal<
-      typeof import("@be-water/server-kernel/runtime/audit-log-emit.js")
+      typeof import("@rewindom/server-kernel/runtime/audit-log-emit.js")
     >()),
     emitAuditLogFromRequestSafe: auditEmit.emitAuditLogFromRequestSafe,
   }),

@@ -131,7 +131,7 @@ function loadModule(id, baseDir = MODULES_DIR, isExternal = false) {
   const serverManifest = path.join(dir, "server", "module.ts");
   const clientManifest = path.join(dir, "client", "module.tsx");
   // 内置：packages/builtin/<id>/models.prisma（旧名 schema.prisma 仍认）
-  // 外部：beWater.prismaSchema 或 prisma/schema.prisma
+  // 外部：rewindom.prismaSchema 或 prisma/schema.prisma
   const schemaCandidates = isExternal
     ? [
         path.join(dir, "schema.prisma"),
@@ -186,7 +186,7 @@ function declaredAuditActions(mod) {
  * 所以要顺着 import 的局部名去 ENABLED_* 数组里找。
  *
  * 外部模块的注册表是 generated `external-modules.ts`（由 gen:external-modules 生成），
- * import 路径是包名（`<pkgName>/server/index.js`）而非 `@be-water/builtin/<id>/...`。
+ * import 路径是包名（`<pkgName>/server/index.js`）而非 `@rewindom/builtin/<id>/...`。
  */
 function checkRegistry(mod, add) {
   const isRegistered = (registryPath, modulePath, arrayName) => {
@@ -567,17 +567,17 @@ function checkDocs(mod, add) {
 /**
  * 10. 外部模块边界校验
  *
- * 外部模块只许 import 自 `@be-water/module-sdk`（门面包）和 `@be-water/ui`（原语），
+ * 外部模块只许 import 自 `@rewindom/module-sdk`（门面包）和 `@rewindom/ui`（原语），
  * 不许直接 import 内核包（server-kernel / client-kit / shared）或内部模块包
- * （@be-water/builtin/*）——否则外部模块与内核实现细节耦合，无法独立发布。
+ * （@rewindom/builtin/*）——否则外部模块与内核实现细节耦合，无法独立发布。
  */
 const FORBIDDEN_EXTERNAL_PREFIXES = [
-  "@be-water/server-kernel",
-  "@be-water/client-kit",
-  "@be-water/shared",
-  "@be-water/builtin/",
-  "@be-water/server-test",
-  "@be-water/client-test",
+  "@rewindom/server-kernel",
+  "@rewindom/client-kit",
+  "@rewindom/shared",
+  "@rewindom/builtin/",
+  "@rewindom/server-test",
+  "@rewindom/client-test",
 ];
 
 function checkBoundary(mod, add) {
@@ -592,7 +592,7 @@ function checkBoundary(mod, add) {
         add(
           "error",
           "boundary",
-          `外部模块禁止直接 import "${specifier}"——只许 import @be-water/module-sdk / @be-water/ui（${path.relative(ROOT, file)}）`,
+          `外部模块禁止直接 import "${specifier}"——只许 import @rewindom/module-sdk / @rewindom/ui（${path.relative(ROOT, file)}）`,
         );
       }
     }
@@ -601,7 +601,7 @@ function checkBoundary(mod, add) {
 
 // ---------------------------------------------------------------- 主流程
 
-// 内部模块：@be-water/builtin 单包内的目录，靠 manifest 文件识别
+// 内部模块：@rewindom/builtin 单包内的目录，靠 manifest 文件识别
 const internalIds = readdirSync(MODULES_DIR).filter((id) => {
   const dir = path.join(MODULES_DIR, id);
   if (id === "node_modules" || !statSync(dir).isDirectory()) return false;
@@ -611,7 +611,7 @@ const internalIds = readdirSync(MODULES_DIR).filter((id) => {
   );
 });
 
-// 外部模块：modules/* 各自独立成包，靠 package.json 的 beWater.moduleId 识别
+// 外部模块：modules/* 各自独立成包，靠 package.json 的 rewindom.moduleId 识别
 const externalIds = existsSync(EXTERNAL_MODULES_DIR)
   ? readdirSync(EXTERNAL_MODULES_DIR).filter((id) => {
       const dir = path.join(EXTERNAL_MODULES_DIR, id);
@@ -619,7 +619,7 @@ const externalIds = existsSync(EXTERNAL_MODULES_DIR)
       const pkgPath = path.join(dir, "package.json");
       if (!existsSync(pkgPath)) return false;
       const pkg = JSON.parse(read(pkgPath));
-      return pkg.beWater?.moduleId;
+      return pkg.rewindom?.moduleId;
     })
   : [];
 

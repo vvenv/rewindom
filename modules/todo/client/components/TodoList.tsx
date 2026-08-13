@@ -1,7 +1,7 @@
-import { EmptyState } from "@be-water/module-sdk/client";
-import { Alert, AlertDescription } from "@be-water/ui/alert";
-import { Button } from "@be-water/ui/button";
-import { Spinner } from "@be-water/ui/spinner";
+import { EmptyState } from "@rewindom/module-sdk/client";
+import { Alert, AlertDescription } from "@rewindom/ui/alert";
+import { Button } from "@rewindom/ui/button";
+import { Spinner } from "@rewindom/ui/spinner";
 import { ListTodo } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

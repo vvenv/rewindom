@@ -8,8 +8,8 @@ import type {
   HomePathCandidate,
   MobileTabItem,
   PlatformNavEntry,
-} from "@be-water/client-kit";
-import type { Permission, TenantEntitlementsResponse } from "@be-water/shared";
+} from "@rewindom/client-kit";
+import type { Permission, TenantEntitlementsResponse } from "@rewindom/shared";
 
 
 export interface AppShellConfig {

@@ -3,7 +3,7 @@ import { lazy, type ReactNode } from "react";
 import {
   PermissionRoute,
   TenantModuleRoute,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import { Route } from "react-router";
 
 

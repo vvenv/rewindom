@@ -1,7 +1,7 @@
 import { render, screen, act } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ResolvedTenantAppearance } from "@be-water/shared";
+import type { ResolvedTenantAppearance } from "@rewindom/shared";
 
 import {
   ThemePaletteProvider,
@@ -21,7 +21,7 @@ function appearance(
   overrides: Partial<ResolvedTenantAppearance>,
 ): ResolvedTenantAppearance {
   return {
-    theme: "water",
+    theme: "azure",
     theme_source: "platform",
     layout: "sidebar",
     layout_source: "platform",
@@ -58,8 +58,8 @@ describe("ThemePaletteProvider", () => {
       </ThemePaletteProvider>,
     );
 
-    expect(screen.getByTestId("palette")).toHaveTextContent("water");
-    expect(document.documentElement.dataset.theme).toBe("water");
+    expect(screen.getByTestId("palette")).toHaveTextContent("azure");
+    expect(document.documentElement.dataset.theme).toBe("azure");
   });
 
   it("采用服务端下发的租户默认主题", () => {
@@ -76,7 +76,7 @@ describe("ThemePaletteProvider", () => {
   });
 
   it("用户选择覆盖租户默认，并持久化到 localStorage", async () => {
-    mockAppearance.data = appearance({ theme: "water" });
+    mockAppearance.data = appearance({ theme: "azure" });
 
     render(
       <ThemePaletteProvider>
@@ -89,7 +89,7 @@ describe("ThemePaletteProvider", () => {
     });
 
     expect(screen.getByTestId("palette")).toHaveTextContent("slate");
-    expect(screen.getByTestId("default")).toHaveTextContent("water");
+    expect(screen.getByTestId("default")).toHaveTextContent("azure");
     expect(document.documentElement.dataset.theme).toBe("slate");
     expect(localStorage.getItem("theme-palette")).toBe("slate");
 
@@ -97,7 +97,7 @@ describe("ThemePaletteProvider", () => {
       screen.getByText("跟随默认").click();
     });
 
-    expect(screen.getByTestId("palette")).toHaveTextContent("water");
+    expect(screen.getByTestId("palette")).toHaveTextContent("azure");
     expect(screen.getByTestId("choice")).toHaveTextContent("-");
     expect(localStorage.getItem("theme-palette")).toBeNull();
   });
@@ -130,7 +130,7 @@ describe("ThemePaletteProvider", () => {
 
   it("Provider 之外调用 useThemePalette 返回兜底值且不报错", () => {
     render(<Probe />);
-    expect(screen.getByTestId("palette")).toHaveTextContent("water");
+    expect(screen.getByTestId("palette")).toHaveTextContent("azure");
     expect(document.documentElement.dataset.theme).toBeUndefined();
   });
 });

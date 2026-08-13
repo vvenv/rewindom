@@ -1,4 +1,4 @@
-import { APP_LOCALES, type AppLocale } from "@be-water/shared";
+import { APP_LOCALES, type AppLocale } from "@rewindom/shared";
 
 import { getPageTemplateKind } from "./page-templates.js";
 import { normalizeSiteColor } from "./site-color.js";

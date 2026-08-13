@@ -1,4 +1,4 @@
-import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID } from "@be-water/shared";
+import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID } from "@rewindom/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { findUniqueMock, upsertMock } = vi.hoisted(() => ({
@@ -6,7 +6,7 @@ const { findUniqueMock, upsertMock } = vi.hoisted(() => ({
   upsertMock: vi.fn(),
 }));
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     tenant: {
       findUnique: findUniqueMock,

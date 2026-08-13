@@ -1,6 +1,6 @@
 import { LayoutDashboard } from "lucide-react";
 
-import type { AppNavSection } from "@be-water/client-kit";
+import type { AppNavSection } from "@rewindom/client-kit";
 
 export const DASHBOARD_NAV_SECTIONS: AppNavSection[] = [
   {

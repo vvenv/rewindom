@@ -1,7 +1,7 @@
 import { readLocalizedSetting } from "../../shared/section-schema.js";
 
 import type { SiteLocalizedText } from "../../shared/site-cms.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /**
  * 同一段文案的两种存储形态（纯字符串 / `__i18n`）表达的可能是同一份内容，

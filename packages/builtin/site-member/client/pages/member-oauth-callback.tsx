@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
-import { ApiError } from "@be-water/client-kit";
-import { Spinner } from "@be-water/ui/spinner";
+import { ApiError } from "@rewindom/client-kit";
+import { Spinner } from "@rewindom/ui/spinner";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 

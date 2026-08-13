@@ -1,6 +1,6 @@
 import { dashboardPreferenceRoutes } from "./dashboard-preference.routes.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 /**
  * 只承载「用户级工作台布局」这一件事：卡片数据仍由各业务模块自己的 API 提供，

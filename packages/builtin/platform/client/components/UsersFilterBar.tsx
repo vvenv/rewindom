@@ -1,4 +1,4 @@
-import { FilterBar, usePublicConfig } from "@be-water/client-kit";
+import { FilterBar, usePublicConfig } from "@rewindom/client-kit";
 import { useTranslation } from "react-i18next";
 
 import { TenantCombobox } from "./TenantCombobox.js";

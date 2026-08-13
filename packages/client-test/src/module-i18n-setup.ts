@@ -3,9 +3,9 @@ import { pathToFileURL } from "node:url";
 import {
   registerI18nBundles,
   setupI18n,
-} from "@be-water/client-kit/i18n/setup";
+} from "@rewindom/client-kit/i18n/setup";
 
-import type { ClientI18nBundle } from "@be-water/client-kit";
+import type { ClientI18nBundle } from "@rewindom/client-kit";
 
 function isI18nBundle(value: unknown): value is ClientI18nBundle {
   return (
@@ -18,9 +18,9 @@ function isI18nBundle(value: unknown): value is ClientI18nBundle {
 
 /**
  * 各模块 client 测试项目在存在 `i18n.ts` 时挂载：自动注册该模块文案包。
- * 路径由 `createModuleClientTestProject` 经 `BE_WATER_CLIENT_I18N` 注入。
+ * 路径由 `createModuleClientTestProject` 经 `REWINDOM_CLIENT_I18N` 注入。
  */
-const i18nPath = process.env.BE_WATER_CLIENT_I18N;
+const i18nPath = process.env.REWINDOM_CLIENT_I18N;
 if (i18nPath) {
   const mod: Record<string, unknown> = await import(
     pathToFileURL(i18nPath).href

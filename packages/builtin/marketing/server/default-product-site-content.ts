@@ -6,7 +6,7 @@
  * 那一套（`site` / `hero` / `features` / `landing` / `seo`）。
  */
 
-import { APP_DISPLAY_NAME, type AppLocale } from "@be-water/shared";
+import { APP_DISPLAY_NAME, type AppLocale } from "@rewindom/shared";
 
 import en from "../client/locales/en.json" with { type: "json" };
 import zhCN from "../client/locales/zh-CN.json" with { type: "json" };

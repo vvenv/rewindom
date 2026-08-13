@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-import { Button } from "@be-water/ui/button";
-import { cn } from "@be-water/ui/utils";
+import { Button } from "@rewindom/ui/button";
+import { cn } from "@rewindom/ui/utils";
 
 const DEFAULT_SCROLL_STEP_PX = 100;
 const SCROLL_EDGE_THRESHOLD_PX = 2;

@@ -6,7 +6,7 @@
  */
 
 import type { SiteColorMode } from "../../marketing-site-theme.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 const THEME_TOGGLE_TITLE: Record<AppLocale, Record<SiteColorMode, string>> = {
   "zh-CN": {

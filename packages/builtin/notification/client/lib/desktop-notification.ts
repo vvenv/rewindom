@@ -1,4 +1,4 @@
-import { STORAGE_PREFIX } from "@be-water/shared";
+import { STORAGE_PREFIX } from "@rewindom/shared";
 
 import type { NotificationItem } from "../../shared/index.js";
 

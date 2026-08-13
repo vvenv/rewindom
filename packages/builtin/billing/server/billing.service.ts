@@ -1,15 +1,15 @@
-import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
+import { resolveSortField, resolveSortOrder } from "@rewindom/server-kernel/http/list-sort.js";
 import {
   NotFoundError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import {
   loadTenantLabelsByIds,
   resolveTenantIdBySlug,
-} from "@be-water/server-kernel/lib/tenant-labels.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+} from "@rewindom/server-kernel/lib/tenant-labels.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
 import { updateTenantPlan } from "../../platform/server/services/tenant-management.service.js";
 import {

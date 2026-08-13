@@ -9,18 +9,18 @@ import {
   useNavBadgeCount,
   useTenantEntitlements,
   usePermissions,
-} from "@be-water/client-kit";
-import { APP_DISPLAY_NAME } from "@be-water/shared";
-import { Badge } from "@be-water/ui/badge";
-import { Button } from "@be-water/ui/button";
-import { Separator } from "@be-water/ui/separator";
+} from "@rewindom/client-kit";
+import { APP_DISPLAY_NAME } from "@rewindom/shared";
+import { Badge } from "@rewindom/ui/badge";
+import { Button } from "@rewindom/ui/button";
+import { Separator } from "@rewindom/ui/separator";
 import {
   Sheet,
   SheetContent,
   SheetFooter,
   SheetHeader,
-} from "@be-water/ui/sheet";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/sheet";
+import { cn } from "@rewindom/ui/utils";
 import {
   ChevronRight,
   PanelLeft,

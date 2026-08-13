@@ -1,14 +1,14 @@
 import { type ReactElement } from "react";
 
-import { useConfirm } from "@be-water/client-kit";
-import { Badge } from "@be-water/ui/badge";
+import { useConfirm } from "@rewindom/client-kit";
+import { Badge } from "@rewindom/ui/badge";
 import {
   Field,
   FieldContent,
   FieldDescription,
   FieldLabel,
-} from "@be-water/ui/field";
-import { Switch } from "@be-water/ui/switch";
+} from "@rewindom/ui/field";
+import { Switch } from "@rewindom/ui/switch";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 

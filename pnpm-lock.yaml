@@ -32,30 +32,6 @@ importers:
       '@base-ui/react':
         specifier: ^1.7.0
         version: 1.7.0(@date-fns/tz@1.5.0)(@types/react@19.2.18)(date-fns@4.4.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@be-water/bookmark':
-        specifier: workspace:*
-        version: link:../../modules/bookmark
-      '@be-water/builtin':
-        specifier: workspace:*
-        version: link:../../packages/builtin
-      '@be-water/client-kit':
-        specifier: workspace:*
-        version: link:../../packages/client-kit
-      '@be-water/note':
-        specifier: workspace:*
-        version: link:../../modules/note
-      '@be-water/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@be-water/shop':
-        specifier: workspace:*
-        version: link:../../modules/shop
-      '@be-water/todo':
-        specifier: workspace:*
-        version: link:../../modules/todo
-      '@be-water/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
       '@fontsource-variable/geist':
         specifier: ^5.3.0
         version: 5.3.0
@@ -65,6 +41,30 @@ importers:
       '@radix-ui/react-select':
         specifier: ^2.3.7
         version: 2.3.7(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@rewindom/bookmark':
+        specifier: workspace:*
+        version: link:../../modules/bookmark
+      '@rewindom/builtin':
+        specifier: workspace:*
+        version: link:../../packages/builtin
+      '@rewindom/client-kit':
+        specifier: workspace:*
+        version: link:../../packages/client-kit
+      '@rewindom/note':
+        specifier: workspace:*
+        version: link:../../modules/note
+      '@rewindom/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@rewindom/shop':
+        specifier: workspace:*
+        version: link:../../modules/shop
+      '@rewindom/todo':
+        specifier: workspace:*
+        version: link:../../modules/todo
+      '@rewindom/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
@@ -135,12 +135,12 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
     devDependencies:
-      '@be-water/client-test':
-        specifier: workspace:*
-        version: link:../../packages/client-test
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
+      '@rewindom/client-test':
+        specifier: workspace:*
+        version: link:../../packages/client-test
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.2.1(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.11))
@@ -213,27 +213,6 @@ importers:
 
   apps/server:
     dependencies:
-      '@be-water/bookmark':
-        specifier: workspace:*
-        version: link:../../modules/bookmark
-      '@be-water/builtin':
-        specifier: workspace:*
-        version: link:../../packages/builtin
-      '@be-water/note':
-        specifier: workspace:*
-        version: link:../../modules/note
-      '@be-water/server-kernel':
-        specifier: workspace:*
-        version: link:../../packages/server-kernel
-      '@be-water/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@be-water/shop':
-        specifier: workspace:*
-        version: link:../../modules/shop
-      '@be-water/todo':
-        specifier: workspace:*
-        version: link:../../modules/todo
       '@fastify/caching':
         specifier: ^9.0.3
         version: 9.0.3
@@ -258,6 +237,27 @@ importers:
       '@prisma/client':
         specifier: ^7.9.1
         version: 7.9.1(@typescript/typescript6@6.0.2)(prisma@7.9.1(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@typescript/typescript6@6.0.2)(magicast@0.5.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))
+      '@rewindom/bookmark':
+        specifier: workspace:*
+        version: link:../../modules/bookmark
+      '@rewindom/builtin':
+        specifier: workspace:*
+        version: link:../../packages/builtin
+      '@rewindom/note':
+        specifier: workspace:*
+        version: link:../../modules/note
+      '@rewindom/server-kernel':
+        specifier: workspace:*
+        version: link:../../packages/server-kernel
+      '@rewindom/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@rewindom/shop':
+        specifier: workspace:*
+        version: link:../../modules/shop
+      '@rewindom/todo':
+        specifier: workspace:*
+        version: link:../../modules/todo
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
@@ -304,12 +304,12 @@ importers:
         specifier: 4.2.0
         version: 4.2.0
     devDependencies:
-      '@be-water/server-test':
-        specifier: workspace:*
-        version: link:../../packages/server-test
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
+      '@rewindom/server-test':
+        specifier: workspace:*
+        version: link:../../packages/server-test
       '@types/bcrypt':
         specifier: ^6.0.0
         version: 6.0.0
@@ -361,10 +361,10 @@ importers:
 
   modules/bookmark:
     dependencies:
-      '@be-water/module-sdk':
+      '@rewindom/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk
-      '@be-water/ui':
+      '@rewindom/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tanstack/react-query':
@@ -389,10 +389,10 @@ importers:
         specifier: ^8.0.0
         version: 8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
-      '@be-water/client-test':
+      '@rewindom/client-test':
         specifier: workspace:*
         version: link:../../packages/client-test
-      '@be-water/server-test':
+      '@rewindom/server-test':
         specifier: workspace:*
         version: link:../../packages/server-test
       '@testing-library/jest-dom':
@@ -425,10 +425,10 @@ importers:
 
   modules/note:
     dependencies:
-      '@be-water/module-sdk':
+      '@rewindom/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk
-      '@be-water/ui':
+      '@rewindom/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tanstack/react-query':
@@ -453,10 +453,10 @@ importers:
         specifier: ^8.0.0
         version: 8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
-      '@be-water/client-test':
+      '@rewindom/client-test':
         specifier: workspace:*
         version: link:../../packages/client-test
-      '@be-water/server-test':
+      '@rewindom/server-test':
         specifier: workspace:*
         version: link:../../packages/server-test
       '@testing-library/jest-dom':
@@ -483,10 +483,10 @@ importers:
 
   modules/shop:
     dependencies:
-      '@be-water/module-sdk':
+      '@rewindom/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk
-      '@be-water/ui':
+      '@rewindom/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tanstack/react-query':
@@ -517,10 +517,10 @@ importers:
         specifier: ^20.0.0
         version: 20.4.1(@types/node@26.2.0)
     devDependencies:
-      '@be-water/client-test':
+      '@rewindom/client-test':
         specifier: workspace:*
         version: link:../../packages/client-test
-      '@be-water/server-test':
+      '@rewindom/server-test':
         specifier: workspace:*
         version: link:../../packages/server-test
       '@testing-library/jest-dom':
@@ -547,10 +547,10 @@ importers:
 
   modules/todo:
     dependencies:
-      '@be-water/module-sdk':
+      '@rewindom/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk
-      '@be-water/ui':
+      '@rewindom/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tanstack/react-query':
@@ -575,10 +575,10 @@ importers:
         specifier: ^8.0.0
         version: 8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
-      '@be-water/client-test':
+      '@rewindom/client-test':
         specifier: workspace:*
         version: link:../../packages/client-test
-      '@be-water/server-test':
+      '@rewindom/server-test':
         specifier: workspace:*
         version: link:../../packages/server-test
       '@testing-library/jest-dom':
@@ -605,18 +605,6 @@ importers:
 
   packages/builtin:
     dependencies:
-      '@be-water/client-kit':
-        specifier: workspace:*
-        version: link:../client-kit
-      '@be-water/server-kernel':
-        specifier: workspace:*
-        version: link:../server-kernel
-      '@be-water/shared':
-        specifier: workspace:*
-        version: link:../shared
-      '@be-water/ui':
-        specifier: workspace:*
-        version: link:../ui
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -632,6 +620,18 @@ importers:
       '@fastify/cookie':
         specifier: ^11.1.2
         version: 11.1.2
+      '@rewindom/client-kit':
+        specifier: workspace:*
+        version: link:../client-kit
+      '@rewindom/server-kernel':
+        specifier: workspace:*
+        version: link:../server-kernel
+      '@rewindom/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@rewindom/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
@@ -681,12 +681,6 @@ importers:
         specifier: ^3.5.0
         version: 3.5.0
     devDependencies:
-      '@be-water/client-test':
-        specifier: workspace:*
-        version: link:../client-test
-      '@be-water/server-test':
-        specifier: workspace:*
-        version: link:../server-test
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
@@ -696,6 +690,12 @@ importers:
       '@fastify/multipart':
         specifier: ^10.1.0
         version: 10.1.0
+      '@rewindom/client-test':
+        specifier: workspace:*
+        version: link:../client-test
+      '@rewindom/server-test':
+        specifier: workspace:*
+        version: link:../server-test
       '@testing-library/jest-dom':
         specifier: ^7.0.0
         version: 7.0.0(@testing-library/dom@10.4.1)
@@ -768,10 +768,10 @@ importers:
 
   packages/client-kit:
     dependencies:
-      '@be-water/shared':
+      '@rewindom/shared':
         specifier: workspace:*
         version: link:../shared
-      '@be-water/ui':
+      '@rewindom/ui':
         specifier: workspace:*
         version: link:../ui
       '@tanstack/react-query':
@@ -808,12 +808,12 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1(supports-color@10.2.2)
     devDependencies:
-      '@be-water/client-test':
-        specifier: workspace:*
-        version: link:../client-test
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
+      '@rewindom/client-test':
+        specifier: workspace:*
+        version: link:../client-test
       '@testing-library/jest-dom':
         specifier: ^7.0.0
         version: 7.0.0(@testing-library/dom@10.4.1)
@@ -874,13 +874,13 @@ importers:
 
   packages/client-test:
     dependencies:
-      '@be-water/client-kit':
+      '@rewindom/client-kit':
         specifier: workspace:*
         version: link:../client-kit
-      '@be-water/server-test':
+      '@rewindom/server-test':
         specifier: workspace:*
         version: link:../server-test
-      '@be-water/shared':
+      '@rewindom/shared':
         specifier: workspace:*
         version: link:../shared
       '@tanstack/react-query':
@@ -926,13 +926,13 @@ importers:
 
   packages/module-sdk:
     dependencies:
-      '@be-water/client-kit':
+      '@rewindom/client-kit':
         specifier: workspace:*
         version: link:../client-kit
-      '@be-water/server-kernel':
+      '@rewindom/server-kernel':
         specifier: workspace:*
         version: link:../server-kernel
-      '@be-water/shared':
+      '@rewindom/shared':
         specifier: workspace:*
         version: link:../shared
       fastify:
@@ -966,9 +966,6 @@ importers:
 
   packages/server-kernel:
     dependencies:
-      '@be-water/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@fastify/cookie':
         specifier: ^11.1.2
         version: 11.1.2
@@ -984,6 +981,9 @@ importers:
       '@prisma/client':
         specifier: ^7.9.1
         version: 7.9.1(@typescript/typescript6@6.0.2)(prisma@7.9.1(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@typescript/typescript6@6.0.2)(magicast@0.5.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))
+      '@rewindom/shared':
+        specifier: workspace:*
+        version: link:../shared
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
@@ -1015,12 +1015,12 @@ importers:
         specifier: ^10.3.1
         version: 10.3.1
     devDependencies:
-      '@be-water/server-test':
-        specifier: workspace:*
-        version: link:../server-test
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
+      '@rewindom/server-test':
+        specifier: workspace:*
+        version: link:../server-test
       '@types/bcrypt':
         specifier: ^6.0.0
         version: 6.0.0
@@ -1063,18 +1063,18 @@ importers:
 
   packages/server-test:
     dependencies:
-      '@be-water/builtin':
-        specifier: workspace:*
-        version: link:../builtin
-      '@be-water/server-kernel':
-        specifier: workspace:*
-        version: link:../server-kernel
-      '@be-water/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@fastify/jwt':
         specifier: ^10.2.1
         version: 10.2.1
+      '@rewindom/builtin':
+        specifier: workspace:*
+        version: link:../builtin
+      '@rewindom/server-kernel':
+        specifier: workspace:*
+        version: link:../server-kernel
+      '@rewindom/shared':
+        specifier: workspace:*
+        version: link:../shared
       fastify:
         specifier: ^5.11.2
         version: 5.11.2
@@ -1104,12 +1104,12 @@ importers:
         specifier: ^3.28.2
         version: 3.28.2
     devDependencies:
-      '@be-water/server-test':
-        specifier: workspace:*
-        version: link:../server-test
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
+      '@rewindom/server-test':
+        specifier: workspace:*
+        version: link:../server-test
       '@types/node':
         specifier: ^26.2.0
         version: 26.2.0

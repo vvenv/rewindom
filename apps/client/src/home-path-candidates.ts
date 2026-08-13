@@ -1,7 +1,7 @@
 import {
   EXAMPLE_HOME_PATH_CANDIDATES,
   type HomePathCandidate,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 
 /**
  * 登录后落地页候选（顺序即优先级）。

@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@be-water/ui/dialog";
+} from "@rewindom/ui/dialog";
 
 interface DialogButtonProps {
   trigger: ReactNode;

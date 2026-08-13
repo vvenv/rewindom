@@ -2,7 +2,7 @@
  * Typed domain event catalog for EventBus.
  * Add new events here when introducing cross-module side effects.
  */
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 /**
  * 审计详情：`detail_key` + `detail_params`（可按查看者语言渲染）；
  * 落库时另写一份 zh-CN 到 `details` 供检索。

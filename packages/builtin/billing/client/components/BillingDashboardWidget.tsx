@@ -1,6 +1,6 @@
-import { DashboardWidgetCard } from "@be-water/client-kit";
-import { formatBusinessDate } from "@be-water/shared";
-import { Badge } from "@be-water/ui/badge";
+import { DashboardWidgetCard } from "@rewindom/client-kit";
+import { formatBusinessDate } from "@rewindom/shared";
+import { Badge } from "@rewindom/ui/badge";
 import { CreditCard } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

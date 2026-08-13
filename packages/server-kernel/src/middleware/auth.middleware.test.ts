@@ -1,4 +1,4 @@
-import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID, MEMBER_ACCESS_COOKIE } from "@be-water/shared";
+import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID, MEMBER_ACCESS_COOKIE } from "@rewindom/shared";
 import FastifyCookie from "@fastify/cookie";
 import FastifyJWT from "@fastify/jwt";
 import Fastify, { type FastifyInstance } from "fastify";
@@ -76,7 +76,7 @@ vi.mock("../lib/prisma.js", () => ({
   },
 }));
 
-const { prisma } = await import("@be-water/server-kernel/lib/prisma.js");
+const { prisma } = await import("@rewindom/server-kernel/lib/prisma.js");
 
 describe("auth.middleware", () => {
   let app: FastifyInstance;

@@ -1,8 +1,8 @@
 import { useState, type SubmitEvent } from "react";
 
 
-import { ApiError } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+import { ApiError } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,16 +10,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@be-water/ui/dialog";
+} from "@rewindom/ui/dialog";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
-import { Textarea } from "@be-water/ui/textarea";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
+import { Textarea } from "@rewindom/ui/textarea";
+import { toast } from "@rewindom/ui/toast";
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

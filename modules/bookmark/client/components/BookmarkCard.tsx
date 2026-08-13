@@ -1,5 +1,5 @@
-import { formatBusinessDateOrTimeAgo } from "@be-water/module-sdk/client";
-import { Button } from "@be-water/ui/button";
+import { formatBusinessDateOrTimeAgo } from "@rewindom/module-sdk/client";
+import { Button } from "@rewindom/ui/button";
 import {
   Card,
   CardAction,
@@ -7,8 +7,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@be-water/ui/card";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/card";
+import { cn } from "@rewindom/ui/utils";
 import { Check, Clock, Copy, ExternalLink, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

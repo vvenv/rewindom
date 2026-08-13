@@ -9,13 +9,13 @@
  * 读出来只在服务端用，**任何接口都不回传明文**。
  */
 
-import { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
-import { config } from "@be-water/server-kernel/lib/config.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
+import { config } from "@rewindom/server-kernel/lib/config.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import {
   decryptTenantSecret,
   encryptTenantSecret,
-} from "@be-water/server-kernel/lib/tenant-secret-crypto.js";
+} from "@rewindom/server-kernel/lib/tenant-secret-crypto.js";
 
 import type { CreemCredentials } from "../../billing/server/providers/creem.provider.js";
 import type { SiteBillingProviderStatus } from "../shared/site-billing.js";

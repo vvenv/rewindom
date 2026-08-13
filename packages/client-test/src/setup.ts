@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 // 直连 setup，避免经 barrel 预加载 client-kit 全量模块冲掉各测试的 vi.mock
-import { setupI18n } from "@be-water/client-kit/i18n/setup";
+import { setupI18n } from "@rewindom/client-kit/i18n/setup";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { server } from "./server.js";

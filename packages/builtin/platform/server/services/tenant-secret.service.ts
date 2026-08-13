@@ -1,4 +1,4 @@
 export {
   decryptTenantSecret,
   encryptTenantSecret,
-} from "@be-water/server-kernel/lib/tenant-secret-crypto.js";
+} from "@rewindom/server-kernel/lib/tenant-secret-crypto.js";

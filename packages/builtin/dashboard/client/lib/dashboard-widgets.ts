@@ -1,6 +1,6 @@
 import type { DashboardPreference } from "../../shared/index.js";
-import type { DashboardWidget } from "@be-water/client-kit";
-import type { Permission, TenantEntitlementsResponse } from "@be-water/shared";
+import type { DashboardWidget } from "@rewindom/client-kit";
+import type { Permission, TenantEntitlementsResponse } from "@rewindom/shared";
 
 export type DashboardEntitlements = Pick<
   TenantEntitlementsResponse,

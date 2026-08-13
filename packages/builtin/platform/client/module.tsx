@@ -4,7 +4,7 @@ import { renderPlatformRoutes } from "./platform/routes.js";
 import { usePlatformImpersonationActive } from "./shell/platform-shell-slots.js";
 import { PlatformTenantFilterProvider } from "./shell/tenant-filter-provider.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const platformClientModule: ClientAppModule = {
   id: "platform",

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
-import { DataTable, type DataTableFeatures } from "@be-water/client-kit";
-import { formatBusinessDate } from "@be-water/shared";
+import { DataTable, type DataTableFeatures } from "@rewindom/client-kit";
+import { formatBusinessDate } from "@rewindom/shared";
 import { Inbox } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

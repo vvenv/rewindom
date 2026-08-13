@@ -2,7 +2,7 @@ import {
   BrandMark,
   Wordmark,
   usePublicConfig,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import { Layers, Building2, Blocks, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

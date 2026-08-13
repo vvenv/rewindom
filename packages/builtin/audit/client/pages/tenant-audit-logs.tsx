@@ -1,5 +1,5 @@
-import { PageLayout } from "@be-water/client-kit";
-import { hasActiveFilters } from "@be-water/client-kit/lib/list-url-params";
+import { PageLayout } from "@rewindom/client-kit";
+import { hasActiveFilters } from "@rewindom/client-kit/lib/list-url-params";
 import { ScrollText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

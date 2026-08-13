@@ -3,8 +3,8 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
-import { Separator } from "@be-water/ui/separator"
-import { cn } from "@be-water/ui/utils"
+import { Separator } from "@rewindom/ui/separator"
+import { cn } from "@rewindom/ui/utils"
 
 function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (

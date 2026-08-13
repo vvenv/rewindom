@@ -1,5 +1,5 @@
-import { PageLayout, usePermissions } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+import { PageLayout, usePermissions } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
 import { CreditCard } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

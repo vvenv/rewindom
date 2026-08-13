@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 
-import { getLocaleNativeLabel, type AppLocale } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
+import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 

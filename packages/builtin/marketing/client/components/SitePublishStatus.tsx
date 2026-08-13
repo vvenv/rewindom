@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 
-import { cn } from "@be-water/ui/utils";
+import { cn } from "@rewindom/ui/utils";
 import { useTranslation } from "react-i18next";
 
 /**

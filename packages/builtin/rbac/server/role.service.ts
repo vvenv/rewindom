@@ -1,13 +1,13 @@
 import {
   NotFoundError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import {
   isValidModulePermission,
   type MergedPermissionCatalog,
-} from "@be-water/server-kernel/runtime/collect-module-permissions.js";
+} from "@rewindom/server-kernel/runtime/collect-module-permissions.js";
 
 export interface RoleDto {
   id: string;

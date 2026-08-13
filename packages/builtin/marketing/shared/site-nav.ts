@@ -26,7 +26,7 @@ import {
 } from "./section-settings.js";
 import { localizeSiteHref } from "./site-locale.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 /* -------------------------------------------------------------------------- */
 /* 存储结构                                                                    */

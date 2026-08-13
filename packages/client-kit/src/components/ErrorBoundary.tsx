@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import {
   Card,
   CardContent,
@@ -8,7 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@be-water/ui/card";
+} from "@rewindom/ui/card";
 import { AlertTriangle } from "lucide-react";
 
 import { getI18n } from "../i18n/setup.js";

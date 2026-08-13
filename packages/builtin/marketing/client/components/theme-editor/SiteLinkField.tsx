@@ -1,6 +1,6 @@
 import { type ReactElement } from "react";
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,8 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
-import { Input } from "@be-water/ui/input";
+} from "@rewindom/ui/dropdown-menu";
+import { Input } from "@rewindom/ui/input";
 import { useTranslation } from "react-i18next";
 
 import { SITE_LINK_TARGET_GROUPS } from "../../../shared/site-link-target.js";

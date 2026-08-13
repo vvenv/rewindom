@@ -1,9 +1,9 @@
 import { useState, type ReactNode, type SubmitEvent } from "react";
 
-import { ApiError } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+import { ApiError } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Sheet,
   SheetClose,
@@ -13,10 +13,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { Switch } from "@be-water/ui/switch";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { Switch } from "@rewindom/ui/switch";
+import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 
 import {

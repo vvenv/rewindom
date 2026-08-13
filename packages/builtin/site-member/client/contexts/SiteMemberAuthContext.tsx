@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { shouldClearAuthOnError } from "@be-water/client-kit";
+import { shouldClearAuthOnError } from "@rewindom/client-kit";
 
 import { siteMemberApi, SITE_MEMBER_API_BASE } from "../lib/site-member-api.js";
 import { MEMBER_AUTH_LOGOUT_EVENT } from "../lib/site-member-session.js";

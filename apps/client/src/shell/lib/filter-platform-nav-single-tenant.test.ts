@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { filterPlatformNavForSingleTenant } from "./filter-platform-nav-single-tenant.js";
 
-import type { PlatformNavEntry } from "@be-water/client-kit";
+import type { PlatformNavEntry } from "@rewindom/client-kit";
 
 const entries: readonly PlatformNavEntry[] = [
   {

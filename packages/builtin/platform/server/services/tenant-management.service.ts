@@ -1,19 +1,19 @@
 
-import { AuthService, type JwtSignPayload } from "@be-water/server-kernel/kernel/auth/auth.service.js";
+import { AuthService, type JwtSignPayload } from "@rewindom/server-kernel/kernel/auth/auth.service.js";
 import {
   AppError,
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "@be-water/server-kernel/lib/app-errors.js";
-import { config as appConfig } from "@be-water/server-kernel/lib/config.js";
+} from "@rewindom/server-kernel/lib/app-errors.js";
+import { config as appConfig } from "@rewindom/server-kernel/lib/config.js";
 import {
   invalidateHostTenantCache,
   normalizeCustomDomain,
-} from "@be-water/server-kernel/lib/host-tenant.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { emitDetachedDomainEventSafe } from "@be-water/server-kernel/runtime/domain-event-emit.js";
-import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug  } from "@be-water/shared";
+} from "@rewindom/server-kernel/lib/host-tenant.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { emitDetachedDomainEventSafe } from "@rewindom/server-kernel/runtime/domain-event-emit.js";
+import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug  } from "@rewindom/shared";
 
 import { isValidPlanSlug, PRICING_PLANS, TENANT_FEATURES_STORAGE_KEY, TENANT_INITIAL_ADMIN_USERNAME, TENANT_LIMITS_STORAGE_KEY, type CreateTenantBody, type ImpersonateTenantResult, type PatchTenantBody, type PlanSlug, type PlatformUserSummary, type TenantAdminCredentials, type TenantCreated, type TenantIntegrationStatus, type TenantStats, type TenantSummary, type TenantStatus, type UpdateTenantPlanBody } from "../../shared/index.js";
 

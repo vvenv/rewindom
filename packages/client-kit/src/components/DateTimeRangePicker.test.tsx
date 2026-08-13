@@ -1,4 +1,4 @@
-import { setupI18n } from "@be-water/client-kit/i18n/setup";
+import { setupI18n } from "@rewindom/client-kit/i18n/setup";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, afterEach } from "vitest";
 

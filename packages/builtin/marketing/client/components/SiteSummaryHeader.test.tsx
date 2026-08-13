@@ -1,4 +1,4 @@
-import { registerI18nBundles, setupI18n } from "@be-water/client-kit";
+import { registerI18nBundles, setupI18n } from "@rewindom/client-kit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -9,8 +9,8 @@ import { SiteSummaryHeader } from "./SiteSummaryHeader.js";
 
 import type { MarketingSite } from "../../shared/site-cms.js";
 
-vi.mock("@be-water/client-kit", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@be-water/client-kit")>()),
+vi.mock("@rewindom/client-kit", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@rewindom/client-kit")>()),
   useConfirm: () => ({ confirm: vi.fn(async () => true) }),
   usePermissions: () => ({ hasPermission: () => false }),
 }));

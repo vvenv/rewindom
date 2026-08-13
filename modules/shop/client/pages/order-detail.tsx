@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { useParams } from "react-router";
 
-import { ApiError, PageLayout, usePermissions } from "@be-water/module-sdk/client";
-import { Button } from "@be-water/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@be-water/ui/field";
-import { Input } from "@be-water/ui/input";
+import { ApiError, PageLayout, usePermissions } from "@rewindom/module-sdk/client";
+import { Button } from "@rewindom/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import { Input } from "@rewindom/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -12,8 +12,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { toast } from "@rewindom/ui/toast";
 import { Receipt } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

@@ -1,15 +1,15 @@
-import { usePublicConfig } from "@be-water/client-kit";
+import { usePublicConfig } from "@rewindom/client-kit";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthLoginHero } from "./AuthLoginHero.js";
 
-import type * as ClientKit from "@be-water/client-kit";
+import type * as ClientKit from "@rewindom/client-kit";
 
 // `vi.mock` 会被提升到 import 之上，所以 import 照常放最前面
-vi.mock("@be-water/client-kit", async () => {
+vi.mock("@rewindom/client-kit", async () => {
   const actual = await vi.importActual<typeof ClientKit>(
-    "@be-water/client-kit",
+    "@rewindom/client-kit",
   );
   return {
     ...actual,

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { configureClientTenantCatalog, registerDashboardWidgetsProvider, type ClientAppModule } from "@be-water/client-kit";
+import { configureClientTenantCatalog, registerDashboardWidgetsProvider, type ClientAppModule } from "@rewindom/client-kit";
 
 
 import type { AppShellConfig } from "@/shell/index";

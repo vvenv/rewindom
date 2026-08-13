@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { getFeatureModuleId } from "./collect-tenant-catalog.js";
 
-import type { TenantEntitlementCatalog } from "@be-water/shared";
+import type { TenantEntitlementCatalog } from "@rewindom/shared";
 
 const catalog: TenantEntitlementCatalog = {
   modules: [

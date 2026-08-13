@@ -24,9 +24,9 @@ export interface ThemePaletteDefinition {
 
 export const THEME_PALETTES = [
   {
-    slug: "water",
-    label: "水蓝",
-    description: "默认配色：水蓝主色搭配青色数据强调",
+    slug: "azure",
+    label: "青蓝",
+    description: "默认配色：青蓝主色搭配青色数据强调",
   },
   {
     slug: "slate",
@@ -38,7 +38,7 @@ export const THEME_PALETTES = [
 export type ThemePaletteSlug = (typeof THEME_PALETTES)[number]["slug"];
 
 /** 未做任何配置时的兜底配色，同时也是 `index.css` 里 `:root` / `.dark` 的那一套。 */
-export const DEFAULT_THEME_PALETTE: ThemePaletteSlug = "water";
+export const DEFAULT_THEME_PALETTE: ThemePaletteSlug = "azure";
 
 const PALETTE_SLUGS = new Set<string>(THEME_PALETTES.map((p) => p.slug));
 
@@ -46,7 +46,7 @@ export function isThemePaletteSlug(value: unknown): value is ThemePaletteSlug {
   return typeof value === "string" && PALETTE_SLUGS.has(value);
 }
 
-/** 非法/缺失值归一到 `fallback`（默认 water），保证渲染端永远拿到可用 slug。 */
+/** 非法/缺失值归一到 `fallback`（默认 azure），保证渲染端永远拿到可用 slug。 */
 export function normalizeThemePalette(
   value: unknown,
   fallback: ThemePaletteSlug = DEFAULT_THEME_PALETTE,

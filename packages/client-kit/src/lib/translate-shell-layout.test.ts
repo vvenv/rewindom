@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
-import { SHELL_LAYOUTS, getShellLayoutLabel } from "@be-water/shared";
+import { SHELL_LAYOUTS, getShellLayoutLabel } from "@rewindom/shared";
 
 import {
   translateShellLayoutLabel,

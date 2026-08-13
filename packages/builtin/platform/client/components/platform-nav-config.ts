@@ -6,7 +6,7 @@ import {
   isNavGroupActive,
   translatePlatformNavEntries,
   usePlatformNavEntries,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import { useTranslation } from "react-i18next";
 
 export type {
@@ -14,7 +14,7 @@ export type {
   PlatformNavEntry,
   PlatformNavGroup,
   PlatformNavLink,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 
 export { isNavChildActive, isNavGroupActive };
 

@@ -5,11 +5,11 @@
  * 此文件仅用于 TypeScript 类型检查，不包含运行时代码。
  *
  * `server.ts` 通过 `import "./fastify-augmentations.js"` 拉入本文件，
- * 使所有从 `@be-water/module-sdk/server` 导入的外部模块都能看到完整的类型。
+ * 使所有从 `@rewindom/module-sdk/server` 导入的外部模块都能看到完整的类型。
  */
 import type { FastifyReply, FastifyRequest } from "fastify";
 
-import type { AuthActorType } from "@be-water/shared";
+import type { AuthActorType } from "@rewindom/shared";
 
 // ---- Fastify 实例 / 请求上的装饰器类型（运行时由 kernel + rbac 注册） ----------
 

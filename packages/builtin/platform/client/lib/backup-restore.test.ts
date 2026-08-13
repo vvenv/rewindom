@@ -44,7 +44,7 @@ describe("formatBackupSize", () => {
 
 describe("isDatabaseDumpFilename", () => {
   it("只认 .dump", () => {
-    expect(isDatabaseDumpFilename("be-water_backup_1.dump")).toBe(true);
+    expect(isDatabaseDumpFilename("rewindom_backup_1.dump")).toBe(true);
     expect(isDatabaseDumpFilename("backup.DUMP")).toBe(true);
     expect(isDatabaseDumpFilename(" backup.dump ")).toBe(true);
   });

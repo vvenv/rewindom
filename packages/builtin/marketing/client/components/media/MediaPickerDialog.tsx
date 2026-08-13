@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactElement, type ReactNode } from "react";
 
-import { EmptyState } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+import { EmptyState } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@be-water/ui/dialog";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/dialog";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { ImageOff, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

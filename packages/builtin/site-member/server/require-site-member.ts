@@ -1,5 +1,5 @@
-import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
-import { isSiteMemberActor } from "@be-water/shared";
+import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { isSiteMemberActor } from "@rewindom/shared";
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 

@@ -1,8 +1,8 @@
 import { useState, type ReactElement, type ReactNode } from "react";
 
-import { EmptyState, useConfirm } from "@be-water/client-kit";
-import { formatBusinessDate } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
+import { EmptyState, useConfirm } from "@rewindom/client-kit";
+import { formatBusinessDate } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -10,9 +10,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
-import { toast } from "@be-water/ui/toast";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
+import { toast } from "@rewindom/ui/toast";
 import { History } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

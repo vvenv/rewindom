@@ -442,7 +442,7 @@ ${bodyFields.map((f) => `  ${f.name}?: ${TS_TYPE[f.type]};`).join("\n")}
   add(
     "shared/entitlements.ts",
     `
-import type { TenantModuleEntitlement } from "@be-water/shared";
+import type { TenantModuleEntitlement } from "@rewindom/shared";
 
 export const ${n.CONST}_ENTITLEMENT: TenantModuleEntitlement = {
   key: "${spec.entitlement.key}",
@@ -489,13 +489,13 @@ ${(model.indexes ?? [["tenant_id"]]).map((idx) => `  @@index([${[].concat(idx).j
   add(
     "server/module.ts",
     `
-import { registerTenantGatedRoutes } from "@be-water/server-kernel/runtime/register-tenant-gated-routes.js";
+import { registerTenantGatedRoutes } from "@rewindom/server-kernel/runtime/register-tenant-gated-routes.js";
 
 import { ${n.CONST}_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { ${n.singular}Routes } from "./${n.singular}.routes.js";
 
-import type { ServerAppModule } from "@be-water/server-kernel/runtime/module-contract.js";
+import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 
 export const ${camel(n.id)}ServerModule: ServerAppModule = {
   id: "${n.id}",
@@ -590,7 +590,7 @@ ${required ? `    if (!${f.name}) {\n      return "请输入${label(f)}";\n    }
     `server/${n.singular}.mapper.ts`,
     `
 import type { ${n.Singular}, ${n.Singular}ListItem } from "../shared/index.js";
-import type { ${model.name} as ${model.name}Record } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { ${model.name} as ${model.name}Record } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 export function to${n.Singular}ListItem(record: ${model.name}Record): ${n.Singular}ListItem {
   return {
@@ -620,10 +620,10 @@ ${fields.map(mapperLine).join("\n")}
   add(
     `server/${n.singular}.service.ts`,
     `
-import { resolveSortField, resolveSortOrder } from "@be-water/server-kernel/http/list-sort.js";
-import { NotFoundError, ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
+import { resolveSortField, resolveSortOrder } from "@rewindom/server-kernel/http/list-sort.js";
+import { NotFoundError, ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
 import { to${n.Singular}, to${n.Singular}ListItem } from "./${n.singular}.mapper.js";
 import { validate${n.Singular}Input } from "./${n.singular}.util.js";
@@ -795,11 +795,11 @@ export async function delete${n.Singular}(
   add(
     `server/${n.singular}.routes.ts`,
     `
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { parseSortDir } from "@be-water/server-kernel/http/list-sort.js";
-import { parsePagination } from "@be-water/server-kernel/http/pagination.js";
-import { NotFoundError, ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { parseSortDir } from "@rewindom/server-kernel/http/list-sort.js";
+import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
+import { NotFoundError, ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
 
@@ -976,7 +976,7 @@ import { ${n.CONST}_ENTITLEMENT } from "../shared/index.js";
 import { ${n.CONST}_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { render${n.Plural}Routes } from "./tenant/routes.js";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 export const ${camel(n.id)}ClientModule: ClientAppModule = {
   id: "${n.id}",
@@ -1004,7 +1004,7 @@ export const ${camel(n.id)}ClientModule: ClientAppModule = {
     `
 import { lazy, type ReactNode } from "react";
 
-import { PermissionRoute, TenantModuleRoute } from "@be-water/client-kit";
+import { PermissionRoute, TenantModuleRoute } from "@rewindom/client-kit";
 import { Route } from "react-router";
 
 const ${n.Plural} = lazy(() =>
@@ -1030,7 +1030,7 @@ export function render${n.Plural}Routes(): ReactNode {
     `
 import { ${spec.client.nav.icon} } from "lucide-react";
 
-import type { AppNavSection } from "@be-water/client-kit";
+import type { AppNavSection } from "@rewindom/client-kit";
 
 export const ${n.CONST}_NAV_SECTIONS: AppNavSection[] = [
   {
@@ -1181,7 +1181,7 @@ ${textCases}${dateCase}${payloadCase}`,
   add(
     `client/hooks/use${n.Plural}.ts`,
     `
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type { ${n.Singular}ListItem } from "../../shared/index.js";
@@ -1221,7 +1221,7 @@ export function use${n.Plural}(
   add(
     `client/hooks/use${n.Singular}.ts`,
     `
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { useQuery } from "@tanstack/react-query";
 
 import type { ${n.Singular} } from "../../shared/index.js";
@@ -1239,7 +1239,7 @@ export function use${n.Singular}(${n.singular}Id: string | null, enabled = true)
   add(
     `client/hooks/use${n.Singular}Mutations.ts`,
     `
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type {
@@ -1295,7 +1295,7 @@ import {
   parseListPageSize,
   parseListSort,
   toSortingState,
-} from "@be-water/client-kit/lib/list-url-params";
+} from "@rewindom/client-kit/lib/list-url-params";
 import { useSearchParams } from "react-router";
 
 import type { SortingState, Updater } from "@tanstack/react-table";
@@ -1345,7 +1345,7 @@ export function use${n.Plural}Page() {
   add(
     `client/components/${n.Singular}Filters.tsx`,
     `
-import { PageFilterBar } from "@be-water/client-kit";
+import { PageFilterBar } from "@rewindom/client-kit";
 
 interface ${n.Singular}FiltersProps {
   q?: string;
@@ -1452,10 +1452,10 @@ import {
   DataTableColumnHeader,
   useConfirm,
   usePermissions,
-} from "@be-water/client-kit";
-import { ${tableUsesDate ? "formatBusinessDate, " : ""}formatBusinessDateOrTimeAgo } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
-${boolFields.length > 0 ? `import { Checkbox } from "@be-water/ui/checkbox";\n` : ""}import { toast } from "@be-water/ui/toast";
+} from "@rewindom/client-kit";
+import { ${tableUsesDate ? "formatBusinessDate, " : ""}formatBusinessDateOrTimeAgo } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
+${boolFields.length > 0 ? `import { Checkbox } from "@rewindom/ui/checkbox";\n` : ""}import { toast } from "@rewindom/ui/toast";
 import { ${spec.client.nav.icon}, Trash2 } from "lucide-react";
 
 import {
@@ -1674,23 +1674,23 @@ ${columnDefs}
   // 分成两段是为了插在 sheet/spinner 两组 import 之间时仍满足 import 排序规则
   const controlImports = [
     [
-      usesDate ? `import { Calendar } from "@be-water/ui/calendar";` : null,
-      usesInput ? `import { Input } from "@be-water/ui/input";` : null,
+      usesDate ? `import { Calendar } from "@rewindom/ui/calendar";` : null,
+      usesInput ? `import { Input } from "@rewindom/ui/input";` : null,
       usesDate
-        ? `import {\n  Popover,\n  PopoverContent,\n  PopoverTrigger,\n} from "@be-water/ui/popover";`
+        ? `import {\n  Popover,\n  PopoverContent,\n  PopoverTrigger,\n} from "@rewindom/ui/popover";`
         : null,
     ]
       .filter(Boolean)
       .join("\n"),
     [
-      usesSwitch ? `import { Switch } from "@be-water/ui/switch";` : null,
-      usesTextarea ? `import { Textarea } from "@be-water/ui/textarea";` : null,
+      usesSwitch ? `import { Switch } from "@rewindom/ui/switch";` : null,
+      usesTextarea ? `import { Textarea } from "@rewindom/ui/textarea";` : null,
     ]
       .filter(Boolean)
       .join("\n"),
   ];
   const sheetExtraImports = usesDate
-    ? `import { formatBusinessDate } from "@be-water/shared";\n`
+    ? `import { formatBusinessDate } from "@rewindom/shared";\n`
     : "";
   const sheetIconImport = (icon) =>
     usesDate
@@ -1702,9 +1702,9 @@ ${columnDefs}
     `
 import { useState, type ReactNode, type SubmitEvent } from "react";
 
-import { ApiError } from "@be-water/client-kit";
-${sheetExtraImports}import { Button } from "@be-water/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@be-water/ui/field";
+import { ApiError } from "@rewindom/client-kit";
+${sheetExtraImports}import { Button } from "@rewindom/ui/button";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
 ${controlImports[0]}
 import {
   Sheet,
@@ -1715,10 +1715,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
 ${controlImports[1]}
-import { toast } from "@be-water/ui/toast";
+import { toast } from "@rewindom/ui/toast";
 ${sheetIconImport("Plus")}
 
 import { useCreate${n.Singular} } from "../hooks/use${n.Singular}Mutations.js";
@@ -1816,9 +1816,9 @@ ${formFields.map((f) => formField(f, false)).join("\n")}
     `
 import { useEffect, useState, type ReactNode, type SubmitEvent } from "react";
 
-import { ApiError } from "@be-water/client-kit";
-${sheetExtraImports}import { Button } from "@be-water/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@be-water/ui/field";
+import { ApiError } from "@rewindom/client-kit";
+${sheetExtraImports}import { Button } from "@rewindom/ui/button";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
 ${controlImports[0]}
 import {
   Sheet,
@@ -1829,10 +1829,10 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
 ${controlImports[1]}
-import { toast } from "@be-water/ui/toast";
+import { toast } from "@rewindom/ui/toast";
 ${sheetIconImport("Pencil")}
 
 import { use${n.Singular} } from "../hooks/use${n.Singular}.js";
@@ -1945,8 +1945,8 @@ ${formFields.map((f) => formField(f, true)).join("\n")}
   add(
     `client/pages/${n.plural}.tsx`,
     `
-import { PageLayout, usePermissions } from "@be-water/client-kit";
-import { DraggableFabTrigger } from "@be-water/ui/draggable-fab";
+import { PageLayout, usePermissions } from "@rewindom/client-kit";
+import { DraggableFabTrigger } from "@rewindom/ui/draggable-fab";
 import { Plus, ${spec.client.nav.icon} } from "lucide-react";
 
 import { ${n.Singular}CreateSheet } from "../components/${n.Singular}CreateSheet.js";
@@ -2052,7 +2052,7 @@ ${(spec.requires ?? []).map((r) => `- \`module-${r}\``).join("\n") || "- 无"}
 ## 如何单独测试
 
 \`\`\`bash
-pnpm --filter @be-water/builtin test --project ${n.id}/client
+pnpm --filter @rewindom/builtin test --project ${n.id}/client
 \`\`\`
 `,
   );
@@ -2076,7 +2076,7 @@ function patchRegistries(spec, n) {
       serverText
         .replace(
           /(import type \{ ServerAppModule)/u,
-          `import { ${serverConst} } from "@be-water/builtin/${n.id}/server/index.js";\n\n$1`,
+          `import { ${serverConst} } from "@rewindom/builtin/${n.id}/server/index.js";\n\n$1`,
         )
         .replace(
           /(\n\] as const satisfies readonly ServerAppModule)/u,
@@ -2094,7 +2094,7 @@ function patchRegistries(spec, n) {
       clientText
         .replace(
           /(import \{ appShellClientModule)/u,
-          `import { ${clientConst} } from "@be-water/builtin/${n.id}/client/module.js";\n\n$1`,
+          `import { ${clientConst} } from "@rewindom/builtin/${n.id}/client/module.js";\n\n$1`,
         )
         .replace(
           /(\n\] as const satisfies readonly ClientAppModule)/u,

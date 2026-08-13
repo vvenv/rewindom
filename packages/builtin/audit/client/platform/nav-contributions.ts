@@ -1,4 +1,4 @@
-import type { PlatformNavContribution } from "@be-water/client-kit";
+import type { PlatformNavContribution } from "@rewindom/client-kit";
 
 export const auditPlatformNavContributions: readonly PlatformNavContribution[] =
   [

@@ -14,7 +14,7 @@
  * 一篇一个值，不可能存成一张页面记录。
  */
 
-import { type AppLocale } from "@be-water/shared";
+import { type AppLocale } from "@rewindom/shared";
 
 import {
   DOCS_INDEX_PATH,

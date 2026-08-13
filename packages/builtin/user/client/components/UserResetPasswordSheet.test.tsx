@@ -1,8 +1,8 @@
-import { createQueryWrapper, createTestQueryClient } from "@be-water/client-test";
+import { createQueryWrapper, createTestQueryClient } from "@rewindom/client-test";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 
-import type { TenantUserListItem } from "@be-water/shared";
+import type { TenantUserListItem } from "@rewindom/shared";
 
 import { UserResetPasswordSheet } from "./UserResetPasswordSheet.js";
 

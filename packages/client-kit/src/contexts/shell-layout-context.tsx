@@ -5,7 +5,7 @@ import {
   normalizeOptionalShellLayout,
   normalizeShellLayout,
   type ShellLayoutSlug,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { useResolvedPreference } from "../hooks/useResolvedPreference.js";
 import { useTenantAppearance } from "../hooks/useTenantAppearance.js";

@@ -1,9 +1,9 @@
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import {
   normalizeLocale,
   normalizeShellLayout,
   normalizeThemePalette,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import {
   type PlatformSettings,
@@ -11,7 +11,7 @@ import {
   DEFAULT_PLATFORM_SETTINGS,
 } from "../../shared/index.js";
 
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 function normalizeConfig(raw: unknown): PlatformSettings {
   if (typeof raw !== "object" || raw === null) {

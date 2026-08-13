@@ -1,7 +1,7 @@
-import { defineRoute } from "@be-water/server-kernel/http/define-route.js";
-import { sendCodedError } from "@be-water/server-kernel/http/route-error-handler.js";
-import { AppError } from "@be-water/server-kernel/lib/app-errors.js";
-import { emitAuditLogFromRequestSafe } from "@be-water/server-kernel/runtime/audit-log-emit.js";
+import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { sendCodedError } from "@rewindom/server-kernel/http/route-error-handler.js";
+import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
 

@@ -1,15 +1,15 @@
 
-import { Button } from "@be-water/ui/button";
+import { Button } from "@rewindom/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@be-water/ui/input-group";
+} from "@rewindom/ui/input-group";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@be-water/ui/tooltip";
+} from "@rewindom/ui/tooltip";
 import { Search, X, RotateCcw } from "lucide-react";
 
 import { useDebouncedInput } from "../hooks/useDebouncedInput";

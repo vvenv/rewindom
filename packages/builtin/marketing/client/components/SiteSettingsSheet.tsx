@@ -1,6 +1,6 @@
 import { type ReactElement, type ReactNode, useState } from "react";
 
-import { usePermissions } from "@be-water/client-kit";
+import { usePermissions } from "@rewindom/client-kit";
 import {
   Sheet,
   SheetContent,
@@ -8,8 +8,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@be-water/ui/sheet";
-import { Spinner } from "@be-water/ui/spinner";
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
 import { useTranslation } from "react-i18next";
 
 import { useSiteSettingsForm } from "../hooks/use-site-settings-form.js";

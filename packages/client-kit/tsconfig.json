@@ -14,7 +14,7 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "paths": {
-      "@be-water/ui/*": ["../ui/src/*"]
+      "@rewindom/ui/*": ["../ui/src/*"]
     }
   },
   "include": [

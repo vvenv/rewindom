@@ -5,11 +5,11 @@ import {
   LocaleToggle,
   Logo,
   ThemeToggle,
-} from "@be-water/client-kit";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/client-kit";
+import { cn } from "@rewindom/ui/utils";
 import { useTheme } from "next-themes";
 
-import { AuthWaterBackground } from "./AuthWaterBackground.js";
+import { AuthAmbientBackground } from "./AuthAmbientBackground.js";
 
 export function AuthPageShell({
   children,
@@ -31,7 +31,7 @@ export function AuthPageShell({
   if (!isSplitLayout) {
     return (
       <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-background p-4 sm:p-6">
-        <AuthWaterBackground isDark={isDark} targetRef={cardRef} />
+        <AuthAmbientBackground isDark={isDark} targetRef={cardRef} />
 
         <div
           aria-hidden
@@ -74,8 +74,8 @@ export function AuthPageShell({
         ref={heroPanelRef}
         className="auth-hero-panel relative hidden overflow-hidden p-12 lg:flex lg:flex-col xl:p-16"
       >
-        <AuthWaterBackground isDark targetRef={heroPanelRef} />
-        {/* 品牌水印：圆器盛水的 Logo 半沉在画面右下，被内容与暗角压住，只留轮廓 */}
+        <AuthAmbientBackground isDark targetRef={heroPanelRef} />
+        {/* 品牌水印：厚环 Logo 半沉在画面右下，被内容与暗角压住，只留轮廓 */}
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 -bottom-28 z-1 xl:-right-32"
@@ -94,7 +94,7 @@ export function AuthPageShell({
       </div>
 
       <div className="relative flex min-h-svh flex-col justify-center overflow-hidden p-4 sm:p-6 lg:bg-background lg:px-12 lg:py-16 xl:px-16">
-        <AuthWaterBackground
+        <AuthAmbientBackground
           isDark={isDark}
           targetRef={cardRef}
           className="lg:hidden"

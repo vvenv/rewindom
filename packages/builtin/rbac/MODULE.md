@@ -32,7 +32,7 @@
 
 - 服务端判定：`PbacAuthzProvider.check` / `checkAny` 直接短路放行（`api_key` 同）
 - 服务端权限清单：`resolveTenantUserPermissions` / `resolvePlatformAdminPermissions` 返回目录全集
-- 客户端判定：`@be-water/shared` 的 `hasPermission` / `hasAnyPermission` / `hasAllPermissions`
+- 客户端判定：`@rewindom/shared` 的 `hasPermission` / `hasAnyPermission` / `hasAllPermissions`
   以 `isSystemAdmin` 为第一参数短路，`RbacPermissionProvider` 从 `useAuth().user` 取该标志
 
 平台管理员的权限集同样经 `GET /api/auth/permissions` 下发——该路径必须留在
@@ -53,17 +53,17 @@
 - Client `PermissionsProvider`：`RbacPermissionProvider`（`client.shell.shellProviders` 注入）
 - 权限目录：各模块 `shared.permissions` 合并（见 `collect-module-permissions.ts`）
 
-业务模块只 import `@be-water/client-kit` 的 `usePermissions` / `PermissionRoute`；权限管理 UI hooks（`usePermissionCatalog` 等）从 `@be-water/builtin/rbac/client` 引入。
+业务模块只 import `@rewindom/client-kit` 的 `usePermissions` / `PermissionRoute`；权限管理 UI hooks（`usePermissionCatalog` 等）从 `@rewindom/builtin/rbac/client` 引入。
 
 ## 如何单独测试
 
 ```bash
 # 每个模块的 server / client / shared 各是一个 vitest project，
 # 位置参数只按 project root 的相对路径过滤，跑全模块要用 --project。
-pnpm --filter @be-water/builtin exec vitest --run --project 'rbac/*'
+pnpm --filter @rewindom/builtin exec vitest --run --project 'rbac/*'
 ```
 
 ## 禁止
 
 - 不要在路由中直接查 `UserPermission`；使用 `app.requirePermission`
-- 新业务权限在模块 `shared.permissions` manifest 声明，由 `collectModulePermissions` 聚合；不要向 `@be-water/shared` 追加权限常量
+- 新业务权限在模块 `shared.permissions` manifest 声明，由 `collectModulePermissions` 聚合；不要向 `@rewindom/shared` 追加权限常量

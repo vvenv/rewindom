@@ -11,25 +11,25 @@ import "./fastify-augmentations.js";
 export * from "./shared.js";
 
 // ---- Server 契约与运行时 helper
-export * from "@be-water/server-kernel/runtime/module-contract.js";
-export * from "@be-water/server-kernel/runtime/provider-registry.js";
-export * from "@be-water/server-kernel/runtime/provider-contracts.js";
-export * from "@be-water/server-kernel/runtime/event-bus.js";
-export * from "@be-water/server-kernel/runtime/domain-events.js";
-export * from "@be-water/server-kernel/runtime/job-registry.js";
-export * from "@be-water/server-kernel/runtime/register-tenant-gated-routes.js";
-export * from "@be-water/server-kernel/runtime/audit-log-emit.js";
-export * from "@be-water/server-kernel/http/define-route.js";
-export * from "@be-water/server-kernel/http/list-sort.js";
-export * from "@be-water/server-kernel/http/pagination.js";
-export * from "@be-water/server-kernel/http/coded-error.js";
-export * from "@be-water/server-kernel/lib/app-errors.js";
-export * from "@be-water/server-kernel/lib/prisma.js";
-export * from "@be-water/server-kernel/lib/tenant-scope.js";
-export * from "@be-water/server-kernel/lib/config.js";
-export * from "@be-water/server-kernel/lib/host-tenant.js";
-export * from "@be-water/server-kernel/lib/tenant-secret-crypto.js";
+export * from "@rewindom/server-kernel/runtime/module-contract.js";
+export * from "@rewindom/server-kernel/runtime/provider-registry.js";
+export * from "@rewindom/server-kernel/runtime/provider-contracts.js";
+export * from "@rewindom/server-kernel/runtime/event-bus.js";
+export * from "@rewindom/server-kernel/runtime/domain-events.js";
+export * from "@rewindom/server-kernel/runtime/job-registry.js";
+export * from "@rewindom/server-kernel/runtime/register-tenant-gated-routes.js";
+export * from "@rewindom/server-kernel/runtime/audit-log-emit.js";
+export * from "@rewindom/server-kernel/http/define-route.js";
+export * from "@rewindom/server-kernel/http/list-sort.js";
+export * from "@rewindom/server-kernel/http/pagination.js";
+export * from "@rewindom/server-kernel/http/coded-error.js";
+export * from "@rewindom/server-kernel/lib/app-errors.js";
+export * from "@rewindom/server-kernel/lib/prisma.js";
+export * from "@rewindom/server-kernel/lib/tenant-scope.js";
+export * from "@rewindom/server-kernel/lib/config.js";
+export * from "@rewindom/server-kernel/lib/host-tenant.js";
+export * from "@rewindom/server-kernel/lib/tenant-secret-crypto.js";
 export {
   translateServerMessage,
-} from "@be-water/server-kernel/lib/i18n/registry.js";
-export { resolveRequestLocale } from "@be-water/server-kernel/lib/i18n/translate.js";
+} from "@rewindom/server-kernel/lib/i18n/registry.js";
+export { resolveRequestLocale } from "@rewindom/server-kernel/lib/i18n/translate.js";

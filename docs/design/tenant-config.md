@@ -116,9 +116,9 @@ flowchart TB
 
 外观有**两根互相正交的轴**，各自独立解析——租户可以只覆盖布局、主题继续继承平台：
 
-| 轴       | 取值             | 注册表（`@be-water/shared`） | 落地方式                            |
+| 轴       | 取值             | 注册表（`@rewindom/shared`） | 落地方式                            |
 | -------- | ---------------- | ---------------------------- | ----------------------------------- |
-| **主题** | `water` / `slate` | `theme-palette.ts`           | `<html data-theme="...">` + CSS token |
+| **主题** | `azure` / `slate` | `theme-palette.ts`           | `<html data-theme="...">` + CSS token |
 | **布局** | `sidebar` / `topbar` | `shell-layout.ts`         | `AppShellFrame` 选骨架              |
 
 主题这根轴还与 next-themes 的**明暗**轴正交：明暗仍是 `<html class="dark">`，

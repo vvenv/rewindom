@@ -1,4 +1,4 @@
-import { createQueryWrapper, createTestQueryClient } from "@be-water/client-test";
+import { createQueryWrapper, createTestQueryClient } from "@rewindom/client-test";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -14,8 +14,8 @@ vi.mock("../../../background-job/client/hooks/useTaskCenter.js", () => ({
 }));
 
 // 卡片内嵌了还原抽屉，后者要 ConfirmProvider；这里只测卡片，给个桩即可
-vi.mock("@be-water/client-kit", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@be-water/client-kit")>();
+vi.mock("@rewindom/client-kit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@rewindom/client-kit")>();
   return {
     ...actual,
     useConfirm: () => ({ confirm: vi.fn().mockResolvedValue(false) }),

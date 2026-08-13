@@ -1,7 +1,7 @@
 
 import type { ServerAppModule } from "./module-contract.js";
 import type { PermissionCatalog } from "./provider-registry.js";
-import type { PermissionDefinition } from "@be-water/shared";
+import type { PermissionDefinition } from "@rewindom/shared";
 
 export interface MergedPermissionCatalog extends PermissionCatalog {
   permissionKeys: readonly string[];

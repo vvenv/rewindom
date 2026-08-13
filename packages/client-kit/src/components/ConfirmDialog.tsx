@@ -7,7 +7,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@be-water/ui/alert-dialog";
+} from "@rewindom/ui/alert-dialog";
 
 import { useConfirm } from "../hooks/useConfirm.js";
 

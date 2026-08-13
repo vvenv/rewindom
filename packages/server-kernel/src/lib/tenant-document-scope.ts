@@ -1,4 +1,4 @@
-import type { Prisma } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 export function buildTenantDocumentCountWhere(
   tenantId: string,

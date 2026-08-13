@@ -1,4 +1,4 @@
-import type { AuthTokens, User } from "@be-water/shared";
+import type { AuthTokens, User } from "@rewindom/shared";
 
 export interface AuthState {
   user: User | null;

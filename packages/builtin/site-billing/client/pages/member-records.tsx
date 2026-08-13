@@ -1,5 +1,5 @@
-import { PageLayout } from "@be-water/client-kit";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@be-water/ui/tabs";
+import { PageLayout } from "@rewindom/client-kit";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rewindom/ui/tabs";
 import { Receipt } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

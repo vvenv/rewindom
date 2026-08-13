@@ -1,6 +1,6 @@
 import { Bookmark } from "lucide-react";
 
-import type { AppNavSection } from "@be-water/module-sdk/client";
+import type { AppNavSection } from "@rewindom/module-sdk/client";
 
 /**
  * label / title 用 `namespace:key`，由侧栏 `translateAppNavSections` 按当前语言解析。

@@ -26,7 +26,7 @@ import { resolveChromeText } from "./chrome-text.js";
 import { linkAttrs } from "./html.js";
 
 import type { SiteBlock, SiteSection } from "../types.js";
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 export interface LocaleSwitcherOption {
   locale: string;

@@ -1,5 +1,5 @@
-import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
-import { isAppLocale, type AppLocale } from "@be-water/shared";
+import { ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { isAppLocale, type AppLocale } from "@rewindom/shared";
 
 import { getPageTemplateKind } from "../shared/page-templates.js";
 import {

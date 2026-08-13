@@ -1,5 +1,5 @@
-import { api } from "@be-water/client-kit";
-import { type RoleSummary, type PermissionCatalogEntry  } from "@be-water/shared";
+import { api } from "@rewindom/client-kit";
+import { type RoleSummary, type PermissionCatalogEntry  } from "@rewindom/shared";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type {

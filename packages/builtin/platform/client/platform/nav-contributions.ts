@@ -1,6 +1,6 @@
 import { Tags } from "lucide-react";
 
-import type { PlatformNavContribution } from "@be-water/client-kit";
+import type { PlatformNavContribution } from "@rewindom/client-kit";
 
 /**
  * 套餐配置 —— 排在订阅与付款（billing 的 order 35）前面：先有定价，才有人来订。

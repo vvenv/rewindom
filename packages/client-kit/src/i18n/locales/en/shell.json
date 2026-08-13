@@ -10,9 +10,9 @@
     "system": "System"
   },
   "themePalettes": {
-    "water": {
-      "label": "Water",
-      "description": "Default palette: water blue with cyan accents for data"
+    "azure": {
+      "label": "Azure",
+      "description": "Default palette: azure with cyan accents for data"
     },
     "slate": {
       "label": "Slate",

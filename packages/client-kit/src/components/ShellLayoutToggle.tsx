@@ -1,13 +1,13 @@
-import { normalizeShellLayout } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
+import { normalizeShellLayout } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "@be-water/ui/dropdown-menu";
-import { cn } from "@be-water/ui/utils";
+} from "@rewindom/ui/dropdown-menu";
+import { cn } from "@rewindom/ui/utils";
 import { PanelsTopLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

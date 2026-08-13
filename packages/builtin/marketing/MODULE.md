@@ -223,7 +223,7 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 需要同步的清单；`assemble.mjs` 压缩后写进 `marketing-site-css.generated.ts`——常驻部分是
 `MARKETING_SITE_CSS_BASE`，各段样式按 type 落在 `MARKETING_SECTION_CSS`（Vite 客户端 /
 esbuild SSR / Vitest 共用，勿在运行时 `fs` 读旁路 css）。改样式只改 `.css`，再跑
-`pnpm --filter @be-water/builtin assemble:marketing-css`。
+`pnpm --filter @rewindom/builtin assemble:marketing-css`。
 
 **SSR 只发本页用到的段样式**：`ssr-render` 用 `collectSectionTypes()` 收齐页头 / 页脚 /
 正文（含 `group` 列里的子段）的 type，交给 `loadMarketingSiteCssFor()`。顺序由
@@ -268,7 +268,7 @@ SSR 在页头有 `chrome_theme` 块时输出 `<button class="theme-toggle">`；�
 | 公开站交互     | site-enhance                    | 绑登出；SSR 仍是访客时用 cookie 探测 `/api/member/me` 升级菜单   |
 | 主题编辑器预览 | `GET /api/site/capabilities`    | 开通了才灌 `SiteAccountEntryPreview`（slot）                      |
 
-会员 JWT 在 HttpOnly cookie（`be-water_member_*`）里，随 HTML / XHR 同源发送；SSR 可
+会员 JWT 在 HttpOnly cookie（`rewindom_member_*`）里，随 HTML / XHR 同源发送；SSR 可
 直接解锁。次按钮（secondary）**不**默认成登录：登录归账户入口管。
 
 ### 公开站 site-enhance（交互层）
@@ -278,7 +278,7 @@ nginx 把绑定域的**所有** HTML 文档反代给 Fastify SSR。公开站**�
 
 1. SSR 输出挂点（theme 按钮、`.member-entry`、`form.site-form`、`main[data-member-gate]`）
 2. `<script defer src="/api/public/site-enhance.js?v=…">`——源码在
-   `client/enhance/`，`pnpm --filter @be-water/builtin assemble:site-enhance` 打成 IIFE
+   `client/enhance/`，`pnpm --filter @rewindom/builtin assemble:site-enhance` 打成 IIFE
    写入 `shared/site-enhance.generated.ts`
 
 | 能力         | 行为                                                                   |
@@ -1038,6 +1038,6 @@ pnpm --filter server exec tsx scripts/seed-tenant-site-smoke.ts
 ## 如何单独测试
 
 ```bash
-pnpm --filter @be-water/builtin exec vitest --run --project 'marketing/*'
+pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/*'
 curl -sS -H 'Host: {slug}.{TENANT_BASE_DOMAIN}' http://127.0.0.1:3700/ | head
 ```

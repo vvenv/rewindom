@@ -12,7 +12,7 @@ import {
   isApiKeyBlockedPath,
   isApiKeyToken,
   MEMBER_ACCESS_COOKIE,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { sendCodedError } from "../http/coded-error.js";
 import {

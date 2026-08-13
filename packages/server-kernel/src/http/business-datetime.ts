@@ -1,4 +1,4 @@
-import { toBusinessDate } from "@be-water/shared";
+import { toBusinessDate } from "@rewindom/shared";
 
 const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const NAIVE_DATETIME_RE =

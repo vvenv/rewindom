@@ -4,7 +4,7 @@ import {
   parseLoginIdentifier,
   type AuthActorType,
   type AuthTokens,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 import bcrypt from "bcrypt";
 
 import {

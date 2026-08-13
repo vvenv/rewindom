@@ -11,7 +11,7 @@ import {
   normalizeLocale,
   normalizeOptionalLocale,
   type AppLocale,
-} from "@be-water/shared";
+} from "@rewindom/shared";
 
 import { setApiAcceptLanguage } from "../api.js";
 import { usePublicConfig } from "../hooks/usePublicConfig.js";

@@ -87,7 +87,7 @@ psql_exec() {
         if [ "$ENVIRONMENT" = "test" ]; then
             DB_NAME="app_test"
         else
-            DB_NAME="be-water"
+            DB_NAME="rewindom"
         fi
         sudo -u postgres psql -d $DB_NAME "$@"
     fi

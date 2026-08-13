@@ -1,5 +1,5 @@
-import { findCatalogFeature, type TenantFeatureKey, type TenantModuleDefinition } from "@be-water/shared";
-import { Spinner } from "@be-water/ui/spinner";
+import { findCatalogFeature, type TenantFeatureKey, type TenantModuleDefinition } from "@rewindom/shared";
+import { Spinner } from "@rewindom/ui/spinner";
 import { Outlet } from "react-router";
 
 import { useTenantEntitlementState } from "../hooks/useTenantEntitlements.js";

@@ -5,7 +5,7 @@ import {
   type UpdateDashboardPreferenceInput,
 } from "../shared/index.js";
 
-import type { PrismaClient } from "@be-water/server-kernel/generated/prisma/client/client.js";
+import type { PrismaClient } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 interface DashboardPreferenceRow {
   hidden_widgets: string[];

@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-import { useTenantFilter } from "@be-water/client-kit";
-import { formatTenantDisplayLabel } from "@be-water/shared";
-import { Button } from "@be-water/ui/button";
+import { useTenantFilter } from "@rewindom/client-kit";
+import { formatTenantDisplayLabel } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import { useTranslation } from "react-i18next";
 
 import { BillingPaymentsTable } from "../components/BillingPaymentsTable.js";

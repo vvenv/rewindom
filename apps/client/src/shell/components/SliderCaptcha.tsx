@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { api, isTransientApiError } from "@be-water/client-kit";
-import { Button } from "@be-water/ui/button";
+import { api, isTransientApiError } from "@rewindom/client-kit";
+import { Button } from "@rewindom/ui/button";
 import { ArrowRight, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import type { CaptchaChallenge } from "@be-water/shared";
+import type { CaptchaChallenge } from "@rewindom/shared";
 
 
 

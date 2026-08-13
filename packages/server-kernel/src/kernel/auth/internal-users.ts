@@ -1,4 +1,4 @@
-import { PLATFORM_ADMIN_USER_ID, TENANT_IMPERSONATION_USERNAME  } from "@be-water/shared";
+import { PLATFORM_ADMIN_USER_ID, TENANT_IMPERSONATION_USERNAME  } from "@rewindom/shared";
 
 import type { Prisma } from "../../generated/prisma/client/client.js";
 

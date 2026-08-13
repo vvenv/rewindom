@@ -1,4 +1,4 @@
-import { api } from "@be-water/module-sdk/client";
+import { api } from "@rewindom/module-sdk/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 

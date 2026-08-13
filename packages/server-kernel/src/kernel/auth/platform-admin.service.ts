@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { PLATFORM_ADMIN_USER_ID, type AuthActorType, type AuthTokens  } from "@be-water/shared";
+import { PLATFORM_ADMIN_USER_ID, type AuthActorType, type AuthTokens  } from "@rewindom/shared";
 import bcrypt from "bcrypt";
 
 import { config } from "../../lib/config.js";

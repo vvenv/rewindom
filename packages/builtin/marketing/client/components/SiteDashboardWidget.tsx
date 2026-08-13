@@ -1,5 +1,5 @@
-import { DashboardWidgetCard } from "@be-water/client-kit";
-import { Badge } from "@be-water/ui/badge";
+import { DashboardWidgetCard } from "@rewindom/client-kit";
+import { Badge } from "@rewindom/ui/badge";
 import { Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

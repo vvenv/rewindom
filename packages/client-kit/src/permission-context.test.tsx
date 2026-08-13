@@ -9,7 +9,7 @@ import {
   type PermissionsValue,
 } from "./permission-context.js";
 
-import type { User } from "@be-water/shared";
+import type { User } from "@rewindom/shared";
 
 const testUser: User = {
   id: "u1",

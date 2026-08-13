@@ -1,4 +1,4 @@
-import { prisma, withTenantScope } from "@be-water/module-sdk/server";
+import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
 const TENANT_MODULES_KEY = "tenant_modules";
 

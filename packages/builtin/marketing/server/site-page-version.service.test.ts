@@ -4,7 +4,7 @@
  * 守的是三条口径：只在发布时留档、按 version 修剪、恢复只落草稿不动线上。
  */
 
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -12,7 +12,7 @@ import {
   restorePageVersion,
 } from "./site-page-version.service.js";
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     marketingPageVersion: { findFirst: vi.fn() },
     marketingPage: { updateMany: vi.fn() },

@@ -15,7 +15,7 @@ export * from "./appearance.js";
 export * from "./locale.js";
 export * from "./locale-catalog.js";
 
-// 原 @be-water/utils
+// 原 @rewindom/utils
 export * from "./date.js";
 export * from "./date-range.js";
 export * from "./display.js";
@@ -25,6 +25,6 @@ export * from "./login-identifier.js";
 export * from "./random-password.js";
 export * from "./timezone.js";
 
-// 原 @be-water/kernel-contract
+// 原 @rewindom/kernel-contract
 export * from "./platform-admin.js";
 export * from "./tenant-internal.js";

@@ -1,7 +1,7 @@
-import { api } from "@be-water/client-kit";
+import { api } from "@rewindom/client-kit";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import type { RoleSummary, TenantUserListItem } from "@be-water/shared";
+import type { RoleSummary, TenantUserListItem } from "@rewindom/shared";
 
 const USERS_KEY = ["users"] as const;
 

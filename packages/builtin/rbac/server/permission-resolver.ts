@@ -1,7 +1,7 @@
-import { ValidationError } from "@be-water/server-kernel/lib/app-errors.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
-import type { MergedPermissionCatalog } from "@be-water/server-kernel/runtime/collect-module-permissions.js";
+import type { MergedPermissionCatalog } from "@rewindom/server-kernel/runtime/collect-module-permissions.js";
 
 export type PermissionScope = "tenant" | "platform";
 

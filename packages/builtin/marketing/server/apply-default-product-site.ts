@@ -1,10 +1,10 @@
 import {
   type Prisma,
   type MarketingPage as MarketingPageRecord,
-} from "@be-water/server-kernel/generated/prisma/client/client.js";
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
-import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
-import { DEFAULT_TENANT_ID } from "@be-water/shared";
+} from "@rewindom/server-kernel/generated/prisma/client/client.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
+import { DEFAULT_TENANT_ID } from "@rewindom/shared";
 
 import { buildDefaultProductSite } from "./default-product-site-content.js";
 import { getOrCreateSite, setPageStatus } from "./site.service.js";

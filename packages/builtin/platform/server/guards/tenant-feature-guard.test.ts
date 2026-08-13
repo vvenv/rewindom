@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { type TenantFeatureKey } from "@be-water/shared";
+import { type TenantFeatureKey } from "@rewindom/shared";
 
 const { isTenantFeatureEnabledMock, getServerTenantCatalogMock } = vi.hoisted(
   () => ({
@@ -13,7 +13,7 @@ vi.mock("../services/tenant-feature.service.js", () => ({
   isTenantFeatureEnabled: isTenantFeatureEnabledMock,
 }));
 
-vi.mock("@be-water/server-kernel/runtime/tenant-catalog.js", () => ({
+vi.mock("@rewindom/server-kernel/runtime/tenant-catalog.js", () => ({
   getServerTenantCatalog: getServerTenantCatalogMock,
 }));
 

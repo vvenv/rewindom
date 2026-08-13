@@ -7,14 +7,14 @@ import {
   dateRangeToDatetimeFilterParams,
   datetimeFilterParamsToDateRange,
   useTenantFilter,
-} from "@be-water/client-kit";
+} from "@rewindom/client-kit";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@be-water/ui/select";
+} from "@rewindom/ui/select";
 import { useTranslation } from "react-i18next";
 
 import { SLOW_QUERY_SOURCES } from "../../shared/index.js";

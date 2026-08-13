@@ -9,7 +9,7 @@
  *   pnpm --filter server exec tsx scripts/backfill-audit-null-tenant-scope.ts --dry-run
  *   pnpm --filter server exec tsx scripts/backfill-audit-null-tenant-scope.ts
  */
-import { prisma } from "@be-water/server-kernel/lib/prisma.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 async function main(): Promise<void> {
   const dryRun = process.argv.includes("--dry-run");

@@ -9,7 +9,7 @@ import {
   collectModuleNav,
 } from "./collect-modules";
 
-import type { ClientAppModule } from "@be-water/client-kit";
+import type { ClientAppModule } from "@rewindom/client-kit";
 
 const StubPage = lazy(() => Promise.resolve({ default: () => null }));
 

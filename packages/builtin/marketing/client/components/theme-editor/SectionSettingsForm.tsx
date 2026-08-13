@@ -1,7 +1,7 @@
 import { useState, type ReactElement } from "react";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@be-water/ui/tabs";
-import { cn } from "@be-water/ui/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@rewindom/ui/tabs";
+import { cn } from "@rewindom/ui/utils";
 import { LayoutTemplate, Palette, Type, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -17,7 +17,7 @@ import {
 
 import { SettingsFields } from "./SettingsFields.js";
 
-import type { AppLocale } from "@be-water/shared";
+import type { AppLocale } from "@rewindom/shared";
 
 interface SectionSettingsFormProps {
   section: SiteSection;

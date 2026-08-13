@@ -7,7 +7,7 @@
  * 其余语言走 `/{locale}/...` 子目录。
  */
 
-import { APP_LOCALES, isAppLocale, type AppLocale } from "@be-water/shared";
+import { APP_LOCALES, isAppLocale, type AppLocale } from "@rewindom/shared";
 
 /**
  * 不属于官网内容、因而不加 locale 前缀的一级路径。

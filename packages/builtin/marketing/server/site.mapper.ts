@@ -1,4 +1,4 @@
-import { normalizeLocale, type AppLocale } from "@be-water/shared";
+import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { isTemplatePageKind } from "../shared/page-templates.js";
 import {
@@ -36,7 +36,7 @@ import {
 import type {
   MarketingPage as MarketingPageRecord,
   MarketingSite as MarketingSiteRecord,
-} from "@be-water/server-kernel/generated/prisma/client/client.js";
+} from "@rewindom/server-kernel/generated/prisma/client/client.js";
 
 /** 读路径：把存量 `doc` 收成 page，并改写 slug（`index` → `docs`）。 */
 function pageIdentity(record: { kind: string; slug: string }): {

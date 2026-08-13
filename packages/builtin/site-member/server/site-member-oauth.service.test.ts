@@ -10,7 +10,7 @@ const findUniqueExchange = vi.fn();
 const updateExchange = vi.fn();
 const createRefresh = vi.fn();
 
-vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
+vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
     siteMemberOAuthAccount: {
       findUnique: (...args: unknown[]) => findUniqueOAuth(...args),
@@ -33,7 +33,7 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   },
 }));
 
-vi.mock("@be-water/server-kernel/kernel/auth/github-oauth.service.js", () => ({
+vi.mock("@rewindom/server-kernel/kernel/auth/github-oauth.service.js", () => ({
   buildGithubAuthorizeUrl: vi.fn(),
   GithubOAuthService: {
     fetchProfileFromCode: vi.fn(async () => ({
@@ -47,12 +47,12 @@ vi.mock("@be-water/server-kernel/kernel/auth/github-oauth.service.js", () => ({
   },
 }));
 
-vi.mock("@be-water/server-kernel/kernel/auth/google-oauth.service.js", () => ({
+vi.mock("@rewindom/server-kernel/kernel/auth/google-oauth.service.js", () => ({
   buildGoogleAuthorizeUrl: vi.fn(),
   GoogleOAuthService: { fetchProfileFromCode: vi.fn() },
 }));
 
-vi.mock("@be-water/server-kernel/kernel/auth/microsoft-oauth.service.js", () => ({
+vi.mock("@rewindom/server-kernel/kernel/auth/microsoft-oauth.service.js", () => ({
   buildMicrosoftAuthorizeUrl: vi.fn(),
   MicrosoftOAuthService: { fetchProfileFromCode: vi.fn() },
 }));

@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE } from "@be-water/shared";
+import { DEFAULT_LOCALE } from "@rewindom/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
