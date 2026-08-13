@@ -8,6 +8,7 @@
 
 import {
   normalizeLocale,
+  registerLocaleCatalog,
   resolveLocaleMessage,
   type AppLocale,
 } from "@rewindom/shared";
@@ -24,6 +25,8 @@ const MESSAGES: Record<string, Record<string, unknown>> = {
 
 const NAMESPACE = "site-member:";
 
+/** 给 marketing 建页 / 重设版式解 `site-member:login.title` 这类跨 ns key。 */
+registerLocaleCatalog("site-member", MESSAGES);
 
 export function createMemberPresetTranslator(
   locale: AppLocale,

@@ -10,6 +10,7 @@ import zhCN from "../../client/locales/zh-CN.json" with { type: "json" };
 
 import {
   normalizeLocale,
+  registerLocaleCatalog,
   resolveLocaleMessage,
   type AppLocale,
 } from "@rewindom/module-sdk";
@@ -22,6 +23,9 @@ const MESSAGES: Record<string, Record<string, unknown>> = {
 };
 
 const NAMESPACE = "shop:";
+
+/** 给 marketing 建页 / 重设版式解 `shop:storefront.catalog.title` 这类跨 ns key。 */
+registerLocaleCatalog("shop", MESSAGES);
 
 export function createShopPresetTranslator(
   locale: AppLocale,

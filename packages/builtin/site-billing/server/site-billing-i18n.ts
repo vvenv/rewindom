@@ -10,7 +10,12 @@
  * 那种形式，客户端建页时由 i18next 直接解开。
  */
 
-import { normalizeLocale, resolveLocaleMessage, type AppLocale } from "@rewindom/shared";
+import {
+  normalizeLocale,
+  registerLocaleCatalog,
+  resolveLocaleMessage,
+  type AppLocale,
+} from "@rewindom/shared";
 
 import en from "../client/locales/en.json" with { type: "json" };
 import zhCN from "../client/locales/zh-CN.json" with { type: "json" };
@@ -23,6 +28,9 @@ const MESSAGES: Record<string, Record<string, unknown>> = {
 };
 
 const NAMESPACE = "site-billing:";
+
+/** 给 marketing 建页 / 重设版式解 `site-billing:account.title` 这类跨 ns key。 */
+registerLocaleCatalog("site-billing", MESSAGES);
 
 export function createSiteBillingTranslator(
   locale: AppLocale,
