@@ -55,5 +55,9 @@
       "last_7_days": "近一周",
       "last_30_days": "近一月"
     }
+  },
+  "dateTimePicker": {
+    "placeholder": "选择日期时间",
+    "placeholderDate": "选择日期"
   }
 }

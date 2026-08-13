@@ -15,11 +15,14 @@ alwaysApply: false
 ```
 packages/ui/src/
 ├── button.tsx             # shadcn 基础组件
+├── calendar.tsx           # 日期日历原语
 ├── dialog.tsx
 ├── field.tsx
 └── …
 
 packages/client-kit/src/components/
+├── DateTimePicker.tsx     # 单点日期/时间（基于 Calendar）
+├── DateTimeRangePicker.tsx
 └── data-table/            # 通用表格等业务基建
 ```
 
@@ -60,6 +63,39 @@ import {
   </SelectContent>
 </Select>;
 ```
+
+**日期 / 时间选择 — 禁止原生 `type="date|time|datetime-local"`：**
+
+日历原语是 `@rewindom/ui/calendar`。业务侧不要自己拼 Popover + Calendar，也不要用浏览器原生日期控件。
+
+| 场景 | 用 |
+| --- | --- |
+| 单点日期 / 日期时间（表单字段） | `@rewindom/client-kit` 的 `DateTimePicker`（`dateOnly` 仅选日期） |
+| 筛选时间范围 | `DateTimeRangePicker` |
+
+两者都基于 `Calendar`，并处理 i18n、清除、移动端布局。外部模块从 `@rewindom/module-sdk/client` 导入。
+
+```tsx
+import { DateTimePicker } from "@rewindom/module-sdk/client";
+
+<Field>
+  <FieldLabel htmlFor="starts-at">开始时间</FieldLabel>
+  <DateTimePicker
+    id="starts-at"
+    value={startsAt}
+    onChange={setStartsAt}
+  />
+</Field>
+```
+
+```tsx
+// ❌ 浏览器原生控件，各端样式/时区不一致
+<Input type="datetime-local" value={startsAt} onChange={...} />
+<input type="date" />
+<input type="time" />
+```
+
+时刻输入不要在业务里再造一套：`DateTimePicker` / `DateTimeRangePicker` 已内置（桌面用 `@rewindom/ui/input-group` 数字格；移动端可用系统 `type="time"`）。
 
 **Dialog / Sheet 内聚（金标准）— 创建按钮与弹层表单是同一组件：**
 

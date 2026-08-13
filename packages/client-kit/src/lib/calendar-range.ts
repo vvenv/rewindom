@@ -190,3 +190,20 @@ export function applyPickerTime(
   next.setHours(h, m, s);
   return next;
 }
+
+export function parseOptionalDate(
+  value: string | Date | null | undefined,
+): Date | undefined {
+  if (value == null) {
+    return undefined;
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    const date = new Date(trimmed);
+    return Number.isNaN(date.getTime()) ? undefined : date;
+  }
+  return Number.isNaN(value.getTime()) ? undefined : value;
+}

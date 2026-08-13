@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatPickerRangeLabel } from "./calendar-range.js";
+import { formatPickerRangeLabel, parseOptionalDate } from "./calendar-range.js";
 
 function zoned(iso: string): Date {
   return new Date(iso);
@@ -50,5 +50,29 @@ describe("formatPickerRangeLabel", () => {
     expect(formatPickerRangeLabel(from, to)).toBe(
       "2024-12-31 09:00:00 - 2025-01-01 18:30:00",
     );
+  });
+});
+
+describe("parseOptionalDate", () => {
+  it("empty / null returns undefined", () => {
+    expect(parseOptionalDate("")).toBeUndefined();
+    expect(parseOptionalDate("   ")).toBeUndefined();
+    expect(parseOptionalDate(null)).toBeUndefined();
+    expect(parseOptionalDate(undefined)).toBeUndefined();
+  });
+
+  it("invalid date returns undefined", () => {
+    expect(parseOptionalDate("not-a-date")).toBeUndefined();
+  });
+
+  it("ISO string parses to Date", () => {
+    const date = parseOptionalDate("2026-08-07T15:30:00.000Z");
+    expect(date).toBeInstanceOf(Date);
+    expect(date?.toISOString()).toBe("2026-08-07T15:30:00.000Z");
+  });
+
+  it("passes through a valid Date", () => {
+    const original = new Date("2026-08-07T15:30:00.000Z");
+    expect(parseOptionalDate(original)).toBe(original);
   });
 });

@@ -105,6 +105,7 @@ export const clientShellTestMock = {
   PageFilterBar: (props: MockPageFilterBarProps) => mockPageFilterBar(props),
   FilterBar: (props: MockPageFilterBarProps) => mockPageFilterBar(props),
   DebouncedSearchInput: mockDebouncedSearchInput,
+  DateTimePicker: () => <div data-testid="datetime-picker" />,
   DateTimeRangePicker: () => <div data-testid="datetime-range-picker" />,
   useTenantFilter: () => () => <div data-testid="tenant-combobox" />,
   useTenantQueryScope: () => null,

@@ -11,7 +11,6 @@
     "./lib/*": "./src/lib/*",
     "./lib/app-nav-types": "./src/lib/app-nav-types.ts",
     "./lib/module-contract": "./src/lib/module-contract.ts",
-    "./lib/datetime-local": "./src/lib/datetime-local.ts",
     "./lib/calendar-range": "./src/lib/calendar-range.ts",
     "./lib/filter-chip-options": "./src/lib/filter-chip-options.ts"
   },

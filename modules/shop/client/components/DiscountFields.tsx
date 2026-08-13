@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 
+import { DateTimePicker, parseOptionalDate } from "@rewindom/module-sdk/client";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
 import { Input } from "@rewindom/ui/input";
 import {
@@ -83,20 +84,20 @@ export function DiscountFields({
       </Field>
       <Field>
         <FieldLabel htmlFor="discount-starts">{t("fieldDiscountStarts")}</FieldLabel>
-        <Input
+        <DateTimePicker
           id="discount-starts"
-          type="datetime-local"
-          value={form.starts_at}
-          onChange={(event) => onChange({ starts_at: event.target.value })}
+          value={parseOptionalDate(form.starts_at)}
+          onChange={(date) =>
+            onChange({ starts_at: date?.toISOString() ?? "" })
+          }
         />
       </Field>
       <Field>
         <FieldLabel htmlFor="discount-ends">{t("fieldDiscountEnds")}</FieldLabel>
-        <Input
+        <DateTimePicker
           id="discount-ends"
-          type="datetime-local"
-          value={form.ends_at}
-          onChange={(event) => onChange({ ends_at: event.target.value })}
+          value={parseOptionalDate(form.ends_at)}
+          onChange={(date) => onChange({ ends_at: date?.toISOString() ?? "" })}
         />
       </Field>
       <Field>

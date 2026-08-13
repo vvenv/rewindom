@@ -55,5 +55,9 @@
       "last_7_days": "Last 7 days",
       "last_30_days": "Last 30 days"
     }
+  },
+  "dateTimePicker": {
+    "placeholder": "Pick date and time",
+    "placeholderDate": "Pick a date"
   }
 }

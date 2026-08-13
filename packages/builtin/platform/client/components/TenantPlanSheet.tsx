@@ -1,10 +1,6 @@
 import { useState, type SubmitEvent } from "react";
 
-import { ApiError } from "@rewindom/client-kit";
-import {
-  fromDatetimeLocalValue,
-  toDatetimeLocalValue,
-} from "@rewindom/client-kit/lib/datetime-local";
+import { ApiError, DateTimePicker, parseOptionalDate } from "@rewindom/client-kit";
 import { Button } from "@rewindom/ui/button";
 import {
   Field,
@@ -12,7 +8,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@rewindom/ui/field";
-import { Input } from "@rewindom/ui/input";
 import {
   Select,
   SelectContent,
@@ -53,19 +48,19 @@ export function TenantPlanSheet({
   const updateMutation = useUpdatePlatformTenantPlan();
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState<PlanSlug>(tenant.plan);
-  const [planEndsAt, setPlanEndsAt] = useState("");
+  const [planEndsAt, setPlanEndsAt] = useState<Date | undefined>();
 
   const handleOpenChange = (nextOpen: boolean): void => {
     setOpen(nextOpen);
     if (nextOpen) {
       setPlan(tenant.plan);
-      setPlanEndsAt(toDatetimeLocalValue(tenant.plan_ends_at));
+      setPlanEndsAt(parseOptionalDate(tenant.plan_ends_at));
     }
   };
 
   const handleSave = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
-    const nextPlanEndsAt = fromDatetimeLocalValue(planEndsAt);
+    const nextPlanEndsAt = planEndsAt?.toISOString() ?? null;
     const planChanged = plan !== tenant.plan;
     const endsAtChanged =
       nextPlanEndsAt !== tenant.plan_ends_at &&
@@ -144,11 +139,10 @@ export function TenantPlanSheet({
               <FieldLabel htmlFor={`tenant-plan-ends-${tenant.id}`}>
                 {t("tenants.plan.endsAt")}
               </FieldLabel>
-              <Input
+              <DateTimePicker
                 id={`tenant-plan-ends-${tenant.id}`}
-                type="datetime-local"
                 value={planEndsAt}
-                onChange={(event) => setPlanEndsAt(event.target.value)}
+                onChange={setPlanEndsAt}
               />
               <FieldDescription>{t("tenants.plan.endsAtHint")}</FieldDescription>
             </Field>

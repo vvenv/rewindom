@@ -73,6 +73,10 @@ export { CopyButton } from "./components/CopyButton";
 export { DialogButton } from "./components/DialogButton";
 export { FilterBar } from "./components/FilterBar";
 export {
+  DateTimePicker,
+  type DateTimePickerProps,
+} from "./components/DateTimePicker";
+export {
   DateTimeRangePicker,
   type DateTimeRangeExtraAction,
   type DateTimeRangePresetOption,
@@ -190,7 +194,6 @@ export * from "./lib/url-params";
 export * from "./lib/with-query";
 export * from "./lib/app-nav-types";
 export * from "./lib/module-contract";
-export * from "./lib/datetime-local";
 export * from "./lib/calendar-range";
 export {
   translateThemePaletteLabel,
