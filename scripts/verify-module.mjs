@@ -130,13 +130,18 @@ function loadModule(id, baseDir = MODULES_DIR, isExternal = false) {
   const dir = path.join(baseDir, id);
   const serverManifest = path.join(dir, "server", "module.ts");
   const clientManifest = path.join(dir, "client", "module.tsx");
-  // 外部模块的 schema 可能在 prisma/schema.prisma（由 beWater.prismaSchema 指定）
+  // 内置：packages/builtin/<id>/models.prisma（旧名 schema.prisma 仍认）
+  // 外部：beWater.prismaSchema 或 prisma/schema.prisma
   const schemaCandidates = isExternal
     ? [
         path.join(dir, "schema.prisma"),
         path.join(dir, "prisma", "schema.prisma"),
+        path.join(dir, "models.prisma"),
       ]
-    : [path.join(dir, "schema.prisma")];
+    : [
+        path.join(dir, "models.prisma"),
+        path.join(dir, "schema.prisma"),
+      ];
   const schema = schemaCandidates.find((p) => existsSync(p)) ?? null;
   return {
     id,
@@ -328,7 +333,7 @@ function checkPrisma(mod, add) {
     add(
       "error",
       "prisma",
-      `缺少符号链接 apps/server/prisma/models/${mod.id}.prisma → ${mod.isExternal ? `modules/${mod.id}/prisma/schema.prisma` : `packages/builtin/${mod.id}/schema.prisma`}`,
+      `缺少符号链接 apps/server/prisma/models/${mod.id}.prisma → ${mod.isExternal ? `modules/${mod.id}/prisma/schema.prisma` : `packages/builtin/${mod.id}/models.prisma`}`,
     );
   } else if (!lstatSync(link).isSymbolicLink()) {
     add(

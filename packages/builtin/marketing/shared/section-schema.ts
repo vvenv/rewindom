@@ -181,15 +181,6 @@ function buildSection(
   const def = getSectionDefinition(type);
   if (!def) throw new Error("site.sections_invalid");
   const settings = rawSettingsOf(row);
-  /*
-   * 页头 / 页脚不再有读时升级层。
-   *
-   * 曾经有一整个 `chrome-upgrade.ts`：把旧版「导航与开关塞在 section settings 里」的
-   * 页头页脚翻译成 block 组合。它带来的是**每次读都要判一次这段是不是旧的**，而判据
-   * 只能靠「有没有留着已删除的旧键」这种间接信号——一旦判错就把租户删掉的块塞回去，
-   * 刷新一次长回来一次。chrome 改成「行 × 对齐区」之后旧结构本来也翻译不过去，索性
-   * 一并删掉：schema 认不出的块由 `parseBlocks` 丢弃，区域本体由 `ensureAreaBody` 补。
-   */
   return {
     id:
       typeof row.id === "string" && row.id.trim() ? row.id.trim() : fallbackId,
@@ -598,7 +589,6 @@ function ensureAreaBody(
   const body = sections.filter((section) => section.type === area);
   const rest = sections.filter((section) => section.type !== area);
   const kept = body[0] ?? createSection(area);
-  // 旧版升级已在 `buildSection` 里逐段做过，补出来的那段本就是新格式：这里不必再跑一遍
   return area === "header" ? [...rest, kept] : [kept, ...rest];
 }
 
@@ -633,17 +623,17 @@ export interface SectionLayout {
   spacingAbove: number | null;
   spacingBelow: number | null;
   /**
-   * 旧底色 token（muted/accent/outline）。新编辑只写 `bg_color`；
-   * 存量与 band 默认仍可能带此字段。
+   * 内部底色 token（muted/accent）。编辑器只写 `bg_color`；
+   * band 新建默认仍写 `muted`，渲染时走 `.sec-bg-*`。
    */
-  background: "none" | "muted" | "accent" | "outline";
+  background: "none" | "muted" | "accent";
   dividerTop: boolean;
   dividerBottom: boolean;
   /** 已归一化的锚点 id（可为空），供页内导航链接 `#anchor`。 */
   anchor: string;
 }
 
-const BACKGROUNDS = new Set(["none", "muted", "accent", "outline"]);
+const BACKGROUNDS = new Set(["none", "muted", "accent"]);
 const WIDTHS = new Set(["page", "full"]);
 const CONTENT_WIDTHS = new Set(["default", "narrow", "full"]);
 
@@ -910,7 +900,7 @@ export function groupColumns(section: SiteSection): GroupColumn[] {
     (block) => block.sections !== undefined,
   );
   const spans = resolveGroupSpans(
-    settingText(section.settings, "columns_layout") || "1:3",
+    settingText(section.settings, "columns_layout") || "3:9",
     columns.length,
   );
   return columns.map((block, index) => {

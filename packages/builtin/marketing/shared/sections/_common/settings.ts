@@ -36,25 +36,6 @@ const CONTENT_WIDTH_OPTIONS = [
 /** 容器段的栅格总宽：列宽都是它的整数份额。 */
 export const GROUP_GRID = 12;
 
-/**
- * 旧的比例预设 → 12 栏制列宽。
- *
- * 列宽以前是一个七选一的下拉（`1:3`、`3:7:2` …），存的是**比例**；现在存的直接就是
- * 12 栏里各占几栏，租户逐列拖。这张表只为读懂改版之前存下来的那些值——留着它比
- * 让租户已经排好的页面在某次发布后突然变成等分要便宜得多。
- *
- * 不必往里加新条目：新值一律是「加起来正好 12」的份额，靠 `parseGroupSpans` 自己认。
- */
-const LEGACY_RATIO_SPANS: Record<string, number[]> = {
-  "1:1": [6, 6],
-  "1:2": [4, 8],
-  "2:1": [8, 4],
-  "1:3": [3, 9],
-  "3:1": [9, 3],
-  "1:1:1": [4, 4, 4],
-  "1:2:1": [3, 6, 3],
-};
-
 /** 等分；12 除不尽时（如 5 列）多出来的栏补给最后一列，总和仍是 12。 */
 function evenSpans(columnCount: number): number[] {
   const base = Math.floor(GROUP_GRID / columnCount);
@@ -68,15 +49,8 @@ function evenSpans(columnCount: number): number[] {
 /**
  * 列宽解析（两处渲染 + 编辑器共用）。
  *
- * 认两种写法，靠**加起来是不是 12** 区分，不需要额外的版本标记：
- * - 份额（新）：`"3:7:2"` 之和为 12，就是各列占几栏
- * - 比例（旧）：`"1:3"` 之和不是 12，查上面那张表
- *
- * 两者不会撞车——一个比例写法要想恰好加到 12，本身就已经是份额了（`"6:6"` 读成
- * 份额和读成比例是同一个结果）。
- *
- * 实际列数与声明的列数对不上时以**列数**为准回落成等分：列是 block、租户随时能加减，
- * 而列宽是另一个设置，两者短暂不一致是常态，不能因此渲染出一行空白。
+ * 只认 12 栏份额（如 `"3:7:2"`，加起来正好 12）。解析不出或与列数对不上时
+ * 按列数等分：列是 block、租户随时能加减，列宽是另一设置，两者短暂不一致是常态。
  */
 export function resolveGroupSpans(
   columnsLayout: string,
@@ -87,9 +61,6 @@ export function resolveGroupSpans(
 
   const parsed = parseGroupSpans(columnsLayout);
   if (parsed.length === columnCount) return parsed;
-
-  const legacy = LEGACY_RATIO_SPANS[columnsLayout];
-  if (legacy && legacy.length === columnCount) return legacy;
 
   return evenSpans(columnCount);
 }

@@ -42,7 +42,7 @@
 
 ## 模块包布局
 
-- **内置模块** `packages/builtin/<id>/`（`shared` + `server` + `client` + 可选 `schema.prisma`），同属 workspace 包 `@be-water/builtin`，在 `enabled-modules.ts` 手写注册
+- **内置模块** `packages/builtin/<id>/`（`shared` + `server` + `client` + 可选 `models.prisma`），同属 workspace 包 `@be-water/builtin`，在 `enabled-modules.ts` 手写注册
 - **外部业务模块** `modules/<id>/`（独立包 `@be-water/<id>`，只依赖 `@be-water/module-sdk`），由 `pnpm gen:external-modules` 汇入组装层
 
 `apps/server` / `apps/client` 为极薄组装层。

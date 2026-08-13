@@ -96,7 +96,7 @@ describe("容器段（group）", () => {
     const [group] = parseSections([
       {
         type: "group",
-        settings: { columns_layout: "1:3" },
+        settings: { columns_layout: "3:9" },
         blocks: [
           {
             type: "column",
@@ -151,7 +151,7 @@ describe("容器段（group）", () => {
     const [group] = parseSections([
       {
         type: "group",
-        settings: { columns_layout: "1:3" },
+        settings: { columns_layout: "3:9" },
         blocks: [
           {
             type: "column",

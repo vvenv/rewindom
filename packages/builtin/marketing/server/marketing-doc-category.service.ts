@@ -16,7 +16,6 @@ import { withTenantScope } from "@be-water/server-kernel/lib/tenant-scope.js";
 import { normalizeLocale, type AppLocale } from "@be-water/shared";
 
 import {
-  categoryKeyFromLabel,
   defaultCategoryLabel,
   parseCreateCategoryBody,
   parseUpdateCategoryBody,
@@ -279,101 +278,4 @@ export async function loadCategoryContext(tenant_id: string): Promise<{
     resolveDefaultLocale(tenant_id),
   ]);
   return { categories, defaultLocale };
-}
-
-function tryValidateCategoryKey(raw: string): string | null {
-  try {
-    return validateCategoryKey(raw);
-  } catch {
-    return null;
-  }
-}
-
-function ensureUniqueCategoryKey(base: string, taken: Set<string>): string {
-  if (!taken.has(base)) return base;
-  let suffix = 2;
-  while (taken.has(`${base}-${suffix}`)) {
-    suffix += 1;
-  }
-  return `${base}-${suffix}`;
-}
-
-/**
- * 把文档上遗留的自由文本分类迁成 canonical key，并补齐 `MarketingDocCategory` 行。
- * 幂等：已是合法 key 且分类表存在时只改文档字段，不重复建分类。
- */
-export async function migrateLegacyDocCategories(
-  tenant_id: string,
-): Promise<{ categories: number; docs: number }> {
-  return prisma.$transaction(async (tx) => {
-    const existing = await tx.marketingDocCategory.findMany({
-      where: { tenant_id },
-      select: { key: true, sort_order: true },
-    });
-    const existingKeys = new Set(existing.map((row) => row.key));
-    let nextSortOrder =
-      existing.reduce((max, row) => Math.max(max, row.sort_order), -1) + 10;
-
-    const docs = await tx.marketingDoc.findMany({
-      where: { tenant_id },
-      select: { id: true, category: true, category_draft: true },
-    });
-
-    const rawValues = new Set<string>();
-    for (const doc of docs) {
-      const published = doc.category.trim();
-      const draft = doc.category_draft.trim();
-      if (published) rawValues.add(published);
-      if (draft) rawValues.add(draft);
-    }
-
-    const keyByRaw = new Map<string, string>();
-    let categoriesCreated = 0;
-
-    for (const raw of rawValues) {
-      const validated = tryValidateCategoryKey(raw);
-      if (validated && existingKeys.has(validated)) {
-        keyByRaw.set(raw, validated);
-        continue;
-      }
-
-      const key = ensureUniqueCategoryKey(
-        validated ?? categoryKeyFromLabel(raw),
-        existingKeys,
-      );
-      await tx.marketingDocCategory.create({
-        data: {
-          tenant_id,
-          key,
-          label: raw,
-          sort_order: nextSortOrder,
-        },
-      });
-      existingKeys.add(key);
-      keyByRaw.set(raw, key);
-      categoriesCreated += 1;
-      nextSortOrder += 10;
-    }
-
-    let docsUpdated = 0;
-    for (const doc of docs) {
-      const published = doc.category.trim();
-      const draft = doc.category_draft.trim();
-      const nextCategory = published ? (keyByRaw.get(published) ?? doc.category) : "";
-      const nextDraft = draft ? (keyByRaw.get(draft) ?? doc.category_draft) : "";
-      if (nextCategory === doc.category && nextDraft === doc.category_draft) {
-        continue;
-      }
-      await tx.marketingDoc.update({
-        where: { id: doc.id, tenant_id },
-        data: {
-          category: nextCategory,
-          category_draft: nextDraft,
-        },
-      });
-      docsUpdated += 1;
-    }
-
-    return { categories: categoriesCreated, docs: docsUpdated };
-  });
 }

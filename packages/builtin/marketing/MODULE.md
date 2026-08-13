@@ -210,8 +210,8 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 就该在同一处配完。开关做不到的是**排序**——三个布尔值渲染顺序写死在代码里，租户想把
 登录按钮挪到语言切换右边就只能改代码。
 
-语言切换器更早还是站点级设置（`theme_settings.show_locale_switcher`），搬进页头时回填过
-存量值；现在再由 `chrome-upgrade.ts` 从开关搬成块。
+语言切换器更早还是站点级设置（`theme_settings.show_locale_switcher`），后来搬进页头
+块；现格式直接存块，不再做读时回填。
 
 ### 明暗模式
 
@@ -354,9 +354,8 @@ section type，通用 SSR 路由在渲染前按**页面实际用到的段**调�
 吸顶列也一样——吸的是列里多包的那层 `.grp-col-inner`，列这个盒子照常拉伸（让列自己
 `position: sticky` 就得 `align-self: start`，线会缩成内容那么长）。
 
-`columns_layout` 曾经是个七选一的**比例**预设（`1:3` 等），`resolveGroupSpans` 靠
-「几个数加起来是不是 12」区分两种写法——不是 12 就查那张旧比例表。留着它是因为改版
-之前存下来的页面不该在某次发布后无声无息地变成等分。
+`columns_layout` 存 12 栏**份额**（如 `"3:9"`，加起来正好 12）。`resolveGroupSpans`
+只认份额；解析不出或与列数对不上时按列数等分。
 **嵌套只允许一层**——容器段不能装容器段，写路径抛 `site.sections_invalid`、读路径跳过，
 编辑器的加段菜单里也不列出容器段。列内子段自动 `contained`：`width: full` 退化为 `page`、
 不再自带左右 gutter（列已经限过宽）。「左侧同级菜单 + 右侧正文」的文档版式 = `3:9` 的
@@ -370,8 +369,8 @@ group + 左列放 `page-menu`(siblings/list, 列上勾 sticky)，不再有专门
 `fg_color`（`#RGB`/`#RGBA`/`#RRGGBB`/`#RRGGBBAA`，可带 alpha）·
 `border_color` · `border_width` · `radius`（可继承）。
 外背景与内边距互不重叠：padding 落在正文层，补白环显示内色；外色只铺色块，正文限宽时两侧可露出。
-空外背景 = 无自定义色块底；旧 `background` token（muted/accent）仍可兼容渲染，
-`outline` 迁移为边框。band 新建默认写入内部 `background: muted`。
+空外背景 = 无自定义色块底；band 新建默认写内部 `background: muted` token（`.sec-bg-muted`），
+边框走 `border_*`。
 块级 / 页头页脚只有一层 `bg_color`（无内外之分）。
 页签为内容 / 版式 / 外观三栏；窄侧栏未激活页签只显示图标。
 所有留白存的都是**桌面 px**，窄屏两处渲染统一 ×0.7；`anchor` 归一化成 slug 后作为
@@ -588,7 +587,6 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 管理端 `GET /api/site/doc-categories` 维护分类表；`PUT /api/site/doc-categories/order`
 整批调整 `sort_order`（文档目录分组顺序）；`GET /api/site/docs` 额外返回
 `category_catalog`（完整分类行）与 `categories`（当前筛选结果里出现的 key 列表）。
-存量自由文本分类用 `apps/server/scripts/migrate-doc-categories.ts` 一次性迁成 canonical key。
 文档**版式**则完全在 section 体系里，靠两张模板页承载：
 
 | kind | 地址 | 干什么 |

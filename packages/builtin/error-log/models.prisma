@@ -1,4 +1,4 @@
-// packages/builtin/error-log/schema.prisma
+// packages/builtin/error-log/models.prisma
 // 由 apps/server/prisma/models/error-log.prisma 符号链接汇入
 model ErrorLog {
   id             String   @id @default(uuid())

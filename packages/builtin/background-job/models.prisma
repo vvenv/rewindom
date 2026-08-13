@@ -1,4 +1,4 @@
-// packages/builtin/background-job/schema.prisma
+// packages/builtin/background-job/models.prisma
 // 由 apps/server/prisma/models/background-job.prisma 符号链接汇入
 model BackgroundJob {
   id          String    @id @default(uuid())

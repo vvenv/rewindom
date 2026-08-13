@@ -1,4 +1,4 @@
-// packages/builtin/rbac/schema.prisma
+// packages/builtin/rbac/models.prisma
 // 由 apps/server/prisma/models/rbac.prisma 符号链接汇入
 
 model Role {

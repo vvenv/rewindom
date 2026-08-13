@@ -30,8 +30,6 @@ export interface AuditLogInput {
   scope?: AuditScopeType;
   action: AuditActionType;
   resource?: string;
-  /** @deprecated 新写入用 detail_key + detail_params */
-  details?: string;
   detail_key?: string;
   detail_params?: AuditDetailParams;
   ipAddress?: string;
@@ -64,7 +62,6 @@ export class AuditService {
       tenant_slug,
       action,
       resource,
-      details,
       detail_key,
       detail_params,
       ipAddress,
@@ -83,15 +80,14 @@ export class AuditService {
       tenant_slug,
     });
 
-    // 有模板时：落 key+params，并写一份 zh-CN 到 details 供检索 / 旧客户端
+    // 有模板时：落 key+params，并写一份 zh-CN 到 details 供检索
     const resolvedDetails =
       detail_key !== undefined
         ? translateServerMessage("zh-CN", {
             code: detail_key,
             params: detail_params,
-            message: details,
           })
-        : details;
+        : undefined;
 
     await prisma.auditLog.create({
       data: {

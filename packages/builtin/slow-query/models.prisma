@@ -1,4 +1,4 @@
-// packages/builtin/slow-query/schema.prisma
+// packages/builtin/slow-query/models.prisma
 // 由 apps/server/prisma/models/slow-query.prisma 符号链接汇入
 model SlowQueryLog {
   id          String   @id @default(uuid())

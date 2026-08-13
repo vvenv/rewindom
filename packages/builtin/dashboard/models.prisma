@@ -1,4 +1,4 @@
-// packages/builtin/dashboard/schema.prisma
+// packages/builtin/dashboard/models.prisma
 // 由 apps/server/prisma/models/dashboard.prisma 符号链接汇入
 //
 // 用户级工作台布局。一个用户在一个租户下一行；从未配置过的用户没有行，

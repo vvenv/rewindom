@@ -1,4 +1,4 @@
-// packages/builtin/platform/schema.prisma
+// packages/builtin/platform/models.prisma
 // 由 apps/server/prisma/models/platform.prisma 符号链接汇入
 
 model AppSetting {

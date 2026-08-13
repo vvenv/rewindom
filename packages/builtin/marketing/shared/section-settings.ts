@@ -530,8 +530,8 @@ function applySpacingBox(
 }
 
 /**
- * `background` 预设 token：有 `bg_color` 时丢弃；`outline` 迁到边框；
- * `muted`/`accent` 透传（表单不声明该字段，不透传则保存会丢淡底）。
+ * `background` 内部 token：有 `bg_color` 时丢弃；`muted`/`accent` 透传
+ * （表单不声明该字段，不透传则保存会丢淡底）。
  */
 function applyBackgroundToken(
   raw: Record<string, unknown>,
@@ -543,16 +543,6 @@ function applyBackgroundToken(
 
   const background =
     typeof raw.background === "string" ? raw.background : "";
-  if (background === "outline") {
-    const borderWidth =
-      typeof out.border_width === "number" ? out.border_width : 0;
-    const borderColor =
-      typeof out.border_color === "string" ? out.border_color.trim() : "";
-    if (borderWidth === 0 && !borderColor) {
-      out.border_width = 1;
-    }
-    return;
-  }
   if (background === "muted" || background === "accent") {
     out.background = background;
   }

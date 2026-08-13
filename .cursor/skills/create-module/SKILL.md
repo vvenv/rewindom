@@ -121,7 +121,7 @@ checklist 手工建。
 5. 域类型放在 `modules/<id>/shared/`；`entitlements.ts` 声明租户功能 slice
 6. 写操作审计：优先 `events.emit('audit.log', ...)` 或 `events.emit('<resource>.<action>', ...)`；避免新业务直接 import `AuditService`
 7. 注册：外部模块跑 `pnpm gen:external-modules`（写进 `apps/server/src/external-modules.ts`）；内置模块在 `apps/server/src/enabled-modules.ts` 手写 `@be-water/builtin/<id>/server/index.js`
-8. Prisma：`modules/<id>/prisma/schema.prisma`（内置模块为 `packages/builtin/<id>/schema.prisma`），并在 `apps/server/prisma/models/<id>.prisma` 建**符号链接**指向它（`ln -s ../../../../modules/<id>/prisma/schema.prisma`，`gen:external-modules` 会自动建）；模型含 `tenant_id`；内核 `Tenant`/`User` 不声明业务反向 relation
+8. Prisma：`modules/<id>/prisma/schema.prisma`（内置模块为 `packages/builtin/<id>/models.prisma`），并在 `apps/server/prisma/models/<id>.prisma` 建**符号链接**指向它（`ln -s ../../../../modules/<id>/prisma/schema.prisma`，`gen:external-modules` 会自动建）；模型含 `tenant_id`；内核 `Tenant`/`User` 不声明业务反向 relation。内置片段**不要**叫 `schema.prisma`——Prisma 语言服务会把它当成独立 schema 根，跨文件的 `User` relation 会误报。
 
 ## Client checklist
 

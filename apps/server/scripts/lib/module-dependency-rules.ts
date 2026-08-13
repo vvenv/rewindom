@@ -10,13 +10,16 @@ const SCHEMA_DIR = "prisma/models";
  * `prisma/models/*.prisma` 是指向各包内真实 schema 的符号链接：
  *
  *   packages/server-kernel/prisma/<name>.prisma   → 归 kernel
- *   packages/builtin/<id>/schema.prisma           → 归该模块
+ *   packages/builtin/<id>/models.prisma           → 归该模块
  *   modules/<id>/prisma/...                       → 归外部模块（id 同目录名）
  *   packages/<product>/prisma/<name>.prisma       → 归下游业务包（模块 id 同包名）
  *
  * Prisma 只认单一 schema 目录（且各文件间本就存在跨文件 `@relation`），
  * 所以必须有这个汇合点；但**所有权仍属各包**——链接目标即归属声明，
  * 无需再手工维护映射表（那张表还曾是与上游 fork 的冲突点）。
+ *
+ * 内置模块片段故意不叫 `schema.prisma`：Prisma 语言服务会把同名文件当成独立
+ * schema 根，跨文件的 `User` 等 relation 就会误报「不是 model」。
  */
 function readSchemaOwners(serverRoot: string): Map<string, string> {
   const dir = path.join(serverRoot, SCHEMA_DIR);

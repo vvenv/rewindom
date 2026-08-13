@@ -44,9 +44,8 @@ describe("ColumnSpansField", () => {
     );
   });
 
-  /* 存量的旧比例写法要先读懂，控件显示的必须与渲染出来的是同一份 */
-  it("旧的比例写法照样显示成份额", () => {
-    renderField("1:3", 2);
+  it("两列时界线落在前缀和上", () => {
+    renderField("3:9", 2);
     expect(thumbs()[0]).toHaveAttribute("aria-valuenow", "3");
     expect(screen.getByText("9")).toBeTruthy();
   });

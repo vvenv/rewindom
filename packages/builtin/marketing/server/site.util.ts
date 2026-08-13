@@ -271,7 +271,7 @@ export function validatePageSlug(
 }
 
 /**
- * 写路径：先把存量 `doc` 收成 page，再按 schema 校验 slug。
+ * 写路径：规范化 kind / slug 后再校验。
  */
 export function resolvePageIdentity(
   kind: string | undefined,

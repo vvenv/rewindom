@@ -1,4 +1,4 @@
-// packages/builtin/marketing/schema.prisma
+// packages/builtin/marketing/models.prisma
 // 由 apps/server/prisma/models/marketing.prisma 符号链接汇入
 // --- module: marketing ---
 // 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard + withTenantScope 保证。

@@ -21,9 +21,13 @@ const TEST_I18N_BUNDLE: ServerI18nBundle = {
   messages: {
     "zh-CN": {
       "test.audit.created": "创建笔记：{{title}}",
+      "test.audit.login_success": "用户成功登录",
+      "test.audit.impersonate": "slug={{slug}}",
     },
     en: {
       "test.audit.created": "Created note: {{title}}",
+      "test.audit.login_success": "User logged in",
+      "test.audit.impersonate": "slug={{slug}}",
     },
   },
 };
@@ -71,7 +75,7 @@ describe("AuditService", () => {
         tenant_slug: "acme",
         action: AuditAction.LOGIN,
         resource: "auth",
-        details: "用户成功登录",
+        detail_key: "test.audit.login_success",
         ipAddress: "127.0.0.1",
         userAgent: "Mozilla/5.0",
       };
@@ -87,7 +91,7 @@ describe("AuditService", () => {
           action: AuditAction.LOGIN,
           resource: "auth",
           details: "用户成功登录",
-          detail_key: null,
+          detail_key: "test.audit.login_success",
           detail_params: undefined,
           ip_address: "127.0.0.1",
           user_agent: "Mozilla/5.0",
@@ -101,7 +105,7 @@ describe("AuditService", () => {
         username: "platform-admin",
         action: AuditAction.LOGIN,
         resource: "auth",
-        details: "用户成功登录",
+        detail_key: "test.audit.login_success",
       };
 
       await AuditService.log(input);
@@ -113,7 +117,7 @@ describe("AuditService", () => {
           action: AuditAction.LOGIN,
           resource: "auth",
           details: "用户成功登录",
-          detail_key: null,
+          detail_key: "test.audit.login_success",
           detail_params: undefined,
         },
       });
@@ -124,7 +128,8 @@ describe("AuditService", () => {
         username: "platform-admin",
         action: AuditAction.TENANT_IMPERSONATE,
         resource: "tenant",
-        details: "slug=acme",
+        detail_key: "test.audit.impersonate",
+        detail_params: { slug: "acme" },
       });
 
       expect(prisma.auditLog.create).toHaveBeenCalledWith({
@@ -159,7 +164,7 @@ describe("AuditService", () => {
         username: "testuser",
         action: AuditAction.LOGIN,
         resource: "auth",
-        details: "用户成功登录",
+        detail_key: "test.audit.login_success",
       };
 
       await AuditService.log(input);
@@ -171,7 +176,7 @@ describe("AuditService", () => {
           action: AuditAction.LOGIN,
           resource: "auth",
           details: "用户成功登录",
-          detail_key: null,
+          detail_key: "test.audit.login_success",
           detail_params: undefined,
         },
       });

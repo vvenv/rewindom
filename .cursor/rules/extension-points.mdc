@@ -15,7 +15,7 @@ alwaysApply: true
 | `packages/server-kernel/src/lib/`        | prisma、config、logger、tenant-scope、app-errors、openai-client 等基础设施                              | 仅内核基建              |
 | `packages/server-kernel/src/runtime/`    | 模块契约、加载器、ProviderRegistry、租户路由门控                                                         | 仅内核基建              |
 | `packages/server-kernel/src/kernel/`   | 内核 HTTP 路由、AuthService、captcha、平台管理员认证辅助                                                   | 仅内核基建              |
-| `packages/builtin/<id>/`                   | 内置模块包（`shared/`、`server/`、`client/`、`schema.prisma`）                                                | 内置能力 |
+| `packages/builtin/<id>/`                   | 内置模块包（`shared/`、`server/`、`client/`、`models.prisma`）                                                | 内置能力 |
 | `modules/<id>/`                            | 外部业务模块包（`@be-water/<id>`，经 `@be-water/module-sdk` 门面）                                              | 新 API、域类型、业务 UI |
 | `@be-water/server-kernel`                  | kernel、lib、generated Prisma — HTTP 内核与基础设施                                                              | 仅内核基建              |
 | `apps/server/src/enabled-modules.ts`     | 内置模块列表（`@be-water/builtin/<id>/server/index.js`）；外部模块由 `external-modules.ts` 汇入                | 注册新 server 模块      |
@@ -49,7 +49,7 @@ alwaysApply: true
 
 | 来源       | 规则                                                                                         |
 | ---------- | -------------------------------------------------------------------------------------------- |
-| **Schema** | 本模块 `schema.prisma` 中 FK 侧 `@relation(fields: [...])` 指向其他模块 model → 须声明该模块 |
+| **Schema** | 本模块 `models.prisma` / `schema.prisma` 中 FK 侧 `@relation(fields: [...])` 指向其他模块 model → 须声明该模块 |
 | **代码**   | 兄弟模块的相对 import（`../<id>/server/…`）→ 须声明该模块                             |
 
 约定：

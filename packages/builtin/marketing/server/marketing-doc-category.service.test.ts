@@ -1,7 +1,7 @@
 import { prisma } from "@be-water/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { migrateLegacyDocCategories, reorderDocCategories } from "./marketing-doc-category.service.js";
+import { reorderDocCategories } from "./marketing-doc-category.service.js";
 
 vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
   prisma: {
@@ -24,84 +24,6 @@ vi.mock("@be-water/server-kernel/lib/prisma.js", () => ({
 }));
 
 const TENANT = "tenant-1";
-
-describe("migrateLegacyDocCategories", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("maps legacy free-text values to canonical keys and creates categories", async () => {
-    const tx = {
-      marketingDocCategory: {
-        findMany: vi.fn().mockResolvedValue([]),
-        create: vi.fn().mockResolvedValue({}),
-      },
-      marketingDoc: {
-        findMany: vi.fn().mockResolvedValue([
-          {
-            id: "doc-1",
-            category: "入门",
-            category_draft: "入门",
-          },
-        ]),
-        update: vi.fn().mockResolvedValue({}),
-      },
-    };
-    vi.mocked(prisma.$transaction).mockImplementation(async (fn) =>
-      fn(tx as never),
-    );
-
-    const result = await migrateLegacyDocCategories(TENANT);
-
-    expect(result.categories).toBe(1);
-    expect(result.docs).toBe(1);
-    expect(tx.marketingDocCategory.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          tenant_id: TENANT,
-          label: "入门",
-        }),
-      }),
-    );
-    expect(tx.marketingDoc.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "doc-1", tenant_id: TENANT },
-        data: expect.objectContaining({
-          category: expect.stringMatching(/^cat-[a-z0-9]+$/u),
-          category_draft: expect.stringMatching(/^cat-[a-z0-9]+$/u),
-        }),
-      }),
-    );
-  });
-
-  it("is idempotent when docs already use an existing category key", async () => {
-    const tx = {
-      marketingDocCategory: {
-        findMany: vi.fn().mockResolvedValue([{ key: "guides", sort_order: 0 }]),
-        create: vi.fn(),
-      },
-      marketingDoc: {
-        findMany: vi.fn().mockResolvedValue([
-          {
-            id: "doc-1",
-            category: "guides",
-            category_draft: "guides",
-          },
-        ]),
-        update: vi.fn(),
-      },
-    };
-    vi.mocked(prisma.$transaction).mockImplementation(async (fn) =>
-      fn(tx as never),
-    );
-
-    const result = await migrateLegacyDocCategories(TENANT);
-
-    expect(result).toEqual({ categories: 0, docs: 0 });
-    expect(tx.marketingDocCategory.create).not.toHaveBeenCalled();
-    expect(tx.marketingDoc.update).not.toHaveBeenCalled();
-  });
-});
 
 describe("reorderDocCategories", () => {
   beforeEach(() => {

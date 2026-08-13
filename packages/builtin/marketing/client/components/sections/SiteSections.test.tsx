@@ -40,12 +40,12 @@ const pages = [
   },
 ] as unknown as PublicSitePage[];
 
-/** 文档版式：1:3 容器段，左列同级菜单（吸顶）、右列正文。 */
+/** 文档版式：3:9 容器段，左列同级菜单（吸顶）、右列正文。 */
 function docsGroup(): SiteSection[] {
   return parseSections([
     {
       type: "group",
-      settings: { columns_layout: "1:3", column_gap: 40 },
+      settings: { columns_layout: "3:9", column_gap: 40 },
       blocks: [
         {
           type: "column",
@@ -100,7 +100,7 @@ describe("SiteSections 容器段", () => {
     const sections = parseSections([
       {
         type: "group",
-        settings: { columns_layout: "1:3" },
+        settings: { columns_layout: "3:9" },
         blocks: [
           {
             type: "column",

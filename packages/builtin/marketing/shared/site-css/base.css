@@ -188,7 +188,7 @@ dl {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
 }
-.sec-band:is(.sec-bg-muted, .sec-bg-accent, .sec-bg-outline, .has-surface)
+.sec-band:is(.sec-bg-muted, .sec-bg-accent, .has-surface)
   > .sec-content:not(.sec-pad-x) {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
@@ -338,14 +338,12 @@ dl {
    色块的内边距，正文因此右移 1.5rem——用色块边和正文列对齐换掉那 1.5rem 的位移 */
 .sec-bg-muted,
 .sec-bg-accent,
-.sec-bg-outline,
 .sec-radius-default {
   border-radius: 0.75rem;
 }
 /* 通栏色块贴着视口边，圆角会露出两个缺口 */
 .sec-w-full.sec-bg-muted,
 .sec-w-full.sec-bg-accent,
-.sec-w-full.sec-bg-outline,
 .sec-w-full.sec-radius-default {
   border-radius: 0;
 }
@@ -354,9 +352,6 @@ dl {
 }
 .sec-bg-accent {
   background: color-mix(in srgb, var(--accent) 8%, transparent);
-}
-.sec-bg-outline {
-  border: 1px solid var(--border);
 }
 .sec-band.has-surface {
   background-color: var(--sec-bg, transparent);

@@ -468,9 +468,9 @@ export const ${n.CONST}_ENTITLEMENT: TenantModuleEntitlement = {
     return `  ${f.name} ${f.type}${optional}${def}`;
   };
   add(
-    "schema.prisma",
+    "models.prisma",
     `
-// packages/builtin/${n.id}/schema.prisma
+// packages/builtin/${n.id}/models.prisma
 // 由 apps/server/prisma/models/${n.id}.prisma 符号链接汇入
 // --- module: ${n.id} ---
 model ${model.name} {
@@ -2220,7 +2220,7 @@ for (const [p, content] of patches) writeFileSync(p, content);
 
 if (!existsSync(symlinkPath)) {
   symlinkSync(
-    `../../../../packages/builtin/${n.id}/schema.prisma`,
+    `../../../../packages/builtin/${n.id}/models.prisma`,
     symlinkPath,
   );
 }

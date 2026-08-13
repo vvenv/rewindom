@@ -329,8 +329,8 @@ describe("加减列时的列宽", () => {
     expect(back.settings.columns_layout).toBe("3:9");
   });
 
-  it("存量的旧比例写法先读懂再顺", () => {
-    const group = twoColumnGroup("1:3");
+  it("加列从最宽列匀一半", () => {
+    const group = twoColumnGroup("3:9");
     const next = addBlock([group], group.id, "column")[0]!;
     expect(next.settings.columns_layout).toBe("3:5:4");
   });

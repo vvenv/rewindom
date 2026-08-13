@@ -263,7 +263,7 @@ packages/builtin/<id>/
     └── components/
 ```
 
-**Prisma schema 在模块目录内**（`packages/builtin/<id>/schema.prisma`）。
+**Prisma schema 在模块目录内**（`packages/builtin/<id>/models.prisma`）。
 Prisma 只认单一 schema 目录，故 `apps/server/prisma/models/` 下放**符号链接**指向各包内的真实文件——
 汇合点是 Prisma 的要求，所有权仍属各包，链接目标即归属声明（见 §8.1）。
 
@@ -544,7 +544,7 @@ apps/server/prisma/
   migrations/            # 单一迁移目录（§8.3）
 
 packages/server-kernel/prisma/kernel.prisma      # 内核 model
-packages/builtin/<id>/schema.prisma              # 内置模块
+packages/builtin/<id>/models.prisma              # 内置模块（勿命名为 schema.prisma，以免语言服务当独立根）
 modules/<id>/prisma/schema.prisma                # 外部业务模块
 ```
 

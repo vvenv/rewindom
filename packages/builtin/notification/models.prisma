@@ -1,4 +1,4 @@
-// packages/builtin/notification/schema.prisma
+// packages/builtin/notification/models.prisma
 // 由 apps/server/prisma/models/notification.prisma 符号链接汇入
 model Notification {
   id         String    @id @default(uuid())

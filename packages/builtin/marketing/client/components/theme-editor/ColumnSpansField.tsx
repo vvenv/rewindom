@@ -37,8 +37,8 @@ export function ColumnSpansField({
   const { t } = useTranslation("marketing");
 
   /*
-   * 一律先过 `resolveGroupSpans`：存量值可能还是旧的比例写法（`"1:3"`），也可能
-   * 与当前列数对不上（刚加了一列）。控件显示的必须与**渲染出来的**是同一份。
+   * 一律先过 `resolveGroupSpans`：存值可能与当前列数对不上（刚加了一列）。
+   * 控件显示的必须与**渲染出来的**是同一份。
    */
   const spans = resolveGroupSpans(value, columnCount);
 

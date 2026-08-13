@@ -1,4 +1,4 @@
-// packages/builtin/site-billing/schema.prisma
+// packages/builtin/site-billing/models.prisma
 // 由 apps/server/prisma/models/site-billing.prisma 符号链接汇入
 // --- module: site-billing ---
 //

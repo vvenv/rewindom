@@ -396,9 +396,9 @@ describe("section layout settings", () => {
     expect(parseSettingValues(defs, { background: "accent" }).background).toBe(
       "accent",
     );
-    const outlined = parseSettingValues(defs, { background: "outline" });
-    expect(outlined.background).toBeUndefined();
-    expect(outlined.border_width).toBe(1);
+    expect(
+      parseSettingValues(defs, { background: "outline" }).background,
+    ).toBeUndefined();
     expect(
       parseSettingValues(defs, { background: "muted", bg_color: "#112233" })
         .background,
@@ -636,21 +636,9 @@ describe("容器段（group）", () => {
     expect(resolveGroupSpans("3:9", 1)).toEqual([12]);
     expect(resolveGroupSpans("zzz", 2)).toEqual([6, 6]);
     expect(resolveGroupSpans("3:9", 0)).toEqual([]);
-  });
-
-  /*
-   * 改版之前存的是**比例**（`1:3` = 一份对三份），现在存的是份额（`3:9`）。
-   * 靠「加起来是不是 12」区分：不读旧写法的话，租户早就排好的页面会在某次发布后
-   * 无声无息地变成等分。
-   */
-  it("列宽认得旧的比例写法", () => {
-    expect(resolveGroupSpans("1:3", 2)).toEqual([3, 9]);
-    expect(resolveGroupSpans("1:1", 2)).toEqual([6, 6]);
-    expect(resolveGroupSpans("2:1", 2)).toEqual([8, 4]);
-    expect(resolveGroupSpans("1:1:1", 3)).toEqual([4, 4, 4]);
-    expect(resolveGroupSpans("1:2:1", 3)).toEqual([3, 6, 3]);
-    // 旧写法与列数对不上，照样按列数等分
-    expect(resolveGroupSpans("1:3", 3)).toEqual([4, 4, 4]);
+    // 旧比例写法（加起来不是 12）不再认，按列数等分
+    expect(resolveGroupSpans("1:3", 2)).toEqual([6, 6]);
+    expect(resolveGroupSpans("1:2:1", 3)).toEqual([4, 4, 4]);
   });
 
   it("份额必须每列至少一栏且加起来正好一行", () => {
@@ -676,7 +664,7 @@ describe("容器段（group）", () => {
     const [group] = parseSections([
       {
         type: "group",
-        settings: { columns_layout: "1:3" },
+        settings: { columns_layout: "3:9" },
         blocks: [
           {
             type: "column",

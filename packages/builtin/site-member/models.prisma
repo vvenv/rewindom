@@ -1,4 +1,4 @@
-// packages/builtin/site-member/schema.prisma
+// packages/builtin/site-member/models.prisma
 // 由 apps/server/prisma/models/site-member.prisma 符号链接汇入
 // --- module: site-member ---
 // 站点会员是「租户的终端客户」，与工作台用户（User）是不同的身份主体：
