@@ -151,6 +151,22 @@ checklist 手工建。
 11. Page 按 `frontend-page-structure` skill 四层拆分
 12. 在 `apps/client/src/enabled-modules.ts` / `apps/server/src/enabled-modules.ts` 注册
 
+## 贡献官网段（Theme Editor）
+
+段的 schema / SSR HTML / 编辑器视图按 marketing `MODULE.md`「业务模块贡献 section」。**CSS 另有一条链，不要手写 ts 字符串。**
+
+| 写 | 生成 | 登记 |
+| --- | --- | --- |
+| `<模块>/shared/site-css/<name>.css` | `shared/site-css.generated.ts` | `{ css: NAME_CSS }` 交给 `registerSiteSectionHtml` / `registerSiteSectionView` |
+
+```bash
+pnpm --filter @rewindom/builtin assemble:module-css
+```
+
+金标准：`packages/builtin/site-member/shared/site-css/`。Rule：`site-section-css`。
+
+**禁止** `shared/shop-css.ts` 这类模板字符串——生产 bundle 读不了旁路 `.css`，手写字符串也逃过剥注释。改 `.css` 后必须跑 assemble 并提交 generated。
+
 ## 金标准（notes）
 
 - CRUD + `PermissionRoute` + 审计事件 + Vitest
@@ -161,6 +177,7 @@ checklist 手工建。
 - 在 `App.tsx` 硬编码业务路由
 - 在 `routes/index.ts` 中央列表追加业务插件
 - 在 `platform` 内写业务域逻辑；用 slot / `renderPlatformRoutes` 反向贡献
+- 贡献官网段时手写 `shared/*-css.ts` 模板字符串（见「贡献官网段」）
 
 ## 交付前自检（逐条比对 spec）
 
@@ -182,3 +199,4 @@ checklist 手工建。
 - [ ] 服务查询都带 `tenant_id` 过滤（由 `eslint-rules/tenant-scope.js` 兜底）
 - [ ] `MODULE.md` + `MODULE.spec.yaml` 落盘，且 spec 与实现一致
 - [ ] 租户侧 / 公开面文案无「租户」「Tenant」（平台面除外）
+- [ ] 若贡献了官网段：CSS 真源是 `shared/site-css/*.css`，没有手写 `*-css.ts`，generated 已 assemble 并提交

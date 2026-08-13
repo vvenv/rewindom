@@ -1,0 +1,40 @@
+---
+description: 官网贡献段 CSS 必须共置 .css 再 assemble，禁止手写 *-css.ts 模板字符串
+globs: modules/**/shared/**/*.{ts,css},packages/builtin/**/shared/site-css/**,packages/builtin/**/shared/*css.ts,packages/builtin/**/module.tsx,modules/**/module.tsx,packages/builtin/**/sections/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# 官网贡献段 CSS
+
+marketing 内置段的样式在构建期打进 `MARKETING_SECTION_CSS`。别的模块贡献的段进不了那次打包，只能随 `registerSiteSectionHtml` / `registerSiteSectionView` 把 **构建期生成的字符串** 交进去。
+
+## 真源
+
+| | |
+| --- | --- |
+| 写 | `<模块>/shared/site-css/<name>.css` |
+| 生成 | `<模块>/shared/site-css.generated.ts`（禁止手改） |
+| 命令 | `pnpm --filter @rewindom/builtin assemble:module-css` |
+
+`foo-bar.css` → 导出 `FOO_BAR_CSS`。只用官网已有 token（`--surface` / `--border` / `--muted-fg` / `--accent` / `--radius`）。金标准：`packages/builtin/site-member/shared/site-css/`。
+
+## 禁止
+
+```ts
+// ❌ shared/shop-css.ts、shared/foo-css.ts —— 模板字符串不是真源
+export const SHOP_STOREFRONT_CSS = `.shop-product{...}`;
+```
+
+生产 server 是单文件 bundle，运行时读旁路 `.css` 会失效；手写字符串还会逃过 minify 剥注释。
+
+## 登记
+
+两端都从 **generated** 取常量，不要从 `.css` 或手写 ts import：
+
+```ts
+import { SHOP_STOREFRONT_CSS } from "../shared/site-css.generated.js";
+registerSiteSectionHtml(def, render, { css: SHOP_STOREFRONT_CSS });
+registerSiteSectionView(def, View, { css: SHOP_STOREFRONT_CSS });
+```
+
+改了 `.css` 必须跑 assemble 并把 generated 一并提交。`assemble:module-css` 扫到 `shared/*-css.ts` 会直接失败。

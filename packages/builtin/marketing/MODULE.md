@@ -518,6 +518,7 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 | 位置 | 做什么 |
 | --- | --- |
 | `<模块>/shared/xxx-section.ts` | `SectionDefinition`（type 必须带模块前缀） |
+| `<模块>/shared/site-css/<name>.css` | 贡献段 CSS 真源；assemble 成 `site-css.generated.ts`，禁止手写 `*-css.ts` |
 | `<模块>/server/…` → `registerSiteSectionHtml(def, render, { css })` | 在 `onBoot` 里注册 SSR 渲染器 |
 | `<模块>/client/module.tsx` → `registerSiteSectionView(def, View, { css })` | 注册编辑器视图 |
 
@@ -533,9 +534,9 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 由 `site-entitlements.ts` 按租户解析）。渲染器是**进程级**注册的、开通与否是**租户级**的，
 所以闸门只能在渲染时按租户拦。忘了传集合按「都没开通」处理——少了而不是多了。
 
-**CSS** 随注册一起交进来：内置段的样式构建期就打进 `MARKETING_SECTION_CSS` 了，贡献段进不了
-那次打包，所以运行时注册进来、一律拼在最后（覆盖内置类时不必打优先级战争）。贡献段同样
-**按需**发：这一页没上它就不发（见 `loadMarketingSiteCssFor`）。
+**CSS** 真源是贡献方的 `shared/site-css/<name>.css`，`pnpm --filter @rewindom/builtin assemble:module-css` 压成 `site-css.generated.ts`，再随注册交进来。内置段的样式构建期就打进 `MARKETING_SECTION_CSS` 了，贡献段进不了那次打包，所以运行时注册进来、一律拼在最后（覆盖内置类时不必打优先级战争）。贡献段同样 **按需**发：这一页没上它就不发（见 `loadMarketingSiteCssFor`）。
+
+**禁止**手写 `shared/*-css.ts` 模板字符串（`shop-css.ts` 那类）：生产 server 是单文件 bundle，旁路 `.css` 读不了，手写字符串还逃过剥注释。Rule：`site-section-css`。金标准：`site-member/shared/site-css/`。
 
 **停用之后不丢内容**：模块被移除或租户退订时，页面上已经摆好的那一段走下面的
 `unsupported` 口径原样兜住，重新启用就自动回来。这是这个契约敢用的前提。

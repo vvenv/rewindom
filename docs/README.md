@@ -48,6 +48,8 @@
 
 前端页面的四层拆分（Page / Hook / Lib / Component）见 `frontend-page-structure` skill。
 
+官网贡献段 CSS：写 `shared/site-css/*.css`，assemble 生成 `site-css.generated.ts`，禁止手写 `*-css.ts`。见 `create-module` skill「贡献官网段」与 rule `site-section-css`。
+
 ## 数据库
 
 | 场景                            | Skill              |

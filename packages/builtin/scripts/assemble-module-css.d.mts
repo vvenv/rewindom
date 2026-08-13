@@ -12,3 +12,4 @@ export function writeModuleSiteCssGenerated(moduleId: string): {
   exports: string[];
   bytes: number;
 };
+export function listHandwrittenModuleCssTs(): string[];

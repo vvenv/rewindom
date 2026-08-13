@@ -8,7 +8,9 @@ import { SHOP_ENTITLEMENT } from "../shared/entitlements.js";
 import { catalogRoutes } from "./catalog/catalog.routes.js";
 import { SHOP_SERVER_I18N } from "./i18n.js";
 import { shopAdminRoutes, shopWebhookRoutes } from "./order/shop-admin.routes.js";
+import { registerShopStorefrontSections } from "./sections/register.js";
 import { shopStorefrontRoutes } from "./ssr/shop.ssr.js";
+import { registerShopPageTemplates } from "../shared/shop-page-templates.js";
 
 export const shopServerModule: ServerAppModule = {
   id: "shop",
@@ -53,6 +55,10 @@ export const shopServerModule: ServerAppModule = {
         labels: { "zh-CN": "我的订单", en: "My orders" },
         order: 20,
       });
+    },
+    onBoot: async () => {
+      registerShopPageTemplates();
+      registerShopStorefrontSections();
     },
     registerRoutes: async (app) => {
       await app.register(shopWebhookRoutes, {

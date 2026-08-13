@@ -22,6 +22,7 @@ alwaysApply: true
 | 字段命名全链路 | — | `docs/design/field-naming-conventions.md` |
 | 单元测试 | — | `docs/design/unit-testing.md` |
 | 前端页面分层 | `frontend-page-structure` | — |
+| 官网 / 贡献段 CSS | `create-module`（贡献官网段节） | `packages/builtin/marketing/MODULE.md`；rule：`site-section-css` |
 | Prisma migration | `merge-migrations`、`prisma-sync-fix` | — |
 | 部署 / 生产 env 透传 | —（`pnpm check:prod-app-env`；rule：`tenancy-mode`） | `docs/deployment.md` |
 

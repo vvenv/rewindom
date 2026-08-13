@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { assembleModuleSiteCss } from "../../scripts/assemble-module-css.mjs";
+import {
+  assembleModuleSiteCss,
+  listHandwrittenModuleCssTs,
+} from "../../scripts/assemble-module-css.mjs";
 
 import {
   MEMBER_ACCOUNT_CSS,
@@ -27,5 +30,9 @@ describe("site-member site-css 生成物", () => {
       expect(css).not.toContain("/*");
       expect(css).not.toContain("@import");
     }
+  });
+
+  it("没有手写 shared/*-css.ts（真源只许 site-css/*.css）", () => {
+    expect(listHandwrittenModuleCssTs()).toEqual([]);
   });
 });

@@ -92,5 +92,168 @@
     "slugRequired": "Enter a slug",
     "skuRequired": "Enter a SKU",
     "priceRequired": "Enter a price"
+  },
+  "template": {
+    "group": "Shop page layouts",
+    "catalog": { "label": "Product list" },
+    "product": { "label": "Product detail" },
+    "cart": { "label": "Cart" },
+    "checkout": { "label": "Checkout & payment" },
+    "order": { "label": "Order confirmation" },
+    "memberOrders": { "label": "My orders" }
+  },
+  "section": {
+    "productGrid": {
+      "label": "Product list",
+      "display": "Display",
+      "style": "Style",
+      "styleCards": "Cards",
+      "styleList": "List",
+      "showPrice": "Show price",
+      "limit": "Limit",
+      "limitInfo": "0 shows every published product. Use a small number on the home page.",
+      "emptyText": "Empty state",
+      "unconfigured": "No published products yet.",
+      "unconfiguredCta": "Add products"
+    },
+    "product": { "label": "Product detail" },
+    "cart": {
+      "label": "Cart",
+      "emptyText": "Empty state",
+      "continueLabel": "Continue shopping"
+    },
+    "cartLink": {
+      "label": "Cart link",
+      "linkLabel": "Link label",
+      "showCount": "Show item count",
+      "showCountInfo": "The count only appears when this request has a cart. On the marketing site this block is usually just the label."
+    },
+    "checkout": {
+      "label": "Checkout",
+      "canceledText": "Canceled-payment notice"
+    },
+    "order": {
+      "label": "Order confirmation",
+      "statusLabel": "Status label",
+      "pendingText": "Pending-payment notice",
+      "shippingLabel": "Shipping label",
+      "taxLabel": "Tax label",
+      "totalLabel": "Total label",
+      "trackingLabel": "Tracking label"
+    },
+    "orderList": {
+      "label": "Order list",
+      "emptyText": "Empty state",
+      "numberLabel": "Order number label"
+    }
+  },
+  "block": {
+    "productTitle": "Title",
+    "productPrice": "Price",
+    "productDescription": "Description",
+    "productBuy": "Add to cart",
+    "variantLabel": "Variant label",
+    "quantityLabel": "Quantity label",
+    "addLabel": "Add-to-cart button",
+    "soldOutLabel": "Sold-out label",
+    "cartLines": "Line items",
+    "cartItemLabel": "Item column",
+    "cartQtyLabel": "Qty column",
+    "cartLineTotalLabel": "Total column",
+    "cartUpdateLabel": "Update button",
+    "cartSummary": "Summary",
+    "cartSubtotalLabel": "Subtotal label",
+    "cartCheckoutLabel": "Checkout button",
+    "checkoutContact": "Contact",
+    "checkoutContactHeading": "Contact heading",
+    "emailLabel": "Email label",
+    "checkoutAddress": "Shipping address",
+    "checkoutAddressHeading": "Address heading",
+    "nameLabel": "Name label",
+    "line1Label": "Address label",
+    "cityLabel": "City label",
+    "stateLabel": "State label",
+    "postalLabel": "Postal code label",
+    "countryLabel": "Country label",
+    "phoneLabel": "Phone label",
+    "checkoutShipping": "Shipping",
+    "checkoutShippingHeading": "Shipping heading",
+    "checkoutShippingEmpty": "No-rates notice",
+    "checkoutSummary": "Order summary",
+    "checkoutSummaryHeading": "Summary heading",
+    "checkoutSummaryEmpty": "Empty-cart notice",
+    "checkoutPay": "Pay",
+    "payLabel": "Pay button"
+  },
+  "storefront": {
+    "catalog": {
+      "title": "Products",
+      "subtitle": "Items for sale",
+      "empty": "No products for sale yet."
+    },
+    "product": {
+      "title": "Product",
+      "subtitle": "Product details",
+      "variant": "Variant",
+      "quantity": "Quantity",
+      "add": "Add to cart",
+      "soldOut": "Sold out"
+    },
+    "cart": {
+      "title": "Cart",
+      "subtitle": "Review the items you picked",
+      "empty": "Your cart is empty.",
+      "continue": "Continue shopping",
+      "item": "Item",
+      "qty": "Qty",
+      "lineTotal": "Total",
+      "update": "Update",
+      "subtotal": "Subtotal",
+      "checkout": "Checkout"
+    },
+    "checkout": {
+      "title": "Checkout",
+      "subtitle": "Enter a shipping address and pay",
+      "canceled": "Payment canceled. You can try again.",
+      "contact": "Contact",
+      "email": "Email",
+      "address": "Shipping address",
+      "name": "Name",
+      "line1": "Address",
+      "city": "City",
+      "state": "State",
+      "postal": "Postal code",
+      "country": "Country (ISO-2)",
+      "phone": "Phone",
+      "shipping": "Shipping",
+      "shippingEmpty": "No shipping rates for this destination. Add rates in the workspace.",
+      "summary": "Order",
+      "pay": "Pay"
+    },
+    "order": {
+      "title": "Order",
+      "subtitle": "Status and tracking",
+      "status": "Status",
+      "pending": "Confirming payment. Refresh in a moment.",
+      "shipping": "Shipping",
+      "tax": "Tax",
+      "total": "Total",
+      "tracking": "Tracking"
+    },
+    "orders": {
+      "title": "My orders",
+      "subtitle": "Past orders",
+      "empty": "No orders yet.",
+      "number": "Order"
+    },
+    "cartLink": { "label": "Cart" }
+  },
+  "editor": {
+    "sampleTitle": "Sample product",
+    "sampleDescription": "Placeholder used in the editor. Visitors see live catalog data.",
+    "samplePrice": "$12.00",
+    "sampleSku": "SKU-001",
+    "sampleVariant": "Default",
+    "sampleStatus": "Paid"
   }
 }

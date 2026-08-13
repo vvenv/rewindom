@@ -20,6 +20,7 @@ shop/
 ├── package.json
 ├── prisma/schema.prisma
 ├── shared/                 # 类型与 entitlement
+│   └── site-css/           # 贡献段 CSS 真源（assemble → site-css.generated.ts）
 ├── server/
 │   ├── module.ts
 │   ├── catalog/
@@ -27,12 +28,14 @@ shop/
 │   ├── shipping/
 │   ├── payment/
 │   ├── order/
-│   └── ssr/                # /shop/* 与 /member/orders
+│   └── ssr/                # /shop/* 与 /member/orders（走官网 chrome）
+│   └── sections/           # 贡献段 SSR 渲染
 └── client/
-    ├── module.tsx
+    ├── module.tsx          # 登记模板页 + 段视图
     ├── tenant/             # routes + nav
     ├── pages/
     ├── components/
+    │   └── sections/       # Theme Editor 预览
     ├── hooks/
     └── locales/
 ```
@@ -46,6 +49,29 @@ shop/
 | 会员 | `/member/orders` | 会员会话 |
 
 加购与结账是真 `<form method="post">`，无 JS 也能买。
+
+## 官网模板页与区块
+
+店面不再自绘 HTML 外壳。路径仍是 `/shop/*`，版式是一组模板页（与文档库 / 会员页同一套
+`page-templates.ts`）：默认不落库，没自定义过就按内置预设渲染；自定义之后走 Theme Editor
+与同一套发布流程。分组 key 是 `shop:template.group`（「我的订单」复用会员页那一组）。
+
+| kind | 路径 | 必备段 | 区块 |
+| --- | --- | --- | --- |
+| `shop_index` | `/shop` | `shop.product-grid` | —（条目来自已发布商品；也能摆上首页，`limit` 控制条数） |
+| `shop_product` | `/shop/:slug` | `shop.product` | `title` / `price` / `description` / `buy` |
+| `shop_cart` | `/shop/cart` | `shop.cart` | `lines` / `summary` |
+| `shop_checkout` | `/shop/checkout` | `shop.checkout` | `contact` / `address` / `shipping` / `summary` / `pay`（整段一张 POST 表单） |
+| `shop_order` | `/shop/orders/:number` | `shop.order` | — |
+| `shop_member_orders` | `/member/orders` | `shop.order-list` | — |
+
+另有 `shop.cart-link`：可放页面 / 页头 / 页脚，链到购物车。件数只在请求带得上购物车时出现。
+
+没有独立的「分类」模型，商品列表就是目录；首页用同一段加 `limit` 当精选。真收卡仍在 Stripe Checkout（站外），本页收的是联系方式、收件地址、运费档。
+
+租户没开通 `shop` 时这些段不进「添加区块」菜单，也不渲染。
+
+店面 CSS 真源是 `shared/site-css/shop-storefront.css`，assemble 后进 `site-css.generated.ts` 再随段注册交给 marketing。不要手写 `shared/*-css.ts`。
 
 ## 权限
 

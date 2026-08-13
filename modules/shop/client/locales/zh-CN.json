@@ -92,5 +92,168 @@
     "slugRequired": "请输入路径",
     "skuRequired": "请输入 SKU",
     "priceRequired": "请输入价格"
+  },
+  "template": {
+    "group": "商店页版式",
+    "catalog": { "label": "商品列表" },
+    "product": { "label": "商品详情" },
+    "cart": { "label": "购物车" },
+    "checkout": { "label": "结账与付款" },
+    "order": { "label": "订单确认" },
+    "memberOrders": { "label": "我的订单" }
+  },
+  "section": {
+    "productGrid": {
+      "label": "商品列表",
+      "display": "展示",
+      "style": "样式",
+      "styleCards": "卡片",
+      "styleList": "列表",
+      "showPrice": "显示价格",
+      "limit": "条数上限",
+      "limitInfo": "0 表示展示全部在售商品。首页可以只露几件。",
+      "emptyText": "空状态文案",
+      "unconfigured": "还没有已发布的商品。",
+      "unconfiguredCta": "去上架"
+    },
+    "product": { "label": "商品详情" },
+    "cart": {
+      "label": "购物车",
+      "emptyText": "空状态文案",
+      "continueLabel": "继续购物按钮"
+    },
+    "cartLink": {
+      "label": "购物车入口",
+      "linkLabel": "链接文案",
+      "showCount": "显示件数",
+      "showCountInfo": "只有当前请求带得上购物车时才出件数；官网上的这一段通常只显示文案。"
+    },
+    "checkout": {
+      "label": "结账",
+      "canceledText": "取消付款提示"
+    },
+    "order": {
+      "label": "订单确认",
+      "statusLabel": "状态标签",
+      "pendingText": "待确认付款提示",
+      "shippingLabel": "运费标签",
+      "taxLabel": "税费标签",
+      "totalLabel": "合计标签",
+      "trackingLabel": "物流标签"
+    },
+    "orderList": {
+      "label": "订单列表",
+      "emptyText": "空状态文案",
+      "numberLabel": "订单号标签"
+    }
+  },
+  "block": {
+    "productTitle": "标题",
+    "productPrice": "价格",
+    "productDescription": "说明",
+    "productBuy": "加购",
+    "variantLabel": "规格标签",
+    "quantityLabel": "数量标签",
+    "addLabel": "加购按钮",
+    "soldOutLabel": "缺货文案",
+    "cartLines": "商品行",
+    "cartItemLabel": "商品列",
+    "cartQtyLabel": "数量列",
+    "cartLineTotalLabel": "小计列",
+    "cartUpdateLabel": "更新按钮",
+    "cartSummary": "合计",
+    "cartSubtotalLabel": "合计标签",
+    "cartCheckoutLabel": "去结账按钮",
+    "checkoutContact": "联系方式",
+    "checkoutContactHeading": "联系方式标题",
+    "emailLabel": "邮箱标签",
+    "checkoutAddress": "收件地址",
+    "checkoutAddressHeading": "收件地址标题",
+    "nameLabel": "收件人标签",
+    "line1Label": "地址标签",
+    "cityLabel": "城市标签",
+    "stateLabel": "省/州标签",
+    "postalLabel": "邮编标签",
+    "countryLabel": "国家/地区标签",
+    "phoneLabel": "电话标签",
+    "checkoutShipping": "运费",
+    "checkoutShippingHeading": "运费标题",
+    "checkoutShippingEmpty": "无运费提示",
+    "checkoutSummary": "订单摘要",
+    "checkoutSummaryHeading": "摘要标题",
+    "checkoutSummaryEmpty": "空车提示",
+    "checkoutPay": "去付款",
+    "payLabel": "付款按钮"
+  },
+  "storefront": {
+    "catalog": {
+      "title": "商品",
+      "subtitle": "在售商品",
+      "empty": "暂无在售商品。"
+    },
+    "product": {
+      "title": "商品",
+      "subtitle": "商品详情",
+      "variant": "规格",
+      "quantity": "数量",
+      "add": "加入购物车",
+      "soldOut": "缺货"
+    },
+    "cart": {
+      "title": "购物车",
+      "subtitle": "查看已选商品",
+      "empty": "购物车是空的。",
+      "continue": "去逛逛",
+      "item": "商品",
+      "qty": "数量",
+      "lineTotal": "小计",
+      "update": "更新",
+      "subtotal": "合计",
+      "checkout": "去结账"
+    },
+    "checkout": {
+      "title": "结账",
+      "subtitle": "填写收件信息并付款",
+      "canceled": "已取消付款，可以重新提交。",
+      "contact": "联系方式",
+      "email": "邮箱",
+      "address": "收件地址",
+      "name": "收件人",
+      "line1": "地址",
+      "city": "城市",
+      "state": "省/州",
+      "postal": "邮编",
+      "country": "国家/地区（ISO 两位）",
+      "phone": "电话",
+      "shipping": "运费",
+      "shippingEmpty": "当前目的地没有可用运费，请先在工作台配置运费表。",
+      "summary": "订单",
+      "pay": "去付款"
+    },
+    "order": {
+      "title": "订单",
+      "subtitle": "订单状态与物流",
+      "status": "状态",
+      "pending": "正在确认付款，请稍候刷新。",
+      "shipping": "运费",
+      "tax": "税费",
+      "total": "合计",
+      "tracking": "物流"
+    },
+    "orders": {
+      "title": "我的订单",
+      "subtitle": "查看历史订单",
+      "empty": "还没有订单。",
+      "number": "订单号"
+    },
+    "cartLink": { "label": "购物车" }
+  },
+  "editor": {
+    "sampleTitle": "示例商品",
+    "sampleDescription": "编辑器预览用的占位商品，访客看到的是真实在售数据。",
+    "samplePrice": "¥99.00",
+    "sampleSku": "SKU-001",
+    "sampleVariant": "默认规格",
+    "sampleStatus": "已付款"
   }
 }

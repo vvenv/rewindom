@@ -1,0 +1,160 @@
+/*
+ * 店面贡献段的样式。
+ *
+ * 真源在此；`pnpm --filter @rewindom/builtin assemble:module-css` 压缩后写入
+ * ../site-css.generated.ts，再随注册交给 marketing 拼在官网 CSS 末尾（贡献段
+ * 进不了 marketing 构建期那次打包）。只用它已有的 token（`--surface` / `--border` /
+ * `--muted-fg` / `--accent` / `--radius` / `--danger`），换主题、切明暗都跟着变。
+ *
+ * 禁止再写一份 `shared/shop-css.ts` 模板字符串——生产 server 是单文件 bundle，
+ * 手写字符串既逃过 assemble 的注释剥离，也让「改样式只改 .css」这条链断掉。
+ */
+
+.shop-alert {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  margin: 0 0 1.25rem;
+}
+.shop-alert.error {
+  background: color-mix(in srgb, var(--danger, #991b1b) 12%, transparent);
+  color: var(--danger, #991b1b);
+}
+.shop-alert.notice {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+.shop-muted {
+  color: var(--muted-fg);
+}
+.shop-price {
+  font-weight: 600;
+}
+.shop-grid-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.shop-grid-list a {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+}
+.shop-product {
+  display: grid;
+  gap: 1.75rem;
+}
+@media (min-width: 768px) {
+  .shop-product {
+    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+    align-items: start;
+  }
+  .shop-product-buy {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+.shop-product-main {
+  display: grid;
+  gap: 1rem;
+}
+.shop-product-main h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+.shop-product-buy,
+.shop-cart-summary,
+.shop-checkout-aside {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 0.15rem);
+  background: var(--surface);
+}
+.shop-field {
+  display: grid;
+  gap: 0.375rem;
+  min-width: 0;
+}
+.shop-field > label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.shop-field input,
+.shop-field select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: inherit;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+}
+.shop-field input:focus-visible,
+.shop-field select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.shop-buy,
+.shop-qty {
+  display: grid;
+  gap: 0.75rem;
+}
+.shop-qty {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+.shop-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.shop-table th,
+.shop-table td {
+  text-align: left;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.shop-table th {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-fg);
+}
+.shop-checkout {
+  display: grid;
+  gap: 1.75rem;
+}
+@media (min-width: 768px) {
+  .shop-checkout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+    align-items: start;
+  }
+  .shop-checkout-aside {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+.shop-checkout-main {
+  display: grid;
+  gap: 1.5rem;
+}
+.shop-block-head {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.shop-totals {
+  display: grid;
+  gap: 0.35rem;
+}
+.shop-cart-link {
+  display: flex;
+  justify-content: flex-end;
+}
+.shop-cart-link a {
+  font-weight: 500;
+}
