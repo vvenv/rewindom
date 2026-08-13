@@ -28,12 +28,14 @@ export type AggregateShopVariant = {
 
 export type ShopVariantAvgAggregateOutputType = {
   price_cents: number | null
+  compare_at_price_cents: number | null
   stock_qty: number | null
   weight_g: number | null
 }
 
 export type ShopVariantSumAggregateOutputType = {
   price_cents: number | null
+  compare_at_price_cents: number | null
   stock_qty: number | null
   weight_g: number | null
 }
@@ -44,11 +46,17 @@ export type ShopVariantMinAggregateOutputType = {
   product_id: string | null
   sku: string | null
   price_cents: number | null
+  compare_at_price_cents: number | null
   currency: string | null
   stock_qty: number | null
   weight_g: number | null
+  barcode: string | null
   hs_code: string | null
   origin_country: string | null
+  inventory_policy: string | null
+  track_inventory: boolean | null
+  requires_shipping: boolean | null
+  taxable: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -59,11 +67,17 @@ export type ShopVariantMaxAggregateOutputType = {
   product_id: string | null
   sku: string | null
   price_cents: number | null
+  compare_at_price_cents: number | null
   currency: string | null
   stock_qty: number | null
   weight_g: number | null
+  barcode: string | null
   hs_code: string | null
   origin_country: string | null
+  inventory_policy: string | null
+  track_inventory: boolean | null
+  requires_shipping: boolean | null
+  taxable: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -76,11 +90,17 @@ export type ShopVariantCountAggregateOutputType = {
   title: number
   option_values: number
   price_cents: number
+  compare_at_price_cents: number
   currency: number
   stock_qty: number
   weight_g: number
+  barcode: number
   hs_code: number
   origin_country: number
+  inventory_policy: number
+  track_inventory: number
+  requires_shipping: number
+  taxable: number
   created_at: number
   updated_at: number
   _all: number
@@ -89,12 +109,14 @@ export type ShopVariantCountAggregateOutputType = {
 
 export type ShopVariantAvgAggregateInputType = {
   price_cents?: true
+  compare_at_price_cents?: true
   stock_qty?: true
   weight_g?: true
 }
 
 export type ShopVariantSumAggregateInputType = {
   price_cents?: true
+  compare_at_price_cents?: true
   stock_qty?: true
   weight_g?: true
 }
@@ -105,11 +127,17 @@ export type ShopVariantMinAggregateInputType = {
   product_id?: true
   sku?: true
   price_cents?: true
+  compare_at_price_cents?: true
   currency?: true
   stock_qty?: true
   weight_g?: true
+  barcode?: true
   hs_code?: true
   origin_country?: true
+  inventory_policy?: true
+  track_inventory?: true
+  requires_shipping?: true
+  taxable?: true
   created_at?: true
   updated_at?: true
 }
@@ -120,11 +148,17 @@ export type ShopVariantMaxAggregateInputType = {
   product_id?: true
   sku?: true
   price_cents?: true
+  compare_at_price_cents?: true
   currency?: true
   stock_qty?: true
   weight_g?: true
+  barcode?: true
   hs_code?: true
   origin_country?: true
+  inventory_policy?: true
+  track_inventory?: true
+  requires_shipping?: true
+  taxable?: true
   created_at?: true
   updated_at?: true
 }
@@ -137,11 +171,17 @@ export type ShopVariantCountAggregateInputType = {
   title?: true
   option_values?: true
   price_cents?: true
+  compare_at_price_cents?: true
   currency?: true
   stock_qty?: true
   weight_g?: true
+  barcode?: true
   hs_code?: true
   origin_country?: true
+  inventory_policy?: true
+  track_inventory?: true
+  requires_shipping?: true
+  taxable?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -241,11 +281,17 @@ export type ShopVariantGroupByOutputType = {
   title: runtime.JsonValue | null
   option_values: runtime.JsonValue
   price_cents: number
+  compare_at_price_cents: number | null
   currency: string
   stock_qty: number
   weight_g: number
+  barcode: string | null
   hs_code: string | null
   origin_country: string | null
+  inventory_policy: string
+  track_inventory: boolean
+  requires_shipping: boolean
+  taxable: boolean
   created_at: Date
   updated_at: Date
   _count: ShopVariantCountAggregateOutputType | null
@@ -281,11 +327,17 @@ export type ShopVariantWhereInput = {
   title?: Prisma.JsonNullableFilter<"ShopVariant">
   option_values?: Prisma.JsonFilter<"ShopVariant">
   price_cents?: Prisma.IntFilter<"ShopVariant"> | number
+  compare_at_price_cents?: Prisma.IntNullableFilter<"ShopVariant"> | number | null
   currency?: Prisma.StringFilter<"ShopVariant"> | string
   stock_qty?: Prisma.IntFilter<"ShopVariant"> | number
   weight_g?: Prisma.IntFilter<"ShopVariant"> | number
+  barcode?: Prisma.StringNullableFilter<"ShopVariant"> | string | null
   hs_code?: Prisma.StringNullableFilter<"ShopVariant"> | string | null
   origin_country?: Prisma.StringNullableFilter<"ShopVariant"> | string | null
+  inventory_policy?: Prisma.StringFilter<"ShopVariant"> | string
+  track_inventory?: Prisma.BoolFilter<"ShopVariant"> | boolean
+  requires_shipping?: Prisma.BoolFilter<"ShopVariant"> | boolean
+  taxable?: Prisma.BoolFilter<"ShopVariant"> | boolean
   created_at?: Prisma.DateTimeFilter<"ShopVariant"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ShopVariant"> | Date | string
   product?: Prisma.XOR<Prisma.ShopProductScalarRelationFilter, Prisma.ShopProductWhereInput>
@@ -300,11 +352,17 @@ export type ShopVariantOrderByWithRelationInput = {
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   option_values?: Prisma.SortOrder
   price_cents?: Prisma.SortOrder
+  compare_at_price_cents?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
   weight_g?: Prisma.SortOrder
+  barcode?: Prisma.SortOrderInput | Prisma.SortOrder
   hs_code?: Prisma.SortOrderInput | Prisma.SortOrder
   origin_country?: Prisma.SortOrderInput | Prisma.SortOrder
+  inventory_policy?: Prisma.SortOrder
+  track_inventory?: Prisma.SortOrder
+  requires_shipping?: Prisma.SortOrder
+  taxable?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   product?: Prisma.ShopProductOrderByWithRelationInput
@@ -323,11 +381,17 @@ export type ShopVariantWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.JsonNullableFilter<"ShopVariant">
   option_values?: Prisma.JsonFilter<"ShopVariant">
   price_cents?: Prisma.IntFilter<"ShopVariant"> | number
+  compare_at_price_cents?: Prisma.IntNullableFilter<"ShopVariant"> | number | null
   currency?: Prisma.StringFilter<"ShopVariant"> | string
   stock_qty?: Prisma.IntFilter<"ShopVariant"> | number
   weight_g?: Prisma.IntFilter<"ShopVariant"> | number
+  barcode?: Prisma.StringNullableFilter<"ShopVariant"> | string | null
   hs_code?: Prisma.StringNullableFilter<"ShopVariant"> | string | null
   origin_country?: Prisma.StringNullableFilter<"ShopVariant"> | string | null
+  inventory_policy?: Prisma.StringFilter<"ShopVariant"> | string
+  track_inventory?: Prisma.BoolFilter<"ShopVariant"> | boolean
+  requires_shipping?: Prisma.BoolFilter<"ShopVariant"> | boolean
+  taxable?: Prisma.BoolFilter<"ShopVariant"> | boolean
   created_at?: Prisma.DateTimeFilter<"ShopVariant"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ShopVariant"> | Date | string
   product?: Prisma.XOR<Prisma.ShopProductScalarRelationFilter, Prisma.ShopProductWhereInput>
@@ -342,11 +406,17 @@ export type ShopVariantOrderByWithAggregationInput = {
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   option_values?: Prisma.SortOrder
   price_cents?: Prisma.SortOrder
+  compare_at_price_cents?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
   weight_g?: Prisma.SortOrder
+  barcode?: Prisma.SortOrderInput | Prisma.SortOrder
   hs_code?: Prisma.SortOrderInput | Prisma.SortOrder
   origin_country?: Prisma.SortOrderInput | Prisma.SortOrder
+  inventory_policy?: Prisma.SortOrder
+  track_inventory?: Prisma.SortOrder
+  requires_shipping?: Prisma.SortOrder
+  taxable?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.ShopVariantCountOrderByAggregateInput
@@ -367,11 +437,17 @@ export type ShopVariantScalarWhereWithAggregatesInput = {
   title?: Prisma.JsonNullableWithAggregatesFilter<"ShopVariant">
   option_values?: Prisma.JsonWithAggregatesFilter<"ShopVariant">
   price_cents?: Prisma.IntWithAggregatesFilter<"ShopVariant"> | number
+  compare_at_price_cents?: Prisma.IntNullableWithAggregatesFilter<"ShopVariant"> | number | null
   currency?: Prisma.StringWithAggregatesFilter<"ShopVariant"> | string
   stock_qty?: Prisma.IntWithAggregatesFilter<"ShopVariant"> | number
   weight_g?: Prisma.IntWithAggregatesFilter<"ShopVariant"> | number
+  barcode?: Prisma.StringNullableWithAggregatesFilter<"ShopVariant"> | string | null
   hs_code?: Prisma.StringNullableWithAggregatesFilter<"ShopVariant"> | string | null
   origin_country?: Prisma.StringNullableWithAggregatesFilter<"ShopVariant"> | string | null
+  inventory_policy?: Prisma.StringWithAggregatesFilter<"ShopVariant"> | string
+  track_inventory?: Prisma.BoolWithAggregatesFilter<"ShopVariant"> | boolean
+  requires_shipping?: Prisma.BoolWithAggregatesFilter<"ShopVariant"> | boolean
+  taxable?: Prisma.BoolWithAggregatesFilter<"ShopVariant"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"ShopVariant"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"ShopVariant"> | Date | string
 }
@@ -383,11 +459,17 @@ export type ShopVariantCreateInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
+  compare_at_price_cents?: number | null
   currency?: string
   stock_qty?: number
   weight_g?: number
+  barcode?: string | null
   hs_code?: string | null
   origin_country?: string | null
+  inventory_policy?: string
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   product: Prisma.ShopProductCreateNestedOneWithoutVariantsInput
@@ -402,11 +484,17 @@ export type ShopVariantUncheckedCreateInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
+  compare_at_price_cents?: number | null
   currency?: string
   stock_qty?: number
   weight_g?: number
+  barcode?: string | null
   hs_code?: string | null
   origin_country?: string | null
+  inventory_policy?: string
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   cart_items?: Prisma.ShopCartItemUncheckedCreateNestedManyWithoutVariantInput
@@ -419,11 +507,17 @@ export type ShopVariantUpdateInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
+  compare_at_price_cents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
   weight_g?: Prisma.IntFieldUpdateOperationsInput | number
+  barcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hs_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   origin_country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventory_policy?: Prisma.StringFieldUpdateOperationsInput | string
+  track_inventory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requires_shipping?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  taxable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ShopProductUpdateOneRequiredWithoutVariantsNestedInput
@@ -438,11 +532,17 @@ export type ShopVariantUncheckedUpdateInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
+  compare_at_price_cents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
   weight_g?: Prisma.IntFieldUpdateOperationsInput | number
+  barcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hs_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   origin_country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventory_policy?: Prisma.StringFieldUpdateOperationsInput | string
+  track_inventory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requires_shipping?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  taxable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cart_items?: Prisma.ShopCartItemUncheckedUpdateManyWithoutVariantNestedInput
@@ -456,11 +556,17 @@ export type ShopVariantCreateManyInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
+  compare_at_price_cents?: number | null
   currency?: string
   stock_qty?: number
   weight_g?: number
+  barcode?: string | null
   hs_code?: string | null
   origin_country?: string | null
+  inventory_policy?: string
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -472,11 +578,17 @@ export type ShopVariantUpdateManyMutationInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
+  compare_at_price_cents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
   weight_g?: Prisma.IntFieldUpdateOperationsInput | number
+  barcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hs_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   origin_country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventory_policy?: Prisma.StringFieldUpdateOperationsInput | string
+  track_inventory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requires_shipping?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  taxable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -489,11 +601,17 @@ export type ShopVariantUncheckedUpdateManyInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
+  compare_at_price_cents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
   weight_g?: Prisma.IntFieldUpdateOperationsInput | number
+  barcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hs_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   origin_country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventory_policy?: Prisma.StringFieldUpdateOperationsInput | string
+  track_inventory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requires_shipping?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  taxable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -521,17 +639,24 @@ export type ShopVariantCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   option_values?: Prisma.SortOrder
   price_cents?: Prisma.SortOrder
+  compare_at_price_cents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
   weight_g?: Prisma.SortOrder
+  barcode?: Prisma.SortOrder
   hs_code?: Prisma.SortOrder
   origin_country?: Prisma.SortOrder
+  inventory_policy?: Prisma.SortOrder
+  track_inventory?: Prisma.SortOrder
+  requires_shipping?: Prisma.SortOrder
+  taxable?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
 export type ShopVariantAvgOrderByAggregateInput = {
   price_cents?: Prisma.SortOrder
+  compare_at_price_cents?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
   weight_g?: Prisma.SortOrder
 }
@@ -542,11 +667,17 @@ export type ShopVariantMaxOrderByAggregateInput = {
   product_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   price_cents?: Prisma.SortOrder
+  compare_at_price_cents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
   weight_g?: Prisma.SortOrder
+  barcode?: Prisma.SortOrder
   hs_code?: Prisma.SortOrder
   origin_country?: Prisma.SortOrder
+  inventory_policy?: Prisma.SortOrder
+  track_inventory?: Prisma.SortOrder
+  requires_shipping?: Prisma.SortOrder
+  taxable?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -557,17 +688,24 @@ export type ShopVariantMinOrderByAggregateInput = {
   product_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   price_cents?: Prisma.SortOrder
+  compare_at_price_cents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
   weight_g?: Prisma.SortOrder
+  barcode?: Prisma.SortOrder
   hs_code?: Prisma.SortOrder
   origin_country?: Prisma.SortOrder
+  inventory_policy?: Prisma.SortOrder
+  track_inventory?: Prisma.SortOrder
+  requires_shipping?: Prisma.SortOrder
+  taxable?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
 export type ShopVariantSumOrderByAggregateInput = {
   price_cents?: Prisma.SortOrder
+  compare_at_price_cents?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
   weight_g?: Prisma.SortOrder
 }
@@ -619,6 +757,14 @@ export type ShopVariantUncheckedUpdateManyWithoutProductNestedInput = {
   deleteMany?: Prisma.ShopVariantScalarWhereInput | Prisma.ShopVariantScalarWhereInput[]
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type ShopVariantCreateNestedOneWithoutCart_itemsInput = {
   create?: Prisma.XOR<Prisma.ShopVariantCreateWithoutCart_itemsInput, Prisma.ShopVariantUncheckedCreateWithoutCart_itemsInput>
   connectOrCreate?: Prisma.ShopVariantCreateOrConnectWithoutCart_itemsInput
@@ -640,11 +786,17 @@ export type ShopVariantCreateWithoutProductInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
+  compare_at_price_cents?: number | null
   currency?: string
   stock_qty?: number
   weight_g?: number
+  barcode?: string | null
   hs_code?: string | null
   origin_country?: string | null
+  inventory_policy?: string
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   cart_items?: Prisma.ShopCartItemCreateNestedManyWithoutVariantInput
@@ -657,11 +809,17 @@ export type ShopVariantUncheckedCreateWithoutProductInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
+  compare_at_price_cents?: number | null
   currency?: string
   stock_qty?: number
   weight_g?: number
+  barcode?: string | null
   hs_code?: string | null
   origin_country?: string | null
+  inventory_policy?: string
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   cart_items?: Prisma.ShopCartItemUncheckedCreateNestedManyWithoutVariantInput
@@ -704,11 +862,17 @@ export type ShopVariantScalarWhereInput = {
   title?: Prisma.JsonNullableFilter<"ShopVariant">
   option_values?: Prisma.JsonFilter<"ShopVariant">
   price_cents?: Prisma.IntFilter<"ShopVariant"> | number
+  compare_at_price_cents?: Prisma.IntNullableFilter<"ShopVariant"> | number | null
   currency?: Prisma.StringFilter<"ShopVariant"> | string
   stock_qty?: Prisma.IntFilter<"ShopVariant"> | number
   weight_g?: Prisma.IntFilter<"ShopVariant"> | number
+  barcode?: Prisma.StringNullableFilter<"ShopVariant"> | string | null
   hs_code?: Prisma.StringNullableFilter<"ShopVariant"> | string | null
   origin_country?: Prisma.StringNullableFilter<"ShopVariant"> | string | null
+  inventory_policy?: Prisma.StringFilter<"ShopVariant"> | string
+  track_inventory?: Prisma.BoolFilter<"ShopVariant"> | boolean
+  requires_shipping?: Prisma.BoolFilter<"ShopVariant"> | boolean
+  taxable?: Prisma.BoolFilter<"ShopVariant"> | boolean
   created_at?: Prisma.DateTimeFilter<"ShopVariant"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ShopVariant"> | Date | string
 }
@@ -720,11 +884,17 @@ export type ShopVariantCreateWithoutCart_itemsInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
+  compare_at_price_cents?: number | null
   currency?: string
   stock_qty?: number
   weight_g?: number
+  barcode?: string | null
   hs_code?: string | null
   origin_country?: string | null
+  inventory_policy?: string
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   product: Prisma.ShopProductCreateNestedOneWithoutVariantsInput
@@ -738,11 +908,17 @@ export type ShopVariantUncheckedCreateWithoutCart_itemsInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
+  compare_at_price_cents?: number | null
   currency?: string
   stock_qty?: number
   weight_g?: number
+  barcode?: string | null
   hs_code?: string | null
   origin_country?: string | null
+  inventory_policy?: string
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -770,11 +946,17 @@ export type ShopVariantUpdateWithoutCart_itemsInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
+  compare_at_price_cents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
   weight_g?: Prisma.IntFieldUpdateOperationsInput | number
+  barcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hs_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   origin_country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventory_policy?: Prisma.StringFieldUpdateOperationsInput | string
+  track_inventory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requires_shipping?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  taxable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ShopProductUpdateOneRequiredWithoutVariantsNestedInput
@@ -788,11 +970,17 @@ export type ShopVariantUncheckedUpdateWithoutCart_itemsInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
+  compare_at_price_cents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
   weight_g?: Prisma.IntFieldUpdateOperationsInput | number
+  barcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hs_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   origin_country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventory_policy?: Prisma.StringFieldUpdateOperationsInput | string
+  track_inventory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requires_shipping?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  taxable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -804,11 +992,17 @@ export type ShopVariantCreateManyProductInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
+  compare_at_price_cents?: number | null
   currency?: string
   stock_qty?: number
   weight_g?: number
+  barcode?: string | null
   hs_code?: string | null
   origin_country?: string | null
+  inventory_policy?: string
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -820,11 +1014,17 @@ export type ShopVariantUpdateWithoutProductInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
+  compare_at_price_cents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
   weight_g?: Prisma.IntFieldUpdateOperationsInput | number
+  barcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hs_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   origin_country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventory_policy?: Prisma.StringFieldUpdateOperationsInput | string
+  track_inventory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requires_shipping?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  taxable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cart_items?: Prisma.ShopCartItemUpdateManyWithoutVariantNestedInput
@@ -837,11 +1037,17 @@ export type ShopVariantUncheckedUpdateWithoutProductInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
+  compare_at_price_cents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
   weight_g?: Prisma.IntFieldUpdateOperationsInput | number
+  barcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hs_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   origin_country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventory_policy?: Prisma.StringFieldUpdateOperationsInput | string
+  track_inventory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requires_shipping?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  taxable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cart_items?: Prisma.ShopCartItemUncheckedUpdateManyWithoutVariantNestedInput
@@ -854,11 +1060,17 @@ export type ShopVariantUncheckedUpdateManyWithoutProductInput = {
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
+  compare_at_price_cents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
   weight_g?: Prisma.IntFieldUpdateOperationsInput | number
+  barcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hs_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   origin_country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inventory_policy?: Prisma.StringFieldUpdateOperationsInput | string
+  track_inventory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requires_shipping?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  taxable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -902,11 +1114,17 @@ export type ShopVariantSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   title?: boolean
   option_values?: boolean
   price_cents?: boolean
+  compare_at_price_cents?: boolean
   currency?: boolean
   stock_qty?: boolean
   weight_g?: boolean
+  barcode?: boolean
   hs_code?: boolean
   origin_country?: boolean
+  inventory_policy?: boolean
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: boolean
   updated_at?: boolean
   product?: boolean | Prisma.ShopProductDefaultArgs<ExtArgs>
@@ -922,11 +1140,17 @@ export type ShopVariantSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   title?: boolean
   option_values?: boolean
   price_cents?: boolean
+  compare_at_price_cents?: boolean
   currency?: boolean
   stock_qty?: boolean
   weight_g?: boolean
+  barcode?: boolean
   hs_code?: boolean
   origin_country?: boolean
+  inventory_policy?: boolean
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: boolean
   updated_at?: boolean
   product?: boolean | Prisma.ShopProductDefaultArgs<ExtArgs>
@@ -940,11 +1164,17 @@ export type ShopVariantSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   title?: boolean
   option_values?: boolean
   price_cents?: boolean
+  compare_at_price_cents?: boolean
   currency?: boolean
   stock_qty?: boolean
   weight_g?: boolean
+  barcode?: boolean
   hs_code?: boolean
   origin_country?: boolean
+  inventory_policy?: boolean
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: boolean
   updated_at?: boolean
   product?: boolean | Prisma.ShopProductDefaultArgs<ExtArgs>
@@ -958,16 +1188,22 @@ export type ShopVariantSelectScalar = {
   title?: boolean
   option_values?: boolean
   price_cents?: boolean
+  compare_at_price_cents?: boolean
   currency?: boolean
   stock_qty?: boolean
   weight_g?: boolean
+  barcode?: boolean
   hs_code?: boolean
   origin_country?: boolean
+  inventory_policy?: boolean
+  track_inventory?: boolean
+  requires_shipping?: boolean
+  taxable?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type ShopVariantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "product_id" | "sku" | "title" | "option_values" | "price_cents" | "currency" | "stock_qty" | "weight_g" | "hs_code" | "origin_country" | "created_at" | "updated_at", ExtArgs["result"]["shopVariant"]>
+export type ShopVariantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "product_id" | "sku" | "title" | "option_values" | "price_cents" | "compare_at_price_cents" | "currency" | "stock_qty" | "weight_g" | "barcode" | "hs_code" | "origin_country" | "inventory_policy" | "track_inventory" | "requires_shipping" | "taxable" | "created_at" | "updated_at", ExtArgs["result"]["shopVariant"]>
 export type ShopVariantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ShopProductDefaultArgs<ExtArgs>
   cart_items?: boolean | Prisma.ShopVariant$cart_itemsArgs<ExtArgs>
@@ -997,11 +1233,20 @@ export type $ShopVariantPayload<ExtArgs extends runtime.Types.Extensions.Interna
      */
     option_values: runtime.JsonValue
     price_cents: number
+    compare_at_price_cents: number | null
     currency: string
     stock_qty: number
     weight_g: number
+    barcode: string | null
     hs_code: string | null
     origin_country: string | null
+    /**
+     * deny = 卖完即停；continue = 缺货仍可卖。
+     */
+    inventory_policy: string
+    track_inventory: boolean
+    requires_shipping: boolean
+    taxable: boolean
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["shopVariant"]>
@@ -1436,11 +1681,17 @@ export interface ShopVariantFieldRefs {
   readonly title: Prisma.FieldRef<"ShopVariant", 'Json'>
   readonly option_values: Prisma.FieldRef<"ShopVariant", 'Json'>
   readonly price_cents: Prisma.FieldRef<"ShopVariant", 'Int'>
+  readonly compare_at_price_cents: Prisma.FieldRef<"ShopVariant", 'Int'>
   readonly currency: Prisma.FieldRef<"ShopVariant", 'String'>
   readonly stock_qty: Prisma.FieldRef<"ShopVariant", 'Int'>
   readonly weight_g: Prisma.FieldRef<"ShopVariant", 'Int'>
+  readonly barcode: Prisma.FieldRef<"ShopVariant", 'String'>
   readonly hs_code: Prisma.FieldRef<"ShopVariant", 'String'>
   readonly origin_country: Prisma.FieldRef<"ShopVariant", 'String'>
+  readonly inventory_policy: Prisma.FieldRef<"ShopVariant", 'String'>
+  readonly track_inventory: Prisma.FieldRef<"ShopVariant", 'Boolean'>
+  readonly requires_shipping: Prisma.FieldRef<"ShopVariant", 'Boolean'>
+  readonly taxable: Prisma.FieldRef<"ShopVariant", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"ShopVariant", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"ShopVariant", 'DateTime'>
 }

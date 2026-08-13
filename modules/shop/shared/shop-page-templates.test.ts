@@ -58,6 +58,7 @@ describe("registerShopPageTemplates", () => {
       "contact",
       "address",
       "shipping",
+      "note",
       "summary",
       "pay",
     ]);

@@ -23,7 +23,11 @@ function linesHtml(
   const rows = cart.items
     .map(
       (item) => `<tr>
-        <td>${escapeHtml(item.title)}<div class="shop-muted">${escapeHtml(item.sku)}</div></td>
+        <td>${
+          item.image_url
+            ? `<img class="shop-line-image" src="${escapeHtml(item.image_url)}" alt="" />`
+            : ""
+        }${escapeHtml(item.title)}<div class="shop-muted">${escapeHtml(item.sku)}</div></td>
         <td>
           <form class="shop-qty" method="post" action="${escapeHtml(shop.action_cart)}">
             <input type="hidden" name="intent" value="update" />

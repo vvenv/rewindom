@@ -21,7 +21,14 @@ import type {
   ShopOrderStatus,
   TaxProvider,
 } from "../../shared/index.js";
-import { isShopOrderStatus } from "../../shared/index.js";
+import {
+  cartHasTaxableItem,
+  cartRequiresShipping,
+  isShopOrderStatus,
+  isVariantAvailable,
+  readInventoryPolicy,
+  readOrderNote,
+} from "../../shared/index.js";
 import { loadCart } from "../cart/cart.service.js";
 import {
   displayTitle,
@@ -107,6 +114,7 @@ function toOrderDetail(record: {
   subtotal_cents: number;
   shipping_cents: number;
   tax_cents: number;
+  note: string | null;
   currency: string;
   created_at: Date;
   paid_at: Date | null;
@@ -145,6 +153,7 @@ function toOrderDetail(record: {
     subtotal_cents: record.subtotal_cents,
     shipping_cents: record.shipping_cents,
     tax_cents: record.tax_cents,
+    note: record.note,
     shipping_address: parseAddress(record.shipping_address),
     shipping_rate_name: record.shipping_rate_name,
     carrier_code: record.carrier_code,
@@ -288,7 +297,7 @@ export async function createCheckout(params: {
   tax?: TaxProvider;
 }): Promise<{ checkout_url: string; order_number: string; guest_token: string }> {
   const email = parseEmail(params.body.email);
-  const address = parseAddress(params.body.shipping_address);
+  const note = readOrderNote(params.body.note);
   const cart = await loadCart({
     tenant_id: params.tenant_id,
     cart_id: params.cart_id,
@@ -299,30 +308,52 @@ export async function createCheckout(params: {
     throw new ValidationError("shop.cart_empty");
   }
   for (const item of cart.items) {
-    if (item.quantity > item.stock_qty) {
+    if (
+      !isVariantAvailable(
+        {
+          stock_qty: item.stock_qty,
+          track_inventory: item.track_inventory,
+          inventory_policy: item.inventory_policy,
+        },
+        item.quantity,
+      )
+    ) {
       throw new ConflictError("shop.out_of_stock");
     }
   }
-  const rate = await assertRateServesCountry(
-    params.tenant_id,
-    params.body.shipping_rate_id,
-    address.country,
-  );
   const setting = await getShopSetting(params.tenant_id);
+  const needsShipping = cartRequiresShipping(cart.items);
+  const address = needsShipping
+    ? parseAddress(params.body.shipping_address)
+    : {
+        name: email,
+        line1: "—",
+        city: "—",
+        postal_code: "00000",
+        country: setting.origin_country,
+      };
+  const rate = needsShipping
+    ? await assertRateServesCountry(
+        params.tenant_id,
+        params.body.shipping_rate_id ?? "",
+        address.country,
+      )
+    : null;
+  const shipping_cents = rate?.price_cents ?? 0;
+  const taxable = cartHasTaxableItem(cart.items);
   const taxProvider =
     params.tax ??
-    (setting.stripe_tax_enabled
+    (setting.stripe_tax_enabled && taxable
       ? new StripeCheckoutTaxProvider()
       : new ZeroTaxProvider());
   const tax = await taxProvider.quote({
     destination_country: address.country,
     currency: cart.currency,
     subtotal_cents: cart.subtotal_cents,
-    shipping_cents: rate.price_cents,
+    shipping_cents,
     lines: cart.items.map((item) => ({ amount_cents: item.line_total_cents })),
   });
-  const total =
-    cart.subtotal_cents + rate.price_cents + Math.max(0, tax.tax_cents);
+  const total = cart.subtotal_cents + shipping_cents + Math.max(0, tax.tax_cents);
   const credentials = await resolveShopStripeCredentials(params.tenant_id);
   if (!credentials) {
     throw new ValidationError("shop.stripe_unconfigured");
@@ -348,13 +379,14 @@ export async function createCheckout(params: {
       guest_token,
       currency: normalizeCurrency(cart.currency, setting.currency),
       subtotal_cents: cart.subtotal_cents,
-      shipping_cents: rate.price_cents,
+      shipping_cents,
       tax_cents: tax.tax_cents,
       total_cents: total,
+      note,
       shipping_address: { ...address },
-      shipping_rate_id: rate.id,
-      shipping_rate_name: rate.name,
-      carrier_code: rate.carrier_code,
+      shipping_rate_id: rate?.id ?? null,
+      shipping_rate_name: rate?.name ?? null,
+      carrier_code: rate?.carrier_code ?? null,
       lines: {
         create: cart.items.map((item) => {
           const variant = variantMap.get(item.variant_id);
@@ -367,8 +399,7 @@ export async function createCheckout(params: {
             unit_price_cents: item.unit_price_cents,
             weight_g: variant?.weight_g ?? 0,
             hs_code: variant?.hs_code ?? null,
-            origin_country:
-              variant?.origin_country ?? setting.origin_country,
+            origin_country: variant?.origin_country ?? setting.origin_country,
           };
         }),
       },
@@ -404,7 +435,8 @@ export async function createCheckout(params: {
         },
       },
     ],
-    automatic_tax: setting.stripe_tax_enabled ? { enabled: true } : undefined,
+    automatic_tax:
+      setting.stripe_tax_enabled && taxable ? { enabled: true } : undefined,
   });
   if (!session.url) {
     throw new ValidationError("shop.stripe_checkout_url_missing");
@@ -435,6 +467,17 @@ export async function markOrderPaid(params: {
 
     for (const line of order.lines) {
       if (!line.variant_id) continue;
+      const variant = await tx.shopVariant.findFirst({
+        where: withTenantScope(params.tenant_id, { id: line.variant_id }),
+      });
+      if (!variant || !variant.track_inventory) continue;
+      if (readInventoryPolicy(variant.inventory_policy) === "continue") {
+        await tx.shopVariant.update({
+          where: withTenantScope(params.tenant_id, { id: variant.id }),
+          data: { stock_qty: { decrement: line.quantity } },
+        });
+        continue;
+      }
       const updated = await tx.shopVariant.updateMany({
         where: withTenantScope(params.tenant_id, {
           id: line.variant_id,

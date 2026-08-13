@@ -525,14 +525,6 @@ export type ShopShippingRateUncheckedUpdateManyWithoutZoneNestedInput = {
   deleteMany?: Prisma.ShopShippingRateScalarWhereInput | Prisma.ShopShippingRateScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type ShopShippingRateCreateWithoutZoneInput = {
   id?: string
   tenant_id: string

@@ -7,6 +7,11 @@
 import { displayTitle, formatMoney } from "../lib/format.js";
 import { variantStorefrontLabel } from "../../shared/product-options.js";
 import {
+  featuredImage,
+  isVariantAvailable,
+  resolveShopLocaleText,
+} from "../../shared/index.js";
+import {
   emptyShopContext,
   SHOP_CART_PATH,
   SHOP_CHECKOUT_PATH,
@@ -39,13 +44,27 @@ export function toProductCard(
   product: ShopProduct,
   locale: AppLocale,
 ): ShopProductCardView {
-  const first = product.variants[0];
+  const first =
+    product.variants.find((variant) =>
+      isVariantAvailable(variant, 1),
+    ) ?? product.variants[0];
+  const image = featuredImage(product.images);
+  const compareAt =
+    first?.compare_at_price_cents &&
+    first.compare_at_price_cents > first.price_cents
+      ? formatMoney(first.compare_at_price_cents, first.currency, locale)
+      : null;
   return {
     slug: product.slug,
     href: productHref(product.slug),
     title: displayTitle(product.title, locale, product.slug),
     price: first
       ? formatMoney(first.price_cents, first.currency, locale)
+      : "",
+    compare_at_price: compareAt,
+    image_url: image?.url ?? null,
+    image_alt: image
+      ? resolveShopLocaleText(image.alt, locale, displayTitle(product.title, locale, product.slug))
       : "",
   };
 }
@@ -56,13 +75,31 @@ export function toProductDetail(
 ): ShopProductDetailView {
   return {
     title: displayTitle(product.title, locale, product.slug),
+    subtitle: displayTitle(product.subtitle, locale),
     description: displayTitle(product.description, locale),
-    variants: product.variants.map((variant) => ({
-      id: variant.id,
-      label: variantStorefrontLabel(product.options, variant, locale),
-      price: formatMoney(variant.price_cents, variant.currency, locale),
-      stock: variant.stock_qty,
+    images: product.images.map((image) => ({
+      url: image.url,
+      alt: resolveShopLocaleText(
+        image.alt,
+        locale,
+        displayTitle(product.title, locale, product.slug),
+      ),
     })),
+    variants: product.variants.map((variant) => {
+      const compareAt =
+        variant.compare_at_price_cents &&
+        variant.compare_at_price_cents > variant.price_cents
+          ? formatMoney(variant.compare_at_price_cents, variant.currency, locale)
+          : null;
+      return {
+        id: variant.id,
+        label: variantStorefrontLabel(product.options, variant, locale),
+        price: formatMoney(variant.price_cents, variant.currency, locale),
+        compare_at_price: compareAt,
+        stock: variant.stock_qty,
+        sold_out: !isVariantAvailable(variant, 1),
+      };
+    }),
   };
 }
 
@@ -74,6 +111,7 @@ export function toCartView(cart: ShopCartData, locale: AppLocale): ShopCartView 
       id: item.id,
       title: item.title,
       sku: item.sku,
+      image_url: item.image_url,
       quantity: item.quantity,
       line_total: formatMoney(item.line_total_cents, item.currency, locale),
     })),
@@ -91,6 +129,7 @@ export function emptyCheckoutValues(email = ""): ShopCheckoutValues {
     country: "",
     phone: "",
     shipping_rate_id: "",
+    note: "",
   };
 }
 
@@ -98,6 +137,7 @@ export function toCheckoutView(input: {
   email: string;
   rates: ShopShippingRateView[];
   canceled?: boolean;
+  requires_shipping?: boolean;
   values?: Partial<ShopCheckoutValues>;
 }): ShopCheckoutView {
   const base = emptyCheckoutValues(input.email);
@@ -105,6 +145,7 @@ export function toCheckoutView(input: {
     email: input.email,
     rates: input.rates,
     canceled: Boolean(input.canceled),
+    requires_shipping: input.requires_shipping ?? true,
     values: { ...base, ...input.values, email: input.values?.email ?? input.email },
   };
 }
@@ -117,6 +158,7 @@ export function toOrderView(
     number: order.number,
     status: order.status,
     pending: order.status === "pending_payment",
+    note: order.note,
     subtotal: formatMoney(order.subtotal_cents, order.currency, locale),
     shipping: formatMoney(order.shipping_cents, order.currency, locale),
     tax: formatMoney(order.tax_cents, order.currency, locale),

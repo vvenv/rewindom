@@ -23,6 +23,7 @@ import { isShopEnabled } from "../lib/entitlement.js";
 import { createCheckout, getOrderByNumber, listMemberOrders } from "../order/order.service.js";
 import { listShippingZones } from "../shipping/shipping.service.js";
 import { displayTitle, formatMoney } from "../lib/format.js";
+import { cartRequiresShipping } from "../../shared/index.js";
 import { SHOP_CART_PAGE_KIND } from "../../shared/cart-section.js";
 import { SHOP_CHECKOUT_PAGE_KIND } from "../../shared/checkout-section.js";
 import {
@@ -370,7 +371,8 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
         host.locale,
       );
       const query = request.query as { canceled?: string };
-      const zones = await listShippingZones(host.tenantId);
+      const needsShipping = cartRequiresShipping(cart.items);
+      const zones = needsShipping ? await listShippingZones(host.tenantId) : [];
       const rates = zones.flatMap((zone) =>
         zone.rates.map((rate) => ({
           id: rate.id,
@@ -389,6 +391,7 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
             email: host.member?.email ?? "",
             rates,
             canceled: query.canceled === "1",
+            requires_shipping: needsShipping,
           }),
         }),
       });
@@ -416,6 +419,7 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
           body: {
             email: body.email,
             shipping_rate_id: body.shipping_rate_id,
+            note: body.note,
             shipping_address: {
               name: body.name,
               line1: body.line1,
@@ -430,7 +434,9 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
         setCookie(reply, GUEST_ORDER_COOKIE, result.guest_token);
         void reply.redirect(result.checkout_url, 303);
       } catch (err) {
-        const zones = await listShippingZones(host.tenantId);
+        const zones = cartRequiresShipping(cart.items)
+          ? await listShippingZones(host.tenantId)
+          : [];
         const rates = zones.flatMap((zone) =>
           zone.rates.map((rate) => ({
             id: rate.id,
@@ -450,6 +456,7 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
             checkout: toCheckoutView({
               email: body.email ?? host.member?.email ?? "",
               rates,
+              requires_shipping: cartRequiresShipping(cart.items),
               values: {
                 ...emptyCheckoutValues(body.email ?? ""),
                 name: body.name ?? "",
@@ -460,6 +467,7 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
                 country: body.country ?? "",
                 phone: body.phone ?? "",
                 shipping_rate_id: body.shipping_rate_id ?? "",
+                note: body.note ?? "",
               },
             }),
           }),
@@ -560,12 +568,18 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
       const path = `${SHOP_INDEX_PATH}/${encodeURIComponent(slug)}`;
       try {
         const product = await getPublishedProductBySlug(host.tenantId, slug);
+        const title =
+          displayTitle(product.seo_title, host.locale) ||
+          displayTitle(product.title, host.locale, product.slug);
+        const description =
+          displayTitle(product.seo_description, host.locale) ||
+          displayTitle(product.description, host.locale);
         await sendShopPage(request, reply, host, {
           kind: SHOP_PRODUCT_PAGE_KIND,
           path,
           preset: SHOP_PRODUCT_TEMPLATE_PRESET,
-          title: displayTitle(product.title, host.locale, product.slug),
-          description: displayTitle(product.description, host.locale),
+          title,
+          description,
           shop: buildShopContext({
             cart: toCartView(cart, host.locale),
             product: toProductDetail(product, host.locale),

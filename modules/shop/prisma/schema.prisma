@@ -16,43 +16,60 @@ model ShopSetting {
 }
 
 model ShopProduct {
-  id          String        @id @default(uuid())
-  tenant_id   String
-  slug        String
-  status      String        @default("draft")
+  id              String        @id @default(uuid())
+  tenant_id       String
+  slug            String
+  status          String        @default("draft")
   /// 扁平 locale → 文案，如 { "zh-CN": "…", "en": "…" }。这是数据多语言，不是模块 UI i18n。
-  title       Json
-  description Json?
+  title           Json
+  subtitle        Json?
+  description     Json?
+  /// ShopProductImage[]：url + alt locale map。第一张是封面。
+  images          Json          @default("[]")
+  product_type    String?
+  vendor          String?
+  /// string[]，小写去重。
+  tags            Json          @default("[]")
+  seo_title       Json?
+  seo_description Json?
   /// ShopProductOption[]：option 名/值同样是 locale map。
-  options     Json          @default("[]")
-  created_by  String
-  updated_by  String?
-  created_at  DateTime      @default(now())
-  updated_at  DateTime      @updatedAt
-  variants    ShopVariant[]
+  options         Json          @default("[]")
+  published_at    DateTime?
+  created_by      String
+  updated_by      String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  variants        ShopVariant[]
 
   @@unique([tenant_id, slug])
   @@index([tenant_id, status, updated_at])
 }
 
 model ShopVariant {
-  id             String          @id @default(uuid())
-  tenant_id      String
-  product_id     String
-  sku            String
-  title          Json?
+  id                     String          @id @default(uuid())
+  tenant_id              String
+  product_id             String
+  sku                    String
+  title                  Json?
   /// option id → value id；无 option 时为 {}。
-  option_values  Json            @default("{}")
-  price_cents    Int
-  currency       String          @default("USD")
-  stock_qty      Int             @default(0)
-  weight_g       Int             @default(0)
-  hs_code        String?
-  origin_country String?
-  created_at     DateTime        @default(now())
-  updated_at     DateTime        @updatedAt
-  product        ShopProduct     @relation(fields: [product_id], references: [id], onDelete: Cascade)
-  cart_items     ShopCartItem[]
+  option_values          Json            @default("{}")
+  price_cents            Int
+  compare_at_price_cents Int?
+  currency               String          @default("USD")
+  stock_qty              Int             @default(0)
+  weight_g               Int             @default(0)
+  barcode                String?
+  hs_code                String?
+  origin_country         String?
+  /// deny = 卖完即停；continue = 缺货仍可卖。
+  inventory_policy       String          @default("deny")
+  track_inventory        Boolean         @default(true)
+  requires_shipping      Boolean         @default(true)
+  taxable                Boolean         @default(true)
+  created_at             DateTime        @default(now())
+  updated_at             DateTime        @updatedAt
+  product                ShopProduct     @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  cart_items             ShopCartItem[]
 
   @@unique([tenant_id, sku])
   @@index([tenant_id, product_id])
@@ -134,6 +151,7 @@ model ShopOrder {
   shipping_rate_name         String?
   carrier_code               String?
   stripe_checkout_session_id String?
+  note                       String?
   created_at                 DateTime        @default(now())
   updated_at                 DateTime        @updatedAt
   paid_at                    DateTime?

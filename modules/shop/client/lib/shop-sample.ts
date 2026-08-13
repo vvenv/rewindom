@@ -10,13 +10,25 @@ export function sampleShopContext(): ShopRenderContext {
         href: "/shop/sample",
         title: "Sample product",
         price: "$12.00",
+        compare_at_price: "$15.00",
+        image_url: null,
+        image_alt: "",
       },
     ],
     product: {
       title: "Sample product",
+      subtitle: "A short subtitle",
       description: "Placeholder used in the editor.",
+      images: [],
       variants: [
-        { id: "v1", label: "Default", price: "$12.00", stock: 8 },
+        {
+          id: "v1",
+          label: "Default",
+          price: "$12.00",
+          compare_at_price: "$15.00",
+          stock: 8,
+          sold_out: false,
+        },
       ],
     },
     cart: {
@@ -27,6 +39,7 @@ export function sampleShopContext(): ShopRenderContext {
           id: "line-1",
           title: "Sample product",
           sku: "SKU-001",
+          image_url: null,
           quantity: 1,
           line_total: "$12.00",
         },
@@ -35,6 +48,7 @@ export function sampleShopContext(): ShopRenderContext {
     checkout: {
       email: "buyer@example.com",
       canceled: false,
+      requires_shipping: true,
       rates: [{ id: "rate-1", label: "Standard", price: "$5.00" }],
       values: {
         email: "buyer@example.com",
@@ -46,12 +60,14 @@ export function sampleShopContext(): ShopRenderContext {
         country: "",
         phone: "",
         shipping_rate_id: "rate-1",
+        note: "",
       },
     },
     order: {
       number: "1001",
       status: "paid",
       pending: false,
+      note: null,
       subtotal: "$12.00",
       shipping: "$5.00",
       tax: "$0.00",

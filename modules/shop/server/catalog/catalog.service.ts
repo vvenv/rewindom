@@ -10,13 +10,25 @@ import {
 import type { AppLocale } from "@rewindom/module-sdk";
 
 import {
+  featuredImage,
+  isShopImageUrl,
+  isShopInventoryPolicy,
   isShopProductStatus,
+  readBarcode,
+  readInventoryPolicy,
   readOptionValues,
+  readOptionalCents,
+  readOrgField,
+  readShopImages,
   readShopOptions,
+  readShopTags,
+  SHOP_MAX_IMAGES,
   SHOP_MAX_OPTIONS,
   SHOP_MAX_OPTION_VALUES,
   type CreateShopProductBody,
+  type ShopInventoryPolicy,
   type ShopProduct,
+  type ShopProductImage,
   type ShopProductListItem,
   type ShopProductOption,
   type ShopVariant,
@@ -55,22 +67,31 @@ function toJson(value: unknown): object {
   return JSON.parse(JSON.stringify(value)) as object;
 }
 
+function toLocalizedMap(value: unknown): Record<string, string> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const map = value as Record<string, string>;
+  return Object.keys(map).length > 0 ? map : null;
+}
+
 function toVariant(record: VariantRecord): ShopVariant {
   return {
     id: record.id,
     product_id: record.product_id,
     sku: record.sku,
-    title:
-      record.title && typeof record.title === "object" && !Array.isArray(record.title)
-        ? (record.title as Record<string, string>)
-        : null,
+    title: toLocalizedMap(record.title),
     option_values: readOptionValues(record.option_values),
     price_cents: record.price_cents,
+    compare_at_price_cents: record.compare_at_price_cents,
     currency: record.currency,
     stock_qty: record.stock_qty,
     weight_g: record.weight_g,
+    barcode: record.barcode,
     hs_code: record.hs_code,
     origin_country: record.origin_country,
+    inventory_policy: readInventoryPolicy(record.inventory_policy),
+    track_inventory: record.track_inventory,
+    requires_shipping: record.requires_shipping,
+    taxable: record.taxable,
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
   };
@@ -79,24 +100,22 @@ function toVariant(record: VariantRecord): ShopVariant {
 function toProduct(
   record: ProductRecord & { variants: VariantRecord[] },
 ): ShopProduct {
-  const title =
-    record.title && typeof record.title === "object" && !Array.isArray(record.title)
-      ? (record.title as Record<string, string>)
-      : {};
-  const description =
-    record.description &&
-    typeof record.description === "object" &&
-    !Array.isArray(record.description)
-      ? (record.description as Record<string, string>)
-      : null;
   return {
     id: record.id,
     tenant_id: record.tenant_id,
     slug: record.slug,
     status: isShopProductStatus(record.status) ? record.status : "draft",
-    title,
-    description,
+    title: toLocalizedMap(record.title) ?? {},
+    subtitle: toLocalizedMap(record.subtitle),
+    description: toLocalizedMap(record.description),
+    images: readShopImages(record.images),
+    product_type: record.product_type,
+    vendor: record.vendor,
+    tags: readShopTags(record.tags),
+    seo_title: toLocalizedMap(record.seo_title),
+    seo_description: toLocalizedMap(record.seo_description),
     options: readShopOptions(record.options),
+    published_at: record.published_at?.toISOString() ?? null,
     created_by: record.created_by,
     updated_by: record.updated_by,
     created_at: record.created_at.toISOString(),
@@ -121,16 +140,59 @@ function validateSku(sku: string): string {
   return normalized;
 }
 
+function parseImages(raw: unknown): ShopProductImage[] {
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) throw new ValidationError("shop.images_invalid");
+  if (raw.length > SHOP_MAX_IMAGES) throw new ValidationError("shop.images_limit");
+  const images: ShopProductImage[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      throw new ValidationError("shop.images_invalid");
+    }
+    const record = item as Record<string, unknown>;
+    const url = typeof record.url === "string" ? record.url.trim() : "";
+    if (!isShopImageUrl(url)) throw new ValidationError("shop.images_invalid");
+    const alt = parseLocalizedInput(record.alt ?? {}, "zh-CN") ?? {};
+    images.push({
+      id:
+        typeof record.id === "string" && record.id.trim()
+          ? record.id.trim()
+          : crypto.randomUUID(),
+      url,
+      alt,
+    });
+  }
+  return images;
+}
+
+function parseTags(raw: unknown): string[] {
+  if (raw == null || raw === "") return [];
+  if (typeof raw !== "string" && !Array.isArray(raw)) {
+    throw new ValidationError("shop.tags_invalid");
+  }
+  return readShopTags(raw);
+}
+
+function parseBoolean(value: unknown, fallback: boolean): boolean {
+  return typeof value === "boolean" ? value : fallback;
+}
+
 function parseVariantInput(input: ShopVariantInput): {
   sku: string;
   title: Record<string, string> | null;
   option_values: Record<string, string>;
   price_cents: number;
+  compare_at_price_cents: number | null;
   currency: string;
   stock_qty: number;
   weight_g: number;
+  barcode: string | null;
   hs_code: string | null;
   origin_country: string | null;
+  inventory_policy: ShopInventoryPolicy;
+  track_inventory: boolean;
+  requires_shipping: boolean;
+  taxable: boolean;
 } {
   const sku = validateSku(input.sku);
   const price_cents = asPositiveInt(input.price_cents);
@@ -147,16 +209,31 @@ function parseVariantInput(input: ShopVariantInput): {
   if (input.hs_code && !hs) {
     throw new ValidationError("shop.hs_code_invalid");
   }
+  if (input.barcode && !readBarcode(input.barcode)) {
+    throw new ValidationError("shop.barcode_invalid");
+  }
+  if (
+    input.inventory_policy != null &&
+    !isShopInventoryPolicy(input.inventory_policy)
+  ) {
+    throw new ValidationError("shop.inventory_policy_invalid");
+  }
   return {
     sku,
     title: parseLocalizedInput(input.title ?? null, "zh-CN"),
     option_values: readOptionValues(input.option_values),
     price_cents,
+    compare_at_price_cents: readOptionalCents(input.compare_at_price_cents),
     currency: normalizeCurrency(input.currency),
     stock_qty: asPositiveInt(input.stock_qty),
     weight_g: asPositiveInt(input.weight_g),
+    barcode: readBarcode(input.barcode),
     hs_code: hs,
     origin_country: origin,
+    inventory_policy: readInventoryPolicy(input.inventory_policy),
+    track_inventory: parseBoolean(input.track_inventory, true),
+    requires_shipping: parseBoolean(input.requires_shipping, true),
+    taxable: parseBoolean(input.taxable, true),
   };
 }
 
@@ -322,6 +399,7 @@ export async function listProducts(
         slug: record.slug,
         status: isShopProductStatus(record.status) ? record.status : "draft",
         title: displayTitle(record.title, params.locale, record.slug),
+        image_url: featuredImage(readShopImages(record.images))?.url ?? null,
         sku_count: record.variants.length,
         min_price_cents: prices.length ? Math.min(...prices) : null,
         currency: first?.currency ?? null,
@@ -386,6 +464,20 @@ export async function createProduct(params: {
     params.body.description ?? null,
     params.locale,
   );
+  const subtitle = parseLocalizedInput(
+    params.body.subtitle ?? null,
+    params.locale,
+  );
+  const seo_title = parseLocalizedInput(
+    params.body.seo_title ?? null,
+    params.locale,
+  );
+  const seo_description = parseLocalizedInput(
+    params.body.seo_description ?? null,
+    params.locale,
+  );
+  const images = parseImages(params.body.images);
+  const tags = parseTags(params.body.tags);
   const options = parseProductOptions(params.body.options);
   const variants = parseVariantsInput(params.body.variants, options);
   const status = isShopProductStatus(params.body.status)
@@ -412,8 +504,16 @@ export async function createProduct(params: {
       slug,
       status,
       title,
+      subtitle: subtitle ?? undefined,
       description: description ?? undefined,
+      images: toJson(images),
+      product_type: readOrgField(params.body.product_type),
+      vendor: readOrgField(params.body.vendor),
+      tags: toJson(tags),
+      seo_title: seo_title ?? undefined,
+      seo_description: seo_description ?? undefined,
       options: toJson(options),
+      published_at: status === "published" ? new Date() : null,
       created_by: params.user_id,
       variants: {
         create: variants.map((variant) => ({
@@ -422,11 +522,17 @@ export async function createProduct(params: {
           title: asJson(variant.title),
           option_values: toJson(variant.option_values),
           price_cents: variant.price_cents,
+          compare_at_price_cents: variant.compare_at_price_cents,
           currency: variant.currency,
           stock_qty: variant.stock_qty,
           weight_g: variant.weight_g,
+          barcode: variant.barcode,
           hs_code: variant.hs_code,
           origin_country: variant.origin_country,
+          inventory_policy: variant.inventory_policy,
+          track_inventory: variant.track_inventory,
+          requires_shipping: variant.requires_shipping,
+          taxable: variant.taxable,
         })),
       },
     },
@@ -447,8 +553,16 @@ export async function updateProduct(params: {
     slug?: string;
     status?: string;
     title?: Record<string, string>;
+    subtitle?: Record<string, string>;
     description?: Record<string, string>;
+    images?: object;
+    product_type?: string | null;
+    vendor?: string | null;
+    tags?: object;
+    seo_title?: Record<string, string>;
+    seo_description?: Record<string, string>;
     options?: object;
+    published_at?: Date | null;
     updated_by: string;
   } = { updated_by: params.user_id };
 
@@ -469,6 +583,9 @@ export async function updateProduct(params: {
       throw new ValidationError("shop.status_invalid");
     }
     data.status = params.body.status;
+    if (params.body.status === "published" && !current.published_at) {
+      data.published_at = new Date();
+    }
   }
   if (params.body.title !== undefined) {
     const title = requireLocalizedInput(params.body.title, params.locale);
@@ -477,11 +594,35 @@ export async function updateProduct(params: {
     }
     data.title = title;
   }
+  if (params.body.subtitle !== undefined) {
+    data.subtitle =
+      parseLocalizedInput(params.body.subtitle, params.locale) ?? {};
+  }
   if (params.body.description !== undefined) {
     data.description = parseLocalizedInput(
       params.body.description,
       params.locale,
     ) ?? {};
+  }
+  if (params.body.images !== undefined) {
+    data.images = toJson(parseImages(params.body.images));
+  }
+  if (params.body.product_type !== undefined) {
+    data.product_type = readOrgField(params.body.product_type);
+  }
+  if (params.body.vendor !== undefined) {
+    data.vendor = readOrgField(params.body.vendor);
+  }
+  if (params.body.tags !== undefined) {
+    data.tags = toJson(parseTags(params.body.tags));
+  }
+  if (params.body.seo_title !== undefined) {
+    data.seo_title =
+      parseLocalizedInput(params.body.seo_title, params.locale) ?? {};
+  }
+  if (params.body.seo_description !== undefined) {
+    data.seo_description =
+      parseLocalizedInput(params.body.seo_description, params.locale) ?? {};
   }
   if (params.body.options !== undefined) {
     if (params.body.variants === undefined) {
@@ -544,11 +685,17 @@ async function syncProductVariants(params: {
         title: asJson(variant.title),
         option_values: toJson(variant.option_values),
         price_cents: variant.price_cents,
+        compare_at_price_cents: variant.compare_at_price_cents,
         currency: variant.currency,
         stock_qty: variant.stock_qty,
         weight_g: variant.weight_g,
+        barcode: variant.barcode,
         hs_code: variant.hs_code,
         origin_country: variant.origin_country,
+        inventory_policy: variant.inventory_policy,
+        track_inventory: variant.track_inventory,
+        requires_shipping: variant.requires_shipping,
+        taxable: variant.taxable,
       };
       if (variant.id) {
         await tx.shopVariant.update({
@@ -605,11 +752,17 @@ export async function addVariant(params: {
       title: asJson(variant.title),
       option_values: toJson(variant.option_values),
       price_cents: variant.price_cents,
+      compare_at_price_cents: variant.compare_at_price_cents,
       currency: variant.currency,
       stock_qty: variant.stock_qty,
       weight_g: variant.weight_g,
+      barcode: variant.barcode,
       hs_code: variant.hs_code,
       origin_country: variant.origin_country,
+      inventory_policy: variant.inventory_policy,
+      track_inventory: variant.track_inventory,
+      requires_shipping: variant.requires_shipping,
+      taxable: variant.taxable,
     },
   });
   return getProduct(params.tenant_id, params.product_id);
@@ -682,6 +835,32 @@ export async function updateVariant(params: {
       throw new ValidationError("shop.country_invalid");
     }
     data.origin_country = origin;
+  }
+  if (params.body.compare_at_price_cents !== undefined) {
+    data.compare_at_price_cents = readOptionalCents(
+      params.body.compare_at_price_cents,
+    );
+  }
+  if (params.body.barcode !== undefined) {
+    if (params.body.barcode && !readBarcode(params.body.barcode)) {
+      throw new ValidationError("shop.barcode_invalid");
+    }
+    data.barcode = readBarcode(params.body.barcode);
+  }
+  if (params.body.inventory_policy !== undefined) {
+    if (!isShopInventoryPolicy(params.body.inventory_policy)) {
+      throw new ValidationError("shop.inventory_policy_invalid");
+    }
+    data.inventory_policy = params.body.inventory_policy;
+  }
+  if (params.body.track_inventory !== undefined) {
+    data.track_inventory = parseBoolean(params.body.track_inventory, true);
+  }
+  if (params.body.requires_shipping !== undefined) {
+    data.requires_shipping = parseBoolean(params.body.requires_shipping, true);
+  }
+  if (params.body.taxable !== undefined) {
+    data.taxable = parseBoolean(params.body.taxable, true);
   }
 
   await prisma.shopVariant.update({

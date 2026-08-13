@@ -40,6 +40,7 @@ export const checkoutSection: SectionDefinition = {
     { type: "contact" },
     { type: "address" },
     { type: "shipping" },
+    { type: "note" },
     { type: "pay" },
     { type: "summary" },
   ],
@@ -141,6 +142,25 @@ export const checkoutSection: SectionDefinition = {
           label: "shop:block.checkoutShippingEmpty",
           default:
             "No shipping rates for this destination. Add rates in the workspace.",
+        },
+      ],
+    },
+    {
+      type: "note",
+      label: "shop:block.checkoutNote",
+      singleton: true,
+      settings: [
+        {
+          type: "text",
+          id: "heading",
+          label: "shop:block.checkoutNoteHeading",
+          default: "Order note",
+        },
+        {
+          type: "text",
+          id: "note_label",
+          label: "shop:block.checkoutNoteLabel",
+          default: "Note (optional)",
         },
       ],
     },

@@ -18,7 +18,25 @@ export function ProductSection({ section }: SectionViewProps): ReactElement {
     <div className="shop-product">
       <div className="shop-product-main">
         {rest.map((block) => {
-          if (block.type === "title") return <h1 key={block.id}>{t("editor.sampleTitle")}</h1>;
+          if (block.type === "media") {
+            return product.images[0] ? (
+              <div key={block.id} className="shop-gallery">
+                <img
+                  className="shop-gallery-main"
+                  src={product.images[0].url}
+                  alt={product.images[0].alt}
+                />
+              </div>
+            ) : null;
+          }
+          if (block.type === "title") {
+            return (
+              <div key={block.id}>
+                <h1>{t("editor.sampleTitle")}</h1>
+                <p className="shop-product-subtitle">{t("editor.sampleSubtitle")}</p>
+              </div>
+            );
+          }
           if (block.type === "price") {
             return (
               <p key={block.id} className="shop-price">

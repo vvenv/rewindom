@@ -25,7 +25,7 @@ function buyHtml(
   const soldOut = settingText(settings, "sold_out_label") || "Sold out";
   if (product.variants.length === 1) {
     const variant = product.variants[0]!;
-    const disabled = variant.stock < 1;
+    const disabled = variant.sold_out;
     return `<form class="shop-buy" method="post" action="${escapeHtml(shop.action_cart)}">
   <input type="hidden" name="intent" value="add" />
   <input type="hidden" name="variant_id" value="${escapeHtml(variant.id)}" />
@@ -42,9 +42,12 @@ function buyHtml(
   }
   const options = product.variants
     .map((variant) => {
-      const disabled = variant.stock < 1 ? " disabled" : "";
-      const suffix = variant.stock < 1 ? ` (${escapeHtml(soldOut)})` : "";
-      return `<option value="${escapeHtml(variant.id)}"${disabled}>${escapeHtml(variant.label)} — ${escapeHtml(variant.price)}${suffix}</option>`;
+      const disabled = variant.sold_out ? " disabled" : "";
+      const suffix = variant.sold_out ? ` (${escapeHtml(soldOut)})` : "";
+      const compare = variant.compare_at_price
+        ? ` (${escapeHtml(variant.compare_at_price)})`
+        : "";
+      return `<option value="${escapeHtml(variant.id)}"${disabled}>${escapeHtml(variant.label)} — ${escapeHtml(variant.price)}${compare}${suffix}</option>`;
     })
     .join("");
   return `<form class="shop-buy" method="post" action="${escapeHtml(shop.action_cart)}">
@@ -71,11 +74,29 @@ function renderBlock(
   shop: ShopRenderContext,
 ): string {
   switch (block.type) {
+    case "media": {
+      if (product.images.length === 0) return "";
+      const imgs = product.images
+        .map(
+          (image, index) =>
+            `<img src="${escapeHtml(image.url)}" alt="${escapeHtml(image.alt)}"${index === 0 ? ' class="shop-gallery-main"' : ""} />`,
+        )
+        .join("");
+      return `<div class="shop-gallery">${imgs}</div>`;
+    }
     case "title":
-      return `<h1>${escapeHtml(product.title)}</h1>`;
+      return `<h1>${escapeHtml(product.title)}</h1>${
+        product.subtitle
+          ? `<p class="shop-product-subtitle">${escapeHtml(product.subtitle)}</p>`
+          : ""
+      }`;
     case "price": {
-      const first = product.variants.find((variant) => variant.stock > 0) ?? product.variants[0];
-      return first ? `<p class="shop-price">${escapeHtml(first.price)}</p>` : "";
+      const first = product.variants.find((variant) => !variant.sold_out) ?? product.variants[0];
+      if (!first) return "";
+      const compare = first.compare_at_price
+        ? `<s class="shop-price-compare">${escapeHtml(first.compare_at_price)}</s> `
+        : "";
+      return `<p class="shop-price">${compare}${escapeHtml(first.price)}</p>`;
     }
     case "description":
       return product.description

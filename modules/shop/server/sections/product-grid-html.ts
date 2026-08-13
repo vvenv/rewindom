@@ -34,7 +34,19 @@ const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
     const rows = items
       .map(
         (product) =>
-          `<a href="${escapeHtml(product.href)}"><span>${escapeHtml(product.title)}</span>${showPrice && product.price ? `<span class="shop-price">${escapeHtml(product.price)}</span>` : ""}</a>`,
+          `<a href="${escapeHtml(product.href)}">${
+            product.image_url
+              ? `<img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.image_alt)}" />`
+              : ""
+          }<span>${escapeHtml(product.title)}</span>${
+            showPrice && product.price
+              ? `<span class="shop-price">${
+                  product.compare_at_price
+                    ? `<s class="shop-price-compare">${escapeHtml(product.compare_at_price)}</s> `
+                    : ""
+                }${escapeHtml(product.price)}</span>`
+              : ""
+          }</a>`,
       )
       .join("");
     return `${heading}<div class="shop-grid-list">${rows}</div>`;
@@ -42,7 +54,19 @@ const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
   const cards = items
     .map(
       (product) =>
-        `<a class="card" href="${escapeHtml(product.href)}"><span class="title">${escapeHtml(product.title)}</span>${showPrice && product.price ? `<span class="muted shop-price">${escapeHtml(product.price)}</span>` : ""}</a>`,
+        `<a class="card" href="${escapeHtml(product.href)}">${
+          product.image_url
+            ? `<img class="shop-card-image" src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.image_alt)}" />`
+            : ""
+        }<span class="title">${escapeHtml(product.title)}</span>${
+          showPrice && product.price
+            ? `<span class="muted shop-price">${
+                product.compare_at_price
+                  ? `<s class="shop-price-compare">${escapeHtml(product.compare_at_price)}</s> `
+                  : ""
+              }${escapeHtml(product.price)}</span>`
+            : ""
+        }</a>`,
     )
     .join("");
   return `${heading}<div class="${gridClass(settingNumber(s, "columns", 3))}">${cards}</div>`;

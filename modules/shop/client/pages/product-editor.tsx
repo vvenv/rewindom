@@ -10,8 +10,11 @@ import { Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { ProductBasicsFields } from "../components/product-editor/ProductBasicsFields.js";
+import { ProductImagesFields } from "../components/product-editor/ProductImagesFields.js";
 import { ProductLocaleBar } from "../components/product-editor/ProductLocaleBar.js";
 import { ProductOptionsFields } from "../components/product-editor/ProductOptionsFields.js";
+import { ProductOrganizationFields } from "../components/product-editor/ProductOrganizationFields.js";
+import { ProductSeoFields } from "../components/product-editor/ProductSeoFields.js";
 import { ProductVariantsFields } from "../components/product-editor/ProductVariantsFields.js";
 import { useProductEditor } from "../hooks/useProductEditor.js";
 
@@ -60,6 +63,19 @@ export function ProductEditorPage() {
           </Card>
           <Card>
             <CardHeader>
+              <CardTitle>{t("mediaTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProductImagesFields
+                form={editor.form}
+                contentLocale={editor.contentLocale}
+                canWrite={canWrite}
+                onChange={editor.patch}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
               <CardTitle>{t("optionsTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
@@ -77,6 +93,31 @@ export function ProductEditorPage() {
             </CardHeader>
             <CardContent>
               <ProductVariantsFields
+                form={editor.form}
+                contentLocale={editor.contentLocale}
+                canWrite={canWrite}
+                onChange={editor.patch}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("organizationTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProductOrganizationFields
+                form={editor.form}
+                canWrite={canWrite}
+                onChange={editor.patch}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("seoCardTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProductSeoFields
                 form={editor.form}
                 contentLocale={editor.contentLocale}
                 canWrite={canWrite}

@@ -59,17 +59,19 @@ shop/
 | kind | 路径 | 必备段 | 区块 |
 | --- | --- | --- | --- |
 | `shop_index` | `/shop` | `shop.product-grid` | —（条目来自已发布商品；也能摆上首页，`limit` 控制条数） |
-| `shop_product` | `/shop/:slug` | `shop.product` | `title` / `price` / `description` / `buy` |
+| `shop_product` | `/shop/:slug` | `shop.product` | `media` / `title` / `price` / `description` / `buy` |
 | `shop_cart` | `/shop/cart` | `shop.cart` | `lines` / `summary` |
-| `shop_checkout` | `/shop/checkout` | `shop.checkout` | `contact` / `address` / `shipping` / `summary` / `pay`（整段一张 POST 表单） |
+| `shop_checkout` | `/shop/checkout` | `shop.checkout` | `contact` / `address` / `shipping` / `note` / `summary` / `pay`（整段一张 POST 表单；纯数字商品不收地址与运费） |
 | `shop_order` | `/shop/orders/:number` | `shop.order` | — |
 | `shop_member_orders` | `/member/orders` | `shop.order-list` | — |
 
 另有 `shop.cart-link`：可放页面 / 页头 / 页脚，链到购物车。件数只在请求带得上购物车时出现。
 
-没有独立的「分类」模型，商品列表就是目录；首页用同一段加 `limit` 当精选。真收卡仍在 Stripe Checkout（站外），本页收的是联系方式、收件地址、运费档。
+没有独立的「分类」模型，商品用 **类型 / 品牌 / 标签** 归类；首页用商品列表段加 `limit` 当精选。真收卡仍在 Stripe Checkout（站外），本页收的是联系方式、收件地址（实体商品）、运费档、订单备注。
 
-商品名称、详情、option 名/值是**数据多语言**（`title` / `description` / `options[].name` 的 locale map），跟模块 `client/locales` 的代码多语言分开。工作台用内容语言 Tab 填同一套字段，不要再加 `fieldTitleEn`。详情按 Markdown 存源码，编辑器用 `@uiw/react-md-editor`（与文档库正文同款），店面用官网同一套 `md()` / `.prose` 渲染。
+商品名称、副标题、详情、option 名/值、图片 alt、SEO 文案是**数据多语言**（扁平 locale map），跟模块 `client/locales` 的代码多语言分开。工作台用内容语言 Tab 填同一套字段，不要再加 `fieldTitleEn`。详情按 Markdown 存源码，编辑器用 `@uiw/react-md-editor`（与文档库正文同款），店面用官网同一套 `md()` / `.prose` 渲染。
+
+目录对齐 Shopify / Medusa 商家常填项，**不做**独立 Collections、折扣引擎、退货/换货、评价、多仓库存——那些是下一期。规格上有对比价、条码、跟踪库存、缺货仍可卖、是否配送、是否计税。
 
 租户没开通 `shop` 时这些段不进「添加区块」菜单，也不渲染。
 

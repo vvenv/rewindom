@@ -89,11 +89,22 @@ export function ProductsTable({
           <div>
             <Link
               to={`/app/shop/products/${row.original.id}`}
-              className="font-medium hover:underline"
+              className="flex items-center gap-3 font-medium hover:underline"
             >
-              {row.original.title}
+              {row.original.image_url ? (
+                <img
+                  src={row.original.image_url}
+                  alt=""
+                  className="size-10 shrink-0 rounded-md object-cover"
+                />
+              ) : null}
+              <span>
+                {row.original.title}
+                <span className="text-muted-foreground mt-0.5 block text-xs font-normal">
+                  {row.original.slug}
+                </span>
+              </span>
             </Link>
-            <div className="text-muted-foreground text-xs">{row.original.slug}</div>
           </div>
         ),
       },
@@ -104,8 +115,20 @@ export function ProductsTable({
         ),
         enableSorting: true,
         cell: ({ row }) => (
-          <Badge variant={row.original.status === "published" ? "default" : "secondary"}>
-            {row.original.status === "published" ? t("statusPublished") : t("statusDraft")}
+          <Badge
+            variant={
+              row.original.status === "published"
+                ? "default"
+                : row.original.status === "archived"
+                  ? "outline"
+                  : "secondary"
+            }
+          >
+            {row.original.status === "published"
+              ? t("statusPublished")
+              : row.original.status === "archived"
+                ? t("statusArchived")
+                : t("statusDraft")}
           </Badge>
         ),
       },

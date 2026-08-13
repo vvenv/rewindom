@@ -63,6 +63,12 @@ export const orderSection: SectionDefinition = {
       label: "shop:section.order.trackingLabel",
       default: "Tracking",
     },
+    {
+      type: "text",
+      id: "note_label",
+      label: "shop:section.order.noteLabel",
+      default: "Note",
+    },
     ...layoutSettings({ padding_top: 48, padding_bottom: 64 }),
   ],
 };

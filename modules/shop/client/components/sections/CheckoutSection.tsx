@@ -90,6 +90,23 @@ export function CheckoutSection({ section }: SectionViewProps): ReactElement {
                 </div>
               );
             }
+            if (block.type === "note") {
+              return (
+                <div key={block.id}>
+                  {settingText(block.settings, "heading") ? (
+                    <h3 className="shop-block-head">
+                      {settingText(block.settings, "heading")}
+                    </h3>
+                  ) : null}
+                  <div className="shop-field">
+                    <label htmlFor="preview-note">
+                      {settingText(block.settings, "note_label")}
+                    </label>
+                    <textarea id="preview-note" rows={3} tabIndex={-1} readOnly />
+                  </div>
+                </div>
+              );
+            }
             if (block.type === "pay") {
               return (
                 <p key={block.id}>

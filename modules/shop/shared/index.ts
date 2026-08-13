@@ -1,5 +1,6 @@
 export * from "./entitlements.js";
 export * from "./locale.js";
+export * from "./product-commerce.js";
 export * from "./catalog.js";
 export * from "./product-options.js";
 export * from "./cart.js";

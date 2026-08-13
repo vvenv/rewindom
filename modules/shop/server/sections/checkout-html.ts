@@ -33,6 +33,7 @@ function contactHtml(checkout: ShopCheckoutView, block: SiteBlock): string {
 }
 
 function addressHtml(checkout: ShopCheckoutView, block: SiteBlock): string {
+  if (!checkout.requires_shipping) return "";
   const s = block.settings;
   const v = checkout.values;
   return `<div>
@@ -48,6 +49,7 @@ function addressHtml(checkout: ShopCheckoutView, block: SiteBlock): string {
 }
 
 function shippingHtml(checkout: ShopCheckoutView, block: SiteBlock): string {
+  if (!checkout.requires_shipping) return "";
   const s = block.settings;
   if (checkout.rates.length === 0) {
     const empty = settingText(s, "empty_text");
@@ -93,8 +95,22 @@ function summaryHtml(
 </aside>`;
 }
 
+function noteHtml(checkout: ShopCheckoutView, block: SiteBlock): string {
+  return `<div>
+  ${shopBlockHeading(block.settings)}
+  ${shopFieldHtml({
+    id: "shop-note",
+    name: "note",
+    label: settingText(block.settings, "note_label"),
+    type: "textarea",
+    value: checkout.values.note,
+  })}
+</div>`;
+}
+
 function payHtml(checkout: ShopCheckoutView, block: SiteBlock): string {
-  const disabled = checkout.rates.length === 0 ? " disabled" : "";
+  const disabled =
+    checkout.requires_shipping && checkout.rates.length === 0 ? " disabled" : "";
   return `<p><button class="btn" type="submit"${disabled}>${escapeHtml(settingText(block.settings, "submit_label"))}</button></p>`;
 }
 
@@ -112,6 +128,7 @@ const renderCheckoutHtml: SectionHtmlRenderer = (section, ctx) => {
       if (block.type === "contact") return contactHtml(checkout, block);
       if (block.type === "address") return addressHtml(checkout, block);
       if (block.type === "shipping") return shippingHtml(checkout, block);
+      if (block.type === "note") return noteHtml(checkout, block);
       if (block.type === "pay") return payHtml(checkout, block);
       return "";
     })

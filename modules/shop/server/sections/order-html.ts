@@ -38,6 +38,7 @@ const renderOrderHtml: SectionHtmlRenderer = (section, ctx) => {
       <p>${escapeHtml(settingText(s, "tax_label"))}: ${escapeHtml(order.tax)}</p>
       <p class="shop-price">${escapeHtml(settingText(s, "total_label"))}: ${escapeHtml(order.total)}</p>
     </div>
+    ${order.note ? `<p>${escapeHtml(settingText(s, "note_label"))}: ${escapeHtml(order.note)}</p>` : ""}
     ${shipments}`;
 };
 

@@ -23,12 +23,19 @@ export const productSection: SectionDefinition = {
   settings: [...layoutSettings({ padding_top: 48, padding_bottom: 64 })],
   max_blocks: 8,
   preset_blocks: [
+    { type: "media" },
     { type: "title" },
     { type: "price" },
     { type: "description" },
     { type: "buy" },
   ],
   blocks: [
+    {
+      type: "media",
+      label: "shop:block.productMedia",
+      singleton: true,
+      settings: [],
+    },
     {
       type: "title",
       label: "shop:block.productTitle",

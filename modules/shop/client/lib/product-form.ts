@@ -10,19 +10,30 @@ import type {
   CreateShopProductBody,
   ShopProduct,
   ShopProductOption,
-  ShopProductStatus,
 } from "../../shared/catalog.js";
+import type {
+  ShopInventoryPolicy,
+  ShopProductImage,
+  ShopProductStatus,
+} from "../../shared/product-commerce.js";
 import type { ShopLocalizedMap } from "../../shared/locale.js";
+import { SHOP_INVENTORY_POLICIES } from "../../shared/product-commerce.js";
 
 export interface ProductFormVariant {
   id?: string;
   client_id: string;
   sku: string;
   price_cents: string;
+  compare_at_price_cents: string;
   stock_qty: string;
   weight_g: string;
+  barcode: string;
   hs_code: string;
   origin_country: string;
+  inventory_policy: ShopInventoryPolicy;
+  track_inventory: boolean;
+  requires_shipping: boolean;
+  taxable: boolean;
   option_values: Record<string, string>;
 }
 
@@ -30,7 +41,14 @@ export interface ProductFormValues {
   slug: string;
   status: ShopProductStatus;
   title: ShopLocalizedMap;
+  subtitle: ShopLocalizedMap;
   description: ShopLocalizedMap;
+  images: ShopProductImage[];
+  product_type: string;
+  vendor: string;
+  tags: string;
+  seo_title: ShopLocalizedMap;
+  seo_description: ShopLocalizedMap;
   options: ShopProductOption[];
   variants: ProductFormVariant[];
 }
@@ -47,6 +65,10 @@ export function newOption(): ShopProductOption {
   };
 }
 
+export function newImage(url = ""): ShopProductImage {
+  return { id: crypto.randomUUID(), url, alt: {} };
+}
+
 export function newVariantRow(
   option_values: Record<string, string> = {},
   seed?: Partial<ProductFormVariant>,
@@ -56,10 +78,16 @@ export function newVariantRow(
     client_id: seed?.client_id ?? crypto.randomUUID(),
     sku: seed?.sku ?? "",
     price_cents: seed?.price_cents ?? "",
+    compare_at_price_cents: seed?.compare_at_price_cents ?? "",
     stock_qty: seed?.stock_qty ?? "0",
     weight_g: seed?.weight_g ?? "0",
+    barcode: seed?.barcode ?? "",
     hs_code: seed?.hs_code ?? "",
     origin_country: seed?.origin_country ?? "",
+    inventory_policy: seed?.inventory_policy ?? "deny",
+    track_inventory: seed?.track_inventory ?? true,
+    requires_shipping: seed?.requires_shipping ?? true,
+    taxable: seed?.taxable ?? true,
     option_values,
   };
 }
@@ -68,7 +96,14 @@ export const INITIAL_PRODUCT_FORM: ProductFormValues = {
   slug: "",
   status: "draft",
   title: {},
+  subtitle: {},
   description: {},
+  images: [],
+  product_type: "",
+  vendor: "",
+  tags: "",
+  seo_title: {},
+  seo_description: {},
   options: [],
   variants: [newVariantRow()],
 };
@@ -78,7 +113,18 @@ export function productToForm(product: ShopProduct): ProductFormValues {
     slug: product.slug,
     status: product.status,
     title: { ...product.title },
+    subtitle: { ...(product.subtitle ?? {}) },
     description: { ...(product.description ?? {}) },
+    images: product.images.map((image) => ({
+      id: image.id,
+      url: image.url,
+      alt: { ...image.alt },
+    })),
+    product_type: product.product_type ?? "",
+    vendor: product.vendor ?? "",
+    tags: product.tags.join(", "),
+    seo_title: { ...(product.seo_title ?? {}) },
+    seo_description: { ...(product.seo_description ?? {}) },
     options: product.options.map((option) => ({
       id: option.id,
       name: { ...option.name },
@@ -92,10 +138,19 @@ export function productToForm(product: ShopProduct): ProductFormValues {
         id: variant.id,
         sku: variant.sku,
         price_cents: String(variant.price_cents),
+        compare_at_price_cents:
+          variant.compare_at_price_cents != null
+            ? String(variant.compare_at_price_cents)
+            : "",
         stock_qty: String(variant.stock_qty),
         weight_g: String(variant.weight_g),
+        barcode: variant.barcode ?? "",
         hs_code: variant.hs_code ?? "",
         origin_country: variant.origin_country ?? "",
+        inventory_policy: variant.inventory_policy,
+        track_inventory: variant.track_inventory,
+        requires_shipping: variant.requires_shipping,
+        taxable: variant.taxable,
       }),
     ),
   };
@@ -121,10 +176,16 @@ export function syncVariantsToOptions(
     return newVariantRow(combo, {
       sku: suggestVariantSku(slug, options, combo),
       price_cents: seed?.price_cents ?? "",
+      compare_at_price_cents: seed?.compare_at_price_cents ?? "",
       stock_qty: seed?.stock_qty ?? "0",
       weight_g: seed?.weight_g ?? "0",
+      barcode: seed?.barcode ?? "",
       hs_code: seed?.hs_code ?? "",
       origin_country: seed?.origin_country ?? "",
+      inventory_policy: seed?.inventory_policy ?? "deny",
+      track_inventory: seed?.track_inventory ?? true,
+      requires_shipping: seed?.requires_shipping ?? true,
+      taxable: seed?.taxable ?? true,
     });
   });
 }
@@ -152,29 +213,51 @@ export function validateProductForm(
     if (!variant.price_cents.trim() || Number(variant.price_cents) < 1) {
       return t("validation.priceRequired");
     }
+    if (!SHOP_INVENTORY_POLICIES.includes(variant.inventory_policy)) {
+      return t("validation.inventoryPolicy");
+    }
   }
   return null;
 }
 
-export function buildProductPayload(values: ProductFormValues): CreateShopProductBody {
-  const description = Object.fromEntries(
-    Object.entries(values.description).filter(([, text]) => text.trim()),
+function compactLocalized(map: ShopLocalizedMap): ShopLocalizedMap | null {
+  const next = Object.fromEntries(
+    Object.entries(map).filter(([, text]) => text.trim()),
   );
+  return Object.keys(next).length > 0 ? next : null;
+}
+
+export function buildProductPayload(values: ProductFormValues): CreateShopProductBody {
   return {
     slug: values.slug.trim().toLowerCase(),
     status: values.status,
     title: { ...values.title },
-    description: Object.keys(description).length > 0 ? description : null,
+    subtitle: compactLocalized(values.subtitle),
+    description: compactLocalized(values.description),
+    images: values.images.filter((image) => image.url.trim()),
+    product_type: values.product_type.trim() || null,
+    vendor: values.vendor.trim() || null,
+    tags: values.tags,
+    seo_title: compactLocalized(values.seo_title),
+    seo_description: compactLocalized(values.seo_description),
     options: values.options,
     variants: values.variants.map((variant) => ({
       id: variant.id,
       sku: variant.sku.trim(),
       option_values: variant.option_values,
       price_cents: Math.trunc(Number(variant.price_cents)),
+      compare_at_price_cents: variant.compare_at_price_cents.trim()
+        ? Math.trunc(Number(variant.compare_at_price_cents))
+        : null,
       stock_qty: Math.max(0, Math.trunc(Number(variant.stock_qty) || 0)),
       weight_g: Math.max(0, Math.trunc(Number(variant.weight_g) || 0)),
+      barcode: variant.barcode.trim() || null,
       hs_code: variant.hs_code.trim() || null,
       origin_country: variant.origin_country.trim().toUpperCase() || null,
+      inventory_policy: variant.inventory_policy,
+      track_inventory: variant.track_inventory,
+      requires_shipping: variant.requires_shipping,
+      taxable: variant.taxable,
     })),
   };
 }

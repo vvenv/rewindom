@@ -23,7 +23,7 @@ describe("shop storefront section html", () => {
       contributed: shopContextEntry(
         emptyShopContext({
           products: [
-            { slug: "mug", href: "/shop/mug", title: "Mug", price: "$12.00" },
+            { slug: "mug", href: "/shop/mug", title: "Mug", price: "$12.00", compare_at_price: null, image_url: null, image_alt: "" },
           ],
         }),
       ),
@@ -40,9 +40,18 @@ describe("shop storefront section html", () => {
         emptyShopContext({
           product: {
             title: "Mug",
+            subtitle: "",
             description: "A **ceramic** mug.\n\n- dishwasher safe",
+            images: [],
             variants: [
-              { id: "v1", label: "Default", price: "$12.00", stock: 4 },
+              {
+                id: "v1",
+                label: "Default",
+                price: "$12.00",
+                compare_at_price: null,
+                stock: 4,
+                sold_out: false,
+              },
             ],
           },
         }),
@@ -55,6 +64,37 @@ describe("shop storefront section html", () => {
     expect(html).not.toContain("**ceramic**");
   });
 
+  it("商品详情输出图库与划线原价", () => {
+    const section = createSection(productSection.type);
+    const html = SECTION_HTML[productSection.type]?.(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          product: {
+            title: "Mug",
+            subtitle: "Ceramic",
+            description: "",
+            images: [{ url: "/mug.jpg", alt: "A mug" }],
+            variants: [
+              {
+                id: "v1",
+                label: "Default",
+                price: "$12.00",
+                compare_at_price: "$15.00",
+                stock: 4,
+                sold_out: false,
+              },
+            ],
+          },
+        }),
+      ),
+    });
+    expect(html).toContain('src="/mug.jpg"');
+    expect(html).toContain("shop-gallery");
+    expect(html).toContain("shop-price-compare");
+    expect(html).toContain("$15.00");
+    expect(html).toContain("Ceramic");
+  });
+
   it("结账段是一张包含收件地址与付款按钮的 form", () => {
     const section = createSection(checkoutSection.type);
     const html = SECTION_HTML[checkoutSection.type]?.(section, {
@@ -63,6 +103,7 @@ describe("shop storefront section html", () => {
           checkout: {
             email: "a@b.c",
             canceled: false,
+            requires_shipping: true,
             rates: [{ id: "r1", label: "Standard", price: "$5.00" }],
             values: {
               email: "a@b.c",
@@ -74,6 +115,7 @@ describe("shop storefront section html", () => {
               country: "",
               phone: "",
               shipping_rate_id: "r1",
+              note: "",
             },
           },
         }),
@@ -83,6 +125,7 @@ describe("shop storefront section html", () => {
     expect(html).toContain('action="/shop/checkout"');
     expect(html).toContain('name="line1"');
     expect(html).toContain('name="shipping_rate_id"');
+    expect(html).toContain('name="note"');
     expect(html).toContain('type="submit"');
   });
 });

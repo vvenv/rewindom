@@ -67,6 +67,9 @@ export function ProductGridSection({
       <div className={gridClass(settingNumber(s, "columns", 3))}>
         {items.map((product) => (
           <a key={product.id} className="card" href={`/shop/${product.slug}`}>
+            {product.image_url ? (
+              <img className="shop-card-image" src={product.image_url} alt="" />
+            ) : null}
             <span className="title">{product.title}</span>
             {showPrice && product.min_price_cents != null ? (
               <span className="muted shop-price">

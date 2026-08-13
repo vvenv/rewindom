@@ -37,6 +37,11 @@ models:
       - { name: slug, type: String, required: true, label: 路径 }
       - { name: status, type: String, required: true, label: 状态 }
       - { name: title, type: Json, required: true, label: 名称 }
+      - { name: subtitle, type: Json, required: false, label: 副标题 }
+      - { name: images, type: Json, required: true, label: 图片 }
+      - { name: product_type, type: String, required: false, label: 类型 }
+      - { name: vendor, type: String, required: false, label: 品牌 }
+      - { name: tags, type: Json, required: true, label: 标签 }
       - { name: created_by, type: String, required: true }
     indexes:
       - [tenant_id, slug]
@@ -46,6 +51,7 @@ models:
       - { name: number, type: String, required: true, label: 订单号 }
       - { name: status, type: String, required: true, label: 状态 }
       - { name: email, type: String, required: true }
+      - { name: note, type: String, required: false, label: 备注 }
     indexes:
       - [tenant_id, number]
       - [tenant_id, status, created_at]

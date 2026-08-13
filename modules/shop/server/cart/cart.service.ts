@@ -9,6 +9,12 @@ import {
 import type { AppLocale } from "@rewindom/module-sdk";
 
 import type { ShopCartView } from "../../shared/index.js";
+import {
+  featuredImage,
+  isVariantAvailable,
+  readInventoryPolicy,
+  readShopImages,
+} from "../../shared/index.js";
 import { displayTitle } from "../lib/format.js";
 import {
   readOptionValues,
@@ -153,7 +159,16 @@ export async function addToCart(params: {
     }),
   });
   const nextQty = (existing?.quantity ?? 0) + quantity;
-  if (nextQty > variant.stock_qty) {
+  if (
+    !isVariantAvailable(
+      {
+        stock_qty: variant.stock_qty,
+        track_inventory: variant.track_inventory,
+        inventory_policy: readInventoryPolicy(variant.inventory_policy),
+      },
+      nextQty,
+    )
+  ) {
     throw new ValidationError("shop.out_of_stock");
   }
   if (existing) {
@@ -199,7 +214,18 @@ export async function updateCartItem(params: {
       where: withTenantScope(params.tenant_id, { id: item.id }),
     });
   } else {
-    if (quantity > item.variant.stock_qty) {
+    if (
+      quantity >
+      0 &&
+      !isVariantAvailable(
+        {
+          stock_qty: item.variant.stock_qty,
+          track_inventory: item.variant.track_inventory,
+          inventory_policy: readInventoryPolicy(item.variant.inventory_policy),
+        },
+        quantity,
+      )
+    ) {
       throw new ValidationError("shop.out_of_stock");
     }
     await prisma.shopCartItem.update({
@@ -227,9 +253,19 @@ function toCartView(
         price_cents: number;
         currency: string;
         stock_qty: number;
+        track_inventory: boolean;
+        inventory_policy: string;
+        requires_shipping: boolean;
+        taxable: boolean;
         title: unknown;
         option_values: unknown;
-        product: { id: string; slug: string; title: unknown; options: unknown };
+        product: {
+          id: string;
+          slug: string;
+          title: unknown;
+          options: unknown;
+          images: unknown;
+        };
       };
     }>;
   },
@@ -258,10 +294,16 @@ function toCartView(
       product_slug: item.variant.product.slug,
       title,
       sku: item.variant.sku,
+      image_url:
+        featuredImage(readShopImages(item.variant.product.images))?.url ?? null,
       quantity: item.quantity,
       unit_price_cents: item.variant.price_cents,
       currency: item.variant.currency,
       stock_qty: item.variant.stock_qty,
+      track_inventory: item.variant.track_inventory,
+      inventory_policy: readInventoryPolicy(item.variant.inventory_policy),
+      requires_shipping: item.variant.requires_shipping,
+      taxable: item.variant.taxable,
       line_total_cents: item.variant.price_cents * item.quantity,
     };
   });

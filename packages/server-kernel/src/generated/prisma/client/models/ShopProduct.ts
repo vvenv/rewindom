@@ -29,6 +29,9 @@ export type ShopProductMinAggregateOutputType = {
   tenant_id: string | null
   slug: string | null
   status: string | null
+  product_type: string | null
+  vendor: string | null
+  published_at: Date | null
   created_by: string | null
   updated_by: string | null
   created_at: Date | null
@@ -40,6 +43,9 @@ export type ShopProductMaxAggregateOutputType = {
   tenant_id: string | null
   slug: string | null
   status: string | null
+  product_type: string | null
+  vendor: string | null
+  published_at: Date | null
   created_by: string | null
   updated_by: string | null
   created_at: Date | null
@@ -52,8 +58,16 @@ export type ShopProductCountAggregateOutputType = {
   slug: number
   status: number
   title: number
+  subtitle: number
   description: number
+  images: number
+  product_type: number
+  vendor: number
+  tags: number
+  seo_title: number
+  seo_description: number
   options: number
+  published_at: number
   created_by: number
   updated_by: number
   created_at: number
@@ -67,6 +81,9 @@ export type ShopProductMinAggregateInputType = {
   tenant_id?: true
   slug?: true
   status?: true
+  product_type?: true
+  vendor?: true
+  published_at?: true
   created_by?: true
   updated_by?: true
   created_at?: true
@@ -78,6 +95,9 @@ export type ShopProductMaxAggregateInputType = {
   tenant_id?: true
   slug?: true
   status?: true
+  product_type?: true
+  vendor?: true
+  published_at?: true
   created_by?: true
   updated_by?: true
   created_at?: true
@@ -90,8 +110,16 @@ export type ShopProductCountAggregateInputType = {
   slug?: true
   status?: true
   title?: true
+  subtitle?: true
   description?: true
+  images?: true
+  product_type?: true
+  vendor?: true
+  tags?: true
+  seo_title?: true
+  seo_description?: true
   options?: true
+  published_at?: true
   created_by?: true
   updated_by?: true
   created_at?: true
@@ -177,8 +205,16 @@ export type ShopProductGroupByOutputType = {
   slug: string
   status: string
   title: runtime.JsonValue
+  subtitle: runtime.JsonValue | null
   description: runtime.JsonValue | null
+  images: runtime.JsonValue
+  product_type: string | null
+  vendor: string | null
+  tags: runtime.JsonValue
+  seo_title: runtime.JsonValue | null
+  seo_description: runtime.JsonValue | null
   options: runtime.JsonValue
+  published_at: Date | null
   created_by: string
   updated_by: string | null
   created_at: Date
@@ -212,8 +248,16 @@ export type ShopProductWhereInput = {
   slug?: Prisma.StringFilter<"ShopProduct"> | string
   status?: Prisma.StringFilter<"ShopProduct"> | string
   title?: Prisma.JsonFilter<"ShopProduct">
+  subtitle?: Prisma.JsonNullableFilter<"ShopProduct">
   description?: Prisma.JsonNullableFilter<"ShopProduct">
+  images?: Prisma.JsonFilter<"ShopProduct">
+  product_type?: Prisma.StringNullableFilter<"ShopProduct"> | string | null
+  vendor?: Prisma.StringNullableFilter<"ShopProduct"> | string | null
+  tags?: Prisma.JsonFilter<"ShopProduct">
+  seo_title?: Prisma.JsonNullableFilter<"ShopProduct">
+  seo_description?: Prisma.JsonNullableFilter<"ShopProduct">
   options?: Prisma.JsonFilter<"ShopProduct">
+  published_at?: Prisma.DateTimeNullableFilter<"ShopProduct"> | Date | string | null
   created_by?: Prisma.StringFilter<"ShopProduct"> | string
   updated_by?: Prisma.StringNullableFilter<"ShopProduct"> | string | null
   created_at?: Prisma.DateTimeFilter<"ShopProduct"> | Date | string
@@ -227,8 +271,16 @@ export type ShopProductOrderByWithRelationInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  subtitle?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  images?: Prisma.SortOrder
+  product_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  vendor?: Prisma.SortOrderInput | Prisma.SortOrder
+  tags?: Prisma.SortOrder
+  seo_title?: Prisma.SortOrderInput | Prisma.SortOrder
+  seo_description?: Prisma.SortOrderInput | Prisma.SortOrder
   options?: Prisma.SortOrder
+  published_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -246,8 +298,16 @@ export type ShopProductWhereUniqueInput = Prisma.AtLeast<{
   slug?: Prisma.StringFilter<"ShopProduct"> | string
   status?: Prisma.StringFilter<"ShopProduct"> | string
   title?: Prisma.JsonFilter<"ShopProduct">
+  subtitle?: Prisma.JsonNullableFilter<"ShopProduct">
   description?: Prisma.JsonNullableFilter<"ShopProduct">
+  images?: Prisma.JsonFilter<"ShopProduct">
+  product_type?: Prisma.StringNullableFilter<"ShopProduct"> | string | null
+  vendor?: Prisma.StringNullableFilter<"ShopProduct"> | string | null
+  tags?: Prisma.JsonFilter<"ShopProduct">
+  seo_title?: Prisma.JsonNullableFilter<"ShopProduct">
+  seo_description?: Prisma.JsonNullableFilter<"ShopProduct">
   options?: Prisma.JsonFilter<"ShopProduct">
+  published_at?: Prisma.DateTimeNullableFilter<"ShopProduct"> | Date | string | null
   created_by?: Prisma.StringFilter<"ShopProduct"> | string
   updated_by?: Prisma.StringNullableFilter<"ShopProduct"> | string | null
   created_at?: Prisma.DateTimeFilter<"ShopProduct"> | Date | string
@@ -261,8 +321,16 @@ export type ShopProductOrderByWithAggregationInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  subtitle?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  images?: Prisma.SortOrder
+  product_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  vendor?: Prisma.SortOrderInput | Prisma.SortOrder
+  tags?: Prisma.SortOrder
+  seo_title?: Prisma.SortOrderInput | Prisma.SortOrder
+  seo_description?: Prisma.SortOrderInput | Prisma.SortOrder
   options?: Prisma.SortOrder
+  published_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -281,8 +349,16 @@ export type ShopProductScalarWhereWithAggregatesInput = {
   slug?: Prisma.StringWithAggregatesFilter<"ShopProduct"> | string
   status?: Prisma.StringWithAggregatesFilter<"ShopProduct"> | string
   title?: Prisma.JsonWithAggregatesFilter<"ShopProduct">
+  subtitle?: Prisma.JsonNullableWithAggregatesFilter<"ShopProduct">
   description?: Prisma.JsonNullableWithAggregatesFilter<"ShopProduct">
+  images?: Prisma.JsonWithAggregatesFilter<"ShopProduct">
+  product_type?: Prisma.StringNullableWithAggregatesFilter<"ShopProduct"> | string | null
+  vendor?: Prisma.StringNullableWithAggregatesFilter<"ShopProduct"> | string | null
+  tags?: Prisma.JsonWithAggregatesFilter<"ShopProduct">
+  seo_title?: Prisma.JsonNullableWithAggregatesFilter<"ShopProduct">
+  seo_description?: Prisma.JsonNullableWithAggregatesFilter<"ShopProduct">
   options?: Prisma.JsonWithAggregatesFilter<"ShopProduct">
+  published_at?: Prisma.DateTimeNullableWithAggregatesFilter<"ShopProduct"> | Date | string | null
   created_by?: Prisma.StringWithAggregatesFilter<"ShopProduct"> | string
   updated_by?: Prisma.StringNullableWithAggregatesFilter<"ShopProduct"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"ShopProduct"> | Date | string
@@ -295,8 +371,16 @@ export type ShopProductCreateInput = {
   slug: string
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: string | null
+  vendor?: string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Date | string | null
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -310,8 +394,16 @@ export type ShopProductUncheckedCreateInput = {
   slug: string
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: string | null
+  vendor?: string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Date | string | null
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -325,8 +417,16 @@ export type ShopProductUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -340,8 +440,16 @@ export type ShopProductUncheckedUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,8 +463,16 @@ export type ShopProductCreateManyInput = {
   slug: string
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: string | null
+  vendor?: string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Date | string | null
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -369,8 +485,16 @@ export type ShopProductUpdateManyMutationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -383,8 +507,16 @@ export type ShopProductUncheckedUpdateManyInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -402,8 +534,16 @@ export type ShopProductCountOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  subtitle?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  images?: Prisma.SortOrder
+  product_type?: Prisma.SortOrder
+  vendor?: Prisma.SortOrder
+  tags?: Prisma.SortOrder
+  seo_title?: Prisma.SortOrder
+  seo_description?: Prisma.SortOrder
   options?: Prisma.SortOrder
+  published_at?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -415,6 +555,9 @@ export type ShopProductMaxOrderByAggregateInput = {
   tenant_id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  product_type?: Prisma.SortOrder
+  vendor?: Prisma.SortOrder
+  published_at?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -426,6 +569,9 @@ export type ShopProductMinOrderByAggregateInput = {
   tenant_id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  product_type?: Prisma.SortOrder
+  vendor?: Prisma.SortOrder
+  published_at?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -457,8 +603,16 @@ export type ShopProductCreateWithoutVariantsInput = {
   slug: string
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: string | null
+  vendor?: string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Date | string | null
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -471,8 +625,16 @@ export type ShopProductUncheckedCreateWithoutVariantsInput = {
   slug: string
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: string | null
+  vendor?: string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Date | string | null
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -501,8 +663,16 @@ export type ShopProductUpdateWithoutVariantsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -515,8 +685,16 @@ export type ShopProductUncheckedUpdateWithoutVariantsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subtitle?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  product_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vendor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -560,8 +738,16 @@ export type ShopProductSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   slug?: boolean
   status?: boolean
   title?: boolean
+  subtitle?: boolean
   description?: boolean
+  images?: boolean
+  product_type?: boolean
+  vendor?: boolean
+  tags?: boolean
+  seo_title?: boolean
+  seo_description?: boolean
   options?: boolean
+  published_at?: boolean
   created_by?: boolean
   updated_by?: boolean
   created_at?: boolean
@@ -576,8 +762,16 @@ export type ShopProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   slug?: boolean
   status?: boolean
   title?: boolean
+  subtitle?: boolean
   description?: boolean
+  images?: boolean
+  product_type?: boolean
+  vendor?: boolean
+  tags?: boolean
+  seo_title?: boolean
+  seo_description?: boolean
   options?: boolean
+  published_at?: boolean
   created_by?: boolean
   updated_by?: boolean
   created_at?: boolean
@@ -590,8 +784,16 @@ export type ShopProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   slug?: boolean
   status?: boolean
   title?: boolean
+  subtitle?: boolean
   description?: boolean
+  images?: boolean
+  product_type?: boolean
+  vendor?: boolean
+  tags?: boolean
+  seo_title?: boolean
+  seo_description?: boolean
   options?: boolean
+  published_at?: boolean
   created_by?: boolean
   updated_by?: boolean
   created_at?: boolean
@@ -604,15 +806,23 @@ export type ShopProductSelectScalar = {
   slug?: boolean
   status?: boolean
   title?: boolean
+  subtitle?: boolean
   description?: boolean
+  images?: boolean
+  product_type?: boolean
+  vendor?: boolean
+  tags?: boolean
+  seo_title?: boolean
+  seo_description?: boolean
   options?: boolean
+  published_at?: boolean
   created_by?: boolean
   updated_by?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type ShopProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "status" | "title" | "description" | "options" | "created_by" | "updated_by" | "created_at" | "updated_at", ExtArgs["result"]["shopProduct"]>
+export type ShopProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "status" | "title" | "subtitle" | "description" | "images" | "product_type" | "vendor" | "tags" | "seo_title" | "seo_description" | "options" | "published_at" | "created_by" | "updated_by" | "created_at" | "updated_at", ExtArgs["result"]["shopProduct"]>
 export type ShopProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   variants?: boolean | Prisma.ShopProduct$variantsArgs<ExtArgs>
   _count?: boolean | Prisma.ShopProductCountOutputTypeDefaultArgs<ExtArgs>
@@ -634,11 +844,25 @@ export type $ShopProductPayload<ExtArgs extends runtime.Types.Extensions.Interna
      * 扁平 locale → 文案，如 { "zh-CN": "…", "en": "…" }。这是数据多语言，不是模块 UI i18n。
      */
     title: runtime.JsonValue
+    subtitle: runtime.JsonValue | null
     description: runtime.JsonValue | null
+    /**
+     * ShopProductImage[]：url + alt locale map。第一张是封面。
+     */
+    images: runtime.JsonValue
+    product_type: string | null
+    vendor: string | null
+    /**
+     * string[]，小写去重。
+     */
+    tags: runtime.JsonValue
+    seo_title: runtime.JsonValue | null
+    seo_description: runtime.JsonValue | null
     /**
      * ShopProductOption[]：option 名/值同样是 locale map。
      */
     options: runtime.JsonValue
+    published_at: Date | null
     created_by: string
     updated_by: string | null
     created_at: Date
@@ -1072,8 +1296,16 @@ export interface ShopProductFieldRefs {
   readonly slug: Prisma.FieldRef<"ShopProduct", 'String'>
   readonly status: Prisma.FieldRef<"ShopProduct", 'String'>
   readonly title: Prisma.FieldRef<"ShopProduct", 'Json'>
+  readonly subtitle: Prisma.FieldRef<"ShopProduct", 'Json'>
   readonly description: Prisma.FieldRef<"ShopProduct", 'Json'>
+  readonly images: Prisma.FieldRef<"ShopProduct", 'Json'>
+  readonly product_type: Prisma.FieldRef<"ShopProduct", 'String'>
+  readonly vendor: Prisma.FieldRef<"ShopProduct", 'String'>
+  readonly tags: Prisma.FieldRef<"ShopProduct", 'Json'>
+  readonly seo_title: Prisma.FieldRef<"ShopProduct", 'Json'>
+  readonly seo_description: Prisma.FieldRef<"ShopProduct", 'Json'>
   readonly options: Prisma.FieldRef<"ShopProduct", 'Json'>
+  readonly published_at: Prisma.FieldRef<"ShopProduct", 'DateTime'>
   readonly created_by: Prisma.FieldRef<"ShopProduct", 'String'>
   readonly updated_by: Prisma.FieldRef<"ShopProduct", 'String'>
   readonly created_at: Prisma.FieldRef<"ShopProduct", 'DateTime'>

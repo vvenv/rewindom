@@ -29,6 +29,60 @@
 .shop-price {
   font-weight: 600;
 }
+.shop-price-compare {
+  color: var(--muted-fg);
+  font-weight: 400;
+  margin-right: 0.35rem;
+}
+.shop-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  gap: 0.5rem;
+}
+.shop-gallery-main {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-height: 28rem;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.shop-gallery img {
+  width: 100%;
+  max-height: 8rem;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.shop-product-subtitle {
+  margin: 0;
+  color: var(--muted-fg);
+  font-size: 1.05rem;
+}
+.shop-card-image,
+.shop-line-image {
+  width: 100%;
+  max-height: 12rem;
+  object-fit: cover;
+  border-radius: var(--radius);
+  display: block;
+  margin-bottom: 0.75rem;
+}
+.shop-line-image {
+  width: 3.5rem;
+  height: 3.5rem;
+  max-height: none;
+  float: left;
+  margin: 0 0.75rem 0 0;
+}
+.shop-grid-list img {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
 .shop-grid-list {
   display: grid;
   gap: 0.75rem;
@@ -88,7 +142,8 @@
   font-weight: 500;
 }
 .shop-field input,
-.shop-field select {
+.shop-field select,
+.shop-field textarea {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -98,7 +153,8 @@
   font: inherit;
 }
 .shop-field input:focus-visible,
-.shop-field select:focus-visible {
+.shop-field select:focus-visible,
+.shop-field textarea:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }

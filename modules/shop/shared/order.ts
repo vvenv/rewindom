@@ -68,6 +68,7 @@ export interface ShopOrderDetail extends ShopOrderListItem {
   subtotal_cents: number;
   shipping_cents: number;
   tax_cents: number;
+  note: string | null;
   shipping_address: ShopAddress;
   shipping_rate_name: string | null;
   carrier_code: string | null;
@@ -83,6 +84,7 @@ export interface FulfillShopOrderBody {
 
 export interface ShopCheckoutBody {
   email: string;
-  shipping_rate_id: string;
-  shipping_address: ShopAddress;
+  shipping_rate_id?: string;
+  shipping_address?: ShopAddress;
+  note?: string | null;
 }

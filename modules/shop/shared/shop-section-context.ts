@@ -21,18 +21,30 @@ export interface ShopProductCardView {
   href: string;
   title: string;
   price: string;
+  compare_at_price: string | null;
+  image_url: string | null;
+  image_alt: string;
 }
 
 export interface ShopProductVariantView {
   id: string;
   label: string;
   price: string;
+  compare_at_price: string | null;
   stock: number;
+  sold_out: boolean;
+}
+
+export interface ShopProductImageView {
+  url: string;
+  alt: string;
 }
 
 export interface ShopProductDetailView {
   title: string;
+  subtitle: string;
   description: string;
+  images: ShopProductImageView[];
   variants: ShopProductVariantView[];
 }
 
@@ -40,6 +52,7 @@ export interface ShopCartLineView {
   id: string;
   title: string;
   sku: string;
+  image_url: string | null;
   quantity: number;
   line_total: string;
 }
@@ -66,12 +79,14 @@ export interface ShopCheckoutValues {
   country: string;
   phone: string;
   shipping_rate_id: string;
+  note: string;
 }
 
 export interface ShopCheckoutView {
   email: string;
   rates: ShopShippingRateView[];
   canceled: boolean;
+  requires_shipping: boolean;
   values: ShopCheckoutValues;
 }
 
@@ -85,6 +100,7 @@ export interface ShopOrderView {
   number: string;
   status: string;
   pending: boolean;
+  note: string | null;
   subtotal: string;
   shipping: string;
   tax: string;

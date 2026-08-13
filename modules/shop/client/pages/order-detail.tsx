@@ -99,6 +99,11 @@ export function OrderDetailPage() {
           <p>
             {t("status")}: {order.status} · {order.email}
           </p>
+          {order.note ? (
+            <p>
+              {t("storefront.order.note")}: {order.note}
+            </p>
+          ) : null}
           <p>
             {t("total")}: {(order.total_cents / 100).toFixed(2)} {order.currency}
           </p>
