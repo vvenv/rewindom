@@ -2,8 +2,8 @@
  * 会员那三张页面（登录 / 注册 / 我的账户）的**模板页**登记与兜底版式。
  *
  * 与文档库的两张版式同一套机制（`marketing/shared/page-templates.ts`）：kind 唯一、
- * slug 固定、默认不落库——租户没自定义过时 SSR 按这里的预设渲染，自定义之后就是一张
- * 普通页面记录，走同一个编辑器、同一套发布流程。
+ * slug 固定——对该站点相关时由 marketing 快照落库；记录尚未落库时 SSR 按这里的
+ * 预设兜底。自定义之后就是一张普通页面记录，走同一个编辑器、同一套发布流程。
  *
  * 元数据在**两端**都要登记（写路径要按 kind 校验 slug，中台要列出这几行），所以由
  * `registerMemberPageTemplates()` 统一暴露，server 的 `onBoot` 与 client manifest

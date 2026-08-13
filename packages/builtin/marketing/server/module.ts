@@ -7,7 +7,10 @@ import { marketingDocCategoryRoutes } from "./marketing-doc-category.routes.js";
 import { marketingDocRoutes } from "./marketing-doc.routes.js";
 import { publicSiteRoutes } from "./public-site.routes.js";
 import { siteContentRoutes } from "./site-content.routes.js";
-import { initializeTenantSite } from "./site-init.service.js";
+import {
+  ensureTenantTemplatePages,
+  initializeTenantSite,
+} from "./site-init.service.js";
 import { siteRoutes } from "./site.routes.js";
 import { marketingSsrRoutes } from "./ssr.routes.js";
 
@@ -79,7 +82,7 @@ export const marketingServerModule: ServerAppModule = {
       await app.register(marketingSsrRoutes);
     },
     onBoot: async (ctx) => {
-      // 建租户当下把默认页面快照进 DB，此后系统预设更新不再改动它的站点
+      // 对该站点相关的模板页快照进 DB；开通开关时再补建刚变得相关的那些
       ctx.events.on("tenant.created", async (payload) => {
         try {
           await initializeTenantSite(payload.tenant_id, payload.default_locale);
@@ -87,6 +90,16 @@ export const marketingServerModule: ServerAppModule = {
           ctx.log.error(
             { err, tenant_id: payload.tenant_id },
             "[marketing] initializeTenantSite failed",
+          );
+        }
+      });
+      ctx.events.on("tenant.entitlements.updated", async (payload) => {
+        try {
+          await ensureTenantTemplatePages(payload.tenant_id);
+        } catch (err) {
+          ctx.log.error(
+            { err, tenant_id: payload.tenant_id },
+            "[marketing] ensureTenantTemplatePages failed",
           );
         }
       });

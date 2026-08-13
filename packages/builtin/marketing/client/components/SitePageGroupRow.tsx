@@ -277,7 +277,7 @@ function PageActions({
   const resetPending = actions.resetPresetPendingId === page.id;
   // 只有注册了内置版式的 kind（首页 / 各模板页）才有「最新版式」可重设
   const canResetPreset = Boolean(getPageTemplatePreset(page.kind));
-  // 模板页不可删：系统初始化或「自定义版式」落库后只许重设，不许删
+  // 模板页不可删：系统快照落库后只许重设，不许删
   const canDelete = !isTemplatePageKind(page.kind);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
 

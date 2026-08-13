@@ -1,26 +1,16 @@
-import { useEffect, useState } from "react";
-
-import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
-import { Button } from "@rewindom/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@rewindom/ui/select";
+import { type AppLocale } from "@rewindom/shared";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 
 import {
-  getPageTemplatePreset,
+  isPageTemplateRelevant,
   listPageTemplateKinds,
   type PageTemplateKindDefinition,
 } from "../../shared/page-templates.js";
-import { marketingPagePath, type MarketingPageListItem  } from "../../shared/site-cms.js";
+import {
+  marketingPagePath,
+  type MarketingPageListItem,
+} from "../../shared/site-cms.js";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
-import { useSiteMutations } from "../hooks/useSite.js";
-import { buildPresetSections } from "../lib/page-presets.js";
 
 import { SitePageGroupRow } from "./SitePageGroupRow.js";
 
@@ -30,9 +20,8 @@ import type { SitePageGroup } from "../lib/site-page-groups.js";
 /**
  * 模板页的常驻入口：文档库的两张版式、会员登录 / 注册页的版式……
  *
- * 它们**默认不存在**（没有记录就按内置版式渲染），所以不能只靠页面列表——列表里
- * 没有的东西，租户根本不知道这些地址的版式是可以改的。这几行常驻：没建过就给一枚
- *「自定义版式」，建过就和普通页面一样按语言组分行，用复制铺出其它语言。
+ * 它们不进普通页面目录（没有租户自填的地址，不能拖排序），所以单独常驻几行。
+ * 相关时已经由服务端快照落库——列表里没有记录就先不画这一行，下次打开会再补。
  *
  * 分组来自注册表本身（`group` 是 i18n key；**同一 key = 同一组**）。跨模块贡献的
  * `/member/*` 模板应共用同一 group key（见 `MEMBER_PAGE_TEMPLATE_GROUP`），而不是各写
@@ -57,11 +46,17 @@ export function SiteTemplatePageRows({
     siteLocaleOrder(defaultLocale).map((locale, index) => [locale, index]),
   );
 
-  const visible = listPageTemplateKinds().filter(
-    (template) =>
-      !template.entitlement || entitlements.has(template.entitlement),
+  const visible = listPageTemplateKinds().filter((template) =>
+    isPageTemplateRelevant(template, entitlements),
   );
-  const groups = [...new Set(visible.map((template) => template.group))];
+  const groups = [...new Set(visible.map((template) => template.group))].filter(
+    (group) =>
+      visible.some(
+        (template) =>
+          template.group === group &&
+          pages.some((page) => page.kind === template.kind),
+      ),
+  );
 
   return (
     <>
@@ -73,40 +68,18 @@ export function SiteTemplatePageRows({
           {visible
             .filter((template) => template.group === group)
             .map((template) => {
-              const kindPages = pages
-                .filter((page) => page.kind === template.kind)
-                .sort(
-                  (a, b) =>
-                    (localeRank.get(a.locale) ?? Number.MAX_SAFE_INTEGER) -
-                    (localeRank.get(b.locale) ?? Number.MAX_SAFE_INTEGER),
-                );
-
-              if (kindPages.length === 0) {
-                return (
-                  <EmptyTemplateRow
-                    key={template.kind}
-                    template={template}
-                    defaultLocale={defaultLocale}
-                    canWrite={canWrite}
-                  />
-                );
-              }
-
-              const primary =
-                kindPages.find((page) => page.locale === defaultLocale) ??
-                kindPages[0]!;
-              const pageGroup: SitePageGroup = {
-                kind: template.kind,
-                slug: primary.slug,
-                path: marketingPagePath(template.kind, primary.slug),
-                title: primary.title,
-                pages: kindPages,
-              };
+              const row = templateRow(
+                template,
+                pages,
+                defaultLocale,
+                localeRank,
+              );
+              if (!row) return null;
 
               return (
                 <SitePageGroupRow
                   key={template.kind}
-                  group={pageGroup}
+                  group={row}
                   defaultLocale={defaultLocale}
                   canWrite={canWrite}
                   actions={actions}
@@ -119,100 +92,28 @@ export function SiteTemplatePageRows({
   );
 }
 
-/**
- * 还没自定义过：一行说明 +「自定义版式」。
- *
- * 先落所选语言那一行；其它语言跟普通页面一样，自定义之后用「复制」铺。
- * 起步文案按**目标语言**取（不是管理台当前 UI 语言），否则中文后台建英文版式
- * 会把中文占位写进 sections。
- */
-function EmptyTemplateRow({
-  template,
-  defaultLocale,
-  canWrite,
-}: {
-  template: PageTemplateKindDefinition;
-  defaultLocale: AppLocale;
-  canWrite: boolean;
-}) {
-  const { t, i18n } = useTranslation(["marketing", "site-member"]);
-  const { createPage } = useSiteMutations();
-  const preset = getPageTemplatePreset(template.kind);
-  const locales = siteLocaleOrder(defaultLocale);
-  const [locale, setLocale] = useState<AppLocale>(defaultLocale);
-
-  useEffect(() => {
-    if (!locales.includes(locale)) setLocale(defaultLocale);
-  }, [defaultLocale, locale, locales]);
-
-  const create = (): void => {
-    if (!preset) return;
-    /*
-     * 贡献方的预设里 key 带命名空间（`site-member:preset.…`），marketing 自己的不带
-     * ——`getFixedT` 绑 marketing 做默认 ns，i18next 认前缀，两种都解得开。
-     */
-    const translate = i18n.getFixedT(locale, "marketing");
-    createPage.mutate(
-      {
-        kind: template.kind,
-        slug: template.slug,
-        locale,
-        title: translate(preset.titleKey),
-        description: translate(preset.descriptionKey),
-        sections: buildPresetSections(preset, translate),
-      },
-      {
-        onSuccess: () => toast.success(t("cms.toastTemplatePageCreated")),
-        onError: () => toast.error(t("cms.toastTemplatePageCreateFailed")),
-      },
+function templateRow(
+  template: PageTemplateKindDefinition,
+  pages: MarketingPageListItem[],
+  defaultLocale: AppLocale,
+  localeRank: ReadonlyMap<AppLocale, number>,
+): SitePageGroup | null {
+  const kindPages = pages
+    .filter((page) => page.kind === template.kind)
+    .sort(
+      (a, b) =>
+        (localeRank.get(a.locale) ?? Number.MAX_SAFE_INTEGER) -
+        (localeRank.get(b.locale) ?? Number.MAX_SAFE_INTEGER),
     );
-  };
+  if (kindPages.length === 0) return null;
 
-  return (
-    <div className="flex items-center justify-between gap-3 px-4 py-3">
-      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <span className="truncate font-medium">{t(template.label)}</span>
-        <span className="truncate font-mono text-xs text-muted-foreground">
-          {template.path}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {t("cms.templatePageDefault")}
-        </span>
-      </div>
-      {canWrite && preset ? (
-        <div className="flex shrink-0 items-center gap-2">
-          {locales.length > 1 ? (
-            <Select
-              value={locale}
-              onValueChange={(value) => setLocale(value as AppLocale)}
-            >
-              <SelectTrigger
-                size="sm"
-                className="w-auto min-w-24"
-                aria-label={t("cms.fieldLocale")}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {locales.map((slug) => (
-                  <SelectItem key={slug} value={slug}>
-                    {getLocaleNativeLabel(slug)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : null}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={createPage.isPending}
-            onClick={create}
-          >
-            {t("cms.templatePageCustomize")}
-          </Button>
-        </div>
-      ) : null}
-    </div>
-  );
+  const primary =
+    kindPages.find((page) => page.locale === defaultLocale) ?? kindPages[0]!;
+  return {
+    kind: template.kind,
+    slug: primary.slug,
+    path: marketingPagePath(template.kind, primary.slug),
+    title: primary.title,
+    pages: kindPages,
+  };
 }

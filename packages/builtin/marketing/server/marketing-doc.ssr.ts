@@ -5,7 +5,7 @@
  * 一样是普通的 section 流，租户在同一个编辑器里排。这里只负责三件事：
  *
  * 1. 取版式：模板页在库里就用它，没有就用内置兜底版式（`DOC_TEMPLATE_PRESETS`）。
- *    「没有」是常态而不是异常——租户没自定义过就不该有这条记录，见 `page-presets.ts`。
+ *    「没有」只应出现在快照前的缺口（见 `initializeTenantSite`），不是产品路径。
  * 2. 取数据：已发布文档目录（+ 详情页的当前那一篇）塞进渲染上下文，`doc-*` 段吃它。
  * 3. 合成一个 `PublicMarketingPage` 交给 `renderMarketingHtml`——页头 / 页脚 / 主题 /
  *    SEO 全部走与普通页面同一条路。

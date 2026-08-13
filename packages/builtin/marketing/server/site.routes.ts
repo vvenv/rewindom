@@ -20,6 +20,7 @@ import {
   deleteFormSubmission,
   listFormSubmissions,
 } from "./site-form.service.js";
+import { ensureTenantTemplatePages } from "./site-init.service.js";
 import { listSiteLinkTargets } from "./site-link-target.service.js";
 import {
   getPageVersion,
@@ -173,7 +174,16 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
     errorCode: "SITE_PAGE_LIST_FAILED",
     preHandler: [app.requirePermission("site.read")],
     handler: async (request) => {
-      return listPages(request.tenantContext!.tenant_id);
+      const tenant_id = request.tenantContext!.tenant_id;
+      try {
+        await ensureTenantTemplatePages(tenant_id);
+      } catch (err) {
+        request.log.error(
+          { err, tenant_id },
+          "[marketing] ensureTenantTemplatePages failed",
+        );
+      }
+      return listPages(tenant_id);
     },
   });
 

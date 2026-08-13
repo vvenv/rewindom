@@ -26,7 +26,7 @@
 
 | 项 | 口径 |
 | --- | --- |
-| 版式 | 租户在 `/app/site` →「会员页版式」建页，Theme Editor 里排；默认**不落库**，没建过就按内置预设渲染。分组 key 是 `MEMBER_PAGE_TEMPLATE_GROUP`（本模块持有文案）；依赖方贡献的 `/member/*` 模板（如 site-billing 订阅页）必须复用，不得另开同名组 |
+| 版式 | 租户在 `/app/site` →「会员页版式」编辑；相关时由 marketing 快照落库。分组 key 是 `MEMBER_PAGE_TEMPLATE_GROUP`（本模块持有文案）；依赖方贡献的 `/member/*` 模板（如 site-billing 订阅页）必须复用，不得另开同名组 |
 | 地址 | kind 决定 slug（`member-login` / `member-register` / `member-account`），租户改不了 |
 | 必备段 | `site-member.login-form` / `.register-form` / `.account-panel`：编辑器不给删，服务端保存时校验有且仅有一段（`site.template_section_required`） |
 | 段的落脚点 | 三段都声明了 `page_kinds`，只能出现在自己那张模板页上 |

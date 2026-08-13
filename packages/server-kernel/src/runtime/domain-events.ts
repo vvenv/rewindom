@@ -44,10 +44,21 @@ export interface TenantCreatedEventPayload {
   default_locale: AppLocale;
 }
 
+/**
+ * 租户能力开关写完（事务提交后）。
+ *
+ * 订阅方拿它补建「刚才才变得相关」的资源——比如官网模板页：没开通商店时不该预建
+ * `/shop` 版式，打开开关的这一刻才快照。
+ */
+export interface TenantEntitlementsUpdatedEventPayload {
+  tenant_id: string;
+}
+
 export interface DomainEventMap {
   "audit.log": AuditLogEventPayload;
   "notification.create": NotificationCreateEventPayload;
   "tenant.created": TenantCreatedEventPayload;
+  "tenant.entitlements.updated": TenantEntitlementsUpdatedEventPayload;
 }
 
 export type DomainEventName = keyof DomainEventMap & string;

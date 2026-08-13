@@ -169,7 +169,20 @@ pnpm --filter @rewindom/builtin assemble:module-css
 
 页头 / 页脚里「和语言切换同一排的按钮」是 chrome **块**，不是再往区域里塞一段。贡献走
 `registerChromeBlockHtml` / `registerChromeBlockView`，定义里带 `chromeSlotSettings()`。
-金标准：shop 的 `shop.cart-link`。口径见 marketing `MODULE.md`「业务模块贡献 chrome 块」。
+金标准：shop 的购物车入口。口径见 marketing `MODULE.md`「业务模块贡献 chrome 块」。
+
+## 贡献官网模板页
+
+路径固定的页面（登录、商店首页、文档版式）走 marketing 的模板页注册表，**不要**自己写初始化、**不要**做「自定义版式」空态。
+
+| 写 | 登记 |
+| --- | --- |
+| `<模块>/shared/*-page-templates.ts` | 同一函数里 `registerPageTemplateKind` + `registerPageTemplatePreset` |
+| server `onBoot` + client manifest | 各调一次（幂等） |
+
+有租户开关的模板必须声明 `entitlement`。marketing 在相关时快照落库（建租户 / 开通开关 / 打开 `/app/site`）。`pnpm check:modules` 会挡 kind 缺 preset、有开关却没声明 entitlement、以及客户端「自定义版式」。
+
+金标准：`site-member/shared/member-page-templates.ts`。口径见 marketing `MODULE.md`「业务模块贡献模板页」。
 
 ## 金标准（notes）
 
@@ -182,6 +195,7 @@ pnpm --filter @rewindom/builtin assemble:module-css
 - 在 `routes/index.ts` 中央列表追加业务插件
 - 在 `platform` 内写业务域逻辑；用 slot / `renderPlatformRoutes` 反向贡献
 - 贡献官网段时手写 `shared/*-css.ts` 模板字符串（见「贡献官网段」）
+- 贡献官网模板页时自己写初始化或「自定义版式」空态（见「贡献官网模板页」）
 
 ## 交付前自检（逐条比对 spec）
 
@@ -206,3 +220,4 @@ pnpm --filter @rewindom/builtin assemble:module-css
 - [ ] 设置页只有一张 `<form>`；密钥 / 收款通道用 Sheet（见 `frontend-page-structure` skill「一页一表单」）
 - [ ] 租户内容多语言走数据 locale map，不要做 `fieldTitleEn` 这种代码 i18n 平行字段（见 `docs/design/i18n.md`）
 - [ ] 若贡献了官网段：CSS 真源是 `shared/site-css/*.css`，没有手写 `*-css.ts`，generated 已 assemble 并提交
+- [ ] 🤖 若贡献了官网模板页：kind 与 preset 成对登记；有租户开关则声明了 `entitlement`；客户端没有「自定义版式」

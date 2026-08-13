@@ -36,8 +36,7 @@ export function groupSitePages(
   const keyOrder: string[] = [];
 
   for (const page of pages) {
-    // 模板页（含首页）有自己的常驻行（`SiteTemplatePageRows`）：它们默认不存在，
-    // 只在列表里露出「建过的那一张」会让人以为另一张不可编辑
+    // 模板页（含首页）有自己的常驻行（`SiteTemplatePageRows`），不进可排序目录
     if (isTemplatePageKind(page.kind)) continue;
     const key = `${page.kind}\0${page.slug}`;
     const existing = byKey.get(key);

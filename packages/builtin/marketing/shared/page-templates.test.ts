@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  canonicalizePageIdentity,
-  marketingPagePath,
-} from "./site-cms.js";
+import { canonicalizePageIdentity, marketingPagePath } from "./site-cms.js";
 import {
   getPageTemplateKind,
+  isPageTemplateRelevant,
   isTemplatePageKind,
   listPageTemplateKinds,
   registerPageTemplateKind,
@@ -48,9 +46,9 @@ describe("模板页注册表", () => {
       slug: "demo-login",
     });
     expect(marketingPagePath("demo_login", "demo-login")).toBe("/demo/login");
-    expect(
-      listPageTemplateKinds().map((template) => template.kind),
-    ).toContain("demo_login");
+    expect(listPageTemplateKinds().map((template) => template.kind)).toContain(
+      "demo_login",
+    );
 
     // 幂等：同一个定义再登记一次不抛
     expect(() => registerPageTemplateKind(definition)).not.toThrow();
@@ -75,5 +73,23 @@ describe("模板页注册表", () => {
       slug: "关于",
     });
     expect(marketingPagePath("page", "about")).toBe("/about");
+  });
+
+  it("没有 entitlement 的常驻；声明了的要等开关打开", () => {
+    const alwaysOn = {
+      kind: "home",
+      slug: "home",
+      path: "/",
+      group: "x",
+      label: "x",
+      required_section: null,
+    };
+    const gated = { ...alwaysOn, kind: "shop_index", entitlement: "shop" };
+    const none = new Set<string>();
+    const shopOn = new Set(["shop"]);
+
+    expect(isPageTemplateRelevant(alwaysOn, none)).toBe(true);
+    expect(isPageTemplateRelevant(gated, none)).toBe(false);
+    expect(isPageTemplateRelevant(gated, shopOn)).toBe(true);
   });
 });

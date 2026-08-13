@@ -90,11 +90,11 @@ export const HOME_STARTER_PRESET: PagePreset = {
 /**
  * 文档库两张模板页的**默认版式**。
  *
- * 它们是**兜底**：租户没自定义过版式时，`/docs` 与 `/docs/:slug` 直接按这里渲染
+ * 它们是**兜底**：快照尚未落库时，`/docs` 与 `/docs/:slug` 直接按这里渲染
  * （见 `server/marketing-doc.ssr.ts`）。所以不进新建页面的可选菜单。
  *
- * 也正因为是兜底，这两份版式不落库：不给没用文档的租户塞两张空页，也就不需要
- * 为存量租户写数据迁移。租户想改，在编辑器里保存一次即成为一条真实页面记录。
+ * 相关时由 `initializeTenantSite` 快照落库；SSR 这条路径只接住缺口（开关刚开、
+ * 事件还没跑完）。租户要跟进最新预设，走「重设为最新版式」。
  */
 export const DOC_TEMPLATE_PRESETS: Record<DocTemplateKind, PagePreset> = {
   doc_index: {
@@ -176,7 +176,7 @@ export function buildDocTemplateSections(
 }
 
 /*
- * 把兜底版式登记进模板页注册表，中台的「自定义版式」按钮按 kind 取它建页。
+ * 把兜底版式登记进模板页注册表，快照落库与「重设为最新版式」按 kind 取它。
  * 元数据（slug / path）在 `page-templates.ts` 里就登记好了，与预设分开的理由见那边。
  */
 registerPageTemplatePreset("home", HOME_STARTER_PRESET);

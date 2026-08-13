@@ -44,8 +44,10 @@
 
 版式本身仍是普通的 section 流，租户在同一个编辑器里排、同一套发布流程上线。
 
-**默认不落库**：没有记录是常态而不是异常——那时各自的 SSR 用内置预设版式渲染
-（`registerPageTemplatePreset`），所以新增模板页种类**不需要数据迁移**。
+**相关时快照落库**：没有 entitlement 的常驻页在建租户时写入；声明了 `entitlement`
+的在开关打开时写入（打开 `/app/site` 也会补缺）。SSR 在记录尚未落库时仍用内置预设
+兜底——那是缺口不是产品路径。新增模板页种类**不需要数据迁移**，也不要做「自定义版式」
+空态：登记 `registerPageTemplateKind` + `registerPageTemplatePreset` 即可。
 
 注册表定义在 marketing，业务模块自己填（同 `registerSectionDefinition` 的方向）：
 `/member/login` 的版式属于 site-member，marketing 不认识「会员」这个概念。
@@ -566,6 +568,24 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 
 用例见 `shared/section-contribution.test.ts`。
 
+#### 业务模块贡献模板页
+
+路径固定、每种语言最多一张的页面（登录页、商店首页、文档版式）走模板页注册表，
+不要自己写初始化、不要做「自定义版式」空态。
+
+| 位置 | 做什么 |
+| --- | --- |
+| `<模块>/shared/*-page-templates.ts` | `registerPageTemplateKind` + `registerPageTemplatePreset`（同一函数里成对登记） |
+| server `onBoot` + client manifest | 各调一次注册函数（幂等） |
+
+有租户开关的模板必须声明 `entitlement`。marketing 在「对该站点变得相关」时快照落库：
+
+- 常驻（无 entitlement）→ `tenant.created`
+- 有开关 → `tenant.entitlements.updated`（打开 `/app/site` 也会补缺）
+
+金标准：`site-member/shared/member-page-templates.ts`、`shop/shared/shop-page-templates.ts`。
+`pnpm check:modules` 会查 kind/preset 成对、有开关则声明了 entitlement、客户端没有「自定义版式」。
+
 #### 撞见不认识的段
 
 页面里可能存着这份代码解析不了的段：模块停用、租户退订、或页面是更新版本写的。
@@ -623,10 +643,10 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 自己的地址，`doc_index` 的导航入口走页头 `items` 里的 `docs` 动态项（建站默认就有；库空时不渲染），
 而不是因为「碰巧自定义过版式」就自动冒出来。
 
-**默认不落库**：库里没有这两条记录时，SSR 直接按内置兜底版式渲染
-（`DOC_TEMPLATE_PRESETS`，见 `shared/page-presets.ts`）。所以新租户零配置就有能用的文档站，
-存量租户也不需要数据迁移。租户在站点页面列表底部的「文档版式」两行点「自定义版式」，
-才从兜底版式复制出一条真实页面记录，之后就是普通页面的编辑 / 发布流程。
+**相关时快照落库**：建租户（或打开 `/app/site`）时把这两张版式写成页面记录
+（`initializeTenantSite`）。SSR 在记录尚未落库时仍按内置兜底版式渲染
+（`DOC_TEMPLATE_PRESETS`，见 `shared/page-presets.ts`）。租户要跟进最新预设，
+走页面行上的「重设为最新版式」。
 
 四个段消费文档数据（数据经 `SectionRenderContext` 的 `docs` / `doc` 注入）：
 
@@ -662,7 +682,7 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 ### 站点管理页（`/app/site`）
 
 一张卡：卡头是站点（站名 / 发布状态 / 计数 / 站点设置 / 查看官网），卡身是页面列表，
-底下常驻文档版式两行。页面与它所在的站点是同一个对象，不拆成两张卡。
+底下常驻模板页（首页 / 文档版式 / 会员版式等）。页面与它所在的站点是同一个对象，不拆成两张卡。
 
 - **一行 = 一个页面**，同 `(kind, slug)` 的各语言合成一个**翻译组**（`site-page-groups.ts`）。
   单语言时组头与那一行合并；多语言时组头 + 缩进的语言行。整行是热区：标题 / 语言名
@@ -807,8 +827,9 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 起步模板」；日常回到最新靠页面「重设为最新版式」与主题包「重设为最新」。
 
 初始化刻意很轻：首页只有 hero / 富文本 / CTA 三段，文案是可替换的占位，
-页头不预设按钮、页脚不预设链接组，且不再顺带建 docs 与其它自定义页。关于我们、联系、
-定价等页面由租户自己在 CMS 里新建，或用 `prose` / `group` / `form` 自由拼版式。
+页头不预设按钮、页脚不预设链接组。文档版式、会员页等模板页也会快照成可编辑记录，
+内容仍是内置预设。关于我们、联系、定价等普通页面由租户自己在 CMS 里新建，
+或用 `prose` / `group` / `form` 自由拼版式。
 
 模板里的链接也不能写死站内地址：起步只建首页，别处都指不到；`/register` 更是
 **工作台的员工注册页**（`apps/client/src/shell/guest-routes.tsx`），租户站点的访客点进去
@@ -1032,7 +1053,7 @@ og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算
 
 | 内容 | 位置 | 说明 |
 | --- | --- | --- |
-| 通用初始化配方 | `shared/site-starters.ts` + `page-presets.ts` | key=`default`（仅首页占位，给任意租户；由 `site-init` 落库） |
+| 通用初始化配方 | `shared/site-starters.ts` + `page-presets.ts` + `site-init.service.ts` | chrome + 对该站点已相关的模板页（常驻页建租户时快照；有开关的页开通时补建） |
 | **默认租户产品站** | `server/default-product-site-content.ts` | Rewindom 终稿：中英双语首页（hero + 多段 prose + band）；文案来自 `client/locales` 的 `site` / `hero` / `features` / `landing` / `seo` |
 | Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等铺产品站并发布；已是产品站则跳过 |
 | 文档库 | `docs/usage/<locale>/*.md` | 启动时按语言补齐已发布文档 |

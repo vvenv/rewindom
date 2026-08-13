@@ -14,9 +14,10 @@ export type SiteLocalizedText = string | LocalizedText;
  * 页面的种类。
  *
  * **不是闭合联合**：`page` 是租户自己排的普通页面（slug 自填）；`home` 与各张**模板页**
- *（kind 唯一、slug 固定）一样默认不落库、SSR 用内置版式兜底，但历史上 `home` 也出现在
- * 起步模板与页面列表里，所以仍单独保留 kind 名。其余模板页可由业务模块贡献——`member_login` 的版式属于
- * site-member，它的 kind 在 marketing 的编译期无从枚举（同 `SectionType` 的处理）。
+ *（kind 唯一、slug 固定）由系统在相关时快照落库，SSR 在记录尚未落库时用内置版式兜底。
+ * 历史上 `home` 也出现在起步模板与页面列表里，所以仍单独保留 kind 名。其余模板页可由
+ * 业务模块贡献——`member_login` 的版式属于 site-member，它的 kind 在 marketing 的
+ * 编译期无从枚举（同 `SectionType` 的处理）。
  * 想知道一个 kind 是不是模板页、它的固定 slug 与路径是什么，一律查
  * `page-templates.ts` 的注册表。
  *
@@ -24,8 +25,7 @@ export type SiteLocalizedText = string | LocalizedText;
  *（同一个编辑器、同一套发布流程），内容归 `MarketingDoc`。详情模板一张顶所有
  * `/docs/:slug`：访客点开哪篇，`doc-article` 段就渲哪篇。
  *
- * 模板页在 DB 里可以**不存在**：那时 SSR 用内置预设版式渲染。不为每个租户预建
- * 空页，也就不需要数据迁移。
+ * SSR 在库里没有记录时仍用内置预设渲染——那是快照前的缺口，不是「默认不落库」的产品路径。
  */
 export type MarketingPageKind = string;
 

@@ -1,14 +1,16 @@
-
+import { emitDetachedDomainEventSafe } from "@rewindom/server-kernel/runtime/domain-event-emit.js";
 import { type TenantEntitlementsResponse } from "@rewindom/shared";
 
 import { type UpdateTenantEntitlementsBody } from "../../shared/index.js";
 
-import { getTenantFeatureFlags, saveTenantFeatureFlags } from "./tenant-feature.service.js";
+import {
+  getTenantFeatureFlags,
+  saveTenantFeatureFlags,
+} from "./tenant-feature.service.js";
 import {
   getTenantModuleFlags,
   saveTenantModuleFlags,
 } from "./tenant-module.service.js";
-
 
 export async function getTenantEntitlements(
   tenantId: string,
@@ -33,5 +35,9 @@ export async function saveTenantEntitlements(
     await saveTenantFeatureFlags(tenantId, updates.features);
   }
 
-  return getTenantEntitlements(tenantId);
+  const saved = await getTenantEntitlements(tenantId);
+  await emitDetachedDomainEventSafe(undefined, "tenant.entitlements.updated", {
+    tenant_id: tenantId,
+  });
+  return saved;
 }

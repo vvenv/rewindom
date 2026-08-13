@@ -924,7 +924,7 @@ export async function deletePage(
   if (!existing) {
     throw new NotFoundError("site.page_not_found");
   }
-  // 模板页（首页 / 文档版式 / 会员版式等）由系统初始化或「自定义版式」落库，
+  // 模板页（首页 / 文档版式 / 会员版式等）由系统在相关时快照落库，
   // 删掉就失去对应路由的可编辑版式；只许重设预设，不许删。
   if (isTemplatePageKind(existing.kind)) {
     throw new ConflictError("site.template_page_not_deletable");

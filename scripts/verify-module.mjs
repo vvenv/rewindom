@@ -599,6 +599,58 @@ function checkBoundary(mod, add) {
   }
 }
 
+/**
+ * 11. 官网模板页：kind 与 preset 成对登记；有开关则声明 entitlement；禁止「自定义版式」空态。
+ *
+ * 新模块只许 `registerPageTemplateKind` + `registerPageTemplatePreset`。落库由
+ * marketing 的 `initializeTenantSite` 在相关时统一做——模块自己写初始化或空态按钮
+ * 会再分出一条「不落库直到点一下」的路径。
+ */
+function checkPageTemplates(mod, add) {
+  const sharedFiles = walk(path.join(mod.dir, "shared"), [".ts"]).filter(
+    (f) => !f.endsWith(".test.ts"),
+  );
+  const combined = [...sharedFiles, ...mod.serverFiles]
+    .map((f) => read(f))
+    .join("\n");
+  if (!/registerPageTemplateKind\s*\(/u.test(combined)) return;
+
+  if (!/registerPageTemplatePreset\s*\(/u.test(combined)) {
+    add(
+      "error",
+      "page-templates",
+      "登记了 registerPageTemplateKind 但没有 registerPageTemplatePreset。模板页必须带内置版式，由 marketing 在相关时快照落库；不要做「自定义版式」空态。",
+    );
+  }
+
+  const clientCombined = mod.clientFiles.map((f) => read(f)).join("\n");
+  if (
+    /templatePageCustomize/u.test(clientCombined) ||
+    /自定义版式/u.test(clientCombined)
+  ) {
+    add(
+      "error",
+      "page-templates",
+      "模板页不要做「自定义版式」空态：登记 kind + preset 即可，marketing 会在建租户 / 开通 entitlement / 打开 /app/site 时快照落库。",
+    );
+  }
+
+  const hasTenantEntitlements =
+    Boolean(mod.serverManifestText?.includes("tenantEntitlements")) ||
+    Boolean(mod.clientManifestText?.includes("tenantEntitlements"));
+  if (
+    mod.id !== "marketing" &&
+    hasTenantEntitlements &&
+    !/entitlement:\s*/u.test(combined)
+  ) {
+    add(
+      "error",
+      "page-templates",
+      "本模块有租户开关且贡献了模板页，但 registerPageTemplateKind 没有声明 entitlement——未开通的站点也会露出并快照这些页。",
+    );
+  }
+}
+
 // ---------------------------------------------------------------- 主流程
 
 // 内部模块：@rewindom/builtin 单包内的目录，靠 manifest 文件识别
@@ -653,6 +705,7 @@ for (const mod of modules) {
   checkClientShell(mod, add);
   checkDocs(mod, add);
   checkBoundary(mod, add);
+  checkPageTemplates(mod, add);
 }
 
 const errors = findings.filter((f) => f.level === "error");

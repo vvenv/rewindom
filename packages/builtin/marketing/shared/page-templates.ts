@@ -9,8 +9,8 @@
  * `/member/login` 的版式属于 site-member，marketing 不该认识「会员」这个概念，
  * 依赖图上仍只有一条边（业务模块 `requires: ["marketing"]`）。
  *
- * 模板页在 DB 里可以**不存在**：那时由各自的 SSR 用内置预设版式渲染。不为每个租户
- * 预建空页，也就不需要数据迁移——「没有记录」是常态，不是异常。
+ * 对该站点变得相关时由 `initializeTenantSite` 快照进 DB（建租户、开通 entitlement、
+ * 打开 `/app/site`）。SSR 仍能在记录尚未落库时用内置预设兜底，那是缺口不是产品路径。
  */
 
 import { DOCS_INDEX_PATH } from "./marketing-doc.js";
@@ -61,8 +61,8 @@ const TEMPLATE_KINDS = new Map<string, PageTemplateKindDefinition>();
  * 各模板页的内置预设版式。
  *
  * 与定义分开登记，是因为两者的可见范围不同：`slug` / `path` 这些元数据在**写路径**
- * 上就要用到（校验 slug、算页面路径），预设版式只有中台「自定义版式」按钮与 SSR
- * 兜底渲染要。分开之后 `page-templates` 不必 import `page-presets`，也就不会与
+ * 上就要用到（校验 slug、算页面路径），预设版式给快照落库、「重设为最新版式」与
+ * SSR 兜底用。分开之后 `page-templates` 不必 import `page-presets`，也就不会与
  * `site-cms` 连成环。
  */
 const TEMPLATE_PRESETS = new Map<string, PagePreset>();
@@ -107,11 +107,24 @@ export function listPageTemplateKinds(): PageTemplateKindDefinition[] {
  * 普通页面列表 / 排序 / 站点导航 / 复制规则都按它排除模板页：模板页没有租户自填的
  * 地址，混进那些列表里会给出「可以改 slug」「可以拖排序」的错误暗示。
  *
- * 模板页一旦落库也**不可删除**（只许重设预设）——首页、文档版式等由系统初始化或
- * 「自定义版式」建出，删掉就失去对应路由上的可编辑版式。
+ * 模板页一旦落库也**不可删除**（只许重设预设）——由系统在相关时快照建出，
+ * 删掉就失去对应路由上的可编辑版式。
  */
 export function isTemplatePageKind(kind: string): boolean {
   return TEMPLATE_KINDS.has(kind);
+}
+
+/**
+ * 这张模板页现在对这个站点是否相关。
+ *
+ * 没有 `entitlement` 的常驻（首页 / 文档 / 会员登录）；声明了的要等对应开关打开。
+ * 中台列表、快照落库、SSR 露出都走这一条，避免三处各写一个「要不要出现」。
+ */
+export function isPageTemplateRelevant(
+  template: PageTemplateKindDefinition,
+  enabledEntitlements: ReadonlySet<string>,
+): boolean {
+  return !template.entitlement || enabledEntitlements.has(template.entitlement);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -132,7 +145,7 @@ export function isDocTemplateKind(kind: string): kind is DocTemplateKind {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 首页：kind 唯一、slug 固定，默认不落库，SSR 用内置三段式版式兜底            */
+/* 首页：kind 唯一、slug 固定；相关时快照落库，SSR 在缺口里用内置版式兜底      */
 /* -------------------------------------------------------------------------- */
 
 registerPageTemplateKind({

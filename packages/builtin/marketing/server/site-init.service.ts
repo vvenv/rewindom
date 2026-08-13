@@ -3,9 +3,12 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
+import { getPlatformSettings } from "../../platform/server/services/platform-settings.service.js";
+import { isTenantModuleEnabled } from "../../platform/server/services/tenant-module.service.js";
 import { buildPresetSections } from "../shared/page-presets.js";
 import {
   getPageTemplatePreset,
+  isPageTemplateRelevant,
   listPageTemplateKinds,
 } from "../shared/page-templates.js";
 import { buildSiteStarterChrome } from "../shared/site-starters.js";
@@ -24,18 +27,20 @@ export interface InitializeTenantSiteResult {
 }
 
 /**
- * 把默认页面（首页 + 各注册模板页的内置版式）在**这一刻**快照进 DB。
+ * 把对该站点**已经相关**的模板页在这一刻快照进 DB。
+ *
+ * 「相关」= 没有 entitlement 的常驻页，或声明了 entitlement 且该开关已打开。不相关的
+ * 不预建——没开通商店的站点不该有 `/shop` 版式记录。
  *
  * 动机：不落库的页面由 SSR 按代码里的最新预设兜底渲染，预设一升级，从没动过版式的
- * 租户站点就跟着变。建租户当下把版式落成真实记录，之后的预设更新只影响新租户；
+ * 租户站点就跟着变。相关当下把版式落成真实记录，之后的预设更新只影响新快照；
  * 存量页面要跟进，走「重设为最新版式」的显式操作。
  *
  * 幂等：站点行已存在则不动它（chrome / 主题 / 站名都保留）；页面按 kind + 默认语言
- * 逐个补缺，已有的跳过。所以事件重放、回填脚本重跑都安全。
+ * 逐个补缺，已有的跳过。所以事件重放、回填脚本、打开 `/app/site` 再跑都安全。
  *
- * @param page_status 新页面的状态。建租户走 `draft`（站点未发布，中台可见即可）；
- *   回填已发布站点时用 `published`——那些站点此前就靠兜底版式在线上渲染，落库的
- *   快照必须立即接管，否则官网内容凭空消失。
+ * @param page_status 新页面的状态。省略时：站点已发布则 `published`（此前靠兜底版式
+ *   在线上渲染，落成草稿会让官网内容凭空消失），否则 `draft`。建租户走默认即可。
  * @param dry_run 只计算会创建什么、不写库（回填脚本先跑一遍确认命中范围）。
  */
 export async function initializeTenantSite(
@@ -43,7 +48,6 @@ export async function initializeTenantSite(
   default_locale: AppLocale,
   options?: { page_status?: "draft" | "published"; dry_run?: boolean },
 ): Promise<InitializeTenantSiteResult> {
-  const page_status = options?.page_status ?? "draft";
   const dry_run = options?.dry_run === true;
 
   let siteRecord = await prisma.marketingSite.findFirst({
@@ -85,14 +89,13 @@ export async function initializeTenantSite(
 
   const locale = normalizeLocale(siteRecord.default_locale);
   const t = createStarterTranslator(locale);
+  const page_status =
+    options?.page_status ?? (siteRecord.published ? "published" : "draft");
+  const enabledEntitlements = await resolveTemplateEntitlements(tenant_id);
   const created_pages: string[] = [];
 
-  // entitlement 门槛的模板页不预建：没开通的租户在中台根本看不到这张页
-  const templates = listPageTemplateKinds().filter(
-    (template) => !template.entitlement,
-  );
-
-  for (const template of templates) {
+  for (const template of listPageTemplateKinds()) {
+    if (!isPageTemplateRelevant(template, enabledEntitlements)) continue;
     const preset = getPageTemplatePreset(template.kind);
     if (!preset) continue;
 
@@ -145,4 +148,42 @@ export async function initializeTenantSite(
   }
 
   return { created_site, created_pages };
+}
+
+/**
+ * 站点已存在时用它的主语言；没有站点行时回落到平台默认语言。
+ *
+ * 开通 entitlement / 打开 `/app/site` 时调用方不一定带着 locale。
+ */
+export async function ensureTenantTemplatePages(
+  tenant_id: string,
+): Promise<InitializeTenantSiteResult> {
+  const site = await prisma.marketingSite.findFirst({
+    where: withTenantScope(tenant_id),
+  });
+  const locale = site
+    ? normalizeLocale(site.default_locale)
+    : (await getPlatformSettings()).default_locale;
+  return initializeTenantSite(tenant_id, locale);
+}
+
+async function resolveTemplateEntitlements(
+  tenant_id: string,
+): Promise<ReadonlySet<string>> {
+  const keys = [
+    ...new Set(
+      listPageTemplateKinds()
+        .map((template) => template.entitlement)
+        .filter((key): key is string => Boolean(key)),
+    ),
+  ];
+  if (keys.length === 0) return new Set();
+
+  const flags = await Promise.all(
+    keys.map(
+      async (key) =>
+        [key, await isTenantModuleEnabled(tenant_id, key)] as const,
+    ),
+  );
+  return new Set(flags.filter(([, on]) => on).map(([key]) => key));
 }

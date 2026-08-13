@@ -112,7 +112,7 @@ describe("summarizeSitePages", () => {
         content_dirty: true,
       }),
       page({ id: "c", slug: "contact" }),
-      // 文档版式默认不落库，算进来会让计数随「有没有自定义过」跳动
+      // 模板页不计进卡头概览（它们在下方常驻区）
       page({ id: "d", slug: "docs", kind: "doc_index", status: "published" }),
     ]);
 
