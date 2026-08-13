@@ -15,7 +15,7 @@
     "@rewindom/builtin": "workspace:*",
     "@rewindom/server-kernel": "workspace:*",
     "@rewindom/shared": "workspace:*",
-    "fastify": "^5.11.2"
+    "fastify": "^5.11.3"
   },
   "peerDependencies": {
     "vitest": "^4.0.0"
