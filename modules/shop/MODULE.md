@@ -100,7 +100,11 @@ shop/
 - `SITE_SSR_EXCEPTION_PATHS` 含 `/member/orders`；`/shop` **前缀匹配**
 - nginx + vite dev 代理
 
-Webhook：`POST /api/shop/webhooks/stripe`，免 JWT。先从 metadata 取 `tenant_id` 再验签。
+Webhook：`POST /api/shop/webhooks/stripe`，免 JWT。先从 metadata 取 `tenant_id` 再验签。本地 Dashboard 打不到 localhost，用 Stripe CLI 转发并把 signing secret 写入站点设置：
+
+```bash
+pnpm --filter server exec tsx scripts/set-shop-stripe-webhook.ts --listen
+```
 
 库存只在 `checkout.session.completed` 事务内扣减；Session 过期/失败则订单 `cancelled`、不扣库存。
 
