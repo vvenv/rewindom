@@ -1,9 +1,8 @@
 import { type FormEvent } from "react";
 import { useParams } from "react-router";
 
-import { FieldInfoTip, PageLayout, usePermissions } from "@rewindom/module-sdk/client";
+import { FieldInfoTip, PageLayout, SettingsPanel, SettingsStack, usePermissions } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
 import { Checkbox } from "@rewindom/ui/checkbox";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@rewindom/ui/field";
 import { Input } from "@rewindom/ui/input";
@@ -62,16 +61,13 @@ export function CollectionEditorPage() {
       {editor.isLoading ? (
         <Spinner className="size-4" />
       ) : (
-        <form className="flex max-w-3xl flex-col gap-4" onSubmit={handleSubmit}>
-          <ProductLocaleBar
-            value={editor.contentLocale}
-            onChange={editor.setContentLocale}
-          />
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("basicsTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <form className="flex flex-col" onSubmit={handleSubmit}>
+          <SettingsStack className="max-w-3xl">
+            <ProductLocaleBar
+              value={editor.contentLocale}
+              onChange={editor.setContentLocale}
+            />
+            <SettingsPanel title={t("basicsTitle")}>
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="collection-title">
@@ -153,13 +149,8 @@ export function CollectionEditorPage() {
                   />
                 </Field>
               </FieldGroup>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("collectionProducts")}</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </SettingsPanel>
+            <SettingsPanel title={t("collectionProducts")}>
               <FieldGroup className="gap-2">
                 {(products.data?.items ?? []).map((product) => (
                   <label
@@ -181,13 +172,8 @@ export function CollectionEditorPage() {
                   <p className="text-muted-foreground text-sm">{t("empty")}</p>
                 ) : null}
               </FieldGroup>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("seoCardTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </SettingsPanel>
+            <SettingsPanel title={t("seoCardTitle")}>
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="collection-seo-title">
@@ -230,15 +216,17 @@ export function CollectionEditorPage() {
                   />
                 </Field>
               </FieldGroup>
-            </CardContent>
-          </Card>
-          {editor.error ? <FieldError>{editor.error}</FieldError> : null}
-          {canWrite ? (
-            <Button type="submit" disabled={editor.pending} className="self-start">
-              {editor.pending ? <Spinner className="size-4" /> : null}
-              {t("save")}
-            </Button>
-          ) : null}
+              {editor.error ? <FieldError>{editor.error}</FieldError> : null}
+            </SettingsPanel>
+            {canWrite ? (
+              <div className="flex justify-end">
+                <Button type="submit" disabled={editor.pending}>
+                  {editor.pending ? <Spinner /> : null}
+                  {t("save")}
+                </Button>
+              </div>
+            ) : null}
+          </SettingsStack>
         </form>
       )}
     </PageLayout>

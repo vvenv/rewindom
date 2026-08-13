@@ -91,6 +91,12 @@ export {
   WorkbenchPageShell,
 } from "./components/WorkbenchPageShell";
 export {
+  SettingsPanel,
+  SettingsSection,
+  SettingsStack,
+  SettingsToggleRow,
+} from "./components/SettingsPanel";
+export {
   PageFilterBar,
   type FilterChipOption,
   type PageFilterBarProps,

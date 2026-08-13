@@ -1,9 +1,8 @@
 import { type FormEvent } from "react";
 import { useParams } from "react-router";
 
-import { PageLayout, usePermissions } from "@rewindom/module-sdk/client";
+import { PageLayout, SettingsPanel, SettingsStack, usePermissions } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
 import { FieldError } from "@rewindom/ui/field";
 import { Spinner } from "@rewindom/ui/spinner";
 import { Package } from "lucide-react";
@@ -43,95 +42,69 @@ export function ProductEditorPage() {
       {editor.isLoading ? (
         <Spinner className="size-4" />
       ) : (
-        <form className="flex max-w-3xl flex-col gap-4" onSubmit={handleSubmit}>
-          <ProductLocaleBar
-            value={editor.contentLocale}
-            onChange={editor.setContentLocale}
-          />
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("basicsTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <form className="flex flex-col" onSubmit={handleSubmit}>
+          <SettingsStack className="max-w-3xl">
+            <ProductLocaleBar
+              value={editor.contentLocale}
+              onChange={editor.setContentLocale}
+            />
+            <SettingsPanel title={t("basicsTitle")}>
               <ProductBasicsFields
                 form={editor.form}
                 contentLocale={editor.contentLocale}
                 canWrite={canWrite}
                 onChange={editor.patch}
               />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("mediaTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </SettingsPanel>
+            <SettingsPanel title={t("mediaTitle")}>
               <ProductImagesFields
                 form={editor.form}
                 contentLocale={editor.contentLocale}
                 canWrite={canWrite}
                 onChange={editor.patch}
               />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("optionsTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </SettingsPanel>
+            <SettingsPanel title={t("optionsTitle")}>
               <ProductOptionsFields
                 options={editor.form.options}
                 contentLocale={editor.contentLocale}
                 canWrite={canWrite}
                 onChange={editor.setOptions}
               />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("variantsTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </SettingsPanel>
+            <SettingsPanel title={t("variantsTitle")}>
               <ProductVariantsFields
                 form={editor.form}
                 contentLocale={editor.contentLocale}
                 canWrite={canWrite}
                 onChange={editor.patch}
               />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("organizationTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </SettingsPanel>
+            <SettingsPanel title={t("organizationTitle")}>
               <ProductOrganizationFields
                 form={editor.form}
                 canWrite={canWrite}
                 onChange={editor.patch}
               />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("seoCardTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </SettingsPanel>
+            <SettingsPanel title={t("seoCardTitle")}>
               <ProductSeoFields
                 form={editor.form}
                 contentLocale={editor.contentLocale}
                 canWrite={canWrite}
                 onChange={editor.patch}
               />
-            </CardContent>
-          </Card>
-          {editor.error ? <FieldError>{editor.error}</FieldError> : null}
-          {canWrite ? (
-            <Button type="submit" disabled={editor.pending} className="self-start">
-              {editor.pending ? <Spinner className="size-4" /> : null}
-              {t("save")}
-            </Button>
-          ) : null}
+              {editor.error ? <FieldError>{editor.error}</FieldError> : null}
+            </SettingsPanel>
+            {canWrite ? (
+              <div className="flex justify-end">
+                <Button type="submit" disabled={editor.pending}>
+                  {editor.pending ? <Spinner /> : null}
+                  {t("save")}
+                </Button>
+              </div>
+            ) : null}
+          </SettingsStack>
         </form>
       )}
     </PageLayout>

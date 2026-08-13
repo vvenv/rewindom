@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 
+import { SettingsPanel } from "@rewindom/module-sdk/client";
 import { Badge } from "@rewindom/ui/badge";
 import { Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -9,9 +10,7 @@ import { ShopProviderSheet } from "./ShopProviderSheet.js";
 import type { ShopProviderStatus } from "../../shared/index.js";
 
 /**
- * 收款通道在设置页上只占一行：说清「钱进谁的账号」，密钥表单收在 Sheet 里。
- *
- * 状态不能一起收进去——商品配得再好，收款账号没有就一分钱也落不了地。
+ * 收款通道在设置页上占一张卡：说清「钱进谁的账号」，密钥表单收在 Sheet 里。
  */
 export function ShopProviderStatusRow({
   status,
@@ -32,20 +31,20 @@ export function ShopProviderStatusRow({
         : t("providerNone");
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-md border px-4 py-3">
-      <Wallet className="text-muted-foreground size-4 shrink-0" />
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <span className="text-sm font-medium">{t("providerTitle")}</span>
-        <span className="text-muted-foreground text-sm">{sourceText}</span>
+    <SettingsPanel
+      icon={Wallet}
+      title={t("providerTitle")}
+      description={t("providerDescription")}
+      action={canWrite ? <ShopProviderSheet status={status} /> : undefined}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm">{sourceText}</p>
         {!status.configured ? (
           <Badge variant="destructive">{t("providerNoneShort")}</Badge>
+        ) : !status.webhook_secret_set ? (
+          <Badge variant="destructive">{t("webhookSecretMissingShort")}</Badge>
         ) : null}
       </div>
-      {canWrite ? (
-        <div className="ml-auto">
-          <ShopProviderSheet status={status} />
-        </div>
-      ) : null}
-    </div>
+    </SettingsPanel>
   );
 }

@@ -77,9 +77,14 @@ export async function resolveShopStripeCredentials(
   };
 }
 
+export function shopStripeWebhookUrl(): string {
+  return `${config.frontend.url.replace(/\/$/, "")}/api/shop/webhooks/stripe`;
+}
+
 export async function getShopProviderStatus(
   tenantId: string,
 ): Promise<ShopProviderStatus> {
+  const webhook_url = shopStripeWebhookUrl();
   const credentials = await resolveShopStripeCredentials(tenantId);
   if (!credentials) {
     return {
@@ -87,6 +92,8 @@ export async function getShopProviderStatus(
       source: "none",
       secret_hint: null,
       publishable_key_hint: null,
+      webhook_secret_set: false,
+      webhook_url,
     };
   }
   return {
@@ -94,6 +101,8 @@ export async function getShopProviderStatus(
     source: credentials.source,
     secret_hint: mask(credentials.secretKey),
     publishable_key_hint: mask(credentials.publishableKey),
+    webhook_secret_set: Boolean(credentials.webhookSecret),
+    webhook_url,
   };
 }
 
@@ -114,7 +123,7 @@ export async function updateShopProvider(
     publishable_key: body.publishable_key?.trim() || current.publishable_key,
   };
   if (!next.secret_key?.trim()) {
-    throw new ValidationError("shop.stripe_secret_required");
+    return getShopProviderStatus(tenantId);
   }
   const secret = encryptTenantSecret(JSON.stringify(next));
   await prisma.tenantSetting.upsert({

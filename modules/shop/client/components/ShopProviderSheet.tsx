@@ -1,9 +1,14 @@
-import { useState, type ReactElement, type ReactNode } from "react";
+import { useState, type FormEvent, type ReactElement, type ReactNode } from "react";
 
-import { ApiError, FieldInfoTip } from "@rewindom/module-sdk/client";
+import { ApiError, CopyButton, FieldInfoTip } from "@rewindom/module-sdk/client";
 import { Alert, AlertDescription } from "@rewindom/ui/alert";
 import { Button } from "@rewindom/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@rewindom/ui/field";
 import { Input } from "@rewindom/ui/input";
 import {
   Sheet,
@@ -43,74 +48,100 @@ function ProviderForm({
         ? t("providerPlatform")
         : t("providerNone");
 
-  async function submit(): Promise<void> {
-    const body = {
-      ...(secret.trim() ? { secret_key: secret.trim() } : {}),
-      ...(webhook.trim() ? { webhook_secret: webhook.trim() } : {}),
-      ...(publishable.trim() ? { publishable_key: publishable.trim() } : {}),
-    };
-    if (Object.keys(body).length === 0) {
-      onClose();
-      return;
-    }
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
     try {
-      await save.mutateAsync(body);
+      await save.mutateAsync({
+        ...(secret.trim() ? { secret_key: secret.trim() } : {}),
+        ...(webhook.trim() ? { webhook_secret: webhook.trim() } : {}),
+        ...(publishable.trim() ? { publishable_key: publishable.trim() } : {}),
+      });
       toast.success(t("toastProvider"));
       onClose();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : t("updateFailed"));
     }
-  }
+  };
 
   return (
-    <>
+    <form className="flex h-full flex-col" onSubmit={(event) => void handleSubmit(event)}>
       <SheetHeader>
         <SheetTitle>{t("providerTitle")}</SheetTitle>
         <SheetDescription>{t("providerDescription")}</SheetDescription>
       </SheetHeader>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4">
-        <FieldGroup>
-          <Alert>
-            <AlertDescription>{sourceText}</AlertDescription>
-          </Alert>
+      <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
+        <Alert>
+          <AlertDescription>{sourceText}</AlertDescription>
+        </Alert>
 
-          <Field>
-            <FieldLabel htmlFor="shop-sk" className="flex items-center gap-1">
-              {t("secretKey")}
-              <FieldInfoTip text={t("infoSecretKey")} side="left" />
-            </FieldLabel>
+        <Field>
+          <FieldLabel htmlFor="shop-sk" className="flex items-center gap-1">
+            {t("secretKey")}
+            <FieldInfoTip text={t("infoSecretKey")} side="left" />
+          </FieldLabel>
+          <Input
+            id="shop-sk"
+            type="password"
+            autoComplete="off"
+            value={secret}
+            onChange={(event) => setSecret(event.target.value)}
+            placeholder={
+              status.secret_hint
+                ? t("secretKeyCurrent", { hint: status.secret_hint })
+                : undefined
+            }
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="shop-wh">{t("webhookSecret")}</FieldLabel>
+          <Input
+            id="shop-wh"
+            type="password"
+            autoComplete="off"
+            value={webhook}
+            onChange={(event) => setWebhook(event.target.value)}
+          />
+          <FieldDescription>
+            {status.webhook_secret_set
+              ? t("webhookSecretSet")
+              : t("webhookSecretMissing")}
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="shop-pk" className="flex items-center gap-1">
+            {t("publishableKey")}
+            <FieldInfoTip text={t("infoPublishableKey")} side="left" />
+          </FieldLabel>
+          <Input
+            id="shop-pk"
+            autoComplete="off"
+            value={publishable}
+            onChange={(event) => setPublishable(event.target.value)}
+            placeholder={
+              status.publishable_key_hint
+                ? t("publishableKeyCurrent", {
+                    hint: status.publishable_key_hint,
+                  })
+                : undefined
+            }
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="shop-webhook-url" className="flex items-center gap-1">
+            {t("webhookUrl")}
+            <FieldInfoTip text={t("infoWebhookUrl")} side="left" />
+          </FieldLabel>
+          <div className="flex items-center gap-2">
             <Input
-              id="shop-sk"
-              type="password"
-              autoComplete="off"
-              value={secret}
-              onChange={(event) => setSecret(event.target.value)}
-              placeholder={status.secret_hint ?? ""}
+              id="shop-webhook-url"
+              readOnly
+              value={status.webhook_url}
             />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="shop-wh">{t("webhookSecret")}</FieldLabel>
-            <Input
-              id="shop-wh"
-              type="password"
-              autoComplete="off"
-              value={webhook}
-              onChange={(event) => setWebhook(event.target.value)}
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="shop-pk">{t("publishableKey")}</FieldLabel>
-            <Input
-              id="shop-pk"
-              autoComplete="off"
-              value={publishable}
-              onChange={(event) => setPublishable(event.target.value)}
-              placeholder={status.publishable_key_hint ?? ""}
-            />
-          </Field>
-        </FieldGroup>
-      </div>
+            <CopyButton type="button" text={status.webhook_url} />
+          </div>
+        </Field>
+      </FieldGroup>
 
       <SheetFooter>
         <SheetClose asChild>
@@ -118,16 +149,12 @@ function ProviderForm({
             {t("cancel")}
           </Button>
         </SheetClose>
-        <Button
-          type="button"
-          disabled={save.isPending}
-          onClick={() => void submit()}
-        >
+        <Button type="submit" disabled={save.isPending}>
           {save.isPending ? <Spinner /> : null}
           {t("save")}
         </Button>
       </SheetFooter>
-    </>
+    </form>
   );
 }
 
@@ -156,7 +183,7 @@ export function ShopProviderSheet({
           </Button>
         )}
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col sm:max-w-xl">
+      <SheetContent className="sm:max-w-xl">
         {open ? (
           <ProviderForm status={status} onClose={() => setOpen(false)} />
         ) : null}

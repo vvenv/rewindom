@@ -93,7 +93,8 @@ export function PageSection({
   );
 }
 
-/** Shared width for workbench create/upload form panels (Card + inner form). */
+/** Shared width for workbench create/upload form panels (Card + inner form).
+ * 设置页请用 `SettingsStack` + `SettingsPanel`，不要用这个。 */
 export const WORKBENCH_FORM_PANEL_CLASS = "surface-panel w-full max-w-2xl";
 
 export function WorkbenchFormPanel({

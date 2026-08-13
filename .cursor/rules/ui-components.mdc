@@ -373,7 +373,9 @@ import { displayOrEmpty, EMPTY_DISPLAY } from "@/lib/display";
 | `gap-1.5` / `gap-2` | 默认紧凑：徽章行、筛选条、列表项内 |
 | `gap-3` | 卡片内主区块、标题行与内容列 |
 | `gap-4` | 表单字段组、页面内相关区块、`PageSection` |
-| `gap-6` | 页面大分区（产品组之间、详情多 Section） |
+| `gap-6` | 页面大分区、`SettingsStack` 卡片间距 |
+
+设置页 / 分组表单用 `SettingsStack` + `SettingsPanel`（`@rewindom/client-kit`），不要手写裸字段或卡内再套 `rounded-md border`。Sheet 里用 `SettingsSection`。金标准：`platform-settings.tsx`、shop `/app/shop/settings`。
 
 壳层：`WorkbenchPageShell` 为 `gap-4 md:gap-6`；`PageLayout` children 同档。shadcn `@rewindom/ui/*` 内建间距勿为对齐而改。
 

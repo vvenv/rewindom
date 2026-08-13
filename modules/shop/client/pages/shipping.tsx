@@ -1,6 +1,5 @@
-import { PageLayout, usePermissions } from "@rewindom/module-sdk/client";
+import { PageLayout, SettingsPanel, usePermissions } from "@rewindom/module-sdk/client";
 import { Button } from "@rewindom/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
 import { DraggableFabTrigger } from "@rewindom/ui/draggable-fab";
 import { Plus, Truck } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -32,35 +31,37 @@ export function ShippingPage() {
         ) : null
       }
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         {zones.map((zone) => (
-          <Card key={zone.id}>
-            <CardHeader className="flex-row items-center justify-between">
-              <CardTitle>
-                {zone.name} · {zone.countries.join(", ")}
-              </CardTitle>
-              {canWrite ? (
+          <SettingsPanel
+            key={zone.id}
+            title={zone.name}
+            description={zone.countries.join(", ")}
+            action={
+              canWrite ? (
                 <Button
                   variant="ghost"
+                  size="sm"
                   onClick={async () => {
                     await deleteZone.mutateAsync(zone.id);
                   }}
                 >
                   {t("delete")}
                 </Button>
-              ) : null}
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
+              ) : undefined
+            }
+          >
+            <div className="flex flex-col gap-3">
               {zone.rates.map((rate) => (
-                <p key={rate.id}>
+                <p key={rate.id} className="text-sm">
                   {rate.name} · {rate.carrier_code} · {(rate.price_cents / 100).toFixed(2)}
                 </p>
               ))}
               {canWrite ? (
                 <ShippingRateCreateSheet zoneId={zone.id} />
               ) : null}
-            </CardContent>
-          </Card>
+            </div>
+          </SettingsPanel>
         ))}
       </div>
     </PageLayout>

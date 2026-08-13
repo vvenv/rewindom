@@ -235,6 +235,34 @@ const [createOpen, setCreateOpen] = useState(false);
 - **不要加 `py-4`**：`SheetContent` 的 `gap-4` 已经隔开头/正文/尾
 - ❌ `<FieldGroup className="flex-1 overflow-y-auto py-4">` — notes 模块曾如此，左右贴边
 
+## 设置页 / 分组表单
+
+工作台设置与多区块编辑用 **`SettingsStack` + `SettingsPanel`**（`@rewindom/client-kit`），不要手写裸 `FieldGroup` 或内嵌 `rounded-md border` 条。
+
+| 场景 | 外壳 |
+| --- | --- |
+| 租户/平台**页面**上的设置卡、商品编辑分组 | `SettingsPanel`（Card：标题 / 说明 / 正文 / 可选页脚保存） |
+| 多张设置卡竖排 | `SettingsStack`（默认 `max-w-2xl`；编辑页 `className="max-w-3xl"`） |
+| 即时开关（点了就存） | `SettingsToggleRow`，不要再套一层边框 |
+| **Sheet** 里的设置分组 | `SettingsSection`（标题 + 说明，**不套 Card**） |
+
+金标准：`platform/client/pages/platform-settings.tsx`、shop `/app/shop/settings`。
+
+```tsx
+<SettingsStack>
+  <ShopProviderStatusRow status={provider} canWrite={canWrite} />
+  <form onSubmit={handleSave}>
+    <SettingsPanel
+      title={t("settlementTitle")}
+      description={t("settlementDescription")}
+      footer={canWrite ? <Button type="submit">{t("save")}</Button> : undefined}
+    >
+      <ShopSettingsFields … />
+    </SettingsPanel>
+  </form>
+</SettingsStack>
+```
+
 ## 一页一表单
 
 工作台页面**不要**上下叠两张 `<form>`、两颗保存。用户分不清该按哪一颗，回车会提交焦点所在的那张而不是整页。
@@ -310,4 +338,5 @@ const [createOpen, setCreateOpen] = useState(false);
 - [ ] Lib 新增逻辑有测试
 - [ ] 组件具名导出（named export）
 - [ ] 未扩大 scope（不顺手改无关文件）
+- [ ] 设置页 / 分组表单用了 `SettingsStack` + `SettingsPanel`；Sheet 内分组用 `SettingsSection`
 - [ ] 同一页面没有两张 `<form>`（设置页尤其如此；密钥 / 收款通道用 Sheet）

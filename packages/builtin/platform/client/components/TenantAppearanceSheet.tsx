@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import {
   ApiError,
+  SettingsSection,
   translateShellLayoutLabel,
   translateShellLayoutOptions,
   translateThemePaletteLabel,
@@ -129,8 +130,7 @@ export function TenantAppearanceSheet({
             </div>
           ) : (
             <>
-              <section className="flex flex-col gap-2">
-                <h3 className="text-sm font-medium">{t("theme")}</h3>
+              <SettingsSection title={t("theme")}>
                 <AppearanceOptionGroup
                   idPrefix={`theme-${tenant.id}`}
                   value={selectedTheme}
@@ -146,10 +146,9 @@ export function TenantAppearanceSheet({
                     }),
                   }}
                 />
-              </section>
+              </SettingsSection>
 
-              <section className="flex flex-col gap-2">
-                <h3 className="text-sm font-medium">{t("layout")}</h3>
+              <SettingsSection title={t("layout")}>
                 <AppearanceOptionGroup
                   idPrefix={`layout-${tenant.id}`}
                   value={selectedLayout}
@@ -165,10 +164,12 @@ export function TenantAppearanceSheet({
                     }),
                   }}
                 />
-              </section>
+              </SettingsSection>
 
-              <section className="flex flex-col gap-2">
-                <h3 className="text-sm font-medium">{t("tenantLocale")}</h3>
+              <SettingsSection
+                title={t("tenantLocale")}
+                description={t("tenantLocaleDescription")}
+              >
                 <AppearanceOptionGroup
                   idPrefix={`locale-${tenant.id}`}
                   value={selectedLocale}
@@ -183,10 +184,7 @@ export function TenantAppearanceSheet({
                     }),
                   }}
                 />
-                <p className="text-muted-foreground text-xs">
-                  {t("tenantLocaleDescription")}
-                </p>
-              </section>
+              </SettingsSection>
             </>
           )}
         </div>

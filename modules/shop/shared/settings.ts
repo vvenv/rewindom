@@ -19,6 +19,8 @@ export interface ShopProviderStatus {
   source: "platform" | "tenant" | "none";
   secret_hint: string | null;
   publishable_key_hint: string | null;
+  webhook_secret_set: boolean;
+  webhook_url: string;
 }
 
 export interface UpdateShopProviderBody {
