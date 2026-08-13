@@ -8,7 +8,7 @@ import {
   parseSortDir,
   sendCodedError,
 } from "@rewindom/module-sdk/server";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
 import {
   completeOrder,
@@ -20,13 +20,14 @@ import {
   peekStripeTenantId,
   refundOrder,
 } from "../order/order.service.js";
-import { resolveShopStripeCredentials } from "../payment/credentials.js";
 import {
   getShopProviderStatus,
   getShopSetting,
+  resolveShopStripeCredentials,
   updateShopProvider,
   updateShopSetting,
 } from "../payment/credentials.js";
+import { createShopStripe } from "../payment/stripe-client.js";
 import {
   createShippingRate,
   createShippingZone,
@@ -462,7 +463,7 @@ export async function shopWebhookRoutes(app: FastifyInstance): Promise<void> {
       if (!credentials?.webhookSecret) {
         return sendCodedError(reply, 400, "shop.stripe_unconfigured");
       }
-      const stripe = new Stripe(credentials.secretKey);
+      const stripe = createShopStripe(credentials.secretKey);
       let event: Stripe.Event;
       try {
         event = stripe.webhooks.constructEvent(

@@ -1,10 +1,14 @@
+import { sendCodedError } from "@rewindom/server-kernel/http/coded-error.js";
 import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
 import { CaptchaService } from "@rewindom/server-kernel/kernel/auth/captcha.service.js";
 import {
   platformOAuthEnabledFlags,
   siteOAuthEnabledFlags,
 } from "@rewindom/server-kernel/kernel/auth/oauth-credentials.js";
-import { ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
+import {
+  UnauthorizedError,
+  ValidationError,
+} from "@rewindom/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
 import { AuditAction } from "../../audit/shared/index.js";
@@ -169,15 +173,26 @@ export async function siteMemberAuthRoutes(
     context: "SiteMemberRefresh",
     errorCode: "SITE_MEMBER_REFRESH_FAILED",
     handler: async (request, reply) => {
-      const refreshToken = readMemberRefreshCookie(request) ?? "";
-      const tokens = await SiteMemberAuthService.refresh(
-        refreshToken,
-        app.jwt.sign.bind(app.jwt),
-        app.jwt.verify.bind(app.jwt),
-      );
-      issueSessionCookies(reply, tokens);
-      // cookie 模式客户端不读 body；保留空对象以兼容 `{ data }` 包装。
-      return { refreshed: true };
+      const refreshToken = readMemberRefreshCookie(request);
+      if (!refreshToken) {
+        sendCodedError(reply, 401, "site_member.token_invalid_or_expired");
+        return;
+      }
+      try {
+        const tokens = await SiteMemberAuthService.refresh(
+          refreshToken,
+          app.jwt.sign.bind(app.jwt),
+          app.jwt.verify.bind(app.jwt),
+        );
+        issueSessionCookies(reply, tokens);
+        // cookie 模式客户端不读 body；保留空对象以兼容 `{ data }` 包装。
+        return { refreshed: true };
+      } catch (err) {
+        if (err instanceof UnauthorizedError) {
+          clearMemberAuthCookies(reply);
+        }
+        throw err;
+      }
     },
   });
 

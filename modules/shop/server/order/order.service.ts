@@ -10,7 +10,7 @@ import {
   withTenantScope,
 } from "@rewindom/module-sdk/server";
 import type { AppLocale } from "@rewindom/module-sdk";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
 import type {
   FulfillShopOrderBody,
@@ -33,12 +33,13 @@ import {
 } from "../../shared/index.js";
 import { loadCart } from "../cart/cart.service.js";
 import { findDiscountByCode } from "../discount/discount.service.js";
+import { normalizeCountry, normalizeCurrency } from "../lib/format.js";
 import {
-  displayTitle,
-  normalizeCountry,
-  normalizeCurrency,
-} from "../lib/format.js";
+  buildShopCheckoutSessionParams,
+  stripeAddressFromShop,
+} from "../payment/checkout-session.js";
 import { getShopSetting, resolveShopStripeCredentials } from "../payment/credentials.js";
+import { createShopStripe } from "../payment/stripe-client.js";
 import { assertRateServesCountry } from "../shipping/shipping.service.js";
 import { StripeCheckoutTaxProvider, ZeroTaxProvider } from "../tax/tax.provider.js";
 
@@ -432,38 +433,52 @@ export async function createCheckout(params: {
     },
   });
 
-  const stripe = new Stripe(credentials.secretKey);
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer_email: email,
-    success_url: `${params.origin}/shop/orders/${encodeURIComponent(number)}?checkout=success`,
-    cancel_url: `${params.origin}/shop/checkout?canceled=1`,
-    client_reference_id: order.id,
+  const stripe = createShopStripe(credentials.secretKey);
+  const useTax = setting.stripe_tax_enabled && taxable;
+  const customer = await stripe.customers.create({
+    email,
     metadata: {
       tenant_id: params.tenant_id,
       order_id: order.id,
-      order_number: number,
-      cart_id: params.cart_id,
     },
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: order.currency.toLowerCase(),
-          unit_amount: order.total_cents,
-          product_data: {
-            name: displayTitle(
-              { "zh-CN": `订单 ${number}`, en: `Order ${number}` },
-              params.locale,
-              number,
-            ),
+    ...(needsShipping
+      ? {
+          shipping: {
+            name: address.name,
+            phone: address.phone || undefined,
+            address: stripeAddressFromShop(address),
           },
-        },
-      },
-    ],
-    automatic_tax:
-      setting.stripe_tax_enabled && taxable ? { enabled: true } : undefined,
+        }
+      : {}),
   });
+  let coupon_id: string | undefined;
+  if (discount_cents > 0) {
+    const coupon = await stripe.coupons.create({
+      amount_off: discount_cents,
+      currency: order.currency.toLowerCase(),
+      duration: "once",
+      max_redemptions: 1,
+      name: `Order ${number}`.slice(0, 40),
+    });
+    coupon_id = coupon.id;
+  }
+  const session = await stripe.checkout.sessions.create(
+    buildShopCheckoutSessionParams({
+      origin: params.origin,
+      email,
+      order_id: order.id,
+      order_number: number,
+      tenant_id: params.tenant_id,
+      cart_id: params.cart_id,
+      currency: order.currency,
+      items: cart.items,
+      shipping_cents,
+      shipping_name: needsShipping ? (rate?.name ?? "Shipping") : null,
+      automatic_tax: useTax,
+      coupon_id,
+      customer_id: customer.id,
+    }),
+  );
   if (!session.url) {
     throw new ValidationError("shop.stripe_checkout_url_missing");
   }
@@ -534,6 +549,7 @@ export async function markOrderPaid(params: {
       data: {
         status: "paid",
         paid_at: new Date(),
+        total_cents: params.amount_cents,
         ...(params.tax_cents !== undefined ? { tax_cents: params.tax_cents } : {}),
       },
     });
@@ -672,7 +688,7 @@ export async function refundOrder(params: {
   if (!credentials) {
     throw new ValidationError("shop.stripe_unconfigured");
   }
-  const stripe = new Stripe(credentials.secretKey);
+  const stripe = createShopStripe(credentials.secretKey);
   const session = await stripe.checkout.sessions.retrieve(
     order.stripe_checkout_session_id,
   );

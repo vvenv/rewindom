@@ -31,13 +31,19 @@ export function handleRouteError(
   errorCode = "common.internal_error",
 ): void {
   const message = err instanceof Error ? err.message : String(err);
-  reply.log.error(
-    {
-      error: message,
-      stack: err instanceof Error ? err.stack : undefined,
-    },
-    context,
-  );
+  const isClientAppError =
+    err instanceof AppError && err.status >= 400 && err.status < 500;
+  if (isClientAppError) {
+    reply.log.warn({ error: message, code: err.code }, context);
+  } else {
+    reply.log.error(
+      {
+        error: message,
+        stack: err instanceof Error ? err.stack : undefined,
+      },
+      context,
+    );
+  }
   if (err instanceof AppError && err.code && hasErrorCode(err, err.code)) {
     sendCodedError(reply, err.status, err.code, err.params);
     return;

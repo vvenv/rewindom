@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 
+import { UnauthorizedError } from "../lib/app-errors.js";
 import {
   handleRouteError,
   handleValidationError,
@@ -11,7 +12,7 @@ import type { FastifyReply } from "fastify";
 
 function makeMockReply(): FastifyReply {
   return {
-    log: { error: vi.fn() },
+    log: { error: vi.fn(), warn: vi.fn() },
     code: vi.fn().mockReturnThis(),
     send: vi.fn().mockReturnThis(),
   } as unknown as FastifyReply;
@@ -79,6 +80,28 @@ describe("handleRouteError", () => {
     expect(reply.log.error).toHaveBeenCalledWith(
       expect.objectContaining({ stack: undefined }),
       "ctx",
+    );
+  });
+
+  it("logs 4xx AppError as warn without a stack", () => {
+    const reply = makeMockReply();
+    const err = new UnauthorizedError("site_member.token_invalid_or_expired");
+
+    handleRouteError(reply, err, "SiteMemberRefresh");
+
+    expect(reply.log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: err.message,
+        code: "site_member.token_invalid_or_expired",
+      }),
+      "SiteMemberRefresh",
+    );
+    expect(reply.log.error).not.toHaveBeenCalled();
+    expect(reply.code).toHaveBeenCalledWith(401);
+    expect(reply.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: "site_member.token_invalid_or_expired",
+      }),
     );
   });
 });
