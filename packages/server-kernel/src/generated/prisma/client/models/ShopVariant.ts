@@ -757,14 +757,6 @@ export type ShopVariantUncheckedUpdateManyWithoutProductNestedInput = {
   deleteMany?: Prisma.ShopVariantScalarWhereInput | Prisma.ShopVariantScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type ShopVariantCreateNestedOneWithoutCart_itemsInput = {
   create?: Prisma.XOR<Prisma.ShopVariantCreateWithoutCart_itemsInput, Prisma.ShopVariantUncheckedCreateWithoutCart_itemsInput>
   connectOrCreate?: Prisma.ShopVariantCreateOrConnectWithoutCart_itemsInput

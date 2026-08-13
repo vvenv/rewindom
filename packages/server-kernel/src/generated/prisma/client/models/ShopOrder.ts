@@ -31,6 +31,7 @@ export type ShopOrderAvgAggregateOutputType = {
   shipping_cents: number | null
   tax_cents: number | null
   total_cents: number | null
+  discount_cents: number | null
 }
 
 export type ShopOrderSumAggregateOutputType = {
@@ -38,6 +39,7 @@ export type ShopOrderSumAggregateOutputType = {
   shipping_cents: number | null
   tax_cents: number | null
   total_cents: number | null
+  discount_cents: number | null
 }
 
 export type ShopOrderMinAggregateOutputType = {
@@ -58,6 +60,8 @@ export type ShopOrderMinAggregateOutputType = {
   carrier_code: string | null
   stripe_checkout_session_id: string | null
   note: string | null
+  discount_code: string | null
+  discount_cents: number | null
   created_at: Date | null
   updated_at: Date | null
   paid_at: Date | null
@@ -81,6 +85,8 @@ export type ShopOrderMaxAggregateOutputType = {
   carrier_code: string | null
   stripe_checkout_session_id: string | null
   note: string | null
+  discount_code: string | null
+  discount_cents: number | null
   created_at: Date | null
   updated_at: Date | null
   paid_at: Date | null
@@ -106,6 +112,8 @@ export type ShopOrderCountAggregateOutputType = {
   carrier_code: number
   stripe_checkout_session_id: number
   note: number
+  discount_code: number
+  discount_cents: number
   created_at: number
   updated_at: number
   paid_at: number
@@ -118,6 +126,7 @@ export type ShopOrderAvgAggregateInputType = {
   shipping_cents?: true
   tax_cents?: true
   total_cents?: true
+  discount_cents?: true
 }
 
 export type ShopOrderSumAggregateInputType = {
@@ -125,6 +134,7 @@ export type ShopOrderSumAggregateInputType = {
   shipping_cents?: true
   tax_cents?: true
   total_cents?: true
+  discount_cents?: true
 }
 
 export type ShopOrderMinAggregateInputType = {
@@ -145,6 +155,8 @@ export type ShopOrderMinAggregateInputType = {
   carrier_code?: true
   stripe_checkout_session_id?: true
   note?: true
+  discount_code?: true
+  discount_cents?: true
   created_at?: true
   updated_at?: true
   paid_at?: true
@@ -168,6 +180,8 @@ export type ShopOrderMaxAggregateInputType = {
   carrier_code?: true
   stripe_checkout_session_id?: true
   note?: true
+  discount_code?: true
+  discount_cents?: true
   created_at?: true
   updated_at?: true
   paid_at?: true
@@ -193,6 +207,8 @@ export type ShopOrderCountAggregateInputType = {
   carrier_code?: true
   stripe_checkout_session_id?: true
   note?: true
+  discount_code?: true
+  discount_cents?: true
   created_at?: true
   updated_at?: true
   paid_at?: true
@@ -305,6 +321,8 @@ export type ShopOrderGroupByOutputType = {
   carrier_code: string | null
   stripe_checkout_session_id: string | null
   note: string | null
+  discount_code: string | null
+  discount_cents: number
   created_at: Date
   updated_at: Date
   paid_at: Date | null
@@ -353,6 +371,8 @@ export type ShopOrderWhereInput = {
   carrier_code?: Prisma.StringNullableFilter<"ShopOrder"> | string | null
   stripe_checkout_session_id?: Prisma.StringNullableFilter<"ShopOrder"> | string | null
   note?: Prisma.StringNullableFilter<"ShopOrder"> | string | null
+  discount_code?: Prisma.StringNullableFilter<"ShopOrder"> | string | null
+  discount_cents?: Prisma.IntFilter<"ShopOrder"> | number
   created_at?: Prisma.DateTimeFilter<"ShopOrder"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ShopOrder"> | Date | string
   paid_at?: Prisma.DateTimeNullableFilter<"ShopOrder"> | Date | string | null
@@ -381,6 +401,8 @@ export type ShopOrderOrderByWithRelationInput = {
   carrier_code?: Prisma.SortOrderInput | Prisma.SortOrder
   stripe_checkout_session_id?: Prisma.SortOrderInput | Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
+  discount_code?: Prisma.SortOrderInput | Prisma.SortOrder
+  discount_cents?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   paid_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -413,6 +435,8 @@ export type ShopOrderWhereUniqueInput = Prisma.AtLeast<{
   carrier_code?: Prisma.StringNullableFilter<"ShopOrder"> | string | null
   stripe_checkout_session_id?: Prisma.StringNullableFilter<"ShopOrder"> | string | null
   note?: Prisma.StringNullableFilter<"ShopOrder"> | string | null
+  discount_code?: Prisma.StringNullableFilter<"ShopOrder"> | string | null
+  discount_cents?: Prisma.IntFilter<"ShopOrder"> | number
   created_at?: Prisma.DateTimeFilter<"ShopOrder"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ShopOrder"> | Date | string
   paid_at?: Prisma.DateTimeNullableFilter<"ShopOrder"> | Date | string | null
@@ -441,6 +465,8 @@ export type ShopOrderOrderByWithAggregationInput = {
   carrier_code?: Prisma.SortOrderInput | Prisma.SortOrder
   stripe_checkout_session_id?: Prisma.SortOrderInput | Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
+  discount_code?: Prisma.SortOrderInput | Prisma.SortOrder
+  discount_cents?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   paid_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -474,6 +500,8 @@ export type ShopOrderScalarWhereWithAggregatesInput = {
   carrier_code?: Prisma.StringNullableWithAggregatesFilter<"ShopOrder"> | string | null
   stripe_checkout_session_id?: Prisma.StringNullableWithAggregatesFilter<"ShopOrder"> | string | null
   note?: Prisma.StringNullableWithAggregatesFilter<"ShopOrder"> | string | null
+  discount_code?: Prisma.StringNullableWithAggregatesFilter<"ShopOrder"> | string | null
+  discount_cents?: Prisma.IntWithAggregatesFilter<"ShopOrder"> | number
   created_at?: Prisma.DateTimeWithAggregatesFilter<"ShopOrder"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"ShopOrder"> | Date | string
   paid_at?: Prisma.DateTimeNullableWithAggregatesFilter<"ShopOrder"> | Date | string | null
@@ -499,6 +527,8 @@ export type ShopOrderCreateInput = {
   carrier_code?: string | null
   stripe_checkout_session_id?: string | null
   note?: string | null
+  discount_code?: string | null
+  discount_cents?: number
   created_at?: Date | string
   updated_at?: Date | string
   paid_at?: Date | string | null
@@ -527,6 +557,8 @@ export type ShopOrderUncheckedCreateInput = {
   carrier_code?: string | null
   stripe_checkout_session_id?: string | null
   note?: string | null
+  discount_code?: string | null
+  discount_cents?: number
   created_at?: Date | string
   updated_at?: Date | string
   paid_at?: Date | string | null
@@ -555,6 +587,8 @@ export type ShopOrderUpdateInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -583,6 +617,8 @@ export type ShopOrderUncheckedUpdateInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -611,6 +647,8 @@ export type ShopOrderCreateManyInput = {
   carrier_code?: string | null
   stripe_checkout_session_id?: string | null
   note?: string | null
+  discount_code?: string | null
+  discount_cents?: number
   created_at?: Date | string
   updated_at?: Date | string
   paid_at?: Date | string | null
@@ -636,6 +674,8 @@ export type ShopOrderUpdateManyMutationInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -661,6 +701,8 @@ export type ShopOrderUncheckedUpdateManyInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -691,6 +733,8 @@ export type ShopOrderCountOrderByAggregateInput = {
   carrier_code?: Prisma.SortOrder
   stripe_checkout_session_id?: Prisma.SortOrder
   note?: Prisma.SortOrder
+  discount_code?: Prisma.SortOrder
+  discount_cents?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   paid_at?: Prisma.SortOrder
@@ -701,6 +745,7 @@ export type ShopOrderAvgOrderByAggregateInput = {
   shipping_cents?: Prisma.SortOrder
   tax_cents?: Prisma.SortOrder
   total_cents?: Prisma.SortOrder
+  discount_cents?: Prisma.SortOrder
 }
 
 export type ShopOrderMaxOrderByAggregateInput = {
@@ -721,6 +766,8 @@ export type ShopOrderMaxOrderByAggregateInput = {
   carrier_code?: Prisma.SortOrder
   stripe_checkout_session_id?: Prisma.SortOrder
   note?: Prisma.SortOrder
+  discount_code?: Prisma.SortOrder
+  discount_cents?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   paid_at?: Prisma.SortOrder
@@ -744,6 +791,8 @@ export type ShopOrderMinOrderByAggregateInput = {
   carrier_code?: Prisma.SortOrder
   stripe_checkout_session_id?: Prisma.SortOrder
   note?: Prisma.SortOrder
+  discount_code?: Prisma.SortOrder
+  discount_cents?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   paid_at?: Prisma.SortOrder
@@ -754,6 +803,7 @@ export type ShopOrderSumOrderByAggregateInput = {
   shipping_cents?: Prisma.SortOrder
   tax_cents?: Prisma.SortOrder
   total_cents?: Prisma.SortOrder
+  discount_cents?: Prisma.SortOrder
 }
 
 export type ShopOrderScalarRelationFilter = {
@@ -823,6 +873,8 @@ export type ShopOrderCreateWithoutLinesInput = {
   carrier_code?: string | null
   stripe_checkout_session_id?: string | null
   note?: string | null
+  discount_code?: string | null
+  discount_cents?: number
   created_at?: Date | string
   updated_at?: Date | string
   paid_at?: Date | string | null
@@ -850,6 +902,8 @@ export type ShopOrderUncheckedCreateWithoutLinesInput = {
   carrier_code?: string | null
   stripe_checkout_session_id?: string | null
   note?: string | null
+  discount_code?: string | null
+  discount_cents?: number
   created_at?: Date | string
   updated_at?: Date | string
   paid_at?: Date | string | null
@@ -893,6 +947,8 @@ export type ShopOrderUpdateWithoutLinesInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -920,6 +976,8 @@ export type ShopOrderUncheckedUpdateWithoutLinesInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -947,6 +1005,8 @@ export type ShopOrderCreateWithoutShipmentsInput = {
   carrier_code?: string | null
   stripe_checkout_session_id?: string | null
   note?: string | null
+  discount_code?: string | null
+  discount_cents?: number
   created_at?: Date | string
   updated_at?: Date | string
   paid_at?: Date | string | null
@@ -974,6 +1034,8 @@ export type ShopOrderUncheckedCreateWithoutShipmentsInput = {
   carrier_code?: string | null
   stripe_checkout_session_id?: string | null
   note?: string | null
+  discount_code?: string | null
+  discount_cents?: number
   created_at?: Date | string
   updated_at?: Date | string
   paid_at?: Date | string | null
@@ -1017,6 +1079,8 @@ export type ShopOrderUpdateWithoutShipmentsInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1044,6 +1108,8 @@ export type ShopOrderUncheckedUpdateWithoutShipmentsInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1071,6 +1137,8 @@ export type ShopOrderCreateWithoutPaymentsInput = {
   carrier_code?: string | null
   stripe_checkout_session_id?: string | null
   note?: string | null
+  discount_code?: string | null
+  discount_cents?: number
   created_at?: Date | string
   updated_at?: Date | string
   paid_at?: Date | string | null
@@ -1098,6 +1166,8 @@ export type ShopOrderUncheckedCreateWithoutPaymentsInput = {
   carrier_code?: string | null
   stripe_checkout_session_id?: string | null
   note?: string | null
+  discount_code?: string | null
+  discount_cents?: number
   created_at?: Date | string
   updated_at?: Date | string
   paid_at?: Date | string | null
@@ -1141,6 +1211,8 @@ export type ShopOrderUpdateWithoutPaymentsInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1168,6 +1240,8 @@ export type ShopOrderUncheckedUpdateWithoutPaymentsInput = {
   carrier_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripe_checkout_session_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discount_cents?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paid_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1244,6 +1318,8 @@ export type ShopOrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   carrier_code?: boolean
   stripe_checkout_session_id?: boolean
   note?: boolean
+  discount_code?: boolean
+  discount_cents?: boolean
   created_at?: boolean
   updated_at?: boolean
   paid_at?: boolean
@@ -1273,6 +1349,8 @@ export type ShopOrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   carrier_code?: boolean
   stripe_checkout_session_id?: boolean
   note?: boolean
+  discount_code?: boolean
+  discount_cents?: boolean
   created_at?: boolean
   updated_at?: boolean
   paid_at?: boolean
@@ -1298,6 +1376,8 @@ export type ShopOrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   carrier_code?: boolean
   stripe_checkout_session_id?: boolean
   note?: boolean
+  discount_code?: boolean
+  discount_cents?: boolean
   created_at?: boolean
   updated_at?: boolean
   paid_at?: boolean
@@ -1323,12 +1403,14 @@ export type ShopOrderSelectScalar = {
   carrier_code?: boolean
   stripe_checkout_session_id?: boolean
   note?: boolean
+  discount_code?: boolean
+  discount_cents?: boolean
   created_at?: boolean
   updated_at?: boolean
   paid_at?: boolean
 }
 
-export type ShopOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "number" | "status" | "email" | "member_id" | "guest_token" | "currency" | "subtotal_cents" | "shipping_cents" | "tax_cents" | "total_cents" | "shipping_address" | "billing_address" | "shipping_rate_id" | "shipping_rate_name" | "carrier_code" | "stripe_checkout_session_id" | "note" | "created_at" | "updated_at" | "paid_at", ExtArgs["result"]["shopOrder"]>
+export type ShopOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "number" | "status" | "email" | "member_id" | "guest_token" | "currency" | "subtotal_cents" | "shipping_cents" | "tax_cents" | "total_cents" | "shipping_address" | "billing_address" | "shipping_rate_id" | "shipping_rate_name" | "carrier_code" | "stripe_checkout_session_id" | "note" | "discount_code" | "discount_cents" | "created_at" | "updated_at" | "paid_at", ExtArgs["result"]["shopOrder"]>
 export type ShopOrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lines?: boolean | Prisma.ShopOrder$linesArgs<ExtArgs>
   shipments?: boolean | Prisma.ShopOrder$shipmentsArgs<ExtArgs>
@@ -1365,6 +1447,8 @@ export type $ShopOrderPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     carrier_code: string | null
     stripe_checkout_session_id: string | null
     note: string | null
+    discount_code: string | null
+    discount_cents: number
     created_at: Date
     updated_at: Date
     paid_at: Date | null
@@ -1813,6 +1897,8 @@ export interface ShopOrderFieldRefs {
   readonly carrier_code: Prisma.FieldRef<"ShopOrder", 'String'>
   readonly stripe_checkout_session_id: Prisma.FieldRef<"ShopOrder", 'String'>
   readonly note: Prisma.FieldRef<"ShopOrder", 'String'>
+  readonly discount_code: Prisma.FieldRef<"ShopOrder", 'String'>
+  readonly discount_cents: Prisma.FieldRef<"ShopOrder", 'Int'>
   readonly created_at: Prisma.FieldRef<"ShopOrder", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"ShopOrder", 'DateTime'>
   readonly paid_at: Prisma.FieldRef<"ShopOrder", 'DateTime'>

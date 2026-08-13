@@ -13,6 +13,22 @@ export function isShopOrderStatus(value: unknown): value is ShopOrderStatus {
   return (SHOP_ORDER_STATUSES as readonly unknown[]).includes(value);
 }
 
+export const SHOP_REFUNDABLE_STATUSES = [
+  "paid",
+  "fulfilling",
+  "shipped",
+  "completed",
+] as const;
+export type ShopRefundableStatus = (typeof SHOP_REFUNDABLE_STATUSES)[number];
+
+export function isShopOrderRefundable(status: string): boolean {
+  return (SHOP_REFUNDABLE_STATUSES as readonly string[]).includes(status);
+}
+
+export interface RefundShopOrderBody {
+  restock?: boolean;
+}
+
 export interface ShopAddress {
   name: string;
   line1: string;
@@ -68,6 +84,8 @@ export interface ShopOrderDetail extends ShopOrderListItem {
   subtotal_cents: number;
   shipping_cents: number;
   tax_cents: number;
+  discount_code: string | null;
+  discount_cents: number;
   note: string | null;
   shipping_address: ShopAddress;
   shipping_rate_name: string | null;

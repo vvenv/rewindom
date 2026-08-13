@@ -57,6 +57,14 @@ type VariantRecord = NonNullable<
 
 const PRODUCT_SORTABLE = new Set(["slug", "status", "updated_at", "created_at"]);
 
+const PRODUCT_INCLUDE = {
+  variants: { orderBy: { created_at: "asc" as const } },
+  collection_products: {
+    include: { collection: { select: { slug: true, status: true } } },
+    orderBy: { position: "asc" as const },
+  },
+} as const;
+
 function asJson(
   value: Record<string, string> | null,
 ): Record<string, string> | undefined {
@@ -98,7 +106,13 @@ function toVariant(record: VariantRecord): ShopVariant {
 }
 
 function toProduct(
-  record: ProductRecord & { variants: VariantRecord[] },
+  record: ProductRecord & {
+    variants: VariantRecord[];
+    collection_products?: Array<{
+      collection_id: string;
+      collection?: { slug: string; status: string };
+    }>;
+  },
 ): ShopProduct {
   return {
     id: record.id,
@@ -121,6 +135,12 @@ function toProduct(
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
     variants: record.variants.map(toVariant),
+    collection_ids: (record.collection_products ?? []).map(
+      (row) => row.collection_id,
+    ),
+    collection_slugs: (record.collection_products ?? [])
+      .filter((row) => row.collection?.status === "published")
+      .map((row) => row.collection!.slug),
   };
 }
 
@@ -171,6 +191,70 @@ function parseTags(raw: unknown): string[] {
     throw new ValidationError("shop.tags_invalid");
   }
   return readShopTags(raw);
+}
+
+function parseCollectionIds(raw: unknown): string[] {
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) throw new ValidationError("shop.collection_ids_invalid");
+  const ids: string[] = [];
+  for (const item of raw) {
+    if (typeof item !== "string" || !item.trim()) {
+      throw new ValidationError("shop.collection_ids_invalid");
+    }
+    if (!ids.includes(item.trim())) ids.push(item.trim());
+  }
+  return ids;
+}
+
+async function replaceProductCollections(params: {
+  tenant_id: string;
+  product_id: string;
+  collection_ids: string[];
+}): Promise<void> {
+  if (params.collection_ids.length > 0) {
+    const found = await prisma.shopCollection.findMany({
+      where: withTenantScope(params.tenant_id, {
+        id: { in: params.collection_ids },
+      }),
+      select: { id: true },
+    });
+    if (found.length !== params.collection_ids.length) {
+      throw new ValidationError("shop.collection_not_found");
+    }
+  }
+  const current = await prisma.shopCollectionProduct.findMany({
+    where: withTenantScope(params.tenant_id, { product_id: params.product_id }),
+    select: { collection_id: true },
+  });
+  const currentIds = new Set(current.map((row) => row.collection_id));
+  const nextIds = new Set(params.collection_ids);
+  const removed = [...currentIds].filter((id) => !nextIds.has(id));
+  const added = params.collection_ids.filter((id) => !currentIds.has(id));
+  await prisma.$transaction(async (tx) => {
+    if (removed.length > 0) {
+      await tx.shopCollectionProduct.deleteMany({
+        where: withTenantScope(params.tenant_id, {
+          product_id: params.product_id,
+          collection_id: { in: removed },
+        }),
+      });
+    }
+    for (const collection_id of added) {
+      const last = await tx.shopCollectionProduct.findFirst({
+        where: withTenantScope(params.tenant_id, { collection_id }),
+        orderBy: { position: "desc" },
+        select: { position: true },
+      });
+      await tx.shopCollectionProduct.create({
+        data: {
+          tenant_id: params.tenant_id,
+          collection_id,
+          product_id: params.product_id,
+          position: (last?.position ?? -1) + 1,
+        },
+      });
+    }
+  });
 }
 
 function parseBoolean(value: unknown, fallback: boolean): boolean {
@@ -420,7 +504,7 @@ export async function getProduct(
 ): Promise<ShopProduct> {
   const record = await prisma.shopProduct.findFirst({
     where: withTenantScope(tenant_id, { id: product_id }),
-    include: { variants: { orderBy: { created_at: "asc" } } },
+    include: PRODUCT_INCLUDE,
   });
   if (!record) throw new NotFoundError("shop.product_not_found");
   return toProduct(record);
@@ -432,7 +516,7 @@ export async function getPublishedProductBySlug(
 ): Promise<ShopProduct> {
   const record = await prisma.shopProduct.findFirst({
     where: withTenantScope(tenant_id, { slug, status: "published" }),
-    include: { variants: { orderBy: { created_at: "asc" } } },
+    include: PRODUCT_INCLUDE,
   });
   if (!record) throw new NotFoundError("shop.product_not_found");
   return toProduct(record);
@@ -444,7 +528,7 @@ export async function listPublishedProducts(
   const records = await prisma.shopProduct.findMany({
     where: withTenantScope(tenant_id, { status: "published" }),
     orderBy: { updated_at: "desc" },
-    include: { variants: { orderBy: { created_at: "asc" } } },
+    include: PRODUCT_INCLUDE,
   });
   return records.map(toProduct);
 }
@@ -536,8 +620,16 @@ export async function createProduct(params: {
         })),
       },
     },
-    include: { variants: true },
+    include: PRODUCT_INCLUDE,
   });
+  if (params.body.collection_ids !== undefined) {
+    await replaceProductCollections({
+      tenant_id: params.tenant_id,
+      product_id: record.id,
+      collection_ids: parseCollectionIds(params.body.collection_ids),
+    });
+    return getProduct(params.tenant_id, record.id);
+  }
   return toProduct(record);
 }
 
@@ -647,8 +739,16 @@ export async function updateProduct(params: {
   const record = await prisma.shopProduct.update({
     where: withTenantScope(params.tenant_id, { id: params.product_id }),
     data,
-    include: { variants: { orderBy: { created_at: "asc" } } },
+    include: PRODUCT_INCLUDE,
   });
+  if (params.body.collection_ids !== undefined) {
+    await replaceProductCollections({
+      tenant_id: params.tenant_id,
+      product_id: params.product_id,
+      collection_ids: parseCollectionIds(params.body.collection_ids),
+    });
+    return getProduct(params.tenant_id, params.product_id);
+  }
   return toProduct(record);
 }
 

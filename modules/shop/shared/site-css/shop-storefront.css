@@ -210,6 +210,15 @@
   display: grid;
   gap: 0.35rem;
 }
+.shop-discount {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: end;
+}
+.shop-discount .shop-field {
+  margin: 0;
+}
 .shop-cart-link {
   display: flex;
   justify-content: flex-end;

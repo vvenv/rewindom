@@ -17,7 +17,9 @@ import { toast } from "@rewindom/ui/toast";
 import { Receipt } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { OrderRefundSheet } from "../components/OrderRefundSheet.js";
 import { useCompleteOrder, useFulfillOrder, useOrder } from "../hooks/useShop.js";
+import { isShopOrderRefundable } from "../../shared/order.js";
 
 export function OrderDetailPage() {
   const { t } = useTranslation("shop");
@@ -53,42 +55,49 @@ export function OrderDetailPage() {
       title={order ? order.number : t("ordersTitle")}
       description={t("ordersDescription")}
       action={
-        canWrite && order && (order.status === "paid" || order.status === "fulfilling") ? (
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button>{t("fulfill")}</Button>
-            </SheetTrigger>
-            <SheetContent>
-              <form className="flex h-full flex-col" onSubmit={handleFulfill}>
-                <SheetHeader>
-                  <SheetTitle>{t("fulfillTitle")}</SheetTitle>
-                </SheetHeader>
-                <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
-                  <Field>
-                    <FieldLabel htmlFor="carrier">{t("carrier")}</FieldLabel>
-                    <Input
-                      id="carrier"
-                      value={carrier}
-                      onChange={(event) => setCarrier(event.target.value)}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="tracking">{t("tracking")}</FieldLabel>
-                    <Input
-                      id="tracking"
-                      value={tracking}
-                      onChange={(event) => setTracking(event.target.value)}
-                    />
-                  </Field>
-                </FieldGroup>
-                <SheetFooter>
-                  <Button type="submit" disabled={fulfill.isPending}>
-                    {t("save")}
-                  </Button>
-                </SheetFooter>
-              </form>
-            </SheetContent>
-          </Sheet>
+        canWrite && order ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {isShopOrderRefundable(order.status) ? (
+              <OrderRefundSheet order={order} />
+            ) : null}
+            {order.status === "paid" || order.status === "fulfilling" ? (
+              <Sheet open={open} onOpenChange={setOpen}>
+                <SheetTrigger asChild>
+                  <Button>{t("fulfill")}</Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <form className="flex h-full flex-col" onSubmit={handleFulfill}>
+                    <SheetHeader>
+                      <SheetTitle>{t("fulfillTitle")}</SheetTitle>
+                    </SheetHeader>
+                    <FieldGroup className="min-h-0 flex-1 overflow-y-auto px-4">
+                      <Field>
+                        <FieldLabel htmlFor="carrier">{t("carrier")}</FieldLabel>
+                        <Input
+                          id="carrier"
+                          value={carrier}
+                          onChange={(event) => setCarrier(event.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor="tracking">{t("tracking")}</FieldLabel>
+                        <Input
+                          id="tracking"
+                          value={tracking}
+                          onChange={(event) => setTracking(event.target.value)}
+                        />
+                      </Field>
+                    </FieldGroup>
+                    <SheetFooter>
+                      <Button type="submit" disabled={fulfill.isPending}>
+                        {t("save")}
+                      </Button>
+                    </SheetFooter>
+                  </form>
+                </SheetContent>
+              </Sheet>
+            ) : null}
+          </div>
         ) : null
       }
     >
@@ -102,6 +111,13 @@ export function OrderDetailPage() {
           {order.note ? (
             <p>
               {t("storefront.order.note")}: {order.note}
+            </p>
+          ) : null}
+          {order.discount_cents > 0 ? (
+            <p>
+              {t("storefront.cart.discount")}
+              {order.discount_code ? ` (${order.discount_code})` : ""}: −
+              {(order.discount_cents / 100).toFixed(2)} {order.currency}
             </p>
           ) : null}
           <p>

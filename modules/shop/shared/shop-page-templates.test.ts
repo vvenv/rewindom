@@ -28,6 +28,7 @@ describe("registerShopPageTemplates", () => {
     expect(kinds.map((item) => item.kind)).toEqual([
       "shop_index",
       "shop_product",
+      "shop_collection",
       "shop_cart",
       "shop_checkout",
       "shop_order",

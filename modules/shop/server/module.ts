@@ -6,6 +6,8 @@ import {
 import { SHOP_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { catalogRoutes } from "./catalog/catalog.routes.js";
+import { collectionRoutes } from "./catalog/collection.routes.js";
+import { discountRoutes } from "./discount/discount.routes.js";
 import { SHOP_SERVER_I18N } from "./i18n.js";
 import { shopAdminRoutes, shopWebhookRoutes } from "./order/shop-admin.routes.js";
 import { registerShopStorefrontSections } from "./sections/register.js";
@@ -39,7 +41,14 @@ export const shopServerModule: ServerAppModule = {
       { action: "SHOP_PRODUCT_CREATE", label: "创建商品" },
       { action: "SHOP_PRODUCT_UPDATE", label: "更新商品" },
       { action: "SHOP_PRODUCT_DELETE", label: "删除商品" },
+      { action: "SHOP_COLLECTION_CREATE", label: "创建分类" },
+      { action: "SHOP_COLLECTION_UPDATE", label: "更新分类" },
+      { action: "SHOP_COLLECTION_DELETE", label: "删除分类" },
+      { action: "SHOP_DISCOUNT_CREATE", label: "创建优惠码" },
+      { action: "SHOP_DISCOUNT_UPDATE", label: "更新优惠码" },
+      { action: "SHOP_DISCOUNT_DELETE", label: "删除优惠码" },
       { action: "SHOP_ORDER_FULFILL", label: "订单发货" },
+      { action: "SHOP_ORDER_REFUND", label: "订单退款" },
       { action: "SHOP_SHIPPING_SAVE", label: "更新运费" },
       { action: "SHOP_SETTING_UPDATE", label: "更新商店设置" },
       { action: "SHOP_PROVIDER_UPDATE", label: "更新商店收款通道" },
@@ -67,6 +76,8 @@ export const shopServerModule: ServerAppModule = {
       await app.register(shopStorefrontRoutes);
       await registerTenantGatedRoutes(app, "shop", async (scoped) => {
         await scoped.register(catalogRoutes, { prefix: "/api/shop" });
+        await scoped.register(collectionRoutes, { prefix: "/api/shop" });
+        await scoped.register(discountRoutes, { prefix: "/api/shop" });
         await scoped.register(shopAdminRoutes, { prefix: "/api/shop" });
       });
     },

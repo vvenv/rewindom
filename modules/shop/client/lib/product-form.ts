@@ -51,6 +51,7 @@ export interface ProductFormValues {
   seo_description: ShopLocalizedMap;
   options: ShopProductOption[];
   variants: ProductFormVariant[];
+  collection_ids: string[];
 }
 
 export function newOptionValue(): ShopProductOption["values"][number] {
@@ -106,6 +107,7 @@ export const INITIAL_PRODUCT_FORM: ProductFormValues = {
   seo_description: {},
   options: [],
   variants: [newVariantRow()],
+  collection_ids: [],
 };
 
 export function productToForm(product: ShopProduct): ProductFormValues {
@@ -153,6 +155,7 @@ export function productToForm(product: ShopProduct): ProductFormValues {
         taxable: variant.taxable,
       }),
     ),
+    collection_ids: [...product.collection_ids],
   };
 }
 
@@ -241,6 +244,7 @@ export function buildProductPayload(values: ProductFormValues): CreateShopProduc
     seo_title: compactLocalized(values.seo_title),
     seo_description: compactLocalized(values.seo_description),
     options: values.options,
+    collection_ids: values.collection_ids,
     variants: values.variants.map((variant) => ({
       id: variant.id,
       sku: variant.sku.trim(),

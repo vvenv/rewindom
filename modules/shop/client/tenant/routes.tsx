@@ -17,6 +17,21 @@ const ProductEditorPage = lazy(() =>
     default: module.ProductEditorPage,
   })),
 );
+const CollectionsPage = lazy(() =>
+  import("../pages/collections.js").then((module) => ({
+    default: module.CollectionsPage,
+  })),
+);
+const CollectionEditorPage = lazy(() =>
+  import("../pages/collection-editor.js").then((module) => ({
+    default: module.CollectionEditorPage,
+  })),
+);
+const DiscountsPage = lazy(() =>
+  import("../pages/discounts.js").then((module) => ({
+    default: module.DiscountsPage,
+  })),
+);
 const OrdersPage = lazy(() =>
   import("../pages/orders.js").then((module) => ({
     default: module.OrdersPage,
@@ -50,6 +65,10 @@ export function renderShopRoutes(): ReactNode {
         <Route path="/app/shop" element={<ProductsPage />} />
         <Route path="/app/shop/products/new" element={<ProductEditorPage />} />
         <Route path="/app/shop/products/:productId" element={<ProductEditorPage />} />
+        <Route path="/app/shop/collections" element={<CollectionsPage />} />
+        <Route path="/app/shop/collections/new" element={<CollectionEditorPage />} />
+        <Route path="/app/shop/collections/:collectionId" element={<CollectionEditorPage />} />
+        <Route path="/app/shop/discounts" element={<DiscountsPage />} />
         <Route path="/app/shop/orders" element={<OrdersPage />} />
         <Route path="/app/shop/orders/:orderId" element={<OrderDetailPage />} />
         <Route path="/app/shop/shipping" element={<ShippingPage />} />

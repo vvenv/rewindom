@@ -84,6 +84,9 @@ export const ModelName = {
   UserRole: 'UserRole',
   ShopSetting: 'ShopSetting',
   ShopProduct: 'ShopProduct',
+  ShopCollection: 'ShopCollection',
+  ShopCollectionProduct: 'ShopCollectionProduct',
+  ShopDiscount: 'ShopDiscount',
   ShopVariant: 'ShopVariant',
   ShopCart: 'ShopCart',
   ShopCartItem: 'ShopCartItem',
@@ -643,6 +646,55 @@ export const ShopProductScalarFieldEnum = {
 export type ShopProductScalarFieldEnum = (typeof ShopProductScalarFieldEnum)[keyof typeof ShopProductScalarFieldEnum]
 
 
+export const ShopCollectionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  slug: 'slug',
+  status: 'status',
+  title: 'title',
+  description: 'description',
+  seo_title: 'seo_title',
+  seo_description: 'seo_description',
+  image_url: 'image_url',
+  published_at: 'published_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopCollectionScalarFieldEnum = (typeof ShopCollectionScalarFieldEnum)[keyof typeof ShopCollectionScalarFieldEnum]
+
+
+export const ShopCollectionProductScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  collection_id: 'collection_id',
+  product_id: 'product_id',
+  position: 'position',
+  created_at: 'created_at'
+} as const
+
+export type ShopCollectionProductScalarFieldEnum = (typeof ShopCollectionProductScalarFieldEnum)[keyof typeof ShopCollectionProductScalarFieldEnum]
+
+
+export const ShopDiscountScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  code: 'code',
+  type: 'type',
+  value: 'value',
+  min_subtotal_cents: 'min_subtotal_cents',
+  max_uses: 'max_uses',
+  used_count: 'used_count',
+  starts_at: 'starts_at',
+  ends_at: 'ends_at',
+  status: 'status',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopDiscountScalarFieldEnum = (typeof ShopDiscountScalarFieldEnum)[keyof typeof ShopDiscountScalarFieldEnum]
+
+
 export const ShopVariantScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -675,6 +727,7 @@ export const ShopCartScalarFieldEnum = {
   member_id: 'member_id',
   guest_token: 'guest_token',
   currency: 'currency',
+  discount_code: 'discount_code',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -743,6 +796,8 @@ export const ShopOrderScalarFieldEnum = {
   carrier_code: 'carrier_code',
   stripe_checkout_session_id: 'stripe_checkout_session_id',
   note: 'note',
+  discount_code: 'discount_code',
+  discount_cents: 'discount_cents',
   created_at: 'created_at',
   updated_at: 'updated_at',
   paid_at: 'paid_at'

@@ -53,6 +53,12 @@ export const orderSection: SectionDefinition = {
     },
     {
       type: "text",
+      id: "discount_label",
+      label: "shop:section.order.discountLabel",
+      default: "Discount",
+    },
+    {
+      type: "text",
       id: "total_label",
       label: "shop:section.order.totalLabel",
       default: "Total",

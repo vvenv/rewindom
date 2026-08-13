@@ -40,8 +40,62 @@ model ShopProduct {
   created_at      DateTime      @default(now())
   updated_at      DateTime      @updatedAt
   variants        ShopVariant[]
+  collection_products ShopCollectionProduct[]
 
   @@unique([tenant_id, slug])
+  @@index([tenant_id, status, updated_at])
+}
+
+model ShopCollection {
+  id              String   @id @default(uuid())
+  tenant_id       String
+  slug            String
+  status          String   @default("draft")
+  title           Json
+  description     Json?
+  seo_title       Json?
+  seo_description Json?
+  image_url       String?
+  published_at    DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  products        ShopCollectionProduct[]
+
+  @@unique([tenant_id, slug])
+  @@index([tenant_id, status, updated_at])
+}
+
+model ShopCollectionProduct {
+  id            String         @id @default(uuid())
+  tenant_id     String
+  collection_id String
+  product_id    String
+  position      Int            @default(0)
+  created_at    DateTime       @default(now())
+  collection    ShopCollection @relation(fields: [collection_id], references: [id], onDelete: Cascade)
+  product       ShopProduct    @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, collection_id, product_id])
+  @@index([tenant_id, collection_id, position])
+  @@index([tenant_id, product_id])
+}
+
+model ShopDiscount {
+  id                 String    @id @default(uuid())
+  tenant_id          String
+  code               String
+  type               String
+  value              Int
+  min_subtotal_cents Int       @default(0)
+  max_uses           Int?
+  used_count         Int       @default(0)
+  starts_at          DateTime?
+  ends_at            DateTime?
+  status             String    @default("draft")
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  @@unique([tenant_id, code])
   @@index([tenant_id, status, updated_at])
 }
 
@@ -76,14 +130,15 @@ model ShopVariant {
 }
 
 model ShopCart {
-  id          String         @id @default(uuid())
-  tenant_id   String
-  member_id   String?
-  guest_token String?
-  currency    String         @default("USD")
-  created_at  DateTime       @default(now())
-  updated_at  DateTime       @updatedAt
-  items       ShopCartItem[]
+  id            String         @id @default(uuid())
+  tenant_id     String
+  member_id     String?
+  guest_token   String?
+  currency      String         @default("USD")
+  discount_code String?
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  items         ShopCartItem[]
 
   @@index([tenant_id, member_id])
   @@unique([tenant_id, guest_token])
@@ -152,6 +207,8 @@ model ShopOrder {
   carrier_code               String?
   stripe_checkout_session_id String?
   note                       String?
+  discount_code              String?
+  discount_cents             Int             @default(0)
   created_at                 DateTime        @default(now())
   updated_at                 DateTime        @updatedAt
   paid_at                    DateTime?

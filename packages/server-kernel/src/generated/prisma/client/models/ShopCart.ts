@@ -30,6 +30,7 @@ export type ShopCartMinAggregateOutputType = {
   member_id: string | null
   guest_token: string | null
   currency: string | null
+  discount_code: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -40,6 +41,7 @@ export type ShopCartMaxAggregateOutputType = {
   member_id: string | null
   guest_token: string | null
   currency: string | null
+  discount_code: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -50,6 +52,7 @@ export type ShopCartCountAggregateOutputType = {
   member_id: number
   guest_token: number
   currency: number
+  discount_code: number
   created_at: number
   updated_at: number
   _all: number
@@ -62,6 +65,7 @@ export type ShopCartMinAggregateInputType = {
   member_id?: true
   guest_token?: true
   currency?: true
+  discount_code?: true
   created_at?: true
   updated_at?: true
 }
@@ -72,6 +76,7 @@ export type ShopCartMaxAggregateInputType = {
   member_id?: true
   guest_token?: true
   currency?: true
+  discount_code?: true
   created_at?: true
   updated_at?: true
 }
@@ -82,6 +87,7 @@ export type ShopCartCountAggregateInputType = {
   member_id?: true
   guest_token?: true
   currency?: true
+  discount_code?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -165,6 +171,7 @@ export type ShopCartGroupByOutputType = {
   member_id: string | null
   guest_token: string | null
   currency: string
+  discount_code: string | null
   created_at: Date
   updated_at: Date
   _count: ShopCartCountAggregateOutputType | null
@@ -196,6 +203,7 @@ export type ShopCartWhereInput = {
   member_id?: Prisma.StringNullableFilter<"ShopCart"> | string | null
   guest_token?: Prisma.StringNullableFilter<"ShopCart"> | string | null
   currency?: Prisma.StringFilter<"ShopCart"> | string
+  discount_code?: Prisma.StringNullableFilter<"ShopCart"> | string | null
   created_at?: Prisma.DateTimeFilter<"ShopCart"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ShopCart"> | Date | string
   items?: Prisma.ShopCartItemListRelationFilter
@@ -207,6 +215,7 @@ export type ShopCartOrderByWithRelationInput = {
   member_id?: Prisma.SortOrderInput | Prisma.SortOrder
   guest_token?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
+  discount_code?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   items?: Prisma.ShopCartItemOrderByRelationAggregateInput
@@ -222,6 +231,7 @@ export type ShopCartWhereUniqueInput = Prisma.AtLeast<{
   member_id?: Prisma.StringNullableFilter<"ShopCart"> | string | null
   guest_token?: Prisma.StringNullableFilter<"ShopCart"> | string | null
   currency?: Prisma.StringFilter<"ShopCart"> | string
+  discount_code?: Prisma.StringNullableFilter<"ShopCart"> | string | null
   created_at?: Prisma.DateTimeFilter<"ShopCart"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ShopCart"> | Date | string
   items?: Prisma.ShopCartItemListRelationFilter
@@ -233,6 +243,7 @@ export type ShopCartOrderByWithAggregationInput = {
   member_id?: Prisma.SortOrderInput | Prisma.SortOrder
   guest_token?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
+  discount_code?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.ShopCartCountOrderByAggregateInput
@@ -249,6 +260,7 @@ export type ShopCartScalarWhereWithAggregatesInput = {
   member_id?: Prisma.StringNullableWithAggregatesFilter<"ShopCart"> | string | null
   guest_token?: Prisma.StringNullableWithAggregatesFilter<"ShopCart"> | string | null
   currency?: Prisma.StringWithAggregatesFilter<"ShopCart"> | string
+  discount_code?: Prisma.StringNullableWithAggregatesFilter<"ShopCart"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"ShopCart"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"ShopCart"> | Date | string
 }
@@ -259,6 +271,7 @@ export type ShopCartCreateInput = {
   member_id?: string | null
   guest_token?: string | null
   currency?: string
+  discount_code?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   items?: Prisma.ShopCartItemCreateNestedManyWithoutCartInput
@@ -270,6 +283,7 @@ export type ShopCartUncheckedCreateInput = {
   member_id?: string | null
   guest_token?: string | null
   currency?: string
+  discount_code?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   items?: Prisma.ShopCartItemUncheckedCreateNestedManyWithoutCartInput
@@ -281,6 +295,7 @@ export type ShopCartUpdateInput = {
   member_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guest_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.ShopCartItemUpdateManyWithoutCartNestedInput
@@ -292,6 +307,7 @@ export type ShopCartUncheckedUpdateInput = {
   member_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guest_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.ShopCartItemUncheckedUpdateManyWithoutCartNestedInput
@@ -303,6 +319,7 @@ export type ShopCartCreateManyInput = {
   member_id?: string | null
   guest_token?: string | null
   currency?: string
+  discount_code?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -313,6 +330,7 @@ export type ShopCartUpdateManyMutationInput = {
   member_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guest_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -323,6 +341,7 @@ export type ShopCartUncheckedUpdateManyInput = {
   member_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guest_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -338,6 +357,7 @@ export type ShopCartCountOrderByAggregateInput = {
   member_id?: Prisma.SortOrder
   guest_token?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  discount_code?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -348,6 +368,7 @@ export type ShopCartMaxOrderByAggregateInput = {
   member_id?: Prisma.SortOrder
   guest_token?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  discount_code?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -358,6 +379,7 @@ export type ShopCartMinOrderByAggregateInput = {
   member_id?: Prisma.SortOrder
   guest_token?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  discount_code?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -387,6 +409,7 @@ export type ShopCartCreateWithoutItemsInput = {
   member_id?: string | null
   guest_token?: string | null
   currency?: string
+  discount_code?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -397,6 +420,7 @@ export type ShopCartUncheckedCreateWithoutItemsInput = {
   member_id?: string | null
   guest_token?: string | null
   currency?: string
+  discount_code?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -423,6 +447,7 @@ export type ShopCartUpdateWithoutItemsInput = {
   member_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guest_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -433,6 +458,7 @@ export type ShopCartUncheckedUpdateWithoutItemsInput = {
   member_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guest_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  discount_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -474,6 +500,7 @@ export type ShopCartSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   member_id?: boolean
   guest_token?: boolean
   currency?: boolean
+  discount_code?: boolean
   created_at?: boolean
   updated_at?: boolean
   items?: boolean | Prisma.ShopCart$itemsArgs<ExtArgs>
@@ -486,6 +513,7 @@ export type ShopCartSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   member_id?: boolean
   guest_token?: boolean
   currency?: boolean
+  discount_code?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["shopCart"]>
@@ -496,6 +524,7 @@ export type ShopCartSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   member_id?: boolean
   guest_token?: boolean
   currency?: boolean
+  discount_code?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["shopCart"]>
@@ -506,11 +535,12 @@ export type ShopCartSelectScalar = {
   member_id?: boolean
   guest_token?: boolean
   currency?: boolean
+  discount_code?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type ShopCartOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "member_id" | "guest_token" | "currency" | "created_at" | "updated_at", ExtArgs["result"]["shopCart"]>
+export type ShopCartOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "member_id" | "guest_token" | "currency" | "discount_code" | "created_at" | "updated_at", ExtArgs["result"]["shopCart"]>
 export type ShopCartInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   items?: boolean | Prisma.ShopCart$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.ShopCartCountOutputTypeDefaultArgs<ExtArgs>
@@ -529,6 +559,7 @@ export type $ShopCartPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     member_id: string | null
     guest_token: string | null
     currency: string
+    discount_code: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["shopCart"]>
@@ -960,6 +991,7 @@ export interface ShopCartFieldRefs {
   readonly member_id: Prisma.FieldRef<"ShopCart", 'String'>
   readonly guest_token: Prisma.FieldRef<"ShopCart", 'String'>
   readonly currency: Prisma.FieldRef<"ShopCart", 'String'>
+  readonly discount_code: Prisma.FieldRef<"ShopCart", 'String'>
   readonly created_at: Prisma.FieldRef<"ShopCart", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"ShopCart", 'DateTime'>
 }

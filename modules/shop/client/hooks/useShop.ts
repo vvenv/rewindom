@@ -13,6 +13,15 @@ import type {
   UpdateShopProductBody,
   UpdateShopProviderBody,
   UpdateShopSettingBody,
+  ShopCollection,
+  ShopCollectionListItem,
+  CreateShopCollectionBody,
+  UpdateShopCollectionBody,
+  ShopDiscount,
+  ShopDiscountListItem,
+  CreateShopDiscountBody,
+  UpdateShopDiscountBody,
+  RefundShopOrderBody,
 } from "../../shared/index.js";
 
 export function useProducts(
@@ -257,6 +266,152 @@ export function useUpdateShopProvider() {
       api.put<ShopProviderStatus>("/shop/provider", body),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["shop-settings"] });
+    },
+  });
+}
+
+export function useCollections(
+  page?: number,
+  pageSize?: number,
+  q?: string,
+  sortBy?: string,
+  sortDir?: "asc" | "desc",
+) {
+  return useQuery({
+    placeholderData: keepPreviousData,
+    queryKey: ["shop-collections", page, pageSize, q, sortBy, sortDir],
+    queryFn: () => {
+      const params: Record<string, number | string> = {};
+      if (page !== undefined) params.page = page;
+      if (pageSize !== undefined) params.page_size = pageSize;
+      if (q) params.q = q;
+      if (sortBy?.trim()) params.sort_by = sortBy;
+      if (sortDir) params.sort_dir = sortDir;
+      return api.get<{
+        items: ShopCollectionListItem[];
+        page: number;
+        page_size: number;
+        total: number;
+        page_count: number;
+      }>("/shop/collections", params);
+    },
+  });
+}
+
+export function useCollection(id: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ["shop-collections", "detail", id],
+    enabled: Boolean(id) && enabled,
+    queryFn: () => api.get<ShopCollection>(`/shop/collections/${id}`),
+  });
+}
+
+export function useCreateCollection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateShopCollectionBody) =>
+      api.post<ShopCollection>("/shop/collections", body),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["shop-collections"] });
+      await queryClient.invalidateQueries({ queryKey: ["shop-products"] });
+    },
+  });
+}
+
+export function useUpdateCollection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: UpdateShopCollectionBody & { id: string }) =>
+      api.patch<ShopCollection>(`/shop/collections/${id}`, body),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["shop-collections"] });
+      await queryClient.invalidateQueries({ queryKey: ["shop-products"] });
+    },
+  });
+}
+
+export function useDeleteCollection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.delete<{ deleted: boolean }>(`/shop/collections/${id}`),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["shop-collections"] });
+      await queryClient.invalidateQueries({ queryKey: ["shop-products"] });
+    },
+  });
+}
+
+export function useDiscounts(
+  page?: number,
+  pageSize?: number,
+  q?: string,
+  sortBy?: string,
+  sortDir?: "asc" | "desc",
+) {
+  return useQuery({
+    placeholderData: keepPreviousData,
+    queryKey: ["shop-discounts", page, pageSize, q, sortBy, sortDir],
+    queryFn: () => {
+      const params: Record<string, number | string> = {};
+      if (page !== undefined) params.page = page;
+      if (pageSize !== undefined) params.page_size = pageSize;
+      if (q) params.q = q;
+      if (sortBy?.trim()) params.sort_by = sortBy;
+      if (sortDir) params.sort_dir = sortDir;
+      return api.get<{
+        items: ShopDiscountListItem[];
+        page: number;
+        page_size: number;
+        total: number;
+        page_count: number;
+      }>("/shop/discounts", params);
+    },
+  });
+}
+
+export function useCreateDiscount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateShopDiscountBody) =>
+      api.post<ShopDiscount>("/shop/discounts", body),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["shop-discounts"] });
+    },
+  });
+}
+
+export function useUpdateDiscount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: UpdateShopDiscountBody & { id: string }) =>
+      api.patch<ShopDiscount>(`/shop/discounts/${id}`, body),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["shop-discounts"] });
+    },
+  });
+}
+
+export function useDeleteDiscount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.delete<{ deleted: boolean }>(`/shop/discounts/${id}`),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["shop-discounts"] });
+    },
+  });
+}
+
+export function useRefundOrder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: RefundShopOrderBody & { id: string }) =>
+      api.post<ShopOrderDetail>(`/shop/orders/${input.id}/refund`, {
+        restock: input.restock,
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["shop-orders"] });
     },
   });
 }

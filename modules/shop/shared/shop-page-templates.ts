@@ -36,6 +36,7 @@ import {
 import {
   SHOP_CART_PATH,
   SHOP_CHECKOUT_PATH,
+  SHOP_COLLECTION_PATH,
   SHOP_INDEX_PATH,
   SHOP_MEMBER_ORDERS_PATH,
   SHOP_ORDER_PATH,
@@ -56,6 +57,8 @@ export const SHOP_PAGE_TEMPLATE_GROUP = "shop:template.group";
 export const SHOP_INDEX_PAGE_KIND = "shop_index";
 export const SHOP_INDEX_TEMPLATE_SLUG = "shop";
 export const SHOP_PRODUCT_TEMPLATE_SLUG = "shop-product";
+export const SHOP_COLLECTION_PAGE_KIND = "shop_collection";
+export const SHOP_COLLECTION_TEMPLATE_SLUG = "shop-collection";
 export const SHOP_CART_TEMPLATE_SLUG = "shop-cart";
 export const SHOP_CHECKOUT_TEMPLATE_SLUG = "shop-checkout";
 export const SHOP_ORDER_TEMPLATE_SLUG = "shop-order";
@@ -74,6 +77,24 @@ export const SHOP_INDEX_TEMPLATE_PRESET: PagePreset = {
       text: {
         heading: "shop:storefront.catalog.title",
         empty_text: "shop:storefront.catalog.empty",
+      },
+    },
+  ],
+};
+
+export const SHOP_COLLECTION_TEMPLATE_PRESET: PagePreset = {
+  key: SHOP_COLLECTION_PAGE_KIND,
+  label: "shop:template.collection.label",
+  kind: SHOP_COLLECTION_PAGE_KIND,
+  slug: SHOP_COLLECTION_TEMPLATE_SLUG,
+  titleKey: "shop:storefront.collection.title",
+  descriptionKey: "shop:storefront.collection.subtitle",
+  sections: [
+    {
+      type: SHOP_PRODUCT_GRID_SECTION_TYPE,
+      text: {
+        heading: "shop:storefront.collection.title",
+        empty_text: "shop:storefront.collection.empty",
       },
     },
   ],
@@ -137,6 +158,9 @@ export const SHOP_CART_TEMPLATE_PRESET: PagePreset = {
           text: {
             subtotal_label: "shop:storefront.cart.subtotal",
             checkout_label: "shop:storefront.cart.checkout",
+            discount_label: "shop:storefront.cart.discount",
+            discount_code_label: "shop:storefront.cart.discountCode",
+            discount_apply_label: "shop:storefront.cart.applyDiscount",
           },
         },
       ],
@@ -195,6 +219,7 @@ export const SHOP_CHECKOUT_TEMPLATE_PRESET: PagePreset = {
           text: {
             heading: "shop:storefront.checkout.summary",
             subtotal_label: "shop:storefront.cart.subtotal",
+            discount_label: "shop:storefront.cart.discount",
             empty_text: "shop:storefront.cart.empty",
           },
         },
@@ -219,6 +244,7 @@ export const SHOP_ORDER_TEMPLATE_PRESET: PagePreset = {
         pending_text: "shop:storefront.order.pending",
         shipping_label: "shop:storefront.order.shipping",
         tax_label: "shop:storefront.order.tax",
+        discount_label: "shop:storefront.cart.discount",
         total_label: "shop:storefront.order.total",
         tracking_label: "shop:storefront.order.tracking",
       },
@@ -271,6 +297,15 @@ const SHOP_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     entitlement: SHOP_ENTITLEMENT.key,
   },
   {
+    kind: SHOP_COLLECTION_PAGE_KIND,
+    slug: SHOP_COLLECTION_TEMPLATE_SLUG,
+    path: SHOP_COLLECTION_PATH,
+    group: SHOP_PAGE_TEMPLATE_GROUP,
+    label: "shop:template.collection.label",
+    required_section: SHOP_PRODUCT_GRID_SECTION_TYPE,
+    entitlement: SHOP_ENTITLEMENT.key,
+  },
+  {
     kind: SHOP_CART_PAGE_KIND,
     slug: SHOP_CART_TEMPLATE_SLUG,
     path: SHOP_CART_PATH,
@@ -317,6 +352,10 @@ export function registerShopPageTemplates(): void {
   registerPageTemplatePreset(
     SHOP_PRODUCT_PAGE_KIND,
     SHOP_PRODUCT_TEMPLATE_PRESET,
+  );
+  registerPageTemplatePreset(
+    SHOP_COLLECTION_PAGE_KIND,
+    SHOP_COLLECTION_TEMPLATE_PRESET,
   );
   registerPageTemplatePreset(SHOP_CART_PAGE_KIND, SHOP_CART_TEMPLATE_PRESET);
   registerPageTemplatePreset(

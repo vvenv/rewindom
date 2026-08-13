@@ -12,10 +12,13 @@ import type { ShopCartView } from "../../shared/index.js";
 import {
   featuredImage,
   isVariantAvailable,
+  quoteDiscount,
   readInventoryPolicy,
   readShopImages,
+  normalizeDiscountCode,
 } from "../../shared/index.js";
 import { displayTitle } from "../lib/format.js";
+import { findDiscountByCode } from "../discount/discount.service.js";
 import {
   readOptionValues,
   readShopOptions,
@@ -64,7 +67,7 @@ export async function loadCart(params: {
     });
   }
 
-  return toCartView(cart, params.locale);
+  return cartToView(params.tenant_id, cart, params.locale);
 }
 
 export async function mergeGuestCartIntoMember(params: {
@@ -120,6 +123,12 @@ export async function mergeGuestCartIntoMember(params: {
           },
         });
       }
+    }
+    if (!member.discount_code && guest.discount_code) {
+      await tx.shopCart.update({
+        where: withTenantScope(params.tenant_id, { id: member.id }),
+        data: { discount_code: guest.discount_code },
+      });
     }
     await tx.shopCart.delete({
       where: withTenantScope(params.tenant_id, { id: guest.id }),
@@ -244,6 +253,7 @@ function toCartView(
   cart: {
     id: string;
     currency: string;
+    discount_code: string | null;
     items: Array<{
       id: string;
       quantity: number;
@@ -270,6 +280,7 @@ function toCartView(
     }>;
   },
   locale: AppLocale,
+  discount_cents: number,
 ): ShopCartView {
   const items = cart.items.map((item) => {
     const title =
@@ -307,11 +318,84 @@ function toCartView(
       line_total_cents: item.variant.price_cents * item.quantity,
     };
   });
+  const subtotal_cents = items.reduce((sum, item) => sum + item.line_total_cents, 0);
   return {
     id: cart.id,
     currency: items[0]?.currency ?? cart.currency,
     item_count: items.reduce((sum, item) => sum + item.quantity, 0),
-    subtotal_cents: items.reduce((sum, item) => sum + item.line_total_cents, 0),
+    subtotal_cents,
+    discount_code: cart.discount_code,
+    discount_cents: Math.min(Math.max(0, discount_cents), subtotal_cents),
     items,
   };
+}
+
+async function quoteCartDiscount(
+  tenant_id: string,
+  code: string | null,
+  subtotal_cents: number,
+): Promise<number> {
+  if (!code) return 0;
+  const discount = await findDiscountByCode(tenant_id, code);
+  if (!discount) return 0;
+  const quote = quoteDiscount(discount, subtotal_cents);
+  return quote.ok ? quote.discount_cents : 0;
+}
+
+async function cartToView(
+  tenant_id: string,
+  cart: Parameters<typeof toCartView>[0],
+  locale: AppLocale,
+): Promise<ShopCartView> {
+  const draft = toCartView(cart, locale, 0);
+  const discount_cents = await quoteCartDiscount(
+    tenant_id,
+    cart.discount_code,
+    draft.subtotal_cents,
+  );
+  return { ...draft, discount_cents };
+}
+
+export async function applyCartDiscount(params: {
+  tenant_id: string;
+  cart_id: string;
+  code: string;
+  locale: AppLocale;
+}): Promise<ShopCartView> {
+  const cart = await prisma.shopCart.findFirst({
+    where: withTenantScope(params.tenant_id, { id: params.cart_id }),
+  });
+  if (!cart) throw new NotFoundError("shop.cart_not_found");
+  const trimmed = params.code.trim();
+  if (!trimmed) {
+    await prisma.shopCart.update({
+      where: withTenantScope(params.tenant_id, { id: cart.id }),
+      data: { discount_code: null },
+    });
+    return loadCart({
+      tenant_id: params.tenant_id,
+      cart_id: cart.id,
+      locale: params.locale,
+    });
+  }
+  const normalized = normalizeDiscountCode(trimmed);
+  if (!normalized) throw new ValidationError("shop.discount_invalid");
+  const current = await loadCart({
+    tenant_id: params.tenant_id,
+    cart_id: cart.id,
+    locale: params.locale,
+  });
+  const discount = await findDiscountByCode(params.tenant_id, normalized);
+  if (!discount) throw new ValidationError("shop.discount_invalid");
+  const quote = quoteDiscount(discount, current.subtotal_cents);
+  if (!quote.ok) throw new ValidationError("shop.discount_invalid");
+  await prisma.shopCart.update({
+    where: withTenantScope(params.tenant_id, { id: cart.id }),
+    data: { discount_code: normalized },
+  });
+  return loadCart({
+    tenant_id: params.tenant_id,
+    cart_id: cart.id,
+    locale: params.locale,
+  });
 }

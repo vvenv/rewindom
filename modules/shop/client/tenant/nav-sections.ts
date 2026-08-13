@@ -1,4 +1,4 @@
-import { Package, Receipt, Settings, Truck } from "lucide-react";
+import { FolderOpen, Package, Receipt, Settings, Tag, Truck } from "lucide-react";
 
 import type { AppNavSection } from "@rewindom/module-sdk/client";
 
@@ -12,6 +12,22 @@ export const SHOP_NAV_SECTIONS: AppNavSection[] = [
         path: "/app/shop",
         title: "shop:nav.products",
         end: true,
+        tenantModule: "shop",
+        anyPermission: ["shop.read"],
+      },
+      {
+        icon: FolderOpen,
+        label: "shop:nav.collections",
+        path: "/app/shop/collections",
+        title: "shop:nav.collections",
+        tenantModule: "shop",
+        anyPermission: ["shop.read"],
+      },
+      {
+        icon: Tag,
+        label: "shop:nav.discounts",
+        path: "/app/shop/discounts",
+        title: "shop:nav.discounts",
         tenantModule: "shop",
         anyPermission: ["shop.read"],
       },

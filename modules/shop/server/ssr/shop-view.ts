@@ -66,6 +66,7 @@ export function toProductCard(
     image_alt: image
       ? resolveShopLocaleText(image.alt, locale, displayTitle(product.title, locale, product.slug))
       : "",
+    collection_slugs: product.collection_slugs,
   };
 }
 
@@ -107,6 +108,11 @@ export function toCartView(cart: ShopCartData, locale: AppLocale): ShopCartView 
   return {
     item_count: cart.item_count,
     subtotal: formatMoney(cart.subtotal_cents, cart.currency, locale),
+    discount_code: cart.discount_code,
+    discount:
+      cart.discount_cents > 0
+        ? formatMoney(cart.discount_cents, cart.currency, locale)
+        : null,
     items: cart.items.map((item) => ({
       id: item.id,
       title: item.title,
@@ -160,6 +166,11 @@ export function toOrderView(
     pending: order.status === "pending_payment",
     note: order.note,
     subtotal: formatMoney(order.subtotal_cents, order.currency, locale),
+    discount_code: order.discount_code,
+    discount:
+      order.discount_cents > 0
+        ? formatMoney(order.discount_cents, order.currency, locale)
+        : null,
     shipping: formatMoney(order.shipping_cents, order.currency, locale),
     tax: formatMoney(order.tax_cents, order.currency, locale),
     total: formatMoney(order.total_cents, order.currency, locale),

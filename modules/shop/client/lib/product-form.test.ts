@@ -60,6 +60,7 @@ describe("buildProductPayload", () => {
       seo_title: null,
       seo_description: null,
       options: [],
+      collection_ids: [],
       variants: [
         {
           id: undefined,

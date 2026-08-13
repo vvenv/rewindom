@@ -71,6 +71,24 @@ function shippingHtml(checkout: ShopCheckoutView, block: SiteBlock): string {
 </div>`;
 }
 
+function discountFormHtml(
+  shop: ShopRenderContext,
+  block: SiteBlock,
+): string {
+  const cart = shop.cart;
+  const codeLabel = settingText(block.settings, "discount_code_label");
+  const applyLabel = settingText(block.settings, "discount_apply_label");
+  if (!cart || (!codeLabel && !applyLabel)) return "";
+  return `<form class="shop-discount" method="post" action="${escapeHtml(shop.action_checkout)}">
+    <input type="hidden" name="intent" value="discount" />
+    <div class="shop-field">
+      <label for="shop-checkout-discount">${escapeHtml(codeLabel || "Discount code")}</label>
+      <input id="shop-checkout-discount" name="code" value="${escapeHtml(cart.discount_code ?? "")}" autocomplete="off" />
+    </div>
+    <button class="btn btn-secondary" type="submit">${escapeHtml(applyLabel || "Apply")}</button>
+  </form>`;
+}
+
 function summaryHtml(
   shop: ShopRenderContext,
   checkout: ShopCheckoutView,
@@ -88,10 +106,15 @@ function summaryHtml(
         `<p>${escapeHtml(item.title)} × ${item.quantity}<span class="shop-muted"> ${escapeHtml(item.line_total)}</span></p>`,
     )
     .join("");
+  const discountLine =
+    cart.discount && settingText(s, "discount_label")
+      ? `<p class="shop-muted">${escapeHtml(settingText(s, "discount_label"))}${cart.discount_code ? ` (${escapeHtml(cart.discount_code)})` : ""}: −${escapeHtml(cart.discount)}</p>`
+      : "";
   return `<aside class="shop-checkout-aside">
   ${shopBlockHeading(s)}
   ${rows}
   <p class="shop-price">${escapeHtml(settingText(s, "subtotal_label"))}: ${escapeHtml(cart.subtotal)}</p>
+  ${discountLine}
 </aside>`;
 }
 
@@ -134,7 +157,9 @@ const renderCheckoutHtml: SectionHtmlRenderer = (section, ctx) => {
     })
     .join("");
   const aside = summary ? summaryHtml(shop, checkout, summary) : "";
+  const discount = summary ? discountFormHtml(shop, summary) : "";
   return `${shopAlertHtml(shop)}${canceled}${sectionHeading(section.settings)}
+${discount}
 <form class="shop-checkout" method="post" action="${escapeHtml(shop.action_checkout)}">
   <div class="shop-checkout-main">${main}</div>
   ${aside}

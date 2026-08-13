@@ -50,13 +50,37 @@ function linesHtml(
 </table>`;
 }
 
+function discountFormHtml(
+  cart: ShopCartView,
+  shop: ShopRenderContext,
+  block: SiteBlock,
+): string {
+  const codeLabel = settingText(block.settings, "discount_code_label");
+  const applyLabel = settingText(block.settings, "discount_apply_label");
+  if (!codeLabel && !applyLabel) return "";
+  return `<form class="shop-discount" method="post" action="${escapeHtml(shop.action_cart)}">
+    <input type="hidden" name="intent" value="discount" />
+    <div class="shop-field">
+      <label for="shop-discount-code">${escapeHtml(codeLabel || "Discount code")}</label>
+      <input id="shop-discount-code" name="code" value="${escapeHtml(cart.discount_code ?? "")}" autocomplete="off" />
+    </div>
+    <button class="btn btn-secondary" type="submit">${escapeHtml(applyLabel || "Apply")}</button>
+  </form>`;
+}
+
 function summaryHtml(
   cart: ShopCartView,
   shop: ShopRenderContext,
   block: SiteBlock,
 ): string {
+  const discountLine =
+    cart.discount && settingText(block.settings, "discount_label")
+      ? `<p class="shop-muted">${escapeHtml(settingText(block.settings, "discount_label"))}${cart.discount_code ? ` (${escapeHtml(cart.discount_code)})` : ""}: −${escapeHtml(cart.discount)}</p>`
+      : "";
   return `<div class="shop-cart-summary">
+  ${discountFormHtml(cart, shop, block)}
   <p class="shop-price">${escapeHtml(settingText(block.settings, "subtotal_label"))}: ${escapeHtml(cart.subtotal)}</p>
+  ${discountLine}
   <p><a class="btn" href="${escapeHtml(shop.checkout_href)}">${escapeHtml(settingText(block.settings, "checkout_label"))}</a></p>
 </div>`;
 }

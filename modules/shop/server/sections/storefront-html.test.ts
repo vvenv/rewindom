@@ -3,7 +3,9 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { registerShopStorefrontSections } from "./register.js";
 import { productGridSection } from "../../shared/product-grid-section.js";
 import { productSection } from "../../shared/product-section.js";
+import { cartSection } from "../../shared/cart-section.js";
 import { checkoutSection } from "../../shared/checkout-section.js";
+import { orderSection } from "../../shared/order-section.js";
 import {
   emptyShopContext,
   shopContextEntry,
@@ -23,7 +25,7 @@ describe("shop storefront section html", () => {
       contributed: shopContextEntry(
         emptyShopContext({
           products: [
-            { slug: "mug", href: "/shop/mug", title: "Mug", price: "$12.00", compare_at_price: null, image_url: null, image_alt: "" },
+            { slug: "mug", href: "/shop/mug", title: "Mug", price: "$12.00", compare_at_price: null, image_url: null, image_alt: "", collection_slugs: [] },
           ],
         }),
       ),
@@ -127,5 +129,180 @@ describe("shop storefront section html", () => {
     expect(html).toContain('name="shipping_rate_id"');
     expect(html).toContain('name="note"');
     expect(html).toContain('type="submit"');
+  });
+
+  it("商品列表按请求上的 collection_slug 过滤（分类页）", () => {
+    const section = createSection(productGridSection.type);
+    const html = SECTION_HTML[productGridSection.type]?.(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          collection_slug: "summer",
+          products: [
+            {
+              slug: "mug",
+              href: "/shop/mug",
+              title: "Mug",
+              price: "$12.00",
+              compare_at_price: null,
+              image_url: null,
+              image_alt: "",
+              collection_slugs: ["summer"],
+            },
+            {
+              slug: "lamp",
+              href: "/shop/lamp",
+              title: "Lamp",
+              price: "$40.00",
+              compare_at_price: null,
+              image_url: null,
+              image_alt: "",
+              collection_slugs: ["home"],
+            },
+          ],
+        }),
+      ),
+    });
+    expect(html).toContain("/shop/mug");
+    expect(html).not.toContain("/shop/lamp");
+  });
+
+  it("商品列表按 collection_slug 过滤卡片", () => {
+    const section = createSection(productGridSection.type);
+    section.settings.collection_slug = "summer";
+    const html = SECTION_HTML[productGridSection.type]?.(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          products: [
+            {
+              slug: "mug",
+              href: "/shop/mug",
+              title: "Mug",
+              price: "$12.00",
+              compare_at_price: null,
+              image_url: null,
+              image_alt: "",
+              collection_slugs: ["summer"],
+            },
+            {
+              slug: "lamp",
+              href: "/shop/lamp",
+              title: "Lamp",
+              price: "$40.00",
+              compare_at_price: null,
+              image_url: null,
+              image_alt: "",
+              collection_slugs: ["home"],
+            },
+          ],
+        }),
+      ),
+    });
+    expect(html).toContain("/shop/mug");
+    expect(html).not.toContain("/shop/lamp");
+  });
+
+  it("结账优惠码是付款表单外的独立 POST", () => {
+    const section = createSection(checkoutSection.type);
+    const html = SECTION_HTML[checkoutSection.type]?.(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          cart: {
+            item_count: 1,
+            subtotal: "$20.00",
+            discount_code: "SAVE10",
+            discount: "$2.00",
+            items: [
+              {
+                id: "l1",
+                title: "Mug",
+                sku: "MUG",
+                image_url: null,
+                quantity: 1,
+                line_total: "$20.00",
+              },
+            ],
+          },
+          checkout: {
+            email: "a@b.c",
+            canceled: false,
+            requires_shipping: false,
+            rates: [],
+            values: {
+              email: "a@b.c",
+              name: "",
+              line1: "",
+              city: "",
+              state: "",
+              postal_code: "",
+              country: "",
+              phone: "",
+              shipping_rate_id: "",
+              note: "",
+            },
+          },
+        }),
+      ),
+    });
+    expect(html).toContain('name="intent" value="discount"');
+    expect(html).toContain("SAVE10");
+    expect(html?.indexOf('name="intent" value="discount"') ?? -1).toBeLessThan(
+      html?.indexOf('class="shop-checkout"') ?? -1,
+    );
+  });
+
+  it("购物车摘要输出折扣行与独立优惠码表单", () => {
+    const section = createSection(cartSection.type);
+    const html = SECTION_HTML[cartSection.type]?.(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          cart: {
+            item_count: 1,
+            subtotal: "$20.00",
+            discount_code: "SAVE10",
+            discount: "$2.00",
+            items: [
+              {
+                id: "l1",
+                title: "Mug",
+                sku: "MUG",
+                image_url: null,
+                quantity: 1,
+                line_total: "$20.00",
+              },
+            ],
+          },
+        }),
+      ),
+    });
+    expect(html).toContain("SAVE10");
+    expect(html).toContain("$2.00");
+    expect(html).toContain('name="intent" value="discount"');
+    expect(html).toContain('name="code"');
+  });
+
+  it("订单确认输出折扣行", () => {
+    const section = createSection(orderSection.type);
+    const html = SECTION_HTML[orderSection.type]?.(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          order: {
+            number: "S1",
+            status: "paid",
+            pending: false,
+            note: null,
+            subtotal: "$20.00",
+            discount_code: "SAVE10",
+            discount: "$2.00",
+            shipping: "$5.00",
+            tax: "$0.00",
+            total: "$23.00",
+            lines: [{ title: "Mug", quantity: 1, line_total: "$20.00" }],
+            shipments: [],
+          },
+        }),
+      ),
+    });
+    expect(html).toContain("SAVE10");
+    expect(html).toContain("$2.00");
   });
 });

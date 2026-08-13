@@ -34,6 +34,7 @@ const renderOrderHtml: SectionHtmlRenderer = (section, ctx) => {
     <h1>${escapeHtml(order.number)}</h1>
     <table class="shop-table"><tbody>${lines}</tbody></table>
     <div class="shop-totals">
+      ${order.discount ? `<p>${escapeHtml(settingText(s, "discount_label") || "Discount")}${order.discount_code ? ` (${escapeHtml(order.discount_code)})` : ""}: −${escapeHtml(order.discount)}</p>` : ""}
       <p>${escapeHtml(settingText(s, "shipping_label"))}: ${escapeHtml(order.shipping)}</p>
       <p>${escapeHtml(settingText(s, "tax_label"))}: ${escapeHtml(order.tax)}</p>
       <p class="shop-price">${escapeHtml(settingText(s, "total_label"))}: ${escapeHtml(order.total)}</p>

@@ -24,5 +24,7 @@ export interface ShopCartView {
   currency: string;
   item_count: number;
   subtotal_cents: number;
+  discount_code: string | null;
+  discount_cents: number;
   items: ShopCartItemView[];
 }

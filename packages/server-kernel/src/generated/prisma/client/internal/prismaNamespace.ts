@@ -430,6 +430,9 @@ export const ModelName = {
   UserRole: 'UserRole',
   ShopSetting: 'ShopSetting',
   ShopProduct: 'ShopProduct',
+  ShopCollection: 'ShopCollection',
+  ShopCollectionProduct: 'ShopCollectionProduct',
+  ShopDiscount: 'ShopDiscount',
   ShopVariant: 'ShopVariant',
   ShopCart: 'ShopCart',
   ShopCartItem: 'ShopCartItem',
@@ -463,7 +466,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "marketingDocCategory" | "marketingDoc" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "marketingDocCategory" | "marketingDoc" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2909,6 +2912,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ShopCollection: {
+      payload: Prisma.$ShopCollectionPayload<ExtArgs>
+      fields: Prisma.ShopCollectionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShopCollectionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShopCollectionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload>
+        }
+        findFirst: {
+          args: Prisma.ShopCollectionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShopCollectionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload>
+        }
+        findMany: {
+          args: Prisma.ShopCollectionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload>[]
+        }
+        create: {
+          args: Prisma.ShopCollectionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload>
+        }
+        createMany: {
+          args: Prisma.ShopCollectionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShopCollectionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload>[]
+        }
+        delete: {
+          args: Prisma.ShopCollectionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload>
+        }
+        update: {
+          args: Prisma.ShopCollectionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShopCollectionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShopCollectionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShopCollectionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShopCollectionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionPayload>
+        }
+        aggregate: {
+          args: Prisma.ShopCollectionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShopCollection>
+        }
+        groupBy: {
+          args: Prisma.ShopCollectionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShopCollectionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShopCollectionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShopCollectionCountAggregateOutputType> | number
+        }
+      }
+    }
+    ShopCollectionProduct: {
+      payload: Prisma.$ShopCollectionProductPayload<ExtArgs>
+      fields: Prisma.ShopCollectionProductFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShopCollectionProductFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShopCollectionProductFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload>
+        }
+        findFirst: {
+          args: Prisma.ShopCollectionProductFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShopCollectionProductFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload>
+        }
+        findMany: {
+          args: Prisma.ShopCollectionProductFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload>[]
+        }
+        create: {
+          args: Prisma.ShopCollectionProductCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload>
+        }
+        createMany: {
+          args: Prisma.ShopCollectionProductCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShopCollectionProductCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload>[]
+        }
+        delete: {
+          args: Prisma.ShopCollectionProductDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload>
+        }
+        update: {
+          args: Prisma.ShopCollectionProductUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShopCollectionProductDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShopCollectionProductUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShopCollectionProductUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShopCollectionProductUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopCollectionProductPayload>
+        }
+        aggregate: {
+          args: Prisma.ShopCollectionProductAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShopCollectionProduct>
+        }
+        groupBy: {
+          args: Prisma.ShopCollectionProductGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShopCollectionProductGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShopCollectionProductCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShopCollectionProductCountAggregateOutputType> | number
+        }
+      }
+    }
+    ShopDiscount: {
+      payload: Prisma.$ShopDiscountPayload<ExtArgs>
+      fields: Prisma.ShopDiscountFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShopDiscountFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShopDiscountFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload>
+        }
+        findFirst: {
+          args: Prisma.ShopDiscountFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShopDiscountFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload>
+        }
+        findMany: {
+          args: Prisma.ShopDiscountFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload>[]
+        }
+        create: {
+          args: Prisma.ShopDiscountCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload>
+        }
+        createMany: {
+          args: Prisma.ShopDiscountCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShopDiscountCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload>[]
+        }
+        delete: {
+          args: Prisma.ShopDiscountDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload>
+        }
+        update: {
+          args: Prisma.ShopDiscountUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShopDiscountDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShopDiscountUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShopDiscountUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShopDiscountUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShopDiscountPayload>
+        }
+        aggregate: {
+          args: Prisma.ShopDiscountAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShopDiscount>
+        }
+        groupBy: {
+          args: Prisma.ShopDiscountGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShopDiscountGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShopDiscountCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShopDiscountCountAggregateOutputType> | number
+        }
+      }
+    }
     ShopVariant: {
       payload: Prisma.$ShopVariantPayload<ExtArgs>
       fields: Prisma.ShopVariantFieldRefs
@@ -4803,6 +5028,55 @@ export const ShopProductScalarFieldEnum = {
 export type ShopProductScalarFieldEnum = (typeof ShopProductScalarFieldEnum)[keyof typeof ShopProductScalarFieldEnum]
 
 
+export const ShopCollectionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  slug: 'slug',
+  status: 'status',
+  title: 'title',
+  description: 'description',
+  seo_title: 'seo_title',
+  seo_description: 'seo_description',
+  image_url: 'image_url',
+  published_at: 'published_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopCollectionScalarFieldEnum = (typeof ShopCollectionScalarFieldEnum)[keyof typeof ShopCollectionScalarFieldEnum]
+
+
+export const ShopCollectionProductScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  collection_id: 'collection_id',
+  product_id: 'product_id',
+  position: 'position',
+  created_at: 'created_at'
+} as const
+
+export type ShopCollectionProductScalarFieldEnum = (typeof ShopCollectionProductScalarFieldEnum)[keyof typeof ShopCollectionProductScalarFieldEnum]
+
+
+export const ShopDiscountScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  code: 'code',
+  type: 'type',
+  value: 'value',
+  min_subtotal_cents: 'min_subtotal_cents',
+  max_uses: 'max_uses',
+  used_count: 'used_count',
+  starts_at: 'starts_at',
+  ends_at: 'ends_at',
+  status: 'status',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ShopDiscountScalarFieldEnum = (typeof ShopDiscountScalarFieldEnum)[keyof typeof ShopDiscountScalarFieldEnum]
+
+
 export const ShopVariantScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -4835,6 +5109,7 @@ export const ShopCartScalarFieldEnum = {
   member_id: 'member_id',
   guest_token: 'guest_token',
   currency: 'currency',
+  discount_code: 'discount_code',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -4903,6 +5178,8 @@ export const ShopOrderScalarFieldEnum = {
   carrier_code: 'carrier_code',
   stripe_checkout_session_id: 'stripe_checkout_session_id',
   note: 'note',
+  discount_code: 'discount_code',
+  discount_cents: 'discount_cents',
   created_at: 'created_at',
   updated_at: 'updated_at',
   paid_at: 'paid_at'
@@ -5430,6 +5707,9 @@ export type GlobalOmitConfig = {
   userRole?: Prisma.UserRoleOmit
   shopSetting?: Prisma.ShopSettingOmit
   shopProduct?: Prisma.ShopProductOmit
+  shopCollection?: Prisma.ShopCollectionOmit
+  shopCollectionProduct?: Prisma.ShopCollectionProductOmit
+  shopDiscount?: Prisma.ShopDiscountOmit
   shopVariant?: Prisma.ShopVariantOmit
   shopCart?: Prisma.ShopCartOmit
   shopCartItem?: Prisma.ShopCartItemOmit

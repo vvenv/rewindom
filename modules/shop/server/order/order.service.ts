@@ -24,12 +24,15 @@ import type {
 import {
   cartHasTaxableItem,
   cartRequiresShipping,
+  isShopOrderRefundable,
   isShopOrderStatus,
   isVariantAvailable,
+  quoteDiscount,
   readInventoryPolicy,
   readOrderNote,
 } from "../../shared/index.js";
 import { loadCart } from "../cart/cart.service.js";
+import { findDiscountByCode } from "../discount/discount.service.js";
 import {
   displayTitle,
   normalizeCountry,
@@ -114,6 +117,8 @@ function toOrderDetail(record: {
   subtotal_cents: number;
   shipping_cents: number;
   tax_cents: number;
+  discount_code: string | null;
+  discount_cents: number;
   note: string | null;
   currency: string;
   created_at: Date;
@@ -153,6 +158,8 @@ function toOrderDetail(record: {
     subtotal_cents: record.subtotal_cents,
     shipping_cents: record.shipping_cents,
     tax_cents: record.tax_cents,
+    discount_code: record.discount_code,
+    discount_cents: record.discount_cents,
     note: record.note,
     shipping_address: parseAddress(record.shipping_address),
     shipping_rate_name: record.shipping_rate_name,
@@ -340,6 +347,23 @@ export async function createCheckout(params: {
       )
     : null;
   const shipping_cents = rate?.price_cents ?? 0;
+  let discount_code: string | null = cart.discount_code;
+  let discount_cents = 0;
+  if (discount_code) {
+    const discount = await findDiscountByCode(params.tenant_id, discount_code);
+    const quote = discount
+      ? quoteDiscount(discount, cart.subtotal_cents)
+      : { ok: false as const };
+    if (!quote.ok) {
+      await prisma.shopCart.update({
+        where: withTenantScope(params.tenant_id, { id: cart.id }),
+        data: { discount_code: null },
+      });
+      throw new ValidationError("shop.discount_invalid");
+    }
+    discount_cents = quote.discount_cents;
+  }
+  const discounted_subtotal = Math.max(0, cart.subtotal_cents - discount_cents);
   const taxable = cartHasTaxableItem(cart.items);
   const taxProvider =
     params.tax ??
@@ -349,11 +373,11 @@ export async function createCheckout(params: {
   const tax = await taxProvider.quote({
     destination_country: address.country,
     currency: cart.currency,
-    subtotal_cents: cart.subtotal_cents,
+    subtotal_cents: discounted_subtotal,
     shipping_cents,
     lines: cart.items.map((item) => ({ amount_cents: item.line_total_cents })),
   });
-  const total = cart.subtotal_cents + shipping_cents + Math.max(0, tax.tax_cents);
+  const total = discounted_subtotal + shipping_cents + Math.max(0, tax.tax_cents);
   const credentials = await resolveShopStripeCredentials(params.tenant_id);
   if (!credentials) {
     throw new ValidationError("shop.stripe_unconfigured");
@@ -381,6 +405,8 @@ export async function createCheckout(params: {
       subtotal_cents: cart.subtotal_cents,
       shipping_cents,
       tax_cents: tax.tax_cents,
+      discount_code,
+      discount_cents,
       total_cents: total,
       note,
       shipping_address: { ...address },
@@ -525,6 +551,22 @@ export async function markOrderPaid(params: {
             },
       ),
     });
+    if (order.discount_code) {
+      const discount = await tx.shopDiscount.findFirst({
+        where: withTenantScope(params.tenant_id, { code: order.discount_code }),
+      });
+      if (discount) {
+        await tx.shopDiscount.updateMany({
+          where: withTenantScope(
+            params.tenant_id,
+            discount.max_uses == null
+              ? { id: discount.id }
+              : { id: discount.id, used_count: { lt: discount.max_uses } },
+          ),
+          data: { used_count: { increment: 1 } },
+        });
+      }
+    }
   });
 }
 
@@ -608,6 +650,76 @@ export async function completeOrder(
     data: { status: "completed" },
   });
   return getOrder(tenant_id, order_id);
+}
+
+export async function refundOrder(params: {
+  tenant_id: string;
+  order_id: string;
+  restock?: boolean;
+}): Promise<ShopOrderDetail> {
+  const order = await prisma.shopOrder.findFirst({
+    where: withTenantScope(params.tenant_id, { id: params.order_id }),
+    include: { lines: true, payments: true },
+  });
+  if (!order) throw new NotFoundError("shop.order_not_found");
+  if (!isShopOrderRefundable(order.status)) {
+    throw new ValidationError("shop.order_not_refundable");
+  }
+  if (!order.stripe_checkout_session_id) {
+    throw new ValidationError("shop.order_not_refundable");
+  }
+  const credentials = await resolveShopStripeCredentials(params.tenant_id);
+  if (!credentials) {
+    throw new ValidationError("shop.stripe_unconfigured");
+  }
+  const stripe = new Stripe(credentials.secretKey);
+  const session = await stripe.checkout.sessions.retrieve(
+    order.stripe_checkout_session_id,
+  );
+  const paymentIntent =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id;
+  if (!paymentIntent) {
+    throw new ValidationError("shop.order_not_refundable");
+  }
+  try {
+    await stripe.refunds.create({ payment_intent: paymentIntent });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (!/already been refunded|has already been refunded/iu.test(message)) {
+      throw new ValidationError("shop.stripe_refund_failed");
+    }
+  }
+
+  const restock = params.restock !== false;
+  await prisma.$transaction(async (tx) => {
+    if (restock) {
+      for (const line of order.lines) {
+        if (!line.variant_id) continue;
+        const variant = await tx.shopVariant.findFirst({
+          where: withTenantScope(params.tenant_id, { id: line.variant_id }),
+        });
+        if (!variant || !variant.track_inventory) continue;
+        await tx.shopVariant.update({
+          where: withTenantScope(params.tenant_id, { id: variant.id }),
+          data: { stock_qty: { increment: line.quantity } },
+        });
+      }
+    }
+    await tx.shopPayment.updateMany({
+      where: withTenantScope(params.tenant_id, {
+        order_id: order.id,
+        status: "paid",
+      }),
+      data: { status: "refunded" },
+    });
+    await tx.shopOrder.update({
+      where: withTenantScope(params.tenant_id, { id: order.id }),
+      data: { status: "refunded" },
+    });
+  });
+  return getOrder(params.tenant_id, order.id);
 }
 
 export function peekStripeTenantId(event: Stripe.Event): string | null {

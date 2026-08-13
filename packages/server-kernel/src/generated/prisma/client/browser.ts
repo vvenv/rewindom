@@ -227,6 +227,21 @@ export type ShopSetting = Prisma.ShopSettingModel
  */
 export type ShopProduct = Prisma.ShopProductModel
 /**
+ * Model ShopCollection
+ * 
+ */
+export type ShopCollection = Prisma.ShopCollectionModel
+/**
+ * Model ShopCollectionProduct
+ * 
+ */
+export type ShopCollectionProduct = Prisma.ShopCollectionProductModel
+/**
+ * Model ShopDiscount
+ * 
+ */
+export type ShopDiscount = Prisma.ShopDiscountModel
+/**
  * Model ShopVariant
  * 
  */

@@ -13,6 +13,7 @@ export function sampleShopContext(): ShopRenderContext {
         compare_at_price: "$15.00",
         image_url: null,
         image_alt: "",
+        collection_slugs: ["summer"],
       },
     ],
     product: {
@@ -34,6 +35,8 @@ export function sampleShopContext(): ShopRenderContext {
     cart: {
       item_count: 1,
       subtotal: "$12.00",
+      discount_code: null,
+      discount: null,
       items: [
         {
           id: "line-1",
@@ -69,6 +72,8 @@ export function sampleShopContext(): ShopRenderContext {
       pending: false,
       note: null,
       subtotal: "$12.00",
+      discount_code: null,
+      discount: null,
       shipping: "$5.00",
       tax: "$0.00",
       total: "$17.00",

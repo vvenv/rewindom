@@ -1,7 +1,7 @@
 /**
  * 商品列表段 —— 目录页的必备段，也能摆上首页当「在售商品」。
  *
- * 条目来自已发布商品，不是手填 blocks。没有分类模型，所以这一段就是目录本身；
+ * 条目来自已发布商品。`collection_slug` 只出该分类；空则全部在售。
  * `limit` 让首页只露几件，目录模板页把 limit 留 0（全部）。
  */
 
@@ -40,6 +40,13 @@ export const productGridSection: SectionDefinition = {
       id: "show_price",
       label: "shop:section.productGrid.showPrice",
       default: true,
+    },
+    {
+      type: "text",
+      id: "collection_slug",
+      label: "shop:section.productGrid.collectionSlug",
+      default: "",
+      info: "shop:section.productGrid.collectionSlugInfo",
     },
     {
       type: "range",

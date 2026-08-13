@@ -18,6 +18,7 @@ import {
   markOrderPaid,
   cancelUnpaidOrder,
   peekStripeTenantId,
+  refundOrder,
 } from "../order/order.service.js";
 import { resolveShopStripeCredentials } from "../payment/credentials.js";
 import {
@@ -40,6 +41,7 @@ import type {
   CreateShopShippingRateBody,
   CreateShopShippingZoneBody,
   FulfillShopOrderBody,
+  RefundShopOrderBody,
   UpdateShopProviderBody,
   UpdateShopSettingBody,
   UpdateShopShippingRateBody,
@@ -153,6 +155,39 @@ export async function shopAdminRoutes(app: FastifyInstance): Promise<void> {
       try {
         const { order_id } = request.params as { order_id: string };
         return await completeOrder(request.tenantContext!.tenant_id, order_id);
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/orders/:order_id/refund",
+    context: "ShopOrderRefund",
+    errorCode: "SHOP_ORDER_REFUND_FAILED",
+    preHandler: [app.requirePermission("shop.write")],
+    handler: async (request, reply) => {
+      try {
+        const { order_id } = request.params as { order_id: string };
+        const body = (request.body ?? {}) as RefundShopOrderBody;
+        const order = await refundOrder({
+          tenant_id: request.tenantContext!.tenant_id,
+          order_id,
+          restock: body.restock,
+        });
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "SHOP_ORDER_REFUND",
+          resource: order.id,
+          detail_key: "shop.audit.order_refunded",
+          detail_params: { number: order.number },
+        });
+        return order;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

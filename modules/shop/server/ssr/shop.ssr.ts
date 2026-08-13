@@ -10,6 +10,7 @@ import type { AppLocale } from "@rewindom/module-sdk";
 
 import {
   addToCart,
+  applyCartDiscount,
   cartCookieName,
   loadCart,
   mergeGuestCartIntoMember,
@@ -19,6 +20,7 @@ import {
   getPublishedProductBySlug,
   listPublishedProducts,
 } from "../catalog/catalog.service.js";
+import { getPublishedCollectionBySlug } from "../catalog/collection.service.js";
 import { isShopEnabled } from "../lib/entitlement.js";
 import { createCheckout, getOrderByNumber, listMemberOrders } from "../order/order.service.js";
 import { listShippingZones } from "../shipping/shipping.service.js";
@@ -34,6 +36,8 @@ import { SHOP_PRODUCT_PAGE_KIND } from "../../shared/product-section.js";
 import {
   SHOP_CART_TEMPLATE_PRESET,
   SHOP_CHECKOUT_TEMPLATE_PRESET,
+  SHOP_COLLECTION_PAGE_KIND,
+  SHOP_COLLECTION_TEMPLATE_PRESET,
   SHOP_INDEX_PAGE_KIND,
   SHOP_INDEX_TEMPLATE_PRESET,
   SHOP_MEMBER_ORDERS_TEMPLATE_PRESET,
@@ -43,6 +47,7 @@ import {
 import {
   SHOP_CART_PATH,
   SHOP_CHECKOUT_PATH,
+  SHOP_COLLECTION_PATH,
   SHOP_INDEX_PATH,
   SHOP_MEMBER_ORDERS_PATH,
 } from "../../shared/shop-section-context.js";
@@ -330,34 +335,60 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
   });
 
   app.post(SHOP_CART_PATH, async (request, reply) => {
-    await withShop(request, reply, async ({ tenantId, locale, member }) => {
+    await withShop(request, reply, async (host) => {
       assertSameOrigin(request);
       const cart = await currentCart(
-        tenantId,
+        host.tenantId,
         request,
         reply,
-        member?.id ?? null,
-        locale,
+        host.member?.id ?? null,
+        host.locale,
       );
       const body = request.body as Record<string, string>;
-      if (body.intent === "update") {
-        await updateCartItem({
-          tenant_id: tenantId,
+      try {
+        if (body.intent === "update") {
+          await updateCartItem({
+            tenant_id: host.tenantId,
+            cart_id: cart.id,
+            item_id: body.item_id,
+            quantity: Number(body.quantity),
+            locale: host.locale,
+          });
+        } else if (body.intent === "discount") {
+          await applyCartDiscount({
+            tenant_id: host.tenantId,
+            cart_id: cart.id,
+            code: body.code ?? "",
+            locale: host.locale,
+          });
+        } else {
+          await addToCart({
+            tenant_id: host.tenantId,
+            cart_id: cart.id,
+            variant_id: body.variant_id,
+            quantity: Number(body.quantity ?? "1"),
+            locale: host.locale,
+          });
+        }
+        void reply.redirect(SHOP_CART_PATH, 303);
+      } catch (err) {
+        const latest = await loadCart({
+          tenant_id: host.tenantId,
           cart_id: cart.id,
-          item_id: body.item_id,
-          quantity: Number(body.quantity),
-          locale,
+          locale: host.locale,
         });
-      } else {
-        await addToCart({
-          tenant_id: tenantId,
-          cart_id: cart.id,
-          variant_id: body.variant_id,
-          quantity: Number(body.quantity ?? "1"),
-          locale,
+        await sendShopPage(request, reply, host, {
+          kind: SHOP_CART_PAGE_KIND,
+          path: SHOP_CART_PATH,
+          preset: SHOP_CART_TEMPLATE_PRESET,
+          noindex: true,
+          status: err instanceof AppError ? err.status : 400,
+          shop: buildShopContext({
+            cart: toCartView(latest, host.locale),
+            error: errorText(err, host.locale),
+          }),
         });
       }
-      void reply.redirect(SHOP_CART_PATH, 303);
     });
   });
 
@@ -409,6 +440,50 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
         host.locale,
       );
       const body = request.body as Record<string, string>;
+      if (body.intent === "discount") {
+        try {
+          await applyCartDiscount({
+            tenant_id: host.tenantId,
+            cart_id: cart.id,
+            code: body.code ?? "",
+            locale: host.locale,
+          });
+          void reply.redirect(SHOP_CHECKOUT_PATH, 303);
+        } catch (err) {
+          const latest = await loadCart({
+            tenant_id: host.tenantId,
+            cart_id: cart.id,
+            locale: host.locale,
+          });
+          const zones = cartRequiresShipping(latest.items)
+            ? await listShippingZones(host.tenantId)
+            : [];
+          const rates = zones.flatMap((zone) =>
+            zone.rates.map((rate) => ({
+              id: rate.id,
+              label: `${zone.name} · ${rate.name}`,
+              price: formatMoney(rate.price_cents, latest.currency, host.locale),
+            })),
+          );
+          await sendShopPage(request, reply, host, {
+            kind: SHOP_CHECKOUT_PAGE_KIND,
+            path: SHOP_CHECKOUT_PATH,
+            preset: SHOP_CHECKOUT_TEMPLATE_PRESET,
+            noindex: true,
+            status: err instanceof AppError ? err.status : 400,
+            shop: buildShopContext({
+              cart: toCartView(latest, host.locale),
+              error: errorText(err, host.locale),
+              checkout: toCheckoutView({
+                email: host.member?.email ?? "",
+                rates,
+                requires_shipping: cartRequiresShipping(latest.items),
+              }),
+            }),
+          });
+        }
+        return;
+      }
       try {
         const result = await createCheckout({
           tenant_id: host.tenantId,
@@ -434,14 +509,19 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
         setCookie(reply, GUEST_ORDER_COOKIE, result.guest_token);
         void reply.redirect(result.checkout_url, 303);
       } catch (err) {
-        const zones = cartRequiresShipping(cart.items)
+        const latest = await loadCart({
+          tenant_id: host.tenantId,
+          cart_id: cart.id,
+          locale: host.locale,
+        });
+        const zones = cartRequiresShipping(latest.items)
           ? await listShippingZones(host.tenantId)
           : [];
         const rates = zones.flatMap((zone) =>
           zone.rates.map((rate) => ({
             id: rate.id,
             label: `${zone.name} · ${rate.name}`,
-            price: formatMoney(rate.price_cents, cart.currency, host.locale),
+            price: formatMoney(rate.price_cents, latest.currency, host.locale),
           })),
         );
         await sendShopPage(request, reply, host, {
@@ -451,12 +531,12 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
           noindex: true,
           status: err instanceof AppError ? err.status : 400,
           shop: buildShopContext({
-            cart: toCartView(cart, host.locale),
+            cart: toCartView(latest, host.locale),
             error: errorText(err, host.locale),
             checkout: toCheckoutView({
               email: body.email ?? host.member?.email ?? "",
               rates,
-              requires_shipping: cartRequiresShipping(cart.items),
+              requires_shipping: cartRequiresShipping(latest.items),
               values: {
                 ...emptyCheckoutValues(body.email ?? ""),
                 name: body.name ?? "",
@@ -554,9 +634,61 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
     });
   });
 
+  app.get(SHOP_COLLECTION_PATH, async (request, reply) => {
+    await withShop(request, reply, async (host) => {
+      const { slug } = request.params as { slug: string };
+      const cart = await currentCart(
+        host.tenantId,
+        request,
+        reply,
+        host.member?.id ?? null,
+        host.locale,
+      );
+      const products = await listPublishedProducts(host.tenantId);
+      const path = `/shop/collections/${encodeURIComponent(slug)}`;
+      try {
+        const collection = await getPublishedCollectionBySlug(
+          host.tenantId,
+          slug,
+        );
+        const title =
+          displayTitle(collection.seo_title, host.locale) ||
+          displayTitle(collection.title, host.locale, collection.slug);
+        const description =
+          displayTitle(collection.seo_description, host.locale) ||
+          displayTitle(collection.description, host.locale);
+        await sendShopPage(request, reply, host, {
+          kind: SHOP_COLLECTION_PAGE_KIND,
+          path,
+          preset: SHOP_COLLECTION_TEMPLATE_PRESET,
+          title,
+          description,
+          shop: buildShopContext({
+            products: products.map((product) =>
+              toProductCard(product, host.locale),
+            ),
+            cart: toCartView(cart, host.locale),
+            collection_slug: collection.slug,
+          }),
+        });
+      } catch (err) {
+        await sendShopPage(request, reply, host, {
+          kind: SHOP_COLLECTION_PAGE_KIND,
+          path,
+          preset: SHOP_COLLECTION_TEMPLATE_PRESET,
+          status: 404,
+          shop: buildShopContext({
+            cart: toCartView(cart, host.locale),
+            error: errorText(err, host.locale),
+          }),
+        });
+      }
+    });
+  });
+
   app.get("/shop/:slug", async (request, reply) => {
     const { slug } = request.params as { slug: string };
-    if (["cart", "checkout", "orders"].includes(slug)) return;
+    if (["cart", "checkout", "orders", "collections"].includes(slug)) return;
     await withShop(request, reply, async (host) => {
       const cart = await currentCart(
         host.tenantId,

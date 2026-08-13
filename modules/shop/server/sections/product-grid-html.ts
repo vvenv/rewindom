@@ -1,4 +1,5 @@
 import { productGridSection } from "../../shared/product-grid-section.js";
+import { filterProductsByCollectionSlug } from "../../shared/collection.js";
 import { readShopContext } from "../../shared/shop-section-context.js";
 import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
 
@@ -22,8 +23,10 @@ const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
   if (!shop) return "";
   const s = section.settings;
   const limit = settingNumber(s, "limit", 0);
-  const items =
-    limit > 0 ? shop.products.slice(0, limit) : shop.products;
+  const collectionSlug =
+    settingText(s, "collection_slug").trim() || shop.collection_slug || "";
+  const filtered = filterProductsByCollectionSlug(shop.products, collectionSlug);
+  const items = limit > 0 ? filtered.slice(0, limit) : filtered;
   const heading = sectionHeading(s);
   if (items.length === 0) {
     const empty = settingText(s, "empty_text");

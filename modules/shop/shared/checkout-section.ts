@@ -183,6 +183,24 @@ export const checkoutSection: SectionDefinition = {
         },
         {
           type: "text",
+          id: "discount_label",
+          label: "shop:block.cartDiscountLabel",
+          default: "Discount",
+        },
+        {
+          type: "text",
+          id: "discount_code_label",
+          label: "shop:block.cartDiscountCodeLabel",
+          default: "Discount code",
+        },
+        {
+          type: "text",
+          id: "discount_apply_label",
+          label: "shop:block.cartDiscountApplyLabel",
+          default: "Apply",
+        },
+        {
+          type: "text",
           id: "empty_text",
           label: "shop:block.checkoutSummaryEmpty",
           default: "Your cart is empty.",

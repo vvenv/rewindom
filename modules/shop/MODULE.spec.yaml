@@ -46,6 +46,22 @@ models:
     indexes:
       - [tenant_id, slug]
       - [tenant_id, status, updated_at]
+  - name: ShopCollection
+    fields:
+      - { name: slug, type: String, required: true, label: 路径 }
+      - { name: status, type: String, required: true, label: 状态 }
+      - { name: title, type: Json, required: true, label: 名称 }
+    indexes:
+      - [tenant_id, slug]
+      - [tenant_id, status, updated_at]
+  - name: ShopDiscount
+    fields:
+      - { name: code, type: String, required: true, label: 优惠码 }
+      - { name: type, type: String, required: true, label: 类型 }
+      - { name: value, type: Int, required: true, label: 额度 }
+      - { name: status, type: String, required: true, label: 状态 }
+    indexes:
+      - [tenant_id, code]
   - name: ShopOrder
     fields:
       - { name: number, type: String, required: true, label: 订单号 }

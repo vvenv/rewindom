@@ -78,6 +78,8 @@ export interface ShopProduct {
   created_at: string;
   updated_at: string;
   variants: ShopVariant[];
+  collection_ids: string[];
+  collection_slugs: string[];
 }
 
 export interface ShopProductListItem {
@@ -107,6 +109,7 @@ export interface CreateShopProductBody {
   seo_description?: Record<string, string> | string | null;
   options?: ShopProductOption[];
   variants: ShopVariantInput[];
+  collection_ids?: string[];
 }
 
 export interface UpdateShopProductBody {
@@ -123,6 +126,7 @@ export interface UpdateShopProductBody {
   seo_description?: Record<string, string> | string | null;
   options?: ShopProductOption[];
   variants?: ShopVariantInput[];
+  collection_ids?: string[];
 }
 
 export interface CreateShopVariantBody extends ShopVariantInput {}

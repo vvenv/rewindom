@@ -13,6 +13,7 @@ export const SHOP_INDEX_PATH = "/shop";
 export const SHOP_CART_PATH = "/shop/cart";
 export const SHOP_CHECKOUT_PATH = "/shop/checkout";
 export const SHOP_PRODUCT_PATH = "/shop/:slug";
+export const SHOP_COLLECTION_PATH = "/shop/collections/:slug";
 export const SHOP_ORDER_PATH = "/shop/orders/:number";
 export const SHOP_MEMBER_ORDERS_PATH = "/member/orders";
 
@@ -24,6 +25,7 @@ export interface ShopProductCardView {
   compare_at_price: string | null;
   image_url: string | null;
   image_alt: string;
+  collection_slugs: string[];
 }
 
 export interface ShopProductVariantView {
@@ -60,6 +62,8 @@ export interface ShopCartLineView {
 export interface ShopCartView {
   items: ShopCartLineView[];
   subtotal: string;
+  discount_code: string | null;
+  discount: string | null;
   item_count: number;
 }
 
@@ -102,6 +106,8 @@ export interface ShopOrderView {
   pending: boolean;
   note: string | null;
   subtotal: string;
+  discount_code: string | null;
+  discount: string | null;
   shipping: string;
   tax: string;
   total: string;
@@ -123,6 +129,7 @@ export interface ShopRenderContext {
   checkout: ShopCheckoutView | null;
   order: ShopOrderView | null;
   orders: ShopMemberOrderView[];
+  collection_slug: string | null;
   error: string | null;
   notice: string | null;
   cart_href: string;
@@ -139,6 +146,7 @@ const EMPTY_CONTEXT: ShopRenderContext = {
   checkout: null,
   order: null,
   orders: [],
+  collection_slug: null,
   error: null,
   notice: null,
   cart_href: SHOP_CART_PATH,
