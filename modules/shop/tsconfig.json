@@ -10,6 +10,6 @@
     "jsx": "react-jsx",
     "resolveJsonModule": true
   },
-  "include": ["shared/**/*.ts", "server/**/*.ts", "client/**/*.ts", "client/**/*.tsx"],
+  "include": ["shared/**/*.ts", "server/**/*.ts", "client/**/*.ts", "client/**/*.tsx", "env.d.ts"],
   "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx"]
 }

@@ -5,7 +5,9 @@ import type { AppLocale } from "@rewindom/module-sdk";
 import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
 import { Input } from "@rewindom/ui/input";
 import { Switch } from "@rewindom/ui/switch";
-import { Textarea } from "@rewindom/ui/textarea";
+import MDEditor from "@uiw/react-md-editor";
+import "@uiw/react-md-editor/markdown-editor.css";
+import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 
 import { patchLocalized, type ProductFormValues } from "../../lib/product-form.js";
@@ -22,6 +24,7 @@ export function ProductBasicsFields({
   onChange: (partial: Partial<ProductFormValues>) => void;
 }): ReactElement {
   const { t } = useTranslation("shop");
+  const { resolvedTheme } = useTheme();
   return (
     <FieldGroup>
       <Field>
@@ -42,21 +45,31 @@ export function ProductBasicsFields({
           {t("fieldDescription")}
           <FieldInfoTip text={t("infoDescription")} side="left" />
         </FieldLabel>
-        <Textarea
-          id="shop-description"
-          rows={10}
-          className="font-mono text-sm"
+        <MDEditor
+          key={contentLocale}
           value={form.description[contentLocale] ?? ""}
-          disabled={!canWrite}
-          onChange={(event) =>
+          height={360}
+          visibleDragbar={false}
+          preview={canWrite ? "edit" : "preview"}
+          hideToolbar={!canWrite}
+          data-color-mode={resolvedTheme === "dark" ? "dark" : "light"}
+          textareaProps={{
+            // id 挂在真正的 textarea 上，label 才点得动（挂在 MDEditor
+            // 上只会落到外层 div）
+            id: "shop-description",
+            placeholder: t("descriptionPlaceholder"),
+            disabled: !canWrite,
+          }}
+          onChange={(value) => {
+            if (!canWrite) return;
             onChange({
               description: patchLocalized(
                 form.description,
                 contentLocale,
-                event.target.value,
+                value ?? "",
               ),
-            })
-          }
+            });
+          }}
         />
       </Field>
       <Field>

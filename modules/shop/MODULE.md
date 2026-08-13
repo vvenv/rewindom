@@ -69,7 +69,7 @@ shop/
 
 没有独立的「分类」模型，商品列表就是目录；首页用同一段加 `limit` 当精选。真收卡仍在 Stripe Checkout（站外），本页收的是联系方式、收件地址、运费档。
 
-商品名称、详情、option 名/值是**数据多语言**（`title` / `description` / `options[].name` 的 locale map），跟模块 `client/locales` 的代码多语言分开。工作台用内容语言 Tab 填同一套字段，不要再加 `fieldTitleEn`。详情按 Markdown 存源码，店面用官网同一套 `md()` / `.prose` 渲染。
+商品名称、详情、option 名/值是**数据多语言**（`title` / `description` / `options[].name` 的 locale map），跟模块 `client/locales` 的代码多语言分开。工作台用内容语言 Tab 填同一套字段，不要再加 `fieldTitleEn`。详情按 Markdown 存源码，编辑器用 `@uiw/react-md-editor`（与文档库正文同款），店面用官网同一套 `md()` / `.prose` 渲染。
 
 租户没开通 `shop` 时这些段不进「添加区块」菜单，也不渲染。
 

@@ -100,6 +100,7 @@
   "toastProvider": "Payment settings saved",
   "infoSlug": "Appears as /shop/slug. Use lowercase letters, numbers and hyphens.",
   "infoDescription": "Markdown is supported. Headings, lists, links and images render on the storefront.",
+  "descriptionPlaceholder": "# Features\n\n- Dishwasher safe",
   "infoHs": "Harmonized System code for customs; snapshotted onto the shipment.",
   "infoIoss": "Import One-Stop Shop number for EU shipments. Optional.",
   "infoSecretKey": "Leave blank to keep the saved key. Filling this in switches the site onto its own Stripe account.",
