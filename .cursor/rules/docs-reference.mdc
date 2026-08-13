@@ -16,7 +16,7 @@ alwaysApply: true
 | 用户体系 | — | `docs/design/user-system.md` |
 | 多租户配置分层 / 单租户部署 | —（rule：`tenancy-mode`） | `docs/design/tenant-config.md` |
 | 租户自定义域名（客户 DNS / 绑定 / TLS） | — | `docs/custom-domain.md`（设计：`tenant-config.md` §5.9） |
-| 多语言（i18n） | — | `docs/design/i18n.md` |
+| 多语言（i18n） | — | `docs/design/i18n.md`（代码多语言 vs 数据多语言） |
 | 租户功能开关 / entitlement | — | `docs/design/tenant-features.md` |
 | 错误日志 | `error-logging` | `docs/design/error-logging.md` |
 | 字段命名全链路 | — | `docs/design/field-naming-conventions.md` |

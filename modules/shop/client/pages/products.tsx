@@ -1,9 +1,8 @@
 import { PageLayout, usePermissions } from "@rewindom/module-sdk/client";
-import { DraggableFabTrigger } from "@rewindom/ui/draggable-fab";
+import { DraggableFab } from "@rewindom/ui/draggable-fab";
 import { Package, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { ProductCreateSheet } from "../components/ProductCreateSheet.js";
 import { ProductFilters, ProductsTable } from "../components/ProductsTable.js";
 import { useProducts } from "../hooks/useShop.js";
 import { useShopListPage } from "../hooks/useShopListPage.js";
@@ -37,12 +36,10 @@ export function ProductsPage() {
       description={t("pageDescription")}
       action={
         canWrite ? (
-          <ProductCreateSheet>
-            <DraggableFabTrigger storageKey="shop_product_create_fab">
-              <Plus className="size-6 md:size-4" />
-              <span className="hidden md:inline">{t("create")}</span>
-            </DraggableFabTrigger>
-          </ProductCreateSheet>
+          <DraggableFab to="/app/shop/products/new" storageKey="shop_product_create_fab">
+            <Plus className="size-6 md:size-4" />
+            <span className="hidden md:inline">{t("create")}</span>
+          </DraggableFab>
         ) : null
       }
     >

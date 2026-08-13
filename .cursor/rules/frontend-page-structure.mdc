@@ -155,6 +155,7 @@ const [sorting, setSorting] = useState<SortingState>([]);
 - ❌ 在通用数据 Hook 里直接 `toast`（专用 `useXxxActions` 或 Page 除外）
 - ❌ 清空 file input 后再读 `FileList`（live 引用会丢文件）
 - ❌ Page 维护 `createOpen` + 头部 Button + 底部 `*Dialog` 三处分散（违反 Dialog/Sheet 内聚金标准）
+- ❌ 把商品等租户内容的多语言做成 `fieldTitle` + `fieldTitleEn` 两套 UI 字段（那是数据多语言，见 `docs/design/i18n.md`）
 - ❌ 同一页面堆两个 `<form>`（设置一项、密钥/收款通道又一项，两颗保存）。页上只留**一张**表单；第二份表单收进 Sheet。金标准：`site-billing` 的 `SiteBillingProviderStatusRow` + `SiteBillingProviderSheet`；shop 设置页同构。
 - ❌ 为拆而拆：简单 CRUD 页保持单文件即可
 

@@ -74,6 +74,7 @@ export type ShopVariantCountAggregateOutputType = {
   product_id: number
   sku: number
   title: number
+  option_values: number
   price_cents: number
   currency: number
   stock_qty: number
@@ -134,6 +135,7 @@ export type ShopVariantCountAggregateInputType = {
   product_id?: true
   sku?: true
   title?: true
+  option_values?: true
   price_cents?: true
   currency?: true
   stock_qty?: true
@@ -237,6 +239,7 @@ export type ShopVariantGroupByOutputType = {
   product_id: string
   sku: string
   title: runtime.JsonValue | null
+  option_values: runtime.JsonValue
   price_cents: number
   currency: string
   stock_qty: number
@@ -276,6 +279,7 @@ export type ShopVariantWhereInput = {
   product_id?: Prisma.StringFilter<"ShopVariant"> | string
   sku?: Prisma.StringFilter<"ShopVariant"> | string
   title?: Prisma.JsonNullableFilter<"ShopVariant">
+  option_values?: Prisma.JsonFilter<"ShopVariant">
   price_cents?: Prisma.IntFilter<"ShopVariant"> | number
   currency?: Prisma.StringFilter<"ShopVariant"> | string
   stock_qty?: Prisma.IntFilter<"ShopVariant"> | number
@@ -294,6 +298,7 @@ export type ShopVariantOrderByWithRelationInput = {
   product_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
+  option_values?: Prisma.SortOrder
   price_cents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
@@ -316,6 +321,7 @@ export type ShopVariantWhereUniqueInput = Prisma.AtLeast<{
   product_id?: Prisma.StringFilter<"ShopVariant"> | string
   sku?: Prisma.StringFilter<"ShopVariant"> | string
   title?: Prisma.JsonNullableFilter<"ShopVariant">
+  option_values?: Prisma.JsonFilter<"ShopVariant">
   price_cents?: Prisma.IntFilter<"ShopVariant"> | number
   currency?: Prisma.StringFilter<"ShopVariant"> | string
   stock_qty?: Prisma.IntFilter<"ShopVariant"> | number
@@ -334,6 +340,7 @@ export type ShopVariantOrderByWithAggregationInput = {
   product_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
+  option_values?: Prisma.SortOrder
   price_cents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
@@ -358,6 +365,7 @@ export type ShopVariantScalarWhereWithAggregatesInput = {
   product_id?: Prisma.StringWithAggregatesFilter<"ShopVariant"> | string
   sku?: Prisma.StringWithAggregatesFilter<"ShopVariant"> | string
   title?: Prisma.JsonNullableWithAggregatesFilter<"ShopVariant">
+  option_values?: Prisma.JsonWithAggregatesFilter<"ShopVariant">
   price_cents?: Prisma.IntWithAggregatesFilter<"ShopVariant"> | number
   currency?: Prisma.StringWithAggregatesFilter<"ShopVariant"> | string
   stock_qty?: Prisma.IntWithAggregatesFilter<"ShopVariant"> | number
@@ -373,6 +381,7 @@ export type ShopVariantCreateInput = {
   tenant_id: string
   sku: string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
   currency?: string
   stock_qty?: number
@@ -391,6 +400,7 @@ export type ShopVariantUncheckedCreateInput = {
   product_id: string
   sku: string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
   currency?: string
   stock_qty?: number
@@ -407,6 +417,7 @@ export type ShopVariantUpdateInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
@@ -425,6 +436,7 @@ export type ShopVariantUncheckedUpdateInput = {
   product_id?: Prisma.StringFieldUpdateOperationsInput | string
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
@@ -442,6 +454,7 @@ export type ShopVariantCreateManyInput = {
   product_id: string
   sku: string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
   currency?: string
   stock_qty?: number
@@ -457,6 +470,7 @@ export type ShopVariantUpdateManyMutationInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
@@ -473,6 +487,7 @@ export type ShopVariantUncheckedUpdateManyInput = {
   product_id?: Prisma.StringFieldUpdateOperationsInput | string
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
@@ -504,6 +519,7 @@ export type ShopVariantCountOrderByAggregateInput = {
   product_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  option_values?: Prisma.SortOrder
   price_cents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   stock_qty?: Prisma.SortOrder
@@ -622,6 +638,7 @@ export type ShopVariantCreateWithoutProductInput = {
   tenant_id: string
   sku: string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
   currency?: string
   stock_qty?: number
@@ -638,6 +655,7 @@ export type ShopVariantUncheckedCreateWithoutProductInput = {
   tenant_id: string
   sku: string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
   currency?: string
   stock_qty?: number
@@ -684,6 +702,7 @@ export type ShopVariantScalarWhereInput = {
   product_id?: Prisma.StringFilter<"ShopVariant"> | string
   sku?: Prisma.StringFilter<"ShopVariant"> | string
   title?: Prisma.JsonNullableFilter<"ShopVariant">
+  option_values?: Prisma.JsonFilter<"ShopVariant">
   price_cents?: Prisma.IntFilter<"ShopVariant"> | number
   currency?: Prisma.StringFilter<"ShopVariant"> | string
   stock_qty?: Prisma.IntFilter<"ShopVariant"> | number
@@ -699,6 +718,7 @@ export type ShopVariantCreateWithoutCart_itemsInput = {
   tenant_id: string
   sku: string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
   currency?: string
   stock_qty?: number
@@ -716,6 +736,7 @@ export type ShopVariantUncheckedCreateWithoutCart_itemsInput = {
   product_id: string
   sku: string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
   currency?: string
   stock_qty?: number
@@ -747,6 +768,7 @@ export type ShopVariantUpdateWithoutCart_itemsInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
@@ -764,6 +786,7 @@ export type ShopVariantUncheckedUpdateWithoutCart_itemsInput = {
   product_id?: Prisma.StringFieldUpdateOperationsInput | string
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
@@ -779,6 +802,7 @@ export type ShopVariantCreateManyProductInput = {
   tenant_id: string
   sku: string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents: number
   currency?: string
   stock_qty?: number
@@ -794,6 +818,7 @@ export type ShopVariantUpdateWithoutProductInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
@@ -810,6 +835,7 @@ export type ShopVariantUncheckedUpdateWithoutProductInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
@@ -826,6 +852,7 @@ export type ShopVariantUncheckedUpdateManyWithoutProductInput = {
   tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  option_values?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   price_cents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   stock_qty?: Prisma.IntFieldUpdateOperationsInput | number
@@ -873,6 +900,7 @@ export type ShopVariantSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   product_id?: boolean
   sku?: boolean
   title?: boolean
+  option_values?: boolean
   price_cents?: boolean
   currency?: boolean
   stock_qty?: boolean
@@ -892,6 +920,7 @@ export type ShopVariantSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   product_id?: boolean
   sku?: boolean
   title?: boolean
+  option_values?: boolean
   price_cents?: boolean
   currency?: boolean
   stock_qty?: boolean
@@ -909,6 +938,7 @@ export type ShopVariantSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   product_id?: boolean
   sku?: boolean
   title?: boolean
+  option_values?: boolean
   price_cents?: boolean
   currency?: boolean
   stock_qty?: boolean
@@ -926,6 +956,7 @@ export type ShopVariantSelectScalar = {
   product_id?: boolean
   sku?: boolean
   title?: boolean
+  option_values?: boolean
   price_cents?: boolean
   currency?: boolean
   stock_qty?: boolean
@@ -936,7 +967,7 @@ export type ShopVariantSelectScalar = {
   updated_at?: boolean
 }
 
-export type ShopVariantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "product_id" | "sku" | "title" | "price_cents" | "currency" | "stock_qty" | "weight_g" | "hs_code" | "origin_country" | "created_at" | "updated_at", ExtArgs["result"]["shopVariant"]>
+export type ShopVariantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "product_id" | "sku" | "title" | "option_values" | "price_cents" | "currency" | "stock_qty" | "weight_g" | "hs_code" | "origin_country" | "created_at" | "updated_at", ExtArgs["result"]["shopVariant"]>
 export type ShopVariantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ShopProductDefaultArgs<ExtArgs>
   cart_items?: boolean | Prisma.ShopVariant$cart_itemsArgs<ExtArgs>
@@ -961,6 +992,10 @@ export type $ShopVariantPayload<ExtArgs extends runtime.Types.Extensions.Interna
     product_id: string
     sku: string
     title: runtime.JsonValue | null
+    /**
+     * option id → value id；无 option 时为 {}。
+     */
+    option_values: runtime.JsonValue
     price_cents: number
     currency: string
     stock_qty: number
@@ -1399,6 +1434,7 @@ export interface ShopVariantFieldRefs {
   readonly product_id: Prisma.FieldRef<"ShopVariant", 'String'>
   readonly sku: Prisma.FieldRef<"ShopVariant", 'String'>
   readonly title: Prisma.FieldRef<"ShopVariant", 'Json'>
+  readonly option_values: Prisma.FieldRef<"ShopVariant", 'Json'>
   readonly price_cents: Prisma.FieldRef<"ShopVariant", 'Int'>
   readonly currency: Prisma.FieldRef<"ShopVariant", 'String'>
   readonly stock_qty: Prisma.FieldRef<"ShopVariant", 'Int'>

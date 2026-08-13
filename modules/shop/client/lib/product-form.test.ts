@@ -5,7 +5,10 @@ import { SHOP_I18N } from "../i18n.js";
 import {
   buildProductPayload,
   INITIAL_PRODUCT_FORM,
+  newOption,
+  newOptionValue,
   splitCountries,
+  syncVariantsToOptions,
   validateProductForm,
 } from "./product-form.js";
 
@@ -14,41 +17,72 @@ setupI18n();
 const t = (key: string): string => setupI18n().t(key, { ns: "shop" });
 
 describe("validateProductForm", () => {
-  it("requires title slug sku and price", () => {
+  it("requires default-locale title, slug, sku and price", () => {
     expect(validateProductForm(INITIAL_PRODUCT_FORM, t)).toBe(
       t("validation.titleRequired"),
     );
     expect(
-      validateProductForm({ ...INITIAL_PRODUCT_FORM, title: "Mug" }, t),
+      validateProductForm(
+        { ...INITIAL_PRODUCT_FORM, title: { "zh-CN": "杯" } },
+        t,
+      ),
     ).toBe(t("validation.slugRequired"));
   });
 });
 
 describe("buildProductPayload", () => {
-  it("normalizes slug and cents", () => {
+  it("sends locale maps and variants, not a parallel English UI field", () => {
     expect(
       buildProductPayload({
         ...INITIAL_PRODUCT_FORM,
-        title: " 杯 ",
-        title_en: "Mug",
+        title: { "zh-CN": "杯", en: "Mug" },
+        description: { "zh-CN": "陶瓷杯", en: "Ceramic mug" },
         slug: "Coffee-Mug",
-        sku: "MUG-1",
-        price_cents: "1999",
-        stock_qty: "3",
+        variants: [
+          {
+            ...INITIAL_PRODUCT_FORM.variants[0]!,
+            sku: "MUG-1",
+            price_cents: "1999",
+            stock_qty: "3",
+          },
+        ],
       }),
     ).toEqual({
       slug: "coffee-mug",
       status: "draft",
       title: { "zh-CN": "杯", en: "Mug" },
-      variant: {
-        sku: "MUG-1",
-        price_cents: 1999,
-        stock_qty: 3,
-        weight_g: 0,
-        hs_code: null,
-        origin_country: null,
-      },
+      description: { "zh-CN": "陶瓷杯", en: "Ceramic mug" },
+      options: [],
+      variants: [
+        {
+          id: undefined,
+          sku: "MUG-1",
+          option_values: {},
+          price_cents: 1999,
+          stock_qty: 3,
+          weight_g: 0,
+          hs_code: null,
+          origin_country: null,
+        },
+      ],
     });
+  });
+});
+
+describe("syncVariantsToOptions", () => {
+  it("builds the cartesian set and keeps matching rows", () => {
+    const option = {
+      ...newOption(),
+      name: { "zh-CN": "颜色" },
+      values: [
+        { ...newOptionValue(), name: { "zh-CN": "红" } },
+        { ...newOptionValue(), name: { "zh-CN": "蓝" } },
+      ],
+    };
+    const next = syncVariantsToOptions([option], INITIAL_PRODUCT_FORM.variants, "mug");
+    expect(next).toHaveLength(2);
+    expect(next[0]?.option_values[option.id]).toBe(option.values[0]?.id);
+    expect(next[1]?.option_values[option.id]).toBe(option.values[1]?.id);
   });
 });
 

@@ -20,9 +20,11 @@ model ShopProduct {
   tenant_id   String
   slug        String
   status      String        @default("draft")
-  /// 扁平 locale → 文案，如 { "zh-CN": "…", "en": "…" }
+  /// 扁平 locale → 文案，如 { "zh-CN": "…", "en": "…" }。这是数据多语言，不是模块 UI i18n。
   title       Json
   description Json?
+  /// ShopProductOption[]：option 名/值同样是 locale map。
+  options     Json          @default("[]")
   created_by  String
   updated_by  String?
   created_at  DateTime      @default(now())
@@ -39,6 +41,8 @@ model ShopVariant {
   product_id     String
   sku            String
   title          Json?
+  /// option id → value id；无 option 时为 {}。
+  option_values  Json            @default("{}")
   price_cents    Int
   currency       String          @default("USD")
   stock_qty      Int             @default(0)

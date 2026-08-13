@@ -1,3 +1,5 @@
+import type { ShopLocalizedMap } from "./locale.js";
+
 export const SHOP_PRODUCT_STATUSES = ["draft", "published"] as const;
 export type ShopProductStatus = (typeof SHOP_PRODUCT_STATUSES)[number];
 
@@ -5,9 +7,22 @@ export function isShopProductStatus(value: unknown): value is ShopProductStatus 
   return (SHOP_PRODUCT_STATUSES as readonly unknown[]).includes(value);
 }
 
+export interface ShopOptionValue {
+  id: string;
+  name: ShopLocalizedMap;
+}
+
+export interface ShopProductOption {
+  id: string;
+  name: ShopLocalizedMap;
+  values: ShopOptionValue[];
+}
+
 export interface ShopVariantInput {
+  id?: string;
   sku: string;
   title?: Record<string, string> | null;
+  option_values?: Record<string, string>;
   price_cents: number;
   currency?: string;
   stock_qty: number;
@@ -21,6 +36,7 @@ export interface ShopVariant {
   product_id: string;
   sku: string;
   title: Record<string, string> | null;
+  option_values: Record<string, string>;
   price_cents: number;
   currency: string;
   stock_qty: number;
@@ -38,6 +54,7 @@ export interface ShopProduct {
   status: ShopProductStatus;
   title: Record<string, string>;
   description: Record<string, string> | null;
+  options: ShopProductOption[];
   created_by: string;
   updated_by: string | null;
   created_at: string;
@@ -62,7 +79,8 @@ export interface CreateShopProductBody {
   status?: ShopProductStatus;
   title: Record<string, string> | string;
   description?: Record<string, string> | string | null;
-  variant: ShopVariantInput;
+  options?: ShopProductOption[];
+  variants: ShopVariantInput[];
 }
 
 export interface UpdateShopProductBody {
@@ -70,6 +88,8 @@ export interface UpdateShopProductBody {
   status?: ShopProductStatus;
   title?: Record<string, string> | string;
   description?: Record<string, string> | string | null;
+  options?: ShopProductOption[];
+  variants?: ShopVariantInput[];
 }
 
 export interface CreateShopVariantBody extends ShopVariantInput {}
@@ -77,6 +97,7 @@ export interface CreateShopVariantBody extends ShopVariantInput {}
 export interface UpdateShopVariantBody {
   sku?: string;
   title?: Record<string, string> | null;
+  option_values?: Record<string, string>;
   price_cents?: number;
   currency?: string;
   stock_qty?: number;

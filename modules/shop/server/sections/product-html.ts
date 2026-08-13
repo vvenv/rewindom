@@ -22,6 +22,23 @@ function buyHtml(
   settings: SettingValues,
 ): string {
   const soldOut = settingText(settings, "sold_out_label") || "Sold out";
+  if (product.variants.length === 1) {
+    const variant = product.variants[0]!;
+    const disabled = variant.stock < 1;
+    return `<form class="shop-buy" method="post" action="${escapeHtml(shop.action_cart)}">
+  <input type="hidden" name="intent" value="add" />
+  <input type="hidden" name="variant_id" value="${escapeHtml(variant.id)}" />
+  ${shopFieldHtml({
+    id: "shop-qty",
+    name: "quantity",
+    label: settingText(settings, "quantity_label"),
+    type: "number",
+    required: true,
+    value: "1",
+  })}
+  <button class="btn" type="submit"${disabled ? " disabled" : ""}>${escapeHtml(settingText(settings, "add_label"))}</button>
+</form>`;
+  }
   const options = product.variants
     .map((variant) => {
       const disabled = variant.stock < 1 ? " disabled" : "";
@@ -61,7 +78,7 @@ function renderBlock(
     }
     case "description":
       return product.description
-        ? `<p>${escapeHtml(product.description)}</p>`
+        ? `<div class="shop-product-description">${escapeHtml(product.description)}</div>`
         : "";
     case "buy":
       return buyHtml(product, shop, block.settings);

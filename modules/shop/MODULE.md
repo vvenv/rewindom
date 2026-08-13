@@ -44,7 +44,7 @@ shop/
 
 | 面 | 路径 | 权限 / 门控 |
 | --- | --- | --- |
-| 租户工作台 | `/app/shop` 商品、`/app/shop/orders` 订单、`/app/shop/shipping` 运费、`/app/shop/settings` 设置（货币/报关一张表单；Stripe 密钥在 `ShopProviderSheet`） | `shop.read`；写操作 `shop.write` |
+| 租户工作台 | `/app/shop` 商品列表、`/app/shop/products/new` 与 `/app/shop/products/:productId` 编辑（详情 + options + 数据多语言）、`/app/shop/orders` 订单、`/app/shop/shipping` 运费、`/app/shop/settings` 设置（货币/报关一张表单；Stripe 密钥在 `ShopProviderSheet`） | `shop.read`；写操作 `shop.write` |
 | 公开店面 SSR | `/shop`、`/shop/:slug`、`/shop/cart`、`/shop/checkout`、`/shop/orders/:number` | 站点开通 `shop`；无 JWT |
 | 会员 | `/member/orders` | 会员会话 |
 
@@ -68,6 +68,8 @@ shop/
 另有 `shop.cart-link`：可放页面 / 页头 / 页脚，链到购物车。件数只在请求带得上购物车时出现。
 
 没有独立的「分类」模型，商品列表就是目录；首页用同一段加 `limit` 当精选。真收卡仍在 Stripe Checkout（站外），本页收的是联系方式、收件地址、运费档。
+
+商品名称、详情、option 名/值是**数据多语言**（`title` / `description` / `options[].name` 的 locale map），跟模块 `client/locales` 的代码多语言分开。工作台用内容语言 Tab 填同一套字段，不要再加 `fieldTitleEn`。
 
 租户没开通 `shop` 时这些段不进「添加区块」菜单，也不渲染。
 

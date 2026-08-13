@@ -89,7 +89,7 @@ describe("Shop catalog routes 权限控制", () => {
       method: "POST",
       url: "/api/shop/products",
       headers: authHeaders(reader),
-      payload: { title: { "zh-CN": "杯" }, slug: "mug", variant: { sku: "M1", price_cents: 100, stock_qty: 1 } },
+      payload: { title: { "zh-CN": "杯" }, slug: "mug", variants: [{ sku: "M1", price_cents: 100, stock_qty: 1 }] },
     });
     expect(response.statusCode).toBe(403);
   });
@@ -99,7 +99,7 @@ describe("Shop catalog routes 权限控制", () => {
       method: "POST",
       url: "/api/shop/products",
       headers: authHeaders(systemAdmin),
-      payload: { title: { "zh-CN": "杯" }, slug: "mug", variant: { sku: "M1", price_cents: 100, stock_qty: 1 } },
+      payload: { title: { "zh-CN": "杯" }, slug: "mug", variants: [{ sku: "M1", price_cents: 100, stock_qty: 1 }] },
     });
     expect(response.statusCode).toBe(200);
   });

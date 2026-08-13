@@ -29,6 +29,7 @@ import { ProductSection } from "./components/sections/ProductSection.js";
 import { SHOP_I18N } from "./i18n.js";
 import { SHOP_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderShopRoutes } from "./tenant/routes.js";
+import { SHOP_MOBILE_HEADER_ROUTES } from "./tenant/mobile-header.js";
 
 import type { ClientAppModule } from "@rewindom/module-sdk/client";
 
@@ -74,5 +75,8 @@ export const shopClientModule: ClientAppModule = {
     i18n: SHOP_I18N,
     renderRoutes: renderShopRoutes,
     nav: SHOP_NAV_SECTIONS,
+    shell: {
+      mobileHeaderRoutes: SHOP_MOBILE_HEADER_ROUTES,
+    },
   },
 };

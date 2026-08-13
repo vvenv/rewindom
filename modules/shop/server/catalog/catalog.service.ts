@@ -11,9 +11,14 @@ import type { AppLocale } from "@rewindom/module-sdk";
 
 import {
   isShopProductStatus,
+  readOptionValues,
+  readShopOptions,
+  SHOP_MAX_OPTIONS,
+  SHOP_MAX_OPTION_VALUES,
   type CreateShopProductBody,
   type ShopProduct,
   type ShopProductListItem,
+  type ShopProductOption,
   type ShopVariant,
   type UpdateShopProductBody,
   type UpdateShopVariantBody,
@@ -46,6 +51,10 @@ function asJson(
   return value ?? undefined;
 }
 
+function toJson(value: unknown): object {
+  return JSON.parse(JSON.stringify(value)) as object;
+}
+
 function toVariant(record: VariantRecord): ShopVariant {
   return {
     id: record.id,
@@ -55,6 +64,7 @@ function toVariant(record: VariantRecord): ShopVariant {
       record.title && typeof record.title === "object" && !Array.isArray(record.title)
         ? (record.title as Record<string, string>)
         : null,
+    option_values: readOptionValues(record.option_values),
     price_cents: record.price_cents,
     currency: record.currency,
     stock_qty: record.stock_qty,
@@ -86,6 +96,7 @@ function toProduct(
     status: isShopProductStatus(record.status) ? record.status : "draft",
     title,
     description,
+    options: readShopOptions(record.options),
     created_by: record.created_by,
     updated_by: record.updated_by,
     created_at: record.created_at.toISOString(),
@@ -113,6 +124,7 @@ function validateSku(sku: string): string {
 function parseVariantInput(input: ShopVariantInput): {
   sku: string;
   title: Record<string, string> | null;
+  option_values: Record<string, string>;
   price_cents: number;
   currency: string;
   stock_qty: number;
@@ -138,6 +150,7 @@ function parseVariantInput(input: ShopVariantInput): {
   return {
     sku,
     title: parseLocalizedInput(input.title ?? null, "zh-CN"),
+    option_values: readOptionValues(input.option_values),
     price_cents,
     currency: normalizeCurrency(input.currency),
     stock_qty: asPositiveInt(input.stock_qty),
@@ -145,6 +158,105 @@ function parseVariantInput(input: ShopVariantInput): {
     hs_code: hs,
     origin_country: origin,
   };
+}
+
+function parseProductOptions(raw: unknown): ShopProductOption[] {
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) {
+    throw new ValidationError("shop.options_invalid");
+  }
+  if (raw.length > SHOP_MAX_OPTIONS) {
+    throw new ValidationError("shop.options_limit");
+  }
+  const options: ShopProductOption[] = [];
+  const optionIds = new Set<string>();
+  for (const item of raw) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      throw new ValidationError("shop.options_invalid");
+    }
+    const record = item as Record<string, unknown>;
+    const id =
+      typeof record.id === "string" && record.id.trim()
+        ? record.id.trim()
+        : crypto.randomUUID();
+    if (optionIds.has(id)) throw new ValidationError("shop.options_invalid");
+    optionIds.add(id);
+    const name = parseLocalizedInput(record.name, "zh-CN");
+    if (!name) throw new ValidationError("shop.option_name_required");
+    if (!Array.isArray(record.values) || record.values.length === 0) {
+      throw new ValidationError("shop.option_values_required");
+    }
+    if (record.values.length > SHOP_MAX_OPTION_VALUES) {
+      throw new ValidationError("shop.option_values_limit");
+    }
+    const valueIds = new Set<string>();
+    const values = record.values.map((valueRaw) => {
+      if (!valueRaw || typeof valueRaw !== "object" || Array.isArray(valueRaw)) {
+        throw new ValidationError("shop.options_invalid");
+      }
+      const value = valueRaw as Record<string, unknown>;
+      const valueId =
+        typeof value.id === "string" && value.id.trim()
+          ? value.id.trim()
+          : crypto.randomUUID();
+      if (valueIds.has(valueId)) throw new ValidationError("shop.options_invalid");
+      valueIds.add(valueId);
+      const valueName = parseLocalizedInput(value.name, "zh-CN");
+      if (!valueName) throw new ValidationError("shop.option_name_required");
+      return { id: valueId, name: valueName };
+    });
+    options.push({ id, name, values });
+  }
+  return options;
+}
+
+function assertVariantMatchesOptions(
+  options: ShopProductOption[],
+  option_values: Record<string, string>,
+): void {
+  if (options.length === 0) {
+    if (Object.keys(option_values).length > 0) {
+      throw new ValidationError("shop.variant_options_mismatch");
+    }
+    return;
+  }
+  if (Object.keys(option_values).length !== options.length) {
+    throw new ValidationError("shop.variant_options_mismatch");
+  }
+  for (const option of options) {
+    const valueId = option_values[option.id];
+    if (!option.values.some((value) => value.id === valueId)) {
+      throw new ValidationError("shop.variant_options_mismatch");
+    }
+  }
+}
+
+function parseVariantsInput(
+  raw: ShopVariantInput[] | undefined,
+  options: ShopProductOption[],
+): Array<ReturnType<typeof parseVariantInput> & { id?: string }> {
+  if (!raw || raw.length === 0) {
+    throw new ValidationError("shop.variant_required");
+  }
+  const parsed = raw.map((item) => ({
+    id: typeof item.id === "string" && item.id.trim() ? item.id.trim() : undefined,
+    ...parseVariantInput(item),
+  }));
+  const skus = new Set<string>();
+  const combos = new Set<string>();
+  for (const variant of parsed) {
+    assertVariantMatchesOptions(options, variant.option_values);
+    if (skus.has(variant.sku)) throw new ConflictError("shop.sku_taken");
+    skus.add(variant.sku);
+    const combo = JSON.stringify(
+      Object.keys(variant.option_values)
+        .sort()
+        .map((key) => [key, variant.option_values[key]]),
+    );
+    if (combos.has(combo)) throw new ValidationError("shop.variant_options_mismatch");
+    combos.add(combo);
+  }
+  return parsed;
 }
 
 export interface ListProductsParams {
@@ -274,7 +386,8 @@ export async function createProduct(params: {
     params.body.description ?? null,
     params.locale,
   );
-  const variant = parseVariantInput(params.body.variant);
+  const options = parseProductOptions(params.body.options);
+  const variants = parseVariantsInput(params.body.variants, options);
   const status = isShopProductStatus(params.body.status)
     ? params.body.status
     : "draft";
@@ -286,7 +399,9 @@ export async function createProduct(params: {
   if (existingSlug) throw new ConflictError("shop.slug_taken");
 
   const existingSku = await prisma.shopVariant.findFirst({
-    where: withTenantScope(params.tenant_id, { sku: variant.sku }),
+    where: withTenantScope(params.tenant_id, {
+      sku: { in: variants.map((item) => item.sku) },
+    }),
     select: { id: true },
   });
   if (existingSku) throw new ConflictError("shop.sku_taken");
@@ -298,19 +413,21 @@ export async function createProduct(params: {
       status,
       title,
       description: description ?? undefined,
+      options: toJson(options),
       created_by: params.user_id,
       variants: {
-        create: {
+        create: variants.map((variant) => ({
           tenant_id: params.tenant_id,
           sku: variant.sku,
           title: asJson(variant.title),
+          option_values: toJson(variant.option_values),
           price_cents: variant.price_cents,
           currency: variant.currency,
           stock_qty: variant.stock_qty,
           weight_g: variant.weight_g,
           hs_code: variant.hs_code,
           origin_country: variant.origin_country,
-        },
+        })),
       },
     },
     include: { variants: true },
@@ -325,12 +442,13 @@ export async function updateProduct(params: {
   locale: AppLocale;
   body: UpdateShopProductBody;
 }): Promise<ShopProduct> {
-  await getProduct(params.tenant_id, params.product_id);
+  const current = await getProduct(params.tenant_id, params.product_id);
   const data: {
     slug?: string;
     status?: string;
     title?: Record<string, string>;
     description?: Record<string, string>;
+    options?: object;
     updated_by: string;
   } = { updated_by: params.user_id };
 
@@ -360,11 +478,29 @@ export async function updateProduct(params: {
     data.title = title;
   }
   if (params.body.description !== undefined) {
-    const description = parseLocalizedInput(
+    data.description = parseLocalizedInput(
       params.body.description,
       params.locale,
-    );
-    if (description) data.description = description;
+    ) ?? {};
+  }
+  if (params.body.options !== undefined) {
+    if (params.body.variants === undefined) {
+      throw new ValidationError("shop.variant_required");
+    }
+    data.options = toJson(parseProductOptions(params.body.options));
+  }
+
+  const options =
+    params.body.options !== undefined
+      ? parseProductOptions(params.body.options)
+      : current.options;
+  if (params.body.variants !== undefined) {
+    await syncProductVariants({
+      tenant_id: params.tenant_id,
+      product_id: params.product_id,
+      options,
+      incoming: parseVariantsInput(params.body.variants, options),
+    });
   }
 
   const record = await prisma.shopProduct.update({
@@ -373,6 +509,69 @@ export async function updateProduct(params: {
     include: { variants: { orderBy: { created_at: "asc" } } },
   });
   return toProduct(record);
+}
+
+async function syncProductVariants(params: {
+  tenant_id: string;
+  product_id: string;
+  options: ShopProductOption[];
+  incoming: Array<ReturnType<typeof parseVariantInput> & { id?: string }>;
+}): Promise<void> {
+  const existing = await prisma.shopVariant.findMany({
+    where: withTenantScope(params.tenant_id, { product_id: params.product_id }),
+  });
+  for (const variant of params.incoming) {
+    if (variant.id && !existing.some((row) => row.id === variant.id)) {
+      throw new NotFoundError("shop.variant_not_found");
+    }
+  }
+  const clash = await prisma.shopVariant.findFirst({
+    where: withTenantScope(params.tenant_id, {
+      sku: { in: params.incoming.map((item) => item.sku) },
+      NOT: { product_id: params.product_id },
+    }),
+    select: { id: true },
+  });
+  if (clash) throw new ConflictError("shop.sku_taken");
+
+  const keepIds = new Set(
+    params.incoming.flatMap((item) => (item.id ? [item.id] : [])),
+  );
+  await prisma.$transaction(async (tx) => {
+    for (const variant of params.incoming) {
+      const data = {
+        sku: variant.sku,
+        title: asJson(variant.title),
+        option_values: toJson(variant.option_values),
+        price_cents: variant.price_cents,
+        currency: variant.currency,
+        stock_qty: variant.stock_qty,
+        weight_g: variant.weight_g,
+        hs_code: variant.hs_code,
+        origin_country: variant.origin_country,
+      };
+      if (variant.id) {
+        await tx.shopVariant.update({
+          where: withTenantScope(params.tenant_id, { id: variant.id }),
+          data,
+        });
+      } else {
+        await tx.shopVariant.create({
+          data: {
+            tenant_id: params.tenant_id,
+            product_id: params.product_id,
+            ...data,
+          },
+        });
+      }
+    }
+    const removed = existing.filter((row) => !keepIds.has(row.id));
+    for (const row of removed) {
+      await tx.shopVariant.delete({
+        where: withTenantScope(params.tenant_id, { id: row.id }),
+      });
+    }
+  });
 }
 
 export async function deleteProduct(
@@ -390,8 +589,9 @@ export async function addVariant(params: {
   product_id: string;
   body: ShopVariantInput;
 }): Promise<ShopProduct> {
-  await getProduct(params.tenant_id, params.product_id);
+  const product = await getProduct(params.tenant_id, params.product_id);
   const variant = parseVariantInput(params.body);
+  assertVariantMatchesOptions(product.options, variant.option_values);
   const clash = await prisma.shopVariant.findFirst({
     where: withTenantScope(params.tenant_id, { sku: variant.sku }),
     select: { id: true },
@@ -403,6 +603,7 @@ export async function addVariant(params: {
       product_id: params.product_id,
       sku: variant.sku,
       title: asJson(variant.title),
+      option_values: toJson(variant.option_values),
       price_cents: variant.price_cents,
       currency: variant.currency,
       stock_qty: variant.stock_qty,
@@ -443,6 +644,12 @@ export async function updateVariant(params: {
   }
   if (params.body.title !== undefined) {
     data.title = parseLocalizedInput(params.body.title, "zh-CN");
+  }
+  if (params.body.option_values !== undefined) {
+    const product = await getProduct(params.tenant_id, params.product_id);
+    const option_values = readOptionValues(params.body.option_values);
+    assertVariantMatchesOptions(product.options, option_values);
+    data.option_values = toJson(option_values);
   }
   if (params.body.price_cents !== undefined) {
     const price = asPositiveInt(params.body.price_cents);

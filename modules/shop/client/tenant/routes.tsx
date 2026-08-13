@@ -12,6 +12,11 @@ const ProductsPage = lazy(() =>
     default: module.ProductsPage,
   })),
 );
+const ProductEditorPage = lazy(() =>
+  import("../pages/product-editor.js").then((module) => ({
+    default: module.ProductEditorPage,
+  })),
+);
 const OrdersPage = lazy(() =>
   import("../pages/orders.js").then((module) => ({
     default: module.OrdersPage,
@@ -43,6 +48,8 @@ export function renderShopRoutes(): ReactNode {
     <Route element={<ShopModuleRoute />}>
       <Route element={<PermissionRoute permission="shop.read" />}>
         <Route path="/app/shop" element={<ProductsPage />} />
+        <Route path="/app/shop/products/new" element={<ProductEditorPage />} />
+        <Route path="/app/shop/products/:productId" element={<ProductEditorPage />} />
         <Route path="/app/shop/orders" element={<OrdersPage />} />
         <Route path="/app/shop/orders/:orderId" element={<OrderDetailPage />} />
         <Route path="/app/shop/shipping" element={<ShippingPage />} />

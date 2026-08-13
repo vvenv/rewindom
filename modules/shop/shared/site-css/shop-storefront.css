@@ -65,6 +65,9 @@
   line-height: 1.2;
   font-weight: 600;
 }
+.shop-product-description {
+  white-space: pre-wrap;
+}
 .shop-product-buy,
 .shop-cart-summary,
 .shop-checkout-aside {

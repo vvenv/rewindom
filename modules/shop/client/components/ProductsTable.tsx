@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 
+import { Link } from "react-router";
+
 import {
   ApiError,
   DataTable,
@@ -16,7 +18,6 @@ import { Package, Pencil, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useDeleteProduct } from "../hooks/useShop.js";
-import { ProductEditSheet } from "./ProductEditSheet.js";
 
 import type { ShopProductListItem } from "../../shared/index.js";
 import type { ColumnDef, SortingState, Updater } from "@tanstack/react-table";
@@ -86,7 +87,12 @@ export function ProductsTable({
         enableSorting: true,
         cell: ({ row }) => (
           <div>
-            <div className="font-medium">{row.original.title}</div>
+            <Link
+              to={`/app/shop/products/${row.original.id}`}
+              className="font-medium hover:underline"
+            >
+              {row.original.title}
+            </Link>
             <div className="text-muted-foreground text-xs">{row.original.slug}</div>
           </div>
         ),
@@ -126,16 +132,14 @@ export function ProductsTable({
               meta: { align: "right" as const },
               cell: ({ row }: { row: { original: ShopProductListItem } }) => (
                 <div className="flex items-center justify-end gap-1">
-                  <ProductEditSheet product={row.original}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link
+                      to={`/app/shop/products/${row.original.id}`}
                       aria-label={t("edit")}
-                      onClick={(event) => event.stopPropagation()}
                     >
                       <Pencil className="size-4" />
-                    </Button>
-                  </ProductEditSheet>
+                    </Link>
+                  </Button>
                   <Button
                   variant="ghost"
                   size="icon"

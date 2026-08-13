@@ -200,4 +200,5 @@ pnpm --filter @rewindom/builtin assemble:module-css
 - [ ] `MODULE.md` + `MODULE.spec.yaml` 落盘，且 spec 与实现一致
 - [ ] 租户侧 / 公开面文案无「租户」「Tenant」（平台面除外）
 - [ ] 设置页只有一张 `<form>`；密钥 / 收款通道用 Sheet（见 `frontend-page-structure` skill「一页一表单」）
+- [ ] 租户内容多语言走数据 locale map，不要做 `fieldTitleEn` 这种代码 i18n 平行字段（见 `docs/design/i18n.md`）
 - [ ] 若贡献了官网段：CSS 真源是 `shared/site-css/*.css`，没有手写 `*-css.ts`，generated 已 assemble 并提交

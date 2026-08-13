@@ -5,6 +5,7 @@
  */
 
 import { displayTitle, formatMoney } from "../lib/format.js";
+import { variantStorefrontLabel } from "../../shared/product-options.js";
 import {
   emptyShopContext,
   SHOP_CART_PATH,
@@ -58,7 +59,7 @@ export function toProductDetail(
     description: displayTitle(product.description, locale),
     variants: product.variants.map((variant) => ({
       id: variant.id,
-      label: displayTitle(variant.title, locale) || variant.sku,
+      label: variantStorefrontLabel(product.options, variant, locale),
       price: formatMoney(variant.price_cents, variant.currency, locale),
       stock: variant.stock_qty,
     })),

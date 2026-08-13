@@ -10,6 +10,11 @@ import type { AppLocale } from "@rewindom/module-sdk";
 
 import type { ShopCartView } from "../../shared/index.js";
 import { displayTitle } from "../lib/format.js";
+import {
+  readOptionValues,
+  readShopOptions,
+  variantStorefrontLabel,
+} from "../../shared/product-options.js";
 
 const CART_COOKIE = "shop_cart";
 
@@ -223,7 +228,8 @@ function toCartView(
         currency: string;
         stock_qty: number;
         title: unknown;
-        product: { id: string; slug: string; title: unknown };
+        option_values: unknown;
+        product: { id: string; slug: string; title: unknown; options: unknown };
       };
     }>;
   },
@@ -231,8 +237,20 @@ function toCartView(
 ): ShopCartView {
   const items = cart.items.map((item) => {
     const title =
-      displayTitle(item.variant.title, locale) ||
-      displayTitle(item.variant.product.title, locale, item.variant.sku);
+      variantStorefrontLabel(
+        readShopOptions(item.variant.product.options),
+        {
+          sku: item.variant.sku,
+          title:
+            item.variant.title &&
+            typeof item.variant.title === "object" &&
+            !Array.isArray(item.variant.title)
+              ? (item.variant.title as Record<string, string>)
+              : null,
+          option_values: readOptionValues(item.variant.option_values),
+        },
+        locale,
+      ) || displayTitle(item.variant.product.title, locale, item.variant.sku);
     return {
       id: item.id,
       variant_id: item.variant.id,

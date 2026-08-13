@@ -53,6 +53,7 @@ export type ShopProductCountAggregateOutputType = {
   status: number
   title: number
   description: number
+  options: number
   created_by: number
   updated_by: number
   created_at: number
@@ -90,6 +91,7 @@ export type ShopProductCountAggregateInputType = {
   status?: true
   title?: true
   description?: true
+  options?: true
   created_by?: true
   updated_by?: true
   created_at?: true
@@ -176,6 +178,7 @@ export type ShopProductGroupByOutputType = {
   status: string
   title: runtime.JsonValue
   description: runtime.JsonValue | null
+  options: runtime.JsonValue
   created_by: string
   updated_by: string | null
   created_at: Date
@@ -210,6 +213,7 @@ export type ShopProductWhereInput = {
   status?: Prisma.StringFilter<"ShopProduct"> | string
   title?: Prisma.JsonFilter<"ShopProduct">
   description?: Prisma.JsonNullableFilter<"ShopProduct">
+  options?: Prisma.JsonFilter<"ShopProduct">
   created_by?: Prisma.StringFilter<"ShopProduct"> | string
   updated_by?: Prisma.StringNullableFilter<"ShopProduct"> | string | null
   created_at?: Prisma.DateTimeFilter<"ShopProduct"> | Date | string
@@ -224,6 +228,7 @@ export type ShopProductOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  options?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -242,6 +247,7 @@ export type ShopProductWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.StringFilter<"ShopProduct"> | string
   title?: Prisma.JsonFilter<"ShopProduct">
   description?: Prisma.JsonNullableFilter<"ShopProduct">
+  options?: Prisma.JsonFilter<"ShopProduct">
   created_by?: Prisma.StringFilter<"ShopProduct"> | string
   updated_by?: Prisma.StringNullableFilter<"ShopProduct"> | string | null
   created_at?: Prisma.DateTimeFilter<"ShopProduct"> | Date | string
@@ -256,6 +262,7 @@ export type ShopProductOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  options?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -275,6 +282,7 @@ export type ShopProductScalarWhereWithAggregatesInput = {
   status?: Prisma.StringWithAggregatesFilter<"ShopProduct"> | string
   title?: Prisma.JsonWithAggregatesFilter<"ShopProduct">
   description?: Prisma.JsonNullableWithAggregatesFilter<"ShopProduct">
+  options?: Prisma.JsonWithAggregatesFilter<"ShopProduct">
   created_by?: Prisma.StringWithAggregatesFilter<"ShopProduct"> | string
   updated_by?: Prisma.StringNullableWithAggregatesFilter<"ShopProduct"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"ShopProduct"> | Date | string
@@ -288,6 +296,7 @@ export type ShopProductCreateInput = {
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -302,6 +311,7 @@ export type ShopProductUncheckedCreateInput = {
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -316,6 +326,7 @@ export type ShopProductUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -330,6 +341,7 @@ export type ShopProductUncheckedUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -344,6 +356,7 @@ export type ShopProductCreateManyInput = {
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -357,6 +370,7 @@ export type ShopProductUpdateManyMutationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -370,6 +384,7 @@ export type ShopProductUncheckedUpdateManyInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -388,6 +403,7 @@ export type ShopProductCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  options?: Prisma.SortOrder
   created_by?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -442,6 +458,7 @@ export type ShopProductCreateWithoutVariantsInput = {
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -455,6 +472,7 @@ export type ShopProductUncheckedCreateWithoutVariantsInput = {
   status?: string
   title: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by: string
   updated_by?: string | null
   created_at?: Date | string
@@ -484,6 +502,7 @@ export type ShopProductUpdateWithoutVariantsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -497,6 +516,7 @@ export type ShopProductUncheckedUpdateWithoutVariantsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  options?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   created_by?: Prisma.StringFieldUpdateOperationsInput | string
   updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -541,6 +561,7 @@ export type ShopProductSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   status?: boolean
   title?: boolean
   description?: boolean
+  options?: boolean
   created_by?: boolean
   updated_by?: boolean
   created_at?: boolean
@@ -556,6 +577,7 @@ export type ShopProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   status?: boolean
   title?: boolean
   description?: boolean
+  options?: boolean
   created_by?: boolean
   updated_by?: boolean
   created_at?: boolean
@@ -569,6 +591,7 @@ export type ShopProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   status?: boolean
   title?: boolean
   description?: boolean
+  options?: boolean
   created_by?: boolean
   updated_by?: boolean
   created_at?: boolean
@@ -582,13 +605,14 @@ export type ShopProductSelectScalar = {
   status?: boolean
   title?: boolean
   description?: boolean
+  options?: boolean
   created_by?: boolean
   updated_by?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type ShopProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "status" | "title" | "description" | "created_by" | "updated_by" | "created_at" | "updated_at", ExtArgs["result"]["shopProduct"]>
+export type ShopProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "status" | "title" | "description" | "options" | "created_by" | "updated_by" | "created_at" | "updated_at", ExtArgs["result"]["shopProduct"]>
 export type ShopProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   variants?: boolean | Prisma.ShopProduct$variantsArgs<ExtArgs>
   _count?: boolean | Prisma.ShopProductCountOutputTypeDefaultArgs<ExtArgs>
@@ -607,10 +631,14 @@ export type $ShopProductPayload<ExtArgs extends runtime.Types.Extensions.Interna
     slug: string
     status: string
     /**
-     * 扁平 locale → 文案，如 { "zh-CN": "…", "en": "…" }
+     * 扁平 locale → 文案，如 { "zh-CN": "…", "en": "…" }。这是数据多语言，不是模块 UI i18n。
      */
     title: runtime.JsonValue
     description: runtime.JsonValue | null
+    /**
+     * ShopProductOption[]：option 名/值同样是 locale map。
+     */
+    options: runtime.JsonValue
     created_by: string
     updated_by: string | null
     created_at: Date
@@ -1045,6 +1073,7 @@ export interface ShopProductFieldRefs {
   readonly status: Prisma.FieldRef<"ShopProduct", 'String'>
   readonly title: Prisma.FieldRef<"ShopProduct", 'Json'>
   readonly description: Prisma.FieldRef<"ShopProduct", 'Json'>
+  readonly options: Prisma.FieldRef<"ShopProduct", 'Json'>
   readonly created_by: Prisma.FieldRef<"ShopProduct", 'String'>
   readonly updated_by: Prisma.FieldRef<"ShopProduct", 'String'>
   readonly created_at: Prisma.FieldRef<"ShopProduct", 'DateTime'>

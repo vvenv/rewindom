@@ -242,7 +242,7 @@ const [createOpen, setCreateOpen] = useState(false);
 | 页上留什么 | 第二份表单去哪 |
 | --- | --- |
 | 一项设置表单（货币、开关、报关编号…） | 收款密钥 / 通道配置 → **Sheet**（状态行仍可见） |
-| 列表 | 创建 / 编辑 → `*CreateSheet` / `*Dialog`（已有内聚金标准） |
+| 列表 | 创建 / 编辑 → `*CreateSheet` / `*Dialog`（已有内聚金标准）；**商品这类字段多、含数据多语言 + options 的** → 独立页（`/app/shop/products/new`），列表 `action` 用 `DraggableFab` / `Link` |
 
 金标准：`site-billing` 的 `SiteBillingProviderStatusRow` + `SiteBillingProviderSheet`；shop `/app/shop/settings` 同构。
 
@@ -257,6 +257,12 @@ const [createOpen, setCreateOpen] = useState(false);
 ```
 
 收款通道的**状态**（钱进谁的账号、有没有配）必须留在页上，不能连同表单一起藏进 Sheet——否则结账失败要多点一次才看得到原因。
+
+## 数据多语言 ≠ 代码多语言
+
+商品名 / 详情 / option 是**数据**（库里的 locale map），工作台标签 / 校验 / toast 是**代码**（`client/locales/*.json`）。不要为英文再做 `fieldTitleEn` 这种平行 UI 字段。口径：`docs/design/i18n.md`「两套多语言」。
+
+独立商品编辑页（`/app/shop/products/new`、`/app/shop/products/:productId`）用内容语言 Tab 填同一套控件。
 
 ## 字段说明用气泡，不用常驻灰字
 
@@ -292,7 +298,7 @@ const [createOpen, setCreateOpen] = useState(false);
 
 - [ ] 租户页用了 `PageLayout`（icon + title + description + action）；平台页没套
 - [ ] 租户侧文案无「租户」「Tenant」（平台页除外）
-- [ ] `action` 为内聚 `*CreateSheet`（`children` = `DraggableFabTrigger`），无权限时为 `null`
+- [ ] `action` 为内聚 `*CreateSheet`（`children` = `DraggableFabTrigger`），无权限时为 `null`；复杂编辑（数据多语言 + 多区块）改为独立页 + `DraggableFab`/`Link`
 - [ ] 无 Page 级 `*Open` + 分散 Button / 底部 Sheet（Dialog/Sheet 内聚金标准）
 - [ ] 新增导航项写了 `title`（移动端标题来源）
 - [ ] Page 无 `ColumnDef`、无长 validator 函数
