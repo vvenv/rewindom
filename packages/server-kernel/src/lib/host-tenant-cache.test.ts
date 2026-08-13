@@ -8,9 +8,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  */
 vi.mock("./config.js", () => ({
   config: {
-    frontend: { url: "https://moms.plus" },
-    platform: { url: "https://platform.moms.plus" },
-    tenant: { baseDomain: "moms.plus" },
+    frontend: { url: "https://rewindom.com" },
+    platform: { url: "https://platform.rewindom.com" },
+    tenant: { baseDomain: "rewindom.com" },
     server: { isTest: false },
   },
 }));
@@ -24,10 +24,7 @@ vi.mock("./prisma.js", () => ({
   },
 }));
 
-import {
-  invalidateHostTenantCache,
-  resolveHostTenant,
-} from "./host-tenant.js";
+import { invalidateHostTenantCache, resolveHostTenant } from "./host-tenant.js";
 import { prisma } from "./prisma.js";
 
 const ACME = { id: "t-1", slug: "acme", name: "Acme" };
@@ -69,7 +66,11 @@ describe("resolveHostTenant 缓存", () => {
   it("不同 Host 各自缓存，互不串味", async () => {
     vi.mocked(prisma.tenant.findFirst)
       .mockResolvedValueOnce(ACME as never)
-      .mockResolvedValueOnce({ id: "t-2", slug: "beta", name: "Beta" } as never);
+      .mockResolvedValueOnce({
+        id: "t-2",
+        slug: "beta",
+        name: "Beta",
+      } as never);
 
     await expect(resolveHostTenant("portal.acme.io")).resolves.toMatchObject({
       tenant_id: "t-1",
@@ -108,8 +109,12 @@ describe("resolveHostTenant 缓存", () => {
   });
 
   it("平台控制台 Host 依然不查库，也不占缓存", async () => {
-    await expect(resolveHostTenant("platform.moms.plus")).resolves.toBeNull();
-    await expect(resolveHostTenant("platform.moms.plus")).resolves.toBeNull();
+    await expect(
+      resolveHostTenant("platform.rewindom.com"),
+    ).resolves.toBeNull();
+    await expect(
+      resolveHostTenant("platform.rewindom.com"),
+    ).resolves.toBeNull();
     expect(prisma.tenant.findFirst).not.toHaveBeenCalled();
     expect(prisma.tenant.findUnique).not.toHaveBeenCalled();
   });
@@ -122,10 +127,10 @@ describe("resolveHostTenant 缓存", () => {
       status: "active",
     } as never);
 
-    await expect(resolveHostTenant("moms.plus")).resolves.toMatchObject({
+    await expect(resolveHostTenant("rewindom.com")).resolves.toMatchObject({
       tenant_id: DEFAULT_TENANT_ID,
     });
-    await expect(resolveHostTenant("moms.plus")).resolves.toMatchObject({
+    await expect(resolveHostTenant("rewindom.com")).resolves.toMatchObject({
       tenant_id: DEFAULT_TENANT_ID,
     });
 

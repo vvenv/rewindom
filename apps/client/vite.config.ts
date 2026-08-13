@@ -11,11 +11,7 @@ import {
 } from "./vite-marketing-ssr-proxy";
 
 /** 平台控制台 Host：不代理 Marketing SSR（与 server `getPlatformConsoleHostnames` 对齐）。 */
-const PLATFORM_CONSOLE_DEV_HOSTS = new Set([
-  "127.0.0.1",
-  "::1",
-  "[::1]",
-]);
+const PLATFORM_CONSOLE_DEV_HOSTS = new Set(["127.0.0.1", "::1", "[::1]"]);
 
 /**
  * 产品站 / 租户 Host 下将文档导航代理到 Fastify Marketing SSR。
@@ -38,11 +34,7 @@ function tenantMarketingSsrProxy(): Plugin {
         }
         const accept = req.headers.accept ?? "";
         if (
-          !shouldProxyDocumentToMarketingSsr(
-            url,
-            req.method ?? "GET",
-            accept,
-          )
+          !shouldProxyDocumentToMarketingSsr(url, req.method ?? "GET", accept)
         ) {
           next();
           return;
@@ -114,7 +106,7 @@ export default defineConfig(() => ({
      * 就会走通配子域解析到对应租户。浏览器原生把 `*.localhost` 解析到回环地址，
      * 不用改 hosts 文件；少了它 vite 会以 "Blocked request" 直接挡掉。
      */
-    allowedHosts: [".localhost", "127.0.0.1", "::1", "local.moms.plus"],
+    allowedHosts: [".localhost", "127.0.0.1", "::1", "local.rewindom.com"],
     proxy: {
       "/api": {
         target: "http://localhost:3700",

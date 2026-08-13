@@ -1,7 +1,9 @@
-import { createQueryWrapper, createTestQueryClient } from "@be-water/client-test";
+import {
+  createQueryWrapper,
+  createTestQueryClient,
+} from "@be-water/client-test";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-
 
 import { TenantCard } from "./TenantCard.js";
 
@@ -11,26 +13,17 @@ vi.mock("./TenantStats.js", () => ({
   TenantStats: () => <div data-testid="tenant-stats">stats</div>,
 }));
 
-vi.mock(
-  "./TenantFeaturesSheet.js",
-  () => ({
-    TenantFeaturesSheet: () => <button type="button">功能</button>,
-  }),
-);
+vi.mock("./TenantFeaturesSheet.js", () => ({
+  TenantFeaturesSheet: () => <button type="button">功能</button>,
+}));
 
-vi.mock(
-  "./TenantIntegrationSheet.js",
-  () => ({
-    TenantIntegrationSheet: () => <button type="button">集成</button>,
-  }),
-);
+vi.mock("./TenantIntegrationSheet.js", () => ({
+  TenantIntegrationSheet: () => <button type="button">集成</button>,
+}));
 
-vi.mock(
-  "./TenantResetPasswordSheet.js",
-  () => ({
-    TenantResetPasswordSheet: () => <button type="button">密码</button>,
-  }),
-);
+vi.mock("./TenantResetPasswordSheet.js", () => ({
+  TenantResetPasswordSheet: () => <button type="button">密码</button>,
+}));
 
 vi.mock("./TenantEditSheet.js", () => ({
   TenantEditSheet: () => <button type="button">编辑</button>,
@@ -40,12 +33,9 @@ vi.mock("./TenantPlanSheet.js", () => ({
   TenantPlanSheet: () => <button type="button">套餐</button>,
 }));
 
-vi.mock(
-  "./TenantImpersonateSheet.js",
-  () => ({
-    TenantImpersonateSheet: () => <button type="button">登录</button>,
-  }),
-);
+vi.mock("./TenantImpersonateSheet.js", () => ({
+  TenantImpersonateSheet: () => <button type="button">登录</button>,
+}));
 
 vi.mock("../shell/platform-widget-slots.js", () => ({
   tenantCardActionsSlot: {
@@ -67,8 +57,8 @@ vi.mock("@be-water/client-kit", async (importOriginal) => {
         microsoft_oauth_enabled: false,
         single_tenant: false,
         bound_tenant: null,
-        tenant_base_domain: "moms.plus",
-        platform_url: "https://platform.moms.plus",
+        tenant_base_domain: "rewindom.com",
+        platform_url: "https://platform.rewindom.com",
       },
     }),
   };

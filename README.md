@@ -19,10 +19,10 @@
 
 **Agent-first** 的多租户 SaaS **模块化单体**：内核 + 内置基础设施 + 可选外部业务模块。用 `AGENTS.md`、Cursor/Claude Skills 与 `gen:module` → `check:modules` 闭环，让编码 Agent 在强制边界内扩展业务。内核与基础设施**不含业务领域代码**；业务以模块挂载，外部示例以 `modules/note` 为金标准。
 
-| 类型 | 模块 |
-| --- | --- |
+| 类型                            | 模块                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 基础设施（`packages/builtin/`） | `user` 认证/JWT · `platform` 租户/套餐/配额 · `rbac` PBAC（未启用则登录即可访问）· `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 · `dashboard` 工作台 · `marketing` 官网 CMS（主域=默认租户 SSR） · `site-member` 站点会员 · `billing` 平台租户订阅（Creem） · `site-billing` 站点会员订阅 |
-| 外部业务（`modules/`） | `note` 金标准 CRUD · `todo` 列表示例 · `bookmark` 书签示例（由 `pnpm gen:external-modules` 装进组装层） |
+| 外部业务（`modules/`）          | `note` 金标准 CRUD · `todo` 列表示例 · `bookmark` 书签示例（由 `pnpm gen:external-modules` 装进组装层）                                                                                                                                                                                                                                                    |
 
 **不是**：无约束的脚手架喷发器、微服务框架、低代码平台。Agent 写代码，闸门与契约由框架强制。详见 [agent-first.md](docs/design/agent-first.md)。
 
@@ -49,13 +49,13 @@ pnpm dev
 `localhost` 是产品站（隐式绑定默认租户），`127.0.0.1` 是平台控制台。这是刻意的，
 免去改 `/etc/hosts` 就能在本地同时验证两种 Host。
 
-| 要进哪儿       | 本地地址                              | 说明                                        |
-| -------------- | ------------------------------------- | ------------------------------------------- |
-| 租户官网       | `http://localhost:7300/`              | 默认租户的 CMS 站点（Fastify SSR）          |
-| 租户工作台     | `http://localhost:7300/app`           | 稳定入口；未登录自动转 `/login`。所有工作台页面都在 `/app/*`（`/app/site`、`/app/dashboard`…） |
-| 租户登录       | `http://localhost:7300/login`         | 租户锁定为默认租户                          |
-| 站点会员       | `http://localhost:7300/member/login`  | 站点前台的终端客户，与工作台用户是两套身份  |
-| **平台控制台** | **`http://127.0.0.1:7300/platform`**  | 未登录自动转 `/login`；平台管理员在此登录   |
+| 要进哪儿       | 本地地址                             | 说明                                                                                           |
+| -------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| 租户官网       | `http://localhost:7300/`             | 默认租户的 CMS 站点（Fastify SSR）                                                             |
+| 租户工作台     | `http://localhost:7300/app`          | 稳定入口；未登录自动转 `/login`。所有工作台页面都在 `/app/*`（`/app/site`、`/app/dashboard`…） |
+| 租户登录       | `http://localhost:7300/login`        | 租户锁定为默认租户                                                                             |
+| 站点会员       | `http://localhost:7300/member/login` | 站点前台的终端客户，与工作台用户是两套身份                                                     |
+| **平台控制台** | **`http://127.0.0.1:7300/platform`** | 未登录自动转 `/login`；平台管理员在此登录                                                      |
 
 常见困惑：在 `localhost:7300/platform` 打不开控制台——那个 Host 绑着租户，控制台不在
 上面，会被转到 `127.0.0.1:7300/platform`。反过来，`127.0.0.1:7300/` 也没有官网，
@@ -82,17 +82,17 @@ TENANT_BASE_DOMAIN=localhost
 
 ### 生产
 
-当前生产（`.env.production`）：`APP_DOMAIN=water.moms.plus`，`TENANT_BASE_DOMAIN=water.moms.plus`。
+当前生产（`.env.production`）：`APP_DOMAIN=rewindom.com`，`TENANT_BASE_DOMAIN=rewindom.com`。
 由 Host 决定，与本地同构：
 
-| 要进哪儿   | 地址 | env |
-| ---------- | ---- | --- |
-| 产品站     | https://water.moms.plus/ | `FRONTEND_URL` |
-| 租户管理台（工作台） | https://water.moms.plus/app | 同上 |
-| 租户登录   | https://water.moms.plus/login | 同上；未登录访问 `/app` 会转到此页 |
-| 其他租户登录 | `https://{slug}.water.moms.plus/login` 或租户 `custom_domain` 上的 `/login` | `TENANT_BASE_DOMAIN` |
-| 租户站点   | 租户 `custom_domain` 或 `https://{slug}.water.moms.plus` | `TENANT_BASE_DOMAIN` |
-| 平台控制台 | https://admin.water.moms.plus/platform | `PLATFORM_URL` / `PLATFORM_HOST` |
+| 要进哪儿             | 地址                                                                     | env                                |
+| -------------------- | ------------------------------------------------------------------------ | ---------------------------------- |
+| 产品站               | https://rewindom.com/                                                    | `FRONTEND_URL`                     |
+| 租户管理台（工作台） | https://rewindom.com/app                                                 | 同上                               |
+| 租户登录             | https://rewindom.com/login                                               | 同上；未登录访问 `/app` 会转到此页 |
+| 其他租户登录         | `https://{slug}.rewindom.com/login` 或租户 `custom_domain` 上的 `/login` | `TENANT_BASE_DOMAIN`               |
+| 租户站点             | 租户 `custom_domain` 或 `https://{slug}.rewindom.com`                    | `TENANT_BASE_DOMAIN`               |
+| 平台控制台           | https://admin.rewindom.com/platform                                      | `PLATFORM_URL` / `PLATFORM_HOST`   |
 
 `PLATFORM_URL` 必须与 `FRONTEND_URL` **不同 Host**：nginx 按 Host 分流（见
 `docker/nginx/default.conf.template` 的 `$use_tenant_ssr`），平台 Host 走静态 SPA，
@@ -101,24 +101,25 @@ TENANT_BASE_DOMAIN=localhost
 
 #### 生产：登录租户管理台
 
-1. **默认租户（产品站 Host）**：打开 https://water.moms.plus/login ，或 https://water.moms.plus/app （未登录自动转 `/login`）。
-2. **其他租户**：`https://{slug}.water.moms.plus/login`，或该租户绑定域名上的 `/login`（Host 锁定租户，可用裸用户名）。
+1. **默认租户（产品站 Host）**：打开 https://rewindom.com/login ，或 https://rewindom.com/app （未登录自动转 `/login`）。
+2. **其他租户**：`https://{slug}.rewindom.com/login`，或该租户绑定域名上的 `/login`（Host 锁定租户，可用裸用户名）。
 3. **凭据**：租户 User（工作台账号），与平台管理员不是同一套身份；多租户登录标识见 [tenant-config.md](docs/design/tenant-config.md)。
 
 #### 生产：登录平台管理后台
 
-1. **DNS**：`admin.water.moms.plus` 需 A/CNAME 指向与 `water.moms.plus` 相同的服务器；TLS 证书须覆盖该 Host（通配 `*.water.moms.plus` 或单独签发 `admin.water.moms.plus`）。
-2. **打开** https://admin.water.moms.plus/platform （不要用 `water.moms.plus`）。未登录会转到同 Host 的 `/login`。
-   - 入口用 **`/platform`**，不要只打开 https://admin.water.moms.plus/ ——根路径在控制台 Host 上没有官网，旧版会把自己硬跳进死循环（已修：根路径会转到 `/platform`）。
-   - 在 https://water.moms.plus/platform 会被送到平台 Host。
+1. **DNS**：`admin.rewindom.com` 需 A/CNAME 指向与 `rewindom.com` 相同的服务器；TLS 证书须覆盖该 Host（通配 `*.rewindom.com` 或单独签发 `admin.rewindom.com`）。
+2. **打开** https://admin.rewindom.com/platform （不要用 `rewindom.com`）。未登录会转到同 Host 的 `/login`。
+   - 入口用 **`/platform`**，不要只打开 https://admin.rewindom.com/ ——根路径在控制台 Host 上没有官网，旧版会把自己硬跳进死循环（已修：根路径会转到 `/platform`）。
+   - 在 https://rewindom.com/platform 会被送到平台 Host。
 3. **凭据**（`.env.production`，首次启动写入 `PlatformAdmin`）：
 
-   | | |
-   | --- | --- |
-   | 用户名 | `vvenv`（`PLATFORM_ADMIN_USERNAME`） |
-   | 密码 | `.env.production` 的 `PLATFORM_ADMIN_PASSWORD` |
+   |        |                                                |
+   | ------ | ---------------------------------------------- |
+   | 用户名 | `vvenv`（`PLATFORM_ADMIN_USERNAME`）           |
+   | 密码   | `.env.production` 的 `PLATFORM_ADMIN_PASSWORD` |
 
    登录时**不要**加 `@tenant` 后缀。平台管理员与租户 User 是两套身份。
+
 4. **改密码后生效**：若改了 env 密码但库里已有同名管理员，不会自动覆盖——需在控制台改密，或清库后重启让 bootstrap 重建（仅空环境适用）。改 env 后执行 `pnpm deploy -- --env production --env-only` 同步到容器。
 
 ---
@@ -145,15 +146,15 @@ TENANT_BASE_DOMAIN=localhost
 
 ## 技术栈
 
-| 层次 | 技术 |
-| --- | --- |
-| 后端 | Fastify 5 · TypeScript 6 · Prisma 7 |
-| 数据 | PostgreSQL 16 · Redis 7 · BullMQ |
+| 层次 | 技术                                                       |
+| ---- | ---------------------------------------------------------- |
+| 后端 | Fastify 5 · TypeScript 6 · Prisma 7                        |
+| 数据 | PostgreSQL 16 · Redis 7 · BullMQ                           |
 | 前端 | React 19 · Vite 8 · React Router v8 · TanStack Query/Table |
-| UI | shadcn/ui · Tailwind CSS 4 |
-| 认证 | JWT 双 Token（access + refresh） |
-| LLM | OpenAI 兼容（可选，默认 DeepSeek） |
-| 部署 | Docker Compose（生产）· 宿主机热更新（开发） |
+| UI   | shadcn/ui · Tailwind CSS 4                                 |
+| 认证 | JWT 双 Token（access + refresh）                           |
+| LLM  | OpenAI 兼容（可选，默认 DeepSeek）                         |
+| 部署 | Docker Compose（生产）· 宿主机热更新（开发）               |
 
 ---
 
@@ -183,18 +184,18 @@ be-water/
 
 ## 常用命令
 
-| 命令 | 说明 |
-| --- | --- |
-| `pnpm setup` / `pnpm dev` | 本地初始化（幂等）/ 启前后端 |
-| `pnpm db:up` / `db:down` / `db:studio` | 本地库启停 / Prisma Studio |
-| `pnpm db:pull` / `seed` | 拉取远程库到本地 / 初始化种子数据 |
-| `pnpm build` / `pnpm start` | 构建 / 生产模式启动 |
-| `pnpm test` / `pnpm check` | 测试 / lint + test |
-| `pnpm check:deps` / `check:modules` / `check:i18n` | 模块边界 / 契约（注册表、权限、nav）/ 客户端文案 |
-| `pnpm gen:module <spec.yaml>` | 从 spec 生成外部业务模块骨架（`modules/<id>/`） |
-| `pnpm gen:external-modules` | 聚合 `modules/*` 到组装层（通常由 gen:module 触发） |
-| `pnpm docker:stack:up` | 本地生产 Docker 栈（需 `.env.docker.local`） |
-| `pnpm bootstrap` / `deploy` / `release` | 远程首次部署 / 更新 / 发版 |
+| 命令                                               | 说明                                                |
+| -------------------------------------------------- | --------------------------------------------------- |
+| `pnpm setup` / `pnpm dev`                          | 本地初始化（幂等）/ 启前后端                        |
+| `pnpm db:up` / `db:down` / `db:studio`             | 本地库启停 / Prisma Studio                          |
+| `pnpm db:pull` / `seed`                            | 拉取远程库到本地 / 初始化种子数据                   |
+| `pnpm build` / `pnpm start`                        | 构建 / 生产模式启动                                 |
+| `pnpm test` / `pnpm check`                         | 测试 / lint + test                                  |
+| `pnpm check:deps` / `check:modules` / `check:i18n` | 模块边界 / 契约（注册表、权限、nav）/ 客户端文案    |
+| `pnpm gen:module <spec.yaml>`                      | 从 spec 生成外部业务模块骨架（`modules/<id>/`）     |
+| `pnpm gen:external-modules`                        | 聚合 `modules/*` 到组装层（通常由 gen:module 触发） |
+| `pnpm docker:stack:up`                             | 本地生产 Docker 栈（需 `.env.docker.local`）        |
+| `pnpm bootstrap` / `deploy` / `release`            | 远程首次部署 / 更新 / 发版                          |
 
 ---
 
@@ -202,23 +203,23 @@ be-water/
 
 复制 `.env.example` → `.env.local`，至少：
 
-| 变量 | 说明 |
-| --- | --- |
-| `DATABASE_URL` | `postgresql://be-water:...@localhost:5433/be-water` |
-| `JWT_SECRET` | ≥32 字符随机串 |
-| `TENANT_SECRET_ENCRYPTION_KEY` | 32 字节 hex（`openssl rand -hex 32`） |
+| 变量                           | 说明                                                |
+| ------------------------------ | --------------------------------------------------- |
+| `DATABASE_URL`                 | `postgresql://be-water:...@localhost:5433/be-water` |
+| `JWT_SECRET`                   | ≥32 字符随机串                                      |
+| `TENANT_SECRET_ENCRYPTION_KEY` | 32 字节 hex（`openssl rand -hex 32`）               |
 
 租户级密钥（如 LLM API Key）AES-GCM 加密存库，主密钥为 `TENANT_SECRET_ENCRYPTION_KEY`。完整列表见 `.env.example`。
 
 付款（`billing` / Creem，可选）：
 
-| 变量 | 说明 |
-| --- | --- |
-| `CREEM_API_KEY` | Test/Live API Key；空则无法发起 checkout |
-| `CREEM_WEBHOOK_SECRET` | Webhook 验签密钥（与 Dashboard 一致） |
-| `CREEM_SERVER` | `test` \| `prod`（本地联调用 `test`） |
-| `CREEM_PRODUCT_MAP` | JSON：`{"starter":"prod_xxx",...}`（必须是 `prod_` 开头的商品 ID，不是套餐 slug） |
-| `CREEM_STORE_ID` | 可选；默认见 `.env.example` |
+| 变量                   | 说明                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `CREEM_API_KEY`        | Test/Live API Key；空则无法发起 checkout                                          |
+| `CREEM_WEBHOOK_SECRET` | Webhook 验签密钥（与 Dashboard 一致）                                             |
+| `CREEM_SERVER`         | `test` \| `prod`（本地联调用 `test`）                                             |
+| `CREEM_PRODUCT_MAP`    | JSON：`{"starter":"prod_xxx",...}`（必须是 `prod_` 开头的商品 ID，不是套餐 slug） |
+| `CREEM_STORE_ID`       | 可选；默认见 `.env.example`                                                       |
 
 ---
 
@@ -226,9 +227,9 @@ be-water/
 
 平台套餐分两层：
 
-| 层 | 内容 | 改在哪 |
-| --- | --- | --- |
-| 结构 | 有哪几个 slug、配额、功能开关 | 代码 `PRICING_PLANS`（发版） |
+| 层   | 内容                                  | 改在哪                                          |
+| ---- | ------------------------------------- | ----------------------------------------------- |
+| 结构 | 有哪几个 slug、配额、功能开关         | 代码 `PRICING_PLANS`（发版）                    |
 | 运营 | 价格、上架、推荐、排序、名称/卖点文案 | 平台控制台套餐配置（`AppSetting.plan_pricing`） |
 
 官网段 `billing.plans`（平台套餐）是**数据驱动**的：段 settings 只管版式与 CTA，不存第二份价格。SSR 渲染前由 `registerSectionContextProvider` 按需注入目录；公开只读接口 `GET /api/public/plans` 与编辑器预览读同一份合并结果（未配置字段回落到代码默认值）。
@@ -239,10 +240,10 @@ be-water/
 
 两条付款域、两套 webhook，都打 **API（3700）**，不是前端（7300）。
 
-| 域 | 谁付钱 | 工作台 / 会员入口 | Webhook |
-| --- | --- | --- | --- |
-| 平台租户付费（`billing`） | 组织（工作台用户） | `http://localhost:7300/app/billing` | `/api/billing/webhooks/creem` |
-| 站点会员付费（`site-billing`） | 站点会员 | `http://localhost:7300/member/billing` | `/api/site-billing/webhooks/creem` |
+| 域                             | 谁付钱             | 工作台 / 会员入口                      | Webhook                            |
+| ------------------------------ | ------------------ | -------------------------------------- | ---------------------------------- |
+| 平台租户付费（`billing`）      | 组织（工作台用户） | `http://localhost:7300/app/billing`    | `/api/billing/webhooks/creem`      |
+| 站点会员付费（`site-billing`） | 站点会员           | `http://localhost:7300/member/billing` | `/api/site-billing/webhooks/creem` |
 
 1. `.env.local` 配好上表 Creem 变量，`pnpm dev`
 2. 隧道指向 API：

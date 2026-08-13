@@ -2,7 +2,7 @@
 
 单实例部署下，租户可通过两类域名访问并锁定身份：
 
-1. **平台通配子域**（推荐默认）：`{slug}.{TENANT_BASE_DOMAIN}`，例如 `acme.water.moms.plus`——创建租户即有，**无需客户配 DNS**
+1. **平台通配子域**（推荐默认）：`{slug}.{TENANT_BASE_DOMAIN}`，例如 `acme.rewindom.com`——创建租户即有，**无需客户配 DNS**
 2. **客户自定义域名**：如 `portal.acme.com`——客户配 DNS，平台控制台绑定
 
 两类域名上效果相同：开放营销前台与租户中台，禁止平台控制台；登录/注册无需再写 `@租户标识`。绑定域名下的**中台登录页仍是产品品牌**——Logo / Favicon 是站点的资产，只作用于官网（见 `design/tenant-config.md` §2.4）。
@@ -13,24 +13,24 @@
 
 ---
 
-## 0. 平台通配子域（`*.water.moms.plus`）
+## 0. 平台通配子域（`*.rewindom.com`）
 
 ### 0.1 配置
 
-| 项 | 值 |
-| --- | --- |
-| env | `TENANT_BASE_DOMAIN=water.moms.plus`（须透传 compose；见 `tenancy-mode` / `check:prod-app-env`） |
-| DNS（一次） | `*.water.moms.plus` → 平台入口（A/CNAME） |
-| TLS（一次） | 证书 SAN 含 `water.moms.plus` + `*.water.moms.plus`（Let's Encrypt **DNS-01**） |
-| Nginx | `server_name water.moms.plus *.water.moms.plus;`，透传 `Host` |
+| 项          | 值                                                                                            |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| env         | `TENANT_BASE_DOMAIN=rewindom.com`（须透传 compose；见 `tenancy-mode` / `check:prod-app-env`） |
+| DNS（一次） | `*.rewindom.com` → 平台入口（A/CNAME）                                                        |
+| TLS（一次） | 证书 SAN 含 `rewindom.com` + `*.rewindom.com`（Let's Encrypt **DNS-01**）                     |
+| Nginx       | `server_name rewindom.com *.rewindom.com;`，透传 `Host`                                       |
 
 应用解析优先级：
 
-1. Host = 平台控制台（`PLATFORM_URL` / 本地 `127.0.0.1`）→ 不绑定（开放 `/platform`）  
-2. Host = 产品主域（`FRONTEND_URL` / `APP_DOMAIN` / 本地 `localhost`）→ 锁定默认租户  
-3. Host = `Tenant.custom_domain` → 锁定该租户  
-4. Host = `{slug}.{TENANT_BASE_DOMAIN}` → 按 slug 锁定 active 租户  
-5. 其它 → 不绑定  
+1. Host = 平台控制台（`PLATFORM_URL` / 本地 `127.0.0.1`）→ 不绑定（开放 `/platform`）
+2. Host = 产品主域（`FRONTEND_URL` / `APP_DOMAIN` / 本地 `localhost`）→ 锁定默认租户
+3. Host = `Tenant.custom_domain` → 锁定该租户
+4. Host = `{slug}.{TENANT_BASE_DOMAIN}` → 按 slug 锁定 active 租户
+5. 其它 → 不绑定
 
 保留前缀（不映射租户）：`www` / `app` / `api` / `platform` / `admin` / `mail` / `status` / `cdn` / `static` / `assets`。
 
@@ -61,14 +61,14 @@ chmod 600 /root/.secrets/certbot/dnspod-109.ini
   --authenticator dns-dnspod-109 \
   --dns-dnspod-109-credentials /root/.secrets/certbot/dnspod-109.ini \
   --dns-dnspod-109-propagation-seconds 60 \
-  -d water.moms.plus -d '*.water.moms.plus' \
-  --cert-name water.moms.plus \
+  -d rewindom.com -d '*.rewindom.com' \
+  --cert-name rewindom.com \
   --agree-tos -m <SSL_EMAIL> --non-interactive
 ```
 
 **续期配置：**
 
-- `/etc/letsencrypt/renewal/water.moms.plus.conf`：`authenticator = dns-dnspod-109`，并指向上述 credentials；`pref_challs = dns-01`
+- `/etc/letsencrypt/renewal/rewindom.com.conf`：`authenticator = dns-dnspod-109`，并指向上述 credentials；`pref_challs = dns-01`
 - systemd drop-in `/etc/systemd/system/certbot.service.d/override.conf`：
 
 ```ini
@@ -82,7 +82,7 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 **验收：**
 
 ```bash
-/opt/certbot-dns/bin/certbot renew --cert-name water.moms.plus --dry-run
+/opt/certbot-dns/bin/certbot renew --cert-name rewindom.com --dry-run
 ```
 
 成功应看到 `Congratulations, all simulated renewals succeeded`。勿把 Secret 写进仓库或 compose；凭证仅放服务器 `600` 文件。
@@ -99,11 +99,11 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 
 ## 1. 角色与分工（客户自定义域名）
 
-| 角色 | 负责事项 |
-| --- | --- |
-| **租户 / 客户** | DNS（自定义域）；在中台 `/app/site` 编辑并发布官网内容 |
-| **平台管理员** | 控制台绑定 `custom_domain`；开通 entitlement `tenant-marketing`（默认开） |
-| **实例运维** | 公网入口、TLS；Nginx 按 Host 分流（平台控制台 SPA / 租户 SSR） |
+| 角色            | 负责事项                                                                  |
+| --------------- | ------------------------------------------------------------------------- |
+| **租户 / 客户** | DNS（自定义域）；在中台 `/app/site` 编辑并发布官网内容                    |
+| **平台管理员**  | 控制台绑定 `custom_domain`；开通 entitlement `tenant-marketing`（默认开） |
+| **实例运维**    | 公网入口、TLS；Nginx 按 Host 分流（平台控制台 SPA / 租户 SSR）            |
 
 通配子域只需运维完成 §0；自定义域还需客户 DNS + 控制台绑定。官网文案由租户在 CMS 发布后生效。
 
@@ -113,15 +113,15 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 
 假设产品主域为 `https://app.example.com`，平台控制台为 `https://admin.app.example.com`，租户绑定了 `portal.acme.com`：
 
-| 访问方式 | 行为 |
-| --- | --- |
-| `https://portal.acme.com/` | 租户已发布官网（SSR）；未发布则提示未开通 |
-| `https://portal.acme.com/login` | 登录锁定该租户；可用裸用户名（如 `admin`） |
-| `https://portal.acme.com/app/site` | 租户自助编辑官网（需 `site.read`） |
-| `https://portal.acme.com/app` | 租户中台 |
-| `https://portal.acme.com/platform` | **不可用**（前端跳转；API 403） |
-| `https://app.example.com` | 默认租户 CMS SSR；登录锁定 default；禁平台控制台 |
-| `https://admin.app.example.com/platform` | 平台控制台（不绑定租户） |
+| 访问方式                                 | 行为                                             |
+| ---------------------------------------- | ------------------------------------------------ |
+| `https://portal.acme.com/`               | 租户已发布官网（SSR）；未发布则提示未开通        |
+| `https://portal.acme.com/login`          | 登录锁定该租户；可用裸用户名（如 `admin`）       |
+| `https://portal.acme.com/app/site`       | 租户自助编辑官网（需 `site.read`）               |
+| `https://portal.acme.com/app`            | 租户中台                                         |
+| `https://portal.acme.com/platform`       | **不可用**（前端跳转；API 403）                  |
+| `https://app.example.com`                | 默认租户 CMS SSR；登录锁定 default；禁平台控制台 |
+| `https://admin.app.example.com/platform` | 平台控制台（不绑定租户）                         |
 
 同一域名全局只能绑一个租户；不可绑定产品主域、平台控制台 Host（`APP_DOMAIN` / `FRONTEND_URL` / `PLATFORM_URL`）或 `localhost` / `127.0.0.1`。
 
@@ -142,15 +142,15 @@ ExecStart=/opt/certbot-dns/bin/certbot -q renew --no-random-sleep-on-renew
 
 以绑定 `portal.acme.com`、CNAME 到 `app.example.com` 为例：
 
-| 类型 | 主机记录 / 名称 | 记录值 | TTL |
-| --- | --- | --- | --- |
+| 类型  | 主机记录 / 名称                                    | 记录值            | TTL        |
+| ----- | -------------------------------------------------- | ----------------- | ---------- |
 | CNAME | `portal`（或 `portal.acme.com`，视控制台写法而定） | `app.example.com` | 默认或 600 |
 
 若平台要求 A 记录：
 
-| 类型 | 主机记录 | 记录值 | TTL |
-| --- | --- | --- | --- |
-| A | `portal` | `<平台公网 IPv4>` | 默认或 600 |
+| 类型 | 主机记录 | 记录值            | TTL        |
+| ---- | -------- | ----------------- | ---------- |
+| A    | `portal` | `<平台公网 IPv4>` | 默认或 600 |
 
 注意：
 
@@ -201,7 +201,7 @@ DNS 未生效前，请勿要求平台「绑定失败」；先把解析做对。
 
 常见做法（择一）：
 
-1. **Certbot 为新域名扩证 / 另签**（宿主机 Nginx 终止 TLS 时）  
+1. **Certbot 为新域名扩证 / 另签**（宿主机 Nginx 终止 TLS 时）
    ```bash
    # 示例：把 portal.acme.com 加入已有证书或单独申请
    certbot --nginx -d app.example.com -d portal.acme.com
@@ -250,16 +250,16 @@ curl -sS -H "Host: portal.acme.com" https://portal.acme.com/api/public/config | 
 
 ## 8. 常见问题
 
-| 现象 | 可能原因 | 处理 |
-| --- | --- | --- |
-| 域名无法解析 | DNS 未配或未生效 | 客户重查记录；等待 TTL |
-| 证书错误 | 证书未含该域名 | 运维扩证 / 在 LB 配证 |
-| 打开的是别的站点或 404 | DNS 指错 IP / 未指到本实例 | 核对 CNAME/A 目标 |
-| 登录仍提示 `@组织` | 控制台未绑定或 Host 未传到应用 | 确认已保存 `custom_domain`；反代须透传 `Host` / `X-Forwarded-Host` |
-| 提示域名已被占用 | 其他租户已绑定同一 hostname | 换域名或先清除原绑定 |
-| 提示保留/无效域名 | 填了平台主域、localhost、带协议/端口等 | 按 §4 规则改正 |
-| 工作台 OAuth 回调跑回主域 | 未用当前域名发起登录，或回调 URL 写死主域 | 在绑定域名上点 OAuth；生产建议为各入口配置可达的回调（见部署文档） |
-| 会员 OAuth 无法在自定义域登录 | 平台应用未登记统一回调，或 exchange 失败 | 平台 OAuth 应用须登记 `{FRONTEND_URL}/api/auth/oauth/{provider}/callback`（与工作台共用）；浏览器会先回主域再跳回绑定域种 Cookie |
+| 现象                          | 可能原因                                  | 处理                                                                                                                             |
+| ----------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 域名无法解析                  | DNS 未配或未生效                          | 客户重查记录；等待 TTL                                                                                                           |
+| 证书错误                      | 证书未含该域名                            | 运维扩证 / 在 LB 配证                                                                                                            |
+| 打开的是别的站点或 404        | DNS 指错 IP / 未指到本实例                | 核对 CNAME/A 目标                                                                                                                |
+| 登录仍提示 `@组织`            | 控制台未绑定或 Host 未传到应用            | 确认已保存 `custom_domain`；反代须透传 `Host` / `X-Forwarded-Host`                                                               |
+| 提示域名已被占用              | 其他租户已绑定同一 hostname               | 换域名或先清除原绑定                                                                                                             |
+| 提示保留/无效域名             | 填了平台主域、localhost、带协议/端口等    | 按 §4 规则改正                                                                                                                   |
+| 工作台 OAuth 回调跑回主域     | 未用当前域名发起登录，或回调 URL 写死主域 | 在绑定域名上点 OAuth；生产建议为各入口配置可达的回调（见部署文档）                                                               |
+| 会员 OAuth 无法在自定义域登录 | 平台应用未登记统一回调，或 exchange 失败  | 平台 OAuth 应用须登记 `{FRONTEND_URL}/api/auth/oauth/{provider}/callback`（与工作台共用）；浏览器会先回主域再跳回绑定域种 Cookie |
 
 本阶段**不包含**：客户自助在租户设置里改域名、客户自定义域名的 DNS TXT 自动校验、每客户域名自动签发证书。平台通配子域与通配证书续期见 §0。
 

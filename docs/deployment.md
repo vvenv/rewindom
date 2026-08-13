@@ -168,7 +168,7 @@ curl http://127.0.0.1:3700/health
 | `JWT_SECRET`                   | JWT 签名密钥                                    |
 | `TENANT_SECRET_ENCRYPTION_KEY` | 租户密钥加密（32 字节 hex）                     |
 | `SINGLE_TENANT`                | `true` 时单租户部署（默认关闭）；须同时出现在 `.env.production` 与 `docker-compose.prod.yml` → `app.environment` |
-| `TENANT_BASE_DOMAIN`           | 平台通配子域基域（如 `water.moms.plus`）；`{slug}.{base}` 自动锁定租户；空则关闭 |
+| `TENANT_BASE_DOMAIN`           | 平台通配子域基域（如 `rewindom.com`）；`{slug}.{base}` 自动锁定租户；空则关闭 |
 
 完整列表见 `scripts/env.production.example`。新增应用运行时变量时，务必同步写入 `docker-compose.prod.yml` 的 `app.environment` 白名单（`docker-compose.dev.yml` 不需要）。
 

@@ -116,7 +116,9 @@ function buildServerConfig() {
   };
 }
 
-function buildOAuthProviderConfig(envPrefix: "GITHUB" | "GOOGLE" | "MICROSOFT") {
+function buildOAuthProviderConfig(
+  envPrefix: "GITHUB" | "GOOGLE" | "MICROSOFT",
+) {
   const clientId = optionalStrEnv(`${envPrefix}_CLIENT_ID`);
   const clientSecret = optionalStrEnv(`${envPrefix}_CLIENT_SECRET`);
   return {
@@ -365,7 +367,7 @@ export const config = {
      */
     singleTenant: boolEnv("SINGLE_TENANT", false),
     /**
-   * 平台通配子域基域（如 `water.moms.plus`）。
+     * 平台通配子域基域（如 `rewindom.com`）。
      * 配置后 `{slug}.{base}` 自动锁定对应租户；空则关闭。
      * env：`TENANT_BASE_DOMAIN`
      */

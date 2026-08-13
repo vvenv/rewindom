@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./config.js", () => ({
   config: {
-    frontend: { url: "https://moms.plus" },
-    platform: { url: "https://platform.moms.plus" },
-    tenant: { baseDomain: "moms.plus" },
+    frontend: { url: "https://rewindom.com" },
+    platform: { url: "https://platform.rewindom.com" },
+    tenant: { baseDomain: "rewindom.com" },
     // 测试态不缓存解析结果，这里逐条断言查库次数才有意义
     server: { isTest: true },
   },
@@ -50,42 +50,46 @@ describe("resolveRequestHostname", () => {
 
 describe("hostname sets", () => {
   it("PLATFORM_URL 为平台控制台 Host", () => {
-    expect(hostnameFromUrl("https://platform.moms.plus/path")).toBe(
-      "platform.moms.plus",
+    expect(hostnameFromUrl("https://platform.rewindom.com/path")).toBe(
+      "platform.rewindom.com",
     );
-    expect(getPlatformConsoleHostnames().has("platform.moms.plus")).toBe(true);
+    expect(getPlatformConsoleHostnames().has("platform.rewindom.com")).toBe(
+      true,
+    );
     expect(getPlatformConsoleHostnames().has("localhost")).toBe(false);
   });
 
   it("FRONTEND_URL 为默认租户 Host（含 www）", () => {
-    expect(getDefaultTenantHostnames().has("moms.plus")).toBe(true);
-    expect(getDefaultTenantHostnames().has("www.moms.plus")).toBe(true);
+    expect(getDefaultTenantHostnames().has("rewindom.com")).toBe(true);
+    expect(getDefaultTenantHostnames().has("www.rewindom.com")).toBe(true);
     expect(getDefaultTenantHostnames().has("127.0.0.1")).toBe(false);
   });
 
   it("保留主机名包含两边", () => {
-    expect(getReservedHostnames().has("moms.plus")).toBe(true);
-    expect(getReservedHostnames().has("platform.moms.plus")).toBe(true);
+    expect(getReservedHostnames().has("rewindom.com")).toBe(true);
+    expect(getReservedHostnames().has("platform.rewindom.com")).toBe(true);
   });
 });
 
 describe("extractTenantSubdomainLabel", () => {
   it("解析单标签子域", () => {
-    expect(extractTenantSubdomainLabel("acme.moms.plus", "moms.plus")).toBe(
-      "acme",
-    );
+    expect(
+      extractTenantSubdomainLabel("acme.rewindom.com", "rewindom.com"),
+    ).toBe("acme");
   });
 
   it("拒绝基域本身、多级与保留前缀", () => {
-    expect(extractTenantSubdomainLabel("moms.plus", "moms.plus")).toBeNull();
     expect(
-      extractTenantSubdomainLabel("a.b.moms.plus", "moms.plus"),
+      extractTenantSubdomainLabel("rewindom.com", "rewindom.com"),
     ).toBeNull();
     expect(
-      extractTenantSubdomainLabel("www.moms.plus", "moms.plus"),
+      extractTenantSubdomainLabel("a.b.rewindom.com", "rewindom.com"),
     ).toBeNull();
     expect(
-      extractTenantSubdomainLabel("api.moms.plus", "moms.plus"),
+      extractTenantSubdomainLabel("www.rewindom.com", "rewindom.com"),
+    ).toBeNull();
+    expect(
+      extractTenantSubdomainLabel("api.rewindom.com", "rewindom.com"),
     ).toBeNull();
   });
 
@@ -133,11 +137,13 @@ describe("normalizeCustomDomain", () => {
   });
 
   it("拒绝产品主域、平台控制台 Host 与通配子域", () => {
-    expect(() => normalizeCustomDomain("moms.plus")).toThrow(ValidationError);
-    expect(() => normalizeCustomDomain("platform.moms.plus")).toThrow(
+    expect(() => normalizeCustomDomain("rewindom.com")).toThrow(
       ValidationError,
     );
-    expect(() => normalizeCustomDomain("acme.moms.plus")).toThrow(
+    expect(() => normalizeCustomDomain("platform.rewindom.com")).toThrow(
+      ValidationError,
+    );
+    expect(() => normalizeCustomDomain("acme.rewindom.com")).toThrow(
       ValidationError,
     );
   });
@@ -150,7 +156,9 @@ describe("resolveHostTenant", () => {
   });
 
   it("平台控制台 Host 不查库", async () => {
-    await expect(resolveHostTenant("platform.moms.plus")).resolves.toBeNull();
+    await expect(
+      resolveHostTenant("platform.rewindom.com"),
+    ).resolves.toBeNull();
     expect(prisma.tenant.findFirst).not.toHaveBeenCalled();
     expect(prisma.tenant.findUnique).not.toHaveBeenCalled();
   });
@@ -163,7 +171,7 @@ describe("resolveHostTenant", () => {
       status: "active",
     } as never);
 
-    await expect(resolveHostTenant("moms.plus")).resolves.toEqual({
+    await expect(resolveHostTenant("rewindom.com")).resolves.toEqual({
       tenant_id: DEFAULT_TENANT_ID,
       tenant_slug: "default",
       name: "默认租户",
@@ -201,7 +209,7 @@ describe("resolveHostTenant", () => {
         name: "Acme",
       } as never);
 
-    await expect(resolveHostTenant("acme.moms.plus")).resolves.toEqual({
+    await expect(resolveHostTenant("acme.rewindom.com")).resolves.toEqual({
       tenant_id: "t-2",
       tenant_slug: "acme",
       name: "Acme",

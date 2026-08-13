@@ -140,7 +140,7 @@ export interface PublicConfig {
     name: string;
   } | null;
   /**
-   * 平台通配子域基域（如 `water.moms.plus`）；空则前端不展示默认访问地址。
+   * 平台通配子域基域（如 `rewindom.com`）；空则前端不展示默认访问地址。
    */
   tenant_base_domain: string | null;
   /**
