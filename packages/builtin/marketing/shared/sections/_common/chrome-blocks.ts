@@ -41,7 +41,8 @@ export type ChromeMobile = "pin" | "menu" | "hide";
  * 单独一个函数而不是抄到每个块里：漏一个，那个块就永远只能待在第一行左边，而这种
  * 「某个块的设置面板少一项」在编辑器里非常难发现。
  */
-function chromeSlotSettings(defaults: {
+/** 贡献进来的 chrome 块也必须带这三项，否则永远钉在第一行左边。 */
+export function chromeSlotSettings(defaults: {
   row?: number;
   align?: ChromeAlign;
   mobile?: ChromeMobile;
@@ -248,6 +249,45 @@ export const CHROME_BLOCKS: BlockDefinition[] = [
   CHROME_THEME_BLOCK,
   CHROME_ACCOUNT_BLOCK,
 ];
+
+const BUILTIN_CHROME_TYPES = new Set(CHROME_BLOCKS.map((block) => block.type));
+
+/**
+ * 业务模块贡献的 chrome 块。方向与贡献段一致：注册表在消费方（marketing），
+ * 模块自己把定义填进来；marketing 不反向 import。
+ *
+ * type 必须带模块前缀（如 `shop.cart-link`），会落进租户页头 / 页脚的存储里。
+ */
+const CONTRIBUTED_CHROME = new Map<string, BlockDefinition>();
+
+export function registerChromeBlock(definition: BlockDefinition): void {
+  if (BUILTIN_CHROME_TYPES.has(definition.type)) {
+    throw new Error(`site.chrome_block_type_conflict:${definition.type}`);
+  }
+  if (!definition.type.includes(".")) {
+    throw new Error(`site.chrome_block_type_invalid:${definition.type}`);
+  }
+  const existing = CONTRIBUTED_CHROME.get(definition.type);
+  if (existing && existing !== definition) {
+    throw new Error(`site.chrome_block_type_conflict:${definition.type}`);
+  }
+  CONTRIBUTED_CHROME.set(definition.type, definition);
+}
+
+export function contributedChromeBlocks(): BlockDefinition[] {
+  return [...CONTRIBUTED_CHROME.values()];
+}
+
+export function getContributedChromeBlock(
+  type: string,
+): BlockDefinition | undefined {
+  return CONTRIBUTED_CHROME.get(type);
+}
+
+/** 仅供测试。 */
+export function resetChromeBlockContributions(): void {
+  CONTRIBUTED_CHROME.clear();
+}
 
 /* -------------------------------------------------------------------------- */
 /* 取值（渲染端与编辑器共用，别到处写 as string）                              */

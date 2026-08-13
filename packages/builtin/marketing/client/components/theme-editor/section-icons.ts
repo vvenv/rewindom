@@ -56,6 +56,11 @@ export function registerSectionIcon(
   SECTION_ICONS[type] = icon;
 }
 
+/** 贡献 chrome 块登记左侧树图标；同 type 覆盖。 */
+export function registerBlockIcon(type: string, icon: LucideIcon): void {
+  BLOCK_ICONS[type] = icon;
+}
+
 export const BLOCK_ICONS: Record<string, LucideIcon> = {
   column: RectangleVertical,
   field: TextCursorInput,

@@ -20,6 +20,15 @@ export interface SectionContextInput {
   tenantId: string;
   locale: AppLocale;
   defaultLocale: AppLocale;
+  /**
+   * 本页用到的段 / 块 type。provider 可按它少查——页头有购物车入口才去 peek 购物车。
+   * `resolveSectionContexts` 总会带上。
+   */
+  usedTypes?: ReadonlySet<string>;
+  /** 读 cookie（购物车 id 等）；没有就不带。 */
+  cookies?: { get(name: string): string | undefined };
+  /** 已登录的站点会员；访客为 null / 不传。 */
+  memberId?: string | null;
 }
 
 export interface SectionContextProvider {
@@ -33,6 +42,28 @@ export interface SectionContextProvider {
 }
 
 const PROVIDERS: SectionContextProvider[] = [];
+
+/** 从 Cookie 头读单个键。贡献方（购物车 id）用，marketing 自己不认任何业务 cookie。 */
+export function cookiesFromHeader(
+  header: string | string[] | undefined,
+): { get(name: string): string | undefined } {
+  const raw = Array.isArray(header) ? header.join("; ") : header;
+  return {
+    get(name: string): string | undefined {
+      if (!raw) return undefined;
+      for (const part of raw.split(";")) {
+        const [key, ...rest] = part.trim().split("=");
+        if (key !== name) continue;
+        try {
+          return decodeURIComponent(rest.join("="));
+        } catch {
+          return rest.join("=");
+        }
+      }
+      return undefined;
+    },
+  };
+}
 
 /** 登记一个 provider；在模块 `onBoot` 里调。 */
 export function registerSectionContextProvider(
@@ -65,7 +96,14 @@ export async function resolveSectionContexts(
   const results = await Promise.all(
     applicable.map(async (provider) => {
       try {
-        return await provider.provide(input);
+        return await provider.provide({
+          tenantId: input.tenantId,
+          locale: input.locale,
+          defaultLocale: input.defaultLocale,
+          usedTypes: input.usedSectionTypes,
+          cookies: input.cookies,
+          memberId: input.memberId,
+        });
       } catch {
         return {};
       }

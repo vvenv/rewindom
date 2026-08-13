@@ -7,10 +7,11 @@ import {
   ShoppingCart,
 } from "lucide-react";
 
+import { registerChromeBlockView } from "../../../packages/builtin/marketing/client/components/sections/chrome-views.js";
 import { registerSiteSectionView } from "../../../packages/builtin/marketing/client/components/sections/section-views.js";
 
 import { SHOP_ENTITLEMENT } from "../shared/index.js";
-import { cartLinkSection, cartSection } from "../shared/cart-section.js";
+import { cartLinkBlock, cartSection } from "../shared/cart-section.js";
 import { checkoutSection } from "../shared/checkout-section.js";
 import { orderListSection, orderSection } from "../shared/order-section.js";
 import { productGridSection } from "../shared/product-grid-section.js";
@@ -18,7 +19,8 @@ import { productSection } from "../shared/product-section.js";
 import { registerShopPageTemplates } from "../shared/shop-page-templates.js";
 import { SHOP_STOREFRONT_CSS } from "../shared/site-css.generated.js";
 
-import { CartLinkSection, CartSection } from "./components/sections/CartSection.js";
+import { CartSection } from "./components/sections/CartSection.js";
+import { CartLinkBlock } from "./components/sections/CartLinkBlock.js";
 import { CheckoutSection } from "./components/sections/CheckoutSection.js";
 import {
   OrderListSection,
@@ -46,7 +48,7 @@ registerSiteSectionView(cartSection, CartSection, {
   css: SHOP_STOREFRONT_CSS,
   icon: ShoppingCart,
 });
-registerSiteSectionView(cartLinkSection, CartLinkSection, {
+registerChromeBlockView(cartLinkBlock, CartLinkBlock, {
   css: SHOP_STOREFRONT_CSS,
   icon: ShoppingBag,
 });

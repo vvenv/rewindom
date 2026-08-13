@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { registerShopStorefrontSections } from "./register.js";
 import { productGridSection } from "../../shared/product-grid-section.js";
 import { productSection } from "../../shared/product-section.js";
-import { cartSection } from "../../shared/cart-section.js";
+import { cartSection, SHOP_CART_LINK_BLOCK_TYPE } from "../../shared/cart-section.js";
 import { checkoutSection } from "../../shared/checkout-section.js";
 import { orderSection } from "../../shared/order-section.js";
 import {
@@ -11,7 +11,8 @@ import {
   shopContextEntry,
 } from "../../shared/shop-section-context.js";
 
-import { createSection } from "../../../../packages/builtin/marketing/shared/section-schema.js";
+import { createBlock, createSection } from "../../../../packages/builtin/marketing/shared/section-schema.js";
+import { renderHeaderHtml } from "../../../../packages/builtin/marketing/shared/sections/header/html.js";
 import { SECTION_HTML } from "../../../../packages/builtin/marketing/shared/sections/html.js";
 
 describe("shop storefront section html", () => {
@@ -304,5 +305,39 @@ describe("shop storefront section html", () => {
     });
     expect(html).toContain("SAVE10");
     expect(html).toContain("$2.00");
+  });
+
+  it("页头购物车入口是一枚带件数的按钮", () => {
+    const section = createSection("header");
+    section.blocks.push(
+      createBlock("header", SHOP_CART_LINK_BLOCK_TYPE, {
+        label: "Cart",
+        show_count: true,
+        align: "end",
+      }),
+    );
+    const html = renderHeaderHtml({
+      section,
+      siteName: "Store",
+      logoUrl: null,
+      homeHref: "/",
+      enabledEntitlements: new Set(["shop"]),
+      contributed: shopContextEntry(
+        emptyShopContext({
+          cart: {
+            item_count: 3,
+            subtotal: "$12.00",
+            discount_code: null,
+            discount: null,
+            items: [],
+          },
+        }),
+      ),
+    });
+    expect(html).toContain('class="btn btn-ghost shop-cart-link"');
+    expect(html).toContain('href="/shop/cart"');
+    expect(html).toContain("shop-cart-count");
+    expect(html).toContain(">3<");
+    expect(html).not.toContain("<p class=\"shop-cart-link\"");
   });
 });

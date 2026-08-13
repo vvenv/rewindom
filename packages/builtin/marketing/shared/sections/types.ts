@@ -77,6 +77,13 @@ export interface BlockDefinition {
    * 让人点得到。按钮、页脚链接列这类天生要摆好几个的**不要**声明。
    */
   singleton?: true;
+  /**
+   * 仅贡献块：租户开通了这项 entitlement 才可用。
+   *
+   * 未开通时不进页头 / 页脚的「添加区块」菜单，也不渲染。定义仍是进程级登记的，
+   * 已经摆上去的块解析时不会丢掉——重新开通就回来。
+   */
+  entitlement?: string;
 }
 
 export interface SectionDefinition {

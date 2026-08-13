@@ -258,9 +258,9 @@
     },
     "cartLink": {
       "label": "购物车入口",
-      "linkLabel": "链接文案",
+      "linkLabel": "按钮文案",
       "showCount": "显示件数",
-      "showCountInfo": "只有当前请求带得上购物车时才出件数；官网上的这一段通常只显示文案。"
+      "showCountInfo": "有购物车时在按钮上显示件数。"
     },
     "checkout": {
       "label": "结账",

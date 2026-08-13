@@ -27,8 +27,49 @@ import {
 
 const CART_COOKIE = "shop_cart";
 
+const CART_INCLUDE = {
+  items: { include: { variant: { include: { product: true } } } },
+} as const;
+
 export function cartCookieName(): string {
   return CART_COOKIE;
+}
+
+async function findExistingCart(params: {
+  tenant_id: string;
+  cart_id?: string | null;
+  member_id?: string | null;
+}) {
+  return (
+    (params.member_id
+      ? await prisma.shopCart.findFirst({
+          where: withTenantScope(params.tenant_id, {
+            member_id: params.member_id,
+          }),
+          include: CART_INCLUDE,
+        })
+      : null) ??
+    (params.cart_id
+      ? await prisma.shopCart.findFirst({
+          where: withTenantScope(params.tenant_id, { id: params.cart_id }),
+          include: CART_INCLUDE,
+        })
+      : null)
+  );
+}
+
+/**
+ * 只读已有购物车，没有就不造——页头入口每一页都跑，不能因此给访客开空车。
+ */
+export async function peekCart(params: {
+  tenant_id: string;
+  cart_id?: string | null;
+  member_id?: string | null;
+  locale: AppLocale;
+}): Promise<ShopCartView | null> {
+  const cart = await findExistingCart(params);
+  if (!cart) return null;
+  return cartToView(params.tenant_id, cart, params.locale);
 }
 
 export async function loadCart(params: {
@@ -37,19 +78,7 @@ export async function loadCart(params: {
   member_id?: string | null;
   locale: AppLocale;
 }): Promise<ShopCartView> {
-  let cart =
-    (params.member_id
-      ? await prisma.shopCart.findFirst({
-          where: withTenantScope(params.tenant_id, { member_id: params.member_id }),
-          include: { items: { include: { variant: { include: { product: true } } } } },
-        })
-      : null) ??
-    (params.cart_id
-      ? await prisma.shopCart.findFirst({
-          where: withTenantScope(params.tenant_id, { id: params.cart_id }),
-          include: { items: { include: { variant: { include: { product: true } } } } },
-        })
-      : null);
+  let cart = await findExistingCart(params);
 
   if (!cart) {
     cart = await prisma.shopCart.create({
@@ -58,7 +87,7 @@ export async function loadCart(params: {
         member_id: params.member_id ?? null,
         guest_token: params.member_id ? null : randomUUID(),
       },
-      include: { items: { include: { variant: { include: { product: true } } } } },
+      include: CART_INCLUDE,
     });
   } else if (params.member_id && cart.member_id !== params.member_id) {
     await prisma.shopCart.update({

@@ -1,10 +1,14 @@
-import { cartLinkSection, cartSection } from "../../shared/cart-section.js";
+import { cartLinkBlock, cartSection } from "../../shared/cart-section.js";
 import { readShopContext } from "../../shared/shop-section-context.js";
 import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
 import { shopAlertHtml } from "./html-helpers.js";
 
 import { escapeHtml } from "../../../../packages/builtin/marketing/shared/html.js";
-import { settingBool, settingText } from "../../../../packages/builtin/marketing/shared/section-schema.js";
+import {
+  settingBool,
+  settingText,
+} from "../../../../packages/builtin/marketing/shared/section-schema.js";
+import { registerChromeBlockHtml, type ChromeRenderInput } from "../../../../packages/builtin/marketing/shared/sections/_common/chrome-html.js";
 import { sectionHeading } from "../../../../packages/builtin/marketing/shared/sections/_common/html.js";
 import {
   registerSiteSectionHtml,
@@ -107,22 +111,28 @@ const renderCartHtml: SectionHtmlRenderer = (section, ctx) => {
   return `${shopAlertHtml(shop)}${heading}${body}`;
 };
 
-const renderCartLinkHtml: SectionHtmlRenderer = (section, ctx) => {
-  const shop = readShopContext(ctx);
+const CART_ICON = `<svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`;
+
+function renderCartLinkHtml(block: SiteBlock, input: ChromeRenderInput): string {
+  const shop = readShopContext({ contributed: input.contributed });
   const href = shop?.cart_href ?? "/shop/cart";
-  const label = settingText(section.settings, "label") || "Cart";
+  const label = settingText(block.settings, "label") || "Cart";
   const count =
-    settingBool(section.settings, "show_count") && shop?.cart?.item_count
-      ? ` (${shop.cart.item_count})`
+    settingBool(block.settings, "show_count") && shop?.cart?.item_count
+      ? shop.cart.item_count
+      : 0;
+  const badge =
+    count > 0
+      ? `<span class="shop-cart-count">${escapeHtml(String(count))}</span>`
       : "";
-  return `<p class="shop-cart-link"><a href="${escapeHtml(href)}">${escapeHtml(label)}${escapeHtml(count)}</a></p>`;
-};
+  return `<a class="btn btn-ghost shop-cart-link" href="${escapeHtml(href)}">${CART_ICON}<span>${escapeHtml(label)}</span>${badge}</a>`;
+}
 
 export function registerCartSections(): void {
   registerSiteSectionHtml(cartSection, renderCartHtml, {
     css: SHOP_STOREFRONT_CSS,
   });
-  registerSiteSectionHtml(cartLinkSection, renderCartLinkHtml, {
+  registerChromeBlockHtml(cartLinkBlock, renderCartLinkHtml, {
     css: SHOP_STOREFRONT_CSS,
   });
 }

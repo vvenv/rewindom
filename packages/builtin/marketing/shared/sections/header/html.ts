@@ -39,6 +39,8 @@ export interface ChromeAreaInput {
   defaultLocale?: AppLocale;
   locales?: LocaleSwitcherOption[];
   accountEntryHtml?: string;
+  contributed?: Readonly<Record<string, unknown>>;
+  enabledEntitlements?: ReadonlySet<string>;
 }
 
 /** 展开导航要的内容快照；页头页脚共用。 */
@@ -74,5 +76,7 @@ export function renderHeaderHtml(
     locales: input.locales ?? [],
     hasDocs: input.hasDocs ?? (input.docs?.length ?? 0) > 0,
     accountEntryHtml: input.accountEntryHtml,
+    contributed: input.contributed,
+    enabledEntitlements: input.enabledEntitlements,
   });
 }

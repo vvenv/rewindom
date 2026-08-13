@@ -6,7 +6,7 @@ import {
   SectionHeading,
   type SectionViewProps,
 } from "../../../../../packages/builtin/marketing/client/components/sections/section-parts.js";
-import { settingBool, settingText } from "../../../../../packages/builtin/marketing/shared/section-schema.js";
+import { settingText } from "../../../../../packages/builtin/marketing/shared/section-schema.js";
 
 export function CartSection({ section }: SectionViewProps): ReactElement {
   const cart = sampleShopContext().cart!;
@@ -61,17 +61,3 @@ export function CartSection({ section }: SectionViewProps): ReactElement {
   );
 }
 
-export function CartLinkSection({ section }: SectionViewProps): ReactElement {
-  const count = sampleShopContext().cart?.item_count ?? 0;
-  const label = settingText(section.settings, "label");
-  const suffix =
-    settingBool(section.settings, "show_count") && count ? ` (${count})` : "";
-  return (
-    <p className="shop-cart-link">
-      <a href="/shop/cart" tabIndex={-1}>
-        {label}
-        {suffix}
-      </a>
-    </p>
-  );
-}

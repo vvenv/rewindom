@@ -25,7 +25,10 @@ import {
   listPublishedDocs,
 } from "./marketing-doc.service.js";
 import { renderDocLibrary } from "./marketing-doc.ssr.js";
-import { resolveSectionContexts } from "./section-context-providers.js";
+import {
+  cookiesFromHeader,
+  resolveSectionContexts,
+} from "./section-context-providers.js";
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
 import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
@@ -317,6 +320,8 @@ async function renderPath(
       locale: pageLocale,
       defaultLocale: result.site.default_locale,
       usedSectionTypes,
+      cookies: cookiesFromHeader(request.headers.cookie),
+      memberId: member?.id ?? null,
     }),
   ]);
 

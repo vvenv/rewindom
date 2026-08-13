@@ -254,6 +254,8 @@ export function renderMarketingHtml(input: {
             locale,
             defaultLocale: site.default_locale,
             accountEntryHtml,
+            contributed,
+            enabledEntitlements,
           })
         : renderSectionHtml(section, 0, sectionCtx),
     )
@@ -275,6 +277,8 @@ export function renderMarketingHtml(input: {
             locale,
             defaultLocale: site.default_locale,
             accountEntryHtml,
+            contributed,
+            enabledEntitlements,
           })
         : renderSectionHtml(section, 0, sectionCtx),
     )

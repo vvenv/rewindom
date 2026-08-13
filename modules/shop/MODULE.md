@@ -42,11 +42,11 @@ shop/
 
 ## 面划分
 
-| 面 | 路径 | 权限 / 门控 |
-| --- | --- | --- |
-| 租户工作台 | `/app/shop` 商品列表、`/app/shop/products/new` 与 `/app/shop/products/:productId` 编辑（详情 + options + 数据多语言）、`/app/shop/collections` 分类、`/app/shop/discounts` 优惠码、`/app/shop/orders` 订单、`/app/shop/shipping` 运费、`/app/shop/settings` 设置（货币/报关一张表单；Stripe 密钥在 `ShopProviderSheet`） | `shop.read`；写操作 `shop.write` |
-| 公开店面 SSR | `/shop`、`/shop/:slug`、`/shop/collections/:slug`、`/shop/cart`、`/shop/checkout`、`/shop/orders/:number` | 站点开通 `shop`；无 JWT |
-| 会员 | `/member/orders` | 会员会话 |
+| 面           | 路径                                                                                                                                                                                                                                                                                                                     | 权限 / 门控                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+| 租户工作台   | `/app/shop` 商品列表、`/app/shop/products/new` 与 `/app/shop/products/:productId` 编辑（详情 + options + 数据多语言）、`/app/shop/collections` 分类、`/app/shop/discounts` 优惠码、`/app/shop/orders` 订单、`/app/shop/shipping` 运费、`/app/shop/settings` 设置（货币/报关一张表单；Stripe 密钥在 `ShopProviderSheet`） | `shop.read`；写操作 `shop.write` |
+| 公开店面 SSR | `/shop`、`/shop/:slug`、`/shop/collections/:slug`、`/shop/cart`、`/shop/checkout`、`/shop/orders/:number`                                                                                                                                                                                                                | 站点开通 `shop`；无 JWT          |
+| 会员         | `/member/orders`                                                                                                                                                                                                                                                                                                         | 会员会话                         |
 
 加购与结账是真 `<form method="post">`，无 JS 也能买。
 
@@ -56,17 +56,18 @@ shop/
 `page-templates.ts`）：默认不落库，没自定义过就按内置预设渲染；自定义之后走 Theme Editor
 与同一套发布流程。分组 key 是 `shop:template.group`（「我的订单」复用会员页那一组）。
 
-| kind | 路径 | 必备段 | 区块 |
-| --- | --- | --- | --- |
-| `shop_index` | `/shop` | `shop.product-grid` | —（条目来自已发布商品；`collection_slug` 可只出某一类；也能摆上首页，`limit` 控制条数） |
-| `shop_product` | `/shop/:slug` | `shop.product` | `media` / `title` / `price` / `description` / `buy` |
-| `shop_collection` | `/shop/collections/:slug` | `shop.product-grid` | —（按分类过滤；SEO 用分类的 `seo_*`） |
-| `shop_cart` | `/shop/cart` | `shop.cart` | `lines` / `summary`（另 POST `intent=discount` 应用优惠码） |
-| `shop_checkout` | `/shop/checkout` | `shop.checkout` | `contact` / `address` / `shipping` / `note` / `summary` / `pay`（整段一张付款 POST 表单；优惠码另 POST；纯数字商品不收地址与运费） |
-| `shop_order` | `/shop/orders/:number` | `shop.order` | — |
-| `shop_member_orders` | `/member/orders` | `shop.order-list` | — |
+| kind                 | 路径                      | 必备段              | 区块                                                                                                                               |
+| -------------------- | ------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `shop_index`         | `/shop`                   | `shop.product-grid` | —（条目来自已发布商品；`collection_slug` 可只出某一类；也能摆上首页，`limit` 控制条数）                                            |
+| `shop_product`       | `/shop/:slug`             | `shop.product`      | `media` / `title` / `price` / `description` / `buy`                                                                                |
+| `shop_collection`    | `/shop/collections/:slug` | `shop.product-grid` | —（按分类过滤；SEO 用分类的 `seo_*`）                                                                                              |
+| `shop_cart`          | `/shop/cart`              | `shop.cart`         | `lines` / `summary`（另 POST `intent=discount` 应用优惠码）                                                                        |
+| `shop_checkout`      | `/shop/checkout`          | `shop.checkout`     | `contact` / `address` / `shipping` / `note` / `summary` / `pay`（整段一张付款 POST 表单；优惠码另 POST；纯数字商品不收地址与运费） |
+| `shop_order`         | `/shop/orders/:number`    | `shop.order`        | —                                                                                                                                  |
+| `shop_member_orders` | `/member/orders`          | `shop.order-list`   | —                                                                                                                                  |
 
-另有 `shop.cart-link`：可放页面 / 页头 / 页脚，链到购物车。件数只在请求带得上购物车时出现。
+另有 `shop.cart-link`：**页头 / 页脚的 chrome 块**（和语言、明暗、会员同一排的按钮），
+不是页面区块。开通商店后在页头「添加区块」里出现，默认不预置。有购物车时显示件数。
 
 没有智能分类规则或树状类目：分类是手动收录（`ShopCollection` + `ShopCollectionProduct`）。整单优惠码是百分比或固定金额，基数是商品小计不含运费。工作台订单详情可全额退款（Stripe Refund，可选退库存）；不恢复优惠码次数。评价与多仓不做。
 
@@ -78,12 +79,12 @@ shop/
 
 ## 权限
 
-| 位置 | 收窄 |
-| --- | --- |
-| 路由 | `shop.read` / `shop.write`（发货、退款算 write） |
-| 导航 | `anyPermission: ["shop.read"]` |
-| 页面 | `PermissionRoute permission="shop.read"` |
-| 写按钮 | `hasPermission("shop.write")` |
+| 位置   | 收窄                                             |
+| ------ | ------------------------------------------------ |
+| 路由   | `shop.read` / `shop.write`（发货、退款算 write） |
+| 导航   | `anyPermission: ["shop.read"]`                   |
+| 页面   | `PermissionRoute permission="shop.read"`         |
+| 写按钮 | `hasPermission("shop.write")`                    |
 
 ## 依赖
 
@@ -116,6 +117,18 @@ pnpm --filter server exec prisma generate
 pnpm --filter server exec prisma migrate dev --name add_shop
 pnpm check:modules
 ```
+
+## Demo 数据
+
+本地铺一套可逛的目录、优惠码、运费区和几种状态的订单（幂等，不覆盖已有 slug）：
+
+```bash
+pnpm --filter server exec tsx scripts/seed-shop-demo.ts [tenantSlug]
+```
+
+省略 slug 则写默认租户。会开通 `tenant_modules.shop`、补齐内置管理员的 `shop.read` / `shop.write`，并在站点页头加上「商店」导航。
+
+店面：`/shop`。工作台：`/app/shop`。优惠码 `WELCOME10`（九折）、`SAVE15`（满 $50 减 $15）。真付款还要在商店设置里配 Stripe。
 
 ## 如何单独测试
 

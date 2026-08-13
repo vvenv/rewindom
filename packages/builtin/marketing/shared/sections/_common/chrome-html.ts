@@ -9,6 +9,7 @@
  */
 
 import { escapeHtml } from "../../html.js";
+import { registerSectionCss } from "../../load-marketing-site-css.js";
 import { docMessages, DOCS_INDEX_PATH } from "../../marketing-doc.js";
 import { settingBool, settingText } from "../../section-schema.js";
 import { withSiteLocale } from "../../site-locale.js";
@@ -19,7 +20,11 @@ import {
   type SiteNavContext,
 } from "../../site-nav.js";
 
-import { blockMobile } from "./chrome-blocks.js";
+import {
+  blockMobile,
+  getContributedChromeBlock,
+  registerChromeBlock,
+} from "./chrome-blocks.js";
 import { chromeBlockClass, chromeRows, type ChromeRow } from "./chrome-layout.js";
 import { chromeMenuLabel, mainNavLabel, themeToggleTitle } from "./chrome-messages.js";
 import { resolveChromeText } from "./chrome-text.js";
@@ -47,6 +52,38 @@ export interface ChromeRenderInput {
   hasDocs: boolean;
   /** 会员入口的 SSR 片段（由 site-member 模块灌进来）。 */
   accountEntryHtml?: string;
+  /** 贡献段 / 贡献 chrome 块的按请求数据。 */
+  contributed?: Readonly<Record<string, unknown>>;
+  /** 贡献 chrome 块按租户开通与否决定渲不渲染。 */
+  enabledEntitlements?: ReadonlySet<string>;
+}
+
+export type ChromeBlockHtmlRenderer = (
+  block: SiteBlock,
+  input: ChromeRenderInput,
+) => string;
+
+const CHROME_BLOCK_HTML = new Map<string, ChromeBlockHtmlRenderer>();
+
+/**
+ * 业务模块贡献一个 chrome 块的 **SSR 侧**入口。
+ *
+ * 与 `registerSiteSectionHtml` 成对形状：定义只写一份，两端各自登记渲染器。
+ * 在模块 `onBoot` 里调。
+ */
+export function registerChromeBlockHtml(
+  definition: Parameters<typeof registerChromeBlock>[0],
+  render: ChromeBlockHtmlRenderer,
+  options: { css?: string } = {},
+): void {
+  registerChromeBlock(definition);
+  CHROME_BLOCK_HTML.set(definition.type, render);
+  if (options.css) registerSectionCss(definition.type, options.css);
+}
+
+/** 仅供测试。 */
+export function resetChromeBlockHtml(): void {
+  CHROME_BLOCK_HTML.clear();
 }
 
 const ICON = {
@@ -222,8 +259,17 @@ function renderBlockHtml(block: SiteBlock, input: ChromeRenderInput, isMainNav: 
       return renderThemeHtml(input.ctx.locale);
     case "chrome_account":
       return input.accountEntryHtml ?? "";
-    default:
-      return "";
+    default: {
+      const contributed = getContributedChromeBlock(block.type);
+      if (!contributed) return "";
+      if (
+        contributed.entitlement &&
+        !input.enabledEntitlements?.has(contributed.entitlement)
+      ) {
+        return "";
+      }
+      return CHROME_BLOCK_HTML.get(block.type)?.(block, input) ?? "";
+    }
   }
 }
 

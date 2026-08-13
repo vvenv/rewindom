@@ -257,10 +257,10 @@
       "continueLabel": "Continue shopping"
     },
     "cartLink": {
-      "label": "Cart link",
-      "linkLabel": "Link label",
+      "label": "Cart",
+      "linkLabel": "Button label",
       "showCount": "Show item count",
-      "showCountInfo": "The count only appears when this request has a cart. On the marketing site this block is usually just the label."
+      "showCountInfo": "Show the item count on the button when a cart exists."
     },
     "checkout": {
       "label": "Checkout",

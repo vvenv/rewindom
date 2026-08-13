@@ -334,7 +334,10 @@ export function SectionTree({
     const blocksFull =
       def?.max_blocks !== undefined && section.blocks.length >= def.max_blocks;
     // 单例块加过就不再进菜单（口径见 `addableBlockDefinitions`）
-    const addableBlockTypes = addableBlockDefinitions(section);
+                const addableBlockTypes = addableBlockDefinitions(
+                  section,
+                  entitlements,
+                );
 
     return (
       <div key={section.id}>

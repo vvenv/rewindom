@@ -105,6 +105,9 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 | `chrome_theme`    | —                                           |
 | `chrome_account`  | —                                           |
 
+业务模块还可以**贡献** chrome 块（如 shop 的 `shop.cart-link`），加进页头就是一枚按钮，
+与上表同一排定位。见下方「业务模块贡献 chrome 块」。
+
 **`chrome_nav` 一个块管横排与竖列。** 以前是 `chrome_nav`（页头）与 `menu_column`（页脚）
 两个 type，存的东西一模一样（都是 `settings.items`），差别只在画成一排还是一列——那是
 显示方式，不是两种东西。分成两个 type 的直接后果是页头摆不出竖列、页脚摆不出横排，
@@ -199,6 +202,9 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 | `chrome_locale`  | **是**   | 本页 `alternates`——没译文时露不出来              |
 | `chrome_theme`   | **是**   | 明暗内置且**永远跟随设备**；删掉只是不给手动按钮 |
 | `chrome_account` | 否       | 租户是否开通会员（site-member）                  |
+
+商店的购物车入口不是内置块：shop 贡献 `shop.cart-link`，开通商店后才出现在「添加区块」
+菜单里，同样不预置。
 
 前两个**预置**，第三个不预置，分界不是「哪个更常用」而是**不预置会不会悄悄废掉一个功能**：
 语言切换器不在页头，租户翻完一版页面发布，前台什么都不会变——访客没有入口过去，也没有
@@ -537,6 +543,23 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 **CSS** 真源是贡献方的 `shared/site-css/<name>.css`，`pnpm --filter @rewindom/builtin assemble:module-css` 压成 `site-css.generated.ts`，再随注册交进来。内置段的样式构建期就打进 `MARKETING_SECTION_CSS` 了，贡献段进不了那次打包，所以运行时注册进来、一律拼在最后（覆盖内置类时不必打优先级战争）。贡献段同样 **按需**发：这一页没上它就不发（见 `loadMarketingSiteCssFor`）。
 
 **禁止**手写 `shared/*-css.ts` 模板字符串（`shop-css.ts` 那类）：生产 server 是单文件 bundle，旁路 `.css` 读不了，手写字符串还逃过剥注释。Rule：`site-section-css`。金标准：`site-member/shared/site-css/`。
+
+#### 业务模块贡献 chrome 块
+
+页头 / 页脚里「和语言切换同一排的那枚按钮」是 **block**，不是再往区域里塞一段。
+公告条才是区域里的段（`band`）；购物车入口、会员入口这种要紧凑地排在品牌 / 导航旁边，
+走 chrome 块。
+
+方向与贡献段相同：注册表在 marketing，模块自己把定义填进来。type 必须带模块前缀
+（`shop.cart-link`），撞名直接抛。`entitlement` 闸门同样生效：未开通不进菜单、不渲染。
+
+| 位置 | 做什么 |
+| --- | --- |
+| `<模块>/shared/xxx.ts` | `BlockDefinition`（含 `chromeSlotSettings()`，否则永远钉在第一行左边） |
+| `<模块>/server/…` → `registerChromeBlockHtml(def, render, { css })` | SSR |
+| `<模块>/client/module.tsx` → `registerChromeBlockView(def, View, { css, icon })` | 编辑器预览 |
+
+两端 import 同一份 definition。金标准：shop 的购物车入口。
 
 **停用之后不丢内容**：模块被移除或租户退订时，页面上已经摆好的那一段走下面的
 `unsupported` 口径原样兜住，重新启用就自动回来。这是这个契约敢用的前提。

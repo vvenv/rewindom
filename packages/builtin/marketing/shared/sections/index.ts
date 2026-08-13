@@ -9,6 +9,7 @@
  * 特性网格 / 步骤 / 定价等营销专用版式已移除——用 prose + group 组合即可。
  */
 
+import { contributedChromeBlocks } from "./_common/chrome-blocks.js";
 import { bandSection } from "./band/definition.js";
 import { docArticleSection } from "./doc-article/definition.js";
 import { docListSection } from "./doc-list/definition.js";
@@ -37,6 +38,11 @@ import {
 import { unsupportedSection } from "./unsupported/definition.js";
 
 export * from "./types.js";
+export {
+  chromeSlotSettings,
+  registerChromeBlock,
+  resetChromeBlockContributions,
+} from "./_common/chrome-blocks.js";
 // `render-context.js` 刻意不在这里 re-export：它引 `site-cms`，而 `site-cms` 引
 // `section-schema`（后者 re-export 本文件）——转出去就成环。要它的从 `./html.js` 拿。
 export {
@@ -138,9 +144,14 @@ export function getSectionDefinition(
 export function getSectionDefinition(
   type: string,
 ): SectionDefinition | undefined {
-  return Object.hasOwn(BUILTIN_SECTION_DEFINITIONS, type)
+  const def = Object.hasOwn(BUILTIN_SECTION_DEFINITIONS, type)
     ? BUILTIN_SECTION_DEFINITIONS[type as BuiltinSectionType]
     : CONTRIBUTED.get(type);
+  if (!def) return undefined;
+  if (def.type !== "header" && def.type !== "footer") return def;
+  const extra = contributedChromeBlocks();
+  if (extra.length === 0) return def;
+  return { ...def, blocks: [...(def.blocks ?? []), ...extra] };
 }
 
 /** 内置段 + 已贡献段的全表（编辑器菜单、校验白名单用）。 */
@@ -199,13 +210,21 @@ export function sectionTypesFor(
  * 单例块（`BlockDefinition.singleton`）加过一次就不再出现：第二个语言切换器、第二条
  * 版权不是一种配置，是个一眼能看出来的错误。灰着留在菜单里也不行——那只是把「点了
  * 没用」推迟到点下去之后。
+ *
+ * `enabled` 给贡献块用：声明了 `entitlement` 的块（购物车入口）租户没开通就不该出现。
+ * 不传则不过滤，与 `sectionTypesFor` 同一口径。
  */
 export function addableBlockDefinitions(
   section: SiteSection,
+  enabled?: ReadonlySet<string>,
 ): BlockDefinition[] {
   const blocks = getSectionDefinition(section.type)?.blocks ?? [];
   const used = new Set(section.blocks.map((block) => block.type));
-  return blocks.filter((def) => !(def.singleton && used.has(def.type)));
+  return blocks.filter(
+    (def) =>
+      !(def.singleton && used.has(def.type)) &&
+      (!def.entitlement || !enabled || enabled.has(def.entitlement)),
+  );
 }
 
 export function isAreaSectionType(value: unknown): value is AreaSectionType {

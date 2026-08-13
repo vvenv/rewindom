@@ -167,6 +167,10 @@ pnpm --filter @rewindom/builtin assemble:module-css
 
 **禁止** `shared/shop-css.ts` 这类模板字符串——生产 bundle 读不了旁路 `.css`，手写字符串也逃过剥注释。改 `.css` 后必须跑 assemble 并提交 generated。
 
+页头 / 页脚里「和语言切换同一排的按钮」是 chrome **块**，不是再往区域里塞一段。贡献走
+`registerChromeBlockHtml` / `registerChromeBlockView`，定义里带 `chromeSlotSettings()`。
+金标准：shop 的 `shop.cart-link`。口径见 marketing `MODULE.md`「业务模块贡献 chrome 块」。
+
 ## 金标准（notes）
 
 - CRUD + `PermissionRoute` + 审计事件 + Vitest

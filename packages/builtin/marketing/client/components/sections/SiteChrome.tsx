@@ -53,6 +53,7 @@ import {
 import { useSiteColorMode } from "../../hooks/use-marketing-site-document-theme.js";
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
+import { getChromeBlockView } from "./chrome-views.js";
 import { SiteLink } from "./SiteLink.js";
 
 
@@ -469,8 +470,10 @@ export function SiteChrome({
         return <SiteThemeToggle locale={ctx.locale} />;
       case "chrome_account":
         return <MemberEntry />;
-      default:
-        return null;
+      default: {
+        const View = getChromeBlockView(block.type);
+        return View ? <View block={block} /> : null;
+      }
     }
   }
 

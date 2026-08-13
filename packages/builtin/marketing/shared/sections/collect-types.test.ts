@@ -35,7 +35,7 @@ describe("collectSectionTypes", () => {
       },
     ]);
     const types = collectSectionTypes([group]);
-    expect([...types].sort()).toEqual(["band", "form", "group"]);
+    expect([...types].sort()).toEqual(["band", "column", "form", "group"]);
   });
 
   it("累加进同一个集合（页头 / 页脚 / 正文分三次收）", () => {
@@ -49,6 +49,18 @@ describe("collectSectionTypes", () => {
     const withBlocks = section("form", [
       { id: "b1", type: "field", settings: { label: "?" } },
     ]);
-    expect([...collectSectionTypes([withBlocks])]).toEqual(["form"]);
+    expect([...collectSectionTypes([withBlocks])].sort()).toEqual(["field", "form"]);
+  });
+
+  it("页头 chrome 块的 type 也要收——贡献块的 CSS 与按需查库靠它", () => {
+    const header = section("header", [
+      { id: "b1", type: "chrome_brand", settings: {} },
+      { id: "b2", type: "shop.cart-link", settings: {} },
+    ]);
+    expect([...collectSectionTypes([header])].sort()).toEqual([
+      "chrome_brand",
+      "header",
+      "shop.cart-link",
+    ]);
   });
 });
