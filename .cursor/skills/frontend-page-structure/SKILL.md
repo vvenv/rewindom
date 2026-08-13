@@ -235,6 +235,29 @@ const [createOpen, setCreateOpen] = useState(false);
 - **不要加 `py-4`**：`SheetContent` 的 `gap-4` 已经隔开头/正文/尾
 - ❌ `<FieldGroup className="flex-1 overflow-y-auto py-4">` — notes 模块曾如此，左右贴边
 
+## 一页一表单
+
+工作台页面**不要**上下叠两张 `<form>`、两颗保存。用户分不清该按哪一颗，回车会提交焦点所在的那张而不是整页。
+
+| 页上留什么 | 第二份表单去哪 |
+| --- | --- |
+| 一项设置表单（货币、开关、报关编号…） | 收款密钥 / 通道配置 → **Sheet**（状态行仍可见） |
+| 列表 | 创建 / 编辑 → `*CreateSheet` / `*Dialog`（已有内聚金标准） |
+
+金标准：`site-billing` 的 `SiteBillingProviderStatusRow` + `SiteBillingProviderSheet`；shop `/app/shop/settings` 同构。
+
+```tsx
+// ✅ 页上只有一张设置表单；密钥在 Sheet
+<ShopProviderStatusRow status={provider} canWrite={canWrite} />
+<form onSubmit={handleSaveSettings}>…</form>
+
+// ❌ 设置与 Stripe 密钥各一张 form、各一颗保存
+<form onSubmit={handleSetting}>…<Button>保存</Button></form>
+<form onSubmit={handleProvider}>…<Button>保存收款</Button></form>
+```
+
+收款通道的**状态**（钱进谁的账号、有没有配）必须留在页上，不能连同表单一起藏进 Sheet——否则结账失败要多点一次才看得到原因。
+
 ## 字段说明用气泡，不用常驻灰字
 
 字段的**使用说明**（这项是什么、留空会怎样、怎么操作）挂 `FieldInfoTip`
@@ -281,3 +304,4 @@ const [createOpen, setCreateOpen] = useState(false);
 - [ ] Lib 新增逻辑有测试
 - [ ] 组件具名导出（named export）
 - [ ] 未扩大 scope（不顺手改无关文件）
+- [ ] 同一页面没有两张 `<form>`（设置页尤其如此；密钥 / 收款通道用 Sheet）

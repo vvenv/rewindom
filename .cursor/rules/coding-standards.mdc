@@ -93,6 +93,7 @@ await api.post("/documents", { title, content }, true);
 - 通用数据 Hook（如 `useXxx`）只负责：请求调用、缓存失效、数据转换、错误上抛
 - 页面/业务组件负责 UI 副作用：`toast`、`dialog`、`sheet` 开关、页面跳转
 - **Dialog/Sheet 内聚（金标准）**：创建按钮（trigger）与含表单的 Sheet/Dialog 是同一高内聚组件（如 `NoteCreateSheet`），内含 trigger + 弹层 + mutation/toast；Page 只放置、禁止 `*Open` + 分散 Button/Dialog；行内用 `children` 作 trigger，列表详情在 Row/Table 内聚
+- **一页一表单**：同一页面不要上下两张 `<form>`、两颗保存。密钥 / 收款通道收进 Sheet，页上留状态行 + 一张设置表单（金标准：`SiteBillingProviderStatusRow`、shop `ShopProviderStatusRow`）。详见 `frontend-page-structure` skill
 - 默认禁止在通用 Hook 中直接调用 `toast.success/error` 等 UI 提示
 - 仅在"强业务耦合且不会复用"的专用 Hook 中，才允许内聚 UI 副作用（需在代码评审中说明理由）
 - **复杂页面**须按 `frontend-page-structure` rule 拆为 Page / Hook / Lib / Component（详见 Skill）

@@ -44,7 +44,7 @@ shop/
 
 | 面 | 路径 | 权限 / 门控 |
 | --- | --- | --- |
-| 租户工作台 | `/app/shop` 商品、`/app/shop/orders` 订单、`/app/shop/shipping` 运费、`/app/shop/settings` 设置 | `shop.read`；写操作 `shop.write` |
+| 租户工作台 | `/app/shop` 商品、`/app/shop/orders` 订单、`/app/shop/shipping` 运费、`/app/shop/settings` 设置（货币/报关一张表单；Stripe 密钥在 `ShopProviderSheet`） | `shop.read`；写操作 `shop.write` |
 | 公开店面 SSR | `/shop`、`/shop/:slug`、`/shop/cart`、`/shop/checkout`、`/shop/orders/:number` | 站点开通 `shop`；无 JWT |
 | 会员 | `/member/orders` | 会员会话 |
 

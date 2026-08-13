@@ -155,6 +155,7 @@ const [sorting, setSorting] = useState<SortingState>([]);
 - ❌ 在通用数据 Hook 里直接 `toast`（专用 `useXxxActions` 或 Page 除外）
 - ❌ 清空 file input 后再读 `FileList`（live 引用会丢文件）
 - ❌ Page 维护 `createOpen` + 头部 Button + 底部 `*Dialog` 三处分散（违反 Dialog/Sheet 内聚金标准）
+- ❌ 同一页面堆两个 `<form>`（设置一项、密钥/收款通道又一项，两颗保存）。页上只留**一张**表单；第二份表单收进 Sheet。金标准：`site-billing` 的 `SiteBillingProviderStatusRow` + `SiteBillingProviderSheet`；shop 设置页同构。
 - ❌ 为拆而拆：简单 CRUD 页保持单文件即可
 
 ## Dialog / Sheet 内聚（金标准）
@@ -194,6 +195,8 @@ const [createOpen, setCreateOpen] = useState(false);
 - 凭据展示等多步流程：在同一 Dialog 内切换视图（参考 `TenantCreateDialog`）
 
 Row 级可用 `syncUrlParam` 同步 URL，但 open 仍由 Dialog/Row 内部管理，Page 不单独挂底部 Dialog。
+
+**一页一表单**：设置页不要上下两张 `<form>`。密钥 / 收款通道收进 Sheet，页上留状态行 + 一张设置表单。金标准：`SiteBillingProviderStatusRow`、shop `ShopProviderStatusRow`。详见 Skill「一页一表单」。
 
 **正文内边距**：`SheetContent` / `DialogContent` 本身无 padding，只有 Header / Footer 自带 `p-4`。
 中间的正文节点必须自己写 `min-h-0 flex-1 overflow-y-auto px-4`，否则字段贴边、与头尾不对齐；
