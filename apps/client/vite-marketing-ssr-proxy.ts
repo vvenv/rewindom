@@ -1,9 +1,12 @@
-import { isSiteSsrExceptionPath } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import { isSiteSsrExceptionPath } from "@rewindom/builtin/marketing/shared/site-app-prefixes.js";
 
 /**
  * 应用区一级路径：开发态不代理给 Marketing SSR，交回 Vite SPA。
- * 须与 `SITE_APP_PREFIXES`（`packages/builtin/marketing/shared/site-locale.ts`）
+ * 须与 `SITE_APP_PREFIXES`（`packages/builtin/marketing/shared/site-app-prefixes.ts`）
  * 及 nginx SPA location 对齐——见 `nginx-spa-prefixes.test.ts`。
+ *
+ * 这里只从 `site-app-prefixes` 取函数，不要 import `site-locale`：后者依赖
+ * `@rewindom/shared`，Vite 加载 config 时 Node 无法解析 shared 的 `.js`→`.ts`。
  */
 const SPA_ROUTE_PREFIXES = [
   // 租户工作台已统一收在 /app/* 之下，所以这里只需要一个 app

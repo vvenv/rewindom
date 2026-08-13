@@ -21,7 +21,7 @@ function read(relative: string): string {
  *
  * | 位置                                  | 作用                                   |
  * | ------------------------------------- | -------------------------------------- |
- * | `SITE_APP_PREFIXES`（本仓真相源）     | SSR 认出应用区路径后交回 SPA           |
+ * | `SITE_APP_PREFIXES`（`site-app-prefixes.ts`） | SSR 认出应用区路径后交回 SPA           |
  * | `docker/nginx/default.conf.template`  | 生产：这些路径直接发静态 SPA，不进 SSR |
  * | `apps/client/vite-marketing-ssr-proxy.ts` | 开发：从 `SITE_APP_PREFIXES` 生成代理白名单 |
  *

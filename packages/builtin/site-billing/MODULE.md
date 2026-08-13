@@ -107,7 +107,7 @@
 `/member/billing` 是 SSR 例外路径，在**三处**各有一份，由
 `marketing/server/nginx-spa-prefixes.test.ts` 盯着：
 
-- `marketing/shared/site-locale.ts` 的 `SITE_SSR_EXCEPTION_PATHS`（真相源）
+- `marketing/shared/site-app-prefixes.ts` 的 `SITE_SSR_EXCEPTION_PATHS`（真相源）
 - `docker/nginx/default.conf.template`
 - `apps/client/vite-marketing-ssr-proxy.ts`
 
