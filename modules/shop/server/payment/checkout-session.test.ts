@@ -99,6 +99,7 @@ describe("buildShopCheckoutSessionParams", () => {
     expect(params).not.toHaveProperty("payment_method_types");
     expect(params.mode).toBe("payment");
     expect(params.customer).toBe("cus_1");
+    expect(params.customer_update).toEqual({ name: "auto", address: "auto" });
     expect(params.customer_email).toBeUndefined();
     expect(params.automatic_tax).toEqual({ enabled: true });
     expect(params.discounts).toEqual([{ coupon: "co_1" }]);
@@ -109,6 +110,25 @@ describe("buildShopCheckoutSessionParams", () => {
       order_number: "S1",
       cart_id: "cart_1",
     });
+  });
+
+  it("does not set customer_update when using customer_email", () => {
+    const params = buildShopCheckoutSessionParams({
+      origin: "http://localhost:7300",
+      email: "buyer@example.com",
+      order_id: "ord_1",
+      order_number: "S1",
+      tenant_id: "ten_1",
+      cart_id: "cart_1",
+      currency: "USD",
+      items: [item()],
+      shipping_cents: 0,
+      shipping_name: null,
+      automatic_tax: false,
+    });
+    expect(params.customer).toBeUndefined();
+    expect(params.customer_email).toBe("buyer@example.com");
+    expect(params.customer_update).toBeUndefined();
   });
 });
 

@@ -435,50 +435,55 @@ export async function createCheckout(params: {
 
   const stripe = createShopStripe(credentials.secretKey);
   const useTax = setting.stripe_tax_enabled && taxable;
-  const customer = await stripe.customers.create({
-    email,
-    metadata: {
-      tenant_id: params.tenant_id,
-      order_id: order.id,
-    },
-    ...(needsShipping
-      ? {
-          shipping: {
-            name: address.name,
-            phone: address.phone || undefined,
-            address: stripeAddressFromShop(address),
-          },
-        }
-      : {}),
-  });
-  let coupon_id: string | undefined;
-  if (discount_cents > 0) {
-    const coupon = await stripe.coupons.create({
-      amount_off: discount_cents,
-      currency: order.currency.toLowerCase(),
-      duration: "once",
-      max_redemptions: 1,
-      name: `Order ${number}`.slice(0, 40),
-    });
-    coupon_id = coupon.id;
-  }
-  const session = await stripe.checkout.sessions.create(
-    buildShopCheckoutSessionParams({
-      origin: params.origin,
+  let session: Stripe.Checkout.Session;
+  try {
+    const customer = await stripe.customers.create({
       email,
-      order_id: order.id,
-      order_number: number,
-      tenant_id: params.tenant_id,
-      cart_id: params.cart_id,
-      currency: order.currency,
-      items: cart.items,
-      shipping_cents,
-      shipping_name: needsShipping ? (rate?.name ?? "Shipping") : null,
-      automatic_tax: useTax,
-      coupon_id,
-      customer_id: customer.id,
-    }),
-  );
+      metadata: {
+        tenant_id: params.tenant_id,
+        order_id: order.id,
+      },
+      ...(needsShipping
+        ? {
+            shipping: {
+              name: address.name,
+              phone: address.phone || undefined,
+              address: stripeAddressFromShop(address),
+            },
+          }
+        : {}),
+    });
+    let coupon_id: string | undefined;
+    if (discount_cents > 0) {
+      const coupon = await stripe.coupons.create({
+        amount_off: discount_cents,
+        currency: order.currency.toLowerCase(),
+        duration: "once",
+        max_redemptions: 1,
+        name: `Order ${number}`.slice(0, 40),
+      });
+      coupon_id = coupon.id;
+    }
+    session = await stripe.checkout.sessions.create(
+      buildShopCheckoutSessionParams({
+        origin: params.origin,
+        email,
+        order_id: order.id,
+        order_number: number,
+        tenant_id: params.tenant_id,
+        cart_id: params.cart_id,
+        currency: order.currency,
+        items: cart.items,
+        shipping_cents,
+        shipping_name: needsShipping ? (rate?.name ?? "Shipping") : null,
+        automatic_tax: useTax,
+        coupon_id,
+        customer_id: customer.id,
+      }),
+    );
+  } catch {
+    throw new ValidationError("shop.stripe_checkout_failed");
+  }
   if (!session.url) {
     throw new ValidationError("shop.stripe_checkout_url_missing");
   }

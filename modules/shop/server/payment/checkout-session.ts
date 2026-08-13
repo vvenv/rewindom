@@ -100,6 +100,8 @@ export function buildShopCheckoutSessionParams(
   };
   if (input.customer_id) {
     params.customer = input.customer_id;
+    // tax_id_collection 对已有 Customer 必须允许回写商号与地址，否则 Session 创建会 400。
+    params.customer_update = { name: "auto", address: "auto" };
   } else {
     params.customer_email = input.email;
   }

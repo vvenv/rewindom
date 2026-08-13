@@ -509,6 +509,13 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
         setCookie(reply, GUEST_ORDER_COOKIE, result.guest_token);
         void reply.redirect(result.checkout_url, 303);
       } catch (err) {
+        request.log.warn(
+          {
+            error: err instanceof Error ? err.message : String(err),
+            code: err instanceof AppError ? err.code : undefined,
+          },
+          "ShopCheckout",
+        );
         const latest = await loadCart({
           tenant_id: host.tenantId,
           cart_id: cart.id,
