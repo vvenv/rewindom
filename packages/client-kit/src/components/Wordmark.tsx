@@ -34,7 +34,7 @@ export function Wordmark({ className }: { className?: string }) {
         <path d="M351 51 V131" />
         {/* n */}
         <path d="M383 51 V131" />
-        <path d="M383 91 A40 40 0 0 0 463 91" />
+        <path d="M383 91 A40 40 0 0 1 463 91" />
         <path d="M463 91 V131" />
         {/* d */}
         <path d="M575 11 V131" />
@@ -43,9 +43,9 @@ export function Wordmark({ className }: { className?: string }) {
         <path d="M607 91 a40 40 0 1 0 80 0 a40 40 0 1 0 -80 0" />
         {/* m */}
         <path d="M719 51 V131" />
-        <path d="M719 91 A40 40 0 0 0 799 91" />
+        <path d="M719 91 A40 40 0 0 1 799 91" />
         <path d="M799 51 V131" />
-        <path d="M799 91 A40 40 0 0 0 879 91" />
+        <path d="M799 91 A40 40 0 0 1 879 91" />
         <path d="M879 91 V131" />
       </g>
     </svg>
