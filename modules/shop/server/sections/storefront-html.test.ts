@@ -15,6 +15,21 @@ import { createBlock, createSection, localizeSections } from "@rewindom/builtin/
 import { renderHeaderHtml } from "@rewindom/builtin/marketing/shared/sections/header/html.js";
 import { SECTION_HTML } from "@rewindom/builtin/marketing/shared/sections/html.js";
 
+/** 公开面渲染前会压平 `__i18n`；单测直接调 HTML 时也要走同一条路。 */
+function htmlFor(
+  section: ReturnType<typeof createSection>,
+  ctx: {
+    locale?: "zh-CN" | "en";
+    defaultLocale?: "zh-CN" | "en";
+    contributed?: ReturnType<typeof shopContextEntry>;
+  },
+): string | undefined {
+  const locale = ctx.locale ?? "zh-CN";
+  const defaultLocale = ctx.defaultLocale ?? "zh-CN";
+  const [localized] = localizeSections([section], locale, defaultLocale);
+  return SECTION_HTML[section.type]?.(localized!, ctx);
+}
+
 describe("shop storefront section html", () => {
   beforeAll(() => {
     registerShopStorefrontSections();
@@ -22,7 +37,7 @@ describe("shop storefront section html", () => {
 
   it("商品列表在有商品时输出卡片链接", () => {
     const section = createSection(productGridSection.type);
-    const html = SECTION_HTML[productGridSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           products: [
@@ -41,7 +56,7 @@ describe("shop storefront section html", () => {
 
   it("商品列表链接跟上当前 locale 前缀", () => {
     const section = createSection(productGridSection.type);
-    const html = SECTION_HTML[productGridSection.type]?.(section, {
+    const html = htmlFor(section, {
       locale: "en",
       defaultLocale: "zh-CN",
       contributed: shopContextEntry(
@@ -67,7 +82,7 @@ describe("shop storefront section html", () => {
 
   it("商品详情把 description 当 Markdown 渲染，而不是纯文本转义", () => {
     const section = createSection(productSection.type);
-    const html = SECTION_HTML[productSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           product: {
@@ -98,7 +113,7 @@ describe("shop storefront section html", () => {
 
   it("多图商品用 radio 切换主图，无需脚本", () => {
     const section = createSection(productSection.type);
-    const html = SECTION_HTML[productSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           product: {
@@ -130,7 +145,7 @@ describe("shop storefront section html", () => {
 
   it("购物车行项目不再用 float 图 + 表格", () => {
     const section = createSection(cartSection.type);
-    const html = SECTION_HTML[cartSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           cart: {
@@ -161,7 +176,7 @@ describe("shop storefront section html", () => {
 
   it("商品详情输出图库与划线原价", () => {
     const section = createSection(productSection.type);
-    const html = SECTION_HTML[productSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           product: {
@@ -193,7 +208,7 @@ describe("shop storefront section html", () => {
 
   it("结账段是一张包含收件地址与付款按钮的 form", () => {
     const section = createSection(checkoutSection.type);
-    const html = SECTION_HTML[checkoutSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           checkout: {
@@ -227,7 +242,7 @@ describe("shop storefront section html", () => {
 
   it("商品列表按请求上的 collection_slug 过滤（分类页）", () => {
     const section = createSection(productGridSection.type);
-    const html = SECTION_HTML[productGridSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           collection_slug: "summer",
@@ -263,7 +278,7 @@ describe("shop storefront section html", () => {
   it("商品列表按 collection_slug 过滤卡片", () => {
     const section = createSection(productGridSection.type);
     section.settings.collection_slug = "summer";
-    const html = SECTION_HTML[productGridSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           products: [
@@ -297,7 +312,7 @@ describe("shop storefront section html", () => {
 
   it("结账优惠码是付款表单外的独立 POST", () => {
     const section = createSection(checkoutSection.type);
-    const html = SECTION_HTML[checkoutSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           cart: {
@@ -347,7 +362,7 @@ describe("shop storefront section html", () => {
 
   it("购物车摘要输出折扣行与独立优惠码表单", () => {
     const section = createSection(cartSection.type);
-    const html = SECTION_HTML[cartSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           cart: {
@@ -377,7 +392,7 @@ describe("shop storefront section html", () => {
 
   it("订单确认输出折扣行", () => {
     const section = createSection(orderSection.type);
-    const html = SECTION_HTML[orderSection.type]?.(section, {
+    const html = htmlFor(section, {
       contributed: shopContextEntry(
         emptyShopContext({
           order: {

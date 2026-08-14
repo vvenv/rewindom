@@ -1,3 +1,5 @@
+import "../ssr/shop-preset-i18n.js";
+
 import { isShopEnabled } from "../lib/entitlement.js";
 import { listPublishedProducts } from "../catalog/catalog.service.js";
 import { cartCookieName, peekCart } from "../cart/cart.service.js";

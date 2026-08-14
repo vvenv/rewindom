@@ -5,6 +5,7 @@ import {
   registerLocaleCatalog,
   resolveLocaleMessage,
   translateRegisteredKey,
+  translateRegisteredKeyTable,
 } from "./locale-catalog.js";
 
 describe("resolveLocaleMessage", () => {
@@ -43,5 +44,33 @@ describe("translateRegisteredKey", () => {
       translateRegisteredKey("zh-CN", "locale-catalog-test:missing.key"),
     ).toBeUndefined();
     expect(translateRegisteredKey("zh-CN", "unknown-ns:login.title")).toBeUndefined();
+  });
+});
+
+describe("translateRegisteredKeyTable", () => {
+  it("collects each locale's own sentence and skips missing slots", () => {
+    registerLocaleCatalog("locale-catalog-table", {
+      "zh-CN": { cart: { label: "购物车" } },
+      en: { cart: { label: "Cart" } },
+    });
+    expect(
+      translateRegisteredKeyTable("locale-catalog-table:cart.label"),
+    ).toEqual({ "zh-CN": "购物车", en: "Cart" });
+  });
+
+  it("does not backfill a missing locale from another language", () => {
+    registerLocaleCatalog("locale-catalog-table-partial", {
+      "zh-CN": { cart: { label: "购物车" } },
+    });
+    expect(
+      translateRegisteredKeyTable("locale-catalog-table-partial:cart.label"),
+    ).toEqual({ "zh-CN": "购物车" });
+  });
+
+  it("returns undefined for literals and unknown keys", () => {
+    expect(translateRegisteredKeyTable("Cart")).toBeUndefined();
+    expect(
+      translateRegisteredKeyTable("locale-catalog-table:missing.key"),
+    ).toBeUndefined();
   });
 });

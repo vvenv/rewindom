@@ -6,9 +6,9 @@
  * 怎么解析」，section 注册表在 `sections/`（一段一个目录）。
  */
 
-import { isSiteColor } from "./site-color.js";
+import { translateRegisteredKeyTable } from "@rewindom/shared";
 
-import type { AppLocale } from "@rewindom/shared";
+import { isSiteColor } from "./site-color.js";
 
 /**
  * 多语言文案值。
@@ -182,23 +182,20 @@ interface LocalizableSetting {
 }
 
 /**
- * 文案类设置的内置默认值：纯字符串，或一份 `__i18n` 表。
+ * 文案类设置的内置默认值：字面量，或 `ns:key`。
  *
- * 多语言默认在新建段 / 块时整张表进 settings，公开面再按当前语言压扁——
- * 这样中文站不会把英文 "Cart" 当主语言原文。存量若仍是表里某一语的原句，
- * 解析时升回整张表（租户没改过），自定义过的句子保持原样。
+ * key 在新建段 / 块时从已登记的 locale catalog 展开成 `__i18n` 表，公开面再按
+ * 当前语言压扁——这样中文站不会把英文 "Cart" 当主语言原文。存量若仍是表里某一
+ * 语的原句或漏进库的 key 本身，解析时升回整张表（租户没改过）；自定义过的句子
+ * 保持原样。
  */
-export type LocalizableDefault = string | LocalizedText;
-
-/** 内置双语默认文案。每种语言都要给一句，缺的语言不要靠运行时再补。 */
-export function localizedDefault(
-  values: Record<AppLocale, string>,
-): LocalizedText {
-  return { __i18n: { ...values } };
+function cloneLocalizedTable(table: Record<string, string>): LocalizedText {
+  return { __i18n: { ...table } };
 }
 
-function cloneLocalizedDefault(value: LocalizedText): LocalizedText {
-  return { __i18n: { ...value.__i18n } };
+function localizedTableFromKey(raw: string): LocalizedText | undefined {
+  const table = translateRegisteredKeyTable(raw);
+  return table ? cloneLocalizedTable(table) : undefined;
 }
 
 function resolveTextDefault(
@@ -208,7 +205,7 @@ function resolveTextDefault(
   >,
 ): string | LocalizedText {
   const fallback = def.default ?? "";
-  return isLocalizedText(fallback) ? cloneLocalizedDefault(fallback) : fallback;
+  return localizedTableFromKey(fallback) ?? fallback;
 }
 
 /** 有值的设置项（落到 `settings[id]`）。 */
@@ -216,21 +213,21 @@ export type InputSettingDef =
   | (SettingBase &
       LocalizableSetting & {
         type: "text";
-        default?: LocalizableDefault;
+        default?: string;
         placeholder?: string;
         required?: boolean;
       })
   | (SettingBase &
       LocalizableSetting & {
         type: "textarea";
-        default?: LocalizableDefault;
+        default?: string;
         rows?: number;
         placeholder?: string;
       })
   | (SettingBase &
       LocalizableSetting & {
         type: "richtext";
-        default?: LocalizableDefault;
+        default?: string;
         rows?: number;
         placeholder?: string;
       })
@@ -238,7 +235,7 @@ export type InputSettingDef =
       LocalizableSetting & {
         /** 每行一条的纯文本列表（要点、清单）。 */
         type: "list";
-        default?: LocalizableDefault;
+        default?: string;
         rows?: number;
         placeholder?: string;
       })
@@ -470,13 +467,15 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
     case "richtext":
     case "list": {
       if (typeof raw === "string") {
-        // 库存还是内置某一语的原句：升回整张表，别把 "Cart" 钉死成所有语言的原文
-        if (
-          isLocalizableSetting(def) &&
-          isLocalizedText(def.default) &&
-          Object.values(def.default.__i18n).includes(raw)
-        ) {
-          return cloneLocalizedDefault(def.default);
+        // 库存还是内置某一语的原句，或漏进库的 ns:key：升回整张表
+        if (isLocalizableSetting(def) && typeof def.default === "string") {
+          const table = translateRegisteredKeyTable(def.default);
+          if (
+            table &&
+            (raw === def.default || Object.values(table).includes(raw))
+          ) {
+            return cloneLocalizedTable(table);
+          }
         }
         return raw;
       }

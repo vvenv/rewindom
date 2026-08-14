@@ -130,6 +130,12 @@
       "label": "My subscription"
     }
   },
+  "storefront": {
+    "plans": {
+      "cta": "Subscribe",
+      "current": "Your current plan"
+    }
+  },
   "section": {
     "plans": {
       "label": "Member plans",

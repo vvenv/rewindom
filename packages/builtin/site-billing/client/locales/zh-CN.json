@@ -130,6 +130,12 @@
       "label": "我的订阅"
     }
   },
+  "storefront": {
+    "plans": {
+      "cta": "订阅",
+      "current": "当前套餐"
+    }
+  },
   "section": {
     "plans": {
       "label": "会员套餐",

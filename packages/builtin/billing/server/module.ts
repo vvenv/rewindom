@@ -6,6 +6,7 @@ import { billingRoutes, billingWebhookRoutes } from "./billing.routes.js";
 import { BILLING_SERVER_I18N } from "./i18n.js";
 import { registerBillingPlansSection } from "./plans-section.js";
 import { registerPlatformBillingRoutes } from "./platform-billing.routes.js";
+import "./billing-preset-i18n.js";
 
 import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
 

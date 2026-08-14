@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { registerLocaleCatalog } from "@rewindom/shared";
+
 import {
   PAGE_SECTION_TYPES,
   BUILTIN_SECTION_DEFINITIONS,
@@ -22,7 +24,6 @@ import {
   safeAreaSections,
   safeSections,
   settingText,
-  localizedDefault,
 } from "./section-schema.js";
 
 describe("parseSettingValues", () => {
@@ -69,13 +70,17 @@ describe("parseSettingValues", () => {
     ).toThrow("site.sections_invalid");
   });
 
-  it("seeds a localized default as an __i18n table", () => {
+  it("seeds a namespaced default key as an __i18n table", () => {
+    registerLocaleCatalog("section-settings-test", {
+      "zh-CN": { cart: { label: "购物车" } },
+      en: { cart: { label: "Cart" } },
+    });
     const defs = [
       {
         type: "text" as const,
         id: "label",
         label: "x",
-        default: localizedDefault({ "zh-CN": "购物车", en: "Cart" }),
+        default: "section-settings-test:cart.label",
       },
     ];
     expect(parseSettingValues(defs, {}).label).toEqual({
@@ -83,13 +88,17 @@ describe("parseSettingValues", () => {
     });
   });
 
-  it("upgrades a stock default string back to the built-in table", () => {
+  it("upgrades a stock default string or leaked key back to the built-in table", () => {
+    registerLocaleCatalog("section-settings-test", {
+      "zh-CN": { cart: { label: "购物车" } },
+      en: { cart: { label: "Cart" } },
+    });
     const defs = [
       {
         type: "text" as const,
         id: "label",
         label: "x",
-        default: localizedDefault({ "zh-CN": "购物车", en: "Cart" }),
+        default: "section-settings-test:cart.label",
       },
     ];
     expect(parseSettingValues(defs, { label: "Cart" }).label).toEqual({
@@ -98,15 +107,25 @@ describe("parseSettingValues", () => {
     expect(parseSettingValues(defs, { label: "购物车" }).label).toEqual({
       __i18n: { "zh-CN": "购物车", en: "Cart" },
     });
+    expect(
+      parseSettingValues(defs, { label: "section-settings-test:cart.label" })
+        .label,
+    ).toEqual({
+      __i18n: { "zh-CN": "购物车", en: "Cart" },
+    });
   });
 
   it("keeps a custom string instead of the built-in table", () => {
+    registerLocaleCatalog("section-settings-test", {
+      "zh-CN": { cart: { label: "购物车" } },
+      en: { cart: { label: "Cart" } },
+    });
     const defs = [
       {
         type: "text" as const,
         id: "label",
         label: "x",
-        default: localizedDefault({ "zh-CN": "购物车", en: "Cart" }),
+        default: "section-settings-test:cart.label",
       },
     ];
     expect(parseSettingValues(defs, { label: "My bag" }).label).toBe("My bag");

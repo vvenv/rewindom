@@ -62,7 +62,7 @@ export const productGridSection: SectionDefinition = {
       type: "text",
       id: "empty_text",
       label: "shop:section.productGrid.emptyText",
-      default: "No products for sale yet.",
+      default: "shop:storefront.catalog.empty",
     },
     { type: "header", content: "editor.group.layout", group: "layout" },
     columnsSetting(4, 3),

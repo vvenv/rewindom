@@ -108,14 +108,14 @@ export const memberPlansSection: SectionDefinition = {
       type: "text",
       id: "cta_label",
       label: "site-billing:section.plans.ctaLabel",
-      default: "Subscribe",
+      default: "site-billing:storefront.plans.cta",
       required: true,
     },
     {
       type: "text",
       id: "current_label",
       label: "site-billing:section.plans.currentLabel",
-      default: "Your current plan",
+      default: "site-billing:storefront.plans.current",
       info: "site-billing:section.plans.currentLabelInfo",
     },
     {

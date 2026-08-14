@@ -88,5 +88,10 @@
   "dashboard": {
     "title": "Subscription",
     "viewAll": "Details"
+  },
+  "storefront": {
+    "plans": {
+      "cta": "Get started"
+    }
   }
 }

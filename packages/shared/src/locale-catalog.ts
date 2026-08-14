@@ -1,4 +1,9 @@
-import { DEFAULT_LOCALE, normalizeLocale, type AppLocale } from "./locale.js";
+import {
+  APP_LOCALES,
+  DEFAULT_LOCALE,
+  normalizeLocale,
+  type AppLocale,
+} from "./locale.js";
 
 /**
  * 从一份 locale JSON 里按点分 key 取文案。
@@ -29,8 +34,10 @@ export function resolveLocaleMessage(
 export type LocaleCatalogMessages = Record<string, Record<string, unknown>>;
 
 /**
- * 贡献方把本模块 locale JSON 挂到这里，marketing 建页 / 重设版式时才能解开
- * `site-member:login.title` 这种跨 ns 的预设 key。客户端走 i18next，不读这份表。
+ * 贡献方把本模块 locale JSON 挂到这里，marketing 建页 / 重设版式、以及 section
+ * schema 把 `ns:key` 默认值展开成 `__i18n` 表时才能解开。客户端 UI 走 i18next，
+ * 不读这份表；但编辑器 `createBlock` 也走同一份 catalog，所以 client `i18n.ts`
+ * 同样要 `registerLocaleCatalog`。
  *
  * 与 `registerPageTemplateKind` 同向：业务模块填进来，marketing 不反向 import。
  */
@@ -77,4 +84,28 @@ export function translateRegisteredKey(
       ? resolveLocaleMessage(fallback, parsed.key)
       : undefined)
   );
+}
+
+/**
+ * 把 `ns:key` 展开成各语言原文表，给 CMS 段的可本地化默认值用。
+ *
+ * 某语言 JSON 里没有的槽位不写——缺的语言不要用另一句去填，否则中文站会把
+ * 英文当「已翻译」。catalog 未登记或 key 对不上时返回 `undefined`，调用方
+ * 再把原文当字面量。
+ */
+export function translateRegisteredKeyTable(
+  raw: string,
+): Record<string, string> | undefined {
+  const parsed = parseNamespacedLocaleKey(raw);
+  if (!parsed) return undefined;
+  const catalog = CATALOGS.get(parsed.ns);
+  if (!catalog) return undefined;
+  const table: Record<string, string> = {};
+  for (const { slug } of APP_LOCALES) {
+    const messages = catalog[slug];
+    if (!messages) continue;
+    const text = resolveLocaleMessage(messages, parsed.key);
+    if (typeof text === "string" && text !== "") table[slug] = text;
+  }
+  return Object.keys(table).length > 0 ? table : undefined;
 }

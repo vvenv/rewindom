@@ -108,7 +108,7 @@ export const billingPlansSection: SectionDefinition = {
       type: "text",
       id: "cta_label",
       label: "billing:section.plans.ctaLabel",
-      default: "Get started",
+      default: "billing:storefront.plans.cta",
       required: true,
     },
     {

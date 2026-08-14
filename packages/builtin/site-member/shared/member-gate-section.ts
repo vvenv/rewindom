@@ -34,7 +34,7 @@ export const memberGateSection: SectionDefinition = {
       type: "text",
       id: "locked_headline",
       label: "site-member:section.gate.lockedHeadline",
-      default: "Members only",
+      default: "site-member:gate.title",
       required: true,
     },
     {
@@ -47,7 +47,7 @@ export const memberGateSection: SectionDefinition = {
       type: "text",
       id: "login_label",
       label: "site-member:section.gate.loginLabel",
-      default: "Sign in",
+      default: "site-member:gate.login",
       required: true,
     },
   ],

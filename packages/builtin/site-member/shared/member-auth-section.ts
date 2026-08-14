@@ -81,14 +81,14 @@ function sharedAuthSettings(
       type: "text",
       id: "email_label",
       label: "site-member:section.auth.emailLabel",
-      default: "Email",
+      default: "site-member:fields.email",
       required: true,
     },
     {
       type: "text",
       id: "password_label",
       label: "site-member:section.auth.passwordLabel",
-      default: "Password",
+      default: "site-member:fields.password",
       required: true,
     },
     {
@@ -110,7 +110,7 @@ function sharedAuthSettings(
       type: "text",
       id: "oauth_divider",
       label: "site-member:section.auth.oauthDivider",
-      default: "or",
+      default: "site-member:oauth.or",
     },
     ...memberCardSettings(),
   ];
@@ -144,8 +144,11 @@ export const memberLoginFormSection: SectionDefinition = {
   placements: ["page"],
   page_kinds: [MEMBER_LOGIN_PAGE_KIND],
   settings: [
-    ...sharedAuthSettings("Sign in"),
-    ...altLinkSettings("New here?", "Create an account"),
+    ...sharedAuthSettings("site-member:login.submit"),
+    ...altLinkSettings(
+      "site-member:login.no_account",
+      "site-member:login.go_register",
+    ),
     ...memberPageLayoutSettings(),
   ],
 };
@@ -156,7 +159,7 @@ export const memberRegisterFormSection: SectionDefinition = {
   placements: ["page"],
   page_kinds: [MEMBER_REGISTER_PAGE_KIND],
   settings: [
-    ...sharedAuthSettings("Create account"),
+    ...sharedAuthSettings("site-member:register.submit"),
     {
       type: "checkbox",
       id: "show_display_name",
@@ -167,9 +170,12 @@ export const memberRegisterFormSection: SectionDefinition = {
       type: "text",
       id: "display_name_label",
       label: "site-member:section.auth.displayNameLabel",
-      default: "Display name",
+      default: "site-member:fields.display_name",
     },
-    ...altLinkSettings("Already have an account?", "Sign in"),
+    ...altLinkSettings(
+      "site-member:register.has_account",
+      "site-member:register.go_login",
+    ),
     ...memberPageLayoutSettings(),
   ],
 };

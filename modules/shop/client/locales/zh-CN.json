@@ -375,6 +375,8 @@
       "country": "国家/地区（ISO 两位）",
       "phone": "电话",
       "note": "订单备注（可选）",
+      "noteHeading": "订单备注",
+      "noteLabel": "备注（可选）",
       "shipping": "运费",
       "shippingEmpty": "当前目的地没有可用运费，请先在工作台配置运费表。",
       "summary": "订单",

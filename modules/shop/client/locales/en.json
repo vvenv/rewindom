@@ -375,6 +375,8 @@
       "country": "Country (ISO-2)",
       "phone": "Phone",
       "note": "Order note (optional)",
+      "noteHeading": "Order note",
+      "noteLabel": "Note (optional)",
       "shipping": "Shipping",
       "shippingEmpty": "No shipping rates for this destination. Add rates in the workspace.",
       "summary": "Order",

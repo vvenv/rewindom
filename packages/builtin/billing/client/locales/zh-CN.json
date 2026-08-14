@@ -88,5 +88,10 @@
   "dashboard": {
     "title": "订阅",
     "viewAll": "详情"
+  },
+  "storefront": {
+    "plans": {
+      "cta": "开始使用"
+    }
   }
 }
