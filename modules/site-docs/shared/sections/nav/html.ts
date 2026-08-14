@@ -1,6 +1,6 @@
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { settingBool, settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
-import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import {
   docMessages,
@@ -22,12 +22,7 @@ export const renderSiteDocsNavHtml: SectionHtmlRenderer = (section, ctx) => {
   const currentPath = ctx.currentPath ?? "";
 
   const href = (slug: string): string => {
-    const path = docPath(slug);
-    return escapeHtml(
-      ctx.locale && ctx.defaultLocale
-        ? withSiteLocale(path, ctx.locale, ctx.defaultLocale)
-        : path,
-    );
+    return escapeHtml(siteHref(docPath(slug), ctx));
   };
 
   const items = (

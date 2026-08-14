@@ -5,7 +5,7 @@ import {
   resolvePageMenu,
   type PageMenuSource,
 } from "../../site-cms.js";
-import { withSiteLocale } from "../../site-locale.js";
+import { siteHref } from "../../site-locale.js";
 import { gridClass, sectionHeading } from "../_common/html.js";
 
 import type {
@@ -14,10 +14,7 @@ import type {
 } from "../render-context.js";
 
 function menuHref(path: string, ctx: SectionRenderContext): string {
-  if (ctx.locale && ctx.defaultLocale) {
-    return withSiteLocale(path, ctx.locale, ctx.defaultLocale);
-  }
-  return path;
+  return siteHref(path, ctx);
 }
 
 export const renderPageMenuHtml: SectionHtmlRenderer = (section, ctx) => {

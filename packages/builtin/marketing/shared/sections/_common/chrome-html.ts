@@ -11,6 +11,7 @@
 import { escapeHtml } from "../../html.js";
 import { registerSectionCss } from "../../load-marketing-site-css.js";
 import { settingBool, settingText } from "../../section-schema.js";
+import { siteHref } from "../../site-locale.js";
 import {
   resolveNavItems,
   settingNavItems,
@@ -175,7 +176,7 @@ function renderNavHtml(input: {
     : `<div class="${cls}">${body}</div>`;
 }
 
-function renderButtonHtml(block: SiteBlock): string {
+function renderButtonHtml(block: SiteBlock, ctx: SiteNavContext): string {
   const label = settingText(block.settings, "label");
   const href = settingText(block.settings, "href");
   if (!label || !href) return "";
@@ -186,7 +187,7 @@ function renderButtonHtml(block: SiteBlock): string {
       : variant === "secondary"
         ? "btn btn-secondary"
         : "btn";
-  return `<a class="${className}"${linkAttrs(href)}>${escapeHtml(label)}</a>`;
+  return `<a class="${className}"${linkAttrs(siteHref(href, ctx))}>${escapeHtml(label)}</a>`;
 }
 
 function renderLocaleHtml(options: LocaleSwitcherOption[]): string {
@@ -236,7 +237,7 @@ function renderBlockHtml(block: SiteBlock, input: ChromeRenderInput, isMainNav: 
       return text ? `<p class="chrome-text">${escapeHtml(text)}</p>` : "";
     }
     case "chrome_button":
-      return renderButtonHtml(block);
+      return renderButtonHtml(block, input.ctx);
     case "chrome_locale":
       return renderLocaleHtml(input.locales);
     case "chrome_theme":

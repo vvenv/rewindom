@@ -4,11 +4,10 @@ import {
   settingText,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import {
-  isExternal,
   linkAttrs,
   md,
 } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
-import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import { DOCS_INDEX_PATH, docMessages, formatDocDate } from "../../site-doc.js";
 import { readSiteDocsContext } from "../../site-docs-context.js";
 
@@ -29,13 +28,7 @@ export const renderSiteDocsArticleHtml: SectionHtmlRenderer = (
   let back = "";
   if (settingBool(s, "show_back")) {
     const target = settingText(s, "back_href") || docsIndexPath;
-    const href =
-      ctx.locale &&
-      ctx.defaultLocale &&
-      !isExternal(target) &&
-      !target.startsWith("#")
-        ? withSiteLocale(target, ctx.locale, ctx.defaultLocale)
-        : target;
+    const href = siteHref(target, ctx);
     const label = settingText(s, "back_label") || messages.back;
     back = `<a class="doc-article-back"${linkAttrs(href)}>← ${escapeHtml(label)}</a>`;
   }

@@ -4,6 +4,7 @@ import { shopAlertHtml, shopTotalsHtml } from "./html-helpers.js";
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
+import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 export const renderOrderHtml: SectionHtmlRenderer = (section, ctx) => {
@@ -84,7 +85,7 @@ export const renderOrderListHtml: SectionHtmlRenderer = (section, ctx) => {
   const rows = shop.orders
     .map(
       (order) =>
-        `<tr><td><a href="${escapeHtml(order.href)}">${escapeHtml(order.number)}</a></td><td><span class="shop-status">${escapeHtml(order.status)}</span></td><td>${escapeHtml(order.total)}</td></tr>`,
+        `<tr><td><a href="${escapeHtml(siteHref(order.href, ctx))}">${escapeHtml(order.number)}</a></td><td><span class="shop-status">${escapeHtml(order.status)}</span></td><td>${escapeHtml(order.total)}</td></tr>`,
     )
     .join("");
   return `${shopAlertHtml(shop)}${heading}

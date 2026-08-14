@@ -12,6 +12,7 @@ import {
   gridClass,
   sectionHeading,
 } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
+import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 import type { ShopProductCardView } from "../shop-section-context.js";
@@ -40,7 +41,7 @@ export const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
     const rows = items
       .map(
         (product) =>
-          `<a href="${escapeHtml(product.href)}">${shopMediaSlotHtml(product.image_url, product.image_alt, "shop-grid-row-media")}<span class="shop-grid-row-title">${escapeHtml(product.title)}</span>${priceCell(product, showPrice)}</a>`,
+          `<a href="${escapeHtml(siteHref(product.href, ctx))}">${shopMediaSlotHtml(product.image_url, product.image_alt, "shop-grid-row-media")}<span class="shop-grid-row-title">${escapeHtml(product.title)}</span>${priceCell(product, showPrice)}</a>`,
       )
       .join("");
     return `${heading}<div class="shop-grid-list">${rows}</div>`;
@@ -48,7 +49,7 @@ export const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
   const cards = items
     .map(
       (product) =>
-        `<a class="card shop-card" href="${escapeHtml(product.href)}">${shopMediaSlotHtml(product.image_url, product.image_alt, "shop-card-media")}<span class="shop-card-body"><span class="title">${escapeHtml(product.title)}</span>${priceCell(product, showPrice)}</span></a>`,
+        `<a class="card shop-card" href="${escapeHtml(siteHref(product.href, ctx))}">${shopMediaSlotHtml(product.image_url, product.image_alt, "shop-card-media")}<span class="shop-card-body"><span class="title">${escapeHtml(product.title)}</span>${priceCell(product, showPrice)}</span></a>`,
     )
     .join("");
   return `${heading}<div class="${gridClass(settingNumber(s, "columns", 3))} shop-grid">${cards}</div>`;

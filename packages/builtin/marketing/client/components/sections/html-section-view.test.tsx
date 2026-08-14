@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { createSection } from "../../../shared/section-schema.js";
 
 import { htmlChromeBlockView, htmlSectionView } from "./html-section-view.js";
+import { SiteLocaleProvider } from "./site-locale-context.js";
 
 describe("htmlSectionView", () => {
   it("预览灌的就是渲染器产出的 HTML", () => {
@@ -32,6 +33,26 @@ describe("htmlSectionView", () => {
       />,
     );
     expect(container.innerHTML).toBe("");
+  });
+
+  it("把当前语言交给 HTML 渲染器", () => {
+    const View = htmlSectionView(
+      (_section, ctx) =>
+        `<a class="probe" href="${ctx.locale ?? ""}:${ctx.defaultLocale ?? ""}">`,
+    );
+    const { container } = render(
+      <SiteLocaleProvider locale="en" defaultLocale="zh-CN">
+        <View
+          section={createSection("hero")}
+          pages={[]}
+          currentPath="/"
+          renderChildren={() => null}
+        />
+      </SiteLocaleProvider>,
+    );
+    expect(container.querySelector(".probe")?.getAttribute("href")).toBe(
+      "en:zh-CN",
+    );
   });
 });
 

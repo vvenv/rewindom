@@ -8,6 +8,7 @@
 import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 import type { PageLocaleAlternate } from "@rewindom/builtin/marketing/shared/site-cms.js";
 import {
+  registerLocalizableAppHref,
   siteLocaleOrder,
   withSiteLocale,
 } from "@rewindom/builtin/marketing/shared/site-locale.js";
@@ -44,6 +45,8 @@ export function isShopLocaleSwitchablePath(path: string): boolean {
   const first = segments[0];
   return segments.length === 1 && Boolean(first) && !SHOP_RESERVED_SEGMENTS.has(first);
 }
+
+registerLocalizableAppHref(isShopLocaleSwitchablePath);
 
 /**
  * 店面页头语言切换的候选：站点已经有内容的语言 + 当前这一页。

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isSiteLocalizableHref,
+  localizeSiteHref,
+} from "@rewindom/builtin/marketing/shared/site-locale.js";
+
+import {
   isShopLocaleSwitchablePath,
   shopStorefrontAlternates,
 } from "./shop-section-context.js";
@@ -21,6 +26,15 @@ describe("isShopLocaleSwitchablePath", () => {
   it("rejects unrelated paths", () => {
     expect(isShopLocaleSwitchablePath("/")).toBe(false);
     expect(isShopLocaleSwitchablePath("/docs")).toBe(false);
+  });
+});
+
+describe("shop locale hrefs", () => {
+  it("registers product detail paths as localizable", () => {
+    expect(isSiteLocalizableHref("/shop/mug")).toBe(true);
+    expect(isSiteLocalizableHref("/shop/cart")).toBe(false);
+    expect(localizeSiteHref("/shop/mug", "en", "zh-CN")).toBe("/en/shop/mug");
+    expect(localizeSiteHref("/shop", "en", "zh-CN")).toBe("/en/shop");
   });
 });
 

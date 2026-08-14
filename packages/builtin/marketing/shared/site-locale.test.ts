@@ -1,14 +1,21 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   isSiteLocalizableHref,
   localizeSiteHref,
   isMarketingPublicPath,
   parseSiteLocalePath,
+  registerLocalizableAppHref,
+  resetLocalizableAppHrefs,
   resolveLocaleSegment,
+  siteHref,
   siteLocaleOrder,
   withSiteLocale,
 } from "./site-locale.js";
+
+afterEach(() => {
+  resetLocalizableAppHrefs();
+});
 
 describe("resolveLocaleSegment", () => {
   it("accepts the canonical slug and its lowercase form", () => {
@@ -120,7 +127,15 @@ describe("isSiteLocalizableHref", () => {
     expect(isSiteLocalizableHref("/shop")).toBe(true);
     expect(isSiteLocalizableHref("/member/login")).toBe(true);
     expect(isSiteLocalizableHref("/shop/cart")).toBe(false);
+    expect(isSiteLocalizableHref("/shop/mug")).toBe(false);
     expect(isSiteLocalizableHref("/member/oauth/callback")).toBe(false);
+  });
+
+  it("lets modules register extra app-prefix paths that take a locale", () => {
+    registerLocalizableAppHref((path) => path === "/shop/mug");
+    expect(isSiteLocalizableHref("/shop/mug")).toBe(true);
+    expect(isSiteLocalizableHref("/shop/cart")).toBe(false);
+    expect(localizeSiteHref("/shop/mug", "en", "zh-CN")).toBe("/en/shop/mug");
   });
 });
 
@@ -149,6 +164,21 @@ describe("localizeSiteHref", () => {
     // 服务端已在 localizeSection 里改写过一次，客户端 SiteLink 会再过一遍
     const once = localizeSiteHref("/about", "en", "zh-CN");
     expect(localizeSiteHref(once, "en", "zh-CN")).toBe(once);
+  });
+});
+
+describe("siteHref", () => {
+  it("leaves the href alone when the render context has no locale", () => {
+    expect(siteHref("/about", {})).toBe("/about");
+  });
+
+  it("prefixes through the same gate as localizeSiteHref", () => {
+    expect(siteHref("/about", { locale: "en", defaultLocale: "zh-CN" })).toBe(
+      "/en/about",
+    );
+    expect(siteHref("/login", { locale: "en", defaultLocale: "zh-CN" })).toBe(
+      "/login",
+    );
   });
 });
 

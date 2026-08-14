@@ -13,6 +13,7 @@ import {
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import type { ChromeBlockHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/_common/chrome-html.js";
 import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
+import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 import type { ShopCartView, ShopRenderContext } from "../shop-section-context.js";
 
@@ -104,7 +105,7 @@ export const renderCartHtml: SectionHtmlRenderer = (section, ctx) => {
     const cont = settingText(s, "continue_label");
     return `${shopAlertHtml(shop)}${heading}<div class="shop-empty">${
       empty ? `<p class="shop-muted">${escapeHtml(empty)}</p>` : ""
-    }${cont ? `<a class="btn" href="${escapeHtml(shop.shop_href)}">${escapeHtml(cont)}</a>` : ""}</div>`;
+    }${cont ? `<a class="btn" href="${escapeHtml(siteHref(shop.shop_href, ctx))}">${escapeHtml(cont)}</a>` : ""}</div>`;
   }
   const lines = section.blocks.find((block) => block.type === "lines");
   const summary = section.blocks.find((block) => block.type === "summary");

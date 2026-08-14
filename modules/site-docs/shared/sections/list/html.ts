@@ -1,5 +1,5 @@
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
-import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import { gridClass, sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
 
 import {
@@ -18,12 +18,7 @@ import type {
 } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 function docHref(doc: PublicDocSummary, ctx: SectionRenderContext): string {
-  const path = docPath(doc.slug);
-  return escapeHtml(
-    ctx.locale && ctx.defaultLocale
-      ? withSiteLocale(path, ctx.locale, ctx.defaultLocale)
-      : path,
-  );
+  return escapeHtml(siteHref(docPath(doc.slug), ctx));
 }
 
 function searchAttr(doc: PublicDocSummary): string {
@@ -101,10 +96,7 @@ export const renderSiteDocsListHtml: SectionHtmlRenderer = (section, ctx) => {
     .join("");
 
   const indexPath = docsCtx?.docsIndexPath ?? "/docs";
-  const indexHref =
-    ctx.locale && ctx.defaultLocale
-      ? withSiteLocale(indexPath, ctx.locale, ctx.defaultLocale)
-      : indexPath;
+  const indexHref = siteHref(indexPath, ctx);
   const chip = query
     ? filterChip(query, locale, indexHref, filtered.length)
     : "";

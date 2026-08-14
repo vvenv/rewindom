@@ -45,6 +45,11 @@ export function useSiteLocale(): AppLocale {
   return useContext(SiteLocaleContext)?.locale ?? "zh-CN";
 }
 
+/** 编辑器 HTML 预览拿当前语言；没有 Provider 时不改写链接。 */
+export function useSiteLocaleContext(): SiteLocaleValue | null {
+  return useContext(SiteLocaleContext);
+}
+
 /**
  * 站内链接 → 当前语言的 URL。
  *

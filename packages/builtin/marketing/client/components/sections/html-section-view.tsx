@@ -12,6 +12,7 @@ import type { SectionHtmlRenderer } from "../../../shared/sections/render-contex
 
 import type { ChromeBlockViewProps } from "./chrome-views.js";
 import type { SectionViewProps } from "./section-parts.js";
+import { useSiteLocaleContext } from "./site-locale-context.js";
 
 function HtmlFragment({ html }: { html: string }): ReactElement {
   return (
@@ -32,7 +33,14 @@ export function htmlSectionView(
     currentPath,
     contributed,
   }: SectionViewProps): ReactElement | null {
-    const html = render(section, { pages, currentPath, contributed });
+    const siteLocale = useSiteLocaleContext();
+    const html = render(section, {
+      pages,
+      currentPath,
+      contributed,
+      locale: siteLocale?.locale,
+      defaultLocale: siteLocale?.defaultLocale,
+    });
     if (!html) return null;
     return <HtmlFragment html={html} />;
   };

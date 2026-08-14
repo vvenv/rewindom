@@ -39,6 +39,32 @@ describe("shop storefront section html", () => {
     expect(html).toContain("shop-card-body");
   });
 
+  it("商品列表链接跟上当前 locale 前缀", () => {
+    const section = createSection(productGridSection.type);
+    const html = SECTION_HTML[productGridSection.type]?.(section, {
+      locale: "en",
+      defaultLocale: "zh-CN",
+      contributed: shopContextEntry(
+        emptyShopContext({
+          products: [
+            {
+              slug: "mug",
+              href: "/shop/mug",
+              title: "Mug",
+              price: "$12.00",
+              compare_at_price: null,
+              image_url: null,
+              image_alt: "",
+              collection_slugs: [],
+            },
+          ],
+        }),
+      ),
+    });
+    expect(html).toContain("/en/shop/mug");
+    expect(html).not.toContain('href="/shop/mug"');
+  });
+
   it("商品详情把 description 当 Markdown 渲染，而不是纯文本转义", () => {
     const section = createSection(productSection.type);
     const html = SECTION_HTML[productSection.type]?.(section, {

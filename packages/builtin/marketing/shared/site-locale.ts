@@ -27,6 +27,26 @@ export {
 
 const APP_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);
 
+/**
+ * 应用区前缀下、但仍可带 locale 的路径（店面 `/shop/:slug` 等）。
+ *
+ * marketing 不认识业务模块的路由形状；模块在装载时把「带前缀也能打开」的
+ * matcher 登记进来。`/shop` 本身已在 `SITE_SSR_PREFIX_EXCEPTIONS` 里，不必再登。
+ */
+const LOCALIZABLE_APP_HREF_MATCHERS: Array<(path: string) => boolean> = [];
+
+export function registerLocalizableAppHref(
+  match: (path: string) => boolean,
+): void {
+  if (LOCALIZABLE_APP_HREF_MATCHERS.includes(match)) return;
+  LOCALIZABLE_APP_HREF_MATCHERS.push(match);
+}
+
+/** 仅供测试。 */
+export function resetLocalizableAppHrefs(): void {
+  LOCALIZABLE_APP_HREF_MATCHERS.length = 0;
+}
+
 /** 大小写不敏感地把一段路径解析成 locale（`zh-cn` → `zh-CN`）。 */
 export function resolveLocaleSegment(segment: string): AppLocale | null {
   if (isAppLocale(segment)) return segment;
@@ -129,15 +149,18 @@ export function isSiteLocalizableHref(href: string): boolean {
   if (resolveLocaleSegment(first) !== null) return false;
   if (!APP_PREFIX_SET.has(first)) return true;
   /*
-   * `shop` 在应用区前缀表里（无前缀 `/shop` 要打到 Fastify），但店面目录仍是
-   * 官网导航的一级入口。会员登录等 SSR 例外同理。子路径（`/shop/cart`）不在
-   * 这里扩——带 locale 的更深地址 marketing SSR 还接不住。
+   * 应用区前缀默认不加。例外是 marketing SSR 接得住的那几条：会员模板页、
+   * 店面目录，以及业务模块登记过的「带 locale 也能打开」的子路径
+   *（`/shop/mug`）。购物车 / 结账 / 分类仍不扩——更深地址现有路由接不住。
    */
   const normalized = normalizeSitePath(path);
-  return (
+  if (
     (SITE_SSR_EXCEPTION_PATHS as readonly string[]).includes(normalized) ||
     (SITE_SSR_PREFIX_EXCEPTIONS as readonly string[]).includes(normalized)
-  );
+  ) {
+    return true;
+  }
+  return LOCALIZABLE_APP_HREF_MATCHERS.some((match) => match(normalized));
 }
 
 /**
@@ -154,4 +177,21 @@ export function localizeSiteHref(
   const pathPart = suffixAt === -1 ? href : href.slice(0, suffixAt);
   const rest = suffixAt === -1 ? "" : href.slice(suffixAt);
   return withSiteLocale(pathPart, locale, defaultLocale) + rest;
+}
+
+/**
+ * 渲染期把逻辑路径写成当前语言的 URL。
+ *
+ * HTML 渲染器应走这里，而不是自己拼 `/{locale}`：缺 locale 时（单测、无
+ * Provider）原样返回；已经带前缀或不是官网内容的链接也不会被改写。
+ */
+export function siteHref(
+  href: string,
+  ctx: {
+    locale?: AppLocale | null;
+    defaultLocale?: AppLocale | null;
+  },
+): string {
+  if (!ctx.locale || !ctx.defaultLocale) return href;
+  return localizeSiteHref(href, ctx.locale, ctx.defaultLocale);
 }
