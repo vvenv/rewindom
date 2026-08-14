@@ -793,7 +793,6 @@
       "page": "Pages",
       "doc": "Docs"
     },
-    "switchPage": "Switch page",
     "leaveConfirmTitle": "Leave without saving?",
     "leaveConfirmBody": "This page has unsaved changes. Leaving now discards them.",
     "leaveConfirmAction": "Discard and leave",

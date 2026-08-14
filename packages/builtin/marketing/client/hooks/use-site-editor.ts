@@ -2,7 +2,11 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
-import { isPublicCatalogPage } from "../../shared/page-templates.js";
+import {
+  getPageTemplateKind,
+  isPageTemplateRelevant,
+  isPublicCatalogPage,
+} from "../../shared/page-templates.js";
 import {
   localizeSections,
   localizeSiteText,
@@ -274,12 +278,20 @@ export function useSiteEditor(pageId: string | undefined) {
         )?.id ?? null,
     }));
 
-  /** 同语言下的全部页面，按列表顺序（服务端已按 `sort_order`）。 */
-  const localePages: MarketingPageListItem[] = (pagesQuery.data ?? []).filter(
-    (item) => item.locale === locale,
-  );
   const enabledEntitlements = new Set(
     capabilitiesQuery.data?.entitlements ?? [],
+  );
+
+  /**
+   * 同语言下可切过去的页面，按列表顺序（服务端已按 `sort_order`）。
+   * 模板页跟中台列表同一道闸：模块关了就不出现（落库的 `/shop` `/docs` 仍在）。
+   */
+  const localePages: MarketingPageListItem[] = (pagesQuery.data ?? []).filter(
+    (item) => {
+      if (item.locale !== locale) return false;
+      const template = getPageTemplateKind(item.kind);
+      return !template || isPageTemplateRelevant(template, enabledEntitlements);
+    },
   );
 
   /**

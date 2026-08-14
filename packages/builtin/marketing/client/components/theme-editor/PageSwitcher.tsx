@@ -6,7 +6,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@rewindom/ui/dropdown-menu";
 import { Check, ChevronsUpDown, FileText } from "lucide-react";
@@ -52,7 +51,6 @@ export function PageSwitcher({
         align="start"
         className="max-h-80 w-64 overflow-y-auto"
       >
-        <DropdownMenuLabel>{t("editor.switchPage")}</DropdownMenuLabel>
         {pages.map((item) => (
           <DropdownMenuItem
             key={item.id}

@@ -793,7 +793,6 @@
       "page": "页面",
       "doc": "文档"
     },
-    "switchPage": "切换页面",
     "leaveConfirmTitle": "放弃未保存的改动？",
     "leaveConfirmBody": "本页还有没保存的改动，离开后会丢失。",
     "leaveConfirmAction": "放弃并离开",
