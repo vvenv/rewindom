@@ -6,6 +6,12 @@
  */
 
 import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
+import type { PageLocaleAlternate } from "@rewindom/builtin/marketing/shared/site-cms.js";
+import {
+  siteLocaleOrder,
+  withSiteLocale,
+} from "@rewindom/builtin/marketing/shared/site-locale.js";
+import type { AppLocale } from "@rewindom/module-sdk";
 
 export const SHOP_CONTEXT_KEY = "shop";
 
@@ -16,6 +22,60 @@ export const SHOP_PRODUCT_PATH = "/shop/:slug";
 export const SHOP_COLLECTION_PATH = "/shop/collections/:slug";
 export const SHOP_ORDER_PATH = "/shop/orders/:number";
 export const SHOP_MEMBER_ORDERS_PATH = "/member/orders";
+
+/**
+ * 购物车 / 结账 / 订单 / 分类不是「带 locale 前缀也能用同一条 Fastify 静态路由接住」
+ * 的那类地址：`/en/shop/collections/foo` 已经超出 marketing SSR 现有的三段路由。
+ * 语言切换只挂在目录页和商品详情上（`/shop`、`/shop/:slug`）。
+ */
+const SHOP_RESERVED_SEGMENTS = new Set([
+  "cart",
+  "checkout",
+  "orders",
+  "collections",
+]);
+
+/** 页头语言切换 / path handler 认的公开店面路径。 */
+export function isShopLocaleSwitchablePath(path: string): boolean {
+  if (path === SHOP_INDEX_PATH) return true;
+  if (!path.startsWith(`${SHOP_INDEX_PATH}/`)) return false;
+  const rest = path.slice(SHOP_INDEX_PATH.length + 1);
+  const segments = rest.split("/").filter(Boolean);
+  const first = segments[0];
+  return segments.length === 1 && Boolean(first) && !SHOP_RESERVED_SEGMENTS.has(first);
+}
+
+/**
+ * 店面页头语言切换的候选：站点已经有内容的语言 + 当前这一页。
+ *
+ * 购物车 / 结账标了 noindex，点过去也不该换语言；分类 / 订单的 locale 前缀
+ * 超出 marketing SSR 现有段数，挂上去会 404。
+ */
+export function shopStorefrontAlternates(input: {
+  path: string;
+  locales: readonly AppLocale[];
+  defaultLocale: AppLocale;
+  current: AppLocale;
+  noindex?: boolean;
+}): PageLocaleAlternate[] {
+  if (input.noindex || !isShopLocaleSwitchablePath(input.path)) return [];
+  const wanted = new Set(input.locales);
+  wanted.add(input.current);
+  const locales = siteLocaleOrder(input.defaultLocale).filter((locale) =>
+    wanted.has(locale),
+  );
+  const seen = new Set<AppLocale>();
+  const out: PageLocaleAlternate[] = [];
+  for (const locale of locales) {
+    if (seen.has(locale)) continue;
+    seen.add(locale);
+    out.push({
+      locale,
+      path: withSiteLocale(input.path, locale, input.defaultLocale),
+    });
+  }
+  return out;
+}
 
 export interface ShopProductCardView {
   slug: string;

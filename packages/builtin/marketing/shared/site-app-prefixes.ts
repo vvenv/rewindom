@@ -83,3 +83,19 @@ export function isSiteSsrExceptionPath(path: string): boolean {
     (prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`),
   );
 }
+
+const APP_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);
+
+/**
+ * 这条**逻辑路径**（已去掉 locale 前缀）要不要交回 SPA。
+ *
+ * `/shop` 在 `SITE_APP_PREFIXES` 里，是为了无前缀的 `/shop` 别被当成 CMS 页；
+ * 但它同时又是 SSR 例外。剥掉 `/en` 之后如果仍按 SPA 前缀 `callNotFound()`，
+ * `/en/shop` 就会变成 JSON 404，而不是店面 HTML。
+ */
+export function isSpaShellPath(path: string): boolean {
+  const normalized = normalizeSitePath(path.split(/[?#]/u)[0] ?? path);
+  const first = normalized.slice(1).split("/")[0] ?? "";
+  if (!first || !APP_PREFIX_SET.has(first)) return false;
+  return !isSiteSsrExceptionPath(normalized);
+}

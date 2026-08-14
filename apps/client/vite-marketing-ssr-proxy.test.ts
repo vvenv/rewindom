@@ -31,25 +31,17 @@ describe("vite marketing SSR proxy routing", () => {
 
   it("不把 Vite 资源请求当成 HTML 文档代理给 SSR", () => {
     expect(
-      shouldProxyDocumentToMarketingSsr(
-        "/@vite/client",
-        "GET",
-        "*/*",
-      ),
+      shouldProxyDocumentToMarketingSsr("/@vite/client", "GET", "*/*"),
     ).toBe(false);
     expect(
-      shouldProxyDocumentToMarketingSsr(
-        "/manifest.webmanifest",
-        "GET",
-        "*/*",
-      ),
+      shouldProxyDocumentToMarketingSsr("/manifest.webmanifest", "GET", "*/*"),
     ).toBe(false);
-    expect(
-      shouldProxyDocumentToMarketingSsr("/app/", "GET", "text/html"),
-    ).toBe(false);
-    expect(
-      shouldProxyDocumentToMarketingSsr("/", "GET", "text/html"),
-    ).toBe(true);
+    expect(shouldProxyDocumentToMarketingSsr("/app/", "GET", "text/html")).toBe(
+      false,
+    );
+    expect(shouldProxyDocumentToMarketingSsr("/", "GET", "text/html")).toBe(
+      true,
+    );
   });
 
   it("店面与会员订单走 Fastify SSR，含无 JS 表单 POST", () => {
@@ -65,5 +57,11 @@ describe("vite marketing SSR proxy routing", () => {
       shouldProxyDocumentToMarketingSsr("/member/orders", "GET", "text/html"),
     ).toBe(true);
     expect(shouldBypassMarketingSsrProxy("/member/oauth/callback")).toBe(true);
+    expect(
+      shouldProxyDocumentToMarketingSsr("/en/shop", "GET", "text/html"),
+    ).toBe(true);
+    expect(
+      shouldProxyDocumentToMarketingSsr("/en/shop/mug", "GET", "text/html"),
+    ).toBe(true);
   });
 });

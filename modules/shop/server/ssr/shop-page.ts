@@ -3,7 +3,11 @@
  */
 
 import { createShopPresetTranslator } from "./shop-preset-i18n.js";
-import { shopContextEntry, type ShopRenderContext } from "../../shared/shop-section-context.js";
+import {
+  shopContextEntry,
+  shopStorefrontAlternates,
+  type ShopRenderContext,
+} from "../../shared/shop-section-context.js";
 
 import { resolveSiteAccountEntry } from "@rewindom/builtin/marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "@rewindom/builtin/marketing/server/site-entitlements.js";
@@ -68,7 +72,13 @@ export async function renderShopTemplatePage(input: {
       settings: input.noindex ? { noindex: true } : {},
       visibility: "public",
       path: input.path,
-      alternates: [],
+      alternates: shopStorefrontAlternates({
+        path: input.path,
+        locales: site.available_locales,
+        defaultLocale: site.default_locale,
+        current: locale,
+        noindex: input.noindex,
+      }),
       updated_at: new Date().toISOString(),
     },
     accountEntryHtml: accountEntry.html,

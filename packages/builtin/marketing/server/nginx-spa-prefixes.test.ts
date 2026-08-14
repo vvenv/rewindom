@@ -8,6 +8,7 @@ import {
   SITE_SSR_EXCEPTION_PATHS,
   SITE_SSR_PREFIX_EXCEPTIONS,
   isSiteSsrExceptionPath,
+  isSpaShellPath,
 } from "../shared/site-locale.js";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../../../..");
@@ -96,5 +97,15 @@ describe("SPA 前缀三处对齐", () => {
     expect(isSiteSsrExceptionPath("/shop/mug")).toBe(true);
     expect(isSiteSsrExceptionPath("/member/orders")).toBe(true);
     expect(isSiteSsrExceptionPath("/member/oauth/callback")).toBe(false);
+  });
+
+  it("isSpaShellPath 放行店面 SSR 例外，拦住真正的应用区", () => {
+    expect(isSpaShellPath("/shop")).toBe(false);
+    expect(isSpaShellPath("/shop/mug")).toBe(false);
+    expect(isSpaShellPath("/member/login")).toBe(false);
+    expect(isSpaShellPath("/member/orders")).toBe(false);
+    expect(isSpaShellPath("/app/dashboard")).toBe(true);
+    expect(isSpaShellPath("/member/oauth/callback")).toBe(true);
+    expect(isSpaShellPath("/about")).toBe(false);
   });
 });

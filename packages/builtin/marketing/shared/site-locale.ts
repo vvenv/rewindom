@@ -9,16 +9,14 @@
 
 import { APP_LOCALES, isAppLocale, type AppLocale } from "@rewindom/shared";
 
-import {
-  SITE_APP_PREFIXES,
-  normalizeSitePath,
-} from "./site-app-prefixes.js";
+import { SITE_APP_PREFIXES, normalizeSitePath } from "./site-app-prefixes.js";
 
 export {
   SITE_APP_PREFIXES,
   SITE_SSR_EXCEPTION_PATHS,
   SITE_SSR_PREFIX_EXCEPTIONS,
   isSiteSsrExceptionPath,
+  isSpaShellPath,
   normalizeSitePath,
 } from "./site-app-prefixes.js";
 

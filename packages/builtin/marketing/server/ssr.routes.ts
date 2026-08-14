@@ -3,20 +3,20 @@ import {
   resolveRequestHostname,
   requestOriginFromHeaders,
 } from "@rewindom/server-kernel/lib/host-tenant.js";
-import { DEFAULT_TENANT_ID, normalizeLocale, type AppLocale } from "@rewindom/shared";
+import {
+  DEFAULT_TENANT_ID,
+  normalizeLocale,
+  type AppLocale,
+} from "@rewindom/shared";
 
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
+import { isSpaShellPath, resolveLocaleSegment } from "../shared/site-locale.js";
 import { matchSitePathHandler } from "../shared/site-path-handlers.js";
-import {
-  resolveLocaleSegment,
-  SITE_APP_PREFIXES,
-} from "../shared/site-locale.js";
 
 import {
   cookiesFromHeader,
   resolveSectionContexts,
 } from "./section-context-providers.js";
-import { resolveContributedSitemapEntries } from "./sitemap-providers.js";
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
 import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
@@ -26,6 +26,7 @@ import {
   getPublishedPublicSite,
   getPublishedSitemapEntries,
 } from "./site.service.js";
+import { resolveContributedSitemapEntries } from "./sitemap-providers.js";
 import {
   renderMarketingHtml,
   renderRobotsTxt,
@@ -35,15 +36,11 @@ import {
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
-const SPA_PREFIX_SET = new Set<string>(SITE_APP_PREFIXES);
-
 /** 自定义 404 页的约定 slug。 */
 const NOT_FOUND_SLUG_PATH = "/404";
 
 function requestOrigin(request: FastifyRequest): string {
-  return (
-    requestOriginFromHeaders(request) ?? `http://${request.hostname}`
-  );
+  return requestOriginFromHeaders(request) ?? `http://${request.hostname}`;
 }
 
 async function ensureHostTenant(request: FastifyRequest): Promise<void> {
@@ -358,7 +355,7 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
       await renderPath(request, reply, "/", locale);
       return;
     }
-    if (SPA_PREFIX_SET.has(first)) {
+    if (isSpaShellPath(`/${first}`)) {
       return reply.callNotFound();
     }
     await renderPath(request, reply, `/${first}`);
@@ -371,17 +368,19 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     };
     const locale = resolveLocaleSegment(first);
     if (locale) {
-      if (SPA_PREFIX_SET.has(second)) {
+      const logical = `/${second}`;
+      if (isSpaShellPath(logical)) {
         return reply.callNotFound();
       }
-      await renderPath(request, reply, `/${second}`, locale);
+      await renderPath(request, reply, logical, locale);
       return;
     }
     // 非 locale 的两级路径：应用区交回 SPA，其余当租户嵌套页或贡献路径
-    if (SPA_PREFIX_SET.has(first)) {
+    const logical = `/${first}/${second}`;
+    if (isSpaShellPath(`/${first}`)) {
       return reply.callNotFound();
     }
-    await renderPath(request, reply, `/${first}/${second}`);
+    await renderPath(request, reply, logical);
   });
 
   app.get("/:first/:second/:third", async (request, reply) => {
@@ -392,13 +391,14 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     };
     const locale = resolveLocaleSegment(first);
     if (locale) {
-      if (SPA_PREFIX_SET.has(second)) {
+      const logical = `/${second}/${third}`;
+      if (isSpaShellPath(logical)) {
         return reply.callNotFound();
       }
-      await renderPath(request, reply, `/${second}/${third}`, locale);
+      await renderPath(request, reply, logical, locale);
       return;
     }
-    if (SPA_PREFIX_SET.has(first)) {
+    if (isSpaShellPath(`/${first}`)) {
       return reply.callNotFound();
     }
     await renderPath(request, reply, `/${first}/${second}/${third}`);

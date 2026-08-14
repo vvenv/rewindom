@@ -12,6 +12,7 @@ import { SHOP_SERVER_I18N } from "./i18n.js";
 import { shopAdminRoutes, shopWebhookRoutes } from "./order/shop-admin.routes.js";
 import { registerShopStorefrontSections } from "./sections/register.js";
 import { shopStorefrontRoutes } from "./ssr/shop.ssr.js";
+import { registerShopPathHandler } from "./ssr/shop-path-handler.js";
 import { registerShopPageTemplates } from "../shared/shop-page-templates.js";
 
 export const shopServerModule: ServerAppModule = {
@@ -68,6 +69,7 @@ export const shopServerModule: ServerAppModule = {
     onBoot: async () => {
       registerShopPageTemplates();
       registerShopStorefrontSections();
+      registerShopPathHandler();
     },
     registerRoutes: async (app) => {
       await app.register(shopWebhookRoutes, {
