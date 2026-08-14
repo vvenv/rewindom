@@ -21,6 +21,8 @@ import {
   getPageTemplatePreset,
   isTemplatePageKind,
   NOT_FOUND_PAGE_KIND,
+  resolveCatalogPageTitle,
+  resolveTemplatePresetCopy,
 } from "../shared/page-templates.js";
 import { mergeSectionsWithPreset } from "../shared/preset-merge.js";
 import {
@@ -1115,6 +1117,13 @@ export async function revertEditorDraft(
   return presentEditor(page, site, enabled);
 }
 
+/**
+ * 已发布站点的公开投影：**chrome 跟请求语言走**。
+ *
+ * 不要在这里做「一种语言都没有 CMS 页就整站回落默认语言」——`/en/shop` 这类
+ * 贡献路径没有英文 MarketingPage 也能渲染，页头导航仍该是英文。CMS 正文缺译文
+ * 的回落留在 `getPublishedPublicPage` 的 `effectiveLocale`。
+ */
 export async function getPublishedPublicSite(
   tenant_id: string,
   tenant_slug: string,
@@ -1132,7 +1141,9 @@ export async function getPublishedPublicSite(
   return presentPublicSite(
     site,
     pages,
-    effectiveLocale(locale, normalizeLocale(site.default_locale), pages),
+    locale == null
+      ? normalizeLocale(site.default_locale)
+      : normalizeLocale(locale, normalizeLocale(site.default_locale)),
   );
 }
 
@@ -1303,7 +1314,8 @@ export async function getPublishedPublicPage(
  * 返回 `null` 表示租户从没自定义过——调用方回落自己的内置兜底版式，而不是渲染出
  * 一张空页。这正是「懒落库」的另一半：不存在 ≠ 没有版式。
  *
- * 语言回落：先找当前语言那一份，没有就用站点主语言的。
+ * 语言回落：先找当前语言那一份，没有就用站点主语言的版式；标题 / 摘要按
+ * **请求语言**解预设，避免 `/en/shop` 的页头还写着中文「商品」。
  *
  * `requireSite` 为 false 时**不要求站点已发布**。内容路径那种「站点的一部分」当然
  * 要站点先发布，但会员登录页不是内容而是**入口**：租户还没发布官网时会员照样得
@@ -1345,10 +1357,19 @@ export async function getPublishedTemplatePage(
   if (!match) return null;
 
   const content = pageContentPublished(match);
+  const matchLocale = normalizeLocale(match.locale, default_locale);
+  const t = createStarterTranslator(locale);
+  const copy =
+    matchLocale === locale
+      ? null
+      : resolveTemplatePresetCopy(kind, locale, t);
   return {
     sections: localizeSections(content.sections, locale, default_locale),
-    title: content.title,
-    description: content.description,
+    title: resolveCatalogPageTitle(kind, locale, content.title, {
+      forcePreset: matchLocale !== locale,
+      t,
+    }),
+    description: copy?.description || content.description,
   };
 }
 

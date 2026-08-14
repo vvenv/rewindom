@@ -5,7 +5,9 @@ import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 import {
   getPageTemplateKind,
   isPageTemplateRelevant,
-  isPublicCatalogPage,
+  publicCatalogSources,
+  resolveCatalogPageTitle,
+  resolveTemplatePresetCopy,
 } from "../../shared/page-templates.js";
 import {
   localizeSections,
@@ -300,6 +302,9 @@ export function useSiteEditor(pageId: string | undefined) {
    * 未开通的模块页不进；次序是 `sort_order` 再 `slug`（不能跟中台列表的
    * `updated_at` 并列打破走，否则预览和实站会对不齐）。
    *
+   * 当前语言还没有的一级模板页，借用默认语言那一行、标题走预设文案——和线上
+   * `/en/shop` 一样，不能把中文「商品」留在英文导航里。
+   *
    * 少这几道过滤，预览的页头导航会比线上多出几条：草稿页面（还没发布，访客看不到）
    * 和详情模板页（`docs_article` 根本没有自己的地址）。而页头导航默认就是一条「全部
    * 一级页面」的动态项，所以每建一张草稿页，预览与实际就多差一条——差异恰好出现在
@@ -308,19 +313,35 @@ export function useSiteEditor(pageId: string | undefined) {
    * 正在编辑的这一页用编辑器里的标题，不用列表里那份：改了标题还没保存时，导航里
    * 该跟着变。
    */
-  const previewNavPages = localePages
-    .filter((item) => item.status === "published")
-    .filter((item) => isPublicCatalogPage(item.kind, enabledEntitlements))
-    .sort(comparePublicCatalogPages)
-    .map((item) => ({
-      slug: item.slug,
-      locale: item.locale,
-      kind: item.kind,
-      title: item.id === page?.id ? title : item.title,
-      description: item.id === page?.id ? description : item.description,
-      path: marketingPagePath(item.kind, item.slug),
-      settings: item.settings,
-    }));
+  const previewNavPages = publicCatalogSources(
+    (pagesQuery.data ?? []).filter((item) => item.status === "published"),
+    locale,
+    defaultLocale,
+    enabledEntitlements,
+  )
+    .sort((a, b) => comparePublicCatalogPages(a.page, b.page))
+    .map(({ page: item, localizeFromPreset }) => {
+      const copy = localizeFromPreset
+        ? resolveTemplatePresetCopy(item.kind, locale)
+        : null;
+      const editing = item.id === page?.id;
+      return {
+        slug: item.slug,
+        locale,
+        kind: item.kind,
+        title: resolveCatalogPageTitle(
+          item.kind,
+          locale,
+          editing ? title : item.title,
+          { forcePreset: !editing && localizeFromPreset },
+        ),
+        description: editing
+          ? description
+          : copy?.description || item.description,
+        path: marketingPagePath(item.kind, item.slug),
+        settings: item.settings,
+      };
+    });
 
   /**
    * 预览用的语言入口：已经建出来的语言各一条。

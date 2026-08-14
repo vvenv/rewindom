@@ -328,7 +328,7 @@
   },
   "storefront": {
     "catalog": {
-      "title": "Products",
+      "title": "Shop",
       "subtitle": "Items for sale",
       "empty": "No products for sale yet."
     },

@@ -328,7 +328,7 @@
   },
   "storefront": {
     "catalog": {
-      "title": "商品",
+      "title": "商店",
       "subtitle": "在售商品",
       "empty": "暂无在售商品。"
     },

@@ -1,6 +1,10 @@
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
-import { isPublicCatalogPage } from "../shared/page-templates.js";
+import {
+  publicCatalogSources,
+  resolveCatalogPageTitle,
+  resolveTemplatePresetCopy,
+} from "../shared/page-templates.js";
 import {
   localizeSections,
   localizeSiteText,
@@ -184,38 +188,44 @@ export function toPublicMarketingSite(
     available_locales: availableLocales(pages, default_locale),
     header: localizeSections(headerSections, current, default_locale),
     footer: localizeSections(footerSections, current, default_locale),
-    pages: pages
-      .filter(
-        (page) => normalizeLocale(page.locale, default_locale) === current,
-      )
-      /*
-       * 公开目录是「访客能点进的站点页面」——「全部一级页面」、同级菜单、
-       * `page-menu` 都吃它。
-       *
-       * 普通页面全收。模板页只收可打开的一级地址（`/docs`、`/shop`）：它们和
-       * 「关于」「定价」一样是顶层入口。首页由品牌链处理；详情模板（`/docs/:slug`）
-       * 没有自己的地址；购物车 / 会员登录是二级功能页。未开通的模块页即使落库
-       * 也不进目录。口径见 `isPublicCatalogPage`。
-       */
-      .filter((page) =>
-        isPublicCatalogPage(
-          pageIdentity(page).kind,
-          options?.enabledEntitlements,
-        ),
-      )
-      .sort(comparePublicCatalogPages)
-      .map((page) => {
-        const { kind, slug } = pageIdentity(page);
-        const content = useDraftContent
-          ? pageContentDraft(page)
-          : pageContentPublished(page);
+    /*
+     * 公开目录是「访客能点进的站点页面」——「全部一级页面」、同级菜单、
+     * `page-menu` 都吃它。普通页面只收当前语言；`/shop` `/docs` 这类一级模板
+     * 当前语言还没建行时，借用默认语言那一行，标题改成当前语言的预设文案。
+     * 口径见 `publicCatalogSources`。
+     */
+    pages: publicCatalogSources(
+      pages.map((record) => {
+        const { kind, slug } = pageIdentity(record);
         return {
-          slug,
-          locale: normalizeLocale(page.locale, default_locale),
+          record,
           kind,
-          title: content.title,
-          description: content.description,
-          path: marketingPagePath(kind, slug),
+          slug,
+          locale: record.locale,
+          sort_order: record.sort_order,
+        };
+      }),
+      current,
+      default_locale,
+      options?.enabledEntitlements,
+    )
+      .sort((a, b) => comparePublicCatalogPages(a.page, b.page))
+      .map(({ page: row, localizeFromPreset }) => {
+        const content = useDraftContent
+          ? pageContentDraft(row.record)
+          : pageContentPublished(row.record);
+        const copy = localizeFromPreset
+          ? resolveTemplatePresetCopy(row.kind, current)
+          : null;
+        return {
+          slug: row.slug,
+          locale: current,
+          kind: row.kind,
+          title: resolveCatalogPageTitle(row.kind, current, content.title, {
+            forcePreset: localizeFromPreset,
+          }),
+          description: copy?.description || content.description,
+          path: marketingPagePath(row.kind, row.slug),
           settings: content.settings,
         };
       }),

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { registerLocaleCatalog } from "@rewindom/shared";
+
 import { canonicalizePageIdentity, marketingPagePath } from "./site-cms.js";
 import {
   getPageTemplateKind,
@@ -9,7 +11,12 @@ import {
   isPublicCatalogPageKind,
   isTemplatePageKind,
   listPageTemplateKinds,
+  publicCatalogSources,
   registerPageTemplateKind,
+  registerPageTemplatePreset,
+  resolveCatalogPageTitle,
+  resolveTemplatePresetCopy,
+  isStockTemplateTitle,
 } from "./page-templates.js";
 
 describe("模板页注册表", () => {
@@ -164,5 +171,101 @@ describe("公开页面目录", () => {
     );
     expect(isPublicCatalogPage("page")).toBe(true);
     expect(isPublicCatalogPage("page", new Set())).toBe(true);
+  });
+});
+
+describe("公开目录跨语言借用", () => {
+  const kind = "catalog_i18n_index";
+  const page = (locale: string, title: string) => ({
+    kind,
+    slug: "shop",
+    locale,
+    title,
+  });
+
+  it("当前语言缺模板页时借用默认语言行，标题走预设", () => {
+    registerPageTemplateKind({
+      kind,
+      slug: "shop",
+      path: "/shop",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+    registerPageTemplatePreset(kind, {
+      key: kind,
+      label: "x",
+      kind,
+      slug: "shop",
+      titleKey: "catalog-i18n:nav.title",
+      descriptionKey: "catalog-i18n:nav.sub",
+      sections: [],
+    });
+    registerLocaleCatalog("catalog-i18n", {
+      "zh-CN": { nav: { title: "商店", sub: "在售" } },
+      en: { nav: { title: "Shop", sub: "For sale" } },
+    });
+
+    const pages = [
+      { kind: "page", slug: "about", locale: "zh-CN", title: "关于" },
+      page("zh-CN", "商品"),
+    ];
+    const sources = publicCatalogSources(pages, "en", "zh-CN");
+    expect(sources).toEqual([
+      { page: page("zh-CN", "商品"), localizeFromPreset: true },
+    ]);
+    expect(resolveTemplatePresetCopy(kind, "en")).toEqual({
+      title: "Shop",
+      description: "For sale",
+    });
+  });
+
+  it("当前语言已有模板页就用那一行，不借用", () => {
+    const sources = publicCatalogSources(
+      [page("zh-CN", "商品"), page("en", "Store")],
+      "en",
+      "zh-CN",
+    );
+    expect(sources).toEqual([
+      { page: page("en", "Store"), localizeFromPreset: false },
+    ]);
+  });
+});
+
+describe("库存模板标题", () => {
+  const kind = "stock_shop_index";
+
+  it("旧译名「商品」按当前语言换成商店 / Shop", () => {
+    registerPageTemplateKind({
+      kind,
+      slug: "stock-shop",
+      path: "/stock-shop",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+    registerPageTemplatePreset(kind, {
+      key: kind,
+      label: "x",
+      kind,
+      slug: "stock-shop",
+      titleKey: "shop:storefront.catalog.title",
+      descriptionKey: "shop:storefront.catalog.subtitle",
+      sections: [],
+    });
+    registerLocaleCatalog("shop", {
+      "zh-CN": { storefront: { catalog: { title: "商店", subtitle: "在售" } } },
+      en: { storefront: { catalog: { title: "Shop", subtitle: "For sale" } } },
+    });
+
+    expect(isStockTemplateTitle(kind, "商品")).toBe(true);
+    expect(isStockTemplateTitle(kind, "Products")).toBe(true);
+    expect(isStockTemplateTitle(kind, "Our store")).toBe(false);
+    expect(resolveCatalogPageTitle(kind, "en", "商品")).toBe("Shop");
+    expect(resolveCatalogPageTitle(kind, "zh-CN", "商品")).toBe("商店");
+    expect(resolveCatalogPageTitle(kind, "en", "Our store")).toBe("Our store");
+    expect(
+      resolveCatalogPageTitle(kind, "en", "Our store", { forcePreset: true }),
+    ).toBe("Shop");
   });
 });

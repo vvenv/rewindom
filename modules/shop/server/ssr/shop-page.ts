@@ -34,13 +34,13 @@ export async function renderShopTemplatePage(input: {
   description?: string;
   noindex?: boolean;
 }): Promise<string> {
+  const locale = normalizeLocale(input.locale);
   const site = await getSiteChromeOrFallback(
     input.tenantId,
     input.tenantSlug,
     input.siteName,
-    input.locale,
+    locale,
   );
-  const locale = normalizeLocale(site.locale, site.default_locale);
   const stored = await getPublishedTemplatePage(
     input.tenantId,
     input.kind,

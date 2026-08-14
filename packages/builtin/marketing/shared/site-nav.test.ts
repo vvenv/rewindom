@@ -189,6 +189,22 @@ describe("resolveNavItems", () => {
     );
     expect(resolved.map((entry) => entry.label)).toEqual(["Shop"]);
   });
+
+  it("复制残留的「商品」让位给当前语言页面标题", () => {
+    const resolved = resolveNavItems(
+      [
+        item({
+          label: { __i18n: { "zh-CN": "商品", en: "商品" } },
+          href: "/shop",
+        }),
+      ],
+      ctx({
+        locale: "en",
+        navPages: [{ path: "/shop", title: "Shop" }],
+      }),
+    );
+    expect(resolved.map((entry) => entry.label)).toEqual(["Shop"]);
+  });
 });
 
 describe("listNavSources", () => {

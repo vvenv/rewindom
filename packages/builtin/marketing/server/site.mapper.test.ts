@@ -1,6 +1,11 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { registerPageTemplateKind } from "../shared/page-templates.js";
+import { registerLocaleCatalog } from "@rewindom/shared";
+
+import {
+  registerPageTemplateKind,
+  registerPageTemplatePreset,
+} from "../shared/page-templates.js";
 
 import { toPublicMarketingPage, toPublicMarketingSite } from "./site.mapper.js";
 
@@ -392,5 +397,97 @@ describe("toPublicMarketingSite pages catalog", () => {
         enabledEntitlements: new Set(["shop"]),
       }).pages.map((page) => page.path),
     ).toEqual(["/about", "/gated-shop"]);
+  });
+
+  it("borrows first-level templates into another locale with preset titles", () => {
+    registerPageTemplateKind({
+      kind: "i18n_shop_index",
+      slug: "i18n-shop",
+      path: "/i18n-shop",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+    registerPageTemplatePreset("i18n_shop_index", {
+      key: "i18n_shop_index",
+      label: "x",
+      kind: "i18n_shop_index",
+      slug: "i18n-shop",
+      titleKey: "mapper-shop:nav.title",
+      descriptionKey: "mapper-shop:nav.sub",
+      sections: [],
+    });
+    registerLocaleCatalog("mapper-shop", {
+      "zh-CN": { nav: { title: "商店", sub: "在售" } },
+      en: { nav: { title: "Shop", sub: "For sale" } },
+    });
+
+    const pages = [
+      pageRecord({ id: "about", kind: "page", slug: "about", title: "关于" }),
+      pageRecord({
+        id: "shop",
+        kind: "i18n_shop_index",
+        slug: "i18n-shop",
+        title: "商品",
+        description: "在售商品",
+      }),
+    ];
+    const en = toPublicMarketingSite(siteRecord(), pages, "en");
+    expect(en.pages.map((page) => [page.path, page.title])).toEqual([
+      ["/i18n-shop", "Shop"],
+    ]);
+    expect(en.pages[0]?.locale).toBe("en");
+  });
+
+  it("rewrites a stock shop title on the current-locale row", () => {
+    registerPageTemplateKind({
+      kind: "stock_nav_shop",
+      slug: "stock-nav-shop",
+      path: "/stock-nav-shop",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+    registerPageTemplatePreset("stock_nav_shop", {
+      key: "stock_nav_shop",
+      label: "x",
+      kind: "stock_nav_shop",
+      slug: "stock-nav-shop",
+      titleKey: "shop:storefront.catalog.title",
+      descriptionKey: "mapper-shop:nav.sub",
+      sections: [],
+    });
+    registerLocaleCatalog("shop", {
+      "zh-CN": { storefront: { catalog: { title: "商店" } } },
+      en: { storefront: { catalog: { title: "Shop" } } },
+    });
+
+    const pages = [
+      pageRecord({
+        id: "shop-zh",
+        kind: "stock_nav_shop",
+        slug: "stock-nav-shop",
+        title: "商品",
+      }),
+      pageRecord({
+        id: "shop-en",
+        kind: "stock_nav_shop",
+        slug: "stock-nav-shop",
+        locale: "en",
+        title: "商品",
+      }),
+    ];
+    expect(
+      toPublicMarketingSite(siteRecord(), pages, "en").pages.map((page) => [
+        page.path,
+        page.title,
+      ]),
+    ).toEqual([["/stock-nav-shop", "Shop"]]);
+    expect(
+      toPublicMarketingSite(siteRecord(), pages).pages.map((page) => [
+        page.path,
+        page.title,
+      ]),
+    ).toEqual([["/stock-nav-shop", "商店"]]);
   });
 });

@@ -13,6 +13,13 @@
  * 打开 `/app/site`）。SSR 仍能在记录尚未落库时用内置预设兜底，那是缺口不是产品路径。
  */
 
+import {
+  APP_LOCALES,
+  normalizeLocale,
+  translateRegisteredKey,
+  type AppLocale,
+} from "@rewindom/shared";
+
 import type { PagePreset } from "./page-presets.types.js";
 
 export interface PageTemplateKindDefinition {
@@ -178,6 +185,119 @@ export function isPageTemplateRelevant(
   enabledEntitlements: ReadonlySet<string>,
 ): boolean {
   return !template.entitlement || enabledEntitlements.has(template.entitlement);
+}
+
+/**
+ * 公开目录要展开的那些行：当前语言自己的页面 + 当前语言还没有、但 SSR 仍能打开的
+ * 一级模板页（`/shop`、`/docs`）。
+ *
+ * 普通页面（关于、定价）缺译文就不进另一种语言的导航——否则中文「关于」会挂在
+ * 英文菜单上。模板页不一样：路由按 kind 兜底，不建英文行也能打开 `/en/shop`，
+ * 菜单里就该有这一条，标题走预设文案而不是默认语言那一行存下来的中文。
+ */
+export function publicCatalogSources<
+  T extends { kind: string; slug: string; locale: string },
+>(
+  pages: readonly T[],
+  current: AppLocale,
+  defaultLocale: AppLocale,
+  enabledEntitlements?: ReadonlySet<string>,
+): Array<{ page: T; localizeFromPreset: boolean }> {
+  const currentNorm = normalizeLocale(current, defaultLocale);
+  const defaultNorm = normalizeLocale(defaultLocale);
+  const eligible = (page: T): boolean =>
+    isPublicCatalogPage(page.kind, enabledEntitlements);
+  const ofLocale = (locale: AppLocale): T[] =>
+    pages.filter(
+      (page) =>
+        eligible(page) &&
+        normalizeLocale(page.locale, defaultNorm) === locale,
+    );
+
+  const currentPages = ofLocale(currentNorm);
+  const hits = currentPages.map((page) => ({
+    page,
+    localizeFromPreset: false,
+  }));
+  if (currentNorm === defaultNorm) return hits;
+
+  const seen = new Set(currentPages.map((page) => `${page.kind}:${page.slug}`));
+  const borrowed = ofLocale(defaultNorm)
+    .filter(
+      (page) =>
+        isTemplatePageKind(page.kind) && !seen.has(`${page.kind}:${page.slug}`),
+    )
+    .map((page) => ({ page, localizeFromPreset: true as const }));
+  return [...hits, ...borrowed];
+}
+
+/**
+ * 模板页在「借用默认语言那一行」时的标题 / 摘要：按**当前语言**解预设 key。
+ *
+ * 解不开（catalog 没登记、key 原样返回）就让调用方继续用库存文案，别把
+ * `shop:storefront.catalog.title` 写进导航。
+ */
+export function resolveTemplatePresetCopy(
+  kind: string,
+  locale: AppLocale,
+  t?: (key: string) => string,
+): { title: string; description: string } | null {
+  const preset = getPageTemplatePreset(kind);
+  if (!preset) return null;
+  const translate =
+    t ?? ((key: string) => translateRegisteredKey(locale, key) ?? key);
+  const title = translate(preset.titleKey).trim();
+  if (!title || title === preset.titleKey) return null;
+  const description = translate(preset.descriptionKey).trim();
+  return {
+    title,
+    description:
+      !description || description === preset.descriptionKey ? "" : description,
+  };
+}
+
+/**
+ * 改过译名的预设：库里仍可能是旧默认值。这些和各语言当前预设文案一样，
+ * 都算「还没被租户改过」，公开导航按**当前语言**重解，不能把中文「商品」
+ * 留在英文菜单上——复制到 en 的模板页标题经常还是源语言原文。
+ */
+const RETIRED_PRESET_TITLES: Readonly<Record<string, readonly string[]>> = {
+  "shop:storefront.catalog.title": ["商品", "Products"],
+};
+
+export function isStockTemplateTitle(kind: string, title: string): boolean {
+  const preset = getPageTemplatePreset(kind);
+  if (!preset) return false;
+  const trimmed = title.trim();
+  if (!trimmed || trimmed === preset.titleKey) return true;
+  if (RETIRED_PRESET_TITLES[preset.titleKey]?.includes(trimmed) === true) {
+    return true;
+  }
+  return APP_LOCALES.some((locale) => {
+    const text = translateRegisteredKey(locale.slug, preset.titleKey);
+    return Boolean(text) && text === trimmed;
+  });
+}
+
+/**
+ * 公开目录 / 页头导航用的模板页标题。
+ *
+ * 库存标题还是预设默认值（含旧译名）时，按**当前浏览语言**解；租户改过的
+ * 标题只在「这一行就是当前语言」时保留。借用另一语言的行时一律走预设。
+ */
+export function resolveCatalogPageTitle(
+  kind: string,
+  viewingLocale: AppLocale,
+  storedTitle: string,
+  options?: { forcePreset?: boolean; t?: (key: string) => string },
+): string {
+  const stored = storedTitle.trim();
+  const copy = resolveTemplatePresetCopy(kind, viewingLocale, options?.t);
+  if (!copy) return stored;
+  if (options?.forcePreset === true || isStockTemplateTitle(kind, stored)) {
+    return copy.title;
+  }
+  return stored;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -310,21 +310,26 @@ function catalogTitleForHref(href: string, ctx: SiteNavContext): string {
   return ctx.navPages?.find((page) => page.path === path)?.title.trim() ?? "";
 }
 
+const STOCK_NAV_LABELS = new Set(["商品", "Products", "商店", "Shop"]);
+
 /**
  * 菜单文案：当前语言标签 → 同路径页面标题 → 默认语言回落。
  *
  * 一级页面已经按语言各有标题；链到这些页面的菜单项不必再填一遍翻译。
+ * 复制到英文时标签槽里经常还留着「商品」——那是库存译名，让位给当前语言的
+ * 页面标题，否则页头会永远停在中文。
  */
 export function resolveNavLabel(
   label: string | LocalizedText,
   ctx: SiteNavContext,
   href = "",
 ): string {
-  return (
-    explicitNavLabel(label, ctx) ||
-    catalogTitleForHref(href, ctx) ||
-    fallbackNavLabel(label, ctx)
-  );
+  const explicit = explicitNavLabel(label, ctx);
+  const catalog = catalogTitleForHref(href, ctx);
+  if (catalog && STOCK_NAV_LABELS.has(explicit) && explicit !== catalog) {
+    return catalog;
+  }
+  return explicit || catalog || fallbackNavLabel(label, ctx);
 }
 
 function resolveItem(

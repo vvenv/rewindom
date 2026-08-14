@@ -14,6 +14,7 @@ import { registerShopStorefrontSections } from "./sections/register.js";
 import { shopStorefrontRoutes } from "./ssr/shop.ssr.js";
 import { registerShopPathHandler } from "./ssr/shop-path-handler.js";
 import { registerShopPageTemplates } from "../shared/shop-page-templates.js";
+import "./ssr/shop-preset-i18n.js";
 
 export const shopServerModule: ServerAppModule = {
   id: "shop",
