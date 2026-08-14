@@ -40,6 +40,14 @@
     "packages/client-kit/src/i18n"
   ],
   "i18n-ally.pathMatcher": "{namespace}/**/locales/{locale}.json",
+  "i18n-ally.ignoreFiles": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/.git/**",
+    "**/.turbo/**",
+    "**/*.{ts,tsx,js,jsx,mjs,cjs,map,css,md,prisma}"
+  ],
   "i18n-ally.regex.usageMatchAppend": [
     "['\"`]([a-z0-9-]+:[a-zA-Z0-9_.]+)['\"`]"
   ]
