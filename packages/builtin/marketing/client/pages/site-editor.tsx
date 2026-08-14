@@ -344,6 +344,7 @@ export function SiteEditor() {
       headerOverride={editor.header}
       footerOverride={editor.footer}
       contributed={editorCtx}
+      enabledEntitlements={editor.capabilities.entitlements}
       onSelectSection={(sectionId, blockId) =>
         editor.selectSection(sectionId, blockId)
       }
@@ -392,6 +393,7 @@ export function SiteEditor() {
           title: item.title,
         })),
         contributed: editorCtx,
+        enabledEntitlements: editor.capabilities.entitlements,
         headerItems: collectHeaderNavItems(editor.header),
       }}
     >

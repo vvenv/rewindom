@@ -14,6 +14,10 @@ vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   },
 }));
 
+vi.mock("../../platform/server/services/tenant-module.service.js", () => ({
+  isTenantModuleEnabled: vi.fn().mockResolvedValue(false),
+}));
+
 const TENANT = "tenant-1";
 
 const siteRow = {

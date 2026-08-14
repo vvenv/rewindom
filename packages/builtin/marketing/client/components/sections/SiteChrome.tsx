@@ -296,6 +296,7 @@ export interface SiteChromeProps {
   logoUrl: string | null;
   pages?: PublicSitePage[];
   contributed?: Readonly<Record<string, unknown>>;
+  enabledEntitlements?: ReadonlySet<string>;
   currentPath?: string;
   locale?: string;
   defaultLocale?: string;
@@ -345,6 +346,7 @@ function chromeNavContext(props: SiteChromeProps): SiteNavContext {
     defaultLocale,
     currentPath: props.currentPath ?? "",
     contributed: props.contributed,
+    enabledEntitlements: props.enabledEntitlements,
   };
 }
 

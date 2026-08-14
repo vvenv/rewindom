@@ -7,20 +7,24 @@
  */
 
 import { isTenantModuleEnabled } from "../../platform/server/services/tenant-module.service.js";
+import { listPageTemplateKinds } from "../shared/page-templates.js";
 import { allSectionDefinitions } from "../shared/section-schema.js";
+import { contributedNavEntitlementKeys } from "../shared/site-nav.js";
 
 /**
- * 只查**真的有段依赖它**的那几个 entitlement，不是把租户的开关表整个拉出来：
- * 没有贡献段时这里一次查询都不发。
+ * 只查**真的有人依赖它**的那几个 entitlement，不是把租户的开关表整个拉出来：
+ * 贡献段、模板页、导航源都没有声明时这里一次查询都不发。
  */
 export async function resolveSectionEntitlements(
   tenantId: string,
 ): Promise<ReadonlySet<string>> {
   const keys = [
     ...new Set(
-      allSectionDefinitions()
-        .map((def) => def.entitlement)
-        .filter((key): key is string => Boolean(key)),
+      [
+        ...allSectionDefinitions().map((def) => def.entitlement),
+        ...listPageTemplateKinds().map((template) => template.entitlement),
+        ...contributedNavEntitlementKeys(),
+      ].filter((key): key is string => Boolean(key)),
     ),
   ];
   if (keys.length === 0) return new Set();

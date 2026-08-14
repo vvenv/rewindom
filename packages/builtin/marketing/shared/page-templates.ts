@@ -131,11 +131,30 @@ export function isFirstLevelCatalogPath(path: string): boolean {
  *
  * 普通 `page` 全收。模板页只收可打开的一级地址：文档索引、商店首页访客本来就会
  * 当一级入口用；详情模板没有自己的地址，会员登录 / 购物车也不是目录页。
+ *
+ * 只看路径形状，**不管**模块开没开。真正进导航 / 公开 `pages` 还要过
+ * `isPublicCatalogPage`（未开通的商店 / 文档库不能出现在访客导航里）。
  */
 export function isPublicCatalogPageKind(kind: string): boolean {
   if (!isTemplatePageKind(kind)) return true;
   const template = getPageTemplateKind(kind);
   return template ? isFirstLevelCatalogPath(template.path) : false;
+}
+
+/**
+ * 这张页面现在能不能进公开目录（导航、「全部一级页面」、`page-menu`）。
+ *
+ * kind 形状过了还要看模板的 entitlement：开关关了，落库的 `/shop` `/docs`
+ * 仍在，但不能再当一级入口。没传集合按**未开通**算——漏传会少、不会多。
+ */
+export function isPublicCatalogPage(
+  kind: string,
+  enabledEntitlements?: ReadonlySet<string>,
+): boolean {
+  if (!isPublicCatalogPageKind(kind)) return false;
+  const template = getPageTemplateKind(kind);
+  if (!template) return true;
+  return isPageTemplateRelevant(template, enabledEntitlements ?? new Set());
 }
 
 /**

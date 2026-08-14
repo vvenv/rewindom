@@ -1,9 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { createSection } from "./section-schema.js";
 import {
   defaultHeaderNavItems,
+  listNavSources,
+  makeNavLink,
   navItemsNeedSource,
+  registerNavSource,
+  resetNavSourceContributions,
   resolveNavItems,
   safeNavItems,
   type SiteNavContext,
@@ -35,6 +39,10 @@ function ctx(partial: Partial<SiteNavContext> = {}): SiteNavContext {
     ...partial,
   };
 }
+
+afterEach(() => {
+  resetNavSourceContributions();
+});
 
 describe("defaultHeaderNavItems", () => {
   it("默认只有一级页面平铺", () => {
@@ -74,6 +82,46 @@ describe("resolveNavItems", () => {
     expect(
       resolveNavItems([item({ source: "site-docs" })], ctx()),
     ).toEqual([]);
+  });
+
+  it("声明了 entitlement 的贡献源未开通就不展开", () => {
+    registerNavSource({
+      source: "nav-gated",
+      label: "x",
+      entitlement: "shop",
+      expand: (entry, nav) => [
+        makeNavLink(entry.id, "商店", "/shop", nav),
+      ],
+    });
+    expect(
+      resolveNavItems([item({ source: "nav-gated" })], ctx()),
+    ).toEqual([]);
+    expect(
+      resolveNavItems([item({ source: "nav-gated" })], ctx({ enabledEntitlements: new Set() })),
+    ).toEqual([]);
+    expect(
+      resolveNavItems(
+        [item({ source: "nav-gated" })],
+        ctx({ enabledEntitlements: new Set(["shop"]) }),
+      ).map((entry) => entry.href),
+    ).toEqual(["/shop"]);
+  });
+});
+
+describe("listNavSources", () => {
+  it("没给开通集合时不露出带 entitlement 的源", () => {
+    registerNavSource({
+      source: "nav-gated",
+      label: "x",
+      entitlement: "shop",
+      expand: () => [],
+    });
+    expect(listNavSources()).not.toContain("nav-gated");
+    expect(listNavSources(new Set())).not.toContain("nav-gated");
+    expect(listNavSources(new Set(["shop"]))).toContain("nav-gated");
+    expect(listNavSources(new Set(["shop"]))).toEqual(
+      expect.arrayContaining(["link", "pages", "nav-gated"]),
+    );
   });
 });
 

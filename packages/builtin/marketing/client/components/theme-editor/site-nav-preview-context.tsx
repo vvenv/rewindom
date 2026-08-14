@@ -10,6 +10,7 @@ import type { SiteNavItem } from "../../../shared/site-nav.js";
 export interface SiteNavPreviewValue {
   navPages: readonly { path: string; title: string }[];
   contributed?: Readonly<Record<string, unknown>>;
+  enabledEntitlements?: ReadonlySet<string>;
   /** 当前草稿页头的导航条目；页脚列复制时读它。 */
   headerItems: readonly SiteNavItem[];
 }

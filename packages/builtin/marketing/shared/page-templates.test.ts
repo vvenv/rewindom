@@ -5,6 +5,7 @@ import {
   getPageTemplateKind,
   isFirstLevelCatalogPath,
   isPageTemplateRelevant,
+  isPublicCatalogPage,
   isPublicCatalogPageKind,
   isTemplatePageKind,
   listPageTemplateKinds,
@@ -132,5 +133,26 @@ describe("公开页面目录", () => {
     expect(isPublicCatalogPageKind("nav_demo_index")).toBe(true);
     expect(isPublicCatalogPageKind("nav_demo_item")).toBe(false);
     expect(isPublicCatalogPageKind("nav_demo_cart")).toBe(false);
+  });
+
+  it("未开通的模块一级页不进公开目录", () => {
+    registerPageTemplateKind({
+      kind: "nav_gated_index",
+      slug: "gated",
+      path: "/gated",
+      group: "x",
+      label: "x",
+      required_section: null,
+      entitlement: "gated-mod",
+    });
+
+    expect(isPublicCatalogPageKind("nav_gated_index")).toBe(true);
+    expect(isPublicCatalogPage("nav_gated_index")).toBe(false);
+    expect(isPublicCatalogPage("nav_gated_index", new Set())).toBe(false);
+    expect(isPublicCatalogPage("nav_gated_index", new Set(["gated-mod"]))).toBe(
+      true,
+    );
+    expect(isPublicCatalogPage("page")).toBe(true);
+    expect(isPublicCatalogPage("page", new Set())).toBe(true);
   });
 });

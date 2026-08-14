@@ -160,6 +160,30 @@ async function presentEditor(
   };
 }
 
+/**
+ * 页面目录 / 导航次序：`sort_order` 主序，`slug` 打破并列。
+ *
+ * 不能用 `title`（各语言标题不同、草稿标题与已发布标题也会漂），也不能用
+ * `updated_at`（预览会跟最近改过的页走，实站却按另一套排）。与
+ * `comparePublicCatalogPages` 同一口径。
+ */
+const PAGE_CATALOG_ORDER = [
+  { sort_order: "asc" as const },
+  { slug: "asc" as const },
+];
+
+async function presentPublicSite(
+  siteRecord: MarketingSiteRecord,
+  pages: MarketingPageRecord[],
+  locale: AppLocale,
+  options?: { draftChrome?: boolean; draftContent?: boolean },
+): Promise<PublicMarketingSite> {
+  return toPublicMarketingSite(siteRecord, pages, locale, {
+    ...options,
+    enabledEntitlements: await resolveSectionEntitlements(siteRecord.tenant_id),
+  });
+}
+
 async function ensureSiteRow(tenant_id: string): Promise<MarketingSite> {
   const existing = await prisma.marketingSite.findFirst({
     where: withTenantScope(tenant_id),
@@ -1102,9 +1126,9 @@ export async function getPublishedPublicSite(
 
   const pages = await prisma.marketingPage.findMany({
     where: withTenantScope(tenant_id, { status: "published" }),
-    orderBy: [{ sort_order: "asc" }, { title: "asc" }],
+    orderBy: PAGE_CATALOG_ORDER,
   });
-  return toPublicMarketingSite(
+  return presentPublicSite(
     site,
     pages,
     effectiveLocale(locale, normalizeLocale(site.default_locale), pages),
@@ -1160,12 +1184,12 @@ export async function getSiteChromeOrFallback(
  * 首页没有落库时的合成公开页：与文档模板页同一口径——站点已发布就有版式，
  * 不必先建一张空白页。
  */
-function buildDefaultHomePageView(input: {
+async function buildDefaultHomePageView(input: {
   siteRecord: MarketingSiteRecord;
   pages: MarketingPageRecord[];
   locale: AppLocale;
   default_locale: AppLocale;
-}): SitePageView {
+}): Promise<SitePageView> {
   const t = createStarterTranslator(input.locale);
   const sections = buildHomeTemplateSections(t);
   const homeSiblings = input.pages.filter((page) => page.kind === "home");
@@ -1193,7 +1217,7 @@ function buildDefaultHomePageView(input: {
   );
 
   return {
-    site: toPublicMarketingSite(
+    site: await presentPublicSite(
       input.siteRecord,
       input.pages,
       input.locale,
@@ -1233,7 +1257,7 @@ export async function getPublishedPublicPage(
 
   const pages = await prisma.marketingPage.findMany({
     where: withTenantScope(tenant_id, { status: "published" }),
-    orderBy: [{ sort_order: "asc" }, { title: "asc" }],
+    orderBy: PAGE_CATALOG_ORDER,
   });
 
   const default_locale = normalizeLocale(siteRecord.default_locale);
@@ -1258,10 +1282,10 @@ export async function getPublishedPublicPage(
   const isMembersOnly = parsePageVisibility(match.visibility) === "members";
 
   return {
-    site: toPublicMarketingSite(
+    site: await presentPublicSite(
       siteRecord,
       pages,
-        current,
+      current,
     ),
     page: toPublicMarketingPage(match, {
       siblings: pages,
@@ -1343,7 +1367,7 @@ export async function getMemberContentPage(
 
   const pages = await prisma.marketingPage.findMany({
     where: withTenantScope(tenant_id, { status: "published" }),
-    orderBy: [{ sort_order: "asc" }, { title: "asc" }],
+    orderBy: PAGE_CATALOG_ORDER,
   });
 
   const default_locale = normalizeLocale(siteRecord.default_locale);
@@ -1358,10 +1382,10 @@ export async function getMemberContentPage(
   if (!match) return null;
 
   return {
-    site: toPublicMarketingSite(
+    site: await presentPublicSite(
       siteRecord,
       pages,
-        current,
+      current,
     ),
     page: toPublicMarketingPage(match, {
       siblings: pages,
@@ -1430,7 +1454,7 @@ export async function getPublishedSitemapEntries(
 
   const pages = await prisma.marketingPage.findMany({
     where: withTenantScope(tenant_id, { status: "published" }),
-    orderBy: [{ sort_order: "asc" }, { title: "asc" }],
+    orderBy: PAGE_CATALOG_ORDER,
   });
   const default_locale = normalizeLocale(siteRecord.default_locale);
 
@@ -1497,7 +1521,7 @@ export async function getPreviewSitePage(
   });
   const pages = await prisma.marketingPage.findMany({
     where: withTenantScope(tenant_id),
-    orderBy: [{ sort_order: "asc" }, { title: "asc" }],
+    orderBy: PAGE_CATALOG_ORDER,
   });
 
   const default_locale = normalizeLocale(siteRecord.default_locale);
@@ -1513,10 +1537,10 @@ export async function getPreviewSitePage(
   if (!match) return null;
 
   return {
-    site: toPublicMarketingSite(
+    site: await presentPublicSite(
       siteRecord,
       pages,
-        current,
+      current,
       { draftChrome: true, draftContent: true },
     ),
     page: toPublicMarketingPage(match, {

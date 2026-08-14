@@ -43,6 +43,11 @@ export interface SiteNavContext {
   defaultLocale: AppLocale;
   currentPath?: string;
   contributed?: Readonly<Record<string, unknown>>;
+  /**
+   * 本站已开通的贡献能力。声明了 `entitlement` 的导航源没在集合里就不展开。
+   * 漏传按未开通算——页头里残留的「文档库」条目关模块后必须消失。
+   */
+  enabledEntitlements?: ReadonlySet<string>;
 }
 
 export interface ResolvedNavItem {
@@ -99,13 +104,24 @@ export function listNavSources(
   const contributed = [...CONTRIBUTED.values()]
     .filter(
       (def) =>
-        !def.entitlement || !enabled || enabled.has(def.entitlement),
+        !def.entitlement || enabled?.has(def.entitlement) === true,
     )
     .map((def) => def.source);
   return [...BUILTIN_NAV_SOURCES, ...contributed];
 }
 
-/** 未过滤的全表（编辑器「添加」菜单在拿到 entitlement 集合前用）。 */
+/** 贡献导航源声明过的 entitlement（公开渲染要去查开关，不能只扫段定义）。 */
+export function contributedNavEntitlementKeys(): string[] {
+  return [
+    ...new Set(
+      [...CONTRIBUTED.values()]
+        .map((def) => def.entitlement)
+        .filter((key): key is string => Boolean(key)),
+    ),
+  ];
+}
+
+/** 未过滤的内置源（编辑器在 entitlement 集合尚未返回时只露出这两项）。 */
 export const SITE_NAV_SOURCES: readonly string[] = BUILTIN_NAV_SOURCES;
 
 const MAX_ITEMS = 40;
@@ -301,6 +317,12 @@ function resolveItem(
 
   const contributed = getNavSource(item.source);
   if (!contributed) return [];
+  if (
+    contributed.entitlement &&
+    ctx.enabledEntitlements?.has(contributed.entitlement) !== true
+  ) {
+    return [];
+  }
   return contributed.expand(item, ctx);
 }
 

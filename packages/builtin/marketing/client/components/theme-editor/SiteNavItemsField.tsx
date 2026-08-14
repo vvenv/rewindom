@@ -75,11 +75,12 @@ export function SiteNavItemsField({
   const previewCtx = {
     navPages: preview.navPages,
     contributed: preview.contributed,
+    enabledEntitlements: preview.enabledEntitlements,
     locale,
     defaultLocale,
   };
   const categories = categoryOptionsFromContributed(preview.contributed);
-  const sources = listNavSources();
+  const sources = listNavSources(preview.enabledEntitlements);
 
   const commit = (next: SiteNavItem[]): void => onChange(next);
 

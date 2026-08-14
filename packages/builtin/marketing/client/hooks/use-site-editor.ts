@@ -2,7 +2,7 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
-import { isPublicCatalogPageKind } from "../../shared/page-templates.js";
+import { isPublicCatalogPage } from "../../shared/page-templates.js";
 import {
   localizeSections,
   localizeSiteText,
@@ -13,6 +13,7 @@ import {
   type SiteSection,
 } from "../../shared/section-schema.js";
 import {
+  comparePublicCatalogPages,
   marketingPagePath,
   type MarketingPage,
   type MarketingPageListItem,
@@ -277,12 +278,17 @@ export function useSiteEditor(pageId: string | undefined) {
   const localePages: MarketingPageListItem[] = (pagesQuery.data ?? []).filter(
     (item) => item.locale === locale,
   );
+  const enabledEntitlements = new Set(
+    capabilitiesQuery.data?.entitlements ?? [],
+  );
 
   /**
    * 预览里的「站点页面目录」——必须与公开面**同一套口径**（见 `toPublicMarketingSite`）：
-   * 只算已发布的，且只收公开目录 kind（普通页 + `/docs` `/shop` 这类一级索引模板）。
+   * 只算已发布的，且只收公开目录 kind（普通页 + `/docs` `/shop` 这类一级索引模板），
+   * 未开通的模块页不进；次序是 `sort_order` 再 `slug`（不能跟中台列表的
+   * `updated_at` 并列打破走，否则预览和实站会对不齐）。
    *
-   * 少这两道过滤，预览的页头导航会比线上多出几条：草稿页面（还没发布，访客看不到）
+   * 少这几道过滤，预览的页头导航会比线上多出几条：草稿页面（还没发布，访客看不到）
    * 和详情模板页（`docs_article` 根本没有自己的地址）。而页头导航默认就是一条「全部
    * 一级页面」的动态项，所以每建一张草稿页，预览与实际就多差一条——差异恰好出现在
    * 租户最信任预览的时候（刚建完页面、正在排版）。
@@ -292,7 +298,8 @@ export function useSiteEditor(pageId: string | undefined) {
    */
   const previewNavPages = localePages
     .filter((item) => item.status === "published")
-    .filter((item) => isPublicCatalogPageKind(item.kind))
+    .filter((item) => isPublicCatalogPage(item.kind, enabledEntitlements))
+    .sort(comparePublicCatalogPages)
     .map((item) => ({
       slug: item.slug,
       locale: item.locale,
@@ -419,7 +426,7 @@ export function useSiteEditor(pageId: string | undefined) {
     capabilities: {
       account_entry: capabilitiesQuery.data?.account_entry ?? false,
       /** 贡献段的闸门：没开通的不该出现在「添加区块」菜单里。 */
-      entitlements: new Set(capabilitiesQuery.data?.entitlements ?? []),
+      entitlements: enabledEntitlements,
       is_default_tenant: capabilitiesQuery.data?.is_default_tenant ?? false,
     },
     page,

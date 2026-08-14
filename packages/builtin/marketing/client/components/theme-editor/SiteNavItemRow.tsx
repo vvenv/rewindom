@@ -255,7 +255,7 @@ export function SiteNavItemRow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {listNavSources().map((source) => {
+              {listNavSources(preview.enabledEntitlements).map((source) => {
                 const def = getNavSource(source);
                 return (
                   <SelectItem key={source} value={source}>

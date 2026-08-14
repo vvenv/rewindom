@@ -53,6 +53,8 @@ interface TenantSiteViewProps {
   mainOverride?: ReactNode;
   /** 贡献段 / 贡献导航源的按请求数据。 */
   contributed?: Readonly<Record<string, unknown>>;
+  /** 本站已开通的贡献能力；页头残留的文档库等条目关模块后不该再展开。 */
+  enabledEntitlements?: ReadonlySet<string>;
 }
 
 /**
@@ -74,6 +76,7 @@ export function TenantSiteView({
   onSelectSection,
   mainOverride,
   contributed,
+  enabledEntitlements,
 }: TenantSiteViewProps) {
   const previewDoc = usePreviewDocument();
   const doc = embedded ? previewDoc : document;
@@ -121,6 +124,7 @@ export function TenantSiteView({
               logoUrl={theme.logo_url ?? null}
               pages={site.pages}
               contributed={contributed}
+              enabledEntitlements={enabledEntitlements}
               currentPath={path}
               alternates={alternates}
               locale={site.locale}
@@ -175,6 +179,7 @@ export function TenantSiteView({
               logoUrl={theme.logo_url ?? null}
               pages={site.pages}
               contributed={contributed}
+              enabledEntitlements={enabledEntitlements}
               currentPath={path}
               alternates={alternates}
               locale={site.locale}

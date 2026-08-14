@@ -469,9 +469,26 @@ export interface PageMenu {
 }
 
 /**
+ * 公开目录 / 导航的次序：`sort_order` 主序，`slug` 打破并列。
+ *
+ * 并列时不能用标题（草稿 vs 已发布、各语言文案会漂），也不能用 `updated_at`
+ *（预览会跟「刚改过哪一页」走，实站却按标题排）。slug 是页面身份，预览与
+ * 实站、中台列表与公开面共用这一条。
+ */
+export function comparePublicCatalogPages(
+  a: { sort_order: number; slug: string },
+  b: { sort_order: number; slug: string },
+): number {
+  if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+  if (a.slug < b.slug) return -1;
+  if (a.slug > b.slug) return 1;
+  return 0;
+}
+
+/**
  * 全站顶栏导航条目：一级页面（父路径为 `/`，不含首页）。
  *
- * 顺序沿用传入的 `pages`（服务端按 `sort_order` 排好）。
+ * 顺序沿用传入的 `pages`（调用方按 `comparePublicCatalogPages` 排好）。
  * 与 `resolvePageMenu(pages, "/", "children")` 同结果，单独命名方便页头调用。
  */
 export function siteNavPages(pages: PublicSitePage[]): PublicSitePage[] {

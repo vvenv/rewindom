@@ -49,6 +49,7 @@ export function chromeNavContext(input: ChromeAreaInput): SiteNavContext {
     defaultLocale,
     currentPath: input.currentPath ?? "",
     contributed: input.contributed,
+    enabledEntitlements: input.enabledEntitlements,
   };
 }
 

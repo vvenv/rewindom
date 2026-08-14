@@ -333,4 +333,64 @@ describe("toPublicMarketingSite pages catalog", () => {
       "/shop",
     ]);
   });
+
+  it("orders catalog by sort_order then slug, not input order", () => {
+    const site = toPublicMarketingSite(siteRecord(), [
+      pageRecord({
+        id: "shop",
+        kind: "nav_shop_index",
+        slug: "shop",
+        title: "商店",
+        sort_order: 0,
+      }),
+      pageRecord({
+        id: "about",
+        kind: "page",
+        slug: "about",
+        title: "关于",
+        sort_order: 0,
+      }),
+      pageRecord({
+        id: "pricing",
+        kind: "page",
+        slug: "pricing",
+        title: "定价",
+        sort_order: 1,
+      }),
+    ]);
+    expect(site.pages.map((page) => page.path)).toEqual([
+      "/about",
+      "/shop",
+      "/pricing",
+    ]);
+  });
+
+  it("omits entitlement-gated catalog pages until the module is on", () => {
+    registerPageTemplateKind({
+      kind: "gated_shop_index",
+      slug: "gated-shop",
+      path: "/gated-shop",
+      group: "x",
+      label: "x",
+      required_section: null,
+      entitlement: "shop",
+    });
+    const pages = [
+      pageRecord({ id: "about", kind: "page", slug: "about", title: "关于" }),
+      pageRecord({
+        id: "gated",
+        kind: "gated_shop_index",
+        slug: "gated-shop",
+        title: "商店",
+      }),
+    ];
+    expect(
+      toPublicMarketingSite(siteRecord(), pages).pages.map((page) => page.path),
+    ).toEqual(["/about"]);
+    expect(
+      toPublicMarketingSite(siteRecord(), pages, undefined, {
+        enabledEntitlements: new Set(["shop"]),
+      }).pages.map((page) => page.path),
+    ).toEqual(["/about", "/gated-shop"]);
+  });
 });

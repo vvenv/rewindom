@@ -1,6 +1,6 @@
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
-import { isPublicCatalogPageKind } from "../shared/page-templates.js";
+import { isPublicCatalogPage } from "../shared/page-templates.js";
 import {
   localizeSections,
   localizeSiteText,
@@ -8,6 +8,7 @@ import {
 } from "../shared/section-schema.js";
 import {
   canonicalizePageIdentity,
+  comparePublicCatalogPages,
   marketingPagePath,
   type MarketingPage,
   type MarketingPageKind,
@@ -153,7 +154,11 @@ export function toPublicMarketingSite(
   site: MarketingSiteRecord,
   pages: MarketingPageRecord[],
   locale?: AppLocale,
-  options?: { draftChrome?: boolean; draftContent?: boolean },
+  options?: {
+    draftChrome?: boolean;
+    draftContent?: boolean;
+    enabledEntitlements?: ReadonlySet<string>;
+  },
 ): PublicMarketingSite {
   const theme_settings = resolveThemeSettings(site.theme_settings);
   const logo_url = theme_settings.logo_url ?? null;
@@ -189,10 +194,16 @@ export function toPublicMarketingSite(
        *
        * 普通页面全收。模板页只收可打开的一级地址（`/docs`、`/shop`）：它们和
        * 「关于」「定价」一样是顶层入口。首页由品牌链处理；详情模板（`/docs/:slug`）
-       * 没有自己的地址；购物车 / 会员登录是二级功能页。口径见
-       * `isPublicCatalogPageKind`。
+       * 没有自己的地址；购物车 / 会员登录是二级功能页。未开通的模块页即使落库
+       * 也不进目录。口径见 `isPublicCatalogPage`。
        */
-      .filter((page) => isPublicCatalogPageKind(pageIdentity(page).kind))
+      .filter((page) =>
+        isPublicCatalogPage(
+          pageIdentity(page).kind,
+          options?.enabledEntitlements,
+        ),
+      )
+      .sort(comparePublicCatalogPages)
       .map((page) => {
         const { kind, slug } = pageIdentity(page);
         const content = useDraftContent
