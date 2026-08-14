@@ -18,6 +18,7 @@ import {
 import {
   makeNavLink,
   registerNavSource,
+  resolveNavLabel,
   type NavSourceDefinition,
   type ResolvedNavItem,
   type SiteNavContext,
@@ -47,8 +48,7 @@ function expandDocsLibrary(
 ): ResolvedNavItem[] {
   const docs = docsFromNav(ctx);
   const messages = docMessages(ctx.locale);
-  const label =
-    typeof item.label === "string" ? item.label : "";
+  const label = resolveNavLabel(item.label, ctx, DOCS_INDEX_PATH);
   if (docs.length === 0) return [];
   if (item.expand === "flat") {
     return docItems(docs, ctx, item.id);
@@ -92,11 +92,11 @@ function expandDocsCategory(
   const docs = docsFromNav(ctx).filter((doc) => doc.category === item.category);
   if (docs.length === 0) return [];
   const items = docItems(docs, ctx, item.id);
-  const label = typeof item.label === "string" ? item.label : "";
   const fallbackLabel = docs[0]?.category_label?.trim() || item.category;
+  const label = resolveNavLabel(item.label, ctx) || fallbackLabel;
   return item.expand === "flat"
     ? items
-    : [makeNavLink(item.id, label || fallbackLabel, "", ctx, items)];
+    : [makeNavLink(item.id, label, "", ctx, items)];
 }
 
 export const SITE_DOCS_NAV_SOURCE_DEF: NavSourceDefinition = {

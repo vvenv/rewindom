@@ -141,6 +141,54 @@ describe("resolveNavItems", () => {
       ).map((entry) => entry.href),
     ).toEqual(["/en/shop"]);
   });
+
+  it("当前语言没填标签时用对应页面的标题", () => {
+    const resolved = resolveNavItems(
+      [item({ label: "关于", href: "/about" })],
+      ctx({
+        locale: "en",
+        navPages: [{ path: "/about", title: "About" }],
+      }),
+    );
+    expect(resolved.map((entry) => entry.label)).toEqual(["About"]);
+  });
+
+  it("当前语言填了标签就不用页面标题", () => {
+    const resolved = resolveNavItems(
+      [
+        item({
+          label: { __i18n: { "zh-CN": "关于", en: "Our story" } },
+          href: "/about",
+        }),
+      ],
+      ctx({
+        locale: "en",
+        navPages: [{ path: "/about", title: "About" }],
+      }),
+    );
+    expect(resolved.map((entry) => entry.label)).toEqual(["Our story"]);
+  });
+
+  it("没有对应页面时回落默认语言标签", () => {
+    const resolved = resolveNavItems(
+      [item({ label: "购物车", href: "/shop/cart" })],
+      ctx({ locale: "en" }),
+    );
+    expect(resolved.map((entry) => entry.label)).toEqual(["购物车"]);
+  });
+
+  it("__i18n 有当前语言就直接用", () => {
+    const resolved = resolveNavItems(
+      [
+        item({
+          label: { __i18n: { "zh-CN": "商店", en: "Shop" } },
+          href: "/shop",
+        }),
+      ],
+      ctx({ locale: "en" }),
+    );
+    expect(resolved.map((entry) => entry.label)).toEqual(["Shop"]);
+  });
 });
 
 describe("listNavSources", () => {

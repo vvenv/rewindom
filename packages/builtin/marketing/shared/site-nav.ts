@@ -13,7 +13,7 @@ import {
   type LocalizedText,
   type SettingValues,
 } from "./section-settings.js";
-import { localizeSiteHref } from "./site-locale.js";
+import { localizeSiteHref, parseSiteLocalePath } from "./site-locale.js";
 
 import type { AppLocale } from "@rewindom/shared";
 
@@ -185,11 +185,6 @@ function parseSource(raw: unknown): SiteNavSource {
   return NAV_SOURCE_ALIASES[raw] ?? raw.trim();
 }
 
-function labelIsEmpty(label: string | LocalizedText): boolean {
-  if (typeof label === "string") return label.trim() === "";
-  return Object.values(label.__i18n).every((text) => text.trim() === "");
-}
-
 function parseItem(raw: unknown, depth: number): SiteNavItem | null {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     return null;
@@ -282,25 +277,65 @@ export function makeNavLink(
   };
 }
 
-function localizeLabel(
+/**
+ * 当前语言填过的标签。纯字符串只算站点默认语言的原文——和 chrome 其它字段一样，
+ * 别把中文「关于」当成英文菜单。
+ */
+function explicitNavLabel(
   label: string | LocalizedText,
-  ctx: SiteNavContext,
+  ctx: Pick<SiteNavContext, "locale" | "defaultLocale">,
+): string {
+  if (typeof label === "string") {
+    return ctx.locale === ctx.defaultLocale ? label.trim() : "";
+  }
+  const current = label.__i18n[ctx.locale];
+  return typeof current === "string" ? current.trim() : "";
+}
+
+function fallbackNavLabel(
+  label: string | LocalizedText,
+  ctx: Pick<SiteNavContext, "locale" | "defaultLocale">,
 ): string {
   return typeof label === "string"
-    ? label
-    : resolveLocalizedText(label, ctx.locale, ctx.defaultLocale);
+    ? label.trim()
+    : resolveLocalizedText(label, ctx.locale, ctx.defaultLocale).trim();
+}
+
+function catalogTitleForHref(href: string, ctx: SiteNavContext): string {
+  if (!href.startsWith("/") || href.startsWith("//")) return "";
+  const path = parseSiteLocalePath(
+    href.split(/[?#]/u)[0] ?? href,
+    ctx.defaultLocale,
+  ).path;
+  return ctx.navPages?.find((page) => page.path === path)?.title.trim() ?? "";
+}
+
+/**
+ * 菜单文案：当前语言标签 → 同路径页面标题 → 默认语言回落。
+ *
+ * 一级页面已经按语言各有标题；链到这些页面的菜单项不必再填一遍翻译。
+ */
+export function resolveNavLabel(
+  label: string | LocalizedText,
+  ctx: SiteNavContext,
+  href = "",
+): string {
+  return (
+    explicitNavLabel(label, ctx) ||
+    catalogTitleForHref(href, ctx) ||
+    fallbackNavLabel(label, ctx)
+  );
 }
 
 function resolveItem(
   item: SiteNavItem,
   ctx: SiteNavContext,
 ): ResolvedNavItem[] {
-  const label = localizeLabel(item.label, ctx);
-
   if (item.source === "link") {
-    if (labelIsEmpty(item.label)) return [];
     if (!item.href && item.children.length === 0) return [];
     const children = item.children.flatMap((child) => resolveItem(child, ctx));
+    const label = resolveNavLabel(item.label, ctx, item.href);
+    if (!label && children.length === 0) return [];
     return [makeNavLink(item.id, label, item.href, ctx, children)];
   }
 
@@ -312,7 +347,7 @@ function resolveItem(
     );
     return item.expand === "flat"
       ? items
-      : [makeNavLink(item.id, label, "", ctx, items)];
+      : [makeNavLink(item.id, resolveNavLabel(item.label, ctx), "", ctx, items)];
   }
 
   const contributed = getNavSource(item.source);
