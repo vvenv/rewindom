@@ -69,14 +69,33 @@ dl {
   flex: 1 1 auto;
 }
 .page-missing {
-  padding: 4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: min(28rem, 60svh);
+  padding: 5rem 1.5rem;
+}
+.page-missing-code {
+  font-size: clamp(4.5rem, 14vw, 7.5rem);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  color: var(--muted-fg);
+  opacity: 0.4;
 }
 .page-missing h1 {
   font-size: 1.5rem;
   font-weight: 600;
+  margin-top: 1.25rem;
 }
-.page-missing > * + * {
-  margin-top: 0.5rem;
+.page-missing .lead {
+  max-width: 28rem;
+  margin-top: 0.75rem;
+}
+.page-missing .btn-row {
+  margin-top: 1.75rem;
 }
 
 .btn {

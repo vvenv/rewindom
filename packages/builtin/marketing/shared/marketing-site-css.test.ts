@@ -29,6 +29,8 @@ describe("marketing-site-css", () => {
     expect(MARKETING_SITE_CSS_BASE).toContain(".btn{");
     expect(MARKETING_SITE_CSS_BASE).toContain(".sec-band");
     expect(MARKETING_SITE_CSS_BASE).toContain(".marketing-site-root");
+    expect(MARKETING_SITE_CSS_BASE).toContain(".page-missing{");
+    expect(MARKETING_SITE_CSS_BASE).toContain(".page-missing-code{");
     expect(MARKETING_SITE_CSS_BASE).toContain(".site-stack");
     expect(MARKETING_SITE_CSS_BASE).toContain(".site-main");
     // `_common` 的原子被四五个段共用，必须常驻

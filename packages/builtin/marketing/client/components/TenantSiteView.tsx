@@ -18,6 +18,7 @@ import { resolveThemeSettings } from "../../shared/theme-sections.js";
 import { useMarketingSiteDocumentTheme } from "../hooks/use-marketing-site-document-theme.js";
 import { usePreviewDocument } from "../lib/preview-document-context.js";
 
+import { PageMissing } from "./PageMissing.js";
 import { SiteLocaleProvider } from "./sections/site-locale-context.js";
 import { SiteFooter, SiteHeader } from "./sections/SiteChrome.js";
 import { SiteSections, type SelectSectionFn } from "./sections/SiteSections.js";
@@ -152,12 +153,7 @@ export function TenantSiteView({
           {mainOverride !== undefined ? (
             mainOverride
           ) : !pageMeta && path !== "/" && !hasOwnContent ? (
-            <div className="wrap page-missing">
-              <h1>Page not found</h1>
-              <p className="muted">
-                This page is not published on {site.site_name}.
-              </p>
-            </div>
+            <PageMissing />
           ) : (
             <SiteSections
               sections={sections}

@@ -9,8 +9,16 @@ import {
   type AppLocale,
 } from "@rewindom/shared";
 
+import {
+  builtinNotFoundPage,
+  renderPageMissingHtml,
+} from "../shared/page-missing.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
-import { isSpaShellPath, resolveLocaleSegment } from "../shared/site-locale.js";
+import {
+  isSpaShellPath,
+  resolveLocaleSegment,
+  withSiteLocale,
+} from "../shared/site-locale.js";
 import { matchSitePathHandler } from "../shared/site-path-handlers.js";
 
 import {
@@ -25,6 +33,7 @@ import {
   getPublishedPublicPage,
   getPublishedPublicSite,
   getPublishedSitemapEntries,
+  getSiteChromeOrFallback,
 } from "./site.service.js";
 import { resolveContributedSitemapEntries } from "./sitemap-providers.js";
 import {
@@ -99,12 +108,49 @@ async function renderNotFound(
     locale,
   );
   if (!custom) {
+    const site = await getSiteChromeOrFallback(
+      hostTenant.tenant_id,
+      hostTenant.tenant_slug,
+      hostTenant.name,
+      locale,
+    );
+    const pageLocale = normalizeLocale(locale, site.default_locale);
+    const usedSectionTypes = collectSectionTypes(site.header);
+    collectSectionTypes(site.footer, usedSectionTypes);
+
+    const [accountEntry, enabledEntitlements, contributed] = await Promise.all([
+      resolveSiteAccountEntry({
+        tenantId: hostTenant.tenant_id,
+        locale: pageLocale,
+      }),
+      resolveSectionEntitlements(hostTenant.tenant_id),
+      resolveSectionContexts({
+        tenantId: hostTenant.tenant_id,
+        locale: pageLocale,
+        defaultLocale: site.default_locale,
+        usedSectionTypes,
+        cookies: cookiesFromHeader(request.headers.cookie),
+      }),
+    ]);
+
     sendHtml(
       reply,
       404,
-      renderUnavailableHtml({
-        title: "Page not found",
-        message: "This page is not published or does not exist.",
+      renderMarketingHtml({
+        origin: requestOrigin(request),
+        site,
+        contributed,
+        page: builtinNotFoundPage({
+          locale: pageLocale,
+          defaultLocale: site.default_locale,
+        }),
+        mainHtml: renderPageMissingHtml({
+          locale: pageLocale,
+          homeHref: withSiteLocale("/", pageLocale, site.default_locale),
+        }),
+        accountEntryHtml: accountEntry.html,
+        enabledEntitlements,
+        isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
       }),
     );
     return;
@@ -147,6 +193,7 @@ async function renderNotFound(
       },
       accountEntryHtml: accountEntry.html,
       enabledEntitlements,
+      isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
     }),
   );
 }

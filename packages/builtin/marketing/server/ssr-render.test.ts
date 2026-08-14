@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  builtinNotFoundPage,
+  renderPageMissingHtml,
+} from "../shared/page-missing.js";
+import {
   createSection,
   parseAreaSections,
   type SettingValue,
@@ -371,5 +375,31 @@ describe("renderSitemapXml", () => {
       `<xhtml:link rel="alternate" hreflang="en" href="${ORIGIN}/en/about"/>`,
     );
     expect(xml).toContain("<lastmod>2026-08-04</lastmod>");
+  });
+});
+
+describe("renderMarketingHtml builtin 404", () => {
+  it("keeps site chrome and injects the missing-page body", () => {
+    const page = builtinNotFoundPage({
+      locale: "zh-CN",
+      defaultLocale: "zh-CN",
+    });
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page,
+      mainHtml: renderPageMissingHtml({
+        locale: "zh-CN",
+        homeHref: "/",
+      }),
+    });
+    expect(html).toContain('name="robots" content="noindex"');
+    expect(html).toContain("page-missing");
+    expect(html).toContain("页面不存在");
+    expect(html).toContain("回到首页");
+    expect(html).toContain('href="/"');
+    expect(html).toContain("site-header");
+    expect(html).toContain("site-footer");
+    expect(html).not.toContain("/member/login");
   });
 });

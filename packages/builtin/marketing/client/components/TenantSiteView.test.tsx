@@ -120,4 +120,19 @@ describe("TenantSiteView 页面外壳", () => {
 
     localStorage.removeItem("theme");
   });
+
+  it("missing paths show the built-in 404 with a home link", () => {
+    render(
+      <MemoryRouter>
+        <TenantSiteView site={site()} path="/does-not-exist" />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("heading", { name: "页面不存在" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "回到首页" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+  });
 });
