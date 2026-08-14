@@ -234,7 +234,10 @@ export type InputSettingDef =
        */
       type: "nav_items";
       default?: readonly unknown[];
-      /** 页脚列：编辑器显示「从页头复制」。 */
+      /**
+       * 页脚列：编辑器显示「从页头复制」。页头 / 页脚共用 `chrome_nav` 时，
+       * 渲染端还要再挡掉页头自己（复制自己没有意义）。
+       */
       copy_from_header?: boolean;
     })
   | (SettingBase & { type: "image"; default?: string; placeholder?: string })

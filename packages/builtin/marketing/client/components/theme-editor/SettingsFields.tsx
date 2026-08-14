@@ -60,6 +60,11 @@ interface SettingsFieldsProps {
   defaultLocale: AppLocale;
   /** 容器段当前的列数；只有 `column_spans` 控件用得上。 */
   columnCount?: number;
+  /**
+   * 当前段 type。页头 / 页脚共用 `chrome_nav`，`copy_from_header` 只对页脚有意义；
+   * 页头导航再显示「从页头复制」等于复制自己。
+   */
+  sectionType: string;
   onChange: (next: SettingValues) => void;
 }
 
@@ -75,6 +80,7 @@ export function SettingsFields({
   locale,
   defaultLocale,
   columnCount,
+  sectionType,
   onChange,
 }: SettingsFieldsProps): ReactElement {
   const { t } = useTranslation("marketing");
@@ -125,6 +131,7 @@ export function SettingsFields({
             locale={locale}
             defaultLocale={defaultLocale}
             columnCount={columnCount}
+            sectionType={sectionType}
             value={
               localized
                 ? readLocalizedSetting(stored, locale, defaultLocale)
@@ -179,6 +186,7 @@ interface SettingFieldProps {
   defaultLocale: AppLocale;
   /** 容器段当前的列数；只有 `column_spans` 控件用得上。 */
   columnCount?: number;
+  sectionType: string;
   /** 该字段在默认语言下的原文，用作未翻译时的占位。 */
   fallbackHint?: string;
   disabled?: boolean;
@@ -193,6 +201,7 @@ function SettingField({
   locale,
   defaultLocale,
   columnCount,
+  sectionType,
   fallbackHint,
   disabled,
   unavailableHint,
@@ -246,6 +255,7 @@ function SettingField({
         locale={locale}
         defaultLocale={defaultLocale}
         columnCount={columnCount}
+        sectionType={sectionType}
         fallbackHint={fallbackHint}
         disabled={disabled}
         onChange={onChange}
@@ -264,6 +274,7 @@ function SettingControl({
   locale,
   defaultLocale,
   columnCount,
+  sectionType,
   fallbackHint,
   disabled,
   onChange,
@@ -315,7 +326,9 @@ function SettingControl({
           locale={locale}
           defaultLocale={defaultLocale}
           disabled={disabled}
-          allowCopyFromHeader={def.copy_from_header === true}
+          allowCopyFromHeader={
+            def.copy_from_header === true && sectionType !== "header"
+          }
           onChange={(next: SiteNavItem[]) =>
             onChange(next as unknown as SettingValue)
           }

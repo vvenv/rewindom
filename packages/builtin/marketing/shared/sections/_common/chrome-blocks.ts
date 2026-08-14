@@ -138,6 +138,7 @@ export const CHROME_NAV_BLOCK: BlockDefinition = {
       id: "items",
       label: "editor.setting.chrome_nav_items",
       default: [],
+      // 页头 / 页脚共用本块；编辑器只在非页头（页脚列）显示「从页头复制」
       copy_from_header: true,
       info: "editor.info.chrome_nav_items",
     },

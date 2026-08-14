@@ -52,6 +52,44 @@ describe("SectionSettingsForm 页签", () => {
   });
 });
 
+describe("SectionSettingsForm 从页头复制", () => {
+  const chromeFormProps = {
+    locale: "zh-CN" as const,
+    defaultLocale: "zh-CN" as const,
+    onChangeSettings: vi.fn(),
+    onChangeBlockSettings: vi.fn(),
+  };
+
+  it("页头导航不显示从页头复制", () => {
+    const section = createSection("header");
+    const nav = section.blocks.find((block) => block.type === "chrome_nav");
+    expect(nav).toBeTruthy();
+    render(
+      <SectionSettingsForm
+        {...chromeFormProps}
+        section={section}
+        blockId={nav!.id}
+      />,
+      { wrapper },
+    );
+    expect(screen.queryByText("从页头复制")).toBeNull();
+  });
+
+  it("页脚导航显示从页头复制", () => {
+    const nav = createBlock("footer", "chrome_nav", {});
+    const section = { ...createSection("footer"), blocks: [nav] };
+    render(
+      <SectionSettingsForm
+        {...chromeFormProps}
+        section={section}
+        blockId={nav.id}
+      />,
+      { wrapper },
+    );
+    expect(screen.getByText("从页头复制")).toBeTruthy();
+  });
+});
+
 describe("SectionSettingsForm 未开通的能力", () => {
   function renderAccountBlock(unavailable?: Record<string, string>) {
     const accountBlock = createBlock("header", "chrome_account", {});

@@ -87,6 +87,7 @@ export function SectionSettingsForm({
       <ChromeBlockSettings
         block={block}
         blockDef={blockDef}
+        sectionType={section.type}
         disabled={disabled}
         unavailable={unavailable}
         locale={locale}
@@ -129,6 +130,7 @@ export function SectionSettingsForm({
       unavailable={unavailable}
       locale={locale}
       defaultLocale={defaultLocale}
+      sectionType={section.type}
       /* 列宽控件要知道这一段现在有几列——列是 block，schema 里数不出来 */
       columnCount={groupColumns(section).length}
       onChange={onChangeSettings}
@@ -139,6 +141,7 @@ export function SectionSettingsForm({
 function ChromeBlockSettings({
   block,
   blockDef,
+  sectionType,
   disabled,
   unavailable,
   locale,
@@ -147,6 +150,7 @@ function ChromeBlockSettings({
 }: {
   block: { id: string; type: string; settings: SettingValues };
   blockDef: { label: string; settings: SettingDef[] };
+  sectionType: string;
   disabled?: boolean;
   unavailable?: Record<string, string>;
   locale: AppLocale;
@@ -186,6 +190,7 @@ function ChromeBlockSettings({
         unavailable={unavailable}
         locale={locale}
         defaultLocale={defaultLocale}
+        sectionType={sectionType}
         onChange={onChange}
       />
     </div>
@@ -201,6 +206,7 @@ function ScopedSettings({
   locale,
   defaultLocale,
   columnCount,
+  sectionType,
   onChange,
 }: {
   label: string;
@@ -212,6 +218,7 @@ function ScopedSettings({
   defaultLocale: AppLocale;
   /** 容器段当前的列数；只有 `column_spans` 那个控件用得上。 */
   columnCount?: number;
+  sectionType: string;
   onChange: (settings: SettingValues) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -259,6 +266,7 @@ function ScopedSettings({
       locale={locale}
       defaultLocale={defaultLocale}
       columnCount={columnCount}
+      sectionType={sectionType}
       onChange={onChange}
     />
   );
