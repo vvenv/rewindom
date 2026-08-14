@@ -8,6 +8,8 @@
 
 import { isSiteColor } from "./site-color.js";
 
+import type { AppLocale } from "@rewindom/shared";
+
 /**
  * 多语言文案值。
  *
@@ -179,26 +181,56 @@ interface LocalizableSetting {
   localizable?: false;
 }
 
+/**
+ * 文案类设置的内置默认值：纯字符串，或一份 `__i18n` 表。
+ *
+ * 多语言默认在新建段 / 块时整张表进 settings，公开面再按当前语言压扁——
+ * 这样中文站不会把英文 "Cart" 当主语言原文。存量若仍是表里某一语的原句，
+ * 解析时升回整张表（租户没改过），自定义过的句子保持原样。
+ */
+export type LocalizableDefault = string | LocalizedText;
+
+/** 内置双语默认文案。每种语言都要给一句，缺的语言不要靠运行时再补。 */
+export function localizedDefault(
+  values: Record<AppLocale, string>,
+): LocalizedText {
+  return { __i18n: { ...values } };
+}
+
+function cloneLocalizedDefault(value: LocalizedText): LocalizedText {
+  return { __i18n: { ...value.__i18n } };
+}
+
+function resolveTextDefault(
+  def: Extract<
+    InputSettingDef,
+    { type: "text" | "textarea" | "richtext" | "list" }
+  >,
+): string | LocalizedText {
+  const fallback = def.default ?? "";
+  return isLocalizedText(fallback) ? cloneLocalizedDefault(fallback) : fallback;
+}
+
 /** 有值的设置项（落到 `settings[id]`）。 */
 export type InputSettingDef =
   | (SettingBase &
       LocalizableSetting & {
         type: "text";
-        default?: string;
+        default?: LocalizableDefault;
         placeholder?: string;
         required?: boolean;
       })
   | (SettingBase &
       LocalizableSetting & {
         type: "textarea";
-        default?: string;
+        default?: LocalizableDefault;
         rows?: number;
         placeholder?: string;
       })
   | (SettingBase &
       LocalizableSetting & {
         type: "richtext";
-        default?: string;
+        default?: LocalizableDefault;
         rows?: number;
         placeholder?: string;
       })
@@ -206,7 +238,7 @@ export type InputSettingDef =
       LocalizableSetting & {
         /** 每行一条的纯文本列表（要点、清单）。 */
         type: "list";
-        default?: string;
+        default?: LocalizableDefault;
         rows?: number;
         placeholder?: string;
       })
@@ -389,6 +421,11 @@ export function defaultSettingValue(def: InputSettingDef): SettingValue {
       return "";
     case "nav_items":
       return def.default ?? [];
+    case "text":
+    case "textarea":
+    case "richtext":
+    case "list":
+      return resolveTextDefault(def);
     default:
       return def.default ?? "";
   }
@@ -431,13 +468,24 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
     case "text":
     case "textarea":
     case "richtext":
-    case "list":
-      if (typeof raw === "string") return raw;
+    case "list": {
+      if (typeof raw === "string") {
+        // 库存还是内置某一语的原句：升回整张表，别把 "Cart" 钉死成所有语言的原文
+        if (
+          isLocalizableSetting(def) &&
+          isLocalizedText(def.default) &&
+          Object.values(def.default.__i18n).includes(raw)
+        ) {
+          return cloneLocalizedDefault(def.default);
+        }
+        return raw;
+      }
       // 多语言表：只有声明了可本地化的字段才认，否则按脏数据回落
       if (isLocalizableSetting(def) && isLocalizedText(raw)) {
         return cleanLocalizedText(raw.__i18n);
       }
-      return def.default ?? "";
+      return resolveTextDefault(def);
+    }
     case "link":
     case "image":
     case "column_spans":

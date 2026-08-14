@@ -22,6 +22,7 @@ import {
   safeAreaSections,
   safeSections,
   settingText,
+  localizedDefault,
 } from "./section-schema.js";
 
 describe("parseSettingValues", () => {
@@ -66,6 +67,49 @@ describe("parseSettingValues", () => {
         headline: "  ",
       }),
     ).toThrow("site.sections_invalid");
+  });
+
+  it("seeds a localized default as an __i18n table", () => {
+    const defs = [
+      {
+        type: "text" as const,
+        id: "label",
+        label: "x",
+        default: localizedDefault({ "zh-CN": "购物车", en: "Cart" }),
+      },
+    ];
+    expect(parseSettingValues(defs, {}).label).toEqual({
+      __i18n: { "zh-CN": "购物车", en: "Cart" },
+    });
+  });
+
+  it("upgrades a stock default string back to the built-in table", () => {
+    const defs = [
+      {
+        type: "text" as const,
+        id: "label",
+        label: "x",
+        default: localizedDefault({ "zh-CN": "购物车", en: "Cart" }),
+      },
+    ];
+    expect(parseSettingValues(defs, { label: "Cart" }).label).toEqual({
+      __i18n: { "zh-CN": "购物车", en: "Cart" },
+    });
+    expect(parseSettingValues(defs, { label: "购物车" }).label).toEqual({
+      __i18n: { "zh-CN": "购物车", en: "Cart" },
+    });
+  });
+
+  it("keeps a custom string instead of the built-in table", () => {
+    const defs = [
+      {
+        type: "text" as const,
+        id: "label",
+        label: "x",
+        default: localizedDefault({ "zh-CN": "购物车", en: "Cart" }),
+      },
+    ];
+    expect(parseSettingValues(defs, { label: "My bag" }).label).toBe("My bag");
   });
 });
 

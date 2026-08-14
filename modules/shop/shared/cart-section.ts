@@ -14,6 +14,7 @@ import {
   layoutSettings,
 } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
+import { localizedDefault } from "@rewindom/builtin/marketing/shared/section-settings.js";
 import type {
   BlockDefinition,
   SectionDefinition,
@@ -130,7 +131,7 @@ export const cartLinkBlock: BlockDefinition = {
       type: "text",
       id: "label",
       label: "shop:section.cartLink.linkLabel",
-      default: "Cart",
+      default: localizedDefault({ "zh-CN": "购物车", en: "Cart" }),
       required: true,
     },
     {

@@ -11,7 +11,7 @@ import {
   shopContextEntry,
 } from "../../shared/shop-section-context.js";
 
-import { createBlock, createSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { createBlock, createSection, localizeSections } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import { renderHeaderHtml } from "@rewindom/builtin/marketing/shared/sections/header/html.js";
 import { SECTION_HTML } from "@rewindom/builtin/marketing/shared/sections/html.js";
 
@@ -433,5 +433,20 @@ describe("shop storefront section html", () => {
     expect(html).toContain("shop-cart-count");
     expect(html).toContain(">3<");
     expect(html).not.toContain("<p class=\"shop-cart-link\"");
+  });
+
+  it("页头购物车入口按浏览语言用内置中英文案", () => {
+    const section = createSection("header");
+    section.blocks.push(createBlock("header", SHOP_CART_LINK_BLOCK_TYPE));
+    const input = {
+      siteName: "Store",
+      logoUrl: null,
+      homeHref: "/",
+      enabledEntitlements: new Set(["shop"]),
+    };
+    const [zh] = localizeSections([section], "zh-CN", "zh-CN");
+    const [en] = localizeSections([section], "en", "zh-CN");
+    expect(renderHeaderHtml({ ...input, section: zh! })).toContain("购物车");
+    expect(renderHeaderHtml({ ...input, section: en! })).toContain(">Cart<");
   });
 });
