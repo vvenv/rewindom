@@ -106,7 +106,11 @@ export function TenantSiteView({
   const hasOwnContent = sections.length > 0;
   const mainSections =
     !pageMeta && path !== "/" && !hasOwnContent
-      ? buildNotFoundFallbackSections(marketingPresetT(site.locale))
+      ? localizeSections(
+          buildNotFoundFallbackSections(marketingPresetT(site.locale)),
+          site.locale,
+          site.default_locale,
+        )
       : sections;
   const content = (
     <SiteLocaleProvider

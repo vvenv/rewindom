@@ -265,18 +265,29 @@ const RETIRED_PRESET_TITLES: Readonly<Record<string, readonly string[]>> = {
   "shop:storefront.catalog.title": ["商品", "Products"],
 };
 
+function isStockPresetString(key: string, stored: string): boolean {
+  const trimmed = stored.trim();
+  if (!trimmed || trimmed === key) return true;
+  if (RETIRED_PRESET_TITLES[key]?.includes(trimmed) === true) return true;
+  return APP_LOCALES.some((locale) => {
+    const text = translateRegisteredKey(locale.slug, key);
+    return Boolean(text) && text === trimmed;
+  });
+}
+
 export function isStockTemplateTitle(kind: string, title: string): boolean {
   const preset = getPageTemplatePreset(kind);
   if (!preset) return false;
-  const trimmed = title.trim();
-  if (!trimmed || trimmed === preset.titleKey) return true;
-  if (RETIRED_PRESET_TITLES[preset.titleKey]?.includes(trimmed) === true) {
-    return true;
-  }
-  return APP_LOCALES.some((locale) => {
-    const text = translateRegisteredKey(locale.slug, preset.titleKey);
-    return Boolean(text) && text === trimmed;
-  });
+  return isStockPresetString(preset.titleKey, title);
+}
+
+export function isStockTemplateDescription(
+  kind: string,
+  description: string,
+): boolean {
+  const preset = getPageTemplatePreset(kind);
+  if (!preset) return false;
+  return isStockPresetString(preset.descriptionKey, description);
 }
 
 /**

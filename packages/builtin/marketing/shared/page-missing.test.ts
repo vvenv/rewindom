@@ -10,12 +10,9 @@ import { PAGE_MISSING_SECTION_TYPE } from "./sections/page-missing/definition.js
 import { sectionTypesFor } from "./sections/index.js";
 
 const COPY: Record<string, string> = {
-  "preset.not_found.title": "页面不存在",
-  "preset.not_found.description": "这个地址没有已发布的内容，可能是链接过期了。",
-  "preset.not_found.page_missing.headline": "页面不存在",
-  "preset.not_found.page_missing.subhead":
+  "marketing:preset.not_found.title": "页面不存在",
+  "marketing:preset.not_found.description":
     "这个地址没有已发布的内容，可能是链接过期了。",
-  "preset.not_found.page_missing.primary_label": "回到首页",
 };
 
 const t = (key: string): string => COPY[key] ?? key;
@@ -33,7 +30,7 @@ describe("builtinNotFoundPage", () => {
     expect(page.alternates[0]?.path).toBe("/en/404");
   });
 
-  it("uses the page-missing preset", () => {
+  it("uses the page-missing preset in the request language", () => {
     const page = builtinNotFoundPage({
       locale: "zh-CN",
       defaultLocale: "zh-CN",
@@ -42,10 +39,27 @@ describe("builtinNotFoundPage", () => {
     expect(page.sections).toHaveLength(1);
     expect(page.sections[0]?.type).toBe(PAGE_MISSING_SECTION_TYPE);
     expect(page.title).toBe("页面不存在");
-    expect(page.sections[0]?.settings.headline).toEqual({
-      __i18n: { "zh-CN": "页面不存在", en: "Page not found" },
-    });
+    expect(page.sections[0]?.settings.headline).toBe("页面不存在");
+    expect(page.sections[0]?.settings.subhead).toBe(
+      "这个地址没有已发布的内容，可能是链接过期了。",
+    );
     expect(page.sections[0]?.settings.primary_label).toBe("回到首页");
+    expect(page.sections[0]?.settings.primary_href).toBe("/");
+  });
+
+  it("does not leave Chinese copy on the English 404", () => {
+    const page = builtinNotFoundPage({
+      locale: "en",
+      defaultLocale: "zh-CN",
+      t,
+    });
+    expect(page.sections[0]?.settings.headline).toBe("Page not found");
+    expect(page.sections[0]?.settings.subhead).toBe(
+      "This page isn't published, or the link is outdated.",
+    );
+    expect(page.sections[0]?.settings.primary_label).toBe("Back to home");
+    expect(page.sections[0]?.settings.primary_href).toBe("/en");
+    expect(page.sections[0]?.settings.headline).not.toBe("页面不存在");
   });
 });
 
@@ -54,6 +68,18 @@ describe("buildNotFoundFallbackSections", () => {
     const sections = buildNotFoundFallbackSections(t);
     expect(sections).toHaveLength(1);
     expect(sections[0]?.type).toBe(PAGE_MISSING_SECTION_TYPE);
+    expect(sections[0]?.settings.headline).toEqual({
+      __i18n: { "zh-CN": "页面不存在", en: "Page not found" },
+    });
+    expect(sections[0]?.settings.subhead).toEqual({
+      __i18n: {
+        "zh-CN": "这个地址没有已发布的内容，可能是链接过期了。",
+        en: "This page isn't published, or the link is outdated.",
+      },
+    });
+    expect(sections[0]?.settings.primary_label).toEqual({
+      __i18n: { "zh-CN": "回到首页", en: "Back to home" },
+    });
   });
 });
 

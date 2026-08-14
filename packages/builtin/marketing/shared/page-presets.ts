@@ -1,3 +1,5 @@
+import { translateRegisteredKeyTable } from "@rewindom/shared";
+
 import {
   NOT_FOUND_PAGE_KIND,
   NOT_FOUND_TEMPLATE_SLUG,
@@ -103,15 +105,15 @@ export const NOT_FOUND_STARTER_PRESET: PagePreset = {
   label: "preset.not_found.label",
   kind: NOT_FOUND_PAGE_KIND,
   slug: NOT_FOUND_TEMPLATE_SLUG,
-  titleKey: "preset.not_found.title",
-  descriptionKey: "preset.not_found.description",
+  titleKey: "marketing:preset.not_found.title",
+  descriptionKey: "marketing:preset.not_found.description",
   sections: [
     {
       type: PAGE_MISSING_SECTION_TYPE,
       text: {
-        headline: "preset.not_found.page_missing.headline",
-        subhead: "preset.not_found.page_missing.subhead",
-        primary_label: "preset.not_found.page_missing.primary_label",
+        headline: "marketing:storefront.pageMissing.headline",
+        subhead: "marketing:storefront.pageMissing.subhead",
+        primary_label: "marketing:storefront.pageMissing.primary_label",
       },
       raw: {
         code: "404",
@@ -139,7 +141,10 @@ function resolveValues(
 ): SettingValues {
   const out: SettingValues = { ...(raw ?? {}) };
   for (const [id, key] of Object.entries(text ?? {})) {
-    out[id] = t(key);
+    // `ns:key` 展开成整张 `__i18n` 表，公开面再按 URL 语言压扁——不要先 t() 成
+    // 单语字符串，否则英文页会留下中文副标题、中文页只剩表里的英文标题。
+    const table = translateRegisteredKeyTable(key);
+    out[id] = table ? { __i18n: { ...table } } : t(key);
   }
   return out;
 }

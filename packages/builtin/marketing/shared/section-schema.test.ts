@@ -117,6 +117,26 @@ describe("parseSettingValues", () => {
     });
   });
 
+  it("expands a leaked namespaced key even when the field has no default", () => {
+    registerLocaleCatalog("section-settings-test", {
+      "zh-CN": { cart: { label: "购物车" } },
+      en: { cart: { label: "Cart" } },
+    });
+    const defs = [
+      {
+        type: "text" as const,
+        id: "label",
+        label: "x",
+      },
+    ];
+    expect(
+      parseSettingValues(defs, { label: "section-settings-test:cart.label" })
+        .label,
+    ).toEqual({
+      __i18n: { "zh-CN": "购物车", en: "Cart" },
+    });
+  });
+
   it("keeps a custom string instead of the built-in table", () => {
     registerLocaleCatalog("section-settings-test", {
       "zh-CN": { cart: { label: "购物车" } },
@@ -131,6 +151,60 @@ describe("parseSettingValues", () => {
       },
     ];
     expect(parseSettingValues(defs, { label: "My bag" }).label).toBe("My bag");
+  });
+
+  it("fills empty or swapped stock slots in an __i18n table", () => {
+    registerLocaleCatalog("section-settings-test", {
+      "zh-CN": { cart: { label: "购物车" } },
+      en: { cart: { label: "Cart" } },
+    });
+    const defs = [
+      {
+        type: "text" as const,
+        id: "label",
+        label: "x",
+        default: "section-settings-test:cart.label",
+      },
+    ];
+    expect(
+      parseSettingValues(defs, {
+        label: { __i18n: { "zh-CN": "", en: "Cart" } },
+      }).label,
+    ).toEqual({
+      __i18n: { "zh-CN": "购物车", en: "Cart" },
+    });
+    expect(
+      parseSettingValues(defs, {
+        label: { __i18n: { "zh-CN": "购物车", en: "" } },
+      }).label,
+    ).toEqual({
+      __i18n: { "zh-CN": "购物车", en: "Cart" },
+    });
+    expect(
+      parseSettingValues(defs, {
+        label: { __i18n: { "zh-CN": "Cart", en: "购物车" } },
+      }).label,
+    ).toEqual({
+      __i18n: { "zh-CN": "购物车", en: "Cart" },
+    });
+  });
+
+  it("empty string on a namespaced default seeds the built-in table", () => {
+    registerLocaleCatalog("section-settings-test", {
+      "zh-CN": { cart: { label: "购物车" } },
+      en: { cart: { label: "Cart" } },
+    });
+    const defs = [
+      {
+        type: "text" as const,
+        id: "label",
+        label: "x",
+        default: "section-settings-test:cart.label",
+      },
+    ];
+    expect(parseSettingValues(defs, { label: "" }).label).toEqual({
+      __i18n: { "zh-CN": "购物车", en: "Cart" },
+    });
   });
 });
 
@@ -215,7 +289,7 @@ describe("safeSections", () => {
   it("skips only the broken section", () => {
     const sections = safeSections([
       { id: "ok", type: "band", settings: { headline: "Fine" } },
-      { id: "bad", type: "hero", settings: { headline: "" } },
+      { id: "bad", type: "hero", settings: { headline: "  " } },
       { id: "ok2", type: "prose", settings: { body_md: "x" } },
     ]);
     expect(sections.map((section) => section.id)).toEqual(["ok", "ok2"]);

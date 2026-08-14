@@ -9,6 +9,7 @@ describe("createStarterTranslator", () => {
     const t = createStarterTranslator("zh-CN");
     expect(t("preset.home.title")).not.toBe("preset.home.title");
     expect(t("preset.not_found.title")).toBe("页面不存在");
+    expect(t("marketing:preset.not_found.title")).toBe("页面不存在");
     expect(t("starter.default.site_name")).toBe("我的站点");
   });
 

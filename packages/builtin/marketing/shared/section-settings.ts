@@ -459,6 +459,31 @@ function coerceRangeNumber(
   return snapSettingNumber(num, { min, max, step });
 }
 
+function reconcileStockLocalizedText(
+  def: Extract<
+    InputSettingDef,
+    { type: "text" | "textarea" | "richtext" | "list" }
+  >,
+  value: LocalizedText,
+): LocalizedText {
+  if (typeof def.default !== "string") return value;
+  const stock = translateRegisteredKeyTable(def.default);
+  if (!stock) return value;
+  const stockValues = new Set(Object.values(stock));
+  const out = { ...value.__i18n };
+  let changed = false;
+  for (const [locale, expected] of Object.entries(stock)) {
+    const current = out[locale] ?? "";
+    if (current === expected) continue;
+    // 空槽、或写进了另一语的库存原句：按当前语言回填。租户自定义过的句子不动。
+    if (current === "" || (stockValues.has(current) && current !== expected)) {
+      out[locale] = expected;
+      changed = true;
+    }
+  }
+  return changed ? { __i18n: out } : value;
+}
+
 /** 类型不符一律回落默认值——渲染端与编辑器都不该因脏数据崩掉。 */
 function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
   switch (def.type) {
@@ -467,21 +492,30 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
     case "richtext":
     case "list": {
       if (typeof raw === "string") {
-        // 库存还是内置某一语的原句，或漏进库的 ns:key：升回整张表
-        if (isLocalizableSetting(def) && typeof def.default === "string") {
-          const table = translateRegisteredKeyTable(def.default);
-          if (
-            table &&
-            (raw === def.default || Object.values(table).includes(raw))
-          ) {
-            return cloneLocalizedTable(table);
+        if (isLocalizableSetting(def)) {
+          // 库存还是内置某一语的原句、空字符串、或漏进库的 ns:key：升回整张表
+          if (typeof def.default === "string") {
+            const table = translateRegisteredKeyTable(def.default);
+            if (
+              table &&
+              (raw === "" ||
+                raw === def.default ||
+                Object.values(table).includes(raw))
+            ) {
+              return cloneLocalizedTable(table);
+            }
           }
+          const fromRaw = translateRegisteredKeyTable(raw);
+          if (fromRaw) return cloneLocalizedTable(fromRaw);
         }
         return raw;
       }
       // 多语言表：只有声明了可本地化的字段才认，否则按脏数据回落
       if (isLocalizableSetting(def) && isLocalizedText(raw)) {
-        return cleanLocalizedText(raw.__i18n);
+        return reconcileStockLocalizedText(
+          def,
+          cleanLocalizedText(raw.__i18n),
+        );
       }
       return resolveTextDefault(def);
     }

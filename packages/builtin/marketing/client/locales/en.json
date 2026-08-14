@@ -913,12 +913,7 @@
     "not_found": {
       "label": "Not found",
       "title": "Page not found",
-      "description": "This page isn't published, or the link is outdated.",
-      "page_missing": {
-        "headline": "Page not found",
-        "subhead": "This page isn't published, or the link is outdated.",
-        "primary_label": "Back to home"
-      }
+      "description": "This page isn't published, or the link is outdated."
     }
   },
   "audit": {
@@ -1152,7 +1147,9 @@
       "fieldMessage": "Message"
     },
     "pageMissing": {
-      "headline": "Page not found"
+      "headline": "Page not found",
+      "subhead": "This page isn't published, or the link is outdated.",
+      "primary_label": "Back to home"
     },
     "chrome": {
       "copyright": "© {year} {site}"

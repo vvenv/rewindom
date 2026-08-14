@@ -36,10 +36,14 @@ export const pageMissingSection: SectionDefinition = {
       type: "textarea",
       id: "subhead",
       label: "editor.setting.subhead",
+      default: "marketing:storefront.pageMissing.subhead",
       rows: 3,
     },
     { type: "header", content: "editor.group.buttons" },
-    ...linkSettings("primary", { hrefDefault: "/" }),
+    ...linkSettings("primary", {
+      hrefDefault: "/",
+      labelDefault: "marketing:storefront.pageMissing.primary_label",
+    }),
     ...layoutSettings({ padding_top: 80, padding_bottom: 80 }),
   ],
 };

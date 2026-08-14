@@ -4,6 +4,7 @@ import {
   publicCatalogSources,
   resolveCatalogPageTitle,
   resolveTemplatePresetCopy,
+  isStockTemplateDescription,
 } from "../shared/page-templates.js";
 import {
   localizeSections,
@@ -280,12 +281,16 @@ export function toPublicMarketingPage(
       : pageContentPublished(record);
   const visibility = parsePageVisibility(record.visibility);
   const memberSummary = options?.memberSummary === true;
+  const copy = resolveTemplatePresetCopy(kind, locale);
   return {
     slug,
     locale,
     kind,
-    title: content.title,
-    description: content.description,
+    title: resolveCatalogPageTitle(kind, locale, content.title),
+    description:
+      copy && isStockTemplateDescription(kind, content.description)
+        ? copy.description
+        : content.description,
     sections: memberSummary
       ? []
       : localizeSections(content.sections, locale, default_locale),

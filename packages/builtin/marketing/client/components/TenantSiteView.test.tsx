@@ -135,4 +135,25 @@ describe("TenantSiteView 页面外壳", () => {
       "/",
     );
   });
+
+  it("English missing paths do not render the Chinese 404 copy", () => {
+    render(
+      <MemoryRouter>
+        <TenantSiteView
+          site={{ ...site(), locale: "en" }}
+          path="/does-not-exist"
+        />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("heading", { name: "Page not found" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute(
+      "href",
+      "/en",
+    );
+    expect(
+      screen.queryByRole("heading", { name: "页面不存在" }),
+    ).not.toBeInTheDocument();
+  });
 });

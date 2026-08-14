@@ -9,10 +9,10 @@ import {
   NOT_FOUND_PAGE_KIND,
   NOT_FOUND_TEMPLATE_SLUG,
 } from "./page-templates.js";
+import { localizeSections, type SiteSection } from "./section-schema.js";
 import { PAGE_MISSING_SECTION_TYPE } from "./sections/page-missing/definition.js";
 import { withSiteLocale } from "./site-locale.js";
 
-import type { SiteSection } from "./section-schema.js";
 import type { PublicMarketingPage } from "./site-cms.js";
 
 function hasSectionType(
@@ -49,9 +49,13 @@ export function builtinNotFoundPage(input: {
     slug: NOT_FOUND_TEMPLATE_SLUG,
     locale: input.locale,
     kind: NOT_FOUND_PAGE_KIND,
-    title: input.t("preset.not_found.title"),
-    description: input.t("preset.not_found.description"),
-    sections: buildNotFoundFallbackSections(input.t),
+    title: input.t(NOT_FOUND_STARTER_PRESET.titleKey),
+    description: input.t(NOT_FOUND_STARTER_PRESET.descriptionKey),
+    sections: localizeSections(
+      buildNotFoundFallbackSections(input.t),
+      input.locale,
+      input.defaultLocale,
+    ),
     settings: { noindex: true },
     visibility: "public",
     path: "/404",

@@ -397,4 +397,22 @@ describe("renderMarketingHtml builtin 404", () => {
     expect(html).toContain("site-footer");
     expect(html).not.toContain("/member/login");
   });
+
+  it("English builtin 404 uses English copy and a prefixed home link", () => {
+    const page = builtinNotFoundPage({
+      locale: "en",
+      defaultLocale: "zh-CN",
+      t: createStarterTranslator("en"),
+    });
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site({ locale: "en" }),
+      page,
+    });
+    expect(html).toContain("Page not found");
+    expect(html).toContain("Back to home");
+    expect(html).toContain('href="/en"');
+    expect(html).not.toContain("页面不存在");
+    expect(html).not.toContain("回到首页");
+  });
 });

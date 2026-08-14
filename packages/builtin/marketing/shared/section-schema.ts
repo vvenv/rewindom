@@ -9,6 +9,11 @@
 import "./i18n-catalog.js";
 
 import {
+  translateRegisteredKeyTable,
+  type AppLocale,
+} from "@rewindom/shared";
+
+import {
   isInputSetting,
   isLocalizableSetting,
   isLocalizedText,
@@ -38,8 +43,6 @@ import {
 } from "./sections/index.js";
 import { normalizeSiteColor } from "./site-color.js";
 import { localizeSiteHref } from "./site-locale.js";
-
-import type { AppLocale } from "@rewindom/shared";
 
 export * from "./section-settings.js";
 export * from "./sections/index.js";
@@ -503,8 +506,14 @@ function relocalizeValues(
       : typeof current === "string"
         ? current
         : "";
+    const stock =
+      "default" in def && typeof def.default === "string"
+        ? translateRegisteredKeyTable(def.default)
+        : undefined;
+    const next =
+      stock && stock[from] === text && stock[to] ? stock[to] : text;
     out ??= { ...values };
-    out[def.id] = writeLocalizedSetting(current, to, defaultLocale, text);
+    out[def.id] = writeLocalizedSetting(current, to, defaultLocale, next);
   }
   return out ?? values;
 }

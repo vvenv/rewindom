@@ -9,6 +9,8 @@ import {
 
 import { toPublicMarketingPage, toPublicMarketingSite } from "./site.mapper.js";
 
+import "../shared/page-presets.js";
+
 import type {
   MarketingPage as MarketingPageRecord,
   MarketingSite as MarketingSiteRecord,
@@ -235,6 +237,47 @@ describe("toPublicMarketingPage alternates", () => {
     });
     expect(page.sections[0]?.settings.headline).toBe("Get started");
     expect(page.sections[0]?.settings.primary_href).toBe("/en/pricing");
+  });
+
+  it("re-resolves stock 404 copy for the viewing language", () => {
+    const record = pageRecord({
+      slug: "404",
+      kind: "not_found",
+      locale: "en",
+      title: "页面不存在",
+      description: "这个地址没有已发布的内容，可能是链接过期了。",
+      sections: [
+        {
+          type: "page-missing",
+          settings: {
+            headline: { __i18n: { "zh-CN": "页面不存在", en: "" } },
+            subhead: {
+              __i18n: {
+                "zh-CN": "这个地址没有已发布的内容，可能是链接过期了。",
+                en: "",
+              },
+            },
+            primary_label: { __i18n: { "zh-CN": "回到首页", en: "" } },
+            primary_href: "/",
+          },
+          blocks: [],
+        },
+      ],
+    });
+    const page = toPublicMarketingPage(record, {
+      siblings: [record],
+      defaultLocale: "zh-CN",
+    });
+    expect(page.title).toBe("Page not found");
+    expect(page.description).toBe(
+      "This page isn't published, or the link is outdated.",
+    );
+    expect(page.sections[0]?.settings.headline).toBe("Page not found");
+    expect(page.sections[0]?.settings.subhead).toBe(
+      "This page isn't published, or the link is outdated.",
+    );
+    expect(page.sections[0]?.settings.primary_label).toBe("Back to home");
+    expect(page.sections[0]?.settings.primary_href).toBe("/en");
   });
 
   it("leaves the path itself unprefixed", () => {
