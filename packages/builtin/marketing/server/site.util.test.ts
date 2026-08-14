@@ -26,6 +26,7 @@ describe("page slug identity", () => {
 
   it("rejects reserved roots and bad segments", () => {
     expect(() => validatePageSlug("page", "app")).toThrow("site.slug_reserved");
+    expect(() => validatePageSlug("page", "404")).toThrow("site.slug_reserved");
     expect(() => validatePageSlug("page", "app/about")).toThrow(
       "site.slug_reserved",
     );

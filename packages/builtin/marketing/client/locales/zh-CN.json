@@ -283,6 +283,7 @@
     "statusDraft": "草稿",
     "docTemplates": "文档版式",
     "homeTemplate": "首页",
+    "notFoundTemplate": "404 页面",
     "statusDirty": "有改动未发布",
     "statusDirtyHint": "线上仍是上次发布的版本，草稿里的改动还没上线。",
     "fieldSiteName": "站点名称",
@@ -905,6 +906,17 @@
         "headline": "想聊聊？",
         "body": "把这段换成你的联系方式或行动号召，按钮链接改成自己的邮箱。",
         "primary_label": "发邮件给我们"
+      }
+    },
+    "not_found": {
+      "label": "找不到的页面",
+      "title": "页面不存在",
+      "description": "这个地址没有已发布的内容，可能是链接过期了。",
+      "hero": {
+        "eyebrow": "404",
+        "headline": "页面不存在",
+        "subhead": "这个地址没有已发布的内容，可能是链接过期了。",
+        "primary_label": "回到首页"
       }
     }
   },

@@ -1,4 +1,8 @@
-import { registerPageTemplatePreset } from "./page-templates.js";
+import {
+  NOT_FOUND_PAGE_KIND,
+  NOT_FOUND_TEMPLATE_SLUG,
+  registerPageTemplatePreset,
+} from "./page-templates.js";
 import {
   createBlock,
   createSection,
@@ -88,6 +92,39 @@ export const HOME_STARTER_PRESET: PagePreset = {
  * 元数据（slug / path）在 `page-templates.ts` 里就登记好了，与预设分开的理由见那边。
  */
 registerPageTemplatePreset("home", HOME_STARTER_PRESET);
+
+/**
+ * 404 起步版式：居中 hero + 回首页。租户在同一个编辑器里改文案、加段、换按钮。
+ * 没发布这张页时 SSR 仍用内置 `page-missing` 兜底。
+ */
+export const NOT_FOUND_STARTER_PRESET: PagePreset = {
+  key: NOT_FOUND_PAGE_KIND,
+  label: "preset.not_found.label",
+  kind: NOT_FOUND_PAGE_KIND,
+  slug: NOT_FOUND_TEMPLATE_SLUG,
+  titleKey: "preset.not_found.title",
+  descriptionKey: "preset.not_found.description",
+  sections: [
+    {
+      type: "hero",
+      text: {
+        eyebrow: "preset.not_found.hero.eyebrow",
+        headline: "preset.not_found.hero.headline",
+        subhead: "preset.not_found.hero.subhead",
+        primary_label: "preset.not_found.hero.primary_label",
+      },
+      raw: {
+        primary_href: "/",
+        align: "center",
+        show_glow: true,
+        padding_top: 80,
+        padding_bottom: 80,
+      },
+    },
+  ],
+};
+
+registerPageTemplatePreset(NOT_FOUND_PAGE_KIND, NOT_FOUND_STARTER_PRESET);
 
 /** 首页兜底版式落成真实 sections（同 `buildPresetSections`，只是入口固定为 home）。 */
 export function buildHomeTemplateSections(

@@ -18,6 +18,7 @@ vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
     marketingPage: {
       findFirst: vi.fn(),
       create: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }));
@@ -86,6 +87,9 @@ describe("initializeTenantSite", () => {
     vi.mocked(prisma.marketingPage.create).mockResolvedValue({
       id: "page-new",
     } as never);
+    vi.mocked(prisma.marketingPage.updateMany).mockResolvedValue({
+      count: 0,
+    } as never);
     vi.mocked(prisma.marketingPage.findFirst).mockImplementation(
       (async (args: { where?: { kind?: string } } | undefined) => {
         const kind = args?.where?.kind;
@@ -133,5 +137,43 @@ describe("initializeTenantSite", () => {
       )
       .find((data) => data.kind === GATED_KIND);
     expect(gated?.status).toBe("published");
+  });
+
+  it("把旧的 slug=404 普通页升成 not_found 模板", async () => {
+    vi.mocked(isTenantModuleEnabled).mockResolvedValue(false);
+
+    await initializeTenantSite(TENANT, "zh-CN");
+
+    expect(prisma.marketingPage.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { kind: "not_found" },
+      }),
+    );
+  });
+
+  it("快照 404 模板时默认 noindex", async () => {
+    vi.mocked(isTenantModuleEnabled).mockResolvedValue(false);
+    vi.mocked(prisma.marketingPage.findFirst).mockImplementation(
+      (async (args: { where?: { kind?: string } } | undefined) => {
+        const kind = args?.where?.kind;
+        if (kind === "not_found" || kind === GATED_KIND) return null;
+        return { id: "existing" } as never;
+      }) as never,
+    );
+
+    await initializeTenantSite(TENANT, "zh-CN");
+
+    const created = vi
+      .mocked(prisma.marketingPage.create)
+      .mock.calls.map(
+        (call) =>
+          (
+            call[0] as {
+              data: { kind: string; settings: { noindex?: boolean } };
+            }
+          ).data,
+      )
+      .find((data) => data.kind === "not_found");
+    expect(created?.settings).toEqual({ noindex: true });
   });
 });

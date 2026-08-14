@@ -13,6 +13,7 @@ import { SITE_APP_PREFIXES } from "./site-app-prefixes.js";
 const KERNEL_RESERVED = new Set<string>([
   ...APP_LOCALES.map((locale) => locale.slug.toLowerCase()),
   "home",
+  "404",
   ...SITE_APP_PREFIXES,
   "sitemap.xml",
   "robots.txt",

@@ -13,8 +13,9 @@ import {
 } from "./page-templates.js";
 
 describe("模板页注册表", () => {
-  it("marketing 自带首页", () => {
+  it("marketing 自带首页与 404", () => {
     expect(isTemplatePageKind("home")).toBe(true);
+    expect(isTemplatePageKind("not_found")).toBe(true);
     expect(isTemplatePageKind("page")).toBe(false);
     expect(isTemplatePageKind("doc_index")).toBe(false);
   });
@@ -25,6 +26,11 @@ describe("模板页注册表", () => {
       slug: "home",
     });
     expect(marketingPagePath("home", "home")).toBe("/");
+    expect(canonicalizePageIdentity("not_found", "随便填")).toEqual({
+      kind: "not_found",
+      slug: "404",
+    });
+    expect(marketingPagePath("not_found", "404")).toBe("/404");
   });
 
   it("贡献一张模板页后，路径解析立刻跟着走", () => {
@@ -130,6 +136,7 @@ describe("公开页面目录", () => {
 
     expect(isPublicCatalogPageKind("page")).toBe(true);
     expect(isPublicCatalogPageKind("home")).toBe(false);
+    expect(isPublicCatalogPageKind("not_found")).toBe(false);
     expect(isPublicCatalogPageKind("nav_demo_index")).toBe(true);
     expect(isPublicCatalogPageKind("nav_demo_item")).toBe(false);
     expect(isPublicCatalogPageKind("nav_demo_cart")).toBe(false);

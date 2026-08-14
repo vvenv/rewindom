@@ -28,7 +28,7 @@ export function pageMissingCopy(locale: string): PageMissingCopy {
   return COPY[normalizeLocale(locale)];
 }
 
-/** 内置 404 正文。自定义 `/404` 页走普通 CMS 渲染，不经过这里。 */
+/** 内置 404 正文。已发布的 `not_found` 模板页走普通 CMS 渲染，不经过这里。 */
 export function renderPageMissingHtml(input: {
   locale: string;
   homeHref: string;

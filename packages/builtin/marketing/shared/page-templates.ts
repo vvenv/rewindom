@@ -51,6 +51,13 @@ export interface PageTemplateKindDefinition {
   required_section: string | null;
   /** 仅贡献的模板页：租户开通了这项 entitlement 才在中台露出。 */
   entitlement?: string;
+  /**
+   * 是否进公开导航目录（「全部一级页面」、`page-menu`）。
+   *
+   * 未声明时按路径形状推断：可打开的一级地址进，首页 / 详情模板 / 二级功能页不进。
+   * 404 是一级地址但不是入口——死链页不该出现在导航里，所以显式关掉。
+   */
+  in_catalog?: boolean;
 }
 
 const TEMPLATE_KINDS = new Map<string, PageTemplateKindDefinition>();
@@ -138,7 +145,10 @@ export function isFirstLevelCatalogPath(path: string): boolean {
 export function isPublicCatalogPageKind(kind: string): boolean {
   if (!isTemplatePageKind(kind)) return true;
   const template = getPageTemplateKind(kind);
-  return template ? isFirstLevelCatalogPath(template.path) : false;
+  if (!template) return false;
+  if (template.in_catalog === false) return false;
+  if (template.in_catalog === true) return true;
+  return isFirstLevelCatalogPath(template.path);
 }
 
 /**
@@ -171,14 +181,29 @@ export function isPageTemplateRelevant(
 }
 
 /* -------------------------------------------------------------------------- */
-/* marketing 自带的模板页：首页                                                */
+/* marketing 自带的模板页：首页、404                                            */
 /* -------------------------------------------------------------------------- */
 
+export const HOME_PAGE_KIND = "home";
+export const NOT_FOUND_PAGE_KIND = "not_found";
+export const NOT_FOUND_TEMPLATE_SLUG = "404";
+export const NOT_FOUND_PATH = "/404";
+
 registerPageTemplateKind({
-  kind: "home",
+  kind: HOME_PAGE_KIND,
   slug: "home",
   path: "/",
   group: "cms.homeTemplate",
   label: "preset.home.label",
   required_section: null,
+});
+
+registerPageTemplateKind({
+  kind: NOT_FOUND_PAGE_KIND,
+  slug: NOT_FOUND_TEMPLATE_SLUG,
+  path: NOT_FOUND_PATH,
+  group: "cms.notFoundTemplate",
+  label: "preset.not_found.label",
+  required_section: null,
+  in_catalog: false,
 });

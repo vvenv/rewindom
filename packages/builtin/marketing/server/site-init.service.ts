@@ -10,6 +10,8 @@ import {
   getPageTemplatePreset,
   isPageTemplateRelevant,
   listPageTemplateKinds,
+  NOT_FOUND_PAGE_KIND,
+  NOT_FOUND_TEMPLATE_SLUG,
 } from "../shared/page-templates.js";
 import { buildSiteStarterChrome } from "../shared/site-starters.js";
 
@@ -94,6 +96,21 @@ export async function initializeTenantSite(
   const enabledEntitlements = await resolveTemplateEntitlements(tenant_id);
   const created_pages: string[] = [];
 
+  /*
+   * 旧约定：租户建一张 slug 为 `404` 的普通页就是自定义 404。升成模板 kind，
+   * 才会出现在中台常驻模板区；不升的话快照会因 slug 唯一约束跳过，那张页永远
+   * 卡在可排序目录里。
+   */
+  if (!dry_run) {
+    await prisma.marketingPage.updateMany({
+      where: withTenantScope(tenant_id, {
+        kind: "page",
+        slug: NOT_FOUND_TEMPLATE_SLUG,
+      }),
+      data: { kind: NOT_FOUND_PAGE_KIND },
+    });
+  }
+
   for (const template of listPageTemplateKinds()) {
     if (!isPageTemplateRelevant(template, enabledEntitlements)) continue;
     const preset = getPageTemplatePreset(template.kind);
@@ -112,6 +129,8 @@ export async function initializeTenantSite(
     const title = t(preset.titleKey).trim();
     const description = t(preset.descriptionKey).trim();
     const sections = parsePageSections(buildPresetSections(preset, t));
+    const settings =
+      template.kind === NOT_FOUND_PAGE_KIND ? { noindex: true } : {};
 
     try {
       await prisma.marketingPage.create({
@@ -123,11 +142,11 @@ export async function initializeTenantSite(
           title,
           description,
           sections: sections as unknown as Prisma.InputJsonValue,
-          settings: {} as Prisma.InputJsonValue,
+          settings: settings as unknown as Prisma.InputJsonValue,
           title_draft: title,
           description_draft: description,
           sections_draft: sections as unknown as Prisma.InputJsonValue,
-          settings_draft: {} as Prisma.InputJsonValue,
+          settings_draft: settings as unknown as Prisma.InputJsonValue,
           status: page_status,
           sort_order: 0,
         },

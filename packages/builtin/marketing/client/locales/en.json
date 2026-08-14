@@ -283,6 +283,7 @@
     "statusDraft": "Draft",
     "docTemplates": "Doc layouts",
     "homeTemplate": "Home",
+    "notFoundTemplate": "404 page",
     "statusDirty": "Unpublished edits",
     "statusDirtyHint": "The live page still shows the last published version; draft edits are not live yet.",
     "fieldSiteName": "Site name",
@@ -905,6 +906,17 @@
         "headline": "Want to talk?",
         "body": "Replace this with your call to action, and point the button at your own address.",
         "primary_label": "Email us"
+      }
+    },
+    "not_found": {
+      "label": "Not found",
+      "title": "Page not found",
+      "description": "This page isn't published, or the link is outdated.",
+      "hero": {
+        "eyebrow": "404",
+        "headline": "Page not found",
+        "subhead": "This page isn't published, or the link is outdated.",
+        "primary_label": "Back to home"
       }
     }
   },

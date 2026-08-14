@@ -20,6 +20,7 @@ import {
   getPageTemplateKind,
   getPageTemplatePreset,
   isTemplatePageKind,
+  NOT_FOUND_PAGE_KIND,
 } from "../shared/page-templates.js";
 import { mergeSectionsWithPreset } from "../shared/preset-merge.js";
 import {
@@ -1462,6 +1463,12 @@ export async function getPublishedSitemapEntries(
     .filter((record) => parsePageVisibility(record.visibility) === "public")
     // 标了 noindex 还列进 sitemap 是自相矛盾的信号：一边请你来收，一边说别收
     .filter((record) => safePageSettings(record.settings).noindex !== true)
+    // 404 模板会出现在无数死链上，不该作为一张真实 URL 进 sitemap
+    .filter(
+      (record) =>
+        canonicalizePageIdentity(record.kind, record.slug).kind !==
+        NOT_FOUND_PAGE_KIND,
+    )
     .map((record) => {
       const view = toPublicMarketingPage(record, {
         siblings: pages,

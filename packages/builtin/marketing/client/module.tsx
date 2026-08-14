@@ -1,6 +1,7 @@
 import { TENANT_MARKETING_ENTITLEMENT } from "../shared/entitlements.js";
 
 import { MARKETING_I18N } from "./i18n.js";
+import "./lib/page-presets.js";
 import { MARKETING_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { SITE_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderSiteRoutes } from "./tenant/routes.js";

@@ -13,6 +13,10 @@ import {
   builtinNotFoundPage,
   renderPageMissingHtml,
 } from "../shared/page-missing.js";
+import {
+  NOT_FOUND_PAGE_KIND,
+  NOT_FOUND_PATH,
+} from "../shared/page-templates.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import {
   isSpaShellPath,
@@ -44,9 +48,6 @@ import {
 } from "./ssr-render.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-
-/** 自定义 404 页的约定 slug。 */
-const NOT_FOUND_SLUG_PATH = "/404";
 
 function requestOrigin(request: FastifyRequest): string {
   return requestOriginFromHeaders(request) ?? `http://${request.hostname}`;
@@ -87,10 +88,8 @@ function flattenQuery(query: unknown): Record<string, string> {
 }
 
 /**
- * 自定义 404：租户建一个 slug 为 `404` 的页面就是它，没有就用内置兜底页。
- *
- * 不另开一张表 / 一个 `kind`：它就是一张普通页面，租户用同一个编辑器排版、同一套发布
- * 流程上线，也能预览。约定一个 slug 比多一种「特殊页面」类型便宜得多。
+ * 自定义 404：`not_found` 模板页（中台常驻，和首页同一套编辑器）。没有已发布的
+ * 那张页就用内置兜底——仍套站点 chrome，正文是居中 404 + 回首页。
  *
  * 状态码仍然是 **404**——渲染出内容不代表这个地址存在，返 200 会让搜索引擎把每个
  * 死链都当成一张真页面收录（俗称 soft 404）。
@@ -103,7 +102,7 @@ async function renderNotFound(
 ): Promise<void> {
   const custom = await getPublishedPublicPage(
     hostTenant.tenant_id,
-    NOT_FOUND_SLUG_PATH,
+    NOT_FOUND_PATH,
     hostTenant.tenant_slug,
     locale,
   );
@@ -279,6 +278,15 @@ async function renderPath(
       return;
     }
 
+    await renderNotFound(request, reply, hostTenant, locale);
+    return;
+  }
+
+  /*
+   * 预览地址 `/404` 命中的就是这张模板页。它不是一篇真实内容，状态码仍须是 404，
+   * 否则搜索引擎会把 `/404` 本身收成一张软 404。
+   */
+  if (result.page.kind === NOT_FOUND_PAGE_KIND) {
     await renderNotFound(request, reply, hostTenant, locale);
     return;
   }
