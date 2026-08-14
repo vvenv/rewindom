@@ -444,7 +444,9 @@ export function SiteChrome({
         return <MemberEntry />;
       default: {
         const View = getChromeBlockView(block.type);
-        return View ? <View block={block} /> : null;
+        return View ? (
+          <View block={block} contributed={props.contributed} />
+        ) : null;
       }
     }
   }

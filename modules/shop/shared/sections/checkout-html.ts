@@ -1,6 +1,4 @@
-import { checkoutSection } from "../../shared/checkout-section.js";
-import { readShopContext } from "../../shared/shop-section-context.js";
-import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
+import { readShopContext } from "../shop-section-context.js";
 import {
   shopAlertHtml,
   shopBlockHeading,
@@ -11,16 +9,13 @@ import {
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
-import {
-  registerSiteSectionHtml,
-  type SectionHtmlRenderer,
-} from "@rewindom/builtin/marketing/shared/sections/html.js";
+import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 import type { SiteBlock } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import type {
   ShopCheckoutView,
   ShopRenderContext,
-} from "../../shared/shop-section-context.js";
+} from "../shop-section-context.js";
 
 function contactHtml(checkout: ShopCheckoutView, block: SiteBlock): string {
   return `<div class="shop-group">
@@ -162,7 +157,7 @@ function payHtml(checkout: ShopCheckoutView, block: SiteBlock): string {
   return `<div class="shop-pay"><button class="btn shop-cta" type="submit"${disabled}>${escapeHtml(settingText(block.settings, "submit_label"))}</button></div>`;
 }
 
-const renderCheckoutHtml: SectionHtmlRenderer = (section, ctx) => {
+export const renderCheckoutHtml: SectionHtmlRenderer = (section, ctx) => {
   const shop = readShopContext(ctx);
   const checkout = shop?.checkout;
   if (!shop || !checkout) return "";
@@ -189,8 +184,3 @@ const renderCheckoutHtml: SectionHtmlRenderer = (section, ctx) => {
 </div>`;
 };
 
-export function registerCheckoutSection(): void {
-  registerSiteSectionHtml(checkoutSection, renderCheckoutHtml, {
-    css: SHOP_STOREFRONT_CSS,
-  });
-}

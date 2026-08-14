@@ -508,17 +508,19 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 **注册表定义在消费方**（marketing），模块自己把定义填进来；marketing 不知道任何业务模块的
 存在，也不反向 import。首个真实用例是 site-member 的「会员专属内容」段。
 
-一个贡献段要三样东西，**定义只写一份**（放贡献方的 `shared/`，两端 import 同一个对象）：
+一个贡献段要三样东西，**定义与 markup 各只写一份**（放贡献方的 `shared/`，两端 import 同一个对象）：
 
 | 位置 | 做什么 |
 | --- | --- |
 | `<模块>/shared/xxx-section.ts` | `SectionDefinition`（type 必须带模块前缀） |
+| `<模块>/shared/sections/*-html.ts` | **一份** HTML 渲染器 |
 | `<模块>/shared/site-css/<name>.css` | 贡献段 CSS 真源；assemble 成 `site-css.generated.ts`，禁止手写 `*-css.ts` |
-| `<模块>/server/…` → `registerSiteSectionHtml(def, render, { css })` | 在 `onBoot` 里注册 SSR 渲染器 |
-| `<模块>/client/module.tsx` → `registerSiteSectionView(def, View, { css })` | 注册编辑器视图 |
+| `<模块>/server/…` → `registerSiteSectionHtml(def, render, { css })` | 在 `onBoot` 里注册 SSR |
+| `<模块>/client/module.tsx` → `registerSiteSectionView(def, htmlSectionView(render), { css })` | 编辑器预览灌同一串 HTML |
 
 **为什么是两次注册而不是一次**：客户端与服务端本来就是两个 bundle，React 组件进不了
-Fastify。两边 import 同一份 definition，所以 schema 只有一处，不会漂。
+Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包同一个渲染器。金标准：shop
+店面段。内置 marketing 段仍是 React + HTML 各一份。
 
 **type 必须带模块前缀**（`site-member.gate`）：段 type 会落进租户页面的存储里，两个模块
 撞名的后果是页面内容被另一个模块的 schema 解析——所以注册表对撞名**直接抛**，启动时炸掉
@@ -545,8 +547,9 @@ Fastify。两边 import 同一份 definition，所以 schema 只有一处，不�
 | 位置 | 做什么 |
 | --- | --- |
 | `<模块>/shared/xxx.ts` | `BlockDefinition`（含 `chromeSlotSettings()`，否则永远钉在第一行左边） |
+| `<模块>/shared/sections/*-html.ts` | **一份** HTML 渲染器 |
 | `<模块>/server/…` → `registerChromeBlockHtml(def, render, { css })` | SSR |
-| `<模块>/client/module.tsx` → `registerChromeBlockView(def, View, { css, icon })` | 编辑器预览 |
+| `<模块>/client/module.tsx` → `registerChromeBlockView(def, htmlChromeBlockView(render), { css, icon })` | 编辑器预览 |
 
 两端 import 同一份 definition。金标准：shop 的购物车入口。
 

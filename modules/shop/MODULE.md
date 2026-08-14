@@ -19,7 +19,8 @@ shop/
 ├── MODULE.md
 ├── package.json
 ├── prisma/schema.prisma
-├── shared/                 # 类型与 entitlement
+├── shared/                 # 类型、entitlement、贡献段 HTML 渲染器
+│   ├── sections/           # 店面段 markup（SSR 与编辑器预览共用）
 │   └── site-css/           # 贡献段 CSS 真源（assemble → site-css.generated.ts）
 ├── server/
 │   ├── module.ts
@@ -28,14 +29,14 @@ shop/
 │   ├── shipping/
 │   ├── payment/
 │   ├── order/
-│   └── ssr/                # /shop/* 与 /member/orders（走官网 chrome）
-│   └── sections/           # 贡献段 SSR 渲染
+│   ├── ssr/                # /shop/* 与 /member/orders（走官网 chrome）
+│   └── sections/           # onBoot 登记 HTML 渲染器
 └── client/
-    ├── module.tsx          # 登记模板页 + 段视图
+    ├── module.tsx          # 登记模板页 + htmlSectionView(同一份 HTML)
+    ├── editor-context.ts   # 预览 contributed 数据
     ├── tenant/             # routes + nav
     ├── pages/
     ├── components/
-    │   └── sections/       # Theme Editor 预览
     ├── hooks/
     └── locales/
 ```

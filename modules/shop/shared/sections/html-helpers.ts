@@ -2,7 +2,7 @@ import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 import type { SettingValues } from "@rewindom/builtin/marketing/shared/section-settings.js";
-import type { ShopRenderContext } from "../../shared/shop-section-context.js";
+import type { ShopRenderContext } from "../shop-section-context.js";
 
 export function shopAlertHtml(shop: ShopRenderContext): string {
   if (shop.error) {

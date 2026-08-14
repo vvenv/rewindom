@@ -15,6 +15,8 @@ import type { LucideIcon } from "lucide-react";
 
 export interface ChromeBlockViewProps {
   block: SiteBlock;
+  /** 与 SSR `ChromeRenderInput.contributed` 同一份。 */
+  contributed?: Readonly<Record<string, unknown>>;
 }
 
 const CHROME_BLOCK_VIEWS = new Map<

@@ -1,6 +1,4 @@
-import { productSection } from "../../shared/product-section.js";
-import { readShopContext } from "../../shared/shop-section-context.js";
-import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
+import { readShopContext } from "../shop-section-context.js";
 import { shopFieldHtml, shopPriceHtml } from "./html-helpers.js";
 
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
@@ -9,13 +7,10 @@ import {
   type SiteBlock,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import { md } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
-import {
-  registerSiteSectionHtml,
-  type SectionHtmlRenderer,
-} from "@rewindom/builtin/marketing/shared/sections/html.js";
+import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 import type { SettingValues } from "@rewindom/builtin/marketing/shared/section-settings.js";
-import type { ShopProductDetailView, ShopRenderContext } from "../../shared/shop-section-context.js";
+import type { ShopProductDetailView, ShopRenderContext } from "../shop-section-context.js";
 
 function galleryHtml(product: ShopProductDetailView): string {
   if (product.images.length === 0) return "";
@@ -142,7 +137,7 @@ function renderBlock(
   }
 }
 
-const renderProductHtml: SectionHtmlRenderer = (section, ctx) => {
+export const renderProductHtml: SectionHtmlRenderer = (section, ctx) => {
   const shop = readShopContext(ctx);
   const product = shop?.product;
   if (!shop || !product) return "";
@@ -159,8 +154,3 @@ const renderProductHtml: SectionHtmlRenderer = (section, ctx) => {
 </div>`;
 };
 
-export function registerProductSection(): void {
-  registerSiteSectionHtml(productSection, renderProductHtml, {
-    css: SHOP_STOREFRONT_CSS,
-  });
-}

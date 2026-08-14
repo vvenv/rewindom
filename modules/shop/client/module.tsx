@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import { registerChromeBlockView } from "@rewindom/builtin/marketing/client/components/sections/chrome-views.js";
+import { htmlChromeBlockView, htmlSectionView } from "@rewindom/builtin/marketing/client/components/sections/html-section-view.js";
 import { registerSiteSectionView } from "@rewindom/builtin/marketing/client/components/sections/section-views.js";
 
 import { SHOP_ENTITLEMENT } from "../shared/index.js";
@@ -16,18 +17,15 @@ import { checkoutSection } from "../shared/checkout-section.js";
 import { orderListSection, orderSection } from "../shared/order-section.js";
 import { productGridSection } from "../shared/product-grid-section.js";
 import { productSection } from "../shared/product-section.js";
+import { renderCartHtml, renderCartLinkHtml } from "../shared/sections/cart-html.js";
+import { renderCheckoutHtml } from "../shared/sections/checkout-html.js";
+import { renderOrderHtml, renderOrderListHtml } from "../shared/sections/order-html.js";
+import { renderProductHtml } from "../shared/sections/product-html.js";
+import { renderProductGridHtml } from "../shared/sections/product-grid-html.js";
 import { registerShopPageTemplates } from "../shared/shop-page-templates.js";
 import { SHOP_STOREFRONT_CSS } from "../shared/site-css.generated.js";
 
-import { CartSection } from "./components/sections/CartSection.js";
-import { CartLinkBlock } from "./components/sections/CartLinkBlock.js";
-import { CheckoutSection } from "./components/sections/CheckoutSection.js";
-import {
-  OrderListSection,
-  OrderSection,
-} from "./components/sections/OrderSection.js";
-import { ProductGridSection } from "./components/sections/ProductGridSection.js";
-import { ProductSection } from "./components/sections/ProductSection.js";
+import { registerShopEditorContext } from "./editor-context.js";
 import { SHOP_I18N } from "./i18n.js";
 import { SHOP_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderShopRoutes } from "./tenant/routes.js";
@@ -35,33 +33,36 @@ import { SHOP_MOBILE_HEADER_ROUTES } from "./tenant/mobile-header.js";
 
 import type { ClientAppModule } from "@rewindom/module-sdk/client";
 
+const css = SHOP_STOREFRONT_CSS;
+
 registerShopPageTemplates();
-registerSiteSectionView(productGridSection, ProductGridSection, {
-  css: SHOP_STOREFRONT_CSS,
+registerShopEditorContext();
+registerSiteSectionView(productGridSection, htmlSectionView(renderProductGridHtml), {
+  css,
   icon: LayoutGrid,
 });
-registerSiteSectionView(productSection, ProductSection, {
-  css: SHOP_STOREFRONT_CSS,
+registerSiteSectionView(productSection, htmlSectionView(renderProductHtml), {
+  css,
   icon: Package,
 });
-registerSiteSectionView(cartSection, CartSection, {
-  css: SHOP_STOREFRONT_CSS,
+registerSiteSectionView(cartSection, htmlSectionView(renderCartHtml), {
+  css,
   icon: ShoppingCart,
 });
-registerChromeBlockView(cartLinkBlock, CartLinkBlock, {
-  css: SHOP_STOREFRONT_CSS,
+registerChromeBlockView(cartLinkBlock, htmlChromeBlockView(renderCartLinkHtml), {
+  css,
   icon: ShoppingBag,
 });
-registerSiteSectionView(checkoutSection, CheckoutSection, {
-  css: SHOP_STOREFRONT_CSS,
+registerSiteSectionView(checkoutSection, htmlSectionView(renderCheckoutHtml), {
+  css,
   icon: CreditCard,
 });
-registerSiteSectionView(orderSection, OrderSection, {
-  css: SHOP_STOREFRONT_CSS,
+registerSiteSectionView(orderSection, htmlSectionView(renderOrderHtml), {
+  css,
   icon: ClipboardList,
 });
-registerSiteSectionView(orderListSection, OrderListSection, {
-  css: SHOP_STOREFRONT_CSS,
+registerSiteSectionView(orderListSection, htmlSectionView(renderOrderListHtml), {
+  css,
   icon: ClipboardList,
 });
 

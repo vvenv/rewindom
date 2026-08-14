@@ -246,9 +246,7 @@
       "limitInfo": "0 表示展示全部在售商品。首页可以只露几件。",
       "collectionSlug": "分类路径",
       "collectionSlugInfo": "只展示该分类里的已发布商品。留空表示全部在售。",
-      "emptyText": "空状态文案",
-      "unconfigured": "还没有已发布的商品。",
-      "unconfiguredCta": "去上架"
+      "emptyText": "空状态文案"
     },
     "product": { "label": "商品详情" },
     "cart": {
@@ -400,14 +398,5 @@
       "number": "订单号"
     },
     "cartLink": { "label": "购物车" }
-  },
-  "editor": {
-    "sampleTitle": "示例商品",
-    "sampleSubtitle": "短副标题",
-    "sampleDescription": "编辑器预览用的**占位商品**。访客看到的是真实在售数据。",
-    "samplePrice": "¥99.00",
-    "sampleSku": "SKU-001",
-    "sampleVariant": "默认规格",
-    "sampleStatus": "已付款"
   }
 }

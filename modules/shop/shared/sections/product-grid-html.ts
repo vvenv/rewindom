@@ -1,7 +1,5 @@
-import { productGridSection } from "../../shared/product-grid-section.js";
-import { filterProductsByCollectionSlug } from "../../shared/collection.js";
-import { readShopContext } from "../../shared/shop-section-context.js";
-import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
+import { filterProductsByCollectionSlug } from "../collection.js";
+import { readShopContext } from "../shop-section-context.js";
 import { shopMediaSlotHtml, shopPriceHtml } from "./html-helpers.js";
 
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
@@ -14,19 +12,16 @@ import {
   gridClass,
   sectionHeading,
 } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
-import {
-  registerSiteSectionHtml,
-  type SectionHtmlRenderer,
-} from "@rewindom/builtin/marketing/shared/sections/html.js";
+import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
-import type { ShopProductCardView } from "../../shared/shop-section-context.js";
+import type { ShopProductCardView } from "../shop-section-context.js";
 
 function priceCell(product: ShopProductCardView, showPrice: boolean): string {
   if (!showPrice || !product.price) return "";
   return shopPriceHtml(product.price, product.compare_at_price);
 }
 
-const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
+export const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
   const shop = readShopContext(ctx);
   if (!shop) return "";
   const s = section.settings;
@@ -59,8 +54,3 @@ const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
   return `${heading}<div class="${gridClass(settingNumber(s, "columns", 3))} shop-grid">${cards}</div>`;
 };
 
-export function registerProductGridSection(): void {
-  registerSiteSectionHtml(productGridSection, renderProductGridHtml, {
-    css: SHOP_STOREFRONT_CSS,
-  });
-}

@@ -56,7 +56,7 @@ export interface ChromeRenderInput {
 
 export type ChromeBlockHtmlRenderer = (
   block: SiteBlock,
-  input: ChromeRenderInput,
+  input: Pick<ChromeRenderInput, "contributed"> & Partial<ChromeRenderInput>,
 ) => string;
 
 const CHROME_BLOCK_HTML = new Map<string, ChromeBlockHtmlRenderer>();

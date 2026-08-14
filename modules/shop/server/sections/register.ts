@@ -1,20 +1,31 @@
-import { registerCartSections } from "./cart-html.js";
-import { registerCheckoutSection } from "./checkout-html.js";
-import { registerOrderSections } from "./order-html.js";
-import { registerProductSection } from "./product-html.js";
-import { registerProductGridSection } from "./product-grid-html.js";
 import { isShopEnabled } from "../lib/entitlement.js";
 import { listPublishedProducts } from "../catalog/catalog.service.js";
 import { cartCookieName, peekCart } from "../cart/cart.service.js";
 import { toCartView, toProductCard } from "../ssr/shop-view.js";
-import { SHOP_CART_LINK_BLOCK_TYPE } from "../../shared/cart-section.js";
-import { SHOP_PRODUCT_GRID_SECTION_TYPE } from "../../shared/product-grid-section.js";
+import { cartLinkBlock, cartSection, SHOP_CART_LINK_BLOCK_TYPE } from "../../shared/cart-section.js";
+import { checkoutSection } from "../../shared/checkout-section.js";
+import { orderListSection, orderSection } from "../../shared/order-section.js";
+import {
+  productGridSection,
+  SHOP_PRODUCT_GRID_SECTION_TYPE,
+} from "../../shared/product-grid-section.js";
+import { productSection } from "../../shared/product-section.js";
+import { renderCartHtml, renderCartLinkHtml } from "../../shared/sections/cart-html.js";
+import { renderCheckoutHtml } from "../../shared/sections/checkout-html.js";
+import { renderOrderHtml, renderOrderListHtml } from "../../shared/sections/order-html.js";
+import { renderProductHtml } from "../../shared/sections/product-html.js";
+import { renderProductGridHtml } from "../../shared/sections/product-grid-html.js";
 import {
   shopContextEntry,
   emptyShopContext,
 } from "../../shared/shop-section-context.js";
+import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
 
+import { registerChromeBlockHtml } from "@rewindom/builtin/marketing/shared/sections/_common/chrome-html.js";
+import { registerSiteSectionHtml } from "@rewindom/builtin/marketing/shared/sections/html.js";
 import { registerSectionContextProvider } from "@rewindom/builtin/marketing/server/section-context-providers.js";
+
+const css = { css: SHOP_STOREFRONT_CSS };
 
 /**
  * 官网任意页面上的商品列表与页头购物车入口：通用 SSR 在渲染前按需查。
@@ -57,10 +68,12 @@ function registerShopContextProvider(): void {
 
 /** 在模块 `onBoot` 里调。 */
 export function registerShopStorefrontSections(): void {
-  registerProductGridSection();
-  registerProductSection();
-  registerCartSections();
-  registerCheckoutSection();
-  registerOrderSections();
+  registerSiteSectionHtml(productGridSection, renderProductGridHtml, css);
+  registerSiteSectionHtml(productSection, renderProductHtml, css);
+  registerSiteSectionHtml(cartSection, renderCartHtml, css);
+  registerChromeBlockHtml(cartLinkBlock, renderCartLinkHtml, css);
+  registerSiteSectionHtml(checkoutSection, renderCheckoutHtml, css);
+  registerSiteSectionHtml(orderSection, renderOrderHtml, css);
+  registerSiteSectionHtml(orderListSection, renderOrderListHtml, css);
   registerShopContextProvider();
 }

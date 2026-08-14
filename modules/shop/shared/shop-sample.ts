@@ -1,7 +1,6 @@
-import type { ShopRenderContext } from "../../shared/shop-section-context.js";
-import { emptyShopContext } from "../../shared/shop-section-context.js";
+import { emptyShopContext, type ShopRenderContext } from "./shop-section-context.js";
 
-/** 编辑器预览用的占位数据：访客看到的是真实目录 / 购物车。 */
+/** 编辑器预览占位：模板页没有真实请求数据时，喂给同一套 HTML 渲染器。 */
 export function sampleShopContext(): ShopRenderContext {
   return emptyShopContext({
     products: [

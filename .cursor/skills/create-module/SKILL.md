@@ -159,6 +159,8 @@ checklist 手工建。
 | --- | --- | --- |
 | `<模块>/shared/site-css/<name>.css` | `shared/site-css.generated.ts` | `{ css: NAME_CSS }` 交给 `registerSiteSectionHtml` / `registerSiteSectionView` |
 
+Markup 只写一份 HTML 渲染器（`<模块>/shared/sections/*-html.ts`）。SSR 登记该函数；编辑器预览用 `htmlSectionView(render)` / `htmlChromeBlockView(render)` 灌同一串，不要再写一套 React 视图。金标准：shop。
+
 ```bash
 pnpm --filter @rewindom/builtin assemble:module-css
 ```
@@ -168,7 +170,7 @@ pnpm --filter @rewindom/builtin assemble:module-css
 **禁止** `shared/shop-css.ts` 这类模板字符串——生产 bundle 读不了旁路 `.css`，手写字符串也逃过剥注释。改 `.css` 后必须跑 assemble 并提交 generated。
 
 页头 / 页脚里「和语言切换同一排的按钮」是 chrome **块**，不是再往区域里塞一段。贡献走
-`registerChromeBlockHtml` / `registerChromeBlockView`，定义里带 `chromeSlotSettings()`。
+`registerChromeBlockHtml` / `registerChromeBlockView(htmlChromeBlockView(render))`，定义里带 `chromeSlotSettings()`。
 金标准：shop 的购物车入口。口径见 marketing `MODULE.md`「业务模块贡献 chrome 块」。
 
 ## 贡献官网模板页

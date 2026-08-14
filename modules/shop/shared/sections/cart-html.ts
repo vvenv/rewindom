@@ -1,6 +1,4 @@
-import { cartLinkBlock, cartSection } from "../../shared/cart-section.js";
-import { readShopContext } from "../../shared/shop-section-context.js";
-import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
+import { readShopContext } from "../shop-section-context.js";
 import {
   shopAlertHtml,
   shopMediaSlotHtml,
@@ -11,16 +9,12 @@ import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import {
   settingBool,
   settingText,
+  type SiteBlock,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
-import { registerChromeBlockHtml, type ChromeRenderInput } from "@rewindom/builtin/marketing/shared/sections/_common/chrome-html.js";
+import type { ChromeBlockHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/_common/chrome-html.js";
 import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
-import {
-  registerSiteSectionHtml,
-  type SectionHtmlRenderer,
-} from "@rewindom/builtin/marketing/shared/sections/html.js";
-
-import type { SiteBlock } from "@rewindom/builtin/marketing/shared/section-schema.js";
-import type { ShopCartView, ShopRenderContext } from "../../shared/shop-section-context.js";
+import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
+import type { ShopCartView, ShopRenderContext } from "../shop-section-context.js";
 
 function linesHtml(
   cart: ShopCartView,
@@ -99,7 +93,7 @@ function summaryHtml(
 </div>`;
 }
 
-const renderCartHtml: SectionHtmlRenderer = (section, ctx) => {
+export const renderCartHtml: SectionHtmlRenderer = (section, ctx) => {
   const shop = readShopContext(ctx);
   if (!shop) return "";
   const s = section.settings;
@@ -122,7 +116,7 @@ const renderCartHtml: SectionHtmlRenderer = (section, ctx) => {
 
 const CART_ICON = `<svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`;
 
-function renderCartLinkHtml(block: SiteBlock, input: ChromeRenderInput): string {
+export const renderCartLinkHtml: ChromeBlockHtmlRenderer = (block, input) => {
   const shop = readShopContext({ contributed: input.contributed });
   const href = shop?.cart_href ?? "/shop/cart";
   const label = settingText(block.settings, "label") || "Cart";
@@ -135,13 +129,5 @@ function renderCartLinkHtml(block: SiteBlock, input: ChromeRenderInput): string 
       ? `<span class="shop-cart-count">${escapeHtml(String(count))}</span>`
       : "";
   return `<a class="btn btn-ghost shop-cart-link" href="${escapeHtml(href)}">${CART_ICON}<span>${escapeHtml(label)}</span>${badge}</a>`;
-}
+};
 
-export function registerCartSections(): void {
-  registerSiteSectionHtml(cartSection, renderCartHtml, {
-    css: SHOP_STOREFRONT_CSS,
-  });
-  registerChromeBlockHtml(cartLinkBlock, renderCartLinkHtml, {
-    css: SHOP_STOREFRONT_CSS,
-  });
-}

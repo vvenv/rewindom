@@ -1,17 +1,12 @@
-import { orderListSection, orderSection } from "../../shared/order-section.js";
-import { readShopContext } from "../../shared/shop-section-context.js";
-import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
+import { readShopContext } from "../shop-section-context.js";
 import { shopAlertHtml, shopTotalsHtml } from "./html-helpers.js";
 
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
-import {
-  registerSiteSectionHtml,
-  type SectionHtmlRenderer,
-} from "@rewindom/builtin/marketing/shared/sections/html.js";
+import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
-const renderOrderHtml: SectionHtmlRenderer = (section, ctx) => {
+export const renderOrderHtml: SectionHtmlRenderer = (section, ctx) => {
   const shop = readShopContext(ctx);
   const order = shop?.order;
   if (!shop || !order) return shop ? shopAlertHtml(shop) : "";
@@ -77,7 +72,7 @@ const renderOrderHtml: SectionHtmlRenderer = (section, ctx) => {
     </div>`;
 };
 
-const renderOrderListHtml: SectionHtmlRenderer = (section, ctx) => {
+export const renderOrderListHtml: SectionHtmlRenderer = (section, ctx) => {
   const shop = readShopContext(ctx);
   if (!shop) return "";
   const s = section.settings;
@@ -103,11 +98,3 @@ const renderOrderListHtml: SectionHtmlRenderer = (section, ctx) => {
     </table>`;
 };
 
-export function registerOrderSections(): void {
-  registerSiteSectionHtml(orderSection, renderOrderHtml, {
-    css: SHOP_STOREFRONT_CSS,
-  });
-  registerSiteSectionHtml(orderListSection, renderOrderListHtml, {
-    css: SHOP_STOREFRONT_CSS,
-  });
-}

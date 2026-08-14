@@ -246,9 +246,7 @@
       "limitInfo": "0 shows every published product. Use a small number on the home page.",
       "collectionSlug": "Collection slug",
       "collectionSlugInfo": "Only products in this collection. Leave empty for every published product.",
-      "emptyText": "Empty state",
-      "unconfigured": "No published products yet.",
-      "unconfiguredCta": "Add products"
+      "emptyText": "Empty state"
     },
     "product": { "label": "Product detail" },
     "cart": {
@@ -400,14 +398,5 @@
       "number": "Order"
     },
     "cartLink": { "label": "Cart" }
-  },
-  "editor": {
-    "sampleTitle": "Sample product",
-    "sampleSubtitle": "A short subtitle",
-    "sampleDescription": "Placeholder used in the editor. Visitors see **live** catalog data.",
-    "samplePrice": "$12.00",
-    "sampleSku": "SKU-001",
-    "sampleVariant": "Default",
-    "sampleStatus": "Paid"
   }
 }
