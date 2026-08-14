@@ -1,0 +1,12 @@
+# Detect `ns:key` string literals (page templates, nav, section defaults).
+# t() / useTranslation stay on the built-in i18next framework (monopoly: false).
+languageIds:
+  - javascript
+  - typescript
+  - javascriptreact
+  - typescriptreact
+
+usageMatchRegex:
+  - "['\"`]([a-z0-9-]+:[a-zA-Z0-9_.]+)['\"`]"
+
+monopoly: false

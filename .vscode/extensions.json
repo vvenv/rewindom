@@ -7,6 +7,7 @@
     "esbenp.prettier-vscode",
     "github.vscode-github-actions",
     "kylinideteam.gitlens",
+    "lokalise.i18n-ally",
     "prisma.prisma"
   ]
 }

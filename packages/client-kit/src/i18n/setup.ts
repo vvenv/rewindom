@@ -7,10 +7,10 @@ import {
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-import commonEn from "./locales/en/common.json";
-import shellEn from "./locales/en/shell.json";
-import commonZh from "./locales/zh-CN/common.json";
-import shellZh from "./locales/zh-CN/shell.json";
+import commonEn from "./common/locales/en.json";
+import commonZh from "./common/locales/zh-CN.json";
+import shellEn from "./shell/locales/en.json";
+import shellZh from "./shell/locales/zh-CN.json";
 
 import type { ClientI18nBundle } from "../lib/module-contract.js";
 

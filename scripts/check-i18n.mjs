@@ -30,15 +30,8 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-/** 壳层自带的 namespace，locales 直接按 `<locale>/<ns>.json` 平铺。 */
-const SHELL_LOCALES_DIR = path.join(
-  ROOT,
-  "packages",
-  "client-kit",
-  "src",
-  "i18n",
-  "locales",
-);
+/** 壳层 namespace 根：`<ns>/locales/<locale>.json`，与模块 `{id}/client/locales/<locale>.json` 同构。 */
+const SHELL_I18N_DIR = path.join(ROOT, "packages", "client-kit", "src", "i18n");
 /** 模块 bundle：`<dir>/client/i18n.ts` + `<dir>/client/locales/<locale>.json`。 */
 const MODULE_ROOTS = [
   path.join(ROOT, "packages", "builtin"),
@@ -106,7 +99,7 @@ function listDirs(dir) {
 
 /**
  * 发现所有文案包 → `{ ns, source, byLocale: Map<locale, {file, keys}> }`。
- * 壳层（common / shell）与模块 bundle 的目录布局不同，分别处理。
+ * 壳层与模块都是 `{ns}/…/locales/<locale>.json`；壳层 ns 取目录名，模块 ns 取 `i18n.ts`。
  */
 function collectBundles(locales, errors) {
   const bundles = new Map();
@@ -130,13 +123,19 @@ function collectBundles(locales, errors) {
     });
   };
 
-  // 壳层：locales/<locale>/<ns>.json
-  for (const localeDir of listDirs(SHELL_LOCALES_DIR)) {
-    const locale = path.basename(localeDir);
-    for (const entry of readdirSync(localeDir)) {
+  // 壳层：<ns>/locales/<locale>.json
+  for (const nsDir of listDirs(SHELL_I18N_DIR)) {
+    const localesDir = path.join(nsDir, "locales");
+    if (!existsSync(localesDir)) continue;
+    const ns = path.basename(nsDir);
+    for (const entry of readdirSync(localesDir)) {
       if (!entry.endsWith(".json")) continue;
-      const ns = entry.slice(0, -".json".length);
-      put(ns, rel(SHELL_LOCALES_DIR), locale, path.join(localeDir, entry));
+      put(
+        ns,
+        rel(nsDir),
+        entry.slice(0, -".json".length),
+        path.join(localesDir, entry),
+      );
     }
   }
 
