@@ -115,6 +115,13 @@ describe("isSiteLocalizableHref", () => {
   it("skips paths that already carry a locale prefix", () => {
     expect(isSiteLocalizableHref("/en/about")).toBe(false);
   });
+
+  it("keeps storefront and member SSR entries localizable", () => {
+    expect(isSiteLocalizableHref("/shop")).toBe(true);
+    expect(isSiteLocalizableHref("/member/login")).toBe(true);
+    expect(isSiteLocalizableHref("/shop/cart")).toBe(false);
+    expect(isSiteLocalizableHref("/member/oauth/callback")).toBe(false);
+  });
 });
 
 describe("localizeSiteHref", () => {
@@ -126,6 +133,16 @@ describe("localizeSiteHref", () => {
 
   it("leaves the app area alone", () => {
     expect(localizeSiteHref("/login", "en", "zh-CN")).toBe("/login");
+  });
+
+  it("prefixes the shop catalog so header nav stays on the current locale", () => {
+    expect(localizeSiteHref("/shop", "en", "zh-CN")).toBe("/en/shop");
+    expect(localizeSiteHref("/shop", "zh-CN", "zh-CN")).toBe("/shop");
+    expect(localizeSiteHref("/about", "en", "zh-CN")).toBe("/en/about");
+    expect(localizeSiteHref("/member/login", "en", "zh-CN")).toBe(
+      "/en/member/login",
+    );
+    expect(localizeSiteHref("/shop/cart", "en", "zh-CN")).toBe("/shop/cart");
   });
 
   it("is idempotent", () => {

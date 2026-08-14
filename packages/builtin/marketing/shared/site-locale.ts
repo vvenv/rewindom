@@ -9,7 +9,12 @@
 
 import { APP_LOCALES, isAppLocale, type AppLocale } from "@rewindom/shared";
 
-import { SITE_APP_PREFIXES, normalizeSitePath } from "./site-app-prefixes.js";
+import {
+  SITE_APP_PREFIXES,
+  SITE_SSR_EXCEPTION_PATHS,
+  SITE_SSR_PREFIX_EXCEPTIONS,
+  normalizeSitePath,
+} from "./site-app-prefixes.js";
 
 export {
   SITE_APP_PREFIXES,
@@ -120,9 +125,19 @@ export function isSiteLocalizableHref(href: string): boolean {
   if (!href.startsWith("/") || href.startsWith("//")) return false;
   const path = href.split(/[?#]/u)[0] ?? href;
   const first = path.slice(1).split("/")[0] ?? "";
-  if (APP_PREFIX_SET.has(first)) return false;
   // 已经带了 locale 前缀的链接原样放行，不做二次前缀
-  return resolveLocaleSegment(first) === null;
+  if (resolveLocaleSegment(first) !== null) return false;
+  if (!APP_PREFIX_SET.has(first)) return true;
+  /*
+   * `shop` 在应用区前缀表里（无前缀 `/shop` 要打到 Fastify），但店面目录仍是
+   * 官网导航的一级入口。会员登录等 SSR 例外同理。子路径（`/shop/cart`）不在
+   * 这里扩——带 locale 的更深地址 marketing SSR 还接不住。
+   */
+  const normalized = normalizeSitePath(path);
+  return (
+    (SITE_SSR_EXCEPTION_PATHS as readonly string[]).includes(normalized) ||
+    (SITE_SSR_PREFIX_EXCEPTIONS as readonly string[]).includes(normalized)
+  );
 }
 
 /**

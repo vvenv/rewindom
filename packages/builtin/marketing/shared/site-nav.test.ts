@@ -55,6 +55,23 @@ describe("defaultHeaderNavItems", () => {
     const resolved = resolveNavItems(defaultHeaderNavItems(), ctx());
     expect(resolved.map((entry) => entry.href)).toEqual(["/about", "/pricing"]);
   });
+
+  it("非默认语言给一级页面补 locale 前缀", () => {
+    const resolved = resolveNavItems(
+      defaultHeaderNavItems(),
+      ctx({
+        locale: "en",
+        navPages: [
+          { path: "/about", title: "About" },
+          { path: "/shop", title: "Shop" },
+        ],
+      }),
+    );
+    expect(resolved.map((entry) => entry.href)).toEqual([
+      "/en/about",
+      "/en/shop",
+    ]);
+  });
 });
 
 describe("resolveNavItems", () => {
@@ -105,6 +122,24 @@ describe("resolveNavItems", () => {
         ctx({ enabledEntitlements: new Set(["shop"]) }),
       ).map((entry) => entry.href),
     ).toEqual(["/shop"]);
+    expect(
+      resolveNavItems(
+        [item({ source: "nav-gated" })],
+        ctx({
+          locale: "en",
+          enabledEntitlements: new Set(["shop"]),
+        }),
+      ).map((entry) => entry.href),
+    ).toEqual(["/en/shop"]);
+  });
+
+  it("自定义链接也跟当前语言走", () => {
+    expect(
+      resolveNavItems(
+        [item({ label: "商店", href: "/shop" })],
+        ctx({ locale: "en" }),
+      ).map((entry) => entry.href),
+    ).toEqual(["/en/shop"]);
   });
 });
 
