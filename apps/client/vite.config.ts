@@ -4,11 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 
-import { manualChunks } from "./vite-manual-chunks";
+import { manualChunks } from "./vite-manual-chunks.ts";
 import {
   shouldBypassMarketingSsrProxy,
   shouldProxyDocumentToMarketingSsr,
-} from "./vite-marketing-ssr-proxy";
+} from "./vite-marketing-ssr-proxy.ts";
 
 /** 平台控制台 Host：不代理 Marketing SSR（与 server `getPlatformConsoleHostnames` 对齐）。 */
 const PLATFORM_CONSOLE_DEV_HOSTS = new Set(["127.0.0.1", "::1", "[::1]"]);
@@ -83,10 +83,11 @@ export default defineConfig(() => ({
   plugins: [react(), tailwindcss(), tenantMarketingSsrProxy()],
   resolve: {
     alias: [
-      { find: "@", replacement: path.resolve(__dirname, "./src") },
+      { find: "@", replacement: path.resolve(import.meta.dirname, "./src") },
       {
         find: /^@rewindom\/ui\//,
-        replacement: path.resolve(__dirname, "../../packages/ui/src") + "/",
+        replacement:
+          path.resolve(import.meta.dirname, "../../packages/ui/src") + "/",
       },
     ],
   },
