@@ -34,6 +34,9 @@ describe("shop storefront section html", () => {
     expect(html).toContain("/shop/mug");
     expect(html).toContain("Mug");
     expect(html).toContain("$12.00");
+    expect(html).toContain("shop-card");
+    expect(html).toContain("shop-card-media");
+    expect(html).toContain("shop-card-body");
   });
 
   it("商品详情把 description 当 Markdown 渲染，而不是纯文本转义", () => {
@@ -67,6 +70,69 @@ describe("shop storefront section html", () => {
     expect(html).not.toContain("**ceramic**");
   });
 
+  it("多图商品用 radio 切换主图，无需脚本", () => {
+    const section = createSection(productSection.type);
+    const html = SECTION_HTML[productSection.type]?.(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          product: {
+            title: "Mug",
+            subtitle: "",
+            description: "",
+            images: [
+              { url: "/mug.jpg", alt: "A mug" },
+              { url: "/mug-side.jpg", alt: "Side" },
+            ],
+            variants: [
+              {
+                id: "v1",
+                label: "Default",
+                price: "$12.00",
+                compare_at_price: null,
+                stock: 4,
+                sold_out: false,
+              },
+            ],
+          },
+        }),
+      ),
+    });
+    expect(html).toContain('type="radio" name="shop-gallery"');
+    expect(html).toContain("shop-gallery-thumbs");
+    expect(html).toContain('for="shop-g-1"');
+  });
+
+  it("购物车行项目不再用 float 图 + 表格", () => {
+    const section = createSection(cartSection.type);
+    const html = SECTION_HTML[cartSection.type]?.(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          cart: {
+            item_count: 1,
+            subtotal: "$20.00",
+            discount_code: null,
+            discount: null,
+            items: [
+              {
+                id: "l1",
+                title: "Mug",
+                sku: "MUG",
+                image_url: "/mug.jpg",
+                quantity: 2,
+                line_total: "$20.00",
+              },
+            ],
+          },
+        }),
+      ),
+    });
+    expect(html).toContain("shop-cart");
+    expect(html).toContain("shop-line");
+    expect(html).toContain("shop-line-media");
+    expect(html).not.toContain("shop-table");
+    expect(html).not.toContain("shop-line-image");
+  });
+
   it("商品详情输出图库与划线原价", () => {
     const section = createSection(productSection.type);
     const html = SECTION_HTML[productSection.type]?.(section, {
@@ -93,6 +159,7 @@ describe("shop storefront section html", () => {
     });
     expect(html).toContain('src="/mug.jpg"');
     expect(html).toContain("shop-gallery");
+    expect(html).toContain("shop-gallery-stage");
     expect(html).toContain("shop-price-compare");
     expect(html).toContain("$15.00");
     expect(html).toContain("Ceramic");
@@ -246,9 +313,10 @@ describe("shop storefront section html", () => {
     });
     expect(html).toContain('name="intent" value="discount"');
     expect(html).toContain("SAVE10");
-    expect(html?.indexOf('name="intent" value="discount"') ?? -1).toBeLessThan(
-      html?.indexOf('class="shop-checkout"') ?? -1,
-    );
+    const payForm = html?.split('class="shop-checkout-main"')[1]?.split("</form>")[0] ?? "";
+    expect(payForm).not.toContain('name="intent" value="discount"');
+    const aside = html?.split('class="shop-checkout-aside"')[1] ?? "";
+    expect(aside).toContain('name="intent" value="discount"');
   });
 
   it("购物车摘要输出折扣行与独立优惠码表单", () => {

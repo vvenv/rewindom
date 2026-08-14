@@ -2,6 +2,7 @@ import { productGridSection } from "../../shared/product-grid-section.js";
 import { filterProductsByCollectionSlug } from "../../shared/collection.js";
 import { readShopContext } from "../../shared/shop-section-context.js";
 import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
+import { shopMediaSlotHtml, shopPriceHtml } from "./html-helpers.js";
 
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import {
@@ -17,6 +18,13 @@ import {
   registerSiteSectionHtml,
   type SectionHtmlRenderer,
 } from "@rewindom/builtin/marketing/shared/sections/html.js";
+
+import type { ShopProductCardView } from "../../shared/shop-section-context.js";
+
+function priceCell(product: ShopProductCardView, showPrice: boolean): string {
+  if (!showPrice || !product.price) return "";
+  return shopPriceHtml(product.price, product.compare_at_price);
+}
 
 const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
   const shop = readShopContext(ctx);
@@ -37,19 +45,7 @@ const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
     const rows = items
       .map(
         (product) =>
-          `<a href="${escapeHtml(product.href)}">${
-            product.image_url
-              ? `<img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.image_alt)}" />`
-              : ""
-          }<span>${escapeHtml(product.title)}</span>${
-            showPrice && product.price
-              ? `<span class="shop-price">${
-                  product.compare_at_price
-                    ? `<s class="shop-price-compare">${escapeHtml(product.compare_at_price)}</s> `
-                    : ""
-                }${escapeHtml(product.price)}</span>`
-              : ""
-          }</a>`,
+          `<a href="${escapeHtml(product.href)}">${shopMediaSlotHtml(product.image_url, product.image_alt, "shop-grid-row-media")}<span class="shop-grid-row-title">${escapeHtml(product.title)}</span>${priceCell(product, showPrice)}</a>`,
       )
       .join("");
     return `${heading}<div class="shop-grid-list">${rows}</div>`;
@@ -57,22 +53,10 @@ const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
   const cards = items
     .map(
       (product) =>
-        `<a class="card" href="${escapeHtml(product.href)}">${
-          product.image_url
-            ? `<img class="shop-card-image" src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.image_alt)}" />`
-            : ""
-        }<span class="title">${escapeHtml(product.title)}</span>${
-          showPrice && product.price
-            ? `<span class="muted shop-price">${
-                product.compare_at_price
-                  ? `<s class="shop-price-compare">${escapeHtml(product.compare_at_price)}</s> `
-                  : ""
-              }${escapeHtml(product.price)}</span>`
-            : ""
-        }</a>`,
+        `<a class="card shop-card" href="${escapeHtml(product.href)}">${shopMediaSlotHtml(product.image_url, product.image_alt, "shop-card-media")}<span class="shop-card-body"><span class="title">${escapeHtml(product.title)}</span>${priceCell(product, showPrice)}</span></a>`,
     )
     .join("");
-  return `${heading}<div class="${gridClass(settingNumber(s, "columns", 3))}">${cards}</div>`;
+  return `${heading}<div class="${gridClass(settingNumber(s, "columns", 3))} shop-grid">${cards}</div>`;
 };
 
 export function registerProductGridSection(): void {

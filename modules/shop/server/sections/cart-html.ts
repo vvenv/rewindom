@@ -1,7 +1,11 @@
 import { cartLinkBlock, cartSection } from "../../shared/cart-section.js";
 import { readShopContext } from "../../shared/shop-section-context.js";
 import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
-import { shopAlertHtml } from "./html-helpers.js";
+import {
+  shopAlertHtml,
+  shopMediaSlotHtml,
+  shopTotalsHtml,
+} from "./html-helpers.js";
 
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import {
@@ -26,32 +30,27 @@ function linesHtml(
   const s = block.settings;
   const rows = cart.items
     .map(
-      (item) => `<tr>
-        <td>${
-          item.image_url
-            ? `<img class="shop-line-image" src="${escapeHtml(item.image_url)}" alt="" />`
-            : ""
-        }${escapeHtml(item.title)}<div class="shop-muted">${escapeHtml(item.sku)}</div></td>
-        <td>
+      (item) => `<li class="shop-line">
+        ${shopMediaSlotHtml(item.image_url, "", "shop-line-media")}
+        <div class="shop-line-body">
+          <div class="shop-line-top">
+            <div>
+              <div class="shop-line-title">${escapeHtml(item.title)}</div>
+              ${item.sku ? `<p class="shop-line-sku">${escapeHtml(item.sku)}</p>` : ""}
+            </div>
+            <div class="shop-line-total">${escapeHtml(item.line_total)}</div>
+          </div>
           <form class="shop-qty" method="post" action="${escapeHtml(shop.action_cart)}">
             <input type="hidden" name="intent" value="update" />
             <input type="hidden" name="item_id" value="${escapeHtml(item.id)}" />
-            <input type="number" name="quantity" value="${item.quantity}" min="0" />
+            <input id="shop-qty-${escapeHtml(item.id)}" type="number" name="quantity" value="${item.quantity}" min="0" aria-label="${escapeHtml(settingText(s, "qty_label"))}" />
             <button class="btn btn-secondary" type="submit">${escapeHtml(settingText(s, "update_label"))}</button>
           </form>
-        </td>
-        <td>${escapeHtml(item.line_total)}</td>
-      </tr>`,
+        </div>
+      </li>`,
     )
     .join("");
-  return `<table class="shop-table">
-  <thead><tr>
-    <th>${escapeHtml(settingText(s, "item_label"))}</th>
-    <th>${escapeHtml(settingText(s, "qty_label"))}</th>
-    <th>${escapeHtml(settingText(s, "total_label"))}</th>
-  </tr></thead>
-  <tbody>${rows}</tbody>
-</table>`;
+  return `<ul class="shop-lines">${rows}</ul>`;
 }
 
 function discountFormHtml(
@@ -77,15 +76,26 @@ function summaryHtml(
   shop: ShopRenderContext,
   block: SiteBlock,
 ): string {
-  const discountLine =
-    cart.discount && settingText(block.settings, "discount_label")
-      ? `<p class="shop-muted">${escapeHtml(settingText(block.settings, "discount_label"))}${cart.discount_code ? ` (${escapeHtml(cart.discount_code)})` : ""}: −${escapeHtml(cart.discount)}</p>`
-      : "";
+  const s = block.settings;
+  const totals = shopTotalsHtml([
+    {
+      label: settingText(s, "subtotal_label"),
+      value: cart.subtotal,
+    },
+    ...(cart.discount && settingText(s, "discount_label")
+      ? [
+          {
+            label: `${settingText(s, "discount_label")}${cart.discount_code ? ` (${cart.discount_code})` : ""}`,
+            value: `−${cart.discount}`,
+            muted: true,
+          },
+        ]
+      : []),
+  ]);
   return `<div class="shop-cart-summary">
   ${discountFormHtml(cart, shop, block)}
-  <p class="shop-price">${escapeHtml(settingText(block.settings, "subtotal_label"))}: ${escapeHtml(cart.subtotal)}</p>
-  ${discountLine}
-  <p><a class="btn" href="${escapeHtml(shop.checkout_href)}">${escapeHtml(settingText(block.settings, "checkout_label"))}</a></p>
+  ${totals}
+  <a class="btn shop-cta" href="${escapeHtml(shop.checkout_href)}">${escapeHtml(settingText(s, "checkout_label"))}</a>
 </div>`;
 }
 
@@ -98,17 +108,16 @@ const renderCartHtml: SectionHtmlRenderer = (section, ctx) => {
   if (!cart || cart.items.length === 0) {
     const empty = settingText(s, "empty_text");
     const cont = settingText(s, "continue_label");
-    return `${shopAlertHtml(shop)}${heading}${empty ? `<p class="shop-muted">${escapeHtml(empty)}</p>` : ""}
-      ${cont ? `<p><a href="${escapeHtml(shop.shop_href)}">${escapeHtml(cont)}</a></p>` : ""}`;
+    return `${shopAlertHtml(shop)}${heading}<div class="shop-empty">${
+      empty ? `<p class="shop-muted">${escapeHtml(empty)}</p>` : ""
+    }${cont ? `<a class="btn" href="${escapeHtml(shop.shop_href)}">${escapeHtml(cont)}</a>` : ""}</div>`;
   }
-  const body = section.blocks
-    .map((block) => {
-      if (block.type === "lines") return linesHtml(cart, shop, block);
-      if (block.type === "summary") return summaryHtml(cart, shop, block);
-      return "";
-    })
-    .join("");
-  return `${shopAlertHtml(shop)}${heading}${body}`;
+  const lines = section.blocks.find((block) => block.type === "lines");
+  const summary = section.blocks.find((block) => block.type === "summary");
+  return `${shopAlertHtml(shop)}${heading}<div class="shop-cart">
+  ${lines ? `<div class="shop-cart-main">${linesHtml(cart, shop, lines)}</div>` : ""}
+  ${summary ? summaryHtml(cart, shop, summary) : ""}
+</div>`;
 };
 
 const CART_ICON = `<svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`;

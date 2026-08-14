@@ -8,12 +8,23 @@
  *
  * 禁止再写一份 `shared/shop-css.ts` 模板字符串——生产 server 是单文件 bundle，
  * 手写字符串既逃过 assemble 的注释剥离，也让「改样式只改 .css」这条链断掉。
+ *
+ * 版式口径（会员登录卡同一套「一条左边缘」）：
+ * - 商品卡永远占一个正方形图槽，没图也留空底——标题才会在一条线上
+ * - 购物车 / 结账 / 订单确认都是「主栏 + 粘性摘要」，不要表 + 摘要竖着各漂一块
+ * - 优惠码是独立 POST，不能嵌进付款 form；视觉上必须坐在摘要卡里，不能飘在两栏上头
+ * - 输入框观感跟官网 `form` 段一致，不要给店面另做一套控件
  */
+
+/* -------------------------------------------------------------------------- */
+/* 共用零件                                                                    */
+/* -------------------------------------------------------------------------- */
 
 .shop-alert {
   padding: 0.75rem 1rem;
   border-radius: var(--radius);
   margin: 0 0 1.25rem;
+  font-size: 0.875rem;
 }
 .shop-alert.error {
   background: color-mix(in srgb, var(--danger, #991b1b) 12%, transparent);
@@ -27,123 +38,77 @@
   color: var(--muted-fg);
 }
 .shop-price {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem;
   font-weight: 600;
+  letter-spacing: -0.02em;
 }
 .shop-price-compare {
   color: var(--muted-fg);
   font-weight: 400;
-  margin-right: 0.35rem;
+  font-size: 0.85em;
 }
-.shop-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
-  gap: 0.5rem;
-}
-.shop-gallery-main {
-  grid-column: 1 / -1;
-  width: 100%;
-  max-height: 28rem;
-  object-fit: contain;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-.shop-gallery img {
-  width: 100%;
-  max-height: 8rem;
-  object-fit: cover;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-.shop-product-subtitle {
-  margin: 0;
-  color: var(--muted-fg);
-  font-size: 1.05rem;
-}
-.shop-card-image,
-.shop-line-image {
-  width: 100%;
-  max-height: 12rem;
-  object-fit: cover;
-  border-radius: var(--radius);
-  display: block;
-  margin-bottom: 0.75rem;
-}
-.shop-line-image {
-  width: 3.5rem;
-  height: 3.5rem;
-  max-height: none;
-  float: left;
-  margin: 0 0.75rem 0 0;
-}
-.shop-grid-list img {
-  width: 2.5rem;
-  height: 2.5rem;
-  object-fit: cover;
-  border-radius: var(--radius);
-}
-.shop-grid-list {
-  display: grid;
-  gap: 0.75rem;
-}
-.shop-grid-list a {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--border);
-  text-decoration: none;
-  color: inherit;
-}
-.shop-product {
-  display: grid;
-  gap: 1.75rem;
-}
-@media (min-width: 768px) {
-  .shop-product {
-    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
-    align-items: start;
-  }
-  .shop-product-buy {
-    position: sticky;
-    top: 1.5rem;
-  }
-}
-.shop-product-main {
-  display: grid;
-  gap: 1rem;
-}
-.shop-product-main h1 {
-  font-size: 2rem;
-  line-height: 1.2;
-  font-weight: 600;
-}
-.shop-product-description {
-  min-width: 0;
-}
+
+/*
+ * 侧栏 / 加购 / 结账分组：同一套表面。阴影只做「跟底色分开」，不要浮成弹层——
+ * 店面页已经有 chrome，再加重阴影会像叠了两张卡。
+ */
 .shop-product-buy,
 .shop-cart-summary,
 .shop-checkout-aside {
   display: grid;
   gap: 1rem;
+  min-width: 0;
   padding: 1.25rem;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 0.15rem);
   background: var(--surface);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
 }
+
+/* 结账左栏用分隔线分组，不跟右侧摘要一样做成卡——两栏都是卡会像后台表单 */
+.shop-group {
+  display: grid;
+  gap: 0.875rem;
+  min-width: 0;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.shop-checkout-main > .shop-group:last-of-type {
+  margin-bottom: 0.25rem;
+}
+
+.shop-block-head {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-fg);
+}
+
 .shop-field {
   display: grid;
   gap: 0.375rem;
   min-width: 0;
 }
-.shop-field > label {
+.shop-field:is(fieldset) {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.shop-field > label,
+.shop-field > legend {
   font-size: 0.875rem;
   font-weight: 500;
+  padding: 0;
 }
-.shop-field input,
+.shop-field input:not([type="radio"]),
 .shop-field select,
-.shop-field textarea {
+.shop-field textarea,
+.shop-qty input {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -152,64 +117,462 @@
   padding: 0.5rem 0.75rem;
   font: inherit;
 }
-.shop-field input:focus-visible,
+.shop-field textarea {
+  resize: vertical;
+}
+.shop-field input:not([type="radio"]):focus-visible,
 .shop-field select:focus-visible,
-.shop-field textarea:focus-visible {
+.shop-field textarea:focus-visible,
+.shop-qty input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
-.shop-buy,
-.shop-qty {
+
+/* 城市 / 省 / 邮编并排：七个地址框竖着摞是结账页最散的地方 */
+.shop-field-row {
   display: grid;
   gap: 0.75rem;
 }
-.shop-qty {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
+@media (min-width: 640px) {
+  .shop-field-row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
-.shop-table {
-  width: 100%;
-  border-collapse: collapse;
+
+.shop-empty {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+  padding: 2.5rem 0;
 }
-.shop-table th,
-.shop-table td {
-  text-align: left;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
+.shop-empty .btn {
+  justify-self: start;
 }
-.shop-table th {
+
+.shop-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
   font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 商品列表                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * 官网 `.grid` 窄屏变一列——文档卡那样对。商品卡一列会把店面拉成一条细绳，
+ * 两列才是店面的默认密度。specificity 与 marketing 的 `.grid.cols-N` 打平，
+ * 本文件拼在官网 CSS 后面，所以能盖过去。
+ */
+.shop-grid {
+  gap: 1.25rem;
+}
+@media (max-width: 640px) {
+  .shop-grid.cols-2,
+  .shop-grid.cols-3,
+  .shop-grid.cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+/*
+ * 覆盖 `.card` 的 1.25rem 内边距：图顶到边，文字自己成一块。没图也留正方形槽，
+ * 否则有图的卡和图没有的卡标题不在一条线上——栅格一散，整页就廉价。
+ */
+.shop-card {
+  padding: 0;
+  overflow: hidden;
+  background: var(--surface);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+.shop-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px -16px rgb(0 0 0 / 0.18);
+  transform: translateY(-2px);
+}
+.shop-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.shop-card-media {
+  display: block;
+  aspect-ratio: 1;
+  background: var(--muted-bg);
+  overflow: hidden;
+}
+.shop-card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+.shop-card:hover .shop-card-media img {
+  transform: scale(1.04);
+}
+.shop-card-body {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem 1.15rem;
+}
+.shop-card .title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+}
+.shop-card .shop-price {
+  color: var(--fg);
+  font-size: 0.9375rem;
+}
+@media (max-width: 640px) {
+  .shop-card-body {
+    padding: 0.75rem 0.8rem 0.9rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop-card,
+  .shop-card-media img {
+    transition: none;
+  }
+  .shop-card:hover {
+    transform: none;
+  }
+  .shop-card:hover .shop-card-media img {
+    transform: none;
+  }
+}
+
+.shop-grid-list {
+  display: grid;
+}
+.shop-grid-list a {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+}
+.shop-grid-list a:hover .shop-grid-row-title {
+  color: var(--accent);
+}
+.shop-grid-row-media {
+  display: block;
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--radius);
+  background: var(--muted-bg);
+  overflow: hidden;
+}
+.shop-grid-row-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.shop-grid-row-title {
+  min-width: 0;
   font-weight: 500;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 商品详情                                                                    */
+/* -------------------------------------------------------------------------- */
+
+.shop-product {
+  display: grid;
+  gap: 2rem;
+}
+@media (min-width: 768px) {
+  .shop-product {
+    grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+    align-items: start;
+    gap: 3rem;
+  }
+  .shop-product-buy {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+.shop-product-main {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+.shop-product-main h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+.shop-product-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--muted-fg);
+  font-size: 1.05rem;
+}
+.shop-product-main > .shop-price {
+  font-size: 1.5rem;
+}
+.shop-product-description {
+  min-width: 0;
+}
+
+/*
+ * 图库：主图叠在同一格，靠 radio:checked + img 切换——没有 JS 也能点缩略图。
+ * 缩略图用 label[for]，和 radio 不必是兄弟。
+ */
+.shop-gallery {
+  display: grid;
+  gap: 0.75rem;
+}
+.shop-gallery-stage {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 0.15rem);
+  background: var(--muted-bg);
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+.shop-gallery-stage > input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.shop-gallery-stage > img {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.shop-gallery-stage:has(input) > img {
+  opacity: 0;
+  pointer-events: none;
+}
+.shop-gallery-stage > input:checked + img {
+  opacity: 1;
+}
+.shop-gallery-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+  gap: 0.5rem;
+}
+.shop-gallery-thumbs label {
+  display: block;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--muted-bg);
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.shop-gallery-thumbs label:hover,
+.shop-gallery-thumbs label:focus-within {
+  opacity: 1;
+}
+.shop-gallery-thumbs img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.shop-gallery:has(input:nth-of-type(1):checked) .shop-gallery-thumbs label:nth-child(1),
+.shop-gallery:has(input:nth-of-type(2):checked) .shop-gallery-thumbs label:nth-child(2),
+.shop-gallery:has(input:nth-of-type(3):checked) .shop-gallery-thumbs label:nth-child(3),
+.shop-gallery:has(input:nth-of-type(4):checked) .shop-gallery-thumbs label:nth-child(4),
+.shop-gallery:has(input:nth-of-type(5):checked) .shop-gallery-thumbs label:nth-child(5),
+.shop-gallery:has(input:nth-of-type(6):checked) .shop-gallery-thumbs label:nth-child(6),
+.shop-gallery:has(input:nth-of-type(7):checked) .shop-gallery-thumbs label:nth-child(7),
+.shop-gallery:has(input:nth-of-type(8):checked) .shop-gallery-thumbs label:nth-child(8) {
+  opacity: 1;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.shop-buy {
+  display: grid;
+  gap: 1rem;
+}
+.shop-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.shop-variant {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 5.5rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: pointer;
+}
+.shop-variant input {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  cursor: inherit;
+  opacity: 0;
+}
+.shop-variant:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.shop-variant:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.shop-variant:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.shop-variant.is-sold-out {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.shop-variant-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.shop-variant-price {
+  font-size: 0.75rem;
   color: var(--muted-fg);
 }
-.shop-checkout {
+
+/* 数量缩在左侧、加购铺满右侧：两块上下各漂一个控件会像没排过 */
+.shop-buy-actions {
+  display: grid;
+  grid-template-columns: 5.75rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: end;
+}
+.shop-cta {
+  width: 100%;
+  justify-content: center;
+}
+.shop-pay .shop-cta,
+.shop-cart-summary .shop-cta {
+  padding-block: 0.75rem;
+}
+.shop-cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 购物车 / 结账 / 订单：同一套两栏                                            */
+/* -------------------------------------------------------------------------- */
+
+.shop-cart,
+.shop-checkout,
+.shop-order-body {
   display: grid;
   gap: 1.75rem;
 }
 @media (min-width: 768px) {
-  .shop-checkout {
-    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+  .shop-cart,
+  .shop-checkout,
+  .shop-order-body {
+    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.85fr);
     align-items: start;
   }
+  .shop-cart-summary,
   .shop-checkout-aside {
     position: sticky;
     top: 1.5rem;
   }
 }
-.shop-checkout-main {
+
+.shop-lines {
   display: grid;
-  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.shop-block-head {
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
+.shop-line {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.shop-line:first-child {
+  padding-top: 0;
+}
+.shop-line-media {
+  display: block;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: var(--radius);
+  background: var(--muted-bg);
+  overflow: hidden;
+}
+.shop-line-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.shop-line-body {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.shop-line-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+}
+.shop-line-title {
+  font-weight: 500;
+  line-height: 1.35;
+}
+.shop-line-sku {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted-fg);
+}
+.shop-line-total {
   font-weight: 600;
+  white-space: nowrap;
 }
-.shop-totals {
-  display: grid;
-  gap: 0.35rem;
+
+.shop-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
+.shop-qty input[type="number"] {
+  width: 4.25rem;
+  text-align: center;
+  padding-inline: 0.375rem;
+}
+.shop-qty .btn {
+  padding: 0.5rem 0.75rem;
+}
+
 .shop-discount {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -219,6 +582,193 @@
 .shop-discount .shop-field {
   margin: 0;
 }
+.shop-discount .btn {
+  height: 2.625rem;
+}
+
+.shop-totals {
+  display: grid;
+  gap: 0.5rem;
+}
+.shop-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+.shop-totals dt {
+  color: var(--muted-fg);
+}
+.shop-totals dd {
+  margin: 0;
+  font-weight: 500;
+  text-align: right;
+}
+.shop-totals .is-muted dd {
+  color: var(--muted-fg);
+  font-weight: 400;
+}
+.shop-totals .is-grand {
+  margin-top: 0.35rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 1rem;
+}
+.shop-totals .is-grand dt,
+.shop-totals .is-grand dd {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.shop-aside-lines {
+  display: grid;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.shop-aside-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+.shop-aside-line .shop-muted {
+  font-size: 0.8125rem;
+}
+
+.shop-rates {
+  display: grid;
+  gap: 0.5rem;
+}
+.shop-rate {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: pointer;
+}
+.shop-rate input {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  cursor: inherit;
+  opacity: 0;
+}
+.shop-rate:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.shop-rate:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.shop-rate:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.shop-rate-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.shop-rate-price {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.shop-checkout-main {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.shop-pay {
+  margin-top: 0.25rem;
+}
+
+.shop-order {
+  display: grid;
+  gap: 1.75rem;
+}
+.shop-order-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+}
+.shop-order-head h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.shop-order-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-fg);
+}
+.shop-order-meta {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-fg);
+}
+.shop-line-plain {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.shop-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.shop-table th,
+.shop-table td {
+  text-align: left;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.shop-table th {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-fg);
+}
+.shop-table th:last-child,
+.shop-table td:last-child {
+  text-align: right;
+}
+.shop-table tbody tr {
+  transition: background 0.15s ease;
+}
+.shop-table tbody tr:hover {
+  background: color-mix(in srgb, var(--muted-bg) 70%, transparent);
+}
+.shop-table a {
+  font-weight: 500;
+}
+.shop-table a:hover {
+  color: var(--accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop-table tbody tr {
+    transition: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 页头购物车                                                                  */
+/* -------------------------------------------------------------------------- */
+
 .shop-cart-link {
   display: inline-flex;
   align-items: center;

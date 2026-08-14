@@ -17,31 +17,41 @@ export function OrderSection({ section }: SectionViewProps): ReactElement {
   return (
     <>
       <SectionHeading settings={s} />
-      <p>
-        {settingText(s, "status_label")}: {t("editor.sampleStatus")}
-      </p>
-      <h1>{order.number}</h1>
-      <table className="shop-table">
-        <tbody>
-          {order.lines.map((line) => (
-            <tr key={line.title}>
-              <td>{line.title}</td>
-              <td>{line.quantity}</td>
-              <td>{line.line_total}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="shop-totals">
-        <p>
-          {settingText(s, "shipping_label")}: {order.shipping}
-        </p>
-        <p>
-          {settingText(s, "tax_label")}: {order.tax}
-        </p>
-        <p className="shop-price">
-          {settingText(s, "total_label")}: {order.total}
-        </p>
+      <div className="shop-order">
+        <header className="shop-order-head">
+          <div>
+            <p className="shop-order-kicker">{settingText(s, "status_label")}</p>
+            <h1>{order.number}</h1>
+          </div>
+          <span className="shop-status">{t("editor.sampleStatus")}</span>
+        </header>
+        <div className="shop-order-body">
+          <ul className="shop-lines">
+            {order.lines.map((line) => (
+              <li key={line.title} className="shop-line shop-line-plain">
+                <span className="shop-line-title">{line.title}</span>
+                <span className="shop-muted">× {line.quantity}</span>
+                <span className="shop-line-total">{line.line_total}</span>
+              </li>
+            ))}
+          </ul>
+          <aside className="shop-checkout-aside">
+            <dl className="shop-totals">
+              <div>
+                <dt>{settingText(s, "shipping_label")}</dt>
+                <dd>{order.shipping}</dd>
+              </div>
+              <div>
+                <dt>{settingText(s, "tax_label")}</dt>
+                <dd>{order.tax}</dd>
+              </div>
+              <div className="is-grand">
+                <dt>{settingText(s, "total_label")}</dt>
+                <dd>{order.total}</dd>
+              </div>
+            </dl>
+          </aside>
+        </div>
       </div>
     </>
   );
@@ -69,7 +79,9 @@ export function OrderListSection({ section }: SectionViewProps): ReactElement {
                   {order.number}
                 </a>
               </td>
-              <td>{order.status}</td>
+              <td>
+                <span className="shop-status">{order.status}</span>
+              </td>
               <td>{order.total}</td>
             </tr>
           ))}

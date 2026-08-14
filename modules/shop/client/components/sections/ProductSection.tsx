@@ -19,15 +19,15 @@ export function ProductSection({ section }: SectionViewProps): ReactElement {
       <div className="shop-product-main">
         {rest.map((block) => {
           if (block.type === "media") {
-            return product.images[0] ? (
+            return (
               <div key={block.id} className="shop-gallery">
-                <img
-                  className="shop-gallery-main"
-                  src={product.images[0].url}
-                  alt={product.images[0].alt}
-                />
+                <div className="shop-gallery-stage">
+                  {product.images[0] ? (
+                    <img src={product.images[0].url} alt={product.images[0].alt} />
+                  ) : null}
+                </div>
               </div>
-            ) : null;
+            );
           }
           if (block.type === "title") {
             return (
@@ -39,9 +39,9 @@ export function ProductSection({ section }: SectionViewProps): ReactElement {
           }
           if (block.type === "price") {
             return (
-              <p key={block.id} className="shop-price">
+              <span key={block.id} className="shop-price">
                 {t("editor.samplePrice")}
-              </p>
+              </span>
             );
           }
           if (block.type === "description") {
@@ -57,27 +57,47 @@ export function ProductSection({ section }: SectionViewProps): ReactElement {
       {buy ? (
         <div className="shop-product-buy">
           <form className="shop-buy">
-            <div className="shop-field">
-              <label htmlFor="preview-variant">
-                {settingText(buy.settings, "variant_label")}
-              </label>
-              <select id="preview-variant" tabIndex={-1} disabled>
-                {product.variants.map((variant) => (
-                  <option key={variant.id}>
-                    {t("editor.sampleVariant")} — {t("editor.samplePrice")}
-                  </option>
-                ))}
-              </select>
+            {product.variants.length > 1 ? (
+              <fieldset className="shop-field">
+                <legend>{settingText(buy.settings, "variant_label")}</legend>
+                <div className="shop-variants">
+                  {product.variants.map((variant, index) => (
+                    <label
+                      key={variant.id}
+                      className={`shop-variant${variant.sold_out ? " is-sold-out" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name="preview-variant"
+                        defaultChecked={index === 0}
+                        tabIndex={-1}
+                        disabled
+                      />
+                      <span className="shop-variant-name">{t("editor.sampleVariant")}</span>
+                      <span className="shop-variant-price">{t("editor.samplePrice")}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            ) : null}
+            <div className="shop-buy-actions">
+              <div className="shop-field">
+                <label htmlFor="preview-qty">
+                  {settingText(buy.settings, "quantity_label")}
+                </label>
+                <input
+                  id="preview-qty"
+                  type="number"
+                  defaultValue={1}
+                  min={1}
+                  tabIndex={-1}
+                  readOnly
+                />
+              </div>
+              <button className="btn shop-cta" type="button" tabIndex={-1}>
+                {settingText(buy.settings, "add_label")}
+              </button>
             </div>
-            <div className="shop-field">
-              <label htmlFor="preview-qty">
-                {settingText(buy.settings, "quantity_label")}
-              </label>
-              <input id="preview-qty" type="number" defaultValue={1} tabIndex={-1} readOnly />
-            </div>
-            <button className="btn" type="button" tabIndex={-1}>
-              {settingText(buy.settings, "add_label")}
-            </button>
           </form>
         </div>
       ) : null}

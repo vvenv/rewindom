@@ -15,6 +15,20 @@ import {
   settingText,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
+function MediaSlot({
+  src,
+  className,
+}: {
+  src: string | null | undefined;
+  className: string;
+}): ReactElement {
+  return (
+    <span className={className} aria-hidden={!src}>
+      {src ? <img src={src} alt="" /> : null}
+    </span>
+  );
+}
+
 export function ProductGridSection({
   section,
 }: SectionViewProps): ReactElement | null {
@@ -48,7 +62,8 @@ export function ProductGridSection({
         <div className="shop-grid-list">
           {items.map((product) => (
             <a key={product.id} href={`/shop/${product.slug}`}>
-              <span>{product.title}</span>
+              <MediaSlot src={product.image_url} className="shop-grid-row-media" />
+              <span className="shop-grid-row-title">{product.title}</span>
               {showPrice && product.min_price_cents != null ? (
                 <span className="shop-price">
                   {(product.min_price_cents / 100).toFixed(2)}
@@ -64,18 +79,18 @@ export function ProductGridSection({
   return (
     <>
       <SectionHeading settings={s} />
-      <div className={gridClass(settingNumber(s, "columns", 3))}>
+      <div className={`${gridClass(settingNumber(s, "columns", 3))} shop-grid`}>
         {items.map((product) => (
-          <a key={product.id} className="card" href={`/shop/${product.slug}`}>
-            {product.image_url ? (
-              <img className="shop-card-image" src={product.image_url} alt="" />
-            ) : null}
-            <span className="title">{product.title}</span>
-            {showPrice && product.min_price_cents != null ? (
-              <span className="muted shop-price">
-                {(product.min_price_cents / 100).toFixed(2)}
-              </span>
-            ) : null}
+          <a key={product.id} className="card shop-card" href={`/shop/${product.slug}`}>
+            <MediaSlot src={product.image_url} className="shop-card-media" />
+            <span className="shop-card-body">
+              <span className="title">{product.title}</span>
+              {showPrice && product.min_price_cents != null ? (
+                <span className="shop-price">
+                  {(product.min_price_cents / 100).toFixed(2)}
+                </span>
+              ) : null}
+            </span>
           </a>
         ))}
       </div>
