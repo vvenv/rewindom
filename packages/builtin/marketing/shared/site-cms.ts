@@ -20,7 +20,7 @@ export type SiteLocalizedText = string | LocalizedText;
  * 想知道一个 kind 是不是模板页、它的固定 slug 与路径是什么，一律查
  * `page-templates.ts` 的注册表。
  *
- * marketing 自带的模板页只有 `home`。文档库、会员登录等由业务模块
+ * marketing 自带的模板页是 `home` 与 `not_found`。文档库、会员登录等由业务模块
  * `registerPageTemplateKind` 贡献——marketing 不认识那些 kind。
  *
  * SSR 在库里没有记录时仍用内置预设渲染——那是快照前的缺口，不是「默认不落库」的产品路径。

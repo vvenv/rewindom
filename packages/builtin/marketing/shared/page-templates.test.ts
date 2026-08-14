@@ -18,6 +18,9 @@ describe("模板页注册表", () => {
     expect(isTemplatePageKind("not_found")).toBe(true);
     expect(isTemplatePageKind("page")).toBe(false);
     expect(isTemplatePageKind("doc_index")).toBe(false);
+    expect(getPageTemplateKind("not_found")?.required_section).toBe(
+      "page-missing",
+    );
   });
 
   it("kind 决定 slug 与路径——租户改不了地址", () => {

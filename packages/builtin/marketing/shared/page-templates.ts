@@ -204,6 +204,7 @@ registerPageTemplateKind({
   path: NOT_FOUND_PATH,
   group: "cms.notFoundTemplate",
   label: "preset.not_found.label",
-  required_section: null,
+  // 字符串而不是 import：`page-missing` 的 definition 反过来认 NOT_FOUND_PAGE_KIND。
+  required_section: "page-missing",
   in_catalog: false,
 });

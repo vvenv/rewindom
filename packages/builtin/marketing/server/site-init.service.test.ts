@@ -17,7 +17,9 @@ vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
     },
     marketingPage: {
       findFirst: vi.fn(),
+      findMany: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
       updateMany: vi.fn(),
     },
   },
@@ -90,6 +92,8 @@ describe("initializeTenantSite", () => {
     vi.mocked(prisma.marketingPage.updateMany).mockResolvedValue({
       count: 0,
     } as never);
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([] as never);
+    vi.mocked(prisma.marketingPage.update).mockResolvedValue({} as never);
     vi.mocked(prisma.marketingPage.findFirst).mockImplementation(
       (async (args: { where?: { kind?: string } } | undefined) => {
         const kind = args?.where?.kind;
@@ -175,5 +179,40 @@ describe("initializeTenantSite", () => {
       )
       .find((data) => data.kind === "not_found");
     expect(created?.settings).toEqual({ noindex: true });
+  });
+
+  it("把还没有必备段的 404 页换成当前预设", async () => {
+    vi.mocked(isTenantModuleEnabled).mockResolvedValue(false);
+    const hero = {
+      id: "hero-1",
+      type: "hero",
+      settings: {
+        eyebrow: "404",
+        headline: "页面不存在",
+        subhead: "链接过期了",
+        primary_label: "回到首页",
+        primary_href: "/",
+      },
+      blocks: [],
+    };
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([
+      {
+        id: "nf-1",
+        locale: "zh-CN",
+        sections: [hero],
+        sections_draft: [hero],
+      },
+    ] as never);
+
+    await initializeTenantSite(TENANT, "zh-CN");
+
+    expect(prisma.marketingPage.update).toHaveBeenCalledOnce();
+    const data = (
+      vi.mocked(prisma.marketingPage.update).mock.calls[0]![0] as {
+        data: { sections: Array<{ type: string; settings: { headline?: string } }> };
+      }
+    ).data;
+    expect(data.sections[0]?.type).toBe("page-missing");
+    expect(data.sections).toHaveLength(1);
   });
 });

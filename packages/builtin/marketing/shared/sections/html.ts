@@ -29,6 +29,7 @@ import { renderGroupHtml } from "./group/html.js";
 import { renderHeroHtml } from "./hero/html.js";
 import { renderPageHeaderHtml } from "./page-header/html.js";
 import { renderPageMenuHtml } from "./page-menu/html.js";
+import { renderPageMissingSectionHtml } from "./page-missing/html.js";
 import { renderProseHtml } from "./prose/html.js";
 
 import type {
@@ -73,6 +74,7 @@ export function registerSiteSectionHtml(
  */
 export const SECTION_HTML: Partial<Record<SectionType, SectionHtmlRenderer>> = {
   hero: renderHeroHtml,
+  "page-missing": renderPageMissingSectionHtml,
   "page-menu": renderPageMenuHtml,
   form: renderFormHtml,
   band: renderBandHtml,

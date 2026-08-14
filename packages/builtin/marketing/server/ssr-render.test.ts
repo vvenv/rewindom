@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  builtinNotFoundPage,
-  renderPageMissingHtml,
-} from "../shared/page-missing.js";
+import { builtinNotFoundPage } from "../shared/page-missing.js";
 import {
   createSection,
   parseAreaSections,
@@ -11,6 +8,7 @@ import {
   type SiteSection,
 } from "../shared/section-schema.js";
 
+import { createStarterTranslator } from "./starter-i18n.js";
 import { renderMarketingHtml, renderSitemapXml } from "./ssr-render.js";
 
 import type {
@@ -379,19 +377,16 @@ describe("renderSitemapXml", () => {
 });
 
 describe("renderMarketingHtml builtin 404", () => {
-  it("keeps site chrome and injects the missing-page body", () => {
+  it("keeps site chrome and renders the page-missing section", () => {
     const page = builtinNotFoundPage({
       locale: "zh-CN",
       defaultLocale: "zh-CN",
+      t: createStarterTranslator("zh-CN"),
     });
     const html = renderMarketingHtml({
       origin: ORIGIN,
       site: site(),
       page,
-      mainHtml: renderPageMissingHtml({
-        locale: "zh-CN",
-        homeHref: "/",
-      }),
     });
     expect(html).toContain('name="robots" content="noindex"');
     expect(html).toContain("page-missing");

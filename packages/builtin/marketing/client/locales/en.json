@@ -536,6 +536,7 @@
       "stat_detail": "Stat detail",
       "icon": "Icon",
       "code": "Command / code",
+      "page_missing_code": "Status code",
       "term": "Term",
       "detail": "Detail",
       "question": "Question",
@@ -734,7 +735,8 @@
       "band": "CTA band",
       "page-header": "Page title",
       "unsupported": "Unavailable block",
-      "form": "Form"
+      "form": "Form",
+      "page-missing": "Not found"
     },
     "blockType": {
       "card": "Card",
@@ -912,8 +914,7 @@
       "label": "Not found",
       "title": "Page not found",
       "description": "This page isn't published, or the link is outdated.",
-      "hero": {
-        "eyebrow": "404",
+      "page_missing": {
         "headline": "Page not found",
         "subhead": "This page isn't published, or the link is outdated.",
         "primary_label": "Back to home"

@@ -9,10 +9,7 @@ import {
   type AppLocale,
 } from "@rewindom/shared";
 
-import {
-  builtinNotFoundPage,
-  renderPageMissingHtml,
-} from "../shared/page-missing.js";
+import { builtinNotFoundPage } from "../shared/page-missing.js";
 import {
   NOT_FOUND_PAGE_KIND,
   NOT_FOUND_PATH,
@@ -21,7 +18,6 @@ import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import {
   isSpaShellPath,
   resolveLocaleSegment,
-  withSiteLocale,
 } from "../shared/site-locale.js";
 import { matchSitePathHandler } from "../shared/site-path-handlers.js";
 
@@ -46,6 +42,7 @@ import {
   renderSitemapXml,
   renderUnavailableHtml,
 } from "./ssr-render.js";
+import { createStarterTranslator } from "./starter-i18n.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -114,8 +111,14 @@ async function renderNotFound(
       locale,
     );
     const pageLocale = normalizeLocale(locale, site.default_locale);
+    const page = builtinNotFoundPage({
+      locale: pageLocale,
+      defaultLocale: site.default_locale,
+      t: createStarterTranslator(pageLocale),
+    });
     const usedSectionTypes = collectSectionTypes(site.header);
     collectSectionTypes(site.footer, usedSectionTypes);
+    collectSectionTypes(page.sections, usedSectionTypes);
 
     const [accountEntry, enabledEntitlements, contributed] = await Promise.all([
       resolveSiteAccountEntry({
@@ -139,14 +142,7 @@ async function renderNotFound(
         origin: requestOrigin(request),
         site,
         contributed,
-        page: builtinNotFoundPage({
-          locale: pageLocale,
-          defaultLocale: site.default_locale,
-        }),
-        mainHtml: renderPageMissingHtml({
-          locale: pageLocale,
-          homeHref: withSiteLocale("/", pageLocale, site.default_locale),
-        }),
+        page,
         accountEntryHtml: accountEntry.html,
         enabledEntitlements,
         isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,

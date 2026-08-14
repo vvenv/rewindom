@@ -5,6 +5,7 @@ import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { getPlatformSettings } from "../../platform/server/services/platform-settings.service.js";
 import { isTenantModuleEnabled } from "../../platform/server/services/tenant-module.service.js";
+import { upgradeNotFoundSections } from "../shared/page-missing.js";
 import { buildPresetSections } from "../shared/page-presets.js";
 import {
   getPageTemplatePreset,
@@ -19,6 +20,7 @@ import {
   parsePageSections,
   parseSiteAreaSections,
   parseSiteThemeSettings,
+  safePageSections,
 } from "./site.util.js";
 import { createStarterTranslator } from "./starter-i18n.js";
 
@@ -166,6 +168,10 @@ export async function initializeTenantSite(
     }
   }
 
+  if (!dry_run) {
+    await upgradeNotFoundTemplateSections(tenant_id);
+  }
+
   return { created_site, created_pages };
 }
 
@@ -184,6 +190,46 @@ export async function ensureTenantTemplatePages(
     ? normalizeLocale(site.default_locale)
     : (await getPlatformSettings()).default_locale;
   return initializeTenantSite(tenant_id, locale);
+}
+
+/**
+ * 存量 404 页还没有必备段：打开 `/app/site` 时整页换成当前预设。
+ */
+async function upgradeNotFoundTemplateSections(tenant_id: string): Promise<void> {
+  const pages = await prisma.marketingPage.findMany({
+    where: withTenantScope(tenant_id, { kind: NOT_FOUND_PAGE_KIND }),
+  });
+  for (const page of pages) {
+    const t = createStarterTranslator(normalizeLocale(page.locale));
+    const published = upgradeNotFoundSections(
+      safePageSections(page.sections),
+      t,
+    );
+    const draft = upgradeNotFoundSections(
+      safePageSections(page.sections_draft),
+      t,
+    );
+    if (!published && !draft) continue;
+    await prisma.marketingPage.update({
+      where: { id: page.id },
+      data: {
+        ...(published
+          ? {
+              sections: parsePageSections(
+                published,
+              ) as unknown as Prisma.InputJsonValue,
+            }
+          : {}),
+        ...(draft
+          ? {
+              sections_draft: parsePageSections(
+                draft,
+              ) as unknown as Prisma.InputJsonValue,
+            }
+          : {}),
+      },
+    });
+  }
 }
 
 async function resolveTemplateEntitlements(

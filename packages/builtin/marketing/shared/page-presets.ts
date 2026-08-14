@@ -12,6 +12,7 @@ import {
   type SiteBlock,
   type SiteSection,
 } from "./section-schema.js";
+import { PAGE_MISSING_SECTION_TYPE } from "./sections/page-missing/definition.js";
 
 import type {
   PagePreset,
@@ -94,8 +95,8 @@ export const HOME_STARTER_PRESET: PagePreset = {
 registerPageTemplatePreset("home", HOME_STARTER_PRESET);
 
 /**
- * 404 起步版式：居中 hero + 回首页。租户在同一个编辑器里改文案、加段、换按钮。
- * 没发布这张页时 SSR 仍用内置 `page-missing` 兜底。
+ * 404 起步版式：必备的 `page-missing` 段 + 回首页。租户改文案、加段、换按钮；
+ * 这一段本身删不掉。没发布这张页时 SSR 用同一份预设段合成一页。
  */
 export const NOT_FOUND_STARTER_PRESET: PagePreset = {
   key: NOT_FOUND_PAGE_KIND,
@@ -106,17 +107,15 @@ export const NOT_FOUND_STARTER_PRESET: PagePreset = {
   descriptionKey: "preset.not_found.description",
   sections: [
     {
-      type: "hero",
+      type: PAGE_MISSING_SECTION_TYPE,
       text: {
-        eyebrow: "preset.not_found.hero.eyebrow",
-        headline: "preset.not_found.hero.headline",
-        subhead: "preset.not_found.hero.subhead",
-        primary_label: "preset.not_found.hero.primary_label",
+        headline: "preset.not_found.page_missing.headline",
+        subhead: "preset.not_found.page_missing.subhead",
+        primary_label: "preset.not_found.page_missing.primary_label",
       },
       raw: {
+        code: "404",
         primary_href: "/",
-        align: "center",
-        show_glow: true,
         padding_top: 80,
         padding_bottom: 80,
       },

@@ -536,6 +536,7 @@
       "stat_detail": "指标说明",
       "icon": "图标",
       "code": "命令 / 代码",
+      "page_missing_code": "状态码",
       "term": "名称",
       "detail": "内容",
       "question": "问题",
@@ -734,7 +735,8 @@
       "band": "通栏 CTA",
       "page-header": "页面标题",
       "unsupported": "不可用区块",
-      "form": "表单"
+      "form": "表单",
+      "page-missing": "页面不存在"
     },
     "blockType": {
       "card": "卡片",
@@ -912,8 +914,7 @@
       "label": "找不到的页面",
       "title": "页面不存在",
       "description": "这个地址没有已发布的内容，可能是链接过期了。",
-      "hero": {
-        "eyebrow": "404",
+      "page_missing": {
         "headline": "页面不存在",
         "subhead": "这个地址没有已发布的内容，可能是链接过期了。",
         "primary_label": "回到首页"

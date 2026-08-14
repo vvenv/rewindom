@@ -3,6 +3,7 @@ import { type CSSProperties, type ReactNode } from "react";
 import { cn } from "@rewindom/ui/utils";
 
 import { MARKETING_SITE_ROOT_CLASS } from "../../shared/marketing-site-theme.js";
+import { buildNotFoundFallbackSections } from "../../shared/page-missing.js";
 import {
   localizeSections,
   type SiteSection,
@@ -16,9 +17,9 @@ import {
 } from "../../shared/site-cms.js";
 import { resolveThemeSettings } from "../../shared/theme-sections.js";
 import { useMarketingSiteDocumentTheme } from "../hooks/use-marketing-site-document-theme.js";
+import { marketingPresetT } from "../lib/marketing-preset-t.js";
 import { usePreviewDocument } from "../lib/preview-document-context.js";
 
-import { PageMissing } from "./PageMissing.js";
 import { SiteLocaleProvider } from "./sections/site-locale-context.js";
 import { SiteFooter, SiteHeader } from "./sections/SiteChrome.js";
 import { SiteSections, type SelectSectionFn } from "./sections/SiteSections.js";
@@ -103,6 +104,10 @@ export function TenantSiteView({
     ? localizeSections(footerOverride, site.locale, site.default_locale)
     : site.footer;
   const hasOwnContent = sections.length > 0;
+  const mainSections =
+    !pageMeta && path !== "/" && !hasOwnContent
+      ? buildNotFoundFallbackSections(marketingPresetT(site.locale))
+      : sections;
   const content = (
     <SiteLocaleProvider
       locale={site.locale}
@@ -152,11 +157,9 @@ export function TenantSiteView({
         <main className="site-main" style={mainStyle}>
           {mainOverride !== undefined ? (
             mainOverride
-          ) : !pageMeta && path !== "/" && !hasOwnContent ? (
-            <PageMissing />
           ) : (
             <SiteSections
-              sections={sections}
+              sections={mainSections}
               onSelectSection={onSelectSection}
               sectionSpacing={theme.section_spacing}
               pages={site.pages}

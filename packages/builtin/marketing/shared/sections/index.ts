@@ -18,6 +18,7 @@ import { headerSection } from "./header/definition.js";
 import { heroSection } from "./hero/definition.js";
 import { pageHeaderSection } from "./page-header/definition.js";
 import { pageMenuSection } from "./page-menu/definition.js";
+import { pageMissingSection } from "./page-missing/definition.js";
 import { proseSection } from "./prose/definition.js";
 import {
   AREA_SECTION_TYPES,
@@ -69,6 +70,7 @@ export const BUILTIN_SECTION_DEFINITIONS: Record<
   /* 页面级 */
   "page-header": pageHeaderSection,
   hero: heroSection,
+  "page-missing": pageMissingSection,
   "page-menu": pageMenuSection,
   form: formSection,
   prose: proseSection,

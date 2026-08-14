@@ -24,6 +24,7 @@ import { GroupSection } from "./views/group.js";
 import { HeroSection } from "./views/hero.js";
 import { PageHeaderSection } from "./views/page-header.js";
 import { PageMenuSection } from "./views/page-menu.js";
+import { PageMissingSection } from "./views/page-missing.js";
 import { ProseSection } from "./views/prose.js";
 
 import type { SectionViewProps } from "./section-parts.js";
@@ -33,6 +34,7 @@ export const SECTION_VIEWS: Partial<
   Record<SectionType, ComponentType<SectionViewProps>>
 > = {
   hero: HeroSection,
+  "page-missing": PageMissingSection,
   "page-menu": PageMenuSection,
   form: FormSection,
   band: BandSection,

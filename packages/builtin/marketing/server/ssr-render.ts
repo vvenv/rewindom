@@ -143,11 +143,6 @@ export function renderMarketingHtml(input: {
   contributed?: Readonly<Record<string, unknown>>;
   /** 声明了 `default_tenant_only` 的段据此决定渲不渲染（见 `sections/html.ts`）。 */
   isDefaultTenant?: boolean;
-  /**
-   * 替换 `<main>` 正文（内置 404 等）。有值时不再渲染 `page.sections`。
-   * 会员闸门仍优先：闸门下的占位是登录态，不是缺页。
-   */
-  mainHtml?: string;
 }): string {
   const {
     origin,
@@ -158,7 +153,6 @@ export function renderMarketingHtml(input: {
     enabledEntitlements,
     contributed,
     isDefaultTenant,
-    mainHtml,
   } = input;
   const theme = resolveThemeSettings(site.theme_settings);
   const sectionCtx = {
@@ -285,12 +279,11 @@ export function renderMarketingHtml(input: {
       <p class="muted" style="margin-bottom:1.5rem">${escapeHtml(page.description || "Sign in to read this content.")}</p>
       <p><a class="btn" href="/member/login?redirect=${encodeURIComponent(localizedPath)}">Sign in</a></p>
     </div>`
-    : (mainHtml ??
-      renderPageSectionsHtml(site, page, {
+    : renderPageSectionsHtml(site, page, {
         enabledEntitlements,
         contributed,
         isDefaultTenant,
-      }));
+      });
 
   const mainStyle =
     page.settings.bg_color || page.settings.fg_color

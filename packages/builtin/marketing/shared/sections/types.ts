@@ -16,6 +16,7 @@ export const PAGE_SECTION_TYPES = [
   "prose",
   "group",
   "band",
+  "page-missing",
 ] as const;
 
 /** 站点级区域：出现在所有页面上，各自是一串 section。 */
