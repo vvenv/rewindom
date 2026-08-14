@@ -6,6 +6,8 @@
  * 对外统一从这里 re-export，调用方只 import 一个模块。
  */
 
+import "./i18n-catalog.js";
+
 import {
   isInputSetting,
   isLocalizableSetting,
@@ -36,7 +38,6 @@ import {
 } from "./sections/index.js";
 import { normalizeSiteColor } from "./site-color.js";
 import { localizeSiteHref } from "./site-locale.js";
-
 
 import type { AppLocale } from "@rewindom/shared";
 

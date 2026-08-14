@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createBlock,
   createSection,
+  localizeSections,
   type SettingValues,
   type SiteBlock,
   type SiteSection,
@@ -40,9 +41,22 @@ function section(
   return { ...base, settings: { ...base.settings, ...settings }, blocks };
 }
 
+function localized(
+  type: "header" | "footer",
+  blocks: SiteBlock[],
+  settings: SettingValues = {},
+): SiteSection {
+  const [next] = localizeSections(
+    [section(type, blocks, settings)],
+    "zh-CN",
+    "zh-CN",
+  );
+  return next!;
+}
+
 function header(blocks: SiteBlock[], settings: SettingValues = {}) {
   return renderHeaderHtml({
-    section: section("header", blocks, settings),
+    section: localized("header", blocks, settings),
     siteName: "站点",
     logoUrl: null,
     homeHref: "/",
@@ -53,7 +67,7 @@ function header(blocks: SiteBlock[], settings: SettingValues = {}) {
 
 function footer(blocks: SiteBlock[], settings: SettingValues = {}) {
   return renderFooterHtml({
-    section: section("footer", blocks, settings),
+    section: localized("footer", blocks, settings),
     siteName: "站点",
     logoUrl: null,
     locales: LOCALES,
@@ -189,16 +203,22 @@ describe("chrome 页头页脚同构", () => {
    */
   it("同一批块在两个区域画出同一份内容", () => {
     // 同一个 section 对象喂给两个渲染器：块 id 与汉堡的 id 才可比
-    const shared = section("header", [
-      block("chrome_brand", { blurb: "简介" }),
-      block("chrome_nav", { items: LINK_ITEMS, title: "产品" }),
-      block("chrome_locale", {}),
-      block("chrome_theme", {}),
-      block("chrome_button", { label: "开始", href: "/s" }),
-      block("chrome_text", { text: "© {year} {site}", row: "2" }),
-    ]);
+    const [shared] = localizeSections(
+      [
+        section("header", [
+          block("chrome_brand", { blurb: "简介" }),
+          block("chrome_nav", { items: LINK_ITEMS, title: "产品" }),
+          block("chrome_locale", {}),
+          block("chrome_theme", {}),
+          block("chrome_button", { label: "开始", href: "/s" }),
+          block("chrome_text", { text: "© {year} {site}", row: "2" }),
+        ]),
+      ],
+      "zh-CN",
+      "zh-CN",
+    );
     const common = {
-      section: shared,
+      section: shared!,
       siteName: "站点",
       logoUrl: null,
       locales: LOCALES,

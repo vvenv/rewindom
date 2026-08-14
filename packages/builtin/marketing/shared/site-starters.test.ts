@@ -32,7 +32,9 @@ describe("buildMinimalSiteChrome", () => {
     );
 
     // 建站那天写死 `© 2026 Acme`，跨年就停在去年、改站名也不跟着变
-    expect(text?.settings.text).toBe("© {year} {site}");
+    expect(text?.settings.text).toEqual({
+      __i18n: { "zh-CN": "© {year} {site}", en: "© {year} {site}" },
+    });
   });
 });
 

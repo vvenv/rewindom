@@ -33,7 +33,9 @@ describe("parseSettingValues", () => {
     expect(parseSettingValues(defs, {})).toMatchObject({
       heading: "",
       subheading: "",
-      submit_label: "Submit",
+      submit_label: {
+        __i18n: { "zh-CN": "提交", en: "Submit" },
+      },
       success_message: "",
       width: "page",
       content_width: "default",
@@ -135,7 +137,9 @@ describe("parseSettingValues", () => {
 describe("createSection", () => {
   it("seeds defaults and preset blocks", () => {
     const section = createSection("form");
-    expect(section.settings.submit_label).toBe("Submit");
+    expect(section.settings.submit_label).toEqual({
+      __i18n: { "zh-CN": "提交", en: "Submit" },
+    });
     expect(section.blocks.length).toBeGreaterThan(0);
     expect(section.blocks[0]?.type).toBe("field");
   });

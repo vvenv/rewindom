@@ -42,7 +42,9 @@ describe("builtinNotFoundPage", () => {
     expect(page.sections).toHaveLength(1);
     expect(page.sections[0]?.type).toBe(PAGE_MISSING_SECTION_TYPE);
     expect(page.title).toBe("页面不存在");
-    expect(page.sections[0]?.settings.headline).toBe("页面不存在");
+    expect(page.sections[0]?.settings.headline).toEqual({
+      __i18n: { "zh-CN": "页面不存在", en: "Page not found" },
+    });
     expect(page.sections[0]?.settings.primary_label).toBe("回到首页");
   });
 });

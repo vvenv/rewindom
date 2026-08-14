@@ -17,7 +17,7 @@ export const bandSection: SectionDefinition = {
       type: "text",
       id: "headline",
       label: "editor.setting.headline",
-      default: "Headline",
+      default: "marketing:storefront.band.headline",
       required: true,
     },
     { type: "textarea", id: "body", label: "editor.setting.body", rows: 3 },

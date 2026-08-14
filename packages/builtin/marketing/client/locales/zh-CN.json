@@ -1135,5 +1135,27 @@
     "publishedPages": "已发布页面",
     "draftPages": "草稿页面",
     "pendingChanges": "有 {{count}} 处改动尚未发布"
+  },
+  "storefront": {
+    "hero": {
+      "headline": "欢迎",
+      "statTerm": "指标"
+    },
+    "band": {
+      "headline": "标题"
+    },
+    "form": {
+      "submit": "提交",
+      "field": "字段",
+      "fieldName": "姓名",
+      "fieldEmail": "邮箱",
+      "fieldMessage": "留言"
+    },
+    "pageMissing": {
+      "headline": "页面不存在"
+    },
+    "chrome": {
+      "copyright": "© {year} {site}"
+    }
   }
 }

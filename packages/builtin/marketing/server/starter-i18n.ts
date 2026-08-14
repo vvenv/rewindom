@@ -5,16 +5,11 @@ import {
   type AppLocale,
 } from "@rewindom/shared";
 
-import en from "../client/locales/en.json" with { type: "json" };
-import zhCN from "../client/locales/zh-CN.json" with { type: "json" };
+import { MARKETING_LOCALE_MESSAGES } from "../shared/i18n-catalog.js";
 
 import type { PresetTranslateFn } from "../shared/page-presets.js";
 
-const MESSAGES: Record<string, Record<string, unknown>> = {
-  "zh-CN": zhCN as Record<string, unknown>,
-  en: en as Record<string, unknown>,
-};
-
+const MESSAGES = MARKETING_LOCALE_MESSAGES;
 
 /**
  * 服务端解析站点起步模板 / 页面预设里的 i18n key。

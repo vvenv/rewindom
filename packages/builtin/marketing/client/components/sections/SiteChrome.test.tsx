@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   createBlock,
   createSection,
+  localizeSections,
   type SettingValues,
   type SiteBlock,
   type SiteSection,
@@ -54,17 +55,23 @@ function area(
   settings: SettingValues = {},
 ) {
   const base = createSection(tag);
-  const section: SiteSection = {
-    ...base,
-    settings: { ...base.settings, ...settings },
-    blocks,
-  };
+  const [section] = localizeSections(
+    [
+      {
+        ...base,
+        settings: { ...base.settings, ...settings },
+        blocks,
+      } satisfies SiteSection,
+    ],
+    "zh-CN",
+    "zh-CN",
+  );
   return render(
     <MemoryRouter>
       <siteMemberEntrySlot.Provider component={EntryStub}>
         <SiteChrome
           tag={tag}
-          section={section}
+          section={section!}
           siteName="Acme"
           logoUrl={null}
           pages={pages}

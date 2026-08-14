@@ -29,7 +29,7 @@ export const pageMissingSection: SectionDefinition = {
       type: "text",
       id: "headline",
       label: "editor.setting.headline",
-      default: "Page not found",
+      default: "marketing:storefront.pageMissing.headline",
       required: true,
     },
     {

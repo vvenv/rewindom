@@ -18,7 +18,7 @@ export const heroSection: SectionDefinition = {
       type: "text",
       id: "headline",
       label: "editor.setting.headline",
-      default: "Welcome",
+      default: "marketing:storefront.hero.headline",
       required: true,
     },
     {
@@ -55,7 +55,7 @@ export const heroSection: SectionDefinition = {
           type: "text",
           id: "term",
           label: "editor.setting.stat_term",
-          default: "Term",
+          default: "marketing:storefront.hero.statTerm",
           required: true,
         },
         { type: "text", id: "detail", label: "editor.setting.stat_detail" },

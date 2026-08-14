@@ -29,7 +29,7 @@ export const formSection: SectionDefinition = {
       type: "text",
       id: "submit_label",
       label: "editor.setting.submit_label",
-      default: "Submit",
+      default: "marketing:storefront.form.submit",
       required: true,
     },
     {
@@ -43,9 +43,24 @@ export const formSection: SectionDefinition = {
   ],
   max_blocks: 16,
   preset_blocks: [
-    { type: "field", settings: { label: "Name", type: "text" } },
-    { type: "field", settings: { label: "Email", type: "email" } },
-    { type: "field", settings: { label: "Message", type: "textarea" } },
+    {
+      type: "field",
+      settings: { label: "marketing:storefront.form.fieldName", type: "text" },
+    },
+    {
+      type: "field",
+      settings: {
+        label: "marketing:storefront.form.fieldEmail",
+        type: "email",
+      },
+    },
+    {
+      type: "field",
+      settings: {
+        label: "marketing:storefront.form.fieldMessage",
+        type: "textarea",
+      },
+    },
   ],
   blocks: [
     {
@@ -56,7 +71,7 @@ export const formSection: SectionDefinition = {
           type: "text",
           id: "label",
           label: "editor.setting.field_label",
-          default: "Field",
+          default: "marketing:storefront.form.field",
           required: true,
         },
         {

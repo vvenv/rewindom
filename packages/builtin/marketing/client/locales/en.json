@@ -1135,5 +1135,27 @@
     "publishedPages": "Published pages",
     "draftPages": "Draft pages",
     "pendingChanges": "{{count}} unpublished change(s)"
+  },
+  "storefront": {
+    "hero": {
+      "headline": "Welcome",
+      "statTerm": "Term"
+    },
+    "band": {
+      "headline": "Headline"
+    },
+    "form": {
+      "submit": "Submit",
+      "field": "Field",
+      "fieldName": "Name",
+      "fieldEmail": "Email",
+      "fieldMessage": "Message"
+    },
+    "pageMissing": {
+      "headline": "Page not found"
+    },
+    "chrome": {
+      "copyright": "© {year} {site}"
+    }
   }
 }
