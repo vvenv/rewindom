@@ -13,7 +13,7 @@ import {
   localizeSiteText,
   parseSiteNameValue,
   type LocalizedText,
-} from "../../../packages/builtin/marketing/shared/section-settings.js";
+} from "@rewindom/builtin/marketing/shared/section-settings.js";
 
 /** 分类 key：字母数字开头结尾，中间可含连字符，最长 63。 */
 const CATEGORY_KEY_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u;

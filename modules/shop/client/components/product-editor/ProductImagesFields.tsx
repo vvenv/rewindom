@@ -8,7 +8,7 @@ import { Input } from "@rewindom/ui/input";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { SiteImageField } from "../../../../../packages/builtin/marketing/client/components/media/SiteImageField.js";
+import { SiteImageField } from "@rewindom/builtin/marketing/client/components/media/SiteImageField.js";
 import {
   newImage,
   patchLocalized,

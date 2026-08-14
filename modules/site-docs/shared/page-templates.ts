@@ -24,11 +24,11 @@ import { DOCS_INDEX_PATH } from "./site-doc.js";
 import {
   registerPageTemplateKind,
   registerPageTemplatePreset,
-} from "../../../packages/builtin/marketing/shared/page-templates.js";
-import { buildPresetSections } from "../../../packages/builtin/marketing/shared/page-presets.js";
+} from "@rewindom/builtin/marketing/shared/page-templates.js";
+import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
 
-import type { PagePreset, PresetTranslateFn } from "../../../packages/builtin/marketing/shared/page-presets.types.js";
-import type { SiteSection } from "../../../packages/builtin/marketing/shared/section-schema.js";
+import type { PagePreset, PresetTranslateFn } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
+import type { SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export const DOCS_PAGE_TEMPLATE_GROUP = "site-docs:template.group";
 

@@ -1,8 +1,8 @@
 import type { ReactElement } from "react";
 
-import type { ChromeBlockViewProps } from "../../../../packages/builtin/marketing/client/components/sections/chrome-views.js";
-import { useSiteLocale } from "../../../../packages/builtin/marketing/client/components/sections/site-locale-context.js";
-import { withSiteLocale } from "../../../../packages/builtin/marketing/shared/site-locale.js";
+import type { ChromeBlockViewProps } from "@rewindom/builtin/marketing/client/components/sections/chrome-views.js";
+import { useSiteLocale } from "@rewindom/builtin/marketing/client/components/sections/site-locale-context.js";
+import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import { DOCS_INDEX_PATH, docMessages } from "../../shared/site-doc.js";
 

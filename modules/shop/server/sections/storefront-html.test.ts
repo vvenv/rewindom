@@ -11,9 +11,9 @@ import {
   shopContextEntry,
 } from "../../shared/shop-section-context.js";
 
-import { createBlock, createSection } from "../../../../packages/builtin/marketing/shared/section-schema.js";
-import { renderHeaderHtml } from "../../../../packages/builtin/marketing/shared/sections/header/html.js";
-import { SECTION_HTML } from "../../../../packages/builtin/marketing/shared/sections/html.js";
+import { createBlock, createSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { renderHeaderHtml } from "@rewindom/builtin/marketing/shared/sections/header/html.js";
+import { SECTION_HTML } from "@rewindom/builtin/marketing/shared/sections/html.js";
 
 describe("shop storefront section html", () => {
   beforeAll(() => {

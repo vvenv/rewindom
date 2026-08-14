@@ -5,7 +5,7 @@
  * 一个，渲染器各取各的字段。marketing 不认识这些形状，只负责原样透传。
  */
 
-import type { SectionRenderContext } from "../../../packages/builtin/marketing/shared/sections/render-context.js";
+import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 export const SHOP_CONTEXT_KEY = "shop";
 

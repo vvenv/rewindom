@@ -1,8 +1,8 @@
 import { FileText, LibraryBig, List, ListTree, Search } from "lucide-react";
 
-import { registerChromeBlockView } from "../../../packages/builtin/marketing/client/components/sections/chrome-views.js";
-import { registerSiteSectionView } from "../../../packages/builtin/marketing/client/components/sections/section-views.js";
-import { registerReservedPageSlug } from "../../../packages/builtin/marketing/shared/reserved-slugs.js";
+import { registerChromeBlockView } from "@rewindom/builtin/marketing/client/components/sections/chrome-views.js";
+import { registerSiteSectionView } from "@rewindom/builtin/marketing/client/components/sections/section-views.js";
+import { registerReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-slugs.js";
 
 import { SITE_DOCS_ENTITLEMENT } from "../shared/entitlements.js";
 import { registerDocsNavSources } from "../shared/nav-sources.js";

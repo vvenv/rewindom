@@ -10,12 +10,12 @@ import {
   getOrCreateSite,
   publishSiteDraft,
   updateSite,
-} from "../../../packages/builtin/marketing/server/site.service.js";
+} from "@rewindom/builtin/marketing/server/site.service.js";
 import {
   createNavItemId,
   type SiteNavItem,
-} from "../../../packages/builtin/marketing/shared/site-nav.js";
-import type { SiteSection } from "../../../packages/builtin/marketing/shared/section-schema.js";
+} from "@rewindom/builtin/marketing/shared/site-nav.js";
+import type { SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 import {
   createCollection,

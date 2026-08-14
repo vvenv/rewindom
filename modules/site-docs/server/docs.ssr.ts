@@ -23,18 +23,18 @@ import {
 } from "../shared/site-doc.js";
 import { siteDocsContextEntry } from "../shared/site-docs-context.js";
 
-import { registerSitePathHandler } from "../../../packages/builtin/marketing/shared/site-path-handlers.js";
-import { type SiteSection } from "../../../packages/builtin/marketing/shared/section-schema.js";
+import { registerSitePathHandler } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
+import { type SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import {
   type MarketingPageSettings,
   type MarketingPageVisibility,
   type PageLocaleAlternate,
   type PublicMarketingPage,
   type PublicMarketingSite,
-} from "../../../packages/builtin/marketing/shared/site-cms.js";
-import { getPublishedTemplatePage, getPublishedPublicSite } from "../../../packages/builtin/marketing/server/site.service.js";
-import { renderMarketingHtml } from "../../../packages/builtin/marketing/server/ssr-render.js";
-import { createStarterTranslator } from "../../../packages/builtin/marketing/server/starter-i18n.js";
+} from "@rewindom/builtin/marketing/shared/site-cms.js";
+import { getPublishedTemplatePage, getPublishedPublicSite } from "@rewindom/builtin/marketing/server/site.service.js";
+import { renderMarketingHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
+import { createStarterTranslator } from "@rewindom/builtin/marketing/server/starter-i18n.js";
 
 import {
   buildDocAlternates,
@@ -45,7 +45,7 @@ import {
 } from "./site-doc.service.js";
 import "./preset-i18n.js";
 
-import type { SitePathHandlerInput } from "../../../packages/builtin/marketing/shared/site-path-handlers.js";
+import type { SitePathHandlerInput } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 
 interface DocTemplate {
   sections: SiteSection[];

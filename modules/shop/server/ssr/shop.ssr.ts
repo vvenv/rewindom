@@ -6,7 +6,7 @@ import {
   resolveRequestLocale,
   translateServerMessage,
 } from "@rewindom/module-sdk/server";
-import { renderUnavailableHtml } from "../../../../packages/builtin/marketing/server/ssr-render.js";
+import { renderUnavailableHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
 import {
@@ -65,7 +65,7 @@ import {
 } from "./shop-view.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import type { PagePreset } from "../../../../packages/builtin/marketing/shared/page-presets.types.js";
+import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
 import type { ShopRenderContext } from "../../shared/shop-section-context.js";
 
 const GUEST_ORDER_COOKIE = "shop_guest_token";

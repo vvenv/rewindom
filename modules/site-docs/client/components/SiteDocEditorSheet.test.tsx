@@ -94,7 +94,7 @@ const categoryCatalog = [
 let catalogData: typeof categoryCatalog | [] = categoryCatalog;
 let fullDocData: SiteDoc | undefined = FULL_DOC;
 
-vi.mock("../../../../packages/builtin/marketing/client/hooks/useSite.js", () => ({
+vi.mock("@rewindom/builtin/marketing/client/hooks/useSite.js", () => ({
   useSite: () => ({
     data: { default_locale: "zh-CN" },
   }),

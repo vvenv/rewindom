@@ -2,11 +2,11 @@ import type { ReactElement } from "react";
 
 import { sampleShopContext } from "../../lib/shop-sample.js";
 
-import type { ChromeBlockViewProps } from "../../../../../packages/builtin/marketing/client/components/sections/chrome-views.js";
+import type { ChromeBlockViewProps } from "@rewindom/builtin/marketing/client/components/sections/chrome-views.js";
 import {
   settingBool,
   settingText,
-} from "../../../../../packages/builtin/marketing/shared/section-schema.js";
+} from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 const CART_ICON = (
   <svg

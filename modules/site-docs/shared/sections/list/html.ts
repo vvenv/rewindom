@@ -1,6 +1,6 @@
-import { escapeHtml } from "../../../../../packages/builtin/marketing/shared/html.js";
-import { withSiteLocale } from "../../../../../packages/builtin/marketing/shared/site-locale.js";
-import { gridClass, sectionHeading } from "../../../../../packages/builtin/marketing/shared/sections/_common/html.js";
+import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
+import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import { gridClass, sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
 
 import {
   docMessages,
@@ -15,7 +15,7 @@ import { docSearchHaystack, resolveDocList } from "./select.js";
 import type {
   SectionHtmlRenderer,
   SectionRenderContext,
-} from "../../../../../packages/builtin/marketing/shared/sections/render-context.js";
+} from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 function docHref(doc: PublicDocSummary, ctx: SectionRenderContext): string {
   const path = docPath(doc.slug);

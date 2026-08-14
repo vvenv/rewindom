@@ -3,7 +3,7 @@ import { registerTenantGatedRoutes } from "@rewindom/module-sdk/server";
 import { SITE_DOCS_ENTITLEMENT } from "../shared/entitlements.js";
 import { registerDocsNavSources } from "../shared/nav-sources.js";
 import { registerDocsPageTemplates } from "../shared/page-templates.js";
-import { registerReservedPageSlug } from "../../../packages/builtin/marketing/shared/reserved-slugs.js";
+import { registerReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-slugs.js";
 
 import { registerDocsPathHandler } from "./docs.ssr.js";
 import { SITE_DOCS_SERVER_I18N } from "./i18n.js";

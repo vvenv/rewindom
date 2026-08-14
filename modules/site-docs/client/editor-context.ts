@@ -7,7 +7,7 @@
 
 import i18n from "i18next";
 
-import { registerEditorContextProvider } from "../../../packages/builtin/marketing/client/editor-context-providers.js";
+import { registerEditorContextProvider } from "@rewindom/builtin/marketing/client/editor-context-providers.js";
 import { normalizeLocale, type AppLocale } from "@rewindom/module-sdk/client";
 
 import { DOCS_ARTICLE_PAGE_KIND } from "../shared/page-kinds.js";

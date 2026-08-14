@@ -8,8 +8,8 @@ import {
   getOrCreateSite,
   setPageStatus,
   updateSite,
-} from "../../../packages/builtin/marketing/server/site.service.js";
-import { parseAreaSection } from "../../../packages/builtin/marketing/shared/section-schema.js";
+} from "@rewindom/builtin/marketing/server/site.service.js";
+import { parseAreaSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 async function main(): Promise<void> {
   const tenant =

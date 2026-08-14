@@ -1,7 +1,7 @@
-import { registerSiteSectionHtml } from "../../../packages/builtin/marketing/shared/sections/html.js";
-import { registerSectionContextProvider } from "../../../packages/builtin/marketing/server/section-context-providers.js";
-import { registerSitemapProvider } from "../../../packages/builtin/marketing/server/sitemap-providers.js";
-import { registerLinkTargetProvider } from "../../../packages/builtin/marketing/server/link-target-providers.js";
+import { registerSiteSectionHtml } from "@rewindom/builtin/marketing/shared/sections/html.js";
+import { registerSectionContextProvider } from "@rewindom/builtin/marketing/server/section-context-providers.js";
+import { registerSitemapProvider } from "@rewindom/builtin/marketing/server/sitemap-providers.js";
+import { registerLinkTargetProvider } from "@rewindom/builtin/marketing/server/link-target-providers.js";
 
 import { siteDocsArticleSection } from "../shared/sections/article/definition.js";
 import { renderSiteDocsArticleHtml } from "../shared/sections/article/html.js";

@@ -1,9 +1,9 @@
 import { SITE_DOCS_ENTITLEMENT } from "../../entitlements.js";
 import { DOCS_ARTICLE_PAGE_KIND } from "../../page-kinds.js";
 
-import { layoutSettings } from "../../../../../packages/builtin/marketing/shared/sections/_common/settings.js";
+import { layoutSettings } from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
-import type { SectionDefinition } from "../../../../../packages/builtin/marketing/shared/section-schema.js";
+import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export const SITE_DOCS_NAV_SECTION_TYPE = "site-docs.nav";
 

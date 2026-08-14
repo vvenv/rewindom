@@ -12,9 +12,9 @@ import { SHOP_ENTITLEMENT } from "./entitlements.js";
 import {
   headingSettings,
   layoutSettings,
-} from "../../../packages/builtin/marketing/shared/sections/_common/settings.js";
+} from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
-import type { SectionDefinition } from "../../../packages/builtin/marketing/shared/section-schema.js";
+import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export const SHOP_CHECKOUT_SECTION_TYPE = "shop.checkout";
 export const SHOP_CHECKOUT_PAGE_KIND = "shop_checkout";

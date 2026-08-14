@@ -46,8 +46,8 @@ import {
   type PublicDocSummary,
   type UpdateSiteDocBody,
 } from "../shared/site-doc.js";
-import { type PageLocaleAlternate } from "../../../packages/builtin/marketing/shared/site-cms.js";
-import { siteLocaleOrder, withSiteLocale } from "../../../packages/builtin/marketing/shared/site-locale.js";
+import { type PageLocaleAlternate } from "@rewindom/builtin/marketing/shared/site-cms.js";
+import { siteLocaleOrder, withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import {
   resolveDocCategoryKey,

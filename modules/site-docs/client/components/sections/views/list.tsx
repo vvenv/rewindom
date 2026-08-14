@@ -4,9 +4,9 @@ import {
   gridClass,
   SectionHeading,
   type SectionViewProps,
-} from "../../../../../../packages/builtin/marketing/client/components/sections/section-parts.js";
-import { useSiteLocale } from "../../../../../../packages/builtin/marketing/client/components/sections/site-locale-context.js";
-import { SiteLink } from "../../../../../../packages/builtin/marketing/client/components/sections/SiteLink.js";
+} from "@rewindom/builtin/marketing/client/components/sections/section-parts.js";
+import { useSiteLocale } from "@rewindom/builtin/marketing/client/components/sections/site-locale-context.js";
+import { SiteLink } from "@rewindom/builtin/marketing/client/components/sections/SiteLink.js";
 
 import {
   docMessages,

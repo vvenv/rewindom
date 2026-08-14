@@ -4,9 +4,9 @@ import {
   columnsSetting,
   headingSettings,
   layoutSettings,
-} from "../../../../../packages/builtin/marketing/shared/sections/_common/settings.js";
+} from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
-import type { SectionDefinition } from "../../../../../packages/builtin/marketing/shared/section-schema.js";
+import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export const SITE_DOCS_LIST_SECTION_TYPE = "site-docs.list";
 

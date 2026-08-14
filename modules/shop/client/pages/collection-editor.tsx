@@ -18,7 +18,7 @@ import { Textarea } from "@rewindom/ui/textarea";
 import { FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { SiteImageField } from "../../../../packages/builtin/marketing/client/components/media/SiteImageField.js";
+import { SiteImageField } from "@rewindom/builtin/marketing/client/components/media/SiteImageField.js";
 import { ProductLocaleBar } from "../components/product-editor/ProductLocaleBar.js";
 import { useCollectionEditor } from "../hooks/useCollectionEditor.js";
 import { useProducts } from "../hooks/useShop.js";

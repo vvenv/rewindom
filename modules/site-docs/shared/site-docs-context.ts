@@ -6,7 +6,7 @@
 
 import { DOCS_INDEX_PATH, type PublicDocDetail, type PublicDocSummary } from "./site-doc.js";
 
-import type { SectionRenderContext } from "../../../packages/builtin/marketing/shared/sections/render-context.js";
+import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 export const SITE_DOCS_CONTEXT_KEY = "site-docs";
 

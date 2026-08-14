@@ -14,7 +14,7 @@ import {
   emptyShopContext,
 } from "../../shared/shop-section-context.js";
 
-import { registerSectionContextProvider } from "../../../../packages/builtin/marketing/server/section-context-providers.js";
+import { registerSectionContextProvider } from "@rewindom/builtin/marketing/server/section-context-providers.js";
 
 /**
  * 官网任意页面上的商品列表与页头购物车入口：通用 SSR 在渲染前按需查。

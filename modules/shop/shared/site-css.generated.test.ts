@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assembleModuleSiteCss } from "../../../packages/builtin/scripts/assemble-module-css.mjs";
+import { assembleModuleSiteCss } from "@rewindom/builtin/scripts/assemble-module-css.mjs";
 
 import { SHOP_STOREFRONT_CSS } from "./site-css.generated.js";
 

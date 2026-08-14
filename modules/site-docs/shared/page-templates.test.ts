@@ -3,11 +3,11 @@ import { beforeAll, describe, expect, it } from "vitest";
 import {
   isPublicCatalogPageKind,
   isTemplatePageKind,
-} from "../../../packages/builtin/marketing/shared/page-templates.js";
+} from "@rewindom/builtin/marketing/shared/page-templates.js";
 import {
   canonicalizePageIdentity,
   marketingPagePath,
-} from "../../../packages/builtin/marketing/shared/site-cms.js";
+} from "@rewindom/builtin/marketing/shared/site-cms.js";
 
 import {
   DOCS_ARTICLE_PAGE_KIND,

@@ -50,9 +50,9 @@ import {
   docPath,
   type SiteDocListItem,
 } from "../../shared/site-doc.js";
-import { siteLocaleOrder } from "../../../../packages/builtin/marketing/shared/site-locale.js";
+import { siteLocaleOrder } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import { useSiteDocEditorForm } from "../hooks/use-site-doc-editor-form.js";
-import { useSite } from "../../../../packages/builtin/marketing/client/hooks/useSite.js";
+import { useSite } from "@rewindom/builtin/marketing/client/hooks/useSite.js";
 import {
   useCreateSiteDoc,
   usePublishSiteDoc,
@@ -63,7 +63,7 @@ import {
 import { slugifyDocTitle } from "../lib/site-doc-list.js";
 
 import { SiteDocCategorySheet } from "./SiteDocCategorySheet.js";
-import { SitePublishStatus } from "../../../../packages/builtin/marketing/client/components/SitePublishStatus.js";
+import { SitePublishStatus } from "@rewindom/builtin/marketing/client/components/SitePublishStatus.js";
 
 /** 分类快捷键：超过这个数就不铺了，下拉比在一排 chip 里找更快。 */
 const MAX_CATEGORY_SUGGESTIONS = 8;

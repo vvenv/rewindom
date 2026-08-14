@@ -10,9 +10,9 @@ import { SHOP_ENTITLEMENT } from "./entitlements.js";
 import {
   headingSettings,
   layoutSettings,
-} from "../../../packages/builtin/marketing/shared/sections/_common/settings.js";
+} from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
-import type { SectionDefinition } from "../../../packages/builtin/marketing/shared/section-schema.js";
+import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export const SHOP_ORDER_SECTION_TYPE = "shop.order";
 export const SHOP_ORDER_LIST_SECTION_TYPE = "shop.order-list";

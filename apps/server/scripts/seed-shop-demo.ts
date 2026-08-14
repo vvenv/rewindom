@@ -9,7 +9,7 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { collectModulePermissions } from "@rewindom/server-kernel/runtime/collect-module-permissions.js";
 import { DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 
-import { RoleService } from "../../../packages/builtin/rbac/server/role.service.js";
+import { RoleService } from "@rewindom/builtin/rbac/server/role.service.js";
 import { seedShopDemo } from "../../../modules/shop/server/seed-demo.js";
 
 import { ENABLED_SERVER_MODULES } from "../src/enabled-modules.js";

@@ -22,7 +22,7 @@ import {
   type ResolvedNavItem,
   type SiteNavContext,
   type SiteNavItem,
-} from "../../../packages/builtin/marketing/shared/site-nav.js";
+} from "@rewindom/builtin/marketing/shared/site-nav.js";
 
 export const SITE_DOCS_NAV_SOURCE = "site-docs";
 export const SITE_DOCS_CATEGORY_NAV_SOURCE = "site-docs.category";

@@ -35,7 +35,7 @@ import {
 } from "../../shared/site-doc.js";
 
 import { SiteDocDuplicateSheet } from "./SiteDocDuplicateSheet.js";
-import { SitePublishStatus } from "../../../../packages/builtin/marketing/client/components/SitePublishStatus.js";
+import { SitePublishStatus } from "@rewindom/builtin/marketing/client/components/SitePublishStatus.js";
 
 import type { SiteDocActions } from "../hooks/use-site-doc-actions.js";
 import type {

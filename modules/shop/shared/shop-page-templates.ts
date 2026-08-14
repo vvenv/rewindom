@@ -43,14 +43,14 @@ import {
   SHOP_PRODUCT_PATH,
 } from "./shop-section-context.js";
 
-import { MEMBER_PAGE_TEMPLATE_GROUP } from "../../../packages/builtin/site-member/shared/member-page-templates.js";
+import { MEMBER_PAGE_TEMPLATE_GROUP } from "@rewindom/builtin/site-member/shared/member-page-templates.js";
 import {
   registerPageTemplateKind,
   registerPageTemplatePreset,
   type PageTemplateKindDefinition,
-} from "../../../packages/builtin/marketing/shared/page-templates.js";
+} from "@rewindom/builtin/marketing/shared/page-templates.js";
 
-import type { PagePreset } from "../../../packages/builtin/marketing/shared/page-presets.types.js";
+import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
 
 export const SHOP_PAGE_TEMPLATE_GROUP = "shop:template.group";
 

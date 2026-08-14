@@ -19,6 +19,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@rewindom/builtin": "workspace:*",
     "@rewindom/module-sdk": "workspace:*",
     "@rewindom/ui": "workspace:*",
     "@tanstack/react-query": "^5.101.4",

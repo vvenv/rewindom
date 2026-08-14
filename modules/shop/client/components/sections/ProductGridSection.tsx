@@ -8,12 +8,12 @@ import {
   gridClass,
   SectionHeading,
   type SectionViewProps,
-} from "../../../../../packages/builtin/marketing/client/components/sections/section-parts.js";
+} from "@rewindom/builtin/marketing/client/components/sections/section-parts.js";
 import {
   settingBool,
   settingNumber,
   settingText,
-} from "../../../../../packages/builtin/marketing/shared/section-schema.js";
+} from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export function ProductGridSection({
   section,

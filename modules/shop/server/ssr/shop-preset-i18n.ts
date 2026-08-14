@@ -15,7 +15,7 @@ import {
   type AppLocale,
 } from "@rewindom/module-sdk";
 
-import type { PresetTranslateFn } from "../../../../packages/builtin/marketing/shared/page-presets.types.js";
+import type { PresetTranslateFn } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
 
 const MESSAGES: Record<string, Record<string, unknown>> = {
   "zh-CN": zhCN as Record<string, unknown>,

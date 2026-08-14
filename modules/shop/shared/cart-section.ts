@@ -8,16 +8,16 @@
 
 import { SHOP_ENTITLEMENT } from "./entitlements.js";
 
-import { chromeSlotSettings } from "../../../packages/builtin/marketing/shared/sections/_common/chrome-blocks.js";
+import { chromeSlotSettings } from "@rewindom/builtin/marketing/shared/sections/_common/chrome-blocks.js";
 import {
   headingSettings,
   layoutSettings,
-} from "../../../packages/builtin/marketing/shared/sections/_common/settings.js";
+} from "@rewindom/builtin/marketing/shared/sections/_common/settings.js";
 
 import type {
   BlockDefinition,
   SectionDefinition,
-} from "../../../packages/builtin/marketing/shared/section-schema.js";
+} from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export const SHOP_CART_SECTION_TYPE = "shop.cart";
 export const SHOP_CART_LINK_BLOCK_TYPE = "shop.cart-link";

@@ -1,10 +1,10 @@
-import { escapeHtml } from "../../../../../packages/builtin/marketing/shared/html.js";
-import { settingBool, settingText } from "../../../../../packages/builtin/marketing/shared/section-schema.js";
+import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
+import { settingBool, settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 import { docMessages, extractDocHeadings } from "../../site-doc.js";
 import { readSiteDocsContext } from "../../site-docs-context.js";
 
-import type { SectionHtmlRenderer } from "../../../../../packages/builtin/marketing/shared/sections/render-context.js";
+import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 export const renderSiteDocsTocHtml: SectionHtmlRenderer = (section, ctx) => {
   const doc = readSiteDocsContext(ctx)?.doc;

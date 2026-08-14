@@ -18,10 +18,10 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import shopEn from "../../../modules/shop/client/locales/en.json" with { type: "json" };
 import shopZhCN from "../../../modules/shop/client/locales/zh-CN.json" with { type: "json" };
-import siteBillingEn from "../../../packages/builtin/site-billing/client/locales/en.json" with { type: "json" };
-import siteBillingZhCN from "../../../packages/builtin/site-billing/client/locales/zh-CN.json" with { type: "json" };
-import siteMemberEn from "../../../packages/builtin/site-member/client/locales/en.json" with { type: "json" };
-import siteMemberZhCN from "../../../packages/builtin/site-member/client/locales/zh-CN.json" with { type: "json" };
+import siteBillingEn from "@rewindom/builtin/site-billing/client/locales/en.json" with { type: "json" };
+import siteBillingZhCN from "@rewindom/builtin/site-billing/client/locales/zh-CN.json" with { type: "json" };
+import siteMemberEn from "@rewindom/builtin/site-member/client/locales/en.json" with { type: "json" };
+import siteMemberZhCN from "@rewindom/builtin/site-member/client/locales/zh-CN.json" with { type: "json" };
 
 type Catalog = Record<string, Record<string, unknown>>;
 

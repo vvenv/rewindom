@@ -24,9 +24,9 @@ import {
   validateCategoryKey,
   type SiteDocCategory,
 } from "../../shared/site-doc-category.js";
-import { isLocalizedText } from "../../../../packages/builtin/marketing/shared/section-settings.js";
-import { siteLocaleOrder } from "../../../../packages/builtin/marketing/shared/site-locale.js";
-import { useSite } from "../../../../packages/builtin/marketing/client/hooks/useSite.js";
+import { isLocalizedText } from "@rewindom/builtin/marketing/shared/section-settings.js";
+import { siteLocaleOrder } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import { useSite } from "@rewindom/builtin/marketing/client/hooks/useSite.js";
 import {
   useCreateSiteDocCategory,
   useDeleteSiteDocCategory,

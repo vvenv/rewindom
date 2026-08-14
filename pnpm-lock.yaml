@@ -492,6 +492,9 @@ importers:
 
   modules/shop:
     dependencies:
+      '@rewindom/builtin':
+        specifier: workspace:*
+        version: link:../../packages/builtin
       '@rewindom/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk
@@ -562,6 +565,9 @@ importers:
 
   modules/site-docs:
     dependencies:
+      '@rewindom/builtin':
+        specifier: workspace:*
+        version: link:../../packages/builtin
       '@rewindom/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk

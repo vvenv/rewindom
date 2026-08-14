@@ -5,15 +5,15 @@
 import { createShopPresetTranslator } from "./shop-preset-i18n.js";
 import { shopContextEntry, type ShopRenderContext } from "../../shared/shop-section-context.js";
 
-import { resolveSiteAccountEntry } from "../../../../packages/builtin/marketing/server/site-account-entry.js";
-import { resolveSectionEntitlements } from "../../../../packages/builtin/marketing/server/site-entitlements.js";
+import { resolveSiteAccountEntry } from "@rewindom/builtin/marketing/server/site-account-entry.js";
+import { resolveSectionEntitlements } from "@rewindom/builtin/marketing/server/site-entitlements.js";
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,
-} from "../../../../packages/builtin/marketing/server/site.service.js";
-import { renderMarketingHtml } from "../../../../packages/builtin/marketing/server/ssr-render.js";
-import { buildPresetSections } from "../../../../packages/builtin/marketing/shared/page-presets.js";
-import type { PagePreset } from "../../../../packages/builtin/marketing/shared/page-presets.types.js";
+} from "@rewindom/builtin/marketing/server/site.service.js";
+import { renderMarketingHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
+import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
+import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
 import { normalizeLocale, type AppLocale } from "@rewindom/module-sdk";
 
 export async function renderShopTemplatePage(input: {

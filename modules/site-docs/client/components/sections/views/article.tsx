@@ -1,9 +1,9 @@
 import { type ReactElement } from "react";
 
-import { MarkdownProse } from "../../../../../../packages/builtin/marketing/client/components/MarkdownProse.js";
-import { useSiteLocale } from "../../../../../../packages/builtin/marketing/client/components/sections/site-locale-context.js";
-import { SiteLink } from "../../../../../../packages/builtin/marketing/client/components/sections/SiteLink.js";
-import { settingBool, settingText } from "../../../../../../packages/builtin/marketing/shared/section-schema.js";
+import { MarkdownProse } from "@rewindom/builtin/marketing/client/components/MarkdownProse.js";
+import { useSiteLocale } from "@rewindom/builtin/marketing/client/components/sections/site-locale-context.js";
+import { SiteLink } from "@rewindom/builtin/marketing/client/components/sections/SiteLink.js";
+import { settingBool, settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 import {
   DOCS_INDEX_PATH,
@@ -12,7 +12,7 @@ import {
 } from "../../../../shared/site-doc.js";
 import { readSiteDocsContext } from "../../../../shared/site-docs-context.js";
 
-import type { SectionViewProps } from "../../../../../../packages/builtin/marketing/client/components/sections/section-parts.js";
+import type { SectionViewProps } from "@rewindom/builtin/marketing/client/components/sections/section-parts.js";
 
 type Props = SectionViewProps & {
   contributed?: Readonly<Record<string, unknown>>;

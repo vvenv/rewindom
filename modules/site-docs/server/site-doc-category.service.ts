@@ -28,7 +28,7 @@ import {
 import {
   isLocalizedText,
   type LocalizedText,
-} from "../../../packages/builtin/marketing/shared/section-settings.js";
+} from "@rewindom/builtin/marketing/shared/section-settings.js";
 
 function asLabel(value: Prisma.JsonValue): string | LocalizedText {
   if (typeof value === "string") return value;

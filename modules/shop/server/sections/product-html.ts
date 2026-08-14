@@ -3,18 +3,18 @@ import { readShopContext } from "../../shared/shop-section-context.js";
 import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
 import { shopFieldHtml } from "./html-helpers.js";
 
-import { escapeHtml } from "../../../../packages/builtin/marketing/shared/html.js";
+import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import {
   settingText,
   type SiteBlock,
-} from "../../../../packages/builtin/marketing/shared/section-schema.js";
-import { md } from "../../../../packages/builtin/marketing/shared/sections/_common/html.js";
+} from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { md } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
 import {
   registerSiteSectionHtml,
   type SectionHtmlRenderer,
-} from "../../../../packages/builtin/marketing/shared/sections/html.js";
+} from "@rewindom/builtin/marketing/shared/sections/html.js";
 
-import type { SettingValues } from "../../../../packages/builtin/marketing/shared/section-settings.js";
+import type { SettingValues } from "@rewindom/builtin/marketing/shared/section-settings.js";
 import type { ShopProductDetailView, ShopRenderContext } from "../../shared/shop-section-context.js";
 
 function buyHtml(

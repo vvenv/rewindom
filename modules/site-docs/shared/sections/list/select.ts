@@ -13,7 +13,7 @@ import {
   settingNumber,
   settingText,
   type SettingValues,
-} from "../../../../../packages/builtin/marketing/shared/section-settings.js";
+} from "@rewindom/builtin/marketing/shared/section-settings.js";
 
 export interface DocListView {
   style: "cards" | "list";

@@ -9,8 +9,8 @@
 import { type AppLocale } from "@rewindom/module-sdk/server";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { createSection } from "../../../packages/builtin/marketing/shared/section-schema.js";
-import { renderSectionHtml } from "../../../packages/builtin/marketing/shared/sections/html.js";
+import { createSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { renderSectionHtml } from "@rewindom/builtin/marketing/shared/sections/html.js";
 import { SITE_DOCS_ENTITLEMENT } from "../shared/entitlements.js";
 import {
   buildDocsTemplateSections,
@@ -28,8 +28,8 @@ import { siteDocsContextEntry } from "../shared/site-docs-context.js";
 
 import { registerDocsSections } from "./register.js";
 
-import type { SectionRenderContext } from "../../../packages/builtin/marketing/shared/sections/render-context.js";
-import type { SiteSection } from "../../../packages/builtin/marketing/shared/section-schema.js";
+import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
+import type { SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 const ENABLED = new Set([SITE_DOCS_ENTITLEMENT.key]);
 

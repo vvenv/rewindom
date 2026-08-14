@@ -567,15 +567,17 @@ function checkDocs(mod, add) {
 /**
  * 10. 外部模块边界校验
  *
- * 外部模块只许 import 自 `@rewindom/module-sdk`（门面包）和 `@rewindom/ui`（原语），
- * 不许直接 import 内核包（server-kernel / client-kit / shared）或内部模块包
- * （@rewindom/builtin/*）——否则外部模块与内核实现细节耦合，无法独立发布。
+ * 外部模块只许 import 自：
+ *   - `@rewindom/module-sdk`（内核门面）
+ *   - `@rewindom/ui`（原语）
+ *   - `@rewindom/builtin/<id>/…`（对内置模块的单向引用）
+ * 不许直接 import 内核包（server-kernel / client-kit / shared），
+ * 也不许用相对路径爬出模块目录去 `packages/`。
  */
 const FORBIDDEN_EXTERNAL_PREFIXES = [
   "@rewindom/server-kernel",
   "@rewindom/client-kit",
   "@rewindom/shared",
-  "@rewindom/builtin/",
   "@rewindom/server-test",
   "@rewindom/client-test",
 ];
@@ -583,16 +585,29 @@ const FORBIDDEN_EXTERNAL_PREFIXES = [
 function checkBoundary(mod, add) {
   if (!mod.isExternal) return;
 
-  for (const file of [...mod.serverFiles, ...mod.clientFiles]) {
+  const sharedFiles = walk(path.join(mod.dir, "shared"), [".ts"]).filter(
+    (f) => !f.endsWith(".test.ts"),
+  );
+
+  for (const file of [...mod.serverFiles, ...mod.clientFiles, ...sharedFiles]) {
     const text = read(file);
     for (const match of text.matchAll(/from\s+["']([^"']+)["']/gu)) {
       const specifier = match[1];
-      if (specifier.startsWith(".")) continue; // 相对导入
+      if (specifier.startsWith(".")) {
+        if (/\/packages\//u.test(specifier)) {
+          add(
+            "error",
+            "boundary",
+            `外部模块禁止相对路径爬出包目录（"${specifier}"）——改用 @rewindom/builtin/... 或 @rewindom/module-sdk（${path.relative(ROOT, file)}）`,
+          );
+        }
+        continue;
+      }
       if (FORBIDDEN_EXTERNAL_PREFIXES.some((p) => specifier.startsWith(p))) {
         add(
           "error",
           "boundary",
-          `外部模块禁止直接 import "${specifier}"——只许 import @rewindom/module-sdk / @rewindom/ui（${path.relative(ROOT, file)}）`,
+          `外部模块禁止直接 import "${specifier}"——只许 import @rewindom/module-sdk / @rewindom/ui / @rewindom/builtin（${path.relative(ROOT, file)}）`,
         );
       }
     }

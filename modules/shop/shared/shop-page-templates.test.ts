@@ -14,7 +14,7 @@ import {
 import {
   getPageTemplateKind,
   listPageTemplateKinds,
-} from "../../../packages/builtin/marketing/shared/page-templates.js";
+} from "@rewindom/builtin/marketing/shared/page-templates.js";
 
 describe("registerShopPageTemplates", () => {
   beforeAll(() => {

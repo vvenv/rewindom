@@ -3,20 +3,20 @@ import { filterProductsByCollectionSlug } from "../../shared/collection.js";
 import { readShopContext } from "../../shared/shop-section-context.js";
 import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
 
-import { escapeHtml } from "../../../../packages/builtin/marketing/shared/html.js";
+import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import {
   settingBool,
   settingNumber,
   settingText,
-} from "../../../../packages/builtin/marketing/shared/section-schema.js";
+} from "@rewindom/builtin/marketing/shared/section-schema.js";
 import {
   gridClass,
   sectionHeading,
-} from "../../../../packages/builtin/marketing/shared/sections/_common/html.js";
+} from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
 import {
   registerSiteSectionHtml,
   type SectionHtmlRenderer,
-} from "../../../../packages/builtin/marketing/shared/sections/html.js";
+} from "@rewindom/builtin/marketing/shared/sections/html.js";
 
 const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
   const shop = readShopContext(ctx);

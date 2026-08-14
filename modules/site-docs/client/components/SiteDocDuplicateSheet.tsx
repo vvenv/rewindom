@@ -34,8 +34,8 @@ import { Spinner } from "@rewindom/ui/spinner";
 import { useTranslation } from "react-i18next";
 import { toast } from "@rewindom/ui/toast";
 
-import { siteLocaleOrder } from "../../../../packages/builtin/marketing/shared/site-locale.js";
-import { useSite } from "../../../../packages/builtin/marketing/client/hooks/useSite.js";
+import { siteLocaleOrder } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import { useSite } from "@rewindom/builtin/marketing/client/hooks/useSite.js";
 import {
   useDuplicateSiteDoc,
   useSiteDocsCatalog,

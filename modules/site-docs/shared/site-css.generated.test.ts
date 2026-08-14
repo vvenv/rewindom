@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   assembleModuleSiteCss,
   listHandwrittenModuleCssTs,
-} from "../../../packages/builtin/scripts/assemble-module-css.mjs";
+} from "@rewindom/builtin/scripts/assemble-module-css.mjs";
 
 import {
   ARTICLE_CSS,

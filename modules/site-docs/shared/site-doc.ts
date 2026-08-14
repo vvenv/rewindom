@@ -14,7 +14,7 @@
 
 import { isAppLocale, normalizeLocale, type AppLocale } from "@rewindom/module-sdk";
 
-import { resolveLocaleSegment } from "../../../packages/builtin/marketing/shared/site-locale.js";
+import { resolveLocaleSegment } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import type { SiteDocCategory } from "./site-doc-category.js";
 

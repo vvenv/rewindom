@@ -7,8 +7,8 @@ import {
   ShoppingCart,
 } from "lucide-react";
 
-import { registerChromeBlockView } from "../../../packages/builtin/marketing/client/components/sections/chrome-views.js";
-import { registerSiteSectionView } from "../../../packages/builtin/marketing/client/components/sections/section-views.js";
+import { registerChromeBlockView } from "@rewindom/builtin/marketing/client/components/sections/chrome-views.js";
+import { registerSiteSectionView } from "@rewindom/builtin/marketing/client/components/sections/section-views.js";
 
 import { SHOP_ENTITLEMENT } from "../shared/index.js";
 import { cartLinkBlock, cartSection } from "../shared/cart-section.js";

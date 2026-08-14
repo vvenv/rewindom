@@ -5,8 +5,8 @@ import { sampleShopContext } from "../../lib/shop-sample.js";
 import {
   SectionHeading,
   type SectionViewProps,
-} from "../../../../../packages/builtin/marketing/client/components/sections/section-parts.js";
-import { settingText } from "../../../../../packages/builtin/marketing/shared/section-schema.js";
+} from "@rewindom/builtin/marketing/client/components/sections/section-parts.js";
+import { settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export function CartSection({ section }: SectionViewProps): ReactElement {
   const cart = sampleShopContext().cart!;

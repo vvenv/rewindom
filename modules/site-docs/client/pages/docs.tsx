@@ -16,7 +16,7 @@ import { SiteDocsTable } from "../components/SiteDocsTable.js";
 import { SiteDocTransferActions } from "../components/SiteDocTransferActions.js";
 import { useSiteDocActions } from "../hooks/use-site-doc-actions.js";
 import { useSiteDocsPage } from "../hooks/use-site-docs-page.js";
-import { useSite } from "../../../../packages/builtin/marketing/client/hooks/useSite.js";
+import { useSite } from "@rewindom/builtin/marketing/client/hooks/useSite.js";
 import { useSiteDocs } from "../hooks/useSiteDocs.js";
 
 import type { SiteDocCategory } from "../../shared/site-doc-category.js";

@@ -3,13 +3,13 @@ import { readShopContext } from "../../shared/shop-section-context.js";
 import { SHOP_STOREFRONT_CSS } from "../../shared/site-css.generated.js";
 import { shopAlertHtml } from "./html-helpers.js";
 
-import { escapeHtml } from "../../../../packages/builtin/marketing/shared/html.js";
-import { settingText } from "../../../../packages/builtin/marketing/shared/section-schema.js";
-import { sectionHeading } from "../../../../packages/builtin/marketing/shared/sections/_common/html.js";
+import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
+import { settingText } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
 import {
   registerSiteSectionHtml,
   type SectionHtmlRenderer,
-} from "../../../../packages/builtin/marketing/shared/sections/html.js";
+} from "@rewindom/builtin/marketing/shared/sections/html.js";
 
 const renderOrderHtml: SectionHtmlRenderer = (section, ctx) => {
   const shop = readShopContext(ctx);

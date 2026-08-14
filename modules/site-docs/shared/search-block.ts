@@ -7,9 +7,9 @@
 
 import { SITE_DOCS_ENTITLEMENT } from "./entitlements.js";
 
-import { chromeSlotSettings } from "../../../packages/builtin/marketing/shared/sections/_common/chrome-blocks.js";
+import { chromeSlotSettings } from "@rewindom/builtin/marketing/shared/sections/_common/chrome-blocks.js";
 
-import type { BlockDefinition } from "../../../packages/builtin/marketing/shared/section-schema.js";
+import type { BlockDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export const SITE_DOCS_SEARCH_BLOCK_TYPE = "site-docs.search";
 
