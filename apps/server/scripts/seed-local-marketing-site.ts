@@ -13,9 +13,9 @@ import { DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 
 import { applyDefaultProductSite } from "../../../packages/builtin/marketing/server/apply-default-product-site.js";
 import { initializeTenantSite } from "../../../packages/builtin/marketing/server/site-init.service.js";
-import { loadUsageDocs } from "../../../packages/builtin/site-docs/server/load-usage-docs.js";
-import { seedDocsFromFiles } from "../../../packages/builtin/site-docs/server/site-doc.service.js";
-import { registerDocsPageTemplates } from "../../../packages/builtin/site-docs/shared/page-templates.js";
+import { loadUsageDocs } from "../../../modules/site-docs/server/load-usage-docs.js";
+import { seedDocsFromFiles } from "../../../modules/site-docs/server/site-doc.service.js";
+import { registerDocsPageTemplates } from "../../../modules/site-docs/shared/page-templates.js";
 import { updateSite } from "../../../packages/builtin/marketing/server/site.service.js";
 import { ensureDefaultTenant } from "../../../packages/builtin/platform/server/services/ensure-default-tenant.service.js";
 

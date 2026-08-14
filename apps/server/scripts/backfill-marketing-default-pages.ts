@@ -21,7 +21,7 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import { initializeTenantSite } from "../../../packages/builtin/marketing/server/site-init.service.js";
 import { getPlatformSettings } from "../../../packages/builtin/platform/server/services/platform-settings.service.js";
-import { registerDocsPageTemplates } from "../../../packages/builtin/site-docs/shared/page-templates.js";
+import { registerDocsPageTemplates } from "../../../modules/site-docs/shared/page-templates.js";
 
 async function main(): Promise<void> {
   registerDocsPageTemplates();

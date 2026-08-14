@@ -8,7 +8,6 @@ import { notificationServerModule } from "@rewindom/builtin/notification/server/
 import { platformServerModule } from "@rewindom/builtin/platform/server/index.js";
 import { rbacServerModule } from "@rewindom/builtin/rbac/server/index.js";
 import { siteBillingServerModule } from "@rewindom/builtin/site-billing/server/index.js";
-import { siteDocsServerModule } from "@rewindom/builtin/site-docs/server/index.js";
 import { siteMemberServerModule } from "@rewindom/builtin/site-member/server/index.js";
 import { slowQueryServerModule } from "@rewindom/builtin/slow-query/server/index.js";
 import { userServerModule } from "@rewindom/builtin/user/server/index.js";
@@ -28,7 +27,6 @@ export const ENABLED_SERVER_MODULES = [
   userServerModule,
   platformServerModule,
   marketingServerModule,
-  siteDocsServerModule,
   siteMemberServerModule,
   billingServerModule,
   siteBillingServerModule,

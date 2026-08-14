@@ -1,1 +1,1 @@
-../../../../packages/builtin/site-docs/models.prisma
+../../../../modules/site-docs/prisma/schema.prisma

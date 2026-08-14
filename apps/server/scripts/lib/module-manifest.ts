@@ -55,12 +55,6 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit", "platform"],
   },
   {
-    id: "site-docs",
-    kind: "infrastructure",
-    // marketing：段 / 模板页 / chrome / 路径 / 导航源填进它的注册表（marketing 不反向依赖）
-    requires: ["rbac", "audit", "marketing"],
-  },
-  {
     id: "site-member",
     kind: "infrastructure",
     // platform：注册前需要确认站点已开通会员 entitlement
@@ -106,5 +100,10 @@ export const SERVER_MODULE_MANIFEST = [
     id: "shop",
     kind: "business",
     requires: ["rbac", "audit", "marketing", "site-member"],
+  },
+  {
+    id: "site-docs",
+    kind: "business",
+    requires: ["rbac", "audit", "marketing"],
   },
 ] as const satisfies readonly ModuleManifestEntry[];

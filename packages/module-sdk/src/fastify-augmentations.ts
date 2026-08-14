@@ -8,6 +8,7 @@
  * 使所有从 `@rewindom/module-sdk/server` 导入的外部模块都能看到完整的类型。
  */
 import type { FastifyReply, FastifyRequest } from "fastify";
+import "@fastify/multipart";
 
 import type { AuthActorType } from "@rewindom/shared";
 

@@ -1,0 +1,70 @@
+# 站点文档库。gen-module 只支持单资源列表 CRUD，本模块为多模型手写。
+id: site-docs
+label: Docs library
+description: 站点文档库：Markdown 文档、分类与公开 /docs
+kind: business
+placement: modules/site-docs
+resource:
+  singular: doc
+  plural: docs
+surfaces: [tenant]
+requires: [rbac, audit, marketing]
+
+entitlement:
+  key: site-docs
+  label: 文档库
+  description: 站点文档库：Markdown 文档、分类与公开 /docs
+  disabled_hint: 该站点未开通文档库
+  default_enabled: true
+
+permissions:
+  - {
+      key: docs.read,
+      label: 查看文档库,
+      group: 文档库,
+      description: 查看站点文档与分类,
+    }
+  - {
+      key: docs.write,
+      label: 管理文档库,
+      group: 文档库,
+      description: 编写、发布、导入导出文档与分类,
+    }
+
+models:
+  - name: SiteDoc
+    fields:
+      - { name: slug, type: String, required: true, label: 路径 }
+      - { name: locale, type: String, required: true, label: 语言 }
+      - { name: title, type: String, required: true, label: 标题 }
+      - { name: body_md, type: String, required: false, label: 正文 }
+      - { name: status, type: String, required: true, label: 状态 }
+    indexes:
+      - [tenant_id, slug, locale]
+      - [tenant_id, status]
+  - name: SiteDocCategory
+    fields:
+      - { name: key, type: String, required: true, label: 分类 }
+      - { name: label, type: Json, required: true, label: 显示名 }
+    indexes:
+      - [tenant_id, key]
+
+api:
+  prefix: /api/docs
+  operations: [list, detail, create, update, delete]
+  list:
+    search_fields: [title, slug]
+    sort_whitelist: [title, slug, updated_at, sort_order]
+    default_sort: { by: sort_order, dir: asc }
+
+client:
+  mount: renderRoutes
+  route_path: /app/docs
+  nav:
+    section: 官网
+    label: 文档
+    title: 文档
+    icon: FileText
+  page:
+    layout: list-filter-table
+    form_fields: [slug, title, body_md, category, locale]

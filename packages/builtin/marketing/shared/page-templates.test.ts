@@ -1,6 +1,5 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { registerDocsPageTemplates } from "../../site-docs/shared/page-templates.js";
 import { canonicalizePageIdentity, marketingPagePath } from "./site-cms.js";
 import {
   getPageTemplateKind,
@@ -89,30 +88,6 @@ describe("模板页注册表", () => {
     expect(isPageTemplateRelevant(alwaysOn, none)).toBe(true);
     expect(isPageTemplateRelevant(gated, none)).toBe(false);
     expect(isPageTemplateRelevant(gated, shopOn)).toBe(true);
-  });
-});
-
-describe("site-docs 贡献的模板页", () => {
-  beforeAll(() => {
-    registerDocsPageTemplates();
-  });
-
-  it("登记后 kind 决定 slug 与路径", () => {
-    expect(isTemplatePageKind("docs_index")).toBe(true);
-    expect(isTemplatePageKind("docs_article")).toBe(true);
-    expect(canonicalizePageIdentity("docs_index", "随便填")).toEqual({
-      kind: "docs_index",
-      slug: "docs",
-    });
-    expect(marketingPagePath("docs_index", "docs")).toBe("/docs");
-    expect(marketingPagePath("docs_article", "docs-article")).toBe(
-      "/docs/:slug",
-    );
-  });
-
-  it("文档索引进公开目录，详情模板不进", () => {
-    expect(isPublicCatalogPageKind("docs_index")).toBe(true);
-    expect(isPublicCatalogPageKind("docs_article")).toBe(false);
   });
 });
 

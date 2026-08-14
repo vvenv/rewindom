@@ -44,7 +44,7 @@ Frontend (React SPA) → Fastify API (:3700) → PostgreSQL + Prisma
 | --- | --- |
 | 基础设施 | `user` 认证/JWT · `rbac` PBAC · `platform` 租户/套餐/配额 · `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 · `dashboard` 工作台卡片聚合 |
 | 站点与计费 | `marketing` 租户 CMS/SSR · `billing` 组织向平台付费 · `site-member` 站点会员 · `site-billing` 会员向站点付费 |
-| 示例业务（`modules/`） | `note` 金标准 CRUD · `todo` / `bookmark` 由 `gen:module` 生成的列表示例 |
+| 示例业务（`modules/`） | `note` 金标准 CRUD · `todo` / `bookmark` · `shop` 店面 · `site-docs` 文档库 |
 
 新增模块：填 `MODULE.spec.yaml` → `pnpm gen:module` → 补 service → `pnpm check:modules`。
 

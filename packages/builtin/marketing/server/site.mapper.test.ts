@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { registerDocsPageTemplates } from "../../site-docs/shared/page-templates.js";
 import { registerPageTemplateKind } from "../shared/page-templates.js";
 
 import { toPublicMarketingPage, toPublicMarketingSite } from "./site.mapper.js";
@@ -265,7 +264,22 @@ describe("toPublicMarketingPage alternates", () => {
 
 describe("toPublicMarketingSite pages catalog", () => {
   beforeAll(() => {
-    registerDocsPageTemplates();
+    registerPageTemplateKind({
+      kind: "docs_index",
+      slug: "docs",
+      path: "/docs",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+    registerPageTemplateKind({
+      kind: "docs_article",
+      slug: "docs-article",
+      path: "/docs/:slug",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
     registerPageTemplateKind({
       kind: "nav_shop_index",
       slug: "shop",

@@ -1,7 +1,6 @@
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { registerDocsPageTemplates } from "../../site-docs/shared/page-templates.js";
 import { registerPageTemplateKind } from "../shared/page-templates.js";
 import { registerSectionDefinition } from "../shared/section-schema.js";
 import {
@@ -15,7 +14,22 @@ import {
   saveEditorDraft,
 } from "./site.service.js";
 
-registerDocsPageTemplates();
+registerPageTemplateKind({
+  kind: "docs_index",
+  slug: "docs",
+  path: "/docs",
+  group: "x",
+  label: "x",
+  required_section: null,
+});
+registerPageTemplateKind({
+  kind: "docs_article",
+  slug: "docs-article",
+  path: "/docs/:slug",
+  group: "x",
+  label: "x",
+  required_section: null,
+});
 
 vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
   prisma: {
