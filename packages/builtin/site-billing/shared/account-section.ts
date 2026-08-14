@@ -29,7 +29,10 @@ export const memberBillingAccountSection: SectionDefinition = {
   page_kinds: [MEMBER_BILLING_PAGE_KIND],
   entitlement: SITE_BILLING_ENTITLEMENT.key,
   settings: [
-    ...headingSettings(),
+    ...headingSettings({
+      headingDefault: "site-billing:account.title",
+      subheadingDefault: "site-billing:account.subtitle",
+    }),
     { type: "header", content: "site-billing:section.account.subscription" },
     {
       type: "text",

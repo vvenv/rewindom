@@ -30,7 +30,7 @@ export const cartSection: SectionDefinition = {
   page_kinds: [SHOP_CART_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,
   settings: [
-    ...headingSettings(),
+    ...headingSettings({ headingDefault: "shop:storefront.cart.title" }),
     {
       type: "text",
       id: "empty_text",

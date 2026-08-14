@@ -89,7 +89,10 @@ export const memberAccountPanelSection: SectionDefinition = {
   // 钉在自己那张模板页上：账户面板出现在官网某张普通页面中间什么都渲染不出来
   page_kinds: [MEMBER_ACCOUNT_PAGE_KIND],
   settings: [
-    ...headingSettings(),
+    ...headingSettings({
+      headingDefault: "site-member:account.title",
+      subheadingDefault: "site-member:account.subtitle",
+    }),
     /*
      * 邮箱没有「标签 / 说明」两项设置：它不再是一个 `readonly` 的输入框，而是身份条上
      * 的一行文字。一个长得能改、点进去又不让改的框，比一句「邮箱不可修改」更难懂。

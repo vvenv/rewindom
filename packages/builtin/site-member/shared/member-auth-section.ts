@@ -71,11 +71,16 @@ export function memberAuthContextEntry(
 }
 
 /** 两段共有的文案位：字段标签也是内容，租户可以改。 */
-function sharedAuthSettings(
-  submitDefault: string,
-): SectionDefinition["settings"] {
+function sharedAuthSettings(keys: {
+  heading: string;
+  subheading: string;
+  submit: string;
+}): SectionDefinition["settings"] {
   return [
-    ...headingSettings(),
+    ...headingSettings({
+      headingDefault: keys.heading,
+      subheadingDefault: keys.subheading,
+    }),
     { type: "header", content: "site-member:section.auth.fields" },
     {
       type: "text",
@@ -95,7 +100,7 @@ function sharedAuthSettings(
       type: "text",
       id: "submit_label",
       label: "site-member:section.auth.submitLabel",
-      default: submitDefault,
+      default: keys.submit,
       required: true,
     },
     { type: "header", content: "site-member:section.auth.oauth" },
@@ -144,7 +149,11 @@ export const memberLoginFormSection: SectionDefinition = {
   placements: ["page"],
   page_kinds: [MEMBER_LOGIN_PAGE_KIND],
   settings: [
-    ...sharedAuthSettings("site-member:login.submit"),
+    ...sharedAuthSettings({
+      heading: "site-member:login.title",
+      subheading: "site-member:login.subtitle",
+      submit: "site-member:login.submit",
+    }),
     ...altLinkSettings(
       "site-member:login.no_account",
       "site-member:login.go_register",
@@ -159,7 +168,11 @@ export const memberRegisterFormSection: SectionDefinition = {
   placements: ["page"],
   page_kinds: [MEMBER_REGISTER_PAGE_KIND],
   settings: [
-    ...sharedAuthSettings("site-member:register.submit"),
+    ...sharedAuthSettings({
+      heading: "site-member:register.title",
+      subheading: "site-member:register.subtitle",
+      submit: "site-member:register.submit",
+    }),
     {
       type: "checkbox",
       id: "show_display_name",

@@ -652,7 +652,7 @@ describe("relocalizeSections", () => {
 
   it("seeds the target locale with the source text and keeps the source", () => {
     const sections = parseSections(
-      hero({ headline: "你好", subhead: "副标题" }),
+      hero({ headline: "你好", subhead: "租户写的副标题" }),
     );
     const [copied] = relocalizeSections(sections, "zh-CN", "en", "zh-CN");
     // 纯字符串（= 主语言原文）升级成 __i18n，两种语言都指向同一句原文
@@ -660,7 +660,7 @@ describe("relocalizeSections", () => {
       __i18n: { "zh-CN": "你好", en: "你好" },
     });
     expect(copied!.settings.subhead).toEqual({
-      __i18n: { "zh-CN": "副标题", en: "副标题" },
+      __i18n: { "zh-CN": "租户写的副标题", en: "租户写的副标题" },
     });
   });
 
@@ -695,14 +695,45 @@ describe("relocalizeSections", () => {
         blocks: [
           {
             type: "field",
-            settings: { label: "姓名", type: "text", placeholder: "请输入" },
+            settings: { label: "访客姓名", type: "text", placeholder: "请输入" },
           },
         ],
       },
     ]);
     const [copied] = relocalizeSections(sections, "zh-CN", "en", "zh-CN");
     expect(copied!.blocks[0]!.settings.label).toEqual({
-      __i18n: { "zh-CN": "姓名", en: "姓名" },
+      __i18n: { "zh-CN": "访客姓名", en: "访客姓名" },
+    });
+  });
+
+  it("uses catalog English for stock copy and keeps customized sentences as-is", () => {
+    registerLocaleCatalog("relocalize-stock", {
+      "zh-CN": { login: { subtitle: "登录后即可访问会员内容" } },
+      en: { login: { subtitle: "Sign in to access member content" } },
+    });
+    const sections = parseSections(
+      hero({
+        headline: "你好",
+        subhead: "登录后即可访问会员内容",
+      }),
+    );
+    const [copied] = relocalizeSections(sections, "zh-CN", "en", "zh-CN");
+    expect(copied!.settings.headline).toEqual({
+      __i18n: { "zh-CN": "你好", en: "你好" },
+    });
+    expect(copied!.settings.subhead).toEqual({
+      __i18n: {
+        "zh-CN": "登录后即可访问会员内容",
+        en: "Sign in to access member content",
+      },
+    });
+
+    const customized = parseSections(
+      hero({ subhead: "会员可见专属资料" }),
+    );
+    const [seeded] = relocalizeSections(customized, "zh-CN", "en", "zh-CN");
+    expect(seeded!.settings.subhead).toEqual({
+      __i18n: { "zh-CN": "会员可见专属资料", en: "会员可见专属资料" },
     });
   });
 });

@@ -186,6 +186,8 @@ pnpm --filter @rewindom/builtin assemble:module-css
 
 金标准：`site-member/shared/member-page-templates.ts`。口径见 marketing `MODULE.md`「业务模块贡献模板页」。
 
+预设 `text` / `titleKey` / `descriptionKey` 必须是 `ns:key`，并与对应 setting 的 `default` 同一条（`headingSettings({ headingDefault, subheadingDefault })`）。创建时展开成 `__i18n` 表，不要先 `t()` 成单语。复制到另一语言：库存文案写目标语言 catalog 译文，租户改过的才搬原文当翻译起点。同一段被多张预设共用时不要硬塞一个 heading default。
+
 ## 金标准（notes）
 
 - CRUD + `PermissionRoute` + 审计事件 + Vitest
@@ -198,6 +200,7 @@ pnpm --filter @rewindom/builtin assemble:module-css
 - 在 `platform` 内写业务域逻辑；用 slot / `renderPlatformRoutes` 反向贡献
 - 贡献官网段时手写 `shared/*-css.ts` 模板字符串（见「贡献官网段」）
 - 贡献官网模板页时自己写初始化或「自定义版式」空态（见「贡献官网模板页」）
+- 贡献官网段 / 模板页时把预设文案先 `t()` 成单语，或 preset key 与 setting `default` 不是同一条 `ns:key`（见「贡献官网模板页」）
 
 ## 交付前自检（逐条比对 spec）
 

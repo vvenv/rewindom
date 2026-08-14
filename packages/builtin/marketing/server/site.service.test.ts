@@ -158,10 +158,31 @@ describe("duplicatePage", () => {
     const sections = createdData().sections as Array<{
       settings: Record<string, unknown>;
     }>;
-    // 目标语言的槽位先填原文，编辑器里逐条改成译文即可（不搬就是一片空白）
+    // 自定义句：目标语言槽位先填原文。库存句会换成 catalog 译文。
     expect(sections[0]!.settings.headline).toEqual({
       __i18n: { "zh-CN": "你好", en: "你好" },
     });
+  });
+
+  it("swaps stock template title and description into the target locale", async () => {
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
+      sourceRow({
+        kind: "home",
+        slug: "home",
+        title: "首页",
+        description: "一句话说明这个站点是做什么的。",
+      }) as never,
+    );
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([] as never);
+
+    await duplicatePage(TENANT, "page-1", { title: "首页", locale: "en" });
+
+    expect(createdData().title).toBe("Home");
+    expect(createdData().description).toBe(
+      "One line on what this site is about.",
+    );
+    expect(createdData().slug).toBe("home");
+    expect(createdData().locale).toBe("en");
   });
 
   it("derives a -copy slug when the language already has that slug", async () => {

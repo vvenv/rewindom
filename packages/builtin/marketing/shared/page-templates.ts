@@ -291,6 +291,27 @@ export function isStockTemplateDescription(
 }
 
 /**
+ * 复制到另一语言：库存标题 / 摘要换成目标语言 catalog 句，租户改过的原样当翻译起点。
+ */
+export function relocalizeStockTemplateTitle(
+  kind: string,
+  stored: string,
+  to: AppLocale,
+): string {
+  if (!isStockTemplateTitle(kind, stored)) return stored;
+  return resolveTemplatePresetCopy(kind, to)?.title ?? stored;
+}
+
+export function relocalizeStockTemplateDescription(
+  kind: string,
+  stored: string,
+  to: AppLocale,
+): string {
+  if (!isStockTemplateDescription(kind, stored)) return stored;
+  return resolveTemplatePresetCopy(kind, to)?.description ?? stored;
+}
+
+/**
  * 公开目录 / 页头导航用的模板页标题。
  *
  * 库存标题还是预设默认值（含旧译名）时，按**当前浏览语言**解；租户改过的

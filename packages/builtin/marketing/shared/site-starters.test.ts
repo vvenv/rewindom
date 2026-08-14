@@ -97,7 +97,12 @@ describe("buildSiteStarter", () => {
       "prose",
       "band",
     ]);
-    expect(sections[1]?.settings.body_md).toContain("preset.home.prose.body_md");
+    expect(sections[1]?.settings.body_md).toEqual({
+      __i18n: {
+        "zh-CN": expect.stringContaining("我们能提供什么"),
+        en: expect.stringContaining("What we offer"),
+      },
+    });
     expect(sections[0]?.settings.primary_href).toBe("#contact");
     expect(sections[2]?.settings.anchor).toBe("contact");
   });

@@ -26,7 +26,7 @@ export const checkoutSection: SectionDefinition = {
   page_kinds: [SHOP_CHECKOUT_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,
   settings: [
-    ...headingSettings(),
+    ...headingSettings({ headingDefault: "shop:storefront.checkout.title" }),
     {
       type: "text",
       id: "canceled_text",

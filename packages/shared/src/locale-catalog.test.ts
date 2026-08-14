@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  lookupStockTranslation,
   parseNamespacedLocaleKey,
   registerLocaleCatalog,
   resolveLocaleMessage,
@@ -71,6 +72,39 @@ describe("translateRegisteredKeyTable", () => {
     expect(translateRegisteredKeyTable("Cart")).toBeUndefined();
     expect(
       translateRegisteredKeyTable("locale-catalog-table:missing.key"),
+    ).toBeUndefined();
+  });
+});
+
+describe("lookupStockTranslation", () => {
+  it("returns the target-locale stock sentence when catalogs agree", () => {
+    registerLocaleCatalog("lookup-stock-ok", {
+      "zh-CN": { phrase: { a: "库存句甲" } },
+      en: { phrase: { a: "Stock phrase A" } },
+    });
+    expect(lookupStockTranslation("zh-CN", "库存句甲", "en")).toBe(
+      "Stock phrase A",
+    );
+    expect(lookupStockTranslation("en", "Stock phrase A", "zh-CN")).toBe(
+      "库存句甲",
+    );
+  });
+
+  it("returns undefined when the same source sentence maps to different translations", () => {
+    registerLocaleCatalog("lookup-stock-conflict-a", {
+      "zh-CN": { phrase: { a: "冲突句" } },
+      en: { phrase: { a: "Alpha" } },
+    });
+    registerLocaleCatalog("lookup-stock-conflict-b", {
+      "zh-CN": { phrase: { b: "冲突句" } },
+      en: { phrase: { b: "Bravo" } },
+    });
+    expect(lookupStockTranslation("zh-CN", "冲突句", "en")).toBeUndefined();
+  });
+
+  it("returns undefined for custom copy", () => {
+    expect(
+      lookupStockTranslation("zh-CN", "租户自己写的句子", "en"),
     ).toBeUndefined();
   });
 });

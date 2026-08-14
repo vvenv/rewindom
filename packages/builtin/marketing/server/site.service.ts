@@ -23,6 +23,8 @@ import {
   NOT_FOUND_PAGE_KIND,
   resolveCatalogPageTitle,
   resolveTemplatePresetCopy,
+  relocalizeStockTemplateDescription,
+  relocalizeStockTemplateTitle,
 } from "../shared/page-templates.js";
 import { mergeSectionsWithPreset } from "../shared/preset-merge.js";
 import {
@@ -501,8 +503,8 @@ async function resolveDuplicateSlug(
 /**
  * 复制页面（主要用途：从一种语言快速铺出另一种语言的同一篇内容）。
  *
- * 结构照搬，文案把源语言的原文填进目标语言的槽位当翻译起点；复制出来的一律是
- * **草稿**——还没译的内容不该跟着源页面直接上线。
+ * 结构照搬。库存文案写成目标语言 catalog 句，租户改过的才把原文当翻译起点。
+ * 复制出来的一律是**草稿**——还没译的内容不该跟着源页面直接上线。
  */
 export async function duplicatePage(
   tenant_id: string,
@@ -516,8 +518,8 @@ export async function duplicatePage(
     throw new NotFoundError("site.page_not_found");
   }
 
-  const title = body.title?.trim();
-  if (!title) {
+  const requestedTitle = body.title?.trim();
+  if (!requestedTitle) {
     throw new ValidationError("site.page_title_required");
   }
 
@@ -530,9 +532,15 @@ export async function duplicatePage(
     source.kind,
     source.slug,
   );
+  const title = relocalizeStockTemplateTitle(kind, requestedTitle, locale);
   const slug = await resolveDuplicateSlug(tenant_id, kind, sourceSlug, locale);
   const enabled = await resolveSectionEntitlements(tenant_id);
   const sourceContent = pageContentDraft(source, enabled);
+  const description = relocalizeStockTemplateDescription(
+    kind,
+    sourceContent.description,
+    locale,
+  );
   const sections = relocalizeSections(
     sourceContent.sections,
     sourceLocale,
@@ -548,11 +556,11 @@ export async function duplicatePage(
         locale,
         kind,
         title,
-        description: sourceContent.description,
+        description,
         sections: sections as unknown as Prisma.InputJsonValue,
         settings: sourceContent.settings as unknown as Prisma.InputJsonValue,
         title_draft: title,
-        description_draft: sourceContent.description,
+        description_draft: description,
         sections_draft: sections as unknown as Prisma.InputJsonValue,
         settings_draft:
           sourceContent.settings as unknown as Prisma.InputJsonValue,

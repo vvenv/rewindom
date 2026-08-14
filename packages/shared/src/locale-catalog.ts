@@ -109,3 +109,58 @@ export function translateRegisteredKeyTable(
   }
   return Object.keys(table).length > 0 ? table : undefined;
 }
+
+function forEachCatalogLeaf(
+  node: unknown,
+  prefix: string,
+  visit: (key: string, value: string) => void,
+): void {
+  if (typeof node === "string") {
+    if (prefix && node !== "") visit(prefix, node);
+    return;
+  }
+  if (!node || typeof node !== "object" || Array.isArray(node)) return;
+  for (const [name, child] of Object.entries(node)) {
+    forEachCatalogLeaf(child, prefix ? `${prefix}.${name}` : name, visit);
+  }
+}
+
+/**
+ * 复制 CMS 页面到另一语言时：源文若仍是某条 catalog 库存句，且各 key 对目标
+ * 语言的译文一致，返回那句译文；对不上或有冲突则 `undefined`，调用方搬原文。
+ *
+ * 短词（「登录」）可能对应多条 key——只在译文完全一致时才用，避免把「标题」
+ * 误译成编辑器里的 Heading。
+ */
+export function lookupStockTranslation(
+  from: AppLocale,
+  text: string,
+  to: AppLocale,
+): string | undefined {
+  if (text === "" || from === to) return undefined;
+
+  const fromNorm = normalizeLocale(from);
+  const toNorm = normalizeLocale(to);
+  let found: string | undefined;
+  let conflict = false;
+
+  for (const catalog of CATALOGS.values()) {
+    const fromMessages = catalog[fromNorm];
+    if (!fromMessages) continue;
+    const toMessages = catalog[toNorm];
+    forEachCatalogLeaf(fromMessages, "", (key, value) => {
+      if (conflict || value !== text) return;
+      const translated = toMessages
+        ? resolveLocaleMessage(toMessages, key)
+        : undefined;
+      if (!translated) return;
+      if (found === undefined) {
+        found = translated;
+        return;
+      }
+      if (found !== translated) conflict = true;
+    });
+    if (conflict) return undefined;
+  }
+  return found;
+}

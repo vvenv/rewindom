@@ -576,6 +576,10 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 金标准：`site-member/shared/member-page-templates.ts`、`shop/shared/shop-page-templates.ts`。
 `pnpm check:modules` 会查 kind/preset 成对、有开关则声明了 entitlement、客户端没有「自定义版式」。
 
+预设 `text` / `titleKey` / `descriptionKey` 必须是 `ns:key`，与对应 setting 的 `default`
+同一条（登录标题用 `headingSettings({ headingDefault: "site-member:login.title" })`）。
+复制跨语言时库存句换成目标语言，租户改过的才搬原文。不要先 `t()` 成单语字符串。
+
 #### 贡献公开路径、保留 slug、sitemap、链接候选
 
 不是 `MarketingPage` 的公开地址（文档库 `/docs`）不要写进 `renderPath`。模块登记：
@@ -763,14 +767,17 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 草稿也进 sessionStorage（`?page=` 一份、没有页面时共用 `site` 那一份）。
 
 **复制页面**（`POST /api/site/pages/:id/duplicate`，只要标题 + 目标语言）：区块结构照搬，
-复制件一律是**草稿**。文案会把源语言槽位里的原文搬进目标语言槽位（`relocalizeSections`）——
-编辑器读的是「当前语言的槽位」且刻意不回落，不搬的话复制出来在编辑器里是一片空白，
-而复制的用途恰恰是拿原文当翻译起点。slug 不让填：`(kind, slug)` 是翻译组的 key，
+复制件一律是**草稿**。库存文案（locale JSON 里那句，租户没改过）写成目标语言的
+catalog 译文；改过的句子把源语言原文填进目标槽位当翻译起点（`relocalizeSections`）。
+编辑器读的是「当前语言的槽位」且刻意不回落，库存句若也搬原文，英文登录页就会留下
+「登录后即可访问会员内容」。slug 不让填：`(kind, slug)` 是翻译组的 key，
 复制到别的语言必须沿用源 slug 才能自动成组；目标语言已占用该 slug 时（即同语言复制）
 才派生 `about-copy` / `about-copy-2`，首页因为 slug 固定为 `home` 直接返回 `site.home_exists`。
 
-**页面预设 / 模板页**（`shared/page-presets.ts`，客户端 re-export）描述默认版式结构 + i18n key：
-marketing 自带首页模板（`home`）；文档版式由 site-docs 登记。文案在创建时用 `t()` 落成当前语言的普通内容，套完随便改。
+**页面预设 / 模板页**（`shared/page-presets.ts`，客户端 re-export）描述默认版式结构 +
+`ns:key`：marketing 自带首页模板（`home`）；文档版式由 site-docs 登记。文案在创建时
+展开成整张 `__i18n` 表，公开面再按 URL 语言压扁；套完随便改。预设 `text` 与对应
+setting 的 `default` 应是同一条 key。
 
 **站点初始化**（`server/site-init.service.ts` + `shared/site-starters.ts` 的 chrome 构建）在
 租户创建时铺好默认页头 / 页脚 / 主题与主语言首页等模板页。产品面**不再**提供「一键应用

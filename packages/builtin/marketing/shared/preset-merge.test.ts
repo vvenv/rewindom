@@ -65,8 +65,13 @@ describe("mergeSectionsWithPreset", () => {
     expect(merged[0]?.id).toBe(hero.id);
     expect(merged[0]?.settings.headline).toBe("我的自定义标题");
     expect(merged[1]?.settings.body_md).toBe("租户写的正文");
-    // 新建的 band 用最新预设的文案（已翻译）
-    expect(merged[2]?.settings.headline).toBe("t:preset.home.cta.headline");
+    // 新建的 band 用最新预设的文案（已展开成双语表）
+    expect(merged[2]?.settings.headline).toEqual({
+      __i18n: {
+        "zh-CN": "想聊聊？",
+        en: "Want to talk?",
+      },
+    });
     expect(merged[2]?.settings.anchor).toBe("contact");
   });
 
@@ -121,7 +126,12 @@ describe("mergeSectionsWithPreset", () => {
     expect(merged.map((section) => section.type)).toEqual(
       fresh.map((section) => section.type),
     );
-    expect(merged[0]?.settings.headline).toBe("t:preset.home.hero.headline");
+    expect(merged[0]?.settings.headline).toEqual({
+      __i18n: {
+        "zh-CN": "在这里写一句话，说清你是谁、做什么",
+        en: "Say who you are and what you do, in one line",
+      },
+    });
   });
 
   it("容器段递归：缺的列补建，已有列与列内子段保留", () => {

@@ -1,4 +1,7 @@
-import { translateRegisteredKeyTable } from "@rewindom/shared";
+import {
+  parseNamespacedLocaleKey,
+  translateRegisteredKeyTable,
+} from "@rewindom/shared";
 
 import {
   NOT_FOUND_PAGE_KIND,
@@ -43,18 +46,18 @@ export const HOME_STARTER_PRESET: PagePreset = {
    * 都是噪音。
    */
   key: "home",
-  label: "preset.home.label",
+  label: "marketing:preset.home.label",
   kind: "home",
   slug: "home",
-  titleKey: "preset.home.title",
-  descriptionKey: "preset.home.description",
+  titleKey: "marketing:preset.home.title",
+  descriptionKey: "marketing:preset.home.description",
   sections: [
     {
       type: "hero",
       text: {
-        headline: "preset.home.hero.headline",
-        subhead: "preset.home.hero.subhead",
-        primary_label: "preset.home.hero.primary_label",
+        headline: "marketing:preset.home.hero.headline",
+        subhead: "marketing:preset.home.hero.subhead",
+        primary_label: "marketing:preset.home.hero.primary_label",
       },
       raw: {
         // 起步模板只建首页，站内没有别的地址可指；页内锚点是单页站的通行写法
@@ -66,16 +69,16 @@ export const HOME_STARTER_PRESET: PagePreset = {
     {
       type: "prose",
       text: {
-        body_md: "preset.home.prose.body_md",
+        body_md: "marketing:preset.home.prose.body_md",
       },
       raw: { padding_top: 48, padding_bottom: 48 },
     },
     {
       type: "band",
       text: {
-        headline: "preset.home.cta.headline",
-        body: "preset.home.cta.body",
-        primary_label: "preset.home.cta.primary_label",
+        headline: "marketing:preset.home.cta.headline",
+        body: "marketing:preset.home.cta.body",
+        primary_label: "marketing:preset.home.cta.primary_label",
       },
       raw: {
         anchor: "contact",
@@ -134,6 +137,20 @@ export function buildHomeTemplateSections(
   return buildPresetSections(HOME_STARTER_PRESET, t);
 }
 
+function resolvePresetText(
+  t: PresetTranslateFn,
+  key: string,
+): string | { __i18n: Record<string, string> } {
+  // `ns:key` 展开成整张 `__i18n` 表。marketing 自己的预设以前不带 ns，补
+  // `marketing:` 前缀再解一次，避免先 t() 成单语字符串。
+  const table =
+    translateRegisteredKeyTable(key) ??
+    (parseNamespacedLocaleKey(key)
+      ? undefined
+      : translateRegisteredKeyTable(`marketing:${key}`));
+  return table ? { __i18n: { ...table } } : t(key);
+}
+
 function resolveValues(
   t: PresetTranslateFn,
   text: Record<string, string> | undefined,
@@ -141,10 +158,7 @@ function resolveValues(
 ): SettingValues {
   const out: SettingValues = { ...(raw ?? {}) };
   for (const [id, key] of Object.entries(text ?? {})) {
-    // `ns:key` 展开成整张 `__i18n` 表，公开面再按 URL 语言压扁——不要先 t() 成
-    // 单语字符串，否则英文页会留下中文副标题、中文页只剩表里的英文标题。
-    const table = translateRegisteredKeyTable(key);
-    out[id] = table ? { __i18n: { ...table } } : t(key);
+    out[id] = resolvePresetText(t, key);
   }
   return out;
 }

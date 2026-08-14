@@ -17,6 +17,8 @@ import {
   resolveCatalogPageTitle,
   resolveTemplatePresetCopy,
   isStockTemplateTitle,
+  relocalizeStockTemplateDescription,
+  relocalizeStockTemplateTitle,
 } from "./page-templates.js";
 
 describe("模板页注册表", () => {
@@ -267,5 +269,15 @@ describe("库存模板标题", () => {
     expect(
       resolveCatalogPageTitle(kind, "en", "Our store", { forcePreset: true }),
     ).toBe("Shop");
+    expect(relocalizeStockTemplateTitle(kind, "商品", "en")).toBe("Shop");
+    expect(relocalizeStockTemplateTitle(kind, "Our store", "en")).toBe(
+      "Our store",
+    );
+    expect(relocalizeStockTemplateDescription(kind, "在售", "en")).toBe(
+      "For sale",
+    );
+    expect(
+      relocalizeStockTemplateDescription(kind, "Custom blurb", "en"),
+    ).toBe("Custom blurb");
   });
 });

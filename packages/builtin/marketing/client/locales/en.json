@@ -269,7 +269,7 @@
     "createPageDescription": "Set a path (nested ok: about, about/contact). The home page is in the template section below.",
     "duplicate": "Duplicate",
     "duplicatePageTitle": "Duplicate page",
-    "duplicatePageDescription": "Copies “{{title}}” ({{locale}}): same sections, text seeded from the original as a starting point for translation. The copy is created as a draft.",
+    "duplicatePageDescription": "Copies “{{title}}” ({{locale}}): same sections. Unedited stock copy is swapped into the target language; customized sentences stay as a translation starting point. The copy is created as a draft.",
     "duplicateLocaleHint": "Keeps the same path, so both pages automatically become translations of each other (hreflang and the language switcher follow).",
     "duplicateSlugSuffixHint": "This language already has this page, so the copy gets a -copy suffix and is not treated as a translation of the original.",
     "duplicateFixedSlugTakenHint": "This locale already has that layout (home and doc layouts have a fixed path, so you cannot duplicate into the same locale).",

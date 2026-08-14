@@ -26,7 +26,7 @@ export const orderSection: SectionDefinition = {
   page_kinds: [SHOP_ORDER_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,
   settings: [
-    ...headingSettings(),
+    ...headingSettings({ headingDefault: "shop:storefront.order.title" }),
     {
       type: "text",
       id: "status_label",
@@ -86,7 +86,7 @@ export const orderListSection: SectionDefinition = {
   page_kinds: [SHOP_MEMBER_ORDERS_PAGE_KIND],
   entitlement: SHOP_ENTITLEMENT.key,
   settings: [
-    ...headingSettings(),
+    ...headingSettings({ headingDefault: "shop:storefront.orders.title" }),
     {
       type: "text",
       id: "empty_text",

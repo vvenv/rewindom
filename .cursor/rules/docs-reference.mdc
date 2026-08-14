@@ -16,13 +16,13 @@ alwaysApply: true
 | 用户体系 | — | `docs/design/user-system.md` |
 | 多租户配置分层 / 单租户部署 | —（rule：`tenancy-mode`） | `docs/design/tenant-config.md` |
 | 租户自定义域名（客户 DNS / 绑定 / TLS） | — | `docs/custom-domain.md`（设计：`tenant-config.md` §5.9） |
-| 多语言（i18n） | — | `docs/design/i18n.md`（代码多语言 vs 数据多语言） |
+| 多语言（i18n） | — | `docs/design/i18n.md`（代码多语言 vs 数据多语言；官网库存文案 / 复制页面） |
 | 租户功能开关 / entitlement | — | `docs/design/tenant-features.md` |
 | 错误日志 | `error-logging` | `docs/design/error-logging.md` |
 | 字段命名全链路 | — | `docs/design/field-naming-conventions.md` |
 | 单元测试 | — | `docs/design/unit-testing.md` |
 | 前端页面分层 | `frontend-page-structure` | — |
-| 官网 / 贡献段 CSS | `create-module`（贡献官网段节） | `packages/builtin/marketing/MODULE.md`；rule：`site-section-css` |
+| 官网 / SEO | `create-module`（贡献段 CSS + 库存文案）；rule：`site-section-css`、`site-section-i18n` | `packages/builtin/marketing/MODULE.md` |
 | Prisma migration | `merge-migrations`、`prisma-sync-fix` | — |
 | 部署 / 生产 env 透传 | —（`pnpm check:prod-app-env`；rule：`tenancy-mode`） | `docs/deployment.md` |
 

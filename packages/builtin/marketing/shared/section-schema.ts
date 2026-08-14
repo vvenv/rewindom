@@ -9,6 +9,7 @@
 import "./i18n-catalog.js";
 
 import {
+  lookupStockTranslation,
   translateRegisteredKeyTable,
   type AppLocale,
 } from "@rewindom/shared";
@@ -489,6 +490,27 @@ export function localizeSections(
 /* 多语言搬运（复制页面到另一种语言）                                          */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * 目标语言该写入哪一句：库存文案用 catalog 译文，租户改过的才搬原文。
+ *
+ * 先看 setting 自己的 `default` key（字段专属、无歧义），再全表反查——预设
+ * `text` 填过、但 schema 上没有 default 的 heading / 副标题也要换到目标语言。
+ */
+function stockOrSourceCopy(
+  def: SettingDef,
+  text: string,
+  from: AppLocale,
+  to: AppLocale,
+): string {
+  if (text === "") return text;
+  const keyed =
+    "default" in def && typeof def.default === "string"
+      ? translateRegisteredKeyTable(def.default)
+      : undefined;
+  if (keyed?.[from] === text && keyed[to]) return keyed[to];
+  return lookupStockTranslation(from, text, to) ?? text;
+}
+
 /** 把一组设置值里的文案，从 `from` 语言的槽位复制到 `to` 语言的槽位。 */
 function relocalizeValues(
   defs: SettingDef[],
@@ -506,12 +528,7 @@ function relocalizeValues(
       : typeof current === "string"
         ? current
         : "";
-    const stock =
-      "default" in def && typeof def.default === "string"
-        ? translateRegisteredKeyTable(def.default)
-        : undefined;
-    const next =
-      stock && stock[from] === text && stock[to] ? stock[to] : text;
+    const next = stockOrSourceCopy(def, text, from, to);
     out ??= { ...values };
     out[def.id] = writeLocalizedSetting(current, to, defaultLocale, next);
   }
@@ -519,11 +536,11 @@ function relocalizeValues(
 }
 
 /**
- * 复制页面到另一种语言时的文案搬运：**把源语言的原文填进目标语言的槽位**。
+ * 复制页面到另一种语言时的文案搬运。
  *
- * 不搬的话新页面在编辑器里会是一片空白——`readLocalizedSetting` 刻意不回落
- * （回落会让人以为已经翻译过了），而复制的用途恰恰是「拿原文当翻译起点」。
- * 源语言的槽位原样保留，所以复制不会把原文弄丢。
+ * 库存句（locale JSON 里那句，租户没改过）写成目标语言的 catalog 译文；改过的
+ * 句子把源语言原文填进目标槽位当翻译起点。不搬的话新页面在编辑器里会是一片
+ * 空白——`readLocalizedSetting` 刻意不回落。源语言槽位原样保留。
  */
 export function relocalizeSection(
   section: SiteSection,

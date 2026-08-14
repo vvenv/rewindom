@@ -373,15 +373,28 @@ export function linkSettings(
 }
 
 /** 区块抬头：标题 + 描述，几乎每个 section 都有。 */
-export function headingSettings(options?: { align?: boolean }): SettingDef[] {
+export function headingSettings(options?: {
+  align?: boolean;
+  /** 与预设 `text.heading` 同一条 `ns:key`，复制跨语言时才能换成目标语言库存句。 */
+  headingDefault?: string;
+  subheadingDefault?: string;
+}): SettingDef[] {
   return [
     { type: "header", content: "editor.group.heading" },
-    { type: "text", id: "heading", label: "editor.setting.heading" },
+    {
+      type: "text",
+      id: "heading",
+      label: "editor.setting.heading",
+      ...(options?.headingDefault ? { default: options.headingDefault } : {}),
+    },
     {
       type: "textarea",
       id: "subheading",
       label: "editor.setting.subheading",
       rows: 2,
+      ...(options?.subheadingDefault
+        ? { default: options.subheadingDefault }
+        : {}),
     },
     ...(options?.align
       ? ([
