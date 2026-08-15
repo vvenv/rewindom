@@ -39,7 +39,7 @@
   "features": {
     "bot": {
       "title": "Agent-first 闭环",
-      "description": "AGENTS.md 与 Skills 是交付物的一部分：填 Spec → gen:module → check:modules，编码 Agent 在闸门内扩展，而不是碰运气。"
+      "description": "AGENTS.md 与 Skills 是交付物的一部分：新模块填 MODULE.spec，改现有模块填 FEATURE.spec → gen:module 或按 Skill 实现 → check:modules，编码 Agent 在闸门内扩展，而不是碰运气。"
     },
     "layers": {
       "title": "内核不依赖业务",
@@ -71,7 +71,7 @@
       "steps": {
         "spec": {
           "title": "填 Spec",
-          "description": "声明模块 id、权限、模型与 entitlement；留空则 Agent 必须追问，禁止瞎猜。"
+          "description": "新模块声明 id、权限、模型与 entitlement；改现有模块声明 surfaces、goal、touch。留空则 Agent 必须追问，禁止瞎猜。"
         },
         "gen": {
           "title": "生成并装配",

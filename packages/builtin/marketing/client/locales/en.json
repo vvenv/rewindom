@@ -39,7 +39,7 @@
   "features": {
     "bot": {
       "title": "Agent-first loop",
-      "description": "AGENTS.md and Skills are part of the product: fill a Spec → gen:module → check:modules so coding agents extend inside gates—not by luck."
+      "description": "AGENTS.md and Skills are part of the product: fill MODULE.spec for a new module or FEATURE.spec to extend one → gen:module or the matching Skill → check:modules so coding agents extend inside gates—not by luck."
     },
     "layers": {
       "title": "Kernel stays business-free",
@@ -71,7 +71,7 @@
       "steps": {
         "spec": {
           "title": "Fill the Spec",
-          "description": "Declare module id, permissions, models, and entitlements; blanks mean the agent must ask—no guessing."
+          "description": "New modules declare id, permissions, models, and entitlements; existing modules declare surfaces, goal, and touch. Blanks mean the agent must ask—no guessing."
         },
         "gen": {
           "title": "Generate and wire",

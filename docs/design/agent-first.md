@@ -14,9 +14,10 @@ Rewindom 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 | Cursor Rules | `.cursor/rules/*.mdc` | 始终生效的边界与命名 |
 | Skills | `.cursor/skills/*/SKILL.md` | 任务剧本（`create-module` 等） |
 | Claude Code Skills | `.claude/skills/` | 由 `pnpm sync-skills` 从 `.cursor/skills` 生成 |
-| Spec 模板 | `.cursor/skills/create-module/templates/MODULE.spec.yaml` | 结构化输入；留空则追问 |
+| Spec 模板 | `.cursor/skills/create-module/templates/MODULE.spec.yaml` | 新模块；留空则追问 |
+| 增量 Spec | `.cursor/skills/extend-module/templates/FEATURE.spec.yaml` | 扩展已有模块；落盘 `<module>/features/<slug>.spec.yaml` |
 | 生成 / 校验 | `pnpm gen:module` · `pnpm check:modules` · `pnpm check:deps` | 机器可检查的闭环 |
-| 模块说明书 | `packages/builtin/*/MODULE.md`、`modules/*/MODULE.md` | 供人类与 Agent 的模块边界 |
+| 模块说明书 | `packages/builtin/*/MODULE.md`、`modules/*/MODULE.md` | 供人类与 Agent 的模块边界（含「常见改动」） |
 
 ---
 
@@ -25,10 +26,10 @@ Rewindom 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 下列条件同时成立，才可对外宣称 Agent-first：
 
 1. **有根指令**：克隆仓库后，Agent 能从 `AGENTS.md`（及 Claude 的 `CLAUDE.md` 指针）读到约定与工作流，无需口头复述架构。
-2. **有任务剧本**：高频任务有 Skill（至少：建模块、拆模块、前端 Page 分层、Prisma 修复、migration 收敛、错误日志）。
-3. **有结构化入口**：新模块走 `MODULE.spec.yaml` → `gen:module`，禁止 Agent 凭印象手改六处注册表。
+2. **有任务剧本**：高频任务有 Skill（至少：建模块、扩展现有模块、官网段/模板页、拆模块、前端 Page 分层、Prisma 修复、migration 收敛、错误日志）。
+3. **有结构化入口**：新模块走 `MODULE.spec.yaml` → `gen:module`；增量需求走 `FEATURE.spec.yaml`（`extend-module`）。禁止凭印象手改六处注册表或扩大 `touch` 范围。
 4. **有机器闸门**：`check:modules` / `check:deps` / 租户 lint（fail-closed）能拦住越权与漏装配；CI 跑同一套。
-5. **有金标准**：`notes`（及 `todos`）可复制；目录与 `MODULE.md` 固定，优先 AI 可读性。
+5. **有金标准**：`note`（CRUD）与 `shop`（复杂域）可复制；目录与 `MODULE.md` 固定，优先 AI 可读性。
 6. **对外可讲清**：官网与公开文档能用同一闭环讲清楚（见 marketing `/docs/agent-first`），且不与「不是脚手架生成器」矛盾——卖的是**带闸门的模块化底座**，不是无约束代码喷发。
 
 不在 Agent-first 范围内（勿与产品 AI 能力混淆）：
@@ -39,6 +40,18 @@ Rewindom 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 ---
 
 ## 2. 闭环（人与 Agent 共用）
+
+先判断落点，再填对应 Spec：
+
+```text
+需求 → 新模块 | 扩展现有域 | 官网段/模板页
+     → MODULE.spec / FEATURE.spec / site-section Skill
+     → 实现（增量需求只动 spec 的 touch）
+     → check:modules / check:deps / check:i18n
+     → 约定变了则回写 MODULE.md
+```
+
+### 新模块
 
 ```text
 意图 → 填 MODULE.spec.yaml（Skill 拦猜测）
@@ -52,9 +65,25 @@ Rewindom 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 | --- | --- | --- |
 | Spec | 拍板 id、权限、entitlement、模型字段 | 按 Skill 追问缺口，不擅自填业务假设 |
 | 生成 | 确认 diff | 跑 `gen:module`，不手改注册表 |
-| 实现 | 审领域逻辑与 UX | 按 `notes` / Page 分层 Skill 补齐 |
+| 实现 | 审领域逻辑与 UX | 按 `note` / Page 分层 Skill 补齐 |
 | 校验 | 看失败原因 | 修到 `check:modules` / `check:deps` 绿 |
 | 提交 | 最终把关 | 遵循约定；不 `--no-verify` |
+
+### 扩展现有域
+
+```text
+意图 → 读 MODULE.md「常见改动」→ 填 FEATURE.spec.yaml
+     → 实现（只动 touch；扩范围先改 spec）
+     → check:modules / 模块测试 / check:i18n
+     → 约定变了则回写 MODULE.md
+```
+
+| 步骤 | 人做什么 | Agent 做什么 |
+| --- | --- | --- |
+| Spec | 拍板 surfaces、goal、out_of_scope | 追问缺口；落盘 `<module>/features/<slug>.spec.yaml` |
+| 实现 | 审领域逻辑与 UX | 按 `extend-module` / `site-section`；不越 `touch` |
+| 校验 | 看失败原因 | 修到 spec 里的 `acceptance` 绿 |
+| 提交 | 最终把关 | FEATURE.spec 与代码一起进 git |
 
 ---
 
@@ -67,7 +96,7 @@ Rewindom 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 | **指令即产品** | Rules / Skills / AGENTS.md 是交付物的一部分，不是可选文档 |
 | **生成代替记忆** | 易漏的装配点由 `gen:module` 写入，不靠 Agent 背清单 |
 | **校验代替信任** | 边界用 CI 与 lint 强制，不靠「模型应该记得」 |
-| **Spec 代替闲聊** | 结构化 YAML 是模块意图的契约；闲聊补全必须回写 Spec |
+| **Spec 代替闲聊** | 结构化 YAML 是意图的契约（新模块 `MODULE.spec`、增量 `FEATURE.spec`）；闲聊补全必须回写 Spec |
 | **双 IDE 同源** | Cursor Rules + Claude Skills 同源；只改 `.cursor/skills/` |
 
 ---

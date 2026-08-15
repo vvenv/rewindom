@@ -10,7 +10,7 @@ id: notes # 包目录名 / manifest id，kebab-case
 label: Notes
 description: 租户内笔记 CRUD 金标准示例模块
 kind: business # business | infrastructure
-placement: modules/note # 业务子域则写 packages/<product>/<subdomain>
+placement: modules/note # 业务模块写 modules/<id>；infra 写 packages/builtin/<id>
 resource:
   singular: note # 文件名、路径参数（note_id）、service 函数名
   plural: notes # URL 前缀（/api/notes）、queryKey

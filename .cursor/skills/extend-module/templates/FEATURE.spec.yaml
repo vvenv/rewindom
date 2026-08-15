@@ -1,0 +1,26 @@
+# 增量功能契约 —— extend-module skill 的输入
+#
+# 用法：复制本文件填写后落盘为 <module>/features/<slug>.spec.yaml，与本次改动一起提交。
+# 规则：必填项留空 = 阻塞，agent 必须追问，不得猜；可选项留空 = 沿用模块现有契约。
+# 可跳过：单文件笔误、纯文案、已有 key 的 i18n 补译。
+# 必须填：跨文件 / 新字段 / 新路由 / 新段 / 新权限。
+# 下面的示例值取自「给商品详情加展示字段」，可直接对照改写。
+
+# ---------- 必填 ----------
+module: shop # 模块 id（目录名），kebab-case
+surfaces: [ssr] # tenant | ssr | member | platform —— 可多选；猜错会改错面
+goal: 商品详情增加「成色」展示
+gold: modules/shop/shared/sections/product-html.ts # 抄谁，相对仓库根
+touch: # Agent 只许动这些路径；扩范围必须先改本 spec
+  - modules/shop/shared/sections/
+  - modules/shop/prisma/schema.prisma
+out_of_scope: [checkout, billing]
+i18n: data # code | data | none
+acceptance:
+  - pnpm --filter @rewindom/shop test
+  - pnpm check:i18n
+
+# ---------- 可选 · 留空则沿用模块现有 ----------
+# entitlement: shop
+# permissions: [] # 新增权限才列
+# models: [] # 新增/改字段才列

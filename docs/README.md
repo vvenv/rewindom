@@ -16,8 +16,8 @@
 
 | 文档                                                        | 说明                                | Skill                          |
 | ----------------------------------------------------------- | ----------------------------------- | ------------------------------ |
-| [modular-architecture.md](./design/modular-architecture.md) | 内核 + 可插拔模块的模块化 Monolith  | `create-module`、`extract-module` |
-| [agent-first.md](./design/agent-first.md) | Agent-first：AGENTS.md / Skills / gen·check 闭环与卖点口径 | `create-module` 等 |
+| [modular-architecture.md](./design/modular-architecture.md) | 内核 + 可插拔模块的模块化 Monolith  | `create-module`、`extend-module`、`extract-module` |
+| [agent-first.md](./design/agent-first.md) | Agent-first：AGENTS.md / Skills / gen·check 闭环与卖点口径 | `create-module`、`extend-module`、`site-section` |
 | [downstream-fork.md](./design/downstream-fork.md) | 产品仓升级到 rewindom 的检查清单（布局 / 品牌 / 默认路由） | `frontend-page-structure` |
 
 ### 多租户 / SaaS
@@ -48,7 +48,7 @@
 
 前端页面的四层拆分（Page / Hook / Lib / Component）见 `frontend-page-structure` skill。
 
-官网贡献段 CSS：写 `shared/site-css/*.css`，assemble 生成 `site-css.generated.ts`，禁止手写 `*-css.ts`。见 `create-module` skill「贡献官网段」与 rule `site-section-css`。
+官网贡献段 CSS：写 `shared/site-css/*.css`，assemble 生成 `site-css.generated.ts`，禁止手写 `*-css.ts`。见 `site-section` skill 与 rule `site-section-css`。
 
 ## 数据库
 

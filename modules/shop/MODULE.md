@@ -51,6 +51,19 @@ shop/
 
 加购与结账是真 `<form method="post">`，无 JS 也能买。
 
+## 常见改动
+
+增量需求先填 FEATURE.spec（`extend-module`）。官网段 / 模板页走 `site-section`。
+
+| 我想改… | 从这些文件开始 | 不要碰 |
+| --- | --- | --- |
+| 店面版式 / 必备段 | `shared/shop-page-templates.ts` | 工作台 `client/pages` |
+| 段 markup / 编辑器预览 | `shared/sections/*-html.ts` + 两端 register | marketing 内核 |
+| 贡献段 CSS | `shared/site-css/*.css` → assemble | 手写 `*-css.ts` |
+| 商品 / 分类 / 优惠字段 | `prisma/schema.prisma` + mapper + 工作台表单 | 代码 i18n 平行字段（`fieldTitleEn`） |
+| 结账 / Stripe / webhook | `server/payment/`、`server/order/` | `billing` / Creem |
+| 工作台列表页 | `client/pages` + `frontend-page-structure` | 店面 SSR markup |
+
 ## 官网模板页与区块
 
 店面不再自绘 HTML 外壳。路径仍是 `/shop/*`，版式是一组模板页（与文档库 / 会员页同一套

@@ -38,7 +38,15 @@
 | 内核路由          | `packages/server-kernel/src/kernel/kernel-routes.ts`                          |
 | App Shell（前端） | `packages/client-kit/` + `apps/client/src/app-shell-routes.tsx`               |
 
-新功能：业务模块用 `pnpm gen:module` 生成到 `modules/<name>/`；内置能力放 `packages/builtin/<name>/` 并在两处 `enabled-modules.ts` 注册。都要配 `MODULE.md`。Skill：`create-module`。
+新功能按落点选 Skill，不要凭印象手改注册表：
+
+| 落点 | 做法 | Skill |
+| --- | --- | --- |
+| 新限界上下文 | `pnpm gen:module` → `modules/<name>/`；infra 放 `packages/builtin/<name>/` 并在两处 `enabled-modules.ts` 注册 | `create-module` |
+| **扩展已有模块** | 先填 FEATURE.spec，落盘 `<module>/features/<slug>.spec.yaml`，只动 spec 的 `touch` | `extend-module` |
+| 官网段 / chrome 块 / 模板页 | 定义写在贡献方；不要改 marketing 内核 | `site-section` |
+
+都要配 `MODULE.md`。改现有模块（跨文件 / 新字段 / 新路由 / 新段 / 新权限）**必须先填 FEATURE.spec**；单文件笔误、纯文案、已有 key 的 i18n 补译可跳过。
 
 ## 模块包布局
 
@@ -123,9 +131,14 @@ SHADOW_DATABASE_URL="postgresql://rewindom:<pw>@localhost:5433/rewindom-shadow" 
 > `estimation_rules` / `destinations`）烤进了 rewindom 基线——每个全新部署都凭空多出这些表，
 > 拖到一年后才用一条 drop 迁移清掉。squash 迁移时务必核对生成物。
 
-新建模块的标准路径：**填 spec → `gen:module` → 补 service 业务逻辑 → `check:modules`**。
-spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
-`check:modules` 是 `create-module` skill「交付前自检」的机器化版本，改动模块后必须跑。
+新建模块的标准路径：**填 MODULE.spec → `gen:module` → 补 service 业务逻辑 → `check:modules`**。
+模板：`.cursor/skills/create-module/templates/MODULE.spec.yaml`。
+
+扩展已有模块：**填 FEATURE.spec → 按 `extend-module` 实现 → `check:modules`**。
+模板：`.cursor/skills/extend-module/templates/FEATURE.spec.yaml`；
+落盘：`<module>/features/<slug>.spec.yaml`（与本次改动一起提交）。
+
+`check:modules` 是 skill「交付前自检」的机器化版本，改动模块后必须跑。
 
 ## 设计文档（docs/）
 
@@ -134,7 +147,7 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 | 领域              | 文档                                               | Skill / Rule                      |
 | ----------------- | -------------------------------------------------- | --------------------------------- |
 | Agent-first       | `design/agent-first.md`                            | Skills + 本文件                   |
-| 模块化 / 插件化   | `design/modular-architecture.md`                   | `create-module`、`extract-module` |
+| 模块化 / 插件化   | `design/modular-architecture.md`                   | `create-module`、`extend-module`、`extract-module` |
 | 字段命名          | `design/field-naming-conventions.md`               | `field-naming`                    |
 | 权限              | `design/permission-system.md`                      | `permissions`                     |
 | 错误日志 / 可观测 | `design/error-logging.md`                          | `error-logging`                   |
@@ -143,7 +156,7 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 | 文件存储 / 媒体库 | `design/file-storage.md`                           | —                                 |
 | 租户功能开关/配额 | `design/tenant-features.md`                        | —                                 |
 | 前端 Page 分层    | —                                                  | `frontend-page-structure`         |
-| 官网 / SEO        | `packages/builtin/marketing/MODULE.md`             | `create-module`（贡献段 CSS + 库存文案）；rule：`site-section-css`、`site-section-i18n` |
+| 官网 / SEO        | `packages/builtin/marketing/MODULE.md`             | `site-section`；rule：`site-section-css`、`site-section-i18n` |
 | 产品仓升级检查    | `design/downstream-fork.md`                        | `frontend-page-structure`         |
 | 单元测试          | `design/unit-testing.md`                           | —                                 |
 | 部署 / FAQ        | `deployment.md`、`faq.md`                          | —                                 |
@@ -152,5 +165,5 @@ spec 模板在 `.cursor/skills/create-module/templates/MODULE.spec.yaml`；
 ## Agent 配置（Cursor + Claude Code）
 
 - **Rules**（`.cursor/rules/*.mdc`，仅 Cursor）— `architecture`、`extension-points`、`coding-standards`、`field-naming`、`permissions`、`docs-reference`、`tenancy-mode`、`ui-components`、`frontend-page-structure`、`audit-logging`、`prisma-migration`、`auto-execute-scripts`、`site-section-css`、`site-section-i18n`
-- **Skills**（`.cursor/skills/`，单一真相源）— `create-module`、`extract-module`、`error-logging`、`frontend-page-structure`、`prisma-sync-fix`、`merge-migrations`
+- **Skills**（`.cursor/skills/`，单一真相源）— `create-module`、`extend-module`、`site-section`、`extract-module`、`error-logging`、`frontend-page-structure`、`prisma-sync-fix`、`merge-migrations`
 - **Claude Code**：根目录 `CLAUDE.md` 指向本文件；`.claude/skills/` 由 `pnpm sync-skills` 生成（`prepare` 自动跑）；只改 `.cursor/skills/`，勿手改生成物

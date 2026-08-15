@@ -24,6 +24,18 @@
 公开页 chrome 由 SSR HTML 产出；编辑器预览用 React `SiteChrome` / `TenantSiteView`。
 工作台页用 `PageLayout`。
 
+## 常见改动
+
+增量需求先填 FEATURE.spec（`extend-module`）。**其它模块**贡献段 / 模板 / chrome → 不要改本模块内核，用 `site-section` + 下文「业务模块贡献」。
+
+| 我想改… | 从这些文件开始 | 不要碰 |
+| --- | --- | --- |
+| 内置段 schema / SSR | `shared/sections/<type>/definition.ts` + `html.ts` | 业务模块目录 |
+| 页头页脚 chrome | `shared/sections/_common/` | 为新排法加枚举 / 读时升级层 |
+| 模板页注册表 | `shared/page-templates.ts` | 业务方的 `*-page-templates.ts`（贡献方自己写） |
+| 编辑器 / 工作台 | `client/pages/site-*.tsx`、`client/enhance/` | 公开站挂 React |
+| 业务模块贡献段 / 模板 / chrome | 贡献方 `shared/` + `site-section` | 本模块「顺便登记」业务 type |
+
 ## 租户 CMS 数据
 
 | 模型            | 说明                                                                                                                                           |
@@ -504,7 +516,7 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 
 #### 业务模块贡献 section
 
-段不必都住在 marketing 里。业务模块可以贡献自己的段，方向与 `site-account-entry` 一致：
+逐步剧本：`site-section` skill。段不必都住在 marketing 里。业务模块可以贡献自己的段，方向与 `site-account-entry` 一致：
 **注册表定义在消费方**（marketing），模块自己把定义填进来；marketing 不知道任何业务模块的
 存在，也不反向 import。首个真实用例是 site-member 的「会员专属内容」段。
 

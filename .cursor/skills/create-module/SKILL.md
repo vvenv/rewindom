@@ -1,6 +1,6 @@
 ---
 name: create-module
-description: 按模块化架构创建新的 server/client 业务模块。新增功能域、CRUD 模块或从遗留路由拆出时使用。
+description: 按模块化架构创建新的 server/client 业务模块。新建限界上下文或 CRUD 模块时使用；扩展已有模块用 extend-module，官网段用 site-section。
 ---
 
 # 创建业务模块
@@ -10,9 +10,10 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 
 ## 何时使用
 
-- 新增 **Shell** 横切能力（审计、通知等独立 infra 包 — 慎增，优先现有 Shell）
-- 新增 **业务** 功能 → 业务包的 `<subdomain>/` 子域（见 `docs/design/modular-architecture.md` §11.2）
-- 金标准示例模块（`notes`）
+- 新建 **限界上下文**（新的 `modules/<id>/` 或 infra `packages/builtin/<id>/`）
+- 金标准 CRUD：`modules/note/`
+- **扩展已有模块**（加字段 / 路由 / 页面 / 包内子域）→ 用 `extend-module`，不要走本 Skill
+- 贡献官网段 / 模板页 / chrome 块 → 用 `site-section`
 
 ## 第 0 步：收集输入（缺项必须问，禁止猜）
 
@@ -23,7 +24,7 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 
 | 字段                                           | 影响面                                                                | 猜错的代价                                 |
 | ---------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------ |
-| `kind` + `placement`                           | 进业务包子域 vs 新建 infra 包                                         | 物理布局整体推倒                           |
+| `kind` + `placement`                           | `modules/<id>/` vs `packages/builtin/<id>/`                             | 物理布局整体推倒                           |
 | `resource.singular/plural`                     | 20+ 文件名、URL、路径参数、queryKey                                   | 事后重命名成本最高                         |
 | `surfaces`                                     | 是否生成 `platform-*.routes.ts` / `renderPlatformRoutes`              | 平台面漏建或白建                           |
 | `entitlement.key` + `default_enabled`          | `registerTenantGatedRoutes` + `APP_TENANT_ENTITLEMENTS`               | **漏了等于绕过租户开关，是安全问题**       |
@@ -53,7 +54,7 @@ Rule：`.cursor/rules/extension-points.mdc`（含跨模块通信决策表）
 
 - 必问项缺失且用户未回答 → **停，不生成**。禁止「先建着回头改」。
 - 用户答案与仓库约定冲突（如 permission key 或字段名用 camelCase）→ 按 AGENTS.md「前置约束」先给最佳实践方案再确认。
-- spec 落盘为 `modules/<id>/MODULE.spec.yaml`；后续改需求走 **spec diff → 再生成**，保证幂等。
+- spec 落盘为 `modules/<id>/MODULE.spec.yaml`。模块仍在生成器支持范围内且手工改动少时，改需求走 **spec diff → 再生成**。已偏离生成器（多模型、SSR、贡献段等）后改走 `extend-module` + FEATURE.spec，不要 `--force` 覆盖手工实现。
 
 ## 第 1 步：优先用脚手架生成
 
@@ -88,7 +89,7 @@ checklist 手工建。
 1. `node scripts/verify-module.mjs <id>`
 2. `pnpm --filter server exec prisma migrate dev --name add_<id>`
 3. 业务逻辑补在 `server/<resource>.service.ts`（生成的是标准 CRUD）
-4. 改需求优先**改 spec 重新生成**（`--force`），而不是手工改生成物后让二者失配
+4. 模块仍接近生成物时，改需求优先**改 spec 重新生成**（`--force`）；已偏离则转 `extend-module`
 
 ## 模块分类
 
@@ -99,18 +100,17 @@ checklist 手工建。
 
 纯租户侧业务（如 `notes`）只需 `tenant/`；兼有平台管理面的域额外加 `platform/`。
 
-## 物理包（业务单包）
+## 物理包
 
-产品**业务**收敛为单包。新业务功能放进业务包 `packages/<product>/<subdomain>/`，**不要**新建 `module-<feature>`。当前仓库只有 `notes` 一个业务模块。
+| 落点 | 何时 |
+| --- | --- |
+| `modules/<id>/` | 新业务限界上下文（`pnpm gen:module`） |
+| `packages/builtin/<id>/` | 新横切 infra（慎增；优先现有 Shell） |
+| 包内 `<subdomain>/` | 紧耦合子域（如 shop 的 catalog / cart / checkout）——同一物理包、一个 manifest，不拆新 npm 包 |
 
-子域为包内目录，**不再各自导出 manifest**——整包只有一个 `productServerModule` / `productClientModule`。新子域的做法：
+禁止仅为目录整齐新建物理包。现有外部业务包：`note`（CRUD 金标准）、`todo`、`bookmark`、`shop`（复杂域金标准）、`site-docs`。
 
-1. 建 `server/<subdomain>/`、`client/<subdomain>/`、`shared/<subdomain>/` 目录
-2. 若需租户开关：在 `shared/<subdomain>/entitlements.ts` 导出 `TenantModuleEntitlement`，并加入 `shared/entitlements.ts` 的 `APP_TENANT_ENTITLEMENTS`
-3. 在 `server/module.ts` 的 `registerRoutes` 追加注册（租户路由用 `registerTenantGatedRoutes(app, "<entitlement-key>", …)`）
-4. 在 `client/module.tsx` 追加 `renderRoutes` / `nav` / `shell` 贡献
-
-参考 `modules/note/` 与 `docs/design/modular-architecture.md` §11.2。
+扩展已有包内子域：用 `extend-module`（FEATURE.spec），不要改 `enabled-modules.ts`。口径见 `docs/design/modular-architecture.md` §11.2。
 
 ## Server checklist
 
@@ -151,56 +151,23 @@ checklist 手工建。
 11. Page 按 `frontend-page-structure` skill 四层拆分
 12. 在 `apps/client/src/enabled-modules.ts` / `apps/server/src/enabled-modules.ts` 注册
 
-## 贡献官网段（Theme Editor）
+## 贡献官网段 / 模板页 / chrome 块
 
-段的 schema / SSR HTML / 编辑器视图按 marketing `MODULE.md`「业务模块贡献 section」。**CSS 另有一条链，不要手写 ts 字符串。**
+逐步剧本见 **`site-section` skill**。口径与金标准在 marketing `MODULE.md`「业务模块贡献」。Rule：`site-section-css`、`site-section-i18n`。
 
-| 写 | 生成 | 登记 |
-| --- | --- | --- |
-| `<模块>/shared/site-css/<name>.css` | `shared/site-css.generated.ts` | `{ css: NAME_CSS }` 交给 `registerSiteSectionHtml` / `registerSiteSectionView` |
+## 金标准
 
-Markup 只写一份 HTML 渲染器（`<模块>/shared/sections/*-html.ts`）。SSR 登记该函数；编辑器预览用 `htmlSectionView(render)` / `htmlChromeBlockView(render)` 灌同一串，不要再写一套 React 视图。金标准：shop。
-
-```bash
-pnpm --filter @rewindom/builtin assemble:module-css
-```
-
-金标准：`packages/builtin/site-member/shared/site-css/`。Rule：`site-section-css`。
-
-**禁止** `shared/shop-css.ts` 这类模板字符串——生产 bundle 读不了旁路 `.css`，手写字符串也逃过剥注释。改 `.css` 后必须跑 assemble 并提交 generated。
-
-页头 / 页脚里「和语言切换同一排的按钮」是 chrome **块**，不是再往区域里塞一段。贡献走
-`registerChromeBlockHtml` / `registerChromeBlockView(htmlChromeBlockView(render))`，定义里带 `chromeSlotSettings()`。
-金标准：shop 的购物车入口。口径见 marketing `MODULE.md`「业务模块贡献 chrome 块」。
-
-## 贡献官网模板页
-
-路径固定的页面（登录、商店首页、文档版式）走 marketing 的模板页注册表，**不要**自己写初始化、**不要**做「自定义版式」空态。
-
-| 写 | 登记 |
-| --- | --- |
-| `<模块>/shared/*-page-templates.ts` | 同一函数里 `registerPageTemplateKind` + `registerPageTemplatePreset` |
-| server `onBoot` + client manifest | 各调一次（幂等） |
-
-有租户开关的模板必须声明 `entitlement`。marketing 在相关时快照落库（建租户 / 开通开关 / 打开 `/app/site`）。`pnpm check:modules` 会挡 kind 缺 preset、有开关却没声明 entitlement、以及客户端「自定义版式」。
-
-金标准：`site-member/shared/member-page-templates.ts`。口径见 marketing `MODULE.md`「业务模块贡献模板页」。
-
-预设 `text` / `titleKey` / `descriptionKey` 必须是 `ns:key`，并与对应 setting 的 `default` 同一条（`headingSettings({ headingDefault, subheadingDefault })`）。创建时展开成 `__i18n` 表，不要先 `t()` 成单语。复制到另一语言：库存文案写目标语言 catalog 译文，租户改过的才搬原文当翻译起点。同一段被多张预设共用时不要硬塞一个 heading default。
-
-## 金标准（notes）
-
-- CRUD + `PermissionRoute` + 审计事件 + Vitest
-- 服务与路由在 `modules/note/server/`；UI 在 `modules/note/client/tenant/`
+- CRUD：`modules/note/`（`PermissionRoute` + 审计 + Vitest）
+- 复杂域 / 店面：`modules/shop/`
 
 ## 禁止
 
 - 在 `App.tsx` 硬编码业务路由
 - 在 `routes/index.ts` 中央列表追加业务插件
 - 在 `platform` 内写业务域逻辑；用 slot / `renderPlatformRoutes` 反向贡献
-- 贡献官网段时手写 `shared/*-css.ts` 模板字符串（见「贡献官网段」）
-- 贡献官网模板页时自己写初始化或「自定义版式」空态（见「贡献官网模板页」）
-- 贡献官网段 / 模板页时把预设文案先 `t()` 成单语，或 preset key 与 setting `default` 不是同一条 `ns:key`（见「贡献官网模板页」）
+- 贡献官网段时手写 `shared/*-css.ts` 模板字符串（见 `site-section`）
+- 贡献官网模板页时自己写初始化或「自定义版式」空态（见 `site-section`）
+- 贡献官网段 / 模板页时把预设文案先 `t()` 成单语，或 preset key 与 setting `default` 不是同一条 `ns:key`（见 `site-section`）
 
 ## 交付前自检（逐条比对 spec）
 
@@ -224,5 +191,4 @@ pnpm --filter @rewindom/builtin assemble:module-css
 - [ ] 租户侧 / 公开面文案无「租户」「Tenant」（平台面除外）
 - [ ] 设置页只有一张 `<form>`；密钥 / 收款通道用 Sheet（见 `frontend-page-structure` skill「一页一表单」）
 - [ ] 租户内容多语言走数据 locale map，不要做 `fieldTitleEn` 这种代码 i18n 平行字段（见 `docs/design/i18n.md`）
-- [ ] 若贡献了官网段：CSS 真源是 `shared/site-css/*.css`，没有手写 `*-css.ts`，generated 已 assemble 并提交
-- [ ] 🤖 若贡献了官网模板页：kind 与 preset 成对登记；有租户开关则声明了 `entitlement`；客户端没有「自定义版式」
+- [ ] 若贡献了官网段 / 模板页：按 `site-section` 交付清单（CSS 真源、kind/preset 成对、entitlement）

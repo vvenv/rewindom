@@ -315,6 +315,10 @@ modules/<domain>/
 ## 禁止
 - 不要直接修改 kernel/...
 - `server/**` 不要 import 宿主 `apps/server/src/`；使用 `@rewindom/server-kernel`、本包路径
+
+## 常见改动（可选；复杂域建议写）
+| 我想改… | 从这些文件开始 | 不要碰 |
+| --- | --- | --- |
 ```
 
 ### 3.4 模块 id vs Entitlement key
@@ -772,11 +776,9 @@ client: {
 
 ### 11.2 业务模块
 
-当前仓库只有 `note`（id `note`，entitlement key `note`，`requires`: `rbac`、`audit`）
-一个业务模块，同时充当金标准示例——新模块从它复制起步。
+外部业务包在 `modules/<id>/`（`kind: "business"`），由 `scripts/module-contexts.json` 的 `business` 层承接，`check:deps` 拦住「基础设施依赖业务」。
 
-产品业务增长到需要与 infra 分离时，在 `modules/<id>/` 下建业务包（`kind: "business"`），
-由 `scripts/module-contexts.json` 的 `business` 层承接，`check:deps` 即可拦住「基础设施依赖业务」。
+当前外部业务包：`note`、`todo`、`bookmark`、`shop`、`site-docs`。`note` 是列表 CRUD 金标准（新模块从它复制起步）；复杂域（店面 SSR、贡献段、模板页、数据多语言）以 `shop` 为准。
 
 **单包 vs 多包**：业务子域建议收敛为**一个包 + 一个 manifest**，子域作为包内目录，不各自导出 manifest。
 理由是子域之间 import 频繁、Prisma model 互相 `@relation`，拆成多包只会把包内调用变成跨包依赖，
@@ -990,6 +992,7 @@ packages/builtin/         # @rewindom/builtin，exports 仅 "./*": "./*"
 | 任务 | 允许修改 |
 | --- | --- |
 | 新增业务功能 | `modules/<id>/`（`gen:module`）或 `packages/builtin/<id>/` + `enabled-modules.ts` 注册 |
+| 扩展已有模块 | 模块目录内；先填 FEATURE.spec（`extend-module`）；已注册则不改 `enabled-modules` |
 | 修改权限模型 | `rbac` only |
 | 修改 HTTP 约定 | kernel only（需 RFC） |
 | 新增租户功能开关 | 模块 manifest `tenantEntitlements` + 平台 UI |
@@ -999,6 +1002,8 @@ packages/builtin/         # @rewindom/builtin，exports 仅 "./*": "./*"
 | Skill | 用途 |
 | --- | --- |
 | `create-module` | 按契约创建新模块端到端 |
+| `extend-module` | 扩展已有模块（FEATURE.spec） |
+| `site-section` | 贡献官网段 / chrome 块 / 模板页 |
 | `extract-module` | 从单体迁出模块 checklist |
 | `frontend-page-structure` | 前端 Page / Hook / Lib / Component |
 | `error-logging` | ErrorLog 与可观测 |
@@ -1041,7 +1046,7 @@ packages/builtin/         # @rewindom/builtin，exports 仅 "./*": "./*"
 | **Authn** | 认证：你是谁 |
 | **Authz** | 授权：你能做什么 |
 | **Provider** | 可替换的内核扩展实现（`ProviderRegistry`） |
-| **rewindom** | 本仓库：多租户 SaaS 模块化单体（kernel + infra modules + notes） |
+| **rewindom** | 本仓库：多租户 SaaS 模块化单体（kernel + infra + `modules/*` 业务包） |
 
 ---
 
