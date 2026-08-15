@@ -157,21 +157,28 @@ curl http://127.0.0.1:3700/health
 
 ## 环境变量
 
-| 变量                           | 说明                                            |
-| ------------------------------ | ----------------------------------------------- |
-| `DEPLOY_HOST`                  | SSH 主机（本机专用）                            |
-| `APP_DOMAIN`                   | 产品主域（默认租户 CMS）                        |
-| `PLATFORM_URL`                 | 平台控制台 origin（默认 `https://admin.${APP_DOMAIN}`） |
-| `PLATFORM_HOST`                | Nginx 上平台控制台 hostname（默认 `admin.${APP_DOMAIN}`） |
-| `APP_PORT`                     | Docker web 映射到 127.0.0.1 的端口（默认 3700） |
-| `DB_PASSWORD`                  | PostgreSQL 密码                                 |
-| `JWT_SECRET`                   | JWT 签名密钥                                    |
-| `TENANT_SECRET_ENCRYPTION_KEY` | 租户密钥加密（32 字节 hex）                     |
+| 变量                           | 说明                                                                                                             |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `DEPLOY_HOST`                  | SSH 主机（本机专用）                                                                                             |
+| `APP_DOMAIN`                   | 产品主域（默认租户 CMS）                                                                                         |
+| `PLATFORM_URL`                 | 平台控制台 origin（默认 `https://admin.${APP_DOMAIN}`）                                                          |
+| `PLATFORM_HOST`                | Nginx 上平台控制台 hostname（默认 `admin.${APP_DOMAIN}`）                                                        |
+| `APP_PORT`                     | Docker web 映射到 127.0.0.1 的端口（默认 3700）                                                                  |
+| `DB_PASSWORD`                  | PostgreSQL 密码                                                                                                  |
+| `JWT_SECRET`                   | JWT 签名密钥                                                                                                     |
+| `TENANT_SECRET_ENCRYPTION_KEY` | 租户密钥加密（32 字节 hex）                                                                                      |
 | `SINGLE_TENANT`                | `true` 时单租户部署（默认关闭）；须同时出现在 `.env.production` 与 `docker-compose.prod.yml` → `app.environment` |
-| `TENANT_BASE_DOMAIN`           | 平台通配子域基域（如 `rewindom.com`）；`{slug}.{base}` 自动锁定租户；空则关闭 |
-| `STRIPE_SECRET_KEY`            | 商店收款平台默认 Stripe Secret（站点设置可覆盖） |
-| `STRIPE_WEBHOOK_SECRET`        | 商店收款平台默认 Stripe Webhook Secret |
-| `STRIPE_PUBLISHABLE_KEY`       | 商店收款平台默认 Stripe Publishable Key |
+| `TENANT_BASE_DOMAIN`           | 平台通配子域基域（如 `rewindom.com`）；`{slug}.{base}` 自动锁定租户；空则关闭                                    |
+| `STRIPE_SECRET_KEY`            | 商店收款平台默认 Stripe Secret（站点设置可覆盖）                                                                 |
+| `STRIPE_WEBHOOK_SECRET`        | 商店收款平台默认 Stripe Webhook Secret                                                                           |
+| `STRIPE_PUBLISHABLE_KEY`       | 商店收款平台默认 Stripe Publishable Key                                                                          |
+| `ATTACHMENT_STORAGE`           | 文件存储后端：`local`（默认）/ `s3` / `r2`（Cloudflare R2）                                                      |
+| `S3_ENDPOINT`                  | S3 兼容 endpoint；R2 为 `https://<account_id>.r2.cloudflarestorage.com`                                          |
+| `S3_REGION`                    | 默认 `auto`（R2 要求）                                                                                           |
+| `S3_BUCKET`                    | 对象存储 bucket                                                                                                  |
+| `S3_ACCESS_KEY_ID`             | 对象存储 Access Key                                                                                              |
+| `S3_SECRET_ACCESS_KEY`         | 对象存储 Secret                                                                                                  |
+| `S3_PUBLIC_BASE_URL`           | 公开读 CDN / r2.dev / 自定义域；空则由应用转发字节                                                               |
 
 完整列表见 `scripts/env.production.example`。新增应用运行时变量时，务必同步写入 `docker-compose.prod.yml` 的 `app.environment` 白名单（`docker-compose.dev.yml` 不需要）。
 

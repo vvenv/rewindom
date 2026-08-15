@@ -2,7 +2,8 @@
 
 字节落在哪里，由**一个接口**说了算：`FileStorageProvider`
 （`packages/server-kernel/src/infra/file-storage/`）。业务侧（官网媒体库资源、
-后续的附件）只见到这个接口，本地磁盘还是 OSS/S3 由 `ATTACHMENT_STORAGE` 决定。
+后续的附件）只见到这个接口，本地磁盘还是 S3 兼容存储（Cloudflare R2 / AWS S3）
+由 `ATTACHMENT_STORAGE` 决定。
 
 ## 接口
 
@@ -37,9 +38,9 @@ interface FileStorageProvider {
 
 存储键由**业务侧**拼，内核不认识任何业务概念：
 
-| 业务         | 键                                     | 位置                        |
-| ------------ | -------------------------------------- | --------------------------- |
-| 官网媒体库   | `{tenant_id}/site-assets/{asset_id}{ext}` | `marketing/server/site-asset.service.ts` |
+| 业务       | 键                                        | 位置                                     |
+| ---------- | ----------------------------------------- | ---------------------------------------- |
+| 官网媒体库 | `{tenant_id}/site-assets/{asset_id}{ext}` | `marketing/server/site-asset.service.ts` |
 
 一律以 `tenant_id` 打头，迁移和按租户清理时才好下手。
 
@@ -68,27 +69,51 @@ SVG 是唯一一种「图片即代码」的上传类型：`<script>`、`on*` 事
    额外禁掉 `foreignObject`（往 SVG 里塞任意 HTML 的常见跳板）。按 `image/svg+xml`
    进出，保证输出仍是良构 XML——浏览器对这个 MIME 走 XML 解析器，不良构就显示
    parser error。消毒后不剩根元素的，直接拒收（`*.unsafe_svg`）。
-   
+
    **不要改成正则剥标签**：SVG 是 XML，实体编码、CDATA、命名空间、畸形标记的浏览器
    容错恢复，每一样都能绕过字符串过滤。攻击载荷用例见 `svg-sanitize.test.ts`。
-   
+
    jsdom 按需 `await import()`，不进启动路径。
 
 2. **提供时加固**（`sendStorageObject`）：`Content-Security-Policy: default-src 'none';
-   img-src data:; style-src 'unsafe-inline'; sandbox` + `X-Content-Type-Options: nosniff`。
+img-src data:; style-src 'unsafe-inline'; sandbox` + `X-Content-Type-Options: nosniff`。
    管的是存量文件和消毒漏网的。
 
 ⚠️ 走直链 302 之后第 2 道就失效了——内容由对象存储/CDN 直接回。接 OSS/S3 时必须在
 bucket / CDN 侧配同等的 CSP 与 nosniff，或者（更好）把用户内容放到**独立域名**上，
 让它天然不同源。
 
-## 接 OSS / S3 要做什么
+## 接 Cloudflare R2（S3 兼容）
 
-1. 加 `infra/file-storage/s3-file-storage.ts`，实现上面 4 个方法；
-2. 在 `infra/file-storage/index.ts` 的 `createFileStorageProvider` 加一个 `case`；
-3. `lib/config.ts` 的 `buildStorageConfig()` 里补 endpoint / bucket / 凭据 env，
-   并加进 `scripts/check-prod-app-env.mjs` 的透传清单；
-4. `resolveUrl()` 返回 CDN 直链（`visibility: "public"`）或预签名 URL。
+实现：`infra/file-storage/s3-file-storage.ts`。`ATTACHMENT_STORAGE=s3` 或 `r2`
+走同一套；业务代码不用改。
 
-业务代码一行不用改。存量文件需要一次性搬迁——库里存的是存储键不是绝对路径，
-把 `data/attachments/` 整个同步到 bucket 同名 key 即可。
+### 环境变量
+
+| 变量                                        | 说明                                                                                                                                                 |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ATTACHMENT_STORAGE`                        | `local`（默认）/ `s3` / `r2`                                                                                                                         |
+| `S3_ENDPOINT`                               | R2：`https://<account_id>.r2.cloudflarestorage.com`（`r2` 必填）                                                                                     |
+| `S3_REGION`                                 | 默认 `auto`（R2 要求这个占位）                                                                                                                       |
+| `S3_BUCKET`                                 | bucket 名                                                                                                                                            |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | R2 API Token                                                                                                                                         |
+| `S3_PUBLIC_BASE_URL`                        | 公开读的 CDN / `pub-*.r2.dev` / 自定义域（不要尾斜杠）。设了之后 `resolveUrl()` 返回直链，`sendStorageObject` 对公开资源 **302**；不设则应用转发字节 |
+
+生产 compose 已透传上述键。本地开发可继续 `local`；只把生产 `.env.production` 切到 R2。
+
+### R2 侧
+
+1. 建 bucket，创建 **Object Read & Write** API Token，记下 Access Key。
+2. 公开读：Dashboard 开 r2.dev，或绑自定义域（推荐独立媒体域，与站点不同源，SVG XSS 被源隔离）。
+3. 自定义域上用 Transform Rule 补 `X-Content-Type-Options: nosniff` 和与 `sendStorageObject` 同等的 CSP（直链 302 后应用加不了这些头）。
+
+### 存量文件
+
+库里存的是存储键不是绝对路径。把 `data/attachments/`（生产容器 `/data/attachments`）同步到 bucket 同名 key：
+
+```bash
+pnpm --filter server exec tsx scripts/sync-attachments-to-s3.ts --dry-run
+pnpm --filter server exec tsx scripts/sync-attachments-to-s3.ts
+```
+
+脚本读本地磁盘、写 S3_* 配置的 bucket，与当前 `ATTACHMENT_STORAGE` 无关——可以先搬再切。

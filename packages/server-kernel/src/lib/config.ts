@@ -215,6 +215,18 @@ function buildStorageConfig() {
     attachment: {
       storage: strEnv("ATTACHMENT_STORAGE", "local"),
       baseDir: strEnv("ATTACHMENT_BASE_DIR", defaultAttachmentBaseDir),
+      /** S3 兼容后端（Cloudflare R2 / AWS S3 / MinIO）。`ATTACHMENT_STORAGE=s3|r2` 时必填。 */
+      s3: {
+        endpoint: optionalStrEnv("S3_ENDPOINT") ?? "",
+        region: strEnv("S3_REGION", "auto"),
+        bucket: strEnv("S3_BUCKET", ""),
+        accessKeyId: optionalStrEnv("S3_ACCESS_KEY_ID") ?? "",
+        secretAccessKey: optionalStrEnv("S3_SECRET_ACCESS_KEY") ?? "",
+        publicBaseUrl: (optionalStrEnv("S3_PUBLIC_BASE_URL") ?? "").replace(
+          /\/+$/,
+          "",
+        ),
+      },
     },
   };
 }

@@ -8,12 +8,13 @@
     "./*": "./src/*"
   },
   "dependencies": {
-    "@rewindom/shared": "workspace:*",
+    "@aws-sdk/client-s3": "^3.1111.0",
     "@fastify/cookie": "^11.1.2",
     "@fastify/jwt": "^10.2.1",
     "@fastify/multipart": "^10.1.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@rewindom/shared": "workspace:*",
     "bcrypt": "^6.0.0",
     "bullmq": "^6.1.0",
     "cron-parser": "^5.8.1",
@@ -26,8 +27,8 @@
     "pino": "^10.3.1"
   },
   "devDependencies": {
-    "@rewindom/server-test": "workspace:*",
     "@eslint/js": "^10.0.1",
+    "@rewindom/server-test": "workspace:*",
     "@types/bcrypt": "^6.0.0",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^26.2.0",

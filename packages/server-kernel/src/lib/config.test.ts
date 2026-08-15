@@ -36,6 +36,12 @@ describe("config", () => {
     "EXPORT_BACKUP_SUBDIR",
     "ATTACHMENT_STORAGE",
     "ATTACHMENT_BASE_DIR",
+    "S3_ENDPOINT",
+    "S3_REGION",
+    "S3_BUCKET",
+    "S3_ACCESS_KEY_ID",
+    "S3_SECRET_ACCESS_KEY",
+    "S3_PUBLIC_BASE_URL",
     "WORKERS_ENABLED",
     "TENANT_SECRET_ENCRYPTION_KEY",
     "OPENAI_BASE_URL",
@@ -231,6 +237,29 @@ describe("config", () => {
       const { config: cfg } = await importConfig();
       expect(cfg.storage.attachment.storage).toBe("local");
       expect(cfg.storage.attachment.baseDir).toContain("data/attachments");
+      expect(cfg.storage.attachment.s3.region).toBe("auto");
+      expect(cfg.storage.attachment.s3.bucket).toBe("");
+      expect(cfg.storage.attachment.s3.publicBaseUrl).toBe("");
+    });
+
+    it("可通过 S3_* 覆盖对象存储配置并去掉 public URL 尾斜杠", async () => {
+      process.env.ATTACHMENT_STORAGE = "r2";
+      process.env.S3_ENDPOINT = "https://abc.r2.cloudflarestorage.com";
+      process.env.S3_REGION = "auto";
+      process.env.S3_BUCKET = "rewindom-attachments";
+      process.env.S3_ACCESS_KEY_ID = "ak";
+      process.env.S3_SECRET_ACCESS_KEY = "sk";
+      process.env.S3_PUBLIC_BASE_URL = "https://media.example.com/";
+      const { config: cfg } = await importConfig();
+      expect(cfg.storage.attachment.storage).toBe("r2");
+      expect(cfg.storage.attachment.s3).toEqual({
+        endpoint: "https://abc.r2.cloudflarestorage.com",
+        region: "auto",
+        bucket: "rewindom-attachments",
+        accessKeyId: "ak",
+        secretAccessKey: "sk",
+        publicBaseUrl: "https://media.example.com",
+      });
     });
 
     it("可通过 DATABASE_BACKUP_DIR 覆盖备份目录", async () => {

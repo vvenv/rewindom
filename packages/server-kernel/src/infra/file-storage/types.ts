@@ -2,7 +2,7 @@ import type { Readable } from "node:stream";
 
 /**
  * 文件存储后端。业务侧（媒体库、品牌资源、未来的附件）只依赖这个接口，
- * 落地在本地磁盘还是 OSS/S3 由 `ATTACHMENT_STORAGE` 决定。
+ * 落地在本地磁盘还是 OSS/S3/R2 由 `ATTACHMENT_STORAGE` 决定。
  *
  * 接口里**不出现任何本地磁盘的概念**（绝对路径、fs.Stats、同步流）：
  * 一旦漏出去，业务代码就会绕过抽象直接 `fs.stat`，对象存储再也接不进来。
