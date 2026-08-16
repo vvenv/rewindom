@@ -829,3 +829,37 @@
   font-size: 0.85em;
   font-variant-numeric: tabular-nums;
 }
+
+/* -------------------------------------------------------------------------- */
+/* 优惠码公告条                                                                */
+/* -------------------------------------------------------------------------- */
+
+.shop-promo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+.shop-promo.left {
+  justify-content: flex-start;
+}
+.shop-promo-link {
+  display: inherit;
+  align-items: center;
+  gap: inherit;
+  color: inherit;
+  text-decoration: none;
+}
+.shop-promo-link:hover .shop-promo-text {
+  text-decoration: underline;
+}
+.shop-promo-code {
+  padding: 0.1rem 0.45rem;
+  border: 1px dashed currentcolor;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}

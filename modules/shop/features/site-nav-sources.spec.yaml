@@ -1,0 +1,45 @@
+# 站点页头 / 页脚导航的商店源：租户不必手填链接，直接挂「商店」与「某个分类」。
+# 金标准是 site-docs 的 `site-docs` / `site-docs.category` 两个源，一一对应。
+# 分类下拉现在硬编码读 docs 形状，本功能把它改成由导航源自己给选项。
+
+# ---------- 必填 ----------
+module: shop
+surfaces: [ssr, tenant]
+goal: shop 向 marketing 登记两个站点导航源——`shop`（链到 /shop，按已发布分类树展开）与 `shop.collection`（选一个分类，展开其子分类）；编辑器的分类下拉改由导航源自己提供选项。
+gold: modules/site-docs/shared/nav-sources.ts
+touch:
+  - modules/shop/features/site-nav-sources.spec.yaml
+  - modules/shop/MODULE.md
+  - modules/shop/shared/nav-sources.ts
+  - modules/shop/shared/nav-sources.test.ts
+  - modules/shop/shared/shop-section-context.ts
+  - modules/shop/server/module.ts
+  - modules/shop/server/sections/register.ts
+  - modules/shop/client/module.tsx
+  - modules/shop/client/editor-context.ts
+  - modules/shop/client/locales/
+  - modules/site-docs/shared/nav-sources.ts
+  - packages/builtin/marketing/shared/site-nav.ts
+  - packages/builtin/marketing/client/components/theme-editor/SiteNavItemsField.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SiteNavItemRow.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - checkout
+  - billing
+  - 工作台侧栏导航（已有 SHOP_NAV_SECTIONS）
+  - 会员菜单链接（已由 registerProviders 登记）
+  - 导航项展开到商品一级
+  - 新的段 / 模板页 / prisma 字段
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/shop test
+  - pnpm --filter @rewindom/site-docs test
+  - pnpm --filter @rewindom/builtin exec vitest run marketing/shared/site-nav.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs shop
+
+# ---------- 可选 ----------
+entitlement: shop
+permissions: []
+models: []

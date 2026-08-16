@@ -4,7 +4,9 @@ import { isShopEnabled } from "../lib/entitlement.js";
 import { listPublishedProducts } from "../catalog/catalog.service.js";
 import { listPublishedCollections } from "../catalog/collection.service.js";
 import { cartCookieName, peekCart } from "../cart/cart.service.js";
-import { toCartView, toCollectionCard, toProductCard } from "../ssr/shop-view.js";
+import { listLivePromoDiscounts } from "../discount/discount.service.js";
+import { getShopSetting } from "../payment/credentials.js";
+import { toCartView, toCollectionCard, toProductCard, toPromoView } from "../ssr/shop-view.js";
 import { cartLinkBlock, cartSection, SHOP_CART_LINK_BLOCK_TYPE } from "../../shared/cart-section.js";
 import { checkoutSection } from "../../shared/checkout-section.js";
 import { orderListSection, orderSection } from "../../shared/order-section.js";
@@ -13,6 +15,10 @@ import {
   SHOP_COLLECTION_LIST_SECTION_TYPE,
 } from "../../shared/collection-list-section.js";
 import { collectionProductsSection } from "../../shared/collection-products-section.js";
+import { SHOP_COLLECTION_NAV_SOURCE, SHOP_NAV_SOURCE } from "../../shared/nav-sources.js";
+import { pickShopPromo, type ShopPromoView } from "../../shared/promo.js";
+import { promoSection, SHOP_PROMO_SECTION_TYPE } from "../../shared/promo-section.js";
+import { renderPromoHtml } from "../../shared/sections/promo-html.js";
 import {
   productGridSection,
   SHOP_PRODUCT_GRID_SECTION_TYPE,
@@ -35,7 +41,23 @@ import { registerChromeBlockHtml } from "@rewindom/builtin/marketing/shared/sect
 import { registerSiteSectionHtml } from "@rewindom/builtin/marketing/shared/sections/html.js";
 import { registerSectionContextProvider } from "@rewindom/builtin/marketing/server/section-context-providers.js";
 
+import type { AppLocale } from "@rewindom/module-sdk";
+
 const css = { css: SHOP_STOREFRONT_CSS };
+
+/**
+ * 公告条推哪个码：粗筛交给库，力度比较与生效判断走 `shared/promo.ts`（编辑器预览
+ * 用的是同一份规则）。币种跟店铺设置，`{value}` 在这里就定稿成能直接印的串。
+ */
+async function resolvePromo(
+  tenantId: string,
+  locale: AppLocale,
+): Promise<ShopPromoView | null> {
+  const best = pickShopPromo(await listLivePromoDiscounts(tenantId));
+  if (!best) return null;
+  const setting = await getShopSetting(tenantId);
+  return toPromoView(best, setting.currency, locale);
+}
 
 /**
  * 官网任意页面上的商品列表、分类树与页头购物车入口：通用 SSR 在渲染前按需查。
@@ -50,13 +72,22 @@ function registerShopContextProvider(): void {
       SHOP_PRODUCT_GRID_SECTION_TYPE,
       SHOP_COLLECTION_LIST_SECTION_TYPE,
       SHOP_CART_LINK_BLOCK_TYPE,
+      SHOP_NAV_SOURCE,
+      SHOP_COLLECTION_NAV_SOURCE,
+      SHOP_PROMO_SECTION_TYPE,
     ],
     provide: async (input) => {
       if (!(await isShopEnabled(input.tenantId))) return {};
       const used = input.usedTypes;
       const wantGrid = !used || used.has(SHOP_PRODUCT_GRID_SECTION_TYPE);
-      const wantList = !used || used.has(SHOP_COLLECTION_LIST_SECTION_TYPE);
+      /* 页头 / 页脚的导航源展开的也是这棵分类树（`collectSectionTypes` 会把 source 收进来）。 */
+      const wantList =
+        !used ||
+        used.has(SHOP_COLLECTION_LIST_SECTION_TYPE) ||
+        used.has(SHOP_NAV_SOURCE) ||
+        used.has(SHOP_COLLECTION_NAV_SOURCE);
       const wantCart = !used || used.has(SHOP_CART_LINK_BLOCK_TYPE);
+      const wantPromo = !used || used.has(SHOP_PROMO_SECTION_TYPE);
       const products = wantGrid
         ? (await listPublishedProducts(input.tenantId)).map((product) =>
             toProductCard(product, input.locale),
@@ -81,6 +112,7 @@ function registerShopContextProvider(): void {
           products,
           collections,
           cart: domainCart ? toCartView(domainCart, input.locale) : null,
+          promo: wantPromo ? await resolvePromo(input.tenantId, input.locale) : null,
         }),
       );
     },
@@ -98,6 +130,7 @@ export function registerShopStorefrontSections(): void {
   );
   registerSiteSectionHtml(productSection, renderProductHtml, css);
   registerSiteSectionHtml(cartSection, renderCartHtml, css);
+  registerSiteSectionHtml(promoSection, renderPromoHtml, css);
   registerChromeBlockHtml(cartLinkBlock, renderCartLinkHtml, css);
   registerSiteSectionHtml(checkoutSection, renderCheckoutHtml, css);
   registerSiteSectionHtml(orderSection, renderOrderHtml, css);

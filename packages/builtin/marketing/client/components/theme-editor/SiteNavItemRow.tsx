@@ -27,6 +27,7 @@ import {
 import {
   getNavSource,
   listNavSources,
+  navSourceCategoryOptions,
   resolveNavItem,
   type ResolvedNavItem,
   type SiteNavContext,
@@ -63,7 +64,6 @@ interface SiteNavItemRowProps {
   locale: AppLocale;
   defaultLocale: AppLocale;
   preview: SiteNavContext;
-  categories: ReadonlyArray<{ key: string; label: string }>;
   disabled?: boolean;
   onChange: (patch: Partial<SiteNavItem>) => void;
   onRemove: () => void;
@@ -82,7 +82,6 @@ export function SiteNavItemRow({
   locale,
   defaultLocale,
   preview,
-  categories,
   disabled,
   onChange,
   onRemove,
@@ -95,6 +94,7 @@ export function SiteNavItemRow({
   const { t } = useTranslation("marketing");
   const [showMore, setShowMore] = useState(false);
   const isLink = item.source === "link";
+  const categories = navSourceCategoryOptions(item.source, preview.contributed);
   const label = readLocalizedSetting(item.label, locale, defaultLocale);
   const title =
     label ||
@@ -272,7 +272,10 @@ export function SiteNavItemRow({
             placeholder={
               isLink
                 ? t("editor.menuItemLabel")
-                : t(`editor.menuSourceDefaultLabel.${item.source}`)
+                : t(
+                    getNavSource(item.source)?.defaultLabel ??
+                      `editor.menuSourceDefaultLabel.${item.source}`,
+                  )
             }
             onChange={(event) => setLabel(event.target.value)}
           />

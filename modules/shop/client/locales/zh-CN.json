@@ -9,7 +9,13 @@
     "orders": "订单",
     "shipping": "运费",
     "settings": "设置",
-    "keywords": "shop store 商店 商品 订单"
+    "keywords": "shop store 商店 商品 订单",
+    "source": {
+      "catalog": "商店目录",
+      "catalogDefault": "商店",
+      "collection": "某个商品分类",
+      "collectionDefault": "（使用分类名称）"
+    }
   },
   "create": "新建商品",
   "createTitle": "新建商品",
@@ -283,6 +289,13 @@
       "emptyText": "空状态文案",
       "continueLabel": "继续购物按钮"
     },
+    "promo": {
+      "label": "优惠码公告条",
+      "text": "文案",
+      "textInfo": "{code} 换成优惠码，{value} 换成力度（如 20% 或 ￥5.00）。当前生效的码里力度最大的那个会自动上榜；一个都没有时整段不渲染。",
+      "href": "点击去哪",
+      "hrefInfo": "留空则公告条不可点。"
+    },
     "cartLink": {
       "label": "购物车入口",
       "linkLabel": "按钮文案",
@@ -367,6 +380,7 @@
       "empty": "这个分类还没有商品。"
     },
     "collectionList": { "empty": "还没有可展示的分类。" },
+    "promo": { "text": "全场下单输入 {code} 立减 {value}" },
     "product": {
       "title": "商品",
       "subtitle": "商品详情",

@@ -162,6 +162,27 @@ export async function listDiscounts(params: {
   };
 }
 
+/**
+ * 公告条的候选码：启用中、且到今天还没过期的那些。
+ *
+ * 只做粗筛（`status` + `ends_at`），起始时间与用尽次数交给 `isShopPromoLive`——
+ * 那份口径 SSR 与编辑器预览共用，两处判断分头写早晚会不一致。
+ */
+export async function listLivePromoDiscounts(
+  tenant_id: string,
+  now: Date = new Date(),
+): Promise<ShopDiscount[]> {
+  const records = await prisma.shopDiscount.findMany({
+    where: withTenantScope(tenant_id, {
+      status: "active",
+      OR: [{ ends_at: null }, { ends_at: { gt: now } }],
+    }),
+    orderBy: { code: "asc" },
+    take: 100,
+  });
+  return records.map(toDiscount);
+}
+
 export async function getDiscount(
   tenant_id: string,
   discount_id: string,

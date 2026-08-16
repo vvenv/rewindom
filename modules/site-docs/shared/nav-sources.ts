@@ -19,6 +19,7 @@ import {
   makeNavLink,
   registerNavSource,
   resolveNavLabel,
+  type NavCategoryOption,
   type NavSourceDefinition,
   type ResolvedNavItem,
   type SiteNavContext,
@@ -75,13 +76,7 @@ function expandDocsLibrary(
         )
       : docItems(docs, ctx, item.id);
   return [
-    makeNavLink(
-      item.id,
-      label || messages.nav,
-      DOCS_INDEX_PATH,
-      ctx,
-      children,
-    ),
+    makeNavLink(item.id, label || messages.nav, DOCS_INDEX_PATH, ctx, children),
   ];
 }
 
@@ -108,12 +103,26 @@ export const SITE_DOCS_NAV_SOURCE_DEF: NavSourceDefinition = {
   expand: expandDocsLibrary,
 };
 
+/** 编辑器分类下拉：文档目录里出现过的分类，按首次出现的顺序去重。 */
+function docsCategoryOptions(
+  contributed: Readonly<Record<string, unknown>> | undefined,
+): NavCategoryOption[] {
+  const docs = readSiteDocsContext({ contributed })?.docs ?? [];
+  const options = new Map<string, string>();
+  for (const doc of docs) {
+    if (!doc.category || options.has(doc.category)) continue;
+    options.set(doc.category, doc.category_label?.trim() || doc.category);
+  }
+  return [...options].map(([key, label]) => ({ key, label }));
+}
+
 export const SITE_DOCS_CATEGORY_NAV_SOURCE_DEF: NavSourceDefinition = {
   source: SITE_DOCS_CATEGORY_NAV_SOURCE,
   label: "site-docs:nav.source.category",
   defaultLabel: "site-docs:nav.source.categoryDefault",
   entitlement: SITE_DOCS_ENTITLEMENT.key,
   usesCategory: true,
+  categoryOptions: docsCategoryOptions,
   defaultExpand: "children",
   expand: expandDocsCategory,
 };

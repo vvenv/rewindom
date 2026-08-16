@@ -20,7 +20,9 @@ import {
   SHOP_ORDER_LIST_SECTION_TYPE,
   SHOP_ORDER_SECTION_TYPE,
 } from "../shared/order-section.js";
+import { SHOP_COLLECTION_NAV_SOURCE, SHOP_NAV_SOURCE } from "../shared/nav-sources.js";
 import { SHOP_PRODUCT_GRID_SECTION_TYPE } from "../shared/product-grid-section.js";
+import { SHOP_PROMO_SECTION_TYPE } from "../shared/promo-section.js";
 import { SHOP_PRODUCT_SECTION_TYPE } from "../shared/product-section.js";
 import { sampleShopContext } from "../shared/shop-sample.js";
 import {
@@ -43,6 +45,10 @@ const SHOP_EDITOR_CONTEXT_TYPES = [
   SHOP_CHECKOUT_SECTION_TYPE,
   SHOP_ORDER_SECTION_TYPE,
   SHOP_ORDER_LIST_SECTION_TYPE,
+  /* 页头 / 页脚导航源：预览展开与分类下拉都要这份分类目录。 */
+  SHOP_NAV_SOURCE,
+  SHOP_COLLECTION_NAV_SOURCE,
+  SHOP_PROMO_SECTION_TYPE,
 ] as const;
 
 function toPreviewCard(item: ShopProductListItem): ShopProductCardView {

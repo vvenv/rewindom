@@ -9,7 +9,13 @@
     "orders": "Orders",
     "shipping": "Shipping",
     "settings": "Settings",
-    "keywords": "shop store products orders"
+    "keywords": "shop store products orders",
+    "source": {
+      "catalog": "Shop catalog",
+      "catalogDefault": "Shop",
+      "collection": "One product collection",
+      "collectionDefault": "(uses collection name)"
+    }
   },
   "create": "New product",
   "createTitle": "New product",
@@ -283,6 +289,13 @@
       "emptyText": "Empty state",
       "continueLabel": "Continue shopping"
     },
+    "promo": {
+      "label": "Discount banner",
+      "text": "Text",
+      "textInfo": "{code} becomes the discount code, {value} its size (e.g. 20% or $5.00). The strongest live code is picked automatically; the section renders nothing when none is live.",
+      "href": "Links to",
+      "hrefInfo": "Leave empty to make the banner unclickable."
+    },
     "cartLink": {
       "label": "Cart",
       "linkLabel": "Button label",
@@ -367,6 +380,7 @@
       "empty": "This collection has no products yet."
     },
     "collectionList": { "empty": "No collections to show." },
+    "promo": { "text": "Use {code} for {value} off your order" },
     "product": {
       "title": "Product",
       "subtitle": "Product details",

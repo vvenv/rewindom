@@ -1,0 +1,47 @@
+# 页头之上的优惠码公告条。
+#
+# 「页头之上」不是新区域：页头区本来就是一串 section，导航条只是其中的本体段，
+# 顺序可编辑——`placements: ["header"]` 的段排在导航条之前就在它上面。
+# 不加 site 模型字段、不动 marketing 内核。
+#
+# 展示哪个码：**渲染期自动挑当前力度最大的那个**（用户口径）。代价写在下面：
+# 任何一个启用中的码都可能被挂上页顶，没有「这个码可不可以公开」这一维度。
+
+# ---------- 必填 ----------
+module: shop
+surfaces: [ssr, tenant]
+goal: shop 贡献官网段 `shop.promo`（可放页头区/页面流），渲染期从当前生效的整单优惠码里自动挑力度最大的一个，按文案模板画成通栏公告条；没有生效的码时整段不渲染。
+gold: packages/builtin/marketing/shared/sections/band/definition.ts
+touch:
+  - modules/shop/features/promo-bar-section.spec.yaml
+  - modules/shop/MODULE.md
+  - modules/shop/shared/promo-section.ts
+  - modules/shop/shared/promo.ts
+  - modules/shop/shared/promo.test.ts
+  - modules/shop/shared/sections/promo-html.ts
+  - modules/shop/shared/shop-section-context.ts
+  - modules/shop/shared/shop-sample.ts
+  - modules/shop/shared/site-css/shop-storefront.css # 真源；generated 由 assemble 产出
+  - modules/shop/server/discount/discount.service.ts
+  - modules/shop/server/sections/register.ts
+  - modules/shop/server/ssr/shop-view.ts
+  - modules/shop/client/module.tsx
+  - modules/shop/client/editor-context.ts
+  - modules/shop/client/locales/
+out_of_scope:
+  - 新的站点级区域（announcement 字段 / placement）
+  - 优惠码「可公开」开关与定向码
+  - 自动应用优惠码（仍需买家在购物车/结账手填）
+  - 倒计时 / 可关闭（dismiss 要 site-enhance，另开）
+  - 商品级优惠、满减阶梯
+  - prisma 字段变更
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/shop test
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs shop
+
+# ---------- 可选 ----------
+entitlement: shop
+permissions: []
+models: []

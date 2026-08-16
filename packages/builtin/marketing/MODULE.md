@@ -185,12 +185,19 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 | `link`   | 一条链接；可带**一层** `children` 做子菜单 |
 | `pages`  | 全部已发布一级页面（含 `/docs`、`/shop` 索引） |
 
-其它动态源由模块 `registerNavSource` 填进来（site-docs 登记 `site-docs` /
-`site-docs.category`）。存量数据里的 `docs` / `doc_category` 在解析时改写成这两项，
+其它动态源由模块 `registerNavSource` 填进来：site-docs 登记 `site-docs` /
+`site-docs.category`，shop 登记 `shop`（商店目录，下挂分类树）/ `shop.collection`
+（某个分类）。存量数据里的 `docs` / `doc_category` 在解析时改写成 site-docs 那两项，
 不是双读 API。
 
 动态项的 `expand`：`children` 收成可展开的父项，`flat` 就地铺平。展不出内容时**整条
-不渲染**。编辑器（`SiteNavItemsField`，`type: "nav_items"`）按已登记源列出添加菜单。
+不渲染**（例外由源自己定：商店目录没有分类时仍留下 `/shop` 那条链接）。编辑器
+（`SiteNavItemsField`，`type: "nav_items"`）按已登记源列出添加菜单。
+
+`usesCategory` 的源（某个文档分类 / 某个商品分类）在编辑器里是**下拉**，选项由源自己
+的 `categoryOptions(contributed)` 从自己那一格数据里取——marketing 不认识文档分类或
+商品分类长什么样。没有选项时该源在「添加」菜单里置灰。条目标签留空时的占位文案取源的
+`defaultLabel`（i18n key，可带命名空间）。
 
 渲染两端同构：SSR 在 `sections/header|footer/html.ts`，SPA 在 `SiteChrome.tsx`，
 都用原生 `<details>` 画下拉。贡献源展开所需的数据走 `SiteNavContext.contributed`

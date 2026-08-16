@@ -28,6 +28,7 @@ import {
   type ShopCollectionCardView,
   type ShopCollectionDetailView,
 } from "../../shared/shop-section-context.js";
+import type { ShopPromoView } from "../../shared/promo.js";
 import type { ShopCartView as ShopCartData } from "../../shared/cart.js";
 import type { ShopProduct } from "../../shared/catalog.js";
 import type { ShopOrderDetail, ShopOrderListItem } from "../../shared/order.js";
@@ -58,6 +59,28 @@ export function toCollectionCard(
     title: displayTitle(collection.title, locale, collection.slug),
     product_count: collection.product_count,
     sort_order: collection.sort_order,
+  };
+}
+
+/** 公告条那一条：力度串按站点语言与店铺币种定稿（`{value}` 直接用它）。 */
+export function toPromoView(
+  discount: {
+    code: string;
+    type: ShopPromoView["type"];
+    value: number;
+    ends_at: string | null;
+  },
+  currency: string,
+  locale: AppLocale,
+): ShopPromoView {
+  return {
+    code: discount.code,
+    type: discount.type,
+    value_label:
+      discount.type === "percent"
+        ? `${discount.value}%`
+        : formatMoney(discount.value, currency, locale),
+    ends_at: discount.ends_at,
   };
 }
 

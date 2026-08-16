@@ -13,6 +13,7 @@ import {
   withSiteLocale,
 } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import type { ShopCollectionCardView } from "./collection.js";
+import type { ShopPromoView } from "./promo.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
 export type { ShopCollectionCardView };
@@ -202,6 +203,8 @@ export interface ShopMemberOrderView {
 export interface ShopRenderContext {
   products: ShopProductCardView[];
   collections: ShopCollectionCardView[];
+  /** 公告条要推的那个优惠码；当前没有生效的码就是 null（整段不渲染）。 */
+  promo: ShopPromoView | null;
   product: ShopProductDetailView | null;
   cart: ShopCartView | null;
   checkout: ShopCheckoutView | null;
@@ -221,6 +224,7 @@ export interface ShopRenderContext {
 const EMPTY_CONTEXT: ShopRenderContext = {
   products: [],
   collections: [],
+  promo: null,
   product: null,
   cart: null,
   checkout: null,
@@ -243,8 +247,9 @@ export function emptyShopContext(
   return { ...EMPTY_CONTEXT, ...overrides };
 }
 
+/** 段渲染与导航源共用：后者手上只有 `contributed` 一格，不是整份渲染上下文。 */
 export function readShopContext(
-  ctx: SectionRenderContext,
+  ctx: Pick<SectionRenderContext, "contributed">,
 ): ShopRenderContext | null {
   const value = ctx.contributed?.[SHOP_CONTEXT_KEY];
   return value ? (value as ShopRenderContext) : null;

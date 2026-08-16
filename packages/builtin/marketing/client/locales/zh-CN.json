@@ -839,14 +839,10 @@
     "columnSpansHint": "{{count}} 栏 · {{spans}}（共 12 份）",
     "menuSource": {
       "link": "自定义链接",
-      "pages": "全部一级页面",
-      "docs": "文档库",
-      "doc_category": "某个文档分类"
+      "pages": "全部一级页面"
     },
     "menuSourceDefaultLabel": {
-      "pages": "（自动列出页面）",
-      "docs": "文档",
-      "doc_category": "（用分类标识）"
+      "pages": "（自动列出页面）"
     },
     "menuExpand": {
       "children": "收成下拉子菜单",

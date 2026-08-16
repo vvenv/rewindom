@@ -55,6 +55,17 @@ export function sampleShopContext(t: SampleText): ShopRenderContext {
       title: t("editor.sample.collectionSummer"),
       description: t("editor.sample.collectionDescription"),
     },
+    /*
+     * 公告条样张：编辑器里永远画得出来，实站是渲染期从生效的码里挑。列表接口不带
+     * 起止时间与用尽次数，判不出「现在还能不能用」——与其在预览里挑错一个码，
+     * 不如摆个一眼是样张的占位。
+     */
+    promo: {
+      code: "SAMPLE20",
+      type: "percent",
+      value_label: "20%",
+      ends_at: null,
+    },
     product: {
       title: t("editor.sample.product"),
       subtitle: t("editor.sample.subtitle"),

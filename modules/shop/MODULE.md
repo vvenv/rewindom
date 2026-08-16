@@ -59,6 +59,8 @@ shop/
 | --- | --- | --- |
 | 店面版式 / 必备段 | `shared/shop-page-templates.ts` | 工作台 `client/pages` |
 | 段 markup / 编辑器预览 | `shared/sections/*-html.ts` + 两端 register | marketing 内核 |
+| 页头 / 页脚导航项 | `shared/nav-sources.ts` + provider 的 `sectionTypes` | 工作台侧栏 `client/tenant/nav-sections.ts` |
+| 公告条推码规则 | `shared/promo.ts`（纯规则 + 测试） | 渲染器里再写一遍判断 |
 | 贡献段 CSS | `shared/site-css/*.css` → assemble | 手写 `*-css.ts` |
 | 商品 / 分类 / 优惠字段 | `prisma/schema.prisma` + mapper + 工作台表单 | 代码 i18n 平行字段（`fieldTitleEn`） |
 | 结账 / Stripe / webhook | `server/payment/`、`server/order/` | `billing` / Creem |
@@ -102,6 +104,41 @@ shop/
 
 另有 `shop.cart-link`：**页头 / 页脚的 chrome 块**（和语言、明暗、会员同一排的按钮），
 不是页面区块。开通商店后在页头「添加区块」里出现，默认不预置。有购物车时显示件数。
+
+## 优惠码公告条（页头之上）
+
+`shop.promo` 是一段（`placements: ["header", "page", "footer"]`），不是 chrome 块。
+**「页头之上」不需要新区域**：页头区本来就是一串 section，导航条只是其中的本体段，
+把这一段拖到它前面就渲染在上方——所以没有 `announcement` 字段，也没动 marketing 内核。
+
+推哪个码是**渲染期自动挑**的，租户不选码：`shared/promo.ts` 从当前生效的整单码里
+按「百分比优先、同类型取数值大者、再按 code 升序」挑一个（跨类型没有可比基准，
+8 折 vs 立减 50 得先知道客单价，所以口径写死成这两条，好解释也好测）。租户只配文案
+模板（`{code}` / `{value}`）与点击去哪。一个生效的码都没有时**整段不渲染**。
+
+> ⚠️ 没有「这个码可不可以公开」这一维度：任何启用中且在有效期内的码都可能被挂到页顶。
+> 定向 / 内部高额码要么别设成启用、要么加期限，否则它会自己上页头。要挡住得给
+> `ShopDiscount` 加一个「可公开」开关——本期不做。
+
+公告条只是**展示**：买家仍要在购物车 / 结账手填这个码，不会自动应用。编辑器预览用的是
+固定样张（`SAMPLE20`），因为优惠码列表接口不带起止时间与用尽次数，判不出「现在能不能用」。
+
+## 页头 / 页脚导航
+
+`shared/nav-sources.ts` 往 marketing 登记两个导航源（`registerNavSource`，server
+`onBoot` 与 client manifest 各调一次），租户不必再手填一条指向 `/shop` 的链接：
+
+| source            | `children`（默认）         | `flat`             |
+| ----------------- | -------------------------- | ------------------ |
+| `shop`            | 「商店」一条，下挂分类树   | 顶层分类各占一条   |
+| `shop.collection` | 该分类一条，下挂其子分类   | 其子分类各占一条   |
+
+分类 slug 存在条目的 `category` 上，编辑器从下拉选（`categoryOptions`），不手填。
+展开的数据与段渲染同一份 `contributed.shop.collections`——两个 source 名也在
+provider 的 `sectionTypes` 里，页头挂了导航项才去查分类。空分类（没商品也没子分类）
+不进导航；分类被删或撤回发布时整条消失；**没有任何分类时仍留下「商店」那条链接**
+（`/shop` 是一张真实页面，文档库那套「展不出就整条不渲染」在这儿会把店面入口弄丢）。
+页头横排的下拉面板只画到孙级，更深的层只在页脚竖列里展得开。
 
 分类是手动收录（`ShopCollection` + `ShopCollectionProduct`），可挂 `parent_id` 成树（同级 `sort_order`）。没有智能分类规则。官网段 `shop.collection-list` 按已发布分类画树：根分类在编辑器里从下拉选择（空/`__all__` 则从顶层起），`depth` 限制层数；`show_count` 把该分类直接收录的已发布商品数跟在名称后面；未发布的父节点不挡已发布的子节点（子节点升到可见层）。整单优惠码是百分比或固定金额，基数是商品小计不含运费。工作台订单详情可全额退款（Stripe Refund，可选退库存）；不恢复优惠码次数。评价与多仓不做。
 

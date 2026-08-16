@@ -839,14 +839,10 @@
     "columnSpansHint": "{{count}} columns · {{spans}} of 12",
     "menuSource": {
       "link": "Custom link",
-      "pages": "All top-level pages",
-      "docs": "Doc library",
-      "doc_category": "One doc category"
+      "pages": "All top-level pages"
     },
     "menuSourceDefaultLabel": {
-      "pages": "(pages listed automatically)",
-      "docs": "Docs",
-      "doc_category": "(uses category key)"
+      "pages": "(pages listed automatically)"
     },
     "menuExpand": {
       "children": "Collapse into a dropdown",

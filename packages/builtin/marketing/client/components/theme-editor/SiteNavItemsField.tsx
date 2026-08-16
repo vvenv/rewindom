@@ -14,6 +14,7 @@ import {
   cloneNavItems,
   getNavSource,
   listNavSources,
+  navSourceCategoryOptions,
   safeNavItems,
   type SiteNavItem,
   type SiteNavSource,
@@ -79,7 +80,6 @@ export function SiteNavItemsField({
     locale,
     defaultLocale,
   };
-  const categories = categoryOptionsFromContributed(preview.contributed);
   const sources = listNavSources(preview.enabledEntitlements);
 
   const commit = (next: SiteNavItem[]): void => onChange(next);
@@ -133,9 +133,10 @@ export function SiteNavItemsField({
                 locale={locale}
                 defaultLocale={defaultLocale}
                 preview={previewCtx}
-                categories={categories}
                 disabled={disabled}
-                onChange={(patch) => commit(patchNavItem(items, item.id, patch))}
+                onChange={(patch) =>
+                  commit(patchNavItem(items, item.id, patch))
+                }
                 onRemove={() => commit(removeNavItem(items, item.id))}
                 onMove={(delta) => commit(moveNavItem(items, item.id, delta))}
                 canMoveUp={index > 0}
@@ -165,7 +166,6 @@ export function SiteNavItemsField({
                   locale={locale}
                   defaultLocale={defaultLocale}
                   preview={previewCtx}
-                  categories={categories}
                   disabled={disabled}
                   onChange={(patch) =>
                     commit(patchNavItem(items, child.id, patch))
@@ -201,10 +201,14 @@ export function SiteNavItemsField({
             {sources.map((source) => {
               const def = getNavSource(source);
               const usesCategory = def?.usesCategory === true;
+              const noCategories =
+                usesCategory &&
+                navSourceCategoryOptions(source, preview.contributed).length ===
+                  0;
               return (
                 <DropdownMenuItem
                   key={source}
-                  disabled={usesCategory && categories.length === 0}
+                  disabled={noCategories}
                   onSelect={() => add(source as SiteNavSource)}
                 >
                   {def ? t(def.label) : t(`editor.menuSource.${source}`)}
@@ -229,27 +233,4 @@ export function SiteNavItemsField({
       </div>
     </div>
   );
-}
-
-function categoryOptionsFromContributed(
-  contributed: Readonly<Record<string, unknown>> | undefined,
-): Array<{ key: string; label: string }> {
-  const map = new Map<string, string>();
-  for (const value of Object.values(contributed ?? {})) {
-    if (!value || typeof value !== "object") continue;
-    const docs = (value as { docs?: unknown }).docs;
-    if (!Array.isArray(docs)) continue;
-    for (const doc of docs) {
-      if (!doc || typeof doc !== "object") continue;
-      const rec = doc as Record<string, unknown>;
-      if (typeof rec.category !== "string" || !rec.category) continue;
-      if (map.has(rec.category)) continue;
-      const label =
-        typeof rec.category_label === "string" && rec.category_label.trim()
-          ? rec.category_label.trim()
-          : rec.category;
-      map.set(rec.category, label);
-    }
-  }
-  return [...map].map(([key, label]) => ({ key, label }));
 }

@@ -1,4 +1,5 @@
 import {
+  BadgePercent,
   Boxes,
   ClipboardList,
   CreditCard,
@@ -28,6 +29,9 @@ import { renderCollectionProductsHtml } from "../shared/sections/collection-prod
 import { renderOrderHtml, renderOrderListHtml } from "../shared/sections/order-html.js";
 import { renderProductHtml } from "../shared/sections/product-html.js";
 import { renderProductGridHtml } from "../shared/sections/product-grid-html.js";
+import { renderPromoHtml } from "../shared/sections/promo-html.js";
+import { promoSection } from "../shared/promo-section.js";
+import { registerShopNavSources } from "../shared/nav-sources.js";
 import { registerShopPageTemplates } from "../shared/shop-page-templates.js";
 import { SHOP_STOREFRONT_CSS } from "../shared/site-css.generated.js";
 
@@ -43,6 +47,7 @@ import type { ClientAppModule } from "@rewindom/module-sdk/client";
 const css = SHOP_STOREFRONT_CSS;
 
 registerShopPageTemplates();
+registerShopNavSources();
 registerShopEditorContext();
 registerShopCollectionSelectOptions();
 registerSiteSectionView(productGridSection, htmlSectionView(renderProductGridHtml), {
@@ -65,6 +70,10 @@ registerSiteSectionView(productSection, htmlSectionView(renderProductHtml), {
 registerSiteSectionView(cartSection, htmlSectionView(renderCartHtml), {
   css,
   icon: ShoppingCart,
+});
+registerSiteSectionView(promoSection, htmlSectionView(renderPromoHtml), {
+  css,
+  icon: BadgePercent,
 });
 registerChromeBlockView(cartLinkBlock, htmlChromeBlockView(renderCartLinkHtml), {
   css,

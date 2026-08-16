@@ -58,6 +58,11 @@ export interface ResolvedNavItem {
   children: ResolvedNavItem[];
 }
 
+export interface NavCategoryOption {
+  key: string;
+  label: string;
+}
+
 export interface NavSourceDefinition {
   source: string;
   /** i18n key，可带命名空间。 */
@@ -66,6 +71,14 @@ export interface NavSourceDefinition {
   entitlement?: string;
   defaultExpand?: SiteNavExpand;
   usesCategory?: boolean;
+  /**
+   * `usesCategory` 源在编辑器里的分类下拉选项，从**自己那一格** `contributed`
+   * 里取。marketing 不认识任何业务模块的数据形状——文档分类与商店分类只有贡献方
+   * 自己知道长什么样，不填就是没得选（下拉置灰）。
+   */
+  categoryOptions?: (
+    contributed: Readonly<Record<string, unknown>> | undefined,
+  ) => NavCategoryOption[];
   expand: (item: SiteNavItem, ctx: SiteNavContext) => ResolvedNavItem[];
 }
 
@@ -92,22 +105,25 @@ export function resetNavSourceContributions(): void {
   CONTRIBUTED.clear();
 }
 
-export function getNavSource(
-  source: string,
-): NavSourceDefinition | undefined {
+export function getNavSource(source: string): NavSourceDefinition | undefined {
   return CONTRIBUTED.get(source);
 }
 
-export function listNavSources(
-  enabled?: ReadonlySet<string>,
-): string[] {
+export function listNavSources(enabled?: ReadonlySet<string>): string[] {
   const contributed = [...CONTRIBUTED.values()]
-    .filter(
-      (def) =>
-        !def.entitlement || enabled?.has(def.entitlement) === true,
-    )
+    .filter((def) => !def.entitlement || enabled?.has(def.entitlement) === true)
     .map((def) => def.source);
   return [...BUILTIN_NAV_SOURCES, ...contributed];
+}
+
+/** 某个源在编辑器里可选的分类；不是分类源、或贡献方没给，都是空列表。 */
+export function navSourceCategoryOptions(
+  source: string,
+  contributed: Readonly<Record<string, unknown>> | undefined,
+): NavCategoryOption[] {
+  const def = getNavSource(source);
+  if (!def?.usesCategory || !def.categoryOptions) return [];
+  return def.categoryOptions(contributed);
 }
 
 /** 贡献导航源声明过的 entitlement（公开渲染要去查开关，不能只扫段定义）。 */
@@ -138,9 +154,7 @@ export function defaultExpandForSource(source: SiteNavSource): SiteNavExpand {
   return getNavSource(source)?.defaultExpand ?? "children";
 }
 
-export function blankNavItem(
-  source: SiteNavSource = "link",
-): SiteNavItem {
+export function blankNavItem(source: SiteNavSource = "link"): SiteNavItem {
   return {
     id: createNavItemId(),
     source,
@@ -352,7 +366,15 @@ function resolveItem(
     );
     return item.expand === "flat"
       ? items
-      : [makeNavLink(item.id, resolveNavLabel(item.label, ctx), "", ctx, items)];
+      : [
+          makeNavLink(
+            item.id,
+            resolveNavLabel(item.label, ctx),
+            "",
+            ctx,
+            items,
+          ),
+        ];
   }
 
   const contributed = getNavSource(item.source);
