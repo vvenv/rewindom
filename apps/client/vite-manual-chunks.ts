@@ -26,6 +26,19 @@ export function manualChunks(id: string): string | undefined {
   // Large or on-demand deps — keep out of the main vendor catch-all
   if (inNodeModules(id, "recharts")) return "recharts-vendor";
 
+  // Markdown editor (theme editor's fullscreen richtext) — lazy()'d at the call
+  // site, so it must not be folded into `vendor` or the split buys nothing.
+  // `refractor`/`prismjs` are the highlighter it pulls in, and they dwarf it.
+  if (
+    inNodeModules(id, "@uiw", "react-md-editor") ||
+    inNodeModules(id, "@uiw", "react-markdown-preview") ||
+    inNodeModules(id, "rehype-prism-plus") ||
+    inNodeModules(id, "refractor") ||
+    inNodeModules(id, "prismjs")
+  ) {
+    return "md-editor-vendor";
+  }
+
   // React runtime (exact package paths only — never `id.includes("react-dom")`)
   if (inNodeModules(id, "@floating-ui", "react-dom")) return "react-dom";
   if (inNodeModules(id, "react-dom")) return "react-dom";

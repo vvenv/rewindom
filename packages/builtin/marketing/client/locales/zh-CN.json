@@ -406,6 +406,8 @@
     "uploadImage": "上传",
     "toastImageUploaded": "图片已上传",
     "toastImageUploadFailed": "图片上传失败",
+    "richtextFullscreen": "全屏编辑",
+    "richtextFullscreenHint": "支持 Markdown，右侧是实时预览。改动即时生效，仍需在编辑器顶栏保存。",
     "fieldFontFamily": "字体",
     "group": {
       "content": "内容",

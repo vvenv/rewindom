@@ -11,11 +11,15 @@ import type { ReactElement } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { useSiteLocale } from "../../../../marketing/client/components/sections/site-locale-context.js";
 import {
   settingBool,
   settingText,
 } from "../../../../marketing/shared/section-schema.js";
-import { listMemberSiblingLinks } from "../../../../site-member/shared/member-menu-links.js";
+import {
+  listMemberSiblingLinks,
+  memberMenuLinkLabel,
+} from "../../../../site-member/shared/member-menu-links.js";
 import { memberCardClass } from "../../../../site-member/shared/member-page-settings.js";
 import { MEMBER_BILLING_PATH } from "../../../shared/plans-section.js";
 
@@ -25,6 +29,11 @@ export function MemberBillingAccountSection({
   section,
 }: SectionViewProps): ReactElement {
   const { t, i18n } = useTranslation(["site-billing", "site-member"]);
+  /*
+   * 站点语言，不是工作台语言：样张里的字段名与入口名，会员在这个语言版本上
+   * 看到的是哪一份，编辑器就该显示哪一份（SSR 侧取的是 `ctx.locale`）。
+   */
+  const locale = useSiteLocale();
   const s = section.settings;
   const heading = settingText(s, "heading");
   const subheading = settingText(s, "subheading");
@@ -33,11 +42,15 @@ export function MemberBillingAccountSection({
     excludeHref: MEMBER_BILLING_PATH,
   });
 
+  const lng = { lng: locale };
   const rows = [
-    { label: t("account.planLabel"), value: t("section.plans.label") },
-    { label: t("account.statusLabel"), value: t("status.active") },
-    { label: t("account.periodEndLabel"), value: "—" },
-    { label: t("account.cancelAtPeriodEndLabel"), value: t("account.no") },
+    { label: t("account.planLabel", lng), value: t("section.plans.label", lng) },
+    { label: t("account.statusLabel", lng), value: t("status.active", lng) },
+    { label: t("account.periodEndLabel", lng), value: "—" },
+    {
+      label: t("account.cancelAtPeriodEndLabel", lng),
+      value: t("account.no", lng),
+    },
   ];
 
   return (
@@ -49,14 +62,15 @@ export function MemberBillingAccountSection({
         </div>
       ) : null}
       {siblingLinks.length > 0 ? (
-        <nav className="member-account-links" aria-label={t("site-member:entry.links")}>
+        <nav
+          className="member-account-links"
+          aria-label={t("site-member:entry.links", lng)}
+        >
           {siblingLinks.map((link) => (
             <a key={link.id} href={link.href}>
               {link.label_key
-                ? i18n.t(link.label_key)
-                : (link.labels[
-                    i18n.language as keyof typeof link.labels
-                  ] ?? link.labels["zh-CN"])}
+                ? i18n.t(link.label_key, lng)
+                : memberMenuLinkLabel(link, locale)}
             </a>
           ))}
         </nav>

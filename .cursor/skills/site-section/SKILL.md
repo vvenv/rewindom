@@ -59,6 +59,27 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 内置 marketing 段仍是 React + HTML 各一份（`packages/builtin/marketing/shared/sections/<type>/`）；业务贡献段不要再写一套 React 视图。
 
+## 段要查库：`contributed` 两端各登记一次
+
+段渲染器是同步的，要查库的数据从 `SectionRenderContext.contributed` 进：
+
+| 面 | 登记 | 在哪 |
+| --- | --- | --- |
+| 实站 SSR | `registerSectionContextProvider` | server `onBoot`（`server/sections/register.ts`） |
+| 编辑器预览 | `registerEditorContextProvider` | client manifest 顶层（`client/editor-context.ts`） |
+
+两端都按 `sectionTypes` 按需调用（页面没摆那些段就一次查询都不发），单个 provider 抛错
+只让它那一段不渲染。只登记 SSR 那边预览就是空白，只登记预览那边实站直接不渲染。
+
+**两端的 `provide(input)` 都必须用 `input.locale`** —— 那是**当前选中页面的 locale**，
+不是工作台界面语言。预览取数打后台接口时把它显式带成 `?locale=`（api client 的
+`Accept-Language` 写的是界面语言），服务端路由用「显式 locale 优先于
+`resolveRequestLocale`」取值。金标准：`modules/shop/client/editor-context.ts` +
+`modules/shop/server/lib/request-locale.ts`。
+
+数据多语言的回落两端走同一条（`resolveShopLocaleText` / `docsInLocale`），
+不要在预览里另写一份取值逻辑。
+
 ## chrome 块
 
 页头 / 页脚「和语言切换同一排的按钮」是 **block**，不是 section。
@@ -105,6 +126,7 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 - [ ] CSS 真源是 `shared/site-css/*.css`，没有手写 `*-css.ts`，generated 已 assemble 并提交
 - [ ] 模板页 kind 与 preset 成对；有开关则声明了 `entitlement`
+- [ ] 要查库的段：SSR 与预览两个 provider 都登记了，且都按 `input.locale`（页面语言）取数
 - [ ] `pnpm check:modules`、`pnpm check:i18n`
 - [ ] 未开通 entitlement 时不进菜单、不渲染
 
@@ -112,5 +134,6 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 - 改 marketing 内核来「顺便登记」业务段——注册表在 marketing，**填表的是贡献方**
 - 为编辑器再写一套与 SSR 不同的 React markup（业务贡献段用 `htmlSectionView`）
+- 预览取数跟着工作台界面语言走——同一段会在预览与实站显示两份文案
 - 自己写模板页初始化或「自定义版式」空态
 - 预设文案先 `t()`，或 preset key 与 setting `default` 不是同一条 `ns:key`

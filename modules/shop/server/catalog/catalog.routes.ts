@@ -8,6 +8,8 @@ import {
   sendCodedError,
 } from "@rewindom/module-sdk/server";
 
+import { resolveCatalogLocale } from "../lib/request-locale.js";
+
 import {
   addVariant,
   createProduct,
@@ -52,7 +54,7 @@ export async function catalogRoutes(app: FastifyInstance): Promise<void> {
         status: query.status,
         sort_by: query.sort_by,
         sort_dir: parseSortDir(query.sort_dir),
-        locale: resolveRequestLocale(request),
+        locale: resolveCatalogLocale(request),
       });
     },
   });

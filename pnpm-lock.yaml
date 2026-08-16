@@ -729,6 +729,9 @@ importers:
       '@tanstack/react-table':
         specifier: ^9.1.2
         version: 9.1.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@uiw/react-md-editor':
+        specifier: ^4.1.1
+        version: 4.1.1(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2)
       creem:
         specifier: ^1.6.0
         version: 1.6.0(supports-color@10.2.2)

@@ -5002,6 +5002,8 @@ export const ShopCollectionScalarFieldEnum = {
   seo_title: 'seo_title',
   seo_description: 'seo_description',
   image_url: 'image_url',
+  parent_id: 'parent_id',
+  sort_order: 'sort_order',
   published_at: 'published_at',
   created_at: 'created_at',
   updated_at: 'updated_at'

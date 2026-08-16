@@ -406,6 +406,8 @@
     "uploadImage": "Upload",
     "toastImageUploaded": "Image uploaded",
     "toastImageUploadFailed": "Image upload failed",
+    "richtextFullscreen": "Fullscreen",
+    "richtextFullscreenHint": "Markdown supported, with a live preview on the right. Edits apply instantly but still need saving from the editor toolbar.",
     "fieldFontFamily": "Font",
     "group": {
       "content": "Content",

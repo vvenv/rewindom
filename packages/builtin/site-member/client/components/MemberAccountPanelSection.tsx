@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { useSiteLocale } from "../../../marketing/client/components/sections/site-locale-context.js";
 import {
   settingBool,
   settingText,
@@ -11,7 +12,10 @@ import {
   memberDisplayName,
   memberInitials,
 } from "../../shared/member-identity.js";
-import { listMemberSiblingLinks } from "../../shared/member-menu-links.js";
+import {
+  listMemberSiblingLinks,
+  memberMenuLinkLabel,
+} from "../../shared/member-menu-links.js";
 import { memberCardClass } from "../../shared/member-page-settings.js";
 
 import type { SectionViewProps } from "../../../marketing/client/components/sections/section-parts.js";
@@ -102,6 +106,11 @@ function PreviewForm({
  */
 function AccountPanelPreview({ section }: SectionViewProps): ReactElement {
   const { t, i18n } = useTranslation("site-member");
+  /*
+   * 站点语言，不是工作台语言：预览里的样例文案与入口名，会员在这个语言版本上
+   * 看到的是哪一份，编辑器就该显示哪一份（同 `useSiteLocale` 的口径注释）。
+   */
+  const locale = useSiteLocale();
   const s = section.settings;
   const heading = settingText(s, "heading");
   const subheading = settingText(s, "subheading");
@@ -111,8 +120,8 @@ function AccountPanelPreview({ section }: SectionViewProps): ReactElement {
   });
 
   const sample = {
-    display_name: t("editor.accountSample.displayName"),
-    email: t("editor.accountSample.email"),
+    display_name: t("editor.accountSample.displayName", { lng: locale }),
+    email: t("editor.accountSample.email", { lng: locale }),
   };
   const name = memberDisplayName(sample);
 
@@ -145,14 +154,15 @@ function AccountPanelPreview({ section }: SectionViewProps): ReactElement {
         </form>
       </div>
       {contributedLinks.length > 0 ? (
-        <nav className="member-account-links" aria-label={t("entry.links")}>
+        <nav
+          className="member-account-links"
+          aria-label={t("entry.links", { lng: locale })}
+        >
           {contributedLinks.map((link) => (
             <a key={link.id} href={link.href}>
               {link.label_key
-                ? i18n.t(link.label_key)
-                : (link.labels[
-                    i18n.language as keyof typeof link.labels
-                  ] ?? link.labels["zh-CN"])}
+                ? i18n.t(link.label_key, { lng: locale })
+                : memberMenuLinkLabel(link, locale)}
             </a>
           ))}
         </nav>
@@ -161,11 +171,11 @@ function AccountPanelPreview({ section }: SectionViewProps): ReactElement {
         <dl className="member-account-meta">
           <div>
             <dt>{settingText(s, "created_label")}</dt>
-            <dd>{t("editor.accountSample.date")}</dd>
+            <dd>{t("editor.accountSample.date", { lng: locale })}</dd>
           </div>
           <div>
             <dt>{settingText(s, "last_login_label")}</dt>
-            <dd>{t("editor.accountSample.date")}</dd>
+            <dd>{t("editor.accountSample.date", { lng: locale })}</dd>
           </div>
         </dl>
       ) : null}

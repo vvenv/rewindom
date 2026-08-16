@@ -22,8 +22,12 @@ import { siteDocsContextEntry } from "../shared/site-docs-context.js";
 
 import { fetchSiteDoc, fetchSiteDocsCatalog } from "./lib/site-doc-api.js";
 
-function sampleDocs(): PublicDocSummary[] {
-  const t = i18n.getFixedT(null, "site-docs");
+/*
+ * 占位样张也跟**当前选中页面的 locale**：`getFixedT(null)` 取的是工作台界面语言，
+ * 编辑一张 en 页面时预览会冒出中文样张，与真实文档那一支（`docsInLocale`）不一致。
+ */
+function sampleDocs(locale: AppLocale): PublicDocSummary[] {
+  const t = i18n.getFixedT(locale, "site-docs");
   const label = t("editor.sample.category");
   return [
     {
@@ -38,9 +42,9 @@ function sampleDocs(): PublicDocSummary[] {
   ];
 }
 
-function sampleDetail(): PublicDocDetail {
-  const t = i18n.getFixedT(null, "site-docs");
-  const summary = sampleDocs()[0]!;
+function sampleDetail(locale: AppLocale): PublicDocDetail {
+  const t = i18n.getFixedT(locale, "site-docs");
+  const summary = sampleDocs(locale)[0]!;
   return { ...summary, body_md: t("editor.sample.body") };
 }
 
@@ -73,7 +77,7 @@ export function registerDocsEditorContext(): void {
               sort_order: item.sort_order,
               updated_at: item.updated_at,
             }))
-          : sampleDocs();
+          : sampleDocs(locale);
 
       let doc: PublicDocDetail | undefined;
       if (input.pageKind === DOCS_ARTICLE_PAGE_KIND) {
@@ -92,10 +96,10 @@ export function registerDocsEditorContext(): void {
               body_md: sample.body_md_draft || sample.body_md,
             };
           } catch {
-            doc = sampleDetail();
+            doc = sampleDetail(locale);
           }
         } else {
-          doc = sampleDetail();
+          doc = sampleDetail(locale);
         }
       }
 

@@ -1,6 +1,6 @@
 ---
-description: 官网段 / 模板页的库存文案必须是 ns:key，复制跨语言时库存句换目标语言
-globs: packages/builtin/**/shared/**/*section*.ts,packages/builtin/**/shared/**/*page-template*.ts,packages/builtin/marketing/shared/page-presets.ts,packages/builtin/marketing/shared/page-templates.ts,packages/builtin/marketing/shared/section-schema.ts,packages/builtin/marketing/shared/section-settings.ts,packages/builtin/marketing/shared/sections/**/definition.ts,modules/**/shared/**/*section*.ts,modules/**/shared/**/*page-template*.ts
+description: 官网段 / 模板页的库存文案必须是 ns:key，复制跨语言时库存句换目标语言；贡献段的预览取数按页面 locale
+globs: packages/builtin/**/shared/**/*section*.ts,packages/builtin/**/shared/**/*page-template*.ts,packages/builtin/marketing/shared/page-presets.ts,packages/builtin/marketing/shared/page-templates.ts,packages/builtin/marketing/shared/section-schema.ts,packages/builtin/marketing/shared/section-settings.ts,packages/builtin/marketing/shared/sections/**/definition.ts,modules/**/shared/**/*section*.ts,modules/**/shared/**/*page-template*.ts,packages/builtin/**/client/editor-context.ts,packages/builtin/**/server/**/register.ts,modules/**/client/editor-context.ts,modules/**/server/sections/register.ts
 alwaysApply: false
 ---
 
@@ -22,3 +22,21 @@ alwaysApply: false
 | 租户改过 | 源语言原文（翻译起点） |
 
 同一段被多张预设共用（如 `shop.product-grid` 的 heading）时不要硬塞一个 default，交给 `relocalizeSections` 按 catalog 反查。
+
+## 贡献段的按请求数据：预览取数 = 当前选中页面的 locale
+
+预览与实站共用同一个 HTML 渲染器，喂进去的 `contributed` 数据也必须按**同一个 locale** 取，
+否则同一段在编辑器里和线上显示两份文案。
+
+| 面 | 注入点 | locale |
+| --- | --- | --- |
+| 实站 SSR | `registerSectionContextProvider` | `input.locale` = 页面 locale（`resolveSectionContexts` 传入） |
+| 编辑器预览 | `registerEditorContextProvider` | `input.locale` = `page.locale`（site-editor 传入） |
+
+- `provide(input)` **必须**用 `input.locale`，不要省掉参数写成 `provide: async () => …`
+- 预览取数要打后台接口（商品 / 分类 / 文档目录）时，把 `input.locale` 显式带成 `?locale=`：
+  api client 的 `Accept-Language` 是**工作台界面语言**，不是页面语言
+- 对应路由用「显式 `locale` 优先于 `resolveRequestLocale`」取值；金标准
+  `modules/shop/server/lib/request-locale.ts`。后台自己的列表页不传，仍跟界面语言走
+- 数据多语言字段的回落两端走同一条（`resolveShopLocaleText` / `docsInLocale`），
+  不要在预览里另写一份「取第一个非空」

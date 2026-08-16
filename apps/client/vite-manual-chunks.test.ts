@@ -42,6 +42,26 @@ describe("manualChunks", () => {
     ).toBe("recharts-vendor");
   });
 
+  it("keeps the markdown editor out of the eager vendor chunk", () => {
+    expect(
+      manualChunks(
+        "/app/node_modules/.pnpm/@uiw+react-md-editor@4.1.1_react-dom@19.2.7/node_modules/@uiw/react-md-editor/esm/index.js",
+      ),
+    ).toBe("md-editor-vendor");
+    expect(
+      manualChunks(
+        "/app/node_modules/.pnpm/refractor@4.9.0/node_modules/refractor/lang/tsx.js",
+      ),
+    ).toBe("md-editor-vendor");
+    // react-markdown is shared with the always-on `MarkdownProse` — pulling it
+    // into the editor chunk would drag the editor along on every page.
+    expect(
+      manualChunks(
+        "/app/node_modules/.pnpm/react-markdown@10.1.0_react@19.2.8/node_modules/react-markdown/lib/index.js",
+      ),
+    ).toBe("vendor");
+  });
+
   it("routes radix-ui meta package into radix-vendor", () => {
     expect(
       manualChunks(

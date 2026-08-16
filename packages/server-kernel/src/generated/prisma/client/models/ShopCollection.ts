@@ -20,8 +20,18 @@ export type ShopCollectionModel = runtime.Types.Result.DefaultSelection<Prisma.$
 
 export type AggregateShopCollection = {
   _count: ShopCollectionCountAggregateOutputType | null
+  _avg: ShopCollectionAvgAggregateOutputType | null
+  _sum: ShopCollectionSumAggregateOutputType | null
   _min: ShopCollectionMinAggregateOutputType | null
   _max: ShopCollectionMaxAggregateOutputType | null
+}
+
+export type ShopCollectionAvgAggregateOutputType = {
+  sort_order: number | null
+}
+
+export type ShopCollectionSumAggregateOutputType = {
+  sort_order: number | null
 }
 
 export type ShopCollectionMinAggregateOutputType = {
@@ -30,6 +40,8 @@ export type ShopCollectionMinAggregateOutputType = {
   slug: string | null
   status: string | null
   image_url: string | null
+  parent_id: string | null
+  sort_order: number | null
   published_at: Date | null
   created_at: Date | null
   updated_at: Date | null
@@ -41,6 +53,8 @@ export type ShopCollectionMaxAggregateOutputType = {
   slug: string | null
   status: string | null
   image_url: string | null
+  parent_id: string | null
+  sort_order: number | null
   published_at: Date | null
   created_at: Date | null
   updated_at: Date | null
@@ -56,6 +70,8 @@ export type ShopCollectionCountAggregateOutputType = {
   seo_title: number
   seo_description: number
   image_url: number
+  parent_id: number
+  sort_order: number
   published_at: number
   created_at: number
   updated_at: number
@@ -63,12 +79,22 @@ export type ShopCollectionCountAggregateOutputType = {
 }
 
 
+export type ShopCollectionAvgAggregateInputType = {
+  sort_order?: true
+}
+
+export type ShopCollectionSumAggregateInputType = {
+  sort_order?: true
+}
+
 export type ShopCollectionMinAggregateInputType = {
   id?: true
   tenant_id?: true
   slug?: true
   status?: true
   image_url?: true
+  parent_id?: true
+  sort_order?: true
   published_at?: true
   created_at?: true
   updated_at?: true
@@ -80,6 +106,8 @@ export type ShopCollectionMaxAggregateInputType = {
   slug?: true
   status?: true
   image_url?: true
+  parent_id?: true
+  sort_order?: true
   published_at?: true
   created_at?: true
   updated_at?: true
@@ -95,6 +123,8 @@ export type ShopCollectionCountAggregateInputType = {
   seo_title?: true
   seo_description?: true
   image_url?: true
+  parent_id?: true
+  sort_order?: true
   published_at?: true
   created_at?: true
   updated_at?: true
@@ -139,6 +169,18 @@ export type ShopCollectionAggregateArgs<ExtArgs extends runtime.Types.Extensions
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: ShopCollectionAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: ShopCollectionSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: ShopCollectionMinAggregateInputType
@@ -169,6 +211,8 @@ export type ShopCollectionGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   _count?: ShopCollectionCountAggregateInputType | true
+  _avg?: ShopCollectionAvgAggregateInputType
+  _sum?: ShopCollectionSumAggregateInputType
   _min?: ShopCollectionMinAggregateInputType
   _max?: ShopCollectionMaxAggregateInputType
 }
@@ -183,10 +227,14 @@ export type ShopCollectionGroupByOutputType = {
   seo_title: runtime.JsonValue | null
   seo_description: runtime.JsonValue | null
   image_url: string | null
+  parent_id: string | null
+  sort_order: number
   published_at: Date | null
   created_at: Date
   updated_at: Date
   _count: ShopCollectionCountAggregateOutputType | null
+  _avg: ShopCollectionAvgAggregateOutputType | null
+  _sum: ShopCollectionSumAggregateOutputType | null
   _min: ShopCollectionMinAggregateOutputType | null
   _max: ShopCollectionMaxAggregateOutputType | null
 }
@@ -219,9 +267,13 @@ export type ShopCollectionWhereInput = {
   seo_title?: Prisma.JsonNullableFilter<"ShopCollection">
   seo_description?: Prisma.JsonNullableFilter<"ShopCollection">
   image_url?: Prisma.StringNullableFilter<"ShopCollection"> | string | null
+  parent_id?: Prisma.StringNullableFilter<"ShopCollection"> | string | null
+  sort_order?: Prisma.IntFilter<"ShopCollection"> | number
   published_at?: Prisma.DateTimeNullableFilter<"ShopCollection"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"ShopCollection"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ShopCollection"> | Date | string
+  parent?: Prisma.XOR<Prisma.ShopCollectionNullableScalarRelationFilter, Prisma.ShopCollectionWhereInput> | null
+  children?: Prisma.ShopCollectionListRelationFilter
   products?: Prisma.ShopCollectionProductListRelationFilter
 }
 
@@ -235,9 +287,13 @@ export type ShopCollectionOrderByWithRelationInput = {
   seo_title?: Prisma.SortOrderInput | Prisma.SortOrder
   seo_description?: Prisma.SortOrderInput | Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  parent_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  sort_order?: Prisma.SortOrder
   published_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  parent?: Prisma.ShopCollectionOrderByWithRelationInput
+  children?: Prisma.ShopCollectionOrderByRelationAggregateInput
   products?: Prisma.ShopCollectionProductOrderByRelationAggregateInput
 }
 
@@ -255,9 +311,13 @@ export type ShopCollectionWhereUniqueInput = Prisma.AtLeast<{
   seo_title?: Prisma.JsonNullableFilter<"ShopCollection">
   seo_description?: Prisma.JsonNullableFilter<"ShopCollection">
   image_url?: Prisma.StringNullableFilter<"ShopCollection"> | string | null
+  parent_id?: Prisma.StringNullableFilter<"ShopCollection"> | string | null
+  sort_order?: Prisma.IntFilter<"ShopCollection"> | number
   published_at?: Prisma.DateTimeNullableFilter<"ShopCollection"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"ShopCollection"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"ShopCollection"> | Date | string
+  parent?: Prisma.XOR<Prisma.ShopCollectionNullableScalarRelationFilter, Prisma.ShopCollectionWhereInput> | null
+  children?: Prisma.ShopCollectionListRelationFilter
   products?: Prisma.ShopCollectionProductListRelationFilter
 }, "id" | "tenant_id_slug">
 
@@ -271,12 +331,16 @@ export type ShopCollectionOrderByWithAggregationInput = {
   seo_title?: Prisma.SortOrderInput | Prisma.SortOrder
   seo_description?: Prisma.SortOrderInput | Prisma.SortOrder
   image_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  parent_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  sort_order?: Prisma.SortOrder
   published_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.ShopCollectionCountOrderByAggregateInput
+  _avg?: Prisma.ShopCollectionAvgOrderByAggregateInput
   _max?: Prisma.ShopCollectionMaxOrderByAggregateInput
   _min?: Prisma.ShopCollectionMinOrderByAggregateInput
+  _sum?: Prisma.ShopCollectionSumOrderByAggregateInput
 }
 
 export type ShopCollectionScalarWhereWithAggregatesInput = {
@@ -292,6 +356,8 @@ export type ShopCollectionScalarWhereWithAggregatesInput = {
   seo_title?: Prisma.JsonNullableWithAggregatesFilter<"ShopCollection">
   seo_description?: Prisma.JsonNullableWithAggregatesFilter<"ShopCollection">
   image_url?: Prisma.StringNullableWithAggregatesFilter<"ShopCollection"> | string | null
+  parent_id?: Prisma.StringNullableWithAggregatesFilter<"ShopCollection"> | string | null
+  sort_order?: Prisma.IntWithAggregatesFilter<"ShopCollection"> | number
   published_at?: Prisma.DateTimeNullableWithAggregatesFilter<"ShopCollection"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"ShopCollection"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"ShopCollection"> | Date | string
@@ -307,9 +373,12 @@ export type ShopCollectionCreateInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: string | null
+  sort_order?: number
   published_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  parent?: Prisma.ShopCollectionCreateNestedOneWithoutChildrenInput
+  children?: Prisma.ShopCollectionCreateNestedManyWithoutParentInput
   products?: Prisma.ShopCollectionProductCreateNestedManyWithoutCollectionInput
 }
 
@@ -323,9 +392,12 @@ export type ShopCollectionUncheckedCreateInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: string | null
+  parent_id?: string | null
+  sort_order?: number
   published_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  children?: Prisma.ShopCollectionUncheckedCreateNestedManyWithoutParentInput
   products?: Prisma.ShopCollectionProductUncheckedCreateNestedManyWithoutCollectionInput
 }
 
@@ -339,9 +411,12 @@ export type ShopCollectionUpdateInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.ShopCollectionUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.ShopCollectionUpdateManyWithoutParentNestedInput
   products?: Prisma.ShopCollectionProductUpdateManyWithoutCollectionNestedInput
 }
 
@@ -355,9 +430,12 @@ export type ShopCollectionUncheckedUpdateInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parent_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.ShopCollectionUncheckedUpdateManyWithoutParentNestedInput
   products?: Prisma.ShopCollectionProductUncheckedUpdateManyWithoutCollectionNestedInput
 }
 
@@ -371,6 +449,8 @@ export type ShopCollectionCreateManyInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: string | null
+  parent_id?: string | null
+  sort_order?: number
   published_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -386,6 +466,7 @@ export type ShopCollectionUpdateManyMutationInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -401,9 +482,26 @@ export type ShopCollectionUncheckedUpdateManyInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parent_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ShopCollectionNullableScalarRelationFilter = {
+  is?: Prisma.ShopCollectionWhereInput | null
+  isNot?: Prisma.ShopCollectionWhereInput | null
+}
+
+export type ShopCollectionListRelationFilter = {
+  every?: Prisma.ShopCollectionWhereInput
+  some?: Prisma.ShopCollectionWhereInput
+  none?: Prisma.ShopCollectionWhereInput
+}
+
+export type ShopCollectionOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type ShopCollectionTenant_idSlugCompoundUniqueInput = {
@@ -421,9 +519,15 @@ export type ShopCollectionCountOrderByAggregateInput = {
   seo_title?: Prisma.SortOrder
   seo_description?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  parent_id?: Prisma.SortOrder
+  sort_order?: Prisma.SortOrder
   published_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+}
+
+export type ShopCollectionAvgOrderByAggregateInput = {
+  sort_order?: Prisma.SortOrder
 }
 
 export type ShopCollectionMaxOrderByAggregateInput = {
@@ -432,6 +536,8 @@ export type ShopCollectionMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  parent_id?: Prisma.SortOrder
+  sort_order?: Prisma.SortOrder
   published_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -443,14 +549,78 @@ export type ShopCollectionMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   status?: Prisma.SortOrder
   image_url?: Prisma.SortOrder
+  parent_id?: Prisma.SortOrder
+  sort_order?: Prisma.SortOrder
   published_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
+export type ShopCollectionSumOrderByAggregateInput = {
+  sort_order?: Prisma.SortOrder
+}
+
 export type ShopCollectionScalarRelationFilter = {
   is?: Prisma.ShopCollectionWhereInput
   isNot?: Prisma.ShopCollectionWhereInput
+}
+
+export type ShopCollectionCreateNestedOneWithoutChildrenInput = {
+  create?: Prisma.XOR<Prisma.ShopCollectionCreateWithoutChildrenInput, Prisma.ShopCollectionUncheckedCreateWithoutChildrenInput>
+  connectOrCreate?: Prisma.ShopCollectionCreateOrConnectWithoutChildrenInput
+  connect?: Prisma.ShopCollectionWhereUniqueInput
+}
+
+export type ShopCollectionCreateNestedManyWithoutParentInput = {
+  create?: Prisma.XOR<Prisma.ShopCollectionCreateWithoutParentInput, Prisma.ShopCollectionUncheckedCreateWithoutParentInput> | Prisma.ShopCollectionCreateWithoutParentInput[] | Prisma.ShopCollectionUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.ShopCollectionCreateOrConnectWithoutParentInput | Prisma.ShopCollectionCreateOrConnectWithoutParentInput[]
+  createMany?: Prisma.ShopCollectionCreateManyParentInputEnvelope
+  connect?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+}
+
+export type ShopCollectionUncheckedCreateNestedManyWithoutParentInput = {
+  create?: Prisma.XOR<Prisma.ShopCollectionCreateWithoutParentInput, Prisma.ShopCollectionUncheckedCreateWithoutParentInput> | Prisma.ShopCollectionCreateWithoutParentInput[] | Prisma.ShopCollectionUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.ShopCollectionCreateOrConnectWithoutParentInput | Prisma.ShopCollectionCreateOrConnectWithoutParentInput[]
+  createMany?: Prisma.ShopCollectionCreateManyParentInputEnvelope
+  connect?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+}
+
+export type ShopCollectionUpdateOneWithoutChildrenNestedInput = {
+  create?: Prisma.XOR<Prisma.ShopCollectionCreateWithoutChildrenInput, Prisma.ShopCollectionUncheckedCreateWithoutChildrenInput>
+  connectOrCreate?: Prisma.ShopCollectionCreateOrConnectWithoutChildrenInput
+  upsert?: Prisma.ShopCollectionUpsertWithoutChildrenInput
+  disconnect?: Prisma.ShopCollectionWhereInput | boolean
+  delete?: Prisma.ShopCollectionWhereInput | boolean
+  connect?: Prisma.ShopCollectionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ShopCollectionUpdateToOneWithWhereWithoutChildrenInput, Prisma.ShopCollectionUpdateWithoutChildrenInput>, Prisma.ShopCollectionUncheckedUpdateWithoutChildrenInput>
+}
+
+export type ShopCollectionUpdateManyWithoutParentNestedInput = {
+  create?: Prisma.XOR<Prisma.ShopCollectionCreateWithoutParentInput, Prisma.ShopCollectionUncheckedCreateWithoutParentInput> | Prisma.ShopCollectionCreateWithoutParentInput[] | Prisma.ShopCollectionUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.ShopCollectionCreateOrConnectWithoutParentInput | Prisma.ShopCollectionCreateOrConnectWithoutParentInput[]
+  upsert?: Prisma.ShopCollectionUpsertWithWhereUniqueWithoutParentInput | Prisma.ShopCollectionUpsertWithWhereUniqueWithoutParentInput[]
+  createMany?: Prisma.ShopCollectionCreateManyParentInputEnvelope
+  set?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+  disconnect?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+  delete?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+  connect?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+  update?: Prisma.ShopCollectionUpdateWithWhereUniqueWithoutParentInput | Prisma.ShopCollectionUpdateWithWhereUniqueWithoutParentInput[]
+  updateMany?: Prisma.ShopCollectionUpdateManyWithWhereWithoutParentInput | Prisma.ShopCollectionUpdateManyWithWhereWithoutParentInput[]
+  deleteMany?: Prisma.ShopCollectionScalarWhereInput | Prisma.ShopCollectionScalarWhereInput[]
+}
+
+export type ShopCollectionUncheckedUpdateManyWithoutParentNestedInput = {
+  create?: Prisma.XOR<Prisma.ShopCollectionCreateWithoutParentInput, Prisma.ShopCollectionUncheckedCreateWithoutParentInput> | Prisma.ShopCollectionCreateWithoutParentInput[] | Prisma.ShopCollectionUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.ShopCollectionCreateOrConnectWithoutParentInput | Prisma.ShopCollectionCreateOrConnectWithoutParentInput[]
+  upsert?: Prisma.ShopCollectionUpsertWithWhereUniqueWithoutParentInput | Prisma.ShopCollectionUpsertWithWhereUniqueWithoutParentInput[]
+  createMany?: Prisma.ShopCollectionCreateManyParentInputEnvelope
+  set?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+  disconnect?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+  delete?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+  connect?: Prisma.ShopCollectionWhereUniqueInput | Prisma.ShopCollectionWhereUniqueInput[]
+  update?: Prisma.ShopCollectionUpdateWithWhereUniqueWithoutParentInput | Prisma.ShopCollectionUpdateWithWhereUniqueWithoutParentInput[]
+  updateMany?: Prisma.ShopCollectionUpdateManyWithWhereWithoutParentInput | Prisma.ShopCollectionUpdateManyWithWhereWithoutParentInput[]
+  deleteMany?: Prisma.ShopCollectionScalarWhereInput | Prisma.ShopCollectionScalarWhereInput[]
 }
 
 export type ShopCollectionCreateNestedOneWithoutProductsInput = {
@@ -467,6 +637,176 @@ export type ShopCollectionUpdateOneRequiredWithoutProductsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ShopCollectionUpdateToOneWithWhereWithoutProductsInput, Prisma.ShopCollectionUpdateWithoutProductsInput>, Prisma.ShopCollectionUncheckedUpdateWithoutProductsInput>
 }
 
+export type ShopCollectionCreateWithoutChildrenInput = {
+  id?: string
+  tenant_id: string
+  slug: string
+  status?: string
+  title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
+  sort_order?: number
+  published_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  parent?: Prisma.ShopCollectionCreateNestedOneWithoutChildrenInput
+  products?: Prisma.ShopCollectionProductCreateNestedManyWithoutCollectionInput
+}
+
+export type ShopCollectionUncheckedCreateWithoutChildrenInput = {
+  id?: string
+  tenant_id: string
+  slug: string
+  status?: string
+  title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
+  parent_id?: string | null
+  sort_order?: number
+  published_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  products?: Prisma.ShopCollectionProductUncheckedCreateNestedManyWithoutCollectionInput
+}
+
+export type ShopCollectionCreateOrConnectWithoutChildrenInput = {
+  where: Prisma.ShopCollectionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ShopCollectionCreateWithoutChildrenInput, Prisma.ShopCollectionUncheckedCreateWithoutChildrenInput>
+}
+
+export type ShopCollectionCreateWithoutParentInput = {
+  id?: string
+  tenant_id: string
+  slug: string
+  status?: string
+  title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
+  sort_order?: number
+  published_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  children?: Prisma.ShopCollectionCreateNestedManyWithoutParentInput
+  products?: Prisma.ShopCollectionProductCreateNestedManyWithoutCollectionInput
+}
+
+export type ShopCollectionUncheckedCreateWithoutParentInput = {
+  id?: string
+  tenant_id: string
+  slug: string
+  status?: string
+  title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
+  sort_order?: number
+  published_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  children?: Prisma.ShopCollectionUncheckedCreateNestedManyWithoutParentInput
+  products?: Prisma.ShopCollectionProductUncheckedCreateNestedManyWithoutCollectionInput
+}
+
+export type ShopCollectionCreateOrConnectWithoutParentInput = {
+  where: Prisma.ShopCollectionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ShopCollectionCreateWithoutParentInput, Prisma.ShopCollectionUncheckedCreateWithoutParentInput>
+}
+
+export type ShopCollectionCreateManyParentInputEnvelope = {
+  data: Prisma.ShopCollectionCreateManyParentInput | Prisma.ShopCollectionCreateManyParentInput[]
+  skipDuplicates?: boolean
+}
+
+export type ShopCollectionUpsertWithoutChildrenInput = {
+  update: Prisma.XOR<Prisma.ShopCollectionUpdateWithoutChildrenInput, Prisma.ShopCollectionUncheckedUpdateWithoutChildrenInput>
+  create: Prisma.XOR<Prisma.ShopCollectionCreateWithoutChildrenInput, Prisma.ShopCollectionUncheckedCreateWithoutChildrenInput>
+  where?: Prisma.ShopCollectionWhereInput
+}
+
+export type ShopCollectionUpdateToOneWithWhereWithoutChildrenInput = {
+  where?: Prisma.ShopCollectionWhereInput
+  data: Prisma.XOR<Prisma.ShopCollectionUpdateWithoutChildrenInput, Prisma.ShopCollectionUncheckedUpdateWithoutChildrenInput>
+}
+
+export type ShopCollectionUpdateWithoutChildrenInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.ShopCollectionUpdateOneWithoutChildrenNestedInput
+  products?: Prisma.ShopCollectionProductUpdateManyWithoutCollectionNestedInput
+}
+
+export type ShopCollectionUncheckedUpdateWithoutChildrenInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parent_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  products?: Prisma.ShopCollectionProductUncheckedUpdateManyWithoutCollectionNestedInput
+}
+
+export type ShopCollectionUpsertWithWhereUniqueWithoutParentInput = {
+  where: Prisma.ShopCollectionWhereUniqueInput
+  update: Prisma.XOR<Prisma.ShopCollectionUpdateWithoutParentInput, Prisma.ShopCollectionUncheckedUpdateWithoutParentInput>
+  create: Prisma.XOR<Prisma.ShopCollectionCreateWithoutParentInput, Prisma.ShopCollectionUncheckedCreateWithoutParentInput>
+}
+
+export type ShopCollectionUpdateWithWhereUniqueWithoutParentInput = {
+  where: Prisma.ShopCollectionWhereUniqueInput
+  data: Prisma.XOR<Prisma.ShopCollectionUpdateWithoutParentInput, Prisma.ShopCollectionUncheckedUpdateWithoutParentInput>
+}
+
+export type ShopCollectionUpdateManyWithWhereWithoutParentInput = {
+  where: Prisma.ShopCollectionScalarWhereInput
+  data: Prisma.XOR<Prisma.ShopCollectionUpdateManyMutationInput, Prisma.ShopCollectionUncheckedUpdateManyWithoutParentInput>
+}
+
+export type ShopCollectionScalarWhereInput = {
+  AND?: Prisma.ShopCollectionScalarWhereInput | Prisma.ShopCollectionScalarWhereInput[]
+  OR?: Prisma.ShopCollectionScalarWhereInput[]
+  NOT?: Prisma.ShopCollectionScalarWhereInput | Prisma.ShopCollectionScalarWhereInput[]
+  id?: Prisma.StringFilter<"ShopCollection"> | string
+  tenant_id?: Prisma.StringFilter<"ShopCollection"> | string
+  slug?: Prisma.StringFilter<"ShopCollection"> | string
+  status?: Prisma.StringFilter<"ShopCollection"> | string
+  title?: Prisma.JsonFilter<"ShopCollection">
+  description?: Prisma.JsonNullableFilter<"ShopCollection">
+  seo_title?: Prisma.JsonNullableFilter<"ShopCollection">
+  seo_description?: Prisma.JsonNullableFilter<"ShopCollection">
+  image_url?: Prisma.StringNullableFilter<"ShopCollection"> | string | null
+  parent_id?: Prisma.StringNullableFilter<"ShopCollection"> | string | null
+  sort_order?: Prisma.IntFilter<"ShopCollection"> | number
+  published_at?: Prisma.DateTimeNullableFilter<"ShopCollection"> | Date | string | null
+  created_at?: Prisma.DateTimeFilter<"ShopCollection"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"ShopCollection"> | Date | string
+}
+
 export type ShopCollectionCreateWithoutProductsInput = {
   id?: string
   tenant_id: string
@@ -477,9 +817,12 @@ export type ShopCollectionCreateWithoutProductsInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: string | null
+  sort_order?: number
   published_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  parent?: Prisma.ShopCollectionCreateNestedOneWithoutChildrenInput
+  children?: Prisma.ShopCollectionCreateNestedManyWithoutParentInput
 }
 
 export type ShopCollectionUncheckedCreateWithoutProductsInput = {
@@ -492,9 +835,12 @@ export type ShopCollectionUncheckedCreateWithoutProductsInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: string | null
+  parent_id?: string | null
+  sort_order?: number
   published_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  children?: Prisma.ShopCollectionUncheckedCreateNestedManyWithoutParentInput
 }
 
 export type ShopCollectionCreateOrConnectWithoutProductsInput = {
@@ -523,9 +869,12 @@ export type ShopCollectionUpdateWithoutProductsInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.ShopCollectionUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.ShopCollectionUpdateManyWithoutParentNestedInput
 }
 
 export type ShopCollectionUncheckedUpdateWithoutProductsInput = {
@@ -538,6 +887,77 @@ export type ShopCollectionUncheckedUpdateWithoutProductsInput = {
   seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parent_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.ShopCollectionUncheckedUpdateManyWithoutParentNestedInput
+}
+
+export type ShopCollectionCreateManyParentInput = {
+  id?: string
+  tenant_id: string
+  slug: string
+  status?: string
+  title: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: string | null
+  sort_order?: number
+  published_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type ShopCollectionUpdateWithoutParentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.ShopCollectionUpdateManyWithoutParentNestedInput
+  products?: Prisma.ShopCollectionProductUpdateManyWithoutCollectionNestedInput
+}
+
+export type ShopCollectionUncheckedUpdateWithoutParentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.ShopCollectionUncheckedUpdateManyWithoutParentNestedInput
+  products?: Prisma.ShopCollectionProductUncheckedUpdateManyWithoutCollectionNestedInput
+}
+
+export type ShopCollectionUncheckedUpdateManyWithoutParentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_title?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  seo_description?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -549,10 +969,12 @@ export type ShopCollectionUncheckedUpdateWithoutProductsInput = {
  */
 
 export type ShopCollectionCountOutputType = {
+  children: number
   products: number
 }
 
 export type ShopCollectionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  children?: boolean | ShopCollectionCountOutputTypeCountChildrenArgs
   products?: boolean | ShopCollectionCountOutputTypeCountProductsArgs
 }
 
@@ -564,6 +986,13 @@ export type ShopCollectionCountOutputTypeDefaultArgs<ExtArgs extends runtime.Typ
    * Select specific fields to fetch from the ShopCollectionCountOutputType
    */
   select?: Prisma.ShopCollectionCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ShopCollectionCountOutputType without action
+ */
+export type ShopCollectionCountOutputTypeCountChildrenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShopCollectionWhereInput
 }
 
 /**
@@ -584,9 +1013,13 @@ export type ShopCollectionSelect<ExtArgs extends runtime.Types.Extensions.Intern
   seo_title?: boolean
   seo_description?: boolean
   image_url?: boolean
+  parent_id?: boolean
+  sort_order?: boolean
   published_at?: boolean
   created_at?: boolean
   updated_at?: boolean
+  parent?: boolean | Prisma.ShopCollection$parentArgs<ExtArgs>
+  children?: boolean | Prisma.ShopCollection$childrenArgs<ExtArgs>
   products?: boolean | Prisma.ShopCollection$productsArgs<ExtArgs>
   _count?: boolean | Prisma.ShopCollectionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["shopCollection"]>
@@ -601,9 +1034,12 @@ export type ShopCollectionSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   seo_title?: boolean
   seo_description?: boolean
   image_url?: boolean
+  parent_id?: boolean
+  sort_order?: boolean
   published_at?: boolean
   created_at?: boolean
   updated_at?: boolean
+  parent?: boolean | Prisma.ShopCollection$parentArgs<ExtArgs>
 }, ExtArgs["result"]["shopCollection"]>
 
 export type ShopCollectionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -616,9 +1052,12 @@ export type ShopCollectionSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   seo_title?: boolean
   seo_description?: boolean
   image_url?: boolean
+  parent_id?: boolean
+  sort_order?: boolean
   published_at?: boolean
   created_at?: boolean
   updated_at?: boolean
+  parent?: boolean | Prisma.ShopCollection$parentArgs<ExtArgs>
 }, ExtArgs["result"]["shopCollection"]>
 
 export type ShopCollectionSelectScalar = {
@@ -631,22 +1070,32 @@ export type ShopCollectionSelectScalar = {
   seo_title?: boolean
   seo_description?: boolean
   image_url?: boolean
+  parent_id?: boolean
+  sort_order?: boolean
   published_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type ShopCollectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "status" | "title" | "description" | "seo_title" | "seo_description" | "image_url" | "published_at" | "created_at" | "updated_at", ExtArgs["result"]["shopCollection"]>
+export type ShopCollectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "status" | "title" | "description" | "seo_title" | "seo_description" | "image_url" | "parent_id" | "sort_order" | "published_at" | "created_at" | "updated_at", ExtArgs["result"]["shopCollection"]>
 export type ShopCollectionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.ShopCollection$parentArgs<ExtArgs>
+  children?: boolean | Prisma.ShopCollection$childrenArgs<ExtArgs>
   products?: boolean | Prisma.ShopCollection$productsArgs<ExtArgs>
   _count?: boolean | Prisma.ShopCollectionCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type ShopCollectionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type ShopCollectionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type ShopCollectionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.ShopCollection$parentArgs<ExtArgs>
+}
+export type ShopCollectionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.ShopCollection$parentArgs<ExtArgs>
+}
 
 export type $ShopCollectionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ShopCollection"
   objects: {
+    parent: Prisma.$ShopCollectionPayload<ExtArgs> | null
+    children: Prisma.$ShopCollectionPayload<ExtArgs>[]
     products: Prisma.$ShopCollectionProductPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -659,6 +1108,11 @@ export type $ShopCollectionPayload<ExtArgs extends runtime.Types.Extensions.Inte
     seo_title: runtime.JsonValue | null
     seo_description: runtime.JsonValue | null
     image_url: string | null
+    /**
+     * 空 = 顶层。删父时子分类升为顶层（SetNull），不级联删。
+     */
+    parent_id: string | null
+    sort_order: number
     published_at: Date | null
     created_at: Date
     updated_at: Date
@@ -1056,6 +1510,8 @@ readonly fields: ShopCollectionFieldRefs;
  */
 export interface Prisma__ShopCollectionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  parent<T extends Prisma.ShopCollection$parentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ShopCollection$parentArgs<ExtArgs>>): Prisma.Prisma__ShopCollectionClient<runtime.Types.Result.GetResult<Prisma.$ShopCollectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  children<T extends Prisma.ShopCollection$childrenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ShopCollection$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShopCollectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   products<T extends Prisma.ShopCollection$productsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ShopCollection$productsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShopCollectionProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1095,6 +1551,8 @@ export interface ShopCollectionFieldRefs {
   readonly seo_title: Prisma.FieldRef<"ShopCollection", 'Json'>
   readonly seo_description: Prisma.FieldRef<"ShopCollection", 'Json'>
   readonly image_url: Prisma.FieldRef<"ShopCollection", 'String'>
+  readonly parent_id: Prisma.FieldRef<"ShopCollection", 'String'>
+  readonly sort_order: Prisma.FieldRef<"ShopCollection", 'Int'>
   readonly published_at: Prisma.FieldRef<"ShopCollection", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"ShopCollection", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"ShopCollection", 'DateTime'>
@@ -1352,6 +1810,10 @@ export type ShopCollectionCreateManyAndReturnArgs<ExtArgs extends runtime.Types.
    */
   data: Prisma.ShopCollectionCreateManyInput | Prisma.ShopCollectionCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShopCollectionIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1422,6 +1884,10 @@ export type ShopCollectionUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.
    * Limit how many ShopCollections to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShopCollectionIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1488,6 +1954,49 @@ export type ShopCollectionDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many ShopCollections to delete.
    */
   limit?: number
+}
+
+/**
+ * ShopCollection.parent
+ */
+export type ShopCollection$parentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ShopCollection
+   */
+  select?: Prisma.ShopCollectionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ShopCollection
+   */
+  omit?: Prisma.ShopCollectionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShopCollectionInclude<ExtArgs> | null
+  where?: Prisma.ShopCollectionWhereInput
+}
+
+/**
+ * ShopCollection.children
+ */
+export type ShopCollection$childrenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ShopCollection
+   */
+  select?: Prisma.ShopCollectionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ShopCollection
+   */
+  omit?: Prisma.ShopCollectionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShopCollectionInclude<ExtArgs> | null
+  where?: Prisma.ShopCollectionWhereInput
+  orderBy?: Prisma.ShopCollectionOrderByWithRelationInput | Prisma.ShopCollectionOrderByWithRelationInput[]
+  cursor?: Prisma.ShopCollectionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShopCollectionScalarFieldEnum | Prisma.ShopCollectionScalarFieldEnum[]
 }
 
 /**

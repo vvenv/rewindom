@@ -1,0 +1,35 @@
+# 增量功能契约 —— richtext 设置项接入全屏 Markdown 编辑器
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant] # 主题编辑器住在租户工作台 /app/site，公开面（SSR）不变
+goal: richtext 设置项默认仍是普通 textarea，标签行右侧的「全屏编辑」进入铺满视口的 Markdown 模式（工具栏 + 实时预览）
+gold: packages/builtin/marketing/client/components/media/MediaPickerDialog.tsx # 「一颗按钮开弹层」的既有形状
+touch:
+  - packages/builtin/marketing/client/components/theme-editor/MarkdownFullscreenDialog.tsx
+  - packages/builtin/marketing/client/components/theme-editor/MarkdownFullscreenEditor.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SettingsFields.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SectionSettingsForm.test.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/package.json
+  - apps/client/vite-manual-chunks.ts
+  - apps/client/vite-manual-chunks.test.ts
+  # 顺带修：include 只写了 `src/**`，包根那两个构建配置的测试从来没跑过
+  - apps/client/vitest.config.ts
+out_of_scope:
+  - section-settings.ts 的类型系统（richtext 的存储形态不变，仍是 Markdown 字符串）
+  - SSR / 段渲染（`MarkdownProse` 与 html.ts 一行不动）
+  - textarea / list 两种 setting 类型（保持纯 textarea）
+i18n: code # 只多几条界面文案；租户填的内容仍走 data locale map
+acceptance:
+  - pnpm --filter @rewindom/builtin test
+  - pnpm --filter @rewindom/builtin typecheck
+  - pnpm --filter @rewindom/builtin lint
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 · 留空则沿用模块现有 ----------
+# entitlement: 沿用 marketing 现有（无新增）
+# permissions: 沿用 site.* 现有（无新增）
+# models: 无

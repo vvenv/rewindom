@@ -52,6 +52,21 @@ describe("SectionSettingsForm 页签", () => {
   });
 });
 
+describe("SectionSettingsForm 富文本全屏入口", () => {
+  it("按钮与字段标签同一行，不是跟在十行高的 textarea 后面", () => {
+    renderForm("prose");
+    const button = screen.getByRole("button", { name: /全屏编辑/u });
+    const label = screen.getByText("正文（Markdown）");
+    expect(button.parentElement).toBe(label.closest("label")?.parentElement);
+  });
+
+  /* 纯文本 / 清单字段没有 Markdown 可言，不该多这颗按钮 */
+  it("非富文本字段不给全屏入口", () => {
+    renderForm("hero");
+    expect(screen.queryByRole("button", { name: /全屏编辑/u })).toBeNull();
+  });
+});
+
 describe("SectionSettingsForm 从页头复制", () => {
   const chromeFormProps = {
     locale: "zh-CN" as const,
