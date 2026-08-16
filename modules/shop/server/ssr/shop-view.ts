@@ -25,8 +25,8 @@ import {
   type ShopProductDetailView,
   type ShopRenderContext,
   type ShopShippingRateView,
+  type ShopCollectionCardView,
 } from "../../shared/shop-section-context.js";
-
 import type { ShopCartView as ShopCartData } from "../../shared/cart.js";
 import type { ShopProduct } from "../../shared/catalog.js";
 import type { ShopOrderDetail, ShopOrderListItem } from "../../shared/order.js";
@@ -34,6 +34,30 @@ import type { AppLocale } from "@rewindom/module-sdk";
 
 export function productHref(slug: string): string {
   return `${SHOP_INDEX_PATH}/${encodeURIComponent(slug)}`;
+}
+
+export function collectionHref(slug: string): string {
+  return `/shop/collections/${encodeURIComponent(slug)}`;
+}
+
+export function toCollectionCard(
+  collection: {
+    slug: string;
+    parent_slug: string | null;
+    title: Record<string, string>;
+    product_count: number;
+    sort_order: number;
+  },
+  locale: AppLocale,
+): ShopCollectionCardView {
+  return {
+    slug: collection.slug,
+    parent_slug: collection.parent_slug,
+    href: collectionHref(collection.slug),
+    title: displayTitle(collection.title, locale, collection.slug),
+    product_count: collection.product_count,
+    sort_order: collection.sort_order,
+  };
 }
 
 export function orderHref(number: string): string {

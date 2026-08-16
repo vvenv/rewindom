@@ -99,12 +99,12 @@
   "toastFulfilled": "Marked as shipped",
   "toastCompleted": "Order completed",
   "collectionsTitle": "Collections",
-  "collectionsDescription": "Manually group products. Storefront path is /shop/collections/slug.",
+  "collectionsDescription": "Manually group products. Nested collections appear as a tree on the storefront. Path is /shop/collections/slug.",
   "createCollection": "New collection",
   "createCollectionTitle": "New collection",
-  "createCollectionDescription": "Enter the name and description in each language, then pick products.",
+  "createCollectionDescription": "Enter the name and description in each language, then pick a parent and products.",
   "editCollectionTitle": "Edit collection",
-  "editCollectionDescription": "Update collection copy and membership.",
+  "editCollectionDescription": "Update collection copy, parent, and membership.",
   "collectionSearchPlaceholder": "Search slug…",
   "collectionProducts": "Products",
   "collectionImage": "Cover image",
@@ -119,6 +119,11 @@
   "fieldCollections": "Collections",
   "infoCollections": "A product can belong to more than one collection.",
   "infoCollectionSlug": "Appears in /shop/collections/slug. Use lowercase letters, numbers and hyphens.",
+  "fieldParentCollection": "Parent collection",
+  "parentCollectionNone": "Top level",
+  "infoParentCollection": "Leave as top level, or nest under another collection. The storefront tree uses this.",
+  "fieldSortOrder": "Sort order",
+  "infoSortOrder": "Lower numbers come first among siblings.",
   "discountsTitle": "Discount codes",
   "discountsDescription": "Whole-order discounts: percent or fixed amount, with optional minimum spend, usage cap and dates.",
   "createDiscount": "New discount code",
@@ -248,6 +253,22 @@
       "collectionSlugInfo": "Only products in this collection. Leave empty for every published product.",
       "emptyText": "Empty state"
     },
+    "collectionList": {
+      "label": "Collection list",
+      "tree": "Tree",
+      "rootSlug": "Root collection",
+      "rootSlugInfo": "Which collection to start from. Pick top-level to show every root.",
+      "rootAll": "All top-level collections",
+      "depth": "Depth",
+      "depthInfo": "How many levels to show. The root counts as level 1 when it is included.",
+      "includeRoot": "Show the root collection",
+      "includeRootInfo": "When a root slug is set, show that collection as the first node. Off shows only its children.",
+      "showCount": "Show product count",
+      "showCountInfo": "Shown after the name. Counts published products assigned to that collection.",
+      "showEmpty": "Show empty collections",
+      "showEmptyInfo": "Off hides collections with no products and no visible children.",
+      "emptyText": "Empty state"
+    },
     "product": { "label": "Product detail" },
     "cart": {
       "label": "Cart",
@@ -337,6 +358,7 @@
       "subtitle": "Products in this collection",
       "empty": "This collection has no products yet."
     },
+    "collectionList": { "empty": "No collections to show." },
     "product": {
       "title": "Product",
       "subtitle": "Product details",
@@ -400,5 +422,17 @@
       "number": "Order"
     },
     "cartLink": { "label": "Cart" }
+  },
+  "editor": {
+    "sample": {
+      "product": "Sample product",
+      "subtitle": "A short subtitle",
+      "description": "Placeholder used in the editor.",
+      "variant": "Default",
+      "shipping": "Standard",
+      "collectionSummer": "Summer",
+      "collectionKitchen": "Kitchen",
+      "collectionHome": "Home"
+    }
   }
 }

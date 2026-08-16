@@ -12,6 +12,7 @@ import type { AppLocale } from "@rewindom/module-sdk";
 import {
   isShopCollectionStatus,
   isShopImageUrl,
+  wouldCreateCollectionCycle,
   type CreateShopCollectionBody,
   type ShopCollection,
   type ShopCollectionListItem,
@@ -25,7 +26,13 @@ import {
   SLUG_RE,
 } from "../lib/format.js";
 
-const COLLECTION_SORTABLE = new Set(["slug", "status", "updated_at", "created_at"]);
+const COLLECTION_SORTABLE = new Set([
+  "slug",
+  "status",
+  "sort_order",
+  "updated_at",
+  "created_at",
+]);
 
 function toLocalizedMap(value: unknown): Record<string, string> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -44,6 +51,8 @@ function toCollection(
     seo_title: unknown;
     seo_description: unknown;
     image_url: string | null;
+    parent_id: string | null;
+    sort_order: number;
     published_at: Date | null;
     created_at: Date;
     updated_at: Date;
@@ -63,6 +72,8 @@ function toCollection(
     seo_title: toLocalizedMap(record.seo_title),
     seo_description: toLocalizedMap(record.seo_description),
     image_url: record.image_url,
+    parent_id: record.parent_id,
+    sort_order: record.sort_order,
     published_at: record.published_at?.toISOString() ?? null,
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
@@ -85,6 +96,42 @@ function parseImageUrl(raw: unknown): string | null {
   if (!url) return null;
   if (!isShopImageUrl(url)) throw new ValidationError("shop.images_invalid");
   return url;
+}
+
+function parseParentId(raw: unknown): string | null {
+  if (raw == null || raw === "") return null;
+  if (typeof raw !== "string") throw new ValidationError("shop.parent_not_found");
+  const id = raw.trim();
+  return id || null;
+}
+
+function parseSortOrder(raw: unknown): number {
+  if (raw == null || raw === "") return 0;
+  const value = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(value)) throw new ValidationError("shop.sort_order_invalid");
+  return Math.min(9999, Math.max(0, Math.trunc(value)));
+}
+
+async function resolveParentId(params: {
+  tenant_id: string;
+  collection_id: string | null;
+  parent_id: string | null;
+}): Promise<string | null> {
+  if (!params.parent_id) return null;
+  const parent = await prisma.shopCollection.findFirst({
+    where: withTenantScope(params.tenant_id, { id: params.parent_id }),
+    select: { id: true },
+  });
+  if (!parent) throw new ValidationError("shop.parent_not_found");
+  if (!params.collection_id) return parent.id;
+  const links = await prisma.shopCollection.findMany({
+    where: withTenantScope(params.tenant_id, {}),
+    select: { id: true, parent_id: true },
+  });
+  if (wouldCreateCollectionCycle(links, params.collection_id, parent.id)) {
+    throw new ValidationError("shop.parent_cycle");
+  }
+  return parent.id;
 }
 
 async function replaceCollectionProducts(params: {
@@ -153,7 +200,10 @@ export async function listCollections(params: {
       orderBy: { [field]: order },
       skip,
       take: params.page_size,
-      include: { _count: { select: { products: true } } },
+      include: {
+        _count: { select: { products: true } },
+        parent: { select: { id: true, slug: true, title: true } },
+      },
     }),
     prisma.shopCollection.count({ where }),
   ]);
@@ -163,6 +213,12 @@ export async function listCollections(params: {
       slug: record.slug,
       status: isShopCollectionStatus(record.status) ? record.status : "draft",
       title: displayTitle(record.title, params.locale, record.slug),
+      parent_id: record.parent_id,
+      parent_slug: record.parent?.slug ?? null,
+      parent_title: record.parent
+        ? displayTitle(record.parent.title, params.locale)
+        : "",
+      sort_order: record.sort_order,
       product_count: record._count.products,
       updated_at: record.updated_at.toISOString(),
     })),
@@ -171,6 +227,37 @@ export async function listCollections(params: {
     total,
     page_count: Math.ceil(total / params.page_size),
   };
+}
+
+export async function listPublishedCollections(tenant_id: string): Promise<
+  Array<{
+    slug: string;
+    parent_slug: string | null;
+    title: Record<string, string>;
+    product_count: number;
+    sort_order: number;
+  }>
+> {
+  const records = await prisma.shopCollection.findMany({
+    where: withTenantScope(tenant_id, { status: "published" }),
+    orderBy: [{ sort_order: "asc" }, { slug: "asc" }],
+    include: {
+      parent: { select: { slug: true, status: true } },
+      _count: {
+        select: {
+          products: { where: { product: { status: "published" } } },
+        },
+      },
+    },
+  });
+  return records.map((record) => ({
+    slug: record.slug,
+    parent_slug:
+      record.parent?.status === "published" ? record.parent.slug : null,
+    title: toLocalizedMap(record.title) ?? {},
+    product_count: record._count.products,
+    sort_order: record.sort_order,
+  }));
 }
 
 export async function getCollection(
@@ -215,6 +302,12 @@ export async function createCollection(params: {
     select: { id: true },
   });
   if (clash) throw new ConflictError("shop.slug_taken");
+  const parent_id = await resolveParentId({
+    tenant_id: params.tenant_id,
+    collection_id: null,
+    parent_id: parseParentId(params.body.parent_id),
+  });
+  const sort_order = parseSortOrder(params.body.sort_order);
 
   const record = await prisma.shopCollection.create({
     data: {
@@ -232,6 +325,8 @@ export async function createCollection(params: {
         parseLocalizedInput(params.body.seo_description ?? null, params.locale) ??
         undefined,
       image_url: parseImageUrl(params.body.image_url),
+      parent_id,
+      sort_order,
       published_at: status === "published" ? new Date() : null,
     },
   });
@@ -258,6 +353,8 @@ export async function updateCollection(params: {
     seo_title?: Record<string, string>;
     seo_description?: Record<string, string>;
     image_url?: string | null;
+    parent_id?: string | null;
+    sort_order?: number;
     published_at?: Date | null;
   } = {};
 
@@ -303,6 +400,16 @@ export async function updateCollection(params: {
   }
   if (params.body.image_url !== undefined) {
     data.image_url = parseImageUrl(params.body.image_url);
+  }
+  if (params.body.parent_id !== undefined) {
+    data.parent_id = await resolveParentId({
+      tenant_id: params.tenant_id,
+      collection_id: params.collection_id,
+      parent_id: parseParentId(params.body.parent_id),
+    });
+  }
+  if (params.body.sort_order !== undefined) {
+    data.sort_order = parseSortOrder(params.body.sort_order);
   }
 
   await prisma.shopCollection.update({

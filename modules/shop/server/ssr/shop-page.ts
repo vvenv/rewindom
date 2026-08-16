@@ -3,6 +3,8 @@
  */
 
 import { createShopPresetTranslator } from "./shop-preset-i18n.js";
+import { listPublishedCollections } from "../catalog/collection.service.js";
+import { toCollectionCard } from "./shop-view.js";
 import {
   shopContextEntry,
   shopStorefrontAlternates,
@@ -35,6 +37,13 @@ export async function renderShopTemplatePage(input: {
   noindex?: boolean;
 }): Promise<string> {
   const locale = normalizeLocale(input.locale);
+  const collections =
+    input.shop.collections.length > 0
+      ? input.shop.collections
+      : (await listPublishedCollections(input.tenantId)).map((row) =>
+          toCollectionCard(row, locale),
+        );
+  const shop = { ...input.shop, collections };
   const site = await getSiteChromeOrFallback(
     input.tenantId,
     input.tenantSlug,
@@ -83,6 +92,6 @@ export async function renderShopTemplatePage(input: {
     },
     accountEntryHtml: accountEntry.html,
     enabledEntitlements: entitlements,
-    contributed: shopContextEntry(input.shop),
+    contributed: shopContextEntry(shop),
   });
 }

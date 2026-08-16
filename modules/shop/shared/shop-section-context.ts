@@ -12,7 +12,10 @@ import {
   siteLocaleOrder,
   withSiteLocale,
 } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import type { ShopCollectionCardView } from "./collection.js";
 import type { AppLocale } from "@rewindom/module-sdk";
+
+export type { ShopCollectionCardView };
 
 export const SHOP_CONTEXT_KEY = "shop";
 
@@ -43,7 +46,11 @@ export function isShopLocaleSwitchablePath(path: string): boolean {
   const rest = path.slice(SHOP_INDEX_PATH.length + 1);
   const segments = rest.split("/").filter(Boolean);
   const first = segments[0];
-  return segments.length === 1 && Boolean(first) && !SHOP_RESERVED_SEGMENTS.has(first);
+  return (
+    segments.length === 1 &&
+    Boolean(first) &&
+    !SHOP_RESERVED_SEGMENTS.has(first)
+  );
 }
 
 registerLocalizableAppHref(isShopLocaleSwitchablePath);
@@ -187,6 +194,7 @@ export interface ShopMemberOrderView {
 
 export interface ShopRenderContext {
   products: ShopProductCardView[];
+  collections: ShopCollectionCardView[];
   product: ShopProductDetailView | null;
   cart: ShopCartView | null;
   checkout: ShopCheckoutView | null;
@@ -204,6 +212,7 @@ export interface ShopRenderContext {
 
 const EMPTY_CONTEXT: ShopRenderContext = {
   products: [],
+  collections: [],
   product: null,
   cart: null,
   checkout: null,

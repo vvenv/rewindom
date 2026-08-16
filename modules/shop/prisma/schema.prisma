@@ -56,13 +56,19 @@ model ShopCollection {
   seo_title       Json?
   seo_description Json?
   image_url       String?
+  /// 空 = 顶层。删父时子分类升为顶层（SetNull），不级联删。
+  parent_id       String?
+  sort_order      Int      @default(0)
   published_at    DateTime?
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
+  parent          ShopCollection?  @relation("ShopCollectionTree", fields: [parent_id], references: [id], onDelete: SetNull)
+  children        ShopCollection[] @relation("ShopCollectionTree")
   products        ShopCollectionProduct[]
 
   @@unique([tenant_id, slug])
   @@index([tenant_id, status, updated_at])
+  @@index([tenant_id, parent_id, sort_order])
 }
 
 model ShopCollectionProduct {

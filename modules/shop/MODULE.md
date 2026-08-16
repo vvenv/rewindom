@@ -73,11 +73,11 @@ shop/
 
 | kind                 | 路径                      | 必备段              | 区块                                                                                                                               |
 | -------------------- | ------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `shop_index`         | `/shop`                   | `shop.product-grid` | —（条目来自已发布商品；`collection_slug` 可只出某一类；也能摆上首页，`limit` 控制条数）                                            |
+| `shop_index`         | `/shop`                   | `shop.product-grid` | 可另加 `shop.collection-list`（分类树；`root_slug` / `depth`）                                                                       |
 
 `shop_index`（`/shop`）是可打开的一级页面，会进页头「全部一级页面」。商品详情、分类、购物车、结账不进——它们不是顶层目录入口。
 | `shop_product`       | `/shop/:slug`             | `shop.product`      | `media` / `title` / `price` / `description` / `buy`                                                                                |
-| `shop_collection`    | `/shop/collections/:slug` | `shop.product-grid` | —（按分类过滤；SEO 用分类的 `seo_*`）                                                                                              |
+| `shop_collection`    | `/shop/collections/:slug` | `shop.product-grid` | 可另加 `shop.collection-list`（分类树；当前分类会 `aria-current`）                                                                   |
 | `shop_cart`          | `/shop/cart`              | `shop.cart`         | `lines` / `summary`（另 POST `intent=discount` 应用优惠码）                                                                        |
 | `shop_checkout`      | `/shop/checkout`          | `shop.checkout`     | `contact` / `address` / `shipping` / `note` / `summary` / `pay`（整段一张付款 POST 表单；优惠码另 POST；纯数字商品不收地址与运费） |
 | `shop_order`         | `/shop/orders/:number`    | `shop.order`        | —                                                                                                                                  |
@@ -86,9 +86,11 @@ shop/
 另有 `shop.cart-link`：**页头 / 页脚的 chrome 块**（和语言、明暗、会员同一排的按钮），
 不是页面区块。开通商店后在页头「添加区块」里出现，默认不预置。有购物车时显示件数。
 
-没有智能分类规则或树状类目：分类是手动收录（`ShopCollection` + `ShopCollectionProduct`）。整单优惠码是百分比或固定金额，基数是商品小计不含运费。工作台订单详情可全额退款（Stripe Refund，可选退库存）；不恢复优惠码次数。评价与多仓不做。
+分类是手动收录（`ShopCollection` + `ShopCollectionProduct`），可挂 `parent_id` 成树（同级 `sort_order`）。没有智能分类规则。官网段 `shop.collection-list` 按已发布分类画树：根分类在编辑器里从下拉选择（空/`__all__` 则从顶层起），`depth` 限制层数；`show_count` 把该分类直接收录的已发布商品数跟在名称后面；未发布的父节点不挡已发布的子节点（子节点升到可见层）。整单优惠码是百分比或固定金额，基数是商品小计不含运费。工作台订单详情可全额退款（Stripe Refund，可选退库存）；不恢复优惠码次数。评价与多仓不做。
 
 商品名称、副标题、详情、option 名/值、图片 alt、SEO 文案、分类名称/简介是**数据多语言**（扁平 locale map），跟模块 `client/locales` 的代码多语言分开。工作台用内容语言 Tab 填同一套字段，不要再加 `fieldTitleEn`。详情按 Markdown 存源码，编辑器用 `@uiw/react-md-editor`（与文档库正文同款），店面用官网同一套 `md()` / `.prose` 渲染。
+
+主题编辑器预览【商品列表】【分类列表】时，标题跟**当前选中页面的 locale**，不是后台界面语言：`client/editor-context.ts` 把页面 locale 作为 `?locale=` 显式传给 `/shop/products`、`/shop/collections`，路由用 `resolveCatalogLocale` 让它盖过 Accept-Language（见 `server/lib/request-locale.ts`）。后台自己的列表页不传，仍跟界面语言走。
 
 租户没开通 `shop` 时这些段不进「添加区块」菜单，也不渲染。
 

@@ -99,12 +99,12 @@
   "toastFulfilled": "已标记发货",
   "toastCompleted": "订单已完成",
   "collectionsTitle": "分类",
-  "collectionsDescription": "手动收录商品。店面路径为 /shop/collections/路径。",
+  "collectionsDescription": "手动收录商品，可挂到父分类下成树。店面路径为 /shop/collections/路径。",
   "createCollection": "新建分类",
   "createCollectionTitle": "新建分类",
-  "createCollectionDescription": "填写各语言的名称与简介，并勾选要收录的商品。",
+  "createCollectionDescription": "填写各语言的名称与简介，选择父分类，并勾选要收录的商品。",
   "editCollectionTitle": "编辑分类",
-  "editCollectionDescription": "更新分类文案与收录的商品。",
+  "editCollectionDescription": "更新分类文案、父分类与收录的商品。",
   "collectionSearchPlaceholder": "搜索路径…",
   "collectionProducts": "商品",
   "collectionImage": "封面图",
@@ -119,6 +119,11 @@
   "fieldCollections": "所属分类",
   "infoCollections": "商品可以同时属于多个分类。",
   "infoCollectionSlug": "出现在 /shop/collections/路径。只用小写字母、数字和连字符。",
+  "fieldParentCollection": "父分类",
+  "parentCollectionNone": "顶层",
+  "infoParentCollection": "留空为顶层，或挂到另一个分类下面。店面分类树按这个关系展开。",
+  "fieldSortOrder": "排序",
+  "infoSortOrder": "同级里数字越小越靠前。",
   "discountsTitle": "优惠码",
   "discountsDescription": "整单折扣：百分比或固定金额，可设最低消费、使用次数与有效期。",
   "createDiscount": "新建优惠码",
@@ -248,6 +253,22 @@
       "collectionSlugInfo": "只展示该分类里的已发布商品。留空表示全部在售。",
       "emptyText": "空状态文案"
     },
+    "collectionList": {
+      "label": "分类列表",
+      "tree": "树",
+      "rootSlug": "根分类",
+      "rootSlugInfo": "从哪个分类开始。选「全部顶层分类」则从所有顶层展开。",
+      "rootAll": "全部顶层分类",
+      "depth": "深度",
+      "depthInfo": "展示几层。勾选「显示根分类」时，根算第 1 层。",
+      "includeRoot": "显示根分类",
+      "includeRootInfo": "填了根分类路径时，把它自己画成第一个节点。关掉则只显示它的下级。",
+      "showCount": "显示商品数",
+      "showCountInfo": "跟在分类名后面，只统计该分类直接收录的已发布商品。",
+      "showEmpty": "显示空分类",
+      "showEmptyInfo": "关掉后，没有商品、也没有可见下级的分类不出现。",
+      "emptyText": "空状态文案"
+    },
     "product": { "label": "商品详情" },
     "cart": {
       "label": "购物车",
@@ -337,6 +358,7 @@
       "subtitle": "该分类下的商品",
       "empty": "这个分类还没有商品。"
     },
+    "collectionList": { "empty": "还没有可展示的分类。" },
     "product": {
       "title": "商品",
       "subtitle": "商品详情",
@@ -400,5 +422,17 @@
       "number": "订单号"
     },
     "cartLink": { "label": "购物车" }
+  },
+  "editor": {
+    "sample": {
+      "product": "示例商品",
+      "subtitle": "一句副标题",
+      "description": "编辑器里的占位文案。",
+      "variant": "默认",
+      "shipping": "标准配送",
+      "collectionSummer": "夏季",
+      "collectionKitchen": "厨房",
+      "collectionHome": "家居"
+    }
   }
 }

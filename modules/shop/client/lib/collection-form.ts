@@ -15,8 +15,12 @@ export interface CollectionFormValues {
   seo_title: ShopLocalizedMap;
   seo_description: ShopLocalizedMap;
   image_url: string;
+  parent_id: string;
+  sort_order: number;
   product_ids: string[];
 }
+
+export const COLLECTION_PARENT_NONE = "__none__";
 
 export const INITIAL_COLLECTION_FORM: CollectionFormValues = {
   slug: "",
@@ -26,6 +30,8 @@ export const INITIAL_COLLECTION_FORM: CollectionFormValues = {
   seo_title: {},
   seo_description: {},
   image_url: "",
+  parent_id: "",
+  sort_order: 0,
   product_ids: [],
 };
 
@@ -40,6 +46,8 @@ export function collectionToForm(
     seo_title: { ...(collection.seo_title ?? {}) },
     seo_description: { ...(collection.seo_description ?? {}) },
     image_url: collection.image_url ?? "",
+    parent_id: collection.parent_id ?? "",
+    sort_order: collection.sort_order,
     product_ids: [...collection.product_ids],
   };
 }
@@ -62,6 +70,8 @@ export function buildCollectionPayload(
     seo_title: compactLocalized(values.seo_title),
     seo_description: compactLocalized(values.seo_description),
     image_url: values.image_url.trim() || null,
+    parent_id: values.parent_id.trim() || null,
+    sort_order: values.sort_order,
     product_ids: values.product_ids,
   };
 }

@@ -271,6 +271,15 @@ async function seedCatalog(
     ),
     image_url:
       "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=1200&q=80",
+    sort_order: 0,
+  });
+  const shirts = await ensureCollection(tenantId, {
+    slug: "shirts",
+    status: "published",
+    title: i18n("衬衫", "Shirts"),
+    description: i18n("服饰下的衬衫。", "Shirts under apparel."),
+    parent_id: apparel.collection.id,
+    sort_order: 0,
   });
   const home = await ensureCollection(tenantId, {
     slug: "home",
@@ -331,7 +340,7 @@ async function seedCatalog(
       shirtVariant("SHIRT-M-INK", "val-m", "val-ink", 5200, 11),
       shirtVariant("SHIRT-L-INK", "val-l", "val-ink", 5200, 4),
     ],
-    collection_ids: [apparel.collection.id],
+    collection_ids: [apparel.collection.id, shirts.collection.id],
   });
 
   const mug = await ensureProduct(tenantId, userId, {
@@ -503,7 +512,7 @@ async function seedCatalog(
   });
 
   return {
-    collections_created: [apparel, home, digital].filter((row) => row.created)
+    collections_created: [apparel, shirts, home, digital].filter((row) => row.created)
       .length,
     products_created: [shirt, mug, notebook, gift, poster, tote].filter(
       (row) => row.created,

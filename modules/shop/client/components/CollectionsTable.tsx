@@ -111,6 +111,15 @@ export function CollectionsTable({
         ),
       },
       {
+        id: "parent",
+        header: t("fieldParentCollection"),
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.parent_title || (
+            <span className="text-muted-foreground">{t("parentCollectionNone")}</span>
+          ),
+      },
+      {
         id: "products",
         header: t("collectionProducts"),
         enableSorting: false,

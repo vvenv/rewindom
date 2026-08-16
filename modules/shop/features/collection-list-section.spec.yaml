@@ -1,0 +1,46 @@
+# 官网区块「分类列表」：树形展示分类，可配根分类与深度。
+# 分类目前是扁平的，树要成立须先加父子；本功能一并做完。
+# 根分类在编辑器里是下拉（select + options_from），不是手填 slug。
+
+# ---------- 必填 ----------
+module: shop
+surfaces: [ssr, tenant]
+goal: 官网可添加「分类列表」区块，按树展示已发布分类；根分类从下拉选择，可配深度、是否含根节点、空分类与商品数。分类支持父分类与同级排序。
+gold: modules/shop/shared/product-grid-section.ts
+touch:
+  - modules/shop/features/collection-list-section.spec.yaml
+  - modules/shop/MODULE.md
+  - modules/shop/prisma/schema.prisma
+  - modules/shop/shared/
+  - modules/shop/server/catalog/
+  - modules/shop/server/i18n.ts
+  - modules/shop/server/sections/
+  - modules/shop/server/ssr/
+  - modules/shop/server/seed-demo.ts
+  - modules/shop/client/
+  - apps/server/prisma/migrations/
+  - packages/builtin/marketing/shared/section-settings.ts
+  - packages/builtin/marketing/shared/section-schema.test.ts
+  - packages/builtin/marketing/client/setting-select-options.ts
+  - packages/builtin/marketing/client/components/theme-editor/SettingsFields.tsx
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - checkout
+  - billing
+  - 智能分类规则
+  - 工作台拖拽排树
+  - 改默认模板页必备段
+  - 商品列表的 collection_slug 仍手填
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/shop test
+  - pnpm --filter @rewindom/builtin exec vitest run marketing/shared/section-schema.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs shop
+
+# ---------- 可选 ----------
+entitlement: shop
+permissions: []
+models:
+  - ShopCollection.parent_id
+  - ShopCollection.sort_order

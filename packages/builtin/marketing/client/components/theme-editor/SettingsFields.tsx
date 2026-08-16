@@ -36,9 +36,13 @@ import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 import { SiteColorField } from "../SiteColorField.js";
 
 import { ColumnSpansField } from "./ColumnSpansField.js";
+import { MarkdownFullscreenDialog } from "./MarkdownFullscreenDialog.js";
 import { SiteLinkField } from "./SiteLinkField.js";
 import { SiteNavItemsField } from "./SiteNavItemsField.js";
 import { SpacingBoxField } from "./SpacingBoxField.js";
+import { useSiteNavPreview } from "./site-nav-preview-context.js";
+
+import { getSettingSelectOptions } from "../../setting-select-options.js";
 
 import type { SiteNavItem } from "../../../shared/site-nav.js";
 import type { AppLocale } from "@rewindom/shared";
@@ -247,7 +251,25 @@ function SettingField({
 
   return (
     <Field>
-      {labelNode}
+      {/*
+       * 「全屏编辑」钉在标签行右侧，而不是跟在 textarea 后面：richtext 的框有十行高，
+       * 按钮挂在下缘就离字段名隔了一整屏正文，扫一眼说不出它属于哪一项；标签行右侧
+       * 是这块面板里「本字段的附加动作」的固定位置。
+       */}
+      {def.type === "richtext" ? (
+        <div className="flex items-center justify-between gap-2">
+          {labelNode}
+          <MarkdownFullscreenDialog
+            label={label}
+            value={typeof value === "string" ? value : ""}
+            placeholder={fallbackHint || def.placeholder}
+            disabled={disabled}
+            onChange={onChange}
+          />
+        </div>
+      ) : (
+        labelNode
+      )}
       <SettingControl
         def={def}
         fieldId={fieldId}
@@ -282,6 +304,7 @@ function SettingControl({
   fieldId: string;
 }): ReactElement | null {
   const { t } = useTranslation("marketing");
+  const preview = useSiteNavPreview();
   const text = typeof value === "string" ? value : "";
 
   switch (def.type) {
@@ -346,6 +369,7 @@ function SettingControl({
         />
       );
 
+    /* `richtext` 的全屏入口挂在标签行上（见 `SettingField`），控件本身就是这块 textarea */
     case "textarea":
     case "richtext":
     case "list":
@@ -387,25 +411,45 @@ function SettingControl({
         </Select>
       );
 
-    case "select":
+    case "select": {
+      const extra = def.options_from
+        ? getSettingSelectOptions(def.options_from, preview.contributed)
+        : [];
+      const options: { value: string; label: string }[] = [
+        ...def.options.map((option) => ({
+          value: option.value,
+          label: t(option.label),
+        })),
+      ];
+      const seen = new Set(options.map((option) => option.value));
+      for (const option of extra) {
+        if (seen.has(option.value)) continue;
+        seen.add(option.value);
+        options.push(option);
+      }
+      const current = text || def.default;
+      if (current && !seen.has(current)) {
+        options.push({ value: current, label: current });
+      }
       return (
         <Select
           disabled={disabled}
-          value={text || def.default}
+          value={current}
           onValueChange={onChange}
         >
           <SelectTrigger id={fieldId} className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {def.options.map((option) => (
+            {options.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {t(option.label)}
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       );
+    }
 
     case "range": {
       const current = typeof value === "number" ? value : def.default;

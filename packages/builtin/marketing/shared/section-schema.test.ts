@@ -29,6 +29,40 @@ import {
 describe("parseSettingValues", () => {
   const defs = BUILTIN_SECTION_DEFINITIONS.form.settings;
 
+  it("keeps runtime select values when options_from is set", () => {
+    const selectDefs = [
+      {
+        type: "select" as const,
+        id: "root_slug",
+        label: "root",
+        default: "__all__",
+        options: [{ value: "__all__", label: "all" }],
+        options_from: "shop.collections",
+      },
+    ];
+    expect(parseSettingValues(selectDefs, { root_slug: "shirts" }).root_slug).toBe(
+      "shirts",
+    );
+    expect(parseSettingValues(selectDefs, {}).root_slug).toBe("__all__");
+  });
+
+  it("drops closed-enum select values that are not in options", () => {
+    const selectDefs = [
+      {
+        type: "select" as const,
+        id: "style",
+        label: "style",
+        default: "cards",
+        options: [
+          { value: "cards", label: "cards" },
+          { value: "list", label: "list" },
+        ],
+      },
+    ];
+    expect(parseSettingValues(selectDefs, { style: "grid" }).style).toBe("cards");
+    expect(parseSettingValues(selectDefs, { style: "list" }).style).toBe("list");
+  });
+
   it("fills defaults for missing values", () => {
     expect(parseSettingValues(defs, {})).toMatchObject({
       heading: "",

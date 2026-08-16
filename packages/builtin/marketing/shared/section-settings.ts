@@ -274,6 +274,12 @@ export type InputSettingDef =
       type: "select";
       default: string;
       options: readonly SettingOption[];
+      /**
+       * 运行时选项源（见 `registerSettingSelectOptions`）。候选随租户数据变，
+       * 编译期枚举不出来——有这项时写入校验不再按静态 `options` 白名单丢值，
+       * 存的仍是普通字符串（与 `link` 同一口径）。
+       */
+      options_from?: string;
     })
   | (SettingBase & {
       /** lucide 图标名，取值受 `SECTION_ICON_CHOICES` 约束。 */
@@ -539,6 +545,9 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
     }
     case "select": {
       const value = typeof raw === "string" ? raw : "";
+      if (def.options_from) {
+        return typeof raw === "string" ? raw : def.default;
+      }
       return def.options.some((option) => option.value === value)
         ? value
         : def.default;

@@ -5,6 +5,7 @@ import { productGridSection } from "../../shared/product-grid-section.js";
 import { productSection } from "../../shared/product-section.js";
 import { cartSection, SHOP_CART_LINK_BLOCK_TYPE } from "../../shared/cart-section.js";
 import { checkoutSection } from "../../shared/checkout-section.js";
+import { collectionListSection } from "../../shared/collection-list-section.js";
 import { orderSection } from "../../shared/order-section.js";
 import {
   emptyShopContext,
@@ -78,6 +79,81 @@ describe("shop storefront section html", () => {
     });
     expect(html).toContain("/en/shop/mug");
     expect(html).not.toContain('href="/shop/mug"');
+  });
+
+  it("分类列表按树输出嵌套链接，并可标出当前分类", () => {
+    const section = createSection(collectionListSection.type);
+    section.settings.show_count = true;
+    const html = htmlFor(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          collection_slug: "shirts",
+          collections: [
+            {
+              slug: "apparel",
+              parent_slug: null,
+              href: "/shop/collections/apparel",
+              title: "服饰",
+              product_count: 2,
+              sort_order: 0,
+            },
+            {
+              slug: "shirts",
+              parent_slug: "apparel",
+              href: "/shop/collections/shirts",
+              title: "衬衫",
+              product_count: 1,
+              sort_order: 0,
+            },
+          ],
+        }),
+      ),
+    });
+    expect(html).toContain("shop-collection-tree");
+    expect(html).toContain("/shop/collections/apparel");
+    expect(html).toContain("/shop/collections/shirts");
+    expect(html).toContain("服饰");
+    expect(html).toContain("衬衫");
+    expect(html).toMatch(
+      /服饰 <span class="shop-collection-count">\(2\)<\/span>/,
+    );
+    expect(html).toMatch(
+      /衬衫 <span class="shop-collection-count">\(1\)<\/span>/,
+    );
+    expect(html).toContain('aria-current="page"');
+  });
+
+  it("分类列表可从指定根分类只展开下级", () => {
+    const section = createSection(collectionListSection.type);
+    section.settings.root_slug = "apparel";
+    section.settings.include_root = false;
+    section.settings.depth = 1;
+    const html = htmlFor(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          collections: [
+            {
+              slug: "apparel",
+              parent_slug: null,
+              href: "/shop/collections/apparel",
+              title: "Apparel",
+              product_count: 2,
+              sort_order: 0,
+            },
+            {
+              slug: "shirts",
+              parent_slug: "apparel",
+              href: "/shop/collections/shirts",
+              title: "Shirts",
+              product_count: 1,
+              sort_order: 0,
+            },
+          ],
+        }),
+      ),
+    });
+    expect(html).toContain("Shirts");
+    expect(html).not.toContain("Apparel");
   });
 
   it("商品详情把 description 当 Markdown 渲染，而不是纯文本转义", () => {

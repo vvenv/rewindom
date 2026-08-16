@@ -789,3 +789,43 @@
   font-weight: 600;
   line-height: 1;
 }
+
+/* -------------------------------------------------------------------------- */
+/* 分类树                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.shop-collection-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+.shop-collection-tree .shop-collection-tree {
+  margin-top: 0.2rem;
+  margin-left: 0.35rem;
+  padding-left: 0.85rem;
+  border-left: 1px solid var(--border);
+}
+.shop-collection-tree a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius);
+  color: inherit;
+  text-decoration: none;
+}
+.shop-collection-tree a:hover {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+}
+.shop-collection-tree a[aria-current="page"] {
+  font-weight: 600;
+  color: var(--accent);
+}
+.shop-collection-count {
+  color: var(--muted-fg);
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+}

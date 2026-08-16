@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { cartSection } from "./cart-section.js";
 import { checkoutSection } from "./checkout-section.js";
+import { collectionListSection } from "./collection-list-section.js";
 import { orderListSection, orderSection } from "./order-section.js";
 import { productGridSection } from "./product-grid-section.js";
 import { productSection } from "./product-section.js";
@@ -48,12 +49,14 @@ describe("registerShopPageTemplates", () => {
 
   it("必备段 type 带 shop. 前缀并声明 entitlement", () => {
     expect(productGridSection.type).toBe("shop.product-grid");
+    expect(collectionListSection.type).toBe("shop.collection-list");
     expect(productSection.type).toBe("shop.product");
     expect(cartSection.type).toBe("shop.cart");
     expect(checkoutSection.type).toBe("shop.checkout");
     expect(orderSection.type).toBe("shop.order");
     expect(orderListSection.type).toBe("shop.order-list");
     expect(productGridSection.entitlement).toBe("shop");
+    expect(collectionListSection.entitlement).toBe("shop");
     expect(productSection.page_kinds).toEqual(["shop_product"]);
     expect(checkoutSection.blocks?.map((block) => block.type)).toEqual([
       "contact",

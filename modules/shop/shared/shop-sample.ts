@@ -1,13 +1,22 @@
 import { emptyShopContext, type ShopRenderContext } from "./shop-section-context.js";
 
-/** 编辑器预览占位：模板页没有真实请求数据时，喂给同一套 HTML 渲染器。 */
-export function sampleShopContext(): ShopRenderContext {
+/** 取一条库存文案；调用方按**当前选中页面的 locale** 绑定（`i18n.getFixedT(locale, "shop")`）。 */
+export type SampleText = (key: string) => string;
+
+/**
+ * 编辑器预览占位：模板页没有真实请求数据时，喂给同一套 HTML 渲染器。
+ *
+ * 文案由调用方按页面 locale 绑定后传进来——占位样张也是访客会看到的那个语言版本，
+ * 不能跟工作台界面语言走（真实数据那一支同理，见 `client/editor-context.ts`）。
+ * 价格串保持样例常量：真实路径由 `formatMoney` 按 locale 定稿，样张不模拟它。
+ */
+export function sampleShopContext(t: SampleText): ShopRenderContext {
   return emptyShopContext({
     products: [
       {
         slug: "sample",
         href: "/shop/sample",
-        title: "Sample product",
+        title: t("editor.sample.product"),
         price: "$12.00",
         compare_at_price: "$15.00",
         image_url: null,
@@ -15,15 +24,41 @@ export function sampleShopContext(): ShopRenderContext {
         collection_slugs: ["summer"],
       },
     ],
+    collections: [
+      {
+        slug: "summer",
+        parent_slug: null,
+        href: "/shop/collections/summer",
+        title: t("editor.sample.collectionSummer"),
+        product_count: 1,
+        sort_order: 0,
+      },
+      {
+        slug: "kitchen",
+        parent_slug: "summer",
+        href: "/shop/collections/kitchen",
+        title: t("editor.sample.collectionKitchen"),
+        product_count: 0,
+        sort_order: 0,
+      },
+      {
+        slug: "home",
+        parent_slug: null,
+        href: "/shop/collections/home",
+        title: t("editor.sample.collectionHome"),
+        product_count: 2,
+        sort_order: 1,
+      },
+    ],
     product: {
-      title: "Sample product",
-      subtitle: "A short subtitle",
-      description: "Placeholder used in the editor.",
+      title: t("editor.sample.product"),
+      subtitle: t("editor.sample.subtitle"),
+      description: t("editor.sample.description"),
       images: [],
       variants: [
         {
           id: "v1",
-          label: "Default",
+          label: t("editor.sample.variant"),
           price: "$12.00",
           compare_at_price: "$15.00",
           stock: 8,
@@ -39,7 +74,7 @@ export function sampleShopContext(): ShopRenderContext {
       items: [
         {
           id: "line-1",
-          title: "Sample product",
+          title: t("editor.sample.product"),
           sku: "SKU-001",
           image_url: null,
           quantity: 1,
@@ -51,7 +86,9 @@ export function sampleShopContext(): ShopRenderContext {
       email: "buyer@example.com",
       canceled: false,
       requires_shipping: true,
-      rates: [{ id: "rate-1", label: "Standard", price: "$5.00" }],
+      rates: [
+        { id: "rate-1", label: t("editor.sample.shipping"), price: "$5.00" },
+      ],
       values: {
         email: "buyer@example.com",
         name: "",
@@ -76,7 +113,9 @@ export function sampleShopContext(): ShopRenderContext {
       shipping: "$5.00",
       tax: "$0.00",
       total: "$17.00",
-      lines: [{ title: "Sample product", quantity: 1, line_total: "$12.00" }],
+      lines: [
+        { title: t("editor.sample.product"), quantity: 1, line_total: "$12.00" },
+      ],
       shipments: [],
     },
     orders: [

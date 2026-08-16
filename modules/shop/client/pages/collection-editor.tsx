@@ -21,8 +21,12 @@ import { useTranslation } from "react-i18next";
 import { SiteImageField } from "@rewindom/builtin/marketing/client/components/media/SiteImageField.js";
 import { ProductLocaleBar } from "../components/product-editor/ProductLocaleBar.js";
 import { useCollectionEditor } from "../hooks/useCollectionEditor.js";
-import { useProducts } from "../hooks/useShop.js";
+import { useCollections, useProducts } from "../hooks/useShop.js";
 import { patchLocalized } from "../lib/product-form.js";
+import {
+  COLLECTION_PARENT_NONE,
+} from "../lib/collection-form.js";
+import { collectionDescendantIds } from "../../shared/collection.js";
 
 export function CollectionEditorPage() {
   const { t } = useTranslation("shop");
@@ -31,11 +35,27 @@ export function CollectionEditorPage() {
   const canWrite = hasPermission("shop.write");
   const editor = useCollectionEditor(collectionId);
   const products = useProducts(1, 100);
+  const collections = useCollections(1, 100);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     void editor.submit();
   };
+
+  const parentBlocked = collectionId
+    ? collectionDescendantIds(
+        (collections.data?.items ?? []).map((row) => ({
+          id: row.id,
+          parent_id: row.parent_id,
+        })),
+        collectionId,
+      )
+    : new Set<string>();
+  const parentChoices = (collections.data?.items ?? []).filter((item) => {
+    if (!collectionId) return true;
+    if (item.id === collectionId) return false;
+    return !parentBlocked.has(item.id);
+  });
 
   const toggleProduct = (id: string, checked: boolean): void => {
     const next = checked
@@ -98,6 +118,55 @@ export function CollectionEditorPage() {
                     value={editor.form.slug}
                     disabled={!canWrite}
                     onChange={(event) => editor.patch({ slug: event.target.value })}
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel className="flex items-center gap-1">
+                    {t("fieldParentCollection")}
+                    <FieldInfoTip text={t("infoParentCollection")} side="left" />
+                  </FieldLabel>
+                  <Select
+                    value={editor.form.parent_id || COLLECTION_PARENT_NONE}
+                    disabled={!canWrite}
+                    onValueChange={(value) =>
+                      editor.patch({
+                        parent_id: value === COLLECTION_PARENT_NONE ? "" : value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={COLLECTION_PARENT_NONE}>
+                        {t("parentCollectionNone")}
+                      </SelectItem>
+                      {parentChoices.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.title}
+                          <span className="text-muted-foreground"> {item.slug}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="collection-sort" className="flex items-center gap-1">
+                    {t("fieldSortOrder")}
+                    <FieldInfoTip text={t("infoSortOrder")} side="left" />
+                  </FieldLabel>
+                  <Input
+                    id="collection-sort"
+                    type="number"
+                    min={0}
+                    max={9999}
+                    value={editor.form.sort_order}
+                    disabled={!canWrite}
+                    onChange={(event) =>
+                      editor.patch({
+                        sort_order: Number(event.target.value) || 0,
+                      })
+                    }
                   />
                 </Field>
                 <Field>

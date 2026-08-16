@@ -319,6 +319,16 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 section type，通用 SSR 路由在渲染前按**页面实际用到的段**调用并合并进 `contributed`。
 没摆那些段就一次查询都不发；单个 provider 抛错也只让它那一段不渲染，不炸整页。
 
+主题编辑器那一半是 `client/editor-context-providers.ts`（`registerEditorContextProvider`），
+同一套 `sectionTypes` / 按需 / 抛错兜底口径。**两端要么都登记要么都不登记**：只有 SSR
+那边预览就是空白，只有预览那边线上直接不渲染。
+
+**两端的 `provide(input)` 都必须按 `input.locale` 取数**——那是当前这张页面的 locale
+（SSR 来自 `pageLocale`，预览来自 `page.locale`），不是工作台界面语言。预览要打后台
+接口拿数据时，把它显式带成 `?locale=`：api client 的 `Accept-Language` 写的是界面语言，
+不带就会出现「编辑 en 页面、预览里却是中文标题」。服务端对应路由用「显式 `locale`
+优先于 `resolveRequestLocale`」取值，金标准 `modules/shop/server/lib/request-locale.ts`。
+
 曾经的 `feature-grid` / `steps` / `spec-list` / `cards` / `pricing` / `faq` 等营销专用版式
 已移除——卖点网格、步骤、定价表、FAQ 等用 `prose`（Markdown）或 `group` 分栏组合即可；
 存量页面里若仍引用已删 type，读路径会落成 `unsupported` 占位（见下）。
@@ -508,6 +518,13 @@ iframe **只**注入 `MARKETING_SITE_CSS` 与主题变量，**不**克隆工作�
 的页面上裸出来。这条由 `pnpm check:section-css` 强制，越界会指名道姓报出来。
 
 新增 setting 类型再在 `SettingsFields.tsx` 加一个分支。
+`select` 的候选一般写在 schema 的 `options` 里；分类名这种随租户变的名单用
+`options_from`，由贡献方 `registerSettingSelectOptions` 填进来（金标准：shop
+`shop.collection-list` 的根分类）。有 `options_from` 时写入不再按静态 options 丢值，
+存的仍是字符串。
+`richtext` 存 Markdown：控件仍是那块 textarea，标签行右侧多一颗「全屏编辑」
+（`MarkdownFullscreenDialog.tsx` → `MarkdownFullscreenEditor.tsx`，`@uiw/react-md-editor`，
+`lazy()` 加载，独立 `md-editor-vendor` chunk）。`textarea` / `list` 不给——它们不吃 Markdown。
 `label` / `content` 存的是 i18n key（`marketing` namespace 下相对 key），shared 层不含展示文案。
 
 `header` / `footer` 是站点级 chrome，不进段流：它们的渲染在
