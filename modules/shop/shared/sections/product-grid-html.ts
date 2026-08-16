@@ -7,6 +7,7 @@ import {
   settingBool,
   settingNumber,
   settingText,
+  type SettingValues,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import {
   gridClass,
@@ -22,15 +23,19 @@ function priceCell(product: ShopProductCardView, showPrice: boolean): string {
   return shopPriceHtml(product.price, product.compare_at_price);
 }
 
-export const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
-  const shop = readShopContext(ctx);
-  if (!shop) return "";
-  const s = section.settings;
+/**
+ * 商品网格的 markup：`shop.product-grid` 与 `shop.collection-products` 共用。
+ *
+ * 两段只在「条目从哪儿来」上分家（手填分类 vs 当前地址上的分类），画出来的必须
+ * 是同一种卡片 / 列表——否则同一批商品在目录页和分类页上长得不一样。
+ */
+export function productGridBodyHtml(
+  products: readonly ShopProductCardView[],
+  s: SettingValues,
+  ctx: Parameters<SectionHtmlRenderer>[1],
+): string {
   const limit = settingNumber(s, "limit", 0);
-  const collectionSlug =
-    settingText(s, "collection_slug").trim() || shop.collection_slug || "";
-  const filtered = filterProductsByCollectionSlug(shop.products, collectionSlug);
-  const items = limit > 0 ? filtered.slice(0, limit) : filtered;
+  const items = limit > 0 ? products.slice(0, limit) : products;
   const heading = sectionHeading(s);
   if (items.length === 0) {
     const empty = settingText(s, "empty_text");
@@ -53,5 +58,17 @@ export const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
     )
     .join("");
   return `${heading}<div class="${gridClass(settingNumber(s, "columns", 3))} shop-grid">${cards}</div>`;
-};
+}
 
+export const renderProductGridHtml: SectionHtmlRenderer = (section, ctx) => {
+  const shop = readShopContext(ctx);
+  if (!shop) return "";
+  const s = section.settings;
+  const collectionSlug =
+    settingText(s, "collection_slug").trim() || shop.collection_slug || "";
+  return productGridBodyHtml(
+    filterProductsByCollectionSlug(shop.products, collectionSlug),
+    s,
+    ctx,
+  );
+};

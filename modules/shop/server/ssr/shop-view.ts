@@ -26,6 +26,7 @@ import {
   type ShopRenderContext,
   type ShopShippingRateView,
   type ShopCollectionCardView,
+  type ShopCollectionDetailView,
 } from "../../shared/shop-section-context.js";
 import type { ShopCartView as ShopCartData } from "../../shared/cart.js";
 import type { ShopProduct } from "../../shared/catalog.js";
@@ -57,6 +58,22 @@ export function toCollectionCard(
     title: displayTitle(collection.title, locale, collection.slug),
     product_count: collection.product_count,
     sort_order: collection.sort_order,
+  };
+}
+
+/** 当前分类本身：名称退回 slug（没填名字的分类也得有个能看的标题），简介可空。 */
+export function toCollectionDetail(
+  collection: {
+    slug: string;
+    title: Record<string, string>;
+    description: Record<string, string> | null;
+  },
+  locale: AppLocale,
+): ShopCollectionDetailView {
+  return {
+    slug: collection.slug,
+    title: displayTitle(collection.title, locale, collection.slug),
+    description: displayTitle(collection.description, locale),
   };
 }
 

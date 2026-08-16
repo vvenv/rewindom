@@ -6,6 +6,7 @@ import { productSection } from "../../shared/product-section.js";
 import { cartSection, SHOP_CART_LINK_BLOCK_TYPE } from "../../shared/cart-section.js";
 import { checkoutSection } from "../../shared/checkout-section.js";
 import { collectionListSection } from "../../shared/collection-list-section.js";
+import { collectionProductsSection } from "../../shared/collection-products-section.js";
 import { orderSection } from "../../shared/order-section.js";
 import {
   emptyShopContext,
@@ -384,6 +385,106 @@ describe("shop storefront section html", () => {
     });
     expect(html).toContain("/shop/mug");
     expect(html).not.toContain("/shop/lamp");
+  });
+
+  it("分类商品列表只出当前分类的商品", () => {
+    const section = createSection(collectionProductsSection.type);
+    const html = htmlFor(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          collection_slug: "summer",
+          products: [
+            {
+              slug: "mug",
+              href: "/shop/mug",
+              title: "Mug",
+              price: "$12.00",
+              compare_at_price: null,
+              image_url: null,
+              image_alt: "",
+              collection_slugs: ["summer"],
+            },
+            {
+              slug: "lamp",
+              href: "/shop/lamp",
+              title: "Lamp",
+              price: "$40.00",
+              compare_at_price: null,
+              image_url: null,
+              image_alt: "",
+              collection_slugs: ["home"],
+            },
+          ],
+        }),
+      ),
+    });
+    expect(html).toContain("/shop/mug");
+    expect(html).toContain("shop-card");
+    expect(html).not.toContain("/shop/lamp");
+  });
+
+  it("分类商品列表画的是当前分类自己的名称与简介", () => {
+    const section = createSection(collectionProductsSection.type);
+    const html = htmlFor(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          collection_slug: "summer",
+          collection: {
+            slug: "summer",
+            title: "夏季新品",
+            description: "清凉一夏。",
+          },
+        }),
+      ),
+    });
+    expect(html).toContain("<h2>夏季新品</h2>");
+    expect(html).toContain("清凉一夏。");
+  });
+
+  it("分类商品列表可以关掉名称与简介", () => {
+    const section = createSection(collectionProductsSection.type);
+    section.settings.show_title = false;
+    section.settings.show_description = false;
+    const html = htmlFor(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          collection_slug: "summer",
+          collection: {
+            slug: "summer",
+            title: "夏季新品",
+            description: "清凉一夏。",
+          },
+        }),
+      ),
+    });
+    expect(html).not.toContain("夏季新品");
+    expect(html).not.toContain("清凉一夏。");
+    expect(html).not.toContain("sec-head");
+  });
+
+  it("分类商品列表没有当前分类时走空态，不退回全部在售", () => {
+    const section = createSection(collectionProductsSection.type);
+    section.settings.empty_text = "这个分类还没有商品。";
+    const html = htmlFor(section, {
+      contributed: shopContextEntry(
+        emptyShopContext({
+          products: [
+            {
+              slug: "mug",
+              href: "/shop/mug",
+              title: "Mug",
+              price: "$12.00",
+              compare_at_price: null,
+              image_url: null,
+              image_alt: "",
+              collection_slugs: ["summer"],
+            },
+          ],
+        }),
+      ),
+    });
+    expect(html).not.toContain("/shop/mug");
+    expect(html).toContain("这个分类还没有商品。");
   });
 
   it("结账优惠码是付款表单外的独立 POST", () => {

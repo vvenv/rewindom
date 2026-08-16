@@ -13,6 +13,10 @@ import { SHOP_CART_LINK_BLOCK_TYPE, SHOP_CART_SECTION_TYPE } from "../shared/car
 import { SHOP_CHECKOUT_SECTION_TYPE } from "../shared/checkout-section.js";
 import { SHOP_COLLECTION_LIST_SECTION_TYPE } from "../shared/collection-list-section.js";
 import {
+  SHOP_COLLECTION_PAGE_KIND,
+  SHOP_COLLECTION_PRODUCTS_SECTION_TYPE,
+} from "../shared/collection-products-section.js";
+import {
   SHOP_ORDER_LIST_SECTION_TYPE,
   SHOP_ORDER_SECTION_TYPE,
 } from "../shared/order-section.js";
@@ -32,6 +36,7 @@ import type { ShopProductListItem } from "../shared/catalog.js";
 const SHOP_EDITOR_CONTEXT_TYPES = [
   SHOP_PRODUCT_GRID_SECTION_TYPE,
   SHOP_COLLECTION_LIST_SECTION_TYPE,
+  SHOP_COLLECTION_PRODUCTS_SECTION_TYPE,
   SHOP_PRODUCT_SECTION_TYPE,
   SHOP_CART_SECTION_TYPE,
   SHOP_CART_LINK_BLOCK_TYPE,
@@ -104,7 +109,36 @@ export function registerShopEditorContext(): void {
       } catch {
         // 同上
       }
-      return shopContextEntry({ ...sample, products, collections });
+      /*
+       * 分类模板页在编辑器里没有「当前分类」——地址是 `/shop/collections/:slug`，
+       * 预览时哪个 slug 都不是。只在这张页面上取第一个分类当样张，并把预览商品
+       * 挂在它下面，【分类商品列表】才画得出卡片（实站按真实收录关系过滤，
+       * 见 `sections/collection-products-html.ts`）。别的页面不塞，免得通用
+       * 【商品列表】在目录页预览里凭空多出一层分类过滤。
+       */
+      const current =
+        input.pageKind === SHOP_COLLECTION_PAGE_KIND
+          ? (collections[0] ?? null)
+          : null;
+      return shopContextEntry({
+        ...sample,
+        products: current
+          ? products.map((product) => ({
+              ...product,
+              collection_slugs: [current.slug],
+            }))
+          : products,
+        collections,
+        collection_slug: current?.slug ?? null,
+        /* 名称用真实分类，简介仍是样张：列表接口不带 description（也不值得为预览加）。 */
+        collection: current
+          ? {
+              slug: current.slug,
+              title: current.title,
+              description: sample.collection?.description ?? "",
+            }
+          : null,
+      });
     },
   });
 }

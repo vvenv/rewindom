@@ -3,11 +3,13 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { cartSection } from "./cart-section.js";
 import { checkoutSection } from "./checkout-section.js";
 import { collectionListSection } from "./collection-list-section.js";
+import { collectionProductsSection } from "./collection-products-section.js";
 import { orderListSection, orderSection } from "./order-section.js";
 import { productGridSection } from "./product-grid-section.js";
 import { productSection } from "./product-section.js";
 import {
   registerShopPageTemplates,
+  SHOP_COLLECTION_TEMPLATE_PRESET,
   SHOP_INDEX_PAGE_KIND,
   SHOP_PAGE_TEMPLATE_GROUP,
 } from "./shop-page-templates.js";
@@ -50,6 +52,7 @@ describe("registerShopPageTemplates", () => {
   it("必备段 type 带 shop. 前缀并声明 entitlement", () => {
     expect(productGridSection.type).toBe("shop.product-grid");
     expect(collectionListSection.type).toBe("shop.collection-list");
+    expect(collectionProductsSection.type).toBe("shop.collection-products");
     expect(productSection.type).toBe("shop.product");
     expect(cartSection.type).toBe("shop.cart");
     expect(checkoutSection.type).toBe("shop.checkout");
@@ -66,6 +69,19 @@ describe("registerShopPageTemplates", () => {
       "summary",
       "pay",
     ]);
+  });
+
+  it("分类页的必备段是分类商品列表，且这一段只能落在分类页上", () => {
+    expect(getPageTemplateKind("shop_collection")?.required_section).toBe(
+      "shop.collection-products",
+    );
+    expect(SHOP_COLLECTION_TEMPLATE_PRESET.sections.map((s) => s.type)).toEqual([
+      "shop.collection-products",
+    ]);
+    expect(collectionProductsSection.page_kinds).toEqual(["shop_collection"]);
+    expect(collectionProductsSection.entitlement).toBe("shop");
+    /* 通用商品列表摆哪儿都行，不该被钉住——分类页上仍可另加一段「本季新品」。 */
+    expect(productGridSection.page_kinds).toBeUndefined();
   });
 
   it("目录模板指向 /shop", () => {

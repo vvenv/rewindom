@@ -23,6 +23,10 @@ import {
   SHOP_CHECKOUT_SECTION_TYPE,
 } from "./checkout-section.js";
 import {
+  SHOP_COLLECTION_PAGE_KIND,
+  SHOP_COLLECTION_PRODUCTS_SECTION_TYPE,
+} from "./collection-products-section.js";
+import {
   SHOP_MEMBER_ORDERS_PAGE_KIND,
   SHOP_ORDER_LIST_SECTION_TYPE,
   SHOP_ORDER_PAGE_KIND,
@@ -57,7 +61,6 @@ export const SHOP_PAGE_TEMPLATE_GROUP = "shop:template.group";
 export const SHOP_INDEX_PAGE_KIND = "shop_index";
 export const SHOP_INDEX_TEMPLATE_SLUG = "shop";
 export const SHOP_PRODUCT_TEMPLATE_SLUG = "shop-product";
-export const SHOP_COLLECTION_PAGE_KIND = "shop_collection";
 export const SHOP_COLLECTION_TEMPLATE_SLUG = "shop-collection";
 export const SHOP_CART_TEMPLATE_SLUG = "shop-cart";
 export const SHOP_CHECKOUT_TEMPLATE_SLUG = "shop-checkout";
@@ -91,11 +94,9 @@ export const SHOP_COLLECTION_TEMPLATE_PRESET: PagePreset = {
   descriptionKey: "shop:storefront.collection.subtitle",
   sections: [
     {
-      type: SHOP_PRODUCT_GRID_SECTION_TYPE,
-      text: {
-        heading: "shop:storefront.collection.title",
-        empty_text: "shop:storefront.collection.empty",
-      },
+      /* 没有 heading：标题画的是当前分类自己的名称（见段定义）。 */
+      type: SHOP_COLLECTION_PRODUCTS_SECTION_TYPE,
+      text: { empty_text: "shop:storefront.collection.empty" },
     },
   ],
 };
@@ -302,7 +303,7 @@ const SHOP_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     path: SHOP_COLLECTION_PATH,
     group: SHOP_PAGE_TEMPLATE_GROUP,
     label: "shop:template.collection.label",
-    required_section: SHOP_PRODUCT_GRID_SECTION_TYPE,
+    required_section: SHOP_COLLECTION_PRODUCTS_SECTION_TYPE,
     entitlement: SHOP_ENTITLEMENT.key,
   },
   {

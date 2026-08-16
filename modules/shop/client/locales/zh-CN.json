@@ -253,6 +253,14 @@
       "collectionSlugInfo": "只展示该分类里的已发布商品。留空表示全部在售。",
       "emptyText": "空状态文案"
     },
+    "collectionProducts": {
+      "label": "分类商品列表",
+      "info": "分类信息",
+      "showTitle": "显示分类名称",
+      "showTitleInfo": "画当前分类自己的名称，不是固定文案。",
+      "showDescription": "显示分类简介",
+      "showDescriptionInfo": "分类没填简介时这一行不出现。"
+    },
     "collectionList": {
       "label": "分类列表",
       "tree": "树",
@@ -430,6 +438,7 @@
       "description": "编辑器里的占位文案。",
       "variant": "默认",
       "shipping": "标准配送",
+      "collectionDescription": "分类简介的占位文案。",
       "collectionSummer": "夏季",
       "collectionKitchen": "厨房",
       "collectionHome": "家居"

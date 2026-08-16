@@ -29,6 +29,7 @@ import { displayTitle, formatMoney } from "../lib/format.js";
 import { cartRequiresShipping } from "../../shared/index.js";
 import { SHOP_CART_PAGE_KIND } from "../../shared/cart-section.js";
 import { SHOP_CHECKOUT_PAGE_KIND } from "../../shared/checkout-section.js";
+import { SHOP_COLLECTION_PAGE_KIND } from "../../shared/collection-products-section.js";
 import {
   SHOP_MEMBER_ORDERS_PAGE_KIND,
   SHOP_ORDER_PAGE_KIND,
@@ -37,7 +38,6 @@ import { SHOP_PRODUCT_PAGE_KIND } from "../../shared/product-section.js";
 import {
   SHOP_CART_TEMPLATE_PRESET,
   SHOP_CHECKOUT_TEMPLATE_PRESET,
-  SHOP_COLLECTION_PAGE_KIND,
   SHOP_COLLECTION_TEMPLATE_PRESET,
   SHOP_INDEX_PAGE_KIND,
   SHOP_INDEX_TEMPLATE_PRESET,
@@ -57,6 +57,7 @@ import {
   buildShopContext,
   emptyCheckoutValues,
   toCartView,
+  toCollectionDetail,
   toCheckoutView,
   toMemberOrderView,
   toOrderView,
@@ -673,6 +674,7 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
             ),
             cart: toCartView(cart, host.locale),
             collection_slug: collection.slug,
+            collection: toCollectionDetail(collection, host.locale),
           }),
         });
       } catch (err) {

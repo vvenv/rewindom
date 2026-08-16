@@ -98,6 +98,13 @@ export interface ShopProductCardView {
   collection_slugs: string[];
 }
 
+/** 当前分类本身（`/shop/collections/:slug` 那一张）：名称与简介按站点语言定稿。 */
+export interface ShopCollectionDetailView {
+  slug: string;
+  title: string;
+  description: string;
+}
+
 export interface ShopProductVariantView {
   id: string;
   label: string;
@@ -201,6 +208,7 @@ export interface ShopRenderContext {
   order: ShopOrderView | null;
   orders: ShopMemberOrderView[];
   collection_slug: string | null;
+  collection: ShopCollectionDetailView | null;
   error: string | null;
   notice: string | null;
   cart_href: string;
@@ -219,6 +227,7 @@ const EMPTY_CONTEXT: ShopRenderContext = {
   order: null,
   orders: [],
   collection_slug: null,
+  collection: null,
   error: null,
   notice: null,
   cart_href: SHOP_CART_PATH,

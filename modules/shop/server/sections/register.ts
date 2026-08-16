@@ -12,6 +12,7 @@ import {
   collectionListSection,
   SHOP_COLLECTION_LIST_SECTION_TYPE,
 } from "../../shared/collection-list-section.js";
+import { collectionProductsSection } from "../../shared/collection-products-section.js";
 import {
   productGridSection,
   SHOP_PRODUCT_GRID_SECTION_TYPE,
@@ -20,6 +21,7 @@ import { productSection } from "../../shared/product-section.js";
 import { renderCartHtml, renderCartLinkHtml } from "../../shared/sections/cart-html.js";
 import { renderCheckoutHtml } from "../../shared/sections/checkout-html.js";
 import { renderCollectionListHtml } from "../../shared/sections/collection-list-html.js";
+import { renderCollectionProductsHtml } from "../../shared/sections/collection-products-html.js";
 import { renderOrderHtml, renderOrderListHtml } from "../../shared/sections/order-html.js";
 import { renderProductHtml } from "../../shared/sections/product-html.js";
 import { renderProductGridHtml } from "../../shared/sections/product-grid-html.js";
@@ -89,6 +91,11 @@ function registerShopContextProvider(): void {
 export function registerShopStorefrontSections(): void {
   registerSiteSectionHtml(productGridSection, renderProductGridHtml, css);
   registerSiteSectionHtml(collectionListSection, renderCollectionListHtml, css);
+  registerSiteSectionHtml(
+    collectionProductsSection,
+    renderCollectionProductsHtml,
+    css,
+  );
   registerSiteSectionHtml(productSection, renderProductHtml, css);
   registerSiteSectionHtml(cartSection, renderCartHtml, css);
   registerChromeBlockHtml(cartLinkBlock, renderCartLinkHtml, css);

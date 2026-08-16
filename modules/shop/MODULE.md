@@ -77,11 +77,28 @@ shop/
 
 `shop_index`（`/shop`）是可打开的一级页面，会进页头「全部一级页面」。商品详情、分类、购物车、结账不进——它们不是顶层目录入口。
 | `shop_product`       | `/shop/:slug`             | `shop.product`      | `media` / `title` / `price` / `description` / `buy`                                                                                |
-| `shop_collection`    | `/shop/collections/:slug` | `shop.product-grid` | 可另加 `shop.collection-list`（分类树；当前分类会 `aria-current`）                                                                   |
+| `shop_collection`    | `/shop/collections/:slug` | `shop.collection-products` | 可另加 `shop.collection-list`（分类树；当前分类会 `aria-current`）                                                            |
 | `shop_cart`          | `/shop/cart`              | `shop.cart`         | `lines` / `summary`（另 POST `intent=discount` 应用优惠码）                                                                        |
 | `shop_checkout`      | `/shop/checkout`          | `shop.checkout`     | `contact` / `address` / `shipping` / `note` / `summary` / `pay`（整段一张付款 POST 表单；优惠码另 POST；纯数字商品不收地址与运费） |
 | `shop_order`         | `/shop/orders/:number`    | `shop.order`        | —                                                                                                                                  |
 | `shop_member_orders` | `/member/orders`          | `shop.order-list`   | —                                                                                                                                  |
+
+`shop.collection-products`（分类商品列表）与 `shop.product-grid`（商品列表）画的是同一种网格，
+共用 `productGridSettings()` 与 `productGridBodyHtml()`，差别只在条目从哪儿来：前者永远跟着地址上的
+当前分类走（`shop.collection_slug`），没有「分类路径」可填，也只能落在 `shop_collection` 上
+（`page_kinds`）——一张模板页服务所有分类，写死 slug 会让别的分类页出错货；分类不存在时走空态，
+不退回「全部在售」。后者摆哪儿都行（首页「本季新品」、分类页上再加一段），手填 `collection_slug`
+为空时才退回请求上的当前分类。
+
+分类页的标题也不是手填的：`shop.collection-products` 没有区块标题 / 副标题设置，画的是**当前分类
+自己的**名称与简介（`shop.collection`，由 SSR 的 `toCollectionDetail()` 按站点语言定稿），租户只配
+`show_title` / `show_description` 两个开关；markup 与 `sectionHeading()` 同构（`.sec-head` / `h2` /
+`.lead`），所以和站上别的段一个样式。页面本身不渲染 `page.title`（那是 `<title>` 与 SEO 用的），
+分类名要出现在页面上就得由这一段画。
+
+> 已经落库过 `shop_collection` 版式的站点：那张页面里存的仍是 `shop.product-grid`，渲染照旧，
+> 但必备段已换成 `shop.collection-products`，再保存会被 `site.template_section_required` 拦下。
+> 在中台该页「重设为最新版式」一次即可。
 
 另有 `shop.cart-link`：**页头 / 页脚的 chrome 块**（和语言、明暗、会员同一排的按钮），
 不是页面区块。开通商店后在页头「添加区块」里出现，默认不预置。有购物车时显示件数。

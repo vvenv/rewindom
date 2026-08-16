@@ -50,6 +50,11 @@ export function sampleShopContext(t: SampleText): ShopRenderContext {
         sort_order: 1,
       },
     ],
+    collection: {
+      slug: "summer",
+      title: t("editor.sample.collectionSummer"),
+      description: t("editor.sample.collectionDescription"),
+    },
     product: {
       title: t("editor.sample.product"),
       subtitle: t("editor.sample.subtitle"),

@@ -253,6 +253,14 @@
       "collectionSlugInfo": "Only products in this collection. Leave empty for every published product.",
       "emptyText": "Empty state"
     },
+    "collectionProducts": {
+      "label": "Collection products",
+      "info": "Collection info",
+      "showTitle": "Show collection name",
+      "showTitleInfo": "Shows the current collection's own name, not a fixed label.",
+      "showDescription": "Show collection description",
+      "showDescriptionInfo": "Hidden when the collection has no description."
+    },
     "collectionList": {
       "label": "Collection list",
       "tree": "Tree",
@@ -430,6 +438,7 @@
       "description": "Placeholder used in the editor.",
       "variant": "Default",
       "shipping": "Standard",
+      "collectionDescription": "Placeholder collection description.",
       "collectionSummer": "Summer",
       "collectionKitchen": "Kitchen",
       "collectionHome": "Home"
