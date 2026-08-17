@@ -1,3 +1,5 @@
+import { type ReactElement } from "react";
+
 import { registerI18nBundles, setupI18n } from "@rewindom/client-kit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -79,12 +81,25 @@ async function renderForms(value: MarketingSite = site()) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  render(
+  const view = render(
     <QueryClientProvider client={client}>
       <Harness value={value} />
     </QueryClientProvider>,
   );
   await screen.findByLabelText("站点名称");
+  return { ...view, client };
+}
+
+function refreshSite(
+  rerender: (ui: ReactElement) => void,
+  client: QueryClient,
+  value: MarketingSite,
+): void {
+  rerender(
+    <QueryClientProvider client={client}>
+      <Harness value={value} />
+    </QueryClientProvider>,
+  );
 }
 
 const nameInput = () => screen.getByLabelText("站点名称");
@@ -149,6 +164,57 @@ describe("基本信息", () => {
     await renderForms();
     blurBasics();
     expect(mutateMock).not.toHaveBeenCalled();
+  });
+
+  /**
+   * 首页 / 发布等分区即存会刷新 `updated_at`。正在填的译文语言和未失焦草稿
+   * 都是会话状态，不能被这次重灌打回主语言。
+   */
+  it("其它分区保存刷新后仍停在当前编辑语言，且不冲掉未失焦的译文", async () => {
+    const { rerender, client } = await renderForms();
+    editIn("English");
+    fireEvent.change(nameInput(), { target: { value: "Example" } });
+
+    refreshSite(
+      rerender,
+      client,
+      site({
+        published: false,
+        updated_at: "2026-01-02T00:00:00.000Z",
+      }),
+    );
+
+    expect(screen.getByRole("button", { name: "English" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(nameInput()).toHaveValue("Example");
+  });
+
+  it("失焦保存回来后仍停在当前编辑语言", async () => {
+    const { rerender, client } = await renderForms();
+    editIn("English");
+    fireEvent.change(nameInput(), { target: { value: "Example" } });
+    blurBasics();
+    await waitFor(() => expect(mutateMock).toHaveBeenCalledTimes(1));
+
+    const savedName = mutateMock.mock.calls[0]?.[0] as {
+      site_name: MarketingSite["site_name"];
+    };
+    refreshSite(
+      rerender,
+      client,
+      site({
+        site_name: savedName.site_name,
+        updated_at: "2026-01-02T00:00:00.000Z",
+      }),
+    );
+
+    expect(screen.getByRole("button", { name: "English" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(nameInput()).toHaveValue("Example");
   });
 });
 

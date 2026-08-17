@@ -34,6 +34,10 @@ interface SaveOptions {
  * ——拆开存会在两次请求之间留下一个「文案语言已失真」的中间态。
  *
  * 站点数据回来（或被别处保存刷新）后按 `updated_at` 重新灌一次草稿。
+ *
+ * 控件即提交会改 `updated_at`，但「正在填哪种译文」是编辑会话状态，不是站点字段——
+ * 重灌时不能把它打回主语言，否则切到 English 再改首页 / 发布，输入框会跳回中文。
+ * 未失焦的站名 / 标语同理：别的分区先落库时，这边的草稿还在。
  */
 export function useSiteSettingsForm(site: MarketingSite | undefined) {
   const { updateSite } = useSiteMutations();
@@ -51,12 +55,27 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
   useEffect(() => {
     if (!site || hydratedKey === site.updated_at) return;
     const locale = normalizeLocale(site.default_locale);
-    setSiteName(site.site_name);
-    setTagline(site.tagline);
-    setEditLocale(locale);
+    const first = hydratedKey === null;
+    const locales = siteLocaleOrder(locale);
     setDefaultLocale(locale);
     setPublished(site.published);
     setHomePath(site.home_path || "/");
+    if (first) {
+      setSiteName(site.site_name);
+      setTagline(site.tagline);
+      setEditLocale(locale);
+    } else {
+      setSiteName((current) =>
+        sameLocalizedText(current, site.site_name, locales, locale)
+          ? site.site_name
+          : current,
+      );
+      setTagline((current) =>
+        sameLocalizedText(current, site.tagline, locales, locale)
+          ? site.tagline
+          : current,
+      );
+    }
     setHydratedKey(site.updated_at);
   }, [site, hydratedKey]);
 
