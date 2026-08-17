@@ -56,7 +56,6 @@ export type EventTimelineEntryCountAggregateOutputType = {
   occurred_at: number
   label_code: number
   label_text: number
-  label_text_i18n: number
   source_kind: number
   source_name: number
   signal_id: number
@@ -98,7 +97,6 @@ export type EventTimelineEntryCountAggregateInputType = {
   occurred_at?: true
   label_code?: true
   label_text?: true
-  label_text_i18n?: true
   source_kind?: true
   source_name?: true
   signal_id?: true
@@ -185,7 +183,6 @@ export type EventTimelineEntryGroupByOutputType = {
   occurred_at: Date
   label_code: string | null
   label_text: string | null
-  label_text_i18n: runtime.JsonValue | null
   source_kind: string
   source_name: string
   signal_id: string | null
@@ -220,7 +217,6 @@ export type EventTimelineEntryWhereInput = {
   occurred_at?: Prisma.DateTimeFilter<"EventTimelineEntry"> | Date | string
   label_code?: Prisma.StringNullableFilter<"EventTimelineEntry"> | string | null
   label_text?: Prisma.StringNullableFilter<"EventTimelineEntry"> | string | null
-  label_text_i18n?: Prisma.JsonNullableFilter<"EventTimelineEntry">
   source_kind?: Prisma.StringFilter<"EventTimelineEntry"> | string
   source_name?: Prisma.StringFilter<"EventTimelineEntry"> | string
   signal_id?: Prisma.StringNullableFilter<"EventTimelineEntry"> | string | null
@@ -235,7 +231,6 @@ export type EventTimelineEntryOrderByWithRelationInput = {
   occurred_at?: Prisma.SortOrder
   label_code?: Prisma.SortOrderInput | Prisma.SortOrder
   label_text?: Prisma.SortOrderInput | Prisma.SortOrder
-  label_text_i18n?: Prisma.SortOrderInput | Prisma.SortOrder
   source_kind?: Prisma.SortOrder
   source_name?: Prisma.SortOrder
   signal_id?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -254,7 +249,6 @@ export type EventTimelineEntryWhereUniqueInput = Prisma.AtLeast<{
   occurred_at?: Prisma.DateTimeFilter<"EventTimelineEntry"> | Date | string
   label_code?: Prisma.StringNullableFilter<"EventTimelineEntry"> | string | null
   label_text?: Prisma.StringNullableFilter<"EventTimelineEntry"> | string | null
-  label_text_i18n?: Prisma.JsonNullableFilter<"EventTimelineEntry">
   source_kind?: Prisma.StringFilter<"EventTimelineEntry"> | string
   source_name?: Prisma.StringFilter<"EventTimelineEntry"> | string
   signal_id?: Prisma.StringNullableFilter<"EventTimelineEntry"> | string | null
@@ -269,7 +263,6 @@ export type EventTimelineEntryOrderByWithAggregationInput = {
   occurred_at?: Prisma.SortOrder
   label_code?: Prisma.SortOrderInput | Prisma.SortOrder
   label_text?: Prisma.SortOrderInput | Prisma.SortOrder
-  label_text_i18n?: Prisma.SortOrderInput | Prisma.SortOrder
   source_kind?: Prisma.SortOrder
   source_name?: Prisma.SortOrder
   signal_id?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -289,7 +282,6 @@ export type EventTimelineEntryScalarWhereWithAggregatesInput = {
   occurred_at?: Prisma.DateTimeWithAggregatesFilter<"EventTimelineEntry"> | Date | string
   label_code?: Prisma.StringNullableWithAggregatesFilter<"EventTimelineEntry"> | string | null
   label_text?: Prisma.StringNullableWithAggregatesFilter<"EventTimelineEntry"> | string | null
-  label_text_i18n?: Prisma.JsonNullableWithAggregatesFilter<"EventTimelineEntry">
   source_kind?: Prisma.StringWithAggregatesFilter<"EventTimelineEntry"> | string
   source_name?: Prisma.StringWithAggregatesFilter<"EventTimelineEntry"> | string
   signal_id?: Prisma.StringNullableWithAggregatesFilter<"EventTimelineEntry"> | string | null
@@ -302,7 +294,6 @@ export type EventTimelineEntryCreateInput = {
   occurred_at: Date | string
   label_code?: string | null
   label_text?: string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind: string
   source_name?: string
   signal_id?: string | null
@@ -317,7 +308,6 @@ export type EventTimelineEntryUncheckedCreateInput = {
   occurred_at: Date | string
   label_code?: string | null
   label_text?: string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind: string
   source_name?: string
   signal_id?: string | null
@@ -330,7 +320,6 @@ export type EventTimelineEntryUpdateInput = {
   occurred_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
   signal_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -345,7 +334,6 @@ export type EventTimelineEntryUncheckedUpdateInput = {
   occurred_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
   signal_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -359,7 +347,6 @@ export type EventTimelineEntryCreateManyInput = {
   occurred_at: Date | string
   label_code?: string | null
   label_text?: string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind: string
   source_name?: string
   signal_id?: string | null
@@ -372,7 +359,6 @@ export type EventTimelineEntryUpdateManyMutationInput = {
   occurred_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
   signal_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -386,7 +372,6 @@ export type EventTimelineEntryUncheckedUpdateManyInput = {
   occurred_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
   signal_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -415,7 +400,6 @@ export type EventTimelineEntryCountOrderByAggregateInput = {
   occurred_at?: Prisma.SortOrder
   label_code?: Prisma.SortOrder
   label_text?: Prisma.SortOrder
-  label_text_i18n?: Prisma.SortOrder
   source_kind?: Prisma.SortOrder
   source_name?: Prisma.SortOrder
   signal_id?: Prisma.SortOrder
@@ -496,7 +480,6 @@ export type EventTimelineEntryCreateWithoutEventInput = {
   occurred_at: Date | string
   label_code?: string | null
   label_text?: string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind: string
   source_name?: string
   signal_id?: string | null
@@ -509,7 +492,6 @@ export type EventTimelineEntryUncheckedCreateWithoutEventInput = {
   occurred_at: Date | string
   label_code?: string | null
   label_text?: string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind: string
   source_name?: string
   signal_id?: string | null
@@ -552,7 +534,6 @@ export type EventTimelineEntryScalarWhereInput = {
   occurred_at?: Prisma.DateTimeFilter<"EventTimelineEntry"> | Date | string
   label_code?: Prisma.StringNullableFilter<"EventTimelineEntry"> | string | null
   label_text?: Prisma.StringNullableFilter<"EventTimelineEntry"> | string | null
-  label_text_i18n?: Prisma.JsonNullableFilter<"EventTimelineEntry">
   source_kind?: Prisma.StringFilter<"EventTimelineEntry"> | string
   source_name?: Prisma.StringFilter<"EventTimelineEntry"> | string
   signal_id?: Prisma.StringNullableFilter<"EventTimelineEntry"> | string | null
@@ -565,7 +546,6 @@ export type EventTimelineEntryCreateManyEventInput = {
   occurred_at: Date | string
   label_code?: string | null
   label_text?: string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind: string
   source_name?: string
   signal_id?: string | null
@@ -578,7 +558,6 @@ export type EventTimelineEntryUpdateWithoutEventInput = {
   occurred_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
   signal_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -591,7 +570,6 @@ export type EventTimelineEntryUncheckedUpdateWithoutEventInput = {
   occurred_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
   signal_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -604,7 +582,6 @@ export type EventTimelineEntryUncheckedUpdateManyWithoutEventInput = {
   occurred_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   label_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  label_text_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source_kind?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
   signal_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -620,7 +597,6 @@ export type EventTimelineEntrySelect<ExtArgs extends runtime.Types.Extensions.In
   occurred_at?: boolean
   label_code?: boolean
   label_text?: boolean
-  label_text_i18n?: boolean
   source_kind?: boolean
   source_name?: boolean
   signal_id?: boolean
@@ -635,7 +611,6 @@ export type EventTimelineEntrySelectCreateManyAndReturn<ExtArgs extends runtime.
   occurred_at?: boolean
   label_code?: boolean
   label_text?: boolean
-  label_text_i18n?: boolean
   source_kind?: boolean
   source_name?: boolean
   signal_id?: boolean
@@ -650,7 +625,6 @@ export type EventTimelineEntrySelectUpdateManyAndReturn<ExtArgs extends runtime.
   occurred_at?: boolean
   label_code?: boolean
   label_text?: boolean
-  label_text_i18n?: boolean
   source_kind?: boolean
   source_name?: boolean
   signal_id?: boolean
@@ -665,7 +639,6 @@ export type EventTimelineEntrySelectScalar = {
   occurred_at?: boolean
   label_code?: boolean
   label_text?: boolean
-  label_text_i18n?: boolean
   source_kind?: boolean
   source_name?: boolean
   signal_id?: boolean
@@ -673,7 +646,7 @@ export type EventTimelineEntrySelectScalar = {
   created_at?: boolean
 }
 
-export type EventTimelineEntryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "event_id" | "occurred_at" | "label_code" | "label_text" | "label_text_i18n" | "source_kind" | "source_name" | "signal_id" | "url" | "created_at", ExtArgs["result"]["eventTimelineEntry"]>
+export type EventTimelineEntryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "event_id" | "occurred_at" | "label_code" | "label_text" | "source_kind" | "source_name" | "signal_id" | "url" | "created_at", ExtArgs["result"]["eventTimelineEntry"]>
 export type EventTimelineEntryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.NewsEventDefaultArgs<ExtArgs>
 }
@@ -701,10 +674,6 @@ export type $EventTimelineEntryPayload<ExtArgs extends runtime.Types.Extensions.
      * LLM 分析器产出的自由文案；与 label_code 二选一
      */
     label_text: string | null
-    /**
-     * 自由文案的语言表。label_code 那条路不需要它——code 在两端都自带各语言译文
-     */
-    label_text_i18n: runtime.JsonValue | null
     source_kind: string
     /**
      * 这一格是谁贡献的，界面上直接显示（「10:17 Hacker News 出现讨论」）
@@ -1142,7 +1111,6 @@ export interface EventTimelineEntryFieldRefs {
   readonly occurred_at: Prisma.FieldRef<"EventTimelineEntry", 'DateTime'>
   readonly label_code: Prisma.FieldRef<"EventTimelineEntry", 'String'>
   readonly label_text: Prisma.FieldRef<"EventTimelineEntry", 'String'>
-  readonly label_text_i18n: Prisma.FieldRef<"EventTimelineEntry", 'Json'>
   readonly source_kind: Prisma.FieldRef<"EventTimelineEntry", 'String'>
   readonly source_name: Prisma.FieldRef<"EventTimelineEntry", 'String'>
   readonly signal_id: Prisma.FieldRef<"EventTimelineEntry", 'String'>

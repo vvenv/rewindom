@@ -20,8 +20,6 @@ function card(slug: string): PublicEventCard {
     signal_count: 3,
     source_names: ["OpenAI"],
     last_activity_at: "2026-08-17T12:00:00.000Z",
-    is_translated: false,
-    translated_label: null,
   };
 }
 

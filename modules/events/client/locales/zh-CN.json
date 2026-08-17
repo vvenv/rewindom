@@ -124,10 +124,7 @@
       "subheading": "跨来源合并的事件，不是热榜的重新排列",
       "empty": "暂时还没有事件，采集跑过一轮就会出现",
       "more": "查看全部事件"
-    },
-    "machineTranslated": "机器翻译",
-    "summaryTranslated": "标题与摘要为机器翻译",
-    "titleTranslatedOnly": "标题为机器翻译，摘要保留原文"
+    }
   },
   "section": {
     "feed": {

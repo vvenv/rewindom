@@ -45,7 +45,6 @@ export type NewsEventMinAggregateOutputType = {
   slug: string | null
   title: string | null
   summary: string | null
-  origin_locale: string | null
   topic: string | null
   status: string | null
   fingerprint: string | null
@@ -66,7 +65,6 @@ export type NewsEventMaxAggregateOutputType = {
   slug: string | null
   title: string | null
   summary: string | null
-  origin_locale: string | null
   topic: string | null
   status: string | null
   fingerprint: string | null
@@ -87,9 +85,6 @@ export type NewsEventCountAggregateOutputType = {
   slug: number
   title: number
   summary: number
-  origin_locale: number
-  title_i18n: number
-  summary_i18n: number
   topic: number
   status: number
   fingerprint: number
@@ -128,7 +123,6 @@ export type NewsEventMinAggregateInputType = {
   slug?: true
   title?: true
   summary?: true
-  origin_locale?: true
   topic?: true
   status?: true
   fingerprint?: true
@@ -149,7 +143,6 @@ export type NewsEventMaxAggregateInputType = {
   slug?: true
   title?: true
   summary?: true
-  origin_locale?: true
   topic?: true
   status?: true
   fingerprint?: true
@@ -170,9 +163,6 @@ export type NewsEventCountAggregateInputType = {
   slug?: true
   title?: true
   summary?: true
-  origin_locale?: true
-  title_i18n?: true
-  summary_i18n?: true
   topic?: true
   status?: true
   fingerprint?: true
@@ -282,9 +272,6 @@ export type NewsEventGroupByOutputType = {
   slug: string
   title: string
   summary: string
-  origin_locale: string
-  title_i18n: runtime.JsonValue | null
-  summary_i18n: runtime.JsonValue | null
   topic: string
   status: string
   fingerprint: string
@@ -330,9 +317,6 @@ export type NewsEventWhereInput = {
   slug?: Prisma.StringFilter<"NewsEvent"> | string
   title?: Prisma.StringFilter<"NewsEvent"> | string
   summary?: Prisma.StringFilter<"NewsEvent"> | string
-  origin_locale?: Prisma.StringFilter<"NewsEvent"> | string
-  title_i18n?: Prisma.JsonNullableFilter<"NewsEvent">
-  summary_i18n?: Prisma.JsonNullableFilter<"NewsEvent">
   topic?: Prisma.StringFilter<"NewsEvent"> | string
   status?: Prisma.StringFilter<"NewsEvent"> | string
   fingerprint?: Prisma.StringFilter<"NewsEvent"> | string
@@ -358,9 +342,6 @@ export type NewsEventOrderByWithRelationInput = {
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
-  origin_locale?: Prisma.SortOrder
-  title_i18n?: Prisma.SortOrderInput | Prisma.SortOrder
-  summary_i18n?: Prisma.SortOrderInput | Prisma.SortOrder
   topic?: Prisma.SortOrder
   status?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
@@ -390,9 +371,6 @@ export type NewsEventWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.NewsEventWhereInput | Prisma.NewsEventWhereInput[]
   title?: Prisma.StringFilter<"NewsEvent"> | string
   summary?: Prisma.StringFilter<"NewsEvent"> | string
-  origin_locale?: Prisma.StringFilter<"NewsEvent"> | string
-  title_i18n?: Prisma.JsonNullableFilter<"NewsEvent">
-  summary_i18n?: Prisma.JsonNullableFilter<"NewsEvent">
   topic?: Prisma.StringFilter<"NewsEvent"> | string
   status?: Prisma.StringFilter<"NewsEvent"> | string
   tokens?: Prisma.StringNullableListFilter<"NewsEvent">
@@ -417,9 +395,6 @@ export type NewsEventOrderByWithAggregationInput = {
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
-  origin_locale?: Prisma.SortOrder
-  title_i18n?: Prisma.SortOrderInput | Prisma.SortOrder
-  summary_i18n?: Prisma.SortOrderInput | Prisma.SortOrder
   topic?: Prisma.SortOrder
   status?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
@@ -450,9 +425,6 @@ export type NewsEventScalarWhereWithAggregatesInput = {
   slug?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   title?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   summary?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
-  origin_locale?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
-  title_i18n?: Prisma.JsonNullableWithAggregatesFilter<"NewsEvent">
-  summary_i18n?: Prisma.JsonNullableWithAggregatesFilter<"NewsEvent">
   topic?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   status?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   fingerprint?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
@@ -475,9 +447,6 @@ export type NewsEventCreateInput = {
   slug: string
   title: string
   summary?: string
-  origin_locale?: string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: string
   status?: string
   fingerprint: string
@@ -503,9 +472,6 @@ export type NewsEventUncheckedCreateInput = {
   slug: string
   title: string
   summary?: string
-  origin_locale?: string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: string
   status?: string
   fingerprint: string
@@ -531,9 +497,6 @@ export type NewsEventUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -559,9 +522,6 @@ export type NewsEventUncheckedUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -587,9 +547,6 @@ export type NewsEventCreateManyInput = {
   slug: string
   title: string
   summary?: string
-  origin_locale?: string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: string
   status?: string
   fingerprint: string
@@ -612,9 +569,6 @@ export type NewsEventUpdateManyMutationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -637,9 +591,6 @@ export type NewsEventUncheckedUpdateManyInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -667,9 +618,6 @@ export type NewsEventCountOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
-  origin_locale?: Prisma.SortOrder
-  title_i18n?: Prisma.SortOrder
-  summary_i18n?: Prisma.SortOrder
   topic?: Prisma.SortOrder
   status?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
@@ -699,7 +647,6 @@ export type NewsEventMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
-  origin_locale?: Prisma.SortOrder
   topic?: Prisma.SortOrder
   status?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
@@ -720,7 +667,6 @@ export type NewsEventMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
-  origin_locale?: Prisma.SortOrder
   topic?: Prisma.SortOrder
   status?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
@@ -823,9 +769,6 @@ export type NewsEventCreateWithoutSignalsInput = {
   slug: string
   title: string
   summary?: string
-  origin_locale?: string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: string
   status?: string
   fingerprint: string
@@ -850,9 +793,6 @@ export type NewsEventUncheckedCreateWithoutSignalsInput = {
   slug: string
   title: string
   summary?: string
-  origin_locale?: string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: string
   status?: string
   fingerprint: string
@@ -893,9 +833,6 @@ export type NewsEventUpdateWithoutSignalsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -920,9 +857,6 @@ export type NewsEventUncheckedUpdateWithoutSignalsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -947,9 +881,6 @@ export type NewsEventCreateWithoutTimelineInput = {
   slug: string
   title: string
   summary?: string
-  origin_locale?: string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: string
   status?: string
   fingerprint: string
@@ -974,9 +905,6 @@ export type NewsEventUncheckedCreateWithoutTimelineInput = {
   slug: string
   title: string
   summary?: string
-  origin_locale?: string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: string
   status?: string
   fingerprint: string
@@ -1017,9 +945,6 @@ export type NewsEventUpdateWithoutTimelineInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1044,9 +969,6 @@ export type NewsEventUncheckedUpdateWithoutTimelineInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1071,9 +993,6 @@ export type NewsEventCreateWithoutFollowsInput = {
   slug: string
   title: string
   summary?: string
-  origin_locale?: string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: string
   status?: string
   fingerprint: string
@@ -1098,9 +1017,6 @@ export type NewsEventUncheckedCreateWithoutFollowsInput = {
   slug: string
   title: string
   summary?: string
-  origin_locale?: string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: string
   status?: string
   fingerprint: string
@@ -1141,9 +1057,6 @@ export type NewsEventUpdateWithoutFollowsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1168,9 +1081,6 @@ export type NewsEventUncheckedUpdateWithoutFollowsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  origin_locale?: Prisma.StringFieldUpdateOperationsInput | string
-  title_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  summary_i18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   topic?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1244,9 +1154,6 @@ export type NewsEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   slug?: boolean
   title?: boolean
   summary?: boolean
-  origin_locale?: boolean
-  title_i18n?: boolean
-  summary_i18n?: boolean
   topic?: boolean
   status?: boolean
   fingerprint?: boolean
@@ -1273,9 +1180,6 @@ export type NewsEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   slug?: boolean
   title?: boolean
   summary?: boolean
-  origin_locale?: boolean
-  title_i18n?: boolean
-  summary_i18n?: boolean
   topic?: boolean
   status?: boolean
   fingerprint?: boolean
@@ -1298,9 +1202,6 @@ export type NewsEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   slug?: boolean
   title?: boolean
   summary?: boolean
-  origin_locale?: boolean
-  title_i18n?: boolean
-  summary_i18n?: boolean
   topic?: boolean
   status?: boolean
   fingerprint?: boolean
@@ -1323,9 +1224,6 @@ export type NewsEventSelectScalar = {
   slug?: boolean
   title?: boolean
   summary?: boolean
-  origin_locale?: boolean
-  title_i18n?: boolean
-  summary_i18n?: boolean
   topic?: boolean
   status?: boolean
   fingerprint?: boolean
@@ -1343,7 +1241,7 @@ export type NewsEventSelectScalar = {
   updated_at?: boolean
 }
 
-export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "title" | "summary" | "origin_locale" | "title_i18n" | "summary_i18n" | "topic" | "status" | "fingerprint" | "tokens" | "source_names" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "analyzer" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
+export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "title" | "summary" | "topic" | "status" | "fingerprint" | "tokens" | "source_names" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "analyzer" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
 export type NewsEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   signals?: boolean | Prisma.NewsEvent$signalsArgs<ExtArgs>
   timeline?: boolean | Prisma.NewsEvent$timelineArgs<ExtArgs>
@@ -1367,26 +1265,13 @@ export type $NewsEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      */
     slug: string
     /**
-     * **原文**标题。聚类指纹、slug 都基于它，任何时候都不被译文覆盖
+     * 聚类指纹与 slug 都基于它
      */
     title: string
     /**
-     * 「发生了什么」——3~5 句，原文
+     * 「发生了什么」——3~5 句
      */
     summary: string
-    /**
-     * 原文语种。决定翻译方向，也用来在界面上标注「这条是机器翻译」
-     */
-    origin_locale: string
-    /**
-     * 标题的语言表 `{ "en": "…", "zh-CN": "…" }`，恒含 origin_locale 那一条。
-     * 数据多语言走扁平 locale map（docs/design/i18n.md），不做 title_en 这种平行字段
-     */
-    title_i18n: runtime.JsonValue | null
-    /**
-     * 摘要的语言表，与 title_i18n 同形
-     */
-    summary_i18n: runtime.JsonValue | null
     topic: string
     /**
      * developing | active | cooling | resolved
@@ -1860,9 +1745,6 @@ export interface NewsEventFieldRefs {
   readonly slug: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly title: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly summary: Prisma.FieldRef<"NewsEvent", 'String'>
-  readonly origin_locale: Prisma.FieldRef<"NewsEvent", 'String'>
-  readonly title_i18n: Prisma.FieldRef<"NewsEvent", 'Json'>
-  readonly summary_i18n: Prisma.FieldRef<"NewsEvent", 'Json'>
   readonly topic: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly status: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly fingerprint: Prisma.FieldRef<"NewsEvent", 'String'>

@@ -37,17 +37,17 @@ export function registerEventsEditorContext(): void {
     sectionTypes: [...EVENTS_EDITOR_CONTEXT_TYPES],
     provide: async (input) => {
       /*
-       * 按**当前选中页面的 locale** 取，而不是后台界面语言：编辑一张 en 页面时
-       * 界面还是中文，事件标题却应当显示英文那份（api client 的 Accept-Language
-       * 写的是界面语言，所以要显式带 `locale=`）。
+       * 段内文案（主题名、阶段名、时间线 code）按**当前选中页面的 locale** 解析，
+       * 而不是后台界面语言：编辑一张 en 页面时界面还是中文，预览里的标签该是英文。
+       * 事件标题本身是单语的（原文），不随语言变。
        */
       const locale = normalizeLocale(input.locale);
       const t = translator(locale);
 
-      const feed = await loadFeed(locale, t);
+      const feed = await loadFeed(t);
       const event =
         input.pageKind === EVENTS_DETAIL_PAGE_KIND
-          ? await loadSampleDetail(locale, t)
+          ? await loadSampleDetail(t)
           : null;
 
       return eventsContextEntry(emptyEventsContext({ feed, event }));
@@ -61,9 +61,9 @@ function translator(locale: AppLocale) {
     fixed(key, params ?? {});
 }
 
-async function loadFeed(locale: AppLocale, t: ReturnType<typeof translator>) {
+async function loadFeed(t: ReturnType<typeof translator>) {
   try {
-    const data = await api.get<EventFeedResult>("/events/feed", { locale });
+    const data = await api.get<EventFeedResult>("/events/feed");
     const cards = (items: EventListItem[]) =>
       items.map((item) => toPublicCard(item, t));
     if (data.today.length > 0 || data.now.length > 0 || data.rising.length > 0) {
@@ -85,19 +85,15 @@ async function loadFeed(locale: AppLocale, t: ReturnType<typeof translator>) {
  * 详情模板页在编辑器里没有「当前事件」——地址是 `/events/:slug`，预览时哪个都不是。
  * 取最新一条真实事件当样张；一条都没有时用内置占位。
  */
-async function loadSampleDetail(
-  locale: AppLocale,
-  t: ReturnType<typeof translator>,
-) {
+async function loadSampleDetail(t: ReturnType<typeof translator>) {
   try {
     const list = await api.get<{ items: EventListItem[] }>("/events", {
       page: 1,
       page_size: 1,
-      locale,
     });
     const first = list.items[0];
     if (first) {
-      const detail = await api.get<EventDetail>(`/events/${first.id}`, { locale });
+      const detail = await api.get<EventDetail>(`/events/${first.id}`);
       return toPublicDetail(detail, t);
     }
   } catch {

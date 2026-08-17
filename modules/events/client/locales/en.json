@@ -124,10 +124,7 @@
       "subheading": "Events merged across sources — not a rearranged leaderboard",
       "empty": "No events yet — they appear after the first ingest run",
       "more": "See all events"
-    },
-    "machineTranslated": "Machine translated",
-    "summaryTranslated": "Title and summary are machine translated",
-    "titleTranslatedOnly": "Title is machine translated; summary kept in the original language"
+    }
   },
   "section": {
     "feed": {
