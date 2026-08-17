@@ -1,16 +1,5 @@
 import { useState } from "react";
 
-
-import { Button } from "@rewindom/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@rewindom/ui/sheet";
-import { Spinner } from "@rewindom/ui/spinner";
 import {
   DndContext,
   KeyboardSensor,
@@ -25,6 +14,16 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { Button } from "@rewindom/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@rewindom/ui/sheet";
+import { Spinner } from "@rewindom/ui/spinner";
 import { SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

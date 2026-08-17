@@ -1,5 +1,5 @@
-import { layoutSettings, linkSettings } from "../_common/settings.js";
 import { NOT_FOUND_PAGE_KIND } from "../../page-templates.js";
+import { layoutSettings, linkSettings } from "../_common/settings.js";
 
 import type { SectionDefinition } from "../types.js";
 

@@ -4,9 +4,8 @@
  * marketing 只列页面；文档篇、商品、以后的内容域自己把候选填进来。
  */
 
-import type { AppLocale } from "@rewindom/shared";
-
 import type { SiteLinkTarget } from "../shared/site-link-target.js";
+import type { AppLocale } from "@rewindom/shared";
 
 export interface LinkTargetProvider {
   provide: (

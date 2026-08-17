@@ -98,11 +98,7 @@ function discountFormHtml(
   </form>`;
 }
 
-function summaryHtml(
-  shop: ShopRenderContext,
-  checkout: ShopCheckoutView,
-  block: SiteBlock,
-): string {
+function summaryHtml(shop: ShopRenderContext, block: SiteBlock): string {
   const cart = shop.cart;
   const s = block.settings;
   if (!cart || cart.items.length === 0) {
@@ -176,7 +172,7 @@ export const renderCheckoutHtml: SectionHtmlRenderer = (section, ctx) => {
       return "";
     })
     .join("");
-  const aside = summary ? summaryHtml(shop, checkout, summary) : "";
+  const aside = summary ? summaryHtml(shop, summary) : "";
   return `${shopAlertHtml(shop)}${canceled}${sectionHeading(section.settings)}
 <div class="shop-checkout">
   <form class="shop-checkout-main" method="post" action="${escapeHtml(shop.action_checkout)}">${main}</form>

@@ -31,18 +31,17 @@ import {
   type SettingValue,
   type SettingValues,
 } from "../../../shared/section-schema.js";
+import { getSettingSelectOptions } from "../../setting-select-options.js";
 import { SiteImageField } from "../media/SiteImageField.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 import { SiteColorField } from "../SiteColorField.js";
 
 import { ColumnSpansField } from "./ColumnSpansField.js";
 import { MarkdownFullscreenDialog } from "./MarkdownFullscreenDialog.js";
+import { useSiteNavPreview } from "./site-nav-preview-context.js";
 import { SiteLinkField } from "./SiteLinkField.js";
 import { SiteNavItemsField } from "./SiteNavItemsField.js";
 import { SpacingBoxField } from "./SpacingBoxField.js";
-import { useSiteNavPreview } from "./site-nav-preview-context.js";
-
-import { getSettingSelectOptions } from "../../setting-select-options.js";
 
 import type { SiteNavItem } from "../../../shared/site-nav.js";
 import type { AppLocale } from "@rewindom/shared";

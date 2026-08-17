@@ -7,12 +7,12 @@
 
 import type { ReactElement } from "react";
 
-import type { ChromeBlockHtmlRenderer } from "../../../shared/sections/_common/chrome-html.js";
-import type { SectionHtmlRenderer } from "../../../shared/sections/render-context.js";
+import { useSiteLocaleContext } from "./site-locale-context.js";
 
 import type { ChromeBlockViewProps } from "./chrome-views.js";
 import type { SectionViewProps } from "./section-parts.js";
-import { useSiteLocaleContext } from "./site-locale-context.js";
+import type { ChromeBlockHtmlRenderer } from "../../../shared/sections/_common/chrome-html.js";
+import type { SectionHtmlRenderer } from "../../../shared/sections/render-context.js";
 
 function HtmlFragment({ html }: { html: string }): ReactElement {
   return (

@@ -23,8 +23,8 @@ import {
   getSectionDefinition,
   type SiteSection,
 } from "../../shared/section-schema.js";
-import { collectSectionTypes } from "../../shared/sections/collect-types.js";
 import { collectHeaderNavItems } from "../../shared/sections/_common/chrome-blocks.js";
+import { collectSectionTypes } from "../../shared/sections/collect-types.js";
 import { siteNavPages } from "../../shared/site-cms.js";
 import { SiteThemeSettingsForm } from "../components/appearance/SiteThemeSettingsForm.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";

@@ -66,8 +66,8 @@ import {
 } from "../shared/site-themes.js";
 import { resolveThemeSettings } from "../shared/theme-sections.js";
 
-import { recordPageVersion } from "./site-page-version.service.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
+import { recordPageVersion } from "./site-page-version.service.js";
 import {
   toMarketingPage,
   toMarketingPageListItem,

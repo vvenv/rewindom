@@ -1,7 +1,7 @@
-import { Switch } from "@rewindom/ui/switch";
-import { cn } from "@rewindom/ui/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Switch } from "@rewindom/ui/switch";
+import { cn } from "@rewindom/ui/utils";
 import { GripVertical } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
