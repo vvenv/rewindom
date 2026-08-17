@@ -12,6 +12,7 @@ import {
   normalizeRedirectTo,
   parseRedirectBody,
   redirectLookupPaths,
+  visitorRedirectPath,
 } from "./site-redirect.js";
 
 describe("来源路径", () => {
@@ -124,5 +125,19 @@ describe("localizeRedirectLocation", () => {
 
   it("默认语言（无前缀）不改写", () => {
     expect(localizeRedirectLocation("/new", null)).toBe("/new");
+  });
+});
+
+describe("visitorRedirectPath", () => {
+  it("访客打开 /events 时按地址栏查，不因 handler 能渲染就跳过", () => {
+    expect(
+      visitorRedirectPath({ homeRewrite: false, servedPath: "/events" }),
+    ).toBe("/events");
+  });
+
+  it("首页改写不能按逻辑路径去查：否则 /events → / 会把首页跳走", () => {
+    expect(
+      visitorRedirectPath({ homeRewrite: true, servedPath: "/" }),
+    ).toBeNull();
   });
 });

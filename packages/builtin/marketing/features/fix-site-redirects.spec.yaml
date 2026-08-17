@@ -3,7 +3,7 @@
 # ---------- 必填 ----------
 module: marketing
 surfaces: [ssr]
-goal: 站点设置里保存的重定向，访客访问来源地址时真正 301/302（含末尾斜杠、语言前缀、贡献路径 404、超过三段的旧 URL）
+goal: 站点设置里保存的重定向，访客访问来源地址时真正 301/302（含 `/events` 这类贡献路径、末尾斜杠、语言前缀、超过三段的旧 URL）
 gold: packages/builtin/marketing/server/ssr.routes.ts
 touch:
   - packages/builtin/marketing/features/fix-site-redirects.spec.yaml

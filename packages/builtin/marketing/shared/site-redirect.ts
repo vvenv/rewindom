@@ -79,6 +79,23 @@ export function localizeRedirectLocation(
 }
 
 /**
+ * 这条访客 URL 要不要查重定向表。查的是**地址栏上的路径**（`servedPath`），不是
+ * 首页改写后的逻辑路径。
+ *
+ * 把 `/events` 设为首页时，`/` 的逻辑 path 仍是 `/events`。若按逻辑路径去查，
+ * 「`/events` → `/`」会把首页自己跳走，再改写回来，打转。贡献路径只要访客打开的
+ * 就是来源地址（`/events`），规则就要生效——handler 总能渲染，不查的话这条规则
+ * 永远是死的。
+ */
+export function visitorRedirectPath(input: {
+  homeRewrite: boolean;
+  servedPath: string;
+}): string | null {
+  if (input.homeRewrite) return null;
+  return input.servedPath;
+}
+
+/**
  * 目标可以是站内路径或 http(s) 绝对地址；其余（`javascript:` 等）一律拒。
  *
  * `//evil.example` 与 `/\evil.example` 单看都以 `/` 开头，但浏览器把它们当**协议相对**

@@ -17,7 +17,7 @@ import {
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import { isSpaShellPath, parseMarketingSsrPath } from "../shared/site-locale.js";
 import { matchSitePathHandler } from "../shared/site-path-handlers.js";
-import { localizeRedirectLocation } from "../shared/site-redirect.js";
+import { localizeRedirectLocation, visitorRedirectPath } from "../shared/site-redirect.js";
 
 import {
   cookiesFromHeader,
@@ -275,13 +275,24 @@ async function renderLogicalPath(
   servedPath: string,
 ): Promise<boolean> {
   const homeRewrite = servedPath === "/" && path !== "/";
+  const redirectPath = visitorRedirectPath({ homeRewrite, servedPath });
 
   /*
-   * 贡献路径（文档库 `/docs` 等）在查 MarketingPage 之前问注册表。
+   * 贡献路径（文档库 `/docs`、活动 `/events` 等）在查 MarketingPage 之前问注册表。
    * 匹配的是去掉 locale 前缀后的逻辑路径，所以 `/en/docs` 与 `/docs` 同一条。
+   *
+   * 重定向要抢在 handler **渲染之前**：`/events` 只要模块开着就永远能画出一页，
+   * 若等「找不到」再查，站点设置里针对 `/events` 的规则永远不会跑。首页改写
+   *（`/` 渲染 `/events`）除外，见 `visitorRedirectPath`。
    */
   const handler = matchSitePathHandler(path, enabledEntitlements);
   if (handler) {
+    if (
+      redirectPath &&
+      (await sendSiteRedirect(reply, hostTenant.tenant_id, redirectPath, locale))
+    ) {
+      return true;
+    }
     const site = await getPublishedPublicSite(
       hostTenant.tenant_id,
       hostTenant.tenant_slug,
@@ -305,9 +316,6 @@ async function renderLogicalPath(
     });
     if (html === null) {
       if (homeRewrite) return false;
-      if (await sendSiteRedirect(reply, hostTenant.tenant_id, path, locale)) {
-        return true;
-      }
       await renderNotFound(request, reply, hostTenant, locale);
       return true;
     }
@@ -329,7 +337,10 @@ async function renderLogicalPath(
      * 反过来（重定向优先）的话，租户后来又建了一个同名页就永远打不开——而那种错很难
      * 联想到是几个月前加的一条重定向造成的。重定向本来就是给「曾经存在的路径」用的。
      */
-    if (await sendSiteRedirect(reply, hostTenant.tenant_id, path, locale)) {
+    if (
+      redirectPath &&
+      (await sendSiteRedirect(reply, hostTenant.tenant_id, redirectPath, locale))
+    ) {
       return true;
     }
 
