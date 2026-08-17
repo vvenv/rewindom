@@ -1,0 +1,33 @@
+# 「查看全部事件」必须打开当前区块 source / topic 对应的公开列表，而不是一律进 /events 首页。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 事件列表区块的「查看全部」带上当前 source / topic，打开 /events 上同一查询的完整列表。
+gold: modules/site-docs/shared/sections/list/html.ts
+touch:
+  - modules/events/features/feed-more-query.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-section-context.test.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-page.ts
+  - modules/events/server/ssr/events-path-handler.ts
+out_of_scope:
+  - 工作台 /app/events
+  - 新模板页 kind
+  - 列表分页
+  - 段上下文按 topic 分次取数（首页预览仍从整页 feed 里筛）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-section-context.test.ts shared/sections/feed-html.test.ts shared/events-page-templates.test.ts
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []

@@ -12,6 +12,7 @@ import { toEventDetail, toEventListItem } from "../event/event.mapper.js";
 
 import type {
   EventDetail,
+  EventFeedTab,
   EventListItem,
   EventTopic,
 } from "../../shared/index.js";
@@ -33,6 +34,8 @@ const NOW_WINDOW_HOURS = 12;
 
 /** 公开面一次最多取多少张卡。段自己的 `limit` 再往下截，这里只是查询上限。 */
 const FEED_FETCH_LIMIT = 12;
+/** 「查看全部」列表不再受区块 12 条上限约束，但仍封顶，避免一次铺几百张。 */
+const LISTING_FETCH_LIMIT = 48;
 
 const LIST_SELECT = {
   id: true,
@@ -117,6 +120,55 @@ export async function getPublicEventFeed(
     today: map(today),
     today_total: todayTotal,
   };
+}
+
+/** 查询列表页：只取当前 source 对应的那一批，条数比区块预览多。 */
+export async function getPublicEventList(
+  tenantId: string,
+  source: EventFeedTab,
+  topic?: EventTopic,
+): Promise<EventListItem[]> {
+  const now = Date.now();
+  const topicWhere = topic ? { topic } : {};
+  const tenantWhere = withTenantScope(tenantId, topicWhere);
+  const common = { take: LISTING_FETCH_LIMIT, select: LIST_SELECT } as const;
+
+  const records =
+    source === "now"
+      ? await prisma.newsEvent.findMany({
+          ...common,
+          where: {
+            ...tenantWhere,
+            status: { in: ["developing", "active"] },
+            last_activity_at: { gte: new Date(now - NOW_WINDOW_HOURS * HOUR_MS) },
+          },
+          orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
+        })
+      : source === "today"
+        ? await prisma.newsEvent.findMany({
+            ...common,
+            where: {
+              ...tenantWhere,
+              last_activity_at: {
+                gte: new Date(now - TODAY_WINDOW_HOURS * HOUR_MS),
+              },
+            },
+            orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
+          })
+        : await prisma.newsEvent.findMany({
+            ...common,
+            where: {
+              ...tenantWhere,
+              status: { in: ["developing", "active"] },
+              last_activity_at: {
+                gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS),
+              },
+              velocity_pct: { gt: 0 },
+            },
+            orderBy: [{ velocity_pct: "desc" }, { heat_score: "desc" }],
+          });
+
+  return records.map((record) => toEventListItem(record, null));
 }
 
 /** slug 找不到时返回 null（→ 404），而不是抛错。 */

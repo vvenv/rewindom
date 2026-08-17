@@ -23,7 +23,11 @@ function card(slug: string): PublicEventCard {
   };
 }
 
-function section(source: string, limit: number): SiteSection {
+function section(
+  source: string,
+  limit: number,
+  extra: Record<string, unknown> = {},
+): SiteSection {
   return {
     id: `s-${source}`,
     type: "events.feed",
@@ -34,6 +38,7 @@ function section(source: string, limit: number): SiteSection {
       show_sources: true,
       empty_text: "暂无事件",
       more_label: "",
+      ...extra,
     },
     blocks: [],
   };
@@ -144,5 +149,73 @@ describe("renderEventsFeedHtml", () => {
     const html = renderEventsFeedHtml(section("rising", 5), ctx);
     expect(html).not.toContain("<img");
     expect(html).toContain("&lt;img");
+  });
+
+  it("查看全部带上当前区块的 source / topic", () => {
+    const context = emptyEventsContext({
+      feed: {
+        rising: [card("a"), card("b")],
+        now: [],
+        today: [],
+        today_total: 2,
+      },
+    });
+    const ctx = { contributed: eventsContextEntry(context) };
+    const html = renderEventsFeedHtml(
+      section("rising", 1, { more_label: "查看全部事件", topic: "ai" }),
+      ctx,
+    );
+    expect(html).toContain('href="/events?source=rising&amp;topic=ai"');
+    expect(html).toContain("查看全部事件");
+  });
+
+  it("未选主题时只带 source，才能和枢纽 /events 分开", () => {
+    const context = emptyEventsContext({
+      feed: { rising: [], now: [card("a")], today: [], today_total: 1 },
+    });
+    const ctx = { contributed: eventsContextEntry(context) };
+    const html = renderEventsFeedHtml(
+      section("now", 5, { more_label: "查看全部事件" }),
+      ctx,
+    );
+    expect(html).toContain('href="/events?source=now"');
+    expect(html).not.toContain("topic=");
+  });
+
+  it("区块 topic 只渲染该主题的卡片", () => {
+    const context = emptyEventsContext({
+      feed: {
+        rising: [
+          { ...card("ai-1"), topic: "ai" },
+          { ...card("tech-1"), topic: "tech", topic_label: "科技" },
+        ],
+        now: [],
+        today: [],
+        today_total: 2,
+      },
+    });
+    const ctx = { contributed: eventsContextEntry(context) };
+    expect(
+      titlesIn(renderEventsFeedHtml(section("rising", 5, { topic: "ai" }), ctx)),
+    ).toEqual(["Title ai-1"]);
+  });
+
+  it("查询列表页不再截 limit，也不再画查看全部", () => {
+    const context = emptyEventsContext({
+      listing: { source: "rising" },
+      feed: {
+        rising: [card("a"), card("b"), card("c")],
+        now: [],
+        today: [],
+        today_total: 3,
+      },
+    });
+    const ctx = { contributed: eventsContextEntry(context) };
+    const html = renderEventsFeedHtml(
+      section("rising", 1, { more_label: "查看全部事件" }),
+      ctx,
+    );
+    expect(titlesIn(html)).toEqual(["Title a", "Title b", "Title c"]);
+    expect(html).not.toContain("查看全部事件");
   });
 });

@@ -8,10 +8,14 @@
 import { normalizeLocale } from "@rewindom/module-sdk";
 
 import { renderEventsTemplatePage } from "./events-page.js";
-import { eventsMessage } from "./events-preset-i18n.js";
+import {
+  createEventsPresetTranslator,
+  eventsMessage,
+} from "./events-preset-i18n.js";
 import {
   getPublicEventBySlug,
   getPublicEventFeed,
+  getPublicEventList,
 } from "./public-events.service.js";
 
 import {
@@ -20,7 +24,9 @@ import {
   EVENTS_INDEX_PATH,
   emptyEventsContext,
   eventPath,
+  isEventsIndexListing,
   isEventsPath,
+  parseEventsIndexQuery,
   toPublicCard,
   toPublicDetail,
 } from "../../shared/index.js";
@@ -28,11 +34,12 @@ import {
   EVENTS_DETAIL_TEMPLATE_PRESET,
   EVENTS_INDEX_PAGE_KIND,
   EVENTS_INDEX_TEMPLATE_PRESET,
+  buildEventsListingSections,
 } from "../../shared/events-page-templates.js";
 
 import { registerSitePathHandler } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 
-import type { EventListItem } from "../../shared/index.js";
+import type { EventFeedTab, EventListItem, EventTopic } from "../../shared/index.js";
 import type { SitePathHandlerInput } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
@@ -62,6 +69,11 @@ async function renderIndex(
   input: SitePathHandlerInput,
   locale: AppLocale,
 ): Promise<string> {
+  const query = parseEventsIndexQuery(input.query);
+  if (isEventsIndexListing(query)) {
+    return renderListing(input, locale, query.source, query.topic);
+  }
+
   const feed = await getPublicEventFeed(input.tenantId);
   const t = translator(locale);
 
@@ -80,6 +92,45 @@ async function renderIndex(
         now: feed.now.map((item) => toCard(item, t)),
         today: feed.today.map((item) => toCard(item, t)),
         today_total: feed.today_total,
+      },
+    }),
+  });
+}
+
+async function renderListing(
+  input: SitePathHandlerInput,
+  locale: AppLocale,
+  source: EventFeedTab,
+  topic: EventTopic | undefined,
+): Promise<string> {
+  const items = await getPublicEventList(input.tenantId, source, topic);
+  const t = translator(locale);
+  const cards = items.map((item) => toCard(item, t));
+  const sourceLabel = t(`sections.${source}`);
+  const title = topic ? `${sourceLabel} · ${t(`topic.${topic}`)}` : sourceLabel;
+
+  return renderEventsTemplatePage({
+    tenantId: input.tenantId,
+    tenantSlug: input.tenantSlug,
+    siteName: input.tenantSlug,
+    origin: input.origin,
+    locale,
+    kind: EVENTS_INDEX_PAGE_KIND,
+    path: EVENTS_INDEX_PATH,
+    preset: EVENTS_INDEX_TEMPLATE_PRESET,
+    title,
+    sections: buildEventsListingSections(
+      source,
+      topic,
+      createEventsPresetTranslator(locale),
+    ),
+    events: emptyEventsContext({
+      listing: { source, topic },
+      feed: {
+        rising: source === "rising" ? cards : [],
+        now: source === "now" ? cards : [],
+        today: source === "today" ? cards : [],
+        today_total: source === "today" ? cards.length : 0,
       },
     }),
   });

@@ -7,6 +7,7 @@ import {
   EVENTS_INDEX_PAGE_KIND,
   EVENTS_INDEX_TEMPLATE_PRESET,
   EVENTS_PAGE_TEMPLATE_GROUP,
+  eventsListingPreset,
   registerEventsPageTemplates,
 } from "./events-page-templates.js";
 
@@ -40,5 +41,15 @@ describe("registerEventsPageTemplates", () => {
     expect(getPageTemplateKind("events_detail")?.required_section).toBe(
       EVENTS_DETAIL_SECTION_TYPE,
     );
+  });
+
+  it("查询列表只摆与 source 匹配的一段", () => {
+    const preset = eventsListingPreset("now", "ai");
+    expect(preset.sections).toEqual([
+      expect.objectContaining({
+        type: EVENTS_FEED_SECTION_TYPE,
+        raw: expect.objectContaining({ source: "now", topic: "ai" }),
+      }),
+    ]);
   });
 });

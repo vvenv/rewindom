@@ -69,9 +69,9 @@ client/
 
 | 贡献物 | 说明 |
 | --- | --- |
-| 段 `events.feed` | 「正在发生什么」列表，可摆在**任意**页面；可配取哪一批（升温/正在发生/今天）、主题、条数 |
+| 段 `events.feed` | 「正在发生什么」列表，可摆在**任意**页面；可配取哪一批（升温/正在发生/今天）、主题、条数。「查看全部」打开 `/events?source=&topic=`，同一查询的完整列表 |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
-| 模板页 `events_index` | `/events`，预设是三段各摆一次 |
+| 模板页 `events_index` | `/events` 枢纽（预设三段各摆一次）；带 `?source=` 时是该批次的查询列表，不再用三段版式 |
 | 模板页 `events_detail` | `/events/:slug` |
 | path handler | 接 `/events` 与 `/events/:slug`（`/en/...` 同一条，locale 已被剥掉）|
 | sitemap / 链接候选 | 近 30 天事件进 sitemap；链接下拉只给 `/events` 一条 |

@@ -10,20 +10,29 @@
  */
 
 import { EVENTS_ENTITLEMENT } from "./entitlements.js";
+import type { EventFeedTab, EventTopic } from "./events.js";
 import {
   EVENTS_DETAIL_PAGE_KIND,
   EVENTS_DETAIL_SECTION_TYPE,
 } from "./events-detail-section.js";
-import { EVENTS_FEED_SECTION_TYPE } from "./events-feed-section.js";
+import {
+  EVENTS_FEED_SECTION_TYPE,
+  EVENTS_FEED_TOPIC_ALL,
+} from "./events-feed-section.js";
 import { EVENTS_INDEX_PATH, eventPath } from "./events-section-context.js";
 
+import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
 import {
   registerPageTemplateKind,
   registerPageTemplatePreset,
   type PageTemplateKindDefinition,
 } from "@rewindom/builtin/marketing/shared/page-templates.js";
 
-import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
+import type {
+  PagePreset,
+  PresetTranslateFn,
+} from "@rewindom/builtin/marketing/shared/page-presets.types.js";
+import type { SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export const EVENTS_PAGE_TEMPLATE_GROUP = "events:template.group";
 
@@ -139,4 +148,48 @@ export function registerEventsPageTemplates(): void {
     EVENTS_DETAIL_PAGE_KIND,
     EVENTS_DETAIL_TEMPLATE_PRESET,
   );
+}
+
+/**
+ * 查询列表页的版式：只摆与查询匹配的那一段，不再用租户改过的三段首页。
+ * 不登记为独立 kind——地址仍是 `/events`，只是 query 不同。
+ */
+export function eventsListingPreset(
+  source: EventFeedTab,
+  topic?: EventTopic,
+): PagePreset {
+  return {
+    key: EVENTS_INDEX_PAGE_KIND,
+    label: "events:template.index.label",
+    kind: EVENTS_INDEX_PAGE_KIND,
+    slug: EVENTS_INDEX_TEMPLATE_SLUG,
+    titleKey: "events:site.index.title",
+    descriptionKey: "events:site.index.subtitle",
+    sections: [
+      {
+        type: EVENTS_FEED_SECTION_TYPE,
+        raw: {
+          source,
+          topic: topic ?? EVENTS_FEED_TOPIC_ALL,
+          show_sources: true,
+        },
+        text: {
+          heading: `events:sections.${source}`,
+          subheading: topic
+            ? `events:topic.${topic}`
+            : `events:sections.${source}Hint`,
+          empty_text: "events:site.feed.empty",
+          more_label: "",
+        },
+      },
+    ],
+  };
+}
+
+export function buildEventsListingSections(
+  source: EventFeedTab,
+  topic: EventTopic | undefined,
+  translate: PresetTranslateFn,
+): SiteSection[] {
+  return buildPresetSections(eventsListingPreset(source, topic), translate);
 }

@@ -21,6 +21,7 @@ import { normalizeLocale, type AppLocale } from "@rewindom/module-sdk";
 
 import type { EventsRenderContext } from "../../shared/index.js";
 import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
+import type { SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export async function renderEventsTemplatePage(input: {
   tenantId: string;
@@ -35,6 +36,10 @@ export async function renderEventsTemplatePage(input: {
   events: EventsRenderContext;
   title?: string;
   description?: string;
+  /**
+   * 覆盖版式。查询列表页用：不走租户改过的三段首页，只画与查询匹配的那一段。
+   */
+  sections?: SiteSection[];
 }): Promise<string> {
   const locale = normalizeLocale(input.locale);
 
@@ -44,19 +49,27 @@ export async function renderEventsTemplatePage(input: {
     input.siteName,
     locale,
   );
-  const stored = await getPublishedTemplatePage(
-    input.tenantId,
-    input.kind,
-    locale,
-    { requireSite: false },
-  );
+  const stored = input.sections
+    ? null
+    : await getPublishedTemplatePage(
+        input.tenantId,
+        input.kind,
+        locale,
+        { requireSite: false },
+      );
   const translate = createEventsPresetTranslator(locale);
   // 记录尚未落库时按内置预设兜底——那是缺口不是产品路径（见 site-section skill）
-  const template = stored ?? {
-    sections: buildPresetSections(input.preset, translate),
-    title: translate(input.preset.titleKey),
-    description: translate(input.preset.descriptionKey),
-  };
+  const template = input.sections
+    ? {
+        sections: input.sections,
+        title: translate(input.preset.titleKey),
+        description: translate(input.preset.descriptionKey),
+      }
+    : (stored ?? {
+        sections: buildPresetSections(input.preset, translate),
+        title: translate(input.preset.titleKey),
+        description: translate(input.preset.descriptionKey),
+      });
 
   const [accountEntry, entitlements] = await Promise.all([
     resolveSiteAccountEntry({ tenantId: input.tenantId, locale }),

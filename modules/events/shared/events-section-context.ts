@@ -6,7 +6,14 @@
  * i18next），两端各解析一次但用的是同一份文案。
  */
 
-import type { EventSourceKind, EventStatus, EventTopic } from "./events.js";
+import {
+  isEventFeedTab,
+  isEventTopic,
+  type EventFeedTab,
+  type EventSourceKind,
+  type EventStatus,
+  type EventTopic,
+} from "./events.js";
 import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 export const EVENTS_CONTEXT_KEY = "events";
@@ -15,6 +22,44 @@ export const EVENTS_INDEX_PATH = "/events";
 
 export function eventPath(slug: string): string {
   return `${EVENTS_INDEX_PATH}/${encodeURIComponent(slug)}`;
+}
+
+/** 首页三段 + 查询列表共用的查询串：`source` 是哪一批，`topic` 可选。 */
+export interface EventsIndexQuery {
+  source?: EventFeedTab;
+  topic?: EventTopic;
+}
+
+export function parseEventsIndexQuery(
+  query: Record<string, string>,
+): EventsIndexQuery {
+  return {
+    source: isEventFeedTab(query.source) ? query.source : undefined,
+    topic: isEventTopic(query.topic) ? query.topic : undefined,
+  };
+}
+
+/**
+ * 事件首页地址。带 `source` 时是该批次的完整列表，而不是三段同页的枢纽。
+ * 「查看全部」必须带上当前区块的 source，否则会回到枢纽把自己再画一遍。
+ */
+export function eventsIndexHref(query: EventsIndexQuery = {}): string {
+  const params = new URLSearchParams();
+  if (query.source) {
+    params.set("source", query.source);
+  }
+  if (query.topic) {
+    params.set("topic", query.topic);
+  }
+  const search = params.toString();
+  return search ? `${EVENTS_INDEX_PATH}?${search}` : EVENTS_INDEX_PATH;
+}
+
+/** 有合法 `source` 就是查询列表页；只有 topic 或什么都没有仍是三段枢纽。 */
+export function isEventsIndexListing(
+  query: EventsIndexQuery,
+): query is EventsIndexQuery & { source: EventFeedTab } {
+  return query.source !== undefined;
 }
 
 /**
@@ -94,6 +139,11 @@ export interface EventsRenderContext {
   /** 详情模板页才有；列表页与普通页面上恒为 null */
   event: PublicEventDetailView | null;
   index_path: string;
+  /**
+   * 查询列表页：这一段已经是「全部」，不再按区块 limit 截断，
+   * 也不再画「查看全部」（再点只会打开自己）。
+   */
+  listing?: EventsIndexQuery;
 }
 
 export function emptyEventsContext(

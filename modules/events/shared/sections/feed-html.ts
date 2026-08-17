@@ -5,7 +5,11 @@
  *（模板页与 path handler 一起登记），不会把访客直接甩去站外。
  */
 
-import { readEventsContext } from "../events-section-context.js";
+import {
+  eventsIndexHref,
+  readEventsContext,
+} from "../events-section-context.js";
+import { isEventFeedTab, isEventTopic } from "../events.js";
 
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import {
@@ -17,9 +21,11 @@ import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_com
 import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import type {
+  EventsIndexQuery,
   EventsRenderContext,
   PublicEventCard,
 } from "../events-section-context.js";
+import type { EventFeedTab, EventTopic } from "../events.js";
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 /**
@@ -64,21 +70,40 @@ function takeUnseen(
   return picked;
 }
 
+function feedSource(value: string): EventFeedTab {
+  return isEventFeedTab(value) ? value : "rising";
+}
+
+function feedTopic(value: string): EventTopic | undefined {
+  return isEventTopic(value) ? value : undefined;
+}
+
+function isListingFor(
+  listing: EventsIndexQuery | undefined,
+  source: EventFeedTab,
+  topic: EventTopic | undefined,
+): boolean {
+  return listing?.source === source && listing.topic === topic;
+}
+
 export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
   const context = readEventsContext(ctx);
   const s = section.settings;
 
-  const source = settingText(s, "source") || "rising";
+  const source = feedSource(settingText(s, "source"));
+  const topic = feedTopic(settingText(s, "topic"));
   const limit = settingNumber(s, "limit", 6);
   const showSources = settingBool(s, "show_sources");
+  const listing = isListingFor(context?.listing, source, topic);
 
-  const all =
+  const bucket =
     source === "now"
       ? (context?.feed.now ?? [])
       : source === "today"
         ? (context?.feed.today ?? [])
         : (context?.feed.rising ?? []);
-  const cards = takeUnseen(context, all, limit);
+  const all = topic ? bucket.filter((card) => card.topic === topic) : bucket;
+  const cards = takeUnseen(context, all, listing ? all.length : limit);
   const header = sectionHeading(s);
 
   if (cards.length === 0) {
@@ -89,11 +114,12 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
   }
 
   const moreLabel = settingText(s, "more_label");
-  const more = moreLabel
-    ? `<a class="events-more" href="${escapeHtml(
-        siteHref(context?.index_path ?? "/events", ctx),
-      )}">${escapeHtml(moreLabel)}</a>`
-    : "";
+  const more =
+    !listing && moreLabel
+      ? `<a class="events-more" href="${escapeHtml(
+          siteHref(eventsIndexHref({ source, topic }), ctx),
+        )}">${escapeHtml(moreLabel)}</a>`
+      : "";
 
   return `<div class="events-feed">${header}<ul class="events-grid">${cards
     .map((card) => cardHtml(card, showSources, ctx))
