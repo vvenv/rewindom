@@ -3,6 +3,7 @@
   "pageDescription": "Discover what is happening across sources, and how it got here",
   "nav": {
     "events": "Events",
+    "sources": "Sources",
     "section": "Radar"
   },
   "tabs": {
@@ -67,6 +68,7 @@
     "sourcesEmpty": "No sources of this kind yet",
     "analyzerHeuristic": "Summary assembled by rule from the sources below",
     "analyzerLlm": "Summary written by AI strictly from the sources below",
+    "analyzerManual": "Summary edited on this site — later ingest will not overwrite it",
     "updatedAt": "Updated",
     "firstSeen": "First seen",
     "score": "{{count}} points",
@@ -156,6 +158,72 @@
     },
     "detail": {
       "label": "Event page"
+    }
+  },
+  "edit": {
+    "action": "Edit",
+    "ariaLabel": "Edit event",
+    "title": "Edit event",
+    "description": "Change the title, summary, or topic. After you save, ingest will keep updating heat and the timeline, but it will not overwrite this copy.",
+    "fieldTitle": "Title",
+    "fieldSummary": "Summary",
+    "summaryInfo": "This is the “what happened” text visitors see. Saving it locks the copy against the next analyzer run.",
+    "fieldTopic": "Topic",
+    "cancel": "Cancel",
+    "save": "Save",
+    "toastUpdated": "Event updated",
+    "updateFailed": "Could not save. Please try again.",
+    "validation": {
+      "titleRequired": "Enter a title",
+      "titleTooLong": "Title cannot exceed {{max}} characters",
+      "summaryTooLong": "Summary cannot exceed {{max}} characters",
+      "topicInvalid": "Choose a topic"
+    }
+  },
+  "sources": {
+    "title": "Sources",
+    "pageDescription": "Choose which feeds this site collects. Each source can have its own topic and kind.",
+    "create": "Add source",
+    "createTitle": "Add source",
+    "createDescription": "RSS for any site, or Hacker News via the built-in connector.",
+    "editTitle": "Edit source",
+    "editDescription": "Rename it, change the address, or recategorize it.",
+    "editAriaLabel": "Edit source",
+    "fieldConnector": "Connector",
+    "connectorInfo": "RSS takes any feed URL. Hacker News uses the official API and does not need an address.",
+    "connectorRss": "RSS / Atom",
+    "connectorHackerNews": "Hacker News",
+    "fieldName": "Name",
+    "fieldUrl": "Feed URL",
+    "fieldSourceKind": "Kind",
+    "fieldTopic": "Default topic",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "enabled": "On",
+    "disabled": "Off",
+    "enabledAriaLabel": "Collect from {{name}}",
+    "lastFetched": "Last fetched",
+    "neverFetched": "Not fetched yet",
+    "loading": "Loading sources…",
+    "emptyTitle": "No sources yet",
+    "emptyDescription": "Add an RSS feed or Hacker News to start collecting events for this site.",
+    "deleteConfirmTitle": "Delete source",
+    "deleteConfirmDescription": "Stop collecting from “{{name}}”? Existing events stay; new items from this feed will not be added.",
+    "toastCreated": "Source added",
+    "toastUpdated": "Source updated",
+    "toastDeleted": "Source deleted",
+    "createFailed": "Could not add this source. Please try again.",
+    "updateFailed": "Could not save. Please try again.",
+    "deleteFailed": "Could not delete. Please try again.",
+    "validation": {
+      "nameRequired": "Enter a name",
+      "nameTooLong": "Name cannot exceed {{max}} characters",
+      "urlRequired": "Enter a feed URL",
+      "urlInvalid": "Enter a valid http(s) URL",
+      "connectorInvalid": "Choose a connector",
+      "sourceKindInvalid": "Choose a kind",
+      "topicInvalid": "Choose a topic"
     }
   },
   "sample": {

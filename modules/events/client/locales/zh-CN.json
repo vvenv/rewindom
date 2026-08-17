@@ -3,6 +3,7 @@
   "pageDescription": "跨来源发现正在发生的事件，看清它是怎么走到现在的",
   "nav": {
     "events": "事件",
+    "sources": "采集源",
     "section": "事件雷达"
   },
   "tabs": {
@@ -67,6 +68,7 @@
     "sourcesEmpty": "暂无该类来源",
     "analyzerHeuristic": "摘要按规则整理自下方来源原文",
     "analyzerLlm": "摘要由 AI 依据下方来源生成，不含推测",
+    "analyzerManual": "摘要由本站编辑修改，后续采集不会覆盖",
     "updatedAt": "更新于",
     "firstSeen": "首次出现",
     "score": "{{count}} 分",
@@ -156,6 +158,72 @@
     },
     "detail": {
       "label": "事件详情页"
+    }
+  },
+  "edit": {
+    "action": "编辑",
+    "ariaLabel": "编辑事件",
+    "title": "编辑事件",
+    "description": "修改标题、摘要或主题。保存后，采集仍会更新热度与时间线，但不会覆盖这段文案。",
+    "fieldTitle": "标题",
+    "fieldSummary": "摘要",
+    "summaryInfo": "这是访客看到的「发生了什么」。保存后，分析器再跑也不会改这段文字。",
+    "fieldTopic": "主题",
+    "cancel": "取消",
+    "save": "保存",
+    "toastUpdated": "事件已更新",
+    "updateFailed": "保存失败，请重试。",
+    "validation": {
+      "titleRequired": "请填写标题",
+      "titleTooLong": "标题不能超过 {{max}} 个字符",
+      "summaryTooLong": "摘要不能超过 {{max}} 个字符",
+      "topicInvalid": "请选择主题"
+    }
+  },
+  "sources": {
+    "title": "采集源",
+    "pageDescription": "配置本站要从哪些源采集。每个源可以单独指定主题和类型。",
+    "create": "添加来源",
+    "createTitle": "添加来源",
+    "createDescription": "任意站点的 RSS，或用内置 connector 接 Hacker News。",
+    "editTitle": "编辑来源",
+    "editDescription": "改名称、地址，或重新归类。",
+    "editAriaLabel": "编辑来源",
+    "fieldConnector": "采集方式",
+    "connectorInfo": "RSS 填订阅地址。Hacker News 走官方接口，不用填地址。",
+    "connectorRss": "RSS / Atom",
+    "connectorHackerNews": "Hacker News",
+    "fieldName": "名称",
+    "fieldUrl": "订阅地址",
+    "fieldSourceKind": "类型",
+    "fieldTopic": "默认主题",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "enabled": "开启",
+    "disabled": "关闭",
+    "enabledAriaLabel": "采集 {{name}}",
+    "lastFetched": "上次抓取",
+    "neverFetched": "尚未抓取",
+    "loading": "正在加载采集源…",
+    "emptyTitle": "还没有采集源",
+    "emptyDescription": "添加 RSS 或 Hacker News 后，本站才会开始收集事件。",
+    "deleteConfirmTitle": "删除采集源",
+    "deleteConfirmDescription": "停止从「{{name}}」采集？已有事件会保留，之后不会再加入这个源的新条目。",
+    "toastCreated": "已添加来源",
+    "toastUpdated": "来源已更新",
+    "toastDeleted": "来源已删除",
+    "createFailed": "添加失败，请重试。",
+    "updateFailed": "保存失败，请重试。",
+    "deleteFailed": "删除失败，请重试。",
+    "validation": {
+      "nameRequired": "请填写名称",
+      "nameTooLong": "名称不能超过 {{max}} 个字符",
+      "urlRequired": "请填写订阅地址",
+      "urlInvalid": "请填写有效的 http(s) 地址",
+      "connectorInvalid": "请选择采集方式",
+      "sourceKindInvalid": "请选择类型",
+      "topicInvalid": "请选择主题"
     }
   },
   "sample": {

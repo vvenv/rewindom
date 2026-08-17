@@ -11,6 +11,12 @@ const Events = lazy(() =>
   import("../pages/events.js").then((module) => ({ default: module.Events })),
 );
 
+const EventSources = lazy(() =>
+  import("../pages/event-sources.js").then((module) => ({
+    default: module.EventSources,
+  })),
+);
+
 const EventDetail = lazy(() =>
   import("../pages/event-detail.js").then((module) => ({
     default: module.EventDetail,
@@ -27,6 +33,7 @@ export function renderEventsRoutes(): ReactNode {
     <Route element={<EventsModuleRoute />}>
       <Route element={<PermissionRoute permission="events.read" />}>
         <Route path="/app/events" element={<Events />} />
+        <Route path="/app/events/sources" element={<EventSources />} />
         {/* path 参数用 camelCase（field-naming rule） */}
         <Route path="/app/events/:eventId" element={<EventDetail />} />
       </Route>

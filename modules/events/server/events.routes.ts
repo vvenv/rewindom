@@ -1,6 +1,7 @@
 import {
   AppError,
   defineRoute,
+  emitAuditLogFromRequestSafe,
   parsePagination,
   parseSortDir,
   sendCodedError,
@@ -11,6 +12,7 @@ import {
   getEventFeed,
   listEvents,
   listTopicCounts,
+  updateEvent,
 } from "./event/event.service.js";
 
 import {
@@ -23,8 +25,10 @@ import {
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 /**
- * 事件读取面。全部只读——事件语料由采集任务写入，任何用户请求都不该改动它。
- * 唯一的写入面是关注（follow.routes.ts），落在租户态的 EventFollow 上。
+ * 事件读取面 + 工作台编辑。
+ *
+ * 语料由采集任务写入，工作台可以改标题 / 摘要 / 主题（events.write）。
+ * 采集源 CRUD 在 feed.routes.ts。关注落在 follow.routes.ts。
  */
 export async function eventsRoutes(app: FastifyInstance): Promise<void> {
   defineRoute(app, {
@@ -79,7 +83,9 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     context: "EventTopicList",
     errorCode: "EVENT_TOPIC_LIST_FAILED",
     preHandler: [app.requirePermission("events.read")],
-    handler: async () => ({ items: await listTopicCounts() }),
+    handler: async (request) => ({
+      items: await listTopicCounts(request.tenantContext!.tenant_id),
+    }),
   });
 
   defineRoute(app, {
@@ -103,11 +109,52 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
       }
     },
   });
+
+  defineRoute(app, {
+    method: "PATCH",
+    url: "/:eventId",
+    context: "EventUpdate",
+    errorCode: "EVENT_UPDATE_FAILED",
+    preHandler: [app.requirePermission("events.write")],
+    handler: async (request, reply) => {
+      try {
+        const { eventId } = request.params as { eventId: string };
+        const body = request.body as {
+          title?: string;
+          summary?: string;
+          topic?: string;
+        };
+        const event = await updateEvent({
+          ...viewerScope(request),
+          event_id: eventId,
+          title: body.title,
+          summary: body.summary,
+          topic: parseTopic(body.topic),
+        });
+
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "EVENT_UPDATE",
+          resource: event.id,
+          detail_key: "events.audit.updated",
+          detail_params: { event: event.title },
+        });
+
+        return event;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
 }
 
 /**
- * 事件语料是全平台共享的，但「谁关注了什么」是租户态的——
  * 每个读接口都要带上 viewer，列表才能标出 is_following / has_update。
+ * 语料按站点隔离，viewer.tenant_id 同时是查询谓词。
  */
 function viewerScope(request: FastifyRequest): {
   tenant_id: string;

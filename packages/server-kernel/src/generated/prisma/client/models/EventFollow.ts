@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model EventFollow
- * 用户对事件的关注。**唯一的租户态模型**。
+ * 用户对事件的关注。站点 + 用户态。
  */
 export type EventFollowModel = runtime.Types.Result.DefaultSelection<Prisma.$EventFollowPayload>
 

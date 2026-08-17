@@ -1,4 +1,4 @@
-import { Radar } from "lucide-react";
+import { Radar, Rss } from "lucide-react";
 
 import type { AppNavSection } from "@rewindom/module-sdk/client";
 
@@ -15,6 +15,15 @@ export const EVENTS_NAV_SECTIONS: AppNavSection[] = [
         label: "events:nav.events",
         path: "/app/events",
         title: "events:title",
+        end: true,
+        tenantModule: "events",
+        anyPermission: ["events.read"],
+      },
+      {
+        icon: Rss,
+        label: "events:nav.sources",
+        path: "/app/events/sources",
+        title: "events:sources.title",
         tenantModule: "events",
         anyPermission: ["events.read"],
       },

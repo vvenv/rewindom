@@ -1,4 +1,4 @@
-import { prisma } from "@rewindom/module-sdk/server";
+import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
 import {
   fetchPageExcerpt,
@@ -18,10 +18,14 @@ const BACKFILL_CONCURRENCY = 5;
  * 成功写入后把所属事件的 `analyzed_at` 清掉，refresh 才会用新摘录重写摘要。
  */
 export async function enrichStoredEmptyExcerpts(
+  tenantId: string,
   fetchedBefore: Date,
 ): Promise<string[]> {
   const rows = await prisma.eventSignal.findMany({
-    where: { excerpt: "", fetched_at: { lt: fetchedBefore } },
+    where: withTenantScope(tenantId, {
+      excerpt: "",
+      fetched_at: { lt: fetchedBefore },
+    }),
     select: { id: true, url: true, title: true, event_id: true },
     orderBy: { published_at: "desc" },
     take: STORED_EXCERPT_BACKFILL_LIMIT * 3,
@@ -70,7 +74,7 @@ export async function enrichStoredEmptyExcerpts(
   const ids = [...eventIds];
   if (ids.length > 0) {
     await prisma.newsEvent.updateMany({
-      where: { id: { in: ids } },
+      where: withTenantScope(tenantId, { id: { in: ids } }),
       data: { analyzed_at: null },
     });
   }

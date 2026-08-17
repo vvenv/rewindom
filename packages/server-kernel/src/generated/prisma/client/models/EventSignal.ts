@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model EventSignal
- * 一条原始信号：某个源上的一篇帖子 / 一条新闻 / 一次发布公告。全局。
+ * 一条原始信号：某个源上的一篇帖子 / 一条新闻 / 一次发布公告。按站点隔离。
  */
 export type EventSignalModel = runtime.Types.Result.DefaultSelection<Prisma.$EventSignalPayload>
 
@@ -38,6 +38,7 @@ export type EventSignalSumAggregateOutputType = {
 
 export type EventSignalMinAggregateOutputType = {
   id: string | null
+  tenant_id: string | null
   connector: string | null
   external_id: string | null
   source_name: string | null
@@ -59,6 +60,7 @@ export type EventSignalMinAggregateOutputType = {
 
 export type EventSignalMaxAggregateOutputType = {
   id: string | null
+  tenant_id: string | null
   connector: string | null
   external_id: string | null
   source_name: string | null
@@ -80,6 +82,7 @@ export type EventSignalMaxAggregateOutputType = {
 
 export type EventSignalCountAggregateOutputType = {
   id: number
+  tenant_id: number
   connector: number
   external_id: number
   source_name: number
@@ -113,6 +116,7 @@ export type EventSignalSumAggregateInputType = {
 
 export type EventSignalMinAggregateInputType = {
   id?: true
+  tenant_id?: true
   connector?: true
   external_id?: true
   source_name?: true
@@ -134,6 +138,7 @@ export type EventSignalMinAggregateInputType = {
 
 export type EventSignalMaxAggregateInputType = {
   id?: true
+  tenant_id?: true
   connector?: true
   external_id?: true
   source_name?: true
@@ -155,6 +160,7 @@ export type EventSignalMaxAggregateInputType = {
 
 export type EventSignalCountAggregateInputType = {
   id?: true
+  tenant_id?: true
   connector?: true
   external_id?: true
   source_name?: true
@@ -263,6 +269,7 @@ export type EventSignalGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 
 export type EventSignalGroupByOutputType = {
   id: string
+  tenant_id: string
   connector: string
   external_id: string
   source_name: string
@@ -307,6 +314,7 @@ export type EventSignalWhereInput = {
   OR?: Prisma.EventSignalWhereInput[]
   NOT?: Prisma.EventSignalWhereInput | Prisma.EventSignalWhereInput[]
   id?: Prisma.StringFilter<"EventSignal"> | string
+  tenant_id?: Prisma.StringFilter<"EventSignal"> | string
   connector?: Prisma.StringFilter<"EventSignal"> | string
   external_id?: Prisma.StringFilter<"EventSignal"> | string
   source_name?: Prisma.StringFilter<"EventSignal"> | string
@@ -329,6 +337,7 @@ export type EventSignalWhereInput = {
 
 export type EventSignalOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   external_id?: Prisma.SortOrder
   source_name?: Prisma.SortOrder
@@ -351,11 +360,12 @@ export type EventSignalOrderByWithRelationInput = {
 
 export type EventSignalWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  connector_external_id?: Prisma.EventSignalConnectorExternal_idCompoundUniqueInput
-  connector_source_name_canonical_url?: Prisma.EventSignalConnectorSource_nameCanonical_urlCompoundUniqueInput
+  tenant_id_connector_external_id?: Prisma.EventSignalTenant_idConnectorExternal_idCompoundUniqueInput
+  tenant_id_connector_source_name_canonical_url?: Prisma.EventSignalTenant_idConnectorSource_nameCanonical_urlCompoundUniqueInput
   AND?: Prisma.EventSignalWhereInput | Prisma.EventSignalWhereInput[]
   OR?: Prisma.EventSignalWhereInput[]
   NOT?: Prisma.EventSignalWhereInput | Prisma.EventSignalWhereInput[]
+  tenant_id?: Prisma.StringFilter<"EventSignal"> | string
   connector?: Prisma.StringFilter<"EventSignal"> | string
   external_id?: Prisma.StringFilter<"EventSignal"> | string
   source_name?: Prisma.StringFilter<"EventSignal"> | string
@@ -374,10 +384,11 @@ export type EventSignalWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   event?: Prisma.XOR<Prisma.NewsEventNullableScalarRelationFilter, Prisma.NewsEventWhereInput> | null
-}, "id" | "connector_external_id" | "connector_source_name_canonical_url">
+}, "id" | "tenant_id_connector_external_id" | "tenant_id_connector_source_name_canonical_url">
 
 export type EventSignalOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   external_id?: Prisma.SortOrder
   source_name?: Prisma.SortOrder
@@ -407,6 +418,7 @@ export type EventSignalScalarWhereWithAggregatesInput = {
   OR?: Prisma.EventSignalScalarWhereWithAggregatesInput[]
   NOT?: Prisma.EventSignalScalarWhereWithAggregatesInput | Prisma.EventSignalScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"EventSignal"> | string
+  tenant_id?: Prisma.StringWithAggregatesFilter<"EventSignal"> | string
   connector?: Prisma.StringWithAggregatesFilter<"EventSignal"> | string
   external_id?: Prisma.StringWithAggregatesFilter<"EventSignal"> | string
   source_name?: Prisma.StringWithAggregatesFilter<"EventSignal"> | string
@@ -428,6 +440,7 @@ export type EventSignalScalarWhereWithAggregatesInput = {
 
 export type EventSignalCreateInput = {
   id?: string
+  tenant_id: string
   connector: string
   external_id: string
   source_name: string
@@ -449,6 +462,7 @@ export type EventSignalCreateInput = {
 
 export type EventSignalUncheckedCreateInput = {
   id?: string
+  tenant_id: string
   connector: string
   external_id: string
   source_name: string
@@ -470,6 +484,7 @@ export type EventSignalUncheckedCreateInput = {
 
 export type EventSignalUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -491,6 +506,7 @@ export type EventSignalUpdateInput = {
 
 export type EventSignalUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -512,6 +528,7 @@ export type EventSignalUncheckedUpdateInput = {
 
 export type EventSignalCreateManyInput = {
   id?: string
+  tenant_id: string
   connector: string
   external_id: string
   source_name: string
@@ -533,6 +550,7 @@ export type EventSignalCreateManyInput = {
 
 export type EventSignalUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -553,6 +571,7 @@ export type EventSignalUpdateManyMutationInput = {
 
 export type EventSignalUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -572,12 +591,14 @@ export type EventSignalUncheckedUpdateManyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type EventSignalConnectorExternal_idCompoundUniqueInput = {
+export type EventSignalTenant_idConnectorExternal_idCompoundUniqueInput = {
+  tenant_id: string
   connector: string
   external_id: string
 }
 
-export type EventSignalConnectorSource_nameCanonical_urlCompoundUniqueInput = {
+export type EventSignalTenant_idConnectorSource_nameCanonical_urlCompoundUniqueInput = {
+  tenant_id: string
   connector: string
   source_name: string
   canonical_url: string
@@ -585,6 +606,7 @@ export type EventSignalConnectorSource_nameCanonical_urlCompoundUniqueInput = {
 
 export type EventSignalCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   external_id?: Prisma.SortOrder
   source_name?: Prisma.SortOrder
@@ -611,6 +633,7 @@ export type EventSignalAvgOrderByAggregateInput = {
 
 export type EventSignalMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   external_id?: Prisma.SortOrder
   source_name?: Prisma.SortOrder
@@ -632,6 +655,7 @@ export type EventSignalMaxOrderByAggregateInput = {
 
 export type EventSignalMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   external_id?: Prisma.SortOrder
   source_name?: Prisma.SortOrder
@@ -710,6 +734,7 @@ export type EventSignalUncheckedUpdateManyWithoutEventNestedInput = {
 
 export type EventSignalCreateWithoutEventInput = {
   id?: string
+  tenant_id: string
   connector: string
   external_id: string
   source_name: string
@@ -730,6 +755,7 @@ export type EventSignalCreateWithoutEventInput = {
 
 export type EventSignalUncheckedCreateWithoutEventInput = {
   id?: string
+  tenant_id: string
   connector: string
   external_id: string
   source_name: string
@@ -779,6 +805,7 @@ export type EventSignalScalarWhereInput = {
   OR?: Prisma.EventSignalScalarWhereInput[]
   NOT?: Prisma.EventSignalScalarWhereInput | Prisma.EventSignalScalarWhereInput[]
   id?: Prisma.StringFilter<"EventSignal"> | string
+  tenant_id?: Prisma.StringFilter<"EventSignal"> | string
   connector?: Prisma.StringFilter<"EventSignal"> | string
   external_id?: Prisma.StringFilter<"EventSignal"> | string
   source_name?: Prisma.StringFilter<"EventSignal"> | string
@@ -800,6 +827,7 @@ export type EventSignalScalarWhereInput = {
 
 export type EventSignalCreateManyEventInput = {
   id?: string
+  tenant_id: string
   connector: string
   external_id: string
   source_name: string
@@ -820,6 +848,7 @@ export type EventSignalCreateManyEventInput = {
 
 export type EventSignalUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -840,6 +869,7 @@ export type EventSignalUpdateWithoutEventInput = {
 
 export type EventSignalUncheckedUpdateWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -860,6 +890,7 @@ export type EventSignalUncheckedUpdateWithoutEventInput = {
 
 export type EventSignalUncheckedUpdateManyWithoutEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   external_id?: Prisma.StringFieldUpdateOperationsInput | string
   source_name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -882,6 +913,7 @@ export type EventSignalUncheckedUpdateManyWithoutEventInput = {
 
 export type EventSignalSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  tenant_id?: boolean
   connector?: boolean
   external_id?: boolean
   source_name?: boolean
@@ -904,6 +936,7 @@ export type EventSignalSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 
 export type EventSignalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  tenant_id?: boolean
   connector?: boolean
   external_id?: boolean
   source_name?: boolean
@@ -926,6 +959,7 @@ export type EventSignalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 
 export type EventSignalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  tenant_id?: boolean
   connector?: boolean
   external_id?: boolean
   source_name?: boolean
@@ -948,6 +982,7 @@ export type EventSignalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 
 export type EventSignalSelectScalar = {
   id?: boolean
+  tenant_id?: boolean
   connector?: boolean
   external_id?: boolean
   source_name?: boolean
@@ -967,7 +1002,7 @@ export type EventSignalSelectScalar = {
   updated_at?: boolean
 }
 
-export type EventSignalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "connector" | "external_id" | "source_name" | "source_kind" | "title" | "url" | "canonical_url" | "excerpt" | "author" | "topic" | "score" | "comment_count" | "published_at" | "fetched_at" | "event_id" | "created_at" | "updated_at", ExtArgs["result"]["eventSignal"]>
+export type EventSignalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "connector" | "external_id" | "source_name" | "source_kind" | "title" | "url" | "canonical_url" | "excerpt" | "author" | "topic" | "score" | "comment_count" | "published_at" | "fetched_at" | "event_id" | "created_at" | "updated_at", ExtArgs["result"]["eventSignal"]>
 export type EventSignalInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventSignal$eventArgs<ExtArgs>
 }
@@ -985,6 +1020,7 @@ export type $EventSignalPayload<ExtArgs extends runtime.Types.Extensions.Interna
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    tenant_id: string
     connector: string
     /**
      * 源内唯一 id（HN 的 item id、RSS 的 guid），与 connector 组成幂等键
@@ -1436,6 +1472,7 @@ export interface Prisma__EventSignalClient<T, Null = never, ExtArgs extends runt
  */
 export interface EventSignalFieldRefs {
   readonly id: Prisma.FieldRef<"EventSignal", 'String'>
+  readonly tenant_id: Prisma.FieldRef<"EventSignal", 'String'>
   readonly connector: Prisma.FieldRef<"EventSignal", 'String'>
   readonly external_id: Prisma.FieldRef<"EventSignal", 'String'>
   readonly source_name: Prisma.FieldRef<"EventSignal", 'String'>

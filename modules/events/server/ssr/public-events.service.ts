@@ -22,8 +22,8 @@ import type { SitemapEntry } from "@rewindom/builtin/marketing/server/site.servi
  * 公开面的读取。
  *
  * 与工作台那套（`event/event.service.ts`）刻意分开，理由只有一个：**公开面没有 viewer**。
- * 那边每个查询都要带上 tenant + user 去查关注状态，这边没有登录用户，硬套会变成
- * 一串永远为 null 的参数，还容易让人误以为公开面也在查租户态数据。
+ * 那边每个查询都要带上 tenant + user 去查关注状态，这边没有登录用户。
+ * 语料本身按站点隔离——公开面用的是当前站点的 tenant_id，不是「全平台一份」。
  */
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -58,15 +58,17 @@ export interface PublicFeedData {
 }
 
 export async function getPublicEventFeed(
+  tenantId: string,
   topic?: EventTopic,
 ): Promise<PublicFeedData> {
   const now = Date.now();
   const topicWhere = topic ? { topic } : {};
+  const tenantWhere = withTenantScope(tenantId, topicWhere);
 
   const [rising, nowEvents, today, todayTotal] = await Promise.all([
     prisma.newsEvent.findMany({
       where: {
-        ...topicWhere,
+        ...tenantWhere,
         status: { in: ["developing", "active"] },
         last_activity_at: { gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS) },
         velocity_pct: { gt: 0 },
@@ -77,7 +79,7 @@ export async function getPublicEventFeed(
     }),
     prisma.newsEvent.findMany({
       where: {
-        ...topicWhere,
+        ...tenantWhere,
         status: { in: ["developing", "active"] },
         last_activity_at: { gte: new Date(now - NOW_WINDOW_HOURS * HOUR_MS) },
       },
@@ -87,7 +89,7 @@ export async function getPublicEventFeed(
     }),
     prisma.newsEvent.findMany({
       where: {
-        ...topicWhere,
+        ...tenantWhere,
         last_activity_at: { gte: new Date(now - TODAY_WINDOW_HOURS * HOUR_MS) },
       },
       orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
@@ -96,7 +98,7 @@ export async function getPublicEventFeed(
     }),
     prisma.newsEvent.count({
       where: {
-        ...topicWhere,
+        ...tenantWhere,
         last_activity_at: { gte: new Date(now - TODAY_WINDOW_HOURS * HOUR_MS) },
       },
     }),
@@ -119,11 +121,17 @@ export async function getPublicEventFeed(
 
 /** slug 找不到时返回 null（→ 404），而不是抛错。 */
 export async function getPublicEventBySlug(
+  tenantId: string,
   slug: string,
 ): Promise<EventDetail | null> {
-  const record = await prisma.newsEvent.findUnique({
-    where: { slug },
-    select: { ...LIST_SELECT, analyzer: true, analyzed_at: true },
+  const record = await prisma.newsEvent.findFirst({
+    where: withTenantScope(tenantId, { slug }),
+    select: {
+      ...LIST_SELECT,
+      analyzer: true,
+      analyzed_at: true,
+      manual_content: true,
+    },
   });
   if (!record) {
     return null;
@@ -131,7 +139,7 @@ export async function getPublicEventBySlug(
 
   const [timeline, signals] = await Promise.all([
     prisma.eventTimelineEntry.findMany({
-      where: { event_id: record.id },
+      where: withTenantScope(tenantId, { event_id: record.id }),
       orderBy: { occurred_at: "asc" },
       select: {
         id: true,
@@ -144,7 +152,7 @@ export async function getPublicEventBySlug(
       },
     }),
     prisma.eventSignal.findMany({
-      where: { event_id: record.id },
+      where: withTenantScope(tenantId, { event_id: record.id }),
       orderBy: { published_at: "desc" },
       select: {
         id: true,
@@ -179,7 +187,7 @@ export async function getPublicEventSitemapEntries(
   const [defaultLocale, rows] = await Promise.all([
     resolveSiteDefaultLocale(tenantId),
     prisma.newsEvent.findMany({
-      where: { last_activity_at: { gte: cutoff } },
+      where: withTenantScope(tenantId, { last_activity_at: { gte: cutoff } }),
       orderBy: { last_activity_at: "desc" },
       take: 500,
       select: { slug: true, last_activity_at: true },

@@ -5,6 +5,7 @@ import {
 
 import { registerReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-slugs.js";
 
+import { feedRoutes } from "./feed/feed.routes.js";
 import { followRoutes } from "./follow/follow.routes.js";
 import { registerEventIngestJobs } from "./ingest/scheduler-jobs.js";
 import { registerEventsSections } from "./sections/register.js";
@@ -37,10 +38,20 @@ export const eventsServerModule: ServerAppModule = {
         group: "事件雷达",
         description: "关注/取消关注事件，并标记已读进度",
       },
+      {
+        key: "events.write",
+        label: "管理事件",
+        group: "事件雷达",
+        description: "编辑事件文案，并配置本站采集源",
+      },
     ],
     auditActions: [
       { action: "EVENT_FOLLOW", label: "关注事件" },
       { action: "EVENT_UNFOLLOW", label: "取消关注事件" },
+      { action: "EVENT_UPDATE", label: "编辑事件" },
+      { action: "EVENT_FEED_CREATE", label: "新增采集源" },
+      { action: "EVENT_FEED_UPDATE", label: "更新采集源" },
+      { action: "EVENT_FEED_DELETE", label: "删除采集源" },
     ],
   },
   server: {
@@ -58,14 +69,15 @@ export const eventsServerModule: ServerAppModule = {
     },
     registerRoutes: async (app) => {
       await registerTenantGatedRoutes(app, "events", async (scoped) => {
-        await scoped.register(eventsRoutes, { prefix: "/api/events" });
+        await scoped.register(feedRoutes, { prefix: "/api/events/feeds" });
         await scoped.register(followRoutes, { prefix: "/api/events/follows" });
+        await scoped.register(eventsRoutes, { prefix: "/api/events" });
       });
     },
     /**
-     * 采集是全局的（语料不分站点），因此挂在进程级调度器上而不是按租户触发。
-     * 多实例部署时每个实例都会跑——写入路径是幂等的（信号唯一键 + 事件指纹唯一），
-     * 重复抓取只浪费带宽，不会产生重复事件。
+     * 采集按站点跑（每个开通事件雷达的站点各自一份源与语料）。
+     * 多实例部署时每个实例都会跑——写入路径是幂等的（信号唯一键含 tenant_id），
+     * 重复抓取只浪费带宽，不会串站。
      */
     registerJobs: registerEventIngestJobs,
   },

@@ -29,18 +29,17 @@
 界面文案（主题名、阶段名、时间线 code、段设置）仍然是完整多语言的——那是**代码 i18n**，
 走 `client/locales/*.json`，与事件内容无关。
 
-## 为什么事件不按站点隔离
+## 为什么事件按站点隔离
 
-`EventFeed` / `EventSignal` / `NewsEvent` / `EventTimelineEntry` 在 `tenant-guard` 里登记为
-`kind: "global"`，全平台共享一份；只有 `EventFollow` 带 `tenant_id`。
+`EventFeed` / `EventSignal` / `NewsEvent` / `EventTimelineEntry` 都带 `tenant_id`，
+与 `EventFollow` 一样走 tenant-guard。
 
-理由：「互联网正在发生什么」对所有站点是同一件事。按站点各存一份意味着同一个 RSS 被抓 N 次、
-同一个事件被 AI 分析 N 次，成本乘以站点数，而结果完全一样。真正因人而异的只有
-「谁关注了哪个事件、看到哪儿了」——那部分才是租户态。
+各站点要配自己的采集源与规则，公开面也只展示本站语料。共享一份全平台语料
+会让 A 站的源出现在 B 站官网上，也没法在工作台改摘要而不影响别人。
 
-> 副作用：service 层查询事件语料时**不带**租户谓词（也不该带）；查 `EventFollow` 时
-> 必须显式 `withTenantScope`。`eslint-rules/tenant-models.json` 里只登记了 `eventFollow`，
-> 越权兜底正是靠这条边界。
+代价是同一条 RSS 可能被多个站点各抓一次——这是产品选择，不是疏忽。
+采集任务按开通了事件雷达的站点循环；站点还没有任何源时写入内置目录，
+之后由工作台 `/app/events/sources` 增删改，不再被目录覆盖。
 
 ## 目录
 
@@ -52,14 +51,15 @@ shared/          事件域契约 + 官网段定义 + 公开视图映射
   sections/*-html.ts      段 markup（SSR 与编辑器预览共用同一份）
   site-css/               CSS 真源 → site-css.generated.ts
 server/
-  events.routes.ts        只读面：列表 / 首页三区块 / 主题计数 / 详情
-  follow/                 唯一的写入面（租户态）
+  events.routes.ts        列表 / 首页三区块 / 主题计数 / 详情 / 人工编辑
+  feed/                   采集源 CRUD（本站）
+  follow/                 关注（站点 + 用户态）
   ingest/                 采集：connector、RSS 解析、调度任务
   event/                  领域：URL 规范化、分词聚类、热度、分析器、读服务
   ssr/                    公开面：path handler、模板页渲染、公开读取
   sections/register.ts    段 / 上下文 provider / sitemap / 链接候选登记
 client/
-  pages/                  events（探索+全量）、event-detail
+  pages/                  events（探索+全量）、event-detail、event-sources
   components/ hooks/ lib/ 四层拆分（frontend-page-structure）
   tenant/                 路由、导航、工作台卡片
   editor-context.ts       主题编辑器预览取数
@@ -157,8 +157,10 @@ HN 的 topstories 本来就是几十件互不相干的事。但词面聚类有�
 
 ## 采集源
 
-内置目录在 `server/ingest/feed-catalog.ts`，启动时 **只新建、不覆盖**——运维在库里禁用或改过的源
-不会被下次启动重新打开。加源只需往 `EventFeed` 插一行，不必改代码。
+内置目录在 `server/ingest/feed-catalog.ts`。站点还没有任何采集源时写入——
+**只在空目录时新建**。工作台 `/app/events/sources` 可增删改、开关每个源
+（名称、地址、类型、默认主题）。关掉不想要的默认源即可，删光后再被写成空目录
+会在下一轮采集重新种入内置清单。
 
 一期两个 connector：
 
@@ -174,7 +176,8 @@ HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘�
 
 ## 后台任务
 
-`events-ingest` 注册在内核 `JobRegistry` 上，进程级（语料不分站点），
+`events-ingest` 注册在内核 `JobRegistry` 上，进程级调度、按站点执行
+（每个开通事件雷达的站点抓自己的源），
 默认每 15 分钟一轮，启动后 20 秒跑第一轮。上一轮没结束时本轮直接跳过，不叠加。
 
 **多实例部署**：每个实例都会跑。写入路径幂等，重复抓取只浪费带宽，不会产生重复事件；
@@ -193,8 +196,12 @@ HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘�
 
 | key | 覆盖 |
 | --- | --- |
-| `events.read` | 所有读接口（列表、首页区块、主题、详情、关注状态） |
+| `events.read` | 所有读接口（列表、首页区块、主题、详情、关注状态、采集源列表） |
 | `events.follow` | 关注 / 取关 / 标记已读 |
+| `events.write` | 编辑事件标题/摘要/主题；增删改采集源 |
+
+工作台改过的标题与摘要会打上 `manual_content`，采集刷新仍更新热度与时间线，
+但不再覆盖这段文案。详情页会标明「由本站编辑修改」。
 
 「标记已读」刻意不记审计——那是用户自己的阅读进度，不是需要向管理员交代的操作
 （与 notification 的已读回执同口径）。

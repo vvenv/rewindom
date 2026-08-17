@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { shouldReanalyze } from "./event-refresh.service.js";
+import { resolveRefreshedContent, shouldReanalyze } from "./event-refresh.service.js";
 
 const NOW = new Date("2025-08-12T12:00:00Z");
 
@@ -23,5 +23,47 @@ describe("shouldReanalyze", () => {
 
   it("LLM 过了冷却期恢复分析", () => {
     expect(shouldReanalyze(minutesAgo(31), NOW, "llm")).toBe(true);
+  });
+});
+
+describe("resolveRefreshedContent", () => {
+  const analysis = {
+    title: "Analyzer title",
+    summary: "Analyzer summary",
+    analyzer: "heuristic",
+  };
+
+  it("人工改过的文案不被分析器覆盖", () => {
+    expect(
+      resolveRefreshedContent({
+        manual_content: true,
+        existing_title: "Editor title",
+        existing_summary: "Editor summary",
+        existing_analyzer: "manual",
+        analysis,
+        fallback_title: "Fallback",
+      }),
+    ).toEqual({
+      title: "Editor title",
+      summary: "Editor summary",
+      analyzer: "manual",
+    });
+  });
+
+  it("未改过时采用分析器产出；标题为空则回落到候选标题", () => {
+    expect(
+      resolveRefreshedContent({
+        manual_content: false,
+        existing_title: "Old",
+        existing_summary: "Old summary",
+        existing_analyzer: "heuristic",
+        analysis: { title: "  ", summary: "New summary", analyzer: "llm" },
+        fallback_title: "Fallback",
+      }),
+    ).toEqual({
+      title: "Fallback",
+      summary: "New summary",
+      analyzer: "llm",
+    });
   });
 });

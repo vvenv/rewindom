@@ -1,5 +1,6 @@
 import {
   NotFoundError,
+  ValidationError,
   prisma,
   resolveSortField,
   resolveSortOrder,
@@ -8,16 +9,21 @@ import {
 
 import { toEventDetail, toEventListItem } from "./event.mapper.js";
 
-import type { FollowMarker } from "./event.mapper.js";
-import type {
-  EventDetail,
-  EventFeedResult,
-  EventListItem,
-  EventListResult,
-  EventStatus,
-  EventTopic,
-  EventTopicCount,
+import {
+  EVENT_SUMMARY_MAX_LENGTH,
+  EVENT_TITLE_MAX_LENGTH,
+  isEventTopic,
+  type EventDetail,
+  type EventFeedResult,
+  type EventListItem,
+  type EventListResult,
+  type EventStatus,
+  type EventTopic,
+  type EventTopicCount,
+  type EventUpdateBody,
 } from "../../shared/index.js";
+
+import type { FollowMarker } from "./event.mapper.js";
 
 /** 与前端可排序列一一对应（verify-module 会比对这两侧）。 */
 const EVENT_SORTABLE_FIELDS = new Set([
@@ -112,10 +118,11 @@ export async function getEventFeed(
 ): Promise<EventFeedResult> {
   const now = Date.now();
   const topicWhere = params.topic ? { topic: params.topic } : {};
+  const tenantWhere = withTenantScope(params.tenant_id, topicWhere);
 
   const rising = await prisma.newsEvent.findMany({
     where: {
-      ...topicWhere,
+      ...tenantWhere,
       status: { in: ["developing", "active"] },
       last_activity_at: { gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS) },
       velocity_pct: { gt: 0 },
@@ -128,7 +135,7 @@ export async function getEventFeed(
   const risingIds = rising.map((event) => event.id);
   const nowEvents = await prisma.newsEvent.findMany({
     where: {
-      ...topicWhere,
+      ...tenantWhere,
       id: { notIn: risingIds },
       status: { in: ["developing", "active"] },
       last_activity_at: { gte: new Date(now - NOW_WINDOW_HOURS * HOUR_MS) },
@@ -143,7 +150,7 @@ export async function getEventFeed(
   const [today, todayTotal] = await Promise.all([
     prisma.newsEvent.findMany({
       where: {
-        ...topicWhere,
+        ...tenantWhere,
         id: { notIn: seenIds },
         last_activity_at: { gte: todayCutoff },
       },
@@ -152,7 +159,10 @@ export async function getEventFeed(
       select: LIST_SELECT,
     }),
     prisma.newsEvent.count({
-      where: { ...topicWhere, last_activity_at: { gte: todayCutoff } },
+      where: {
+        ...tenantWhere,
+        last_activity_at: { gte: todayCutoff },
+      },
     }),
   ]);
 
@@ -176,8 +186,15 @@ export async function getEventDetail(
   params: EventViewerScope & { event_id: string },
 ): Promise<EventDetail> {
   const record = await prisma.newsEvent.findFirst({
-    where: { OR: [{ id: params.event_id }, { slug: params.event_id }] },
-    select: { ...LIST_SELECT, analyzer: true, analyzed_at: true },
+    where: withTenantScope(params.tenant_id, {
+      OR: [{ id: params.event_id }, { slug: params.event_id }],
+    }),
+    select: {
+      ...LIST_SELECT,
+      analyzer: true,
+      analyzed_at: true,
+      manual_content: true,
+    },
   });
   if (!record) {
     throw new NotFoundError("events.not_found");
@@ -185,7 +202,7 @@ export async function getEventDetail(
 
   const [timeline, signals, follows] = await Promise.all([
     prisma.eventTimelineEntry.findMany({
-      where: { event_id: record.id },
+      where: withTenantScope(params.tenant_id, { event_id: record.id }),
       orderBy: { occurred_at: "asc" },
       select: {
         id: true,
@@ -198,7 +215,7 @@ export async function getEventDetail(
       },
     }),
     prisma.eventSignal.findMany({
-      where: { event_id: record.id },
+      where: withTenantScope(params.tenant_id, { event_id: record.id }),
       orderBy: { published_at: "desc" },
       select: {
         id: true,
@@ -222,12 +239,90 @@ export async function getEventDetail(
   });
 }
 
+/**
+ * 工作台改标题 / 摘要 / 主题。
+ *
+ * 打上 `manual_content` 后，采集刷新仍会更新热度、阶段和时间线，但不再覆盖文案。
+ */
+export async function updateEvent(
+  params: EventViewerScope & { event_id: string } & EventUpdateBody,
+): Promise<EventDetail> {
+  const existing = await prisma.newsEvent.findFirst({
+    where: withTenantScope(params.tenant_id, {
+      OR: [{ id: params.event_id }, { slug: params.event_id }],
+    }),
+    select: { id: true },
+  });
+  if (!existing) {
+    throw new NotFoundError("events.not_found");
+  }
+
+  const data: {
+    title?: string;
+    summary?: string;
+    topic?: EventTopic;
+    manual_content?: boolean;
+    analyzer?: string;
+  } = {};
+
+  if (params.title !== undefined) {
+    const title = params.title.trim();
+    if (!title) {
+      throw new ValidationError("events.title_required");
+    }
+    if (title.length > EVENT_TITLE_MAX_LENGTH) {
+      throw new ValidationError("events.title_too_long", {
+        max: EVENT_TITLE_MAX_LENGTH,
+      });
+    }
+    data.title = title;
+  }
+
+  if (params.summary !== undefined) {
+    if (params.summary.length > EVENT_SUMMARY_MAX_LENGTH) {
+      throw new ValidationError("events.summary_too_long", {
+        max: EVENT_SUMMARY_MAX_LENGTH,
+      });
+    }
+    data.summary = params.summary.trim();
+  }
+
+  if (params.topic !== undefined) {
+    if (!isEventTopic(params.topic)) {
+      throw new ValidationError("events.topic_invalid");
+    }
+    data.topic = params.topic;
+  }
+
+  if (Object.keys(data).length === 0) {
+    throw new ValidationError("events.update_empty");
+  }
+
+  if (data.title !== undefined || data.summary !== undefined) {
+    data.manual_content = true;
+    data.analyzer = "manual";
+  }
+
+  await prisma.newsEvent.update({
+    where: { id: existing.id },
+    data,
+  });
+
+  return getEventDetail({
+    tenant_id: params.tenant_id,
+    user_id: params.user_id,
+    event_id: existing.id,
+  });
+}
+
 /** 主题筛选条上的计数，只统计还「活着」的事件，避免陈年事件把数字撑大。 */
-export async function listTopicCounts(): Promise<EventTopicCount[]> {
+export async function listTopicCounts(
+  tenantId: string,
+): Promise<EventTopicCount[]> {
   const cutoff = new Date(Date.now() - TODAY_WINDOW_HOURS * 7 * HOUR_MS);
   const rows = await prisma.newsEvent.groupBy({
     by: ["topic"],
-    where: { last_activity_at: { gte: cutoff } },
+    where: withTenantScope(tenantId, { last_activity_at: { gte: cutoff } }),
     _count: { _all: true },
   });
 
@@ -242,7 +337,7 @@ async function buildListWhere(params: ListEventsParams) {
     ? await loadFollowedEventIds(params)
     : null;
 
-  return {
+  return withTenantScope(params.tenant_id, {
     ...(params.topic ? { topic: params.topic } : {}),
     ...(params.status ? { status: params.status } : {}),
     ...(followingIds ? { id: { in: followingIds } } : {}),
@@ -254,7 +349,7 @@ async function buildListWhere(params: ListEventsParams) {
           ],
         }
       : {}),
-  };
+  });
 }
 
 function buildOrderBy(sortBy?: string, sortDir?: "asc" | "desc") {
@@ -274,8 +369,7 @@ async function loadFollowedEventIds(scope: EventViewerScope): Promise<string[]> 
 /**
  * 一次性取回本页事件的关注状态。
  *
- * 关注是**租户态**数据（唯一一张带 tenant_id 的表），因此这里必须显式带上租户谓词——
- * 事件语料是全局的，但「谁关注了它」不是。
+ * 关注是站点 + 用户态数据，必须显式带上租户谓词。
  */
 async function loadFollowMarkers(
   scope: EventViewerScope,

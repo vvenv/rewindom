@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model EventFeed
- * 采集源（RSS/Atom 订阅或内置 connector 的一条配置）。全局。
+ * 采集源（RSS/Atom 订阅或内置 connector 的一条配置）。按站点隔离。
  */
 export type EventFeedModel = runtime.Types.Result.DefaultSelection<Prisma.$EventFeedPayload>
 
@@ -26,6 +26,7 @@ export type AggregateEventFeed = {
 
 export type EventFeedMinAggregateOutputType = {
   id: string | null
+  tenant_id: string | null
   connector: string | null
   name: string | null
   url: string | null
@@ -40,6 +41,7 @@ export type EventFeedMinAggregateOutputType = {
 
 export type EventFeedMaxAggregateOutputType = {
   id: string | null
+  tenant_id: string | null
   connector: string | null
   name: string | null
   url: string | null
@@ -54,6 +56,7 @@ export type EventFeedMaxAggregateOutputType = {
 
 export type EventFeedCountAggregateOutputType = {
   id: number
+  tenant_id: number
   connector: number
   name: number
   url: number
@@ -70,6 +73,7 @@ export type EventFeedCountAggregateOutputType = {
 
 export type EventFeedMinAggregateInputType = {
   id?: true
+  tenant_id?: true
   connector?: true
   name?: true
   url?: true
@@ -84,6 +88,7 @@ export type EventFeedMinAggregateInputType = {
 
 export type EventFeedMaxAggregateInputType = {
   id?: true
+  tenant_id?: true
   connector?: true
   name?: true
   url?: true
@@ -98,6 +103,7 @@ export type EventFeedMaxAggregateInputType = {
 
 export type EventFeedCountAggregateInputType = {
   id?: true
+  tenant_id?: true
   connector?: true
   name?: true
   url?: true
@@ -185,6 +191,7 @@ export type EventFeedGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 
 export type EventFeedGroupByOutputType = {
   id: string
+  tenant_id: string
   connector: string
   name: string
   url: string
@@ -220,6 +227,7 @@ export type EventFeedWhereInput = {
   OR?: Prisma.EventFeedWhereInput[]
   NOT?: Prisma.EventFeedWhereInput | Prisma.EventFeedWhereInput[]
   id?: Prisma.StringFilter<"EventFeed"> | string
+  tenant_id?: Prisma.StringFilter<"EventFeed"> | string
   connector?: Prisma.StringFilter<"EventFeed"> | string
   name?: Prisma.StringFilter<"EventFeed"> | string
   url?: Prisma.StringFilter<"EventFeed"> | string
@@ -234,6 +242,7 @@ export type EventFeedWhereInput = {
 
 export type EventFeedOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   name?: Prisma.SortOrder
   url?: Prisma.SortOrder
@@ -248,12 +257,14 @@ export type EventFeedOrderByWithRelationInput = {
 
 export type EventFeedWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  url?: string
+  tenant_id_url?: Prisma.EventFeedTenant_idUrlCompoundUniqueInput
   AND?: Prisma.EventFeedWhereInput | Prisma.EventFeedWhereInput[]
   OR?: Prisma.EventFeedWhereInput[]
   NOT?: Prisma.EventFeedWhereInput | Prisma.EventFeedWhereInput[]
+  tenant_id?: Prisma.StringFilter<"EventFeed"> | string
   connector?: Prisma.StringFilter<"EventFeed"> | string
   name?: Prisma.StringFilter<"EventFeed"> | string
+  url?: Prisma.StringFilter<"EventFeed"> | string
   source_kind?: Prisma.StringFilter<"EventFeed"> | string
   topic?: Prisma.StringFilter<"EventFeed"> | string
   enabled?: Prisma.BoolFilter<"EventFeed"> | boolean
@@ -261,10 +272,11 @@ export type EventFeedWhereUniqueInput = Prisma.AtLeast<{
   last_error?: Prisma.StringNullableFilter<"EventFeed"> | string | null
   created_at?: Prisma.DateTimeFilter<"EventFeed"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"EventFeed"> | Date | string
-}, "id" | "url">
+}, "id" | "tenant_id_url">
 
 export type EventFeedOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   name?: Prisma.SortOrder
   url?: Prisma.SortOrder
@@ -285,6 +297,7 @@ export type EventFeedScalarWhereWithAggregatesInput = {
   OR?: Prisma.EventFeedScalarWhereWithAggregatesInput[]
   NOT?: Prisma.EventFeedScalarWhereWithAggregatesInput | Prisma.EventFeedScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"EventFeed"> | string
+  tenant_id?: Prisma.StringWithAggregatesFilter<"EventFeed"> | string
   connector?: Prisma.StringWithAggregatesFilter<"EventFeed"> | string
   name?: Prisma.StringWithAggregatesFilter<"EventFeed"> | string
   url?: Prisma.StringWithAggregatesFilter<"EventFeed"> | string
@@ -299,6 +312,7 @@ export type EventFeedScalarWhereWithAggregatesInput = {
 
 export type EventFeedCreateInput = {
   id?: string
+  tenant_id: string
   connector: string
   name: string
   url: string
@@ -313,6 +327,7 @@ export type EventFeedCreateInput = {
 
 export type EventFeedUncheckedCreateInput = {
   id?: string
+  tenant_id: string
   connector: string
   name: string
   url: string
@@ -327,6 +342,7 @@ export type EventFeedUncheckedCreateInput = {
 
 export type EventFeedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   url?: Prisma.StringFieldUpdateOperationsInput | string
@@ -341,6 +357,7 @@ export type EventFeedUpdateInput = {
 
 export type EventFeedUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   url?: Prisma.StringFieldUpdateOperationsInput | string
@@ -355,6 +372,7 @@ export type EventFeedUncheckedUpdateInput = {
 
 export type EventFeedCreateManyInput = {
   id?: string
+  tenant_id: string
   connector: string
   name: string
   url: string
@@ -369,6 +387,7 @@ export type EventFeedCreateManyInput = {
 
 export type EventFeedUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   url?: Prisma.StringFieldUpdateOperationsInput | string
@@ -383,6 +402,7 @@ export type EventFeedUpdateManyMutationInput = {
 
 export type EventFeedUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   connector?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   url?: Prisma.StringFieldUpdateOperationsInput | string
@@ -395,8 +415,14 @@ export type EventFeedUncheckedUpdateManyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type EventFeedTenant_idUrlCompoundUniqueInput = {
+  tenant_id: string
+  url: string
+}
+
 export type EventFeedCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   name?: Prisma.SortOrder
   url?: Prisma.SortOrder
@@ -411,6 +437,7 @@ export type EventFeedCountOrderByAggregateInput = {
 
 export type EventFeedMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   name?: Prisma.SortOrder
   url?: Prisma.SortOrder
@@ -425,6 +452,7 @@ export type EventFeedMaxOrderByAggregateInput = {
 
 export type EventFeedMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   connector?: Prisma.SortOrder
   name?: Prisma.SortOrder
   url?: Prisma.SortOrder
@@ -441,6 +469,7 @@ export type EventFeedMinOrderByAggregateInput = {
 
 export type EventFeedSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  tenant_id?: boolean
   connector?: boolean
   name?: boolean
   url?: boolean
@@ -455,6 +484,7 @@ export type EventFeedSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
 
 export type EventFeedSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  tenant_id?: boolean
   connector?: boolean
   name?: boolean
   url?: boolean
@@ -469,6 +499,7 @@ export type EventFeedSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
 
 export type EventFeedSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  tenant_id?: boolean
   connector?: boolean
   name?: boolean
   url?: boolean
@@ -483,6 +514,7 @@ export type EventFeedSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
 
 export type EventFeedSelectScalar = {
   id?: boolean
+  tenant_id?: boolean
   connector?: boolean
   name?: boolean
   url?: boolean
@@ -495,13 +527,14 @@ export type EventFeedSelectScalar = {
   updated_at?: boolean
 }
 
-export type EventFeedOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "connector" | "name" | "url" | "source_kind" | "topic" | "enabled" | "last_fetched_at" | "last_error" | "created_at" | "updated_at", ExtArgs["result"]["eventFeed"]>
+export type EventFeedOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "connector" | "name" | "url" | "source_kind" | "topic" | "enabled" | "last_fetched_at" | "last_error" | "created_at" | "updated_at", ExtArgs["result"]["eventFeed"]>
 
 export type $EventFeedPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EventFeed"
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    tenant_id: string
     /**
      * connector 标识：hackernews | rss
      */
@@ -954,6 +987,7 @@ export interface Prisma__EventFeedClient<T, Null = never, ExtArgs extends runtim
  */
 export interface EventFeedFieldRefs {
   readonly id: Prisma.FieldRef<"EventFeed", 'String'>
+  readonly tenant_id: Prisma.FieldRef<"EventFeed", 'String'>
   readonly connector: Prisma.FieldRef<"EventFeed", 'String'>
   readonly name: Prisma.FieldRef<"EventFeed", 'String'>
   readonly url: Prisma.FieldRef<"EventFeed", 'String'>

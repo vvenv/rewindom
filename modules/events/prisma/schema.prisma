@@ -1,20 +1,19 @@
 // 外部模块的 Prisma schema——由 gen:external-modules 符号链接到
 // apps/server/prisma/models/events.prisma，汇入全局 schema。
 //
-// 归属口径：事件语料（Feed / Signal / Event / Timeline）是**全平台共享的一份**，
-// 在 tenant-guard 里登记为 kind: "global"——「互联网正在发生什么」对所有站点是同一件事，
-// 按租户复制既要重复抓取，也会让 AI 成本乘以租户数。
-// 唯一的租户态数据是 EventFollow：谁关注了哪个事件、看到哪儿了。
+// 归属口径：采集源、信号、事件、时间线都按站点隔离。各站点自管源与规则，
+// 官网公开面只展示本站语料。关注（EventFollow）仍然是站点 + 用户态。
 
-/// 采集源（RSS/Atom 订阅或内置 connector 的一条配置）。全局。
+/// 采集源（RSS/Atom 订阅或内置 connector 的一条配置）。按站点隔离。
 model EventFeed {
   id              String    @id @default(uuid())
+  tenant_id       String
   /// connector 标识：hackernews | rss
   connector       String
   /// 展示名，如 "Hacker News"、"OpenAI Blog"
   name            String
   /// RSS/Atom 地址；hackernews 这类内置 connector 填其 API 根地址（仅作唯一键）
-  url             String    @unique
+  url             String
   /// official | news | community —— 决定它在事件详情里被归到哪一组
   source_kind     String
   /// 该源默认归属的主题
@@ -26,12 +25,14 @@ model EventFeed {
   created_at      DateTime  @default(now())
   updated_at      DateTime  @updatedAt
 
-  @@index([enabled, last_fetched_at])
+  @@unique([tenant_id, url])
+  @@index([tenant_id, enabled, last_fetched_at])
 }
 
-/// 一条原始信号：某个源上的一篇帖子 / 一条新闻 / 一次发布公告。全局。
+/// 一条原始信号：某个源上的一篇帖子 / 一条新闻 / 一次发布公告。按站点隔离。
 model EventSignal {
   id            String    @id @default(uuid())
+  tenant_id     String
   connector     String
   /// 源内唯一 id（HN 的 item id、RSS 的 guid），与 connector 组成幂等键
   external_id   String
@@ -57,31 +58,32 @@ model EventSignal {
 
   /// 源自己的幂等键。够用但**不充分**：源会给同一篇文章换 guid（BBC 的 RSS guid
   /// 带 `#0`/`#1` 修订号，文章更新后同一篇会以新 guid 再出现一次）
-  @@unique([connector, external_id])
+  @@unique([tenant_id, connector, external_id])
   /// 信号的**真实身份**：同一来源的同一篇原文只该有一条信号。
   /// 没有它，一篇被源改过稿的文章会在事件时间线上占两格，内容一模一样。
   /// 刻意带上 source_name —— 不同来源指向同一篇原文是**合法且有价值**的
   ///（跨源印证正是靠 canonical_url 相等来合并事件的）
-  @@unique([connector, source_name, canonical_url])
+  @@unique([tenant_id, connector, source_name, canonical_url])
   @@index([event_id, published_at])
-  @@index([published_at(sort: Desc)])
-  @@index([canonical_url])
+  @@index([tenant_id, published_at(sort: Desc)])
+  @@index([tenant_id, canonical_url])
 }
 
-/// 由多条信号聚成的一个事件。全局。
+/// 由多条信号聚成的一个事件。按站点隔离。
 model NewsEvent {
-  id     String @id @default(uuid())
-  /// 稳定可读标识，详情页 URL 与去重都用它
-  slug   String @unique
+  id        String @id @default(uuid())
+  tenant_id String
+  /// 稳定可读标识，详情页 URL 与去重都用它；唯一约束含 tenant_id
+  slug      String
   /// 聚类指纹与 slug 都基于它
-  title  String
+  title     String
   /// 「发生了什么」——3~5 句
-  summary String @default("")
-  topic  String  @default("tech")
+  summary   String @default("")
+  topic     String @default("tech")
   /// developing | active | cooling | resolved
-  status String  @default("developing")
+  status    String @default("developing")
   /// 聚类指纹：由 tokens 排序拼接而成，唯一约束顺手承担了「同指纹即同事件」的去重
-  fingerprint String @unique
+  fingerprint String
   /// 立事件那条信号的标题词集合。新信号靠它算相似度决定并入还是另起一个事件；
   /// 刻意不随聚类扩张——否则词集会越滚越大，最后把所有事件吸成一个
   tokens      String[]
@@ -100,8 +102,10 @@ model NewsEvent {
   last_activity_at DateTime
   /// 最近一次跑分析器的时间；null 表示还没生成过摘要
   analyzed_at      DateTime?
-  /// heuristic | llm —— 当前摘要/时间线由哪种分析器产出
+  /// heuristic | llm | manual —— 当前摘要/时间线由哪种分析器产出；manual 表示人工改过
   analyzer         String    @default("heuristic")
+  /// 工作台改过标题或摘要后为 true：采集刷新仍更新热度与时间线，但不再覆盖文案
+  manual_content   Boolean   @default(false)
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -110,15 +114,18 @@ model NewsEvent {
   timeline EventTimelineEntry[]
   follows  EventFollow[]
 
-  @@index([status, last_activity_at(sort: Desc)])
-  @@index([topic, last_activity_at(sort: Desc)])
-  @@index([velocity_pct(sort: Desc)])
-  @@index([last_activity_at(sort: Desc)])
+  @@unique([tenant_id, slug])
+  @@unique([tenant_id, fingerprint])
+  @@index([tenant_id, status, last_activity_at(sort: Desc)])
+  @@index([tenant_id, topic, last_activity_at(sort: Desc)])
+  @@index([tenant_id, velocity_pct(sort: Desc)])
+  @@index([tenant_id, last_activity_at(sort: Desc)])
 }
 
-/// 事件时间线上的一格。全局。
+/// 事件时间线上的一格。随事件按站点隔离。
 model EventTimelineEntry {
   id          String   @id @default(uuid())
+  tenant_id   String
   event_id    String
   occurred_at DateTime
   /// 启发式分析器产出的稳定文案 code（客户端按 events ns 翻译）
@@ -136,9 +143,10 @@ model EventTimelineEntry {
 
   @@unique([event_id, signal_id])
   @@index([event_id, occurred_at])
+  @@index([tenant_id])
 }
 
-/// 用户对事件的关注。**唯一的租户态模型**。
+/// 用户对事件的关注。站点 + 用户态。
 model EventFollow {
   id        String @id @default(uuid())
   tenant_id String

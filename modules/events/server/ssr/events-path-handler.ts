@@ -62,7 +62,7 @@ async function renderIndex(
   input: SitePathHandlerInput,
   locale: AppLocale,
 ): Promise<string> {
-  const feed = await getPublicEventFeed();
+  const feed = await getPublicEventFeed(input.tenantId);
   const t = translator(locale);
 
   return renderEventsTemplatePage({
@@ -90,7 +90,7 @@ async function renderDetail(
   locale: AppLocale,
   slug: string,
 ): Promise<string | null> {
-  const detail = await getPublicEventBySlug(slug);
+  const detail = await getPublicEventBySlug(input.tenantId, slug);
   // 事件不存在 → 交回 404，而不是渲染一张空详情页
   if (!detail) {
     return null;

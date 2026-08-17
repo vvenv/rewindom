@@ -1,4 +1,4 @@
-import { EmptyState, PageLayout } from "@rewindom/module-sdk/client";
+import { EmptyState, PageLayout, usePermissions } from "@rewindom/module-sdk/client";
 import { Alert, AlertDescription } from "@rewindom/ui/alert";
 import { Badge } from "@rewindom/ui/badge";
 import { Button } from "@rewindom/ui/button";
@@ -8,6 +8,7 @@ import { ArrowLeft, Radar } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
+import { EventEditSheet } from "../components/EventEditSheet.js";
 import { EventSourceGroups } from "../components/EventSourceGroups.js";
 import { EventStatusBadge } from "../components/EventStatusBadge.js";
 import { EventTimeline } from "../components/EventTimeline.js";
@@ -24,6 +25,9 @@ import { useEventDetailPage } from "../hooks/useEventDetailPage.js";
  */
 export function EventDetail() {
   const { t } = useTranslation("events");
+  const { hasPermission } = usePermissions();
+  const canWrite = hasPermission("events.write");
+  const canFollow = hasPermission("events.follow");
   const { eventId, data, isLoading, isError, error, refetch } =
     useEventDetailPage();
 
@@ -33,11 +37,14 @@ export function EventDetail() {
       title={data?.title ?? t("title")}
       description={data ? (data.headline ?? t("pageDescription")) : ""}
       action={
-        data && eventId ? (
-          <FollowEventButton
-            eventId={data.id}
-            isFollowing={data.is_following}
-          />
+        data && eventId && (canWrite || canFollow) ? (
+          <div className="flex items-center gap-2">
+            {canWrite ? <EventEditSheet event={data} /> : null}
+            <FollowEventButton
+              eventId={data.id}
+              isFollowing={data.is_following}
+            />
+          </div>
         ) : null
       }
     >
@@ -98,9 +105,11 @@ export function EventDetail() {
                 )}
                 {/* 摘要出处必须写明：规则整理与 AI 生成对读者的可信度不同 */}
                 <p className="text-muted-foreground text-xs">
-                  {data.analyzer === "llm"
-                    ? t("detail.analyzerLlm")
-                    : t("detail.analyzerHeuristic")}
+                  {data.analyzer === "manual"
+                    ? t("detail.analyzerManual")
+                    : data.analyzer === "llm"
+                      ? t("detail.analyzerLlm")
+                      : t("detail.analyzerHeuristic")}
                 </p>
               </CardContent>
             </Card>

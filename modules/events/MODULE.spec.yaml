@@ -36,26 +36,34 @@ permissions:
       group: 事件雷达,
       description: 关注/取消关注事件，并标记已读进度,
     }
+  - {
+      key: events.write,
+      label: 管理事件,
+      group: 事件雷达,
+      description: 编辑事件文案，并配置本站采集源,
+    }
 
-# 归属口径：前四张表是**全平台共享的一份语料**（tenant-guard 里 kind: global），
-# 只有 EventFollow 带 tenant_id。理由见 MODULE.md「为什么事件不按站点隔离」。
+# 归属口径：采集源 / 信号 / 事件 / 时间线 / 关注全部按站点隔离。
+# 各站点自管源与规则；官网公开面只展示本站语料。
 models:
   - name: EventFeed
-    scope: global
+    scope: tenant
     fields:
       - { name: connector, type: String, required: true } # hackernews | rss
       - { name: name, type: String, required: true }
-      - { name: url, type: String, required: true, unique: true }
+      - { name: url, type: String, required: true }
       - { name: source_kind, type: String, required: true }
       - { name: topic, type: String, required: true, default: tech }
       - { name: enabled, type: Boolean, required: true, default: true }
       - { name: last_fetched_at, type: DateTime, required: false }
       - { name: last_error, type: String, required: false }
+    unique:
+      - [tenant_id, url]
     indexes:
-      - [enabled, last_fetched_at]
+      - [tenant_id, enabled, last_fetched_at]
 
   - name: EventSignal
-    scope: global
+    scope: tenant
     fields:
       - { name: connector, type: String, required: true }
       - { name: external_id, type: String, required: true }
@@ -73,25 +81,22 @@ models:
       - { name: fetched_at, type: DateTime, required: true }
       - { name: event_id, type: String, required: false }
     unique:
-      # 源自己的幂等键；不充分——源会给同一篇文章换 guid（BBC 的 `#0`/`#1` 修订号）
-      - [connector, external_id]
-      # 信号的真实身份：同一来源的同一篇原文只该有一条。
-      # source_name 必须在键里——不同来源指向同一篇原文是跨源印证的证据，要保留
-      - [connector, source_name, canonical_url]
+      - [tenant_id, connector, external_id]
+      - [tenant_id, connector, source_name, canonical_url]
     indexes:
       - [event_id, published_at]
-      - [published_at]
-      - [canonical_url]
+      - [tenant_id, published_at]
+      - [tenant_id, canonical_url]
 
   - name: NewsEvent
-    scope: global
+    scope: tenant
     fields:
-      - { name: slug, type: String, required: true, unique: true }
+      - { name: slug, type: String, required: true }
       - { name: title, type: String, required: true }
       - { name: summary, type: String, required: false, default: "" }
       - { name: topic, type: String, required: true, default: tech }
       - { name: status, type: String, required: true, default: developing }
-      - { name: fingerprint, type: String, required: true, unique: true }
+      - { name: fingerprint, type: String, required: true }
       - { name: tokens, type: String[], required: true }
       - { name: source_names, type: String[], required: true }
       - { name: signal_count, type: Int, required: true, default: 0 }
@@ -102,14 +107,18 @@ models:
       - { name: last_activity_at, type: DateTime, required: true }
       - { name: analyzed_at, type: DateTime, required: false }
       - { name: analyzer, type: String, required: true, default: heuristic }
+      - { name: manual_content, type: Boolean, required: true, default: false }
+    unique:
+      - [tenant_id, slug]
+      - [tenant_id, fingerprint]
     indexes:
-      - [status, last_activity_at]
-      - [topic, last_activity_at]
-      - [velocity_pct]
-      - [last_activity_at]
+      - [tenant_id, status, last_activity_at]
+      - [tenant_id, topic, last_activity_at]
+      - [tenant_id, velocity_pct]
+      - [tenant_id, last_activity_at]
 
   - name: EventTimelineEntry
-    scope: global
+    scope: tenant
     fields:
       - { name: event_id, type: String, required: true }
       - { name: occurred_at, type: DateTime, required: true }
@@ -123,6 +132,7 @@ models:
       - [event_id, signal_id]
     indexes:
       - [event_id, occurred_at]
+      - [tenant_id]
 
   - name: EventFollow
     scope: tenant
@@ -144,6 +154,11 @@ api:
     - { method: GET, path: /feed, permission: events.read }
     - { method: GET, path: /topics, permission: events.read }
     - { method: GET, path: /:eventId, permission: events.read }
+    - { method: PATCH, path: /:eventId, permission: events.write }
+    - { method: GET, path: /feeds, permission: events.read }
+    - { method: POST, path: /feeds, permission: events.write }
+    - { method: PATCH, path: /feeds/:feedId, permission: events.write }
+    - { method: DELETE, path: /feeds/:feedId, permission: events.write }
     - { method: GET, path: /follows/updates, permission: events.read }
     - { method: GET, path: /follows/:eventId, permission: events.read }
     - { method: POST, path: /follows/:eventId, permission: events.follow }
@@ -160,6 +175,7 @@ client:
   mount: renderRoutes
   route_path: /app/events
   detail_path: /app/events/:eventId
+  sources_path: /app/events/sources
   nav:
     section: events:nav.section
     label: events:nav.events
@@ -172,12 +188,16 @@ client:
 jobs:
   - id: events-ingest
     label: Event signal ingest
-    schedule: 每 EVENTS_INGEST_INTERVAL_MINUTES 分钟（默认 15），启动后 20s 跑第一轮
+    schedule: 每 EVENTS_INGEST_INTERVAL_MINUTES 分钟（默认 15），启动后 20s 跑第一轮；按站点各自抓取其采集源
 
 audit:
   actions:
     - { action: EVENT_FOLLOW, label: 关注事件 }
     - { action: EVENT_UNFOLLOW, label: 取消关注事件 }
+    - { action: EVENT_UPDATE, label: 编辑事件 }
+    - { action: EVENT_FEED_CREATE, label: 新增采集源 }
+    - { action: EVENT_FEED_UPDATE, label: 更新采集源 }
+    - { action: EVENT_FEED_DELETE, label: 删除采集源 }
 
 # 官网贡献（site-section skill）：定义在贡献方 shared/，marketing 内核不改
 site:

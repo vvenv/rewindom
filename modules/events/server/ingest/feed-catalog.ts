@@ -12,15 +12,17 @@ export interface FeedSeed {
  * 内置采集源目录。
  *
  * 一期只接 Hacker News 与 RSS/Atom 两个 connector（见 MVP §12：不追求全网）。
- * 这份清单在启动时 upsert 进 EventFeed —— **只新建，不覆盖**：运维在库里禁用或改过的源
- * 不会被下次启动重新打开。要加源，往库里插一行即可，不必改代码。
+ * 这份清单在站点还没有任何采集源时写入 EventFeed —— **只在空目录时新建**：
+ * 站点自己改过、关掉或换成别的源之后，不会被下一轮采集塞回来。
  */
+export const HACKER_NEWS_API_ROOT = "https://hacker-news.firebaseio.com/v0";
+
 export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   {
     connector: "hackernews",
     name: "Hacker News",
     // 内置 connector 不读这个地址，只是拿它当唯一键
-    url: "https://hacker-news.firebaseio.com/v0",
+    url: HACKER_NEWS_API_ROOT,
     source_kind: "community",
     topic: "tech",
   },

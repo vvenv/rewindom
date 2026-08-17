@@ -34,7 +34,7 @@ function registerEventsContextProvider(): void {
   registerSectionContextProvider({
     sectionTypes: [EVENTS_FEED_SECTION_TYPE],
     provide: async (input) => {
-      const feed = await getPublicEventFeed();
+      const feed = await getPublicEventFeed(input.tenantId);
       const t = (key: string, params?: Record<string, string | number>): string =>
         eventsMessage(input.locale, key, params);
 

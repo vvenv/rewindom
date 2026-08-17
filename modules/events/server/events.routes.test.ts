@@ -13,6 +13,7 @@ vi.mock("./event/event.service.js", () => ({
     .fn()
     .mockResolvedValue({ rising: [], now: [], today: [], today_total: 0 }),
   getEventDetail: vi.fn().mockResolvedValue({ id: "e1", title: "t" }),
+  updateEvent: vi.fn().mockResolvedValue({ id: "e1", title: "t" }),
   listTopicCounts: vi.fn().mockResolvedValue([]),
 }));
 
@@ -29,6 +30,7 @@ import { eventsRoutes } from "./events.routes.js";
 installTestPermissionCatalog([
   { key: "events.read", label: "查看事件", group: "事件雷达" },
   { key: "events.follow", label: "关注事件", group: "事件雷达" },
+  { key: "events.write", label: "管理事件", group: "事件雷达" },
 ]);
 
 describe("Events Routes 权限控制", () => {
@@ -37,6 +39,8 @@ describe("Events Routes 权限控制", () => {
   let systemAdmin: TestUser;
   /** 只有 events.read。 */
   let reader: TestUser;
+  /** read + write。 */
+  let writer: TestUser;
   /** 无任何权限。 */
   let outsider: TestUser;
 
@@ -49,9 +53,12 @@ describe("Events Routes 权限控制", () => {
       is_system_admin: true,
     });
     reader = await createTestUserFast(app, "reader", "password123");
+    writer = await createTestUserFast(app, "writer", "password123");
     outsider = await createTestUserFast(app, "outsider", "password123");
 
     await grantPermission(app, reader.id, "events.read");
+    await grantPermission(app, writer.id, "events.read");
+    await grantPermission(app, writer.id, "events.write");
   });
 
   afterAll(async () => {
@@ -126,5 +133,23 @@ describe("Events Routes 权限控制", () => {
     expect(getEventDetail).not.toHaveBeenCalledWith(
       expect.objectContaining({ event_id: "topics" }),
     );
+  });
+
+  it("PATCH /:eventId 需要 events.write", async () => {
+    const denied = await app.inject({
+      method: "PATCH",
+      url: "/api/events/e1",
+      payload: { title: "Edited" },
+      headers: authHeaders(reader),
+    });
+    expect(denied.statusCode).toBe(403);
+
+    const allowed = await app.inject({
+      method: "PATCH",
+      url: "/api/events/e1",
+      payload: { title: "Edited" },
+      headers: authHeaders(writer),
+    });
+    expect(allowed.statusCode).toBe(200);
   });
 });

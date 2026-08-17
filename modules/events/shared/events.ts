@@ -64,6 +64,21 @@ export function isEventSourceKind(value: unknown): value is EventSourceKind {
   );
 }
 
+/** 一期两个 connector。加源时选 rss 填地址即可；hackernews 用内置端点。 */
+export const EVENT_CONNECTORS = ["hackernews", "rss"] as const;
+export type EventConnectorId = (typeof EVENT_CONNECTORS)[number];
+
+export function isEventConnector(value: unknown): value is EventConnectorId {
+  return (
+    typeof value === "string" &&
+    (EVENT_CONNECTORS as readonly string[]).includes(value)
+  );
+}
+
+export const EVENT_TITLE_MAX_LENGTH = 300;
+export const EVENT_SUMMARY_MAX_LENGTH = 8_000;
+export const EVENT_FEED_NAME_MAX_LENGTH = 80;
+
 /** 列表卡片。刻意只放卡片要用的字段，不把 summary 全文带进列表。 */
 export interface EventListItem {
   id: string;
@@ -112,12 +127,46 @@ export interface EventSourceItem {
 export interface EventDetail extends EventListItem {
   /** 「发生了什么」全文 */
   summary: string;
-  /** heuristic | llm——界面上要能看出这段摘要是谁写的 */
+  /** heuristic | llm | manual——界面上要能看出这段摘要是谁写的 */
   analyzer: string;
   analyzed_at: string | null;
+  /** 工作台改过标题/摘要后为 true，采集刷新不再覆盖文案 */
+  manual_content: boolean;
   timeline: EventTimelineItem[];
   /** 按 source_kind 分组的来源证据 */
   sources: Record<EventSourceKind, EventSourceItem[]>;
+}
+
+export interface EventUpdateBody {
+  title?: string;
+  summary?: string;
+  topic?: EventTopic;
+}
+
+/** 本站的一条采集源（工作台配置面）。 */
+export interface EventFeedItem {
+  id: string;
+  connector: EventConnectorId;
+  name: string;
+  url: string;
+  source_kind: EventSourceKind;
+  topic: EventTopic;
+  enabled: boolean;
+  last_fetched_at: string | null;
+  last_error: string | null;
+}
+
+export interface EventFeedListResult {
+  items: EventFeedItem[];
+}
+
+export interface EventFeedWriteBody {
+  connector?: EventConnectorId;
+  name?: string;
+  url?: string;
+  source_kind?: EventSourceKind;
+  topic?: EventTopic;
+  enabled?: boolean;
 }
 
 export interface EventListResult {

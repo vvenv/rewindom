@@ -78,7 +78,11 @@ export interface SignalRecord {
 }
 
 export function toEventDetail(params: {
-  record: EventRecordForList & { analyzer: string; analyzed_at: Date | null };
+  record: EventRecordForList & {
+    analyzer: string;
+    analyzed_at: Date | null;
+    manual_content: boolean;
+  };
   timeline: TimelineRecord[];
   signals: SignalRecord[];
   follow?: FollowMarker | null;
@@ -89,6 +93,7 @@ export function toEventDetail(params: {
     summary: record.summary,
     analyzer: record.analyzer,
     analyzed_at: record.analyzed_at?.toISOString() ?? null,
+    manual_content: record.manual_content,
     timeline: params.timeline.map(toTimelineItem),
     sources: groupSources(params.signals),
   };

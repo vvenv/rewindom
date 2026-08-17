@@ -255,6 +255,7 @@ export type ErrorLogScalarFieldEnum = (typeof ErrorLogScalarFieldEnum)[keyof typ
 
 export const EventFeedScalarFieldEnum = {
   id: 'id',
+  tenant_id: 'tenant_id',
   connector: 'connector',
   name: 'name',
   url: 'url',
@@ -272,6 +273,7 @@ export type EventFeedScalarFieldEnum = (typeof EventFeedScalarFieldEnum)[keyof t
 
 export const EventSignalScalarFieldEnum = {
   id: 'id',
+  tenant_id: 'tenant_id',
   connector: 'connector',
   external_id: 'external_id',
   source_name: 'source_name',
@@ -296,6 +298,7 @@ export type EventSignalScalarFieldEnum = (typeof EventSignalScalarFieldEnum)[key
 
 export const NewsEventScalarFieldEnum = {
   id: 'id',
+  tenant_id: 'tenant_id',
   slug: 'slug',
   title: 'title',
   summary: 'summary',
@@ -312,6 +315,7 @@ export const NewsEventScalarFieldEnum = {
   last_activity_at: 'last_activity_at',
   analyzed_at: 'analyzed_at',
   analyzer: 'analyzer',
+  manual_content: 'manual_content',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -321,6 +325,7 @@ export type NewsEventScalarFieldEnum = (typeof NewsEventScalarFieldEnum)[keyof t
 
 export const EventTimelineEntryScalarFieldEnum = {
   id: 'id',
+  tenant_id: 'tenant_id',
   event_id: 'event_id',
   occurred_at: 'occurred_at',
   label_code: 'label_code',

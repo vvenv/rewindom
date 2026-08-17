@@ -41,6 +41,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
     summary: t("sample.event1.summary"),
     analyzer: "heuristic",
     analyzed_at: SAMPLE_UPDATED,
+    manual_content: false,
     timeline: [
       {
         id: "sample-t1",

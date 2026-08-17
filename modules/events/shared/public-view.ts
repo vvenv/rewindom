@@ -105,12 +105,16 @@ function toPublicTimelineItem(entry: EventTimelineItem, t: EventsTranslate) {
   };
 }
 
-/** 出处说明：这段摘要是规则整理的还是 AI 写的——两者对读者的可信度不同。 */
+/** 出处说明：这段摘要是规则整理的、AI 写的，还是站点编辑改过的。 */
 export function buildProvenanceNote(
   detail: EventDetail,
   t: EventsTranslate,
 ): string {
-  return detail.analyzer === "llm"
-    ? t("detail.analyzerLlm")
-    : t("detail.analyzerHeuristic");
+  if (detail.analyzer === "llm") {
+    return t("detail.analyzerLlm");
+  }
+  if (detail.analyzer === "manual") {
+    return t("detail.analyzerManual");
+  }
+  return t("detail.analyzerHeuristic");
 }

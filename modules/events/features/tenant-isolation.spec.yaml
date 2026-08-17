@@ -1,0 +1,82 @@
+# 事件语料按站点隔离；各站点自管采集源；工作台可人工改摘要。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 事件、信号、采集源按站点隔离；各站点可配置自己的采集源；工作台可人工编辑标题/摘要/主题，且采集刷新不再覆盖已改过的文案。
+gold: modules/note
+touch:
+  - modules/events/features/tenant-isolation.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/MODULE.spec.yaml
+  - modules/events/prisma/schema.prisma
+  - apps/server/prisma/migrations/20260817200000_events_tenant_scope/migration.sql
+  - eslint-rules/tenant-models.json
+  - packages/server-kernel/src/lib/tenant-guard.ts
+  - modules/events/shared/events.ts
+  - modules/events/shared/index.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/server/module.ts
+  - modules/events/server/i18n.ts
+  - modules/events/server/events.routes.ts
+  - modules/events/server/events.routes.test.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.mapper.test.ts
+  - modules/events/server/event/cluster.service.ts
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/event-refresh.service.test.ts
+  - modules/events/server/follow/follow.service.ts
+  - modules/events/server/ingest/ingest.service.ts
+  - modules/events/server/ingest/scheduler-jobs.ts
+  - modules/events/server/ingest/feed-catalog.ts
+  - modules/events/server/ingest/feed-seed.ts
+  - modules/events/server/ingest/excerpt-enrichment.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/server/feed/
+  - modules/events/client/module.tsx
+  - modules/events/client/tenant/routes.tsx
+  - modules/events/client/tenant/nav-sections.ts
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/pages/event-sources.tsx
+  - modules/events/client/hooks/
+  - modules/events/client/components/
+  - modules/events/client/lib/
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 跨站点共享语料 / 去重抓取
+  - 按站点覆盖分析器（仍走进程级 EVENTS_ANALYZER）
+  - 人工编辑时间线格子
+  - LLM 聚类
+  - 翻译
+  - 平台控制台
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: events
+permissions:
+  - {
+      key: events.write,
+      label: 管理事件,
+      group: 事件雷达,
+      description: 编辑事件文案，并配置本站采集源,
+    }
+models:
+  - name: EventFeed
+    scope: tenant
+  - name: EventSignal
+    scope: tenant
+  - name: NewsEvent
+    scope: tenant
+    fields:
+      - { name: manual_content, type: Boolean, required: true, default: false }
+  - name: EventTimelineEntry
+    scope: tenant

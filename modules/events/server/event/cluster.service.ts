@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { prisma } from "@rewindom/module-sdk/server";
+import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
 import { pickBestCluster } from "./cluster-match.js";
 import { buildEventSlug } from "./slug.js";
@@ -13,6 +13,7 @@ const CANDIDATE_LIMIT = 200;
 
 export interface ClusterableSignal {
   id: string;
+  tenant_id: string;
   title: string;
   topic: string;
   canonical_url: string;
@@ -24,6 +25,8 @@ export interface ClusterableSignal {
  *
  * 按时间升序处理：先到的信号先立事件，后到的才有机会并进来——
  * 反过来会让「后续报道」立事件、「原始公告」变成它的附属。
+ *
+ * 只在同一站点内聚类：不同站点即使抓到同一篇原文，也是各自的事件。
  */
 export async function clusterSignals(
   signals: readonly ClusterableSignal[],
@@ -51,11 +54,11 @@ async function resolveEventForSignal(
 ): Promise<string> {
   // 1. 同一篇原文已经归属过——URL 相等是最硬的证据，先于任何文本相似度
   const sibling = await prisma.eventSignal.findFirst({
-    where: {
+    where: withTenantScope(signal.tenant_id, {
       canonical_url: signal.canonical_url,
       event_id: { not: null },
       id: { not: signal.id },
-    },
+    }),
     select: { event_id: true },
   });
   if (sibling?.event_id) {
@@ -69,7 +72,10 @@ async function resolveEventForSignal(
     signal.published_at.getTime() - CANDIDATE_WINDOW_HOURS * 60 * 60 * 1000,
   );
   const candidates = await prisma.newsEvent.findMany({
-    where: { topic: signal.topic, last_activity_at: { gte: cutoff } },
+    where: withTenantScope(signal.tenant_id, {
+      topic: signal.topic,
+      last_activity_at: { gte: cutoff },
+    }),
     select: { id: true, tokens: true },
     orderBy: { last_activity_at: "desc" },
     take: CANDIDATE_LIMIT,
@@ -95,7 +101,12 @@ async function createEvent(
       : `${signal.topic}:signal:${signal.id}`;
 
   const existing = await prisma.newsEvent.findUnique({
-    where: { fingerprint },
+    where: {
+      tenant_id_fingerprint: {
+        tenant_id: signal.tenant_id,
+        fingerprint,
+      },
+    },
     select: { id: true },
   });
   if (existing) {
@@ -107,6 +118,7 @@ async function createEvent(
     const created = await prisma.newsEvent.create({
       data: {
         id,
+        tenant_id: signal.tenant_id,
         slug: buildEventSlug(signal.title, id),
         title: signal.title,
         topic: signal.topic,
@@ -123,7 +135,12 @@ async function createEvent(
   } catch (err) {
     // 并发采集下两个 worker 可能同时算出同一个指纹；唯一约束赢的那个就是答案
     const conflicted = await prisma.newsEvent.findUnique({
-      where: { fingerprint },
+      where: {
+        tenant_id_fingerprint: {
+          tenant_id: signal.tenant_id,
+          fingerprint,
+        },
+      },
       select: { id: true },
     });
     if (conflicted) {

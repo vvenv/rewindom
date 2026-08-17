@@ -51,7 +51,16 @@ async function refreshEvent(
 ): Promise<boolean> {
   const event = await prisma.newsEvent.findUnique({
     where: { id: eventId },
-    select: { id: true, topic: true, analyzed_at: true, analyzer: true },
+    select: {
+      id: true,
+      tenant_id: true,
+      topic: true,
+      title: true,
+      summary: true,
+      analyzer: true,
+      analyzed_at: true,
+      manual_content: true,
+    },
   });
   if (!event) {
     return false;
@@ -109,6 +118,17 @@ async function refreshEvent(
       )
     : null;
 
+  const content = analysis
+    ? resolveRefreshedContent({
+        manual_content: event.manual_content,
+        existing_title: event.title,
+        existing_summary: event.summary,
+        existing_analyzer: event.analyzer,
+        analysis,
+        fallback_title: pickEventTitle(signals.map((s) => s.title)),
+      })
+    : null;
+
   await prisma.$transaction([
     prisma.newsEvent.update({
       where: { id: eventId },
@@ -121,15 +141,11 @@ async function refreshEvent(
         source_names: sourceNames,
         first_seen_at: firstSeenAt,
         last_activity_at: lastActivityAt,
-        ...(analysis
+        ...(content
           ? {
-              // 分析器给不出标题时不要把已有标题覆盖成空串
-              title:
-                analysis.title.trim().length > 0
-                  ? analysis.title
-                  : pickEventTitle(signals.map((s) => s.title)),
-              summary: analysis.summary,
-              analyzer: analysis.analyzer,
+              title: content.title,
+              summary: content.summary,
+              analyzer: content.analyzer,
               analyzed_at: now,
             }
           : {}),
@@ -140,6 +156,7 @@ async function refreshEvent(
           prisma.eventTimelineEntry.deleteMany({ where: { event_id: eventId } }),
           prisma.eventTimelineEntry.createMany({
             data: analysis.timeline.map((entry) => ({
+              tenant_id: event.tenant_id,
               event_id: eventId,
               occurred_at: entry.occurred_at,
               label_code: entry.label_code,
@@ -174,6 +191,34 @@ function toAnalyzerSignal(signal: {
     source_name: signal.source_name,
     source_kind: signal.source_kind as EventSourceKind,
     published_at: signal.published_at,
+  };
+}
+
+/**
+ * 人工改过的标题/摘要必须保住。热度与时间线仍按信号重算，但文案以工作台为准。
+ */
+export function resolveRefreshedContent(params: {
+  manual_content: boolean;
+  existing_title: string;
+  existing_summary: string;
+  existing_analyzer: string;
+  analysis: { title: string; summary: string; analyzer: string };
+  fallback_title: string;
+}): { title: string; summary: string; analyzer: string } {
+  if (params.manual_content) {
+    return {
+      title: params.existing_title,
+      summary: params.existing_summary,
+      analyzer: params.existing_analyzer,
+    };
+  }
+  return {
+    title:
+      params.analysis.title.trim().length > 0
+        ? params.analysis.title
+        : params.fallback_title,
+    summary: params.analysis.summary,
+    analyzer: params.analysis.analyzer,
   };
 }
 

@@ -42,5 +42,9 @@
   "shopShipment": "tenant_id",
   "shopPayment": "tenant_id",
   "siteFormSubmission": "tenant_id",
-  "eventFollow": "tenant_id"
+  "eventFollow": "tenant_id",
+  "eventFeed": "tenant_id",
+  "eventSignal": "tenant_id",
+  "newsEvent": "tenant_id",
+  "eventTimelineEntry": "tenant_id"
 }

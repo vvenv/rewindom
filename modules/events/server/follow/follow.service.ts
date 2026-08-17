@@ -20,7 +20,7 @@ export interface FollowParams {
  * 那条提示会立刻失去意义。
  */
 export async function followEvent(params: FollowParams): Promise<EventFollowState> {
-  const event = await requireEvent(params.event_id);
+  const event = await requireEvent(params.tenant_id, params.event_id);
   const now = new Date();
 
   const record = await prisma.eventFollow.upsert({
@@ -46,7 +46,7 @@ export async function followEvent(params: FollowParams): Promise<EventFollowStat
 }
 
 export async function unfollowEvent(params: FollowParams): Promise<void> {
-  const event = await requireEvent(params.event_id);
+  const event = await requireEvent(params.tenant_id, params.event_id);
   await prisma.eventFollow.deleteMany({
     where: withTenantScope(params.tenant_id, {
       user_id: params.user_id,
@@ -62,7 +62,7 @@ export async function unfollowEvent(params: FollowParams): Promise<void> {
 export async function markEventSeen(
   params: FollowParams,
 ): Promise<EventFollowState> {
-  const event = await requireEvent(params.event_id);
+  const event = await requireEvent(params.tenant_id, params.event_id);
   const now = new Date();
 
   const updated = await prisma.eventFollow.updateMany({
@@ -82,7 +82,7 @@ export async function markEventSeen(
 export async function getFollowState(
   params: FollowParams,
 ): Promise<EventFollowState> {
-  const event = await requireEvent(params.event_id);
+  const event = await requireEvent(params.tenant_id, params.event_id);
   const record = await prisma.eventFollow.findFirst({
     where: withTenantScope(params.tenant_id, {
       user_id: params.user_id,
@@ -113,10 +113,13 @@ export async function countFollowUpdates(params: {
 
 /** slug 或 id 都能定位；顺便把事件不存在变成 404 而不是静默建一条悬空关注。 */
 async function requireEvent(
+  tenantId: string,
   eventId: string,
 ): Promise<{ id: string; last_activity_at: Date }> {
   const event = await prisma.newsEvent.findFirst({
-    where: { OR: [{ id: eventId }, { slug: eventId }] },
+    where: withTenantScope(tenantId, {
+      OR: [{ id: eventId }, { slug: eventId }],
+    }),
     select: { id: true, last_activity_at: true },
   });
   if (!event) {

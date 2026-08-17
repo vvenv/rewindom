@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model NewsEvent
- * 由多条信号聚成的一个事件。全局。
+ * 由多条信号聚成的一个事件。按站点隔离。
  */
 export type NewsEventModel = runtime.Types.Result.DefaultSelection<Prisma.$NewsEventPayload>
 
@@ -42,6 +42,7 @@ export type NewsEventSumAggregateOutputType = {
 
 export type NewsEventMinAggregateOutputType = {
   id: string | null
+  tenant_id: string | null
   slug: string | null
   title: string | null
   summary: string | null
@@ -56,12 +57,14 @@ export type NewsEventMinAggregateOutputType = {
   last_activity_at: Date | null
   analyzed_at: Date | null
   analyzer: string | null
+  manual_content: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
 
 export type NewsEventMaxAggregateOutputType = {
   id: string | null
+  tenant_id: string | null
   slug: string | null
   title: string | null
   summary: string | null
@@ -76,12 +79,14 @@ export type NewsEventMaxAggregateOutputType = {
   last_activity_at: Date | null
   analyzed_at: Date | null
   analyzer: string | null
+  manual_content: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
 
 export type NewsEventCountAggregateOutputType = {
   id: number
+  tenant_id: number
   slug: number
   title: number
   summary: number
@@ -98,6 +103,7 @@ export type NewsEventCountAggregateOutputType = {
   last_activity_at: number
   analyzed_at: number
   analyzer: number
+  manual_content: number
   created_at: number
   updated_at: number
   _all: number
@@ -120,6 +126,7 @@ export type NewsEventSumAggregateInputType = {
 
 export type NewsEventMinAggregateInputType = {
   id?: true
+  tenant_id?: true
   slug?: true
   title?: true
   summary?: true
@@ -134,12 +141,14 @@ export type NewsEventMinAggregateInputType = {
   last_activity_at?: true
   analyzed_at?: true
   analyzer?: true
+  manual_content?: true
   created_at?: true
   updated_at?: true
 }
 
 export type NewsEventMaxAggregateInputType = {
   id?: true
+  tenant_id?: true
   slug?: true
   title?: true
   summary?: true
@@ -154,12 +163,14 @@ export type NewsEventMaxAggregateInputType = {
   last_activity_at?: true
   analyzed_at?: true
   analyzer?: true
+  manual_content?: true
   created_at?: true
   updated_at?: true
 }
 
 export type NewsEventCountAggregateInputType = {
   id?: true
+  tenant_id?: true
   slug?: true
   title?: true
   summary?: true
@@ -176,6 +187,7 @@ export type NewsEventCountAggregateInputType = {
   last_activity_at?: true
   analyzed_at?: true
   analyzer?: true
+  manual_content?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -269,6 +281,7 @@ export type NewsEventGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 
 export type NewsEventGroupByOutputType = {
   id: string
+  tenant_id: string
   slug: string
   title: string
   summary: string
@@ -285,6 +298,7 @@ export type NewsEventGroupByOutputType = {
   last_activity_at: Date
   analyzed_at: Date | null
   analyzer: string
+  manual_content: boolean
   created_at: Date
   updated_at: Date
   _count: NewsEventCountAggregateOutputType | null
@@ -314,6 +328,7 @@ export type NewsEventWhereInput = {
   OR?: Prisma.NewsEventWhereInput[]
   NOT?: Prisma.NewsEventWhereInput | Prisma.NewsEventWhereInput[]
   id?: Prisma.StringFilter<"NewsEvent"> | string
+  tenant_id?: Prisma.StringFilter<"NewsEvent"> | string
   slug?: Prisma.StringFilter<"NewsEvent"> | string
   title?: Prisma.StringFilter<"NewsEvent"> | string
   summary?: Prisma.StringFilter<"NewsEvent"> | string
@@ -330,6 +345,7 @@ export type NewsEventWhereInput = {
   last_activity_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   analyzed_at?: Prisma.DateTimeNullableFilter<"NewsEvent"> | Date | string | null
   analyzer?: Prisma.StringFilter<"NewsEvent"> | string
+  manual_content?: Prisma.BoolFilter<"NewsEvent"> | boolean
   created_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   signals?: Prisma.EventSignalListRelationFilter
@@ -339,6 +355,7 @@ export type NewsEventWhereInput = {
 
 export type NewsEventOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -355,6 +372,7 @@ export type NewsEventOrderByWithRelationInput = {
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   analyzer?: Prisma.SortOrder
+  manual_content?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   signals?: Prisma.EventSignalOrderByRelationAggregateInput
@@ -364,15 +382,18 @@ export type NewsEventOrderByWithRelationInput = {
 
 export type NewsEventWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  slug?: string
-  fingerprint?: string
+  tenant_id_slug?: Prisma.NewsEventTenant_idSlugCompoundUniqueInput
+  tenant_id_fingerprint?: Prisma.NewsEventTenant_idFingerprintCompoundUniqueInput
   AND?: Prisma.NewsEventWhereInput | Prisma.NewsEventWhereInput[]
   OR?: Prisma.NewsEventWhereInput[]
   NOT?: Prisma.NewsEventWhereInput | Prisma.NewsEventWhereInput[]
+  tenant_id?: Prisma.StringFilter<"NewsEvent"> | string
+  slug?: Prisma.StringFilter<"NewsEvent"> | string
   title?: Prisma.StringFilter<"NewsEvent"> | string
   summary?: Prisma.StringFilter<"NewsEvent"> | string
   topic?: Prisma.StringFilter<"NewsEvent"> | string
   status?: Prisma.StringFilter<"NewsEvent"> | string
+  fingerprint?: Prisma.StringFilter<"NewsEvent"> | string
   tokens?: Prisma.StringNullableListFilter<"NewsEvent">
   source_names?: Prisma.StringNullableListFilter<"NewsEvent">
   signal_count?: Prisma.IntFilter<"NewsEvent"> | number
@@ -383,15 +404,17 @@ export type NewsEventWhereUniqueInput = Prisma.AtLeast<{
   last_activity_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   analyzed_at?: Prisma.DateTimeNullableFilter<"NewsEvent"> | Date | string | null
   analyzer?: Prisma.StringFilter<"NewsEvent"> | string
+  manual_content?: Prisma.BoolFilter<"NewsEvent"> | boolean
   created_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   signals?: Prisma.EventSignalListRelationFilter
   timeline?: Prisma.EventTimelineEntryListRelationFilter
   follows?: Prisma.EventFollowListRelationFilter
-}, "id" | "slug" | "fingerprint">
+}, "id" | "tenant_id_slug" | "tenant_id_fingerprint">
 
 export type NewsEventOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -408,6 +431,7 @@ export type NewsEventOrderByWithAggregationInput = {
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   analyzer?: Prisma.SortOrder
+  manual_content?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.NewsEventCountOrderByAggregateInput
@@ -422,6 +446,7 @@ export type NewsEventScalarWhereWithAggregatesInput = {
   OR?: Prisma.NewsEventScalarWhereWithAggregatesInput[]
   NOT?: Prisma.NewsEventScalarWhereWithAggregatesInput | Prisma.NewsEventScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
+  tenant_id?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   slug?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   title?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   summary?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
@@ -438,12 +463,14 @@ export type NewsEventScalarWhereWithAggregatesInput = {
   last_activity_at?: Prisma.DateTimeWithAggregatesFilter<"NewsEvent"> | Date | string
   analyzed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"NewsEvent"> | Date | string | null
   analyzer?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
+  manual_content?: Prisma.BoolWithAggregatesFilter<"NewsEvent"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"NewsEvent"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"NewsEvent"> | Date | string
 }
 
 export type NewsEventCreateInput = {
   id?: string
+  tenant_id: string
   slug: string
   title: string
   summary?: string
@@ -460,6 +487,7 @@ export type NewsEventCreateInput = {
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
+  manual_content?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalCreateNestedManyWithoutEventInput
@@ -469,6 +497,7 @@ export type NewsEventCreateInput = {
 
 export type NewsEventUncheckedCreateInput = {
   id?: string
+  tenant_id: string
   slug: string
   title: string
   summary?: string
@@ -485,6 +514,7 @@ export type NewsEventUncheckedCreateInput = {
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
+  manual_content?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalUncheckedCreateNestedManyWithoutEventInput
@@ -494,6 +524,7 @@ export type NewsEventUncheckedCreateInput = {
 
 export type NewsEventUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -510,6 +541,7 @@ export type NewsEventUpdateInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUpdateManyWithoutEventNestedInput
@@ -519,6 +551,7 @@ export type NewsEventUpdateInput = {
 
 export type NewsEventUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -535,6 +568,7 @@ export type NewsEventUncheckedUpdateInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUncheckedUpdateManyWithoutEventNestedInput
@@ -544,6 +578,7 @@ export type NewsEventUncheckedUpdateInput = {
 
 export type NewsEventCreateManyInput = {
   id?: string
+  tenant_id: string
   slug: string
   title: string
   summary?: string
@@ -560,12 +595,14 @@ export type NewsEventCreateManyInput = {
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
+  manual_content?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
 
 export type NewsEventUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -582,12 +619,14 @@ export type NewsEventUpdateManyMutationInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type NewsEventUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -604,6 +643,7 @@ export type NewsEventUncheckedUpdateManyInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -613,8 +653,19 @@ export type NewsEventNullableScalarRelationFilter = {
   isNot?: Prisma.NewsEventWhereInput | null
 }
 
+export type NewsEventTenant_idSlugCompoundUniqueInput = {
+  tenant_id: string
+  slug: string
+}
+
+export type NewsEventTenant_idFingerprintCompoundUniqueInput = {
+  tenant_id: string
+  fingerprint: string
+}
+
 export type NewsEventCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -631,6 +682,7 @@ export type NewsEventCountOrderByAggregateInput = {
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrder
   analyzer?: Prisma.SortOrder
+  manual_content?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -644,6 +696,7 @@ export type NewsEventAvgOrderByAggregateInput = {
 
 export type NewsEventMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -658,12 +711,14 @@ export type NewsEventMaxOrderByAggregateInput = {
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrder
   analyzer?: Prisma.SortOrder
+  manual_content?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
 export type NewsEventMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  tenant_id?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -678,6 +733,7 @@ export type NewsEventMinOrderByAggregateInput = {
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrder
   analyzer?: Prisma.SortOrder
+  manual_content?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -766,6 +822,7 @@ export type NewsEventUpdateOneRequiredWithoutFollowsNestedInput = {
 
 export type NewsEventCreateWithoutSignalsInput = {
   id?: string
+  tenant_id: string
   slug: string
   title: string
   summary?: string
@@ -782,6 +839,7 @@ export type NewsEventCreateWithoutSignalsInput = {
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
+  manual_content?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   timeline?: Prisma.EventTimelineEntryCreateNestedManyWithoutEventInput
@@ -790,6 +848,7 @@ export type NewsEventCreateWithoutSignalsInput = {
 
 export type NewsEventUncheckedCreateWithoutSignalsInput = {
   id?: string
+  tenant_id: string
   slug: string
   title: string
   summary?: string
@@ -806,6 +865,7 @@ export type NewsEventUncheckedCreateWithoutSignalsInput = {
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
+  manual_content?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   timeline?: Prisma.EventTimelineEntryUncheckedCreateNestedManyWithoutEventInput
@@ -830,6 +890,7 @@ export type NewsEventUpdateToOneWithWhereWithoutSignalsInput = {
 
 export type NewsEventUpdateWithoutSignalsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -846,6 +907,7 @@ export type NewsEventUpdateWithoutSignalsInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeline?: Prisma.EventTimelineEntryUpdateManyWithoutEventNestedInput
@@ -854,6 +916,7 @@ export type NewsEventUpdateWithoutSignalsInput = {
 
 export type NewsEventUncheckedUpdateWithoutSignalsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -870,6 +933,7 @@ export type NewsEventUncheckedUpdateWithoutSignalsInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeline?: Prisma.EventTimelineEntryUncheckedUpdateManyWithoutEventNestedInput
@@ -878,6 +942,7 @@ export type NewsEventUncheckedUpdateWithoutSignalsInput = {
 
 export type NewsEventCreateWithoutTimelineInput = {
   id?: string
+  tenant_id: string
   slug: string
   title: string
   summary?: string
@@ -894,6 +959,7 @@ export type NewsEventCreateWithoutTimelineInput = {
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
+  manual_content?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalCreateNestedManyWithoutEventInput
@@ -902,6 +968,7 @@ export type NewsEventCreateWithoutTimelineInput = {
 
 export type NewsEventUncheckedCreateWithoutTimelineInput = {
   id?: string
+  tenant_id: string
   slug: string
   title: string
   summary?: string
@@ -918,6 +985,7 @@ export type NewsEventUncheckedCreateWithoutTimelineInput = {
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
+  manual_content?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalUncheckedCreateNestedManyWithoutEventInput
@@ -942,6 +1010,7 @@ export type NewsEventUpdateToOneWithWhereWithoutTimelineInput = {
 
 export type NewsEventUpdateWithoutTimelineInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -958,6 +1027,7 @@ export type NewsEventUpdateWithoutTimelineInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUpdateManyWithoutEventNestedInput
@@ -966,6 +1036,7 @@ export type NewsEventUpdateWithoutTimelineInput = {
 
 export type NewsEventUncheckedUpdateWithoutTimelineInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -982,6 +1053,7 @@ export type NewsEventUncheckedUpdateWithoutTimelineInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUncheckedUpdateManyWithoutEventNestedInput
@@ -990,6 +1062,7 @@ export type NewsEventUncheckedUpdateWithoutTimelineInput = {
 
 export type NewsEventCreateWithoutFollowsInput = {
   id?: string
+  tenant_id: string
   slug: string
   title: string
   summary?: string
@@ -1006,6 +1079,7 @@ export type NewsEventCreateWithoutFollowsInput = {
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
+  manual_content?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalCreateNestedManyWithoutEventInput
@@ -1014,6 +1088,7 @@ export type NewsEventCreateWithoutFollowsInput = {
 
 export type NewsEventUncheckedCreateWithoutFollowsInput = {
   id?: string
+  tenant_id: string
   slug: string
   title: string
   summary?: string
@@ -1030,6 +1105,7 @@ export type NewsEventUncheckedCreateWithoutFollowsInput = {
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
+  manual_content?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalUncheckedCreateNestedManyWithoutEventInput
@@ -1054,6 +1130,7 @@ export type NewsEventUpdateToOneWithWhereWithoutFollowsInput = {
 
 export type NewsEventUpdateWithoutFollowsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1070,6 +1147,7 @@ export type NewsEventUpdateWithoutFollowsInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUpdateManyWithoutEventNestedInput
@@ -1078,6 +1156,7 @@ export type NewsEventUpdateWithoutFollowsInput = {
 
 export type NewsEventUncheckedUpdateWithoutFollowsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1094,6 +1173,7 @@ export type NewsEventUncheckedUpdateWithoutFollowsInput = {
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUncheckedUpdateManyWithoutEventNestedInput
@@ -1151,6 +1231,7 @@ export type NewsEventCountOutputTypeCountFollowsArgs<ExtArgs extends runtime.Typ
 
 export type NewsEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  tenant_id?: boolean
   slug?: boolean
   title?: boolean
   summary?: boolean
@@ -1167,6 +1248,7 @@ export type NewsEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   last_activity_at?: boolean
   analyzed_at?: boolean
   analyzer?: boolean
+  manual_content?: boolean
   created_at?: boolean
   updated_at?: boolean
   signals?: boolean | Prisma.NewsEvent$signalsArgs<ExtArgs>
@@ -1177,6 +1259,7 @@ export type NewsEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
 
 export type NewsEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  tenant_id?: boolean
   slug?: boolean
   title?: boolean
   summary?: boolean
@@ -1193,12 +1276,14 @@ export type NewsEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   last_activity_at?: boolean
   analyzed_at?: boolean
   analyzer?: boolean
+  manual_content?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["newsEvent"]>
 
 export type NewsEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  tenant_id?: boolean
   slug?: boolean
   title?: boolean
   summary?: boolean
@@ -1215,12 +1300,14 @@ export type NewsEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   last_activity_at?: boolean
   analyzed_at?: boolean
   analyzer?: boolean
+  manual_content?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["newsEvent"]>
 
 export type NewsEventSelectScalar = {
   id?: boolean
+  tenant_id?: boolean
   slug?: boolean
   title?: boolean
   summary?: boolean
@@ -1237,11 +1324,12 @@ export type NewsEventSelectScalar = {
   last_activity_at?: boolean
   analyzed_at?: boolean
   analyzer?: boolean
+  manual_content?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "title" | "summary" | "topic" | "status" | "fingerprint" | "tokens" | "source_names" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "analyzer" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
+export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "title" | "summary" | "topic" | "status" | "fingerprint" | "tokens" | "source_names" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "analyzer" | "manual_content" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
 export type NewsEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   signals?: boolean | Prisma.NewsEvent$signalsArgs<ExtArgs>
   timeline?: boolean | Prisma.NewsEvent$timelineArgs<ExtArgs>
@@ -1260,8 +1348,9 @@ export type $NewsEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    tenant_id: string
     /**
-     * 稳定可读标识，详情页 URL 与去重都用它
+     * 稳定可读标识，详情页 URL 与去重都用它；唯一约束含 tenant_id
      */
     slug: string
     /**
@@ -1310,9 +1399,13 @@ export type $NewsEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      */
     analyzed_at: Date | null
     /**
-     * heuristic | llm —— 当前摘要/时间线由哪种分析器产出
+     * heuristic | llm | manual —— 当前摘要/时间线由哪种分析器产出；manual 表示人工改过
      */
     analyzer: string
+    /**
+     * 工作台改过标题或摘要后为 true：采集刷新仍更新热度与时间线，但不再覆盖文案
+     */
+    manual_content: boolean
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["newsEvent"]>
@@ -1742,6 +1835,7 @@ export interface Prisma__NewsEventClient<T, Null = never, ExtArgs extends runtim
  */
 export interface NewsEventFieldRefs {
   readonly id: Prisma.FieldRef<"NewsEvent", 'String'>
+  readonly tenant_id: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly slug: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly title: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly summary: Prisma.FieldRef<"NewsEvent", 'String'>
@@ -1758,6 +1852,7 @@ export interface NewsEventFieldRefs {
   readonly last_activity_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly analyzed_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly analyzer: Prisma.FieldRef<"NewsEvent", 'String'>
+  readonly manual_content: Prisma.FieldRef<"NewsEvent", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
 }
