@@ -96,7 +96,7 @@ export const siteMemberServerModule: ServerAppModule = {
 
       /*
        * 会员的三张**页面**（不是接口）：登录、注册、我的账户。挂在根路径上，与官网
-       * SSR 同一条渲染管线。静态路径比 marketing 的 `/:first/:second` 更具体，
+       * SSR 同一条渲染管线。静态路径比 marketing 的 catch-all `/*` 更具体，
        * find-my-way 先命中这里；`/member/oauth/callback` 仍落到 SPA 兜底。
        */
       await app.register(memberAuthPageRoutes);

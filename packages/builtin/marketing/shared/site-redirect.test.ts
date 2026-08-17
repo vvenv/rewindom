@@ -7,9 +7,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  localizeRedirectLocation,
   normalizeRedirectFrom,
   normalizeRedirectTo,
   parseRedirectBody,
+  redirectLookupPaths,
 } from "./site-redirect.js";
 
 describe("来源路径", () => {
@@ -32,6 +34,16 @@ describe("来源路径", () => {
       "site.redirect_invalid",
     );
     expect(() => normalizeRedirectFrom("old")).toThrow("site.redirect_invalid");
+  });
+
+  it("语言前缀不参与匹配：/en/old 与 /old 是同一条规则", () => {
+    expect(normalizeRedirectFrom("/en/old")).toBe("/old");
+    expect(normalizeRedirectFrom("/en/old/")).toBe("/old");
+    expect(normalizeRedirectFrom("/zh-CN/pricing")).toBe("/pricing");
+  });
+
+  it("光一个语言前缀不当成首页——/en 在路由里是该语言的 /", () => {
+    expect(normalizeRedirectFrom("/en")).toBe("/en");
   });
 });
 
@@ -77,5 +89,40 @@ describe("parseRedirectBody", () => {
     expect(() =>
       parseRedirectBody({ from_path: "/a/", to_path: "/a" }),
     ).toThrow("site.redirect_self");
+    expect(() =>
+      parseRedirectBody({ from_path: "/en/old", to_path: "/old" }),
+    ).toThrow("site.redirect_self");
+  });
+});
+
+describe("redirectLookupPaths", () => {
+  it("顺带列出带着语言前缀的旧写法，接住库里还没规范化的记录", () => {
+    expect(redirectLookupPaths("/old")).toEqual([
+      "/old",
+      "/zh-CN/old",
+      "/en/old",
+    ]);
+  });
+
+  it("根路径没有语言变体可列", () => {
+    expect(redirectLookupPaths("/")).toEqual(["/"]);
+  });
+});
+
+describe("localizeRedirectLocation", () => {
+  it("带语言前缀进来的请求，站内目标也带上同一个前缀", () => {
+    expect(localizeRedirectLocation("/new", "en")).toBe("/en/new");
+    expect(localizeRedirectLocation("/", "en")).toBe("/en");
+  });
+
+  it("外链和已经带前缀的目标原样返回", () => {
+    expect(localizeRedirectLocation("https://b.example/x", "en")).toBe(
+      "https://b.example/x",
+    );
+    expect(localizeRedirectLocation("/en/new", "en")).toBe("/en/new");
+  });
+
+  it("默认语言（无前缀）不改写", () => {
+    expect(localizeRedirectLocation("/new", null)).toBe("/new");
   });
 });

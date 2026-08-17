@@ -68,7 +68,7 @@ export const siteBillingServerModule: ServerAppModule = {
 
       /*
        * 会员的账单**页面**（不是接口），挂在根路径上，与官网 SSR 同一条渲染管线。
-       * 静态路径比 marketing 的 `/:first/:second` 更具体，find-my-way 先命中这里。
+       * 静态路径比 marketing 的 catch-all `/*` 更具体，find-my-way 先命中这里。
        */
       await app.register(memberBillingPageRoutes);
 

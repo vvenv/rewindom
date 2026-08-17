@@ -315,7 +315,7 @@ async function handleSubmit(
 /**
  * 挂在**根路径**上（不带 `/api` 前缀）：它是页面，不是接口。
  *
- * 静态路径比 marketing SSR 的 `/:first/:second` 更具体，find-my-way 先命中这里。
+ * 静态路径比 marketing SSR 的 catch-all `/*` 更具体，find-my-way 先命中这里。
  */
 export async function memberAccountPageRoutes(
   app: FastifyInstance,

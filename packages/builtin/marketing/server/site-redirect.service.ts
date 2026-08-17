@@ -12,6 +12,7 @@ import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import {
   normalizeRedirectFrom,
   parseRedirectBody,
+  redirectLookupPaths,
   type SiteRedirect,
 } from "../shared/site-redirect.js";
 
@@ -52,7 +53,9 @@ export async function findSiteRedirect(
     return null;
   }
   const row = await prisma.marketingRedirect.findFirst({
-    where: withTenantScope(tenant_id, { from_path }),
+    where: withTenantScope(tenant_id, {
+      from_path: { in: redirectLookupPaths(from_path) },
+    }),
   });
   return row ? toSiteRedirect(row) : null;
 }

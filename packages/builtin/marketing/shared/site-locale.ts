@@ -107,6 +107,33 @@ export function parseSiteLocalePath(
 }
 
 /**
+ * Marketing SSR 入口把 URL 拆成「逻辑路径 + 可选语言」。
+ *
+ * 与 `parseSiteLocalePath` 的差别：没有站点默认语言时，无前缀地址的 locale 是
+ * `null`（交给后面按站点配置填），而不是猜一个默认值。末尾斜杠在这里就剥掉，
+ * 这样 `/old/` 与 `/old` 走进同一条渲染 / 重定向查找。
+ */
+export function parseMarketingSsrPath(pathname: string): {
+  logicalPath: string;
+  locale: AppLocale | null;
+} {
+  const normalized = normalizeSitePath(pathname.split(/[?#]/u)[0] ?? pathname);
+  if (normalized === "/") {
+    return { logicalPath: "/", locale: null };
+  }
+  const segments = normalized.slice(1).split("/");
+  const locale = resolveLocaleSegment(segments[0] ?? "");
+  if (!locale) {
+    return { logicalPath: normalized, locale: null };
+  }
+  const rest = segments.slice(1);
+  return {
+    locale,
+    logicalPath: rest.length === 0 ? "/" : `/${rest.join("/")}`,
+  };
+}
+
+/**
  * 逻辑路径 → 该语言下的实际 URL。
  *
  * 站点默认语言不带前缀，避免同一份内容出现 `/about` 与 `/zh-CN/about` 两个入口。

@@ -15,11 +15,9 @@ import {
   NOT_FOUND_PATH,
 } from "../shared/page-templates.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
-import {
-  isSpaShellPath,
-  resolveLocaleSegment,
-} from "../shared/site-locale.js";
+import { isSpaShellPath, parseMarketingSsrPath } from "../shared/site-locale.js";
 import { matchSitePathHandler } from "../shared/site-path-handlers.js";
+import { localizeRedirectLocation } from "../shared/site-redirect.js";
 
 import {
   cookiesFromHeader,
@@ -71,6 +69,22 @@ function sendHtml(
     .header("content-type", "text/html; charset=utf-8")
     .header("cache-control", cacheControl)
     .send(html);
+}
+
+async function sendSiteRedirect(
+  reply: FastifyReply,
+  tenantId: string,
+  path: string,
+  locale: AppLocale | null,
+): Promise<boolean> {
+  const redirect = await findSiteRedirect(tenantId, path);
+  if (!redirect) return false;
+  const location = localizeRedirectLocation(redirect.to_path, locale);
+  void reply
+    // 301 会被浏览器长期缓存，别再让中间层多缓存一层：改规则时要能立刻生效
+    .header("cache-control", "no-store")
+    .redirect(location, redirect.status_code);
+  return true;
 }
 
 function flattenQuery(query: unknown): Record<string, string> {
@@ -291,6 +305,9 @@ async function renderLogicalPath(
     });
     if (html === null) {
       if (homeRewrite) return false;
+      if (await sendSiteRedirect(reply, hostTenant.tenant_id, path, locale)) {
+        return true;
+      }
       await renderNotFound(request, reply, hostTenant, locale);
       return true;
     }
@@ -312,14 +329,7 @@ async function renderLogicalPath(
      * 反过来（重定向优先）的话，租户后来又建了一个同名页就永远打不开——而那种错很难
      * 联想到是几个月前加的一条重定向造成的。重定向本来就是给「曾经存在的路径」用的。
      */
-    const redirect = await findSiteRedirect(hostTenant.tenant_id, path);
-    if (redirect) {
-      void reply
-        .status(redirect.status_code)
-        .header("location", redirect.to_path)
-        // 301 会被浏览器长期缓存，别再让中间层多缓存一层：改规则时要能立刻生效
-        .header("cache-control", "no-store")
-        .send();
+    if (await sendSiteRedirect(reply, hostTenant.tenant_id, path, locale)) {
       return true;
     }
 
@@ -439,70 +449,20 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
     await renderPath(request, reply, "/");
   });
 
-  /* ------------------------------------------------------ 其余语言（前缀树） */
-
   /*
-   * 一级参数路由同时承担两件事：`/{locale}` 与 `/{slug}`。
+   * 一条 catch-all 接所有其余公开地址。以前按段数挂 `/:first` / `/:first/:second` /
+   * `/:first/:second/:third`：超过三段（`/en/docs/guide/intro`）和末尾斜杠
+   * （`/old/`）都进不了渲染，重定向也没机会跑，直接掉到 JSON 404。
    *
-   * 两者在 URL 上是同一个位置，只能靠取值区分——所以 locale 的 slug 必须占住
-   * `RESERVED_PAGE_SLUGS`（见 shared/reserved-slugs.ts），否则一个叫 `en` 的顶层页
-   * 会把整棵 `/en/*` 遮住。贡献路径（`/docs/*` 等）由 `renderPath` 问 path handler
-   * 表；`/sitemap.xml` / `/robots.txt` 由 Fastify 静态路由优先匹配，都不会落到这里。
+   * `/*` 在 find-my-way 里优先级最低，静态路径（`/member/login`、`/sitemap.xml`）
+   * 和参数路径（`/shop/:slug`）仍然先命中。locale 的 slug 必须占住
+   * `RESERVED_PAGE_SLUGS`，否则一个叫 `en` 的顶层页会把整棵 `/en/*` 遮住。
    */
-  app.get("/:first", async (request, reply) => {
-    const { first } = request.params as { first: string };
-    const locale = resolveLocaleSegment(first);
-    if (locale) {
-      // `/{locale}` = 该语言的首页
-      await renderPath(request, reply, "/", locale);
-      return;
-    }
-    if (isSpaShellPath(`/${first}`)) {
+  app.get("/*", async (request, reply) => {
+    const { logicalPath, locale } = parseMarketingSsrPath(request.url);
+    if (isSpaShellPath(logicalPath)) {
       return reply.callNotFound();
     }
-    await renderPath(request, reply, `/${first}`);
-  });
-
-  app.get("/:first/:second", async (request, reply) => {
-    const { first, second } = request.params as {
-      first: string;
-      second: string;
-    };
-    const locale = resolveLocaleSegment(first);
-    if (locale) {
-      const logical = `/${second}`;
-      if (isSpaShellPath(logical)) {
-        return reply.callNotFound();
-      }
-      await renderPath(request, reply, logical, locale);
-      return;
-    }
-    // 非 locale 的两级路径：应用区交回 SPA，其余当租户嵌套页或贡献路径
-    const logical = `/${first}/${second}`;
-    if (isSpaShellPath(`/${first}`)) {
-      return reply.callNotFound();
-    }
-    await renderPath(request, reply, logical);
-  });
-
-  app.get("/:first/:second/:third", async (request, reply) => {
-    const { first, second, third } = request.params as {
-      first: string;
-      second: string;
-      third: string;
-    };
-    const locale = resolveLocaleSegment(first);
-    if (locale) {
-      const logical = `/${second}/${third}`;
-      if (isSpaShellPath(logical)) {
-        return reply.callNotFound();
-      }
-      await renderPath(request, reply, logical, locale);
-      return;
-    }
-    if (isSpaShellPath(`/${first}`)) {
-      return reply.callNotFound();
-    }
-    await renderPath(request, reply, `/${first}/${second}/${third}`);
+    await renderPath(request, reply, logicalPath, locale);
   });
 }

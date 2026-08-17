@@ -904,7 +904,7 @@
     "title": "Redirects",
     "pageDescription": "Point old URLs at new ones so inbound links and rankings survive.",
     "create": "New redirect",
-    "createHint": "Source must be a site path; target can be a site path or a full http(s) URL.",
+    "createHint": "Source is a site path (a language prefix like /en is stripped; trailing slashes don't matter). Target can be a site path or a full http(s) URL.",
     "from": "From",
     "to": "To",
     "type": "Type",

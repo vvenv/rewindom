@@ -38,8 +38,9 @@ describe("findSiteRedirect", () => {
     await findSiteRedirect(TENANT, "/old/?utm=1");
 
     const where = vi.mocked(prisma.marketingRedirect.findFirst).mock
-      .calls[0]![0]!.where as { from_path: string };
-    expect(where.from_path).toBe("/old");
+      .calls[0]![0]!.where as { from_path: { in: string[] } };
+    expect(where.from_path.in).toContain("/old");
+    expect(where.from_path.in).toContain("/en/old");
   });
 
   it("路径本身非法（不是站内路径）时不查库，直接算未命中", async () => {
@@ -62,6 +63,20 @@ describe("findSiteRedirect", () => {
 
     expect(found?.to_path).toBe("/new");
     expect(prisma.marketingRedirect.findFirst).toHaveBeenCalledTimes(1);
+  });
+
+  it("请求 /old 也能命中库里仍写成 /en/old 的旧记录", async () => {
+    vi.mocked(prisma.marketingRedirect.findFirst).mockResolvedValue({
+      ...row,
+      from_path: "/en/old",
+    } as never);
+
+    const found = await findSiteRedirect(TENANT, "/old");
+
+    expect(found?.from_path).toBe("/en/old");
+    const where = vi.mocked(prisma.marketingRedirect.findFirst).mock
+      .calls[0]![0]!.where as { from_path: { in: string[] } };
+    expect(where.from_path.in).toEqual(["/old", "/zh-CN/old", "/en/old"]);
   });
 });
 

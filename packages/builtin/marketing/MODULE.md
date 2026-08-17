@@ -993,9 +993,13 @@ logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
 
 访客访问一个地址时的顺序是**页面 → 重定向 → 404**：
 
-1. `getPublishedPublicPage` 找到已发布页 → 正常渲染
-2. 没找到 → 查 `MarketingRedirect`（精确匹配 `from_path`），命中就 301/302
+1. 贡献路径（`/docs`、`/events`…）或 `getPublishedPublicPage` 找到已发布内容 → 正常渲染
+2. 没找到（含贡献路径返回 `null`）→ 查 `MarketingRedirect`（精确匹配逻辑路径），命中就 301/302
 3. 还没有 → `not_found` 模板页（已发布的那张），没有就用内置兜底页
+
+SSR 入口是一条 `/*` catch-all（加精确的 `/`）：末尾斜杠、`/{locale}/…` 前缀、超过三段的旧
+URL 都会先规范化再查。来源写成 `/en/old` 或 `/old/` 与 `/old` 是同一条规则。带语言前缀
+进来的请求，站内目标也会带上同一个前缀，避免人掉回默认语言。
 
 **顺序不能反。** 让重定向抢在真实页面前面的话，租户后来又建了同名页就永远打不开
 ——而那种错很难联想到是几个月前加的一条重定向造成的。
@@ -1019,7 +1023,8 @@ logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
 （跟站点语言走）。打开官网卡片时，没有这张模板的会快照落库；slug 为 `404` 的普通页
 升成这个 kind；还没有必备段的 404 页整页换成当前预设。
 
-用例见 `shared/site-redirect.test.ts`、`server/site-redirect.service.test.ts`。
+用例见 `shared/site-redirect.test.ts`、`server/site-redirect.service.test.ts`、
+`server/ssr-catch-all.test.ts`。
 
 ## SEO meta
 

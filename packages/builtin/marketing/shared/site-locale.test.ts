@@ -4,6 +4,7 @@ import {
   isSiteLocalizableHref,
   localizeSiteHref,
   isMarketingPublicPath,
+  parseMarketingSsrPath,
   parseSiteLocalePath,
   registerLocalizableAppHref,
   resetLocalizableAppHrefs,
@@ -67,6 +68,44 @@ describe("parseSiteLocalePath", () => {
   it("normalises trailing slashes", () => {
     expect(parseSiteLocalePath("/en/about/", "zh-CN").path).toBe("/about");
     expect(parseSiteLocalePath("/", "zh-CN").path).toBe("/");
+  });
+});
+
+describe("parseMarketingSsrPath", () => {
+  it("strips trailing slashes so /old/ and /old are the same request", () => {
+    expect(parseMarketingSsrPath("/old/")).toEqual({
+      logicalPath: "/old",
+      locale: null,
+    });
+    expect(parseMarketingSsrPath("/old")).toEqual({
+      logicalPath: "/old",
+      locale: null,
+    });
+  });
+
+  it("peels an explicit locale prefix and keeps the rest as the logical path", () => {
+    expect(parseMarketingSsrPath("/en/old")).toEqual({
+      logicalPath: "/old",
+      locale: "en",
+    });
+    expect(parseMarketingSsrPath("/en/docs/guide/intro")).toEqual({
+      logicalPath: "/docs/guide/intro",
+      locale: "en",
+    });
+  });
+
+  it("treats a bare locale segment as that language's home", () => {
+    expect(parseMarketingSsrPath("/en")).toEqual({
+      logicalPath: "/",
+      locale: "en",
+    });
+  });
+
+  it("leaves unprefixed paths without guessing a locale", () => {
+    expect(parseMarketingSsrPath("/about")).toEqual({
+      logicalPath: "/about",
+      locale: null,
+    });
   });
 });
 

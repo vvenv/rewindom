@@ -8,7 +8,7 @@
  * 2. **认证是入口，不该依赖 bundle**。表单是真 `<form method="post">`：没有 JS 也
  *    登录得了。只有平台开了滑块验证码时才需要 JS（拖动没有无 JS 的等价物）。
  *
- * 路由是**静态**的（`/member/login`），比 marketing SSR 的 `/:first/:second` 更具体，
+ * 路由是**静态**的（`/member/login`），比 marketing SSR 的 catch-all `/*` 更具体，
  * find-my-way 优先匹配到这里。账户页同一条链路，在 `member-account.ssr.ts`；
  * `/member/oauth/callback` 没有版式可言，仍落到 SPA 兜底。
  */
