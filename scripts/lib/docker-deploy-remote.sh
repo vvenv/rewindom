@@ -41,8 +41,9 @@ docker_render_host_nginx_proxy() {
   cat <<NGINX
 # rewindom-docker-managed
 server {
-    listen 80;
-    # 平台主域 + 通配子域（{slug}.${domain}）；证书需含 *.${domain}
+    listen 80 default_server;
+    # 平台主域 + 通配子域；default_server 让 custom_domain 在扩证前也能打到应用。
+    # 证书需含 *.${domain}；客户自有域另签 / 扩证（见 docs/custom-domain.md）。
     server_name ${domain} *.${domain};
 
     client_max_body_size 100m;
