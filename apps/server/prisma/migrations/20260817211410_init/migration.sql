@@ -127,6 +127,106 @@ CREATE TABLE "ErrorLog" (
 );
 
 -- CreateTable
+CREATE TABLE "EventFeed" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "connector" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "source_kind" TEXT NOT NULL,
+    "topic" TEXT NOT NULL DEFAULT 'tech',
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "last_fetched_at" TIMESTAMP(3),
+    "last_error" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EventFeed_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "EventSignal" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "connector" TEXT NOT NULL,
+    "external_id" TEXT NOT NULL,
+    "source_name" TEXT NOT NULL,
+    "source_kind" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "canonical_url" TEXT NOT NULL,
+    "excerpt" TEXT NOT NULL DEFAULT '',
+    "author" TEXT,
+    "topic" TEXT NOT NULL DEFAULT 'tech',
+    "score" INTEGER NOT NULL DEFAULT 0,
+    "comment_count" INTEGER NOT NULL DEFAULT 0,
+    "published_at" TIMESTAMP(3) NOT NULL,
+    "fetched_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "event_id" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EventSignal_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "NewsEvent" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "summary" TEXT NOT NULL DEFAULT '',
+    "topic" TEXT NOT NULL DEFAULT 'tech',
+    "status" TEXT NOT NULL DEFAULT 'developing',
+    "fingerprint" TEXT NOT NULL,
+    "tokens" TEXT[],
+    "source_names" TEXT[],
+    "signal_count" INTEGER NOT NULL DEFAULT 0,
+    "source_count" INTEGER NOT NULL DEFAULT 0,
+    "heat_score" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "velocity_pct" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "first_seen_at" TIMESTAMP(3) NOT NULL,
+    "last_activity_at" TIMESTAMP(3) NOT NULL,
+    "analyzed_at" TIMESTAMP(3),
+    "analyzer" TEXT NOT NULL DEFAULT 'heuristic',
+    "manual_content" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "NewsEvent_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "EventTimelineEntry" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "event_id" TEXT NOT NULL,
+    "occurred_at" TIMESTAMP(3) NOT NULL,
+    "label_code" TEXT,
+    "label_text" TEXT,
+    "source_kind" TEXT NOT NULL,
+    "source_name" TEXT NOT NULL DEFAULT '',
+    "signal_id" TEXT,
+    "url" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "EventTimelineEntry_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "EventFollow" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "event_id" TEXT NOT NULL,
+    "last_seen_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EventFollow_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "RefreshToken" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
@@ -230,6 +330,7 @@ CREATE TABLE "MarketingSite" (
     "nav_draft_json" JSONB NOT NULL DEFAULT '[]',
     "footer_draft_json" JSONB NOT NULL DEFAULT '[]',
     "published" BOOLEAN NOT NULL DEFAULT false,
+    "home_path" TEXT NOT NULL DEFAULT '/',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -258,22 +359,6 @@ CREATE TABLE "MarketingPage" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "MarketingPage_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "MarketingFormSubmission" (
-    "id" TEXT NOT NULL,
-    "tenant_id" TEXT NOT NULL,
-    "page_slug" TEXT NOT NULL,
-    "page_locale" TEXT NOT NULL,
-    "section_id" TEXT NOT NULL,
-    "form_title" TEXT NOT NULL DEFAULT '',
-    "data" JSONB NOT NULL DEFAULT '[]',
-    "ip" TEXT NOT NULL DEFAULT '',
-    "user_agent" TEXT NOT NULL DEFAULT '',
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "MarketingFormSubmission_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -319,42 +404,6 @@ CREATE TABLE "MarketingPageVersion" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "MarketingPageVersion_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "MarketingDocCategory" (
-    "id" TEXT NOT NULL,
-    "tenant_id" TEXT NOT NULL,
-    "key" TEXT NOT NULL,
-    "label" JSONB NOT NULL,
-    "sort_order" INTEGER NOT NULL DEFAULT 0,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "MarketingDocCategory_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "MarketingDoc" (
-    "id" TEXT NOT NULL,
-    "tenant_id" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "locale" TEXT NOT NULL DEFAULT 'zh-CN',
-    "title" TEXT NOT NULL,
-    "description" TEXT NOT NULL DEFAULT '',
-    "body_md" TEXT NOT NULL DEFAULT '',
-    "category" TEXT NOT NULL DEFAULT '',
-    "sort_order" INTEGER NOT NULL DEFAULT 0,
-    "status" TEXT NOT NULL DEFAULT 'draft',
-    "title_draft" TEXT NOT NULL,
-    "description_draft" TEXT NOT NULL DEFAULT '',
-    "body_md_draft" TEXT NOT NULL DEFAULT '',
-    "category_draft" TEXT NOT NULL DEFAULT '',
-    "sort_order_draft" INTEGER NOT NULL DEFAULT 0,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "MarketingDoc_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -506,7 +555,16 @@ CREATE TABLE "ShopProduct" (
     "slug" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'draft',
     "title" JSONB NOT NULL,
+    "subtitle" JSONB,
     "description" JSONB,
+    "images" JSONB NOT NULL DEFAULT '[]',
+    "product_type" TEXT,
+    "vendor" TEXT,
+    "tags" JSONB NOT NULL DEFAULT '[]',
+    "seo_title" JSONB,
+    "seo_description" JSONB,
+    "options" JSONB NOT NULL DEFAULT '[]',
+    "published_at" TIMESTAMP(3),
     "created_by" TEXT NOT NULL,
     "updated_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -516,18 +574,76 @@ CREATE TABLE "ShopProduct" (
 );
 
 -- CreateTable
+CREATE TABLE "ShopCollection" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'draft',
+    "title" JSONB NOT NULL,
+    "description" JSONB,
+    "seo_title" JSONB,
+    "seo_description" JSONB,
+    "image_url" TEXT,
+    "parent_id" TEXT,
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "published_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ShopCollection_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ShopCollectionProduct" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "collection_id" TEXT NOT NULL,
+    "product_id" TEXT NOT NULL,
+    "position" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ShopCollectionProduct_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ShopDiscount" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "value" INTEGER NOT NULL,
+    "min_subtotal_cents" INTEGER NOT NULL DEFAULT 0,
+    "max_uses" INTEGER,
+    "used_count" INTEGER NOT NULL DEFAULT 0,
+    "starts_at" TIMESTAMP(3),
+    "ends_at" TIMESTAMP(3),
+    "status" TEXT NOT NULL DEFAULT 'draft',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ShopDiscount_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "ShopVariant" (
     "id" TEXT NOT NULL,
     "tenant_id" TEXT NOT NULL,
     "product_id" TEXT NOT NULL,
     "sku" TEXT NOT NULL,
     "title" JSONB,
+    "option_values" JSONB NOT NULL DEFAULT '{}',
     "price_cents" INTEGER NOT NULL,
+    "compare_at_price_cents" INTEGER,
     "currency" TEXT NOT NULL DEFAULT 'USD',
     "stock_qty" INTEGER NOT NULL DEFAULT 0,
     "weight_g" INTEGER NOT NULL DEFAULT 0,
+    "barcode" TEXT,
     "hs_code" TEXT,
     "origin_country" TEXT,
+    "inventory_policy" TEXT NOT NULL DEFAULT 'deny',
+    "track_inventory" BOOLEAN NOT NULL DEFAULT true,
+    "requires_shipping" BOOLEAN NOT NULL DEFAULT true,
+    "taxable" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -541,6 +657,7 @@ CREATE TABLE "ShopCart" (
     "member_id" TEXT,
     "guest_token" TEXT,
     "currency" TEXT NOT NULL DEFAULT 'USD',
+    "discount_code" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -608,6 +725,9 @@ CREATE TABLE "ShopOrder" (
     "shipping_rate_name" TEXT,
     "carrier_code" TEXT,
     "stripe_checkout_session_id" TEXT,
+    "note" TEXT,
+    "discount_code" TEXT,
+    "discount_cents" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "paid_at" TIMESTAMP(3),
@@ -725,6 +845,58 @@ CREATE TABLE "MemberPayment" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "MemberPayment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SiteDocCategory" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "label" JSONB NOT NULL,
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SiteDocCategory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SiteDoc" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "locale" TEXT NOT NULL DEFAULT 'zh-CN',
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL DEFAULT '',
+    "body_md" TEXT NOT NULL DEFAULT '',
+    "category" TEXT NOT NULL DEFAULT '',
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'draft',
+    "title_draft" TEXT NOT NULL,
+    "description_draft" TEXT NOT NULL DEFAULT '',
+    "body_md_draft" TEXT NOT NULL DEFAULT '',
+    "category_draft" TEXT NOT NULL DEFAULT '',
+    "sort_order_draft" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SiteDoc_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SiteFormSubmission" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "page_slug" TEXT NOT NULL,
+    "page_locale" TEXT NOT NULL,
+    "section_id" TEXT NOT NULL,
+    "form_title" TEXT NOT NULL DEFAULT '',
+    "data" JSONB NOT NULL DEFAULT '[]',
+    "ip" TEXT NOT NULL DEFAULT '',
+    "user_agent" TEXT NOT NULL DEFAULT '',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SiteFormSubmission_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -885,6 +1057,63 @@ CREATE INDEX "ErrorLog_error_code_idx" ON "ErrorLog"("error_code");
 CREATE INDEX "ErrorLog_request_body_idx" ON "ErrorLog" USING GIN ("request_body" jsonb_path_ops);
 
 -- CreateIndex
+CREATE INDEX "EventFeed_tenant_id_enabled_last_fetched_at_idx" ON "EventFeed"("tenant_id", "enabled", "last_fetched_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EventFeed_tenant_id_url_key" ON "EventFeed"("tenant_id", "url");
+
+-- CreateIndex
+CREATE INDEX "EventSignal_event_id_published_at_idx" ON "EventSignal"("event_id", "published_at");
+
+-- CreateIndex
+CREATE INDEX "EventSignal_tenant_id_published_at_idx" ON "EventSignal"("tenant_id", "published_at" DESC);
+
+-- CreateIndex
+CREATE INDEX "EventSignal_tenant_id_canonical_url_idx" ON "EventSignal"("tenant_id", "canonical_url");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EventSignal_tenant_id_connector_external_id_key" ON "EventSignal"("tenant_id", "connector", "external_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EventSignal_tenant_id_connector_source_name_canonical_url_key" ON "EventSignal"("tenant_id", "connector", "source_name", "canonical_url");
+
+-- CreateIndex
+CREATE INDEX "NewsEvent_tenant_id_status_last_activity_at_idx" ON "NewsEvent"("tenant_id", "status", "last_activity_at" DESC);
+
+-- CreateIndex
+CREATE INDEX "NewsEvent_tenant_id_topic_last_activity_at_idx" ON "NewsEvent"("tenant_id", "topic", "last_activity_at" DESC);
+
+-- CreateIndex
+CREATE INDEX "NewsEvent_tenant_id_velocity_pct_idx" ON "NewsEvent"("tenant_id", "velocity_pct" DESC);
+
+-- CreateIndex
+CREATE INDEX "NewsEvent_tenant_id_last_activity_at_idx" ON "NewsEvent"("tenant_id", "last_activity_at" DESC);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "NewsEvent_tenant_id_slug_key" ON "NewsEvent"("tenant_id", "slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "NewsEvent_tenant_id_fingerprint_key" ON "NewsEvent"("tenant_id", "fingerprint");
+
+-- CreateIndex
+CREATE INDEX "EventTimelineEntry_event_id_occurred_at_idx" ON "EventTimelineEntry"("event_id", "occurred_at");
+
+-- CreateIndex
+CREATE INDEX "EventTimelineEntry_tenant_id_idx" ON "EventTimelineEntry"("tenant_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EventTimelineEntry_event_id_signal_id_key" ON "EventTimelineEntry"("event_id", "signal_id");
+
+-- CreateIndex
+CREATE INDEX "EventFollow_tenant_id_user_id_idx" ON "EventFollow"("tenant_id", "user_id");
+
+-- CreateIndex
+CREATE INDEX "EventFollow_event_id_idx" ON "EventFollow"("event_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EventFollow_tenant_id_user_id_event_id_key" ON "EventFollow"("tenant_id", "user_id", "event_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "RefreshToken_token_key" ON "RefreshToken"("token");
 
 -- CreateIndex
@@ -930,12 +1159,6 @@ CREATE INDEX "MarketingPage_tenant_id_status_kind_idx" ON "MarketingPage"("tenan
 CREATE UNIQUE INDEX "MarketingPage_tenant_id_slug_locale_key" ON "MarketingPage"("tenant_id", "slug", "locale");
 
 -- CreateIndex
-CREATE INDEX "MarketingFormSubmission_tenant_id_created_at_idx" ON "MarketingFormSubmission"("tenant_id", "created_at");
-
--- CreateIndex
-CREATE INDEX "MarketingFormSubmission_tenant_id_section_id_idx" ON "MarketingFormSubmission"("tenant_id", "section_id");
-
--- CreateIndex
 CREATE INDEX "MarketingRedirect_tenant_id_idx" ON "MarketingRedirect"("tenant_id");
 
 -- CreateIndex
@@ -952,24 +1175,6 @@ CREATE INDEX "MarketingPageVersion_tenant_id_page_id_created_at_idx" ON "Marketi
 
 -- CreateIndex
 CREATE UNIQUE INDEX "MarketingPageVersion_tenant_id_page_id_version_key" ON "MarketingPageVersion"("tenant_id", "page_id", "version");
-
--- CreateIndex
-CREATE INDEX "MarketingDocCategory_tenant_id_sort_order_idx" ON "MarketingDocCategory"("tenant_id", "sort_order");
-
--- CreateIndex
-CREATE UNIQUE INDEX "MarketingDocCategory_tenant_id_key_key" ON "MarketingDocCategory"("tenant_id", "key");
-
--- CreateIndex
-CREATE INDEX "MarketingDoc_tenant_id_idx" ON "MarketingDoc"("tenant_id");
-
--- CreateIndex
-CREATE INDEX "MarketingDoc_tenant_id_status_idx" ON "MarketingDoc"("tenant_id", "status");
-
--- CreateIndex
-CREATE INDEX "MarketingDoc_tenant_id_category_sort_order_idx" ON "MarketingDoc"("tenant_id", "category", "sort_order");
-
--- CreateIndex
-CREATE UNIQUE INDEX "MarketingDoc_tenant_id_slug_locale_key" ON "MarketingDoc"("tenant_id", "slug", "locale");
 
 -- CreateIndex
 CREATE INDEX "Note_tenant_id_idx" ON "Note"("tenant_id");
@@ -1036,6 +1241,30 @@ CREATE INDEX "ShopProduct_tenant_id_status_updated_at_idx" ON "ShopProduct"("ten
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ShopProduct_tenant_id_slug_key" ON "ShopProduct"("tenant_id", "slug");
+
+-- CreateIndex
+CREATE INDEX "ShopCollection_tenant_id_status_updated_at_idx" ON "ShopCollection"("tenant_id", "status", "updated_at");
+
+-- CreateIndex
+CREATE INDEX "ShopCollection_tenant_id_parent_id_sort_order_idx" ON "ShopCollection"("tenant_id", "parent_id", "sort_order");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ShopCollection_tenant_id_slug_key" ON "ShopCollection"("tenant_id", "slug");
+
+-- CreateIndex
+CREATE INDEX "ShopCollectionProduct_tenant_id_collection_id_position_idx" ON "ShopCollectionProduct"("tenant_id", "collection_id", "position");
+
+-- CreateIndex
+CREATE INDEX "ShopCollectionProduct_tenant_id_product_id_idx" ON "ShopCollectionProduct"("tenant_id", "product_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ShopCollectionProduct_tenant_id_collection_id_product_id_key" ON "ShopCollectionProduct"("tenant_id", "collection_id", "product_id");
+
+-- CreateIndex
+CREATE INDEX "ShopDiscount_tenant_id_status_updated_at_idx" ON "ShopDiscount"("tenant_id", "status", "updated_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ShopDiscount_tenant_id_code_key" ON "ShopDiscount"("tenant_id", "code");
 
 -- CreateIndex
 CREATE INDEX "ShopVariant_tenant_id_product_id_idx" ON "ShopVariant"("tenant_id", "product_id");
@@ -1113,6 +1342,30 @@ CREATE INDEX "MemberPayment_tenant_id_created_at_idx" ON "MemberPayment"("tenant
 CREATE UNIQUE INDEX "MemberPayment_tenant_id_provider_provider_order_id_key" ON "MemberPayment"("tenant_id", "provider", "provider_order_id");
 
 -- CreateIndex
+CREATE INDEX "SiteDocCategory_tenant_id_sort_order_idx" ON "SiteDocCategory"("tenant_id", "sort_order");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SiteDocCategory_tenant_id_key_key" ON "SiteDocCategory"("tenant_id", "key");
+
+-- CreateIndex
+CREATE INDEX "SiteDoc_tenant_id_idx" ON "SiteDoc"("tenant_id");
+
+-- CreateIndex
+CREATE INDEX "SiteDoc_tenant_id_status_idx" ON "SiteDoc"("tenant_id", "status");
+
+-- CreateIndex
+CREATE INDEX "SiteDoc_tenant_id_category_sort_order_idx" ON "SiteDoc"("tenant_id", "category", "sort_order");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SiteDoc_tenant_id_slug_locale_key" ON "SiteDoc"("tenant_id", "slug", "locale");
+
+-- CreateIndex
+CREATE INDEX "SiteFormSubmission_tenant_id_created_at_idx" ON "SiteFormSubmission"("tenant_id", "created_at");
+
+-- CreateIndex
+CREATE INDEX "SiteFormSubmission_tenant_id_section_id_idx" ON "SiteFormSubmission"("tenant_id", "section_id");
+
+-- CreateIndex
 CREATE INDEX "SiteMember_tenant_id_idx" ON "SiteMember"("tenant_id");
 
 -- CreateIndex
@@ -1176,6 +1429,15 @@ ALTER TABLE "BackgroundJob" ADD CONSTRAINT "BackgroundJob_user_id_fkey" FOREIGN 
 ALTER TABLE "DashboardPreference" ADD CONSTRAINT "DashboardPreference_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "EventSignal" ADD CONSTRAINT "EventSignal_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "NewsEvent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EventTimelineEntry" ADD CONSTRAINT "EventTimelineEntry_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "NewsEvent"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EventFollow" ADD CONSTRAINT "EventFollow_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "NewsEvent"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1213,6 +1475,15 @@ ALTER TABLE "UserRole" ADD CONSTRAINT "UserRole_user_id_fkey" FOREIGN KEY ("user
 
 -- AddForeignKey
 ALTER TABLE "UserRole" ADD CONSTRAINT "UserRole_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ShopCollection" ADD CONSTRAINT "ShopCollection_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "ShopCollection"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ShopCollectionProduct" ADD CONSTRAINT "ShopCollectionProduct_collection_id_fkey" FOREIGN KEY ("collection_id") REFERENCES "ShopCollection"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ShopCollectionProduct" ADD CONSTRAINT "ShopCollectionProduct_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "ShopProduct"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ShopVariant" ADD CONSTRAINT "ShopVariant_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "ShopProduct"("id") ON DELETE CASCADE ON UPDATE CASCADE;
