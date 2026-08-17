@@ -35,13 +35,12 @@ const EVENT_SORTABLE_FIELDS = new Set([
 ]);
 
 const HOUR_MS = 60 * 60 * 1000;
-/** 「今天」按滚动 24 小时算，不按自然日——用户在任何时区打开看到的都是同一批事件。 */
-const TODAY_WINDOW_HOURS = 24;
-const RISING_WINDOW_HOURS = 24;
-const NOW_WINDOW_HOURS = 12;
+/** 「正在发生」按滚动 24 小时算，不按自然日——用户在任何时区打开看到的都是同一批事件。 */
+const LIVE_WINDOW_HOURS = 24;
+const RISING_WINDOW_HOURS = LIVE_WINDOW_HOURS;
+const NOW_WINDOW_HOURS = LIVE_WINDOW_HOURS;
 const RISING_LIMIT = 5;
-const NOW_LIMIT = 6;
-const TODAY_LIMIT = 10;
+const NOW_LIMIT = 10;
 
 const LIST_SELECT = {
   id: true,
@@ -107,11 +106,11 @@ export async function listEvents(
 }
 
 /**
- * 首页三个区块一次取回。
+ * 首页两个区块一次取回。
  *
- * 分三次请求会让首屏出现三段各自 loading 的骨架；而这三段本来就是同一个问题的
- * 三种切法（MVP §14：打开 10 秒就知道今天有什么事在发生）。
- * Now 排除 Rising、Today 再排除前两者，同一个事件不会在一屏里出现三次。
+ * 分两次请求会让首屏出现两段各自 loading 的骨架；而这两段本来就是同一个问题的
+ * 两种切法：Rising 看正在变，Now 看还在发生。Now 排除 Rising，同一个事件不会在
+ * 一屏里出现两次。
  */
 export async function getEventFeed(
   params: EventViewerScope & { topic?: EventTopic },
@@ -145,30 +144,9 @@ export async function getEventFeed(
     select: LIST_SELECT,
   });
 
-  const todayCutoff = new Date(now - TODAY_WINDOW_HOURS * HOUR_MS);
-  const seenIds = [...risingIds, ...nowEvents.map((event) => event.id)];
-  const [today, todayTotal] = await Promise.all([
-    prisma.newsEvent.findMany({
-      where: {
-        ...tenantWhere,
-        id: { notIn: seenIds },
-        last_activity_at: { gte: todayCutoff },
-      },
-      orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
-      take: TODAY_LIMIT,
-      select: LIST_SELECT,
-    }),
-    prisma.newsEvent.count({
-      where: {
-        ...tenantWhere,
-        last_activity_at: { gte: todayCutoff },
-      },
-    }),
-  ]);
-
   const follows = await loadFollowMarkers(params, [
-    ...seenIds,
-    ...today.map((event) => event.id),
+    ...risingIds,
+    ...nowEvents.map((event) => event.id),
   ]);
   const map = (records: typeof rising): EventListItem[] =>
     records.map((record) => toEventListItem(record, follows.get(record.id) ?? null));
@@ -176,8 +154,6 @@ export async function getEventFeed(
   return {
     rising: map(rising),
     now: map(nowEvents),
-    today: map(today),
-    today_total: todayTotal,
   };
 }
 
@@ -319,7 +295,7 @@ export async function updateEvent(
 export async function listTopicCounts(
   tenantId: string,
 ): Promise<EventTopicCount[]> {
-  const cutoff = new Date(Date.now() - TODAY_WINDOW_HOURS * 7 * HOUR_MS);
+  const cutoff = new Date(Date.now() - 7 * 24 * HOUR_MS);
   const rows = await prisma.newsEvent.groupBy({
     by: ["topic"],
     where: withTenantScope(tenantId, { last_activity_at: { gte: cutoff } }),

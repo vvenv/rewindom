@@ -5,17 +5,15 @@ import { EventCard } from "./EventCard.js";
 
 import type { EventListItem } from "../../shared/index.js";
 
-/** 首页的一个区块（Rising / Now / Today）。标题与说明由调用方给，组件只管排版。 */
+/** 首页的一个区块（Rising / Now）。标题与说明由调用方给，组件只管排版。 */
 export function EventFeedSection({
   title,
   hint,
-  meta,
   events,
   emptyLabel,
 }: {
   title: string;
   hint: string;
-  meta?: string;
   events: EventListItem[];
   emptyLabel: string;
 }) {
@@ -24,9 +22,6 @@ export function EventFeedSection({
       <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h2 className="text-sm font-semibold tracking-wide uppercase">{title}</h2>
         <p className="text-muted-foreground text-xs">{hint}</p>
-        {meta ? (
-          <span className="text-muted-foreground ml-auto text-xs">{meta}</span>
-        ) : null}
       </header>
       {events.length === 0 ? (
         <EmptyState icon={Radar} size="panel" title={emptyLabel} />

@@ -19,7 +19,7 @@ import { isEventStatus, isEventTopic } from "../../shared/index.js";
 
 import type { EventStatus, EventTopic } from "../../shared/index.js";
 
-/** 探索视图（三个区块）与全量列表视图。URL 上留痕，刷新不丢。 */
+/** 探索视图（两个区块）与全量列表视图。URL 上留痕，刷新不丢。 */
 export type EventsView = "feed" | "all";
 
 export function useEventsPage() {

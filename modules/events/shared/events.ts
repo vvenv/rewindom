@@ -33,8 +33,8 @@ export type EventTopic = (typeof EVENT_TOPICS)[number];
 export const EVENT_SOURCE_KINDS = ["official", "news", "community"] as const;
 export type EventSourceKind = (typeof EVENT_SOURCE_KINDS)[number];
 
-/** 首页三个区块。MVP §14：Rising 看变化，Now 看正在发生，Today 看今天全量。 */
-export const EVENT_FEED_TABS = ["rising", "now", "today"] as const;
+/** 首页两个区块。Rising 看正在变，Now 看还在发生。 */
+export const EVENT_FEED_TABS = ["rising", "now"] as const;
 export type EventFeedTab = (typeof EVENT_FEED_TABS)[number];
 
 export function isEventTopic(value: unknown): value is EventTopic {
@@ -55,6 +55,19 @@ export function isEventFeedTab(value: unknown): value is EventFeedTab {
     typeof value === "string" &&
     (EVENT_FEED_TABS as readonly string[]).includes(value)
   );
+}
+
+/**
+ * 读入口：存量 `today` 并入 `now`。
+ *
+ * Today 曾经是 24h 全状态；Now 窗口已扩到 24h，仍只要 developing / active。
+ * 库里的段设置和 `?source=today` 不能凭空失效。
+ */
+export function parseEventFeedTab(value: unknown): EventFeedTab | undefined {
+  if (value === "today") {
+    return "now";
+  }
+  return isEventFeedTab(value) ? value : undefined;
 }
 
 export function isEventSourceKind(value: unknown): value is EventSourceKind {
@@ -177,13 +190,10 @@ export interface EventListResult {
   page_count: number;
 }
 
-/** 首页一次取回三个区块，避免开三个请求各自 loading。 */
+/** 首页一次取回两个区块，避免开两个请求各自 loading。 */
 export interface EventFeedResult {
   rising: EventListItem[];
   now: EventListItem[];
-  today: EventListItem[];
-  /** 今天出现过动静的事件总数——首页「TODAY / 12 events」那一行 */
-  today_total: number;
 }
 
 export interface EventTopicCount {

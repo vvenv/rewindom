@@ -28,9 +28,9 @@ import type { SitemapEntry } from "@rewindom/builtin/marketing/server/site.servi
  */
 
 const HOUR_MS = 60 * 60 * 1000;
-const TODAY_WINDOW_HOURS = 24;
-const RISING_WINDOW_HOURS = 24;
-const NOW_WINDOW_HOURS = 12;
+const LIVE_WINDOW_HOURS = 24;
+const RISING_WINDOW_HOURS = LIVE_WINDOW_HOURS;
+const NOW_WINDOW_HOURS = LIVE_WINDOW_HOURS;
 
 /** 公开面一次最多取多少张卡。段自己的 `limit` 再往下截，这里只是查询上限。 */
 const FEED_FETCH_LIMIT = 12;
@@ -56,8 +56,6 @@ const LIST_SELECT = {
 export interface PublicFeedData {
   rising: EventListItem[];
   now: EventListItem[];
-  today: EventListItem[];
-  today_total: number;
 }
 
 export async function getPublicEventFeed(
@@ -68,7 +66,7 @@ export async function getPublicEventFeed(
   const topicWhere = topic ? { topic } : {};
   const tenantWhere = withTenantScope(tenantId, topicWhere);
 
-  const [rising, nowEvents, today, todayTotal] = await Promise.all([
+  const [rising, nowEvents] = await Promise.all([
     prisma.newsEvent.findMany({
       where: {
         ...tenantWhere,
@@ -90,25 +88,10 @@ export async function getPublicEventFeed(
       take: FEED_FETCH_LIMIT,
       select: LIST_SELECT,
     }),
-    prisma.newsEvent.findMany({
-      where: {
-        ...tenantWhere,
-        last_activity_at: { gte: new Date(now - TODAY_WINDOW_HOURS * HOUR_MS) },
-      },
-      orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
-      take: FEED_FETCH_LIMIT,
-      select: LIST_SELECT,
-    }),
-    prisma.newsEvent.count({
-      where: {
-        ...tenantWhere,
-        last_activity_at: { gte: new Date(now - TODAY_WINDOW_HOURS * HOUR_MS) },
-      },
-    }),
   ]);
 
   /*
-   * 与工作台不同：这里**不做**三段互斥。官网上三段可能被租户拆到不同页面、
+   * 与工作台不同：这里**不做**两段互斥。官网上两段可能被租户拆到不同页面、
    * 也可能只摆其中一段——按「谁先出现就从后面扣掉」来算，单独摆一段时就会莫名少内容。
    */
   const map = (records: typeof rising): EventListItem[] =>
@@ -117,8 +100,6 @@ export async function getPublicEventFeed(
   return {
     rising: map(rising),
     now: map(nowEvents),
-    today: map(today),
-    today_total: todayTotal,
   };
 }
 
@@ -144,29 +125,18 @@ export async function getPublicEventList(
           },
           orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
         })
-      : source === "today"
-        ? await prisma.newsEvent.findMany({
-            ...common,
-            where: {
-              ...tenantWhere,
-              last_activity_at: {
-                gte: new Date(now - TODAY_WINDOW_HOURS * HOUR_MS),
-              },
+      : await prisma.newsEvent.findMany({
+          ...common,
+          where: {
+            ...tenantWhere,
+            status: { in: ["developing", "active"] },
+            last_activity_at: {
+              gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS),
             },
-            orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
-          })
-        : await prisma.newsEvent.findMany({
-            ...common,
-            where: {
-              ...tenantWhere,
-              status: { in: ["developing", "active"] },
-              last_activity_at: {
-                gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS),
-              },
-              velocity_pct: { gt: 0 },
-            },
-            orderBy: [{ velocity_pct: "desc" }, { heat_score: "desc" }],
-          });
+            velocity_pct: { gt: 0 },
+          },
+          orderBy: [{ velocity_pct: "desc" }, { heat_score: "desc" }],
+        });
 
   return records.map((record) => toEventListItem(record, null));
 }

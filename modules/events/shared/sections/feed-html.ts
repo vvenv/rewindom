@@ -6,10 +6,14 @@
  */
 
 import {
+  EVENTS_NOW_SECTION_TYPE,
+  EVENTS_RISING_SECTION_TYPE,
+} from "../events-feed-section.js";
+import {
   eventsIndexHref,
   readEventsContext,
 } from "../events-section-context.js";
-import { isEventFeedTab, isEventTopic } from "../events.js";
+import { isEventTopic, parseEventFeedTab } from "../events.js";
 
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import {
@@ -31,11 +35,11 @@ import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sec
 /**
  * 同一页上已经出现过的事件（按上下文对象分桶）。
  *
- * 默认版式把 Rising / Now / Today 三段摆在同一张页面上，而三段的取数是各自独立的
- * ——一个又热又在升温的事件会同时命中三段，页面上就出现三张一模一样的卡片。
+ * 默认版式把 Rising / Now 两段摆在同一张页面上，而两段的取数是各自独立的
+ * ——一个又热又在升温的事件会同时命中两段，页面上就出现两张一模一样的卡片。
  *
- * 去重刻意**不做在取数层**：那样「只摆 Today 一段」的页面会莫名少掉最热的那几条。
- * 放在渲染层则是「先来先得」：一段单独摆时拿到完整列表，三段同页时后面的自动让开。
+ * 去重刻意**不做在取数层**：那样「只摆 Now 一段」的页面会莫名少掉最热的那几条。
+ * 放在渲染层则是「先来先得」：一段单独摆时拿到完整列表，两段同页时后面的自动让开。
  *
  * 用 WeakMap 按上下文对象分桶 = 天然按请求隔离（上下文每次渲染新建一个），
  * 也不必把可变状态塞进要跨端传递的上下文形状里。
@@ -70,8 +74,17 @@ function takeUnseen(
   return picked;
 }
 
-function feedSource(value: string): EventFeedTab {
-  return isEventFeedTab(value) ? value : "rising";
+function feedSourceFromSection(section: {
+  type: string;
+  settings: Parameters<typeof settingText>[0];
+}): EventFeedTab {
+  if (section.type === EVENTS_NOW_SECTION_TYPE) {
+    return "now";
+  }
+  if (section.type === EVENTS_RISING_SECTION_TYPE) {
+    return "rising";
+  }
+  return parseEventFeedTab(settingText(section.settings, "source")) ?? "rising";
 }
 
 function feedTopic(value: string): EventTopic | undefined {
@@ -90,18 +103,14 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
   const context = readEventsContext(ctx);
   const s = section.settings;
 
-  const source = feedSource(settingText(s, "source"));
+  const source = feedSourceFromSection(section);
   const topic = feedTopic(settingText(s, "topic"));
   const limit = settingNumber(s, "limit", 6);
   const showSources = settingBool(s, "show_sources");
   const listing = isListingFor(context?.listing, source, topic);
 
   const bucket =
-    source === "now"
-      ? (context?.feed.now ?? [])
-      : source === "today"
-        ? (context?.feed.today ?? [])
-        : (context?.feed.rising ?? []);
+    source === "now" ? (context?.feed.now ?? []) : (context?.feed.rising ?? []);
   const all = topic ? bucket.filter((card) => card.topic === topic) : bucket;
   const cards = takeUnseen(context, all, listing ? all.length : limit);
   const header = sectionHeading(s);

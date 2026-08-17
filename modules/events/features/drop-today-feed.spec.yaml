@@ -1,0 +1,43 @@
+# 首页砍掉 Today。Rising 仍是「正在变」透镜，Now 是主列表（窗口扩到 24h，只要 developing / active）。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 事件首页只留 Rising + Now；删除 Today / today_total。Now 窗口 24h、状态仍只要还在发展的。存量 source=today 并入 now。
+gold: modules/events/client/components/EventFeed.tsx
+touch:
+  - modules/events/features/drop-today-feed.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-section-context.test.ts
+  - modules/events/shared/events-feed-section.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/events-page.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/server/events.routes.ts
+  - modules/events/server/events.routes.test.ts
+  - modules/events/client/components/EventFeed.tsx
+  - modules/events/client/components/EventFeedSection.tsx
+  - modules/events/client/pages/events.tsx
+  - modules/events/client/hooks/useEvents.ts
+  - modules/events/client/hooks/useEventsPage.ts
+  - modules/events/client/editor-context.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 全部事件列表的筛选 / 排序
+  - 热度公式与阶段判定
+  - 新模板页 kind
+  - 采集 / 分析器
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-section-context.test.ts shared/sections/feed-html.test.ts shared/events-page-templates.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events

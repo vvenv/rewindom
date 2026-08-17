@@ -7,8 +7,8 @@
  */
 
 import {
-  isEventFeedTab,
   isEventTopic,
+  parseEventFeedTab,
   type EventFeedTab,
   type EventSourceKind,
   type EventStatus,
@@ -24,7 +24,7 @@ export function eventPath(slug: string): string {
   return `${EVENTS_INDEX_PATH}/${encodeURIComponent(slug)}`;
 }
 
-/** 首页三段 + 查询列表共用的查询串：`source` 是哪一批，`topic` 可选。 */
+/** 首页两段 + 查询列表共用的查询串：`source` 是哪一批，`topic` 可选。 */
 export interface EventsIndexQuery {
   source?: EventFeedTab;
   topic?: EventTopic;
@@ -34,13 +34,13 @@ export function parseEventsIndexQuery(
   query: Record<string, string>,
 ): EventsIndexQuery {
   return {
-    source: isEventFeedTab(query.source) ? query.source : undefined,
+    source: parseEventFeedTab(query.source),
     topic: isEventTopic(query.topic) ? query.topic : undefined,
   };
 }
 
 /**
- * 事件首页地址。带 `source` 时是该批次的完整列表，而不是三段同页的枢纽。
+ * 事件首页地址。带 `source` 时是该批次的完整列表，而不是两段同页的枢纽。
  * 「查看全部」必须带上当前区块的 source，否则会回到枢纽把自己再画一遍。
  */
 export function eventsIndexHref(query: EventsIndexQuery = {}): string {
@@ -55,7 +55,7 @@ export function eventsIndexHref(query: EventsIndexQuery = {}): string {
   return search ? `${EVENTS_INDEX_PATH}?${search}` : EVENTS_INDEX_PATH;
 }
 
-/** 有合法 `source` 就是查询列表页；只有 topic 或什么都没有仍是三段枢纽。 */
+/** 有合法 `source` 就是查询列表页；只有 topic 或什么都没有仍是两段枢纽。 */
 export function isEventsIndexListing(
   query: EventsIndexQuery,
 ): query is EventsIndexQuery & { source: EventFeedTab } {
@@ -130,8 +130,6 @@ export interface PublicEventDetailView extends PublicEventCard {
 export interface PublicEventFeed {
   rising: PublicEventCard[];
   now: PublicEventCard[];
-  today: PublicEventCard[];
-  today_total: number;
 }
 
 export interface EventsRenderContext {
@@ -150,7 +148,7 @@ export function emptyEventsContext(
   overrides: Partial<EventsRenderContext> = {},
 ): EventsRenderContext {
   return {
-    feed: { rising: [], now: [], today: [], today_total: 0 },
+    feed: { rising: [], now: [] },
     event: null,
     index_path: EVENTS_INDEX_PATH,
     ...overrides,

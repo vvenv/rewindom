@@ -22,10 +22,7 @@
     "rising": "Rising",
     "risingHint": "Just started to break out",
     "now": "Now",
-    "nowHint": "Still developing right now",
-    "today": "Today",
-    "todayHint": "Events with activity in the last 24 hours",
-    "todayCount": "{{count}} events"
+    "nowHint": "Still developing in the last 24 hours"
   },
   "status": {
     "developing": "Developing",
@@ -131,7 +128,7 @@
     "feed": {
       "label": "Event list",
       "source": "Which set",
-      "sourceInfo": "Rising = changing fastest; Now = still developing; Today = everything in the last 24h",
+      "sourceInfo": "Rising = changing fastest; Now = still developing in the last 24 hours",
       "topic": "Topic",
       "limit": "Show at most",
       "showSources": "Show source names",

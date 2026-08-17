@@ -37,7 +37,7 @@ export async function renderEventsTemplatePage(input: {
   title?: string;
   description?: string;
   /**
-   * 覆盖版式。查询列表页用：不走租户改过的三段首页，只画与查询匹配的那一段。
+   * 覆盖版式。查询列表页用：不走租户改过的两段首页，只画与查询匹配的那一段。
    */
   sections?: SiteSection[];
 }): Promise<string> {

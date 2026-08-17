@@ -64,7 +64,7 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     },
   });
 
-  // 首页三个区块一次取回，避免首屏三段各自 loading（见 event.service 的说明）
+  // 首页两个区块一次取回，避免首屏两段各自 loading（见 event.service 的说明）
   defineRoute(app, {
     method: "GET",
     url: "/feed",

@@ -28,9 +28,15 @@ function section(
   limit: number,
   extra: Record<string, unknown> = {},
 ): SiteSection {
+  const type =
+    source === "now"
+      ? "events.now"
+      : source === "rising"
+        ? "events.rising"
+        : "events.feed";
   return {
     id: `s-${source}`,
-    type: "events.feed",
+    type,
     settings: {
       heading: source,
       source,
@@ -49,54 +55,64 @@ function titlesIn(html: string): string[] {
 }
 
 describe("renderEventsFeedHtml", () => {
-  it("按 source 取对应的一批", () => {
+  it("段 type 决定取哪一批，不再读 source 下拉", () => {
     const context = emptyEventsContext({
       feed: {
         rising: [card("a")],
         now: [card("b")],
-        today: [card("c")],
-        today_total: 3,
       },
     });
     const ctx = { contributed: eventsContextEntry(context) };
-    expect(titlesIn(renderEventsFeedHtml(section("now", 5), ctx))).toEqual([
-      "Title b",
-    ]);
+    expect(
+      titlesIn(
+        renderEventsFeedHtml(
+          section("now", 5, { source: "rising" }),
+          ctx,
+        ),
+      ),
+    ).toEqual(["Title b"]);
   });
 
-  it("同一页上三段不重复渲染同一个事件（默认版式就是三段同页）", () => {
-    // 同一个事件同时命中三段——不去重的话页面上会出现三张一模一样的卡片
+  it("同一页上两段不重复渲染同一个事件（默认版式就是两段同页）", () => {
     const hot = card("hot");
     const context = emptyEventsContext({
       feed: {
         rising: [hot, card("r2")],
         now: [hot, card("n2")],
-        today: [hot, card("t2")],
-        today_total: 4,
       },
     });
     const ctx = { contributed: eventsContextEntry(context) };
 
     const rising = titlesIn(renderEventsFeedHtml(section("rising", 5), ctx));
     const now = titlesIn(renderEventsFeedHtml(section("now", 5), ctx));
-    const today = titlesIn(renderEventsFeedHtml(section("today", 5), ctx));
 
     expect(rising).toEqual(["Title hot", "Title r2"]);
     expect(now).toEqual(["Title n2"]);
-    expect(today).toEqual(["Title t2"]);
+  });
+
+  it("存量 source=today 读 now 这一批", () => {
+    const context = emptyEventsContext({
+      feed: {
+        rising: [card("a")],
+        now: [card("b"), card("c")],
+      },
+    });
+    const ctx = { contributed: eventsContextEntry(context) };
+    expect(titlesIn(renderEventsFeedHtml(section("today", 5), ctx))).toEqual([
+      "Title b",
+      "Title c",
+    ]);
   });
 
   it("单独摆一段时拿到完整列表——去重不能反过来让内容变少", () => {
     const context = emptyEventsContext({
       feed: {
         rising: [card("a")],
-        now: [card("a"), card("b")],
-        today: [card("a"), card("b"), card("c")],
-        today_total: 3,
+        now: [card("a"), card("b"), card("c")],
       },
     });
     const ctx = { contributed: eventsContextEntry(context) };
-    expect(titlesIn(renderEventsFeedHtml(section("today", 5), ctx))).toEqual([
+    expect(titlesIn(renderEventsFeedHtml(section("now", 5), ctx))).toEqual([
       "Title a",
       "Title b",
       "Title c",
@@ -106,7 +122,7 @@ describe("renderEventsFeedHtml", () => {
   it("去重按上下文分桶：另一个请求不受影响", () => {
     const build = () =>
       emptyEventsContext({
-        feed: { rising: [card("a")], now: [], today: [], today_total: 1 },
+        feed: { rising: [card("a")], now: [] },
       });
     const first = { contributed: eventsContextEntry(build()) };
     const second = { contributed: eventsContextEntry(build()) };
@@ -121,8 +137,6 @@ describe("renderEventsFeedHtml", () => {
       feed: {
         rising: [card("a"), card("b"), card("c")],
         now: [],
-        today: [],
-        today_total: 3,
       },
     });
     const ctx = { contributed: eventsContextEntry(context) };
@@ -141,8 +155,6 @@ describe("renderEventsFeedHtml", () => {
       feed: {
         rising: [{ ...card("x"), title: '<img src=x onerror="alert(1)">' }],
         now: [],
-        today: [],
-        today_total: 1,
       },
     });
     const ctx = { contributed: eventsContextEntry(context) };
@@ -156,8 +168,6 @@ describe("renderEventsFeedHtml", () => {
       feed: {
         rising: [card("a"), card("b")],
         now: [],
-        today: [],
-        today_total: 2,
       },
     });
     const ctx = { contributed: eventsContextEntry(context) };
@@ -171,7 +181,7 @@ describe("renderEventsFeedHtml", () => {
 
   it("未选主题时只带 source，才能和枢纽 /events 分开", () => {
     const context = emptyEventsContext({
-      feed: { rising: [], now: [card("a")], today: [], today_total: 1 },
+      feed: { rising: [], now: [card("a")] },
     });
     const ctx = { contributed: eventsContextEntry(context) };
     const html = renderEventsFeedHtml(
@@ -190,8 +200,6 @@ describe("renderEventsFeedHtml", () => {
           { ...card("tech-1"), topic: "tech", topic_label: "科技" },
         ],
         now: [],
-        today: [],
-        today_total: 2,
       },
     });
     const ctx = { contributed: eventsContextEntry(context) };
@@ -206,8 +214,6 @@ describe("renderEventsFeedHtml", () => {
       feed: {
         rising: [card("a"), card("b"), card("c")],
         now: [],
-        today: [],
-        today_total: 3,
       },
     });
     const ctx = { contributed: eventsContextEntry(context) };

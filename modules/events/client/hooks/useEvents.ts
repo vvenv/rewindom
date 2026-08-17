@@ -43,7 +43,7 @@ export function useEvents(params: EventsQueryParams, enabled = true) {
   });
 }
 
-/** 首页三个区块一次取回，避免首屏三段各自 loading。 */
+/** 首页两个区块一次取回，避免首屏两段各自 loading。 */
 export function useEventFeed(topic?: EventTopic, enabled = true) {
   return useQuery({
     enabled,

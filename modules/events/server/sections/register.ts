@@ -4,14 +4,15 @@ import { eventsMessage } from "../ssr/events-preset-i18n.js";
 import { getPublicEventFeed, getPublicEventSitemapEntries } from "../ssr/public-events.service.js";
 
 import {
+  EVENTS_FEED_SECTION_TYPES,
   EVENTS_INDEX_PATH,
   emptyEventsContext,
   eventsContextEntry,
   eventsDetailSection,
   eventsFeedSection,
+  eventsNowSection,
+  eventsRisingSection,
   toPublicCard,
-  EVENTS_DETAIL_SECTION_TYPE,
-  EVENTS_FEED_SECTION_TYPE,
 } from "../../shared/index.js";
 import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
 import { renderEventsFeedHtml } from "../../shared/sections/feed-html.js";
@@ -32,7 +33,7 @@ const css = { css: EVENTS_CSS };
  */
 function registerEventsContextProvider(): void {
   registerSectionContextProvider({
-    sectionTypes: [EVENTS_FEED_SECTION_TYPE],
+    sectionTypes: [...EVENTS_FEED_SECTION_TYPES],
     provide: async (input) => {
       const feed = await getPublicEventFeed(input.tenantId);
       const t = (key: string, params?: Record<string, string | number>): string =>
@@ -43,8 +44,6 @@ function registerEventsContextProvider(): void {
           feed: {
             rising: feed.rising.map((item) => toPublicCard(item, t)),
             now: feed.now.map((item) => toPublicCard(item, t)),
-            today: feed.today.map((item) => toPublicCard(item, t)),
-            today_total: feed.today_total,
           },
         }),
       );
@@ -73,6 +72,8 @@ function registerEventsLinkTargets(): void {
 
 /** 在模块 `onBoot` 里调。 */
 export function registerEventsSections(): void {
+  registerSiteSectionHtml(eventsRisingSection, renderEventsFeedHtml, css);
+  registerSiteSectionHtml(eventsNowSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsFeedSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsDetailSection, renderEventsDetailHtml, css);
   registerEventsContextProvider();

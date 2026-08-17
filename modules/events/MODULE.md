@@ -11,7 +11,7 @@
 已交付：
 
 - **主链路**：采集 → 聚类 → 事件详情（发生了什么 / 时间线 / 来源）→ Follow → 更新检测
-- **官网面**：两个贡献段 + `/events` 与 `/events/:slug` 两张模板页，未登录访客可直接浏览
+- **官网面**：升温 / 正在发生 / 详情三段 + `/events` 与 `/events/:slug` 两张模板页，未登录访客可直接浏览
 
 明确**不在**当前范围：Related Events、Why it's trending。两者都建立在同一套语料之上，
 加进来是增量，不需要动现有表结构。
@@ -45,13 +45,13 @@
 
 ```
 shared/          事件域契约 + 官网段定义 + 公开视图映射
-  events-*-section.ts     官网段定义（events.feed / events.detail）
+  events-*-section.ts     段定义（events.rising / events.now / events.detail）
   events-page-templates.ts 模板页 kind + 预设
   public-view.ts          领域 DTO → 公开视图（两端共用）
   sections/*-html.ts      段 markup（SSR 与编辑器预览共用同一份）
   site-css/               CSS 真源 → site-css.generated.ts
 server/
-  events.routes.ts        列表 / 首页三区块 / 主题计数 / 详情 / 人工编辑
+  events.routes.ts        列表 / 首页两区块 / 主题计数 / 详情 / 人工编辑
   feed/                   采集源 CRUD（本站）
   follow/                 关注（站点 + 用户态）
   ingest/                 采集：connector、RSS 解析、调度任务
@@ -69,22 +69,24 @@ client/
 
 | 贡献物 | 说明 |
 | --- | --- |
-| 段 `events.feed` | 「正在发生什么」列表，可摆在**任意**页面；可配取哪一批（升温/正在发生/今天）、主题、条数。「查看全部」打开 `/events?source=&topic=`，同一查询的完整列表 |
+| 段 `events.rising` | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/events?source=rising` |
+| 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/events?source=now` |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
-| 模板页 `events_index` | `/events` 枢纽（预设三段各摆一次）；带 `?source=` 时是该批次的查询列表，不再用三段版式 |
+| 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now 各摆一次）；带 `?source=` 时是该批次的查询列表，不再用两段版式 |
 | 模板页 `events_detail` | `/events/:slug` |
 | path handler | 接 `/events` 与 `/events/:slug`（`/en/...` 同一条，locale 已被剥掉）|
 | sitemap / 链接候选 | 近 30 天事件进 sitemap；链接下拉只给 `/events` 一条 |
 
 marketing 内核**一行没改**——定义全在贡献方 `shared/`，登记在 server `onBoot` 与
-client manifest 各调一次。
+client manifest 各调一次。存量页上的 `events.feed` 仍渲染（按当时的 source 下拉取数），
+但不进「添加区块」。
 
-### 三段同页的去重
+### 两段同页的去重
 
-默认版式把 Rising / Now / Today 摆在同一张页面上，而三段取数各自独立——一个又热又在
-升温的事件会同时命中三段。去重**做在渲染层**（`feed-html.ts` 的 `takeUnseen`，按上下文
-对象分桶的 WeakMap = 天然按请求隔离），不做在取数层：那样「只摆 Today 一段」的页面
-会莫名少掉最热的那几条。效果是先来先得——单独摆一段拿到完整列表，三段同页时后面的自动让开。
+默认版式把 Rising / Now 摆在同一张页面上，而两段取数各自独立——一个又热又在
+升温的事件会同时命中两段。去重**做在渲染层**（`feed-html.ts` 的 `takeUnseen`，按上下文
+对象分桶的 WeakMap = 天然按请求隔离），不做在取数层：那样「只摆 Now 一段」的页面
+会莫名少掉最热的那几条。效果是先来先得——单独摆一段拿到完整列表，两段同页时后面的自动让开。
 
 ## 流水线
 

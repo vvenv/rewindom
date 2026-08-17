@@ -22,10 +22,7 @@
     "rising": "正在升温",
     "risingHint": "刚刚开始爆发的事情",
     "now": "正在发生",
-    "nowHint": "当前仍在持续发展",
-    "today": "今天",
-    "todayHint": "过去 24 小时内有动静的事件",
-    "todayCount": "共 {{count}} 个事件"
+    "nowHint": "过去 24 小时内仍在持续发展"
   },
   "status": {
     "developing": "快速发展",
@@ -131,7 +128,7 @@
     "feed": {
       "label": "事件列表",
       "source": "取哪一批",
-      "sourceInfo": "升温 = 变化最快的；正在发生 = 仍在持续的；今天 = 过去 24 小时全部",
+      "sourceInfo": "升温 = 变化最快的；正在发生 = 过去 24 小时仍在持续的",
       "topic": "主题",
       "limit": "最多显示",
       "showSources": "显示来源名",

@@ -1,0 +1,32 @@
+# 官网事件列表拆成两个段类型：events.rising / events.now。标题默认值写在各自 setting 上，不再用 source 下拉。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 把 events.feed 拆成 Rising / Now 两个可添加段，heading / subheading 默认走 sections.rising / sections.now。存量 events.feed 仍渲染，不进添加菜单。
+gold: modules/shop/shared/product-grid-section.ts
+touch:
+  - modules/events/features/split-feed-sections.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/MODULE.spec.yaml
+  - modules/events/shared/events-feed-section.ts
+  - modules/events/shared/events-feed-section.test.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/module.tsx
+  - modules/events/client/editor-context.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 工作台 /app/events 的 Rising / Now 区块
+  - 热度公式
+  - 采集 / 分析器
+  - 把库里的 events.feed 改写成新 type（读时按 source 映射即可）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-feed-section.test.ts shared/events-page-templates.test.ts shared/sections/feed-html.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events

@@ -16,8 +16,8 @@ import {
   EVENTS_DETAIL_SECTION_TYPE,
 } from "./events-detail-section.js";
 import {
-  EVENTS_FEED_SECTION_TYPE,
   EVENTS_FEED_TOPIC_ALL,
+  eventFeedSectionType,
 } from "./events-feed-section.js";
 import { EVENTS_INDEX_PATH, eventPath } from "./events-section-context.js";
 
@@ -44,10 +44,10 @@ export const EVENTS_DETAIL_TEMPLATE_SLUG = "events-detail";
 export const EVENTS_DETAIL_PATH = eventPath(":slug");
 
 /**
- * 首页版式：三段各摆一次。
+ * 首页版式：Rising 再 Now。
  *
- * 顺序就是产品主张（MVP §14）——先看**正在变化**的，再看正在发生的，最后才是今天的全部。
- * 反过来排就又变成一份普通榜单了。租户当然可以在编辑器里删掉或调序，那是他们的选择。
+ * 顺序就是产品主张——先看**正在变化**的，再看正在发生的。反过来排就又变成一份
+ * 普通榜单了。租户当然可以在编辑器里删掉或调序，那是他们的选择。
  */
 export const EVENTS_INDEX_TEMPLATE_PRESET: PagePreset = {
   key: EVENTS_INDEX_PAGE_KIND,
@@ -58,32 +58,11 @@ export const EVENTS_INDEX_TEMPLATE_PRESET: PagePreset = {
   descriptionKey: "events:site.index.subtitle",
   sections: [
     {
-      type: EVENTS_FEED_SECTION_TYPE,
-      raw: { source: "rising", limit: 3 },
-      text: {
-        heading: "events:sections.rising",
-        subheading: "events:sections.risingHint",
-        empty_text: "events:site.feed.empty",
-        more_label: "events:site.feed.more",
-      },
+      type: eventFeedSectionType("rising"),
     },
     {
-      type: EVENTS_FEED_SECTION_TYPE,
-      raw: { source: "now", limit: 6 },
-      text: {
-        heading: "events:sections.now",
-        subheading: "events:sections.nowHint",
-        empty_text: "events:site.feed.empty",
-      },
-    },
-    {
-      type: EVENTS_FEED_SECTION_TYPE,
-      raw: { source: "today", limit: 9 },
-      text: {
-        heading: "events:sections.today",
-        subheading: "events:sections.todayHint",
-        empty_text: "events:site.feed.empty",
-      },
+      type: eventFeedSectionType("now"),
+      raw: { limit: 9 },
     },
   ],
 };
@@ -120,7 +99,7 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     path: EVENTS_INDEX_PATH,
     group: EVENTS_PAGE_TEMPLATE_GROUP,
     label: "events:template.index.label",
-    // 预设是三段同 type 的 feed；`required_section` 是「有且仅有一段」，
+    // 预设是两段不同 type 的 feed；`required_section` 是「有且仅有一段」，
     // 钉上去之后重设版式 / 保存都会被 `site.template_section_required` 打回来。
     required_section: null,
     entitlement: EVENTS_ENTITLEMENT.key,
@@ -151,7 +130,7 @@ export function registerEventsPageTemplates(): void {
 }
 
 /**
- * 查询列表页的版式：只摆与查询匹配的那一段，不再用租户改过的三段首页。
+ * 查询列表页的版式：只摆与查询匹配的那一段，不再用租户改过的两段首页。
  * 不登记为独立 kind——地址仍是 `/events`，只是 query 不同。
  */
 export function eventsListingPreset(
@@ -167,18 +146,15 @@ export function eventsListingPreset(
     descriptionKey: "events:site.index.subtitle",
     sections: [
       {
-        type: EVENTS_FEED_SECTION_TYPE,
+        type: eventFeedSectionType(source),
         raw: {
-          source,
           topic: topic ?? EVENTS_FEED_TOPIC_ALL,
           show_sources: true,
         },
         text: {
-          heading: `events:sections.${source}`,
-          subheading: topic
-            ? `events:topic.${topic}`
-            : `events:sections.${source}Hint`,
-          empty_text: "events:site.feed.empty",
+          ...(topic
+            ? { subheading: `events:topic.${topic}` }
+            : {}),
           more_label: "",
         },
       },

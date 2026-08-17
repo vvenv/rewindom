@@ -12,7 +12,7 @@ import { registerEditorContextProvider } from "@rewindom/builtin/marketing/clien
 import {
   EVENTS_DETAIL_PAGE_KIND,
   EVENTS_DETAIL_SECTION_TYPE,
-  EVENTS_FEED_SECTION_TYPE,
+  EVENTS_FEED_SECTION_TYPES,
   emptyEventsContext,
   eventsContextEntry,
   toPublicCard,
@@ -28,7 +28,7 @@ import type {
 import type { AppLocale } from "@rewindom/module-sdk";
 
 const EVENTS_EDITOR_CONTEXT_TYPES = [
-  EVENTS_FEED_SECTION_TYPE,
+  ...EVENTS_FEED_SECTION_TYPES,
   EVENTS_DETAIL_SECTION_TYPE,
 ] as const;
 
@@ -66,19 +66,17 @@ async function loadFeed(t: ReturnType<typeof translator>) {
     const data = await api.get<EventFeedResult>("/events/feed");
     const cards = (items: EventListItem[]) =>
       items.map((item) => toPublicCard(item, t));
-    if (data.today.length > 0 || data.now.length > 0 || data.rising.length > 0) {
+    if (data.now.length > 0 || data.rising.length > 0) {
       return {
         rising: cards(data.rising),
         now: cards(data.now),
-        today: cards(data.today),
-        today_total: data.today_total,
       };
     }
   } catch {
     // 拉不到就用样张，预览结构仍与实站同一套渲染器
   }
   const sample = sampleEventList(t).map((item) => toPublicCard(item, t));
-  return { rising: sample, now: sample, today: sample, today_total: sample.length };
+  return { rising: sample, now: sample };
 }
 
 /**

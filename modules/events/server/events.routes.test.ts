@@ -11,7 +11,7 @@ vi.mock("./event/event.service.js", () => ({
   }),
   getEventFeed: vi
     .fn()
-    .mockResolvedValue({ rising: [], now: [], today: [], today_total: 0 }),
+    .mockResolvedValue({ rising: [], now: [] }),
   getEventDetail: vi.fn().mockResolvedValue({ id: "e1", title: "t" }),
   updateEvent: vi.fn().mockResolvedValue({ id: "e1", title: "t" }),
   listTopicCounts: vi.fn().mockResolvedValue([]),

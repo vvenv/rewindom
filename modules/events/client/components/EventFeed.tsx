@@ -8,10 +8,10 @@ import { EventFeedSection } from "./EventFeedSection.js";
 import type { EventFeedResult } from "../../shared/index.js";
 
 /**
- * 首页三个区块（MVP §14）。
+ * 首页两个区块。
  *
- * 区块的先后顺序就是产品主张：先看**正在变化**的（Rising），再看正在发生的（Now），
- * 最后才是今天的全量（Today）。反过来排就又变成一份普通榜单了。
+ * 区块的先后顺序就是产品主张：先看**正在变化**的（Rising），再看正在发生的（Now）。
+ * 反过来排就又变成一份普通榜单了。
  */
 export function EventFeed({
   data,
@@ -61,13 +61,6 @@ export function EventFeed({
         events={data?.now ?? []}
         emptyLabel={t("empty.title")}
       />
-      <EventFeedSection
-        title={t("sections.today")}
-        hint={t("sections.todayHint")}
-        meta={t("sections.todayCount", { count: data?.today_total ?? 0 })}
-        events={data?.today ?? []}
-        emptyLabel={t("empty.title")}
-      />
     </div>
   );
 }
@@ -75,7 +68,7 @@ export function EventFeed({
 function EventFeedSkeleton() {
   return (
     <div className="flex flex-col gap-8" aria-hidden>
-      {Array.from({ length: 3 }, (_, section) => (
+      {Array.from({ length: 2 }, (_, section) => (
         <div key={section} className="flex flex-col gap-3">
           <Skeleton className="h-4 w-32" />
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

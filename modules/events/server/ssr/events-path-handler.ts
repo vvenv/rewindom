@@ -90,8 +90,6 @@ async function renderIndex(
       feed: {
         rising: feed.rising.map((item) => toCard(item, t)),
         now: feed.now.map((item) => toCard(item, t)),
-        today: feed.today.map((item) => toCard(item, t)),
-        today_total: feed.today_total,
       },
     }),
   });
@@ -129,8 +127,6 @@ async function renderListing(
       feed: {
         rising: source === "rising" ? cards : [],
         now: source === "now" ? cards : [],
-        today: source === "today" ? cards : [],
-        today_total: source === "today" ? cards.length : 0,
       },
     }),
   });

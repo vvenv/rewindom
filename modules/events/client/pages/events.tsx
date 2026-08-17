@@ -15,7 +15,7 @@ import { useEventsPage } from "../hooks/useEventsPage.js";
 
 /**
  * 事件浏览页。两个视图：
- * - 「正在发生」= Rising / Now / Today 三区块，回答「现在网上到底在发生什么」；
+ * - 「正在发生」= Rising / Now 两区块，回答「现在网上到底在发生什么」；
  * - 「全部事件」= 可筛可排的完整列表，回答「我要找某件事」。
  */
 export function Events() {

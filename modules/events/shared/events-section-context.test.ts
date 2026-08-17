@@ -16,7 +16,6 @@ describe("eventsIndexHref", () => {
   it("带 source，枢纽与列表才能分开", () => {
     expect(eventsIndexHref({ source: "rising" })).toBe("/events?source=rising");
     expect(eventsIndexHref({ source: "now" })).toBe("/events?source=now");
-    expect(eventsIndexHref({ source: "today" })).toBe("/events?source=today");
   });
 
   it("主题是可选过滤", () => {
@@ -34,6 +33,10 @@ describe("parseEventsIndexQuery", () => {
     ).toEqual({ source: "rising", topic: "ai" });
     expect(parseEventsIndexQuery({ source: "hot", topic: "all" })).toEqual({
       source: undefined,
+      topic: undefined,
+    });
+    expect(parseEventsIndexQuery({ source: "today" })).toEqual({
+      source: "now",
       topic: undefined,
     });
     expect(parseEventsIndexQuery({})).toEqual({
