@@ -142,10 +142,11 @@ _ssh_try_password() {
   fi
 }
 
-# ssh/scp 失败必须自己记 rc。调用方脚本是 `set -e`，直接 `_ssh_try_key; rc=$?`
-# 会在赋值前退出；stderr 又被重定向到临时文件，表现为「确认后立刻 255、无任何报错」，
-# 密码回退（sshpass）也永远走不到。
+# ssh/scp 失败必须在 set +e 下自己记 rc。调用方脚本是 `set -e`，直接
+# `_ssh_try_key; rc=$?` 会在赋值前退出；stderr 又被重定向到临时文件，
+# 表现为「确认后立刻 255、无任何报错」，密码回退（sshpass）也永远走不到。
 # 也不可写成 `if _ssh_try_key; then`——if 成功后 $? 恒为 0，远程失败会被误报成功。
+# 本函数成功返回 0，失败则打印 stderr 并 exit（避免把非 0 return 交回 set -e 调用方）。
 _ssh_try_key_then_password() {
   local mode="$1"
   local stderr_file="$2"
@@ -160,12 +161,11 @@ _ssh_try_key_then_password() {
     rc=$?
   fi
   set -e
-  return "$rc"
-}
 
-_ssh_fail() {
-  local stderr_file="$1"
-  local rc="$2"
+  if [ "$rc" -eq 0 ]; then
+    rm -f "$stderr_file"
+    return 0
+  fi
   cat "$stderr_file" >&2
   if _ssh_auth_failure_in_stderr "$stderr_file"; then
     rm -f "$stderr_file"
@@ -176,30 +176,16 @@ _ssh_fail() {
 }
 
 _run_scp() {
-  local stderr_file rc
+  local stderr_file
   stderr_file="$(mktemp)"
-
   _ssh_try_key_then_password scp "$stderr_file" "$@"
-  rc=$?
-  if [ "$rc" -eq 0 ]; then
-    rm -f "$stderr_file"
-    return 0
-  fi
-  _ssh_fail "$stderr_file" "$rc"
 }
 
 _run_ssh() {
   local remote_cmd
   remote_cmd="$(_ssh_force_color_prefix)$1"
-  local stderr_file rc
+  local stderr_file
   stderr_file="$(mktemp)"
-
   _ssh_try_key_then_password ssh "$stderr_file" "$remote_cmd"
-  rc=$?
-  if [ "$rc" -eq 0 ]; then
-    rm -f "$stderr_file"
-    return 0
-  fi
-  _ssh_fail "$stderr_file" "$rc"
 }
 
