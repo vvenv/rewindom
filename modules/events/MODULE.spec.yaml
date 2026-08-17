@@ -73,7 +73,11 @@ models:
       - { name: fetched_at, type: DateTime, required: true }
       - { name: event_id, type: String, required: false }
     unique:
+      # 源自己的幂等键；不充分——源会给同一篇文章换 guid（BBC 的 `#0`/`#1` 修订号）
       - [connector, external_id]
+      # 信号的真实身份：同一来源的同一篇原文只该有一条。
+      # source_name 必须在键里——不同来源指向同一篇原文是跨源印证的证据，要保留
+      - [connector, source_name, canonical_url]
     indexes:
       - [event_id, published_at]
       - [published_at]

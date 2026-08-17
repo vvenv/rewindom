@@ -352,6 +352,7 @@ export type EventSignalOrderByWithRelationInput = {
 export type EventSignalWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   connector_external_id?: Prisma.EventSignalConnectorExternal_idCompoundUniqueInput
+  connector_source_name_canonical_url?: Prisma.EventSignalConnectorSource_nameCanonical_urlCompoundUniqueInput
   AND?: Prisma.EventSignalWhereInput | Prisma.EventSignalWhereInput[]
   OR?: Prisma.EventSignalWhereInput[]
   NOT?: Prisma.EventSignalWhereInput | Prisma.EventSignalWhereInput[]
@@ -373,7 +374,7 @@ export type EventSignalWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   event?: Prisma.XOR<Prisma.NewsEventNullableScalarRelationFilter, Prisma.NewsEventWhereInput> | null
-}, "id" | "connector_external_id">
+}, "id" | "connector_external_id" | "connector_source_name_canonical_url">
 
 export type EventSignalOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -574,6 +575,12 @@ export type EventSignalUncheckedUpdateManyInput = {
 export type EventSignalConnectorExternal_idCompoundUniqueInput = {
   connector: string
   external_id: string
+}
+
+export type EventSignalConnectorSource_nameCanonical_urlCompoundUniqueInput = {
+  connector: string
+  source_name: string
+  canonical_url: string
 }
 
 export type EventSignalCountOrderByAggregateInput = {

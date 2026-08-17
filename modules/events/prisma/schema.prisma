@@ -55,7 +55,14 @@ model EventSignal {
 
   event NewsEvent? @relation(fields: [event_id], references: [id], onDelete: SetNull)
 
+  /// 源自己的幂等键。够用但**不充分**：源会给同一篇文章换 guid（BBC 的 RSS guid
+  /// 带 `#0`/`#1` 修订号，文章更新后同一篇会以新 guid 再出现一次）
   @@unique([connector, external_id])
+  /// 信号的**真实身份**：同一来源的同一篇原文只该有一条信号。
+  /// 没有它，一篇被源改过稿的文章会在事件时间线上占两格，内容一模一样。
+  /// 刻意带上 source_name —— 不同来源指向同一篇原文是**合法且有价值**的
+  ///（跨源印证正是靠 canonical_url 相等来合并事件的）
+  @@unique([connector, source_name, canonical_url])
   @@index([event_id, published_at])
   @@index([published_at(sort: Desc)])
   @@index([canonical_url])
