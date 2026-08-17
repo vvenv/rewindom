@@ -44,9 +44,9 @@ describe("marketing-site-css", () => {
   it("段样式按 type 分开，各在各的条目里", () => {
     expect(MARKETING_SECTION_CSS.hero).toContain(".hero");
     expect(MARKETING_SECTION_CSS.band).toContain(".band");
-    expect(MARKETING_SECTION_CSS.form).toContain(".form-grid");
+    expect(MARKETING_SECTION_CSS["page-menu"]).toContain(".page-menu-list");
     // 别的段的类不该混进来
-    expect(MARKETING_SECTION_CSS.hero).not.toContain(".form-grid");
+    expect(MARKETING_SECTION_CSS.hero).not.toContain(".page-menu-list");
     expect(MARKETING_SECTION_CSS.band).not.toContain(".hero");
   });
 
@@ -62,7 +62,7 @@ describe("marketing-site-css", () => {
     expect(css).toContain(".btn{"); // 常驻照发
     expect(css).toContain(".hero");
     expect(css).toContain(".band");
-    expect(css).not.toContain(".form-grid");
+    expect(css).not.toContain(".page-menu-list");
     expect(css.length).toBeLessThan(MARKETING_SITE_CSS.length);
   });
 

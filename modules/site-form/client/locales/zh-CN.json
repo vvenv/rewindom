@@ -1,0 +1,72 @@
+{
+  "section": {
+    "form": {
+      "label": "表单",
+      "group": "表单",
+      "submitLabel": "提交按钮文案",
+      "successMessage": "提交成功提示",
+      "successMessageInfo": "留空则只显示一个对勾。",
+      "blockField": "字段",
+      "fieldLabel": "字段名称",
+      "fieldType": "字段类型",
+      "fieldTypeOption": {
+        "text": "单行文本",
+        "email": "邮箱",
+        "tel": "电话",
+        "textarea": "多行文本",
+        "select": "下拉选择",
+        "checkbox": "勾选框"
+      },
+      "placeholder": "占位提示",
+      "fieldRequired": "必填",
+      "fieldOptions": "可选项",
+      "fieldOptionsInfo": "一行一个，仅「下拉选择」使用。",
+      "fieldWide": "独占一行",
+      "fieldWideInfo": "窄屏永远一列；这里只影响桌面排布。",
+      "groupValidation": "校验",
+      "fieldValidation": "校验规则",
+      "validationOption": {
+        "none": "不校验",
+        "email": "邮箱",
+        "tel": "电话",
+        "url": "网址",
+        "number": "数字",
+        "integer": "整数",
+        "id_card": "身份证号",
+        "postal_code": "邮政编码",
+        "regex": "自定义正则"
+      },
+      "fieldPattern": "自定义正则",
+      "fieldPatternInfo": "选「自定义正则」时生效，不需带 // 包裹。",
+      "fieldMinLength": "最小字数",
+      "fieldMinLengthInfo": "0 表示不限。",
+      "fieldMaxLength": "最大字数",
+      "fieldMaxLengthInfo": "0 表示跟随默认（单行 200 / 多行 4000）。"
+    }
+  },
+  "form": {
+    "submit": "提交",
+    "field": "字段",
+    "fieldName": "姓名",
+    "fieldEmail": "邮箱",
+    "fieldMessage": "留言"
+  },
+  "formSubmissions": {
+    "nav": "表单提交",
+    "title": "表单提交",
+    "pageDescription": "官网表单收到的内容，最新的在最上面。",
+    "empty": "还没有收到提交",
+    "emptyHint": "访客提交站点表单后会出现在这里。",
+    "loading": "加载中…",
+    "delete": "删除",
+    "deleted": "已删除",
+    "deleteFailed": "删除失败",
+    "deleteConfirmTitle": "删除这条提交？",
+    "deleteConfirmDescription": "来自「{{source}}」的这条提交将被永久删除，无法恢复。",
+    "table": {
+      "time": "时间",
+      "source": "来源",
+      "content": "内容"
+    }
+  }
+}

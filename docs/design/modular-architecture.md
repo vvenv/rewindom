@@ -778,7 +778,7 @@ client: {
 
 外部业务包在 `modules/<id>/`（`kind: "business"`），由 `scripts/module-contexts.json` 的 `business` 层承接，`check:deps` 拦住「基础设施依赖业务」。
 
-当前外部业务包：`note`、`todo`、`bookmark`、`shop`、`site-docs`。`note` 是列表 CRUD 金标准（新模块从它复制起步）；复杂域（店面 SSR、贡献段、模板页、数据多语言）以 `shop` 为准。
+当前外部业务包：`note`、`todo`、`bookmark`、`shop`、`site-docs`、`site-form`。`note` 是列表 CRUD 金标准（新模块从它复制起步）；复杂域（店面 SSR、贡献段、模板页、数据多语言）以 `shop` 为准。
 
 **单包 vs 多包**：业务子域建议收敛为**一个包 + 一个 manifest**，子域作为包内目录，不各自导出 manifest。
 理由是子域之间 import 频繁、Prisma model 互相 `@relation`，拆成多包只会把包内调用变成跨包依赖，

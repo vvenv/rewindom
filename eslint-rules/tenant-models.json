@@ -2,7 +2,6 @@
   "note": "tenant_id",
   "marketingSite": "tenant_id",
   "marketingPage": "tenant_id",
-  "marketingFormSubmission": "tenant_id",
   "marketingRedirect": "tenant_id",
   "marketingAsset": "tenant_id",
   "marketingPageVersion": "tenant_id",
@@ -41,5 +40,6 @@
   "shopOrder": "tenant_id",
   "shopOrderLine": "tenant_id",
   "shopShipment": "tenant_id",
-  "shopPayment": "tenant_id"
+  "shopPayment": "tenant_id",
+  "siteFormSubmission": "tenant_id"
 }

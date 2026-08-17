@@ -425,8 +425,6 @@
       "doc_back": "Back link",
       "page": "Page",
       "headerItems": "Header items",
-      "form": "Form",
-      "validation": "Validation",
       "seo": "Search & sharing",
       "chrome_slot": "Placement"
     },
@@ -462,12 +460,6 @@
       "radius": "Inherit keeps the default corner radius for this surface.",
       "spacing_box": "Outer values are space to neighbouring sections (can inherit the site default). Inner values are content padding (same layer as the inner background). Desktop values; scaled on narrow screens.",
       "page_bg_color": "Colors the page content area only; header and footer keep their own settings.",
-      "success_message": "Leave empty to show just a checkmark.",
-      "field_options": "One per line; used by “Dropdown” only.",
-      "field_wide": "Narrow screens are always single column; this affects desktop only.",
-      "field_pattern": "Used only when the rule is “Custom regex”. No // delimiters needed.",
-      "field_min_length": "0 means no minimum.",
-      "field_max_length": "0 means follow the default (200 single-line / 4000 long text).",
       "og_image": "Shown when the page is shared on social platforms. Falls back to the site default; 1200×630 recommended.",
       "noindex": "The page stays reachable — it just won't appear in search results or the sitemap.",
       "site_og_image": "Used by every page without its own. Avoid reusing the logo — square images get cropped in share cards.",
@@ -577,18 +569,6 @@
       "border_color": "Border color",
       "border_width": "Border width",
       "radius": "Corner radius",
-      "submit_label": "Submit button",
-      "success_message": "Success message",
-      "field_label": "Field label",
-      "field_type": "Field type",
-      "placeholder": "Placeholder",
-      "field_required": "Required",
-      "field_options": "Options",
-      "field_wide": "Full width",
-      "field_validation": "Validation rule",
-      "field_pattern": "Custom regex",
-      "field_min_length": "Min length",
-      "field_max_length": "Max length",
       "og_image": "Share image",
       "noindex": "Hide from search engines",
       "site_og_image": "Default share image",
@@ -683,21 +663,6 @@
         "first": "Move first",
         "last": "Move last"
       },
-      "field_type.text": "Text",
-      "field_type.email": "Email",
-      "field_type.tel": "Phone",
-      "field_type.textarea": "Long text",
-      "field_type.select": "Dropdown",
-      "field_type.checkbox": "Checkbox",
-      "validation.none": "None",
-      "validation.email": "Email",
-      "validation.tel": "Phone",
-      "validation.url": "URL",
-      "validation.number": "Number",
-      "validation.integer": "Integer",
-      "validation.id_card": "ID card",
-      "validation.postal_code": "Postal code",
-      "validation.regex": "Custom regex",
       "chrome_row": {
         "1": "Row 1",
         "2": "Row 2",
@@ -737,7 +702,6 @@
       "band": "CTA band",
       "page-header": "Page title",
       "unsupported": "Unavailable block",
-      "form": "Form",
       "page-missing": "Not found"
     },
     "blockType": {
@@ -749,7 +713,6 @@
       "row": "Row",
       "plan": "Plan",
       "qa": "Q&A",
-      "field": "Field",
       "chrome_brand": "Brand",
       "chrome_nav": "Navigation",
       "chrome_button": "Button",
@@ -928,24 +891,6 @@
     "doc_category_created": "Created doc category \"{{key}}\"",
     "doc_category_updated": "Updated doc category \"{{key}}\"",
     "doc_category_deleted": "Deleted a doc category"
-  },
-  "formSubmissions": {
-    "nav": "Submissions",
-    "title": "Submissions",
-    "pageDescription": "What your website forms have collected, newest first.",
-    "empty": "No submissions yet",
-    "loading": "Loading…",
-    "delete": "Delete",
-    "deleted": "Deleted",
-    "deleteFailed": "Couldn't delete",
-    "deleteConfirmTitle": "Delete this submission?",
-    "deleteConfirmDescription": "The submission from “{{source}}” will be permanently deleted and cannot be recovered.",
-    "table": {
-      "time": "Time",
-      "source": "Source",
-      "content": "Content"
-    },
-    "emptyHint": "Submissions from your site forms show up here."
   },
   "redirects": {
     "title": "Redirects",
@@ -1136,13 +1081,6 @@
     },
     "band": {
       "headline": "Headline"
-    },
-    "form": {
-      "submit": "Submit",
-      "field": "Field",
-      "fieldName": "Name",
-      "fieldEmail": "Email",
-      "fieldMessage": "Message"
     },
     "pageMissing": {
       "headline": "Page not found",

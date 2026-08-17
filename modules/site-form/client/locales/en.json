@@ -1,0 +1,72 @@
+{
+  "section": {
+    "form": {
+      "label": "Form",
+      "group": "Form",
+      "submitLabel": "Submit button",
+      "successMessage": "Success message",
+      "successMessageInfo": "Leave empty to show just a checkmark.",
+      "blockField": "Field",
+      "fieldLabel": "Field label",
+      "fieldType": "Field type",
+      "fieldTypeOption": {
+        "text": "Text",
+        "email": "Email",
+        "tel": "Phone",
+        "textarea": "Long text",
+        "select": "Dropdown",
+        "checkbox": "Checkbox"
+      },
+      "placeholder": "Placeholder",
+      "fieldRequired": "Required",
+      "fieldOptions": "Options",
+      "fieldOptionsInfo": "One per line; used by “Dropdown” only.",
+      "fieldWide": "Full width",
+      "fieldWideInfo": "Narrow screens are always single column; this affects desktop only.",
+      "groupValidation": "Validation",
+      "fieldValidation": "Validation rule",
+      "validationOption": {
+        "none": "None",
+        "email": "Email",
+        "tel": "Phone",
+        "url": "URL",
+        "number": "Number",
+        "integer": "Integer",
+        "id_card": "ID card",
+        "postal_code": "Postal code",
+        "regex": "Custom regex"
+      },
+      "fieldPattern": "Custom regex",
+      "fieldPatternInfo": "Used only when the rule is “Custom regex”. No // delimiters needed.",
+      "fieldMinLength": "Min length",
+      "fieldMinLengthInfo": "0 means no minimum.",
+      "fieldMaxLength": "Max length",
+      "fieldMaxLengthInfo": "0 means follow the default (200 single-line / 4000 long text)."
+    }
+  },
+  "form": {
+    "submit": "Submit",
+    "field": "Field",
+    "fieldName": "Name",
+    "fieldEmail": "Email",
+    "fieldMessage": "Message"
+  },
+  "formSubmissions": {
+    "nav": "Submissions",
+    "title": "Submissions",
+    "pageDescription": "What your website forms have collected, newest first.",
+    "empty": "No submissions yet",
+    "emptyHint": "Submissions from your site forms show up here.",
+    "loading": "Loading…",
+    "delete": "Delete",
+    "deleted": "Deleted",
+    "deleteFailed": "Couldn't delete",
+    "deleteConfirmTitle": "Delete this submission?",
+    "deleteConfirmDescription": "The submission from “{{source}}” will be permanently deleted and cannot be recovered.",
+    "table": {
+      "time": "Time",
+      "source": "Source",
+      "content": "Content"
+    }
+  }
+}

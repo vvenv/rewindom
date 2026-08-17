@@ -39,6 +39,7 @@
     "@rewindom/shared": "workspace:*",
     "@rewindom/shop": "workspace:*",
     "@rewindom/site-docs": "workspace:*",
+    "@rewindom/site-form": "workspace:*",
     "@rewindom/todo": "workspace:*",
     "bcrypt": "^6.0.0",
     "bullmq": "^6.1.0",

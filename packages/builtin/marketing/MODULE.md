@@ -299,10 +299,16 @@ nginx 把绑定域的**所有** HTML 文档反代给 Fastify SSR。公开站**�
    `client/enhance/`，`pnpm --filter @rewindom/builtin assemble:site-enhance` 打成 IIFE
    写入 `shared/site-enhance.generated.ts`
 
+**贡献方的交互脚本也进这一个 IIFE**：模块在自己的 `client/enhance/index.ts` 里导出
+`enhanceSite(ctx)`，assemble **扫目录发现**后拼一个构建期虚拟入口
+（`bootSiteEnhance([...])`）。公开站因此仍只发一个脚本、一份长缓存，而定义留在贡献方
+——marketing 的源码里没有任何指向业务模块的 import。`ctx` 是当前页面的语言与路径快照
+（`client/enhance/page-context.ts`），贡献方不必自己去认 marketing 的 DOM 约定。
+
 | 能力         | 行为                                                                   |
 | ------------ | ---------------------------------------------------------------------- |
 | 明暗         | 读写 `localStorage.site-color-mode`，同步 `data-site-color-mode`                |
-| 表单         | 拦截 `.site-form` → `POST /api/public/site/form`                                |
+| 表单         | 由 `site-form` 贡献：拦截 `.site-form` → `POST /api/public/site-form/submit`     |
 | 账户菜单     | SSR 已登录则绑登出；否则 `credentials` 调 `/api/member/me`（可 refresh）升级    |
 | 会员专属正文 | SSR 未解锁时 `credentials` 调 `GET /api/site/content/page-html` 写入门控 main |
 
@@ -315,7 +321,7 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 就是公告条，prose 摆进页脚就是备案号，不另造类型。`group`（分栏）另外放行页脚区：
 多栏页脚是布局问题，用同一个布局原语解，不在页脚 schema 里再长一套列宽字段。
 
-内置段只保留**通用积木**（首屏、富文本、分栏、CTA、表单、页面菜单）。文档库等业务段由模块贡献。
+内置段只保留**通用积木**（首屏、富文本、分栏、CTA、页面菜单）。表单、文档库、店面等业务段由模块贡献。
 ### 贡献段要按请求查库：`registerSectionContextProvider`
 
 `SectionRenderContext.contributed` 一直都有，但只有**模块自有的 SSR 路由**填得上
@@ -1020,31 +1026,18 @@ og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算
 
 用例见 `server/ssr-seo.test.ts`。
 
-## 表单段（`form`）
+## 表单段（贡献自 `site-form`）
 
-第一个**会往回写数据**的段：其余段都只是把 settings 画出来，它还要收访客填的东西。
+表单段与提交记录**不在本模块**：它们是 `modules/site-form` 往这里的段注册表填的一项
+（`site-form.form`），与文档库、店面同一条路子。marketing 这边只提供三样东西：
 
-| 层 | 位置 |
+| 提供 | 位置 |
 | --- | --- |
-| 字段模型 + 校验（唯一真相源） | `shared/sections/form/fields.ts` |
-| 提交与查看 | `server/site-form.service.ts` |
-| 公开提交口 | `POST /api/public/site/form` |
-| 租户侧查看 | `GET /api/site/form-submissions`、`/app/site/form-submissions` |
-| 存储 | `MarketingFormSubmission` |
+| 段注册表 | `shared/sections/index.ts` 的 `CONTRIBUTED`（`registerSiteSectionHtml` / `registerSiteSectionView`） |
+| 存量 type 改写 | `shared/section-schema.ts` 的 `SECTION_TYPE_ALIASES`：`form` → `site-form.form` |
+| 交互层挂载 | site-enhance 的贡献方入口（见下） |
 
-**字段表以已发布正文为准，不信客户端。** 提交时服务端按 `path` + `section_id` 现取那一段，
-用它的 `field` block 重新算一遍字段表再校验：客户端想多送字段、改下拉选项、把必填改成
-选填，都过不来。客户端也调同一个 `validateFormValues`，所以两端口径不会漂。
-
-**失败一律不透露细节**：段不存在、不是表单、站点没发布，对外都是 404；只有「字段填得
-不对」逐字段返回，那是填表人自己要看的。限流按 `租户:IP`，**进程内**滑动窗口——挡的是
-脚本猛灌，不是分布式刷量（那要 Redis 或网关层，等真出现再上）。
-
-**提交内容存成自描述的 `[{ id, label, value }]`**，不是 `{ fieldId: value }`：字段是 block，
-租户随时会改标题、删字段、调顺序，按 id 存的话三个月后回头看只剩一堆 uuid 对不上任何东西。
-
-**SSR 只出静态结构**；提交由 site-enhance 拦截（`validateFormValues` + `POST /api/public/site/form`）。
-编辑器预览里的 React `FormSection` 共用同一份校验。
+细则见 `modules/site-form/MODULE.md`。
 
 ## 默认内容从哪来
 

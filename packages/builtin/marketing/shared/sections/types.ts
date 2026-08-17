@@ -12,7 +12,6 @@ export const PAGE_SECTION_TYPES = [
   "page-header",
   "hero",
   "page-menu",
-  "form",
   "prose",
   "group",
   "band",

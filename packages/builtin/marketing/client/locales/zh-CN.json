@@ -425,8 +425,6 @@
       "doc_back": "返回链接",
       "page": "页面",
       "headerItems": "页头显示",
-      "form": "表单",
-      "validation": "校验",
       "seo": "搜索与分享",
       "chrome_slot": "位置"
     },
@@ -462,12 +460,6 @@
       "radius": "「继承」保留该表面的默认圆角。",
       "spacing_box": "外圈是与相邻区块的距离（可继承站点设置）；内圈是正文内边距（与内背景同一层）。桌面数值，窄屏自动收窄。",
       "page_bg_color": "只给页面正文区上色；页头页脚仍用各自的设置。",
-      "success_message": "留空则只显示一个对勾。",
-      "field_options": "一行一个，仅「下拉选择」使用。",
-      "field_wide": "窄屏永远一列；这里只影响桌面排布。",
-      "field_pattern": "选「自定义正则」时生效，不需带 // 包裹。",
-      "field_min_length": "0 表示不限。",
-      "field_max_length": "0 表示跟随默认（单行 200 / 多行 4000）。",
       "og_image": "分享到社交平台时显示的图。留空用站点默认；建议 1200×630。",
       "noindex": "页面照常能访问，只是不进搜索结果，也不会出现在 sitemap 里。",
       "site_og_image": "没有单独设置的页面都用它。不建议直接用 logo：方形图在分享卡片里会被裁。",
@@ -577,18 +569,6 @@
       "border_color": "边框色",
       "border_width": "边框宽度",
       "radius": "圆角",
-      "submit_label": "提交按钮文案",
-      "success_message": "提交成功提示",
-      "field_label": "字段名称",
-      "field_type": "字段类型",
-      "placeholder": "占位提示",
-      "field_required": "必填",
-      "field_options": "可选项",
-      "field_wide": "独占一行",
-      "field_validation": "校验规则",
-      "field_pattern": "自定义正则",
-      "field_min_length": "最小字数",
-      "field_max_length": "最大字数",
       "og_image": "分享缩略图",
       "noindex": "不被搜索引擎收录",
       "site_og_image": "默认分享缩略图",
@@ -683,21 +663,6 @@
         "first": "排到最前",
         "last": "排到最后"
       },
-      "field_type.text": "单行文本",
-      "field_type.email": "邮箱",
-      "field_type.tel": "电话",
-      "field_type.textarea": "多行文本",
-      "field_type.select": "下拉选择",
-      "field_type.checkbox": "勾选框",
-      "validation.none": "不校验",
-      "validation.email": "邮箱",
-      "validation.tel": "电话",
-      "validation.url": "网址",
-      "validation.number": "数字",
-      "validation.integer": "整数",
-      "validation.id_card": "身份证号",
-      "validation.postal_code": "邮政编码",
-      "validation.regex": "自定义正则",
       "chrome_row": {
         "1": "第一行",
         "2": "第二行",
@@ -737,7 +702,6 @@
       "band": "通栏 CTA",
       "page-header": "页面标题",
       "unsupported": "不可用区块",
-      "form": "表单",
       "page-missing": "页面不存在"
     },
     "blockType": {
@@ -749,7 +713,6 @@
       "row": "行",
       "plan": "套餐",
       "qa": "问答",
-      "field": "字段",
       "chrome_brand": "品牌",
       "chrome_nav": "导航",
       "chrome_button": "按钮",
@@ -928,24 +891,6 @@
     "doc_category_created": "创建文档分类「{{key}}」",
     "doc_category_updated": "更新文档分类「{{key}}」",
     "doc_category_deleted": "删除文档分类"
-  },
-  "formSubmissions": {
-    "nav": "表单提交",
-    "title": "表单提交",
-    "pageDescription": "官网表单收到的内容，最新的在最上面。",
-    "empty": "还没有收到提交",
-    "loading": "加载中…",
-    "delete": "删除",
-    "deleted": "已删除",
-    "deleteFailed": "删除失败",
-    "deleteConfirmTitle": "删除这条提交？",
-    "deleteConfirmDescription": "来自「{{source}}」的这条提交将被永久删除，无法恢复。",
-    "table": {
-      "time": "时间",
-      "source": "来源",
-      "content": "内容"
-    },
-    "emptyHint": "访客提交站点表单后会出现在这里。"
   },
   "redirects": {
     "title": "重定向",
@@ -1136,13 +1081,6 @@
     },
     "band": {
       "headline": "标题"
-    },
-    "form": {
-      "submit": "提交",
-      "field": "字段",
-      "fieldName": "姓名",
-      "fieldEmail": "邮箱",
-      "fieldMessage": "留言"
     },
     "pageMissing": {
       "headline": "页面不存在",

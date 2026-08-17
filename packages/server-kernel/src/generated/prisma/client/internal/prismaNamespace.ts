@@ -412,7 +412,6 @@ export const ModelName = {
   User: 'User',
   MarketingSite: 'MarketingSite',
   MarketingPage: 'MarketingPage',
-  MarketingFormSubmission: 'MarketingFormSubmission',
   MarketingRedirect: 'MarketingRedirect',
   MarketingAsset: 'MarketingAsset',
   MarketingPageVersion: 'MarketingPageVersion',
@@ -445,6 +444,7 @@ export const ModelName = {
   MemberPayment: 'MemberPayment',
   SiteDocCategory: 'SiteDocCategory',
   SiteDoc: 'SiteDoc',
+  SiteFormSubmission: 'SiteFormSubmission',
   SiteMember: 'SiteMember',
   SiteMemberRefreshToken: 'SiteMemberRefreshToken',
   SiteMemberOAuthAccount: 'SiteMemberOAuthAccount',
@@ -466,7 +466,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingFormSubmission" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1577,80 +1577,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MarketingPageCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MarketingPageCountAggregateOutputType> | number
-        }
-      }
-    }
-    MarketingFormSubmission: {
-      payload: Prisma.$MarketingFormSubmissionPayload<ExtArgs>
-      fields: Prisma.MarketingFormSubmissionFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.MarketingFormSubmissionFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.MarketingFormSubmissionFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
-        }
-        findFirst: {
-          args: Prisma.MarketingFormSubmissionFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.MarketingFormSubmissionFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
-        }
-        findMany: {
-          args: Prisma.MarketingFormSubmissionFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>[]
-        }
-        create: {
-          args: Prisma.MarketingFormSubmissionCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
-        }
-        createMany: {
-          args: Prisma.MarketingFormSubmissionCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.MarketingFormSubmissionCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>[]
-        }
-        delete: {
-          args: Prisma.MarketingFormSubmissionDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
-        }
-        update: {
-          args: Prisma.MarketingFormSubmissionUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
-        }
-        deleteMany: {
-          args: Prisma.MarketingFormSubmissionDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.MarketingFormSubmissionUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.MarketingFormSubmissionUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>[]
-        }
-        upsert: {
-          args: Prisma.MarketingFormSubmissionUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketingFormSubmissionPayload>
-        }
-        aggregate: {
-          args: Prisma.MarketingFormSubmissionAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateMarketingFormSubmission>
-        }
-        groupBy: {
-          args: Prisma.MarketingFormSubmissionGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MarketingFormSubmissionGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.MarketingFormSubmissionCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.MarketingFormSubmissionCountAggregateOutputType> | number
         }
       }
     }
@@ -4022,6 +3948,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SiteFormSubmission: {
+      payload: Prisma.$SiteFormSubmissionPayload<ExtArgs>
+      fields: Prisma.SiteFormSubmissionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SiteFormSubmissionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SiteFormSubmissionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload>
+        }
+        findFirst: {
+          args: Prisma.SiteFormSubmissionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SiteFormSubmissionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload>
+        }
+        findMany: {
+          args: Prisma.SiteFormSubmissionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload>[]
+        }
+        create: {
+          args: Prisma.SiteFormSubmissionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload>
+        }
+        createMany: {
+          args: Prisma.SiteFormSubmissionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SiteFormSubmissionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload>[]
+        }
+        delete: {
+          args: Prisma.SiteFormSubmissionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload>
+        }
+        update: {
+          args: Prisma.SiteFormSubmissionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload>
+        }
+        deleteMany: {
+          args: Prisma.SiteFormSubmissionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SiteFormSubmissionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SiteFormSubmissionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload>[]
+        }
+        upsert: {
+          args: Prisma.SiteFormSubmissionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteFormSubmissionPayload>
+        }
+        aggregate: {
+          args: Prisma.SiteFormSubmissionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSiteFormSubmission>
+        }
+        groupBy: {
+          args: Prisma.SiteFormSubmissionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteFormSubmissionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SiteFormSubmissionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteFormSubmissionCountAggregateOutputType> | number
+        }
+      }
+    }
     SiteMember: {
       payload: Prisma.$SiteMemberPayload<ExtArgs>
       fields: Prisma.SiteMemberFieldRefs
@@ -4764,22 +4764,6 @@ export const MarketingPageScalarFieldEnum = {
 export type MarketingPageScalarFieldEnum = (typeof MarketingPageScalarFieldEnum)[keyof typeof MarketingPageScalarFieldEnum]
 
 
-export const MarketingFormSubmissionScalarFieldEnum = {
-  id: 'id',
-  tenant_id: 'tenant_id',
-  page_slug: 'page_slug',
-  page_locale: 'page_locale',
-  section_id: 'section_id',
-  form_title: 'form_title',
-  data: 'data',
-  ip: 'ip',
-  user_agent: 'user_agent',
-  created_at: 'created_at'
-} as const
-
-export type MarketingFormSubmissionScalarFieldEnum = (typeof MarketingFormSubmissionScalarFieldEnum)[keyof typeof MarketingFormSubmissionScalarFieldEnum]
-
-
 export const MarketingRedirectScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -5302,6 +5286,22 @@ export const SiteDocScalarFieldEnum = {
 export type SiteDocScalarFieldEnum = (typeof SiteDocScalarFieldEnum)[keyof typeof SiteDocScalarFieldEnum]
 
 
+export const SiteFormSubmissionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  page_slug: 'page_slug',
+  page_locale: 'page_locale',
+  section_id: 'section_id',
+  form_title: 'form_title',
+  data: 'data',
+  ip: 'ip',
+  user_agent: 'user_agent',
+  created_at: 'created_at'
+} as const
+
+export type SiteFormSubmissionScalarFieldEnum = (typeof SiteFormSubmissionScalarFieldEnum)[keyof typeof SiteFormSubmissionScalarFieldEnum]
+
+
 export const SiteMemberScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -5691,7 +5691,6 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   marketingSite?: Prisma.MarketingSiteOmit
   marketingPage?: Prisma.MarketingPageOmit
-  marketingFormSubmission?: Prisma.MarketingFormSubmissionOmit
   marketingRedirect?: Prisma.MarketingRedirectOmit
   marketingAsset?: Prisma.MarketingAssetOmit
   marketingPageVersion?: Prisma.MarketingPageVersionOmit
@@ -5724,6 +5723,7 @@ export type GlobalOmitConfig = {
   memberPayment?: Prisma.MemberPaymentOmit
   siteDocCategory?: Prisma.SiteDocCategoryOmit
   siteDoc?: Prisma.SiteDocOmit
+  siteFormSubmission?: Prisma.SiteFormSubmissionOmit
   siteMember?: Prisma.SiteMemberOmit
   siteMemberRefreshToken?: Prisma.SiteMemberRefreshTokenOmit
   siteMemberOAuthAccount?: Prisma.SiteMemberOAuthAccountOmit

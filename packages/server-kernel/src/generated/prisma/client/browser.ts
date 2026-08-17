@@ -93,16 +93,6 @@ export type MarketingSite = Prisma.MarketingSiteModel
  */
 export type MarketingPage = Prisma.MarketingPageModel
 /**
- * Model MarketingFormSubmission
- * *
- *  * 公开表单的一次提交。
- *  *
- *  * 内容存成自描述的 `[{ id, label, value }]` 而不是 `{ fieldId: value }`：字段是 block，
- *  * 租户随时会改标题、删字段、调顺序——按 id 存的话，三个月后回头看后台列表只剩一堆
- *  * uuid 对不上任何东西。存下提交**当时**的标签，历史记录才读得懂。
- */
-export type MarketingFormSubmission = Prisma.MarketingFormSubmissionModel
-/**
  * Model MarketingRedirect
  * *
  *  * 站内 301/302 重定向。
@@ -300,6 +290,20 @@ export type SiteDocCategory = Prisma.SiteDocCategoryModel
  *  * 刻意不声明到 Tenant 的 relation：租户隔离由 tenant-guard + withTenantScope 保证。
  */
 export type SiteDoc = Prisma.SiteDocModel
+/**
+ * Model SiteFormSubmission
+ * *
+ *  * 公开表单的一次提交。
+ *  *
+ *  * 内容存成自描述的 `[{ id, label, value }]` 而不是 `{ fieldId: value }`：字段是 block，
+ *  * 租户随时会改标题、删字段、调顺序——按 id 存的话，三个月后回头看后台列表只剩一堆
+ *  * uuid 对不上任何东西。存下提交**当时**的标签，历史记录才读得懂。
+ *  *
+ *  * 与页面的关联只存 slug / locale / section_id 三个字符串，不连外键：页面在 marketing
+ *  * 那个模块里，跨模块 relation 会把两个部署单元焊死。段被删掉之后这条记录仍要读得懂，
+ *  * 所以标题也另存了一份快照。
+ */
+export type SiteFormSubmission = Prisma.SiteFormSubmissionModel
 /**
  * Model SiteMember
  * 

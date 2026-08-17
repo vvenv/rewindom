@@ -66,7 +66,6 @@ export const ModelName = {
   User: 'User',
   MarketingSite: 'MarketingSite',
   MarketingPage: 'MarketingPage',
-  MarketingFormSubmission: 'MarketingFormSubmission',
   MarketingRedirect: 'MarketingRedirect',
   MarketingAsset: 'MarketingAsset',
   MarketingPageVersion: 'MarketingPageVersion',
@@ -99,6 +98,7 @@ export const ModelName = {
   MemberPayment: 'MemberPayment',
   SiteDocCategory: 'SiteDocCategory',
   SiteDoc: 'SiteDoc',
+  SiteFormSubmission: 'SiteFormSubmission',
   SiteMember: 'SiteMember',
   SiteMemberRefreshToken: 'SiteMemberRefreshToken',
   SiteMemberOAuthAccount: 'SiteMemberOAuthAccount',
@@ -380,22 +380,6 @@ export const MarketingPageScalarFieldEnum = {
 } as const
 
 export type MarketingPageScalarFieldEnum = (typeof MarketingPageScalarFieldEnum)[keyof typeof MarketingPageScalarFieldEnum]
-
-
-export const MarketingFormSubmissionScalarFieldEnum = {
-  id: 'id',
-  tenant_id: 'tenant_id',
-  page_slug: 'page_slug',
-  page_locale: 'page_locale',
-  section_id: 'section_id',
-  form_title: 'form_title',
-  data: 'data',
-  ip: 'ip',
-  user_agent: 'user_agent',
-  created_at: 'created_at'
-} as const
-
-export type MarketingFormSubmissionScalarFieldEnum = (typeof MarketingFormSubmissionScalarFieldEnum)[keyof typeof MarketingFormSubmissionScalarFieldEnum]
 
 
 export const MarketingRedirectScalarFieldEnum = {
@@ -918,6 +902,22 @@ export const SiteDocScalarFieldEnum = {
 } as const
 
 export type SiteDocScalarFieldEnum = (typeof SiteDocScalarFieldEnum)[keyof typeof SiteDocScalarFieldEnum]
+
+
+export const SiteFormSubmissionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  page_slug: 'page_slug',
+  page_locale: 'page_locale',
+  section_id: 'section_id',
+  form_title: 'form_title',
+  data: 'data',
+  ip: 'ip',
+  user_agent: 'user_agent',
+  created_at: 'created_at'
+} as const
+
+export type SiteFormSubmissionScalarFieldEnum = (typeof SiteFormSubmissionScalarFieldEnum)[keyof typeof SiteFormSubmissionScalarFieldEnum]
 
 
 export const SiteMemberScalarFieldEnum = {

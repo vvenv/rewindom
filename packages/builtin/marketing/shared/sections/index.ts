@@ -5,14 +5,13 @@
  * 渲染，客户端的 React 视图在 `client/components/sections/views/<type>.tsx`。
  * 本文件只做聚合，不含任何一段的具体内容——**加一段不改这里的任何逻辑，只多一行**。
  *
- * 内置段只保留通用积木：首屏、富文本、分栏、CTA、表单、页面菜单。
+ * 内置段只保留通用积木：首屏、富文本、分栏、CTA、页面菜单。
  * 文档库、店面等业务段由模块贡献，不进这张表。
  */
 
 import { contributedChromeBlocks } from "./_common/chrome-blocks.js";
 import { bandSection } from "./band/definition.js";
 import { footerSection } from "./footer/definition.js";
-import { formSection } from "./form/definition.js";
 import { groupSection } from "./group/definition.js";
 import { headerSection } from "./header/definition.js";
 import { heroSection } from "./hero/definition.js";
@@ -72,7 +71,6 @@ export const BUILTIN_SECTION_DEFINITIONS: Record<
   hero: heroSection,
   "page-missing": pageMissingSection,
   "page-menu": pageMenuSection,
-  form: formSection,
   prose: proseSection,
   group: groupSection,
   band: bandSection,

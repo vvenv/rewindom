@@ -73,7 +73,7 @@ describe("拖放排序", () => {
   function page(): SiteSection[] {
     return [
       createSection("hero"),
-      createSection("form"),
+      createSection("page-menu"),
       createSection("band"),
     ];
   }
@@ -187,8 +187,7 @@ describe("拖放排序", () => {
    */
   it("落点不在这棵树里就不搬（否则那一段会被摘掉后凭空消失）", () => {
     const hero = createSection("hero");
-    const form = createSection("form");
-    const pageTree = [hero, form];
+    const pageTree = [hero, createSection("page-menu")];
     // 另一棵树（页脚）里的分栏与它的列
     const { group } = groupWithMenu();
 
@@ -222,16 +221,16 @@ describe("拖放排序", () => {
   });
 
   it("block 在所属 section 内换位", () => {
-    const form = createSection("form");
+    const hero = createSection("hero");
     const withBlocks = addBlock(
-      addBlock([form], form.id, "field"),
-      form.id,
-      "field",
+      addBlock([hero], hero.id, "stat"),
+      hero.id,
+      "stat",
     );
     const blocks = withBlocks[0]!.blocks;
     const first = blocks[blocks.length - 2]!.id;
     const last = blocks[blocks.length - 1]!.id;
-    const moved = reorderBlock(withBlocks, form.id, first, last, "after");
+    const moved = reorderBlock(withBlocks, hero.id, first, last, "after");
     const ids = moved[0]!.blocks.map((block) => block.id);
     expect(ids.indexOf(last)).toBeLessThan(ids.indexOf(first));
   });
@@ -272,11 +271,11 @@ describe("容器段的列", () => {
 
   it("加 block 认的是子段自己，不是外面的容器段", () => {
     const { group, menuId } = groupWithMenu();
-    const withForm = addSectionToColumn([group], group.blocks[1]!.id, "form");
-    const formId = withForm.created.id;
-    const before = findSection(withForm.sections, formId)!.blocks.length;
-    const next = addBlock(withForm.sections, formId, "field");
-    expect(findSection(next, formId)?.blocks).toHaveLength(before + 1);
+    const withHero = addSectionToColumn([group], group.blocks[1]!.id, "hero");
+    const heroId = withHero.created.id;
+    const before = findSection(withHero.sections, heroId)!.blocks.length;
+    const next = addBlock(withHero.sections, heroId, "stat");
+    expect(findSection(next, heroId)?.blocks).toHaveLength(before + 1);
     // 同一棵树上的另一段没被波及
     expect(findSection(next, menuId)?.blocks).toHaveLength(0);
   });
@@ -342,8 +341,8 @@ describe("加减列时的列宽", () => {
   });
 
   it("非容器段的 block 增删不写列宽", () => {
-    const form = createSection("form");
-    const next = addBlock([form], form.id, "field")[0]!;
+    const hero = createSection("hero");
+    const next = addBlock([hero], hero.id, "stat")[0]!;
     expect(next.settings.columns_layout).toBeUndefined();
   });
 });

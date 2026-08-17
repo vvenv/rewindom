@@ -56,31 +56,6 @@ model MarketingPage {
 }
 
 /**
- * 公开表单的一次提交。
- *
- * 内容存成自描述的 `[{ id, label, value }]` 而不是 `{ fieldId: value }`：字段是 block，
- * 租户随时会改标题、删字段、调顺序——按 id 存的话，三个月后回头看后台列表只剩一堆
- * uuid 对不上任何东西。存下提交**当时**的标签，历史记录才读得懂。
- */
-model MarketingFormSubmission {
-  id          String   @id @default(uuid())
-  tenant_id   String
-  // 定位到哪个表单；段可能被删或改，所以标题另存一份快照
-  page_slug   String
-  page_locale String
-  section_id  String
-  form_title  String   @default("")
-  data        Json     @default("[]")
-  // 溯源与反垃圾
-  ip          String   @default("")
-  user_agent  String   @default("")
-  created_at  DateTime @default(now())
-
-  @@index([tenant_id, created_at])
-  @@index([tenant_id, section_id])
-}
-
-/**
  * 站内 301/302 重定向。
  *
  * 迁站、改 slug、下线活动页时用来保住外部链接与既有排名。按 `from_path` 精确匹配，

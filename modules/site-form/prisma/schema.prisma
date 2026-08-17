@@ -1,0 +1,33 @@
+// 外部模块 Prisma schema——由 gen:external-modules 符号链接到
+// apps/server/prisma/models/site-form.prisma。
+// 刻意不声明到 Tenant 的 relation：跨模块不连外键，
+// 租户隔离由 tenant-guard 注入 tenant_id。
+
+/**
+ * 公开表单的一次提交。
+ *
+ * 内容存成自描述的 `[{ id, label, value }]` 而不是 `{ fieldId: value }`：字段是 block，
+ * 租户随时会改标题、删字段、调顺序——按 id 存的话，三个月后回头看后台列表只剩一堆
+ * uuid 对不上任何东西。存下提交**当时**的标签，历史记录才读得懂。
+ *
+ * 与页面的关联只存 slug / locale / section_id 三个字符串，不连外键：页面在 marketing
+ * 那个模块里，跨模块 relation 会把两个部署单元焊死。段被删掉之后这条记录仍要读得懂，
+ * 所以标题也另存了一份快照。
+ */
+model SiteFormSubmission {
+  id          String   @id @default(uuid())
+  tenant_id   String
+  // 定位到哪个表单；段可能被删或改，所以标题另存一份快照
+  page_slug   String
+  page_locale String
+  section_id  String
+  form_title  String   @default("")
+  data        Json     @default("[]")
+  // 溯源与反垃圾
+  ip          String   @default("")
+  user_agent  String   @default("")
+  created_at  DateTime @default(now())
+
+  @@index([tenant_id, created_at])
+  @@index([tenant_id, section_id])
+}

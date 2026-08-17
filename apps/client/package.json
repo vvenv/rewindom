@@ -25,6 +25,7 @@
     "@rewindom/shared": "workspace:*",
     "@rewindom/shop": "workspace:*",
     "@rewindom/site-docs": "workspace:*",
+    "@rewindom/site-form": "workspace:*",
     "@rewindom/todo": "workspace:*",
     "@rewindom/ui": "workspace:*",
     "@tanstack/react-query": "^5.101.4",

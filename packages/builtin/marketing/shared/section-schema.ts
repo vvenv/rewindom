@@ -187,6 +187,8 @@ function parseBlocks(
 
 /** 存量段 type：解析时改写一次，不是双读。 */
 const SECTION_TYPE_ALIASES: Record<string, string> = {
+  // 表单从 marketing 拆到 site-form 之前，段 type 是没有前缀的 `form`
+  form: "site-form.form",
   "doc-list": "site-docs.list",
   "doc-article": "site-docs.article",
   "doc-nav": "site-docs.nav",

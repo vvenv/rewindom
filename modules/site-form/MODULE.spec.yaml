@@ -1,0 +1,67 @@
+# 站点表单模块：从 marketing 拆出「表单段 + 提交记录」。
+# gen:module 只支持单资源列表 CRUD；本模块还贡献官网段与公开写入口，为手写。
+id: site-form
+label: Site forms
+description: 官网表单段与提交记录
+kind: business
+placement: modules/site-form
+resource:
+  singular: submission
+  plural: submissions
+surfaces: [tenant, ssr]
+requires: [rbac, audit, marketing]
+
+entitlement:
+  key: site-form
+  label: 站点表单
+  description: 官网表单段与提交记录
+  disabled_hint: 该站点未开通表单
+  # 拆分前表单是内置段，所有站点都在用；默认开才不会在升级当天让存量表单消失
+  default_enabled: true
+
+permissions:
+  - { key: form.read, label: 查看表单提交, group: 站点表单, description: 查看官网表单收到的提交}
+  - { key: form.write, label: 管理表单提交, group: 站点表单, description: 删除官网表单提交}
+
+models:
+  - name: SiteFormSubmission
+    fields:
+      - { name: page_slug, type: String, required: true, label: 页面 }
+      - { name: page_locale, type: String, required: true, label: 语言 }
+      - { name: section_id, type: String, required: true, label: 段 }
+      - { name: form_title, type: String, required: true, label: 表单标题 }
+      - { name: data, type: Json, required: true, label: 内容 }
+      - { name: ip, type: String, required: true }
+      - { name: user_agent, type: String, required: true }
+    indexes:
+      - [tenant_id, created_at]
+      - [tenant_id, section_id]
+
+api:
+  prefix: /api/site-form
+  operations: [list, delete]
+  list:
+    default_sort: { by: created_at, dir: desc }
+
+client:
+  mount: renderRoutes
+  route_path: /app/site-form
+  nav:
+    # 与 marketing 的 /app/site 同组：表单提交是站点的一类内容集合
+    section: marketing:cms.navSection
+    label: 表单提交
+    title: 表单提交
+    icon: Inbox
+  page:
+    layout: list-table
+
+# 贡献给「站点」的能力（定义写在本模块，marketing 只提供注册表）
+site_contributions:
+  sections:
+    - type: site-form.form
+      label: 表单
+      placements: [page]
+      entitlement: site-form
+      # 存量正文里存的是裸 `form`，由 marketing 解析层的 SECTION_TYPE_ALIASES 改写一次
+      legacy_type: form
+  enhance: client/enhance/index.ts # 公开站提交脚本，随 site-enhance 一起打包

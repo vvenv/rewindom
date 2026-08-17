@@ -23,7 +23,7 @@ sort_order: 60
 | `faq`          | 常见问题  | 折叠问答                 |
 | `band`         | 通栏 CTA  | 一条横贯的行动号召       |
 | `prose`        | 富文本    | 直接写 Markdown          |
-| `form`         | 表单      | 收集线索，提交进表单记录 |
+| `site-form.form` | 表单      | 收集线索，提交进表单记录 |
 | `page-menu`    | 页面菜单  | 页面级的目录 / 子导航    |
 | `group`        | 分栏      | 容器：把 section 并排放  |
 | `site-docs.list`    | 文档列表  | 文档索引                 |

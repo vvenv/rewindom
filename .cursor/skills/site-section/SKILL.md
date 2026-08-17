@@ -93,6 +93,22 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 `type` 带模块前缀；`entitlement` 闸门同样生效。金标准：shop `shop.cart-link`。
 
+## 公开站交互脚本（enhance）
+
+公开站不挂 React。段需要交互（提交、切换、展开）时，贡献方写
+`<模块>/client/enhance/index.ts` 并导出 **`enhanceSite(ctx)`**——marketing 的
+`site-enhance/assemble.mjs` 扫目录发现它，拼进同一个 IIFE（公开站仍只发一个脚本）。
+
+| 写 | 做什么 |
+| --- | --- |
+| `<模块>/client/enhance/index.ts` | `export function enhanceSite(ctx: SiteEnhanceContext): void` |
+| `pnpm --filter @rewindom/builtin assemble:site-enhance` | 重新打包，生成物随提交入库 |
+
+`ctx` 是当前页面的语言与路径快照，别自己去翻 marketing 的 DOM 属性。事件用委托挂在
+`document` 上：会员正文那类局部替换会把段重新插进来，逐个绑会漏。金标准：`site-form`。
+
+**禁止**把贡献方的脚本写进 `marketing/client/enhance/`——那等于让内核 import 业务模块。
+
 ## 模板页
 
 路径固定、每种语言最多一张（登录、`/shop`、`/docs`）。**不要**自己写初始化，**不要**做「自定义版式」空态。

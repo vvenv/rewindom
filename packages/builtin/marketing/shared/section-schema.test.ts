@@ -27,7 +27,7 @@ import {
 } from "./section-schema.js";
 
 describe("parseSettingValues", () => {
-  const defs = BUILTIN_SECTION_DEFINITIONS.form.settings;
+  const defs = BUILTIN_SECTION_DEFINITIONS["page-menu"].settings;
 
   it("keeps runtime select values when options_from is set", () => {
     const selectDefs = [
@@ -67,10 +67,8 @@ describe("parseSettingValues", () => {
     expect(parseSettingValues(defs, {})).toMatchObject({
       heading: "",
       subheading: "",
-      submit_label: {
-        __i18n: { "zh-CN": "提交", en: "Submit" },
-      },
-      success_message: "",
+      source: "children",
+      style: "cards",
       width: "page",
       content_width: "default",
       padding_top: 0,
@@ -91,14 +89,6 @@ describe("parseSettingValues", () => {
   });
 
   it("throws when a required text setting is blank", () => {
-    expect(() =>
-      parseSettingValues(defs, {
-        submit_label: "  ",
-      }),
-    ).toThrow("site.sections_invalid");
-  });
-
-  it("throws when a required hero headline is blank", () => {
     expect(() =>
       parseSettingValues(BUILTIN_SECTION_DEFINITIONS.hero.settings, {
         headline: "  ",
@@ -243,17 +233,22 @@ describe("parseSettingValues", () => {
 });
 
 describe("createSection", () => {
-  it("seeds defaults and preset blocks", () => {
-    const section = createSection("form");
-    expect(section.settings.submit_label).toEqual({
-      __i18n: { "zh-CN": "提交", en: "Submit" },
+  it("seeds defaults", () => {
+    expect(createSection("hero").settings.headline).toEqual({
+      __i18n: { "zh-CN": "欢迎", en: "Welcome" },
     });
-    expect(section.blocks.length).toBeGreaterThan(0);
-    expect(section.blocks[0]?.type).toBe("field");
+  });
+
+  it("seeds preset blocks", () => {
+    const section = createSection("group");
+    expect(section.blocks.map((block) => block.type)).toEqual([
+      "column",
+      "column",
+    ]);
   });
 
   it("rejects a block type the section does not declare", () => {
-    expect(() => createBlock("form", "gallery")).toThrow(
+    expect(() => createBlock("hero", "gallery")).toThrow(
       "site.sections_invalid",
     );
   });
@@ -269,46 +264,45 @@ describe("parseSections", () => {
       },
       {
         id: "b",
-        type: "form",
-        settings: { submit_label: "Send" },
-        blocks: [{ type: "field", settings: { label: "A", type: "text" } }],
+        type: "hero",
+        settings: { headline: "Hey" },
+        blocks: [{ type: "stat", settings: { term: "A" } }],
       },
     ]);
     expect(sections).toHaveLength(2);
     expect(sections[0]?.type).toBe("hero");
     expect(settingText(sections[0]!.settings, "headline")).toBe("Hi");
-    expect(sections[1]?.type).toBe("form");
     expect(sections[1]?.blocks).toHaveLength(1);
-    expect(settingText(sections[1]!.blocks[0]!.settings, "label")).toBe("A");
+    expect(settingText(sections[1]!.blocks[0]!.settings, "term")).toBe("A");
   });
 
   it("keeps declared block types and drops the rest", () => {
     const [section] = parseSections([
       {
-        type: "form",
+        type: "hero",
         settings: {},
         blocks: [
-          { type: "field", settings: { label: "keep", type: "text" } },
+          { type: "stat", settings: { term: "keep" } },
           { type: "gallery", settings: { title: "drop" } },
         ],
       },
     ]);
-    expect(section?.blocks.map((block) => block.type)).toEqual(["field"]);
+    expect(section?.blocks.map((block) => block.type)).toEqual(["stat"]);
   });
 
   it("enforces max_blocks", () => {
     const [section] = parseSections([
       {
-        type: "form",
+        type: "hero",
         settings: {},
         blocks: Array.from({ length: 20 }, (_, index) => ({
-          type: "field",
-          settings: { label: `T${index}`, type: "text" },
+          type: "stat",
+          settings: { term: `T${index}` },
         })),
       },
     ]);
     expect(section?.blocks).toHaveLength(
-      BUILTIN_SECTION_DEFINITIONS.form.max_blocks ?? 0,
+      BUILTIN_SECTION_DEFINITIONS.hero.max_blocks ?? 0,
     );
   });
 
@@ -585,7 +579,7 @@ describe("section layout settings", () => {
   });
 
   it("expands spacing_box into four paddings and vertical outer spacing", () => {
-    const defs = BUILTIN_SECTION_DEFINITIONS.form.settings;
+    const defs = BUILTIN_SECTION_DEFINITIONS["page-menu"].settings;
     expect(
       parseSettingValues(defs, {
         padding_top: 16,
@@ -724,19 +718,19 @@ describe("relocalizeSections", () => {
   it("seeds block copy too", () => {
     const sections = parseSections([
       {
-        type: "form",
+        type: "hero",
         settings: {},
         blocks: [
           {
-            type: "field",
-            settings: { label: "访客姓名", type: "text", placeholder: "请输入" },
+            type: "stat",
+            settings: { term: "访客数", detail: "本月" },
           },
         ],
       },
     ]);
     const [copied] = relocalizeSections(sections, "zh-CN", "en", "zh-CN");
-    expect(copied!.blocks[0]!.settings.label).toEqual({
-      __i18n: { "zh-CN": "访客姓名", en: "访客姓名" },
+    expect(copied!.blocks[0]!.settings.term).toEqual({
+      __i18n: { "zh-CN": "访客数", en: "访客数" },
     });
   });
 

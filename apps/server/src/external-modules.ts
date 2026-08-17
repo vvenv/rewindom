@@ -5,6 +5,7 @@ import { bookmarkServerModule } from "@rewindom/bookmark/server/index.js";
 import { noteServerModule } from "@rewindom/note/server/index.js";
 import { shopServerModule } from "@rewindom/shop/server/index.js";
 import { siteDocsServerModule } from "@rewindom/site-docs/server/index.js";
+import { siteFormServerModule } from "@rewindom/site-form/server/index.js";
 import { todoServerModule } from "@rewindom/todo/server/index.js";
 
 import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-contract.js";
@@ -14,5 +15,6 @@ export const EXTERNAL_SERVER_MODULES = [
   noteServerModule,
   shopServerModule,
   siteDocsServerModule,
+  siteFormServerModule,
   todoServerModule,
 ] as const satisfies readonly ServerAppModule[];

@@ -19,7 +19,6 @@ import {
 import { registerSectionIcon } from "../theme-editor/section-icons.js";
 
 import { BandSection } from "./views/band.js";
-import { FormSection } from "./views/form.js";
 import { GroupSection } from "./views/group.js";
 import { HeroSection } from "./views/hero.js";
 import { PageHeaderSection } from "./views/page-header.js";
@@ -36,7 +35,6 @@ export const SECTION_VIEWS: Partial<
   hero: HeroSection,
   "page-missing": PageMissingSection,
   "page-menu": PageMenuSection,
-  form: FormSection,
   band: BandSection,
   group: GroupSection,
   "page-header": PageHeaderSection,

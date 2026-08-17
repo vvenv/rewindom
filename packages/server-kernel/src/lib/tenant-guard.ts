@@ -40,6 +40,7 @@ type ModelPolicy =
   | { kind: "global"; reason: string };
 
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
+  SiteFormSubmission: { kind: "tenant_id" },
   ShopPayment: { kind: "tenant_id" },
   ShopShipment: { kind: "tenant_id" },
   ShopOrderLine: { kind: "tenant_id" },
@@ -59,7 +60,6 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   Note: { kind: "tenant_id" },
   MarketingSite: { kind: "tenant_id" },
   MarketingPage: { kind: "tenant_id" },
-  MarketingFormSubmission: { kind: "tenant_id" },
   MarketingRedirect: { kind: "tenant_id" },
   MarketingAsset: { kind: "tenant_id" },
   MarketingPageVersion: { kind: "tenant_id" },

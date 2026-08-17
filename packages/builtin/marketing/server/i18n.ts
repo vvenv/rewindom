@@ -15,7 +15,6 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_content_reverted":
         "撤销官网页面未发布的更改「{{title}}」",
       "marketing.audit.page_unpublished": "取消发布官网页面「{{title}}」",
-      "marketing.audit.form_submission_deleted": "删除官网表单提交",
       "marketing.audit.redirect_saved":
         "保存官网重定向 {{from_path}} → {{to_path}}",
       "marketing.audit.redirect_deleted": "删除官网重定向",
@@ -102,7 +101,6 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "marketing.audit.page_content_reverted":
         'Discarded unpublished changes on site page "{{title}}"',
       "marketing.audit.page_unpublished": 'Unpublished site page "{{title}}"',
-      "marketing.audit.form_submission_deleted": "Deleted a form submission",
       "marketing.audit.redirect_saved":
         "Saved redirect {{from_path}} → {{to_path}}",
       "marketing.audit.redirect_deleted": "Deleted a redirect",

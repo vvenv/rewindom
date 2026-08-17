@@ -12,7 +12,6 @@ import {
   RectangleVertical,
   SearchX,
   Text,
-  TextCursorInput,
   TriangleAlert,
   User,
   type LucideIcon,
@@ -33,7 +32,6 @@ export const SECTION_ICONS: Partial<Record<SectionType, LucideIcon>> = {
   hero: LayoutPanelTop,
   "page-missing": SearchX,
   "page-menu": LayoutList,
-  form: TextCursorInput,
   prose: Text,
   group: Columns2,
   band: Megaphone,
@@ -56,7 +54,6 @@ export function registerBlockIcon(type: string, icon: LucideIcon): void {
 
 export const BLOCK_ICONS: Record<string, LucideIcon> = {
   column: RectangleVertical,
-  field: TextCursorInput,
   nav_link: Link2,
   footer_link: Link2,
   chrome_brand: PanelTop,

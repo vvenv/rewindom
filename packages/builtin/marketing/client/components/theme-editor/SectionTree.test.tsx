@@ -25,18 +25,17 @@ function dataTransfer(): DataTransfer {
 }
 
 /**
- * 一页：hero / form（带 block）/ 分栏（左列有一段 page-menu、右列空着）/ band。
+ * 一页：hero（带 block）/ 分栏（左列有一段 page-menu、右列空着）/ band。
  * 右列空着是关键——新建的分栏就是这样，「拖进分栏」最常见的一下落在那儿。
  */
 function buildPage() {
-  const hero = createSection("hero");
   const band = createSection("band");
 
-  const formBase = createSection("form");
-  const withBlocks = addBlock(
-    addBlock([formBase], formBase.id, "field"),
-    formBase.id,
-    "field",
+  const heroBase = createSection("hero");
+  const hero = addBlock(
+    addBlock([heroBase], heroBase.id, "stat"),
+    heroBase.id,
+    "stat",
   )[0]!;
 
   const groupBase = createSection("group");
@@ -49,13 +48,12 @@ function buildPage() {
 
   return {
     hero,
-    form: withBlocks,
     group,
     menu,
     band,
     leftColumnId: group.blocks[0]!.id,
     emptyColumnId: group.blocks[1]!.id,
-    blocks: withBlocks.blocks.slice(-2),
+    blocks: hero.blocks.slice(-2),
   };
 }
 
@@ -163,11 +161,11 @@ describe("SectionTree 拖放", () => {
   });
 
   it("block 在所属 section 内换位", async () => {
-    const { form, blocks } = buildPage();
-    const { row, onReorderBlock } = setup([form], form.id);
+    const { hero, blocks } = buildPage();
+    const { row, onReorderBlock } = setup([hero], hero.id);
     await dragTo(row(blocks[0]!.id), row(blocks[1]!.id), 15);
     expect(onReorderBlock).toHaveBeenCalledWith(
-      form.id,
+      hero.id,
       blocks[0]!.id,
       blocks[1]!.id,
       "after",
@@ -175,13 +173,13 @@ describe("SectionTree 拖放", () => {
   });
 
   it("section 与 block 互相落不下去", async () => {
-    const { form, hero, blocks } = buildPage();
+    const { hero, band, blocks } = buildPage();
     const { row, onMoveSectionTo, onReorderBlock } = setup(
-      [hero, form],
-      form.id,
+      [hero, band],
+      hero.id,
     );
-    await dragTo(row(hero.id), row(blocks[0]!.id), 15);
-    await dragTo(row(blocks[0]!.id), row(hero.id), 15);
+    await dragTo(row(band.id), row(blocks[0]!.id), 15);
+    await dragTo(row(blocks[0]!.id), row(band.id), 15);
     expect(onMoveSectionTo).not.toHaveBeenCalled();
     expect(onReorderBlock).not.toHaveBeenCalled();
   });

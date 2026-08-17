@@ -141,8 +141,8 @@ describe("renderMarketingHtml SEO", () => {
     // 页头页脚在每页上，它们的样式照发
     expect(html).toContain(".site-header");
     expect(html).toContain(".site-footer");
-    // 这页没有表单段
-    expect(html).not.toContain(".form-grid");
+    // 这页没有分栏段
+    expect(html).not.toContain(".grp-cols");
   });
 
   it("下钻分栏段的列——列里的子段样式不能漏", () => {
@@ -159,25 +159,25 @@ describe("renderMarketingHtml SEO", () => {
                 id: "col-1",
                 type: "column",
                 settings: {},
-                sections: [createSection("form")],
+                sections: [createSection("band")],
               },
             ],
           },
         ],
       }),
     });
-    expect(html).toContain(".form-grid");
+    expect(html).toContain(".sec-band");
   });
 
   it("会员闸门下仍发正文段的样式——解锁是客户端塞 HTML，那时 CSS 早发完了", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
       site: site(),
-      page: page({ sections: [createSection("form")] }),
+      page: page({ sections: [createSection("band")] }),
       memberGate: true,
     });
     expect(html).toContain("data-member-gate");
-    expect(html).toContain(".form-grid");
+    expect(html).toContain(".sec-band");
   });
 
   it("leaves the default language unprefixed", () => {

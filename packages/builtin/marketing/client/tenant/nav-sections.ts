@@ -1,10 +1,13 @@
-import { Globe, Image as ImageIcon, Inbox } from "lucide-react";
+import { Globe, Image as ImageIcon } from "lucide-react";
 
 import type { AppNavSection } from "@rewindom/client-kit";
 
 /**
- * 「站点」分组：一项一类**内容集合**（页面、表单提交、媒体）——租户在那里
+ * 「站点」分组：一项一类**内容集合**（页面、媒体）——租户在那里
  * 写东西、看东西，会反复回来。媒体库留在这里：图片是内容，会被反复挑选、上传、替换。
+ *
+ * 表单提交不在这里：它随表单段一起归 `site-form` 模块，由那边往本分组填一项
+ *（`marketing:cms.navSection`），与文档库同一条路子。
  *
  * **编辑器不在这里，一项都没有。** 它曾经占过两项（「外观」指主题层、页面从列表进），
  * 三个编辑器合成一个之后这不成立了：`isNavRouteActive` 只看 pathname，
@@ -24,18 +27,10 @@ export const SITE_NAV_SECTIONS: AppNavSection[] = [
       {
         icon: Globe,
         label: "marketing:cms.nav",
-        // end:true：精确匹配，避免与 /app/site/form-submissions 等兄弟菜单同时高亮
+        // end:true：精确匹配，避免与 /app/site/media 等兄弟菜单同时高亮
         path: "/app/site",
         end: true,
         title: "marketing:cms.nav",
-        tenantModule: "tenant-marketing",
-        anyPermission: ["site.read"],
-      },
-      {
-        icon: Inbox,
-        label: "marketing:formSubmissions.nav",
-        path: "/app/site/form-submissions",
-        title: "marketing:formSubmissions.title",
         tenantModule: "tenant-marketing",
         anyPermission: ["site.read"],
       },

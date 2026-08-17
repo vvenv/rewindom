@@ -23,7 +23,7 @@ Every page is a sequence of sections. This is how to arrange them.
 | `faq`          | FAQ          | Collapsible questions               |
 | `band`         | CTA band     | One full-width call to action       |
 | `prose`        | Rich text    | Write Markdown directly             |
-| `form`         | Form         | Collect leads; submissions are stored |
+| `site-form.form` | Form       | Collect leads; submissions are stored |
 | `page-menu`    | Page menu    | Page-level table of contents        |
 | `group`        | Columns      | A container that puts sections side by side |
 | `site-docs.list`    | Doc list     | Documentation index                 |
