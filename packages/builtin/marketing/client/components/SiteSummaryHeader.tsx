@@ -30,7 +30,7 @@ interface SiteSummaryHeaderProps {
  * | 按钮       | 干什么                         |
  * | ---------- | ------------------------------ |
  * | 查看官网   | 新窗口看访客看到的站           |
- * | 站点设置   | Sheet：站名、语言、发布、重定向 |
+ * | 站点设置   | Sheet：站名、语言、首页、发布、重定向 |
  */
 export function SiteSummaryHeader({
   site,

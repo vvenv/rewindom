@@ -30,6 +30,8 @@ export async function renderShopTemplatePage(input: {
   locale: AppLocale;
   kind: string;
   path: string;
+  /** 实际对外地址；把本页设为首页时为 `/`。 */
+  servedPath?: string;
   preset: PagePreset;
   shop: ShopRenderContext;
   title?: string;
@@ -93,5 +95,6 @@ export async function renderShopTemplatePage(input: {
     accountEntryHtml: accountEntry.html,
     enabledEntitlements: entitlements,
     contributed: shopContextEntry(shop),
+    servedPath: input.servedPath,
   });
 }

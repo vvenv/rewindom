@@ -34,13 +34,14 @@
 | 页头页脚 chrome | `shared/sections/_common/` | 为新排法加枚举 / 读时升级层 |
 | 模板页注册表 | `shared/page-templates.ts` | 业务方的 `*-page-templates.ts`（贡献方自己写） |
 | 编辑器 / 工作台 | `client/pages/site-*.tsx`、`client/enhance/` | 公开站挂 React |
+| 首页是哪一页 | `shared/site-home.ts`、站点设置 Sheet | 用重定向表劫持 `/` |
 | 业务模块贡献段 / 模板 / chrome | 贡献方 `shared/` + `site-section` | 本模块「顺便登记」业务 type |
 
 ## 租户 CMS 数据
 
 | 模型            | 说明                                                                                                                                           |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `site_draft_dirty`）。导航条目嵌在 `chrome_nav` 块的 `settings.items` 里 |
+| `MarketingSite` | 每租户一行：站名（可 `__i18n`）、标语、`theme_settings`、站点级 `published`、`home_path`（访客访问 `/` 时渲染的逻辑路径，默认 `/`）；`nav_json` / `footer_json` 为**已发布** chrome，同名 `_draft_json` 为编辑器草稿（同进同退，共用一个 `site_draft_dirty`）。导航条目嵌在 `chrome_nav` 块的 `settings.items` 里 |
 | `MarketingPage` | `kind`: `home` \| `page` \| **模板页 kind**（见下）；`status`: `draft` \| `published`；`title` / `description` / `sections` / `settings` 为**已发布**正文，同名 `_draft` 四列为编辑器草稿（`settings` 即页面级画布覆盖，与正文同进同退） |
 
 ### 模板页（`shared/page-templates.ts`）
@@ -842,18 +843,19 @@ setting 的 `default` 应是同一条 key。
 | 在哪                                   | 内容                                                       |
 | -------------------------------------- | ---------------------------------------------------------- |
 | 编辑器主题设置层（页面行 → 主题设置） | 主题包、站点 Logo、分享图、配色、字体、页宽、区块间距       |
-| 站点设置 Sheet（官网卡片 →「站点设置」） | 基本信息、语言、重定向、发布（四个分区，控件即存）         |
+| 站点设置 Sheet（官网卡片 →「站点设置」） | 基本信息、语言、首页、重定向、发布（五个分区，控件即存）         |
 
 外观进编辑器而不是留在设置页，是因为它要**看着预览调**。它曾经是设置页的一个页签，
 又曾经是一张带只读预览的独立页——前者太深（官网 → 站点设置 → 外观），后者的预览是
 第四份实现且点不动。
 
-设置 Sheet 的四个分区上下排布（窄 Sheet 不用页签）：
+设置 Sheet 的分区上下排布（窄 Sheet 不用页签）：
 
 | 分区     | 字段                           | 提交                                     |
 | -------- | ------------------------------ | ---------------------------------------- |
 | 基本信息 | 站名 / 标语（逐字段 `__i18n`） | `{ site_name, tagline }`，**失焦即存**   |
 | 语言     | 主语言                         | `{ default_locale, site_name, tagline }`，**确认即存** |
+| 首页     | 占据 `/` 的页面                | `{ home_path }`，**下拉即存**            |
 | 发布     | 站点总开关                     | `{ published }`，**开关即存**            |
 | 重定向   | 旧地址 → 新地址                | 各自的 `/site/redirects` 接口            |
 
@@ -862,6 +864,12 @@ setting 的 `default` 应是同一条 key。
 
 「语言」是唯一带别的字段的：换主语言必须连带把文案钉在原语言下（`pinToLocale`），
 拆成两次请求会留下一个「文案语言已失真」的中间态。
+
+**首页**（`home_path`）决定访客打开 `/`（以及 `/en/` 这类语言根）时渲染哪一页。默认
+仍是 `home` 模板。可改成任意可打开的页面（`/events`、`/about`）；参数化详情
+（`/events/:slug`）和 404 不行。SSR **不 30x**——站点根 URL 不变，canonical 指向 `/`，
+原路径照常可打开。目标页开关关掉或被删时回落默认首页。页面列表里当前首页带「首页」
+徽章，行菜单可「设为首页」。
 
 设置**不进侧栏**：那几组设完就不太回来，从官网卡片开 Sheet。
 

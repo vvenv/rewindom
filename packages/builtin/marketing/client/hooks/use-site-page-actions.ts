@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { moveSitePageGroup } from "../lib/site-page-order.js";
 
-import { useSiteMutations } from "./useSite.js";
+import { useSite, useSiteMutations } from "./useSite.js";
 
 import type { MarketingPageListItem } from "../../shared/site-cms.js";
 import type { SitePageGroup } from "../lib/site-page-groups.js";
@@ -31,17 +31,23 @@ export interface SitePageActions {
     index: number,
     direction: -1 | 1,
   ) => void;
+  /** 当前占据 `/` 的逻辑路径。 */
+  homePath: string;
+  setHome: (path: string) => void;
+  setHomePending: boolean;
 }
 
 export function useSitePageActions(): SitePageActions {
   const { t } = useTranslation("marketing");
   const { confirm } = useConfirm();
+  const { data: site } = useSite();
   const {
     removePage,
     publishDraft,
     unpublishPage,
     reorderPages,
     resetPagePreset,
+    updateSite,
   } = useSiteMutations();
 
   /** 删除走统一的二次确认弹窗（`ConfirmProvider`），不用浏览器原生 confirm。 */
@@ -111,6 +117,17 @@ export function useSitePageActions(): SitePageActions {
     );
   };
 
+  const setHome = (path: string): void => {
+    if (path === (site?.home_path || "/")) return;
+    updateSite.mutate(
+      { home_path: path },
+      {
+        onSuccess: () => toast.success(t("cms.toastHomeUpdated")),
+        onError: () => toast.error(t("cms.toastSiteSaveFailed")),
+      },
+    );
+  };
+
   return {
     publishPendingId: publishDraft.isPending
       ? publishDraft.variables
@@ -127,5 +144,8 @@ export function useSitePageActions(): SitePageActions {
     remove,
     resetPreset,
     move,
+    homePath: site?.home_path || "/",
+    setHome,
+    setHomePending: updateSite.isPending,
   };
 }

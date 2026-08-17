@@ -32,6 +32,8 @@ export async function renderEventsTemplatePage(input: {
   kind: string;
   /** 逻辑路径（不带 locale 前缀） */
   path: string;
+  /** 实际对外地址；把本页设为首页时为 `/`。 */
+  servedPath?: string;
   preset: PagePreset;
   events: EventsRenderContext;
   title?: string;
@@ -102,5 +104,6 @@ export async function renderEventsTemplatePage(input: {
     accountEntryHtml: accountEntry.html,
     enabledEntitlements: entitlements,
     contributed: eventsContextEntry(input.events),
+    servedPath: input.servedPath,
   });
 }

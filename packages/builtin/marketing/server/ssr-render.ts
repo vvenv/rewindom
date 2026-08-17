@@ -124,6 +124,25 @@ function siteEnhanceScriptTag(): string {
   return `<script defer src="/api/public/site-enhance.js?v=${escapeHtml(SITE_ENHANCE_HASH)}"></script>`;
 }
 
+/**
+ * 把别的页设为首页时：正文仍是那一页，但对外地址、hreflang、页头高亮都走 `/`。
+ */
+function pageAtServedPath(
+  page: PublicMarketingPage,
+  servedPath: string | undefined,
+  defaultLocale: PublicMarketingSite["default_locale"],
+): PublicMarketingPage {
+  if (!servedPath || servedPath === page.path) return page;
+  return {
+    ...page,
+    path: servedPath,
+    alternates: page.alternates.map((alternate) => ({
+      locale: alternate.locale,
+      path: withSiteLocale(servedPath, alternate.locale, defaultLocale),
+    })),
+  };
+}
+
 export function renderMarketingHtml(input: {
   origin: string;
   site: PublicMarketingSite;
@@ -143,17 +162,26 @@ export function renderMarketingHtml(input: {
   contributed?: Readonly<Record<string, unknown>>;
   /** 声明了 `default_tenant_only` 的段据此决定渲不渲染（见 `sections/html.ts`）。 */
   isDefaultTenant?: boolean;
+  /**
+   * 实际对外地址。把别的页设为首页时与 `page.path` 不同（逻辑 path 仍是 `/events`，
+   * canonical / 语言切换 / 页头高亮要指向 `/`）。
+   */
+  servedPath?: string;
 }): string {
   const {
     origin,
     site,
-    page,
     memberGate = false,
     accountEntryHtml = "",
     enabledEntitlements,
     contributed,
     isDefaultTenant,
   } = input;
+  const page = pageAtServedPath(
+    input.page,
+    input.servedPath,
+    site.default_locale,
+  );
   const theme = resolveThemeSettings(site.theme_settings);
   const sectionCtx = {
     pages: site.pages,
@@ -179,7 +207,9 @@ export function renderMarketingHtml(input: {
     site.default_locale,
   );
   const title = escapeHtml(
-    page.kind === "home" ? site.site_name : `${page.title} · ${site.site_name}`,
+    page.path === "/" || page.kind === "home"
+      ? site.site_name
+      : `${page.title} · ${site.site_name}`,
   );
   const description = escapeHtml(page.description || site.tagline || "");
   const jsonLd = escapeHtml(

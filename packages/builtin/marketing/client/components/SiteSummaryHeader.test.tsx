@@ -19,6 +19,8 @@ vi.mock("../hooks/useSite.js", () => ({
   useSiteMutations: () => ({
     updateSite: { mutate: vi.fn(), isPending: false },
   }),
+  useSitePages: () => ({ data: [] }),
+  useSiteCapabilities: () => ({ data: { entitlements: [] } }),
 }));
 
 registerI18nBundles([MARKETING_I18N]);
@@ -37,6 +39,7 @@ const site = {
   footer: [],
   site_draft_dirty: false,
   published: true,
+  home_path: "/",
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
 } as unknown as MarketingSite;

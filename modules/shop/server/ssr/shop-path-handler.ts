@@ -64,6 +64,7 @@ async function renderShopPath(
       locale,
       kind: SHOP_INDEX_PAGE_KIND,
       path: SHOP_INDEX_PATH,
+      servedPath: input.servedPath,
       preset: SHOP_INDEX_TEMPLATE_PRESET,
       shop: buildShopContext({
         products: products.map((product) => toProductCard(product, locale)),
@@ -88,6 +89,7 @@ async function renderShopPath(
       locale,
       kind: SHOP_PRODUCT_PAGE_KIND,
       path: `${SHOP_INDEX_PATH}/${encodeURIComponent(slug)}`,
+      servedPath: input.servedPath,
       preset: SHOP_PRODUCT_TEMPLATE_PRESET,
       title,
       description,

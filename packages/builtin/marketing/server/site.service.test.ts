@@ -38,6 +38,7 @@ vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
       findFirstOrThrow: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     marketingPage: {
       findFirst: vi.fn(),
@@ -737,6 +738,16 @@ describe("deletePage", () => {
     vi.mocked(prisma.marketingPage.delete).mockResolvedValue(
       sourceRow() as never,
     );
+    vi.mocked(prisma.marketingSite.updateMany).mockResolvedValue({
+      count: 0,
+    } as never);
+    vi.mocked(prisma.$transaction).mockImplementation((async (ops: unknown) => {
+      const results = [];
+      for (const op of ops as Array<Promise<unknown>>) {
+        results.push(await op);
+      }
+      return results;
+    }) as never);
 
     await deletePage(TENANT, "page-1");
 

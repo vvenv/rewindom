@@ -18,6 +18,7 @@ import {
   CloudOff,
   CloudUpload,
   Copy,
+  Home,
   Lock,
   MoreVertical,
   RotateCcw,
@@ -31,6 +32,8 @@ import {
   getPageTemplatePreset,
   isTemplatePageKind,
 } from "../../shared/page-templates.js";
+import { marketingPagePath } from "../../shared/site-cms.js";
+import { isHomeablePath } from "../../shared/site-home.js";
 import { siteEditorPath } from "../lib/site-editor-url.js";
 
 import { SitePageDuplicateSheet } from "./SitePageDuplicateSheet.js";
@@ -126,6 +129,9 @@ export function SitePageGroupRow({
       <span className="truncate font-mono text-xs text-muted-foreground">
         {group.path}
       </span>
+      {actions.homePath === group.path ? (
+        <Badge variant="secondary">{t("cms.badgeHome")}</Badge>
+      ) : null}
     </div>
   );
 
@@ -288,6 +294,9 @@ function PageActions({
   const canResetPreset = Boolean(getPageTemplatePreset(page.kind));
   // 模板页不可删：系统快照落库后只许重设，不许删
   const canDelete = !isTemplatePageKind(page.kind);
+  const pagePath = marketingPagePath(page.kind, page.slug);
+  const canSetHome =
+    isHomeablePath(pagePath) && pagePath !== actions.homePath;
   const [duplicateOpen, setDuplicateOpen] = useState(false);
 
   return (
@@ -323,6 +332,15 @@ function PageActions({
             <Copy className="size-4" />
             {t("cms.duplicate")}
           </DropdownMenuItem>
+          {canSetHome ? (
+            <DropdownMenuItem
+              disabled={actions.setHomePending}
+              onSelect={() => actions.setHome(pagePath)}
+            >
+              <Home className="size-4" />
+              {t("cms.setAsHome")}
+            </DropdownMenuItem>
+          ) : null}
           {canResetPreset ? (
             <DropdownMenuItem
               disabled={resetPending}

@@ -129,6 +129,7 @@ export async function renderDocLibrary(input: {
       origin: input.origin,
       site,
       page,
+      servedPath: input.servedPath,
       accountEntryHtml: input.accountEntryHtml,
       enabledEntitlements: input.enabledEntitlements,
       contributed,

@@ -81,6 +81,7 @@ export function toMarketingSite(
     footer: siteChromeDraftFooter(record, enabledEntitlements),
     site_draft_dirty: siteDraftIsDirty(record),
     published: record.published,
+    home_path: record.home_path || "/",
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
   };

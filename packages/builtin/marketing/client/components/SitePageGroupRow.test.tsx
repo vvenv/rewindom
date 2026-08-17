@@ -34,6 +34,9 @@ const actions: SitePageActions = {
   remove: vi.fn(async () => {}),
   resetPreset: vi.fn(async () => {}),
   move: vi.fn(),
+  homePath: "/",
+  setHome: vi.fn(),
+  setHomePending: false,
 };
 
 function page(
@@ -230,5 +233,32 @@ describe("SitePageGroupRow", () => {
 
     await openMoreMenu();
     expect(screen.getByRole("menuitem", { name: "删除" })).toBeInTheDocument();
+  });
+
+  it("badges the page occupying the site root", () => {
+    const group = groupSitePages(
+      [page({ id: "zh", locale: "zh-CN" })],
+      "zh-CN",
+    )[0]!;
+    render(
+      <MemoryRouter>
+        <SitePageGroupRow
+          group={group}
+          defaultLocale="zh-CN"
+          canWrite
+          actions={{ ...actions, homePath: "/about" }}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("首页")).toBeInTheDocument();
+  });
+
+  it("lets an ordinary page become the homepage", async () => {
+    renderGroup([page({ id: "zh", locale: "zh-CN" })]);
+
+    await openMoreMenu();
+    expect(
+      screen.getByRole("menuitem", { name: "设为首页" }),
+    ).toBeInTheDocument();
   });
 });

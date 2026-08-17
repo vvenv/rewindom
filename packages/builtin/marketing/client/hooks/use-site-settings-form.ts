@@ -45,6 +45,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
   const [editLocale, setEditLocale] = useState<AppLocale>(savedLocale);
   const [defaultLocale, setDefaultLocale] = useState<AppLocale>(savedLocale);
   const [published, setPublished] = useState(false);
+  const [homePath, setHomePath] = useState("/");
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
     setEditLocale(locale);
     setDefaultLocale(locale);
     setPublished(site.published);
+    setHomePath(site.home_path || "/");
     setHydratedKey(site.updated_at);
   }, [site, hydratedKey]);
 
@@ -80,6 +82,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
     setEditLocale(locale);
     setDefaultLocale(locale);
     setPublished(site.published);
+    setHomePath(site.home_path || "/");
     setHydratedKey(site.updated_at);
   };
 
@@ -175,6 +178,25 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
         save({ published: next }, options);
       },
       restore: (): void => setPublished(site?.published ?? false),
+    },
+
+    homepage: {
+      path: homePath,
+      /**
+       * 下拉即存：和发布开关同一口径。失败由调用方 `restore()` 拨回。
+       */
+      commit: (next: string, options?: SaveOptions): void => {
+        if (!site || next === homePath || updateSite.isPending) return;
+        setHomePath(next);
+        save({ home_path: next }, {
+          onSuccess: options?.onSuccess,
+          onError: () => {
+            setHomePath(site.home_path || "/");
+            options?.onError?.();
+          },
+        });
+      },
+      restore: (): void => setHomePath(site?.home_path || "/"),
     },
   };
 }

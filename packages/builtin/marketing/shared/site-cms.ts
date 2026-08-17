@@ -150,6 +150,11 @@ export interface MarketingSite {
   /** 站点级草稿（页头 / 页脚 / 主题）是否领先线上，即有东西待发布。 */
   site_draft_dirty: boolean;
   published: boolean;
+  /**
+   * 访客访问 `/` 时渲染的逻辑路径。默认 `/`（home 模板）；可改成 `/events` 等
+   * 可打开的页面，原地址仍可打开。
+   */
+  home_path: string;
   created_at: string;
   updated_at: string;
 }
@@ -198,6 +203,8 @@ export interface UpdateMarketingSiteBody {
   header?: SiteSection[];
   footer?: SiteSection[];
   published?: boolean;
+  /** 访客访问 `/` 时渲染的逻辑路径，见 `MarketingSite.home_path`。 */
+  home_path?: string;
 }
 
 export interface CreateMarketingPageBody {

@@ -217,6 +217,27 @@ describe("renderMarketingHtml SEO", () => {
     expect(html).not.toContain("hreflang");
   });
 
+  it("rewrites canonical and title when another page is served at /", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page({
+        kind: "events_index",
+        title: "Events",
+        path: "/events",
+        alternates: [
+          { locale: "zh-CN", path: "/events" },
+          { locale: "en", path: "/en/events" },
+        ],
+      }),
+      servedPath: "/",
+    });
+    expect(html).toContain(`<link rel="canonical" href="${ORIGIN}/" />`);
+    expect(html).toContain(`<title>Acme</title>`);
+    expect(html).toContain(`hreflang="en" href="${ORIGIN}/en"`);
+    expect(html).not.toContain(`${ORIGIN}/events`);
+  });
+
   /*
    * 语言切换器随**默认页头**出厂（`chrome_locale` 块），因为它自己会判断该不该露：
    * 只有本页真有其他语言的已发布译文时才渲染。不预置的话，租户翻完一版页面发布，

@@ -20,6 +20,7 @@ import {
   getPageTemplateKind,
   getPageTemplatePreset,
   isTemplatePageKind,
+  listPageTemplateKinds,
   NOT_FOUND_PAGE_KIND,
   resolveCatalogPageTitle,
   resolveTemplatePresetCopy,
@@ -56,6 +57,12 @@ import {
   type UpdateMarketingPageBody,
   type UpdateMarketingSiteBody,
 } from "../shared/site-cms.js";
+import {
+  DEFAULT_HOME_PATH,
+  isHomeablePath,
+  isHomePathAvailable,
+  normalizeHomePath,
+} from "../shared/site-home.js";
 import { withSiteLocale } from "../shared/site-locale.js";
 import {
   buildMinimalSiteChrome,
@@ -112,6 +119,76 @@ function normalizePath(path: string): string {
 function matchesPath(page: MarketingPageRecord, path: string): boolean {
   const { kind, slug } = canonicalizePageIdentity(page.kind, page.slug);
   return marketingPagePath(kind, slug) === path;
+}
+
+async function assertHomePath(
+  tenant_id: string,
+  raw: string,
+  entitlements: ReadonlySet<string>,
+): Promise<string> {
+  const path = normalizeHomePath(raw);
+  if (!isHomeablePath(path) || !isHomePathAvailable(path, entitlements)) {
+    throw new ValidationError("site.home_path_invalid");
+  }
+  if (path === DEFAULT_HOME_PATH) return path;
+
+  const template = listPageTemplateKinds().find((item) => item.path === path);
+  if (template) return path;
+
+  const pages = await prisma.marketingPage.findMany({
+    where: withTenantScope(tenant_id),
+    select: { kind: true, slug: true },
+  });
+  const exists = pages.some((page) => {
+    const identity = canonicalizePageIdentity(page.kind, page.slug);
+    return marketingPagePath(identity.kind, identity.slug) === path;
+  });
+  if (!exists) throw new ValidationError("site.home_path_invalid");
+  return path;
+}
+
+async function retargetHomePath(
+  tenant_id: string,
+  fromPath: string,
+  toPath: string,
+): Promise<void> {
+  if (fromPath === toPath) return;
+  await prisma.marketingSite.updateMany({
+    where: { tenant_id, home_path: fromPath },
+    data: { home_path: toPath },
+  });
+}
+
+/**
+ * 访客请求的逻辑路径 → 实际要渲染的路径。
+ *
+ * 只在 `/` 上改写：站点把 `/events` 设为首页时，`/` 与 `/en/` 都去渲染 `/events`，
+ * 但对外地址仍是 `/`（`servedPath`）。目标页开关关掉或路径不合法则回落默认首页。
+ */
+export async function resolveVisitorHomePath(input: {
+  tenantId: string;
+  path: string;
+  entitlements: ReadonlySet<string>;
+}): Promise<{ logicalPath: string; servedPath: string }> {
+  if (input.path !== DEFAULT_HOME_PATH) {
+    return { logicalPath: input.path, servedPath: input.path };
+  }
+  const site = await prisma.marketingSite.findFirst({
+    where: withTenantScope(input.tenantId, { published: true }),
+    select: { home_path: true },
+  });
+  if (!site) {
+    return { logicalPath: DEFAULT_HOME_PATH, servedPath: DEFAULT_HOME_PATH };
+  }
+  const homePath = normalizeHomePath(site.home_path);
+  if (
+    homePath === DEFAULT_HOME_PATH ||
+    !isHomeablePath(homePath) ||
+    !isHomePathAvailable(homePath, input.entitlements)
+  ) {
+    return { logicalPath: DEFAULT_HOME_PATH, servedPath: DEFAULT_HOME_PATH };
+  }
+  return { logicalPath: homePath, servedPath: DEFAULT_HOME_PATH };
 }
 
 /**
@@ -270,6 +347,16 @@ export async function updateSite(
   }
   if (body.published !== undefined) {
     data.published = Boolean(body.published);
+  }
+  if (body.home_path !== undefined) {
+    if (typeof body.home_path !== "string") {
+      throw new ValidationError("site.home_path_invalid");
+    }
+    data.home_path = await assertHomePath(
+      tenant_id,
+      body.home_path,
+      enabled,
+    );
   }
 
   // 主题改动一律进**草稿**列，与页头页脚同一条发布链；线上那一列只有发布才动
@@ -846,6 +933,16 @@ export async function updatePage(
     assertTemplateRequiredSection(nextKind, nextSections);
   }
 
+  const existingIdentity = canonicalizePageIdentity(
+    existing.kind,
+    existing.slug,
+  );
+  const previousPath = marketingPagePath(
+    existingIdentity.kind,
+    existingIdentity.slug,
+  );
+  const nextPath = marketingPagePath(nextKind, nextSlug);
+
   try {
     const updated = await prisma.marketingPage.update({
       // 带上 tenant_id：上面的存在性校验是 check-then-act，写入本身也要租户闭合
@@ -886,6 +983,9 @@ export async function updatePage(
           : {}),
       },
     });
+    if (previousPath !== nextPath) {
+      await retargetHomePath(tenant_id, previousPath, nextPath);
+    }
     return presentPage(updated, enabled);
   } catch (err) {
     if (
@@ -964,7 +1064,15 @@ export async function deletePage(
   if (isTemplatePageKind(existing.kind)) {
     throw new ConflictError("site.template_page_not_deletable");
   }
-  await prisma.marketingPage.delete({ where: { id: page_id, tenant_id } });
+  const identity = canonicalizePageIdentity(existing.kind, existing.slug);
+  const path = marketingPagePath(identity.kind, identity.slug);
+  await prisma.$transaction([
+    prisma.marketingSite.updateMany({
+      where: { tenant_id, home_path: path },
+      data: { home_path: DEFAULT_HOME_PATH },
+    }),
+    prisma.marketingPage.delete({ where: { id: page_id, tenant_id } }),
+  ]);
 }
 
 export async function setPageStatus(

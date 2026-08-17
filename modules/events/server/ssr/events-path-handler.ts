@@ -85,6 +85,7 @@ async function renderIndex(
     locale,
     kind: EVENTS_INDEX_PAGE_KIND,
     path: EVENTS_INDEX_PATH,
+    servedPath: input.servedPath,
     preset: EVENTS_INDEX_TEMPLATE_PRESET,
     events: emptyEventsContext({
       feed: {
@@ -115,6 +116,7 @@ async function renderListing(
     locale,
     kind: EVENTS_INDEX_PAGE_KIND,
     path: EVENTS_INDEX_PATH,
+    servedPath: input.servedPath,
     preset: EVENTS_INDEX_TEMPLATE_PRESET,
     title,
     sections: buildEventsListingSections(
@@ -152,6 +154,7 @@ async function renderDetail(
     locale,
     kind: EVENTS_DETAIL_PAGE_KIND,
     path: eventPath(slug),
+    servedPath: input.servedPath,
     preset: EVENTS_DETAIL_TEMPLATE_PRESET,
     title: detail.title,
     description: detail.headline || undefined,

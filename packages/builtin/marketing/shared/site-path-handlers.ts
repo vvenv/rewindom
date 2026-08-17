@@ -18,6 +18,11 @@ export interface SitePathHandlerInput {
   origin: string;
   /** locale 剥离后的逻辑路径，如 `/docs/install`。 */
   path: string;
+  /**
+   * 实际对外的地址。把 `/events` 设为首页时，逻辑 path 仍是 `/events`（取数 / 版式），
+   * 但 canonical / 语言切换器要指向 `/`。未设则与 `path` 相同。
+   */
+  servedPath?: string;
   locale: AppLocale | null;
   enabledEntitlements: ReadonlySet<string>;
   accountEntryHtml: string;

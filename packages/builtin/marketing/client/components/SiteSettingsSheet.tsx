@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useSiteSettingsForm } from "../hooks/use-site-settings-form.js";
 
 import { SiteBasicsForm } from "./settings/SiteBasicsForm.js";
+import { SiteHomeForm } from "./settings/SiteHomeForm.js";
 import { SiteLocaleForm } from "./settings/SiteLocaleForm.js";
 import { SiteRedirectsSection } from "./settings/SiteRedirectsSection.js";
 import { SiteVisibilityForm } from "./settings/SiteVisibilityForm.js";
@@ -27,9 +28,9 @@ interface SiteSettingsSheetProps {
 }
 
 /**
- * 站点设置：站名、语言、发布、重定向——挂在官网卡片上的 Sheet。
+ * 站点设置：站名、语言、首页、发布、重定向——挂在官网卡片上的 Sheet。
  *
- * 窄 Sheet 里不用页签：四组上下排布、一条滚动。控件即提交（blur / 确认 / 开关），
+ * 窄 Sheet 里不用页签：五组上下排布、一条滚动。控件即提交（blur / 确认 / 开关），
  * 不另配保存按钮。外观不在这里——主题是编辑器的一层。
  */
 export function SiteSettingsSheet({
@@ -76,6 +77,7 @@ export function SiteSettingsSheet({
             <div className="flex flex-col gap-8">
               <SiteBasicsForm form={form} canWrite={canWrite} />
               <SiteLocaleForm form={form} canWrite={canWrite} />
+              <SiteHomeForm form={form} canWrite={canWrite} />
               <SiteVisibilityForm form={form} canWrite={canWrite} />
               <SiteRedirectsSection canWrite={canWrite} />
             </div>

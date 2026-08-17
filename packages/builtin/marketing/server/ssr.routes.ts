@@ -34,6 +34,7 @@ import {
   getPublishedPublicSite,
   getPublishedSitemapEntries,
   getSiteChromeOrFallback,
+  resolveVisitorHomePath,
 } from "./site.service.js";
 import { resolveContributedSitemapEntries } from "./sitemap-providers.js";
 import {
@@ -213,13 +214,58 @@ async function renderPath(
     return;
   }
 
+  const enabledEntitlements = await resolveSectionEntitlements(
+    hostTenant.tenant_id,
+  );
+  const { logicalPath, servedPath } = await resolveVisitorHomePath({
+    tenantId: hostTenant.tenant_id,
+    path,
+    entitlements: enabledEntitlements,
+  });
+  const rendered = await renderLogicalPath(
+    request,
+    reply,
+    hostTenant,
+    logicalPath,
+    locale,
+    enabledEntitlements,
+    servedPath,
+  );
+  if (rendered) return;
+  /*
+   * 首页改写成 `/events` 之类之后目标打不开（开关关了、页删了）：站点根不能 404，
+   * 回落默认 home 模板。
+   */
+  await renderLogicalPath(
+    request,
+    reply,
+    hostTenant,
+    "/",
+    locale,
+    enabledEntitlements,
+    "/",
+  );
+}
+
+/**
+ * 渲染一条已经定好的逻辑路径。找不到时：首页改写返回 false 让调用方回落；
+ * 其它地址走 404 / 重定向。
+ */
+async function renderLogicalPath(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  hostTenant: NonNullable<FastifyRequest["hostTenantContext"]>,
+  path: string,
+  locale: AppLocale | null,
+  enabledEntitlements: ReadonlySet<string>,
+  servedPath: string,
+): Promise<boolean> {
+  const homeRewrite = servedPath === "/" && path !== "/";
+
   /*
    * 贡献路径（文档库 `/docs` 等）在查 MarketingPage 之前问注册表。
    * 匹配的是去掉 locale 前缀后的逻辑路径，所以 `/en/docs` 与 `/docs` 同一条。
    */
-  const enabledEntitlements = await resolveSectionEntitlements(
-    hostTenant.tenant_id,
-  );
   const handler = matchSitePathHandler(path, enabledEntitlements);
   if (handler) {
     const site = await getPublishedPublicSite(
@@ -236,6 +282,7 @@ async function renderPath(
       tenantSlug: hostTenant.tenant_slug,
       origin: requestOrigin(request),
       path,
+      servedPath,
       locale,
       enabledEntitlements,
       accountEntryHtml: accountEntry.html,
@@ -243,11 +290,12 @@ async function renderPath(
       query: flattenQuery(request.query),
     });
     if (html === null) {
+      if (homeRewrite) return false;
       await renderNotFound(request, reply, hostTenant, locale);
-      return;
+      return true;
     }
     sendHtml(reply, 200, html);
-    return;
+    return true;
   }
 
   const result = await getPublishedPublicPage(
@@ -257,6 +305,7 @@ async function renderPath(
     locale,
   );
   if (!result) {
+    if (homeRewrite) return false;
     /*
      * 顺序是刻意的：**先查真实页面，找不到才查重定向**。
      *
@@ -271,11 +320,11 @@ async function renderPath(
         // 301 会被浏览器长期缓存，别再让中间层多缓存一层：改规则时要能立刻生效
         .header("cache-control", "no-store")
         .send();
-      return;
+      return true;
     }
 
     await renderNotFound(request, reply, hostTenant, locale);
-    return;
+    return true;
   }
 
   /*
@@ -284,7 +333,7 @@ async function renderPath(
    */
   if (result.page.kind === NOT_FOUND_PAGE_KIND) {
     await renderNotFound(request, reply, hostTenant, locale);
-    return;
+    return true;
   }
 
   const member = await resolveSiteMemberSsrSession({
@@ -336,6 +385,7 @@ async function renderPath(
       origin: requestOrigin(request),
       site: result.site,
       page: result.page,
+      servedPath,
       memberGate,
       accountEntryHtml: accountEntry.html,
       enabledEntitlements,
@@ -347,6 +397,7 @@ async function renderPath(
       privateCache: memberAuthenticated || requiresMember,
     },
   );
+  return true;
 }
 
 export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {

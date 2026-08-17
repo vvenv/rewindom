@@ -5208,6 +5208,7 @@ export const MarketingSiteScalarFieldEnum = {
   nav_draft_json: 'nav_draft_json',
   footer_draft_json: 'footer_draft_json',
   published: 'published',
+  home_path: 'home_path',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

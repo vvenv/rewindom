@@ -1,0 +1,53 @@
+# 增量功能契约 —— 将任意可打开的页面设为站点首页
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant, ssr]
+goal: 站点设置里可把任意可打开的页面（例如 /events）指定为首页；访客访问 / 时直接渲染该页内容（不 30x），原地址仍可打开
+gold: packages/builtin/marketing/client/components/settings/SiteLocaleForm.tsx
+touch:
+  - packages/builtin/marketing/features/set-page-as-home.spec.yaml
+  - packages/builtin/marketing/models.prisma
+  - packages/builtin/marketing/shared/site-home.ts
+  - packages/builtin/marketing/shared/site-home.test.ts
+  - packages/builtin/marketing/shared/site-cms.ts
+  - packages/builtin/marketing/shared/site-path-handlers.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/site.service.test.ts
+  - packages/builtin/marketing/server/site.mapper.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/server/site-home-path.test.ts
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-render.test.ts
+  - packages/builtin/marketing/server/i18n.ts
+  - packages/builtin/marketing/client/hooks/use-site-settings-form.ts
+  - packages/builtin/marketing/client/hooks/use-site-page-actions.ts
+  - packages/builtin/marketing/client/components/settings/SiteHomeForm.tsx
+  - packages/builtin/marketing/client/components/SiteSettingsSheet.tsx
+  - packages/builtin/marketing/client/components/settings/SiteSettingsForms.test.tsx
+  - packages/builtin/marketing/client/components/SitePageGroupRow.tsx
+  - packages/builtin/marketing/client/components/SitePageGroupRow.test.tsx
+  - packages/builtin/marketing/client/components/SiteSummaryHeader.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  - modules/events/server/ssr/events-page.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/shop/server/ssr/shop-page.ts
+  - modules/shop/server/ssr/shop-path-handler.ts
+  - modules/site-docs/server/docs.ssr.ts
+  - apps/server/prisma/migrations/
+out_of_scope:
+  - 把 /events 永久改成 /（原地址仍可打开，不 301）
+  - 参数化详情页（/events/:slug、/docs/:slug）不能当首页
+  - 重定向规则表（MarketingRedirect）不接管 /
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin test -- shared/site-home.test.ts server/ssr-render.test.ts server/site.service.test.ts client/components/SitePageGroupRow.test.tsx
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 · 留空则沿用模块现有 ----------
+# entitlement: 沿用 marketing 现有（无新增）
+# permissions: 沿用 site.* 现有（无新增）
+models:
+  - MarketingSite.home_path
