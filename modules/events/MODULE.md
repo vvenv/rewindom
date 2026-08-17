@@ -154,8 +154,8 @@ HN 的 topstories 本来就是几十件互不相干的事。但词面聚类有�
 
 | 实现 | 何时启用 | 行为 |
 | --- | --- | --- |
-| `heuristic` | 默认；没配 `OPENAI_API_KEY` 时 | 标题从候选里挑，摘要取**一手来源的原文摘录**（RSS 正文、HN 自帖 `text`、目标页 og/meta description），时间线由信号时间戳重建。永远不会说一句没有出处的话 |
-| `llm` | 配了 key（或 `EVENTS_ANALYZER=llm`） | 提示词里写死了 MVP §11 的边界：不给建议、不做预测、不判断谁对、不引入来源外的事实 |
+| `heuristic` | 默认；该站点解析后没有 API Key 时 | 标题从候选里挑，摘要取**一手来源的原文摘录**（RSS 正文、HN 自帖 `text`、目标页 og/meta description），时间线由信号时间戳重建。永远不会说一句没有出处的话 |
+| `llm` | 该站点有 key（本站 BYOK 或平台 fallback；或 `EVENTS_ANALYZER=llm`） | 提示词里写死了 MVP §11 的边界：不给建议、不做预测、不判断谁对、不引入来源外的事实 |
 
 两条硬约束：
 
@@ -201,7 +201,7 @@ HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘�
 | `EVENTS_INGEST_ENABLED` | `true` | 关掉后不注册采集任务，只读已有语料 |
 | `EVENTS_INGEST_INTERVAL_MINUTES` | `15` | 采集周期（5 ~ 1440） |
 | `EVENTS_ANALYZER` | `auto` | `auto` / `heuristic` / `llm` |
-| `OPENAI_API_KEY` | 空 | 内核已有；`auto` 模式下决定走不走 LLM |
+| `OPENAI_API_KEY` | 空 | 内核已有；平台 fallback。`auto` 模式下与本站 BYOK 一起决定走不走 LLM。站点自己的 key 在工作台 `/app/settings` 配 |
 
 ## 权限
 

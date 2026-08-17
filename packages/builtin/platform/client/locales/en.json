@@ -29,6 +29,38 @@
     },
     "plans": "Plans"
   },
+  "aiSettings": {
+    "nav": "AI settings",
+    "title": "AI settings",
+    "description": "Configure this site’s LLM API. The key stays on this site and is never shared with other organizations.",
+    "keyHeading": "API key",
+    "keyDescription": "Key for an OpenAI-compatible API. Leave unset to use the platform default.",
+    "configure": "Configure",
+    "apiKey": "API key",
+    "apiKeyHint": "The key is never shown again. Saving with an empty field leaves the stored key unchanged.",
+    "apiKeyCurrent": "Current {{hint}}",
+    "apiKeyLeaveEmpty": "Leave the field empty and save to keep the stored key.",
+    "sourceSite": "Using this site’s own API key.",
+    "sourcePlatform": "Using the platform default API key.",
+    "sourceNone": "No API key configured; features that need a model will use the rule-based fallback.",
+    "notConfigured": "Not configured",
+    "usePlatformDefault": "Use platform default",
+    "clearTitle": "Use the platform default key?",
+    "clearDescription": "This deletes the key stored for this site. Afterwards the platform default is used (if that is also empty, features that need a model will use the rule-based fallback).",
+    "clearConfirm": "Use platform default",
+    "cleared": "Now using the platform default key",
+    "saved": "AI settings saved",
+    "modelHeading": "Model",
+    "modelDescription": "Model name and temperature used for calls. Leave blank to inherit the platform default.",
+    "model": "Model name",
+    "modelHint": "For example gpt-4o or deepseek-v4-flash. Leave blank to inherit the platform default.",
+    "temperature": "Temperature",
+    "temperatureHint": "0 to 2. Leave blank to inherit the default 0.2.",
+    "validation": {
+      "modelTooLong": "Model name is too long",
+      "temperatureInvalid": "Temperature must be between 0 and 2"
+    }
+  },
   "layout": {
     "home": "Home",
     "expandSidebar": "Expand sidebar",

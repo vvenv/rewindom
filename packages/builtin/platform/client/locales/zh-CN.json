@@ -29,6 +29,38 @@
     },
     "plans": "套餐配置"
   },
+  "aiSettings": {
+    "nav": "AI 配置",
+    "title": "AI 配置",
+    "description": "为本站配置大模型接口。密钥只保存在本站，不会出现在其它组织。",
+    "keyHeading": "API Key",
+    "keyDescription": "OpenAI 兼容接口的密钥。留空则使用平台默认。",
+    "configure": "配置",
+    "apiKey": "API Key",
+    "apiKeyHint": "密钥不会回显。留空保存表示不改动。",
+    "apiKeyCurrent": "当前 {{hint}}",
+    "apiKeyLeaveEmpty": "输入框留空再保存，不会改动已保存的密钥。",
+    "sourceSite": "当前使用本站自己的 API Key。",
+    "sourcePlatform": "当前使用平台默认 API Key。",
+    "sourceNone": "尚未配置 API Key，需要模型的功能会走规则实现。",
+    "notConfigured": "未配置",
+    "usePlatformDefault": "改用平台默认",
+    "clearTitle": "改用平台默认密钥？",
+    "clearDescription": "将删除本站保存的 API Key，之后使用平台默认密钥（若平台也未配置，需要模型的功能会走规则实现）。",
+    "clearConfirm": "改用平台默认",
+    "cleared": "已改用平台默认密钥",
+    "saved": "AI 配置已保存",
+    "modelHeading": "模型",
+    "modelDescription": "调用时使用的模型名称与温度。留空则继承平台默认。",
+    "model": "模型名称",
+    "modelHint": "例如 gpt-4o、deepseek-v4-flash。留空继承平台默认。",
+    "temperature": "温度",
+    "temperatureHint": "0 到 2。留空继承默认 0.2。",
+    "validation": {
+      "modelTooLong": "模型名称过长",
+      "temperatureInvalid": "温度须在 0 到 2 之间"
+    }
+  },
   "layout": {
     "home": "首页",
     "expandSidebar": "展开侧边栏",

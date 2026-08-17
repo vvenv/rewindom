@@ -23,7 +23,7 @@ import type { ClientAppModule } from "@rewindom/client-kit";
  *
  * 租户侧栏心流约定：
  * 1. 主区：概览 → 业务（示例等）
- * 2. 沉底：系统管理（用户 → 角色 → 订阅）→ 系统监控（审计 → 错误）
+ * 2. 沉底：系统管理（用户 → 角色 → 订阅 → AI 配置）→ 系统监控（审计 → 错误）
  *
  * 新增业务模块插在 dashboard 之后、沉底管理类之前。
  */
@@ -35,11 +35,12 @@ export const ENABLED_CLIENT_MODULES = [
   siteBillingClientModule,
   notificationClientModule,
   backgroundJobClientModule,
-  platformClientModule,
   // 沉底：先注册「系统管理」再「系统监控」，组内顺序即下列模块顺序
+  // 系统管理：用户 → 角色 → 订阅 → AI 配置
   userClientModule,
   rbacClientModule,
   billingClientModule,
+  platformClientModule,
   auditClientModule,
   errorLogClientModule,
   slowQueryClientModule,

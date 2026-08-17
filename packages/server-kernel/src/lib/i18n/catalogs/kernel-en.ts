@@ -142,6 +142,9 @@ export const KERNEL_MESSAGES_EN: Record<string, string> = {
   "tenant.org_name_required": "Organization name is required",
   "tenant.org_name_length": "Organization name must be 2–50 characters",
   "tenant.secret_invalid": "Invalid tenant secret ciphertext",
+  "openai.model_invalid": "Invalid model name",
+  "openai.model_too_long": "Model name is too long",
+  "openai.temperature_invalid": "Temperature must be between 0 and 2",
   "tenant.impersonate_active_only":
     "Impersonation is only allowed for active tenants",
   "tenant.impersonate_account_unavailable":

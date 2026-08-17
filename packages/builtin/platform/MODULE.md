@@ -46,6 +46,23 @@
 **新增一种布局**：`SHELL_LAYOUTS` 追加一项 + 在 `AppShellFrame` 加一个分支。
 两处配置 UI 都从注册表渲染，本模块无需改动。
 
+## AI 配置（BYOK）
+
+租户在工作台 `/app/settings` 填写 OpenAI 兼容 API Key、模型与温度。密钥 AES-GCM
+加密进 `TenantSetting[openai_api_key].secret`，接口只回 `configured` + 尾部 hint。
+运行时 `resolveLlmConfig(tenantId)`：本站覆盖 > 平台 `OPENAI_*` env。`OPENAI_BASE_URL`
+不开放给租户。
+
+权限：`settings.read` / `settings.write`。密钥表单在 Sheet 里，页上是状态行 + 模型表单。
+
+| 方法 | 路径                    | 权限             |
+| ---- | ----------------------- | ---------------- |
+| GET  | `/api/settings/openai`  | `settings.read`  |
+| PUT  | `/api/settings/openai`  | `settings.write` |
+
+`PUT` 的 `api_key` 省略 = 不改；空串 = 清掉本站密钥、回落平台。`model` / `temperature`
+显式 `null` 才是恢复继承。
+
 ## 数据备份与还原
 
 整库级别（`pg_dump -Fc` / `pg_restore`），入口在平台运维侧栏「数据备份」（`/platform/backup`）。

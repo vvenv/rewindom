@@ -1,0 +1,56 @@
+# 租户 BYOK：OpenAI 兼容密钥与模型
+#
+# 设计：docs/design/tenant-config.md §2.2 / §6 / Phase 0
+# 用法：extend-module skill 的输入；与本次改动一起提交。
+
+# ---------- 必填 ----------
+module: platform
+surfaces: [tenant]
+goal: 租户在工作台配置自己的 OpenAI 兼容 API Key、模型与温度；密钥加密落库、接口不回传明文；运行时 TenantSetting > 平台 env，保存即生效
+gold: packages/builtin/site-billing/server/provider-credentials.ts
+touch:
+  - packages/builtin/platform/features/tenant-openai-byok.spec.yaml
+  - packages/builtin/platform/MODULE.md
+  - packages/builtin/platform/server/module.ts
+  - packages/builtin/platform/server/i18n.ts
+  - packages/builtin/platform/server/routes/tenant-openai.routes.ts
+  - packages/builtin/platform/server/routes/tenant-openai.routes.test.ts
+  - packages/builtin/platform/server/services/tenant-management.service.ts
+  - packages/builtin/platform/client/module.tsx
+  - packages/builtin/platform/client/tenant/
+  - packages/builtin/platform/client/pages/tenant-settings.tsx
+  - packages/builtin/platform/client/components/TenantOpenaiKeySheet.tsx
+  - packages/builtin/platform/client/components/TenantOpenaiStatusRow.tsx
+  - packages/builtin/platform/client/hooks/useTenantOpenai.ts
+  - packages/builtin/platform/client/lib/openai-settings-form.ts
+  - packages/builtin/platform/client/lib/openai-settings-form.test.ts
+  - packages/builtin/platform/client/locales/
+  - packages/shared/src/tenant-llm.ts
+  - packages/shared/src/tenant-llm.test.ts
+  - packages/shared/src/index.ts
+  - packages/server-kernel/src/lib/openai-client.ts
+  - packages/server-kernel/src/lib/tenant-llm.ts
+  - packages/server-kernel/src/lib/tenant-llm.test.ts
+  - packages/server-kernel/src/lib/i18n/catalogs/
+  - packages/module-sdk/src/server.ts
+  - modules/events/server/event/analyzer/
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/MODULE.md
+  - apps/client/src/enabled-modules.ts
+  - docs/design/tenant-config.md
+out_of_scope:
+  - 租户可改 OPENAI_BASE_URL（沿用平台 endpoint）
+  - Settings 页读写 .env / 重启进程
+  - 接口回传密钥明文
+  - search_settings 等其它租户配置
+  - 平台控制台代填租户密钥（只读集成状态保持原样）
+  - 新建物理包
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/shared test src/tenant-llm.test.ts
+  - pnpm --filter @rewindom/server-kernel exec vitest --run src/lib/tenant-llm.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'platform/server' routes/tenant-openai.routes.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'platform/client' lib/openai-settings-form.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/event/event-refresh.service.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs platform

@@ -90,9 +90,9 @@ flowchart TB
 
 **存储**：`TenantSetting` 表（见 §4）。
 
-**管理者**：租户管理员（`settings.read` / `settings.write`）。这两个权限**当前没有页面消费**
-——品牌并进了站点外观、第三方登录并进了会员页，各自改用 `site.*` / `site_members.*`；
-它们留着就是给下面这批 BYOK 用的。
+**管理者**：租户管理员（`settings.read` / `settings.write`）。工作台 `/app/settings`
+消费这两个权限（AI 配置 BYOK）。品牌并进了站点外观、第三方登录并进了会员页，
+各自改用 `site.*` / `site_members.*`。
 
 **特征**：运行时读写；保存即生效；按 `tenant_id` 隔离。
 
@@ -575,8 +575,8 @@ PLATFORM_ADMIN_PASSWORD=<generated-on-bootstrap>
 - [x] Prisma Schema 定义 Tenant、TenantSetting 模型
 - [x] 创建 seed 脚本生成 `default` 租户
 - [x] 所有业务模型添加 `tenant_id` 外键
-- [ ] 实现 `resolveTenantConfig` 解析器
-- [ ] Settings 页面支持 AI 配置编辑（OpenAI Key BYOK）
+- [x] 实现 `resolveLlmConfig` 解析器（TenantSetting > 平台 env）
+- [x] Settings 页面支持 AI 配置编辑（OpenAI Key BYOK）
 
 ### Phase 1 — 多租户核心
 

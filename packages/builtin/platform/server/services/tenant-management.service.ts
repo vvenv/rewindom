@@ -13,7 +13,7 @@ import {
 } from "@rewindom/server-kernel/lib/host-tenant.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { emitDetachedDomainEventSafe } from "@rewindom/server-kernel/runtime/domain-event-emit.js";
-import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug  } from "@rewindom/shared";
+import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug, TENANT_SETTING_KEY_OPENAI } from "@rewindom/shared";
 
 import { isValidPlanSlug, PRICING_PLANS, TENANT_FEATURES_STORAGE_KEY, TENANT_INITIAL_ADMIN_USERNAME, TENANT_LIMITS_STORAGE_KEY, type CreateTenantBody, type ImpersonateTenantResult, type PatchTenantBody, type PlanSlug, type PlatformUserSummary, type TenantAdminCredentials, type TenantCreated, type TenantIntegrationStatus, type TenantStats, type TenantSummary, type TenantStatus, type UpdateTenantPlanBody } from "../../shared/index.js";
 
@@ -391,7 +391,10 @@ export async function getTenantIntegrationStatus(
 
   const openaiSetting = await prisma.tenantSetting.findUnique({
     where: {
-      tenant_id_key: { tenant_id: tenantId, key: "openai_api_key" },
+      tenant_id_key: {
+        tenant_id: tenantId,
+        key: TENANT_SETTING_KEY_OPENAI,
+      },
     },
     select: { secret: true, updated_at: true },
   });

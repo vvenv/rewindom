@@ -26,6 +26,7 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
       "platform.audit.user_joined_default":
         "用户自助注册加入默认租户 {{tenant_slug}}",
       "platform.audit.settings_updated": "更新平台设置",
+      "platform.audit.openai_updated": "更新了 AI 接口配置",
       "platform.audit.plan_limit_templates_updated": "更新套餐用量模板",
       "platform.audit.background_job_cancelled": "取消后台任务 {{job}}",
       "platform.audit.background_job_cancelled_not_running":
@@ -70,6 +71,7 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
       "platform.audit.user_joined_default":
         "User self-registered into default tenant {{tenant_slug}}",
       "platform.audit.settings_updated": "Updated platform settings",
+      "platform.audit.openai_updated": "Updated AI API configuration",
       "platform.audit.plan_limit_templates_updated":
         "Updated plan limit templates",
       "platform.audit.background_job_cancelled":

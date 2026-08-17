@@ -1,7 +1,7 @@
-import { config } from "@rewindom/module-sdk/server";
+import { config, resolveLlmConfig } from "@rewindom/module-sdk/server";
 
 import { heuristicAnalyzer } from "./heuristic-analyzer.js";
-import { llmAnalyzer } from "./llm-analyzer.js";
+import { createLlmAnalyzer } from "./llm-analyzer.js";
 
 import type { AnalyzedEvent, AnalyzerInput, EventAnalyzer } from "./analyzer.js";
 
@@ -13,24 +13,30 @@ export type {
   EventAnalyzer,
 } from "./analyzer.js";
 export { heuristicAnalyzer } from "./heuristic-analyzer.js";
-export { llmAnalyzer } from "./llm-analyzer.js";
+export { createLlmAnalyzer } from "./llm-analyzer.js";
 
 /**
  * 选分析器。
  *
- * `auto`（默认）看有没有配 OPENAI_API_KEY——本地开发与 CI 天然走规则实现，
- * 不会因为忘了配 key 就跑不起来，也不会因为跑了测试就产生模型账单。
- * 想在配了 key 的环境里强制走规则实现，设 `EVENTS_ANALYZER=heuristic`。
+ * `auto`（默认）看这个站点有没有可用的 API Key（本站 BYOK 或平台 fallback）——
+ * 本地开发与 CI 天然走规则实现，不会因为忘了配 key 就跑不起来，也不会因为
+ * 跑了测试就产生模型账单。想在配了 key 的环境里强制走规则实现，设
+ * `EVENTS_ANALYZER=heuristic`。
  */
-export function resolveEventAnalyzer(): EventAnalyzer {
+export async function resolveEventAnalyzer(
+  tenantId: string,
+): Promise<EventAnalyzer> {
   const mode = config.events.analyzer;
   if (mode === "heuristic") {
     return heuristicAnalyzer;
   }
+  const llm = await resolveLlmConfig(tenantId);
   if (mode === "llm") {
-    return llmAnalyzer;
+    return createLlmAnalyzer(llm);
   }
-  return config.openai.apiKey.trim().length > 0 ? llmAnalyzer : heuristicAnalyzer;
+  return llm.apiKey.trim().length > 0
+    ? createLlmAnalyzer(llm)
+    : heuristicAnalyzer;
 }
 
 /**
@@ -42,9 +48,9 @@ export function resolveEventAnalyzer(): EventAnalyzer {
  */
 export async function analyzeEvent(
   input: AnalyzerInput,
+  analyzer: EventAnalyzer,
   onFallback?: (err: unknown) => void,
 ): Promise<AnalyzedEvent & { analyzer: EventAnalyzer["id"] }> {
-  const analyzer = resolveEventAnalyzer();
   try {
     const result = await analyzer.analyze(input);
     return { ...result, analyzer: analyzer.id };

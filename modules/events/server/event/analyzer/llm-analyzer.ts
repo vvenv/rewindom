@@ -1,4 +1,4 @@
-import { config, getLlmClient } from "@rewindom/module-sdk/server";
+import { getLlmClient, type ResolvedLlmConfig } from "@rewindom/module-sdk/server";
 
 import { heuristicAnalyzer } from "./heuristic-analyzer.js";
 
@@ -45,39 +45,43 @@ const RESPONSE_SHAPE = [
 /**
  * LLM 分析器。任何一步出问题（无 key、超时、返回不是 JSON、字段缺失）
  * 都退回规则分析器——事件页宁可平淡也不该开天窗。
+ *
+ * 密钥与模型按站点解析后再传进来，避免全实例共用一把平台 key。
  */
-export const llmAnalyzer: EventAnalyzer = {
-  id: "llm",
-  analyze: async (input: AnalyzerInput): Promise<AnalyzedEvent> => {
-    const signals = selectSignals(input.signals);
-    if (signals.length === 0) {
-      return heuristicAnalyzer.analyze(input);
-    }
+export function createLlmAnalyzer(llm: ResolvedLlmConfig): EventAnalyzer {
+  return {
+    id: "llm",
+    analyze: async (input: AnalyzerInput): Promise<AnalyzedEvent> => {
+      const signals = selectSignals(input.signals);
+      if (signals.length === 0) {
+        return heuristicAnalyzer.analyze(input);
+      }
 
-    const client = getLlmClient({ maxRetries: 0 });
-    const completion = await client.chat.completions.create({
-      model: config.openai.model,
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: [
-            RESPONSE_SHAPE,
-            "",
-            `topic: ${input.topic}`,
-            "signals:",
-            JSON.stringify(signals.map(toPromptSignal), null, 2),
-          ].join("\n"),
-        },
-      ],
-    });
+      const client = getLlmClient(llm, { maxRetries: 0 });
+      const completion = await client.chat.completions.create({
+        model: llm.model,
+        temperature: llm.temperature,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: [
+              RESPONSE_SHAPE,
+              "",
+              `topic: ${input.topic}`,
+              "signals:",
+              JSON.stringify(signals.map(toPromptSignal), null, 2),
+            ].join("\n"),
+          },
+        ],
+      });
 
-    const raw = completion.choices[0]?.message?.content ?? "";
-    return parseAnalyzerResponse(raw, signals);
-  },
-};
+      const raw = completion.choices[0]?.message?.content ?? "";
+      return parseAnalyzerResponse(raw, signals);
+    },
+  };
+}
 
 /** 信号多时优先保留一手来源与最新进展，而不是简单截前 N 条。 */
 function selectSignals(signals: readonly AnalyzerSignal[]): AnalyzerSignal[] {

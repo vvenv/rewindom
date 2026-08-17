@@ -5,6 +5,7 @@ import { PLATFORM_SERVER_I18N } from "./i18n.js";
 import { platformRoutes } from "./platform.routes.js";
 import { registerPublicPlanRoutes } from "./routes/plan-pricing.routes.js";
 import { tenantEntitlementsRoutes } from "./routes/tenant-entitlements.routes.js";
+import { tenantOpenaiRoutes } from "./routes/tenant-openai.routes.js";
 import { getPlatformSettings } from "./services/platform-settings.service.js";
 import {
   registerOAuthTenant,
@@ -23,11 +24,8 @@ export const platformServerModule: ServerAppModule = {
   shared: {
     permissions: [
       /*
-       * 目前**没有任何页面或路由消费**这两个权限：品牌页已并入站点外观、
-       * 第三方登录已并入会员页（各自改用 `site.*` / `site_members.*`）。
-       *
-       * 刻意保留：`docs/design/tenant-config.md` §2.2 排着队的租户级 BYOK
-       *（`openai_api_key` 等）落地时就是它俩。别当死代码删。
+       * 租户工作台 `/app/settings` 的 AI 配置（BYOK）消费这两个权限。
+       * 品牌并进了站点外观、第三方登录并进了会员页（`site.*` / `site_members.*`）。
        */
       {
         key: "settings.read",
@@ -147,6 +145,7 @@ export const platformServerModule: ServerAppModule = {
     registerRoutes: async (app) => {
       await app.register(platformRoutes, { prefix: "/api/platform" });
       await app.register(tenantEntitlementsRoutes, { prefix: "/api/settings" });
+      await app.register(tenantOpenaiRoutes, { prefix: "/api/settings" });
       // 公开定价：官网定价区与主题编辑器预览都读它，免认证（本就印在公开页上）
       await app.register(registerPublicPlanRoutes, { prefix: "/api/public" });
     },

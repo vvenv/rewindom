@@ -29,8 +29,14 @@ export * from "@rewindom/server-kernel/lib/app-errors.js";
 export * from "@rewindom/server-kernel/lib/prisma.js";
 export * from "@rewindom/server-kernel/lib/tenant-scope.js";
 export * from "@rewindom/server-kernel/lib/config.js";
-// LLM 客户端工厂：内核只提供 OpenAI 兼容客户端与配置，调用场景由业务模块自定
+// LLM：按租户解析配置（TenantSetting > 平台 env），再交给 OpenAI 兼容客户端
 export { getLlmClient } from "@rewindom/server-kernel/lib/openai-client.js";
+export {
+  getTenantLlmStatus,
+  resolveLlmConfig,
+  updateTenantLlmConfig,
+} from "@rewindom/server-kernel/lib/tenant-llm.js";
+export type { ResolvedLlmConfig } from "@rewindom/server-kernel/lib/tenant-llm.js";
 export * from "@rewindom/server-kernel/lib/host-tenant.js";
 export * from "@rewindom/server-kernel/lib/tenant-secret-crypto.js";
 export {

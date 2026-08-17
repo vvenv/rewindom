@@ -22,6 +22,7 @@ export * from "./display.js";
 export * from "./export.js";
 export * from "./json.js";
 export * from "./login-identifier.js";
+export * from "./tenant-llm.js";
 export * from "./random-password.js";
 export * from "./timezone.js";
 

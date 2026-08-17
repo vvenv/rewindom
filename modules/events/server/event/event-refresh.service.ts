@@ -4,7 +4,7 @@ import { analyzeEvent, resolveEventAnalyzer } from "./analyzer/index.js";
 import { computeHeat, resolveStatus, type HeatSignal } from "./heat.js";
 import { pickEventTitle } from "./title-tokens.js";
 
-import type { AnalyzerSignal } from "./analyzer/index.js";
+import type { AnalyzerSignal, EventAnalyzer } from "./analyzer/index.js";
 import type { EventSourceKind, EventTopic } from "../../shared/index.js";
 
 /**
@@ -33,9 +33,18 @@ export async function refreshEvents(
 ): Promise<number> {
   const now = options.now ?? new Date();
   let refreshed = 0;
+  const analyzers = new Map<string, Promise<EventAnalyzer>>();
+  const analyzerFor = (tenantId: string): Promise<EventAnalyzer> => {
+    let pending = analyzers.get(tenantId);
+    if (!pending) {
+      pending = resolveEventAnalyzer(tenantId);
+      analyzers.set(tenantId, pending);
+    }
+    return pending;
+  };
 
   for (const eventId of new Set(eventIds)) {
-    const changed = await refreshEvent(eventId, now, options);
+    const changed = await refreshEvent(eventId, now, options, analyzerFor);
     if (changed) {
       refreshed += 1;
     }
@@ -48,6 +57,7 @@ async function refreshEvent(
   eventId: string,
   now: Date,
   options: RefreshEventsOptions,
+  analyzerFor: (tenantId: string) => Promise<EventAnalyzer>,
 ): Promise<boolean> {
   const event = await prisma.newsEvent.findUnique({
     where: { id: eventId },
@@ -108,12 +118,14 @@ async function refreshEvent(
     ...new Set(signals.map((signal) => signal.source_name)),
   ].slice(0, SOURCE_NAME_LIMIT);
 
-  const analysis = shouldReanalyze(event.analyzed_at, now)
+  const analyzer = await analyzerFor(event.tenant_id);
+  const analysis = shouldReanalyze(event.analyzed_at, now, analyzer.id)
     ? await analyzeEvent(
         {
           topic: event.topic as EventTopic,
           signals: signals.map(toAnalyzerSignal),
         },
+        analyzer,
         (err) => options.onAnalyzerFallback?.(eventId, err),
       )
     : null;
@@ -225,7 +237,7 @@ export function resolveRefreshedContent(params: {
 export function shouldReanalyze(
   analyzedAt: Date | null,
   now: Date,
-  analyzerId: string = resolveEventAnalyzer().id,
+  analyzerId: string,
 ): boolean {
   if (analyzedAt === null) {
     return true;
