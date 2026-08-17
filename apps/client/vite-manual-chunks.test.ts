@@ -62,6 +62,19 @@ describe("manualChunks", () => {
     ).toBe("vendor");
   });
 
+  it("keeps i18next and react-i18next in one shared chunk", () => {
+    expect(
+      manualChunks(
+        "/app/node_modules/.pnpm/i18next@26.3.6/node_modules/i18next/dist/esm/i18next.js",
+      ),
+    ).toBe("i18n-vendor");
+    expect(
+      manualChunks(
+        "/app/node_modules/.pnpm/react-i18next@17.0.11_i18next@26.3.6_react@19.2.8/node_modules/react-i18next/dist/es/index.js",
+      ),
+    ).toBe("i18n-vendor");
+  });
+
   it("routes radix-ui meta package into radix-vendor", () => {
     expect(
       manualChunks(

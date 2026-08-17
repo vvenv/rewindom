@@ -23,6 +23,16 @@ export function manualChunks(id: string): string | undefined {
     return undefined;
   }
 
+  // i18next 必须单独成块，且 client-kit / 懒加载页都从这一块 import。
+  // 否则 Rolldown 会把一份打进 client-kit（setupI18n），另一份打进 vendor
+  // （lazy 页的 useTranslation）——生产上 namespace 注册了，页面却原样显示 key。
+  if (
+    inNodeModules(id, "i18next") ||
+    inNodeModules(id, "react-i18next")
+  ) {
+    return "i18n-vendor";
+  }
+
   // Large or on-demand deps — keep out of the main vendor catch-all
   if (inNodeModules(id, "recharts")) return "recharts-vendor";
 

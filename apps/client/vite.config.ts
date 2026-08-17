@@ -82,6 +82,9 @@ function tenantMarketingSsrProxy(): Plugin {
 export default defineConfig(() => ({
   plugins: [react(), tailwindcss(), tenantMarketingSsrProxy()],
   resolve: {
+    // 与 manualChunks 的 i18n-vendor 一起：workspace 里 client-kit / 各模块
+    // 都依赖 react-i18next，不 dedupe 时 Rolldown 会打出两份实例。
+    dedupe: ["i18next", "react-i18next"],
     alias: [
       { find: "@", replacement: path.resolve(import.meta.dirname, "./src") },
       {
