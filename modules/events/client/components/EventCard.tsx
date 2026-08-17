@@ -41,9 +41,11 @@ export function EventCard({ event }: { event: EventListItem }) {
         </Link>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        <p className="text-muted-foreground line-clamp-2 text-sm">
-          {event.headline}
-        </p>
+        {event.headline ? (
+          <p className="text-muted-foreground line-clamp-2 text-sm">
+            {event.headline}
+          </p>
+        ) : null}
         <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
           {event.source_names.length > 0 ? (
             <span>

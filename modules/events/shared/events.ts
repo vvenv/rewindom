@@ -69,7 +69,7 @@ export interface EventListItem {
   id: string;
   slug: string;
   title: string;
-  /** 一句话说明，由 summary 截断而来 */
+  /** 一句话说明，由 summary 截断而来；与标题相同或摘要为空时是空串 */
   headline: string;
   topic: EventTopic;
   status: EventStatus;

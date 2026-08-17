@@ -31,7 +31,7 @@ export function EventDetail() {
     <PageLayout
       icon={Radar}
       title={data?.title ?? t("title")}
-      description={data ? data.headline : t("pageDescription")}
+      description={data ? (data.headline ?? t("pageDescription")) : ""}
       action={
         data && eventId ? (
           <FollowEventButton
@@ -71,7 +71,8 @@ export function EventDetail() {
               <Badge variant="secondary">{t(`topic.${data.topic}`)}</Badge>
               <EventVelocityBadge velocityPct={data.velocity_pct} />
               <span className="text-muted-foreground text-xs">
-                {t("detail.firstSeen")} <RelativeTime iso={data.first_seen_at} />
+                {t("detail.firstSeen")}{" "}
+                <RelativeTime iso={data.first_seen_at} />
               </span>
               <span className="text-muted-foreground text-xs">
                 {t("detail.updatedAt")}{" "}

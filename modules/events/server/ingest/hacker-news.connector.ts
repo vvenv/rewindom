@@ -1,4 +1,6 @@
+import { stripHtml } from "./feed-parser.js";
 import { fetchJson } from "./http.js";
+import { truncateExcerpt } from "./page-excerpt.js";
 
 import type { ConnectorFeed, EventConnector, RawSignal } from "./connector.js";
 
@@ -18,6 +20,8 @@ interface HackerNewsItem {
   descendants?: number;
   by?: string;
   time?: number;
+  /** Ask/Show 自帖的正文，HTML */
+  text?: string;
   deleted?: boolean;
   dead?: boolean;
 }
@@ -77,7 +81,7 @@ export function toSignal(
     // Ask HN / Show HN 这类自帖没有外链，指回讨论页本身
     title: item.title.trim(),
     url: item.url ?? discussionUrl,
-    excerpt: "",
+    excerpt: truncateExcerpt(stripHtml(item.text ?? "")),
     author: item.by ?? null,
     topic: feed.topic,
     score: item.score ?? 0,

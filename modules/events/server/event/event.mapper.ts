@@ -8,7 +8,7 @@ import type {
   EventTopic,
 } from "../../shared/index.js";
 
-/** 卡片上的一句话说明：摘要太长时截断，摘要为空时回落到标题。 */
+/** 卡片上的一句话说明：摘要太长时截断。没有比标题多出来的信息就留空，别再画一遍。 */
 const HEADLINE_MAX_LENGTH = 160;
 
 export interface EventRecordForList {
@@ -140,14 +140,49 @@ export function groupSources(
 }
 
 export function buildHeadline(summary: string, title: string): string {
-  const source = summary.trim().length > 0 ? summary.trim() : title.trim();
+  let source = summary.trim();
+  if (source.length === 0) {
+    return "";
+  }
+
+  const first = takeFirstSentence(source);
+  // RSS 摘录经常以标题开篇；那句不是新信息，副标题改取后面一句。
+  if (isSameAsTitle(first.sentence, title)) {
+    source = first.rest;
+    if (source.length === 0) {
+      return "";
+    }
+  }
+
+  const candidate = takeFirstSentence(source).sentence;
+  const headline =
+    candidate.length <= HEADLINE_MAX_LENGTH
+      ? candidate
+      : `${candidate.slice(0, HEADLINE_MAX_LENGTH - 1).trimEnd()}…`;
+  return isSameAsTitle(headline, title) ? "" : headline;
+}
+
+function takeFirstSentence(source: string): { sentence: string; rest: string } {
   // 中文标点后面没有空格，不能和 ASCII 句号共用一条规则；
   // ASCII 的 `.` 又必须要求后随空白，否则 "example.com" 会被当成句末。
-  const firstSentence = /^[\s\S]*?(?:[。！？]|[.!?](?=\s|$))/u
-    .exec(source)?.[0]
-    .trim();
-  const candidate = firstSentence ?? source;
-  return candidate.length <= HEADLINE_MAX_LENGTH
-    ? candidate
-    : `${candidate.slice(0, HEADLINE_MAX_LENGTH - 1).trimEnd()}…`;
+  const match = /^[\s\S]*?(?:[。！？]|[.!?](?=\s|$))/u.exec(source);
+  if (!match) {
+    return { sentence: source, rest: "" };
+  }
+  return {
+    sentence: match[0].trim(),
+    rest: source.slice(match[0].length).trim(),
+  };
+}
+
+function isSameAsTitle(headline: string, title: string): boolean {
+  return normalizeHeadline(headline) === normalizeHeadline(title);
+}
+
+function normalizeHeadline(value: string): string {
+  return value
+    .trim()
+    .replace(/[。！？.!?…]+$/u, "")
+    .trim()
+    .toLowerCase();
 }

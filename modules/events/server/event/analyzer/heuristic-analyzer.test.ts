@@ -18,7 +18,7 @@ function signal(overrides: Partial<AnalyzerSignal> = {}): AnalyzerSignal {
 }
 
 async function analyze(signals: AnalyzerSignal[]) {
-  return heuristicAnalyzer.analyze({ topic: "ai", origin_locale: "en", signals });
+  return heuristicAnalyzer.analyze({ topic: "ai", signals });
 }
 
 describe("heuristicAnalyzer", () => {
@@ -43,6 +43,26 @@ describe("heuristicAnalyzer", () => {
   it("没有任何摘录时留空，不硬凑一句没有出处的话", async () => {
     const result = await analyze([signal({ excerpt: "   " })]);
     expect(result.summary).toBe("");
+  });
+
+  it("摘录只是标题复读时跳过，改用下一条真正的说明", async () => {
+    const result = await analyze([
+      signal({
+        signal_id: "s1",
+        excerpt: "OpenAI releases GPT-6 with realtime video.",
+      }),
+      signal({
+        signal_id: "s2",
+        source_kind: "news",
+        source_name: "TechCrunch",
+        title: "GPT-6 is here",
+        excerpt: "The model can generate realtime video from a text prompt.",
+        published_at: new Date("2025-08-12T10:05:00Z"),
+      }),
+    ]);
+    expect(result.summary).toBe(
+      "The model can generate realtime video from a text prompt.",
+    );
   });
 
   it("超长摘录被截断", async () => {

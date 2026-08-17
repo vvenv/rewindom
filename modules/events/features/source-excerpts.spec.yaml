@@ -1,0 +1,35 @@
+# 采集时尽量拿到原文摘录，事件摘要不再大面积空白。
+# HN 链接帖本身没有 excerpt；规则分析器又拒绝凭空写，于是卡片上只有标题。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 信号尽量带上原文摘录（HN 正文、目标页 og/meta description），事件因此有摘要；仍然不编造没有出处的句子。
+gold: modules/events/server/ingest/rss.connector.ts
+touch:
+  - modules/events/features/source-excerpts.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/http.ts
+  - modules/events/server/ingest/page-excerpt.ts
+  - modules/events/server/ingest/page-excerpt.test.ts
+  - modules/events/server/ingest/excerpt-enrichment.ts
+  - modules/events/server/ingest/hacker-news.connector.ts
+  - modules/events/server/ingest/hacker-news.connector.test.ts
+  - modules/events/server/ingest/rss.connector.ts
+  - modules/events/server/ingest/ingest.service.ts
+  - modules/events/server/event/analyzer/heuristic-analyzer.ts
+  - modules/events/server/event/analyzer/heuristic-analyzer.test.ts
+out_of_scope:
+  - 全文抽取 / 付费墙
+  - 改 LLM 提示词
+  - 翻译
+  - 新 connector
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/page-excerpt.test.ts server/ingest/hacker-news.connector.test.ts server/event/analyzer/heuristic-analyzer.test.ts
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []

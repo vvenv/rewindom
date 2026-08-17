@@ -62,7 +62,7 @@ async function renderIndex(
   input: SitePathHandlerInput,
   locale: AppLocale,
 ): Promise<string> {
-  const feed = await getPublicEventFeed(locale);
+  const feed = await getPublicEventFeed();
   const t = translator(locale);
 
   return renderEventsTemplatePage({
@@ -90,7 +90,7 @@ async function renderDetail(
   locale: AppLocale,
   slug: string,
 ): Promise<string | null> {
-  const detail = await getPublicEventBySlug(slug, locale);
+  const detail = await getPublicEventBySlug(slug);
   // 事件不存在 → 交回 404，而不是渲染一张空详情页
   if (!detail) {
     return null;
@@ -107,7 +107,7 @@ async function renderDetail(
     path: eventPath(slug),
     preset: EVENTS_DETAIL_TEMPLATE_PRESET,
     title: detail.title,
-    description: detail.headline,
+    description: detail.headline || undefined,
     events: emptyEventsContext({ event: toPublicDetail(detail, t) }),
   });
 }

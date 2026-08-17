@@ -11,11 +11,23 @@
 已交付：
 
 - **主链路**：采集 → 聚类 → 事件详情（发生了什么 / 时间线 / 来源）→ Follow → 更新检测
-- **数据多语言**：标题/摘要按 locale map 存取，中文译文免费获取（见下）
 - **官网面**：两个贡献段 + `/events` 与 `/events/:slug` 两张模板页，未登录访客可直接浏览
 
 明确**不在**当前范围：Related Events、Why it's trending。两者都建立在同一套语料之上，
 加进来是增量，不需要动现有表结构。
+
+### 不做翻译
+
+事件**只显示来源原文**，不按访客语言翻译标题或摘要。
+
+曾经做过：免费机器翻译（MyMemory）补译标题 + LLM 在写摘要的同一次调用里顺带产出双语，
+文案按 locale map 存取。撤掉的原因是免费那条路的成品质量撑不起产品面——专有名词被译坏
+（`Direct File` → 「直接文件」这类），而它恰恰是没有 LLM key 时唯一的译文来源。
+与其留一套「有时对、有时明显错」的译文，不如只显示原文：原文永远是准确的，
+也与「来源是事件的证据」这条产品口径一致。
+
+界面文案（主题名、阶段名、时间线 code、段设置）仍然是完整多语言的——那是**代码 i18n**，
+走 `client/locales/*.json`，与事件内容无关。
 
 ## 为什么事件不按站点隔离
 
@@ -34,7 +46,6 @@
 
 ```
 shared/          事件域契约 + 官网段定义 + 公开视图映射
-  locale.ts               数据多语言（扁平 locale map）与原文语种判定
   events-*-section.ts     官网段定义（events.feed / events.detail）
   events-page-templates.ts 模板页 kind + 预设
   public-view.ts          领域 DTO → 公开视图（两端共用）
@@ -44,7 +55,7 @@ server/
   events.routes.ts        只读面：列表 / 首页三区块 / 主题计数 / 详情
   follow/                 唯一的写入面（租户态）
   ingest/                 采集：connector、RSS 解析、调度任务
-  event/                  领域：URL 规范化、分词聚类、热度、分析器、翻译、读服务
+  event/                  领域：URL 规范化、分词聚类、热度、分析器、读服务
   ssr/                    公开面：path handler、模板页渲染、公开读取
   sections/register.ts    段 / 上下文 provider / sitemap / 链接候选登记
 client/
@@ -53,32 +64,6 @@ client/
   tenant/                 路由、导航、工作台卡片
   editor-context.ts       主题编辑器预览取数
 ```
-
-## 多语言：标题与摘要
-
-事件语料来自英文源，但访客可能要看中文。走**数据多语言**（`docs/design/i18n.md`）：
-`NewsEvent.title` / `summary` 永远是**原文**（聚类指纹与 slug 都基于它），
-译文放在 `title_i18n` / `summary_i18n` 的扁平 locale map 里，读取时按请求语言解析。
-
-译文从哪来，取决于当前分析器：
-
-| 分析器 | 译文来源 | 覆盖范围 | 成本 |
-| --- | --- | --- | --- |
-| `llm` | **与摘要同一次调用**顺带产出 | 标题 + 摘要 + 时间线文案 | 零额外调用，只多几百输出 token |
-| `heuristic` | 事后走 `translator/`（默认 MyMemory，免费无 key） | **只有标题** | 0 |
-
-为什么规则那条路不翻摘要：MyMemory 免费额度是 **5,000 字符/天**（`EVENTS_TRANSLATE_EMAIL`
-填了邮箱升到 50,000）。一条摘要 400 字符，十几条就吃光；标题 60~100 字符，同样额度能覆盖
-一整天的新事件。所以摘要保留原文，界面如实标注「标题为机器翻译，摘要保留原文」。
-
-三条不变量：
-
-1. **译文永久缓存**。`carryOverTranslations` 按「原文有没有变」决定旧译文还能不能用——
-   原文没变就整表留着，一个字符都不重翻；变了就整表作废（留着等于拿旧标题冒充新事件）。
-2. **按热度优先补译**。额度先花在最可能被看到的事件上；没轮到的下一轮再来。
-3. **翻不出来就留原文**，读取侧本来就会回落，不存在「翻译失败=空白」。
-
-搜索同时搜原文与译文——只搜原文等于让中文用户搜不到任何东西。
 
 ## 官网面（公开访客）
 
@@ -105,6 +90,8 @@ client manifest 各调一次。
 
 ```
 connector.fetch()          外部平台 → RawSignal
+      ↓
+fillEmptyExcerpts()        摘录为空时抓目标页 og/meta description
       ↓
 persistSignals()           canonical_url 规范化 + (connector, external_id) 幂等落库
       ↓
@@ -156,7 +143,7 @@ HN 的 topstories 本来就是几十件互不相干的事。但词面聚类有�
 
 | 实现 | 何时启用 | 行为 |
 | --- | --- | --- |
-| `heuristic` | 默认；没配 `OPENAI_API_KEY` 时 | 标题从候选里挑，摘要取**一手来源的原文摘录**，时间线由信号时间戳重建。永远不会说一句没有出处的话 |
+| `heuristic` | 默认；没配 `OPENAI_API_KEY` 时 | 标题从候选里挑，摘要取**一手来源的原文摘录**（RSS 正文、HN 自帖 `text`、目标页 og/meta description），时间线由信号时间戳重建。永远不会说一句没有出处的话 |
 | `llm` | 配了 key（或 `EVENTS_ANALYZER=llm`） | 提示词里写死了 MVP §11 的边界：不给建议、不做预测、不判断谁对、不引入来源外的事实 |
 
 两条硬约束：
@@ -181,6 +168,10 @@ HN 的 topstories 本来就是几十件互不相干的事。但词面聚类有�
 RSS 解析器是本模块自带的（`server/ingest/feed-parser.ts`）：仓库没有 XML 依赖，
 为一个 connector 引入解析库要让整个 monorepo 承担其供应链成本，而 feed 的结构只有五个字段。
 
+HN 的链接帖本身没有正文。采集时若摘录仍空，会再请求目标页，只取 `og:description` /
+`twitter:description` / `meta description` / 第一段 `<p>`——仍然是原文，不是生成。
+HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘录每轮最多补 40 条。
+
 ## 后台任务
 
 `events-ingest` 注册在内核 `JobRegistry` 上，进程级（语料不分站点），
@@ -196,8 +187,6 @@ RSS 解析器是本模块自带的（`server/ingest/feed-parser.ts`）：仓库�
 | `EVENTS_INGEST_ENABLED` | `true` | 关掉后不注册采集任务，只读已有语料 |
 | `EVENTS_INGEST_INTERVAL_MINUTES` | `15` | 采集周期（5 ~ 1440） |
 | `EVENTS_ANALYZER` | `auto` | `auto` / `heuristic` / `llm` |
-| `EVENTS_TRANSLATOR` | `auto` | `auto`（= MyMemory，免费无 key）/ `mymemory` / `none` |
-| `EVENTS_TRANSLATE_EMAIL` | 空 | MyMemory 的 `de=` 邮箱，把日额度从 5,000 提到 50,000 字符 |
 | `OPENAI_API_KEY` | 空 | 内核已有；`auto` 模式下决定走不走 LLM |
 
 ## 权限
@@ -213,10 +202,8 @@ RSS 解析器是本模块自带的（`server/ingest/feed-parser.ts`）：仓库�
 ## 后续（不在本期）
 
 - **把聚类裁决交给 LLM**：见上面「聚类能力边界」，这是收益最大的一步
-- **更好的免费翻译**：Azure Translator F0 是 200 万字符/月永久免费（DeepL / Google 免费版的 4 倍），
-  质量也高于 MyMemory；代价是要 Azure 账号 + key。`translator/` 已经是可插拔接口，加一个实现即可
-- **中文源**：直接加 36氪 / 机器之心这类中文 RSS 解决不了「英文事件配中文标题」——
+- **中文源**：加 36氪 / 机器之心这类中文 RSS 会带来中文**事件**，但不会给英文事件配中文标题——
   分词器对中文走二元切分、对英文走词切分，中英标题 token 交集恒为 0，中文报道会成为
-  **另一个独立事件**。要跨语言合并同一件事，同样得先有语义层
+  **另一个独立事件**。要跨语言合并同一件事，得先有语义层
 - **Related Events**：`NewsEvent.tokens` 已经是现成的相似度输入，做法与聚类同源，只是阈值更低
 - **Why it's trending**：分析器接口再加一个方法即可，需要严格区分 Confirmed 与 Discussion

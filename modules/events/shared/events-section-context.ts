@@ -36,6 +36,7 @@ export interface PublicEventCard {
   slug: string;
   href: string;
   title: string;
+  /** 一句话说明；与标题相同或没有摘要时为空，渲染侧直接跳过 */
   headline: string;
   topic: EventTopic;
   /** 已落成当前语言的主题名 */

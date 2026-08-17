@@ -1,4 +1,5 @@
 import { pickEventTitle } from "../title-tokens.js";
+import { isUsableExcerpt } from "../../ingest/page-excerpt.js";
 
 import type {
   AnalyzedEvent,
@@ -40,12 +41,12 @@ export const heuristicAnalyzer: EventAnalyzer = {
 
 /**
  * 摘要 = 最可信来源的原文摘录。优先级 official → news → community，
- * 同级取最早的一条（第一手发布通常最完整）。都没有摘录时留空，
- * 由界面显示「暂无摘要」而不是硬凑一句。
+ * 同级取最早的一条（第一手发布通常最完整）。摘录与标题相同的不算。
+ * 都没有可用摘录时留空，由界面显示「暂无摘要」而不是硬凑一句。
  */
 function buildSummary(signals: readonly AnalyzerSignal[]): string {
-  const withExcerpt = signals.filter(
-    (signal) => signal.excerpt.trim().length > 0,
+  const withExcerpt = signals.filter((signal) =>
+    isUsableExcerpt(signal.excerpt, signal.title),
   );
   if (withExcerpt.length === 0) {
     return "";

@@ -38,7 +38,21 @@ describe("hacker-news toSignal", () => {
       source_kind: "community",
       topic: "tech",
     });
+    expect(signal?.excerpt).toBe("");
     expect(signal?.published_at.toISOString()).toBe("2025-08-12T12:00:00.000Z");
+  });
+
+  it("Ask / Show 自帖把 text 剥成摘录", () => {
+    const signal = toSignal(
+      {
+        id: 9,
+        title: "Ask HN: why?",
+        text: "<p>Looking for a <b>faster</b> way to ship.</p>",
+        time: 1,
+      },
+      FEED,
+    );
+    expect(signal?.excerpt).toBe("Looking for a faster way to ship.");
   });
 
   it("没有外链的自帖指回 HN 讨论页", () => {

@@ -24,6 +24,27 @@ export async function fetchJson<T>(
   return (await response.json()) as T;
 }
 
+/**
+ * 只读 HTML。PDF / 图片 / JSON 没有 og:description，下载下来也解析不出摘录。
+ * content-type 缺失时仍当 HTML 试——有的 CDN 不带头。
+ */
+export async function fetchHtml(
+  url: string,
+  options?: { timeoutMs?: number },
+): Promise<string | null> {
+  const response = await fetchWithTimeout(url, {
+    ...options,
+    accept:
+      "text/html,application/xhtml+xml;q=0.9,application/xml;q=0.8,*/*;q=0.1",
+  });
+  const type = response.headers.get("content-type") ?? "";
+  if (type.length > 0 && !/html|xhtml|xml/iu.test(type)) {
+    return null;
+  }
+  const text = await response.text();
+  return text.slice(0, 200_000);
+}
+
 async function fetchWithTimeout(
   url: string,
   options?: { timeoutMs?: number; accept?: string },

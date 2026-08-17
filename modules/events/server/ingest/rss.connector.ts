@@ -1,11 +1,11 @@
 import { parseFeed, type ParsedFeedItem } from "./feed-parser.js";
 import { fetchText } from "./http.js";
+import { truncateExcerpt } from "./page-excerpt.js";
 
 import type { ConnectorFeed, EventConnector, RawSignal } from "./connector.js";
 
 /** 单个源一轮最多取多少条，防止某个源的全量归档把一轮采集撑爆。 */
 const ITEM_LIMIT = 40;
-const EXCERPT_MAX_LENGTH = 600;
 
 /**
  * 通用 RSS / Atom connector。
@@ -28,7 +28,7 @@ export function toSignal(item: ParsedFeedItem, feed: ConnectorFeed): RawSignal {
     source_kind: feed.source_kind,
     title: item.title,
     url: item.link,
-    excerpt: item.summary.slice(0, EXCERPT_MAX_LENGTH),
+    excerpt: truncateExcerpt(item.summary),
     author: item.author,
     topic: feed.topic,
     // RSS 不提供热度，热度只能来自「有多少源在说」与来源权重
