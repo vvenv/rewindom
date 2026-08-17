@@ -111,7 +111,9 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     path: EVENTS_INDEX_PATH,
     group: EVENTS_PAGE_TEMPLATE_GROUP,
     label: "events:template.index.label",
-    required_section: EVENTS_FEED_SECTION_TYPE,
+    // 预设是三段同 type 的 feed；`required_section` 是「有且仅有一段」，
+    // 钉上去之后重设版式 / 保存都会被 `site.template_section_required` 打回来。
+    required_section: null,
     entitlement: EVENTS_ENTITLEMENT.key,
   },
   {
