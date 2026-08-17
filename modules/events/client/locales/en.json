@@ -49,8 +49,7 @@
   },
   "heat": {
     "rising": "↑ {{percent}}%",
-    "falling": "↓ {{percent}}%",
-    "steady": "Steady"
+    "falling": "↓ {{percent}}%"
   },
   "card": {
     "sources": "Sources: {{names}}",

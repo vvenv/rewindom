@@ -1,0 +1,30 @@
+# 「下降」必须有可比较的基线。出生爆发滑出近窗在数学上是 -100%，但不能叫热度回落。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 热度数字与「降温」文案只在有基线时才主张下降；新事件不出现下降。
+gold: modules/events/server/event/heat.ts
+touch:
+  - modules/events/features/heat-authority.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/event/heat.ts
+  - modules/events/server/event/heat.test.ts
+  - modules/events/client/components/EventVelocityBadge.tsx
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/client/locales/en.json
+out_of_scope:
+  - 改 heat 窗口长度
+  - 改 clustering / analyzer
+  - 新状态枚举
+  - 回填历史行（下一轮采集会重算）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/heat.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []

@@ -4,6 +4,9 @@
  * 产品口径（MVP §2、§7）：REWINDOM 展示的不是「它现在排第几」，而是
  * 「它正在发生变化」。所以对外的主指标是 velocity_pct（相对上一窗口的变化率），
  * heat_score 只用来在同等变化率下决定谁排前面。
+ *
+ * 「下降」是有主语的判断：热度曾经是 X，现在比 X 低。新事件的出生爆发滑出近窗、
+ * 落入上一窗，数学上是 -100%，但并没有可比较的基线——那种情况增速记 0，不主张下降。
  */
 import type { EventSourceKind, EventStatus } from "../../shared/index.js";
 
@@ -76,12 +79,42 @@ export function computeHeat(
 
   // 上一窗口为 0 时不能除——用 1 作基数，等价于「从无到有」按绝对量给增速
   const base = previous > 0 ? previous : 1;
-  const velocity = ((recent - previous) / base) * 100;
+  let velocity = ((recent - previous) / base) * 100;
+  if (velocity < 0 && !hasDeclineBaseline(signals, now, recent, previous)) {
+    velocity = 0;
+  }
 
   return {
     heat_score: round2(recent),
     velocity_pct: round2(clamp(velocity, -100, MAX_VELOCITY_PCT)),
   };
+}
+
+/**
+ * 负增速只在这两种情况下成立：
+ * 1. 两个窗口都有量——可观察的减速，哪怕事件还很新；
+ * 2. 近窗已空、上一窗有量，且事件在上一窗打开之前就存在——上一窗是对已有事件的观察，
+ *    不是出生爆发跟着时间窗滑过去。
+ */
+function hasDeclineBaseline(
+  signals: readonly HeatSignal[],
+  now: Date,
+  recent: number,
+  previous: number,
+): boolean {
+  if (previous <= 0) {
+    return false;
+  }
+  if (recent > 0) {
+    return true;
+  }
+  if (signals.length === 0) {
+    return false;
+  }
+  const firstSeen = Math.min(
+    ...signals.map((signal) => signal.published_at.getTime()),
+  );
+  return now.getTime() - firstSeen >= HEAT_WINDOW_HOURS * 2 * HOUR_MS;
 }
 
 export function resolveStatus(params: {

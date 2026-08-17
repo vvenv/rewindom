@@ -47,8 +47,32 @@ describe("computeHeat", () => {
     expect(result.velocity_pct).toBeGreaterThan(0);
   });
 
-  it("热度回落时增速为负，且不低于 -100%", () => {
+  it("新事件的出生爆发滑出近窗 → 增速为 0，不主张下降", () => {
     const result = computeHeat([signal({ published_at: hoursAgo(9) })], NOW);
+    expect(result.heat_score).toBe(0);
+    expect(result.velocity_pct).toBe(0);
+  });
+
+  it("两个窗口都有量且近窗更弱 → 即便事件还新也记减速", () => {
+    const result = computeHeat(
+      [
+        signal({ published_at: hoursAgo(8), score: 200 }),
+        signal({ published_at: hoursAgo(8), score: 200 }),
+        signal({ published_at: hoursAgo(1), score: 0 }),
+      ],
+      NOW,
+    );
+    expect(result.velocity_pct).toBeLessThan(0);
+  });
+
+  it("事件在上一窗打开之前就存在、近窗已空 → 这才是热度回落，且不低于 -100%", () => {
+    const result = computeHeat(
+      [
+        signal({ published_at: hoursAgo(20) }),
+        signal({ published_at: hoursAgo(9) }),
+      ],
+      NOW,
+    );
     expect(result.velocity_pct).toBe(-100);
   });
 
@@ -79,7 +103,18 @@ describe("resolveStatus", () => {
     ).toBe("active");
   });
 
-  it("虽然刚有动静但明显降温 → cooling", () => {
+  it("新事件出生爆发滑出近窗后，阶段仍是 active，不是 cooling", () => {
+    const heat = computeHeat([signal({ published_at: hoursAgo(9) })], NOW);
+    expect(
+      resolveStatus({
+        last_activity_at: hoursAgo(9),
+        velocity_pct: heat.velocity_pct,
+        now: NOW,
+      }),
+    ).toBe("active");
+  });
+
+  it("有基线的明显降温 → cooling", () => {
     expect(
       resolveStatus({ last_activity_at: hoursAgo(2), velocity_pct: -80, now: NOW }),
     ).toBe("cooling");

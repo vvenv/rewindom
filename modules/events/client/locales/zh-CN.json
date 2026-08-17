@@ -30,7 +30,7 @@
   "status": {
     "developing": "快速发展",
     "active": "持续讨论",
-    "cooling": "热度下降",
+    "cooling": "降温中",
     "resolved": "基本结束"
   },
   "topic": {
@@ -49,8 +49,7 @@
   },
   "heat": {
     "rising": "↑ {{percent}}%",
-    "falling": "↓ {{percent}}%",
-    "steady": "持平"
+    "falling": "↓ {{percent}}%"
   },
   "card": {
     "sources": "来源：{{names}}",
