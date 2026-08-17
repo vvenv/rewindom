@@ -142,34 +142,50 @@ _ssh_try_password() {
   fi
 }
 
+# ssh/scp 失败必须自己记 rc。调用方脚本是 `set -e`，直接 `_ssh_try_key; rc=$?`
+# 会在赋值前退出；stderr 又被重定向到临时文件，表现为「确认后立刻 255、无任何报错」，
+# 密码回退（sshpass）也永远走不到。
+# 也不可写成 `if _ssh_try_key; then`——if 成功后 $? 恒为 0，远程失败会被误报成功。
+_ssh_try_key_then_password() {
+  local mode="$1"
+  local stderr_file="$2"
+  shift 2
+  local rc
+
+  set +e
+  _ssh_try_key "$mode" "$stderr_file" "$@"
+  rc=$?
+  if [ "$rc" -ne 0 ] && { [ "$rc" -eq 255 ] || _ssh_auth_failure_in_stderr "$stderr_file"; } && [ -n "${DEPLOY_SSH_PASSWORD:-}" ]; then
+    _ssh_try_password "$mode" "$stderr_file" "$@"
+    rc=$?
+  fi
+  set -e
+  return "$rc"
+}
+
+_ssh_fail() {
+  local stderr_file="$1"
+  local rc="$2"
+  cat "$stderr_file" >&2
+  if _ssh_auth_failure_in_stderr "$stderr_file"; then
+    rm -f "$stderr_file"
+    _ssh_auth_failure_hint
+  fi
+  rm -f "$stderr_file"
+  exit "$rc"
+}
+
 _run_scp() {
   local stderr_file rc
   stderr_file="$(mktemp)"
 
-  # 注意：不可在 `if cmd; then ...; fi` 之后读 $?——if 复合命令成功后 $? 恒为 0
-  _ssh_try_key scp "$stderr_file" "$@"
+  _ssh_try_key_then_password scp "$stderr_file" "$@"
   rc=$?
   if [ "$rc" -eq 0 ]; then
     rm -f "$stderr_file"
     return 0
   fi
-  if [ "$rc" -eq 255 ] || _ssh_auth_failure_in_stderr "$stderr_file"; then
-    if [ -n "$DEPLOY_SSH_PASSWORD" ]; then
-      _ssh_try_password scp "$stderr_file" "$@"
-      rc=$?
-      if [ "$rc" -eq 0 ]; then
-        rm -f "$stderr_file"
-        return 0
-      fi
-    fi
-    if [ "$rc" -eq 255 ] || _ssh_auth_failure_in_stderr "$stderr_file"; then
-      rm -f "$stderr_file"
-      _ssh_auth_failure_hint
-    fi
-  fi
-  cat "$stderr_file" >&2
-  rm -f "$stderr_file"
-  exit "$rc"
+  _ssh_fail "$stderr_file" "$rc"
 }
 
 _run_ssh() {
@@ -178,30 +194,12 @@ _run_ssh() {
   local stderr_file rc
   stderr_file="$(mktemp)"
 
-  # 注意：不可在 `if cmd; then ...; fi` 之后读 $?——if 复合命令成功后 $? 恒为 0，
-  # 会导致远程命令失败时本地仍 exit 0（release 误报「部署完成」）。
-  _ssh_try_key ssh "$stderr_file" "$remote_cmd"
+  _ssh_try_key_then_password ssh "$stderr_file" "$remote_cmd"
   rc=$?
   if [ "$rc" -eq 0 ]; then
     rm -f "$stderr_file"
     return 0
   fi
-  if [ "$rc" -eq 255 ] || _ssh_auth_failure_in_stderr "$stderr_file"; then
-    if [ -n "$DEPLOY_SSH_PASSWORD" ]; then
-      _ssh_try_password ssh "$stderr_file" "$remote_cmd"
-      rc=$?
-      if [ "$rc" -eq 0 ]; then
-        rm -f "$stderr_file"
-        return 0
-      fi
-    fi
-    if [ "$rc" -eq 255 ] || _ssh_auth_failure_in_stderr "$stderr_file"; then
-      rm -f "$stderr_file"
-      _ssh_auth_failure_hint
-    fi
-  fi
-  cat "$stderr_file" >&2
-  rm -f "$stderr_file"
-  exit "$rc"
+  _ssh_fail "$stderr_file" "$rc"
 }
 
