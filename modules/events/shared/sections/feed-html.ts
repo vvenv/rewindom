@@ -1,9 +1,8 @@
 /**
  * 「正在发生什么」区块的 markup（SSR 与编辑器预览共用同一份）。
  *
- * 卡片点开去的是**该事件权重最高的那条来源原文**（见 `events-view.ts` 的 href），
- * 除非站点开了公开详情页——那时 href 指向 `/events/:slug`。两种都由建上下文时决定，
- * 渲染器不判断。
+ * 卡片恒指向站内 `/events/:slug`——开通事件雷达就一定有公开详情页
+ *（模板页与 path handler 一起登记），不会把访客直接甩去站外。
  */
 
 import { readEventsContext } from "../events-section-context.js";
@@ -14,6 +13,7 @@ import {
   settingNumber,
   settingText,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
 import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import type {
@@ -68,8 +68,6 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
   const context = readEventsContext(ctx);
   const s = section.settings;
 
-  const heading = settingText(s, "heading");
-  const subheading = settingText(s, "subheading");
   const source = settingText(s, "source") || "rising";
   const limit = settingNumber(s, "limit", 6);
   const showSources = settingBool(s, "show_sources");
@@ -81,11 +79,7 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
         ? (context?.feed.today ?? [])
         : (context?.feed.rising ?? []);
   const cards = takeUnseen(context, all, limit);
-
-  const header = [
-    heading ? `<h2 class="events-heading">${escapeHtml(heading)}</h2>` : "",
-    subheading ? `<p class="events-subheading">${escapeHtml(subheading)}</p>` : "",
-  ].join("");
+  const header = sectionHeading(s);
 
   if (cards.length === 0) {
     const empty = settingText(s, "empty_text");
@@ -111,12 +105,6 @@ function cardHtml(
   showSources: boolean,
   ctx: Parameters<SectionHtmlRenderer>[1],
 ): string {
-  // 站外原文用绝对地址，站内详情页要按当前语言前缀改写
-  const href = card.href.startsWith("http")
-    ? card.href
-    : siteHref(card.href, ctx);
-  const external = card.href.startsWith("http");
-
   const meta = [
     `<span class="events-status events-status-${escapeHtml(card.status)}">${escapeHtml(
       card.status_label,
@@ -132,9 +120,9 @@ function cardHtml(
       ? `<p class="events-sources">${escapeHtml(card.source_names.join(" · "))}</p>`
       : "";
 
-  return `<li class="events-card"><a class="events-card-link" href="${escapeHtml(href)}"${
-    external ? ' target="_blank" rel="noreferrer noopener"' : ""
-  }><span class="events-meta">${meta}</span><span class="events-title">${escapeHtml(
+  return `<li class="events-card"><a class="events-card-link" href="${escapeHtml(
+    siteHref(card.href, ctx),
+  )}"><span class="events-meta">${meta}</span><span class="events-title">${escapeHtml(
     card.title,
   )}</span>${
     card.headline

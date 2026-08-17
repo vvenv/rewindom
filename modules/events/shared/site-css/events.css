@@ -5,17 +5,6 @@
  * 不引入自己的配色——段要能跟着站点主题走（site-section-css rule）。
  */
 
-.events-heading {
-  margin: 0 0 4px;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.events-subheading {
-  margin: 0 0 20px;
-  color: var(--muted-fg);
-}
-
 .events-empty {
   margin: 0;
   color: var(--muted-fg);
@@ -24,7 +13,7 @@
 .events-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
+  gap: 1rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -33,8 +22,8 @@
 .events-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
+  gap: 0.5rem;
+  padding: 1.25rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -43,7 +32,7 @@
 .events-card-link {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.5rem;
   color: inherit;
   text-decoration: none;
 }
@@ -103,7 +92,7 @@
 
 .events-more {
   display: inline-block;
-  margin-top: 16px;
+  margin-top: 1.25rem;
   color: var(--accent);
   text-decoration: none;
 }
@@ -117,7 +106,7 @@
 .events-detail {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 2.5rem;
 }
 
 .events-back {
@@ -133,19 +122,19 @@
 .events-detail-header {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.75rem;
 }
 
 .events-detail-title {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 2rem;
   line-height: 1.25;
 }
 
 .events-block {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.75rem;
 }
 
 .events-block-title {
@@ -172,9 +161,9 @@
 .events-timeline {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.75rem;
   margin: 0;
-  padding: 0 0 0 16px;
+  padding: 0 0 0 1.25rem;
   border-left: 1px solid var(--border);
   list-style: none;
 }
@@ -200,8 +189,8 @@
 .events-source-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .events-source-kind {
@@ -214,7 +203,7 @@
 .events-source-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -225,7 +214,7 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: baseline;
-  padding: 8px 12px;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
