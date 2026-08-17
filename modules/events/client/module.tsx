@@ -1,11 +1,41 @@
-import type { ClientAppModule } from "@rewindom/module-sdk/client";
+import { Radar, Rss } from "lucide-react";
+
+import { htmlSectionView } from "@rewindom/builtin/marketing/client/components/sections/html-section-view.js";
+import { registerSiteSectionView } from "@rewindom/builtin/marketing/client/components/sections/section-views.js";
 
 import { EVENTS_I18N } from "./i18n.js";
+import { registerEventsEditorContext } from "./editor-context.js";
 import { EVENTS_DASHBOARD_WIDGETS } from "./tenant/dashboard-widgets.js";
 import { EVENTS_NAV_SECTIONS } from "./tenant/nav-sections.js";
 import { renderEventsRoutes } from "./tenant/routes.js";
 
-import { EVENTS_ENTITLEMENT } from "../shared/index.js";
+import {
+  EVENTS_ENTITLEMENT,
+  eventsDetailSection,
+  eventsFeedSection,
+} from "../shared/index.js";
+import { registerEventsPageTemplates } from "../shared/events-page-templates.js";
+import { renderEventsDetailHtml } from "../shared/sections/detail-html.js";
+import { renderEventsFeedHtml } from "../shared/sections/feed-html.js";
+import { EVENTS_CSS } from "../shared/site-css.generated.js";
+
+import type { ClientAppModule } from "@rewindom/module-sdk/client";
+
+/*
+ * 官网贡献的客户端一半：编辑器要能在「添加区块」里看到这两段，并用**同一份** HTML
+ * 渲染器预览（`htmlSectionView`），不再为编辑器写一套 React 版式。
+ */
+registerEventsPageTemplates();
+registerEventsEditorContext();
+registerSiteSectionView(eventsFeedSection, htmlSectionView(renderEventsFeedHtml), {
+  css: EVENTS_CSS,
+  icon: Rss,
+});
+registerSiteSectionView(
+  eventsDetailSection,
+  htmlSectionView(renderEventsDetailHtml),
+  { css: EVENTS_CSS, icon: Radar },
+);
 
 export const eventsClientModule: ClientAppModule = {
   id: "events",

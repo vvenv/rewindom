@@ -9,6 +9,7 @@ import {
 import { toEventDetail, toEventListItem } from "./event.mapper.js";
 
 import type { FollowMarker } from "./event.mapper.js";
+import type { AppLocale } from "@rewindom/module-sdk";
 import type {
   EventDetail,
   EventFeedResult,
@@ -42,6 +43,9 @@ const LIST_SELECT = {
   slug: true,
   title: true,
   summary: true,
+  origin_locale: true,
+  title_i18n: true,
+  summary_i18n: true,
   topic: true,
   status: true,
   heat_score: true,
@@ -56,6 +60,8 @@ const LIST_SELECT = {
 export interface EventViewerScope {
   tenant_id: string;
   user_id: string;
+  /** 读取语言。事件文案是数据多语言，落成哪种语言在**读取时**决定 */
+  locale: AppLocale;
 }
 
 export interface ListEventsParams extends EventViewerScope {
@@ -91,7 +97,7 @@ export async function listEvents(
 
   return {
     items: records.map((record) =>
-      toEventListItem(record, follows.get(record.id) ?? null),
+      toEventListItem(record, params.locale, follows.get(record.id) ?? null),
     ),
     page: params.page,
     page_size: params.page_size,
@@ -161,7 +167,9 @@ export async function getEventFeed(
     ...today.map((event) => event.id),
   ]);
   const map = (records: typeof rising): EventListItem[] =>
-    records.map((record) => toEventListItem(record, follows.get(record.id) ?? null));
+    records.map((record) =>
+      toEventListItem(record, params.locale, follows.get(record.id) ?? null),
+    );
 
   return {
     rising: map(rising),
@@ -192,6 +200,7 @@ export async function getEventDetail(
         occurred_at: true,
         label_code: true,
         label_text: true,
+        label_text_i18n: true,
         source_kind: true,
         source_name: true,
         url: true,
@@ -216,6 +225,7 @@ export async function getEventDetail(
 
   return toEventDetail({
     record,
+    locale: params.locale,
     timeline,
     signals,
     follow: follows.get(record.id) ?? null,
@@ -251,6 +261,12 @@ async function buildListWhere(params: ListEventsParams) {
           OR: [
             { title: { contains: q, mode: "insensitive" as const } },
             { summary: { contains: q, mode: "insensitive" as const } },
+            /*
+             * 也要搜译文：中文访客搜「收购」时，原文标题里只有 "acquire"。
+             * 只搜原文等于让非原文语种的用户搜不到任何东西。
+             */
+            { title_i18n: { path: [params.locale], string_contains: q } },
+            { summary_i18n: { path: [params.locale], string_contains: q } },
           ],
         }
       : {}),

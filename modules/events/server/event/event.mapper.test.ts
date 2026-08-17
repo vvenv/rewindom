@@ -14,6 +14,9 @@ function record(overrides: Partial<EventRecordForList> = {}): EventRecordForList
     slug: "gpt-6-abc123",
     title: "OpenAI releases GPT-6",
     summary: "OpenAI released GPT-6 today. It supports realtime video.",
+    origin_locale: "en",
+    title_i18n: null,
+    summary_i18n: null,
     topic: "ai",
     status: "developing",
     heat_score: 12.5,
@@ -29,19 +32,19 @@ function record(overrides: Partial<EventRecordForList> = {}): EventRecordForList
 
 describe("toEventListItem", () => {
   it("时间统一序列化成 ISO 串", () => {
-    const item = toEventListItem(record());
+    const item = toEventListItem(record(), "en");
     expect(item.first_seen_at).toBe("2025-08-12T10:02:00.000Z");
     expect(item.last_activity_at).toBe("2025-08-12T12:15:00.000Z");
   });
 
   it("没有关注记录时既未关注也没有更新", () => {
-    const item = toEventListItem(record(), null);
+    const item = toEventListItem(record(), "en", null);
     expect(item.is_following).toBe(false);
     expect(item.has_update).toBe(false);
   });
 
   it("关注后、上次查看之后又有动静 → has_update", () => {
-    const item = toEventListItem(record(), {
+    const item = toEventListItem(record(), "en", {
       last_seen_at: new Date("2025-08-12T11:00:00Z"),
     });
     expect(item.is_following).toBe(true);
@@ -49,11 +52,54 @@ describe("toEventListItem", () => {
   });
 
   it("看过之后没有新动静 → 已关注但无更新", () => {
-    const item = toEventListItem(record(), {
+    const item = toEventListItem(record(), "en", {
       last_seen_at: new Date("2025-08-12T13:00:00Z"),
     });
     expect(item.is_following).toBe(true);
     expect(item.has_update).toBe(false);
+  });
+});
+
+describe("toEventListItem —— 数据多语言", () => {
+  const translated = record({
+    title_i18n: {
+      en: "OpenAI releases GPT-6",
+      "zh-CN": "OpenAI 发布 GPT-6",
+    },
+    summary_i18n: {
+      en: "OpenAI released GPT-6 today.",
+      "zh-CN": "OpenAI 今天发布了 GPT-6。",
+    },
+  });
+
+  it("按请求语言落成对应文案", () => {
+    expect(toEventListItem(translated, "zh-CN").title).toBe("OpenAI 发布 GPT-6");
+    expect(toEventListItem(translated, "en").title).toBe("OpenAI releases GPT-6");
+  });
+
+  it("一句话说明也跟着语言走", () => {
+    expect(toEventListItem(translated, "zh-CN").headline).toBe(
+      "OpenAI 今天发布了 GPT-6。",
+    );
+  });
+
+  it("看的是译文时标出来", () => {
+    expect(toEventListItem(translated, "zh-CN").is_translated).toBe(true);
+  });
+
+  it("看的是原文时不标", () => {
+    expect(toEventListItem(translated, "en").is_translated).toBe(false);
+  });
+
+  it("没有该语言译文时回落原文，且**不**谎称是译文", () => {
+    const onlyEnglish = record({ title_i18n: { en: "Only English" } });
+    const item = toEventListItem(onlyEnglish, "zh-CN");
+    expect(item.title).toBe("Only English");
+    expect(item.is_translated).toBe(false);
+  });
+
+  it("语言表缺失时回落到原文列（存量行）", () => {
+    expect(toEventListItem(record(), "zh-CN").title).toBe("OpenAI releases GPT-6");
   });
 });
 

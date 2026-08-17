@@ -446,6 +446,9 @@ importers:
 
   modules/events:
     dependencies:
+      '@rewindom/builtin':
+        specifier: workspace:*
+        version: link:../../packages/builtin
       '@rewindom/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk

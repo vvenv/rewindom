@@ -13,8 +13,8 @@ placement: modules/events
 resource:
   singular: event
   plural: events
-surfaces: [tenant]
-requires: [rbac, audit]
+surfaces: [tenant, ssr]
+requires: [rbac, audit, marketing]
 
 entitlement:
   key: events
@@ -88,6 +88,10 @@ models:
       - { name: topic, type: String, required: true, default: tech }
       - { name: status, type: String, required: true, default: developing }
       - { name: fingerprint, type: String, required: true, unique: true }
+      # 数据多语言：原文列 + locale map（docs/design/i18n.md），不做 title_en 平行字段
+      - { name: origin_locale, type: String, required: true, default: en }
+      - { name: title_i18n, type: Json, required: false }
+      - { name: summary_i18n, type: Json, required: false }
       - { name: tokens, type: String[], required: true }
       - { name: source_names, type: String[], required: true }
       - { name: signal_count, type: Int, required: true, default: 0 }
@@ -113,6 +117,7 @@ models:
       - { name: label_text, type: String, required: false }
       - { name: source_kind, type: String, required: true }
       - { name: source_name, type: String, required: true, default: "" }
+      - { name: label_text_i18n, type: Json, required: false }
       - { name: signal_id, type: String, required: false }
       - { name: url, type: String, required: false }
     unique:
@@ -175,10 +180,35 @@ audit:
     - { action: EVENT_FOLLOW, label: 关注事件 }
     - { action: EVENT_UNFOLLOW, label: 取消关注事件 }
 
+# 官网贡献（site-section skill）：定义在贡献方 shared/，marketing 内核不改
+site:
+  sections:
+    - { type: events.feed, placements: [page], entitlement: events }
+    - {
+        type: events.detail,
+        placements: [page],
+        page_kinds: [events_detail],
+        entitlement: events,
+      }
+  page_templates:
+    - { kind: events_index, slug: events, path: /events, required_section: events.feed }
+    - {
+        kind: events_detail,
+        slug: events-detail,
+        path: /events/:slug,
+        required_section: events.detail,
+      }
+  path_handler: /events 与 /events/:slug（locale 前缀由 marketing 剥掉）
+  reserved_slug: events
+  providers: [section_context, editor_context, sitemap, link_target]
+  css_source: shared/site-css/events.css → site-css.generated.ts
+
 env:
   - { name: EVENTS_INGEST_ENABLED, default: "true" }
   - { name: EVENTS_INGEST_INTERVAL_MINUTES, default: "15" }
   - { name: EVENTS_ANALYZER, default: auto, values: [auto, heuristic, llm] }
+  - { name: EVENTS_TRANSLATOR, default: auto, values: [auto, mymemory, none] }
+  - { name: EVENTS_TRANSLATE_EMAIL, default: "" }
 
 options:
   soft_delete: false

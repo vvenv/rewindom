@@ -38,6 +38,7 @@ describe("parseAnalyzerResponse", () => {
         ],
       }),
       SIGNALS,
+      "en",
     );
 
     expect(result.title).toBe("OpenAI ships GPT-6");
@@ -62,6 +63,7 @@ describe("parseAnalyzerResponse", () => {
         ],
       }),
       SIGNALS,
+      "en",
     );
     expect(result.timeline).toHaveLength(1);
   });
@@ -70,6 +72,7 @@ describe("parseAnalyzerResponse", () => {
     const result = parseAnalyzerResponse(
       JSON.stringify({ title: "t", summary: "s", timeline: [{ signal_index: 1 }] }),
       SIGNALS,
+      "en",
     );
     expect(result.timeline[0].label_text).toBeNull();
     expect(result.timeline[0].label_code).toBe("timeline.community");
@@ -79,18 +82,19 @@ describe("parseAnalyzerResponse", () => {
     const result = parseAnalyzerResponse(
       JSON.stringify({ summary: "s", timeline: [{ signal_index: 0, label: "a" }] }),
       SIGNALS,
+      "en",
     );
     expect(result.title).toBe("OpenAI publishes GPT-6 announcement");
   });
 
   it("时间线为空视为失败——上层据此退回规则分析器", () => {
     expect(() =>
-      parseAnalyzerResponse(JSON.stringify({ title: "t", timeline: [] }), SIGNALS),
+      parseAnalyzerResponse(JSON.stringify({ title: "t", timeline: [] }), SIGNALS, "en"),
     ).toThrow();
   });
 
   it("返回不是 JSON 时抛错", () => {
-    expect(() => parseAnalyzerResponse("Sure! Here you go:", SIGNALS)).toThrow();
+    expect(() => parseAnalyzerResponse("Sure! Here you go:", SIGNALS, "en")).toThrow();
   });
 
   it("时间线按时间升序排好，与模型给的顺序无关", () => {
@@ -104,6 +108,7 @@ describe("parseAnalyzerResponse", () => {
         ],
       }),
       SIGNALS,
+      "en",
     );
     expect(result.timeline.map((e) => e.label_text)).toEqual(["earlier", "later"]);
   });

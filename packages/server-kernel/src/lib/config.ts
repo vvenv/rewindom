@@ -308,7 +308,27 @@ function buildEventsConfig() {
     ),
     /** auto = 有 OPENAI_API_KEY 就走 LLM，否则走规则实现。 */
     analyzer: resolveEventsAnalyzer(),
+    /**
+     * 事后翻译器（只在规则分析器那条路上用；LLM 在写摘要的同一次调用里就给全了各语言）。
+     * auto = MyMemory，它不需要账号或 key，所以默认即开。
+     */
+    translator: resolveEventsTranslator(),
+    /**
+     * MyMemory 的 `de=` 邮箱：填了把免费额度从 5,000 提到 50,000 字符/天。
+     * 不填也能用，只是每天能翻的标题少一个数量级。
+     */
+    translateEmail: strEnv("EVENTS_TRANSLATE_EMAIL", ""),
   };
+}
+
+function resolveEventsTranslator(): "auto" | "mymemory" | "none" {
+  const value = strEnv("EVENTS_TRANSLATOR", "auto").toLowerCase();
+  if (value === "auto" || value === "mymemory" || value === "none") {
+    return value;
+  }
+  throw new Error(
+    `EVENTS_TRANSLATOR 取值非法：${value}（可选 auto / mymemory / none）`,
+  );
 }
 
 function resolveEventsAnalyzer(): "auto" | "heuristic" | "llm" {

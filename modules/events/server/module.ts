@@ -3,12 +3,17 @@ import {
   type ServerAppModule,
 } from "@rewindom/module-sdk/server";
 
+import { registerReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-slugs.js";
+
 import { followRoutes } from "./follow/follow.routes.js";
 import { registerEventIngestJobs } from "./ingest/scheduler-jobs.js";
+import { registerEventsSections } from "./sections/register.js";
+import { registerEventsPathHandler } from "./ssr/events-path-handler.js";
 import { eventsRoutes } from "./events.routes.js";
 import { EVENTS_SERVER_I18N } from "./i18n.js";
 
 import { EVENTS_ENTITLEMENT } from "../shared/entitlements.js";
+import { registerEventsPageTemplates } from "../shared/events-page-templates.js";
 
 export const eventsServerModule: ServerAppModule = {
   id: "events",
@@ -16,7 +21,7 @@ export const eventsServerModule: ServerAppModule = {
   label: "Events",
   kind: "business",
   description: "跨来源发现事件、重建时间线并持续追踪",
-  requires: ["rbac", "audit"],
+  requires: ["rbac", "audit", "marketing"],
   tenantEntitlements: [EVENTS_ENTITLEMENT],
   shared: {
     permissions: [
@@ -40,6 +45,17 @@ export const eventsServerModule: ServerAppModule = {
   },
   server: {
     i18n: EVENTS_SERVER_I18N,
+    /**
+     * 官网贡献：两个段 + 两张模板页 + `/events` 路径处理 + sitemap / 链接候选。
+     * 定义都写在贡献方 `shared/`，marketing 内核一行没改（见 site-section skill）。
+     */
+    onBoot: async () => {
+      registerEventsPageTemplates();
+      registerEventsSections();
+      registerEventsPathHandler();
+      // `/events` 归本模块，租户不能再建同名 CMS 页面把它顶掉
+      registerReservedPageSlug("events");
+    },
     registerRoutes: async (app) => {
       await registerTenantGatedRoutes(app, "events", async (scoped) => {
         await scoped.register(eventsRoutes, { prefix: "/api/events" });

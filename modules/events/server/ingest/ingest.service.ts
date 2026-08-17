@@ -3,6 +3,7 @@ import { prisma } from "@rewindom/module-sdk/server";
 import { canonicalizeUrl } from "../event/canonical-url.js";
 import { clusterSignals } from "../event/cluster.service.js";
 import { refreshEvents } from "../event/event-refresh.service.js";
+import { backfillEventTranslations } from "../event/translate-backfill.service.js";
 
 import { DEFAULT_FEEDS } from "./feed-catalog.js";
 import { hackerNewsConnector } from "./hacker-news.connector.js";
@@ -36,6 +37,8 @@ export interface IngestSummary {
   /** 其中此前没见过、真正入库的 */
   created: number;
   events_touched: number;
+  /** 本轮补译了多少个事件的标题（LLM 路径下恒为 0——那条路翻译已在分析时完成） */
+  events_translated: number;
   failures: IngestFailure[];
 }
 
@@ -120,11 +123,15 @@ export async function runIngest(options?: {
     },
   });
 
+  // 补译放在最后、且按热度扫全库而不是只扫本轮：免费额度有限，要先花在最可能被看到的事件上
+  const translations = await backfillEventTranslations({ log: options?.log });
+
   return {
     feeds: feeds.length,
     fetched,
     created: newSignalIds.length,
     events_touched: touched.size,
+    events_translated: translations.translated,
     failures,
   };
 }

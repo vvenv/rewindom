@@ -9,11 +9,15 @@
     "./*": "./*"
   },
   "scripts": {
+    "assemble:site-css": "node ../../packages/builtin/scripts/assemble-module-css.mjs events",
+    "pretest": "pnpm assemble:site-css",
+    "pretypecheck": "pnpm assemble:site-css",
     "test": "vitest --run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@rewindom/builtin": "workspace:*",
     "@rewindom/module-sdk": "workspace:*",
     "@rewindom/ui": "workspace:*",
     "@tanstack/react-query": "^5.101.4",
@@ -42,7 +46,8 @@
     "prismaSchema": "./prisma/schema.prisma",
     "requires": [
       "rbac",
-      "audit"
+      "audit",
+      "marketing"
     ]
   }
 }

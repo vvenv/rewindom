@@ -18,7 +18,7 @@ function signal(overrides: Partial<AnalyzerSignal> = {}): AnalyzerSignal {
 }
 
 async function analyze(signals: AnalyzerSignal[]) {
-  return heuristicAnalyzer.analyze({ topic: "ai", signals });
+  return heuristicAnalyzer.analyze({ topic: "ai", origin_locale: "en", signals });
 }
 
 describe("heuristicAnalyzer", () => {

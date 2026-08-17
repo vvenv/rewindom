@@ -109,5 +109,71 @@
     "emptyHint": "Hit Follow on an event and new developments show up here",
     "viewAll": "View all",
     "updates": "{{count}} with new developments"
+  },
+  "site": {
+    "index": {
+      "title": "What's happening",
+      "subtitle": "Events discovered across sources, and how they got here"
+    },
+    "detail": {
+      "title": "Event",
+      "subtitle": "What happened, how it developed, and the evidence"
+    },
+    "feed": {
+      "heading": "What's happening",
+      "subheading": "Events merged across sources — not a rearranged leaderboard",
+      "empty": "No events yet — they appear after the first ingest run",
+      "more": "See all events"
+    },
+    "machineTranslated": "Machine translated",
+    "summaryTranslated": "Title and summary are machine translated",
+    "titleTranslatedOnly": "Title is machine translated; summary kept in the original language"
+  },
+  "section": {
+    "feed": {
+      "label": "Event list",
+      "source": "Which set",
+      "sourceInfo": "Rising = changing fastest; Now = still developing; Today = everything in the last 24h",
+      "topic": "Topic",
+      "limit": "Show at most",
+      "showSources": "Show source names",
+      "showSourcesInfo": "Sources are the evidence for an event — keeping them is recommended",
+      "emptyText": "Empty state text",
+      "moreLabel": "More link text"
+    },
+    "detail": {
+      "label": "Event detail",
+      "summaryLabel": "\"What happened\" heading",
+      "showTimeline": "Show timeline",
+      "timelineLabel": "Timeline heading",
+      "showSources": "Show sources",
+      "showSourcesInfo": "Turning this off leaves visitors unable to check the originals",
+      "sourcesLabel": "Sources heading",
+      "backLabel": "Back link text"
+    }
+  },
+  "template": {
+    "group": "Events",
+    "index": {
+      "label": "Events home"
+    },
+    "detail": {
+      "label": "Event page"
+    }
+  },
+  "sample": {
+    "event1": {
+      "title": "Sample: a company ships a next-generation model",
+      "headline": "Community and press picked it up within two hours of the announcement.",
+      "summary": "This is placeholder copy for the editor. Real event summaries appear after the first ingest run."
+    },
+    "event2": {
+      "title": "Sample: an open-source project takes off",
+      "headline": "Thousands of new stars in three hours; discussion centres on performance."
+    },
+    "event3": {
+      "title": "Sample: a major acquisition",
+      "headline": "Two outlets have reported it; no official confirmation yet."
+    }
   }
 }

@@ -1,0 +1,107 @@
+/**
+ * 编辑器预览的事件数据 —— 对应 SSR 的 `registerSectionContextProvider`。
+ *
+ * 拿真实事件预览（后台接口本来就能读），拉不到时退回一份占位样张：
+ * 预览的结构必须与实站一致，否则租户在编辑器里排的版和访客看到的不是一回事。
+ */
+
+import { api, i18n, normalizeLocale } from "@rewindom/module-sdk/client";
+
+import { registerEditorContextProvider } from "@rewindom/builtin/marketing/client/editor-context-providers.js";
+
+import {
+  EVENTS_DETAIL_PAGE_KIND,
+  EVENTS_DETAIL_SECTION_TYPE,
+  EVENTS_FEED_SECTION_TYPE,
+  emptyEventsContext,
+  eventsContextEntry,
+  toPublicCard,
+  toPublicDetail,
+} from "../shared/index.js";
+import { sampleEventDetail, sampleEventList } from "../shared/events-sample.js";
+
+import type {
+  EventDetail,
+  EventFeedResult,
+  EventListItem,
+} from "../shared/index.js";
+import type { AppLocale } from "@rewindom/module-sdk";
+
+const EVENTS_EDITOR_CONTEXT_TYPES = [
+  EVENTS_FEED_SECTION_TYPE,
+  EVENTS_DETAIL_SECTION_TYPE,
+] as const;
+
+export function registerEventsEditorContext(): void {
+  registerEditorContextProvider({
+    sectionTypes: [...EVENTS_EDITOR_CONTEXT_TYPES],
+    provide: async (input) => {
+      /*
+       * 按**当前选中页面的 locale** 取，而不是后台界面语言：编辑一张 en 页面时
+       * 界面还是中文，事件标题却应当显示英文那份（api client 的 Accept-Language
+       * 写的是界面语言，所以要显式带 `locale=`）。
+       */
+      const locale = normalizeLocale(input.locale);
+      const t = translator(locale);
+
+      const feed = await loadFeed(locale, t);
+      const event =
+        input.pageKind === EVENTS_DETAIL_PAGE_KIND
+          ? await loadSampleDetail(locale, t)
+          : null;
+
+      return eventsContextEntry(emptyEventsContext({ feed, event }));
+    },
+  });
+}
+
+function translator(locale: AppLocale) {
+  const fixed = i18n.getFixedT(locale, "events");
+  return (key: string, params?: Record<string, string | number>): string =>
+    fixed(key, params ?? {});
+}
+
+async function loadFeed(locale: AppLocale, t: ReturnType<typeof translator>) {
+  try {
+    const data = await api.get<EventFeedResult>("/events/feed", { locale });
+    const cards = (items: EventListItem[]) =>
+      items.map((item) => toPublicCard(item, t));
+    if (data.today.length > 0 || data.now.length > 0 || data.rising.length > 0) {
+      return {
+        rising: cards(data.rising),
+        now: cards(data.now),
+        today: cards(data.today),
+        today_total: data.today_total,
+      };
+    }
+  } catch {
+    // 拉不到就用样张，预览结构仍与实站同一套渲染器
+  }
+  const sample = sampleEventList(t).map((item) => toPublicCard(item, t));
+  return { rising: sample, now: sample, today: sample, today_total: sample.length };
+}
+
+/**
+ * 详情模板页在编辑器里没有「当前事件」——地址是 `/events/:slug`，预览时哪个都不是。
+ * 取最新一条真实事件当样张；一条都没有时用内置占位。
+ */
+async function loadSampleDetail(
+  locale: AppLocale,
+  t: ReturnType<typeof translator>,
+) {
+  try {
+    const list = await api.get<{ items: EventListItem[] }>("/events", {
+      page: 1,
+      page_size: 1,
+      locale,
+    });
+    const first = list.items[0];
+    if (first) {
+      const detail = await api.get<EventDetail>(`/events/${first.id}`, { locale });
+      return toPublicDetail(detail, t);
+    }
+  } catch {
+    // 同上
+  }
+  return toPublicDetail(sampleEventDetail(t), t);
+}

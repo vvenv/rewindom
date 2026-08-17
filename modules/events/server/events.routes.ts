@@ -1,8 +1,10 @@
 import {
   AppError,
   defineRoute,
+  isAppLocale,
   parsePagination,
   parseSortDir,
+  resolveRequestLocale,
   sendCodedError,
 } from "@rewindom/module-sdk/server";
 
@@ -20,6 +22,7 @@ import {
   type EventTopic,
 } from "../shared/index.js";
 
+import type { AppLocale } from "@rewindom/module-sdk";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 
 /**
@@ -112,11 +115,24 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
 function viewerScope(request: FastifyRequest): {
   tenant_id: string;
   user_id: string;
+  locale: AppLocale;
 } {
   return {
     tenant_id: request.tenantContext!.tenant_id,
     user_id: request.authUser!.userId,
+    locale: resolveEventsLocale(request),
   };
+}
+
+/**
+ * 取文案语言：显式 `?locale=` 优先于 Accept-Language。
+ *
+ * 与 shop 的 `resolveCatalogLocale` 同一手法——主题编辑器预览一张 en 页面时，
+ * 后台界面还是中文，取数却必须按**页面语言**，否则预览与实站会显示两份文案。
+ */
+export function resolveEventsLocale(request: FastifyRequest): AppLocale {
+  const raw = (request.query as { locale?: unknown } | null | undefined)?.locale;
+  return isAppLocale(raw) ? raw : resolveRequestLocale(request);
 }
 
 function parseTopic(value?: string): EventTopic | undefined {

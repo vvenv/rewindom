@@ -109,5 +109,71 @@
     "emptyHint": "在事件详情里点「关注事件」，有新进展会在这里提醒",
     "viewAll": "查看全部",
     "updates": "{{count}} 个有新进展"
+  },
+  "site": {
+    "index": {
+      "title": "正在发生什么",
+      "subtitle": "跨来源发现事件，看清它是怎么走到现在的"
+    },
+    "detail": {
+      "title": "事件详情",
+      "subtitle": "发生了什么、怎么发展到现在、证据在哪"
+    },
+    "feed": {
+      "heading": "正在发生什么",
+      "subheading": "跨来源合并的事件，不是热榜的重新排列",
+      "empty": "暂时还没有事件，采集跑过一轮就会出现",
+      "more": "查看全部事件"
+    },
+    "machineTranslated": "机器翻译",
+    "summaryTranslated": "标题与摘要为机器翻译",
+    "titleTranslatedOnly": "标题为机器翻译，摘要保留原文"
+  },
+  "section": {
+    "feed": {
+      "label": "事件列表",
+      "source": "取哪一批",
+      "sourceInfo": "升温 = 变化最快的；正在发生 = 仍在持续的；今天 = 过去 24 小时全部",
+      "topic": "主题",
+      "limit": "最多显示",
+      "showSources": "显示来源名",
+      "showSourcesInfo": "来源是事件的证据，建议保留",
+      "emptyText": "空态文案",
+      "moreLabel": "更多按钮文案"
+    },
+    "detail": {
+      "label": "事件详情",
+      "summaryLabel": "「发生了什么」标题",
+      "showTimeline": "显示时间线",
+      "timelineLabel": "时间线标题",
+      "showSources": "显示来源",
+      "showSourcesInfo": "关掉后访客无法核对原文，不建议",
+      "sourcesLabel": "来源标题",
+      "backLabel": "返回按钮文案"
+    }
+  },
+  "template": {
+    "group": "事件",
+    "index": {
+      "label": "事件首页"
+    },
+    "detail": {
+      "label": "事件详情页"
+    }
+  },
+  "sample": {
+    "event1": {
+      "title": "示例：某公司发布新一代模型",
+      "headline": "官方公告发出后，社区与媒体在两小时内快速跟进。",
+      "summary": "这是编辑器里的占位样张。采集跑过一轮后，这里会换成真实事件的摘要。"
+    },
+    "event2": {
+      "title": "示例：某开源项目突然爆火",
+      "headline": "三小时内新增大量关注，讨论集中在性能表现上。"
+    },
+    "event3": {
+      "title": "示例：一桩重大商业收购",
+      "headline": "两家媒体先后报道，官方尚未确认。"
+    }
   }
 }

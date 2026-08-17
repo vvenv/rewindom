@@ -114,6 +114,7 @@ export const SERVER_MODULE_MANIFEST = [
   {
     id: "events",
     kind: "business",
-    requires: ["rbac", "audit"],
+    // marketing：贡献官网段、模板页与 /events 公开路径
+    requires: ["rbac", "audit", "marketing"],
   },
 ] as const satisfies readonly ModuleManifestEntry[];

@@ -6,12 +6,16 @@
 **不是**「一个更好的热榜」。产品文案里刻意不出现「热榜」，用户看到的是 **Events**，
 不是几个平台榜单的重新排列。
 
-## 一期范围
+## 范围
 
-本期交付主链路：**采集 → 聚类 → 事件详情（发生了什么 / 时间线 / 来源）→ Follow → 更新检测**。
+已交付：
 
-明确**不在**本期：Related Events、Why it's trending、公开面（未登录可浏览的 What's happening）。
-这三项都建立在同一套语料之上，加进来是增量，不需要动现有表结构。
+- **主链路**：采集 → 聚类 → 事件详情（发生了什么 / 时间线 / 来源）→ Follow → 更新检测
+- **数据多语言**：标题/摘要按 locale map 存取，中文译文免费获取（见下）
+- **官网面**：两个贡献段 + `/events` 与 `/events/:slug` 两张模板页，未登录访客可直接浏览
+
+明确**不在**当前范围：Related Events、Why it's trending。两者都建立在同一套语料之上，
+加进来是增量，不需要动现有表结构。
 
 ## 为什么事件不按站点隔离
 
@@ -29,17 +33,73 @@
 ## 目录
 
 ```
-shared/          事件域契约（状态、主题、来源分组、列表/详情 DTO）
+shared/          事件域契约 + 官网段定义 + 公开视图映射
+  locale.ts               数据多语言（扁平 locale map）与原文语种判定
+  events-*-section.ts     官网段定义（events.feed / events.detail）
+  events-page-templates.ts 模板页 kind + 预设
+  public-view.ts          领域 DTO → 公开视图（两端共用）
+  sections/*-html.ts      段 markup（SSR 与编辑器预览共用同一份）
+  site-css/               CSS 真源 → site-css.generated.ts
 server/
   events.routes.ts        只读面：列表 / 首页三区块 / 主题计数 / 详情
   follow/                 唯一的写入面（租户态）
   ingest/                 采集：connector、RSS 解析、调度任务
-  event/                  领域：URL 规范化、分词聚类、热度、分析器、读服务
+  event/                  领域：URL 规范化、分词聚类、热度、分析器、翻译、读服务
+  ssr/                    公开面：path handler、模板页渲染、公开读取
+  sections/register.ts    段 / 上下文 provider / sitemap / 链接候选登记
 client/
   pages/                  events（探索+全量）、event-detail
   components/ hooks/ lib/ 四层拆分（frontend-page-structure）
   tenant/                 路由、导航、工作台卡片
+  editor-context.ts       主题编辑器预览取数
 ```
+
+## 多语言：标题与摘要
+
+事件语料来自英文源，但访客可能要看中文。走**数据多语言**（`docs/design/i18n.md`）：
+`NewsEvent.title` / `summary` 永远是**原文**（聚类指纹与 slug 都基于它），
+译文放在 `title_i18n` / `summary_i18n` 的扁平 locale map 里，读取时按请求语言解析。
+
+译文从哪来，取决于当前分析器：
+
+| 分析器 | 译文来源 | 覆盖范围 | 成本 |
+| --- | --- | --- | --- |
+| `llm` | **与摘要同一次调用**顺带产出 | 标题 + 摘要 + 时间线文案 | 零额外调用，只多几百输出 token |
+| `heuristic` | 事后走 `translator/`（默认 MyMemory，免费无 key） | **只有标题** | 0 |
+
+为什么规则那条路不翻摘要：MyMemory 免费额度是 **5,000 字符/天**（`EVENTS_TRANSLATE_EMAIL`
+填了邮箱升到 50,000）。一条摘要 400 字符，十几条就吃光；标题 60~100 字符，同样额度能覆盖
+一整天的新事件。所以摘要保留原文，界面如实标注「标题为机器翻译，摘要保留原文」。
+
+三条不变量：
+
+1. **译文永久缓存**。`carryOverTranslations` 按「原文有没有变」决定旧译文还能不能用——
+   原文没变就整表留着，一个字符都不重翻；变了就整表作废（留着等于拿旧标题冒充新事件）。
+2. **按热度优先补译**。额度先花在最可能被看到的事件上；没轮到的下一轮再来。
+3. **翻不出来就留原文**，读取侧本来就会回落，不存在「翻译失败=空白」。
+
+搜索同时搜原文与译文——只搜原文等于让中文用户搜不到任何东西。
+
+## 官网面（公开访客）
+
+| 贡献物 | 说明 |
+| --- | --- |
+| 段 `events.feed` | 「正在发生什么」列表，可摆在**任意**页面；可配取哪一批（升温/正在发生/今天）、主题、条数 |
+| 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
+| 模板页 `events_index` | `/events`，预设是三段各摆一次 |
+| 模板页 `events_detail` | `/events/:slug` |
+| path handler | 接 `/events` 与 `/events/:slug`（`/en/...` 同一条，locale 已被剥掉）|
+| sitemap / 链接候选 | 近 30 天事件进 sitemap；链接下拉只给 `/events` 一条 |
+
+marketing 内核**一行没改**——定义全在贡献方 `shared/`，登记在 server `onBoot` 与
+client manifest 各调一次。
+
+### 三段同页的去重
+
+默认版式把 Rising / Now / Today 摆在同一张页面上，而三段取数各自独立——一个又热又在
+升温的事件会同时命中三段。去重**做在渲染层**（`feed-html.ts` 的 `takeUnseen`，按上下文
+对象分桶的 WeakMap = 天然按请求隔离），不做在取数层：那样「只摆 Today 一段」的页面
+会莫名少掉最热的那几条。效果是先来先得——单独摆一段拿到完整列表，三段同页时后面的自动让开。
 
 ## 流水线
 
@@ -123,6 +183,8 @@ RSS 解析器是本模块自带的（`server/ingest/feed-parser.ts`）：仓库�
 | `EVENTS_INGEST_ENABLED` | `true` | 关掉后不注册采集任务，只读已有语料 |
 | `EVENTS_INGEST_INTERVAL_MINUTES` | `15` | 采集周期（5 ~ 1440） |
 | `EVENTS_ANALYZER` | `auto` | `auto` / `heuristic` / `llm` |
+| `EVENTS_TRANSLATOR` | `auto` | `auto`（= MyMemory，免费无 key）/ `mymemory` / `none` |
+| `EVENTS_TRANSLATE_EMAIL` | 空 | MyMemory 的 `de=` 邮箱，把日额度从 5,000 提到 50,000 字符 |
 | `OPENAI_API_KEY` | 空 | 内核已有；`auto` 模式下决定走不走 LLM |
 
 ## 权限
@@ -138,6 +200,10 @@ RSS 解析器是本模块自带的（`server/ingest/feed-parser.ts`）：仓库�
 ## 后续（不在本期）
 
 - **把聚类裁决交给 LLM**：见上面「聚类能力边界」，这是收益最大的一步
+- **更好的免费翻译**：Azure Translator F0 是 200 万字符/月永久免费（DeepL / Google 免费版的 4 倍），
+  质量也高于 MyMemory；代价是要 Azure 账号 + key。`translator/` 已经是可插拔接口，加一个实现即可
+- **中文源**：直接加 36氪 / 机器之心这类中文 RSS 解决不了「英文事件配中文标题」——
+  分词器对中文走二元切分、对英文走词切分，中英标题 token 交集恒为 0，中文报道会成为
+  **另一个独立事件**。要跨语言合并同一件事，同样得先有语义层
 - **Related Events**：`NewsEvent.tokens` 已经是现成的相似度输入，做法与聚类同源，只是阈值更低
 - **Why it's trending**：分析器接口再加一个方法即可，需要严格区分 Confirmed 与 Discussion
-- **公开面**：对标 shop 的 storefront（`server/ssr` + 官网段），让未登录访客直接浏览
