@@ -1,0 +1,149 @@
+// 外部模块的 Prisma schema——由 gen:external-modules 符号链接到
+// apps/server/prisma/models/events.prisma，汇入全局 schema。
+//
+// 归属口径：事件语料（Feed / Signal / Event / Timeline）是**全平台共享的一份**，
+// 在 tenant-guard 里登记为 kind: "global"——「互联网正在发生什么」对所有站点是同一件事，
+// 按租户复制既要重复抓取，也会让 AI 成本乘以租户数。
+// 唯一的租户态数据是 EventFollow：谁关注了哪个事件、看到哪儿了。
+
+/// 采集源（RSS/Atom 订阅或内置 connector 的一条配置）。全局。
+model EventFeed {
+  id              String    @id @default(uuid())
+  /// connector 标识：hackernews | rss
+  connector       String
+  /// 展示名，如 "Hacker News"、"OpenAI Blog"
+  name            String
+  /// RSS/Atom 地址；hackernews 这类内置 connector 填其 API 根地址（仅作唯一键）
+  url             String    @unique
+  /// official | news | community —— 决定它在事件详情里被归到哪一组
+  source_kind     String
+  /// 该源默认归属的主题
+  topic           String    @default("tech")
+  enabled         Boolean   @default(true)
+  last_fetched_at DateTime?
+  /// 最近一次抓取失败的原因，成功后清空
+  last_error      String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  @@index([enabled, last_fetched_at])
+}
+
+/// 一条原始信号：某个源上的一篇帖子 / 一条新闻 / 一次发布公告。全局。
+model EventSignal {
+  id            String    @id @default(uuid())
+  connector     String
+  /// 源内唯一 id（HN 的 item id、RSS 的 guid），与 connector 组成幂等键
+  external_id   String
+  source_name   String
+  source_kind   String
+  title         String
+  url           String
+  /// 去掉 utm / 锚点等噪声后的规范化 URL，跨源合并同一篇原文靠它
+  canonical_url String
+  excerpt       String    @default("")
+  author        String?
+  topic         String    @default("tech")
+  /// 源上的热度指标（HN points / RSS 恒为 0）
+  score         Int       @default(0)
+  comment_count Int       @default(0)
+  published_at  DateTime
+  fetched_at    DateTime  @default(now())
+  event_id      String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  event NewsEvent? @relation(fields: [event_id], references: [id], onDelete: SetNull)
+
+  @@unique([connector, external_id])
+  @@index([event_id, published_at])
+  @@index([published_at(sort: Desc)])
+  @@index([canonical_url])
+}
+
+/// 由多条信号聚成的一个事件。全局。
+model NewsEvent {
+  id     String @id @default(uuid())
+  /// 稳定可读标识，详情页 URL 与去重都用它
+  slug   String @unique
+  title  String
+  /// 「发生了什么」——3~5 句
+  summary String @default("")
+  topic  String  @default("tech")
+  /// developing | active | cooling | resolved
+  status String  @default("developing")
+  /// 聚类指纹：由 tokens 排序拼接而成，唯一约束顺手承担了「同指纹即同事件」的去重
+  fingerprint String @unique
+  /// 立事件那条信号的标题词集合。新信号靠它算相似度决定并入还是另起一个事件；
+  /// 刻意不随聚类扩张——否则词集会越滚越大，最后把所有事件吸成一个
+  tokens      String[]
+  /// 贡献过信号的来源名（去重）。冗余在事件上，列表页才不用为每张卡片再查一次信号表
+  source_names String[]
+
+  signal_count Int   @default(0)
+  /// 贡献过信号的不同源数量——跨源程度，Rising 排序会用到
+  source_count Int   @default(0)
+  /// 最近窗口的加权热度
+  heat_score   Float @default(0)
+  /// 相对上一窗口的变化率（百分比），Rising 就是按它排的
+  velocity_pct Float @default(0)
+
+  first_seen_at    DateTime
+  last_activity_at DateTime
+  /// 最近一次跑分析器的时间；null 表示还没生成过摘要
+  analyzed_at      DateTime?
+  /// heuristic | llm —— 当前摘要/时间线由哪种分析器产出
+  analyzer         String    @default("heuristic")
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  signals  EventSignal[]
+  timeline EventTimelineEntry[]
+  follows  EventFollow[]
+
+  @@index([status, last_activity_at(sort: Desc)])
+  @@index([topic, last_activity_at(sort: Desc)])
+  @@index([velocity_pct(sort: Desc)])
+  @@index([last_activity_at(sort: Desc)])
+}
+
+/// 事件时间线上的一格。全局。
+model EventTimelineEntry {
+  id          String   @id @default(uuid())
+  event_id    String
+  occurred_at DateTime
+  /// 启发式分析器产出的稳定文案 code（客户端按 events ns 翻译）
+  label_code  String?
+  /// LLM 分析器产出的自由文案；与 label_code 二选一
+  label_text  String?
+  source_kind String
+  /// 这一格是谁贡献的，界面上直接显示（「10:17 Hacker News 出现讨论」）
+  source_name String   @default("")
+  signal_id   String?
+  url         String?
+  created_at  DateTime @default(now())
+
+  event NewsEvent @relation(fields: [event_id], references: [id], onDelete: Cascade)
+
+  @@unique([event_id, signal_id])
+  @@index([event_id, occurred_at])
+}
+
+/// 用户对事件的关注。**唯一的租户态模型**。
+model EventFollow {
+  id        String @id @default(uuid())
+  tenant_id String
+  user_id   String
+  event_id  String
+  /// 用户最后一次查看该事件详情的时间；与 last_activity_at 比较得出「有更新」
+  last_seen_at DateTime @default(now())
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  event NewsEvent @relation(fields: [event_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, user_id, event_id])
+  @@index([tenant_id, user_id])
+  @@index([event_id])
+}

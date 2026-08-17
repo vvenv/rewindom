@@ -58,6 +58,11 @@ export const ModelName = {
   Bookmark: 'Bookmark',
   DashboardPreference: 'DashboardPreference',
   ErrorLog: 'ErrorLog',
+  EventFeed: 'EventFeed',
+  EventSignal: 'EventSignal',
+  NewsEvent: 'NewsEvent',
+  EventTimelineEntry: 'EventTimelineEntry',
+  EventFollow: 'EventFollow',
   RefreshToken: 'RefreshToken',
   OAuthAccount: 'OAuthAccount',
   Tenant: 'Tenant',
@@ -246,6 +251,101 @@ export const ErrorLogScalarFieldEnum = {
 } as const
 
 export type ErrorLogScalarFieldEnum = (typeof ErrorLogScalarFieldEnum)[keyof typeof ErrorLogScalarFieldEnum]
+
+
+export const EventFeedScalarFieldEnum = {
+  id: 'id',
+  connector: 'connector',
+  name: 'name',
+  url: 'url',
+  source_kind: 'source_kind',
+  topic: 'topic',
+  enabled: 'enabled',
+  last_fetched_at: 'last_fetched_at',
+  last_error: 'last_error',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type EventFeedScalarFieldEnum = (typeof EventFeedScalarFieldEnum)[keyof typeof EventFeedScalarFieldEnum]
+
+
+export const EventSignalScalarFieldEnum = {
+  id: 'id',
+  connector: 'connector',
+  external_id: 'external_id',
+  source_name: 'source_name',
+  source_kind: 'source_kind',
+  title: 'title',
+  url: 'url',
+  canonical_url: 'canonical_url',
+  excerpt: 'excerpt',
+  author: 'author',
+  topic: 'topic',
+  score: 'score',
+  comment_count: 'comment_count',
+  published_at: 'published_at',
+  fetched_at: 'fetched_at',
+  event_id: 'event_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type EventSignalScalarFieldEnum = (typeof EventSignalScalarFieldEnum)[keyof typeof EventSignalScalarFieldEnum]
+
+
+export const NewsEventScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  summary: 'summary',
+  topic: 'topic',
+  status: 'status',
+  fingerprint: 'fingerprint',
+  tokens: 'tokens',
+  source_names: 'source_names',
+  signal_count: 'signal_count',
+  source_count: 'source_count',
+  heat_score: 'heat_score',
+  velocity_pct: 'velocity_pct',
+  first_seen_at: 'first_seen_at',
+  last_activity_at: 'last_activity_at',
+  analyzed_at: 'analyzed_at',
+  analyzer: 'analyzer',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NewsEventScalarFieldEnum = (typeof NewsEventScalarFieldEnum)[keyof typeof NewsEventScalarFieldEnum]
+
+
+export const EventTimelineEntryScalarFieldEnum = {
+  id: 'id',
+  event_id: 'event_id',
+  occurred_at: 'occurred_at',
+  label_code: 'label_code',
+  label_text: 'label_text',
+  source_kind: 'source_kind',
+  source_name: 'source_name',
+  signal_id: 'signal_id',
+  url: 'url',
+  created_at: 'created_at'
+} as const
+
+export type EventTimelineEntryScalarFieldEnum = (typeof EventTimelineEntryScalarFieldEnum)[keyof typeof EventTimelineEntryScalarFieldEnum]
+
+
+export const EventFollowScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  user_id: 'user_id',
+  event_id: 'event_id',
+  last_seen_at: 'last_seen_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type EventFollowScalarFieldEnum = (typeof EventFollowScalarFieldEnum)[keyof typeof EventFollowScalarFieldEnum]
 
 
 export const RefreshTokenScalarFieldEnum = {

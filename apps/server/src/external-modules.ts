@@ -2,6 +2,7 @@
 // 外部模块（modules/*）的 server manifest 聚合。
 // 内部模块仍在 enabled-modules.ts 里手写；本文件只管外部。
 import { bookmarkServerModule } from "@rewindom/bookmark/server/index.js";
+import { eventsServerModule } from "@rewindom/events/server/index.js";
 import { noteServerModule } from "@rewindom/note/server/index.js";
 import { shopServerModule } from "@rewindom/shop/server/index.js";
 import { siteDocsServerModule } from "@rewindom/site-docs/server/index.js";
@@ -12,6 +13,7 @@ import type { ServerAppModule } from "@rewindom/server-kernel/runtime/module-con
 
 export const EXTERNAL_SERVER_MODULES = [
   bookmarkServerModule,
+  eventsServerModule,
   noteServerModule,
   shopServerModule,
   siteDocsServerModule,

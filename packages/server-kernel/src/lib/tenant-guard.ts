@@ -40,6 +40,19 @@ type ModelPolicy =
   | { kind: "global"; reason: string };
 
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
+  // events：事件语料是全平台共享的一份（「互联网正在发生什么」对所有站点是同一件事），
+  // 只有「谁关注了哪个事件」才是租户态的。
+  EventFeed: { kind: "global", reason: "采集源目录，平台级配置" },
+  EventSignal: {
+    kind: "global",
+    reason: "外部平台抓来的原始信号，不归属任何站点",
+  },
+  NewsEvent: { kind: "global", reason: "聚合出的事件语料，全平台共享" },
+  EventTimelineEntry: {
+    kind: "global",
+    reason: "事件时间线，随事件全平台共享",
+  },
+  EventFollow: { kind: "tenant_id" },
   SiteFormSubmission: { kind: "tenant_id" },
   ShopPayment: { kind: "tenant_id" },
   ShopShipment: { kind: "tenant_id" },

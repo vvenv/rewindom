@@ -290,6 +290,37 @@ function buildOpenAiConfig() {
   };
 }
 
+/**
+ * 事件雷达（events 模块）的采集与分析开关。
+ *
+ * 放在内核 config 而不是模块内直读 `process.env`，是为了让 `check:prod-app-env`
+ * 能盯住这几个键的生产透传——与 shop 的 stripe 段同理，内核只存 env 值，不含业务逻辑。
+ */
+function buildEventsConfig() {
+  return {
+    /** 关掉后调度器不再注册采集任务；只读已有语料。 */
+    ingestEnabled: boolEnv("EVENTS_INGEST_ENABLED", true),
+    ingestIntervalMinutes: clampIntEnv(
+      "EVENTS_INGEST_INTERVAL_MINUTES",
+      15,
+      5,
+      24 * 60,
+    ),
+    /** auto = 有 OPENAI_API_KEY 就走 LLM，否则走规则实现。 */
+    analyzer: resolveEventsAnalyzer(),
+  };
+}
+
+function resolveEventsAnalyzer(): "auto" | "heuristic" | "llm" {
+  const value = strEnv("EVENTS_ANALYZER", "auto").toLowerCase();
+  if (value === "auto" || value === "heuristic" || value === "llm") {
+    return value;
+  }
+  throw new Error(
+    `EVENTS_ANALYZER 取值非法：${value}（可选 auto / heuristic / llm）`,
+  );
+}
+
 function parseCreemProductMap(raw: string | undefined): Record<string, string> {
   if (!raw?.trim()) {
     return {};
@@ -377,6 +408,7 @@ export const config = {
   observability: buildObservabilityConfig(),
   infra: buildInfraConfig(),
   openai: buildOpenAiConfig(),
+  events: buildEventsConfig(),
   billing: buildBillingConfig(),
   shop: buildShopConfig(),
   tenant: {

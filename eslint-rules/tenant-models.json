@@ -41,5 +41,6 @@
   "shopOrderLine": "tenant_id",
   "shopShipment": "tenant_id",
   "shopPayment": "tenant_id",
-  "siteFormSubmission": "tenant_id"
+  "siteFormSubmission": "tenant_id",
+  "eventFollow": "tenant_id"
 }

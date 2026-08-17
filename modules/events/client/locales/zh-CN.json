@@ -1,0 +1,113 @@
+{
+  "title": "事件雷达",
+  "pageDescription": "跨来源发现正在发生的事件，看清它是怎么走到现在的",
+  "nav": {
+    "events": "事件",
+    "section": "事件雷达"
+  },
+  "tabs": {
+    "feed": "正在发生",
+    "all": "全部事件"
+  },
+  "search": {
+    "placeholder": "搜索事件"
+  },
+  "filters": {
+    "allTopics": "全部主题",
+    "following": "只看已关注",
+    "reset": "重置筛选"
+  },
+  "sections": {
+    "rising": "正在升温",
+    "risingHint": "刚刚开始爆发的事情",
+    "now": "正在发生",
+    "nowHint": "当前仍在持续发展",
+    "today": "今天",
+    "todayHint": "过去 24 小时内有动静的事件",
+    "todayCount": "共 {{count}} 个事件"
+  },
+  "status": {
+    "developing": "快速发展",
+    "active": "持续讨论",
+    "cooling": "热度下降",
+    "resolved": "基本结束"
+  },
+  "topic": {
+    "ai": "AI",
+    "tech": "科技",
+    "business": "商业",
+    "world": "国际",
+    "gaming": "游戏",
+    "entertainment": "娱乐",
+    "sports": "体育"
+  },
+  "sourceKind": {
+    "official": "一手来源",
+    "news": "新闻报道",
+    "community": "社区讨论"
+  },
+  "heat": {
+    "rising": "↑ {{percent}}%",
+    "falling": "↓ {{percent}}%",
+    "steady": "持平"
+  },
+  "card": {
+    "sources": "来源：{{names}}",
+    "signals": "{{count}} 条信号",
+    "hasUpdate": "有更新"
+  },
+  "detail": {
+    "back": "返回事件",
+    "whatHappened": "发生了什么",
+    "noSummary": "这个事件还没有可用的摘要——来源里暂时没有一手描述。",
+    "timeline": "时间线",
+    "timelineEmpty": "还没有可以重建的时间线",
+    "sources": "来源",
+    "sourcesHint": "来源是事件的证据，每一条都可以点开核对原文",
+    "sourcesEmpty": "暂无该类来源",
+    "analyzerHeuristic": "摘要按规则整理自下方来源原文",
+    "analyzerLlm": "摘要由 AI 依据下方来源生成，不含推测",
+    "updatedAt": "更新于",
+    "firstSeen": "首次出现",
+    "score": "{{count}} 分",
+    "comments": "{{count}} 条评论"
+  },
+  "timeline": {
+    "firstSeen": "{{source}} 最先出现",
+    "official": "{{source}} 发布官方公告",
+    "officialUpdate": "{{source}} 发布补充说明",
+    "news": "{{source}} 开始报道",
+    "moreCoverage": "{{source}} 跟进报道",
+    "community": "{{source}} 出现讨论"
+  },
+  "follow": {
+    "follow": "关注事件",
+    "unfollow": "取消关注",
+    "following": "已关注",
+    "followed": "已关注，有新进展会标出来",
+    "unfollowed": "已取消关注",
+    "failed": "操作失败，请重试"
+  },
+  "sort": {
+    "label": "排序",
+    "latest": "最新动静",
+    "rising": "升温最快",
+    "hottest": "热度最高",
+    "earliest": "最早出现"
+  },
+  "empty": {
+    "title": "暂时没有事件",
+    "description": "采集任务还没有抓到内容，过一会儿再来看看",
+    "filteredTitle": "没有符合条件的事件",
+    "filteredDescription": "换个主题或清空搜索再试"
+  },
+  "loadFailed": "加载失败",
+  "retry": "重试",
+  "dashboardTitle": "关注的事件",
+  "widget": {
+    "empty": "还没有关注任何事件",
+    "emptyHint": "在事件详情里点「关注事件」，有新进展会在这里提醒",
+    "viewAll": "查看全部",
+    "updates": "{{count}} 个有新进展"
+  }
+}

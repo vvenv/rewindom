@@ -1,0 +1,113 @@
+{
+  "title": "Events",
+  "pageDescription": "Discover what is happening across sources, and how it got here",
+  "nav": {
+    "events": "Events",
+    "section": "Radar"
+  },
+  "tabs": {
+    "feed": "What's happening",
+    "all": "All events"
+  },
+  "search": {
+    "placeholder": "Search events"
+  },
+  "filters": {
+    "allTopics": "All topics",
+    "following": "Following only",
+    "reset": "Reset filters"
+  },
+  "sections": {
+    "rising": "Rising",
+    "risingHint": "Just started to break out",
+    "now": "Now",
+    "nowHint": "Still developing right now",
+    "today": "Today",
+    "todayHint": "Events with activity in the last 24 hours",
+    "todayCount": "{{count}} events"
+  },
+  "status": {
+    "developing": "Developing",
+    "active": "Active",
+    "cooling": "Cooling",
+    "resolved": "Resolved"
+  },
+  "topic": {
+    "ai": "AI",
+    "tech": "Tech",
+    "business": "Business",
+    "world": "World",
+    "gaming": "Gaming",
+    "entertainment": "Entertainment",
+    "sports": "Sports"
+  },
+  "sourceKind": {
+    "official": "Official",
+    "news": "News",
+    "community": "Community"
+  },
+  "heat": {
+    "rising": "↑ {{percent}}%",
+    "falling": "↓ {{percent}}%",
+    "steady": "Steady"
+  },
+  "card": {
+    "sources": "Sources: {{names}}",
+    "signals": "{{count}} signals",
+    "hasUpdate": "Update"
+  },
+  "detail": {
+    "back": "Back to events",
+    "whatHappened": "What happened",
+    "noSummary": "No summary yet — none of the sources carry a first-hand description.",
+    "timeline": "Timeline",
+    "timelineEmpty": "Not enough signals to rebuild a timeline",
+    "sources": "Sources",
+    "sourcesHint": "Sources are the evidence for this event — open any of them to check the original",
+    "sourcesEmpty": "No sources of this kind yet",
+    "analyzerHeuristic": "Summary assembled by rule from the sources below",
+    "analyzerLlm": "Summary written by AI strictly from the sources below",
+    "updatedAt": "Updated",
+    "firstSeen": "First seen",
+    "score": "{{count}} points",
+    "comments": "{{count}} comments"
+  },
+  "timeline": {
+    "firstSeen": "First appeared on {{source}}",
+    "official": "{{source}} published an announcement",
+    "officialUpdate": "{{source}} posted a follow-up",
+    "news": "{{source}} started reporting",
+    "moreCoverage": "{{source}} followed up",
+    "community": "Discussion started on {{source}}"
+  },
+  "follow": {
+    "follow": "Follow event",
+    "unfollow": "Unfollow",
+    "following": "Following",
+    "followed": "Following — new developments will be flagged",
+    "unfollowed": "Unfollowed",
+    "failed": "Something went wrong, please retry"
+  },
+  "sort": {
+    "label": "Sort",
+    "latest": "Latest activity",
+    "rising": "Fastest rising",
+    "hottest": "Hottest",
+    "earliest": "First seen"
+  },
+  "empty": {
+    "title": "No events yet",
+    "description": "Ingestion has not picked anything up yet — check back shortly",
+    "filteredTitle": "No matching events",
+    "filteredDescription": "Try another topic or clear the search"
+  },
+  "loadFailed": "Failed to load",
+  "retry": "Retry",
+  "dashboardTitle": "Followed events",
+  "widget": {
+    "empty": "Not following any event yet",
+    "emptyHint": "Hit Follow on an event and new developments show up here",
+    "viewAll": "View all",
+    "updates": "{{count}} with new developments"
+  }
+}

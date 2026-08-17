@@ -1,0 +1,186 @@
+# events 模块契约。
+#
+# 注意：本模块**超出 gen-module 的生成范围**（多模型、非列表页、详情页、后台采集任务），
+# 因此不是由 `pnpm gen:module` 生成的，改需求走 extend-module + FEATURE.spec，
+# 不要拿这份 spec 去跑生成器覆盖手工实现（见 create-module skill「硬规则」）。
+# 这里落盘它，是为了让契约与实现有一份可比对的真源。
+
+id: events
+label: Events
+description: 跨来源发现事件、自动合并、重建时间线并持续追踪
+kind: business
+placement: modules/events
+resource:
+  singular: event
+  plural: events
+surfaces: [tenant]
+requires: [rbac, audit]
+
+entitlement:
+  key: events
+  label: 事件雷达
+  description: 跨来源发现事件、重建时间线并持续追踪
+  disabled_hint: 该组织未开通事件雷达模块
+  default_enabled: true
+
+permissions:
+  - {
+      key: events.read,
+      label: 查看事件,
+      group: 事件雷达,
+      description: 浏览事件列表、详情、时间线与来源,
+    }
+  - {
+      key: events.follow,
+      label: 关注事件,
+      group: 事件雷达,
+      description: 关注/取消关注事件，并标记已读进度,
+    }
+
+# 归属口径：前四张表是**全平台共享的一份语料**（tenant-guard 里 kind: global），
+# 只有 EventFollow 带 tenant_id。理由见 MODULE.md「为什么事件不按站点隔离」。
+models:
+  - name: EventFeed
+    scope: global
+    fields:
+      - { name: connector, type: String, required: true } # hackernews | rss
+      - { name: name, type: String, required: true }
+      - { name: url, type: String, required: true, unique: true }
+      - { name: source_kind, type: String, required: true }
+      - { name: topic, type: String, required: true, default: tech }
+      - { name: enabled, type: Boolean, required: true, default: true }
+      - { name: last_fetched_at, type: DateTime, required: false }
+      - { name: last_error, type: String, required: false }
+    indexes:
+      - [enabled, last_fetched_at]
+
+  - name: EventSignal
+    scope: global
+    fields:
+      - { name: connector, type: String, required: true }
+      - { name: external_id, type: String, required: true }
+      - { name: source_name, type: String, required: true }
+      - { name: source_kind, type: String, required: true }
+      - { name: title, type: String, required: true }
+      - { name: url, type: String, required: true }
+      - { name: canonical_url, type: String, required: true }
+      - { name: excerpt, type: String, required: false, default: "" }
+      - { name: author, type: String, required: false }
+      - { name: topic, type: String, required: true, default: tech }
+      - { name: score, type: Int, required: true, default: 0 }
+      - { name: comment_count, type: Int, required: true, default: 0 }
+      - { name: published_at, type: DateTime, required: true }
+      - { name: fetched_at, type: DateTime, required: true }
+      - { name: event_id, type: String, required: false }
+    unique:
+      - [connector, external_id]
+    indexes:
+      - [event_id, published_at]
+      - [published_at]
+      - [canonical_url]
+
+  - name: NewsEvent
+    scope: global
+    fields:
+      - { name: slug, type: String, required: true, unique: true }
+      - { name: title, type: String, required: true }
+      - { name: summary, type: String, required: false, default: "" }
+      - { name: topic, type: String, required: true, default: tech }
+      - { name: status, type: String, required: true, default: developing }
+      - { name: fingerprint, type: String, required: true, unique: true }
+      - { name: tokens, type: String[], required: true }
+      - { name: source_names, type: String[], required: true }
+      - { name: signal_count, type: Int, required: true, default: 0 }
+      - { name: source_count, type: Int, required: true, default: 0 }
+      - { name: heat_score, type: Float, required: true, default: 0 }
+      - { name: velocity_pct, type: Float, required: true, default: 0 }
+      - { name: first_seen_at, type: DateTime, required: true }
+      - { name: last_activity_at, type: DateTime, required: true }
+      - { name: analyzed_at, type: DateTime, required: false }
+      - { name: analyzer, type: String, required: true, default: heuristic }
+    indexes:
+      - [status, last_activity_at]
+      - [topic, last_activity_at]
+      - [velocity_pct]
+      - [last_activity_at]
+
+  - name: EventTimelineEntry
+    scope: global
+    fields:
+      - { name: event_id, type: String, required: true }
+      - { name: occurred_at, type: DateTime, required: true }
+      - { name: label_code, type: String, required: false }
+      - { name: label_text, type: String, required: false }
+      - { name: source_kind, type: String, required: true }
+      - { name: source_name, type: String, required: true, default: "" }
+      - { name: signal_id, type: String, required: false }
+      - { name: url, type: String, required: false }
+    unique:
+      - [event_id, signal_id]
+    indexes:
+      - [event_id, occurred_at]
+
+  - name: EventFollow
+    scope: tenant
+    fields:
+      - { name: user_id, type: String, required: true }
+      - { name: event_id, type: String, required: true }
+      - { name: last_seen_at, type: DateTime, required: true }
+    unique:
+      - [tenant_id, user_id, event_id]
+    indexes:
+      - [tenant_id, user_id]
+      - [event_id]
+
+api:
+  prefix: /api/events
+  operations: [list, detail]
+  routes:
+    - { method: GET, path: /, permission: events.read }
+    - { method: GET, path: /feed, permission: events.read }
+    - { method: GET, path: /topics, permission: events.read }
+    - { method: GET, path: /:eventId, permission: events.read }
+    - { method: GET, path: /follows/updates, permission: events.read }
+    - { method: GET, path: /follows/:eventId, permission: events.read }
+    - { method: POST, path: /follows/:eventId, permission: events.follow }
+    - { method: DELETE, path: /follows/:eventId, permission: events.follow }
+    - { method: POST, path: /follows/:eventId/seen, permission: events.follow }
+  list:
+    filters: [q, topic, status, following]
+    search_fields: [title, summary]
+    sort_whitelist:
+      [last_activity_at, first_seen_at, heat_score, velocity_pct, signal_count]
+    default_sort: { by: last_activity_at, dir: desc }
+
+client:
+  mount: renderRoutes
+  route_path: /app/events
+  detail_path: /app/events/:eventId
+  nav:
+    section: events:nav.section
+    label: events:nav.events
+    title: events:title
+    icon: Radar
+  page:
+    layout: dashboard # 三区块探索视图 + 可切换的全量列表
+    detail_layout: detail
+
+jobs:
+  - id: events-ingest
+    label: Event signal ingest
+    schedule: 每 EVENTS_INGEST_INTERVAL_MINUTES 分钟（默认 15），启动后 20s 跑第一轮
+
+audit:
+  actions:
+    - { action: EVENT_FOLLOW, label: 关注事件 }
+    - { action: EVENT_UNFOLLOW, label: 取消关注事件 }
+
+env:
+  - { name: EVENTS_INGEST_ENABLED, default: "true" }
+  - { name: EVENTS_INGEST_INTERVAL_MINUTES, default: "15" }
+  - { name: EVENTS_ANALYZER, default: auto, values: [auto, heuristic, llm] }
+
+options:
+  soft_delete: false
+  page_size: 20
+  mobile_tab: true

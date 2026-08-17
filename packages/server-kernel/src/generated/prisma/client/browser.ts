@@ -53,6 +53,31 @@ export type DashboardPreference = Prisma.DashboardPreferenceModel
  */
 export type ErrorLog = Prisma.ErrorLogModel
 /**
+ * Model EventFeed
+ * 采集源（RSS/Atom 订阅或内置 connector 的一条配置）。全局。
+ */
+export type EventFeed = Prisma.EventFeedModel
+/**
+ * Model EventSignal
+ * 一条原始信号：某个源上的一篇帖子 / 一条新闻 / 一次发布公告。全局。
+ */
+export type EventSignal = Prisma.EventSignalModel
+/**
+ * Model NewsEvent
+ * 由多条信号聚成的一个事件。全局。
+ */
+export type NewsEvent = Prisma.NewsEventModel
+/**
+ * Model EventTimelineEntry
+ * 事件时间线上的一格。全局。
+ */
+export type EventTimelineEntry = Prisma.EventTimelineEntryModel
+/**
+ * Model EventFollow
+ * 用户对事件的关注。**唯一的租户态模型**。
+ */
+export type EventFollow = Prisma.EventFollowModel
+/**
  * Model RefreshToken
  * 
  */

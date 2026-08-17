@@ -111,4 +111,9 @@ export const SERVER_MODULE_MANIFEST = [
     kind: "business",
     requires: ["rbac", "audit", "marketing"],
   },
+  {
+    id: "events",
+    kind: "business",
+    requires: ["rbac", "audit"],
+  },
 ] as const satisfies readonly ModuleManifestEntry[];
