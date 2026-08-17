@@ -1,23 +1,37 @@
-/** 采集侧统一的 HTTP 出口：带超时、带 UA、非 2xx 直接抛。 */
+/** 采集侧统一的 HTTP 出口：带超时、带 UA、瞬时失败重试、非 2xx 直接抛。 */
 
-const DEFAULT_TIMEOUT_MS = 15_000;
+const DEFAULT_TIMEOUT_MS = 20_000;
+/** 额外重试次数（总尝试 = retries + 1）。目标页摘录单独关掉，避免一轮里把几十个 URL 再乘三。 */
+const DEFAULT_RETRIES = 2;
+const RETRY_BASE_MS = 400;
 
-/** 有些站点对空 UA 直接 403，给一个能被识别、能被封的固定标识比匿名更负责任。 */
-const USER_AGENT = "rewindom-events/1.0 (+https://github.com/vvenv/rewindom)";
+/**
+ * RSS 阅读器惯例：Mozilla/5.0 (compatible; 产品; +联系 URL)。
+ * 纯自定义 UA（`rewindom-events/1.0`）会被 Cloudflare / CloudFront / WordPress VIP
+ * 间歇性直接掐连接，表现为 `TypeError: fetch failed` 或超时中止。
+ */
+export const INGEST_USER_AGENT =
+  "Mozilla/5.0 (compatible; rewindom-events/1.0; +https://github.com/vvenv/rewindom)";
+
+export interface IngestFetchOptions {
+  timeoutMs?: number;
+  accept?: string;
+  retries?: number;
+}
 
 export async function fetchText(
   url: string,
-  options?: { timeoutMs?: number; accept?: string },
+  options?: IngestFetchOptions,
 ): Promise<string> {
-  const response = await fetchWithTimeout(url, options);
+  const response = await fetchWithRetry(url, options);
   return response.text();
 }
 
 export async function fetchJson<T>(
   url: string,
-  options?: { timeoutMs?: number },
+  options?: IngestFetchOptions,
 ): Promise<T> {
-  const response = await fetchWithTimeout(url, {
+  const response = await fetchWithRetry(url, {
     ...options,
     accept: "application/json",
   });
@@ -30,10 +44,11 @@ export async function fetchJson<T>(
  */
 export async function fetchHtml(
   url: string,
-  options?: { timeoutMs?: number },
+  options?: IngestFetchOptions,
 ): Promise<string | null> {
-  const response = await fetchWithTimeout(url, {
+  const response = await fetchWithRetry(url, {
     ...options,
+    retries: options?.retries ?? 0,
     accept:
       "text/html,application/xhtml+xml;q=0.9,application/xml;q=0.8,*/*;q=0.1",
   });
@@ -45,29 +60,143 @@ export async function fetchHtml(
   return text.slice(0, 200_000);
 }
 
-async function fetchWithTimeout(
+async function fetchWithRetry(
   url: string,
-  options?: { timeoutMs?: number; accept?: string },
+  options?: IngestFetchOptions,
 ): Promise<Response> {
+  const attempts = (options?.retries ?? DEFAULT_RETRIES) + 1;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const response = await fetchOnce(url, options);
+      if (response.ok) {
+        return response;
+      }
+      const error = new Error(
+        `HTTP ${response.status} ${response.statusText} — ${url}`,
+      );
+      lastError = error;
+      if (attempt < attempts && isRetryableStatus(response.status)) {
+        await sleep(retryDelayMs(attempt));
+        continue;
+      }
+      throw error;
+    } catch (err) {
+      lastError = err;
+      if (attempt < attempts && isRetryableFailure(err)) {
+        await sleep(retryDelayMs(attempt));
+        continue;
+      }
+      throw toFetchError(err, url);
+    }
+  }
+
+  throw toFetchError(lastError, url);
+}
+
+async function fetchOnce(
+  url: string,
+  options?: IngestFetchOptions,
+): Promise<Response> {
+  const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const controller = new AbortController();
-  const timer = setTimeout(
-    () => controller.abort(),
-    options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-  );
+  const timer = setTimeout(() => {
+    controller.abort(new Error(`timed out after ${timeoutMs}ms`));
+  }, timeoutMs);
   try {
-    const response = await fetch(url, {
+    return await fetch(url, {
       signal: controller.signal,
       redirect: "follow",
+      cache: "no-store",
       headers: {
-        "user-agent": USER_AGENT,
+        "user-agent": INGEST_USER_AGENT,
         ...(options?.accept ? { accept: options.accept } : {}),
       },
     });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} ${response.statusText} — ${url}`);
-    }
-    return response;
   } finally {
     clearTimeout(timer);
   }
+}
+
+function isRetryableStatus(status: number): boolean {
+  return (
+    status === 408 ||
+    status === 425 ||
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504
+  );
+}
+
+function isRetryableFailure(err: unknown): boolean {
+  if (err instanceof Error && /^HTTP \d{3}\b/u.test(err.message)) {
+    const status = Number(err.message.slice(5, 8));
+    return Number.isFinite(status) && isRetryableStatus(status);
+  }
+  return isTransientNetworkError(err);
+}
+
+export function isTransientNetworkError(err: unknown): boolean {
+  if (!(err instanceof Error)) {
+    return false;
+  }
+  if (err.name === "AbortError" || err.name === "TimeoutError") {
+    return true;
+  }
+  return /fetch failed|network|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|UND_ERR|socket|aborted|timed out/iu.test(
+    collectErrorText(err),
+  );
+}
+
+/** 把 `TypeError: fetch failed` 背后的 cause 拼进可读信息，便于记进 last_error。 */
+export function describeFetchError(err: unknown): string {
+  if (!(err instanceof Error)) {
+    return String(err);
+  }
+  const text = collectErrorText(err);
+  if (
+    err.name === "AbortError" ||
+    err.name === "TimeoutError" ||
+    /timed out/iu.test(text)
+  ) {
+    return /timed out/iu.test(text) ? text : "timed out";
+  }
+  return text;
+}
+
+function collectErrorText(err: Error): string {
+  const parts: string[] = [];
+  const seen = new Set<Error>();
+  let current: unknown = err;
+  while (current instanceof Error && !seen.has(current)) {
+    seen.add(current);
+    if (current.message && !parts.includes(current.message)) {
+      parts.push(current.message);
+    }
+    current = current.cause;
+  }
+  return parts.join(": ");
+}
+
+function toFetchError(err: unknown, url: string): Error {
+  const message = describeFetchError(err);
+  const withUrl = message.includes(url) ? message : `${message} — ${url}`;
+  const wrapped = new Error(withUrl);
+  if (err instanceof Error) {
+    wrapped.cause = err;
+  }
+  return wrapped;
+}
+
+function retryDelayMs(attempt: number): number {
+  return RETRY_BASE_MS * 2 ** (attempt - 1);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

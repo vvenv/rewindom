@@ -16,7 +16,12 @@ const ITEM_LIMIT = 40;
 export const rssConnector: EventConnector = {
   id: "rss",
   fetch: async (feed: ConnectorFeed): Promise<RawSignal[]> => {
-    const xml = await fetchText(feed.url, { accept: "application/rss+xml, application/atom+xml, application/xml;q=0.9, */*;q=0.8" });
+    const xml = await fetchText(feed.url, {
+      // OpenAI / Hugging Face 的 feed 是全量归档（数百 KB），15s 在代理或慢链路上不够
+      timeoutMs: 30_000,
+      accept:
+        "application/rss+xml, application/atom+xml, application/xml;q=0.9, */*;q=0.8",
+    });
     return parseFeed(xml).slice(0, ITEM_LIMIT).map((item) => toSignal(item, feed));
   },
 };

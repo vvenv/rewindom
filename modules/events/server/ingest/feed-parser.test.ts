@@ -96,6 +96,58 @@ describe("parseFeed —— Atom", () => {
   });
 });
 
+describe("parseFeed —— 内置源真实条目形状", () => {
+  it("解析 OpenAI 的 CDATA 标题与链接", () => {
+    const items = parseFeed(`<?xml version="1.0"?><rss version="2.0"><channel>
+      <item>
+        <title><![CDATA[The builder’s guide to GPT‑5.6]]></title>
+        <description><![CDATA[Learn how startups use GPT-5.6.]]></description>
+        <link>https://openai.com/index/builders-guide-to-gpt-5-6</link>
+        <guid isPermaLink="true">https://openai.com/index/builders-guide-to-gpt-5-6</guid>
+        <pubDate>Thu, 13 Aug 2026 11:00:00 GMT</pubDate>
+      </item>
+    </channel></rss>`);
+    expect(items).toHaveLength(1);
+    expect(items[0].title).toContain("GPT");
+    expect(items[0].link).toBe(
+      "https://openai.com/index/builders-guide-to-gpt-5-6",
+    );
+  });
+
+  it("Hugging Face 条目经常没有 description，仍然要收下", () => {
+    const items = parseFeed(`<?xml version="1.0"?><rss version="2.0"><channel>
+      <item>
+        <title>State of Open Models</title>
+        <pubDate>Fri, 14 Aug 2026 00:00:00 GMT</pubDate>
+        <link>https://huggingface.co/blog/state-of-open-models</link>
+        <guid isPermaLink="true">https://huggingface.co/blog/state-of-open-models</guid>
+      </item>
+    </channel></rss>`);
+    expect(items).toHaveLength(1);
+    expect(items[0].summary).toBe("");
+    expect(items[0].link).toBe(
+      "https://huggingface.co/blog/state-of-open-models",
+    );
+  });
+
+  it("解析 TechCrunch 带 dc:creator 与空白的 WordPress 条目", () => {
+    const items = parseFeed(`<?xml version="1.0"?><rss version="2.0"
+      xmlns:dc="http://purl.org/dc/elements/1.1/"><channel>
+      <item>
+        <title>Stripe will reportedly acquire OpenRouter</title>
+        <link>https://techcrunch.com/2026/08/16/stripe-openrouter/</link>
+        <dc:creator><![CDATA[Anthony Ha]]></dc:creator>
+        <pubDate>Sun, 16 Aug 2026 20:57:04 +0000</pubDate>
+        <guid isPermaLink="false">https://techcrunch.com/?p=3153332</guid>
+        <description><![CDATA[OpenRouter's CEO described the startup as Stripe for AI.]]></description>
+      </item>
+    </channel></rss>`);
+    expect(items).toHaveLength(1);
+    expect(items[0].author).toBe("Anthony Ha");
+    expect(items[0].id).toBe("https://techcrunch.com/?p=3153332");
+  });
+});
+
 describe("stripHtml", () => {
   it("去标签并折叠空白", () => {
     expect(stripHtml("<p>a</p>\n  <p>b</p>")).toBe("a b");
