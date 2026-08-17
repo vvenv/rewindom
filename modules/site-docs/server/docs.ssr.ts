@@ -103,6 +103,7 @@ export async function renderDocLibrary(input: {
   accountEntryHtml: string;
   enabledEntitlements: ReadonlySet<string>;
   path: string;
+  servedPath?: string;
   locale: AppLocale | null;
   query?: Record<string, string>;
 }): Promise<string | null> {
@@ -212,6 +213,7 @@ async function renderDocsPath(
     accountEntryHtml: input.accountEntryHtml,
     enabledEntitlements: input.enabledEntitlements,
     path: input.path,
+    servedPath: input.servedPath,
     locale: input.locale,
     query: input.query,
   });
