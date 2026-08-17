@@ -96,7 +96,7 @@ function eventFeedSection(tab: EventFeedTab): SectionDefinition {
         subheadingDefault: `events:sections.${tab}Hint`,
       }),
       { type: "header", content: "editor.group.content" },
-      ...eventFeedContentSettings(tab === "rising" ? 3 : 6),
+      ...eventFeedContentSettings(tab === "rising" ? 4 : 8),
     ],
   };
 }
