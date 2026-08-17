@@ -49,6 +49,18 @@ describe("SPA 前缀三处对齐", () => {
     expectCoveredBy(new Set(matched![1]!.split("|")));
   });
 
+  it("nginx SPA 回退走 named location，避免内部重定向进 SSR", () => {
+    const conf = read("docker/nginx/default.conf.template");
+    const spaBlock =
+      /location\s+~\s+\^\/\(app\|login\|register\|auth\|member\|platform\|shop\)\(\/\|\$\)\s*\{([^}]+)\}/u.exec(
+        conf,
+      );
+    expect(spaBlock).not.toBeNull();
+    expect(spaBlock![1]).toContain("try_files $uri @spa;");
+    expect(spaBlock![1]).not.toContain("try_files $uri /index.html;");
+    expect(conf).toContain("location @spa");
+  });
+
   /*
    * 例外路径反过来：它们落在应用区前缀下，却**必须**打到后端 SSR。
    * 少一处的后果是登录页在那个环境下渲染成 SPA 的 404——SPA 上已经没有这两条路由了。

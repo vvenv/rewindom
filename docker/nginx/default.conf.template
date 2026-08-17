@@ -85,9 +85,17 @@ server {
 
     # 应用壳层路径：仍走 SPA，不进 Marketing SSR。
     # 必须与 `SITE_APP_PREFIXES`（packages/builtin/marketing/shared/site-locale.ts）保持一致。
+    #
+    # 不能写成 `try_files $uri /index.html`：末项会内部重定向到 `/index.html`，
+    # 再被下面的 `location /` 接住。租户 Host 上那条 location 会反代 Marketing SSR，
+    # 于是 `/login` `/app` 变成官网 404，而不是 React 壳。
     location ~ ^/(app|login|register|auth|member|platform|shop)(/|$) {
-        try_files $uri /index.html;
+        try_files $uri @spa;
         add_header Cache-Control "no-cache" always;
+    }
+
+    location @spa {
+        try_files /index.html =404;
     }
 
     location @tenant_ssr {
