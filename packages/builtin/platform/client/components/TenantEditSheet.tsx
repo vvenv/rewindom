@@ -26,6 +26,7 @@ import { useTranslation } from "react-i18next";
 
 import { type TenantSummary } from "../../shared/index.js";
 import { usePatchPlatformTenant } from "../hooks/usePlatformTenants.js";
+import { TenantIssueCertificateButton } from "./TenantIssueCertificateButton.js";
 
 interface TenantEditSheetProps {
   tenant: TenantSummary;
@@ -182,6 +183,10 @@ export function TenantEditSheet({
               <FieldDescription>
                 {t("tenants.customDomainDescription")}
               </FieldDescription>
+              <TenantIssueCertificateButton
+                tenant={tenant}
+                disabled={disabled || patchMutation.isPending}
+              />
             </Field>
           </FieldGroup>
           <SheetFooter className="shrink-0">

@@ -103,6 +103,52 @@ fi
 "
 }
 
+docker_ensure_acme_helper() {
+  local domain="$1"
+  local port="$2"
+  local ssl_email="$3"
+  local token="${ACME_HELPER_TOKEN:-}"
+
+  if [ -z "$token" ]; then
+    log_warn "未配置 ACME_HELPER_TOKEN，跳过 ACME helper（平台「签发证书」不可用）"
+    return 0
+  fi
+
+  log_info "安装宿主机 ACME helper..."
+  _run_ssh "mkdir -p /opt/rewindom-acme /etc/rewindom"
+  _run_scp "$ROOT/scripts/acme-helper.py" \
+    "${DEPLOY_SSH_USER}@${DEPLOY_HOST}:/opt/rewindom-acme/acme-helper.py"
+  _run_ssh "set -euo pipefail
+chmod 755 /opt/rewindom-acme/acme-helper.py
+cat > /etc/rewindom/acme-helper.env <<EOF
+ACME_HELPER_TOKEN=${token}
+ACME_HELPER_PORT=9370
+APP_PORT=${port}
+APP_DOMAIN=${domain}
+SSL_EMAIL=${ssl_email}
+EOF
+chmod 600 /etc/rewindom/acme-helper.env
+cat > /etc/systemd/system/rewindom-acme-helper.service <<'UNIT'
+[Unit]
+Description=rewindom ACME helper (localhost)
+After=network.target nginx.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/rewindom/acme-helper.env
+ExecStart=/usr/bin/python3 /opt/rewindom-acme/acme-helper.py
+Restart=on-failure
+User=root
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+systemctl daemon-reload
+systemctl enable --now rewindom-acme-helper
+systemctl restart rewindom-acme-helper
+"
+}
+
 docker_create_source_tarball() {
   local tarball="$1"
   # COPYFILE_DISABLE：macOS 下禁止把 AppleDouble（._*）打进包，否则 Prisma 会把 ._*.prisma 当 schema 解析失败
@@ -291,6 +337,8 @@ docker compose -f docker-compose.prod.yml --env-file '${remote_env_file}' up -d
     log_info "配置宿主机 Nginx + SSL..."
     docker_setup_host_nginx "$domain" "$port" "$ssl_email"
   fi
+
+  docker_ensure_acme_helper "$domain" "$port" "$ssl_email"
 
   log_info "健康检查..."
   docker_wait_for_health "$remote_dir" "$port"

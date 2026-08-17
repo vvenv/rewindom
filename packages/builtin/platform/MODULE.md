@@ -63,6 +63,16 @@
 `PUT` 的 `api_key` 省略 = 不改；空串 = 清掉本站密钥、回落平台。`model` / `temperature`
 显式 `null` 才是恢复继承。
 
+## 自定义域名证书
+
+平台管理员在租户编辑里为已绑定的 `custom_domain` 点「签发证书」。接口先核对 DNS 是否与产品主域解析到同一地址，再 POST 宿主机 ACME helper（Certbot + 独立 Nginx server）。`{slug}.{TENANT_BASE_DOMAIN}` 走通配证书，不必走这条。
+
+| 方法 | 路径 | 身份 |
+| ---- | ---- | ---- |
+| POST | `/api/platform/tenants/:id/custom-domain/certificate` | 平台管理员 |
+
+未配置 `ACME_HELPER_URL` / `ACME_HELPER_TOKEN` 时返回 503。DNS 未指向本实例时 400。签发过程可能持续约 1–2 分钟。
+
 ## 数据备份与还原
 
 整库级别（`pg_dump -Fc` / `pg_restore`），入口在平台运维侧栏「数据备份」（`/platform/backup`）。

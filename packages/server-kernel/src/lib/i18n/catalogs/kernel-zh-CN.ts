@@ -139,6 +139,7 @@ export const KERNEL_MESSAGES_ZH: Record<string, string> = {
   "tenant.domain_exists": "该自定义域名已被其他租户绑定",
   "tenant.domain_invalid": "自定义域名格式无效（仅 hostname，不含协议与端口）",
   "tenant.domain_reserved": "不可绑定平台主域名或保留主机名",
+  "tenant.custom_domain_required": "请先保存自定义域名再签发证书",
   "tenant.host_mismatch": "当前域名与登录组织不匹配",
   "tenant.host_platform_forbidden": "租户自定义域名上不可访问平台控制台",
   "auth.tenant_host_mismatch": "账号所属组织与当前域名不匹配",
@@ -181,6 +182,12 @@ export const KERNEL_MESSAGES_ZH: Record<string, string> = {
   "platform.limit_exceeded":
     "已达{{label}}（{{limit}}），请联系平台管理员升级套餐",
   "platform.database_url_missing": "DATABASE_URL 未配置",
+  "platform.acme_helper_unconfigured":
+    "未配置 ACME helper（生产需 ACME_HELPER_URL 与 ACME_HELPER_TOKEN）",
+  "platform.acme_platform_host_unresolved": "无法解析产品主域，无法核对 DNS",
+  "platform.acme_dns_mismatch":
+    "{{hostname}} 的 DNS 尚未指向本实例，请先完成解析再签发",
+  "platform.acme_issue_failed": "签发证书失败：{{detail}}",
   "platform.backup_not_ready": "备份尚未完成",
   "platform.backup_missing_or_expired": "备份文件不存在或已过期",
   "platform.backup_path_absolute": "备份路径必须是绝对路径",

@@ -98,6 +98,10 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      ACME_HELPER_URL: ${ACME_HELPER_URL:-http://host.docker.internal:9370}
+      ACME_HELPER_TOKEN: ${ACME_HELPER_TOKEN:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - rewindom_storage:/data
     depends_on:

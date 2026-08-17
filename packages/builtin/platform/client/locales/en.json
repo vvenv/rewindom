@@ -87,7 +87,7 @@
     "remarkMultilinePlaceholder": "Multi-line text supported",
     "customDomain": "Custom domain",
     "customDomainPlaceholder": "app.example.com",
-    "customDomainDescription": "When set, visits via this hostname are locked to this tenant (marketing + app). DNS/TLS must point to this instance. Leave empty to clear.",
+    "customDomainDescription": "When set, visits via this hostname are locked to this tenant (marketing + app). Point DNS at this instance, then issue a certificate below. Leave empty to clear.",
     "createTitle": "New tenant",
     "creating": "Creating…",
     "status": {
@@ -126,6 +126,11 @@
       "slugRequired": "Tenant slug is required",
       "slugInvalid": "Invalid tenant slug",
       "saved": "Tenant updated"
+    },
+    "certificate": {
+      "trigger": "Issue certificate",
+      "issued": "Issued {{names}}",
+      "failed": "Could not issue certificate"
     },
     "features": {
       "trigger": "Features",

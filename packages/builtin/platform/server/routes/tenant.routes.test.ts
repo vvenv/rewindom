@@ -447,4 +447,55 @@ describe("platform-tenant routes", () => {
     expect(response.statusCode).toBe(200);
     expect(listTenants).toHaveBeenCalledWith({ include_archived: true });
   });
+
+  it("POST custom-domain/certificate issues via service", async () => {
+    const { issueCustomDomainCertificate } = await import(
+      "../services/custom-domain-certificate.service.js"
+    );
+    vi.mocked(issueCustomDomainCertificate).mockResolvedValueOnce({
+      hostname: "yestino.com",
+      names: ["yestino.com"],
+      slug: "acme",
+    });
+
+    const app = await buildApp();
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/platform/tenants/t-1/custom-domain/certificate",
+      headers: { authorization: `Bearer ${platformToken(app)}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data).toEqual({
+      hostname: "yestino.com",
+      names: ["yestino.com"],
+      slug: "acme",
+    });
+    expect(issueCustomDomainCertificate).toHaveBeenCalledWith("t-1");
+  });
+
+  it("POST custom-domain/certificate maps AppError status", async () => {
+    const { issueCustomDomainCertificate } = await import(
+      "../services/custom-domain-certificate.service.js"
+    );
+    const { AppError } = await import(
+      "@rewindom/server-kernel/lib/app-errors.js"
+    );
+    vi.mocked(issueCustomDomainCertificate).mockRejectedValueOnce(
+      new AppError({
+        code: "platform.acme_helper_unconfigured",
+        status: 503,
+      }),
+    );
+
+    const app = await buildApp();
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/platform/tenants/t-1/custom-domain/certificate",
+      headers: { authorization: `Bearer ${platformToken(app)}` },
+    });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.json().code).toBe("platform.acme_helper_unconfigured");
+  });
 });

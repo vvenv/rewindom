@@ -427,6 +427,12 @@ export const config = {
      * env：`TENANT_BASE_DOMAIN`
      */
     baseDomain: strEnv("TENANT_BASE_DOMAIN", ""),
+    /**
+     * 宿主机 ACME helper（127.0.0.1）。空则平台「签发证书」不可用。
+     * 生产 compose 默认 `http://host.docker.internal:9370`。
+     */
+    acmeHelperUrl: strEnv("ACME_HELPER_URL", ""),
+    acmeHelperToken: strEnv("ACME_HELPER_TOKEN", ""),
   },
 };
 

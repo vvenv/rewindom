@@ -62,6 +62,16 @@ export function useResetTenantAdminPassword() {
   });
 }
 
+export function useIssueTenantCertificate() {
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.post<{ hostname: string; names: string[]; slug: string }>(
+        `/platform/tenants/${id}/custom-domain/certificate`,
+        {},
+      ),
+  });
+}
+
 export function usePatchPlatformTenant() {
   const qc = useQueryClient();
   return useMutation({

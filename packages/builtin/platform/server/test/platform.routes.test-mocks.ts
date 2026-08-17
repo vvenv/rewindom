@@ -26,6 +26,8 @@ vi.mock("@rewindom/server-kernel/lib/config.js", () => ({
     tenant: {
       singleTenant: false,
       baseDomain: "",
+      acmeHelperUrl: "",
+      acmeHelperToken: "",
     },
     server: {
       isProduction: false,
@@ -155,6 +157,10 @@ vi.mock("../services/tenant-management.service.js", () => ({
     items: [],
     total: 0,
   }),
+}));
+
+vi.mock("../services/custom-domain-certificate.service.js", () => ({
+  issueCustomDomainCertificate: vi.fn(),
 }));
 
 vi.mock("../services/tenant-feature.service.js", () => ({

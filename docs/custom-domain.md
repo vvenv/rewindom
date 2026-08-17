@@ -195,23 +195,27 @@ DNS 未生效前，请勿要求平台「绑定失败」；先把解析做对。
 
 ---
 
-## 5. 运维侧：HTTPS 证书（生产必做）
+## 5. 运维侧：HTTPS 证书
 
-应用容器内 Nginx 使用通配 `server_name _`，可按 Host 服务任意域名，但**浏览器 HTTPS 依赖宿主机（或前置负载均衡）证书是否包含该域名**。
+应用容器内 Nginx 使用通配 `server_name _`，可按 Host 服务任意域名。浏览器 HTTPS 依赖**宿主机**证书是否包含该域名。
 
-常见做法（择一）：
+平台控制台 → 租户 → 编辑 → **签发证书**：先核对 DNS 是否指向本实例，再经宿主机 ACME helper 为该域名单独申请 Let's Encrypt 证书并写入独立 Nginx server。
 
-1. **Certbot 为新域名扩证 / 另签**（宿主机 Nginx 终止 TLS 时）
-   ```bash
-   # 示例：把 portal.acme.com 加入已有证书或单独申请
-   certbot --nginx -d app.example.com -d portal.acme.com
-   # 或
-   certbot certonly --nginx -d portal.acme.com
-   ```
-2. **通配证书**（如 `*.acme.com` 由客户提供，或平台侧 `*.example.com` 仅覆盖平台子域，**不能**覆盖客户自有域）
-3. **云负载均衡 / CDN**：在 LB/CDN 上为该域名配置证书与回源，回源 Host 保持客户域名
+前置：
 
-证书未覆盖时，典型现象：浏览器「连接不是私密连接」/ 证书域名不匹配；DNS 与控制台绑定都正确也会如此。
+1. 客户 DNS 已生效（与产品主域解析到同一 IP）
+2. 生产已配置 `ACME_HELPER_TOKEN`（`pnpm deploy` / `pnpm bootstrap` 会安装 `rewindom-acme-helper`）
+3. `SSL_EMAIL` 已填（Certbot 账号邮箱）
+
+`{slug}.{TENANT_BASE_DOMAIN}` 仍走平台通配证书，不必点签发。
+
+备用（helper 未装时仍可手工）：
+
+```bash
+certbot --nginx -d portal.acme.com
+```
+
+证书未覆盖时，典型现象：浏览器「连接不是私密连接」/ 证书域名不匹配。
 
 ---
 
@@ -219,12 +223,12 @@ DNS 未生效前，请勿要求平台「绑定失败」；先把解析做对。
 
 ```text
 1. 客户配置 DNS 并 dig 确认解析正确
-2. 运维为该域名配置 TLS（证书生效）
-3. 平台管理员在控制台填写并保存 custom_domain
+2. 平台管理员在控制台填写并保存 custom_domain
+3. 保存后再次打开编辑，点「签发证书」（约 1–2 分钟）
 4. 双方按 §7 验收
 ```
 
-顺序 1→2→3 最稳妥。若先绑控制台再配 DNS，在解析生效前访问会落到错误主机或失败，属预期。
+顺序 1→2→3 最稳妥。若先绑控制台再配 DNS，签发会因解析未指向本实例而失败，属预期。
 
 ---
 
@@ -261,7 +265,7 @@ curl -sS -H "Host: portal.acme.com" https://portal.acme.com/api/public/config | 
 | 工作台 OAuth 回调跑回主域     | 未用当前域名发起登录，或回调 URL 写死主域 | 在绑定域名上点 OAuth；生产建议为各入口配置可达的回调（见部署文档）                                                               |
 | 会员 OAuth 无法在自定义域登录 | 平台应用未登记统一回调，或 exchange 失败  | 平台 OAuth 应用须登记 `{FRONTEND_URL}/api/auth/oauth/{provider}/callback`（与工作台共用）；浏览器会先回主域再跳回绑定域种 Cookie |
 
-本阶段**不包含**：客户自助在租户设置里改域名、客户自定义域名的 DNS TXT 自动校验、每客户域名自动签发证书。平台通配子域与通配证书续期见 §0。
+本阶段**不包含**：客户自助在租户设置里改域名、客户自定义域名的 DNS TXT 自动校验、保存绑定时自动签发证书。平台管理员可在控制台点「签发证书」。通配子域与通配证书续期见 §0。
 
 ---
 

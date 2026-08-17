@@ -50,6 +50,7 @@ import {
   updateTenantPlan,
   listTenantUsers,
 } from "../services/tenant-management.service.js";
+import { issueCustomDomainCertificate } from "../services/custom-domain-certificate.service.js";
 
 import type { FastifyInstance } from "fastify";
 
@@ -189,6 +190,35 @@ export async function registerTenantRoutes(
           reply,
           err,
           "[platformRoutes] 更新租户失败",
+          "common.internal_error",
+        );
+      }
+    },
+  );
+
+  app.post<{ Params: TenantIdParams }>(
+    "/tenants/:id/custom-domain/certificate",
+    async (request, reply) => {
+      try {
+        const issued = await issueCustomDomainCertificate(request.params.id);
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          username: request.authUser!.username,
+          action: AuditAction.TENANT_UPDATE,
+          resource: "tenant",
+          detail_key: "platform.audit.tenant_certificate_issued",
+          detail_params: {
+            slug: issued.slug,
+            names: issued.names.join(", "),
+          },
+          ipAddress: request.ip,
+          userAgent: request.headers["user-agent"],
+        });
+        return reply.send(success(issued));
+      } catch (err) {
+        return handleRouteError(
+          reply,
+          err,
+          "[platformRoutes] 签发自定义域名证书失败",
           "common.internal_error",
         );
       }

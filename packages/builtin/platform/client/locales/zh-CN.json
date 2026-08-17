@@ -87,7 +87,7 @@
     "remarkMultilinePlaceholder": "支持多行文本",
     "customDomain": "自定义域名",
     "customDomainPlaceholder": "app.example.com",
-    "customDomainDescription": "绑定后，通过该域名访问将锁定本租户（前台与中台）；DNS/TLS 需运维配置指向本实例。留空表示清除绑定。",
+    "customDomainDescription": "绑定后，通过该域名访问将锁定本租户（前台与中台）。请先把 DNS 指到本实例，再点下方签发证书。留空表示清除绑定。",
     "createTitle": "新建租户",
     "creating": "创建中…",
     "status": {
@@ -126,6 +126,11 @@
       "slugRequired": "租户标识不能为空",
       "slugInvalid": "租户标识格式无效",
       "saved": "租户信息已保存"
+    },
+    "certificate": {
+      "trigger": "签发证书",
+      "issued": "已签发 {{names}}",
+      "failed": "签发证书失败"
     },
     "features": {
       "trigger": "能力",

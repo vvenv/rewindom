@@ -298,4 +298,40 @@ describe("TenantEditSheet", () => {
       });
     });
   });
+
+  it("已绑定自定义域名时显示签发证书按钮", async () => {
+    const withDomain = { ...mockTenant, custom_domain: "yestino.com" };
+    let issued = false;
+    server.use(
+      http.post(
+        "/api/platform/tenants/:id/custom-domain/certificate",
+        () => {
+          issued = true;
+          return HttpResponse.json({
+            data: {
+              hostname: "yestino.com",
+              names: ["yestino.com"],
+              slug: "test-tenant",
+            },
+          });
+        },
+      ),
+    );
+
+    openSheet({ tenant: withDomain, onActingChange: mockOnActingChange });
+
+    fireEvent.click(screen.getByRole("button", { name: "签发证书" }));
+
+    await waitFor(() => {
+      expect(issued).toBe(true);
+      expect(toast.success).toHaveBeenCalled();
+    });
+  });
+
+  it("未绑定自定义域名时不显示签发证书按钮", () => {
+    openSheet({ onActingChange: mockOnActingChange });
+    expect(
+      screen.queryByRole("button", { name: "签发证书" }),
+    ).not.toBeInTheDocument();
+  });
 });

@@ -487,7 +487,7 @@ request.authUser = { userId, username, role, tenant_id };
 
 **本阶段支持**：section 级 Theme Editor（有序区块编排 + theme settings + 同页预览）。
 
-**明确不做（本阶段）**：DNS TXT/CNAME 校验状态机、租户自助绑定域名、每客户域名自动签发证书、租户官网自由画布编辑器、多主题市场上架、section block 嵌套。
+**明确不做（本阶段）**：DNS TXT/CNAME 校验状态机、租户自助绑定域名、保存 `custom_domain` 时自动签发证书、租户官网自由画布编辑器、多主题市场上架、section block 嵌套。平台管理员可在控制台为已绑定域名点「签发证书」（见 `docs/custom-domain.md` §5）。
 
 **操作说明（通配子域 / 客户 DNS / TLS / 验收）**：见 [`../custom-domain.md`](../custom-domain.md)。
 

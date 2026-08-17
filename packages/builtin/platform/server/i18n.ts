@@ -8,6 +8,8 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
         "创建租户 {{slug}}（{{name}}），管理员：{{admin}}",
       "platform.audit.tenant_updated":
         "更新租户 {{previous_slug}}→{{slug}}，状态：{{status}}",
+      "platform.audit.tenant_certificate_issued":
+        "为租户 {{slug}} 签发证书 {{names}}",
       "platform.audit.tenant_suspended": "暂停租户 {{slug}}",
       "platform.audit.tenant_resumed": "恢复租户 {{slug}}",
       "platform.audit.tenant_archived": "归档租户 {{slug}}",
@@ -52,6 +54,8 @@ export const PLATFORM_SERVER_I18N: ServerI18nBundle = {
         "Created tenant {{slug}} ({{name}}), admin: {{admin}}",
       "platform.audit.tenant_updated":
         "Updated tenant {{previous_slug}}→{{slug}}, status: {{status}}",
+      "platform.audit.tenant_certificate_issued":
+        "Issued certificate {{names}} for tenant {{slug}}",
       "platform.audit.tenant_suspended": "Suspended tenant {{slug}}",
       "platform.audit.tenant_resumed": "Resumed tenant {{slug}}",
       "platform.audit.tenant_archived": "Archived tenant {{slug}}",

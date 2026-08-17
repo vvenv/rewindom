@@ -1,0 +1,51 @@
+# 平台控制台为租户自定义域名签发 TLS 证书
+#
+# 设计：docs/design/tenant-config.md §5.9；docs/custom-domain.md
+
+# ---------- 必填 ----------
+module: platform
+surfaces: [platform]
+goal: 平台管理员在租户编辑里点「签发证书」，先校验 DNS 指向本实例，再经宿主机 ACME helper 为该自定义域名单独申请 Let's Encrypt 证书并装进 Nginx
+gold: packages/builtin/platform/client/components/TenantEditSheet.tsx
+touch:
+  - packages/builtin/platform/features/custom-domain-certificate.spec.yaml
+  - packages/builtin/platform/MODULE.md
+  - packages/builtin/platform/server/i18n.ts
+  - packages/builtin/platform/server/routes/tenant.routes.ts
+  - packages/builtin/platform/server/routes/tenant.routes.test.ts
+  - packages/builtin/platform/server/services/custom-domain-certificate.service.ts
+  - packages/builtin/platform/server/services/custom-domain-certificate.service.test.ts
+  - packages/builtin/platform/server/test/platform.routes.test-mocks.ts
+  - packages/builtin/platform/client/components/TenantEditSheet.tsx
+  - packages/builtin/platform/client/components/TenantEditSheet.test.tsx
+  - packages/builtin/platform/client/components/TenantIssueCertificateButton.tsx
+  - packages/builtin/platform/client/hooks/usePlatformTenants.ts
+  - packages/builtin/platform/client/locales/zh-CN.json
+  - packages/builtin/platform/client/locales/en.json
+  - packages/server-kernel/src/lib/config.ts
+  - packages/server-kernel/src/lib/i18n/catalogs/kernel-zh-CN.ts
+  - packages/server-kernel/src/lib/i18n/catalogs/kernel-en.ts
+  - docker-compose.prod.yml
+  - docker/nginx/default.conf.template
+  - scripts/acme-helper.py
+  - scripts/lib/docker-deploy-remote.sh
+  - scripts/env.production.example
+  - .env.example
+  - docs/custom-domain.md
+  - docs/design/tenant-config.md
+  - docs/deployment.md
+out_of_scope:
+  - 保存 custom_domain 时自动签发
+  - 租户自助绑定域名
+  - DNS TXT 校验状态机
+  - 换成 Caddy / On-demand TLS
+  - 通配子域 {slug}.{TENANT_BASE_DOMAIN} 的证书（仍用平台通配证）
+  - 新后台任务类型（签发同步等待，按钮转圈）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project platform/server services/custom-domain-certificate.service.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project platform/server routes/tenant.routes.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project platform/client components/TenantEditSheet.test.tsx
+  - pnpm check:i18n
+  - pnpm check:prod-app-env
+  - node scripts/verify-module.mjs platform

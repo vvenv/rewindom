@@ -159,6 +159,8 @@ export const KERNEL_MESSAGES_EN: Record<string, string> = {
     "Invalid custom domain (hostname only, no scheme or port)",
   "tenant.domain_reserved":
     "Cannot bind the platform primary domain or a reserved hostname",
+  "tenant.custom_domain_required":
+    "Save a custom domain before issuing a certificate",
   "tenant.host_mismatch": "Current domain does not match the signed-in tenant",
   "tenant.host_platform_forbidden":
     "Platform console is not available on a tenant custom domain",
@@ -205,6 +207,13 @@ export const KERNEL_MESSAGES_EN: Record<string, string> = {
   "platform.limit_exceeded":
     "Reached {{label}} ({{limit}}). Contact a platform admin to upgrade your plan",
   "platform.database_url_missing": "DATABASE_URL is not configured",
+  "platform.acme_helper_unconfigured":
+    "ACME helper is not configured (set ACME_HELPER_URL and ACME_HELPER_TOKEN in production)",
+  "platform.acme_platform_host_unresolved":
+    "Could not resolve the product host to verify DNS",
+  "platform.acme_dns_mismatch":
+    "DNS for {{hostname}} does not point at this instance yet",
+  "platform.acme_issue_failed": "Certificate issuance failed: {{detail}}",
   "platform.backup_not_ready": "Backup is not ready yet",
   "platform.backup_missing_or_expired":
     "Backup file does not exist or has expired",
