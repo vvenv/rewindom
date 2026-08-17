@@ -50,7 +50,7 @@ export const formSection: SectionDefinition = {
       rows: 2,
       info: "site-form:section.form.successMessageInfo",
     },
-    ...layoutSettings(),
+    ...layoutSettings({ padding_top: 48, padding_bottom: 48 }),
   ],
   max_blocks: 16,
   preset_blocks: [

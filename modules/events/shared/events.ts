@@ -85,13 +85,6 @@ export interface EventListItem {
   is_following: boolean;
   /** 已关注且上次查看后又有新动静 */
   has_update: boolean;
-  /** 原文语种。界面据此说明「你在看的是译文」 */
-  origin_locale: string;
-  /**
-   * 当前 title / headline 是不是译文。
-   * 机器翻译就该被标出来——这和摘要标注分析器出处是同一条原则。
-   */
-  is_translated: boolean;
 }
 
 export interface EventTimelineItem {
@@ -119,12 +112,6 @@ export interface EventSourceItem {
 export interface EventDetail extends EventListItem {
   /** 「发生了什么」全文 */
   summary: string;
-  /**
-   * 摘要是不是译文。与 `is_translated` 分开：免费机器翻译那条路只翻标题不翻摘要
-   *（额度所限，见 translate-backfill.service），所以同一个事件完全可能
-   * 标题是译文、摘要是原文。
-   */
-  summary_translated: boolean;
   /** heuristic | llm——界面上要能看出这段摘要是谁写的 */
   analyzer: string;
   analyzed_at: string | null;

@@ -80,6 +80,8 @@ export const DOCS_ARTICLE_TEMPLATE_PRESET: PagePreset = {
         columns_layout: "2:8:2",
         column_gap: 40,
         align_items: "stretch",
+        padding_top: 48,
+        padding_bottom: 48,
       },
       blocks: [
         {

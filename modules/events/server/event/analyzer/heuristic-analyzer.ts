@@ -30,18 +30,12 @@ const SOURCE_PRIORITY: Record<EventSourceKind, number> = {
  */
 export const heuristicAnalyzer: EventAnalyzer = {
   id: "heuristic",
-  analyze: (input: AnalyzerInput): Promise<AnalyzedEvent> => {
-    const title = pickEventTitle(input.signals.map((signal) => signal.title));
-    const summary = buildSummary(input.signals);
-    return Promise.resolve({
-      title,
-      summary,
-      // 规则实现不会翻译，只登记原文那一条；缺的语言交给 translator/ 事后补
-      title_i18n: title ? { [input.origin_locale]: title } : {},
-      summary_i18n: summary ? { [input.origin_locale]: summary } : {},
+  analyze: (input: AnalyzerInput): Promise<AnalyzedEvent> =>
+    Promise.resolve({
+      title: pickEventTitle(input.signals.map((signal) => signal.title)),
+      summary: buildSummary(input.signals),
       timeline: buildTimeline(input.signals),
-    });
-  },
+    }),
 };
 
 /**
@@ -88,8 +82,6 @@ function buildTimeline(
       occurred_at: signal.published_at,
       label_code: resolveLabelCode(signal.source_kind, index === 0, repeated),
       label_text: null,
-      // code 在客户端与 SSR 两端都自带各语言译文，不需要语言表
-      label_text_i18n: null,
       source_kind: signal.source_kind,
       source_name: signal.source_name,
       signal_id: signal.signal_id,

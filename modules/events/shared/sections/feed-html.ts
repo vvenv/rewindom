@@ -123,9 +123,6 @@ function cardHtml(
     )}</span>`,
     `<span class="events-topic">${escapeHtml(card.topic_label)}</span>`,
     velocityHtml(card.velocity_pct),
-    card.translated_label
-      ? `<span class="events-translated">${escapeHtml(card.translated_label)}</span>`
-      : "",
   ]
     .filter(Boolean)
     .join("");

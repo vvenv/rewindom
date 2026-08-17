@@ -73,17 +73,10 @@ model NewsEvent {
   id     String @id @default(uuid())
   /// 稳定可读标识，详情页 URL 与去重都用它
   slug   String @unique
-  /// **原文**标题。聚类指纹、slug 都基于它，任何时候都不被译文覆盖
+  /// 聚类指纹与 slug 都基于它
   title  String
-  /// 「发生了什么」——3~5 句，原文
+  /// 「发生了什么」——3~5 句
   summary String @default("")
-  /// 原文语种。决定翻译方向，也用来在界面上标注「这条是机器翻译」
-  origin_locale String @default("en")
-  /// 标题的语言表 `{ "en": "…", "zh-CN": "…" }`，恒含 origin_locale 那一条。
-  /// 数据多语言走扁平 locale map（docs/design/i18n.md），不做 title_en 这种平行字段
-  title_i18n   Json?
-  /// 摘要的语言表，与 title_i18n 同形
-  summary_i18n Json?
   topic  String  @default("tech")
   /// developing | active | cooling | resolved
   status String  @default("developing")
@@ -132,8 +125,6 @@ model EventTimelineEntry {
   label_code  String?
   /// LLM 分析器产出的自由文案；与 label_code 二选一
   label_text  String?
-  /// 自由文案的语言表。label_code 那条路不需要它——code 在两端都自带各语言译文
-  label_text_i18n Json?
   source_kind String
   /// 这一格是谁贡献的，界面上直接显示（「10:17 Hacker News 出现讨论」）
   source_name String   @default("")

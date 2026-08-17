@@ -1,9 +1,4 @@
-import type {
-  EventLocalizedMap,
-  EventSourceKind,
-  EventTopic,
-} from "../../../shared/index.js";
-import type { AppLocale } from "@rewindom/module-sdk";
+import type { EventSourceKind, EventTopic } from "../../../shared/index.js";
 
 /**
  * 事件分析器契约。
@@ -26,8 +21,6 @@ export interface AnalyzerSignal {
 
 export interface AnalyzerInput {
   topic: EventTopic;
-  /** 信号原文的语种，决定翻译方向 */
-  origin_locale: AppLocale;
   /** 已按时间升序排好 */
   signals: AnalyzerSignal[];
 }
@@ -42,29 +35,15 @@ export interface AnalyzedTimelineEntry {
   source_name: string;
   signal_id: string | null;
   url: string | null;
-  /**
-   * 自由文案的语言表。规则实现走 `label_code`，不产出它；
-   * LLM 实现在**同一次调用**里顺带给出各语言，不额外发请求。
-   */
-  label_text_i18n: EventLocalizedMap | null;
 }
 
 export interface AnalyzedEvent {
-  /** 原文标题（聚类与 slug 都基于它，不会被译文覆盖） */
   title: string;
   /**
-   * 「发生了什么」原文。规则实现下这里是**来源原文的摘录**而非生成文本——
+   * 「发生了什么」。规则实现下这里是**来源原文的摘录**而非生成文本——
    * 宁可少说，也不编造一句没有出处的话。
    */
   summary: string;
-  /**
-   * 标题/摘要的语言表，至少含 `origin_locale` 那一条。
-   *
-   * LLM 实现直接给全（翻译与摘要是同一次调用的产物，边际成本只是几百 token）；
-   * 规则实现只给原文那条，缺的语言由 `translator/` 事后补。
-   */
-  title_i18n: EventLocalizedMap;
-  summary_i18n: EventLocalizedMap;
   timeline: AnalyzedTimelineEntry[];
 }
 

@@ -47,15 +47,6 @@ export interface PublicEventCard {
   signal_count: number;
   source_names: string[];
   last_activity_at: string;
-  /** 标题是机器/AI 译文——界面要如实标注 */
-  is_translated: boolean;
-  /**
-   * 译文角标文案（已落成当前语言）；不是译文时为 null。
-   *
-   * 文案在**建上下文时**解析：段渲染器是同步的、也拿不到 i18n，
-   * 让它去翻译就得给每个渲染器塞一个 t()。
-   */
-  translated_label: string | null;
 }
 
 export interface PublicEventTimelineItem {
@@ -77,12 +68,11 @@ export interface PublicEventSource {
 
 export interface PublicEventDetailView extends PublicEventCard {
   summary: string;
-  summary_translated: boolean;
   /** heuristic | llm */
   analyzer: string;
   /**
-   * 「这段摘要是谁写的、是不是译文」的整句说明，已落成当前语言。
-   * 规则整理 / AI 生成 / 机器翻译对读者的可信度不同，公开面更不能省略这句。
+   * 「这段摘要是谁写的」的整句说明，已落成当前语言。
+   * 规则整理与 AI 生成对读者的可信度不同，公开面更不能省略这句。
    */
   provenance_note: string;
   first_seen_at: string;

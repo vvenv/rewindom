@@ -78,6 +78,6 @@ export const siteDocsListSection: SectionDefinition = {
     },
     { type: "header", content: "editor.group.layout", group: "layout" },
     columnsSetting(3, 2),
-    ...layoutSettings(),
+    ...layoutSettings({ padding_top: 48, padding_bottom: 48 }),
   ],
 };

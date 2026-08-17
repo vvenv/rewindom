@@ -4,19 +4,8 @@ import { analyzeEvent, resolveEventAnalyzer } from "./analyzer/index.js";
 import { computeHeat, resolveStatus, type HeatSignal } from "./heat.js";
 import { pickEventTitle } from "./title-tokens.js";
 
-import {
-  detectOriginLocale,
-  isEventLocalizedMap,
-  mergeLocalizedMaps,
-} from "../../shared/index.js";
-
 import type { AnalyzerSignal } from "./analyzer/index.js";
-import type {
-  EventLocalizedMap,
-  EventSourceKind,
-  EventTopic,
-} from "../../shared/index.js";
-import type { AppLocale } from "@rewindom/module-sdk";
+import type { EventSourceKind, EventTopic } from "../../shared/index.js";
 
 /**
  * LLM 重分析冷却期。规则分析器几乎零成本、每次都重算；
@@ -62,16 +51,7 @@ async function refreshEvent(
 ): Promise<boolean> {
   const event = await prisma.newsEvent.findUnique({
     where: { id: eventId },
-    select: {
-      id: true,
-      topic: true,
-      analyzed_at: true,
-      analyzer: true,
-      title: true,
-      summary: true,
-      title_i18n: true,
-      summary_i18n: true,
-    },
+    select: { id: true, topic: true, analyzed_at: true, analyzer: true },
   });
   if (!event) {
     return false;
@@ -119,39 +99,14 @@ async function refreshEvent(
     ...new Set(signals.map((signal) => signal.source_name)),
   ].slice(0, SOURCE_NAME_LIMIT);
 
-  // 原文语种按信号标题判定，而不是按事件已有标题——已有标题可能来自上一轮的另一批信号
-  const originLocale = detectOriginLocale(
-    signals.map((signal) => signal.title).join(" "),
-  );
-
   const analysis = shouldReanalyze(event.analyzed_at, now)
     ? await analyzeEvent(
         {
           topic: event.topic as EventTopic,
-          origin_locale: originLocale,
           signals: signals.map(toAnalyzerSignal),
         },
         (err) => options.onAnalyzerFallback?.(eventId, err),
       )
-    : null;
-
-  const localized = analysis
-    ? {
-        title_i18n: carryOverTranslations(
-          event.title_i18n,
-          event.title,
-          analysis.title,
-          originLocale,
-          analysis.title_i18n,
-        ),
-        summary_i18n: carryOverTranslations(
-          event.summary_i18n,
-          event.summary,
-          analysis.summary,
-          originLocale,
-          analysis.summary_i18n,
-        ),
-      }
     : null;
 
   await prisma.$transaction([
@@ -166,8 +121,7 @@ async function refreshEvent(
         source_names: sourceNames,
         first_seen_at: firstSeenAt,
         last_activity_at: lastActivityAt,
-        origin_locale: originLocale,
-        ...(analysis && localized
+        ...(analysis
           ? {
               // 分析器给不出标题时不要把已有标题覆盖成空串
               title:
@@ -175,8 +129,6 @@ async function refreshEvent(
                   ? analysis.title
                   : pickEventTitle(signals.map((s) => s.title)),
               summary: analysis.summary,
-              title_i18n: localized.title_i18n,
-              summary_i18n: localized.summary_i18n,
               analyzer: analysis.analyzer,
               analyzed_at: now,
             }
@@ -192,7 +144,6 @@ async function refreshEvent(
               occurred_at: entry.occurred_at,
               label_code: entry.label_code,
               label_text: entry.label_text,
-              label_text_i18n: entry.label_text_i18n ?? undefined,
               source_kind: entry.source_kind,
               source_name: entry.source_name,
               signal_id: entry.signal_id,
@@ -224,31 +175,6 @@ function toAnalyzerSignal(signal: {
     source_kind: signal.source_kind as EventSourceKind,
     published_at: signal.published_at,
   };
-}
-
-/**
- * 决定已有译文还能不能继续用。
- *
- * 翻译（无论来自 LLM 还是 MyMemory）都是有成本的，而 `refreshEvents` 每轮都会跑。
- * 判据是**原文有没有变**：语言表里恒含原文那一条，拿它和本轮的原文一比就知道
- * 旧译文是不是还对得上。对得上就整表留着，一个字符都不用重翻；
- * 变了就整表作废——留着旧译文比没有译文更糟，那是在用旧标题冒充新事件。
- */
-export function carryOverTranslations(
-  storedMap: unknown,
-  storedOrigin: string,
-  nextOrigin: string,
-  originLocale: AppLocale,
-  freshMap: EventLocalizedMap,
-): EventLocalizedMap {
-  const stored = isEventLocalizedMap(storedMap) ? storedMap : {};
-  // 语言表里的原文那条最权威；老数据没有表时退回 NewsEvent.title / summary 列
-  const previousOrigin = stored[originLocale] ?? storedOrigin;
-  const reusable =
-    previousOrigin.trim().length > 0 &&
-    previousOrigin.trim() === nextOrigin.trim();
-
-  return mergeLocalizedMaps(reusable ? stored : {}, freshMap);
 }
 
 export function shouldReanalyze(

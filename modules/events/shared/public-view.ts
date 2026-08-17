@@ -54,8 +54,6 @@ export function toPublicCard(
     signal_count: item.signal_count,
     source_names: item.source_names,
     last_activity_at: item.last_activity_at,
-    is_translated: item.is_translated,
-    translated_label: item.is_translated ? t("site.machineTranslated") : null,
   };
 }
 
@@ -66,7 +64,6 @@ export function toPublicDetail(
   return {
     ...toPublicCard(detail, t),
     summary: detail.summary,
-    summary_translated: detail.summary_translated,
     analyzer: detail.analyzer,
     provenance_note: buildProvenanceNote(detail, t),
     first_seen_at: detail.first_seen_at,
@@ -108,25 +105,12 @@ function toPublicTimelineItem(entry: EventTimelineItem, t: EventsTranslate) {
   };
 }
 
-/**
- * 出处说明：摘要是谁写的 + 是不是译文，拼成一句。
- *
- * 免费机器翻译那条路只翻标题不翻摘要，所以「标题是译文、摘要是原文」是常态，
- * 这句话必须能如实表达这种组合，而不是笼统说一句「本页含机器翻译」。
- */
+/** 出处说明：这段摘要是规则整理的还是 AI 写的——两者对读者的可信度不同。 */
 export function buildProvenanceNote(
   detail: EventDetail,
   t: EventsTranslate,
 ): string {
-  const parts = [
-    detail.analyzer === "llm"
-      ? t("detail.analyzerLlm")
-      : t("detail.analyzerHeuristic"),
-  ];
-  if (detail.summary_translated) {
-    parts.push(t("site.summaryTranslated"));
-  } else if (detail.is_translated) {
-    parts.push(t("site.titleTranslatedOnly"));
-  }
-  return parts.join(" · ");
+  return detail.analyzer === "llm"
+    ? t("detail.analyzerLlm")
+    : t("detail.analyzerHeuristic");
 }

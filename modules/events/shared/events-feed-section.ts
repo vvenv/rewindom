@@ -88,6 +88,6 @@ export const eventsFeedSection: SectionDefinition = {
       default: "events:site.feed.more",
     },
     { type: "header", content: "editor.group.layout", group: "layout" },
-    ...layoutSettings(),
+    ...layoutSettings({ padding_top: 48, padding_bottom: 48 }),
   ],
 };

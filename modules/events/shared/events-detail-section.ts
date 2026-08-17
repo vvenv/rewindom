@@ -61,6 +61,6 @@ export const eventsDetailSection: SectionDefinition = {
       default: "events:detail.back",
     },
     { type: "header", content: "editor.group.layout", group: "layout" },
-    ...layoutSettings(),
+    ...layoutSettings({ padding_top: 48, padding_bottom: 64 }),
   ],
 };

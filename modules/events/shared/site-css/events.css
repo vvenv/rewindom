@@ -61,8 +61,7 @@
 }
 
 .events-status,
-.events-topic,
-.events-translated {
+.events-topic {
   padding: 1px 8px;
   border: 1px solid var(--border);
   border-radius: 999px;

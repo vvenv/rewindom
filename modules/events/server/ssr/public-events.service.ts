@@ -39,9 +39,6 @@ const LIST_SELECT = {
   slug: true,
   title: true,
   summary: true,
-  origin_locale: true,
-  title_i18n: true,
-  summary_i18n: true,
   topic: true,
   status: true,
   heat_score: true,
@@ -61,7 +58,6 @@ export interface PublicFeedData {
 }
 
 export async function getPublicEventFeed(
-  locale: AppLocale,
   topic?: EventTopic,
 ): Promise<PublicFeedData> {
   const now = Date.now();
@@ -111,7 +107,7 @@ export async function getPublicEventFeed(
    * 也可能只摆其中一段——按「谁先出现就从后面扣掉」来算，单独摆一段时就会莫名少内容。
    */
   const map = (records: typeof rising): EventListItem[] =>
-    records.map((record) => toEventListItem(record, locale, null));
+    records.map((record) => toEventListItem(record, null));
 
   return {
     rising: map(rising),
@@ -124,7 +120,6 @@ export async function getPublicEventFeed(
 /** slug 找不到时返回 null（→ 404），而不是抛错。 */
 export async function getPublicEventBySlug(
   slug: string,
-  locale: AppLocale,
 ): Promise<EventDetail | null> {
   const record = await prisma.newsEvent.findUnique({
     where: { slug },
@@ -143,7 +138,6 @@ export async function getPublicEventBySlug(
         occurred_at: true,
         label_code: true,
         label_text: true,
-        label_text_i18n: true,
         source_kind: true,
         source_name: true,
         url: true,
@@ -165,7 +159,7 @@ export async function getPublicEventBySlug(
     }),
   ]);
 
-  return toEventDetail({ record, locale, timeline, signals, follow: null });
+  return toEventDetail({ record, timeline, signals, follow: null });
 }
 
 /**

@@ -28,8 +28,6 @@ function sampleItem(index: number, t: EventsTranslate): EventListItem {
     last_activity_at: SAMPLE_UPDATED,
     is_following: false,
     has_update: false,
-    origin_locale: "en",
-    is_translated: false,
   };
 }
 
@@ -41,7 +39,6 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
   return {
     ...sampleItem(1, t),
     summary: t("sample.event1.summary"),
-    summary_translated: false,
     analyzer: "heuristic",
     analyzed_at: SAMPLE_UPDATED,
     timeline: [
