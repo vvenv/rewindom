@@ -358,10 +358,6 @@ export function renderMarketingHtml(input: {
   <style>${siteCss(site.theme_settings, usedSectionTypes)}</style>
 </head>
 <body>
-  <!--
-    公开站是 SSR 静态 HTML + site-enhance（无 React）。
-    交互（明暗、表单、账户菜单、会员正文）由 defer 脚本渐进增强。
-  -->
   <div class="marketing-site-root" data-page-path="${escapeHtml(page.path)}" data-page-locale="${escapeHtml(locale)}">
   <div class="site-stack">
   ${headerHtml}
