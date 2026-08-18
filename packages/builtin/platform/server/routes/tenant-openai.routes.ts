@@ -4,10 +4,10 @@ import {
   updateTenantLlmConfig,
 } from "@rewindom/server-kernel/lib/tenant-llm.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
-import type { TenantLlmWriteBody } from "@rewindom/shared";
 
 import { AuditAction } from "../../../audit/shared/index.js";
 
+import type { TenantLlmWriteBody } from "@rewindom/shared";
 import type { FastifyInstance } from "fastify";
 
 export async function tenantOpenaiRoutes(

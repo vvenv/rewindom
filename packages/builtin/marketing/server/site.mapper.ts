@@ -1,12 +1,12 @@
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
+import { DEFAULT_HOME_LAYOUT_KEY } from "../shared/home-layouts.js";
 import {
   publicCatalogSources,
   resolveCatalogPageTitle,
   resolveTemplatePresetCopy,
   isStockTemplateDescription,
 } from "../shared/page-templates.js";
-import { DEFAULT_HOME_LAYOUT_KEY } from "../shared/home-layouts.js";
 import {
   localizeSections,
   localizeSiteText,

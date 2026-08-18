@@ -28,6 +28,7 @@ import {
   type UpdateTenantPlanBody,
 } from "../../shared/index.js";
 import { type TenantIdParams } from "../lib/platform.types.js";
+import { issueCustomDomainCertificate } from "../services/custom-domain-certificate.service.js";
 import {
   getTenantAppearance,
   getTenantAppearanceDetail,
@@ -50,7 +51,6 @@ import {
   updateTenantPlan,
   listTenantUsers,
 } from "../services/tenant-management.service.js";
-import { issueCustomDomainCertificate } from "../services/custom-domain-certificate.service.js";
 
 import type { FastifyInstance } from "fastify";
 

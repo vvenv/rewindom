@@ -16,7 +16,6 @@ import {
 } from "../shared/page-templates.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import { isSpaShellPath, parseMarketingSsrPath } from "../shared/site-locale.js";
-
 import {
   matchSitePathFallback,
   matchSitePathHandler,

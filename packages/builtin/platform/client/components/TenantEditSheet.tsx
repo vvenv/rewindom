@@ -26,6 +26,7 @@ import { useTranslation } from "react-i18next";
 
 import { type TenantSummary } from "../../shared/index.js";
 import { usePatchPlatformTenant } from "../hooks/usePlatformTenants.js";
+
 import { TenantIssueCertificateButton } from "./TenantIssueCertificateButton.js";
 
 interface TenantEditSheetProps {

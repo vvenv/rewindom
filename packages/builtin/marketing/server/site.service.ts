@@ -12,6 +12,12 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
+import {
+  DEFAULT_HOME_LAYOUT_KEY,
+  getHomeLayout,
+  isHomeLayoutRelevant,
+  resolveHomeLayout,
+} from "../shared/home-layouts.js";
 import { buildPresetSections } from "../shared/page-presets.js";
 import {
   getPageTemplateKind,
@@ -25,12 +31,6 @@ import {
   relocalizeStockTemplateDescription,
   relocalizeStockTemplateTitle,
 } from "../shared/page-templates.js";
-import {
-  DEFAULT_HOME_LAYOUT_KEY,
-  getHomeLayout,
-  isHomeLayoutRelevant,
-  resolveHomeLayout,
-} from "../shared/home-layouts.js";
 import { mergeSectionsWithPreset } from "../shared/preset-merge.js";
 import {
   getSectionDefinition,

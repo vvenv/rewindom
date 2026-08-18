@@ -33,17 +33,15 @@ import {
   isTemplatePageKind,
   resolveCatalogPageTitle,
 } from "../../shared/page-templates.js";
-import { marketingPagePath } from "../../shared/site-cms.js";
+import { marketingPagePath,
+  type MarketingPageKind,
+  type MarketingPageListItem } from "../../shared/site-cms.js";
 import { canSetPageAsHome, isSiteHomePage } from "../../shared/site-home.js";
 import { siteEditorPath } from "../lib/site-editor-url.js";
 
 import { SitePageDuplicateSheet } from "./SitePageDuplicateSheet.js";
 import { SitePublishStatus } from "./SitePublishStatus.js";
 
-import type {
-  MarketingPageKind,
-  MarketingPageListItem,
-} from "../../shared/site-cms.js";
 import type { SitePageActions } from "../hooks/use-site-page-actions.js";
 import type { SitePageGroup } from "../lib/site-page-groups.js";
 

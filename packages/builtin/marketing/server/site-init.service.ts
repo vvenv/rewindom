@@ -5,6 +5,7 @@ import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { getPlatformSettings } from "../../platform/server/services/platform-settings.service.js";
 import { isTenantModuleEnabled } from "../../platform/server/services/tenant-module.service.js";
+import { resolveHomeLayout } from "../shared/home-layouts.js";
 import { upgradeNotFoundSections } from "../shared/page-missing.js";
 import { buildPresetSections } from "../shared/page-presets.js";
 import {
@@ -15,7 +16,6 @@ import {
   NOT_FOUND_TEMPLATE_SLUG,
   HOME_PAGE_KIND,
 } from "../shared/page-templates.js";
-import { resolveHomeLayout } from "../shared/home-layouts.js";
 import { buildSiteStarterChrome } from "../shared/site-starters.js";
 
 import {
@@ -223,7 +223,7 @@ async function upgradeNotFoundTemplateSections(
     );
     if (!published && !draft) continue;
     await prisma.marketingPage.update({
-      where: { id: page.id },
+      where: { id: page.id, tenant_id },
       data: {
         ...(published
           ? {
