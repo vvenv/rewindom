@@ -78,6 +78,7 @@ function area(
           alternates={alternates}
           locale="zh-CN"
           defaultLocale="zh-CN"
+          origin="https://example.com"
         />
       </siteMemberEntrySlot.Provider>
     </MemoryRouter>,
@@ -192,12 +193,14 @@ describe("SiteChrome 导航", () => {
 });
 
 describe("SiteChrome 文本占位符", () => {
-  it("{year} 与 {site} 在渲染期解析", () => {
+  it("{year}、{site}、{hostname}、{url} 在渲染期解析", () => {
     const { container } = area("footer", [
-      block("chrome_text", { text: "© {year} {site}" }),
+      block("chrome_text", {
+        text: "© {year} {site} · {hostname} · {url}",
+      }),
     ]);
     expect(container.querySelector(".chrome-text")?.textContent).toBe(
-      `© ${new Date().getFullYear()} Acme`,
+      `© ${new Date().getFullYear()} Acme · example.com · https://example.com`,
     );
   });
 

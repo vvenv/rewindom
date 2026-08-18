@@ -1,0 +1,48 @@
+# 增量功能契约 —— chrome 文本块占位符（会过期的值一律渲染时再填）
+#
+# 起因：`{year}` / `{site}` 解决了版权行写死就会过期的问题，但备案号旁边的域名、
+# 「访问 https://…」这类文案仍然只能手填。换绑自定义域、本地 `{slug}.localhost`
+# 与生产 Host 不一致时，页脚就停在旧地址上。
+#
+# 口径（Hugo / Jekyll / Ghost 同一套）：只放「写进 settings 就会过期」的 token，
+# 一次给齐，不搞别名。请求 origin 是唯一输入，`{hostname}` / `{url}` 都从它拆。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: chrome_text 占位符给齐 `{year}` `{site}` `{hostname}` `{url}`；未识别的 `{foo}` 原样保留。
+gold: packages/builtin/marketing/shared/sections/_common/chrome-text.ts
+touch:
+  - packages/builtin/marketing/features/chrome-text-placeholders.spec.yaml
+  - packages/builtin/marketing/shared/sections/_common/chrome-text.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-text.test.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.test.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-blocks.ts
+  - packages/builtin/marketing/shared/sections/header/html.ts
+  - packages/builtin/marketing/shared/sections/footer/html.ts
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/client/components/sections/SiteChrome.tsx
+  - packages/builtin/marketing/client/components/sections/SiteChrome.test.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/marketing/shared/site-starters.ts
+  - modules/site-docs/docs/usage/
+  - modules/site-docs/server/usage-docs.generated.ts
+out_of_scope:
+  - 给站点模型加「对外域名」字段（origin 就是当前 Host，见 Host 分流）
+  - `{domain}` / `{host}` 作为 `{hostname}` 别名
+  - `{locale}`（文案已按语言存，locale code 不该出现在访客页脚）
+  - `{path}` / `{page_url}`（chrome 是站点级，版权行不该跟着当前路径变）
+  - 改版权默认值 `© {year} {site}`（存量页脚零变化）
+  - 动 chrome 的 row / align / mobile 排版
+i18n: none # 只改编辑器 info 与用量文档；占位符本身不是库存文案
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared chrome-text.test.ts chrome-html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteChrome.test.tsx
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: []
+models: []

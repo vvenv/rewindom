@@ -91,9 +91,16 @@ putting a line of announcement text in the header, is a single change.
 
 ### Placeholders in text
 
-The text block supports two placeholders: `{year}` for the current year and `{site}` for
-the site name. That is why the default `© {year} {site}` keeps up with new years and
-renames on its own. Want "© 2020–{year} Acme, Inc."? Just type it.
+The text block supports placeholders that are filled in at render time so they do not
+go stale:
+
+- `{year}` current year
+- `{site}` site name
+- `{hostname}` hostname visitors used (no port)
+- `{url}` site address (scheme included, no trailing slash)
+
+That is why the default `© {year} {site}` keeps up with new years and renames on its
+own. Want "© 2020–{year} Acme, Inc." or an ICP line with `{hostname}`? Just type it.
 
 ### On mobile
 

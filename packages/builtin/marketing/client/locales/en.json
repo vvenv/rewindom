@@ -481,7 +481,7 @@
       "chrome_nav_title": "Column heading, shown only in the stacked arrangement. Filling it in is also what makes this group a screen-reader landmark.",
       "chrome_nav_items": "Add entries from four sources: a custom link, all top-level pages, the docs library, or one doc category. The last three are rules — what they expand into depends on your content.",
       "chrome_nav_display": "Inline suits header navigation and the legal links in a bottom bar; stacked suits footer link columns.",
-      "chrome_text": "Placeholders: {year} for the current year, {site} for the site name, and {hostname} for the hostname visitors used (no port). That is why the default “© {year} {site}” keeps up with new years and renames on its own.",
+      "chrome_text": "Placeholders are filled in at render time so they do not go stale: {year} current year, {site} site name, {hostname} hostname visitors used (no port), {url} site address (scheme included, no trailing slash). That is why the default “© {year} {site}” keeps up with new years and renames on its own.",
       "chrome_row_gap": "Distance between blocks within a row, and between rows.",
       "chrome_divider": "The hairline on the side facing the page content (below a header, above a footer). Usually turned off once the bar has a dark background.",
       "chrome_spacing_above": "Gap between the page content and the footer.",

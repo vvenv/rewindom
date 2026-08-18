@@ -35,6 +35,8 @@ export interface ChromeAreaInput {
   locale?: AppLocale;
   defaultLocale?: AppLocale;
   locales?: LocaleSwitcherOption[];
+  /** 当前请求 origin；chrome_text 的 `{hostname}` / `{url}` 都从这里拆。 */
+  origin?: string;
   accountEntryHtml?: string;
   contributed?: Readonly<Record<string, unknown>>;
   enabledEntitlements?: ReadonlySet<string>;
@@ -72,6 +74,7 @@ export function renderHeaderHtml(
     homeHref: input.homeHref,
     ctx: chromeNavContext(input),
     locales: input.locales ?? [],
+    origin: input.origin,
     accountEntryHtml: input.accountEntryHtml,
     contributed: input.contributed,
     enabledEntitlements: input.enabledEntitlements,

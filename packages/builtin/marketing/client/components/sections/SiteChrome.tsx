@@ -304,6 +304,11 @@ export interface SiteChromeProps {
   currentPath?: string;
   locale?: string;
   defaultLocale?: string;
+  /**
+   * 当前请求 origin。不传则用 `window.location.origin`：工作台与官网同 Host，
+   * 编辑器预览和实站因此是同一个值。`{hostname}` / `{url}` 都从这里拆。
+   */
+  origin?: string;
   /** 本页各语言入口（语言块的候选）。 */
   alternates?: PageLocaleAlternate[];
   /** 编辑器里点击整块可选中；`blockId` 非空表示点在某个块上。 */
@@ -363,6 +368,9 @@ export function SiteChrome({
   ...props
 }: SiteChromeProps & { tag: "header" | "footer" }): ReactElement {
   const { section, siteName, logoUrl, onSelect, alternates = [] } = props;
+  const origin =
+    props.origin ??
+    (typeof window !== "undefined" ? window.location.origin : "");
   const s = section.settings;
   const ctx = chromeNavContext(props);
   const select = selectable(onSelect);
@@ -422,6 +430,7 @@ export function SiteChrome({
       case "chrome_text": {
         const text = resolveChromeText(settingText(block.settings, "text"), {
           siteName,
+          origin,
         });
         return text ? <p className="chrome-text">{text}</p> : null;
       }

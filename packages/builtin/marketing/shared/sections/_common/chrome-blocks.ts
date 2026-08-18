@@ -174,11 +174,11 @@ export const CHROME_NAV_BLOCK: BlockDefinition = {
 /**
  * 一小段文字：版权、备案说明、页头公告。
  *
- * 支持两个占位符，`{year}` 与 `{site}`——版权行的默认值就是
+ * 占位符：`{year}`、`{site}`、`{hostname}`、`{url}`——版权行的默认值就是
  * `marketing:storefront.chrome.copyright`（落成 `© {year} {site}`）。
  * 以前这是 `chrome_copyright` 一个专用块 + 「留空则自动生成」的隐藏行为：租户在输入
  * 框里看到的是空的，前台却有字，想改成「© 2020–{year}」就没有下手的地方。占位符把
- * 那个行为摆到台面上——看得见、改得动，跨年与改站名照样自己跟上。
+ * 那个行为摆到台面上——看得见、改得动，跨年、改站名、换绑域名照样自己跟上。
  */
 export const CHROME_TEXT_BLOCK: BlockDefinition = {
   type: "chrome_text",

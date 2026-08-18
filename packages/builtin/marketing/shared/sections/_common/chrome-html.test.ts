@@ -62,6 +62,7 @@ function header(blocks: SiteBlock[], settings: SettingValues = {}) {
     homeHref: "/",
     locales: LOCALES,
     locale: "zh-CN",
+    origin: "https://example.com",
   });
 }
 
@@ -72,6 +73,7 @@ function footer(blocks: SiteBlock[], settings: SettingValues = {}) {
     logoUrl: null,
     locales: LOCALES,
     locale: "zh-CN",
+    origin: "https://example.com",
   });
 }
 
@@ -163,9 +165,13 @@ describe("chrome 导航", () => {
 });
 
 describe("chrome 文本占位符", () => {
-  it("{year} 与 {site} 在渲染期解析", () => {
-    const html = footer([block("chrome_text", { text: "© {year} {site}" })]);
-    expect(html).toContain(`© ${new Date().getFullYear()} 站点`);
+  it("{year}、{site}、{hostname}、{url} 在渲染期解析", () => {
+    const html = footer([
+      block("chrome_text", { text: "© {year} {site} · {hostname} · {url}" }),
+    ]);
+    expect(html).toContain(
+      `© ${new Date().getFullYear()} 站点 · example.com · https://example.com`,
+    );
   });
 
   it("空文本不留空标签", () => {

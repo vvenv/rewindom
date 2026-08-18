@@ -47,6 +47,8 @@ export interface ChromeRenderInput {
   homeHref: string;
   ctx: SiteNavContext;
   locales: LocaleSwitcherOption[];
+  /** 当前请求 origin；chrome_text 的 `{hostname}` / `{url}` 都从这里拆。 */
+  origin?: string;
   /** 会员入口的 SSR 片段（由 site-member 模块灌进来）。 */
   accountEntryHtml?: string;
   /** 贡献段 / 贡献 chrome 块的按请求数据。 */
@@ -241,6 +243,7 @@ function renderBlockHtml(block: SiteBlock, input: ChromeRenderInput, isMainNav: 
     case "chrome_text": {
       const text = resolveChromeText(settingText(block.settings, "text"), {
         siteName: input.siteName,
+        origin: input.origin,
       });
       return text ? `<p class="chrome-text">${escapeHtml(text)}</p>` : "";
     }

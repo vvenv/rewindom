@@ -69,7 +69,7 @@ export interface SiteChrome {
  * 版权文案是文本块的默认值 `marketing:storefront.chrome.copyright`
  * （落成 `© {year} {site}`）：占位符在渲染期解析（见 `chrome-text.ts`）。建站那天
  * 把 `© 2026 Acme` 写死进 settings，跨年之后页脚就一直停在去年，租户改了站名也不
- * 跟着变——而这两件事本来一行都不用配。
+ * 跟着变——年份、站名、当前域名本来一行都不用配。
  */
 export function buildMinimalSiteChrome(): SiteChrome {
   return {
