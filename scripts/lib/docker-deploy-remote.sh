@@ -205,6 +205,8 @@ docker_remote_compose_up() {
     build_cmd="${build_cmd} --pull"
   fi
 
+  # 构建与 up 在独立 session 里跑，日志落到文件。SSH 只负责 tail：
+  # 客户端断线不会 SIGHUP 构建，也不会把 compose 卡在已死的 pty 上。
   _run_ssh "set -euo pipefail
 cd '${remote_dir}'
 
@@ -214,11 +216,36 @@ if ! command -v docker >/dev/null 2>&1; then
   systemctl enable --now docker
 fi
 
+log=/tmp/rewindom-docker-compose.log
+rcfile=/tmp/rewindom-docker-compose.rc
+job=/tmp/rewindom-docker-compose-job.sh
+rm -f \"\$rcfile\"
+: > \"\$log\"
+cat > \"\$job\" <<'JOB'
+#!/bin/bash
+set +e
+cd '${remote_dir}'
 ${build_cmd}
-docker compose -f docker-compose.prod.yml --env-file '${env_file}' up -d
-
+b=\$?
+if [ \"\$b\" -eq 0 ]; then
+  docker compose -f docker-compose.prod.yml --env-file '${env_file}' up -d
+  b=\$?
+fi
+echo \$b > /tmp/rewindom-docker-compose.rc
+JOB
+chmod +x \"\$job\"
+setsid nohup \"\$job\" >>\"\$log\" 2>&1 < /dev/null &
+echo \"compose 已在后台启动，日志 \$log\"
+while [ ! -f \"\$rcfile\" ]; do
+  sleep 8
+  tail -n 5 \"\$log\" || true
+  echo
+done
+tail -n 40 \"\$log\"
+rc=\$(cat \"\$rcfile\")
 echo '--- docker compose ps ---'
-docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml --env-file '${env_file}' ps
+exit \"\$rc\"
 "
 }
 

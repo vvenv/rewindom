@@ -51,7 +51,9 @@ load_deploy_credentials() {
   fi
 }
 
-_ssh_common_opts=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o TCPKeepAlive=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3)
+# 远程 docker compose build 常跑十几分钟；过短的 keepalive 会在 NAT/中间盒空闲超时后
+# 让客户端以为连接已死，服务端却仍占着 pty，compose 卡在 stdout 阻塞上。
+_ssh_common_opts=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o TCPKeepAlive=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=20)
 
 # 本地是终端时注入 FORCE_COLOR，供远程 log.sh / 工具链着色（尊重 NO_COLOR）
 _ssh_force_color_prefix() {
