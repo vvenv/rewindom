@@ -56,16 +56,42 @@ function MediaCard({ asset }: { asset: SiteAsset }): ReactElement {
   }, [asset, confirm, remove, t]);
 
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-border/60 p-3">
-      <img
-        src={asset.url}
-        alt={asset.alt}
-        className="aspect-video w-full rounded-md bg-muted object-contain"
-      />
-      <p className="text-xs text-muted-foreground tabular-nums">
-        {asset.width > 0 ? `${asset.width} × ${asset.height} · ` : ""}
-        {formatSize(asset.size_bytes)}
-      </p>
+    <li className="group flex min-w-0 flex-col gap-2 overflow-hidden rounded-lg border border-border/60 p-2">
+      <div className="relative overflow-hidden rounded-md bg-muted">
+        <img
+          src={asset.url}
+          alt={asset.alt}
+          className="aspect-video w-full object-contain"
+        />
+        <p className="pointer-events-none absolute bottom-1.5 left-1.5 max-w-[calc(100%-0.75rem)] truncate rounded-md bg-background/85 px-1.5 py-0.5 text-[11px] text-muted-foreground tabular-nums shadow-sm backdrop-blur-sm">
+          {asset.width > 0 ? `${asset.width} × ${asset.height} · ` : ""}
+          {formatSize(asset.size_bytes)}
+        </p>
+        <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+          <Button
+            variant="secondary"
+            size="icon-sm"
+            className="bg-background/90 shadow-sm backdrop-blur-sm"
+            aria-label={t("media.copyUrl")}
+            onClick={() => {
+              void navigator.clipboard.writeText(asset.url);
+              toast.success(t("media.urlCopied"));
+            }}
+          >
+            <Copy />
+          </Button>
+          <Button
+            variant="secondary"
+            size="icon-sm"
+            className="bg-background/90 text-destructive shadow-sm backdrop-blur-sm hover:bg-destructive/10 hover:text-destructive"
+            aria-label={t("media.delete")}
+            disabled={remove.isPending}
+            onClick={() => void handleDelete()}
+          >
+            <Trash2 />
+          </Button>
+        </div>
+      </div>
       <Input
         value={alt}
         placeholder={t("media.altPlaceholder")}
@@ -73,28 +99,6 @@ function MediaCard({ asset }: { asset: SiteAsset }): ReactElement {
         onChange={(event) => setAlt(event.target.value)}
         onBlur={() => void saveAlt()}
       />
-      <div className="flex justify-end gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t("media.copyUrl")}
-          onClick={() => {
-            void navigator.clipboard.writeText(asset.url);
-            toast.success(t("media.urlCopied"));
-          }}
-        >
-          <Copy className="size-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t("media.delete")}
-          disabled={remove.isPending}
-          onClick={() => void handleDelete()}
-        >
-          <Trash2 className="size-4" />
-        </Button>
-      </div>
     </li>
   );
 }
@@ -110,10 +114,14 @@ export function MediaGrid({
 
   if (isLoading && assets.length === 0) {
     return (
-      <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: 6 }, (_, index) => (
-          <li key={index}>
-            <Skeleton className="aspect-video w-full rounded-lg" />
+          <li
+            key={index}
+            className="flex flex-col gap-2 rounded-lg border border-border/60 p-2"
+          >
+            <Skeleton className="aspect-video w-full rounded-md" />
+            <Skeleton className="h-8 w-full rounded-lg" />
           </li>
         ))}
       </ul>
@@ -131,7 +139,7 @@ export function MediaGrid({
   }
 
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {assets.map((asset) => (
         <MediaCard key={asset.id} asset={asset} />
       ))}
