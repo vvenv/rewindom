@@ -197,4 +197,32 @@ describe("events nav sources", () => {
     });
     expect(items.every((entry) => entry.current === false)).toBe(true);
   });
+
+  it("关掉的格子不进页头", () => {
+    const items = resolveNavItems([item()], {
+      ...ctx(),
+      contributed: eventsContextEntry(
+        emptyEventsContext({
+          nav_topics: eventsNavTopicOptions("zh-CN", ["ai", "tech"]),
+        }),
+      ),
+    });
+    expect(items.map((entry) => entry.label)).toEqual(["AI", "科技"]);
+  });
+
+  it("单主题源指向已关掉的格子时整条不渲染", () => {
+    expect(
+      resolveNavItems(
+        [item({ source: EVENTS_TOPIC_NAV_SOURCE, category: "gaming" })],
+        {
+          ...ctx(),
+          contributed: eventsContextEntry(
+            emptyEventsContext({
+              nav_topics: eventsNavTopicOptions("zh-CN", ["ai", "tech"]),
+            }),
+          ),
+        },
+      ),
+    ).toEqual([]);
+  });
 });

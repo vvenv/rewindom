@@ -43,6 +43,65 @@ export function isEventTopic(value: unknown): value is EventTopic {
   );
 }
 
+/** TenantSetting key：本站公开面启用哪些主题。 */
+export const ENABLED_TOPICS_SETTING = "events.enabled_topics";
+
+/**
+ * 读路径：缺行 / 非法 / 空数组 → 全开。
+ *
+ * 失效方向必须在「多显示」一侧——解析坏了不该让整个页头消失。
+ */
+export function resolveEnabledTopics(value: unknown): EventTopic[] {
+  if (!Array.isArray(value)) {
+    return [...EVENT_TOPICS];
+  }
+  const enabled = EVENT_TOPICS.filter((topic) => value.includes(topic));
+  return enabled.length > 0 ? enabled : [...EVENT_TOPICS];
+}
+
+/**
+ * 写路径：丢掉非法项，至少留一格。空 / 非数组 → null（调用方 400）。
+ */
+export function parseEnabledTopicsInput(value: unknown): EventTopic[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const enabled = EVENT_TOPICS.filter((topic) => value.includes(topic));
+  return enabled.length > 0 ? enabled : null;
+}
+
+export function isTopicEnabled(
+  enabled: readonly EventTopic[],
+  topic: EventTopic,
+): boolean {
+  return enabled.includes(topic);
+}
+
+export function allTopicsEnabled(enabled: readonly EventTopic[]): boolean {
+  return enabled.length === EVENT_TOPICS.length;
+}
+
+/**
+ * 列表谓词。指定了某一格就只查那一格（调用方先 404 关掉的格子）；
+ * 未指定且未全开时收成 `in`，全开则不加 topic 条件——跟改之前同一条查询。
+ */
+export function enabledTopicWhere(
+  enabled: readonly EventTopic[],
+  requested?: EventTopic,
+): { topic: EventTopic } | { topic: { in: EventTopic[] } } | Record<string, never> {
+  if (requested) {
+    return { topic: requested };
+  }
+  if (allTopicsEnabled(enabled)) {
+    return {};
+  }
+  return { topic: { in: [...enabled] } };
+}
+
+export interface EventTopicSettings {
+  enabled_topics: EventTopic[];
+}
+
 export function isEventStatus(value: unknown): value is EventStatus {
   return (
     typeof value === "string" &&
@@ -308,6 +367,17 @@ export interface EventUpdateBody {
   title?: string;
   summary?: string;
   topic?: EventTopic;
+}
+
+/**
+ * 移除一条信号的结果。
+ *
+ * 移掉最后一条信号时事件本身也没了（`refreshEvents` 不留空壳），
+ * 前端要据此跳回列表而不是渲染一个 404 详情。
+ */
+export interface EventSignalRemoveResult {
+  event_deleted: boolean;
+  event: EventDetail | null;
 }
 
 /** 本站的一条采集源（工作台配置面）。 */

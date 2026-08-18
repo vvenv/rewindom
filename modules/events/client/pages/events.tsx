@@ -61,6 +61,7 @@ export function Events() {
           showSort={!isFeedView}
           hasFilters={page.hasFilters}
           topicCounts={topicsQuery.data?.items ?? []}
+          enabledTopics={topicsQuery.data?.enabled_topics}
           onSearchChange={(value) =>
             page.handleFiltersChange({
               q: value,

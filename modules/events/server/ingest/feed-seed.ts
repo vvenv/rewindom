@@ -1,5 +1,8 @@
 import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
+import { getEnabledTopics } from "../event/topic-settings.service.js";
+import { isTopicEnabled } from "../../shared/index.js";
+
 import { DEFAULT_FEEDS, feedCatalogKey } from "./feed-catalog.js";
 
 /**
@@ -20,9 +23,13 @@ export const SEEDED_FEED_KEYS_SETTING = "events.seeded_feed_keys";
  * 每轮采集前调一次，幂等。
  */
 export async function ensureDefaultFeeds(tenantId: string): Promise<number> {
-  const seeded = await loadSeededKeys(tenantId);
+  const [seeded, enabled] = await Promise.all([
+    loadSeededKeys(tenantId),
+    getEnabledTopics(tenantId),
+  ]);
   const pending = DEFAULT_FEEDS.filter(
-    (feed) => !seeded.has(feedCatalogKey(feed)),
+    (feed) =>
+      isTopicEnabled(enabled, feed.topic) && !seeded.has(feedCatalogKey(feed)),
   );
   if (pending.length === 0) {
     return 0;

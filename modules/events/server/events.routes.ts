@@ -12,8 +12,14 @@ import {
   getEventFeed,
   listEvents,
   listTopicCounts,
+  removeEventSignal,
   updateEvent,
 } from "./event/event.service.js";
+import {
+  getEnabledTopicSettings,
+  getEnabledTopics,
+  updateEnabledTopics,
+} from "./event/topic-settings.service.js";
 
 import {
   isEventStatus,
@@ -83,9 +89,53 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     context: "EventTopicList",
     errorCode: "EVENT_TOPIC_LIST_FAILED",
     preHandler: [app.requirePermission("events.read")],
-    handler: async (request) => ({
-      items: await listTopicCounts(request.tenantContext!.tenant_id),
-    }),
+    handler: async (request) => {
+      const tenantId = request.tenantContext!.tenant_id;
+      const [items, enabled_topics] = await Promise.all([
+        listTopicCounts(tenantId),
+        getEnabledTopics(tenantId),
+      ]);
+      return { items, enabled_topics };
+    },
+  });
+
+  defineRoute(app, {
+    method: "GET",
+    url: "/settings",
+    context: "EventSettingsGet",
+    errorCode: "EVENT_SETTINGS_FAILED",
+    preHandler: [app.requirePermission("events.read")],
+    handler: async (request) =>
+      getEnabledTopicSettings(request.tenantContext!.tenant_id),
+  });
+
+  defineRoute(app, {
+    method: "PUT",
+    url: "/settings",
+    context: "EventSettingsUpdate",
+    errorCode: "EVENT_SETTINGS_UPDATE_FAILED",
+    preHandler: [app.requirePermission("events.write")],
+    handler: async (request, reply) => {
+      try {
+        const settings = await updateEnabledTopics(
+          request.tenantContext!.tenant_id,
+          request.body,
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "EVENT_TOPICS_UPDATE",
+          resource: request.tenantContext!.tenant_id,
+          detail_key: "events.audit.topics_updated",
+        });
+        return settings;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
   });
 
   defineRoute(app, {
@@ -142,6 +192,50 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
         });
 
         return event;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  /**
+   * 移除一条信号（软删）。
+   *
+   * 用 DELETE 而不是把它挤进事件的 PATCH：这是对**子资源**的操作，
+   * 而且它会连带改事件的热度、阶段与计数——放进文案编辑那条路径会让
+   * 「保存标题」和「删掉一条证据」共用一个错误码，出事时分不清是哪一半。
+   */
+  defineRoute(app, {
+    method: "DELETE",
+    url: "/:eventId/signals/:signalId",
+    context: "EventSignalRemove",
+    errorCode: "EVENT_SIGNAL_REMOVE_FAILED",
+    preHandler: [app.requirePermission("events.write")],
+    handler: async (request, reply) => {
+      try {
+        const { eventId, signalId } = request.params as {
+          eventId: string;
+          signalId: string;
+        };
+        const { signal_title, ...result } = await removeEventSignal({
+          ...viewerScope(request),
+          event_id: eventId,
+          signal_id: signalId,
+        });
+
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "EVENT_SIGNAL_REMOVE",
+          resource: signalId,
+          detail_key: "events.audit.signal_removed",
+          detail_params: { signal: signal_title },
+        });
+
+        return result;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

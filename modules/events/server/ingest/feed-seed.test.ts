@@ -16,8 +16,14 @@ vi.mock("@rewindom/module-sdk/server", () => ({
   }),
 }));
 
+vi.mock("../event/topic-settings.service.js", () => ({
+  getEnabledTopics: vi.fn(),
+}));
+
 const { ensureDefaultFeeds, SEEDED_FEED_KEYS_SETTING } = await import("./feed-seed.js");
 const { DEFAULT_FEEDS, feedCatalogKey } = await import("./feed-catalog.js");
+const { EVENT_TOPICS } = await import("../../shared/index.js");
+const { getEnabledTopics } = await import("../event/topic-settings.service.js");
 
 const ALL_KEYS = DEFAULT_FEEDS.map(feedCatalogKey);
 
@@ -27,6 +33,7 @@ beforeEach(() => {
   feedFindMany.mockResolvedValue([]);
   feedCreateMany.mockResolvedValue({ count: 0 });
   settingUpsert.mockResolvedValue({});
+  vi.mocked(getEnabledTopics).mockResolvedValue([...EVENT_TOPICS]);
 });
 
 function createdUrls(): string[] {
@@ -89,6 +96,20 @@ describe("ensureDefaultFeeds", () => {
   it("目录 key 由 connector + url 组成——改展示名不会让站点重新种一遍", () => {
     expect(feedCatalogKey({ connector: "rss", url: "https://a/feed" })).toBe(
       "rss:https://a/feed",
+    );
+  });
+
+  it("关掉的 topic 不种、也不记已种——以后打开再补", async () => {
+    vi.mocked(getEnabledTopics).mockResolvedValue(["ai", "tech"]);
+    const count = await ensureDefaultFeeds("t1");
+    const enabledFeeds = DEFAULT_FEEDS.filter(
+      (feed) => feed.topic === "ai" || feed.topic === "tech",
+    );
+    expect(count).toBe(enabledFeeds.length);
+    expect(createdUrls()).toEqual(enabledFeeds.map((feed) => feed.url));
+    const saved = settingUpsert.mock.calls[0][0];
+    expect(saved.create.value).toEqual(
+      enabledFeeds.map(feedCatalogKey).sort(),
     );
   });
 });

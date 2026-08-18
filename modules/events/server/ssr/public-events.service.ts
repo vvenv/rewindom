@@ -15,6 +15,7 @@ import {
   listEventRevisions,
   publicRevisionSince,
 } from "../event/event-revision.service.js";
+import { getEnabledTopics } from "../event/topic-settings.service.js";
 
 import type {
   EventDetail,
@@ -22,6 +23,7 @@ import type {
   EventListItem,
   EventTopic,
 } from "../../shared/index.js";
+import { enabledTopicWhere, isTopicEnabled } from "../../shared/index.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 import type { SitemapEntry } from "@rewindom/builtin/marketing/server/site.service.js";
 
@@ -72,7 +74,8 @@ export async function getPublicEventFeed(
   topic?: EventTopic,
 ): Promise<PublicFeedData> {
   const now = Date.now();
-  const topicWhere = topic ? { topic } : {};
+  const enabled = await getEnabledTopics(tenantId);
+  const topicWhere = enabledTopicWhere(enabled, topic);
   const tenantWhere = withTenantScope(tenantId, topicWhere);
 
   const [rising, nowEvents] = await Promise.all([
@@ -123,7 +126,8 @@ export async function getPublicEventList(
   topic?: EventTopic,
 ): Promise<EventListItem[]> {
   const now = Date.now();
-  const topicWhere = topic ? { topic } : {};
+  const enabled = await getEnabledTopics(tenantId);
+  const topicWhere = enabledTopicWhere(enabled, topic);
   const tenantWhere = withTenantScope(tenantId, topicWhere);
   const common = { take: LISTING_FETCH_LIMIT, select: LIST_SELECT } as const;
 
@@ -172,8 +176,9 @@ export async function getPublicEventsForRss(
   tenantId: string,
   topic?: EventTopic,
 ): Promise<EventListItem[]> {
+  const enabled = await getEnabledTopics(tenantId);
   const rows = await prisma.newsEvent.findMany({
-    where: withTenantScope(tenantId, topic ? { topic } : {}),
+    where: withTenantScope(tenantId, enabledTopicWhere(enabled, topic)),
     orderBy: { last_activity_at: "desc" },
     take: RSS_LIMIT,
     select: LIST_SELECT,
@@ -193,8 +198,12 @@ export async function getPublicEntityEventsForRss(
   if (!entity) {
     return null;
   }
+  const enabled = await getEnabledTopics(tenantId);
   const links = await prisma.eventEntityLink.findMany({
-    where: withTenantScope(tenantId, { entity: { slug } }),
+    where: withTenantScope(tenantId, {
+      entity: { slug },
+      event: enabledTopicWhere(enabled),
+    }),
     orderBy: { event: { last_activity_at: "desc" } },
     take: RSS_LIMIT,
     select: { event: { select: LIST_SELECT } },
@@ -240,7 +249,11 @@ export async function getPublicEventBySlug(
       },
     }),
     prisma.eventSignal.findMany({
-      where: withTenantScope(tenantId, { event_id: record.id }),
+      // 与工作台同一条口径：手动移除过的信号不进公开面
+      where: withTenantScope(tenantId, {
+        event_id: record.id,
+        removed_at: null,
+      }),
       orderBy: { published_at: "desc" },
       select: {
         id: true,
@@ -262,12 +275,13 @@ export async function getPublicEventBySlug(
     since: publicRevisionSince(new Date()),
   });
 
-  const [entities, related] = await Promise.all([
+  const [entities, related, enabled] = await Promise.all([
     listEventEntities({ tenant_id: tenantId, event_id: record.id }),
     listRelatedEvents({
       tenant_id: tenantId,
       related_ids: record.related_event_ids,
     }),
+    getEnabledTopics(tenantId),
   ]);
 
   return toEventDetail({
@@ -276,7 +290,9 @@ export async function getPublicEventBySlug(
     signals,
     revisions,
     entities,
-    related,
+    related: related.filter((row) =>
+      isTopicEnabled(enabled, row.topic as EventTopic),
+    ),
     follow: null,
   });
 }
@@ -309,15 +325,23 @@ export async function getPublicEntityBySlug(
     return null;
   }
 
+  const enabled = await getEnabledTopics(tenantId);
+  const eventFilter = enabledTopicWhere(enabled);
   const [links, eventCount] = await Promise.all([
     prisma.eventEntityLink.findMany({
-      where: withTenantScope(tenantId, { entity: { slug } }),
+      where: withTenantScope(tenantId, {
+        entity: { slug },
+        event: eventFilter,
+      }),
       orderBy: { event: { last_activity_at: "desc" } },
       take: ENTITY_EVENT_LIMIT,
       select: { event: { select: LIST_SELECT } },
     }),
     prisma.eventEntityLink.count({
-      where: withTenantScope(tenantId, { entity: { slug } }),
+      where: withTenantScope(tenantId, {
+        entity: { slug },
+        event: eventFilter,
+      }),
     }),
   ]);
 
@@ -342,10 +366,14 @@ export async function getPublicEventSitemapEntries(
   tenantId: string,
 ): Promise<SitemapEntry[]> {
   const cutoff = new Date(Date.now() - 30 * 24 * HOUR_MS);
+  const enabled = await getEnabledTopics(tenantId);
   const [site, rows] = await Promise.all([
     resolvePublicSite(tenantId),
     prisma.newsEvent.findMany({
-      where: withTenantScope(tenantId, { last_activity_at: { gte: cutoff } }),
+      where: withTenantScope(tenantId, {
+        last_activity_at: { gte: cutoff },
+        ...enabledTopicWhere(enabled),
+      }),
       orderBy: { last_activity_at: "desc" },
       take: 500,
       select: { slug: true, last_activity_at: true },
@@ -379,11 +407,19 @@ export async function getPublicEntitySitemapEntries(
   tenantId: string,
 ): Promise<SitemapEntry[]> {
   const cutoff = new Date(Date.now() - 30 * 24 * HOUR_MS);
+  const enabled = await getEnabledTopics(tenantId);
   const [site, rows] = await Promise.all([
     resolvePublicSite(tenantId),
     prisma.eventEntity.findMany({
       where: withTenantScope(tenantId, {
-        links: { some: { event: { last_activity_at: { gte: cutoff } } } },
+        links: {
+          some: {
+            event: {
+              last_activity_at: { gte: cutoff },
+              ...enabledTopicWhere(enabled),
+            },
+          },
+        },
       }),
       orderBy: { updated_at: "desc" },
       take: 500,

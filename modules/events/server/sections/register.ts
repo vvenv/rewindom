@@ -7,6 +7,7 @@ import {
   getPublicEventSitemapEntries,
 } from "../ssr/public-events.service.js";
 
+import { getEnabledTopics } from "../event/topic-settings.service.js";
 import {
   EVENTS_FEED_SECTION_TYPES,
   EVENTS_INDEX_PATH,
@@ -57,7 +58,7 @@ function wantsAny(
  * 直接带进来（那里才知道当前是哪个事件）。
  *
  * 页头主题导航也登记在这里：`collectSectionTypes` 会把 nav source 收进来。
- * 只挂了导航、页面上没有事件段时不要去拉 feed——主题是编译期枚举。
+ * 只挂了导航、页面上没有事件段时不要去拉 feed——主题格子来自站点设置，不靠 feed。
  */
 function registerEventsContextProvider(): void {
   registerSectionContextProvider({
@@ -69,6 +70,7 @@ function registerEventsContextProvider(): void {
       });
       const t = (key: string, params?: Record<string, string | number>): string =>
         eventsMessage(input.locale, key, params);
+      const enabled = await getEnabledTopics(input.tenantId);
       const feed = wantsAny(input.usedTypes, EVENTS_FEED_SECTION_TYPES)
         ? await getPublicEventFeed(input.tenantId)
         : { rising: [], now: [] };
@@ -76,7 +78,7 @@ function registerEventsContextProvider(): void {
       return eventsContextEntry(
         emptyEventsContext({
           index_path: indexPath,
-          nav_topics: eventsNavTopicOptions(input.locale),
+          nav_topics: eventsNavTopicOptions(input.locale, enabled),
           feed: {
             rising: feed.rising.map((item) => toPublicCard(item, t, indexPath)),
             now: feed.now.map((item) => toPublicCard(item, t, indexPath)),

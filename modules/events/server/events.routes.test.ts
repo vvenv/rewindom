@@ -17,6 +17,16 @@ vi.mock("./event/event.service.js", () => ({
   listTopicCounts: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock("./event/topic-settings.service.js", () => ({
+  getEnabledTopics: vi.fn().mockResolvedValue(["ai", "tech"]),
+  getEnabledTopicSettings: vi
+    .fn()
+    .mockResolvedValue({ enabled_topics: ["ai", "tech"] }),
+  updateEnabledTopics: vi
+    .fn()
+    .mockResolvedValue({ enabled_topics: ["ai", "tech"] }),
+}));
+
 import {
   createRouteTestApp,
   createTestUserFast,
@@ -73,6 +83,7 @@ describe("Events Routes 权限控制", () => {
     "/api/events/",
     "/api/events/feed",
     "/api/events/topics",
+    "/api/events/settings",
     "/api/events/some-event",
   ];
 
@@ -120,19 +131,49 @@ describe("Events Routes 权限控制", () => {
     expect(response.statusCode).toBe(200);
   });
 
-  it("静态路径优先于 :eventId —— /topics 不会被当成事件 id", async () => {
+  it("静态路径优先于 :eventId —— /topics 与 /settings 不会被当成事件 id", async () => {
     const { listTopicCounts, getEventDetail } = await import(
       "./event/event.service.js"
+    );
+    const { getEnabledTopicSettings } = await import(
+      "./event/topic-settings.service.js"
     );
     await app.inject({
       method: "GET",
       url: "/api/events/topics",
       headers: authHeaders(reader),
     });
+    await app.inject({
+      method: "GET",
+      url: "/api/events/settings",
+      headers: authHeaders(reader),
+    });
     expect(listTopicCounts).toHaveBeenCalled();
+    expect(getEnabledTopicSettings).toHaveBeenCalled();
     expect(getEventDetail).not.toHaveBeenCalledWith(
       expect.objectContaining({ event_id: "topics" }),
     );
+    expect(getEventDetail).not.toHaveBeenCalledWith(
+      expect.objectContaining({ event_id: "settings" }),
+    );
+  });
+
+  it("PUT /settings 需要 events.write", async () => {
+    const denied = await app.inject({
+      method: "PUT",
+      url: "/api/events/settings",
+      payload: { enabled_topics: ["ai"] },
+      headers: authHeaders(reader),
+    });
+    expect(denied.statusCode).toBe(403);
+
+    const allowed = await app.inject({
+      method: "PUT",
+      url: "/api/events/settings",
+      payload: { enabled_topics: ["ai"] },
+      headers: authHeaders(writer),
+    });
+    expect(allowed.statusCode).toBe(200);
   });
 
   it("PATCH /:eventId 需要 events.write", async () => {

@@ -69,6 +69,12 @@
     "sources": "Sources",
     "sourcesHint": "Sources are the evidence for this event — open any of them to check the original",
     "sourcesEmpty": "No sources of this kind yet",
+    "removeSignal": "Remove this source",
+    "removeSignalConfirmTitle": "Remove this source?",
+    "removeSignalConfirmDescription": "“{{title}}” will stop counting toward this event's timeline, heat and source list, and will disappear from the public page. Ingest will not bring it back, and this cannot be undone.",
+    "removeSignalToast": "Source removed",
+    "removeSignalToastEventGone": "Last source removed — the event was deleted with it",
+    "removeSignalFailed": "Could not remove it, try again",
     "analyzerHeuristic": "Summary assembled by rule from the sources below",
     "analyzerLlm": "Summary written by AI strictly from the sources below",
     "analyzerManual": "Summary edited on this site — later ingest will not overwrite it",
@@ -224,7 +230,7 @@
   },
   "sources": {
     "title": "Sources",
-    "pageDescription": "Choose which feeds this site collects. Each source can have its own topic and kind.",
+    "pageDescription": "Choose which feeds this site collects, and which topics it shows.",
     "create": "Add source",
     "createTitle": "Add source",
     "createDescription": "RSS for any site, or Hacker News via the built-in connector.",
@@ -267,6 +273,12 @@
       "sourceKindInvalid": "Choose a kind",
       "topicInvalid": "Choose a topic"
     }
+  },
+  "settings": {
+    "topicsTitle": "Visible topics",
+    "topicsDescription": "These topics appear in the header, listings, and RSS. At least one must stay on.",
+    "topicsNeedOne": "Keep at least one topic enabled",
+    "updateFailed": "Could not save. Please try again."
   },
   "sample": {
     "event1": {

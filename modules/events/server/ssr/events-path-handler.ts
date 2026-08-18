@@ -22,6 +22,7 @@ import {
   getPublicEventFeed,
   getPublicEventList,
 } from "./public-events.service.js";
+import { getEnabledTopics } from "../event/topic-settings.service.js";
 
 import {
   EVENTS_DETAIL_PAGE_KIND,
@@ -38,6 +39,7 @@ import {
   isEventsPath,
   isEventsRootFallbackPath,
   isEventsRootQueryTakeover,
+  isTopicEnabled,
   parseEventsIndexQuery,
   parseEventsRequestPath,
   topicPath,
@@ -91,6 +93,14 @@ async function renderEventsPath(
     return renderDetail(input, locale, route.slug, indexPath);
   }
   const pathTopic = route.type === "topic" ? route.topic : undefined;
+  const query = parseEventsIndexQuery(input.query);
+  const topic = pathTopic ?? query.topic;
+  if (topic) {
+    const enabled = await getEnabledTopics(input.tenantId);
+    if (!isTopicEnabled(enabled, topic)) {
+      return null;
+    }
+  }
   return renderIndex(input, locale, indexPath, pathTopic);
 }
 

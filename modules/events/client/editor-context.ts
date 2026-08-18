@@ -13,6 +13,7 @@ import {
   EVENTS_DETAIL_PAGE_KIND,
   EVENTS_DETAIL_SECTION_TYPE,
   EVENTS_FEED_SECTION_TYPES,
+  EVENT_TOPICS,
   emptyEventsContext,
   eventsContextEntry,
   eventsIndexPath,
@@ -29,6 +30,8 @@ import type {
   EventDetail,
   EventFeedResult,
   EventListItem,
+  EventTopic,
+  EventTopicSettings,
 } from "../shared/index.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
@@ -62,7 +65,10 @@ export function registerEventsEditorContext(): void {
         EVENTS_DETAIL_SECTION_TYPE,
       ]);
 
-      const feed = wantFeed ? await loadFeed(t, indexPath) : { rising: [], now: [] };
+      const [feed, enabled] = await Promise.all([
+        wantFeed ? loadFeed(t, indexPath) : Promise.resolve({ rising: [], now: [] }),
+        loadEnabledTopics(),
+      ]);
       const event =
         wantFeed && input.pageKind === EVENTS_DETAIL_PAGE_KIND
           ? await loadSampleDetail(t, indexPath)
@@ -71,7 +77,7 @@ export function registerEventsEditorContext(): void {
       return eventsContextEntry(
         emptyEventsContext({
           index_path: indexPath,
-          nav_topics: eventsNavTopicOptions(locale),
+          nav_topics: eventsNavTopicOptions(locale, enabled),
           feed,
           event,
         }),
@@ -84,6 +90,18 @@ function translator(locale: AppLocale) {
   const fixed = i18n.getFixedT(locale, "events");
   return (key: string, params?: Record<string, string | number>): string =>
     fixed(key, params ?? {});
+}
+
+async function loadEnabledTopics(): Promise<readonly EventTopic[]> {
+  try {
+    const data = await api.get<EventTopicSettings>("/events/settings");
+    if (data.enabled_topics.length > 0) {
+      return data.enabled_topics;
+    }
+  } catch {
+    // 拉不到就按全开预览，跟读路径缺省一致
+  }
+  return [...EVENT_TOPICS];
 }
 
 async function loadFeed(

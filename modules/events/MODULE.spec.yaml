@@ -40,7 +40,7 @@ permissions:
       key: events.write,
       label: 管理事件,
       group: 事件雷达,
-      description: 编辑事件文案，并配置本站采集源,
+        description: 编辑事件文案，配置本站采集源与显示主题,
     }
 
 # 归属口径：采集源 / 信号 / 事件 / 时间线 / 关注全部按站点隔离。
@@ -153,8 +153,11 @@ api:
     - { method: GET, path: /, permission: events.read }
     - { method: GET, path: /feed, permission: events.read }
     - { method: GET, path: /topics, permission: events.read }
+    - { method: GET, path: /settings, permission: events.read }
+    - { method: PUT, path: /settings, permission: events.write }
     - { method: GET, path: /:eventId, permission: events.read }
     - { method: PATCH, path: /:eventId, permission: events.write }
+    - { method: DELETE, path: /:eventId/signals/:signalId, permission: events.write }
     - { method: GET, path: /feeds, permission: events.read }
     - { method: POST, path: /feeds, permission: events.write }
     - { method: PATCH, path: /feeds/:feedId, permission: events.write }
@@ -195,6 +198,8 @@ audit:
     - { action: EVENT_FOLLOW, label: 关注事件 }
     - { action: EVENT_UNFOLLOW, label: 取消关注事件 }
     - { action: EVENT_UPDATE, label: 编辑事件 }
+    - { action: EVENT_SIGNAL_REMOVE, label: 移除事件信号 }
+    - { action: EVENT_TOPICS_UPDATE, label: 更新显示主题 }
     - { action: EVENT_FEED_CREATE, label: 新增采集源 }
     - { action: EVENT_FEED_UPDATE, label: 更新采集源 }
     - { action: EVENT_FEED_DELETE, label: 删除采集源 }

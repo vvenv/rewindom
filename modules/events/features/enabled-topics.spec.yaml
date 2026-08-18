@@ -1,0 +1,64 @@
+# 分类法仍是产品七格（EVENT_TOPICS），站点只选自己显示 / 启用哪些。
+# 一个做 AI/科技的站不该在页头铺体育、娱乐、国际——那不是缺分类，是站点范围。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 工作台可开关本站显示哪些 topic；页头、公开列表、RSS、主题路径与目录种植只保留启用的格子。
+gold: packages/client-kit/src/components/SettingsPanel.tsx
+touch:
+  - modules/events/features/enabled-topics.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/MODULE.spec.yaml
+  - modules/events/shared/events.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/nav-sources.ts
+  - modules/events/shared/nav-sources.test.ts
+  - modules/events/server/event/topic-settings.service.ts
+  - modules/events/server/event/topic-settings.service.test.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/events.routes.ts
+  - modules/events/server/events.routes.test.ts
+  - modules/events/server/i18n.ts
+  - modules/events/server/module.ts
+  - modules/events/server/ingest/feed-seed.ts
+  - modules/events/server/ingest/feed-seed.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/rss.routes.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/editor-context.ts
+  - modules/events/client/pages/event-sources.tsx
+  - modules/events/client/pages/events.tsx
+  - modules/events/client/components/EventTopicSettings.tsx
+  - modules/events/client/components/EventFilters.tsx
+  - modules/events/client/hooks/useEventTopicSettings.ts
+  - modules/events/client/hooks/useEvents.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 改 EVENT_TOPICS 枚举本身（不加自定义主题）
+  - 分类器仍按七格判定；关掉的格子只是不展示，不把体育新闻硬塞进科技
+  - 平台控制台 /platform
+  - 工作台改事件主题 / 采集源主题下拉仍是七格（关掉的事件还能改回去）
+  - 存量 chrome 回填（页头条目跟着 nav_topics 走，不用改库）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events.test.ts shared/nav-sources.test.ts server/event/topic-settings.service.test.ts server/ingest/feed-seed.test.ts server/events.routes.test.ts
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. TenantSetting key = events.enabled_topics，值是 EventTopic[]。
+#    缺行 / 非法 / 空数组 → 读路径全开（失效方向：宁可多显示）。
+#    写入至少 1 个合法格子，顺序固定为 EVENT_TOPICS。
+# 2. 工作台：采集源页顶部 SettingsPanel，七格 Switch，即时保存；最后一个开着的不能关。
+# 3. 公开面：nav_topics / Rising / Now / 列表 / RSS / sitemap / 实体页事件
+#    只含启用格子。关掉的 /events/:topic 与 ?topic= 404。事件详情仍可按 slug 打开。
+# 4. 目录种植：只种启用 topic 的源；未启用的 key 不记「已种」，以后打开再补。
+# 5. 工作台探索 feed 与公开面同口径；「全部事件」仍能看到关掉格子里的存量，方便改主题。

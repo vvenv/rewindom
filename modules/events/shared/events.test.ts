@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { describeEventMomentum } from "./events.js";
+import {
+  describeEventMomentum,
+  enabledTopicWhere,
+  EVENT_TOPICS,
+  parseEnabledTopicsInput,
+  resolveEnabledTopics,
+} from "./events.js";
 import { isEventsPath } from "./events-section-context.js";
 
 function item(overrides: {
@@ -74,6 +80,47 @@ describe("describeEventMomentum", () => {
         }),
       ),
     ).toBeNull();
+  });
+});
+
+describe("resolveEnabledTopics", () => {
+  it("缺值 / 非法 / 空数组都当全开——解析坏了不该让页头消失", () => {
+    expect(resolveEnabledTopics(undefined)).toEqual([...EVENT_TOPICS]);
+    expect(resolveEnabledTopics("ai")).toEqual([...EVENT_TOPICS]);
+    expect(resolveEnabledTopics([])).toEqual([...EVENT_TOPICS]);
+    expect(resolveEnabledTopics(["nope"])).toEqual([...EVENT_TOPICS]);
+  });
+
+  it("只保留枚举里的格子，并按产品顺序排", () => {
+    expect(resolveEnabledTopics(["sports", "ai", "ai", "nope"])).toEqual([
+      "ai",
+      "sports",
+    ]);
+  });
+});
+
+describe("parseEnabledTopicsInput", () => {
+  it("空或非数组拒绝，合法子集通过", () => {
+    expect(parseEnabledTopicsInput(undefined)).toBeNull();
+    expect(parseEnabledTopicsInput([])).toBeNull();
+    expect(parseEnabledTopicsInput(["nope"])).toBeNull();
+    expect(parseEnabledTopicsInput(["tech", "ai"])).toEqual(["ai", "tech"]);
+  });
+});
+
+describe("enabledTopicWhere", () => {
+  it("指定某一格就只查那一格", () => {
+    expect(enabledTopicWhere(["ai", "tech"], "ai")).toEqual({ topic: "ai" });
+  });
+
+  it("全开不加 topic 条件", () => {
+    expect(enabledTopicWhere(EVENT_TOPICS)).toEqual({});
+  });
+
+  it("子集用 in", () => {
+    expect(enabledTopicWhere(["ai", "tech"])).toEqual({
+      topic: { in: ["ai", "tech"] },
+    });
   });
 });
 

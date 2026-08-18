@@ -27,12 +27,14 @@ import {
 } from "./public-events.service.js";
 
 import { isEventsEnabled } from "../lib/entitlement.js";
+import { getEnabledTopics } from "../event/topic-settings.service.js";
 
 import {
   EVENTS_INDEX_PATH,
   entityPath,
   eventPath,
   isEventTopic,
+  isTopicEnabled,
 } from "../../shared/index.js";
 import { renderRssXml } from "../../shared/sections/rss-xml.js";
 
@@ -75,6 +77,12 @@ async function sendEventsFeed(
 
   const raw = (request.query as { topic?: string }).topic;
   const topic: EventTopic | undefined = isEventTopic(raw) ? raw : undefined;
+  if (topic) {
+    const enabled = await getEnabledTopics(scope.tenantId);
+    if (!isTopicEnabled(enabled, topic)) {
+      return notFound(reply);
+    }
+  }
   const events = await getPublicEventsForRss(scope.tenantId, topic);
   const t = (key: string) => eventsMessage(scope.locale, key);
 

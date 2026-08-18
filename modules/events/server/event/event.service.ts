@@ -10,14 +10,17 @@ import {
 import { toEventDetail, toEventListItem } from "./event.mapper.js";
 import { listEventEntities } from "./entity.service.js";
 import { listRelatedEvents } from "./related.service.js";
+import { refreshEvents } from "./event-refresh.service.js";
 import {
   listEventRevisions,
   publicRevisionSince,
 } from "./event-revision.service.js";
+import { getEnabledTopics } from "./topic-settings.service.js";
 
 import {
   EVENT_SUMMARY_MAX_LENGTH,
   EVENT_TITLE_MAX_LENGTH,
+  enabledTopicWhere,
   isEventTopic,
   type EventDetail,
   type EventFeedResult,
@@ -25,6 +28,7 @@ import {
   type EventListResult,
   type EventStatus,
   type EventTopic,
+  type EventSignalRemoveResult,
   type EventTopicCount,
   type EventUpdateBody,
 } from "../../shared/index.js";
@@ -130,7 +134,8 @@ export async function getEventFeed(
   params: EventViewerScope & { topic?: EventTopic },
 ): Promise<EventFeedResult> {
   const now = Date.now();
-  const topicWhere = params.topic ? { topic: params.topic } : {};
+  const enabled = await getEnabledTopics(params.tenant_id);
+  const topicWhere = enabledTopicWhere(enabled, params.topic);
   const tenantWhere = withTenantScope(params.tenant_id, topicWhere);
 
   const rising = await prisma.newsEvent.findMany({
@@ -211,7 +216,11 @@ export async function getEventDetail(
       },
     }),
     prisma.eventSignal.findMany({
-      where: withTenantScope(params.tenant_id, { event_id: record.id }),
+      // removed_at 非空 = 工作台手动移除过，任何面上都不该再出现
+      where: withTenantScope(params.tenant_id, {
+        event_id: record.id,
+        removed_at: null,
+      }),
       orderBy: { published_at: "desc" },
       select: {
         id: true,
@@ -337,6 +346,76 @@ export async function updateEvent(
     user_id: params.user_id,
     event_id: existing.id,
   });
+}
+
+/**
+ * 工作台移除一条信号（`events.write`）。
+ *
+ * **软删，不是硬删。** 硬删的话源下一轮采集又把同一条抓回来了——运营点一次「移除」，
+ * 15 分钟后它复活。留着行本身就是墓碑：采集的身份键会命中它，于是不再重建。
+ *
+ * 时间线那一格在这里**直接删**，不指望 refresh 顺手带走：`planAnalysis` 会给
+ * 已有 LLM 产出、又没进热度窗口的事件判 `skip`，那一轮根本不生成 timeline，
+ * 于是被移除的信号会在时间线上继续挂着。格子的键正是 (event_id, signal_id)，
+ * 删它是一次精确操作，不需要重跑分析。
+ *
+ * 摘要与标题**不会**被自动重写（重写要花模型钱，且多数移除是在删重复项、
+ * 文案本来就没受影响）。真需要改的用工作台的编辑面。
+ */
+export async function removeEventSignal(
+  params: EventViewerScope & { event_id: string; signal_id: string },
+): Promise<EventSignalRemoveResult & { signal_title: string }> {
+  const event = await prisma.newsEvent.findFirst({
+    where: withTenantScope(params.tenant_id, {
+      OR: [{ id: params.event_id }, { slug: params.event_id }],
+    }),
+    select: { id: true },
+  });
+  if (!event) {
+    throw new NotFoundError("events.not_found");
+  }
+
+  const signal = await prisma.eventSignal.findFirst({
+    where: withTenantScope(params.tenant_id, {
+      id: params.signal_id,
+      event_id: event.id,
+      removed_at: null,
+    }),
+    select: { id: true, title: true },
+  });
+  if (!signal) {
+    throw new NotFoundError("events.signal_not_found");
+  }
+
+  await prisma.$transaction([
+    prisma.eventSignal.update({
+      where: { id: signal.id },
+      data: { removed_at: new Date() },
+    }),
+    prisma.eventTimelineEntry.deleteMany({
+      where: { event_id: event.id, signal_id: signal.id },
+    }),
+  ]);
+
+  // 重算热度 / 阶段 / 计数 / source_names；移掉最后一条时事件本身也会被删掉
+  await refreshEvents([event.id]);
+
+  const survived = await prisma.newsEvent.findUnique({
+    where: { id: event.id },
+    select: { id: true },
+  });
+
+  return {
+    event_deleted: survived === null,
+    event: survived
+      ? await getEventDetail({
+          tenant_id: params.tenant_id,
+          user_id: params.user_id,
+          event_id: event.id,
+        })
+      : null,
+    signal_title: signal.title,
+  };
 }
 
 /** 主题筛选条上的计数，只统计还「活着」的事件，避免陈年事件把数字撑大。 */

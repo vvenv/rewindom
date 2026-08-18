@@ -11,8 +11,8 @@
  * | `events.topic` | 该 topic 一条            | 同左（叶子）        |
  *
  * 链接是 `/events/ai`（当首页时 `/ai`），不是 `?topic=`：页头高亮靠 currentPath
- * 精确匹配，查询串进不去。展开不查库：格子是编译期枚举。页头只挂本源时，
- * context provider 不得为了导航去拉 feed。
+ * 精确匹配，查询串进不去。格子是产品枚举，站点可关掉其中几格（`nav_topics`）；
+ * 页头只挂本源时，context provider 不得为了导航去拉 feed。
  */
 
 import en from "../client/locales/en.json" with { type: "json" };
@@ -65,12 +65,20 @@ function topicLabel(topic: EventTopic, ctx: SiteNavContext): string {
   return fromContext?.trim() || eventsTopicNavLabel(topic, ctx.locale);
 }
 
+function enabledTopicsFromContext(ctx: SiteNavContext): readonly EventTopic[] {
+  const fromContext = readEventsContext(ctx)?.nav_topics;
+  if (fromContext && fromContext.length > 0) {
+    return fromContext.map((entry) => entry.key);
+  }
+  return EVENT_TOPICS;
+}
+
 function topicItems(
   ctx: SiteNavContext,
   keyPrefix: string,
 ): ResolvedNavItem[] {
   const indexPath = navIndexPath(ctx);
-  return EVENT_TOPICS.map((topic) =>
+  return enabledTopicsFromContext(ctx).map((topic) =>
     makeNavLink(
       `${keyPrefix}:${topic}`,
       topicLabel(topic, ctx),
@@ -104,6 +112,7 @@ function expandEventsTopic(
   ctx: SiteNavContext,
 ): ResolvedNavItem[] {
   if (!isEventTopic(item.category)) return [];
+  if (!enabledTopicsFromContext(ctx).includes(item.category)) return [];
   const label =
     resolveNavLabel(item.label, ctx) || topicLabel(item.category, ctx);
   return [
@@ -151,8 +160,9 @@ export const EVENTS_TOPIC_NAV_SOURCE_DEF: NavSourceDefinition = {
 
 export function eventsNavTopicOptions(
   locale: string,
+  enabled: readonly EventTopic[] = EVENT_TOPICS,
 ): Array<{ key: EventTopic; label: string }> {
-  return EVENT_TOPICS.map((topic) => ({
+  return enabled.map((topic) => ({
     key: topic,
     label: eventsTopicNavLabel(topic, locale),
   }));

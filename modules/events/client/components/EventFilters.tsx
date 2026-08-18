@@ -14,10 +14,10 @@ import {
 import { cn } from "@rewindom/ui/utils";
 import { useTranslation } from "react-i18next";
 
-import { EVENT_SORT_VALUES, EVENT_TOPIC_ORDER } from "../lib/events.js";
+import { EVENT_SORT_VALUES } from "../lib/events.js";
 
 import type { EventSortValue } from "../lib/events.js";
-import type { EventTopic, EventTopicCount } from "../../shared/index.js";
+import { EVENT_TOPICS, type EventTopic, type EventTopicCount } from "../../shared/index.js";
 
 interface EventFiltersProps {
   q?: string;
@@ -28,6 +28,7 @@ interface EventFiltersProps {
   showSort: boolean;
   hasFilters: boolean;
   topicCounts: EventTopicCount[];
+  enabledTopics?: readonly EventTopic[];
   onSearchChange: (value: string) => void;
   onTopicChange: (topic: EventTopic | undefined) => void;
   onFollowingChange: (following: boolean) => void;
@@ -43,6 +44,7 @@ export function EventFilters({
   showSort,
   hasFilters,
   topicCounts,
+  enabledTopics,
   onSearchChange,
   onTopicChange,
   onFollowingChange,
@@ -51,6 +53,9 @@ export function EventFilters({
 }: EventFiltersProps) {
   const { t } = useTranslation("events");
   const counts = new Map(topicCounts.map((row) => [row.topic, row.count]));
+  const topics = enabledTopics?.length ? enabledTopics : EVENT_TOPICS;
+  const visibleTopics =
+    topic && !topics.includes(topic) ? [...topics, topic] : topics;
 
   return (
     <div className="flex flex-col gap-3">
@@ -99,7 +104,7 @@ export function EventFilters({
           active={topic === undefined}
           onClick={() => onTopicChange(undefined)}
         />
-        {EVENT_TOPIC_ORDER.map((value) => (
+        {visibleTopics.map((value) => (
           <TopicChip
             key={value}
             label={t(`topic.${value}`)}

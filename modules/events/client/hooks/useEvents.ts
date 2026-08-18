@@ -57,7 +57,10 @@ export function useEventFeed(topic?: EventTopic, enabled = true) {
 export function useEventTopics() {
   return useQuery({
     queryKey: [...EVENTS_QUERY_KEY, "topics"],
-    queryFn: () => api.get<{ items: EventTopicCount[] }>("/events/topics"),
+    queryFn: () =>
+      api.get<{ items: EventTopicCount[]; enabled_topics: EventTopic[] }>(
+        "/events/topics",
+      ),
   });
 }
 

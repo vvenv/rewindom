@@ -52,7 +52,7 @@ shared/          事件域契约 + 官网段定义 + 公开视图映射
   sections/*-html.ts      段 markup（SSR 与编辑器预览共用同一份）
   site-css/               CSS 真源 → site-css.generated.ts
 server/
-  events.routes.ts        列表 / 首页两区块 / 主题计数 / 详情 / 人工编辑
+  events.routes.ts        列表 / 首页两区块 / 主题计数 / 详情 / 人工编辑 / 显示主题
   feed/                   采集源 CRUD（本站）
   follow/                 关注（站点 + 用户态）
   ingest/                 采集：connector、RSS 解析、调度任务
@@ -60,7 +60,7 @@ server/
   ssr/                    公开面：path handler、模板页渲染、公开读取
   sections/register.ts    段 / 上下文 provider / sitemap / 链接候选登记
 client/
-  pages/                  events（探索+全量）、event-detail、event-sources
+  pages/                  events（探索+全量）、event-detail、event-sources（含主题开关）
   components/ hooks/ lib/ 四层拆分（frontend-page-structure）
   tenant/                 路由、导航、工作台卡片
   editor-context.ts       主题编辑器预览取数
@@ -98,9 +98,10 @@ client/
 
 链接是 `/events/ai` 这种主题路径（枢纽当首页时是 `/ai`），**不是** `?topic=`：
 页头高亮靠 `currentPath` 精确匹配，查询串进不去。枢纽按 topic 取数，「查看全部」
-写成 `/events/ai?source=rising`，不会掉回未过滤的 `?source=rising`。主题是编译期
-枚举，展开不查库；页头只挂本源、页面上没有事件段时，context provider 不会为了
-导航去拉 feed。没开通 `events` 时这两项不进添加菜单，残留条目也不渲染。
+写成 `/events/ai?source=rising`，不会掉回未过滤的 `?source=rising`。主题是产品
+枚举，站点可在工作台关掉其中几格；页头跟着 `nav_topics` 走。页头只挂本源、
+页面上没有事件段时，context provider 不会为了导航去拉 feed。没开通 `events`
+时这两项不进添加菜单，残留条目也不渲染。关掉的 `/events/:topic` 对访客是 404。
 
 ### 两段同页的去重
 
@@ -192,6 +193,40 @@ velocity_pct = ((recent - 0) / 1) * 100 = heat_score * 100
 `source_name` 必须在键里：**不同来源指向同一篇原文要保留两条**，那正是跨源印证的证据，
 事件聚类也靠 canonical_url 相等来合并（见上文流水线第 3 步）。同一来源发了两篇**不同**
 文章报道同一件事仍是两格，标签会降级成「跟进报道」——那是真实进展，不是重复。
+
+**还有第二道：重发键 `(source_name, published_at 到分钟, 标题指纹)`。** canonical_url
+挡不住源换 URL 重发——OpenAI 的 RSS 把同一篇公告用 `/index/chatgpt-for-teens` 与
+`/index/introducing-chatgpt-for-teens` 各发了一次，两条的 canonical_url 与 external_id
+都不相等，身份键与兜底键同时失效，时间线上又出现了两格字字相同的行（线上真实撞到过）。
+
+指纹用的就是聚类那套 `buildFingerprint`，所以大小写、标点、`Introducing` 这类停用词的
+增删都不影响——两个 slug 之间差的正是这个。但它是**词集合相等而非相似度**：真改了实词
+就分成两条，这一层不去猜。三重收紧压住误合并：同一来源、published_at 同一分钟、标题
+实词 ≥ 4（短标题不参与）。**别把窗口放宽到「同一天」**——同一来源过几天再报一次是真的
+新进展，该占一格。已知边界：源给重发条目换了新的 published_at 时这一层拦不住。
+
+### 移除一条信号是软删，硬删会复活
+
+工作台可以在事件详情页的来源列表上移除一条信号（`events.write`，
+`DELETE /:eventId/signals/:signalId`）。落库写的是 `EventSignal.removed_at`，**不是 delete**。
+
+硬删的话源下一轮采集又把同一条抓回来了——运营点一次「移除」，15 分钟后它复活。
+留着行本身就是墓碑：采集的身份键（含上面那条重发键）会命中它，于是 `createMany` 不再重建，
+更新循环也直接跳过它，热度不会被它拉起来。
+
+`removed_at` 非空的信号在**所有**读路径上都当不存在：事件聚合（`event-refresh`）、
+工作台详情、公开面详情、聚类的同 URL 兄弟查找、摘录补齐。少滤一处就会出现
+「工作台看不到但公开页还在」这类各面不一致。
+
+时间线上那一格在移除时**直接删**，不指望 refresh 顺手带走：`planAnalysis` 会给
+已有 LLM 产出、又没进热度窗口的事件判 `skip`，那一轮根本不生成 timeline，
+被移除的信号会继续挂在时间线上。格子的键正是 `(event_id, signal_id)`，删它是一次精确操作。
+
+摘要与标题**不**自动重写——重写要花模型钱，而多数移除是在删重复项、文案本来就没受影响。
+真需要改的用工作台的编辑面（会打上 `manual_content`）。移掉最后一条信号时事件本身也没了
+（`refreshEvent` 不留空壳），接口回 `event_deleted: true`，前端据此跳回列表。
+
+保留期清理最终会把墓碑一起删掉。那时源早就不再发这篇了，所以不构成复活风险。
 
 ### 聚类能力边界（实测，别重复踩）
 
@@ -510,6 +545,7 @@ OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应�
 
 种植按**目录项的 key**（`connector:url`）记账，记录存在 `TenantSetting`
 的 `events.seeded_feed_keys` 上：每轮采集前把该站点从没种过的补进去。
+本站关掉的 topic，对应目录项**不种、也不记已种**——以后打开那一格，下一轮会补上。
 
 以前的口径是「只在空目录时新建」，后果是**扩充目录对所有存量站点完全无效**
 ——线上那个站早就有源了，新增目录项永远到不了它。按 key 记账后两件事同时成立：
@@ -521,7 +557,8 @@ OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应�
 否则会把它早就删掉的初版默认源全部复活。这是一次性升级，写在 `feed-seed.ts` 里，
 不需要 migration。
 
-工作台 `/app/events/sources` 可增删改、开关每个源（名称、地址、类型、默认主题）。
+工作台 `/app/events/sources` 可增删改、开关每个源（名称、地址、类型、默认主题），
+并选择本站公开面显示哪些主题（产品七格里的子集，至少一格）。
 
 > 目录里每个 URL 都实际请求验证过。`GitHub Blog` 与 `Hugging Face` 在部分网络环境下
 > 会 `terminated`（连接被中断，不是 404，既有目录里就有这个现象）；单个源失败不影响
@@ -666,7 +703,7 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 | --- | --- |
 | `events.read` | 所有读接口（列表、首页区块、主题、详情、关注状态、采集源列表） |
 | `events.follow` | 关注 / 取关 / 标记已读 |
-| `events.write` | 编辑事件标题/摘要/主题；增删改采集源 |
+| `events.write` | 编辑事件标题/摘要/主题；增删改采集源；开关本站显示的主题 |
 
 工作台改过的标题与摘要会打上 `manual_content`，采集刷新仍更新热度与时间线，
 但不再覆盖这段文案。详情页会标明「由本站编辑修改」。
