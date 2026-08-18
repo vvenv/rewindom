@@ -59,9 +59,10 @@ export class S3FileStorageProvider implements FileStorageProvider {
         ContentType: options.mime_type,
         ContentLength: buffer.byteLength,
         CacheControl:
-          options.visibility === "public"
+          options.cache_control ??
+          (options.visibility === "public"
             ? PUBLIC_CACHE_CONTROL
-            : PRIVATE_CACHE_CONTROL,
+            : PRIVATE_CACHE_CONTROL),
       }),
     );
   }

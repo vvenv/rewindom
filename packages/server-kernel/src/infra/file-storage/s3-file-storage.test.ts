@@ -96,6 +96,26 @@ describe("S3FileStorageProvider", () => {
     });
   });
 
+  it("lets callers override Cache-Control when the object can be rewritten", async () => {
+    const send = vi.fn().mockResolvedValue({});
+    const storage = new S3FileStorageProvider(
+      mockClient(send),
+      completeConfig.bucket,
+      completeConfig.publicBaseUrl,
+    );
+
+    await storage.put("t/logo.png", Buffer.from("bytes"), {
+      mime_type: "image/png",
+      visibility: "public",
+      cache_control: "public, max-age=0, must-revalidate",
+    });
+
+    const command = send.mock.calls[0]?.[0] as PutObjectCommand;
+    expect(command.input.CacheControl).toBe(
+      "public, max-age=0, must-revalidate",
+    );
+  });
+
   it("open returns stream, size and mime", async () => {
     const send = vi.fn().mockResolvedValue({
       Body: Readable.from([Buffer.from("hello")]),

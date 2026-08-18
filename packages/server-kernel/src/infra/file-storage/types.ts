@@ -36,6 +36,11 @@ export interface FileStoragePutOptions {
    * `private` 只能通过预签名 URL 或服务端转发访问。
    */
   visibility: "public" | "private";
+  /**
+   * 覆盖默认的一年 immutable。媒体库替换会改同一把存储键的字节，
+   * 必须把可缓存时间收掉，否则 CDN 会把旧图一直端出去。
+   */
+  cache_control?: string;
 }
 
 export interface FileStorageObject {

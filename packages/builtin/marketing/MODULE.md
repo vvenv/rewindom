@@ -34,6 +34,7 @@
 | 页头页脚 chrome | `shared/sections/_common/` | 为新排法加枚举 / 读时升级层 |
 | 模板页注册表 | `shared/page-templates.ts` | 业务方的 `*-page-templates.ts`（贡献方自己写） |
 | 编辑器 / 工作台 | `client/pages/site-*.tsx`、`client/enhance/` | 公开站挂 React |
+| 媒体库 | `client/components/media/`、`server/site-asset.service.ts` | 改引用 URL 的扫描 / 多尺寸派生 |
 | 外观字体 | `shared/theme-fonts.ts`；改目录跑 `assemble:site-fonts`；生产同步 `sync-site-fonts-to-s3.ts` | Google Fonts CDN、自定义上传、中文 webfont |
 | 首页是哪一页 | `shared/site-home.ts`、站点设置 Sheet | 两个下拉（版式 vs 改写 `/`） |
 | 业务模块贡献段 / 模板 / chrome / 首页版式 | 贡献方 `shared/` + `site-section` | 本模块「顺便登记」业务 type |
@@ -116,7 +117,7 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 | ----------------- | ------------------------------------------- |
 | `chrome_brand`    | show_logo, show_site_name, brand_text, blurb |
 | `chrome_nav`      | title, items, display(inline\|column)       |
-| `chrome_text`     | text（支持 `{year}` / `{site}` 占位符）      |
+| `chrome_text`     | text（支持 `{year}` / `{site}` / `{hostname}` 占位符） |
 | `chrome_button`   | label, href, variant                        |
 | `chrome_locale`   | —                                           |
 | `chrome_theme`    | —                                           |
@@ -144,8 +145,8 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 
 **`chrome_text` 的占位符替掉了 `chrome_copyright` 的隐藏行为。** 那个块的语义是「留空则
 自动生成 © 当年 站名」：输入框里空着、前台却有字，想改成「© 2020–{year} Acme, Inc.」
-无从下手。现在默认值就是 `© {year} {site}`，看得见改得动，跨年与改站名照样自己跟上
-（`_common/chrome-text.ts`）。
+无从下手。现在默认值就是 `© {year} {site}`，看得见改得动；另外还有 `{hostname}`（当前
+访问的主机名，不含端口）。跨年、改站名、换绑域名照样自己跟上（`_common/chrome-text.ts`）。
 
 区域自身的 settings 只剩外壳（`_common/chrome-shell.ts`）：`padding_top` / `padding_bottom` /
 `row_gap` / `show_divider`，页头另加 `sticky`、页脚另加 `spacing_above`，再加通用配色。
@@ -832,7 +833,7 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 **已发布**页面开放——没上线过的页面，无后缀列里躺的是建页初值，拿它当还原目标只会
 给出一个用户从没见过的版本。可撤性由 `resolveEditorPublishState` 与发布态一起算出
 （`canDiscardLocal` / `canRevertContent`），工具栏只负责渲染。
-图片上传：`POST /api/site/assets` → 公开 URL `/api/public/tenants/:slug/site-assets/:filename`。
+图片上传：`POST /api/site/assets`（始终新建）；替换：`POST /api/site/assets/:id/replace`（公开 URL 不变）→ 公开 URL `/api/public/tenants/:slug/site-assets/:filename`。
 草稿预览 API：`GET /api/site/preview?path=`（需 `site.read`，含 draft 页面 + 草稿 chrome）。
 
 顶部工具栏是**页面级**操作区：页面切换器（`PageSwitcher`，只列同语言的页面，改完一页直接切下一页）、
@@ -1034,7 +1035,12 @@ logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
 - **`alt` 存在 asset 上**，不随每个引用点各存一份：同一张图在十个地方用，无障碍文案不该抄十遍。
 - **像素尺寸靠读文件头**（`server/image-dimensions.ts`，PNG / GIF / WebP / JPEG），
   不引 sharp：唯一用途是选图器里显示一行 `1200 × 630`，为它加一个原生依赖会把镜像和
-  构建时间都拖上一截。认不出来（SVG）存 0。
+  构建时间都拖上一截。认不出来（SVG / AVIF / ICO）存 0。
+- **格式**：JPEG / PNG / GIF / WebP / AVIF / SVG / ICO。浏览器拖放经常给不出 MIME
+  （SVG 尤其），服务端按魔数 → 声明的类型 → 文件名扩展名回落；SVG 无论标成什么都会走消毒。
+- **上传入口只新建**。工作台 `/app/site/media` 的按钮和拖放始终 `POST /assets`；
+  要换一张已经在用的图，在卡片上点替换（`POST /assets/:id/replace`）。替换**不改
+  filename / 公开 URL**，区块里存的地址继续有效；工作台预览用 `?v=updated_at` bust 缓存。
 - **删除不检查引用**。引用散在 section settings 的 JSON 里、还分草稿与线上两份，富文本里
   手写的 URL 更扫不到——与其给一个似是而非的「安全」承诺，不如在确认框里说清楚不可逆。
 - **所有吃图片地址的字段统一用 `SiteImageField`**（文本框 + 选图 + 预览）：站点 logo、
@@ -1042,7 +1048,7 @@ logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
   自己去别处复制 URL 再粘回来，媒体库就白建了。仍然保留手填——CDN 上的外链图不该被强制
   先传进媒体库。
 - 选图而不是直接上传：同一张图在多处用是常态，每次都重新传只会堆出一堆一模一样的文件。
-  弹层里照样能就地上传，传完直接选中。
+  弹层里照样能就地批量上传（含拖放），只传一张时传完直接选中。
 
 > 目前**没有内置 section 声明 `image` 设置**（站点上唯一的图是页头页脚的 logo）。
 > `SiteImageField` 已经接好，加一个带图的段（媒体位 / hero 背景）时不用再碰这一层。

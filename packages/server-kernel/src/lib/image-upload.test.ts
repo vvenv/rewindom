@@ -70,6 +70,49 @@ describe("validateImageUpload", () => {
     ).rejects.toMatchObject({ code: "demo.unsafe_svg" });
   });
 
+  it("accepts SVG when the browser leaves the MIME blank (drag-and-drop)", async () => {
+    const svg = Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg"><circle r="5"/></svg>`,
+    );
+    await expect(
+      validateImageUpload(svg, "", RULES, { filename: "logo.svg" }),
+    ).resolves.toMatchObject({ mime_type: "image/svg+xml" });
+  });
+
+  it("aliases image/svg and sanitizes", async () => {
+    const svg = Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg"><script>x</script><circle r="5"/></svg>`,
+    );
+    const { mime_type, buffer } = await validateImageUpload(
+      svg,
+      "image/svg",
+      RULES,
+    );
+    expect(mime_type).toBe("image/svg+xml");
+    expect(buffer.toString("utf8")).not.toContain("<script");
+  });
+
+  it("trusts magic bytes over a lying Content-Type so SVG cannot skip sanitizing", async () => {
+    const svg = Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg"><script>x</script><circle r="5"/></svg>`,
+    );
+    const { mime_type, buffer } = await validateImageUpload(
+      svg,
+      "image/png",
+      RULES,
+    );
+    expect(mime_type).toBe("image/svg+xml");
+    expect(buffer.toString("utf8")).not.toContain("<script");
+  });
+
+  it("falls back to the filename when MIME and magic are both unhelpful", async () => {
+    await expect(
+      validateImageUpload(Buffer.from("not-a-real-jpeg"), "", RULES, {
+        filename: "hero.JPEG",
+      }),
+    ).resolves.toMatchObject({ mime_type: "image/jpeg" });
+  });
+
   it("checks size before sanitizing so a huge SVG cannot tie up the parser", async () => {
     await expect(
       validateImageUpload(

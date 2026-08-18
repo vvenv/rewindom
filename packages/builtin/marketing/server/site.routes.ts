@@ -12,6 +12,7 @@ import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import {
   deleteSiteAsset,
   listSiteAssets,
+  replaceSiteAsset,
   updateSiteAssetAlt,
   uploadSiteAsset,
 } from "./site-asset.service.js";
@@ -298,12 +299,61 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           return sendCodedError(reply, 400, "site.asset_required");
         }
         const { tenant_id, tenant_slug } = request.tenantContext!;
-        return await uploadSiteAsset({
+        const asset = await uploadSiteAsset({
           tenant_id,
           tenant_slug,
           buffer: uploaded.buffer,
           mime_type: uploaded.mimetype,
+          filename: uploaded.filename,
         });
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_ASSET_UPLOAD,
+          resource: asset.id,
+          detail_key: "marketing.audit.asset_uploaded",
+        });
+        return asset;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/assets/:id/replace",
+    context: "SiteAssetReplace",
+    errorCode: "SITE_ASSET_REPLACE_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const { id } = request.params as { id: string };
+        const uploaded = await parseMultipartFileUpload(request);
+        if (!uploaded) {
+          return sendCodedError(reply, 400, "site.asset_required");
+        }
+        const { tenant_id, tenant_slug } = request.tenantContext!;
+        const asset = await replaceSiteAsset({
+          tenant_id,
+          tenant_slug,
+          id,
+          buffer: uploaded.buffer,
+          mime_type: uploaded.mimetype,
+          filename: uploaded.filename,
+        });
+        if (!asset) return sendCodedError(reply, 404, "site.asset_not_found");
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_ASSET_REPLACE,
+          resource: asset.id,
+          detail_key: "marketing.audit.asset_replaced",
+        });
+        return asset;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

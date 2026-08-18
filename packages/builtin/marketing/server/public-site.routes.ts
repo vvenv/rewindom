@@ -9,7 +9,7 @@ import {
 } from "../shared/site-enhance.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
-import { resolveSiteAssetStorageKey } from "./site-asset.service.js";
+import { resolveSiteAssetStorageKey, SITE_ASSET_CACHE_CONTROL } from "./site-asset.service.js";
 import {
   getPublishedPublicPage,
   getPublishedPublicSite,
@@ -118,8 +118,7 @@ export async function publicSiteRoutes(app: FastifyInstance): Promise<void> {
         });
         const sent = await sendStorageObject(reply, storage_key, {
           mime_type,
-          // 文件名带资产 id，内容永不改写
-          cache_control: "public, max-age=31536000, immutable",
+          cache_control: SITE_ASSET_CACHE_CONTROL,
         });
         if (!sent) {
           return sendCodedError(reply, 404, "site.asset_not_found");

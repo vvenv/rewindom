@@ -29,6 +29,7 @@ describe("mime", () => {
       "image/webp",
       "image/gif",
       "image/svg+xml",
+      "image/avif",
       "image/x-icon",
       "font/woff2",
     ]) {

@@ -1,0 +1,50 @@
+# 增量功能契约 —— 媒体库：列表替换 + 拖放批量上传
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant] # 媒体库在租户工作台 /app/site/media；公开面只读已有 URL，不改选图字段形态
+goal: 媒体库上传入口只新建（支持 svg/webp 等常见格式 + 拖放批量）；替换在列表卡片上完成，公开 URL 不变
+gold: packages/builtin/marketing/client/components/media/MediaPickerDialog.tsx # 选图弹层仍是「一颗按钮开弹层」；上传与替换拆开
+touch:
+  - packages/builtin/marketing/features/media-library-replace-and-batch-upload.spec.yaml
+  - packages/builtin/marketing/client/pages/site-media.tsx
+  - packages/builtin/marketing/client/components/media/
+  - packages/builtin/marketing/client/hooks/useSiteAssets.ts
+  - packages/builtin/marketing/client/lib/site-asset-files.ts
+  - packages/builtin/marketing/client/lib/site-asset-files.test.ts
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/shared/site-asset.ts
+  - packages/builtin/marketing/shared/site-asset.test.ts
+  - packages/builtin/marketing/server/site-asset.service.ts
+  - packages/builtin/marketing/server/site-asset.service.test.ts
+  - packages/builtin/marketing/server/site.routes.ts
+  - packages/builtin/marketing/server/public-site.routes.ts
+  - packages/builtin/marketing/server/module.ts
+  - packages/builtin/marketing/server/i18n.ts
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/audit/shared/audit.ts
+  - packages/builtin/audit/client/locales/
+  - packages/server-kernel/src/lib/image-upload.ts
+  - packages/server-kernel/src/lib/image-upload.test.ts
+  - packages/server-kernel/src/lib/mime.ts
+  - packages/server-kernel/src/lib/mime.test.ts
+  - packages/server-kernel/src/infra/file-storage/types.ts
+  - packages/server-kernel/src/infra/file-storage/s3-file-storage.ts
+  - packages/server-kernel/src/infra/file-storage/s3-file-storage.test.ts
+out_of_scope:
+  - 多尺寸派生 / sharp / srcset
+  - 扫描并改写 section JSON 里的旧 URL（替换刻意保持同一公开 URL）
+  - 非图片（PDF / 视频）
+  - 选图弹层改成「挑一张来替换」——那是编辑器选 URL，不是媒体库替换
+i18n: code # 工作台按钮 / toast；alt 仍是 asset 上的数据字段
+acceptance:
+  - pnpm --filter @rewindom/server-kernel test -- src/lib/image-upload.test.ts src/lib/mime.test.ts src/infra/file-storage/s3-file-storage.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run site-asset site-asset-files
+  - pnpm check:i18n
+  - pnpm check:modules
+  - node scripts/verify-module.mjs marketing
+
+# ---------- 可选 · 留空则沿用模块现有 ----------
+# entitlement: 沿用 tenant-marketing
+# permissions: 沿用 site.read / site.write
+# models: 无新字段（MarketingAsset.updated_at 已有，接口补暴露）

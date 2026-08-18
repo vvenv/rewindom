@@ -1,15 +1,20 @@
-import { useCallback, useState, type ReactElement } from "react";
+import { useCallback, useRef, useState, type ReactElement } from "react";
 
 import { EmptyState, useConfirm } from "@rewindom/client-kit";
 import { Button } from "@rewindom/ui/button";
 import { Input } from "@rewindom/ui/input";
 import { Skeleton } from "@rewindom/ui/skeleton";
 import { toast } from "@rewindom/ui/toast";
-import { Copy, ImageOff, Trash2 } from "lucide-react";
+import { Copy, ImageOff, Replace, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
+  SITE_ASSET_ACCEPT,
+  siteAssetPreviewUrl,
+} from "../../../shared/site-asset.js";
+import {
   useDeleteSiteAsset,
+  useReplaceSiteAsset,
   useUpdateSiteAssetAlt,
   type SiteAsset,
 } from "../../hooks/useSiteAssets.js";
@@ -21,11 +26,19 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-function MediaCard({ asset }: { asset: SiteAsset }): ReactElement {
+function MediaCard({
+  asset,
+  canWrite,
+}: {
+  asset: SiteAsset;
+  canWrite: boolean;
+}): ReactElement {
   const { t } = useTranslation("marketing");
   const { confirm } = useConfirm();
   const [alt, setAlt] = useState(asset.alt);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
   const updateAlt = useUpdateSiteAssetAlt();
+  const replace = useReplaceSiteAsset();
   const remove = useDeleteSiteAsset();
 
   const saveAlt = useCallback(async () => {
@@ -38,6 +51,19 @@ function MediaCard({ asset }: { asset: SiteAsset }): ReactElement {
       setAlt(asset.alt);
     }
   }, [alt, asset, updateAlt, t]);
+
+  const handleReplace = useCallback(
+    async (file: File | undefined): Promise<void> => {
+      if (!file) return;
+      try {
+        await replace.mutateAsync({ id: asset.id, file });
+        toast.success(t("media.replaced"));
+      } catch {
+        toast.error(t("media.replaceFailed"));
+      }
+    },
+    [asset.id, replace, t],
+  );
 
   const handleDelete = useCallback(async () => {
     const confirmed = await confirm({
@@ -59,7 +85,7 @@ function MediaCard({ asset }: { asset: SiteAsset }): ReactElement {
     <li className="group flex min-w-0 flex-col gap-2 overflow-hidden rounded-lg border border-border/60 p-2">
       <div className="relative overflow-hidden rounded-md bg-muted">
         <img
-          src={asset.url}
+          src={siteAssetPreviewUrl(asset)}
           alt={asset.alt}
           className="aspect-video w-full object-contain"
         />
@@ -80,22 +106,48 @@ function MediaCard({ asset }: { asset: SiteAsset }): ReactElement {
           >
             <Copy />
           </Button>
-          <Button
-            variant="secondary"
-            size="icon-sm"
-            className="bg-background/90 text-destructive shadow-sm backdrop-blur-sm hover:bg-destructive/10 hover:text-destructive"
-            aria-label={t("media.delete")}
-            disabled={remove.isPending}
-            onClick={() => void handleDelete()}
-          >
-            <Trash2 />
-          </Button>
+          {canWrite ? (
+            <>
+              <Button
+                variant="secondary"
+                size="icon-sm"
+                className="bg-background/90 shadow-sm backdrop-blur-sm"
+                aria-label={t("media.replace")}
+                disabled={replace.isPending}
+                onClick={() => replaceInputRef.current?.click()}
+              >
+                <Replace />
+              </Button>
+              <input
+                ref={replaceInputRef}
+                type="file"
+                accept={SITE_ASSET_ACCEPT}
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  void handleReplace(file);
+                }}
+              />
+              <Button
+                variant="secondary"
+                size="icon-sm"
+                className="bg-background/90 text-destructive shadow-sm backdrop-blur-sm hover:bg-destructive/10 hover:text-destructive"
+                aria-label={t("media.delete")}
+                disabled={remove.isPending}
+                onClick={() => void handleDelete()}
+              >
+                <Trash2 />
+              </Button>
+            </>
+          ) : null}
         </div>
       </div>
       <Input
         value={alt}
         placeholder={t("media.altPlaceholder")}
         aria-label={t("media.alt")}
+        disabled={!canWrite}
         onChange={(event) => setAlt(event.target.value)}
         onBlur={() => void saveAlt()}
       />
@@ -106,9 +158,11 @@ function MediaCard({ asset }: { asset: SiteAsset }): ReactElement {
 export function MediaGrid({
   assets,
   isLoading,
+  canWrite,
 }: {
   assets: SiteAsset[];
   isLoading: boolean;
+  canWrite: boolean;
 }): ReactElement {
   const { t } = useTranslation("marketing");
 
@@ -141,7 +195,7 @@ export function MediaGrid({
   return (
     <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {assets.map((asset) => (
-        <MediaCard key={asset.id} asset={asset} />
+        <MediaCard key={asset.id} asset={asset} canWrite={canWrite} />
       ))}
     </ul>
   );

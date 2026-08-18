@@ -11,19 +11,23 @@ import {
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 
+import { SITE_ASSET_MIME_TYPES, type SiteAsset } from "../shared/site-asset.js";
+
 import { readImageDimensions } from "./image-dimensions.js";
 
-import type { SiteAsset } from "../shared/site-asset.js";
-
-const ALLOWED_MIME_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-  "image/svg+xml",
-] as const;
+const ALLOWED_MIME_TYPES = SITE_ASSET_MIME_TYPES;
 
 const MAX_BYTES = 5 * 1024 * 1024;
+
+/** 替换会改同一把键的内容，不能用一年 immutable。 */
+export const SITE_ASSET_CACHE_CONTROL = "public, max-age=0, must-revalidate";
+
+export function siteAssetObjectKey(
+  tenantId: string,
+  filename: string,
+): string {
+  return `${tenantId}/site-assets/${filename}`;
+}
 
 export function buildSiteAssetStorageKey(
   tenantId: string,
@@ -31,7 +35,7 @@ export function buildSiteAssetStorageKey(
   mimeType: string,
 ): string {
   const ext = mimeTypeToExtension(mimeType) || ".bin";
-  return `${tenantId}/site-assets/${assetId}${ext}`;
+  return siteAssetObjectKey(tenantId, `${assetId}${ext}`);
 }
 
 export function publicSiteAssetUrl(
@@ -50,6 +54,7 @@ interface AssetRow {
   height: number;
   alt: string;
   created_at: Date;
+  updated_at: Date;
 }
 
 export type { SiteAsset };
@@ -65,7 +70,25 @@ function toSiteAsset(row: AssetRow, tenantSlug: string): SiteAsset {
     height: row.height,
     alt: row.alt,
     created_at: row.created_at.toISOString(),
+    updated_at: row.updated_at.toISOString(),
   };
+}
+
+async function validateSiteAssetBytes(input: {
+  buffer: Buffer;
+  mime_type: string;
+  filename?: string;
+}): Promise<{ mime_type: string; buffer: Buffer }> {
+  return validateImageUpload(input.buffer, input.mime_type, {
+    allowed_mime_types: ALLOWED_MIME_TYPES,
+    max_bytes: MAX_BYTES,
+    error_codes: {
+      invalid_mime: "site.asset_invalid_mime",
+      empty: "site.asset_required",
+      too_large: "site.asset_too_large",
+      unsafe_svg: "site.asset_unsafe_svg",
+    },
+  }, { filename: input.filename });
 }
 
 export async function uploadSiteAsset(input: {
@@ -73,34 +96,19 @@ export async function uploadSiteAsset(input: {
   tenant_slug: string;
   buffer: Buffer;
   mime_type: string;
+  filename?: string;
 }): Promise<SiteAsset> {
   // buffer 是消毒后的字节（SVG 会被改写），后面一律用它，别再碰 input.buffer
-  const { mime_type: mime, buffer } = await validateImageUpload(
-    input.buffer,
-    input.mime_type,
-    {
-      allowed_mime_types: ALLOWED_MIME_TYPES,
-      max_bytes: MAX_BYTES,
-      error_codes: {
-        invalid_mime: "site.asset_invalid_mime",
-        empty: "site.asset_required",
-        too_large: "site.asset_too_large",
-        unsafe_svg: "site.asset_unsafe_svg",
-      },
-    },
-  );
+  const { mime_type: mime, buffer } = await validateSiteAssetBytes(input);
 
   const assetId = randomUUID();
   const ext = mimeTypeToExtension(mime) || ".bin";
   const filename = `${assetId}${ext}`;
-  const storageKey = buildSiteAssetStorageKey(
-    input.tenant_id,
-    assetId,
-    mime,
-  );
+  const storageKey = siteAssetObjectKey(input.tenant_id, filename);
   await getFileStorageProvider().put(storageKey, buffer, {
     mime_type: mime,
     visibility: "public",
+    cache_control: SITE_ASSET_CACHE_CONTROL,
   });
 
   /*
@@ -120,6 +128,50 @@ export async function uploadSiteAsset(input: {
     },
   });
   return toSiteAsset(row, input.tenant_slug);
+}
+
+/**
+ * 用新文件覆盖已有媒体，**公开 URL 不变**。
+ *
+ * 页面 / 区块里存的是 `asset.url`（最后一段是 filename）。换一张图如果换 id，
+ * 所有引用都会裂；所以落盘键继续用原来的 filename，只改字节、尺寸和 MIME。
+ * 格式可以换（png → svg），Content-Type 以库里的 mime_type 为准。
+ */
+export async function replaceSiteAsset(input: {
+  tenant_id: string;
+  tenant_slug: string;
+  id: string;
+  buffer: Buffer;
+  mime_type: string;
+  filename?: string;
+}): Promise<SiteAsset | null> {
+  const row = await prisma.marketingAsset.findFirst({
+    where: withTenantScope(input.tenant_id, { id: input.id }),
+  });
+  if (!row) return null;
+
+  const { mime_type: mime, buffer } = await validateSiteAssetBytes(input);
+  const storageKey = siteAssetObjectKey(input.tenant_id, row.filename);
+  await getFileStorageProvider().put(storageKey, buffer, {
+    mime_type: mime,
+    visibility: "public",
+    cache_control: SITE_ASSET_CACHE_CONTROL,
+  });
+
+  const dimensions = readImageDimensions(buffer);
+  await prisma.marketingAsset.updateMany({
+    where: withTenantScope(input.tenant_id, { id: row.id }),
+    data: {
+      mime_type: mime,
+      size_bytes: buffer.byteLength,
+      width: dimensions?.width ?? 0,
+      height: dimensions?.height ?? 0,
+    },
+  });
+  const updated = await prisma.marketingAsset.findFirst({
+    where: withTenantScope(input.tenant_id, { id: row.id }),
+  });
+  return updated ? toSiteAsset(updated, input.tenant_slug) : null;
 }
 
 export async function listSiteAssets(
@@ -172,7 +224,7 @@ export async function deleteSiteAsset(
     where: withTenantScope(tenant_id, { id }),
   });
   await getFileStorageProvider()
-    .delete(buildSiteAssetStorageKey(tenant_id, row.id, row.mime_type))
+    .delete(siteAssetObjectKey(tenant_id, row.filename))
     // 文件先没了也算删成功：目标是「媒体库里不再有它」
     .catch(() => undefined);
   return true;
@@ -183,6 +235,8 @@ export async function deleteSiteAsset(
  *
  * 只做定位，不碰字节——取字节是存储后端的事（见 `sendStorageObject`），
  * 这样接对象存储时这里一行不用改。
+ *
+ * MIME 优先信库：替换可以把 png 换成 svg，扩展名仍停在原来的 filename 上。
  */
 export async function resolveSiteAssetStorageKey(input: {
   tenant_slug: string;
@@ -204,15 +258,13 @@ export async function resolveSiteAssetStorageKey(input: {
     throw new NotFoundError("site.asset_not_found");
   }
 
+  const row = await prisma.marketingAsset.findFirst({
+    where: withTenantScope(tenant.id, { filename }),
+    select: { mime_type: true },
+  });
   const ext = extname(filename).toLowerCase();
-  const assetId = filename.slice(0, filename.length - ext.length);
-  if (!assetId) {
-    throw new NotFoundError("site.asset_not_found");
-  }
-
-  const mime_type = extensionToMimeType(ext);
   return {
-    storage_key: buildSiteAssetStorageKey(tenant.id, assetId, mime_type),
-    mime_type,
+    storage_key: siteAssetObjectKey(tenant.id, filename),
+    mime_type: row?.mime_type || extensionToMimeType(ext),
   };
 }
