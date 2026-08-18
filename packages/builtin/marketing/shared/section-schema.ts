@@ -749,6 +749,21 @@ function resolveSpacing(settings: SettingValues, id: string): number | null {
 }
 
 /**
+ * 左右内边距是否按 `--sec-pl` / `--sec-pr` 画（挂 `sec-pad-x`）。
+ *
+ * 页宽段默认左右是 0，CSS 会给有底色的色块补 1.5rem，免得正文贴色边。
+ * 通栏没有「色块边 = 正文列」这条前提，水平 padding 必须完全听设置——含 0，
+ * 否则租户把左右拖成 0 仍会被写死 gutter 挡住。
+ */
+export function sectionUsesExplicitPadX(
+  layout: SectionLayout,
+  type: string,
+): boolean {
+  if (layout.width === "full" && type === "band") return true;
+  return layout.paddingLeft > 0 || layout.paddingRight > 0;
+}
+
+/**
  * 所有页面 section 共有的版式设置，解析成两处渲染都能直接用的形状。
  *
  * 段内留白（padding）落在色块上、段间距（spacing）落在段与段之间，两者互不相扰——

@@ -32,9 +32,14 @@ export const bandSection: SectionDefinition = {
     ...linkSettings("primary"),
     ...linkSettings("secondary"),
     // 底色走通用 background token（createSection 默认写入 muted），band 不再自带 tone
+    // 通栏：色块贴视口，正文也不限宽，左右内边距默认 24（= 原先写死的 1.5rem gutter）
     ...layoutSettings({
+      width: "full",
+      content_width: "full",
       padding_top: 48,
+      padding_right: 24,
       padding_bottom: 48,
+      padding_left: 24,
     }),
   ],
 };

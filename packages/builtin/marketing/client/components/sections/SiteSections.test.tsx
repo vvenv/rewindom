@@ -3,6 +3,7 @@ import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  createSection,
   parseSections,
   type SiteSection,
 } from "../../../shared/section-schema.js";
@@ -81,6 +82,36 @@ function renderSections(sections: SiteSection[]) {
     </MemoryRouter>,
   );
 }
+
+describe("SiteSections 通栏 CTA padding", () => {
+  it("挂 sec-pad-x，左右内边距走 CSS 变量（含 0）", () => {
+    const band = createSection("band");
+    const { container, rerender } = renderSections([band]);
+    const content = container.querySelector(".sec-content") as HTMLElement;
+    expect(content.className).toContain("sec-pad-x");
+    expect(content.style.getPropertyValue("--sec-pl")).toBe("24px");
+    expect(content.style.getPropertyValue("--sec-pr")).toBe("24px");
+
+    band.settings = {
+      ...band.settings,
+      padding_left: 0,
+      padding_right: 0,
+    } as never;
+    rerender(
+      <MemoryRouter initialEntries={["/docs/quickstart"]}>
+        <SiteSections
+          sections={[band]}
+          pages={pages}
+          currentPath="/docs/quickstart"
+        />
+      </MemoryRouter>,
+    );
+    const flushed = container.querySelector(".sec-content") as HTMLElement;
+    expect(flushed.className).toContain("sec-pad-x");
+    expect(flushed.style.getPropertyValue("--sec-pl")).toBe("0px");
+    expect(flushed.style.getPropertyValue("--sec-pr")).toBe("0px");
+  });
+});
 
 describe("SiteSections 容器段", () => {
   it("按比例分栏，左列吸顶，右列拿到剩下的宽度", () => {

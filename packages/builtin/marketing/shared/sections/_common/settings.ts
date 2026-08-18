@@ -167,6 +167,7 @@ export function contentLayoutSettings(options?: {
  * 这里存的是**桌面值**，窄屏由两处渲染统一按比例缩，避免手机上留白过大。
  */
 export function layoutSettings(defaults?: {
+  width?: "page" | "full";
   padding_top?: number;
   padding_right?: number;
   padding_bottom?: number;
@@ -179,7 +180,7 @@ export function layoutSettings(defaults?: {
       type: "select",
       id: "width",
       label: "editor.setting.width",
-      default: "page",
+      default: defaults?.width ?? "page",
       options: WIDTH_OPTIONS,
     },
     {

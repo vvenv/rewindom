@@ -17,6 +17,7 @@ import {
   registerSectionDefinition,
   resolveSectionLayout,
   resolveSurfaceStyle,
+  sectionUsesExplicitPadX,
   contentSurfaceStyleAttr,
   settingBool,
   surfaceStyleAttr,
@@ -126,7 +127,7 @@ export function renderSectionHtml(
     surface.borderRadius === null &&
     (useTokenBg || hasCustomSurface(surface)) &&
     width !== "full";
-  const explicitPadX = layout.paddingLeft > 0 || layout.paddingRight > 0;
+  const explicitPadX = sectionUsesExplicitPadX(layout, section.type);
   const classes = [
     "sec-band",
     `sec-w-${width}`,

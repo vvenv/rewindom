@@ -23,6 +23,7 @@ import {
   localizeSections,
   safeAreaSections,
   safeSections,
+  sectionUsesExplicitPadX,
   settingText,
 } from "./section-schema.js";
 
@@ -574,8 +575,35 @@ describe("section layout settings", () => {
     ).toBeUndefined();
   });
 
-  it("seeds new band sections with a muted token background", () => {
-    expect(createSection("band").settings.background).toBe("muted");
+  it("seeds new band sections as a full-bleed CTA with horizontal padding", () => {
+    const settings = createSection("band").settings;
+    expect(settings.background).toBe("muted");
+    expect(settings.width).toBe("full");
+    expect(settings.content_width).toBe("full");
+    expect(settings.padding_left).toBe(24);
+    expect(settings.padding_right).toBe(24);
+  });
+
+  it("lets a full-bleed band honor 0 horizontal padding", () => {
+    const fullBand = resolveSectionLayout({
+      width: "full",
+      padding_left: 0,
+      padding_right: 0,
+    });
+    const pageBand = resolveSectionLayout({
+      width: "page",
+      padding_left: 0,
+      padding_right: 0,
+    });
+    const paddedProse = resolveSectionLayout({
+      width: "page",
+      padding_left: 24,
+      padding_right: 0,
+    });
+    expect(sectionUsesExplicitPadX(fullBand, "band")).toBe(true);
+    expect(sectionUsesExplicitPadX(pageBand, "band")).toBe(false);
+    expect(sectionUsesExplicitPadX(fullBand, "hero")).toBe(false);
+    expect(sectionUsesExplicitPadX(paddedProse, "prose")).toBe(true);
   });
 
   it("expands spacing_box into four paddings and vertical outer spacing", () => {

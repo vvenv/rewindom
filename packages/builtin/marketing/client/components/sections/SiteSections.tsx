@@ -14,6 +14,7 @@ import {
   resolveSectionGaps,
   resolveSectionLayout,
   resolveSurfaceStyle,
+  sectionUsesExplicitPadX,
   settingBool,
   surfaceStyleCss,
   type SiteSection,
@@ -107,7 +108,7 @@ export function SiteSections({
       surface.borderRadius === null &&
       (useTokenBg || hasCustomSurface(surface)) &&
       width !== "full";
-    const explicitPadX = layout.paddingLeft > 0 || layout.paddingRight > 0;
+    const explicitPadX = sectionUsesExplicitPadX(layout, section.type);
 
     const bandClass = [
       "sec-band",

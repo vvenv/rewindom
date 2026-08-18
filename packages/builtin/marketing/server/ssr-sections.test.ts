@@ -45,6 +45,25 @@ describe("renderSectionHtml", () => {
     expect(html).toContain("sec-c-narrow");
   });
 
+  it("lets a full-bleed band use horizontal padding including 0", () => {
+    const section = createSection("band");
+    expect(renderSectionHtml(section)).toContain("sec-pad-x");
+    expect(renderSectionHtml(section)).toContain("--sec-pl:24px");
+    expect(renderSectionHtml(section)).toContain("--sec-pr:24px");
+
+    section.settings = {
+      ...section.settings,
+      padding_left: 0,
+      padding_right: 0,
+    } as never;
+    const flush = renderSectionHtml(section);
+    expect(flush).toContain("sec-pad-x");
+    expect(flush).toContain("--sec-pl:0px");
+    expect(flush).toContain("--sec-pr:0px");
+    expect(flush).toContain("sec-w-full");
+    expect(flush).toContain("sec-c-full");
+  });
+
   it("carries the gap for the section above it", () => {
     expect(renderSectionHtml(hero({}), 48)).toContain("--sec-gap:48px");
     expect(renderSectionHtml(hero({}))).toContain("--sec-gap:0px");

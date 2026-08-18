@@ -1,0 +1,40 @@
+# 增量功能契约 —— 通栏 CTA 水平 padding 可定制
+#
+# 起因：盒模型里左右内边距能填，但通栏（width: full）的 gutter 写死在 CSS
+# （正文列 `calc(100% - 3rem)`、色块 1.5rem），且 `sec-pad-x` 只在左右 > 0 时才挂。
+# 拖成 0 仍被写死 gutter 挡住；拖成非 0 也只是在已经缩进的列里再垫一层。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: 通栏 CTA（band）的左右内边距按盒模型设置画，含 0；新建默认即通栏。
+gold: packages/builtin/marketing/shared/sections/_common/settings.ts
+touch:
+  - packages/builtin/marketing/features/band-horizontal-padding.spec.yaml
+  - packages/builtin/marketing/shared/sections/band/definition.ts
+  - packages/builtin/marketing/shared/sections/_common/settings.ts
+  - packages/builtin/marketing/shared/section-schema.ts
+  - packages/builtin/marketing/shared/section-schema.test.ts
+  - packages/builtin/marketing/shared/sections/html.ts
+  - packages/builtin/marketing/client/components/sections/SiteSections.tsx
+  - packages/builtin/marketing/client/components/sections/SiteSections.test.tsx
+  - packages/builtin/marketing/server/ssr-sections.test.ts
+  - packages/builtin/marketing/shared/site-css/base.css
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+  - packages/builtin/marketing/shared/page-presets.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改页头 / 页脚 chrome 外壳的左右 padding（仍由 `.wrap` 的 1.5rem 管）
+  - 给左右 padding 做「继承」哨兵（0 在通栏上就是贴边）
+  - 改其它段的默认 width / content_width
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin assemble:marketing-css
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared section-schema.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-sections.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteSections.test.tsx
+
+# ---------- 可选 ----------
+entitlement: # 无
+permissions: []
+models: []

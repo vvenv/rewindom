@@ -493,16 +493,22 @@ URL 对齐 Shopify Markets：站点**主语言不带前缀**（`MarketingSite.de
 | page    | default         | 常规区块（默认）                         |
 | page    | narrow          | 文档正文、长文                           |
 | full    | default         | 通栏色带 + 居中正文（Shopify Dawn 口径） |
-| full    | full            | 通栏大图 hero / 满屏媒体                 |
+| full    | full            | 通栏大图 hero / 满屏媒体；`band` 新建默认 |
 
 页宽本身是主题设置（紧凑 / 标准 / 宽），走 `--site-page-width`，页头页脚与 section 同一个变量。
 通栏色块是方角（贴视口边的圆角会露缺口）；切底色不会让正文横向位移。
+
+`band`（通栏 CTA）新建默认 `width: full` + `content_width: full`，左右内边距默认 24px
+（原先 CSS 写死的 1.5rem gutter）。盒模型里改左右即改距视口边的距离，**含 0**（贴边）；
+挂 `sec-pad-x` 后不再叠一层 `calc(100% - 3rem)` 的正文列 gutter。页宽段仍是「左右 0 =
+有底色时 CSS 补 1.5rem」，以免正文贴色边。
 
 ### 间距：段内 padding + 段间 spacing
 
 两者互不相扰，这是 Shopify 的分工：`padding_*` 是色块**内**的留白（底色包住），
 `spacing_*` 是段与段之间的缝。段间距默认继承主题的「区块间距」，档位下限（哨兵 `-4`）
 表示继承——和 padding 用同一种控件、同一个单位，租户不用先分清概念。
+通栏 `band` 的左右 padding 没有「继承写死 gutter」这档：0 就是 0。
 
 编辑器里这六个值合成一个盒模型控件（`theme-editor/SpacingBoxField.tsx`，schema 里是
 `spacing_box`，写入时由 `applySpacingBox()` 展开回六个独立键）。每格都是「可拖的数字」：

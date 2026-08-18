@@ -181,6 +181,9 @@ dl {
  *
  * gutter 不能像以前那样走 `.sec-content` 的左右 padding——内背景铺的是 padding box，
  * 会把 gutter 一起染上色，通栏段的内背景因此比页宽段的两侧各宽出 1.5rem。
+ *
+ * 租户一旦在盒模型里写了左右内边距（`.sec-pad-x`），那份 gutter 就让位：
+ * 再扣 3rem 的话自定义 padding 只是在已经缩进的列里再垫一层，看起来改不动。
  */
 .sec-c-default {
   width: 100%;
@@ -192,7 +195,7 @@ dl {
   max-width: 48rem;
   margin: 0 auto;
 }
-.sec-w-full > .sec-content:is(.sec-c-default, .sec-c-narrow) {
+.sec-w-full > .sec-content:is(.sec-c-default, .sec-c-narrow):not(.sec-pad-x) {
   width: calc(100% - 3rem);
 }
 /*
