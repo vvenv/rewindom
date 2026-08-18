@@ -11,6 +11,20 @@ map $host $use_tenant_ssr {
     www.${PLATFORM_HOST} 0;
 }
 
+# 本容器只监听 80，TLS 在外层反代（宿主 nginx / 云 LB）终止，所以 `$scheme` 恒为 http。
+# 直接 `proxy_set_header X-Forwarded-Proto $scheme` 会把外层传进来的 https **覆盖**成
+# http，后端据此拼出的 canonical / og:image / sitemap 全是 `http://`——社媒抓取方会
+# 因协议不符丢掉 og:image，搜索引擎拿到的也是错的规范地址。
+# 有外层给值就沿用，没有（或值不认识）才回退 $scheme。
+# 端口只绑 127.0.0.1（见 docker-compose.prod.yml），这个头到不了外网客户端手里。
+map $http_x_forwarded_proto $forwarded_proto {
+    default   $scheme;
+    "https"   https;
+    "http"    http;
+    # 多级代理会拼成 "https, http"，取第一段
+    "~*^https" https;
+}
+
 server {
     listen 80;
     server_name _;
@@ -33,7 +47,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;
         proxy_buffering off;
@@ -46,7 +60,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
         # 自定义域签发证书会同步等 Certbot（可达 2 分钟）
         proxy_read_timeout 180s;
         proxy_send_timeout 180s;
@@ -107,7 +121,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
     }
 
     # 平台控制台 Host：静态 SPA（/ → index.html，前端可进 /platform）。

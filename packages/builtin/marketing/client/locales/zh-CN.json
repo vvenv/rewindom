@@ -485,7 +485,8 @@
       "chrome_row_gap": "同一行里块与块之间、以及行与行之间的距离。",
       "chrome_divider": "朝着正文那一侧的分隔线（页头在下、页脚在上）。换成深色底时通常关掉。",
       "chrome_spacing_above": "页脚与正文之间的距离。",
-      "chrome_blurb": "品牌下方的一句话简介。页头上通常不填。"
+      "chrome_blurb": "品牌下方的一句话简介。页头上通常不填。",
+      "brand_text": "logo 旁边显示的品牌名。留空跟着站点名走——站点名同时是搜索结果里的标题，通常更长。"
     },
     "unit": {
       "columns": "列",
@@ -560,9 +561,10 @@
       "show_number": "显示序号",
       "show_glow": "显示光晕背景",
       "show_logo": "显示 Logo",
-      "show_site_name": "显示站点名",
+      "show_site_name": "显示字标",
       "show_page_header": "显示页面标题",
       "sticky": "滚动时吸顶",
+      "brand_text": "字标文案",
       "blurb": "简介",
       "padding_top": "上内边距",
       "padding_right": "右内边距",

@@ -1,0 +1,43 @@
+# 增量功能契约 —— 页头页脚的品牌字标与站名（SEO 标题）解耦
+#
+# 起因：`chrome_brand` 直接把 `site_name` 画成字标，而 `site_name` 同时是首页 `<title>`
+# 与其余页面的标题后缀（`ssr-render.ts` 的 `page.title · site_name`）。于是站点一旦
+# 按 SEO 写站名（yestino.com 的「Yestino - 全球科技热点与实时趋势追踪」），页头 logo
+# 旁边就跟着出现一整条标题，窄屏还要换行。
+#
+# 站名与字标是**两件事**：前者给搜索引擎，后者给人看。缩短站名会拿首页标题换页头好看，
+# 不是修复。所以给块自己一个文案位，留空时仍回落站名——存量站点零变化。
+#
+# 顺带修 logo 的 `alt`：同时显示字标时图片是装饰性的（相邻文本已经念过站名了），
+# 重复念一遍是读屏噪音；只有不显示字标时 `alt` 才需要承担品牌名。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: chrome_brand 块新增可逐语言填写的 `brand_text`；页头页脚字标优先用它，留空回落 site_name；显示字标时 logo 的 alt 置空，否则用品牌名。
+gold: packages/builtin/marketing/shared/sections/_common/chrome-blocks.ts
+touch:
+  - packages/builtin/marketing/features/chrome-brand-wordmark.spec.yaml
+  - packages/builtin/marketing/shared/sections/_common/chrome-blocks.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.test.ts
+  - packages/builtin/marketing/client/components/sections/SiteChrome.tsx
+  - packages/builtin/marketing/client/components/sections/SiteChrome.test.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改 `site_name` 语义，或给站点模型加「短名」字段（站名只有一个）
+  - 改 `<title>` / og:site_name 的拼法（`ssr-render.ts` 不动）
+  - 迁移存量租户的块设置（留空即回落，不需要数据迁移）
+  - 字标换成图片 / 字体设置（那是外观，不是 chrome 块）
+  - 动 chrome 的 row / align / mobile 排版取值
+i18n: none # 只加两条编辑器 label/info key，无库存文案；字段值走数据 locale map
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared chrome-html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteChrome.test.tsx
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: []
+models: []

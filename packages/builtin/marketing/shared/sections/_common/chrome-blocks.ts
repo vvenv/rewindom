@@ -103,6 +103,20 @@ export const CHROME_BRAND_BLOCK: BlockDefinition = {
       label: "editor.setting.show_site_name",
       default: true,
     },
+    /*
+     * 字标文案。留空回落站名。
+     *
+     * 站名同时是首页 `<title>` 与其余页面的标题后缀，按 SEO 写就会长；那条长句子
+     * 该给搜索引擎，不该顶在 logo 旁边。两者是两件事，各给一个位置。
+     * 无 `default`：有默认值就得在每次建块时展开成 `__i18n`，而这里的默认不是
+     * 某句文案，是「跟着站名走」——只能在渲染期回落。
+     */
+    {
+      type: "text",
+      id: "brand_text",
+      label: "editor.setting.brand_text",
+      info: "editor.info.brand_text",
+    },
     {
       type: "textarea",
       id: "blurb",

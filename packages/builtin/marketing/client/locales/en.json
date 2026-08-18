@@ -485,7 +485,8 @@
       "chrome_row_gap": "Distance between blocks within a row, and between rows.",
       "chrome_divider": "The hairline on the side facing the page content (below a header, above a footer). Usually turned off once the bar has a dark background.",
       "chrome_spacing_above": "Gap between the page content and the footer.",
-      "chrome_blurb": "One-line blurb under the brand. Usually left empty in a header."
+      "chrome_blurb": "One-line blurb under the brand. Usually left empty in a header.",
+      "brand_text": "The brand name shown next to the logo. Leave empty to follow the site name — which also serves as the title in search results, and is usually longer."
     },
     "unit": {
       "columns": "cols",
@@ -560,9 +561,10 @@
       "show_number": "Show step numbers",
       "show_glow": "Show glow backdrop",
       "show_logo": "Show logo",
-      "show_site_name": "Show site name",
+      "show_site_name": "Show wordmark",
       "show_page_header": "Show page title",
       "sticky": "Stick to top on scroll",
+      "brand_text": "Wordmark",
       "blurb": "Blurb",
       "padding_top": "Top padding",
       "padding_right": "Right padding",
