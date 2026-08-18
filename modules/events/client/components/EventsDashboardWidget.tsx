@@ -1,7 +1,5 @@
-import { EmptyState } from "@rewindom/module-sdk/client";
+import { DashboardWidgetCard } from "@rewindom/module-sdk/client";
 import { Badge } from "@rewindom/ui/badge";
-import { Button } from "@rewindom/ui/button";
-import { Skeleton } from "@rewindom/ui/skeleton";
 import { Bell, Radar } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -20,7 +18,7 @@ const WIDGET_SIZE = 5;
  */
 export function EventsDashboardWidget() {
   const { t } = useTranslation("events");
-  const { data, isLoading } = useEvents({
+  const { data, isLoading, isError } = useEvents({
     page: 1,
     pageSize: WIDGET_SIZE,
     followingOnly: true,
@@ -28,38 +26,34 @@ export function EventsDashboardWidget() {
     sortDir: "desc",
   });
 
-  if (isLoading && !data) {
-    return (
-      <div className="flex flex-col gap-2" aria-hidden>
-        {Array.from({ length: 3 }, (_, index) => (
-          <Skeleton key={index} className="h-9 w-full" />
-        ))}
-      </div>
-    );
-  }
-
   const items = data?.items ?? [];
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={Radar}
-        size="panel"
-        title={t("widget.empty")}
-        description={t("widget.emptyHint")}
-      />
-    );
-  }
-
   const updates = items.filter((event) => event.has_update).length;
 
   return (
-    <div className="flex flex-col gap-2">
-      {updates > 0 ? (
-        <Badge className="w-fit gap-1">
-          <Bell className="size-3" />
-          {t("widget.updates", { count: updates })}
-        </Badge>
-      ) : null}
+    <DashboardWidgetCard
+      icon={Radar}
+      title={t("dashboardTitle")}
+      to="/app/events?following=true&view=all"
+      viewAllLabel={t("widget.viewAll")}
+      headerExtra={
+        updates > 0 ? (
+          <Badge className="w-fit gap-1">
+            <Bell className="size-3" />
+            {t("widget.updates", { count: updates })}
+          </Badge>
+        ) : null
+      }
+      isLoading={isLoading && !data}
+      isError={isError}
+      errorText={t("loadFailed")}
+      isEmpty={items.length === 0}
+      emptyText={
+        <>
+          {t("widget.empty")}
+          <span className="mt-1 block">{t("widget.emptyHint")}</span>
+        </>
+      }
+    >
       <ul className="flex flex-col">
         {items.map((event) => (
           <li key={event.id}>
@@ -78,11 +72,6 @@ export function EventsDashboardWidget() {
           </li>
         ))}
       </ul>
-      <Button asChild variant="ghost" size="sm" className="w-fit">
-        <Link to="/app/events?following=true&view=all">
-          {t("widget.viewAll")}
-        </Link>
-      </Button>
-    </div>
+    </DashboardWidgetCard>
   );
 }
