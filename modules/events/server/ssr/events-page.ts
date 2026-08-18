@@ -5,7 +5,10 @@
 
 import { createEventsPresetTranslator } from "./events-preset-i18n.js";
 
+import { getEnabledTopics } from "../event/topic-settings.service.js";
+
 import { eventsContextEntry } from "../../shared/index.js";
+import { withEventsNavTopics } from "../../shared/nav-sources.js";
 
 import { resolveSiteAccountEntry } from "@rewindom/builtin/marketing/server/site-account-entry.js";
 import { resolveSectionEntitlements } from "@rewindom/builtin/marketing/server/site-entitlements.js";
@@ -73,9 +76,10 @@ export async function renderEventsTemplatePage(input: {
         description: translate(input.preset.descriptionKey),
       });
 
-  const [accountEntry, entitlements] = await Promise.all([
+  const [accountEntry, entitlements, enabledTopics] = await Promise.all([
     resolveSiteAccountEntry({ tenantId: input.tenantId, locale }),
     resolveSectionEntitlements(input.tenantId),
+    getEnabledTopics(input.tenantId),
   ]);
 
   return renderMarketingHtml({
@@ -103,7 +107,9 @@ export async function renderEventsTemplatePage(input: {
     },
     accountEntryHtml: accountEntry.html,
     enabledEntitlements: entitlements,
-    contributed: eventsContextEntry(input.events),
+    contributed: eventsContextEntry(
+      withEventsNavTopics(input.events, locale, enabledTopics),
+    ),
     servedPath: input.servedPath,
   });
 }

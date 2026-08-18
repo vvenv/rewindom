@@ -99,9 +99,12 @@ server/
 链接是 `/events/ai` 这种主题路径（枢纽当首页时是 `/ai`），**不是** `?topic=`：
 页头高亮靠 `currentPath` 精确匹配，查询串进不去。枢纽按 topic 取数，「查看全部」
 写成 `/events/ai?source=rising`，不会掉回未过滤的 `?source=rising`。主题是产品
-枚举，站点可在工作台关掉其中几格；页头跟着 `nav_topics` 走。页头只挂本源、
-页面上没有事件段时，context provider 不会为了导航去拉 feed。没开通 `events`
-时这两项不进添加菜单，残留条目也不渲染。关掉的 `/events/:topic` 对访客是 404。
+枚举，站点可在工作台关掉其中几格；页头跟着 `nav_topics` 走。CMS 页由 section
+context provider 填这份列表；事件模板页（含把 `/events` 设为首页后的 `/`）走
+path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七格。页头只挂
+本源、页面上没有事件段时，context provider 不会为了导航去拉 feed。没开通
+`events` 时这两项不进添加菜单，残留条目也不渲染。关掉的 `/events/:topic` 对访客
+是 404，该主题下已有事件的 `/events/:slug` 同样 404（工作台详情仍可打开，方便改主题）。
 
 ### 两段同页的去重
 

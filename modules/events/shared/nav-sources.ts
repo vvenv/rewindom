@@ -24,6 +24,7 @@ import {
   EVENTS_INDEX_PATH,
   eventsIndexHref,
   readEventsContext,
+  type EventsRenderContext,
 } from "./events-section-context.js";
 
 import {
@@ -70,7 +71,25 @@ function enabledTopicsFromContext(ctx: SiteNavContext): readonly EventTopic[] {
   if (fromContext && fromContext.length > 0) {
     return fromContext.map((entry) => entry.key);
   }
+  // 上下文没带 nav_topics 时退回七格（失效方向：宁可多显示）。
+  // 事件模板页走 path handler，不会跑 CMS 那条 provider，必须自己用
+  // withEventsNavTopics 补上，否则关掉的格子还会挂在页头。
   return EVENT_TOPICS;
+}
+
+/** 模板页渲染前补上启用格子；已经带了就不动。 */
+export function withEventsNavTopics(
+  events: EventsRenderContext,
+  locale: string,
+  enabled: readonly EventTopic[],
+): EventsRenderContext {
+  if (events.nav_topics && events.nav_topics.length > 0) {
+    return events;
+  }
+  return {
+    ...events,
+    nav_topics: eventsNavTopicOptions(locale, enabled),
+  };
 }
 
 function topicItems(

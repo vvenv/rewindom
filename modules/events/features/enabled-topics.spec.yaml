@@ -25,7 +25,9 @@ touch:
   - modules/events/server/ingest/feed-seed.test.ts
   - modules/events/server/ingest/ingest.service.ts
   - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/public-events.service.test.ts
   - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/events-page.ts
   - modules/events/server/ssr/rss.routes.ts
   - modules/events/server/sections/register.ts
   - modules/events/client/editor-context.ts
@@ -48,7 +50,7 @@ out_of_scope:
   - 存量 chrome 回填（页头条目跟着 nav_topics 走，不用改库）
 i18n: code
 acceptance:
-  - pnpm --filter @rewindom/events exec vitest --run shared/events.test.ts shared/nav-sources.test.ts server/event/topic-settings.service.test.ts server/ingest/feed-seed.test.ts server/events.routes.test.ts client/lib/event-feeds.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/events.test.ts shared/nav-sources.test.ts server/event/topic-settings.service.test.ts server/ingest/feed-seed.test.ts server/events.routes.test.ts server/ssr/public-events.service.test.ts client/lib/event-feeds.test.ts
   - node scripts/verify-module.mjs events
   - pnpm check:i18n
 
@@ -66,6 +68,9 @@ models: []
 # 3. 有效采集 = 主题开着 且 源 enabled。关掉主题不写 EventFeed.enabled。
 #    采集查询带 enabledTopicWhere；界面上该组源的开关显示为关且不可拨。
 # 4. 公开面：nav_topics / Rising / Now / 列表 / RSS / sitemap / 实体页事件
-#    只含启用格子。关掉的 /events/:topic 与 ?topic= 404。事件详情仍可按 slug 打开。
+#    只含启用格子。关掉的 /events/:topic、?topic=、以及该主题下的 /events/:slug
+#    一律 404。工作台详情仍可打开，方便改主题。
+#    事件模板页（含把 /events 设为首页后的 /）由 path handler 渲染，必须自己带
+#    nav_topics；漏了页头会按失效方向退回七格。
 # 5. 目录种植：只种启用 topic 的源；未启用的 key 不记「已种」，以后打开再补。
 # 6. 工作台探索 feed 与公开面同口径；「全部事件」仍能看到关掉格子里的存量，方便改主题。

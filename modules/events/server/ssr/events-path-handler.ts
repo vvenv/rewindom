@@ -241,7 +241,7 @@ async function renderDetail(
   indexPath: string,
 ): Promise<string | null> {
   const detail = await getPublicEventBySlug(input.tenantId, slug);
-  // 事件不存在 → 交回 404，而不是渲染一张空详情页
+  // 事件不存在、或主题已关 → 交回 404，而不是渲染一张空详情页
   if (!detail) {
     return null;
   }

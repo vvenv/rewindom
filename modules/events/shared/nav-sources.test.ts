@@ -20,6 +20,7 @@ import {
   EVENTS_TOPIC_NAV_SOURCE_DEF,
   eventsNavTopicOptions,
   registerEventsNavSources,
+  withEventsNavTopics,
 } from "./nav-sources.js";
 
 function ctx(locale: "zh-CN" | "en" = "zh-CN"): SiteNavContext {
@@ -208,6 +209,24 @@ describe("events nav sources", () => {
       ),
     });
     expect(items.map((entry) => entry.label)).toEqual(["AI", "科技"]);
+  });
+
+  it("模板页漏带 nav_topics 会退回七格——path handler 必须补上", () => {
+    const items = resolveNavItems([item()], {
+      ...ctx(),
+      contributed: eventsContextEntry(emptyEventsContext()),
+    });
+    expect(items).toHaveLength(EVENT_TOPICS.length);
+  });
+
+  it("withEventsNavTopics 把启用子集写进上下文", () => {
+    const items = resolveNavItems([item()], {
+      ...ctx(),
+      contributed: eventsContextEntry(
+        withEventsNavTopics(emptyEventsContext(), "en", ["ai", "tech"]),
+      ),
+    });
+    expect(items.map((entry) => entry.label)).toEqual(["AI", "Tech"]);
   });
 
   it("单主题源指向已关掉的格子时整条不渲染", () => {

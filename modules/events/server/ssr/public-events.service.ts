@@ -214,13 +214,17 @@ export async function getPublicEntityEventsForRss(
   };
 }
 
-/** slug 找不到时返回 null（→ 404），而不是抛错。 */
+/** slug 找不到、或事件落在已关掉的主题上时返回 null（→ 404）。 */
 export async function getPublicEventBySlug(
   tenantId: string,
   slug: string,
 ): Promise<EventDetail | null> {
+  const enabled = await getEnabledTopics(tenantId);
   const record = await prisma.newsEvent.findFirst({
-    where: withTenantScope(tenantId, { slug }),
+    where: withTenantScope(tenantId, {
+      slug,
+      ...enabledTopicWhere(enabled),
+    }),
     select: {
       ...LIST_SELECT,
       analyzer: true,
@@ -275,13 +279,12 @@ export async function getPublicEventBySlug(
     since: publicRevisionSince(new Date()),
   });
 
-  const [entities, related, enabled] = await Promise.all([
+  const [entities, related] = await Promise.all([
     listEventEntities({ tenant_id: tenantId, event_id: record.id }),
     listRelatedEvents({
       tenant_id: tenantId,
       related_ids: record.related_event_ids,
     }),
-    getEnabledTopics(tenantId),
   ]);
 
   return toEventDetail({
@@ -355,8 +358,8 @@ export async function getPublicEntityBySlug(
 /**
  * sitemap：只收最近 30 天还有动静的事件，且封顶 500 条。
  *
- * 事件是持续产生的，全量铺给爬虫既没意义也会把 sitemap 撑爆；陈年事件页仍然可访问，
- * 只是不主动送去索引。
+ * 事件是持续产生的，全量铺给爬虫既没意义也会把 sitemap 撑爆；陈年事件页在主题仍开着时
+ * 可访问，只是不主动送去索引。关掉主题的事件页 404，也不进 sitemap。
  *
  * 只输出**站点默认语言**那一条：同一个事件在各语言下是同一条记录（文案是 locale map），
  * 但「这个站开了哪几种语言」要另查站点配置，为 sitemap 多查一次不划算。
