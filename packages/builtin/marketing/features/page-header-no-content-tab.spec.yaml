@@ -1,0 +1,39 @@
+# 增量功能契约 —— 「页面标题」段不再提供内容页签
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant, ssr]
+goal: page-header 段只保留显隐与版式；标题 / 描述只在页面设置里改一份，h1 始终用页面 meta，不再有「段上覆盖、留空回落」的内容字段
+gold: packages/builtin/marketing/shared/sections/page-header/definition.ts
+touch:
+  - packages/builtin/marketing/features/page-header-no-content-tab.spec.yaml
+  - packages/builtin/marketing/shared/sections/page-header/definition.ts
+  - packages/builtin/marketing/shared/sections/page-header/html.ts
+  - packages/builtin/marketing/shared/section-schema.ts
+  - packages/builtin/marketing/shared/section-schema.test.ts
+  - packages/builtin/marketing/client/components/sections/views/page-header.tsx
+  - packages/builtin/marketing/client/components/sections/SiteSections.test.tsx
+  - packages/builtin/marketing/client/components/sections/section-structure.test.tsx
+  - packages/builtin/marketing/client/components/SitePageMetaCoreFields.tsx
+  - packages/builtin/marketing/client/components/theme-editor/PageMetaForm.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/marketing/server/site-init.service.test.ts
+  - modules/site-docs/shared/page-templates.ts
+  - modules/site-docs/client/locales/
+  - apps/server/scripts/apply-yestino-about.ts
+out_of_scope:
+  - 把存量段上的 headline / subhead 回填进页面 title / description（下次保存会被丢掉；公开面立即改用页面 meta）
+  - 给标题补自动生成规则
+  - 改 page-missing / hero 等仍有自己文案的段
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared section-schema.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteSections.test.tsx section-structure.test.tsx
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 · 留空则沿用模块现有 ----------
+# entitlement: 沿用 marketing 现有（无新增）
+# permissions: 沿用 site.* 现有（无新增）
+# models: 无新增字段

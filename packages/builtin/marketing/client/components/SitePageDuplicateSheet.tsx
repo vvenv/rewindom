@@ -34,7 +34,11 @@ import { Spinner } from "@rewindom/ui/spinner";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { isTemplatePageKind } from "../../shared/page-templates.js";
+import {
+  isTemplatePageKind,
+  relocalizeStockTemplateDescription,
+  resolveCatalogPageTitle,
+} from "../../shared/page-templates.js";
 import {
   type MarketingPage,
   type MarketingPageKind,
@@ -108,18 +112,34 @@ export function SitePageDuplicateSheet({
     setUncontrolledOpen(next);
     onOpenChange?.(next);
   };
-  const [title, setTitle] = useState(page.title);
+  // 模板页的标题常常还空着：预填展示用的预设文案，别再复制出一张没标题的页
+  const displayTitle = resolveCatalogPageTitle(
+    page.kind,
+    page.locale,
+    page.title,
+  );
+  const [title, setTitle] = useState(displayTitle);
   const [locale, setLocale] = useState<AppLocale>(suggestedLocale);
   const localeTaken = existing.has(locale);
-  const blocked = fixedSlug && localeTaken;
+  /*
+   * 描述是必填的，而复制不让填描述——它照搬源页（库存文案换目标语言）。
+   * 源页自己就没有描述时复制出来的那张页保存不了，所以在这儿先拦住，
+   * 判定与服务端 `duplicatePage` 用的是同一个函数。
+   */
+  const missingDescription = !relocalizeStockTemplateDescription(
+    page.kind,
+    page.description,
+    locale,
+  ).trim();
+  const blocked = (fixedSlug && localeTaken) || missingDescription;
 
   // 页面清单是异步来的，建议语言可能在打开面板后才算得出来
   useEffect(() => {
     if (!open) {
-      setTitle(page.title);
+      setTitle(displayTitle);
       setLocale(suggestedLocale);
     }
-  }, [open, page.title, suggestedLocale]);
+  }, [open, displayTitle, suggestedLocale]);
 
   const onSubmit = (event: FormEvent): void => {
     event.preventDefault();
@@ -146,7 +166,7 @@ export function SitePageDuplicateSheet({
             <SheetTitle>{t("cms.duplicatePageTitle")}</SheetTitle>
             <SheetDescription>
               {t("cms.duplicatePageDescription", {
-                title: page.title,
+                title: displayTitle,
                 locale: getLocaleNativeLabel(page.locale),
               })}
             </SheetDescription>
@@ -187,11 +207,13 @@ export function SitePageDuplicateSheet({
                 </SelectContent>
               </Select>
               <FieldDescription>
-                {blocked
-                  ? t("cms.duplicateFixedSlugTakenHint")
-                  : localeTaken
-                    ? t("cms.duplicateSlugSuffixHint")
-                    : t("cms.duplicateLocaleHint")}
+                {missingDescription
+                  ? t("cms.duplicateNeedsDescriptionHint")
+                  : fixedSlug && localeTaken
+                    ? t("cms.duplicateFixedSlugTakenHint")
+                    : localeTaken
+                      ? t("cms.duplicateSlugSuffixHint")
+                      : t("cms.duplicateLocaleHint")}
               </FieldDescription>
             </Field>
           </FieldGroup>

@@ -263,6 +263,9 @@ describe("库存模板标题", () => {
     expect(isStockTemplateTitle(kind, "商品")).toBe(true);
     expect(isStockTemplateTitle(kind, "Products")).toBe(true);
     expect(isStockTemplateTitle(kind, "Our store")).toBe(false);
+    // 空标题（模板页快照没写标题）也算库存值：中台列表按预设文案显示
+    expect(resolveCatalogPageTitle(kind, "en", "")).toBe("Shop");
+    expect(resolveCatalogPageTitle(kind, "zh-CN", "   ")).toBe("商店");
     expect(resolveCatalogPageTitle(kind, "en", "商品")).toBe("Shop");
     expect(resolveCatalogPageTitle(kind, "zh-CN", "商品")).toBe("商店");
     expect(resolveCatalogPageTitle(kind, "en", "Our store")).toBe("Our store");

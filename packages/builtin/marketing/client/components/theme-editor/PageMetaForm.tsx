@@ -6,6 +6,7 @@ import { Input } from "@rewindom/ui/input";
 import { Switch } from "@rewindom/ui/switch";
 import { useTranslation } from "react-i18next";
 
+import { resolveTemplatePresetCopy } from "../../../shared/page-templates.js";
 import { SiteColorField } from "../SiteColorField.js";
 import { SitePageMetaCoreFields } from "../SitePageMetaCoreFields.js";
 
@@ -13,6 +14,7 @@ import type {
   MarketingPageSettings,
   MarketingPageVisibility,
 } from "../../../shared/site-cms.js";
+import type { AppLocale } from "@rewindom/shared";
 
 /** 标签 + 说明气泡同一行（气泡是标签的一部分，不该换行掉下去）。 */
 const LABEL_CLASS = "flex items-center gap-1";
@@ -20,6 +22,9 @@ const LABEL_CLASS = "flex items-center gap-1";
 interface PageMetaFormProps {
   title: string;
   description: string;
+  /** 页面的 kind / 语言：模板页拿版式预设文案当输入框占位。 */
+  kind: string;
+  locale: AppLocale;
   /** 页面路径，只读——改 slug 会换 URL，仍然留在页面列表里做。 */
   path: string;
   settings: MarketingPageSettings;
@@ -37,11 +42,13 @@ interface PageMetaFormProps {
  * 与区块设置共用右栏——左树选中「页面」时显示。改动进的是同一份草稿，
  * 跟区块一起在「保存」时写回。
  *
- * 标题不只是 SEO：`page-header` 段的文案留空时回落到它，页面菜单里列的也是它。
+ * 标题不只是 SEO：`page-header` 段的 h1、页面菜单列的也是它。
  */
 export function PageMetaForm({
   title,
   description,
+  kind,
+  locale,
   path,
   settings,
   visibility,
@@ -52,6 +59,8 @@ export function PageMetaForm({
   onChangeVisibility,
 }: PageMetaFormProps): ReactElement {
   const { t } = useTranslation("marketing");
+  // 模板页的标题 / 描述常常还空着（快照落库时没写），必填之后得告诉租户该填什么
+  const preset = resolveTemplatePresetCopy(kind, locale);
 
   return (
     <div className="space-y-3">
@@ -66,6 +75,9 @@ export function PageMetaForm({
           description={description}
           settings={settings}
           disabled={disabled}
+          placeholders={
+            preset ? { title: preset.title, description: preset.description } : undefined
+          }
           onChangeTitle={onChangeTitle}
           onChangeDescription={onChangeDescription}
           onChangeSettings={onChangeSettings}

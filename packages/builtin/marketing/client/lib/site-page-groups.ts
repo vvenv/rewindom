@@ -1,4 +1,7 @@
-import { isTemplatePageKind } from "../../shared/page-templates.js";
+import {
+  isTemplatePageKind,
+  resolveCatalogPageTitle,
+} from "../../shared/page-templates.js";
 import {
   marketingPagePath,
   type MarketingPageKind,
@@ -14,7 +17,12 @@ export interface SitePageGroup {
   slug: string;
   /** 逻辑路径（不含 locale 前缀），各组共享。 */
   path: string;
-  /** 展示用标题：优先站点主语言，否则按语言顺序取第一篇。 */
+  /**
+   * 展示用标题：优先站点主语言，否则按语言顺序取第一篇。
+   *
+   * 标题空着（存量的模板页快照）时回落版式预设文案，与公开面同一条口径——
+   * 中台写「未命名页面」而线上是「事件雷达」只会让人以为是两张页。
+   */
   title: string;
   /** 组内各语言行，按 `siteLocaleOrder` 排序。 */
   pages: MarketingPageListItem[];
@@ -61,7 +69,11 @@ export function groupSitePages(
       kind: primary.kind,
       slug: primary.slug,
       path: marketingPagePath(primary.kind, primary.slug),
-      title: primary.title,
+      title: resolveCatalogPageTitle(
+        primary.kind,
+        primary.locale,
+        primary.title,
+      ),
       pages: groupPages,
     };
   });

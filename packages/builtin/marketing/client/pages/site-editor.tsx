@@ -272,6 +272,16 @@ export function SiteEditor() {
     };
 
     if (pageId && page) {
+      // 服务端也拦（标题与描述都必填），但拦下来只会弹一句「保存失败」——
+      // 缺哪一样得当场说清楚，右栏「页面设置」里就是这两个框
+      if (!editor.title.trim()) {
+        toast.error(t("editor.toastTitleRequired"));
+        return;
+      }
+      if (!editor.description.trim()) {
+        toast.error(t("editor.toastDescriptionRequired"));
+        return;
+      }
       editor.mutations.saveEditorDraft.mutate(
         {
           pageId,
@@ -445,7 +455,7 @@ export function SiteEditor() {
           isTheme
             ? t("editor.scope.themeHint")
             : page
-              ? editor.title || page.title
+              ? editor.title || page.title || t("cms.untitledPage")
               : t("editor.pageDescription")
         }
         fill
@@ -610,6 +620,8 @@ export function SiteEditor() {
               <PageMetaForm
                 title={editor.title}
                 description={editor.description}
+                kind={page.kind}
+                locale={editor.locale}
                 path={editor.path}
                 settings={editor.pageSettings}
                 visibility={editor.visibility}

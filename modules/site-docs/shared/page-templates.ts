@@ -49,10 +49,6 @@ export const DOCS_INDEX_TEMPLATE_PRESET: PagePreset = {
   sections: [
     {
       type: "page-header",
-      text: {
-        headline: "site-docs:template.index.headline",
-        subhead: "site-docs:template.index.subhead",
-      },
     },
     {
       type: SITE_DOCS_LIST_SECTION_TYPE,

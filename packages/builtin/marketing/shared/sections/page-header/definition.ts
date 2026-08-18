@@ -1,16 +1,17 @@
-import { contentLayoutSettings, layoutSettings } from "../_common/settings.js";
+import { ALIGN_OPTIONS, layoutSettings } from "../_common/settings.js";
 
 import type { SectionDefinition } from "../types.js";
 
 /**
  * 页面标题段。
  *
- * 以前这块是**自动渲染**的（非首页且不以 hero 开场就出 h1），标题出不出现取决于
+ * 以前这块是**自动**渲染的（非首页且不以 hero 开场就出 h1），标题出不出现取决于
  * 第一段碰巧是什么类型——租户在编辑器里看不见它、也删不掉它。现在它就是一段普通
  * section：树上看得见、能排序、能删。
  *
- * 文案留空时回落到页面自己的标题 / 描述（`resolvePageHeaderText`），所以新建页面
- * 仍然自带 h1，租户也不用把标题抄两遍。
+ * 文案不在这一段里改——h1 / 副标题始终用页面设置里的标题 / 描述
+ * （`resolvePageHeaderText`），浏览器标签、搜索结果、页面菜单共用同一份。
+ * 这一段只负责显隐与版式。
  */
 export const pageHeaderSection: SectionDefinition = {
   type: "page-header",
@@ -18,27 +19,24 @@ export const pageHeaderSection: SectionDefinition = {
   placements: ["page"],
   settings: [
     {
+      type: "header",
+      content: "editor.group.content_layout",
+      group: "layout",
+    },
+    {
       type: "checkbox",
       id: "show_header",
       label: "editor.setting.show_page_header",
       default: true,
       info: "editor.info.show_page_header",
     },
-    { type: "header", content: "editor.group.content" },
     {
-      type: "text",
-      id: "headline",
-      label: "editor.setting.headline",
-      info: "editor.info.page_header_headline",
+      type: "select",
+      id: "align",
+      label: "editor.setting.align",
+      default: "left",
+      options: ALIGN_OPTIONS,
     },
-    {
-      type: "textarea",
-      id: "subhead",
-      label: "editor.setting.subhead",
-      rows: 2,
-      info: "editor.info.page_header_subhead",
-    },
-    ...contentLayoutSettings(),
     ...layoutSettings({
       padding_top: 48,
       padding_bottom: 24,

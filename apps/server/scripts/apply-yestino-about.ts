@@ -106,24 +106,14 @@ function i18n(values: Record<AppLocale, string>): LocalizedText {
 }
 
 const ABOUT_TITLE: Record<AppLocale, string> = {
-  "zh-CN": "关于",
-  en: "About",
+  "zh-CN": "关于 Yestino",
+  en: "About Yestino",
 };
 
 const ABOUT_DESCRIPTION: Record<AppLocale, string> = {
   "zh-CN":
     "Yestino 是一台事件雷达：跨来源发现同一件事、合并成一个事件、重建时间线，并保留每一条来源作为证据。",
   en: "Yestino is an event radar: it finds the same story across sources, merges it into one event, rebuilds its timeline, and keeps every source as evidence.",
-};
-
-const ABOUT_HEADLINE: Record<AppLocale, string> = {
-  "zh-CN": "关于 Yestino",
-  en: "About Yestino",
-};
-
-const ABOUT_SUBHEAD: Record<AppLocale, string> = {
-  "zh-CN": "同一件事，来自多个来源，合成一条时间线。",
-  en: "One story, many sources, one timeline.",
 };
 
 const ABOUT_BODY: Record<AppLocale, string> = {
@@ -235,10 +225,7 @@ function buildAboutSections(locale: AppLocale, contact: string): SiteSection[] {
     ? `${ABOUT_BODY[locale]}\n\n${contactBody(locale, contact)}`
     : ABOUT_BODY[locale];
   return [
-    section("page-header", {
-      headline: ABOUT_HEADLINE[locale],
-      subhead: ABOUT_SUBHEAD[locale],
-    }),
+    section("page-header", {}),
     section("prose", {
       body_md: body,
       padding_top: 24,

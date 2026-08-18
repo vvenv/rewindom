@@ -15,6 +15,7 @@ import {
   resolveSectionLayout,
   resolveSurfaceStyle,
   relocalizeSections,
+  resolvePageHeaderText,
   parseGroupSpans,
   refitGroupSpans,
   resolveGroupSpans,
@@ -685,7 +686,7 @@ describe("splitSettingsByScope", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("puts page-header align in the layout tab", () => {
+  it("puts page-header visibility and align in the layout tab, with no content tab", () => {
     const { content, layout } = splitSettingsByScope(
       BUILTIN_SECTION_DEFINITIONS["page-header"].settings,
     );
@@ -695,9 +696,27 @@ describe("splitSettingsByScope", () => {
     const layoutIds = layout
       .map((def) => ("id" in def ? def.id : ""))
       .filter(Boolean);
-    expect(contentIds).not.toContain("align");
+    expect(contentIds).toEqual([]);
+    expect(layoutIds).toContain("show_header");
     expect(layoutIds).toContain("align");
     expect(layoutIds).toContain("width");
+    expect(layoutIds).not.toContain("headline");
+    expect(layoutIds).not.toContain("subhead");
+  });
+});
+
+describe("resolvePageHeaderText", () => {
+  it("uses the page title and description", () => {
+    expect(
+      resolvePageHeaderText({ title: "关于", description: "一句话介绍" }),
+    ).toEqual({ headline: "关于", subhead: "一句话介绍" });
+  });
+
+  it("trims and treats missing page as empty", () => {
+    expect(resolvePageHeaderText({ title: "  文档  ", description: "  " })).toEqual(
+      { headline: "文档", subhead: "" },
+    );
+    expect(resolvePageHeaderText(null)).toEqual({ headline: "", subhead: "" });
   });
 });
 

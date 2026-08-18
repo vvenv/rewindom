@@ -107,9 +107,7 @@
     "index": {
       "label": "文档索引",
       "title": "文档",
-      "description": "浏览全部已发布文档。",
-      "headline": "文档",
-      "subhead": "浏览全部已发布文档。"
+      "description": "浏览全部已发布文档。"
     },
     "article": {
       "label": "文档详情",

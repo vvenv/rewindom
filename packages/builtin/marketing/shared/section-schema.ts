@@ -938,27 +938,23 @@ export function resolveSectionGaps(
   });
 }
 
-/**
- * `page-header` 段最终显示的文案：段上填了就用段上的，留空回落到页面自己的
- * 标题 / 描述。
- *
- * 回落是这一段的关键——新建页面不填任何东西也自带 h1，租户不用把标题抄两遍；
- * 想让展示标题与 SEO 标题不一样时再填。客户端与 SSR 共用这一份，避免两边算出
- * 不同的 h1。
- */
-/** `page-header` 段是否对外展示（关闭后仍保留段配置与页面 meta 回落文案）。 */
+/** `page-header` 段是否对外展示（关闭后仍保留段配置与页面 meta）。 */
 export function isPageHeaderVisible(settings: SettingValues): boolean {
   return settingBool(settings, "show_header");
 }
 
+/**
+ * `page-header` 段最终显示的文案：始终用页面自己的标题 / 描述。
+ *
+ * 这一段没有内容页签——标题只在页面设置里改一份，浏览器标签、搜索结果、
+ * 页面菜单和这块 h1 共用。客户端与 SSR 共用这一份，避免两边算出不同的 h1。
+ */
 export function resolvePageHeaderText(
-  settings: SettingValues,
   page?: { title?: string; description?: string } | null,
 ): { headline: string; subhead: string } {
   return {
-    headline: settingText(settings, "headline").trim() || (page?.title ?? ""),
-    subhead:
-      settingText(settings, "subhead").trim() || (page?.description ?? ""),
+    headline: page?.title?.trim() ?? "",
+    subhead: page?.description?.trim() ?? "",
   };
 }
 

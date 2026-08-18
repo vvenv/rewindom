@@ -107,9 +107,7 @@
     "index": {
       "label": "Docs index",
       "title": "Docs",
-      "description": "Browse all published documents.",
-      "headline": "Docs",
-      "subhead": "Browse all published documents."
+      "description": "Browse all published documents."
     },
     "article": {
       "label": "Doc detail",

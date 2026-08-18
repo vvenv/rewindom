@@ -23,6 +23,11 @@ export interface SitePageMetaCoreValues {
 interface SitePageMetaCoreFieldsProps extends SitePageMetaCoreValues {
   idPrefix?: string;
   disabled?: boolean;
+  /**
+   * 模板页的版式预设文案：标题 / 描述空着时当占位显示。
+   * 只是提示该填什么，不会自动写进草稿——必填就得租户自己确认一遍。
+   */
+  placeholders?: { title?: string; description?: string };
   onChangeTitle: (value: string) => void;
   onChangeDescription: (value: string) => void;
   onChangeSettings: (settings: MarketingPageSettings) => void;
@@ -31,7 +36,8 @@ interface SitePageMetaCoreFieldsProps extends SitePageMetaCoreValues {
 /**
  * 页面标题、SEO 描述与搜索/分享元数据——「新建页面」与编辑器「页面设置」共用。
  *
- * 标题不只是 SEO：`page-header` 段留空时回落到它，页面菜单里列的也是它。
+ * 标题不只是 SEO：`page-header` 段的 h1、页面菜单列的也是它。
+ * 标题与描述都是必填（服务端四条写入路径同样拦），所以两个控件都带 `required`。
  */
 export function SitePageMetaCoreFields({
   idPrefix = "page-meta",
@@ -39,6 +45,7 @@ export function SitePageMetaCoreFields({
   description,
   settings,
   disabled,
+  placeholders,
   onChangeTitle,
   onChangeDescription,
   onChangeSettings,
@@ -57,6 +64,7 @@ export function SitePageMetaCoreFields({
           value={title}
           disabled={disabled}
           required
+          placeholder={placeholders?.title}
           onChange={(event) => onChangeTitle(event.target.value)}
         />
       </Field>
@@ -71,6 +79,8 @@ export function SitePageMetaCoreFields({
           rows={3}
           value={description}
           disabled={disabled}
+          required
+          placeholder={placeholders?.description}
           onChange={(event) => onChangeDescription(event.target.value)}
         />
       </Field>

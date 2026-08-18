@@ -383,7 +383,7 @@ section type，通用 SSR 路由在渲染前按**页面实际用到的段**调�
 | type           | settings                                                               | blocks                                                                                  |
 | -------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `hero`         | eyebrow, headline\*, subhead, align, show_glow, primary/secondary 按钮 | `stat`{term\*, detail}，最多 4                                                          |
-| `page-header`  | show_header, headline, subhead（留空回落到页面 meta）；版式页签：align、通用 `layoutSettings`（默认上 48 / 下 24 px） | —                                                                                       |
+| `page-header`  | 无内容页签。显示文案 = 页面 meta 的 title/description；版式页签：show_header、align、通用 `layoutSettings`（默认上 48 / 下 24 px） | —                                                                                       |
 | `page-menu`    | 抬头, source(children\|siblings), style(list\|cards), columns          | —（动态菜单：父页 children / 子页 siblings；条目来自已发布 `site.pages`）               |
 | `form`         | 抬头, submit_label\*, success_message                                  | `field`{label\*, type, placeholder, required, options, validation…}，最多 16            |
 | `prose`        | body_md                                                                | —                                                                                       |
@@ -395,8 +395,9 @@ section type，通用 SSR 路由在渲染前按**页面实际用到的段**调�
 **页面标题不再自动渲染**。以前非首页且首段不是带 headline 的 hero 就自动输出 h1 + 描述
 （`sectionsLeadWithHero`）——标题出不出现取决于第一段碰巧是什么类型，租户在树上看不见、
 也删不掉、更换不了位置。现在它就是 `page-header` 这一段：能排序、能删、能对齐。
-文案留空时回落到页面 meta 的 title/description（`resolvePageHeaderText`，客户端与 SSR 共用
-同一份，否则两边算出的 h1 会不一致），所以「新建页面自带标题」这个便利没丢，也不用把标题抄两遍。
+文案不在这一段里改——h1 / 副标题始终用页面 meta 的 title/description（`resolvePageHeaderText`，
+客户端与 SSR 共用同一份，否则两边算出的 h1 会不一致）。浏览器标签、搜索结果、页面菜单
+共用同一份标题，不用抄两遍。编辑器里这一段只有版式 / 外观页签（显隐、对齐、留白）。
 存量页面由 `20260805010000_marketing_page_header_section` 在原本会自动出标题的页面前面补一段，
 已发布官网的 h1 不会静默消失。
 
@@ -754,6 +755,17 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
   这个链接用 `after:inset-0` 摊满整行，全行只有一个真链接，⌘ 点、中键、Tab 都照常
 - **行内操作**与文档库同一套：发布 / 取消发布留在行上（最高频），打开编辑器 / 复制 /
   删除收进「更多」菜单
+- **标题与描述必填**：建页 / 复制 / 更新 / 编辑器保存（`saveEditorDraft`）四条写入
+  路径都拦空（`site.page_title_required` / `site.page_description_required`）。行的
+  入口就挂在标题上，空串等于一行点不到的空白，编辑器顶部的页面切换器也会变成一颗
+  没有文字的按钮；描述则是搜索摘要 / 分享卡片与 `page-header` 副标题的回落源。
+  复制不让填描述（照搬源页、库存文案换目标语言），所以源页描述为空时**复制这一步**
+  就拦下并提示去补源页——否则会复制出一张在编辑器里保存不了的页
+- **空标题的显示兜底**：存量模板页快照有标题为空的（本地库里 `home` / `events_index`
+  就是），中台按公开面同一口径走 `resolveCatalogPageTitle` 回落版式预设文案，列表与
+  切换器因此和线上显示一致；连预设都没有的普通页才落到 `cms.untitledPage`（未命名
+  页面）。只改显示，不回填库里的值。编辑器右栏那两个框用预设文案当 placeholder，
+  提示该填什么，但不自动写进草稿
 - **排序**（`sort_order`）决定页头「全部一级页面」、`page-menu` 与 sitemap 的先后，
   上下移是两枚常驻按钮——排一次顺序要连点好几下，每下都展开一次菜单没人受得了。
   写回走整批端点 `PUT /api/site/pages/order`（一个事务，见 `reorderPages`），

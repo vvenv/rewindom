@@ -197,14 +197,14 @@ describe("SiteSections 容器段", () => {
  * 取决于第一段碰巧是什么类型，租户在树上看不见也删不掉。现在它是一段普通 section。
  */
 describe("页面标题段", () => {
-  it("文案留空时回落到页面自己的标题与描述", () => {
+  it("h1 用页面自己的标题", () => {
     renderSections(parseSections([{ type: "page-header", settings: {} }]));
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "快速开始",
     );
   });
 
-  it("段上填了就盖过页面标题", () => {
+  it("段上残留的 headline 不再盖过页面标题", () => {
     renderSections(
       parseSections([
         {
@@ -214,9 +214,9 @@ describe("页面标题段", () => {
       ]),
     );
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "上手指南",
+      "快速开始",
     );
-    expect(screen.getByText("五分钟跑起来")).toBeTruthy();
+    expect(screen.queryByText("上手指南")).toBeNull();
   });
 
   it("关闭显示时不渲染标题区", () => {

@@ -70,10 +70,6 @@ function spaShape(section: SiteSection): string[] {
  */
 function fixture(type: PageSectionType): SiteSection {
   const section = createSection(type);
-  if (type === "page-header") {
-    section.settings.headline = "标题";
-    section.settings.subhead = "副标题";
-  }
   if (type === "prose") section.settings.body_md = "正文";
   if (type === "hero") section.settings.headline = "Welcome";
   // 有抬头才看得出 sectionHeading 那一层在不在

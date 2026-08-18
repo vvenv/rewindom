@@ -533,7 +533,12 @@ export async function createPage(
   const enabled = await resolveSectionEntitlements(tenant_id);
   const sections = parsePageSections(body.sections ?? [], enabled);
   const settings = parsePageSettings(body.settings ?? {});
-  const description = body.description?.trim() ?? "";
+  // 描述与标题同级必填：它是搜索结果 / 分享卡片里的那段摘要，也是 `page-header`
+  // 段副标题留空时的回落源，留到「以后再补」基本等于永远不补
+  const description = body.description?.trim();
+  if (!description) {
+    throw new ValidationError("site.page_description_required");
+  }
 
   if (isTemplatePageKind(kind)) {
     const existingTemplate = await prisma.marketingPage.findFirst({
@@ -673,7 +678,12 @@ export async function duplicatePage(
     kind,
     sourceContent.description,
     locale,
-  );
+  ).trim();
+  // 描述是必填的（见 `createPage`）：源页自己就没有、又没有版式预设可继承时，
+  // 复制出来的会是一张过不了保存的页，不如当场说清楚先去补源页
+  if (!description) {
+    throw new ValidationError("site.page_description_required");
+  }
   const sections = relocalizeSections(
     sourceContent.sections,
     sourceLocale,
@@ -737,6 +747,16 @@ export async function saveEditorDraft(
 
   const enabled = await resolveSectionEntitlements(tenant_id);
   // 校验全部先做完再进事务：解析失败不该留下任何写入
+  // 标题清空过不去：列表行、页面切换器、页头段的回落都指着它，存成空串等于把这
+  // 页的入口做成一块点不到的空白（`createPage` / `updatePage` 早就是这条校验）
+  const title = body.title.trim();
+  if (!title) {
+    throw new ValidationError("site.page_title_required");
+  }
+  const description = body.description.trim();
+  if (!description) {
+    throw new ValidationError("site.page_description_required");
+  }
   const sections = parsePageSections(body.sections, enabled);
   assertTemplateRequiredSection(existing.kind, sections);
   const header = parseSiteAreaSections("header", body.header, enabled);
@@ -752,8 +772,8 @@ export async function saveEditorDraft(
     prisma.marketingPage.update({
       where: { id: page_id, tenant_id },
       data: {
-        title_draft: body.title.trim(),
-        description_draft: body.description.trim(),
+        title_draft: title,
+        description_draft: description,
         sections_draft: sections as unknown as Prisma.InputJsonValue,
         ...(settings !== undefined
           ? { settings_draft: settings as unknown as Prisma.InputJsonValue }
@@ -1065,7 +1085,13 @@ export async function updatePage(
             }
           : {}),
         ...(body.description !== undefined
-          ? { description_draft: body.description.trim() }
+          ? {
+              description_draft: (() => {
+                const d = body.description.trim();
+                if (!d) throw new ValidationError("site.page_description_required");
+                return d;
+              })(),
+            }
           : {}),
         ...(nextSections !== undefined
           ? {

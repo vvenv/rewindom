@@ -246,6 +246,20 @@ describe("duplicatePage", () => {
     expect(createdData().locale).toBe("en");
   });
 
+  // 描述必填，而复制不让填描述：源页没有、预设也补不出时当场拒绝，
+  // 免得复制出一张在编辑器里保存不了的页
+  it("rejects a source page with no description to inherit", async () => {
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
+      sourceRow({ description: "", description_draft: "" }) as never,
+    );
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([] as never);
+
+    await expect(
+      duplicatePage(TENANT, "page-1", { title: "关于我们（副本）" }),
+    ).rejects.toThrow("site.page_description_required");
+    expect(prisma.marketingPage.create).not.toHaveBeenCalled();
+  });
+
   it("rejects a blank title and an unknown locale", async () => {
     vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue(
       sourceRow() as never,
@@ -349,6 +363,34 @@ describe("saveEditorDraft", () => {
     );
     expect(result.page.title).toBe("新标题");
     expect(result.site.id).toBe("site-1");
+  });
+
+  // 标题清空 = 列表与切换器里一行点不到的空白；建页 / 复制早就拦，这条路也得拦
+  it("rejects a blank title", async () => {
+    await expect(
+      saveEditorDraft(TENANT, "page-1", {
+        title: "   ",
+        description: "新描述",
+        sections: [],
+        header: [],
+        footer: [],
+      }),
+    ).rejects.toThrow("site.page_title_required");
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  // 描述与标题同级必填：搜索摘要 / 分享卡片、`page-header` 副标题都指着它
+  it("rejects a blank description", async () => {
+    await expect(
+      saveEditorDraft(TENANT, "page-1", {
+        title: "新标题",
+        description: "   ",
+        sections: [],
+        header: [],
+        footer: [],
+      }),
+    ).rejects.toThrow("site.page_description_required");
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
   // 页面设置也是要发布才上线的——写进 `settings` 就等于绕过发布直接改了线上
@@ -527,7 +569,7 @@ describe("saveEditorDraft", () => {
 
     const draft = (sections: unknown[]) => ({
       title: "登录",
-      description: "",
+      description: "登录页描述",
       sections,
       header: [],
       footer: [],

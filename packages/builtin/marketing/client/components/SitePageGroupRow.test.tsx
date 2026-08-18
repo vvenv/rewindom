@@ -136,6 +136,16 @@ describe("SitePageGroupRow", () => {
     expect(screen.getAllByRole("link", { name: "关于我们" })).toHaveLength(1);
   });
 
+  // 存量数据里有标题空着的页面：入口挂在标题上，空串等于一行点不到的空白
+  it("falls back to a placeholder when the page has no title", () => {
+    renderGroup([page({ id: "zh", locale: "zh-CN", title: "" })]);
+
+    expect(screen.getByRole("link", { name: "未命名页面" })).toHaveAttribute(
+      "href",
+      "/app/site/editor?page=zh",
+    );
+  });
+
   it("flags a published page whose draft moved ahead of the live version", () => {
     renderGroup([
       page({

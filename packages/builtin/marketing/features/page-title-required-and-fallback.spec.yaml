@@ -1,0 +1,39 @@
+# 增量功能契约 —— 页面标题与描述必填，空标题按版式预设兜底
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant]
+goal: 页面标题与描述在四条写入路径（建页 / 复制 / 更新 / Theme Editor 保存）上都必填，Theme Editor 以前能把标题清空存进去；中台页面列表与页面切换器遇到空标题时按公开面同一口径回落版式预设文案（`resolveCatalogPageTitle`），连预设都没有的普通页才显示「未命名页面」
+gold: packages/builtin/marketing/server/site.service.ts # createPage 已有的 site.page_title_required 校验
+touch:
+  - packages/builtin/marketing/features/page-title-required-and-fallback.spec.yaml
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/site.service.test.ts
+  - packages/builtin/marketing/server/i18n.ts
+  - packages/builtin/marketing/shared/page-templates.test.ts
+  - packages/builtin/marketing/client/lib/site-page-groups.ts
+  - packages/builtin/marketing/client/components/SitePageGroupRow.tsx
+  - packages/builtin/marketing/client/components/SitePageGroupRow.test.tsx
+  - packages/builtin/marketing/client/components/SiteTemplatePageRows.tsx
+  - packages/builtin/marketing/client/components/SitePageMetaCoreFields.tsx
+  - packages/builtin/marketing/client/components/SitePageDuplicateSheet.tsx
+  - packages/builtin/marketing/client/components/theme-editor/PageMetaForm.tsx
+  - packages/builtin/marketing/client/components/theme-editor/PageSwitcher.tsx
+  - packages/builtin/marketing/client/pages/site-editor.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 公开面（SSR / page-menu 段）的空标题兜底：那里本来就走预设回落，另一条链路
+  - 复制抽屉新增描述输入框：描述照搬源页，源页没有就拦下并提示去补源页
+  - 把存量的 4 张空标题模板页在库里回填成预设文案（只改显示，不动数据）
+  - 按 slug 自动派生标题 / 描述
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin test
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 · 留空则沿用模块现有 ----------
+# entitlement: 沿用 marketing 现有（无新增）
+# permissions: 沿用 site.* 现有（无新增）
+# models: 无新增字段

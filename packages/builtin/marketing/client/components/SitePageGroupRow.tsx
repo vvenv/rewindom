@@ -31,6 +31,7 @@ import {
   getPageTemplateKind,
   getPageTemplatePreset,
   isTemplatePageKind,
+  resolveCatalogPageTitle,
 } from "../../shared/page-templates.js";
 import { marketingPagePath } from "../../shared/site-cms.js";
 import { canSetPageAsHome, isSiteHomePage } from "../../shared/site-home.js";
@@ -102,6 +103,9 @@ export function SitePageGroupRow({
   const primary =
     group.pages.find((page) => page.locale === defaultLocale) ??
     group.pages[0]!;
+  // `group.title` 已经按公开面的口径回落过版式预设文案；连预设都没有的普通页
+  // （标题空着）才落到这个占位——整行的入口就挂在标题上，空串等于一块看不见的链接
+  const title = group.title.trim() || t("cms.untitledPage");
 
   const heading = (page: MarketingPageListItem, stretch: boolean) => (
     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -118,10 +122,10 @@ export function SitePageGroupRow({
             stretch && "after:absolute after:inset-0",
           )}
         >
-          {group.title}
+          {title}
         </Link>
       ) : (
-        <span className="truncate font-medium">{group.title}</span>
+        <span className="truncate font-medium">{title}</span>
       )}
       <span className="text-xs text-muted-foreground">
         {t(kindLabelKey(group.kind))}
@@ -360,7 +364,16 @@ function PageActions({
               <DropdownMenuItem
                 variant="destructive"
                 disabled={deletePending}
-                onSelect={() => void actions.remove(page.id, page.title)}
+                onSelect={() =>
+                  void actions.remove(
+                    page.id,
+                    resolveCatalogPageTitle(
+                      page.kind,
+                      page.locale,
+                      page.title,
+                    ) || t("cms.untitledPage"),
+                  )
+                }
               >
                 <Trash2 className="size-4" />
                 {t("cms.delete")}

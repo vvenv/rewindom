@@ -15,7 +15,7 @@ export function PageHeaderSection({
 }: SectionViewProps): ReactElement | null {
   if (!isPageHeaderVisible(section.settings)) return null;
   const page = pages.find((item) => item.path === currentPath);
-  const { headline, subhead } = resolvePageHeaderText(section.settings, page);
+  const { headline, subhead } = resolvePageHeaderText(page);
   if (!headline && !subhead) return null;
   const centered = settingText(section.settings, "align") === "center";
 

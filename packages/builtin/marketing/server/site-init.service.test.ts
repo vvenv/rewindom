@@ -65,12 +65,7 @@ registerPageTemplatePreset(GATED_KIND, {
   slug: "init-test-gated",
   titleKey: "preset.home.title",
   descriptionKey: "preset.home.description",
-  sections: [
-    {
-      type: "page-header",
-      text: { headline: "preset.home.title" },
-    },
-  ],
+  sections: [{ type: "page-header" }],
 });
 
 function createdKinds(): string[] {

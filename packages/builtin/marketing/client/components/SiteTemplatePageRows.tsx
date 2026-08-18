@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
   isPageTemplateRelevant,
   listPageTemplateKinds,
+  resolveCatalogPageTitle,
   type PageTemplateKindDefinition,
 } from "../../shared/page-templates.js";
 import {
@@ -113,7 +114,12 @@ function templateRow(
     kind: template.kind,
     slug: primary.slug,
     path: marketingPagePath(template.kind, primary.slug),
-    title: primary.title,
+    // 模板页的标题常常还是空的（快照落库时没写）：与公开面同口径回落预设文案
+    title: resolveCatalogPageTitle(
+      template.kind,
+      primary.locale,
+      primary.title,
+    ),
     pages: kindPages,
   };
 }
