@@ -6,6 +6,12 @@ import {
 } from "@rewindom/module-sdk/server";
 
 import {
+  followEntity,
+  getEntityFollowState,
+  markEntitySeen,
+  unfollowEntity,
+} from "./entity-follow.service.js";
+import {
   countFollowUpdates,
   followEvent,
   getFollowState,
@@ -93,6 +99,83 @@ export async function followRoutes(app: FastifyInstance): Promise<void> {
       }),
   });
 
+  /*
+   * 实体关注。路由前缀用 `/entity/` 与事件区分——事件那几条是 `/:eventId`，
+   * 不加前缀会把 `entity` 当成一个事件 id。
+   */
+  defineRoute(app, {
+    method: "GET",
+    url: "/entity/:entityId",
+    context: "EventEntityFollowState",
+    errorCode: "EVENT_ENTITY_FOLLOW_STATE_FAILED",
+    preHandler: [app.requirePermission("events.read")],
+    handler: async (request, reply) =>
+      guardNotFound(reply, () =>
+        getEntityFollowState({ ...scopeOf(request), entity_id: entityIdOf(request) }),
+      ),
+  });
+
+  defineRoute(app, {
+    method: "POST",
+    url: "/entity/:entityId",
+    context: "EventEntityFollow",
+    errorCode: "EVENT_ENTITY_FOLLOW_FAILED",
+    preHandler: [app.requirePermission("events.follow")],
+    handler: async (request, reply) =>
+      guardNotFound(reply, async () => {
+        const entity_id = entityIdOf(request);
+        const state = await followEntity({ ...scopeOf(request), entity_id });
+
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "EVENT_ENTITY_FOLLOW",
+          resource: entity_id,
+          detail_key: "events.audit.entityFollowed",
+          detail_params: { entity: entity_id },
+        });
+
+        return state;
+      }),
+  });
+
+  defineRoute(app, {
+    method: "DELETE",
+    url: "/entity/:entityId",
+    context: "EventEntityUnfollow",
+    errorCode: "EVENT_ENTITY_UNFOLLOW_FAILED",
+    preHandler: [app.requirePermission("events.follow")],
+    handler: async (request, reply) =>
+      guardNotFound(reply, async () => {
+        const entity_id = entityIdOf(request);
+        await unfollowEntity({ ...scopeOf(request), entity_id });
+
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: "EVENT_ENTITY_UNFOLLOW",
+          resource: entity_id,
+          detail_key: "events.audit.entityUnfollowed",
+          detail_params: { entity: entity_id },
+        });
+
+        return { is_following: false, new_event_count: 0, last_seen_at: null };
+      }),
+  });
+
+  /** 实体的「看到这里了」。与事件那条同口径，刻意不记审计。 */
+  defineRoute(app, {
+    method: "POST",
+    url: "/entity/:entityId/seen",
+    context: "EventEntityMarkSeen",
+    errorCode: "EVENT_ENTITY_MARK_SEEN_FAILED",
+    preHandler: [app.requirePermission("events.follow")],
+    handler: async (request, reply) =>
+      guardNotFound(reply, () =>
+        markEntitySeen({ ...scopeOf(request), entity_id: entityIdOf(request) }),
+      ),
+  });
+
   /**
    * 「看到这里了」。刻意不记审计——这是用户自己的阅读进度，
    * 不是需要向管理员交代的操作（同 notification 的 read 回执）。
@@ -122,6 +205,10 @@ function scopeOf(request: FastifyRequest): {
 
 function eventIdOf(request: FastifyRequest): string {
   return (request.params as { eventId: string }).eventId;
+}
+
+function entityIdOf(request: FastifyRequest): string {
+  return (request.params as { entityId: string }).entityId;
 }
 
 /** 事件不存在时回 404 的编码错误；其余异常交给全局 error-handler。 */

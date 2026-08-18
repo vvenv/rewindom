@@ -409,6 +409,7 @@ export const ModelName = {
   NewsEvent: 'NewsEvent',
   EventEntity: 'EventEntity',
   EventEntityLink: 'EventEntityLink',
+  EventEntityFollow: 'EventEntityFollow',
   EventRevision: 'EventRevision',
   EventTimelineEntry: 'EventTimelineEntry',
   EventFollow: 'EventFollow',
@@ -474,7 +475,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1363,6 +1364,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EventEntityLinkCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EventEntityLinkCountAggregateOutputType> | number
+        }
+      }
+    }
+    EventEntityFollow: {
+      payload: Prisma.$EventEntityFollowPayload<ExtArgs>
+      fields: Prisma.EventEntityFollowFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventEntityFollowFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventEntityFollowFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload>
+        }
+        findFirst: {
+          args: Prisma.EventEntityFollowFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventEntityFollowFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload>
+        }
+        findMany: {
+          args: Prisma.EventEntityFollowFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload>[]
+        }
+        create: {
+          args: Prisma.EventEntityFollowCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload>
+        }
+        createMany: {
+          args: Prisma.EventEntityFollowCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventEntityFollowCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload>[]
+        }
+        delete: {
+          args: Prisma.EventEntityFollowDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload>
+        }
+        update: {
+          args: Prisma.EventEntityFollowUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload>
+        }
+        deleteMany: {
+          args: Prisma.EventEntityFollowDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventEntityFollowUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventEntityFollowUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload>[]
+        }
+        upsert: {
+          args: Prisma.EventEntityFollowUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventEntityFollowPayload>
+        }
+        aggregate: {
+          args: Prisma.EventEntityFollowAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventEntityFollow>
+        }
+        groupBy: {
+          args: Prisma.EventEntityFollowGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventEntityFollowGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventEntityFollowCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventEntityFollowCountAggregateOutputType> | number
         }
       }
     }
@@ -5285,6 +5360,7 @@ export const NewsEventScalarFieldEnum = {
   tokens: 'tokens',
   centroid: 'centroid',
   source_names: 'source_names',
+  related_event_ids: 'related_event_ids',
   signal_count: 'signal_count',
   source_count: 'source_count',
   heat_score: 'heat_score',
@@ -5311,6 +5387,7 @@ export const EventEntityScalarFieldEnum = {
   name: 'name',
   kind: 'kind',
   normalized: 'normalized',
+  slug: 'slug',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -5328,6 +5405,19 @@ export const EventEntityLinkScalarFieldEnum = {
 } as const
 
 export type EventEntityLinkScalarFieldEnum = (typeof EventEntityLinkScalarFieldEnum)[keyof typeof EventEntityLinkScalarFieldEnum]
+
+
+export const EventEntityFollowScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  user_id: 'user_id',
+  entity_id: 'entity_id',
+  last_seen_at: 'last_seen_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type EventEntityFollowScalarFieldEnum = (typeof EventEntityFollowScalarFieldEnum)[keyof typeof EventEntityFollowScalarFieldEnum]
 
 
 export const EventRevisionScalarFieldEnum = {
@@ -5478,6 +5568,7 @@ export const MarketingSiteScalarFieldEnum = {
   footer_draft_json: 'footer_draft_json',
   published: 'published',
   home_path: 'home_path',
+  home_layout_key: 'home_layout_key',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -6433,6 +6524,7 @@ export type GlobalOmitConfig = {
   newsEvent?: Prisma.NewsEventOmit
   eventEntity?: Prisma.EventEntityOmit
   eventEntityLink?: Prisma.EventEntityLinkOmit
+  eventEntityFollow?: Prisma.EventEntityFollowOmit
   eventRevision?: Prisma.EventRevisionOmit
   eventTimelineEntry?: Prisma.EventTimelineEntryOmit
   eventFollow?: Prisma.EventFollowOmit

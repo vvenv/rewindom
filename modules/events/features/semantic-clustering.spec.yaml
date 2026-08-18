@@ -16,7 +16,7 @@ gold: modules/events/server/event/cluster.service.ts
 touch:
   - modules/events/features/semantic-clustering.spec.yaml
   - modules/events/MODULE.md
-  - modules/events/prisma/schema.prisma
+  - modules/events/models.prisma
   - apps/server/prisma/migrations/
   - modules/events/server/event/embedding.ts
   - modules/events/server/event/embedding.test.ts

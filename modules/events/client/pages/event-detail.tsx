@@ -14,6 +14,8 @@ import { EventStatusBadge } from "../components/EventStatusBadge.js";
 import { EventTimeline } from "../components/EventTimeline.js";
 import { EventEntities } from "../components/EventEntities.js";
 import { EventMomentumBadge } from "../components/EventMomentumBadge.js";
+import { EventRelated } from "../components/EventRelated.js";
+import { EventWhyTrending } from "../components/EventWhyTrending.js";
 import { EventUpdatesSince } from "../components/EventUpdatesSince.js";
 import { FollowEventButton } from "../components/FollowEventButton.js";
 import { RelativeTime } from "../components/RelativeTime.js";
@@ -97,7 +99,13 @@ export function EventDetail() {
               </span>
             </div>
 
-            <EventEntities entities={data.entities} />
+            <EventEntities
+              entities={data.entities}
+              canFollow={canFollow}
+            />
+
+            {/* 「为什么」是对结论的补充，摆在变化之后、正文之前 */}
+            <EventWhyTrending factors={data.why_trending} />
 
             {/* 变化放在「发生了什么」之前：回访者最想知道的是「又变了什么」 */}
             <EventUpdatesSince
@@ -164,6 +172,9 @@ export function EventDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* 相关摆在来源之后：先给结论与证据，再给「还牵着什么」 */}
+            <EventRelated related={data.related} />
           </>
         ) : null}
       </div>

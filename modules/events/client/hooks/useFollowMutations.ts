@@ -3,7 +3,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { EVENTS_QUERY_KEY } from "./useEvents.js";
 
-import type { EventFollowState } from "../../shared/index.js";
+import type {
+  EventEntityFollowState,
+  EventFollowState,
+} from "../../shared/index.js";
 
 /**
  * 关注 / 取关 / 标记已读。
@@ -47,6 +50,30 @@ export function useMarkEventSeen() {
   return useMutation({
     mutationFn: (eventId: string) =>
       api.post<EventFollowState>(`/events/follows/${eventId}/seen`, {}),
+    onSuccess: invalidate,
+  });
+}
+
+/**
+ * 关注 / 取关实体。
+ *
+ * 与关注事件走同一条失效策略：实体的关注态挂在事件详情的 `entities` 上，
+ * 逐个精确失效省不下多少请求，却很容易漏掉某个视图导致状态不一致。
+ */
+export function useFollowEntity() {
+  const invalidate = useInvalidateEvents();
+  return useMutation({
+    mutationFn: (entityId: string) =>
+      api.post<EventEntityFollowState>(`/events/follows/entity/${entityId}`, {}),
+    onSuccess: invalidate,
+  });
+}
+
+export function useUnfollowEntity() {
+  const invalidate = useInvalidateEvents();
+  return useMutation({
+    mutationFn: (entityId: string) =>
+      api.delete<EventEntityFollowState>(`/events/follows/entity/${entityId}`),
     onSuccess: invalidate,
   });
 }

@@ -43,7 +43,7 @@
   },
   "rewindom": {
     "moduleId": "events",
-    "prismaSchema": "./prisma/schema.prisma",
+    "prismaSchema": "./models.prisma",
     "requires": [
       "rbac",
       "audit",

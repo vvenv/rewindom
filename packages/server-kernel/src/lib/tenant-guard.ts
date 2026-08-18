@@ -47,6 +47,7 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
   EventRevision: { kind: "tenant_id" },
   EventEntity: { kind: "tenant_id" },
   EventEntityLink: { kind: "tenant_id" },
+  EventEntityFollow: { kind: "tenant_id" },
   EventFollow: { kind: "tenant_id" },
   SiteFormSubmission: { kind: "tenant_id" },
   ShopPayment: { kind: "tenant_id" },

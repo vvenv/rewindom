@@ -76,7 +76,8 @@
     "updatedAt": "更新于",
     "firstSeen": "首次出现",
     "score": "{{count}} 分",
-    "comments": "{{count}} 条评论"
+    "comments": "{{count}} 条评论",
+    "related": "相关事件"
   },
   "timeline": {
     "firstSeen": "{{source}} 最先出现",
@@ -162,7 +163,13 @@
       "showSources": "显示来源",
       "showSourcesInfo": "关掉后访客无法核对原文，不建议",
       "sourcesLabel": "来源标题",
-      "backLabel": "返回按钮文案"
+      "backLabel": "返回按钮文案",
+      "showRelated": "显示相关事件",
+      "showRelatedInfo": "相关不是同一件事，只是有关系",
+      "relatedLabel": "相关事件标题",
+      "showWhy": "显示「为什么在扩散」",
+      "showWhyInfo": "只陈述可核对的事实，并区分已证实与仅讨论",
+      "whyLabel": "「为什么在扩散」标题"
     },
     "entity": {
       "label": "实体页正文",
@@ -273,7 +280,9 @@
     "titleChanged": "标题已更新"
   },
   "entities": {
-    "title": "涉及"
+    "title": "涉及",
+    "follow": "关注 {{name}}",
+    "unfollow": "取消关注 {{name}}"
   },
   "entity": {
     "relatedEvents": "相关事件",
@@ -286,5 +295,18 @@
     "person": "人物",
     "place": "地点",
     "org": "组织"
+  },
+  "audit": {
+    "entityFollowed": "关注了实体 {{entity}}",
+    "entityUnfollowed": "取消关注实体 {{entity}}"
+  },
+  "why": {
+    "title": "为什么在扩散",
+    "officialAnnouncement": "{{source}} 发布了一手公告",
+    "crossSource": "{{count}} 个来源在报道，{{first}} 最先",
+    "recentActivity": "最近 {{hours}} 小时新增 {{count}} 条信号，来自 {{sources}} 个来源",
+    "communityOnly": "只有社区在讨论（{{count}} 条），还没有来源证实",
+    "confirmed": "已证实",
+    "discussion": "仅讨论"
   }
 }

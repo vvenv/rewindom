@@ -1,4 +1,4 @@
-import { Radar, Rss, TrendingUp } from "lucide-react";
+import { Radar, Rss, Tag, TrendingUp } from "lucide-react";
 
 import { htmlSectionView } from "@rewindom/builtin/marketing/client/components/sections/html-section-view.js";
 import { registerSiteSectionView } from "@rewindom/builtin/marketing/client/components/sections/section-views.js";
@@ -12,6 +12,7 @@ import { renderEventsRoutes } from "./tenant/routes.js";
 import {
   EVENTS_ENTITLEMENT,
   eventsDetailSection,
+  eventsEntitySection,
   eventsFeedSection,
   eventsNowSection,
   eventsRisingSection,
@@ -19,6 +20,7 @@ import {
 import { registerEventsPageTemplates } from "../shared/events-page-templates.js";
 import { registerEventsNavSources } from "../shared/nav-sources.js";
 import { renderEventsDetailHtml } from "../shared/sections/detail-html.js";
+import { renderEventsEntityHtml } from "../shared/sections/entity-html.js";
 import { renderEventsFeedHtml } from "../shared/sections/feed-html.js";
 import { EVENTS_CSS } from "../shared/site-css.generated.js";
 
@@ -49,6 +51,11 @@ registerSiteSectionView(
   eventsDetailSection,
   htmlSectionView(renderEventsDetailHtml),
   { css: EVENTS_CSS, icon: Radar },
+);
+registerSiteSectionView(
+  eventsEntitySection,
+  htmlSectionView(renderEventsEntityHtml),
+  { css: EVENTS_CSS, icon: Tag },
 );
 
 export const eventsClientModule: ClientAppModule = {

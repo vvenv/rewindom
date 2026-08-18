@@ -110,6 +110,7 @@ export type NewsEventCountAggregateOutputType = {
   tokens: number
   centroid: number
   source_names: number
+  related_event_ids: number
   signal_count: number
   source_count: number
   heat_score: number
@@ -213,6 +214,7 @@ export type NewsEventCountAggregateInputType = {
   tokens?: true
   centroid?: true
   source_names?: true
+  related_event_ids?: true
   signal_count?: true
   source_count?: true
   heat_score?: true
@@ -329,6 +331,7 @@ export type NewsEventGroupByOutputType = {
   tokens: string[]
   centroid: number[]
   source_names: string[]
+  related_event_ids: string[]
   signal_count: number
   source_count: number
   heat_score: number
@@ -381,6 +384,7 @@ export type NewsEventWhereInput = {
   tokens?: Prisma.StringNullableListFilter<"NewsEvent">
   centroid?: Prisma.FloatNullableListFilter<"NewsEvent">
   source_names?: Prisma.StringNullableListFilter<"NewsEvent">
+  related_event_ids?: Prisma.StringNullableListFilter<"NewsEvent">
   signal_count?: Prisma.IntFilter<"NewsEvent"> | number
   source_count?: Prisma.IntFilter<"NewsEvent"> | number
   heat_score?: Prisma.FloatFilter<"NewsEvent"> | number
@@ -415,6 +419,7 @@ export type NewsEventOrderByWithRelationInput = {
   tokens?: Prisma.SortOrder
   centroid?: Prisma.SortOrder
   source_names?: Prisma.SortOrder
+  related_event_ids?: Prisma.SortOrder
   signal_count?: Prisma.SortOrder
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
@@ -454,6 +459,7 @@ export type NewsEventWhereUniqueInput = Prisma.AtLeast<{
   tokens?: Prisma.StringNullableListFilter<"NewsEvent">
   centroid?: Prisma.FloatNullableListFilter<"NewsEvent">
   source_names?: Prisma.StringNullableListFilter<"NewsEvent">
+  related_event_ids?: Prisma.StringNullableListFilter<"NewsEvent">
   signal_count?: Prisma.IntFilter<"NewsEvent"> | number
   source_count?: Prisma.IntFilter<"NewsEvent"> | number
   heat_score?: Prisma.FloatFilter<"NewsEvent"> | number
@@ -488,6 +494,7 @@ export type NewsEventOrderByWithAggregationInput = {
   tokens?: Prisma.SortOrder
   centroid?: Prisma.SortOrder
   source_names?: Prisma.SortOrder
+  related_event_ids?: Prisma.SortOrder
   signal_count?: Prisma.SortOrder
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
@@ -525,6 +532,7 @@ export type NewsEventScalarWhereWithAggregatesInput = {
   tokens?: Prisma.StringNullableListFilter<"NewsEvent">
   centroid?: Prisma.FloatNullableListFilter<"NewsEvent">
   source_names?: Prisma.StringNullableListFilter<"NewsEvent">
+  related_event_ids?: Prisma.StringNullableListFilter<"NewsEvent">
   signal_count?: Prisma.IntWithAggregatesFilter<"NewsEvent"> | number
   source_count?: Prisma.IntWithAggregatesFilter<"NewsEvent"> | number
   heat_score?: Prisma.FloatWithAggregatesFilter<"NewsEvent"> | number
@@ -554,6 +562,7 @@ export type NewsEventCreateInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -588,6 +597,7 @@ export type NewsEventUncheckedCreateInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -622,6 +632,7 @@ export type NewsEventUpdateInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -656,6 +667,7 @@ export type NewsEventUncheckedUpdateInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -690,6 +702,7 @@ export type NewsEventCreateManyInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -719,6 +732,7 @@ export type NewsEventUpdateManyMutationInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -748,6 +762,7 @@ export type NewsEventUncheckedUpdateManyInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -800,6 +815,7 @@ export type NewsEventCountOrderByAggregateInput = {
   tokens?: Prisma.SortOrder
   centroid?: Prisma.SortOrder
   source_names?: Prisma.SortOrder
+  related_event_ids?: Prisma.SortOrder
   signal_count?: Prisma.SortOrder
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
@@ -922,6 +938,10 @@ export type NewsEventCreatesource_namesInput = {
   set: string[]
 }
 
+export type NewsEventCreaterelated_event_idsInput = {
+  set: string[]
+}
+
 export type NewsEventUpdatetokensInput = {
   set?: string[]
   push?: string | string[]
@@ -933,6 +953,11 @@ export type NewsEventUpdatecentroidInput = {
 }
 
 export type NewsEventUpdatesource_namesInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type NewsEventUpdaterelated_event_idsInput = {
   set?: string[]
   push?: string | string[]
 }
@@ -1013,6 +1038,7 @@ export type NewsEventCreateWithoutSignalsInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1046,6 +1072,7 @@ export type NewsEventUncheckedCreateWithoutSignalsInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1095,6 +1122,7 @@ export type NewsEventUpdateWithoutSignalsInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1128,6 +1156,7 @@ export type NewsEventUncheckedUpdateWithoutSignalsInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1161,6 +1190,7 @@ export type NewsEventCreateWithoutEntitiesInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1194,6 +1224,7 @@ export type NewsEventUncheckedCreateWithoutEntitiesInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1243,6 +1274,7 @@ export type NewsEventUpdateWithoutEntitiesInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1276,6 +1308,7 @@ export type NewsEventUncheckedUpdateWithoutEntitiesInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1309,6 +1342,7 @@ export type NewsEventCreateWithoutRevisionsInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1342,6 +1376,7 @@ export type NewsEventUncheckedCreateWithoutRevisionsInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1391,6 +1426,7 @@ export type NewsEventUpdateWithoutRevisionsInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1424,6 +1460,7 @@ export type NewsEventUncheckedUpdateWithoutRevisionsInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1457,6 +1494,7 @@ export type NewsEventCreateWithoutTimelineInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1490,6 +1528,7 @@ export type NewsEventUncheckedCreateWithoutTimelineInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1539,6 +1578,7 @@ export type NewsEventUpdateWithoutTimelineInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1572,6 +1612,7 @@ export type NewsEventUncheckedUpdateWithoutTimelineInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1605,6 +1646,7 @@ export type NewsEventCreateWithoutFollowsInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1638,6 +1680,7 @@ export type NewsEventUncheckedCreateWithoutFollowsInput = {
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
   centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventCreaterelated_event_idsInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
@@ -1687,6 +1730,7 @@ export type NewsEventUpdateWithoutFollowsInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1720,6 +1764,7 @@ export type NewsEventUncheckedUpdateWithoutFollowsInput = {
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
   centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  related_event_ids?: Prisma.NewsEventUpdaterelated_event_idsInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1820,6 +1865,7 @@ export type NewsEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   tokens?: boolean
   centroid?: boolean
   source_names?: boolean
+  related_event_ids?: boolean
   signal_count?: boolean
   source_count?: boolean
   heat_score?: boolean
@@ -1855,6 +1901,7 @@ export type NewsEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   tokens?: boolean
   centroid?: boolean
   source_names?: boolean
+  related_event_ids?: boolean
   signal_count?: boolean
   source_count?: boolean
   heat_score?: boolean
@@ -1884,6 +1931,7 @@ export type NewsEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   tokens?: boolean
   centroid?: boolean
   source_names?: boolean
+  related_event_ids?: boolean
   signal_count?: boolean
   source_count?: boolean
   heat_score?: boolean
@@ -1913,6 +1961,7 @@ export type NewsEventSelectScalar = {
   tokens?: boolean
   centroid?: boolean
   source_names?: boolean
+  related_event_ids?: boolean
   signal_count?: boolean
   source_count?: boolean
   heat_score?: boolean
@@ -1930,7 +1979,7 @@ export type NewsEventSelectScalar = {
   updated_at?: boolean
 }
 
-export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "title" | "summary" | "topic" | "status" | "fingerprint" | "tokens" | "centroid" | "source_names" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "has_velocity_baseline" | "recent_signal_count" | "recent_source_count" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "analyzer" | "manual_content" | "manual_topic" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
+export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "title" | "summary" | "topic" | "status" | "fingerprint" | "tokens" | "centroid" | "source_names" | "related_event_ids" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "has_velocity_baseline" | "recent_signal_count" | "recent_source_count" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "analyzer" | "manual_content" | "manual_topic" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
 export type NewsEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   signals?: boolean | Prisma.NewsEvent$signalsArgs<ExtArgs>
   timeline?: boolean | Prisma.NewsEvent$timelineArgs<ExtArgs>
@@ -1992,6 +2041,12 @@ export type $NewsEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      * 贡献过信号的来源名（去重）。冗余在事件上，列表页才不用为每张卡片再查一次信号表
      */
     source_names: string[]
+    /**
+     * 预计算的相关事件 id（最多 5 个，按相似度降序）。
+     * **必须预计算**：读路径上算要把候选的 centroid 全部载入（400 事件 ≈ 4.9MB/请求），
+     * 公开面 SSR 承受不起。做法与聚类同源，只是阈值更低（0.75 vs 0.85）
+     */
+    related_event_ids: string[]
     signal_count: number
     /**
      * 贡献过信号的不同源数量——跨源程度，Rising 排序会用到
@@ -2479,6 +2534,7 @@ export interface NewsEventFieldRefs {
   readonly tokens: Prisma.FieldRef<"NewsEvent", 'String[]'>
   readonly centroid: Prisma.FieldRef<"NewsEvent", 'Float[]'>
   readonly source_names: Prisma.FieldRef<"NewsEvent", 'String[]'>
+  readonly related_event_ids: Prisma.FieldRef<"NewsEvent", 'String[]'>
   readonly signal_count: Prisma.FieldRef<"NewsEvent", 'Int'>
   readonly source_count: Prisma.FieldRef<"NewsEvent", 'Int'>
   readonly heat_score: Prisma.FieldRef<"NewsEvent", 'Float'>

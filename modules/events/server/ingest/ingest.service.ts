@@ -5,6 +5,7 @@ import { TENANT_MODULES_STORAGE_KEY } from "@rewindom/builtin/platform/shared/te
 import { canonicalizeUrl } from "../event/canonical-url.js";
 import { clusterSignals } from "../event/cluster.service.js";
 import { refreshEvents } from "../event/event-refresh.service.js";
+import { syncRelatedEvents } from "../event/related.service.js";
 
 import { enrichStoredEmptyExcerpts } from "./excerpt-enrichment.js";
 import { ensureDefaultFeeds } from "./feed-seed.js";
@@ -160,6 +161,12 @@ async function runIngestForTenant(
       log?.warn({ err, eventId, tenantId }, "[events] LLM 分析失败，已退回规则分析器");
     },
   });
+
+  /*
+   * 相关事件单独一趟，不并进 refreshEvents：候选向量要整批载入一次，
+   * 塞进按事件的循环会把同一份几 MB 的数据重复读几十遍。
+   */
+  await syncRelatedEvents({ tenant_id: tenantId, event_ids: [...touched] });
 
   return {
     feeds: feeds.length,

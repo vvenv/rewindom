@@ -9,6 +9,7 @@ import {
 
 import { toEventDetail, toEventListItem } from "./event.mapper.js";
 import { listEventEntities } from "./entity.service.js";
+import { listRelatedEvents } from "./related.service.js";
 import {
   listEventRevisions,
   publicRevisionSince,
@@ -188,6 +189,7 @@ export async function getEventDetail(
       analyzed_at: true,
       manual_content: true,
       manual_topic: true,
+      related_event_ids: true,
     },
   });
   if (!record) {
@@ -233,12 +235,27 @@ export async function getEventDetail(
     since: follow?.last_seen_at ?? publicRevisionSince(new Date()),
   });
 
-  const entities = await listEventEntities({
-    tenant_id: params.tenant_id,
-    event_id: record.id,
-  });
+  const [entities, related] = await Promise.all([
+    listEventEntities({
+      tenant_id: params.tenant_id,
+      event_id: record.id,
+      user_id: params.user_id,
+    }),
+    listRelatedEvents({
+      tenant_id: params.tenant_id,
+      related_ids: record.related_event_ids,
+    }),
+  ]);
 
-  return toEventDetail({ record, timeline, signals, revisions, entities, follow });
+  return toEventDetail({
+    record,
+    timeline,
+    signals,
+    revisions,
+    entities,
+    related,
+    follow,
+  });
 }
 
 /**

@@ -49,5 +49,6 @@
   "eventTimelineEntry": "tenant_id",
   "eventRevision": "tenant_id",
   "eventEntity": "tenant_id",
-  "eventEntityLink": "tenant_id"
+  "eventEntityLink": "tenant_id",
+  "eventEntityFollow": "tenant_id"
 }

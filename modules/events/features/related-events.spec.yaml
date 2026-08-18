@@ -1,0 +1,75 @@
+# Related Events —— 「这件事还牵着哪些事」。
+#
+# 数据早就有了：`NewsEvent.centroid` 就是现成的相似度输入，做法与聚类同源，只是阈值更低。
+# 聚类回答「这是不是同一件事」（0.85），相关回答「这两件事有没有关系」（0.75）。
+#
+# 竞品给不出的原因和修订史一样：它们每轮重新聚类，没有跨轮稳定的事件身份，
+# 也就没有「事件之间的关系」这个概念——只有「这一批新闻里哪些像」。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 事件详情页（工作台与公开面）展示若干相关事件；关系由 centroid 余弦相似度算出，在采集时预计算并落库，读路径零额外开销。
+gold: modules/events/server/event/cluster-match.ts
+touch:
+  - modules/events/features/related-events.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/models.prisma
+  - apps/server/prisma/migrations/
+  - modules/events/shared/events.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/events-detail-section.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/site-css/
+  - modules/events/server/event/related.service.ts
+  - modules/events/server/event/related.service.test.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ingest/ingest.service.ts
+  - modules/events/client/components/EventRelated.tsx
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 「为什么相关」的解释（要 LLM 说明理由，另立）
+  - 按实体算相关（实体兜底已实测证伪，见 MODULE.md）
+  - 相关事件的分页 / 「查看更多」
+  - 双向一致性保证（A 的相关里有 B，不强求 B 的相关里有 A）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/related.service.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/builtin check:section-css
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models:
+  - name: NewsEvent
+    scope: tenant
+    fields:
+      # 预计算的相关事件 id（最多 5 个，按相似度降序）
+      - { name: related_event_ids, type: "String[]", required: false }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **必须预计算**。读路径上算的话，每次打开详情页都要把候选事件的 centroid 全部载入：
+#    400 个事件 × 1536 维 float8 ≈ 4.9MB/请求。公开面 SSR 承受不起。
+#    预计算后读路径只是一次按 id 的 findMany。
+# 2. 阈值 `RELATED_MIN_SIMILARITY = 0.75`，在真实语料上量过（单站点 400 个带向量的事件，
+#    人工判读 0.70~0.85 两段样本）：
+#      0.75~0.85 是真相关 —— WHO 与两个国家分别签协议、Chrome 性能两篇、Llamafile 两次发布
+#      0.70~0.75 开始出噪声 —— 「Firefox 加固」⟷「Llamafile 发版」只是都属于开源工具
+#    改这个数之前先重跑校准，别凭感觉调（与 CLUSTER_SEMANTIC_THRESHOLD 同规矩）。
+# 3. 计算放在**采集之后单独一趟**，不塞进 refreshEvents：候选 centroid 要整批载入一次，
+#    塞进按事件的循环会重复载入几十遍。
+# 4. 只给**有向量**的事件算。没配 embedding key 时这一块整体为空，详情页不渲染该区块——
+#    与势头角标、修订区块同一条口径：没有可主张的就留白。
+# 5. 相关不要求双向一致：A 的 top5 里有 B，不代表 B 的 top5 里有 A。
+#    强求对称要么得多存一份反向表，要么让 top5 名不副实。

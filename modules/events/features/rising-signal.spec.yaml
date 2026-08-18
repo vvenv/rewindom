@@ -15,7 +15,7 @@ gold: modules/events/server/event/heat.ts
 touch:
   - modules/events/features/rising-signal.spec.yaml
   - modules/events/MODULE.md
-  - modules/events/prisma/schema.prisma
+  - modules/events/models.prisma
   - apps/server/prisma/migrations/
   - modules/events/shared/events.ts
   - modules/events/shared/events.test.ts

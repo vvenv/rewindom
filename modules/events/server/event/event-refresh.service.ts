@@ -20,6 +20,15 @@ const LLM_REANALYZE_COOLDOWN_MS = 30 * 60 * 1000;
 /** 卡片上最多展示几个来源名。 */
 const SOURCE_NAME_LIMIT = 8;
 
+/**
+ * 同时刷新几个事件。
+ *
+ * 每个事件的读写互不相干，幂等性不受影响。不设更高是因为并发的瓶颈在模型侧：
+ * 撞上限流会退回规则实现，**而那是静默降级**——事件页不会开天窗，但摘要质量会悄悄变差。
+ * 宁可慢一点，也不要用一堆退化的摘要把周期填满。
+ */
+const REFRESH_CONCURRENCY = 4;
+
 export interface RefreshEventsOptions {
   now?: Date;
   onAnalyzerFallback?: (eventId: string, err: unknown) => void;
@@ -47,12 +56,26 @@ export async function refreshEvents(
     return pending;
   };
 
-  for (const eventId of new Set(eventIds)) {
-    const changed = await refreshEvent(eventId, now, options, analyzerFor);
-    if (changed) {
-      refreshed += 1;
+  const queue = [...new Set(eventIds)];
+  let cursor = 0;
+
+  const worker = async (): Promise<void> => {
+    for (;;) {
+      const index = cursor;
+      cursor += 1;
+      if (index >= queue.length) {
+        return;
+      }
+      const changed = await refreshEvent(queue[index], now, options, analyzerFor);
+      if (changed) {
+        refreshed += 1;
+      }
     }
-  }
+  };
+
+  await Promise.all(
+    Array.from({ length: Math.min(REFRESH_CONCURRENCY, queue.length) }, worker),
+  );
 
   return refreshed;
 }
@@ -77,6 +100,8 @@ async function refreshEvent(
       manual_topic: true,
       status: true,
       source_names: true,
+      // 变化检测：与本轮载入的条数比对，不等就说明信号集合变过
+      signal_count: true,
     },
   });
   if (!event) {
@@ -129,7 +154,13 @@ async function refreshEvent(
   ].slice(0, SOURCE_NAME_LIMIT);
 
   const analyzer = await analyzerFor(event.tenant_id);
-  const analysis = shouldReanalyze(event.analyzed_at, now, analyzer.id)
+  const analysis = shouldReanalyze({
+    analyzed_at: event.analyzed_at,
+    previous_signal_count: event.signal_count,
+    signal_count: signals.length,
+    now,
+    analyzer_id: analyzer.id,
+  })
     ? await analyzeEvent(
         {
           topic: event.topic as EventTopic,
@@ -378,16 +409,36 @@ export function resolveRefreshedContent(params: {
   };
 }
 
-export function shouldReanalyze(
-  analyzedAt: Date | null,
-  now: Date,
-  analyzerId: string,
-): boolean {
-  if (analyzedAt === null) {
+/**
+ * 该不该重跑分析器。
+ *
+ * **先看信号集合变没变，再看冷却**。曾经只按时间判：heuristic 恒为 true，
+ * llm 只要距上次分析超过 30 分钟就重来——而降温扫描捞的事件**按定义空闲 ≥6h**，
+ * 于是每轮最多 200 个事件、每个一次模型调用，全都是没有新信号的事件。
+ * 实测 10 个事件跑不完 2 分钟，而采集周期是 15 分钟：一轮跑不完就被下一轮跳过，
+ * 热度与阶段反而长期不更新——正好废掉降温扫描存在的理由。
+ *
+ * 信号没变时分析器的输出必然与上次相同（它是信号集合的纯函数），跳过不损失任何东西。
+ */
+export function shouldReanalyze(params: {
+  analyzed_at: Date | null;
+  /** 上一次刷新时记录的信号数（`NewsEvent.signal_count`） */
+  previous_signal_count: number;
+  /** 本轮实际载入的信号数 */
+  signal_count: number;
+  now: Date;
+  analyzer_id: string;
+}): boolean {
+  // 从未分析过，或被显式要求重来（摘录补齐那条路径会把 analyzed_at 置空）
+  if (params.analyzed_at === null) {
     return true;
   }
-  if (analyzerId !== "llm") {
+  // 信号集合没变（没有新增，也没被保留期清掉）→ 内容不会变
+  if (params.signal_count === params.previous_signal_count) {
+    return false;
+  }
+  if (params.analyzer_id !== "llm") {
     return true;
   }
-  return now.getTime() - analyzedAt.getTime() >= LLM_REANALYZE_COOLDOWN_MS;
+  return params.now.getTime() - params.analyzed_at.getTime() >= LLM_REANALYZE_COOLDOWN_MS;
 }

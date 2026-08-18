@@ -63,6 +63,7 @@ export const ModelName = {
   NewsEvent: 'NewsEvent',
   EventEntity: 'EventEntity',
   EventEntityLink: 'EventEntityLink',
+  EventEntityFollow: 'EventEntityFollow',
   EventRevision: 'EventRevision',
   EventTimelineEntry: 'EventTimelineEntry',
   EventFollow: 'EventFollow',
@@ -311,6 +312,7 @@ export const NewsEventScalarFieldEnum = {
   tokens: 'tokens',
   centroid: 'centroid',
   source_names: 'source_names',
+  related_event_ids: 'related_event_ids',
   signal_count: 'signal_count',
   source_count: 'source_count',
   heat_score: 'heat_score',
@@ -337,6 +339,7 @@ export const EventEntityScalarFieldEnum = {
   name: 'name',
   kind: 'kind',
   normalized: 'normalized',
+  slug: 'slug',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -354,6 +357,19 @@ export const EventEntityLinkScalarFieldEnum = {
 } as const
 
 export type EventEntityLinkScalarFieldEnum = (typeof EventEntityLinkScalarFieldEnum)[keyof typeof EventEntityLinkScalarFieldEnum]
+
+
+export const EventEntityFollowScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  user_id: 'user_id',
+  entity_id: 'entity_id',
+  last_seen_at: 'last_seen_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type EventEntityFollowScalarFieldEnum = (typeof EventEntityFollowScalarFieldEnum)[keyof typeof EventEntityFollowScalarFieldEnum]
 
 
 export const EventRevisionScalarFieldEnum = {
@@ -504,6 +520,7 @@ export const MarketingSiteScalarFieldEnum = {
   footer_draft_json: 'footer_draft_json',
   published: 'published',
   home_path: 'home_path',
+  home_layout_key: 'home_layout_key',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

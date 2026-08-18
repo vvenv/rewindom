@@ -1,0 +1,65 @@
+# Why it's trending —— 「这件事为什么现在在扩散」。
+#
+# 这是最容易做砸的一个：它天然诱导模型去**解释**、去**推断动机**，
+# 而 MVP §11 的边界写得很死——不给建议、不做预测、不判断谁对、不引入来源外的事实。
+#
+# 所以本期的口径是：**只陈述可核对的事实**，并严格区分
+#   Confirmed（一手来源说的 / 多源印证的）与 Discussion（只有社区在聊）。
+# 说不清楚就什么都不说——与势头角标、修订区块同一条口径：留白比编一句更权威。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 事件详情页展示「为什么在扩散」——由可核对的事实构成（谁最先说、几家跟进、一手还是讨论、近窗新增多少），并明确标注 confirmed / discussion；规则实现即可产出，LLM 只负责把它写顺。
+gold: modules/events/server/event/event-revision.service.ts
+touch:
+  - modules/events/features/why-trending.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/events-detail-section.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/site-css/
+  - modules/events/server/event/why-trending.ts
+  - modules/events/server/event/why-trending.test.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/client/components/EventWhyTrending.tsx
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 让模型解释「为什么大家关心」（那是动机推断，越过 MVP §11 的边界）
+  - 预测会不会继续热（明确禁止做预测）
+  - 与竞品 / 历史事件对比
+  - 存一张表（它是信号与事件字段的纯函数，算出来就行，不落库）
+i18n: code # 事实由 code + 参数拼成，不让模型产出自由文案
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/why-trending.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/builtin check:section-css
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: [] # 纯函数，不落库
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **不落库、不调模型**。它是「事件字段 + 信号集合」的纯函数：
+#    谁最先说、几家跟进、一手来源占比、近窗新增量、跨了几个来源类型。
+#    落库要多一张表和一次同步；调模型要多一次调用、还要防它编造理由。都不值得。
+# 2. 产出的是 **i18n code + 参数**，不是自由文案。理由和「时间线不由模型给时间戳」一样：
+#    自由文案一旦允许，模型就会写出「因为开发者社区普遍担忧」这种没有出处的句子。
+# 3. **confirmed / discussion 必须分开标**：
+#      confirmed —— 有 official 来源，或 ≥2 个不同来源印证
+#      discussion —— 只有 community 来源（哪怕十条 HN 帖子也仍然只是讨论）
+#    这条是这个功能存在的理由。混为一谈就变成了「热度解释器」，那正是产品要避免的。
+# 4. 说不清楚就返回空（单来源、无近窗活动），界面整块不渲染。
+#    与势头角标同一条口径：留白比编一句更权威。

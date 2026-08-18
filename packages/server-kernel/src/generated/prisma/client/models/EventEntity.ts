@@ -33,6 +33,7 @@ export type EventEntityMinAggregateOutputType = {
   name: string | null
   kind: string | null
   normalized: string | null
+  slug: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -43,6 +44,7 @@ export type EventEntityMaxAggregateOutputType = {
   name: string | null
   kind: string | null
   normalized: string | null
+  slug: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -53,6 +55,7 @@ export type EventEntityCountAggregateOutputType = {
   name: number
   kind: number
   normalized: number
+  slug: number
   created_at: number
   updated_at: number
   _all: number
@@ -65,6 +68,7 @@ export type EventEntityMinAggregateInputType = {
   name?: true
   kind?: true
   normalized?: true
+  slug?: true
   created_at?: true
   updated_at?: true
 }
@@ -75,6 +79,7 @@ export type EventEntityMaxAggregateInputType = {
   name?: true
   kind?: true
   normalized?: true
+  slug?: true
   created_at?: true
   updated_at?: true
 }
@@ -85,6 +90,7 @@ export type EventEntityCountAggregateInputType = {
   name?: true
   kind?: true
   normalized?: true
+  slug?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -168,6 +174,7 @@ export type EventEntityGroupByOutputType = {
   name: string
   kind: string
   normalized: string
+  slug: string
   created_at: Date
   updated_at: Date
   _count: EventEntityCountAggregateOutputType | null
@@ -199,9 +206,11 @@ export type EventEntityWhereInput = {
   name?: Prisma.StringFilter<"EventEntity"> | string
   kind?: Prisma.StringFilter<"EventEntity"> | string
   normalized?: Prisma.StringFilter<"EventEntity"> | string
+  slug?: Prisma.StringFilter<"EventEntity"> | string
   created_at?: Prisma.DateTimeFilter<"EventEntity"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"EventEntity"> | Date | string
   links?: Prisma.EventEntityLinkListRelationFilter
+  follows?: Prisma.EventEntityFollowListRelationFilter
 }
 
 export type EventEntityOrderByWithRelationInput = {
@@ -210,14 +219,17 @@ export type EventEntityOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   normalized?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   links?: Prisma.EventEntityLinkOrderByRelationAggregateInput
+  follows?: Prisma.EventEntityFollowOrderByRelationAggregateInput
 }
 
 export type EventEntityWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   tenant_id_kind_normalized?: Prisma.EventEntityTenant_idKindNormalizedCompoundUniqueInput
+  tenant_id_slug?: Prisma.EventEntityTenant_idSlugCompoundUniqueInput
   AND?: Prisma.EventEntityWhereInput | Prisma.EventEntityWhereInput[]
   OR?: Prisma.EventEntityWhereInput[]
   NOT?: Prisma.EventEntityWhereInput | Prisma.EventEntityWhereInput[]
@@ -225,10 +237,12 @@ export type EventEntityWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"EventEntity"> | string
   kind?: Prisma.StringFilter<"EventEntity"> | string
   normalized?: Prisma.StringFilter<"EventEntity"> | string
+  slug?: Prisma.StringFilter<"EventEntity"> | string
   created_at?: Prisma.DateTimeFilter<"EventEntity"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"EventEntity"> | Date | string
   links?: Prisma.EventEntityLinkListRelationFilter
-}, "id" | "tenant_id_kind_normalized">
+  follows?: Prisma.EventEntityFollowListRelationFilter
+}, "id" | "tenant_id_kind_normalized" | "tenant_id_slug">
 
 export type EventEntityOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -236,6 +250,7 @@ export type EventEntityOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   normalized?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.EventEntityCountOrderByAggregateInput
@@ -252,6 +267,7 @@ export type EventEntityScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"EventEntity"> | string
   kind?: Prisma.StringWithAggregatesFilter<"EventEntity"> | string
   normalized?: Prisma.StringWithAggregatesFilter<"EventEntity"> | string
+  slug?: Prisma.StringWithAggregatesFilter<"EventEntity"> | string
   created_at?: Prisma.DateTimeWithAggregatesFilter<"EventEntity"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"EventEntity"> | Date | string
 }
@@ -262,9 +278,11 @@ export type EventEntityCreateInput = {
   name: string
   kind?: string
   normalized: string
+  slug: string
   created_at?: Date | string
   updated_at?: Date | string
   links?: Prisma.EventEntityLinkCreateNestedManyWithoutEntityInput
+  follows?: Prisma.EventEntityFollowCreateNestedManyWithoutEntityInput
 }
 
 export type EventEntityUncheckedCreateInput = {
@@ -273,9 +291,11 @@ export type EventEntityUncheckedCreateInput = {
   name: string
   kind?: string
   normalized: string
+  slug: string
   created_at?: Date | string
   updated_at?: Date | string
   links?: Prisma.EventEntityLinkUncheckedCreateNestedManyWithoutEntityInput
+  follows?: Prisma.EventEntityFollowUncheckedCreateNestedManyWithoutEntityInput
 }
 
 export type EventEntityUpdateInput = {
@@ -284,9 +304,11 @@ export type EventEntityUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   normalized?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.EventEntityLinkUpdateManyWithoutEntityNestedInput
+  follows?: Prisma.EventEntityFollowUpdateManyWithoutEntityNestedInput
 }
 
 export type EventEntityUncheckedUpdateInput = {
@@ -295,9 +317,11 @@ export type EventEntityUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   normalized?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.EventEntityLinkUncheckedUpdateManyWithoutEntityNestedInput
+  follows?: Prisma.EventEntityFollowUncheckedUpdateManyWithoutEntityNestedInput
 }
 
 export type EventEntityCreateManyInput = {
@@ -306,6 +330,7 @@ export type EventEntityCreateManyInput = {
   name: string
   kind?: string
   normalized: string
+  slug: string
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -316,6 +341,7 @@ export type EventEntityUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   normalized?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -326,6 +352,7 @@ export type EventEntityUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   normalized?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -336,12 +363,18 @@ export type EventEntityTenant_idKindNormalizedCompoundUniqueInput = {
   normalized: string
 }
 
+export type EventEntityTenant_idSlugCompoundUniqueInput = {
+  tenant_id: string
+  slug: string
+}
+
 export type EventEntityCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenant_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   normalized?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -352,6 +385,7 @@ export type EventEntityMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   normalized?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -362,6 +396,7 @@ export type EventEntityMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   normalized?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -385,14 +420,30 @@ export type EventEntityUpdateOneRequiredWithoutLinksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EventEntityUpdateToOneWithWhereWithoutLinksInput, Prisma.EventEntityUpdateWithoutLinksInput>, Prisma.EventEntityUncheckedUpdateWithoutLinksInput>
 }
 
+export type EventEntityCreateNestedOneWithoutFollowsInput = {
+  create?: Prisma.XOR<Prisma.EventEntityCreateWithoutFollowsInput, Prisma.EventEntityUncheckedCreateWithoutFollowsInput>
+  connectOrCreate?: Prisma.EventEntityCreateOrConnectWithoutFollowsInput
+  connect?: Prisma.EventEntityWhereUniqueInput
+}
+
+export type EventEntityUpdateOneRequiredWithoutFollowsNestedInput = {
+  create?: Prisma.XOR<Prisma.EventEntityCreateWithoutFollowsInput, Prisma.EventEntityUncheckedCreateWithoutFollowsInput>
+  connectOrCreate?: Prisma.EventEntityCreateOrConnectWithoutFollowsInput
+  upsert?: Prisma.EventEntityUpsertWithoutFollowsInput
+  connect?: Prisma.EventEntityWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventEntityUpdateToOneWithWhereWithoutFollowsInput, Prisma.EventEntityUpdateWithoutFollowsInput>, Prisma.EventEntityUncheckedUpdateWithoutFollowsInput>
+}
+
 export type EventEntityCreateWithoutLinksInput = {
   id?: string
   tenant_id: string
   name: string
   kind?: string
   normalized: string
+  slug: string
   created_at?: Date | string
   updated_at?: Date | string
+  follows?: Prisma.EventEntityFollowCreateNestedManyWithoutEntityInput
 }
 
 export type EventEntityUncheckedCreateWithoutLinksInput = {
@@ -401,8 +452,10 @@ export type EventEntityUncheckedCreateWithoutLinksInput = {
   name: string
   kind?: string
   normalized: string
+  slug: string
   created_at?: Date | string
   updated_at?: Date | string
+  follows?: Prisma.EventEntityFollowUncheckedCreateNestedManyWithoutEntityInput
 }
 
 export type EventEntityCreateOrConnectWithoutLinksInput = {
@@ -427,8 +480,10 @@ export type EventEntityUpdateWithoutLinksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   normalized?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  follows?: Prisma.EventEntityFollowUpdateManyWithoutEntityNestedInput
 }
 
 export type EventEntityUncheckedUpdateWithoutLinksInput = {
@@ -437,8 +492,74 @@ export type EventEntityUncheckedUpdateWithoutLinksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   kind?: Prisma.StringFieldUpdateOperationsInput | string
   normalized?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  follows?: Prisma.EventEntityFollowUncheckedUpdateManyWithoutEntityNestedInput
+}
+
+export type EventEntityCreateWithoutFollowsInput = {
+  id?: string
+  tenant_id: string
+  name: string
+  kind?: string
+  normalized: string
+  slug: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  links?: Prisma.EventEntityLinkCreateNestedManyWithoutEntityInput
+}
+
+export type EventEntityUncheckedCreateWithoutFollowsInput = {
+  id?: string
+  tenant_id: string
+  name: string
+  kind?: string
+  normalized: string
+  slug: string
+  created_at?: Date | string
+  updated_at?: Date | string
+  links?: Prisma.EventEntityLinkUncheckedCreateNestedManyWithoutEntityInput
+}
+
+export type EventEntityCreateOrConnectWithoutFollowsInput = {
+  where: Prisma.EventEntityWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventEntityCreateWithoutFollowsInput, Prisma.EventEntityUncheckedCreateWithoutFollowsInput>
+}
+
+export type EventEntityUpsertWithoutFollowsInput = {
+  update: Prisma.XOR<Prisma.EventEntityUpdateWithoutFollowsInput, Prisma.EventEntityUncheckedUpdateWithoutFollowsInput>
+  create: Prisma.XOR<Prisma.EventEntityCreateWithoutFollowsInput, Prisma.EventEntityUncheckedCreateWithoutFollowsInput>
+  where?: Prisma.EventEntityWhereInput
+}
+
+export type EventEntityUpdateToOneWithWhereWithoutFollowsInput = {
+  where?: Prisma.EventEntityWhereInput
+  data: Prisma.XOR<Prisma.EventEntityUpdateWithoutFollowsInput, Prisma.EventEntityUncheckedUpdateWithoutFollowsInput>
+}
+
+export type EventEntityUpdateWithoutFollowsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  normalized?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  links?: Prisma.EventEntityLinkUpdateManyWithoutEntityNestedInput
+}
+
+export type EventEntityUncheckedUpdateWithoutFollowsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.StringFieldUpdateOperationsInput | string
+  normalized?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  links?: Prisma.EventEntityLinkUncheckedUpdateManyWithoutEntityNestedInput
 }
 
 
@@ -448,10 +569,12 @@ export type EventEntityUncheckedUpdateWithoutLinksInput = {
 
 export type EventEntityCountOutputType = {
   links: number
+  follows: number
 }
 
 export type EventEntityCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   links?: boolean | EventEntityCountOutputTypeCountLinksArgs
+  follows?: boolean | EventEntityCountOutputTypeCountFollowsArgs
 }
 
 /**
@@ -471,6 +594,13 @@ export type EventEntityCountOutputTypeCountLinksArgs<ExtArgs extends runtime.Typ
   where?: Prisma.EventEntityLinkWhereInput
 }
 
+/**
+ * EventEntityCountOutputType without action
+ */
+export type EventEntityCountOutputTypeCountFollowsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventEntityFollowWhereInput
+}
+
 
 export type EventEntitySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -478,9 +608,11 @@ export type EventEntitySelect<ExtArgs extends runtime.Types.Extensions.InternalA
   name?: boolean
   kind?: boolean
   normalized?: boolean
+  slug?: boolean
   created_at?: boolean
   updated_at?: boolean
   links?: boolean | Prisma.EventEntity$linksArgs<ExtArgs>
+  follows?: boolean | Prisma.EventEntity$followsArgs<ExtArgs>
   _count?: boolean | Prisma.EventEntityCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["eventEntity"]>
 
@@ -490,6 +622,7 @@ export type EventEntitySelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   name?: boolean
   kind?: boolean
   normalized?: boolean
+  slug?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["eventEntity"]>
@@ -500,6 +633,7 @@ export type EventEntitySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   name?: boolean
   kind?: boolean
   normalized?: boolean
+  slug?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["eventEntity"]>
@@ -510,13 +644,15 @@ export type EventEntitySelectScalar = {
   name?: boolean
   kind?: boolean
   normalized?: boolean
+  slug?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type EventEntityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "name" | "kind" | "normalized" | "created_at" | "updated_at", ExtArgs["result"]["eventEntity"]>
+export type EventEntityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "name" | "kind" | "normalized" | "slug" | "created_at" | "updated_at", ExtArgs["result"]["eventEntity"]>
 export type EventEntityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   links?: boolean | Prisma.EventEntity$linksArgs<ExtArgs>
+  follows?: boolean | Prisma.EventEntity$followsArgs<ExtArgs>
   _count?: boolean | Prisma.EventEntityCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EventEntityIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -526,6 +662,7 @@ export type $EventEntityPayload<ExtArgs extends runtime.Types.Extensions.Interna
   name: "EventEntity"
   objects: {
     links: Prisma.$EventEntityLinkPayload<ExtArgs>[]
+    follows: Prisma.$EventEntityFollowPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -543,6 +680,10 @@ export type $EventEntityPayload<ExtArgs extends runtime.Types.Extensions.Interna
      * 把 Meta 与 Facebook 合并需要外部知识，猜错比不合并更糟
      */
     normalized: string
+    /**
+     * 实体页 URL 用的可读标识，与 NewsEvent.slug 同一套做法（slugify + id 短后缀）
+     */
+    slug: string
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["eventEntity"]>
@@ -940,6 +1081,7 @@ readonly fields: EventEntityFieldRefs;
 export interface Prisma__EventEntityClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   links<T extends Prisma.EventEntity$linksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventEntity$linksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventEntityLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  follows<T extends Prisma.EventEntity$followsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventEntity$followsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventEntityFollowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -974,6 +1116,7 @@ export interface EventEntityFieldRefs {
   readonly name: Prisma.FieldRef<"EventEntity", 'String'>
   readonly kind: Prisma.FieldRef<"EventEntity", 'String'>
   readonly normalized: Prisma.FieldRef<"EventEntity", 'String'>
+  readonly slug: Prisma.FieldRef<"EventEntity", 'String'>
   readonly created_at: Prisma.FieldRef<"EventEntity", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"EventEntity", 'DateTime'>
 }
@@ -1390,6 +1533,30 @@ export type EventEntity$linksArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.EventEntityLinkScalarFieldEnum | Prisma.EventEntityLinkScalarFieldEnum[]
+}
+
+/**
+ * EventEntity.follows
+ */
+export type EventEntity$followsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventEntityFollow
+   */
+  select?: Prisma.EventEntityFollowSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventEntityFollow
+   */
+  omit?: Prisma.EventEntityFollowOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventEntityFollowInclude<ExtArgs> | null
+  where?: Prisma.EventEntityFollowWhereInput
+  orderBy?: Prisma.EventEntityFollowOrderByWithRelationInput | Prisma.EventEntityFollowOrderByWithRelationInput[]
+  cursor?: Prisma.EventEntityFollowWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventEntityFollowScalarFieldEnum | Prisma.EventEntityFollowScalarFieldEnum[]
 }
 
 /**

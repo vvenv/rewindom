@@ -1,0 +1,52 @@
+# 一轮刷新跑不完 —— 分析器被喂了大量「没有新信息」的事件。
+#
+# 实测：强制重跑 10 个真实事件，2 分钟没跑完。
+#
+# 根因不是并发不够，是**该不该分析判错了**。`shouldReanalyze` 按时间判：
+#   - heuristic：`analyzerId !== "llm"` 恒为 true → 每轮把所有被碰到的事件重分析一遍
+#   - llm：距上次分析超过 30 分钟就重分析，而降温扫描捞的事件**按定义空闲 ≥6h**
+#     → 每轮最多 200 个事件、每个一次模型调用，全都是没有新信号的事件
+#
+# 采集周期 15 分钟。有 key 的站点大概率一轮跑不完就被下一轮跳过（`running` 标志），
+# 于是热度与阶段长期不更新——而这正是降温扫描存在的理由。
+# 生产上它还是一条持续的钱漏。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 只在信号集合真的变过时才跑分析器；并给事件刷新加有界并发，使一轮刷新稳定跑在采集周期之内。
+gold: modules/events/server/event/event-refresh.service.ts
+touch:
+  - modules/events/features/refresh-throughput.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/event-refresh.service.test.ts
+  - modules/events/server/ingest/ingest.service.ts
+out_of_scope:
+  - 改采集周期与降温扫描的上限
+  - 把分析改成后台队列 / 独立进程（先把无谓调用去掉，再谈架构）
+  - 改 LLM 冷却期时长
+  - 改热度 / 阶段的计算口径
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/event-refresh.service.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: [] # 无新字段：变化检测用现成的 signal_count
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 变化检测用 `signal_count`：它记的是**上一次刷新时**的信号数，
+#    与本轮实际载入的条数不等就说明信号集合变过（新增或被保留期清掉）。
+#    不用「最新信号的 published_at > analyzed_at」——`published_at` 是来源的发布时间，
+#    一条三小时前发布的 RSS 条目现在才抓到，比较时间会漏掉它。
+# 2. `analyzed_at === null` 仍然强制重分析：摘录补齐那条路径就是靠置空来要求重来的。
+# 3. LLM 的 30 分钟冷却**保留**，但降级成附加条件：先看信号变没变，再看冷却。
+#    顺序反过来就等于没改。
+# 4. 跳过分析时热度 / 增速 / 阶段 / 计数**照常重算**——那才是降温扫描的目的。
+#    时间线与实体也照常不动（它们是分析器产物，没重算就不该覆盖）。
+# 5. 并发：按事件有界并发（默认 4）。每个事件的写入互不相干，幂等性不受影响；
+#    并发再高会撞模型限流，而限流会退回规则实现、悄悄降低摘要质量。

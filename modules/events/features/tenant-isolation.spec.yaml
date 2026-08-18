@@ -9,7 +9,7 @@ touch:
   - modules/events/features/tenant-isolation.spec.yaml
   - modules/events/MODULE.md
   - modules/events/MODULE.spec.yaml
-  - modules/events/prisma/schema.prisma
+  - modules/events/models.prisma
   - apps/server/prisma/migrations/20260817200000_events_tenant_scope/migration.sql
   - eslint-rules/tenant-models.json
   - packages/server-kernel/src/lib/tenant-guard.ts

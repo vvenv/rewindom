@@ -58,9 +58,31 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         after: { source_name: "TechCrunch", source_kind: "news", lag_ms: 8_100_000 },
       },
     ],
+    why_trending: [
+      {
+        code: "why.officialAnnouncement",
+        params: { source: "OpenAI" },
+        confidence: "confirmed",
+      },
+      {
+        code: "why.crossSource",
+        params: { count: 3, first: "OpenAI" },
+        confidence: "confirmed",
+      },
+    ],
+    related: [
+      {
+        id: "sample-r1",
+        slug: "sample-event-2",
+        title: t("sample.event2.title"),
+        topic: "tech",
+        status: "active",
+        last_activity_at: SAMPLE_UPDATED,
+      },
+    ],
     entities: [
-      { id: "sample-e1", name: "OpenAI", kind: "company", mention_count: 3 },
-      { id: "sample-e2", name: "GPT-6", kind: "product", mention_count: 2 },
+      { id: "sample-e1", name: "OpenAI", kind: "company", slug: "openai-sample", mention_count: 3, is_following: false },
+      { id: "sample-e2", name: "GPT-6", kind: "product", slug: "gpt-6-sample", mention_count: 2, is_following: false },
     ],
     timeline: [
       {

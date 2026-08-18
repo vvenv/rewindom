@@ -125,6 +125,8 @@ export const EVENTS_DETAIL_TEMPLATE_PRESET: PagePreset = {
         summary_label: "events:detail.whatHappened",
         timeline_label: "events:detail.timeline",
         sources_label: "events:detail.sources",
+        related_label: "events:detail.related",
+        why_label: "events:why.title",
         back_label: "events:detail.back",
       },
     },

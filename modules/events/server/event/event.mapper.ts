@@ -1,5 +1,7 @@
 import { isEventRevisionKind } from "../../shared/index.js";
 
+import { computeWhyTrending } from "./why-trending.js";
+
 import type {
   EventDetail,
   EventEntityKind,
@@ -98,7 +100,10 @@ export function toEventDetail(params: {
   signals: SignalRecord[];
   revisions?: RevisionRecord[];
   entities?: EntityRecord[];
+  related?: RelatedRecord[];
   follow?: FollowMarker | null;
+  /** 只有测试会显式传；生产恒为当下 */
+  now?: Date;
 }): EventDetail {
   const { record } = params;
   return {
@@ -111,18 +116,48 @@ export function toEventDetail(params: {
     timeline: params.timeline.map(toTimelineItem),
     sources: groupSources(params.signals),
     revisions: (params.revisions ?? []).flatMap(toRevisionItem),
+    why_trending: computeWhyTrending({
+      signals: params.signals.map((signal) => ({
+        source_name: signal.source_name,
+        source_kind: signal.source_kind as EventSourceKind,
+        published_at: signal.published_at,
+      })),
+      now: params.now ?? new Date(),
+    }),
+    related: (params.related ?? []).map((record) => ({
+      id: record.id,
+      slug: record.slug,
+      title: record.title,
+      topic: record.topic as EventTopic,
+      status: record.status as EventStatus,
+      last_activity_at: record.last_activity_at.toISOString(),
+    })),
     entities: (params.entities ?? []).map((record) => ({
       id: record.entity.id,
       name: record.entity.name,
       kind: record.entity.kind as EventEntityKind,
+      slug: record.entity.slug,
       mention_count: record.mention_count,
+      // 未登录（公开面）时恒为 false：关注是登录态
+      is_following: record.is_following ?? false,
     })),
   };
 }
 
+export interface RelatedRecord {
+  id: string;
+  slug: string;
+  title: string;
+  topic: string;
+  status: string;
+  last_activity_at: Date;
+}
+
 export interface EntityRecord {
   mention_count: number;
-  entity: { id: string; name: string; kind: string };
+  entity: { id: string; name: string; kind: string; slug: string };
+  /** 公开面没有 viewer，这一项缺省即可 */
+  is_following?: boolean;
 }
 
 export interface RevisionRecord {

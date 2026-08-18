@@ -41,11 +41,17 @@ export const renderEventsDetailHtml: SectionHtmlRenderer = (section, ctx) => {
     back,
     headerHtml(event),
     summaryHtml(event, settingText(s, "summary_label")),
+    settingBool(s, "show_why")
+      ? whyHtml(event, settingText(s, "why_label"))
+      : "",
     settingBool(s, "show_timeline")
       ? timelineHtml(event.timeline, settingText(s, "timeline_label"))
       : "",
     settingBool(s, "show_sources")
       ? sourcesHtml(event, settingText(s, "sources_label"))
+      : "",
+    settingBool(s, "show_related")
+      ? relatedHtml(event, settingText(s, "related_label"), ctx)
       : "",
     `</article>`,
   ].join("");
@@ -124,4 +130,58 @@ function sourcesHtml(event: PublicEventDetailView, label: string): string {
   return `<section class="events-block"><h2 class="events-block-title">${escapeHtml(
     label,
   )}</h2>${body}</section>`;
+}
+
+/**
+ * 相关事件。**不是同一件事**，只是有关系——所以摆在来源之后：
+ * 先给结论与证据，再给「还牵着什么」。
+ *
+ * 没有相关事件（没配 embedding key、或确实没算出来）时整块不渲染，
+ * 与势头角标同一条口径：没有可主张的就留白。
+ */
+function relatedHtml(
+  event: PublicEventDetailView,
+  label: string,
+  ctx: Parameters<SectionHtmlRenderer>[1],
+): string {
+  if (event.related.length === 0) {
+    return "";
+  }
+  const heading = label
+    ? `<h2 class="events-related-title">${escapeHtml(label)}</h2>`
+    : "";
+  const items = event.related
+    .map(
+      (item) =>
+        `<li><a href="${escapeHtml(siteHref(item.href, ctx))}">${escapeHtml(
+          item.title,
+        )}</a></li>`,
+    )
+    .join("");
+  return `<section class="events-related">${heading}<ul>${items}</ul></section>`;
+}
+
+/**
+ * 「为什么在扩散」。
+ *
+ * 只有可核对的事实，没有解释、没有动机推断（MVP §11）。
+ * 每条都带 confirmed / discussion 标签——**把讨论热度当成事情本身，
+ * 正是这个产品要避免的**，所以那个标签不能省。
+ */
+function whyHtml(event: PublicEventDetailView, label: string): string {
+  if (event.why_trending.length === 0) {
+    return "";
+  }
+  const heading = label ? `<h2 class="events-why-title">${escapeHtml(label)}</h2>` : "";
+  const items = event.why_trending
+    .map(
+      (factor) =>
+        `<li class="events-why-item"><span class="events-why-tag events-why-${escapeHtml(
+          factor.confidence,
+        )}">${escapeHtml(factor.confidence_label)}</span>${escapeHtml(
+          factor.text,
+        )}</li>`,
+    )
+    .join("");
+  return `<section class="events-why">${heading}<ul>${items}</ul></section>`;
 }

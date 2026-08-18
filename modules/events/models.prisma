@@ -1,5 +1,8 @@
 // 外部模块的 Prisma schema——由 gen:external-modules 符号链接到
 // apps/server/prisma/models/events.prisma，汇入全局 schema。
+// 放在模块根、叫 models.prisma：不要放进 prisma/schema.prisma，语言服务
+// 会把它当成独立 schema 根，没有 datasource 时默认非 PostgreSQL，
+// String[] / Float[] 会被误报成 connector 不支持。
 //
 // 归属口径：采集源、信号、事件、时间线都按站点隔离。各站点自管源与规则，
 // 官网公开面只展示本站语料。关注（EventFollow）仍然是站点 + 用户态。
@@ -95,6 +98,10 @@ model NewsEvent {
   centroid    Float[]
   /// 贡献过信号的来源名（去重）。冗余在事件上，列表页才不用为每张卡片再查一次信号表
   source_names String[]
+  /// 预计算的相关事件 id（最多 5 个，按相似度降序）。
+  /// **必须预计算**：读路径上算要把候选的 centroid 全部载入（400 事件 ≈ 4.9MB/请求），
+  /// 公开面 SSR 承受不起。做法与聚类同源，只是阈值更低（0.75 vs 0.85）
+  related_event_ids String[]
 
   signal_count Int   @default(0)
   /// 贡献过信号的不同源数量——跨源程度，Rising 排序会用到
@@ -156,12 +163,16 @@ model EventEntity {
   /// 身份键：大小写与空白归一 + 去所有格。**不做别名合并**——
   /// 把 Meta 与 Facebook 合并需要外部知识，猜错比不合并更糟
   normalized String
+  /// 实体页 URL 用的可读标识，与 NewsEvent.slug 同一套做法（slugify + id 短后缀）
+  slug       String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  links EventEntityLink[]
+  links   EventEntityLink[]
+  follows EventEntityFollow[]
 
   @@unique([tenant_id, kind, normalized])
+  @@unique([tenant_id, slug])
   @@index([tenant_id, normalized])
 }
 
@@ -181,6 +192,27 @@ model EventEntityLink {
   @@unique([event_id, entity_id])
   @@index([tenant_id, entity_id])
   @@index([event_id, mention_count(sort: Desc)])
+}
+
+/// 用户对实体的关注。站点 + 用户态。
+///
+/// 与关注事件的区别是**时间尺度**：事件 24h 后就凉，关注它第三天就没意义了；
+/// 实体不会凉——关注「OpenAI」之后只要它再出现在任何事件里就有东西可推。
+model EventEntityFollow {
+  id        String @id @default(uuid())
+  tenant_id String
+  user_id   String
+  entity_id String
+  /// 用户最后一次「看到这里」的时间；之后新关联上的事件才算新
+  last_seen_at DateTime @default(now())
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  entity EventEntity @relation(fields: [entity_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, user_id, entity_id])
+  @@index([tenant_id, user_id])
+  @@index([entity_id])
 }
 
 /// 事件状态变化的一条观察记录。**只追加，永不更新**。

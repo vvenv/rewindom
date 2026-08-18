@@ -1,0 +1,71 @@
+# 关注实体 —— 留存的真正支点。
+#
+# 事件是易逝的：关注一个 24h 后就凉的事件，第三天那条关注就没有意义了。
+# 实体不会凉。关注「OpenAI」之后，只要它再出现在任何事件里就有东西可推。
+#
+# 数据已经落库（entity-graph + entity-pages），这一期只做「关注」这条边，
+# 以及把它接进已有的「有更新」计数——那个计数现在只统计事件。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 登录用户可以关注/取关实体；工作台的「有更新」计数把关注实体后新出现的事件一并算进来；实体页与事件详情页上的实体都能直接关注。
+gold: modules/events/server/follow/follow.service.ts
+touch:
+  - modules/events/features/entity-follow.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/models.prisma
+  - apps/server/prisma/migrations/
+  - packages/server-kernel/src/lib/tenant-guard.ts
+  - eslint-rules/tenant-models.json
+  - modules/events/shared/events.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/server/follow/entity-follow.service.ts
+  - modules/events/server/follow/entity-follow.service.test.ts
+  - modules/events/server/follow/follow.service.ts
+  - modules/events/server/follow/follow.routes.ts
+  - modules/events/server/follow/follow.routes.test.ts
+  - modules/events/server/event/entity.service.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/client/components/EventEntities.tsx
+  - modules/events/client/hooks/useFollowMutations.ts
+  - modules/events/client/lib/events.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 邮件 / 推送通知（本期只做站内计数与状态）
+  - 公开面的关注入口（访客没有账号，关注是登录态）
+  - 实体的「已读」进度（事件那套 last_seen_at 是针对单个事件的）
+  - 按关注实体过滤事件列表
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/follow/entity-follow.service.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 复用 events.follow：关注实体与关注事件是同一件事的两个维度
+models:
+  - name: EventEntityFollow
+    scope: tenant
+    fields:
+      - { name: user_id, type: String, required: true }
+      - { name: entity_id, type: String, required: true }
+      # 关注之后「看到哪儿了」——用它算实体有几个新事件
+      - { name: last_seen_at, type: DateTime, required: true }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **不新建权限**。关注实体与关注事件是同一件事的两个维度，都走 `events.follow`；
+#    为一个维度多开一个权限键，只会让管理员多勾一个框。
+# 2. 刚关注时 `last_seen_at` 设成当下——与关注事件同一条理由：
+#    不然用户一关注就立刻看到「有更新」，那条提示会立刻失去意义。
+# 3. 「有更新」的口径：该实体在 `last_seen_at` 之后**新关联上**的事件数。
+#    按 `EventEntityLink.created_at` 判，不按事件的 `last_activity_at`——
+#    后者会让一个早就关注过的老事件因为来了条新信号又冒出来算「新」。
+# 4. 计数与事件那条合并成一个数字返回：用户看到的是「有多少东西要看」，
+#    不是「事件 3 条、实体 2 条」。两个来源各自去重后相加。
+# 5. 「标记已读」刻意不记审计——与事件那条同口径（用户自己的阅读进度，
+#    不是需要向管理员交代的操作）。关注 / 取关照常记。

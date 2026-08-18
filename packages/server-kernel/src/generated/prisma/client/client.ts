@@ -105,6 +105,14 @@ export type EventEntity = Prisma.EventEntityModel
  */
 export type EventEntityLink = Prisma.EventEntityLinkModel
 /**
+ * Model EventEntityFollow
+ * 用户对实体的关注。站点 + 用户态。
+ * 
+ * 与关注事件的区别是**时间尺度**：事件 24h 后就凉，关注它第三天就没意义了；
+ * 实体不会凉——关注「OpenAI」之后只要它再出现在任何事件里就有东西可推。
+ */
+export type EventEntityFollow = Prisma.EventEntityFollowModel
+/**
  * Model EventRevision
  * 事件状态变化的一条观察记录。**只追加，永不更新**。
  * 

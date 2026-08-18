@@ -76,7 +76,8 @@
     "updatedAt": "Updated",
     "firstSeen": "First seen",
     "score": "{{count}} points",
-    "comments": "{{count}} comments"
+    "comments": "{{count}} comments",
+    "related": "Related events"
   },
   "timeline": {
     "firstSeen": "First appeared on {{source}}",
@@ -162,7 +163,13 @@
       "showSources": "Show sources",
       "showSourcesInfo": "Turning this off leaves visitors unable to check the originals",
       "sourcesLabel": "Sources heading",
-      "backLabel": "Back link text"
+      "backLabel": "Back link text",
+      "showRelated": "Show related events",
+      "showRelatedInfo": "Related events are not the same event, only connected ones",
+      "relatedLabel": "Related events heading",
+      "showWhy": "Show why it's spreading",
+      "showWhyInfo": "States only checkable facts, and separates confirmed from discussion",
+      "whyLabel": "Why it's spreading heading"
     },
     "entity": {
       "label": "Entity page body",
@@ -273,7 +280,9 @@
     "titleChanged": "Title updated"
   },
   "entities": {
-    "title": "Entities"
+    "title": "Entities",
+    "follow": "Follow {{name}}",
+    "unfollow": "Unfollow {{name}}"
   },
   "entity": {
     "relatedEvents": "Related events",
@@ -286,5 +295,18 @@
     "person": "Person",
     "place": "Place",
     "org": "Organisation"
+  },
+  "audit": {
+    "entityFollowed": "Followed entity {{entity}}",
+    "entityUnfollowed": "Unfollowed entity {{entity}}"
+  },
+  "why": {
+    "title": "Why it's spreading",
+    "officialAnnouncement": "{{source}} published a first-party announcement",
+    "crossSource": "{{count}} sources are covering it, {{first}} first",
+    "recentActivity": "{{count}} new signals from {{sources}} sources in the last {{hours}}h",
+    "communityOnly": "Community discussion only ({{count}} posts), not yet corroborated",
+    "confirmed": "Confirmed",
+    "discussion": "Discussion"
   }
 }

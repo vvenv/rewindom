@@ -1,0 +1,72 @@
+# 实体详情页 `/events/entity/:slug` —— 竞品结构上没有的常驻长尾入口。
+#
+# 实体数据已经落库（见 entity-graph.spec.yaml），缺的是公开面。
+# 事件页只有一次索引机会且 24h 后就凉；实体是稳定的聚合面，值得被爬虫反复回访。
+# Techmeme 没有实体页，Google News 的 topic 没有溯源——这一格是空的。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 公开访客可以打开 `/events/entity/:slug` 看某个实体的全部事件；实体页是模板页 + 段的组合，进 sitemap，租户可在编辑器里改版式。
+gold: modules/shop/shared/shop-page-templates.ts
+touch:
+  - modules/events/features/entity-pages.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/models.prisma
+  - apps/server/prisma/migrations/
+  - modules/events/shared/events-entity-section.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/index.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/sections/entity-html.ts
+  - modules/events/shared/sections/entity-html.test.ts
+  - modules/events/shared/site-css/
+  - modules/events/server/event/entity.service.ts
+  - modules/events/server/event/entity.service.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/module.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 关注实体（要新表 + 通知，独立一期）
+  - 实体索引页 `/events/entity`（先有单页，聚合页看有没有人要）
+  - 工作台的实体管理界面（合并 / 改名 / 删除）
+  - 实体消歧与别名合并
+  - 按实体过滤工作台事件列表
+i18n: code # 段设置与模板页文案走 client/locales，实体名本身是数据不翻译
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/entity-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/builtin check:section-css
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 公开面，无需权限
+models:
+  - name: EventEntity
+    scope: tenant
+    fields:
+      # URL 用的可读标识，与 NewsEvent.slug 同一套做法（slugify + id 短后缀）
+      - { name: slug, type: String, required: true }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 路径用 `/events/entity/:slug` 而不是新开一个根路径：事件与实体是同一个域，
+#    共用 `/events` 前缀让 sitemap、面包屑与 path handler 都只有一处。
+#    `isEventsPath` 现在只认一层 slug，要放开到「第一段恰好是 entity 的两段路径」——
+#    事件 slug 永远是一段，两者不会撞。
+# 2. 模板页 kind `events_entity` + preset 成对登记（check:modules 会挡），
+#    声明 entitlement；段 `events.entity` 用 `page_kinds` 限定只能落在它上面
+#    ——摆到普通页面上没有「当前实体」，只会是一块空白。
+# 3. 段渲染器是同步的，实体与其事件由 path handler 直接带进
+#    `EventsRenderContext.entity`，**不走 contributed provider**——与详情段同理，
+#    只有 path handler 知道当前是哪个实体。
+# 4. slug 要稳定且唯一：`slugify(name)-<entity_id 前 6 位>`，与 buildEventSlug 同一套。
+#    存量实体行没有 slug，migration 里按同一规则回填（这批数据是上一期刚建的，量很小）。
+# 5. sitemap 只收**最近 30 天还有事件**的实体，与事件 sitemap 同一条口径：
+#    陈年实体页仍可访问，只是不主动送去索引。

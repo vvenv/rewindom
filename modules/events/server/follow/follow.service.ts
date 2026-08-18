@@ -4,6 +4,8 @@ import {
   withTenantScope,
 } from "@rewindom/module-sdk/server";
 
+import { countEntityFollowUpdates } from "./entity-follow.service.js";
+
 import type { EventFollowState } from "../../shared/index.js";
 
 export interface FollowParams {
@@ -98,17 +100,31 @@ export async function getFollowState(
 }
 
 /** 关注列表里有多少个事件在用户上次查看后又动过——侧栏角标用。 */
+/**
+ * 「有多少东西要看」——**事件与实体两个维度合成一个数字**。
+ *
+ * 用户关心的是有多少东西要看，不是「事件 3 条、实体 2 条」。
+ * 两边各自去重后相加：实体那边已经按事件去过重（同一个事件挂着两个被关注的实体只算一次），
+ * 但跨维度不再去重——一个事件既被直接关注、又因为实体被关注而出现，
+ * 那确实是两条不同的理由要看它。
+ */
 export async function countFollowUpdates(params: {
   tenant_id: string;
   user_id: string;
 }): Promise<number> {
-  const rows = await prisma.eventFollow.findMany({
-    where: withTenantScope(params.tenant_id, { user_id: params.user_id }),
-    select: { last_seen_at: true, event: { select: { last_activity_at: true } } },
-  });
-  return rows.filter(
+  const [rows, entityUpdates] = await Promise.all([
+    prisma.eventFollow.findMany({
+      where: withTenantScope(params.tenant_id, { user_id: params.user_id }),
+      select: { last_seen_at: true, event: { select: { last_activity_at: true } } },
+    }),
+    countEntityFollowUpdates(params),
+  ]);
+
+  const eventUpdates = rows.filter(
     (row) => row.event.last_activity_at.getTime() > row.last_seen_at.getTime(),
   ).length;
+
+  return eventUpdates + entityUpdates;
 }
 
 /** slug 或 id 都能定位；顺便把事件不存在变成 404 而不是静默建一条悬空关注。 */

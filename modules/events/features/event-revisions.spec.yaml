@@ -19,7 +19,7 @@ gold: modules/events/server/event/event-refresh.service.ts
 touch:
   - modules/events/features/event-revisions.spec.yaml
   - modules/events/MODULE.md
-  - modules/events/prisma/schema.prisma
+  - modules/events/models.prisma
   - apps/server/prisma/migrations/
   - packages/server-kernel/src/lib/tenant-guard.ts
   - eslint-rules/tenant-models.json

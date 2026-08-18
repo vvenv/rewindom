@@ -9,20 +9,75 @@ function minutesAgo(minutes: number): Date {
 }
 
 describe("shouldReanalyze", () => {
+  const base = {
+    analyzed_at: minutesAgo(1),
+    previous_signal_count: 3,
+    signal_count: 3,
+    now: NOW,
+    analyzer_id: "heuristic",
+  };
+
   it("从没分析过一定要分析", () => {
-    expect(shouldReanalyze(null, NOW, "llm")).toBe(true);
+    expect(
+      shouldReanalyze({ ...base, analyzed_at: null, analyzer_id: "llm" }),
+    ).toBe(true);
   });
 
-  it("规则分析器没有成本，每次都重算", () => {
-    expect(shouldReanalyze(minutesAgo(1), NOW, "heuristic")).toBe(true);
+  /*
+   * 这条是整个改动的要害。降温扫描每轮捞最多 200 个**空闲 ≥6h** 的事件，
+   * 它们按定义没有新信号；曾经 heuristic 恒重算、llm 只看 30 分钟冷却，
+   * 于是每轮几百次无谓分析（llm 下就是几百次模型调用）。
+   * 分析器是信号集合的纯函数——信号没变，输出必然相同，跳过不损失任何东西。
+   */
+  it("信号集合没变就不分析，无论哪个实现", () => {
+    expect(shouldReanalyze({ ...base, analyzer_id: "heuristic" })).toBe(false);
+    expect(
+      shouldReanalyze({
+        ...base,
+        analyzer_id: "llm",
+        analyzed_at: minutesAgo(600),
+      }),
+    ).toBe(false);
+  });
+
+  it("来了新信号，规则实现立即重算", () => {
+    expect(shouldReanalyze({ ...base, signal_count: 4 })).toBe(true);
+  });
+
+  it("信号被保留期清掉也算变化", () => {
+    expect(shouldReanalyze({ ...base, signal_count: 2 })).toBe(true);
   });
 
   it("LLM 在冷却期内跳过——热点事件几分钟十几条信号，否则按信号数计费", () => {
-    expect(shouldReanalyze(minutesAgo(5), NOW, "llm")).toBe(false);
+    expect(
+      shouldReanalyze({
+        ...base,
+        analyzer_id: "llm",
+        signal_count: 4,
+        analyzed_at: minutesAgo(5),
+      }),
+    ).toBe(false);
   });
 
-  it("LLM 过了冷却期恢复分析", () => {
-    expect(shouldReanalyze(minutesAgo(31), NOW, "llm")).toBe(true);
+  it("LLM 过了冷却期且有新信号才恢复分析", () => {
+    expect(
+      shouldReanalyze({
+        ...base,
+        analyzer_id: "llm",
+        signal_count: 4,
+        analyzed_at: minutesAgo(31),
+      }),
+    ).toBe(true);
+  });
+
+  it("顺序不能反：过了冷却期但信号没变，仍然不分析", () => {
+    expect(
+      shouldReanalyze({
+        ...base,
+        analyzer_id: "llm",
+        analyzed_at: minutesAgo(31),
+      }),
+    ).toBe(false);
   });
 });
 

@@ -244,6 +244,10 @@ export interface EventEntityItem {
   name: string;
   kind: EventEntityKind;
   mention_count: number;
+  /** 实体页地址用的 slug */
+  slug: string;
+  /** 当前用户是否已关注这个实体 */
+  is_following: boolean;
 }
 
 export interface EventDetail extends EventListItem {
@@ -266,6 +270,38 @@ export interface EventDetail extends EventListItem {
   revisions: EventRevisionItem[];
   /** 事件涉及的实体，按提及次数降序 */
   entities: EventEntityItem[];
+  /**
+   * 相关事件（不是同一件事，但有关系），按相似度降序，最多 5 条。
+   * 没配 embedding key 时恒为空——界面整块不渲染。
+   */
+  related: EventRelatedItem[];
+  /** 「为什么在扩散」。说不清楚时是空数组，界面整块不渲染 */
+  why_trending: EventTrendingFactor[];
+}
+
+/**
+ * 「为什么在扩散」的一条事实。
+ *
+ * **不是解释，是事实**：谁最先说、几家跟进、只有社区在聊。
+ * `confidence` 必须分开标——把讨论热度当成事情本身，正是这个产品要避免的。
+ * 文案由 `code` + `params` 在渲染层解析，不让模型产出自由文案。
+ */
+export type EventTrendingConfidence = "confirmed" | "discussion";
+
+export interface EventTrendingFactor {
+  code: string;
+  params: Record<string, string | number>;
+  confidence: EventTrendingConfidence;
+}
+
+/** 相关事件卡片。只放跳转要用的字段，不把整条事件带进来。 */
+export interface EventRelatedItem {
+  id: string;
+  slug: string;
+  title: string;
+  topic: EventTopic;
+  status: EventStatus;
+  last_activity_at: string;
 }
 
 export interface EventUpdateBody {
@@ -322,5 +358,18 @@ export interface EventTopicCount {
 export interface EventFollowState {
   is_following: boolean;
   has_update: boolean;
+  last_seen_at: string | null;
+}
+
+/**
+ * 关注实体的状态。
+ *
+ * 与事件的 `has_update`（布尔）不同，实体给的是**数量**：事件只有「有没有新动静」，
+ * 实体是一个持续的订阅面，「新增了 3 件事」比「有更新」有用得多。
+ */
+export interface EventEntityFollowState {
+  is_following: boolean;
+  /** 上次查看之后这个实体新关联上的事件数 */
+  new_event_count: number;
   last_seen_at: string | null;
 }

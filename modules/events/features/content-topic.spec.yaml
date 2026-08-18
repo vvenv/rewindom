@@ -18,7 +18,7 @@ gold: modules/events/server/event/cluster.service.ts
 touch:
   - modules/events/features/content-topic.spec.yaml
   - modules/events/MODULE.md
-  - modules/events/prisma/schema.prisma
+  - modules/events/models.prisma
   - apps/server/prisma/migrations/
   - modules/events/server/event/cluster.service.ts
   - modules/events/server/event/cluster-match.ts

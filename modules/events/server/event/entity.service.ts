@@ -4,9 +4,12 @@
  * 与 `refreshEvents` 同一条口径：**幂等**。同样的信号集合重跑得到同样的关联，
  * 出问题可以放心重跑。
  */
+import { randomUUID } from "node:crypto";
+
 import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
 import { normalizeEntityName, type ExtractedEntity } from "./entity-extractor.js";
+import { slugifyTitle } from "./slug.js";
 
 /** 一个事件最多关联多少实体——详情页展示得下，也避免长标题炸出一串。 */
 const MAX_LINKS_PER_EVENT = 12;
@@ -85,13 +88,18 @@ async function upsertEntity(
     return existing.id;
   }
 
+  // slug 的后缀取自 id 而不是随机数——重跑同一条数据得到同样的 slug，
+  // 与 buildEventSlug 同一套做法
+  const id = randomUUID();
   try {
     const created = await prisma.eventEntity.create({
       data: {
+        id,
         tenant_id: tenantId,
         name: entity.name.trim(),
         kind: entity.kind,
         normalized,
+        slug: buildEntitySlug(entity.name, id),
       },
       select: { id: true },
     });
@@ -129,18 +137,47 @@ function keyOf(entity: ExtractedEntity): string {
   return `${entity.kind} ${normalizeEntityName(entity.name)}`;
 }
 
-/** 事件的实体，按提及次数降序。展示用，两条读路径共用。 */
+/**
+ * 事件的实体，按提及次数降序。展示用，两条读路径共用。
+ *
+ * `user_id` 只有工作台/会员面有——公开面没有 viewer，关注态恒为 false。
+ */
 export async function listEventEntities(params: {
   tenant_id: string;
   event_id: string;
+  user_id?: string;
 }) {
-  return prisma.eventEntityLink.findMany({
+  const links = await prisma.eventEntityLink.findMany({
     where: withTenantScope(params.tenant_id, { event_id: params.event_id }),
     orderBy: { mention_count: "desc" },
     take: 12,
     select: {
       mention_count: true,
-      entity: { select: { id: true, name: true, kind: true } },
+      entity: { select: { id: true, name: true, kind: true, slug: true } },
     },
   });
+
+  if (!params.user_id || links.length === 0) {
+    return links;
+  }
+
+  // 一次取回本页所有实体的关注态，不给每个实体各查一次
+  const followed = await prisma.eventEntityFollow.findMany({
+    where: withTenantScope(params.tenant_id, {
+      user_id: params.user_id,
+      entity_id: { in: links.map((link) => link.entity.id) },
+    }),
+    select: { entity_id: true },
+  });
+  const followedIds = new Set(followed.map((row) => row.entity_id));
+
+  return links.map((link) => ({
+    ...link,
+    is_following: followedIds.has(link.entity.id),
+  }));
+}
+
+/** 实体页 URL 用的可读标识。与 `buildEventSlug` 同一套：可读部分 + id 短后缀。 */
+export function buildEntitySlug(name: string, id: string): string {
+  return `${slugifyTitle(name)}-${id.replace(/-/gu, "").slice(0, 6)}`;
 }

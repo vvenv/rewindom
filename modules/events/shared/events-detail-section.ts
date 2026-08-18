@@ -43,6 +43,32 @@ export const eventsDetailSection: SectionDefinition = {
     },
     {
       type: "checkbox",
+      id: "show_why",
+      label: "events:section.detail.showWhy",
+      default: true,
+      info: "events:section.detail.showWhyInfo",
+    },
+    {
+      type: "text",
+      id: "why_label",
+      label: "events:section.detail.whyLabel",
+      default: "events:why.title",
+    },
+    {
+      type: "checkbox",
+      id: "show_related",
+      label: "events:section.detail.showRelated",
+      default: true,
+      info: "events:section.detail.showRelatedInfo",
+    },
+    {
+      type: "text",
+      id: "related_label",
+      label: "events:section.detail.relatedLabel",
+      default: "events:detail.related",
+    },
+    {
+      type: "checkbox",
       id: "show_sources",
       label: "events:section.detail.showSources",
       default: true,

@@ -131,12 +131,29 @@ function loadModule(id, baseDir = MODULES_DIR, isExternal = false) {
   const serverManifest = path.join(dir, "server", "module.ts");
   const clientManifest = path.join(dir, "client", "module.tsx");
   // 内置：packages/builtin/<id>/models.prisma（旧名 schema.prisma 仍认）
-  // 外部：rewindom.prismaSchema 或 prisma/schema.prisma
+  // 外部：rewindom.prismaSchema，其次 prisma/models.prisma / prisma/schema.prisma
+  // 片段不要叫 schema.prisma——语言服务会当成独立根，String[] 会被误报
+  let pkgSchema = null;
+  if (isExternal) {
+    const pkgPath = path.join(dir, "package.json");
+    if (existsSync(pkgPath)) {
+      try {
+        const prismaSchema = JSON.parse(read(pkgPath)).rewindom?.prismaSchema;
+        if (typeof prismaSchema === "string") {
+          pkgSchema = path.join(dir, prismaSchema);
+        }
+      } catch {
+        pkgSchema = null;
+      }
+    }
+  }
   const schemaCandidates = isExternal
     ? [
-        path.join(dir, "schema.prisma"),
+        ...(pkgSchema ? [pkgSchema] : []),
+        path.join(dir, "prisma", "models.prisma"),
         path.join(dir, "prisma", "schema.prisma"),
         path.join(dir, "models.prisma"),
+        path.join(dir, "schema.prisma"),
       ]
     : [
         path.join(dir, "models.prisma"),
@@ -333,7 +350,7 @@ function checkPrisma(mod, add) {
     add(
       "error",
       "prisma",
-      `缺少符号链接 apps/server/prisma/models/${mod.id}.prisma → ${mod.isExternal ? `modules/${mod.id}/prisma/schema.prisma` : `packages/builtin/${mod.id}/models.prisma`}`,
+      `缺少符号链接 apps/server/prisma/models/${mod.id}.prisma → ${path.relative(ROOT, mod.schema)}`,
     );
   } else if (!lstatSync(link).isSymbolicLink()) {
     add(
