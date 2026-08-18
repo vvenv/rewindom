@@ -1,9 +1,11 @@
 import {
   EVENT_FEED_NAME_MAX_LENGTH,
+  EVENT_TOPICS,
   isEventConnector,
   isEventSourceKind,
   isEventTopic,
   type EventConnectorId,
+  type EventFeedItem,
   type EventSourceKind,
   type EventTopic,
 } from "../../shared/index.js";
@@ -79,4 +81,25 @@ export function buildEventFeedPayload(values: EventFeedFormValues): {
     source_kind: values.source_kind,
     topic: values.topic,
   };
+}
+
+export interface EventFeedTopicGroup {
+  topic: EventTopic;
+  feeds: EventFeedItem[];
+}
+
+/** 七格都出现，没有源的格子也留着——主题开关要能拨。 */
+export function groupFeedsByTopic(
+  feeds: readonly EventFeedItem[],
+): EventFeedTopicGroup[] {
+  const buckets = new Map<EventTopic, EventFeedItem[]>(
+    EVENT_TOPICS.map((topic) => [topic, []]),
+  );
+  for (const feed of feeds) {
+    buckets.get(feed.topic)?.push(feed);
+  }
+  return EVENT_TOPICS.map((topic) => ({
+    topic,
+    feeds: buckets.get(topic) ?? [],
+  }));
 }

@@ -230,7 +230,7 @@
   },
   "sources": {
     "title": "采集源",
-    "pageDescription": "配置本站要从哪些源采集，以及官网显示哪些主题。",
+    "pageDescription": "采集源按主题分组。关掉一个主题，官网不再显示它，这一组源也会暂停采集。",
     "create": "添加来源",
     "createTitle": "添加来源",
     "createDescription": "任意站点的 RSS，或用内置 connector 接 Hacker News。",
@@ -251,6 +251,12 @@
     "enabled": "开启",
     "disabled": "关闭",
     "enabledAriaLabel": "采集 {{name}}",
+    "topicEnabledAriaLabel": "显示并采集{{topic}}",
+    "topicGroupCount": "{{count}} 个采集源",
+    "topicGroupPaused": "{{count}} 个源已暂停——这个主题关着",
+    "topicGroupEmpty": "这个主题还没有采集源",
+    "feedPausedByTopic": "主题「{{topic}}」关着，暂不采集",
+    "topicsNeedOne": "至少启用一个主题",
     "lastFetched": "上次抓取",
     "neverFetched": "尚未抓取",
     "loading": "正在加载采集源…",
@@ -273,12 +279,6 @@
       "sourceKindInvalid": "请选择类型",
       "topicInvalid": "请选择主题"
     }
-  },
-  "settings": {
-    "topicsTitle": "显示的主题",
-    "topicsDescription": "页头、列表和 RSS 只展示打开的主题。至少保留一个。",
-    "topicsNeedOne": "至少启用一个主题",
-    "updateFailed": "保存失败，请重试。"
   },
   "sample": {
     "event1": {

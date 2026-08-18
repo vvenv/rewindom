@@ -4,6 +4,7 @@ import {
   describeEventMomentum,
   enabledTopicWhere,
   EVENT_TOPICS,
+  isFeedCollecting,
   parseEnabledTopicsInput,
   resolveEnabledTopics,
 } from "./events.js";
@@ -121,6 +122,26 @@ describe("enabledTopicWhere", () => {
     expect(enabledTopicWhere(["ai", "tech"])).toEqual({
       topic: { in: ["ai", "tech"] },
     });
+  });
+});
+
+describe("isFeedCollecting", () => {
+  it("主题关着时即使源开着也不采", () => {
+    expect(
+      isFeedCollecting({ enabled: true, topic: "sports" }, ["ai", "tech"]),
+    ).toBe(false);
+  });
+
+  it("主题开着但源关着也不采", () => {
+    expect(
+      isFeedCollecting({ enabled: false, topic: "ai" }, ["ai", "tech"]),
+    ).toBe(false);
+  });
+
+  it("两边都开才采", () => {
+    expect(
+      isFeedCollecting({ enabled: true, topic: "ai" }, ["ai", "tech"]),
+    ).toBe(true);
   });
 });
 

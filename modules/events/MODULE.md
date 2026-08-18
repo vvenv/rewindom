@@ -59,8 +59,8 @@ server/
   event/                  领域：URL 规范化、分词聚类、热度、分析器、读服务
   ssr/                    公开面：path handler、模板页渲染、公开读取
   sections/register.ts    段 / 上下文 provider / sitemap / 链接候选登记
-client/
-  pages/                  events（探索+全量）、event-detail、event-sources（含主题开关）
+  client/
+    pages/                  events（探索+全量）、event-detail、event-sources（按主题分组，组头开关主题）
   components/ hooks/ lib/ 四层拆分（frontend-page-structure）
   tenant/                 路由、导航、工作台卡片
   editor-context.ts       主题编辑器预览取数
@@ -557,8 +557,9 @@ OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应�
 否则会把它早就删掉的初版默认源全部复活。这是一次性升级，写在 `feed-seed.ts` 里，
 不需要 migration。
 
-工作台 `/app/events/sources` 可增删改、开关每个源（名称、地址、类型、默认主题），
-并选择本站公开面显示哪些主题（产品七格里的子集，至少一格）。
+工作台 `/app/events/sources` 按主题分组列出采集源。组头开关就是本站显示哪些主题：
+关掉一格，页头不再出现它，这一组源**暂停采集**（不改源自己的 `enabled`，主题开回来按原开关恢复）。
+至少留一格。源仍可增删改（名称、地址、类型、默认主题）。
 
 > 目录里每个 URL 都实际请求验证过。`GitHub Blog` 与 `Hugging Face` 在部分网络环境下
 > 会 `terminated`（连接被中断，不是 404，既有目录里就有这个现象）；单个源失败不影响

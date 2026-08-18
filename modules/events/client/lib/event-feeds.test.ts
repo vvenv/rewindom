@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildEventFeedPayload,
+  groupFeedsByTopic,
   validateEventFeedForm,
   type EventFeedFormValues,
 } from "./event-feeds.js";
+import { EVENT_TOPICS } from "../../shared/index.js";
 
 const t = (key: string) => key;
 
@@ -33,6 +35,27 @@ describe("validateEventFeedForm", () => {
         t,
       ),
     ).toBeNull();
+  });
+});
+
+describe("groupFeedsByTopic", () => {
+  it("七格都在，没有源的格子是空数组", () => {
+    const groups = groupFeedsByTopic([
+      {
+        id: "1",
+        connector: "rss",
+        name: "TechCrunch",
+        url: "https://techcrunch.com/feed/",
+        source_kind: "news",
+        topic: "tech",
+        enabled: true,
+        last_fetched_at: null,
+        last_error: null,
+      },
+    ]);
+    expect(groups.map((group) => group.topic)).toEqual([...EVENT_TOPICS]);
+    expect(groups.find((group) => group.topic === "tech")?.feeds).toHaveLength(1);
+    expect(groups.find((group) => group.topic === "sports")?.feeds).toEqual([]);
   });
 });
 

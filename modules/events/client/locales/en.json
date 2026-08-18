@@ -230,7 +230,7 @@
   },
   "sources": {
     "title": "Sources",
-    "pageDescription": "Choose which feeds this site collects, and which topics it shows.",
+    "pageDescription": "Sources are grouped by topic. Turning a topic off hides it on the site and pauses its feeds.",
     "create": "Add source",
     "createTitle": "Add source",
     "createDescription": "RSS for any site, or Hacker News via the built-in connector.",
@@ -251,6 +251,12 @@
     "enabled": "On",
     "disabled": "Off",
     "enabledAriaLabel": "Collect from {{name}}",
+    "topicEnabledAriaLabel": "Show and collect {{topic}}",
+    "topicGroupCount": "{{count}} sources",
+    "topicGroupPaused": "{{count}} sources paused — this topic is off",
+    "topicGroupEmpty": "No sources in this topic yet",
+    "feedPausedByTopic": "Not collecting while {{topic}} is off",
+    "topicsNeedOne": "Keep at least one topic enabled",
     "lastFetched": "Last fetched",
     "neverFetched": "Not fetched yet",
     "loading": "Loading sources…",
@@ -273,12 +279,6 @@
       "sourceKindInvalid": "Choose a kind",
       "topicInvalid": "Choose a topic"
     }
-  },
-  "settings": {
-    "topicsTitle": "Visible topics",
-    "topicsDescription": "These topics appear in the header, listings, and RSS. At least one must stay on.",
-    "topicsNeedOne": "Keep at least one topic enabled",
-    "updateFailed": "Could not save. Please try again."
   },
   "sample": {
     "event1": {

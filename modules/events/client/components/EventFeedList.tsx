@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 
 import {
   ApiError,
-  EmptyState,
   useConfirm,
   usePermissions,
 } from "@rewindom/module-sdk/client";
@@ -10,18 +9,28 @@ import { Alert, AlertDescription } from "@rewindom/ui/alert";
 import { Button } from "@rewindom/ui/button";
 import { Switch } from "@rewindom/ui/switch";
 import { toast } from "@rewindom/ui/toast";
-import { Rss } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
   useDeleteEventFeed,
   useUpdateEventFeed,
 } from "../hooks/useEventFeedMutations.js";
+import {
+  useEventTopicSettings,
+  useUpdateEventTopicSettings,
+} from "../hooks/useEventTopicSettings.js";
+import { groupFeedsByTopic } from "../lib/event-feeds.js";
 
 import { EventFeedEditSheet } from "./EventFeedEditSheet.js";
 import { RelativeTime } from "./RelativeTime.js";
 
-import type { EventFeedItem } from "../../shared/index.js";
+import {
+  EVENT_TOPICS,
+  isFeedCollecting,
+  isTopicEnabled,
+  type EventFeedItem,
+  type EventTopic,
+} from "../../shared/index.js";
 
 interface EventFeedListProps {
   feeds: EventFeedItem[];
@@ -44,9 +53,14 @@ export function EventFeedList({
   const canWrite = hasPermission("events.write");
   const deleteMutation = useDeleteEventFeed();
   const updateMutation = useUpdateEventFeed();
+  const topicsQuery = useEventTopicSettings();
+  const updateTopics = useUpdateEventTopicSettings();
   const [pendingId, setPendingId] = useState<string | null>(null);
 
-  const handleToggle = useCallback(
+  const enabledTopics = topicsQuery.data?.enabled_topics ?? EVENT_TOPICS;
+  const groups = groupFeedsByTopic(feeds);
+
+  const handleToggleFeed = useCallback(
     async (feed: EventFeedItem, enabled: boolean) => {
       setPendingId(feed.id);
       try {
@@ -60,6 +74,28 @@ export function EventFeedList({
       }
     },
     [t, updateMutation],
+  );
+
+  const handleToggleTopic = useCallback(
+    async (topic: EventTopic, next: boolean) => {
+      const nextEnabled = next
+        ? EVENT_TOPICS.filter(
+            (item) => item === topic || enabledTopics.includes(item),
+          )
+        : enabledTopics.filter((item) => item !== topic);
+      if (nextEnabled.length === 0) {
+        toast.error(t("sources.topicsNeedOne"));
+        return;
+      }
+      try {
+        await updateTopics.mutateAsync({ enabled_topics: nextEnabled });
+      } catch (err) {
+        toast.error(
+          err instanceof ApiError ? err.message : t("sources.updateFailed"),
+        );
+      }
+    },
+    [enabledTopics, t, updateTopics],
   );
 
   const handleDelete = useCallback(
@@ -108,72 +144,140 @@ export function EventFeedList({
     );
   }
 
-  if (feeds.length === 0) {
-    return (
-      <EmptyState
-        icon={Rss}
-        title={t("sources.emptyTitle")}
-        description={t("sources.emptyDescription")}
-      />
-    );
-  }
-
   return (
-    <ul className="divide-border divide-y rounded-lg border">
-      {feeds.map((feed) => {
-        const busy = pendingId === feed.id;
+    <div className="flex flex-col gap-6">
+      {groups.map((group) => {
+        const topicOn = isTopicEnabled(enabledTopics, group.topic);
         return (
-          <li
-            key={feed.id}
-            className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-medium">{feed.name}</p>
-                <span className="text-muted-foreground text-xs">
-                  {t(`sourceKind.${feed.source_kind}`)} · {t(`topic.${feed.topic}`)}
-                </span>
+          <section key={group.topic} className="rounded-lg border">
+            <header className="flex items-center justify-between gap-4 border-b px-4 py-3">
+              <div className="min-w-0">
+                <h2 className="text-sm font-medium">{t(`topic.${group.topic}`)}</h2>
+                <p className="text-muted-foreground text-xs">
+                  {topicOn
+                    ? t("sources.topicGroupCount", { count: group.feeds.length })
+                    : t("sources.topicGroupPaused", {
+                        count: group.feeds.length,
+                      })}
+                </p>
               </div>
-              <p className="text-muted-foreground truncate text-xs">{feed.url}</p>
-              {feed.last_error ? (
-                <p className="text-destructive text-xs">{feed.last_error}</p>
-              ) : feed.last_fetched_at ? (
-                <p className="text-muted-foreground text-xs">
-                  {t("sources.lastFetched")}{" "}
-                  <RelativeTime iso={feed.last_fetched_at} />
-                </p>
-              ) : (
-                <p className="text-muted-foreground text-xs">
-                  {t("sources.neverFetched")}
-                </p>
-              )}
-            </div>
-            {canWrite ? (
-              <div className="flex shrink-0 items-center gap-2">
+              {canWrite ? (
                 <Switch
-                  checked={feed.enabled}
-                  disabled={busy}
-                  onCheckedChange={(enabled) => void handleToggle(feed, enabled)}
-                  aria-label={t("sources.enabledAriaLabel", { name: feed.name })}
+                  checked={topicOn}
+                  disabled={
+                    updateTopics.isPending ||
+                    (topicOn && enabledTopics.length === 1)
+                  }
+                  onCheckedChange={(value) =>
+                    void handleToggleTopic(group.topic, value)
+                  }
+                  aria-label={t("sources.topicEnabledAriaLabel", {
+                    topic: t(`topic.${group.topic}`),
+                  })}
                 />
-                <EventFeedEditSheet feed={feed} />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={busy}
-                  onClick={() => void handleDelete(feed)}
-                >
-                  {t("sources.delete")}
-                </Button>
-              </div>
+              ) : (
+                <span className="text-muted-foreground text-xs">
+                  {topicOn ? t("sources.enabled") : t("sources.disabled")}
+                </span>
+              )}
+            </header>
+            {group.feeds.length === 0 ? (
+              <p className="text-muted-foreground px-4 py-3 text-xs">
+                {t("sources.topicGroupEmpty")}
+              </p>
             ) : (
-              <span className="text-muted-foreground text-xs">
-                {feed.enabled ? t("sources.enabled") : t("sources.disabled")}
-              </span>
+              <ul className="divide-border divide-y">
+                {group.feeds.map((feed) => (
+                  <EventFeedRow
+                    key={feed.id}
+                    feed={feed}
+                    topicOn={topicOn}
+                    collecting={isFeedCollecting(feed, enabledTopics)}
+                    busy={pendingId === feed.id}
+                    canWrite={canWrite}
+                    onToggle={handleToggleFeed}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </ul>
             )}
-          </li>
+          </section>
         );
       })}
-    </ul>
+    </div>
+  );
+}
+
+function EventFeedRow({
+  feed,
+  topicOn,
+  collecting,
+  busy,
+  canWrite,
+  onToggle,
+  onDelete,
+}: {
+  feed: EventFeedItem;
+  topicOn: boolean;
+  collecting: boolean;
+  busy: boolean;
+  canWrite: boolean;
+  onToggle: (feed: EventFeedItem, enabled: boolean) => void;
+  onDelete: (feed: EventFeedItem) => void;
+}) {
+  const { t } = useTranslation("events");
+
+  return (
+    <li className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="font-medium">{feed.name}</p>
+          <span className="text-muted-foreground text-xs">
+            {t(`sourceKind.${feed.source_kind}`)}
+          </span>
+        </div>
+        <p className="text-muted-foreground truncate text-xs">{feed.url}</p>
+        {!topicOn ? (
+          <p className="text-muted-foreground text-xs">
+            {t("sources.feedPausedByTopic", {
+              topic: t(`topic.${feed.topic}`),
+            })}
+          </p>
+        ) : feed.last_error ? (
+          <p className="text-destructive text-xs">{feed.last_error}</p>
+        ) : feed.last_fetched_at ? (
+          <p className="text-muted-foreground text-xs">
+            {t("sources.lastFetched")} <RelativeTime iso={feed.last_fetched_at} />
+          </p>
+        ) : (
+          <p className="text-muted-foreground text-xs">
+            {t("sources.neverFetched")}
+          </p>
+        )}
+      </div>
+      {canWrite ? (
+        <div className="flex shrink-0 items-center gap-2">
+          <Switch
+            checked={collecting}
+            disabled={busy || !topicOn}
+            onCheckedChange={(enabled) => onToggle(feed, enabled)}
+            aria-label={t("sources.enabledAriaLabel", { name: feed.name })}
+          />
+          <EventFeedEditSheet feed={feed} />
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={busy}
+            onClick={() => onDelete(feed)}
+          >
+            {t("sources.delete")}
+          </Button>
+        </div>
+      ) : (
+        <span className="text-muted-foreground text-xs">
+          {collecting ? t("sources.enabled") : t("sources.disabled")}
+        </span>
+      )}
+    </li>
   );
 }

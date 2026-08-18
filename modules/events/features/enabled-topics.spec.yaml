@@ -4,7 +4,7 @@
 # ---------- 必填 ----------
 module: events
 surfaces: [tenant, ssr]
-goal: 工作台可开关本站显示哪些 topic；页头、公开列表、RSS、主题路径与目录种植只保留启用的格子。
+goal: 工作台可开关本站显示哪些 topic；关掉的格子从公开面消失，其采集源暂停（不改源自己的开关）；采集源页按主题分组，把「主题 → 源」画出来。
 gold: packages/client-kit/src/components/SettingsPanel.tsx
 touch:
   - modules/events/features/enabled-topics.spec.yaml
@@ -23,6 +23,7 @@ touch:
   - modules/events/server/module.ts
   - modules/events/server/ingest/feed-seed.ts
   - modules/events/server/ingest/feed-seed.test.ts
+  - modules/events/server/ingest/ingest.service.ts
   - modules/events/server/ssr/public-events.service.ts
   - modules/events/server/ssr/events-path-handler.ts
   - modules/events/server/ssr/rss.routes.ts
@@ -30,21 +31,24 @@ touch:
   - modules/events/client/editor-context.ts
   - modules/events/client/pages/event-sources.tsx
   - modules/events/client/pages/events.tsx
-  - modules/events/client/components/EventTopicSettings.tsx
+  - modules/events/client/components/EventFeedList.tsx
   - modules/events/client/components/EventFilters.tsx
   - modules/events/client/hooks/useEventTopicSettings.ts
   - modules/events/client/hooks/useEvents.ts
+  - modules/events/client/lib/event-feeds.ts
+  - modules/events/client/lib/event-feeds.test.ts
   - modules/events/client/locales/en.json
   - modules/events/client/locales/zh-CN.json
 out_of_scope:
-  - 改 EVENT_TOPICS 枚举本身（不加自定义主题）
+  - 改 EVENT_TOPICS 枚举本身（不加自定义主题，不做主题 CRUDL）
   - 分类器仍按七格判定；关掉的格子只是不展示，不把体育新闻硬塞进科技
   - 平台控制台 /platform
   - 工作台改事件主题 / 采集源主题下拉仍是七格（关掉的事件还能改回去）
+  - 关掉主题时不改 EventFeed.enabled（源自己的开关是用户意图，主题回来后按它恢复）
   - 存量 chrome 回填（页头条目跟着 nav_topics 走，不用改库）
 i18n: code
 acceptance:
-  - pnpm --filter @rewindom/events exec vitest --run shared/events.test.ts shared/nav-sources.test.ts server/event/topic-settings.service.test.ts server/ingest/feed-seed.test.ts server/events.routes.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/events.test.ts shared/nav-sources.test.ts server/event/topic-settings.service.test.ts server/ingest/feed-seed.test.ts server/events.routes.test.ts client/lib/event-feeds.test.ts
   - node scripts/verify-module.mjs events
   - pnpm check:i18n
 
@@ -57,8 +61,11 @@ models: []
 # 1. TenantSetting key = events.enabled_topics，值是 EventTopic[]。
 #    缺行 / 非法 / 空数组 → 读路径全开（失效方向：宁可多显示）。
 #    写入至少 1 个合法格子，顺序固定为 EVENT_TOPICS。
-# 2. 工作台：采集源页顶部 SettingsPanel，七格 Switch，即时保存；最后一个开着的不能关。
-# 3. 公开面：nav_topics / Rising / Now / 列表 / RSS / sitemap / 实体页事件
+# 2. 不做独立主题 CRUDL 页：格子不是租户自建分类。开关落在采集源页，
+#    源按主题分组，组头就是主题开关——「关掉体育 = 这组源不采了」一眼能看出来。
+# 3. 有效采集 = 主题开着 且 源 enabled。关掉主题不写 EventFeed.enabled。
+#    采集查询带 enabledTopicWhere；界面上该组源的开关显示为关且不可拨。
+# 4. 公开面：nav_topics / Rising / Now / 列表 / RSS / sitemap / 实体页事件
 #    只含启用格子。关掉的 /events/:topic 与 ?topic= 404。事件详情仍可按 slug 打开。
-# 4. 目录种植：只种启用 topic 的源；未启用的 key 不记「已种」，以后打开再补。
-# 5. 工作台探索 feed 与公开面同口径；「全部事件」仍能看到关掉格子里的存量，方便改主题。
+# 5. 目录种植：只种启用 topic 的源；未启用的 key 不记「已种」，以后打开再补。
+# 6. 工作台探索 feed 与公开面同口径；「全部事件」仍能看到关掉格子里的存量，方便改主题。

@@ -102,6 +102,14 @@ export interface EventTopicSettings {
   enabled_topics: EventTopic[];
 }
 
+/** 真正会去抓的源：主题开着，且源自己也开着。 */
+export function isFeedCollecting(
+  feed: { enabled: boolean; topic: EventTopic },
+  enabledTopics: readonly EventTopic[],
+): boolean {
+  return feed.enabled && isTopicEnabled(enabledTopics, feed.topic);
+}
+
 export function isEventStatus(value: unknown): value is EventStatus {
   return (
     typeof value === "string" &&
