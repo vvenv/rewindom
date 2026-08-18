@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 /**
- * 把 Yestino 品牌标（数据流 Y）写入指定租户的官网 logo / favicon / og:image。
+ * 把 Yestino 品牌标（两条来源汇成一条时间线的 Y）写入指定租户的官网
+ * logo / favicon / og:image。资产真源见 `scripts/yestino-brand/README.md`。
  *
  * 只改 `theme_settings` 两列里的品牌字段，不走 `publishSiteDraft`，避免把未发布的
  * 页头页脚草稿一并推上线。
@@ -10,6 +11,7 @@
  *   pnpm --filter server exec tsx scripts/apply-yestino-brand.ts --slug yestino
  *   pnpm --filter server exec tsx scripts/apply-yestino-brand.ts --slug yestino --no-primary
  *   pnpm --filter server exec tsx scripts/apply-yestino-brand.ts --slug yestino --favicon-svg
+ *   pnpm --filter server exec tsx scripts/apply-yestino-brand.ts --slug yestino --favicon-png
  *   pnpm --filter server exec tsx scripts/apply-yestino-brand.ts --slug yestino --og-only
  */
 import { readFile } from "node:fs/promises";
@@ -35,6 +37,11 @@ interface Args {
   setPrimary: boolean;
   /** 不重新上传，只把 favicon 指到现有的 SVG logo。 */
   faviconSvg: boolean;
+  /**
+   * 只换 favicon：传 512 PNG 并指过去。给 SVG favicon 支持不佳的浏览器兜底，
+   * logo 仍然用 SVG（页头是矢量场景）。
+   */
+  faviconPng: boolean;
   /** 只换 OG 图，不动 logo / favicon / 主色。 */
   ogOnly: boolean;
 }
@@ -43,6 +50,7 @@ function parseArgs(argv: string[]): Args {
   let dryRun = false;
   let setPrimary = true;
   let faviconSvg = false;
+  let faviconPng = false;
   let ogOnly = false;
   let slug = "yestino";
   for (let i = 0; i < argv.length; i += 1) {
@@ -59,6 +67,10 @@ function parseArgs(argv: string[]): Args {
       faviconSvg = true;
       continue;
     }
+    if (token === "--favicon-png") {
+      faviconPng = true;
+      continue;
+    }
     if (token === "--og-only") {
       ogOnly = true;
       continue;
@@ -71,7 +83,7 @@ function parseArgs(argv: string[]): Args {
   if (!slug) {
     throw new Error("需要 --slug <tenant-slug>");
   }
-  return { dryRun, slug, setPrimary, faviconSvg, ogOnly };
+  return { dryRun, slug, setPrimary, faviconSvg, faviconPng, ogOnly };
 }
 
 async function readAsset(
@@ -136,6 +148,39 @@ async function main(): Promise<void> {
       },
     });
     console.log("[apply-yestino-brand] favicon now uses the SVG mark");
+    return;
+  }
+
+  if (args.faviconPng) {
+    const favicon = await readAsset("favicon-512.png", "image/png");
+    console.log(
+      `[apply-yestino-brand] tenant=${tenant.slug} favicon ${live.favicon_url ?? ""} ← ${favicon.buffer.byteLength}B png`,
+    );
+    if (args.dryRun) {
+      console.log("[apply-yestino-brand] dry-run, no writes");
+      return;
+    }
+    const faviconAsset = await uploadSiteAsset({
+      tenant_id: tenant.id,
+      tenant_slug: tenant.slug,
+      buffer: favicon.buffer,
+      mime_type: favicon.mime_type,
+    });
+    await updateSiteAssetAlt(tenant.id, tenant.slug, faviconAsset.id, "Yestino");
+    await prisma.marketingSite.update({
+      where: { tenant_id: tenant.id },
+      data: {
+        theme_settings: {
+          ...live,
+          favicon_url: faviconAsset.url,
+        } as Prisma.InputJsonValue,
+        theme_settings_draft: {
+          ...draft,
+          favicon_url: faviconAsset.url,
+        } as Prisma.InputJsonValue,
+      },
+    });
+    console.log(`[apply-yestino-brand] wrote favicon=${faviconAsset.url}`);
     return;
   }
 

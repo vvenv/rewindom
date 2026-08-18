@@ -1,17 +1,24 @@
+<!--
+  Yestino 品牌标：两条来源线汇成一条时间线（events 的产品口径），同时是字母 Y。
+  容器色取官网主色 #4F46E5（theme_settings.primary_color），渐变只在同一色相里走深浅，
+  不跨色相——官网通篇只有一个 accent，logo 也不该多出第二种颜色。
+  尺寸下限是官网页头的 24px（`.logo{height:1.5rem}`），所以笔画粗、无细节、无分离元素。
+-->
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Yestino">
   <defs>
-    <linearGradient id="yestino-bg" x1="32" y1="24" x2="224" y2="232" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#2563EB"/>
-      <stop offset="1" stop-color="#7C3AED"/>
+    <linearGradient id="yestino-bg" x1="24" y1="16" x2="232" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="0.55" stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#4338CA"/>
     </linearGradient>
   </defs>
-  <rect width="256" height="256" rx="64" fill="url(#yestino-bg)"/>
+  <rect width="256" height="256" rx="60" fill="url(#yestino-bg)"/>
   <path
     fill="none"
     stroke="#FFFFFF"
-    stroke-width="38"
+    stroke-width="44"
     stroke-linecap="round"
     stroke-linejoin="round"
-    d="M86 70 L128 142 L170 70 M128 142 L128 198"
+    d="M76 64 L128 130 L180 64 M128 130 L128 192"
   />
 </svg>
