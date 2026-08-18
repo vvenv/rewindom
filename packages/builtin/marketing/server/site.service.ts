@@ -66,7 +66,7 @@ import {
   isHomePathAvailable,
   normalizeHomePath,
 } from "../shared/site-home.js";
-import { withSiteLocale } from "../shared/site-locale.js";
+import { resolvePageLocale, withSiteLocale } from "../shared/site-locale.js";
 import { buildMinimalSiteChrome } from "../shared/site-starters.js";
 import {
   applySiteThemeSettings,
@@ -1311,6 +1311,32 @@ export async function revertEditorDraft(
   ]);
 
   return presentEditor(page, site, enabled);
+}
+
+/**
+ * 站点主语言：未配置时回落到代码兜底。公开面无前缀 URL 用它填 locale。
+ */
+export async function getSiteDefaultLocale(
+  tenant_id: string,
+): Promise<AppLocale> {
+  const site = await prisma.marketingSite.findFirst({
+    where: withTenantScope(tenant_id),
+    select: { default_locale: true },
+  });
+  return normalizeLocale(site?.default_locale);
+}
+
+/**
+ * 访客页语言：URL 前缀优先，没有前缀就用站点主语言。
+ *
+ * 贡献路径 / 会员 / 店面自己的 Fastify 路由都走这里，避免 `normalizeLocale(null)`
+ * 掉到 `zh-CN`。
+ */
+export async function resolveVisitorPageLocale(
+  tenant_id: string,
+  requested: AppLocale | null | undefined,
+): Promise<AppLocale> {
+  return resolvePageLocale(requested, await getSiteDefaultLocale(tenant_id));
 }
 
 /**

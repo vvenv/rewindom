@@ -3,10 +3,11 @@ import {
   requestOriginFromHeaders,
   resolveHostTenant,
   resolveRequestHostname,
-  resolveRequestLocale,
   translateServerMessage,
 } from "@rewindom/module-sdk/server";
 import { renderUnavailableHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
+import { resolveVisitorPageLocale } from "@rewindom/builtin/marketing/server/site.service.js";
+import { parseMarketingSsrPath } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
 import {
@@ -212,7 +213,8 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
       );
       return;
     }
-    const locale = resolveRequestLocale(request);
+    const { locale: requested } = parseMarketingSsrPath(request.url);
+    const locale = await resolveVisitorPageLocale(host.tenant_id, requested);
     const member = await resolveMember(app, request, reply, host.tenant_id);
     await run({
       tenantId: host.tenant_id,

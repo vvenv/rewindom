@@ -18,7 +18,6 @@
  */
 
 import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
-import { resolveRequestLocale } from "@rewindom/server-kernel/lib/i18n/translate.js";
 import { normalizeLocale, type AppLocale  } from "@rewindom/shared";
 
 import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
@@ -26,12 +25,14 @@ import { resolveSectionEntitlements } from "../../marketing/server/site-entitlem
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,
+  resolveVisitorPageLocale,
 } from "../../marketing/server/site.service.js";
 import {
   renderMarketingHtml,
   renderUnavailableHtml,
 } from "../../marketing/server/ssr-render.js";
 import { buildPresetSections } from "../../marketing/shared/page-presets.js";
+import { parseMarketingSsrPath } from "../../marketing/shared/site-locale.js";
 import {
   MEMBER_ACCOUNT_PAGE_KIND,
   MEMBER_ACCOUNT_PATH,
@@ -152,14 +153,14 @@ async function renderAccountPage(
   });
   if (!session) return false;
 
-  const requested = resolveRequestLocale(request);
+  const requested = parseMarketingSsrPath(request.url).locale;
   const site = await getSiteChromeOrFallback(
     hostTenant.tenant_id,
     hostTenant.tenant_slug,
     hostTenant.tenant_slug,
     requested,
   );
-  const locale = normalizeLocale(site.locale, site.default_locale);
+  const locale = normalizeLocale(requested, site.default_locale);
   const translate = createMemberPresetTranslator(locale);
 
   const [profile, stored, accountEntry, entitlements] = await Promise.all([
@@ -300,7 +301,10 @@ async function handleSubmit(
     );
     redirectTo(reply, `${MEMBER_ACCOUNT_PATH}?saved=1`, 303);
   } catch (error) {
-    const locale = resolveRequestLocale(request);
+    const locale = await resolveVisitorPageLocale(
+      request.hostTenantContext?.tenant_id ?? "",
+      parseMarketingSsrPath(request.url).locale,
+    );
     app.log.warn({ err: error }, "[member-account] 表单提交失败");
     const rendered = await renderAccountPage(request, reply, {
       status: error instanceof AppError ? error.status : 400,

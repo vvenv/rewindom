@@ -32,7 +32,13 @@ export interface SitePathHandlerInput {
    * SSR 总会带上；测试或其它调用方漏传按未设首页算。
    */
   homePath?: string;
+  /**
+   * 当前页语言。SSR 在无前缀时已填成站点主语言；`null` 只应出现在测试漏传。
+   * 渲染库存文案用这个值。站内重定向的 Location 仍用 URL 上剥出来的 locale
+   *（`null` = 不带前缀），不要把已解析的主语言交给 `localizeRedirectLocation`。
+   */
   locale: AppLocale | null;
+
   enabledEntitlements: ReadonlySet<string>;
   accountEntryHtml: string;
   cookies?: { get(name: string): string | undefined };

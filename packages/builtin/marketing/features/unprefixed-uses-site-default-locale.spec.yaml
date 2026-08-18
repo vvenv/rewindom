@@ -1,0 +1,33 @@
+# 站点主语言改成 en 后，无前缀公开页仍整页中文。
+#
+# URL 规则是 Shopify Markets：主语言不带前缀，locale 在 catch-all 里是 null。
+# CMS 页会用 site.default_locale 填上；贡献路径（/events、/docs、/shop）和
+# 会员 / 店面自己的 Fastify 路由却调用 normalizeLocale(null) → 代码兜底 zh-CN。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, member]
+goal: 无前缀公开地址按站点主语言渲染库存译文，而不是掉到代码兜底 zh-CN
+gold: packages/builtin/marketing/shared/site-locale.ts
+touch:
+  - packages/builtin/marketing/features/unprefixed-uses-site-default-locale.spec.yaml
+  - packages/builtin/marketing/shared/site-locale.ts
+  - packages/builtin/marketing/shared/site-locale.test.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/MODULE.md
+  - modules/events/server/ssr/rss.routes.ts
+  - modules/shop/server/ssr/shop.ssr.ts
+  - packages/builtin/site-member/server/member-auth.ssr.ts
+  - packages/builtin/site-member/server/member-account.ssr.ts
+  - packages/builtin/site-billing/server/member-billing.ssr.ts
+out_of_scope:
+  - 改 DEFAULT_LOCALE / 工作台界面语言
+  - 按 Accept-Language 自动跳转
+  - 主语言前缀 /en 301 到无前缀（canonical 已指回无前缀）
+  - 库里已写成中文的租户文案（库存句才会换译文）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run marketing/shared/site-locale.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/rss-xml.test.ts
+  - node scripts/verify-module.mjs marketing

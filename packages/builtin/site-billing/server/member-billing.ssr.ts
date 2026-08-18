@@ -16,7 +16,6 @@
  */
 
 import { AppError } from "@rewindom/server-kernel/lib/app-errors.js";
-import { resolveRequestLocale } from "@rewindom/server-kernel/lib/i18n/translate.js";
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
 import { resolveSiteAccountEntry } from "../../marketing/server/site-account-entry.js";
@@ -24,12 +23,14 @@ import { resolveSectionEntitlements } from "../../marketing/server/site-entitlem
 import {
   getPublishedTemplatePage,
   getSiteChromeOrFallback,
+  resolveVisitorPageLocale,
 } from "../../marketing/server/site.service.js";
 import {
   renderMarketingHtml,
   renderUnavailableHtml,
 } from "../../marketing/server/ssr-render.js";
 import { buildPresetSections } from "../../marketing/shared/page-presets.js";
+import { parseMarketingSsrPath } from "../../marketing/shared/site-locale.js";
 import {
   assertSameOrigin,
   ensureHostTenant,
@@ -131,14 +132,14 @@ async function renderBillingPage(
   });
   if (!session) return false;
 
-  const requested = resolveRequestLocale(request);
+  const requested = parseMarketingSsrPath(request.url).locale;
   const site = await getSiteChromeOrFallback(
     hostTenant.tenant_id,
     hostTenant.tenant_slug,
     hostTenant.tenant_slug,
     requested,
   );
-  const locale = normalizeLocale(site.locale, site.default_locale);
+  const locale = normalizeLocale(requested, site.default_locale);
   const fallbackLocale = normalizeLocale(site.default_locale);
   const translate = createSiteBillingTranslator(locale);
 
@@ -328,10 +329,14 @@ async function handleSubmit(
      */
     redirectTo(reply, checkout_url, 303);
   } catch (error) {
-    const requested = resolveRequestLocale(request);
+    const requested = parseMarketingSsrPath(request.url).locale;
+    const locale = await resolveVisitorPageLocale(
+      request.hostTenantContext?.tenant_id ?? "",
+      requested,
+    );
     const rendered = await renderBillingPage(request, reply, {
       status: error instanceof AppError ? error.status : 500,
-      error: errorMessage(error, requested),
+      error: errorMessage(error, locale),
       noticeKey: null,
     });
     if (!rendered) redirectTo(reply, LOGIN_WITH_REDIRECT, 303);

@@ -6,6 +6,7 @@ import {
   isMarketingPublicPath,
   parseMarketingSsrPath,
   parseSiteLocalePath,
+  resolvePageLocale,
   registerLocalizableAppHref,
   resetLocalizableAppHrefs,
   resolveLocaleSegment,
@@ -106,6 +107,19 @@ describe("parseMarketingSsrPath", () => {
       logicalPath: "/about",
       locale: null,
     });
+  });
+});
+
+describe("resolvePageLocale", () => {
+  it("fills a missing prefix with the site default, not zh-CN", () => {
+    expect(resolvePageLocale(null, "en")).toBe("en");
+    expect(resolvePageLocale(undefined, "en")).toBe("en");
+    expect(resolvePageLocale(null, "zh-CN")).toBe("zh-CN");
+  });
+
+  it("keeps an explicit prefix even when it is not the site default", () => {
+    expect(resolvePageLocale("zh-CN", "en")).toBe("zh-CN");
+    expect(resolvePageLocale("en", "zh-CN")).toBe("en");
   });
 });
 

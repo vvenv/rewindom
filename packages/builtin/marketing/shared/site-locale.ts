@@ -7,7 +7,12 @@
  * 其余语言走 `/{locale}/...` 子目录。
  */
 
-import { APP_LOCALES, isAppLocale, type AppLocale } from "@rewindom/shared";
+import {
+  APP_LOCALES,
+  isAppLocale,
+  normalizeLocale,
+  type AppLocale,
+} from "@rewindom/shared";
 
 import {
   SITE_APP_PREFIXES,
@@ -110,8 +115,9 @@ export function parseSiteLocalePath(
  * Marketing SSR 入口把 URL 拆成「逻辑路径 + 可选语言」。
  *
  * 与 `parseSiteLocalePath` 的差别：没有站点默认语言时，无前缀地址的 locale 是
- * `null`（交给后面按站点配置填），而不是猜一个默认值。末尾斜杠在这里就剥掉，
- * 这样 `/old/` 与 `/old` 走进同一条渲染 / 重定向查找。
+ * `null`（交给后面 `resolvePageLocale(requested, site.default_locale)` 填），
+ * 而不是猜一个默认值。末尾斜杠在这里就剥掉，这样 `/old/` 与 `/old` 走进同一条
+ * 渲染 / 重定向查找。
  */
 export function parseMarketingSsrPath(pathname: string): {
   logicalPath: string;
@@ -131,6 +137,22 @@ export function parseMarketingSsrPath(pathname: string): {
     locale,
     logicalPath: rest.length === 0 ? "/" : `/${rest.join("/")}`,
   };
+}
+
+/**
+ * URL 上的语言（可空）→ 这一页真正渲染的语言。
+ *
+ * 无前缀 = 站点主语言。不要写成 `normalizeLocale(locale)`：那会掉到代码兜底
+ * `zh-CN`，站点主语言改成 `en` 之后 `/` 仍整页中文。
+ *
+ * 重定向的 Location 仍用 URL 上的值（`null` = 不带前缀），不要把这里的结果
+ * 传给 `localizeRedirectLocation`。
+ */
+export function resolvePageLocale(
+  requested: AppLocale | null | undefined,
+  defaultLocale: AppLocale,
+): AppLocale {
+  return normalizeLocale(requested, defaultLocale);
 }
 
 /**

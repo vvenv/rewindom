@@ -16,6 +16,7 @@ import {
 } from "../shared/page-templates.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import { isSpaShellPath, parseMarketingSsrPath } from "../shared/site-locale.js";
+
 import {
   matchSitePathFallback,
   matchSitePathHandler,
@@ -33,10 +34,10 @@ import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
 import { findSiteRedirect } from "./site-redirect.service.js";
 import {
   getPublishedPublicPage,
-  getPublishedPublicSite,
   getPublishedSitemapEntries,
   getSiteChromeOrFallback,
   resolveVisitorHomePath,
+  resolveVisitorPageLocale,
 } from "./site.service.js";
 import { resolveContributedSitemapEntries } from "./sitemap-providers.js";
 import {
@@ -345,21 +346,20 @@ async function renderLogicalPath(
     ) {
       return true;
     }
-    const site = await getPublishedPublicSite(
+    const pageLocale = await resolveVisitorPageLocale(
       hostTenant.tenant_id,
-      hostTenant.tenant_slug,
       locale,
     );
     const accountEntry = await resolveSiteAccountEntry({
       tenantId: hostTenant.tenant_id,
-      locale: normalizeLocale(site?.default_locale, locale ?? undefined),
+      locale: pageLocale,
     });
     const input = pathHandlerInput({
       request,
       hostTenant,
       path,
       servedPath,
-      locale,
+      locale: pageLocale,
       enabledEntitlements,
       homePath,
       accountEntryHtml: accountEntry.html,
@@ -396,14 +396,13 @@ async function renderLogicalPath(
       homePath,
     });
     if (fallback) {
-      const site = await getPublishedPublicSite(
+      const pageLocale = await resolveVisitorPageLocale(
         hostTenant.tenant_id,
-        hostTenant.tenant_slug,
         locale,
       );
       const accountEntry = await resolveSiteAccountEntry({
         tenantId: hostTenant.tenant_id,
-        locale: normalizeLocale(site?.default_locale, locale ?? undefined),
+        locale: pageLocale,
       });
       const html = await fallback.render(
         pathHandlerInput({
@@ -411,7 +410,7 @@ async function renderLogicalPath(
           hostTenant,
           path,
           servedPath,
-          locale,
+          locale: pageLocale,
           enabledEntitlements,
           homePath,
           accountEntryHtml: accountEntry.html,

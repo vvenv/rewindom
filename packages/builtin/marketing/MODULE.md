@@ -417,6 +417,12 @@ URL 对齐 Shopify Markets：站点**主语言不带前缀**（`MarketingSite.de
 不靠页面白名单）。locale 的 slug 占住了 `RESERVED_PAGE_SLUGS`，否则一个叫 `en`
 的顶层页会把整棵 `/en/*` 遮住。
 
+无前缀地址在 catch-all 里 locale 是 `null`。CMS 页用 `site.default_locale` 填；
+贡献路径（`/events`、`/docs`、`/shop`）和会员 / 店面自己的 Fastify 路由必须走
+`resolvePageLocale(requested, site.default_locale)`（或 `resolveVisitorPageLocale`），
+**不要** `normalizeLocale(locale)`——那会掉到代码兜底 `zh-CN`，主语言改成 `en` 后
+`/` 仍整页中文。站内重定向的 Location 仍用 URL 上的 locale（`null` = 不带前缀）。
+
 存储按「授权单位 = 本地化单位」分两种：
 
 | 内容                    | 存法                                             | 理由                                               |
