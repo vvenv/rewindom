@@ -24,7 +24,7 @@ import {
   getContributedChromeBlock,
   registerChromeBlock,
 } from "./chrome-blocks.js";
-import { chromeBlockClass, chromeRows, type ChromeRow } from "./chrome-layout.js";
+import { chromeBlockClass, chromeRows, type ChromeRow, type ChromeZone } from "./chrome-layout.js";
 import { chromeMenuLabel, mainNavLabel, themeToggleTitle } from "./chrome-messages.js";
 import { resolveChromeText } from "./chrome-text.js";
 import { linkAttrs } from "./html.js";
@@ -99,9 +99,17 @@ function renderBrandHtml(input: {
 }): string {
   const s = input.block.settings;
   const blurb = settingText(s, "blurb");
+  // 字标留空就跟着站名走（存量块没有这个键，行为与以前逐字节一致）
+  const brandText = settingText(s, "brand_text") || input.siteName;
+  const showBrandText = settingBool(s, "show_site_name");
+  /*
+   * 字标在场时 logo 是装饰性的：同一个 `<a>` 里已经有一份可读的品牌名，
+   * 再给图片一个同名 alt 只会让读屏念两遍。
+   */
+  const logoAlt = showBrandText ? "" : brandText;
   const mark = `<a class="brand" href="${escapeHtml(input.homeHref)}">
-      ${settingBool(s, "show_logo") && input.logoUrl ? `<img class="logo" src="${escapeHtml(input.logoUrl)}" alt="${escapeHtml(input.siteName)}" />` : ""}
-      ${settingBool(s, "show_site_name") ? `<span>${escapeHtml(input.siteName)}</span>` : ""}
+      ${settingBool(s, "show_logo") && input.logoUrl ? `<img class="logo" src="${escapeHtml(input.logoUrl)}" alt="${escapeHtml(logoAlt)}" />` : ""}
+      ${showBrandText ? `<span>${escapeHtml(brandText)}</span>` : ""}
     </a>`;
   // 有简介才需要外面那层：没有的话品牌本身就是一个 `<a>`，多包一层只会多一个盒子
   return blurb
@@ -201,7 +209,7 @@ function renderLocaleHtml(options: LocaleSwitcherOption[]): string {
     )
     .join("");
   return `<details class="locale-switcher">
-  <summary aria-label="Language">${ICON.locale}</summary>
+  <summary class="chrome-control" aria-label="Language">${ICON.locale}</summary>
   <nav class="locale-switcher-menu" aria-label="Language">${items}</nav>
 </details>${CLOSE_ON_OUTSIDE}`;
 }
@@ -212,7 +220,7 @@ function renderLocaleHtml(options: LocaleSwitcherOption[]): string {
  */
 function renderThemeHtml(locale: AppLocale): string {
   const title = escapeHtml(themeToggleTitle(locale, "system"));
-  return `<button type="button" class="theme-toggle" title="${title}">${ICON.sun}</button>`;
+  return `<button type="button" class="theme-toggle chrome-control" title="${title}">${ICON.sun}</button>`;
 }
 
 function renderBlockHtml(block: SiteBlock, input: ChromeRenderInput, isMainNav: boolean): string {
@@ -263,15 +271,45 @@ function renderBlockHtml(block: SiteBlock, input: ChromeRenderInput, isMainNav: 
  *
  * `data-block-id` 是编辑器点选的锚点（往上找最近的 `[data-block-id]`），所以每个块
  * 都得有一层自己的元素——不能指望块内部记得加。
+ *
+ * 钉住的块与收进菜单的块在区里分成两堆：`.chrome-pins` 是顶栏那一格（品牌、语言、
+ * 明暗），`.chrome-drawer` 是窄屏才出现的菜单。桌面上两层都是 `display: contents`，
+ * 块直接落进对齐区的 flex，和不分组时一样。
  */
 function wrapBlockHtml(block: SiteBlock, inner: string): string {
   if (!inner) return "";
   const cls = chromeBlockClass(block, "chrome-block");
-  const shell = `<div class="${cls}" data-block-id="${escapeHtml(block.id)}">${inner}</div>`;
-  // 窄屏收进菜单的块多包一层：桌面上它是 `display: contents`，等于不存在
-  return blockMobile(block) === "menu"
-    ? `<div class="chrome-drawer">${shell}</div>`
-    : shell;
+  return `<div class="${cls}" data-block-id="${escapeHtml(block.id)}">${inner}</div>`;
+}
+
+function renderZoneHtml(
+  zone: ChromeZone,
+  input: ChromeRenderInput,
+  state: { mainNavUsed: boolean },
+): { zoneHtml: string; drawers: string[] } {
+  const pins: string[] = [];
+  const drawers: string[] = [];
+  for (const block of zone.blocks) {
+    const isMainNav = block.type === "chrome_nav" && !state.mainNavUsed;
+    if (isMainNav) state.mainNavUsed = true;
+    const inner = wrapBlockHtml(block, renderBlockHtml(block, input, isMainNav));
+    if (!inner) continue;
+    if (blockMobile(block) === "menu") {
+      drawers.push(
+        `<div class="chrome-drawer" data-align="${zone.align}">${inner}</div>`,
+      );
+    } else {
+      pins.push(inner);
+    }
+  }
+  if (pins.length === 0 && drawers.length === 0) {
+    return { zoneHtml: "", drawers: [] };
+  }
+  const pinsHtml = pins.length > 0 ? `<div class="chrome-pins">${pins.join("")}</div>` : "";
+  return {
+    zoneHtml: `<div class="chrome-zone chrome-zone-${zone.align}">${pinsHtml}</div>`,
+    drawers,
+  };
 }
 
 function renderRowHtml(
@@ -282,34 +320,31 @@ function renderRowHtml(
   // 会各自叫一次「主导航」，读屏器的 landmark 列表里又是两个同名项
   state: { mainNavUsed: boolean },
 ): string {
-  const zones = row.zones
-    .map((zone) => {
-      const blocks = zone.blocks
-        .map((block) => {
-          const isMainNav = block.type === "chrome_nav" && !state.mainNavUsed;
-          if (isMainNav) state.mainNavUsed = true;
-          return wrapBlockHtml(block, renderBlockHtml(block, input, isMainNav));
-        })
-        .join("");
-      return blocks
-        ? `<div class="chrome-zone chrome-zone-${zone.align}">${blocks}</div>`
-        : "";
-    })
-    .join("");
-  if (!zones) return "";
+  const zones: string[] = [];
+  const drawers: string[] = [];
+  for (const zone of row.zones) {
+    const rendered = renderZoneHtml(zone, input, state);
+    if (rendered.zoneHtml) zones.push(rendered.zoneHtml);
+    drawers.push(...rendered.drawers);
+  }
+  if (zones.length === 0 && drawers.length === 0) return "";
 
   /*
    * 汉堡：一个画成图标的 checkbox，不是 `<button>` + JS，也不是 label + 隐藏 input。
    *
    * checkbox 自带「开 / 关」状态与键盘操作（空格），纯 CSS 就能驱动展开，无 JS 可用；
-   * 用 label 包一个隐藏 input 则键盘上根本聚焦不到。展开靠 `:has()` 从行选到 drawer
-   * ——drawer 分散在各个对齐区里，和 input 不是兄弟，`~` 够不着。
+   * 用 label 包一个隐藏 input 则键盘根本聚焦不到。展开靠 `:has()` 从行选到
+   * `.chrome-menu-popup`——抽屉收在这一层里，和 input 不是兄弟，`~` 够不着。
    */
   const menuId = `chrome-menu-${escapeHtml(sectionId)}-${row.index}`;
   const menu = row.hasMenu
     ? `<input type="checkbox" id="${menuId}" class="chrome-menu-toggle" aria-label="${escapeHtml(chromeMenuLabel(input.ctx.locale))}" />`
     : "";
-  return `<div class="wrap chrome-row chrome-row-${row.index}">${zones}${menu}</div>`;
+  const popup =
+    drawers.length > 0
+      ? `<div class="chrome-menu-popup">${drawers.join("")}</div>`
+      : "";
+  return `<div class="wrap chrome-row chrome-row-${row.index}">${zones.join("")}${popup}${menu}</div>`;
 }
 
 export function renderChromeHtml(

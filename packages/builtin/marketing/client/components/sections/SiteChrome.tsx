@@ -249,7 +249,11 @@ function LocaleSwitcher({
 
   return (
     <details ref={detailsRef} className="locale-switcher">
-      <summary aria-label="Language" title={getLocaleNativeLabel(current)}>
+      <summary
+        className="chrome-control"
+        aria-label="Language"
+        title={getLocaleNativeLabel(current)}
+      >
         {LOCALE_ICON}
       </summary>
       <nav className="locale-switcher-menu" aria-label="Language">
@@ -277,7 +281,7 @@ function SiteThemeToggle({ locale }: { locale: AppLocale }): ReactElement {
   return (
     <button
       type="button"
-      className="theme-toggle"
+      className="theme-toggle chrome-control"
       title={themeToggleTitle(locale, mode)}
       onClick={() => setMode(resolved === "dark" ? "light" : "dark")}
     >
@@ -385,15 +389,20 @@ export function SiteChrome({
     switch (block.type) {
       case "chrome_brand": {
         const blurb = settingText(block.settings, "blurb");
+        // 与 SSR 同一条回落：字标留空跟着站名走，字标在场时 logo 只是装饰
+        const brandText = settingText(block.settings, "brand_text") || siteName;
+        const showBrandText = settingBool(block.settings, "show_site_name");
         return (
           <div className="chrome-brand">
             <SiteLink href="/" className="brand">
               {settingBool(block.settings, "show_logo") && logoUrl ? (
-                <img src={logoUrl} alt={siteName} className="logo" />
+                <img
+                  src={logoUrl}
+                  alt={showBrandText ? "" : brandText}
+                  className="logo"
+                />
               ) : null}
-              {settingBool(block.settings, "show_site_name") ? (
-                <span>{siteName}</span>
-              ) : null}
+              {showBrandText ? <span>{brandText}</span> : null}
             </SiteLink>
             {blurb ? <p className="muted">{blurb}</p> : null}
           </div>
@@ -461,46 +470,70 @@ export function SiteChrome({
       className={className}
       style={style}
     >
-      {chromeRows(section.blocks).map((row) => (
-        <div key={row.index} className={`wrap chrome-row chrome-row-${row.index}`}>
-          {row.zones.map((zone) => (
+      {chromeRows(section.blocks).map((row) => {
+        const zoneNodes: ReactNode[] = [];
+        const drawers: ReactNode[] = [];
+        for (const zone of row.zones) {
+          const pins: ReactNode[] = [];
+          let hadMenu = false;
+          for (const block of zone.blocks) {
+            const inner = renderBlock(block);
+            if (!inner) continue;
+            const shellEl = (
+              <div
+                className={chromeBlockClass(block, "chrome-block")}
+                data-block-id={block.id}
+              >
+                {inner}
+              </div>
+            );
+            if (blockMobile(block) === "menu") {
+              hadMenu = true;
+              drawers.push(
+                <div
+                  key={block.id}
+                  className="chrome-drawer"
+                  data-align={zone.align}
+                >
+                  {shellEl}
+                </div>,
+              );
+            } else {
+              pins.push(
+                <div key={block.id} style={{ display: "contents" }}>
+                  {shellEl}
+                </div>,
+              );
+            }
+          }
+          if (pins.length === 0 && !hadMenu) continue;
+          zoneNodes.push(
             <div
               key={zone.align}
               className={`chrome-zone chrome-zone-${zone.align}`}
             >
-              {zone.blocks.map((block) => {
-                const inner = renderBlock(block);
-                if (!inner) return null;
-                const shellEl = (
-                  <div
-                    className={chromeBlockClass(block, "chrome-block")}
-                    data-block-id={block.id}
-                  >
-                    {inner}
-                  </div>
-                );
-                // 窄屏收进菜单的块多包一层；桌面上它是 `display: contents`，等于不存在
-                return blockMobile(block) === "menu" ? (
-                  <div key={block.id} className="chrome-drawer">
-                    {shellEl}
-                  </div>
-                ) : (
-                  <span key={block.id} style={{ display: "contents" }}>
-                    {shellEl}
-                  </span>
-                );
-              })}
-            </div>
-          ))}
-          {row.hasMenu ? (
-            <input
-              type="checkbox"
-              className="chrome-menu-toggle"
-              aria-label={chromeMenuLabel(ctx.locale)}
-            />
-          ) : null}
-        </div>
-      ))}
+              {pins.length > 0 ? (
+                <div className="chrome-pins">{pins}</div>
+              ) : null}
+            </div>,
+          );
+        }
+        return (
+          <div key={row.index} className={`wrap chrome-row chrome-row-${row.index}`}>
+            {zoneNodes}
+            {drawers.length > 0 ? (
+              <div className="chrome-menu-popup">{drawers}</div>
+            ) : null}
+            {row.hasMenu ? (
+              <input
+                type="checkbox"
+                className="chrome-menu-toggle"
+                aria-label={chromeMenuLabel(ctx.locale)}
+              />
+            ) : null}
+          </div>
+        );
+      })}
     </Tag>
   );
 }

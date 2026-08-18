@@ -3,11 +3,15 @@
 # ---------- 必填 ----------
 module: marketing
 surfaces: [ssr]
-goal: 桌面站名不换行；窄屏展开后语言/明暗留在顶栏右侧；页脚窄屏不收进汉堡
+goal: 桌面站名不换行；窄屏菜单向下拉开 popup；语言/明暗留在顶栏右侧；页脚不收汉堡
 gold: packages/builtin/marketing/shared/sections/_common/styles.css
 touch:
   - packages/builtin/marketing/features/chrome-responsive-layout.spec.yaml
   - packages/builtin/marketing/shared/sections/_common/styles.css
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.test.ts
+  - packages/builtin/marketing/client/components/sections/SiteChrome.tsx
+  - packages/builtin/marketing/client/components/sections/SiteChrome.test.tsx
   - packages/builtin/marketing/shared/marketing-site-css.generated.ts
   - packages/builtin/marketing/shared/marketing-site-css.test.ts
   - packages/builtin/marketing/MODULE.md
