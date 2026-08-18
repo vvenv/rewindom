@@ -25,14 +25,12 @@ const SITE_FONT_DIR = join(DIR, "../../../client/public/assets/site-fonts");
 
 /** 官网深色模式 token —— 改这里之前先确认官网主题也改了。 */
 const BG = "#0a0a0a";
-const FG = "#fafafa";
 const MUTED_FG = "#a1a1aa";
 const FAINT_FG = "#52525b";
 const BORDER = "rgba(250,250,250,.14)";
 const ACCENT_RGB = "79,70,229"; // #4F46E5
 
 /** OG 上的文案取官网 /en 的现行口径，改官网文案时同步改这里。 */
-const WORDMARK = "Yestino";
 const TAGLINE = "Events discovered across sources, and how they got here";
 const PILLS = ["Rising", "Now", "Timeline"];
 const DOMAIN = "yestino.com";
@@ -103,16 +101,11 @@ async function buildOg(mark, font) {
   paintGlow(ctx, W, H);
   ctx.textBaseline = "middle";
 
-  // 标 + 字标一行，整体居中
+  // 只放品牌标，水平居中
   const MARK_SIZE = 132;
-  const GAP = 30;
-  ctx.font = `700 86px ${font}`;
-  const rowWidth = MARK_SIZE + GAP + ctx.measureText(WORDMARK).width;
-  const rowX = (W - rowWidth) / 2;
+  const rowX = (W - MARK_SIZE) / 2;
   const rowY = 158;
   ctx.drawImage(mark, rowX, rowY, MARK_SIZE, MARK_SIZE);
-  ctx.fillStyle = FG;
-  ctx.fillText(WORDMARK, rowX + MARK_SIZE + GAP, rowY + MARK_SIZE / 2 + 3);
 
   ctx.font = `400 30px ${font}`;
   ctx.fillStyle = MUTED_FG;
