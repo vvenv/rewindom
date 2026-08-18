@@ -156,12 +156,39 @@ async function runIngestForTenant(
     touched.add(eventId);
   }
 
+  /*
+   * 模型用量按轮汇总打一条，不是每次调用打一条：一轮几十次调用逐条打日志
+   * 只会把日志刷爆，而要回答的问题（这一轮花了多少、前缀缓存命中没有）
+   * 恰恰是聚合量。`calls` 与 `events_touched` 的比值就是省钱闸门的实际效果。
+   */
+  const usage = { calls: 0, prompt: 0, completion: 0, cached: 0 };
+
   await refreshEvents(touched, {
     now,
     onAnalyzerFallback: (eventId, err) => {
       log?.warn({ err, eventId, tenantId }, "[events] LLM 分析失败，已退回规则分析器");
     },
+    onAnalyzerUsage: (_eventId, row) => {
+      usage.calls += 1;
+      usage.prompt += row.prompt_tokens;
+      usage.completion += row.completion_tokens;
+      usage.cached += row.cached_prompt_tokens ?? 0;
+    },
   });
+
+  if (usage.calls > 0) {
+    log?.info(
+      {
+        tenantId,
+        llm_calls: usage.calls,
+        events_touched: touched.size,
+        prompt_tokens: usage.prompt,
+        completion_tokens: usage.completion,
+        cached_prompt_tokens: usage.cached,
+      },
+      "[events] 本轮模型用量",
+    );
+  }
 
   /*
    * 相关事件单独一趟，不并进 refreshEvents：候选向量要整批载入一次，

@@ -62,6 +62,26 @@ export interface AnalyzedEvent {
    * 落库前经 `isEntityKind` 校验——模型可能返回枚举外的类型。
    */
   entities?: AnalyzedEntity[];
+  /**
+   * 这次分析的模型用量。**可选**：规则实现不产出。
+   *
+   * 存在的理由只有一个——省钱的每一项都要能被度量。没有它，
+   * 「加了闸门之后账单降了多少」「前缀缓存到底命中没有」都只能靠猜。
+   */
+  usage?: AnalyzerUsage;
+}
+
+/**
+ * 一次模型调用的 token 用量。
+ *
+ * `cached_prompt_tokens` 是**前缀缓存命中**的部分：系统提示词与响应格式说明
+ * 每次调用完全相同且排在最前面，供应商（deepseek / OpenAI）会自动命中，
+ * 命中部分的单价通常是未命中的 1/10。供应商不报这个数时为 null。
+ */
+export interface AnalyzerUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  cached_prompt_tokens: number | null;
 }
 
 export interface AnalyzedEntity {

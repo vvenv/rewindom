@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseAnalyzerResponse } from "./llm-analyzer.js";
+import { parseAnalyzerResponse, parseUsage } from "./llm-analyzer.js";
 
 import type { AnalyzerSignal } from "./analyzer.js";
 
@@ -106,5 +106,46 @@ describe("parseAnalyzerResponse", () => {
       SIGNALS,
     );
     expect(result.timeline.map((e) => e.label_text)).toEqual(["earlier", "later"]);
+  });
+});
+
+describe("parseUsage", () => {
+  it("读 deepseek 的 prompt_cache_hit_tokens", () => {
+    expect(
+      parseUsage({
+        prompt_tokens: 1200,
+        completion_tokens: 300,
+        prompt_cache_hit_tokens: 900,
+      }),
+    ).toEqual({
+      prompt_tokens: 1200,
+      completion_tokens: 300,
+      cached_prompt_tokens: 900,
+    });
+  });
+
+  it("读 OpenAI 的 prompt_tokens_details.cached_tokens", () => {
+    expect(
+      parseUsage({
+        prompt_tokens: 1200,
+        completion_tokens: 300,
+        prompt_tokens_details: { cached_tokens: 1024 },
+      })?.cached_prompt_tokens,
+    ).toBe(1024);
+  });
+
+  /*
+   * 「供应商没报缓存数」和「缓存一次都没命中」必须能分开——写成 0 的话，
+   * 打点看到的就是一条永远为零的曲线，分不清是没生效还是没数据。
+   */
+  it("供应商没报缓存数时是 null，不是 0", () => {
+    expect(
+      parseUsage({ prompt_tokens: 10, completion_tokens: 2 })
+        ?.cached_prompt_tokens,
+    ).toBeNull();
+  });
+
+  it("整个 usage 缺失时不产出用量", () => {
+    expect(parseUsage(undefined)).toBeUndefined();
   });
 });

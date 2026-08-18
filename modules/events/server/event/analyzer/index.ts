@@ -10,6 +10,7 @@ export type {
   AnalyzedTimelineEntry,
   AnalyzerInput,
   AnalyzerSignal,
+  AnalyzerUsage,
   EventAnalyzer,
 } from "./analyzer.js";
 export { heuristicAnalyzer } from "./heuristic-analyzer.js";

@@ -11,6 +11,7 @@ import type {
   AnalyzedEvent,
   AnalyzerInput,
   AnalyzerSignal,
+  AnalyzerUsage,
   EventAnalyzer,
 } from "./analyzer.js";
 
@@ -90,9 +91,45 @@ export function createLlmAnalyzer(llm: ResolvedLlmConfig): EventAnalyzer {
       });
 
       const raw = completion.choices[0]?.message?.content ?? "";
-      return parseAnalyzerResponse(raw, signals);
+      return {
+        ...parseAnalyzerResponse(raw, signals),
+        usage: parseUsage(completion.usage),
+      };
     },
   };
+}
+
+/**
+ * 读用量。
+ *
+ * 缓存命中数没有统一字段：OpenAI 报在 `prompt_tokens_details.cached_tokens`，
+ * deepseek 报在 `prompt_cache_hit_tokens`。两个都试，都没有就承认不知道（null）——
+ * 不要把「供应商没报」写成 0，那会让「缓存没生效」和「没数据」看起来一样。
+ */
+export function parseUsage(raw: unknown): AnalyzerUsage | undefined {
+  if (!raw || typeof raw !== "object") {
+    return undefined;
+  }
+  const usage = raw as {
+    prompt_tokens?: unknown;
+    completion_tokens?: unknown;
+    prompt_cache_hit_tokens?: unknown;
+    prompt_tokens_details?: { cached_tokens?: unknown } | null;
+  };
+  const cached = [
+    usage.prompt_tokens_details?.cached_tokens,
+    usage.prompt_cache_hit_tokens,
+  ].find((value) => typeof value === "number");
+
+  return {
+    prompt_tokens: toCount(usage.prompt_tokens),
+    completion_tokens: toCount(usage.completion_tokens),
+    cached_prompt_tokens: typeof cached === "number" ? cached : null,
+  };
+}
+
+function toCount(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 /** 信号多时优先保留一手来源与最新进展，而不是简单截前 N 条。 */

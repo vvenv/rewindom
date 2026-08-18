@@ -1,6 +1,10 @@
-import { prisma } from "@rewindom/module-sdk/server";
+import { config, prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
-import { analyzeEvent, resolveEventAnalyzer } from "./analyzer/index.js";
+import {
+  analyzeEvent,
+  heuristicAnalyzer,
+  resolveEventAnalyzer,
+} from "./analyzer/index.js";
 import { extractEntities, isEntityKind } from "./entity-extractor.js";
 import { syncEventEntities } from "./entity.service.js";
 import { diffEventRevisions } from "./event-revision.service.js";
@@ -8,14 +12,27 @@ import { computeHeat, resolveStatus, type HeatSignal } from "./heat.js";
 import { pickEventTitle } from "./title-tokens.js";
 import { classifyEventTopic } from "./topic-classifier.js";
 
-import type { AnalyzerSignal, EventAnalyzer } from "./analyzer/index.js";
+import type {
+  AnalyzerSignal,
+  AnalyzerUsage,
+  EventAnalyzer,
+} from "./analyzer/index.js";
 import type { EventSourceKind, EventTopic } from "../../shared/index.js";
 
 /**
- * LLM 重分析冷却期。规则分析器几乎零成本、每次都重算；
- * 走 LLM 时一个热门事件几分钟就能来十几条信号，不加冷却等于按信号数计费。
+ * 事件年龄 → 冷却倍数（**从大到小排，取第一条命中**）。
+ *
+ * 冷却期本身解决的是「热门事件几分钟来十几条信号，不加冷却等于按信号数计费」；
+ * 倍数解决的是另一半：一个跑了两天、已有六条信号的事件，第七条信号带来的
+ * 摘要变化基本为零，却和第二条信号收一样的钱。
+ *
+ * 年龄按**最早一条信号的发布时间**算。补抓到的旧文章因此一进来就落在最长档——
+ * 这是想要的：一篇 2023 年的文章重新冒头，不是一件正在快速演进的事。
  */
-const LLM_REANALYZE_COOLDOWN_MS = 30 * 60 * 1000;
+const COOLDOWN_STEPS: readonly { after_hours: number; multiplier: number }[] = [
+  { after_hours: 24, multiplier: 12 },
+  { after_hours: 6, multiplier: 4 },
+];
 
 /** 卡片上最多展示几个来源名。 */
 const SOURCE_NAME_LIMIT = 8;
@@ -32,6 +49,31 @@ const REFRESH_CONCURRENCY = 4;
 export interface RefreshEventsOptions {
   now?: Date;
   onAnalyzerFallback?: (eventId: string, err: unknown) => void;
+  /** 模型用量回调：调用方（采集任务）负责打日志，本模块不假设日志实现。 */
+  onAnalyzerUsage?: (eventId: string, usage: AnalyzerUsage) => void;
+}
+
+/**
+ * 取热度前 N 名的事件 id。
+ *
+ * 排序键与公开面 Now 段（`event.service.ts`）刻意一致：花钱分析的就是访客
+ * 看得到的那一批。读的是**上一轮落库的** heat_score，比本轮实时热度晚一拍——
+ * 可以接受，新事件走的是「从没分析过」那条路，不受这道闸门约束。
+ */
+async function loadHeatWindow(
+  tenantId: string,
+  limit: number,
+): Promise<Set<string> | null> {
+  if (limit <= 0) {
+    return null;
+  }
+  const rows = await prisma.newsEvent.findMany({
+    where: withTenantScope(tenantId, {}),
+    select: { id: true },
+    orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
+    take: limit,
+  });
+  return new Set(rows.map((row) => row.id));
 }
 
 /**
@@ -56,6 +98,17 @@ export async function refreshEvents(
     return pending;
   };
 
+  // 每个站点一次，不是每个事件一次——一轮刷新几百个事件共用同一份榜单
+  const heatWindows = new Map<string, Promise<Set<string> | null>>();
+  const heatWindowFor = (tenantId: string): Promise<Set<string> | null> => {
+    let pending = heatWindows.get(tenantId);
+    if (!pending) {
+      pending = loadHeatWindow(tenantId, config.events.llmTopEvents);
+      heatWindows.set(tenantId, pending);
+    }
+    return pending;
+  };
+
   const queue = [...new Set(eventIds)];
   let cursor = 0;
 
@@ -66,7 +119,12 @@ export async function refreshEvents(
       if (index >= queue.length) {
         return;
       }
-      const changed = await refreshEvent(queue[index], now, options, analyzerFor);
+      const changed = await refreshEvent(queue[index], {
+        now,
+        options,
+        analyzerFor,
+        heatWindowFor,
+      });
       if (changed) {
         refreshed += 1;
       }
@@ -80,12 +138,19 @@ export async function refreshEvents(
   return refreshed;
 }
 
+/** 一轮刷新里所有事件共享的东西：按站点解析一次的分析器与热度榜单。 */
+interface RefreshContext {
+  now: Date;
+  options: RefreshEventsOptions;
+  analyzerFor: (tenantId: string) => Promise<EventAnalyzer>;
+  heatWindowFor: (tenantId: string) => Promise<Set<string> | null>;
+}
+
 async function refreshEvent(
   eventId: string,
-  now: Date,
-  options: RefreshEventsOptions,
-  analyzerFor: (tenantId: string) => Promise<EventAnalyzer>,
+  ctx: RefreshContext,
 ): Promise<boolean> {
+  const { now, options, analyzerFor, heatWindowFor } = ctx;
   const event = await prisma.newsEvent.findUnique({
     where: { id: eventId },
     select: {
@@ -154,22 +219,35 @@ async function refreshEvent(
   ].slice(0, SOURCE_NAME_LIMIT);
 
   const analyzer = await analyzerFor(event.tenant_id);
-  const analysis = shouldReanalyze({
+  // 规则实现不受闸门约束，榜单也就不用查——本地开发与 CI 走的正是这条路
+  const heatWindow =
+    analyzer.id === "llm" ? await heatWindowFor(event.tenant_id) : null;
+  const plan = planAnalysis({
     analyzed_at: event.analyzed_at,
+    existing_analyzer: event.analyzer,
     previous_signal_count: event.signal_count,
     signal_count: signals.length,
+    first_seen_at: firstSeenAt,
     now,
     analyzer_id: analyzer.id,
-  })
-    ? await analyzeEvent(
-        {
-          topic: event.topic as EventTopic,
-          signals: signals.map(toAnalyzerSignal),
-        },
-        analyzer,
-        (err) => options.onAnalyzerFallback?.(eventId, err),
-      )
-    : null;
+    in_heat_window: heatWindow === null || heatWindow.has(eventId),
+  });
+
+  const analysis =
+    plan === "skip"
+      ? null
+      : await analyzeEvent(
+          {
+            topic: event.topic as EventTopic,
+            signals: signals.map(toAnalyzerSignal),
+          },
+          plan === "local" ? heuristicAnalyzer : analyzer,
+          (err) => options.onAnalyzerFallback?.(eventId, err),
+        );
+
+  if (analysis?.usage) {
+    options.onAnalyzerUsage?.(eventId, analysis.usage);
+  }
 
   /*
    * 主题每轮重算。它以前是采集源的属性（HN=tech、OpenAI=ai），跟着第一条信号
@@ -410,35 +488,94 @@ export function resolveRefreshedContent(params: {
 }
 
 /**
- * 该不该重跑分析器。
+ * 本轮拿这个事件怎么办。
  *
- * **先看信号集合变没变，再看冷却**。曾经只按时间判：heuristic 恒为 true，
- * llm 只要距上次分析超过 30 分钟就重来——而降温扫描捞的事件**按定义空闲 ≥6h**，
- * 于是每轮最多 200 个事件、每个一次模型调用，全都是没有新信号的事件。
- * 实测 10 个事件跑不完 2 分钟，而采集周期是 15 分钟：一轮跑不完就被下一轮跳过，
- * 热度与阶段反而长期不更新——正好废掉降温扫描存在的理由。
- *
- * 信号没变时分析器的输出必然与上次相同（它是信号集合的纯函数），跳过不损失任何东西。
+ * - `skip`：不跑分析器，库里的标题 / 摘要 / 时间线 / 实体原样留着
+ * - `local`：跑规则分析器（零成本，不联网）
+ * - `model`：跑本站解析出的分析器（有 key 时就是 LLM，要花钱）
  */
-export function shouldReanalyze(params: {
+export type AnalysisPlan = "skip" | "local" | "model";
+
+/**
+ * 该不该重跑分析器、用哪个跑。
+ *
+ * **先看信号集合变没变，再看值不值得花钱，最后才看冷却。**
+ *
+ * 第一层（信号变没变）解决的是吞吐：曾经只按时间判，heuristic 恒为 true、
+ * llm 只看 30 分钟冷却——而降温扫描捞的事件**按定义空闲 ≥6h**，于是每轮最多
+ * 200 个事件、每个一次模型调用，全都是没有新信号的事件。分析器是信号集合的
+ * 纯函数，信号没变时输出必然与上次相同，跳过不损失任何东西。
+ *
+ * 后面几层解决的是账单，对应 `config.events.llm*` 三个键：
+ *
+ * 1. **信号数不够**（`llmMinSignals`）：只有一条信号时 LLM 干的活退化成
+ *    「给一篇文章换个说法」，而规则实现本来就把原标题与原摘录端上来了。
+ *    实测语料里 98% 的事件终生只有一条信号——这道闸门是省钱的大头。
+ * 2. **不在热度窗内**（`llmTopEvents`）：公开面只摆 Rising 5 + Now 10，
+ *    排在后面的事件付了模型费也没人看。
+ * 3. **还在冷却里**（`llmCooldownMinutes` × 年龄倍数）：老事件多来一条信号，
+ *    摘要变化基本为零，却和第二条信号收一样的钱。
+ *
+ * 前两道闸门拦下的事件走 `local` 还是 `skip`，取决于它**有没有内容**：
+ * 从没分析过的得先有一份，否则详情页开天窗；已经有 LLM 产出的一律 `skip`——
+ * 拿规则产出覆盖一份已经付过钱的 LLM 产出是纯粹的降级，比不更新更糟。
+ */
+export function planAnalysis(params: {
   analyzed_at: Date | null;
+  /** 库里这份内容是谁写的（`NewsEvent.analyzer`） */
+  existing_analyzer: string;
   /** 上一次刷新时记录的信号数（`NewsEvent.signal_count`） */
   previous_signal_count: number;
   /** 本轮实际载入的信号数 */
   signal_count: number;
+  /** 最早一条信号的发布时间，用来算冷却倍数 */
+  first_seen_at: Date;
   now: Date;
   analyzer_id: string;
-}): boolean {
+  /** 是否落在本站热度前 `llmTopEvents` 名内（该键为 0 时恒 true） */
+  in_heat_window: boolean;
+}): AnalysisPlan {
   // 从未分析过，或被显式要求重来（摘录补齐那条路径会把 analyzed_at 置空）
-  if (params.analyzed_at === null) {
-    return true;
-  }
+  const analyzedAt = params.analyzed_at;
   // 信号集合没变（没有新增，也没被保留期清掉）→ 内容不会变
-  if (params.signal_count === params.previous_signal_count) {
-    return false;
+  const changed = params.signal_count !== params.previous_signal_count;
+  if (analyzedAt !== null && !changed) {
+    return "skip";
   }
+
+  // 规则实现零成本，下面三道闸门都不适用
   if (params.analyzer_id !== "llm") {
-    return true;
+    return "model";
   }
-  return params.now.getTime() - params.analyzed_at.getTime() >= LLM_REANALYZE_COOLDOWN_MS;
+
+  const { llmMinSignals, llmCooldownMinutes } = config.events;
+  if (params.signal_count < llmMinSignals || !params.in_heat_window) {
+    return analyzedAt === null && params.existing_analyzer !== "llm"
+      ? "local"
+      : "skip";
+  }
+
+  if (analyzedAt === null) {
+    return "model";
+  }
+
+  const cooldownMs =
+    llmCooldownMinutes *
+    60 *
+    1000 *
+    resolveCooldownMultiplier(params.first_seen_at, params.now);
+  return params.now.getTime() - analyzedAt.getTime() >= cooldownMs
+    ? "model"
+    : "skip";
+}
+
+/** 事件年龄命中的第一档倍数；都没命中就是 1（新事件按基础冷却）。 */
+export function resolveCooldownMultiplier(
+  firstSeenAt: Date,
+  now: Date,
+): number {
+  const ageHours = (now.getTime() - firstSeenAt.getTime()) / (60 * 60 * 1000);
+  return (
+    COOLDOWN_STEPS.find((step) => ageHours >= step.after_hours)?.multiplier ?? 1
+  );
 }

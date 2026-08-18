@@ -328,6 +328,26 @@ function buildEventsConfig() {
     /** auto = 有 OPENAI_API_KEY 就走 LLM，否则走规则实现。 */
     analyzer: resolveEventsAnalyzer(),
     /**
+     * 值得一次模型调用的最低信号数。
+     *
+     * 只有一条信号时 LLM 干的活退化成「给一篇文章换个说法」——而规则实现
+     * 本来就把原标题与原摘录端上来了，差别只有文笔。实测语料里 98% 的事件
+     * 终生只有一条信号，这道闸门就是省钱的大头。1 = 不设门槛（旧行为）。
+     */
+    llmMinSignals: clampIntEnv("EVENTS_LLM_MIN_SIGNALS", 2, 1, 50),
+    /**
+     * 每个站点每轮最多给热度前几名做 LLM 分析。
+     *
+     * 公开面只摆 Rising 5 + Now 10，排在后面的事件付了模型费也没人看。
+     * 留出余量是因为热度每轮重算，事件升上来时要还来得及补分析。0 = 不限。
+     */
+    llmTopEvents: clampIntEnv("EVENTS_LLM_TOP_EVENTS", 30, 0, 10_000),
+    /**
+     * LLM 重分析的基础冷却（分钟）。事件越老、倍数越大——一个跑了两天、
+     * 已有六条信号的事件，第七条带来的摘要变化基本为零。
+     */
+    llmCooldownMinutes: clampIntEnv("EVENTS_LLM_COOLDOWN_MINUTES", 30, 0, 24 * 60),
+    /**
      * 语料保留期（天）。信号无上限增长是这个模块最早会撞上的墙——
      * 采集每 15 分钟按站点追加，从来没有回收路径。
      */

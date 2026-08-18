@@ -444,7 +444,7 @@ confirmed 187 / discussion 106 / 留白 107。
 
 ### 分析器只在信号变过时跑（否则一轮跑不完）
 
-`shouldReanalyze` 判的是**信号集合变没变**（比对 `NewsEvent.signal_count` 与本轮载入的条数），
+`planAnalysis` 判的第一层是**信号集合变没变**（比对 `NewsEvent.signal_count` 与本轮载入的条数），
 不是「距上次分析过了多久」。
 
 曾经按时间判：heuristic 恒为 true、llm 只看 30 分钟冷却。而降温扫描每轮捞最多 200 个
@@ -463,6 +463,43 @@ confirmed 187 / discussion 106 / 留白 107。
    时间线与实体照常不动（分析器产物，没重算就不该覆盖）。
 
 `analyzed_at = null` 仍然强制重分析：摘录补齐那条路径就是靠置空来要求重来的。
+
+### 值不值得一次模型调用（省钱闸门）
+
+信号变过之后还有三道闸门，**只对 llm 实现生效**——规则实现零成本，照旧每次都重算。
+`planAnalysis` 的返回值就是这三道闸门的结论：
+
+| 结论 | 含义 |
+| --- | --- |
+| `skip` | 不跑分析器，库里的标题 / 摘要 / 时间线 / 实体原样留着 |
+| `local` | 跑规则分析器（零成本，不联网） |
+| `model` | 跑本站解析出的分析器（有 key 时就是 LLM，要花钱） |
+
+| 闸门 | env | 默认 | 为什么 |
+| --- | --- | --- | --- |
+| 信号数不够 | `EVENTS_LLM_MIN_SIGNALS` | `2` | 只有一条信号时 LLM 的活退化成「给一篇文章换个说法」，而规则实现本来就把原标题与原摘录端上来了。实测语料里 **98% 的事件终生只有一条信号**——这道闸门是省钱的大头 |
+| 不在热度窗内 | `EVENTS_LLM_TOP_EVENTS` | `30` | 公开面只摆 Rising 5 + Now 10，排在后面的事件付了模型费也没人看。榜单按站点每轮取一次，排序键与 Now 段一致 |
+| 还在冷却里 | `EVENTS_LLM_COOLDOWN_MINUTES` | `30` | 冷却随**事件年龄**递增：跑过 6h ×4、跑过 24h ×12。一个跑了两天、已有六条信号的事件，第七条带来的摘要变化基本为零，却和第二条收一样的钱 |
+
+被前两道闸门拦下的事件走 `local` 还是 `skip`，看它**有没有内容**：从没分析过的先用规则实现兜一份
+（否则详情页开天窗），**已经有 LLM 产出的一律 `skip`**——拿规则产出覆盖一份已经付过钱的 LLM 产出
+是纯粹的降级，比不更新更糟。所以一个事件涨到第二条信号、又排进热度窗时才会真正调模型，
+而那正是 LLM 唯一不可替代的活：跨源合并。
+
+三道闸门都能关：`EVENTS_LLM_MIN_SIGNALS=1` + `EVENTS_LLM_TOP_EVENTS=0` + `EVENTS_LLM_COOLDOWN_MINUTES=0`
+就是加闸门之前的行为。
+
+### 用量打点
+
+`AnalyzedEvent.usage` 带回每次调用的 token 数，采集任务按轮汇总打一条
+`[events] 本轮模型用量`（`llm_calls` / `events_touched` / `prompt_tokens` /
+`completion_tokens` / `cached_prompt_tokens`）。逐条打只会把日志刷爆，而要回答的问题
+——这轮花了多少、闸门拦下了多少、前缀缓存命中没有——恰恰是聚合量。
+
+`cached_prompt_tokens` 读的是前缀缓存命中数（deepseek 报 `prompt_cache_hit_tokens`，
+OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应格式说明每次调用完全相同
+且排在最前面，本来就该命中，命中部分单价通常是未命中的 1/10。**供应商没报时记 null 而不是 0**：
+写成 0 的话，「缓存没生效」和「没这个数」在图上长得一模一样。
 
 事件刷新按 4 路有界并发。不设更高是因为瓶颈在模型侧：撞限流会**静默退回规则实现**——
 事件页不开天窗，但摘要质量会悄悄变差。宁可慢一点，也不要用一堆退化的摘要把周期填满。
@@ -612,6 +649,9 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 | `EVENTS_INGEST_ENABLED` | `true` | 关掉后不注册采集任务，只读已有语料 |
 | `EVENTS_INGEST_INTERVAL_MINUTES` | `15` | 采集周期（5 ~ 1440） |
 | `EVENTS_ANALYZER` | `auto` | `auto` / `heuristic` / `llm` |
+| `EVENTS_LLM_MIN_SIGNALS` | `2` | 值得一次模型调用的最低信号数；1 = 不设门槛 |
+| `EVENTS_LLM_TOP_EVENTS` | `30` | 每站每轮最多给热度前几名调模型；0 = 不限 |
+| `EVENTS_LLM_COOLDOWN_MINUTES` | `30` | LLM 重分析基础冷却；事件跑过 6h ×4、24h ×12 |
 | `EVENTS_SIGNAL_RETENTION_DAYS` | `90` | 信号保留期（7 ~ 3650） |
 | `EVENTS_EVENT_RETENTION_DAYS` | `180` | 事件保留期（7 ~ 3650） |
 | `OPENAI_API_KEY` | 空 | 内核已有；平台 fallback。`auto` 模式下与本站 BYOK 一起决定走不走 LLM。站点自己的 key 在工作台 `/app/settings` 配 |
