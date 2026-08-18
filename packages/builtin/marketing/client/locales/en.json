@@ -701,9 +701,23 @@
       "serif": "Serif",
       "mono": "Monospace",
       "inter": "Inter",
+      "dm_sans": "DM Sans",
+      "outfit": "Outfit",
+      "source_sans": "Source Sans",
+      "ibm_plex_sans": "IBM Plex Sans",
+      "space_grotesk": "Space Grotesk",
       "source_serif": "Source Serif",
       "newsreader": "Newsreader",
-      "jetbrains_mono": "JetBrains Mono"
+      "literata": "Literata",
+      "fraunces": "Fraunces",
+      "jetbrains_mono": "JetBrains Mono",
+      "fira_code": "Fira Code"
+    },
+    "fontGroup": {
+      "system": "System",
+      "sans": "Sans",
+      "serif": "Serif",
+      "mono": "Mono"
     },
     "sectionType": {
       "header": "Header",

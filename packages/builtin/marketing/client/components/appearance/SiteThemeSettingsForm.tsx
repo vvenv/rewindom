@@ -5,7 +5,9 @@ import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@rewindom/ui/select";
@@ -17,7 +19,7 @@ import {
   type SiteTheme,
 } from "../../../shared/site-themes.js";
 import {
-  THEME_FONT_FAMILIES,
+  THEME_FONT_GROUPS,
   themeFontCss,
   themeFontFaceCssAll,
   type ThemeFontFamily,
@@ -210,14 +212,19 @@ export function SiteThemeSettingsForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {THEME_FONT_FAMILIES.map((family) => (
-                <SelectItem
-                  key={family}
-                  value={family}
-                  style={{ fontFamily: themeFontCss(family) }}
-                >
-                  {t(`editor.font.${family}`)}
-                </SelectItem>
+              {THEME_FONT_GROUPS.map((group) => (
+                <SelectGroup key={group.id}>
+                  <SelectLabel>{t(`editor.fontGroup.${group.id}`)}</SelectLabel>
+                  {group.families.map((family) => (
+                    <SelectItem
+                      key={family}
+                      value={family}
+                      style={{ fontFamily: themeFontCss(family) }}
+                    >
+                      {t(`editor.font.${family}`)}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>

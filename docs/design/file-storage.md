@@ -41,8 +41,10 @@ interface FileStorageProvider {
 | 业务       | 键                                        | 位置                                     |
 | ---------- | ----------------------------------------- | ---------------------------------------- |
 | 官网媒体库 | `{tenant_id}/site-assets/{asset_id}{ext}` | `marketing/server/site-asset.service.ts` |
+| 官网 webfont | `platform/site-fonts/{file}` | 产品自托管切片，不是租户上传；`apps/server/scripts/sync-site-fonts-to-s3.ts` 写入 |
 
-一律以 `tenant_id` 打头，迁移和按租户清理时才好下手。
+租户上传一律以 `tenant_id` 打头，迁移和按租户清理时才好下手。`platform/` 前缀留给
+产品自己的公开资产（目前只有 webfont），不要把租户文件写进去。
 
 扩展名走 `lib/mime.ts` 的 `mimeTypeToExtension` / `extensionToMimeType`：写入时按 MIME
 定扩展名、公开 URL 回读时按扩展名反推 MIME，**两张表必须严格互逆**，否则上传成功、
@@ -106,6 +108,10 @@ bucket / CDN 侧配同等的 CSP 与 nosniff，或者（更好）把用户内容
 1. 建 bucket，创建 **Object Read & Write** API Token，记下 Access Key。
 2. 公开读：Dashboard 开 r2.dev，或绑自定义域（推荐独立媒体域，与站点不同源，SVG XSS 被源隔离）。
 3. 自定义域上用 Transform Rule 补 `X-Content-Type-Options: nosniff` 和与 `sendStorageObject` 同等的 CSP（直链 302 后应用加不了这些头）。
+4. **webfont**：产品切片用 `platform/site-fonts/`（`sync-site-fonts-to-s3.ts`）。
+   公开页默认仍从同源 `/assets/site-fonts/` 加载，避免 `@font-face` 跨源 CORS。
+   若要把公开页改到 CDN，bucket 必须允许租户 Origin 的 `GET`（图片 `<img>` 不需要 CORS，字体需要），
+   再把 SSR 接到 `themeFontCdnDir(S3_PUBLIC_BASE_URL)`。
 
 ### 存量文件
 

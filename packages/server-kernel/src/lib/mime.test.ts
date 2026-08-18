@@ -30,6 +30,7 @@ describe("mime", () => {
       "image/gif",
       "image/svg+xml",
       "image/x-icon",
+      "font/woff2",
     ]) {
       expect(extensionToMimeType(mimeTypeToExtension(mime))).toBe(mime);
     }

@@ -37,9 +37,17 @@ const KEEP_FACE = /-(latin(?:-ext)?)-wght-normal\.woff2/u;
 
 const FONTS = [
   { key: "inter", pkg: "@fontsource-variable/inter" },
+  { key: "dm_sans", pkg: "@fontsource-variable/dm-sans" },
+  { key: "outfit", pkg: "@fontsource-variable/outfit" },
+  { key: "source_sans", pkg: "@fontsource-variable/source-sans-3" },
+  { key: "ibm_plex_sans", pkg: "@fontsource-variable/ibm-plex-sans" },
+  { key: "space_grotesk", pkg: "@fontsource-variable/space-grotesk" },
   { key: "source_serif", pkg: "@fontsource-variable/source-serif-4" },
   { key: "newsreader", pkg: "@fontsource-variable/newsreader" },
+  { key: "literata", pkg: "@fontsource-variable/literata" },
+  { key: "fraunces", pkg: "@fontsource-variable/fraunces" },
   { key: "jetbrains_mono", pkg: "@fontsource-variable/jetbrains-mono" },
+  { key: "fira_code", pkg: "@fontsource-variable/fira-code" },
 ];
 
 function hashFile(filePath) {
@@ -105,15 +113,18 @@ export function writeThemeFontsGenerated() {
   const fileEntries = files
     .map((name) => `  ${JSON.stringify(name)},`)
     .join("\n");
+  const keyUnion = FONTS.map((font) => `  | ${JSON.stringify(font.key)}`).join(
+    "\n",
+  );
   const body = `/**
  * GENERATED — do not edit.
- * Latin / latin-ext slices of Inter, Source Serif 4, Newsreader, JetBrains Mono
- * (OFL-1.1, via @fontsource-variable). Files: apps/client/public/assets/site-fonts/
+ * Latin / latin-ext slices (OFL-1.1, via @fontsource-variable).
+ * Files: apps/client/public/assets/site-fonts/
  * Regenerate: \`pnpm --filter @rewindom/builtin assemble:site-fonts\`
  */
 
 export const THEME_FONT_FACE_CSS: Record<
-  "inter" | "source_serif" | "newsreader" | "jetbrains_mono",
+${keyUnion},
   string
 > = {
 ${faceEntries}

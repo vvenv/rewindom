@@ -1,0 +1,35 @@
+# 增量功能契约 —— 扩外观字体目录，woff2 可同步到 S3/R2
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant, ssr]
+goal: 精选目录扩到十余种西文 webfont；默认仍同源 /assets/site-fonts。切片可 sync 到 S3/R2 的 platform/site-fonts/（备份 / 以后给大文件）。不把公开页默认改写到 CDN，以免未开 CORS 时字体全挂
+gold: packages/builtin/marketing/shared/site-fonts/assemble.mjs
+touch:
+  - packages/builtin/marketing/features/site-font-catalog-oss.spec.yaml
+  - packages/builtin/marketing/shared/site-fonts/
+  - packages/builtin/marketing/shared/theme-fonts.ts
+  - packages/builtin/marketing/shared/theme-fonts.generated.ts
+  - packages/builtin/marketing/shared/theme-fonts.test.ts
+  - packages/builtin/marketing/shared/marketing-site-theme.ts
+  - packages/builtin/marketing/shared/marketing-site-theme.test.ts
+  - packages/builtin/marketing/client/components/appearance/SiteThemeSettingsForm.tsx
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/package.json
+  - apps/client/public/assets/site-fonts/
+  - apps/server/scripts/sync-site-fonts-to-s3.ts
+  - packages/server-kernel/src/lib/mime.ts
+  - docs/design/file-storage.md
+out_of_scope:
+  - 自定义字体上传
+  - Google Fonts CDN
+  - 中文 webfont
+  - 标题与正文两套字体
+  - 改 nginx / SITE_APP_PREFIXES
+  - 新 env（沿用 S3_PUBLIC_BASE_URL）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run theme-fonts.test.ts marketing-site-theme.test.ts
+  - pnpm check:i18n

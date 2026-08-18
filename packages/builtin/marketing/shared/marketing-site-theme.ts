@@ -152,12 +152,13 @@ function paletteCssVars(
 export function marketingSiteThemeCss(
   theme_settings: unknown,
   scope: ":root" | "html" = ":root",
+  options?: { fontPublicDir?: string },
 ): string {
   const theme = resolveThemeSettings(theme_settings);
   const tokens = resolveMarketingSiteThemeTokens(theme_settings);
   const lightVars = paletteCssVars(tokens.light, tokens);
   const darkVars = paletteCssVars(tokens.dark, tokens);
-  const fontFace = themeFontFaceCss(theme.font_family);
+  const fontFace = themeFontFaceCss(theme.font_family, options?.fontPublicDir);
   return `
     ${fontFace}
     ${scope} {${lightVars}

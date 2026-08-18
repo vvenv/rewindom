@@ -701,9 +701,23 @@
       "serif": "衬线",
       "mono": "等宽",
       "inter": "Inter",
+      "dm_sans": "DM Sans",
+      "outfit": "Outfit",
+      "source_sans": "Source Sans",
+      "ibm_plex_sans": "IBM Plex Sans",
+      "space_grotesk": "Space Grotesk",
       "source_serif": "Source Serif",
       "newsreader": "Newsreader",
-      "jetbrains_mono": "JetBrains Mono"
+      "literata": "Literata",
+      "fraunces": "Fraunces",
+      "jetbrains_mono": "JetBrains Mono",
+      "fira_code": "Fira Code"
+    },
+    "fontGroup": {
+      "system": "系统",
+      "sans": "无衬线",
+      "serif": "衬线",
+      "mono": "等宽"
     },
     "sectionType": {
       "header": "页头",

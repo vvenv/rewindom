@@ -34,7 +34,7 @@
 | 页头页脚 chrome | `shared/sections/_common/` | 为新排法加枚举 / 读时升级层 |
 | 模板页注册表 | `shared/page-templates.ts` | 业务方的 `*-page-templates.ts`（贡献方自己写） |
 | 编辑器 / 工作台 | `client/pages/site-*.tsx`、`client/enhance/` | 公开站挂 React |
-| 外观字体 | `shared/theme-fonts.ts`；改目录跑 `assemble:site-fonts` | Google Fonts CDN、自定义上传、中文 webfont |
+| 外观字体 | `shared/theme-fonts.ts`；改目录跑 `assemble:site-fonts`；生产同步 `sync-site-fonts-to-s3.ts` | Google Fonts CDN、自定义上传、中文 webfont |
 | 首页是哪一页 | `shared/site-home.ts`、站点设置 Sheet | 两个下拉（版式 vs 改写 `/`） |
 | 业务模块贡献段 / 模板 / chrome / 首页版式 | 贡献方 `shared/` + `site-section` | 本模块「顺便登记」业务 type |
 
@@ -931,12 +931,17 @@ setting 的 `default` 应是同一条 key。
 已由 `20260804020000_marketing_site_theme_only` 回填后删除；API 上的同名顶层字段是派生值。
 
 **字体**是精选目录（`shared/theme-fonts.ts`），不是任意 `font-family`。`system` / `serif` /
-`mono` 是系统栈（零请求）；`inter` / `source_serif` / `newsreader` / `jetbrains_mono` 是
-自托管西文 variable 切片（latin + latin-ext，OFL），中文回落系统字体。文件在
-`apps/client/public/assets/site-fonts/`（走 nginx 已有的 `/assets/`），SSR 与预览只在
-选中 webfont 时注入对应 `@font-face`。改目录或升级 `@fontsource-variable/*` 后跑
-`pnpm --filter @rewindom/builtin assemble:site-fonts`。不做 Google Fonts CDN、不做
-自定义上传。
+`mono` 是系统栈（零请求）；其余是自托管西文 variable 切片（latin + latin-ext，OFL），
+中文回落系统字体。默认文件在 `apps/client/public/assets/site-fonts/`，走 nginx 已有的
+`/assets/`（同源，无 CORS）。SSR 与预览只在选中 webfont 时注入对应 `@font-face`。
+改目录或升级 `@fontsource-variable/*` 后跑
+`pnpm --filter @rewindom/builtin assemble:site-fonts`。
+
+生产若要把切片放到对象存储（备份、或以后给中文大文件用）：跑
+`pnpm --filter server exec tsx scripts/sync-site-fonts-to-s3.ts`，键为
+`platform/site-fonts/`。公开页默认仍走同源 `/assets/`——`@font-face` 跨源需要 bucket CORS，
+有 `S3_PUBLIC_BASE_URL` 的租户媒体桶通常是给 `<img>` 用的，不能默认改写字体 URL。
+要公开页走 CDN 时再显式接 `themeFontCdnDir`。不做 Google Fonts CDN、不做自定义上传。
 
 **Favicon 必须显式输出**：SSR 的 `<head>` 无条件写 `<link rel="icon">`，站点没填就指向产品
 默认 `/favicon.svg`。不写这一行时浏览器会去猜 `/favicon.ico`，官网这个路径上没有东西，

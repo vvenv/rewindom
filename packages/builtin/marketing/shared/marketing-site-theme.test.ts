@@ -53,6 +53,16 @@ describe("marketing-site-theme", () => {
     expect(css).toContain("font-family:");
   });
 
+  it("can point webfonts at an object-storage public origin", () => {
+    const css = marketingSiteThemeCss({ font_family: "inter" }, ":root", {
+      fontPublicDir: "https://media.example.com/platform/site-fonts",
+    });
+    expect(css).toContain(
+      'url("https://media.example.com/platform/site-fonts/inter-latin-wght-normal-',
+    );
+    expect(css).not.toContain("/assets/site-fonts/");
+  });
+
   it("bootstraps the stored visitor preference before first paint", () => {
     const script = marketingSiteColorModeScript();
     expect(script).toContain(SITE_COLOR_MODE_STORAGE_KEY);
