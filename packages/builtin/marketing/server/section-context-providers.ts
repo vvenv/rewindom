@@ -29,6 +29,10 @@ export interface SectionContextInput {
   cookies?: { get(name: string): string | undefined };
   /** 已登录的站点会员；访客为 null / 不传。 */
   memberId?: string | null;
+  /**
+   * 已发布站点的 `home_path`。贡献段生成站内链接时用（事件枢纽当首页则详情在 `/:slug`）。
+   */
+  homePath?: string;
 }
 
 export interface SectionContextProvider {
@@ -103,6 +107,7 @@ export async function resolveSectionContexts(
           usedTypes: input.usedSectionTypes,
           cookies: input.cookies,
           memberId: input.memberId,
+          homePath: input.homePath,
         });
       } catch {
         return {};

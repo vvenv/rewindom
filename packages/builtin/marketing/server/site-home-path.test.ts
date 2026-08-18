@@ -22,15 +22,21 @@ describe("resolveVisitorHomePath", () => {
     vi.clearAllMocks();
   });
 
-  it("leaves non-root paths alone", async () => {
+  it("leaves non-root paths alone but still reports homePath", async () => {
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue({
+      home_path: "/events",
+    } as never);
     await expect(
       resolveVisitorHomePath({
         tenantId: TENANT,
-        path: "/events",
+        path: "/about",
         entitlements: new Set(),
       }),
-    ).resolves.toEqual({ logicalPath: "/events", servedPath: "/events" });
-    expect(prisma.marketingSite.findFirst).not.toHaveBeenCalled();
+    ).resolves.toEqual({
+      logicalPath: "/about",
+      servedPath: "/about",
+      homePath: "/events",
+    });
   });
 
   it("rewrites / to the configured home path", async () => {
@@ -44,7 +50,11 @@ describe("resolveVisitorHomePath", () => {
         path: "/",
         entitlements: new Set(),
       }),
-    ).resolves.toEqual({ logicalPath: "/events", servedPath: "/" });
+    ).resolves.toEqual({
+      logicalPath: "/events",
+      servedPath: "/",
+      homePath: "/events",
+    });
   });
 
   it("falls back to / when the site is unpublished", async () => {
@@ -56,6 +66,10 @@ describe("resolveVisitorHomePath", () => {
         path: "/",
         entitlements: new Set(),
       }),
-    ).resolves.toEqual({ logicalPath: "/", servedPath: "/" });
+    ).resolves.toEqual({
+      logicalPath: "/",
+      servedPath: "/",
+      homePath: "/",
+    });
   });
 });

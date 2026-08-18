@@ -161,35 +161,60 @@ async function retargetHomePath(
 }
 
 /**
+ * 已发布站点的 `home_path`；无效或站点未发布则 `/`。
+ *
+ * 贡献路径生成公开 URL（事件枢纽当首页时收到 `/`）也走这一份，
+ * 不要另查草稿——访客看到的必须是已上线的那一版。
+ */
+export async function loadPublishedHomePath(
+  tenantId: string,
+  entitlements: ReadonlySet<string>,
+): Promise<string> {
+  const site = await prisma.marketingSite.findFirst({
+    where: withTenantScope(tenantId, { published: true }),
+    select: { home_path: true },
+  });
+  if (!site) return DEFAULT_HOME_PATH;
+  const homePath = normalizeHomePath(site.home_path);
+  if (
+    homePath === DEFAULT_HOME_PATH ||
+    !isHomeablePath(homePath) ||
+    !isHomePathAvailable(homePath, entitlements)
+  ) {
+    return DEFAULT_HOME_PATH;
+  }
+  return homePath;
+}
+
+/**
  * 访客请求的逻辑路径 → 实际要渲染的路径。
  *
  * 只在 `/` 上改写：站点把 `/events` 设为首页时，`/` 与 `/en/` 都去渲染 `/events`，
  * 但对外地址仍是 `/`（`servedPath`）。目标页开关关掉或路径不合法则回落默认首页。
+ *
+ * 模块可以把旧前缀 301 到根上（见 `canonicalRedirect`）；那是贡献方的事，
+ * 这里仍然只改写 `/`。
  */
 export async function resolveVisitorHomePath(input: {
   tenantId: string;
   path: string;
   entitlements: ReadonlySet<string>;
-}): Promise<{ logicalPath: string; servedPath: string }> {
+}): Promise<{ logicalPath: string; servedPath: string; homePath: string }> {
+  const homePath = await loadPublishedHomePath(
+    input.tenantId,
+    input.entitlements,
+  );
   if (input.path !== DEFAULT_HOME_PATH) {
-    return { logicalPath: input.path, servedPath: input.path };
+    return { logicalPath: input.path, servedPath: input.path, homePath };
   }
-  const site = await prisma.marketingSite.findFirst({
-    where: withTenantScope(input.tenantId, { published: true }),
-    select: { home_path: true },
-  });
-  if (!site) {
-    return { logicalPath: DEFAULT_HOME_PATH, servedPath: DEFAULT_HOME_PATH };
+  if (homePath === DEFAULT_HOME_PATH) {
+    return {
+      logicalPath: DEFAULT_HOME_PATH,
+      servedPath: DEFAULT_HOME_PATH,
+      homePath,
+    };
   }
-  const homePath = normalizeHomePath(site.home_path);
-  if (
-    homePath === DEFAULT_HOME_PATH ||
-    !isHomeablePath(homePath) ||
-    !isHomePathAvailable(homePath, input.entitlements)
-  ) {
-    return { logicalPath: DEFAULT_HOME_PATH, servedPath: DEFAULT_HOME_PATH };
-  }
-  return { logicalPath: homePath, servedPath: DEFAULT_HOME_PATH };
+  return { logicalPath: homePath, servedPath: DEFAULT_HOME_PATH, homePath };
 }
 
 /**

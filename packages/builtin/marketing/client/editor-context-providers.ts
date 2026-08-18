@@ -10,6 +10,8 @@ export interface EditorContextInput {
   defaultLocale: string;
   pageKind?: string;
   usedTypes: ReadonlySet<string>;
+  /** 站点设置里的 `home_path`；预览链接要和访客 URL 一致。 */
+  homePath?: string;
 }
 
 export interface EditorContextProvider {

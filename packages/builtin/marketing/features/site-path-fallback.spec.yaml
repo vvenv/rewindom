@@ -1,0 +1,28 @@
+# 贡献路径在 CMS 未命中后还可以再问一次（首页收到根上的模块用）。
+#
+# 前缀 handler（/events、/docs）仍在查页面前接管；null → 404。
+# fallback 在查页面之后：CMS 页优先；render 返回 null 继续重定向 / 404，不直接 404。
+# handler 可声明 canonicalRedirect：旧前缀 301 到规范地址。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: 路径 handler 可在 CMS 未命中后认领剩余路径，并可把旧前缀 301 到规范 URL。
+gold: packages/builtin/marketing/shared/site-path-handlers.ts
+touch:
+  - packages/builtin/marketing/features/site-path-fallback.spec.yaml
+  - packages/builtin/marketing/shared/site-path-handlers.ts
+  - packages/builtin/marketing/shared/site-path-handlers.test.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/site-home-path.test.ts
+  - packages/builtin/marketing/server/section-context-providers.ts
+  - packages/builtin/marketing/client/editor-context-providers.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改 shop / docs 的公开前缀
+  - 把 match 改成异步
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/*' shared/site-path-handlers.test.ts server/site-home-path.test.ts
+  - pnpm check:modules

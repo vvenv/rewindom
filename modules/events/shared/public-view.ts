@@ -11,7 +11,7 @@
 
 import { describeEventMomentum } from "./events.js";
 
-import { eventPath } from "./events-section-context.js";
+import { EVENTS_INDEX_PATH, eventPath } from "./events-section-context.js";
 
 import type {
   EventDetail,
@@ -40,12 +40,13 @@ export const SOURCE_KIND_ORDER: readonly EventSourceKind[] = [
 export function toPublicCard(
   item: EventListItem,
   t: EventsTranslate,
+  indexPath: string = EVENTS_INDEX_PATH,
 ): PublicEventCard {
   return {
     slug: item.slug,
     // 站点开通事件雷达就一定有公开详情页（模板页与 path handler 一起登记），
     // 所以卡片恒指向站内详情，不会把访客直接甩去站外
-    href: eventPath(item.slug),
+    href: eventPath(item.slug, indexPath),
     title: item.title,
     headline: item.headline,
     topic: item.topic,
@@ -85,14 +86,24 @@ function buildMomentum(
 export function toPublicDetail(
   detail: EventDetail,
   t: EventsTranslate,
+  indexPath: string = EVENTS_INDEX_PATH,
 ): PublicEventDetailView {
   return {
-    ...toPublicCard(detail, t),
+    ...toPublicCard(detail, t, indexPath),
     summary: detail.summary,
     analyzer: detail.analyzer,
     provenance_note: buildProvenanceNote(detail, t),
     first_seen_at: detail.first_seen_at,
     timeline: detail.timeline.map((entry) => toPublicTimelineItem(entry, t)),
+    why_trending: detail.why_trending.map((factor) => ({
+      text: t(factor.code, factor.params),
+      confidence: factor.confidence,
+      confidence_label: t(`why.${factor.confidence}`),
+    })),
+    related: detail.related.map((item) => ({
+      href: eventPath(item.slug, indexPath),
+      title: item.title,
+    })),
     source_groups: SOURCE_KIND_ORDER.map((kind) => ({
       kind,
       label: t(`sourceKind.${kind}`),

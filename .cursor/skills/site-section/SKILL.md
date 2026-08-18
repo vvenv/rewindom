@@ -151,7 +151,7 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 ## 公开路径（非 MarketingPage）
 
-不是 CMS 页的公开地址（如 `/docs`）不要写进 `renderPath`。模块登记 `registerSitePathHandler`、`registerReservedPageSlug`、sitemap / link-target providers。金标准：`site-docs`。
+不是 CMS 页的公开地址（如 `/docs`）不要写进 `renderPath`。模块登记 `registerSitePathHandler`（前缀路径；可带 `canonicalRedirect` 把旧前缀 301 到规范地址）、`registerSitePathFallback`（CMS 未命中后再认，`render` 返回 null 不直接 404）、`registerReservedPageSlug`、sitemap / link-target providers。金标准：`site-docs`；首页收到根上：`events`。
 
 ## 交付
 

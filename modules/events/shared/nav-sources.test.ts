@@ -97,6 +97,21 @@ describe("events nav sources", () => {
     });
   });
 
+  it("枢纽当首页时主题链到 /?topic=", () => {
+    const items = resolveNavItems([item()], {
+      ...ctx(),
+      contributed: eventsContextEntry(
+        emptyEventsContext({
+          index_path: "/",
+          nav_topics: eventsNavTopicOptions("zh-CN"),
+        }),
+      ),
+    });
+    expect(items.map((entry) => entry.href)).toEqual(
+      EVENT_TOPICS.map((topic) => eventsIndexHref({ topic }, "/")),
+    );
+  });
+
   it("租户没开通事件雷达时整条不渲染", () => {
     const items = resolveNavItems([item()], {
       ...ctx(),

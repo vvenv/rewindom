@@ -6,6 +6,9 @@
  * i18next），两端各解析一次但用的是同一份文案。
  */
 
+import { isReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-slugs.js";
+import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
+
 import {
   isEventTopic,
   parseEventFeedTab,
@@ -14,14 +17,155 @@ import {
   type EventStatus,
   type EventTopic,
 } from "./events.js";
-import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 export const EVENTS_CONTEXT_KEY = "events";
 
+/**
+ * 模块挂载前缀，也是模板页 / `home_path` 的值。
+ *
+ * 把 `/events` 设为首页之后，**访客 URL** 收到站点根（`/`、`/:slug`），
+ * 这一常量仍然是 `/events`——编辑器页身份与旧地址 301 都靠它认。
+ */
 export const EVENTS_INDEX_PATH = "/events";
 
-export function eventPath(slug: string): string {
-  return `${EVENTS_INDEX_PATH}/${encodeURIComponent(slug)}`;
+/** 站点把事件枢纽设为首页时，公开面不再带 `/events` 前缀。 */
+export function eventsMountedAtRoot(homePath: string | undefined): boolean {
+  if (!homePath) return false;
+  const trimmed = homePath.trim();
+  const normalized =
+    trimmed === "" || trimmed === "/"
+      ? "/"
+      : (trimmed.startsWith("/") ? trimmed : `/${trimmed}`).replace(/\/+$/u, "");
+  return normalized === EVENTS_INDEX_PATH;
+}
+
+/** 公开枢纽地址：首页挂载时是 `/`，否则是 `/events`。 */
+export function eventsIndexPath(homePath?: string): string {
+  return eventsMountedAtRoot(homePath) ? "/" : EVENTS_INDEX_PATH;
+}
+
+function joinIndex(indexPath: string, rest: string): string {
+  if (indexPath === "/") return rest.startsWith("/") ? rest : `/${rest}`;
+  return `${indexPath}${rest.startsWith("/") ? rest : `/${rest}`}`;
+}
+
+export function eventPath(
+  slug: string,
+  indexPath: string = EVENTS_INDEX_PATH,
+): string {
+  return joinIndex(indexPath, `/${encodeURIComponent(slug)}`);
+}
+
+/**
+ * 实体页地址。
+ *
+ * 默认走 `/events/entity/:slug`。事件枢纽当首页时收到 `/entity/:slug`：
+ * 事件 slug 永远是一段，实体路径恒为两段且首段是 `entity`，两者不会撞。
+ */
+export const EVENTS_ENTITY_SEGMENT = "entity";
+
+export function entityPath(
+  slug: string,
+  indexPath: string = EVENTS_INDEX_PATH,
+): string {
+  return joinIndex(
+    indexPath,
+    `/${EVENTS_ENTITY_SEGMENT}/${encodeURIComponent(slug)}`,
+  );
+}
+
+function entityPrefix(indexPath: string): string {
+  return indexPath === "/"
+    ? `/${EVENTS_ENTITY_SEGMENT}/`
+    : `${indexPath}/${EVENTS_ENTITY_SEGMENT}/`;
+}
+
+/** 从路径里取实体 slug；不是实体路径时返回 null。 */
+export function entitySlugFromPath(
+  path: string,
+  indexPath: string = EVENTS_INDEX_PATH,
+): string | null {
+  const prefix = entityPrefix(indexPath);
+  if (!path.startsWith(prefix)) {
+    return null;
+  }
+  const rest = path.slice(prefix.length);
+  return rest.length > 0 && !rest.includes("/")
+    ? decodeURIComponent(rest)
+    : null;
+}
+
+/** 从路径里取事件 slug；枢纽、实体路径或保留段返回 null。 */
+export function eventSlugFromPath(
+  path: string,
+  indexPath: string = EVENTS_INDEX_PATH,
+): string | null {
+  if (entitySlugFromPath(path, indexPath) !== null) return null;
+  if (path === indexPath) return null;
+  if (indexPath === "/") {
+    if (!path.startsWith("/") || path.includes("/", 1)) return null;
+    const slug = path.slice(1);
+    if (!slug || isReservedPageSlug(slug)) return null;
+    return decodeURIComponent(slug);
+  }
+  if (!path.startsWith(`${indexPath}/`)) return null;
+  const rest = path.slice(indexPath.length + 1);
+  return rest.length > 0 && !rest.includes("/")
+    ? decodeURIComponent(rest)
+    : null;
+}
+
+export type EventsPublicRoute =
+  | { type: "index" }
+  | { type: "event"; slug: string }
+  | { type: "entity"; slug: string };
+
+export function parseEventsPublicPath(
+  path: string,
+  indexPath: string = EVENTS_INDEX_PATH,
+): EventsPublicRoute | null {
+  if (path === indexPath) return { type: "index" };
+  const entitySlug = entitySlugFromPath(path, indexPath);
+  if (entitySlug !== null) return { type: "entity", slug: entitySlug };
+  const slug = eventSlugFromPath(path, indexPath);
+  if (slug !== null) return { type: "event", slug };
+  return null;
+}
+
+/**
+ * 请求路径 → 事件路由。先认 `/events` 前缀（含首页挂载后的旧地址），
+ * 再在挂到根上时认 `/:slug` 与 `/entity/:slug`。
+ */
+export function parseEventsRequestPath(
+  path: string,
+  atRoot: boolean,
+): EventsPublicRoute | null {
+  const prefixed = parseEventsPublicPath(path, EVENTS_INDEX_PATH);
+  if (prefixed) return prefixed;
+  if (!atRoot) return null;
+  return parseEventsPublicPath(path, "/");
+}
+
+/**
+ * 首页挂载时，把旧 `/events` 前缀剥成规范地址；不是旧前缀则 null。
+ * `/events` → `/`，`/events/foo` → `/foo`。
+ */
+export function stripEventsMountedPrefix(path: string): string | null {
+  if (path === EVENTS_INDEX_PATH) return "/";
+  if (path.startsWith(`${EVENTS_INDEX_PATH}/`)) {
+    const rest = path.slice(EVENTS_INDEX_PATH.length);
+    return rest.length > 0 ? rest : "/";
+  }
+  return null;
+}
+
+/** 首页挂载且当前是旧前缀时，返回 301 目标（逻辑路径，不含 locale）。 */
+export function eventsCanonicalLocation(
+  path: string,
+  homePath: string | undefined,
+): string | null {
+  if (!eventsMountedAtRoot(homePath)) return null;
+  return stripEventsMountedPrefix(path);
 }
 
 /** 首页两段 + 查询列表共用的查询串：`source` 是哪一批，`topic` 可选。 */
@@ -43,7 +187,10 @@ export function parseEventsIndexQuery(
  * 事件首页地址。带 `source` 时是该批次的完整列表，而不是两段同页的枢纽。
  * 「查看全部」必须带上当前区块的 source，否则会回到枢纽把自己再画一遍。
  */
-export function eventsIndexHref(query: EventsIndexQuery = {}): string {
+export function eventsIndexHref(
+  query: EventsIndexQuery = {},
+  indexPath: string = EVENTS_INDEX_PATH,
+): string {
   const params = new URLSearchParams();
   if (query.source) {
     params.set("source", query.source);
@@ -52,7 +199,7 @@ export function eventsIndexHref(query: EventsIndexQuery = {}): string {
     params.set("topic", query.topic);
   }
   const search = params.toString();
-  return search ? `${EVENTS_INDEX_PATH}?${search}` : EVENTS_INDEX_PATH;
+  return search ? `${indexPath}?${search}` : indexPath;
 }
 
 /** 有合法 `source` 就是查询列表页；只有 topic 或什么都没有仍是两段枢纽。 */
@@ -63,18 +210,23 @@ export function isEventsIndexListing(
 }
 
 /**
- * `/events` 与 `/events/:slug` 都由本模块的 path handler 接。
- * 只认一层 slug——再深的路径不是事件，交回给普通页面查找。
+ * `/events`、`/events/:slug` 与 `/events/entity/:slug`。
+ *
+ * 这是**挂载前缀**上的匹配，与是否把枢纽设为首页无关——旧地址始终由这条
+ * handler 接住，再 301 到根上。根上的 `/:slug` 走 fallback，见
+ * `isEventsRootFallbackPath`。
  */
 export function isEventsPath(path: string): boolean {
-  if (path === EVENTS_INDEX_PATH) {
-    return true;
-  }
-  if (!path.startsWith(`${EVENTS_INDEX_PATH}/`)) {
-    return false;
-  }
-  const rest = path.slice(EVENTS_INDEX_PATH.length + 1);
-  return rest.length > 0 && !rest.includes("/");
+  return parseEventsPublicPath(path, EVENTS_INDEX_PATH) !== null;
+}
+
+/**
+ * 枢纽当首页时，CMS 未命中后认领的路径：`/:slug` 与 `/entity/:slug`。
+ * `/` 本身由 home_path 改写去渲染枢纽，不走这里。
+ */
+export function isEventsRootFallbackPath(path: string): boolean {
+  if (path === "/") return false;
+  return parseEventsPublicPath(path, "/") !== null;
 }
 
 export interface PublicEventCard {
@@ -118,6 +270,24 @@ export interface PublicEventSource {
   published_at: string;
 }
 
+/**
+ * 「为什么在扩散」的一条事实，文案已落成当前语言。
+ *
+ * `confidence_label` 单独给一条：**已证实 / 仅讨论必须让读者一眼分清**，
+ * 混在正文里会被读成同一种可信度。
+ */
+export interface PublicTrendingFactor {
+  text: string;
+  confidence: "confirmed" | "discussion";
+  confidence_label: string;
+}
+
+/** 相关事件在公开面上只是一条链接：标题 + 站内地址。 */
+export interface PublicRelatedEvent {
+  href: string;
+  title: string;
+}
+
 export interface PublicEventDetailView extends PublicEventCard {
   summary: string;
   /** heuristic | llm */
@@ -131,6 +301,22 @@ export interface PublicEventDetailView extends PublicEventCard {
   timeline: PublicEventTimelineItem[];
   /** 已按 official / news / community 分好组，且组名已落成当前语言 */
   source_groups: { kind: EventSourceKind; label: string; items: PublicEventSource[] }[];
+  /** 相关事件（不是同一件事）。空数组 = 没算出来或没配 embedding key，整块不渲染 */
+  related: PublicRelatedEvent[];
+  /** 「为什么在扩散」。说不清楚时是空数组，整块不渲染 */
+  why_trending: PublicTrendingFactor[];
+}
+
+/** 实体页的公开视图。文案已落成当前语言，段渲染器直接读。 */
+export interface PublicEntityView {
+  slug: string;
+  href: string;
+  name: string;
+  /** 已落成当前语言的类型名（公司 / 产品 / 人物…） */
+  kind_label: string;
+  /** 该实体关联了多少个事件 */
+  event_count: number;
+  events: PublicEventCard[];
 }
 
 export interface PublicEventFeed {
@@ -142,6 +328,11 @@ export interface EventsRenderContext {
   feed: PublicEventFeed;
   /** 详情模板页才有；列表页与普通页面上恒为 null */
   event: PublicEventDetailView | null;
+  /**
+   * 实体模板页才有；其余页面恒为 null。
+   * 与 `event` 同理由 path handler 直接带进来——只有它知道当前是哪个实体。
+   */
+  entity?: PublicEntityView | null;
   index_path: string;
   /**
    * 查询列表页：这一段已经是「全部」，不再按区块 limit 截断，
@@ -150,7 +341,7 @@ export interface EventsRenderContext {
   listing?: EventsIndexQuery;
   /**
    * 枢纽上的 URL `?topic=`（没有 source）。段仍按 limit 截断，
-   * 「查看全部」要带上这个过滤，不能掉回未过滤的 `/events?source=`。
+   * 「查看全部」要带上这个过滤，不能掉回未过滤的枢纽 `?source=`。
    */
   topic?: EventTopic;
   /** 编辑器「某个主题」下拉用的已落成当前语言的主题名 */

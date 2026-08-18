@@ -15,6 +15,7 @@ import {
   EVENTS_FEED_SECTION_TYPES,
   emptyEventsContext,
   eventsContextEntry,
+  eventsIndexPath,
   toPublicCard,
   toPublicDetail,
 } from "../shared/index.js";
@@ -52,19 +53,21 @@ export function registerEventsEditorContext(): void {
        */
       const locale = normalizeLocale(input.locale);
       const t = translator(locale);
+      const indexPath = eventsIndexPath(input.homePath);
       const wantFeed = wantsAny(input.usedTypes, [
         ...EVENTS_FEED_SECTION_TYPES,
         EVENTS_DETAIL_SECTION_TYPE,
       ]);
 
-      const feed = wantFeed ? await loadFeed(t) : { rising: [], now: [] };
+      const feed = wantFeed ? await loadFeed(t, indexPath) : { rising: [], now: [] };
       const event =
         wantFeed && input.pageKind === EVENTS_DETAIL_PAGE_KIND
-          ? await loadSampleDetail(t)
+          ? await loadSampleDetail(t, indexPath)
           : null;
 
       return eventsContextEntry(
         emptyEventsContext({
+          index_path: indexPath,
           nav_topics: eventsNavTopicOptions(locale),
           feed,
           event,
@@ -80,11 +83,14 @@ function translator(locale: AppLocale) {
     fixed(key, params ?? {});
 }
 
-async function loadFeed(t: ReturnType<typeof translator>) {
+async function loadFeed(
+  t: ReturnType<typeof translator>,
+  indexPath: string,
+) {
   try {
     const data = await api.get<EventFeedResult>("/events/feed");
     const cards = (items: EventListItem[]) =>
-      items.map((item) => toPublicCard(item, t));
+      items.map((item) => toPublicCard(item, t, indexPath));
     if (data.now.length > 0 || data.rising.length > 0) {
       return {
         rising: cards(data.rising),
@@ -94,7 +100,9 @@ async function loadFeed(t: ReturnType<typeof translator>) {
   } catch {
     // 拉不到就用样张，预览结构仍与实站同一套渲染器
   }
-  const sample = sampleEventList(t).map((item) => toPublicCard(item, t));
+  const sample = sampleEventList(t).map((item) =>
+    toPublicCard(item, t, indexPath),
+  );
   return { rising: sample, now: sample };
 }
 
@@ -102,7 +110,10 @@ async function loadFeed(t: ReturnType<typeof translator>) {
  * 详情模板页在编辑器里没有「当前事件」——地址是 `/events/:slug`，预览时哪个都不是。
  * 取最新一条真实事件当样张；一条都没有时用内置占位。
  */
-async function loadSampleDetail(t: ReturnType<typeof translator>) {
+async function loadSampleDetail(
+  t: ReturnType<typeof translator>,
+  indexPath: string,
+) {
   try {
     const list = await api.get<{ items: EventListItem[] }>("/events", {
       page: 1,
@@ -111,10 +122,10 @@ async function loadSampleDetail(t: ReturnType<typeof translator>) {
     const first = list.items[0];
     if (first) {
       const detail = await api.get<EventDetail>(`/events/${first.id}`);
-      return toPublicDetail(detail, t);
+      return toPublicDetail(detail, t, indexPath);
     }
   } catch {
     // 同上
   }
-  return toPublicDetail(sampleEventDetail(t), t);
+  return toPublicDetail(sampleEventDetail(t), t, indexPath);
 }

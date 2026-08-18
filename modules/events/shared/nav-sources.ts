@@ -67,14 +67,19 @@ function topicItems(
   ctx: SiteNavContext,
   keyPrefix: string,
 ): ResolvedNavItem[] {
+  const indexPath = navIndexPath(ctx);
   return EVENT_TOPICS.map((topic) =>
     makeNavLink(
       `${keyPrefix}:${topic}`,
       topicLabel(topic, ctx),
-      eventsIndexHref({ topic }),
+      eventsIndexHref({ topic }, indexPath),
       ctx,
     ),
   );
+}
+
+function navIndexPath(ctx: SiteNavContext): string {
+  return readEventsContext(ctx)?.index_path ?? EVENTS_INDEX_PATH;
 }
 
 function expandEventsTopics(
@@ -85,10 +90,11 @@ function expandEventsTopics(
   if (item.expand === "flat") {
     return items;
   }
+  const indexPath = navIndexPath(ctx);
   const label =
-    resolveNavLabel(item.label, ctx, EVENTS_INDEX_PATH) ||
+    resolveNavLabel(item.label, ctx, indexPath) ||
     eventsNavFallbackLabel(ctx.locale);
-  return [makeNavLink(item.id, label, EVENTS_INDEX_PATH, ctx, items)];
+  return [makeNavLink(item.id, label, indexPath, ctx, items)];
 }
 
 function expandEventsTopic(
@@ -102,7 +108,7 @@ function expandEventsTopic(
     makeNavLink(
       item.id,
       label,
-      eventsIndexHref({ topic: item.category }),
+      eventsIndexHref({ topic: item.category }, navIndexPath(ctx)),
       ctx,
     ),
   ];

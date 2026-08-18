@@ -1,7 +1,11 @@
 import "../ssr/events-preset-i18n.js";
 
 import { eventsMessage } from "../ssr/events-preset-i18n.js";
-import { getPublicEventFeed, getPublicEventSitemapEntries } from "../ssr/public-events.service.js";
+import {
+  getPublicEntitySitemapEntries,
+  getPublicEventFeed,
+  getPublicEventSitemapEntries,
+} from "../ssr/public-events.service.js";
 
 import {
   EVENTS_FEED_SECTION_TYPES,
@@ -10,7 +14,9 @@ import {
   eventsContextEntry,
   eventsDetailSection,
   eventsFeedSection,
+  eventsIndexPath,
   eventsNowSection,
+  eventsEntitySection,
   eventsRisingSection,
   toPublicCard,
 } from "../../shared/index.js";
@@ -19,6 +25,7 @@ import {
   eventsNavTopicOptions,
 } from "../../shared/nav-sources.js";
 import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
+import { renderEventsEntityHtml } from "../../shared/sections/entity-html.js";
 import { renderEventsFeedHtml } from "../../shared/sections/feed-html.js";
 import { EVENTS_CSS } from "../../shared/site-css.generated.js";
 
@@ -39,7 +46,7 @@ function wantsAny(
 /**
  * 【正在发生什么】被摆在官网任意页面上时，通用 SSR 在渲染前按需取事件。
  *
- * 详情段不在这里：它只活在 `/events/:slug` 那张模板页上，数据由 path handler
+ * 详情段不在这里：它只活在事件详情模板页上，数据由 path handler
  * 直接带进来（那里才知道当前是哪个事件）。
  *
  * 页头主题导航也登记在这里：`collectSectionTypes` 会把 nav source 收进来。
@@ -49,6 +56,7 @@ function registerEventsContextProvider(): void {
   registerSectionContextProvider({
     sectionTypes: [...EVENTS_FEED_SECTION_TYPES, ...EVENTS_NAV_SOURCES],
     provide: async (input) => {
+      const indexPath = eventsIndexPath(input.homePath);
       const t = (key: string, params?: Record<string, string | number>): string =>
         eventsMessage(input.locale, key, params);
       const feed = wantsAny(input.usedTypes, EVENTS_FEED_SECTION_TYPES)
@@ -57,10 +65,11 @@ function registerEventsContextProvider(): void {
 
       return eventsContextEntry(
         emptyEventsContext({
+          index_path: indexPath,
           nav_topics: eventsNavTopicOptions(input.locale),
           feed: {
-            rising: feed.rising.map((item) => toPublicCard(item, t)),
-            now: feed.now.map((item) => toPublicCard(item, t)),
+            rising: feed.rising.map((item) => toPublicCard(item, t, indexPath)),
+            now: feed.now.map((item) => toPublicCard(item, t, indexPath)),
           },
         }),
       );
@@ -93,7 +102,10 @@ export function registerEventsSections(): void {
   registerSiteSectionHtml(eventsNowSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsFeedSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsDetailSection, renderEventsDetailHtml, css);
+  registerSiteSectionHtml(eventsEntitySection, renderEventsEntityHtml, css);
   registerEventsContextProvider();
   registerSitemapProvider({ provide: getPublicEventSitemapEntries });
+  // 实体页单独一个 provider：它与事件的时间口径不同（按最近有事件筛，而不是按自身更新）
+  registerSitemapProvider({ provide: getPublicEntitySitemapEntries });
   registerEventsLinkTargets();
 }

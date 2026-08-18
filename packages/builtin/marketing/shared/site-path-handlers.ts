@@ -8,6 +8,10 @@
  * `/en/docs` 与 `/docs` 同一条 handler。
  *
  * 声明了 `entitlement` 且该租户未开通 → 当没匹配（路径可以变成普通页面）。
+ *
+ * 模块把枢纽设为首页、公开 URL 收到站点根时：前缀 handler 仍接旧地址并
+ * `canonicalRedirect` 301；根上的 `/:slug` 不能抢在 CMS 前面，走
+ * `registerSitePathFallback`（查页面之后、重定向前）。
  */
 
 import type { AppLocale } from "@rewindom/shared";
@@ -23,6 +27,11 @@ export interface SitePathHandlerInput {
    * 但 canonical / 语言切换器要指向 `/`。未设则与 `path` 相同。
    */
   servedPath?: string;
+  /**
+   * 已发布站点的 `home_path`。模块据此决定公开前缀是否收到根上。
+   * SSR 总会带上；测试或其它调用方漏传按未设首页算。
+   */
+  homePath?: string;
   locale: AppLocale | null;
   enabledEntitlements: ReadonlySet<string>;
   accountEntryHtml: string;
@@ -39,20 +48,51 @@ export interface SitePathHandler {
   /** 未开通则当作没匹配，让路径回落到普通页面查找。 */
   entitlement?: string;
   /**
+   * 若返回路径且与 `servedPath` 不同，SSR 在渲染前发 301。
+   * 用于「把本模块设为首页后，旧前缀收到根上」。
+   */
+  canonicalRedirect?: (input: SitePathHandlerInput) => string | null;
+  /**
    * 渲染 HTML；`null` 表示这个前缀下没有内容（文档不存在）→ 走 404。
    */
   render: (input: SitePathHandlerInput) => Promise<string | null>;
 }
 
+/**
+ * CMS 未命中后再问。`match` 为真也不等于这是你的页：`render` 返回 `null`
+ * 时 SSR 继续查重定向 / 404，不会直接 404。
+ *
+ * 给「首页收到根上」的模块用：`/:slug` 必须让已发布的 CMS 页先赢。
+ */
+export interface SitePathFallback {
+  entitlement?: string;
+  match: (path: string, ctx: { homePath: string }) => boolean;
+  render: (input: SitePathHandlerInput) => Promise<string | null>;
+}
+
 const HANDLERS: SitePathHandler[] = [];
+const FALLBACKS: SitePathFallback[] = [];
 
 export function registerSitePathHandler(handler: SitePathHandler): void {
   if (HANDLERS.includes(handler)) return;
   HANDLERS.push(handler);
 }
 
+export function registerSitePathFallback(fallback: SitePathFallback): void {
+  if (FALLBACKS.includes(fallback)) return;
+  FALLBACKS.push(fallback);
+}
+
 export function resetSitePathHandlers(): void {
   HANDLERS.length = 0;
+  FALLBACKS.length = 0;
+}
+
+function entitlementOk(
+  entitlement: string | undefined,
+  enabled: ReadonlySet<string>,
+): boolean {
+  return !entitlement || enabled.has(entitlement);
 }
 
 /**
@@ -64,12 +104,20 @@ export function matchSitePathHandler(
 ): SitePathHandler | undefined {
   return HANDLERS.find((handler) => {
     if (!handler.match(path)) return false;
-    if (
-      handler.entitlement &&
-      !enabledEntitlements.has(handler.entitlement)
-    ) {
-      return false;
-    }
-    return true;
+    return entitlementOk(handler.entitlement, enabledEntitlements);
+  });
+}
+
+/**
+ * CMS 未命中后找 fallback。没有或 `render` 返回 null → SSR 继续重定向 / 404。
+ */
+export function matchSitePathFallback(
+  path: string,
+  enabledEntitlements: ReadonlySet<string>,
+  ctx: { homePath: string },
+): SitePathFallback | undefined {
+  return FALLBACKS.find((fallback) => {
+    if (!fallback.match(path, ctx)) return false;
+    return entitlementOk(fallback.entitlement, enabledEntitlements);
   });
 }

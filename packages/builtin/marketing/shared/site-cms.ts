@@ -152,7 +152,7 @@ export interface MarketingSite {
   published: boolean;
   /**
    * 访客访问 `/` 时渲染的逻辑路径。默认 `/`（home 模板）；可改成 `/events` 等
-   * 可打开的页面，原地址仍可打开。
+   * 可打开的页面。默认原地址仍可打开；模块可把旧前缀 301 到根上。
    */
   home_path: string;
   /**

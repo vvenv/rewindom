@@ -644,7 +644,8 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 
 不是 `MarketingPage` 的公开地址（文档库 `/docs`）不要写进 `renderPath`。模块登记：
 
-- `registerSitePathHandler` — locale 剥离后、查页面前接管路径
+- `registerSitePathHandler` — locale 剥离后、查页面前接管路径。`canonicalRedirect` 可把旧前缀 301 到规范地址（事件枢纽当首页时 `/events/*` → `/`、`/:slug`）
+- `registerSitePathFallback` — **CMS 未命中后**再问；`render` 返回 `null` 继续重定向 / 404，不直接 404。给「公开 URL 收到站点根」的模块用，避免 `/:slug` 抢走已发布的 CMS 页
 - `registerReservedPageSlug` — 自定义页不能占用该一级 slug
 - sitemap / link-target providers — `sitemap.xml` 与编辑器链接下拉的额外条目
 
@@ -876,10 +877,11 @@ setting 的 `default` 应是同一条 key。
 
 **首页**（`home_path`）决定访客打开 `/`（以及 `/en/` 这类语言根）时渲染哪一页。默认
 仍是 `home` 模板。可改成任意可打开的页面（`/events`、`/about`）；参数化详情
-（`/events/:slug`）和 404 不行。SSR **不 30x**——站点根 URL 不变，canonical 指向 `/`，
-原地址仍可打开。模块还可以贡献**首页版式**（`registerHomeLayout`）：套用后首页草稿
+（`/events/:slug`）和 404 不行。SSR **不 30x 改写 `/`**——站点根 URL 不变，canonical
+指向 `/`。默认原地址仍可打开；贡献模块可以把旧前缀 301 到根上（事件雷达把 `/events`
+设为首页后，公开面整条前缀收到 `/`）。模块还可以贡献**首页版式**（`registerHomeLayout`）：套用后首页草稿
 换成那套段，与「哪张页面占据 /」无关。有两套以上时设置里才露出选择器。
-原路径照常可打开。目标页开关关掉或被删时回落默认首页。页面列表里当前首页带「首页」
+目标页开关关掉或被删时回落默认首页。页面列表里当前首页带「首页」
 徽章，行菜单可「设为首页」。
 
 设置**不进侧栏**：那几组设完就不太回来，从官网卡片开 Sheet。

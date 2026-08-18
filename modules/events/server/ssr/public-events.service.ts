@@ -4,12 +4,13 @@ import {
   withTenantScope,
 } from "@rewindom/module-sdk/server";
 
-import { eventPath } from "../../shared/index.js";
+import { entityPath, eventPath, eventsIndexPath } from "../../shared/index.js";
 
 import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import { toEventDetail, toEventListItem } from "../event/event.mapper.js";
 import { listEventEntities } from "../event/entity.service.js";
+import { listRelatedEvents } from "../event/related.service.js";
 import {
   listEventRevisions,
   publicRevisionSince,
@@ -170,6 +171,7 @@ export async function getPublicEventBySlug(
       analyzed_at: true,
       manual_content: true,
       manual_topic: true,
+      related_event_ids: true,
     },
   });
   if (!record) {
@@ -213,10 +215,13 @@ export async function getPublicEventBySlug(
     since: publicRevisionSince(new Date()),
   });
 
-  const entities = await listEventEntities({
-    tenant_id: tenantId,
-    event_id: record.id,
-  });
+  const [entities, related] = await Promise.all([
+    listEventEntities({ tenant_id: tenantId, event_id: record.id }),
+    listRelatedEvents({
+      tenant_id: tenantId,
+      related_ids: record.related_event_ids,
+    }),
+  ]);
 
   return toEventDetail({
     record,
@@ -224,8 +229,56 @@ export async function getPublicEventBySlug(
     signals,
     revisions,
     entities,
+    related,
     follow: null,
   });
+}
+
+/** 实体页一次最多列多少事件。再多就该分页了，而实体页不是列表页。 */
+const ENTITY_EVENT_LIMIT = 30;
+
+export interface PublicEntityData {
+  slug: string;
+  name: string;
+  kind: string;
+  event_count: number;
+  events: EventListItem[];
+}
+
+/**
+ * 实体页取数：这个实体是谁 + 它涉及的事件（按最近活动降序）。
+ *
+ * slug 找不到时返回 null（→ 404），而不是渲染一张空实体页。
+ */
+export async function getPublicEntityBySlug(
+  tenantId: string,
+  slug: string,
+): Promise<PublicEntityData | null> {
+  const entity = await prisma.eventEntity.findFirst({
+    where: withTenantScope(tenantId, { slug }),
+    select: { slug: true, name: true, kind: true },
+  });
+  if (!entity) {
+    return null;
+  }
+
+  const [links, eventCount] = await Promise.all([
+    prisma.eventEntityLink.findMany({
+      where: withTenantScope(tenantId, { entity: { slug } }),
+      orderBy: { event: { last_activity_at: "desc" } },
+      take: ENTITY_EVENT_LIMIT,
+      select: { event: { select: LIST_SELECT } },
+    }),
+    prisma.eventEntityLink.count({
+      where: withTenantScope(tenantId, { entity: { slug } }),
+    }),
+  ]);
+
+  return {
+    ...entity,
+    event_count: eventCount,
+    events: links.map((link) => toEventListItem(link.event, null)),
+  };
 }
 
 /**
@@ -242,8 +295,8 @@ export async function getPublicEventSitemapEntries(
   tenantId: string,
 ): Promise<SitemapEntry[]> {
   const cutoff = new Date(Date.now() - 30 * 24 * HOUR_MS);
-  const [defaultLocale, rows] = await Promise.all([
-    resolveSiteDefaultLocale(tenantId),
+  const [site, rows] = await Promise.all([
+    resolvePublicSite(tenantId),
     prisma.newsEvent.findMany({
       where: withTenantScope(tenantId, { last_activity_at: { gte: cutoff } }),
       orderBy: { last_activity_at: "desc" },
@@ -253,19 +306,67 @@ export async function getPublicEventSitemapEntries(
   ]);
 
   return rows.map((row) => {
-    const path = withSiteLocale(eventPath(row.slug), defaultLocale, defaultLocale);
+    const path = withSiteLocale(
+      eventPath(row.slug, site.indexPath),
+      site.locale,
+      site.locale,
+    );
     return {
       path,
       updated_at: row.last_activity_at.toISOString(),
-      alternates: [{ locale: defaultLocale, path }],
+      alternates: [{ locale: site.locale, path }],
     };
   });
 }
 
-async function resolveSiteDefaultLocale(tenantId: string): Promise<AppLocale> {
+/**
+ * 实体页的 sitemap。
+ *
+ * 与事件同一条口径：只收**最近 30 天还有事件**的实体，封顶 500 条。
+ * 陈年实体页仍然可访问，只是不主动送去索引。
+ *
+ * 实体页比事件页更值得被索引——事件 24h 后就凉，实体不会——但也正因为它长期存在，
+ * 更要挡住「三年前提过一次就永远进 sitemap」的长尾。
+ */
+export async function getPublicEntitySitemapEntries(
+  tenantId: string,
+): Promise<SitemapEntry[]> {
+  const cutoff = new Date(Date.now() - 30 * 24 * HOUR_MS);
+  const [site, rows] = await Promise.all([
+    resolvePublicSite(tenantId),
+    prisma.eventEntity.findMany({
+      where: withTenantScope(tenantId, {
+        links: { some: { event: { last_activity_at: { gte: cutoff } } } },
+      }),
+      orderBy: { updated_at: "desc" },
+      take: 500,
+      select: { slug: true, updated_at: true },
+    }),
+  ]);
+
+  return rows.map((row) => {
+    const path = withSiteLocale(
+      entityPath(row.slug, site.indexPath),
+      site.locale,
+      site.locale,
+    );
+    return {
+      path,
+      updated_at: row.updated_at.toISOString(),
+      alternates: [{ locale: site.locale, path }],
+    };
+  });
+}
+
+async function resolvePublicSite(
+  tenantId: string,
+): Promise<{ locale: AppLocale; indexPath: string }> {
   const site = await prisma.marketingSite.findFirst({
     where: withTenantScope(tenantId),
-    select: { default_locale: true },
+    select: { default_locale: true, home_path: true },
   });
-  return normalizeLocale(site?.default_locale);
+  return {
+    locale: normalizeLocale(site?.default_locale),
+    indexPath: eventsIndexPath(site?.home_path ?? undefined),
+  };
 }

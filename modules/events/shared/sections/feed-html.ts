@@ -1,8 +1,10 @@
 /**
  * 「正在发生什么」区块的 markup（SSR 与编辑器预览共用同一份）。
  *
- * 卡片恒指向站内 `/events/:slug`——开通事件雷达就一定有公开详情页
+ * 卡片恒指向站内详情页——开通事件雷达就一定有公开详情页
  *（模板页与 path handler 一起登记），不会把访客直接甩去站外。
+ * 枢纽当首页时详情在 `/:slug`，否则在 `/events/:slug`（卡片 `href` 已按
+ * `index_path` 落成）。
  */
 
 import {
@@ -10,6 +12,7 @@ import {
   EVENTS_RISING_SECTION_TYPE,
 } from "../events-feed-section.js";
 import {
+  EVENTS_INDEX_PATH,
   eventsIndexHref,
   readEventsContext,
 } from "../events-section-context.js";
@@ -127,7 +130,13 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
   const more =
     !listing && moreLabel
       ? `<a class="events-more" href="${escapeHtml(
-          siteHref(eventsIndexHref({ source, topic }), ctx),
+          siteHref(
+            eventsIndexHref(
+              { source, topic },
+              context?.index_path ?? EVENTS_INDEX_PATH,
+            ),
+            ctx,
+          ),
         )}">${escapeHtml(moreLabel)}</a>`
       : "";
 

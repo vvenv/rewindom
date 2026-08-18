@@ -16,7 +16,11 @@ import {
 } from "../shared/page-templates.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import { isSpaShellPath, parseMarketingSsrPath } from "../shared/site-locale.js";
-import { matchSitePathHandler } from "../shared/site-path-handlers.js";
+import {
+  matchSitePathFallback,
+  matchSitePathHandler,
+  type SitePathHandlerInput,
+} from "../shared/site-path-handlers.js";
 import { localizeRedirectLocation, visitorRedirectPath } from "../shared/site-redirect.js";
 
 import {
@@ -87,6 +91,48 @@ async function sendSiteRedirect(
   return true;
 }
 
+function querySuffix(url: string): string {
+  const i = url.indexOf("?");
+  return i >= 0 ? url.slice(i) : "";
+}
+
+function sendCanonicalRedirect(
+  reply: FastifyReply,
+  request: FastifyRequest,
+  toPath: string,
+  locale: AppLocale | null,
+): void {
+  const location = localizeRedirectLocation(toPath, locale);
+  void reply
+    .header("cache-control", "no-store")
+    .redirect(`${location}${querySuffix(request.url)}`, 301);
+}
+
+function pathHandlerInput(input: {
+  request: FastifyRequest;
+  hostTenant: NonNullable<FastifyRequest["hostTenantContext"]>;
+  path: string;
+  servedPath: string;
+  locale: AppLocale | null;
+  enabledEntitlements: ReadonlySet<string>;
+  homePath: string;
+  accountEntryHtml: string;
+}): SitePathHandlerInput {
+  return {
+    tenantId: input.hostTenant.tenant_id,
+    tenantSlug: input.hostTenant.tenant_slug,
+    origin: requestOrigin(input.request),
+    path: input.path,
+    servedPath: input.servedPath,
+    homePath: input.homePath,
+    locale: input.locale,
+    enabledEntitlements: input.enabledEntitlements,
+    accountEntryHtml: input.accountEntryHtml,
+    cookies: cookiesFromHeader(input.request.headers.cookie),
+    query: flattenQuery(input.request.query),
+  };
+}
+
 function flattenQuery(query: unknown): Record<string, string> {
   if (!query || typeof query !== "object") return {};
   const out: Record<string, string> = {};
@@ -111,6 +157,7 @@ async function renderNotFound(
   reply: FastifyReply,
   hostTenant: NonNullable<FastifyRequest["hostTenantContext"]>,
   locale: AppLocale | null,
+  homePath: string = "/",
 ): Promise<void> {
   const custom = await getPublishedPublicPage(
     hostTenant.tenant_id,
@@ -147,6 +194,7 @@ async function renderNotFound(
         defaultLocale: site.default_locale,
         usedSectionTypes,
         cookies: cookiesFromHeader(request.headers.cookie),
+        homePath,
       }),
     ]);
 
@@ -186,6 +234,7 @@ async function renderNotFound(
       defaultLocale: custom.site.default_locale,
       usedSectionTypes,
       cookies: cookiesFromHeader(request.headers.cookie),
+      homePath,
     }),
   ]);
 
@@ -231,7 +280,7 @@ async function renderPath(
   const enabledEntitlements = await resolveSectionEntitlements(
     hostTenant.tenant_id,
   );
-  const { logicalPath, servedPath } = await resolveVisitorHomePath({
+  const { logicalPath, servedPath, homePath } = await resolveVisitorHomePath({
     tenantId: hostTenant.tenant_id,
     path,
     entitlements: enabledEntitlements,
@@ -244,6 +293,7 @@ async function renderPath(
     locale,
     enabledEntitlements,
     servedPath,
+    homePath,
   );
   if (rendered) return;
   /*
@@ -257,6 +307,7 @@ async function renderPath(
     "/",
     locale,
     enabledEntitlements,
+    "/",
     "/",
   );
 }
@@ -273,6 +324,7 @@ async function renderLogicalPath(
   locale: AppLocale | null,
   enabledEntitlements: ReadonlySet<string>,
   servedPath: string,
+  homePath: string,
 ): Promise<boolean> {
   const homeRewrite = servedPath === "/" && path !== "/";
   const redirectPath = visitorRedirectPath({ homeRewrite, servedPath });
@@ -302,21 +354,25 @@ async function renderLogicalPath(
       tenantId: hostTenant.tenant_id,
       locale: normalizeLocale(site?.default_locale, locale ?? undefined),
     });
-    const html = await handler.render({
-      tenantId: hostTenant.tenant_id,
-      tenantSlug: hostTenant.tenant_slug,
-      origin: requestOrigin(request),
+    const input = pathHandlerInput({
+      request,
+      hostTenant,
       path,
       servedPath,
       locale,
       enabledEntitlements,
+      homePath,
       accountEntryHtml: accountEntry.html,
-      cookies: cookiesFromHeader(request.headers.cookie),
-      query: flattenQuery(request.query),
     });
+    const canonical = handler.canonicalRedirect?.(input);
+    if (canonical && canonical !== servedPath) {
+      sendCanonicalRedirect(reply, request, canonical, locale);
+      return true;
+    }
+    const html = await handler.render(input);
     if (html === null) {
       if (homeRewrite) return false;
-      await renderNotFound(request, reply, hostTenant, locale);
+      await renderNotFound(request, reply, hostTenant, locale, homePath);
       return true;
     }
     sendHtml(reply, 200, html);
@@ -332,6 +388,41 @@ async function renderLogicalPath(
   if (!result) {
     if (homeRewrite) return false;
     /*
+     * CMS 未命中后再问 fallback（事件枢纽当首页时的 `/:slug`）。
+     * `render` 返回 null 不直接 404：这条地址可能只是一条旧重定向。
+     * CMS 页优先——同 slug 的已发布页面必须还能打开。
+     */
+    const fallback = matchSitePathFallback(path, enabledEntitlements, {
+      homePath,
+    });
+    if (fallback) {
+      const site = await getPublishedPublicSite(
+        hostTenant.tenant_id,
+        hostTenant.tenant_slug,
+        locale,
+      );
+      const accountEntry = await resolveSiteAccountEntry({
+        tenantId: hostTenant.tenant_id,
+        locale: normalizeLocale(site?.default_locale, locale ?? undefined),
+      });
+      const html = await fallback.render(
+        pathHandlerInput({
+          request,
+          hostTenant,
+          path,
+          servedPath,
+          locale,
+          enabledEntitlements,
+          homePath,
+          accountEntryHtml: accountEntry.html,
+        }),
+      );
+      if (html !== null) {
+        sendHtml(reply, 200, html);
+        return true;
+      }
+    }
+    /*
      * 顺序是刻意的：**先查真实页面，找不到才查重定向**。
      *
      * 反过来（重定向优先）的话，租户后来又建了一个同名页就永远打不开——而那种错很难
@@ -344,7 +435,7 @@ async function renderLogicalPath(
       return true;
     }
 
-    await renderNotFound(request, reply, hostTenant, locale);
+    await renderNotFound(request, reply, hostTenant, locale, homePath);
     return true;
   }
 
@@ -353,7 +444,7 @@ async function renderLogicalPath(
    * 否则搜索引擎会把 `/404` 本身收成一张软 404。
    */
   if (result.page.kind === NOT_FOUND_PAGE_KIND) {
-    await renderNotFound(request, reply, hostTenant, locale);
+    await renderNotFound(request, reply, hostTenant, locale, homePath);
     return true;
   }
 
@@ -392,6 +483,7 @@ async function renderLogicalPath(
     usedSectionTypes,
     cookies: cookiesFromHeader(request.headers.cookie),
     memberId: member?.id ?? null,
+    homePath,
   });
 
   const requiresMember = result.page.requires_member === true;

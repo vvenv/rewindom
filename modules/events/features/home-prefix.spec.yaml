@@ -1,0 +1,51 @@
+# 把 /events 设为首页时，公开面整条前缀收到站点根。
+#
+# 模板页身份仍是 /events（编辑器 / home_path 值不变）。
+# 访客 URL：枢纽 /、详情 /:slug、实体 /entity/:slug；旧 /events/* 301。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 站点把 /events 设为首页后，公开事件页不再带 /events 前缀（/、/:slug、/entity/:slug）；旧地址 301。
+gold: modules/events/server/ssr/events-path-handler.ts
+touch:
+  - modules/events/features/home-prefix.spec.yaml
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-section-context.test.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/nav-sources.ts
+  - modules/events/shared/nav-sources.test.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/editor-context.ts
+  - modules/events/MODULE.md
+  - packages/builtin/marketing/features/site-path-fallback.spec.yaml
+  - packages/builtin/marketing/shared/site-path-handlers.ts
+  - packages/builtin/marketing/shared/site-path-handlers.test.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/site-home-path.test.ts
+  - packages/builtin/marketing/server/section-context-providers.ts
+  - packages/builtin/marketing/client/editor-context-providers.ts
+  - packages/builtin/marketing/client/pages/site-editor.tsx
+  - packages/builtin/marketing/shared/site-home.ts
+  - packages/builtin/marketing/shared/site-cms.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 工作台 /app/events 与 API /api/events
+  - shop / docs 同样把前缀收到 /
+  - 设为首页时自动套用 events.home 版式
+  - 改模板页 kind / 编辑器里的 /events 页身份
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-section-context.test.ts shared/nav-sources.test.ts shared/sections/feed-html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/*' shared/site-path-handlers.test.ts server/site-home-path.test.ts
+  - node scripts/verify-module.mjs events
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []

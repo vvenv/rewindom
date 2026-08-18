@@ -230,6 +230,20 @@ describe("renderEventsFeedHtml", () => {
     expect(html).not.toContain("topic=");
   });
 
+  it("枢纽当首页时查看全部链到 /?source=", () => {
+    const context = emptyEventsContext({
+      index_path: "/",
+      feed: { rising: [], now: [card("a")] },
+    });
+    const ctx = { contributed: eventsContextEntry(context) };
+    const html = renderEventsFeedHtml(
+      section("now", 5, { more_label: "查看全部事件" }),
+      ctx,
+    );
+    expect(html).toContain('href="/?source=now"');
+    expect(html).not.toContain("/events?");
+  });
+
   it("区块 topic 只渲染该主题的卡片", () => {
     const context = emptyEventsContext({
       feed: {
