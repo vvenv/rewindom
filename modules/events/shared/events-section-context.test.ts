@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   EVENTS_INDEX_PATH,
+  eventsCanonicalLocation,
   eventsIndexHref,
   eventsIndexPath,
   eventsMountedAtRoot,
@@ -28,11 +29,11 @@ describe("eventsIndexHref", () => {
     expect(eventsIndexHref({ source: "now" })).toBe("/events?source=now");
   });
 
-  it("主题是可选过滤", () => {
+  it("主题是路径段，source 仍是查询", () => {
     expect(eventsIndexHref({ source: "rising", topic: "ai" })).toBe(
-      "/events?source=rising&topic=ai",
+      "/events/ai?source=rising",
     );
-    expect(eventsIndexHref({ topic: "tech" })).toBe("/events?topic=tech");
+    expect(eventsIndexHref({ topic: "tech" })).toBe("/events/tech");
   });
 });
 
@@ -122,7 +123,7 @@ describe("public paths at root", () => {
     expect(eventPath("foo-abc123", "/")).toBe("/foo-abc123");
     expect(entityPath("openai", "/")).toBe("/entity/openai");
     expect(eventsIndexHref({ source: "rising" }, "/")).toBe("/?source=rising");
-    expect(eventsIndexHref({ topic: "ai" }, "/")).toBe("/?topic=ai");
+    expect(eventsIndexHref({ topic: "ai" }, "/")).toBe("/ai");
   });
 
   it("旧前缀剥成规范地址", () => {
@@ -132,7 +133,11 @@ describe("public paths at root", () => {
     expect(stripEventsMountedPrefix("/foo")).toBeNull();
   });
 
-  it("根上认 /:slug 与 /entity/:slug，不认保留段和更深路径", () => {
+  it("根上认 /:topic、/:slug 与 /entity/:slug，不认保留段和更深路径", () => {
+    expect(parseEventsPublicPath("/ai", "/")).toEqual({
+      type: "topic",
+      topic: "ai",
+    });
     expect(parseEventsPublicPath("/foo-abc123", "/")).toEqual({
       type: "event",
       slug: "foo-abc123",
@@ -143,12 +148,21 @@ describe("public paths at root", () => {
     });
     expect(parseEventsPublicPath("/", "/")).toEqual({ type: "index" });
     expect(isEventsRootFallbackPath("/")).toBe(false);
+    expect(isEventsRootFallbackPath("/ai")).toBe(true);
     expect(isEventsRootFallbackPath("/foo")).toBe(true);
     expect(isEventsRootFallbackPath("/app")).toBe(false);
     expect(isEventsRootFallbackPath("/foo/bar")).toBe(false);
   });
 
   it("请求路径先认旧前缀，首页挂载时才认根路径", () => {
+    expect(parseEventsRequestPath("/events/ai", true)).toEqual({
+      type: "topic",
+      topic: "ai",
+    });
+    expect(parseEventsRequestPath("/ai", true)).toEqual({
+      type: "topic",
+      topic: "ai",
+    });
     expect(parseEventsRequestPath("/events/foo", true)).toEqual({
       type: "event",
       slug: "foo",
@@ -158,7 +172,37 @@ describe("public paths at root", () => {
       slug: "foo",
     });
     expect(parseEventsRequestPath("/foo", false)).toBeNull();
+    expect(parseEventsRequestPath("/ai", false)).toBeNull();
     expect(isEventsPath("/foo")).toBe(false);
+    expect(isEventsPath("/ai")).toBe(false);
+    expect(isEventsPath("/events/ai")).toBe(true);
     expect(isEventsPath("/events/foo")).toBe(true);
+  });
+});
+
+describe("eventsCanonicalLocation", () => {
+  const atRoot = { homePath: "/", homeLayoutKey: "events.home" };
+
+  it("首页挂载时旧前缀收到根上", () => {
+    expect(eventsCanonicalLocation("/events", atRoot)).toBe("/");
+    expect(eventsCanonicalLocation("/events/ai", atRoot)).toBe("/ai");
+    expect(eventsCanonicalLocation("/events/foo", atRoot)).toBe("/foo");
+  });
+
+  it("未挂到根上时旧 ?topic= 收到路径段", () => {
+    expect(eventsCanonicalLocation("/events", {}, { topic: "ai" })).toBe(
+      "/events/ai",
+    );
+    expect(
+      eventsCanonicalLocation("/events", {}, { source: "rising", topic: "ai" }),
+    ).toBe("/events/ai");
+    expect(eventsCanonicalLocation("/events", {}, { source: "rising" })).toBeNull();
+  });
+
+  it("已经是主题路径时不再为 ?topic= 改写", () => {
+    expect(
+      eventsCanonicalLocation("/events/ai", {}, { topic: "tech" }),
+    ).toBeNull();
+    expect(eventsCanonicalLocation("/ai", atRoot, { topic: "tech" })).toBeNull();
   });
 });

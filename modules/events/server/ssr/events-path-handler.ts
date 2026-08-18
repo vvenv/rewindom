@@ -1,9 +1,9 @@
 /**
- * 公开事件页的路径处理：`/events` 与 `/events/:slug`（含 `/en/...` 前缀）。
+ * 公开事件页的路径处理：`/events`、`/events/:topic` 与 `/events/:slug`（含 `/en/...` 前缀）。
  *
  * 选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到根上；
- * `/` 由首页 CMS 渲染；`/?source=` / `/?topic=` 由本 handler 接管列表；
- * `/:slug` / `/entity/:slug` 在 CMS 未命中后由 fallback 接。
+ * `/` 由首页 CMS 渲染；`/?source=` 由本 handler 接管列表；
+ * `/:topic` / `/:slug` / `/entity/:slug` 在 CMS 未命中后由 fallback 接。
  *
  * marketing SSR 在剥掉 locale 之后问这张表，所以两种前缀走同一套渲染。
  * 事件模块没有 cookie 要写，因此**不需要**像 shop 那样再挂一条自己的 Fastify 路由。
@@ -40,6 +40,7 @@ import {
   isEventsRootQueryTakeover,
   parseEventsIndexQuery,
   parseEventsRequestPath,
+  topicPath,
   toPublicCard,
   toPublicDetail,
 } from "../../shared/index.js";
@@ -89,7 +90,8 @@ async function renderEventsPath(
   if (route.type === "event") {
     return renderDetail(input, locale, route.slug, indexPath);
   }
-  return renderIndex(input, locale, indexPath);
+  const pathTopic = route.type === "topic" ? route.topic : undefined;
+  return renderIndex(input, locale, indexPath, pathTopic);
 }
 
 async function renderEntity(
@@ -140,13 +142,23 @@ async function renderIndex(
   input: SitePathHandlerInput,
   locale: AppLocale,
   indexPath: string,
+  pathTopic?: EventTopic,
 ): Promise<string> {
   const query = parseEventsIndexQuery(input.query);
-  if (isEventsIndexListing(query)) {
-    return renderListing(input, locale, query.source, query.topic, indexPath);
+  const topic = pathTopic ?? query.topic;
+  const pagePath = topic ? topicPath(topic, indexPath) : indexPath;
+  const listingQuery = { ...query, topic };
+  if (isEventsIndexListing(listingQuery)) {
+    return renderListing(
+      input,
+      locale,
+      listingQuery.source,
+      listingQuery.topic,
+      indexPath,
+    );
   }
 
-  const feed = await getPublicEventFeed(input.tenantId, query.topic);
+  const feed = await getPublicEventFeed(input.tenantId, topic);
   const t = translator(locale);
 
   return renderEventsTemplatePage({
@@ -156,13 +168,13 @@ async function renderIndex(
     origin: input.origin,
     locale,
     kind: EVENTS_INDEX_PAGE_KIND,
-    path: indexPath,
-    servedPath: input.servedPath ?? indexPath,
+    path: pagePath,
+    servedPath: input.servedPath ?? pagePath,
     preset: EVENTS_INDEX_TEMPLATE_PRESET,
-    title: query.topic ? t(`topic.${query.topic}`) : undefined,
+    title: topic ? t(`topic.${topic}`) : undefined,
     events: emptyEventsContext({
       index_path: indexPath,
-      topic: query.topic,
+      topic,
       feed: {
         rising: feed.rising.map((item) => toCard(item, t, indexPath)),
         now: feed.now.map((item) => toCard(item, t, indexPath)),
@@ -183,6 +195,7 @@ async function renderListing(
   const cards = items.map((item) => toCard(item, t, indexPath));
   const sourceLabel = t(`sections.${source}`);
   const title = topic ? `${sourceLabel} · ${t(`topic.${topic}`)}` : sourceLabel;
+  const pagePath = topic ? topicPath(topic, indexPath) : indexPath;
 
   return renderEventsTemplatePage({
     tenantId: input.tenantId,
@@ -191,8 +204,8 @@ async function renderListing(
     origin: input.origin,
     locale,
     kind: EVENTS_INDEX_PAGE_KIND,
-    path: indexPath,
-    servedPath: input.servedPath ?? indexPath,
+    path: pagePath,
+    servedPath: input.servedPath ?? pagePath,
     preset: EVENTS_INDEX_TEMPLATE_PRESET,
     title,
     sections: buildEventsListingSections(
@@ -264,7 +277,7 @@ export function registerEventsPathHandler(): void {
       isEventsRootQueryTakeover(path, ctx?.query ?? {}, mountOf(ctx ?? {})),
     entitlement: EVENTS_ENTITLEMENT.key,
     canonicalRedirect: (input) =>
-      eventsCanonicalLocation(input.path, mountOf(input)),
+      eventsCanonicalLocation(input.path, mountOf(input), input.query),
     render: renderEventsPath,
   });
   registerSitePathFallback({

@@ -78,8 +78,9 @@ describe("describeEventMomentum", () => {
 });
 
 describe("isEventsPath", () => {
-  it("接首页、事件详情与实体页", () => {
+  it("接首页、主题、事件详情与实体页", () => {
     expect(isEventsPath("/events")).toBe(true);
+    expect(isEventsPath("/events/ai")).toBe(true);
     expect(isEventsPath("/events/openai-gpt6-abc123")).toBe(true);
     expect(isEventsPath("/events/entity/openai-abc123")).toBe(true);
   });

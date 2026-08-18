@@ -181,7 +181,7 @@ describe("renderEventsFeedHtml", () => {
       section("rising", 5, { more_label: "查看全部事件" }),
       ctx,
     );
-    expect(html).toContain('href="/events?source=rising&amp;topic=ai"');
+    expect(html).toContain('href="/events/ai?source=rising"');
   });
 
   it("枢纽 URL 带了 topic 时只渲染该主题，即使 feed 里混了别的", () => {
@@ -213,7 +213,7 @@ describe("renderEventsFeedHtml", () => {
       section("rising", 1, { more_label: "查看全部事件", topic: "ai" }),
       ctx,
     );
-    expect(html).toContain('href="/events?source=rising&amp;topic=ai"');
+    expect(html).toContain('href="/events/ai?source=rising"');
     expect(html).toContain("查看全部事件");
   });
 

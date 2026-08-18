@@ -1,10 +1,11 @@
 # 页头要能点进每一个 topic（AI、Gaming…），不能靠租户手填 7 条链接。
 # 主题枚举是产品分类法，换了名字或加新格，页头必须跟着动。
+# 当前项高亮靠 currentPath 精确匹配：topic 必须是路径段，不能是 ?topic=。
 
 # ---------- 必填 ----------
 module: events
 surfaces: [ssr]
-goal: 向页头 / 页脚贡献事件主题导航源；点进某个 topic 打开 /events?topic= 过滤后的枢纽。
+goal: 向页头 / 页脚贡献事件主题导航源；点进某个 topic 打开 /events/:topic（当首页时 /:topic），并高亮当前格。
 gold: modules/shop/shared/nav-sources.ts
 touch:
   - modules/events/features/topic-nav.spec.yaml
@@ -12,6 +13,8 @@ touch:
   - modules/events/shared/nav-sources.ts
   - modules/events/shared/nav-sources.test.ts
   - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-section-context.test.ts
+  - modules/events/shared/events.test.ts
   - modules/events/shared/sections/feed-html.ts
   - modules/events/shared/sections/feed-html.test.ts
   - modules/events/server/ssr/events-path-handler.ts
@@ -22,14 +25,16 @@ touch:
   - modules/events/client/locales/en.json
   - modules/events/client/locales/zh-CN.json
 out_of_scope:
-  - 改 marketing 内核（默认页头仍是「全部一级页面」；租户在编辑器里加一次本源）
+  - 改 marketing 内核（currentPath 仍不含查询串；默认页头仍是「全部一级页面」）
   - 存量站点 chrome 回填
   - 工作台 /app/events
-  - 为 query string 高亮当前项（currentPath 不含查询串，要动 marketing）
+  - RSS 仍用 /events/feed.xml?topic=（订阅地址不是页头项）
+  - source 列表仍用 ?source=（不是导航项，无需高亮）
   - 空主题不进导航（分类法是产品格子，空态已有文案）
+  - 详情页按事件自身 topic 回亮导航
 i18n: code
 acceptance:
-  - pnpm --filter @rewindom/events exec vitest --run shared/nav-sources.test.ts shared/sections/feed-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/nav-sources.test.ts shared/events-section-context.test.ts shared/sections/feed-html.test.ts shared/events.test.ts
   - node scripts/verify-module.mjs events
   - pnpm check:i18n
 
@@ -44,9 +49,13 @@ models: []
 #    | events         | 「事件」一条，下挂 7 格 | 7 个 topic 各占一条 |
 #    | events.topic   | 该 topic 一条         | 同左（叶子）        |
 #    默认 expand 是 flat：加一次就出现 AI / Gaming，不必再点「铺平」。
-# 2. 链接走已有 `eventsIndexHref({ topic })` → `/events?topic=ai`。
+# 2. 链接走 `eventsIndexHref({ topic })` → `/events/ai`（当首页时 `/ai`）。
+#    路径段是编译期枚举，解析时先于事件 slug：事件 slug 恒带 id 后缀，不会撞
+#    `ai` / `tech` 这种格子。旧 `?topic=` 301 到路径段（内核会把原查询串拼回去，
+#    过滤仍认路径上的格子）。
 #    枢纽（没有 source）必须按 topic 取数，否则点进去仍是全站列表。
-#    「查看全部」在枢纽带了 URL topic 时也要带上，不能掉回 `/events?source=rising`。
+#    「查看全部」在枢纽带了 URL topic 时也要带上，写成 `/events/ai?source=rising`。
+#    page.path / currentPath 用主题路径，页头才能 aria-current 高亮当前格。
 # 3. 主题是编译期枚举，展开不查库。页头只挂本源、页面上没有事件段时，
 #    context provider 不得为了导航去拉 feed。
 # 4. 标签走 `events:topic.*` / `events:nav.source.*`（代码 i18n）。

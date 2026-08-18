@@ -72,6 +72,18 @@ export function eventPath(
 }
 
 /**
+ * 主题枢纽地址。页头高亮靠 `currentPath` 精确匹配，所以 topic 必须是路径段
+ *（`/events/ai`），不能是 `?topic=`。格子是编译期枚举，事件 slug 恒带 id 后缀，
+ * 两者不会撞。
+ */
+export function topicPath(
+  topic: EventTopic,
+  indexPath: string = EVENTS_INDEX_PATH,
+): string {
+  return joinIndex(indexPath, `/${topic}`);
+}
+
+/**
  * 实体页地址。
  *
  * 默认走 `/events/entity/:slug`。事件枢纽当首页时收到 `/entity/:slug`：
@@ -125,10 +137,10 @@ export function entitySlugFromPath(
     : null;
 }
 
-/** 从路径里取事件 slug；枢纽、实体路径或保留段返回 null。 */
-export function eventSlugFromPath(
+/** 枢纽下的单段（详情 slug 或主题格子）；实体路径、枢纽本身、更深路径返回 null。 */
+function singleSegmentFromPath(
   path: string,
-  indexPath: string = EVENTS_INDEX_PATH,
+  indexPath: string,
 ): string | null {
   if (entitySlugFromPath(path, indexPath) !== null) return null;
   if (path === indexPath) return null;
@@ -145,8 +157,28 @@ export function eventSlugFromPath(
     : null;
 }
 
+/** 从路径里取主题格子；不是枚举里的那一格返回 null。 */
+export function topicFromPath(
+  path: string,
+  indexPath: string = EVENTS_INDEX_PATH,
+): EventTopic | null {
+  const slug = singleSegmentFromPath(path, indexPath);
+  return slug && isEventTopic(slug) ? slug : null;
+}
+
+/** 从路径里取事件 slug；枢纽、主题格子、实体路径或保留段返回 null。 */
+export function eventSlugFromPath(
+  path: string,
+  indexPath: string = EVENTS_INDEX_PATH,
+): string | null {
+  const slug = singleSegmentFromPath(path, indexPath);
+  if (slug === null || isEventTopic(slug)) return null;
+  return slug;
+}
+
 export type EventsPublicRoute =
   | { type: "index" }
+  | { type: "topic"; topic: EventTopic }
   | { type: "event"; slug: string }
   | { type: "entity"; slug: string };
 
@@ -164,6 +196,8 @@ export function parseEventsPublicPath(
   if (path.endsWith("/feed.xml")) return null;
   const entitySlug = entitySlugFromPath(path, indexPath);
   if (entitySlug !== null) return { type: "entity", slug: entitySlug };
+  const topic = topicFromPath(path, indexPath);
+  if (topic !== null) return { type: "topic", topic };
   const slug = eventSlugFromPath(path, indexPath);
   if (slug !== null) return { type: "event", slug };
   return null;
@@ -171,7 +205,7 @@ export function parseEventsPublicPath(
 
 /**
  * 请求路径 → 事件路由。先认 `/events` 前缀（含首页挂载后的旧地址），
- * 再在挂到根上时认 `/:slug` 与 `/entity/:slug`。
+ * 再在挂到根上时认 `/:topic`、`/:slug` 与 `/entity/:slug`。
  */
 export function parseEventsRequestPath(
   path: string,
@@ -200,14 +234,26 @@ export function stripEventsMountedPrefix(path: string): string | null {
 export function eventsCanonicalLocation(
   path: string,
   mount: EventsHomeMount = {},
+  query: Record<string, string> = {},
 ): string | null {
-  if (!eventsMountedAtRoot(mount)) return null;
-  return stripEventsMountedPrefix(path);
+  const stripped = eventsMountedAtRoot(mount)
+    ? stripEventsMountedPrefix(path)
+    : null;
+  const logical = stripped ?? path;
+  const topic = parseEventsIndexQuery(query).topic;
+  if (!topic) return stripped;
+  const route = parseEventsRequestPath(
+    logical,
+    eventsMountedAtRoot(mount),
+  );
+  if (route?.type !== "index") return stripped;
+  return topicPath(topic, eventsIndexPath(mount));
 }
 
 /**
- * 版式挂在站点根时，`/` 本身仍由首页 CMS 渲染；带 `source` / `topic` 的查询
- * 才交给事件 handler（列表页、主题落地），避免抢走租户改过的首页。
+ * 版式挂在站点根时，`/` 本身仍由首页 CMS 渲染；带 `source` 的查询
+ * 才交给事件 handler（列表页）。主题落地是 `/:topic` 路径段，不是查询串。
+ * 旧 `?topic=` 仍接管，避免已分享的地址直接掉回未过滤首页。
  */
 export function isEventsRootQueryTakeover(
   path: string,
@@ -235,22 +281,21 @@ export function parseEventsIndexQuery(
 }
 
 /**
- * 事件首页地址。带 `source` 时是该批次的完整列表，而不是两段同页的枢纽。
+ * 事件首页地址。topic 走路径段（页头才能高亮）；`source` 仍是查询——
+ * 它不是导航项，完整列表不必占一条路径。
  * 「查看全部」必须带上当前区块的 source，否则会回到枢纽把自己再画一遍。
  */
 export function eventsIndexHref(
   query: EventsIndexQuery = {},
   indexPath: string = EVENTS_INDEX_PATH,
 ): string {
+  const base = query.topic ? topicPath(query.topic, indexPath) : indexPath;
   const params = new URLSearchParams();
   if (query.source) {
     params.set("source", query.source);
   }
-  if (query.topic) {
-    params.set("topic", query.topic);
-  }
   const search = params.toString();
-  return search ? `${indexPath}?${search}` : indexPath;
+  return search ? `${base}?${search}` : base;
 }
 
 /** 有合法 `source` 就是查询列表页；只有 topic 或什么都没有仍是两段枢纽。 */
@@ -261,10 +306,10 @@ export function isEventsIndexListing(
 }
 
 /**
- * `/events`、`/events/:slug` 与 `/events/entity/:slug`。
+ * `/events`、`/events/:topic`、`/events/:slug` 与 `/events/entity/:slug`。
  *
  * 这是**挂载前缀**上的匹配，与是否把枢纽设为首页无关——旧地址始终由这条
- * handler 接住，再 301 到根上。根上的 `/:slug` 走 fallback，见
+ * handler 接住，再 301 到根上。根上的 `/:topic` / `/:slug` 走 fallback，见
  * `isEventsRootFallbackPath`。
  */
 export function isEventsPath(path: string): boolean {
@@ -272,7 +317,7 @@ export function isEventsPath(path: string): boolean {
 }
 
 /**
- * 枢纽当首页时，CMS 未命中后认领的路径：`/:slug` 与 `/entity/:slug`。
+ * 枢纽当首页时，CMS 未命中后认领的路径：`/:topic`、`/:slug` 与 `/entity/:slug`。
  * `/` 本身由首页 CMS 渲染（或存量 home_path 改写），不走这里。
  */
 export function isEventsRootFallbackPath(path: string): boolean {
@@ -393,7 +438,7 @@ export interface EventsRenderContext {
    */
   listing?: EventsIndexQuery;
   /**
-   * 枢纽上的 URL `?topic=`（没有 source）。段仍按 limit 截断，
+   * 枢纽上的当前主题（路径 `/events/ai`，没有 source）。段仍按 limit 截断，
    * 「查看全部」要带上这个过滤，不能掉回未过滤的枢纽 `?source=`。
    */
   topic?: EventTopic;

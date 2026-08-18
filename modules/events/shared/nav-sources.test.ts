@@ -93,11 +93,11 @@ describe("events nav sources", () => {
     expect(root?.children).toHaveLength(EVENT_TOPICS.length);
     expect(root?.children[0]).toMatchObject({
       label: "AI",
-      href: "/events?topic=ai",
+      href: "/events/ai",
     });
   });
 
-  it("枢纽当首页时主题链到 /?topic=", () => {
+  it("枢纽当首页时主题链到 /:topic", () => {
     const items = resolveNavItems([item()], {
       ...ctx(),
       contributed: eventsContextEntry(
@@ -136,7 +136,7 @@ describe("events nav sources", () => {
     );
     expect(root).toMatchObject({
       label: "游戏",
-      href: "/events?topic=gaming",
+      href: "/events/gaming",
     });
     expect(root?.children).toEqual([]);
   });
@@ -164,5 +164,37 @@ describe("events nav sources", () => {
         ),
       ),
     ).toEqual(eventsNavTopicOptions("zh-CN"));
+  });
+
+  it("当前主题路径高亮，其它格不高亮", () => {
+    const items = resolveNavItems([item()], {
+      ...ctx(),
+      currentPath: "/events/ai",
+    });
+    expect(items.find((entry) => entry.label === "AI")?.current).toBe(true);
+    expect(items.find((entry) => entry.label === "科技")?.current).toBe(false);
+  });
+
+  it("枢纽当首页时按 /:topic 高亮", () => {
+    const items = resolveNavItems([item()], {
+      ...ctx(),
+      currentPath: "/gaming",
+      contributed: eventsContextEntry(
+        emptyEventsContext({
+          index_path: "/",
+          nav_topics: eventsNavTopicOptions("zh-CN"),
+        }),
+      ),
+    });
+    expect(items.find((entry) => entry.label === "游戏")?.current).toBe(true);
+    expect(items.find((entry) => entry.label === "AI")?.current).toBe(false);
+  });
+
+  it("枢纽本身不高亮任何主题格", () => {
+    const items = resolveNavItems([item()], {
+      ...ctx(),
+      currentPath: "/events",
+    });
+    expect(items.every((entry) => entry.current === false)).toBe(true);
   });
 });

@@ -220,7 +220,7 @@ export function registerEventsPageTemplates(): void {
 
 /**
  * 查询列表页的版式：只摆与查询匹配的那一段，不再用租户改过的两段首页。
- * 不登记为独立 kind——地址仍是 `/events`，只是 query 不同。
+ * 不登记为独立 kind——地址是 `/events?source=`，带主题时是 `/events/ai?source=`。
  */
 export function eventsListingPreset(
   source: EventFeedTab,

@@ -73,14 +73,14 @@ client/
 | 段 `events.rising` | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/events?source=rising`（枢纽当首页时是 `/?source=rising`） |
 | 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/events?source=now`（枢纽当首页时是 `/?source=now`） |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
-| 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now 各摆一次）；带 `?source=` 时是该批次的查询列表，不再用两段版式；带 `?topic=` 时两段都只显示该主题 |
-| 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构。站点设置里选这项会套首页草稿并把公开 URL 收到 `/`、`/:slug` |
-| 模板页 `events_detail` | `/events/:slug`（枢纽当首页时访客地址是 `/:slug`） |
+| 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now 各摆一次）；`/events/:topic` 是该主题的两段枢纽；带 `?source=` 时是该批次的查询列表，不再用两段版式 |
+| 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构。站点设置里选这项会套首页草稿并把公开 URL 收到 `/`、`/:topic`、`/:slug` |
+| 模板页 `events_detail` | `/events/:slug`（枢纽当首页时访客地址是 `/:slug`；主题格子 `ai` / `tech`… 先被认成主题页，事件 slug 恒带 id 后缀不会撞） |
 | 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上 |
 | 模板页 `events_entity` | `/events/entity/:slug`（枢纽当首页时访客地址是 `/entity/:slug`） |
-| 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events?topic=`（当首页时 `/?topic=`）；`children` 则收成「事件」一条下挂七格 |
+| 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events/:topic`（当首页时 `/:topic`），当前格高亮；`children` 则收成「事件」一条下挂七格 |
 | 导航源 `events.topic` | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填 |
-| path handler | 接 `/events`、`/events/:slug` 与 `/events/entity/:slug`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:slug`、`/entity/:slug`；`/` 由首页 CMS 渲染，`/?source=` / `/?topic=` 才接管列表；根上的详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
+| path handler | 接 `/events`、`/events/:topic`、`/events/:slug` 与 `/events/entity/:slug`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:topic`、`/:slug`、`/entity/:slug`；`/` 由首页 CMS 渲染，`/?source=` 才接管列表；根上的主题 / 详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
 | sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体各进 sitemap；链接下拉只给 `/events` 一条（页身份，不随首页改） |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
@@ -96,10 +96,11 @@ client/
 | `events`       | 「事件」一条，下挂 7 个主题 | 七格各占一条        |
 | `events.topic` | 该主题一条                 | 同左（叶子）        |
 
-链接是 `/events?topic=ai` 这种枢纽地址（枢纽当首页时是 `/?topic=ai`），不是查询列表。枢纽按 topic 取数，「查看全部」
-也会带上，不会掉回未过滤的 `?source=rising`。主题是编译期枚举，展开不查库；
-页头只挂本源、页面上没有事件段时，context provider 不会为了导航去拉 feed。没开通
-`events` 时这两项不进添加菜单，残留条目也不渲染。
+链接是 `/events/ai` 这种主题路径（枢纽当首页时是 `/ai`），**不是** `?topic=`：
+页头高亮靠 `currentPath` 精确匹配，查询串进不去。枢纽按 topic 取数，「查看全部」
+写成 `/events/ai?source=rising`，不会掉回未过滤的 `?source=rising`。主题是编译期
+枚举，展开不查库；页头只挂本源、页面上没有事件段时，context provider 不会为了
+导航去拉 feed。没开通 `events` 时这两项不进添加菜单，残留条目也不渲染。
 
 ### 两段同页的去重
 

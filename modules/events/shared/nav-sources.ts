@@ -10,7 +10,9 @@
  * | `events`       | 「事件」一条，下挂 7 格  | 7 个 topic 各占一条 |
  * | `events.topic` | 该 topic 一条            | 同左（叶子）        |
  *
- * 展开不查库：格子是编译期枚举。页头只挂本源时，context provider 不得为了导航去拉 feed。
+ * 链接是 `/events/ai`（当首页时 `/ai`），不是 `?topic=`：页头高亮靠 currentPath
+ * 精确匹配，查询串进不去。展开不查库：格子是编译期枚举。页头只挂本源时，
+ * context provider 不得为了导航去拉 feed。
  */
 
 import en from "../client/locales/en.json" with { type: "json" };
