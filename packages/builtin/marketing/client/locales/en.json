@@ -421,6 +421,7 @@
     "richtextFullscreen": "Fullscreen",
     "richtextFullscreenHint": "Markdown supported, with a live preview on the right. Edits apply instantly but still need saving from the editor toolbar.",
     "fieldFontFamily": "Font",
+    "fieldFontFamilyHint": "Latin webfonts are self-hosted. Chinese still uses the visitor's system font.",
     "group": {
       "content": "Content",
       "buttons": "Buttons",
@@ -698,7 +699,11 @@
     "font": {
       "system": "System sans",
       "serif": "Serif",
-      "mono": "Monospace"
+      "mono": "Monospace",
+      "inter": "Inter",
+      "source_serif": "Source Serif",
+      "newsreader": "Newsreader",
+      "jetbrains_mono": "JetBrains Mono"
     },
     "sectionType": {
       "header": "Header",

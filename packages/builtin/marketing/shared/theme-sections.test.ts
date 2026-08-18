@@ -87,6 +87,9 @@ describe("theme settings", () => {
     expect(() => parseThemeSettings({ primary_color: "#0f" })).toThrow(
       "site.theme_settings_invalid",
     );
+    expect(parseThemeSettings({ font_family: "inter" }).font_family).toBe(
+      "inter",
+    );
     expect(() => parseThemeSettings({ font_family: "comic" })).toThrow(
       "site.theme_settings_invalid",
     );

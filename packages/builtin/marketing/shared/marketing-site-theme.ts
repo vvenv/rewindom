@@ -6,9 +6,9 @@
  */
 
 import { primaryForegroundFor } from "./site-color.js";
+import { themeFontCss, themeFontFaceCss } from "./theme-fonts.js";
 import {
   resolveThemeSettings,
-  themeFontCss,
   themePageWidthCss,
   type ThemeSettings,
 } from "./theme-sections.js";
@@ -153,10 +153,13 @@ export function marketingSiteThemeCss(
   theme_settings: unknown,
   scope: ":root" | "html" = ":root",
 ): string {
+  const theme = resolveThemeSettings(theme_settings);
   const tokens = resolveMarketingSiteThemeTokens(theme_settings);
   const lightVars = paletteCssVars(tokens.light, tokens);
   const darkVars = paletteCssVars(tokens.dark, tokens);
+  const fontFace = themeFontFaceCss(theme.font_family);
   return `
+    ${fontFace}
     ${scope} {${lightVars}
       color-scheme: light;
     }

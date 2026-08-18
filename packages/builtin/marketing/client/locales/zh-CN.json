@@ -421,6 +421,7 @@
     "richtextFullscreen": "全屏编辑",
     "richtextFullscreenHint": "支持 Markdown，右侧是实时预览。改动即时生效，仍需在编辑器顶栏保存。",
     "fieldFontFamily": "字体",
+    "fieldFontFamilyHint": "西文 webfont 自托管；中文仍走访客系统字体。",
     "group": {
       "content": "内容",
       "buttons": "按钮",
@@ -698,7 +699,11 @@
     "font": {
       "system": "系统无衬线",
       "serif": "衬线",
-      "mono": "等宽"
+      "mono": "等宽",
+      "inter": "Inter",
+      "source_serif": "Source Serif",
+      "newsreader": "Newsreader",
+      "jetbrains_mono": "JetBrains Mono"
     },
     "sectionType": {
       "header": "页头",

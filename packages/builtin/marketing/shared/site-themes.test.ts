@@ -27,6 +27,15 @@ describe("主题包", () => {
     }
   });
 
+  it("docs 与 bold 选用自托管 webfont，默认与极简仍是系统栈", () => {
+    expect(findSiteTheme("docs")!.theme_settings.font_family).toBe(
+      "source_serif",
+    );
+    expect(findSiteTheme("bold")!.theme_settings.font_family).toBe("inter");
+    expect(findSiteTheme("default")!.theme_settings.font_family).toBe("system");
+    expect(findSiteTheme("minimal")!.theme_settings.font_family).toBe("serif");
+  });
+
   it("每个包都给全了四个外观 token", () => {
     for (const theme of SITE_THEMES) {
       expect(theme.theme_settings.primary_color).toMatch(/^#/u);
@@ -45,7 +54,10 @@ describe("起步模板", () => {
   it.each(SITE_STARTERS)("$key 引用的页面预设都存在", (starter) => {
     expect(starter.pages.length).toBeGreaterThan(0);
     for (const spec of starter.pages) {
-      expect(findStarterPagePreset(spec.presetKey), spec.presetKey).toBeDefined();
+      expect(
+        findStarterPagePreset(spec.presetKey),
+        spec.presetKey,
+      ).toBeDefined();
     }
   });
 

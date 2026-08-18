@@ -44,7 +44,7 @@ export const SITE_THEMES: SiteTheme[] = [
     description: "theme.docs.description",
     theme_settings: {
       primary_color: "#0f766e",
-      font_family: "system",
+      font_family: "source_serif",
       page_width: "compact",
       section_spacing: 8,
     },
@@ -56,7 +56,7 @@ export const SITE_THEMES: SiteTheme[] = [
     description: "theme.bold.description",
     theme_settings: {
       primary_color: "#c026d3",
-      font_family: "system",
+      font_family: "inter",
       page_width: "wide",
       section_spacing: 40,
     },

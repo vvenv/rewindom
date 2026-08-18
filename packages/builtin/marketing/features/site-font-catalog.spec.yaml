@@ -1,0 +1,34 @@
+# 增量功能契约 —— 外观字体精选目录（自托管 webfont）
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant, ssr]
+goal: 外观字体从 system/serif/mono 扩成精选目录；西文 webfont 自托管、按所选注入 @font-face，中文回落系统字体；不做自定义上传
+gold: packages/builtin/marketing/shared/theme-sections.ts
+touch:
+  - packages/builtin/marketing/features/site-font-catalog.spec.yaml
+  - packages/builtin/marketing/shared/theme-sections.ts
+  - packages/builtin/marketing/shared/theme-sections.test.ts
+  - packages/builtin/marketing/shared/theme-fonts.ts
+  - packages/builtin/marketing/shared/theme-fonts.generated.ts
+  - packages/builtin/marketing/shared/theme-fonts.test.ts
+  - packages/builtin/marketing/shared/site-fonts/
+  - packages/builtin/marketing/shared/marketing-site-theme.ts
+  - packages/builtin/marketing/shared/marketing-site-theme.test.ts
+  - packages/builtin/marketing/shared/site-themes.ts
+  - packages/builtin/marketing/client/components/appearance/SiteThemeSettingsForm.tsx
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/package.json
+  - apps/client/public/assets/site-fonts/
+out_of_scope:
+  - 自定义字体上传 / 任意 CSS font-family
+  - Google Fonts CDN
+  - 中文 webfont（Noto SC 等）
+  - 标题与正文两套字体
+  - 改 nginx / SITE_APP_PREFIXES（文件走已有 /assets/）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run theme-sections.test.ts theme-fonts.test.ts marketing-site-theme.test.ts site-themes.test.ts
+  - pnpm check:i18n

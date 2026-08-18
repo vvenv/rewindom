@@ -42,6 +42,17 @@ describe("marketing-site-theme", () => {
     );
   });
 
+  it("injects self-hosted @font-face only for webfonts", () => {
+    expect(
+      marketingSiteThemeCss({ font_family: "system" }, ":root"),
+    ).not.toContain("@font-face");
+    const css = marketingSiteThemeCss({ font_family: "inter" }, ":root");
+    expect(css).toContain("@font-face");
+    expect(css).toContain("Inter Variable");
+    expect(css).toContain("/assets/site-fonts/");
+    expect(css).toContain("font-family:");
+  });
+
   it("bootstraps the stored visitor preference before first paint", () => {
     const script = marketingSiteColorModeScript();
     expect(script).toContain(SITE_COLOR_MODE_STORAGE_KEY);

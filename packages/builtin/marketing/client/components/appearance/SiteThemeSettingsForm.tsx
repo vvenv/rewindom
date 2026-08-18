@@ -1,4 +1,4 @@
-import { type ReactElement } from "react";
+import { useEffect, type ReactElement } from "react";
 
 import { FieldInfoTip } from "@rewindom/client-kit";
 import { Field, FieldGroup, FieldLabel } from "@rewindom/ui/field";
@@ -18,9 +18,13 @@ import {
 } from "../../../shared/site-themes.js";
 import {
   THEME_FONT_FAMILIES,
+  themeFontCss,
+  themeFontFaceCssAll,
+  type ThemeFontFamily,
+} from "../../../shared/theme-fonts.js";
+import {
   THEME_PAGE_WIDTHS,
   THEME_SECTION_SPACING,
-  type ThemeFontFamily,
   type ThemePageWidth,
   type ThemeSettings,
 } from "../../../shared/theme-sections.js";
@@ -60,6 +64,16 @@ export function SiteThemeSettingsForm({
   canWrite: boolean;
 }): ReactElement {
   const { t } = useTranslation("marketing");
+
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.setAttribute("data-site-font-catalog", "");
+    style.textContent = themeFontFaceCssAll();
+    document.head.append(style);
+    return () => {
+      style.remove();
+    };
+  }, []);
 
   const patch = (next: Partial<ThemeSettings>): void =>
     onChange({ ...theme, ...next });
@@ -177,6 +191,7 @@ export function SiteThemeSettingsForm({
         <Field>
           <FieldLabel htmlFor="site_font_family">
             {t("editor.fieldFontFamily")}
+            <FieldInfoTip text={t("editor.fieldFontFamilyHint")} />
           </FieldLabel>
           <Select
             disabled={!canWrite}
@@ -185,12 +200,22 @@ export function SiteThemeSettingsForm({
               patch({ font_family: next as ThemeFontFamily })
             }
           >
-            <SelectTrigger id="site_font_family" className="w-full">
+            <SelectTrigger
+              id="site_font_family"
+              className="w-full"
+              style={{
+                fontFamily: themeFontCss(theme.font_family ?? "system"),
+              }}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {THEME_FONT_FAMILIES.map((family) => (
-                <SelectItem key={family} value={family}>
+                <SelectItem
+                  key={family}
+                  value={family}
+                  style={{ fontFamily: themeFontCss(family) }}
+                >
                   {t(`editor.font.${family}`)}
                 </SelectItem>
               ))}

@@ -6,9 +6,7 @@
  */
 
 import { isOpaqueHex, normalizeSiteColor } from "./site-color.js";
-
-export const THEME_FONT_FAMILIES = ["system", "serif", "mono"] as const;
-export type ThemeFontFamily = (typeof THEME_FONT_FAMILIES)[number];
+import { THEME_FONT_FAMILIES, type ThemeFontFamily } from "./theme-fonts.js";
 
 /** 正文最大宽度（对齐 Shopify 主题设置的 page width）。 */
 export const THEME_PAGE_WIDTHS = ["compact", "default", "wide"] as const;
@@ -111,7 +109,11 @@ export function parseThemeSettings(value: unknown): ThemeSettings {
     } else if (typeof raw.og_image === "string") {
       const trimmed = raw.og_image.trim();
       // 与页面级同一口径：只放行站内相对路径与 http(s)
-      if (trimmed !== "" && !trimmed.startsWith("/") && !/^https?:\/\//iu.test(trimmed)) {
+      if (
+        trimmed !== "" &&
+        !trimmed.startsWith("/") &&
+        !/^https?:\/\//iu.test(trimmed)
+      ) {
         throw new Error("site.theme_settings_invalid");
       }
       out.og_image = trimmed === "" ? null : trimmed;
@@ -216,14 +218,3 @@ export const HERO_GLOW_BACKGROUND =
   "radial-gradient(60% 55% at 50% 0%," +
   " color-mix(in srgb, var(--site-accent, currentColor) 18%, transparent) 0%," +
   " transparent 72%)";
-
-export function themeFontCss(family: ThemeFontFamily | undefined): string {
-  switch (family) {
-    case "serif":
-      return "ui-serif, Georgia, Cambria, Times New Roman, Times, serif";
-    case "mono":
-      return "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
-    default:
-      return "ui-sans-serif, system-ui, sans-serif";
-  }
-}
