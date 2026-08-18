@@ -12,12 +12,44 @@ describe("buildAppShellConfig", () => {
   const config = buildAppShellConfig(ENABLED_CLIENT_MODULES);
 
   it("聚合已启用模块的平台导航", () => {
-    expect(config.platformNavEntries.length).toBeGreaterThan(0);
-    expect(
-      config.platformNavEntries.some(
-        (entry) => entry.type === "link" && entry.to === "/platform/settings",
-      ),
-    ).toBe(true);
+    const outline = config.platformNavEntries.map((entry) =>
+      entry.type === "link"
+        ? { type: "link", to: entry.to }
+        : {
+            type: "group",
+            key: entry.key,
+            children: entry.children.map((child) => child.to),
+          },
+    );
+
+    expect(outline).toEqual([
+      { type: "link", to: "/platform" },
+      {
+        type: "group",
+        key: "tenant-admin",
+        children: ["/platform/tenants", "/platform/users"],
+      },
+      {
+        type: "group",
+        key: "commerce",
+        children: ["/platform/plans", "/platform/billing"],
+      },
+      {
+        type: "group",
+        key: "observability",
+        children: [
+          "/platform/audit-logs",
+          "/platform/error-logs",
+          "/platform/slow-query-logs",
+          "/platform/backup",
+        ],
+      },
+      {
+        type: "group",
+        key: "settings",
+        children: ["/platform/admins", "/platform/settings"],
+      },
+    ]);
   });
 
   it("聚合各模块的 shell 贡献", () => {

@@ -1,11 +1,12 @@
 {
   "nav": {
     "dashboard": "监控",
-    "settings": "设置",
+    "settings": "平台设置",
     "fallbackTitle": "平台管理",
     "groupTenant": "租户",
-    "groupAccess": "权限",
+    "groupCommerce": "计费",
     "groupObservability": "运维",
+    "groupSettings": "设置",
     "tenants": "租户管理",
     "users": "跨租户用户",
     "admins": "平台管理员",

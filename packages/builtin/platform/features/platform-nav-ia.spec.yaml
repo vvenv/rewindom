@@ -1,0 +1,44 @@
+# 平台控制台侧栏按操作心流重整：监控 → 租户 → 计费 → 运维 → 设置。
+# 套餐与订阅不再各占一条根菜单；平台管理员与平台设置同组（不要单独的单子项「权限」组）。
+
+# ---------- 必填 ----------
+module: platform
+surfaces: [platform]
+goal: 重整平台管理后台全部菜单项的分组与顺序：计费收一组；平台管理员与平台设置收进「设置」，不恢复单子项「权限」组。
+gold: apps/client/src/shell/lib/collect-platform-nav.ts
+touch:
+  - packages/builtin/platform/features/platform-nav-ia.spec.yaml
+  - packages/builtin/platform/MODULE.md
+  - packages/builtin/platform/client/platform/nav-contributions.ts
+  - packages/builtin/platform/client/locales/en.json
+  - packages/builtin/platform/client/locales/zh-CN.json
+  - packages/builtin/billing/client/platform/nav-contributions.ts
+  - packages/builtin/billing/MODULE.md
+  - packages/client-kit/src/lib/platform-nav-types.ts
+  - apps/client/src/shell/lib/collect-platform-nav.ts
+  - apps/client/src/shell/lib/collect-platform-nav.test.ts
+  - apps/client/src/app-shell-config.test.ts
+out_of_scope:
+  - 租户工作台 /app 侧栏
+  - 官网页头 / 页脚导航
+  - 新页面或改路由 path
+  - 单租户过滤规则（仍只藏 /platform/tenants）
+i18n: code
+acceptance:
+  - pnpm --filter client exec vitest --run src/shell/lib/collect-platform-nav.test.ts src/app-shell-config.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'platform/client' components/PlatformLayout.test.tsx components/PlatformMobileNav.test.tsx
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement:
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 侧栏顺序：
+#   监控（根）
+#   租户：租户管理、跨租户用户
+#   计费：套餐配置、订阅与付款（platform + billing 往 commerce 分组贡献）
+#   运维：审计、错误、慢查询、备份（不变）
+#   设置：平台管理员、平台设置（壳层写死，两项才成组；不要单独的「权限」组）
+# 空分组不渲染。kind: link 仍留给装不进固定分组的模块。

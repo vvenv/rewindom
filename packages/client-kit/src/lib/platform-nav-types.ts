@@ -30,8 +30,11 @@ export interface PlatformNavGroup {
 
 export type PlatformNavEntry = PlatformNavLink | PlatformNavGroup;
 
-/** 平台侧边栏的固定分组。业务模块自建分组请用 `kind: "link"` 贡献根级入口。 */
-export type PlatformNavGroupKey = "observability";
+/**
+ * 平台侧边栏的固定分组。模块往这些 key 追加子项；装不进任何组的才用 `kind: "link"`。
+ * 新增分组要同时改壳层 `collectPlatformNav` 的拼装顺序。
+ */
+export type PlatformNavGroupKey = "commerce" | "observability";
 
 export type PlatformNavContribution =
   | {

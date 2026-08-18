@@ -1,11 +1,12 @@
 {
   "nav": {
     "dashboard": "Monitor",
-    "settings": "Settings",
+    "settings": "Platform settings",
     "fallbackTitle": "Platform console",
     "groupTenant": "Tenants",
-    "groupAccess": "Access",
+    "groupCommerce": "Billing",
     "groupObservability": "Operations",
+    "groupSettings": "Settings",
     "tenants": "Tenant management",
     "users": "Cross-tenant users",
     "admins": "Platform admins",

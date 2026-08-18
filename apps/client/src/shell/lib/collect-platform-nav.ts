@@ -1,9 +1,9 @@
 import {
   Activity,
   Building2,
+  CreditCard,
   LayoutDashboard,
   Settings,
-  Shield,
 } from "lucide-react";
 
 import type {
@@ -24,13 +24,6 @@ const DASHBOARD_LINK: PlatformNavLink = {
   end: true,
 };
 
-const SETTINGS_LINK: PlatformNavLink = {
-  type: "link",
-  to: "/platform/settings",
-  label: "platform:nav.settings",
-  icon: Settings,
-};
-
 function createNavGroup(
   key: string,
   label: string,
@@ -40,7 +33,12 @@ function createNavGroup(
   return { type: "group", key, label, icon, children };
 }
 
-/** 壳层固定分组；业务模块通过 `platformNav` 的 `group-children` 向 observability 等分组追加子项。 */
+/**
+ * 壳层固定分组。业务模块通过 `platformNav` 的 `group-children` 往 commerce /
+ * observability 追加子项；租户组由壳层写死（单租户过滤只藏这一组里的租户管理）。
+ *
+ * 顺序：监控 → 租户 → 计费 → 运维 → 设置。
+ */
 const SHELL_NAV_GROUPS = {
   tenantAdmin: createNavGroup(
     "tenant-admin",
@@ -51,15 +49,22 @@ const SHELL_NAV_GROUPS = {
       { to: "/platform/users", label: "platform:nav.users", end: true },
     ],
   ),
-  access: createNavGroup("access", "platform:nav.groupAccess", Shield, [
-    { to: "/platform/admins", label: "platform:nav.admins", end: true },
-  ]),
+  commerce: createNavGroup(
+    "commerce",
+    "platform:nav.groupCommerce",
+    CreditCard,
+    [],
+  ),
   observability: createNavGroup(
     "observability",
     "platform:nav.groupObservability",
     Activity,
     [],
   ),
+  settings: createNavGroup("settings", "platform:nav.groupSettings", Settings, [
+    { to: "/platform/admins", label: "platform:nav.admins", end: true },
+    { to: "/platform/settings", label: "platform:nav.settings" },
+  ]),
 } as const satisfies Record<string, PlatformNavGroup>;
 
 function collectContributions(modules: readonly ClientAppModule[]): {
@@ -121,22 +126,30 @@ function collectContributions(modules: readonly ClientAppModule[]): {
   };
 }
 
+function withChildren(
+  group: PlatformNavGroup,
+  children: readonly PlatformNavChild[],
+): PlatformNavGroup | null {
+  if (children.length === 0) {
+    return null;
+  }
+  return { ...group, children };
+}
+
 export function collectPlatformNav(
   modules: readonly ClientAppModule[],
 ): readonly PlatformNavEntry[] {
   const { groupChildren, rootLinks } = collectContributions(modules);
 
-  const observabilityGroup: PlatformNavGroup = {
-    ...SHELL_NAV_GROUPS.observability,
-    children: groupChildren.observability ?? [],
-  };
-
   return [
     DASHBOARD_LINK,
     ...rootLinks,
     SHELL_NAV_GROUPS.tenantAdmin,
-    SHELL_NAV_GROUPS.access,
-    observabilityGroup,
-    SETTINGS_LINK,
-  ];
+    withChildren(SHELL_NAV_GROUPS.commerce, groupChildren.commerce ?? []),
+    withChildren(
+      SHELL_NAV_GROUPS.observability,
+      groupChildren.observability ?? [],
+    ),
+    SHELL_NAV_GROUPS.settings,
+  ].filter((entry): entry is PlatformNavEntry => entry != null);
 }

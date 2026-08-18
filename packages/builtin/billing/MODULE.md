@@ -26,6 +26,11 @@
 `/app/billing` 归入沉底分组「系统管理」（与用户管理、角色权限同组，`placement: end`），
 不单独占主区「设置」分组，避免日常业务与治理入口被割裂。
 
+## 平台侧导航
+
+`/platform/billing` 挂在平台控制台「计费」分组（`commerce`），排在套餐配置后面。
+套餐数据在 `platform` 的 `/platform/plans`，订阅与付款记录在本模块，同一组里先定价再看账。
+
 ## 启用
 
 在 [enabled-modules.ts](../../../apps/server/src/enabled-modules.ts) 与 client 同名文件注册。
