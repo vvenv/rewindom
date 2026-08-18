@@ -47,6 +47,7 @@
     "requires": [
       "rbac",
       "audit",
+      "platform",
       "marketing"
     ]
   }

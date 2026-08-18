@@ -24,7 +24,7 @@ export const eventsServerModule: ServerAppModule = {
   label: "Events",
   kind: "business",
   description: "跨来源发现事件、重建时间线并持续追踪",
-  requires: ["rbac", "audit", "marketing"],
+  requires: ["rbac", "audit", "platform", "marketing"],
   tenantEntitlements: [EVENTS_ENTITLEMENT],
   shared: {
     permissions: [

@@ -379,8 +379,17 @@
 }
 
 /* ---- 导航：同一份条目，横排或竖列 ---------------------------------------- */
+/*
+ * 放不下就折行，不能溢出。
+ *
+ * flex 项缩不到比自己的 min-content 更窄：横排导航一行七条时，它的盒子被行挤窄，
+ * 里面那排链接照旧按最长的宽度画出去——越过盒子右边，正好压在右区的语言 / 明暗上。
+ * 那是**重叠**不是溢出，看着就是个 bug。折行让 min-content 变成「最长的那一条」，
+ * 页头因此变高一行，但没有任何东西叠在一起。
+ */
 .chrome-nav-inline {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem;
 }
@@ -701,8 +710,13 @@
     max-width: none;
     width: 100%;
   }
+  /*
+   * 菜单里是一列。这里必须显式 `nowrap`：popup 有 `max-height`，竖排 flex 一旦允许
+   * 折行，条目多时会折成**第二列**而不是让 popup 滚动。
+   */
   .chrome-row:has(.chrome-menu-toggle:checked) .chrome-nav-inline {
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
   }
   /* popup 里的下拉就地展开，不要再浮一层 */

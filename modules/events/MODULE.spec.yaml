@@ -14,7 +14,7 @@ resource:
   singular: event
   plural: events
 surfaces: [tenant, ssr]
-requires: [rbac, audit, marketing]
+requires: [rbac, audit, platform, marketing]
 
 entitlement:
   key: events

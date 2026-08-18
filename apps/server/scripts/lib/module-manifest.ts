@@ -114,7 +114,8 @@ export const SERVER_MODULE_MANIFEST = [
   {
     id: "events",
     kind: "business",
+    // platform：读 tenant_modules 判断站点是否开通事件雷达
     // marketing：贡献官网段、模板页与 /events 公开路径
-    requires: ["rbac", "audit", "marketing"],
+    requires: ["rbac", "audit", "platform", "marketing"],
   },
 ] as const satisfies readonly ModuleManifestEntry[];
