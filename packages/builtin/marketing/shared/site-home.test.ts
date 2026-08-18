@@ -7,6 +7,7 @@ import {
   isHomePathAvailable,
   listHomeablePageOptions,
   normalizeHomePath,
+  pageIdAtHomePath,
 } from "./site-home.js";
 
 beforeAll(() => {
@@ -101,5 +102,26 @@ describe("listHomeablePageOptions", () => {
       "/demo",
     ]);
     expect(options[0]?.title).toBe("首页");
+  });
+});
+
+describe("pageIdAtHomePath", () => {
+  const pages = [
+    { id: "home-zh", kind: "home", slug: "home", locale: "zh-CN" },
+    { id: "home-en", kind: "home", slug: "home", locale: "en" },
+    { id: "about-zh", kind: "page", slug: "about", locale: "zh-CN" },
+  ];
+
+  it("prefers the requested locale at the home path", () => {
+    expect(pageIdAtHomePath(pages, "/", "en")).toBe("home-en");
+    expect(pageIdAtHomePath(pages, "/", "zh-CN")).toBe("home-zh");
+  });
+
+  it("falls back to any locale when the requested one is missing", () => {
+    expect(pageIdAtHomePath(pages, "/", "ja")).toBe("home-zh");
+  });
+
+  it("returns undefined when no page sits at that path", () => {
+    expect(pageIdAtHomePath(pages, "/missing", "zh-CN")).toBeUndefined();
   });
 });

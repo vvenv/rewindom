@@ -76,11 +76,12 @@ export type AddSectionTarget =
 export type EditorArea = "header" | "footer";
 
 /**
- * 一个编辑器管三样：**页面正文、页头页脚、主题**。
+ * 一个编辑器管页面正文与页头页脚；外观（`?scope=theme`）共用同一套草稿链与预览壳，
+ * 但不挂在区块树上——从官网卡片「外观」进来，不必先挑页面。
  *
- * `pageId` 可选——改导航或换配色不必先挑一张页面（站点一张页面都没有时也进得来）。
+ * `pageId` 可选——改导航不必先挑一张页面（站点一张页面都没有时也进得来）。
  * 有页面时保存走 `saveEditorDraft`（正文 + 站点级草稿同事务），没有则走
- * `saveSiteDraft`（只站点级）。
+ * `saveSiteDraft`（只站点级，外观走这条）。
  */
 export function useSiteEditor(pageId: string | undefined) {
   const siteQuery = useSite();

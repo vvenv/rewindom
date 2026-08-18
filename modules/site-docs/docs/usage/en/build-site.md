@@ -1,6 +1,6 @@
 ---
 title: Building a site
-description: Page editing, theme settings, header and footer, navigation
+description: Page editing, appearance, header and footer, navigation
 category: build-operate
 sort_order: 50
 ---
@@ -11,34 +11,33 @@ there the path is: open a page row → change sections → publish.
 
 ## Opening the editor
 
-The site card header has two actions; enter the editor from a page row below:
+The site card header has three actions; open a page's editor from a page row below:
 
 | Action / entry | Opens                                              |
 | -------------- | -------------------------------------------------- |
 | View website   | The live site in a new tab                         |
+| Appearance     | Logo, favicon, colours, fonts, layout (draft / publish) |
 | Site settings  | A sheet for name, language, publishing, redirects  |
-| Page row       | The website editor (that page + header/footer/theme) |
+| Page row       | The website editor (that page + header/footer)     |
 
 Built-in template pages (home, docs layouts, …) **cannot be deleted** — only reset to
 the latest layout. Ordinary pages you create can still be deleted.
 
-Inside the editor:
+Inside the page editor, one tree covers page meta, header, page sections and footer.
+Appearance is not on that tree.
 
-- **Sections** — page meta, header, page sections, footer in one tree
-- **Theme settings** — theme pack, colours, fonts, spacing, brand assets
-
-## Theme settings
+## Appearance
 
 A theme is a set of design tokens — colours, fonts, spacing, radii — that set the
 visual tone:
 
-- Switch theme packs under Theme settings in the editor
+- Switch theme packs under Appearance on the site card
 - Individual tokens can be overridden per site (say, only the brand colour)
-- The logo is a brand asset, configured separately from the theme pack tokens
+- Logo and favicon are brand assets, configured separately from the theme pack tokens
 
 To pull the latest built-in layout for a template page, use **Reset layout** on the
 page row. To re-apply a theme pack's defaults, use **Reset to latest** on that pack
-in Theme settings.
+under Appearance.
 
 ## Header and footer
 

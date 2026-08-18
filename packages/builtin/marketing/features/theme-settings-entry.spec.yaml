@@ -1,0 +1,35 @@
+# 增量功能契约 —— 外观从页面编辑器拆到站点卡片
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant]
+goal: 站点主题（Logo / Favicon / 配色 / 字体 / 版式）从页面编辑器左栏拿掉，改为官网卡片上与「站点设置」并列的「外观」入口；仍走草稿/发布与实站预览，不塞进设置 Sheet
+gold: packages/builtin/marketing/client/components/SiteSettingsSheet.tsx
+touch:
+  - packages/builtin/marketing/features/theme-settings-entry.spec.yaml
+  - packages/builtin/marketing/client/components/SiteSummaryHeader.tsx
+  - packages/builtin/marketing/client/components/SiteSummaryHeader.test.tsx
+  - packages/builtin/marketing/client/components/SiteSettingsSheet.tsx
+  - packages/builtin/marketing/client/pages/site-editor.tsx
+  - packages/builtin/marketing/client/hooks/use-site-editor-page.ts
+  - packages/builtin/marketing/client/lib/site-editor-url.ts
+  - packages/builtin/marketing/client/lib/site-editor-url.test.ts
+  - packages/builtin/marketing/client/tenant/nav-sections.ts
+  - packages/builtin/marketing/shared/site-home.ts
+  - packages/builtin/marketing/shared/site-home.test.ts
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/marketing/server/site.mapper.ts
+  - docs/design/tenant-config.md
+  - modules/site-docs/docs/usage/
+  - modules/site-docs/server/usage-docs.generated.ts
+out_of_scope:
+  - 把主题字段塞进站点设置 Sheet
+  - 拆独立 /app/site/theme 路由或再造一套预览壳
+  - 改主题草稿 / 发布 API
+  - 中台品牌页 / 工作台外壳 Logo
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run SiteSummaryHeader.test.tsx site-editor-url.test.ts site-home.test.ts
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/site-docs assemble:usage-docs

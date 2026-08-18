@@ -2,10 +2,12 @@ import { Badge } from "@rewindom/ui/badge";
 import { Button } from "@rewindom/ui/button";
 import { CardAction, CardHeader, CardTitle } from "@rewindom/ui/card";
 import { Skeleton } from "@rewindom/ui/skeleton";
-import { ExternalLink, Settings2 } from "lucide-react";
+import { ExternalLink, Palette, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
 import { localizeSiteText } from "../../shared/section-schema.js";
+import { siteEditorPath } from "../lib/site-editor-url.js";
 
 import { SiteSettingsSheet } from "./SiteSettingsSheet.js";
 
@@ -24,12 +26,13 @@ interface SiteSummaryHeaderProps {
 /**
  * 站点卡片的头部：名称、发布状态 + 站点级操作。
  *
- * 进编辑器靠下方页面行，卡头不再挂「编辑某某」——会和列表入口重复，而且按钮名
- * 永远对不齐「整站 / 首页 / 某一页」哪一层。
+ * 进某一页靠下方页面行；卡头挂站点级动作（查看官网 / 外观 / 站点设置），
+ * 不再挂「编辑某某」——会和列表入口重复，而且按钮名永远对不齐落点。
  *
  * | 按钮       | 干什么                         |
  * | ---------- | ------------------------------ |
  * | 查看官网   | 新窗口看访客看到的站           |
+ * | 外观       | 编辑器主题层：Logo / 配色 / 版式 |
  * | 站点设置   | Sheet：站名、语言、首页、发布、重定向 |
  */
 export function SiteSummaryHeader({
@@ -98,6 +101,18 @@ export function SiteSummaryHeader({
             <ExternalLink className="size-4" />
             <span className="hidden lg:inline">{t("cms.viewSite")}</span>
           </a>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link
+            to={siteEditorPath({ scope: "theme" })}
+            aria-label={t("cms.settingsSectionTheme")}
+            title={t("cms.settingsSectionThemeHint")}
+          >
+            <Palette className="size-4" />
+            <span className="hidden lg:inline">
+              {t("cms.settingsSectionTheme")}
+            </span>
+          </Link>
         </Button>
         <SiteSettingsSheet site={site}>
           <Button variant="outline" size="sm" aria-label={t("cms.settings")}>

@@ -21,11 +21,14 @@ import { toast } from "sonner";
 
 import {
   getSectionDefinition,
+  localizeSections,
   type SiteSection,
 } from "../../shared/section-schema.js";
 import { collectHeaderNavItems } from "../../shared/sections/_common/chrome-blocks.js";
 import { collectSectionTypes } from "../../shared/sections/collect-types.js";
 import { siteNavPages } from "../../shared/site-cms.js";
+import { normalizeHomePath, pageIdAtHomePath } from "../../shared/site-home.js";
+import { withSiteLocale } from "../../shared/site-locale.js";
 import { SiteThemeSettingsForm } from "../components/appearance/SiteThemeSettingsForm.js";
 import { TenantSiteView } from "../components/TenantSiteView.js";
 import { EditorToolbar } from "../components/theme-editor/EditorToolbar.js";
@@ -42,6 +45,7 @@ import { SiteAccountEntryPreview } from "../components/theme-editor/SiteAccountE
 import { resolveEditorContexts } from "../editor-context-providers.js";
 import { useSiteEditorPage } from "../hooks/use-site-editor-page.js";
 import { clearEditorCache, useSiteEditor } from "../hooks/use-site-editor.js";
+import { useSitePage, useSitePages } from "../hooks/useSite.js";
 import { resolveEditorPublishState } from "../lib/editor-publish-state.js";
 import { sectionTypeLabel } from "../lib/section-type-label.js";
 import { siteEditorPath } from "../lib/site-editor-url.js";
@@ -69,17 +73,13 @@ function selectionTypeLabel(
 }
 
 /**
- * 站点编辑器：**页面区块、页头页脚、主题设置**都在这里改，一块预览、一条发布链。
+ * 站点编辑器：页面区块与页头页脚在这里改；外观是同一套壳的另一层入口。
  *
- * 以前是三个界面——逐页编辑器、页头页脚编辑器、外观页——各自一份三栏壳、各自一份
- * 预览接线；外观那份预览还是只读的静态首页，改配色等于盲改。它们改的是同一个站点、
- * 看的是同一块预览，差别只是「在调哪一层」，所以合成一个（口径同 Shopify 主题编辑器）。
+ * 共用一块预览、一条发布链。入口拆开是因为主题不是树上的对象——从官网卡片「外观」
+ * 进来（`?scope=theme`），不必先点进某一页；页面行只打开区块树（`?page=`）。
  *
- * - `?page=` 决定树里有没有「页面区块」那一段；不带就只有页头页脚，改导航不必先挑页面
- * - `?scope=theme` 切到主题设置层，字段进右侧设置栏——它不是树上的对象，选不中
- *
- * 保存 / 发布只有两枚按钮：有页面时正文与站点级草稿同事务落库，没有页面时只落站点级；
- * 主题跟着页头页脚同一条链，改完先存草稿、发布才对访客生效。
+ * 保存 / 发布只有两枚按钮：有页面时正文与站点级草稿同事务落库，没有页面时只落站点级
+ * （外观走这条）。改完先存草稿、发布才对访客生效。
  */
 export function SiteEditor() {
   const navigate = useNavigate();
@@ -87,28 +87,61 @@ export function SiteEditor() {
   const { hasPermission } = usePermissions();
   const { confirm } = useConfirm();
   const canWrite = hasPermission("site.write");
-  const { pageId, scope, setScope } = useSiteEditorPage();
+  const { pageId: urlPageId, scope } = useSiteEditorPage();
+  const isTheme = scope === "theme";
+  // 外观不编辑某一页：旧书签若带了 `page` 也忽略，避免保存时把正文草稿一起写进去。
+  const pageId = isTheme ? undefined : urlPageId;
   const editor = useSiteEditor(pageId);
+  const pagesQuery = useSitePages();
+  const homePageId = isTheme
+    ? pageIdAtHomePath(
+        pagesQuery.data ?? [],
+        editor.siteQuery.data?.home_path ?? "/",
+        editor.locale,
+      )
+    : undefined;
+  const homePageQuery = useSitePage(homePageId);
+  const previewSections =
+    isTheme && homePageQuery.data
+      ? localizeSections(
+          homePageQuery.data.sections,
+          editor.locale,
+          editor.defaultLocale,
+        )
+      : editor.previewSections;
+  const previewPath = isTheme
+    ? withSiteLocale(
+        normalizeHomePath(editor.siteQuery.data?.home_path ?? "/"),
+        editor.locale,
+        editor.defaultLocale,
+      )
+    : editor.path;
+  const previewPageSettings = isTheme
+    ? (homePageQuery.data?.settings ?? {})
+    : editor.pageSettings;
+  const previewPageKind = isTheme
+    ? homePageQuery.data?.kind
+    : editor.page?.kind;
   const usedTypes = useMemo(() => {
     const types = collectSectionTypes(editor.header);
     collectSectionTypes(editor.footer, types);
-    collectSectionTypes(editor.previewSections, types);
+    collectSectionTypes(previewSections, types);
     return types;
-  }, [editor.header, editor.footer, editor.previewSections]);
+  }, [editor.header, editor.footer, previewSections]);
   const usedTypesKey = [...usedTypes].sort().join(",");
   const { data: editorCtx = {} } = useQuery({
     queryKey: [
       "marketing-editor-contexts",
       editor.locale,
       editor.defaultLocale,
-      editor.page?.kind,
+      previewPageKind,
       usedTypesKey,
     ],
     queryFn: () =>
       resolveEditorContexts({
         locale: editor.locale,
         defaultLocale: editor.defaultLocale,
-        pageKind: editor.page?.kind,
+        pageKind: previewPageKind,
         usedTypes,
       }),
   });
@@ -120,7 +153,7 @@ export function SiteEditor() {
   const headerIds = editor.header.map((section) => section.id).join(",");
 
   useEffect(() => {
-    if (!previewDoc || !selectedSectionId) return;
+    if (isTheme || !previewDoc || !selectedSectionId) return;
     if (headerIds.split(",").includes(selectedSectionId)) {
       previewDoc.defaultView?.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -133,13 +166,15 @@ export function SiteEditor() {
     previewDoc
       .querySelector(selector)
       ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [previewDoc, selectedSectionId, selectedBlockId, headerIds]);
+  }, [isTheme, previewDoc, selectedSectionId, selectedBlockId, headerIds]);
 
   const shell = (children: React.ReactNode) => (
     <PageLayout
       icon={Palette}
-      title={t("editor.title")}
-      description={t("editor.pageDescription")}
+      title={isTheme ? t("editor.scope.theme") : t("editor.title")}
+      description={
+        isTheme ? t("editor.scope.themeHint") : t("editor.pageDescription")
+      }
     >
       {children}
     </PageLayout>
@@ -216,7 +251,7 @@ export function SiteEditor() {
 
   const goToPage = (nextPageId: string): void => {
     if (nextPageId === pageId) return;
-    void leaveTo(siteEditorPath({ pageId: nextPageId, scope }));
+    void leaveTo(siteEditorPath({ pageId: nextPageId }));
   };
 
   /**
@@ -337,16 +372,18 @@ export function SiteEditor() {
     <TenantSiteView
       embedded
       site={editor.previewSite}
-      path={editor.path}
-      sections={editor.previewSections}
+      path={previewPath}
+      sections={previewSections}
       alternates={editor.previewAlternates}
-      pageSettings={editor.pageSettings}
+      pageSettings={previewPageSettings}
       headerOverride={editor.header}
       footerOverride={editor.footer}
       contributed={editorCtx}
       enabledEntitlements={editor.capabilities.entitlements}
-      onSelectSection={(sectionId, blockId) =>
-        editor.selectSection(sectionId, blockId)
+      onSelectSection={
+        isTheme
+          ? undefined
+          : (sectionId, blockId) => editor.selectSection(sectionId, blockId)
       }
     />
   );
@@ -399,31 +436,99 @@ export function SiteEditor() {
     >
       <PageLayout
         icon={Palette}
-        title={t("editor.title")}
+        title={isTheme ? t("editor.scope.theme") : t("editor.title")}
         description={
-          page ? editor.title || page.title : t("editor.pageDescription")
+          isTheme
+            ? t("editor.scope.themeHint")
+            : page
+              ? editor.title || page.title
+              : t("editor.pageDescription")
         }
         fill
+        backLink={
+          isTheme ? { to: "/app/site", label: t("editor.back") } : undefined
+        }
         action={toolbar}
       >
-        {/* 三栏各自滚：页面不整体滚动，预览区吃满剩余高度 */}
-        <div className="-mx-1 grid gap-3 lg:h-full lg:min-h-0 lg:grid-cols-[240px_minmax(0,1fr)_300px] lg:grid-rows-[minmax(0,1fr)]">
-          <div className="flex min-h-0 flex-col gap-2">
-            {pageMissing ? (
-              <p className="px-1 text-xs text-destructive">
-                {t("editor.pageMissing")}
-              </p>
-            ) : null}
+        {/* 栏各自滚：页面不整体滚动，预览区吃满剩余高度 */}
+        <div
+          className={cn(
+            "-mx-1 grid gap-3 lg:h-full lg:min-h-0 lg:grid-rows-[minmax(0,1fr)]",
+            isTheme
+              ? "lg:grid-cols-[minmax(0,1fr)_300px]"
+              : "lg:grid-cols-[240px_minmax(0,1fr)_300px]",
+          )}
+        >
+          {isTheme ? null : (
+            <div className="flex min-h-0 flex-col gap-2">
+              {pageMissing ? (
+                <p className="px-1 text-xs text-destructive">
+                  {t("editor.pageMissing")}
+                </p>
+              ) : null}
 
-            {/*
-              没打开页面时页头页脚的文案仍要能逐语言校对——它们是逐字段翻译的，
-              不依赖任何一行页面。有页面时语言由那一行决定，换语言 = 换页（工具栏里）。
-            */}
-            {!page && editor.localeVariants.length > 1 ? (
-              <div className="flex items-center gap-2 px-1">
-                <span className="text-xs text-muted-foreground">
-                  {t("chromeEditor.editLocale")}
-                </span>
+              {/*
+                没打开页面时页头页脚的文案仍要能逐语言校对——它们是逐字段翻译的，
+                不依赖任何一行页面。有页面时语言由那一行决定，换语言 = 换页（工具栏里）。
+              */}
+              {!page && editor.localeVariants.length > 1 ? (
+                <div className="flex items-center gap-2 px-1">
+                  <span className="text-xs text-muted-foreground">
+                    {t("chromeEditor.editLocale")}
+                  </span>
+                  <ButtonGroup>
+                    {editor.localeVariants.map((variant) => (
+                      <Button
+                        key={variant.locale}
+                        type="button"
+                        size="sm"
+                        variant={
+                          variant.locale === editor.locale
+                            ? "secondary"
+                            : "outline"
+                        }
+                        aria-pressed={variant.locale === editor.locale}
+                        onClick={() => editor.setLocale(variant.locale)}
+                      >
+                        {getLocaleNativeLabel(variant.locale)}
+                      </Button>
+                    ))}
+                  </ButtonGroup>
+                </div>
+              ) : null}
+
+              <SectionTree
+                chromeOnly={!page}
+                entitlements={editor.capabilities.entitlements}
+                isDefaultTenant={editor.capabilities.is_default_tenant}
+                pageKind={editor.page?.kind}
+                sections={editor.sections}
+                header={editor.header}
+                footer={editor.footer}
+                selectedSectionId={editor.selectedSectionId}
+                selectedBlockId={editor.selectedBlockId}
+                metaSelected={editor.metaSelected}
+                canWrite={canWrite}
+                onSelect={editor.selectSection}
+                onSelectMeta={editor.selectMeta}
+                onAddSection={editor.addSection}
+                onRemoveSection={editor.removeSection}
+                onMoveSection={editor.moveSection}
+                onMoveSectionTo={editor.moveSectionTo}
+                onAddBlock={editor.addBlock}
+                onRemoveBlock={editor.removeBlock}
+                onMoveBlock={editor.moveBlock}
+                onReorderBlock={editor.reorderBlock}
+              />
+            </div>
+          )}
+
+          <div className="flex h-[70vh] flex-col overflow-hidden rounded-lg border bg-background lg:h-full">
+            <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2 text-xs text-muted-foreground">
+              <span className="truncate">
+                {t("editor.preview")} · {previewPath}
+              </span>
+              {isTheme && editor.localeVariants.length > 1 ? (
                 <ButtonGroup>
                   {editor.localeVariants.map((variant) => (
                     <Button
@@ -442,80 +547,7 @@ export function SiteEditor() {
                     </Button>
                   ))}
                 </ButtonGroup>
-              </div>
-            ) : null}
-
-            {/*
-              树全程可见，不再有与它平行的「主题」tab——主题选中时树上的段落高亮
-              压掉（右栏正在显示主题字段）；点回任何树行自动切回 sections 层，
-              增删区块也一样（新段会被自动选中，右栏得跟上）。
-            */}
-            <SectionTree
-              chromeOnly={!page}
-              entitlements={editor.capabilities.entitlements}
-              isDefaultTenant={editor.capabilities.is_default_tenant}
-              pageKind={editor.page?.kind}
-              sections={editor.sections}
-              header={editor.header}
-              footer={editor.footer}
-              selectedSectionId={
-                scope === "sections" ? editor.selectedSectionId : null
-              }
-              selectedBlockId={
-                scope === "sections" ? editor.selectedBlockId : null
-              }
-              metaSelected={scope === "sections" && editor.metaSelected}
-              canWrite={canWrite}
-              onSelect={(sectionId, blockId) => {
-                setScope("sections");
-                editor.selectSection(sectionId, blockId);
-              }}
-              onSelectMeta={() => {
-                setScope("sections");
-                editor.selectMeta();
-              }}
-              onAddSection={(type, target) => {
-                setScope("sections");
-                editor.addSection(type, target);
-              }}
-              onRemoveSection={editor.removeSection}
-              onMoveSection={editor.moveSection}
-              onMoveSectionTo={editor.moveSectionTo}
-              onAddBlock={(sectionId, blockType) => {
-                setScope("sections");
-                editor.addBlock(sectionId, blockType);
-              }}
-              onRemoveBlock={editor.removeBlock}
-              onMoveBlock={editor.moveBlock}
-              onReorderBlock={editor.reorderBlock}
-            />
-
-            {/*
-              主题设置钉在左栏**滚动区之外**的底部：树再长它也不动、不被顶出视野
-              （口径同 Shopify 主题编辑器左栏底部的 Theme settings）。它是站点级
-              的一层参数、不是树上的对象，点它 = 选中它，字段进右侧设置栏。
-            */}
-            <button
-              type="button"
-              onClick={() => setScope("theme")}
-              aria-pressed={scope === "theme"}
-              className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-left text-sm",
-                scope === "theme"
-                  ? "border-primary bg-muted/60"
-                  : "hover:bg-muted/40",
-              )}
-            >
-              <Palette className="size-3.5 shrink-0 text-muted-foreground" />
-              <span className="truncate">{t("editor.scope.theme")}</span>
-            </button>
-          </div>
-
-          <div className="flex h-[70vh] flex-col overflow-hidden rounded-lg border bg-background lg:h-full">
-            <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2 text-xs text-muted-foreground">
-              <span className="truncate">
-                {t("editor.preview")} · {editor.path}
-              </span>
+              ) : null}
               <ButtonGroup className="ml-auto">
                 {DEVICE_ICONS.map(([key, Icon]) => (
                   <Button
@@ -537,13 +569,9 @@ export function SiteEditor() {
             <PreviewFrame
               device={device}
               onDocumentChange={setPreviewDoc}
-              highlightSectionId={
-                scope === "sections" ? editor.selectedSectionId : null
-              }
-              highlightBlockId={
-                scope === "sections" ? editor.selectedBlockId : null
-              }
-              highlightLabel={highlightLabel}
+              highlightSectionId={isTheme ? null : editor.selectedSectionId}
+              highlightBlockId={isTheme ? null : editor.selectedBlockId}
+              highlightLabel={isTheme ? undefined : highlightLabel}
             >
               {/*
                 页头的会员入口在站点前台由 site-member 填进 slot；编辑器在工作台
@@ -566,19 +594,14 @@ export function SiteEditor() {
           </div>
 
           <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto rounded-lg border p-3">
-            {scope === "theme" ? (
-              <>
-                <p className="text-xs text-muted-foreground">
-                  {t("editor.scope.themeHint")}
-                </p>
-                <SiteThemeSettingsForm
-                  theme={editor.theme}
-                  themeKey={editor.themeKey}
-                  canWrite={canWrite}
-                  onChange={editor.setTheme}
-                  onThemeKeyChange={editor.setThemeKey}
-                />
-              </>
+            {isTheme ? (
+              <SiteThemeSettingsForm
+                theme={editor.theme}
+                themeKey={editor.themeKey}
+                canWrite={canWrite}
+                onChange={editor.setTheme}
+                onThemeKeyChange={editor.setThemeKey}
+              />
             ) : editor.metaSelected && page ? (
               <PageMetaForm
                 title={editor.title}

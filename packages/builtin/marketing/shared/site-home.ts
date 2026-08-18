@@ -63,6 +63,29 @@ export interface HomeablePageOption {
 }
 
 /**
+ * 外观预览要对着真实首页：从页面列表里找出 `home_path` 对应的那一行。
+ *
+ * 优先当前编辑语言；没有译文再退回任意一种语言。找不到就让预览只剩页头页脚——
+ * 站点可以一张页面都没有，外观仍然要能配。
+ */
+export function pageIdAtHomePath(
+  pages: readonly {
+    id: string;
+    kind: string;
+    slug: string;
+    locale: string;
+  }[],
+  homePath: string,
+  locale: string,
+): string | undefined {
+  const path = normalizeHomePath(homePath);
+  const matches = pages.filter(
+    (page) => marketingPagePath(page.kind, page.slug) === path,
+  );
+  return matches.find((page) => page.locale === locale)?.id ?? matches[0]?.id;
+}
+
+/**
  * 设置里的首页候选：`/` 永远在第一项，其余按路径排。
  *
  * 同一路径多语言只留一行，标题优先主语言那份。
