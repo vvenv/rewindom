@@ -71,6 +71,14 @@ describe("订阅入口 · chrome 块", () => {
     expect(render()).toContain('type="application/rss+xml"');
   });
 
+  /*
+   * 尺寸走 marketing 的 `--chrome-control-*`，所以必须挂上这个 class。
+   * 贡献 CSS 拼在后面，自己写 2rem 会把页脚密度盖掉。
+   */
+  it("挂 chrome-control，尺寸跟页头工具栏 / 页脚版权走同一套 token", () => {
+    expect(render()).toContain('class="chrome-control events-subscribe"');
+  });
+
   it("没有文案时整块不渲染", () => {
     expect(render({}, { label: "" })).toBe("");
   });
@@ -142,6 +150,10 @@ describe("订阅入口 · 页面段", () => {
     expect(renderSection({}, { hint: "不需要注册账号" })).toContain(
       "不需要注册账号",
     );
+  });
+
+  it("同样挂 chrome-control——正文流里没有区域 token，回落到工具栏尺寸", () => {
+    expect(renderSection()).toContain('class="chrome-control events-subscribe"');
   });
 
   it("没有文案时整块不渲染", () => {

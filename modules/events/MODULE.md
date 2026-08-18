@@ -552,7 +552,8 @@ marketing 的 `/*`，但一旦注册顺序变了，`/events/feed.xml` 会被当�
 
 chrome 块默认落在靠右、窄屏收进菜单。`icon_only` 打开后只画一个 RSS 图标，
 此时**必须**补 `aria-label`：图标本身已经 `aria-hidden`，不补就等于给了读屏软件
-一个没有名字的链接。
+一个没有名字的链接。markup 带 class `chrome-control`，尺寸跟页头工具栏 / 页脚
+版权文字走同一套 `--chrome-control-*` token，不要在本模块 CSS 里再写死 2rem。
 
 > 开关写成 `icon_only`（默认 false）而不是 `show_label`（默认 true）是刻意的：
 > `settingBool` 是严格 `=== true`，键缺失一律当 false。写成 `show_label` 的话，

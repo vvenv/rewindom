@@ -344,31 +344,12 @@
 /*
  * 订阅入口：页头 / 页脚的 chrome 块。
  *
- * **尺寸必须与 `.theme-toggle` / `.locale-switcher > summary` 一致**——它们同排并列，
- * 差一点点就会看出来。那两个的形状是：2rem 方框、圆角 0.5rem、hover 铺 --muted-bg、
- * 前景 --fg、内含 16×16 图标。这里照抄，别自己定一套。
+ * 尺寸不要在这里写死。markup 带 class `chrome-control`，跟语言 / 明暗走同一套
+ * `--chrome-control-*` token：页头是 2rem 工具栏，页脚跟版权文字对齐。
+ * 贡献 CSS 拼在 marketing 后面，这里再写 height: 2rem 会把页脚密度盖掉。
  */
 .events-subscribe {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 2rem;
-  padding: 0 0.5rem;
-  border-radius: 0.5rem;
-  color: var(--fg);
-  font-size: 0.875rem;
   text-decoration: none;
-}
-
-/* 只显示图标时是个正方形，与主题切换逐像素一致 */
-.events-subscribe:not(:has(span)) {
-  width: 2rem;
-  padding: 0;
-}
-
-.events-subscribe:hover {
-  background: var(--muted-bg);
 }
 
 /* 订阅入口的页面段形态：正文流里，可带一句说明。 */

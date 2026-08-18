@@ -55,7 +55,7 @@ export const renderEventsSubscribeBlockHtml: ChromeBlockHtmlRenderer = (
   const safeLabel = escapeHtml(label);
 
   return [
-    `<a class="events-subscribe" href="${href}" type="application/rss+xml"`,
+    `<a class="chrome-control events-subscribe" href="${href}" type="application/rss+xml"`,
     ` title="${safeLabel}"`,
     iconOnly ? ` aria-label="${safeLabel}"` : "",
     `>${RSS_ICON}`,
@@ -80,7 +80,7 @@ export const renderEventsSubscribeHtml: SectionHtmlRenderer = (section, ctx) => 
 
   return [
     `<div class="events-subscribe-block">`,
-    `<a class="events-subscribe" href="${href}" type="application/rss+xml">`,
+    `<a class="chrome-control events-subscribe" href="${href}" type="application/rss+xml">`,
     RSS_ICON,
     `<span>${escapeHtml(label)}</span></a>`,
     hint ? `<p class="events-subscribe-hint">${escapeHtml(hint)}</p>` : "",

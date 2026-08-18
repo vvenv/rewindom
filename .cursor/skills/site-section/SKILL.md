@@ -93,9 +93,9 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 `type` 带模块前缀；`entitlement` 闸门同样生效。金标准：shop `shop.cart-link`。
 
-**图标控件必须与 `.theme-toggle` / `.locale-switcher > summary` 等大**——同排并列，
-差一点点就看得出来：2rem 方框、圆角 `0.5rem`、`color: var(--fg)`、hover 铺 `--muted-bg`、
-内含 16×16 内联 SVG。带文字时保持同样的高度与圆角，只放开宽度。
+**图标控件必须挂 class `chrome-control`**——同排并列，尺寸由页头 / 页脚上的
+`--chrome-control-*` token 决定（页头 2rem 工具栏，页脚跟 `.chrome-text` 对齐），
+不要自己写 `height: 2rem`。带文字时放 `<span>`，只放开宽度。内含 16×16 内联 SVG。
 纯图标形态**必须**补 `aria-label`（图标已 `aria-hidden`，不补就是没有名字的控件）。
 细则见 `site-section-css` rule。
 

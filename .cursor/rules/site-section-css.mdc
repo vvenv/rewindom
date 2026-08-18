@@ -18,26 +18,24 @@ marketing 内置段的样式在构建期打进 `MARKETING_SECTION_CSS`。别的�
 
 `foo-bar.css` → 导出 `FOO_BAR_CSS`。只用官网已有 token（`--surface` / `--border` / `--muted-fg` / `--accent` / `--radius`；与页头页脚同排的控件还会用到 `--fg` / `--muted-bg`）。金标准：`packages/builtin/site-member/shared/site-css/`。
 
-## chrome 块的图标控件必须与内置控件等大
+## chrome 块的图标控件必须挂 `chrome-control`
 
-贡献进页头 / 页脚的块和 `.theme-toggle`、`.locale-switcher > summary` **同排并列**，
-尺寸差一点点就会看出来。内置控件的形状写死在
-`packages/builtin/marketing/shared/sections/_common/styles.css`，照抄，别自己定一套：
+贡献进页头 / 页脚的图标控件和语言切换、明暗切换**同排并列**。尺寸由区域上的
+`--chrome-control-*` token 决定（写在
+`packages/builtin/marketing/shared/sections/_common/styles.css`），**不要自己写 2rem**：
 
-| | |
-| --- | --- |
-| 方框 | `width: 2rem; height: 2rem`（纯图标时）|
-| 圆角 | `border-radius: 0.5rem` |
-| 排布 | `display: inline-flex; align-items: center; justify-content: center` |
-| 前景 | `color: var(--fg)` —— **不是** `--muted-fg` |
-| hover | `background: var(--muted-bg)` |
-| 图标 | 内联 SVG `width="16" height="16"`，`stroke="currentColor"`，`aria-hidden="true"` |
+| | 页头（工具栏） | 页脚（元信息，跟 `.chrome-text` 对齐） |
+| --- | --- | --- |
+| 高度 | `2rem` | `1.5rem` |
+| 字号 / 前景 | `0.875rem` / `--fg` | `0.75rem` / `--muted-fg` |
 
-带文字的形态保持 `height: 2rem` 与同样的圆角 / hover，只把宽度放开、加 `padding: 0 0.5rem`。
+markup 加 class `chrome-control`（纯图标时无 `<span>`，带文字时放 `<span>`）。内含 16×16
+内联 SVG，`stroke="currentColor"`，`aria-hidden="true"`。
+
+贡献 CSS 拼在 marketing 后面：再写 `height: 2rem` 会把页脚密度盖掉。
 
 纯图标的链接或按钮**必须**带 `aria-label`（图标已经 `aria-hidden`，不补就是一个没有名字的
-控件），并建议同时给 `title` 作为悬停提示。金标准：`modules/events/shared/site-css/events.css`
-的 `.events-subscribe`、`modules/site-docs` 的 `.chrome-search`。
+控件），并建议同时给 `title` 作为悬停提示。金标准：`modules/events/shared/sections/subscribe-html.ts`。
 
 ## 禁止
 

@@ -1,0 +1,43 @@
+# 增量功能契约 —— 页头 / 页脚 chrome 控件密度
+#
+# 起因：页脚同一行里，`chrome_text`（版权，0.75rem）和 RSS 订阅入口（照抄页头
+# 工具栏的 2rem 方框）大小差一截。给每个块加字号设置会把「对齐」推给租户，和
+# 当年用 `layout: split | centered` 补定位能力是同一类补丁。
+#
+# 正确的机制是**区域密度**：页头是工具栏，页脚是元信息。尺寸写在
+# `--chrome-control-*` token 上；贡献块加 class `chrome-control` 即跟随，
+# 不要再手写 2rem。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: 页头 / 页脚的图标控件走 `--chrome-control-*` token；页脚与 chrome_text 同级，页头保持工具栏尺寸。贡献块加 class chrome-control，禁止再手写 2rem。
+gold: packages/builtin/marketing/shared/sections/_common/styles.css
+touch:
+  - packages/builtin/marketing/features/chrome-control-density.spec.yaml
+  - packages/builtin/marketing/shared/sections/_common/styles.css
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.test.ts
+  - packages/builtin/marketing/client/components/sections/SiteChrome.tsx
+  - packages/builtin/marketing/client/components/sections/SiteChrome.test.tsx
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+  - packages/builtin/marketing/shared/marketing-site-css.test.ts
+  - packages/builtin/marketing/MODULE.md
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/shared/sections/subscribe-html.ts
+  - modules/events/shared/sections/subscribe-html.test.ts
+  - modules/events/MODULE.md
+  - .cursor/rules/site-section-css.mdc
+  - .cursor/skills/site-section/SKILL.md
+out_of_scope:
+  - 给 chrome_text / 订阅块加字号设置（密度由区域决定，不是块级旋钮）
+  - 改 shop.cart-link / 会员入口（它们走按钮而不是图标控件）
+  - 改 chrome 块 schema / row / align / mobile
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin assemble:marketing-css
+  - pnpm --filter @rewindom/builtin assemble:module-css
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared marketing-site-css.test.ts chrome-html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteChrome.test.tsx
+  - pnpm --filter @rewindom/events exec vitest --run --project shared subscribe-html.test.ts
