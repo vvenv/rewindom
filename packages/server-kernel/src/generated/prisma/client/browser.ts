@@ -384,6 +384,11 @@ export type SiteMemberOAuthExchangeCode = Prisma.SiteMemberOAuthExchangeCodeMode
  */
 export type SlowQueryLog = Prisma.SlowQueryLogModel
 /**
+ * Model SlowRequestLog
+ * 
+ */
+export type SlowRequestLog = Prisma.SlowRequestLogModel
+/**
  * Model Todo
  * 
  */

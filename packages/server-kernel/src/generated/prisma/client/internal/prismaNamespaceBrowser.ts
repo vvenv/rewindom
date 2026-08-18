@@ -113,6 +113,7 @@ export const ModelName = {
   SiteMemberOAuthAccount: 'SiteMemberOAuthAccount',
   SiteMemberOAuthExchangeCode: 'SiteMemberOAuthExchangeCode',
   SlowQueryLog: 'SlowQueryLog',
+  SlowRequestLog: 'SlowRequestLog',
   Todo: 'Todo'
 } as const
 
@@ -293,6 +294,7 @@ export const EventSignalScalarFieldEnum = {
   published_at: 'published_at',
   fetched_at: 'fetched_at',
   event_id: 'event_id',
+  removed_at: 'removed_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1167,6 +1169,24 @@ export const SlowQueryLogScalarFieldEnum = {
 } as const
 
 export type SlowQueryLogScalarFieldEnum = (typeof SlowQueryLogScalarFieldEnum)[keyof typeof SlowQueryLogScalarFieldEnum]
+
+
+export const SlowRequestLogScalarFieldEnum = {
+  id: 'id',
+  duration_ms: 'duration_ms',
+  status_code: 'status_code',
+  route: 'route',
+  path: 'path',
+  method: 'method',
+  tenant_slug: 'tenant_slug',
+  user_id: 'user_id',
+  username: 'username',
+  request_id: 'request_id',
+  source: 'source',
+  created_at: 'created_at'
+} as const
+
+export type SlowRequestLogScalarFieldEnum = (typeof SlowRequestLogScalarFieldEnum)[keyof typeof SlowRequestLogScalarFieldEnum]
 
 
 export const TodoScalarFieldEnum = {

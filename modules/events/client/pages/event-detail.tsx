@@ -32,8 +32,16 @@ export function EventDetail() {
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("events.write");
   const canFollow = hasPermission("events.follow");
-  const { eventId, data, isLoading, isError, error, refetch } =
-    useEventDetailPage();
+  const {
+    eventId,
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    handleRemoveSignal,
+    removingId,
+  } = useEventDetailPage();
 
   return (
     <PageLayout
@@ -168,7 +176,11 @@ export function EventDetail() {
                     title={t("detail.sourcesEmpty")}
                   />
                 ) : (
-                  <EventSourceGroups sources={data.sources} />
+                  <EventSourceGroups
+                    sources={data.sources}
+                    onRemove={canWrite ? handleRemoveSignal : undefined}
+                    removingId={removingId}
+                  />
                 )}
               </CardContent>
             </Card>

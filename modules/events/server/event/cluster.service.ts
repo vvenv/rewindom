@@ -95,6 +95,8 @@ async function resolveEventForSignal(
       canonical_url: signal.canonical_url,
       event_id: { not: null },
       id: { not: signal.id },
+      // 被移除的信号不该再把新信号引到它那个事件上
+      removed_at: null,
     }),
     select: { event_id: true },
   });

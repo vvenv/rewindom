@@ -49,7 +49,10 @@ describe("dedupeSignalsByIdentity", () => {
   it("追踪参数不同、其实是同一篇 → 一条", () => {
     const result = dedupeSignalsByIdentity([
       signal({ external_id: "a", url: "https://example.com/x?utm_source=rss" }),
-      signal({ external_id: "b", url: "https://example.com/x?utm_source=twitter" }),
+      signal({
+        external_id: "b",
+        url: "https://example.com/x?utm_source=twitter",
+      }),
     ]);
     expect(result).toHaveLength(1);
   });
@@ -72,10 +75,115 @@ describe("dedupeSignalsByIdentity", () => {
     expect(result[0].canonical_url).toBe(result[1].canonical_url);
   });
 
+  /**
+   * 真实回归（yestino.com 事件页）：OpenAI 的 RSS 把同一篇公告用两个 slug 各发了一次。
+   * canonical_url 与 external_id 都不相等，时间线上因此并排出现两格一模一样的行。
+   */
+  it("同一来源换 slug 重发同一篇 → 只保留先出现的那条", () => {
+    const openai = (url: string) =>
+      signal({
+        external_id: url,
+        url,
+        source_name: "OpenAI",
+        source_kind: "official",
+        title:
+          "Introducing ChatGPT for Teens: Built for learning, backed by protections",
+        published_at: new Date("2026-08-18T11:00:00Z"),
+      });
+
+    const result = dedupeSignalsByIdentity([
+      openai("https://openai.com/index/chatgpt-for-teens"),
+      openai("https://openai.com/index/introducing-chatgpt-for-teens"),
+    ]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].canonical_url).toBe(
+      "https://openai.com/index/chatgpt-for-teens",
+    );
+  });
+
+  /**
+   * 判据是标题指纹而不是原文相等：换 slug 那一下常连带着改大小写、改标点、
+   * 或加减 `Introducing` 这类停用词——正是这两个 slug 之间的差别。
+   * 秒数不同也不影响，重发键按分钟对齐。
+   */
+  it("重发键忽略大小写、标点与停用词的增删", () => {
+    const result = dedupeSignalsByIdentity([
+      signal({
+        external_id: "a",
+        url: "https://openai.com/index/introducing-chatgpt-for-teens",
+        source_name: "OpenAI",
+        title:
+          "Introducing ChatGPT for Teens: Built for learning, backed by protections",
+        published_at: new Date("2026-08-18T11:00:00Z"),
+      }),
+      signal({
+        external_id: "b",
+        url: "https://openai.com/index/chatgpt-for-teens",
+        source_name: "OpenAI",
+        title:
+          "ChatGPT for Teens \u2014 built for learning, backed by protections",
+        published_at: new Date("2026-08-18T11:00:42Z"),
+      }),
+    ]);
+    expect(result).toHaveLength(1);
+  });
+
+  it("同一来源过几天再报一次是新进展，两条都留", () => {
+    const result = dedupeSignalsByIdentity([
+      signal({
+        external_id: "a",
+        url: "https://openai.com/index/chatgpt-for-teens",
+        source_name: "OpenAI",
+        title:
+          "Introducing ChatGPT for Teens: Built for learning, backed by protections",
+        published_at: new Date("2026-08-18T11:00:00Z"),
+      }),
+      signal({
+        external_id: "b",
+        url: "https://openai.com/index/chatgpt-for-teens-update",
+        source_name: "OpenAI",
+        title:
+          "Introducing ChatGPT for Teens: Built for learning, backed by protections",
+        published_at: new Date("2026-08-21T11:00:00Z"),
+      }),
+    ]);
+    expect(result).toHaveLength(2);
+  });
+
+  it("短标题不参与重发键——实词太少，指纹撞车的代价大于收益", () => {
+    const result = dedupeSignalsByIdentity([
+      signal({
+        external_id: "a",
+        url: "https://example.com/a",
+        source_name: "Example",
+        title: "Ferrari sold",
+        published_at: new Date("2026-08-18T11:00:00Z"),
+      }),
+      signal({
+        external_id: "b",
+        url: "https://example.com/b",
+        source_name: "Example",
+        title: "Ferrari sold",
+        published_at: new Date("2026-08-18T11:00:00Z"),
+      }),
+    ]);
+    expect(result).toHaveLength(2);
+  });
+
+  // 标题必须给不一样的：同来源、同一分钟、同一个标题指纹，那就是同一篇（见重发键）
   it("同一来源的不同文章各自保留", () => {
     const result = dedupeSignalsByIdentity([
-      signal({ external_id: "a", url: "https://example.com/one" }),
-      signal({ external_id: "b", url: "https://example.com/two" }),
+      signal({
+        external_id: "a",
+        url: "https://example.com/one",
+        title: "Ferrari's first ever electric car sold at auction",
+      }),
+      signal({
+        external_id: "b",
+        url: "https://example.com/two",
+        title: "Ferrari recalls 2,000 hybrids over a brake software fault",
+      }),
     ]);
     expect(result).toHaveLength(2);
   });

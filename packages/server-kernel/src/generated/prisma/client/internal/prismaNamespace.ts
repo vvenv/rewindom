@@ -459,6 +459,7 @@ export const ModelName = {
   SiteMemberOAuthAccount: 'SiteMemberOAuthAccount',
   SiteMemberOAuthExchangeCode: 'SiteMemberOAuthExchangeCode',
   SlowQueryLog: 'SlowQueryLog',
+  SlowRequestLog: 'SlowRequestLog',
   Todo: 'Todo'
 } as const
 
@@ -475,7 +476,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -5067,6 +5068,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SlowRequestLog: {
+      payload: Prisma.$SlowRequestLogPayload<ExtArgs>
+      fields: Prisma.SlowRequestLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SlowRequestLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SlowRequestLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload>
+        }
+        findFirst: {
+          args: Prisma.SlowRequestLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SlowRequestLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload>
+        }
+        findMany: {
+          args: Prisma.SlowRequestLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload>[]
+        }
+        create: {
+          args: Prisma.SlowRequestLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload>
+        }
+        createMany: {
+          args: Prisma.SlowRequestLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SlowRequestLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload>[]
+        }
+        delete: {
+          args: Prisma.SlowRequestLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload>
+        }
+        update: {
+          args: Prisma.SlowRequestLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.SlowRequestLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SlowRequestLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SlowRequestLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.SlowRequestLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SlowRequestLogPayload>
+        }
+        aggregate: {
+          args: Prisma.SlowRequestLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSlowRequestLog>
+        }
+        groupBy: {
+          args: Prisma.SlowRequestLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SlowRequestLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SlowRequestLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SlowRequestLogCountAggregateOutputType> | number
+        }
+      }
+    }
     Todo: {
       payload: Prisma.$TodoPayload<ExtArgs>
       fields: Prisma.TodoFieldRefs
@@ -5341,6 +5416,7 @@ export const EventSignalScalarFieldEnum = {
   published_at: 'published_at',
   fetched_at: 'fetched_at',
   event_id: 'event_id',
+  removed_at: 'removed_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -6217,6 +6293,24 @@ export const SlowQueryLogScalarFieldEnum = {
 export type SlowQueryLogScalarFieldEnum = (typeof SlowQueryLogScalarFieldEnum)[keyof typeof SlowQueryLogScalarFieldEnum]
 
 
+export const SlowRequestLogScalarFieldEnum = {
+  id: 'id',
+  duration_ms: 'duration_ms',
+  status_code: 'status_code',
+  route: 'route',
+  path: 'path',
+  method: 'method',
+  tenant_slug: 'tenant_slug',
+  user_id: 'user_id',
+  username: 'username',
+  request_id: 'request_id',
+  source: 'source',
+  created_at: 'created_at'
+} as const
+
+export type SlowRequestLogScalarFieldEnum = (typeof SlowRequestLogScalarFieldEnum)[keyof typeof SlowRequestLogScalarFieldEnum]
+
+
 export const TodoScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -6574,6 +6668,7 @@ export type GlobalOmitConfig = {
   siteMemberOAuthAccount?: Prisma.SiteMemberOAuthAccountOmit
   siteMemberOAuthExchangeCode?: Prisma.SiteMemberOAuthExchangeCodeOmit
   slowQueryLog?: Prisma.SlowQueryLogOmit
+  slowRequestLog?: Prisma.SlowRequestLogOmit
   todo?: Prisma.TodoOmit
 }
 

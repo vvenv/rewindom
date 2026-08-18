@@ -174,7 +174,8 @@ async function refreshEvent(
   }
 
   const signals = await prisma.eventSignal.findMany({
-    where: { event_id: eventId },
+    // 手动移除过的不参与任何聚合——热度、阶段、时间线、摘要都当它不存在
+    where: { event_id: eventId, removed_at: null },
     orderBy: { published_at: "asc" },
     select: {
       id: true,

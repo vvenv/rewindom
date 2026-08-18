@@ -95,12 +95,13 @@ export function SiteNavItemRow({
   const [showMore, setShowMore] = useState(false);
   const isLink = item.source === "link";
   const categories = navSourceCategoryOptions(item.source, preview.contributed);
+  const sourceDef = getNavSource(item.source);
   const label = readLocalizedSetting(item.label, locale, defaultLocale);
   const title =
     label ||
     (isLink
       ? t("editor.menuItemUntitled")
-      : t(`editor.menuSource.${item.source}`));
+      : t(sourceDef?.label ?? `editor.menuSource.${item.source}`));
 
   const resolved = isLink ? [] : resolveNavItem(item, preview);
   const leaves = leafLabels(resolved);
@@ -273,7 +274,7 @@ export function SiteNavItemRow({
               isLink
                 ? t("editor.menuItemLabel")
                 : t(
-                    getNavSource(item.source)?.defaultLabel ??
+                    sourceDef?.defaultLabel ??
                       `editor.menuSourceDefaultLabel.${item.source}`,
                   )
             }

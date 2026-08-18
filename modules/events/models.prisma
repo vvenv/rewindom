@@ -54,6 +54,10 @@ model EventSignal {
   published_at  DateTime
   fetched_at    DateTime  @default(now())
   event_id      String?
+  /// 工作台手动移除的时间。非空 = 这条信号不再参与任何聚合、也不再出现在任何面上。
+  /// **不能硬删**：源下一轮还会把同一条抓回来，删了它等于每 15 分钟复活一次。
+  /// 留着行本身就是墓碑——采集的身份键会命中它，于是不再重建（见 ingest.service.ts）。
+  removed_at    DateTime?
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
 
@@ -67,6 +71,7 @@ model EventSignal {
   /// 刻意带上 source_name —— 不同来源指向同一篇原文是**合法且有价值**的
   ///（跨源印证正是靠 canonical_url 相等来合并事件的）
   @@unique([tenant_id, connector, source_name, canonical_url])
+  @@index([event_id, removed_at])
   @@index([event_id, published_at])
   @@index([tenant_id, published_at(sort: Desc)])
   @@index([tenant_id, canonical_url])

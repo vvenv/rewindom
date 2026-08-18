@@ -25,6 +25,8 @@ export async function enrichStoredEmptyExcerpts(
     where: withTenantScope(tenantId, {
       excerpt: "",
       fetched_at: { lt: fetchedBefore },
+      // 移除过的信号不值得再花一次抓取去补摘录
+      removed_at: null,
     }),
     select: { id: true, url: true, title: true, event_id: true },
     orderBy: { published_at: "desc" },
