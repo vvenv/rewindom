@@ -15,6 +15,7 @@ import { EVENTS_SERVER_I18N } from "./i18n.js";
 
 import { EVENTS_ENTITLEMENT } from "../shared/entitlements.js";
 import { registerEventsPageTemplates } from "../shared/events-page-templates.js";
+import { registerEventsNavSources } from "../shared/nav-sources.js";
 
 export const eventsServerModule: ServerAppModule = {
   id: "events",
@@ -57,11 +58,12 @@ export const eventsServerModule: ServerAppModule = {
   server: {
     i18n: EVENTS_SERVER_I18N,
     /**
-     * 官网贡献：两个段 + 两张模板页 + `/events` 路径处理 + sitemap / 链接候选。
+     * 官网贡献：段 + 模板页 + `/events` 路径 + 主题导航源 + sitemap / 链接候选。
      * 定义都写在贡献方 `shared/`，marketing 内核一行没改（见 site-section skill）。
      */
     onBoot: async () => {
       registerEventsPageTemplates();
+      registerEventsNavSources();
       registerEventsSections();
       registerEventsPathHandler();
       // `/events` 归本模块，租户不能再建同名 CMS 页面把它顶掉

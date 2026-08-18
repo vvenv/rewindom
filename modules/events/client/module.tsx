@@ -17,6 +17,7 @@ import {
   eventsRisingSection,
 } from "../shared/index.js";
 import { registerEventsPageTemplates } from "../shared/events-page-templates.js";
+import { registerEventsNavSources } from "../shared/nav-sources.js";
 import { renderEventsDetailHtml } from "../shared/sections/detail-html.js";
 import { renderEventsFeedHtml } from "../shared/sections/feed-html.js";
 import { EVENTS_CSS } from "../shared/site-css.generated.js";
@@ -28,6 +29,7 @@ import type { ClientAppModule } from "@rewindom/module-sdk/client";
  * **同一份** HTML 渲染器预览（`htmlSectionView`），不再为编辑器写一套 React 版式。
  */
 registerEventsPageTemplates();
+registerEventsNavSources();
 registerEventsEditorContext();
 registerSiteSectionView(
   eventsRisingSection,

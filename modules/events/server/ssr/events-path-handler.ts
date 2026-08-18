@@ -74,7 +74,7 @@ async function renderIndex(
     return renderListing(input, locale, query.source, query.topic);
   }
 
-  const feed = await getPublicEventFeed(input.tenantId);
+  const feed = await getPublicEventFeed(input.tenantId, query.topic);
   const t = translator(locale);
 
   return renderEventsTemplatePage({
@@ -87,7 +87,9 @@ async function renderIndex(
     path: EVENTS_INDEX_PATH,
     servedPath: input.servedPath,
     preset: EVENTS_INDEX_TEMPLATE_PRESET,
+    title: query.topic ? t(`topic.${query.topic}`) : undefined,
     events: emptyEventsContext({
+      topic: query.topic,
       feed: {
         rising: feed.rising.map((item) => toCard(item, t)),
         now: feed.now.map((item) => toCard(item, t)),

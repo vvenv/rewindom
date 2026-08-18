@@ -4,7 +4,13 @@
   "nav": {
     "events": "事件",
     "sources": "采集源",
-    "section": "事件雷达"
+    "section": "事件雷达",
+    "source": {
+      "topics": "事件主题",
+      "topicsDefault": "事件",
+      "topic": "某个事件主题",
+      "topicDefault": "（使用主题名）"
+    }
   },
   "tabs": {
     "feed": "正在发生",
@@ -46,7 +52,8 @@
   },
   "heat": {
     "rising": "↑ {{percent}}%",
-    "falling": "↓ {{percent}}%"
+    "falling": "↓ {{percent}}%",
+    "spreading": "{{count}} 个来源正在跟进"
   },
   "card": {
     "sources": "来源：{{names}}",
@@ -65,6 +72,7 @@
     "analyzerHeuristic": "摘要按规则整理自下方来源原文",
     "analyzerLlm": "摘要由 AI 依据下方来源生成，不含推测",
     "analyzerManual": "摘要由本站编辑修改，后续采集不会覆盖",
+    "topicManual": "主题由本站编辑指定，分类器不会覆盖",
     "updatedAt": "更新于",
     "firstSeen": "首次出现",
     "score": "{{count}} 分",
@@ -236,5 +244,16 @@
       "title": "示例：一桩重大商业收购",
       "headline": "两家媒体先后报道，官方尚未确认。"
     }
+  },
+  "updates": {
+    "sinceLastSeen": "自你上次查看后",
+    "recent": "最近 24 小时的变化",
+    "sourceJoined": "{{source}} 开始报道",
+    "statusChanged": "阶段变为「{{status}}」",
+    "summaryRewritten": "摘要依据新来源改写",
+    "titleChanged": "标题已更新"
+  },
+  "entities": {
+    "title": "涉及"
   }
 }

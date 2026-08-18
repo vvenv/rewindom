@@ -18,6 +18,10 @@ import {
   toPublicCard,
   toPublicDetail,
 } from "../shared/index.js";
+import {
+  EVENTS_NAV_SOURCES,
+  eventsNavTopicOptions,
+} from "../shared/nav-sources.js";
 import { sampleEventDetail, sampleEventList } from "../shared/events-sample.js";
 
 import type {
@@ -30,7 +34,12 @@ import type { AppLocale } from "@rewindom/module-sdk";
 const EVENTS_EDITOR_CONTEXT_TYPES = [
   ...EVENTS_FEED_SECTION_TYPES,
   EVENTS_DETAIL_SECTION_TYPE,
+  ...EVENTS_NAV_SOURCES,
 ] as const;
+
+function wantsAny(used: ReadonlySet<string>, types: readonly string[]): boolean {
+  return types.some((type) => used.has(type));
+}
 
 export function registerEventsEditorContext(): void {
   registerEditorContextProvider({
@@ -43,14 +52,24 @@ export function registerEventsEditorContext(): void {
        */
       const locale = normalizeLocale(input.locale);
       const t = translator(locale);
+      const wantFeed = wantsAny(input.usedTypes, [
+        ...EVENTS_FEED_SECTION_TYPES,
+        EVENTS_DETAIL_SECTION_TYPE,
+      ]);
 
-      const feed = await loadFeed(t);
+      const feed = wantFeed ? await loadFeed(t) : { rising: [], now: [] };
       const event =
-        input.pageKind === EVENTS_DETAIL_PAGE_KIND
+        wantFeed && input.pageKind === EVENTS_DETAIL_PAGE_KIND
           ? await loadSampleDetail(t)
           : null;
 
-      return eventsContextEntry(emptyEventsContext({ feed, event }));
+      return eventsContextEntry(
+        emptyEventsContext({
+          nav_topics: eventsNavTopicOptions(locale),
+          feed,
+          event,
+        }),
+      );
     },
   });
 }

@@ -4,7 +4,13 @@
   "nav": {
     "events": "Events",
     "sources": "Sources",
-    "section": "Radar"
+    "section": "Radar",
+    "source": {
+      "topics": "Event topics",
+      "topicsDefault": "Events",
+      "topic": "One event topic",
+      "topicDefault": "(uses topic name)"
+    }
   },
   "tabs": {
     "feed": "What's happening",
@@ -46,7 +52,8 @@
   },
   "heat": {
     "rising": "↑ {{percent}}%",
-    "falling": "↓ {{percent}}%"
+    "falling": "↓ {{percent}}%",
+    "spreading": "{{count}} sources following"
   },
   "card": {
     "sources": "Sources: {{names}}",
@@ -65,6 +72,7 @@
     "analyzerHeuristic": "Summary assembled by rule from the sources below",
     "analyzerLlm": "Summary written by AI strictly from the sources below",
     "analyzerManual": "Summary edited on this site — later ingest will not overwrite it",
+    "topicManual": "Topic set by this site's editor; the classifier will not override it",
     "updatedAt": "Updated",
     "firstSeen": "First seen",
     "score": "{{count}} points",
@@ -236,5 +244,16 @@
       "title": "Sample: a major acquisition",
       "headline": "Two outlets have reported it; no official confirmation yet."
     }
+  },
+  "updates": {
+    "sinceLastSeen": "Since you last looked",
+    "recent": "Changes in the last 24 hours",
+    "sourceJoined": "{{source}} started covering this",
+    "statusChanged": "Stage changed to “{{status}}”",
+    "summaryRewritten": "Summary rewritten from new sources",
+    "titleChanged": "Title updated"
+  },
+  "entities": {
+    "title": "Entities"
   }
 }

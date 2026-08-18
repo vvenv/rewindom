@@ -89,7 +89,13 @@ export interface PublicEventCard {
   status: EventStatus;
   /** 已落成当前语言的阶段名 */
   status_label: string;
-  velocity_pct: number;
+  /**
+   * 已落成当前语言的势头角标（「↑ 42%」/「3 个来源正在跟进」）。
+   * 空串 = 没有可主张的变化，渲染侧直接跳过。
+   */
+  momentum_label: string;
+  /** 势头是不是「在涨」——只决定角标配色，不参与文案 */
+  momentum_rising: boolean;
   signal_count: number;
   source_names: string[];
   last_activity_at: string;
@@ -142,6 +148,13 @@ export interface EventsRenderContext {
    * 也不再画「查看全部」（再点只会打开自己）。
    */
   listing?: EventsIndexQuery;
+  /**
+   * 枢纽上的 URL `?topic=`（没有 source）。段仍按 limit 截断，
+   * 「查看全部」要带上这个过滤，不能掉回未过滤的 `/events?source=`。
+   */
+  topic?: EventTopic;
+  /** 编辑器「某个主题」下拉用的已落成当前语言的主题名 */
+  nav_topics?: readonly { key: EventTopic; label: string }[];
 }
 
 export function emptyEventsContext(
@@ -162,9 +175,9 @@ export function eventsContextEntry(
 }
 
 /** 渲染器统一走这个读取函数收口断言，别让每个段各写一遍 `as`。 */
-export function readEventsContext(
-  ctx: SectionRenderContext,
-): EventsRenderContext | null {
+export function readEventsContext(ctx: {
+  contributed?: SectionRenderContext["contributed"];
+}): EventsRenderContext | null {
   const value = ctx.contributed?.[EVENTS_CONTEXT_KEY];
   return value ? (value as EventsRenderContext) : null;
 }

@@ -47,6 +47,7 @@
 shared/          事件域契约 + 官网段定义 + 公开视图映射
   events-*-section.ts     段定义（events.rising / events.now / events.detail）
   events-page-templates.ts 模板页 kind + 预设
+  nav-sources.ts          页头 / 页脚主题导航源
   public-view.ts          领域 DTO → 公开视图（两端共用）
   sections/*-html.ts      段 markup（SSR 与编辑器预览共用同一份）
   site-css/               CSS 真源 → site-css.generated.ts
@@ -72,14 +73,32 @@ client/
 | 段 `events.rising` | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/events?source=rising` |
 | 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/events?source=now` |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
-| 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now 各摆一次）；带 `?source=` 时是该批次的查询列表，不再用两段版式 |
+| 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now 各摆一次）；带 `?source=` 时是该批次的查询列表，不再用两段版式；带 `?topic=` 时两段都只显示该主题 |
 | 模板页 `events_detail` | `/events/:slug` |
+| 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events?topic=`；`children` 则收成「事件」一条下挂七格 |
+| 导航源 `events.topic` | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填 |
 | path handler | 接 `/events` 与 `/events/:slug`（`/en/...` 同一条，locale 已被剥掉）|
 | sitemap / 链接候选 | 近 30 天事件进 sitemap；链接下拉只给 `/events` 一条 |
 
 marketing 内核**一行没改**——定义全在贡献方 `shared/`，登记在 server `onBoot` 与
 client manifest 各调一次。存量页上的 `events.feed` 仍渲染（按当时的 source 下拉取数），
-但不进「添加区块」。
+但不进「添加区块」。默认页头仍是「全部一级页面」；要在页头点进 AI / Gaming，到主题
+编辑器的导航块里加一次「事件主题」（默认就会铺平七格）。
+
+## 页头 / 页脚导航
+
+`shared/nav-sources.ts` 往 marketing 登记两个导航源（`registerNavSource`，server
+`onBoot` 与 client manifest 各调一次），租户不必再手填七条主题链接：
+
+| source         | `children`                 | `flat`（默认）      |
+| -------------- | -------------------------- | ------------------- |
+| `events`       | 「事件」一条，下挂 7 个主题 | 七格各占一条        |
+| `events.topic` | 该主题一条                 | 同左（叶子）        |
+
+链接是 `/events?topic=ai` 这种枢纽地址，不是查询列表。枢纽按 topic 取数，「查看全部」
+也会带上，不会掉回未过滤的 `/events?source=rising`。主题是编译期枚举，展开不查库；
+页头只挂本源、页面上没有事件段时，context provider 不会为了导航去拉 feed。没开通
+`events` 时这两项不进添加菜单，残留条目也不渲染。
 
 ### 两段同页的去重
 
@@ -97,23 +116,67 @@ fillEmptyExcerpts()        摘录为空时抓目标页 og/meta description
       ↓
 persistSignals()           canonical_url 规范化 + (connector, external_id) 幂等落库
       ↓
-clusterSignals()           同 URL → 直接归属；否则同主题近 72h 内取相似度最高的事件
+clusterSignals()           同 URL → 直接归属；否则近 72h 内按词面 / 语义取最像的事件
       ↓
 refreshEvents()            热度 / 增速 / 阶段 / 计数 + 分析器产出摘要与时间线
 ```
 
 每一步都是幂等的：信号有唯一键，事件有指纹唯一键，时间线整体重建。出问题可以直接重跑。
 
-### 热度的权威：下降必须有基线
+### 热度的权威：增速必须有基线（正负都是）
 
-`velocity_pct` 比较的是近 6h 与再往前 6h。新事件的唯一一批信号滑出近窗、落入上一窗时，数学上是 -100%，但那不是「热度回落」——事件从来没有第二个可比较的窗口。这种情况下增速记 0，阶段仍是 active，界面不写「↓」。
+`velocity_pct` 比较的是近 6h 与再往前 6h。**没有上一窗口就没有增速**——那不是 0% 也不是
+400%，是「还说不出来」，落在 `has_velocity_baseline = false` 上。
 
-只有两种情况才主张下降：
+只有两种情况才谈得上比率：
 
-1. **两个窗口都有量**，近窗更弱——可观察的减速
-2. **近窗已空、上一窗有量**，且事件在上一窗打开之前就存在——上一窗是对已有事件的观察，不是出生爆发跟着时间窗滑过去
+1. **两个窗口都有量**——可观察的加速或减速，哪怕事件还很新
+2. **近窗已空、上一窗有量**，且事件在上一窗打开之前就存在——上一窗是对已有事件的观察，
+   不是出生爆发跟着时间窗滑过去
 
 阶段 `cooling` 的中文是「降温中」，不写「热度下降」：超过 24h 没动静也是这个阶段，那是生命周期，不一定经历过峰值。
+
+#### 为什么 Rising 不排 velocity_pct（线上撞过）
+
+曾经缺基线时取 `base = 1` 硬算一个百分比出来，于是
+
+```
+velocity_pct = ((recent - 0) / 1) * 100 = heat_score * 100
+```
+
+两个指标对「信号全落在同一个 6h 窗内」的事件**恒等**——而线上几乎所有事件都是这种。
+后果是 Rising 排 `velocity_pct`、Now 排 `heat_score`，看着两把尺子，实际排出同一串：
+`yestino.com/events` 上「正在升温」与「正在发生」是同一个排序的前 4 条与第 5~12 条，
+16 张卡的增速全部落在 376%~516%（就是那条 HN 帖子的 engagement 权重 ×100）。
+
+现在 Rising 排的是 **`recent_source_count`（近窗有几个不同来源在跟进）**，次级键是
+`recent_signal_count`。跨源印证是可核对的事实，而且正好是「这件事在扩散」与
+「这件事分数高」的真正区别——后者才是 Now 那把尺子。
+
+卡片角标同源：`describeEventMomentum`（`shared/events.ts`，SSR 与 React 共用一份）
+有基线时写「↑ 42%」，没基线但有 ≥2 个来源时写「3 个来源正在跟进」，其余留白。
+单来源不叫扩散，那只是一条帖子。
+
+> 副作用：`developing`（快速发展）会明显变少——它现在要求 `velocity_pct ≥ 50`，
+> 也就是真的有两个窗口在加速。新事件默认落在 `active`。这是口径变准，不是回归。
+
+### 主题是内容的属性，不是采集源的属性
+
+`EventFeed.topic` / `EventSignal.topic` 只是**提示**（「这个源平时在报什么」）。
+事件主题由 `topic-classifier.ts` 按整簇信号的文本判定，每轮重算；有 LLM key 时
+分析器读得懂内容，它给的 topic 优先。工作台指定过的主题打 `manual_topic`，分类器不覆盖。
+
+以前 topic 跟着第一条信号一路写死，两个后果：
+
+1. **界面错标**——HN 默认 topic 是 tech，于是「投石机唯一已知死者」被标成「科技」。
+2. **跨源合并被封死**——聚类候选曾经带 `topic: signal.topic`，而目录里 OpenAI/HF 是 ai、
+   BBC 是 world、其余是 tech，「OpenAI 发公告 + TechCrunch 报道 + HN 讨论」永远聚不到一起。
+
+所以聚类候选**不按 topic 过滤**，`buildFingerprint` 也**不带 topic 前缀**——带前缀时
+同一件事被不同主题的源报道会算出 `ai:foo` 与 `tech:foo` 两个指纹，而那正是最该合并的一对。
+
+分类法只有七格，语料里真实存在落不进任何一格的事件（那条投石机）。这种情况回落到
+源提示，不硬凑——加主题枚举是产品决策，分类器不替它做。
 
 ### 信号的身份是 canonical_url，不是源给的 guid
 
@@ -143,12 +206,85 @@ HN 的 topstories 本来就是几十件互不相干的事。但词面聚类有�
 试过按词的稀有度加权（IDF，语料取候选窗口）——两对分别变成 0.29 与 0.29，**仍然同分**，
 全语料新增合并 0 对。无收益，已撤掉，不留代码。
 
-结论：跨过这道坎需要语义而非词面，那正是 LLM 分析器该做的事（MVP §11 把 Event Clustering
-列为 AI 第一职责）。当前 `llm` 分析器只做摘要与时间线；把聚类裁决也交给它是明确的下一步。
+结论：跨过这道坎需要语义而非词面。**已经做了**，见下一节。
 这几个案例已经钉进 `title-tokens.test.ts` 的「真实语料案例」，改分词或阈值时先看它。
+
+### 语义聚类（embedding）
+
+判据是**或**关系，按成本排序：`canonical_url` 相等 → 词面 → 语义 → 另起一个事件。
+词面那条一个字没改，它零成本、零网络依赖，且从未误判过；语义只接住词面够不着的。
+
+阈值 `CLUSTER_SEMANTIC_THRESHOLD = 0.85`，在单站点真实语料上校准（72h 窗口 194 事件，
+人工判读全部 ≥0.78 的事件对）：
+
+| 余弦 | 事件对 | 该不该合并 |
+| --- | --- | --- |
+| 0.9580 | Uber/Zipline 无人机送餐 | ✓ |
+| 0.9379 | Stripe 收购 OpenRouter | ✓ **词面同分 0.33，判不出来的那对** |
+| 0.8930 | Amazon 销毁珍本书训练 AI | ✓ |
+| 0.8597 | Hayden Panettiere 去世 | ✓ **一条把名字拼错成 Panetierre，词面永远合不了** |
+| 0.8537 | 印尼地震救援 | ✓ |
+| 0.8523 | GitHub 故障 | ✓ |
+| — 0.85 — | | |
+| 0.8447 | GitHub Copilot 两篇教程 | ✗ 上一节那个反例 |
+| 0.8366 | 两条无关的 HN AI 讨论 | ✗ |
+
+分离区间是 `[0.8366, 0.8523]`，0.85 落在里面：6 对正确合并、0 对误合并。
+**误合并比漏合并有害得多**——把两件事说成一件会直接毁掉事件页的可信度，漏合并只是多一张卡片。
+所以阈值取在区间偏上。改这个数之前先重跑校准，别凭感觉调。
+
+事件向量是成员信号向量的**均值**（按 `signal_count` 增量更新），不是立事件那条信号的向量：
+后者会让事件永远停留在第一次措辞上，越贴近事件全貌的跟进报道反而越难并进来。
+
+**没配 `OPENAI_EMBEDDING_*` 时行为与没有这一层完全一致**：`embedTexts` 返回空数组，
+余弦对空向量返回 0（= 不相似），聚类退回纯词面。这条必须成立——否则没配 key 的环境
+会把所有事件合成一个。
+
+不上 pgvector 是刻意的：候选窗口实测每站点不到 200 个事件，ANN 索引要到 10⁴ 量级才有意义；
+而换 `pgvector/pgvector:pg16` 会把 Postgres 从 alpine(musl) 换到 Debian(glibc)，
+**collation 提供者一变，既有文本索引都要全量 REINDEX 才安全**。存 `Float[]` 在进程内算精确
+余弦：零基建变更、零 collation 风险，而且是精确解不是近似解。候选窗口稳定超过 10⁴ 时再回来。
+
+供应商会间歇性超时（实测单条请求约有两成会失败），所以 `embedTexts` 每批重试 3 次；
+仍失败则该批退回空向量，其余批次照常——一次限流不该让整轮采集失去语义判据，
+更不该让采集本身失败。
 
 另外 `canonical_url` 精确合并这条路径在这轮采样里一次都没触发（0 组共享 URL）——
 它只在「HN 链到某篇官方博客，而该博客的 RSS 也收了同一篇」时才生效，属于低频但零误判的兜底。
+
+### 事件修订史：自你上次看之后发生了什么
+
+`EventRevision` **只追加，永不更新**。它是观察记录，当前状态在 `NewsEvent` 上。
+
+以前 `EventFollow.last_seen_at` 只能推出一个布尔（有更新 / 没更新）。现在能说清楚：
+官方发了公告、又有 3 家来源跟进、阶段从 developing 变成 active、摘要因新证据被改写。
+
+四类：`source_joined` / `status_changed` / `summary_rewritten` / `title_changed`。
+`source_joined` 最有价值——它把「跨源印证」变成了带时刻的事实，`after.lag_ms` 记着
+该来源相对事件首条信号的滞后，详情页可以直接写「Acme Blog 最先发布，TechCrunch 2h17m 后跟进」，
+渲染时不必回查信号表。
+
+三条硬约束：
+
+1. **`occurred_at` 取可核对的时刻**。来源加入取该来源第一条信号的发布时间，其余取本轮刷新时刻。
+   绝不编造时间戳——与分析器同一条约束。
+2. **文案变化按规范化文本比对，不看 `analyzed_at`**。heuristic 每轮都重算且绝大多数时候
+   产出同一串字符，按 `analyzed_at` 判断会把每 15 分钟记一次「摘要被改写」。
+3. **写入幂等**。唯一键 `(event_id, kind, occurred_at)` + `skipDuplicates`：
+   `refreshEvents` 可以放心重跑。
+
+**为什么竞品给不出这个**：Techmeme / Google News 每轮重新聚类，没有连续观察记录，
+事后补算不出来。这是本模块唯一越跑越值钱的数据——只能靠持续观察积累，新入场者复制不了。
+
+### 时间线是增量的，不是每轮重建
+
+按 `(event_id, signal_id)` upsert，再删掉不在本轮信号集合里的格子。
+
+以前每轮 `deleteMany` + `createMany`：heuristic 下 `shouldReanalyze` 恒为 true，
+叠加最多 200 条降温扫描 = 每 15 分钟每租户约 400 删 + 400 插，内容还一模一样。
+更要命的是 `id` 每轮都变，格子无法锚定、无法引用，也就无法回答「这一格是新出现的吗」。
+
+因此 `AnalyzedTimelineEntry.signal_id` **不可为空**：格子的身份就是信号。
 
 ## AI 边界
 
@@ -170,10 +306,26 @@ HN 的 topstories 本来就是几十件互不相干的事。但词面聚类有�
 
 ## 采集源
 
-内置目录在 `server/ingest/feed-catalog.ts`。站点还没有任何采集源时写入——
-**只在空目录时新建**。工作台 `/app/events/sources` 可增删改、开关每个源
-（名称、地址、类型、默认主题）。关掉不想要的默认源即可，删光后再被写成空目录
-会在下一轮采集重新种入内置清单。
+内置目录在 `server/ingest/feed-catalog.ts`，36 个源，每个 topic 至少 3 个。
+
+种植按**目录项的 key**（`connector:url`）记账，记录存在 `TenantSetting`
+的 `events.seeded_feed_keys` 上：每轮采集前把该站点从没种过的补进去。
+
+以前的口径是「只在空目录时新建」，后果是**扩充目录对所有存量站点完全无效**
+——线上那个站早就有源了，新增目录项永远到不了它。按 key 记账后两件事同时成立：
+
+1. 目录新增的源能补给存量站点；
+2. 站点删掉 / 关掉的源不会被塞回来（它的 key 已经在记录里）。
+
+存量站点没有这条记录，此时把它**当前已有的源全部视为「种过」**再补差集——
+否则会把它早就删掉的初版默认源全部复活。这是一次性升级，写在 `feed-seed.ts` 里，
+不需要 migration。
+
+工作台 `/app/events/sources` 可增删改、开关每个源（名称、地址、类型、默认主题）。
+
+> 目录里每个 URL 都实际请求验证过。`GitHub Blog` 与 `Hugging Face` 在部分网络环境下
+> 会 `terminated`（连接被中断，不是 404，既有目录里就有这个现象）；单个源失败不影响
+> 整轮采集，错误记在 `EventFeed.last_error` 上。
 
 一期两个 connector：
 
@@ -186,6 +338,23 @@ RSS 解析器是本模块自带的（`server/ingest/feed-parser.ts`）：仓库�
 HN 的链接帖本身没有正文。采集时若摘录仍空，会再请求目标页，只取 `og:description` /
 `twitter:description` / `meta description` / 第一段 `<p>`——仍然是原文，不是生成。
 HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘录每轮最多补 40 条。
+
+## 保留期清理
+
+在这之前全模块**没有任何回收路径**：采集每 15 分钟按站点追加信号，永不删除。
+
+`events-retention` 任务按天跑，与采集分开注册（两者周期差两个数量级，塞进同一个任务
+会让清理被采集的失败与跳过牵连）。顺序是固定的，反过来会留下悬挂的时间线与修订：
+
+1. 删过期信号（默认 90 天）
+2. 对受影响的事件跑 `refreshEvents` —— 信号被清空的走「删空壳」分支
+3. 删超期（默认 180 天）且已经没有信号的事件
+
+**被关注过的事件一律豁免，无论多旧**，它的信号也不删（只删事件不删信号会让详情页
+变成空壳）。这是产品约束，不是性能取舍：用户按关注键收藏的东西不该被后台任务收走。
+
+分批删（每批 1000 行）：一条语句删几十万行会把 WAL 撑爆，也会长时间持锁挡住采集写入。
+时间线与修订靠 `onDelete: Cascade` 跟着事件走；`EventSignal` 是 `SetNull`，必须显式删。
 
 ## 后台任务
 
@@ -203,7 +372,13 @@ HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘�
 | `EVENTS_INGEST_ENABLED` | `true` | 关掉后不注册采集任务，只读已有语料 |
 | `EVENTS_INGEST_INTERVAL_MINUTES` | `15` | 采集周期（5 ~ 1440） |
 | `EVENTS_ANALYZER` | `auto` | `auto` / `heuristic` / `llm` |
+| `EVENTS_SIGNAL_RETENTION_DAYS` | `90` | 信号保留期（7 ~ 3650） |
+| `EVENTS_EVENT_RETENTION_DAYS` | `180` | 事件保留期（7 ~ 3650） |
 | `OPENAI_API_KEY` | 空 | 内核已有；平台 fallback。`auto` 模式下与本站 BYOK 一起决定走不走 LLM。站点自己的 key 在工作台 `/app/settings` 配 |
+| `OPENAI_EMBEDDING_BASE_URL` | 空 | 向量模型接入（OpenAI 兼容 `/embeddings`）。与对话模型**分开配**：`OPENAI_BASE_URL` 现在指向 deepseek，而 deepseek 没有 embeddings 端点 |
+| `OPENAI_EMBEDDING_API_KEY` | 空 | 不配 = 聚类退回纯词面判据，功能不缺失，只是合并率低 |
+| `OPENAI_EMBEDDING_MODEL` | 空 | 如 `embedding-3` |
+| `OPENAI_EMBEDDING_DIMENSIONS` | `0` | 0 = 用模型默认维度；供应商支持降维时传给接口 |
 
 ## 权限
 
@@ -221,9 +396,12 @@ HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘�
 
 ## 后续（不在本期）
 
-- **把聚类裁决交给 LLM**：见上面「聚类能力边界」，这是收益最大的一步
-- **中文源**：加 36氪 / 机器之心这类中文 RSS 会带来中文**事件**，但不会给英文事件配中文标题——
-  分词器对中文走二元切分、对英文走词切分，中英标题 token 交集恒为 0，中文报道会成为
-  **另一个独立事件**。要跨语言合并同一件事，得先有语义层
-- **Related Events**：`NewsEvent.tokens` 已经是现成的相似度输入，做法与聚类同源，只是阈值更低
+- **Related Events**：`NewsEvent.centroid` 已经是现成的相似度输入，做法与聚类同源，
+  只是阈值更低。数据层不用再动
+- **中文源**：语义层已经就位，跨语言合并技术上成立了，但阈值要在中英混合语料上**单独校准**
+  ——不能沿用 0.85。这是独立决策，不是顺手加几个 RSS
 - **Why it's trending**：分析器接口再加一个方法即可，需要严格区分 Confirmed 与 Discussion
+- **实体图**：从信号里抽公司 / 产品 / 人物建 `Entity` 关联表。三个收益：实体页是常驻长尾
+  SEO 面、关注维度从事件扩到实体（留存高一个量级）、以及给聚类一个比 token 更稳的兜底键
+  （线上那组 GitHub 故障词面共享不足 2 个词、语义 0.75~0.77 也够不到阈值，靠共享实体才救得回来）
+- **pgvector**：候选窗口稳定超过 10⁴ 时再上，见上文「语义聚类」里的取舍

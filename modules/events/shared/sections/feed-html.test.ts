@@ -6,7 +6,10 @@ import { renderEventsFeedHtml } from "./feed-html.js";
 import type { PublicEventCard } from "../events-section-context.js";
 import type { SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
-function card(slug: string): PublicEventCard {
+function card(
+  slug: string,
+  overrides: Partial<PublicEventCard> = {},
+): PublicEventCard {
   return {
     slug,
     href: `/events/${slug}`,
@@ -16,10 +19,12 @@ function card(slug: string): PublicEventCard {
     topic_label: "AI",
     status: "developing",
     status_label: "快速发展",
-    velocity_pct: 420,
+    momentum_label: "↑ 420%",
+    momentum_rising: true,
     signal_count: 3,
     source_names: ["OpenAI"],
     last_activity_at: "2026-08-17T12:00:00.000Z",
+    ...overrides,
   };
 }
 
@@ -163,6 +168,39 @@ describe("renderEventsFeedHtml", () => {
     expect(html).toContain("&lt;img");
   });
 
+  it("枢纽 URL 带了 topic 时，查看全部也要带上，不能掉回未过滤列表", () => {
+    const context = emptyEventsContext({
+      topic: "ai",
+      feed: {
+        rising: [card("a")],
+        now: [],
+      },
+    });
+    const ctx = { contributed: eventsContextEntry(context) };
+    const html = renderEventsFeedHtml(
+      section("rising", 5, { more_label: "查看全部事件" }),
+      ctx,
+    );
+    expect(html).toContain('href="/events?source=rising&amp;topic=ai"');
+  });
+
+  it("枢纽 URL 带了 topic 时只渲染该主题，即使 feed 里混了别的", () => {
+    const context = emptyEventsContext({
+      topic: "ai",
+      feed: {
+        rising: [
+          { ...card("ai-1"), topic: "ai" },
+          { ...card("tech-1"), topic: "tech", topic_label: "科技" },
+        ],
+        now: [],
+      },
+    });
+    const ctx = { contributed: eventsContextEntry(context) };
+    expect(titlesIn(renderEventsFeedHtml(section("rising", 5), ctx))).toEqual([
+      "Title ai-1",
+    ]);
+  });
+
   it("查看全部带上当前区块的 source / topic", () => {
     const context = emptyEventsContext({
       feed: {
@@ -224,4 +262,36 @@ describe("renderEventsFeedHtml", () => {
     expect(titlesIn(html)).toEqual(["Title a", "Title b", "Title c"]);
     expect(html).not.toContain("查看全部事件");
   });
+
+  /*
+   * 角标文案已经在 toPublicCard 里落成当前语言了（段渲染器是同步的、拿不到 i18n）。
+   * 这里只钉两件事：文案原样渲染、空串留白。
+   */
+  it("势头角标原样渲染，涨的带 up 配色", () => {
+    const html = renderCards([
+      card("a", { momentum_label: "3 个来源正在跟进", momentum_rising: true }),
+    ]);
+    expect(html).toContain('<span class="events-velocity up">3 个来源正在跟进</span>');
+  });
+
+  it("下降不带 up 配色", () => {
+    const html = renderCards([
+      card("a", { momentum_label: "↓ 62%", momentum_rising: false }),
+    ]);
+    expect(html).toContain('<span class="events-velocity">↓ 62%</span>');
+  });
+
+  it("没有可主张的变化时整个角标不出现——留白比写「持平」更权威", () => {
+    const html = renderCards([
+      card("a", { momentum_label: "", momentum_rising: false }),
+    ]);
+    expect(html).not.toContain("events-velocity");
+  });
 });
+
+function renderCards(cards: PublicEventCard[]): string {
+  const context = emptyEventsContext({ feed: { rising: cards, now: [] } });
+  return renderEventsFeedHtml(section("rising", 5), {
+    contributed: eventsContextEntry(context),
+  });
+}

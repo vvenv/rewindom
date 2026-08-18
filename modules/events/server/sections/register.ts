@@ -14,6 +14,10 @@ import {
   eventsRisingSection,
   toPublicCard,
 } from "../../shared/index.js";
+import {
+  EVENTS_NAV_SOURCES,
+  eventsNavTopicOptions,
+} from "../../shared/nav-sources.js";
 import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
 import { renderEventsFeedHtml } from "../../shared/sections/feed-html.js";
 import { EVENTS_CSS } from "../../shared/site-css.generated.js";
@@ -25,22 +29,35 @@ import { registerSiteSectionHtml } from "@rewindom/builtin/marketing/shared/sect
 
 const css = { css: EVENTS_CSS };
 
+function wantsAny(
+  used: ReadonlySet<string> | undefined,
+  types: readonly string[],
+): boolean {
+  return !used || types.some((type) => used.has(type));
+}
+
 /**
  * 【正在发生什么】被摆在官网任意页面上时，通用 SSR 在渲染前按需取事件。
  *
  * 详情段不在这里：它只活在 `/events/:slug` 那张模板页上，数据由 path handler
  * 直接带进来（那里才知道当前是哪个事件）。
+ *
+ * 页头主题导航也登记在这里：`collectSectionTypes` 会把 nav source 收进来。
+ * 只挂了导航、页面上没有事件段时不要去拉 feed——主题是编译期枚举。
  */
 function registerEventsContextProvider(): void {
   registerSectionContextProvider({
-    sectionTypes: [...EVENTS_FEED_SECTION_TYPES],
+    sectionTypes: [...EVENTS_FEED_SECTION_TYPES, ...EVENTS_NAV_SOURCES],
     provide: async (input) => {
-      const feed = await getPublicEventFeed(input.tenantId);
       const t = (key: string, params?: Record<string, string | number>): string =>
         eventsMessage(input.locale, key, params);
+      const feed = wantsAny(input.usedTypes, EVENTS_FEED_SECTION_TYPES)
+        ? await getPublicEventFeed(input.tenantId)
+        : { rising: [], now: [] };
 
       return eventsContextEntry(
         emptyEventsContext({
+          nav_topics: eventsNavTopicOptions(input.locale),
           feed: {
             rising: feed.rising.map((item) => toPublicCard(item, t)),
             now: feed.now.map((item) => toPublicCard(item, t)),

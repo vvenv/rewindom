@@ -104,10 +104,11 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
   const s = section.settings;
 
   const source = feedSourceFromSection(section);
-  const topic = feedTopic(settingText(s, "topic"));
+  const sectionTopic = feedTopic(settingText(s, "topic"));
+  const topic = sectionTopic ?? context?.topic;
   const limit = settingNumber(s, "limit", 6);
   const showSources = settingBool(s, "show_sources");
-  const listing = isListingFor(context?.listing, source, topic);
+  const listing = isListingFor(context?.listing, source, sectionTopic);
 
   const bucket =
     source === "now" ? (context?.feed.now ?? []) : (context?.feed.rising ?? []);
@@ -145,7 +146,7 @@ function cardHtml(
       card.status_label,
     )}</span>`,
     `<span class="events-topic">${escapeHtml(card.topic_label)}</span>`,
-    velocityHtml(card.velocity_pct),
+    momentumHtml(card),
   ]
     .filter(Boolean)
     .join("");
@@ -167,16 +168,17 @@ function cardHtml(
 }
 
 /**
- * 增速标记。产品主指标是「它正在变化」而不是「它排第几」（MVP §2），
- * 所以这里只有涨跌幅，没有名次也没有绝对热度分。
+ * 势头标记。产品主指标是「它正在变化」而不是「它排第几」（MVP §2），
+ * 所以这里没有名次也没有绝对热度分。
+ *
+ * 文案已经在 `toPublicCard` 落成当前语言了——涨跌幅是「↑ 42%」，
+ * 新事件是「3 个来源正在跟进」。空串表示没有可主张的变化，留白。
  */
-function velocityHtml(velocityPct: number): string {
-  if (Math.abs(velocityPct) < 5) {
+function momentumHtml(card: PublicEventCard): string {
+  if (!card.momentum_label) {
     return "";
   }
-  const rising = velocityPct > 0;
-  const percent = Math.round(Math.abs(velocityPct));
-  return `<span class="events-velocity${rising ? " up" : ""}">${
-    rising ? "↑" : "↓"
-  } ${percent}%</span>`;
+  return `<span class="events-velocity${
+    card.momentum_rising ? " up" : ""
+  }">${escapeHtml(card.momentum_label)}</span>`;
 }
