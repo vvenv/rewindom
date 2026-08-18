@@ -1,0 +1,52 @@
+{
+  "description": "Platform slow request log pages",
+  "nav": {
+    "slowRequestLogs": "Slow requests",
+    "keywords": "slow request performance http latency"
+  },
+  "page": {
+    "description": "Cross-tenant slow request logs — HTTP requests exceeding the threshold (default 500ms) for performance analysis"
+  },
+  "stats": {
+    "total": "Slow requests",
+    "avg": "Average",
+    "p95": "P95",
+    "max": "Max",
+    "byRoute": "Slowest routes"
+  },
+  "filters": {
+    "route": "Route",
+    "method": "Method",
+    "tenant": "Tenant",
+    "status": "Status",
+    "minDuration": "Min duration (ms)"
+  },
+  "table": {
+    "time": "Time",
+    "duration": "Duration",
+    "method": "Method",
+    "status": "Status",
+    "route": "Route",
+    "tenant": "Tenant",
+    "empty": "No slow request logs yet",
+    "loading": "Loading…",
+    "emptyHint": "HTTP requests slower than the threshold are recorded here automatically.",
+    "emptyFiltered": "No matching slow request logs",
+    "emptyFilteredHint": "Try a different time range or filter."
+  },
+  "chart": {
+    "loading": "Loading…",
+    "noData": "No data",
+    "avgDuration": "Average duration"
+  },
+  "sheet": {
+    "title": "Slow request details",
+    "route": "Route",
+    "path": "Path",
+    "method": "Method",
+    "status": "Status",
+    "tenant": "Tenant",
+    "user": "User",
+    "requestId": "Request ID"
+  }
+}

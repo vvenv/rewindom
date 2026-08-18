@@ -105,6 +105,10 @@ const MODEL_POLICIES: Record<string, ModelPolicy> = {
     kind: "service_enforced",
     reason: "tenant_slug 可为 null，慢查询可能发生在租户上下文建立之前",
   },
+  SlowRequestLog: {
+    kind: "service_enforced",
+    reason: "tenant_slug 可为 null，慢请求可能发生在租户上下文建立之前",
+  },
 
   AppSetting: { kind: "global", reason: "平台级全局设置" },
   PlatformAdmin: { kind: "global", reason: "平台管理员，不属于任何租户" },

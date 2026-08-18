@@ -22,7 +22,7 @@ function toManifestEntry(module: (typeof ENABLED_SERVER_MODULES)[number]): Modul
   return {
     id: module.id,
     kind: module.kind,
-    requires: module.requires,
+    ...(module.requires ? { requires: [...module.requires] } : {}),
   };
 }
 

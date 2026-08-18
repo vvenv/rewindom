@@ -2,7 +2,7 @@
 
 模块：`packages/builtin/error-log/`（Skill：`error-logging`）
 
-全局 error-handler 捕获未处理异常并落库，提供租户内查询、统计与清理。与慢查询（`slow-query`）同属可观测性基础设施模块。
+全局 error-handler 捕获未处理异常并落库，提供租户内查询、统计与清理。与慢查询（`slow-query`）、慢请求（`slow-request`）同属可观测性基础设施模块。
 
 ## 数据模型
 
@@ -307,5 +307,6 @@ URL 查询参数与 API 同名、一律 snake_case：`user_id`、`start_date`、
 ## 相关
 
 - 慢查询：`slow-query` 模块
+- 慢请求：`slow-request` 模块
 - 审计日志：`docs/design/`（`audit` 模块）
 - 字段命名：`docs/design/field-naming-conventions.md`

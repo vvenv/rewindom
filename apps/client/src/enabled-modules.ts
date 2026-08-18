@@ -10,6 +10,7 @@ import { rbacClientModule } from "@rewindom/builtin/rbac/client/module.js";
 import { siteBillingClientModule } from "@rewindom/builtin/site-billing/client/module.js";
 import { siteMemberClientModule } from "@rewindom/builtin/site-member/client/module.js";
 import { slowQueryClientModule } from "@rewindom/builtin/slow-query/client/module.js";
+import { slowRequestClientModule } from "@rewindom/builtin/slow-request/client/module.js";
 import { userClientModule } from "@rewindom/builtin/user/client/module.js";
 
 import { appShellClientModule } from "@/shell/index";
@@ -44,6 +45,7 @@ export const ENABLED_CLIENT_MODULES = [
   auditClientModule,
   errorLogClientModule,
   slowQueryClientModule,
+  slowRequestClientModule,
   // 外部模块（modules/*）由 `pnpm gen:external-modules` 生成
   ...EXTERNAL_CLIENT_MODULES,
 ] as const satisfies readonly ClientAppModule[];

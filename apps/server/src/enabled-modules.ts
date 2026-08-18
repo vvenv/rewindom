@@ -10,6 +10,7 @@ import { rbacServerModule } from "@rewindom/builtin/rbac/server/index.js";
 import { siteBillingServerModule } from "@rewindom/builtin/site-billing/server/index.js";
 import { siteMemberServerModule } from "@rewindom/builtin/site-member/server/index.js";
 import { slowQueryServerModule } from "@rewindom/builtin/slow-query/server/index.js";
+import { slowRequestServerModule } from "@rewindom/builtin/slow-request/server/index.js";
 import { userServerModule } from "@rewindom/builtin/user/server/index.js";
 
 import { EXTERNAL_SERVER_MODULES } from "./external-modules.js";
@@ -22,6 +23,7 @@ export const ENABLED_SERVER_MODULES = [
   backgroundJobServerModule,
   errorLogServerModule,
   slowQueryServerModule,
+  slowRequestServerModule,
   notificationServerModule,
   dashboardServerModule,
   userServerModule,

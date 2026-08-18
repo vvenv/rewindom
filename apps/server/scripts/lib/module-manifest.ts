@@ -30,6 +30,11 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "background-job"],
   },
   {
+    id: "slow-request",
+    kind: "infrastructure",
+    requires: ["rbac", "background-job"],
+  },
+  {
     id: "notification",
     kind: "infrastructure",
     requires: ["rbac"],
@@ -87,12 +92,14 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit"],
   },
   {
-    id: "note",
+    id: "events",
     kind: "business",
-    requires: ["rbac", "audit"],
+    // platform：读 tenant_modules 判断站点是否开通事件雷达
+    // marketing：贡献官网段、模板页与 /events 公开路径
+    requires: ["rbac", "audit", "platform", "marketing"],
   },
   {
-    id: "todo",
+    id: "note",
     kind: "business",
     requires: ["rbac", "audit"],
   },
@@ -104,7 +111,7 @@ export const SERVER_MODULE_MANIFEST = [
   {
     id: "site-docs",
     kind: "business",
-    requires: ["rbac", "audit", "marketing"],
+    requires: ["marketing", "rbac", "audit"],
   },
   {
     id: "site-form",
@@ -112,10 +119,8 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit", "marketing"],
   },
   {
-    id: "events",
+    id: "todo",
     kind: "business",
-    // platform：读 tenant_modules 判断站点是否开通事件雷达
-    // marketing：贡献官网段、模板页与 /events 公开路径
-    requires: ["rbac", "audit", "platform", "marketing"],
+    requires: ["rbac", "audit"],
   },
 ] as const satisfies readonly ModuleManifestEntry[];

@@ -13,6 +13,7 @@
     "auditLogs": "审计日志",
     "errorLogs": "错误日志",
     "slowQueryLogs": "慢查询",
+    "slowRequestLogs": "慢请求",
     "backup": "数据备份",
     "billing": "订阅与付款",
     "pageTitles": {
@@ -23,6 +24,7 @@
       "/platform/audit-logs": "审计日志",
       "/platform/error-logs": "错误日志",
       "/platform/slow-query-logs": "慢查询",
+      "/platform/slow-request-logs": "慢请求",
       "/platform/backup": "数据备份",
       "/platform/settings": "平台设置",
       "/platform/billing": "订阅与付款",

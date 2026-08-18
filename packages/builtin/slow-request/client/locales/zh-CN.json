@@ -1,0 +1,52 @@
+{
+  "description": "平台慢请求日志页面",
+  "nav": {
+    "slowRequestLogs": "慢请求",
+    "keywords": "slow request performance http latency"
+  },
+  "page": {
+    "description": "跨租户慢请求日志 — 自动捕获超过阈值（默认 500ms）的 HTTP 请求，用于定位接口瓶颈"
+  },
+  "stats": {
+    "total": "慢请求数",
+    "avg": "平均耗时",
+    "p95": "P95",
+    "max": "最大耗时",
+    "byRoute": "最慢路由"
+  },
+  "filters": {
+    "route": "路由",
+    "method": "方法",
+    "tenant": "租户",
+    "status": "状态码",
+    "minDuration": "最小耗时 (ms)"
+  },
+  "table": {
+    "time": "时间",
+    "duration": "耗时",
+    "method": "方法",
+    "status": "状态",
+    "route": "路由",
+    "tenant": "租户",
+    "empty": "暂无慢请求日志",
+    "loading": "加载中...",
+    "emptyHint": "超过阈值的 HTTP 请求会自动记录在这里。",
+    "emptyFiltered": "没有匹配的慢请求日志",
+    "emptyFilteredHint": "换个时间范围或筛选条件再试。"
+  },
+  "chart": {
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "avgDuration": "平均耗时"
+  },
+  "sheet": {
+    "title": "慢请求详情",
+    "route": "路由",
+    "path": "路径",
+    "method": "方法",
+    "status": "状态码",
+    "tenant": "租户",
+    "user": "用户",
+    "requestId": "Request ID"
+  }
+}

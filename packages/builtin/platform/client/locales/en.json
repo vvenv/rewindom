@@ -13,6 +13,7 @@
     "auditLogs": "Audit logs",
     "errorLogs": "Error logs",
     "slowQueryLogs": "Slow queries",
+    "slowRequestLogs": "Slow requests",
     "backup": "Backup",
     "billing": "Subscription & billing",
     "pageTitles": {
@@ -23,6 +24,7 @@
       "/platform/audit-logs": "Audit logs",
       "/platform/error-logs": "Error logs",
       "/platform/slow-query-logs": "Slow queries",
+      "/platform/slow-request-logs": "Slow requests",
       "/platform/backup": "Backup",
       "/platform/settings": "Platform settings",
       "/platform/billing": "Subscription & billing",

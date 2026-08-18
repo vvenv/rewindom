@@ -43,6 +43,7 @@
 | 文档                                          | Skill           |
 | --------------------------------------------- | --------------- |
 | [error-logging.md](./design/error-logging.md) | `error-logging` |
+| [request-performance.md](./design/request-performance.md) | — |
 
 ## 前端
 

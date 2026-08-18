@@ -1,0 +1,22 @@
+// packages/builtin/slow-request/models.prisma
+// 由 apps/server/prisma/models/slow-request.prisma 符号链接汇入
+model SlowRequestLog {
+  id          String   @id @default(uuid())
+  duration_ms Int
+  status_code Int
+  route       String
+  path        String?
+  method      String
+  tenant_slug String?
+  user_id     String?
+  username    String?
+  request_id  String?
+  source      String   @default("http")
+  created_at  DateTime @default(now())
+
+  @@index([created_at])
+  @@index([duration_ms])
+  @@index([route])
+  @@index([tenant_slug])
+  @@index([status_code])
+}

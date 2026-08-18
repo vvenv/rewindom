@@ -8,7 +8,7 @@ import {
 /**
  * Props for a tenant filter/picker component. Mirrors platform's TenantCombobox
  * so it can be registered as-is. Kept here (client infra) so platform-admin
- * observability viewers (audit/error-log/slow-query) do not import module-platform.
+ * observability viewers (audit/error-log/slow-query/slow-request) do not import module-platform.
  */
 export interface TenantFilterProps {
   value?: string | null;

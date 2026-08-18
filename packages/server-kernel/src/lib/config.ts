@@ -254,6 +254,18 @@ function buildObservabilityConfig() {
       paramsMaxLen: intEnv("SLOW_QUERY_PARAMS_MAX_LEN", 2000),
       retentionDays: intEnv("SLOW_QUERY_RETENTION_DAYS", 14),
     },
+    slowRequest: {
+      enabled: boolEnv("SLOW_REQUEST_ENABLED", true),
+      thresholdMs: intEnv("SLOW_REQUEST_THRESHOLD_MS", 500),
+      bufferSize: clampIntEnv("SLOW_REQUEST_BUFFER_SIZE", 50, 10, 500),
+      flushIntervalMs: clampIntEnv(
+        "SLOW_REQUEST_FLUSH_INTERVAL_MS",
+        2000,
+        500,
+        30_000,
+      ),
+      retentionDays: intEnv("SLOW_REQUEST_RETENTION_DAYS", 14),
+    },
   };
 }
 

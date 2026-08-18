@@ -19,6 +19,7 @@ alwaysApply: true
 | 多语言（i18n） | — | `docs/design/i18n.md`（代码多语言 vs 数据多语言；官网库存文案 / 复制页面） |
 | 租户功能开关 / entitlement | — | `docs/design/tenant-features.md` |
 | 错误日志 | `error-logging` | `docs/design/error-logging.md` |
+| 请求性能 | — | `docs/design/request-performance.md` |
 | 字段命名全链路 | — | `docs/design/field-naming-conventions.md` |
 | 单元测试 | — | `docs/design/unit-testing.md` |
 | 前端页面分层 | `frontend-page-structure` | — |

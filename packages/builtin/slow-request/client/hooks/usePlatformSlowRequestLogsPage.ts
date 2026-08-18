@@ -1,0 +1,96 @@
+import { useCallback, useMemo } from "react";
+
+import {
+  applyFiltersToSearchParams,
+  applySortingToSearchParams,
+  getOptionalSearchParam,
+  parseListSort,
+  parseSearchParamsPagination,
+  toSortingState,
+} from "@rewindom/client-kit/lib/list-url-params";
+import { useSearchParams } from "react-router";
+
+import type { SlowRequestLogFilterValues } from "../components/SlowRequestLogFilters.js";
+import type { SortingState, Updater } from "@tanstack/react-table";
+
+const DEFAULT_SLOW_REQUEST_SORT: SortingState = [
+  { id: "created_at", desc: true },
+];
+
+export function usePlatformSlowRequestLogsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { page, pageSize } = parseSearchParamsPagination(searchParams);
+  const { sortBy, sortDir } = parseListSort(searchParams, "sort_dir");
+
+  const filters: SlowRequestLogFilterValues = useMemo(
+    () => ({
+      route: getOptionalSearchParam(searchParams, "route"),
+      method: getOptionalSearchParam(searchParams, "method"),
+      min_duration_ms: getOptionalSearchParam(searchParams, "min_duration_ms"),
+      status_code: getOptionalSearchParam(searchParams, "status_code"),
+      tenant_slug: getOptionalSearchParam(searchParams, "tenant_slug"),
+      start_date: getOptionalSearchParam(searchParams, "start_date"),
+      end_date: getOptionalSearchParam(searchParams, "end_date"),
+    }),
+    [searchParams],
+  );
+
+  const sorting = sortBy
+    ? toSortingState(sortBy, sortDir)
+    : DEFAULT_SLOW_REQUEST_SORT;
+
+  const logId = searchParams.get("log_id");
+
+  const updateFilters = useCallback(
+    (nextFilters: SlowRequestLogFilterValues) => {
+      setSearchParams(applyFiltersToSearchParams(searchParams, nextFilters));
+    },
+    [searchParams, setSearchParams],
+  );
+
+  const handleSortingChange = useCallback(
+    (updater: Updater<SortingState>) => {
+      setSearchParams(
+        applySortingToSearchParams(searchParams, updater, sorting, "sort_dir"),
+      );
+    },
+    [searchParams, setSearchParams, sorting],
+  );
+
+  const selectLog = useCallback(
+    (id: string) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("log_id", id);
+        return next;
+      });
+    },
+    [setSearchParams],
+  );
+
+  const clearSelectedLog = useCallback(
+    (open: boolean) => {
+      if (open) return;
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("log_id");
+        return next;
+      });
+    },
+    [setSearchParams],
+  );
+
+  return {
+    filters,
+    page,
+    pageSize,
+    sortBy,
+    sortDir,
+    sorting,
+    logId,
+    updateFilters,
+    handleSortingChange,
+    selectLog,
+    clearSelectedLog,
+  };
+}

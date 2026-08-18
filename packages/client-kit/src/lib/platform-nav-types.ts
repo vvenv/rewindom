@@ -111,6 +111,8 @@ export function getPlatformPageTitle(
     "/platform/error-logs": "platform:nav.pageTitles./platform/error-logs",
     "/platform/slow-query-logs":
       "platform:nav.pageTitles./platform/slow-query-logs",
+    "/platform/slow-request-logs":
+      "platform:nav.pageTitles./platform/slow-request-logs",
     "/platform/backup": "platform:nav.pageTitles./platform/backup",
     "/platform/plans": "platform:nav.pageTitles./platform/plans",
     "/platform/settings": "platform:nav.pageTitles./platform/settings",

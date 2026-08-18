@@ -41,6 +41,7 @@ describe("buildAppShellConfig", () => {
           "/platform/audit-logs",
           "/platform/error-logs",
           "/platform/slow-query-logs",
+          "/platform/slow-request-logs",
           "/platform/backup",
         ],
       },

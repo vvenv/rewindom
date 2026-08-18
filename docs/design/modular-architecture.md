@@ -89,6 +89,7 @@ flowchart TB
     ErrLog[error-log]
     Notify[notification]
     SlowQ[slow-query]
+    SlowR[slow-request]
   end
 
   subgraph biz_mod [Business Modules]
@@ -140,7 +141,7 @@ rewindom/
 │       └── shared/  server/  client/  prisma/
 ├── packages/
 │   ├── builtin/                        # @rewindom/builtin — 基础设施 / 壳层 / 站点模块
-│   │   └── <id>/                       # rbac audit background-job error-log slow-query
+│   │   └── <id>/                       # rbac audit background-job error-log slow-query slow-request
 │   │       ├── MODULE.md               #   notification user platform dashboard
 │   │       ├── shared/  server/  client/  #   marketing billing site-member site-billing
 │   ├── module-sdk/                     # @rewindom/module-sdk — 外部模块的稳定门面
@@ -362,6 +363,7 @@ modules/<domain>/
 | `services/background-job/*`、`BackgroundJob` | `background-job` |
 | `services/infra/error.service.ts`、`ErrorLog` | `error-log` |
 | `services/infra/slow-query.service.ts` | `slow-query` |
+| 请求耗时采集 | `slow-request` |
 | Notification 相关 | `notification` |
 | 各 `services/tenant/*` 业务域 | 对应 `module-*` |
 
@@ -440,7 +442,7 @@ class AuthenticatedOnlyAuthz implements AuthzProvider {
 - 各业务模块通过 `registerJobs` 注册 job handler
 - 内核 `bootstrap` 仅调用 `JobRegistry.start()`，不 import 具体 job
 
-### 5.4 `error-log` / `slow-query` / `notification`
+### 5.4 `error-log` / `slow-query` / `slow-request` / `notification`
 
 各自包含 model、查询 API、平台/租户 UI（如有）。从 `scheduler.service.ts` 迁出清理逻辑到对应模块的 `registerJobs`。
 
@@ -766,6 +768,7 @@ client: {
 | `background-job` | 后台任务 | `packages/builtin/background-job` |
 | `error-log` | 错误日志 | `packages/builtin/error-log` |
 | `slow-query` | 慢查询 | `packages/builtin/slow-query` |
+| `slow-request` | 慢请求 | `packages/builtin/slow-request` |
 | `notification` | 站内通知 | `packages/builtin/notification` |
 | `user` | 用户 CRUD | `packages/builtin/user` |
 | `platform` | 平台控制台壳层 | `packages/builtin/platform` |
@@ -812,7 +815,7 @@ client: {
 | `rbac` | 权限 / `AuthzProvider` |
 | `audit` | 审计写入与查询 |
 | `background-job` | 后台任务队列 |
-| `error-log` / `slow-query` | 可观测性 |
+| `error-log` / `slow-query` / `slow-request` | 可观测性 |
 | `notification` | 通知与活动中心 |
 | `user` | 用户 CRUD |
 | `platform` | **平台控制台壳层**（布局、租户管理、配额 guard），不收纳业务域 UI |
