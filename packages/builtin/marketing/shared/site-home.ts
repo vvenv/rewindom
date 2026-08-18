@@ -1,13 +1,22 @@
 /**
- * 站点首页：哪张页面占据 `/`。
+ * 站点首页：访客打开 `/` 时看到什么。
  *
- * 默认仍是 `home` 模板（路径 `/`）。租户可以把另一张**可打开**的页面指定为首页
- *（例如事件枢纽 `/events`）——访客访问 `/` 时渲染那一页的内容。
- * 默认原地址照常可打开；贡献模块可以把旧前缀 301 到根上（事件雷达即如此）。
+ * 设置里是**一个**下拉：首页模板的各套版式，加上其它可打开的页面。
+ * 选版式 → 套到 `kind: home` 那一行，`home_path` 回到 `/`。
+ * 选另一张页（店面、关于我们）→ `home_path` 改写 `/` 去渲染那一页。
+ *
+ * 贡献版式可以声明 `rootPrefix`（如 `/events`）：选择器不再把该枢纽列为
+ * 「把某页设为首页」，公开前缀是否收到根上由模块按 `home_layout_key` 判定。
+ * 存量 `home_path=/events` 仍能改写 `/`（数据不能凭空失效）。
  *
  * 不走 30x 改写 `/`：首页 URL 必须还是站点根，搜索引擎与页头品牌链都指这里。
  */
 
+import {
+  DEFAULT_HOME_LAYOUT_KEY,
+  listHomeLayouts,
+  type HomeLayoutDefinition,
+} from "./home-layouts.js";
 import {
   getPageTemplateKind,
   HOME_PAGE_KIND,
@@ -124,6 +133,159 @@ export function listHomeablePageOptions(
     .filter((option) => option.path !== DEFAULT_HOME_PATH)
     .sort((a, b) => a.path.localeCompare(b.path));
   return [home, ...rest];
+}
+
+export const HOME_SELECTOR_LAYOUT_PREFIX = "layout:";
+export const HOME_SELECTOR_PAGE_PREFIX = "page:";
+
+export type HomeSelectorOption =
+  | { type: "layout"; key: string; label: string; description?: string }
+  | { type: "page"; path: string; title: string; kind: string };
+
+export function encodeHomeSelectorLayout(key: string): string {
+  return `${HOME_SELECTOR_LAYOUT_PREFIX}${key}`;
+}
+
+export function encodeHomeSelectorPage(path: string): string {
+  return `${HOME_SELECTOR_PAGE_PREFIX}${normalizeHomePath(path)}`;
+}
+
+export function parseHomeSelectorValue(
+  value: string,
+):
+  | { type: "layout"; key: string }
+  | { type: "page"; path: string }
+  | null {
+  if (value.startsWith(HOME_SELECTOR_LAYOUT_PREFIX)) {
+    const key = value.slice(HOME_SELECTOR_LAYOUT_PREFIX.length);
+    return key ? { type: "layout", key } : null;
+  }
+  if (value.startsWith(HOME_SELECTOR_PAGE_PREFIX)) {
+    const path = value.slice(HOME_SELECTOR_PAGE_PREFIX.length);
+    return path ? { type: "page", path: normalizeHomePath(path) } : null;
+  }
+  return null;
+}
+
+/**
+ * 这条路径是不是某套已开通版式声明的枢纽前缀（选择器里用版式代替「设为该页」）。
+ */
+export function homeLayoutReplacingPath(
+  path: string,
+  entitlements: ReadonlySet<string>,
+): HomeLayoutDefinition | undefined {
+  const normalized = normalizeHomePath(path);
+  return listHomeLayouts(entitlements).find(
+    (layout) =>
+      layout.rootPrefix !== undefined &&
+      normalizeHomePath(layout.rootPrefix) === normalized,
+  );
+}
+
+/**
+ * 设置里的首页下拉：版式在前，其余可打开的页在后。
+ *
+ * `/` 由版式代表，不再单列「默认首页」。声明了 `rootPrefix` 的枢纽也不进页面项。
+ */
+export function listHomeSelectorOptions(
+  pages: readonly {
+    kind: string;
+    slug: string;
+    title: string;
+    locale: string;
+  }[],
+  defaultLocale: string,
+  entitlements: ReadonlySet<string>,
+): HomeSelectorOption[] {
+  const layouts = listHomeLayouts(entitlements);
+  const replaced = new Set(
+    layouts
+      .map((layout) =>
+        layout.rootPrefix ? normalizeHomePath(layout.rootPrefix) : "",
+      )
+      .filter(Boolean),
+  );
+  const pagesOptions = listHomeablePageOptions(
+    pages,
+    defaultLocale,
+    entitlements,
+  ).filter(
+    (option) =>
+      option.path !== DEFAULT_HOME_PATH && !replaced.has(option.path),
+  );
+  return [
+    ...layouts.map((layout) => ({
+      type: "layout" as const,
+      key: layout.key,
+      label: layout.label,
+      description: layout.description,
+    })),
+    ...pagesOptions.map((option) => ({
+      type: "page" as const,
+      path: option.path,
+      title: option.title,
+      kind: option.kind,
+    })),
+  ];
+}
+
+/**
+ * 当前设置对应选择器里哪一项。
+ *
+ * 存量 `home_path` 等于某套版式的 `rootPrefix` 时，显示为已选该版式
+ *（不自动改库；下次改选择器才套首页草稿）。
+ */
+export function homeSelectorValue(
+  homePath: string,
+  homeLayoutKey: string,
+  entitlements: ReadonlySet<string>,
+): string {
+  const path = normalizeHomePath(homePath);
+  const layouts = listHomeLayouts(entitlements);
+  const replaced = homeLayoutReplacingPath(path, entitlements);
+  if (replaced) return encodeHomeSelectorLayout(replaced.key);
+  if (path === DEFAULT_HOME_PATH) {
+    const key = layouts.some((layout) => layout.key === homeLayoutKey)
+      ? homeLayoutKey
+      : DEFAULT_HOME_LAYOUT_KEY;
+    return encodeHomeSelectorLayout(key);
+  }
+  return encodeHomeSelectorPage(path);
+}
+
+/** 页面列表「首页」徽章：这条路径现在是不是访客打开 / 时渲染的那张页。 */
+export function isSiteHomePage(
+  pagePath: string,
+  homePath: string,
+): boolean {
+  return normalizeHomePath(pagePath) === normalizeHomePath(homePath);
+}
+
+/**
+ * 行菜单能不能「设为首页」。
+ *
+ * 已经是当前首页、或这条路径已被选中的版式接管（枢纽不再当首页入口），都不出。
+ */
+export function canSetPageAsHome(input: {
+  pagePath: string;
+  homePath: string;
+  homeLayoutKey: string;
+  entitlements: ReadonlySet<string>;
+}): boolean {
+  if (!isHomeablePath(input.pagePath)) return false;
+  if (isSiteHomePage(input.pagePath, input.homePath)) return false;
+  const replacing = homeLayoutReplacingPath(
+    input.pagePath,
+    input.entitlements,
+  );
+  if (
+    replacing &&
+    normalizeHomePath(input.homePath) === DEFAULT_HOME_PATH &&
+    input.homeLayoutKey === replacing.key
+  ) {
+    return false;
+  }
+  return true;
 }
 
 function templateByPath(path: string) {

@@ -5,6 +5,7 @@ import {
   EVENTS_NOW_SECTION_TYPE,
   EVENTS_RISING_SECTION_TYPE,
 } from "./events-feed-section.js";
+import { EVENTS_SUBSCRIBE_SECTION_TYPE } from "./events-subscribe-section.js";
 import {
   EVENTS_DETAIL_TEMPLATE_PRESET,
   EVENTS_HOME_LAYOUT_KEY,
@@ -24,10 +25,14 @@ describe("registerEventsPageTemplates", () => {
     registerEventsPageTemplates();
   });
 
-  it("首页预设是两段 feed，因此不能声明「有且仅有一段」必备段", () => {
+  it("首页预设是升温、正在发生和订阅，因此不能声明「有且仅有一段」必备段", () => {
     expect(
       EVENTS_INDEX_TEMPLATE_PRESET.sections.map((section) => section.type),
-    ).toEqual([EVENTS_RISING_SECTION_TYPE, EVENTS_NOW_SECTION_TYPE]);
+    ).toEqual([
+      EVENTS_RISING_SECTION_TYPE,
+      EVENTS_NOW_SECTION_TYPE,
+      EVENTS_SUBSCRIBE_SECTION_TYPE,
+    ]);
     expect(getPageTemplateKind(EVENTS_INDEX_PAGE_KIND)?.required_section).toBe(
       null,
     );
@@ -63,6 +68,7 @@ describe("registerEventsPageTemplates", () => {
     );
     const layout = getHomeLayout(EVENTS_HOME_LAYOUT_KEY);
     expect(layout?.entitlement).toBe("events");
+    expect(layout?.rootPrefix).toBe("/events");
     expect(layout?.preset).toBe(EVENTS_HOME_LAYOUT_PRESET);
   });
 });

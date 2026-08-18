@@ -36,6 +36,7 @@ describe("resolveVisitorHomePath", () => {
       logicalPath: "/about",
       servedPath: "/about",
       homePath: "/events",
+      homeLayoutKey: "marketing.default",
     });
   });
 
@@ -54,6 +55,7 @@ describe("resolveVisitorHomePath", () => {
       logicalPath: "/events",
       servedPath: "/",
       homePath: "/events",
+      homeLayoutKey: "marketing.default",
     });
   });
 
@@ -70,6 +72,7 @@ describe("resolveVisitorHomePath", () => {
       logicalPath: "/",
       servedPath: "/",
       homePath: "/",
+      homeLayoutKey: "marketing.default",
     });
   });
 });

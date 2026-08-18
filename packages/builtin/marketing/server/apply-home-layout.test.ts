@@ -92,7 +92,7 @@ describe("applyHomeLayout", () => {
     await applyHomeLayout(TENANT, LAYOUT.key);
     expect(prisma.marketingSite.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { home_layout_key: LAYOUT.key },
+        data: { home_layout_key: LAYOUT.key, home_path: "/" },
       }),
     );
     expect(prisma.marketingPage.update).toHaveBeenCalledWith(

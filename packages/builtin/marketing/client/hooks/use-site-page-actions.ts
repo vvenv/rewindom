@@ -2,9 +2,18 @@ import { useConfirm } from "@rewindom/client-kit";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { DEFAULT_HOME_LAYOUT_KEY } from "../../shared/home-layouts.js";
+import {
+  canSetPageAsHome,
+  homeLayoutReplacingPath,
+} from "../../shared/site-home.js";
 import { moveSitePageGroup } from "../lib/site-page-order.js";
 
-import { useSite, useSiteMutations } from "./useSite.js";
+import {
+  useSite,
+  useSiteCapabilities,
+  useSiteMutations,
+} from "./useSite.js";
 
 import type { MarketingPageListItem } from "../../shared/site-cms.js";
 import type { SitePageGroup } from "../lib/site-page-groups.js";
@@ -33,6 +42,8 @@ export interface SitePageActions {
   ) => void;
   /** 当前占据 `/` 的逻辑路径。 */
   homePath: string;
+  homeLayoutKey: string;
+  entitlements: ReadonlySet<string>;
   setHome: (path: string) => void;
   setHomePending: boolean;
 }
@@ -41,6 +52,8 @@ export function useSitePageActions(): SitePageActions {
   const { t } = useTranslation("marketing");
   const { confirm } = useConfirm();
   const { data: site } = useSite();
+  const capabilitiesQuery = useSiteCapabilities();
+  const entitlements = new Set(capabilitiesQuery.data?.entitlements ?? []);
   const {
     removePage,
     publishDraft,
@@ -48,6 +61,7 @@ export function useSitePageActions(): SitePageActions {
     reorderPages,
     resetPagePreset,
     updateSite,
+    applyHomeLayout,
   } = useSiteMutations();
 
   /** 删除走统一的二次确认弹窗（`ConfirmProvider`），不用浏览器原生 confirm。 */
@@ -118,14 +132,42 @@ export function useSitePageActions(): SitePageActions {
   };
 
   const setHome = (path: string): void => {
-    if (path === (site?.home_path || "/")) return;
-    updateSite.mutate(
-      { home_path: path },
-      {
-        onSuccess: () => toast.success(t("cms.toastHomeUpdated")),
-        onError: () => toast.error(t("cms.toastSiteSaveFailed")),
-      },
-    );
+    void (async () => {
+      const layout = homeLayoutReplacingPath(path, entitlements);
+      if (layout) {
+        if (
+          !canSetPageAsHome({
+            pagePath: path,
+            homePath: site?.home_path || "/",
+            homeLayoutKey: site?.home_layout_key || DEFAULT_HOME_LAYOUT_KEY,
+            entitlements,
+          })
+        ) {
+          return;
+        }
+        const confirmed = await confirm({
+          title: t("cms.applyHomeLayoutConfirmTitle", {
+            label: t(layout.label),
+          }),
+          description: t("cms.applyHomeLayoutConfirmDescription"),
+          confirmText: t("cms.applyHomeLayout"),
+        });
+        if (!confirmed) return;
+        applyHomeLayout.mutate(layout.key, {
+          onSuccess: () => toast.success(t("cms.toastHomeLayoutApplied")),
+          onError: () => toast.error(t("cms.toastHomeLayoutApplyFailed")),
+        });
+        return;
+      }
+      if (path === (site?.home_path || "/")) return;
+      updateSite.mutate(
+        { home_path: path },
+        {
+          onSuccess: () => toast.success(t("cms.toastHomeUpdated")),
+          onError: () => toast.error(t("cms.toastSiteSaveFailed")),
+        },
+      );
+    })();
   };
 
   return {
@@ -145,7 +187,9 @@ export function useSitePageActions(): SitePageActions {
     resetPreset,
     move,
     homePath: site?.home_path || "/",
+    homeLayoutKey: site?.home_layout_key || DEFAULT_HOME_LAYOUT_KEY,
+    entitlements,
     setHome,
-    setHomePending: updateSite.isPending,
+    setHomePending: updateSite.isPending || applyHomeLayout.isPending,
   };
 }

@@ -158,6 +158,53 @@ export async function getPublicEventList(
   return records.map((record) => toEventListItem(record, null));
 }
 
+/** RSS 一次给多少条。阅读器普遍只留最近若干条，给太多只是浪费带宽。 */
+const RSS_LIMIT = 30;
+
+/**
+ * RSS 用的事件列表：最近有动静的排前面。
+ *
+ * 与首页两段刻意不同：订阅者要的是**时间线**（最近发生了什么），
+ * 不是「正在升温」那种排序——feed 阅读器会自己按 pubDate 排，
+ * 给它一个按热度排的列表只会让阅读器里的顺序看起来是乱的。
+ */
+export async function getPublicEventsForRss(
+  tenantId: string,
+  topic?: EventTopic,
+): Promise<EventListItem[]> {
+  const rows = await prisma.newsEvent.findMany({
+    where: withTenantScope(tenantId, topic ? { topic } : {}),
+    orderBy: { last_activity_at: "desc" },
+    take: RSS_LIMIT,
+    select: LIST_SELECT,
+  });
+  return rows.map((record) => toEventListItem(record, null));
+}
+
+/** 某个实体的事件，供 `/events/entity/<slug>/feed.xml` 用。 */
+export async function getPublicEntityEventsForRss(
+  tenantId: string,
+  slug: string,
+): Promise<{ name: string; events: EventListItem[] } | null> {
+  const entity = await prisma.eventEntity.findFirst({
+    where: withTenantScope(tenantId, { slug }),
+    select: { name: true },
+  });
+  if (!entity) {
+    return null;
+  }
+  const links = await prisma.eventEntityLink.findMany({
+    where: withTenantScope(tenantId, { entity: { slug } }),
+    orderBy: { event: { last_activity_at: "desc" } },
+    take: RSS_LIMIT,
+    select: { event: { select: LIST_SELECT } },
+  });
+  return {
+    name: entity.name,
+    events: links.map((link) => toEventListItem(link.event, null)),
+  };
+}
+
 /** slug 找不到时返回 null（→ 404），而不是抛错。 */
 export async function getPublicEventBySlug(
   tenantId: string,
@@ -363,10 +410,17 @@ async function resolvePublicSite(
 ): Promise<{ locale: AppLocale; indexPath: string }> {
   const site = await prisma.marketingSite.findFirst({
     where: withTenantScope(tenantId),
-    select: { default_locale: true, home_path: true },
+    select: {
+      default_locale: true,
+      home_path: true,
+      home_layout_key: true,
+    },
   });
   return {
     locale: normalizeLocale(site?.default_locale),
-    indexPath: eventsIndexPath(site?.home_path ?? undefined),
+    indexPath: eventsIndexPath({
+      homePath: site?.home_path ?? undefined,
+      homeLayoutKey: site?.home_layout_key ?? undefined,
+    }),
   };
 }

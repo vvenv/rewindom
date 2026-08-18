@@ -24,11 +24,15 @@ import {
   EVENTS_ENTITY_PAGE_KIND,
   EVENTS_ENTITY_SECTION_TYPE,
 } from "./events-entity-section.js";
+import { EVENTS_SUBSCRIBE_SECTION_TYPE } from "./events-subscribe-section.js";
 import {
+  EVENTS_HOME_LAYOUT_KEY,
   EVENTS_INDEX_PATH,
   entityPath,
   eventPath,
 } from "./events-section-context.js";
+
+export { EVENTS_HOME_LAYOUT_KEY };
 
 import {
   registerHomeLayout,
@@ -71,7 +75,12 @@ const EVENTS_HUB_SECTIONS: readonly PresetSection[] = [
   {
     type: eventFeedSectionType("now"),
     raw: { limit: 9 },
-  },
+  },  /*
+   * 订阅入口摆在两段列表之后：它是页面级的次要动作，
+   * 一张页面**一次**——曾经做成 feed 段的开关，结果 Rising + Now 各画一个。
+   */
+  { type: EVENTS_SUBSCRIBE_SECTION_TYPE },
+
 ];
 
 export const EVENTS_INDEX_TEMPLATE_PRESET: PagePreset = {
@@ -84,13 +93,11 @@ export const EVENTS_INDEX_TEMPLATE_PRESET: PagePreset = {
   sections: [...EVENTS_HUB_SECTIONS],
 };
 
-export const EVENTS_HOME_LAYOUT_KEY = "events.home";
-
 /**
  * 站点首页（`kind: home`，路径 `/`）的贡献版式。
  *
  * 与 `/events` 枢纽同构，但是另一张页：租户套用后站点根就是雷达，
- * 不必靠 home_path 把 `/` 改写成 `/events`。
+ * 公开 URL 按 `home_layout_key` 收到 `/`、`/:slug`。
  */
 export const EVENTS_HOME_LAYOUT_PRESET: PagePreset = {
   key: EVENTS_HOME_LAYOUT_KEY,
@@ -107,6 +114,7 @@ const EVENTS_HOME_LAYOUT: HomeLayoutDefinition = {
   label: "events:home.layout.label",
   description: "events:home.layout.description",
   entitlement: EVENTS_ENTITLEMENT.key,
+  rootPrefix: EVENTS_INDEX_PATH,
   preset: EVENTS_HOME_LAYOUT_PRESET,
 };
 

@@ -14,6 +14,7 @@ const DEMO_LAYOUT: HomeLayoutDefinition = {
   key: "demo.home",
   label: "demo:home.label",
   entitlement: "demo",
+  rootPrefix: "/demo",
   preset: {
     key: "demo.home",
     label: "demo:home.label",
@@ -41,6 +42,7 @@ describe("首页版式注册表", () => {
 
   it("贡献一套后选择器里能看到，未开通则隐藏", () => {
     expect(getHomeLayout("demo.home")).toBe(DEMO_LAYOUT);
+    expect(getHomeLayout("demo.home")?.rootPrefix).toBe("/demo");
     expect(
       listHomeLayouts(new Set()).map((layout) => layout.key),
     ).not.toContain("demo.home");

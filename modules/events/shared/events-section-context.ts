@@ -21,27 +21,42 @@ import {
 export const EVENTS_CONTEXT_KEY = "events";
 
 /**
- * 模块挂载前缀，也是模板页 / `home_path` 的值。
- *
- * 把 `/events` 设为首页之后，**访客 URL** 收到站点根（`/`、`/:slug`），
- * 这一常量仍然是 `/events`——编辑器页身份与旧地址 301 都靠它认。
+ * 模块挂载前缀，也是模板页身份。公开 URL 是否收到站点根，看
+ * `eventsMountedAtRoot`（版式 `events.home` 或存量 `home_path=/events`）。
  */
 export const EVENTS_INDEX_PATH = "/events";
 
-/** 站点把事件枢纽设为首页时，公开面不再带 `/events` 前缀。 */
-export function eventsMountedAtRoot(homePath: string | undefined): boolean {
-  if (!homePath) return false;
-  const trimmed = homePath.trim();
-  const normalized =
-    trimmed === "" || trimmed === "/"
-      ? "/"
-      : (trimmed.startsWith("/") ? trimmed : `/${trimmed}`).replace(/\/+$/u, "");
-  return normalized === EVENTS_INDEX_PATH;
+/** 与 `registerHomeLayout` 的 key 一致。 */
+export const EVENTS_HOME_LAYOUT_KEY = "events.home";
+
+export interface EventsHomeMount {
+  homePath?: string;
+  homeLayoutKey?: string;
+}
+
+function normalizeMountPath(value: string | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  const trimmed = value.trim();
+  if (trimmed === "" || trimmed === "/") return "/";
+  const withSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return withSlash.length > 1 && withSlash.endsWith("/")
+    ? withSlash.slice(0, -1)
+    : withSlash;
+}
+
+/**
+ * 公开面把事件收到站点根：选了事件雷达版式且首页仍是 `/`，
+ * 或存量把 `/events` 设为了 `home_path`。
+ */
+export function eventsMountedAtRoot(input: EventsHomeMount = {}): boolean {
+  const path = normalizeMountPath(input.homePath);
+  if (path === EVENTS_INDEX_PATH) return true;
+  return path === "/" && input.homeLayoutKey === EVENTS_HOME_LAYOUT_KEY;
 }
 
 /** 公开枢纽地址：首页挂载时是 `/`，否则是 `/events`。 */
-export function eventsIndexPath(homePath?: string): string {
-  return eventsMountedAtRoot(homePath) ? "/" : EVENTS_INDEX_PATH;
+export function eventsIndexPath(input: EventsHomeMount = {}): string {
+  return eventsMountedAtRoot(input) ? "/" : EVENTS_INDEX_PATH;
 }
 
 function joinIndex(indexPath: string, rest: string): string {
@@ -78,6 +93,21 @@ function entityPrefix(indexPath: string): string {
   return indexPath === "/"
     ? `/${EVENTS_ENTITY_SEGMENT}/`
     : `${indexPath}/${EVENTS_ENTITY_SEGMENT}/`;
+}
+
+/**
+ * 订阅地址。
+ *
+ * 这个产品一直在消费 RSS，现在也产出 RSS——订阅是留存的第三条腿：
+ * 关注事件（易逝）、关注实体（登录态）、订阅 feed（**不需要账号**）。
+ */
+export function eventsFeedPath(topic?: EventTopic): string {
+  const base = `${EVENTS_INDEX_PATH}/feed.xml`;
+  return topic ? `${base}?topic=${encodeURIComponent(topic)}` : base;
+}
+
+export function entityFeedPath(slug: string): string {
+  return `${entityPath(slug)}/feed.xml`;
 }
 
 /** 从路径里取实体 slug；不是实体路径时返回 null。 */
@@ -125,6 +155,13 @@ export function parseEventsPublicPath(
   indexPath: string = EVENTS_INDEX_PATH,
 ): EventsPublicRoute | null {
   if (path === indexPath) return { type: "index" };
+  /*
+   * RSS 由模块自己的 Fastify 路由发（path handler 只能回 HTML，控制不了 content-type）。
+   * 那条静态路由在 find-my-way 里本来就优先于 marketing 的 `/*`，但这里也明确让开：
+   * 否则一旦注册顺序变了，`/events/feed.xml` 会被当成 slug 为 `feed.xml` 的事件详情，
+   * 静默变成 404。
+   */
+  if (path.endsWith("/feed.xml")) return null;
   const entitySlug = entitySlugFromPath(path, indexPath);
   if (entitySlug !== null) return { type: "entity", slug: entitySlug };
   const slug = eventSlugFromPath(path, indexPath);
@@ -162,10 +199,24 @@ export function stripEventsMountedPrefix(path: string): string | null {
 /** 首页挂载且当前是旧前缀时，返回 301 目标（逻辑路径，不含 locale）。 */
 export function eventsCanonicalLocation(
   path: string,
-  homePath: string | undefined,
+  mount: EventsHomeMount = {},
 ): string | null {
-  if (!eventsMountedAtRoot(homePath)) return null;
+  if (!eventsMountedAtRoot(mount)) return null;
   return stripEventsMountedPrefix(path);
+}
+
+/**
+ * 版式挂在站点根时，`/` 本身仍由首页 CMS 渲染；带 `source` / `topic` 的查询
+ * 才交给事件 handler（列表页、主题落地），避免抢走租户改过的首页。
+ */
+export function isEventsRootQueryTakeover(
+  path: string,
+  query: Record<string, string>,
+  mount: EventsHomeMount = {},
+): boolean {
+  if (path !== "/" || !eventsMountedAtRoot(mount)) return false;
+  const parsed = parseEventsIndexQuery(query);
+  return parsed.source !== undefined || parsed.topic !== undefined;
 }
 
 /** 首页两段 + 查询列表共用的查询串：`source` 是哪一批，`topic` 可选。 */
@@ -222,7 +273,7 @@ export function isEventsPath(path: string): boolean {
 
 /**
  * 枢纽当首页时，CMS 未命中后认领的路径：`/:slug` 与 `/entity/:slug`。
- * `/` 本身由 home_path 改写去渲染枢纽，不走这里。
+ * `/` 本身由首页 CMS 渲染（或存量 home_path 改写），不走这里。
  */
 export function isEventsRootFallbackPath(path: string): boolean {
   if (path === "/") return false;
@@ -311,6 +362,8 @@ export interface PublicEventDetailView extends PublicEventCard {
 export interface PublicEntityView {
   slug: string;
   href: string;
+  /** 这个实体的 RSS 地址 */
+  feed_href: string;
   name: string;
   /** 已落成当前语言的类型名（公司 / 产品 / 人物…） */
   kind_label: string;

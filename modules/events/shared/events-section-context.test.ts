@@ -10,6 +10,7 @@ import {
   isEventsIndexListing,
   isEventsPath,
   isEventsRootFallbackPath,
+  isEventsRootQueryTakeover,
   parseEventsIndexQuery,
   parseEventsPublicPath,
   parseEventsRequestPath,
@@ -64,18 +65,60 @@ describe("isEventsIndexListing", () => {
 });
 
 describe("eventsMountedAtRoot", () => {
-  it("只认枢纽路径", () => {
-    expect(eventsMountedAtRoot("/events")).toBe(true);
-    expect(eventsMountedAtRoot("/events/")).toBe(true);
-    expect(eventsMountedAtRoot("/")).toBe(false);
-    expect(eventsMountedAtRoot("/shop")).toBe(false);
-    expect(eventsMountedAtRoot(undefined)).toBe(false);
+  it("存量 home_path=/events 仍算挂在根上", () => {
+    expect(eventsMountedAtRoot({ homePath: "/events" })).toBe(true);
+    expect(eventsMountedAtRoot({ homePath: "/events/" })).toBe(true);
+    expect(eventsMountedAtRoot({ homePath: "/" })).toBe(false);
+    expect(eventsMountedAtRoot({ homePath: "/shop" })).toBe(false);
+    expect(eventsMountedAtRoot({})).toBe(false);
+  });
+
+  it("选了事件雷达版式且首页是 / 时挂在根上", () => {
+    expect(
+      eventsMountedAtRoot({
+        homePath: "/",
+        homeLayoutKey: "events.home",
+      }),
+    ).toBe(true);
+    expect(
+      eventsMountedAtRoot({
+        homePath: "/shop",
+        homeLayoutKey: "events.home",
+      }),
+    ).toBe(false);
+    expect(
+      eventsMountedAtRoot({
+        homePath: "/",
+        homeLayoutKey: "marketing.default",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("isEventsRootQueryTakeover", () => {
+  it("只在挂到根上且带 source/topic 时接管 /", () => {
+    const mount = { homePath: "/", homeLayoutKey: "events.home" };
+    expect(isEventsRootQueryTakeover("/", { source: "now" }, mount)).toBe(
+      true,
+    );
+    expect(isEventsRootQueryTakeover("/", { topic: "ai" }, mount)).toBe(true);
+    expect(isEventsRootQueryTakeover("/", {}, mount)).toBe(false);
+    expect(
+      isEventsRootQueryTakeover("/", { source: "now" }, { homePath: "/" }),
+    ).toBe(false);
+    expect(
+      isEventsRootQueryTakeover(
+        "/events",
+        { source: "now" },
+        mount,
+      ),
+    ).toBe(false);
   });
 });
 
 describe("public paths at root", () => {
   it("枢纽、详情、实体都去掉 /events", () => {
-    expect(eventsIndexPath("/events")).toBe("/");
+    expect(eventsIndexPath({ homePath: "/events" })).toBe("/");
     expect(eventPath("foo-abc123", "/")).toBe("/foo-abc123");
     expect(entityPath("openai", "/")).toBe("/entity/openai");
     expect(eventsIndexHref({ source: "rising" }, "/")).toBe("/?source=rising");

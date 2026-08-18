@@ -137,6 +137,7 @@ export function SiteEditor() {
       previewPageKind,
       usedTypesKey,
       editor.siteQuery.data?.home_path,
+      editor.siteQuery.data?.home_layout_key,
     ],
     queryFn: () =>
       resolveEditorContexts({
@@ -145,6 +146,7 @@ export function SiteEditor() {
         pageKind: previewPageKind,
         usedTypes,
         homePath: editor.siteQuery.data?.home_path,
+        homeLayoutKey: editor.siteQuery.data?.home_layout_key,
       }),
   });
   const [device, setDevice] = useState<PreviewDevice>("desktop");

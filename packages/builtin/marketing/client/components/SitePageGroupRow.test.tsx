@@ -35,6 +35,8 @@ const actions: SitePageActions = {
   resetPreset: vi.fn(async () => {}),
   move: vi.fn(),
   homePath: "/",
+  homeLayoutKey: "marketing.default",
+  entitlements: new Set<string>(),
   setHome: vi.fn(),
   setHomePending: false,
 };

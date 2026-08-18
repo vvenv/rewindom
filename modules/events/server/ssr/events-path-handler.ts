@@ -1,7 +1,8 @@
 /**
  * 公开事件页的路径处理：`/events` 与 `/events/:slug`（含 `/en/...` 前缀）。
  *
- * 把 `/events` 设为首页后：旧前缀 301 到根上；`/` 仍由 home_path 改写渲染枢纽；
+ * 选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到根上；
+ * `/` 由首页 CMS 渲染；`/?source=` / `/?topic=` 由本 handler 接管列表；
  * `/:slug` / `/entity/:slug` 在 CMS 未命中后由 fallback 接。
  *
  * marketing SSR 在剥掉 locale 之后问这张表，所以两种前缀走同一套渲染。
@@ -27,6 +28,7 @@ import {
   EVENTS_ENTITLEMENT,
   EVENTS_ENTITY_PAGE_KIND,
   emptyEventsContext,
+  entityFeedPath,
   entityPath,
   eventPath,
   eventsCanonicalLocation,
@@ -35,6 +37,7 @@ import {
   isEventsIndexListing,
   isEventsPath,
   isEventsRootFallbackPath,
+  isEventsRootQueryTakeover,
   parseEventsIndexQuery,
   parseEventsRequestPath,
   toPublicCard,
@@ -57,14 +60,21 @@ import type { EventFeedTab, EventListItem, EventTopic } from "../../shared/index
 import type { SitePathHandlerInput } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
+function mountOf(input: {
+  homePath?: string;
+  homeLayoutKey?: string;
+}): { homePath?: string; homeLayoutKey?: string } {
+  return { homePath: input.homePath, homeLayoutKey: input.homeLayoutKey };
+}
+
 function indexPathOf(input: SitePathHandlerInput): string {
-  return eventsIndexPath(input.homePath);
+  return eventsIndexPath(mountOf(input));
 }
 
 async function renderEventsPath(
   input: SitePathHandlerInput,
 ): Promise<string | null> {
-  const atRoot = eventsMountedAtRoot(input.homePath);
+  const atRoot = eventsMountedAtRoot(mountOf(input));
   const route = parseEventsRequestPath(input.path, atRoot);
   if (!route) {
     return null;
@@ -116,6 +126,7 @@ async function renderEntity(
       entity: {
         slug: entity.slug,
         href,
+        feed_href: entityFeedPath(entity.slug),
         name: entity.name,
         kind_label: t(`entityKind.${entity.kind}`),
         event_count: entity.event_count,
@@ -248,16 +259,18 @@ function toCard(
 
 export function registerEventsPathHandler(): void {
   registerSitePathHandler({
-    match: isEventsPath,
+    match: (path, ctx) =>
+      isEventsPath(path) ||
+      isEventsRootQueryTakeover(path, ctx?.query ?? {}, mountOf(ctx ?? {})),
     entitlement: EVENTS_ENTITLEMENT.key,
     canonicalRedirect: (input) =>
-      eventsCanonicalLocation(input.path, input.homePath),
+      eventsCanonicalLocation(input.path, mountOf(input)),
     render: renderEventsPath,
   });
   registerSitePathFallback({
     entitlement: EVENTS_ENTITLEMENT.key,
     match: (path, ctx) =>
-      eventsMountedAtRoot(ctx.homePath) && isEventsRootFallbackPath(path),
+      eventsMountedAtRoot(mountOf(ctx)) && isEventsRootFallbackPath(path),
     render: renderEventsPath,
   });
 }

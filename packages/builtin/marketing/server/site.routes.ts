@@ -573,8 +573,8 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
   });
 
   /**
-   * 套用一套首页版式：记下 key，把所有语言的首页草稿换成该预设。
-   * 只写草稿，不改 home_path。
+   * 套用一套首页版式：记下 key，把所有语言的首页草稿换成该预设，
+   * 并把 home_path 收回 /。只写草稿。
    */
   defineRoute(app, {
     method: "POST",

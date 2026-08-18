@@ -33,7 +33,7 @@ import {
   isTemplatePageKind,
 } from "../../shared/page-templates.js";
 import { marketingPagePath } from "../../shared/site-cms.js";
-import { isHomeablePath } from "../../shared/site-home.js";
+import { canSetPageAsHome, isSiteHomePage } from "../../shared/site-home.js";
 import { siteEditorPath } from "../lib/site-editor-url.js";
 
 import { SitePageDuplicateSheet } from "./SitePageDuplicateSheet.js";
@@ -129,7 +129,7 @@ export function SitePageGroupRow({
       <span className="truncate font-mono text-xs text-muted-foreground">
         {group.path}
       </span>
-      {actions.homePath === group.path ? (
+      {isSiteHomePage(group.path, actions.homePath) ? (
         <Badge variant="secondary">{t("cms.badgeHome")}</Badge>
       ) : null}
     </div>
@@ -295,8 +295,12 @@ function PageActions({
   // 模板页不可删：系统快照落库后只许重设，不许删
   const canDelete = !isTemplatePageKind(page.kind);
   const pagePath = marketingPagePath(page.kind, page.slug);
-  const canSetHome =
-    isHomeablePath(pagePath) && pagePath !== actions.homePath;
+  const canSetHome = canSetPageAsHome({
+    pagePath,
+    homePath: actions.homePath,
+    homeLayoutKey: actions.homeLayoutKey,
+    entitlements: actions.entitlements,
+  });
   const [duplicateOpen, setDuplicateOpen] = useState(false);
 
   return (

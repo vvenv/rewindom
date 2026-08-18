@@ -53,7 +53,10 @@ export function registerEventsEditorContext(): void {
        */
       const locale = normalizeLocale(input.locale);
       const t = translator(locale);
-      const indexPath = eventsIndexPath(input.homePath);
+      const indexPath = eventsIndexPath({
+        homePath: input.homePath,
+        homeLayoutKey: input.homeLayoutKey,
+      });
       const wantFeed = wantsAny(input.usedTypes, [
         ...EVENTS_FEED_SECTION_TYPES,
         EVENTS_DETAIL_SECTION_TYPE,

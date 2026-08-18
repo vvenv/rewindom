@@ -26,6 +26,7 @@ import {
   relocalizeStockTemplateTitle,
 } from "../shared/page-templates.js";
 import {
+  DEFAULT_HOME_LAYOUT_KEY,
   getHomeLayout,
   isHomeLayoutRelevant,
   resolveHomeLayout,
@@ -161,36 +162,43 @@ async function retargetHomePath(
 }
 
 /**
- * 已发布站点的 `home_path`；无效或站点未发布则 `/`。
+ * 已发布站点的首页挂载；无效或站点未发布则 `/` + 起步版式。
  *
- * 贡献路径生成公开 URL（事件枢纽当首页时收到 `/`）也走这一份，
+ * 贡献路径生成公开 URL（事件雷达当首页时收到 `/`）也走这一份，
  * 不要另查草稿——访客看到的必须是已上线的那一版。
  */
-export async function loadPublishedHomePath(
+export async function loadPublishedHomeMount(
   tenantId: string,
   entitlements: ReadonlySet<string>,
-): Promise<string> {
+): Promise<{ homePath: string; homeLayoutKey: string }> {
   const site = await prisma.marketingSite.findFirst({
     where: withTenantScope(tenantId, { published: true }),
-    select: { home_path: true },
+    select: { home_path: true, home_layout_key: true },
   });
-  if (!site) return DEFAULT_HOME_PATH;
+  if (!site) {
+    return {
+      homePath: DEFAULT_HOME_PATH,
+      homeLayoutKey: DEFAULT_HOME_LAYOUT_KEY,
+    };
+  }
+  const homeLayoutKey = site.home_layout_key || DEFAULT_HOME_LAYOUT_KEY;
   const homePath = normalizeHomePath(site.home_path);
   if (
     homePath === DEFAULT_HOME_PATH ||
     !isHomeablePath(homePath) ||
     !isHomePathAvailable(homePath, entitlements)
   ) {
-    return DEFAULT_HOME_PATH;
+    return { homePath: DEFAULT_HOME_PATH, homeLayoutKey };
   }
-  return homePath;
+  return { homePath, homeLayoutKey };
 }
 
 /**
  * 访客请求的逻辑路径 → 实际要渲染的路径。
  *
- * 只在 `/` 上改写：站点把 `/events` 设为首页时，`/` 与 `/en/` 都去渲染 `/events`，
- * 但对外地址仍是 `/`（`servedPath`）。目标页开关关掉或路径不合法则回落默认首页。
+ * 只在 `/` 上改写：存量把 `/events` 设为首页时，`/` 与 `/en/` 都去渲染 `/events`，
+ * 但对外地址仍是 `/`（`servedPath`）。选了首页版式则 `home_path` 是 `/`，不改写。
+ * 目标页开关关掉或路径不合法则回落默认首页。
  *
  * 模块可以把旧前缀 301 到根上（见 `canonicalRedirect`）；那是贡献方的事，
  * 这里仍然只改写 `/`。
@@ -199,22 +207,38 @@ export async function resolveVisitorHomePath(input: {
   tenantId: string;
   path: string;
   entitlements: ReadonlySet<string>;
-}): Promise<{ logicalPath: string; servedPath: string; homePath: string }> {
-  const homePath = await loadPublishedHomePath(
+}): Promise<{
+  logicalPath: string;
+  servedPath: string;
+  homePath: string;
+  homeLayoutKey: string;
+}> {
+  const { homePath, homeLayoutKey } = await loadPublishedHomeMount(
     input.tenantId,
     input.entitlements,
   );
   if (input.path !== DEFAULT_HOME_PATH) {
-    return { logicalPath: input.path, servedPath: input.path, homePath };
+    return {
+      logicalPath: input.path,
+      servedPath: input.path,
+      homePath,
+      homeLayoutKey,
+    };
   }
   if (homePath === DEFAULT_HOME_PATH) {
     return {
       logicalPath: DEFAULT_HOME_PATH,
       servedPath: DEFAULT_HOME_PATH,
       homePath,
+      homeLayoutKey,
     };
   }
-  return { logicalPath: homePath, servedPath: DEFAULT_HOME_PATH, homePath };
+  return {
+    logicalPath: homePath,
+    servedPath: DEFAULT_HOME_PATH,
+    homePath,
+    homeLayoutKey,
+  };
 }
 
 /**
@@ -924,9 +948,9 @@ export async function resetPageToPreset(
 }
 
 /**
- * 把首页草稿换成指定的贡献版式。
+ * 把首页草稿换成指定的贡献版式，并把 `home_path` 收回 `/`。
  *
- * 只写草稿、不改 `home_path`：访客仍看已发布的那一版，满意再发布。
+ * 只写首页草稿：访客仍看已发布的那一版，满意再发布。
  * 开关没开或 key 不认识直接拒。
  */
 export async function applyHomeLayout(
@@ -942,7 +966,7 @@ export async function applyHomeLayout(
   await ensureSiteRow(tenant_id);
   await prisma.marketingSite.update({
     where: { tenant_id },
-    data: { home_layout_key: key },
+    data: { home_layout_key: key, home_path: DEFAULT_HOME_PATH },
   });
 
   const homes = await prisma.marketingPage.findMany({

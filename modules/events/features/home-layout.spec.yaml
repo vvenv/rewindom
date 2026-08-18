@@ -1,7 +1,7 @@
 # events 贡献一套站点首页版式：升温 + 正在发生。
 #
-# `/events` 枢纽仍是模板页。这套版式套在 kind=home（路径 `/`）上，
-# 让事件雷达产品可以把站点根做成雷达入口，而不必靠 home_path 把 / 改写成 /events。
+# `/events` 枢纽仍是模板页。这套版式套在 kind=home（路径 `/`）上；
+# 站点设置里选它会套首页草稿，公开 URL 按 home_layout_key 收到站点根。
 
 # ---------- 必填 ----------
 module: events

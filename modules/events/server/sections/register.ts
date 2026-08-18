@@ -18,6 +18,7 @@ import {
   eventsNowSection,
   eventsEntitySection,
   eventsRisingSection,
+  eventsSubscribeSection,
   toPublicCard,
 } from "../../shared/index.js";
 import {
@@ -26,6 +27,7 @@ import {
 } from "../../shared/nav-sources.js";
 import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../../shared/sections/entity-html.js";
+import { renderEventsSubscribeHtml } from "../../shared/sections/subscribe-html.js";
 import { renderEventsFeedHtml } from "../../shared/sections/feed-html.js";
 import { EVENTS_CSS } from "../../shared/site-css.generated.js";
 
@@ -56,7 +58,10 @@ function registerEventsContextProvider(): void {
   registerSectionContextProvider({
     sectionTypes: [...EVENTS_FEED_SECTION_TYPES, ...EVENTS_NAV_SOURCES],
     provide: async (input) => {
-      const indexPath = eventsIndexPath(input.homePath);
+      const indexPath = eventsIndexPath({
+        homePath: input.homePath,
+        homeLayoutKey: input.homeLayoutKey,
+      });
       const t = (key: string, params?: Record<string, string | number>): string =>
         eventsMessage(input.locale, key, params);
       const feed = wantsAny(input.usedTypes, EVENTS_FEED_SECTION_TYPES)
@@ -103,6 +108,7 @@ export function registerEventsSections(): void {
   registerSiteSectionHtml(eventsFeedSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsDetailSection, renderEventsDetailHtml, css);
   registerSiteSectionHtml(eventsEntitySection, renderEventsEntityHtml, css);
+  registerSiteSectionHtml(eventsSubscribeSection, renderEventsSubscribeHtml, css);
   registerEventsContextProvider();
   registerSitemapProvider({ provide: getPublicEventSitemapEntries });
   // 实体页单独一个 provider：它与事件的时间口径不同（按最近有事件筛，而不是按自身更新）

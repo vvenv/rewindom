@@ -30,9 +30,11 @@ export interface SectionContextInput {
   /** 已登录的站点会员；访客为 null / 不传。 */
   memberId?: string | null;
   /**
-   * 已发布站点的 `home_path`。贡献段生成站内链接时用（事件枢纽当首页则详情在 `/:slug`）。
+   * 已发布站点的 `home_path`。贡献段生成站内链接时用（事件雷达当首页则详情在 `/:slug`）。
    */
   homePath?: string;
+  /** 已发布站点的 `home_layout_key`；与 `homePath` 一起决定公开前缀。 */
+  homeLayoutKey?: string;
 }
 
 export interface SectionContextProvider {
@@ -108,6 +110,7 @@ export async function resolveSectionContexts(
           cookies: input.cookies,
           memberId: input.memberId,
           homePath: input.homePath,
+          homeLayoutKey: input.homeLayoutKey,
         });
       } catch {
         return {};

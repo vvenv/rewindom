@@ -33,6 +33,11 @@ export interface SitePathHandlerInput {
    */
   homePath?: string;
   /**
+   * 已发布站点的 `home_layout_key`。选了贡献版式接管站点根时，
+   * 前缀是否收到 `/` 看这个，而不是再靠 `home_path` 改写。
+   */
+  homeLayoutKey?: string;
+  /**
    * 当前页语言。SSR 在无前缀时已填成站点主语言；`null` 只应出现在测试漏传。
    * 渲染库存文案用这个值。站内重定向的 Location 仍用 URL 上剥出来的 locale
    *（`null` = 不带前缀），不要把已解析的主语言交给 `localizeRedirectLocation`。
@@ -45,12 +50,19 @@ export interface SitePathHandlerInput {
   query: Record<string, string>;
 }
 
+export interface SitePathMatchContext {
+  query?: Record<string, string>;
+  homePath?: string;
+  homeLayoutKey?: string;
+}
+
 export interface SitePathHandler {
   /**
    * 这条路径是不是本 handler 的。只看逻辑路径，不管 entitlement
    *（开通与否由 `matchSitePathHandler` 另判）。
+   * 第二参是查询串与首页挂载，给「`/` 上带 ?source= 才接管」这类条件用。
    */
-  match: (path: string) => boolean;
+  match: (path: string, ctx?: SitePathMatchContext) => boolean;
   /** 未开通则当作没匹配，让路径回落到普通页面查找。 */
   entitlement?: string;
   /**
@@ -72,7 +84,10 @@ export interface SitePathHandler {
  */
 export interface SitePathFallback {
   entitlement?: string;
-  match: (path: string, ctx: { homePath: string }) => boolean;
+  match: (
+    path: string,
+    ctx: { homePath: string; homeLayoutKey?: string },
+  ) => boolean;
   render: (input: SitePathHandlerInput) => Promise<string | null>;
 }
 
@@ -107,9 +122,10 @@ function entitlementOk(
 export function matchSitePathHandler(
   path: string,
   enabledEntitlements: ReadonlySet<string>,
+  ctx: SitePathMatchContext = {},
 ): SitePathHandler | undefined {
   return HANDLERS.find((handler) => {
-    if (!handler.match(path)) return false;
+    if (!handler.match(path, ctx)) return false;
     return entitlementOk(handler.entitlement, enabledEntitlements);
   });
 }
@@ -120,7 +136,7 @@ export function matchSitePathHandler(
 export function matchSitePathFallback(
   path: string,
   enabledEntitlements: ReadonlySet<string>,
-  ctx: { homePath: string },
+  ctx: { homePath: string; homeLayoutKey?: string },
 ): SitePathFallback | undefined {
   return FALLBACKS.find((fallback) => {
     if (!fallback.match(path, ctx)) return false;

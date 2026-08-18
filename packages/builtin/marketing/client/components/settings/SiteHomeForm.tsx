@@ -12,13 +12,14 @@ import {
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import {
-  DEFAULT_HOME_LAYOUT_KEY,
-  listHomeLayouts,
-} from "../../../shared/home-layouts.js";
+import { DEFAULT_HOME_LAYOUT_KEY } from "../../../shared/home-layouts.js";
 import {
   DEFAULT_HOME_PATH,
-  listHomeablePageOptions,
+  encodeHomeSelectorLayout,
+  encodeHomeSelectorPage,
+  homeSelectorValue,
+  listHomeSelectorOptions,
+  parseHomeSelectorValue,
 } from "../../../shared/site-home.js";
 import {
   useSite,
@@ -32,9 +33,9 @@ import { SettingsSection } from "./SettingsSection.js";
 import type { SiteSettingsForm } from "../../hooks/use-site-settings-form.js";
 
 /**
- * 哪张页面占据站点根 `/`，以及首页模板套哪一套版式。
+ * 访客打开 `/` 时看到什么：首页模板的各套版式，或另一张已有页面。
  *
- * 下拉即存：和发布开关同一口径。版式套用只写草稿，不改「哪张页占据 /」。
+ * 选版式：套到首页草稿并把 `home_path` 收回 `/`。选其它页：下拉即存改写 `/`。
  */
 export function SiteHomeForm({
   form,
@@ -51,62 +52,64 @@ export function SiteHomeForm({
   const pagesQuery = useSitePages();
   const capabilitiesQuery = useSiteCapabilities();
   const entitlements = new Set(capabilitiesQuery.data?.entitlements ?? []);
-  const layouts = listHomeLayouts(entitlements);
   const layoutKey = site?.home_layout_key || DEFAULT_HOME_LAYOUT_KEY;
-  const options = listHomeablePageOptions(
+  const options = listHomeSelectorOptions(
     pagesQuery.data ?? [],
     form.locale.defaultLocale,
     entitlements,
   );
-  if (!options.some((option) => option.path === homepage.path)) {
+  const selected = homeSelectorValue(homepage.path, layoutKey, entitlements);
+  if (
+    !options.some((option) =>
+      option.type === "layout"
+        ? encodeHomeSelectorLayout(option.key) === selected
+        : option.path === homepage.path,
+    ) &&
+    homepage.path !== DEFAULT_HOME_PATH
+  ) {
     options.push({
+      type: "page",
       path: homepage.path,
       title: homepage.path,
       kind: "page",
     });
   }
 
-  const onValueChange = (next: string): void => {
-    if (!canWrite || next === homepage.path) return;
-    homepage.commit(next, {
-      onSuccess: () => toast.success(t("cms.toastHomeUpdated")),
-      onError: () => {
-        homepage.restore();
-        toast.error(t("cms.toastSiteSaveFailed"));
-      },
-    });
-  };
-
-  const onLayoutChange = async (next: string): Promise<void> => {
-    if (!canWrite || next === layoutKey || applyHomeLayout.isPending) return;
-    const layout = layouts.find((item) => item.key === next);
+  const onValueChange = async (next: string): Promise<void> => {
+    if (!canWrite || next === selected || applyHomeLayout.isPending) return;
+    const parsed = parseHomeSelectorValue(next);
+    if (!parsed) return;
+    if (parsed.type === "page") {
+      homepage.commit(parsed.path, {
+        onSuccess: () => toast.success(t("cms.toastHomeUpdated")),
+        onError: () => {
+          homepage.restore();
+          toast.error(t("cms.toastSiteSaveFailed"));
+        },
+      });
+      return;
+    }
+    const layout = options.find(
+      (option) => option.type === "layout" && option.key === parsed.key,
+    );
     const confirmed = await confirm({
       title: t("cms.applyHomeLayoutConfirmTitle", {
-        label: layout ? t(layout.label) : next,
+        label:
+          layout && layout.type === "layout" ? t(layout.label) : parsed.key,
       }),
       description: t("cms.applyHomeLayoutConfirmDescription"),
       confirmText: t("cms.applyHomeLayout"),
     });
     if (!confirmed) return;
-    applyHomeLayout.mutate(next, {
+    applyHomeLayout.mutate(parsed.key, {
       onSuccess: () => toast.success(t("cms.toastHomeLayoutApplied")),
       onError: () => toast.error(t("cms.toastHomeLayoutApplyFailed")),
     });
   };
 
-  const labelFor = (path: string, title: string): string => {
-    if (path === DEFAULT_HOME_PATH) {
-      return t("cms.homePageDefault", {
-        title: title || t("cms.kindHome"),
-      });
-    }
-    return title ? `${title} · ${path}` : path;
-  };
+  const labelForPage = (path: string, title: string): string =>
+    title ? `${title} · ${path}` : path;
 
-  const value = homepage.path;
-  const layoutSelectValue = layouts.some((layout) => layout.key === layoutKey)
-    ? layoutKey
-    : DEFAULT_HOME_LAYOUT_KEY;
   const saving = form.saving || applyHomeLayout.isPending;
 
   return (
@@ -115,49 +118,39 @@ export function SiteHomeForm({
       description={t("cms.settingsSectionHomeHint")}
     >
       <Field>
-        <FieldLabel htmlFor="home_path">{t("cms.fieldHomePage")}</FieldLabel>
+        <FieldLabel htmlFor="home_selector">
+          {t("cms.fieldHomePage")}
+        </FieldLabel>
         <Select
           disabled={!canWrite || saving}
-          value={value}
-          onValueChange={onValueChange}
+          value={selected}
+          onValueChange={(next) => void onValueChange(next)}
         >
-          <SelectTrigger id="home_path" className="w-full">
+          <SelectTrigger id="home_selector" className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.path} value={option.path}>
-                {labelFor(option.path, option.title)}
-              </SelectItem>
-            ))}
+            {options.map((option) =>
+              option.type === "layout" ? (
+                <SelectItem
+                  key={encodeHomeSelectorLayout(option.key)}
+                  value={encodeHomeSelectorLayout(option.key)}
+                >
+                  {t(option.label)}
+                </SelectItem>
+              ) : (
+                <SelectItem
+                  key={option.path}
+                  value={encodeHomeSelectorPage(option.path)}
+                >
+                  {labelForPage(option.path, option.title)}
+                </SelectItem>
+              ),
+            )}
           </SelectContent>
         </Select>
         <FieldDescription>{t("cms.fieldHomePageHint")}</FieldDescription>
       </Field>
-      {layouts.length > 1 ? (
-        <Field>
-          <FieldLabel htmlFor="home_layout">
-            {t("cms.fieldHomeLayout")}
-          </FieldLabel>
-          <Select
-            disabled={!canWrite || saving}
-            value={layoutSelectValue}
-            onValueChange={(next) => void onLayoutChange(next)}
-          >
-            <SelectTrigger id="home_layout" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {layouts.map((layout) => (
-                <SelectItem key={layout.key} value={layout.key}>
-                  {t(layout.label)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FieldDescription>{t("cms.fieldHomeLayoutHint")}</FieldDescription>
-        </Field>
-      ) : null}
     </SettingsSection>
   );
 }

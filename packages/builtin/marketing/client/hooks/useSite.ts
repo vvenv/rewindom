@@ -167,7 +167,7 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
-  /** 套用一套首页版式（只写草稿）。 */
+  /** 套用一套首页版式（只写草稿，并把 home_path 收回 /）。 */
   const applyHomeLayout = useMutation({
     mutationFn: (key: string) => applySiteHomeLayout(key),
     onSuccess: () => invalidate(),

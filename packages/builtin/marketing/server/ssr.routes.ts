@@ -117,6 +117,7 @@ function pathHandlerInput(input: {
   locale: AppLocale | null;
   enabledEntitlements: ReadonlySet<string>;
   homePath: string;
+  homeLayoutKey: string;
   accountEntryHtml: string;
 }): SitePathHandlerInput {
   return {
@@ -126,6 +127,7 @@ function pathHandlerInput(input: {
     path: input.path,
     servedPath: input.servedPath,
     homePath: input.homePath,
+    homeLayoutKey: input.homeLayoutKey,
     locale: input.locale,
     enabledEntitlements: input.enabledEntitlements,
     accountEntryHtml: input.accountEntryHtml,
@@ -159,6 +161,7 @@ async function renderNotFound(
   hostTenant: NonNullable<FastifyRequest["hostTenantContext"]>,
   locale: AppLocale | null,
   homePath: string = "/",
+  homeLayoutKey?: string,
 ): Promise<void> {
   const custom = await getPublishedPublicPage(
     hostTenant.tenant_id,
@@ -196,6 +199,7 @@ async function renderNotFound(
         usedSectionTypes,
         cookies: cookiesFromHeader(request.headers.cookie),
         homePath,
+        homeLayoutKey,
       }),
     ]);
 
@@ -236,6 +240,7 @@ async function renderNotFound(
       usedSectionTypes,
       cookies: cookiesFromHeader(request.headers.cookie),
       homePath,
+      homeLayoutKey,
     }),
   ]);
 
@@ -281,11 +286,12 @@ async function renderPath(
   const enabledEntitlements = await resolveSectionEntitlements(
     hostTenant.tenant_id,
   );
-  const { logicalPath, servedPath, homePath } = await resolveVisitorHomePath({
-    tenantId: hostTenant.tenant_id,
-    path,
-    entitlements: enabledEntitlements,
-  });
+  const { logicalPath, servedPath, homePath, homeLayoutKey } =
+    await resolveVisitorHomePath({
+      tenantId: hostTenant.tenant_id,
+      path,
+      entitlements: enabledEntitlements,
+    });
   const rendered = await renderLogicalPath(
     request,
     reply,
@@ -295,6 +301,7 @@ async function renderPath(
     enabledEntitlements,
     servedPath,
     homePath,
+    homeLayoutKey,
   );
   if (rendered) return;
   /*
@@ -310,6 +317,7 @@ async function renderPath(
     enabledEntitlements,
     "/",
     "/",
+    homeLayoutKey,
   );
 }
 
@@ -326,6 +334,7 @@ async function renderLogicalPath(
   enabledEntitlements: ReadonlySet<string>,
   servedPath: string,
   homePath: string,
+  homeLayoutKey: string,
 ): Promise<boolean> {
   const homeRewrite = servedPath === "/" && path !== "/";
   const redirectPath = visitorRedirectPath({ homeRewrite, servedPath });
@@ -338,7 +347,12 @@ async function renderLogicalPath(
    * 若等「找不到」再查，站点设置里针对 `/events` 的规则永远不会跑。首页改写
    *（`/` 渲染 `/events`）除外，见 `visitorRedirectPath`。
    */
-  const handler = matchSitePathHandler(path, enabledEntitlements);
+  const query = flattenQuery(request.query);
+  const handler = matchSitePathHandler(path, enabledEntitlements, {
+    query,
+    homePath,
+    homeLayoutKey,
+  });
   if (handler) {
     if (
       redirectPath &&
@@ -362,6 +376,7 @@ async function renderLogicalPath(
       locale: pageLocale,
       enabledEntitlements,
       homePath,
+      homeLayoutKey,
       accountEntryHtml: accountEntry.html,
     });
     const canonical = handler.canonicalRedirect?.(input);
@@ -372,7 +387,14 @@ async function renderLogicalPath(
     const html = await handler.render(input);
     if (html === null) {
       if (homeRewrite) return false;
-      await renderNotFound(request, reply, hostTenant, locale, homePath);
+      await renderNotFound(
+        request,
+        reply,
+        hostTenant,
+        locale,
+        homePath,
+        homeLayoutKey,
+      );
       return true;
     }
     sendHtml(reply, 200, html);
@@ -394,6 +416,7 @@ async function renderLogicalPath(
      */
     const fallback = matchSitePathFallback(path, enabledEntitlements, {
       homePath,
+      homeLayoutKey,
     });
     if (fallback) {
       const pageLocale = await resolveVisitorPageLocale(
@@ -413,6 +436,7 @@ async function renderLogicalPath(
           locale: pageLocale,
           enabledEntitlements,
           homePath,
+          homeLayoutKey,
           accountEntryHtml: accountEntry.html,
         }),
       );
@@ -434,7 +458,14 @@ async function renderLogicalPath(
       return true;
     }
 
-    await renderNotFound(request, reply, hostTenant, locale, homePath);
+    await renderNotFound(
+      request,
+      reply,
+      hostTenant,
+      locale,
+      homePath,
+      homeLayoutKey,
+    );
     return true;
   }
 
@@ -443,7 +474,14 @@ async function renderLogicalPath(
    * 否则搜索引擎会把 `/404` 本身收成一张软 404。
    */
   if (result.page.kind === NOT_FOUND_PAGE_KIND) {
-    await renderNotFound(request, reply, hostTenant, locale, homePath);
+    await renderNotFound(
+      request,
+      reply,
+      hostTenant,
+      locale,
+      homePath,
+      homeLayoutKey,
+    );
     return true;
   }
 
@@ -483,6 +521,7 @@ async function renderLogicalPath(
     cookies: cookiesFromHeader(request.headers.cookie),
     memberId: member?.id ?? null,
     homePath,
+    homeLayoutKey,
   });
 
   const requiresMember = result.page.requires_member === true;

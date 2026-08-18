@@ -2,11 +2,11 @@
  * 首页版式注册表 —— 业务模块给 `kind: home`（路径 `/`）贡献一套可套用的段组合。
  *
  * 与模板页不同：模板页是「kind 唯一、slug 固定」的另一张页面（`/events`、`/shop`）；
- * 首页版式是**同一张**首页上的备选结构。租户在站点设置里选一套，草稿被换成该预设，
- * 「重设为最新版式」与 SSR 兜底都按当前选中的 key 走。
+ * 首页版式是**同一张**首页上的备选结构。租户在站点设置的「首页」里选一套，
+ * 草稿被换成该预设，「重设为最新版式」与 SSR 兜底都按当前选中的 key 走。
  *
  * 注册表定义在 marketing，模块自己填（同 `registerPageTemplateKind`）。
- * `home_path` 回答的是「哪张页面占据 /」，本表回答的是「首页这张页摆哪些段」——正交。
+ * 选择器把版式和「把另一张页占据 /」合成一项：选版式时 `home_path` 回到 `/`。
  */
 
 import { HOME_PAGE_KIND } from "./page-templates.js";
@@ -29,6 +29,14 @@ export interface HomeLayoutDefinition {
   description?: string;
   /** 有租户开关则未开通不进选择器、也不能套用。 */
   entitlement?: string;
+  /**
+   * 这套版式接管站点根时，对应枢纽的公开前缀（如 `/events`）。
+   *
+   * 选择器不再把该路径列为「把某页设为首页」；公开面是否把前缀收到 `/`
+   * 由贡献模块按 `home_layout_key` 判定。存量 `home_path` 等于此前缀时，
+   * 选择器仍认作已选这套版式。
+   */
+  rootPrefix?: string;
   /**
    * 版式本身。`kind` 必须是 `home`——登记到别的 kind 上没有调用方会去取。
    */

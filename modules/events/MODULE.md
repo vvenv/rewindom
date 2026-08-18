@@ -74,13 +74,13 @@ client/
 | 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/events?source=now`（枢纽当首页时是 `/?source=now`） |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
 | 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now 各摆一次）；带 `?source=` 时是该批次的查询列表，不再用两段版式；带 `?topic=` 时两段都只显示该主题 |
-| 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构。租户在站点设置里选；只写草稿，不改 `home_path` |
+| 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构。站点设置里选这项会套首页草稿并把公开 URL 收到 `/`、`/:slug` |
 | 模板页 `events_detail` | `/events/:slug`（枢纽当首页时访客地址是 `/:slug`） |
 | 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上 |
 | 模板页 `events_entity` | `/events/entity/:slug`（枢纽当首页时访客地址是 `/entity/:slug`） |
 | 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events?topic=`（当首页时 `/?topic=`）；`children` 则收成「事件」一条下挂七格 |
 | 导航源 `events.topic` | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填 |
-| path handler | 接 `/events`、`/events/:slug` 与 `/events/entity/:slug`（`/en/...` 同一条，locale 已被剥掉）。枢纽当首页时旧前缀 301 到 `/`、`/:slug`、`/entity/:slug`；根上的详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
+| path handler | 接 `/events`、`/events/:slug` 与 `/events/entity/:slug`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:slug`、`/entity/:slug`；`/` 由首页 CMS 渲染，`/?source=` / `/?topic=` 才接管列表；根上的详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
 | sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体各进 sitemap；链接下拉只给 `/events` 一条（页身份，不随首页改） |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
@@ -500,6 +500,49 @@ RSS 解析器是本模块自带的（`server/ingest/feed-parser.ts`）：仓库�
 HN 的链接帖本身没有正文。采集时若摘录仍空，会再请求目标页，只取 `og:description` /
 `twitter:description` / `meta description` / 第一段 `<p>`——仍然是原文，不是生成。
 HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘录每轮最多补 40 条。
+
+## 对外发布 RSS
+
+这个产品一直在**消费** RSS，现在也产出 RSS。订阅是**留存的第三条腿**：
+
+| 方式 | 需要账号？ | 时间尺度 |
+| --- | --- | --- |
+| 关注事件 | 要 | 24h 后就凉 |
+| 关注实体 | 要 | 长期 |
+| **订阅 RSS** | **不要** | 长期 |
+
+前两条都要求先注册，而 RSS 恰恰是技术读者最可能采用的那条。三个入口：
+
+```
+/events/feed.xml                    这个站在报什么
+/events/feed.xml?topic=ai           只看某个主题
+/events/entity/<slug>/feed.xml      只看某个公司 / 产品
+```
+
+`/en/...` 前缀同样接（内容不翻译，前缀只影响 channel 文案与站内链接）。
+
+**为什么不走 path handler**：`SitePathHandler.render` 只回 HTML，没有 content-type 控制，
+feed 会被当成 `text/html` 发出去。所以挂模块自己的 Fastify 路由（与 shop 店面路由同构），
+在里面自行解析 host 租户。marketing 的 `sitemap.xml` 是内核路由——业务模块**不改内核**去蹭它。
+
+`parseEventsPublicPath` 明确让开 `/feed.xml`：那条静态路由在 find-my-way 里本来就优先于
+marketing 的 `/*`，但一旦注册顺序变了，`/events/feed.xml` 会被当成 slug 为 `feed.xml`
+的事件详情，**静默变成 404**。
+
+四条细节：
+
+- **XML 转义自己写一份**，不复用 `escapeHtml`：HTML 转义不处理 XML 里非法的控制字符，
+  而标题来自外部来源，一个 `0x08` 就能让整个 feed 在阅读器里**静默**解析失败。
+- `guid` 用详情页绝对地址并标 `isPermaLink`：slug 一旦生成就不变，是稳定的订阅身份。
+- `pubDate` 用 `last_activity_at` 而非 `first_seen_at`——订阅者要的是「又有新进展」。
+- 频道标题用**站点名**而不是租户 slug：那一行是订阅者在阅读器侧边栏里永久看到的东西，
+  写成 `default` 会像坏了。多一次读换一个体面的标题，而 feed 本来就有一小时公共缓存。
+
+未开通事件雷达的站点一律 404，与 path handler 的 entitlement 闸门同口径。
+订阅入口是**段设置**（默认开），租户可以关掉。
+
+> `<link rel="alternate">` 自动发现**没做**：marketing 没有 head 贡献点，
+> 加一个要动内核。阅读器仍可直接粘贴上面的地址订阅。
 
 ## 保留期清理
 

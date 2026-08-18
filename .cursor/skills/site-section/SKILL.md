@@ -136,10 +136,11 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 | 写 | 登记 |
 | --- | --- |
-| 与模板页同一份 `*-page-templates.ts` | `registerHomeLayout({ key, label, entitlement?, preset })` |
+| 与模板页同一份 `*-page-templates.ts` | `registerHomeLayout({ key, label, entitlement?, rootPrefix?, preset })` |
 
-`preset.kind` 必须是 `home`；有开关必须声明 `entitlement`。套用只写草稿，不改
-`home_path`。金标准：`modules/events/shared/events-page-templates.ts` 的 `events.home`。
+`preset.kind` 必须是 `home`；有开关必须声明 `entitlement`。要把本模块做成站点根时
+加 `rootPrefix`（如 `/events`）：选择器不再把该枢纽列为「设为首页」，套用会把
+`home_path` 收回 `/`。金标准：`modules/events/shared/events-page-templates.ts` 的 `events.home`。
 
 ## 库存文案（数据 i18n）
 

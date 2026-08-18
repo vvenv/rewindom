@@ -98,9 +98,10 @@ function renderForm(): void {
   );
 }
 
-describe("SiteHomeForm 首页版式", () => {
-  it("有两套版式时展示选择器", () => {
+describe("SiteHomeForm 首页", () => {
+  it("有两套版式时仍是一个首页下拉，不再单列版式", () => {
     renderForm();
-    expect(screen.getByText("首页版式")).toBeInTheDocument();
+    expect(screen.getByLabelText("首页")).toBeInTheDocument();
+    expect(screen.queryByLabelText("首页版式")).not.toBeInTheDocument();
   });
 });

@@ -34,7 +34,7 @@
 | 页头页脚 chrome | `shared/sections/_common/` | 为新排法加枚举 / 读时升级层 |
 | 模板页注册表 | `shared/page-templates.ts` | 业务方的 `*-page-templates.ts`（贡献方自己写） |
 | 编辑器 / 工作台 | `client/pages/site-*.tsx`、`client/enhance/` | 公开站挂 React |
-| 首页是哪一页 | `shared/site-home.ts`、站点设置 Sheet | 用重定向表劫持 `/` |
+| 首页是哪一页 | `shared/site-home.ts`、站点设置 Sheet | 两个下拉（版式 vs 改写 `/`） |
 | 业务模块贡献段 / 模板 / chrome / 首页版式 | 贡献方 `shared/` + `site-section` | 本模块「顺便登记」业务 type |
 
 ## 租户 CMS 数据
@@ -632,19 +632,22 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 #### 业务模块贡献首页版式
 
 首页只有一张（`kind: home`，路径 `/`）。模块可以再登记一套**首页版式**，让租户把站点
-根换成自己的内容结构（例如事件雷达的升温 + 正在发生），而不必靠 `home_path` 把 `/`
-改写成另一张枢纽页。
+根换成自己的内容结构（例如事件雷达的升温 + 正在发生）。设置里和「把另一张页占据 /」
+合成一个下拉：选版式就套到首页模板上，并把 `home_path` 收回 `/`。
 
 与模板页正交：`/events`、`/shop` 仍是各自的模板页；首页版式套的是同一张首页上的段。
 店面 / 文档库的入口就是自己的枢纽页，通常不必再贡献一份，除非要把该模块做成站点根。
 
 | 位置 | 做什么 |
 | --- | --- |
-| `<模块>/shared/*-page-templates.ts` | `registerHomeLayout({ key, label, entitlement?, preset })`（`preset.kind` 必须是 `home`） |
+| `<模块>/shared/*-page-templates.ts` | `registerHomeLayout({ key, label, entitlement?, rootPrefix?, preset })`（`preset.kind` 必须是 `home`） |
 | server `onBoot` + client manifest | 与模板页同一个注册函数里调（幂等） |
 
-有租户开关必须声明 `entitlement`。套用只写首页草稿、不改 `home_path`；「重设为最新版式」
-与 SSR 兜底按 `MarketingSite.home_layout_key` 取当前那套。金标准：events `events.home`。
+有租户开关必须声明 `entitlement`。要把本模块公开前缀收到站点根时声明 `rootPrefix`
+（如 `/events`）：选择器不再把该枢纽列为「设为首页」，公开 URL 由贡献模块按
+`home_layout_key` 判定。套用只写首页草稿，同时把 `home_path` 收回 `/`。
+「重设为最新版式」与 SSR 兜底按 `MarketingSite.home_layout_key` 取当前那套。
+金标准：events `events.home`。
 
 #### 贡献公开路径、保留 slug、sitemap、链接候选
 
@@ -871,7 +874,7 @@ setting 的 `default` 应是同一条 key。
 | -------- | ------------------------------ | ---------------------------------------- |
 | 基本信息 | 站名 / 标语（逐字段 `__i18n`） | `{ site_name, tagline }`，**失焦即存**   |
 | 语言     | 主语言                         | `{ default_locale, site_name, tagline }`，**确认即存** |
-| 首页     | 占据 `/` 的页面；首页模板的版式 | `{ home_path }` 下拉即存；版式走 `POST /site/home-layout` |
+| 首页     | 打开 `/` 时的版式或另一张页 | 版式走 `POST /site/home-layout`（收回 `home_path=/`）；其它页 `{ home_path }` 下拉即存 |
 | 发布     | 站点总开关                     | `{ published }`，**开关即存**            |
 | 重定向   | 旧地址 → 新地址                | 各自的 `/site/redirects` 接口            |
 
@@ -881,14 +884,14 @@ setting 的 `default` 应是同一条 key。
 「语言」是唯一带别的字段的：换主语言必须连带把文案钉在原语言下（`pinToLocale`），
 拆成两次请求会留下一个「文案语言已失真」的中间态。
 
-**首页**（`home_path`）决定访客打开 `/`（以及 `/en/` 这类语言根）时渲染哪一页。默认
-仍是 `home` 模板。可改成任意可打开的页面（`/events`、`/about`）；参数化详情
-（`/events/:slug`）和 404 不行。SSR **不 30x 改写 `/`**——站点根 URL 不变，canonical
-指向 `/`。默认原地址仍可打开；贡献模块可以把旧前缀 301 到根上（事件雷达把 `/events`
-设为首页后，公开面整条前缀收到 `/`）。模块还可以贡献**首页版式**（`registerHomeLayout`）：套用后首页草稿
-换成那套段，与「哪张页面占据 /」无关。有两套以上时设置里才露出选择器。
+**首页**是一个下拉：首页模板的各套版式，加上其它可打开的页面（`/shop`、`/about`）。
+选版式 → 首页草稿换成那套段，`home_path` 收回 `/`（发布后访客才看到新草稿）。
+选另一张页 → `home_path` 下拉即存，SSR **不 30x 改写 `/`**——站点根 URL 不变，canonical
+指向 `/`。参数化详情（`/events/:slug`）和 404 不行。贡献版式可声明 `rootPrefix`
+（事件雷达 `/events`）：选择器不再把该枢纽列为「设为首页」，公开前缀是否收到 `/`
+由模块按 `home_layout_key` 判定。存量 `home_path=/events` 仍能改写 `/`。
 目标页开关关掉或被删时回落默认首页。页面列表里当前首页带「首页」
-徽章，行菜单可「设为首页」。
+徽章；行菜单「设为首页」在枢纽被版式接管时改为套用该版式。
 
 设置**不进侧栏**：那几组设完就不太回来，从官网卡片开 Sheet。
 

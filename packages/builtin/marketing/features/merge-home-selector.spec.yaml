@@ -1,0 +1,58 @@
+# 站点设置「首页」与「首页版式」合成一个选择器。
+#
+# 访客只关心打开 / 看到什么。版式改的是首页模板（kind=home）上的段；
+# home_path 改的是用另一张已有页面占据 /。实际不会交叉配置，两个下拉是同一件事。
+# 选贡献版式（如事件雷达）→ 套到首页那一行，home_path 回到 /；公开前缀是否收到
+# 站点根由版式的 rootPrefix / home_layout_key 决定，不再靠把 / 改写成 /events。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant, ssr]
+goal: 站点设置只留一个首页下拉（版式 + 其它可打开的页）；选事件雷达套首页模板并把公开 URL 挂到站点根。
+gold: packages/builtin/marketing/client/components/settings/SiteHomeForm.tsx
+touch:
+  - packages/builtin/marketing/features/merge-home-selector.spec.yaml
+  - packages/builtin/marketing/shared/home-layouts.ts
+  - packages/builtin/marketing/shared/home-layouts.test.ts
+  - packages/builtin/marketing/shared/site-home.ts
+  - packages/builtin/marketing/shared/site-home.test.ts
+  - packages/builtin/marketing/shared/site-path-handlers.ts
+  - packages/builtin/marketing/shared/site-path-handlers.test.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/apply-home-layout.test.ts
+  - packages/builtin/marketing/server/site-home-path.test.ts
+  - packages/builtin/marketing/server/site.routes.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/server/section-context-providers.ts
+  - packages/builtin/marketing/client/editor-context-providers.ts
+  - packages/builtin/marketing/client/pages/site-editor.tsx
+  - packages/builtin/marketing/client/components/settings/SiteHomeForm.tsx
+  - packages/builtin/marketing/client/components/settings/SiteHomeForm.test.tsx
+  - packages/builtin/marketing/client/components/SitePageGroupRow.tsx
+  - packages/builtin/marketing/client/components/SitePageGroupRow.test.tsx
+  - packages/builtin/marketing/client/hooks/use-site-page-actions.ts
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  - .cursor/skills/site-section/SKILL.md
+  - modules/events/features/home-layout.spec.yaml
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-section-context.test.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/editor-context.ts
+  - modules/events/MODULE.md
+out_of_scope:
+  - 开通 entitlement 时自动套用版式
+  - shop / docs 贡献首页版式
+  - 把存量 home_path=/events 的站点自动改写成版式（选择器认作已选；再改才套首页草稿）
+  - 拆 home_layout_key 的草稿 / 发布两列
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/*' shared/site-home.test.ts shared/home-layouts.test.ts shared/site-path-handlers.test.ts server/apply-home-layout.test.ts server/site-home-path.test.ts client/components/settings/SiteHomeForm.test.tsx client/components/SitePageGroupRow.test.tsx
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-section-context.test.ts shared/events-page-templates.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs marketing
+  - node scripts/verify-module.mjs events

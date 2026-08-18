@@ -12,6 +12,8 @@ export interface EditorContextInput {
   usedTypes: ReadonlySet<string>;
   /** 站点设置里的 `home_path`；预览链接要和访客 URL 一致。 */
   homePath?: string;
+  /** 站点设置里的 `home_layout_key`；与 `homePath` 一起决定公开前缀。 */
+  homeLayoutKey?: string;
 }
 
 export interface EditorContextProvider {
