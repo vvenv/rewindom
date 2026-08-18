@@ -100,7 +100,9 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 | `align`  | start / center / end          | 行内靠左 / 居中 / 靠右                 |
 | `mobile` | pin / menu / hide             | 窄屏：留在外面 / 收进汉堡 / 不显示     |
 
-行是 `grid-template-columns: 1fr auto 1fr` 的三格（`chromeRows()` 把块摊成行 × 对齐区）。
+行是 `grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr)` 的三格（`chromeRows()` 把块摊成行 × 对齐区）。
+没有居中区时改成 `1fr auto`，避免左右各分一半把长站名挤换行。
+
 「导航居中」= 导航块 `align: center`；「页脚底栏」= 版权块 `row: 2`；「页头分两行」= 把块
 分到两行。
 
@@ -112,7 +114,7 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 
 | type              | settings                                    |
 | ----------------- | ------------------------------------------- |
-| `chrome_brand`    | show_logo, show_site_name, blurb            |
+| `chrome_brand`    | show_logo, show_site_name, brand_text, blurb |
 | `chrome_nav`      | title, items, display(inline\|column)       |
 | `chrome_text`     | text（支持 `{year}` / `{site}` 占位符）      |
 | `chrome_button`   | label, href, variant                        |
@@ -122,6 +124,17 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 
 业务模块还可以**贡献** chrome 块（如 shop 的 `shop.cart-link`），加进页头就是一枚按钮，
 与上表同一排定位。见下方「业务模块贡献 chrome 块」。
+
+#### 字标与站名是两件事
+
+`chrome_brand` 的 `brand_text` 留空时跟着 `site_name` 走，填了就用它。分开是因为
+`site_name` 同时是首页 `<title>` 与其余页面的标题后缀（`ssr-render.ts`），按 SEO 写就会长；
+那条长句子该给搜索引擎，不该顶在 logo 旁边。**不要**为了页头好看去缩短站名。
+
+`brand_text` 是文案类设置，逐语言填写走 `__i18n`，与站名一样。
+
+显示字标时 logo 的 `alt` 是空串：同一个 `<a>` 里已经有一份可读的品牌名，再给图片一个
+同名 alt 只会让读屏念两遍；只有关掉字标时 `alt` 才承担品牌名。
 
 **`chrome_nav` 一个块管横排与竖列。** 以前是 `chrome_nav`（页头）与 `menu_column`（页脚）
 两个 type，存的东西一模一样（都是 `settings.items`），差别只在画成一排还是一列——那是
@@ -145,6 +158,13 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 块因此直接落在自己的对齐区里，排版与没有抽屉时逐像素一致；窄屏才把它变成真容器收起来，
 由行末那枚 `.chrome-menu-toggle`（画成汉堡的 checkbox）驱动，展开靠 `:has()` 从行选到
 抽屉——抽屉分散在各个对齐区里，和 checkbox 不是兄弟，`~` 够不着。
+
+窄屏行把对齐区 `display: contents` 溶解掉，钉住的块（品牌、语言、明暗）和汉堡排在同一条
+顶栏：左边站名、右边控件。展开后抽屉以整行掉到下面，语言 / 明暗仍留在顶栏右侧——不要
+把它们堆进菜单再靠左。
+
+**页脚不收汉堡。** 页脚不是顶栏，版权 + 订阅这种一行内容不该再点一次才能看见。窄屏页脚
+的抽屉保持 `display: contents`、汉堡 `display: none`；DOM 仍与页头同构，只是 CSS 不折叠。
 
 汉堡用 checkbox 而不是 `<button>` + JS，也不是 label 包隐藏 input：前者纯 CSS 就能展开、
 无 JS 可用，且自带开关状态与键盘操作（空格）；后者键盘根本聚焦不到。

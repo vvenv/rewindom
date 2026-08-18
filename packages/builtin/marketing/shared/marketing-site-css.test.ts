@@ -38,6 +38,11 @@ describe("marketing-site-css", () => {
     expect(MARKETING_SITE_CSS_BASE).toContain(".grid{");
     // 页头页脚都用 .brand/.logo，所以它们归共用而不是归 header
     expect(MARKETING_SITE_CSS_BASE).toContain(".brand{");
+    expect(MARKETING_SITE_CSS_BASE).toContain("white-space:nowrap");
+    expect(MARKETING_SITE_CSS_BASE).toContain(
+      ".chrome-row:not(:has(.chrome-zone-center))",
+    );
+    expect(MARKETING_SITE_CSS_BASE).toContain(".site-footer .chrome-menu-toggle");
     expect(MARKETING_SITE_CSS_BASE).not.toContain("@import");
   });
 

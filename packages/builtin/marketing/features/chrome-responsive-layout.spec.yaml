@@ -1,0 +1,22 @@
+# 增量功能契约 —— 页头页脚在常见屏宽下的排版
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: 桌面站名不换行；窄屏展开后语言/明暗留在顶栏右侧；页脚窄屏不收进汉堡
+gold: packages/builtin/marketing/shared/sections/_common/styles.css
+touch:
+  - packages/builtin/marketing/features/chrome-responsive-layout.spec.yaml
+  - packages/builtin/marketing/shared/sections/_common/styles.css
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+  - packages/builtin/marketing/shared/marketing-site-css.test.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改 chrome 块 schema / row / align / mobile 取值
+  - 拆页头页脚渲染器
+  - 改租户已存的块设置
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin assemble:marketing-css
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared marketing-site-css.test.ts chrome-html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteChrome.test.tsx
