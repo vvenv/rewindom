@@ -26,7 +26,7 @@ Rule：`.cursor/rules/site-section-css.mdc`、`.cursor/rules/site-section-i18n.m
 | 字段 | 说明 |
 | --- | --- |
 | 贡献方模块 | 定义写在贡献方 `shared/`，**不要**改 marketing 内核 |
-| 类型 | section / chrome 块 / 模板页（可组合） |
+| 类型 | section / chrome 块 / 模板页 / 首页版式（可组合） |
 | `type` 前缀 | 必须带模块前缀（`shop.product`、`shop.cart-link`）；撞名启动即抛 |
 | `entitlement` | 有租户开关则声明；未开通不进「添加区块」、不渲染 |
 | 库存文案 | setting `default` 与预设 `text` / `titleKey` 用 `ns:key`，禁止先 `t()` |
@@ -125,6 +125,21 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 金标准：`packages/builtin/site-member/shared/member-page-templates.ts`、`modules/shop/shared/shop-page-templates.ts`。
 
 必备段用 `required_section`；段自己用 `page_kinds` 声明只能落在哪张页面上。
+
+## 首页版式
+
+首页只有一张（`kind: home`，路径 `/`）。模块可以另外贡献一套首页版式，让租户把站点
+根换成自己的段组合。与模板页正交：`/shop`、`/events` 仍是枢纽页。
+
+店面 / 文档库通常不必贡献——它们的入口就是自己的模板页。事件雷达这类「站点根就应该
+是本模块」的产品应当贡献。
+
+| 写 | 登记 |
+| --- | --- |
+| 与模板页同一份 `*-page-templates.ts` | `registerHomeLayout({ key, label, entitlement?, preset })` |
+
+`preset.kind` 必须是 `home`；有开关必须声明 `entitlement`。套用只写草稿，不改
+`home_path`。金标准：`modules/events/shared/events-page-templates.ts` 的 `events.home`。
 
 ## 库存文案（数据 i18n）
 

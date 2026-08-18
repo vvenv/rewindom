@@ -130,6 +130,16 @@
       "subheading": "Events merged across sources — not a rearranged leaderboard",
       "empty": "No events yet — they appear after the first ingest run",
       "more": "See all events"
+    },
+    "entity": {
+      "title": "Entity",
+      "subtitle": "Every event involving this company, product or person"
+    }
+  },
+  "home": {
+    "layout": {
+      "label": "Events radar",
+      "description": "Rising then Now — use this when the site root should be the events front door"
     }
   },
   "section": {
@@ -153,15 +163,24 @@
       "showSourcesInfo": "Turning this off leaves visitors unable to check the originals",
       "sourcesLabel": "Sources heading",
       "backLabel": "Back link text"
+    },
+    "entity": {
+      "label": "Entity page body",
+      "eventsLabel": "Events heading",
+      "showSources": "Show sources",
+      "emptyText": "Empty state text"
     }
   },
   "template": {
     "group": "Events",
     "index": {
-      "label": "Events home"
+      "label": "Events hub"
     },
     "detail": {
       "label": "Event page"
+    },
+    "entity": {
+      "label": "Entity page"
     }
   },
   "edit": {
@@ -255,5 +274,17 @@
   },
   "entities": {
     "title": "Entities"
+  },
+  "entity": {
+    "relatedEvents": "Related events",
+    "empty": "No events reference this entity yet",
+    "metaDescription": "{{count}} events involving {{name}}, most recent first"
+  },
+  "entityKind": {
+    "company": "Company",
+    "product": "Product",
+    "person": "Person",
+    "place": "Place",
+    "org": "Organisation"
   }
 }

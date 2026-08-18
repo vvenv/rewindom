@@ -3,6 +3,7 @@ import {
   translateRegisteredKeyTable,
 } from "@rewindom/shared";
 
+import { DEFAULT_HOME_LAYOUT_KEY, registerHomeLayout } from "./home-layouts.js";
 import {
   NOT_FOUND_PAGE_KIND,
   NOT_FOUND_TEMPLATE_SLUG,
@@ -34,7 +35,10 @@ export type {
 } from "./page-presets.types.js";
 
 /**
- * 默认起步模板的首页版式（仅 `buildSiteStarter` 用，不进可选预设菜单）。
+ * 默认起步模板的首页版式。
+ *
+ * 建站与「重设」的兜底；也作为 `registerHomeLayout` 的 `marketing.default`。
+ * 它是**起点**，不是成品：租户第一件事是把文案换成自己的。
  */
 export const HOME_STARTER_PRESET: PagePreset = {
   /*
@@ -98,6 +102,12 @@ export const HOME_STARTER_PRESET: PagePreset = {
  * 元数据（slug / path）在 `page-templates.ts` 里就登记好了，与预设分开的理由见那边。
  */
 registerPageTemplatePreset("home", HOME_STARTER_PRESET);
+registerHomeLayout({
+  key: DEFAULT_HOME_LAYOUT_KEY,
+  label: "marketing:preset.home.layoutLabel",
+  description: "marketing:preset.home.layoutDescription",
+  preset: HOME_STARTER_PRESET,
+});
 
 /**
  * 404 起步版式：必备的 `page-missing` 段 + 回首页。租户改文案、加段、换按钮；
@@ -131,9 +141,7 @@ export const NOT_FOUND_STARTER_PRESET: PagePreset = {
 registerPageTemplatePreset(NOT_FOUND_PAGE_KIND, NOT_FOUND_STARTER_PRESET);
 
 /** 首页兜底版式落成真实 sections（同 `buildPresetSections`，只是入口固定为 home）。 */
-export function buildHomeTemplateSections(
-  t: PresetTranslateFn,
-): SiteSection[] {
+export function buildHomeTemplateSections(t: PresetTranslateFn): SiteSection[] {
   return buildPresetSections(HOME_STARTER_PRESET, t);
 }
 

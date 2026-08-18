@@ -1,6 +1,7 @@
 import { registerI18nBundles, setupI18n } from "@rewindom/client-kit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MARKETING_I18N } from "../i18n.js";
@@ -18,6 +19,7 @@ vi.mock("@rewindom/client-kit", async (importOriginal) => ({
 vi.mock("../hooks/useSite.js", () => ({
   useSiteMutations: () => ({
     updateSite: { mutate: vi.fn(), isPending: false },
+    applyHomeLayout: { mutate: vi.fn(), isPending: false },
   }),
   useSitePages: () => ({ data: [] }),
   useSiteCapabilities: () => ({ data: { entitlements: [] } }),
@@ -40,6 +42,7 @@ const site = {
   site_draft_dirty: false,
   published: true,
   home_path: "/",
+  home_layout_key: "marketing.default",
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
 } as unknown as MarketingSite;
@@ -57,12 +60,14 @@ function renderHeader(summary?: {
   });
   return render(
     <QueryClientProvider client={client}>
-      <SiteSummaryHeader
-        site={site}
-        defaultLocale="zh-CN"
-        isLoading={false}
-        summary={summary}
-      />
+      <MemoryRouter>
+        <SiteSummaryHeader
+          site={site}
+          defaultLocale="zh-CN"
+          isLoading={false}
+          summary={summary}
+        />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }
@@ -100,10 +105,20 @@ describe("SiteSummaryHeader", () => {
     expect(link).toHaveAttribute("target", "_blank");
   });
 
-  it("does not offer a duplicate editor entrance on the card header", () => {
+  it("does not offer a duplicate page-editor entrance on the card header", () => {
     renderHeader();
 
     expect(screen.queryByRole("link", { name: /编辑/ })).toBeNull();
+  });
+
+  it("offers Appearance next to Site settings", () => {
+    renderHeader();
+
+    const appearance = screen.getByRole("link", { name: "外观" });
+    expect(appearance).toHaveAttribute("href", "/app/site/editor?scope=theme");
+    expect(
+      screen.getByRole("button", { name: "站点设置" }),
+    ).toBeInTheDocument();
   });
 
   it("keeps Settings as a sheet trigger without write permission", () => {

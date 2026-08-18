@@ -74,16 +74,17 @@ client/
 | 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/events?source=now` |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
 | 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now 各摆一次）；带 `?source=` 时是该批次的查询列表，不再用两段版式；带 `?topic=` 时两段都只显示该主题 |
+| 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构。租户在站点设置里选；只写草稿，不改 `home_path` |
 | 模板页 `events_detail` | `/events/:slug` |
+| 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上 |
+| 模板页 `events_entity` | `/events/entity/:slug` |
 | 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events?topic=`；`children` 则收成「事件」一条下挂七格 |
 | 导航源 `events.topic` | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填 |
-| path handler | 接 `/events` 与 `/events/:slug`（`/en/...` 同一条，locale 已被剥掉）|
-| sitemap / 链接候选 | 近 30 天事件进 sitemap；链接下拉只给 `/events` 一条 |
+| path handler | 接 `/events`、`/events/:slug` 与 `/events/entity/:slug`（`/en/...` 同一条，locale 已被剥掉）|
+| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体各进 sitemap；链接下拉只给 `/events` 一条 |
 
-marketing 内核**一行没改**——定义全在贡献方 `shared/`，登记在 server `onBoot` 与
-client manifest 各调一次。存量页上的 `events.feed` 仍渲染（按当时的 source 下拉取数），
-但不进「添加区块」。默认页头仍是「全部一级页面」；要在页头点进 AI / Gaming，到主题
-编辑器的导航块里加一次「事件主题」（默认就会铺平七格）。
+段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
+`registerHomeLayout`（events 填表，内核不认识「雷达」这个概念）。
 
 ## 页头 / 页脚导航
 
@@ -313,6 +314,23 @@ HN 的 topstories 本来就是几十件互不相干的事。但词面聚类有�
 在版式上与 Title Case 无法区分，会被一起弃权。放宽阈值能救它，但实测会把上面那些
 整段短语一起放回来。
 
+#### 实体页 `/events/entity/:slug`
+
+路径挂在 `/events` 下而不是新开一个根路径：事件与实体是同一个域，共用前缀让 sitemap、
+面包屑与 path handler 都只有一处。**事件 slug 永远是一段，实体路径恒为两段且首段是
+`entity`**，两者不会撞；三段以上不接，交回给普通页面查找。
+
+页面是「模板页 + 段」的组合，与详情页同构：租户可以在编辑器里改版式。实体与其事件由
+path handler 直接带进 `EventsRenderContext.entity`，**不走 contributed provider**——
+只有 path handler 知道当前是哪个实体。
+
+卡片沿用 `.events-card`，并**保留势头角标**：实体页上「哪几件事正在扩散」和首页上一样重要，
+少画一个角标不会让页面更干净，只会让它更没有信息。
+
+sitemap 只收**最近 30 天还有事件**的实体（不是按实体自身更新时间）。实体页比事件页更值得
+索引——事件 24h 后就凉，实体不会——但也正因为它长期存在，更要挡住「三年前提过一次就
+永远进 sitemap」的长尾。
+
 #### 实体不能用来兜底聚类（实测，别再试）
 
 曾经预期共享实体能救回线上那组被拆成 4 个的 GitHub 故障。**在真实语料上量过，结论是反的**：
@@ -445,10 +463,9 @@ HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘�
 - **中文源**：语义层已经就位，跨语言合并技术上成立了，但阈值要在中英混合语料上**单独校准**
   ——不能沿用 0.85。这是独立决策，不是顺手加几个 RSS
 - **Why it's trending**：分析器接口再加一个方法即可，需要严格区分 Confirmed 与 Discussion
-- **实体详情页 `/events/entity/:slug`**：实体数据已经落库，缺的是 SSR 面
-  （模板页 + path handler + sitemap），走 `site-section` skill 单独立项。这是竞品没有的
-  常驻长尾入口——Techmeme 没有实体页，Google News 的 topic 没有溯源
-- **关注实体**：留存的真正支点，要新表 + 通知，独立一期
+- **关注实体**：留存的真正支点（事件 24h 后就凉，实体不会），要新表 + 通知，独立一期
+- **实体索引页 `/events/entity`**：先有单页，聚合页看有没有人要
+- **工作台的实体管理**：合并 / 改名 / 删除。别名合并要人来定，不能猜
 - **那组 GitHub 故障仍然合不了**：词面共享不足 2 个词，语义 0.75~0.85 够不到阈值，
   实体兜底已实测证伪（见上文）。它需要的是「同一实体 + 同一时间窗 + 同一事件类型（故障）」
   这种事件类型判定，属于分析器的新职责，不是聚类参数问题

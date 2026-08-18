@@ -155,6 +155,11 @@ export interface MarketingSite {
    * 可打开的页面，原地址仍可打开。
    */
   home_path: string;
+  /**
+   * 首页模板当前套用的版式（`registerHomeLayout` 的 key）。
+   * 「重设为最新版式」与 SSR 兜底按它取预设。
+   */
+  home_layout_key: string;
   created_at: string;
   updated_at: string;
 }

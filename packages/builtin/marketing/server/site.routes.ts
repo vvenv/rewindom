@@ -30,6 +30,7 @@ import {
 } from "./site-redirect.service.js";
 import {
   applySiteTheme,
+  applyHomeLayout,
   createPage,
   deletePage,
   duplicatePage,
@@ -562,6 +563,47 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           detail_params: { title: page.title },
         });
         return page;
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  /**
+   * 套用一套首页版式：记下 key，把所有语言的首页草稿换成该预设。
+   * 只写草稿，不改 home_path。
+   */
+  defineRoute(app, {
+    method: "POST",
+    url: "/home-layout",
+    context: "SiteHomeLayout",
+    errorCode: "SITE_HOME_LAYOUT_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const body = request.body as { key?: unknown };
+        if (typeof body.key !== "string" || body.key.trim() === "") {
+          throw new AppError({
+            code: "site.home_layout_invalid",
+            status: 400,
+          });
+        }
+        const site = await applyHomeLayout(
+          request.tenantContext!.tenant_id,
+          body.key.trim(),
+        );
+        await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+          userId: request.authUser!.userId,
+          username: request.authUser!.username,
+          action: AuditAction.SITE_UPDATE,
+          resource: site.id,
+          detail_key: "marketing.audit.home_layout_applied",
+          detail_params: { key: body.key.trim() },
+        });
+        return site;
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

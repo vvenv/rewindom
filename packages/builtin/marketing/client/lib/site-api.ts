@@ -139,6 +139,11 @@ export function resetSitePagePreset(pageId: string): Promise<MarketingPage> {
   return api.post<MarketingPage>(`/site/pages/${pageId}/reset-preset`, {});
 }
 
+/** 套用一套首页版式：记下 key，首页草稿换成该预设（发布才对访客生效）。 */
+export function applySiteHomeLayout(key: string): Promise<MarketingSite> {
+  return api.post<MarketingSite>("/site/home-layout", { key });
+}
+
 export function fetchPublicSite(
   locale?: AppLocale,
 ): Promise<PublicMarketingSite> {

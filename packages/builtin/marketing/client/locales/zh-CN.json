@@ -299,6 +299,13 @@
     "fieldPublishedHint": "关闭后绑定域名只显示未开通页。",
     "fieldHomePage": "首页",
     "fieldHomePageHint": "选中的页面会显示在 / ；例如把事件枢纽设为首页后，打开网站就是 /events 的内容。",
+    "fieldHomeLayout": "首页版式",
+    "fieldHomeLayoutHint": "套到首页模板上，只写入草稿。访客在「首页」设为默认首页、并发布之后才会看到。",
+    "applyHomeLayout": "套用版式",
+    "applyHomeLayoutConfirmTitle": "套用「{{label}}」首页版式？",
+    "applyHomeLayoutConfirmDescription": "首页模板的草稿将被换成这套版式，现有区块会被替换。满意后发布，不满意可撤销更改。不会改「哪张页面占据 /」。",
+    "toastHomeLayoutApplied": "已套用首页版式（草稿）",
+    "toastHomeLayoutApplyFailed": "套用首页版式失败",
     "homePageDefault": "默认首页（{{title}}）",
     "badgeHome": "首页",
     "setAsHome": "设为首页",
@@ -820,16 +827,16 @@
       "flat": "就地平铺"
     },
     "scope": {
-      "theme": "主题设置",
-      "themeHint": "作用于整站的配色、字体与版式；改动实时反映在预览上。"
+      "theme": "外观",
+      "themeHint": "整站 Logo、Favicon、配色、字体与版式；改动实时反映在预览上，保存进草稿，发布后对访客生效。"
     },
-    "pageDescription": "编辑页面区块、页头页脚与站点主题；保存进草稿，发布后对访客生效。",
+    "pageDescription": "编辑页面区块与页头页脚；保存进草稿，发布后对访客生效。",
     "publishSite": "发布",
-    "pageMissing": "这一页不存在或已被删除；页头页脚与主题仍可编辑。"
+    "pageMissing": "这一页不存在或已被删除；页头页脚仍可编辑。"
   },
   "settings": {
     "pageTitle": "站点设置",
-    "pageDescription": "改完即存；外观与版式点页面行进编辑器再调。"
+    "pageDescription": "改完即存。Logo、配色与版式在「外观」里调。"
   },
   "chromeEditor": {
     "editLocale": "编辑语言"
@@ -863,6 +870,8 @@
     },
     "home": {
       "label": "首页",
+      "layoutLabel": "起步首页",
+      "layoutDescription": "首屏、简介和联系号召，适合介绍型站点。",
       "title": "首页",
       "description": "一句话说明这个站点是做什么的。",
       "hero": {

@@ -13,6 +13,7 @@ import {
   publishSiteEditorDraft,
   reorderSitePages,
   resetSitePagePreset,
+  applySiteHomeLayout,
   revertSiteDraft,
   revertSiteEditorDraft,
   saveSiteDraft,
@@ -166,6 +167,12 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
+  /** 套用一套首页版式（只写草稿）。 */
+  const applyHomeLayout = useMutation({
+    mutationFn: (key: string) => applySiteHomeLayout(key),
+    onSuccess: () => invalidate(),
+  });
+
   return {
     updateSite,
     createPage,
@@ -180,5 +187,6 @@ export function useSiteMutations() {
     removePage,
     unpublishPage,
     resetPagePreset,
+    applyHomeLayout,
   };
 }

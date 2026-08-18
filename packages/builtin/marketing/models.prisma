@@ -25,6 +25,9 @@ model MarketingSite {
   // 访客访问 `/` 时渲染的逻辑路径（无 locale 前缀）。默认 `/` 即 home 模板；
   // 可改成另一张可打开的页面（如 `/events`），原地址仍可打开。
   home_path      String   @default("/")
+  // 首页（kind=home）当前套用的版式 key，见 `registerHomeLayout`。
+  // 「重设为最新版式」与 SSR 兜底按它取预设；套用只写草稿。
+  home_layout_key String  @default("marketing.default")
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 

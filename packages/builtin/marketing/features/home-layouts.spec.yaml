@@ -1,0 +1,50 @@
+# 业务模块可贡献一套【首页】版式（kind=home），租户在站点设置里套用。
+#
+# 首页模板只有一张（路径 `/`）。各模块自己的枢纽页（/events、/shop、/docs）
+# 仍然是模板页；首页版式回答的是另一件事：站点根这张页默认摆哪些段。
+# 与 home_path（哪张页面占据 /）正交——套用只写首页草稿，不改 home_path。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant, ssr]
+goal: 模块可登记多套首页版式；租户套用后首页草稿换成该版式，重设 / SSR 兜底按当前选中的那套走。
+gold: packages/builtin/marketing/shared/page-templates.ts
+touch:
+  - packages/builtin/marketing/features/home-layouts.spec.yaml
+  - packages/builtin/marketing/models.prisma
+  - apps/server/prisma/migrations/
+  - packages/builtin/marketing/shared/home-layouts.ts
+  - packages/builtin/marketing/shared/home-layouts.test.ts
+  - packages/builtin/marketing/shared/page-presets.ts
+  - packages/builtin/marketing/shared/site-cms.ts
+  - packages/builtin/marketing/shared/page-templates.ts
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/site.mapper.ts
+  - packages/builtin/marketing/server/site-init.service.ts
+  - packages/builtin/marketing/server/site.routes.ts
+  - packages/builtin/marketing/server/i18n.ts
+  - packages/builtin/marketing/client/lib/site-api.ts
+  - packages/builtin/marketing/client/hooks/useSite.ts
+  - packages/builtin/marketing/client/components/settings/SiteHomeForm.tsx
+  - packages/builtin/marketing/client/locales/
+  - .cursor/skills/site-section/SKILL.md
+out_of_scope:
+  - 套用时改 home_path（访客仍看已发布的那一版，草稿发布前切路径会露出旧首页）
+  - 开通 entitlement 时自动套用（租户显式选）
+  - shop / site-docs / site-member 各自的首页版式（它们的入口是自己的模板页）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/*' shared/home-layouts.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/*' server/site.service.test.ts client/components/settings/SiteHomeForm.test.tsx
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+# entitlement: 无新增
+# permissions: 沿用 site.write
+models:
+  - name: MarketingSite
+    scope: tenant
+    fields:
+      - { name: home_layout_key, type: String, required: true }

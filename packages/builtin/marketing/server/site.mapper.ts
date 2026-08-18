@@ -6,6 +6,7 @@ import {
   resolveTemplatePresetCopy,
   isStockTemplateDescription,
 } from "../shared/page-templates.js";
+import { DEFAULT_HOME_LAYOUT_KEY } from "../shared/home-layouts.js";
 import {
   localizeSections,
   localizeSiteText,
@@ -82,6 +83,7 @@ export function toMarketingSite(
     site_draft_dirty: siteDraftIsDirty(record),
     published: record.published,
     home_path: record.home_path || "/",
+    home_layout_key: record.home_layout_key || DEFAULT_HOME_LAYOUT_KEY,
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
   };
@@ -154,7 +156,7 @@ function availableLocales(
  * 2. 页头 / 页脚的多语言文案压成当前语言。
  *
  * logo / favicon 就在 `theme_settings` 里，没有第二处来源可回落——它们是站点自己的
- * 资产，从站点编辑器的「外观」填（`SiteImageField`，媒体库选图或外链）。
+ * 资产，从官网卡片的「外观」填（`SiteImageField`，媒体库选图或外链）。
  */
 export function toPublicMarketingSite(
   site: MarketingSiteRecord,

@@ -299,6 +299,13 @@
     "fieldPublishedHint": "When off, bound hosts show an unavailable page.",
     "fieldHomePage": "Homepage",
     "fieldHomePageHint": "The selected page is shown at /. For example, setting the events hub as homepage means opening the site shows the /events content.",
+    "fieldHomeLayout": "Home layout",
+    "fieldHomeLayoutHint": "Applied to the Home template as a draft. Visitors see it when the homepage is set to Home, after you publish.",
+    "applyHomeLayout": "Apply layout",
+    "applyHomeLayoutConfirmTitle": "Apply the “{{label}}” home layout?",
+    "applyHomeLayoutConfirmDescription": "The Home template draft will be replaced with this layout. Publish when you're happy, or discard the changes. This does not change which page occupies /.",
+    "toastHomeLayoutApplied": "Home layout applied (draft)",
+    "toastHomeLayoutApplyFailed": "Failed to apply home layout",
     "homePageDefault": "Default home ({{title}})",
     "badgeHome": "Home",
     "setAsHome": "Set as homepage",
@@ -820,16 +827,16 @@
       "flat": "List inline"
     },
     "scope": {
-      "theme": "Theme settings",
-      "themeHint": "Site-wide colours, fonts and layout. Changes show up in the preview as you type."
+      "theme": "Appearance",
+      "themeHint": "Site-wide logo, favicon, colours, fonts and layout. Changes show in the preview as you type; save a draft, then publish to make them live."
     },
-    "pageDescription": "Edit page sections, header and footer, and the site theme. Saving keeps a draft; publishing makes it public.",
+    "pageDescription": "Edit page sections, header and footer. Saving keeps a draft; publishing makes it public.",
     "publishSite": "Publish",
-    "pageMissing": "That page is gone or was deleted. Header, footer and theme are still editable."
+    "pageMissing": "That page is gone or was deleted. Header and footer are still editable."
   },
   "settings": {
     "pageTitle": "Site settings",
-    "pageDescription": "Changes save as you go. Appearance and layout are in the page editor."
+    "pageDescription": "Changes save as you go. Logo, colours and layout are under Appearance."
   },
   "chromeEditor": {
     "editLocale": "Editing language"
@@ -863,6 +870,8 @@
     },
     "home": {
       "label": "Home",
+      "layoutLabel": "Starter home",
+      "layoutDescription": "Hero, intro and a contact call-to-action — for an introductory site.",
       "title": "Home",
       "description": "One line on what this site is about.",
       "hero": {

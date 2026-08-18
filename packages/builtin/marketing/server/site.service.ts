@@ -12,13 +12,11 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
-import {
-  buildHomeTemplateSections,
-  HOME_STARTER_PRESET,
-} from "../shared/page-presets.js";
+import { buildPresetSections } from "../shared/page-presets.js";
 import {
   getPageTemplateKind,
   getPageTemplatePreset,
+  HOME_PAGE_KIND,
   isTemplatePageKind,
   listPageTemplateKinds,
   NOT_FOUND_PAGE_KIND,
@@ -27,6 +25,11 @@ import {
   relocalizeStockTemplateDescription,
   relocalizeStockTemplateTitle,
 } from "../shared/page-templates.js";
+import {
+  getHomeLayout,
+  isHomeLayoutRelevant,
+  resolveHomeLayout,
+} from "../shared/home-layouts.js";
 import { mergeSectionsWithPreset } from "../shared/preset-merge.js";
 import {
   getSectionDefinition,
@@ -64,9 +67,7 @@ import {
   normalizeHomePath,
 } from "../shared/site-home.js";
 import { withSiteLocale } from "../shared/site-locale.js";
-import {
-  buildMinimalSiteChrome,
-} from "../shared/site-starters.js";
+import { buildMinimalSiteChrome } from "../shared/site-starters.js";
 import {
   applySiteThemeSettings,
   findSiteTheme,
@@ -352,11 +353,7 @@ export async function updateSite(
     if (typeof body.home_path !== "string") {
       throw new ValidationError("site.home_path_invalid");
     }
-    data.home_path = await assertHomePath(
-      tenant_id,
-      body.home_path,
-      enabled,
-    );
+    data.home_path = await assertHomePath(tenant_id, body.home_path, enabled);
   }
 
   // 主题改动一律进**草稿**列，与页头页脚同一条发布链；线上那一列只有发布才动
@@ -862,7 +859,19 @@ export async function resetPageToPreset(
     throw new NotFoundError("site.page_not_found");
   }
 
-  const preset = getPageTemplatePreset(existing.kind);
+  const enabled = await resolveSectionEntitlements(tenant_id);
+  const preset =
+    existing.kind === HOME_PAGE_KIND
+      ? resolveHomeLayout(
+          (
+            await prisma.marketingSite.findFirst({
+              where: withTenantScope(tenant_id),
+              select: { home_layout_key: true },
+            })
+          )?.home_layout_key,
+          enabled,
+        ).preset
+      : getPageTemplatePreset(existing.kind);
   // 普通页面没有「官方最新版式」可言，重设无从谈起
   if (!preset) {
     throw new ValidationError("site.page_reset_unsupported");
@@ -870,7 +879,6 @@ export async function resetPageToPreset(
 
   const locale = normalizeLocale(existing.locale);
   const t = createStarterTranslator(locale);
-  const enabled = await resolveSectionEntitlements(tenant_id);
   const draft = pageContentDraft(existing, enabled);
   const sections = parsePageSections(
     mergeSectionsWithPreset(draft.sections, preset, t),
@@ -888,6 +896,53 @@ export async function resetPageToPreset(
     },
   });
   return presentPage(updated, enabled);
+}
+
+/**
+ * 把首页草稿换成指定的贡献版式。
+ *
+ * 只写草稿、不改 `home_path`：访客仍看已发布的那一版，满意再发布。
+ * 开关没开或 key 不认识直接拒。
+ */
+export async function applyHomeLayout(
+  tenant_id: string,
+  key: string,
+): Promise<MarketingSite> {
+  const enabled = await resolveSectionEntitlements(tenant_id);
+  const layout = getHomeLayout(key);
+  if (!layout || !isHomeLayoutRelevant(layout, enabled)) {
+    throw new ValidationError("site.home_layout_invalid");
+  }
+
+  await ensureSiteRow(tenant_id);
+  await prisma.marketingSite.update({
+    where: { tenant_id },
+    data: { home_layout_key: key },
+  });
+
+  const homes = await prisma.marketingPage.findMany({
+    where: withTenantScope(tenant_id, { kind: HOME_PAGE_KIND }),
+  });
+  for (const home of homes) {
+    const t = createStarterTranslator(normalizeLocale(home.locale));
+    const sections = parsePageSections(
+      buildPresetSections(layout.preset, t),
+      enabled,
+    );
+    await prisma.marketingPage.update({
+      where: { id: home.id, tenant_id },
+      data: {
+        sections_draft: sections as unknown as Prisma.InputJsonValue,
+        title_draft: t(layout.preset.titleKey).trim(),
+        description_draft: t(layout.preset.descriptionKey).trim(),
+      },
+    });
+  }
+
+  const updated = await prisma.marketingSite.findFirstOrThrow({
+    where: withTenantScope(tenant_id),
+  });
+  return presentSite(updated, enabled);
 }
 
 export async function updatePage(
@@ -1319,7 +1374,9 @@ async function buildDefaultHomePageView(input: {
   default_locale: AppLocale;
 }): Promise<SitePageView> {
   const t = createStarterTranslator(input.locale);
-  const sections = buildHomeTemplateSections(t);
+  const enabled = await resolveSectionEntitlements(input.siteRecord.tenant_id);
+  const layout = resolveHomeLayout(input.siteRecord.home_layout_key, enabled);
+  const sections = buildPresetSections(layout.preset, t);
   const homeSiblings = input.pages.filter((page) => page.kind === "home");
   const seen = new Set<AppLocale>();
   const alternates: PageLocaleAlternate[] = [];
@@ -1345,17 +1402,13 @@ async function buildDefaultHomePageView(input: {
   );
 
   return {
-    site: await presentPublicSite(
-      input.siteRecord,
-      input.pages,
-      input.locale,
-    ),
+    site: await presentPublicSite(input.siteRecord, input.pages, input.locale),
     page: {
       slug: "home",
       locale: input.locale,
       kind: "home",
-      title: t(HOME_STARTER_PRESET.titleKey),
-      description: t(HOME_STARTER_PRESET.descriptionKey),
+      title: t(layout.preset.titleKey),
+      description: t(layout.preset.descriptionKey),
       sections,
       settings: {},
       visibility: "public",
@@ -1410,11 +1463,7 @@ export async function getPublishedPublicPage(
   const isMembersOnly = parsePageVisibility(match.visibility) === "members";
 
   return {
-    site: await presentPublicSite(
-      siteRecord,
-      pages,
-      current,
-    ),
+    site: await presentPublicSite(siteRecord, pages, current),
     page: toPublicMarketingPage(match, {
       siblings: pages,
       defaultLocale: default_locale,
@@ -1476,9 +1525,7 @@ export async function getPublishedTemplatePage(
   const matchLocale = normalizeLocale(match.locale, default_locale);
   const t = createStarterTranslator(locale);
   const copy =
-    matchLocale === locale
-      ? null
-      : resolveTemplatePresetCopy(kind, locale, t);
+    matchLocale === locale ? null : resolveTemplatePresetCopy(kind, locale, t);
   return {
     sections: localizeSections(content.sections, locale, default_locale),
     title: resolveCatalogPageTitle(kind, locale, content.title, {
@@ -1520,11 +1567,7 @@ export async function getMemberContentPage(
   if (!match) return null;
 
   return {
-    site: await presentPublicSite(
-      siteRecord,
-      pages,
-      current,
-    ),
+    site: await presentPublicSite(siteRecord, pages, current),
     page: toPublicMarketingPage(match, {
       siblings: pages,
       defaultLocale: default_locale,
@@ -1681,12 +1724,10 @@ export async function getPreviewSitePage(
   if (!match) return null;
 
   return {
-    site: await presentPublicSite(
-      siteRecord,
-      pages,
-      current,
-      { draftChrome: true, draftContent: true },
-    ),
+    site: await presentPublicSite(siteRecord, pages, current, {
+      draftChrome: true,
+      draftContent: true,
+    }),
     page: toPublicMarketingPage(match, {
       siblings: pages,
       defaultLocale: default_locale,

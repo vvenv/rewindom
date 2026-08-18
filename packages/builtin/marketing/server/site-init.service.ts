@@ -13,7 +13,9 @@ import {
   listPageTemplateKinds,
   NOT_FOUND_PAGE_KIND,
   NOT_FOUND_TEMPLATE_SLUG,
+  HOME_PAGE_KIND,
 } from "../shared/page-templates.js";
+import { resolveHomeLayout } from "../shared/home-layouts.js";
 import { buildSiteStarterChrome } from "../shared/site-starters.js";
 
 import {
@@ -115,7 +117,15 @@ export async function initializeTenantSite(
 
   for (const template of listPageTemplateKinds()) {
     if (!isPageTemplateRelevant(template, enabledEntitlements)) continue;
-    const preset = getPageTemplatePreset(template.kind);
+    const preset =
+      template.kind === HOME_PAGE_KIND
+        ? resolveHomeLayout(
+            "home_layout_key" in siteRecord
+              ? siteRecord.home_layout_key
+              : undefined,
+            enabledEntitlements,
+          ).preset
+        : getPageTemplatePreset(template.kind);
     if (!preset) continue;
 
     const existing = await prisma.marketingPage.findFirst({
@@ -195,7 +205,9 @@ export async function ensureTenantTemplatePages(
 /**
  * 存量 404 页还没有必备段：打开 `/app/site` 时整页换成当前预设。
  */
-async function upgradeNotFoundTemplateSections(tenant_id: string): Promise<void> {
+async function upgradeNotFoundTemplateSections(
+  tenant_id: string,
+): Promise<void> {
   const pages = await prisma.marketingPage.findMany({
     where: withTenantScope(tenant_id, { kind: NOT_FOUND_PAGE_KIND }),
   });

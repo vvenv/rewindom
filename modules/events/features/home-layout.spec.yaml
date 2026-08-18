@@ -1,0 +1,30 @@
+# events 贡献一套站点首页版式：升温 + 正在发生。
+#
+# `/events` 枢纽仍是模板页。这套版式套在 kind=home（路径 `/`）上，
+# 让事件雷达产品可以把站点根做成雷达入口，而不必靠 home_path 把 / 改写成 /events。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 开通事件雷达的站点可以在官网设置里把首页换成「升温 + 正在发生」版式。
+gold: modules/events/shared/events-page-templates.ts
+touch:
+  - modules/events/features/home-layout.spec.yaml
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/MODULE.md
+out_of_scope:
+  - 开通开关时自动套用
+  - 改 /events 枢纽版式
+  - shop / docs 的首页版式
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-page-templates.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []

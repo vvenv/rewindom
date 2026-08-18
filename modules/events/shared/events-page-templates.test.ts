@@ -7,6 +7,8 @@ import {
 } from "./events-feed-section.js";
 import {
   EVENTS_DETAIL_TEMPLATE_PRESET,
+  EVENTS_HOME_LAYOUT_KEY,
+  EVENTS_HOME_LAYOUT_PRESET,
   EVENTS_INDEX_PAGE_KIND,
   EVENTS_INDEX_TEMPLATE_PRESET,
   EVENTS_PAGE_TEMPLATE_GROUP,
@@ -14,6 +16,7 @@ import {
   registerEventsPageTemplates,
 } from "./events-page-templates.js";
 
+import { getHomeLayout } from "@rewindom/builtin/marketing/shared/home-layouts.js";
 import { getPageTemplateKind } from "@rewindom/builtin/marketing/shared/page-templates.js";
 
 describe("registerEventsPageTemplates", () => {
@@ -50,5 +53,16 @@ describe("registerEventsPageTemplates", () => {
         raw: expect.objectContaining({ topic: "ai" }),
       }),
     ]);
+  });
+
+  it("贡献一套站点首页版式，与枢纽同构，未开通不进选择器", () => {
+    expect(
+      EVENTS_HOME_LAYOUT_PRESET.sections.map((section) => section.type),
+    ).toEqual(
+      EVENTS_INDEX_TEMPLATE_PRESET.sections.map((section) => section.type),
+    );
+    const layout = getHomeLayout(EVENTS_HOME_LAYOUT_KEY);
+    expect(layout?.entitlement).toBe("events");
+    expect(layout?.preset).toBe(EVENTS_HOME_LAYOUT_PRESET);
   });
 });

@@ -13,7 +13,7 @@
 | 面           | 路由                                                                  | 目录                                         | 守卫                                           |
 | ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
 | 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
-| 租户中台     | `/app/site`、`/app/site/editor`（编辑器：区块 / 主题设置，`?page=` / `?scope=`）；站点设置为官网卡片上的 Sheet | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
+| 租户中台     | `/app/site`、`/app/site/editor`（`?page=` 区块树；`?scope=theme` 外观，从卡片进入）；站点设置为官网卡片上的 Sheet | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
 挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / 编辑器）。
 公开站**不**挂 React；交互由 `site-enhance`（无 React IIFE）渐进增强。
@@ -35,7 +35,7 @@
 | 模板页注册表 | `shared/page-templates.ts` | 业务方的 `*-page-templates.ts`（贡献方自己写） |
 | 编辑器 / 工作台 | `client/pages/site-*.tsx`、`client/enhance/` | 公开站挂 React |
 | 首页是哪一页 | `shared/site-home.ts`、站点设置 Sheet | 用重定向表劫持 `/` |
-| 业务模块贡献段 / 模板 / chrome | 贡献方 `shared/` + `site-section` | 本模块「顺便登记」业务 type |
+| 业务模块贡献段 / 模板 / chrome / 首页版式 | 贡献方 `shared/` + `site-section` | 本模块「顺便登记」业务 type |
 
 ## 租户 CMS 数据
 
@@ -623,6 +623,23 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 同一条（登录标题用 `headingSettings({ headingDefault: "site-member:login.title" })`）。
 复制跨语言时库存句换成目标语言，租户改过的才搬原文。不要先 `t()` 成单语字符串。
 
+#### 业务模块贡献首页版式
+
+首页只有一张（`kind: home`，路径 `/`）。模块可以再登记一套**首页版式**，让租户把站点
+根换成自己的内容结构（例如事件雷达的升温 + 正在发生），而不必靠 `home_path` 把 `/`
+改写成另一张枢纽页。
+
+与模板页正交：`/events`、`/shop` 仍是各自的模板页；首页版式套的是同一张首页上的段。
+店面 / 文档库的入口就是自己的枢纽页，通常不必再贡献一份，除非要把该模块做成站点根。
+
+| 位置 | 做什么 |
+| --- | --- |
+| `<模块>/shared/*-page-templates.ts` | `registerHomeLayout({ key, label, entitlement?, preset })`（`preset.kind` 必须是 `home`） |
+| server `onBoot` + client manifest | 与模板页同一个注册函数里调（幂等） |
+
+有租户开关必须声明 `entitlement`。套用只写首页草稿、不改 `home_path`；「重设为最新版式」
+与 SSR 兜底按 `MarketingSite.home_layout_key` 取当前那套。金标准：events `events.home`。
+
 #### 贡献公开路径、保留 slug、sitemap、链接候选
 
 不是 `MarketingPage` 的公开地址（文档库 `/docs`）不要写进 `renderPath`。模块登记：
@@ -698,34 +715,25 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
   语言**落地；建完直接进编辑器——一张空白页留在列表里什么也说明不了
 - 列表里的路径只作展示不做链接（同文档库）：站点跑在租户自己的域名上，管理端拼不出
   可点的绝对地址
-- **进编辑器**：点页面行。页头页脚在区块树里改，主题设置用左栏层切换——卡片上不再挂
-  「编辑某某 / 外观 / 页头页脚」平行入口。
+- **进编辑器**：点页面行改该页与页头页脚。外观（Logo / 配色 / 版式）在卡片上与「站点设置」并列，打开 `/app/site/editor?scope=theme`。卡片上不再挂「编辑某某 / 页头页脚」那种对不齐落点的按钮。
 - **模板页不可删**：`isTemplatePageKind`（首页、文档版式、会员版式等）只许重设预设，
   服务端 `deletePage` 也拦；普通 `page` 仍可删。
 
 ### 站点编辑器（`/app/site/editor`）
 
-**一个编辑器管三样**：页面区块、页头页脚、站点主题。URL 上两个参数决定看到什么：
+**两个入口，同一套壳**：页面行打开区块树（页面 + 页头页脚）；卡片「外观」打开主题层
+（`?scope=theme`，不带页面）。共用一块预览、一条站点级草稿/发布链。
 
 | 参数              | 作用                                                            |
 | ----------------- | --------------------------------------------------------------- |
 | `?page=<id>`      | 树里多出「页面区块」那一段；不带就只有页头页脚，改导航不必先挑页面 |
-| `?scope=theme`    | 切到主题层，字段进右侧设置栏（默认 `sections`）                   |
+| `?scope=theme`    | 外观：无区块树，预览默认首页，右侧是主题字段（Logo / 配色 / 版式） |
 
-三样以前是三个界面——逐页编辑器、页头页脚编辑器、外观页——各自一份三栏壳、各自一份
-预览接线，外观那份预览还是只读的静态首页（改配色等于盲改，站点没首页时干脆是空白）。
-它们改的是同一个站点、看的是同一块预览，差别只是「在调哪一层」，所以合成一个
-（口径同 Shopify 主题编辑器）。从页面行进编辑器；主题设置是钉在左栏底部、
-滚动区之外的常驻入口（`?scope=theme`），不是与树平行的 tab——树再长它也不动，
-切主题时树不消失，段落与主题来回对比不用换语境。
-
-**主题为什么不是树上的一项**：树上选中的都是对象（某一段、某个块、页面自己），
-而主题是整站的一层参数，没有可选中的对象。所以它是树**下方**一枚独立的固定入口：
-点它 = 选中它，字段进右侧设置栏（交互与选中一段一致）；放在滚动区外是为了树再长
-也不会把它顶出视野。
+主题不是树上的对象（没有可选中的段），所以不放进页面编辑器左栏——埋在那里等于找不到
+Logo。外观需要实站预览，也不能塞进站点设置 Sheet（那份是失焦即存）。
 
 没打开页面时右上角那枚发布是 `EditorToolbar`（站点级链），打开了则是 `PageEditorToolbar`
-（正文 + 站点级同事务）。页面被删 / 链接过期不整页失败：站点级那两层照样能编。
+（正文 + 站点级同事务）。页面被删 / 链接过期不整页失败：页头页脚照样能编。
 
 三栏：
 
@@ -766,6 +774,7 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 **不带页面进编辑器**（`/app/site/editor`）：左树只有页头 / 页脚两组；保存
 `PUT /api/site/draft`，发布 `POST /api/site/draft/publish`，撤销 `POST /api/site/draft/revert`
 ——这三个接口连主题一起处理。与页面草稿列无关，但共用同一套 section schema 与预览组件。
+外观入口（`?scope=theme`）走同一条站点级链，只是不渲染区块树、预览默认首页。
 
 打开页面时保存一次写页面 sections 与站点级草稿（页头页脚 + 主题）：`PUT /api/site/pages/:id/draft`（`saveEditorDraft`，同事务）。
 站点级那几样也可单独发布：`POST /api/site/draft/publish`（草稿列复制到 `nav_json` / `footer_json` / `theme_settings`）；
@@ -855,7 +864,7 @@ setting 的 `default` 应是同一条 key。
 | -------- | ------------------------------ | ---------------------------------------- |
 | 基本信息 | 站名 / 标语（逐字段 `__i18n`） | `{ site_name, tagline }`，**失焦即存**   |
 | 语言     | 主语言                         | `{ default_locale, site_name, tagline }`，**确认即存** |
-| 首页     | 占据 `/` 的页面                | `{ home_path }`，**下拉即存**            |
+| 首页     | 占据 `/` 的页面；首页模板的版式 | `{ home_path }` 下拉即存；版式走 `POST /site/home-layout` |
 | 发布     | 站点总开关                     | `{ published }`，**开关即存**            |
 | 重定向   | 旧地址 → 新地址                | 各自的 `/site/redirects` 接口            |
 
@@ -868,6 +877,8 @@ setting 的 `default` 应是同一条 key。
 **首页**（`home_path`）决定访客打开 `/`（以及 `/en/` 这类语言根）时渲染哪一页。默认
 仍是 `home` 模板。可改成任意可打开的页面（`/events`、`/about`）；参数化详情
 （`/events/:slug`）和 404 不行。SSR **不 30x**——站点根 URL 不变，canonical 指向 `/`，
+原地址仍可打开。模块还可以贡献**首页版式**（`registerHomeLayout`）：套用后首页草稿
+换成那套段，与「哪张页面占据 /」无关。有两套以上时设置里才露出选择器。
 原路径照常可打开。目标页开关关掉或被删时回落默认首页。页面列表里当前首页带「首页」
 徽章，行菜单可「设为首页」。
 
@@ -880,8 +891,8 @@ setting 的 `default` 应是同一条 key。
 
 ### 站点主题的归属
 
-**站点主题**（Logo / Favicon / 分享图 / 配色 / 字体 / 页宽 / 区块间距）全在编辑器的
-**主题层**（`/app/site/editor?scope=theme`）。中台那边**没有**品牌页了。
+**站点主题**（Logo / Favicon / 分享图 / 配色 / 字体 / 页宽 / 区块间距）在官网卡片的
+**「外观」**（`/app/site/editor?scope=theme`），与「站点设置」并列。中台那边**没有**品牌页了。
 
 历史上分过两次家又合回来：先是借 `platform` 的 `settingsBrandingExtraSlot` 把主题字段
 注入品牌页——那页按 `settings.*` 授权，而这些字段落库走 `PATCH /api/site`（`site.write`），
