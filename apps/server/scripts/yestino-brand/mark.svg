@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Yestino">
+  <defs>
+    <linearGradient id="yestino-bg" x1="32" y1="24" x2="224" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="64" fill="url(#yestino-bg)"/>
+  <path
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="38"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    d="M86 70 L128 142 L170 70 M128 142 L128 198"
+  />
+</svg>
