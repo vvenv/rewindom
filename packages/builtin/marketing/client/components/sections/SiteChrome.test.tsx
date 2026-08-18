@@ -112,8 +112,8 @@ describe("SiteChrome 定位", () => {
 
     const start = rows[0]!.querySelector(".chrome-zone-start")!;
     expect(start.querySelector(".brand")).not.toBeNull();
-    expect(start.querySelector("a.btn")?.textContent).toBe("免费开始");
-    expect(rows[0]!.querySelector(".chrome-zone-center .chrome-nav")).not.toBeNull();
+    expect(rows[0]!.querySelector("a.btn")?.textContent).toBe("免费开始");
+    expect(rows[0]!.querySelector(".chrome-menu-popup .chrome-nav")).not.toBeNull();
     expect(rows[1]!.querySelector(".chrome-zone-end .chrome-text")?.textContent).toBe(
       "限时优惠",
     );
@@ -134,6 +134,7 @@ describe("SiteChrome 定位", () => {
     ]);
 
     expect(container.querySelectorAll(".chrome-drawer")).toHaveLength(1);
+    expect(container.querySelectorAll(".chrome-menu-popup")).toHaveLength(1);
     expect(container.querySelectorAll(".chrome-menu-toggle")).toHaveLength(1);
     // 同一批链接不许在 DOM 里出现两次（旧的 .header-mobile-nav 就是复制了一份）
     expect(screen.getAllByRole("link", { name: "定价" })).toHaveLength(1);
@@ -201,7 +202,9 @@ describe("SiteChrome 文本占位符", () => {
   });
 
   it("空文本不留空标签", () => {
-    const { container } = area("footer", [block("chrome_text", { text: "" })]);
+    const empty = block("chrome_text");
+    empty.settings.text = "";
+    const { container } = area("footer", [empty]);
     expect(container.querySelector(".chrome-text")).toBeNull();
   });
 });
@@ -245,6 +248,9 @@ describe("SiteChrome 区域差异", () => {
     ]);
 
     expect(container.querySelector("footer .locale-switcher")).not.toBeNull();
+    expect(
+      container.querySelector("footer .locale-switcher > summary.chrome-control"),
+    ).not.toBeNull();
     expect(screen.getByTestId("member-entry")).toBeVisible();
   });
 
@@ -263,5 +269,57 @@ describe("SiteChrome 区域差异", () => {
       </MemoryRouter>,
     );
     expect(container.querySelector(".locale-switcher")).toBeNull();
+  });
+});
+
+describe("SiteChrome 品牌", () => {
+  function brandArea(settings: SettingValues, logoUrl: string | null = null) {
+    const base = createSection("header");
+    const [section] = localizeSections(
+      [{ ...base, blocks: [block("chrome_brand", settings)] } satisfies SiteSection],
+      "zh-CN",
+      "zh-CN",
+    );
+    return render(
+      <MemoryRouter>
+        <siteMemberEntrySlot.Provider component={EntryStub}>
+          <SiteChrome
+            tag="header"
+            section={section!}
+            siteName="Acme - 一句很长的 SEO 标题"
+            logoUrl={logoUrl}
+            pages={pages}
+            alternates={alternates}
+            locale="zh-CN"
+            defaultLocale="zh-CN"
+          />
+        </siteMemberEntrySlot.Provider>
+      </MemoryRouter>,
+    );
+  }
+
+  /* 预览与实站必须是同一条回落，否则编辑器里看到的字标和线上不是一个 */
+  it("字标留空时跟着站名走", () => {
+    brandArea({});
+    expect(screen.getByText("Acme - 一句很长的 SEO 标题")).toBeTruthy();
+  });
+
+  it("填了字标就不再显示站名", () => {
+    const { container } = brandArea({ brand_text: "Acme" });
+    expect(screen.getByText("Acme")).toBeTruthy();
+    expect(container.textContent).not.toContain("SEO 标题");
+  });
+
+  it("字标在场时 logo 的 alt 置空", () => {
+    const { container } = brandArea({ brand_text: "Acme" }, "/logo.svg");
+    expect(container.querySelector("img.logo")?.getAttribute("alt")).toBe("");
+  });
+
+  it("不显示字标时 alt 才承担品牌名", () => {
+    const { container } = brandArea(
+      { show_site_name: false, brand_text: "Acme" },
+      "/logo.svg",
+    );
+    expect(container.querySelector("img.logo")?.getAttribute("alt")).toBe("Acme");
   });
 });

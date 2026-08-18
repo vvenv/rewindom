@@ -43,6 +43,10 @@ describe("marketing-site-css", () => {
       ".chrome-row:not(:has(.chrome-zone-center))",
     );
     expect(MARKETING_SITE_CSS_BASE).toContain(".site-footer .chrome-menu-toggle");
+    expect(MARKETING_SITE_CSS_BASE).toContain(".chrome-menu-popup{");
+    expect(MARKETING_SITE_CSS_BASE).toContain(".chrome-control{");
+    expect(MARKETING_SITE_CSS_BASE).toMatch(/--chrome-control-size:\s*2rem/);
+    expect(MARKETING_SITE_CSS_BASE).toMatch(/--chrome-control-size:\s*1\.5rem/);
     expect(MARKETING_SITE_CSS_BASE).not.toContain("@import");
   });
 

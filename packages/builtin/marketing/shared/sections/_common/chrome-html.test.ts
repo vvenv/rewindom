@@ -114,7 +114,8 @@ describe("chrome 窄屏", () => {
     const html = header([
       block("chrome_nav", { items: LINK_ITEMS, mobile: "menu" }),
     ]);
-    expect(html).toContain('<div class="chrome-drawer">');
+    expect(html).toContain("chrome-drawer");
+    expect(html).toContain("chrome-menu-popup");
     expect(html).toContain('class="chrome-menu-toggle"');
     // 同一批链接不许出现两次（旧实现把导航复制了一份进 .header-mobile-nav）
     expect(html.match(/href="\/pricing"/gu)).toHaveLength(1);
@@ -123,6 +124,7 @@ describe("chrome 窄屏", () => {
   it("没有「收进菜单」的块就没有汉堡", () => {
     const html = header([block("chrome_brand", { mobile: "pin" })]);
     expect(html).not.toContain("chrome-menu-toggle");
+    expect(html).not.toContain("chrome-menu-popup");
   });
 
   it("窄屏隐藏的块带 chrome-mobile-hide", () => {
@@ -167,9 +169,21 @@ describe("chrome 文本占位符", () => {
   });
 
   it("空文本不留空标签", () => {
-    expect(footer([block("chrome_text", { text: "" })])).not.toContain(
-      "chrome-text",
-    );
+    const empty = block("chrome_text");
+    empty.settings.text = "";
+    expect(footer([empty])).not.toContain("chrome-text");
+  });
+});
+
+describe("chrome 控件密度", () => {
+  /*
+   * 语言 / 明暗必须挂 chrome-control，页脚才能跟版权文字走同一套 token。
+   * 尺寸写在 CSS 变量上，markup 只负责报名。
+   */
+  it("语言开关与明暗切换挂 chrome-control", () => {
+    const html = header([block("chrome_locale", {}), block("chrome_theme", {})]);
+    expect(html).toContain('<summary class="chrome-control"');
+    expect(html).toContain('class="theme-toggle chrome-control"');
   });
 });
 
@@ -230,5 +244,50 @@ describe("chrome 页头页脚同构", () => {
     expect(inner(renderHeaderHtml({ ...common, homeHref: "/" }))).toBe(
       inner(renderFooterHtml({ ...common, homeHref: "/" })),
     );
+  });
+});
+
+describe("chrome 品牌", () => {
+  function brandHeader(settings: SettingValues, logoUrl: string | null = null) {
+    return renderHeaderHtml({
+      section: localized("header", [block("chrome_brand", settings)]),
+      siteName: "站点 - 一句很长的 SEO 标题",
+      logoUrl,
+      homeHref: "/",
+      locales: LOCALES,
+      locale: "zh-CN",
+    });
+  }
+
+  it("字标留空时跟着站名走（存量块没有这个键）", () => {
+    expect(brandHeader({})).toContain("<span>站点 - 一句很长的 SEO 标题</span>");
+  });
+
+  it("填了字标就不再显示站名——站名要留给 <title>", () => {
+    const html = brandHeader({ brand_text: "站点" });
+    expect(html).toContain("<span>站点</span>");
+    expect(html).not.toContain("一句很长的 SEO 标题");
+  });
+
+  it("字标逐语言填写", () => {
+    const html = brandHeader({
+      brand_text: { __i18n: { "zh-CN": "字标", en: "Wordmark" } },
+    });
+    expect(html).toContain("<span>字标</span>");
+    expect(html).not.toContain("Wordmark");
+  });
+
+  it("字标在场时 logo 是装饰性的，alt 置空不让读屏念两遍", () => {
+    const html = brandHeader({ brand_text: "站点" }, "/logo.svg");
+    expect(html).toContain('<img class="logo" src="/logo.svg" alt="" />');
+  });
+
+  it("不显示字标时 alt 才承担品牌名", () => {
+    const html = brandHeader(
+      { show_site_name: false, brand_text: "站点" },
+      "/logo.svg",
+    );
+    expect(html).toContain('alt="站点"');
+    expect(html).not.toContain("<span>站点</span>");
   });
 });

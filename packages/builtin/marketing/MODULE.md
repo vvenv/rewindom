@@ -160,11 +160,16 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 抽屉——抽屉分散在各个对齐区里，和 checkbox 不是兄弟，`~` 够不着。
 
 窄屏行把对齐区 `display: contents` 溶解掉，钉住的块（品牌、语言、明暗）和汉堡排在同一条
-顶栏：左边站名、右边控件。展开后抽屉以整行掉到下面，语言 / 明暗仍留在顶栏右侧——不要
-把它们堆进菜单再靠左。
+顶栏：左边站名、右边控件。`mobile: menu` 的块收进行末 `.chrome-menu-popup`，点汉堡后从
+顶栏下沿拉开浮层，不挤占顶栏。语言 / 明暗仍留在顶栏右侧。
 
 **页脚不收汉堡。** 页脚不是顶栏，版权 + 订阅这种一行内容不该再点一次才能看见。窄屏页脚
 的抽屉保持 `display: contents`、汉堡 `display: none`；DOM 仍与页头同构，只是 CSS 不折叠。
+
+**图标控件的密度由区域决定。** 页头是工具栏（2rem），页脚是元信息，跟 `chrome_text`
+（版权）同一级。尺寸写在 `--chrome-control-*` token 上；语言 / 明暗 / RSS 这类图标
+控件加 class `chrome-control` 即跟随。不要给每个块加字号设置，也不要在贡献 CSS 里
+再写死 `height: 2rem`——贡献样式拼在 marketing 后面，会把页脚密度盖掉。
 
 汉堡用 checkbox 而不是 `<button>` + JS，也不是 label 包隐藏 input：前者纯 CSS 就能展开、
 无 JS 可用，且自带开关状态与键盘操作（空格）；后者键盘根本聚焦不到。
@@ -621,7 +626,9 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 | `<模块>/server/…` → `registerChromeBlockHtml(def, render, { css })` | SSR |
 | `<模块>/client/module.tsx` → `registerChromeBlockView(def, htmlChromeBlockView(render), { css, icon })` | 编辑器预览 |
 
-两端 import 同一份 definition。金标准：shop 的购物车入口。
+两端 import 同一份 definition。金标准：shop 的购物车入口。图标控件（RSS、搜索按钮
+这类）markup 加 class `chrome-control`，尺寸跟语言 / 明暗走 `--chrome-control-*`，
+不要在贡献 CSS 里写死 2rem。
 
 **停用之后不丢内容**：模块被移除或租户退订时，页面上已经摆好的那一段走下面的
 `unsupported` 口径原样兜住，重新启用就自动回来。这是这个契约敢用的前提。
