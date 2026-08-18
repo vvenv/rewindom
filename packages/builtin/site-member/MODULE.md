@@ -51,7 +51,8 @@ Fastify 先命中；`/member/oauth/callback` 仍落到 SPA。nginx 与 vite dev 
 
 - marketing **不** import site-member（模板页 / 段 / SSR 会话都是「注册表定义在消费方，本模块填」）
 - 公开 CMS：SSR 通过 `registerSiteAccountEntry` + `registerSiteMemberSsrSession` 读
-  HttpOnly cookie，首屏输出登录态菜单并解锁门控页；`site-enhance` 仅绑登出 / 兜底升级
+  HttpOnly cookie，首屏输出登录态菜单并解锁门控页；`site-enhance` 绑登出，仅当页头
+  已有访客登录钮时才兜底探测 `/api/member/me`（没有账户入口不打会员接口）
 - 页头菜单可贡献链接：`shared/member-menu-links.ts`（依赖方如 site-billing 登记「我的订阅」；
   SSR / React / enhance 同读一份清单）。自助页互链另走 `listMemberSiblingLinks`（账户 +
   贡献项，当前页剔自己），账户 ↔ 订阅对称。

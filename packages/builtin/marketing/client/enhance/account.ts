@@ -206,10 +206,15 @@ export function enhanceAccount(): void {
     return;
   }
 
-  // 访客登录链：补 redirect
-  for (const link of document.querySelectorAll<HTMLAnchorElement>(
+  const guestEntries = document.querySelectorAll<HTMLAnchorElement>(
     "a.member-entry",
-  )) {
+  );
+  // 页头没有账户入口 = 本站没启用会员 UI，不要去打 /me。
+  // 默认 starter 不预置 chrome_account，否则每个访客页都会 401。
+  if (guestEntries.length === 0) return;
+
+  // 访客登录链：补 redirect
+  for (const link of guestEntries) {
     link.href = loginHref();
   }
 

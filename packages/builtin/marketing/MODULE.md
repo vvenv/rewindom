@@ -285,7 +285,7 @@ SSR 在页头有 `chrome_theme` 块时输出 `<button class="theme-toggle">`；�
 | 宿主           | 数据来源                        | 渲染                                                              |
 | -------------- | ------------------------------- | ----------------------------------------------------------------- |
 | SSR 首屏       | cookie 会话 + 服务端注入点      | 未开通不输出；访客「登录」；已登录直接输出账户菜单并解锁门控正文 |
-| 公开站交互     | site-enhance                    | 绑登出；SSR 仍是访客时用 cookie 探测 `/api/member/me` 升级菜单   |
+| 公开站交互     | site-enhance                    | 绑登出；**仅当页头有访客登录钮**时才探测 `/api/member/me` 升级菜单（没有 `chrome_account` 不打会员接口） |
 | 主题编辑器预览 | `GET /api/site/capabilities`    | 开通了才灌 `SiteAccountEntryPreview`（slot）                      |
 
 会员 JWT 在 HttpOnly cookie（`rewindom_member_*`）里，随 HTML / XHR 同源发送；SSR 可

@@ -1,0 +1,22 @@
+# 增量功能契约 —— 页头没有账户入口时，site-enhance 不要探测会员会话
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: 公开站未放置 chrome_account（没有会员入口）时，site-enhance 不请求 /api/member/me 与 /refresh，避免访客控制台出现 401
+gold: packages/builtin/marketing/client/enhance/theme.test.ts
+touch:
+  - packages/builtin/marketing/features/skip-member-me-without-account-entry.spec.yaml
+  - packages/builtin/marketing/client/enhance/account.ts
+  - packages/builtin/marketing/client/enhance/account.test.ts
+  - packages/builtin/marketing/shared/site-enhance.generated.ts
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/site-member/MODULE.md
+out_of_scope:
+  - 改 /api/member/me 的鉴权或返回码
+  - 给会员体系重新加 entitlement 开关
+  - 挪走 marketing 里的 enhanceAccount
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client account.test.ts
+  - pnpm --filter @rewindom/builtin assemble:site-enhance
