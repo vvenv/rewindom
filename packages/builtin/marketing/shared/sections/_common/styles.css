@@ -398,11 +398,22 @@
   border-radius: 0.5rem;
   font-size: 0.875rem;
   color: var(--muted-fg);
+  /*
+   * 当前项画一条 accent 下划线。尺寸先写 0，标了 aria-current 再拉开——
+   * 悬停不能共用这条线，否则「你在哪一格」和「鼠标停在上面」分不清。
+   */
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: center bottom 0.2rem;
+  background-size: 0 0;
 }
-.chrome-nav-inline > a:hover,
-.chrome-nav-inline > a[aria-current="page"] {
-  background: var(--muted-bg);
+.chrome-nav-inline > a:hover {
   color: var(--fg);
+}
+.chrome-nav-inline > a[aria-current="page"] {
+  color: var(--fg);
+  font-weight: 500;
+  background-size: calc(100% - 1.25rem) 2px;
 }
 .chrome-nav-column {
   display: flex;
@@ -429,6 +440,10 @@
 }
 .chrome-nav-column a:hover {
   color: var(--fg);
+}
+.chrome-nav-column a[aria-current="page"] {
+  color: var(--fg);
+  font-weight: 500;
 }
 /* 竖列里的分组标题（文档分类那一层），不可点 */
 .nav-group {
@@ -462,6 +477,10 @@
   font-size: 0.875rem;
   color: var(--muted-fg);
   cursor: pointer;
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: center bottom 0.2rem;
+  background-size: 0 0;
 }
 .nav-menu > summary::-webkit-details-marker {
   display: none;
@@ -476,10 +495,17 @@
   transform: translateY(-1px) rotate(45deg);
   opacity: 0.7;
 }
-.nav-menu > summary:hover,
-.nav-menu[open] > summary {
-  background: var(--muted-bg);
+.nav-menu > summary:hover {
   color: var(--fg);
+}
+.nav-menu[open] > summary {
+  background-color: var(--muted-bg);
+  color: var(--fg);
+}
+.nav-menu > summary[aria-current="page"] {
+  color: var(--fg);
+  font-weight: 500;
+  background-size: calc(100% - 1.5rem) 2px;
 }
 .nav-menu-panel {
   position: absolute;
@@ -512,10 +538,14 @@
   color: var(--muted-fg);
   white-space: nowrap;
 }
-.nav-menu-panel a:hover,
-.nav-menu-panel a[aria-current="page"] {
-  background: var(--muted-bg);
+.nav-menu-panel a:hover {
+  background-color: var(--muted-bg);
   color: var(--fg);
+}
+.nav-menu-panel a[aria-current="page"] {
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--fg);
+  font-weight: 500;
 }
 /*
  * 文档分类那一层：小标题用正文色、链接退到次要色并缩进——深浅与缩进说的是同一件事。
@@ -718,6 +748,17 @@
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: stretch;
+  }
+  /*
+   * 窄屏是一列链接：底边横线看起来像分割线。改成左侧竖条 + 淡衬底，
+   * 和桌面「当前格」说的是同一件事。
+   */
+  .chrome-row:has(.chrome-menu-toggle:checked)
+    .chrome-nav-inline
+    > a[aria-current="page"] {
+    background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+    background-position: left 0.35rem center;
+    background-size: 2px calc(100% - 0.5rem);
   }
   /* popup 里的下拉就地展开，不要再浮一层 */
   .chrome-menu-popup .nav-menu-panel {

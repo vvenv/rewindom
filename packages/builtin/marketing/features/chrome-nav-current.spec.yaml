@@ -1,0 +1,35 @@
+# 增量功能契约 —— 页头导航当前项高亮
+#
+# 起因：横排导航把 `:hover` 和 `[aria-current="page"]` 写成同一条 muted-bg
+# 色块。事件雷达把七个 topic 铺成页头（AI / Tech / …）时，当前格看起来只是
+# 鼠标停在上面，看不出「你在哪一格」。下拉的 `<summary>` 标了 aria-current
+# 却根本没有样式。
+#
+# 当前项用 accent 下划线 + 字重，悬停只改颜色；列表形态（下拉面板、窄屏菜单、
+# 竖列）改用衬底 / 字重，避免横线在一列链接里看起来像分割线。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: 页头 / 页脚导航的当前项与悬停拆开；当前项用 accent 标识，summary[aria-current] 也要看得见。
+gold: packages/builtin/marketing/shared/sections/_common/styles.css
+touch:
+  - packages/builtin/marketing/features/chrome-nav-current.spec.yaml
+  - packages/builtin/marketing/shared/sections/_common/styles.css
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+  - packages/builtin/marketing/shared/marketing-site-css.test.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改 currentPath 匹配规则（topic 仍靠精确路径，枢纽本身不高亮主题格）
+  - 改 page-menu 段（正文同级菜单，不是 chrome）
+  - 改语言切换器当前语言样式
+  - 改 chrome 块 schema / row / align / mobile
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin assemble:marketing-css
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared marketing-site-css.test.ts
+
+# ---------- 可选 ----------
+entitlement: # 无
+permissions: []
+models: []

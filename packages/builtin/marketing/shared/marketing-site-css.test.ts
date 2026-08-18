@@ -48,6 +48,16 @@ describe("marketing-site-css", () => {
     expect(MARKETING_SITE_CSS_BASE).toMatch(/--chrome-control-size:\s*2rem/);
     expect(MARKETING_SITE_CSS_BASE).toMatch(/--chrome-control-size:\s*1\.5rem/);
     expect(MARKETING_SITE_CSS_BASE).not.toContain("@import");
+    // 当前项 ≠ 悬停：事件雷达主题格靠这条线才能看出「你在哪一格」
+    expect(MARKETING_SITE_CSS_BASE).not.toMatch(
+      /\.chrome-nav-inline>a:hover,\s*\.chrome-nav-inline>a\[aria-current=page\]/,
+    );
+    expect(MARKETING_SITE_CSS_BASE).toMatch(
+      /\.chrome-nav-inline>a\[aria-current=page\]\{[^}]*font-weight:500/,
+    );
+    expect(MARKETING_SITE_CSS_BASE).toContain(
+      ".nav-menu>summary[aria-current=page]",
+    );
   });
 
   it("段样式按 type 分开，各在各的条目里", () => {

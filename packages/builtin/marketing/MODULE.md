@@ -117,7 +117,7 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 | ----------------- | ------------------------------------------- |
 | `chrome_brand`    | show_logo, show_site_name, brand_text, blurb |
 | `chrome_nav`      | title, items, display(inline\|column)       |
-| `chrome_text`     | text（支持 `{year}` / `{site}` / `{hostname}` 占位符） |
+| `chrome_text`     | text（`{year}` / `{site}` / `{hostname}` / `{url}`） |
 | `chrome_button`   | label, href, variant                        |
 | `chrome_locale`   | —                                           |
 | `chrome_theme`    | —                                           |
@@ -143,10 +143,16 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 底栏那排法务链接因此只能作为字段（`links`）塞进版权块里。现在它就是一个
 `display: inline` 的导航块放在第二行。
 
+**当前项和悬停不是同一种样式。** `aria-current="page"` 以前跟 `:hover` 共用一块
+`muted-bg`，事件雷达把主题格铺成页头时看不出「你在哪一格」；下拉的 `<summary>`
+标了当前项也没有样式。横排当前项用 accent 下划线 + 字重，悬停只改颜色；下拉面板 /
+窄屏菜单 / 竖列改用衬底或字重，避免横线在一列链接里看起来像分割线。
+
 **`chrome_text` 的占位符替掉了 `chrome_copyright` 的隐藏行为。** 那个块的语义是「留空则
 自动生成 © 当年 站名」：输入框里空着、前台却有字，想改成「© 2020–{year} Acme, Inc.」
-无从下手。现在默认值就是 `© {year} {site}`，看得见改得动；另外还有 `{hostname}`（当前
-访问的主机名，不含端口）。跨年、改站名、换绑域名照样自己跟上（`_common/chrome-text.ts`）。
+无从下手。现在默认值就是 `© {year} {site}`，看得见改得动。同一套还会替换 `{hostname}`
+（当前主机名，不含端口）和 `{url}`（当前 origin，含协议）。跨年、改站名、换绑域名
+照样自己跟上（`_common/chrome-text.ts`）。
 
 区域自身的 settings 只剩外壳（`_common/chrome-shell.ts`）：`padding_top` / `padding_bottom` /
 `row_gap` / `show_divider`，页头另加 `sticky`、页脚另加 `spacing_above`，再加通用配色。
