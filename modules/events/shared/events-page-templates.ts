@@ -76,8 +76,9 @@ const EVENTS_HUB_SECTIONS: readonly PresetSection[] = [
     type: eventFeedSectionType("now"),
     raw: { limit: 9 },
   },  /*
-   * 订阅入口摆在两段列表之后：它是页面级的次要动作，
-   * 一张页面**一次**——曾经做成 feed 段的开关，结果 Rising + Now 各画一个。
+   * 订阅段摆在两段列表之后：页面级的次要动作。
+   * 页头 / 页脚那个常驻入口是 chrome 块（`events.subscribe-link`），两者不冲突——
+   * 段能带一句说明，chrome 块能只显示图标。
    */
   { type: EVENTS_SUBSCRIBE_SECTION_TYPE },
 
@@ -157,6 +158,8 @@ export const EVENTS_ENTITY_TEMPLATE_PRESET: PagePreset = {
         empty_text: "events:entity.empty",
       },
     },
+    // 按上下文挑地址：摆在实体页上就指向这个实体的 feed
+    { type: EVENTS_SUBSCRIBE_SECTION_TYPE },
   ],
 };
 

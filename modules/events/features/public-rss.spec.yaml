@@ -1,0 +1,85 @@
+# 对外发布 RSS —— 这个产品一直在消费 RSS，现在该产出 RSS。
+#
+# 订阅是**留存的第三条腿**：关注事件（易逝）、关注实体（登录态）、订阅 feed（不需要账号）。
+# 前两条都要求用户先注册；RSS 不要求，而恰恰是最可能被 HN / 技术读者采用的那条。
+#
+# 三个入口对应三种订阅意图：
+#   /events/feed.xml                     —— 这个站在报什么
+#   /events/feed.xml?topic=ai            —— 只看某个主题
+#   /events/entity/<slug>/feed.xml       —— 只看某个公司 / 产品（竞品没有这一条）
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 公开站提供 RSS 2.0 订阅：全站事件、按主题、按实体三种；事件页与实体页上给出可见的订阅入口。
+gold: modules/shop/server/ssr/shop.ssr.ts
+touch:
+  - modules/events/features/public-rss.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-feed-section.ts
+  - modules/events/shared/events-entity-section.ts
+  - modules/events/shared/events-subscribe-block.ts
+  - modules/events/shared/sections/subscribe-html.ts
+  - modules/events/shared/sections/subscribe-html.test.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/module.tsx
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/entity-html.ts
+  - modules/events/shared/sections/rss-xml.ts
+  - modules/events/shared/sections/rss-xml.test.ts
+  - modules/events/shared/site-css/
+  - modules/events/server/ssr/rss.routes.ts
+  - modules/events/server/ssr/rss.routes.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/module.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - "<link rel=alternate> 自动发现（要 marketing 内核开一个 head 贡献点，business 模块不改内核）"
+  - Atom / JSON Feed（先只做 RSS 2.0，格式再加是增量）
+  - WebSub / PubSubHubbub 实时推送
+  - 按关注实体生成个人化 feed（那是登录态，RSS 是匿名的）
+  - 工作台里的订阅管理界面
+i18n: code # channel 标题走文案表；事件标题是数据，不翻译
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/rss-xml.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/builtin check:section-css
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 公开面，匿名可读
+models: [] # 不落库
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **不能用 path handler**：它的 `render` 只回 HTML，没有 content-type 控制，
+#    feed 会被当成 text/html 发出去。走模块自己的 Fastify 路由（与 shop 店面路由同构），
+#    在里面自行 `resolveHostTenant` 并设 `application/rss+xml`。
+#    marketing 的 sitemap.xml 是内核路由，业务模块**不改内核**去蹭它。
+# 2. 未开通事件雷达的站点一律 404，与 path handler 的 entitlement 闸门同口径。
+# 3. XML 转义**自己写一份**，不复用 `escapeHtml`：HTML 转义不处理 XML 里
+#    非法的控制字符，而事件标题来自外部来源，什么都可能有。
+# 4. `guid` 用事件详情页的绝对地址并标 `isPermaLink="true"`——
+#    事件 slug 一旦生成就不变（`slugify + id 后缀`），是稳定的订阅身份。
+# 5. `pubDate` 用 `last_activity_at` 而不是 `first_seen_at`：
+#    订阅者要的是「这条又有新进展了」，不是「它当初什么时候第一次出现」。
+# 6. 订阅入口是**页头 / 页脚的 chrome 块**（`events.subscribe-link`），
+#    不是页面段，更不是 feed 段上的开关。走了两版才到这里，两次都是被真实版式打回来的：
+#    第一版做成了 feed 段的设置，两个后果都在真实版式上验证到了：
+#      a. `/events` 默认摆 Rising + Now 两段 → 同一个 URL 的订阅链接**渲染两次**；
+#      b. feed 段可以摆在任意页面（比如营销首页），那里冒出一个全站 RSS 链接
+#         完全脱离上下文。
+#      c. 改成独立的页面段之后位置对了，但**模板页早就快照落库**，
+#         改预设对已存在的站点不生效——租户在编辑器里根本找不到它。
+#    根因一直是同一个：订阅**不是页面内容**，它是站点级的常驻入口，
+#    和语言切换、购物车入口同一类。那正是 chrome 块存在的理由：
+#    站点级、`singleton`、在「站点外观 → 页头 / 页脚」里配置，不受模板页快照影响。
+# 7. 订阅块**按上下文取地址**：当前页有实体就给实体 feed，否则给全站 feed
+#    （带上枢纽当前的 topic）。同一个块摆到实体模板页上不会指错。
+#    chrome 块拿得到 `contributed`，所以站点级的常驻入口也能做到
+#    「读者在哪一页，就订阅哪一页对应的东西」。

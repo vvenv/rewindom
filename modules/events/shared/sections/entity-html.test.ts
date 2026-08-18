@@ -33,6 +33,7 @@ function entity(overrides: Partial<PublicEntityView> = {}): PublicEntityView {
   return {
     slug: "openai-abc123",
     href: "/events/entity/openai-abc123",
+    feed_href: "/events/entity/openai-abc123/feed.xml",
     name: "OpenAI",
     kind_label: "公司",
     event_count: 2,
@@ -102,9 +103,18 @@ describe("renderEventsEntityHtml", () => {
     expect(render(null)).toBe("");
   });
 
+  /*
+   * 订阅入口不在这个段里：它是**页面级**的（`events.subscribe`），
+   * 摆一次、按上下文挑地址。曾经做成段设置，结果两段同页时画了两个。
+   */
+  it("不自己画订阅入口——那由独立的订阅段负责", () => {
+    expect(render(entity())).not.toContain("events-subscribe");
+  });
+
   it("实体名转义，不让数据带出标签", () => {
     const html = render(entity({ name: "<script>x</script>" }));
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
   });
+
 });

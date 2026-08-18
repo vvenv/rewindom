@@ -11,6 +11,7 @@ import { registerEventIngestJobs } from "./ingest/scheduler-jobs.js";
 import { registerEventsSections } from "./sections/register.js";
 import { registerEventsPathHandler } from "./ssr/events-path-handler.js";
 import { eventsRoutes } from "./events.routes.js";
+import { eventsRssRoutes } from "./ssr/rss.routes.js";
 import { EVENTS_SERVER_I18N } from "./i18n.js";
 
 import { EVENTS_ENTITLEMENT } from "../shared/entitlements.js";
@@ -70,6 +71,12 @@ export const eventsServerModule: ServerAppModule = {
       registerReservedPageSlug("events");
     },
     registerRoutes: async (app) => {
+      /*
+       * 公开 RSS 挂在租户 host 上、匿名可读，所以**不进** tenant-gated 分组
+       *（那一组要登录态与租户上下文）。路由内部自行解析 host 租户并判 entitlement，
+       * 与 shop 店面路由同构。
+       */
+      await app.register(eventsRssRoutes);
       await registerTenantGatedRoutes(app, "events", async (scoped) => {
         await scoped.register(feedRoutes, { prefix: "/api/events/feeds" });
         await scoped.register(followRoutes, { prefix: "/api/events/follows" });

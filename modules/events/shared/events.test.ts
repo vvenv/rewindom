@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { describeEventMomentum } from "./events.js";
+import { isEventsPath } from "./events-section-context.js";
 
 function item(overrides: {
   velocity_pct?: number;
@@ -73,5 +74,28 @@ describe("describeEventMomentum", () => {
         }),
       ),
     ).toBeNull();
+  });
+});
+
+describe("isEventsPath", () => {
+  it("接首页、事件详情与实体页", () => {
+    expect(isEventsPath("/events")).toBe(true);
+    expect(isEventsPath("/events/openai-gpt6-abc123")).toBe(true);
+    expect(isEventsPath("/events/entity/openai-abc123")).toBe(true);
+  });
+
+  /*
+   * RSS 走模块自己的 Fastify 路由（path handler 只能回 HTML）。
+   * 不让开的话，一旦路由注册顺序变了，`/events/feed.xml` 会被当成
+   * slug 为 `feed.xml` 的事件详情，静默变成 404。
+   */
+  it("让开 RSS 地址", () => {
+    expect(isEventsPath("/events/feed.xml")).toBe(false);
+    expect(isEventsPath("/events/entity/openai-abc123/feed.xml")).toBe(false);
+  });
+
+  it("再深的路径交回给普通页面查找", () => {
+    expect(isEventsPath("/events/entity/a/b")).toBe(false);
+    expect(isEventsPath("/eventsomething")).toBe(false);
   });
 });

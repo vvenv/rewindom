@@ -135,7 +135,9 @@
     "entity": {
       "title": "Entity",
       "subtitle": "Every event involving this company, product or person"
-    }
+    },
+    "subscribe": "Subscribe via RSS",
+    "subscribeHint": "Follow in any RSS reader — no account needed"
   },
   "home": {
     "layout": {
@@ -176,6 +178,16 @@
       "eventsLabel": "Events heading",
       "showSources": "Show sources",
       "emptyText": "Empty state text"
+    },
+    "subscribe": {
+      "label": "Subscribe link",
+      "linkLabel": "Link text",
+      "hint": "Hint text"
+    },
+    "subscribeLink": {
+      "label": "Subscribe link",
+      "iconOnly": "Icon only",
+      "iconOnlyInfo": "Shows just the RSS icon; the text above is kept as the accessible label and tooltip"
     }
   },
   "template": {

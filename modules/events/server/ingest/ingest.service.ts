@@ -3,6 +3,7 @@ import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 import { TENANT_MODULES_STORAGE_KEY } from "@rewindom/builtin/platform/shared/tenant-modules.js";
 
 import { canonicalizeUrl } from "../event/canonical-url.js";
+import { isEventsModuleEnabled } from "../lib/entitlement.js";
 import { clusterSignals } from "../event/cluster.service.js";
 import { refreshEvents } from "../event/event-refresh.service.js";
 import { syncRelatedEvents } from "../event/related.service.js";
@@ -199,14 +200,6 @@ export async function listEventIngestTenantIds(): Promise<string[]> {
   return tenants
     .filter((row) => isEventsModuleEnabled(byTenant.get(row.id)))
     .map((row) => row.id);
-}
-
-/** 未写入开关时跟 entitlement 的 default_enabled=true 一致。 */
-function isEventsModuleEnabled(value: unknown): boolean {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return true;
-  }
-  return (value as Record<string, unknown>).events !== false;
 }
 
 interface PersistResult {

@@ -25,7 +25,7 @@ describe("registerEventsPageTemplates", () => {
     registerEventsPageTemplates();
   });
 
-  it("首页预设是升温、正在发生和订阅，因此不能声明「有且仅有一段」必备段", () => {
+  it("首页预设是升温、正在发生与订阅三段，因此不能声明「有且仅有一段」必备段", () => {
     expect(
       EVENTS_INDEX_TEMPLATE_PRESET.sections.map((section) => section.type),
     ).toEqual([

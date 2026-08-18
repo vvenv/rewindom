@@ -309,3 +309,4 @@ function renderCards(cards: PublicEventCard[]): string {
     contributed: eventsContextEntry(context),
   });
 }
+

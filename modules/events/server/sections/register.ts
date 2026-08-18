@@ -18,6 +18,7 @@ import {
   eventsNowSection,
   eventsEntitySection,
   eventsRisingSection,
+  eventsSubscribeBlock,
   eventsSubscribeSection,
   toPublicCard,
 } from "../../shared/index.js";
@@ -27,13 +28,17 @@ import {
 } from "../../shared/nav-sources.js";
 import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../../shared/sections/entity-html.js";
-import { renderEventsSubscribeHtml } from "../../shared/sections/subscribe-html.js";
+import {
+  renderEventsSubscribeBlockHtml,
+  renderEventsSubscribeHtml,
+} from "../../shared/sections/subscribe-html.js";
 import { renderEventsFeedHtml } from "../../shared/sections/feed-html.js";
 import { EVENTS_CSS } from "../../shared/site-css.generated.js";
 
 import { registerLinkTargetProvider } from "@rewindom/builtin/marketing/server/link-target-providers.js";
 import { registerSectionContextProvider } from "@rewindom/builtin/marketing/server/section-context-providers.js";
 import { registerSitemapProvider } from "@rewindom/builtin/marketing/server/sitemap-providers.js";
+import { registerChromeBlockHtml } from "@rewindom/builtin/marketing/shared/sections/_common/chrome-html.js";
 import { registerSiteSectionHtml } from "@rewindom/builtin/marketing/shared/sections/html.js";
 
 const css = { css: EVENTS_CSS };
@@ -108,6 +113,7 @@ export function registerEventsSections(): void {
   registerSiteSectionHtml(eventsFeedSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsDetailSection, renderEventsDetailHtml, css);
   registerSiteSectionHtml(eventsEntitySection, renderEventsEntityHtml, css);
+  registerChromeBlockHtml(eventsSubscribeBlock, renderEventsSubscribeBlockHtml, css);
   registerSiteSectionHtml(eventsSubscribeSection, renderEventsSubscribeHtml, css);
   registerEventsContextProvider();
   registerSitemapProvider({ provide: getPublicEventSitemapEntries });

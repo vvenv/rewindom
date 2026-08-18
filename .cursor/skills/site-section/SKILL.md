@@ -93,6 +93,16 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 `type` 带模块前缀；`entitlement` 闸门同样生效。金标准：shop `shop.cart-link`。
 
+**图标控件必须与 `.theme-toggle` / `.locale-switcher > summary` 等大**——同排并列，
+差一点点就看得出来：2rem 方框、圆角 `0.5rem`、`color: var(--fg)`、hover 铺 `--muted-bg`、
+内含 16×16 内联 SVG。带文字时保持同样的高度与圆角，只放开宽度。
+纯图标形态**必须**补 `aria-label`（图标已 `aria-hidden`，不补就是没有名字的控件）。
+细则见 `site-section-css` rule。
+
+想让块支持「只显示图标」时，开关写成 `icon_only`（默认 `false`），**不要**写成
+`show_label`（默认 `true`）：`settingBool` 是严格 `=== true`，键缺失一律当 false，
+后者会让任何缺这个键的存量块默默变成没有文字的按钮。
+
 ## 公开站交互脚本（enhance）
 
 公开站不挂 React。段需要交互（提交、切换、展开）时，贡献方写

@@ -135,7 +135,9 @@
     "entity": {
       "title": "实体",
       "subtitle": "这个公司 / 产品 / 人物涉及的全部事件"
-    }
+    },
+    "subscribe": "订阅 RSS",
+    "subscribeHint": "用任意 RSS 阅读器订阅，不需要注册账号"
   },
   "home": {
     "layout": {
@@ -176,6 +178,16 @@
       "eventsLabel": "事件列表标题",
       "showSources": "显示来源",
       "emptyText": "空态文案"
+    },
+    "subscribe": {
+      "label": "订阅入口",
+      "linkLabel": "链接文案",
+      "hint": "补充说明"
+    },
+    "subscribeLink": {
+      "label": "订阅入口",
+      "iconOnly": "仅显示图标",
+      "iconOnlyInfo": "只画一个 RSS 图标；上面的文案仍会作为无障碍标签与悬停提示保留"
     }
   },
   "template": {
