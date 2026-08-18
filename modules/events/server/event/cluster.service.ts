@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
 import { pickBestCluster } from "./cluster-match.js";
+import { buildEmbeddingInput, embedTexts, mergeCentroid } from "./embedding.js";
 import { buildEventSlug } from "./slug.js";
 import { buildFingerprint, tokenizeTitle } from "./title-tokens.js";
 
@@ -15,6 +16,7 @@ export interface ClusterableSignal {
   id: string;
   tenant_id: string;
   title: string;
+  excerpt: string;
   topic: string;
   canonical_url: string;
   published_at: Date;
@@ -37,20 +39,55 @@ export async function clusterSignals(
     (a, b) => a.published_at.getTime() - b.published_at.getTime(),
   );
 
-  for (const signal of ordered) {
-    const eventId = await resolveEventForSignal(signal);
+  // 一次把整批向量取回来：逐条请求会把一轮采集拖成几百次往返。
+  // 没配 key 或调用失败时返回空数组，下面的语义判据自动让位给词面判据。
+  const embeddings = await embedTexts(ordered.map(buildEmbeddingInput));
+
+  for (const [index, signal] of ordered.entries()) {
+    const embedding = embeddings[index] ?? [];
+    const eventId = await resolveEventForSignal(signal, embedding);
     await prisma.eventSignal.update({
       where: { id: signal.id },
       data: { event_id: eventId },
     });
+    await absorbIntoCentroid(eventId, embedding);
     touched.add(eventId);
   }
 
   return touched;
 }
 
+/**
+ * 把新信号的向量并进事件质心。
+ *
+ * 用成员均值而不是「立事件那条信号的向量」：后者会让事件永远停留在第一次措辞上，
+ * 越贴近事件全貌的跟进报道反而越难并进来。
+ */
+async function absorbIntoCentroid(
+  eventId: string,
+  embedding: readonly number[],
+): Promise<void> {
+  if (embedding.length === 0) {
+    return;
+  }
+  const event = await prisma.newsEvent.findUnique({
+    where: { id: eventId },
+    select: { centroid: true, signal_count: true },
+  });
+  if (!event) {
+    return;
+  }
+  await prisma.newsEvent.update({
+    where: { id: eventId },
+    data: {
+      centroid: mergeCentroid(event.centroid, event.signal_count, embedding),
+    },
+  });
+}
+
 async function resolveEventForSignal(
   signal: ClusterableSignal,
+  embedding: readonly number[],
 ): Promise<string> {
   // 1. 同一篇原文已经归属过——URL 相等是最硬的证据，先于任何文本相似度
   const sibling = await prisma.eventSignal.findFirst({
@@ -67,38 +104,40 @@ async function resolveEventForSignal(
 
   const tokens = tokenizeTitle(signal.title);
 
-  // 2. 近窗口内同主题事件里找最像的
+  // 2. 近窗口内的事件里找最像的
+  //
+  // **刻意不按 topic 过滤**。topic 曾经是采集源的属性（HN=tech、OpenAI=ai、BBC=world），
+  // 带上它等于规定「跨源的同一件事不许合并」——而那恰恰是这个产品要做的事。
+  // 现在 topic 由内容判定、且在事件层每轮重算，用它当聚类前置条件既不必要也不正确。
   const cutoff = new Date(
     signal.published_at.getTime() - CANDIDATE_WINDOW_HOURS * 60 * 60 * 1000,
   );
   const candidates = await prisma.newsEvent.findMany({
     where: withTenantScope(signal.tenant_id, {
-      topic: signal.topic,
       last_activity_at: { gte: cutoff },
     }),
-    select: { id: true, tokens: true },
+    select: { id: true, tokens: true, centroid: true },
     orderBy: { last_activity_at: "desc" },
     take: CANDIDATE_LIMIT,
   });
-  const matched = pickBestCluster(tokens, candidates);
+  const matched = pickBestCluster(tokens, embedding, candidates);
   if (matched) {
     return matched;
   }
 
   // 3. 另起一个事件
-  return createEvent(signal, tokens);
+  return createEvent(signal, tokens, embedding);
 }
 
 async function createEvent(
   signal: ClusterableSignal,
   tokens: string[],
+  embedding: readonly number[],
 ): Promise<string> {
   // 标题分不出任何有效词时，指纹退化成一条信号一个事件——
   // 否则所有「无词标题」会因为指纹相同被硬塞进同一个事件
   const fingerprint =
-    tokens.length > 0
-      ? buildFingerprint(signal.topic, tokens)
-      : `${signal.topic}:signal:${signal.id}`;
+    tokens.length > 0 ? buildFingerprint(tokens) : `signal:${signal.id}`;
 
   const existing = await prisma.newsEvent.findUnique({
     where: {
@@ -125,6 +164,7 @@ async function createEvent(
         status: "developing",
         fingerprint,
         tokens,
+        centroid: [...embedding],
         source_names: [],
         first_seen_at: signal.published_at,
         last_activity_at: signal.published_at,

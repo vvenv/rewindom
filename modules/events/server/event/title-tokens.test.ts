@@ -21,13 +21,25 @@ describe("tokenizeTitle", () => {
     expect(tokenizeTitle("OpenAI announces GPT-6")).toEqual(["openai", "gpt-6"]);
   });
 
-  it("保留域名与版本号里的点和连字符", () => {
+  it("保留版本号里的点，但把域名归一到主体名", () => {
     expect(tokenizeTitle("Rust 1.90 lands on example.com")).toEqual([
       "rust",
       "1.90",
       "lands",
-      "example.com",
+      "example",
     ]);
+  });
+
+  /*
+   * 线上真实漏合并（yestino.com/events）：同一次 GitHub 故障被拆成 4 个事件。
+   * 头两条的 token 是 `github.com` 与 `github`——**共享 0 个词**，
+   * 连相似度那一步都走不到（MIN_SHARED_TOKENS 卡在前面）。
+   */
+  it("域名形态与裸名要能对上：github.com ⟷ github", () => {
+    const a = tokenizeTitle("Incident with Github.com");
+    const b = tokenizeTitle("GitHub down again? no PR access");
+    expect(a).toContain("github");
+    expect(sharedTokenCount(a, b)).toBeGreaterThan(0);
   });
 
   it("中文按二元切分", () => {
@@ -54,8 +66,18 @@ describe("buildFingerprint", () => {
 
   it("只保留区分度最高的 8 个词", () => {
     const tokens = Array.from({ length: 12 }, (_, i) => `token${i}`);
-    const parts = buildFingerprint("tech", tokens).split(":")[1].split("-");
-    expect(parts).toHaveLength(8);
+    expect(buildFingerprint(tokens).split("-")).toHaveLength(8);
+  });
+
+  /*
+   * 指纹不带 topic 前缀：带前缀时同一件事被不同主题的源报道会算出两个指纹
+   *（`ai:foo` 与 `tech:foo`），而那恰恰是最该合并的一对——跨源印证。
+   */
+  it("同一组词无论来自哪个主题，指纹都相同", () => {
+    expect(buildFingerprint(["openai", "gpt"])).toBe(
+      buildFingerprint(["gpt", "openai"]),
+    );
+    expect(buildFingerprint(["openai", "gpt"])).not.toContain(":");
   });
 });
 

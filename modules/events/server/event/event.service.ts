@@ -8,6 +8,11 @@ import {
 } from "@rewindom/module-sdk/server";
 
 import { toEventDetail, toEventListItem } from "./event.mapper.js";
+import { listEventEntities } from "./entity.service.js";
+import {
+  listEventRevisions,
+  publicRevisionSince,
+} from "./event-revision.service.js";
 
 import {
   EVENT_SUMMARY_MAX_LENGTH,
@@ -30,7 +35,7 @@ const EVENT_SORTABLE_FIELDS = new Set([
   "last_activity_at",
   "first_seen_at",
   "heat_score",
-  "velocity_pct",
+  "recent_source_count",
   "signal_count",
 ]);
 
@@ -51,6 +56,9 @@ const LIST_SELECT = {
   status: true,
   heat_score: true,
   velocity_pct: true,
+  has_velocity_baseline: true,
+  recent_signal_count: true,
+  recent_source_count: true,
   signal_count: true,
   source_count: true,
   source_names: true,
@@ -111,6 +119,11 @@ export async function listEvents(
  * 分两次请求会让首屏出现两段各自 loading 的骨架；而这两段本来就是同一个问题的
  * 两种切法：Rising 看正在变，Now 看还在发生。Now 排除 Rising，同一个事件不会在
  * 一屏里出现两次。
+ *
+ * 两段的排序键必须真的不同。曾经 Rising 排 velocity_pct、Now 排 heat_score，
+ * 看着是两把尺子，但缺基线时 velocity_pct = heat_score * 100，两段排出同一串。
+ * 现在 Rising 排「近窗有几个源在跟进」——跨源印证是可核对的事实，
+ * 也正是「这件事正在扩散」与「这件事分数高」的真正区别。
  */
 export async function getEventFeed(
   params: EventViewerScope & { topic?: EventTopic },
@@ -124,9 +137,13 @@ export async function getEventFeed(
       ...tenantWhere,
       status: { in: ["developing", "active"] },
       last_activity_at: { gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS) },
-      velocity_pct: { gt: 0 },
+      recent_signal_count: { gt: 0 },
     },
-    orderBy: [{ velocity_pct: "desc" }, { heat_score: "desc" }],
+    orderBy: [
+      { recent_source_count: "desc" },
+      { recent_signal_count: "desc" },
+      { heat_score: "desc" },
+    ],
     take: RISING_LIMIT,
     select: LIST_SELECT,
   });
@@ -170,6 +187,7 @@ export async function getEventDetail(
       analyzer: true,
       analyzed_at: true,
       manual_content: true,
+      manual_topic: true,
     },
   });
   if (!record) {
@@ -207,12 +225,20 @@ export async function getEventDetail(
     loadFollowMarkers(params, [record.id]),
   ]);
 
-  return toEventDetail({
-    record,
-    timeline,
-    signals,
-    follow: follows.get(record.id) ?? null,
+  const follow = follows.get(record.id) ?? null;
+  // 关注过就从「上次查看」切起；没关注过没有个人基线，退回公开面那条 24h 窗口
+  const revisions = await listEventRevisions({
+    tenant_id: params.tenant_id,
+    event_id: record.id,
+    since: follow?.last_seen_at ?? publicRevisionSince(new Date()),
   });
+
+  const entities = await listEventEntities({
+    tenant_id: params.tenant_id,
+    event_id: record.id,
+  });
+
+  return toEventDetail({ record, timeline, signals, revisions, entities, follow });
 }
 
 /**
@@ -238,6 +264,7 @@ export async function updateEvent(
     summary?: string;
     topic?: EventTopic;
     manual_content?: boolean;
+    manual_topic?: boolean;
     analyzer?: string;
   } = {};
 
@@ -268,6 +295,8 @@ export async function updateEvent(
       throw new ValidationError("events.topic_invalid");
     }
     data.topic = params.topic;
+    // 主题现在每轮由分类器重算，不锁住的话下一次采集就把人工判断覆盖掉了
+    data.manual_topic = true;
   }
 
   if (Object.keys(data).length === 0) {
@@ -278,6 +307,8 @@ export async function updateEvent(
     data.manual_content = true;
     data.analyzer = "manual";
   }
+
+
 
   await prisma.newsEvent.update({
     where: { id: existing.id },

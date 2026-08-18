@@ -1,0 +1,87 @@
+# 事件里的实体（公司 / 产品 / 人物 / 地点）成为一等数据。
+#
+# 三个收益，按确定性排序：
+#   1. **检索与关注维度**：关注「OpenAI」比关注一个 24h 后就凉的事件，留存高一个量级。
+#      事件是易逝的，实体不是——这是把「一次性阅读」变成「持续订阅」的唯一支点。
+#   2. **常驻长尾**：实体是稳定的聚合面，事件页只有一次索引机会。
+#      Techmeme 没有实体页，Google News 的 topic 没有溯源。
+#   3. **聚类兜底**（待验证，见下方设计要点 5）：共享实体是比 token 更稳的信号。
+#
+# 抽取沿用分析器那套可插拔口径：heuristic 保守抽取，有 key 时 LLM 在**同一次调用**里
+# 顺带产出——不额外增加一次模型调用。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 从事件的信号里抽取实体并建立事件↔实体关联，详情页展示，列表可按实体过滤；抽取无 key 时走保守规则实现，有 key 时由 LLM 在既有分析调用里一并产出。
+gold: modules/events/server/event/topic-classifier.ts
+touch:
+  - modules/events/features/entity-graph.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/prisma/schema.prisma
+  - apps/server/prisma/migrations/
+  - packages/server-kernel/src/lib/tenant-guard.ts
+  - eslint-rules/tenant-models.json
+  - modules/events/shared/events.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/server/event/entity-extractor.ts
+  - modules/events/server/event/entity-extractor.test.ts
+  - modules/events/server/event/entity.service.ts
+  - modules/events/server/event/entity.service.test.ts
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/event/analyzer/analyzer.ts
+  - modules/events/server/event/analyzer/llm-analyzer.ts
+  - modules/events/server/event/analyzer/llm-analyzer.test.ts
+  - modules/events/server/events.routes.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/client/components/EventEntities.tsx
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 实体详情页 `/events/entity/:slug`（SSR 面，走 site-section skill 单独立项）
+  - 关注实体（要新表 + 通知，独立一期）
+  - 实体消歧 / 别名合并（`Apple` 公司 vs 水果）——先收集，再谈归一
+  - 知识库式的实体属性（成立时间、所属行业）
+  - 回填历史事件的实体（下一轮采集自然补齐）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/entity-extractor.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 读走 events.read
+models:
+  - name: EventEntity
+    scope: tenant
+    fields:
+      - { name: name, type: String, required: true }
+      # company | product | person | place | org
+      - { name: kind, type: String, required: true }
+      - { name: normalized, type: String, required: true }
+  - name: EventEntityLink
+    scope: tenant
+    fields:
+      - { name: event_id, type: String, required: true }
+      - { name: entity_id, type: String, required: true }
+      - { name: mention_count, type: Int, required: true }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 实体身份 = `(tenant_id, kind, normalized)`。normalized 只做大小写与空白归一，
+#    **不做别名合并**——把 `Meta` 与 `Facebook` 合并需要外部知识，猜错比不合并更糟。
+# 2. heuristic 抽取必须**保守**：宁可少抽，不可抽错。与分析器同一条口径
+#    （「永远不会说一句没有出处的话」）。只认标题里的大写词序列，且过滤掉
+#    句首单词这类假阳性——英文标题句首恒大写，把它当实体会让每个事件都长出垃圾。
+# 3. LLM 抽取搭在**既有那次分析调用**上（多要一个 entities 字段），不新增调用。
+#    模型返回的 kind 不在枚举里就丢掉，与 topic 同样的宽进严出。
+# 4. mention_count 记该实体在这个事件的信号里被提到几次——它是排序权重，
+#    不是「重要性」的断言。详情页按它排，只展示前几个。
+# 5. **聚类兜底要先验证再启用**：共享实体单独不足以合并（两条无关的 GitHub 帖子
+#    都含实体 GitHub）。若要用，必须是「共享实体 + 放宽的语义阈值」两级判据，
+#    且要在真实语料上确认它不会把 MODULE.md 那个 Copilot 反例错并。
+#    验证不通过就**不启用**，把结论写进 MODULE.md，不留半吊子代码。

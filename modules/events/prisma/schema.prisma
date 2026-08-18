@@ -87,6 +87,12 @@ model NewsEvent {
   /// 立事件那条信号的标题词集合。新信号靠它算相似度决定并入还是另起一个事件；
   /// 刻意不随聚类扩张——否则词集会越滚越大，最后把所有事件吸成一个
   tokens      String[]
+  /// 成员信号 embedding 的均值（语义聚类的判据）。空数组 = 还没有向量：
+  /// 没配 OPENAI_EMBEDDING_* 或调用失败，此时聚类退回纯词面判据。
+  /// 存 Float[] 而不上 pgvector：候选窗口实测只有几百个事件，ANN 索引要到
+  /// 10^4 量级才有意义，而换 pgvector 镜像会把 Postgres 从 musl 换到 glibc，
+  /// collation 提供者一变既有文本索引就得全量 REINDEX
+  centroid    Float[]
   /// 贡献过信号的来源名（去重）。冗余在事件上，列表页才不用为每张卡片再查一次信号表
   source_names String[]
 
@@ -95,8 +101,16 @@ model NewsEvent {
   source_count Int   @default(0)
   /// 最近窗口的加权热度
   heat_score   Float @default(0)
-  /// 相对上一窗口的变化率（百分比），Rising 就是按它排的
+  /// 相对上一窗口的变化率（百分比）。**没有上一窗口时恒为 0**，见下一个字段
   velocity_pct Float @default(0)
+  /// 上一窗口是否构成可比较的基线。false 时 velocity_pct 的 0 表示「还说不出来」，
+  /// 不是「持平」——界面必须能区分这两者，否则新事件会被写成没有变化
+  has_velocity_baseline Boolean @default(false)
+  /// 近窗内的信号条数。Rising 的次级排序键
+  recent_signal_count Int @default(0)
+  /// 近窗内贡献过信号的不同来源数。Rising 的主排序键——
+  /// 跨源印证是可核对的事实，比缺基线时硬算出来的比率更有资格排在首页
+  recent_source_count Int @default(0)
 
   first_seen_at    DateTime
   last_activity_at DateTime
@@ -106,20 +120,92 @@ model NewsEvent {
   analyzer         String    @default("heuristic")
   /// 工作台改过标题或摘要后为 true：采集刷新仍更新热度与时间线，但不再覆盖文案
   manual_content   Boolean   @default(false)
+  /// 工作台改过主题后为 true：分类器每轮重算主题，但不再覆盖人工指定的那个。
+  /// 与 manual_content 分开——改主题不该顺带锁死摘要，改摘要也不该锁死主题
+  manual_topic     Boolean   @default(false)
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  signals  EventSignal[]
-  timeline EventTimelineEntry[]
-  follows  EventFollow[]
+  signals   EventSignal[]
+  timeline  EventTimelineEntry[]
+  follows   EventFollow[]
+  revisions EventRevision[]
+  entities  EventEntityLink[]
 
   @@unique([tenant_id, slug])
   @@unique([tenant_id, fingerprint])
   @@index([tenant_id, status, last_activity_at(sort: Desc)])
   @@index([tenant_id, topic, last_activity_at(sort: Desc)])
-  @@index([tenant_id, velocity_pct(sort: Desc)])
+  /// Rising 的排序键
+  @@index([tenant_id, recent_source_count(sort: Desc), recent_signal_count(sort: Desc)])
   @@index([tenant_id, last_activity_at(sort: Desc)])
+}
+
+/// 事件里出现的实体（公司 / 产品 / 人物 / 地点）。按站点隔离。
+///
+/// 事件是易逝的，实体不是——关注「OpenAI」比关注一个 24h 后就凉的事件留存高得多，
+/// 而实体页是稳定的聚合面（事件页只有一次索引机会）。
+model EventEntity {
+  id         String @id @default(uuid())
+  tenant_id  String
+  /// 展示名，保留原始大小写
+  name       String
+  /// company | product | person | place | org（规则实现分不出类型时一律 org）
+  kind       String @default("org")
+  /// 身份键：大小写与空白归一 + 去所有格。**不做别名合并**——
+  /// 把 Meta 与 Facebook 合并需要外部知识，猜错比不合并更糟
+  normalized String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  links EventEntityLink[]
+
+  @@unique([tenant_id, kind, normalized])
+  @@index([tenant_id, normalized])
+}
+
+/// 事件 ↔ 实体。按站点隔离。
+model EventEntityLink {
+  id        String @id @default(uuid())
+  tenant_id String
+  event_id  String
+  entity_id String
+  /// 该实体在这个事件的信号里被提到几次。排序权重，不是「重要性」的断言
+  mention_count Int @default(1)
+  created_at DateTime @default(now())
+
+  event  NewsEvent   @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  entity EventEntity @relation(fields: [entity_id], references: [id], onDelete: Cascade)
+
+  @@unique([event_id, entity_id])
+  @@index([tenant_id, entity_id])
+  @@index([event_id, mention_count(sort: Desc)])
+}
+
+/// 事件状态变化的一条观察记录。**只追加，永不更新**。
+///
+/// 它是这个模块唯一「越跑越值钱」的数据：竞品每轮重新聚类，没有连续观察记录，
+/// 事后补算不出「自你上次看之后发生了什么」。随事件按站点隔离。
+model EventRevision {
+  id        String @id @default(uuid())
+  tenant_id String
+  event_id  String
+  /// source_joined | status_changed | summary_rewritten | title_changed
+  kind      String
+  /// 变更前的最小快照，用于渲染 diff；source_joined 这类「新增」没有前值
+  before    Json?
+  after     Json
+  occurred_at DateTime
+  created_at  DateTime @default(now())
+
+  event NewsEvent @relation(fields: [event_id], references: [id], onDelete: Cascade)
+
+  /// 重跑保护：refreshEvents 是幂等的，修订写入也必须是。
+  /// 同一事件、同一类变更、同一时刻只该有一条
+  @@unique([event_id, kind, occurred_at])
+  @@index([tenant_id, event_id, occurred_at(sort: Desc)])
+  @@index([tenant_id, occurred_at(sort: Desc)])
 }
 
 /// 事件时间线上的一格。随事件按站点隔离。
@@ -143,7 +229,6 @@ model EventTimelineEntry {
 
   @@unique([event_id, signal_id])
   @@index([event_id, occurred_at])
-  @@index([tenant_id])
 }
 
 /// 用户对事件的关注。站点 + 用户态。

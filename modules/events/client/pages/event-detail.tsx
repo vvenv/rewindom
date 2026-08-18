@@ -12,7 +12,9 @@ import { EventEditSheet } from "../components/EventEditSheet.js";
 import { EventSourceGroups } from "../components/EventSourceGroups.js";
 import { EventStatusBadge } from "../components/EventStatusBadge.js";
 import { EventTimeline } from "../components/EventTimeline.js";
-import { EventVelocityBadge } from "../components/EventVelocityBadge.js";
+import { EventEntities } from "../components/EventEntities.js";
+import { EventMomentumBadge } from "../components/EventMomentumBadge.js";
+import { EventUpdatesSince } from "../components/EventUpdatesSince.js";
 import { FollowEventButton } from "../components/FollowEventButton.js";
 import { RelativeTime } from "../components/RelativeTime.js";
 import { useEventDetailPage } from "../hooks/useEventDetailPage.js";
@@ -75,8 +77,16 @@ export function EventDetail() {
           <>
             <div className="flex flex-wrap items-center gap-2">
               <EventStatusBadge status={data.status} />
-              <Badge variant="secondary">{t(`topic.${data.topic}`)}</Badge>
-              <EventVelocityBadge velocityPct={data.velocity_pct} />
+              <Badge
+                variant="secondary"
+                // 主题现在由分类器每轮重算；人工指定过的会被保住，
+                // 这里如实告诉读者这一格是谁定的（与摘要的出处说明同口径）
+                title={data.manual_topic ? t("detail.topicManual") : undefined}
+              >
+                {t(`topic.${data.topic}`)}
+                {data.manual_topic ? " ·" : ""}
+              </Badge>
+              <EventMomentumBadge event={data} />
               <span className="text-muted-foreground text-xs">
                 {t("detail.firstSeen")}{" "}
                 <RelativeTime iso={data.first_seen_at} />
@@ -86,6 +96,14 @@ export function EventDetail() {
                 <RelativeTime iso={data.last_activity_at} />
               </span>
             </div>
+
+            <EventEntities entities={data.entities} />
+
+            {/* 变化放在「发生了什么」之前：回访者最想知道的是「又变了什么」 */}
+            <EventUpdatesSince
+              revisions={data.revisions}
+              isFollowing={data.is_following}
+            />
 
             <Card>
               <CardHeader>

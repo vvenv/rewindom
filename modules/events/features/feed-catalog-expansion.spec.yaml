@@ -1,0 +1,56 @@
+# 8 个源撑不起「跨来源发现事件」。
+#
+# 线上实测（yestino.com/events，2026-08-18）：16 张卡有 13 张 source_count = 1。
+# 上面所有聚类改进都受制于同一件事 —— HN 上那条帖子有没有第二个源覆盖到。
+# 目录里能互相印证的其实只有 tech 那 5 个（HN + GitHub Blog + TechCrunch +
+# The Verge + Ars Technica），ai 两个、world 一个各自成岛。
+#
+# 但扩容对存量站点无效：ensureDefaultFeeds 只在该站点一条源都没有时写入，
+# yestino 早就有源了，新增目录项永远到不了它。这才是本 spec 的主要工作量。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant]
+goal: 内置目录扩到 30+ 个源并覆盖全部 topic；存量站点按「从未种过的目录项」补齐，且不复活站点自己删掉或关掉的源。
+gold: modules/events/server/ingest/feed-seed.ts
+touch:
+  - modules/events/features/feed-catalog-expansion.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/feed-catalog.ts
+  - modules/events/server/ingest/feed-seed.ts
+  - modules/events/server/ingest/feed-seed.test.ts
+  - modules/events/server/ingest/ingest.service.ts
+out_of_scope:
+  - 新 connector（仍只有 hackernews 与 rss）
+  - 中文源（跨语言合并要等语义层，现在加只会多出一批独立事件，见 MODULE.md「后续」）
+  - 工作台上的「从目录添加源」选择器
+  - 按站点定制目录 / 目录分发
+  - 改采集周期与并发
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/feed-seed.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: [] # 目录项落到已有的 EventFeed；种植记录走 TenantSetting
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 目录项加稳定 key（`${connector}:${url}`）。站点已种过哪些 key 记在
+#    TenantSetting（键 `events.seeded_feed_keys`），ensureDefaultFeeds 改成：
+#    只种「本站点从未出现在该集合里」的 key，种完把 key 追加进去。
+#    这样既能给存量站点补新源，又不会把用户删掉的源塞回来 ——
+#    MODULE.md 里「只在空目录时新建」这条约定要同步改写成这个口径。
+# 2. 存量站点没有这条 TenantSetting。首次运行时把该站点**当前已有的**
+#    EventFeed.url 全部视为已种过，再补差集；否则会把用户早就删掉的
+#    初版 8 个源全部复活。这是一次性升级，写在 feed-seed 里即可，不需要 migration。
+# 3. 目录按 topic 配齐，每个 topic 至少 3 个源、且 official / news 都要有——
+#    单源 topic 的事件永远无法跨源印证，等于白占一个筛选项。
+#    tech / ai 各补到 8~10 个（一手 blog 优先：Google/Meta/Anthropic/Cloudflare/
+#    Vercel 这类当事方自己说话的源，正是 source_kind: official 的价值所在）。
+# 4. 采集耗时随源数线性增长，一轮要跑完在 EVENTS_INGEST_INTERVAL_MINUTES 之内。
+#    30+ 个源仍是串行 for 循环（ingest.service.ts:98）；本 spec 不改并发，
+#    但要在 feed-seed.test.ts 之外量一次单轮耗时并记进 MODULE.md，
+#    超过周期的一半就单独立项做并发。

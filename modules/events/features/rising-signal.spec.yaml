@@ -1,0 +1,82 @@
+# Rising 必须由「可观察的新增量」驱动，不能由首窗 engagement 权重冒充增速。
+#
+# 线上实测（yestino.com/events，2026-08-18）：首页 16 张卡的增速全部落在
+# 376%~516%，且「正在升温」与「正在发生」是同一个排序的前 4 条与第 5~12 条。
+# 原因是 computeHeat 在 previous === 0 时取 base = 1，于是
+#   velocity_pct = ((recent - 0) / 1) * 100 = heat_score * 100
+# —— 两个指标对「信号全落在同一个 6h 窗内」的事件（≈全部）恒等，
+# 两段的 orderBy 因此产出同一串。主指标当前不携带任何信息。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 没有可比较基线时不再产出增速数字（正负都不主张）；Rising 改按近窗新增来源数 / 新增信号数排序，与 Now 的热度排序真正分开。
+gold: modules/events/server/event/heat.ts
+touch:
+  - modules/events/features/rising-signal.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/prisma/schema.prisma
+  - apps/server/prisma/migrations/
+  - modules/events/shared/events.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/server/event/heat.ts
+  - modules/events/server/event/heat.test.ts
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/event-refresh.service.test.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.mapper.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/shared/sections/
+  - modules/events/client/lib/events.ts
+  - modules/events/client/lib/events.test.ts
+  # VelocityBadge 改名为 MomentumBadge：它不再只渲染百分比
+  - modules/events/client/components/EventVelocityBadge.tsx
+  - modules/events/client/components/EventMomentumBadge.tsx
+  - modules/events/client/components/EventCard.tsx
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 改 HEAT_WINDOW_HOURS（6h 窗口本身不动）
+  - 改 resolveStatus 的阶段阈值与枚举
+  - 聚类 / 分析器 / 采集
+  - 回填历史行（下一轮采集会重算派生列）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/heat.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models:
+  - name: NewsEvent
+    scope: tenant
+    fields:
+      # Rising 要在库里排序，就必须把近窗新增量落成列——不能在应用层算完再排
+      - { name: recent_signal_count, type: Int, required: true, default: 0 }
+      - { name: recent_source_count, type: Int, required: true, default: 0 }
+      # velocity_pct 归零有两种含义（真的没变 / 没有基线可比），
+      # 界面要区分「持平」与「还说不出来」，需要显式标记
+      - { name: has_velocity_baseline, type: Boolean, required: true, default: false }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. computeHeat：previous === 0 时不再用 base = 1 造增速，velocity_pct 记 0 且
+#    has_velocity_baseline = false。现有「负增速需要基线」的逻辑（hasDeclineBaseline）
+#    是同一条原则的另一半，两者合并成一个判定函数，别留两套。
+# 2. Rising 查询（event.service.getEventFeed 与 ssr/public-events.getPublicEventFeed
+#    /getPublicEventList 三处）：
+#      where   recent_signal_count > 0
+#      orderBy [recent_source_count desc, recent_signal_count desc, heat_score desc]
+#    velocity_pct 仍可展示，但不再是排序键——它对新事件恒为 0。
+#    需要配套索引 @@index([tenant_id, recent_source_count(sort: Desc)])。
+# 3. Now 保持 [heat_score desc, last_activity_at desc]。两段排序键不同之后，
+#    公开面「不做两段互斥」那条注释仍然成立，不要改。
+# 4. EventVelocityBadge：has_velocity_baseline = false 时不渲染百分比，
+#    改渲染「N 个来源正在跟进」这类可核对的事实；文案走 code i18n。

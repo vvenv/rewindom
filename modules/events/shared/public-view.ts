@@ -9,6 +9,8 @@
  * 段渲染器是同步的、也拿不到 i18n。
  */
 
+import { describeEventMomentum } from "./events.js";
+
 import { eventPath } from "./events-section-context.js";
 
 import type {
@@ -50,10 +52,33 @@ export function toPublicCard(
     topic_label: t(`topic.${item.topic}`),
     status: item.status,
     status_label: t(`status.${item.status}`),
-    velocity_pct: item.velocity_pct,
+    ...buildMomentum(item, t),
     signal_count: item.signal_count,
     source_names: item.source_names,
     last_activity_at: item.last_activity_at,
+  };
+}
+
+/**
+ * 势头角标在这里就落成文案：段渲染器是同步的、也拿不到 i18n。
+ *
+ * `spreading` 的文案是一句可核对的事实（「3 个来源正在跟进」），
+ * 用在新事件上——它们没有上一窗口可比，硬算出来的百分比只是热度的另一种写法。
+ */
+function buildMomentum(
+  item: EventListItem,
+  t: EventsTranslate,
+): { momentum_label: string; momentum_rising: boolean } {
+  const momentum = describeEventMomentum(item);
+  if (!momentum) {
+    return { momentum_label: "", momentum_rising: false };
+  }
+  return {
+    momentum_label: t(`heat.${momentum.kind}`, {
+      percent: momentum.percent,
+      count: momentum.source_count,
+    }),
+    momentum_rising: momentum.kind !== "falling",
   };
 }
 

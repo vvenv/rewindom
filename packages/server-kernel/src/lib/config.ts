@@ -291,6 +291,25 @@ function buildOpenAiConfig() {
 }
 
 /**
+ * Embedding 接入（OpenAI 兼容 `/embeddings` 端点）。
+ *
+ * **与 `openai` 段分开是必须的，不是洁癖**：`OPENAI_BASE_URL` 现在指向 deepseek，
+ * 而 deepseek 不提供 embeddings 端点。对话模型与向量模型是两个供应商，
+ * 共用一组 env 会让其中一个必然拿到错的地址。
+ *
+ * 没配 key 时使用方一律退回无向量路径——不抛错，不阻塞。
+ */
+function buildEmbeddingsConfig() {
+  return {
+    baseUrl: strEnv("OPENAI_EMBEDDING_BASE_URL", ""),
+    apiKey: strEnv("OPENAI_EMBEDDING_API_KEY", ""),
+    model: strEnv("OPENAI_EMBEDDING_MODEL", ""),
+    /** 供应商支持降维时传给接口；0 表示不指定，用模型默认维度。 */
+    dimensions: clampIntEnv("OPENAI_EMBEDDING_DIMENSIONS", 0, 0, 8192),
+  };
+}
+
+/**
  * 事件雷达（events 模块）的采集与分析开关。
  *
  * 放在内核 config 而不是模块内直读 `process.env`，是为了让 `check:prod-app-env`
@@ -308,6 +327,12 @@ function buildEventsConfig() {
     ),
     /** auto = 有 OPENAI_API_KEY 就走 LLM，否则走规则实现。 */
     analyzer: resolveEventsAnalyzer(),
+    /**
+     * 语料保留期（天）。信号无上限增长是这个模块最早会撞上的墙——
+     * 采集每 15 分钟按站点追加，从来没有回收路径。
+     */
+    signalRetentionDays: clampIntEnv("EVENTS_SIGNAL_RETENTION_DAYS", 90, 7, 3650),
+    eventRetentionDays: clampIntEnv("EVENTS_EVENT_RETENTION_DAYS", 180, 7, 3650),
   };
 }
 
@@ -408,6 +433,7 @@ export const config = {
   observability: buildObservabilityConfig(),
   infra: buildInfraConfig(),
   openai: buildOpenAiConfig(),
+  embeddings: buildEmbeddingsConfig(),
   events: buildEventsConfig(),
   billing: buildBillingConfig(),
   shop: buildShopConfig(),

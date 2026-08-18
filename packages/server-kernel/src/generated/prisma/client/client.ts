@@ -92,6 +92,27 @@ export type EventSignal = Prisma.EventSignalModel
  */
 export type NewsEvent = Prisma.NewsEventModel
 /**
+ * Model EventEntity
+ * 事件里出现的实体（公司 / 产品 / 人物 / 地点）。按站点隔离。
+ * 
+ * 事件是易逝的，实体不是——关注「OpenAI」比关注一个 24h 后就凉的事件留存高得多，
+ * 而实体页是稳定的聚合面（事件页只有一次索引机会）。
+ */
+export type EventEntity = Prisma.EventEntityModel
+/**
+ * Model EventEntityLink
+ * 事件 ↔ 实体。按站点隔离。
+ */
+export type EventEntityLink = Prisma.EventEntityLinkModel
+/**
+ * Model EventRevision
+ * 事件状态变化的一条观察记录。**只追加，永不更新**。
+ * 
+ * 它是这个模块唯一「越跑越值钱」的数据：竞品每轮重新聚类，没有连续观察记录，
+ * 事后补算不出「自你上次看之后发生了什么」。随事件按站点隔离。
+ */
+export type EventRevision = Prisma.EventRevisionModel
+/**
  * Model EventTimelineEntry
  * 事件时间线上的一格。随事件按站点隔离。
  */

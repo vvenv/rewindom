@@ -1,0 +1,94 @@
+# 「自你上次看之后发生了什么」要成为一等数据，而不是一个布尔。
+#
+# 现在 EventFollow.last_seen_at 只能推出「有更新 / 没更新」；而时间线在
+# event-refresh.service.ts 里每轮 deleteMany + createMany 整体重建，
+# heuristic 下 shouldReanalyze 恒为 true，于是每 15 分钟每个被碰到的事件
+#（含最多 200 条降温扫描）都要删光重插一遍。两个后果：
+#   1. 纯写放大 —— 每租户每轮约 400 删 + 400 插，全是同样的内容；
+#   2. EventTimelineEntry.id 每轮都变 —— 无法锚定、无法引用，
+#      也就无法回答「这一格是新出现的吗」。
+#
+# 竞品做不到这件事是结构性的：Techmeme / Google News 每轮重新聚类，
+# 没有持续观察的连续记录，事后补算不出来。这是本模块唯一越跑越值钱的数据资产。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 时间线改为按 (event_id, signal_id) 增量 upsert 使 id 稳定；新增仅追加的 EventRevision 记录事件的状态变化，关注者与访客都能看到「自上次查看后新增了什么」。
+gold: modules/events/server/event/event-refresh.service.ts
+touch:
+  - modules/events/features/event-revisions.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/prisma/schema.prisma
+  - apps/server/prisma/migrations/
+  - packages/server-kernel/src/lib/tenant-guard.ts
+  - eslint-rules/tenant-models.json
+  - modules/events/shared/events.ts
+  - modules/events/shared/index.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/sections/
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/event-refresh.service.test.ts
+  - modules/events/server/event/event-revision.service.ts
+  - modules/events/server/event/event-revision.service.test.ts
+  - modules/events/server/event/event.service.ts
+  # 时间线格子的身份就是信号，signal_id 因此收紧成非空
+  - modules/events/server/event/analyzer/analyzer.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.mapper.test.ts
+  - modules/events/server/events.routes.ts
+  - modules/events/server/events.routes.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/client/components/EventTimeline.tsx
+  - modules/events/client/components/EventUpdatesSince.tsx
+  - modules/events/client/hooks/useEventDetailPage.ts
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 推送 / 邮件通知（本期只做详情页与列表上的「有什么变了」）
+  - 事件回放 UI（数据先落地，界面下一期）
+  - 人工编辑时间线格子
+  - 修订史进 sitemap
+  - 保留期清理（见 corpus-retention.spec.yaml）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/event-revision.service.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 读走 events.read，关注走 events.follow，都已存在
+models:
+  - name: EventTimelineEntry
+    scope: tenant
+    # 无新字段，改的是写入方式：@@unique([event_id, signal_id]) 已经在了，
+    # 直接 upsert，不再 deleteMany + createMany
+  - name: EventRevision
+    scope: tenant
+    fields:
+      - { name: event_id, type: String, required: true }
+      # source_joined | status_changed | summary_rewritten | title_changed | heat_inflection
+      - { name: kind, type: String, required: true }
+      - { name: before, type: Json, required: false }
+      - { name: after, type: Json, required: true }
+      - { name: occurred_at, type: DateTime, required: true }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. EventRevision 只追加，永不 update —— 它是观察记录，不是当前状态的副本。
+#    唯一键 @@unique([event_id, kind, occurred_at]) 挡住重跑产生的重复：
+#    refreshEvents 是幂等的，修订写入也必须是。
+# 2. 只在真的变了的时候写。摘要每轮被 heuristic 重算出同一串字符不算变更，
+#    比对用规范化后的文本，别用 analyzed_at。
+# 3. source_joined 是最有价值的一类：它把「跨源印证」变成了带时刻的事实
+#    （「BBC 最先报道，TechCrunch 2h17m 后跟进」）。after 里存 source_name +
+#    source_kind + 相对首条信号的滞后毫秒数，渲染层不再回查信号表。
+# 4. 时间线 upsert 之后要处理「信号消失」的情况：整簇重算时，
+#    对不在本次 signal 集合里的格子做 deleteMany（按 signal_id notIn），
+#    而不是先清空再重建。
+# 5. 公开面（无 viewer）没有 last_seen_at，展示的是「最近 24h 的修订」；
+#    工作台与会员面按 EventFollow.last_seen_at 切。两条路径共用同一个
+#    service 函数，只是 since 的来源不同。

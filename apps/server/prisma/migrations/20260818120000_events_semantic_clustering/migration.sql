@@ -1,0 +1,13 @@
+-- 语义聚类：事件带上成员信号 embedding 的均值。
+--
+-- 词面判据有实测天花板（MODULE.md「聚类能力边界」）。真实语料上量过的例子：
+--   「Hayden Panettiere Dies Aged 36」⟷「Hayden Panetierre Dies at 36」余弦 0.8597，
+--   而其中一条把名字拼错了 —— 词面永远合不了这一对。
+--
+-- 存 DOUBLE PRECISION[] 而不上 pgvector：候选窗口实测每站点不到 200 个事件，
+-- ANN 索引要到 10^4 量级才有意义；换 pgvector 镜像会把 Postgres 从 musl 换到 glibc，
+-- collation 提供者一变，既有文本索引都要全量 REINDEX 才安全。
+--
+-- 不设默认值也不回填：NULL / 空数组都表示「还没有向量」，
+-- 余弦相似度对空向量返回 0（= 不相似），下一轮采集会自然补齐。
+ALTER TABLE "NewsEvent" ADD COLUMN "centroid" DOUBLE PRECISION[];

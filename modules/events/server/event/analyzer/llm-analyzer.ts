@@ -1,8 +1,13 @@
 import { getLlmClient, type ResolvedLlmConfig } from "@rewindom/module-sdk/server";
 
+import { EVENT_TOPICS, isEventTopic } from "../../../shared/index.js";
+
+import { ENTITY_KINDS, isEntityKind } from "../entity-extractor.js";
+
 import { heuristicAnalyzer } from "./heuristic-analyzer.js";
 
 import type {
+  AnalyzedEntity,
   AnalyzedEvent,
   AnalyzerInput,
   AnalyzerSignal,
@@ -14,6 +19,8 @@ const MAX_SIGNALS_PER_CALL = 20;
 const MAX_EXCERPT_LENGTH = 500;
 const MAX_LABEL_LENGTH = 80;
 const MAX_SUMMARY_LENGTH = 800;
+const MAX_ENTITY_NAME_LENGTH = 80;
+const MAX_ENTITIES_PER_EVENT = 10;
 
 /**
  * 提示词把 MVP §11 的边界写死在系统消息里。
@@ -35,11 +42,16 @@ const SYSTEM_PROMPT = [
 
 const RESPONSE_SHAPE = [
   "Respond with JSON only:",
-  '{"title": string, "summary": string, "timeline": [{"signal_index": number, "label": string}]}',
+  '{"title": string, "summary": string, "topic": string, "timeline": [{"signal_index": number, "label": string}], "entities": [{"name": string, "kind": string}]}',
   "- title: one headline naming the event, max 120 characters.",
   "- summary: 3 to 5 sentences answering 'what happened', grounded in the sources.",
+  `- topic: exactly one of ${EVENT_TOPICS.join(" | ")}. Judge it from what the event`,
+  "  is about, not from which site reported it.",
   "- timeline: one entry per meaningful signal, each label max 80 characters,",
   "  describing what that source did (announced / discussed / reported).",
+  `- entities: the named companies, products, people, places or organisations`,
+  `  this event is about. kind must be one of ${ENTITY_KINDS.join(" | ")}.`,
+  "  Only include names that literally appear in the sources. Max 10.",
 ].join("\n");
 
 /**
@@ -69,7 +81,7 @@ export function createLlmAnalyzer(llm: ResolvedLlmConfig): EventAnalyzer {
             content: [
               RESPONSE_SHAPE,
               "",
-              `topic: ${input.topic}`,
+              `topic hint from the feeds (may be wrong): ${input.topic}`,
               "signals:",
               JSON.stringify(signals.map(toPromptSignal), null, 2),
             ].join("\n"),
@@ -125,7 +137,9 @@ export function parseAnalyzerResponse(
   const parsed = JSON.parse(raw) as {
     title?: unknown;
     summary?: unknown;
+    topic?: unknown;
     timeline?: unknown;
+    entities?: unknown;
   };
 
   const title =
@@ -177,5 +191,37 @@ export function parseAnalyzerResponse(
     throw new Error("LLM 返回的 timeline 为空或全部指向不存在的信号");
   }
 
-  return { title, summary, timeline };
+  // 模型给的主题只在落在枚举里时才采信；否则交回给规则分类器
+  const topic = isEventTopic(parsed.topic) ? parsed.topic : undefined;
+
+  return { title, summary, timeline, topic, entities: parseEntities(parsed.entities) };
+}
+
+/**
+ * 解析实体。宽进严出：类型不在枚举里、名字为空、超出上限的一律丢掉。
+ * 模型偶尔会返回 `"kind": "organization"` 这类近似值——不做映射猜测，直接丢。
+ */
+function parseEntities(value: unknown): AnalyzedEntity[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const out: AnalyzedEntity[] = [];
+  for (const raw of value) {
+    if (!raw || typeof raw !== "object") {
+      continue;
+    }
+    const row = raw as { name?: unknown; kind?: unknown };
+    const name = typeof row.name === "string" ? row.name.trim() : "";
+    if (name.length === 0 || name.length > MAX_ENTITY_NAME_LENGTH) {
+      continue;
+    }
+    if (!isEntityKind(row.kind)) {
+      continue;
+    }
+    out.push({ name, kind: row.kind });
+    if (out.length >= MAX_ENTITIES_PER_EVENT) {
+      break;
+    }
+  }
+  return out;
 }

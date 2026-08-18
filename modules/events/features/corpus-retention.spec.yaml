@@ -1,0 +1,56 @@
+# 语料现在无上限增长：全模块没有任何清理路径。
+#
+# event-refresh.service.ts:96 那句「事件的信号被清空（保留期清理）后留着一个空壳
+# 没有意义」指向一个不存在的东西 —— grep 全模块只有 follow 的取关和时间线重建两处
+# deleteMany。EventSignal 每 15 分钟按站点追加，永不回收；采集源扩容后增速还会翻几倍。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant]
+goal: 新增按站点执行的保留期清理任务，按期回收陈旧信号、事件、时间线与修订，且不清理任何被关注过的事件。
+gold: modules/events/server/ingest/scheduler-jobs.ts
+touch:
+  - modules/events/features/corpus-retention.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/retention/retention.service.ts
+  - modules/events/server/retention/retention.service.test.ts
+  - modules/events/server/ingest/scheduler-jobs.ts
+  # 保留期任务与采集任务共用同一份「开通了事件雷达的站点」口径，导出复用不复制
+  - modules/events/server/ingest/ingest.service.ts
+  - packages/server-kernel/src/lib/config.ts
+  - docker-compose.prod.yml
+  - scripts/env.production.example
+out_of_scope:
+  - 表分区 / 归档到冷存储（先有回收，再谈分层）
+  - 工作台上的清理入口与手动触发
+  - 清理审计日志页
+  - 改采集周期
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/retention/retention.service.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:prod-app-env
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: [] # 只删行，不改结构
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 新 job `events-retention` 注册在同一个 JobRegistry 上，按天跑，
+#    与 events-ingest 一样按「开通了事件雷达的站点」循环。
+#    复用 ingest 那套 running 标志：上一轮没跑完就跳过。
+# 2. 新增内核 config（与 buildEventsConfig 现有三项同段，放内核是为了让
+#    check:prod-app-env 盯住生产透传，见 config.ts 该函数上方注释）：
+#      EVENTS_SIGNAL_RETENTION_DAYS   默认 90   下限 7   上限 3650
+#      EVENTS_EVENT_RETENTION_DAYS    默认 180  下限 7   上限 3650
+#    两个键都要补进 docker-compose.prod.yml 的 environment 段。
+# 3. 顺序固定：先删过期信号 → 再对受影响事件跑 refreshEvents
+#    （信号被清空的事件会走已有的「删空壳」分支）→ 最后删超期且无信号的事件。
+#    反过来做会留下悬挂的时间线与修订。
+# 4. **被关注过的事件不清理**，无论多旧：EventFollow 存在即豁免。
+#    用户按关注键收藏的东西不该被后台任务收走 —— 这条是产品约束，不是性能取舍。
+# 5. 删除按批（每批 1000 行）循环，别在一条语句里删几十万行把复制槽撑爆。
+# 6. EventTimelineEntry / EventRevision 靠 onDelete: Cascade 跟着事件走，
+#    不单独写删除逻辑；EventSignal 是 SetNull，必须显式删。

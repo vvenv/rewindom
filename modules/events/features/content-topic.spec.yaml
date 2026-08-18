@@ -1,0 +1,87 @@
+# topic 现在是「采集源的属性」，必须变成「事件内容的属性」。
+#
+# 两个后果，第二个是结构性的：
+#   1. 界面错标 —— HN 的默认 topic 是 tech，于是「投石机唯一已知死者」被标成「科技」。
+#   2. 跨源合并被 schema 层封死 —— cluster.service.ts 的候选查询带了
+#      `topic: signal.topic`，而目录里 OpenAI/HF 是 ai、BBC 是 world、其余是 tech。
+#      「OpenAI 发公告 + TechCrunch 报道 + HN 讨论」这个旗舰用例永远聚不到一起。
+#      buildFingerprint 也带了 topic 前缀，同样受限。
+#
+# 线上实测（yestino.com/events，2026-08-18）：首页 16 张卡有 13 张 source_count = 1，
+# 来源全是 Hacker News。产品口径写的「不是一个更好的热榜」，线上就是一个 HN 热榜。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: topic 由事件内容判定而非采集源继承；聚类候选与指纹不再按 topic 前置过滤，让同一件事的官方公告、新闻报道与社区讨论能合并成一个事件。
+gold: modules/events/server/event/cluster.service.ts
+touch:
+  - modules/events/features/content-topic.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/prisma/schema.prisma
+  - apps/server/prisma/migrations/
+  - modules/events/server/event/cluster.service.ts
+  - modules/events/server/event/cluster-match.ts
+  - modules/events/server/event/title-tokens.ts
+  - modules/events/server/event/title-tokens.test.ts
+  - modules/events/server/event/topic-classifier.ts
+  - modules/events/server/event/topic-classifier.test.ts
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/event-refresh.service.test.ts
+  - modules/events/server/event/analyzer/
+  - modules/events/server/ingest/feed-catalog.ts
+  - modules/events/server/ingest/ingest.service.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.mapper.test.ts
+  - modules/events/server/events.routes.test.ts
+  - modules/events/shared/events.ts
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/components/EventEditSheet.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 多标签 topics[]（先把单值判准，多标签是下一步）
+  - 语义 / 向量聚类（pgvector 单独立项）
+  - 翻译与跨语言合并
+  - 改 EVENT_TOPICS 枚举本身
+  - 改采集源表结构（EventFeed.topic 保留，降级为「源提示」）
+i18n: code # 详情页要标注「主题由本站编辑指定」
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/topic-classifier.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models:
+  - name: NewsEvent
+    scope: tenant
+    fields:
+      # topic 从此每轮重算，工作台改过的必须保住——与 manual_content 对文案同理。
+      # 不复用 manual_content：改主题不该顺带锁死摘要，改摘要也不该锁死主题。
+      - { name: manual_topic, type: Boolean, required: true, default: false }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. EventFeed.topic / EventSignal.topic 语义降级为「源给的提示」，不再直接决定事件。
+#    NewsEvent.topic 由 topic-classifier 在 refreshEvents 里按整簇信号判定：
+#    规则实现按关键词 + 源提示投票，官方源的提示权重高于社区源。
+#    llm 分析器有 key 时可覆盖（analyzer 输出里加 topic 字段），失败退回规则实现——
+#    与 MODULE.md「AI 边界」第 2 条同口径。
+# 2. cluster.service.resolveEventForSignal 第 2 步删除 `topic: signal.topic` 谓词。
+#    候选窗口仍是 72h + CANDIDATE_LIMIT，但 topic 不再参与。
+# 3. buildFingerprint 去掉 topic 前缀。存量行的指纹带前缀，新信号算出的不带，
+#    不处理会让每个存量事件被再立一次。按 AGENTS.md「存量数据用一次性升级函数接住」：
+#    migration 里剥掉前缀，若剥完与既有行撞键，保留 first_seen_at 最早的那条、
+#    把另一条的信号与时间线 repoint 过去再删——撞键的正是本来就该合并的两个事件。
+# 4. 已知不在本 spec 能力范围内的漏合并（线上同一次 GitHub 故障被拆成 4 个事件）：
+#      Incident with Github.com          → tokens: incident, github.com
+#      GitHub down again? no PR access   → tokens: github, again, pr, access
+#      Ask HN: Alternatives to GitHub    → tokens: alternatives, github
+#    第一对共享 0 个词（`github.com` ≠ `github`），后面几对共享 1 个词，
+#    都卡在 MIN_SHARED_TOKENS = 2 之前，连相似度那一步都没走到。
+#    本 spec 只顺手修 tokenizer 的一个确定缺陷：把形如域名的 token 去掉 TLD 后
+#    再入集合（github.com → github）。其余要靠语义层，不要在这里挪阈值——
+#    MODULE.md「聚类能力边界」已经量过，挪阈值不可能同时做对。

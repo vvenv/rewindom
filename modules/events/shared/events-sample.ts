@@ -20,7 +20,12 @@ function sampleItem(index: number, t: EventsTranslate): EventListItem {
     topic: index === 1 ? "ai" : index === 2 ? "tech" : "business",
     status: index === 1 ? "developing" : "active",
     heat_score: 12 - index,
-    velocity_pct: index === 1 ? 420 : 120,
+    // 1 号样张演示「有基线的涨幅」，其余演示「新事件按跟进来源数说话」——
+    // 编辑器里两种角标都该出现，否则改版式时看不出第二种存在
+    velocity_pct: index === 1 ? 420 : 0,
+    has_velocity_baseline: index === 1,
+    recent_signal_count: 9 - index,
+    recent_source_count: 3,
     signal_count: 9 - index,
     source_count: 3,
     source_names: ["OpenAI", "Hacker News", "TechCrunch"],
@@ -42,6 +47,21 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
     analyzer: "heuristic",
     analyzed_at: SAMPLE_UPDATED,
     manual_content: false,
+    manual_topic: false,
+    // 样张里放一条「新来源加入」：编辑器里要能看到修订区块长什么样，
+    // 否则改版式时会以为这块不存在
+    revisions: [
+      {
+        kind: "source_joined",
+        occurred_at: SAMPLE_UPDATED,
+        before: null,
+        after: { source_name: "TechCrunch", source_kind: "news", lag_ms: 8_100_000 },
+      },
+    ],
+    entities: [
+      { id: "sample-e1", name: "OpenAI", kind: "company", mention_count: 3 },
+      { id: "sample-e2", name: "GPT-6", kind: "product", mention_count: 2 },
+    ],
     timeline: [
       {
         id: "sample-t1",

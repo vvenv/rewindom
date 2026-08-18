@@ -294,7 +294,6 @@
 /* ---- 导航：同一份条目，横排或竖列 ---------------------------------------- */
 .chrome-nav-inline {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem;
 }
@@ -562,7 +561,8 @@
     border: 1px solid var(--border);
     border-radius: 0.5rem;
     background: transparent;
-    background-image: linear-gradient(currentColor, currentColor),
+    background-image:
+      linear-gradient(currentColor, currentColor),
       linear-gradient(currentColor, currentColor),
       linear-gradient(currentColor, currentColor);
     background-size: 1rem 1.5px;
@@ -576,7 +576,8 @@
   }
   .chrome-menu-toggle:checked {
     background: var(--muted-bg);
-    background-image: linear-gradient(currentColor, currentColor),
+    background-image:
+      linear-gradient(currentColor, currentColor),
       linear-gradient(currentColor, currentColor);
     background-size: 1rem 1.5px;
     background-repeat: no-repeat;

@@ -31,6 +31,7 @@ export function tokenizeTitle(title: string): string[] {
 
   const latin = (lowered.match(/[a-z0-9][a-z0-9'’+.\-]*/gu) ?? [])
     .map((token) => token.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gu, ""))
+    .map(stripHostSuffix)
     .filter((token) => token.length >= 2 && !STOPWORDS.has(token));
 
   // 中文没有空格，退化成二元切分——够用来判断两条中文标题是否在说同一件事
@@ -45,16 +46,43 @@ export function tokenizeTitle(title: string): string[] {
 }
 
 /**
+ * 域名形态的 token 归一到主体名：`github.com` → `github`。
+ *
+ * 线上真实漏合并：同一次 GitHub 故障里，「Incident with Github.com」的 token 是
+ * `github.com`，「GitHub down again? no PR access」的是 `github`——两者**共享 0 个词**，
+ * 连相似度那一步都走不到（`MIN_SHARED_TOKENS` 卡在前面）。
+ *
+ * 只剥常见 TLD，不做通用域名解析：`node.js`、`vue.js` 这类不能被剥成 `node`/`vue`
+ * 之外的东西，而 `example.co.uk` 这种多级后缀在标题里几乎不出现，多剥一层的
+ * 收益远小于误伤风险。
+ */
+const HOST_SUFFIXES = [
+  ".com", ".org", ".net", ".io", ".dev", ".ai", ".co", ".gov", ".edu",
+];
+
+function stripHostSuffix(token: string): string {
+  for (const suffix of HOST_SUFFIXES) {
+    if (token.length > suffix.length && token.endsWith(suffix)) {
+      return token.slice(0, -suffix.length);
+    }
+  }
+  return token;
+}
+
+/**
  * 事件指纹：取区分度最高的若干词（长词优先）后按字典序拼接。
  * 它同时是 NewsEvent.fingerprint 的唯一键——两条信号算出同一个指纹时，
  * 唯一约束会把它们直接摁到同一个事件上。
+ *
+ * **不带 topic 前缀**。带前缀时同一件事被不同主题的源报道会算出两个指纹
+ *（`ai:foo` 与 `tech:foo`），而那正是最该合并的一对——跨源印证。
  */
-export function buildFingerprint(topic: string, tokens: string[]): string {
+export function buildFingerprint(tokens: string[]): string {
   const significant = [...new Set(tokens)]
     .sort((a, b) => b.length - a.length || a.localeCompare(b))
     .slice(0, FINGERPRINT_TOKEN_LIMIT)
     .sort((a, b) => a.localeCompare(b));
-  return `${topic}:${significant.join("-")}`;
+  return significant.join("-");
 }
 
 /**

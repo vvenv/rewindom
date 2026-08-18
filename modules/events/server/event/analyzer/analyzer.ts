@@ -33,7 +33,12 @@ export interface AnalyzedTimelineEntry {
   label_text: string | null;
   source_kind: EventSourceKind;
   source_name: string;
-  signal_id: string | null;
+  /**
+   * 这一格是哪条信号贡献的。**不可为空**：格子的身份就是信号，
+   * 时间线靠 (event_id, signal_id) 做幂等 upsert，没有信号的格子既无法去重、
+   * 也无法回答「这一格是新出现的吗」。两个分析器都必然带上它。
+   */
+  signal_id: string;
   url: string | null;
 }
 
@@ -45,6 +50,24 @@ export interface AnalyzedEvent {
    */
   summary: string;
   timeline: AnalyzedTimelineEntry[];
+  /**
+   * 事件主题。**可选**：规则实现不产出（由 `topic-classifier` 按关键词判定），
+   * LLM 读得懂内容、给得出更准的答案时才填。
+   * 落库前一律经 `isEventTopic` 校验——模型可能返回枚举外的字符串。
+   */
+  topic?: EventTopic;
+  /**
+   * 事件里的实体。**可选**：规则实现由 `entity-extractor` 保守抽取，
+   * LLM 读得懂内容时在**同一次调用**里顺带产出（不新增模型调用）。
+   * 落库前经 `isEntityKind` 校验——模型可能返回枚举外的类型。
+   */
+  entities?: AnalyzedEntity[];
+}
+
+export interface AnalyzedEntity {
+  name: string;
+  kind: string;
+  mention_count?: number;
 }
 
 export interface EventAnalyzer {

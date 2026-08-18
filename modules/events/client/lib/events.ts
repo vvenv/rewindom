@@ -14,7 +14,9 @@ const SORT_MAP: Record<
   { sortBy: string; sortDir: "asc" | "desc" }
 > = {
   latest: { sortBy: "last_activity_at", sortDir: "desc" },
-  rising: { sortBy: "velocity_pct", sortDir: "desc" },
+  // 不排 velocity_pct：缺基线时它恒为 0，「升温」会排出一串空值。
+  // 近窗有几个源在跟进才是「正在扩散」的可核对度量（与首页 Rising 同一把尺子）。
+  rising: { sortBy: "recent_source_count", sortDir: "desc" },
   hottest: { sortBy: "heat_score", sortDir: "desc" },
   earliest: { sortBy: "first_seen_at", sortDir: "asc" },
 };
@@ -40,29 +42,6 @@ export function toEventSortValue(
       SORT_MAP[value].sortBy === sortBy && SORT_MAP[value].sortDir === sortDir,
   );
   return found ?? DEFAULT_EVENT_SORT;
-}
-
-export type VelocityDirection = "rising" | "falling" | "steady";
-
-/**
- * 增速的展示形态。
- *
- * MVP §2 的核心区别就在这里：用户要看的是「它正在变化」，不是「它排第几」。
- * ±5% 以内当作持平——采集有抖动，把噪声当成趋势会让整个 Rising 区块失去信任。
- */
-const STEADY_THRESHOLD_PCT = 5;
-
-export function describeVelocity(velocityPct: number): {
-  direction: VelocityDirection;
-  percent: number;
-} {
-  if (Math.abs(velocityPct) < STEADY_THRESHOLD_PCT) {
-    return { direction: "steady", percent: 0 };
-  }
-  return {
-    direction: velocityPct > 0 ? "rising" : "falling",
-    percent: Math.round(Math.abs(velocityPct)),
-  };
 }
 
 /** 卡片上的来源串：「OpenAI · Hacker News · TechCrunch +2」。 */

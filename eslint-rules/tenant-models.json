@@ -46,5 +46,8 @@
   "eventFeed": "tenant_id",
   "eventSignal": "tenant_id",
   "newsEvent": "tenant_id",
-  "eventTimelineEntry": "tenant_id"
+  "eventTimelineEntry": "tenant_id",
+  "eventRevision": "tenant_id",
+  "eventEntity": "tenant_id",
+  "eventEntityLink": "tenant_id"
 }

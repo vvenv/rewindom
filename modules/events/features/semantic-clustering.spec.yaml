@@ -1,0 +1,69 @@
+# 词面聚类已经到顶，跨过去要语义。
+#
+# MODULE.md「聚类能力边界」量过：该合并的与不该合并的两对**同分 0.33**，
+# 挪阈值不可能同时做对；IDF 加权后仍然同分，全语料新增合并 0 对。
+# 线上还有一组更硬的（yestino.com/events，2026-08-18）：同一次 GitHub 故障被拆成 4 个事件，
+# 彼此只共享 1 个词，连 MIN_SHARED_TOKENS 都过不去。
+#
+# 这一条同时解开 MODULE.md「后续」里的三项：LLM 聚类、中文源、Related Events。
+# 它们是同一个缺口——没有向量。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 信号聚类在词面判据之外增加语义判据（embedding 余弦相似度），使同一件事的跨源报道、以及标题措辞不同的报道能合并成一个事件；没有 embedding key 时行为与现在完全一致。
+gold: modules/events/server/event/cluster.service.ts
+touch:
+  - modules/events/features/semantic-clustering.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/prisma/schema.prisma
+  - apps/server/prisma/migrations/
+  - modules/events/server/event/embedding.ts
+  - modules/events/server/event/embedding.test.ts
+  - modules/events/server/event/cluster.service.ts
+  - modules/events/server/event/cluster-match.ts
+  - modules/events/server/event/cluster-match.test.ts
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/ingest/ingest.service.ts
+  - packages/server-kernel/src/lib/config.ts
+  - docker-compose.prod.yml
+  - scripts/env.production.example
+out_of_scope:
+  - pgvector / ANN 索引（见下方「为什么不上 pgvector」）
+  - Related Events 的界面（数据落地即可，UI 另立）
+  - 中文源接入（向量层就位后才谈得上，仍是独立决策）
+  - 把聚类裁决整个交给 LLM 逐对判断（成本模型完全不同）
+  - 回填历史事件的向量（下一轮采集自然补齐）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/embedding.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:prod-app-env
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models:
+  - name: NewsEvent
+    scope: tenant
+    fields:
+      # 成员信号 embedding 的均值。空数组 = 还没有向量（没配 key、或调用失败）
+      - { name: centroid, type: "Float[]", required: false }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **为什么不上 pgvector**：候选窗口实测只有 545 个事件（72h 窗口，dev 库真实语料）。
+#    ANN 索引要到 10^4 量级才开始有意义；而换 `pgvector/pgvector:pg16` 意味着
+#    本地与生产的 Postgres 从 alpine(musl) 换到 Debian(glibc)，**collation 提供者变了**，
+#    既有文本索引要全量 REINDEX 才安全。为一个 545 向量的 KNN 承担这个风险是不划算的。
+#    存 `Float[]`、在进程内算精确余弦：零基建变更、零 collation 风险，而且是精确解。
+#    候选窗口稳定超过 10^4 时再回来上 pgvector——那时 corpus-retention 应该已经在压着它了。
+# 2. embedding 走 OPENAI_EMBEDDING_* 一组独立 env（与对话模型分开：
+#    .env 里 OPENAI_BASE_URL 指向 deepseek，而 deepseek 不提供 embeddings 端点）。
+#    没配 key 时 `embedTexts` 返回空数组，聚类退回纯词面——与今天完全一致。
+# 3. 判据是**或**关系，不是替代：URL 相等 → 语义 → 词面 → 另起。
+#    词面那条一个字不改，它是 0 成本且零误判的快速路径。
+# 4. 阈值必须在真实语料上校准，不许拍脑袋（与 CLUSTER_SIMILARITY_THRESHOLD 同规矩）。
+#    校准结果与反例写进 MODULE.md 和 cluster-match.test.ts。
+# 5. 事件向量是成员信号向量的**均值**，按 signal_count 增量更新——
+#    只用立事件那条信号的向量会让事件永远停留在第一次措辞上。

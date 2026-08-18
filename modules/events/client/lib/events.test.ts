@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  describeVelocity,
   formatSourceNames,
   fromEventSortValue,
   groupByDay,
@@ -30,28 +29,12 @@ describe("排序取值映射", () => {
       "last_activity_at",
       "first_seen_at",
       "heat_score",
-      "velocity_pct",
+      "recent_source_count",
       "signal_count",
     ]);
     for (const value of ["latest", "rising", "hottest", "earliest"] as const) {
       expect(allowed.has(fromEventSortValue(value).sortBy)).toBe(true);
     }
-  });
-});
-
-describe("describeVelocity", () => {
-  it("上升", () => {
-    expect(describeVelocity(423.6)).toEqual({ direction: "rising", percent: 424 });
-  });
-
-  it("下降取绝对值", () => {
-    expect(describeVelocity(-62)).toEqual({ direction: "falling", percent: 62 });
-  });
-
-  it("小幅波动算持平——把噪声当趋势会让 Rising 区块失去可信度", () => {
-    expect(describeVelocity(4.9).direction).toBe("steady");
-    expect(describeVelocity(-4.9).direction).toBe("steady");
-    expect(describeVelocity(0).direction).toBe("steady");
   });
 });
 

@@ -138,6 +138,8 @@ async function runIngestForTenant(
       id: true,
       tenant_id: true,
       title: true,
+      // 摘录参与 embedding：标题措辞相近但说的是两件事时，它是主要消歧线索
+      excerpt: true,
       topic: true,
       canonical_url: true,
       published_at: true,
@@ -168,7 +170,7 @@ async function runIngestForTenant(
   };
 }
 
-async function listEventIngestTenantIds(): Promise<string[]> {
+export async function listEventIngestTenantIds(): Promise<string[]> {
   const tenants = await prisma.tenant.findMany({
     where: { status: "active" },
     select: { id: true },

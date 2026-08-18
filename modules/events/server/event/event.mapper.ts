@@ -1,6 +1,10 @@
+import { isEventRevisionKind } from "../../shared/index.js";
+
 import type {
   EventDetail,
+  EventEntityKind,
   EventListItem,
+  EventRevisionItem,
   EventSourceItem,
   EventSourceKind,
   EventStatus,
@@ -20,6 +24,9 @@ export interface EventRecordForList {
   status: string;
   heat_score: number;
   velocity_pct: number;
+  has_velocity_baseline: boolean;
+  recent_signal_count: number;
+  recent_source_count: number;
   signal_count: number;
   source_count: number;
   source_names: string[];
@@ -44,6 +51,9 @@ export function toEventListItem(
     status: record.status as EventStatus,
     heat_score: record.heat_score,
     velocity_pct: record.velocity_pct,
+    has_velocity_baseline: record.has_velocity_baseline,
+    recent_signal_count: record.recent_signal_count,
+    recent_source_count: record.recent_source_count,
     signal_count: record.signal_count,
     source_count: record.source_count,
     source_names: record.source_names,
@@ -82,9 +92,12 @@ export function toEventDetail(params: {
     analyzer: string;
     analyzed_at: Date | null;
     manual_content: boolean;
+    manual_topic: boolean;
   };
   timeline: TimelineRecord[];
   signals: SignalRecord[];
+  revisions?: RevisionRecord[];
+  entities?: EntityRecord[];
   follow?: FollowMarker | null;
 }): EventDetail {
   const { record } = params;
@@ -94,9 +107,56 @@ export function toEventDetail(params: {
     analyzer: record.analyzer,
     analyzed_at: record.analyzed_at?.toISOString() ?? null,
     manual_content: record.manual_content,
+    manual_topic: record.manual_topic,
     timeline: params.timeline.map(toTimelineItem),
     sources: groupSources(params.signals),
+    revisions: (params.revisions ?? []).flatMap(toRevisionItem),
+    entities: (params.entities ?? []).map((record) => ({
+      id: record.entity.id,
+      name: record.entity.name,
+      kind: record.entity.kind as EventEntityKind,
+      mention_count: record.mention_count,
+    })),
   };
+}
+
+export interface EntityRecord {
+  mention_count: number;
+  entity: { id: string; name: string; kind: string };
+}
+
+export interface RevisionRecord {
+  kind: string;
+  before: unknown;
+  after: unknown;
+  occurred_at: Date;
+}
+
+/**
+ * 修订行 → 视图。库里的 `kind` 是自由字符串（Json 列旁边的一个 text 列），
+ * 枚举外的值直接丢掉而不是硬转——旧行或将来新增的类型不该让详情页崩掉。
+ */
+function toRevisionItem(record: RevisionRecord): EventRevisionItem[] {
+  if (!isEventRevisionKind(record.kind)) {
+    return [];
+  }
+  return [
+    {
+      kind: record.kind,
+      occurred_at: record.occurred_at.toISOString(),
+      before: asPayload(record.before),
+      after: asPayload(record.after) ?? {},
+    },
+  ];
+}
+
+function asPayload(
+  value: unknown,
+): Record<string, string | number | boolean | null> | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, string | number | boolean | null>;
 }
 
 function toTimelineItem(record: TimelineRecord): EventTimelineItem {

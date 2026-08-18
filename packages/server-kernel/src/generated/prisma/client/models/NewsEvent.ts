@@ -27,17 +27,23 @@ export type AggregateNewsEvent = {
 }
 
 export type NewsEventAvgAggregateOutputType = {
+  centroid: number | null
   signal_count: number | null
   source_count: number | null
   heat_score: number | null
   velocity_pct: number | null
+  recent_signal_count: number | null
+  recent_source_count: number | null
 }
 
 export type NewsEventSumAggregateOutputType = {
+  centroid: number[]
   signal_count: number | null
   source_count: number | null
   heat_score: number | null
   velocity_pct: number | null
+  recent_signal_count: number | null
+  recent_source_count: number | null
 }
 
 export type NewsEventMinAggregateOutputType = {
@@ -53,11 +59,15 @@ export type NewsEventMinAggregateOutputType = {
   source_count: number | null
   heat_score: number | null
   velocity_pct: number | null
+  has_velocity_baseline: boolean | null
+  recent_signal_count: number | null
+  recent_source_count: number | null
   first_seen_at: Date | null
   last_activity_at: Date | null
   analyzed_at: Date | null
   analyzer: string | null
   manual_content: boolean | null
+  manual_topic: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -75,11 +85,15 @@ export type NewsEventMaxAggregateOutputType = {
   source_count: number | null
   heat_score: number | null
   velocity_pct: number | null
+  has_velocity_baseline: boolean | null
+  recent_signal_count: number | null
+  recent_source_count: number | null
   first_seen_at: Date | null
   last_activity_at: Date | null
   analyzed_at: Date | null
   analyzer: string | null
   manual_content: boolean | null
+  manual_topic: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -94,16 +108,21 @@ export type NewsEventCountAggregateOutputType = {
   status: number
   fingerprint: number
   tokens: number
+  centroid: number
   source_names: number
   signal_count: number
   source_count: number
   heat_score: number
   velocity_pct: number
+  has_velocity_baseline: number
+  recent_signal_count: number
+  recent_source_count: number
   first_seen_at: number
   last_activity_at: number
   analyzed_at: number
   analyzer: number
   manual_content: number
+  manual_topic: number
   created_at: number
   updated_at: number
   _all: number
@@ -111,17 +130,23 @@ export type NewsEventCountAggregateOutputType = {
 
 
 export type NewsEventAvgAggregateInputType = {
+  centroid?: true
   signal_count?: true
   source_count?: true
   heat_score?: true
   velocity_pct?: true
+  recent_signal_count?: true
+  recent_source_count?: true
 }
 
 export type NewsEventSumAggregateInputType = {
+  centroid?: true
   signal_count?: true
   source_count?: true
   heat_score?: true
   velocity_pct?: true
+  recent_signal_count?: true
+  recent_source_count?: true
 }
 
 export type NewsEventMinAggregateInputType = {
@@ -137,11 +162,15 @@ export type NewsEventMinAggregateInputType = {
   source_count?: true
   heat_score?: true
   velocity_pct?: true
+  has_velocity_baseline?: true
+  recent_signal_count?: true
+  recent_source_count?: true
   first_seen_at?: true
   last_activity_at?: true
   analyzed_at?: true
   analyzer?: true
   manual_content?: true
+  manual_topic?: true
   created_at?: true
   updated_at?: true
 }
@@ -159,11 +188,15 @@ export type NewsEventMaxAggregateInputType = {
   source_count?: true
   heat_score?: true
   velocity_pct?: true
+  has_velocity_baseline?: true
+  recent_signal_count?: true
+  recent_source_count?: true
   first_seen_at?: true
   last_activity_at?: true
   analyzed_at?: true
   analyzer?: true
   manual_content?: true
+  manual_topic?: true
   created_at?: true
   updated_at?: true
 }
@@ -178,16 +211,21 @@ export type NewsEventCountAggregateInputType = {
   status?: true
   fingerprint?: true
   tokens?: true
+  centroid?: true
   source_names?: true
   signal_count?: true
   source_count?: true
   heat_score?: true
   velocity_pct?: true
+  has_velocity_baseline?: true
+  recent_signal_count?: true
+  recent_source_count?: true
   first_seen_at?: true
   last_activity_at?: true
   analyzed_at?: true
   analyzer?: true
   manual_content?: true
+  manual_topic?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -289,16 +327,21 @@ export type NewsEventGroupByOutputType = {
   status: string
   fingerprint: string
   tokens: string[]
+  centroid: number[]
   source_names: string[]
   signal_count: number
   source_count: number
   heat_score: number
   velocity_pct: number
+  has_velocity_baseline: boolean
+  recent_signal_count: number
+  recent_source_count: number
   first_seen_at: Date
   last_activity_at: Date
   analyzed_at: Date | null
   analyzer: string
   manual_content: boolean
+  manual_topic: boolean
   created_at: Date
   updated_at: Date
   _count: NewsEventCountAggregateOutputType | null
@@ -336,21 +379,28 @@ export type NewsEventWhereInput = {
   status?: Prisma.StringFilter<"NewsEvent"> | string
   fingerprint?: Prisma.StringFilter<"NewsEvent"> | string
   tokens?: Prisma.StringNullableListFilter<"NewsEvent">
+  centroid?: Prisma.FloatNullableListFilter<"NewsEvent">
   source_names?: Prisma.StringNullableListFilter<"NewsEvent">
   signal_count?: Prisma.IntFilter<"NewsEvent"> | number
   source_count?: Prisma.IntFilter<"NewsEvent"> | number
   heat_score?: Prisma.FloatFilter<"NewsEvent"> | number
   velocity_pct?: Prisma.FloatFilter<"NewsEvent"> | number
+  has_velocity_baseline?: Prisma.BoolFilter<"NewsEvent"> | boolean
+  recent_signal_count?: Prisma.IntFilter<"NewsEvent"> | number
+  recent_source_count?: Prisma.IntFilter<"NewsEvent"> | number
   first_seen_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   last_activity_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   analyzed_at?: Prisma.DateTimeNullableFilter<"NewsEvent"> | Date | string | null
   analyzer?: Prisma.StringFilter<"NewsEvent"> | string
   manual_content?: Prisma.BoolFilter<"NewsEvent"> | boolean
+  manual_topic?: Prisma.BoolFilter<"NewsEvent"> | boolean
   created_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   signals?: Prisma.EventSignalListRelationFilter
   timeline?: Prisma.EventTimelineEntryListRelationFilter
   follows?: Prisma.EventFollowListRelationFilter
+  revisions?: Prisma.EventRevisionListRelationFilter
+  entities?: Prisma.EventEntityLinkListRelationFilter
 }
 
 export type NewsEventOrderByWithRelationInput = {
@@ -363,21 +413,28 @@ export type NewsEventOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
   tokens?: Prisma.SortOrder
+  centroid?: Prisma.SortOrder
   source_names?: Prisma.SortOrder
   signal_count?: Prisma.SortOrder
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
   velocity_pct?: Prisma.SortOrder
+  has_velocity_baseline?: Prisma.SortOrder
+  recent_signal_count?: Prisma.SortOrder
+  recent_source_count?: Prisma.SortOrder
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
+  manual_topic?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   signals?: Prisma.EventSignalOrderByRelationAggregateInput
   timeline?: Prisma.EventTimelineEntryOrderByRelationAggregateInput
   follows?: Prisma.EventFollowOrderByRelationAggregateInput
+  revisions?: Prisma.EventRevisionOrderByRelationAggregateInput
+  entities?: Prisma.EventEntityLinkOrderByRelationAggregateInput
 }
 
 export type NewsEventWhereUniqueInput = Prisma.AtLeast<{
@@ -395,21 +452,28 @@ export type NewsEventWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.StringFilter<"NewsEvent"> | string
   fingerprint?: Prisma.StringFilter<"NewsEvent"> | string
   tokens?: Prisma.StringNullableListFilter<"NewsEvent">
+  centroid?: Prisma.FloatNullableListFilter<"NewsEvent">
   source_names?: Prisma.StringNullableListFilter<"NewsEvent">
   signal_count?: Prisma.IntFilter<"NewsEvent"> | number
   source_count?: Prisma.IntFilter<"NewsEvent"> | number
   heat_score?: Prisma.FloatFilter<"NewsEvent"> | number
   velocity_pct?: Prisma.FloatFilter<"NewsEvent"> | number
+  has_velocity_baseline?: Prisma.BoolFilter<"NewsEvent"> | boolean
+  recent_signal_count?: Prisma.IntFilter<"NewsEvent"> | number
+  recent_source_count?: Prisma.IntFilter<"NewsEvent"> | number
   first_seen_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   last_activity_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   analyzed_at?: Prisma.DateTimeNullableFilter<"NewsEvent"> | Date | string | null
   analyzer?: Prisma.StringFilter<"NewsEvent"> | string
   manual_content?: Prisma.BoolFilter<"NewsEvent"> | boolean
+  manual_topic?: Prisma.BoolFilter<"NewsEvent"> | boolean
   created_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"NewsEvent"> | Date | string
   signals?: Prisma.EventSignalListRelationFilter
   timeline?: Prisma.EventTimelineEntryListRelationFilter
   follows?: Prisma.EventFollowListRelationFilter
+  revisions?: Prisma.EventRevisionListRelationFilter
+  entities?: Prisma.EventEntityLinkListRelationFilter
 }, "id" | "tenant_id_slug" | "tenant_id_fingerprint">
 
 export type NewsEventOrderByWithAggregationInput = {
@@ -422,16 +486,21 @@ export type NewsEventOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
   tokens?: Prisma.SortOrder
+  centroid?: Prisma.SortOrder
   source_names?: Prisma.SortOrder
   signal_count?: Prisma.SortOrder
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
   velocity_pct?: Prisma.SortOrder
+  has_velocity_baseline?: Prisma.SortOrder
+  recent_signal_count?: Prisma.SortOrder
+  recent_source_count?: Prisma.SortOrder
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
+  manual_topic?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.NewsEventCountOrderByAggregateInput
@@ -454,16 +523,21 @@ export type NewsEventScalarWhereWithAggregatesInput = {
   status?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   fingerprint?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   tokens?: Prisma.StringNullableListFilter<"NewsEvent">
+  centroid?: Prisma.FloatNullableListFilter<"NewsEvent">
   source_names?: Prisma.StringNullableListFilter<"NewsEvent">
   signal_count?: Prisma.IntWithAggregatesFilter<"NewsEvent"> | number
   source_count?: Prisma.IntWithAggregatesFilter<"NewsEvent"> | number
   heat_score?: Prisma.FloatWithAggregatesFilter<"NewsEvent"> | number
   velocity_pct?: Prisma.FloatWithAggregatesFilter<"NewsEvent"> | number
+  has_velocity_baseline?: Prisma.BoolWithAggregatesFilter<"NewsEvent"> | boolean
+  recent_signal_count?: Prisma.IntWithAggregatesFilter<"NewsEvent"> | number
+  recent_source_count?: Prisma.IntWithAggregatesFilter<"NewsEvent"> | number
   first_seen_at?: Prisma.DateTimeWithAggregatesFilter<"NewsEvent"> | Date | string
   last_activity_at?: Prisma.DateTimeWithAggregatesFilter<"NewsEvent"> | Date | string
   analyzed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"NewsEvent"> | Date | string | null
   analyzer?: Prisma.StringWithAggregatesFilter<"NewsEvent"> | string
   manual_content?: Prisma.BoolWithAggregatesFilter<"NewsEvent"> | boolean
+  manual_topic?: Prisma.BoolWithAggregatesFilter<"NewsEvent"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"NewsEvent"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"NewsEvent"> | Date | string
 }
@@ -478,21 +552,28 @@ export type NewsEventCreateInput = {
   status?: string
   fingerprint: string
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
   velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalCreateNestedManyWithoutEventInput
   timeline?: Prisma.EventTimelineEntryCreateNestedManyWithoutEventInput
   follows?: Prisma.EventFollowCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkCreateNestedManyWithoutEventInput
 }
 
 export type NewsEventUncheckedCreateInput = {
@@ -505,21 +586,28 @@ export type NewsEventUncheckedCreateInput = {
   status?: string
   fingerprint: string
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
   velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalUncheckedCreateNestedManyWithoutEventInput
   timeline?: Prisma.EventTimelineEntryUncheckedCreateNestedManyWithoutEventInput
   follows?: Prisma.EventFollowUncheckedCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionUncheckedCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type NewsEventUpdateInput = {
@@ -532,21 +620,28 @@ export type NewsEventUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUpdateManyWithoutEventNestedInput
   timeline?: Prisma.EventTimelineEntryUpdateManyWithoutEventNestedInput
   follows?: Prisma.EventFollowUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUpdateManyWithoutEventNestedInput
 }
 
 export type NewsEventUncheckedUpdateInput = {
@@ -559,21 +654,28 @@ export type NewsEventUncheckedUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUncheckedUpdateManyWithoutEventNestedInput
   timeline?: Prisma.EventTimelineEntryUncheckedUpdateManyWithoutEventNestedInput
   follows?: Prisma.EventFollowUncheckedUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUncheckedUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type NewsEventCreateManyInput = {
@@ -586,16 +688,21 @@ export type NewsEventCreateManyInput = {
   status?: string
   fingerprint: string
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
   velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -610,16 +717,21 @@ export type NewsEventUpdateManyMutationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -634,16 +746,21 @@ export type NewsEventUncheckedUpdateManyInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -651,6 +768,14 @@ export type NewsEventUncheckedUpdateManyInput = {
 export type NewsEventNullableScalarRelationFilter = {
   is?: Prisma.NewsEventWhereInput | null
   isNot?: Prisma.NewsEventWhereInput | null
+}
+
+export type FloatNullableListFilter<$PrismaModel = never> = {
+  equals?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel> | null
+  has?: number | Prisma.FloatFieldRefInput<$PrismaModel> | null
+  hasEvery?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  hasSome?: number[] | Prisma.ListFloatFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
 }
 
 export type NewsEventTenant_idSlugCompoundUniqueInput = {
@@ -673,25 +798,33 @@ export type NewsEventCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
   tokens?: Prisma.SortOrder
+  centroid?: Prisma.SortOrder
   source_names?: Prisma.SortOrder
   signal_count?: Prisma.SortOrder
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
   velocity_pct?: Prisma.SortOrder
+  has_velocity_baseline?: Prisma.SortOrder
+  recent_signal_count?: Prisma.SortOrder
+  recent_source_count?: Prisma.SortOrder
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
+  manual_topic?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
 export type NewsEventAvgOrderByAggregateInput = {
+  centroid?: Prisma.SortOrder
   signal_count?: Prisma.SortOrder
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
   velocity_pct?: Prisma.SortOrder
+  recent_signal_count?: Prisma.SortOrder
+  recent_source_count?: Prisma.SortOrder
 }
 
 export type NewsEventMaxOrderByAggregateInput = {
@@ -707,11 +840,15 @@ export type NewsEventMaxOrderByAggregateInput = {
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
   velocity_pct?: Prisma.SortOrder
+  has_velocity_baseline?: Prisma.SortOrder
+  recent_signal_count?: Prisma.SortOrder
+  recent_source_count?: Prisma.SortOrder
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
+  manual_topic?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -729,20 +866,27 @@ export type NewsEventMinOrderByAggregateInput = {
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
   velocity_pct?: Prisma.SortOrder
+  has_velocity_baseline?: Prisma.SortOrder
+  recent_signal_count?: Prisma.SortOrder
+  recent_source_count?: Prisma.SortOrder
   first_seen_at?: Prisma.SortOrder
   last_activity_at?: Prisma.SortOrder
   analyzed_at?: Prisma.SortOrder
   analyzer?: Prisma.SortOrder
   manual_content?: Prisma.SortOrder
+  manual_topic?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
 export type NewsEventSumOrderByAggregateInput = {
+  centroid?: Prisma.SortOrder
   signal_count?: Prisma.SortOrder
   source_count?: Prisma.SortOrder
   heat_score?: Prisma.SortOrder
   velocity_pct?: Prisma.SortOrder
+  recent_signal_count?: Prisma.SortOrder
+  recent_source_count?: Prisma.SortOrder
 }
 
 export type NewsEventScalarRelationFilter = {
@@ -770,6 +914,10 @@ export type NewsEventCreatetokensInput = {
   set: string[]
 }
 
+export type NewsEventCreatecentroidInput = {
+  set: number[]
+}
+
 export type NewsEventCreatesource_namesInput = {
   set: string[]
 }
@@ -777,6 +925,11 @@ export type NewsEventCreatesource_namesInput = {
 export type NewsEventUpdatetokensInput = {
   set?: string[]
   push?: string | string[]
+}
+
+export type NewsEventUpdatecentroidInput = {
+  set?: number[]
+  push?: number | number[]
 }
 
 export type NewsEventUpdatesource_namesInput = {
@@ -790,6 +943,34 @@ export type FloatFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type NewsEventCreateNestedOneWithoutEntitiesInput = {
+  create?: Prisma.XOR<Prisma.NewsEventCreateWithoutEntitiesInput, Prisma.NewsEventUncheckedCreateWithoutEntitiesInput>
+  connectOrCreate?: Prisma.NewsEventCreateOrConnectWithoutEntitiesInput
+  connect?: Prisma.NewsEventWhereUniqueInput
+}
+
+export type NewsEventUpdateOneRequiredWithoutEntitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.NewsEventCreateWithoutEntitiesInput, Prisma.NewsEventUncheckedCreateWithoutEntitiesInput>
+  connectOrCreate?: Prisma.NewsEventCreateOrConnectWithoutEntitiesInput
+  upsert?: Prisma.NewsEventUpsertWithoutEntitiesInput
+  connect?: Prisma.NewsEventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.NewsEventUpdateToOneWithWhereWithoutEntitiesInput, Prisma.NewsEventUpdateWithoutEntitiesInput>, Prisma.NewsEventUncheckedUpdateWithoutEntitiesInput>
+}
+
+export type NewsEventCreateNestedOneWithoutRevisionsInput = {
+  create?: Prisma.XOR<Prisma.NewsEventCreateWithoutRevisionsInput, Prisma.NewsEventUncheckedCreateWithoutRevisionsInput>
+  connectOrCreate?: Prisma.NewsEventCreateOrConnectWithoutRevisionsInput
+  connect?: Prisma.NewsEventWhereUniqueInput
+}
+
+export type NewsEventUpdateOneRequiredWithoutRevisionsNestedInput = {
+  create?: Prisma.XOR<Prisma.NewsEventCreateWithoutRevisionsInput, Prisma.NewsEventUncheckedCreateWithoutRevisionsInput>
+  connectOrCreate?: Prisma.NewsEventCreateOrConnectWithoutRevisionsInput
+  upsert?: Prisma.NewsEventUpsertWithoutRevisionsInput
+  connect?: Prisma.NewsEventWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.NewsEventUpdateToOneWithWhereWithoutRevisionsInput, Prisma.NewsEventUpdateWithoutRevisionsInput>, Prisma.NewsEventUncheckedUpdateWithoutRevisionsInput>
 }
 
 export type NewsEventCreateNestedOneWithoutTimelineInput = {
@@ -830,20 +1011,27 @@ export type NewsEventCreateWithoutSignalsInput = {
   status?: string
   fingerprint: string
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
   velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   timeline?: Prisma.EventTimelineEntryCreateNestedManyWithoutEventInput
   follows?: Prisma.EventFollowCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkCreateNestedManyWithoutEventInput
 }
 
 export type NewsEventUncheckedCreateWithoutSignalsInput = {
@@ -856,20 +1044,27 @@ export type NewsEventUncheckedCreateWithoutSignalsInput = {
   status?: string
   fingerprint: string
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
   velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   timeline?: Prisma.EventTimelineEntryUncheckedCreateNestedManyWithoutEventInput
   follows?: Prisma.EventFollowUncheckedCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionUncheckedCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type NewsEventCreateOrConnectWithoutSignalsInput = {
@@ -898,20 +1093,27 @@ export type NewsEventUpdateWithoutSignalsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeline?: Prisma.EventTimelineEntryUpdateManyWithoutEventNestedInput
   follows?: Prisma.EventFollowUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUpdateManyWithoutEventNestedInput
 }
 
 export type NewsEventUncheckedUpdateWithoutSignalsInput = {
@@ -924,20 +1126,323 @@ export type NewsEventUncheckedUpdateWithoutSignalsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeline?: Prisma.EventTimelineEntryUncheckedUpdateManyWithoutEventNestedInput
   follows?: Prisma.EventFollowUncheckedUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUncheckedUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type NewsEventCreateWithoutEntitiesInput = {
+  id?: string
+  tenant_id: string
+  slug: string
+  title: string
+  summary?: string
+  topic?: string
+  status?: string
+  fingerprint: string
+  tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
+  source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  signal_count?: number
+  source_count?: number
+  heat_score?: number
+  velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
+  first_seen_at: Date | string
+  last_activity_at: Date | string
+  analyzed_at?: Date | string | null
+  analyzer?: string
+  manual_content?: boolean
+  manual_topic?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  signals?: Prisma.EventSignalCreateNestedManyWithoutEventInput
+  timeline?: Prisma.EventTimelineEntryCreateNestedManyWithoutEventInput
+  follows?: Prisma.EventFollowCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionCreateNestedManyWithoutEventInput
+}
+
+export type NewsEventUncheckedCreateWithoutEntitiesInput = {
+  id?: string
+  tenant_id: string
+  slug: string
+  title: string
+  summary?: string
+  topic?: string
+  status?: string
+  fingerprint: string
+  tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
+  source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  signal_count?: number
+  source_count?: number
+  heat_score?: number
+  velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
+  first_seen_at: Date | string
+  last_activity_at: Date | string
+  analyzed_at?: Date | string | null
+  analyzer?: string
+  manual_content?: boolean
+  manual_topic?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  signals?: Prisma.EventSignalUncheckedCreateNestedManyWithoutEventInput
+  timeline?: Prisma.EventTimelineEntryUncheckedCreateNestedManyWithoutEventInput
+  follows?: Prisma.EventFollowUncheckedCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type NewsEventCreateOrConnectWithoutEntitiesInput = {
+  where: Prisma.NewsEventWhereUniqueInput
+  create: Prisma.XOR<Prisma.NewsEventCreateWithoutEntitiesInput, Prisma.NewsEventUncheckedCreateWithoutEntitiesInput>
+}
+
+export type NewsEventUpsertWithoutEntitiesInput = {
+  update: Prisma.XOR<Prisma.NewsEventUpdateWithoutEntitiesInput, Prisma.NewsEventUncheckedUpdateWithoutEntitiesInput>
+  create: Prisma.XOR<Prisma.NewsEventCreateWithoutEntitiesInput, Prisma.NewsEventUncheckedCreateWithoutEntitiesInput>
+  where?: Prisma.NewsEventWhereInput
+}
+
+export type NewsEventUpdateToOneWithWhereWithoutEntitiesInput = {
+  where?: Prisma.NewsEventWhereInput
+  data: Prisma.XOR<Prisma.NewsEventUpdateWithoutEntitiesInput, Prisma.NewsEventUncheckedUpdateWithoutEntitiesInput>
+}
+
+export type NewsEventUpdateWithoutEntitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.StringFieldUpdateOperationsInput | string
+  topic?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
+  tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
+  source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  source_count?: Prisma.IntFieldUpdateOperationsInput | number
+  heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
+  velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
+  first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signals?: Prisma.EventSignalUpdateManyWithoutEventNestedInput
+  timeline?: Prisma.EventTimelineEntryUpdateManyWithoutEventNestedInput
+  follows?: Prisma.EventFollowUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUpdateManyWithoutEventNestedInput
+}
+
+export type NewsEventUncheckedUpdateWithoutEntitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.StringFieldUpdateOperationsInput | string
+  topic?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
+  tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
+  source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  source_count?: Prisma.IntFieldUpdateOperationsInput | number
+  heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
+  velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
+  first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signals?: Prisma.EventSignalUncheckedUpdateManyWithoutEventNestedInput
+  timeline?: Prisma.EventTimelineEntryUncheckedUpdateManyWithoutEventNestedInput
+  follows?: Prisma.EventFollowUncheckedUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type NewsEventCreateWithoutRevisionsInput = {
+  id?: string
+  tenant_id: string
+  slug: string
+  title: string
+  summary?: string
+  topic?: string
+  status?: string
+  fingerprint: string
+  tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
+  source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  signal_count?: number
+  source_count?: number
+  heat_score?: number
+  velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
+  first_seen_at: Date | string
+  last_activity_at: Date | string
+  analyzed_at?: Date | string | null
+  analyzer?: string
+  manual_content?: boolean
+  manual_topic?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  signals?: Prisma.EventSignalCreateNestedManyWithoutEventInput
+  timeline?: Prisma.EventTimelineEntryCreateNestedManyWithoutEventInput
+  follows?: Prisma.EventFollowCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkCreateNestedManyWithoutEventInput
+}
+
+export type NewsEventUncheckedCreateWithoutRevisionsInput = {
+  id?: string
+  tenant_id: string
+  slug: string
+  title: string
+  summary?: string
+  topic?: string
+  status?: string
+  fingerprint: string
+  tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
+  source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
+  signal_count?: number
+  source_count?: number
+  heat_score?: number
+  velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
+  first_seen_at: Date | string
+  last_activity_at: Date | string
+  analyzed_at?: Date | string | null
+  analyzer?: string
+  manual_content?: boolean
+  manual_topic?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  signals?: Prisma.EventSignalUncheckedCreateNestedManyWithoutEventInput
+  timeline?: Prisma.EventTimelineEntryUncheckedCreateNestedManyWithoutEventInput
+  follows?: Prisma.EventFollowUncheckedCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type NewsEventCreateOrConnectWithoutRevisionsInput = {
+  where: Prisma.NewsEventWhereUniqueInput
+  create: Prisma.XOR<Prisma.NewsEventCreateWithoutRevisionsInput, Prisma.NewsEventUncheckedCreateWithoutRevisionsInput>
+}
+
+export type NewsEventUpsertWithoutRevisionsInput = {
+  update: Prisma.XOR<Prisma.NewsEventUpdateWithoutRevisionsInput, Prisma.NewsEventUncheckedUpdateWithoutRevisionsInput>
+  create: Prisma.XOR<Prisma.NewsEventCreateWithoutRevisionsInput, Prisma.NewsEventUncheckedCreateWithoutRevisionsInput>
+  where?: Prisma.NewsEventWhereInput
+}
+
+export type NewsEventUpdateToOneWithWhereWithoutRevisionsInput = {
+  where?: Prisma.NewsEventWhereInput
+  data: Prisma.XOR<Prisma.NewsEventUpdateWithoutRevisionsInput, Prisma.NewsEventUncheckedUpdateWithoutRevisionsInput>
+}
+
+export type NewsEventUpdateWithoutRevisionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.StringFieldUpdateOperationsInput | string
+  topic?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
+  tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
+  source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  source_count?: Prisma.IntFieldUpdateOperationsInput | number
+  heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
+  velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
+  first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signals?: Prisma.EventSignalUpdateManyWithoutEventNestedInput
+  timeline?: Prisma.EventTimelineEntryUpdateManyWithoutEventNestedInput
+  follows?: Prisma.EventFollowUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUpdateManyWithoutEventNestedInput
+}
+
+export type NewsEventUncheckedUpdateWithoutRevisionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.StringFieldUpdateOperationsInput | string
+  topic?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
+  tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
+  source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
+  signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  source_count?: Prisma.IntFieldUpdateOperationsInput | number
+  heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
+  velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
+  first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  analyzer?: Prisma.StringFieldUpdateOperationsInput | string
+  manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  signals?: Prisma.EventSignalUncheckedUpdateManyWithoutEventNestedInput
+  timeline?: Prisma.EventTimelineEntryUncheckedUpdateManyWithoutEventNestedInput
+  follows?: Prisma.EventFollowUncheckedUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type NewsEventCreateWithoutTimelineInput = {
@@ -950,20 +1455,27 @@ export type NewsEventCreateWithoutTimelineInput = {
   status?: string
   fingerprint: string
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
   velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalCreateNestedManyWithoutEventInput
   follows?: Prisma.EventFollowCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkCreateNestedManyWithoutEventInput
 }
 
 export type NewsEventUncheckedCreateWithoutTimelineInput = {
@@ -976,20 +1488,27 @@ export type NewsEventUncheckedCreateWithoutTimelineInput = {
   status?: string
   fingerprint: string
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
   velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalUncheckedCreateNestedManyWithoutEventInput
   follows?: Prisma.EventFollowUncheckedCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionUncheckedCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type NewsEventCreateOrConnectWithoutTimelineInput = {
@@ -1018,20 +1537,27 @@ export type NewsEventUpdateWithoutTimelineInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUpdateManyWithoutEventNestedInput
   follows?: Prisma.EventFollowUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUpdateManyWithoutEventNestedInput
 }
 
 export type NewsEventUncheckedUpdateWithoutTimelineInput = {
@@ -1044,20 +1570,27 @@ export type NewsEventUncheckedUpdateWithoutTimelineInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUncheckedUpdateManyWithoutEventNestedInput
   follows?: Prisma.EventFollowUncheckedUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUncheckedUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type NewsEventCreateWithoutFollowsInput = {
@@ -1070,20 +1603,27 @@ export type NewsEventCreateWithoutFollowsInput = {
   status?: string
   fingerprint: string
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
   velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalCreateNestedManyWithoutEventInput
   timeline?: Prisma.EventTimelineEntryCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkCreateNestedManyWithoutEventInput
 }
 
 export type NewsEventUncheckedCreateWithoutFollowsInput = {
@@ -1096,20 +1636,27 @@ export type NewsEventUncheckedCreateWithoutFollowsInput = {
   status?: string
   fingerprint: string
   tokens?: Prisma.NewsEventCreatetokensInput | string[]
+  centroid?: Prisma.NewsEventCreatecentroidInput | number[]
   source_names?: Prisma.NewsEventCreatesource_namesInput | string[]
   signal_count?: number
   source_count?: number
   heat_score?: number
   velocity_pct?: number
+  has_velocity_baseline?: boolean
+  recent_signal_count?: number
+  recent_source_count?: number
   first_seen_at: Date | string
   last_activity_at: Date | string
   analyzed_at?: Date | string | null
   analyzer?: string
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   signals?: Prisma.EventSignalUncheckedCreateNestedManyWithoutEventInput
   timeline?: Prisma.EventTimelineEntryUncheckedCreateNestedManyWithoutEventInput
+  revisions?: Prisma.EventRevisionUncheckedCreateNestedManyWithoutEventInput
+  entities?: Prisma.EventEntityLinkUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type NewsEventCreateOrConnectWithoutFollowsInput = {
@@ -1138,20 +1685,27 @@ export type NewsEventUpdateWithoutFollowsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUpdateManyWithoutEventNestedInput
   timeline?: Prisma.EventTimelineEntryUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUpdateManyWithoutEventNestedInput
 }
 
 export type NewsEventUncheckedUpdateWithoutFollowsInput = {
@@ -1164,20 +1718,27 @@ export type NewsEventUncheckedUpdateWithoutFollowsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   fingerprint?: Prisma.StringFieldUpdateOperationsInput | string
   tokens?: Prisma.NewsEventUpdatetokensInput | string[]
+  centroid?: Prisma.NewsEventUpdatecentroidInput | number[]
   source_names?: Prisma.NewsEventUpdatesource_namesInput | string[]
   signal_count?: Prisma.IntFieldUpdateOperationsInput | number
   source_count?: Prisma.IntFieldUpdateOperationsInput | number
   heat_score?: Prisma.FloatFieldUpdateOperationsInput | number
   velocity_pct?: Prisma.FloatFieldUpdateOperationsInput | number
+  has_velocity_baseline?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recent_signal_count?: Prisma.IntFieldUpdateOperationsInput | number
+  recent_source_count?: Prisma.IntFieldUpdateOperationsInput | number
   first_seen_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_activity_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   analyzed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyzer?: Prisma.StringFieldUpdateOperationsInput | string
   manual_content?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  manual_topic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   signals?: Prisma.EventSignalUncheckedUpdateManyWithoutEventNestedInput
   timeline?: Prisma.EventTimelineEntryUncheckedUpdateManyWithoutEventNestedInput
+  revisions?: Prisma.EventRevisionUncheckedUpdateManyWithoutEventNestedInput
+  entities?: Prisma.EventEntityLinkUncheckedUpdateManyWithoutEventNestedInput
 }
 
 
@@ -1189,12 +1750,16 @@ export type NewsEventCountOutputType = {
   signals: number
   timeline: number
   follows: number
+  revisions: number
+  entities: number
 }
 
 export type NewsEventCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   signals?: boolean | NewsEventCountOutputTypeCountSignalsArgs
   timeline?: boolean | NewsEventCountOutputTypeCountTimelineArgs
   follows?: boolean | NewsEventCountOutputTypeCountFollowsArgs
+  revisions?: boolean | NewsEventCountOutputTypeCountRevisionsArgs
+  entities?: boolean | NewsEventCountOutputTypeCountEntitiesArgs
 }
 
 /**
@@ -1228,6 +1793,20 @@ export type NewsEventCountOutputTypeCountFollowsArgs<ExtArgs extends runtime.Typ
   where?: Prisma.EventFollowWhereInput
 }
 
+/**
+ * NewsEventCountOutputType without action
+ */
+export type NewsEventCountOutputTypeCountRevisionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventRevisionWhereInput
+}
+
+/**
+ * NewsEventCountOutputType without action
+ */
+export type NewsEventCountOutputTypeCountEntitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventEntityLinkWhereInput
+}
+
 
 export type NewsEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1239,21 +1818,28 @@ export type NewsEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   status?: boolean
   fingerprint?: boolean
   tokens?: boolean
+  centroid?: boolean
   source_names?: boolean
   signal_count?: boolean
   source_count?: boolean
   heat_score?: boolean
   velocity_pct?: boolean
+  has_velocity_baseline?: boolean
+  recent_signal_count?: boolean
+  recent_source_count?: boolean
   first_seen_at?: boolean
   last_activity_at?: boolean
   analyzed_at?: boolean
   analyzer?: boolean
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: boolean
   updated_at?: boolean
   signals?: boolean | Prisma.NewsEvent$signalsArgs<ExtArgs>
   timeline?: boolean | Prisma.NewsEvent$timelineArgs<ExtArgs>
   follows?: boolean | Prisma.NewsEvent$followsArgs<ExtArgs>
+  revisions?: boolean | Prisma.NewsEvent$revisionsArgs<ExtArgs>
+  entities?: boolean | Prisma.NewsEvent$entitiesArgs<ExtArgs>
   _count?: boolean | Prisma.NewsEventCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["newsEvent"]>
 
@@ -1267,16 +1853,21 @@ export type NewsEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   status?: boolean
   fingerprint?: boolean
   tokens?: boolean
+  centroid?: boolean
   source_names?: boolean
   signal_count?: boolean
   source_count?: boolean
   heat_score?: boolean
   velocity_pct?: boolean
+  has_velocity_baseline?: boolean
+  recent_signal_count?: boolean
+  recent_source_count?: boolean
   first_seen_at?: boolean
   last_activity_at?: boolean
   analyzed_at?: boolean
   analyzer?: boolean
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["newsEvent"]>
@@ -1291,16 +1882,21 @@ export type NewsEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   status?: boolean
   fingerprint?: boolean
   tokens?: boolean
+  centroid?: boolean
   source_names?: boolean
   signal_count?: boolean
   source_count?: boolean
   heat_score?: boolean
   velocity_pct?: boolean
+  has_velocity_baseline?: boolean
+  recent_signal_count?: boolean
+  recent_source_count?: boolean
   first_seen_at?: boolean
   last_activity_at?: boolean
   analyzed_at?: boolean
   analyzer?: boolean
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["newsEvent"]>
@@ -1315,25 +1911,32 @@ export type NewsEventSelectScalar = {
   status?: boolean
   fingerprint?: boolean
   tokens?: boolean
+  centroid?: boolean
   source_names?: boolean
   signal_count?: boolean
   source_count?: boolean
   heat_score?: boolean
   velocity_pct?: boolean
+  has_velocity_baseline?: boolean
+  recent_signal_count?: boolean
+  recent_source_count?: boolean
   first_seen_at?: boolean
   last_activity_at?: boolean
   analyzed_at?: boolean
   analyzer?: boolean
   manual_content?: boolean
+  manual_topic?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "title" | "summary" | "topic" | "status" | "fingerprint" | "tokens" | "source_names" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "analyzer" | "manual_content" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
+export type NewsEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "slug" | "title" | "summary" | "topic" | "status" | "fingerprint" | "tokens" | "centroid" | "source_names" | "signal_count" | "source_count" | "heat_score" | "velocity_pct" | "has_velocity_baseline" | "recent_signal_count" | "recent_source_count" | "first_seen_at" | "last_activity_at" | "analyzed_at" | "analyzer" | "manual_content" | "manual_topic" | "created_at" | "updated_at", ExtArgs["result"]["newsEvent"]>
 export type NewsEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   signals?: boolean | Prisma.NewsEvent$signalsArgs<ExtArgs>
   timeline?: boolean | Prisma.NewsEvent$timelineArgs<ExtArgs>
   follows?: boolean | Prisma.NewsEvent$followsArgs<ExtArgs>
+  revisions?: boolean | Prisma.NewsEvent$revisionsArgs<ExtArgs>
+  entities?: boolean | Prisma.NewsEvent$entitiesArgs<ExtArgs>
   _count?: boolean | Prisma.NewsEventCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type NewsEventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1345,6 +1948,8 @@ export type $NewsEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     signals: Prisma.$EventSignalPayload<ExtArgs>[]
     timeline: Prisma.$EventTimelineEntryPayload<ExtArgs>[]
     follows: Prisma.$EventFollowPayload<ExtArgs>[]
+    revisions: Prisma.$EventRevisionPayload<ExtArgs>[]
+    entities: Prisma.$EventEntityLinkPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1376,6 +1981,14 @@ export type $NewsEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      */
     tokens: string[]
     /**
+     * 成员信号 embedding 的均值（语义聚类的判据）。空数组 = 还没有向量：
+     * 没配 OPENAI_EMBEDDING_* 或调用失败，此时聚类退回纯词面判据。
+     * 存 Float[] 而不上 pgvector：候选窗口实测只有几百个事件，ANN 索引要到
+     * 10^4 量级才有意义，而换 pgvector 镜像会把 Postgres 从 musl 换到 glibc，
+     * collation 提供者一变既有文本索引就得全量 REINDEX
+     */
+    centroid: number[]
+    /**
      * 贡献过信号的来源名（去重）。冗余在事件上，列表页才不用为每张卡片再查一次信号表
      */
     source_names: string[]
@@ -1389,9 +2002,23 @@ export type $NewsEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      */
     heat_score: number
     /**
-     * 相对上一窗口的变化率（百分比），Rising 就是按它排的
+     * 相对上一窗口的变化率（百分比）。**没有上一窗口时恒为 0**，见下一个字段
      */
     velocity_pct: number
+    /**
+     * 上一窗口是否构成可比较的基线。false 时 velocity_pct 的 0 表示「还说不出来」，
+     * 不是「持平」——界面必须能区分这两者，否则新事件会被写成没有变化
+     */
+    has_velocity_baseline: boolean
+    /**
+     * 近窗内的信号条数。Rising 的次级排序键
+     */
+    recent_signal_count: number
+    /**
+     * 近窗内贡献过信号的不同来源数。Rising 的主排序键——
+     * 跨源印证是可核对的事实，比缺基线时硬算出来的比率更有资格排在首页
+     */
+    recent_source_count: number
     first_seen_at: Date
     last_activity_at: Date
     /**
@@ -1406,6 +2033,11 @@ export type $NewsEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
      * 工作台改过标题或摘要后为 true：采集刷新仍更新热度与时间线，但不再覆盖文案
      */
     manual_content: boolean
+    /**
+     * 工作台改过主题后为 true：分类器每轮重算主题，但不再覆盖人工指定的那个。
+     * 与 manual_content 分开——改主题不该顺带锁死摘要，改摘要也不该锁死主题
+     */
+    manual_topic: boolean
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["newsEvent"]>
@@ -1805,6 +2437,8 @@ export interface Prisma__NewsEventClient<T, Null = never, ExtArgs extends runtim
   signals<T extends Prisma.NewsEvent$signalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.NewsEvent$signalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventSignalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   timeline<T extends Prisma.NewsEvent$timelineArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.NewsEvent$timelineArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventTimelineEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   follows<T extends Prisma.NewsEvent$followsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.NewsEvent$followsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventFollowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  revisions<T extends Prisma.NewsEvent$revisionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.NewsEvent$revisionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventRevisionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  entities<T extends Prisma.NewsEvent$entitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.NewsEvent$entitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventEntityLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1843,16 +2477,21 @@ export interface NewsEventFieldRefs {
   readonly status: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly fingerprint: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly tokens: Prisma.FieldRef<"NewsEvent", 'String[]'>
+  readonly centroid: Prisma.FieldRef<"NewsEvent", 'Float[]'>
   readonly source_names: Prisma.FieldRef<"NewsEvent", 'String[]'>
   readonly signal_count: Prisma.FieldRef<"NewsEvent", 'Int'>
   readonly source_count: Prisma.FieldRef<"NewsEvent", 'Int'>
   readonly heat_score: Prisma.FieldRef<"NewsEvent", 'Float'>
   readonly velocity_pct: Prisma.FieldRef<"NewsEvent", 'Float'>
+  readonly has_velocity_baseline: Prisma.FieldRef<"NewsEvent", 'Boolean'>
+  readonly recent_signal_count: Prisma.FieldRef<"NewsEvent", 'Int'>
+  readonly recent_source_count: Prisma.FieldRef<"NewsEvent", 'Int'>
   readonly first_seen_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly last_activity_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly analyzed_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly analyzer: Prisma.FieldRef<"NewsEvent", 'String'>
   readonly manual_content: Prisma.FieldRef<"NewsEvent", 'Boolean'>
+  readonly manual_topic: Prisma.FieldRef<"NewsEvent", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"NewsEvent", 'DateTime'>
 }
@@ -2317,6 +2956,54 @@ export type NewsEvent$followsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.EventFollowScalarFieldEnum | Prisma.EventFollowScalarFieldEnum[]
+}
+
+/**
+ * NewsEvent.revisions
+ */
+export type NewsEvent$revisionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventRevision
+   */
+  select?: Prisma.EventRevisionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventRevision
+   */
+  omit?: Prisma.EventRevisionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventRevisionInclude<ExtArgs> | null
+  where?: Prisma.EventRevisionWhereInput
+  orderBy?: Prisma.EventRevisionOrderByWithRelationInput | Prisma.EventRevisionOrderByWithRelationInput[]
+  cursor?: Prisma.EventRevisionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventRevisionScalarFieldEnum | Prisma.EventRevisionScalarFieldEnum[]
+}
+
+/**
+ * NewsEvent.entities
+ */
+export type NewsEvent$entitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventEntityLink
+   */
+  select?: Prisma.EventEntityLinkSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventEntityLink
+   */
+  omit?: Prisma.EventEntityLinkOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventEntityLinkInclude<ExtArgs> | null
+  where?: Prisma.EventEntityLinkWhereInput
+  orderBy?: Prisma.EventEntityLinkOrderByWithRelationInput | Prisma.EventEntityLinkOrderByWithRelationInput[]
+  cursor?: Prisma.EventEntityLinkWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventEntityLinkScalarFieldEnum | Prisma.EventEntityLinkScalarFieldEnum[]
 }
 
 /**

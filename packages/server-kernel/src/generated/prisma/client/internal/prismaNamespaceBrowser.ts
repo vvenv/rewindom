@@ -61,6 +61,9 @@ export const ModelName = {
   EventFeed: 'EventFeed',
   EventSignal: 'EventSignal',
   NewsEvent: 'NewsEvent',
+  EventEntity: 'EventEntity',
+  EventEntityLink: 'EventEntityLink',
+  EventRevision: 'EventRevision',
   EventTimelineEntry: 'EventTimelineEntry',
   EventFollow: 'EventFollow',
   RefreshToken: 'RefreshToken',
@@ -306,21 +309,65 @@ export const NewsEventScalarFieldEnum = {
   status: 'status',
   fingerprint: 'fingerprint',
   tokens: 'tokens',
+  centroid: 'centroid',
   source_names: 'source_names',
   signal_count: 'signal_count',
   source_count: 'source_count',
   heat_score: 'heat_score',
   velocity_pct: 'velocity_pct',
+  has_velocity_baseline: 'has_velocity_baseline',
+  recent_signal_count: 'recent_signal_count',
+  recent_source_count: 'recent_source_count',
   first_seen_at: 'first_seen_at',
   last_activity_at: 'last_activity_at',
   analyzed_at: 'analyzed_at',
   analyzer: 'analyzer',
   manual_content: 'manual_content',
+  manual_topic: 'manual_topic',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
 export type NewsEventScalarFieldEnum = (typeof NewsEventScalarFieldEnum)[keyof typeof NewsEventScalarFieldEnum]
+
+
+export const EventEntityScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  name: 'name',
+  kind: 'kind',
+  normalized: 'normalized',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type EventEntityScalarFieldEnum = (typeof EventEntityScalarFieldEnum)[keyof typeof EventEntityScalarFieldEnum]
+
+
+export const EventEntityLinkScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  event_id: 'event_id',
+  entity_id: 'entity_id',
+  mention_count: 'mention_count',
+  created_at: 'created_at'
+} as const
+
+export type EventEntityLinkScalarFieldEnum = (typeof EventEntityLinkScalarFieldEnum)[keyof typeof EventEntityLinkScalarFieldEnum]
+
+
+export const EventRevisionScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  event_id: 'event_id',
+  kind: 'kind',
+  before: 'before',
+  after: 'after',
+  occurred_at: 'occurred_at',
+  created_at: 'created_at'
+} as const
+
+export type EventRevisionScalarFieldEnum = (typeof EventRevisionScalarFieldEnum)[keyof typeof EventRevisionScalarFieldEnum]
 
 
 export const EventTimelineEntryScalarFieldEnum = {

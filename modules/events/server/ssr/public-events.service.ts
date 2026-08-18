@@ -9,6 +9,11 @@ import { eventPath } from "../../shared/index.js";
 import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import { toEventDetail, toEventListItem } from "../event/event.mapper.js";
+import { listEventEntities } from "../event/entity.service.js";
+import {
+  listEventRevisions,
+  publicRevisionSince,
+} from "../event/event-revision.service.js";
 
 import type {
   EventDetail,
@@ -46,6 +51,9 @@ const LIST_SELECT = {
   status: true,
   heat_score: true,
   velocity_pct: true,
+  has_velocity_baseline: true,
+  recent_signal_count: true,
+  recent_source_count: true,
   signal_count: true,
   source_count: true,
   source_names: true,
@@ -72,9 +80,13 @@ export async function getPublicEventFeed(
         ...tenantWhere,
         status: { in: ["developing", "active"] },
         last_activity_at: { gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS) },
-        velocity_pct: { gt: 0 },
+        recent_signal_count: { gt: 0 },
       },
-      orderBy: [{ velocity_pct: "desc" }, { heat_score: "desc" }],
+      orderBy: [
+        { recent_source_count: "desc" },
+        { recent_signal_count: "desc" },
+        { heat_score: "desc" },
+      ],
       take: FEED_FETCH_LIMIT,
       select: LIST_SELECT,
     }),
@@ -133,9 +145,13 @@ export async function getPublicEventList(
             last_activity_at: {
               gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS),
             },
-            velocity_pct: { gt: 0 },
+            recent_signal_count: { gt: 0 },
           },
-          orderBy: [{ velocity_pct: "desc" }, { heat_score: "desc" }],
+          orderBy: [
+            { recent_source_count: "desc" },
+            { recent_signal_count: "desc" },
+            { heat_score: "desc" },
+          ],
         });
 
   return records.map((record) => toEventListItem(record, null));
@@ -153,6 +169,7 @@ export async function getPublicEventBySlug(
       analyzer: true,
       analyzed_at: true,
       manual_content: true,
+      manual_topic: true,
     },
   });
   if (!record) {
@@ -189,7 +206,26 @@ export async function getPublicEventBySlug(
     }),
   ]);
 
-  return toEventDetail({ record, timeline, signals, follow: null });
+  // 公开面没有 viewer，也就没有「上次查看」这个基线；展示最近一段时间的变化
+  const revisions = await listEventRevisions({
+    tenant_id: tenantId,
+    event_id: record.id,
+    since: publicRevisionSince(new Date()),
+  });
+
+  const entities = await listEventEntities({
+    tenant_id: tenantId,
+    event_id: record.id,
+  });
+
+  return toEventDetail({
+    record,
+    timeline,
+    signals,
+    revisions,
+    entities,
+    follow: null,
+  });
 }
 
 /**
