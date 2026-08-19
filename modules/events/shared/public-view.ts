@@ -9,10 +9,15 @@
  * 段渲染器是同步的、也拿不到 i18n。
  */
 
-import { describeEventFacts, describeEventMomentum } from "./events.js";
+import {
+  EVENT_ENTITY_KINDS,
+  describeEventFacts,
+  describeEventMomentum,
+} from "./events.js";
 
 import {
   EVENTS_INDEX_PATH,
+  entityFeedPath,
   entityIndexPath,
   entityPath,
   eventPath,
@@ -21,11 +26,14 @@ import {
 import type {
   EventDetail,
   EventListItem,
+  EventPlacementFact,
   EventSourceKind,
   EventTimelineItem,
 } from "./events.js";
 import type {
+  PublicEntityIndexView,
   PublicEntityStripView,
+  PublicEntityView,
   PublicEventCard,
   PublicEventDetailView,
   PublicEventSource,
@@ -203,6 +211,24 @@ export function buildProvenanceNote(
   return t("detail.analyzerHeuristic");
 }
 
+/** 枢纽 / 预览接口给出的实体行。kind 给分组，条不需要。 */
+export interface PublicEntityIndexRow {
+  kind: string;
+  slug: string;
+  name: string;
+  event_count: number;
+}
+
+/** 实体页 / 预览样张的领域形状。profile 仍是 i18n code，在这里落成文案。 */
+export interface PublicEntityRecord {
+  slug: string;
+  name: string;
+  kind: string;
+  event_count: number;
+  profile: readonly EventPlacementFact[];
+  events: readonly EventListItem[];
+}
+
 /** 枢纽 / 预览接口给出的实体行 → 首页胶囊条。排序只在这里做一份。 */
 export function toPublicEntityStrip(
   rows: readonly {
@@ -223,4 +249,49 @@ export function toPublicEntityStrip(
       event_count: row.event_count,
     }));
   return { href: entityIndexPath(indexPath), items };
+}
+
+/**
+ * 实体页。档案参数里的 `kind` 与归位同一条：它是嵌套 i18n code，先翻再代进去。
+ */
+export function toPublicEntity(
+  entity: PublicEntityRecord,
+  t: EventsTranslate,
+  indexPath: string = EVENTS_INDEX_PATH,
+): PublicEntityView {
+  return {
+    slug: entity.slug,
+    href: entityPath(entity.slug, indexPath),
+    feed_href: entityFeedPath(entity.slug),
+    name: entity.name,
+    kind_label: t(`entityKind.${entity.kind}`),
+    event_count: entity.event_count,
+    profile: entity.profile.map((fact) =>
+      t(fact.code, resolvePlacementParams(fact.params, t)),
+    ),
+    events: entity.events.map((item) => toPublicCard(item, t, indexPath)),
+  };
+}
+
+/**
+ * 实体枢纽：按编译期枚举分组，组名已落成当前语言。
+ * 未知 kind 丢掉——枚举外的值画出来也没有类型名。
+ */
+export function toPublicEntityIndex(
+  rows: readonly PublicEntityIndexRow[],
+  t: EventsTranslate,
+  indexPath: string = EVENTS_INDEX_PATH,
+): PublicEntityIndexView {
+  const groups = EVENT_ENTITY_KINDS.map((kind) => ({
+    kind,
+    label: t(`entityKind.${kind}`),
+    items: rows
+      .filter((row) => row.kind === kind)
+      .map((row) => ({
+        href: entityPath(row.slug, indexPath),
+        name: row.name,
+        event_count: row.event_count,
+      })),
+  })).filter((group) => group.items.length > 0);
+  return { href: entityIndexPath(indexPath), groups };
 }

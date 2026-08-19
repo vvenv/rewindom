@@ -74,7 +74,7 @@ server/
     pages/                  events（探索+全量）、event-detail、event-sources（按主题分组，组头开关主题）
   components/ hooks/ lib/ 四层拆分（frontend-page-structure）
   tenant/                 路由、导航、工作台卡片
-  editor-context.ts       主题编辑器预览取数
+  editor-context.ts       主题编辑器预览取数（模板页没有当前 slug 时用样张：详情 / 实体页正文 / 实体枢纽）
 ```
 
 ## 官网面（公开访客）
@@ -88,9 +88,9 @@ server/
 | 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now + 实体条 + 订阅）；`/events/:topic` 是该主题的同构枢纽；带 `?source=` 时是该批次的查询列表，不再用这段版式 |
 | 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构。站点设置里选这项会套首页草稿并把公开 URL 收到 `/`、`/:topic`、`/:slug` |
 | 模板页 `events_detail` | `/events/:slug`（枢纽当首页时访客地址是 `/:slug`；主题格子 `ai` / `tech`… 先被认成主题页，事件 slug 恒带 id 后缀不会撞） |
-| 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上 |
+| 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上。编辑器没有当前实体，预览用样张 |
 | 模板页 `events_entity` | `/events/entity/:slug`（枢纽当首页时访客地址是 `/entity/:slug`） |
-| 段 `events.entity_index` | 实体枢纽正文（按类型分组的实体链接），`page_kinds` 限定只能落在实体枢纽模板页上 |
+| 段 `events.entity_index` | 实体枢纽正文（按类型分组的实体链接），`page_kinds` 限定只能落在实体枢纽模板页上。客户端必须登记视图，否则编辑器预览是空白 |
 | 模板页 `events_entity_index` | `/events/entity`（枢纽当首页时访客地址是 `/entity`） |
 | 导航源 `events.entities` | 页头 / 页脚：实体枢纽一条叶子。**不塞进 `events` 源**——那个源是七个主题格，混一条进去会打乱它的语义 |
 | 图片路由 `/events/:slug/og.png` | 事件自己的社交卡片图（1200×630）。**不跟着首页挂载收到根上**：它不是给人看的页面 |

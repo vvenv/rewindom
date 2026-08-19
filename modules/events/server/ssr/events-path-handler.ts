@@ -27,13 +27,11 @@ import {
 import { getEnabledTopics } from "../event/topic-settings.service.js";
 
 import {
-  EVENT_ENTITY_KINDS,
   EVENTS_DETAIL_PAGE_KIND,
   EVENTS_ENTITLEMENT,
   EVENTS_ENTITY_INDEX_PAGE_KIND,
   EVENTS_ENTITY_PAGE_KIND,
   emptyEventsContext,
-  entityFeedPath,
   entityIndexPath,
   entityPath,
   eventOgImagePath,
@@ -51,6 +49,8 @@ import {
   topicPath,
   toPublicCard,
   toPublicDetail,
+  toPublicEntity,
+  toPublicEntityIndex,
   toPublicEntityStrip,
 } from "../../shared/index.js";
 import {
@@ -137,18 +137,6 @@ async function renderEntityIndex(
   ]);
   const href = entityIndexPath(indexPath);
 
-  const groups = EVENT_ENTITY_KINDS.map((kind) => ({
-    kind,
-    label: t(`entityKind.${kind}`),
-    items: rows
-      .filter((row) => row.kind === kind)
-      .map((row) => ({
-        href: entityPath(row.slug, indexPath),
-        name: row.name,
-        event_count: row.event_count,
-      })),
-  })).filter((group) => group.items.length > 0);
-
   return renderEventsTemplatePage({
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
@@ -162,7 +150,7 @@ async function renderEntityIndex(
     description: t("entityIndex.metaDescription", { count: rows.length }),
     events: emptyEventsContext({
       index_path: indexPath,
-      entity_index: { href, groups },
+      entity_index: toPublicEntityIndex(rows, t, indexPath),
     }),
   });
 }
@@ -200,24 +188,7 @@ async function renderEntity(
     canonicalPath: href,
     events: emptyEventsContext({
       index_path: indexPath,
-      entity: {
-        slug: entity.slug,
-        href,
-        feed_href: entityFeedPath(entity.slug),
-        name: entity.name,
-        kind_label: t(`entityKind.${entity.kind}`),
-        event_count: entity.event_count,
-        // kind 参数是嵌套 code（`kind.outage`），先翻出来再代进去
-        profile: entity.profile.map((fact) =>
-          t(fact.code, {
-            ...fact.params,
-            ...(typeof fact.params?.kind === "string"
-              ? { kind: t(fact.params.kind) }
-              : {}),
-          }),
-        ),
-        events: entity.events.map((item) => toCard(item, t, indexPath)),
-      },
+      entity: toPublicEntity(entity, t, indexPath),
     }),
   });
 }

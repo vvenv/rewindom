@@ -169,17 +169,46 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
   };
 }
 
-/** 编辑器预览实体条的占位：专有名词，不走 i18n。 */
-export function sampleEntityStripItems(): {
+/** 编辑器预览实体条 / 枢纽的占位：专有名词，不走 i18n。 */
+export function sampleEntityIndexItems(): {
+  kind: "company" | "product";
   slug: string;
   name: string;
   event_count: number;
 }[] {
   return [
-    { slug: "openai-sample", name: "OpenAI", event_count: 8 },
-    { slug: "google-sample", name: "Google", event_count: 5 },
-    { slug: "cloudflare-sample", name: "Cloudflare", event_count: 4 },
-    { slug: "gpt-6-sample", name: "GPT-6", event_count: 3 },
-    { slug: "anthropic-sample", name: "Anthropic", event_count: 2 },
+    { slug: "openai-sample", name: "OpenAI", kind: "company", event_count: 8 },
+    { slug: "google-sample", name: "Google", kind: "company", event_count: 5 },
+    { slug: "cloudflare-sample", name: "Cloudflare", kind: "company", event_count: 4 },
+    { slug: "gpt-6-sample", name: "GPT-6", kind: "product", event_count: 3 },
+    { slug: "anthropic-sample", name: "Anthropic", kind: "company", event_count: 2 },
   ];
+}
+
+/**
+ * 实体页样张。模板页没有「当前实体」，预览必须自己给一份，
+ * 否则渲染器整段跳过，编辑器里看起来像坏了。
+ */
+export function sampleEntityData(t: EventsTranslate): {
+  slug: string;
+  name: string;
+  kind: "company";
+  event_count: number;
+  profile: { code: string; params?: Record<string, string | number> }[];
+  events: EventListItem[];
+} {
+  const events = sampleEventList(t);
+  return {
+    slug: "openai-sample",
+    name: "OpenAI",
+    kind: "company",
+    event_count: events.length,
+    // 样张要能看见档案块：空数组时渲染器整块不画，改版式会以为它不存在
+    profile: [
+      { code: "profile.window", params: { days: 90, count: 12 } },
+      { code: "profile.kindCount", params: { kind: "kind.outage", count: 3 } },
+      { code: "profile.outageTotal", params: { minutes: 47 } },
+    ],
+    events,
+  };
 }

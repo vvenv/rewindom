@@ -13,6 +13,7 @@ import { renderEventsRoutes } from "./tenant/routes.js";
 import {
   EVENTS_ENTITLEMENT,
   eventsDetailSection,
+  eventsEntityIndexSection,
   eventsEntitySection,
   eventsEntityStripSection,
   eventsSubscribeBlock,
@@ -25,6 +26,7 @@ import { registerEventsPageTemplates } from "../shared/events-page-templates.js"
 import { registerEventsNavSources } from "../shared/nav-sources.js";
 import { renderEventsDetailHtml } from "../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../shared/sections/entity-html.js";
+import { renderEventsEntityIndexHtml } from "../shared/sections/entity-index-html.js";
 import { renderEventsEntityStripHtml } from "../shared/sections/entity-strip-html.js";
 import {
   renderEventsSubscribeBlockHtml,
@@ -36,8 +38,8 @@ import { EVENTS_CSS } from "../shared/site-css.generated.js";
 import type { ClientAppModule } from "@rewindom/module-sdk/client";
 
 /*
- * 官网贡献的客户端一半：编辑器要能在「添加区块」里看到升温 / 正在发生 / 近期实体，并用
- * **同一份** HTML 渲染器预览（`htmlSectionView`），不再为编辑器写一套 React 版式。
+ * 官网贡献的客户端一半：编辑器要能在「添加区块」里看到升温 / 正在发生 / 近期实体 /
+ * 实体枢纽，并用 **同一份** HTML 渲染器预览（`htmlSectionView`），不再为编辑器写一套 React 版式。
  */
 registerEventsPageTemplates();
 registerEventsNavSources();
@@ -65,6 +67,11 @@ registerSiteSectionView(
   eventsEntitySection,
   htmlSectionView(renderEventsEntityHtml),
   { css: EVENTS_CSS, icon: Tag },
+);
+registerSiteSectionView(
+  eventsEntityIndexSection,
+  htmlSectionView(renderEventsEntityIndexHtml),
+  { css: EVENTS_CSS, icon: Tags },
 );
 registerSiteSectionView(
   eventsEntityStripSection,

@@ -1,0 +1,51 @@
+# 增量功能契约 —— 实体页正文 / 实体枢纽在主题编辑器里预览为空
+#
+# 起因：两段都是「没有当前实体 / 清单就不渲染」，编辑器却没给样张。
+# `events.entity` 的视图登记了，但 `registerEditorContextProvider` 的
+# sectionTypes 里没有它，预览走不到 provide，HTML 渲染器拿到 null 回空串。
+# `events.entity_index` 更甚：客户端 `module.tsx` 漏了 `registerSiteSectionView`，
+# 编辑器连视图都没有（`SECTION_VIEWS[type]` 缺失直接 return null）。
+#
+# 详情段已经按「模板页没有当前 slug → 取一条真实数据，没有则用样张」做了；
+# 这两段漏了同一条。SSR 仍由 path handler 带数，不改公开面取数。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 主题编辑器预览实体页正文（`events.entity`）与实体枢纽（`events.entity_index`）时画出与实站同一套 markup，不再是空白。
+gold: modules/events/client/editor-context.ts
+touch:
+  - modules/events/features/entity-editor-preview.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/client/editor-context.ts
+  - modules/events/client/module.tsx
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+  - modules/events/server/ssr/events-path-handler.ts
+out_of_scope:
+  - 改实体页 / 枢纽的版式或段设置
+  - 新增工作台实体管理界面
+  - 为预览新开 GET /events/entities/:slug（枢纽清单接口已够分组；实体页用样张，与详情段「一条都没有」同一条退路）
+  - 改 SSR 的 generic section context provider（这两段只活在模板页上，数仍由 path handler 带）
+i18n: none # 样张复用已有 profile / entityKind / sample.event* key，不新增文案
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/public-view.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 客户端必须 `registerSiteSectionView(eventsEntityIndexSection, …)`，与
+#    SSR 的 `registerSiteSectionHtml` 成对。漏登记 = 编辑器预览整段消失。
+# 2. `EVENTS_EDITOR_CONTEXT_TYPES` 收进 `events.entity` 与 `events.entity_index`。
+#    不收进去 `resolveEditorContexts` 根本不会调 provide。
+# 3. 映射抽到 `toPublicEntity` / `toPublicEntityIndex`，path handler 与预览共用。
+#    不要在 editor-context 里再写一份分组。
+# 4. 枢纽预览打已有的 `GET /events/entities`（含 kind）；拉不到或空列表退回样张。
+# 5. 实体页没有「当前实体」——地址是 `/events/entity/:slug`。预览用内置样张
+#    （含档案 + 事件列表），让版式上该出现的块都出现。
