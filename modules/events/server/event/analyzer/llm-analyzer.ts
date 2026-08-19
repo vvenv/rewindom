@@ -8,7 +8,7 @@ import {
   isFirstPartySource,
 } from "../../../shared/index.js";
 
-import { ENTITY_KINDS, isEntityKind } from "../entity-extractor.js";
+import { ENTITY_KINDS, isChangelogNoiseName, isEntityKind } from "../entity-extractor.js";
 
 import { heuristicAnalyzer } from "./heuristic-analyzer.js";
 
@@ -61,6 +61,9 @@ const RESPONSE_SHAPE = [
   `- entities: the named companies, products, people, places or organisations`,
   `  this event is about. kind must be one of ${ENTITY_KINDS.join(" | ")}.`,
   "  Only include names that literally appear in the sources. Max 10.",
+  "  Skip GitHub @handles, commit SHAs, PR numbers, and changelog bylines",
+  "  (who tagged a release or authored a commit). Those are metadata,",
+  "  not what the event is about.",
 ].join("\n");
 
 /**
@@ -271,6 +274,9 @@ function parseEntities(value: unknown): AnalyzedEntity[] | undefined {
       continue;
     }
     if (!isEntityKind(row.kind)) {
+      continue;
+    }
+    if (isChangelogNoiseName(name)) {
       continue;
     }
     out.push({ name, kind: row.kind });

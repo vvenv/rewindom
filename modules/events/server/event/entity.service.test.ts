@@ -78,6 +78,16 @@ describe("syncEventEntities", () => {
     expect(linkUpsert).not.toHaveBeenCalled();
   });
 
+  it("changelog 署名不当实体，关联按抽不到处理", async () => {
+    await sync([
+      { name: "@aduh95", kind: "person", mention_count: 2 },
+      { name: "58717685a1", kind: "org", mention_count: 1 },
+    ]);
+    expect(entityCreate).not.toHaveBeenCalled();
+    expect(linkUpsert).not.toHaveBeenCalled();
+    expect(linkDeleteMany.mock.calls[0][0].where.entity_id.notIn).toEqual([]);
+  });
+
   it("封顶 12 个，长标题不会炸出一串", async () => {
     await sync(
       Array.from({ length: 30 }, (_, i) => ({

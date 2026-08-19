@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   capitalizedPhrases,
   extractEntities,
+  isChangelogNoiseName,
   normalizeEntityName,
   type ExtractableSignal,
 } from "./entity-extractor.js";
@@ -162,5 +163,28 @@ describe("normalizeEntityName", () => {
    */
   it("不合并别名", () => {
     expect(normalizeEntityName("Meta")).not.toBe(normalizeEntityName("Facebook"));
+  });
+});
+
+describe("isChangelogNoiseName", () => {
+  it("GitHub handle 是噪声——发版 steward，不是事件在讲谁", () => {
+    expect(isChangelogNoiseName("@aduh95")).toBe(true);
+    expect(isChangelogNoiseName("(@aduh95)")).toBe(true);
+    expect(isChangelogNoiseName(" @RafaelGSS ")).toBe(true);
+  });
+
+  it("commit SHA 与孤立 PR 号是噪声", () => {
+    expect(isChangelogNoiseName("58717685a1")).toBe(true);
+    expect(isChangelogNoiseName("[44b940ee8c]")).toBe(true);
+    expect(isChangelogNoiseName("#63949")).toBe(true);
+  });
+
+  it("真名与产品名不是噪声", () => {
+    expect(isChangelogNoiseName("Node.js")).toBe(false);
+    expect(isChangelogNoiseName("Filip Skokan")).toBe(false);
+    expect(isChangelogNoiseName("OpenAI")).toBe(false);
+    // 不带 @ 的短名与 gpt-4 分不开，故意不挡
+    expect(isChangelogNoiseName("aduh95")).toBe(false);
+    expect(isChangelogNoiseName("gpt-4")).toBe(false);
   });
 });

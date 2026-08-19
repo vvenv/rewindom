@@ -141,6 +141,7 @@ export function extractEntities(
   }
 
   return [...counts.values()]
+    .filter((entry) => !isChangelogNoiseName(entry.name))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
     .slice(0, MAX_ENTITIES)
     .map((entry) => ({
@@ -235,4 +236,32 @@ export function normalizeEntityName(name: string): string {
 /** `Trump's` → `Trump`；`Apple'` → `Apple`。 */
 export function stripPossessive(name: string): string {
   return name.replace(/[''’]s\b/gu, "").replace(/[''’]$/u, "");
+}
+
+/**
+ * changelog / git 元数据不是实体。
+ *
+ * Node.js 发版标题是 `2026-08-05, Version 26.7.0 (Current), @aduh95`——
+ * `@aduh95` 是打 tag 的 steward，不是这件事在讲谁。旁边那些 `[58717685a1]`
+ * 是 commit SHA。抽成「人物」会给每个 releaser 长出一张聚合页。
+ *
+ * 只认结构，不猜「这像不像用户名」：不带 `@` 的 `aduh95` 与 `gpt-4` 分不开。
+ */
+export function isChangelogNoiseName(name: string): boolean {
+  const trimmed = stripWrappingPunctuation(name.trim());
+  if (trimmed.length === 0 || trimmed === "@" || trimmed === "#") {
+    return true;
+  }
+  if (trimmed.startsWith("@")) {
+    return true;
+  }
+  if (/^#\d{1,7}$/u.test(trimmed)) {
+    return true;
+  }
+  return /^[0-9a-f]{7,40}$/iu.test(trimmed);
+}
+
+/** `(@aduh95)` → `@aduh95`；`[58717685a1]` → `58717685a1`。保留开头的 `@` / `#`。 */
+function stripWrappingPunctuation(name: string): string {
+  return name.replace(/^[^\p{L}\p{N}@#]+|[^\p{L}\p{N}]+$/gu, "");
 }

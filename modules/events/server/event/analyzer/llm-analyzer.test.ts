@@ -93,6 +93,24 @@ describe("parseAnalyzerResponse", () => {
     expect(() => parseAnalyzerResponse("Sure! Here you go:", SIGNALS)).toThrow();
   });
 
+  it("丢掉 changelog 署名、commit SHA 与 PR 号", () => {
+    const result = parseAnalyzerResponse(
+      JSON.stringify({
+        title: "t",
+        summary: "s",
+        timeline: [{ signal_index: 0, label: "a" }],
+        entities: [
+          { name: "@aduh95", kind: "person" },
+          { name: "58717685a1", kind: "org" },
+          { name: "#63949", kind: "org" },
+          { name: "Node.js", kind: "product" },
+        ],
+      }),
+      SIGNALS,
+    );
+    expect(result.entities).toEqual([{ name: "Node.js", kind: "product" }]);
+  });
+
   it("时间线按时间升序排好，与模型给的顺序无关", () => {
     const result = parseAnalyzerResponse(
       JSON.stringify({

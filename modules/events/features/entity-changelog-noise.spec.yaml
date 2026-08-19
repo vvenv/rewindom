@@ -1,0 +1,42 @@
+# changelog 署名 / commit SHA / PR 号不是实体。
+#
+# 实测：Node.js 发版标题是 `2026-08-05, Version 26.7.0 (Current), @aduh95`，
+# LLM 把 `@aduh95` 抽成人物。它是打 tag 的 steward（Antoine du Hamel），
+# 不是这件事在讲谁；旁边那些 `[58717685a1]` 才是 commit SHA。
+# 抽成人物会给每个 releaser 长出一张聚合页，把两条发版挂到不相干的人身上。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 抽取后丢掉 GitHub @handle、commit SHA 与孤立 PR 号；存量脏实体一次性清掉。
+gold: modules/events/server/event/entity-extractor.ts
+touch:
+  - modules/events/features/entity-changelog-noise.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/event/entity-extractor.ts
+  - modules/events/server/event/entity-extractor.test.ts
+  - modules/events/server/event/entity.service.ts
+  - modules/events/server/event/entity.service.test.ts
+  - modules/events/server/event/analyzer/llm-analyzer.ts
+  - modules/events/server/event/analyzer/llm-analyzer.test.ts
+  - apps/server/scripts/drop-changelog-noise-entities.ts
+out_of_scope:
+  - 不挡不带 @ 的 handle（`aduh95` 与 `gpt-4` 分不开）
+  - 不挡 changelog 里的真名（Filip Skokan）——那是更硬的「发版不抽人物」判断
+  - 不改发版源本身、不改实体类型枚举
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/entity-extractor.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/event/analyzer/llm-analyzer.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/event/entity.service.test.ts
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. 一道纯函数闸，三处过：heuristic 抽取、LLM 解析、落库前。提示词只是软约束。
+# 2. 只认结构：以 @ 开头、7–40 位 hex、整段 `#12345`。不猜「这像不像用户名」。
+# 3. 存量用一次性脚本按同一条规则删实体（cascade 掉 link / follow），可重复执行。

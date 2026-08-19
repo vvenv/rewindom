@@ -8,7 +8,7 @@ import { randomUUID } from "node:crypto";
 
 import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
-import { normalizeEntityName, type ExtractedEntity } from "./entity-extractor.js";
+import { isChangelogNoiseName, normalizeEntityName, type ExtractedEntity } from "./entity-extractor.js";
 import { slugifyTitle } from "./slug.js";
 
 /** 一个事件最多关联多少实体——详情页展示得下，也避免长标题炸出一串。 */
@@ -25,7 +25,9 @@ export async function syncEventEntities(params: {
   event_id: string;
   entities: readonly ExtractedEntity[];
 }): Promise<void> {
-  const wanted = dedupe(params.entities).slice(0, MAX_LINKS_PER_EVENT);
+  const wanted = dedupe(
+    params.entities.filter((entity) => !isChangelogNoiseName(entity.name)),
+  ).slice(0, MAX_LINKS_PER_EVENT);
 
   const entityIds = new Map<string, string>();
   for (const entity of wanted) {
