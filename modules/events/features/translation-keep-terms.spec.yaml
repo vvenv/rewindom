@@ -1,0 +1,22 @@
+# 把实体索引供给 translation 模块当「不要翻译的术语」。
+#
+# 为什么：访客侧翻译会把单个首字母大写的专有名词译掉（`Bun` → 「面包」）。
+# 术语保护的启发式**刻意**不保护单个大写词——英文句子里大写词太多，全保护等于
+# 不翻。而 EventEntity 里存的正好就是需要保护的那批词（Cloudflare / NVIDIA /
+# Amazon Bedrock），比让站长手填术语表可靠得多。
+#
+# 方向是业务 → 基础设施：events 实现 kernel 的 TranslationTermsProvider，
+# translation 消费。翻译模块不认识 EventEntity，也不该认识。
+
+module: events
+surfaces: [ssr]
+goal: 通过 TranslationTermsProvider 供出实体名，避免专有名词被译坏
+gold: packages/builtin/translation/shared/term-guard.ts
+touch:
+  - modules/events/server/translation-terms.provider.ts
+  - modules/events/server/module.ts
+out_of_scope: [ingest, clustering, entity-extraction, event-edit]
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events test
+  - pnpm check:modules

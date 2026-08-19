@@ -44,6 +44,31 @@ function clientKey(request: FastifyRequest, tenantId: string): string {
   return `${tenantId}:${request.ip}`;
 }
 
+/**
+ * 汇总各业务模块供的「不要翻译」术语（events 的实体索引等）。
+ *
+ * 单个 provider 抛错不该让整张公开页的翻译配置跟着 500——拿不到就少一批术语，
+ * 译文质量下降，功能还在。
+ */
+async function collectContributedTerms(
+  app: FastifyInstance,
+  tenantId: string,
+): Promise<string[]> {
+  const providers = app.registry.getTranslationTermsProviders();
+  if (providers.length === 0) return [];
+  const results = await Promise.all(
+    providers.map(async (provider) => {
+      try {
+        return await provider.getKeepTerms(tenantId);
+      } catch (err) {
+        app.log.warn({ err }, "translation terms provider failed");
+        return [];
+      }
+    }),
+  );
+  return results.flat();
+}
+
 export async function publicTranslationRoutes(
   app: FastifyInstance,
 ): Promise<void> {
@@ -59,7 +84,10 @@ export async function publicTranslationRoutes(
        * 回一份 disabled 配置，前端据此不显示翻译入口。
        */
       if (!hostTenant) return defaultTranslationConfig();
-      return getPublicTranslationConfig(hostTenant.tenant_id);
+      return getPublicTranslationConfig(
+        hostTenant.tenant_id,
+        await collectContributedTerms(app, hostTenant.tenant_id),
+      );
     },
   });
 

@@ -118,9 +118,13 @@ function mountInHeader(button: HTMLButtonElement, note: HTMLElement): boolean {
   block.append(button);
   // 放在最前面 = 紧挨着语言切换器，读者找语言相关操作时第一眼就看到
   pins.prepend(block);
-  // 声明贴在正文顶部，说明的是正文而不是按钮
+  /*
+   * 声明插在 header 与 main **之间**（`.site-stack` 的直接子元素），不是塞进
+   * main 内部——main 自己带内边距，塞进去这条 bar 会跟着缩进，露出左边一道
+   * 对不齐的空白。作为 stack 的兄弟节点才拿得到整幅宽度。
+   */
   const main = document.querySelector("main.site-main");
-  if (main) main.prepend(note);
+  if (main?.parentElement) main.parentElement.insertBefore(note, main);
   else document.body.prepend(note);
   return true;
 }

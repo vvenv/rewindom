@@ -157,12 +157,44 @@ function toPublicConfig(
   };
 }
 
-/** 公开面用：无鉴权可读，因此**只含**浏览器该知道的字段。 */
+/**
+ * 公开面用：无鉴权可读，因此**只含**浏览器该知道的字段。
+ *
+ * `contributedTerms` 是各业务模块通过 `TranslationTermsProvider` 供的专有名词
+ *（events 的实体索引等）。与租户手填的术语合并后一起下发——两者都要在浏览器里
+ * 参与遮罩，服务端留着没用。
+ */
 export async function getPublicTranslationConfig(
   tenantId: string,
+  contributedTerms: readonly string[] = [],
 ): Promise<PublicTranslationConfig> {
   const stored = await readStored(tenantId);
-  return toPublicConfig(stored.value, stored.apiKey !== null);
+  const config = toPublicConfig(stored.value, stored.apiKey !== null);
+  return {
+    ...config,
+    keep_terms: mergeKeepTerms(config.keep_terms, contributedTerms),
+  };
+}
+
+/**
+ * 合并术语表并封顶。
+ *
+ * **租户手填的优先**：那是人明确指定的，模块自动供的只是补充。超出上限时砍掉的
+ * 是后者——术语表每多一条就多一个正则要在每段文本上跑，无限长会把翻译拖垮。
+ */
+export function mergeKeepTerms(
+  tenantTerms: readonly string[],
+  contributedTerms: readonly string[],
+): string[] {
+  const seen = new Set<string>();
+  for (const term of [...tenantTerms, ...contributedTerms]) {
+    const trimmed = term.trim();
+    // 一个字符的「术语」会命中满篇，反而毁掉译文
+    if (trimmed.length < 2 || trimmed.length > MAX_TERM_LENGTH) continue;
+    seen.add(trimmed);
+    if (seen.size >= MAX_KEEP_TERMS) break;
+  }
+  return [...seen];
 }
 
 /** 工作台设置页用：多一个 key 掩码。 */

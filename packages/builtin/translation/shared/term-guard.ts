@@ -60,8 +60,25 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/**
+ * 编译结果缓存。
+ *
+ * `maskTerms` 是**按文本节点**调用的，术语表却整页不变。不缓存就是每个节点把
+ * 整张表重编译一遍——接入实体索引后术语有几百条，一次翻译要编译上万个正则。
+ * 只留一格：同一页里术语表恒定，多留没有意义。
+ */
+let patternCache: { key: string; patterns: RegExp[] } | null = null;
+
 /** 租户配置的术语：整词匹配，长的优先（`Apple TV` 要盖过 `Apple`）。 */
 function keepTermPatterns(keepTerms: readonly string[]): RegExp[] {
+  const key = keepTerms.join("\u0000");
+  if (patternCache?.key === key) return patternCache.patterns;
+  const patterns = compileKeepTerms(keepTerms);
+  patternCache = { key, patterns };
+  return patterns;
+}
+
+function compileKeepTerms(keepTerms: readonly string[]): RegExp[] {
   return [...keepTerms]
     .map((term) => term.trim())
     .filter(Boolean)

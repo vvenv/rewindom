@@ -7,6 +7,7 @@ import type {
   SiteMemberSessionProvider,
   TenantApiKeyAuthProvider,
   TenantRegistrationProvider,
+  TranslationTermsProvider,
 } from "./provider-contracts.js";
 import type { PermissionCatalogEntry } from "@rewindom/shared";
 import type { FastifyRequest } from "fastify";
@@ -83,6 +84,16 @@ export class ProviderRegistry {
   private memberOAuthCallback: MemberOAuthCallbackProvider | null = null;
   private siteMemberSession: SiteMemberSessionProvider | null = null;
   private memberMenuLinks: MemberMenuLinksProvider | null = null;
+  /** 列表而非单值：专有名词来自多个业务域，后注册的不该顶掉先注册的。 */
+  private translationTerms: TranslationTermsProvider[] = [];
+
+  addTranslationTermsProvider(provider: TranslationTermsProvider): void {
+    this.translationTerms.push(provider);
+  }
+
+  getTranslationTermsProviders(): readonly TranslationTermsProvider[] {
+    return this.translationTerms;
+  }
 
   setAuthzProvider(provider: AuthzProvider): void {
     this.authz = provider;

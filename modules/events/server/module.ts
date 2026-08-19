@@ -13,6 +13,7 @@ import { registerEventsPathHandler } from "./ssr/events-path-handler.js";
 import { eventsRoutes } from "./events.routes.js";
 import { eventsOgImageRoutes } from "./ssr/og.routes.js";
 import { eventsRssRoutes } from "./ssr/rss.routes.js";
+import { eventsTranslationTermsProvider } from "./translation-terms.provider.js";
 import { EVENTS_SERVER_I18N } from "./i18n.js";
 
 import { EVENTS_ENTITLEMENT } from "../shared/entitlements.js";
@@ -61,6 +62,15 @@ export const eventsServerModule: ServerAppModule = {
   },
   server: {
     i18n: EVENTS_SERVER_I18N,
+    /**
+     * 把实体索引供给访客侧翻译当「不要翻译的术语」。
+     *
+     * 走 Provider 而不是让 translation 直接查 EventEntity：基础设施模块不得
+     * 依赖业务模块，方向只能是业务往上供。
+     */
+    registerProviders: (registry) => {
+      registry.addTranslationTermsProvider(eventsTranslationTermsProvider);
+    },
     /**
      * 官网贡献：段 + 模板页 + `/events` 路径 + 主题导航源 + sitemap / 链接候选。
      * 定义都写在贡献方 `shared/`，marketing 内核一行没改（见 site-section skill）。

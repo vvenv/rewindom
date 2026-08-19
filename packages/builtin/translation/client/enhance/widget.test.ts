@@ -84,10 +84,13 @@ describe("挂载位置", () => {
   });
 
   it("机器翻译声明贴在正文顶部，不塞进页头图标行", () => {
-    document.body.innerHTML = `<header class="site-header"><div class="chrome-zone-end"><div class="chrome-pins"></div></div></header><main class="site-main"><p>x</p></main>`;
+    document.body.innerHTML = `<div class="site-stack"><header class="site-header"><div class="chrome-zone-end"><div class="chrome-pins"></div></div></header><main class="site-main"><p>x</p></main></div>`;
     mountTranslateWidget("zh-CN", () => {});
     const note = document.querySelector(".rw-translate-note") as HTMLElement;
-    expect(note.parentElement?.classList.contains("site-main")).toBe(true);
+    const main = document.querySelector("main.site-main") as HTMLElement;
+    // 是 main 的**兄弟**且排在它前面 —— 塞进 main 会跟着继承内边距，露出左边一道空白
+    expect(note.parentElement).toBe(main.parentElement);
+    expect(note.nextElementSibling).toBe(main);
     expect(document.querySelector(".chrome-pins .rw-translate-note")).toBeNull();
   });
 
@@ -107,11 +110,18 @@ describe("挂载位置", () => {
 });
 
 describe("机器翻译声明的位置", () => {
-  it("贴在正文顶部，不塞进页头图标行 —— 塞进去会和相邻图标叠住", () => {
-    document.body.innerHTML = `<header class="site-header"><div class="chrome-zone-end"><div class="chrome-pins"></div></div></header><main class="site-main"><p>x</p></main>`;
+  it("不塞进页头图标行 —— 塞进去会和相邻图标叠住", () => {
+    document.body.innerHTML = `<div class="site-stack"><header class="site-header"><div class="chrome-zone-end"><div class="chrome-pins"></div></div></header><main class="site-main"><p>x</p></main></div>`;
+    mountTranslateWidget("zh-CN", () => {});
+    expect(document.querySelector(".chrome-pins .rw-translate-note")).toBeNull();
+  });
+
+  it("是 main 的兄弟且排在它前面 —— 塞进 main 会继承内边距，露出左边一道对不齐的空白", () => {
+    document.body.innerHTML = `<div class="site-stack"><header class="site-header"><div class="chrome-zone-end"><div class="chrome-pins"></div></div></header><main class="site-main"><p>x</p></main></div>`;
     mountTranslateWidget("zh-CN", () => {});
     const note = document.querySelector(".rw-translate-note") as HTMLElement;
-    expect(note.parentElement?.classList.contains("site-main")).toBe(true);
-    expect(document.querySelector(".chrome-pins .rw-translate-note")).toBeNull();
+    const main = document.querySelector("main.site-main") as HTMLElement;
+    expect(note.parentElement).toBe(main.parentElement);
+    expect(note.nextElementSibling).toBe(main);
   });
 });

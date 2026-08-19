@@ -146,3 +146,21 @@ export interface MemberOAuthCallbackProvider {
   }): Promise<void>;
 }
 
+/**
+ * 「这些词不要翻译」的贡献方。
+ *
+ * 由业务模块实现（events 拿实体索引，shop 可以拿品牌名），`translation` 消费。
+ * 方向是**业务 → 基础设施**：翻译模块不认识 `EventEntity`，也不该认识。
+ *
+ * 之所以是可以注册多个的列表而不是单个 provider：专有名词天然来自多个域，
+ * 后注册的模块不该把先注册的顶掉。
+ */
+export interface TranslationTermsProvider {
+  /**
+   * 某站点下不应被翻译的专有名词。
+   *
+   * **实现方必须自带缓存**：这是公开面每次加载都会走的路径，直接查库等于给
+   * 每个访客的每一页加一次聚合查询。
+   */
+  getKeepTerms(tenantId: string): Promise<readonly string[]>;
+}
