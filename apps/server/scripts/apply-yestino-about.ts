@@ -3,7 +3,7 @@
  * 给官网补三样内容（纯 CMS 内容，不动代码）：
  *
  * 1. `/about` 关于页（中英各一张，直接发布）
- * 2. 首页顶部一段说明 band（`anchor: about-yestino`），排在「正在升温」之前
+ * 2. 首页首屏（`events.hero`，`anchor: about-yestino`），排在「正在升温」之前
  * 3. 页脚一个指向 `/about` 的导航块
  *
  * 幂等：三样各自先检测再写，已存在的跳过；`--force` 只覆盖 1、2 的正文，
@@ -32,6 +32,7 @@ import {
   type SiteBlock,
   type SiteSection,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { registerSectionDefinition } from "@rewindom/builtin/marketing/shared/sections/index.js";
 import {
   marketingPagePath,
   type MarketingPageKind,
@@ -46,6 +47,10 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import { DEFAULT_TENANT_SLUG, type AppLocale } from "@rewindom/shared";
 
+import {
+  EVENTS_HERO_SECTION_TYPE,
+  eventsHeroSection,
+} from "../../../modules/events/shared/events-hero-section.js";
 import { registerEventsPageTemplates } from "../../../modules/events/shared/events-page-templates.js";
 
 import type {
@@ -56,8 +61,14 @@ import type {
 const LOCALES: readonly AppLocale[] = ["zh-CN", "en"];
 const ABOUT_SLUG = "about";
 const ABOUT_PATH = "/about";
-/** 首页说明段的 `anchor`：既是锚点，也是这段是不是已经铺过的判据。 */
+/**
+ * 首屏段的 `anchor`：既是锚点，也是这段是不是已经铺过的判据。
+ *
+ * 存量站上这个 anchor 挂在一条通用 `band` 上（首屏改成 `events.hero` 之前的形态）。
+ * 认段一律按 anchor，不按 type——否则重跑时会在 hero 上面再插一条旧 band。
+ */
 const INTRO_ANCHOR = "about-yestino";
+const INTRO_SECTION_TYPE = EVENTS_HERO_SECTION_TYPE;
 
 interface Args {
   slug: string;
@@ -180,22 +191,36 @@ function contactBody(locale: AppLocale, contact: string): string {
 Wrong merge, a missing step in a timeline, a mislabelled source — tell us: ${contact}`;
 }
 
+const INTRO_EYEBROW = i18n({
+  "zh-CN": "事件雷达 · 持续追踪",
+  en: "Event radar · tracked continuously",
+});
+
 const INTRO_HEADLINE = i18n({
   "zh-CN": "同一件事，来自多个来源，合成一条时间线",
   en: "One story, many sources, one timeline",
 });
 
 /*
- * 一句话，不是一段——它站在事件流上方，回访者每次都要滑过它。
- * 「下面按升温 / 正在发生排列」这类话不写：紧接着的两段标题自己会说。
+ * 副标题必须说标题**没说**的那件事，否则等于把同一句话写两遍——上一版就是这样：
+ * 标题「同一件事…合成一条时间线」，正文「把同一件事的多条报道合并成一个事件，
+ * 重建它的时间线…」，读者唯一一次注意力被花在复述上。
+ *
+ * 所以这里落的是关于页那两条口径里最能立刻分辨这个站的：**不是热榜**、
+ * **来源是能点回去核对的证据**。规模与新鲜度不写进文案——那是段自己查出来的
+ * 实时计数在说，写死在句子里当天就开始过期。
  */
-const INTRO_BODY = i18n({
+const INTRO_SUBHEAD = i18n({
   "zh-CN":
-    "把同一件事的多条报道合并成一个事件，重建它的时间线，并保留每一条来源作为证据。",
-  en: "Reports about the same story are merged into one event, its timeline rebuilt, every source kept as evidence.",
+    "不是热榜。十家媒体写同一件事，在这里是一个事件——合并、按时间排好，每一条来源都留成能点回去核对的链接。",
+  en: "Not a trending chart. Ten outlets covering the same story are one event here — merged, put in order, every source kept as a link you can check.",
 });
 
 const INTRO_CTA = i18n({ "zh-CN": "它是怎么工作的", en: "How it works" });
+
+/** 订阅是不需要账号的那条留存腿，首屏给它一个次按钮。 */
+const INTRO_SECONDARY_CTA = i18n({ "zh-CN": "订阅 RSS", en: "Subscribe via RSS" });
+const INTRO_SECONDARY_HREF = "/events/feed.xml";
 
 const FOOTER_LINK_LABEL = i18n({ "zh-CN": "关于", en: "About" });
 
@@ -234,16 +259,24 @@ function buildAboutSections(locale: AppLocale, contact: string): SiteSection[] {
   ];
 }
 
-function buildIntroBand(): SiteSection {
-  return section("band", {
+/**
+ * 首屏。留白比正文段大一截（72/64）——它是整页唯一一个「声明」，
+ * 挤在 24px 里就还是一条公告条。计数面板由段自己按请求查，这里不配任何数字。
+ */
+function buildIntroHero(): SiteSection {
+  return section(INTRO_SECTION_TYPE, {
+    eyebrow: INTRO_EYEBROW,
     headline: INTRO_HEADLINE,
-    body: INTRO_BODY,
+    subhead: INTRO_SUBHEAD,
+    show_stats: true,
+    show_glow: true,
     primary_label: INTRO_CTA,
     primary_href: ABOUT_PATH,
-    align: "left",
+    secondary_label: INTRO_SECONDARY_CTA,
+    secondary_href: INTRO_SECONDARY_HREF,
     anchor: INTRO_ANCHOR,
-    padding_top: 24,
-    padding_bottom: 24,
+    padding_top: 72,
+    padding_bottom: 64,
   });
 }
 
@@ -267,16 +300,25 @@ function asSections(value: unknown): SiteSection[] {
   return Array.isArray(value) ? (value as SiteSection[]) : [];
 }
 
-function hasIntroBand(sections: readonly SiteSection[]): boolean {
-  return sections.some(
-    (item) => item?.type === "band" && item?.settings?.anchor === INTRO_ANCHOR,
-  );
+/**
+ * 认段只看 `anchor`，**不看 type**：存量站上这个 anchor 挂的是改版前的通用 `band`。
+ * 按 type 认会让重跑时既留着旧 band 又插一条新 hero，首页顶上摞两段。
+ */
+function hasIntroSection(sections: readonly SiteSection[]): boolean {
+  return sections.some((item) => item?.settings?.anchor === INTRO_ANCHOR);
 }
 
-function withoutIntroBand(sections: readonly SiteSection[]): SiteSection[] {
-  return sections.filter(
+/** 同上：撤场也按 anchor，旧 band 与新 hero 一并撤掉。 */
+function withoutIntroSection(sections: readonly SiteSection[]): SiteSection[] {
+  return sections.filter((item) => item?.settings?.anchor !== INTRO_ANCHOR);
+}
+
+/** 已经是新版首屏了吗——`--force` 之外唯一会触发原地替换的判据。 */
+function hasIntroHero(sections: readonly SiteSection[]): boolean {
+  return sections.some(
     (item) =>
-      !(item?.type === "band" && item?.settings?.anchor === INTRO_ANCHOR),
+      item?.type === INTRO_SECTION_TYPE &&
+      item?.settings?.anchor === INTRO_ANCHOR,
   );
 }
 
@@ -370,9 +412,9 @@ async function applyAboutPages(args: Args, tenant_id: string): Promise<void> {
  * 访客打开 `/` 时看到的是哪一张页面。
  *
  * 不一定是 `kind: home`——`home_path` 指向别的页（本站是存量 `/events`）时，
- * 根上渲染的是那一张。说明段必须落在**真正**渲染 `/` 的那张页上。
+ * 根上渲染的是那一张。首屏必须落在**真正**渲染 `/` 的那张页上。
  */
-async function applyIntroBand(args: Args, tenant_id: string): Promise<void> {
+async function applyIntroSection(args: Args, tenant_id: string): Promise<void> {
   const site = await prisma.marketingSite.findUnique({
     where: { tenant_id },
     select: { home_path: true },
@@ -408,59 +450,58 @@ async function applyIntroBand(args: Args, tenant_id: string): Promise<void> {
   for (const page of pages) {
     const published = asSections(page.sections);
     const draft = asSections(page.sections_draft);
-    const present = hasIntroBand(published) || hasIntroBand(draft);
+    const present = hasIntroSection(published) || hasIntroSection(draft);
+    // 存量的旧 band 要被就地升级成 hero，这一步不需要 --force：改版本身就是目的
+    const upgraded = hasIntroHero(published) && hasIntroHero(draft);
     const label = `${page.kind}/${page.locale}`;
 
-    // 首页换过位置：把说明段从不再渲染 `/` 的那张页上撤掉
+    // 首页换过位置：把首屏从不再渲染 `/` 的那张页上撤掉
     if (!targetIds.has(page.id)) {
       if (!present) continue;
       if (args.dryRun) {
-        console.log(`[intro] 将从 ${label} 撤掉说明段（它已不是首页）`);
+        console.log(`[intro] 将从 ${label} 撤掉首屏（它已不是首页）`);
         continue;
       }
       await prisma.marketingPage.update({
         where: { id: page.id, tenant_id },
         data: {
-          sections: withoutIntroBand(
+          sections: withoutIntroSection(
             published,
           ) as unknown as Prisma.InputJsonValue,
-          sections_draft: withoutIntroBand(
+          sections_draft: withoutIntroSection(
             draft,
           ) as unknown as Prisma.InputJsonValue,
         },
       });
-      console.log(`[intro] 已从 ${label} 撤掉说明段`);
+      console.log(`[intro] 已从 ${label} 撤掉首屏`);
       continue;
     }
 
-    if (present && !args.force) {
-      console.log(`[intro] ${label} 已有说明段，跳过（--force 覆盖）`);
+    if (upgraded && !args.force) {
+      console.log(`[intro] ${label} 已是新版首屏，跳过（--force 覆盖文案）`);
       continue;
     }
+    const verb = present ? (upgraded ? "替换" : "升级") : "插入";
     if (args.dryRun) {
-      console.log(
-        `[intro] ${label}（${homePath}）将在顶部${present ? "替换" : "插入"}说明段`,
-      );
+      console.log(`[intro] ${label}（${homePath}）将在顶部${verb}首屏`);
       continue;
     }
 
-    const band = buildIntroBand();
+    const hero = buildIntroHero();
     await prisma.marketingPage.update({
       where: { id: page.id, tenant_id },
       data: {
         sections: [
-          band,
-          ...withoutIntroBand(published),
+          hero,
+          ...withoutIntroSection(published),
         ] as unknown as Prisma.InputJsonValue,
         sections_draft: [
-          band,
-          ...withoutIntroBand(draft),
+          hero,
+          ...withoutIntroSection(draft),
         ] as unknown as Prisma.InputJsonValue,
       },
     });
-    console.log(
-      `[intro] ${label}（${homePath}）说明段已${present ? "替换" : "插入"}`,
-    );
+    console.log(`[intro] ${label}（${homePath}）首屏已${verb}`);
   }
 }
 
@@ -514,6 +555,11 @@ async function applyFooterLink(args: Args, tenant_id: string): Promise<void> {
 async function main(): Promise<void> {
   // `marketingPagePath` 要认得贡献的模板页 kind（`events_index` → `/events`）
   registerEventsPageTemplates();
+  /*
+   * `section()` 走 `getSectionDefinition` 拿默认值，而贡献段的定义是模块装载时才进
+   * 注册表的——这个脚本不起服务，只把首屏那一个定义登记进来即可。
+   */
+  registerSectionDefinition(eventsHeroSection);
   const args = parseArgs(process.argv.slice(2));
   const tenant = await prisma.tenant.findUnique({
     where: { slug: args.slug },
@@ -530,7 +576,7 @@ async function main(): Promise<void> {
   }
 
   await applyAboutPages(args, tenant.id);
-  await applyIntroBand(args, tenant.id);
+  await applyIntroSection(args, tenant.id);
   await applyFooterLink(args, tenant.id);
 
   console.log(

@@ -514,6 +514,36 @@ export interface PublicEntityStripView {
   }[];
 }
 
+/**
+ * 首屏那块实时计数里的一行。
+ *
+ * `value` 已经格式化好（数字带千位分隔，相对时间已落成当前语言），`unit` 是单位词——
+ * 拆两个字段是为了让渲染侧能把数字放大而单位不跟着放大，不是为了让它自己拼句子。
+ */
+export interface PublicHeroStat {
+  key: "live" | "merged" | "sources" | "updated";
+  /** 已落成当前语言的行名 */
+  label: string;
+  /** 已格式化的值：`1,284` 或「6 分钟前」 */
+  value: string;
+  /** 已落成当前语言的单位；相对时间那行为空 */
+  unit: string;
+  /** 相对时间才有：机器可读的绝对时刻，渲染成 `<time datetime>` */
+  datetime?: string;
+}
+
+/**
+ * 首屏的实时计数面板。
+ *
+ * `stats` 为空 = 这个站还没有事件（新部署、采集还没跑第一轮），整块不渲染——
+ * 首屏挂一串 0 比不挂更糟。
+ */
+export interface PublicHeroView {
+  /** 已落成当前语言的面板抬头（「实时」） */
+  live_label: string;
+  stats: PublicHeroStat[];
+}
+
 export interface PublicEventFeed {
   rising: PublicEventCard[];
   now: PublicEventCard[];
@@ -535,6 +565,11 @@ export interface EventsRenderContext {
    * handler 填；没摆这段时保持 undefined，渲染器整段跳过。
    */
   entity_strip?: PublicEntityStripView | null;
+  /**
+   * 首屏实时计数。与 `entity_strip` 同一条口径：任意页可有，没摆首屏段时
+   * 保持 undefined，渲染器只画文案列。
+   */
+  hero?: PublicHeroView | null;
   index_path: string;
   /**
    * 查询列表页：这一段已经是「全部」，不再按区块 limit 截断，

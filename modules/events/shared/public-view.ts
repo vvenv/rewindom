@@ -37,6 +37,8 @@ import type {
   PublicEventCard,
   PublicEventDetailView,
   PublicEventSource,
+  PublicHeroStat,
+  PublicHeroView,
 } from "./events-section-context.js";
 
 /** 取文案的最小接口——服务端传 `eventsMessage` 的偏应用，客户端传 i18next 的 `t`。 */
@@ -294,4 +296,97 @@ export function toPublicEntityIndex(
       })),
   })).filter((group) => group.items.length > 0);
   return { href: entityIndexPath(indexPath), groups };
+}
+
+/** 首屏计数的原始数字，由 SSR 查库 / 编辑器用样张填。 */
+export interface HeroStatsInput {
+  /** 过去 24 小时仍在发展的事件数（与首页「正在发生」同一套谓词） */
+  live_events: number;
+  /** 过去 24 小时里被合并进某个事件的报道条数 */
+  merged_reports: number;
+  /** 正在采集的来源数 */
+  sources: number;
+  /** 全站最近一次事件活动时刻；一条事件都没有时为 null */
+  updated_at: Date | string | null;
+}
+
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+/**
+ * 「最近更新」落成相对时间。
+ *
+ * 粒度到分钟就够：SSR 发的是 `cache-control: max-age=60`，再精确也只是在缓存里
+ * 躺着变陈。未来时刻（采集机与 web 时钟有偏差）按「刚刚」算，不吐负数。
+ */
+function relativeTime(from: Date, now: number, t: EventsTranslate): string {
+  const elapsed = Math.max(0, now - from.getTime());
+  if (elapsed < MINUTE_MS) return t("site.hero.updated.now");
+  if (elapsed < HOUR_MS) {
+    return t("site.hero.updated.minutes", {
+      count: Math.floor(elapsed / MINUTE_MS),
+    });
+  }
+  if (elapsed < DAY_MS) {
+    return t("site.hero.updated.hours", { count: Math.floor(elapsed / HOUR_MS) });
+  }
+  return t("site.hero.updated.days", { count: Math.floor(elapsed / DAY_MS) });
+}
+
+/** 千位分隔。两端同一份格式化，避免 SSR 与编辑器预览把同一个数写成两种样子。 */
+function formatCount(value: number): string {
+  return new Intl.NumberFormat("en-US").format(Math.max(0, Math.trunc(value)));
+}
+
+/**
+ * 首屏实时计数 → 公开视图。
+ *
+ * **一件事都没有就返回 null**：新部署 / 采集还没跑第一轮时，首屏挂一串 0
+ * 比不挂更糟。判据是 `live_events`——它正是下面「正在发生」那段要列的东西，
+ * 它为 0 时首屏说什么都会和下面对不上。
+ *
+ * 其余各行为 0 时仍然画：来源配了 12 个而 24 小时里一条都没合并，那是**真实的**，
+ * 藏起来反而是在替系统遮丑。
+ */
+export function toPublicHero(
+  input: HeroStatsInput,
+  t: EventsTranslate,
+  now: number = Date.now(),
+): PublicHeroView | null {
+  if (input.live_events <= 0) return null;
+
+  const updatedAt =
+    input.updated_at === null ? null : new Date(input.updated_at);
+  const stats: PublicHeroStat[] = [
+    {
+      key: "live",
+      label: t("site.hero.stat.live"),
+      value: formatCount(input.live_events),
+      unit: t("site.hero.unit.events"),
+    },
+    {
+      key: "merged",
+      label: t("site.hero.stat.merged"),
+      value: formatCount(input.merged_reports),
+      unit: t("site.hero.unit.reports"),
+    },
+    {
+      key: "sources",
+      label: t("site.hero.stat.sources"),
+      value: formatCount(input.sources),
+      unit: t("site.hero.unit.sources"),
+    },
+  ];
+  if (updatedAt && !Number.isNaN(updatedAt.getTime())) {
+    stats.push({
+      key: "updated",
+      label: t("site.hero.stat.updated"),
+      value: relativeTime(updatedAt, now, t),
+      unit: "",
+      datetime: updatedAt.toISOString(),
+    });
+  }
+
+  return { live_label: t("site.hero.live"), stats };
 }

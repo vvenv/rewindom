@@ -1,4 +1,4 @@
-import { Radar, Rss, Tag, Tags, TrendingUp } from "lucide-react";
+import { Radar, Rss, Signal, Tag, Tags, TrendingUp } from "lucide-react";
 
 import { htmlChromeBlockView, htmlSectionView } from "@rewindom/builtin/marketing/client/components/sections/html-section-view.js";
 import { registerChromeBlockView } from "@rewindom/builtin/marketing/client/components/sections/chrome-views.js";
@@ -19,6 +19,7 @@ import {
   eventsSubscribeBlock,
   eventsSubscribeSection,
   eventsFeedSection,
+  eventsHeroSection,
   eventsNowSection,
   eventsRisingSection,
 } from "../shared/index.js";
@@ -33,6 +34,7 @@ import {
   renderEventsSubscribeHtml,
 } from "../shared/sections/subscribe-html.js";
 import { renderEventsFeedHtml } from "../shared/sections/feed-html.js";
+import { renderEventsHeroHtml } from "../shared/sections/hero-html.js";
 import { EVENTS_CSS } from "../shared/site-css.generated.js";
 
 import type { ClientAppModule } from "@rewindom/module-sdk/client";
@@ -44,6 +46,11 @@ import type { ClientAppModule } from "@rewindom/module-sdk/client";
 registerEventsPageTemplates();
 registerEventsNavSources();
 registerEventsEditorContext();
+registerSiteSectionView(
+  eventsHeroSection,
+  htmlSectionView(renderEventsHeroHtml),
+  { css: EVENTS_CSS, icon: Signal },
+);
 registerSiteSectionView(
   eventsRisingSection,
   htmlSectionView(renderEventsFeedHtml),

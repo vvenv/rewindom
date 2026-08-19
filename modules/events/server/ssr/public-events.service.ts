@@ -539,6 +539,62 @@ export async function getPublicEntityIndex(tenantId: string): Promise<
   }));
 }
 
+/**
+ * 首屏那块实时计数。
+ *
+ * 四个数的口径必须与首页下面两段自洽，否则首屏说的和下面列的不是一回事：
+ *
+ * - `live_events`：与 `getPublicEventFeed` 的 now 同一套谓词（24h + 仍在发展 +
+ *   主题没被关掉）。**它就是「正在发生」那段在数的东西**。
+ * - `merged_reports`：24 小时里落进某个事件的信号数。这是「多条报道 → 一个事件」
+ *   的直接证据，不是热度的另一种写法；被工作台移除的信号（`removed_at` 非空）
+ *   不算——它已经不出现在任何面上了。
+ * - `sources`：启用中的采集源数。
+ * - `updated_at`：全站最近一次事件活动时刻，首屏的新鲜度证明。
+ *
+ * 四个查询都是 count / aggregate，不取行；首页本来就要查 feed，多这几条不改变量级。
+ */
+export async function getPublicHeroStats(tenantId: string): Promise<{
+  live_events: number;
+  merged_reports: number;
+  sources: number;
+  updated_at: Date | null;
+}> {
+  const since = new Date(Date.now() - LIVE_WINDOW_HOURS * HOUR_MS);
+  const enabled = await getEnabledTopics(tenantId);
+  const liveWhere = withTenantScope(tenantId, {
+    ...enabledTopicWhere(enabled),
+    status: { in: ["developing", "active"] },
+    last_activity_at: { gte: since },
+  });
+
+  const [live_events, merged_reports, sources, newest] = await Promise.all([
+    prisma.newsEvent.count({ where: liveWhere }),
+    prisma.eventSignal.count({
+      where: withTenantScope(tenantId, {
+        event_id: { not: null },
+        removed_at: null,
+        published_at: { gte: since },
+      }),
+    }),
+    prisma.eventFeed.count({
+      where: withTenantScope(tenantId, { enabled: true }),
+    }),
+    prisma.newsEvent.findFirst({
+      where: withTenantScope(tenantId, enabledTopicWhere(enabled)),
+      orderBy: { last_activity_at: "desc" },
+      select: { last_activity_at: true },
+    }),
+  ]);
+
+  return {
+    live_events,
+    merged_reports,
+    sources,
+    updated_at: newest?.last_activity_at ?? null,
+  };
+}
+
 /** 枢纽与实体 sitemap 共用的窗口条件：最近 30 天还有事件、且主题没被关掉。 */
 async function recentEventWhere(tenantId: string): Promise<{
   last_activity_at: { gte: Date };

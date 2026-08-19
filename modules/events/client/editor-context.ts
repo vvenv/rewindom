@@ -17,6 +17,7 @@ import {
   EVENTS_ENTITY_SECTION_TYPE,
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_FEED_SECTION_TYPES,
+  EVENTS_HERO_SECTION_TYPE,
   EVENT_TOPICS,
   emptyEventsContext,
   eventsContextEntry,
@@ -26,6 +27,7 @@ import {
   toPublicEntity,
   toPublicEntityIndex,
   toPublicEntityStrip,
+  toPublicHero,
 } from "../shared/index.js";
 import {
   EVENTS_NAV_SOURCES,
@@ -44,6 +46,7 @@ import type {
   EventListItem,
   EventTopic,
   EventTopicSettings,
+  HeroStatsInput,
   PublicEntityIndexRow,
 } from "../shared/index.js";
 import type { AppLocale } from "@rewindom/module-sdk";
@@ -54,6 +57,7 @@ const EVENTS_EDITOR_CONTEXT_TYPES = [
   EVENTS_ENTITY_SECTION_TYPE,
   EVENTS_ENTITY_INDEX_SECTION_TYPE,
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
+  EVENTS_HERO_SECTION_TYPE,
   ...EVENTS_NAV_SOURCES,
 ] as const;
 
@@ -82,14 +86,16 @@ export function registerEventsEditorContext(): void {
       ]);
       const wantStrip = input.usedTypes.has(EVENTS_ENTITY_STRIP_SECTION_TYPE);
       const wantHub = input.usedTypes.has(EVENTS_ENTITY_INDEX_SECTION_TYPE);
+      const wantHero = input.usedTypes.has(EVENTS_HERO_SECTION_TYPE);
       const wantEntity =
         input.usedTypes.has(EVENTS_ENTITY_SECTION_TYPE) &&
         input.pageKind === EVENTS_ENTITY_PAGE_KIND;
 
-      const [feed, enabled, entityRows] = await Promise.all([
+      const [feed, enabled, entityRows, heroStats] = await Promise.all([
         wantFeed ? loadFeed(t, indexPath) : Promise.resolve({ rising: [], now: [] }),
         loadEnabledTopics(),
         wantStrip || wantHub ? loadEntityIndex() : Promise.resolve([]),
+        wantHero ? loadHeroStats() : Promise.resolve(null),
       ]);
       const event =
         wantFeed && input.pageKind === EVENTS_DETAIL_PAGE_KIND
@@ -111,6 +117,7 @@ export function registerEventsEditorContext(): void {
           entity_strip: wantStrip
             ? toPublicEntityStrip(entityRows, indexPath)
             : undefined,
+          hero: heroStats ? toPublicHero(heroStats, t) : undefined,
         }),
       );
     },
@@ -194,4 +201,19 @@ async function loadEntityIndex(): Promise<PublicEntityIndexRow[]> {
     // 拉不到就用样张，预览结构仍与实站同一套渲染器
   }
   return sampleEntityIndexItems();
+}
+
+/**
+ * 首屏计数。走 `/events/stats`——与公开面同一个函数，预览里的数字就是访客看到的数字。
+ *
+ * 这里**故意不**在接口失败时退回样张：计数为 0 时首屏整块该隐藏，拿一份漂亮的样张
+ * 顶上去会让租户在编辑器里排一块访客根本看不到的版。接口挂了就当没有计数，
+ * 与「provider 还没回来」同一个观感。
+ */
+async function loadHeroStats(): Promise<HeroStatsInput | null> {
+  try {
+    return await api.get<HeroStatsInput>("/events/stats");
+  } catch {
+    return null;
+  }
 }

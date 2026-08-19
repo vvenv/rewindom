@@ -23,6 +23,7 @@ import {
   getPublicEventBySlug,
   getPublicEventFeed,
   getPublicEventList,
+  getPublicHeroStats,
 } from "./public-events.service.js";
 import { getEnabledTopics } from "../event/topic-settings.service.js";
 
@@ -52,6 +53,7 @@ import {
   toPublicEntity,
   toPublicEntityIndex,
   toPublicEntityStrip,
+  toPublicHero,
 } from "../../shared/index.js";
 import {
   EVENTS_DETAIL_TEMPLATE_PRESET,
@@ -214,9 +216,10 @@ async function renderIndex(
     );
   }
 
-  const [feed, entityRows] = await Promise.all([
+  const [feed, entityRows, heroStats] = await Promise.all([
     getPublicEventFeed(input.tenantId, topic),
     getPublicEntityIndex(input.tenantId),
+    getPublicHeroStats(input.tenantId),
   ]);
   const t = translator(locale);
 
@@ -242,6 +245,12 @@ async function renderIndex(
         now: feed.now.map((item) => toCard(item, t, indexPath)),
       },
       entity_strip: toPublicEntityStrip(entityRows, indexPath),
+      /*
+       * 首屏计数**不按 topic 过滤**，主题格子上也一样：它说的是「这台雷达在追踪
+       * 什么」，是站点级的主张，不是当前这一格的统计。跟着格子变反而会让同一句
+       * 主张在 `/` 和 `/ai` 上给出两个数。
+       */
+      hero: toPublicHero(heroStats, t),
     }),
   });
 }

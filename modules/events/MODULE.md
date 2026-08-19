@@ -11,7 +11,7 @@
 已交付：
 
 - **主链路**：采集 → 聚类 → 事件详情（发生了什么 / 时间线 / 来源）→ Follow → 更新检测
-- **官网面**：升温 / 正在发生 / 近期实体 / 详情 + `/events` 与 `/events/:slug` 两张模板页（把 `/events` 设为首页后，访客 URL 收到 `/` 与 `/:slug`），未登录访客可直接浏览
+- **官网面**：首屏 / 升温 / 正在发生 / 近期实体 / 详情 + `/events` 与 `/events/:slug` 两张模板页（把 `/events` 设为首页后，访客 URL 收到 `/` 与 `/:slug`），未登录访客可直接浏览
 
 明确**不在**当前范围：Related Events、Why it's trending。两者都建立在同一套语料之上，
 加进来是增量，不需要动现有表结构。
@@ -56,7 +56,7 @@ LLM key 时唯一的译文来源。译文一旦入库就代表了这个事件，
 
 ```
 shared/          事件域契约 + 官网段定义 + 公开视图映射
-  events-*-section.ts     段定义（events.rising / events.now / events.detail）
+  events-*-section.ts     段定义（events.hero / events.rising / events.now / events.detail）
   events-page-templates.ts 模板页 kind + 预设
   nav-sources.ts          页头 / 页脚主题导航源
   public-view.ts          领域 DTO → 公开视图（两端共用）
@@ -81,6 +81,7 @@ server/
 
 | 贡献物 | 说明 |
 | --- | --- |
+| 段 `events.hero` | 首屏。左列是文案主张（eyebrow / h1 / 副标题 / 双 CTA，全是 setting），右列是**按请求查出来的**实时计数：正在追踪的事件、24 小时内合并的报道、在采集的来源、最近更新。整站唯一的 `h1`。`live_events` 为 0 时整块计数不渲染 |
 | 段 `events.rising` | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/events?source=rising`（枢纽当首页时是 `/?source=rising`） |
 | 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/events?source=now`（枢纽当首页时是 `/?source=now`） |
 | 段 `events.entity_strip` | 近期实体胶囊条，可摆在任意页面。近 30 天实体按事件数排序，默认 Top 24，字号一律、用数字角标表示权重。「查看全部」打开实体枢纽。预设插在 Now 与订阅之间 |
@@ -101,6 +102,37 @@ server/
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
 `registerHomeLayout`（events 填表，内核不认识「雷达」这个概念）。
+
+### 首屏为什么是 events 自己的段
+
+通用 `hero` 也能画首屏，但它的 stat 块是租户手填的静态文本——写「已合并 1 万条报道」
+上去，当天就开始过期，而且**没人会回来改**。首屏是这个产品唯一一次自我介绍，用一句
+过期的广告词做它的证据，不如不写。
+
+所以分工是：**广告词归租户，数字归系统**。文案（eyebrow / 标题 / 副标题 / 两个按钮）
+全是 setting，租户随时改；右侧四个数由 `getPublicHeroStats` 每次请求现查，租户改不了
+也不必改。
+
+四个数的口径必须与首页下面两段自洽，否则首屏说的和下面列的不是一回事：
+
+| 行 | 口径 |
+| --- | --- |
+| 正在追踪 | `NewsEvent`：24h + `status ∈ {developing, active}` + 主题没被关掉。**与「正在发生」那段同一套谓词** |
+| 24 小时内合并 | `EventSignal`：`event_id` 非空、`removed_at` 为空、`published_at ≥ 24h`。这是「多条报道 → 一个事件」的直接证据，不是热度的另一种写法 |
+| 在采集的来源 | `EventFeed`：`enabled = true` |
+| 最近更新 | `NewsEvent.last_activity_at` 的最大值。相对时间在建上下文时就落成文案（段渲染器同步、拿不到 i18n），粒度到分钟——SSR 发 `max-age=60`，再精确也只是在缓存里躺着变陈；同时吐 `<time datetime>` 留一份机器可读的绝对时刻 |
+
+`live_events` 为 0（新部署、采集还没跑第一轮）时整块计数不渲染，左列独占整行：
+首屏挂一串 0 比不挂更糟。其余各行为 0 仍然画——配了 12 个源而 24 小时里一条都没合并，
+那是**真实的**，藏起来是在替系统遮丑。
+
+**主题格子上计数不跟着过滤**：它说的是「这台雷达在追踪什么」，是站点级的主张。
+跟着格子变会让同一句主张在 `/` 和 `/ai` 上给出两个数。
+
+两处填数据：CMS 页走 section context provider，事件模板页（含把 `/events` 设为首页后的
+`/`）走 path handler 的 `renderIndex`——与 `entity_strip` 同一条分工。编辑器预览走
+`GET /events/stats`，读的是同一个函数，**故意不退回样张**：计数为 0 时首屏该整块隐藏，
+拿一份漂亮的样张顶上去会让租户排一块访客根本看不到的版。
 
 ## 页头 / 页脚导航
 

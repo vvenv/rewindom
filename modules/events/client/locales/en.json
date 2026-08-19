@@ -168,6 +168,29 @@
     },
     "entityStrip": {
       "more": "See all entities"
+    },
+    "hero": {
+      "eyebrow": "Event radar · tracked continuously",
+      "headline": "One story, many sources, one timeline",
+      "subhead": "Not a trending chart. Ten outlets covering the same story are one event here — merged, put in order, every source kept as a link you can check.",
+      "live": "Live",
+      "stat": {
+        "live": "Tracking now",
+        "merged": "Merged in 24h",
+        "sources": "Sources ingested",
+        "updated": "Last update"
+      },
+      "unit": {
+        "events": "events",
+        "reports": "reports",
+        "sources": "feeds"
+      },
+      "updated": {
+        "now": "just now",
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} h ago",
+        "days": "{{count}} d ago"
+      }
     }
   },
   "home": {
@@ -230,6 +253,11 @@
       "limit": "Show at most",
       "showCounts": "Show event counts",
       "moreLabel": "More link text"
+    },
+    "hero": {
+      "label": "Hero",
+      "showStats": "Show live counts",
+      "showStatsInfo": "Hidden automatically until there are events — never shows a row of zeros"
     }
   },
   "template": {

@@ -168,6 +168,29 @@
     },
     "entityStrip": {
       "more": "查看全部实体"
+    },
+    "hero": {
+      "eyebrow": "事件雷达 · 持续追踪",
+      "headline": "同一件事，来自多个来源，合成一条时间线",
+      "subhead": "不是热榜。十家媒体写同一件事，在这里是一个事件——合并、按时间排好，每一条来源都留成能点回去核对的链接。",
+      "live": "实时",
+      "stat": {
+        "live": "正在追踪",
+        "merged": "24 小时内合并",
+        "sources": "在采集的来源",
+        "updated": "最近更新"
+      },
+      "unit": {
+        "events": "个事件",
+        "reports": "条报道",
+        "sources": "个"
+      },
+      "updated": {
+        "now": "刚刚",
+        "minutes": "{{count}} 分钟前",
+        "hours": "{{count}} 小时前",
+        "days": "{{count}} 天前"
+      }
     }
   },
   "home": {
@@ -230,6 +253,11 @@
       "limit": "最多显示",
       "showCounts": "显示事件数",
       "moreLabel": "更多按钮文案"
+    },
+    "hero": {
+      "label": "首屏",
+      "showStats": "显示实时计数",
+      "showStatsInfo": "还没有事件时自动隐藏，不会在首屏挂一串 0"
     }
   },
   "template": {

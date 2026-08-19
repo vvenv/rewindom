@@ -15,7 +15,10 @@ import {
   removeEventSignal,
   updateEvent,
 } from "./event/event.service.js";
-import { getPublicEntityIndex } from "./ssr/public-events.service.js";
+import {
+  getPublicEntityIndex,
+  getPublicHeroStats,
+} from "./ssr/public-events.service.js";
 import {
   getEnabledTopicSettings,
   getEnabledTopics,
@@ -123,6 +126,22 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     handler: async (request) => ({
       items: await getPublicEntityIndex(request.tenantContext!.tenant_id),
     }),
+  });
+
+  /*
+   * 编辑器预览首屏计数用。同样必须写在 `/:eventId` 前面。
+   *
+   * 与公开面读的是同一个函数：预览里出现的数字就是访客会看到的数字。拿样张顶替
+   * 会在「这个站还一件事都没有」时骗过租户——那正是首屏该整块隐藏的情形。
+   */
+  defineRoute(app, {
+    method: "GET",
+    url: "/stats",
+    context: "EventHeroStats",
+    errorCode: "EVENT_HERO_STATS_FAILED",
+    preHandler: [app.requirePermission("events.read")],
+    handler: async (request) =>
+      getPublicHeroStats(request.tenantContext!.tenant_id),
   });
 
   defineRoute(app, {

@@ -1,0 +1,82 @@
+# 官网首屏现在是一条通用 `band`（`apply-yestino-about.ts` 铺的 `anchor: about-yestino`），
+# 三个问题：
+#
+#   1. 不是首屏 —— h2 1.875rem + `sec-bg-muted`，深浅两个模式下 muted-bg 与 bg 几乎同色，
+#      它和下面「正在升温」的视觉权重一样，首屏没有主次。
+#   2. 文案说了两遍 —— 标题「同一件事，来自多个来源，合成一条时间线」与正文
+#      「把同一件事的多条报道合并成一个事件，重建它的时间线，并保留每一条来源作为证据」
+#      是同一句的长短两版。唯一一次注意力被花在复述上。
+#   3. 没有任何「活着」的证据 —— 雷达类产品的价值是新鲜度与合并率，而首屏一个数字都没有，
+#      新访客分不清它和一个 RSS 聚合器。MODULE.md 的口径（不是热榜 / 来源是证据）也没上首页。
+#
+# 结论：首屏该由 events 自己贡献一个段，而不是继续拿通用 band 拼。合并率与新鲜度只有
+# events 查得到，而这两个数就是这个产品的主张本身。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: events 贡献 `events.hero` 段——左侧文案主张（不是热榜 / 来源是证据），右侧一条按请求查出的实时计数（在追踪的事件、24h 合并的报道、在采集的来源、最近更新），首页首屏改用它替掉通用 band。
+gold: modules/events/shared/sections/hero-html.ts
+touch:
+  - modules/events/features/site-hero-section.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/sections/hero-html.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/server/events.routes.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/shared/index.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/module.tsx
+  - modules/events/client/editor-context.ts
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/client/locales/en.json
+  - apps/server/scripts/apply-yestino-about.ts
+out_of_scope:
+  - 改「正在升温 / 正在发生」两段本身
+  - 给 hero 配图 / 插画（本站没有图库，占位图比留白更糟）
+  - 客户端定时刷新计数（SSR `max-age=60`，分钟粒度已经够诚实）
+  - 改 /about 关于页正文
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/hero-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: events # 沿用 EVENTS_ENTITLEMENT，无新增
+permissions: [] # 公开面，无新增
+models: [] # 只读既有 NewsEvent / EventSignal / EventFeed，无新增字段
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 计数口径必须与首页两段自洽，否则首屏说的和下面列的不是一回事：
+#      live_events    NewsEvent，status ∈ {developing, active} 且 last_activity_at ≥ 24h，
+#                     并带 enabledTopicWhere —— 与 getPublicEventFeed 的 now 同一套谓词。
+#      merged_reports EventSignal，event_id 非空、removed_at 为空、published_at ≥ 24h。
+#                     这是「多条报道 → 一个事件」的直接证据，不是热度的另一种写法。
+#      sources        EventFeed，enabled = true。
+#      updated_at     NewsEvent.last_activity_at 的最大值。
+# 2. 相对时间在**建上下文时**就落成文案（`updated_label`），与 momentum_label 同一条理由：
+#    段渲染器是同步的、拿不到 i18n。粒度到分钟——SSR `cache-control: max-age=60`，
+#    最多差一分钟。同时吐 `<time datetime>` 保留机器可读的绝对时刻。
+# 3. 空态：`live_events === 0` 时整块计数不渲染（新部署 / 采集还没跑第一轮），
+#    文案列改为独占整行。与 entity_strip 空态返回 "" 同一条纪律——
+#    首屏挂一串 0 比不挂更糟。
+# 4. 段仍要能在没有 events 上下文时渲染（编辑器里 provider 还没回来）：
+#    只画文案列，不画计数。文案本身是 setting，租户随时能改。
+# 5. 首屏归位由 `apply-yestino-about.ts` 承担：它认 `anchor: about-yestino` 的旧 band
+#    并原地换成 `events.hero`，`--force` 才覆盖已有 hero 的文案。撤场逻辑（首页换页时
+#    把段撤掉）按 type + anchor 同时认 band 与 hero，否则改版后旧 band 会留在旧页上。
+# 6. 计数有**两处**要填，与 `entity_strip` 同一条分工：CMS 页走 section context
+#    provider；事件模板页走 path handler 的 `renderIndex`——把 `/events` 设为首页后
+#    访客看到的 `/` 正是后者（`renderEventsTemplatePage` 读库里的 events_index 页，
+#    上下文却由 handler 自己带）。只填 provider 会让线上首页永远不出计数。
+# 7. 编辑器预览加一条 `GET /events/stats`（`events.read`，与 `/entities` 同一条
+#    「预览用」先例，必须排在 `/:eventId` 前面）。读的是公开面同一个函数，
+#    **不退回样张**——计数为 0 时首屏该整块隐藏，样张会让租户排一块看不到的版。

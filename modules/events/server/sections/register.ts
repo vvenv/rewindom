@@ -7,17 +7,20 @@ import {
   getPublicEntitySitemapEntries,
   getPublicEventFeed,
   getPublicEventSitemapEntries,
+  getPublicHeroStats,
 } from "../ssr/public-events.service.js";
 
 import { getEnabledTopics } from "../event/topic-settings.service.js";
 import {
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_FEED_SECTION_TYPES,
+  EVENTS_HERO_SECTION_TYPE,
   EVENTS_INDEX_PATH,
   emptyEventsContext,
   eventsContextEntry,
   eventsDetailSection,
   eventsFeedSection,
+  eventsHeroSection,
   eventsIndexPath,
   eventsNowSection,
   eventsEntityIndexSection,
@@ -28,6 +31,7 @@ import {
   eventsSubscribeSection,
   toPublicCard,
   toPublicEntityStrip,
+  toPublicHero,
 } from "../../shared/index.js";
 import {
   EVENTS_NAV_SOURCES,
@@ -43,6 +47,7 @@ import {
   renderEventsSubscribeHtml,
 } from "../../shared/sections/subscribe-html.js";
 import { renderEventsFeedHtml } from "../../shared/sections/feed-html.js";
+import { renderEventsHeroHtml } from "../../shared/sections/hero-html.js";
 import { EVENTS_CSS } from "../../shared/site-css.generated.js";
 
 import { registerLinkTargetProvider } from "@rewindom/builtin/marketing/server/link-target-providers.js";
@@ -74,6 +79,7 @@ function registerEventsContextProvider(): void {
     sectionTypes: [
       ...EVENTS_FEED_SECTION_TYPES,
       EVENTS_ENTITY_STRIP_SECTION_TYPE,
+      EVENTS_HERO_SECTION_TYPE,
       ...EVENTS_NAV_SOURCES,
     ],
     provide: async (input) => {
@@ -88,13 +94,15 @@ function registerEventsContextProvider(): void {
       const wantStrip = wantsAny(input.usedTypes, [
         EVENTS_ENTITY_STRIP_SECTION_TYPE,
       ]);
-      const [feed, entityRows] = await Promise.all([
+      const wantHero = wantsAny(input.usedTypes, [EVENTS_HERO_SECTION_TYPE]);
+      const [feed, entityRows, heroStats] = await Promise.all([
         wantFeed
           ? getPublicEventFeed(input.tenantId)
           : Promise.resolve({ rising: [], now: [] }),
         wantStrip
           ? getPublicEntityIndex(input.tenantId)
           : Promise.resolve([]),
+        wantHero ? getPublicHeroStats(input.tenantId) : Promise.resolve(null),
       ]);
 
       return eventsContextEntry(
@@ -108,6 +116,7 @@ function registerEventsContextProvider(): void {
           entity_strip: wantStrip
             ? toPublicEntityStrip(entityRows, indexPath)
             : undefined,
+          hero: heroStats ? toPublicHero(heroStats, t) : undefined,
         }),
       );
     },
@@ -140,6 +149,7 @@ function registerEventsLinkTargets(): void {
 
 /** 在模块 `onBoot` 里调。 */
 export function registerEventsSections(): void {
+  registerSiteSectionHtml(eventsHeroSection, renderEventsHeroHtml, css);
   registerSiteSectionHtml(eventsRisingSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsNowSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsFeedSection, renderEventsFeedHtml, css);
