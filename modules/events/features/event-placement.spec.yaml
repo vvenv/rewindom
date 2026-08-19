@@ -1,0 +1,113 @@
+# 一条孤立报道价值低，根子不是「只有一个来源」，是**没有上下文**。
+#
+# 而上下文我们其实有：语料库 + 实体图 + 上一期落的 kind / fact_duration_minutes。
+# 缺的只是把它查出来摆在那条材料旁边：
+#
+#   Cloudflare Status — Elevated error rates in WAF
+#   故障 · 47 分钟 · 已解决
+#   Cloudflare 近 90 天第 4 次故障，累计 3h12m
+#   上一次：11 天前 · Elevated error rates in WAF
+#
+# 后两行没有一个字是编的，全部来自库里已有的行。而原文（那条 RSS）只给你第一行。
+# 这就是「分析后的材料」凭什么比原文值钱——**而且一条信号都不用多**，
+# 正好作用在那 97.8% 的单信号事件上。
+#
+# 竞品结构上给不出这两行：Techmeme / Google News 每轮重新聚类，没有连续观察记录，
+# 答不出「这家上次出现是什么时候」。与 EventRevision 是同一个护城河的另一面。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 事件详情页给出「归位」——该实体在近 90 天里出现过几次、同类型第几次、累计多久、上一次是什么时候什么事。全部由库里已有的行查出来，零模型调用、零新表。
+gold: modules/events/server/event/why-trending.ts
+touch:
+  - modules/events/features/event-placement.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/event/placement.service.ts
+  - modules/events/server/event/placement.service.test.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/shared/events.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/client/components/EventPlacement.tsx
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/shared/site-css/events.css
+out_of_scope:
+  - 新表 / 新列（本期全是读路径查询，没有 migration）
+  - 卡片上的归位——列表页 N 张卡就是 N×3 次查询，只做详情
+  - 实体页上的聚合档案（「OpenAI 本季发版 7 次」）——那是实体页的段，独立一期
+  - 按类型 / 实体订阅、webhook
+  - 用归位去兜底聚类
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/placement.service.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  # 拿本地语料真跑一遍，确认查出来的次数与「上一次」对得上
+  # 实测（Cloudflare，本地库）：最新那条查出其余 17 次 + 上一次同一天稍早，
+  # 与 service 产出一致。kind 相关的两条本地还验不了——kind 列刚加、全是 null，
+  # 要等下一轮采集重算，单测已覆盖
+  - 在本地库上对若干实体核对计数
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 沿用 events.read
+models: [] # 无新表新列
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **产出 i18n code + 参数，不是自由文案**——与 why-trending、事实 chips 完全同一条。
+#    一旦允许自由文案，就会出现「这家最近很不稳定」这种看似合理、实则是判断的句子。
+#    MVP §11 的边界在这里同样有效：只陈述可核对的计数与时刻，不比较、不评价、
+#    不预测。**尤其不要写「比上季度更频繁」**——那是解释，不是事实。
+#
+# 2. 归位挂在**主实体**上：链接里 `mention_count` 最高的那一个
+#   （`listEventEntities` 已经按它排序）。没有实体就没有归位，返回空数组。
+#    这个留白会很常见——实体抽取刻意保守，MODULE.md 记着覆盖率只有 36%。
+#    留白比挂到一个抽错的实体上强得多：错的实体会把这条材料放进不相干的记录里，
+#    而读者没有办法核对。
+#
+# 3. 四条事实，都由已有列查出来：
+#
+#    | code | 何时给 | 数据 |
+#    | --- | --- | --- |
+#    | `placement.recurrence` | 近 90 天该实体还出现过别的事件 | count(*) |
+#    | `placement.kindRecurrence` | 本事件有 kind，且同实体同 kind 还有别的 | count(*) where kind |
+#    | `placement.outageTotal` | kind=outage 且累计时长 > 0 | sum(fact_duration_minutes) |
+#    | `placement.previous` | 同实体同 kind 有更早的一条 | 最近一条的标题 + 天数差 |
+#
+#    `previous` 带上那条事件的 slug，让两侧各自拼地址（工作台走 `/app/events/:id`、
+#    公开面走 `eventPath(slug)`）——**不要在 service 里拼 href**，它不知道自己在哪一面。
+#
+# 4. 窗口 90 天。比 related 的 30 天宽：归位问的是「这家一直在出什么事」，
+#    本来就该跨更长的时间跨度；比保留期（事件 180 天）窄，避免把快被清理的行算进来。
+#
+# 5. **读路径上算，不预计算**。与 related_event_ids 那次的取舍相反，理由也相反：
+#    related 要把候选的 centroid 全部载入（400 事件 ≈ 4.9MB/请求），归位只是三次
+#    带索引的聚合查询（`EventEntityLink` 上有 `@@index([tenant_id, entity_id])`）。
+#    预计算反而会让它过期——一条新故障进来，旧详情页上的「第 4 次」应该立刻变成第 5 次。
+#
+# 6. 三次查询合并进详情页现有的 `Promise.all`，不新开一轮串行等待。
+#    工作台与公开面共用同一个 `getEventPlacement()`——两面给出不同的数字
+#    会立刻被发现，而这种漂移一旦发生就很难查。
+#
+# 7. 天数差按**日历天**算还是按 24h 算？按 24h（毫秒差 / 86400000 取整），
+#    与 `lag_ms` 同一套。「11 天前」是可核对的量，不引入时区。
+#    不足一天时给 `placement.previousToday`，不写「0 天前」。
+#
+# 8. 归位**不给单独的段开关**：它只有一到三行，属于这条材料的身份而不是一个板块，
+#    加一个 `show_placement` 只会让段设置更长，而租户没有理由单独关掉它。
+#    渲染位置在 header 之后、摘要之前。
+#
+# ---------- 下一步（不在本期）----------
+# - 实体页上的聚合档案：「OpenAI 近 90 天：发版 7 次 · 故障 3 次（累计 3h12m）」——
+#   本期的查询就是它的内核，只是按实体而不是按事件问
+# - 「报了但官方没认」：有 news 信号但 90 天内该实体没有 official/status/release 信号
+# - 供应商可靠性对比（A 家 vs B 家的累计故障时长）

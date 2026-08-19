@@ -113,6 +113,11 @@ export function toPublicDetail(
       confidence: factor.confidence,
       confidence_label: t(`why.${factor.confidence}`),
     })),
+    placement: detail.placement.map((fact) => ({
+      // kind 参数本身是个 i18n code（`kind.outage`），先落成文案再代进去
+      text: t(fact.code, resolvePlacementParams(fact.params, t)),
+      href: fact.event_slug ? eventPath(fact.event_slug, indexPath) : null,
+    })),
     related: detail.related.map((item) => ({
       href: eventPath(item.slug, indexPath),
       title: item.title,
@@ -123,6 +128,20 @@ export function toPublicDetail(
       items: detail.sources[kind].map(toPublicSource),
     })).filter((group) => group.items.length > 0),
   };
+}
+
+/**
+ * 归位的参数里有一个是**嵌套的 i18n code**（`kind.outage`）——
+ * 「第 4 次故障」里的「故障」得先翻出来。其余参数原样透传。
+ */
+function resolvePlacementParams(
+  params: Record<string, string | number> | undefined,
+  t: EventsTranslate,
+): Record<string, string | number> | undefined {
+  if (!params?.kind || typeof params.kind !== "string") {
+    return params;
+  }
+  return { ...params, kind: t(params.kind) };
 }
 
 function toPublicSource(source: {

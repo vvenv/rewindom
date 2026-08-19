@@ -40,6 +40,7 @@ export const renderEventsDetailHtml: SectionHtmlRenderer = (section, ctx) => {
     `<article class="events-detail">`,
     back,
     headerHtml(event),
+    placementHtml(event, ctx),
     summaryHtml(event, settingText(s, "summary_label")),
     settingBool(s, "show_why")
       ? whyHtml(event, settingText(s, "why_label"))
@@ -70,6 +71,32 @@ function headerHtml(event: PublicEventDetailView): string {
   return `<header class="events-detail-header"><span class="events-meta">${meta}</span><h1 class="events-detail-title">${escapeHtml(
     event.title,
   )}</h1></header>`;
+}
+
+/**
+ * 归位。**不给它单独的段开关**：它只有一到三行，属于这条材料的身份而不是一个板块，
+ * 加一个 `show_placement` 只会让段设置更长，而租户没有理由单独关掉它。
+ * 空数组时整块不渲染——没抽到实体、或这是它第一次出现。
+ */
+function placementHtml(
+  event: PublicEventDetailView,
+  ctx: Parameters<SectionHtmlRenderer>[1],
+): string {
+  if (event.placement.length === 0) {
+    return "";
+  }
+  const items = event.placement
+    .map((fact) => {
+      const text = escapeHtml(fact.text);
+      return `<li class="events-placement-item">${
+        fact.href
+          // 与相关事件同一条：地址要过 siteHref，否则 /en 前缀会掉
+          ? `<a href="${escapeHtml(siteHref(fact.href, ctx))}">${text}</a>`
+          : text
+      }</li>`;
+    })
+    .join("");
+  return `<ul class="events-placement">${items}</ul>`;
 }
 
 function summaryHtml(event: PublicEventDetailView, label: string): string {

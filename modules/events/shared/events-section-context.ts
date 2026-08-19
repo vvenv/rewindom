@@ -416,6 +416,11 @@ export interface PublicEventDetailView extends PublicEventCard {
   provenance_note: string;
   first_seen_at: string;
   timeline: PublicEventTimelineItem[];
+  /**
+   * 归位：已落成当前语言的一串事实（「Cloudflare 近 90 天第 4 次故障」）。
+   * 空数组 = 没抽到实体或这是它第一次出现，整块不渲染。
+   */
+  placement: { text: string; href: string | null }[];
   /** 已按 official / news / community 分好组，且组名已落成当前语言 */
   source_groups: { kind: EventSourceKind; label: string; items: PublicEventSource[] }[];
   /** 相关事件（不是同一件事）。空数组 = 没算出来或没配 embedding key，整块不渲染 */

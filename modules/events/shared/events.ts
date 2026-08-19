@@ -524,6 +524,28 @@ export interface EventDetail extends EventListItem {
   related: EventRelatedItem[];
   /** 「为什么在扩散」。说不清楚时是空数组，界面整块不渲染 */
   why_trending: EventTrendingFactor[];
+  /**
+   * 归位：这条材料在该实体的连续记录里排第几、上一次是什么时候。
+   * 空数组 = 没抽到实体，或这是它第一次出现——界面整块不渲染。
+   */
+  placement: EventPlacementFact[];
+}
+
+/**
+ * 归位的一条事实。
+ *
+ * 与 why-trending 同形：**i18n code + 参数，不是自由文案**。一旦允许自由文案，
+ * 就会出现「这家最近很不稳定」这种看似合理、实则是判断的句子——而 MVP §11
+ * 的边界在这里同样有效：只陈述可核对的计数与时刻，不比较、不评价、不预测。
+ */
+export interface EventPlacementFact {
+  code: string;
+  params?: Record<string, string | number>;
+  /**
+   * 「上一次」指向的事件 slug。**不在 service 里拼 href**——它不知道自己
+   * 在工作台还是公开面，两侧各自拼。
+   */
+  event_slug?: string;
 }
 
 /**

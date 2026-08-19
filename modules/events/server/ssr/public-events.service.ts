@@ -11,6 +11,7 @@ import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.j
 import { toEventDetail, toEventListItem } from "../event/event.mapper.js";
 import { listEventEntities } from "../event/entity.service.js";
 import { listRelatedEvents } from "../event/related.service.js";
+import { getEventPlacementForDetail } from "../event/placement.service.js";
 import {
   listEventRevisions,
   publicRevisionSince,
@@ -319,12 +320,20 @@ export async function getPublicEventBySlug(
     }),
   ]);
 
+  // 与工作台走同一个函数：两面给出不同的数字会立刻被读者发现
+  const placement = await getEventPlacementForDetail({
+    tenant_id: tenantId,
+    event: record,
+    entities,
+  });
+
   return toEventDetail({
     record,
     timeline,
     signals,
     revisions,
     entities,
+    placement,
     related: related.filter((row) =>
       isTopicEnabled(enabled, row.topic as EventTopic),
     ),

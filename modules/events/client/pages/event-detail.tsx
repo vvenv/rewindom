@@ -15,6 +15,7 @@ import { EventTimeline } from "../components/EventTimeline.js";
 import { EventEntities } from "../components/EventEntities.js";
 import { EventMomentumBadge } from "../components/EventMomentumBadge.js";
 import { EventFactChips } from "../components/EventFactChips.js";
+import { EventPlacement } from "../components/EventPlacement.js";
 import { EventRelated } from "../components/EventRelated.js";
 import { EventWhyTrending } from "../components/EventWhyTrending.js";
 import { EventUpdatesSince } from "../components/EventUpdatesSince.js";
@@ -108,6 +109,8 @@ export function EventDetail() {
                 <RelativeTime iso={data.last_activity_at} />
               </span>
             </div>
+
+            <EventPlacement facts={data.placement} />
 
             <EventEntities
               entities={data.entities}

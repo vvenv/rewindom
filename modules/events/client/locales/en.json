@@ -352,5 +352,12 @@
     "ongoing": "Ongoing",
     "version": "{{version}}",
     "amount": "{{amount}}"
+  },
+  "placement": {
+    "recurrence": "{{entity}}: {{count}} events in the last {{days}} days",
+    "kindRecurrence": "{{entity}}: {{count}}th {{kind}} in the last {{days}} days",
+    "outageTotal": "{{minutes}} min of downtime across the earlier ones",
+    "previous": "Previous: {{days}} days earlier · {{title}}",
+    "previousToday": "Previous: earlier the same day · {{title}}"
   }
 }

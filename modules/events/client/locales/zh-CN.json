@@ -352,5 +352,12 @@
     "ongoing": "进行中",
     "version": "{{version}}",
     "amount": "{{amount}}"
+  },
+  "placement": {
+    "recurrence": "{{entity}} 近 {{days}} 天出现 {{count}} 次",
+    "kindRecurrence": "{{entity}} 近 {{days}} 天第 {{count}} 次{{kind}}",
+    "outageTotal": "此前几次累计 {{minutes}} 分钟",
+    "previous": "上一次：{{days}} 天前 · {{title}}",
+    "previousToday": "上一次：同一天稍早 · {{title}}"
   }
 }

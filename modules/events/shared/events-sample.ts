@@ -69,6 +69,13 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         after: { source_name: "TechCrunch", source_kind: "news", lag_ms: 8_100_000 },
       },
     ],
+    // 样张给一条归位：编辑器里要能看出这块存在，否则改版式时会漏掉它
+    placement: [
+      {
+        code: "placement.recurrence",
+        params: { entity: "OpenAI", days: 90, count: 4 },
+      },
+    ],
     why_trending: [
       {
         code: "why.officialAnnouncement",

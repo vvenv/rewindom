@@ -10,6 +10,7 @@ import {
 import { toEventDetail, toEventListItem } from "./event.mapper.js";
 import { listEventEntities } from "./entity.service.js";
 import { listRelatedEvents } from "./related.service.js";
+import { getEventPlacementForDetail } from "./placement.service.js";
 import { refreshEvents } from "./event-refresh.service.js";
 import {
   listEventRevisions,
@@ -270,6 +271,13 @@ export async function getEventDetail(
     }),
   ]);
 
+  // 归位要先知道主实体是谁，所以排在 entities 之后而不是并进上面那批
+  const placement = await getEventPlacementForDetail({
+    tenant_id: params.tenant_id,
+    event: record,
+    entities,
+  });
+
   return toEventDetail({
     record,
     timeline,
@@ -277,6 +285,7 @@ export async function getEventDetail(
     revisions,
     entities,
     related,
+    placement,
     follow,
   });
 }

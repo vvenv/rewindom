@@ -1,6 +1,9 @@
 import { isEventKind, isEventRevisionKind } from "../../shared/index.js";
 
-import type { EventIncidentUpdate } from "../../shared/index.js";
+import type {
+  EventIncidentUpdate,
+  EventPlacementFact,
+} from "../../shared/index.js";
 
 import { computeWhyTrending } from "./why-trending.js";
 
@@ -121,6 +124,8 @@ export function toEventDetail(params: {
   revisions?: RevisionRecord[];
   entities?: EntityRecord[];
   related?: RelatedRecord[];
+  /** 归位。没抽到实体时是空数组，界面整块不渲染 */
+  placement?: EventPlacementFact[];
   follow?: FollowMarker | null;
   /** 只有测试会显式传；生产恒为当下 */
   now?: Date;
@@ -153,6 +158,7 @@ export function toEventDetail(params: {
       })),
       now: params.now ?? new Date(),
     }),
+    placement: params.placement ?? [],
     related: (params.related ?? []).map((record) => ({
       id: record.id,
       slug: record.slug,
