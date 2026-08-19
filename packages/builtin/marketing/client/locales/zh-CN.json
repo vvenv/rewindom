@@ -254,7 +254,7 @@
     "settingsSectionLocale": "语言",
     "settingsSectionLocaleHint": "站点的主语言，决定哪一种语言的页面不带 URL 前缀。",
     "settingsSectionHome": "首页",
-    "settingsSectionHomeHint": "访客打开站点根地址时看到的内容。选版式会改首页模板草稿（发布后生效）；选其它页面则立刻改写。",
+    "settingsSectionHomeHint": "访客打开站点根地址时看到的内容。选版式会立刻改首页模板草稿（发布后对访客生效）；选其它页面随保存一起改写。",
     "settingsSectionVisibility": "发布",
     "settingsSectionVisibilityHint": "站点总开关；单个页面与文档另有各自的发布状态。",
     "unpublishConfirmTitle": "把站点下线？",
@@ -265,6 +265,10 @@
     "defaultLocaleConfirmTitle": "把主语言改成「{{to}}」？",
     "defaultLocaleConfirmDescription": "「{{to}}」的页面将改为不带语言前缀，原主语言「{{from}}」的页面则移到 /{{fromSlug}}/ 之下，已被搜索引擎收录或已分享出去的链接会失效。现有站名与标语会保留为「{{from}}」的译文，不会丢。",
     "toastSiteNameRequired": "请先填写主语言（{{locale}}）的站点名称。",
+    "toastAnalyticsIncomplete": "请先填完分析配置再保存。空的标识存下去等于关掉统计。",
+    "settingsDiscardTitle": "放弃未保存的改动？",
+    "settingsDiscardDescription": "关掉后这次改的内容会丢失。",
+    "settingsDiscardConfirm": "放弃改动",
     "defaultLocaleConfirm": "改主语言",
     "create": "新建页面",
     "createPageTitle": "新建页面",
@@ -290,7 +294,6 @@
     "statusDirty": "有改动未发布",
     "statusDirtyHint": "线上仍是上次发布的版本，草稿里的改动还没上线。",
     "fieldSiteName": "站点名称",
-    "fieldEditLocale": "编辑语言",
     "fieldLocalizedFallbackHint": "未填则回落主语言「{{fallback}}」。",
     "fieldLocalizedEmptyHint": "未填则回落主语言（主语言也尚未填写）。",
     "fieldTagline": "标语",
@@ -881,7 +884,7 @@
   },
   "settings": {
     "pageTitle": "站点设置",
-    "pageDescription": "改完即存。Logo、配色与版式在「外观」里调。"
+    "pageDescription": "保存后生效。Logo、配色与版式在「外观」里调。"
   },
   "chromeEditor": {
     "editLocale": "编辑语言"

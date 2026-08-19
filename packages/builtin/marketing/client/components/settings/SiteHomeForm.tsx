@@ -35,7 +35,8 @@ import type { SiteSettingsForm } from "../../hooks/use-site-settings-form.js";
 /**
  * 访客打开 `/` 时看到什么：首页模板的各套版式，或另一张已有页面。
  *
- * 选版式：套到首页草稿并把 `home_path` 收回 `/`。选其它页：下拉即存改写 `/`。
+ * 选版式：套到首页草稿并把 `home_path` 收回 `/`（确认后立刻套用，因为它改的是
+ * 页面草稿）。选其它页：只改本地草稿，随站点设置一起保存。
  */
 export function SiteHomeForm({
   form,
@@ -80,13 +81,7 @@ export function SiteHomeForm({
     const parsed = parseHomeSelectorValue(next);
     if (!parsed) return;
     if (parsed.type === "page") {
-      homepage.commit(parsed.path, {
-        onSuccess: () => toast.success(t("cms.toastHomeUpdated")),
-        onError: () => {
-          homepage.restore();
-          toast.error(t("cms.toastSiteSaveFailed"));
-        },
-      });
+      homepage.setPath(parsed.path);
       return;
     }
     const layout = options.find(
@@ -102,7 +97,10 @@ export function SiteHomeForm({
     });
     if (!confirmed) return;
     applyHomeLayout.mutate(parsed.key, {
-      onSuccess: () => toast.success(t("cms.toastHomeLayoutApplied")),
+      onSuccess: () => {
+        homepage.setPath(DEFAULT_HOME_PATH);
+        toast.success(t("cms.toastHomeLayoutApplied"));
+      },
       onError: () => toast.error(t("cms.toastHomeLayoutApplyFailed")),
     });
   };

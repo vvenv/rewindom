@@ -10,20 +10,13 @@ import {
 } from "@rewindom/ui/field";
 import { Switch } from "@rewindom/ui/switch";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 
 import { SettingsSection } from "./SettingsSection.js";
 
 import type { SiteSettingsForm } from "../../hooks/use-site-settings-form.js";
 
 /**
- * 站点总开关。
- *
- * **开关即存**，不配保存按钮：一个二值开关配一个保存按钮，多数人点完开关就走了，
- * 以为已经生效。代价是要自己兜住失败——请求挂了就把开关拨回去（`restore`）。
- *
- * 只有**下线**要确认：站点从对外可见变成占位页，访客当场就看得到；反过来上线是
- * 建设性的，拦一道只是碍事。
+ * 站点总开关。下线要确认（访客当场看到占位页）；确认后只拨本地开关，保存才落库。
  */
 export function SiteVisibilityForm({
   form,
@@ -36,22 +29,9 @@ export function SiteVisibilityForm({
   const { confirm } = useConfirm();
   const { visibility } = form;
 
-  const apply = (next: boolean): void => {
-    visibility.toggle(next, {
-      onSuccess: () =>
-        toast.success(
-          next ? t("cms.toastSitePublished") : t("cms.toastSiteUnpublished"),
-        ),
-      onError: () => {
-        visibility.restore();
-        toast.error(t("cms.toastSiteSaveFailed"));
-      },
-    });
-  };
-
   const onCheckedChange = (next: boolean): void => {
     if (next) {
-      apply(true);
+      visibility.setPublished(true);
       return;
     }
     void confirm({
@@ -60,7 +40,7 @@ export function SiteVisibilityForm({
       confirmText: t("cms.unpublishConfirm"),
       destructive: true,
     }).then((confirmed) => {
-      if (confirmed) apply(false);
+      if (confirmed) visibility.setPublished(false);
     });
   };
 

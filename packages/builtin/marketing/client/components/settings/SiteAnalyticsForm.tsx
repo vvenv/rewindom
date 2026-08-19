@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "@rewindom/ui/select";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 
 import {
   defaultAnalyticsScriptUrl,
@@ -25,11 +24,8 @@ import type { SiteSettingsForm } from "../../hooks/use-site-settings-form.js";
 /**
  * 访问分析：一个供应商 + 一个脚本地址 + 一个站点标识。
  *
- * 不收任意 HTML —— 粘一段 `<script>` 等于给站点开一个脚本注入位。列出的供应商
- * 都不写 cookie，因而不需要同意横幅；要用 GA 这类的请自己在 `custom` 里填脚本地址，
- * 同意管理不在这里做。
- *
- * 供应商下拉即存，两个输入框失焦即存——与站名同一条口径。
+ * 不收任意 HTML。改动只落在本地草稿，跟站点设置其它项一起保存——换供应商
+ * 时 token 还是空的，不能先发一次请求（服务端会把不完整配置归一成关闭）。
  */
 export function SiteAnalyticsForm({
   form,
@@ -41,21 +37,6 @@ export function SiteAnalyticsForm({
   const { t } = useTranslation("marketing");
   const { analytics } = form;
   const provider = analytics.value.provider;
-
-  const commit = (): void => {
-    if (!canWrite || !analytics.dirty) return;
-    analytics.commit({
-      onSuccess: () => toast.success(t("cms.toastSiteSaved")),
-      onError: () => toast.error(t("cms.toastSiteSaveFailed")),
-    });
-  };
-
-  const onProviderChange = (next: string): void => {
-    analytics.setProvider(next as SiteAnalyticsProvider, {
-      onSuccess: () => toast.success(t("cms.toastSiteSaved")),
-      onError: () => toast.error(t("cms.toastSiteSaveFailed")),
-    });
-  };
 
   return (
     <SettingsSection
@@ -69,7 +50,9 @@ export function SiteAnalyticsForm({
         <Select
           disabled={!canWrite || form.saving}
           value={provider}
-          onValueChange={onProviderChange}
+          onValueChange={(next) =>
+            analytics.setProvider(next as SiteAnalyticsProvider)
+          }
         >
           <SelectTrigger id="analytics_provider" className="w-full">
             <SelectValue />
@@ -97,7 +80,6 @@ export function SiteAnalyticsForm({
             disabled={!canWrite || form.saving}
             value={analytics.value.site_id}
             onChange={(event) => analytics.setSiteId(event.target.value)}
-            onBlur={commit}
             placeholder={
               provider === "plausible"
                 ? "example.com"
@@ -122,7 +104,6 @@ export function SiteAnalyticsForm({
             disabled={!canWrite || form.saving}
             value={analytics.value.script_url}
             onChange={(event) => analytics.setScriptUrl(event.target.value)}
-            onBlur={commit}
             placeholder={
               defaultAnalyticsScriptUrl(provider) ??
               "https://stats.example.com/script.js"

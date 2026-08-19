@@ -1,0 +1,41 @@
+# 增量功能契约 —— 站点设置改为保存/取消，多语言字段展开
+#
+# 起因：访问分析换供应商即存。选 Cloudflare 时 token 还是空的，服务端把「填不全」
+# 归一成 none，Sheet 再按线上数据重灌——下拉当场弹回「关闭」。失焦即存和「填完再存」
+# 这两种配置对不上。
+#
+# 一并改掉语言 tab：站名 / 标语每种语言一个输入框，不再靠切换按钮。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant]
+goal: 站点设置 Sheet 用底部保存/取消一次提交（站名、标语、主语言、首页路径、发布、分析）；多语言字段展开全部语言输入框。重定向与套用首页版式仍是独立动作。
+gold: packages/builtin/marketing/client/components/SitePageCreateSheet.tsx
+touch:
+  - packages/builtin/marketing/features/site-settings-save-form.spec.yaml
+  - packages/builtin/marketing/client/hooks/use-site-settings-form.ts
+  - packages/builtin/marketing/client/lib/site-settings-form.ts
+  - packages/builtin/marketing/client/components/SiteSettingsSheet.tsx
+  - packages/builtin/marketing/client/components/settings/
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 编辑器页头页脚 / 段设置的编辑语言（chromeEditor.editLocale）
+  - 重定向 CRUD（仍走自己的接口，不进这一张表单）
+  - 套用首页版式（仍确认后立刻 POST /site/home-layout，因为它改的是页面草稿）
+  - 服务端归一规则（空 token 仍写成 none；拦在提交前）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteSettingsForms.test.tsx
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteHomeForm.test.tsx
+  - pnpm check:i18n
+
+# ---------- 设计要点 ----------
+# 1. 一张 <form> + SheetFooter 保存/取消。控件只改本地草稿；Save 才 PATCH。
+#    这才写得进 Cloudflare token：先选供应商、再填标识、最后保存。
+# 2. 多语言字段（站名 / 标语）按 siteLocaleOrder 展开，主语言排第一、必填。
+#    不再有「正在编辑哪种译文」tab——那个状态会在别的分区保存时被冲掉。
+# 3. 换主语言仍先确认再钉 pinToLocale，但只动本地草稿；保存时和站名同一次请求。
+# 4. 下线仍在开关上确认（破坏性），确认后只拨本地开关，保存才落库。
+# 5. 关 Sheet（遮罩 / ×）时若有未保存改动要确认；点取消则直接丢草稿。
+# 6. 重定向不进 <form>：它有自己的新建 Sheet（不能套表），且不是 PATCH /site。

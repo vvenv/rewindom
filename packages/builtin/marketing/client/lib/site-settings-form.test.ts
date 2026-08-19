@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pinToLocale, primaryText, sameLocalizedText } from "./site-settings-form.js";
+import { analyticsReady, pinToLocale, primaryText, sameLocalizedText } from "./site-settings-form.js";
 
 describe("sameLocalizedText", () => {
   const locales = ["zh-CN", "en"] as const;
@@ -58,5 +58,41 @@ describe("primaryText", () => {
 
   it("主语言没有内容时是空串", () => {
     expect(primaryText({ __i18n: { en: "Example" } }, "zh-CN")).toBe("");
+  });
+});
+
+describe("analyticsReady", () => {
+  it("Cloudflare / Plausible 没有站点标识时不能存", () => {
+    expect(
+      analyticsReady({
+        provider: "cloudflare",
+        script_url: "",
+        site_id: "",
+      }),
+    ).toBe(false);
+    expect(
+      analyticsReady({
+        provider: "cloudflare",
+        script_url: "",
+        site_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      }),
+    ).toBe(true);
+  });
+
+  it("custom 只认 https 脚本地址", () => {
+    expect(
+      analyticsReady({
+        provider: "custom",
+        script_url: "javascript:alert(1)",
+        site_id: "",
+      }),
+    ).toBe(false);
+    expect(
+      analyticsReady({
+        provider: "custom",
+        script_url: "https://stats.example.com/s.js",
+        site_id: "",
+      }),
+    ).toBe(true);
   });
 });

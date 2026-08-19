@@ -1,7 +1,12 @@
+import { type AppLocale } from "@rewindom/shared";
+
 import { readLocalizedSetting } from "../../shared/section-schema.js";
+import {
+  isAllowedAnalyticsScript,
+  type SiteAnalytics,
+} from "../../shared/site-analytics.js";
 
 import type { SiteLocalizedText } from "../../shared/site-cms.js";
-import type { AppLocale } from "@rewindom/shared";
 
 /**
  * 同一段文案的两种存储形态（纯字符串 / `__i18n`）表达的可能是同一份内容，
@@ -36,10 +41,30 @@ export function pinToLocale(
   return { __i18n: { [locale]: value } };
 }
 
-/** 主语言的站名是所有语言的兜底，空了整站没名字——它不随「正在编辑哪种译文」变。 */
+/** 主语言的站名是所有语言的兜底，空了整站没名字。 */
 export function primaryText(
   value: SiteLocalizedText,
   defaultLocale: AppLocale,
 ): string {
   return readLocalizedSetting(value, defaultLocale, defaultLocale).trim();
+}
+
+export function sameAnalytics(a: SiteAnalytics, b: SiteAnalytics): boolean {
+  return (
+    a.provider === b.provider &&
+    a.script_url === b.script_url &&
+    a.site_id === b.site_id
+  );
+}
+
+/**
+ * 分析配置能不能存。空 token / 非法 custom URL 存下去会被归一成 none，
+ * 看起来像「选了 Cloudflare 又弹回去」——提交前拦住。
+ */
+export function analyticsReady(value: SiteAnalytics): boolean {
+  if (value.provider === "none") return true;
+  if (value.provider === "custom") {
+    return isAllowedAnalyticsScript(value.script_url);
+  }
+  return value.site_id.trim() !== "";
 }

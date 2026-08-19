@@ -1,16 +1,20 @@
-import { type ReactElement, type ReactNode, useState } from "react";
+import { type FormEvent, type ReactElement, type ReactNode, useState } from "react";
 
-import { usePermissions } from "@rewindom/client-kit";
+import { useConfirm, usePermissions } from "@rewindom/client-kit";
+import { getLocaleNativeLabel } from "@rewindom/shared";
+import { Button } from "@rewindom/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@rewindom/ui/sheet";
 import { Spinner } from "@rewindom/ui/spinner";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import { useSiteSettingsForm } from "../hooks/use-site-settings-form.js";
 
@@ -23,6 +27,8 @@ import { SiteVisibilityForm } from "./settings/SiteVisibilityForm.js";
 
 import type { MarketingSite } from "../../shared/site-cms.js";
 
+const SITE_SETTINGS_FORM_ID = "site-settings-form";
+
 interface SiteSettingsSheetProps {
   site: MarketingSite;
   children: ReactNode;
@@ -31,19 +37,24 @@ interface SiteSettingsSheetProps {
 /**
  * 站点设置：站名、语言、首页、发布、分析、重定向——挂在官网卡片上的 Sheet。
  *
- * 窄 Sheet 里不用页签：六组上下排布、一条滚动。控件即提交（blur / 确认 / 开关），
- * 不另配保存按钮。外观不在这里——Logo / 配色走卡片上并列的「外观」入口
- * （草稿 / 发布 + 预览），和这份失焦即存不是一套语义。
+ * 前五项是一张表单，底部保存 / 取消。重定向有自己的接口和新建 Sheet，不套进这张
+ * `<form>`。外观不在这里——Logo / 配色走卡片上并列的「外观」入口。
  */
 export function SiteSettingsSheet({
   site,
   children,
 }: SiteSettingsSheetProps): ReactElement {
   const { t } = useTranslation("marketing");
+  const { confirm } = useConfirm();
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("site.write");
   const form = useSiteSettingsForm(site);
   const [open, setOpen] = useState(false);
+
+  const close = (): void => {
+    form.reset();
+    setOpen(false);
+  };
 
   const handleOpenChange = (next: boolean): void => {
     if (next) {
@@ -51,14 +62,45 @@ export function SiteSettingsSheet({
       setOpen(true);
       return;
     }
-    /*
-     * 点遮罩关 Sheet 时输入框未必先 blur——这里再 flush 一次，避免改完直接关丢改动。
-     * 主语言站名为空时 commit 会拒绝，草稿随关 Sheet 丢掉（下次打开 reset）。
-     */
-    if (form.basics.dirty && form.basics.primaryName) {
-      form.basics.commit();
+    if (!canWrite || !form.dirty) {
+      close();
+      return;
     }
-    setOpen(false);
+    void confirm({
+      title: t("cms.settingsDiscardTitle"),
+      description: t("cms.settingsDiscardDescription"),
+      confirmText: t("cms.settingsDiscardConfirm"),
+      destructive: true,
+    }).then((confirmed) => {
+      if (confirmed) close();
+    });
+  };
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    const status = form.commit({
+      onSuccess: (saved) => {
+        toast.success(
+          saved.published !== site.published
+            ? saved.published
+              ? t("cms.toastSitePublished")
+              : t("cms.toastSiteUnpublished")
+            : t("cms.toastSiteSaved"),
+        );
+      },
+      onError: () => toast.error(t("cms.toastSiteSaveFailed")),
+    });
+    if (status === "empty_name") {
+      toast.error(
+        t("cms.toastSiteNameRequired", {
+          locale: getLocaleNativeLabel(form.locale.defaultLocale),
+        }),
+      );
+      return;
+    }
+    if (status === "incomplete_analytics") {
+      toast.error(t("cms.toastAnalyticsIncomplete"));
+    }
   };
 
   return (
@@ -76,16 +118,38 @@ export function SiteSettingsSheet({
           </div>
         ) : (
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-            <div className="flex flex-col gap-8">
+            <form
+              id={SITE_SETTINGS_FORM_ID}
+              className="flex flex-col gap-8"
+              onSubmit={onSubmit}
+            >
               <SiteBasicsForm form={form} canWrite={canWrite} />
               <SiteLocaleForm form={form} canWrite={canWrite} />
               <SiteHomeForm form={form} canWrite={canWrite} />
               <SiteVisibilityForm form={form} canWrite={canWrite} />
               <SiteAnalyticsForm form={form} canWrite={canWrite} />
+            </form>
+            <div className="mt-8">
               <SiteRedirectsSection canWrite={canWrite} />
             </div>
           </div>
         )}
+
+        {canWrite && form.ready ? (
+          <SheetFooter className="border-t">
+            <Button type="button" variant="outline" onClick={close}>
+              {t("common:cancel")}
+            </Button>
+            <Button
+              type="submit"
+              form={SITE_SETTINGS_FORM_ID}
+              disabled={!form.dirty || form.saving}
+            >
+              {form.saving ? <Spinner className="size-4" /> : null}
+              {t("cms.save")}
+            </Button>
+          </SheetFooter>
+        ) : null}
       </SheetContent>
     </Sheet>
   );

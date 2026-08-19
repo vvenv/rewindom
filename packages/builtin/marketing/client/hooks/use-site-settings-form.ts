@@ -9,8 +9,10 @@ import {
 } from "../../shared/site-analytics.js";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import {
+  analyticsReady,
   pinToLocale,
   primaryText,
+  sameAnalytics,
   sameLocalizedText,
 } from "../lib/site-settings-form.js";
 
@@ -23,35 +25,33 @@ import type {
 } from "../../shared/site-cms.js";
 
 interface SaveOptions {
-  onSuccess?: () => void;
+  onSuccess?: (saved: MarketingSite) => void;
   onError?: () => void;
 }
 
+export type SiteSettingsCommitStatus =
+  | "submitted"
+  | "noop"
+  | "empty_name"
+  | "incomplete_analytics";
+
 /**
- * 站点设置的草稿。
+ * 站点设置的本地草稿。控件只改这一份；点保存才 PATCH。
  *
- * **控件即提交**：分区共用这一份 hook（切着改不丢），但落库由控件自己触发——
- * 站名 / 标语 blur 存、主语言确认后存、发布开关即存。审计里「改了站名」与
- * 「换了主语言」仍是两条不同的记录。
+ * 分析脚本尤其不能「换供应商即存」：Cloudflare 还没填 token 时服务端会把不完整
+ * 配置归一成 none，下拉当场弹回关闭。
  *
- * 例外是**主语言**：换它必须连带把文案钉在原语言下（见 `pinToLocale`），所以
- * 那一次提交一定带着站名 / 标语。这不是耦合没拆干净，是那个操作本身就包含这一步
- * ——拆开存会在两次请求之间留下一个「文案语言已失真」的中间态。
- *
- * 站点数据回来（或被别处保存刷新）后按 `updated_at` 重新灌一次草稿。
- *
- * 控件即提交会改 `updated_at`，但「正在填哪种译文」是编辑会话状态，不是站点字段——
- * 重灌时不能把它打回主语言，否则切到 English 再改首页 / 发布，输入框会跳回中文。
- * 未失焦的站名 / 标语同理：别的分区先落库时，这边的草稿还在。
+ * 换主语言仍要先 `pinToLocale`（纯字符串的语言是隐含的），但只钉在这份草稿里，
+ * 跟站名同一次请求落库。
  */
 export function useSiteSettingsForm(site: MarketingSite | undefined) {
   const { updateSite } = useSiteMutations();
 
   const savedLocale = normalizeLocale(site?.default_locale);
+  const savedAnalytics = site?.analytics ?? EMPTY_SITE_ANALYTICS;
 
   const [siteName, setSiteName] = useState<SiteLocalizedText>("");
   const [tagline, setTagline] = useState<SiteLocalizedText>("");
-  const [editLocale, setEditLocale] = useState<AppLocale>(savedLocale);
   const [defaultLocale, setDefaultLocale] = useState<AppLocale>(savedLocale);
   const [published, setPublished] = useState(false);
   const [homePath, setHomePath] = useState("/");
@@ -60,103 +60,92 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
   );
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!site || hydratedKey === site.updated_at) return;
-    const locale = normalizeLocale(site.default_locale);
-    const first = hydratedKey === null;
-    const locales = siteLocaleOrder(locale);
+  const hydrateFrom = (next: MarketingSite): void => {
+    const locale = normalizeLocale(next.default_locale);
+    setSiteName(next.site_name);
+    setTagline(next.tagline);
     setDefaultLocale(locale);
-    setPublished(site.published);
-    setHomePath(site.home_path || "/");
-    setAnalytics(site.analytics ?? EMPTY_SITE_ANALYTICS);
-    if (first) {
-      setSiteName(site.site_name);
-      setTagline(site.tagline);
-      setEditLocale(locale);
-    } else {
-      setSiteName((current) =>
-        sameLocalizedText(current, site.site_name, locales, locale)
-          ? site.site_name
-          : current,
-      );
-      setTagline((current) =>
-        sameLocalizedText(current, site.tagline, locales, locale)
-          ? site.tagline
-          : current,
-      );
-    }
-    setHydratedKey(site.updated_at);
+    setPublished(next.published);
+    setHomePath(next.home_path || "/");
+    setAnalytics(next.analytics ?? EMPTY_SITE_ANALYTICS);
+    setHydratedKey(next.updated_at);
+  };
+
+  useEffect(() => {
+    if (!site) return;
+    if (hydratedKey === site.updated_at) return;
+    /*
+     * 打开后只灌一次。Sheet 开着时别的动作（套用首页版式、重定向）也会刷新
+     * `updated_at`，不能把未保存草稿冲掉。保存成功走 `hydrateFrom(响应)`。
+     */
+    if (hydratedKey !== null) return;
+    hydrateFrom(site);
   }, [site, hydratedKey]);
 
   const locales = siteLocaleOrder(defaultLocale);
-
-  /*
-   * 脏检查按**已保存的**主语言读两边：主语言本身改没改由 locale.commit 单独处理，
-   * 混进来的话「换了主语言」会让基本信息也跟着变脏。
-   */
   const savedLocales = siteLocaleOrder(savedLocale);
-  const basicsDirty = Boolean(
+
+  const dirty = Boolean(
     site &&
-    (!sameLocalizedText(siteName, site.site_name, savedLocales, savedLocale) ||
-      !sameLocalizedText(tagline, site.tagline, savedLocales, savedLocale)),
+      hydratedKey !== null &&
+      (defaultLocale !== savedLocale ||
+        published !== site.published ||
+        (homePath || "/") !== (site.home_path || "/") ||
+        !sameAnalytics(analytics, savedAnalytics) ||
+        !sameLocalizedText(siteName, site.site_name, savedLocales, savedLocale) ||
+        !sameLocalizedText(tagline, site.tagline, savedLocales, savedLocale)),
   );
 
-  /** 放弃未提交改动：把草稿灌回线上那一版（开 Sheet 时清一次）。 */
   const reset = (): void => {
     if (!site) return;
-    const locale = normalizeLocale(site.default_locale);
-    setSiteName(site.site_name);
-    setTagline(site.tagline);
-    setEditLocale(locale);
-    setDefaultLocale(locale);
-    setPublished(site.published);
-    setHomePath(site.home_path || "/");
-    setAnalytics(site.analytics ?? EMPTY_SITE_ANALYTICS);
-    setHydratedKey(site.updated_at);
+    hydrateFrom(site);
   };
 
   const save = (body: UpdateMarketingSiteBody, options?: SaveOptions): void => {
     updateSite.mutate(body, {
-      onSuccess: options?.onSuccess,
+      onSuccess: (saved) => {
+        hydrateFrom(saved);
+        options?.onSuccess?.(saved);
+      },
       onError: options?.onError,
     });
   };
 
-  const restoreBasics = (): void => {
-    if (!site) return;
-    setSiteName(site.site_name);
-    setTagline(site.tagline);
+  const commit = (options?: SaveOptions): SiteSettingsCommitStatus => {
+    if (!site || updateSite.isPending) return "noop";
+    if (!dirty) return "noop";
+    if (!primaryText(siteName, defaultLocale)) return "empty_name";
+    if (!analyticsReady(analytics)) return "incomplete_analytics";
+    save(
+      {
+        site_name: siteName,
+        tagline,
+        default_locale: defaultLocale,
+        published,
+        home_path: homePath,
+        analytics:
+          analytics.provider === "none" ? EMPTY_SITE_ANALYTICS : analytics,
+      },
+      options,
+    );
+    return "submitted";
   };
 
   return {
-    /** 站点还没拉到时表单整体不可用（草稿是空的，存下去会把站名清掉）。 */
     ready: Boolean(site),
     saving: updateSite.isPending,
+    dirty,
     reset,
+    commit,
 
     basics: {
       siteName,
       tagline,
-      editLocale,
-      setEditLocale,
       setSiteName,
       setTagline,
       locales,
       defaultLocale,
-      dirty: basicsDirty,
-      /** 主语言那一份站名——空了整站没名字，提交前要拦。 */
       primaryName: primaryText(siteName, defaultLocale),
-      restore: restoreBasics,
-      /**
-       * blur / 关 Sheet 时调用。返回是否发出了请求——调用方据此决定要不要 toast
-       * 「必填」或切回主语言编辑。
-       */
-      commit: (options?: SaveOptions): boolean => {
-        if (!site || !basicsDirty || updateSite.isPending) return false;
-        if (!primaryText(siteName, defaultLocale)) return false;
-        save({ site_name: siteName, tagline }, options);
-        return true;
-      },
     },
 
     locale: {
@@ -164,111 +153,42 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
       savedLocale,
       locales,
       /**
-       * 确认后一次提交：先钉文案再换主语言，body 用算好的值而不是等 setState。
-       * 失败则整段拨回线上那一版。
+       * 确认后只钉本地草稿：原文留在原语言下，新主语言是空的、要另填。
+       * 保存时和站名同一次请求。
        */
-      commit: (next: AppLocale, options?: SaveOptions): void => {
-        if (!site || next === defaultLocale || updateSite.isPending) return;
+      setDefaultLocale: (next: AppLocale): void => {
+        if (next === defaultLocale) return;
         const fromLocale = defaultLocale;
-        const pinnedName = pinToLocale(siteName, fromLocale);
-        const pinnedTagline = pinToLocale(tagline, fromLocale);
-        setSiteName(pinnedName);
-        setTagline(pinnedTagline);
+        setSiteName(pinToLocale(siteName, fromLocale));
+        setTagline(pinToLocale(tagline, fromLocale));
         setDefaultLocale(next);
-        setEditLocale(next);
-        save(
-          {
-            default_locale: next,
-            site_name: pinnedName,
-            tagline: pinnedTagline,
-          },
-          {
-            onSuccess: options?.onSuccess,
-            onError: () => {
-              setSiteName(site.site_name);
-              setTagline(site.tagline);
-              setDefaultLocale(fromLocale);
-              setEditLocale(fromLocale);
-              options?.onError?.();
-            },
-          },
-        );
       },
     },
 
     visibility: {
       published,
-      /**
-       * 开关即存：一个二值开关配一个保存按钮，只会让人以为点了开关就已经生效。
-       * 先动开关再发请求（失败时由调用方 `restore()` 拨回去），省掉一次「点了没反应」。
-       */
-      toggle: (next: boolean, options?: SaveOptions): void => {
-        setPublished(next);
-        save({ published: next }, options);
-      },
-      restore: (): void => setPublished(site?.published ?? false),
+      setPublished,
     },
 
     homepage: {
       path: homePath,
-      /**
-       * 下拉即存：和发布开关同一口径。失败由调用方 `restore()` 拨回。
-       */
-      commit: (next: string, options?: SaveOptions): void => {
-        if (!site || next === homePath || updateSite.isPending) return;
-        setHomePath(next);
-        save({ home_path: next }, {
-          onSuccess: options?.onSuccess,
-          onError: () => {
-            setHomePath(site.home_path || "/");
-            options?.onError?.();
-          },
-        });
-      },
-      restore: (): void => setHomePath(site?.home_path || "/"),
+      setPath: setHomePath,
     },
 
     analytics: {
       value: analytics,
-      /*
-       * 换供应商即存：`none` 是「关掉统计」，等失焦才生效只会让人以为没点上。
-       * 换到有配置的供应商时先只落 provider，地址 / 标识仍空 —— 服务端会把
-       * 「填不全」归一成 none，等于「还没配好就先不发脚本」，正是想要的中间态。
-       */
-      setProvider: (next: SiteAnalyticsProvider, options?: SaveOptions): void => {
-        if (!site || next === analytics.provider) return;
-        const value = { ...analytics, provider: next };
-        setAnalytics(value);
-        save({ analytics: value }, {
-          onSuccess: options?.onSuccess,
-          onError: () => {
-            setAnalytics(site.analytics ?? EMPTY_SITE_ANALYTICS);
-            options?.onError?.();
-          },
+      setProvider: (next: SiteAnalyticsProvider): void => {
+        if (next === analytics.provider) return;
+        setAnalytics({
+          provider: next,
+          script_url: "",
+          site_id: "",
         });
       },
       setScriptUrl: (next: string): void =>
         setAnalytics((current) => ({ ...current, script_url: next })),
       setSiteId: (next: string): void =>
         setAnalytics((current) => ({ ...current, site_id: next })),
-      dirty: Boolean(
-        site &&
-        (analytics.script_url !== (site.analytics?.script_url ?? "") ||
-          analytics.site_id !== (site.analytics?.site_id ?? "")),
-      ),
-      /** 两个输入框失焦时调用；与站名同口径（失焦即存）。 */
-      commit: (options?: SaveOptions): void => {
-        if (!site || updateSite.isPending) return;
-        save({ analytics }, {
-          onSuccess: options?.onSuccess,
-          onError: () => {
-            setAnalytics(site.analytics ?? EMPTY_SITE_ANALYTICS);
-            options?.onError?.();
-          },
-        });
-      },
-      restore: (): void =>
-        setAnalytics(site?.analytics ?? EMPTY_SITE_ANALYTICS),
     },
   };
 }

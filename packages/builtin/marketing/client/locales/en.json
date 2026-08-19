@@ -254,7 +254,7 @@
     "settingsSectionLocale": "Language",
     "settingsSectionLocaleHint": "The site's primary language decides which pages live at URLs without a prefix.",
     "settingsSectionHome": "Homepage",
-    "settingsSectionHomeHint": "What visitors see at the site root. Choosing a layout updates the Home template draft (publish to go live); choosing another page rewrites / immediately.",
+    "settingsSectionHomeHint": "What visitors see at the site root. Choosing a layout updates the Home template draft immediately (publish to go live); choosing another page waits until you save.",
     "settingsSectionVisibility": "Publishing",
     "settingsSectionVisibilityHint": "The site-wide switch; pages and docs each have their own published state on top of it.",
     "unpublishConfirmTitle": "Take the site offline?",
@@ -266,6 +266,10 @@
     "defaultLocaleConfirmDescription": "{{to}} pages lose their language prefix, and the current primary language ({{from}}) moves under /{{fromSlug}}/ — links already indexed or shared will break. The current name and tagline are kept as the {{from}} translation, so nothing is lost.",
     "defaultLocaleConfirm": "Switch primary language",
     "toastSiteNameRequired": "Fill in the site name for the primary language ({{locale}}) first.",
+    "toastAnalyticsIncomplete": "Finish the analytics fields before saving. An empty site ID turns tracking off.",
+    "settingsDiscardTitle": "Discard unsaved changes?",
+    "settingsDiscardDescription": "Closing the sheet throws away what you just edited.",
+    "settingsDiscardConfirm": "Discard",
     "create": "New page",
     "createPageTitle": "New page",
     "createPageDescription": "Set a path (nested ok: about, about/contact). The home page is in the template section below.",
@@ -290,7 +294,6 @@
     "statusDirty": "Unpublished edits",
     "statusDirtyHint": "The live page still shows the last published version; draft edits are not live yet.",
     "fieldSiteName": "Site name",
-    "fieldEditLocale": "Editing language",
     "fieldLocalizedFallbackHint": "Leave empty to fall back to “{{fallback}}”.",
     "fieldLocalizedEmptyHint": "Leave empty to fall back to the primary language (also unset).",
     "fieldTagline": "Tagline",
@@ -881,7 +884,7 @@
   },
   "settings": {
     "pageTitle": "Site settings",
-    "pageDescription": "Changes save as you go. Logo, colours and layout are under Appearance."
+    "pageDescription": "Save to apply. Logo, colours and layout are under Appearance."
   },
   "chromeEditor": {
     "editLocale": "Editing language"

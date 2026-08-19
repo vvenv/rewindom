@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from "@rewindom/ui/select";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 
 import { SettingsSection } from "./SettingsSection.js";
 
@@ -19,10 +18,7 @@ import type { SiteSettingsForm } from "../../hooks/use-site-settings-form.js";
 
 /**
  * 主语言 = URL 上**不带前缀**的那一种，改它会改掉全站已收录的链接结构。
- * 选完先确认再落库——它不该和改标语一样顺手。
- *
- * 提交时连带把站名 / 标语一起存：纯字符串文案的语言是隐含的，换主语言前必须先把
- * 它们钉在原语言下（见 `use-site-settings-form` 的 `pinToLocale`）。
+ * 选完先确认再钉本地草稿——保存时和站名同一次请求。
  */
 export function SiteLocaleForm({
   form,
@@ -48,11 +44,7 @@ export function SiteLocaleForm({
       confirmText: t("cms.defaultLocaleConfirm"),
       destructive: true,
     }).then((confirmed) => {
-      if (!confirmed) return;
-      locale.commit(next, {
-        onSuccess: () => toast.success(t("cms.toastSiteSaved")),
-        onError: () => toast.error(t("cms.toastSiteSaveFailed")),
-      });
+      if (confirmed) locale.setDefaultLocale(next);
     });
   };
 
