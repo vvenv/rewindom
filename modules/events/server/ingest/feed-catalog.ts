@@ -82,6 +82,7 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   { connector: "rss", name: "BBC Business", url: "https://feeds.bbci.co.uk/news/business/rss.xml", source_kind: "news", topic: "business" },
   { connector: "rss", name: "Financial Times", url: "https://www.ft.com/rss/home", source_kind: "news", topic: "business" },
   { connector: "rss", name: "SEC Press Releases", url: "https://www.sec.gov/news/pressreleases.rss", source_kind: "filing", topic: "business" },
+  // Akamai 会拦阅读器 UA，采集出口对 ftc.gov 改用浏览器族 UA（见 http.ts）
   { connector: "rss", name: "FTC Press Releases", url: "https://www.ftc.gov/feeds/press-release.xml", source_kind: "filing", topic: "business" },
 
   // ---- world

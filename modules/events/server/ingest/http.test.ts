@@ -4,8 +4,10 @@ import {
   describeFetchError,
   fetchHtml,
   fetchText,
+  INGEST_BROWSER_USER_AGENT,
   INGEST_USER_AGENT,
   isTransientNetworkError,
+  userAgentForUrl,
 } from "./http.js";
 
 afterEach(() => {
@@ -43,6 +45,29 @@ function fetchFailed(causeMessage: string): TypeError {
   (cause as Error & { code?: string }).code = "ECONNRESET";
   return Object.assign(new TypeError("fetch failed"), { cause });
 }
+
+describe("userAgentForUrl", () => {
+  it("默认用阅读器 UA，标明产品与联系地址", () => {
+    expect(userAgentForUrl("https://www.sec.gov/news/pressreleases.rss")).toBe(
+      INGEST_USER_AGENT,
+    );
+    expect(userAgentForUrl("https://example.com/feed.xml")).toBe(
+      INGEST_USER_AGENT,
+    );
+  });
+
+  it("ftc.gov 用浏览器族 UA——Akamai 会把产品名当成爬虫", () => {
+    expect(
+      userAgentForUrl("https://www.ftc.gov/feeds/press-release.xml"),
+    ).toBe(INGEST_BROWSER_USER_AGENT);
+    expect(userAgentForUrl("https://ftc.gov/feeds/press-release.xml")).toBe(
+      INGEST_BROWSER_USER_AGENT,
+    );
+    expect(
+      userAgentForUrl("https://consumer.ftc.gov/blog/feed"),
+    ).toBe(INGEST_BROWSER_USER_AGENT);
+  });
+});
 
 describe("describeFetchError", () => {
   it("把 fetch failed 背后的 cause 拼进信息", () => {
@@ -82,6 +107,16 @@ describe("fetchText", () => {
     );
     expect(mock).toHaveBeenCalledTimes(2);
     expect(mock.mock.calls[0][1].headers["user-agent"]).toBe(INGEST_USER_AGENT);
+  });
+
+  it("ftc.gov 走浏览器族 UA", async () => {
+    const mock = vi.fn().mockResolvedValue(okResponse("<rss/>"));
+    vi.stubGlobal("fetch", mock);
+
+    await fetchText("https://www.ftc.gov/feeds/press-release.xml");
+    expect(mock.mock.calls[0][1].headers["user-agent"]).toBe(
+      INGEST_BROWSER_USER_AGENT,
+    );
   });
 
   it("404 不重试", async () => {

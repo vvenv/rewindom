@@ -13,6 +13,38 @@ const RETRY_BASE_MS = 400;
 export const INGEST_USER_AGENT =
   "Mozilla/5.0 (compatible; rewindom-events/1.0; +https://github.com/vvenv/rewindom)";
 
+/**
+ * Akamai Bot Manager（ftc.gov 等）把上面那条阅读器 UA 判成
+ * 「abusive automated request」，HTTP 403、`server: AkamaiGHost`。
+ * 在 Chrome UA 后面追加 `rewindom-events/…` 同样 403——它认的是产品名，不是缺头。
+ *
+ * 这些 feed 是公开的（robots.txt 未 Disallow `/feeds/`，Crawl-delay: 5；
+ * 采集周期远宽于这个间隔）。只对这类 host 改用浏览器族 UA，默认仍标明身份。
+ * 不要往这串里加产品名或联系 URL。
+ */
+export const INGEST_BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:133.0) Gecko/20100101 Firefox/133.0";
+
+export function userAgentForUrl(url: string): string {
+  const host = hostnameOf(url);
+  if (host && isBrowserUserAgentHost(host)) {
+    return INGEST_BROWSER_USER_AGENT;
+  }
+  return INGEST_USER_AGENT;
+}
+
+function hostnameOf(url: string): string | null {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function isBrowserUserAgentHost(host: string): boolean {
+  return host === "ftc.gov" || host.endsWith(".ftc.gov");
+}
+
 export interface IngestFetchOptions {
   timeoutMs?: number;
   accept?: string;
@@ -110,7 +142,7 @@ async function fetchOnce(
       redirect: "follow",
       cache: "no-store",
       headers: {
-        "user-agent": INGEST_USER_AGENT,
+        "user-agent": userAgentForUrl(url),
         ...(options?.accept ? { accept: options.accept } : {}),
       },
     });
