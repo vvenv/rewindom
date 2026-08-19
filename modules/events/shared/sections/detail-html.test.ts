@@ -38,8 +38,8 @@ function detail(
     related: [],
     why_trending: [],
     entities: [
-      { href: "/events/entity/openai-abc123", name: "OpenAI" },
-      { href: "/events/entity/microsoft-def456", name: "Microsoft" },
+      { href: "/events/entities/openai-abc123", name: "OpenAI" },
+      { href: "/events/entities/microsoft-def456", name: "Microsoft" },
     ],
     ...overrides,
   } as PublicEventDetailView;
@@ -73,7 +73,7 @@ function render(view: PublicEventDetailView | null) {
 describe("renderEventsDetailHtml entities", () => {
   it("links the entities it mentions — the only in-site path to entity pages", () => {
     const html = render(detail());
-    expect(html).toContain('href="/events/entity/openai-abc123"');
+    expect(html).toContain('href="/events/entities/openai-abc123"');
     expect(html).toContain(">OpenAI</a>");
     expect(html).toContain(">Microsoft</a>");
   });

@@ -11,8 +11,6 @@ import { registerEventIngestJobs } from "./ingest/scheduler-jobs.js";
 import { registerEventsSections } from "./sections/register.js";
 import { registerEventsPathHandler } from "./ssr/events-path-handler.js";
 import { eventsRoutes } from "./events.routes.js";
-import { eventsOgImageRoutes } from "./ssr/og.routes.js";
-import { eventsRssRoutes } from "./ssr/rss.routes.js";
 import { eventsTranslationTermsProvider } from "./translation-terms.provider.js";
 import { EVENTS_SERVER_I18N } from "./i18n.js";
 
@@ -85,12 +83,10 @@ export const eventsServerModule: ServerAppModule = {
     },
     registerRoutes: async (app) => {
       /*
-       * 公开 RSS 挂在租户 host 上、匿名可读，所以**不进** tenant-gated 分组
-       *（那一组要登录态与租户上下文）。路由内部自行解析 host 租户并判 entitlement，
-       * 与 shop 店面路由同构。
+       * 公开面（页面 / RSS / og.png）一条 Fastify 路由都不挂：它们全部走
+       * marketing 的 path handler，那里才拿得到 `homePath` / `homeLayoutKey`，
+       * 地址才能跟着枢纽挂载走（见 ssr/rss.render.ts）。
        */
-      await app.register(eventsRssRoutes);
-      await app.register(eventsOgImageRoutes);
       await registerTenantGatedRoutes(app, "events", async (scoped) => {
         await scoped.register(feedRoutes, { prefix: "/api/events/feeds" });
         await scoped.register(followRoutes, { prefix: "/api/events/follows" });

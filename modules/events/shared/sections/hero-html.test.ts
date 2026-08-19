@@ -163,7 +163,7 @@ describe("renderEventsHeroHtml · 主题枢纽", () => {
 
   it("points the subscribe button at that topic's feed without a stored href", () => {
     const html = render(hero(), {}, AI);
-    expect(html).toContain('href="/events/feed.xml?topic=ai"');
+    expect(html).toContain('href="/events/ai/feed.xml"');
     expect(html).toContain("订阅 AI 的 RSS");
     expect(html).toContain('href="/about"');
   });
@@ -174,7 +174,7 @@ describe("renderEventsHeroHtml · 主题枢纽", () => {
       { secondary_href: "https://elsewhere.example/events/feed.xml" },
       AI,
     );
-    expect(html).toContain('href="/events/feed.xml?topic=ai"');
+    expect(html).toContain('href="/events/ai/feed.xml"');
     expect(html).not.toContain("elsewhere.example");
   });
 

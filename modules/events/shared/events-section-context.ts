@@ -89,10 +89,14 @@ export function topicPath(
 /**
  * 实体页地址。
  *
- * 默认走 `/events/entity/:slug`。事件枢纽当首页时收到 `/entity/:slug`：
- * 事件 slug 永远是一段，实体路径恒为两段且首段是 `entity`，两者不会撞。
+ * 默认走 `/events/entities/:slug`。事件枢纽当首页时收到 `/entities/:slug`：
+ * 事件 slug 永远是一段，实体路径恒为两段且首段是 `entities`，两者不会撞。
+ *
+ * **为什么是复数**：这一段同时是实体枢纽（`/events/entities` 列出全部实体）。
+ * 本模块的规矩就是「复数集合段 + 条目挂在它下面」——`/events` 是枢纽、
+ * `/events/:slug` 是一条。用单数当集合名，枢纽那张页就读不通了。
  */
-export const EVENTS_ENTITY_SEGMENT = "entity";
+export const EVENTS_ENTITY_SEGMENT = "entities";
 
 export function entityPath(
   slug: string,
@@ -105,7 +109,7 @@ export function entityPath(
 }
 
 /**
- * 实体枢纽地址：`/events/entity`（枢纽当首页时 `/entity`）。
+ * 实体枢纽地址：`/events/entities`（枢纽当首页时 `/entities`）。
  *
  * 与实体详情共用前缀而不是另开一段：同一个域下只有一处入口，
  * sitemap、面包屑与 path handler 都少一条分支。
@@ -127,10 +131,19 @@ function entityPrefix(indexPath: string): string {
  *
  * 这个产品一直在消费 RSS，现在也产出 RSS——订阅是留存的第三条腿：
  * 关注事件（易逝）、关注实体（登录态）、订阅 feed（**不需要账号**）。
+ *
+ * 主题是**路径段**（`/events/ai/feed.xml`），与主题枢纽同形。曾经是
+ * `?topic=ai`，而同一个文件里 `topicPath` 早就写明「topic 必须是路径段」——
+ * 同一个域里主题一会儿是段一会儿是参数，读者与实现都要多记一条。
  */
-export function eventsFeedPath(topic?: EventTopic): string {
-  const base = `${EVENTS_INDEX_PATH}/feed.xml`;
-  return topic ? `${base}?topic=${encodeURIComponent(topic)}` : base;
+export const EVENTS_FEED_SEGMENT = "feed.xml";
+
+export function eventsFeedPath(
+  topic?: EventTopic,
+  indexPath: string = EVENTS_INDEX_PATH,
+): string {
+  const base = topic ? topicPath(topic, indexPath) : indexPath;
+  return joinIndex(base, `/${EVENTS_FEED_SEGMENT}`);
 }
 
 /**
@@ -143,21 +156,40 @@ export function eventsSubscribeHref(input: {
   const context = readEventsContext(input);
   return context?.entity
     ? context.entity.feed_href
-    : eventsFeedPath(context?.listing?.topic ?? context?.topic);
+    : eventsFeedPath(
+        context?.listing?.topic ?? context?.topic,
+        context?.index_path ?? EVENTS_INDEX_PATH,
+      );
 }
+
+export const EVENTS_OG_IMAGE_SEGMENT = "og.png";
 
 /**
  * 事件的社交卡片图地址。
  *
- * 恒带 `/events` 前缀，**不跟着首页挂载收到根上**：它不是给人看的页面，
- * 没有「规范地址」的问题，og:image 本来就是绝对 URL。
+ * 与详情页同前缀：枢纽当首页时是 `/:slug/og.png`。整个模块只有一条
+ * 「公开地址跟着挂载走」的规矩，不要为「它不是给人看的页面」开一条例外——
+ * 例外要记，而记不住的那次就是前缀漏出来的那次。旧地址仍由前缀 handler
+ * 接住并 301，已经被抓过的社交卡片不会断。
  */
-export function eventOgImagePath(slug: string): string {
-  return `${EVENTS_INDEX_PATH}/${encodeURIComponent(slug)}/og.png`;
+export function eventOgImagePath(
+  slug: string,
+  indexPath: string = EVENTS_INDEX_PATH,
+): string {
+  return joinIndex(
+    eventPath(slug, indexPath),
+    `/${EVENTS_OG_IMAGE_SEGMENT}`,
+  );
 }
 
-export function entityFeedPath(slug: string): string {
-  return `${entityPath(slug)}/feed.xml`;
+export function entityFeedPath(
+  slug: string,
+  indexPath: string = EVENTS_INDEX_PATH,
+): string {
+  return joinIndex(
+    entityPath(slug, indexPath),
+    `/${EVENTS_FEED_SEGMENT}`,
+  );
 }
 
 /** 从路径里取实体 slug；不是实体路径时返回 null。 */
@@ -219,7 +251,59 @@ export type EventsPublicRoute =
   | { type: "topic"; topic: EventTopic }
   | { type: "event"; slug: string }
   | { type: "entity_index" }
-  | { type: "entity"; slug: string };
+  | { type: "entity"; slug: string }
+  /** 全站 / 某主题的 RSS */
+  | { type: "feed"; topic?: EventTopic }
+  /** 某个实体的 RSS */
+  | { type: "entity_feed"; slug: string }
+  /** 某条事件的社交卡片图 */
+  | { type: "og_image"; slug: string };
+
+/** 末段是不是 `feed.xml` / `og.png` 这类资源名（而不是一段 slug）。 */
+function hasResourceSuffix(path: string): boolean {
+  return (
+    path.endsWith(`/${EVENTS_FEED_SEGMENT}`) ||
+    path.endsWith(`/${EVENTS_OG_IMAGE_SEGMENT}`)
+  );
+}
+
+/** 剥掉末段；不是这个末段则 null。剥空（`/feed.xml`）时基地址是站点根。 */
+function stripTrailingSegment(path: string, segment: string): string | null {
+  const suffix = `/${segment}`;
+  if (!path.endsWith(suffix)) return null;
+  return path.slice(0, -suffix.length) || "/";
+}
+
+/**
+ * `<基地址>/feed.xml`。只有**三种**基地址有 feed：枢纽、主题格、实体页。
+ *
+ * 单条事件没有 feed——`/:slug/feed.xml` 一律 null → 404。给不存在的东西
+ * 发一份空 feed，订阅者要等到第一次期待落空才知道自己订了个寂寞。
+ */
+function parseEventsFeedPath(
+  path: string,
+  indexPath: string,
+): EventsPublicRoute | null {
+  const base = stripTrailingSegment(path, EVENTS_FEED_SEGMENT);
+  if (base === null) return null;
+  if (base === indexPath) return { type: "feed" };
+  const entitySlug = entitySlugFromPath(base, indexPath);
+  if (entitySlug !== null) return { type: "entity_feed", slug: entitySlug };
+  const topic = topicFromPath(base, indexPath);
+  if (topic !== null) return { type: "feed", topic };
+  return null;
+}
+
+/** `<详情页>/og.png`。只有事件详情有卡片图，主题格与实体页没有。 */
+function parseEventsOgImagePath(
+  path: string,
+  indexPath: string,
+): EventsPublicRoute | null {
+  const base = stripTrailingSegment(path, EVENTS_OG_IMAGE_SEGMENT);
+  if (base === null) return null;
+  const slug = eventSlugFromPath(base, indexPath);
+  return slug === null ? null : { type: "og_image", slug };
+}
 
 export function parseEventsPublicPath(
   path: string,
@@ -227,15 +311,19 @@ export function parseEventsPublicPath(
 ): EventsPublicRoute | null {
   if (path === indexPath) return { type: "index" };
   /*
-   * RSS 由模块自己的 Fastify 路由发（path handler 只能回 HTML，控制不了 content-type）。
-   * 那条静态路由在 find-my-way 里本来就优先于 marketing 的 `/*`，但这里也明确让开：
-   * 否则一旦注册顺序变了，`/events/feed.xml` 会被当成 slug 为 `feed.xml` 的事件详情，
-   * 静默变成 404。
+   * 末段先认，而且**认不出也不许往下掉**：`/events/entities/feed.xml` 会被
+   * 后面的实体解析读成 slug 为 `feed.xml` 的实体，`/events/feed.xml` 会被读成
+   * 同名的事件详情——两种都是静默 404，查起来只看得到「这条事件不存在」。
    */
-  if (path.endsWith("/feed.xml")) return null;
+  if (hasResourceSuffix(path)) {
+    return (
+      parseEventsFeedPath(path, indexPath) ??
+      parseEventsOgImagePath(path, indexPath)
+    );
+  }
   /*
-   * 实体枢纽要在单段解析**之前**认：枢纽挂在根上时 `/entity` 只有一段，
-   * 不先拦下来就会被当成一个叫 entity 的事件 slug，然后 404。
+   * 实体枢纽要在单段解析**之前**认：枢纽挂在根上时 `/entities` 只有一段，
+   * 不先拦下来就会被当成一个叫 entities 的事件 slug，然后 404。
    */
   if (path === entityIndexPath(indexPath)) return { type: "entity_index" };
   const entitySlug = entitySlugFromPath(path, indexPath);
@@ -249,7 +337,7 @@ export function parseEventsPublicPath(
 
 /**
  * 请求路径 → 事件路由。先认 `/events` 前缀（含首页挂载后的旧地址），
- * 再在挂到根上时认 `/:topic`、`/:slug` 与 `/entity/:slug`。
+ * 再在挂到根上时认 `/:topic`、`/:slug` 与 `/entities/:slug`。
  */
 export function parseEventsRequestPath(
   path: string,
@@ -359,7 +447,8 @@ export function isEventsIndexListing(
 }
 
 /**
- * `/events`、`/events/:topic`、`/events/:slug` 与 `/events/entity/:slug`。
+ * `/events`、`/events/:topic`、`/events/:slug`、`/events/entities/:slug`，
+ * 以及三条非 HTML 地址：`feed.xml`（枢纽 / 主题 / 实体）与详情的 `og.png`。
  *
  * 这是**挂载前缀**上的匹配，与是否把枢纽设为首页无关——旧地址始终由这条
  * handler 接住，再 301 到根上。根上的 `/:topic` / `/:slug` 走 fallback，见
@@ -370,8 +459,9 @@ export function isEventsPath(path: string): boolean {
 }
 
 /**
- * 枢纽当首页时，CMS 未命中后认领的路径：`/:topic`、`/:slug` 与 `/entity/:slug`。
- * `/` 本身由首页 CMS 渲染（或存量 home_path 改写），不走这里。
+ * 枢纽当首页时，CMS 未命中后认领的路径：`/:topic`、`/:slug`、`/entities/:slug`，
+ * 以及根上的 `feed.xml` / `og.png`。`/` 本身由首页 CMS 渲染（或存量 home_path
+ * 改写），不走这里。
  */
 export function isEventsRootFallbackPath(path: string): boolean {
   if (path === "/") return false;

@@ -703,6 +703,16 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 - `registerReservedPageSlug` — 自定义页不能占用该一级 slug
 - sitemap / link-target providers — `sitemap.xml` 与编辑器链接下拉的额外条目
 
+`render` 回字符串就是 HTML；要发别的类型就回 `SitePathResponse`
+（`body: string | Buffer` + `content_type` + 可选 `cache_control`，默认与 HTML 同款
+`public, max-age=60`）。events 的 `feed.xml` 与 `og.png` 走这条。
+
+**为什么不让模块自挂 Fastify 路由**：`homePath` / `homeLayoutKey` 只有这条链路收得到。
+自挂路由天生看不见「这个站把枢纽设成首页了」，公开 URL 收到根之后它发出的地址还带着
+旧前缀——而那前缀在旁边所有链接上都已经 301 掉了。走这里还能白拿 locale 剥离、
+entitlement 闸门与 `canonicalRedirect`。内核路由（`sitemap.xml` / `robots.txt`）仍然
+不给业务模块蹭。
+
 存量段 type `doc-list` 等、chrome `chrome_search`、导航源 `docs` / `doc_category`
 在解析时改写成 site-docs 的贡献名，不是双读 API。金标准：`site-docs`。
 

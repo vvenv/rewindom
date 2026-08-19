@@ -69,6 +69,7 @@ server/
   ingest/                 采集：connector、RSS 解析、调度任务
   event/                  领域：URL 规范化、分词聚类、热度、分析器、读服务
   ssr/                    公开面：path handler、模板页渲染、公开读取、RSS、og.png
+                          （feed / og 都由 path handler 分派，模块不自挂 Fastify 路由）
   sections/register.ts    段 / 上下文 provider / sitemap / 链接候选登记
   client/
     pages/                  events（探索+全量）、event-detail、event-sources（按主题分组，组头开关主题）
@@ -90,15 +91,15 @@ server/
 | 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构。站点设置里选这项会套首页草稿并把公开 URL 收到 `/`、`/:topic`、`/:slug` |
 | 模板页 `events_detail` | `/events/:slug`（枢纽当首页时访客地址是 `/:slug`；主题格子 `ai` / `tech`… 先被认成主题页，事件 slug 恒带 id 后缀不会撞） |
 | 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上。编辑器没有当前实体，预览用样张 |
-| 模板页 `events_entity` | `/events/entity/:slug`（枢纽当首页时访客地址是 `/entity/:slug`） |
+| 模板页 `events_entity` | `/events/entities/:slug`（枢纽当首页时访客地址是 `/entities/:slug`） |
 | 段 `events.entity_index` | 实体枢纽正文（按类型分组的实体链接），`page_kinds` 限定只能落在实体枢纽模板页上。客户端必须登记视图，否则编辑器预览是空白 |
-| 模板页 `events_entity_index` | `/events/entity`（枢纽当首页时访客地址是 `/entity`） |
+| 模板页 `events_entity_index` | `/events/entities`（枢纽当首页时访客地址是 `/entities`） |
 | 导航源 `events.entities` | 页头 / 页脚：实体枢纽一条叶子。**不塞进 `events` 源**——那个源是七个主题格，混一条进去会打乱它的语义 |
-| 图片路由 `/events/:slug/og.png` | 事件自己的社交卡片图（1200×630）。**不跟着首页挂载收到根上**：它不是给人看的页面 |
+| 卡片图 `/events/:slug/og.png` | 事件自己的社交卡片图（1200×630）。与详情页同前缀，跟着首页挂载收到 `/:slug/og.png` |
 | 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events/:topic`（当首页时 `/:topic`），当前格高亮；`children` 则收成「事件」一条下挂七格 |
 | 导航源 `events.topic` | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填 |
-| path handler | 接 `/events`、`/events/:topic`、`/events/:slug`、`/events/entity` 与 `/events/entity/:slug`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:topic`、`/:slug`、`/entity/:slug`；`/` 由首页 CMS 渲染，`/?source=` 才接管列表；根上的主题 / 详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
-| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给枢纽页（`/events`、`/events/entity`）以及 RSS（全站 + 已启用主题，分组 `feed`）。实体 feed 不进下拉 |
+| path handler | 接 `/events`、`/events/:topic`、`/events/:slug`、`/events/entities`、`/events/entities/:slug`，以及三条非 HTML：`feed.xml`（枢纽 / 主题 / 实体）与 `/events/:slug/og.png`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:topic`、`/:slug`、`/entities/:slug`；`/` 由首页 CMS 渲染，`/?source=` 才接管列表；根上的主题 / 详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
+| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给枢纽页（`/events`、`/events/entities`）以及 RSS（全站 + 已启用主题，分组 `feed`）。实体 feed 不进下拉 |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
 `registerHomeLayout`（events 填表，内核不认识「雷达」这个概念）。
@@ -470,13 +471,20 @@ HN 的 topstories 本来就是几十件互不相干的事。但词面聚类有�
 强求对称要么多存一份反向表，要么让 top5 名不副实）；**同分按 id 排**保证幂等，
 否则每轮采集都会把列表洗一遍而内容毫无变化。
 
-#### 实体页 `/events/entity/:slug`
+#### 实体页 `/events/entities/:slug`
 
 路径默认挂在 `/events` 下而不是新开一个根路径：事件与实体是同一个域，共用前缀让 sitemap、
-面包屑与 path handler 都只有一处。把 `/events` 设为首页后访客地址收到 `/entity/:slug`，
-旧 `/events/entity/:slug` 301 过来。**事件 slug 永远是一段，实体路径恒为两段且首段是
-`entity`**，两者不会撞；三段以上不接，交回给普通页面查找。已发布的 CMS 页优先于
+面包屑与 path handler 都只有一处。把 `/events` 设为首页后访客地址收到 `/entities/:slug`，
+旧 `/events/entities/:slug` 301 过来。**事件 slug 永远是一段，实体路径恒为两段且首段是
+`entities`**，两者不会撞；三段以上不接，交回给普通页面查找。已发布的 CMS 页优先于
 根上的事件 / 实体路径。
+
+段名是**复数**：这一段同时是实体枢纽（`/events/entities` 列出全部实体），而本模块的
+规矩就是「复数集合段 + 条目挂在它下面」（`/events` 是枢纽、`/events/:slug` 是一条）。
+用单数当集合名，枢纽那张页就读不通了。
+
+> 曾经是 `/events/entity/:slug`，改名时**没有留 301**（产品决定）。已收录的旧实体页
+> 直接 404，累计的实体页权重一并作废——如果以后还要改这一段，先想清楚这一条。
 
 页面是「模板页 + 段」的组合，与详情页同构：租户可以在编辑器里改版式。实体与其事件由
 path handler 直接带进 `EventsRenderContext.entity`，**不走 contributed provider**——
@@ -489,10 +497,10 @@ sitemap 只收**最近 30 天还有事件**的实体（不是按实体自身更�
 索引——事件 24h 后就凉，实体不会——但也正因为它长期存在，更要挡住「三年前提过一次就
 永远进 sitemap」的长尾。
 
-#### 实体枢纽 `/events/entity` 与详情页上的实体链接
+#### 实体枢纽 `/events/entities` 与详情页上的实体链接
 
 实体页曾经是**孤儿页**：只在 sitemap 里出现，站内一条链接都没有（线上抓过，
-首页与任意事件详情页里 `/entity/` 出现 0 次）。Google 对没有内链的页面给的权重极低，
+首页与任意事件详情页里 `/entities/` 出现 0 次）。Google 对没有内链的页面给的权重极低，
 而实体页恰恰是这个站最该被反复回访的一面。
 
 两条内链方向缺一不可，只做一条解不开；首页胶囊条是第三条，补的是「落地页看不到实体」：
@@ -500,15 +508,15 @@ sitemap 只收**最近 30 天还有事件**的实体（不是按实体自身更�
 | 方向 | 在哪 | 量级 |
 | --- | --- | --- |
 | 事件详情 → 实体 | 详情段里一行胶囊链接（`entities`） | 每张事件页几条，是权重的主要来源 |
-| 实体枢纽 → 全部实体 | `/events/entity`，按类型分组 | 一张页，给爬虫一条能一次爬完的路 |
+| 实体枢纽 → 全部实体 | `/events/entities`，按类型分组 | 一张页，给爬虫一条能一次爬完的路 |
 | 首页 / 枢纽 → Top N 实体 | 段 `events.entity_strip` | 流量最大的那一页也链出去；不是词云，字号一律 |
 
 `events.entity_strip` 与枢纽同一批实体（近 30 天、封顶 500），映射层按事件数排序，渲染层截成 Top N（默认 24）。可摆任意页；预设放在 Now 与订阅之间。存量已发布的首页**不会**自动插入——预设升级只影响新快照与「重设版式」，已落库的页面要在编辑器里添加，或重新套用事件雷达版式。
 
 详情页上的实体**不给段开关**：与「归位」同一条口径——它是这条材料的身份而不是一个板块。
 
-枢纽的路径解析要在**单段解析之前**认：枢纽挂在根上时 `/entity` 只有一段，
-不先拦下来就会被当成一个叫 entity 的事件 slug，然后 404。
+枢纽的路径解析要在**单段解析之前**认：枢纽挂在根上时 `/entities` 只有一段，
+不先拦下来就会被当成一个叫 entities 的事件 slug，然后 404。
 
 枢纽自己进 sitemap 走 events 的 provider，不能靠 marketing 的页面清单——枢纽当首页时
 `/events/*` 整段被收到根上并 301，那一行模板页会被 marketing 的 sitemap 过滤掉
@@ -518,10 +526,11 @@ sitemap 只收**最近 30 天还有事件**的实体（不是按实体自身更�
 #### 事件自己的社交卡片图
 
 所有页面共用一张品牌图时，分享到 Slack / X / Reddit 的十条事件长得一模一样——
-卡片是这条链接在别人时间线里的**全部外观**。所以 `/events/:slug/og.png` 实时画一张：
+卡片是这条链接在别人时间线里的**全部外观**。所以 `/events/:slug/og.png`
+（枢纽当首页时 `/:slug/og.png`）实时画一张：
 标题（最多三行）+ 主题 / 阶段胶囊 + 来源数 + 域名，配色照抄官网深色 token。
 
-- 挂模块自己的 Fastify 路由，与 RSS 同一条理由：path handler 只回 HTML，控制不了 content-type
+- 与 RSS 同一条分派：走 path handler 的非 HTML 返回，地址因此跟着枢纽挂载走
 - **可降级**：服务端进程手里不一定有字体（精简镜像）。拿不到字体就报「不可用」，
   详情页据此**不设** og:image，回落站点品牌图——好过指向一个 404 的图片地址
 - 字体优先用官网自己发的 Inter（`apps/client/dist|public/assets/site-fonts`，
@@ -954,23 +963,38 @@ release / filing 是预防性的：同一批样本里没观察到碰撞（k8s 10
 | 关注实体 | 要 | 长期 |
 | **订阅 RSS** | **不要** | 长期 |
 
-前两条都要求先注册，而 RSS 恰恰是技术读者最可能采用的那条。三个入口：
+前两条都要求先注册，而 RSS 恰恰是技术读者最可能采用的那条。三个入口，
+**地址跟着枢纽挂载走**（与页面同一套前缀）：
 
-```
-/events/feed.xml                    这个站在报什么
-/events/feed.xml?topic=ai           只看某个主题
-/events/entity/<slug>/feed.xml      只看某个公司 / 产品
-```
+| 订阅意图 | 默认 | 枢纽当首页 |
+| --- | --- | --- |
+| 这个站在报什么 | `/events/feed.xml` | `/feed.xml` |
+| 只看某个主题 | `/events/ai/feed.xml` | `/ai/feed.xml` |
+| 只看某个公司 / 产品 | `/events/entities/<slug>/feed.xml` | `/entities/<slug>/feed.xml` |
 
 `/en/...` 前缀同样接（内容不翻译，前缀只影响 channel 文案与站内链接）。
 
-**为什么不走 path handler**：`SitePathHandler.render` 只回 HTML，没有 content-type 控制，
-feed 会被当成 `text/html` 发出去。所以挂模块自己的 Fastify 路由（与 shop 店面路由同构），
-在里面自行解析 host 租户。marketing 的 `sitemap.xml` 是内核路由——业务模块**不改内核**去蹭它。
+主题是**路径段**，不是 `?topic=ai`。同一份文件里 `topicPath` 早就写明主题必须是
+路径段（页头高亮靠 `currentPath` 精确匹配），feed 却用查询串，等于同一个域里
+主题一会儿是段一会儿是参数。旧的 `?topic=` 已删——查询串仍能解析，但只会拿到
+未过滤的全站 feed。
 
-`parseEventsPublicPath` 明确让开 `/feed.xml`：那条静态路由在 find-my-way 里本来就优先于
-marketing 的 `/*`，但一旦注册顺序变了，`/events/feed.xml` 会被当成 slug 为 `feed.xml`
-的事件详情，**静默变成 404**。
+**为什么走 path handler 而不是模块自挂 Fastify 路由**：`homePath` / `homeLayoutKey`
+只有 path handler 收得到。自挂路由天生看不见「这个站把枢纽设成首页了」，于是
+`/entities/openai` 的页面上会挂出一条 `/events/entities/openai/feed.xml` 的订阅
+链接——前缀在旁边所有链接上都已经 301 掉了。为此 marketing 的
+`SitePathHandler.render` 扩成可回 `SitePathResponse`（`body` + `content_type` +
+`cache_control`），HTML 仍可直接回字符串。locale 剥离、entitlement 闸门、旧前缀
+301 一并白拿。
+
+想在模块内部补路由也补不动：根挂载的 `/ai/feed.xml` 与带语言前缀的 `/en/feed.xml`
+在 find-my-way 里是**同一个路由模式**，注册第二条直接抛重复路由。
+
+`parseEventsPublicPath` **先认末段**（`feed.xml` / `og.png`），且认不出也不许往下掉：
+否则 `/events/entities/feed.xml` 会被读成 slug 为 `feed.xml` 的实体、`/events/feed.xml`
+会被读成同名事件详情——两种都是**静默 404**，排查时只看得到「这条不存在」。
+只有枢纽、主题格、实体页三种基地址有 feed；单条事件没有（`/events/:slug/feed.xml` → 404），
+不给不存在的东西发一份空 feed。
 
 四条细节：
 
@@ -1119,8 +1143,7 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 - **中文源**：语义层已经就位，跨语言合并技术上成立了，但阈值要在中英混合语料上**单独校准**
   ——不能沿用 0.85。这是独立决策，不是顺手加几个 RSS
 - **Why it's trending**：分析器接口再加一个方法即可，需要严格区分 Confirmed 与 Discussion
-- **关注实体**：留存的真正支点（事件 24h 后就凉，实体不会），要新表 + 通知，独立一期
-- **实体索引页 `/events/entity`**：先有单页，聚合页看有没有人要
+- **关注实体的通知**：关注已经能记，推送还没有。事件 24h 后就凉，实体才是长期订阅面
 - **工作台的实体管理**：合并 / 改名 / 删除。别名合并要人来定，不能猜
 - **那组 GitHub 故障仍然合不了**：词面共享不足 2 个词，语义 0.75~0.85 够不到阈值，
   实体兜底已实测证伪（见上文）。它需要的是「同一实体 + 同一时间窗 + 同一事件类型（故障）」
@@ -1128,6 +1151,6 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
 - **pgvector**：候选窗口稳定超过 10⁴ 时再上，见上文「语义聚类」里的取舍
 - **招聘源**：Greenhouse / Lever 是 JSON API，要写第三个 connector；标题模板化
   （`Senior Engineer - Remote`）比状态页更严重，聚类口径要单独验证
-- **带条件的对外 RSS**：`/events/feed.xml?kind=release`，要动 `rss.routes` 与
+- **带条件的对外 RSS**：`/events/feed.xml?kind=release`，要动 `rss.render` 与
   `parseEventsPublicPath`。公开列表页的 `?kind=` 已经有了，订阅侧还没有
 - **按类型订阅通知**（「只有 release 才推我」）：留存的下一步，要接 notification

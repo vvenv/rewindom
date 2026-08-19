@@ -1,30 +1,18 @@
 /**
- * 事件的社交卡片图：`GET /events/:slug/og.png`。
+ * 事件的社交卡片图：`<详情页>/og.png`（枢纽当首页时 `/:slug/og.png`）。
  *
- * **为什么不走 path handler**：与 RSS 同一条理由——`SitePathHandler.render` 只回 HTML，
- * 控制不了 content-type。所以挂模块自己的 Fastify 路由，在里面自行解析 host 租户。
- *
- * 地址**不跟着首页挂载收到根上**：它不是给人看的页面，没有「规范地址」的问题，
- * 少一条分支就少一处会错的地方。og:image 本来就是绝对 URL。
+ * 与 RSS 同一条搬迁理由（见 `rss.render.ts`）：地址要跟着枢纽挂载走，而挂载
+ * 只有 path handler 知道。旧的 `/events/:slug/og.png` 仍由前缀 handler 接住
+ * 并 301，已经被 Slack / Twitter 抓过的卡片不会断。
  */
 
-import {
-  resolveHostTenant,
-  resolveRequestHostname,
-} from "@rewindom/module-sdk/server";
-
-import {
-  isEventOgImageAvailable,
-  renderEventOgPng,
-} from "./og-image.js";
+import { isEventOgImageAvailable, renderEventOgPng } from "./og-image.js";
 import { eventsMessage } from "./events-preset-i18n.js";
 import { getPublicEventBySlug } from "./public-events.service.js";
 
-import { isEventsEnabled } from "../lib/entitlement.js";
-
 import { getSiteChromeOrFallback } from "@rewindom/builtin/marketing/server/site.service.js";
 
-import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import type { SitePathResponse } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 
 /** 卡片图只随事件文案变；抓取方会反复来，给一天。 */
 const CACHE_CONTROL = "public, max-age=86400";
@@ -55,46 +43,38 @@ function remember(key: string, png: Buffer): void {
   }
 }
 
-export async function eventsOgImageRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/events/:slug/og.png", async (request, reply) =>
-    sendOgImage(request, reply),
-  );
-}
-
-async function sendOgImage(
-  request: FastifyRequest,
-  reply: FastifyReply,
-): Promise<unknown> {
+/** 画不出来（服务端没字体）或事件不存在 → null（→ 404）。 */
+export async function renderEventOgImage(input: {
+  tenantId: string;
+  tenantSlug: string;
+  origin: string;
+  slug: string;
+}): Promise<SitePathResponse | null> {
   if (!isEventOgImageAvailable()) {
-    return reply.status(404).send("Not Found");
+    return null;
   }
-  const host = await resolveHostTenant(resolveRequestHostname(request.headers));
-  if (!host || !(await isEventsEnabled(host.tenant_id))) {
-    return reply.status(404).send("Not Found");
-  }
-
-  const { slug } = request.params as { slug: string };
-  const detail = await getPublicEventBySlug(host.tenant_id, slug);
+  const detail = await getPublicEventBySlug(input.tenantId, input.slug);
   if (!detail) {
-    return reply.status(404).send("Not Found");
+    return null;
   }
 
   /*
-   * 卡片上的文案跟**站点主语言**走，不是进程默认语言。
+   * 卡片上的文案跟**站点主语言**走，不是当前 URL 的语言前缀，也不是进程默认语言：
+   * 一条链接只有一张卡片图，而 og:image 是绝对地址、抓取方不带语言上下文。
    * 写死 zh-CN 的后果是英文站的卡片上出现中文胶囊，而 Inter 只有拉丁字形——
    * 那一排会画成豆腐块（实测）。
    */
   const site = await getSiteChromeOrFallback(
-    host.tenant_id,
-    host.tenant_slug,
-    host.tenant_slug,
+    input.tenantId,
+    input.tenantSlug,
+    input.tenantSlug,
     null,
   );
   const locale = site.default_locale;
   const t = (key: string, params?: Record<string, string | number>): string =>
     eventsMessage(locale, key, params);
 
-  const key = `${slug}:${detail.last_activity_at}`;
+  const key = `${input.slug}:${detail.last_activity_at}`;
   const png =
     cached(key) ??
     renderEventOgPng({
@@ -104,12 +84,13 @@ async function sendOgImage(
         detail.source_names.length > 0
           ? t("card.sources", { names: detail.source_names.join(" · ") })
           : "",
-      brand: request.hostname,
+      brand: new URL(input.origin).hostname,
     });
   remember(key, png);
 
-  return reply
-    .header("content-type", "image/png")
-    .header("cache-control", CACHE_CONTROL)
-    .send(png);
+  return {
+    body: png,
+    content_type: "image/png",
+    cache_control: CACHE_CONTROL,
+  };
 }

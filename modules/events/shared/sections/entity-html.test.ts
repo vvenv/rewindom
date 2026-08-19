@@ -32,8 +32,8 @@ function card(slug: string, overrides: Partial<PublicEventCard> = {}): PublicEve
 function entity(overrides: Partial<PublicEntityView> = {}): PublicEntityView {
   return {
     slug: "openai-abc123",
-    href: "/events/entity/openai-abc123",
-    feed_href: "/events/entity/openai-abc123/feed.xml",
+    href: "/events/entities/openai-abc123",
+    feed_href: "/events/entities/openai-abc123/feed.xml",
     name: "OpenAI",
     kind_label: "公司",
     event_count: 2,

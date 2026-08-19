@@ -229,7 +229,7 @@ export async function getPublicEventsForRss(
   return rows.map((record) => toEventListItem(record, null));
 }
 
-/** 某个实体的事件，供 `/events/entity/<slug>/feed.xml` 用。 */
+/** 某个实体的事件，供 `/events/entities/<slug>/feed.xml` 用。 */
 export async function getPublicEntityEventsForRss(
   tenantId: string,
   slug: string,

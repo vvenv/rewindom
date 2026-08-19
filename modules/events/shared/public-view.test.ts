@@ -33,13 +33,13 @@ describe("toPublicEntityStrip", () => {
       ],
       "/events",
     );
-    expect(strip.href).toBe("/events/entity");
+    expect(strip.href).toBe("/events/entities");
     expect(strip.items.map((item) => item.name)).toEqual([
       "Alpha",
       "Beta",
       "Zeta",
     ]);
-    expect(strip.items[0]?.href).toBe("/events/entity/alpha");
+    expect(strip.items[0]?.href).toBe("/events/entities/alpha");
   });
 
   it("follows the home mount for both chip links and the hub", () => {
@@ -47,8 +47,8 @@ describe("toPublicEntityStrip", () => {
       [{ slug: "openai", name: "OpenAI", event_count: 3 }],
       "/",
     );
-    expect(strip.href).toBe("/entity");
-    expect(strip.items[0]?.href).toBe("/entity/openai");
+    expect(strip.href).toBe("/entities");
+    expect(strip.items[0]?.href).toBe("/entities/openai");
   });
 });
 
@@ -64,7 +64,7 @@ describe("toPublicEntityIndex", () => {
       t,
       "/events",
     );
-    expect(index.href).toBe("/events/entity");
+    expect(index.href).toBe("/events/entities");
     expect(index.groups.map((group) => group.kind)).toEqual([
       "company",
       "product",
@@ -74,7 +74,7 @@ describe("toPublicEntityIndex", () => {
       "OpenAI",
       "Google",
     ]);
-    expect(index.groups[1]?.items[0]?.href).toBe("/events/entity/gpt-6");
+    expect(index.groups[1]?.items[0]?.href).toBe("/events/entities/gpt-6");
   });
 
   it("follows the home mount", () => {
@@ -83,8 +83,8 @@ describe("toPublicEntityIndex", () => {
       t,
       "/",
     );
-    expect(index.href).toBe("/entity");
-    expect(index.groups[0]?.items[0]?.href).toBe("/entity/openai");
+    expect(index.href).toBe("/entities");
+    expect(index.groups[0]?.items[0]?.href).toBe("/entities/openai");
   });
 });
 
@@ -128,8 +128,8 @@ describe("toPublicEntity", () => {
       t,
       "/events",
     );
-    expect(view.href).toBe("/events/entity/openai");
-    expect(view.feed_href).toBe("/events/entity/openai/feed.xml");
+    expect(view.href).toBe("/events/entities/openai");
+    expect(view.feed_href).toBe("/events/entities/openai/feed.xml");
     expect(view.kind_label).toBe("Company");
     expect(view.profile).toEqual([
       "12 events in 90 days",

@@ -1,9 +1,10 @@
 /**
- * 公开事件页的路径处理：`/events`、`/events/:topic` 与 `/events/:slug`（含 `/en/...` 前缀）。
+ * 公开事件页的路径处理：`/events`、`/events/:topic` 与 `/events/:slug`（含 `/en/...` 前缀），
+ * 以及三条非 HTML 地址——`feed.xml`（枢纽 / 主题 / 实体）与详情的 `og.png`。
  *
  * 选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到根上；
  * `/` 由首页 CMS 渲染；`/?source=` 由本 handler 接管列表；
- * `/:topic` / `/:slug` / `/entity/:slug` 在 CMS 未命中后由 fallback 接。
+ * `/:topic` / `/:slug` / `/entities/:slug` 在 CMS 未命中后由 fallback 接。
  *
  * marketing SSR 在剥掉 locale 之后问这张表，所以两种前缀走同一套渲染。
  * 事件模块没有 cookie 要写，因此**不需要**像 shop 那样再挂一条自己的 Fastify 路由。
@@ -13,6 +14,8 @@ import { normalizeLocale } from "@rewindom/module-sdk";
 
 import { renderEventsTemplatePage } from "./events-page.js";
 import { isEventOgImageAvailable } from "./og-image.js";
+import { renderEventOgImage } from "./og.render.js";
+import { renderEntityFeed, renderEventsFeed } from "./rss.render.js";
 import {
   createEventsPresetTranslator,
   eventsMessage,
@@ -75,7 +78,10 @@ import type {
   EventSourceKind,
   EventTopic,
 } from "../../shared/index.js";
-import type { SitePathHandlerInput } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
+import type {
+  SitePathHandlerInput,
+  SitePathRenderResult,
+} from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
 function mountOf(input: {
@@ -89,9 +95,9 @@ function indexPathOf(input: SitePathHandlerInput): string {
   return eventsIndexPath(mountOf(input));
 }
 
-async function renderEventsPath(
+export async function renderEventsPath(
   input: SitePathHandlerInput,
-): Promise<string | null> {
+): Promise<SitePathRenderResult> {
   const atRoot = eventsMountedAtRoot(mountOf(input));
   const route = parseEventsRequestPath(input.path, atRoot);
   if (!route) {
@@ -100,6 +106,36 @@ async function renderEventsPath(
 
   const locale = normalizeLocale(input.locale);
   const indexPath = indexPathOf(input);
+
+  /*
+   * 非 HTML 的三条先分掉：它们不套模板页、不要 chrome，只是恰好住在同一棵
+   * 路径树上。挂载、locale、entitlement 已经由 marketing 解析完毕。
+   */
+  if (route.type === "feed" || route.type === "entity_feed") {
+    const feedInput = {
+      tenantId: input.tenantId,
+      tenantSlug: input.tenantSlug,
+      origin: input.origin,
+      locale,
+      selfPath: input.servedPath ?? input.path,
+      indexPath,
+    };
+    if (route.type === "entity_feed") {
+      return renderEntityFeed(feedInput, route.slug);
+    }
+    if (route.topic && !(await isTopicOn(input.tenantId, route.topic))) {
+      return null;
+    }
+    return renderEventsFeed(feedInput, route.topic);
+  }
+  if (route.type === "og_image") {
+    return renderEventOgImage({
+      tenantId: input.tenantId,
+      tenantSlug: input.tenantSlug,
+      origin: input.origin,
+      slug: route.slug,
+    });
+  }
 
   if (route.type === "entity_index") {
     return renderEntityIndex(input, locale, indexPath);
@@ -113,17 +149,22 @@ async function renderEventsPath(
   const pathTopic = route.type === "topic" ? route.topic : undefined;
   const query = parseEventsIndexQuery(input.query);
   const topic = pathTopic ?? query.topic;
-  if (topic) {
-    const enabled = await getEnabledTopics(input.tenantId);
-    if (!isTopicEnabled(enabled, topic)) {
-      return null;
-    }
+  if (topic && !(await isTopicOn(input.tenantId, topic))) {
+    return null;
   }
   return renderIndex(input, locale, indexPath, pathTopic);
 }
 
+/** 关掉的主题格对访客是 404——页面与它的 feed 同一条口径。 */
+async function isTopicOn(
+  tenantId: string,
+  topic: EventTopic,
+): Promise<boolean> {
+  return isTopicEnabled(await getEnabledTopics(tenantId), topic);
+}
+
 /**
- * 实体枢纽 `/events/entity`（枢纽当首页时 `/entity`）。
+ * 实体枢纽 `/events/entities`（枢纽当首页时 `/entities`）。
  *
  * 清单为空也**照样渲染**——与实体详情不同：那里没有实体是 404（地址指着一个
  * 不存在的东西），这里是一张常驻页面，只是暂时没有内容可列，段自己画空态。
@@ -335,11 +376,11 @@ async function renderDetail(
     omitHreflang: true,
     canonicalPath: href,
     /*
-     * 这一条自己的社交卡片图。地址不跟着首页挂载变（见 og.routes.ts）。
+     * 这一条自己的社交卡片图，地址跟着枢纽挂载走（与详情页同前缀）。
      * 服务端画不出来时不设，回落站点品牌图——好过指向一个 404 的图片地址。
      */
     ogImage: isEventOgImageAvailable()
-      ? `${input.origin}${eventOgImagePath(slug)}`
+      ? `${input.origin}${eventOgImagePath(slug, indexPath)}`
       : undefined,
     events: emptyEventsContext({
       index_path: indexPath,

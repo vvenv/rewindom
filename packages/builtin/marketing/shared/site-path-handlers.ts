@@ -56,6 +56,32 @@ export interface SitePathMatchContext {
   homeLayoutKey?: string;
 }
 
+/**
+ * 非 HTML 的响应体（RSS、og.png…）。
+ *
+ * **为什么在这里而不是让模块自挂 Fastify 路由**：`homePath` / `homeLayoutKey`
+ * 只有 path handler 收得到。模块自己挂的路由天生看不见「这个站把枢纽设成首页了」，
+ * 于是 `/entities/openai` 的页面上会挂出一条 `/events/entities/openai/feed.xml`
+ * 的订阅链接——前缀在旁边所有链接上都已经 301 掉了。
+ *
+ * 顺带白拿：locale 前缀剥离、entitlement 闸门、旧前缀的 `canonicalRedirect`。
+ */
+export interface SitePathResponse {
+  body: string | Buffer;
+  content_type: string;
+  /** 不填按 HTML 同款 `public, max-age=60`。feed 一小时、图片一天。 */
+  cache_control?: string;
+}
+
+/** HTML 直接回字符串；`null` = 这条路径下没有内容。 */
+export type SitePathRenderResult = string | SitePathResponse | null;
+
+export function isSitePathResponse(
+  result: SitePathRenderResult,
+): result is SitePathResponse {
+  return result !== null && typeof result !== "string";
+}
+
 export interface SitePathHandler {
   /**
    * 这条路径是不是本 handler 的。只看逻辑路径，不管 entitlement
@@ -71,9 +97,11 @@ export interface SitePathHandler {
    */
   canonicalRedirect?: (input: SitePathHandlerInput) => string | null;
   /**
-   * 渲染 HTML；`null` 表示这个前缀下没有内容（文档不存在）→ 走 404。
+   * 渲染这条路径；`null` 表示这个前缀下没有内容（文档不存在）→ 走 404。
+   *
+   * 回字符串 = HTML。要发别的类型（RSS、og.png）就回 `SitePathResponse`。
    */
-  render: (input: SitePathHandlerInput) => Promise<string | null>;
+  render: (input: SitePathHandlerInput) => Promise<SitePathRenderResult>;
 }
 
 /**
@@ -88,7 +116,7 @@ export interface SitePathFallback {
     path: string,
     ctx: { homePath: string; homeLayoutKey?: string },
   ) => boolean;
-  render: (input: SitePathHandlerInput) => Promise<string | null>;
+  render: (input: SitePathHandlerInput) => Promise<SitePathRenderResult>;
 }
 
 const HANDLERS: SitePathHandler[] = [];

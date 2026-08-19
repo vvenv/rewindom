@@ -1,0 +1,107 @@
+# 公开地址口径收口：feed / og.png 跟着挂载走，主题 feed 改成路径段。
+#
+# 两个毛病同源——RSS 与 og.png 走的是模块自己的 Fastify 路由，而 `homePath` /
+# `homeLayoutKey` 只有 path handler 收得到，那两条路由**天生**看不见挂载：
+#
+#   1. 主题 feed 是 `?topic=ai`，而同一个模块早就定死「topic 必须是路径段」
+#      （topicPath 的注释：页头高亮靠 currentPath 精确匹配，查询串进不去）。
+#      同一个域里主题一会儿是段一会儿是参数。
+#   2. 根挂载的站点上实体页是 `/entity/openai`，页面上那颗订阅按钮却指向
+#      `/events/entity/openai/feed.xml`——前缀在旁边所有链接上都已经 301 掉了。
+#
+# 在模块内部补 Fastify 路由补不动：根挂载的 `/ai/feed.xml` 与带语言前缀的
+# `/en/feed.xml` 在 find-my-way 里是**同一个路由模式**，注册第二条直接抛重复路由。
+# 所以把 `SitePathHandler.render` 扩成可回非 HTML，feed / og 并回 path handler，
+# 挂载感知、locale 剥离、entitlement 闸门、旧前缀 301 全部白拿。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: feed.xml 与 og.png 跟随枢纽挂载（根挂载时不带 /events 前缀），主题 feed 从 ?topic= 改成路径段 /events/:topic/feed.xml，实体段 entity → entities；三者并入 path handler，删掉模块自挂的 rss / og Fastify 路由。
+gold: modules/events/server/ssr/events-path-handler.ts
+touch:
+  - modules/events/features/feed-url-mount.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-section-context.test.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+  - modules/events/shared/events-link-targets.ts
+  - modules/events/shared/events-link-targets.test.ts
+  - modules/events/shared/events-entity-section.ts
+  - modules/events/shared/events-entity-index-section.ts
+  - modules/events/shared/events-entity-strip-section.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/sections/subscribe-html.test.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/shared/sections/entity-html.test.ts
+  - modules/events/shared/sections/entity-index-html.test.ts
+  - modules/events/shared/sections/entity-strip-html.test.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/events-path-handler.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/rss.render.ts
+  - modules/events/server/ssr/rss.routes.ts # 删
+  - modules/events/server/ssr/og.routes.ts # 删
+  - modules/events/server/ssr/og.render.ts
+  - modules/events/shared/index.ts
+  - modules/events/server/module.ts
+  - packages/builtin/marketing/shared/site-path-handlers.ts
+  - packages/builtin/marketing/shared/site-path-handlers.test.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 兼容旧的 `/events/feed.xml?topic=ai`（公开面口径变更，按仓库「默认不做向后兼容」直接删；未带 topic 的全站 feed 地址不变）
+  - 给 `/events/entity/*` → `/events/entities/*` 留 301（产品决定不留：已收录的实体页直接 404，累计权重作废。风险已提示）
+  - 枢纽页自己的 `?topic=` 接管与 canonical（那是列表页的既有行为，不在本次）
+  - `?source=` / `?kind=` 列表查询串改成路径段（它们不是导航项）
+  - <link rel=alternate> 自动发现（仍要 marketing 开 head 贡献点）
+  - shop / docs 同样把 feed 收到根
+i18n: none # 地址口径变更，不新增文案
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/*' shared/site-path-handlers.test.ts
+  - node scripts/verify-module.mjs events
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 公开面，匿名可读
+models: [] # 不落库
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. marketing 侧只扩一个返回类型，不新增注册表：
+#    `SitePathHandler.render` / `SitePathFallback.render` 从 `string | null`
+#    扩成 `string | SitePathResponse | null`，
+#    `SitePathResponse = { body: string | Buffer; content_type: string; cache_control?: string }`。
+#    HTML 仍可直接回字符串（既有 handler 一行不改）。
+# 2. 地址表（左=默认，右=枢纽当首页）：
+#      /events/feed.xml                    → /feed.xml
+#      /events/:topic/feed.xml             → /:topic/feed.xml
+#      /events/entities/:slug/feed.xml     → /entities/:slug/feed.xml
+#      /events/:slug/og.png                → /:slug/og.png
+#    旧前缀由既有 `canonicalRedirect` 301，不写第二套。
+# 3. `parseEventsPublicPath` 里那句「明确让开 /feed.xml」的特判**删掉**——
+#    它是路由分家时的补丁。feed / og 变成正经路由类型
+#    （`feed` / `entity_feed` / `og_image`），后缀先剥、再按基地址判：
+#    只有枢纽、主题格、实体页三种基地址有 feed；只有事件详情有 og.png。
+#    `/:slug/feed.xml`（单条事件）与 `/:topic/og.png` 一律 null → 404，
+#    不存在的东西不要生成一个空 feed。
+# 4. 实体段改复数：这一段同时是实体枢纽（`/events/entities` 列出全部实体），
+#    而本模块的规矩是「复数集合段 + 条目挂在它下面」（`/events` 与 `/events/:slug`）。
+#    段名是 `EVENTS_ENTITY_SEGMENT` 一个常量，路径全部由它派生。
+# 5. og.png 跟着挂载走是本次**明确的口径变更**：MODULE.md 里
+#    「不跟着首页挂载收到根上」那段要改写，不要留两处打架的说明。
+#    旧地址仍由前缀 handler 接住并 301，已被 Slack / Twitter 抓过的卡片不断。
+# 6. 频道标题仍用**站点名**（`getSiteChromeOrFallback`），不是租户 slug——
+#    那一行是订阅者在阅读器侧边栏里永久看到的东西。
+#    `self_url` 用 `origin + withSiteLocale(servedPath)`，不再拼 `request.url`：
+#    servedPath 本来就是终态地址，也顺手把查询串甩掉。
+# 7. 订阅取址（`eventsSubscribeHref`）读 `context.index_path`，
+#    `toPublicEntity` 的 `feed_href` 补 `indexPath` 参数——
+#    根挂载时页面上所有链接同一套前缀，这是本次的主诉。
+# 8. 编辑器链接下拉（`eventsLinkTargets`）仍存 `/events/...` 的**页身份**地址，
+#    不随首页改（`link-target-rss.spec.yaml` 既有口径），落地交给 301。
+#    但主题项要从 `?topic=` 换成路径段，否则存进 setting 的是个已废弃的地址。

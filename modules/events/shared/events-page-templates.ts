@@ -68,9 +68,9 @@ export const EVENTS_ENTITY_INDEX_TEMPLATE_SLUG = "events-entities";
 
 /** `/events/:slug` 的路径模式，与 marketing 的模板页登记同形。 */
 export const EVENTS_DETAIL_PATH = eventPath(":slug");
-/** `/events/entity/:slug`。 */
+/** `/events/entities/:slug`。 */
 export const EVENTS_ENTITY_PATH = entityPath(":slug");
-/** `/events/entity` —— 实体枢纽，是能打开的地址（不是模板路径）。 */
+/** `/events/entities` —— 实体枢纽，是能打开的地址（不是模板路径）。 */
 export const EVENTS_ENTITY_INDEX_PATH = entityIndexPath();
 
 /**
@@ -86,7 +86,7 @@ const EVENTS_HUB_SECTIONS: readonly PresetSection[] = [
     raw: { limit: 9 },
   },
   /*
-   * 近期实体条：让首页也链到实体页。枢纽那张完整清单仍在 `/events/entity`，
+   * 近期实体条：让首页也链到实体页。枢纽那张完整清单仍在 `/events/entities`，
    * 这里只是 Top N 胶囊。「查看全部」把人送去枢纽。
    */
   { type: EVENTS_ENTITY_STRIP_SECTION_TYPE },

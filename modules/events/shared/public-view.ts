@@ -264,7 +264,7 @@ export function toPublicEntity(
   return {
     slug: entity.slug,
     href: entityPath(entity.slug, indexPath),
-    feed_href: entityFeedPath(entity.slug),
+    feed_href: entityFeedPath(entity.slug, indexPath),
     name: entity.name,
     kind_label: t(`entityKind.${entity.kind}`),
     event_count: entity.event_count,

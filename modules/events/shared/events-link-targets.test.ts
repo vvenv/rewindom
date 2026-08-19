@@ -15,12 +15,12 @@ describe("eventsLinkTargets", () => {
     const targets = eventsLinkTargets({ ...labels, topics: ["ai", "tech"] });
     expect(targets.filter((item) => item.group === "page").map((item) => item.value)).toEqual([
       "/events",
-      "/events/entity",
+      "/events/entities",
     ]);
     expect(targets.filter((item) => item.group === "feed").map((item) => item.value)).toEqual([
       "/events/feed.xml",
-      "/events/feed.xml?topic=ai",
-      "/events/feed.xml?topic=tech",
+      "/events/ai/feed.xml",
+      "/events/tech/feed.xml",
     ]);
   });
 
@@ -38,7 +38,7 @@ describe("eventsLinkTargets", () => {
       topics: ["ai"],
       topicName: () => "人工智能",
       topicFeedLabel: (name) => `订阅 ${name}`,
-    }).find((item) => item.value.includes("topic=ai"));
+    }).find((item) => item.value === "/events/ai/feed.xml");
     expect(ai?.label).toBe("订阅 人工智能");
   });
 });

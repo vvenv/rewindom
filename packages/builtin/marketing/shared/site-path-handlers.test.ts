@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  isSitePathResponse,
   matchSitePathFallback,
   matchSitePathHandler,
   registerSitePathFallback,
@@ -42,5 +43,25 @@ describe("matchSitePathFallback", () => {
     expect(
       matchSitePathFallback("/foo", new Set(), { homePath: "/events" }),
     ).toBeUndefined();
+  });
+});
+
+/*
+ * 贡献 handler 也发非 HTML（events 的 feed.xml / og.png）：`homePath` 只有
+ * 这条链路收得到，模块自挂 Fastify 路由的话地址就跟不上首页挂载。
+ */
+describe("isSitePathResponse", () => {
+  it("字符串是 HTML，对象自带 content-type", () => {
+    expect(isSitePathResponse("<html/>")).toBe(false);
+    expect(isSitePathResponse(null)).toBe(false);
+    expect(
+      isSitePathResponse({
+        body: "<rss/>",
+        content_type: "application/rss+xml; charset=utf-8",
+      }),
+    ).toBe(true);
+    expect(
+      isSitePathResponse({ body: Buffer.from("png"), content_type: "image/png" }),
+    ).toBe(true);
   });
 });

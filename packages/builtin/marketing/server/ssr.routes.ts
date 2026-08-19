@@ -17,9 +17,11 @@ import {
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import { isSpaShellPath, parseMarketingSsrPath } from "../shared/site-locale.js";
 import {
+  isSitePathResponse,
   matchSitePathFallback,
   matchSitePathHandler,
   type SitePathHandlerInput,
+  type SitePathRenderResult,
 } from "../shared/site-path-handlers.js";
 import { localizeRedirectLocation, visitorRedirectPath } from "../shared/site-redirect.js";
 
@@ -79,6 +81,25 @@ function sendHtml(
     .header("content-type", "text/html; charset=utf-8")
     .header("cache-control", cacheControl)
     .send(html);
+}
+
+/**
+ * 贡献 handler 的结果 → 响应。字符串是 HTML；`SitePathResponse` 自带
+ * content-type（feed 是 `application/rss+xml`，og 是 `image/png`）。
+ */
+function sendPathHandlerResult(
+  reply: FastifyReply,
+  result: NonNullable<SitePathRenderResult>,
+): void {
+  if (!isSitePathResponse(result)) {
+    sendHtml(reply, 200, result);
+    return;
+  }
+  void reply
+    .status(200)
+    .header("content-type", result.content_type)
+    .header("cache-control", result.cache_control ?? "public, max-age=60")
+    .send(result.body);
 }
 
 async function sendSiteRedirect(
@@ -389,8 +410,8 @@ async function renderLogicalPath(
       sendCanonicalRedirect(reply, request, canonical, locale);
       return true;
     }
-    const html = await handler.render(input);
-    if (html === null) {
+    const rendered = await handler.render(input);
+    if (rendered === null) {
       if (homeRewrite) return false;
       await renderNotFound(
         request,
@@ -402,7 +423,7 @@ async function renderLogicalPath(
       );
       return true;
     }
-    sendHtml(reply, 200, html);
+    sendPathHandlerResult(reply, rendered);
     return true;
   }
 
@@ -432,7 +453,7 @@ async function renderLogicalPath(
         tenantId: hostTenant.tenant_id,
         locale: pageLocale,
       });
-      const html = await fallback.render(
+      const rendered = await fallback.render(
         pathHandlerInput({
           request,
           hostTenant,
@@ -445,8 +466,8 @@ async function renderLogicalPath(
           accountEntryHtml: accountEntry.html,
         }),
       );
-      if (html !== null) {
-        sendHtml(reply, 200, html);
+      if (rendered !== null) {
+        sendPathHandlerResult(reply, rendered);
         return true;
       }
     }
