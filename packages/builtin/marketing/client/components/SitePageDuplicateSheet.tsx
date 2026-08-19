@@ -48,10 +48,15 @@ import { siteLocaleOrder } from "../../shared/site-locale.js";
 import { useSite, useSiteMutations, useSitePages } from "../hooks/useSite.js";
 
 
-/** 复制的源页面：列表项与详情都能满足。 */
+/**
+ * 复制的源页面：列表项与详情都能满足。
+ *
+ * `description` 也要在列里——面板要拿它判「源页没有描述，复制出来的那张存不下去」
+ * （见下面的 `missingDescription`）。漏掉它时这个文件是编译不过的。
+ */
 type DuplicateSource = Pick<
   MarketingPageListItem,
-  "id" | "title" | "slug" | "kind" | "locale"
+  "id" | "title" | "description" | "slug" | "kind" | "locale"
 >;
 
 interface SitePageDuplicateSheetProps {

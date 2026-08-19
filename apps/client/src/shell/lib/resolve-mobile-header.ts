@@ -1,3 +1,5 @@
+import { APP_DISPLAY_NAME } from "@rewindom/shared";
+
 import { collectShellContributions } from "./shell-contributions.js";
 
 import type {
@@ -5,7 +7,6 @@ import type {
   AppNavItem,
   ClientAppModule,
 } from "@rewindom/client-kit";
-import { APP_DISPLAY_NAME } from "@rewindom/shared";
 
 export function resolveMobileHeaderState(
   pathname: string,

@@ -17,10 +17,11 @@
  *   pnpm --filter server exec tsx scripts/backfill-marketing-default-pages.ts --dry-run
  *   pnpm --filter server exec tsx scripts/backfill-marketing-default-pages.ts
  */
-import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import { initializeTenantSite } from "@rewindom/builtin/marketing/server/site-init.service.js";
 import { getPlatformSettings } from "@rewindom/builtin/platform/server/services/platform-settings.service.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+
 import { registerDocsPageTemplates } from "../../../modules/site-docs/shared/page-templates.js";
 
 async function main(): Promise<void> {

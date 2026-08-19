@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * 为指定站点铺商店 demo（商品 / 分类 / 优惠码 / 运费 / 示例订单），并开通 shop 模块。
  *
@@ -5,13 +6,12 @@
  *
  *   pnpm --filter server exec tsx scripts/seed-shop-demo.ts [tenantSlug]
  */
+import { RoleService } from "@rewindom/builtin/rbac/server/role.service.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { collectModulePermissions } from "@rewindom/server-kernel/runtime/collect-module-permissions.js";
 import { DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 
-import { RoleService } from "@rewindom/builtin/rbac/server/role.service.js";
 import { seedShopDemo } from "../../../modules/shop/server/seed-demo.js";
-
 import { ENABLED_SERVER_MODULES } from "../src/enabled-modules.js";
 
 async function main(): Promise<void> {

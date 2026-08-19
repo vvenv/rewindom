@@ -1,0 +1,50 @@
+# 增量功能契约 —— `www.<域名>` 301 到裸域
+#
+# 起因：线上 `https://www.yestino.com/` 返回 **404**（"This host is not bound to a site."）。
+# 宿主 nginx 的 `server_name` 与证书都覆盖了 www，certbot 也为它签了证——
+# 也就是说 www **本来就该能打开**，是应用这一层认不出来。
+#
+# 租户的 `custom_domain` 是精确匹配（`yestino.com`），`www.yestino.com` 匹配不上，
+# 于是掉进「这个 Host 没绑站点」。推广场景下这是实打实的损失：名片、口头传播、
+# 老书签、以及仍然自动补 www 的输入框，全部落到一张 404 上。
+#
+# 为什么是 301 而不是「让 www 也渲染同一份内容」：那会让同一份内容有两个可访问地址，
+# 各自 self-canonical，搜索引擎按两个站看待——正是推广时最不该制造的问题。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: 公开面收到 `www.<apex>` 且 apex 绑着站点、www 自己没绑时，301 到 apex 的同一路径（带查询串）。
+gold: packages/builtin/marketing/server/ssr.routes.ts
+touch:
+  - packages/builtin/marketing/features/www-canonical-host.spec.yaml
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/server/www-canonical-host.ts
+  - packages/builtin/marketing/server/www-canonical-host.test.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 反向（裸域 → www）：产品口径是裸域为规范地址
+  - `/api/*`：301 会把 POST 变成 GET，接口层不做主机改写
+  - 自动为 www 申请证书 / 改 nginx（证书与 server_name 已覆盖，见 docs/custom-domain.md）
+  - 给租户一个「www 要不要跳」的开关（没有第二种正确答案，不值得一个设置项）
+  - 平台控制台 Host（它本来就不绑租户）
+i18n: none # 无用户可见文案
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server www-canonical-host.test.ts
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **只在 apex 真的绑着站点时**才跳。反过来写（见 www 就剥）会打死
+#    `FRONTEND_URL=https://www.example.com` 这种把 www 当正式域名的部署：
+#    那时 apex 没绑，跳过去就是 404。
+# 2. www 自己绑了租户（有人把 `www.a.com` 填成 custom_domain）时**不跳**——
+#    那是显式配置，按它渲染。
+# 3. 挂 `onRequest`，在 marketing 的 SSR 插件作用域内：这里就是公开面的入口，
+#    `/`、`/*`、`/sitemap.xml`、`/robots.txt` 全在。
+# 4. `cache-control: no-store`：与站点重定向同一条口径——绑定关系随时会变，
+#    别让浏览器把这一跳长期缓存住。

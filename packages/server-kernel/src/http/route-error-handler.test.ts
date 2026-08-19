@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 
 import { UnauthorizedError } from "../lib/app-errors.js";
+
 import {
   handleRouteError,
   handleValidationError,

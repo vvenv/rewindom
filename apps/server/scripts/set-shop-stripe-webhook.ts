@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * 用 Stripe CLI 取出本地 listen 的 webhook signing secret，写入默认站点的
  * shop_stripe_provider（不覆盖已有 secret_key / publishable_key）。

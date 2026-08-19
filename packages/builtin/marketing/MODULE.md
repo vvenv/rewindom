@@ -1141,6 +1141,19 @@ og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算
 
 用例见 `server/ssr-seo.test.ts`。
 
+### `www.` 是别名，不是第二个站
+
+公开面收到 `www.<apex>` 时，若 **apex 绑着站点、而 www 自己没绑**，一律 301 到 apex
+（`server/www-canonical-host.ts`，挂在 SSR 插件的 `onRequest` 上）。
+
+- 起因：`custom_domain` 是精确匹配，`www.yestino.com` 匹配不上 `yestino.com`，
+  访客拿到「这个 Host 没绑站点」的 404——而 nginx 的 `server_name` 与证书本来就覆盖了 www
+- **不让 www 也渲染同一份内容**：那会让同一份内容有两个可访问地址、各自 self-canonical，
+  搜索引擎按两个站看待
+- 两道闸门缺一不可：www 自己绑了就按它渲染（那是显式配置）；apex 没绑就不跳
+  （`FRONTEND_URL=https://www.example.com` 这种把 www 当正式域名的部署，跳过去就是 404）
+- `/api/*` 不在这个作用域里：301 会把 POST 变成 GET，接口层不做主机改写
+
 ### sitemap 只列「能打开且不再跳转」的 URL
 
 `getPublishedSitemapEntries` 在 noindex / 404 模板之外还挡掉两类：

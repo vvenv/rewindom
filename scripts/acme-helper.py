@@ -97,6 +97,29 @@ def _strip_names_from_platform_vhost(names: list[str]) -> None:
         conf.write_text(next_text)
 
 
+LISTEN_443_RE = re.compile(r"^(\s*listen\s+(?:\[::\]:)?443\s+ssl)(;.*)$", re.M)
+
+
+def _enable_http2(conf: Path) -> bool:
+    """Add `http2` to certbot's `listen 443 ssl;` lines. Returns True if changed.
+
+    certbot writes the TLS listen line itself and never enables HTTP/2, so a
+    freshly issued custom domain would be stuck on HTTP/1.1. Idempotent: once
+    the line says `ssl http2` it no longer matches.
+
+    nginx >= 1.25.1 prefers a separate `http2 on;` directive, but the listen
+    parameter still works there and is the only spelling on 1.24 (production).
+    """
+    if not conf.is_file():
+        return False
+    text = conf.read_text()
+    next_text = LISTEN_443_RE.sub(r"\1 http2\2", text)
+    if next_text == text:
+        return False
+    conf.write_text(next_text)
+    return True
+
+
 def _issue(names: list[str]) -> dict[str, Any]:
     if not names:
         return {"ok": False, "error": "names required"}
@@ -144,6 +167,12 @@ def _issue(names: list[str]) -> dict[str, Any]:
                 :2000
             ],
         }
+
+    # certbot 刚写完 443 listen 行；补上 http2 再 reload。失败不影响签发结果——
+    # 证书已经拿到了，退回 HTTP/1.1 只是慢一点，不该让整个请求报错。
+    if _enable_http2(vhost) and _run(["nginx", "-t"]).returncode == 0:
+        _run(["systemctl", "reload", "nginx"])
+
     return {"ok": True, "names": names}
 
 

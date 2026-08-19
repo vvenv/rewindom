@@ -118,6 +118,25 @@ pnpm release patch -- --no-check --deploy-local --env production
 
 ## 运维
 
+### 宿主机 Nginx 的 HTTP/2
+
+**443 那行 listen 不是本仓库渲染的**——`docker_render_host_nginx_proxy` 只写
+`listen 80`，TLS 那个 server 块由 `certbot --nginx` 接管并补上 `listen 443 ssl;`。
+certbot 从不开 HTTP/2，所以裸装出来的站点会一直停在 HTTP/1.1。
+
+部署脚本每次都会跑一遍 `docker_enable_host_nginx_http2`（幂等）：给本仓库管的 vhost
+（`# rewindom-` 开头那两种）的 443 listen 补上 `http2`，`nginx -t` 通过才 reload，
+失败自动回滚。新签自定义域时 `acme-helper.py` 也会在 certbot 之后补一次。
+
+自查：
+
+```bash
+curl -sI -o /dev/null -w "%{http_version}\n" https://<域名>/   # 期望 2
+```
+
+nginx ≥ 1.25.1 起 `http2 on;` 是新写法，listen 参数仍生效（`nginx -t` 会提示
+deprecated）。生产当前是 1.24，listen 参数是那儿**唯一**的写法。
+
 ### 日志
 
 ```bash

@@ -132,6 +132,7 @@ describe("getMobileTabItems", () => {
     expect(items.map((item) => item.path)).toEqual([
       "/app/dashboard",
       "/app/bookmarks",
+      "/app/events",
       "/app/notes",
       "/app/todos",
     ]);

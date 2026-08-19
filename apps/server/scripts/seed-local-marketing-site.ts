@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * 为指定租户铺一套已发布的营销站。
  *
@@ -8,16 +9,18 @@
  *
  *   pnpm --filter server exec tsx scripts/seed-local-marketing-site.ts [tenantSlug]
  */
+import { applyDefaultProductSite } from "@rewindom/builtin/marketing/server/apply-default-product-site.js";
+import { initializeTenantSite } from "@rewindom/builtin/marketing/server/site-init.service.js";
+import { updateSite } from "@rewindom/builtin/marketing/server/site.service.js";
+import { ensureDefaultTenant } from "@rewindom/builtin/platform/server/services/ensure-default-tenant.service.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 
-import { applyDefaultProductSite } from "@rewindom/builtin/marketing/server/apply-default-product-site.js";
-import { initializeTenantSite } from "@rewindom/builtin/marketing/server/site-init.service.js";
+
 import { loadUsageDocs } from "../../../modules/site-docs/server/load-usage-docs.js";
 import { seedDocsFromFiles } from "../../../modules/site-docs/server/site-doc.service.js";
 import { registerDocsPageTemplates } from "../../../modules/site-docs/shared/page-templates.js";
-import { updateSite } from "@rewindom/builtin/marketing/server/site.service.js";
-import { ensureDefaultTenant } from "@rewindom/builtin/platform/server/services/ensure-default-tenant.service.js";
+
 
 async function main(): Promise<void> {
   registerDocsPageTemplates();

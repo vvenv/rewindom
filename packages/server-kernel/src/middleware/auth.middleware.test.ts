@@ -1,6 +1,6 @@
-import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID, MEMBER_ACCESS_COOKIE } from "@rewindom/shared";
 import FastifyCookie from "@fastify/cookie";
 import FastifyJWT from "@fastify/jwt";
+import { DEFAULT_TENANT_ID, PLATFORM_ADMIN_USER_ID, MEMBER_ACCESS_COOKIE } from "@rewindom/shared";
 import Fastify, { type FastifyInstance } from "fastify";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 

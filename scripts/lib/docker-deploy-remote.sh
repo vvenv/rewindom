@@ -103,6 +103,51 @@ fi
 "
 }
 
+# HTTP/2 —— 每次部署都跑一遍，幂等。
+#
+# 为什么不能写进 `docker_render_host_nginx_proxy`：那份模板只渲染 `listen 80`，
+# **443 那行是 certbot 写的**（`certbot --nginx` 接管 server 块并加上
+# `listen 443 ssl;`）。certbot 从不加 http2，于是 TLS 站点一直停在 HTTP/1.1
+# ——线上抓过，`curl --http2` 谈下来的仍是 1.1。
+#
+# 每次部署都跑而不是只在 bootstrap：新签一个自定义域会让 certbot 再改一次
+# nginx 配置，那条新的 443 listen 同样没有 http2。跑一遍把它们都补上。
+#
+# nginx 1.25.1 起 `listen ... http2` 被 `http2 on;` 取代（旧写法仍然生效，
+# 只是 `nginx -t` 会提示 deprecated）。这里统一用 listen 参数：一条 sed 覆盖所有版本，
+# 而它在 1.24（当前生产版本）上是**唯一**的写法。
+docker_enable_host_nginx_http2() {
+  log_info "确认宿主机 Nginx 已开启 HTTP/2..."
+  _run_ssh 'set -euo pipefail
+command -v nginx >/dev/null 2>&1 || exit 0
+
+changed=""
+for link in /etc/nginx/sites-enabled/*; do
+  [ -e "$link" ] || continue
+  conf="$(readlink -f "$link")"
+  # 只动本仓库管的 vhost（部署模板 / ACME helper 写的那两种）
+  grep -q "^# rewindom-" "$conf" || continue
+  grep -qE "listen (\[::\]:)?443 ssl;" "$conf" || continue
+  cp -a "$conf" "$conf.pre-http2.bak"
+  sed -i -e "s/listen 443 ssl;/listen 443 ssl http2;/" \
+         -e "s/listen \[::\]:443 ssl;/listen [::]:443 ssl http2;/" "$conf"
+  changed="$changed $conf"
+done
+
+[ -n "$changed" ] || exit 0
+
+if nginx -t; then
+  systemctl reload nginx
+  for conf in $changed; do rm -f "$conf.pre-http2.bak"; done
+  echo "[http2] enabled on:$changed"
+else
+  for conf in $changed; do mv -f "$conf.pre-http2.bak" "$conf"; done
+  echo "[http2] nginx -t failed, rolled back" >&2
+  exit 1
+fi
+'
+}
+
 docker_ensure_acme_helper() {
   local domain="$1"
   local port="$2"
@@ -366,6 +411,7 @@ docker compose -f docker-compose.prod.yml --env-file '${remote_env_file}' up -d
   fi
 
   docker_ensure_acme_helper "$domain" "$port" "$ssl_email"
+  docker_enable_host_nginx_http2
 
   log_info "健康检查..."
   docker_wait_for_health "$remote_dir" "$port"

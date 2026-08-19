@@ -1,7 +1,7 @@
+/* eslint-disable no-console */
 /**
  * 本地 SEO SSR 冒烟：为指定 slug（默认 local → vvenv）发布首页。
  */
-import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 import {
   createPage,
@@ -10,6 +10,7 @@ import {
   updateSite,
 } from "@rewindom/builtin/marketing/server/site.service.js";
 import { parseAreaSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
 async function main(): Promise<void> {
   const tenant =

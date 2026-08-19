@@ -6,13 +6,13 @@
  *   pnpm --filter server exec tsx scripts/publish-tenant-site.ts --dry-run --slug yestino
  *   pnpm --filter server exec tsx scripts/publish-tenant-site.ts --slug yestino
  */
-import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
-
 import {
   publishSiteDraft,
   setPageStatus,
   updateSite,
 } from "@rewindom/builtin/marketing/server/site.service.js";
+import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
+
 
 interface Args {
   dryRun: boolean;

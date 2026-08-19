@@ -46,6 +46,10 @@ import {
   renderUnavailableHtml,
 } from "./ssr-render.js";
 import { createStarterTranslator } from "./starter-i18n.js";
+import {
+  resolveWwwCanonicalHost,
+  swapOriginHost,
+} from "./www-canonical-host.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -551,6 +555,28 @@ async function renderLogicalPath(
 }
 
 export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
+  /*
+   * `www.<apex>` → `<apex>` 的 301。
+   *
+   * 挂在 SSR 插件作用域上：这里就是公开面的入口（`/`、`/*`、`/sitemap.xml`、
+   * `/robots.txt` 全在），而 `/api/*` 不在——接口层不能做主机改写，
+   * 301 会把 POST 变成 GET。
+   */
+  app.addHook("onRequest", async (request, reply) => {
+    const hostname = resolveRequestHostname(request.headers);
+    const canonical = await resolveWwwCanonicalHost(
+      hostname,
+      async (candidate) => (await resolveHostTenant(candidate)) !== null,
+    );
+    if (!canonical) return;
+    const origin = swapOriginHost(requestOrigin(request), canonical);
+    if (!origin) return;
+    // 与站点重定向同一条口径：绑定关系随时会变，别让浏览器把这一跳长期缓存住
+    await reply
+      .header("cache-control", "no-store")
+      .redirect(`${origin}${request.url}`, 301);
+  });
+
   app.get("/sitemap.xml", async (request, reply) => {
     await ensureHostTenant(request);
     const hostTenant = request.hostTenantContext;
