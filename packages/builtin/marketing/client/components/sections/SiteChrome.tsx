@@ -413,11 +413,7 @@ export function SiteChrome({
         );
         return (
           <div className="chrome-brand">
-            {tag === "header" && ctx.currentPath === "/" ? (
-              <h1 className="brand-heading">{mark}</h1>
-            ) : (
-              mark
-            )}
+            {mark}
             {blurb ? <p className="muted">{blurb}</p> : null}
           </div>
         );

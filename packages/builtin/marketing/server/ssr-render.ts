@@ -182,8 +182,6 @@ export function renderMarketingHtml(input: {
   canonicalPath?: string;
   /** 为 true 时不发 `<link rel="alternate" hreflang>`（语言切换器仍用 `page.alternates`）。 */
   omitHreflang?: boolean;
-  /** 插在 `<main>` 正文段之前（主题列表的 h1）。空则什么都不插。 */
-  leadHtml?: string;
 }): string {
   const {
     origin,
@@ -397,7 +395,6 @@ export function renderMarketingHtml(input: {
   <div class="site-stack">
   ${headerHtml}
   <main class="site-main"${mainGateAttrs}${mainStyle}>
-    ${memberGate ? "" : (input.leadHtml ?? "")}
     ${mainInner}
   </main>
   ${footerHtml}

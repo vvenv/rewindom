@@ -17,7 +17,6 @@ import {
   getSiteChromeOrFallback,
 } from "@rewindom/builtin/marketing/server/site.service.js";
 import { renderMarketingHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
-import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
 import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
@@ -59,8 +58,6 @@ export async function renderEventsTemplatePage(input: {
   omitHreflang?: boolean;
   /** 覆盖 canonical 的逻辑路径（默认语言、无前缀）。 */
   canonicalPath?: string;
-  /** 主题 / 过滤列表没有 page-header 段，需要一颗可见 h1。 */
-  leadHeading?: boolean;
 }): Promise<string> {
   const locale = normalizeLocale(input.locale);
 
@@ -135,8 +132,5 @@ export async function renderEventsTemplatePage(input: {
     servedPath: input.servedPath,
     omitHreflang: input.omitHreflang,
     canonicalPath: input.canonicalPath,
-    leadHtml: input.leadHeading
-      ? `<h1 class="page-title">${escapeHtml(title)}</h1>`
-      : undefined,
   });
 }

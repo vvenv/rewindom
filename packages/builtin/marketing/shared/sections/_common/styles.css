@@ -99,10 +99,6 @@
   /* 常见桌面宽度下站名必须一行；真不够宽再省略，不要拆成两行把页头撑高 */
   white-space: nowrap;
 }
-.brand-heading {
-  font: inherit;
-  margin: 0;
-}
 .brand span {
   min-width: 0;
   overflow: hidden;

@@ -266,7 +266,9 @@ describe("chrome 品牌", () => {
   }
 
   it("字标留空时跟着站名走（存量块没有这个键）", () => {
-    expect(brandHeader({})).toContain("<span>站点 - 一句很长的 SEO 标题</span>");
+    const html = brandHeader({});
+    expect(html).toContain("<span>站点 - 一句很长的 SEO 标题</span>");
+    expect(html).not.toContain("<h1");
   });
 
   it("填了字标就不再显示站名——站名要留给 <title>", () => {
@@ -295,27 +297,5 @@ describe("chrome 品牌", () => {
     );
     expect(html).toContain('alt="站点"');
     expect(html).not.toContain("<span>站点</span>");
-  });
-
-  it("首页页头品牌是 h1，页脚同路径不是", () => {
-    const section = localized("header", [block("chrome_brand", {})]);
-    const header = renderHeaderHtml({
-      section,
-      siteName: "站点",
-      logoUrl: null,
-      homeHref: "/",
-      currentPath: "/",
-      locale: "zh-CN",
-    });
-    const footer = renderFooterHtml({
-      section,
-      siteName: "站点",
-      logoUrl: null,
-      homeHref: "/",
-      currentPath: "/",
-      locale: "zh-CN",
-    });
-    expect(header).toContain('<h1 class="brand-heading">');
-    expect(footer).not.toContain("<h1");
   });
 });

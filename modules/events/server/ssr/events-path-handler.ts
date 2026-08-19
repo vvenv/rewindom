@@ -159,7 +159,6 @@ async function renderEntityIndex(
     servedPath: input.servedPath ?? href,
     preset: EVENTS_ENTITY_INDEX_TEMPLATE_PRESET,
     description: t("entityIndex.metaDescription", { count: rows.length }),
-    leadHeading: true,
     events: emptyEventsContext({
       index_path: indexPath,
       entity_index: { href, groups },
@@ -260,7 +259,6 @@ async function renderIndex(
     description: topic
       ? t("topicMeta.description", { topic: t(`topic.${topic}`) })
       : undefined,
-    leadHeading: true,
     events: emptyEventsContext({
       index_path: indexPath,
       topic,
@@ -306,7 +304,6 @@ async function renderListing(
       : t("listing.metaDescriptionAll", { source: sourceLabel }),
     noindex: true,
     omitHreflang: true,
-    leadHeading: true,
     sections: buildEventsListingSections(
       source,
       topic,

@@ -16,23 +16,28 @@
 明确**不在**当前范围：Related Events、Why it's trending。两者都建立在同一套语料之上，
 加进来是增量，不需要动现有表结构。
 
-### 不做翻译
+### 存的永远是来源原文
 
-事件**只显示来源原文**，不按访客语言翻译标题或摘要。
+事件数据**只存来源原文**，不存任何译文。
 
 曾经做过：免费机器翻译（MyMemory）补译标题 + LLM 在写摘要的同一次调用里顺带产出双语，
-文案按 locale map 存取。撤掉的原因是免费那条路的成品质量撑不起产品面——专有名词被译坏
-（`Direct File` → 「直接文件」这类），而它恰恰是没有 LLM key 时唯一的译文来源。
-与其留一套「有时对、有时明显错」的译文，不如只显示原文：原文永远是准确的，
-也与「来源是事件的证据」这条产品口径一致。
+文案按 locale map 存进 `title_i18n` / `summary_i18n`。撤掉的原因是免费那条路的成品质量
+撑不起产品面——专有名词被译坏（`Direct File` → 「直接文件」这类），而它恰恰是没有
+LLM key 时唯一的译文来源。译文一旦入库就代表了这个事件，读者还看不出它被译坏了。
+
+**访客侧的按需翻译是另一回事**，由 `translation` 模块提供（见
+`packages/builtin/translation/MODULE.md`）：译文在浏览器里现翻现看，不入库、不进 SSR、
+不进索引，一键退回原文，且专有名词有术语保护。events 这边只需要给不该翻的片段打
+`translate="no"`（来源名、已本地化的状态/主题标签），其余自动覆盖。
 
 因此详情 / 实体页**不发 hreflang 互指**（语言切换器仍列出各 UI 语言），canonical
-指回默认语言那条 URL。声称 `/zh-CN/:slug` 是中文译文会让爬虫记 language mismatch。
+指回默认语言那条 URL。声称 `/zh-CN/:slug` 是中文译文会让爬虫记 language mismatch——
+访客侧的即时翻译不改变这一点，爬虫看到的始终是原文。
 
 界面文案（主题名、阶段名、时间线 code、段设置）仍然是完整多语言的——那是**代码 i18n**，
 走 `client/locales/*.json`，与事件内容无关。
 
-公开面 SEO 的其余口径（主题页独特 description + h1、`?source=` 列表 noindex）见
+公开面 SEO 的其余口径（主题页独特 description、`?source=` 列表 noindex）见
 `features/public-seo-audit.spec.yaml`。
 
 ## 为什么事件按站点隔离

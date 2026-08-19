@@ -252,16 +252,14 @@ describe("renderMarketingHtml SEO", () => {
     );
   });
 
-  it("lets the caller override canonical and inject a lead heading", () => {
+  it("lets the caller override canonical", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
       site: site(),
       page: page({ locale: "en", path: "/story" }),
       canonicalPath: "/story",
-      leadHtml: '<h1 class="page-title">Story</h1>',
     });
     expect(html).toContain(`<link rel="canonical" href="${ORIGIN}/story" />`);
-    expect(html).toContain('<h1 class="page-title">Story</h1>');
   });
 
   it("rewrites canonical and title when another page is served at /", () => {

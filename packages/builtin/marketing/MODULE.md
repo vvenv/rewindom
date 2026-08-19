@@ -1136,7 +1136,7 @@ URL 都会先规范化再查。来源写成 `/en/old` 或 `/old/` 与 `/old` 是
 | 会员页 noindex | 自动（`requires_member`） | `noindex, nofollow`：SSR 只有占位，收录了也是空页，所以连 follow 一起掐 |
 | `<title>` | 现场拼 | 首页 = 站名；内页能放下 `标题 · 站名` 就拼，否则只用页标题。上限 60 字（`shared/seo-meta.ts`） |
 | meta description | 页面 description，否则首页 tagline、内页 `{标题} — {tagline}` | 禁止多页共用一句光秃 tagline |
-| 首页 h1 | 页头品牌 | 仅 `<header>` 且 `currentPath === /`；页脚品牌仍是链接 |
+| 首页 h1 | 不注入 | 页头品牌始终是链接；正文标题由 hero / page-header 段自己出 |
 | `/llms.txt` | 现场拼 | 站点名 + 标语 + 链到 sitemap，和 robots.txt 一样是站点级 |
 | HSTS | SSR `onRequest` + 宿主机 nginx | 只在 https origin 上发；nginx 每次部署幂等补（certbot 写的 443 块自己不会带） |
 
