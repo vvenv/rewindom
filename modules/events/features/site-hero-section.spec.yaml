@@ -15,7 +15,7 @@
 # ---------- 必填 ----------
 module: events
 surfaces: [ssr, tenant]
-goal: events 贡献 `events.hero` 段——左侧文案主张（不是热榜 / 来源是证据），右侧一条按请求查出的实时计数（在追踪的事件、24h 合并的报道、在采集的来源、最近更新），首页首屏改用它替掉通用 band。
+goal: events 贡献 `events.hero` 段——左侧文案主张（不是热榜 / 来源是证据），右侧一条按请求查出的实时计数（在追踪的事件、24h 合并的报道、在采集的来源、最近更新），首页首屏改用它替掉通用 band；主题枢纽上文案 / 计数 / 订阅一起跟着格子走，`entity_strip` 同样按格子过滤。
 gold: modules/events/shared/sections/hero-html.ts
 touch:
   - modules/events/features/site-hero-section.spec.yaml
@@ -41,6 +41,7 @@ out_of_scope:
   - 改「正在升温 / 正在发生」两段本身
   - 给 hero 配图 / 插画（本站没有图库，占位图比留白更糟）
   - 客户端定时刷新计数（SSR `max-age=60`，分钟粒度已经够诚实）
+  - 给每个主题格子单独建一张 CMS 页（覆盖字段够用，多一张页就要多维护一份版式）
   - 改 /about 关于页正文
 i18n: code
 acceptance:
@@ -62,6 +63,17 @@ models: [] # 只读既有 NewsEvent / EventSignal / EventFeed，无新增字段
 #                     这是「多条报道 → 一个事件」的直接证据，不是热度的另一种写法。
 #      sources        EventFeed，enabled = true。
 #      updated_at     NewsEvent.last_activity_at 的最大值。
+# 2b. **主题枢纽**（`/ai` 等）与 `/` 是同一张 CMS 页，所以主题版文案是同一段上的
+#     三个覆盖字段（`topic_eyebrow` / `topic_headline` / `topic_secondary_label`），
+#     留空回落站点那条，都支持 `{{topic}}` 占位。不覆盖的话四个 URL 共用一颗 h1，
+#     而 `<title>` 各不相同——`public-seo-audit` 反对的是重复 h1，不是这一颗。
+#     主题身份走 `EventsRenderContext.topic_label`，不挂在 `hero` 上：计数为空时
+#     `hero` 是 null，那一格没事件不代表首屏该改回站点主张。
+# 2c. 计数与 `entity_strip` 一起跟着格子过滤（`renderIndex` 同一个 `topic`）。第三行
+#     在主题面换成「贡献来源」（该格在发展事件的 `source_names` 去重）：源的 topic
+#     只是采集提示，按它筛没有意义。其余三行口径不变。
+# 2d. 订阅按钮在主题面改指 `?topic=`，判据是**路径后缀**不是等值——`localizeSection`
+#     渲染前已经给 `link` 设置补过 locale 前缀，等值匹配只会在默认语言上生效。
 # 2. 相对时间在**建上下文时**就落成文案（`updated_label`），与 momentum_label 同一条理由：
 #    段渲染器是同步的、拿不到 i18n。粒度到分钟——SSR `cache-control: max-age=60`，
 #    最多差一分钟。同时吐 `<time datetime>` 保留机器可读的绝对时刻。
@@ -80,3 +92,7 @@ models: [] # 只读既有 NewsEvent / EventSignal / EventFeed，无新增字段
 # 7. 编辑器预览加一条 `GET /events/stats`（`events.read`，与 `/entities` 同一条
 #    「预览用」先例，必须排在 `/:eventId` 前面）。读的是公开面同一个函数，
 #    **不退回样张**——计数为 0 时首屏该整块隐藏，样张会让租户排一块看不到的版。
+# 8. 两列**同高**（grid stretch），不是垂直居中也不是顶边对齐：居中把高度差劈成
+#    上下各一半、两条边都不齐；顶边对齐把差额全丢到底部，主题页标题只有一行时
+#    那条缝有 50px 以上。取行高之后上下两条边在任何语言 / 任何格子上都齐，面板内
+#    多出来的余量由四行均分（左列更高时余量只有十几 px，摊到四行看不出来）。

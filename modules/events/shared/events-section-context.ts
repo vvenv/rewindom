@@ -521,7 +521,7 @@ export interface PublicEntityStripView {
  * 拆两个字段是为了让渲染侧能把数字放大而单位不跟着放大，不是为了让它自己拼句子。
  */
 export interface PublicHeroStat {
-  key: "live" | "merged" | "sources" | "updated";
+  key: "live" | "merged" | "sources" | "contributors" | "updated";
   /** 已落成当前语言的行名 */
   label: string;
   /** 已格式化的值：`1,284` 或「6 分钟前」 */
@@ -581,6 +581,13 @@ export interface EventsRenderContext {
    * 「查看全部」要带上这个过滤，不能掉回未过滤的枢纽 `?source=`。
    */
   topic?: EventTopic;
+  /**
+   * 已落成当前语言的当前主题名。首屏用它把文案里的 `{{topic}}` 换掉。
+   *
+   * 与 `topic` 分开放而不是塞进 `hero`：计数为空时 `hero` 是 null，而那时首屏
+   * 仍然要用主题版文案——`/ai` 这一格暂时没有事件，不代表它该改回站点主张。
+   */
+  topic_label?: string;
   /** 编辑器「某个主题」下拉用的已落成当前语言的主题名 */
   nav_topics?: readonly { key: EventTopic; label: string }[];
 }

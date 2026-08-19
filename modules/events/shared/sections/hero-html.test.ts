@@ -39,9 +39,14 @@ function section(extra: Record<string, unknown> = {}): SiteSection {
       eyebrow: "事件雷达 · 持续追踪",
       headline: "同一件事，来自多个来源，合成一条时间线",
       subhead: "不是热榜。",
+      topic_eyebrow: "事件雷达 · {{topic}}",
+      topic_headline: "{{topic}} 正在发生什么",
+      topic_secondary_label: "订阅 {{topic}} 的 RSS",
       show_stats: true,
-      primary_label: "订阅 RSS",
-      primary_href: "/events/feed.xml",
+      primary_label: "它是怎么工作的",
+      primary_href: "/about",
+      secondary_label: "订阅 RSS",
+      secondary_href: "/events/feed.xml",
       ...extra,
     },
   } as SiteSection;
@@ -50,11 +55,16 @@ function section(extra: Record<string, unknown> = {}): SiteSection {
 function render(
   view: PublicHeroView | null,
   extra: Record<string, unknown> = {},
+  topic?: { topic: "ai"; topic_label: string },
 ) {
   return renderEventsHeroHtml(section(extra), {
-    contributed: eventsContextEntry(emptyEventsContext({ hero: view })),
+    contributed: eventsContextEntry(
+      emptyEventsContext({ hero: view, ...(topic ?? {}) }),
+    ),
   });
 }
+
+const AI = { topic: "ai", topic_label: "AI" } as const;
 
 describe("renderEventsHeroHtml", () => {
   it("renders the headline as the page h1 — the home page had no h1 at all before", () => {
@@ -141,5 +151,67 @@ describe("toPublicHero", () => {
       "merged",
       "sources",
     ]);
+  });
+});
+
+describe("renderEventsHeroHtml · 主题枢纽", () => {
+  it("swaps in the topic copy so /ai does not reuse the site h1", () => {
+    const html = render(hero(), {}, AI);
+    expect(html).toContain("<h1 class=\"events-hero-headline\">AI 正在发生什么</h1>");
+    expect(html).toContain("事件雷达 · AI");
+    expect(html).not.toContain("同一件事，来自多个来源");
+  });
+
+  it("points the subscribe button at that topic's feed", () => {
+    const html = render(hero(), {}, AI);
+    expect(html).toContain('href="/events/feed.xml?topic=ai"');
+    expect(html).toContain("订阅 AI 的 RSS");
+    // 租户填的其它链接一概不动
+    expect(html).toContain('href="/about"');
+  });
+
+  it("rewrites the feed link after localizeSection already prefixed it", () => {
+    // 非默认语言页面上，渲染器拿到的 href 已经带了 /zh-CN 前缀
+    const html = render(hero(), { secondary_href: "/zh-CN/events/feed.xml" }, AI);
+    expect(html).toContain('href="/zh-CN/events/feed.xml?topic=ai"');
+  });
+
+  it("leaves links that merely look like a feed alone", () => {
+    const external = render(
+      hero(),
+      { secondary_href: "https://elsewhere.example/events/feed.xml" },
+      AI,
+    );
+    expect(external).toContain('href="https://elsewhere.example/events/feed.xml"');
+    expect(external).not.toContain("?topic=");
+  });
+
+  it("keeps the topic copy even when the panel is empty", () => {
+    const html = render(null, {}, AI);
+    expect(html).toContain("AI 正在发生什么");
+    expect(html).not.toContain("events-hero-panel");
+  });
+
+  it("falls back to the site copy when a topic override is blank", () => {
+    const html = render(hero(), { topic_headline: "" }, AI);
+    expect(html).toContain("同一件事，来自多个来源，合成一条时间线");
+  });
+
+  it("leaves the site page untouched — no placeholder leaks onto /", () => {
+    const html = render(hero());
+    expect(html).toContain("同一件事，来自多个来源，合成一条时间线");
+    expect(html).not.toContain("{{topic}}");
+    expect(html).toContain('href="/events/feed.xml"');
+    expect(html).not.toContain("?topic=");
+  });
+});
+
+describe("toPublicHero · 主题枢纽", () => {
+  it("reads the third row as contributing sources so all four rows share one scope", () => {
+    const site = hero()!.stats.map((stat) => stat.key);
+    const topic = hero({ topic_scoped: true })!.stats.map((stat) => stat.key);
+    expect(site).toContain("sources");
+    expect(topic).toContain("contributors");
+    expect(topic).not.toContain("sources");
   });
 });

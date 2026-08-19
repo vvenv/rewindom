@@ -216,12 +216,17 @@ async function renderIndex(
     );
   }
 
+  /*
+   * 三样数据都跟着当前格子走。`/ai` 上只有 feed 跟着过滤、首屏与实体条却是全站的
+   * 那种状态最难读——四行数字里三行在说别的事，读者没法知道哪一行在说这一格。
+   */
   const [feed, entityRows, heroStats] = await Promise.all([
     getPublicEventFeed(input.tenantId, topic),
-    getPublicEntityIndex(input.tenantId),
-    getPublicHeroStats(input.tenantId),
+    getPublicEntityIndex(input.tenantId, topic),
+    getPublicHeroStats(input.tenantId, topic),
   ]);
   const t = translator(locale);
+  const topicLabel = topic ? t(`topic.${topic}`) : undefined;
 
   return renderEventsTemplatePage({
     tenantId: input.tenantId,
@@ -233,23 +238,19 @@ async function renderIndex(
     path: pagePath,
     servedPath: input.servedPath ?? pagePath,
     preset: EVENTS_INDEX_TEMPLATE_PRESET,
-    title: topic ? t(`topic.${topic}`) : undefined,
-    description: topic
-      ? t("topicMeta.description", { topic: t(`topic.${topic}`) })
+    title: topicLabel,
+    description: topicLabel
+      ? t("topicMeta.description", { topic: topicLabel })
       : undefined,
     events: emptyEventsContext({
       index_path: indexPath,
       topic,
+      topic_label: topicLabel,
       feed: {
         rising: feed.rising.map((item) => toCard(item, t, indexPath)),
         now: feed.now.map((item) => toCard(item, t, indexPath)),
       },
       entity_strip: toPublicEntityStrip(entityRows, indexPath),
-      /*
-       * 首屏计数**不按 topic 过滤**，主题格子上也一样：它说的是「这台雷达在追踪
-       * 什么」，是站点级的主张，不是当前这一格的统计。跟着格子变反而会让同一句
-       * 主张在 `/` 和 `/ai` 上给出两个数。
-       */
       hero: toPublicHero(heroStats, t),
     }),
   });

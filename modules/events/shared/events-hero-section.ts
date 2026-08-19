@@ -63,6 +63,38 @@ export const eventsHeroSection: SectionDefinition = {
       label: "editor.setting.show_glow",
       default: true,
     },
+    /*
+     * 主题页变体 —— `/ai` `/tech`… 与 `/` 渲染的是**同一张** CMS 页（events_index），
+     * 所以主题版文案不能另起一张页，只能作为同一段上的覆盖字段。
+     *
+     * 留空 = 用上面那条站点文案。三条都支持 `{{topic}}` 占位（换成已落成当前语言的
+     * 主题名）——不给占位就当固定文案用，不会硬塞。
+     *
+     * 为什么必须有：不覆盖的话 `/`、`/ai`、`/tech`、`/business` 会共用一颗 h1，
+     * 而它们的 `<title>` 各不相同。同一颗 h1 铺满整个主题面既不是给读者看的，
+     * 也是 `public-seo-audit` 当初写「不给列表硬塞 h1」要避开的那件事。
+     */
+    { type: "header", content: "events:section.hero.topicGroup" },
+    {
+      type: "text",
+      id: "topic_eyebrow",
+      label: "events:section.hero.topicEyebrow",
+      default: "events:site.hero.topicEyebrow",
+      info: "events:section.hero.topicInfo",
+    },
+    {
+      type: "text",
+      id: "topic_headline",
+      label: "events:section.hero.topicHeadline",
+      default: "events:site.hero.topicHeadline",
+    },
+    {
+      type: "text",
+      id: "topic_secondary_label",
+      label: "events:section.hero.topicSecondaryLabel",
+      default: "events:site.hero.topicSubscribe",
+      info: "events:section.hero.topicSecondaryInfo",
+    },
     { type: "header", content: "editor.group.buttons" },
     /*
      * 主按钮默认指向 RSS：订阅是**不需要账号**的那条留存腿（MODULE.md），

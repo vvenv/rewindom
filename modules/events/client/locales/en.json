@@ -178,19 +178,24 @@
         "live": "Tracking now",
         "merged": "Merged in 24h",
         "sources": "Sources ingested",
-        "updated": "Last update"
+        "updated": "Last update",
+        "contributors": "Sources contributing"
       },
       "unit": {
         "events": "events",
         "reports": "reports",
-        "sources": "feeds"
+        "sources": "feeds",
+        "contributors": "sources"
       },
       "updated": {
         "now": "just now",
         "minutes": "{{count}} min ago",
         "hours": "{{count}} h ago",
         "days": "{{count}} d ago"
-      }
+      },
+      "topicEyebrow": "Event radar · {{topic}}",
+      "topicHeadline": "What's happening in {{topic}}",
+      "topicSubscribe": "Subscribe to {{topic}}"
     }
   },
   "home": {
@@ -257,7 +262,13 @@
     "hero": {
       "label": "Hero",
       "showStats": "Show live counts",
-      "showStatsInfo": "Hidden automatically until there are events — never shows a row of zeros"
+      "showStatsInfo": "Hidden automatically until there are events — never shows a row of zeros",
+      "topicGroup": "Topic page variants",
+      "topicEyebrow": "Topic eyebrow",
+      "topicHeadline": "Topic headline",
+      "topicSecondaryLabel": "Topic secondary button",
+      "topicInfo": "Used only on topic pages like /ai or /tech; leave empty to reuse the one above. {{topic}} is replaced with the topic name",
+      "topicSecondaryInfo": "A button pointing at the site RSS switches to that topic's RSS on topic pages"
     }
   },
   "template": {

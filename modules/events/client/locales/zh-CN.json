@@ -178,19 +178,24 @@
         "live": "正在追踪",
         "merged": "24 小时内合并",
         "sources": "在采集的来源",
-        "updated": "最近更新"
+        "updated": "最近更新",
+        "contributors": "贡献来源"
       },
       "unit": {
         "events": "个事件",
         "reports": "条报道",
-        "sources": "个"
+        "sources": "个",
+        "contributors": "个"
       },
       "updated": {
         "now": "刚刚",
         "minutes": "{{count}} 分钟前",
         "hours": "{{count}} 小时前",
         "days": "{{count}} 天前"
-      }
+      },
+      "topicEyebrow": "事件雷达 · {{topic}}",
+      "topicHeadline": "{{topic}} 正在发生什么",
+      "topicSubscribe": "订阅 {{topic}} 的 RSS"
     }
   },
   "home": {
@@ -257,7 +262,13 @@
     "hero": {
       "label": "首屏",
       "showStats": "显示实时计数",
-      "showStatsInfo": "还没有事件时自动隐藏，不会在首屏挂一串 0"
+      "showStatsInfo": "还没有事件时自动隐藏，不会在首屏挂一串 0",
+      "topicGroup": "主题页变体",
+      "topicEyebrow": "主题页眉标",
+      "topicHeadline": "主题页标题",
+      "topicSecondaryLabel": "主题页次按钮文案",
+      "topicInfo": "只在 /ai、/tech 这类主题页上生效；留空则用上面那条。{{topic}} 会换成主题名",
+      "topicSecondaryInfo": "指向站点 RSS 的按钮在主题页上会自动改订该主题的 RSS"
     }
   },
   "template": {

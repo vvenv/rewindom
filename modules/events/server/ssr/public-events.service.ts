@@ -509,7 +509,10 @@ export async function getPublicEntitySitemapEntries(
  * 计数是**窗口内**的事件数，不是历史总数：枢纽上的数字要能跟实体页对得上，
  * 而实体页展示的也是最近这一批。
  */
-export async function getPublicEntityIndex(tenantId: string): Promise<
+export async function getPublicEntityIndex(
+  tenantId: string,
+  topic?: EventTopic,
+): Promise<
   {
     kind: string;
     slug: string;
@@ -517,7 +520,7 @@ export async function getPublicEntityIndex(tenantId: string): Promise<
     event_count: number;
   }[]
 > {
-  const recentEvent = await recentEventWhere(tenantId);
+  const recentEvent = await recentEventWhere(tenantId, topic);
   const rows = await prisma.eventEntity.findMany({
     where: withTenantScope(tenantId, {
       links: { some: { event: recentEvent } },
@@ -554,19 +557,20 @@ export async function getPublicEntityIndex(tenantId: string): Promise<
  *
  * 四个查询都是 count / aggregate，不取行；首页本来就要查 feed，多这几条不改变量级。
  */
-export async function getPublicHeroStats(tenantId: string): Promise<{
+export async function getPublicHeroStats(
+  tenantId: string,
+  topic?: EventTopic,
+): Promise<{
   live_events: number;
   merged_reports: number;
   sources: number;
   updated_at: Date | null;
+  topic_scoped: boolean;
 }> {
   const since = new Date(Date.now() - LIVE_WINDOW_HOURS * HOUR_MS);
   const enabled = await getEnabledTopics(tenantId);
-  const liveWhere = withTenantScope(tenantId, {
-    ...enabledTopicWhere(enabled),
-    status: { in: ["developing", "active"] },
-    last_activity_at: { gte: since },
-  });
+  const topicWhere = enabledTopicWhere(enabled, topic);
+  const liveWhere = liveEventWhere(tenantId, since, topicWhere);
 
   const [live_events, merged_reports, sources, newest] = await Promise.all([
     prisma.newsEvent.count({ where: liveWhere }),
@@ -575,13 +579,17 @@ export async function getPublicHeroStats(tenantId: string): Promise<{
         event_id: { not: null },
         removed_at: null,
         published_at: { gte: since },
+        // 主题是**事件**的属性，不是信号的（signal.topic 只是源给的提示，见 MODULE.md）
+        ...(topic ? { event: { topic } } : {}),
       }),
     }),
-    prisma.eventFeed.count({
-      where: withTenantScope(tenantId, { enabled: true }),
-    }),
+    topic
+      ? countContributingSources(liveWhere)
+      : prisma.eventFeed.count({
+          where: withTenantScope(tenantId, { enabled: true }),
+        }),
     prisma.newsEvent.findFirst({
-      where: withTenantScope(tenantId, enabledTopicWhere(enabled)),
+      where: withTenantScope(tenantId, topicWhere),
       orderBy: { last_activity_at: "desc" },
       select: { last_activity_at: true },
     }),
@@ -592,17 +600,63 @@ export async function getPublicHeroStats(tenantId: string): Promise<{
     merged_reports,
     sources,
     updated_at: newest?.last_activity_at ?? null,
+    topic_scoped: topic !== undefined,
   };
 }
 
-/** 枢纽与实体 sitemap 共用的窗口条件：最近 30 天还有事件、且主题没被关掉。 */
-async function recentEventWhere(tenantId: string): Promise<{
+/**
+ * 为这一格贡献过信号的来源数（去重）。
+ *
+ * 主题枢纽上用它顶替「在采集的来源」：源的 `topic` 只是采集提示，一个源会产出
+ * 好几个主题的事件，按它筛出来的数字没有意义。事件上的 `source_names` 是聚类时
+ * 实际落进来的来源名，去重一数就是这一格真的被谁喂过。
+ *
+ * 只取 `source_names` 一列，行数就是上面刚数过的那批在发展的事件——几十到几百行，
+ * 不值得为它建聚合视图。
+ */
+async function countContributingSources(
+  where: ReturnType<typeof liveEventWhere>,
+): Promise<number> {
+  const rows = await prisma.newsEvent.findMany({
+    where,
+    select: { source_names: true },
+  });
+  const names = new Set<string>();
+  for (const row of rows) {
+    for (const name of row.source_names) names.add(name);
+  }
+  return names.size;
+}
+
+/** 首屏「正在追踪」那一行数的是哪一批——与首页「正在发生」同一套谓词。 */
+function liveEventWhere(
+  tenantId: string,
+  since: Date,
+  topicWhere: ReturnType<typeof enabledTopicWhere>,
+) {
+  return withTenantScope(tenantId, {
+    ...topicWhere,
+    status: { in: ["developing", "active"] },
+    last_activity_at: { gte: since },
+  });
+}
+
+/**
+ * 枢纽与实体 sitemap 共用的窗口条件：最近 30 天还有事件、且主题没被关掉。
+ *
+ * `topic` 只有主题枢纽会传：那一页的「近期实体」必须是**这一格事件里的**实体。
+ * 不传就是全站——sitemap 与实体枢纽都要全量，不能跟着某一格缩。
+ */
+async function recentEventWhere(
+  tenantId: string,
+  topic?: EventTopic,
+): Promise<{
   last_activity_at: { gte: Date };
 }> {
   const enabled = await getEnabledTopics(tenantId);
   return {
     last_activity_at: { gte: new Date(Date.now() - 30 * 24 * HOUR_MS) },
-    ...enabledTopicWhere(enabled),
+    ...enabledTopicWhere(enabled, topic),
   };
 }
 

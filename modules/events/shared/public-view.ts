@@ -298,16 +298,27 @@ export function toPublicEntityIndex(
   return { href: entityIndexPath(indexPath), groups };
 }
 
-/** 首屏计数的原始数字，由 SSR 查库 / 编辑器用样张填。 */
+/** 首屏计数的原始数字，由 SSR 查库 / 编辑器读 `/events/stats` 填。 */
 export interface HeroStatsInput {
-  /** 过去 24 小时仍在发展的事件数（与首页「正在发生」同一套谓词） */
+  /** 仍在发展的事件数（与首页「正在发生」同一套谓词；主题枢纽上已按格子过滤） */
   live_events: number;
   /** 过去 24 小时里被合并进某个事件的报道条数 */
   merged_reports: number;
-  /** 正在采集的来源数 */
+  /**
+   * 站点面：正在采集的源数（配置事实）。
+   * 主题面：为这一格贡献过信号的来源数（产出事实）——见 `topic_scoped`。
+   */
   sources: number;
-  /** 全站最近一次事件活动时刻；一条事件都没有时为 null */
+  /** 最近一次事件活动时刻；一条事件都没有时为 null */
   updated_at: Date | string | null;
+  /**
+   * 这组数是某个主题格子的吗。
+   *
+   * 只影响第三行怎么读：站点面上「在采集的来源 48 个」是配置事实，放在主题枢纽上
+   * 就成了这块面板里唯一一个不跟着格子走的数——四行里三行说 AI、一行说全站，
+   * 读者没法知道哪一行在说什么。主题面换成「贡献来源」，四行同一个口径。
+   */
+  topic_scoped?: boolean;
 }
 
 const MINUTE_MS = 60 * 1000;
@@ -371,12 +382,19 @@ export function toPublicHero(
       value: formatCount(input.merged_reports),
       unit: t("site.hero.unit.reports"),
     },
-    {
-      key: "sources",
-      label: t("site.hero.stat.sources"),
-      value: formatCount(input.sources),
-      unit: t("site.hero.unit.sources"),
-    },
+    input.topic_scoped
+      ? {
+          key: "contributors",
+          label: t("site.hero.stat.contributors"),
+          value: formatCount(input.sources),
+          unit: t("site.hero.unit.contributors"),
+        }
+      : {
+          key: "sources",
+          label: t("site.hero.stat.sources"),
+          value: formatCount(input.sources),
+          unit: t("site.hero.unit.sources"),
+        },
   ];
   if (updatedAt && !Number.isNaN(updatedAt.getTime())) {
     stats.push({

@@ -526,7 +526,14 @@
   .events-hero.has-panel {
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
     gap: 4rem;
-    align-items: center;
+    /*
+     * 两列**同高**（grid 默认的 stretch），不是垂直居中。
+     *
+     * 居中会把高度差劈成上下各一半，于是两条边都不齐；顶边对齐则把差额全丢到
+     * 底部——主题页标题只有一行时那条缝有 50px 以上。让两列都取行高，上下两条边
+     * 在任何语言、任何格子上都齐，多出来的余量由面板内部分摊（见下）。
+     */
+    align-items: stretch;
   }
 }
 
@@ -558,7 +565,7 @@
 }
 
 .events-hero-lead {
-  margin: 1.25rem 0 0;
+  margin: 1.125rem 0 0;
   max-width: 34rem;
   color: var(--muted-fg);
   font-size: 1.0625rem;
@@ -566,7 +573,7 @@
 }
 
 .events-hero-main .btn-row {
-  margin-top: 2rem;
+  margin-top: 1.75rem;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -574,6 +581,8 @@
 /* -------------------------------------------------------------------------- */
 
 .events-hero-panel {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -622,7 +631,15 @@
   }
 }
 
+/*
+ * 撑满面板剩下的高度，四行均分余量。左列比面板高时余量只有十几 px，摊到四行
+ * 是每行几 px——看不出来；反过来面板更高时这里根本不触发。
+ */
 .events-hero-stats {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   margin: 0;
   padding: 0;
 }

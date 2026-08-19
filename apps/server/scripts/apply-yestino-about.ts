@@ -47,6 +47,13 @@ import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import { DEFAULT_TENANT_SLUG, type AppLocale } from "@rewindom/shared";
 
+/*
+ * 副作用导入：把 events 的 locale catalog 登记进来。首屏的主题版文案（`topic_*`）
+ * 默认值是 `events:site.hero.topicHeadline` 这样的 ns:key，`createSection` 要靠这份
+ * catalog 才能把它展开成 `__i18n` 整张表——没登记就会把 key 本身写进库。
+ */
+import "../../../modules/events/server/ssr/events-preset-i18n.js";
+
 import {
   EVENTS_HERO_SECTION_TYPE,
   eventsHeroSection,
