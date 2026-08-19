@@ -98,7 +98,7 @@ server/
 | 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events/:topic`（当首页时 `/:topic`），当前格高亮；`children` 则收成「事件」一条下挂七格 |
 | 导航源 `events.topic` | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填 |
 | path handler | 接 `/events`、`/events/:topic`、`/events/:slug`、`/events/entity` 与 `/events/entity/:slug`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:topic`、`/:slug`、`/entity/:slug`；`/` 由首页 CMS 渲染，`/?source=` 才接管列表；根上的主题 / 详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
-| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给 `/events` 与 `/events/entity` 两条（页身份，不随首页改） |
+| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给枢纽页（`/events`、`/events/entity`）以及 RSS（全站 + 已启用主题，分组 `feed`）。实体 feed 不进下拉 |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
 `registerHomeLayout`（events 填表，内核不认识「雷达」这个概念）。

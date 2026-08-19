@@ -1,0 +1,43 @@
+# 链接下拉目前只有 CMS 页和文档。RSS 是真实的站内地址（/events/feed.xml、
+# ?topic=），租户在主按钮 / 导航里要链过去时只能手填，和「从站内选」的契约打架。
+# 实体 feed 不进下拉（和单个事件一样，条数会把列表淹掉）。
+# 「本页 RSS」也不是下拉项：存进去的必须是稳定 href，跟当前页走的订阅仍是没有
+# 链接控件的那颗按钮 / chrome。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant]
+goal: events 向链接选择器贡献 RSS 候选（全站 + 已启用主题），单独一组 feed；不列实体 feed，不把「本页 RSS」做成可选项。
+gold: modules/site-docs/server/register.ts
+touch:
+  - modules/events/features/link-target-rss.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-link-targets.ts
+  - modules/events/shared/events-link-targets.test.ts
+  - modules/events/shared/index.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/client/locales/en.json
+  - packages/builtin/marketing/shared/site-link-target.ts
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改首屏订阅按钮（没有 href 控件、按页取址那条保持）
+  - 把实体 feed 塞进下拉
+  - 给链接控件加「本页 RSS」哨兵值
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-link-targets.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. 分组必须进 SITE_LINK_TARGET_GROUPS：下拉按这张表分节，未登记的 group 会被丢掉。
+# 2. 存的仍是逻辑路径（/events/feed.xml?topic=ai），localizeSection 会保留 query。
+# 3. 主题列表走租户 enabled_topics，关掉的格子不要出现在下拉里。

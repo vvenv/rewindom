@@ -818,11 +818,12 @@
     },
     "linkPick": "Pick…",
     "linkLoading": "Loading…",
-    "linkEmpty": "No pages or documents to link to yet",
+    "linkEmpty": "Nothing to link to yet",
     "linkDraft": "(draft)",
     "linkGroup": {
       "page": "Pages",
-      "doc": "Docs"
+      "doc": "Docs",
+      "feed": "Feeds"
     },
     "leaveConfirmTitle": "Leave without saving?",
     "leaveConfirmBody": "This page has unsaved changes. Leaving now discards them.",

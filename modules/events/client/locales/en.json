@@ -198,6 +198,10 @@
       "topicSubscribe": "Subscribe to {{topic}}"
     }
   },
+  "link": {
+    "siteFeed": "All events RSS",
+    "topicFeed": "{{topic}} RSS"
+  },
   "home": {
     "layout": {
       "label": "Events radar",

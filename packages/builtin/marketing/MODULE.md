@@ -745,8 +745,8 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 `group` 的第一列（`3:9` + 列 sticky），没有 chrome 级的自动侧栏。
 
 **链接候选**：`GET /api/site/link-targets` 先列 `MarketingPage`，再合并
-`resolveContributedLinkTargets`（文档等分组由贡献方填；`SITE_LINK_TARGET_GROUPS`
-仍保留 `"doc"` 给贡献方用）。存的仍是普通 href。
+`resolveContributedLinkTargets`（文档、RSS 等分组由贡献方填；`SITE_LINK_TARGET_GROUPS`
+保留 `"doc"` / `"feed"` 给贡献方用）。存的仍是普通 href。
 
 ### 站点管理页（`/app/site`）
 

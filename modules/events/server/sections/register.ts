@@ -15,13 +15,13 @@ import {
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_FEED_SECTION_TYPES,
   EVENTS_HERO_SECTION_TYPE,
-  EVENTS_INDEX_PATH,
   emptyEventsContext,
   eventsContextEntry,
   eventsDetailSection,
   eventsFeedSection,
   eventsHeroSection,
   eventsIndexPath,
+  eventsLinkTargets,
   eventsNowSection,
   eventsEntityIndexSection,
   eventsEntitySection,
@@ -41,7 +41,6 @@ import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../../shared/sections/entity-html.js";
 import { renderEventsEntityIndexHtml } from "../../shared/sections/entity-index-html.js";
 import { renderEventsEntityStripHtml } from "../../shared/sections/entity-strip-html.js";
-import { EVENTS_ENTITY_INDEX_PATH } from "../../shared/events-page-templates.js";
 import {
   renderEventsSubscribeBlockHtml,
   renderEventsSubscribeHtml,
@@ -124,26 +123,25 @@ function registerEventsContextProvider(): void {
 }
 
 /**
- * 链接候选只给 `/events` 这一条。
+ * 链接候选：枢纽页 + 对外 RSS。
  *
- * 单个事件不进下拉：它们几百上千条且随时新增，没人会手工把导航指到某个具体事件上，
- * 塞进去只会把候选列表淹掉。
+ * 单个事件 / 实体 feed 不进下拉：它们几百上千条且随时新增，没人会手工把导航
+ * 指到某个具体事件上，塞进去只会把候选列表淹掉。主题 RSS 是编译期七格，列得下。
  */
 function registerEventsLinkTargets(): void {
   registerLinkTargetProvider({
-    provide: (_tenantId, defaultLocale) =>
-      Promise.resolve([
-        {
-          value: EVENTS_INDEX_PATH,
-          label: eventsMessage(defaultLocale, "site.index.title"),
-          group: "page" as const,
-        },
-        {
-          value: EVENTS_ENTITY_INDEX_PATH,
-          label: eventsMessage(defaultLocale, "site.entityIndex.title"),
-          group: "page" as const,
-        },
-      ]),
+    provide: async (tenantId, defaultLocale) => {
+      const topics = await getEnabledTopics(tenantId);
+      return eventsLinkTargets({
+        indexLabel: eventsMessage(defaultLocale, "site.index.title"),
+        entityIndexLabel: eventsMessage(defaultLocale, "site.entityIndex.title"),
+        siteFeedLabel: eventsMessage(defaultLocale, "link.siteFeed"),
+        topicName: (topic) => eventsMessage(defaultLocale, `topic.${topic}`),
+        topicFeedLabel: (name) =>
+          eventsMessage(defaultLocale, "link.topicFeed", { topic: name }),
+        topics,
+      });
+    },
   });
 }
 

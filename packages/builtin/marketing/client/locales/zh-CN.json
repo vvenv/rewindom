@@ -818,11 +818,12 @@
     },
     "linkPick": "选择…",
     "linkLoading": "加载中…",
-    "linkEmpty": "站内还没有可链接的页面或文档",
+    "linkEmpty": "站内还没有可链接的地址",
     "linkDraft": "（草稿）",
     "linkGroup": {
       "page": "页面",
-      "doc": "文档"
+      "doc": "文档",
+      "feed": "订阅"
     },
     "leaveConfirmTitle": "放弃未保存的改动？",
     "leaveConfirmBody": "本页还有没保存的改动，离开后会丢失。",

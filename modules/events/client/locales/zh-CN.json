@@ -198,6 +198,10 @@
       "topicSubscribe": "订阅 {{topic}} 的 RSS"
     }
   },
+  "link": {
+    "siteFeed": "全站 RSS",
+    "topicFeed": "{{topic}} RSS"
+  },
   "home": {
     "layout": {
       "label": "事件雷达",

@@ -1,12 +1,12 @@
 /**
  * 「站内有哪些地址可以链」的候选表（`link` 设置项的下拉数据）。
  *
- * 页面来自 `MarketingPage`；其它分组（`doc` 等）由模块经 link-target provider
+ * 页面来自 `MarketingPage`；其它分组（`doc`、`feed` 等）由模块经 link-target provider
  * 填进来。对填链接的人来说是同一件事：指到站里的某个东西。
  */
 
 /** 候选的分组，决定编辑器下拉里的分节顺序与标题。 */
-export const SITE_LINK_TARGET_GROUPS = ["page", "doc"] as const;
+export const SITE_LINK_TARGET_GROUPS = ["page", "doc", "feed"] as const;
 export type SiteLinkTargetGroup = (typeof SITE_LINK_TARGET_GROUPS)[number];
 
 export interface SiteLinkTarget {
