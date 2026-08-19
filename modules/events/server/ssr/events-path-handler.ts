@@ -159,6 +159,7 @@ async function renderEntityIndex(
     servedPath: input.servedPath ?? href,
     preset: EVENTS_ENTITY_INDEX_TEMPLATE_PRESET,
     description: t("entityIndex.metaDescription", { count: rows.length }),
+    leadHeading: true,
     events: emptyEventsContext({
       index_path: indexPath,
       entity_index: { href, groups },
@@ -195,6 +196,8 @@ async function renderEntity(
       name: entity.name,
       count: entity.event_count,
     }),
+    omitHreflang: true,
+    canonicalPath: href,
     events: emptyEventsContext({
       index_path: indexPath,
       entity: {
@@ -254,6 +257,10 @@ async function renderIndex(
     servedPath: input.servedPath ?? pagePath,
     preset: EVENTS_INDEX_TEMPLATE_PRESET,
     title: topic ? t(`topic.${topic}`) : undefined,
+    description: topic
+      ? t("topicMeta.description", { topic: t(`topic.${topic}`) })
+      : undefined,
+    leadHeading: true,
     events: emptyEventsContext({
       index_path: indexPath,
       topic,
@@ -291,6 +298,15 @@ async function renderListing(
     servedPath: input.servedPath ?? pagePath,
     preset: EVENTS_INDEX_TEMPLATE_PRESET,
     title,
+    description: topic
+      ? t("listing.metaDescription", {
+          source: sourceLabel,
+          topic: t(`topic.${topic}`),
+        })
+      : t("listing.metaDescriptionAll", { source: sourceLabel }),
+    noindex: true,
+    omitHreflang: true,
+    leadHeading: true,
     sections: buildEventsListingSections(
       source,
       topic,
@@ -332,7 +348,9 @@ async function renderDetail(
     servedPath: input.servedPath ?? href,
     preset: EVENTS_DETAIL_TEMPLATE_PRESET,
     title: detail.title,
-    description: detail.headline || undefined,
+    description: detail.headline || detail.title,
+    omitHreflang: true,
+    canonicalPath: href,
     /*
      * 这一条自己的社交卡片图。地址不跟着首页挂载变（见 og.routes.ts）。
      * 服务端画不出来时不设，回落站点品牌图——好过指向一个 404 的图片地址。

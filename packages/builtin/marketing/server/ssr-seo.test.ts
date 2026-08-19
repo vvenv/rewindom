@@ -88,7 +88,8 @@ describe("分享卡片", () => {
 
   it("标题描述与 <title> / description 同源，不另算一份", () => {
     const html = render();
-    expect(html).toContain(`<meta property="og:title" content="定价 · Acme" />`);
+    expect(html).toContain(`<title>定价 · Acme</title>`);
+    expect(html).toContain(`<meta property="og:title" content="定价" />`);
     expect(html).toContain(
       `<meta property="og:description" content="按席位计费" />`,
     );

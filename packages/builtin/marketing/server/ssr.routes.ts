@@ -40,6 +40,7 @@ import {
 } from "./site.service.js";
 import { resolveContributedSitemapEntries } from "./sitemap-providers.js";
 import {
+  renderLlmsTxt,
   renderMarketingHtml,
   renderRobotsTxt,
   renderSitemapXml,
@@ -50,6 +51,7 @@ import {
   resolveWwwCanonicalHost,
   swapOriginHost,
 } from "./www-canonical-host.js";
+import { hstsHeaderForOrigin } from "./hsts.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -563,6 +565,10 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
    * 301 会把 POST 变成 GET。
    */
   app.addHook("onRequest", async (request, reply) => {
+    const hsts = hstsHeaderForOrigin(requestOrigin(request));
+    if (hsts) {
+      void reply.header("strict-transport-security", hsts);
+    }
     const hostname = resolveRequestHostname(request.headers);
     const canonical = await resolveWwwCanonicalHost(
       hostname,
@@ -607,6 +613,29 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
       .header("content-type", "text/plain; charset=utf-8")
       .header("cache-control", "public, max-age=3600")
       .send(renderRobotsTxt(requestOrigin(request)));
+  });
+
+  app.get("/llms.txt", async (request, reply) => {
+    await ensureHostTenant(request);
+    const hostTenant = request.hostTenantContext;
+    if (!hostTenant) {
+      return reply.status(404).send("Not Found");
+    }
+    const site = await getSiteChromeOrFallback(
+      hostTenant.tenant_id,
+      hostTenant.tenant_slug,
+      hostTenant.name,
+    );
+    return reply
+      .header("content-type", "text/plain; charset=utf-8")
+      .header("cache-control", "public, max-age=3600")
+      .send(
+        renderLlmsTxt({
+          origin: requestOrigin(request),
+          siteName: site.site_name,
+          tagline: site.tagline,
+        }),
+      );
   });
 
   /* -------------------------------------------------- 站点默认语言（无前缀） */

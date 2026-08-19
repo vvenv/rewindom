@@ -17,6 +17,7 @@ import {
   getSiteChromeOrFallback,
 } from "@rewindom/builtin/marketing/server/site.service.js";
 import { renderMarketingHtml } from "@rewindom/builtin/marketing/server/ssr-render.js";
+import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
 import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
@@ -52,6 +53,14 @@ export async function renderEventsTemplatePage(input: {
    * 好过指向一个 404 的图片地址。
    */
   ogImage?: string;
+  /** `?source=` 过滤列表：canonical 已指向不带查询的地址，这页本身不该被收录。 */
+  noindex?: boolean;
+  /** 内容不是译文时不发 hreflang 互指（语言切换器仍列出各 UI 语言）。 */
+  omitHreflang?: boolean;
+  /** 覆盖 canonical 的逻辑路径（默认语言、无前缀）。 */
+  canonicalPath?: string;
+  /** 主题 / 过滤列表没有 page-header 段，需要一颗可见 h1。 */
+  leadHeading?: boolean;
 }): Promise<string> {
   const locale = normalizeLocale(input.locale);
 
@@ -89,6 +98,9 @@ export async function renderEventsTemplatePage(input: {
     getEnabledTopics(input.tenantId),
   ]);
 
+  const title = input.title ?? template.title;
+  const description = input.description || template.description || undefined;
+
   return renderMarketingHtml({
     origin: input.origin,
     site,
@@ -96,15 +108,18 @@ export async function renderEventsTemplatePage(input: {
       slug: input.path,
       locale,
       kind: input.kind,
-      title: input.title ?? template.title,
-      description: input.description ?? template.description,
+      title,
+      description: description ?? "",
       sections: template.sections,
-      settings: input.ogImage ? { og_image: input.ogImage } : {},
+      settings: {
+        ...(input.ogImage ? { og_image: input.ogImage } : {}),
+        ...(input.noindex ? { noindex: true } : {}),
+      },
       visibility: "public",
       path: input.path,
       /*
-       * 语言切换候选：事件在各语言下是同一条记录（文案是 locale map），
-       * 所以站点开了哪几种语言，这一页就有哪几种。
+       * 语言切换器仍列出站点开了的每一种 UI 语言。事件正文不是译文
+       * （见 MODULE.md「不做翻译」），hreflang 互指由 omitHreflang 关掉。
        */
       alternates: site.available_locales.map((available) => ({
         locale: available,
@@ -118,5 +133,10 @@ export async function renderEventsTemplatePage(input: {
       withEventsNavTopics(input.events, locale, enabledTopics),
     ),
     servedPath: input.servedPath,
+    omitHreflang: input.omitHreflang,
+    canonicalPath: input.canonicalPath,
+    leadHtml: input.leadHeading
+      ? `<h1 class="page-title">${escapeHtml(title)}</h1>`
+      : undefined,
   });
 }

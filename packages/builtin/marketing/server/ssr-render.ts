@@ -8,6 +8,10 @@ import {
 } from "../shared/marketing-site-theme.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import {
+  formatDocumentDescription,
+  formatDocumentTitle,
+} from "../shared/seo-meta.js";
+import {
   type PublicMarketingPage,
   type PublicMarketingSite,
 } from "../shared/site-cms.js";
@@ -38,13 +42,17 @@ function siteCss(theme_settings: unknown, types: ReadonlySet<string>): string {
  *
  * 只列**已发布**的语言（`page.alternates` 就是这么算出来的）——列上没有内容的语言，
  * Google 会因为互指不成立而整组忽略。
+ *
+ * noindex / 调用方明确省略时不发：那一页的 canonical 已经指向别处（或根本不该收录），
+ * 再互指会变成「当前 URL 不在 hreflang 集合里」的冲突。
  */
 function renderAlternateLinksHtml(
   base: string,
   page: PublicMarketingPage,
   defaultLocale: string,
+  omit: boolean,
 ): string {
-  if (page.alternates.length < 2) return "";
+  if (omit || page.alternates.length < 2) return "";
   const links = page.alternates.map(
     (alternate) =>
       `<link rel="alternate" hreflang="${escapeHtml(alternate.locale)}" href="${escapeHtml(`${base}${alternate.path}`)}" />`,
@@ -167,6 +175,15 @@ export function renderMarketingHtml(input: {
    * canonical / 语言切换 / 页头高亮要指向 `/`）。
    */
   servedPath?: string;
+  /**
+   * 覆盖 canonical 的逻辑路径（已含默认语言是否去前缀的决定）。
+   * 事件详情内容未译时指回默认语言 URL，见 events 的 `public-seo-audit`。
+   */
+  canonicalPath?: string;
+  /** 为 true 时不发 `<link rel="alternate" hreflang>`（语言切换器仍用 `page.alternates`）。 */
+  omitHreflang?: boolean;
+  /** 插在 `<main>` 正文段之前（主题列表的 h1）。空则什么都不插。 */
+  leadHtml?: string;
 }): string {
   const {
     origin,
@@ -196,27 +213,44 @@ export function renderMarketingHtml(input: {
   };
   const base = origin.replace(/\/$/u, "");
   const locale = normalizeLocale(page.locale, site.default_locale);
+  const isHome = page.path === "/" || page.kind === "home";
   // canonical 指向**本页语言**的 URL：默认语言无前缀、其余 `/{locale}/...`。
   // 请求语言没有内容而回落到默认语言时（见 site.service 的 effectiveLocale），
   // 这里自然会指回无前缀入口，不会把回落出来的页面当成一份独立内容收录。
-  const localizedPath = withSiteLocale(page.path, locale, site.default_locale);
+  const localizedPath =
+    input.canonicalPath ??
+    withSiteLocale(page.path, locale, site.default_locale);
   const canonical = `${base}${localizedPath === "/" ? "/" : localizedPath}`;
+  const omitHreflang =
+    input.omitHreflang === true ||
+    memberGate ||
+    page.settings?.noindex === true;
   const alternateLinks = renderAlternateLinksHtml(
     base,
     page,
     site.default_locale,
+    omitHreflang,
   );
   const title = escapeHtml(
-    page.path === "/" || page.kind === "home"
-      ? site.site_name
-      : `${page.title} · ${site.site_name}`,
+    formatDocumentTitle({
+      pageTitle: page.title,
+      siteName: site.site_name,
+      isHome,
+    }),
   );
-  const description = escapeHtml(page.description || site.tagline || "");
+  const ogTitle = escapeHtml(isHome ? site.site_name : page.title);
+  const rawDescription = formatDocumentDescription({
+    pageDescription: page.description || "",
+    pageTitle: page.title,
+    tagline: site.tagline || "",
+    isHome,
+  });
+  const description = escapeHtml(rawDescription);
   const jsonLd = jsonLdScriptText({
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: page.title,
-    description: page.description || site.tagline,
+    description: rawDescription || undefined,
     url: canonical,
     isPartOf: {
       "@type": "WebSite",
@@ -228,7 +262,7 @@ export function renderMarketingHtml(input: {
   const socialMeta = renderSocialMetaHtml({
     base,
     canonical,
-    title,
+    title: ogTitle,
     description,
     siteName: site.site_name,
     // 页面级覆盖站点级；都没有就不出图片标签
@@ -363,6 +397,7 @@ export function renderMarketingHtml(input: {
   <div class="site-stack">
   ${headerHtml}
   <main class="site-main"${mainGateAttrs}${mainStyle}>
+    ${memberGate ? "" : (input.leadHtml ?? "")}
     ${mainInner}
   </main>
   ${footerHtml}
@@ -443,4 +478,28 @@ Allow: /
 
 Sitemap: ${base}/sitemap.xml
 `;
+}
+
+/**
+ * `/llms.txt`：给语言模型的站点说明书，和 robots.txt 一样是站点级、不跟 locale。
+ * 内容故意短——列全站页面会立刻过期，sitemap 才是那份清单。
+ */
+export function renderLlmsTxt(input: {
+  origin: string;
+  siteName: string;
+  tagline: string;
+}): string {
+  const base = input.origin.replace(/\/$/u, "");
+  const name = input.siteName.trim() || base;
+  const tagline = input.tagline.trim();
+  const lines = [
+    `# ${name}`,
+    "",
+    ...(tagline ? [`> ${tagline}`, ""] : []),
+    "The public sitemap lists every indexable page:",
+    "",
+    `- [Sitemap](${base}/sitemap.xml)`,
+    "",
+  ];
+  return lines.join("\n");
 }

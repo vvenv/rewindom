@@ -137,6 +137,18 @@ curl -sI -o /dev/null -w "%{http_version}\n" https://<域名>/   # 期望 2
 nginx ≥ 1.25.1 起 `http2 on;` 是新写法，listen 参数仍生效（`nginx -t` 会提示
 deprecated）。生产当前是 1.24，listen 参数是那儿**唯一**的写法。
 
+### 宿主机 Nginx 的 HSTS
+
+同样补在 certbot 写的 443 块上：`docker_enable_host_nginx_hsts`（每次部署幂等）和
+`acme-helper.py` 新签域名之后。应用层 SSR 在 https origin 上也会带
+`Strict-Transport-Security: max-age=31536000; includeSubDomains`，两层重复无害。
+
+自查：
+
+```bash
+curl -sI https://<域名>/ | grep -i strict-transport
+```
+
 ### 日志
 
 ```bash

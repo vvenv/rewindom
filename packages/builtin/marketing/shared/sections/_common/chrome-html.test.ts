@@ -296,4 +296,26 @@ describe("chrome 品牌", () => {
     expect(html).toContain('alt="站点"');
     expect(html).not.toContain("<span>站点</span>");
   });
+
+  it("首页页头品牌是 h1，页脚同路径不是", () => {
+    const section = localized("header", [block("chrome_brand", {})]);
+    const header = renderHeaderHtml({
+      section,
+      siteName: "站点",
+      logoUrl: null,
+      homeHref: "/",
+      currentPath: "/",
+      locale: "zh-CN",
+    });
+    const footer = renderFooterHtml({
+      section,
+      siteName: "站点",
+      logoUrl: null,
+      homeHref: "/",
+      currentPath: "/",
+      locale: "zh-CN",
+    });
+    expect(header).toContain('<h1 class="brand-heading">');
+    expect(footer).not.toContain("<h1");
+  });
 });

@@ -17,6 +17,7 @@ const KERNEL_RESERVED = new Set<string>([
   ...SITE_APP_PREFIXES,
   "sitemap.xml",
   "robots.txt",
+  "llms.txt",
 ]);
 
 const CONTRIBUTED = new Set<string>();

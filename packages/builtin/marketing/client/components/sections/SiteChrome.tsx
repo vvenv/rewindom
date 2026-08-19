@@ -261,7 +261,6 @@ function LocaleSwitcher({
           <Link
             key={alternate.locale}
             to={alternate.path}
-            hrefLang={alternate.locale}
             aria-current={alternate.locale === current ? "true" : undefined}
           >
             {getLocaleNativeLabel(alternate.locale)}
@@ -400,18 +399,25 @@ export function SiteChrome({
         // 与 SSR 同一条回落：字标留空跟着站名走，字标在场时 logo 只是装饰
         const brandText = settingText(block.settings, "brand_text") || siteName;
         const showBrandText = settingBool(block.settings, "show_site_name");
+        const mark = (
+          <SiteLink href="/" className="brand">
+            {settingBool(block.settings, "show_logo") && logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={showBrandText ? "" : brandText}
+                className="logo"
+              />
+            ) : null}
+            {showBrandText ? <span>{brandText}</span> : null}
+          </SiteLink>
+        );
         return (
           <div className="chrome-brand">
-            <SiteLink href="/" className="brand">
-              {settingBool(block.settings, "show_logo") && logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt={showBrandText ? "" : brandText}
-                  className="logo"
-                />
-              ) : null}
-              {showBrandText ? <span>{brandText}</span> : null}
-            </SiteLink>
+            {tag === "header" && ctx.currentPath === "/" ? (
+              <h1 className="brand-heading">{mark}</h1>
+            ) : (
+              mark
+            )}
             {blurb ? <p className="muted">{blurb}</p> : null}
           </div>
         );

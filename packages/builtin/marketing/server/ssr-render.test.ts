@@ -9,7 +9,7 @@ import {
 } from "../shared/section-schema.js";
 
 import { createStarterTranslator } from "./starter-i18n.js";
-import { renderMarketingHtml, renderSitemapXml } from "./ssr-render.js";
+import { renderMarketingHtml, renderSitemapXml, renderLlmsTxt } from "./ssr-render.js";
 
 import type {
   PublicMarketingPage,
@@ -216,6 +216,52 @@ describe("renderMarketingHtml SEO", () => {
       page: page({ alternates: [{ locale: "zh-CN", path: "/about" }] }),
     });
     expect(html).not.toContain("hreflang");
+  });
+
+  it("omits hreflang on noindex pages so duplicates do not advertise alternates", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page({ settings: { noindex: true } }),
+    });
+    expect(html).toContain('name="robots" content="noindex"');
+    expect(html).not.toContain('rel="alternate" hreflang');
+  });
+
+  it("caps long document titles at 60 characters", () => {
+    const headline =
+      "Apple Rejects DOJ Latest Antitrust Challenge as Failing at Every Level";
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site({ site_name: "Yestino - The Signal" }),
+      page: page({ title: headline }),
+    });
+    const title = /<title>([^<]*)<\/title>/u.exec(html)?.[1] ?? "";
+    expect(title.length).toBeLessThanOrEqual(60);
+    expect(html).toContain(`og:title" content="${headline}"`);
+  });
+
+  it("does not reuse the site tagline as every inner page's description", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site({ tagline: "The Signal" }),
+      page: page({ title: "AI", description: "" }),
+    });
+    expect(html).toContain(
+      'name="description" content="AI — The Signal"',
+    );
+  });
+
+  it("lets the caller override canonical and inject a lead heading", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page({ locale: "en", path: "/story" }),
+      canonicalPath: "/story",
+      leadHtml: '<h1 class="page-title">Story</h1>',
+    });
+    expect(html).toContain(`<link rel="canonical" href="${ORIGIN}/story" />`);
+    expect(html).toContain('<h1 class="page-title">Story</h1>');
   });
 
   it("rewrites canonical and title when another page is served at /", () => {
@@ -488,5 +534,18 @@ describe("renderMarketingHtml builtin 404", () => {
     expect(html).toContain('href="/en"');
     expect(html).not.toContain("页面不存在");
     expect(html).not.toContain("回到首页");
+  });
+});
+
+describe("renderLlmsTxt", () => {
+  it("names the site and points at the sitemap", () => {
+    const text = renderLlmsTxt({
+      origin: ORIGIN,
+      siteName: "Acme",
+      tagline: "Signals, not a leaderboard",
+    });
+    expect(text).toContain("# Acme");
+    expect(text).toContain("> Signals, not a leaderboard");
+    expect(text).toContain(`${ORIGIN}/sitemap.xml`);
   });
 });

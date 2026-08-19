@@ -148,6 +148,41 @@ fi
 '
 }
 
+# HSTS —— 每次部署都跑一遍，幂等。
+#
+# 与 HTTP/2 同一条理由：443 server 块是 certbot 写的，模板里的 listen 80 加不进去。
+# Semrush 抓首页会记「No HSTS support」。max-age 一年 + includeSubDomains，覆盖 www。
+docker_enable_host_nginx_hsts() {
+  log_info "确认宿主机 Nginx 已开启 HSTS..."
+  _run_ssh 'set -euo pipefail
+command -v nginx >/dev/null 2>&1 || exit 0
+
+changed=""
+for link in /etc/nginx/sites-enabled/*; do
+  [ -e "$link" ] || continue
+  conf="$(readlink -f "$link")"
+  grep -q "^# rewindom-" "$conf" || continue
+  grep -qE "listen (\[::\]:)?443 ssl" "$conf" || continue
+  grep -q Strict-Transport-Security "$conf" && continue
+  cp -a "$conf" "$conf.pre-hsts.bak"
+  sed -i "0,/listen .*443 ssl/s//&\n    add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains\" always;/" "$conf"
+  changed="$changed $conf"
+done
+
+[ -n "$changed" ] || exit 0
+
+if nginx -t; then
+  systemctl reload nginx
+  for conf in $changed; do rm -f "$conf.pre-hsts.bak"; done
+  echo "[hsts] enabled on:$changed"
+else
+  for conf in $changed; do mv -f "$conf.pre-hsts.bak" "$conf"; done
+  echo "[hsts] nginx -t failed, rolled back" >&2
+  exit 1
+fi
+'
+}
+
 docker_ensure_acme_helper() {
   local domain="$1"
   local port="$2"
@@ -415,6 +450,7 @@ docker compose -f docker-compose.prod.yml --env-file '${remote_env_file}' up -d
 
   docker_ensure_acme_helper "$domain" "$port" "$ssl_email"
   docker_enable_host_nginx_http2
+  docker_enable_host_nginx_hsts
 
   log_info "健康检查..."
   docker_wait_for_health "$remote_dir" "$port"

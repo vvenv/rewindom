@@ -55,6 +55,8 @@ export interface ChromeRenderInput {
   contributed?: Readonly<Record<string, unknown>>;
   /** 贡献 chrome 块按租户开通与否决定渲不渲染。 */
   enabledEntitlements?: ReadonlySet<string>;
+  /** 页头还是页脚：首页品牌的 h1 只加在页头。 */
+  area?: "header" | "footer";
 }
 
 export type ChromeBlockHtmlRenderer = (
@@ -98,6 +100,7 @@ function renderBrandHtml(input: {
   siteName: string;
   logoUrl: string | null;
   homeHref: string;
+  asHeading?: boolean;
 }): string {
   const s = input.block.settings;
   const blurb = settingText(s, "blurb");
@@ -113,10 +116,13 @@ function renderBrandHtml(input: {
       ${settingBool(s, "show_logo") && input.logoUrl ? `<img class="logo" src="${escapeHtml(input.logoUrl)}" alt="${escapeHtml(logoAlt)}" />` : ""}
       ${showBrandText ? `<span>${escapeHtml(brandText)}</span>` : ""}
     </a>`;
+  const branded = input.asHeading
+    ? `<h1 class="brand-heading">${mark}</h1>`
+    : mark;
   // 有简介才需要外面那层：没有的话品牌本身就是一个 `<a>`，多包一层只会多一个盒子
   return blurb
-    ? `<div class="chrome-brand">${mark}<p class="muted">${escapeHtml(blurb)}</p></div>`
-    : `<div class="chrome-brand">${mark}</div>`;
+    ? `<div class="chrome-brand">${branded}<p class="muted">${escapeHtml(blurb)}</p></div>`
+    : `<div class="chrome-brand">${branded}</div>`;
 }
 
 /** 一条导航项：有子项就是下拉（横排）或缩进子列表（竖列）。 */
@@ -205,7 +211,7 @@ function renderLocaleHtml(options: LocaleSwitcherOption[]): string {
   const items = options
     .map(
       (option) =>
-        `<a href="${escapeHtml(option.path)}" hreflang="${escapeHtml(option.locale)}"${
+        `<a href="${escapeHtml(option.path)}"${
           option.current ? ' aria-current="true"' : ""
         }>${escapeHtml(option.label)}</a>`,
     )
@@ -233,6 +239,7 @@ function renderBlockHtml(block: SiteBlock, input: ChromeRenderInput, isMainNav: 
         siteName: input.siteName,
         logoUrl: input.logoUrl,
         homeHref: input.homeHref,
+        asHeading: input.area === "header" && input.ctx.currentPath === "/",
       });
     case "chrome_nav":
       return renderNavHtml({
@@ -356,9 +363,10 @@ export function renderChromeHtml(
   styleAttr: string,
   input: ChromeRenderInput,
 ): string {
+  const scoped: ChromeRenderInput = { ...input, area: tag };
   const state = { mainNavUsed: false };
   const rows = chromeRows(input.section.blocks)
-    .map((row) => renderRowHtml(row, input, input.section.id, state))
+    .map((row) => renderRowHtml(row, scoped, input.section.id, state))
     .filter(Boolean)
     .join("");
   return `<${tag} class="${className}"${styleAttr ? ` style="${styleAttr}"` : ""}>${rows}</${tag}>`;

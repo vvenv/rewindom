@@ -120,6 +120,27 @@ def _enable_http2(conf: Path) -> bool:
     return True
 
 
+HSTS_LINE = (
+    '    add_header Strict-Transport-Security '
+    '"max-age=31536000; includeSubDomains" always;'
+)
+LISTEN_443_ANY_RE = re.compile(r"^(\s*listen\s+(?:\[::\]:)?443\s+ssl(?:\s+http2)?(;.*))$", re.M)
+
+
+def _enable_hsts(conf: Path) -> bool:
+    """Add HSTS to a certbot-managed 443 server block. Returns True if changed."""
+    if not conf.is_file():
+        return False
+    text = conf.read_text()
+    if "Strict-Transport-Security" in text:
+        return False
+    match = LISTEN_443_ANY_RE.search(text)
+    if not match:
+        return False
+    conf.write_text(text.replace(match.group(0), f"{match.group(0)}\n{HSTS_LINE}", 1))
+    return True
+
+
 def _issue(names: list[str]) -> dict[str, Any]:
     if not names:
         return {"ok": False, "error": "names required"}
@@ -168,9 +189,11 @@ def _issue(names: list[str]) -> dict[str, Any]:
             ],
         }
 
-    # certbot 刚写完 443 listen 行；补上 http2 再 reload。失败不影响签发结果——
-    # 证书已经拿到了，退回 HTTP/1.1 只是慢一点，不该让整个请求报错。
-    if _enable_http2(vhost) and _run(["nginx", "-t"]).returncode == 0:
+    # certbot 刚写完 443 listen 行；补上 http2 / HSTS 再 reload。失败不影响签发结果——
+    # 证书已经拿到了，退回 HTTP/1.1 或暂时没 HSTS 只是慢一点 / 少一颗头。
+    changed = _enable_http2(vhost)
+    changed = _enable_hsts(vhost) or changed
+    if changed and _run(["nginx", "-t"]).returncode == 0:
         _run(["systemctl", "reload", "nginx"])
 
     return {"ok": True, "names": names}

@@ -70,6 +70,12 @@ dl {
   flex: 1 1 auto;
   padding-inline: var(--site-gutter, 1.5rem);
 }
+.site-main > .page-title {
+  font-size: 1.875rem;
+  font-weight: 650;
+  max-width: var(--site-page-width, 72rem);
+  margin: 2rem auto 0;
+}
 .page-missing {
   display: flex;
   flex-direction: column;

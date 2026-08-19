@@ -12,7 +12,7 @@
 
 | 面           | 路由                                                                  | 目录                                         | 守卫                                           |
 | ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
-| 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
+| 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt`、`/llms.txt` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
 | 租户中台     | `/app/site`、`/app/site/editor`（`?page=` 区块树；`?scope=theme` 外观，从卡片进入）；站点设置为官网卡片上的 Sheet | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
 挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / 编辑器）。
@@ -1132,13 +1132,18 @@ URL 都会先规范化再查。来源写成 `/en/old` 或 `/old/` 与 `/old` 是
 | 能力 | 存哪 | 口径 |
 | --- | --- | --- |
 | 分享缩略图 | `theme_settings.og_image`（站点级）+ `page.settings.og_image`（逐页覆盖） | 相对路径按 origin 补成**绝对地址**——抓取器不带页面上下文；没图就整组图片标签不出（空 `content` 会被部分平台画成裂图），`twitter:card` 也相应退成 `summary` |
-| 逐页 noindex | `page.settings.noindex` | 只掐收录，链接权重照常传递；同时从 sitemap 摘掉——留在 sitemap 又标 noindex 是自相矛盾的信号 |
+| 逐页 noindex | `page.settings.noindex` | 只掐收录，链接权重照常传递；同时从 sitemap 摘掉、也不发 hreflang——留在 sitemap 又标 noindex 是自相矛盾的信号 |
 | 会员页 noindex | 自动（`requires_member`） | `noindex, nofollow`：SSR 只有占位，收录了也是空页，所以连 follow 一起掐 |
+| `<title>` | 现场拼 | 首页 = 站名；内页能放下 `标题 · 站名` 就拼，否则只用页标题。上限 60 字（`shared/seo-meta.ts`） |
+| meta description | 页面 description，否则首页 tagline、内页 `{标题} — {tagline}` | 禁止多页共用一句光秃 tagline |
+| 首页 h1 | 页头品牌 | 仅 `<header>` 且 `currentPath === /`；页脚品牌仍是链接 |
+| `/llms.txt` | 现场拼 | 站点名 + 标语 + 链到 sitemap，和 robots.txt 一样是站点级 |
+| HSTS | SSR `onRequest` + 宿主机 nginx | 只在 https origin 上发；nginx 每次部署幂等补（certbot 写的 443 块自己不会带） |
 
-og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算一份。
+og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:description 与 meta description 同源。
 `og_image` 只放行站内相对路径与 http(s)：同一个值也会进编辑器预览的 `<img src>`。
 
-用例见 `server/ssr-seo.test.ts`。
+用例见 `server/ssr-seo.test.ts`、`shared/seo-meta.test.ts`。
 
 ### `www.` 是别名，不是第二个站
 

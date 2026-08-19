@@ -1,0 +1,73 @@
+# 增量功能契约 —— 公开面 SEO：title / h1 / meta / hreflang / llms.txt / HSTS
+#
+# 起因：yestino.com Semrush Mega Export（2026-08-19）公开面一批可修的技术项：
+#   1. 首页没有 h1（页头品牌只是 <a>，正文第一段是 h2）
+#   2. `<title>` 把「页标题 · 站名」拼出去，新闻标题普遍超过 60 字
+#   3. 没写 description 的页全部回落同一句 tagline → Duplicate meta descriptions
+#   4. 语言切换器 <a hreflang> 与 <head> 里的 alternate 叠两套；noindex 页仍发 hreflang
+#   5. `/llms.txt` 404（爬虫按惯例找，找不到记一条）
+#   6. 响应没有 Strict-Transport-Security
+#
+# 内容侧（Low word count / Low text to HTML / 语种检测把中文壳+英文卡片判成英文）
+# 不在这次：那是语料与版式，不是缺标签。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: 公开 HTML 补齐 h1 / 截断 title / 去重 description、noindex 不再发 hreflang、提供 /llms.txt，HTTPS 响应带 HSTS。
+gold: packages/builtin/marketing/server/ssr-render.ts
+touch:
+  - packages/builtin/marketing/features/ssr-seo-audit.spec.yaml
+  - packages/builtin/marketing/shared/seo-meta.ts
+  - packages/builtin/marketing/shared/seo-meta.test.ts
+  - packages/builtin/marketing/shared/reserved-slugs.ts
+  - packages/builtin/marketing/shared/site-css/base.css
+  - packages/builtin/marketing/shared/sections/_common/styles.css
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.test.ts
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+  - packages/builtin/marketing/client/components/sections/SiteChrome.tsx
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-render.test.ts
+  - packages/builtin/marketing/server/ssr-seo.test.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/server/hsts.ts
+  - packages/builtin/marketing/server/hsts.test.ts
+  - packages/builtin/marketing/MODULE.md
+  - apps/client/vite-marketing-ssr-proxy.ts
+  - scripts/lib/docker-deploy-remote.sh
+  - scripts/acme-helper.py
+  - docs/deployment.md
+out_of_scope:
+  - 自动给每张 CMS 页插 page-header（已从内核拿掉，见 MODULE.md「页面标题不再自动渲染」）
+  - 抽出内联 CSS 去抬 text-to-HTML 比
+  - 给薄内容页注水
+  - 改 hreflang 用 zh-Hans 替换 zh-CN
+  - HTTP→HTTPS 跳转（certbot --redirect 已做）
+i18n: none # 无新工作台文案
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-seo.test.ts ssr-render.test.ts hsts.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared seo-meta.test.ts
+  - pnpm --filter @rewindom/builtin assemble:marketing-css
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **首页 h1 = 页头品牌**，仅 <header>、仅 currentPath === `/`。页脚品牌仍是 <a>。
+#    视觉用 .brand-heading { font: inherit; margin: 0 } 包一层，不把站名再画大一次。
+# 2. **`<title>` 上限 60**：首页用站名；内页能放下 `标题 · 站名` 就拼，否则只用页标题，
+#    再长就截断加省略号。og:title 用完整页标题（社交卡片不必跟 SERP 一样短）。
+# 3. **description**：页有 description 用它；首页回落 tagline；其它页回落
+#    `{title} — {tagline}`，禁止多页共用一句光秃 tagline。
+# 4. **hreflang 只留 <head>`**：语言切换器的 <a> 去掉 hreflang，避免与 head 互指打架。
+#    `page.settings.noindex` 或 `omitHreflang` 时 head 也不发 alternate。
+# 5. **`canonicalPath`**：调用方可覆盖规范地址（事件详情内容未译，指回默认语言 URL）。
+# 6. **`leadHtml`**：模块可在 <main> 开头塞一段（事件主题页的 h1）；marketing 不根据
+#    kind 猜。
+# 7. **`/llms.txt`**：与 robots.txt 同级，站点名 + 标语 + 链到 sitemap。
+# 8. **HSTS**：SSR onRequest 在 https origin 上加头；宿主机 nginx 每次部署幂等补一条
+#    （certbot 写的 443 块不会自己带），acme-helper 新签域名同样补。

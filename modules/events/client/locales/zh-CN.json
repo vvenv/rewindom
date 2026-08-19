@@ -48,6 +48,13 @@
     "entertainment": "娱乐",
     "sports": "体育"
   },
+  "topicMeta": {
+    "description": "{{topic}} 正在发生的事件：来源、时间线，以及这件事是怎么走到这一步的"
+  },
+  "listing": {
+    "metaDescription": "{{topic}} 的「{{source}}」列表：符合条件的事件，按最近动态排序",
+    "metaDescriptionAll": "「{{source}}」列表：符合条件的事件，按最近动态排序"
+  },
   "sourceKind": {
     "official": "一手来源",
     "news": "新闻报道",

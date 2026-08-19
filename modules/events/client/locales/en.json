@@ -48,6 +48,13 @@
     "entertainment": "Entertainment",
     "sports": "Sports"
   },
+  "topicMeta": {
+    "description": "{{topic}} events as they develop — sources, a timeline, and how the story got here"
+  },
+  "listing": {
+    "metaDescription": "{{source}} in {{topic}} — every matching event, most recent first",
+    "metaDescriptionAll": "{{source}} — every matching event, most recent first"
+  },
   "sourceKind": {
     "official": "Official",
     "news": "News",

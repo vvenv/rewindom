@@ -1,0 +1,48 @@
+# 增量功能契约 —— 事件公开面 SEO：主题描述、?source= 不收录、未译页不冒充译文
+#
+# 起因：yestino.com Semrush Mega Export（2026-08-19）：
+#   - `/ai` `/business` `/tech` 与一批状态页共用同一句 meta description
+#   - `?source=now|rising` 被当成独立 URL：hreflang 与 canonical 打架（每页 2–3 条）
+#   - `/zh-CN/...` 事件详情的 hreflang 声称是中文页，正文仍是来源原文（MODULE.md「不做翻译」）
+#   - 主题列表页没有 h1（版式只有 Rising / Now 的 h2）
+#
+# 首页 h1 / title 截断 / HSTS / llms.txt 在 marketing 的 `ssr-seo-audit`。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 主题页有独特 description 与 h1；`?source=` 列表 noindex；事件/实体不发译文 hreflang，canonical 指默认语言 URL。
+gold: modules/events/server/ssr/events-page.ts
+touch:
+  - modules/events/features/public-seo-audit.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ssr/events-page.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 翻译事件标题 / 摘要（产品口径仍是来源原文）
+  - 给实体页注水或改内链图谱（枢纽已存在）
+  - 把 `?source=` 改成 hash（分享过滤视图仍可用，只是不收录）
+  - 改 marketing 内核的自动 h1（CMS 页仍靠 page-header 段）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **主题枢纽**（`/ai` 等）：title 仍是主题名；description 用 `topicMeta.description`，
+#    不再借用 events_index 模板那句或站点 tagline。`leadHtml` 输出一颗 h1。
+# 2. **`?source=` 列表**：`noindex` + 省略 hreflang（canonical 已经指向不带查询的地址）。
+#    描述用 `listing.metaDescription`，h1 用「Now / Rising · 主题」。
+# 3. **详情 / 实体**：内容不是译文。语言切换器仍列出各 UI 语言；**不**在 <head> 发
+#    hreflang 互指。canonical 一律指默认语言（无前缀）那条 URL。description 缺 headline
+#    时用标题，避免所有无摘要事件共用模板副标题。
+# 4. 列表页的 h1 走 marketing 的 `leadHtml`，不把 page-header 段塞进租户版式。

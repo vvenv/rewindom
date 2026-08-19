@@ -42,6 +42,12 @@ describe("vite marketing SSR proxy routing", () => {
     expect(shouldProxyDocumentToMarketingSsr("/", "GET", "text/html")).toBe(
       true,
     );
+    expect(
+      shouldProxyDocumentToMarketingSsr("/robots.txt", "GET", "*/*"),
+    ).toBe(true);
+    expect(shouldProxyDocumentToMarketingSsr("/llms.txt", "GET", "*/*")).toBe(
+      true,
+    );
   });
 
   it("店面与会员订单走 Fastify SSR，含无 JS 表单 POST", () => {
