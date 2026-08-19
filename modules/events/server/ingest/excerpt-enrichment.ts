@@ -9,22 +9,37 @@ import {
 /** 每轮最多补多少条已入库的空摘录，避免一次 ingest 去抓全库。 */
 const STORED_EXCERPT_BACKFILL_LIMIT = 40;
 const BACKFILL_CONCURRENCY = 5;
+/**
+ * 同一条信号两次补抓之间至少隔多久。
+ *
+ * 没有这道退避时，抓不出摘录的 URL（付费墙、机器人墙、纯 JS 页）会**永远**
+ * 留在候选里：失败不写任何东西，下一轮 `excerpt: ""` 仍然命中它，于是同一批
+ * 40 个死链每 15 分钟被重抓一次，一天 96 遍，直到被更新的空摘录挤出窗口。
+ *
+ * 退避靠 `fetched_at`——每次尝试都把它推到当下，成功与否都推。这一列的语义
+ * 就是「上次为这条信号发起网络请求的时间」，除了这里没有第二处读它。
+ */
+const BACKFILL_RETRY_HOURS = 6;
 
 /**
  * 给库里还没有摘录的信号补目标页描述。
  *
- * 本轮刚抓到的信号在 persist 前就已经试过目标页；这里只补「当时失败 /
+ * 新抓到的信号在 persist 前就已经试过目标页；这里只补「当时失败 /
  * 上线前已入库」的旧行，避免同一轮对同一 URL 抓两次。
- * 成功写入后把所属事件的 `analyzed_at` 清掉，refresh 才会用新摘录重写摘要。
+ * 成功写入后把所属事件的 `analyzed_at` 清掉，refresh 才会用新摘录重写摘要——
+ * 那是一次绕过冷却的模型调用，所以这条路必须限量（见 `BACKFILL_RETRY_HOURS`）。
  */
 export async function enrichStoredEmptyExcerpts(
   tenantId: string,
-  fetchedBefore: Date,
+  now: Date,
 ): Promise<string[]> {
+  const retryBefore = new Date(
+    now.getTime() - BACKFILL_RETRY_HOURS * 60 * 60 * 1000,
+  );
   const rows = await prisma.eventSignal.findMany({
     where: withTenantScope(tenantId, {
       excerpt: "",
-      fetched_at: { lt: fetchedBefore },
+      fetched_at: { lt: retryBefore },
       // 移除过的信号不值得再花一次抓取去补摘录
       removed_at: null,
     }),
@@ -48,20 +63,25 @@ export async function enrichStoredEmptyExcerpts(
       const index = next;
       next += 1;
       const row = targets[index];
+      let excerpt = "";
       try {
-        const excerpt = await fetchPageExcerpt(row.url);
-        if (!isUsableExcerpt(excerpt, row.title)) {
-          continue;
-        }
+        excerpt = await fetchPageExcerpt(row.url);
+      } catch {
+        // 抓取失败也要往下走：那一笔时间正是失败要留的退避标记
+      }
+      const usable = isUsableExcerpt(excerpt, row.title);
+      try {
+        // 尝试过就记一笔时间：失败的那些靠它退避，不再每轮重抓
         await prisma.eventSignal.update({
           where: { id: row.id },
-          data: { excerpt },
+          data: { fetched_at: now, ...(usable ? { excerpt } : {}) },
         });
-        if (row.event_id) {
-          eventIds.add(row.event_id);
-        }
       } catch {
-        // 单篇失败下一轮再试
+        // 行可能刚被保留期清理删掉。这一条跳过，不该让整轮补齐失败
+        continue;
+      }
+      if (usable && row.event_id) {
+        eventIds.add(row.event_id);
       }
     }
   };

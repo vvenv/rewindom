@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "title": "Content translation",
+    "description": "On-demand translation for visitors. Translations are produced in the browser only — nothing is stored or indexed, and the original always stays authoritative.",
+    "enabled": "Enable visitor translation",
+    "enabledHint": "When on, public pages show a Translate control if the body language differs from the site language. Off by default.",
+    "engine": "Engine",
+    "engines": {
+      "browser": "Built into the browser (recommended)",
+      "libretranslate": "LibreTranslate",
+      "mymemory": "MyMemory (free)",
+      "deepl": "DeepL",
+      "google": "Google Translate",
+      "llm": "LLM (OpenAI-compatible)",
+      "custom": "Custom endpoint"
+    },
+    "engineHints": {
+      "browser": "Uses Chrome 138+'s on-device translation model: free, no quota, works offline, and what a visitor reads never leaves the browser. Browsers without it simply show no translate control.",
+      "libretranslate": "Self-hosted open-source instance, no key required. Public instances are heavily rate limited — run your own for production.",
+      "mymemory": "Free public endpoint, quota shared per visitor IP. Weakest quality; use only as a fallback.",
+      "deepl": "Requires a key and is proxied through the server. Good quality, billed per character.",
+      "google": "Requires a Google Cloud Translation key and is proxied through the server.",
+      "llm": "Requires a key and is proxied through the server. Best at preserving terminology, and the most expensive.",
+      "custom": "Your own relay endpoint. Request body is { texts, target, source }; response is { texts }."
+    },
+    "endpoint": "Endpoint",
+    "endpointHint": "Must be an http(s) URL.",
+    "apiKey": "API key",
+    "apiKeyEmpty": "Not configured",
+    "apiKeyHint": "Stored encrypted on the server and never sent to the browser; requests for these engines are forwarded server-side. Leave blank to keep the current key.",
+    "keepTerms": "Terms to keep untranslated",
+    "keepTermsHint": "One per line. Product names, version numbers and code identifiers are already protected — add proper nouns the heuristics miss.",
+    "saved": "Translation settings saved",
+    "errors": {
+      "engine": "Choose a translation engine",
+      "endpointRequired": "Enter the endpoint",
+      "endpointInvalid": "Enter a valid http(s) URL"
+    }
+  }
+}

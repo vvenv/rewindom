@@ -1,10 +1,18 @@
-import { useEffect, useState, type FormEvent, type ReactElement } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactElement,
+} from "react";
 
 import {
   ApiError,
   PageLayout,
   SettingsPanel,
   SettingsStack,
+  getTenantSettingsPanels,
+  sortTenantSettingsPanels,
   usePermissions,
 } from "@rewindom/client-kit";
 import { Alert, AlertDescription } from "@rewindom/ui/alert";
@@ -38,6 +46,19 @@ export function TenantSettingsPage(): ReactElement {
   const { t } = useTranslation(["platform", "common"]);
   const { hasPermission } = usePermissions();
   const canWrite = hasPermission("settings.write");
+  /*
+   * 其他模块贡献的设置面板（translation 是第一个）。platform 是壳层，
+   * **不得** import 贡献方——面板经组装层的注册表倒置进来。
+   */
+  const extraPanels = useMemo(
+    () =>
+      sortTenantSettingsPanels(getTenantSettingsPanels()).filter(
+        (panel) =>
+          !panel.anyPermission ||
+          panel.anyPermission.some((permission) => hasPermission(permission)),
+      ),
+    [hasPermission],
+  );
   const { data, isLoading, isError, error, refetch } = useTenantOpenai();
   const update = useUpdateTenantOpenai();
   const [form, setForm] = useState<OpenaiSettingsFormValues>(
@@ -162,6 +183,9 @@ export function TenantSettingsPage(): ReactElement {
               </FieldGroup>
             </SettingsPanel>
           </form>
+          {extraPanels.map((panel) => (
+            <panel.component key={panel.id} />
+          ))}
         </SettingsStack>
       )}
     </PageLayout>

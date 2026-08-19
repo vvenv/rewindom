@@ -4,6 +4,7 @@ import {
   configureClientTenantCatalog,
   registerDashboardWidgetsProvider,
   registerPlatformDashboardSectionsProvider,
+  registerTenantSettingsPanelsProvider,
   type ClientAppModule,
 } from "@rewindom/client-kit";
 
@@ -15,6 +16,7 @@ import {
   collectAppRouteTrees,
   collectDashboardWidgets,
   collectPlatformDashboardSections,
+  collectTenantSettingsPanels,
 } from "./collect-modules";
 
 export function prepareAppRoutes(
@@ -27,6 +29,8 @@ export function prepareAppRoutes(
   registerPlatformDashboardSectionsProvider(() =>
     collectPlatformDashboardSections(modules),
   );
+  // 租户设置页在 `platform` 模块内，同理由贡献方（如 translation）自己登记面板。
+  registerTenantSettingsPanelsProvider(() => collectTenantSettingsPanels(modules));
   return buildAppShellConfig(modules);
 }
 

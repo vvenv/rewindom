@@ -1,0 +1,23 @@
+# 给公开面标出「不要翻译」的片段，配合 translation 模块的访客侧按需翻译。
+#
+# 为什么必须标：translation 的 enhance 扫 `main.site-main` 下的文本节点，默认全翻。
+# 事件卡片里有两类文本不该进翻译：
+#   1. 来源名（Hacker News / BBC）—— 身份标识，译了就对不上原文，也毁掉「来源是
+#      事件的证据」这条产品口径
+#   2. status_label / topic_label / fact_labels / momentum_label —— 它们在
+#      `toPublicCard` 里已经按站点语言落成当前语言了（**代码 i18n**），再翻一遍
+#      等于把「故障」翻成别的说法
+# 时间戳走 <time>，translation 默认已跳过，不用标。
+
+module: events
+surfaces: [ssr]
+goal: 公开面标记来源名与已本地化标签为 translate="no"
+gold: packages/builtin/translation/client/lib/translate-dom.ts
+touch:
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/entity-html.ts
+out_of_scope: [ingest, clustering, event-edit, og-image, rss]
+i18n: none # 只加属性，不动任何文案
+acceptance:
+  - pnpm --filter @rewindom/events test

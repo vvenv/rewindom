@@ -231,6 +231,12 @@ export {
   DEFAULT_PLATFORM_DASHBOARD_SECTION_ORDER,
 } from "./lib/platform-dashboard-sections";
 export {
+  registerTenantSettingsPanelsProvider,
+  getTenantSettingsPanels,
+  sortTenantSettingsPanels,
+  DEFAULT_TENANT_SETTINGS_PANEL_ORDER,
+} from "./lib/tenant-settings-panels";
+export {
   configureClientTenantCatalog,
   getClientTenantCatalog,
 } from "./lib/tenant-catalog";

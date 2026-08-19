@@ -69,7 +69,7 @@ function headerHtml(event: PublicEventDetailView): string {
       (label) => `<span class="events-fact">${escapeHtml(label)}</span>`,
     ),
   ].join("");
-  return `<header class="events-detail-header"><span class="events-meta">${meta}</span><h1 class="events-detail-title">${escapeHtml(
+  return `<header class="events-detail-header"><span class="events-meta" translate="no">${meta}</span><h1 class="events-detail-title">${escapeHtml(
     event.title,
   )}</h1></header>`;
 }
@@ -203,7 +203,7 @@ function sourcesHtml(event: PublicEventDetailView, label: string): string {
             (item) =>
               `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(
                 item.title,
-              )}</a><span class="events-source-name">${escapeHtml(item.source_name)}</span></li>`,
+              )}</a><span class="events-source-name" translate="no">${escapeHtml(item.source_name)}</span></li>`,
           )
           .join("")}</ul></div>`,
     )

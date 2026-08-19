@@ -40,7 +40,7 @@ export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
     `<section class="events-entity">`,
     `<header class="events-entity-head">`,
     `<h1 class="events-entity-name">${escapeHtml(entity.name)}</h1>`,
-    `<p class="events-entity-meta">${escapeHtml(entity.kind_label)}</p>`,
+    `<p class="events-entity-meta" translate="no">${escapeHtml(entity.kind_label)}</p>`,
     profileHtml(entity.profile),
     `</header>`,
     eventsLabel
@@ -101,12 +101,12 @@ function cardHtml(
 
   const sources =
     showSources && card.source_names.length > 0
-      ? `<p class="events-sources">${escapeHtml(card.source_names.join(" · "))}</p>`
+      ? `<p class="events-sources" translate="no">${escapeHtml(card.source_names.join(" · "))}</p>`
       : "";
 
   return `<li class="events-card"><a class="events-card-link" href="${escapeHtml(
     siteHref(card.href, ctx),
-  )}"><span class="events-meta">${meta}</span><span class="events-title">${escapeHtml(
+  )}"><span class="events-meta" translate="no">${meta}</span><span class="events-title">${escapeHtml(
     card.title,
   )}</span>${
     card.headline

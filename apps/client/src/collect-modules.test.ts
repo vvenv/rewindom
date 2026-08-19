@@ -8,6 +8,7 @@ import {
   collectDashboardWidgets,
   collectModuleNav,
   collectPlatformDashboardSections,
+  collectTenantSettingsPanels,
 } from "./collect-modules";
 
 import type { ClientAppModule } from "@rewindom/client-kit";
@@ -247,6 +248,43 @@ describe("collect-modules", () => {
       "slow-request.stats",
     ]);
     expect(sections[0]!.order).toBe(10);
+  });
+
+  it("collects tenant settings panels in module order and drops duplicate ids", () => {
+    const Panel = () => null;
+    const Other = () => null;
+    const modules: ClientAppModule[] = [
+      {
+        id: "translation",
+        version: "1.0.0",
+        label: "Content Translation",
+        kind: "infrastructure",
+        client: {
+          tenantSettingsPanels: [
+            { id: "translation.settings", order: 120, component: Panel },
+          ],
+        },
+      },
+      {
+        id: "other",
+        version: "1.0.0",
+        label: "Other",
+        kind: "infrastructure",
+        client: {
+          tenantSettingsPanels: [
+            { id: "other.settings", order: 130, component: Other },
+            { id: "translation.settings", order: 99, component: Other },
+          ],
+        },
+      },
+    ];
+
+    const panels = collectTenantSettingsPanels(modules);
+    expect(panels.map((panel) => panel.id)).toEqual([
+      "translation.settings",
+      "other.settings",
+    ]);
+    expect(panels[0]!.component).toBe(Panel);
   });
 
   it("collects route trees by mount point", () => {

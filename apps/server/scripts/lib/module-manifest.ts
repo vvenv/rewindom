@@ -40,6 +40,11 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac"],
   },
   {
+    id: "translation",
+    kind: "infrastructure",
+    requires: ["rbac"],
+  },
+  {
     id: "dashboard",
     kind: "infrastructure",
   },

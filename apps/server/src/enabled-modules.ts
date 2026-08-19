@@ -11,6 +11,7 @@ import { siteBillingServerModule } from "@rewindom/builtin/site-billing/server/i
 import { siteMemberServerModule } from "@rewindom/builtin/site-member/server/index.js";
 import { slowQueryServerModule } from "@rewindom/builtin/slow-query/server/index.js";
 import { slowRequestServerModule } from "@rewindom/builtin/slow-request/server/index.js";
+import { translationServerModule } from "@rewindom/builtin/translation/server/index.js";
 import { userServerModule } from "@rewindom/builtin/user/server/index.js";
 
 import { EXTERNAL_SERVER_MODULES } from "./external-modules.js";
@@ -25,6 +26,7 @@ export const ENABLED_SERVER_MODULES = [
   slowQueryServerModule,
   slowRequestServerModule,
   notificationServerModule,
+  translationServerModule,
   dashboardServerModule,
   userServerModule,
   platformServerModule,

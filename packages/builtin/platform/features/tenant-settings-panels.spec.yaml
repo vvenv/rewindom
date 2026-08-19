@@ -1,0 +1,26 @@
+# 让 /app/settings 可被其他模块追加设置面板（translation 是第一个消费方）。
+#
+# 为什么用注册表而不是 Component Slot：extension-points 的决策表把「多模块往
+# 同一处追加」划给注册表（工作台卡片就是这么做的）——`createComponentSlot` 是
+# 单组件的，两个模块各挂一次会后者覆盖前者，而设置面板天然会有第二个第三个。
+# 形状照抄 `platformDashboardSections`：无用户级显隐排序，platform 只提供骨架。
+#
+# 备选是让每个模块各开一张设置页，代价是侧边栏出现第二个「设置」入口。
+
+module: platform
+surfaces: [tenant]
+goal: /app/settings 支持各模块贡献自己的设置面板
+gold: packages/client-kit/src/lib/platform-dashboard-sections.ts
+touch:
+  - packages/client-kit/src/lib/module-contract.ts
+  - packages/client-kit/src/lib/tenant-settings-panels.ts
+  - packages/client-kit/src/index.ts
+  - apps/client/src/collect-modules.ts
+  - apps/client/src/render-app-routes.tsx
+  - packages/builtin/platform/client/pages/tenant-settings.tsx
+out_of_scope: [platform-console, impersonation, tenant-management, openai-settings]
+i18n: none # 面板本身无文案，文案在各贡献方模块
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'platform/*'
+  - pnpm --filter client test
+  - pnpm check:modules

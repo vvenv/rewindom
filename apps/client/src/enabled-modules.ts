@@ -11,6 +11,7 @@ import { siteBillingClientModule } from "@rewindom/builtin/site-billing/client/m
 import { siteMemberClientModule } from "@rewindom/builtin/site-member/client/module.js";
 import { slowQueryClientModule } from "@rewindom/builtin/slow-query/client/module.js";
 import { slowRequestClientModule } from "@rewindom/builtin/slow-request/client/module.js";
+import { translationClientModule } from "@rewindom/builtin/translation/client/module.js";
 import { userClientModule } from "@rewindom/builtin/user/client/module.js";
 
 import { appShellClientModule } from "@/shell/index";
@@ -42,6 +43,8 @@ export const ENABLED_CLIENT_MODULES = [
   rbacClientModule,
   billingClientModule,
   platformClientModule,
+  // 无导航项，只往 platform 的 /app/settings 追加一张翻译设置面板
+  translationClientModule,
   auditClientModule,
   errorLogClientModule,
   slowQueryClientModule,

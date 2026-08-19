@@ -1,0 +1,62 @@
+# 账单跟着发布频率走，而不是跟着语料走。
+#
+# 两条重复付费的路，都在采集轮次上：
+#
+# 1. **每次 `pnpm release` 都多跑一整轮采集**。调度器的定时器活在进程里，
+#    boot 后 20 秒无条件跑第一轮——一天发六次版就是六轮完整采集。
+#    多出来的不只是带宽：这一轮会连带跑空摘录补齐，而补齐成功会把事件的
+#    `analyzed_at` 置空，那是一次**绕过冷却的模型调用**。
+#
+# 2. **目标页摘录在去重之前抓**。`fillEmptyExcerpts` 跑在 connector 返回之后，
+#    对整批 raw 条目抓目标页；而源每轮返回的是同一份最近 N 条（RSS 40 / 源、HN 60），
+#    绝大多数早就在库里。HN 的链接贴几乎全是空摘录，于是同一批文章页每 15 分钟
+#    被重新下载一遍（每篇最多 200KB），抓回来的内容与库里那份一模一样。
+#    已入库的空摘录旧行也一样：抓失败不写任何东西，下一轮 `excerpt: ""` 仍然命中它，
+#    付费墙 / 机器人墙这类永远抓不出摘录的 URL 一天被重抓 96 遍。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 让一轮采集的外部开销只跟语料增量有关——重启不重跑已经跑过的轮次，目标页只为新条目抓，抓不出摘录的 URL 退避重试。
+gold: modules/events/server/ingest/ingest.service.ts
+touch:
+  - modules/events/features/ingest-cost-control.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/ingest.service.ts
+  - modules/events/server/ingest/ingest.due.test.ts
+  - modules/events/server/ingest/excerpt-enrichment.ts
+  - modules/events/server/ingest/excerpt-enrichment.test.ts
+  - modules/events/server/ingest/scheduler-jobs.ts
+out_of_scope:
+  - 改采集周期默认值与降温扫描上限
+  - 改三道 LLM 省钱闸门（EVENTS_LLM_*）的口径
+  - 给保留期清理也加库侧判据（重跑只是空扫，不产生外部调用）
+  - 把采集改成后台队列 / 独立进程
+  - 新增 Prisma 字段（退避复用现成的 fetched_at）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/ingest.due.test.ts server/ingest/excerpt-enrichment.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: [] # 无新字段：到点判据用现成的 EventFeed.last_fetched_at，退避用 EventSignal.fetched_at
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 「到没到点」的判据必须落在库里（`EventFeed.last_fetched_at`），不能落在进程里。
+#    进程里的任何状态（定时器、内存标记）都会被重启清掉，而重启正是要防的那件事。
+# 2. 允许早到 60 秒。卡死「必须满一个周期」会让毫秒级漂移把每一轮推到下一次心跳，
+#    15 分钟的周期实际跑成 30 分钟。
+# 3. 跳过的粒度是**整站**：一个站点的源共用一个周期，全到或全不到。
+#    有一个源到点（比如刚在工作台加的，`last_fetched_at` 为空）就整轮照跑——
+#    新源不必等下一个周期，降温扫描也跟着正常轮次走。
+# 4. 一个源都没有的站点（主题全关）**不算跳过**：它没有源可判，
+#    但已有语料的降温扫描还得继续跑，否则公开面停在最后一次爆发的读数上。
+# 5. `fillEmptyExcerpts` 移到 `persistSignals` 里、`fresh` 算出来之后。
+#    去重键（身份 / external_id / 重发）与 excerpt 无关，先去重不影响判定。
+# 6. 空摘录补齐的退避复用 `fetched_at`：每次尝试都推进，成功与否都推。
+#    这一列的语义就是「上次为这条信号发起网络请求的时间」，除 `enrichStoredEmptyExcerpts`
+#    外没有第二处读它。退避期 6 小时——仍给临时机器人墙留重试机会，
+#    但不再一天 96 遍。

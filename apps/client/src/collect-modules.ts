@@ -5,6 +5,7 @@ import {
   type AppNavSection,
   type DashboardWidget,
   type PlatformDashboardSection,
+  type TenantSettingsPanel,
 } from "@rewindom/client-kit";
 
 import { renderModuleDeclarativeRoutes } from "./declarative-routes";
@@ -101,6 +102,23 @@ export function collectPlatformDashboardSections(
     for (const section of module.client?.platformDashboardSections ?? []) {
       if (!byId.has(section.id)) {
         byId.set(section.id, section);
+      }
+    }
+  }
+  return [...byId.values()];
+}
+
+/**
+ * 汇总各模块贡献的租户设置面板。同 id 只保留先注册的那个，与上面两个收集器一致。
+ */
+export function collectTenantSettingsPanels(
+  modules: readonly ClientAppModule[],
+): readonly TenantSettingsPanel[] {
+  const byId = new Map<string, TenantSettingsPanel>();
+  for (const module of modules) {
+    for (const panel of module.client?.tenantSettingsPanels ?? []) {
+      if (!byId.has(panel.id)) {
+        byId.set(panel.id, panel);
       }
     }
   }

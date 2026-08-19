@@ -1,4 +1,5 @@
 import {
+  config,
   prisma,
   withTenantScope,
   type Prisma,
@@ -38,6 +39,35 @@ const CONNECTORS: Record<string, EventConnector> = {
 const DECAY_SWEEP_LIMIT = 200;
 const DECAY_SWEEP_IDLE_HOURS = 6;
 
+/**
+ * 定时器允许早到多少：进程里的 setInterval 与库里的 `last_fetched_at` 之间总有
+ * 毫秒级到秒级的漂移，卡死「必须满一个周期」会把每一轮都推迟到下一次心跳，
+ * 15 分钟的周期实际跑成 30 分钟。
+ */
+const DUE_SKEW_MS = 60_000;
+
+/**
+ * 这个源这一轮该不该抓。
+ *
+ * **判据落在库里（`EventFeed.last_fetched_at`），不在进程里。**
+ * 调度器的定时器是进程状态：每次 `pnpm release` 重启，boot 后 20s 就无条件跑一整轮，
+ * 一天发六次版就凭空多出六轮完整采集——几百次目标页抓取、以及被摘录补齐
+ * （`analyzed_at` 清零）牵连出的模型调用，全都是重复付费。`last_fetched_at`
+ * 重启不会忘，没到周期的源这一轮直接不抓。
+ *
+ * 从没抓过的源（刚在工作台加上）恒为 true：新加的源不必等下一个周期。
+ */
+export function isFeedDue(
+  lastFetchedAt: Date | null,
+  now: Date,
+  intervalMs: number,
+): boolean {
+  if (!lastFetchedAt) {
+    return true;
+  }
+  return now.getTime() - lastFetchedAt.getTime() >= intervalMs - DUE_SKEW_MS;
+}
+
 export interface IngestFailure {
   feed: string;
   error: string;
@@ -52,6 +82,8 @@ export interface IngestSummary {
   events_touched: number;
   failures: IngestFailure[];
   tenants: number;
+  /** 本轮整站跳过的站点数：源都还没到周期（多见于发布重启后的第一轮） */
+  tenants_skipped: number;
 }
 
 /**
@@ -74,10 +106,15 @@ export async function runIngest(options?: {
     events_touched: 0,
     failures: [],
     tenants: tenantIds.length,
+    tenants_skipped: 0,
   };
 
   for (const tenantId of tenantIds) {
     const part = await runIngestForTenant(tenantId, now, options?.log);
+    if (!part) {
+      summary.tenants_skipped += 1;
+      continue;
+    }
     summary.feeds += part.feeds;
     summary.fetched += part.fetched;
     summary.created += part.created;
@@ -88,22 +125,41 @@ export async function runIngest(options?: {
   return summary;
 }
 
+/**
+ * 跑一个站点的一轮。**返回 null = 整站跳过**（源都还没到周期）。
+ *
+ * 跳过的判据是「一个源都没到点」，不是「某个源没到点」：同一站点的源共用一个
+ * 周期，实际表现就是全到或全不到。留出「有源到点就整轮照跑」这条路，是为了
+ * 新加的源能立刻收进来，也让降温扫描跟着正常轮次走。
+ *
+ * 一个源都没有的站点（把主题全关了）不算跳过——它没有源可判，但已有语料的
+ * 降温扫描还得继续跑，否则公开面会永远停在最后一次爆发的读数上。
+ */
 async function runIngestForTenant(
   tenantId: string,
   now: Date,
   log?: FastifyBaseLogger,
-): Promise<Omit<IngestSummary, "tenants">> {
+): Promise<Omit<IngestSummary, "tenants" | "tenants_skipped"> | null> {
   await ensureDefaultFeeds(tenantId);
 
   const enabledTopics = await getEnabledTopics(tenantId);
   // 关掉的主题：源自己的 enabled 不动，这一轮就是不抓。
-  const feeds = await prisma.eventFeed.findMany({
+  const allFeeds = await prisma.eventFeed.findMany({
     where: withTenantScope(tenantId, {
       enabled: true,
       ...enabledTopicWhere(enabledTopics),
     }),
     orderBy: { created_at: "asc" },
   });
+
+  const intervalMs = config.events.ingestIntervalMinutes * 60 * 1000;
+  const feeds = allFeeds.filter((feed) =>
+    isFeedDue(feed.last_fetched_at, now, intervalMs),
+  );
+  if (allFeeds.length > 0 && feeds.length === 0) {
+    log?.debug({ tenantId }, "[events] 源都未到采集周期，本轮跳过");
+    return null;
+  }
 
   const failures: IngestFailure[] = [];
   const newSignalIds: string[] = [];
@@ -123,7 +179,6 @@ async function runIngestForTenant(
     try {
       const raw = await connector.fetch(toConnectorFeed(feed));
       fetched += raw.length;
-      await fillEmptyExcerpts(raw);
 
       const result = await persistSignals(tenantId, feed.connector, raw);
       newSignalIds.push(...result.created_ids);
@@ -420,6 +475,16 @@ async function persistSignals(
   };
 
   const fresh = prepared.filter((item) => !matchExisting(item));
+
+  /*
+   * 目标页摘录**只为真正的新条目抓**，而且是在这里（去重之后）抓，不是在
+   * connector 返回之后就整批抓。
+   *
+   * 源每轮返回的是同一份最近 N 条，其中绝大多数早就在库里了；在去重前抓，
+   * 等于每 15 分钟把同一批文章页重新下载一遍（每篇最多 200KB），一天几万次。
+   * 已入库但仍是空摘录的旧行由 `enrichStoredEmptyExcerpts` 限量补，不在这条路上。
+   */
+  await fillEmptyExcerpts(fresh.map((item) => item.signal));
 
   await prisma.eventSignal.createMany({
     data: fresh.map(({ signal, canonical_url }) => ({

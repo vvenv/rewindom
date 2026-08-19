@@ -6,7 +6,13 @@ import { runRetention } from "../retention/retention.service.js";
 
 import type { JobRegistryContext } from "@rewindom/module-sdk/server";
 
-/** 启动后等一会儿再跑第一轮，别和迁移、缓存预热抢启动那几秒。 */
+/**
+ * 启动后等一会儿再跑第一轮，别和迁移、缓存预热抢启动那几秒。
+ *
+ * 这一轮**不等于一整轮采集**：到底抓不抓由库里的 `EventFeed.last_fetched_at`
+ * 决定（`isFeedDue`）。定时器活在进程里，一天发六次版就是六次重启，
+ * 没有那道库侧判据的话每次重启都会多跑一整轮，账单跟着发布频率走。
+ */
 const INITIAL_DELAY_MS = 20_000;
 
 /** 保留期清理按天跑一次——语料回收不需要更勤，跑太勤只会白扫描。 */

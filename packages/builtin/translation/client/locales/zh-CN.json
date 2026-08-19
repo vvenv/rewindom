@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "title": "内容翻译",
+    "description": "为访客提供按需翻译。译文只在浏览器里生成，不入库、不影响收录，原文始终是准确的那一份。",
+    "enabled": "开启访客翻译",
+    "enabledHint": "开启后，正文语言与站点语言不一致时，公开页右下角会出现「翻译此页」。默认关闭。",
+    "engine": "翻译引擎",
+    "engines": {
+      "browser": "浏览器内置（推荐）",
+      "libretranslate": "LibreTranslate",
+      "mymemory": "MyMemory（免费）",
+      "deepl": "DeepL",
+      "google": "Google 翻译",
+      "llm": "大模型（OpenAI 兼容）",
+      "custom": "自定义端点"
+    },
+    "engineHints": {
+      "browser": "用 Chrome 138+ 自带的本地翻译模型：免费、无配额、离线，访客在读什么不会外发。不支持的浏览器不显示翻译入口。",
+      "libretranslate": "开源自建实例，免密钥。公共实例限流很紧，正式使用建议自建。",
+      "mymemory": "免费公共接口，按访客 IP 分摊配额。质量最弱，仅作兜底。",
+      "deepl": "需要密钥，经服务端中转。译文质量好，按字符计费。",
+      "google": "需要 Google Cloud Translation 密钥，经服务端中转。",
+      "llm": "需要密钥，经服务端中转。术语保护效果最好，成本也最高。",
+      "custom": "自建中转端点，请求体为 { texts, target, source }，返回 { texts }。"
+    },
+    "endpoint": "服务地址",
+    "endpointHint": "必须是 http(s) 地址。",
+    "apiKey": "API 密钥",
+    "apiKeyEmpty": "尚未配置",
+    "apiKeyHint": "密钥加密保存在服务端，不会下发到浏览器；这类引擎的请求由服务端代为转发。留空表示不修改。",
+    "keepTerms": "不翻译的术语",
+    "keepTermsHint": "一行一条。产品名、版本号、代码标识已自动保护，这里补充机器认不出的专有名词。",
+    "saved": "翻译设置已保存",
+    "errors": {
+      "engine": "请选择翻译引擎",
+      "endpointRequired": "请填写服务地址",
+      "endpointInvalid": "请填写有效的 http(s) 地址"
+    }
+  }
+}

@@ -82,6 +82,26 @@ export interface PlatformDashboardSection {
   component: ComponentType<PlatformDashboardSectionProps>;
 }
 
+/**
+ * 一个模块贡献给租户设置页 `/app/settings` 的设置面板。
+ *
+ * 与 `dashboardWidgets` 不同：设置项不该由用户显隐或排序，platform 只提供骨架。
+ * 形状与 `PlatformDashboardSection` 一致，理由也一致——多个模块往同一页追加，
+ * 用注册表而不是单组件 slot（`createComponentSlot` 后注册者会覆盖前者）。
+ */
+export interface TenantSettingsPanel {
+  /**
+   * 全局唯一，约定 `<moduleId>.<name>`；同 id 只保留先注册的那个。
+   * 不是用户偏好键，改 id 只影响 React key。
+   */
+  id: string;
+  /** 默认顺序，升序，默认 100；相同值按模块注册顺序。 */
+  order?: number;
+  /** 命中任一权限才渲染；面板内部仍要按 `settings.write` 决定能不能改。 */
+  anyPermission?: readonly Permission[];
+  component: ComponentType;
+}
+
 export interface ClientRouteDefinition {
   path: string;
   element: LazyExoticComponent<ComponentType>;
@@ -173,6 +193,8 @@ export interface ClientAppModule extends ModuleManifestBase {
      * 与 `dashboardWidgets` 不同：无用户级显隐/排序，platform 只提供骨架。
      */
     platformDashboardSections?: readonly PlatformDashboardSection[];
+    /** 本模块贡献给租户设置页 `/app/settings` 的设置面板。 */
+    tenantSettingsPanels?: readonly TenantSettingsPanel[];
     platformNav?: readonly PlatformNavContribution[];
     mobileTabPaths?: readonly string[];
     shell?: ClientShellContributions;
