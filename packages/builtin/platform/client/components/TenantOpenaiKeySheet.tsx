@@ -25,6 +25,7 @@ import { toast } from "@rewindom/ui/toast";
 import { useTranslation } from "react-i18next";
 
 import { useUpdateTenantOpenai } from "../hooks/useTenantOpenai.js";
+import { buildOpenaiKeyPayload } from "../lib/openai-settings-form.js";
 
 import type { TenantLlmStatus } from "@rewindom/shared";
 
@@ -50,22 +51,6 @@ function KeyForm({
   const { confirm } = useConfirm();
   const [apiKey, setApiKey] = useState("");
 
-  async function submit(): Promise<void> {
-    try {
-      await save.mutateAsync(
-        apiKey.trim() ? { api_key: apiKey.trim() } : {},
-      );
-      toast.success(t("aiSettings.saved"));
-      onClose();
-    } catch (err) {
-      toast.error(
-        err instanceof ApiError || err instanceof Error
-          ? err.message
-          : t("common:saveFailed"),
-      );
-    }
-  }
-
   async function clearKey(): Promise<void> {
     const confirmed = await confirm({
       title: t("aiSettings.clearTitle"),
@@ -76,8 +61,31 @@ function KeyForm({
     });
     if (!confirmed) return;
     try {
-      await save.mutateAsync({ api_key: "" });
+      await save.mutateAsync(buildOpenaiKeyPayload(""));
       toast.success(t("aiSettings.cleared"));
+      onClose();
+    } catch (err) {
+      toast.error(
+        err instanceof ApiError || err instanceof Error
+          ? err.message
+          : t("common:saveFailed"),
+      );
+    }
+  }
+
+  async function submit(): Promise<void> {
+    const trimmed = apiKey.trim();
+    if (!trimmed) {
+      if (status.source === "tenant") {
+        await clearKey();
+        return;
+      }
+      onClose();
+      return;
+    }
+    try {
+      await save.mutateAsync(buildOpenaiKeyPayload(trimmed));
+      toast.success(t("aiSettings.saved"));
       onClose();
     } catch (err) {
       toast.error(

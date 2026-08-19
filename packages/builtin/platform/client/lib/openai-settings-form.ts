@@ -39,6 +39,14 @@ export function buildOpenaiSettingsPayload(
   };
 }
 
+/**
+ * 密钥 Sheet 只有这一项：空串就是清除本站密钥、回落平台。
+ * 与 `PUT /settings/openai` 契约一致（省略 = 不改；空串 = 清除）。
+ */
+export function buildOpenaiKeyPayload(apiKey: string): TenantLlmWriteBody {
+  return { api_key: apiKey.trim() };
+}
+
 type Translate = (key: string) => string;
 
 export function validateOpenaiSettingsForm(

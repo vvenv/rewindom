@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { TenantLlmStatus } from "@rewindom/shared";
 
 import {
+  buildOpenaiKeyPayload,
   buildOpenaiSettingsPayload,
   statusToForm,
   validateOpenaiSettingsForm,
@@ -49,6 +50,17 @@ describe("buildOpenaiSettingsPayload", () => {
     expect(
       buildOpenaiSettingsPayload({ model: " gpt-4o ", temperature: "0.4" }),
     ).toEqual({ model: "gpt-4o", temperature: 0.4 });
+  });
+});
+
+describe("buildOpenaiKeyPayload", () => {
+  it("sends an empty string to clear the stored key", () => {
+    expect(buildOpenaiKeyPayload("")).toEqual({ api_key: "" });
+    expect(buildOpenaiKeyPayload("   ")).toEqual({ api_key: "" });
+  });
+
+  it("trims a new key", () => {
+    expect(buildOpenaiKeyPayload(" sk-new ")).toEqual({ api_key: "sk-new" });
   });
 });
 

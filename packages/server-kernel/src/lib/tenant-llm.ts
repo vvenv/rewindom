@@ -111,7 +111,12 @@ export async function getTenantLlmStatus(
   return {
     configured: Boolean(resolved.apiKey),
     source: resolved.api_key_source,
-    api_key_hint: maskApiKeyHint(resolved.apiKey),
+    // 只提示本站已存的密钥。回落到平台时若仍显示平台 key 尾码，
+    // 清空本站覆盖后看起来像「没清掉」。
+    api_key_hint:
+      resolved.api_key_source === "tenant"
+        ? maskApiKeyHint(resolved.apiKey)
+        : null,
     model:
       resolved.model_source === "tenant" ? resolved.model : null,
     resolved_model: resolved.model,

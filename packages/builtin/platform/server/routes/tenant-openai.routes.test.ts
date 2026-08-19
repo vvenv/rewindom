@@ -89,6 +89,27 @@ describe("tenant openai settings routes", () => {
     expect(JSON.stringify(response.json())).not.toContain("sk-");
   });
 
+  it("PUT /openai 空串 api_key 表示清除本站密钥", async () => {
+    llm.updateTenantLlmConfig.mockResolvedValue({
+      ...STATUS,
+      source: "platform",
+      api_key_hint: null,
+    });
+    const response = await app.inject({
+      method: "PUT",
+      url: "/api/settings/openai",
+      headers: authHeaders(admin),
+      payload: { api_key: "" },
+    });
+
+    expect(response.statusCode, JSON.stringify(response.json())).toBe(200);
+    expect(llm.updateTenantLlmConfig).toHaveBeenCalledWith(DEFAULT_TENANT_ID, {
+      api_key: "",
+    });
+    expect(response.json().data.source).toBe("platform");
+    expect(response.json().data.api_key_hint).toBeNull();
+  });
+
   it("PUT /openai 写入覆盖并回状态", async () => {
     const response = await app.inject({
       method: "PUT",

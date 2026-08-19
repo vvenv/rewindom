@@ -96,6 +96,15 @@ describe("getTenantLlmStatus", () => {
     expect(status.temperature).toBeNull();
     expect(JSON.stringify(status)).not.toContain("sk-site-abcd");
   });
+
+  it("does not hint the platform key after the site override is cleared", async () => {
+    findUnique.mockResolvedValue(null);
+    const { getTenantLlmStatus } = await import("./tenant-llm.js");
+    const status = await getTenantLlmStatus("tenant-1");
+    expect(status.source).toBe("platform");
+    expect(status.configured).toBe(true);
+    expect(status.api_key_hint).toBeNull();
+  });
 });
 
 describe("updateTenantLlmConfig", () => {
@@ -117,6 +126,26 @@ describe("updateTenantLlmConfig", () => {
         }),
       }),
     );
+  });
+
+  it("clears only the site key when api_key is an empty string", async () => {
+    findUnique.mockResolvedValue({
+      secret: "cipher",
+      value: { model: "kept-model", temperature: 0.4 },
+    });
+    decryptMock.mockReturnValue("sk-site");
+    upsert.mockResolvedValue({});
+    const { updateTenantLlmConfig } = await import("./tenant-llm.js");
+    await updateTenantLlmConfig("tenant-1", { api_key: "" });
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: expect.objectContaining({
+          secret: null,
+          value: { model: "kept-model", temperature: 0.4 },
+        }),
+      }),
+    );
+    expect(deleteMany).not.toHaveBeenCalled();
   });
 
   it("clears the row when reverting every axis to platform", async () => {
