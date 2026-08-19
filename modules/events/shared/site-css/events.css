@@ -63,6 +63,15 @@
   color: var(--accent);
 }
 
+/* 类型与关键事实：与主题同一种边框胶囊，但字重稍高——它比主题更具体 */
+.events-fact {
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--fg);
+  font-weight: 500;
+}
+
 .events-velocity {
   color: var(--muted-fg);
   font-variant-numeric: tabular-nums;
@@ -180,6 +189,43 @@
   color: var(--muted-fg);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * 一手更新序列：嵌在它自己那一格里，不是兄弟格。
+ * 缩进 + 更细的字号让它读起来是「这一格的展开」，而不是四个来源。
+ */
+.events-incident {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0.5rem 0 0;
+  padding: 0 0 0 0.75rem;
+  border-left: 1px solid var(--border);
+  list-style: none;
+  font-size: 0.8125rem;
+}
+
+.events-incident-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.events-incident-time {
+  flex: none;
+  width: 40px;
+  color: var(--muted-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.events-incident-phase {
+  flex: none;
+  font-weight: 600;
+}
+
+.events-incident-text {
+  color: var(--muted-fg);
 }
 
 .events-timeline-text a {

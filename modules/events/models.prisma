@@ -54,6 +54,13 @@ model EventSignal {
   published_at  DateTime
   fetched_at    DateTime  @default(now())
   event_id      String?
+  /// 状态页一条 incident 的完整更新序列（`{ occurred_at, phase, text }[]`）。
+  /// Statuspage 把一次故障的全部更新塞在一个 description 里，而 truncateExcerpt
+  /// 在 600 字截断——不在 connector 里就地解析，后半截就永远丢了。
+  ///
+  /// **不拆成多格时间线**：时间线格子的身份是 `(event_id, signal_id)`，
+  /// 一次 incident 是一条信号，它的多次更新是这条信号的内部结构
+  incident_updates Json?
   /// 工作台手动移除的时间。非空 = 这条信号不再参与任何聚合、也不再出现在任何面上。
   /// **不能硬删**：源下一轮还会把同一条抓回来，删了它等于每 15 分钟复活一次。
   /// 留着行本身就是墓碑——采集的身份键会命中它，于是不再重建（见 ingest.service.ts）。
@@ -103,6 +110,24 @@ model NewsEvent {
   centroid    Float[]
   /// 贡献过信号的来源名（去重）。冗余在事件上，列表页才不用为每张卡片再查一次信号表
   source_names String[]
+  /// 事件类型：outage | release | acquisition | funding | legal。
+  /// **可空 = 判不出来**，不设 other 兜底格——语料里绝大多数是普通报道，
+  /// 硬塞一个最像的会让整个类型筛选面失去意义（与 topic 分类器同一条原则）。
+  /// 它是抽取的前提：不知道是哪一类就不知道该抽什么字段
+  kind      String?
+  /// 发版：原文里的版本号。展示用的永远是原串，可核对性最高
+  fact_version          String?
+  /// 收购 / 融资 / 法务：原文里的金额串，如 `$7B`、`$2.1 million`
+  fact_amount_text      String?
+  /// 同上，归一化到美元，**只为聚合**（「这家今年融了多少」）。
+  /// 用 Float 而不是 shop 那套 `*_cents` 整数：这不是我们持有的钱，是来源报道的
+  /// 近似量级；写成 cents 会暗示一种它没有的精度，而 $7B 的 cents 是 7e11，
+  /// Int32 直接溢出。非美元一律留空——按汇率折算是引入来源外的事实
+  fact_amount_usd       Float?
+  /// 故障：由一手更新序列的首末时刻算出的持续分钟数。只有一格时是 null 而非 0
+  fact_duration_minutes Int?
+  /// 故障：一手更新序列的最后一格是不是收尾阶段。没有序列时 null 而非 false
+  fact_resolved         Boolean?
   /// 贡献过信号的来源类型（去重）。与 source_names 同一处写入。
   /// Rising 要在库里过滤掉「只有非新闻源」的事件（release / status / filing
   /// 恒为单来源，进 Rising 只会把真正在扩散的挤下去），公开列表要按类型筛，

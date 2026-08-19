@@ -1,4 +1,6 @@
-import { isEventRevisionKind } from "../../shared/index.js";
+import { isEventKind, isEventRevisionKind } from "../../shared/index.js";
+
+import type { EventIncidentUpdate } from "../../shared/index.js";
 
 import { computeWhyTrending } from "./why-trending.js";
 
@@ -23,6 +25,12 @@ export interface EventRecordForList {
   title: string;
   summary: string;
   topic: string;
+  kind: string | null;
+  fact_version: string | null;
+  fact_amount_text: string | null;
+  fact_amount_usd: number | null;
+  fact_duration_minutes: number | null;
+  fact_resolved: boolean | null;
   status: string;
   heat_score: number;
   velocity_pct: number;
@@ -50,6 +58,14 @@ export function toEventListItem(
     title: record.title,
     headline: buildHeadline(record.summary, record.title),
     topic: record.topic as EventTopic,
+    kind: isEventKind(record.kind) ? record.kind : null,
+    facts: {
+      version: record.fact_version,
+      amount_text: record.fact_amount_text,
+      amount_usd: record.fact_amount_usd,
+      duration_minutes: record.fact_duration_minutes,
+      resolved: record.fact_resolved,
+    },
     status: record.status as EventStatus,
     heat_score: record.heat_score,
     velocity_pct: record.velocity_pct,
@@ -76,6 +92,8 @@ export interface TimelineRecord {
   source_kind: string;
   source_name: string;
   url: string | null;
+  /** DB 列可空（存量行），但新写入的格子一定带它 */
+  signal_id: string | null;
 }
 
 export interface SignalRecord {
@@ -87,6 +105,8 @@ export interface SignalRecord {
   published_at: Date;
   score: number;
   comment_count: number;
+  /** Prisma 的 Json 列，形状不保证——`toIncidentUpdates` 会浅校验 */
+  incident_updates?: unknown;
 }
 
 export function toEventDetail(params: {
@@ -106,6 +126,13 @@ export function toEventDetail(params: {
   now?: Date;
 }): EventDetail {
   const { record } = params;
+  // 更新序列挂在信号上、时间线格子按 signal_id 认领它——两边本来就在同一批查询里
+  const updatesBySignal = new Map(
+    params.signals.map((signal) => [
+      signal.id,
+      toIncidentUpdates(signal.incident_updates),
+    ]),
+  );
   return {
     ...toEventListItem(record, params.follow),
     summary: record.summary,
@@ -113,7 +140,9 @@ export function toEventDetail(params: {
     analyzed_at: record.analyzed_at?.toISOString() ?? null,
     manual_content: record.manual_content,
     manual_topic: record.manual_topic,
-    timeline: params.timeline.map(toTimelineItem),
+    timeline: params.timeline.map((entry) =>
+      toTimelineItem(entry, updatesBySignal),
+    ),
     sources: groupSources(params.signals),
     revisions: (params.revisions ?? []).flatMap(toRevisionItem),
     why_trending: computeWhyTrending({
@@ -194,7 +223,10 @@ function asPayload(
   return value as Record<string, string | number | boolean | null>;
 }
 
-function toTimelineItem(record: TimelineRecord): EventTimelineItem {
+function toTimelineItem(
+  record: TimelineRecord,
+  updatesBySignal: ReadonlyMap<string, EventIncidentUpdate[]>,
+): EventTimelineItem {
   return {
     id: record.id,
     occurred_at: record.occurred_at.toISOString(),
@@ -203,7 +235,27 @@ function toTimelineItem(record: TimelineRecord): EventTimelineItem {
     source_kind: record.source_kind as EventSourceKind,
     source_name: record.source_name,
     url: record.url,
+    incident_updates:
+      (record.signal_id ? updatesBySignal.get(record.signal_id) : null) ?? [],
   };
+}
+
+/**
+ * Prisma 的 Json 列回来是 `unknown`。校验刻意浅：形状不对整条弃权，
+ * 落回「没有更新序列」而不是抛错——一条脏数据不该让详情页整页打不开。
+ */
+function toIncidentUpdates(value: unknown): EventIncidentUpdate[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter(
+    (item): item is EventIncidentUpdate =>
+      typeof item === "object" &&
+      item !== null &&
+      typeof (item as EventIncidentUpdate).occurred_at === "string" &&
+      typeof (item as EventIncidentUpdate).phase === "string" &&
+      typeof (item as EventIncidentUpdate).text === "string",
+  );
 }
 
 /**

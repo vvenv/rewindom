@@ -1,7 +1,9 @@
 import { getLlmClient, type ResolvedLlmConfig } from "@rewindom/module-sdk/server";
 
 import {
+  EVENT_KINDS,
   EVENT_TOPICS,
+  isEventKind,
   isEventTopic,
   isFirstPartySource,
 } from "../../../shared/index.js";
@@ -47,11 +49,13 @@ const SYSTEM_PROMPT = [
 
 const RESPONSE_SHAPE = [
   "Respond with JSON only:",
-  '{"title": string, "summary": string, "topic": string, "timeline": [{"signal_index": number, "label": string}], "entities": [{"name": string, "kind": string}]}',
+  '{"title": string, "summary": string, "topic": string, "kind": string | null, "timeline": [{"signal_index": number, "label": string}], "entities": [{"name": string, "kind": string}]}',
   "- title: one headline naming the event, max 120 characters.",
   "- summary: 3 to 5 sentences answering 'what happened', grounded in the sources.",
   `- topic: exactly one of ${EVENT_TOPICS.join(" | ")}. Judge it from what the event`,
   "  is about, not from which site reported it.",
+  `- kind: one of ${EVENT_KINDS.join(" | ")}, or null. Use null unless the event`,
+  "  clearly is one of them. A plain news report is null, not a guess.",
   "- timeline: one entry per meaningful signal, each label max 80 characters,",
   "  describing what that source did (announced / discussed / reported).",
   `- entities: the named companies, products, people, places or organisations`,
@@ -179,6 +183,7 @@ export function parseAnalyzerResponse(
     title?: unknown;
     summary?: unknown;
     topic?: unknown;
+    kind?: unknown;
     timeline?: unknown;
     entities?: unknown;
   };
@@ -234,8 +239,17 @@ export function parseAnalyzerResponse(
 
   // 模型给的主题只在落在枚举里时才采信；否则交回给规则分类器
   const topic = isEventTopic(parsed.topic) ? parsed.topic : undefined;
+  // 类型同理。模型回 null / "none" / 枚举外的字符串都当没给，交回给规则分类器
+  const kind = isEventKind(parsed.kind) ? parsed.kind : undefined;
 
-  return { title, summary, timeline, topic, entities: parseEntities(parsed.entities) };
+  return {
+    title,
+    summary,
+    timeline,
+    topic,
+    kind,
+    entities: parseEntities(parsed.entities),
+  };
 }
 
 /**

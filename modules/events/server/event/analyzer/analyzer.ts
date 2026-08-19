@@ -1,4 +1,8 @@
-import type { EventSourceKind, EventTopic } from "../../../shared/index.js";
+import type {
+  EventKind,
+  EventSourceKind,
+  EventTopic,
+} from "../../../shared/index.js";
 
 /**
  * 事件分析器契约。
@@ -56,6 +60,16 @@ export interface AnalyzedEvent {
    * 落库前一律经 `isEventTopic` 校验——模型可能返回枚举外的字符串。
    */
   topic?: EventTopic;
+  /**
+   * 事件类型。**可选**，且与 topic 同构：规则实现不产出（由 `kind-classifier`
+   * 按 source_kind 先验 + 关键词判定），LLM 读得懂内容时在**同一次调用**里
+   * 顺带给出（不新增模型调用）。
+   *
+   * 落库前一律经 `isEventKind` 校验——模型会返回枚举外的字符串。
+   * 注意它**压不过 source_kind 先验**：状态页的一条 incident 就是一次故障，
+   * 模型看着一段「已恢复」的正文很可能判成别的。
+   */
+  kind?: EventKind;
   /**
    * 事件里的实体。**可选**：规则实现由 `entity-extractor` 保守抽取，
    * LLM 读得懂内容时在**同一次调用**里顺带产出（不新增模型调用）。

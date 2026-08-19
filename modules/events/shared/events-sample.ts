@@ -5,6 +5,8 @@
  * 文案走 i18n key，不写死单语——编辑 en 页面时样张也该是英文的。
  */
 
+import { EMPTY_EVENT_FACTS } from "./events.js";
+
 import type { EventDetail, EventListItem } from "./events.js";
 import type { EventsTranslate } from "./public-view.js";
 
@@ -18,6 +20,15 @@ function sampleItem(index: number, t: EventsTranslate): EventListItem {
     title: t(`sample.event${index}.title`),
     headline: t(`sample.event${index}.headline`),
     topic: index === 1 ? "ai" : index === 2 ? "tech" : "business",
+    /*
+     * 2 号样张演示「有类型 + 有事实」的 chips，1 / 3 号演示 null——
+     * 编辑器里两种形态都该出现，否则改版式时看不出绝大多数卡片其实没有角标。
+     */
+    kind: index === 2 ? "outage" : null,
+    facts:
+      index === 2
+        ? { ...EMPTY_EVENT_FACTS, duration_minutes: 47, resolved: true }
+        : { ...EMPTY_EVENT_FACTS },
     status: index === 1 ? "developing" : "active",
     heat_score: 12 - index,
     // 1 号样张演示「有基线的涨幅」，其余演示「新事件按跟进来源数说话」——
@@ -90,6 +101,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         occurred_at: SAMPLE_TIME,
         label_code: "timeline.firstSeen",
         label_text: null,
+        incident_updates: [],
         source_kind: "official",
         source_name: "OpenAI",
         url: null,
@@ -99,6 +111,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         occurred_at: "2026-08-17T10:17:00.000Z",
         label_code: "timeline.community",
         label_text: null,
+        incident_updates: [],
         source_kind: "community",
         source_name: "Hacker News",
         url: null,
@@ -108,6 +121,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         occurred_at: SAMPLE_UPDATED,
         label_code: "timeline.news",
         label_text: null,
+        incident_updates: [],
         source_kind: "news",
         source_name: "TechCrunch",
         url: null,

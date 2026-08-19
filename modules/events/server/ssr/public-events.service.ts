@@ -56,6 +56,12 @@ const LIST_SELECT = {
   title: true,
   summary: true,
   topic: true,
+  kind: true,
+  fact_version: true,
+  fact_amount_text: true,
+  fact_amount_usd: true,
+  fact_duration_minutes: true,
+  fact_resolved: true,
   status: true,
   heat_score: true,
   velocity_pct: true,
@@ -272,6 +278,8 @@ export async function getPublicEventBySlug(
         source_kind: true,
         source_name: true,
         url: true,
+        // 一手更新序列挂在信号上，靠它把两边接起来
+        signal_id: true,
       },
     }),
     prisma.eventSignal.findMany({
@@ -290,6 +298,8 @@ export async function getPublicEventBySlug(
         published_at: true,
         score: true,
         comment_count: true,
+        // 状态页那条 incident 的一手更新序列，嵌进对应的时间线格子
+        incident_updates: true,
       },
     }),
   ]);

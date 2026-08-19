@@ -338,5 +338,19 @@
     "communityOnly": "只有社区在讨论（{{count}} 条），还没有来源证实",
     "confirmed": "已证实",
     "discussion": "仅讨论"
+  },
+  "kind": {
+    "outage": "故障",
+    "release": "发版",
+    "acquisition": "收购",
+    "funding": "融资",
+    "legal": "法务"
+  },
+  "fact": {
+    "duration": "持续 {{minutes}} 分钟",
+    "resolved": "已解决",
+    "ongoing": "进行中",
+    "version": "{{version}}",
+    "amount": "{{amount}}"
   }
 }

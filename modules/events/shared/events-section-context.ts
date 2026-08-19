@@ -15,6 +15,7 @@ import {
   parseEventFeedTab,
   type EventFeedTab,
   type EventSourceKind,
+  type EventIncidentUpdate,
   type EventStatus,
   type EventTopic,
 } from "./events.js";
@@ -354,6 +355,11 @@ export interface PublicEventCard {
   momentum_label: string;
   /** 势头是不是「在涨」——只决定角标配色，不参与文案 */
   momentum_rising: boolean;
+  /**
+   * 已落成当前语言的类型与事实 chips（「故障」「47 分钟」「已解决」）。
+   * 空数组 = 判不出类型，渲染侧整块跳过——绝大多数普通报道都是这样。
+   */
+  fact_labels: string[];
   signal_count: number;
   source_names: string[];
   last_activity_at: string;
@@ -366,6 +372,11 @@ export interface PublicEventTimelineItem {
   source_name: string;
   source_kind: EventSourceKind;
   url: string | null;
+  /**
+   * 状态页那条 incident 的一手更新序列，嵌在这一格里渲染。
+   * **不翻译**——阶段词与正文都逐字取自来源，与「事件只显示来源原文」同一条口径。
+   */
+  incident_updates: EventIncidentUpdate[];
 }
 
 export interface PublicEventSource {

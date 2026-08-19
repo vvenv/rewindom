@@ -103,6 +103,96 @@ export function clustersByUrlOnly(kind: EventSourceKind): boolean {
   return kind === "release" || kind === "status" || kind === "filing";
 }
 
+/**
+ * 事件类型。**可空**——判不出来就是判不出来。
+ *
+ * 刻意**不设 `other` 兜底格**：语料里绝大多数是普通报道，落不进任何一格，
+ * 硬塞一个最像的会让整个筛选面失去意义（与 topic 分类器「回落，不硬凑」同源）。
+ *
+ * 存在的理由是**抽取的前提**：不知道这是哪一类，就不知道该抽什么字段——
+ * 故障要时长与是否解决，发版要版本号，收购与融资要金额。而抽取是那 97.8%
+ * 单信号事件唯一能加价值的地方（合并对它们不成立）。
+ */
+export const EVENT_KINDS = [
+  "outage",
+  "release",
+  "acquisition",
+  "funding",
+  "legal",
+] as const;
+export type EventKind = (typeof EVENT_KINDS)[number];
+
+export function isEventKind(value: unknown): value is EventKind {
+  return (
+    typeof value === "string" && (EVENT_KINDS as readonly string[]).includes(value)
+  );
+}
+
+/**
+ * 按类型抽出来的关键事实。全部可空——抽不到就留空，**绝不从上下文推断**
+ *（与「时间戳不由模型给」同一条）。
+ *
+ * 分成「展示串」与「归一化值」两套是刻意的：展示的永远是**原文里那几个字符**
+ *（`$7B`、`v1.31.0`），可核对性最高；归一化值只为聚合服务
+ *（「这家今年融了多少」「近 90 天故障累计多久」）。
+ */
+export interface EventFacts {
+  /** 发版：原文里的版本号 */
+  version: string | null;
+  /** 收购 / 融资 / 法务：原文里的金额串，如 `$7B`、`$2.1 million` */
+  amount_text: string | null;
+  /** 同上，归一化到美元。只为聚合，不用来展示 */
+  amount_usd: number | null;
+  /** 故障：从一手更新序列的首末时刻算出来的持续分钟数 */
+  duration_minutes: number | null;
+  /** 故障：一手更新序列的最后一格是不是 Resolved */
+  resolved: boolean | null;
+}
+
+export const EMPTY_EVENT_FACTS: EventFacts = {
+  version: null,
+  amount_text: null,
+  amount_usd: null,
+  duration_minutes: null,
+  resolved: null,
+};
+
+/**
+ * 卡片与详情页标题下那行 chips 要写什么。
+ *
+ * SSR 与 React 共用一份（与 `describeEventMomentum` 同一条口径），
+ * 两边各写一份必然漂移。返回 i18n code + 参数，不是自由文案。
+ */
+export interface EventFactChip {
+  code: string;
+  params?: Record<string, string | number>;
+}
+
+export function describeEventFacts(
+  kind: EventKind | null,
+  facts: EventFacts,
+): EventFactChip[] {
+  if (!kind) {
+    return [];
+  }
+  const chips: EventFactChip[] = [{ code: `kind.${kind}` }];
+
+  if (facts.duration_minutes !== null) {
+    chips.push({ code: "fact.duration", params: { minutes: facts.duration_minutes } });
+  }
+  if (facts.resolved !== null) {
+    chips.push({ code: facts.resolved ? "fact.resolved" : "fact.ongoing" });
+  }
+  if (facts.version) {
+    chips.push({ code: "fact.version", params: { version: facts.version } });
+  }
+  // 优先原串：`$7B` 比 `7000000000` 更可核对，也更像人话
+  if (facts.amount_text) {
+    chips.push({ code: "fact.amount", params: { amount: facts.amount_text } });
+  }
+  return chips;
+}
+
 /** 首页两个区块。Rising 看正在变，Now 看还在发生。 */
 export const EVENT_FEED_TABS = ["rising", "now"] as const;
 export type EventFeedTab = (typeof EVENT_FEED_TABS)[number];
@@ -237,6 +327,10 @@ export interface EventListItem {
   /** 一句话说明，由 summary 截断而来；与标题相同或摘要为空时是空串 */
   headline: string;
   topic: EventTopic;
+  /** 事件类型。null = 判不出来，界面不画角标（绝大多数普通报道都是 null） */
+  kind: EventKind | null;
+  /** 按类型抽出的关键事实。抽不到的字段是 null，不是 0 也不是空串 */
+  facts: EventFacts;
   status: EventStatus;
   heat_score: number;
   /** 相对上一窗口的变化率。没有上一窗口时恒为 0，看下一个字段才知道 0 是哪种 0 */
@@ -320,6 +414,22 @@ export interface EventTimelineItem {
   source_kind: EventSourceKind;
   source_name: string;
   url: string | null;
+  /**
+   * 状态页那条 incident 的一手更新序列，嵌在这一格里渲染。
+   *
+   * **不拆成多格**：格子的身份是 `(event_id, signal_id)`，一次 incident
+   * 是一条信号，它的多次更新是这条信号的内部结构，不是多个来源。
+   * 空数组 = 这条信号不是状态页条目，渲染侧直接跳过。
+   */
+  incident_updates: EventIncidentUpdate[];
+}
+
+/** 一次故障里的一格一手更新。时刻取自来源正文，不是模型给的。 */
+export interface EventIncidentUpdate {
+  occurred_at: string;
+  /** Investigating / Identified / Update / Monitoring / Resolved… */
+  phase: string;
+  text: string;
 }
 
 export interface EventSourceItem {

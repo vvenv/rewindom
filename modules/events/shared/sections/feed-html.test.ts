@@ -20,6 +20,7 @@ function card(
     status: "developing",
     status_label: "快速发展",
     momentum_label: "↑ 420%",
+    fact_labels: [],
     momentum_rising: true,
     signal_count: 3,
     source_names: ["OpenAI"],

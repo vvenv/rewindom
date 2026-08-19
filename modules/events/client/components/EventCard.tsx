@@ -8,6 +8,7 @@ import { formatSourceNames } from "../lib/events.js";
 
 import { EventStatusBadge } from "./EventStatusBadge.js";
 import { EventMomentumBadge } from "./EventMomentumBadge.js";
+import { EventFactChips } from "./EventFactChips.js";
 import { RelativeTime } from "./RelativeTime.js";
 
 import type { EventListItem } from "../../shared/index.js";
@@ -25,6 +26,7 @@ export function EventCard({ event }: { event: EventListItem }) {
         <div className="flex flex-wrap items-center gap-2">
           <EventStatusBadge status={event.status} />
           <Badge variant="secondary">{t(`topic.${event.topic}`)}</Badge>
+          <EventFactChips event={event} />
           <EventMomentumBadge event={event} />
           {event.has_update ? (
             <Badge className="gap-1">

@@ -155,6 +155,7 @@ function cardHtml(
       card.status_label,
     )}</span>`,
     `<span class="events-topic">${escapeHtml(card.topic_label)}</span>`,
+    factLabelsHtml(card.fact_labels),
     momentumHtml(card),
   ]
     .filter(Boolean)
@@ -183,6 +184,18 @@ function cardHtml(
  * 文案已经在 `toPublicCard` 落成当前语言了——涨跌幅是「↑ 42%」，
  * 新事件是「3 个来源正在跟进」。空串表示没有可主张的变化，留白。
  */
+/**
+ * 类型与事实 chips（「故障」「47 分钟」「已解决」）。
+ *
+ * 文案已经在 `toPublicCard` 落成当前语言。空数组 = 判不出类型，整块跳过——
+ * 绝大多数普通报道都是这样，多画一个空角标只会让卡片更吵。
+ */
+function factLabelsHtml(labels: readonly string[]): string {
+  return labels
+    .map((label) => `<span class="events-fact">${escapeHtml(label)}</span>`)
+    .join("");
+}
+
 function momentumHtml(card: PublicEventCard): string {
   if (!card.momentum_label) {
     return "";

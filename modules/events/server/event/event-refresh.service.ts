@@ -11,6 +11,13 @@ import { diffEventRevisions } from "./event-revision.service.js";
 import { computeHeat, resolveStatus, type HeatSignal } from "./heat.js";
 import { pickEventTitle } from "./title-tokens.js";
 import { classifyEventTopic } from "./topic-classifier.js";
+import { classifyEventKind, eventKindPrior } from "./kind-classifier.js";
+import { extractEventFacts } from "./fact-extractor.js";
+import {
+  incidentDurationMinutes,
+  incidentResolved,
+  type IncidentUpdate,
+} from "../ingest/incident-updates.js";
 
 import type {
   AnalyzerSignal,
@@ -188,6 +195,8 @@ async function refreshEvent(
       score: true,
       comment_count: true,
       published_at: true,
+      // 故障的时长与结局来自这条一手更新序列，不由文本推断
+      incident_updates: true,
     },
   });
 
@@ -274,6 +283,49 @@ async function refreshEvent(
       ));
 
   /*
+   * 事件类型与关键事实，每轮重算。
+   *
+   * 判定优先级：`source_kind` 先验 > LLM > 关键词。先验最硬——Statuspage 的
+   * 一条 incident 就是一次故障，模型看着一段「已恢复」的正文很可能判成别的，
+   * 所以 classifyEventKind 内部先看先验，模型的答案只在没有先验时才用得上。
+   *
+   * **不受 manual_content 冻结**：那把锁锁的是标题与摘要（人写的文案），
+   * 而 kind 与 facts 是派生事实——人工改过摘要不该让故障时长停在旧值。
+   */
+  const classifiableSignals = signals.map((signal) => ({
+    title: signal.title,
+    excerpt: signal.excerpt,
+    source_kind: signal.source_kind as EventSourceKind,
+  }));
+  const kind =
+    eventKindPrior(classifiableSignals) ??
+    analysis?.kind ??
+    classifyEventKind(classifiableSignals);
+
+  const facts = extractEventFacts(kind, signals);
+  if (kind === "outage") {
+    /*
+     * 故障时长只认一手更新序列。全事件取**最长**的那条 incident——
+     * 一个事件可能聚了同一次故障在多个状态页上的记录，取最长的那份最接近
+     * 「这次故障持续了多久」，而取首条只是取抓到顺序里的第一份。
+     */
+    const sequences = signals
+      .map((signal) => toIncidentUpdates(signal.incident_updates))
+      .filter((updates) => updates.length > 0);
+    for (const updates of sequences) {
+      const minutes = incidentDurationMinutes(updates);
+      if (minutes !== null && minutes > (facts.duration_minutes ?? -1)) {
+        facts.duration_minutes = minutes;
+      }
+      const resolved = incidentResolved(updates);
+      // 有一条还没收尾就算没收尾——宁可说「进行中」，不要过早宣布结束
+      if (resolved !== null) {
+        facts.resolved = (facts.resolved ?? true) && resolved;
+      }
+    }
+  }
+
+  /*
    * 实体：LLM 在同一次分析调用里给了就用它的（有类型、更准），
    * 否则走保守的规则抽取。
    *
@@ -353,6 +405,12 @@ async function refreshEvent(
         source_names: sourceNames,
         source_kinds: sourceKinds,
         topic,
+        kind,
+        fact_version: facts.version,
+        fact_amount_text: facts.amount_text,
+        fact_amount_usd: facts.amount_usd,
+        fact_duration_minutes: facts.duration_minutes,
+        fact_resolved: facts.resolved,
         first_seen_at: firstSeenAt,
         last_activity_at: lastActivityAt,
         ...(content
@@ -585,5 +643,26 @@ export function resolveCooldownMultiplier(
   const ageHours = (now.getTime() - firstSeenAt.getTime()) / (60 * 60 * 1000);
   return (
     COOLDOWN_STEPS.find((step) => ageHours >= step.after_hours)?.multiplier ?? 1
+  );
+}
+
+/**
+ * Prisma 的 Json 列回来是 `unknown`——不能直接当成结构化数据用。
+ *
+ * 校验刻意浅：只认「数组 + 每项有 occurred_at / phase / text 三个字符串」。
+ * 形状不对整条弃权，落回「没有更新序列」而不是抛错——一条脏数据不该让
+ * 整轮刷新失败。
+ */
+function toIncidentUpdates(value: unknown): IncidentUpdate[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter(
+    (item): item is IncidentUpdate =>
+      typeof item === "object" &&
+      item !== null &&
+      typeof (item as IncidentUpdate).occurred_at === "string" &&
+      typeof (item as IncidentUpdate).phase === "string" &&
+      typeof (item as IncidentUpdate).text === "string",
   );
 }

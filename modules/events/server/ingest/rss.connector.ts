@@ -1,5 +1,6 @@
 import { parseFeed, type ParsedFeedItem } from "./feed-parser.js";
 import { fetchText } from "./http.js";
+import { parseIncidentUpdates } from "./incident-updates.js";
 import { truncateExcerpt } from "./page-excerpt.js";
 
 import type { ConnectorFeed, EventConnector, RawSignal } from "./connector.js";
@@ -27,7 +28,18 @@ export const rssConnector: EventConnector = {
 };
 
 export function toSignal(item: ParsedFeedItem, feed: ConnectorFeed): RawSignal {
+  /*
+   * 状态页的正文是一条**完整的、带时刻的一手时间线**（`11:42 Resolved - … 
+   * 10:58 Investigating - …`）。解析必须发生在 truncateExcerpt 之前——
+   * 600 字之后的部分过了那一行就永远丢了，而一次故障的正文经常上千字。
+   */
+  const incidentUpdates =
+    feed.source_kind === "status"
+      ? parseIncidentUpdates(item.summary, item.published_at ?? new Date())
+      : [];
+
   return {
+    ...(incidentUpdates.length > 0 ? { incident_updates: incidentUpdates } : {}),
     external_id: item.id,
     source_name: feed.name,
     source_kind: feed.source_kind,

@@ -14,6 +14,7 @@ import { EventStatusBadge } from "../components/EventStatusBadge.js";
 import { EventTimeline } from "../components/EventTimeline.js";
 import { EventEntities } from "../components/EventEntities.js";
 import { EventMomentumBadge } from "../components/EventMomentumBadge.js";
+import { EventFactChips } from "../components/EventFactChips.js";
 import { EventRelated } from "../components/EventRelated.js";
 import { EventWhyTrending } from "../components/EventWhyTrending.js";
 import { EventUpdatesSince } from "../components/EventUpdatesSince.js";
@@ -96,6 +97,7 @@ export function EventDetail() {
                 {t(`topic.${data.topic}`)}
                 {data.manual_topic ? " ·" : ""}
               </Badge>
+              <EventFactChips event={data} />
               <EventMomentumBadge event={data} />
               <span className="text-muted-foreground text-xs">
                 {t("detail.firstSeen")}{" "}

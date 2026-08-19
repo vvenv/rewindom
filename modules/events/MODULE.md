@@ -463,6 +463,108 @@ confirmed 187 / discussion 106 / 留白 107。
 
 留白的是「单独一篇新闻稿」这类：没有一手来源、没有跨源、近窗也没动静，确实没什么可讲。
 
+## 事件类型与关键事实
+
+主承诺（跨源合并 → 重建时间线）只对 **1.4%** 的语料生效：本地实测 833 个事件里
+815 个终生只有一条信号，跨源的只有 12 个。提高合并率这条路已经量到头了
+（词面撤过 IDF、语义 0.85 已校准、实体兜底实测证伪），而 97.8% 的成因是语料本身
+——HN topstories 就是几十件互不相干的事。**这是事实，不是缺陷。**
+
+所以价值不能只压在合并上，要压在**抽取**：一条单来源的报道，把埋在正文里的关键
+事实拎出来、标上类型，它就比原文有用。抽取一条信号也能做。
+
+**硬约束：必须在规则实现里成立。** 省钱闸门第一道就是 `EVENTS_LLM_MIN_SIGNALS=2`，
+任何只在 LLM 路径上生效的内容改进，按设计永远碰不到那 97.8%。
+
+### 类型（`kind-classifier.ts`）
+
+五格，**可空**：`outage | release | acquisition | funding | legal`。
+不设 `other` 兜底格——绝大多数普通报道落不进任何一格，硬塞一个最像的会让整个
+类型面失去意义（与 topic 分类器「回落，不硬凑」同源）。
+
+判定优先级从硬到软：
+
+| 依据 | 何时用 |
+| --- | --- |
+| `source_kind` 先验 | 有 status 信号 → outage；有 release 信号 → release。状态页的一条 incident **就是**一次故障，压过模型 |
+| LLM 给的 kind | 有 key 且这轮真调了模型，在同一次调用里顺带产出，不新增调用 |
+| 关键词 | 其余。零成本，覆盖那 97.8%，是主力 |
+
+`filing` **不给先验**：SEC / FTC 既发处罚（legal）也发规则公告（不是），一刀切会把
+后者全标错。
+
+#### 词表两次被真实语料打回来（别再放回去）
+
+在 893 个事件上跑过全量，两轮各删掉一批词：
+
+1. **裸 `raises` / `raised` 不能当融资词**——
+   「UK video game industry charity football match **raises** over £63,000」被判成融资。
+   要判对得知道主语是不是一家公司，关键词做不到。代价是
+   「Detroit startup Grounded raises $5M」这类真融资也判不出来（留 null）。
+2. **裸 `launch` / `release` 系列不能当发版词**——它们把
+   「GitHub Universe 的日程 **launched**」「Film Fund **Launches** With…」
+   「More ref audio to be **released** this season」全判成了发版。
+   删掉后 release 从 19 个掉到 9 个，剩下的基本都对。
+   这一类主要靠 `release` 源的先验兜（`releases.atom` 的每一条就是一次发版）。
+
+还有一条形态问题：关键词按**词边界**匹配，不是子串包含。子串匹配下
+`issues` 命中 `sues`、`defines` 命中 `fines`，两条都是线上标题撞出来的。
+中文词没有词边界可言，含非 ASCII 的关键词退回子串包含。
+
+当前分布（893 个事件）：null 806 · outage 47 · legal 24 · release 9 ·
+acquisition 4 · funding 3。**判出来的只有 9.7%，这是刻意的**——精度换召回。
+
+### 关键事实（`fact-extractor.ts`）
+
+抽的是**原文里的那几个字符**，不是推断出来的结论：
+
+| kind | 字段 | 来源 |
+| --- | --- | --- |
+| outage | `fact_duration_minutes` / `fact_resolved` | 一手更新序列的首末时刻相减、末条阶段判定 |
+| release | `fact_version` | 标题/摘录里的版本号 |
+| acquisition · funding · legal | `fact_amount_text` + `fact_amount_usd` | `$7B` 这类，原串存 text、量级存 usd |
+
+三条口径：
+
+1. **展示的永远是原串**（`$7B` 比 `7000000000` 更可核对），归一化值只为聚合服务。
+2. **非美元不折算**——按汇率换成美元是引入来源外的事实（哪来的汇率？哪一天的？），
+   原串照展示，`fact_amount_usd` 留空。
+3. **抽不到就留 null，绝不推断**。与「时间戳不由模型给」同一条：一旦允许推断，
+   就会出现「据此估算约 20 亿美元」这种看似合理、实则没有出处的数字。
+
+版本号至少两段数字，且前面不能是货币符号——「Fairphone…on sale」正文里的
+`$649.99` 曾经被抽成版本号。
+
+`kind` 与 facts **不受 `manual_content` 冻结**：那把锁锁的是标题与摘要（人写的文案），
+而这些是派生事实——人工改过摘要不该让故障时长停在旧值。
+
+### 状态页正文里那条一手时间线
+
+Statuspage 的 `history.rss` 把一次 incident 的**全部更新**塞在一个 description 里：
+
+```
+Aug 18, 11:42 UTC  Resolved      - This incident has been resolved…
+Aug 18, 11:24 UTC  Update        - We have applied a mitigation…
+Aug 18, 10:58 UTC  Investigating - We are investigating reports of…
+```
+
+这是一条完整的、带时刻的、当事方自己写的时间线。而 `truncateExcerpt` 在 600 字截断，
+于是它被压平成一段摘录、后半截丢掉，详情页上那个事件只显示「时间线：1 格」。
+
+所以解析发生在 **`rss.connector` 的 `toSignal` 里、`truncateExcerpt` 之前**——
+过了那一步信息就没了。只对 `source_kind === "status"` 解析。
+
+**不拆成多格时间线**：`AnalyzedTimelineEntry.signal_id` 不可为空，`(event_id, signal_id)`
+就是格子的身份（见「时间线是增量的」）。一次 incident 是**一条**信号，它的多次更新是
+这条信号的内部结构，所以落在 `EventSignal.incident_updates` 上、在那一格里嵌套渲染。
+
+解析很严：必须同时匹配到时间戳**和**已知阶段词（Investigating / Identified / Update /
+Monitoring / Resolved…），匹配不上整条弃权、退回原来的行为。只有时间戳的正文不算——
+否则任何带时间的文章都会被当成状态更新。
+
+两处容易写错的地方：正文里的时间戳**不写年**（跨年的 incident 按发布年硬填会落到未来
+11 个月，要按发布时间校正）；Statuspage 是**倒序**输出的，解析后要转成升序。
+
 ## AI 边界
 
 分析器是可插拔的（`server/event/analyzer/`）：

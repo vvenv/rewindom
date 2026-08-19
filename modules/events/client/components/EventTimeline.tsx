@@ -42,6 +42,28 @@ export function EventTimeline({ entries }: { entries: EventTimelineItem[] }) {
                       : entry.label_text}
                   </span>
                 </div>
+                {entry.incident_updates.length > 0 ? (
+                  /*
+                   * 状态页那条 incident 的一手更新序列，嵌在它自己那一格里。
+                   * **不拆成兄弟格**：格子的身份是信号，一次故障是一条信号，
+                   * 它的多次更新是这条信号的内部结构，不是多个来源。
+                   * 阶段词与正文逐字取自来源，不翻译——与「只显示来源原文」同口径。
+                   */
+                  <ol className="border-border ml-15 flex flex-col gap-1.5 border-l pl-3">
+                    {entry.incident_updates.map((update) => (
+                      <li
+                        key={`${update.occurred_at}-${update.phase}`}
+                        className="flex items-baseline gap-2 text-xs"
+                      >
+                        <span className="text-muted-foreground w-11 shrink-0 tabular-nums">
+                          {formatClockTime(update.occurred_at, i18n.language)}
+                        </span>
+                        <span className="shrink-0 font-medium">{update.phase}</span>
+                        <span className="text-muted-foreground">{update.text}</span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : null}
                 {entry.url ? (
                   <a
                     href={entry.url}

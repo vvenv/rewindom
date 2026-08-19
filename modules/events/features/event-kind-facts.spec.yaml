@@ -1,0 +1,190 @@
+# 97.8% 的事件终生只有一条信号（本地语料实测：833 个事件里 815 个，跨源的只有 12 个），
+# 所以「跨源合并 → 重建时间线」这条主承诺只对 1.4% 的语料生效。剩下那些交付的是：
+# 一个标题（= 那篇文章的标题）、一段 og:description、和一条只有一行的时间线。
+#
+# 提高合并率这条路已经量到头了（IDF 加权收益 0 已撤、语义 0.85 已校准、实体兜底
+# 实测「救回 0 对、误并 1 对」）。97.8% 的成因是语料本身——HN topstories 就是几十件
+# 互不相干的事。**这是事实，不是缺陷。**
+#
+# 所以价值不能只压在「合并」上，要压在**抽取**：一条单来源的报道，把埋在正文里的
+# 那几个关键事实拎出来、标上类型，它就比原文有用。而抽取一条信号也能做。
+#
+# 硬约束：三道省钱闸门里第一道就是 EVENTS_LLM_MIN_SIGNALS=2，
+# **任何依赖 LLM 的内容改进按设计永远碰不到那 97.8%**。所以判定与抽取必须在
+# 规则实现里成立，LLM 只能是「有 key 时更准」的增强。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 事件判定出类型（故障 / 发版 / 收购 / 融资 / 法务），并按类型抽出可核对的关键事实（时长与是否解决 / 版本号 / 金额）落成结构化字段；状态页正文里那条一手更新序列解析出来，不再被 600 字截断扔掉。
+gold: modules/events/server/event/topic-classifier.ts
+touch:
+  - modules/events/features/event-kind-facts.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/models.prisma
+  - apps/server/prisma/migrations/
+  - packages/server-kernel/src/generated/prisma/client/ # prisma generate 产物
+  # 契约
+  - modules/events/shared/events.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/shared/site-css/events.css
+  # 判定与抽取（新文件，抄 topic-classifier 的形状）
+  - modules/events/server/event/kind-classifier.ts
+  - modules/events/server/event/kind-classifier.test.ts
+  - modules/events/server/event/fact-extractor.ts
+  - modules/events/server/event/fact-extractor.test.ts
+  # 状态页正文 → 一手更新序列
+  - modules/events/server/ingest/incident-updates.ts
+  - modules/events/server/ingest/incident-updates.test.ts
+  - modules/events/server/ingest/rss.connector.ts
+  - modules/events/server/ingest/connector.ts
+  - modules/events/server/ingest/ingest.service.ts
+  # 分析器：LLM 顺带产出 kind（不新增调用）
+  - modules/events/server/event/analyzer/analyzer.ts
+  - modules/events/server/event/analyzer/llm-analyzer.ts
+  # 落库与读出
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.mapper.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  # 界面
+  - modules/events/client/components/EventFactChips.tsx
+  - modules/events/client/components/EventCard.tsx
+  - modules/events/client/components/EventTimeline.tsx
+  - modules/events/client/pages/event-detail.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 归位（「这家近 90 天第 4 次故障」）——纯查询、不依赖本期，独立一期
+  - 孤证与一手标注——why-trending 的增量，独立
+  - 用类型去兜底聚类（MODULE.md 记着的那组 GitHub 故障）：先把类型判准，
+    合并口径是另一次决策，本期只产出类型不改 cluster.service
+  - 按类型订阅 / webhook / 带条件 RSS
+  - 工作台上人工改类型（先看判得准不准，再决定要不要给覆盖入口）
+  - 招聘源、新 connector
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/kind-classifier.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/event/fact-extractor.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/incident-updates.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  # 判定要在**真实语料**上量一次准确率，不是只跑构造用例
+  - 拿本地 833 个事件跑一遍分类器，人工判读命中的样本
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 沿用 events.read / events.follow / events.write
+models:
+  - name: NewsEvent
+    scope: tenant
+    fields:
+      # 可空 = 「说不出来」。不设 other 兜底格：硬塞一个最像的类型比留空更糟，
+      # 与 topic 分类器「回落到源提示，不硬凑」同一条原则
+      - { name: kind, type: String, required: false }
+      # 展示用：直接取自原文的字符串（"v1.31.0"、"$7B"），可核对性最高
+      - { name: fact_version, type: String, required: false }
+      - { name: fact_amount_text, type: String, required: false }
+      # 聚合用：归一化后的量级
+      - { name: fact_amount_usd, type: Float, required: false }
+      - { name: fact_duration_minutes, type: Int, required: false }
+      - { name: fact_resolved, type: Boolean, required: false }
+  - name: EventSignal
+    scope: tenant
+    fields:
+      # 状态页一条 incident 的完整更新序列（一手、带时间戳）
+      - { name: incident_updates, type: Json, required: false }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. 类型枚举五格，可空。
+#    EVENT_KINDS = outage | release | acquisition | funding | legal
+#    **不加 other 兜底格**：语料里真实存在落不进任何一格的事件（大多数普通报道
+#    就是），硬塞一个最像的会让整个筛选面失去意义。判不出来就是 null，
+#    界面上不画角标——与 topic 分类器那条「不硬凑」同源。
+#
+# 2. 判定的优先级，从硬到软：
+#
+#    | 依据 | 何时用 | 为什么排这个位置 |
+#    | --- | --- | --- |
+#    | `source_kind` 先验 | 事件里有 status 信号 → outage；有 release 信号 → release | 状态页的一条 incident **就是**一次故障，没有解释空间。这是最硬的证据，压过模型 |
+#    | LLM 给的 kind | 有 key 且这一轮真的调了模型 | 读得懂内容，比关键词准 |
+#    | 关键词规则 | 其余 | 零成本、覆盖那 97.8%，是本期的主力 |
+#
+#    `filing` **不给先验**：SEC/FTC 既发处罚也发规则公告，前者是 legal 后者不是。
+#    交给关键词判。
+#
+#    关键词只收**高区分度**的词（抄 TOPIC_KEYWORDS 的口径）：标题命中权重高于
+#    摘录；两个类型同时达标时判 null 而不是取高分——分不清就别猜。
+#
+#    **实测结论（893 个事件跑全量，两轮各删掉一批词，别再放回去）**：
+#      - 裸 `raises` / `raised` 不能当融资词：一场慈善赛 raises £63,000 被判成融资
+#      - 裸 `launch` / `release` 系列不能当发版词：GitHub Universe 的日程、
+#        某电影基金、球赛裁判音频全被判成发版。删掉后 release 从 19 掉到 9
+#      - 关键词必须按**词边界**匹配：子串匹配下 `issues` 命中 `sues`、
+#        `defines` 命中 `fines`
+#    最终分布：null 806 · outage 47 · legal 24 · release 9 · acquisition 4 ·
+#    funding 3 —— 判出来的只有 9.7%，这是刻意的。
+#
+# 3. 事实按类型抽，抽的是**原文里的字符串**：
+#
+#    | kind | 字段 | 来源 |
+#    | --- | --- | --- |
+#    | outage | `fact_duration_minutes` / `fact_resolved` | 由 incident_updates 的首末时刻相减、末条阶段判定 |
+#    | release | `fact_version` | 标题/摘录里的版本号（`v1.31.0`、`1.83.0`） |
+#    | acquisition · funding · legal | `fact_amount_text` + `fact_amount_usd` | `$7B` / `$2.1 million` 这类，原串存 text，量级存 usd |
+#
+#    `fact_amount_usd` 用 **Float 而不是 cents 整数**（与 shop 的 `*_cents` 惯例
+#    刻意不同）：这不是我们持有的钱，是来源报道的近似量级；写成 cents 会暗示一种
+#    它没有的精度，而 $7B 的 cents 是 7e11，Int32 直接溢出。
+#
+#    抽不到就留 null。**绝不从上下文推断金额或时长**——与「时间戳不由模型给」同一条。
+#
+#    版本号至少两段数字，且**前面不能是货币符号**：Fairphone 那条的正文里有
+#    `$649.99`，曾经被抽成版本号（实测）。
+#
+# 4. 状态页正文里那条一手时间线，现在正在被扔掉。
+#    `truncateExcerpt` 在 600 字截断，而 Statuspage 的 description 长这样：
+#      `Aug 18, 11:42 UTC Resolved - … 11:24 UTC Update - … 10:58 UTC Investigating - …`
+#    这是一条完整的、带时间戳的、当事方自己写的更新序列，被压平成一段摘录后
+#    详情页上那个事件只显示「时间线：1 格」。
+#
+#    解析放在 **rss.connector 的 toSignal 里、truncateExcerpt 之前**——过了那一步
+#    信息就没了。只对 `source_kind === "status"` 的源解析。
+#
+#    **不能拆成多格时间线**：`AnalyzedTimelineEntry.signal_id` 不可为空，
+#    `(event_id, signal_id)` 就是格子的身份（见 MODULE.md「时间线是增量的」）。
+#    一次 incident 是**一条**信号，它的多次更新是这条信号的内部结构，
+#    所以落在 `EventSignal.incident_updates` 上、在那一格里嵌套渲染。
+#
+#    解析要严：只接受能匹配到时间戳 + 已知阶段词（Investigating / Identified /
+#    Update / Monitoring / Resolved）的段落，匹配不上整条弃权、退回现在的行为。
+#    宁可少解析，不要猜——与实体抽取「精度换召回」同一条。
+#
+# 5. LLM 在**同一次调用**里顺带产出 kind（与 topic / entities 同理，不新增调用）。
+#    落库前经 `isEventKind` 校验——模型会返回枚举外的字符串。
+#    规则实现不产出 kind，由 kind-classifier 判（与 topic 完全同构）。
+#
+# 6. 落库在 `refreshEvent` 里，与 topic 同一处：**每轮重算**。
+#    但 `manual_content` 冻结的是标题与摘要，**不冻结 kind 与 facts**——
+#    它们是派生事实不是文案，人工改过摘要不该让故障时长停在旧值。
+#
+# 7. 界面：卡片与详情页标题下一行 chips —— 「故障 · 47 分钟 · 已解决」
+#    「收购 · $7B」「发版 · v1.31.0」。金额优先渲染 `fact_amount_text`（原串），
+#    没有原串才用归一化值。SSR 与 React 共用一份构造函数（放 shared，
+#    与 `describeEventMomentum` 同一条口径），不要两边各写一份。
+#
+# ---------- 下一步（不在本期）----------
+# - 归位：「Cloudflare 近 90 天第 4 次故障，累计 3h12m」——本期的 kind +
+#   fact_duration_minutes 正是它的输入，纯查询、零模型成本，且竞品结构上做不到
+#   （它们每轮重新聚类，答不出「这家上次出现是什么时候」）
+# - 用「同一实体 + 同一时间窗 + kind=outage」兜底聚类，接住 MODULE.md 记着的
+#   那组被拆成 4 个的 GitHub 故障
+# - 按类型订阅（「只有 outage 才推我」）

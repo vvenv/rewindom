@@ -338,5 +338,19 @@
     "communityOnly": "Community discussion only ({{count}} posts), not yet corroborated",
     "confirmed": "Confirmed",
     "discussion": "Discussion"
+  },
+  "kind": {
+    "outage": "Outage",
+    "release": "Release",
+    "acquisition": "Acquisition",
+    "funding": "Funding",
+    "legal": "Legal"
+  },
+  "fact": {
+    "duration": "{{minutes}} min",
+    "resolved": "Resolved",
+    "ongoing": "Ongoing",
+    "version": "{{version}}",
+    "amount": "{{amount}}"
   }
 }

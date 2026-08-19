@@ -1,3 +1,5 @@
+import type { IncidentUpdate } from "./incident-updates.js";
+
 import type { EventSourceKind, EventTopic } from "../../shared/index.js";
 
 /**
@@ -19,6 +21,13 @@ export interface RawSignal {
   score: number;
   comment_count: number;
   published_at: Date;
+  /**
+   * 状态页一条 incident 的完整更新序列。只有 `source_kind === "status"` 的源会有。
+   *
+   * 必须由 connector 产出而不是事后从 excerpt 里再解析：`truncateExcerpt`
+   * 在 600 字截断，而 Statuspage 的正文常常长得多——过了那一步后半截就没了。
+   */
+  incident_updates?: IncidentUpdate[];
 }
 
 /** connector 拿到的源配置（EventFeed 的子集，避免 connector 依赖 Prisma 类型）。 */

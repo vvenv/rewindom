@@ -100,6 +100,7 @@ export type EventSignalCountAggregateOutputType = {
   published_at: number
   fetched_at: number
   event_id: number
+  incident_updates: number
   removed_at: number
   created_at: number
   updated_at: number
@@ -181,6 +182,7 @@ export type EventSignalCountAggregateInputType = {
   published_at?: true
   fetched_at?: true
   event_id?: true
+  incident_updates?: true
   removed_at?: true
   created_at?: true
   updated_at?: true
@@ -291,6 +293,7 @@ export type EventSignalGroupByOutputType = {
   published_at: Date
   fetched_at: Date
   event_id: string | null
+  incident_updates: runtime.JsonValue | null
   removed_at: Date | null
   created_at: Date
   updated_at: Date
@@ -337,6 +340,7 @@ export type EventSignalWhereInput = {
   published_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   fetched_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   event_id?: Prisma.StringNullableFilter<"EventSignal"> | string | null
+  incident_updates?: Prisma.JsonNullableFilter<"EventSignal">
   removed_at?: Prisma.DateTimeNullableFilter<"EventSignal"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
@@ -361,6 +365,7 @@ export type EventSignalOrderByWithRelationInput = {
   published_at?: Prisma.SortOrder
   fetched_at?: Prisma.SortOrder
   event_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  incident_updates?: Prisma.SortOrderInput | Prisma.SortOrder
   removed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -390,6 +395,7 @@ export type EventSignalWhereUniqueInput = Prisma.AtLeast<{
   published_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   fetched_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   event_id?: Prisma.StringNullableFilter<"EventSignal"> | string | null
+  incident_updates?: Prisma.JsonNullableFilter<"EventSignal">
   removed_at?: Prisma.DateTimeNullableFilter<"EventSignal"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
@@ -414,6 +420,7 @@ export type EventSignalOrderByWithAggregationInput = {
   published_at?: Prisma.SortOrder
   fetched_at?: Prisma.SortOrder
   event_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  incident_updates?: Prisma.SortOrderInput | Prisma.SortOrder
   removed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -445,6 +452,7 @@ export type EventSignalScalarWhereWithAggregatesInput = {
   published_at?: Prisma.DateTimeWithAggregatesFilter<"EventSignal"> | Date | string
   fetched_at?: Prisma.DateTimeWithAggregatesFilter<"EventSignal"> | Date | string
   event_id?: Prisma.StringNullableWithAggregatesFilter<"EventSignal"> | string | null
+  incident_updates?: Prisma.JsonNullableWithAggregatesFilter<"EventSignal">
   removed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"EventSignal"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"EventSignal"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"EventSignal"> | Date | string
@@ -467,6 +475,7 @@ export type EventSignalCreateInput = {
   comment_count?: number
   published_at: Date | string
   fetched_at?: Date | string
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -491,6 +500,7 @@ export type EventSignalUncheckedCreateInput = {
   published_at: Date | string
   fetched_at?: Date | string
   event_id?: string | null
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -513,6 +523,7 @@ export type EventSignalUpdateInput = {
   comment_count?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fetched_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -537,6 +548,7 @@ export type EventSignalUncheckedUpdateInput = {
   published_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fetched_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -560,6 +572,7 @@ export type EventSignalCreateManyInput = {
   published_at: Date | string
   fetched_at?: Date | string
   event_id?: string | null
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -582,6 +595,7 @@ export type EventSignalUpdateManyMutationInput = {
   comment_count?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fetched_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -605,6 +619,7 @@ export type EventSignalUncheckedUpdateManyInput = {
   published_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fetched_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -641,6 +656,7 @@ export type EventSignalCountOrderByAggregateInput = {
   published_at?: Prisma.SortOrder
   fetched_at?: Prisma.SortOrder
   event_id?: Prisma.SortOrder
+  incident_updates?: Prisma.SortOrder
   removed_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -771,6 +787,7 @@ export type EventSignalCreateWithoutEventInput = {
   comment_count?: number
   published_at: Date | string
   fetched_at?: Date | string
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -793,6 +810,7 @@ export type EventSignalUncheckedCreateWithoutEventInput = {
   comment_count?: number
   published_at: Date | string
   fetched_at?: Date | string
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -845,6 +863,7 @@ export type EventSignalScalarWhereInput = {
   published_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   fetched_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   event_id?: Prisma.StringNullableFilter<"EventSignal"> | string | null
+  incident_updates?: Prisma.JsonNullableFilter<"EventSignal">
   removed_at?: Prisma.DateTimeNullableFilter<"EventSignal"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"EventSignal"> | Date | string
@@ -867,6 +886,7 @@ export type EventSignalCreateManyEventInput = {
   comment_count?: number
   published_at: Date | string
   fetched_at?: Date | string
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
@@ -889,6 +909,7 @@ export type EventSignalUpdateWithoutEventInput = {
   comment_count?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fetched_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -911,6 +932,7 @@ export type EventSignalUncheckedUpdateWithoutEventInput = {
   comment_count?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fetched_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -933,6 +955,7 @@ export type EventSignalUncheckedUpdateManyWithoutEventInput = {
   comment_count?: Prisma.IntFieldUpdateOperationsInput | number
   published_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fetched_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  incident_updates?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   removed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -958,6 +981,7 @@ export type EventSignalSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   published_at?: boolean
   fetched_at?: boolean
   event_id?: boolean
+  incident_updates?: boolean
   removed_at?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -982,6 +1006,7 @@ export type EventSignalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   published_at?: boolean
   fetched_at?: boolean
   event_id?: boolean
+  incident_updates?: boolean
   removed_at?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -1006,6 +1031,7 @@ export type EventSignalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   published_at?: boolean
   fetched_at?: boolean
   event_id?: boolean
+  incident_updates?: boolean
   removed_at?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -1030,12 +1056,13 @@ export type EventSignalSelectScalar = {
   published_at?: boolean
   fetched_at?: boolean
   event_id?: boolean
+  incident_updates?: boolean
   removed_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type EventSignalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "connector" | "external_id" | "source_name" | "source_kind" | "title" | "url" | "canonical_url" | "excerpt" | "author" | "topic" | "score" | "comment_count" | "published_at" | "fetched_at" | "event_id" | "removed_at" | "created_at" | "updated_at", ExtArgs["result"]["eventSignal"]>
+export type EventSignalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenant_id" | "connector" | "external_id" | "source_name" | "source_kind" | "title" | "url" | "canonical_url" | "excerpt" | "author" | "topic" | "score" | "comment_count" | "published_at" | "fetched_at" | "event_id" | "incident_updates" | "removed_at" | "created_at" | "updated_at", ExtArgs["result"]["eventSignal"]>
 export type EventSignalInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   event?: boolean | Prisma.EventSignal$eventArgs<ExtArgs>
 }
@@ -1078,6 +1105,15 @@ export type $EventSignalPayload<ExtArgs extends runtime.Types.Extensions.Interna
     published_at: Date
     fetched_at: Date
     event_id: string | null
+    /**
+     * 状态页一条 incident 的完整更新序列（`{ occurred_at, phase, text }[]`）。
+     * Statuspage 把一次故障的全部更新塞在一个 description 里，而 truncateExcerpt
+     * 在 600 字截断——不在 connector 里就地解析，后半截就永远丢了。
+     * 
+     * **不拆成多格时间线**：时间线格子的身份是 `(event_id, signal_id)`，
+     * 一次 incident 是一条信号，它的多次更新是这条信号的内部结构
+     */
+    incident_updates: runtime.JsonValue | null
     /**
      * 工作台手动移除的时间。非空 = 这条信号不再参与任何聚合、也不再出现在任何面上。
      * **不能硬删**：源下一轮还会把同一条抓回来，删了它等于每 15 分钟复活一次。
@@ -1527,6 +1563,7 @@ export interface EventSignalFieldRefs {
   readonly published_at: Prisma.FieldRef<"EventSignal", 'DateTime'>
   readonly fetched_at: Prisma.FieldRef<"EventSignal", 'DateTime'>
   readonly event_id: Prisma.FieldRef<"EventSignal", 'String'>
+  readonly incident_updates: Prisma.FieldRef<"EventSignal", 'Json'>
   readonly removed_at: Prisma.FieldRef<"EventSignal", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"EventSignal", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"EventSignal", 'DateTime'>

@@ -9,7 +9,7 @@
  * 段渲染器是同步的、也拿不到 i18n。
  */
 
-import { describeEventMomentum } from "./events.js";
+import { describeEventFacts, describeEventMomentum } from "./events.js";
 
 import { EVENTS_INDEX_PATH, eventPath } from "./events-section-context.js";
 
@@ -63,6 +63,10 @@ export function toPublicCard(
     status: item.status,
     status_label: t(`status.${item.status}`),
     ...buildMomentum(item, t),
+    // 类型与事实在这里就落成文案：段渲染器是同步的、也拿不到 i18n
+    fact_labels: describeEventFacts(item.kind, item.facts).map((chip) =>
+      t(chip.code, chip.params),
+    ),
     signal_count: item.signal_count,
     source_names: item.source_names,
     last_activity_at: item.last_activity_at,
@@ -147,6 +151,8 @@ function toPublicTimelineItem(entry: EventTimelineItem, t: EventsTranslate) {
     source_name: entry.source_name,
     source_kind: entry.source_kind,
     url: entry.url,
+    // 一手更新序列原样带过去：里面每一格的时刻都写在来源正文里，不用翻译
+    incident_updates: entry.incident_updates,
   };
 }
 

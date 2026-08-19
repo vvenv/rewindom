@@ -63,6 +63,9 @@ function headerHtml(event: PublicEventDetailView): string {
       event.status_label,
     )}</span>`,
     `<span class="events-topic">${escapeHtml(event.topic_label)}</span>`,
+    ...event.fact_labels.map(
+      (label) => `<span class="events-fact">${escapeHtml(label)}</span>`,
+    ),
   ].join("");
   return `<header class="events-detail-header"><span class="events-meta">${meta}</span><h1 class="events-detail-title">${escapeHtml(
     event.title,
@@ -99,12 +102,37 @@ function timelineHtml(
         : escapeHtml(entry.label);
       return `<li class="events-timeline-row"><time class="events-timeline-time" datetime="${escapeHtml(
         entry.occurred_at,
-      )}">${escapeHtml(time)}</time><span class="events-timeline-text">${text}</span></li>`;
+      )}">${escapeHtml(time)}</time><span class="events-timeline-text">${text}${incidentUpdatesHtml(
+        entry,
+      )}</span></li>`;
     })
     .join("");
   return `<section class="events-block"><h2 class="events-block-title">${escapeHtml(
     label,
   )}</h2><ol class="events-timeline">${rows}</ol></section>`;
+}
+
+/**
+ * 状态页那条 incident 的一手更新序列，嵌在它自己那一格里。
+ *
+ * **不拆成兄弟格**：格子的身份是信号，一次故障是一条信号，它的多次更新是这条
+ * 信号的内部结构而不是多个来源。阶段词与正文都逐字取自来源，不翻译也不改写。
+ */
+function incidentUpdatesHtml(entry: PublicEventTimelineItem): string {
+  if (entry.incident_updates.length === 0) {
+    return "";
+  }
+  const rows = entry.incident_updates
+    .map(
+      (update) =>
+        `<li class="events-incident-row"><time class="events-incident-time" datetime="${escapeHtml(
+          update.occurred_at,
+        )}">${escapeHtml(update.occurred_at.slice(11, 16))}</time><span class="events-incident-phase">${escapeHtml(
+          update.phase,
+        )}</span><span class="events-incident-text">${escapeHtml(update.text)}</span></li>`,
+    )
+    .join("");
+  return `<ol class="events-incident">${rows}</ol>`;
 }
 
 function sourcesHtml(event: PublicEventDetailView, label: string): string {

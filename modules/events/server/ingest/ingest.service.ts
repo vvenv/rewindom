@@ -1,4 +1,8 @@
-import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
+import {
+  prisma,
+  withTenantScope,
+  type Prisma,
+} from "@rewindom/module-sdk/server";
 
 import { TENANT_MODULES_STORAGE_KEY } from "@rewindom/builtin/platform/shared/tenant-modules.js";
 
@@ -433,6 +437,14 @@ async function persistSignals(
       score: signal.score,
       comment_count: signal.comment_count,
       published_at: signal.published_at,
+      // Prisma 的 Json 入参要求索引签名，而 IncidentUpdate[] 是具名结构；
+      // 与 site-docs 写 localized label 同一处理
+      ...(signal.incident_updates
+        ? {
+            incident_updates:
+              signal.incident_updates as unknown as Prisma.InputJsonValue,
+          }
+        : {}),
     })),
     // 并发实例可能同时插同一条；唯一键（含身份键）让重复静默丢弃。
     // 重发键没有对应的唯一约束（要按分钟和指纹比），并发下仍可能漏进一条——
