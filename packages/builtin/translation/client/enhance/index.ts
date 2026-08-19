@@ -11,7 +11,11 @@
  */
 
 
-import { looksLikeTargetLanguage } from "../../shared/messages.js";
+import {
+  guessSourceLanguage,
+  isAlreadyInTargetLanguage,
+  looksLikeTargetLanguage,
+} from "../../shared/messages.js";
 import {
   TRANSLATION_MAX_BATCH,
   defaultTranslationConfig,
@@ -96,40 +100,89 @@ async function start(root: Element, locale: AppLocale): Promise<void> {
 
   const probe = collectTextNodes(root);
   if (probe.nodes.length === 0) return;
-  // 正文已经是站点语言了就别挂按钮——点下去什么都不会变
-  if (looksLikeTargetLanguage(probe.texts.join(" "), locale)) return;
+  /*
+   * 只拿**待翻**的那部分判断要不要挂按钮。
+   *
+   * 拿整页判断会被界面文案带偏：中文站的段标题、按钮、说明都是中文，混进来
+   * 一算 CJK 占比就过线，于是「整页看起来已经是中文了」——可事件标题明明还是
+   * 英文。这正是按钮该出现的场景，却被判没了。
+   */
+  const pending = probe.texts.filter(
+    (text) => !isAlreadyInTargetLanguage(text, locale),
+  );
+  if (pending.length === 0) return;
+  if (looksLikeTargetLanguage(pending.join(" "), locale)) return;
 
+  /*
+   * 源语言在**挂控件之前**就定好，而不是等到翻译时再探测。
+   *
+   * `Translator.create()` 在模型未下载时要求处于用户手势有效期内；点击后先
+   * `await LanguageDetector.create()` 再去 create，手势早过期了，Chrome 抛
+   * `NotAllowedError`——表现就是「点了按钮什么都没发生」。把探测挪到加载期，
+   * 点击那一刻才能同步 prime。
+   */
+  const source = guessSourceLanguage(pending.join(" "));
+
+  let widget: TranslateWidget | null = null;
+  /*
+   * 下载进度事件会**晚于**翻译完成继续到达（模型下载与首批翻译是并行的），
+   * 不设这道闸，最后一条 progress 会把「显示原文」盖回「正在准备…100%」——
+   * 页面已经翻好了，按钮却停在准备中。
+   */
+  let settled = false;
   const translator = createTranslator({
     config,
     target: locale,
-    source: null,
-    engine: undefined,
+    source,
+    onDownloadProgress: (ratio) => {
+      if (settled) return;
+      widget?.setState("downloading", { ratio });
+    },
   });
   if (!(await translator.available())) return;
 
   const originals = new Map<Text, string>();
-  let widget: TranslateWidget | null = null;
   let translated = false;
   let running = false;
 
-  const runTranslation = async (): Promise<void> => {
+  /** @returns 实际被改写的文本节点数。0 = 一个字都没译出来。 */
+  const runTranslation = async (): Promise<number> => {
     running = true;
+    settled = false;
     // 重新扫一遍：从上次探测到现在，会员正文解锁等可能换过 DOM
     const snapshot = collectTextNodes(root);
-    const ordered = viewportFirst(snapshot.nodes);
+    /*
+     * 只翻内容，不翻界面。页面上混着两类文本：站点文案 / 段标题（CMS 写好的
+     * 或代码 i18n 出来的，**本来就是站点语言**）和事件正文（来源原文）。
+     * 已经是目标语言的节点直接跳过——既是正确性（不该把「正在升温」再翻一遍），
+     * 也省掉大半的引擎调用。
+     */
+    const translatable = snapshot.nodes.filter(
+      (node) => !isAlreadyInTargetLanguage(node.nodeValue ?? "", locale),
+    );
+    const ordered = viewportFirst(translatable);
     const batches = chunk(ordered, TRANSLATION_MAX_BATCH);
     widget?.setState("working", { done: 0, total: batches.length });
 
+    let changed = 0;
     for (const [index, batch] of batches.entries()) {
       const texts = batch.map((node) => node.nodeValue ?? "");
       const result = await translator.translate(texts);
-      applyTranslations({ nodes: batch, texts }, result, originals);
+      changed += applyTranslations({ nodes: batch, texts }, result, originals);
       widget?.setState("working", { done: index + 1, total: batches.length });
     }
 
-    translated = true;
     running = false;
-    widget?.setState("translated");
+    settled = true;
+    /*
+     * **必须按实际结果置状态。** 引擎的失败被 translator 吞成「保留原文」，
+     * 这里再无条件报成功，读者看到的就是「按钮说翻完了，页面一个字没变」——
+     * 比直接报错糟得多，因为它掩盖了故障。
+     */
+    translated = changed > 0;
+    widget?.setState(translated ? "translated" : "failed");
+    if (!translated) writePreference(false);
+    return changed;
   };
 
   const toggle = (): void => {
@@ -141,6 +194,9 @@ async function start(root: Element, locale: AppLocale): Promise<void> {
       widget?.setState("idle");
       return;
     }
+    // 同步预热，必须在任何 await 之前——这一行就是手势有效期本身
+    settled = false;
+    translator.prime();
     writePreference(true);
     void runTranslation();
   };
@@ -148,6 +204,12 @@ async function start(root: Element, locale: AppLocale): Promise<void> {
   widget = mountTranslateWidget(locale, toggle);
   widget.setState("idle");
 
-  // 上一页开着就继续开着，不必每页再点一次
-  if (readPreference()) void runTranslation();
+  /*
+   * 上一页开着就继续开着。这里**没有用户手势**，模型没下载好时会失败并落到
+   * "failed" 状态——那是对的：同一个标签页里第一次一定是点出来的，模型早已就位。
+   */
+  if (readPreference()) {
+    translator.prime();
+    void runTranslation();
+  }
 }

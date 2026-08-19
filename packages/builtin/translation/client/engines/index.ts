@@ -5,7 +5,7 @@
 
 import { engineNeedsProxy, type PublicTranslationConfig  } from "../../shared/translation.js";
 
-import { createBrowserEngine } from "./browser.js";
+import { createBrowserEngine, type BrowserEngineOptions } from "./browser.js";
 import {
   createLibreTranslateEngine,
   createMyMemoryEngine,
@@ -16,11 +16,13 @@ import {
 import type { TranslationEngineAdapter } from "./types.js";
 
 export { isBrowserTranslationSupported } from "./browser.js";
+export type { BrowserEngineOptions } from "./browser.js";
 export type { TranslationEngineAdapter } from "./types.js";
 export { TranslationUnavailableError } from "./types.js";
 
 export function createEngine(
   config: PublicTranslationConfig,
+  options: BrowserEngineOptions = {},
 ): TranslationEngineAdapter {
   if (config.proxy || engineNeedsProxy(config.engine)) return createProxyEngine();
   switch (config.engine) {
@@ -28,10 +30,10 @@ export function createEngine(
       // 端点是租户配的；没配就没得直连，回退到浏览器内置
       return config.endpoint
         ? createLibreTranslateEngine(config.endpoint)
-        : createBrowserEngine();
+        : createBrowserEngine(options);
     case "mymemory":
       return createMyMemoryEngine();
     default:
-      return createBrowserEngine();
+      return createBrowserEngine(options);
   }
 }

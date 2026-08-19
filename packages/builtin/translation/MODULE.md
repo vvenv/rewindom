@@ -73,13 +73,64 @@ client/
   `client-kit/src/lib/module-contract.ts`，收集在 `apps/client/src/collect-modules.ts`）。
   用注册表而不是 `createComponentSlot`：后者是单组件的，第二个模块想加面板会覆盖第一个。
 
+## 只翻内容，不翻界面
+
+公开页上混着两类文本，必须分开：
+
+| | 例子 | 处理 |
+| --- | --- | --- |
+| **界面** | 段标题「正在升温」、「查看全部事件」、状态角标 | 本来就是站点语言（代码 i18n / CMS 写好的），**不翻** |
+| **内容** | `NewsEvent.title` / `summary`、时间线正文 | 来源原文，多为英文，**要翻** |
+
+分法是**按节点判断语言**（`isAlreadyInTargetLanguage`）：已经是目标语言的节点直接跳过。
+不用「让每个模块标记自己的内容 markup」，是因为标记法漏一处就是一处永远翻不到的
+内容，而语言判断天然覆盖所有贡献方。
+
+它同时是「要不要显示入口」的判据：判断只看**待翻的那部分**。拿整页算会被中文界面
+文案带偏——CJK 占比一过线就认定「整页已经是中文」，可事件标题明明还是英文。
+
+## ⚠️ 用户手势：改这块代码前必读
+
+`Translator.create()` 在模型未下载时**要求处于用户手势的有效期内**，否则抛
+`NotAllowedError: Requires a user gesture when availability is "downloading" or "downloadable"`。
+
+所以点击处理里**第一件事**必须是同步的 `translator.prime()`，在任何 `await` 之前。
+曾经的写法是「点击 → await 扫 DOM → await `LanguageDetector.create()` → 才
+`Translator.create()`」，等到那时手势早过期了。它的表现极具迷惑性：异常被
+`translator.ts` 吞成「这批保留原文」，按钮却照样翻成「显示原文」——**页面一个字没变，
+控件说翻完了**。
+
+由此立的两条规矩：
+
+- 源语言在**挂控件之前**就定好（`guessSourceLanguage`），不要留到点击后再探测
+- 状态**按实际改写的节点数**置（`changed > 0`），不许无条件报成功。一个字都没译出来
+  就是 `failed`，显示「重试」
+
 ## 别的模块要接入，需要做什么
 
 **通常什么都不用做。** enhance 扫的是 `main.site-main` 下的文本节点，任何模块的
 公开段（events / shop / site-docs）自动覆盖。只有两种情况需要出手：
 
-- 某段内容不该被翻（品牌名、代码块、SKU）→ 加 `translate="no"` 或 `data-no-translate`
+- 某段内容不该被翻（来源名、代码块、SKU）→ 加 `translate="no"` 或 `data-no-translate`
+  （events 就是这么处理来源名与已本地化标签的）
 - 工作台页面想要翻译能力 → 复用 `client/lib/translator.ts`，它不依赖 DOM
+
+## 控件挂在哪
+
+优先挂进页头控件区 `.site-header .chrome-zone-end .chrome-pins`，与语言 / 明暗切换
+并排——翻译本就属于「语言」这类操作，放在读者已经会去找语言开关的地方最顺手。
+页头不存在时（裸段落页、会员闸门页）回落成右下角浮标，保证任何页面都有入口。
+
+机器翻译声明**不进页头**（图标行紧排，塞一句话进去会和相邻图标叠住），贴在正文顶部
+——它说明的是下面这片正文的性质，不是那颗按钮的。
+
+## 已知短板
+
+单个首字母大写的词不在术语保护范围内（`Bun` 曾被译成「面包」）。这是刻意的取舍：
+英文句子里大写词太多，全保护等于不翻。逃生口是设置页的**不翻译术语**表。
+
+更好的做法是把 events 的实体索引（`EventEntity`）喂进 `keep_terms`——那张表里存的
+正是需要保护的专有名词。尚未接。
 
 ## 配置
 

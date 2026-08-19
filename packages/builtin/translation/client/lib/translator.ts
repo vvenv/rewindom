@@ -30,10 +30,17 @@ export interface TranslatorOptions {
   signal?: AbortSignal;
   /** 测试注入用；生产走 `createEngine`。 */
   engine?: TranslationEngineAdapter;
+  /** 浏览器内置引擎首次翻译要下模型，进度 0–1。 */
+  onDownloadProgress?: (ratio: number) => void;
 }
 
 export interface Translator {
   readonly engineId: string;
+  /**
+   * 在用户手势里**同步**调用，给引擎机会在手势有效期内起模型下载。
+   * 调用方必须在 `await` 任何东西**之前**调它。
+   */
+  prime(): void;
   /** 与入参等长同序，翻不出的位置回原文。 */
   translate(texts: readonly string[]): Promise<string[]>;
   available(): Promise<boolean>;
@@ -54,12 +61,17 @@ function chunk<T>(items: T[], size: number): T[][] {
 }
 
 export function createTranslator(options: TranslatorOptions): Translator {
-  const engine = options.engine ?? createEngine(options.config);
+  const engine =
+    options.engine ??
+    createEngine(options.config, {
+      onDownloadProgress: options.onDownloadProgress,
+    });
   const { target, source, config } = options;
   const keepTerms = config.keep_terms;
 
   return {
     engineId: engine.id,
+    prime: () => engine.prime?.({ target, source }),
     available: () => engine.available({ target, source }),
     async translate(texts) {
       const out = texts.map((text) => text);

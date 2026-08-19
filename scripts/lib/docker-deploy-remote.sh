@@ -152,6 +152,10 @@ fi
 #
 # 与 HTTP/2 同一条理由：443 server 块是 certbot 写的，模板里的 listen 80 加不进去。
 # Semrush 抓首页会记「No HSTS support」。max-age 一年 + includeSubDomains，覆盖 www。
+#
+# 必须吃掉 listen 行到行尾（含 `http2;`）。`s//&\n add_header/` 只匹配到 `ssl`，
+# 会把分号留在下一行——nginx 指令直到 `;` 才结束，于是 `add_header` 变成
+# `listen` 的参数：invalid parameter "add_header"。
 docker_enable_host_nginx_hsts() {
   log_info "确认宿主机 Nginx 已开启 HSTS..."
   _run_ssh 'set -euo pipefail
@@ -165,7 +169,7 @@ for link in /etc/nginx/sites-enabled/*; do
   grep -qE "listen (\[::\]:)?443 ssl" "$conf" || continue
   grep -q Strict-Transport-Security "$conf" && continue
   cp -a "$conf" "$conf.pre-hsts.bak"
-  sed -i "0,/listen .*443 ssl/s//&\n    add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains\" always;/" "$conf"
+  sed -i "0,/listen .*443 ssl/s/listen .*443 ssl.*/&\n    add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains\" always;/" "$conf"
   changed="$changed $conf"
 done
 

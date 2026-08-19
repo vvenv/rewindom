@@ -18,6 +18,14 @@ export interface TranslateCall {
 export interface TranslationEngineAdapter {
   readonly id: TranslationEngine;
   /**
+   * 在用户手势里**同步**预热（不 await 任何东西就要调到底层 create）。
+   *
+   * 浏览器内置引擎的模型是按需下载的，Chrome 要求 `Translator.create()` 发生在
+   * 用户手势的有效期内，否则抛 `NotAllowedError`。点击后先 await 一下再 create
+   * 就已经太晚了——这正是「点了按钮什么都没发生」的成因。
+   */
+  prime?(call: Pick<TranslateCall, "target" | "source">): void;
+  /**
    * 这台浏览器 / 这个端点当前能不能翻这一对语言。
    * 浏览器内置引擎要据此下载模型，可能耗时数秒，所以是异步的。
    */

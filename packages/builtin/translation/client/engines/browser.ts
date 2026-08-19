@@ -10,12 +10,21 @@
  * 阅读记录悄悄发出去。
  */
 
+import { guessSourceLanguage } from "../../shared/messages.js";
+
 import { toBrowserCode } from "./locale-code.js";
 import { TranslationUnavailableError, type TranslationEngineAdapter } from "./types.js";
 
 interface BrowserTranslatorInstance {
   translate(text: string): Promise<string>;
   destroy?: () => void;
+}
+
+interface DownloadMonitor {
+  addEventListener(
+    type: "downloadprogress",
+    listener: (event: { loaded: number }) => void,
+  ): void;
 }
 
 interface BrowserTranslatorApi {
@@ -26,6 +35,7 @@ interface BrowserTranslatorApi {
   create(input: {
     sourceLanguage: string;
     targetLanguage: string;
+    monitor?: (monitor: DownloadMonitor) => void;
   }): Promise<BrowserTranslatorInstance>;
 }
 
@@ -52,24 +62,35 @@ export function isBrowserTranslationSupported(): boolean {
 }
 
 /**
- * 猜源语言。判不出来就回 null，让上层跳过——**不默认 `en`**：把中文正文当英文
- * 送进去，引擎会输出一堆音译垃圾。
+ * 定源语言。`Translator.create()` 必须要它，所以这里**一定会给出一个值**：
+ * 先问 `LanguageDetector`，不可用或没把握时退回字符统计。
+ *
+ * 猜错的代价有限——源与目标同语言时下面会直接原样返回。
  */
-async function detectSource(sample: string): Promise<string | null> {
+async function detectSource(sample: string): Promise<string> {
   const api = detectorApi();
-  if (!api) return null;
+  if (!api) return guessSourceLanguage(sample);
   try {
     const detector = await api.create();
     const results = await detector.detect(sample.slice(0, 400));
     const top = results[0];
-    // 置信度低时不猜——宁可不翻
-    return top && top.confidence >= 0.5 ? top.detectedLanguage : null;
+    // 置信度低时不信它，退回字符统计——总比拿一个错的语言去建 translator 强
+    return top && top.confidence >= 0.5
+      ? top.detectedLanguage
+      : guessSourceLanguage(sample);
   } catch {
-    return null;
+    return guessSourceLanguage(sample);
   }
 }
 
-export function createBrowserEngine(): TranslationEngineAdapter {
+export interface BrowserEngineOptions {
+  /** 模型下载进度（0–1）。首次翻译要下几十 MB，没有它按钮看起来就是卡住了。 */
+  onDownloadProgress?: (ratio: number) => void;
+}
+
+export function createBrowserEngine(
+  options: BrowserEngineOptions = {},
+): TranslationEngineAdapter {
   /** 同一对语言复用一个 translator 实例：每次 create 都可能重新加载模型。 */
   const pool = new Map<string, Promise<BrowserTranslatorInstance>>();
 
@@ -86,13 +107,31 @@ export function createBrowserEngine(): TranslationEngineAdapter {
         new TranslationUnavailableError("browser translator unavailable"),
       );
     }
-    const created = api.create({ sourceLanguage: source, targetLanguage: target });
+    const created = api.create({
+      sourceLanguage: source,
+      targetLanguage: target,
+      monitor: (monitor) => {
+        monitor.addEventListener("downloadprogress", (event) => {
+          options.onDownloadProgress?.(event.loaded);
+        });
+      },
+    });
+    /*
+     * 失败的实例不留在池里：`NotAllowedError` 是「这次没手势」，不是「这台机器
+     * 不支持」，下次点击应该能成。留着等于把一次性失败变成永久失败。
+     */
+    created.catch(() => pool.delete(key));
     pool.set(key, created);
     return created;
   };
 
   return {
     id: "browser",
+    prime({ target, source }) {
+      if (!source) return;
+      // 这里**不能有任何 await**——见 TranslationEngineAdapter.prime 的注释
+      void instanceFor(toBrowserCode(source), toBrowserCode(target));
+    },
     async available({ target, source }) {
       const api = translatorApi();
       if (!api) return false;
@@ -111,9 +150,6 @@ export function createBrowserEngine(): TranslationEngineAdapter {
       if (texts.length === 0) return [];
       const source =
         call.source ?? (await detectSource(texts.join("\n").slice(0, 400)));
-      if (!source) {
-        throw new TranslationUnavailableError("source language undetected");
-      }
       const sourceCode = toBrowserCode(source);
       const targetCode = toBrowserCode(call.target);
       // 同语言不译，直接回原文（探测到中文而目标也是中文时会走到这里）
