@@ -14,11 +14,11 @@ function view(
   overrides: Partial<PublicEntityStripView> = {},
 ): PublicEntityStripView {
   return {
-    href: "/events/entities",
+    href: "/entities",
     items: [
-      { href: "/events/entities/openai-abc123", name: "OpenAI", event_count: 8 },
-      { href: "/events/entities/google-def456", name: "Google", event_count: 5 },
-      { href: "/events/entities/chatgpt-ghi789", name: "ChatGPT", event_count: 1 },
+      { href: "/entities/openai-abc123", name: "OpenAI", event_count: 8 },
+      { href: "/entities/google-def456", name: "Google", event_count: 5 },
+      { href: "/entities/chatgpt-ghi789", name: "ChatGPT", event_count: 1 },
     ],
     ...overrides,
   };
@@ -51,9 +51,9 @@ function render(
 describe("renderEventsEntityStripHtml", () => {
   it("links every shown entity — this strip exists so the home page stops being a dead end", () => {
     const html = render(view());
-    expect(html).toContain('href="/events/entities/openai-abc123"');
-    expect(html).toContain('href="/events/entities/google-def456"');
-    expect(html).toContain('href="/events/entities/chatgpt-ghi789"');
+    expect(html).toContain('href="/entities/openai-abc123"');
+    expect(html).toContain('href="/entities/google-def456"');
+    expect(html).toContain('href="/entities/chatgpt-ghi789"');
   });
 
   it("keeps chip size uniform and marks names as not-to-translate", () => {
@@ -79,7 +79,7 @@ describe("renderEventsEntityStripHtml", () => {
 
   it("points See all at the entity hub", () => {
     const html = render(view());
-    expect(html).toContain('href="/events/entities"');
+    expect(html).toContain('href="/entities"');
     expect(html).toContain("查看全部实体");
   });
 

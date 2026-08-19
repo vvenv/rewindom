@@ -4,9 +4,9 @@ import { escapeXml, renderRssXml, toRfc822 } from "./rss-xml.js";
 
 const CHANNEL = {
   title: "Yestino Events",
-  link: "https://yestino.com/events",
+  link: "https://yestino.com/",
   description: "跨来源发现事件",
-  self_url: "https://yestino.com/events/feed.xml",
+  self_url: "https://yestino.com/feed.xml",
   language: "zh-CN",
   items: [
     {
@@ -30,7 +30,7 @@ describe("renderRssXml", () => {
   /* rel="self" 是校验器要求的一项，也让阅读器知道 feed 的规范地址。 */
   it("带 atom:link rel=self", () => {
     expect(renderRssXml(CHANNEL)).toContain(
-      '<atom:link href="https://yestino.com/events/feed.xml" rel="self" type="application/rss+xml"/>',
+      '<atom:link href="https://yestino.com/feed.xml" rel="self" type="application/rss+xml"/>',
     );
   });
 

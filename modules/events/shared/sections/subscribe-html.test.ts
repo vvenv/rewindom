@@ -29,7 +29,7 @@ function render(
 
 describe("订阅入口 · chrome 块", () => {
   it("默认指向全站 feed", () => {
-    expect(render()).toContain('href="/events/feed.xml"');
+    expect(render()).toContain('href="/feed.xml"');
   });
 
   /*
@@ -37,12 +37,12 @@ describe("订阅入口 · chrome 块", () => {
    * 「读者在哪一页，就订阅哪一页对应的东西」。
    */
   it("枢纽带 topic 时跟着走", () => {
-    expect(render({ topic: "ai" })).toContain('href="/events/ai/feed.xml"');
+    expect(render({ topic: "ai" })).toContain('href="/topics/ai/feed.xml"');
   });
 
   it("查询列表页按当前查询的 topic 取地址", () => {
     expect(render({ listing: { source: "rising", topic: "world" } })).toContain(
-      'href="/events/world/feed.xml"',
+      'href="/topics/world/feed.xml"',
     );
   });
 
@@ -51,20 +51,20 @@ describe("订阅入口 · chrome 块", () => {
       render({
         entity: {
           slug: "openai-abc123",
-          href: "/events/entities/openai-abc123",
-          feed_href: "/events/entities/openai-abc123/feed.xml",
+          href: "/entities/openai-abc123",
+          feed_href: "/entities/openai-abc123/feed.xml",
           name: "OpenAI",
           kind_label: "公司",
           event_count: 2,
           events: [],
         },
       }),
-    ).toContain('href="/events/entities/openai-abc123/feed.xml"');
+    ).toContain('href="/entities/openai-abc123/feed.xml"');
   });
 
   /* 没有事件上下文的普通页面（比如「关于我们」）仍然给全站 feed，不能崩。 */
   it("没有事件上下文时回落到全站 feed", () => {
-    expect(render(null)).toContain('href="/events/feed.xml"');
+    expect(render(null)).toContain('href="/feed.xml"');
   });
 
   it("标注 application/rss+xml，让浏览器与阅读器扩展认得出", () => {
@@ -141,7 +141,7 @@ describe("订阅入口 · 页面段", () => {
   /* 段与 chrome 块共用取址逻辑——「订阅哪个 feed」只该有一份判断。 */
   it("与 chrome 块用同一份取址逻辑", () => {
     expect(renderSection({ topic: "ai" })).toContain(
-      'href="/events/ai/feed.xml"',
+      'href="/topics/ai/feed.xml"',
     );
   });
 

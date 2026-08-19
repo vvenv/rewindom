@@ -14,21 +14,21 @@ function view(
   overrides: Partial<PublicEntityIndexView> = {},
 ): PublicEntityIndexView {
   return {
-    href: "/events/entities",
+    href: "/entities",
     groups: [
       {
         kind: "company",
         label: "公司",
         items: [
-          { href: "/events/entities/openai-abc123", name: "OpenAI", event_count: 4 },
-          { href: "/events/entities/google-def456", name: "Google", event_count: 2 },
+          { href: "/entities/openai-abc123", name: "OpenAI", event_count: 4 },
+          { href: "/entities/google-def456", name: "Google", event_count: 2 },
         ],
       },
       {
         kind: "product",
         label: "产品",
         items: [
-          { href: "/events/entities/chatgpt-ghi789", name: "ChatGPT", event_count: 1 },
+          { href: "/entities/chatgpt-ghi789", name: "ChatGPT", event_count: 1 },
         ],
       },
     ],
@@ -61,9 +61,9 @@ function render(
 describe("renderEventsEntityIndexHtml", () => {
   it("links every entity — this hub exists so they stop being orphan pages", () => {
     const html = render(view());
-    expect(html).toContain('href="/events/entities/openai-abc123"');
-    expect(html).toContain('href="/events/entities/google-def456"');
-    expect(html).toContain('href="/events/entities/chatgpt-ghi789"');
+    expect(html).toContain('href="/entities/openai-abc123"');
+    expect(html).toContain('href="/entities/google-def456"');
+    expect(html).toContain('href="/entities/chatgpt-ghi789"');
   });
 
   it("groups by kind and keeps the kind label", () => {
