@@ -69,4 +69,22 @@ describe("events client locale catalog", () => {
       expect(translateRegisteredKeyTable(key), key).toBeDefined();
     }
   });
+
+  it("模板页 titleKey / descriptionKey 也解得开", () => {
+    const keys = [
+      "events:site.index.title",
+      "events:site.index.subtitle",
+      "events:site.topic.title",
+      "events:site.topic.subtitle",
+      "events:site.detail.title",
+      "events:site.detail.subtitle",
+      "events:site.entity.title",
+      "events:site.entity.subtitle",
+      "events:site.entityIndex.title",
+      "events:site.entityIndex.subtitle",
+    ];
+    for (const key of keys) {
+      expect(translateRegisteredKeyTable(key), key).toBeDefined();
+    }
+  });
 });

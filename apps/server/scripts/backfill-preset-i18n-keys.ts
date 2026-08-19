@@ -3,8 +3,8 @@
  * 把误存成 i18n key 的模板页标题 / 段文案翻成真正的句子。
  *
  * 背景：`initializeTenantSite` 曾只用 marketing 自己的 locale JSON 解预设。贡献方
- * 的 key（`site-member:login.title`、`site-billing:account.title` 等）解不开，就
- * 原样写进了 `MarketingPage` 的 title / heading。访客看到的就是这些 key。
+ * 的 key（`site-member:login.title`、`events:site.topic.title` 等）解不开，就
+ * 原样写进了 `MarketingPage` 的 title / heading。访客 / 页面设置看到的就是这些 key。
  *
  * 本脚本自带 catalog，不依赖尚未发版的 `registerLocaleCatalog`。只改「当前值
  * 仍然等于某个 ns:key」的字段；租户改过的文案不动。
@@ -20,8 +20,12 @@ import siteMemberZhCN from "@rewindom/builtin/site-member/client/locales/zh-CN.j
 import { type Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
+import eventsEn from "../../../modules/events/client/locales/en.json" with { type: "json" };
+import eventsZhCN from "../../../modules/events/client/locales/zh-CN.json" with { type: "json" };
 import shopEn from "../../../modules/shop/client/locales/en.json" with { type: "json" };
 import shopZhCN from "../../../modules/shop/client/locales/zh-CN.json" with { type: "json" };
+import siteDocsEn from "../../../modules/site-docs/client/locales/en.json" with { type: "json" };
+import siteDocsZhCN from "../../../modules/site-docs/client/locales/zh-CN.json" with { type: "json" };
 
 type Catalog = Record<string, Record<string, unknown>>;
 
@@ -37,6 +41,14 @@ const CATALOGS: Record<string, Catalog> = {
   shop: {
     "zh-CN": shopZhCN as Record<string, unknown>,
     en: shopEn as Record<string, unknown>,
+  },
+  events: {
+    "zh-CN": eventsZhCN as Record<string, unknown>,
+    en: eventsEn as Record<string, unknown>,
+  },
+  "site-docs": {
+    "zh-CN": siteDocsZhCN as Record<string, unknown>,
+    en: siteDocsEn as Record<string, unknown>,
   },
 };
 

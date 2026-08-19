@@ -1,0 +1,34 @@
+# 增量功能契约 —— 模板页快照不得把解不开的 ns:key 写进标题
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant]
+goal: 建页 / 重设版式解不开贡献方 titleKey 时不要把 `events:site.topic.title` 这类 key 写进 MarketingPage；编辑器读路径按 catalog 回落，存量 key 走回填脚本。
+gold: packages/builtin/marketing/server/starter-i18n.ts
+touch:
+  - packages/builtin/marketing/features/preset-title-key-not-persisted.spec.yaml
+  - packages/builtin/marketing/server/starter-i18n.ts
+  - packages/builtin/marketing/server/starter-i18n.test.ts
+  - packages/builtin/marketing/server/site-init.service.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/site.mapper.ts
+  - packages/builtin/marketing/server/site.mapper.test.ts
+  - packages/builtin/marketing/shared/page-templates.ts
+  - packages/builtin/marketing/shared/page-templates.test.ts
+  - apps/server/scripts/backfill-preset-i18n-keys.ts
+  - modules/events/client/i18n.test.ts
+  - modules/events/server/ssr/events-preset-i18n.test.ts
+  - modules/events/server/module.ts
+  - apps/client/vite.config.ts
+out_of_scope:
+  - 把页面标题改成 { __i18n } 多语言列（每种语言仍是一行字符串）
+  - 公开专题页 document title（path handler 已覆盖为主题名）
+i18n: data
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run packages/builtin/marketing/server/starter-i18n.test.ts packages/builtin/marketing/server/site.mapper.test.ts packages/builtin/marketing/shared/page-templates.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run client/i18n.test.ts server/ssr/events-preset-i18n.test.ts
+
+# ---------- 可选 · 留空则沿用模块现有 ----------
+# entitlement: 沿用 marketing
+# permissions: 沿用 site.*
+# models: 无新增字段

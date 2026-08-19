@@ -13,8 +13,9 @@ import { registerEventsPathHandler } from "./ssr/events-path-handler.js";
 import { eventsRoutes } from "./events.routes.js";
 import { eventsTranslationTermsProvider } from "./translation-terms.provider.js";
 import { EVENTS_SERVER_I18N } from "./i18n.js";
+import "./ssr/events-preset-i18n.js";
 
-import { EVENTS_ENTITLEMENT } from "../shared/entitlements.js";
+import { EVENTS_ENTITLEMENT, eventsReservedSlugs } from "../shared/index.js";
 import { registerEventsPageTemplates } from "../shared/events-page-templates.js";
 import { registerEventsNavSources } from "../shared/nav-sources.js";
 
@@ -70,22 +71,23 @@ export const eventsServerModule: ServerAppModule = {
       registry.addTranslationTermsProvider(eventsTranslationTermsProvider);
     },
     /**
-     * 官网贡献：段 + 模板页 + `/events` 路径 + 主题导航源 + sitemap / 链接候选。
-     * 定义都写在贡献方 `shared/`，marketing 内核一行没改（见 site-section skill）。
+     * 官网贡献：段 + 模板页 + `/topics` `/events` `/entities` `/feed.xml`
+     * + 主题导航源 + sitemap / 链接候选。定义都写在贡献方 `shared/`，
+     * marketing 内核一行没改（见 site-section skill）。
      */
     onBoot: async () => {
       registerEventsPageTemplates();
       registerEventsNavSources();
       registerEventsSections();
       registerEventsPathHandler();
-      // `/events` 归本模块，租户不能再建同名 CMS 页面把它顶掉
-      registerReservedPageSlug("events");
+      for (const slug of eventsReservedSlugs()) {
+        registerReservedPageSlug(slug);
+      }
     },
     registerRoutes: async (app) => {
       /*
        * 公开面（页面 / RSS / og.png）一条 Fastify 路由都不挂：它们全部走
-       * marketing 的 path handler，那里才拿得到 `homePath` / `homeLayoutKey`，
-       * 地址才能跟着枢纽挂载走（见 ssr/rss.render.ts）。
+       * marketing 的 path handler，locale 剥离与 entitlement 闸门都在那里。
        */
       await registerTenantGatedRoutes(app, "events", async (scoped) => {
         await scoped.register(feedRoutes, { prefix: "/api/events/feeds" });

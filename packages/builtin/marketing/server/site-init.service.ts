@@ -24,7 +24,10 @@ import {
   parseSiteThemeSettings,
   safePageSections,
 } from "./site.util.js";
-import { createStarterTranslator } from "./starter-i18n.js";
+import {
+  createStarterTranslator,
+  resolvedStarterText,
+} from "./starter-i18n.js";
 
 export interface InitializeTenantSiteResult {
   created_site: boolean;
@@ -138,8 +141,8 @@ export async function initializeTenantSite(
       continue;
     }
 
-    const title = t(preset.titleKey).trim();
-    const description = t(preset.descriptionKey).trim();
+    const title = resolvedStarterText(t, preset.titleKey);
+    const description = resolvedStarterText(t, preset.descriptionKey);
     const sections = parsePageSections(buildPresetSections(preset, t));
     const settings =
       template.kind === NOT_FOUND_PAGE_KIND ? { noindex: true } : {};

@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { registerLocaleCatalog } from "@rewindom/shared";
 
-import { createStarterTranslator } from "./starter-i18n.js";
+import {
+  createStarterTranslator,
+  persistablePresetCopy,
+  resolvedStarterText,
+} from "./starter-i18n.js";
 
 describe("createStarterTranslator", () => {
   it("resolves preset keys for zh-CN", () => {
@@ -32,6 +36,31 @@ describe("createStarterTranslator", () => {
     );
     expect(createStarterTranslator("zh-CN")("unknown-ns:account.title")).toBe(
       "unknown-ns:account.title",
+    );
+  });
+});
+
+describe("resolvedStarterText", () => {
+  it("解不开时返回空字符串，不把 ns:key 当标题", () => {
+    const t = createStarterTranslator("zh-CN");
+    expect(resolvedStarterText(t, "unknown-ns:account.title")).toBe("");
+    expect(resolvedStarterText(t, "marketing:preset.home.title")).toBe("首页");
+  });
+
+  it("已有租户文案时保留；仍是 key 原文则换成 catalog 句", () => {
+    const t = createStarterTranslator("zh-CN");
+    expect(
+      persistablePresetCopy(t, "marketing:preset.home.title", "我们的首页"),
+    ).toBe("我们的首页");
+    expect(
+      persistablePresetCopy(
+        t,
+        "marketing:preset.home.title",
+        "marketing:preset.home.title",
+      ),
+    ).toBe("首页");
+    expect(persistablePresetCopy(t, "marketing:preset.home.title", "  ")).toBe(
+      "首页",
     );
   });
 });

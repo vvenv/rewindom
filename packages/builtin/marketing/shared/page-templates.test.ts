@@ -14,8 +14,9 @@ import {
   publicCatalogSources,
   registerPageTemplateKind,
   registerPageTemplatePreset,
-  resolveCatalogPageTitle,
-  resolveTemplatePresetCopy,
+    resolveCatalogPageTitle,
+    resolveEditorTemplateCopy,
+    resolveTemplatePresetCopy,
   isStockTemplateTitle,
   relocalizeStockTemplateDescription,
   relocalizeStockTemplateTitle,
@@ -282,5 +283,11 @@ describe("库存模板标题", () => {
     expect(
       relocalizeStockTemplateDescription(kind, "Custom blurb", "en"),
     ).toBe("Custom blurb");
+    expect(
+      resolveEditorTemplateCopy(kind, "zh-CN", {
+        title: "shop:storefront.catalog.title",
+        description: "shop:storefront.catalog.subtitle",
+      }),
+    ).toEqual({ title: "商店", description: "在售" });
   });
 });

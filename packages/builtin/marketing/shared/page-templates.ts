@@ -312,6 +312,25 @@ export function relocalizeStockTemplateDescription(
 }
 
 /**
+ * 中台读路径：库存标题 / 摘要（含误存的 `ns:key`）按当前语言解预设；租户改过的原样。
+ * 普通页没有预设，等于原样返回。
+ */
+export function resolveEditorTemplateCopy(
+  kind: string,
+  locale: AppLocale,
+  stored: { title: string; description: string },
+): { title: string; description: string } {
+  const copy = resolveTemplatePresetCopy(kind, locale);
+  return {
+    title: resolveCatalogPageTitle(kind, locale, stored.title),
+    description:
+      copy && isStockTemplateDescription(kind, stored.description)
+        ? copy.description
+        : stored.description,
+  };
+}
+
+/**
  * 公开目录 / 页头导航用的模板页标题。
  *
  * 库存标题还是预设默认值（含旧译名）时，按**当前浏览语言**解；租户改过的

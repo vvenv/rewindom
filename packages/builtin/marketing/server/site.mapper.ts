@@ -4,6 +4,7 @@ import { DEFAULT_HOME_LAYOUT_KEY } from "../shared/home-layouts.js";
 import {
   publicCatalogSources,
   resolveCatalogPageTitle,
+  resolveEditorTemplateCopy,
   resolveTemplatePresetCopy,
   isStockTemplateDescription,
 } from "../shared/page-templates.js";
@@ -100,14 +101,16 @@ export function toMarketingPage(
 ): MarketingPage {
   const { kind, slug } = pageIdentity(record);
   const draft = pageContentDraft(record, enabledEntitlements);
+  const locale = normalizeLocale(record.locale);
+  const copy = resolveEditorTemplateCopy(kind, locale, draft);
   return {
     id: record.id,
     tenant_id: record.tenant_id,
     slug,
-    locale: normalizeLocale(record.locale),
+    locale,
     kind,
-    title: draft.title,
-    description: draft.description,
+    title: copy.title,
+    description: copy.description,
     sections: draft.sections,
     settings: draft.settings,
     visibility: parsePageVisibility(record.visibility),
@@ -124,13 +127,15 @@ export function toMarketingPageListItem(
 ): MarketingPageListItem {
   const { kind, slug } = pageIdentity(record);
   const draft = pageContentDraft(record);
+  const locale = normalizeLocale(record.locale);
+  const copy = resolveEditorTemplateCopy(kind, locale, draft);
   return {
     id: record.id,
     slug,
-    locale: normalizeLocale(record.locale),
+    locale,
     kind,
-    title: draft.title,
-    description: draft.description,
+    title: copy.title,
+    description: copy.description,
     visibility: parsePageVisibility(record.visibility),
     settings: draft.settings,
     status: asStatus(record.status),

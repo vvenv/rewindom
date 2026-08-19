@@ -84,7 +84,9 @@ export default defineConfig(() => ({
   resolve: {
     // 与 manualChunks 的 i18n-vendor 一起：workspace 里 client-kit / 各模块
     // 都依赖 react-i18next，不 dedupe 时 Rolldown 会打出两份实例。
-    dedupe: ["i18next", "react-i18next"],
+    // `@rewindom/shared` 同理：locale catalog 是模块级 Map，两份就会让
+    // events 登记的 ns 对 marketing 编辑器不可见。
+    dedupe: ["i18next", "react-i18next", "@rewindom/shared"],
     alias: [
       { find: "@", replacement: path.resolve(import.meta.dirname, "./src") },
       {

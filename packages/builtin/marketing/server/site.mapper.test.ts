@@ -7,7 +7,7 @@ import {
   registerPageTemplatePreset,
 } from "../shared/page-templates.js";
 
-import { toPublicMarketingPage, toPublicMarketingSite } from "./site.mapper.js";
+import { toMarketingPage, toPublicMarketingPage, toPublicMarketingSite } from "./site.mapper.js";
 
 import "../shared/page-presets.js";
 
@@ -532,5 +532,45 @@ describe("toPublicMarketingSite pages catalog", () => {
         page.title,
       ]),
     ).toEqual([["/stock-nav-shop", "商店"]]);
+  });
+});
+
+describe("toMarketingPage 库存 key", () => {
+  it("页面设置读到误存的 ns:key 时换成 catalog 句", () => {
+    const kind = "editor_key_shop";
+    registerPageTemplateKind({
+      kind,
+      slug: "editor-key-shop",
+      path: "/editor-key-shop",
+      group: "x",
+      label: "x",
+      required_section: null,
+    });
+    registerPageTemplatePreset(kind, {
+      key: kind,
+      label: "x",
+      kind,
+      slug: "editor-key-shop",
+      titleKey: "shop:storefront.catalog.title",
+      descriptionKey: "shop:storefront.catalog.subtitle",
+      sections: [],
+    });
+    registerLocaleCatalog("shop", {
+      "zh-CN": {
+        storefront: { catalog: { title: "商店", subtitle: "在售" } },
+      },
+      en: { storefront: { catalog: { title: "Shop", subtitle: "For sale" } } },
+    });
+
+    const page = toMarketingPage(
+      pageRecord({
+        kind,
+        slug: "editor-key-shop",
+        title: "shop:storefront.catalog.title",
+        description: "shop:storefront.catalog.subtitle",
+      }),
+    );
+    expect(page.title).toBe("商店");
+    expect(page.description).toBe("在售");
   });
 });

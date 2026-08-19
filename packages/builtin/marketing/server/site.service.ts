@@ -110,7 +110,11 @@ import {
   validateSiteName,
   validateSiteTagline,
 } from "./site.util.js";
-import { createStarterTranslator } from "./starter-i18n.js";
+import {
+  createStarterTranslator,
+  persistablePresetCopy,
+  resolvedStarterText,
+} from "./starter-i18n.js";
 
 /** 公开读路径共用的返回形状。 */
 export interface SitePageView {
@@ -973,9 +977,16 @@ export async function resetPageToPreset(
     where: { id: existing.id, tenant_id },
     data: {
       sections_draft: sections as unknown as Prisma.InputJsonValue,
-      title_draft: existing.title_draft.trim() || t(preset.titleKey).trim(),
-      description_draft:
-        existing.description_draft.trim() || t(preset.descriptionKey).trim(),
+      title_draft: persistablePresetCopy(
+        t,
+        preset.titleKey,
+        existing.title_draft,
+      ),
+      description_draft: persistablePresetCopy(
+        t,
+        preset.descriptionKey,
+        existing.description_draft,
+      ),
     },
   });
   return presentPage(updated, enabled);
@@ -1016,8 +1027,11 @@ export async function applyHomeLayout(
       where: { id: home.id, tenant_id },
       data: {
         sections_draft: sections as unknown as Prisma.InputJsonValue,
-        title_draft: t(layout.preset.titleKey).trim(),
-        description_draft: t(layout.preset.descriptionKey).trim(),
+        title_draft: resolvedStarterText(t, layout.preset.titleKey),
+        description_draft: resolvedStarterText(
+          t,
+          layout.preset.descriptionKey,
+        ),
       },
     });
   }
@@ -1524,8 +1538,8 @@ async function buildDefaultHomePageView(input: {
       slug: "home",
       locale: input.locale,
       kind: "home",
-      title: t(layout.preset.titleKey),
-      description: t(layout.preset.descriptionKey),
+      title: resolvedStarterText(t, layout.preset.titleKey),
+      description: resolvedStarterText(t, layout.preset.descriptionKey),
       sections,
       settings: {},
       visibility: "public",
