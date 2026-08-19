@@ -3,8 +3,11 @@
  * `/api/public/site-enhance.js` 的入口。
  *
  * 流程刻意保持「什么都不做」在最前面：配置没开、浏览器不支持、正文本来就是
- * 目标语言 —— 任意一条命中就**连按钮都不挂**，公开页与没装这个模块时一模一样。
- * 只有真的能翻、且值得翻时，才多出右下角一个控件。
+ * 目标语言 —— 任意一条命中就**连入口都不挂**，公开页与没装这个模块时一模一样。
+ * 只有真的能翻、且值得翻时，界面上才多出东西。
+ *
+ * 这里只管**策略**（要不要提议、记不记得住、什么时候算翻成功），DOM 全在
+ * `widget.ts`：提议横幅、常驻入口、状态条三个面，各自挂在哪由那边决定。
  *
  * 译文只存在于当前这次浏览：不落库、不进 SSR、不进 sitemap，爬虫看到的永远是
  * 原文。这正是「翻译是查看辅助，不是产品资产」这条口径的技术表达。
@@ -24,6 +27,7 @@ import {
 import {
   applyTranslations,
   collectTextNodes,
+  createMemory,
   restoreTranslations,
 } from "../lib/translate-dom.js";
 import { createTranslator } from "../lib/translator.js";
@@ -35,6 +39,14 @@ import type { AppLocale } from "@rewindom/shared";
 /** 访客上次的选择。公开站是 MPA，每次点链接都是整页刷新，不记住等于每页点一次。 */
 const PREFERENCE_KEY = "rw-translate-on";
 
+/**
+ * 「不用了」是**按会话**记的，不是按页。
+ *
+ * 主动提议的全部价值是「教一次」；同一次浏览里每翻一页再弹一次，就从帮忙变成了
+ * 骚扰。关掉之后能力并没有消失——它一直待在语言菜单里。
+ */
+const OFFER_KEY = "rw-translate-offer-off";
+
 /** 扫描根：只翻正文。页头页脚是代码 i18n 的地盘，`translate-dom` 里也再挡一次。 */
 const CONTENT_ROOT = "main.site-main";
 
@@ -43,6 +55,22 @@ function readPreference(): boolean {
     return sessionStorage.getItem(PREFERENCE_KEY) === "1";
   } catch {
     return false;
+  }
+}
+
+function offerDismissed(): boolean {
+  try {
+    return sessionStorage.getItem(OFFER_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function dismissOffer(): void {
+  try {
+    sessionStorage.setItem(OFFER_KEY, "1");
+  } catch {
+    // 无痕模式写不进去，最多是下一页再提议一次
   }
 }
 
@@ -141,7 +169,7 @@ async function start(root: Element, locale: AppLocale): Promise<void> {
   });
   if (!(await translator.available())) return;
 
-  const originals = new Map<Text, string>();
+  const memory = createMemory();
   let translated = false;
   let running = false;
 
@@ -168,7 +196,9 @@ async function start(root: Element, locale: AppLocale): Promise<void> {
     for (const [index, batch] of batches.entries()) {
       const texts = batch.map((node) => node.nodeValue ?? "");
       const result = await translator.translate(texts);
-      changed += applyTranslations({ nodes: batch, texts }, result, originals);
+      changed += applyTranslations({ nodes: batch, texts }, result, memory, {
+        target: locale,
+      });
       widget?.setState("working", { done: index + 1, total: batches.length });
     }
 
@@ -188,7 +218,7 @@ async function start(root: Element, locale: AppLocale): Promise<void> {
   const toggle = (): void => {
     if (running) return;
     if (translated) {
-      restoreTranslations(originals);
+      restoreTranslations(memory);
       translated = false;
       writePreference(false);
       widget?.setState("idle");
@@ -201,8 +231,16 @@ async function start(root: Element, locale: AppLocale): Promise<void> {
     void runTranslation();
   };
 
-  widget = mountTranslateWidget(locale, toggle);
-  widget.setState("idle");
+  /*
+   * 提议只在「读者还没表过态」时出：上一页开着翻译的（`readPreference`）不用再问，
+   * 关过「不用了」的这一会话也不再问。
+   */
+  widget = mountTranslateWidget({
+    locale,
+    offer: !readPreference() && !offerDismissed(),
+    onToggle: toggle,
+    onDismissOffer: dismissOffer,
+  });
 
   /*
    * 上一页开着就继续开着。这里**没有用户手势**，模型没下载好时会失败并落到

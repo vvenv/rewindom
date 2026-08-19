@@ -8,6 +8,7 @@
 import type { AppLocale } from "@rewindom/shared";
 
 interface WidgetMessages {
+  /** 常驻入口（语言菜单项 / 图标兜底的 aria-label）。 */
   translate: string;
   translating: string;
   /** 首次翻译要下模型，几十 MB，没有这一条按钮看起来就是卡死了。 */
@@ -17,27 +18,41 @@ interface WidgetMessages {
   unavailable: string;
   /** 一个字都没译出来时显示。**不能**沿用「显示原文」——那等于骗读者说翻过了。 */
   failed: string;
+  /** 一次性主动提议：读者还不知道有这个能力时，由它来教一次。 */
+  offerText: string;
+  offerAccept: string;
+  offerDismiss: string;
+  /** 失败态里的重试按钮。文案与 `failed` 分开——一句话里塞不下一个按钮。 */
+  retry: string;
 }
 
 const MESSAGES: Record<AppLocale, WidgetMessages> = {
   "zh-CN": {
-    translate: "翻译此页",
+    translate: "翻译此页正文",
     translating: "翻译中…",
     downloading: "正在准备翻译模型…",
     showOriginal: "显示原文",
     /** 必须显式标注机器翻译——读者要知道自己看的不是原始表述。 */
     machineNote: "机器翻译，以原文为准",
     unavailable: "此浏览器不支持翻译",
-    failed: "翻译未成功，重试",
+    failed: "翻译未成功",
+    offerText: "此页部分内容为外文",
+    offerAccept: "译成中文",
+    offerDismiss: "不用了",
+    retry: "重试",
   },
   en: {
-    translate: "Translate",
+    translate: "Translate this page",
     translating: "Translating…",
     downloading: "Preparing translation model…",
     showOriginal: "Show original",
     machineNote: "Machine translated — the original is authoritative",
     unavailable: "Translation unavailable in this browser",
-    failed: "Translation failed — retry",
+    failed: "Translation failed",
+    offerText: "Part of this page is in another language",
+    offerAccept: "Translate to English",
+    offerDismiss: "No thanks",
+    retry: "Retry",
   },
 };
 

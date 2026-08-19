@@ -9,8 +9,8 @@ import {
 
 describe("widgetMessages", () => {
   it("按 locale 取，未知 locale 回落 zh-CN", () => {
-    expect(widgetMessages("en").translate).toBe("Translate");
-    expect(widgetMessages("zh-CN").translate).toBe("翻译此页");
+    expect(widgetMessages("en").translate).toBe("Translate this page");
+    expect(widgetMessages("zh-CN").translate).toBe("翻译此页正文");
   });
 
   it("显式标注机器翻译", () => {
