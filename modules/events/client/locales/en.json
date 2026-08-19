@@ -271,8 +271,8 @@
       "label": "Hero",
       "showStats": "Show live counts",
       "showStatsInfo": "Hidden automatically until there are events — never shows a row of zeros",
-      "interpolationInfo": "Use {topic} for the topic name and {topic_slug} for the path segment. Both are empty when there is no current topic.",
-      "subscribeHrefInfo": "Default /events/{topic_slug}/feed.xml — this topic's feed, or the site feed when there is no current topic. Pin a slot with /events/ai/feed.xml."
+      "interpolationInfo": "Use {topic} for the topic name, {topic_slug} for the path segment, and {feed} for this page's RSS. Topic tokens are empty when there is no current topic.",
+      "subscribeHrefInfo": "Default {feed} — this page's RSS (topic, entity, or site). Pin a slot with /topics/ai/feed.xml."
     }
   },
   "template": {

@@ -217,11 +217,10 @@ audit:
         entitlement: events,
       }
   page_templates:
-    - { kind: events_index, slug: events, path: /events, required_section: null }
     - {
         kind: events_topic,
         slug: events-topic,
-        path: /events/:topic,
+        path: /topics/:topic,
         required_section: null,
       }
     - {
@@ -230,8 +229,20 @@ audit:
         path: /events/:slug,
         required_section: events.detail,
       }
-  path_handler: /events、/events/:topic 与 /events/:slug（locale 前缀由 marketing 剥掉）
-  reserved_slug: events
+    - {
+        kind: events_entity,
+        slug: events-entity,
+        path: /entities/:slug,
+        required_section: events.entity,
+      }
+    - {
+        kind: events_entity_index,
+        slug: events-entities,
+        path: /entities,
+        required_section: events.entity_index,
+      }
+  path_handler: /topics/:slug、/events/:slug、/entities、/feed.xml（locale 前缀由 marketing 剥掉）
+  reserved_slug: [topics, events, entities]
   providers: [section_context, editor_context, sitemap, link_target]
   css_source: shared/site-css/events.css → site-css.generated.ts
 

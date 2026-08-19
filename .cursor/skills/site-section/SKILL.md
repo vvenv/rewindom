@@ -141,7 +141,8 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 ## 首页版式
 
 首页只有一张（`kind: home`，路径 `/`）。模块可以另外贡献一套首页版式，让租户把站点
-根换成自己的段组合。与模板页正交：`/shop`、`/events` 仍是枢纽页。
+根换成自己的段组合。与模板页正交：`/shop` 仍是枢纽页；事件雷达的专题 / 详情 / 实体
+走独立集合路径（`/topics/:slug`、`/events/:slug`、`/entities`）。
 
 店面 / 文档库通常不必贡献——它们的入口就是自己的模板页。事件雷达这类「站点根就应该
 是本模块」的产品应当贡献。
@@ -150,9 +151,10 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 | --- | --- |
 | 与模板页同一份 `*-page-templates.ts` | `registerHomeLayout({ key, label, entitlement?, rootPrefix?, preset })` |
 
-`preset.kind` 必须是 `home`；有开关必须声明 `entitlement`。要把本模块做成站点根时
-加 `rootPrefix`（如 `/events`）：选择器不再把该枢纽列为「设为首页」，套用会把
-`home_path` 收回 `/`。金标准：`modules/events/shared/events-page-templates.ts` 的 `events.home`。
+`preset.kind` 必须是 `home`；有开关必须声明 `entitlement`。要把本模块公开前缀收到站点根时
+加 `rootPrefix`（如 `/docs`）：选择器不再把该枢纽列为「设为首页」，套用会把
+`home_path` 收回 `/`。事件雷达不声明 `rootPrefix`——首页版式只改 `/` 长什么样，集合路径
+仍是 `/topics` `/events` `/entities`。金标准：`modules/events/shared/events-page-templates.ts` 的 `events.home`。
 
 ## 库存文案（数据 i18n）
 
@@ -167,16 +169,16 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 库存文案、链接 href、页脚 `chrome_text` 走 `{token}`（与 Hugo / 页脚同一套），**不是**代码 i18n 的 `{{param}}`。
 
 - 内置：`{year}` `{site}` `{hostname}` `{url}`（`site-interpolation.ts`）
-- 模块经 `contributed.interpolation` 贡献（events：`{topic}` `{topic_slug}`）；多个 provider **按 key 合并**，不要 `Object.assign` 整包覆盖
+- 模块经 `contributed.interpolation` 贡献（events：`{topic}` `{topic_slug}` `{feed}`）；多个 provider **按 key 合并**，不要 `Object.assign` 整包覆盖
 - 未识别的 `{foo}` 原样留下
-- 链接空路径段 / 空查询值渲染时收掉：`/events/{topic_slug}/feed.xml` 在没有当前主题时是 `/events/feed.xml`
+- 链接空路径段 / 空查询值渲染时收掉：`/topics/{topic_slug}/feed.xml` 在没有当前主题时是 `/topics/feed.xml`。当前页 RSS 请用 `{feed}`
 - **不要**在渲染器里暗改租户填的 href；把 token 写进存下来的地址，看得见、改得动
 
 金标准：`packages/builtin/marketing/shared/site-interpolation.ts`、events 专题页 hero。
 
 ## 公开路径（非 MarketingPage）
 
-不是 CMS 页的公开地址（如 `/docs`）不要写进 `renderPath`。模块登记 `registerSitePathHandler`（前缀路径；可带 `canonicalRedirect` 把旧前缀 301 到规范地址）、`registerSitePathFallback`（CMS 未命中后再认，`render` 返回 null 不直接 404）、`registerReservedPageSlug`、sitemap / link-target providers。金标准：`site-docs`；首页收到根上：`events`。
+不是 CMS 页的公开地址（如 `/docs`）不要写进 `renderPath`。模块登记 `registerSitePathHandler`（前缀路径；可带 `canonicalRedirect` 把旧前缀 301 到规范地址）、`registerSitePathFallback`（CMS 未命中后再认，`render` 返回 null 不直接 404）、`registerReservedPageSlug`、sitemap / link-target providers。金标准：`site-docs`；类型化集合路径：`events`（`/topics` `/events` `/entities` `/feed.xml`）。
 
 ## 交付
 

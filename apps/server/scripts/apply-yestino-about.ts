@@ -418,7 +418,7 @@ async function applyAboutPages(args: Args, tenant_id: string): Promise<void> {
 /**
  * 访客打开 `/` 时看到的是哪一张页面。
  *
- * 不一定是 `kind: home`——`home_path` 指向别的页（本站是存量 `/events`）时，
+ * 不一定是 `kind: home`——`home_path` 指向别的页时，
  * 根上渲染的是那一张。首屏必须落在**真正**渲染 `/` 的那张页上。
  */
 async function applyIntroSection(args: Args, tenant_id: string): Promise<void> {
@@ -560,7 +560,7 @@ async function applyFooterLink(args: Args, tenant_id: string): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  // `marketingPagePath` 要认得贡献的模板页 kind（`events_index` → `/events`）
+  // `marketingPagePath` 要认得贡献的模板页 kind（`events_topic` → `/topics/:topic`）
   registerEventsPageTemplates();
   /*
    * `section()` 走 `getSectionDefinition` 拿默认值，而贡献段的定义是模块装载时才进

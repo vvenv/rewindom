@@ -182,7 +182,7 @@ describe("renderEventsFeedHtml", () => {
       section("rising", 5, { more_label: "查看全部事件" }),
       ctx,
     );
-    expect(html).toContain('href="/events/ai?source=rising"');
+    expect(html).toContain('href="/topics/ai?source=rising"');
   });
 
   it("枢纽 URL 带了 topic 时只渲染该主题，即使 feed 里混了别的", () => {
@@ -214,26 +214,12 @@ describe("renderEventsFeedHtml", () => {
       section("rising", 1, { more_label: "查看全部事件", topic: "ai" }),
       ctx,
     );
-    expect(html).toContain('href="/events/ai?source=rising"');
+    expect(html).toContain('href="/topics/ai?source=rising"');
     expect(html).toContain("查看全部事件");
   });
 
-  it("未选主题时只带 source，才能和枢纽 /events 分开", () => {
+  it("未选主题时查看全部链到 /?source=", () => {
     const context = emptyEventsContext({
-      feed: { rising: [], now: [card("a")] },
-    });
-    const ctx = { contributed: eventsContextEntry(context) };
-    const html = renderEventsFeedHtml(
-      section("now", 5, { more_label: "查看全部事件" }),
-      ctx,
-    );
-    expect(html).toContain('href="/events?source=now"');
-    expect(html).not.toContain("topic=");
-  });
-
-  it("枢纽当首页时查看全部链到 /?source=", () => {
-    const context = emptyEventsContext({
-      index_path: "/",
       feed: { rising: [], now: [card("a")] },
     });
     const ctx = { contributed: eventsContextEntry(context) };
@@ -242,7 +228,7 @@ describe("renderEventsFeedHtml", () => {
       ctx,
     );
     expect(html).toContain('href="/?source=now"');
-    expect(html).not.toContain("/events?");
+    expect(html).not.toContain("topic=");
   });
 
   it("区块 topic 只渲染该主题的卡片", () => {

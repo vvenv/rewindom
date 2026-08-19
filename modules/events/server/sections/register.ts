@@ -20,7 +20,6 @@ import {
   eventsDetailSection,
   eventsFeedSection,
   eventsHeroSection,
-  eventsIndexPath,
   eventsLinkTargets,
   eventsNowSection,
   eventsEntityIndexSection,
@@ -82,10 +81,6 @@ function registerEventsContextProvider(): void {
       ...EVENTS_NAV_SOURCES,
     ],
     provide: async (input) => {
-      const indexPath = eventsIndexPath({
-        homePath: input.homePath,
-        homeLayoutKey: input.homeLayoutKey,
-      });
       const t = (key: string, params?: Record<string, string | number>): string =>
         eventsMessage(input.locale, key, params);
       const enabled = await getEnabledTopics(input.tenantId);
@@ -106,14 +101,13 @@ function registerEventsContextProvider(): void {
 
       return eventsContextEntry(
         emptyEventsContext({
-          index_path: indexPath,
           nav_topics: eventsNavTopicOptions(input.locale, enabled),
           feed: {
-            rising: feed.rising.map((item) => toPublicCard(item, t, indexPath)),
-            now: feed.now.map((item) => toPublicCard(item, t, indexPath)),
+            rising: feed.rising.map((item) => toPublicCard(item, t)),
+            now: feed.now.map((item) => toPublicCard(item, t)),
           },
           entity_strip: wantStrip
-            ? toPublicEntityStrip(entityRows, indexPath)
+            ? toPublicEntityStrip(entityRows)
             : undefined,
           hero: heroStats ? toPublicHero(heroStats, t) : undefined,
         }),
@@ -133,7 +127,6 @@ function registerEventsLinkTargets(): void {
     provide: async (tenantId, defaultLocale) => {
       const topics = await getEnabledTopics(tenantId);
       return eventsLinkTargets({
-        indexLabel: eventsMessage(defaultLocale, "site.index.title"),
         entityIndexLabel: eventsMessage(defaultLocale, "site.entityIndex.title"),
         currentTopicFeedLabel: eventsMessage(
           defaultLocale,
@@ -174,9 +167,7 @@ export function registerEventsSections(): void {
   // 实体页单独一个 provider：它与事件的时间口径不同（按最近有事件筛，而不是按自身更新）
   registerSitemapProvider({ provide: getPublicEntitySitemapEntries });
   /*
-   * 实体枢纽自己也要进 sitemap，而且不能靠 marketing 的页面清单：枢纽当首页时
-   * `/events/*` 整段被收到根上并 301，那一行模板页会被过滤掉（见 marketing 的
-   * sitemap-only-canonical-urls）。这里按当前挂载算出终态地址。
+   * 实体枢纽自己也要进 sitemap。marketing 的页面清单不列 path handler 的地址。
    */
   registerSitemapProvider({ provide: getEntityIndexSitemapEntry });
   registerEventsLinkTargets();

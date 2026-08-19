@@ -3,8 +3,7 @@
  *
  * 卡片恒指向站内详情页——开通事件雷达就一定有公开详情页
  *（模板页与 path handler 一起登记），不会把访客直接甩去站外。
- * 枢纽当首页时详情在 `/:slug`，否则在 `/events/:slug`（卡片 `href` 已按
- * `index_path` 落成）。
+ * 卡片恒指向站内详情页 `/events/:slug`。
  */
 
 import {
@@ -12,7 +11,6 @@ import {
   EVENTS_RISING_SECTION_TYPE,
 } from "../events-feed-section.js";
 import {
-  EVENTS_INDEX_PATH,
   eventsIndexHref,
   readEventsContext,
 } from "../events-section-context.js";
@@ -133,7 +131,6 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
           siteHref(
             eventsIndexHref(
               { source, topic },
-              context?.index_path ?? EVENTS_INDEX_PATH,
             ),
             ctx,
           ),

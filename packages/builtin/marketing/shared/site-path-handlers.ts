@@ -11,7 +11,7 @@
  *
  * 模块把枢纽设为首页、公开 URL 收到站点根时：前缀 handler 仍接旧地址并
  * `canonicalRedirect` 301；根上的 `/:slug` 不能抢在 CMS 前面，走
- * `registerSitePathFallback`（查页面之后、重定向前）。
+ * `registerSitePathFallback`（查页面之后、重定向前）。事件雷达不走这条。
  */
 
 import type { AppLocale } from "@rewindom/shared";
@@ -59,12 +59,10 @@ export interface SitePathMatchContext {
 /**
  * 非 HTML 的响应体（RSS、og.png…）。
  *
- * **为什么在这里而不是让模块自挂 Fastify 路由**：`homePath` / `homeLayoutKey`
- * 只有 path handler 收得到。模块自己挂的路由天生看不见「这个站把枢纽设成首页了」，
- * 于是 `/entities/openai` 的页面上会挂出一条 `/events/entities/openai/feed.xml`
- * 的订阅链接——前缀在旁边所有链接上都已经 301 掉了。
+ * **为什么在这里而不是让模块自挂 Fastify 路由**：locale 剥离与 entitlement
+ * 闸门只有 path handler 收得到。RSS / og.png 与页面走同一棵路径树。
  *
- * 顺带白拿：locale 前缀剥离、entitlement 闸门、旧前缀的 `canonicalRedirect`。
+ * 顺带白拿：locale 前缀剥离、entitlement 闸门、可选的 `canonicalRedirect`。
  */
 export interface SitePathResponse {
   body: string | Buffer;

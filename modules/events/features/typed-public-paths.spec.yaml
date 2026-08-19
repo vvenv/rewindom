@@ -1,0 +1,70 @@
+# 公开 URL 按资源类型分前缀，不再把整棵 /events 收到站点根。
+#
+# 终态：home /、topic /topics/:slug、event /events/:slug、entities /entities、
+# feed /feed.xml 与 /topics/:slug/feed.xml。可选模块 prefix 套在集合路径外，
+# 默认空。旧地址不接、不 301。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 公开事件树改为类型化集合路径（/topics /events /entities /feed.xml），去掉挂到根上的占用轴；可选模块 prefix 默认空。
+gold: modules/events/shared/events-public-paths.ts
+touch:
+  - modules/events/features/typed-public-paths.spec.yaml
+  - modules/events/MODULE.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-public-paths.ts
+  - modules/events/shared/events-public-paths.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/events-link-targets.ts
+  - modules/events/shared/events-link-targets.test.ts
+  - modules/events/shared/nav-sources.ts
+  - modules/events/shared/nav-sources.test.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/events-entity-index-section.ts
+  - modules/events/shared/events-detail-section.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/shared/sections/hero-html.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/events-path-handler.test.ts
+  - modules/events/server/ssr/rss.render.ts
+  - modules/events/server/ssr/og.render.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/server/module.ts
+  - modules/events/client/module.tsx
+  - modules/events/client/editor-context.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/MODULE.md
+  - .cursor/skills/site-section/SKILL.md
+  - docs/design/i18n.md
+  - apps/server/scripts/apply-yestino-about.ts
+out_of_scope:
+  - 租户可填的自由前缀
+  - 给每个主题格子单独建 CMS 页
+  - 改工作台 /app/events 与 API /api/events
+  - 删掉 marketing 的 rootPrefix 机制（events 不再声明它）
+  - 旧 /events/:topic、/:slug、/events/entities 的 301
+  - 存量 events_index CMS 行的数据清理脚本
+i18n: data
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-public-paths.test.ts shared/events-page-templates.test.ts shared/events-link-targets.test.ts shared/nav-sources.test.ts shared/sections/feed-html.test.ts shared/sections/hero-html.test.ts shared/sections/detail-html.test.ts shared/events.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/ssr/events-path-handler.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []

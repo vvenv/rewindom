@@ -1,13 +1,9 @@
 /**
- * 公开事件页的路径处理：`/events`、`/events/:topic` 与 `/events/:slug`（含 `/en/...` 前缀），
- * 以及三条非 HTML 地址——`feed.xml`（枢纽 / 主题 / 实体）与详情的 `og.png`。
+ * 公开事件页的路径处理：`/topics/:slug`、`/events/:slug`、`/entities`、
+ * `/feed.xml`（含 `/en/...` 前缀，locale 已被剥掉）。
  *
- * 选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到根上；
- * `/` 由首页 CMS 渲染；`/?source=` 由本 handler 接管列表；
- * `/:topic` / `/:slug` / `/entities/:slug` 在 CMS 未命中后由 fallback 接。
- *
- * marketing SSR 在剥掉 locale 之后问这张表，所以两种前缀走同一套渲染。
- * 事件模块没有 cookie 要写，因此**不需要**像 shop 那样再挂一条自己的 Fastify 路由。
+ * `/` 由首页 CMS 渲染；套了雷达版式时 `/?source=` 由本 handler 接管列表。
+ * 事件模块没有 cookie 要写，因此不需要像 shop 那样再挂一条自己的 Fastify 路由。
  */
 
 import { normalizeLocale } from "@rewindom/module-sdk";
@@ -40,16 +36,13 @@ import {
   entityPath,
   eventOgImagePath,
   eventPath,
-  eventsCanonicalLocation,
-  eventsIndexPath,
-  eventsMountedAtRoot,
+  eventsHubPath,
   isEventsIndexListing,
   isEventsPath,
-  isEventsRootFallbackPath,
   isEventsRootQueryTakeover,
   isTopicEnabled,
   parseEventsIndexQuery,
-  parseEventsRequestPath,
+  parseEventsPublicPath,
   topicPath,
   toPublicCard,
   toPublicDetail,
@@ -62,18 +55,13 @@ import {
   EVENTS_DETAIL_TEMPLATE_PRESET,
   EVENTS_ENTITY_INDEX_TEMPLATE_PRESET,
   EVENTS_ENTITY_TEMPLATE_PRESET,
-  EVENTS_INDEX_PAGE_KIND,
-  EVENTS_INDEX_TEMPLATE_PRESET,
   EVENTS_TOPIC_PAGE_KIND,
   EVENTS_TOPIC_TEMPLATE_PRESET,
   buildEventsListingSections,
   eventsListingPreset,
 } from "../../shared/events-page-templates.js";
 
-import {
-  registerSitePathFallback,
-  registerSitePathHandler,
-} from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
+import { registerSitePathHandler } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 
 import type {
   EventFeedTab,
@@ -87,33 +75,32 @@ import type {
 } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
-function mountOf(input: {
-  homePath?: string;
+function mountOf(input: { homeLayoutKey?: string }): {
   homeLayoutKey?: string;
-}): { homePath?: string; homeLayoutKey?: string } {
-  return { homePath: input.homePath, homeLayoutKey: input.homeLayoutKey };
-}
-
-function indexPathOf(input: SitePathHandlerInput): string {
-  return eventsIndexPath(mountOf(input));
+} {
+  return { homeLayoutKey: input.homeLayoutKey };
 }
 
 export async function renderEventsPath(
   input: SitePathHandlerInput,
 ): Promise<SitePathRenderResult> {
-  const atRoot = eventsMountedAtRoot(mountOf(input));
-  const route = parseEventsRequestPath(input.path, atRoot);
+  const locale = normalizeLocale(input.locale);
+  const route = parseEventsPublicPath(input.path);
   if (!route) {
-    return null;
+    if (
+      !isEventsRootQueryTakeover(
+        input.path,
+        input.query,
+        mountOf(input),
+      )
+    ) {
+      return null;
+    }
+    const query = parseEventsIndexQuery(input.query);
+    if (!isEventsIndexListing(query)) return null;
+    return renderListing(input, locale, query.source, undefined, query.kind);
   }
 
-  const locale = normalizeLocale(input.locale);
-  const indexPath = indexPathOf(input);
-
-  /*
-   * 非 HTML 的三条先分掉：它们不套模板页、不要 chrome，只是恰好住在同一棵
-   * 路径树上。挂载、locale、entitlement 已经由 marketing 解析完毕。
-   */
   if (route.type === "feed" || route.type === "entity_feed") {
     const feedInput = {
       tenantId: input.tenantId,
@@ -121,7 +108,6 @@ export async function renderEventsPath(
       origin: input.origin,
       locale,
       selfPath: input.servedPath ?? input.path,
-      indexPath,
     };
     if (route.type === "entity_feed") {
       return renderEntityFeed(feedInput, route.slug);
@@ -141,24 +127,20 @@ export async function renderEventsPath(
   }
 
   if (route.type === "entity_index") {
-    return renderEntityIndex(input, locale, indexPath);
+    return renderEntityIndex(input, locale);
   }
   if (route.type === "entity") {
-    return renderEntity(input, locale, route.slug, indexPath);
+    return renderEntity(input, locale, route.slug);
   }
   if (route.type === "event") {
-    return renderDetail(input, locale, route.slug, indexPath);
+    return renderDetail(input, locale, route.slug);
   }
-  const pathTopic = route.type === "topic" ? route.topic : undefined;
-  const query = parseEventsIndexQuery(input.query);
-  const topic = pathTopic ?? query.topic;
-  if (topic && !(await isTopicOn(input.tenantId, topic))) {
+  if (!(await isTopicOn(input.tenantId, route.topic))) {
     return null;
   }
-  return renderIndex(input, locale, indexPath, pathTopic);
+  return renderTopic(input, locale, route.topic);
 }
 
-/** 关掉的主题格对访客是 404——页面与它的 feed 同一条口径。 */
 async function isTopicOn(
   tenantId: string,
   topic: EventTopic,
@@ -167,21 +149,18 @@ async function isTopicOn(
 }
 
 /**
- * 实体枢纽 `/events/entities`（枢纽当首页时 `/entities`）。
- *
- * 清单为空也**照样渲染**——与实体详情不同：那里没有实体是 404（地址指着一个
- * 不存在的东西），这里是一张常驻页面，只是暂时没有内容可列，段自己画空态。
+ * 实体枢纽 `/entities`。清单为空也照样渲染——与实体详情不同：那里没有实体
+ * 是 404，这里是一张常驻页面，段自己画空态。
  */
 async function renderEntityIndex(
   input: SitePathHandlerInput,
   locale: AppLocale,
-  indexPath: string,
 ): Promise<string> {
   const [rows, t] = await Promise.all([
     getPublicEntityIndex(input.tenantId),
     Promise.resolve(translator(locale)),
   ]);
-  const href = entityIndexPath(indexPath);
+  const href = entityIndexPath();
 
   return renderEventsTemplatePage({
     tenantId: input.tenantId,
@@ -195,8 +174,7 @@ async function renderEntityIndex(
     preset: EVENTS_ENTITY_INDEX_TEMPLATE_PRESET,
     description: t("entityIndex.metaDescription", { count: rows.length }),
     events: emptyEventsContext({
-      index_path: indexPath,
-      entity_index: toPublicEntityIndex(rows, t, indexPath),
+      entity_index: toPublicEntityIndex(rows, t),
     }),
   });
 }
@@ -205,16 +183,14 @@ async function renderEntity(
   input: SitePathHandlerInput,
   locale: AppLocale,
   slug: string,
-  indexPath: string,
 ): Promise<string | null> {
   const entity = await getPublicEntityBySlug(input.tenantId, slug);
-  // 实体不存在 → 交回 404，而不是渲染一张空实体页
   if (!entity) {
     return null;
   }
 
   const t = translator(locale);
-  const href = entityPath(entity.slug, indexPath);
+  const href = entityPath(entity.slug);
   return renderEventsTemplatePage({
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
@@ -233,54 +209,36 @@ async function renderEntity(
     omitHreflang: true,
     canonicalPath: href,
     events: emptyEventsContext({
-      index_path: indexPath,
-      entity: toPublicEntity(entity, t, indexPath),
+      entity: toPublicEntity(entity, t),
     }),
   });
 }
 
-async function renderIndex(
+async function renderTopic(
   input: SitePathHandlerInput,
   locale: AppLocale,
-  indexPath: string,
-  pathTopic?: EventTopic,
+  topic: EventTopic,
 ): Promise<string> {
   const query = parseEventsIndexQuery(input.query);
-  const topic = pathTopic ?? query.topic;
-  const pagePath = topic ? topicPath(topic, indexPath) : indexPath;
   const listingQuery = { ...query, topic };
   if (isEventsIndexListing(listingQuery)) {
     return renderListing(
       input,
       locale,
       listingQuery.source,
-      listingQuery.topic,
-      indexPath,
+      topic,
       listingQuery.kind,
     );
   }
 
-  /*
-   * 三样数据都跟着当前格子走。`/ai` 上只有 feed 跟着过滤、首屏与实体条却是全站的
-   * 那种状态最难读——四行数字里三行在说别的事，读者没法知道哪一行在说这一格。
-   */
   const [feed, entityRows, heroStats] = await Promise.all([
     getPublicEventFeed(input.tenantId, topic),
     getPublicEntityIndex(input.tenantId, topic),
     getPublicHeroStats(input.tenantId, topic),
   ]);
   const t = translator(locale);
-  const topicLabel = topic ? t(`topic.${topic}`) : undefined;
-
-  const hub = pathTopic
-    ? {
-        kind: EVENTS_TOPIC_PAGE_KIND,
-        preset: EVENTS_TOPIC_TEMPLATE_PRESET,
-      }
-    : {
-        kind: EVENTS_INDEX_PAGE_KIND,
-        preset: EVENTS_INDEX_TEMPLATE_PRESET,
-      };
+  const topicLabel = t(`topic.${topic}`);
+  const pagePath = topicPath(topic);
 
   return renderEventsTemplatePage({
     tenantId: input.tenantId,
@@ -288,23 +246,20 @@ async function renderIndex(
     siteName: input.tenantSlug,
     origin: input.origin,
     locale,
-    kind: hub.kind,
+    kind: EVENTS_TOPIC_PAGE_KIND,
     path: pagePath,
     servedPath: input.servedPath ?? pagePath,
-    preset: hub.preset,
+    preset: EVENTS_TOPIC_TEMPLATE_PRESET,
     title: topicLabel,
-    description: topicLabel
-      ? t("topicMeta.description", { topic: topicLabel })
-      : undefined,
+    description: t("topicMeta.description", { topic: topicLabel }),
     events: emptyEventsContext({
-      index_path: indexPath,
       topic,
       topic_label: topicLabel,
       feed: {
-        rising: feed.rising.map((item) => toCard(item, t, indexPath)),
-        now: feed.now.map((item) => toCard(item, t, indexPath)),
+        rising: feed.rising.map((item) => toCard(item, t)),
+        now: feed.now.map((item) => toCard(item, t)),
       },
-      entity_strip: toPublicEntityStrip(entityRows, indexPath),
+      entity_strip: toPublicEntityStrip(entityRows),
       hero: toPublicHero(heroStats, t),
     }),
   });
@@ -315,15 +270,14 @@ async function renderListing(
   locale: AppLocale,
   source: EventFeedTab,
   topic: EventTopic | undefined,
-  indexPath: string,
   kind?: EventSourceKind,
 ): Promise<string> {
   const items = await getPublicEventList(input.tenantId, source, topic, kind);
   const t = translator(locale);
-  const cards = items.map((item) => toCard(item, t, indexPath));
+  const cards = items.map((item) => toCard(item, t));
   const sourceLabel = t(`sections.${source}`);
   const title = topic ? `${sourceLabel} · ${t(`topic.${topic}`)}` : sourceLabel;
-  const pagePath = topic ? topicPath(topic, indexPath) : indexPath;
+  const pagePath = topic ? topicPath(topic) : eventsHubPath();
 
   const listing = eventsListingPreset(source, topic);
   return renderEventsTemplatePage({
@@ -351,7 +305,6 @@ async function renderListing(
       createEventsPresetTranslator(locale),
     ),
     events: emptyEventsContext({
-      index_path: indexPath,
       listing: { source, topic },
       feed: {
         rising: source === "rising" ? cards : [],
@@ -365,16 +318,14 @@ async function renderDetail(
   input: SitePathHandlerInput,
   locale: AppLocale,
   slug: string,
-  indexPath: string,
 ): Promise<string | null> {
   const detail = await getPublicEventBySlug(input.tenantId, slug);
-  // 事件不存在、或主题已关 → 交回 404，而不是渲染一张空详情页
   if (!detail) {
     return null;
   }
 
   const t = translator(locale);
-  const href = eventPath(slug, indexPath);
+  const href = eventPath(slug);
   return renderEventsTemplatePage({
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
@@ -389,16 +340,11 @@ async function renderDetail(
     description: detail.headline || detail.title,
     omitHreflang: true,
     canonicalPath: href,
-    /*
-     * 这一条自己的社交卡片图，地址跟着枢纽挂载走（与详情页同前缀）。
-     * 服务端画不出来时不设，回落站点品牌图——好过指向一个 404 的图片地址。
-     */
     ogImage: isEventOgImageAvailable()
-      ? `${input.origin}${eventOgImagePath(slug, indexPath)}`
+      ? `${input.origin}${eventOgImagePath(slug)}`
       : undefined,
     events: emptyEventsContext({
-      index_path: indexPath,
-      event: toPublicDetail(detail, t, indexPath),
+      event: toPublicDetail(detail, t),
     }),
   });
 }
@@ -411,9 +357,8 @@ function translator(locale: AppLocale) {
 function toCard(
   item: EventListItem,
   t: ReturnType<typeof translator>,
-  indexPath: string,
 ) {
-  return toPublicCard(item, t, indexPath);
+  return toPublicCard(item, t);
 }
 
 export function registerEventsPathHandler(): void {
@@ -422,14 +367,6 @@ export function registerEventsPathHandler(): void {
       isEventsPath(path) ||
       isEventsRootQueryTakeover(path, ctx?.query ?? {}, mountOf(ctx ?? {})),
     entitlement: EVENTS_ENTITLEMENT.key,
-    canonicalRedirect: (input) =>
-      eventsCanonicalLocation(input.path, mountOf(input), input.query),
-    render: renderEventsPath,
-  });
-  registerSitePathFallback({
-    entitlement: EVENTS_ENTITLEMENT.key,
-    match: (path, ctx) =>
-      eventsMountedAtRoot(mountOf(ctx)) && isEventsRootFallbackPath(path),
     render: renderEventsPath,
   });
 }

@@ -16,12 +16,11 @@ import {
 } from "./events.js";
 
 import {
-  EVENTS_INDEX_PATH,
   entityFeedPath,
   entityIndexPath,
   entityPath,
   eventPath,
-} from "./events-section-context.js";
+} from "./events-public-paths.js";
 
 import type {
   EventDetail,
@@ -65,13 +64,12 @@ export const SOURCE_KIND_ORDER: readonly EventSourceKind[] = [
 export function toPublicCard(
   item: EventListItem,
   t: EventsTranslate,
-  indexPath: string = EVENTS_INDEX_PATH,
 ): PublicEventCard {
   return {
     slug: item.slug,
     // 站点开通事件雷达就一定有公开详情页（模板页与 path handler 一起登记），
     // 所以卡片恒指向站内详情，不会把访客直接甩去站外
-    href: eventPath(item.slug, indexPath),
+    href: eventPath(item.slug),
     title: item.title,
     headline: item.headline,
     topic: item.topic,
@@ -115,10 +113,9 @@ function buildMomentum(
 export function toPublicDetail(
   detail: EventDetail,
   t: EventsTranslate,
-  indexPath: string = EVENTS_INDEX_PATH,
 ): PublicEventDetailView {
   return {
-    ...toPublicCard(detail, t, indexPath),
+    ...toPublicCard(detail, t),
     summary: detail.summary,
     analyzer: detail.analyzer,
     provenance_note: buildProvenanceNote(detail, t),
@@ -132,10 +129,10 @@ export function toPublicDetail(
     placement: detail.placement.map((fact) => ({
       // kind 参数本身是个 i18n code（`kind.outage`），先落成文案再代进去
       text: t(fact.code, resolvePlacementParams(fact.params, t)),
-      href: fact.event_slug ? eventPath(fact.event_slug, indexPath) : null,
+      href: fact.event_slug ? eventPath(fact.event_slug) : null,
     })),
     related: detail.related.map((item) => ({
-      href: eventPath(item.slug, indexPath),
+      href: eventPath(item.slug),
       title: item.title,
     })),
     /*
@@ -143,7 +140,7 @@ export function toPublicDetail(
      * 顺序沿用服务端的提及次数降序，渲染侧不再排。
      */
     entities: detail.entities.map((entity) => ({
-      href: entityPath(entity.slug, indexPath),
+      href: entityPath(entity.slug),
       name: entity.name,
     })),
     source_groups: SOURCE_KIND_ORDER.map((kind) => ({
@@ -238,7 +235,6 @@ export function toPublicEntityStrip(
     name: string;
     event_count: number;
   }[],
-  indexPath: string = EVENTS_INDEX_PATH,
 ): PublicEntityStripView {
   const items = [...rows]
     .sort(
@@ -246,11 +242,11 @@ export function toPublicEntityStrip(
         b.event_count - a.event_count || a.name.localeCompare(b.name),
     )
     .map((row) => ({
-      href: entityPath(row.slug, indexPath),
+      href: entityPath(row.slug),
       name: row.name,
       event_count: row.event_count,
     }));
-  return { href: entityIndexPath(indexPath), items };
+  return { href: entityIndexPath(), items };
 }
 
 /**
@@ -259,19 +255,18 @@ export function toPublicEntityStrip(
 export function toPublicEntity(
   entity: PublicEntityRecord,
   t: EventsTranslate,
-  indexPath: string = EVENTS_INDEX_PATH,
 ): PublicEntityView {
   return {
     slug: entity.slug,
-    href: entityPath(entity.slug, indexPath),
-    feed_href: entityFeedPath(entity.slug, indexPath),
+    href: entityPath(entity.slug),
+    feed_href: entityFeedPath(entity.slug),
     name: entity.name,
     kind_label: t(`entityKind.${entity.kind}`),
     event_count: entity.event_count,
     profile: entity.profile.map((fact) =>
       t(fact.code, resolvePlacementParams(fact.params, t)),
     ),
-    events: entity.events.map((item) => toPublicCard(item, t, indexPath)),
+    events: entity.events.map((item) => toPublicCard(item, t)),
   };
 }
 
@@ -282,7 +277,6 @@ export function toPublicEntity(
 export function toPublicEntityIndex(
   rows: readonly PublicEntityIndexRow[],
   t: EventsTranslate,
-  indexPath: string = EVENTS_INDEX_PATH,
 ): PublicEntityIndexView {
   const groups = EVENT_ENTITY_KINDS.map((kind) => ({
     kind,
@@ -290,12 +284,12 @@ export function toPublicEntityIndex(
     items: rows
       .filter((row) => row.kind === kind)
       .map((row) => ({
-        href: entityPath(row.slug, indexPath),
+        href: entityPath(row.slug),
         name: row.name,
         event_count: row.event_count,
       })),
   })).filter((group) => group.items.length > 0);
-  return { href: entityIndexPath(indexPath), groups };
+  return { href: entityIndexPath(), groups };
 }
 
 /** 首屏计数的原始数字，由 SSR 查库 / 编辑器读 `/events/stats` 填。 */

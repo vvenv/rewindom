@@ -6,11 +6,11 @@
  *
  * 内置四项（页脚版权那一套）：`{year}` `{site}` `{hostname}` `{url}`。
  * 业务模块往 `contributed.interpolation` 填额外的（events 的 `{topic}` /
- * `{topic_slug}`）。未出现在 values 里的 `{foo}` 原样留下，避免误伤文案里的花括号。
+ * `{topic_slug}` / `{feed}`）。未出现在 values 里的 `{foo}` 原样留下，避免误伤文案里的花括号。
  *
- * 链接里空掉的路径段与空查询值会收掉：`/events/{topic_slug}/feed.xml` 在没有
- * 当前主题时是 `/events/feed.xml`，而不是 `//`。不要在渲染器里暗改租户填的地址——
- * 把 token 写进存下来的 href，看得见、改得动。
+ * 链接里空掉的路径段与空查询值会收掉：`/topics/{topic_slug}/feed.xml` 在没有
+ * 当前主题时是 `/topics/feed.xml`，而不是 `//`。当前页 RSS 请用 `{feed}`，不要
+ * 靠空段收掉去拼全站 feed。不要在渲染器里暗改租户填的地址——把 token 写进存下来的 href。
  */
 
 export const SITE_INTERPOLATION_KEY = "interpolation";

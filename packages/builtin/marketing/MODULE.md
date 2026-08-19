@@ -152,7 +152,7 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 自动生成 © 当年 站名」：输入框里空着、前台却有字，想改成「© 2020–{year} Acme, Inc.」
 无从下手。现在默认值就是 `© {year} {site}`，看得见改得动。同一套还会替换 `{hostname}`
 （当前主机名，不含端口）和 `{url}`（当前 origin，含协议）。业务模块可以再往
-`contributed.interpolation` 填自己的 token（events 的 `{topic}` / `{topic_slug}`）。
+`contributed.interpolation` 填自己的 token（events 的 `{topic}` / `{topic_slug}` / `{feed}`）。
 跨年、改站名、换绑域名照样自己跟上（`shared/site-interpolation.ts`，页脚走
 `_common/chrome-text.ts`）。链接 href 同一套插值，空路径段会收掉——不要在渲染器里暗改地址。
 
@@ -682,7 +682,7 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 根换成自己的内容结构（例如事件雷达的升温 + 正在发生）。设置里和「把另一张页占据 /」
 合成一个下拉：选版式就套到首页模板上，并把 `home_path` 收回 `/`。
 
-与模板页正交：`/events`、`/shop` 仍是各自的模板页；首页版式套的是同一张首页上的段。
+与模板页正交：`/shop` 仍是枢纽页；事件雷达的专题 / 详情 / 实体走独立集合路径。
 店面 / 文档库的入口就是自己的枢纽页，通常不必再贡献一份，除非要把该模块做成站点根。
 
 | 位置 | 做什么 |
@@ -691,16 +691,17 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 | server `onBoot` + client manifest | 与模板页同一个注册函数里调（幂等） |
 
 有租户开关必须声明 `entitlement`。要把本模块公开前缀收到站点根时声明 `rootPrefix`
-（如 `/events`）：选择器不再把该枢纽列为「设为首页」，公开 URL 由贡献模块按
+（如 `/docs`）：选择器不再把该枢纽列为「设为首页」，公开 URL 由贡献模块按
 `home_layout_key` 判定。套用只写首页草稿，同时把 `home_path` 收回 `/`。
 「重设为最新版式」与 SSR 兜底按 `MarketingSite.home_layout_key` 取当前那套。
+事件雷达不声明 `rootPrefix`——首页版式只改 `/` 的段组合。
 金标准：events `events.home`。
 
 #### 贡献公开路径、保留 slug、sitemap、链接候选
 
 不是 `MarketingPage` 的公开地址（文档库 `/docs`）不要写进 `renderPath`。模块登记：
 
-- `registerSitePathHandler` — locale 剥离后、查页面前接管路径。`canonicalRedirect` 可把旧前缀 301 到规范地址（事件枢纽当首页时 `/events/*` → `/`、`/:slug`）
+- `registerSitePathHandler` — locale 剥离后、查页面前接管路径。`canonicalRedirect` 可把旧前缀 301 到规范地址
 - `registerSitePathFallback` — **CMS 未命中后**再问；`render` 返回 `null` 继续重定向 / 404，不直接 404。给「公开 URL 收到站点根」的模块用，避免 `/:slug` 抢走已发布的 CMS 页
 - `registerReservedPageSlug` — 自定义页不能占用该一级 slug
 - sitemap / link-target providers — `sitemap.xml` 与编辑器链接下拉的额外条目
@@ -709,10 +710,8 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 （`body: string | Buffer` + `content_type` + 可选 `cache_control`，默认与 HTML 同款
 `public, max-age=60`）。events 的 `feed.xml` 与 `og.png` 走这条。
 
-**为什么不让模块自挂 Fastify 路由**：`homePath` / `homeLayoutKey` 只有这条链路收得到。
-自挂路由天生看不见「这个站把枢纽设成首页了」，公开 URL 收到根之后它发出的地址还带着
-旧前缀——而那前缀在旁边所有链接上都已经 301 掉了。走这里还能白拿 locale 剥离、
-entitlement 闸门与 `canonicalRedirect`。内核路由（`sitemap.xml` / `robots.txt`）仍然
+**为什么不让模块自挂 Fastify 路由**：locale 剥离与 entitlement 闸门只有这条链路收得到。
+内核路由（`sitemap.xml` / `robots.txt`）仍然
 不给业务模块蹭。
 
 存量段 type `doc-list` 等、chrome `chrome_search`、导航源 `docs` / `doc_category`

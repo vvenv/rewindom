@@ -43,7 +43,7 @@ function section(extra: Record<string, unknown> = {}): SiteSection {
       primary_label: "它是怎么工作的",
       primary_href: "/about",
       secondary_label: "订阅 RSS",
-      secondary_href: "/events/{topic_slug}/feed.xml",
+      secondary_href: "{feed}",
       ...extra,
     },
   } as SiteSection;
@@ -77,7 +77,7 @@ describe("renderEventsHeroHtml", () => {
     expect(html).toContain("37");
     expect(html).toContain("1,284");
     expect(html).toContain("18");
-    expect(html).toContain('href="/events/feed.xml"');
+    expect(html).toContain('href="/feed.xml"');
   });
 
   it("keeps a machine-readable stamp next to the relative time", () => {
@@ -113,7 +113,7 @@ describe("renderEventsHeroHtml", () => {
 
   it("falls back to the current-topic feed template when href is missing", () => {
     const html = render(hero(), { secondary_href: "" });
-    expect(html).toContain('href="/events/feed.xml"');
+    expect(html).toContain('href="/feed.xml"');
   });
 });
 
@@ -172,9 +172,9 @@ describe("renderEventsHeroHtml · 专题页", () => {
     expect(html).not.toContain("同一件事，来自多个来源");
   });
 
-  it("points the subscribe button at that topic's feed via {topic_slug}", () => {
+  it("points the subscribe button at that topic's feed via {feed}", () => {
     const html = render(hero(), {}, AI);
-    expect(html).toContain('href="/events/ai/feed.xml"');
+    expect(html).toContain('href="/topics/ai/feed.xml"');
     expect(html).toContain('href="/about"');
   });
 
@@ -185,7 +185,7 @@ describe("renderEventsHeroHtml · 专题页", () => {
       AI,
     );
     expect(html).toContain("elsewhere.example");
-    expect(html).not.toContain("/events/ai/feed.xml");
+    expect(html).not.toContain("/topics/ai/feed.xml");
   });
 
   it("keeps the topic copy even when the panel is empty", () => {
@@ -202,7 +202,7 @@ describe("renderEventsHeroHtml · 专题页", () => {
     const html = render(hero());
     expect(html).toContain("同一件事，来自多个来源，合成一条时间线");
     expect(html).not.toContain("{topic}");
-    expect(html).toContain('href="/events/feed.xml"');
+    expect(html).toContain('href="/feed.xml"');
   });
 });
 

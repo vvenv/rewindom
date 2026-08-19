@@ -11,7 +11,7 @@
 已交付：
 
 - **主链路**：采集 → 聚类 → 事件详情（发生了什么 / 时间线 / 来源）→ Follow → 更新检测
-- **官网面**：首屏 / 升温 / 正在发生 / 近期实体 / 详情 + `/events`、`/events/:topic` 与 `/events/:slug` 三张模板页（把 `/events` 设为首页后，访客 URL 收到 `/`、`/:topic` 与 `/:slug`），未登录访客可直接浏览
+- **官网面**：首屏 / 升温 / 正在发生 / 近期实体 / 详情 + `/topics/:slug`、`/events/:slug`、`/entities` 模板页（首页永远是 CMS `/`；套雷达版式只改 `/` 长什么样），未登录访客可直接浏览
 
 明确**不在**当前范围：Related Events、Why it's trending。两者都建立在同一套语料之上，
 加进来是增量，不需要动现有表结构。
@@ -82,25 +82,24 @@ server/
 
 | 贡献物 | 说明 |
 | --- | --- |
-| 段 `events.hero` | 首屏。左列是文案主张（eyebrow / h1 / 副标题 / 两个通用链接按钮），右列是**按请求查出来的**实时计数。枢纽 / 首页与专题是两张模板，不要在这一段上再长 `topic_*` 覆盖。专题页库存文案自己写 `{topic}`；订阅是普通次按钮，默认 href `/events/{topic_slug}/feed.xml`（空段收掉后站点首页是全站 feed）。`live_events` 为 0 时整块计数不渲染 |
-| 段 `events.rising` | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/events?source=rising`（枢纽当首页时是 `/?source=rising`） |
-| 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/events?source=now`（枢纽当首页时是 `/?source=now`） |
+| 段 `events.hero` | 首屏。左列是文案主张（eyebrow / h1 / 副标题 / 两个通用链接按钮），右列是**按请求查出来的**实时计数。首页与专题是两张模板，不要在这一段上再长 `topic_*` 覆盖。专题页库存文案自己写 `{topic}`；订阅是普通次按钮，默认 href `{feed}`。`live_events` 为 0 时整块计数不渲染 |
+| 段 `events.rising` | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/?source=rising`（专题页上是 `/topics/ai?source=rising`） |
+| 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/?source=now` |
 | 段 `events.entity_strip` | 近期实体胶囊条，可摆在任意页面。近 30 天实体按事件数排序，默认 Top 24，字号一律、用数字角标表示权重。**主题枢纽上只列这一格事件里的实体**。「查看全部」打开实体枢纽。预设插在 Now 与订阅之间 |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
-| 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now + 实体条 + 订阅，**没有**首屏——首页首屏由租户 / yestino 铺）。带 `?source=` 时是该批次的查询列表，不再用这段版式 |
-| 模板页 `events_topic` | `/events/:topic`（根挂载时 `/:topic`）。七格共用一张模板，预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。库存文案写 `{topic}` / `{topic_slug}` |
-| 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构（无首屏）。站点设置里选这项会套首页草稿并把公开 URL 收到 `/`、`/:topic`、`/:slug` |
-| 模板页 `events_detail` | `/events/:slug`（枢纽当首页时访客地址是 `/:slug`；主题格子 `ai` / `tech`… 先被认成主题页，事件 slug 恒带 id 后缀不会撞） |
+| 模板页 `events_topic` | `/topics/:topic`。七格共用一张模板，预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。库存文案写 `{topic}` / `{topic_slug}` / `{feed}` |
+| 首页版式 `events.home` | 套在站点首页（`/`）上（无首屏）。不声明 `rootPrefix`，集合路径不搬家 |
+| 模板页 `events_detail` | `/events/:slug` |
 | 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上。编辑器没有当前实体，预览用样张 |
-| 模板页 `events_entity` | `/events/entities/:slug`（枢纽当首页时访客地址是 `/entities/:slug`） |
+| 模板页 `events_entity` | `/entities/:slug` |
 | 段 `events.entity_index` | 实体枢纽正文（按类型分组的实体链接），`page_kinds` 限定只能落在实体枢纽模板页上。客户端必须登记视图，否则编辑器预览是空白 |
-| 模板页 `events_entity_index` | `/events/entities`（枢纽当首页时访客地址是 `/entities`） |
+| 模板页 `events_entity_index` | `/entities` |
 | 导航源 `events.entities` | 页头 / 页脚：实体枢纽一条叶子。**不塞进 `events` 源**——那个源是七个主题格，混一条进去会打乱它的语义 |
-| 卡片图 `/events/:slug/og.png` | 事件自己的社交卡片图（1200×630）。与详情页同前缀，跟着首页挂载收到 `/:slug/og.png` |
-| 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events/:topic`（当首页时 `/:topic`），当前格高亮；`children` 则收成「事件」一条下挂七格 |
+| 卡片图 `/events/:slug/og.png` | 事件自己的社交卡片图（1200×630） |
+| 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/topics/:slug`，当前格高亮；`children` 则收成「事件」一条下挂七格 |
 | 导航源 `events.topic` | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填 |
-| path handler | 接 `/events`、`/events/:topic`、`/events/:slug`、`/events/entities`、`/events/entities/:slug`，以及三条非 HTML：`feed.xml`（枢纽 / 主题 / 实体）与 `/events/:slug/og.png`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:topic`、`/:slug`、`/entities/:slug`；`/` 由首页 CMS 渲染，`/?source=` 才接管列表；根上的主题 / 详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
-| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给枢纽页（`/events`、`/events/entities`）以及 RSS（**当前主题** `/events/{topic_slug}/feed.xml` + 全站 + 已启用主题，分组 `feed`）。实体 feed 不进下拉 |
+| path handler | 接 `/topics/:slug`、`/events/:slug`、`/entities`、`/entities/:slug`，以及三条非 HTML：`/feed.xml`、`/topics/:slug/feed.xml`、`/entities/:slug/feed.xml` 与 `/events/:slug/og.png`（`/en/...` 同一条，locale 已被剥掉）。`/` 由首页 CMS 渲染；套了雷达版式时 `/?source=` 才接管列表。旧地址不接、不 301 |
+| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给实体枢纽以及 RSS（**当前页** `{feed}` + 全站 `/feed.xml` + 已启用主题 `/topics/:slug/feed.xml`，分组 `feed`）。实体 feed 不进下拉 |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
 `registerHomeLayout`（events 填表，内核不认识「雷达」这个概念）。
@@ -130,16 +129,16 @@ server/
 
 ### 主题枢纽上的首屏
 
-`/` / `/events` 与 `/ai` / `/tech` **不是同一张 CMS 页**。专题是独立模板
-`events_topic`（path `/events/:topic`，根挂载时 `/:topic`），与详情页同构：kind
+`/` 与 `/topics/ai` / `/topics/tech` **不是同一张 CMS 页**。专题是独立模板
+`events_topic`（path `/topics/:topic`），与详情页同构：kind
 唯一、每种语言一张，七格共用版式。身份文案写在这张页自己的首屏上，用 `{topic}`
-（主题名）与 `{topic_slug}`（路径段）填格子——与页脚 `chrome_text` 同一套
+（主题名）、`{topic_slug}`（路径段）与 `{feed}`（当前页 RSS）填格子——与页脚 `chrome_text` 同一套
 `{token}`，不是代码 i18n 的 `{{param}}`。
 
-不要在枢纽页上再长 `topic_*` 覆盖字段。一张页演两种身份才会让两套文案抢同一颗按钮。
+不要在首页上再长 `topic_*` 覆盖字段。一张页演两种身份才会让两套文案抢同一颗按钮。
 
-主按钮、订阅按钮都是通用 `link`。订阅默认 href 是 `/events/{topic_slug}/feed.xml`：
-有当前主题时订那一格，空段收掉后站点首页是全站 feed。租户填的地址看得见、改得动，
+主按钮、订阅按钮都是通用 `link`。订阅默认 href 是 `{feed}`：
+有当前主题时订那一格，没有时是全站 feed，实体页是该实体 feed。租户填的地址看得见、改得动，
 渲染器不再暗改。页头 chrome / 正文订阅段仍走 `eventsSubscribeHref`（实体页要订实体
 feed）。
 
@@ -153,12 +152,12 @@ feed）。
 | 面 | 第三行 | 为什么 |
 | --- | --- | --- |
 | `/` | 在采集的来源（`EventFeed.enabled`） | 站点配置事实 |
-| `/:topic` | 贡献来源（该格在发展事件的 `source_names` 去重） | 源的 `topic` 只是采集提示，一个源会产出好几个主题的事件，按它筛没有意义；`source_names` 是聚类时实际落进来的来源名 |
+| `/topics/:slug` | 贡献来源（该格在发展事件的 `source_names` 去重） | 源的 `topic` 只是采集提示，一个源会产出好几个主题的事件，按它筛没有意义；`source_names` 是聚类时实际落进来的来源名 |
 
 页头 chrome / 正文订阅段仍按当前页取址（有实体订实体、有主题订主题）。首屏订阅是
 普通链接，不参与这件事。
 
-两处填数据：CMS 页走 section context provider，事件模板页（含把 `/events` 设为首页后的
+两处填数据：CMS 页走 section context provider，事件模板页（含套了雷达版式后的
 `/`）走 path handler 的 `renderIndex`——与 `entity_strip` 同一条分工。编辑器预览走
 `GET /events/stats`，读的是同一个函数，**故意不退回样张**：计数为 0 时首屏该整块隐藏，
 拿一份漂亮的样张顶上去会让租户排一块访客根本看不到的版。
@@ -174,14 +173,14 @@ feed）。
 | `events.topic` | 该主题一条                 | 同左（叶子）        |
 | `events.entities` | 实体枢纽一条            | 同左（叶子）        |
 
-链接是 `/events/ai` 这种主题路径（枢纽当首页时是 `/ai`），**不是** `?topic=`：
+链接是 `/topics/ai` 这种主题路径，**不是** `?topic=`：
 页头高亮靠 `currentPath` 精确匹配，查询串进不去。枢纽按 topic 取数，「查看全部」
-写成 `/events/ai?source=rising`，不会掉回未过滤的 `?source=rising`。主题是产品
+写成 `/topics/ai?source=rising`，不会掉回未过滤的 `?source=rising`。主题是产品
 枚举，站点可在工作台关掉其中几格；页头跟着 `nav_topics` 走。CMS 页由 section
-context provider 填这份列表；事件模板页（含把 `/events` 设为首页后的 `/`）走
+context provider 填这份列表；事件模板页（含套了雷达版式后的 `/`）走
 path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七格。页头只挂
 本源、页面上没有事件段时，context provider 不会为了导航去拉 feed。没开通
-`events` 时这两项不进添加菜单，残留条目也不渲染。关掉的 `/events/:topic` 对访客
+`events` 时这两项不进添加菜单，残留条目也不渲染。关掉的 `/topics/:slug` 对访客
 是 404，该主题下已有事件的 `/events/:slug` 同样 404（工作台详情仍可打开，方便改主题）。
 
 ### 两段同页的去重
@@ -471,16 +470,15 @@ HN 的 topstories 本来就是几十件互不相干的事。但词面聚类有�
 强求对称要么多存一份反向表，要么让 top5 名不副实）；**同分按 id 排**保证幂等，
 否则每轮采集都会把列表洗一遍而内容毫无变化。
 
-#### 实体页 `/events/entities/:slug`
+#### 实体页 `/entities/:slug`
 
-路径默认挂在 `/events` 下而不是新开一个根路径：事件与实体是同一个域，共用前缀让 sitemap、
-面包屑与 path handler 都只有一处。把 `/events` 设为首页后访客地址收到 `/entities/:slug`，
-旧 `/events/entities/:slug` 301 过来。**事件 slug 永远是一段，实体路径恒为两段且首段是
-`entities`**，两者不会撞；三段以上不接，交回给普通页面查找。已发布的 CMS 页优先于
-根上的事件 / 实体路径。
+路径按资源类型占段：事件在 `/events/:slug`，实体在 `/entities/:slug`。
+**事件 slug 永远是一段，实体路径恒为两段且首段是 `entities`**，两者不会撞；
+三段以上不接，交回给普通页面查找。旧 `/events/entities/:slug` 不接、不 301。
 
-段名是**复数**：这一段同时是实体枢纽（`/events/entities` 列出全部实体），而本模块的
-规矩就是「复数集合段 + 条目挂在它下面」（`/events` 是枢纽、`/events/:slug` 是一条）。
+段名是**复数**：这一段同时是实体枢纽（`/entities` 列出全部实体），而本模块的
+规矩就是「复数集合段 + 条目挂在它下面」（`/events/:slug` 是一条事件，
+`/entities/:slug` 是一个实体）。
 用单数当集合名，枢纽那张页就读不通了。
 
 > 曾经是 `/events/entity/:slug`，改名时**没有留 301**（产品决定）。已收录的旧实体页
@@ -497,7 +495,7 @@ sitemap 只收**最近 30 天还有事件**的实体（不是按实体自身更�
 索引——事件 24h 后就凉，实体不会——但也正因为它长期存在，更要挡住「三年前提过一次就
 永远进 sitemap」的长尾。
 
-#### 实体枢纽 `/events/entities` 与详情页上的实体链接
+#### 实体枢纽 `/entities` 与详情页上的实体链接
 
 实体页曾经是**孤儿页**：只在 sitemap 里出现，站内一条链接都没有（线上抓过，
 首页与任意事件详情页里 `/entities/` 出现 0 次）。Google 对没有内链的页面给的权重极低，
@@ -508,7 +506,7 @@ sitemap 只收**最近 30 天还有事件**的实体（不是按实体自身更�
 | 方向 | 在哪 | 量级 |
 | --- | --- | --- |
 | 事件详情 → 实体 | 详情段里一行胶囊链接（`entities`） | 每张事件页几条，是权重的主要来源 |
-| 实体枢纽 → 全部实体 | `/events/entities`，按类型分组 | 一张页，给爬虫一条能一次爬完的路 |
+| 实体枢纽 → 全部实体 | `/entities`，按类型分组 | 一张页，给爬虫一条能一次爬完的路 |
 | 首页 / 枢纽 → Top N 实体 | 段 `events.entity_strip` | 流量最大的那一页也链出去；不是词云，字号一律 |
 
 `events.entity_strip` 与枢纽同一批实体（近 30 天、封顶 500），映射层按事件数排序，渲染层截成 Top N（默认 24）。可摆任意页；预设放在 Now 与订阅之间。存量已发布的首页**不会**自动插入——预设升级只影响新快照与「重设版式」，已落库的页面要在编辑器里添加，或重新套用事件雷达版式。
@@ -518,19 +516,18 @@ sitemap 只收**最近 30 天还有事件**的实体（不是按实体自身更�
 枢纽的路径解析要在**单段解析之前**认：枢纽挂在根上时 `/entities` 只有一段，
 不先拦下来就会被当成一个叫 entities 的事件 slug，然后 404。
 
-枢纽自己进 sitemap 走 events 的 provider，不能靠 marketing 的页面清单——枢纽当首页时
-`/events/*` 整段被收到根上并 301，那一行模板页会被 marketing 的 sitemap 过滤掉
-（见 marketing 的 `sitemap-only-canonical-urls`）。清单口径与实体 sitemap 一致
+枢纽自己进 sitemap 走 events 的 provider，不能靠 marketing 的页面清单。
+清单口径与实体 sitemap 一致
 （近 30 天还有事件、封顶 500），两处给出不一致的名单会让爬虫在枢纽上找不到 sitemap 里的地址。
 
 #### 事件自己的社交卡片图
 
 所有页面共用一张品牌图时，分享到 Slack / X / Reddit 的十条事件长得一模一样——
 卡片是这条链接在别人时间线里的**全部外观**。所以 `/events/:slug/og.png`
-（枢纽当首页时 `/:slug/og.png`）实时画一张：
+实时画一张：
 标题（最多三行）+ 主题 / 阶段胶囊 + 来源数 + 域名，配色照抄官网深色 token。
 
-- 与 RSS 同一条分派：走 path handler 的非 HTML 返回，地址因此跟着枢纽挂载走
+- 与 RSS 同一条分派：走 path handler 的非 HTML 返回
 - **可降级**：服务端进程手里不一定有字体（精简镜像）。拿不到字体就报「不可用」，
   详情页据此**不设** og:image，回落站点品牌图——好过指向一个 404 的图片地址
 - 字体优先用官网自己发的 Inter（`apps/client/dist|public/assets/site-fonts`，
@@ -963,37 +960,28 @@ release / filing 是预防性的：同一批样本里没观察到碰撞（k8s 10
 | 关注实体 | 要 | 长期 |
 | **订阅 RSS** | **不要** | 长期 |
 
-前两条都要求先注册，而 RSS 恰恰是技术读者最可能采用的那条。三个入口，
-**地址跟着枢纽挂载走**（与页面同一套前缀）：
+前两条都要求先注册，而 RSS 恰恰是技术读者最可能采用的那条。三个入口：
 
-| 订阅意图 | 默认 | 枢纽当首页 |
-| --- | --- | --- |
-| 这个站在报什么 | `/events/feed.xml` | `/feed.xml` |
-| 只看某个主题 | `/events/ai/feed.xml` | `/ai/feed.xml` |
-| 只看某个公司 / 产品 | `/events/entities/<slug>/feed.xml` | `/entities/<slug>/feed.xml` |
+| 订阅意图 | 地址 |
+| --- | --- |
+| 这个站在报什么 | `/feed.xml` |
+| 只看某个主题 | `/topics/ai/feed.xml` |
+| 只看某个公司 / 产品 | `/entities/<slug>/feed.xml` |
 
 `/en/...` 前缀同样接（内容不翻译，前缀只影响 channel 文案与站内链接）。
 
 主题是**路径段**，不是 `?topic=ai`。同一份文件里 `topicPath` 早就写明主题必须是
 路径段（页头高亮靠 `currentPath` 精确匹配），feed 却用查询串，等于同一个域里
-主题一会儿是段一会儿是参数。旧的 `?topic=` 已删——查询串仍能解析，但只会拿到
-未过滤的全站 feed。
+主题一会儿是段一会儿是参数。旧的 `?topic=` 已删。
 
-**为什么走 path handler 而不是模块自挂 Fastify 路由**：`homePath` / `homeLayoutKey`
-只有 path handler 收得到。自挂路由天生看不见「这个站把枢纽设成首页了」，于是
-`/entities/openai` 的页面上会挂出一条 `/events/entities/openai/feed.xml` 的订阅
-链接——前缀在旁边所有链接上都已经 301 掉了。为此 marketing 的
+**为什么走 path handler 而不是模块自挂 Fastify 路由**：locale 剥离与 entitlement
+闸门只有这条链路收得到。为此 marketing 的
 `SitePathHandler.render` 扩成可回 `SitePathResponse`（`body` + `content_type` +
-`cache_control`），HTML 仍可直接回字符串。locale 剥离、entitlement 闸门、旧前缀
-301 一并白拿。
-
-想在模块内部补路由也补不动：根挂载的 `/ai/feed.xml` 与带语言前缀的 `/en/feed.xml`
-在 find-my-way 里是**同一个路由模式**，注册第二条直接抛重复路由。
+`cache_control`），HTML 仍可直接回字符串。
 
 `parseEventsPublicPath` **先认末段**（`feed.xml` / `og.png`），且认不出也不许往下掉：
-否则 `/events/entities/feed.xml` 会被读成 slug 为 `feed.xml` 的实体、`/events/feed.xml`
-会被读成同名事件详情——两种都是**静默 404**，排查时只看得到「这条不存在」。
-只有枢纽、主题格、实体页三种基地址有 feed；单条事件没有（`/events/:slug/feed.xml` → 404），
+否则 `/entities/feed.xml` 会被读成 slug 为 `feed.xml` 的实体。
+只有全站、主题格、实体页三种基地址有 feed；单条事件没有（`/events/:slug/feed.xml` → 404），
 不给不存在的东西发一份空 feed。
 
 四条细节：
@@ -1016,7 +1004,7 @@ release / filing 是预防性的：同一批样本里没观察到碰撞（k8s 10
 
 与 shop 同形（`shop.cart-link` 是 chrome 块、`shop.cart` 是段）。两者共用同一份取址
 逻辑——「订阅哪个 feed」只该有一份判断。首屏订阅**不是**这条路：它是普通次按钮，
-href 存在 setting 里（默认 `/events/{topic_slug}/feed.xml`）。
+href 存在 setting 里（默认 `{feed}`）。
 
 chrome 块默认落在靠右、窄屏收进菜单。`icon_only` 打开后只画一个 RSS 图标，
 此时**必须**补 `aria-label`：图标本身已经 `aria-hidden`，不补就等于给了读屏软件

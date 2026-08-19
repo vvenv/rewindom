@@ -8,7 +8,6 @@ import {
   entityIndexPath,
   entityPath,
   eventPath,
-  eventsIndexPath,
 } from "../../shared/index.js";
 
 import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
@@ -229,7 +228,7 @@ export async function getPublicEventsForRss(
   return rows.map((record) => toEventListItem(record, null));
 }
 
-/** 某个实体的事件，供 `/events/entities/<slug>/feed.xml` 用。 */
+/** 某个实体的事件，供 `/entities/<slug>/feed.xml` 用。 */
 export async function getPublicEntityEventsForRss(
   tenantId: string,
   slug: string,
@@ -449,7 +448,7 @@ export async function getPublicEventSitemapEntries(
 
   return rows.map((row) => {
     const path = withSiteLocale(
-      eventPath(row.slug, site.indexPath),
+      eventPath(row.slug),
       site.locale,
       site.locale,
     );
@@ -488,7 +487,7 @@ export async function getPublicEntitySitemapEntries(
 
   return rows.map((row) => {
     const path = withSiteLocale(
-      entityPath(row.slug, site.indexPath),
+      entityPath(row.slug),
       site.locale,
       site.locale,
     );
@@ -684,7 +683,7 @@ export async function getEntityIndexSitemapEntry(
   if (!newest) return [];
 
   const path = withSiteLocale(
-    entityIndexPath(site.indexPath),
+    entityIndexPath(),
     site.locale,
     site.locale,
   );
@@ -699,20 +698,14 @@ export async function getEntityIndexSitemapEntry(
 
 async function resolvePublicSite(
   tenantId: string,
-): Promise<{ locale: AppLocale; indexPath: string }> {
+): Promise<{ locale: AppLocale }> {
   const site = await prisma.marketingSite.findFirst({
     where: withTenantScope(tenantId),
     select: {
       default_locale: true,
-      home_path: true,
-      home_layout_key: true,
     },
   });
   return {
     locale: normalizeLocale(site?.default_locale),
-    indexPath: eventsIndexPath({
-      homePath: site?.home_path ?? undefined,
-      homeLayoutKey: site?.home_layout_key ?? undefined,
-    }),
   };
 }

@@ -150,38 +150,36 @@ describe("isFeedCollecting", () => {
 });
 
 describe("isEventsPath", () => {
-  it("接首页、主题、事件详情与实体页", () => {
-    expect(isEventsPath("/events")).toBe(true);
-    expect(isEventsPath("/events/ai")).toBe(true);
+  it("接主题、事件详情与实体页", () => {
+    expect(isEventsPath("/topics/ai")).toBe(true);
     expect(isEventsPath("/events/openai-gpt6-abc123")).toBe(true);
-    expect(isEventsPath("/events/entities/openai-abc123")).toBe(true);
+    expect(isEventsPath("/entities/openai-abc123")).toBe(true);
+    expect(isEventsPath("/events")).toBe(false);
+    expect(isEventsPath("/ai")).toBe(false);
   });
 
   /*
    * RSS 与 og.png 也归本 handler（marketing 的 render 可以回非 HTML）。
-   * 不先认末段的话，`/events/feed.xml` 会被当成 slug 为 `feed.xml` 的
+   * 不先认末段的话，`/feed.xml` 会掉出树、`/events/foo/og.png` 会被当成
    * 事件详情，静默变成 404。
    */
   it("接 RSS 与卡片图", () => {
-    expect(isEventsPath("/events/feed.xml")).toBe(true);
-    expect(isEventsPath("/events/ai/feed.xml")).toBe(true);
-    expect(isEventsPath("/events/entities/openai-abc123/feed.xml")).toBe(true);
+    expect(isEventsPath("/feed.xml")).toBe(true);
+    expect(isEventsPath("/topics/ai/feed.xml")).toBe(true);
+    expect(isEventsPath("/entities/openai-abc123/feed.xml")).toBe(true);
     expect(isEventsPath("/events/openai-gpt6-abc123/og.png")).toBe(true);
   });
 
   /* 不存在的东西不要生成一个空 feed / 一张空卡片图 —— 一律交回 404。 */
   it("不接没有 feed / 卡片图的那些地址", () => {
-    // 单条事件没有 feed
     expect(isEventsPath("/events/openai-gpt6-abc123/feed.xml")).toBe(false);
-    // 实体枢纽没有 feed
-    expect(isEventsPath("/events/entities/feed.xml")).toBe(false);
-    // 主题格与实体页没有卡片图
-    expect(isEventsPath("/events/ai/og.png")).toBe(false);
-    expect(isEventsPath("/events/entities/openai-abc123/og.png")).toBe(false);
+    expect(isEventsPath("/entities/feed.xml")).toBe(false);
+    expect(isEventsPath("/topics/ai/og.png")).toBe(false);
+    expect(isEventsPath("/entities/openai-abc123/og.png")).toBe(false);
   });
 
   it("再深的路径交回给普通页面查找", () => {
-    expect(isEventsPath("/events/entities/a/b")).toBe(false);
+    expect(isEventsPath("/entities/a/b")).toBe(false);
     expect(isEventsPath("/eventsomething")).toBe(false);
   });
 });

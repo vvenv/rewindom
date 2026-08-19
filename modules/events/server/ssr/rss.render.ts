@@ -1,19 +1,9 @@
 /**
  * 公开 RSS 订阅的渲染。
  *
- * **地址跟着枢纽挂载走**（左=默认，右=枢纽当首页）：
- *   /events/feed.xml                → /feed.xml                这个站在报什么
- *   /events/:topic/feed.xml         → /:topic/feed.xml         只看某个主题
- *   /events/entities/:slug/feed.xml → /entities/:slug/feed.xml 只看某个公司 / 产品
- *
- * **为什么从模块自挂的 Fastify 路由搬进 path handler**：`homePath` /
- * `homeLayoutKey` 只有 path handler 收得到。自挂路由天生看不见「这个站把枢纽
- * 设成首页了」，于是 `/entities/openai` 的页面上会挂出一条
- * `/events/entities/openai/feed.xml` 的订阅链接——前缀在旁边所有链接上都已经
- * 301 掉了。搬进来之后 locale 剥离、entitlement 闸门、旧前缀 301 也一并白拿。
- *
- * 想在模块内部补路由也补不动：根挂载的 `/ai/feed.xml` 与带语言前缀的
- * `/en/feed.xml` 在 find-my-way 里是**同一个路由模式**，注册第二条直接抛重复路由。
+ *   /feed.xml                    这个站在报什么
+ *   /topics/:topic/feed.xml      只看某个主题
+ *   /entities/:slug/feed.xml     只看某个公司 / 产品
  */
 
 import { eventsMessage } from "./events-preset-i18n.js";
@@ -22,7 +12,7 @@ import {
   getPublicEventsForRss,
 } from "./public-events.service.js";
 
-import { entityPath, eventPath } from "../../shared/index.js";
+import { entityPath, eventPath, eventsHubPath } from "../../shared/index.js";
 import { renderRssXml } from "../../shared/sections/rss-xml.js";
 
 import { getSiteChromeOrFallback } from "@rewindom/builtin/marketing/server/site.service.js";
@@ -43,8 +33,6 @@ interface FeedInput {
   locale: AppLocale;
   /** feed 自身的对外地址（逻辑路径，不含 locale 前缀） */
   selfPath: string;
-  /** 枢纽地址，已按挂载算好 */
-  indexPath: string;
 }
 
 interface FeedScope extends FeedInput {
@@ -86,7 +74,7 @@ export async function renderEventsFeed(
   return sendRss(
     renderRssXml({
       title,
-      link: absolute(scope, scope.indexPath),
+      link: absolute(scope, eventsHubPath()),
       description: t("pageDescription"),
       self_url: absolute(scope, scope.selfPath),
       language: scope.locale,
@@ -109,7 +97,7 @@ export async function renderEntityFeed(
   return sendRss(
     renderRssXml({
       title: `${scope.siteName} · ${entity.name}`,
-      link: absolute(scope, entityPath(slug, scope.indexPath)),
+      link: absolute(scope, entityPath(slug)),
       description: eventsMessage(scope.locale, "entity.relatedEvents"),
       self_url: absolute(scope, scope.selfPath),
       language: scope.locale,
@@ -132,7 +120,7 @@ function toRssItem(event: EventListItem, scope: FeedScope) {
       : "";
   return {
     title: event.title,
-    link: absolute(scope, eventPath(event.slug, scope.indexPath)),
+    link: absolute(scope, eventPath(event.slug)),
     // headline 是摘要的第一句；再拼一行来源，让阅读器里也能看出跨源程度
     description: [event.headline, sources].filter(Boolean).join("\n"),
     published_at: event.last_activity_at,

@@ -27,26 +27,26 @@ describe("interpolateSiteText", () => {
 });
 
 describe("interpolateSiteHref", () => {
-  it("空路径段收掉，站点首页的当前主题 RSS 变成全站 feed", () => {
+  it("空路径段收掉，不会留下 //", () => {
     expect(
-      interpolateSiteHref("/events/{topic_slug}/feed.xml", { topic_slug: "" }),
-    ).toBe("/events/feed.xml");
+      interpolateSiteHref("/topics/{topic_slug}/feed.xml", { topic_slug: "" }),
+    ).toBe("/topics/feed.xml");
   });
 
   it("有主题时留下那一段", () => {
     expect(
-      interpolateSiteHref("/events/{topic_slug}/feed.xml", {
+      interpolateSiteHref("/topics/{topic_slug}/feed.xml", {
         topic_slug: "ai",
       }),
-    ).toBe("/events/ai/feed.xml");
+    ).toBe("/topics/ai/feed.xml");
   });
 
   it("空查询值整项丢掉", () => {
     expect(
-      interpolateSiteHref("/events/feed.xml?topic={topic_slug}", {
+      interpolateSiteHref("/feed.xml?topic={topic_slug}", {
         topic_slug: "",
       }),
-    ).toBe("/events/feed.xml");
+    ).toBe("/feed.xml");
   });
 
   it("外链只做文本替换，不拆路径", () => {

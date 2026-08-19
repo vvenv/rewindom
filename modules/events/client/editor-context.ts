@@ -21,7 +21,6 @@ import {
   EVENT_TOPICS,
   emptyEventsContext,
   eventsContextEntry,
-  eventsIndexPath,
   toPublicCard,
   toPublicDetail,
   toPublicEntity,
@@ -77,10 +76,6 @@ export function registerEventsEditorContext(): void {
        */
       const locale = normalizeLocale(input.locale);
       const t = translator(locale);
-      const indexPath = eventsIndexPath({
-        homePath: input.homePath,
-        homeLayoutKey: input.homeLayoutKey,
-      });
       const wantFeed = wantsAny(input.usedTypes, [
         ...EVENTS_FEED_SECTION_TYPES,
         EVENTS_DETAIL_SECTION_TYPE,
@@ -94,7 +89,7 @@ export function registerEventsEditorContext(): void {
 
       const enabled = await loadEnabledTopics();
       /*
-       * 专题模板没有「当前格子」——地址是 `/events/:topic`。用已启用的第一格
+       * 专题模板没有「当前格子」——地址是 `/topics/:topic`。用已启用的第一格
        * 当样张，好让 `{topic}` / `{topic_slug}` 在预览里看得见。
        */
       const sampleTopic =
@@ -102,31 +97,30 @@ export function registerEventsEditorContext(): void {
       const topicLabel = sampleTopic ? t(`topic.${sampleTopic}`) : undefined;
 
       const [feed, entityRows, heroStats] = await Promise.all([
-        wantFeed ? loadFeed(t, indexPath, sampleTopic) : Promise.resolve({ rising: [], now: [] }),
+        wantFeed ? loadFeed(t, sampleTopic) : Promise.resolve({ rising: [], now: [] }),
         wantStrip || wantHub ? loadEntityIndex() : Promise.resolve([]),
         wantHero ? loadHeroStats(sampleTopic) : Promise.resolve(null),
       ]);
       const event =
         wantFeed && input.pageKind === EVENTS_DETAIL_PAGE_KIND
-          ? await loadSampleDetail(t, indexPath)
+          ? await loadSampleDetail(t)
           : null;
 
       return eventsContextEntry(
         emptyEventsContext({
-          index_path: indexPath,
           topic: sampleTopic,
           topic_label: topicLabel,
           nav_topics: eventsNavTopicOptions(locale, enabled),
           feed,
           event,
           entity: wantEntity
-            ? toPublicEntity(sampleEntityData(t), t, indexPath)
+            ? toPublicEntity(sampleEntityData(t), t)
             : undefined,
           entity_index: wantHub
-            ? toPublicEntityIndex(entityRows, t, indexPath)
+            ? toPublicEntityIndex(entityRows, t)
             : undefined,
           entity_strip: wantStrip
-            ? toPublicEntityStrip(entityRows, indexPath)
+            ? toPublicEntityStrip(entityRows)
             : undefined,
           hero: heroStats ? toPublicHero(heroStats, t) : undefined,
         }),
@@ -155,7 +149,6 @@ async function loadEnabledTopics(): Promise<readonly EventTopic[]> {
 
 async function loadFeed(
   t: ReturnType<typeof translator>,
-  indexPath: string,
   topic?: EventTopic,
 ) {
   try {
@@ -164,7 +157,7 @@ async function loadFeed(
       topic ? { topic } : undefined,
     );
     const cards = (items: EventListItem[]) =>
-      items.map((item) => toPublicCard(item, t, indexPath));
+      items.map((item) => toPublicCard(item, t));
     if (data.now.length > 0 || data.rising.length > 0) {
       return {
         rising: cards(data.rising),
@@ -174,9 +167,7 @@ async function loadFeed(
   } catch {
     // 拉不到就用样张，预览结构仍与实站同一套渲染器
   }
-  const sample = sampleEventList(t).map((item) =>
-    toPublicCard(item, t, indexPath),
-  );
+  const sample = sampleEventList(t).map((item) => toPublicCard(item, t));
   return { rising: sample, now: sample };
 }
 
@@ -184,10 +175,7 @@ async function loadFeed(
  * 详情模板页在编辑器里没有「当前事件」——地址是 `/events/:slug`，预览时哪个都不是。
  * 取最新一条真实事件当样张；一条都没有时用内置占位。
  */
-async function loadSampleDetail(
-  t: ReturnType<typeof translator>,
-  indexPath: string,
-) {
+async function loadSampleDetail(t: ReturnType<typeof translator>) {
   try {
     const list = await api.get<{ items: EventListItem[] }>("/events", {
       page: 1,
@@ -196,12 +184,12 @@ async function loadSampleDetail(
     const first = list.items[0];
     if (first) {
       const detail = await api.get<EventDetail>(`/events/${first.id}`);
-      return toPublicDetail(detail, t, indexPath);
+      return toPublicDetail(detail, t);
     }
   } catch {
     // 同上
   }
-  return toPublicDetail(sampleEventDetail(t), t, indexPath);
+  return toPublicDetail(sampleEventDetail(t), t);
 }
 
 async function loadEntityIndex(): Promise<PublicEntityIndexRow[]> {

@@ -100,7 +100,7 @@ describe("resolveNavItems", () => {
       [
         item({
           label: "订阅 {topic}",
-          href: "/events/{topic_slug}/feed.xml",
+          href: "/topics/{topic_slug}/feed.xml",
         }),
       ],
       ctx({ interpolation: { topic: "AI", topic_slug: "" } }),
@@ -108,7 +108,7 @@ describe("resolveNavItems", () => {
     expect(resolved).toEqual([
       expect.objectContaining({
         label: "订阅 AI",
-        href: "/events/feed.xml",
+        href: "/topics/feed.xml",
       }),
     ]);
   });

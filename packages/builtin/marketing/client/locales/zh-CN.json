@@ -512,7 +512,7 @@
       "chrome_nav_items": "点「添加」可选四种来源：自定义链接、全部一级页面、文档库、某个文档分类。后三种是规则，展开成哪些链接由内容决定。",
       "chrome_nav_display": "横排适合页头导航与底栏的法务链接；竖列适合页脚的链接列。",
       "chrome_text": "占位符在渲染时替换，写死就会过期：{year} 当前年份、{site} 站点名、{hostname} 当前域名（不含端口）、{url} 当前站点地址（含协议，无末尾斜杠）。业务页还可以贡献自己的占位符（如 {topic}）。默认的「© {year} {site}」因此跨年与改站名都会自己跟上。",
-      "site_interpolation_href": "可写 {year} {site} {hostname} {url}；业务页还会填自己的占位符（如 {topic_slug}）。空路径段会收掉，所以 /events/{topic_slug}/feed.xml 在站点首页是全站 feed。",
+      "site_interpolation_href": "可写 {year} {site} {hostname} {url}；业务页还会填自己的占位符（如 {topic} {topic_slug} {feed}）。空路径段会收掉。",
       "chrome_row_gap": "同一行里块与块之间、以及行与行之间的距离。",
       "chrome_divider": "朝着正文那一侧的分隔线（页头在下、页脚在上）。换成深色底时通常关掉。",
       "chrome_spacing_above": "页脚与正文之间的距离。",

@@ -90,15 +90,15 @@ describe("events nav sources", () => {
       ctx(),
     );
     expect(rest).toHaveLength(0);
-    expect(root).toMatchObject({ label: "事件", href: "/events" });
+    expect(root).toMatchObject({ label: "事件", href: "/" });
     expect(root?.children).toHaveLength(EVENT_TOPICS.length);
     expect(root?.children[0]).toMatchObject({
       label: "AI",
-      href: "/events/ai",
+      href: "/topics/ai",
     });
   });
 
-  it("枢纽当首页时主题链到 /:topic", () => {
+  it("主题链到 /topics/:slug", () => {
     const items = resolveNavItems([item()], {
       ...ctx(),
       contributed: eventsContextEntry(
@@ -109,7 +109,7 @@ describe("events nav sources", () => {
       ),
     });
     expect(items.map((entry) => entry.href)).toEqual(
-      EVENT_TOPICS.map((topic) => eventsIndexHref({ topic }, "/")),
+      EVENT_TOPICS.map((topic) => eventsIndexHref({ topic })),
     );
   });
 
@@ -137,7 +137,7 @@ describe("events nav sources", () => {
     );
     expect(root).toMatchObject({
       label: "游戏",
-      href: "/events/gaming",
+      href: "/topics/gaming",
     });
     expect(root?.children).toEqual([]);
   });
@@ -170,22 +170,16 @@ describe("events nav sources", () => {
   it("当前主题路径高亮，其它格不高亮", () => {
     const items = resolveNavItems([item()], {
       ...ctx(),
-      currentPath: "/events/ai",
+      currentPath: "/topics/ai",
     });
     expect(items.find((entry) => entry.label === "AI")?.current).toBe(true);
     expect(items.find((entry) => entry.label === "科技")?.current).toBe(false);
   });
 
-  it("枢纽当首页时按 /:topic 高亮", () => {
+  it("按 /topics/:slug 高亮", () => {
     const items = resolveNavItems([item()], {
       ...ctx(),
-      currentPath: "/gaming",
-      contributed: eventsContextEntry(
-        emptyEventsContext({
-          index_path: "/",
-          nav_topics: eventsNavTopicOptions("zh-CN"),
-        }),
-      ),
+      currentPath: "/topics/gaming",
     });
     expect(items.find((entry) => entry.label === "游戏")?.current).toBe(true);
     expect(items.find((entry) => entry.label === "AI")?.current).toBe(false);
@@ -194,7 +188,7 @@ describe("events nav sources", () => {
   it("枢纽本身不高亮任何主题格", () => {
     const items = resolveNavItems([item()], {
       ...ctx(),
-      currentPath: "/events",
+      currentPath: "/",
     });
     expect(items.every((entry) => entry.current === false)).toBe(true);
   });

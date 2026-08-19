@@ -42,10 +42,22 @@ vi.mock("./public-events.service.js", () => ({
 }));
 
 const { renderEventsPath } = await import("./events-path-handler.js");
+const { eventsRisingSection, eventsNowSection } = await import(
+  "../../shared/index.js"
+);
+const { registerSectionDefinition } = await import(
+  "@rewindom/builtin/marketing/shared/sections/index.js"
+);
 
-const ROOT_MOUNT = { homePath: "/", homeLayoutKey: "events.home" };
+registerSectionDefinition(eventsRisingSection);
+registerSectionDefinition(eventsNowSection);
 
-function input(path: string, mount: Record<string, string> = {}) {
+const RADAR_HOME = { homeLayoutKey: "events.home" };
+
+function input(
+  path: string,
+  mount: Record<string, unknown> = {},
+) {
   return {
     tenantId: "t1",
     tenantSlug: "acme",
@@ -65,20 +77,20 @@ beforeEach(() => {
 });
 
 describe("非 HTML 地址的分派", () => {
-  it("默认前缀下认三条", async () => {
-    await renderEventsPath(input("/events/feed.xml"));
+  it("认三条规范地址", async () => {
+    await renderEventsPath(input("/feed.xml"));
     expect(renderEventsFeed).toHaveBeenCalledWith(
-      expect.objectContaining({ indexPath: "/events" }),
+      expect.objectContaining({ selfPath: "/feed.xml" }),
       undefined,
     );
 
-    await renderEventsPath(input("/events/ai/feed.xml"));
+    await renderEventsPath(input("/topics/ai/feed.xml"));
     expect(renderEventsFeed).toHaveBeenLastCalledWith(
-      expect.objectContaining({ selfPath: "/events/ai/feed.xml" }),
+      expect.objectContaining({ selfPath: "/topics/ai/feed.xml" }),
       "ai",
     );
 
-    await renderEventsPath(input("/events/entities/openai/feed.xml"));
+    await renderEventsPath(input("/entities/openai/feed.xml"));
     expect(renderEntityFeed).toHaveBeenCalledWith(
       expect.anything(),
       "openai",
@@ -90,46 +102,35 @@ describe("非 HTML 地址的分派", () => {
     );
   });
 
-  /* 本次改动的主诉：根挂载的站点上，订阅地址与页面地址同一套前缀。 */
-  it("枢纽当首页时收到根上", async () => {
-    await renderEventsPath(input("/feed.xml", ROOT_MOUNT));
-    expect(renderEventsFeed).toHaveBeenCalledWith(
-      expect.objectContaining({ indexPath: "/", selfPath: "/feed.xml" }),
-      undefined,
-    );
-
-    await renderEventsPath(input("/ai/feed.xml", ROOT_MOUNT));
-    expect(renderEventsFeed).toHaveBeenLastCalledWith(
-      expect.objectContaining({ indexPath: "/" }),
-      "ai",
-    );
-
-    await renderEventsPath(input("/entities/openai/feed.xml", ROOT_MOUNT));
-    expect(renderEntityFeed).toHaveBeenCalledWith(expect.anything(), "openai");
-
-    await renderEventsPath(input("/foo-abc123/og.png", ROOT_MOUNT));
-    expect(renderEventOgImage).toHaveBeenCalledWith(
-      expect.objectContaining({ slug: "foo-abc123" }),
-    );
+  it("旧地址不接、不转", async () => {
+    await expect(renderEventsPath(input("/events/feed.xml"))).resolves.toBeNull();
+    await expect(renderEventsPath(input("/ai/feed.xml"))).resolves.toBeNull();
+    await expect(
+      renderEventsPath(input("/events/entities/openai/feed.xml")),
+    ).resolves.toBeNull();
+    await expect(
+      renderEventsPath(input("/foo-abc123/og.png")),
+    ).resolves.toBeNull();
+    expect(renderEventsFeed).not.toHaveBeenCalled();
+    expect(renderEntityFeed).not.toHaveBeenCalled();
+    expect(renderEventOgImage).not.toHaveBeenCalled();
   });
 
   /* 关掉的主题格对访客是 404——它的 feed 不能还在发内容。 */
   it("关掉的主题连 feed 一起 404", async () => {
     getEnabledTopics.mockResolvedValue(["tech"]);
     await expect(
-      renderEventsPath(input("/events/ai/feed.xml")),
+      renderEventsPath(input("/topics/ai/feed.xml")),
     ).resolves.toBeNull();
     expect(renderEventsFeed).not.toHaveBeenCalled();
   });
 
   it("没有 feed / 卡片图的地址一律交回 404", async () => {
-    // 单条事件没有 feed
     await expect(
       renderEventsPath(input("/events/foo-abc123/feed.xml")),
     ).resolves.toBeNull();
-    // 主题格没有卡片图
     await expect(
-      renderEventsPath(input("/events/ai/og.png")),
+      renderEventsPath(input("/topics/ai/og.png")),
     ).resolves.toBeNull();
     expect(renderEventsFeed).not.toHaveBeenCalled();
     expect(renderEventOgImage).not.toHaveBeenCalled();
@@ -137,17 +138,26 @@ describe("非 HTML 地址的分派", () => {
 });
 
 describe("HTML 页的模板 kind", () => {
-  it("枢纽走 events_index", async () => {
-    await renderEventsPath(input("/events"));
+  it("专题路径走 events_topic", async () => {
+    await renderEventsPath(input("/topics/ai"));
     expect(renderEventsTemplatePage).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: "events_index" }),
+      expect.objectContaining({ kind: "events_topic" }),
     );
   });
 
-  it("专题路径走 events_topic，不是同一张枢纽页", async () => {
-    await renderEventsPath(input("/events/ai"));
+  it("/events 不是枢纽，旧 /:slug 与 /events/:topic 不接成专题", async () => {
+    await expect(renderEventsPath(input("/events"))).resolves.toBeNull();
+    await expect(renderEventsPath(input("/ai"))).resolves.toBeNull();
+    await expect(renderEventsPath(input("/events/ai"))).resolves.toBeNull();
+    expect(renderEventsTemplatePage).not.toHaveBeenCalled();
+  });
+
+  it("雷达首页带 ?source= 才接管列表", async () => {
+    await renderEventsPath(
+      input("/", { ...RADAR_HOME, query: { source: "rising" } }),
+    );
     expect(renderEventsTemplatePage).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: "events_topic" }),
+      expect.objectContaining({ kind: "home" }),
     );
   });
 });

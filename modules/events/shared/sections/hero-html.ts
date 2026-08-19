@@ -8,8 +8,8 @@
  * 首屏挂一串 0 比不挂更糟，与 entity_strip 空态返回 "" 同一条纪律。
  *
  * 枢纽 / 首页与专题页是两张模板。文案与按钮链接走与页脚同一套 `{token}`：
- * `{topic}` 是主题名，`{topic_slug}` 是路径段。订阅是普通次按钮，默认 href
- * `/events/{topic_slug}/feed.xml`，空段收掉后站点首页是全站 feed。
+ * `{topic}` 是主题名，`{topic_slug}` 是路径段，`{feed}` 是当前页 RSS。
+ * 订阅是普通次按钮，默认 href `{feed}`。
  */
 
 import {

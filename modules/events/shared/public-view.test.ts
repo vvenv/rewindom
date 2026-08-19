@@ -25,30 +25,18 @@ const t = (key: string, params?: Record<string, string | number>): string => {
 
 describe("toPublicEntityStrip", () => {
   it("ranks by event_count then name, and points See all at the hub", () => {
-    const strip = toPublicEntityStrip(
-      [
-        { slug: "zeta", name: "Zeta", event_count: 2 },
-        { slug: "alpha", name: "Alpha", event_count: 5 },
-        { slug: "beta", name: "Beta", event_count: 5 },
-      ],
-      "/events",
-    );
-    expect(strip.href).toBe("/events/entities");
+    const strip = toPublicEntityStrip([
+      { slug: "zeta", name: "Zeta", event_count: 2 },
+      { slug: "alpha", name: "Alpha", event_count: 5 },
+      { slug: "beta", name: "Beta", event_count: 5 },
+    ]);
+    expect(strip.href).toBe("/entities");
     expect(strip.items.map((item) => item.name)).toEqual([
       "Alpha",
       "Beta",
       "Zeta",
     ]);
-    expect(strip.items[0]?.href).toBe("/events/entities/alpha");
-  });
-
-  it("follows the home mount for both chip links and the hub", () => {
-    const strip = toPublicEntityStrip(
-      [{ slug: "openai", name: "OpenAI", event_count: 3 }],
-      "/",
-    );
-    expect(strip.href).toBe("/entities");
-    expect(strip.items[0]?.href).toBe("/entities/openai");
+    expect(strip.items[0]?.href).toBe("/entities/alpha");
   });
 });
 
@@ -62,9 +50,8 @@ describe("toPublicEntityIndex", () => {
         { kind: "unknown", slug: "x", name: "X", event_count: 1 },
       ],
       t,
-      "/events",
     );
-    expect(index.href).toBe("/events/entities");
+    expect(index.href).toBe("/entities");
     expect(index.groups.map((group) => group.kind)).toEqual([
       "company",
       "product",
@@ -74,17 +61,7 @@ describe("toPublicEntityIndex", () => {
       "OpenAI",
       "Google",
     ]);
-    expect(index.groups[1]?.items[0]?.href).toBe("/events/entities/gpt-6");
-  });
-
-  it("follows the home mount", () => {
-    const index = toPublicEntityIndex(
-      [{ kind: "company", slug: "openai", name: "OpenAI", event_count: 1 }],
-      t,
-      "/",
-    );
-    expect(index.href).toBe("/entities");
-    expect(index.groups[0]?.items[0]?.href).toBe("/entities/openai");
+    expect(index.groups[1]?.items[0]?.href).toBe("/entities/gpt-6");
   });
 });
 
@@ -126,10 +103,9 @@ describe("toPublicEntity", () => {
         ],
       },
       t,
-      "/events",
     );
-    expect(view.href).toBe("/events/entities/openai");
-    expect(view.feed_href).toBe("/events/entities/openai/feed.xml");
+    expect(view.href).toBe("/entities/openai");
+    expect(view.feed_href).toBe("/entities/openai/feed.xml");
     expect(view.kind_label).toBe("Company");
     expect(view.profile).toEqual([
       "12 events in 90 days",

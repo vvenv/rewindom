@@ -32,7 +32,7 @@ export const renderEventsDetailHtml: SectionHtmlRenderer = (section, ctx) => {
   const backLabel = settingText(s, "back_label");
   const back = backLabel
     ? `<a class="events-back" href="${escapeHtml(
-        siteHref(context?.index_path ?? "/events", ctx),
+        siteHref(context?.index_path ?? "/", ctx),
       )}">← ${escapeHtml(backLabel)}</a>`
     : "";
 

@@ -204,14 +204,14 @@ describe("chrome 文本占位符", () => {
       [
         block("chrome_button", {
           label: "订阅 {topic}",
-          href: "/events/{topic_slug}/feed.xml",
+          href: "/topics/{topic_slug}/feed.xml",
         }),
       ],
       {},
       { contributed: { interpolation: { topic: "AI", topic_slug: "" } } },
     );
     expect(html).toContain("订阅 AI");
-    expect(html).toContain('href="/events/feed.xml"');
+    expect(html).toContain('href="/topics/feed.xml"');
   });
 });
 

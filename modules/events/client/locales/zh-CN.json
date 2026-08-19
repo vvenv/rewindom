@@ -271,8 +271,8 @@
       "label": "首屏",
       "showStats": "显示实时计数",
       "showStatsInfo": "还没有事件时自动隐藏，不会在首屏挂一串 0",
-      "interpolationInfo": "可写 {topic}（当前主题名）与 {topic_slug}（路径段）。没有当前主题时这两项为空。",
-      "subscribeHrefInfo": "默认 /events/{topic_slug}/feed.xml：有当前主题时订那一格，没有时收成全站 feed。想钉死某一格就改成 /events/ai/feed.xml。"
+      "interpolationInfo": "可写 {topic}（当前主题名）、{topic_slug}（路径段）、{feed}（当前页 RSS）。没有当前主题时前两项为空。",
+      "subscribeHrefInfo": "默认 {feed}：订当前页对应的 feed（专题 / 实体 / 全站）。想钉死某一格就改成 /topics/ai/feed.xml。"
     }
   },
   "template": {

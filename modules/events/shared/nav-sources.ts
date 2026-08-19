@@ -10,7 +10,7 @@
  * | `events`       | 「事件」一条，下挂 7 格  | 7 个 topic 各占一条 |
  * | `events.topic` | 该 topic 一条            | 同左（叶子）        |
  *
- * 链接是 `/events/ai`（当首页时 `/ai`），不是 `?topic=`：页头高亮靠 currentPath
+ * 链接是 `/topics/ai`，不是 `?topic=`：页头高亮靠 currentPath
  * 精确匹配，查询串进不去。格子是产品枚举，站点可关掉其中几格（`nav_topics`）；
  * 页头只挂本源时，context provider 不得为了导航去拉 feed。
  */
@@ -21,8 +21,8 @@ import zhCN from "../client/locales/zh-CN.json" with { type: "json" };
 import { EVENTS_ENTITLEMENT } from "./entitlements.js";
 import { EVENT_TOPICS, isEventTopic, type EventTopic } from "./events.js";
 import {
-  EVENTS_INDEX_PATH,
   entityIndexPath,
+  eventsHubPath,
   eventsIndexHref,
   readEventsContext,
   type EventsRenderContext,
@@ -99,19 +99,14 @@ function topicItems(
   ctx: SiteNavContext,
   keyPrefix: string,
 ): ResolvedNavItem[] {
-  const indexPath = navIndexPath(ctx);
   return enabledTopicsFromContext(ctx).map((topic) =>
     makeNavLink(
       `${keyPrefix}:${topic}`,
       topicLabel(topic, ctx),
-      eventsIndexHref({ topic }, indexPath),
+      eventsIndexHref({ topic }),
       ctx,
     ),
   );
-}
-
-function navIndexPath(ctx: SiteNavContext): string {
-  return readEventsContext(ctx)?.index_path ?? EVENTS_INDEX_PATH;
 }
 
 function expandEventsTopics(
@@ -122,11 +117,11 @@ function expandEventsTopics(
   if (item.expand === "flat") {
     return items;
   }
-  const indexPath = navIndexPath(ctx);
+  const href = eventsHubPath();
   const label =
-    resolveNavLabel(item.label, ctx, indexPath) ||
+    resolveNavLabel(item.label, ctx, href) ||
     eventsNavFallbackLabel(ctx.locale);
-  return [makeNavLink(item.id, label, indexPath, ctx, items)];
+  return [makeNavLink(item.id, label, href, ctx, items)];
 }
 
 function expandEventsTopic(
@@ -141,7 +136,7 @@ function expandEventsTopic(
     makeNavLink(
       item.id,
       label,
-      eventsIndexHref({ topic: item.category }, navIndexPath(ctx)),
+      eventsIndexHref({ topic: item.category }),
       ctx,
     ),
   ];
@@ -193,7 +188,7 @@ export const EVENTS_ENTITIES_NAV_SOURCE_DEF: NavSourceDefinition = {
   entitlement: EVENTS_ENTITLEMENT.key,
   defaultExpand: "children",
   expand: (item, ctx) => {
-    const href = entityIndexPath(navIndexPath(ctx));
+    const href = entityIndexPath();
     const label =
       resolveNavLabel(item.label, ctx, href) ||
       messagesFor(ctx.locale).nav.entities;
