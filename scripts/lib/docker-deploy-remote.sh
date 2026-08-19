@@ -197,12 +197,15 @@ systemctl restart rewindom-acme-helper
 docker_create_source_tarball() {
   local tarball="$1"
   # COPYFILE_DISABLE：macOS 下禁止把 AppleDouble（._*）打进包，否则 Prisma 会把 ._*.prisma 当 schema 解析失败
+  # dist 在镜像里重建，不要把本机 vite/esbuild 产物打进去
   COPYFILE_DISABLE=1 tar -czf "$tarball" \
     --exclude='./node_modules' \
     --exclude='./apps/server/node_modules' \
     --exclude='./apps/client/node_modules' \
     --exclude='./packages/*/node_modules' \
     --exclude='./modules/*/node_modules' \
+    --exclude='./apps/server/dist' \
+    --exclude='./apps/client/dist' \
     --exclude='./.git' \
     --exclude='./release' \
     --exclude='./*.tar.gz' \

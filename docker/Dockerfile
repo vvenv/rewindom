@@ -58,6 +58,15 @@ RUN --mount=type=cache,id=rewindom-pnpm-store,target=/pnpm/store \
   rm -rf node_modules apps/*/node_modules packages/*/node_modules modules/*/node_modules \
   && pnpm install --frozen-lockfile --prod
 
+# migrate deploy 要读 schema；models 是指向 packages/modules 的软链。
+# 解成普通文件后，运行镜像不必再带整棵 workspace 源码。
+RUN mkdir -p /runtime/prisma/models \
+  && cp apps/server/prisma/schema.prisma /runtime/prisma/ \
+  && cp -a apps/server/prisma/migrations /runtime/prisma/ \
+  && for f in apps/server/prisma/models/*.prisma; do \
+       cp -L "$f" /runtime/prisma/models/; \
+     done
+
 FROM node:${NODE_VERSION}-bookworm-slim AS app
 
 ENV NODE_ENV=production
@@ -72,11 +81,12 @@ WORKDIR /app
 
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/server ./apps/server
+COPY --from=builder /app/apps/server/package.json /app/apps/server/prisma.config.ts ./apps/server/
+COPY --from=builder /app/apps/server/node_modules ./apps/server/node_modules
+COPY --from=builder /app/apps/server/dist/index.js ./apps/server/dist/index.js
+COPY --from=builder /runtime/prisma ./apps/server/prisma
+# OG 卡片读 apps/client/dist/assets/site-fonts；web 镜像另拷一份给 Nginx
 COPY --from=builder /app/apps/client/dist ./apps/client/dist
-COPY --from=builder /app/packages ./packages
-# Prisma schema 软链指向 modules/*；migrate deploy 需要它们在镜像内
-COPY --from=builder /app/modules ./modules
 
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

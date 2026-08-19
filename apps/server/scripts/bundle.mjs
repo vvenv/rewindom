@@ -93,7 +93,11 @@ await esbuild.build({
   platform: "node",
   format: "esm",
   target: "node22",
-  sourcemap: true,
+  minify: true,
+  keepNames: true,
+  legalComments: "none",
+  // 生产不配 --enable-source-maps；本地调试走 `tsx watch`，不必为镜像多带几十 MB 的 .map
+  sourcemap: false,
   banner: {
     js: 'import { createRequire as __rewindomCreateRequire } from "node:module";\nconst require = __rewindomCreateRequire(import.meta.url);',
   },
