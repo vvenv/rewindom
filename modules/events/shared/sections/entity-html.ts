@@ -41,6 +41,7 @@ export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
     `<header class="events-entity-head">`,
     `<h1 class="events-entity-name">${escapeHtml(entity.name)}</h1>`,
     `<p class="events-entity-meta">${escapeHtml(entity.kind_label)}</p>`,
+    profileHtml(entity.profile),
     `</header>`,
     eventsLabel
       ? `<h2 class="events-entity-section-title">${escapeHtml(eventsLabel)}</h2>`
@@ -51,6 +52,23 @@ export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
     .filter(Boolean)
     .join("");
 };
+
+/**
+ * 累计档案。实体页真正的价值在**累计**而不在列表——「这家近 90 天出过几次故障、
+ * 累计多久」是拿得出手的证据，而下面那个按时间排的列表回答不了它。
+ *
+ * 空数组时整块不渲染（窗口内不足两件事）。**不给段开关**：它是这个实体的身份，
+ * 不是一个可关的板块，与详情页的归位同一条理由。
+ */
+function profileHtml(profile: readonly string[]): string {
+  if (profile.length === 0) {
+    return "";
+  }
+  const items = profile
+    .map((text) => `<li class="events-profile-item">${escapeHtml(text)}</li>`)
+    .join("");
+  return `<ul class="events-profile">${items}</ul>`;
+}
 
 function emptyHtml(text: string): string {
   return text ? `<p class="events-empty">${escapeHtml(text)}</p>` : "";

@@ -37,6 +37,7 @@ function entity(overrides: Partial<PublicEntityView> = {}): PublicEntityView {
     name: "OpenAI",
     kind_label: "公司",
     event_count: 2,
+    profile: [],
     events: [card("a"), card("b")],
     ...overrides,
   };
@@ -83,6 +84,26 @@ describe("renderEventsEntityHtml", () => {
     const html = render(entity());
     expect(html).toContain('class="events-card"');
     expect(html).toContain("3 个来源正在跟进");
+  });
+
+  /*
+   * 实体页真正的价值在**累计**而不在下面那个按时间排的列表——
+   * 「这家近 90 天出过几次故障、累计多久」是列表回答不了的。
+   */
+  it("画出累计档案", () => {
+    const html = render(entity({ profile: ["近 90 天 12 件事", "故障 3 次"] }));
+    expect(html).toContain("events-profile");
+    expect(html).toContain("近 90 天 12 件事");
+    expect(html).toContain("故障 3 次");
+  });
+
+  /* 窗口内不足两件事时 service 给空数组，这里整块不画，而不是画一个空 ul。 */
+  it("没有档案时整块不渲染", () => {
+    expect(render(entity())).not.toContain("events-profile");
+  });
+
+  it("档案文案转义，不让数据带出标签", () => {
+    expect(render(entity({ profile: ["<b>3</b> 次"] }))).not.toContain("<b>");
   });
 
   it("关掉来源开关后不画来源", () => {

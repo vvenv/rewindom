@@ -440,6 +440,11 @@ export interface PublicEntityView {
   kind_label: string;
   /** 该实体关联了多少个事件 */
   event_count: number;
+  /**
+   * 已落成当前语言的累计档案（「近 90 天 12 件事」「故障 3 次」「累计 192 分钟」）。
+   * 空数组 = 窗口内不足两件事，整块不渲染。
+   */
+  profile: string[];
   events: PublicEventCard[];
 }
 

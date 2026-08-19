@@ -147,6 +147,15 @@ async function renderEntity(
         name: entity.name,
         kind_label: t(`entityKind.${entity.kind}`),
         event_count: entity.event_count,
+        // kind 参数是嵌套 code（`kind.outage`），先翻出来再代进去
+        profile: entity.profile.map((fact) =>
+          t(fact.code, {
+            ...fact.params,
+            ...(typeof fact.params?.kind === "string"
+              ? { kind: t(fact.params.kind) }
+              : {}),
+          }),
+        ),
         events: entity.events.map((item) => toCard(item, t, indexPath)),
       },
     }),

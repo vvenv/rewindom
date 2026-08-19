@@ -359,5 +359,10 @@
     "outageTotal": "此前几次累计 {{minutes}} 分钟",
     "previous": "上一次：{{days}} 天前 · {{title}}",
     "previousToday": "上一次：同一天稍早 · {{title}}"
+  },
+  "profile": {
+    "window": "近 {{days}} 天 {{count}} 件事",
+    "kindCount": "{{kind}} {{count}} 次",
+    "outageTotal": "故障累计 {{minutes}} 分钟"
   }
 }

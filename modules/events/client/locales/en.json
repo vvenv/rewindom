@@ -359,5 +359,10 @@
     "outageTotal": "{{minutes}} min of downtime across the earlier ones",
     "previous": "Previous: {{days}} days earlier · {{title}}",
     "previousToday": "Previous: earlier the same day · {{title}}"
+  },
+  "profile": {
+    "window": "{{count}} events in the last {{days}} days",
+    "kindCount": "{{kind}} ×{{count}}",
+    "outageTotal": "{{minutes}} min of downtime in total"
   }
 }

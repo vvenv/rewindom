@@ -29,7 +29,12 @@ import type { EventKind, EventPlacementFact } from "../../shared/index.js";
  * 比 related 的 30 天宽：归位问的是「这家一直在出什么事」，本来就该跨更长的跨度。
  * 比事件保留期（180 天）窄：不把快被清理的行算进来，否则数字会在某天悄悄变小。
  */
-const WINDOW_DAYS = 90;
+/**
+ * 导出给实体页档案共用。**两处不许各写一个数**：详情页说「近 90 天第 4 次」
+ * 而实体页按 60 天算，两个数字对不上会立刻被读者发现，而这种漂移极难查。
+ */
+export const PLACEMENT_WINDOW_DAYS = 90;
+const WINDOW_DAYS = PLACEMENT_WINDOW_DAYS;
 const DAY_MS = 86_400_000;
 
 export interface EventPlacementInput {

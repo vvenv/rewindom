@@ -64,6 +64,26 @@
 }
 
 /*
+ * 实体页的累计档案：横排一串，跟在实体名下面。用 · 分隔而不是各占一行——
+ * 它是一行摘要，画成列表会喧宾夺主。
+ */
+.events-profile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted-fg);
+  font-size: 0.875rem;
+}
+
+.events-profile-item + .events-profile-item::before {
+  content: "·";
+  margin-right: 0.75rem;
+}
+
+/*
  * 归位：紧跟标题、在摘要之前。刻意不做成卡片或色块——它是这条材料的注脚，
  * 不是一个板块，画重了会盖过摘要本身。
  */

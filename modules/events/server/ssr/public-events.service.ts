@@ -12,6 +12,7 @@ import { toEventDetail, toEventListItem } from "../event/event.mapper.js";
 import { listEventEntities } from "../event/entity.service.js";
 import { listRelatedEvents } from "../event/related.service.js";
 import { getEventPlacementForDetail } from "../event/placement.service.js";
+import { getEntityProfile } from "../event/entity-profile.service.js";
 import {
   listEventRevisions,
   publicRevisionSince,
@@ -21,6 +22,7 @@ import { getEnabledTopics } from "../event/topic-settings.service.js";
 import type {
   EventDetail,
   EventFeedTab,
+  EventPlacementFact,
   EventListItem,
   EventSourceKind,
   EventTopic,
@@ -349,6 +351,8 @@ export interface PublicEntityData {
   name: string;
   kind: string;
   event_count: number;
+  /** 累计档案，仍是 i18n code + 参数——落成文案在 path handler 那一步 */
+  profile: EventPlacementFact[];
   events: EventListItem[];
 }
 
@@ -371,7 +375,7 @@ export async function getPublicEntityBySlug(
 
   const enabled = await getEnabledTopics(tenantId);
   const eventFilter = enabledTopicWhere(enabled);
-  const [links, eventCount] = await Promise.all([
+  const [links, eventCount, profile] = await Promise.all([
     prisma.eventEntityLink.findMany({
       where: withTenantScope(tenantId, {
         entity: { slug },
@@ -387,12 +391,19 @@ export async function getPublicEntityBySlug(
         event: eventFilter,
       }),
     }),
+    // 与上面的列表同一个 event_filter：两个数字对不上读者会以为页面坏了
+    getEntityProfile({
+      tenant_id: tenantId,
+      entity_slug: slug,
+      event_filter: eventFilter,
+    }),
   ]);
 
   return {
     ...entity,
     event_count: eventCount,
     events: links.map((link) => toEventListItem(link.event, null)),
+    profile,
   };
 }
 
