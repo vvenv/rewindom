@@ -10,7 +10,6 @@
  */
 
 import { EVENTS_ENTITLEMENT } from "./entitlements.js";
-import { eventsFeedPath } from "./events-section-context.js";
 
 import {
   layoutSettings,
@@ -20,8 +19,6 @@ import {
 import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
 export const EVENTS_HERO_SECTION_TYPE = "events.hero";
-
-const EVENTS_FEED_PATH = eventsFeedPath();
 
 export const eventsHeroSection: SectionDefinition = {
   type: EVENTS_HERO_SECTION_TYPE,
@@ -67,12 +64,10 @@ export const eventsHeroSection: SectionDefinition = {
      * 主题页变体 —— `/ai` `/tech`… 与 `/` 渲染的是**同一张** CMS 页（events_index），
      * 所以主题版文案不能另起一张页，只能作为同一段上的覆盖字段。
      *
-     * 留空 = 用上面那条站点文案。三条都支持 `{{topic}}` 占位（换成已落成当前语言的
-     * 主题名）——不给占位就当固定文案用，不会硬塞。
+     * 留空 = 用站点那条。都支持 `{{topic}}` 占位（换成已落成当前语言的主题名）。
      *
-     * 为什么必须有：不覆盖的话 `/`、`/ai`、`/tech`、`/business` 会共用一颗 h1，
-     * 而它们的 `<title>` 各不相同。同一颗 h1 铺满整个主题面既不是给读者看的，
-     * 也是 `public-seo-audit` 当初写「不给列表硬塞 h1」要避开的那件事。
+     * 身份文案必须覆盖：不覆盖的话四个 URL 共用一颗 h1。订阅文案是同一颗按钮的
+     * 主题版，不是又一个「次按钮」——地址不在这里填，见下面的订阅按钮。
      */
     { type: "header", content: "events:section.hero.topicGroup" },
     {
@@ -91,21 +86,25 @@ export const eventsHeroSection: SectionDefinition = {
     {
       type: "text",
       id: "topic_secondary_label",
-      label: "events:section.hero.topicSecondaryLabel",
+      label: "events:section.hero.topicSubscribeLabel",
       default: "events:site.hero.topicSubscribe",
-      info: "events:section.hero.topicSecondaryInfo",
+      info: "events:section.hero.topicSubscribeInfo",
     },
     { type: "header", content: "editor.group.buttons" },
     /*
-     * 主按钮默认指向 RSS：订阅是**不需要账号**的那条留存腿（MODULE.md），
-     * 也是新加这一段时唯一一定存在的站内目的地。次按钮留空——「关于」是站点
-     * 自己的页，模块不该替租户假定它存在。
+     * 主按钮是通用链接（选页 / 手填）。订阅不是：地址跟页头订阅入口同一条
+     * `eventsSubscribeHref`，编辑器里不出现链接控件，也就不会跟选页打架。
+     *
+     * 键仍用 `secondary_label`：存量页已经写在这上面，换 id 会让编辑器变空白。
      */
-    ...linkSettings("primary", {
-      labelDefault: "events:site.subscribe",
-      hrefDefault: EVENTS_FEED_PATH,
-    }),
-    ...linkSettings("secondary"),
+    ...linkSettings("primary"),
+    {
+      type: "text",
+      id: "secondary_label",
+      label: "events:section.hero.subscribeLabel",
+      default: "events:site.subscribe",
+      info: "events:section.hero.subscribeInfo",
+    },
     /*
      * 通栏：光晕与顶部细线要贴视口，否则首屏看起来是页面里的一张卡片。
      * 正文仍居中限宽（content_width 默认），左右 24 = 站点 gutter。

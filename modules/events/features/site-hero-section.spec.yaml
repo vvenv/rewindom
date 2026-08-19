@@ -15,7 +15,7 @@
 # ---------- 必填 ----------
 module: events
 surfaces: [ssr, tenant]
-goal: events 贡献 `events.hero` 段——左侧文案主张（不是热榜 / 来源是证据），右侧一条按请求查出的实时计数（在追踪的事件、24h 合并的报道、在采集的来源、最近更新），首页首屏改用它替掉通用 band；主题枢纽上文案 / 计数 / 订阅一起跟着格子走，`entity_strip` 同样按格子过滤。
+goal: events 贡献 `events.hero` 段——左侧文案主张（不是热榜 / 来源是证据），右侧一条按请求查出的实时计数（在追踪的事件、24h 合并的报道、在采集的来源、最近更新），首页首屏改用它替掉通用 band；主题枢纽上身份文案 / 计数跟着格子走，`entity_strip` 同样按格子过滤。
 gold: modules/events/shared/sections/hero-html.ts
 touch:
   - modules/events/features/site-hero-section.spec.yaml
@@ -63,17 +63,17 @@ models: [] # 只读既有 NewsEvent / EventSignal / EventFeed，无新增字段
 #                     这是「多条报道 → 一个事件」的直接证据，不是热度的另一种写法。
 #      sources        EventFeed，enabled = true。
 #      updated_at     NewsEvent.last_activity_at 的最大值。
-# 2b. **主题枢纽**（`/ai` 等）与 `/` 是同一张 CMS 页，所以主题版文案是同一段上的
-#     三个覆盖字段（`topic_eyebrow` / `topic_headline` / `topic_secondary_label`），
-#     留空回落站点那条，都支持 `{{topic}}` 占位。不覆盖的话四个 URL 共用一颗 h1，
-#     而 `<title>` 各不相同——`public-seo-audit` 反对的是重复 h1，不是这一颗。
-#     主题身份走 `EventsRenderContext.topic_label`，不挂在 `hero` 上：计数为空时
-#     `hero` 是 null，那一格没事件不代表首屏该改回站点主张。
+# 2b. **主题枢纽**（`/ai` 等）与 `/` 是同一张 CMS 页，所以主题版身份文案是同一段上的
+#     覆盖字段（`topic_eyebrow` / `topic_headline` / `topic_secondary_label`），留空
+#     回落站点那条，都支持 `{{topic}}` 占位。不覆盖的话四个 URL 共用一颗 h1，而
+#     `<title>` 各不相同——`public-seo-audit` 反对的是重复 h1，不是这一颗。主题身份走
+#     `EventsRenderContext.topic_label`，不挂在 `hero` 上：计数为空时 `hero` 是
+#     null，那一格没事件不代表首屏该改回站点主张。订阅按钮没有链接控件，地址走
+#     `eventsSubscribeHref`（见 `hero-cta-literal.spec.yaml`）。订阅文案覆盖字段
+#     仍是 `topic_secondary_label`（编辑器叫「主题页订阅文案」）。
 # 2c. 计数与 `entity_strip` 一起跟着格子过滤（`renderIndex` 同一个 `topic`）。第三行
 #     在主题面换成「贡献来源」（该格在发展事件的 `source_names` 去重）：源的 topic
 #     只是采集提示，按它筛没有意义。其余三行口径不变。
-# 2d. 订阅按钮在主题面改指 `?topic=`，判据是**路径后缀**不是等值——`localizeSection`
-#     渲染前已经给 `link` 设置补过 locale 前缀，等值匹配只会在默认语言上生效。
 # 2. 相对时间在**建上下文时**就落成文案（`updated_label`），与 momentum_label 同一条理由：
 #    段渲染器是同步的、拿不到 i18n。粒度到分钟——SSR `cache-control: max-age=60`，
 #    最多差一分钟。同时吐 `<time datetime>` 保留机器可读的绝对时刻。

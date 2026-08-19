@@ -266,9 +266,11 @@
       "topicGroup": "Topic page variants",
       "topicEyebrow": "Topic eyebrow",
       "topicHeadline": "Topic headline",
-      "topicSecondaryLabel": "Topic secondary button",
+      "topicSubscribeLabel": "Topic subscribe label",
       "topicInfo": "Used only on topic pages like /ai or /tech; leave empty to reuse the one above. {{topic}} is replaced with the topic name",
-      "topicSecondaryInfo": "A button pointing at the site RSS switches to that topic's RSS on topic pages"
+      "topicSubscribeInfo": "Only changes the subscribe button's wording; the URL still follows that topic's RSS",
+      "subscribeLabel": "Subscribe button label",
+      "subscribeInfo": "Points at this page's RSS automatically — no link to pick or type"
     }
   },
   "template": {

@@ -3,16 +3,18 @@
  *
  * - `events.subscribe-link`：页头 / 页脚的 chrome 块（站点级常驻入口）
  * - `events.subscribe`：页面段（摆在正文流里，可带一句说明）
+ * - `events.hero` 的订阅按钮（没有 href 控件，只复用取址）
  *
  * 与 shop 同形（`shop.cart-link` 是 chrome 块、`shop.cart` 是段）：两个落点解决
- * 两种需求，但「订阅哪个 feed」这件事只该有一份判断。
+ * 两种需求，但「订阅哪个 feed」这件事只该有一份判断。首屏订阅按钮也走这份判断，
+ * 不要再给它配一个通用链接控件然后暗改 query。
  *
  * **地址按上下文挑**：当前页有实体就给这个实体的 feed，否则给全站 feed（带上当前 topic）。
  * chrome 块也拿得到 `contributed`，所以站点级的常驻入口同样能做到
  * 「读者在哪一页，就订阅哪一页对应的东西」。
  */
 
-import { eventsFeedPath, readEventsContext } from "../events-section-context.js";
+import { eventsSubscribeHref } from "../events-section-context.js";
 
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
 import {
@@ -25,14 +27,6 @@ import type { ChromeBlockHtmlRenderer } from "@rewindom/builtin/marketing/shared
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 const RSS_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>`;
-
-/** 当前页该订阅什么。两个渲染器共用，别各写一遍。 */
-function resolveFeedHref(input: { contributed?: Readonly<Record<string, unknown>> }): string {
-  const context = readEventsContext(input);
-  return context?.entity
-    ? context.entity.feed_href
-    : eventsFeedPath(context?.listing?.topic ?? context?.topic);
-}
 
 /**
  * 页头 / 页脚的 chrome 块。
@@ -51,7 +45,7 @@ export const renderEventsSubscribeBlockHtml: ChromeBlockHtmlRenderer = (
   }
 
   const iconOnly = settingBool(block.settings, "icon_only");
-  const href = escapeHtml(resolveFeedHref(input));
+  const href = escapeHtml(eventsSubscribeHref(input));
   const safeLabel = escapeHtml(label);
 
   return [
@@ -76,7 +70,7 @@ export const renderEventsSubscribeHtml: SectionHtmlRenderer = (section, ctx) => 
   }
 
   const hint = settingText(section.settings, "hint");
-  const href = escapeHtml(siteHref(resolveFeedHref(ctx), ctx));
+  const href = escapeHtml(siteHref(eventsSubscribeHref(ctx), ctx));
 
   return [
     `<div class="events-subscribe-block">`,

@@ -225,9 +225,8 @@ const INTRO_SUBHEAD = i18n({
 
 const INTRO_CTA = i18n({ "zh-CN": "它是怎么工作的", en: "How it works" });
 
-/** 订阅是不需要账号的那条留存腿，首屏给它一个次按钮。 */
-const INTRO_SECONDARY_CTA = i18n({ "zh-CN": "订阅 RSS", en: "Subscribe via RSS" });
-const INTRO_SECONDARY_HREF = "/events/feed.xml";
+/** 订阅是不需要账号的那条留存腿，首屏给它一个次按钮——地址不手填。 */
+const INTRO_SUBSCRIBE_CTA = i18n({ "zh-CN": "订阅 RSS", en: "Subscribe via RSS" });
 
 const FOOTER_LINK_LABEL = i18n({ "zh-CN": "关于", en: "About" });
 
@@ -279,8 +278,7 @@ function buildIntroHero(): SiteSection {
     show_glow: true,
     primary_label: INTRO_CTA,
     primary_href: ABOUT_PATH,
-    secondary_label: INTRO_SECONDARY_CTA,
-    secondary_href: INTRO_SECONDARY_HREF,
+    secondary_label: INTRO_SUBSCRIBE_CTA,
     anchor: INTRO_ANCHOR,
     padding_top: 72,
     padding_bottom: 64,

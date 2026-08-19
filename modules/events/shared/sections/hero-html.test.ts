@@ -46,7 +46,6 @@ function section(extra: Record<string, unknown> = {}): SiteSection {
       primary_label: "它是怎么工作的",
       primary_href: "/about",
       secondary_label: "订阅 RSS",
-      secondary_href: "/events/feed.xml",
       ...extra,
     },
   } as SiteSection;
@@ -162,28 +161,21 @@ describe("renderEventsHeroHtml · 主题枢纽", () => {
     expect(html).not.toContain("同一件事，来自多个来源");
   });
 
-  it("points the subscribe button at that topic's feed", () => {
+  it("points the subscribe button at that topic's feed without a stored href", () => {
     const html = render(hero(), {}, AI);
     expect(html).toContain('href="/events/feed.xml?topic=ai"');
     expect(html).toContain("订阅 AI 的 RSS");
-    // 租户填的其它链接一概不动
     expect(html).toContain('href="/about"');
   });
 
-  it("rewrites the feed link after localizeSection already prefixed it", () => {
-    // 非默认语言页面上，渲染器拿到的 href 已经带了 /zh-CN 前缀
-    const html = render(hero(), { secondary_href: "/zh-CN/events/feed.xml" }, AI);
-    expect(html).toContain('href="/zh-CN/events/feed.xml?topic=ai"');
-  });
-
-  it("leaves links that merely look like a feed alone", () => {
-    const external = render(
+  it("ignores a leftover secondary_href — subscribe is not a link picker", () => {
+    const html = render(
       hero(),
       { secondary_href: "https://elsewhere.example/events/feed.xml" },
       AI,
     );
-    expect(external).toContain('href="https://elsewhere.example/events/feed.xml"');
-    expect(external).not.toContain("?topic=");
+    expect(html).toContain('href="/events/feed.xml?topic=ai"');
+    expect(html).not.toContain("elsewhere.example");
   });
 
   it("keeps the topic copy even when the panel is empty", () => {

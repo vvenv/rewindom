@@ -266,9 +266,11 @@
       "topicGroup": "主题页变体",
       "topicEyebrow": "主题页眉标",
       "topicHeadline": "主题页标题",
-      "topicSecondaryLabel": "主题页次按钮文案",
+      "topicSubscribeLabel": "主题页订阅文案",
       "topicInfo": "只在 /ai、/tech 这类主题页上生效；留空则用上面那条。{{topic}} 会换成主题名",
-      "topicSecondaryInfo": "指向站点 RSS 的按钮在主题页上会自动改订该主题的 RSS"
+      "topicSubscribeInfo": "只改订阅按钮上的字；地址仍按当前主题自动指向对应 RSS",
+      "subscribeLabel": "订阅按钮文案",
+      "subscribeInfo": "地址按当前页自动指向对应 RSS，不用再选或填写链接"
     }
   },
   "template": {

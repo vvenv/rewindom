@@ -81,7 +81,7 @@ server/
 
 | 贡献物 | 说明 |
 | --- | --- |
-| 段 `events.hero` | 首屏。左列是文案主张（eyebrow / h1 / 副标题 / 双 CTA，全是 setting），右列是**按请求查出来的**实时计数。主题枢纽上换用 `topic_*` 覆盖文案、计数按格子过滤、订阅改指该主题 RSS。`live_events` 为 0 时整块计数不渲染 |
+| 段 `events.hero` | 首屏。左列是文案主张（eyebrow / h1 / 副标题 / 主按钮链接 / **订阅按钮**），右列是**按请求查出来的**实时计数。主题枢纽上换用 `topic_eyebrow` / `topic_headline` / `topic_secondary_label`、计数按格子过滤。订阅地址跟页头入口同一条 `eventsSubscribeHref`，编辑器里没有链接控件。`live_events` 为 0 时整块计数不渲染 |
 | 段 `events.rising` | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/events?source=rising`（枢纽当首页时是 `/?source=rising`） |
 | 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/events?source=now`（枢纽当首页时是 `/?source=now`） |
 | 段 `events.entity_strip` | 近期实体胶囊条，可摆在任意页面。近 30 天实体按事件数排序，默认 Top 24，字号一律、用数字角标表示权重。**主题枢纽上只列这一格事件里的实体**。「查看全部」打开实体枢纽。预设插在 Now 与订阅之间 |
@@ -129,8 +129,12 @@ server/
 ### 主题枢纽上的首屏
 
 `/`、`/ai`、`/tech`… 渲染的是**同一张** CMS 页（`events_index`）。所以主题版不是另一张页，
-是同一段上的三个覆盖字段（`topic_eyebrow` / `topic_headline` / `topic_secondary_label`），
-留空回落站点那条；三条都支持 `{{topic}}` 占位，换成已落成当前语言的主题名。
+是同一段上的覆盖字段（`topic_eyebrow` / `topic_headline` / `topic_secondary_label`），
+留空回落站点那条；都支持 `{{topic}}` 占位，换成已落成当前语言的主题名。
+
+主按钮是通用 `link`（选页 / 手填）。订阅按钮只有文案、没有链接控件——地址跟页头
+订阅入口共用 `eventsSubscribeHref`（当前页有主题就带 `?topic=`）。不要再给订阅配一个
+「次按钮链接」，也不要把主题版文案叫成「次按钮文案」。
 
 **为什么必须覆盖**：不覆盖的话 `/`、`/ai`、`/tech`、`/business` 共用一颗 h1，而它们的
 `<title>` 各不相同。同一颗 h1 铺满整个主题面既不是给读者看的，也正是
@@ -150,9 +154,8 @@ h1，不反对一颗说明这一格是什么的 h1。
 | `/` | 在采集的来源（`EventFeed.enabled`） | 站点配置事实 |
 | `/:topic` | 贡献来源（该格在发展事件的 `source_names` 去重） | 源的 `topic` 只是采集提示，一个源会产出好几个主题的事件，按它筛没有意义；`source_names` 是聚类时实际落进来的来源名 |
 
-订阅按钮跟着格子走：指向站点 feed 的那个按钮在 `/ai` 上改成 `?topic=ai`。判据是
-**路径后缀**不是等值——`localizeSection` 在渲染前就给 `link` 设置补过 locale 前缀，
-等值匹配会让主题订阅只在默认语言上生效。租户填的其它链接、已带查询串的链接一概不动。
+主题枢纽上的订阅（页头 chrome / 正文订阅段 / 首屏订阅按钮）按当前页取址，会带上 `?topic=`。
+首屏主按钮不参与这件事，避免和编辑器里的选页 / 手填打架。
 
 两处填数据：CMS 页走 section context provider，事件模板页（含把 `/events` 设为首页后的
 `/`）走 path handler 的 `renderIndex`——与 `entity_strip` 同一条分工。编辑器预览走

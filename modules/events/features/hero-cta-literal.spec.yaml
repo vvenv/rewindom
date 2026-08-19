@@ -1,0 +1,44 @@
+# 首屏把订阅做成了通用「次按钮」（文案 + 选页/手填），又另给一颗「主题页次按钮文案」，
+# 渲染时再暗改 `?topic=`。两套文案抢同一颗按钮，链接控件和自动取址也打架。
+# 正确拆法：订阅只留文案、地址走 `eventsSubscribeHref`；主按钮才是通用 link。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: events.hero 的订阅按钮不再占用次按钮链接控件；主题页只覆盖订阅文案，地址跟页头订阅入口同一条按页取址。
+gold: modules/events/shared/sections/subscribe-html.ts
+touch:
+  - modules/events/features/hero-cta-literal.spec.yaml
+  - modules/events/features/site-hero-section.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/sections/hero-html.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/shared/sections/subscribe-html.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/client/locales/en.json
+  - apps/server/scripts/apply-yestino-about.ts
+out_of_scope:
+  - 改 events.subscribe / chrome 的取址规则（只是抽成共用函数）
+  - 给每个主题另建 CMS 页
+  - 改计数 / entity_strip 的格子过滤
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/hero-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/subscribe-html.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. 主按钮 = 通用 `link`（选页 / 手填）。订阅按钮 = 只有 `secondary_label`
+#    （编辑器文案是「订阅按钮文案」，不是「次按钮文案」），没有 href 控件。
+#    主题版是 `topic_secondary_label`（「主题页订阅文案」），对应的是订阅按钮。
+# 2. 地址只从 `eventsSubscribeHref` 来（与 chrome / 订阅段同一份）。主题页带
+#    `?topic=` 是这条函数的职责，不是改写租户填的链接。
+# 3. 存量 `secondary_href` 忽略。键不换，避免编辑器里订阅文案变空白。

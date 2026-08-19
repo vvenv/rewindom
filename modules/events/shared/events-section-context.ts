@@ -134,6 +134,19 @@ export function eventsFeedPath(topic?: EventTopic): string {
 }
 
 /**
+ * 当前页该订哪个 feed。页头 chrome、正文订阅段、首屏订阅按钮共用，
+ * 不要再各写一遍「有实体订实体、有主题订主题」。
+ */
+export function eventsSubscribeHref(input: {
+  contributed?: SectionRenderContext["contributed"];
+}): string {
+  const context = readEventsContext(input);
+  return context?.entity
+    ? context.entity.feed_href
+    : eventsFeedPath(context?.listing?.topic ?? context?.topic);
+}
+
+/**
  * 事件的社交卡片图地址。
  *
  * 恒带 `/events` 前缀，**不跟着首页挂载收到根上**：它不是给人看的页面，
