@@ -29,9 +29,79 @@ export type EventTopic = (typeof EVENT_TOPICS)[number];
 /**
  * 来源分组。MVP §4 要求把来源摊开给用户看，并区分一手与讨论——
  * `official` 是当事方自己说的，`community` 是网友在讨论，二者不能混为一谈。
+ *
+ * 后三格是**非新闻源**：changelog / release notes（`release`）、状态页（`status`）、
+ * 监管与公告文件（`filing`）。加它们是刻意躲开竞品的强项——聚合器结构上不收这些，
+ * 因为它们不是「新闻」，而对读者「这家昨天上线了什么、刚出过什么故障」往往更有用。
+ *
+ * **这个数组只是枚举，不再兼职排序**。展示顺序在 `public-view.ts` 的
+ * `SOURCE_KIND_ORDER`，只有那一处。
  */
-export const EVENT_SOURCE_KINDS = ["official", "news", "community"] as const;
+export const EVENT_SOURCE_KINDS = [
+  "official",
+  "news",
+  "community",
+  "release",
+  "status",
+  "filing",
+] as const;
 export type EventSourceKind = (typeof EVENT_SOURCE_KINDS)[number];
+
+/**
+ * 一手来源——当事方自己说的话。
+ *
+ * `official` 曾经**就是**这个概念，四处代码直接写 `=== "official"`。加进非新闻源之后
+ * 两者分开了：状态页与发版公告同样是当事方自己发布的，证据强度不因为载体变了就变弱。
+ * 判「是不是一手」一律走 `isFirstPartySource`，不要再比字面量——漏一处的后果是
+ * 状态页故障掉出 `confirmed`，最该标可核对的一类反而落到留白。
+ */
+export const FIRST_PARTY_SOURCE_KINDS: readonly EventSourceKind[] = [
+  "official",
+  "release",
+  "status",
+  "filing",
+];
+
+export function isFirstPartySource(kind: EventSourceKind): boolean {
+  return FIRST_PARTY_SOURCE_KINDS.includes(kind);
+}
+
+/**
+ * 会被别的来源跟进的类型——Rising 只收这些。
+ *
+ * release / status / filing 天然单来源单信号：一次发版、一次故障极少被第二个源印证。
+ * 而 Rising 排的是 `recent_source_count`（跨源扩散，见 rising-signal.spec.yaml），
+ * 对它们恒为 1。放进去只会把真正在扩散的事件挤下去。
+ * Now（按热度）、实体页与对外 RSS 不设这道闸——那才是非新闻源的用武之地。
+ */
+export const CROSS_SOURCE_KINDS: readonly EventSourceKind[] = [
+  "official",
+  "news",
+  "community",
+];
+
+/**
+ * 只按 `canonical_url` 归属、不参与词面与语义聚类的类型。
+ *
+ * 这三类的标题在结构上就不适合当聚类输入。
+ *
+ * **status 是实测的**（githubstatus.com/history.rss，2026-08-19 抓的 25 条）：
+ * 25 次故障里 3 组指纹完全相同，最大的一组是**四次互不相干的故障**都叫
+ * `Incident with Actions`。指纹相同意味着连阈值都轮不上——`(tenant_id, fingerprint)`
+ * 的唯一约束会直接把它们合成一个事件。案例钉在 `title-tokens.test.ts` 里。
+ *
+ * **release / filing 是预防性的**：同一批样本内没有观察到碰撞（k8s 10 条、
+ * FTC 10 条各 0 组），但 `releases.atom` 的标题常常只有版本号（`v1.31.0`），
+ * 跨仓库撞版本号是同一类失效，而这一类失效的代价（把两件事说成一件）
+ * 远高于收益。要放宽先拿多仓库语料量一遍。
+ *
+ * 它们的每个条目都有独立 permalink，URL 归属已经够用。代价是「官方发版 + 媒体报道」
+ * 不会自动合并（除非报道恰好链到同一个 URL）——把两次不相干的故障并成一件事
+ * 比漏合并糟得多，与「精度换召回是刻意的」同一条原则。
+ */
+export function clustersByUrlOnly(kind: EventSourceKind): boolean {
+  return kind === "release" || kind === "status" || kind === "filing";
+}
 
 /** 首页两个区块。Rising 看正在变，Now 看还在发生。 */
 export const EVENT_FEED_TABS = ["rising", "now"] as const;

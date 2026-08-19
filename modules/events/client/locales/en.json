@@ -48,7 +48,10 @@
   "sourceKind": {
     "official": "Official",
     "news": "News",
-    "community": "Community"
+    "community": "Community",
+    "release": "Release",
+    "status": "Status",
+    "filing": "Filing"
   },
   "heat": {
     "rising": "↑ {{percent}}%",
@@ -91,7 +94,10 @@
     "officialUpdate": "{{source}} posted a follow-up",
     "news": "{{source}} started reporting",
     "moreCoverage": "{{source}} followed up",
-    "community": "Discussion started on {{source}}"
+    "community": "Discussion started on {{source}}",
+    "release": "{{source}} shipped a release",
+    "status": "{{source}} reported a service status change",
+    "filing": "{{source}} published a filing"
   },
   "follow": {
     "follow": "Follow event",

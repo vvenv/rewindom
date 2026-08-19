@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  clustersByUrlOnly,
+  CROSS_SOURCE_KINDS,
   describeEventMomentum,
   enabledTopicWhere,
+  EVENT_SOURCE_KINDS,
   EVENT_TOPICS,
   isFeedCollecting,
+  isFirstPartySource,
   parseEnabledTopicsInput,
   resolveEnabledTopics,
 } from "./events.js";
@@ -166,5 +170,43 @@ describe("isEventsPath", () => {
   it("再深的路径交回给普通页面查找", () => {
     expect(isEventsPath("/events/entity/a/b")).toBe(false);
     expect(isEventsPath("/eventsomething")).toBe(false);
+  });
+});
+
+/*
+ * 非新闻源的三条口径。它们互相牵制，改一条要看另外两条：
+ * 一手来源（证据强度）→ 进不进 Rising（跨源扩散）→ 走不走文本聚类（标题可不可靠）。
+ */
+describe("非新闻源", () => {
+  it("release / status / filing 都是一手来源", () => {
+    expect(EVENT_SOURCE_KINDS.filter(isFirstPartySource)).toEqual([
+      "official",
+      "release",
+      "status",
+      "filing",
+    ]);
+  });
+
+  /*
+   * 它们恒为单来源，而 Rising 排的是 recent_source_count（跨源扩散）。
+   * 放进去只会把真正在扩散的事件挤下去——线上 16 张卡有 13 张已经是单来源了。
+   */
+  it("Rising 只收会被别人跟进的类型", () => {
+    expect(CROSS_SOURCE_KINDS).toEqual(["official", "news", "community"]);
+    expect(CROSS_SOURCE_KINDS.some(clustersByUrlOnly)).toBe(false);
+  });
+
+  /*
+   * Statuspage 的标题高度模板化（`Investigating elevated error rates`），
+   * 同一厂商 72h 内两次不相干的故障标题可以逐字相同；releases.atom 常常只有
+   * 版本号。词面、语义、指纹三条路径对这种标题同时失效，所以三条一起绕开，
+   * 只认 canonical_url。
+   */
+  it("非新闻源只按 canonical_url 归属，新闻源照旧走文本聚类", () => {
+    expect(EVENT_SOURCE_KINDS.filter(clustersByUrlOnly)).toEqual([
+      "release",
+      "status",
+      "filing",
+    ]);
   });
 });

@@ -218,6 +218,12 @@ async function refreshEvent(
   const sourceNames = [
     ...new Set(signals.map((signal) => signal.source_name)),
   ].slice(0, SOURCE_NAME_LIMIT);
+  /*
+   * 类型集合不设上限：它的基数就是 EVENT_SOURCE_KINDS 的长度（六），
+   * 而 Rising 的过滤与公开面的类型筛都要求它是**完整**的——
+   * 截断会让一个既有新闻报道又有发版公告的事件随机掉出 Rising。
+   */
+  const sourceKinds = [...new Set(signals.map((signal) => signal.source_kind))];
 
   const analyzer = await analyzerFor(event.tenant_id);
   // 规则实现不受闸门约束，榜单也就不用查——本地开发与 CI 走的正是这条路
@@ -345,6 +351,7 @@ async function refreshEvent(
         signal_count: signals.length,
         source_count: new Set(signals.map((s) => s.source_name)).size,
         source_names: sourceNames,
+        source_kinds: sourceKinds,
         topic,
         first_seen_at: firstSeenAt,
         last_activity_at: lastActivityAt,

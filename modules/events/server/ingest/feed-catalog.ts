@@ -27,6 +27,10 @@ export interface FeedSeed {
  * 生产机房可能正常——这是既有目录里就存在的现象，不是新增源引入的。
  * 单个源失败不影响整轮采集，错误记在 `EventFeed.last_error` 上。
  *
+ * **非新闻源**（release / status / filing）是刻意的差异化落点，见文件末尾那一组。
+ * 它们的存在也解释了目录里为什么会有「同一家公司两条源」——博客是它在说什么，
+ * 状态页是它的系统在发生什么，两者不是一回事。
+ *
  * 中文源仍然不加：分词器对中文走二元切分、对英文走词切分，
  * 中英标题 token 交集恒为 0。语义层已经就位（见 MODULE.md「语义聚类」），
  * 但跨语言合并要单独校准阈值，属于独立决策。
@@ -77,7 +81,8 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   // ---- business
   { connector: "rss", name: "BBC Business", url: "https://feeds.bbci.co.uk/news/business/rss.xml", source_kind: "news", topic: "business" },
   { connector: "rss", name: "Financial Times", url: "https://www.ft.com/rss/home", source_kind: "news", topic: "business" },
-  { connector: "rss", name: "SEC Press Releases", url: "https://www.sec.gov/news/pressreleases.rss", source_kind: "official", topic: "business" },
+  { connector: "rss", name: "SEC Press Releases", url: "https://www.sec.gov/news/pressreleases.rss", source_kind: "filing", topic: "business" },
+  { connector: "rss", name: "FTC Press Releases", url: "https://www.ftc.gov/feeds/press-release.xml", source_kind: "filing", topic: "business" },
 
   // ---- world
   { connector: "rss", name: "BBC World", url: "https://feeds.bbci.co.uk/news/world/rss.xml", source_kind: "news", topic: "world" },
@@ -101,4 +106,30 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   { connector: "rss", name: "BBC Sport", url: "https://feeds.bbci.co.uk/sport/rss.xml", source_kind: "news", topic: "sports" },
   { connector: "rss", name: "ESPN", url: "https://www.espn.com/espn/rss/news", source_kind: "news", topic: "sports" },
   { connector: "rss", name: "Sky Sports", url: "https://www.skysports.com/rss/12040", source_kind: "news", topic: "sports" },
+
+  /*
+   * ---- 非新闻源 ----
+   *
+   * 竞品结构上不收这些——它们不是「新闻」。而对读者「这家昨天上线了什么、
+   * 刚出过什么故障」往往比「媒体写了什么」更有用，这正是躲开对方强项的落点。
+   *
+   * 三类都有现成 RSS/Atom，现有 rss connector 直接吃，不需要新 connector。
+   * 它们只按 canonical_url 归属，不参与文本聚类（见 shared 的 clustersByUrlOnly），
+   * 也不进 Rising（恒为单来源，见 CROSS_SOURCE_KINDS）。
+   */
+
+  // ---- release · GitHub 的 releases.atom，每条 release 一个独立 permalink
+  { connector: "rss", name: "Kubernetes Releases", url: "https://github.com/kubernetes/kubernetes/releases.atom", source_kind: "release", topic: "tech" },
+  { connector: "rss", name: "Rust Releases", url: "https://github.com/rust-lang/rust/releases.atom", source_kind: "release", topic: "tech" },
+  { connector: "rss", name: "Node.js Releases", url: "https://github.com/nodejs/node/releases.atom", source_kind: "release", topic: "tech" },
+  { connector: "rss", name: "Go Releases", url: "https://github.com/golang/go/releases.atom", source_kind: "release", topic: "tech" },
+  { connector: "rss", name: "Python Releases", url: "https://github.com/python/cpython/releases.atom", source_kind: "release", topic: "tech" },
+
+  // ---- status · Statuspage 的 history.rss，每次故障一个独立 permalink
+  { connector: "rss", name: "GitHub Status", url: "https://www.githubstatus.com/history.rss", source_kind: "status", topic: "tech" },
+  { connector: "rss", name: "Cloudflare Status", url: "https://www.cloudflarestatus.com/history.rss", source_kind: "status", topic: "tech" },
+  { connector: "rss", name: "npm Status", url: "https://status.npmjs.org/history.rss", source_kind: "status", topic: "tech" },
+  { connector: "rss", name: "Slack Status", url: "https://status.slack.com/feed/rss", source_kind: "status", topic: "tech" },
+  { connector: "rss", name: "OpenAI Status", url: "https://status.openai.com/history.rss", source_kind: "status", topic: "ai" },
+  { connector: "rss", name: "Anthropic Status", url: "https://status.anthropic.com/history.rss", source_kind: "status", topic: "ai" },
 ];

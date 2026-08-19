@@ -1,0 +1,209 @@
+# 目录里 36 个源全是「新闻」——这正是竞品最强的一条线（Google News 抓全网、
+# Techmeme 有编辑团队）。在这条线上比覆盖面永远比不过。
+#
+# 差异化的落点是**非新闻源**：changelog / release notes / status page / 监管公告。
+# 对 B 端读者「竞对昨天上线了什么」「这家云厂商刚出过什么故障」比「媒体写了什么」
+# 更有用，而聚合器结构上不收这些——它们不是「新闻」。
+#
+# 这些源的共同点：都是当事方自己发布的，都有现成 RSS/Atom（GitHub 的
+# `releases.atom`、Statuspage 的 `history.rss`、SEC 的 `.rss`），现有 rss
+# connector 直接吃，不需要第三个 connector。
+#
+# 代价是它们天然单来源单信号：一次发版、一次故障极少被第二个源印证。
+# 因此**不能让它们进 Rising**——Rising 排的是 recent_source_count（跨源扩散），
+# 而这些源恒为 1，进去只会把真正在扩散的事件挤下去（见 rising-signal.spec.yaml）。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: EVENT_SOURCE_KINDS 扩出 release / status / filing 三类非新闻源；内置目录补齐这三类；Rising 只收会被跨源跟进的类型，Now / 实体页 / 订阅全收；工作台可配、公开面可按类型筛。
+gold: modules/events/server/ingest/feed-catalog.ts
+touch:
+  - modules/events/features/non-news-sources.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/models.prisma
+  - apps/server/prisma/migrations/20260819100000_events_non_news_sources/
+  - packages/server-kernel/src/generated/prisma/client/ # prisma generate 产物
+  # 枚举、一手来源判据、Rising 闸门、聚类口径的真源
+  - modules/events/shared/events.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-sample.ts
+  # 所有把 source_kind === "official" 当「一手来源」用的地方
+  - modules/events/server/event/why-trending.ts
+  - modules/events/server/event/why-trending.test.ts
+  - modules/events/server/event/heat.ts
+  - modules/events/server/event/topic-classifier.ts
+  - modules/events/server/event/analyzer/heuristic-analyzer.ts
+  - modules/events/server/event/analyzer/llm-analyzer.ts
+  # 聚类：非新闻源只按 canonical_url 归属
+  - modules/events/server/event/cluster.service.ts
+  - modules/events/server/event/title-tokens.test.ts
+  - modules/events/server/ingest/ingest.service.ts
+  # source_kinds 冗余列的写入与读取
+  - modules/events/server/event/event-refresh.service.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.mapper.test.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  # 目录
+  - modules/events/server/ingest/feed-catalog.ts
+  # 工作台与文案
+  - modules/events/client/components/EventFeedFields.tsx
+  - modules/events/client/components/EventSourceGroups.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 招聘源（Greenhouse / Lever 是 JSON API，要写第三个 connector，单独一期）
+  - 新 connector（仍只有 hackernews 与 rss）
+  - 中文源（跨语言阈值要单独校准，见 MODULE.md「后续」）
+  - 段定义 / 模板页 / 导航源（本期不加段，公开面只加查询参数——要加段走 site-section）
+  - 带条件的对外 RSS（`?kind=release` 之类，见「后续」）
+  - 回填存量站点已有源的 source_kind（见设计要点 7）
+  - 改采集周期与并发
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/why-trending.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/event/title-tokens.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  # 目录里每个新增 URL 都要实际请求过，记下 HTTP 状态与条目数（沿用
+  # feed-catalog-expansion 的口径：不可达的源不进目录，除非确认是本地网络问题）
+  - 新增目录项逐条 curl 验证
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 沿用 events.read / events.follow / events.write
+models:
+  - name: NewsEvent
+    scope: tenant
+    fields:
+      # 与 source_names 同构的冗余列：Rising 要在库里按「有没有非新闻源之外的来源」
+      # 过滤，公开列表要按类型筛，两者都不能在应用层算完再排
+      - { name: source_kinds, type: String[], required: true, default: "[]" }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. 枚举扩到六格，但「一手来源」不再等于 official。
+#    EVENT_SOURCE_KINDS = official | news | community | release | status | filing
+#    枚举只活在 TS 里（DB 上 source_kind 是 String），所以扩枚举本身不需要 migration。
+#
+#    **配套改动是强制的，不是可选的**：现在有四处把 `=== "official"` 当
+#    「当事方自己说的话」用，不改就等于新类型静默降级。在 shared/events.ts 增
+#    `FIRST_PARTY_SOURCE_KINDS`（official / release / status / filing）与
+#    `isFirstPartySource()`，四处全部改成集合判定：
+#
+#    | 位置 | 现状 | 不改的后果 |
+#    | --- | --- | --- |
+#    | why-trending.ts:52 `officials` | `=== "official"` | 状态页故障、官方发版**掉出 confirmed**，落到留白——最该标 confirmed 的一类反而没标 |
+#    | heuristic-analyzer.ts:111 `resolveLabelCode` | `=== "official"` | 跟进条目被写成「跟进报道」，而它是官方补充说明 |
+#    | llm-analyzer.ts:140 `selectSignals` | `=== "official"` | 信号超额时优先保留的不再是一手来源 |
+#
+#    另有**四张穷举 Record<EventSourceKind, …>**，扩枚举后 tsc 会直接报错，
+#    不会漏掉——但值不值得想清楚，别随手填个数字：
+#      heat.ts `SOURCE_WEIGHT`               三个新类型一律取 2（与 official 同档）。
+#                                            这张表表达的是**证据强度**，当事方自己
+#                                            说的话不因为载体是状态页而变弱
+#      topic-classifier.ts `SOURCE_HINT_WEIGHT`  同理按一手来源档给
+#      heuristic-analyzer.ts `SOURCE_PRIORITY`   同上
+#      event.mapper.ts:216 分组初始化          三个新键必须初始化成 `[]`——
+#                                            漏一个，公开面 `detail.sources[kind].map`
+#                                            会在 undefined 上炸，且只在该类型
+#                                            首次出现时才炸
+#
+# 2. `confirmed` 的口径不变，只是「一手来源」的外延变宽。判据仍是那两条：
+#    有一手来源，或 ≥2 个不同来源印证；只有社区来源时一律 discussion。
+#    why-trending.test.ts 要补三个新类型各一个 case，钉住「单条 status 信号
+#    也算 confirmed」——它是当事方对自己系统的陈述，可核对性最高。
+#
+# 3. **新类型只按 canonical_url 归属，不参与词面与语义聚类**（`clustersByUrlOnly`）。
+#
+#    status 这条是**实测的**（githubstatus.com/history.rss，2026-08-19 抓的 25 条）：
+#    25 次故障里 3 组指纹完全相同，最大的一组是**四次互不相干的故障**都叫
+#    `Incident with Actions`；词面相似度 ≥0.5 的对有 10 组。指纹相同意味着连阈值
+#    都轮不上——`(tenant_id, fingerprint)` 的唯一约束会直接把它们合成一个事件。
+#    案例钉在 title-tokens.test.ts 的「真实语料案例」里。
+#
+#    release / filing 是**预防性**的：同一批样本里没观察到碰撞（k8s 10 条、
+#    FTC 10 条各 0 组），但 `releases.atom` 的标题常常只有版本号（`v1.31.0`），
+#    跨仓库撞版本号是同一类失效。要放宽先拿多仓库语料量一遍。
+#
+#    **光跳过 pickBestCluster 是不够的**：createEvent 里的
+#    `buildFingerprint(tokens)` + `(tenant_id, fingerprint)` 唯一约束是第二条
+#    合并路径，必须一起退化成逐信号指纹（`signal:${id}`，与「无词标题」同一条路）。
+#
+#    这三类的每个条目都有独立 permalink（三个样本实测 URL 两两不同），
+#    canonical_url 归属够用：同一次故障的后续更新共享 incident URL，落进同一个事件。
+#
+#    代价说清楚：「OpenAI 发版 + TechCrunch 报道」不会自动合并（除非报道恰好
+#    链到同一个 URL）。这是刻意的——把两次不相干的故障并成一件事，比漏合并糟得多，
+#    与 MODULE.md「精度换召回是刻意的」同一条原则。放宽要先有真实语料量过。
+#
+# 4. Rising 只收「会被跨源跟进」的类型。
+#    NewsEvent 加 `source_kinds`（去重，与 source_names 同一处写入，
+#    在 event-refresh.service 里由成员信号聚出来）。Rising 的三处查询
+#    （event.service.getEventFeed、ssr 的 getPublicEventFeed / getPublicEventList）
+#    在现有 where 上追加：
+#        source_kinds hasSome ["official", "news", "community"]
+#    即「至少有一条来自会被别人跟进的源」。Now 不加这条（按 heat_score 全收），
+#    实体页与对外 RSS 也全收——「OpenAI 这周发了什么」正是非新闻源的用途所在。
+#    语料量级只有几百到几千，数组过滤不上 GIN 索引；候选窗口稳定超过 10⁴ 时再说。
+#
+#    **migration 里必须回填**：新列默认 `'{}'`，而 `hasSome` 对空数组恒为假——
+#    不回填的话上线后首页「正在升温」会整段空掉，直到降温扫描把每个事件轮一遍
+#    （每轮最多 200 个）才慢慢恢复。回填 SQL 派生自信号表，与 refreshEvents
+#    里那行 sourceKinds 同一口径（含 removed_at 过滤）。
+#    本地实测：831 个存量事件全部回填，分布 news 452 / community 225 / official 156。
+#
+# 5. 详情页来源分组：SOURCE_KIND_ORDER 扩成
+#    official → release → status → filing → news → community（一手来源在前）。
+#    空组两处都已经过滤（public-view.ts:110、EventSourceGroups.tsx:37），不用再加。
+#
+#    要修的是**顺序有两份**：公开面读 SOURCE_KIND_ORDER，工作台的
+#    EventSourceGroups 读的是 `EVENT_SOURCE_KINDS` 的声明顺序。三格时两者恰好一致，
+#    扩到六格就会分叉（工作台会把 release / status / filing 排到 community 后面）。
+#    把 EventSourceGroups 改成读 SOURCE_KIND_ORDER，顺序只留一处;
+#    `EVENT_SOURCE_KINDS` 退回纯枚举，不再兼职排序。
+#
+# 6. 公开列表页加 `?kind=` 筛选，与现有 `?source=rising|now` 在同一处解析
+#    （不新增路由、不动 path handler 的路径形状）。非法值当没传，不报错——
+#    公开面不因为一个查询参数长得不对就给访客 404。
+#
+# 7. 目录扩充：三类各补齐，topic 按内容给（status/release 多为 tech/ai，filing 为 business）。
+#    最终进目录的 12 条（**全部 curl 验证过，2026-08-19 均为 200**）：
+#      release  kubernetes / rust / node / go / cpython 的 `releases.atom`（各 10 条）
+#      status   githubstatus / cloudflarestatus / npm / slack（tech）、
+#               openai / anthropic（ai）的 `history.rss`（25~92 条不等）
+#      filing   FTC 新闻稿（`/feeds/press-release.xml`，10 条），
+#               外加把目录里已有的 SEC Press Releases 从 official 改标 filing
+#    验证时一并确认了 rss connector 能吃 GitHub 的 Atom 与 Statuspage 的 RSS
+#    （字段齐全、URL 两两不同），不需要新 connector。
+#    刻意没进目录：federalregister.gov 的规则 feed 一次 200 条，量级不适合默认目录。
+#
+#    改目录项的 source_kind **不会**让站点重新种一遍——`feedCatalogKey` 是
+#    `connector:url`，name / source_kind 都不在键里（feed-catalog.ts 的注释写着）。
+#    所以存量站点上 SEC 那条会一直是 official。本期**不写回填**：它归到
+#    「一手来源」的哪一格不影响 confirmed 判定（两者都在 FIRST_PARTY 集合里），
+#    只影响分组标签，不值得为它加一次数据迁移。新站点种下去就是 filing。
+#
+# 8. i18n（code）：`sourceKind.{release,status,filing}` 与
+#    `timeline.{release,status,filing}` 两组 key，en / zh-CN 都要补。
+#    timeline 文案要写成可核对的事实，不解释动机：
+#      release → 「{{source}} 发布了新版本」
+#      status  → 「{{source}} 报告了服务状态变化」
+#      filing  → 「{{source}} 发布了公告文件」
+#    `check:i18n` 是硬门槛（漏 key 会把 `timeline.release` 原样渲染到详情页上）。
+#
+# 9. 采集耗时随源数线性增长，且仍是串行 for 循环（ingest.service.ts）。
+#    这批加完后量一次单轮耗时记进 MODULE.md；超过 EVENTS_INGEST_INTERVAL_MINUTES
+#    的一半就单独立项做并发，不要在本期顺手改。
+#
+# ---------- 后续（明确不在本期）----------
+# - 招聘源：要 greenhouse / lever connector，且标题模板化（`Senior Engineer - Remote`）
+#   比 status 更严重，聚类口径要单独验证
+# - 带条件的对外 RSS：`/events/feed.xml?kind=release`，要动 rss.routes 与
+#   parseEventsPublicPath
+# - 按类型订阅通知（「只有 release 才推我」）——留存的下一步，要接 notification

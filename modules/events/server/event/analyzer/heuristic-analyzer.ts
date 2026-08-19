@@ -1,5 +1,6 @@
 import { pickEventTitle } from "../title-tokens.js";
 import { isUsableExcerpt } from "../../ingest/page-excerpt.js";
+import { isFirstPartySource } from "../../../shared/index.js";
 
 import type {
   AnalyzedEvent,
@@ -16,8 +17,12 @@ const SUMMARY_MAX_LENGTH = 420;
 /** 一个事件的时间线最多几格：再多用户就不看了，且信息密度反而下降。 */
 const TIMELINE_MAX_ENTRIES = 12;
 
+/** 一手来源在前——非新闻源同样是当事方自己发布的，与 official 同档。 */
 const SOURCE_PRIORITY: Record<EventSourceKind, number> = {
   official: 0,
+  release: 0,
+  status: 0,
+  filing: 0,
   news: 1,
   community: 2,
 };
@@ -108,7 +113,7 @@ function resolveLabelCode(
     return "timeline.firstSeen";
   }
   if (repeated) {
-    return sourceKind === "official"
+    return isFirstPartySource(sourceKind)
       ? "timeline.officialUpdate"
       : "timeline.moreCoverage";
   }

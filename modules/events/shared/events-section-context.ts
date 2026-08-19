@@ -10,6 +10,7 @@ import { isReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-
 import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 import {
+  isEventSourceKind,
   isEventTopic,
   parseEventFeedTab,
   type EventFeedTab,
@@ -265,18 +266,27 @@ export function isEventsRootQueryTakeover(
   return parsed.source !== undefined || parsed.topic !== undefined;
 }
 
-/** 首页两段 + 查询列表共用的查询串：`source` 是哪一批，`topic` 可选。 */
+/**
+ * 首页两段 + 查询列表共用的查询串：`source` 是哪一批，`topic` 与 `kind` 可选。
+ *
+ * `kind` 按来源类型筛（`?kind=release` = 只看发布公告）。它**只在列表视图生效**，
+ * 也刻意不参与 `isEventsRootQueryTakeover`——单独一个 `?kind=` 不该把站点首页
+ * 从 CMS 手里抢走。
+ */
 export interface EventsIndexQuery {
   source?: EventFeedTab;
   topic?: EventTopic;
+  kind?: EventSourceKind;
 }
 
+/** 非法值一律当没传，不报错：公开面不因为一个查询参数长得不对就给访客 404。 */
 export function parseEventsIndexQuery(
   query: Record<string, string>,
 ): EventsIndexQuery {
   return {
     source: parseEventFeedTab(query.source),
     topic: isEventTopic(query.topic) ? query.topic : undefined,
+    kind: isEventSourceKind(query.kind) ? query.kind : undefined,
   };
 }
 

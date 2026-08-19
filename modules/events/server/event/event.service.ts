@@ -18,6 +18,7 @@ import {
 import { getEnabledTopics } from "./topic-settings.service.js";
 
 import {
+  CROSS_SOURCE_KINDS,
   EVENT_SUMMARY_MAX_LENGTH,
   EVENT_TITLE_MAX_LENGTH,
   enabledTopicWhere,
@@ -144,6 +145,9 @@ export async function getEventFeed(
       status: { in: ["developing", "active"] },
       last_activity_at: { gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS) },
       recent_signal_count: { gt: 0 },
+      // Rising 排的是跨源扩散，而 release / status / filing 恒为单来源——
+      // 只有这些类型的事件放进来只会把真正在扩散的挤下去
+      source_kinds: { hasSome: [...CROSS_SOURCE_KINDS] },
     },
     orderBy: [
       { recent_source_count: "desc" },

@@ -12,6 +12,8 @@
  */
 import { HEAT_WINDOW_HOURS } from "./heat.js";
 
+import { isFirstPartySource } from "../../shared/index.js";
+
 import type { EventSourceKind } from "../../shared/index.js";
 
 /**
@@ -49,7 +51,7 @@ export function computeWhyTrending(params: {
     (a, b) => a.published_at.getTime() - b.published_at.getTime(),
   );
   const sourceNames = new Set(sorted.map((s) => s.source_name));
-  const officials = sorted.filter((s) => s.source_kind === "official");
+  const officials = sorted.filter((s) => isFirstPartySource(s.source_kind));
   const communityOnly = sorted.every((s) => s.source_kind === "community");
 
   /*

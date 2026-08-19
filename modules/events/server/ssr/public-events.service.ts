@@ -21,9 +21,14 @@ import type {
   EventDetail,
   EventFeedTab,
   EventListItem,
+  EventSourceKind,
   EventTopic,
 } from "../../shared/index.js";
-import { enabledTopicWhere, isTopicEnabled } from "../../shared/index.js";
+import {
+  CROSS_SOURCE_KINDS,
+  enabledTopicWhere,
+  isTopicEnabled,
+} from "../../shared/index.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 import type { SitemapEntry } from "@rewindom/builtin/marketing/server/site.service.js";
 
@@ -85,6 +90,9 @@ export async function getPublicEventFeed(
         status: { in: ["developing", "active"] },
         last_activity_at: { gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS) },
         recent_signal_count: { gt: 0 },
+        // Rising 排的是跨源扩散，而 release / status / filing 恒为单来源——
+        // 只有这些类型的事件放进来只会把真正在扩散的挤下去
+        source_kinds: { hasSome: [...CROSS_SOURCE_KINDS] },
       },
       orderBy: [
         { recent_source_count: "desc" },
@@ -119,16 +127,27 @@ export async function getPublicEventFeed(
   };
 }
 
-/** 查询列表页：只取当前 source 对应的那一批，条数比区块预览多。 */
+/**
+ * 查询列表页：只取当前 source 对应的那一批，条数比区块预览多。
+ *
+ * `kind` 是可选的来源类型筛——「只看发布公告 / 只看状态变化」。它是**事件有没有
+ * 这一类来源**，不是「事件全部来自这一类」：一件既有官方发版又有媒体报道的事，
+ * 在 `?kind=release` 下仍该出现。
+ */
 export async function getPublicEventList(
   tenantId: string,
   source: EventFeedTab,
   topic?: EventTopic,
+  kind?: EventSourceKind,
 ): Promise<EventListItem[]> {
   const now = Date.now();
   const enabled = await getEnabledTopics(tenantId);
   const topicWhere = enabledTopicWhere(enabled, topic);
-  const tenantWhere = withTenantScope(tenantId, topicWhere);
+  const kindWhere = kind ? { source_kinds: { has: kind } } : {};
+  const tenantWhere = withTenantScope(tenantId, {
+    ...topicWhere,
+    ...kindWhere,
+  });
   const common = { take: LISTING_FETCH_LIMIT, select: LIST_SELECT } as const;
 
   const records =
@@ -151,6 +170,9 @@ export async function getPublicEventList(
               gte: new Date(now - RISING_WINDOW_HOURS * HOUR_MS),
             },
             recent_signal_count: { gt: 0 },
+            // Rising 排的是跨源扩散，而 release / status / filing 恒为单来源——
+            // 只有这些类型的事件放进来只会把真正在扩散的挤下去
+            source_kinds: { hasSome: [...CROSS_SOURCE_KINDS] },
           },
           orderBy: [
             { recent_source_count: "desc" },

@@ -52,8 +52,15 @@ export interface HeatResult {
  * 来源权重：一手公告比转述更能说明「事情真的发生了」，
  * 社区讨论量大但单条价值低。
  */
+/**
+ * 权重表达的是**证据强度**：当事方自己说的话不因为载体是状态页或发版公告就变弱，
+ * 所以四类一手来源同取 2。
+ */
 const SOURCE_WEIGHT: Record<EventSourceKind, number> = {
   official: 2,
+  release: 2,
+  status: 2,
+  filing: 2,
   news: 1.5,
   community: 1,
 };

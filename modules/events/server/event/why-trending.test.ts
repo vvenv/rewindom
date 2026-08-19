@@ -41,6 +41,26 @@ describe("computeWhyTrending", () => {
     ).toEqual([]);
   });
 
+  /*
+   * 非新闻源同样是当事方自己说的话。
+   *
+   * 这一格是扩枚举时最容易漏的地方：判据曾经写死 `=== "official"`，
+   * 状态页故障与官方发版会静默掉出 confirmed，落到留白——
+   * 而它们恰恰是整个语料里可核对性最高的一类。
+   */
+  it.each([
+    ["status", "GitHub Status"],
+    ["release", "Kubernetes Releases"],
+    ["filing", "SEC Press Releases"],
+  ] as const)("单条 %s 信号也算一手来源，标 confirmed", (kind, name) => {
+    const result = computeWhyTrending({
+      signals: [signal({ source_name: name, source_kind: kind })],
+      now: NOW,
+    });
+    expect(result[0].code).toBe("why.officialAnnouncement");
+    expect(result[0].confidence).toBe("confirmed");
+  });
+
   it("一手来源发布公告是最强的一条，排最前", () => {
     const result = computeWhyTrending({
       signals: [

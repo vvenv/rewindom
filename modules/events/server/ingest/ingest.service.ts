@@ -155,6 +155,8 @@ async function runIngestForTenant(
       // 摘录参与 embedding：标题措辞相近但说的是两件事时，它是主要消歧线索
       excerpt: true,
       topic: true,
+      // 决定这条信号走不走文本聚类（非新闻源只按 canonical_url 归属）
+      source_kind: true,
       canonical_url: true,
       published_at: true,
     },

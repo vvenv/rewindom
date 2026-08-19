@@ -1,6 +1,10 @@
 import { getLlmClient, type ResolvedLlmConfig } from "@rewindom/module-sdk/server";
 
-import { EVENT_TOPICS, isEventTopic } from "../../../shared/index.js";
+import {
+  EVENT_TOPICS,
+  isEventTopic,
+  isFirstPartySource,
+} from "../../../shared/index.js";
 
 import { ENTITY_KINDS, isEntityKind } from "../entity-extractor.js";
 
@@ -137,9 +141,9 @@ function selectSignals(signals: readonly AnalyzerSignal[]): AnalyzerSignal[] {
   if (signals.length <= MAX_SIGNALS_PER_CALL) {
     return [...signals];
   }
-  const official = signals.filter((s) => s.source_kind === "official");
+  const official = signals.filter((s) => isFirstPartySource(s.source_kind));
   const rest = signals
-    .filter((s) => s.source_kind !== "official")
+    .filter((s) => !isFirstPartySource(s.source_kind))
     .sort((a, b) => b.published_at.getTime() - a.published_at.getTime())
     .slice(0, Math.max(0, MAX_SIGNALS_PER_CALL - official.length));
   return [...official, ...rest].sort(

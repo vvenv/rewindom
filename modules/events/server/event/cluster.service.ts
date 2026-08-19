@@ -7,6 +7,8 @@ import { buildEmbeddingInput, embedTexts, mergeCentroid } from "./embedding.js";
 import { buildEventSlug } from "./slug.js";
 import { buildFingerprint, tokenizeTitle } from "./title-tokens.js";
 
+import { clustersByUrlOnly, type EventSourceKind } from "../../shared/index.js";
+
 /** 只在这个时间窗内找归属：三天前的事件再来一条信号，多半是新一轮而非同一轮。 */
 const CANDIDATE_WINDOW_HOURS = 72;
 /** 候选上限。相似度是 O(候选数) 的，窗口内事件再多也不该让一条信号扫全表。 */
@@ -18,6 +20,8 @@ export interface ClusterableSignal {
   title: string;
   excerpt: string;
   topic: string;
+  /** 决定这条信号走不走文本聚类，见 `clustersByUrlOnly` */
+  source_kind: string;
   canonical_url: string;
   published_at: Date;
 }
@@ -106,6 +110,19 @@ async function resolveEventForSignal(
 
   const tokens = tokenizeTitle(signal.title);
 
+  /*
+   * 非新闻源（release / status / filing）到此为止：URL 没命中就各自成事件。
+   *
+   * 它们的标题不能当聚类输入——Statuspage 的条目标题高度模板化，同一厂商
+   * 72h 内两次不相干的故障标题可以逐字相同；`releases.atom` 常常只有版本号。
+   * 词面、语义、指纹三条路径对这种标题**同时**失效，所以三条一起绕开：
+   * 下面的 createEvent 也会拿到 urlOnly，用逐信号指纹而不是标题指纹。
+   */
+  const urlOnly = clustersByUrlOnly(signal.source_kind as EventSourceKind);
+  if (urlOnly) {
+    return createEvent(signal, tokens, embedding, true);
+  }
+
   // 2. 近窗口内的事件里找最像的
   //
   // **刻意不按 topic 过滤**。topic 曾经是采集源的属性（HN=tech、OpenAI=ai、BBC=world），
@@ -128,18 +145,25 @@ async function resolveEventForSignal(
   }
 
   // 3. 另起一个事件
-  return createEvent(signal, tokens, embedding);
+  return createEvent(signal, tokens, embedding, false);
 }
 
 async function createEvent(
   signal: ClusterableSignal,
   tokens: string[],
   embedding: readonly number[],
+  urlOnly: boolean,
 ): Promise<string> {
   // 标题分不出任何有效词时，指纹退化成一条信号一个事件——
-  // 否则所有「无词标题」会因为指纹相同被硬塞进同一个事件
+  // 否则所有「无词标题」会因为指纹相同被硬塞进同一个事件。
+  //
+  // urlOnly 走同一条退化路径：`(tenant_id, fingerprint)` 上有唯一约束，
+  // 光在上面跳过 pickBestCluster 是不够的——两次标题逐字相同的故障
+  // 会算出同一个指纹，照样被这里的 existing 查询合成一件事。
   const fingerprint =
-    tokens.length > 0 ? buildFingerprint(tokens) : `signal:${signal.id}`;
+    tokens.length > 0 && !urlOnly
+      ? buildFingerprint(tokens)
+      : `signal:${signal.id}`;
 
   const existing = await prisma.newsEvent.findUnique({
     where: {
@@ -168,6 +192,7 @@ async function createEvent(
         tokens,
         centroid: [...embedding],
         source_names: [],
+        source_kinds: [],
         first_seen_at: signal.published_at,
         last_activity_at: signal.published_at,
       },

@@ -127,6 +127,11 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         },
       ],
       news: [],
+      // 编辑器预览不铺满六格：只画真实事件里最常见的两组，
+      // 其余留空由渲染层过滤掉
+      release: [],
+      status: [],
+      filing: [],
       community: [
         {
           id: "sample-s2",

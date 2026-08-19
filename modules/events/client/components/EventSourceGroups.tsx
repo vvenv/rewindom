@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { RelativeTime } from "./RelativeTime.js";
 
-import { EVENT_SOURCE_KINDS } from "../../shared/index.js";
+import { SOURCE_KIND_ORDER } from "../../shared/index.js";
 
 import type { EventSourceItem, EventSourceKind } from "../../shared/index.js";
 
@@ -34,7 +34,7 @@ export function EventSourceGroups({
 
   return (
     <div className="flex flex-col gap-5">
-      {EVENT_SOURCE_KINDS.filter((kind) => sources[kind].length > 0).map(
+      {SOURCE_KIND_ORDER.filter((kind) => sources[kind].length > 0).map(
         (kind) => (
           <div key={kind} className="flex flex-col gap-2">
             <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">

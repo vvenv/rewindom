@@ -23,6 +23,9 @@ import { EVENT_TOPICS, type EventSourceKind, type EventTopic } from "../../share
 /** 源提示的权重：一手来源报什么就是什么，社区源什么都聊。 */
 const SOURCE_HINT_WEIGHT: Record<EventSourceKind, number> = {
   official: 1.5,
+  release: 1.5,
+  status: 1.5,
+  filing: 1.5,
   news: 0.8,
   community: 0.15,
 };

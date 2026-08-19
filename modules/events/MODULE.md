@@ -123,6 +123,7 @@ fillEmptyExcerpts()        摘录为空时抓目标页 og/meta description
 persistSignals()           canonical_url 规范化 + (connector, external_id) 幂等落库
       ↓
 clusterSignals()           同 URL → 直接归属；否则近 72h 内按词面 / 语义取最像的事件
+                           （非新闻源到「同 URL」为止，见「非新闻源」）
       ↓
 refreshEvents()            热度 / 增速 / 阶段 / 计数 + 分析器产出摘要与时间线
 ```
@@ -544,7 +545,7 @@ OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应�
 
 ## 采集源
 
-内置目录在 `server/ingest/feed-catalog.ts`，36 个源，每个 topic 至少 3 个。
+内置目录在 `server/ingest/feed-catalog.ts`，48 个源，每个 topic 至少 3 个。
 
 种植按**目录项的 key**（`connector:url`）记账，记录存在 `TenantSetting`
 的 `events.seeded_feed_keys` 上：每轮采集前把该站点从没种过的补进去。
@@ -579,6 +580,57 @@ RSS 解析器是本模块自带的（`server/ingest/feed-parser.ts`）：仓库�
 HN 的链接帖本身没有正文。采集时若摘录仍空，会再请求目标页，只取 `og:description` /
 `twitter:description` / `meta description` / 第一段 `<p>`——仍然是原文，不是生成。
 HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘录每轮最多补 40 条。
+
+### 非新闻源：躲开竞品强项的落点
+
+目录里除了新闻站与官方博客，还有三类**非新闻源**：
+
+| `source_kind` | 是什么 | 目录里的例子 |
+| --- | --- | --- |
+| `release` | changelog / release notes | kubernetes / rust / node / go / cpython 的 `releases.atom` |
+| `status` | 状态页事故记录 | githubstatus / cloudflarestatus / npm / slack / openai / anthropic 的 `history.rss` |
+| `filing` | 监管与公告文件 | SEC、FTC 新闻稿 |
+
+**为什么加这一类**：在「新闻覆盖面」上比不过 Google News 与 Techmeme，那是它们最强的
+一条线。而聚合器结构上不收 changelog 与状态页——它们不是「新闻」。对读者来说
+「这家昨天上线了什么、刚出过什么故障」往往比「媒体写了什么」更有用。
+
+三类都有现成 RSS/Atom，`rss` connector 直接吃，**没有新 connector**。
+
+三条口径，改一条要看另外两条（都在 `shared/events.ts`）：
+
+1. **它们是一手来源**（`FIRST_PARTY_SOURCE_KINDS`）。`official` 曾经就等于「当事方
+   自己说的话」，四处代码直接写 `=== "official"`；现在一律走 `isFirstPartySource`。
+   漏一处的后果是状态页故障掉出 `confirmed`——可核对性最高的一类反而落到留白。
+2. **它们不进 Rising**（`CROSS_SOURCE_KINDS`）。Rising 排的是近窗新增来源数，
+   而一次发版、一次故障极少被第二个源印证，恒为 1。Now（按热度）、实体页与对外 RSS
+   不设这道闸——「OpenAI 这周发了什么」正是它们的用武之地。库里靠
+   `NewsEvent.source_kinds` 过滤，与 `source_names` 同一处写入。
+3. **它们只按 `canonical_url` 归属**（`clustersByUrlOnly`），不走词面与语义聚类。
+
+#### 状态页的标题是模板，不是标题（实测）
+
+githubstatus.com/history.rss，2026-08-19 抓的 25 条：**3 组指纹完全相同**，
+最大的一组是四次互不相干的故障都叫 `Incident with Actions`；词面相似度 ≥0.5 的对有 10 组。
+
+指纹相同意味着连阈值都轮不上——`(tenant_id, fingerprint)` 上的唯一约束会直接把它们
+合成一个事件。所以**光跳过 `pickBestCluster` 不够**，`createEvent` 的指纹也要退化成
+逐信号（`signal:${id}`，与「无词标题」走同一条路）。案例钉在 `title-tokens.test.ts`。
+
+release / filing 是预防性的：同一批样本里没观察到碰撞（k8s 10 条、FTC 10 条各 0 组），
+但 `releases.atom` 的标题常常只有版本号（`v1.31.0`），跨仓库撞版本号是同一类失效。
+
+代价说清楚：**「官方发版 + 媒体报道」不会自动合并**（除非报道恰好链到同一个 URL）。
+把两次不相干的故障并成一件事比漏合并糟得多——与「精度换召回是刻意的」同一条原则。
+
+#### 公开面按类型筛
+
+列表页接 `?kind=release`，与 `?source=` 在同一处解析（`parseEventsIndexQuery`）。
+语义是「事件**有没有**这一类来源」而不是「全部来自这一类」：一件既有官方发版又有媒体
+报道的事，在 `?kind=release` 下仍该出现。非法值当没传，不给访客 404。
+
+`kind` 刻意**不**参与 `isEventsRootQueryTakeover`——单独一个 `?kind=` 不该把站点首页
+从 CMS 手里抢走。
 
 ## 对外发布 RSS
 
@@ -729,3 +781,8 @@ chrome 块这条路是走了两版才到的，两次都是被真实版式打回�
   实体兜底已实测证伪（见上文）。它需要的是「同一实体 + 同一时间窗 + 同一事件类型（故障）」
   这种事件类型判定，属于分析器的新职责，不是聚类参数问题
 - **pgvector**：候选窗口稳定超过 10⁴ 时再上，见上文「语义聚类」里的取舍
+- **招聘源**：Greenhouse / Lever 是 JSON API，要写第三个 connector；标题模板化
+  （`Senior Engineer - Remote`）比状态页更严重，聚类口径要单独验证
+- **带条件的对外 RSS**：`/events/feed.xml?kind=release`，要动 `rss.routes` 与
+  `parseEventsPublicPath`。公开列表页的 `?kind=` 已经有了，订阅侧还没有
+- **按类型订阅通知**（「只有 release 才推我」）：留存的下一步，要接 notification

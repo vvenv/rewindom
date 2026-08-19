@@ -11,14 +11,14 @@ import { useTranslation } from "react-i18next";
 
 import { EVENT_TOPIC_ORDER } from "../lib/events.js";
 
-import type { EventFeedFormValues } from "../lib/event-feeds.js";
+import { SOURCE_KIND_ORDER } from "../../shared/index.js";
+
 import type { EventSourceKind } from "../../shared/index.js";
 
-const SOURCE_KINDS: readonly EventSourceKind[] = [
-  "official",
-  "news",
-  "community",
-];
+import type { EventFeedFormValues } from "../lib/event-feeds.js";
+
+/** 顺序与详情页分组同一份（SOURCE_KIND_ORDER），不在这里手抄第二份 */
+const SOURCE_KINDS = SOURCE_KIND_ORDER;
 
 interface EventFeedFieldsProps {
   form: EventFeedFormValues;

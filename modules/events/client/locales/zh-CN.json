@@ -48,7 +48,10 @@
   "sourceKind": {
     "official": "一手来源",
     "news": "新闻报道",
-    "community": "社区讨论"
+    "community": "社区讨论",
+    "release": "发布公告",
+    "status": "服务状态",
+    "filing": "公告文件"
   },
   "heat": {
     "rising": "↑ {{percent}}%",
@@ -91,7 +94,10 @@
     "officialUpdate": "{{source}} 发布补充说明",
     "news": "{{source}} 开始报道",
     "moreCoverage": "{{source}} 跟进报道",
-    "community": "{{source}} 出现讨论"
+    "community": "{{source}} 出现讨论",
+    "release": "{{source}} 发布了新版本",
+    "status": "{{source}} 报告了服务状态变化",
+    "filing": "{{source}} 发布了公告文件"
   },
   "follow": {
     "follow": "关注事件",

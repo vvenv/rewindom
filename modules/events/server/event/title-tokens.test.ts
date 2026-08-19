@@ -128,6 +128,23 @@ describe("shouldCluster —— 真实语料案例", () => {
   const cluster = (a: string, b: string): boolean =>
     shouldCluster(tokenizeTitle(a), tokenizeTitle(b));
 
+  /*
+   * 状态页的标题是**模板**，不是标题——所以这三类源一律不走词面聚类，
+   * 只按 canonical_url 归属（`clustersByUrlOnly`）。
+   *
+   * 实测（githubstatus.com/history.rss，2026-08-19 抓取的 25 条）：
+   * 25 次故障里有 3 组指纹完全相同，最大的一组是**四次互不相干的故障**
+   * 都叫 `Incident with Actions`；词面相似度 ≥0.5 的对有 10 组。
+   * 指纹相同意味着连阈值都轮不上——`(tenant_id, fingerprint)` 上的唯一约束
+   * 会直接把它们合成一个事件。这不是调参能救的。
+   */
+  it("状态页的模板化标题指纹相同——正是它不能走词面聚类的原因", () => {
+    expect(cluster("Incident with Actions", "Incident with Actions")).toBe(true);
+    expect(
+      buildFingerprint(tokenizeTitle("Incident with Actions")),
+    ).toBe(buildFingerprint(tokenizeTitle("Incident with Actions")));
+  });
+
   it("同一新闻被两家媒体报道时能合并", () => {
     expect(
       cluster(

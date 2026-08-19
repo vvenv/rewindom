@@ -314,6 +314,7 @@ export const NewsEventScalarFieldEnum = {
   tokens: 'tokens',
   centroid: 'centroid',
   source_names: 'source_names',
+  source_kinds: 'source_kinds',
   related_event_ids: 'related_event_ids',
   signal_count: 'signal_count',
   source_count: 'source_count',

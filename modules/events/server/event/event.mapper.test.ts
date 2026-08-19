@@ -127,8 +127,16 @@ describe("groupSources", () => {
     expect(grouped.community.map((s) => s.id)).toEqual(["s2"]);
   });
 
-  it("三个分组恒定存在，空组为空数组", () => {
-    expect(groupSources([])).toEqual({ official: [], news: [], community: [] });
+  // 每个键都必须在——公开面直接 `sources[kind].map`，缺一个就在 undefined 上炸
+  it("每个来源类型都有一格，空组为空数组", () => {
+    expect(groupSources([])).toEqual({
+      official: [],
+      release: [],
+      status: [],
+      filing: [],
+      news: [],
+      community: [],
+    });
   });
 
   it("忽略未知的 source_kind，而不是让它污染分组", () => {

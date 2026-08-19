@@ -31,8 +31,17 @@ export type EventsTranslate = (
   params?: Record<string, string | number>,
 ) => string;
 
+/**
+ * 详情页来源分组的展示顺序——**顺序的唯一真源**，SSR 与工作台都读这一份。
+ *
+ * 一手 → 报道 → 讨论，读下来就是一条可核对的证据链。非新闻源（release / status /
+ * filing）跟在 official 后面：它们同样是当事方自己发布的，不该排到社区讨论之后。
+ */
 export const SOURCE_KIND_ORDER: readonly EventSourceKind[] = [
   "official",
+  "release",
+  "status",
+  "filing",
   "news",
   "community",
 ];

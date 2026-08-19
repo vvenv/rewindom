@@ -103,6 +103,11 @@ model NewsEvent {
   centroid    Float[]
   /// 贡献过信号的来源名（去重）。冗余在事件上，列表页才不用为每张卡片再查一次信号表
   source_names String[]
+  /// 贡献过信号的来源类型（去重）。与 source_names 同一处写入。
+  /// Rising 要在库里过滤掉「只有非新闻源」的事件（release / status / filing
+  /// 恒为单来源，进 Rising 只会把真正在扩散的挤下去），公开列表要按类型筛，
+  /// 两者都不能把候选全捞回应用层再算
+  source_kinds String[]
   /// 预计算的相关事件 id（最多 5 个，按相似度降序）。
   /// **必须预计算**：读路径上算要把候选的 centroid 全部载入（400 事件 ≈ 4.9MB/请求），
   /// 公开面 SSR 承受不起。做法与聚类同源，只是阈值更低（0.75 vs 0.85）

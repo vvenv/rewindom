@@ -59,7 +59,12 @@ import {
   registerSitePathHandler,
 } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 
-import type { EventFeedTab, EventListItem, EventTopic } from "../../shared/index.js";
+import type {
+  EventFeedTab,
+  EventListItem,
+  EventSourceKind,
+  EventTopic,
+} from "../../shared/index.js";
 import type { SitePathHandlerInput } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
@@ -165,6 +170,7 @@ async function renderIndex(
       listingQuery.source,
       listingQuery.topic,
       indexPath,
+      listingQuery.kind,
     );
   }
 
@@ -199,8 +205,9 @@ async function renderListing(
   source: EventFeedTab,
   topic: EventTopic | undefined,
   indexPath: string,
+  kind?: EventSourceKind,
 ): Promise<string> {
-  const items = await getPublicEventList(input.tenantId, source, topic);
+  const items = await getPublicEventList(input.tenantId, source, topic, kind);
   const t = translator(locale);
   const cards = items.map((item) => toCard(item, t, indexPath));
   const sourceLabel = t(`sections.${source}`);

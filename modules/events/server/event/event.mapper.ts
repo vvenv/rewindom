@@ -207,14 +207,19 @@ function toTimelineItem(record: TimelineRecord): EventTimelineItem {
 }
 
 /**
- * 来源按 official / news / community 分组（MVP §4）。
- * 三个键恒定存在——界面按固定顺序渲染分组标题，空组自己决定要不要显示。
+ * 来源按 source_kind 分组（MVP §4）。
+ * **每个键都必须初始化成 []**——漏一个，公开面 `detail.sources[kind].map` 会在
+ * undefined 上炸，而且只在该类型首次出现时才炸。渲染顺序见 SOURCE_KIND_ORDER，
+ * 空组由两侧各自过滤掉。
  */
 export function groupSources(
   signals: readonly SignalRecord[],
 ): Record<EventSourceKind, EventSourceItem[]> {
   const grouped: Record<EventSourceKind, EventSourceItem[]> = {
     official: [],
+    release: [],
+    status: [],
+    filing: [],
     news: [],
     community: [],
   };
