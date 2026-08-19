@@ -1,0 +1,54 @@
+# 增量功能契约 —— sitemap 只列「能打开且不再跳转」的 URL
+#
+# 起因：yestino.com 线上抓 sitemap.xml，1013 条里有三类脏数据：
+#   1. `/events/:slug` `/events/entity/:slug` —— 模板页的**模板路径**被当成真页面列了出来。
+#      URL 编码成 `/events/%3Aslug`，跟完 301 最终 404。爬虫拿到两条死链。
+#   2. `/events` —— 事件雷达当首页后这条已经 301 到 `/`，却仍在 sitemap 里。
+#      sitemap 只该给终态 URL，列跳转 URL 会浪费抓取预算，也让 `/` 与 `/events` 抢同一份内容。
+#   3. 缺 `x-default` —— 页面 `<head>` 里有（`renderAlternateLinksHtml`），sitemap 里 0 条。
+#      同一套 hreflang 在两处口径不一致，Google 只认到一半。
+#
+# 三条都不是「多列几条」的小事：sitemap 是主动送去索引的清单，列错的代价是
+# 抓取预算被死链吃掉，而这个站的价值恰恰在长尾页面能不能被爬完。
+#
+# 判据放在 marketing：模板路径与首页挂载都是 marketing 自己的概念，
+# 业务模块（events / shop）不该各写一遍「我的前缀现在收到根上了」。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: sitemap.xml 丢弃模板路径（含 `:param`）与被首页挂载收到根上的枢纽前缀，并按 `<head>` 同一条规则补 `x-default`。
+gold: packages/builtin/marketing/server/site.service.ts
+touch:
+  - packages/builtin/marketing/features/sitemap-only-canonical-urls.spec.yaml
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/site.service.test.ts
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-render.test.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - robots.txt（现状正确）
+  - 贡献 provider 交进来的条目内容（events 的事件 / 实体页自己算路径，这里不改写）
+  - canonical / hreflang 在 `<head>` 里的现有行为
+  - sitemap 分片、`<priority>` `<changefreq>`（Google 早已忽略）
+  - 首页挂载本身的语义（`resolveVisitorHomePath` 不动）
+i18n: none # 无用户可见文案
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server site.service.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-render.test.ts
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 模板路径的判据是「路径里有 `:param`」，不是「是不是模板页」：`/events`、`/shop`
+#    也是模板页，但它们是能打开的地址，该进 sitemap。与 `isHomeablePath` 同一条判据。
+# 2. 「收到根上」的判据与 `eventsMountedAtRoot` 对齐，但写在 marketing 且对所有版式通用：
+#    home_path=`/` 且当前版式声明了 `rootPrefix` → 该前缀被收走；
+#    存量 home_path 直接等于某套版式的 `rootPrefix` → 同样收走。
+#    收走之后该前缀下的所有页面（`/events`）都不再是终态 URL。
+# 3. `x-default` 抄 `renderAlternateLinksHtml`：alternates ≥ 2 且能找到默认语言那条才发。
+#    单语言条目（贡献 provider 给的事件页）没有 x-default，与 `<head>` 一致。

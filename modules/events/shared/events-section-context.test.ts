@@ -9,6 +9,7 @@ import {
   eventPath,
   entityPath,
   isEventsIndexListing,
+  entityIndexPath,
   isEventsPath,
   isEventsRootFallbackPath,
   isEventsRootQueryTakeover,
@@ -152,6 +153,27 @@ describe("public paths at root", () => {
     expect(isEventsRootFallbackPath("/foo")).toBe(true);
     expect(isEventsRootFallbackPath("/app")).toBe(false);
     expect(isEventsRootFallbackPath("/foo/bar")).toBe(false);
+  });
+
+  it("实体枢纽在单段解析之前认，挂在根上时不会被当成事件 slug", () => {
+    expect(entityIndexPath()).toBe("/events/entity");
+    expect(entityIndexPath("/")).toBe("/entity");
+    expect(parseEventsPublicPath("/events/entity")).toEqual({
+      type: "entity_index",
+    });
+    expect(parseEventsRequestPath("/events/entity", true)).toEqual({
+      type: "entity_index",
+    });
+    expect(parseEventsRequestPath("/entity", true)).toEqual({
+      type: "entity_index",
+    });
+    // 枢纽没挂在根上时，`/entity` 不归事件模块管
+    expect(parseEventsRequestPath("/entity", false)).toBeNull();
+    // 单个实体仍然是实体详情，不会被枢纽吃掉
+    expect(parseEventsRequestPath("/entity/openai-abc123", true)).toEqual({
+      type: "entity",
+      slug: "openai-abc123",
+    });
   });
 
   it("请求路径先认旧前缀，首页挂载时才认根路径", () => {

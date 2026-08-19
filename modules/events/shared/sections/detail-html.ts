@@ -41,6 +41,7 @@ export const renderEventsDetailHtml: SectionHtmlRenderer = (section, ctx) => {
     back,
     headerHtml(event),
     placementHtml(event, ctx),
+    entitiesHtml(event, ctx),
     summaryHtml(event, settingText(s, "summary_label")),
     settingBool(s, "show_why")
       ? whyHtml(event, settingText(s, "why_label"))
@@ -71,6 +72,31 @@ function headerHtml(event: PublicEventDetailView): string {
   return `<header class="events-detail-header"><span class="events-meta">${meta}</span><h1 class="events-detail-title">${escapeHtml(
     event.title,
   )}</h1></header>`;
+}
+
+/**
+ * 这条材料涉及的实体。**不给它单独的段开关**：与「归位」同一条口径——
+ * 它是这条材料的身份而不是一个板块，多一个开关只会让段设置更长。
+ *
+ * 它还是站内通往实体页的主要入口：没有这一行，几百张实体页就只能靠 sitemap
+ * 被发现，那是孤儿页。空数组（没抽到实体）时整块不渲染。
+ */
+function entitiesHtml(
+  event: PublicEventDetailView,
+  ctx: Parameters<SectionHtmlRenderer>[1],
+): string {
+  if (event.entities.length === 0) {
+    return "";
+  }
+  const items = event.entities
+    .map(
+      (entity) =>
+        `<li><a class="events-entity-chip" href="${escapeHtml(
+          siteHref(entity.href, ctx),
+        )}">${escapeHtml(entity.name)}</a></li>`,
+    )
+    .join("");
+  return `<ul class="events-entity-chips">${items}</ul>`;
 }
 
 /**

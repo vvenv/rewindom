@@ -9,8 +9,11 @@
       "topics": "Event topics",
       "topicsDefault": "Events",
       "topic": "One event topic",
-      "topicDefault": "(uses topic name)"
-    }
+      "topicDefault": "(uses topic name)",
+      "entities": "Entity hub",
+      "entitiesDefault": "Entities"
+    },
+    "entities": "Entities"
   },
   "tabs": {
     "feed": "What's happening",
@@ -149,7 +152,11 @@
       "subtitle": "Every event involving this company, product or person"
     },
     "subscribe": "Subscribe via RSS",
-    "subscribeHint": "Follow in any RSS reader — no account needed"
+    "subscribeHint": "Follow in any RSS reader — no account needed",
+    "entityIndex": {
+      "title": "Entities",
+      "subtitle": "Every company, product and person this site is tracking"
+    }
   },
   "home": {
     "layout": {
@@ -200,6 +207,11 @@
       "label": "Subscribe link",
       "iconOnly": "Icon only",
       "iconOnlyInfo": "Shows just the RSS icon; the text above is kept as the accessible label and tooltip"
+    },
+    "entityIndex": {
+      "label": "Entity hub body",
+      "showCounts": "Show event counts",
+      "emptyText": "Empty state text"
     }
   },
   "template": {
@@ -212,6 +224,9 @@
     },
     "entity": {
       "label": "Entity page"
+    },
+    "entityIndex": {
+      "label": "Entity hub"
     }
   },
   "edit": {
@@ -364,5 +379,9 @@
     "window": "{{count}} events in the last {{days}} days",
     "kindCount": "{{kind}} ×{{count}}",
     "outageTotal": "{{minutes}} min of downtime in total"
+  },
+  "entityIndex": {
+    "empty": "No entities yet — they appear once events mention them",
+    "metaDescription": "{{count}} companies, products and people currently tracked, each with its own timeline"
   }
 }

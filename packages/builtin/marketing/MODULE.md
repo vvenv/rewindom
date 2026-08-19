@@ -918,7 +918,7 @@ setting 的 `default` 应是同一条 key。
 | 在哪                                   | 内容                                                       |
 | -------------------------------------- | ---------------------------------------------------------- |
 | 编辑器主题设置层（页面行 → 主题设置） | 主题包、站点 Logo、分享图、配色、字体、页宽、区块间距       |
-| 站点设置 Sheet（官网卡片 →「站点设置」） | 基本信息、语言、首页、重定向、发布（五个分区，控件即存）         |
+| 站点设置 Sheet（官网卡片 →「站点设置」） | 基本信息、语言、首页、发布、访问分析、重定向（六个分区，控件即存） |
 
 外观进编辑器而不是留在设置页，是因为它要**看着预览调**。它曾经是设置页的一个页签，
 又曾经是一张带只读预览的独立页——前者太深（官网 → 站点设置 → 外观），后者的预览是
@@ -932,6 +932,7 @@ setting 的 `default` 应是同一条 key。
 | 语言     | 主语言                         | `{ default_locale, site_name, tagline }`，**确认即存** |
 | 首页     | 打开 `/` 时的版式或另一张页 | 版式走 `POST /site/home-layout`（收回 `home_path=/`）；其它页 `{ home_path }` 下拉即存 |
 | 发布     | 站点总开关                     | `{ published }`，**开关即存**            |
+| 访问分析 | 供应商 + 脚本地址 + 站点标识   | `{ analytics }`，下拉即存 / 输入框失焦即存 |
 | 重定向   | 旧地址 → 新地址                | 各自的 `/site/redirects` 接口            |
 
 **控件即提交**：分区共用 `use-site-settings-form`，每个分区只提交自己那几个字段，审计里
@@ -1139,6 +1140,36 @@ og / twitter 的标题描述与 `<title>` / `description` **同源**，不另算
 `og_image` 只放行站内相对路径与 http(s)：同一个值也会进编辑器预览的 `<img src>`。
 
 用例见 `server/ssr-seo.test.ts`。
+
+### sitemap 只列「能打开且不再跳转」的 URL
+
+`getPublishedSitemapEntries` 在 noindex / 404 模板之外还挡掉两类：
+
+| 挡掉什么 | 判据 | 为什么 |
+| --- | --- | --- |
+| 模板路径 | 路径里有 `:param`（`/events/:slug`） | 那不是能打开的地址，URL 编码成 `%3Aslug` 就是一条死链 |
+| 被收到根上的枢纽前缀 | 当前首页版式的 `rootPrefix`，或存量 `home_path` 正好等于某套版式的 `rootPrefix` | 那一段地址一律 301 到 `/`；sitemap 只列终态 URL |
+
+判据放在 marketing 而不是各业务模块：模板路径与首页挂载都是这里的概念，
+`rootPrefix` 本来就登记在 `registerHomeLayout` 上。被挡掉的枢纽如果仍有一个终态地址
+需要收录（如事件模块的 `/entity`），由**贡献方的 sitemap provider** 按当前挂载算出来交进来。
+
+`x-default` 与 `<head>` 的 `renderAlternateLinksHtml` 同一条规则：至少两种语言互指、
+且默认语言那条在列，才发得出去。单语言条目（贡献 provider 给的事件页）不发。
+
+### 访问分析（`shared/site-analytics.ts`）
+
+`MarketingSite.analytics` 一个 JSON 列：`{ provider, script_url, site_id }`。
+公开面 SSR 在 `<head>` 里发一行分析脚本，编辑器预览恒不发
+（自己人改稿的点击不该混进访客数据里）。
+
+- 收的是**一个脚本地址 + 一个站点标识**，不是任意 HTML——粘一段 `<script>` 等于
+  给站点管理员开一个脚本注入位，出问题时也没人说得清页面上跑的是什么
+- 只放行 **https 绝对地址**；非法输入归一成「没配」而不是抛：填错的代价该是统计不生效，
+  不是整个站点设置存不下去
+- **不进草稿 / 发布链**：分析是站点配置不是内容，配完就该生效
+- 供应商决定属性名（plausible → `data-domain`，umami → `data-website-id`，
+  cloudflare → `type=module` + `data-cf-beacon={"token"}`，custom 只有 src）
 
 ## 表单段（贡献自 `site-form`）
 

@@ -2,13 +2,13 @@
   "mcpServers": {
     "shadcn": {
       "command": "sh",
-      "args": [
-        "-c",
-        "cd packages/ui && pnpm dlx shadcn@latest mcp"
-      ]
+      "args": ["-c", "cd packages/ui && pnpm dlx shadcn@latest mcp"]
     },
     "stripe": {
       "url": "https://mcp.stripe.com"
+    },
+    "semrush": {
+      "url": "https://mcp.semrush.com/v2/mcp"
     }
   }
 }

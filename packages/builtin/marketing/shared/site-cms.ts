@@ -4,6 +4,7 @@ import { getPageTemplateKind } from "./page-templates.js";
 import { normalizeSiteColor } from "./site-color.js";
 
 import type { LocalizedText, SiteSection } from "./section-schema.js";
+import type { SiteAnalytics } from "./site-analytics.js";
 import type { ThemeSettings } from "./theme-sections.js";
 
 /** 站点级可本地化文案：单语言为纯字符串，多语言为 `__i18n` 表。 */
@@ -160,6 +161,8 @@ export interface MarketingSite {
    * 「重设为最新版式」与 SSR 兜底按它取预设。
    */
   home_layout_key: string;
+  /** 公开面的访问分析脚本，见 `shared/site-analytics.ts`。 */
+  analytics: SiteAnalytics;
   created_at: string;
   updated_at: string;
 }
@@ -210,6 +213,8 @@ export interface UpdateMarketingSiteBody {
   published?: boolean;
   /** 访客访问 `/` 时渲染的逻辑路径，见 `MarketingSite.home_path`。 */
   home_path?: string;
+  /** 访问分析；非法值在服务端归一成「没配」而不是报错，见 `site-analytics.ts`。 */
+  analytics?: SiteAnalytics;
 }
 
 export interface CreateMarketingPageBody {
@@ -344,6 +349,14 @@ export interface PublicMarketingSite {
   available_locales: AppLocale[];
   header: SiteSection[];
   footer: SiteSection[];
+  /**
+   * 访问分析的 `<script>`，已按供应商拼好（见 `shared/site-analytics.ts`）。
+   *
+   * 放在这里而不是逐个渲染入口传：官网、店面、会员页、404 都各自调
+   * `renderMarketingHtml`，走站点对象是唯一不会漏的那条路。
+   * 编辑器预览（草稿）恒为空串——自己人改稿的点击不该混进访客数据里。
+   */
+  analytics_html: string;
   /** `path` 是**逻辑路径**（不带 locale 前缀）；链接由渲染端按语言改写。 */
   pages: Array<{
     slug: string;

@@ -1,0 +1,67 @@
+# 增量功能契约 —— 站点级访问分析（无 cookie 的第三方脚本）
+#
+# 起因：yestino.com 线上页面里除了 `site-enhance.js` 没有任何分析脚本。推广一旦开始，
+# 「从哪来的人、看了哪几页、RSS 订阅点了几次」全部无从回答——不是数据不准，是**没有数据**。
+#
+# 为什么不是「允许租户粘一段 HTML 到 <head>」：那等于给站点管理员一个任意脚本注入位，
+# 出问题时也没人说得清页面上跑的是什么。这里只收**一个脚本地址 + 一个站点标识**，
+# 按供应商拼成固定形状的 <script>，其余一律不接。
+#
+# 选 Plausible / Umami / Cloudflare 这一类作为一等选项，是因为它们不写 cookie、不做跨站跟踪，
+# 因而不需要同意横幅——一个「来源即证据」的站点，不该为了统计先弹一个隐私弹窗。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: 站点设置里可配一个分析脚本（Plausible / Umami / Cloudflare / 自定义 URL + 站点标识），公开面 SSR 在 <head> 里发出对应的 <script>；编辑器预览与会员占位页不发。
+gold: packages/builtin/marketing/shared/site-themes.ts
+touch:
+  - packages/builtin/marketing/features/site-analytics.spec.yaml
+  - packages/builtin/marketing/models.prisma
+  - apps/server/prisma/migrations/
+  - packages/builtin/marketing/shared/site-analytics.ts
+  - packages/builtin/marketing/shared/site-analytics.test.ts
+  - packages/builtin/marketing/shared/site-cms.ts
+  - packages/builtin/marketing/server/site.mapper.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-render.test.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/client/hooks/use-site-settings-form.ts
+  - packages/builtin/marketing/client/components/settings/SiteAnalyticsForm.tsx
+  - packages/builtin/marketing/client/components/SiteSettingsSheet.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 自建统计（存 PV / UV、出报表）——那是另一个模块，不是官网设置
+  - Google Analytics 的同意管理 / cookie 横幅（不接 GA 这类需要同意的供应商）
+  - 事件级埋点 API（`window.plausible(...)`）与转化目标配置
+  - 服务端日志分析、UTM 落库
+  - 平台控制台 / 工作台页面的分析（这里只管公开官网面）
+i18n: code # 设置面板文案走 client/locales；字段值是配置不翻译
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-analytics.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-render.test.ts
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: [site.read, site.write] # 沿用现有站点设置权限，不新增
+models:
+  - name: MarketingSite
+    scope: tenant
+    fields:
+      - { name: analytics, type: Json, required: false }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 一个 JSON 列而不是三个字符串列：形状还会长（多一个供应商就多一个字段），
+#    与 `theme_settings` 同一口径。**不进草稿 / 发布链**——分析是站点配置不是内容，
+#    配完就该生效，没有「先预览再上线」的语义。
+# 2. 只发 https 绝对地址。相对路径、http、`javascript:` 一律在写入时拒绝，
+#    渲染端再兜一次（存量脏数据不该变成 XSS）。
+# 3. 供应商决定属性名：plausible → `data-domain`，umami → `data-website-id`，
+#    cloudflare → `type=module` + `data-cf-beacon={"token"}`（官方 snippet 是 ES module，
+#    不能改成 defer），custom → 只有 src。Cloudflare 与 Plausible 一样有官方默认脚本地址。
+# 4. 编辑器预览（`site-content.routes.ts` 的 page-html / preview）**不传** analyticsHtml：
+#    自己人改稿的点击不该混进访客数据里。

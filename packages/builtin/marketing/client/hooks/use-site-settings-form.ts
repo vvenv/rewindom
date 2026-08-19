@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 
 import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 
+import {
+  EMPTY_SITE_ANALYTICS,
+  type SiteAnalytics,
+  type SiteAnalyticsProvider,
+} from "../../shared/site-analytics.js";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import {
   pinToLocale,
@@ -50,6 +55,9 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
   const [defaultLocale, setDefaultLocale] = useState<AppLocale>(savedLocale);
   const [published, setPublished] = useState(false);
   const [homePath, setHomePath] = useState("/");
+  const [analytics, setAnalytics] = useState<SiteAnalytics>(
+    EMPTY_SITE_ANALYTICS,
+  );
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,6 +68,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
     setDefaultLocale(locale);
     setPublished(site.published);
     setHomePath(site.home_path || "/");
+    setAnalytics(site.analytics ?? EMPTY_SITE_ANALYTICS);
     if (first) {
       setSiteName(site.site_name);
       setTagline(site.tagline);
@@ -102,6 +111,7 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
     setDefaultLocale(locale);
     setPublished(site.published);
     setHomePath(site.home_path || "/");
+    setAnalytics(site.analytics ?? EMPTY_SITE_ANALYTICS);
     setHydratedKey(site.updated_at);
   };
 
@@ -216,6 +226,49 @@ export function useSiteSettingsForm(site: MarketingSite | undefined) {
         });
       },
       restore: (): void => setHomePath(site?.home_path || "/"),
+    },
+
+    analytics: {
+      value: analytics,
+      /*
+       * 换供应商即存：`none` 是「关掉统计」，等失焦才生效只会让人以为没点上。
+       * 换到有配置的供应商时先只落 provider，地址 / 标识仍空 —— 服务端会把
+       * 「填不全」归一成 none，等于「还没配好就先不发脚本」，正是想要的中间态。
+       */
+      setProvider: (next: SiteAnalyticsProvider, options?: SaveOptions): void => {
+        if (!site || next === analytics.provider) return;
+        const value = { ...analytics, provider: next };
+        setAnalytics(value);
+        save({ analytics: value }, {
+          onSuccess: options?.onSuccess,
+          onError: () => {
+            setAnalytics(site.analytics ?? EMPTY_SITE_ANALYTICS);
+            options?.onError?.();
+          },
+        });
+      },
+      setScriptUrl: (next: string): void =>
+        setAnalytics((current) => ({ ...current, script_url: next })),
+      setSiteId: (next: string): void =>
+        setAnalytics((current) => ({ ...current, site_id: next })),
+      dirty: Boolean(
+        site &&
+        (analytics.script_url !== (site.analytics?.script_url ?? "") ||
+          analytics.site_id !== (site.analytics?.site_id ?? "")),
+      ),
+      /** 两个输入框失焦时调用；与站名同口径（失焦即存）。 */
+      commit: (options?: SaveOptions): void => {
+        if (!site || updateSite.isPending) return;
+        save({ analytics }, {
+          onSuccess: options?.onSuccess,
+          onError: () => {
+            setAnalytics(site.analytics ?? EMPTY_SITE_ANALYTICS);
+            options?.onError?.();
+          },
+        });
+      },
+      restore: (): void =>
+        setAnalytics(site?.analytics ?? EMPTY_SITE_ANALYTICS),
     },
   };
 }

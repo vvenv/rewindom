@@ -28,6 +28,9 @@ model MarketingSite {
   // 首页（kind=home）当前套用的版式 key，见 `registerHomeLayout`。
   // 「重设为最新版式」与 SSR 兜底按它取预设；套用只写草稿。
   home_layout_key String  @default("marketing.default")
+  // 公开面的访问分析：{ provider, script_url, site_id }，见 `shared/site-analytics.ts`。
+  // 不进草稿 / 发布链——分析是站点配置不是内容，配完就该生效。
+  analytics      Json     @default("{}")
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 

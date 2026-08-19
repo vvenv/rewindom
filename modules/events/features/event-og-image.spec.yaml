@@ -1,0 +1,60 @@
+# 增量功能契约 —— 每个事件自己的社交卡片图
+#
+# 起因：现在所有页面的 og:image 都是同一张站点品牌图。分享到 Slack / X / Reddit 时，
+# 十条不同的事件长得一模一样——读者只能靠那行小字标题分辨，点开率被白白压掉。
+# 事件站的卡片图本来就该把标题画上去：卡片是这条链接在别人时间线里的全部外观。
+#
+# 为什么不是「让租户逐条上传」：事件是自动采集的，每天几十条，没人会去传图。
+# 要么自动生成，要么就一直是同一张。
+#
+# 字体是这件事唯一的真风险：服务端进程手里不一定有字体文件。所以做成**可降级**的——
+# 拿不到字体就不发这个 og:image，页面回落站点品牌图。宁可少一个花样，
+# 也不要发一张字都画不出来的图。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 事件详情页的 og:image 指向 `/events/:slug/og.png`，该地址实时生成 1200×630 的卡片（标题 + 主题 / 阶段胶囊 + 来源数 + 站点域名）；字体不可用时不设这个 og:image，回落站点图。
+gold: apps/server/scripts/yestino-brand/generate.mjs
+touch:
+  - modules/events/features/event-og-image.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/package.json
+  - modules/events/server/ssr/og-image.ts
+  - modules/events/server/ssr/og-image.test.ts
+  - modules/events/server/ssr/og.routes.ts
+  - modules/events/server/ssr/events-page.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/module.ts
+out_of_scope:
+  - 实体页 / 枢纽页的专属卡片图（先看事件页的效果）
+  - 让租户逐条上传或覆盖事件配图
+  - 卡片版式的可配置化（配色跟着官网深色 token 走，不另开设置）
+  - 把生成图落进对象存储 / 预渲染（先按需生成 + 缓存头）
+i18n: none # 图上只有事件自己的文案与已落成当前语言的胶囊
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ssr/og-image.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 公开面，无需权限
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 挂模块自己的 Fastify 路由，与 RSS 同一条理由：path handler 只回 HTML，
+#    控制不了 content-type。地址恒为 `/events/:slug/og.png`，**不跟着首页挂载收到根上**
+#    ——它不是给人看的页面，没有「规范地址」的问题，少一条分支。
+# 2. 字体：优先用官网自己发的 Inter（`apps/client/dist|public/assets/site-fonts`，
+#    dist 那份在容器里也在），拿不到再 `loadSystemFonts()`。一个都没有就报「不可用」，
+#    详情页据此不设 og:image。判定只做一次，缓存在模块级。
+# 3. 配色照抄 `scripts/yestino-brand/generate.mjs` 的官网深色 token，
+#    胶囊沿用事件卡片上那种只描边不填色的样式——分享卡片与落地页要像同一个产品。
+# 4. 生成结果按 slug + 最后活动时间做小容量 LRU：链接预览抓取是突发的，
+#    同一条链接会被十几个客户端同时抓。事件文案改了 key 就变，不会发陈图。
+# 5. 卡片文案跟**站点主语言**走，不是进程默认语言：写死 zh-CN 会让英文站的卡片
+#    出现中文胶囊，而 Inter 只有拉丁字形——那一排会画成豆腐块（实测）。
+#    字族列表再挂一款系统里真的存在的中日韩字体，让 skia 逐字回退。
+# 6. 断行不能只按空格切：中文标题整句没有空格，会被当成一个词一路画出画布（实测）。
+#    拉丁词整块走、中日韩逐字走。

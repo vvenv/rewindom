@@ -13,6 +13,7 @@ import {
   isEventSourceKind,
   isEventTopic,
   parseEventFeedTab,
+  type EventEntityKind,
   type EventFeedTab,
   type EventSourceKind,
   type EventIncidentUpdate,
@@ -103,6 +104,18 @@ export function entityPath(
   );
 }
 
+/**
+ * 实体枢纽地址：`/events/entity`（枢纽当首页时 `/entity`）。
+ *
+ * 与实体详情共用前缀而不是另开一段：同一个域下只有一处入口，
+ * sitemap、面包屑与 path handler 都少一条分支。
+ */
+export function entityIndexPath(
+  indexPath: string = EVENTS_INDEX_PATH,
+): string {
+  return joinIndex(indexPath, `/${EVENTS_ENTITY_SEGMENT}`);
+}
+
 function entityPrefix(indexPath: string): string {
   return indexPath === "/"
     ? `/${EVENTS_ENTITY_SEGMENT}/`
@@ -118,6 +131,16 @@ function entityPrefix(indexPath: string): string {
 export function eventsFeedPath(topic?: EventTopic): string {
   const base = `${EVENTS_INDEX_PATH}/feed.xml`;
   return topic ? `${base}?topic=${encodeURIComponent(topic)}` : base;
+}
+
+/**
+ * 事件的社交卡片图地址。
+ *
+ * 恒带 `/events` 前缀，**不跟着首页挂载收到根上**：它不是给人看的页面，
+ * 没有「规范地址」的问题，og:image 本来就是绝对 URL。
+ */
+export function eventOgImagePath(slug: string): string {
+  return `${EVENTS_INDEX_PATH}/${encodeURIComponent(slug)}/og.png`;
 }
 
 export function entityFeedPath(slug: string): string {
@@ -182,6 +205,7 @@ export type EventsPublicRoute =
   | { type: "index" }
   | { type: "topic"; topic: EventTopic }
   | { type: "event"; slug: string }
+  | { type: "entity_index" }
   | { type: "entity"; slug: string };
 
 export function parseEventsPublicPath(
@@ -196,6 +220,11 @@ export function parseEventsPublicPath(
    * 静默变成 404。
    */
   if (path.endsWith("/feed.xml")) return null;
+  /*
+   * 实体枢纽要在单段解析**之前**认：枢纽挂在根上时 `/entity` 只有一段，
+   * 不先拦下来就会被当成一个叫 entity 的事件 slug，然后 404。
+   */
+  if (path === entityIndexPath(indexPath)) return { type: "entity_index" };
   const entitySlug = entitySlugFromPath(path, indexPath);
   if (entitySlug !== null) return { type: "entity", slug: entitySlug };
   const topic = topicFromPath(path, indexPath);
@@ -427,6 +456,13 @@ export interface PublicEventDetailView extends PublicEventCard {
   related: PublicRelatedEvent[];
   /** 「为什么在扩散」。说不清楚时是空数组，整块不渲染 */
   why_trending: PublicTrendingFactor[];
+  /**
+   * 这条材料涉及的实体，按提及次数降序。空数组时整块不渲染。
+   *
+   * 它同时是站内**唯一**通往实体页的成规模入口——没有这一行，几百张实体页
+   * 就只能靠 sitemap 被发现，那是孤儿页。
+   */
+  entities: { href: string; name: string }[];
 }
 
 /** 实体页的公开视图。文案已落成当前语言，段渲染器直接读。 */
@@ -448,6 +484,22 @@ export interface PublicEntityView {
   events: PublicEventCard[];
 }
 
+/** 实体枢纽的公开视图：按类型分组，组名与计数文案已落成当前语言。 */
+export interface PublicEntityIndexView {
+  href: string;
+  groups: {
+    kind: EventEntityKind;
+    /** 已落成当前语言的类型名（公司 / 产品 / 人物…） */
+    label: string;
+    items: {
+      href: string;
+      name: string;
+      /** 该实体在窗口内关联了多少个事件 */
+      event_count: number;
+    }[];
+  }[];
+}
+
 export interface PublicEventFeed {
   rising: PublicEventCard[];
   now: PublicEventCard[];
@@ -462,6 +514,8 @@ export interface EventsRenderContext {
    * 与 `event` 同理由 path handler 直接带进来——只有它知道当前是哪个实体。
    */
   entity?: PublicEntityView | null;
+  /** 实体枢纽模板页才有；其余页面恒为 null。与 `entity` 同一条理由。 */
+  entity_index?: PublicEntityIndexView | null;
   index_path: string;
   /**
    * 查询列表页：这一段已经是「全部」，不再按区块 limit 截断，

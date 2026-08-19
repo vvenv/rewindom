@@ -16,6 +16,7 @@ import {
   DEFAULT_HOME_LAYOUT_KEY,
   getHomeLayout,
   isHomeLayoutRelevant,
+  listHomeLayouts,
   resolveHomeLayout,
 } from "../shared/home-layouts.js";
 import { buildPresetSections } from "../shared/page-presets.js";
@@ -41,6 +42,10 @@ import {
   type SiteSection,
 } from "../shared/section-schema.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
+import {
+  normalizeSiteAnalytics,
+  renderSiteAnalyticsHtml,
+} from "../shared/site-analytics.js";
 import {
   canonicalizePageIdentity,
   marketingPagePath,
@@ -403,6 +408,15 @@ export async function updateSite(
       throw new ValidationError("site.home_path_invalid");
     }
     data.home_path = await assertHomePath(tenant_id, body.home_path, enabled);
+  }
+  /*
+   * 分析不进草稿 / 发布链：它是站点配置不是内容，配完就该生效。
+   * 非法输入归一成「没配」而不是抛——填错的代价该是统计不生效，不是设置存不下去。
+   */
+  if (body.analytics !== undefined) {
+    data.analytics = normalizeSiteAnalytics(
+      body.analytics,
+    ) as unknown as Prisma.InputJsonValue;
   }
 
   // 主题改动一律进**草稿**列，与页头页脚同一条发布链；线上那一列只有发布才动
@@ -1455,6 +1469,8 @@ export async function getSiteChromeOrFallback(
     logo_url: resolveThemeSettings(site?.theme_settings).logo_url ?? null,
     primary_color: null,
     theme_settings: resolveThemeSettings(site?.theme_settings),
+    // 会员登录这类页面同样是公开面，访客的一次访问不该因为官网没发布就不算数
+    analytics_html: renderSiteAnalyticsHtml(site?.analytics),
     default_locale: defaultLocale,
     locale: effective,
     available_locales: [defaultLocale],
@@ -1681,6 +1697,40 @@ export interface SitemapEntry {
   path: string;
   updated_at: string;
   alternates: PageLocaleAlternate[];
+  /**
+   * 本站默认语言，用来在 `alternates` 里挑出 `x-default` 指向的那一条。
+   *
+   * 留空表示这条不发 `x-default`——单语言条目（贡献 provider 给的事件页）
+   * 本来就只有一条 alternate，发了也无从互指。
+   */
+  default_locale?: string;
+}
+
+/**
+ * 这套首页挂载把哪一段公开前缀收到了根上（没有就 undefined）。
+ *
+ * 与 events 的 `eventsMountedAtRoot` 同一条判据，但写在 marketing 且对所有版式通用：
+ * 贡献模块不该各写一遍「我的前缀现在收到根上了」，marketing 自己就有 `rootPrefix`。
+ *
+ * 两种进法：选了声明 `rootPrefix` 的版式（`home_path=/`），或存量把该前缀直接设成首页。
+ */
+function rootMountedPrefix(
+  homePath: string,
+  homeLayoutKey: string | null | undefined,
+  entitlements: ReadonlySet<string>,
+): string | undefined {
+  const normalized = normalizeHomePath(homePath);
+  if (normalized === DEFAULT_HOME_PATH) {
+    return resolveHomeLayout(homeLayoutKey, entitlements).rootPrefix;
+  }
+  return listHomeLayouts(entitlements).find(
+    (layout) => layout.rootPrefix === normalized,
+  )?.rootPrefix;
+}
+
+/** 路径是不是落在被收到根上的那段前缀里（这些地址一律 301 到 `/`）。 */
+function isUnderPrefix(path: string, prefix: string): boolean {
+  return path === prefix || path.startsWith(`${prefix}/`);
 }
 
 /**
@@ -1734,11 +1784,19 @@ export async function getPublishedSitemapEntries(
   });
   if (!siteRecord) return null;
 
-  const pages = await prisma.marketingPage.findMany({
-    where: withTenantScope(tenant_id, { status: "published" }),
-    orderBy: PAGE_CATALOG_ORDER,
-  });
+  const [pages, entitlements] = await Promise.all([
+    prisma.marketingPage.findMany({
+      where: withTenantScope(tenant_id, { status: "published" }),
+      orderBy: PAGE_CATALOG_ORDER,
+    }),
+    resolveSectionEntitlements(tenant_id),
+  ]);
   const default_locale = normalizeLocale(siteRecord.default_locale);
+  const mountedPrefix = rootMountedPrefix(
+    siteRecord.home_path,
+    siteRecord.home_layout_key,
+    entitlements,
+  );
 
   const entries = pages
     .filter((record) => parsePageVisibility(record.visibility) === "public")
@@ -1750,6 +1808,19 @@ export async function getPublishedSitemapEntries(
         canonicalizePageIdentity(record.kind, record.slug).kind !==
         NOT_FOUND_PAGE_KIND,
     )
+    // 模板路径（`/events/:slug`）不是能打开的地址：URL 编码成 `%3Aslug` 就是一条死链
+    .filter(
+      (record) => !marketingPagePath(record.kind, record.slug).includes(":"),
+    )
+    // 前缀被收到根上之后，`/events` 这类地址一律 301——sitemap 只列终态 URL
+    .filter(
+      (record) =>
+        !mountedPrefix ||
+        !isUnderPrefix(
+          marketingPagePath(record.kind, record.slug),
+          mountedPrefix,
+        ),
+    )
     .map((record) => {
       const view = toPublicMarketingPage(record, {
         siblings: pages,
@@ -1759,6 +1830,7 @@ export async function getPublishedSitemapEntries(
         path: withSiteLocale(view.path, view.locale, default_locale),
         updated_at: view.updated_at,
         alternates: view.alternates,
+        default_locale,
       };
     });
 
@@ -1789,6 +1861,7 @@ export async function getPublishedSitemapEntries(
         path: withSiteLocale("/", locale, default_locale),
         updated_at: siteRecord.updated_at.toISOString(),
         alternates,
+        default_locale,
       });
     }
   }

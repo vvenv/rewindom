@@ -22,7 +22,8 @@ function site(): PublicMarketingSite {
     available_locales: ["zh-CN"],
     header: [],
     footer: [],
-    pages: [],
+    analytics_html: "",
+  pages: [],
   };
 }
 

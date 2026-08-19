@@ -449,6 +449,9 @@ importers:
 
   modules/events:
     dependencies:
+      '@napi-rs/canvas':
+        specifier: ^1.0.7
+        version: 1.0.7
       '@rewindom/builtin':
         specifier: workspace:*
         version: link:../../packages/builtin

@@ -1,11 +1,13 @@
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { registerHomeLayout } from "../shared/home-layouts.js";
 import { registerPageTemplateKind } from "../shared/page-templates.js";
 import { registerSectionDefinition } from "../shared/section-schema.js";
 import {
   deletePage,
   duplicatePage,
+  getPublishedSitemapEntries,
   publishSiteDraft,
   reorderPages,
   revertSiteDraft,
@@ -29,6 +31,22 @@ registerPageTemplateKind({
   group: "x",
   label: "x",
   required_section: null,
+});
+
+/** 带 `rootPrefix` 的版式：选中它之后 `/docs` 整段被收到根上。 */
+registerHomeLayout({
+  key: "docs.home",
+  label: "x",
+  rootPrefix: "/docs",
+  preset: {
+    key: "docs.home",
+    label: "x",
+    kind: "home",
+    slug: "home",
+    titleKey: "x",
+    descriptionKey: "x",
+    sections: [],
+  },
 });
 
 vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
@@ -807,5 +825,86 @@ describe("deletePage", () => {
       "site.template_page_not_deletable",
     );
     expect(prisma.marketingPage.delete).not.toHaveBeenCalled();
+  });
+});
+
+describe("getPublishedSitemapEntries", () => {
+  /** 站点行：sitemap 只读这几列，其余沿用公共 fixture。 */
+  function publishedSite(overrides: Record<string, unknown> = {}) {
+    return {
+      ...siteRow,
+      home_path: "/",
+      home_layout_key: "marketing.default",
+      ...overrides,
+    };
+  }
+
+  function pageRow(overrides: Record<string, unknown>) {
+    return sourceRow({ status: "published", visibility: "public", ...overrides });
+  }
+
+  beforeEach(() => {
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      publishedSite() as never,
+    );
+  });
+
+  it("drops template paths: `/docs/:slug` is not an address anyone can open", async () => {
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([
+      pageRow({ id: "p1", kind: "page", slug: "about" }),
+      pageRow({ id: "p2", kind: "docs_article", slug: "docs-article" }),
+    ] as never);
+
+    const entries = await getPublishedSitemapEntries(TENANT);
+
+    expect(entries?.map((entry) => entry.path)).toEqual(["/", "/about"]);
+  });
+
+  it("drops the hub prefix once a home layout pulls it to the root", async () => {
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      publishedSite({ home_layout_key: "docs.home" }) as never,
+    );
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([
+      pageRow({ id: "p1", kind: "page", slug: "about" }),
+      pageRow({ id: "p2", kind: "docs_index", slug: "docs" }),
+    ] as never);
+
+    const entries = await getPublishedSitemapEntries(TENANT);
+
+    expect(entries?.map((entry) => entry.path)).toEqual(["/", "/about"]);
+  });
+
+  it("drops the same prefix for legacy sites that set it as home_path", async () => {
+    vi.mocked(prisma.marketingSite.findFirst).mockResolvedValue(
+      publishedSite({ home_path: "/docs" }) as never,
+    );
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([
+      pageRow({ id: "p1", kind: "page", slug: "about" }),
+      pageRow({ id: "p2", kind: "docs_index", slug: "docs" }),
+    ] as never);
+
+    const entries = await getPublishedSitemapEntries(TENANT);
+
+    expect(entries?.map((entry) => entry.path)).toEqual(["/", "/about"]);
+  });
+
+  it("keeps the hub when no layout claims the root", async () => {
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([
+      pageRow({ id: "p2", kind: "docs_index", slug: "docs" }),
+    ] as never);
+
+    const entries = await getPublishedSitemapEntries(TENANT);
+
+    expect(entries?.map((entry) => entry.path)).toContain("/docs");
+  });
+
+  it("carries the site default locale so x-default can be resolved", async () => {
+    vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([
+      pageRow({ id: "p1", kind: "page", slug: "about" }),
+    ] as never);
+
+    const entries = await getPublishedSitemapEntries(TENANT);
+
+    expect(entries?.[0]?.default_locale).toBe("zh-CN");
   });
 });

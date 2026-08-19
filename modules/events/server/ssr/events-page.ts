@@ -45,6 +45,13 @@ export async function renderEventsTemplatePage(input: {
    * 覆盖版式。查询列表页用：不走租户改过的两段首页，只画与查询匹配的那一段。
    */
   sections?: SiteSection[];
+  /**
+   * 这一页专属的社交卡片图（绝对 URL）。不传则回落站点品牌图。
+   *
+   * 详情页在卡片图不可用时（服务端没有字体）刻意不传——回落一张能看的图，
+   * 好过指向一个 404 的图片地址。
+   */
+  ogImage?: string;
 }): Promise<string> {
   const locale = normalizeLocale(input.locale);
 
@@ -92,7 +99,7 @@ export async function renderEventsTemplatePage(input: {
       title: input.title ?? template.title,
       description: input.description ?? template.description,
       sections: template.sections,
-      settings: {},
+      settings: input.ogImage ? { og_image: input.ogImage } : {},
       visibility: "public",
       path: input.path,
       /*

@@ -22,6 +22,7 @@ import { EVENTS_ENTITLEMENT } from "./entitlements.js";
 import { EVENT_TOPICS, isEventTopic, type EventTopic } from "./events.js";
 import {
   EVENTS_INDEX_PATH,
+  entityIndexPath,
   eventsIndexHref,
   readEventsContext,
   type EventsRenderContext,
@@ -40,10 +41,12 @@ import {
 
 export const EVENTS_NAV_SOURCE = "events";
 export const EVENTS_TOPIC_NAV_SOURCE = "events.topic";
+export const EVENTS_ENTITIES_NAV_SOURCE = "events.entities";
 
 export const EVENTS_NAV_SOURCES = [
   EVENTS_NAV_SOURCE,
   EVENTS_TOPIC_NAV_SOURCE,
+  EVENTS_ENTITIES_NAV_SOURCE,
 ] as const;
 
 function messagesFor(locale: string): typeof en {
@@ -177,6 +180,27 @@ export const EVENTS_TOPIC_NAV_SOURCE_DEF: NavSourceDefinition = {
   expand: expandEventsTopic,
 };
 
+/**
+ * 实体枢纽一条叶子。
+ *
+ * **不塞进 `events` 源**：那个源是七个主题格，混一条进去会打乱它的语义。
+ * 租户想让访客走到实体页，就把这一条摆进页头或页脚。
+ */
+export const EVENTS_ENTITIES_NAV_SOURCE_DEF: NavSourceDefinition = {
+  source: EVENTS_ENTITIES_NAV_SOURCE,
+  label: "events:nav.source.entities",
+  defaultLabel: "events:nav.source.entitiesDefault",
+  entitlement: EVENTS_ENTITLEMENT.key,
+  defaultExpand: "children",
+  expand: (item, ctx) => {
+    const href = entityIndexPath(navIndexPath(ctx));
+    const label =
+      resolveNavLabel(item.label, ctx, href) ||
+      messagesFor(ctx.locale).nav.entities;
+    return [makeNavLink(item.id, label, href, ctx)];
+  },
+};
+
 export function eventsNavTopicOptions(
   locale: string,
   enabled: readonly EventTopic[] = EVENT_TOPICS,
@@ -191,4 +215,5 @@ export function eventsNavTopicOptions(
 export function registerEventsNavSources(): void {
   registerNavSource(EVENTS_NAV_SOURCE_DEF);
   registerNavSource(EVENTS_TOPIC_NAV_SOURCE_DEF);
+  registerNavSource(EVENTS_ENTITIES_NAV_SOURCE_DEF);
 }

@@ -11,6 +11,7 @@ import { registerEventIngestJobs } from "./ingest/scheduler-jobs.js";
 import { registerEventsSections } from "./sections/register.js";
 import { registerEventsPathHandler } from "./ssr/events-path-handler.js";
 import { eventsRoutes } from "./events.routes.js";
+import { eventsOgImageRoutes } from "./ssr/og.routes.js";
 import { eventsRssRoutes } from "./ssr/rss.routes.js";
 import { EVENTS_SERVER_I18N } from "./i18n.js";
 
@@ -79,6 +80,7 @@ export const eventsServerModule: ServerAppModule = {
        * 与 shop 店面路由同构。
        */
       await app.register(eventsRssRoutes);
+      await app.register(eventsOgImageRoutes);
       await registerTenantGatedRoutes(app, "events", async (scoped) => {
         await scoped.register(feedRoutes, { prefix: "/api/events/feeds" });
         await scoped.register(followRoutes, { prefix: "/api/events/follows" });

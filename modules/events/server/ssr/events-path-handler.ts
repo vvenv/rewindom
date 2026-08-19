@@ -12,12 +12,14 @@
 import { normalizeLocale } from "@rewindom/module-sdk";
 
 import { renderEventsTemplatePage } from "./events-page.js";
+import { isEventOgImageAvailable } from "./og-image.js";
 import {
   createEventsPresetTranslator,
   eventsMessage,
 } from "./events-preset-i18n.js";
 import {
   getPublicEntityBySlug,
+  getPublicEntityIndex,
   getPublicEventBySlug,
   getPublicEventFeed,
   getPublicEventList,
@@ -25,12 +27,16 @@ import {
 import { getEnabledTopics } from "../event/topic-settings.service.js";
 
 import {
+  EVENT_ENTITY_KINDS,
   EVENTS_DETAIL_PAGE_KIND,
   EVENTS_ENTITLEMENT,
+  EVENTS_ENTITY_INDEX_PAGE_KIND,
   EVENTS_ENTITY_PAGE_KIND,
   emptyEventsContext,
   entityFeedPath,
+  entityIndexPath,
   entityPath,
+  eventOgImagePath,
   eventPath,
   eventsCanonicalLocation,
   eventsIndexPath,
@@ -48,6 +54,7 @@ import {
 } from "../../shared/index.js";
 import {
   EVENTS_DETAIL_TEMPLATE_PRESET,
+  EVENTS_ENTITY_INDEX_TEMPLATE_PRESET,
   EVENTS_ENTITY_TEMPLATE_PRESET,
   EVENTS_INDEX_PAGE_KIND,
   EVENTS_INDEX_TEMPLATE_PRESET,
@@ -91,6 +98,9 @@ async function renderEventsPath(
   const locale = normalizeLocale(input.locale);
   const indexPath = indexPathOf(input);
 
+  if (route.type === "entity_index") {
+    return renderEntityIndex(input, locale, indexPath);
+  }
   if (route.type === "entity") {
     return renderEntity(input, locale, route.slug, indexPath);
   }
@@ -107,6 +117,53 @@ async function renderEventsPath(
     }
   }
   return renderIndex(input, locale, indexPath, pathTopic);
+}
+
+/**
+ * 实体枢纽 `/events/entity`（枢纽当首页时 `/entity`）。
+ *
+ * 清单为空也**照样渲染**——与实体详情不同：那里没有实体是 404（地址指着一个
+ * 不存在的东西），这里是一张常驻页面，只是暂时没有内容可列，段自己画空态。
+ */
+async function renderEntityIndex(
+  input: SitePathHandlerInput,
+  locale: AppLocale,
+  indexPath: string,
+): Promise<string> {
+  const [rows, t] = await Promise.all([
+    getPublicEntityIndex(input.tenantId),
+    Promise.resolve(translator(locale)),
+  ]);
+  const href = entityIndexPath(indexPath);
+
+  const groups = EVENT_ENTITY_KINDS.map((kind) => ({
+    kind,
+    label: t(`entityKind.${kind}`),
+    items: rows
+      .filter((row) => row.kind === kind)
+      .map((row) => ({
+        href: entityPath(row.slug, indexPath),
+        name: row.name,
+        event_count: row.event_count,
+      })),
+  })).filter((group) => group.items.length > 0);
+
+  return renderEventsTemplatePage({
+    tenantId: input.tenantId,
+    tenantSlug: input.tenantSlug,
+    siteName: input.tenantSlug,
+    origin: input.origin,
+    locale,
+    kind: EVENTS_ENTITY_INDEX_PAGE_KIND,
+    path: href,
+    servedPath: input.servedPath ?? href,
+    preset: EVENTS_ENTITY_INDEX_TEMPLATE_PRESET,
+    description: t("entityIndex.metaDescription", { count: rows.length }),
+    events: emptyEventsContext({
+      index_path: indexPath,
+      entity_index: { href, groups },
+    }),
+  });
 }
 
 async function renderEntity(
@@ -276,6 +333,13 @@ async function renderDetail(
     preset: EVENTS_DETAIL_TEMPLATE_PRESET,
     title: detail.title,
     description: detail.headline || undefined,
+    /*
+     * 这一条自己的社交卡片图。地址不跟着首页挂载变（见 og.routes.ts）。
+     * 服务端画不出来时不设，回落站点品牌图——好过指向一个 404 的图片地址。
+     */
+    ogImage: isEventOgImageAvailable()
+      ? `${input.origin}${eventOgImagePath(slug)}`
+      : undefined,
     events: emptyEventsContext({
       index_path: indexPath,
       event: toPublicDetail(detail, t, indexPath),

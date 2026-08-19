@@ -366,7 +366,32 @@
     "filterLocaleAll": "All languages",
     "emptyFiltered": "No matching pages",
     "emptyFilteredHint": "Try another keyword, or clear the filters.",
-    "toastPageReorderFailed": "Could not reorder pages — try again"
+    "toastPageReorderFailed": "Could not reorder pages — try again",
+    "settingsSectionAnalytics": "Analytics",
+    "settingsSectionAnalyticsHint": "A privacy-friendly visitor counter for the public site. Nothing is sent until you pick a provider.",
+    "fieldAnalyticsProvider": "Provider",
+    "fieldAnalyticsProviderHint": "These providers set no cookies and need no consent banner. The workspace and platform console are never tracked.",
+    "analyticsProvider": {
+      "none": "Off",
+      "plausible": "Plausible",
+      "umami": "Umami",
+      "cloudflare": "Cloudflare",
+      "custom": "Custom script"
+    },
+    "fieldAnalyticsSiteId": {
+      "plausible": "Site domain",
+      "umami": "Website ID",
+      "cloudflare": "Beacon token"
+    },
+    "fieldAnalyticsSiteIdHint": {
+      "plausible": "The domain you registered in Plausible, without https://.",
+      "umami": "The website ID shown in your Umami dashboard.",
+      "cloudflare": "The token from Cloudflare Web Analytics — not the whole HTML snippet."
+    },
+    "fieldAnalyticsScriptUrl": "Script URL",
+    "fieldAnalyticsScriptUrlHint": "Must be an https:// address. Leave the site unpublished-safe: an invalid URL simply turns analytics off.",
+    "fieldAnalyticsScriptUrlHintPlausible": "Leave blank for Plausible Cloud; fill it in only when self-hosting.",
+    "fieldAnalyticsScriptUrlHintCloudflare": "Leave blank to use Cloudflare's official beacon."
   },
   "starter": {
     "default": {

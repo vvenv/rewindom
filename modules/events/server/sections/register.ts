@@ -2,6 +2,7 @@ import "../ssr/events-preset-i18n.js";
 
 import { eventsMessage } from "../ssr/events-preset-i18n.js";
 import {
+  getEntityIndexSitemapEntry,
   getPublicEntitySitemapEntries,
   getPublicEventFeed,
   getPublicEventSitemapEntries,
@@ -17,6 +18,7 @@ import {
   eventsFeedSection,
   eventsIndexPath,
   eventsNowSection,
+  eventsEntityIndexSection,
   eventsEntitySection,
   eventsRisingSection,
   eventsSubscribeBlock,
@@ -29,6 +31,8 @@ import {
 } from "../../shared/nav-sources.js";
 import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../../shared/sections/entity-html.js";
+import { renderEventsEntityIndexHtml } from "../../shared/sections/entity-index-html.js";
+import { EVENTS_ENTITY_INDEX_PATH } from "../../shared/events-page-templates.js";
 import {
   renderEventsSubscribeBlockHtml,
   renderEventsSubscribeHtml,
@@ -104,6 +108,11 @@ function registerEventsLinkTargets(): void {
           label: eventsMessage(defaultLocale, "site.index.title"),
           group: "page" as const,
         },
+        {
+          value: EVENTS_ENTITY_INDEX_PATH,
+          label: eventsMessage(defaultLocale, "site.entityIndex.title"),
+          group: "page" as const,
+        },
       ]),
   });
 }
@@ -115,11 +124,22 @@ export function registerEventsSections(): void {
   registerSiteSectionHtml(eventsFeedSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsDetailSection, renderEventsDetailHtml, css);
   registerSiteSectionHtml(eventsEntitySection, renderEventsEntityHtml, css);
+  registerSiteSectionHtml(
+    eventsEntityIndexSection,
+    renderEventsEntityIndexHtml,
+    css,
+  );
   registerChromeBlockHtml(eventsSubscribeBlock, renderEventsSubscribeBlockHtml, css);
   registerSiteSectionHtml(eventsSubscribeSection, renderEventsSubscribeHtml, css);
   registerEventsContextProvider();
   registerSitemapProvider({ provide: getPublicEventSitemapEntries });
   // 实体页单独一个 provider：它与事件的时间口径不同（按最近有事件筛，而不是按自身更新）
   registerSitemapProvider({ provide: getPublicEntitySitemapEntries });
+  /*
+   * 实体枢纽自己也要进 sitemap，而且不能靠 marketing 的页面清单：枢纽当首页时
+   * `/events/*` 整段被收到根上并 301，那一行模板页会被过滤掉（见 marketing 的
+   * sitemap-only-canonical-urls）。这里按当前挂载算出终态地址。
+   */
+  registerSitemapProvider({ provide: getEntityIndexSitemapEntry });
   registerEventsLinkTargets();
 }

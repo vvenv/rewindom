@@ -24,10 +24,15 @@ import {
   EVENTS_ENTITY_PAGE_KIND,
   EVENTS_ENTITY_SECTION_TYPE,
 } from "./events-entity-section.js";
+import {
+  EVENTS_ENTITY_INDEX_PAGE_KIND,
+  EVENTS_ENTITY_INDEX_SECTION_TYPE,
+} from "./events-entity-index-section.js";
 import { EVENTS_SUBSCRIBE_SECTION_TYPE } from "./events-subscribe-section.js";
 import {
   EVENTS_HOME_LAYOUT_KEY,
   EVENTS_INDEX_PATH,
+  entityIndexPath,
   entityPath,
   eventPath,
 } from "./events-section-context.js";
@@ -58,11 +63,14 @@ export const EVENTS_INDEX_PAGE_KIND = "events_index";
 export const EVENTS_INDEX_TEMPLATE_SLUG = "events";
 export const EVENTS_DETAIL_TEMPLATE_SLUG = "events-detail";
 export const EVENTS_ENTITY_TEMPLATE_SLUG = "events-entity";
+export const EVENTS_ENTITY_INDEX_TEMPLATE_SLUG = "events-entities";
 
 /** `/events/:slug` 的路径模式，与 marketing 的模板页登记同形。 */
 export const EVENTS_DETAIL_PATH = eventPath(":slug");
 /** `/events/entity/:slug`。 */
 export const EVENTS_ENTITY_PATH = entityPath(":slug");
+/** `/events/entity` —— 实体枢纽，是能打开的地址（不是模板路径）。 */
+export const EVENTS_ENTITY_INDEX_PATH = entityIndexPath();
 
 /**
  * 枢纽与站点首页共用的段：Rising 再 Now。
@@ -163,6 +171,21 @@ export const EVENTS_ENTITY_TEMPLATE_PRESET: PagePreset = {
   ],
 };
 
+export const EVENTS_ENTITY_INDEX_TEMPLATE_PRESET: PagePreset = {
+  key: EVENTS_ENTITY_INDEX_PAGE_KIND,
+  label: "events:template.entityIndex.label",
+  kind: EVENTS_ENTITY_INDEX_PAGE_KIND,
+  slug: EVENTS_ENTITY_INDEX_TEMPLATE_SLUG,
+  titleKey: "events:site.entityIndex.title",
+  descriptionKey: "events:site.entityIndex.subtitle",
+  sections: [
+    {
+      type: EVENTS_ENTITY_INDEX_SECTION_TYPE,
+      text: { empty_text: "events:entityIndex.empty" },
+    },
+  ],
+};
+
 /**
  * 定义对象提升到模块级：`registerPageTemplateKind` 按引用判等，
  * 每次 new 一份再调会抛 `site.page_kind_conflict`（onBoot / 测试 / 热更新都可能进第二次）。
@@ -197,6 +220,15 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     required_section: EVENTS_ENTITY_SECTION_TYPE,
     entitlement: EVENTS_ENTITLEMENT.key,
   },
+  {
+    kind: EVENTS_ENTITY_INDEX_PAGE_KIND,
+    slug: EVENTS_ENTITY_INDEX_TEMPLATE_SLUG,
+    path: EVENTS_ENTITY_INDEX_PATH,
+    group: EVENTS_PAGE_TEMPLATE_GROUP,
+    label: "events:template.entityIndex.label",
+    required_section: EVENTS_ENTITY_INDEX_SECTION_TYPE,
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
 ];
 
 export function registerEventsPageTemplates(): void {
@@ -214,6 +246,10 @@ export function registerEventsPageTemplates(): void {
   registerPageTemplatePreset(
     EVENTS_ENTITY_PAGE_KIND,
     EVENTS_ENTITY_TEMPLATE_PRESET,
+  );
+  registerPageTemplatePreset(
+    EVENTS_ENTITY_INDEX_PAGE_KIND,
+    EVENTS_ENTITY_INDEX_TEMPLATE_PRESET,
   );
   registerHomeLayout(EVENTS_HOME_LAYOUT);
 }

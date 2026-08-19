@@ -4,7 +4,12 @@ import {
   withTenantScope,
 } from "@rewindom/module-sdk/server";
 
-import { entityPath, eventPath, eventsIndexPath } from "../../shared/index.js";
+import {
+  entityIndexPath,
+  entityPath,
+  eventPath,
+  eventsIndexPath,
+} from "../../shared/index.js";
 
 import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
@@ -52,6 +57,13 @@ const NOW_WINDOW_HOURS = LIVE_WINDOW_HOURS;
 const FEED_FETCH_LIMIT = 12;
 /** 「查看全部」列表不再受区块 12 条上限约束，但仍封顶，避免一次铺几百张。 */
 const LISTING_FETCH_LIMIT = 48;
+/**
+ * 实体枢纽一次列多少个。
+ *
+ * 与实体 sitemap 同一个上限：枢纽应当能走到 sitemap 里的每一张实体页，
+ * 少了就还是孤儿页。真的多到读不完再谈分页。
+ */
+const ENTITY_INDEX_LIMIT = 500;
 
 const LIST_SELECT = {
   id: true,
@@ -461,20 +473,12 @@ export async function getPublicEventSitemapEntries(
 export async function getPublicEntitySitemapEntries(
   tenantId: string,
 ): Promise<SitemapEntry[]> {
-  const cutoff = new Date(Date.now() - 30 * 24 * HOUR_MS);
-  const enabled = await getEnabledTopics(tenantId);
+  const recentEvent = await recentEventWhere(tenantId);
   const [site, rows] = await Promise.all([
     resolvePublicSite(tenantId),
     prisma.eventEntity.findMany({
       where: withTenantScope(tenantId, {
-        links: {
-          some: {
-            event: {
-              last_activity_at: { gte: cutoff },
-              ...enabledTopicWhere(enabled),
-            },
-          },
-        },
+        links: { some: { event: recentEvent } },
       }),
       orderBy: { updated_at: "desc" },
       take: 500,
@@ -494,6 +498,93 @@ export async function getPublicEntitySitemapEntries(
       alternates: [{ locale: site.locale, path }],
     };
   });
+}
+
+/**
+ * 实体枢纽的清单：最近 30 天还有事件的实体，按类型分组。
+ *
+ * 与实体 sitemap 同一条口径（同一个 `cutoff`、同一个封顶），两处给出不一致的名单
+ * 会让爬虫在枢纽上找不到 sitemap 里的地址，反过来也一样。
+ *
+ * 计数是**窗口内**的事件数，不是历史总数：枢纽上的数字要能跟实体页对得上，
+ * 而实体页展示的也是最近这一批。
+ */
+export async function getPublicEntityIndex(tenantId: string): Promise<
+  {
+    kind: string;
+    slug: string;
+    name: string;
+    event_count: number;
+  }[]
+> {
+  const recentEvent = await recentEventWhere(tenantId);
+  const rows = await prisma.eventEntity.findMany({
+    where: withTenantScope(tenantId, {
+      links: { some: { event: recentEvent } },
+    }),
+    orderBy: { updated_at: "desc" },
+    take: ENTITY_INDEX_LIMIT,
+    select: {
+      slug: true,
+      name: true,
+      kind: true,
+      _count: { select: { links: { where: { event: recentEvent } } } },
+    },
+  });
+  return rows.map((row) => ({
+    kind: row.kind,
+    slug: row.slug,
+    name: row.name,
+    event_count: row._count.links,
+  }));
+}
+
+/** 枢纽与实体 sitemap 共用的窗口条件：最近 30 天还有事件、且主题没被关掉。 */
+async function recentEventWhere(tenantId: string): Promise<{
+  last_activity_at: { gte: Date };
+}> {
+  const enabled = await getEnabledTopics(tenantId);
+  return {
+    last_activity_at: { gte: new Date(Date.now() - 30 * 24 * HOUR_MS) },
+    ...enabledTopicWhere(enabled),
+  };
+}
+
+/**
+ * 实体枢纽的 sitemap 条目（按当前挂载算出终态地址）。
+ *
+ * `lastmod` 取**最近更新的那个实体**，不是「现在」：每次抓都写当前时刻等于告诉爬虫
+ * 这一页每秒都在变，那是个会被打折的信号。清单空了就不进 sitemap——
+ * 页面仍可访问，只是没有内容值得主动送去索引。
+ */
+export async function getEntityIndexSitemapEntry(
+  tenantId: string,
+): Promise<SitemapEntry[]> {
+  const recentEvent = await recentEventWhere(tenantId);
+  const [site, newest] = await Promise.all([
+    resolvePublicSite(tenantId),
+    prisma.eventEntity.findFirst({
+      where: withTenantScope(tenantId, {
+        links: { some: { event: recentEvent } },
+      }),
+      orderBy: { updated_at: "desc" },
+      select: { updated_at: true },
+    }),
+  ]);
+  if (!newest) return [];
+
+  const path = withSiteLocale(
+    entityIndexPath(site.indexPath),
+    site.locale,
+    site.locale,
+  );
+  return [
+    {
+      path,
+      updated_at: newest.updated_at.toISOString(),
+      alternates: [{ locale: site.locale, path }],
+    },
+  ];
 }
 
 async function resolvePublicSite(

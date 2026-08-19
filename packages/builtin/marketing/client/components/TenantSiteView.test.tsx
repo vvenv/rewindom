@@ -26,7 +26,8 @@ function site(headerSettings: Record<string, unknown> = {}): PublicMarketingSite
     footer: parseAreaSections("footer", [
       { type: "footer", settings: {}, blocks: [] },
     ]),
-    pages: [],
+    analytics_html: "",
+  pages: [],
   };
 }
 

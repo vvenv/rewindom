@@ -17,6 +17,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^1.0.7",
     "@rewindom/builtin": "workspace:*",
     "@rewindom/module-sdk": "workspace:*",
     "@rewindom/ui": "workspace:*",

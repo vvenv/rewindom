@@ -356,6 +356,7 @@ export function renderMarketingHtml(input: {
   <script type="application/ld+json">${jsonLd}</script>
   <script>${marketingSiteColorModeScript()}</script>
   <style>${siteCss(site.theme_settings, usedSectionTypes)}</style>
+  ${site.analytics_html}
 </head>
 <body>
   <div class="marketing-site-root" data-page-path="${escapeHtml(page.path)}" data-page-locale="${escapeHtml(locale)}">

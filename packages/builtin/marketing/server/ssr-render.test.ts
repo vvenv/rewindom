@@ -33,6 +33,7 @@ function site(overrides: Partial<PublicMarketingSite> = {}) {
     default_locale: "zh-CN",
     locale: "zh-CN",
     available_locales: ["zh-CN", "en"],
+    analytics_html: "",
     header: [createSection("header")],
     footer: [createSection("footer")],
     pages: [],
@@ -367,6 +368,29 @@ describe("renderMarketingHtml 接上 site-enhance", () => {
   });
 });
 
+describe("renderMarketingHtml analytics", () => {
+  it("puts the site's analytics script in <head>", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site({
+        analytics_html: `<script defer data-domain="acme.test" src="https://plausible.io/js/script.js"></script>`,
+      }),
+      page: page(),
+    });
+    const head = html.slice(0, html.indexOf("</head>"));
+    expect(head).toContain('data-domain="acme.test"');
+  });
+
+  it("emits nothing when the site has no analytics configured", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site(),
+      page: page(),
+    });
+    expect(html).not.toContain("plausible");
+  });
+});
+
 describe("renderSitemapXml", () => {
   it("gives each language its own url with xhtml alternates", () => {
     const xml = renderSitemapXml(ORIGIN, [
@@ -394,6 +418,35 @@ describe("renderSitemapXml", () => {
       `<xhtml:link rel="alternate" hreflang="en" href="${ORIGIN}/en/about"/>`,
     );
     expect(xml).toContain("<lastmod>2026-08-04</lastmod>");
+  });
+
+  it("points x-default at the default locale when languages cross-reference", () => {
+    const xml = renderSitemapXml(ORIGIN, [
+      {
+        path: "/en/about",
+        updated_at: "2026-08-04T00:00:00.000Z",
+        alternates: [
+          { locale: "zh-CN", path: "/about" },
+          { locale: "en", path: "/en/about" },
+        ],
+        default_locale: "zh-CN",
+      },
+    ]);
+    expect(xml).toContain(
+      `<xhtml:link rel="alternate" hreflang="x-default" href="${ORIGIN}/about"/>`,
+    );
+  });
+
+  it("omits x-default for single-language entries", () => {
+    const xml = renderSitemapXml(ORIGIN, [
+      {
+        path: "/some-event-abc123",
+        updated_at: "2026-08-04T00:00:00.000Z",
+        alternates: [{ locale: "en", path: "/some-event-abc123" }],
+        default_locale: "en",
+      },
+    ]);
+    expect(xml).not.toContain("x-default");
   });
 });
 

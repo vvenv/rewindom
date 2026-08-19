@@ -57,7 +57,7 @@ server/
   follow/                 关注（站点 + 用户态）
   ingest/                 采集：connector、RSS 解析、调度任务
   event/                  领域：URL 规范化、分词聚类、热度、分析器、读服务
-  ssr/                    公开面：path handler、模板页渲染、公开读取
+  ssr/                    公开面：path handler、模板页渲染、公开读取、RSS、og.png
   sections/register.ts    段 / 上下文 provider / sitemap / 链接候选登记
   client/
     pages/                  events（探索+全量）、event-detail、event-sources（按主题分组，组头开关主题）
@@ -78,23 +78,28 @@ server/
 | 模板页 `events_detail` | `/events/:slug`（枢纽当首页时访客地址是 `/:slug`；主题格子 `ai` / `tech`… 先被认成主题页，事件 slug 恒带 id 后缀不会撞） |
 | 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上 |
 | 模板页 `events_entity` | `/events/entity/:slug`（枢纽当首页时访客地址是 `/entity/:slug`） |
+| 段 `events.entity_index` | 实体枢纽正文（按类型分组的实体链接），`page_kinds` 限定只能落在实体枢纽模板页上 |
+| 模板页 `events_entity_index` | `/events/entity`（枢纽当首页时访客地址是 `/entity`） |
+| 导航源 `events.entities` | 页头 / 页脚：实体枢纽一条叶子。**不塞进 `events` 源**——那个源是七个主题格，混一条进去会打乱它的语义 |
+| 图片路由 `/events/:slug/og.png` | 事件自己的社交卡片图（1200×630）。**不跟着首页挂载收到根上**：它不是给人看的页面 |
 | 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events/:topic`（当首页时 `/:topic`），当前格高亮；`children` 则收成「事件」一条下挂七格 |
 | 导航源 `events.topic` | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填 |
-| path handler | 接 `/events`、`/events/:topic`、`/events/:slug` 与 `/events/entity/:slug`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:topic`、`/:slug`、`/entity/:slug`；`/` 由首页 CMS 渲染，`/?source=` 才接管列表；根上的主题 / 详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
-| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体各进 sitemap；链接下拉只给 `/events` 一条（页身份，不随首页改） |
+| path handler | 接 `/events`、`/events/:topic`、`/events/:slug`、`/events/entity` 与 `/events/entity/:slug`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:topic`、`/:slug`、`/entity/:slug`；`/` 由首页 CMS 渲染，`/?source=` 才接管列表；根上的主题 / 详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
+| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给 `/events` 与 `/events/entity` 两条（页身份，不随首页改） |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
 `registerHomeLayout`（events 填表，内核不认识「雷达」这个概念）。
 
 ## 页头 / 页脚导航
 
-`shared/nav-sources.ts` 往 marketing 登记两个导航源（`registerNavSource`，server
+`shared/nav-sources.ts` 往 marketing 登记三个导航源（`registerNavSource`，server
 `onBoot` 与 client manifest 各调一次），租户不必再手填七条主题链接：
 
 | source         | `children`                 | `flat`（默认）      |
 | -------------- | -------------------------- | ------------------- |
 | `events`       | 「事件」一条，下挂 7 个主题 | 七格各占一条        |
 | `events.topic` | 该主题一条                 | 同左（叶子）        |
+| `events.entities` | 实体枢纽一条            | 同左（叶子）        |
 
 链接是 `/events/ai` 这种主题路径（枢纽当首页时是 `/ai`），**不是** `?topic=`：
 页头高亮靠 `currentPath` 精确匹配，查询串进不去。枢纽按 topic 取数，「查看全部」
@@ -401,6 +406,49 @@ path handler 直接带进 `EventsRenderContext.entity`，**不走 contributed pr
 sitemap 只收**最近 30 天还有事件**的实体（不是按实体自身更新时间）。实体页比事件页更值得
 索引——事件 24h 后就凉，实体不会——但也正因为它长期存在，更要挡住「三年前提过一次就
 永远进 sitemap」的长尾。
+
+#### 实体枢纽 `/events/entity` 与详情页上的实体链接
+
+实体页曾经是**孤儿页**：只在 sitemap 里出现，站内一条链接都没有（线上抓过，
+首页与任意事件详情页里 `/entity/` 出现 0 次）。Google 对没有内链的页面给的权重极低，
+而实体页恰恰是这个站最该被反复回访的一面。
+
+两条内链方向缺一不可，只做一条解不开：
+
+| 方向 | 在哪 | 量级 |
+| --- | --- | --- |
+| 事件详情 → 实体 | 详情段里一行胶囊链接（`entities`） | 每张事件页几条，是权重的主要来源 |
+| 实体枢纽 → 全部实体 | `/events/entity`，按类型分组 | 一张页，给爬虫一条能一次爬完的路 |
+
+详情页上的实体**不给段开关**：与「归位」同一条口径——它是这条材料的身份而不是一个板块。
+
+枢纽的路径解析要在**单段解析之前**认：枢纽挂在根上时 `/entity` 只有一段，
+不先拦下来就会被当成一个叫 entity 的事件 slug，然后 404。
+
+枢纽自己进 sitemap 走 events 的 provider，不能靠 marketing 的页面清单——枢纽当首页时
+`/events/*` 整段被收到根上并 301，那一行模板页会被 marketing 的 sitemap 过滤掉
+（见 marketing 的 `sitemap-only-canonical-urls`）。清单口径与实体 sitemap 一致
+（近 30 天还有事件、封顶 500），两处给出不一致的名单会让爬虫在枢纽上找不到 sitemap 里的地址。
+
+#### 事件自己的社交卡片图
+
+所有页面共用一张品牌图时，分享到 Slack / X / Reddit 的十条事件长得一模一样——
+卡片是这条链接在别人时间线里的**全部外观**。所以 `/events/:slug/og.png` 实时画一张：
+标题（最多三行）+ 主题 / 阶段胶囊 + 来源数 + 域名，配色照抄官网深色 token。
+
+- 挂模块自己的 Fastify 路由，与 RSS 同一条理由：path handler 只回 HTML，控制不了 content-type
+- **可降级**：服务端进程手里不一定有字体（精简镜像）。拿不到字体就报「不可用」，
+  详情页据此**不设** og:image，回落站点品牌图——好过指向一个 404 的图片地址
+- 字体优先用官网自己发的 Inter（`apps/client/dist|public/assets/site-fonts`，
+  dist 那份在容器里也在，Dockerfile 拷了 `client/dist`）
+- 小容量 LRU（键含最后活动时间）：链接预览的抓取是突发的，一条链接发进群里会被十几个客户端同时抓
+
+两处**实测踩过的坑**（别回退）：
+
+| 症状 | 原因 | 口径 |
+| --- | --- | --- |
+| 胶囊与脚注画成一排豆腐块 | 文案写死进程默认语言（zh-CN），而 Inter 只有拉丁字形 | 文案跟**站点主语言**走；字族列表再挂一款系统里真的存在的中日韩字体做逐字回退 |
+| 中英混排标题一路画出画布 | 断行只按空格切，中文整句没有空格 = 一个词 | 拉丁词整块走、中日韩逐字走（`tokenize`），`glue` 记住原来有没有空格 |
 
 #### 实体不能用来兜底聚类（实测，别再试）
 

@@ -9,8 +9,11 @@
       "topics": "事件主题",
       "topicsDefault": "事件",
       "topic": "某个事件主题",
-      "topicDefault": "（使用主题名）"
-    }
+      "topicDefault": "（使用主题名）",
+      "entities": "实体枢纽",
+      "entitiesDefault": "实体"
+    },
+    "entities": "实体"
   },
   "tabs": {
     "feed": "正在发生",
@@ -149,7 +152,11 @@
       "subtitle": "这个公司 / 产品 / 人物涉及的全部事件"
     },
     "subscribe": "订阅 RSS",
-    "subscribeHint": "用任意 RSS 阅读器订阅，不需要注册账号"
+    "subscribeHint": "用任意 RSS 阅读器订阅，不需要注册账号",
+    "entityIndex": {
+      "title": "实体",
+      "subtitle": "这个站正在追踪的公司、产品与人物"
+    }
   },
   "home": {
     "layout": {
@@ -200,6 +207,11 @@
       "label": "订阅入口",
       "iconOnly": "仅显示图标",
       "iconOnlyInfo": "只画一个 RSS 图标；上面的文案仍会作为无障碍标签与悬停提示保留"
+    },
+    "entityIndex": {
+      "label": "实体枢纽正文",
+      "showCounts": "显示事件数",
+      "emptyText": "空态文案"
     }
   },
   "template": {
@@ -212,6 +224,9 @@
     },
     "entity": {
       "label": "实体页"
+    },
+    "entityIndex": {
+      "label": "实体枢纽"
     }
   },
   "edit": {
@@ -364,5 +379,9 @@
     "window": "近 {{days}} 天 {{count}} 件事",
     "kindCount": "{{kind}} {{count}} 次",
     "outageTotal": "故障累计 {{minutes}} 分钟"
+  },
+  "entityIndex": {
+    "empty": "还没有实体——事件提到它们之后就会出现在这里",
+    "metaDescription": "当前追踪 {{count}} 个公司、产品与人物，各自有一条时间线"
   }
 }

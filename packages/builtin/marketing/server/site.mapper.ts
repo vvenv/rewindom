@@ -13,6 +13,10 @@ import {
   parseSiteNameValue,
 } from "../shared/section-schema.js";
 import {
+  parseSiteAnalytics,
+  renderSiteAnalyticsHtml,
+} from "../shared/site-analytics.js";
+import {
   canonicalizePageIdentity,
   comparePublicCatalogPages,
   marketingPagePath,
@@ -84,6 +88,7 @@ export function toMarketingSite(
     published: record.published,
     home_path: record.home_path || "/",
     home_layout_key: record.home_layout_key || DEFAULT_HOME_LAYOUT_KEY,
+    analytics: parseSiteAnalytics(record.analytics),
     created_at: record.created_at.toISOString(),
     updated_at: record.updated_at.toISOString(),
   };
@@ -187,6 +192,11 @@ export function toPublicMarketingSite(
     logo_url,
     primary_color: theme_settings.primary_color ?? null,
     theme_settings,
+    // 预览渲染的是草稿：那是编辑者自己在看，不该记进访客数据
+    analytics_html:
+      useDraftChrome || useDraftContent
+        ? ""
+        : renderSiteAnalyticsHtml(site.analytics),
     default_locale,
     locale: current,
     available_locales: availableLocales(pages, default_locale),

@@ -49,6 +49,7 @@ function site(partial: Partial<MarketingSite> = {}): MarketingSite {
     primary_color: null,
     theme_settings: {},
     theme_key: null,
+    analytics: { provider: "none", script_url: "", site_id: "" },
     default_locale: "zh-CN",
     header: [],
     footer: [],

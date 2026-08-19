@@ -11,7 +11,11 @@
 
 import { describeEventFacts, describeEventMomentum } from "./events.js";
 
-import { EVENTS_INDEX_PATH, eventPath } from "./events-section-context.js";
+import {
+  EVENTS_INDEX_PATH,
+  entityPath,
+  eventPath,
+} from "./events-section-context.js";
 
 import type {
   EventDetail,
@@ -121,6 +125,14 @@ export function toPublicDetail(
     related: detail.related.map((item) => ({
       href: eventPath(item.slug, indexPath),
       title: item.title,
+    })),
+    /*
+     * 实体链接。公开面不带关注态（没有 viewer），只留「叫什么 + 去哪」。
+     * 顺序沿用服务端的提及次数降序，渲染侧不再排。
+     */
+    entities: detail.entities.map((entity) => ({
+      href: entityPath(entity.slug, indexPath),
+      name: entity.name,
     })),
     source_groups: SOURCE_KIND_ORDER.map((kind) => ({
       kind,

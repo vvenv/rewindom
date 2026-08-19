@@ -366,7 +366,32 @@
     "filterLocaleAll": "全部语言",
     "emptyFiltered": "没有匹配的页面",
     "emptyFilteredHint": "换个关键词，或清空筛选条件。",
-    "toastPageReorderFailed": "调整顺序失败，请重试"
+    "toastPageReorderFailed": "调整顺序失败，请重试",
+    "settingsSectionAnalytics": "访问分析",
+    "settingsSectionAnalyticsHint": "公开面的访客统计，选了供应商才会发脚本。",
+    "fieldAnalyticsProvider": "供应商",
+    "fieldAnalyticsProviderHint": "列出的供应商都不写 cookie，不需要隐私同意横幅。工作台与平台控制台不统计。",
+    "analyticsProvider": {
+      "none": "关闭",
+      "plausible": "Plausible",
+      "umami": "Umami",
+      "cloudflare": "Cloudflare",
+      "custom": "自定义脚本"
+    },
+    "fieldAnalyticsSiteId": {
+      "plausible": "站点域名",
+      "umami": "网站 ID",
+      "cloudflare": "Beacon token"
+    },
+    "fieldAnalyticsSiteIdHint": {
+      "plausible": "在 Plausible 里登记的域名，不带 https://。",
+      "umami": "Umami 后台里那串网站 ID。",
+      "cloudflare": "Cloudflare 后台 Web Analytics 里那段 token，不是整段 HTML。"
+    },
+    "fieldAnalyticsScriptUrl": "脚本地址",
+    "fieldAnalyticsScriptUrlHint": "必须是 https:// 绝对地址。填错不会报错，只是统计不生效。",
+    "fieldAnalyticsScriptUrlHintPlausible": "用 Plausible 云服务留空即可；自托管才填。",
+    "fieldAnalyticsScriptUrlHintCloudflare": "一般留空，用 Cloudflare 官方 beacon 即可。"
   },
   "starter": {
     "default": {
