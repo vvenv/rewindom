@@ -96,6 +96,61 @@ describe("分享卡片", () => {
   });
 });
 
+describe("JSON-LD", () => {
+  function jsonLdFrom(html: string): unknown {
+    const match = html.match(
+      /<script type="application\/ld\+json">([\s\S]*?)<\/script>/u,
+    );
+    expect(match?.[1]).toBeDefined();
+    return JSON.parse(match![1]!);
+  }
+
+  it("is valid JSON (not HTML-escaped)", () => {
+    const html = render();
+    expect(html).not.toMatch(
+      /<script type="application\/ld\+json">[^<]*&quot;/u,
+    );
+    expect(jsonLdFrom(html)).toMatchObject({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "定价",
+      description: "按席位计费",
+      url: `${ORIGIN}/pricing`,
+    });
+  });
+
+  it("survives titles that would break HTML-escaped JSON or the script tag", () => {
+    const site = {
+      site_name: "Acme",
+      tagline: "标语",
+      theme_settings: {},
+      default_locale: "zh-CN",
+      pages: [],
+      header: [],
+      footer: [],
+    } as unknown as PublicMarketingSite;
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site,
+      page: {
+        slug: "event",
+        locale: "zh-CN",
+        kind: "page",
+        title: 'OpenAI: "GPT-5" 发布</script>',
+        description: "headline & more",
+        sections: [],
+        settings: {},
+        path: "/openai-gpt-5",
+        alternates: [],
+        updated_at: "2026-08-19T00:00:00.000Z",
+      } as unknown as PublicMarketingPage,
+    });
+    const data = jsonLdFrom(html) as { name: string; description: string };
+    expect(data.name).toBe('OpenAI: "GPT-5" 发布</script>');
+    expect(data.description).toBe("headline & more");
+  });
+});
+
 describe("noindex", () => {
   it("默认不出 robots 标签", () => {
     expect(render()).not.toContain('name="robots"');

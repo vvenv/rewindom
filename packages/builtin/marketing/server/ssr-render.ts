@@ -1,6 +1,6 @@
 import { getLocaleNativeLabel, normalizeLocale } from "@rewindom/shared";
 
-import { escapeHtml } from "../shared/html.js";
+import { escapeHtml, jsonLdScriptText } from "../shared/html.js";
 import { loadMarketingSiteCssFor } from "../shared/load-marketing-site-css.js";
 import {
   marketingSiteColorModeScript,
@@ -212,20 +212,18 @@ export function renderMarketingHtml(input: {
       : `${page.title} · ${site.site_name}`,
   );
   const description = escapeHtml(page.description || site.tagline || "");
-  const jsonLd = escapeHtml(
-    JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: page.title,
-      description: page.description || site.tagline,
-      url: canonical,
-      isPartOf: {
-        "@type": "WebSite",
-        name: site.site_name,
-        url: origin,
-      },
-    }),
-  );
+  const jsonLd = jsonLdScriptText({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: page.title,
+    description: page.description || site.tagline,
+    url: canonical,
+    isPartOf: {
+      "@type": "WebSite",
+      name: site.site_name,
+      url: origin,
+    },
+  });
 
   const socialMeta = renderSocialMetaHtml({
     base,
@@ -412,13 +410,25 @@ export function renderSitemapXml(
       const lastmod = item.updated_at
         ? `<lastmod>${escapeHtml(item.updated_at.slice(0, 10))}</lastmod>`
         : "";
-      const alternates = (item.alternates ?? [])
+      const list = item.alternates ?? [];
+      const alternates = list
         .map(
           (alternate) =>
             `<xhtml:link rel="alternate" hreflang="${escapeHtml(alternate.locale)}" href="${escapeHtml(absolute(alternate.path))}"/>`,
         )
         .join("");
-      return `<url><loc>${escapeHtml(absolute(item.path))}</loc>${lastmod}${alternates}</url>`;
+      /*
+       * `x-default` 与 `<head>` 的 `renderAlternateLinksHtml` 同一条规则：
+       * 至少两种语言互指、且默认语言那条在列，才发得出去。单语言条目发了也无从互指。
+       */
+      const primary =
+        list.length >= 2 && item.default_locale
+          ? list.find((alternate) => alternate.locale === item.default_locale)
+          : undefined;
+      const xDefault = primary
+        ? `<xhtml:link rel="alternate" hreflang="x-default" href="${escapeHtml(absolute(primary.path))}"/>`
+        : "";
+      return `<url><loc>${escapeHtml(absolute(item.path))}</loc>${lastmod}${alternates}${xDefault}</url>`;
     })
     .join("");
   return `<?xml version="1.0" encoding="UTF-8"?>
