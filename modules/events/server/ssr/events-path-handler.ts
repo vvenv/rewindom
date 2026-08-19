@@ -51,6 +51,7 @@ import {
   topicPath,
   toPublicCard,
   toPublicDetail,
+  toPublicEntityStrip,
 } from "../../shared/index.js";
 import {
   EVENTS_DETAIL_TEMPLATE_PRESET,
@@ -242,7 +243,10 @@ async function renderIndex(
     );
   }
 
-  const feed = await getPublicEventFeed(input.tenantId, topic);
+  const [feed, entityRows] = await Promise.all([
+    getPublicEventFeed(input.tenantId, topic),
+    getPublicEntityIndex(input.tenantId),
+  ]);
   const t = translator(locale);
 
   return renderEventsTemplatePage({
@@ -266,6 +270,7 @@ async function renderIndex(
         rising: feed.rising.map((item) => toCard(item, t, indexPath)),
         now: feed.now.map((item) => toCard(item, t, indexPath)),
       },
+      entity_strip: toPublicEntityStrip(entityRows, indexPath),
     }),
   });
 }

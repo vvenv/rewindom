@@ -28,6 +28,7 @@ import {
   EVENTS_ENTITY_INDEX_PAGE_KIND,
   EVENTS_ENTITY_INDEX_SECTION_TYPE,
 } from "./events-entity-index-section.js";
+import { EVENTS_ENTITY_STRIP_SECTION_TYPE } from "./events-entity-strip-section.js";
 import { EVENTS_SUBSCRIBE_SECTION_TYPE } from "./events-subscribe-section.js";
 import {
   EVENTS_HOME_LAYOUT_KEY,
@@ -73,23 +74,28 @@ export const EVENTS_ENTITY_PATH = entityPath(":slug");
 export const EVENTS_ENTITY_INDEX_PATH = entityIndexPath();
 
 /**
- * 枢纽与站点首页共用的段：Rising 再 Now。
+ * 枢纽与站点首页共用的段：Rising → Now → 实体条 → 订阅。
  *
- * 顺序就是产品主张——先看**正在变化**的，再看正在发生的。反过来排就又变成一份
- * 普通榜单了。租户当然可以在编辑器里删掉或调序，那是他们的选择。
+ * 顺序就是产品主张——先看**正在变化**的，再看正在发生的，再看是谁被卷进去。
+ * 反过来排就又变成一份普通榜单了。租户当然可以在编辑器里删掉或调序。
  */
 const EVENTS_HUB_SECTIONS: readonly PresetSection[] = [
   { type: eventFeedSectionType("rising") },
   {
     type: eventFeedSectionType("now"),
     raw: { limit: 9 },
-  },  /*
+  },
+  /*
+   * 近期实体条：让首页也链到实体页。枢纽那张完整清单仍在 `/events/entity`，
+   * 这里只是 Top N 胶囊。「查看全部」把人送去枢纽。
+   */
+  { type: EVENTS_ENTITY_STRIP_SECTION_TYPE },
+  /*
    * 订阅段摆在两段列表之后：页面级的次要动作。
    * 页头 / 页脚那个常驻入口是 chrome 块（`events.subscribe-link`），两者不冲突——
    * 段能带一句说明，chrome 块能只显示图标。
    */
   { type: EVENTS_SUBSCRIBE_SECTION_TYPE },
-
 ];
 
 export const EVENTS_INDEX_TEMPLATE_PRESET: PagePreset = {

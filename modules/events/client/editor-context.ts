@@ -12,6 +12,7 @@ import { registerEditorContextProvider } from "@rewindom/builtin/marketing/clien
 import {
   EVENTS_DETAIL_PAGE_KIND,
   EVENTS_DETAIL_SECTION_TYPE,
+  EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_FEED_SECTION_TYPES,
   EVENT_TOPICS,
   emptyEventsContext,
@@ -19,12 +20,13 @@ import {
   eventsIndexPath,
   toPublicCard,
   toPublicDetail,
+  toPublicEntityStrip,
 } from "../shared/index.js";
 import {
   EVENTS_NAV_SOURCES,
   eventsNavTopicOptions,
 } from "../shared/nav-sources.js";
-import { sampleEventDetail, sampleEventList } from "../shared/events-sample.js";
+import { sampleEntityStripItems, sampleEventDetail, sampleEventList } from "../shared/events-sample.js";
 
 import type {
   EventDetail,
@@ -38,6 +40,7 @@ import type { AppLocale } from "@rewindom/module-sdk";
 const EVENTS_EDITOR_CONTEXT_TYPES = [
   ...EVENTS_FEED_SECTION_TYPES,
   EVENTS_DETAIL_SECTION_TYPE,
+  EVENTS_ENTITY_STRIP_SECTION_TYPE,
   ...EVENTS_NAV_SOURCES,
 ] as const;
 
@@ -64,10 +67,14 @@ export function registerEventsEditorContext(): void {
         ...EVENTS_FEED_SECTION_TYPES,
         EVENTS_DETAIL_SECTION_TYPE,
       ]);
+      const wantStrip = wantsAny(input.usedTypes, [
+        EVENTS_ENTITY_STRIP_SECTION_TYPE,
+      ]);
 
-      const [feed, enabled] = await Promise.all([
+      const [feed, enabled, entityRows] = await Promise.all([
         wantFeed ? loadFeed(t, indexPath) : Promise.resolve({ rising: [], now: [] }),
         loadEnabledTopics(),
+        wantStrip ? loadEntityStrip() : Promise.resolve([]),
       ]);
       const event =
         wantFeed && input.pageKind === EVENTS_DETAIL_PAGE_KIND
@@ -80,6 +87,9 @@ export function registerEventsEditorContext(): void {
           nav_topics: eventsNavTopicOptions(locale, enabled),
           feed,
           event,
+          entity_strip: wantStrip
+            ? toPublicEntityStrip(entityRows, indexPath)
+            : undefined,
         }),
       );
     },
@@ -149,4 +159,24 @@ async function loadSampleDetail(
     // 同上
   }
   return toPublicDetail(sampleEventDetail(t), t, indexPath);
+}
+
+interface PublicEntityIndexRow {
+  slug: string;
+  name: string;
+  event_count: number;
+}
+
+async function loadEntityStrip(): Promise<PublicEntityIndexRow[]> {
+  try {
+    const data = await api.get<{ items: PublicEntityIndexRow[] }>(
+      "/events/entities",
+    );
+    if (data.items.length > 0) {
+      return data.items;
+    }
+  } catch {
+    // 拉不到就用样张，预览结构仍与实站同一套渲染器
+  }
+  return sampleEntityStripItems();
 }

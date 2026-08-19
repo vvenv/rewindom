@@ -31,7 +31,9 @@
     "rising": "正在升温",
     "risingHint": "刚刚开始爆发的事情",
     "now": "正在发生",
-    "nowHint": "过去 24 小时内仍在持续发展"
+    "nowHint": "过去 24 小时内仍在持续发展",
+    "entities": "实体",
+    "entitiesHint": "近 30 天事件里出现过的公司与人物"
   },
   "status": {
     "developing": "快速发展",
@@ -163,6 +165,9 @@
     "entityIndex": {
       "title": "实体",
       "subtitle": "这个站正在追踪的公司、产品与人物"
+    },
+    "entityStrip": {
+      "more": "查看全部实体"
     }
   },
   "home": {
@@ -219,6 +224,12 @@
       "label": "实体枢纽正文",
       "showCounts": "显示事件数",
       "emptyText": "空态文案"
+    },
+    "entityStrip": {
+      "label": "近期实体",
+      "limit": "最多显示",
+      "showCounts": "显示事件数",
+      "moreLabel": "更多按钮文案"
     }
   },
   "template": {

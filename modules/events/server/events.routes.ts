@@ -15,6 +15,7 @@ import {
   removeEventSignal,
   updateEvent,
 } from "./event/event.service.js";
+import { getPublicEntityIndex } from "./ssr/public-events.service.js";
 import {
   getEnabledTopicSettings,
   getEnabledTopics,
@@ -107,6 +108,21 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     preHandler: [app.requirePermission("events.read")],
     handler: async (request) =>
       getEnabledTopicSettings(request.tenantContext!.tenant_id),
+  });
+
+  /*
+   * 编辑器预览实体条用。必须写在 `/:eventId` 前面，否则 "entities" 会被当成
+   * 一个事件 id。清单口径与公开枢纽相同（近 30 天、封顶 500）。
+   */
+  defineRoute(app, {
+    method: "GET",
+    url: "/entities",
+    context: "EventEntityIndex",
+    errorCode: "EVENT_ENTITY_INDEX_FAILED",
+    preHandler: [app.requirePermission("events.read")],
+    handler: async (request) => ({
+      items: await getPublicEntityIndex(request.tenantContext!.tenant_id),
+    }),
   });
 
   defineRoute(app, {

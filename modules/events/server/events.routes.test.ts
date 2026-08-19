@@ -27,6 +27,10 @@ vi.mock("./event/topic-settings.service.js", () => ({
     .mockResolvedValue({ enabled_topics: ["ai", "tech"] }),
 }));
 
+vi.mock("./ssr/public-events.service.js", () => ({
+  getPublicEntityIndex: vi.fn().mockResolvedValue([]),
+}));
+
 import {
   createRouteTestApp,
   createTestUserFast,
@@ -84,6 +88,7 @@ describe("Events Routes 权限控制", () => {
     "/api/events/feed",
     "/api/events/topics",
     "/api/events/settings",
+    "/api/events/entities",
     "/api/events/some-event",
   ];
 
@@ -131,12 +136,15 @@ describe("Events Routes 权限控制", () => {
     expect(response.statusCode).toBe(200);
   });
 
-  it("静态路径优先于 :eventId —— /topics 与 /settings 不会被当成事件 id", async () => {
+  it("静态路径优先于 :eventId —— /topics /settings /entities 不会被当成事件 id", async () => {
     const { listTopicCounts, getEventDetail } = await import(
       "./event/event.service.js"
     );
     const { getEnabledTopicSettings } = await import(
       "./event/topic-settings.service.js"
+    );
+    const { getPublicEntityIndex } = await import(
+      "./ssr/public-events.service.js"
     );
     await app.inject({
       method: "GET",
@@ -148,13 +156,22 @@ describe("Events Routes 权限控制", () => {
       url: "/api/events/settings",
       headers: authHeaders(reader),
     });
+    await app.inject({
+      method: "GET",
+      url: "/api/events/entities",
+      headers: authHeaders(reader),
+    });
     expect(listTopicCounts).toHaveBeenCalled();
     expect(getEnabledTopicSettings).toHaveBeenCalled();
+    expect(getPublicEntityIndex).toHaveBeenCalled();
     expect(getEventDetail).not.toHaveBeenCalledWith(
       expect.objectContaining({ event_id: "topics" }),
     );
     expect(getEventDetail).not.toHaveBeenCalledWith(
       expect.objectContaining({ event_id: "settings" }),
+    );
+    expect(getEventDetail).not.toHaveBeenCalledWith(
+      expect.objectContaining({ event_id: "entities" }),
     );
   });
 

@@ -3,6 +3,7 @@ import "../ssr/events-preset-i18n.js";
 import { eventsMessage } from "../ssr/events-preset-i18n.js";
 import {
   getEntityIndexSitemapEntry,
+  getPublicEntityIndex,
   getPublicEntitySitemapEntries,
   getPublicEventFeed,
   getPublicEventSitemapEntries,
@@ -10,6 +11,7 @@ import {
 
 import { getEnabledTopics } from "../event/topic-settings.service.js";
 import {
+  EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_FEED_SECTION_TYPES,
   EVENTS_INDEX_PATH,
   emptyEventsContext,
@@ -20,10 +22,12 @@ import {
   eventsNowSection,
   eventsEntityIndexSection,
   eventsEntitySection,
+  eventsEntityStripSection,
   eventsRisingSection,
   eventsSubscribeBlock,
   eventsSubscribeSection,
   toPublicCard,
+  toPublicEntityStrip,
 } from "../../shared/index.js";
 import {
   EVENTS_NAV_SOURCES,
@@ -32,6 +36,7 @@ import {
 import { renderEventsDetailHtml } from "../../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../../shared/sections/entity-html.js";
 import { renderEventsEntityIndexHtml } from "../../shared/sections/entity-index-html.js";
+import { renderEventsEntityStripHtml } from "../../shared/sections/entity-strip-html.js";
 import { EVENTS_ENTITY_INDEX_PATH } from "../../shared/events-page-templates.js";
 import {
   renderEventsSubscribeBlockHtml,
@@ -66,7 +71,11 @@ function wantsAny(
  */
 function registerEventsContextProvider(): void {
   registerSectionContextProvider({
-    sectionTypes: [...EVENTS_FEED_SECTION_TYPES, ...EVENTS_NAV_SOURCES],
+    sectionTypes: [
+      ...EVENTS_FEED_SECTION_TYPES,
+      EVENTS_ENTITY_STRIP_SECTION_TYPE,
+      ...EVENTS_NAV_SOURCES,
+    ],
     provide: async (input) => {
       const indexPath = eventsIndexPath({
         homePath: input.homePath,
@@ -75,9 +84,18 @@ function registerEventsContextProvider(): void {
       const t = (key: string, params?: Record<string, string | number>): string =>
         eventsMessage(input.locale, key, params);
       const enabled = await getEnabledTopics(input.tenantId);
-      const feed = wantsAny(input.usedTypes, EVENTS_FEED_SECTION_TYPES)
-        ? await getPublicEventFeed(input.tenantId)
-        : { rising: [], now: [] };
+      const wantFeed = wantsAny(input.usedTypes, EVENTS_FEED_SECTION_TYPES);
+      const wantStrip = wantsAny(input.usedTypes, [
+        EVENTS_ENTITY_STRIP_SECTION_TYPE,
+      ]);
+      const [feed, entityRows] = await Promise.all([
+        wantFeed
+          ? getPublicEventFeed(input.tenantId)
+          : Promise.resolve({ rising: [], now: [] }),
+        wantStrip
+          ? getPublicEntityIndex(input.tenantId)
+          : Promise.resolve([]),
+      ]);
 
       return eventsContextEntry(
         emptyEventsContext({
@@ -87,6 +105,9 @@ function registerEventsContextProvider(): void {
             rising: feed.rising.map((item) => toPublicCard(item, t, indexPath)),
             now: feed.now.map((item) => toPublicCard(item, t, indexPath)),
           },
+          entity_strip: wantStrip
+            ? toPublicEntityStrip(entityRows, indexPath)
+            : undefined,
         }),
       );
     },
@@ -127,6 +148,11 @@ export function registerEventsSections(): void {
   registerSiteSectionHtml(
     eventsEntityIndexSection,
     renderEventsEntityIndexHtml,
+    css,
+  );
+  registerSiteSectionHtml(
+    eventsEntityStripSection,
+    renderEventsEntityStripHtml,
     css,
   );
   registerChromeBlockHtml(eventsSubscribeBlock, renderEventsSubscribeBlockHtml, css);

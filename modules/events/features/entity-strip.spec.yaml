@@ -1,0 +1,75 @@
+# 增量功能契约 —— 首页 / 枢纽上的「近期实体」胶囊条
+#
+# 起因：实体页已经不再是孤儿（详情胶囊 + `/events/entity` 枢纽），但流量最大的
+# 那一页（升温 / 正在发生）仍然 0 条 `/entity/` 链接。事件 24h 就凉，实体才是
+# 该反复回访的面——访客和爬虫落地在 `/`，看不到它们。
+#
+# 不做字号乱变的词云：枢纽已经是按类型分组的胶囊墙，再做一朵云是重复，
+# 也像关键词堆砌。这一期是同一套胶囊、截成 Top N、可摆任意页。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 新增可摆任意页的 `events.entity_strip` 段（近 30 天实体按事件数排序的胶囊条，链到实体页与枢纽）；默认插进枢纽 / 首页版式，放在 Now 与订阅之间。
+gold: modules/events/shared/events-feed-section.ts
+touch:
+  - modules/events/features/entity-strip.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/MODULE.spec.yaml
+  - modules/events/shared/events-entity-strip-section.ts
+  - modules/events/shared/events-entity-strip-section.test.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/index.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+  - modules/events/shared/sections/entity-strip-html.ts
+  - modules/events/shared/sections/entity-strip-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/server/events.routes.ts
+  - modules/events/server/events.routes.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/editor-context.ts
+  - modules/events/client/module.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 字号随频次缩放的词云 / 随机排布
+  - 相关实体共现图（entity-index 已划出）
+  - 按当前主题过滤实体（全站近 30 天，与枢纽同一份名单）
+  - 存量已发布页面自动插入（预设升级只影响新快照与「重设版式」；已落库的首页要在编辑器里添加，或重新套用事件雷达版式）
+  - 工作台实体管理
+  - 改实体枢纽 `events.entity_index` 的版式
+i18n: code # 段标题 / 设置走 client/locales；实体名是专有名词不翻译
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/builtin assemble:module-css
+  - pnpm --filter @rewindom/builtin check:section-css
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 公开面；编辑器预览走已有 events.read
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. type = `events.entity_strip`，placements: [page]，不限 page_kinds。
+#    与 rising / now 一样可摆任意页；枢纽正文 `events.entity_index` 仍只活在枢纽页。
+# 2. 数据复用 `getPublicEntityIndex`（近 30 天、封顶 500），映射层按
+#    event_count 降序、同数按 name 排，渲染层再按 setting `limit` 截（默认 24，
+#    8–48）。两端同一份 `toPublicEntityStrip`，不要在 SSR / 预览各写一次排序。
+# 3. 视觉就是现有 `.events-entity-chip`，字号一律；权重用已有的数字角标
+#    （`show_counts`，默认开）。「查看全部」指向实体枢纽。
+# 4. 没有实体时整段不渲染（不要在首页再占一块空态）——空态留给枢纽页。
+# 5. 实体名 `translate="no"`（专有名词）。
+# 6. 查库段：SSR `registerSectionContextProvider` 与编辑器
+#    `registerEditorContextProvider` 都按 usedTypes 按需取数。预览打
+#    `GET /events/entities`（静态路径，必须登记在 `/:eventId` 之前）。
+# 7. 默认插进 `EVENTS_HUB_SECTIONS`：Rising → Now → 实体条 → 订阅。
+#    查询列表（`?source=`）仍只摆对应那一段，不带这条。

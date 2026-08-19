@@ -13,6 +13,7 @@ import { describeEventFacts, describeEventMomentum } from "./events.js";
 
 import {
   EVENTS_INDEX_PATH,
+  entityIndexPath,
   entityPath,
   eventPath,
 } from "./events-section-context.js";
@@ -24,6 +25,7 @@ import type {
   EventTimelineItem,
 } from "./events.js";
 import type {
+  PublicEntityStripView,
   PublicEventCard,
   PublicEventDetailView,
   PublicEventSource,
@@ -199,4 +201,26 @@ export function buildProvenanceNote(
     return t("detail.analyzerManual");
   }
   return t("detail.analyzerHeuristic");
+}
+
+/** 枢纽 / 预览接口给出的实体行 → 首页胶囊条。排序只在这里做一份。 */
+export function toPublicEntityStrip(
+  rows: readonly {
+    slug: string;
+    name: string;
+    event_count: number;
+  }[],
+  indexPath: string = EVENTS_INDEX_PATH,
+): PublicEntityStripView {
+  const items = [...rows]
+    .sort(
+      (a, b) =>
+        b.event_count - a.event_count || a.name.localeCompare(b.name),
+    )
+    .map((row) => ({
+      href: entityPath(row.slug, indexPath),
+      name: row.name,
+      event_count: row.event_count,
+    }));
+  return { href: entityIndexPath(indexPath), items };
 }

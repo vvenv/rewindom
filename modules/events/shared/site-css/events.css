@@ -151,6 +151,11 @@
   font-size: 0.75rem;
 }
 
+/* 首页 / 任意页上的近期实体条：同一套胶囊，不按类型分组 */
+.events-entity-strip .events-entity-chips {
+  margin-top: 0.75rem;
+}
+
 /* 类型与关键事实：与主题同一种边框胶囊，但字重稍高——它比主题更具体 */
 .events-fact {
   padding: 1px 8px;

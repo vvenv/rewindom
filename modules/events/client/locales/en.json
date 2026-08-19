@@ -31,7 +31,9 @@
     "rising": "Rising",
     "risingHint": "Just started to break out",
     "now": "Now",
-    "nowHint": "Still developing in the last 24 hours"
+    "nowHint": "Still developing in the last 24 hours",
+    "entities": "Entities",
+    "entitiesHint": "Companies and people in the last 30 days of events"
   },
   "status": {
     "developing": "Developing",
@@ -163,6 +165,9 @@
     "entityIndex": {
       "title": "Entities",
       "subtitle": "Every company, product and person this site is tracking"
+    },
+    "entityStrip": {
+      "more": "See all entities"
     }
   },
   "home": {
@@ -219,6 +224,12 @@
       "label": "Entity hub body",
       "showCounts": "Show event counts",
       "emptyText": "Empty state text"
+    },
+    "entityStrip": {
+      "label": "Recent entities",
+      "limit": "Show at most",
+      "showCounts": "Show event counts",
+      "moreLabel": "More link text"
     }
   },
   "template": {

@@ -1,4 +1,4 @@
-import { Radar, Rss, Tag, TrendingUp } from "lucide-react";
+import { Radar, Rss, Tag, Tags, TrendingUp } from "lucide-react";
 
 import { htmlChromeBlockView, htmlSectionView } from "@rewindom/builtin/marketing/client/components/sections/html-section-view.js";
 import { registerChromeBlockView } from "@rewindom/builtin/marketing/client/components/sections/chrome-views.js";
@@ -14,6 +14,7 @@ import {
   EVENTS_ENTITLEMENT,
   eventsDetailSection,
   eventsEntitySection,
+  eventsEntityStripSection,
   eventsSubscribeBlock,
   eventsSubscribeSection,
   eventsFeedSection,
@@ -24,6 +25,7 @@ import { registerEventsPageTemplates } from "../shared/events-page-templates.js"
 import { registerEventsNavSources } from "../shared/nav-sources.js";
 import { renderEventsDetailHtml } from "../shared/sections/detail-html.js";
 import { renderEventsEntityHtml } from "../shared/sections/entity-html.js";
+import { renderEventsEntityStripHtml } from "../shared/sections/entity-strip-html.js";
 import {
   renderEventsSubscribeBlockHtml,
   renderEventsSubscribeHtml,
@@ -34,7 +36,7 @@ import { EVENTS_CSS } from "../shared/site-css.generated.js";
 import type { ClientAppModule } from "@rewindom/module-sdk/client";
 
 /*
- * 官网贡献的客户端一半：编辑器要能在「添加区块」里看到升温 / 正在发生两段，并用
+ * 官网贡献的客户端一半：编辑器要能在「添加区块」里看到升温 / 正在发生 / 近期实体，并用
  * **同一份** HTML 渲染器预览（`htmlSectionView`），不再为编辑器写一套 React 版式。
  */
 registerEventsPageTemplates();
@@ -63,6 +65,11 @@ registerSiteSectionView(
   eventsEntitySection,
   htmlSectionView(renderEventsEntityHtml),
   { css: EVENTS_CSS, icon: Tag },
+);
+registerSiteSectionView(
+  eventsEntityStripSection,
+  htmlSectionView(renderEventsEntityStripHtml),
+  { css: EVENTS_CSS, icon: Tags },
 );
 registerChromeBlockView(
   eventsSubscribeBlock,

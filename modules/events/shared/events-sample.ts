@@ -168,3 +168,18 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
     },
   };
 }
+
+/** 编辑器预览实体条的占位：专有名词，不走 i18n。 */
+export function sampleEntityStripItems(): {
+  slug: string;
+  name: string;
+  event_count: number;
+}[] {
+  return [
+    { slug: "openai-sample", name: "OpenAI", event_count: 8 },
+    { slug: "google-sample", name: "Google", event_count: 5 },
+    { slug: "cloudflare-sample", name: "Cloudflare", event_count: 4 },
+    { slug: "gpt-6-sample", name: "GPT-6", event_count: 3 },
+    { slug: "anthropic-sample", name: "Anthropic", event_count: 2 },
+  ];
+}

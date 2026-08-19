@@ -459,8 +459,8 @@ export interface PublicEventDetailView extends PublicEventCard {
   /**
    * 这条材料涉及的实体，按提及次数降序。空数组时整块不渲染。
    *
-   * 它同时是站内**唯一**通往实体页的成规模入口——没有这一行，几百张实体页
-   * 就只能靠 sitemap 被发现，那是孤儿页。
+   * 详情页上通往实体页的入口。首页还有 `entity_strip`，枢纽有
+   * `entity_index`——三条内链方向缺一，实体页权重就上不去。
    */
   entities: { href: string; name: string }[];
 }
@@ -500,6 +500,20 @@ export interface PublicEntityIndexView {
   }[];
 }
 
+/**
+ * 首页 / 任意页上的近期实体条。平铺、按窗口内事件数排序。
+ * 与枢纽同一批实体，只是截成 Top N、不分组。
+ */
+export interface PublicEntityStripView {
+  /** 实体枢纽地址，「查看全部」指这里 */
+  href: string;
+  items: {
+    href: string;
+    name: string;
+    event_count: number;
+  }[];
+}
+
 export interface PublicEventFeed {
   rising: PublicEventCard[];
   now: PublicEventCard[];
@@ -516,6 +530,11 @@ export interface EventsRenderContext {
   entity?: PublicEntityView | null;
   /** 实体枢纽模板页才有；其余页面恒为 null。与 `entity` 同一条理由。 */
   entity_index?: PublicEntityIndexView | null;
+  /**
+   * 近期实体条。任意页都可有——首页 CMS 与 `/events` 枢纽靠 provider / path
+   * handler 填；没摆这段时保持 undefined，渲染器整段跳过。
+   */
+  entity_strip?: PublicEntityStripView | null;
   index_path: string;
   /**
    * 查询列表页：这一段已经是「全部」，不再按区块 limit 截断，

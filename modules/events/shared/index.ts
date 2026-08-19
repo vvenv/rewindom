@@ -5,6 +5,7 @@ export * from "./events-feed-section.js";
 export * from "./events-detail-section.js";
 export * from "./events-entity-section.js";
 export * from "./events-entity-index-section.js";
+export * from "./events-entity-strip-section.js";
 export * from "./events-subscribe-block.js";
 export * from "./events-subscribe-section.js";
 export * from "./public-view.js";
