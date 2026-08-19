@@ -11,11 +11,11 @@
     "./permission-catalog": "./src/permission-catalog-fixture.ts"
   },
   "dependencies": {
-    "@fastify/jwt": "^10.2.1",
+    "@fastify/jwt": "^10.2.2",
     "@rewindom/builtin": "workspace:*",
     "@rewindom/server-kernel": "workspace:*",
     "@rewindom/shared": "workspace:*",
-    "fastify": "^5.11.3"
+    "fastify": "^5.12.1"
   },
   "peerDependencies": {
     "vitest": "^4.0.0"
@@ -24,6 +24,6 @@
     "@types/node": "^26.2.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }

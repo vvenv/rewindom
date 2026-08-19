@@ -14,7 +14,7 @@
     "@rewindom/client-kit": "workspace:*",
     "@rewindom/server-kernel": "workspace:*",
     "@rewindom/shared": "workspace:*",
-    "@fastify/multipart": "^10.1.0"
+    "@fastify/multipart": "^10.1.1"
   },
   "peerDependencies": {
     "fastify": "^5.11.3",

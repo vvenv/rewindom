@@ -2,7 +2,7 @@
 # rewindom 生产镜像：builder → app（Node API）→ web（Nginx + 静态资源）
 # 与 sibling shipest 同构：依赖清单分层 + BuildKit pnpm store 缓存 + prod prune
 ARG NODE_VERSION=22
-ARG PNPM_VERSION=11.21.0
+ARG PNPM_VERSION=11.22.0
 
 FROM node:${NODE_VERSION}-bookworm-slim AS builder
 
