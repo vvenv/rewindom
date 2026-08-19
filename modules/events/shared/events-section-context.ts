@@ -7,6 +7,7 @@
  */
 
 import { isReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-slugs.js";
+import { SITE_INTERPOLATION_KEY } from "@rewindom/builtin/marketing/shared/site-interpolation.js";
 import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 import {
@@ -138,6 +139,12 @@ function entityPrefix(indexPath: string): string {
  */
 export const EVENTS_FEED_SEGMENT = "feed.xml";
 
+/**
+ * 存进 setting 的当前主题 RSS。`{topic_slug}` 在渲染期换成格子 slug，
+ * 空段收掉之后站点首页是 `/events/feed.xml`。看得见、改得动，不要在渲染器里暗改。
+ */
+export const EVENTS_FEED_HREF_TEMPLATE = `${EVENTS_INDEX_PATH}/{topic_slug}/${EVENTS_FEED_SEGMENT}`;
+
 export function eventsFeedPath(
   topic?: EventTopic,
   indexPath: string = EVENTS_INDEX_PATH,
@@ -147,8 +154,8 @@ export function eventsFeedPath(
 }
 
 /**
- * 当前页该订哪个 feed。页头 chrome、正文订阅段、首屏订阅按钮共用，
- * 不要再各写一遍「有实体订实体、有主题订主题」。
+ * 当前页该订哪个 feed。页头 chrome 与正文订阅段共用。首屏订阅是普通次按钮，
+ * 地址写在 setting 里（默认 `/events/{topic_slug}/feed.xml`），不要再走这里暗改。
  */
 export function eventsSubscribeHref(input: {
   contributed?: SectionRenderContext["contributed"];
@@ -685,10 +692,10 @@ export interface EventsRenderContext {
    */
   topic?: EventTopic;
   /**
-   * 已落成当前语言的当前主题名。首屏用它把文案里的 `{{topic}}` 换掉。
+   * 已落成当前语言的当前主题名。CMS 文案里的 `{topic}` 换成它。
    *
-   * 与 `topic` 分开放而不是塞进 `hero`：计数为空时 `hero` 是 null，而那时首屏
-   * 仍然要用主题版文案——`/ai` 这一格暂时没有事件，不代表它该改回站点主张。
+   * 与 `topic` 分开放而不是塞进 `hero`：计数为空时 `hero` 是 null，而那时专题页
+   * 仍然要用主题名——`/ai` 这一格暂时没有事件，不代表它该改回站点主张。
    */
   topic_label?: string;
   /** 编辑器「某个主题」下拉用的已落成当前语言的主题名 */
@@ -706,10 +713,22 @@ export function emptyEventsContext(
   };
 }
 
+export function eventsInterpolationValues(
+  context: EventsRenderContext,
+): Record<string, string> {
+  return {
+    topic: context.topic_label ?? "",
+    topic_slug: context.topic ?? "",
+  };
+}
+
 export function eventsContextEntry(
   context: EventsRenderContext,
-): Record<string, EventsRenderContext> {
-  return { [EVENTS_CONTEXT_KEY]: context };
+): Record<string, unknown> {
+  return {
+    [EVENTS_CONTEXT_KEY]: context,
+    [SITE_INTERPOLATION_KEY]: eventsInterpolationValues(context),
+  };
 }
 
 /** 渲染器统一走这个读取函数收口断言，别让每个段各写一遍 `as`。 */

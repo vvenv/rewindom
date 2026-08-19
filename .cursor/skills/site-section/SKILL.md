@@ -123,6 +123,8 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 路径固定、每种语言最多一张（登录、`/shop`、`/docs`）。**不要**自己写初始化，**不要**做「自定义版式」空态。
 
+同一路径模式、多条实例（`/shop/:slug`、`/events/:topic`）仍是**一张**模板页：kind 唯一、每种语言一张，路径参数由 path handler 填。不要给每个格子各建一张 CMS 页，也不要在另一张页上长覆盖字段。金标准：`events_detail`、`events_topic`、shop collection。
+
 | 写 | 登记 |
 | --- | --- |
 | `<模块>/shared/*-page-templates.ts` | 同一函数里 `registerPageTemplateKind` + `registerPageTemplatePreset` |
@@ -160,6 +162,18 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 - 复制到另一语言：仍等于 catalog 库存句 → 目标语言库存译文；租户改过 → 源语言原文当翻译起点
 - 同一段被多张预设共用时不要硬塞一个 heading default
 
+## CMS 插值（`{token}`）
+
+库存文案、链接 href、页脚 `chrome_text` 走 `{token}`（与 Hugo / 页脚同一套），**不是**代码 i18n 的 `{{param}}`。
+
+- 内置：`{year}` `{site}` `{hostname}` `{url}`（`site-interpolation.ts`）
+- 模块经 `contributed.interpolation` 贡献（events：`{topic}` `{topic_slug}`）；多个 provider **按 key 合并**，不要 `Object.assign` 整包覆盖
+- 未识别的 `{foo}` 原样留下
+- 链接空路径段 / 空查询值渲染时收掉：`/events/{topic_slug}/feed.xml` 在没有当前主题时是 `/events/feed.xml`
+- **不要**在渲染器里暗改租户填的 href；把 token 写进存下来的地址，看得见、改得动
+
+金标准：`packages/builtin/marketing/shared/site-interpolation.ts`、events 专题页 hero。
+
 ## 公开路径（非 MarketingPage）
 
 不是 CMS 页的公开地址（如 `/docs`）不要写进 `renderPath`。模块登记 `registerSitePathHandler`（前缀路径；可带 `canonicalRedirect` 把旧前缀 301 到规范地址）、`registerSitePathFallback`（CMS 未命中后再认，`render` 返回 null 不直接 404）、`registerReservedPageSlug`、sitemap / link-target providers。金标准：`site-docs`；首页收到根上：`events`。
@@ -179,3 +193,4 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 - 预览取数跟着工作台界面语言走——同一段会在预览与实站显示两份文案
 - 自己写模板页初始化或「自定义版式」空态
 - 预设文案先 `t()`，或 preset key 与 setting `default` 不是同一条 `ns:key`
+- 在渲染器里暗改租户填的 href（把 `{token}` 写进存下来的地址）

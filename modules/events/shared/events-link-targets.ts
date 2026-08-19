@@ -4,12 +4,13 @@
  * 单个事件 / 实体 feed 不进下拉——条数会把列表淹掉，也没人会把手动导航钉到
  * 某一条事件上。主题 RSS 是编译期七格，列得下。
  *
- * 「本页 RSS」不是这里的一项：存进 setting 的必须是稳定 href。跟当前页走的订阅
- * 是没有链接控件的那颗按钮（hero / chrome），地址走 `eventsSubscribeHref`。
+ * 「当前主题 RSS」存的是 `/events/{topic_slug}/feed.xml`：稳定、看得见、渲染期
+ * 解析。空段收掉之后站点首页是全站 feed。钉死某一格仍用下面那些静态地址。
  */
 
 import { EVENT_TOPICS, type EventTopic } from "./events.js";
 import {
+  EVENTS_FEED_HREF_TEMPLATE,
   EVENTS_INDEX_PATH,
   entityIndexPath,
   eventsFeedPath,
@@ -20,6 +21,7 @@ import type { SiteLinkTarget } from "@rewindom/builtin/marketing/shared/site-lin
 export function eventsLinkTargets(input: {
   indexLabel: string;
   entityIndexLabel: string;
+  currentTopicFeedLabel: string;
   siteFeedLabel: string;
   topicFeedLabel: (topicName: string) => string;
   topicName: (topic: EventTopic) => string;
@@ -36,6 +38,11 @@ export function eventsLinkTargets(input: {
       value: entityIndexPath(),
       label: input.entityIndexLabel,
       group: "page",
+    },
+    {
+      value: EVENTS_FEED_HREF_TEMPLATE,
+      label: input.currentTopicFeedLabel,
+      group: "feed",
     },
     {
       value: eventsFeedPath(),

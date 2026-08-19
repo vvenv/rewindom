@@ -39,13 +39,11 @@ function section(extra: Record<string, unknown> = {}): SiteSection {
       eyebrow: "事件雷达 · 持续追踪",
       headline: "同一件事，来自多个来源，合成一条时间线",
       subhead: "不是热榜。",
-      topic_eyebrow: "事件雷达 · {{topic}}",
-      topic_headline: "{{topic}} 正在发生什么",
-      topic_secondary_label: "订阅 {{topic}} 的 RSS",
       show_stats: true,
       primary_label: "它是怎么工作的",
       primary_href: "/about",
       secondary_label: "订阅 RSS",
+      secondary_href: "/events/{topic_slug}/feed.xml",
       ...extra,
     },
   } as SiteSection;
@@ -63,7 +61,7 @@ function render(
   });
 }
 
-const AI = { topic: "ai", topic_label: "AI" } as const;
+const AI = { topic: "ai" as const, topic_label: "AI" };
 
 describe("renderEventsHeroHtml", () => {
   it("renders the headline as the page h1 — the home page had no h1 at all before", () => {
@@ -77,7 +75,6 @@ describe("renderEventsHeroHtml", () => {
     const html = render(hero());
     expect(html).toContain("events-hero-panel");
     expect(html).toContain("37");
-    // 千位分隔：1284 读作 1,284
     expect(html).toContain("1,284");
     expect(html).toContain("18");
     expect(html).toContain('href="/events/feed.xml"');
@@ -112,6 +109,11 @@ describe("renderEventsHeroHtml", () => {
     const html = render(hero(), { headline: '<script>alert(1)</script>' });
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
+  });
+
+  it("falls back to the current-topic feed template when href is missing", () => {
+    const html = render(hero(), { secondary_href: "" });
+    expect(html).toContain('href="/events/feed.xml"');
   });
 });
 
@@ -153,52 +155,58 @@ describe("toPublicHero", () => {
   });
 });
 
-describe("renderEventsHeroHtml · 主题枢纽", () => {
-  it("swaps in the topic copy so /ai does not reuse the site h1", () => {
-    const html = render(hero(), {}, AI);
-    expect(html).toContain("<h1 class=\"events-hero-headline\">AI 正在发生什么</h1>");
+describe("renderEventsHeroHtml · 专题页", () => {
+  it("fills {topic} from this page's own copy — not a topic_* override on the hub", () => {
+    const html = render(
+      hero(),
+      {
+        eyebrow: "事件雷达 · {topic}",
+        headline: "{topic} 正在发生什么",
+        secondary_label: "订阅 {topic}",
+      },
+      AI,
+    );
+    expect(html).toContain('<h1 class="events-hero-headline">AI 正在发生什么</h1>');
     expect(html).toContain("事件雷达 · AI");
+    expect(html).toContain("订阅 AI");
     expect(html).not.toContain("同一件事，来自多个来源");
   });
 
-  it("points the subscribe button at that topic's feed without a stored href", () => {
+  it("points the subscribe button at that topic's feed via {topic_slug}", () => {
     const html = render(hero(), {}, AI);
     expect(html).toContain('href="/events/ai/feed.xml"');
-    expect(html).toContain("订阅 AI 的 RSS");
     expect(html).toContain('href="/about"');
   });
 
-  it("ignores a leftover secondary_href — subscribe is not a link picker", () => {
+  it("respects a stored href — subscribe is a real link picker", () => {
     const html = render(
       hero(),
       { secondary_href: "https://elsewhere.example/events/feed.xml" },
       AI,
     );
-    expect(html).toContain('href="/events/ai/feed.xml"');
-    expect(html).not.toContain("elsewhere.example");
+    expect(html).toContain("elsewhere.example");
+    expect(html).not.toContain("/events/ai/feed.xml");
   });
 
   it("keeps the topic copy even when the panel is empty", () => {
-    const html = render(null, {}, AI);
+    const html = render(
+      null,
+      { headline: "{topic} 正在发生什么" },
+      AI,
+    );
     expect(html).toContain("AI 正在发生什么");
     expect(html).not.toContain("events-hero-panel");
-  });
-
-  it("falls back to the site copy when a topic override is blank", () => {
-    const html = render(hero(), { topic_headline: "" }, AI);
-    expect(html).toContain("同一件事，来自多个来源，合成一条时间线");
   });
 
   it("leaves the site page untouched — no placeholder leaks onto /", () => {
     const html = render(hero());
     expect(html).toContain("同一件事，来自多个来源，合成一条时间线");
-    expect(html).not.toContain("{{topic}}");
+    expect(html).not.toContain("{topic}");
     expect(html).toContain('href="/events/feed.xml"');
-    expect(html).not.toContain("?topic=");
   });
 });
 
-describe("toPublicHero · 主题枢纽", () => {
+describe("toPublicHero · 专题页", () => {
   it("reads the third row as contributing sources so all four rows share one scope", () => {
     const site = hero()!.stats.map((stat) => stat.key);
     const topic = hero({ topic_scoped: true })!.stats.map((stat) => stat.key);

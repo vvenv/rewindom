@@ -349,6 +349,8 @@ export function linkSettings(
     labelDefault?: string;
     hrefDefault?: string;
     hrefPlaceholder?: string;
+    hrefInfo?: string;
+    labelInfo?: string;
   },
 ): SettingDef[] {
   return [
@@ -359,6 +361,7 @@ export function linkSettings(
       ...(options?.labelDefault !== undefined
         ? { default: options.labelDefault }
         : {}),
+      ...(options?.labelInfo ? { info: options.labelInfo } : {}),
     },
     {
       // 站内地址从下拉里选（页面 / 文档），外链手填——与导航链接同一个控件
@@ -369,6 +372,7 @@ export function linkSettings(
       ...(options?.hrefDefault !== undefined
         ? { default: options.hrefDefault }
         : {}),
+      ...(options?.hrefInfo ? { info: options.hrefInfo } : {}),
     },
   ];
 }

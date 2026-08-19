@@ -11,6 +11,7 @@ import {
   surfaceStyleAttr,
 } from "../../section-schema.js";
 import { siteNavPages, type PublicSitePage } from "../../site-cms.js";
+import { interpolationValues, readContributedInterpolation } from "../../site-interpolation.js";
 import {
   renderChromeHtml,
   type LocaleSwitcherOption,
@@ -52,6 +53,11 @@ export function chromeNavContext(input: ChromeAreaInput): SiteNavContext {
     currentPath: input.currentPath ?? "",
     contributed: input.contributed,
     enabledEntitlements: input.enabledEntitlements,
+    interpolation: interpolationValues({
+      siteName: input.siteName,
+      origin: input.origin,
+      extra: readContributedInterpolation(input.contributed),
+    }),
   };
 }
 

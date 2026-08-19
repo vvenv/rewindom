@@ -3,11 +3,12 @@
  *
  * - `events.subscribe-link`：页头 / 页脚的 chrome 块（站点级常驻入口）
  * - `events.subscribe`：页面段（摆在正文流里，可带一句说明）
- * - `events.hero` 的订阅按钮（没有 href 控件，只复用取址）
  *
  * 与 shop 同形（`shop.cart-link` 是 chrome 块、`shop.cart` 是段）：两个落点解决
- * 两种需求，但「订阅哪个 feed」这件事只该有一份判断。首屏订阅按钮也走这份判断，
- * 不要再给它配一个通用链接控件然后暗改 query。
+ * 两种需求，但「订阅哪个 feed」这件事只该有一份判断。
+ *
+ * 首屏订阅按钮**不是**这条路——它是普通次按钮，href 存在 setting 里，用
+ * `{topic_slug}` 插值。实体页仍要订实体 feed，所以 chrome / 订阅段继续按页取址。
  *
  * **地址按上下文挑**：当前页有实体就给这个实体的 feed，否则给全站 feed（带上当前 topic）。
  * chrome 块也拿得到 `contributed`，所以站点级的常驻入口同样能做到

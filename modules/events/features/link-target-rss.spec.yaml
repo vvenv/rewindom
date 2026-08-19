@@ -1,8 +1,12 @@
+# SUPERSEDED in part by `topic-page.spec.yaml`：「当前主题 RSS」现在是下拉项，
+# 存的是稳定 href `/events/{topic_slug}/feed.xml`（渲染期解析，空段收掉）。
+# 实体 feed 仍不进下拉。页头 chrome / 正文订阅段仍按页取址。
+#
 # 链接下拉目前只有 CMS 页和文档。RSS 是真实的站内地址（/events/feed.xml、
 # ?topic=），租户在主按钮 / 导航里要链过去时只能手填，和「从站内选」的契约打架。
 # 实体 feed 不进下拉（和单个事件一样，条数会把列表淹掉）。
-# 「本页 RSS」也不是下拉项：存进去的必须是稳定 href，跟当前页走的订阅仍是没有
-# 链接控件的那颗按钮 / chrome。
+# 「本页 RSS」也不是下拉项：存进去的必须是稳定 href。跟当前页走的订阅仍是 chrome /
+# 正文订阅段。首屏订阅后来改成可插值的普通链接（见 `topic-page.spec.yaml`）。
 
 # ---------- 必填 ----------
 module: events
@@ -23,9 +27,9 @@ touch:
   - packages/builtin/marketing/client/locales/en.json
   - packages/builtin/marketing/MODULE.md
 out_of_scope:
-  - 改首屏订阅按钮（没有 href 控件、按页取址那条保持）
+  - 改页头 chrome / 正文订阅段的按页取址
   - 把实体 feed 塞进下拉
-  - 给链接控件加「本页 RSS」哨兵值
+  - 给链接控件加运行时「本页 RSS」哨兵值（`{topic_slug}` 已经是稳定存值）
 i18n: code
 acceptance:
   - pnpm --filter @rewindom/events exec vitest --run shared/events-link-targets.test.ts
@@ -39,5 +43,7 @@ models: []
 
 # ---------- 设计要点 ----------
 # 1. 分组必须进 SITE_LINK_TARGET_GROUPS：下拉按这张表分节，未登记的 group 会被丢掉。
-# 2. 存的仍是逻辑路径（/events/feed.xml?topic=ai），localizeSection 会保留 query。
+# 2. 存的仍是逻辑路径（/events/ai/feed.xml、/events/{topic_slug}/feed.xml），
+#    localizeSection 会保留 query；空路径段由插值在渲染期收掉。
 # 3. 主题列表走租户 enabled_topics，关掉的格子不要出现在下拉里。
+# 4. feed 组第一项是「当前主题 RSS」= `/events/{topic_slug}/feed.xml`。

@@ -48,9 +48,9 @@ import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
 import { DEFAULT_TENANT_SLUG, type AppLocale } from "@rewindom/shared";
 
 /*
- * 副作用导入：把 events 的 locale catalog 登记进来。首屏的主题版文案（`topic_*`）
- * 默认值是 `events:site.hero.topicHeadline` 这样的 ns:key，`createSection` 要靠这份
- * catalog 才能把它展开成 `__i18n` 整张表——没登记就会把 key 本身写进库。
+ * 副作用导入：把 events 的 locale catalog 登记进来。首屏库存文案（`events:site.hero.*`）
+ * 默认值是 ns:key，`createSection` 要靠这份 catalog 才能把它展开成 `__i18n` 整张表——
+ * 没登记就会把 key 本身写进库。
  */
 import "../../../modules/events/server/ssr/events-preset-i18n.js";
 
@@ -59,6 +59,7 @@ import {
   eventsHeroSection,
 } from "../../../modules/events/shared/events-hero-section.js";
 import { registerEventsPageTemplates } from "../../../modules/events/shared/events-page-templates.js";
+import { EVENTS_FEED_HREF_TEMPLATE } from "../../../modules/events/shared/events-section-context.js";
 
 import type {
   LocalizedText,
@@ -279,6 +280,7 @@ function buildIntroHero(): SiteSection {
     primary_label: INTRO_CTA,
     primary_href: ABOUT_PATH,
     secondary_label: INTRO_SUBSCRIBE_CTA,
+    secondary_href: EVENTS_FEED_HREF_TEMPLATE,
     anchor: INTRO_ANCHOR,
     padding_top: 72,
     padding_bottom: 64,

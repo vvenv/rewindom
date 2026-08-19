@@ -29,8 +29,10 @@ import {
   EVENTS_ENTITY_INDEX_SECTION_TYPE,
 } from "./events-entity-index-section.js";
 import { EVENTS_ENTITY_STRIP_SECTION_TYPE } from "./events-entity-strip-section.js";
+import { EVENTS_HERO_SECTION_TYPE } from "./events-hero-section.js";
 import { EVENTS_SUBSCRIBE_SECTION_TYPE } from "./events-subscribe-section.js";
 import {
+  EVENTS_FEED_HREF_TEMPLATE,
   EVENTS_HOME_LAYOUT_KEY,
   EVENTS_INDEX_PATH,
   entityIndexPath,
@@ -62,12 +64,16 @@ export const EVENTS_PAGE_TEMPLATE_GROUP = "events:template.group";
 
 export const EVENTS_INDEX_PAGE_KIND = "events_index";
 export const EVENTS_INDEX_TEMPLATE_SLUG = "events";
+export const EVENTS_TOPIC_PAGE_KIND = "events_topic";
+export const EVENTS_TOPIC_TEMPLATE_SLUG = "events-topic";
 export const EVENTS_DETAIL_TEMPLATE_SLUG = "events-detail";
 export const EVENTS_ENTITY_TEMPLATE_SLUG = "events-entity";
 export const EVENTS_ENTITY_INDEX_TEMPLATE_SLUG = "events-entities";
 
 /** `/events/:slug` 的路径模式，与 marketing 的模板页登记同形。 */
 export const EVENTS_DETAIL_PATH = eventPath(":slug");
+/** `/events/:topic` —— 七个格子共用这一张专题模板。 */
+export const EVENTS_TOPIC_PATH = `${EVENTS_INDEX_PATH}/:topic`;
 /** `/events/entities/:slug`。 */
 export const EVENTS_ENTITY_PATH = entityPath(":slug");
 /** `/events/entities` —— 实体枢纽，是能打开的地址（不是模板路径）。 */
@@ -106,6 +112,36 @@ export const EVENTS_INDEX_TEMPLATE_PRESET: PagePreset = {
   titleKey: "events:site.index.title",
   descriptionKey: "events:site.index.subtitle",
   sections: [...EVENTS_HUB_SECTIONS],
+};
+
+/**
+ * 专题枢纽（`/events/ai` 等）。与首页 / 事件枢纽不是同一张页：身份文案写在
+ * 这张模板自己的首屏上，用 `{topic}` / `{topic_slug}` 填七格。
+ */
+export const EVENTS_TOPIC_TEMPLATE_PRESET: PagePreset = {
+  key: EVENTS_TOPIC_PAGE_KIND,
+  label: "events:template.topic.label",
+  kind: EVENTS_TOPIC_PAGE_KIND,
+  slug: EVENTS_TOPIC_TEMPLATE_SLUG,
+  titleKey: "events:site.topic.title",
+  descriptionKey: "events:site.topic.subtitle",
+  sections: [
+    {
+      type: EVENTS_HERO_SECTION_TYPE,
+      text: {
+        eyebrow: "events:site.hero.topicEyebrow",
+        headline: "events:site.hero.topicHeadline",
+        subhead: "events:site.hero.subhead",
+        secondary_label: "events:site.subscribe",
+      },
+      raw: {
+        secondary_href: EVENTS_FEED_HREF_TEMPLATE,
+        show_stats: true,
+        show_glow: true,
+      },
+    },
+    ...EVENTS_HUB_SECTIONS,
+  ],
 };
 
 /**
@@ -209,6 +245,15 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     entitlement: EVENTS_ENTITLEMENT.key,
   },
   {
+    kind: EVENTS_TOPIC_PAGE_KIND,
+    slug: EVENTS_TOPIC_TEMPLATE_SLUG,
+    path: EVENTS_TOPIC_PATH,
+    group: EVENTS_PAGE_TEMPLATE_GROUP,
+    label: "events:template.topic.label",
+    required_section: null,
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
     kind: EVENTS_DETAIL_PAGE_KIND,
     slug: EVENTS_DETAIL_TEMPLATE_SLUG,
     path: EVENTS_DETAIL_PATH,
@@ -246,6 +291,10 @@ export function registerEventsPageTemplates(): void {
     EVENTS_INDEX_TEMPLATE_PRESET,
   );
   registerPageTemplatePreset(
+    EVENTS_TOPIC_PAGE_KIND,
+    EVENTS_TOPIC_TEMPLATE_PRESET,
+  );
+  registerPageTemplatePreset(
     EVENTS_DETAIL_PAGE_KIND,
     EVENTS_DETAIL_TEMPLATE_PRESET,
   );
@@ -261,20 +310,26 @@ export function registerEventsPageTemplates(): void {
 }
 
 /**
- * 查询列表页的版式：只摆与查询匹配的那一段，不再用租户改过的两段首页。
- * 不登记为独立 kind——地址是 `/events?source=`，带主题时是 `/events/ai?source=`。
+ * 查询列表页的版式：只摆与查询匹配的那一段，不再用租户改过的枢纽 / 专题版式。
+ * 不登记为独立 kind——地址是 `/events?source=`，带主题时是 `/events/ai?source=`；
+ * kind 跟着有没有 topic 走，好让 SEO / 编辑器身份与那张 CMS 页对齐。
  */
 export function eventsListingPreset(
   source: EventFeedTab,
   topic?: EventTopic,
 ): PagePreset {
+  const isTopic = Boolean(topic);
   return {
-    key: EVENTS_INDEX_PAGE_KIND,
-    label: "events:template.index.label",
-    kind: EVENTS_INDEX_PAGE_KIND,
-    slug: EVENTS_INDEX_TEMPLATE_SLUG,
-    titleKey: "events:site.index.title",
-    descriptionKey: "events:site.index.subtitle",
+    key: isTopic ? EVENTS_TOPIC_PAGE_KIND : EVENTS_INDEX_PAGE_KIND,
+    label: isTopic
+      ? "events:template.topic.label"
+      : "events:template.index.label",
+    kind: isTopic ? EVENTS_TOPIC_PAGE_KIND : EVENTS_INDEX_PAGE_KIND,
+    slug: isTopic ? EVENTS_TOPIC_TEMPLATE_SLUG : EVENTS_INDEX_TEMPLATE_SLUG,
+    titleKey: isTopic ? "events:site.topic.title" : "events:site.index.title",
+    descriptionKey: isTopic
+      ? "events:site.topic.subtitle"
+      : "events:site.index.subtitle",
     sections: [
       {
         type: eventFeedSectionType(source),

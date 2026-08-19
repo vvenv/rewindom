@@ -5,6 +5,8 @@
  * 在 client manifest 顶层登记；编辑器只负责 await 合并进 `contributed`。
  */
 
+import { mergeContributedRecords } from "../shared/site-interpolation.js";
+
 export interface EditorContextInput {
   locale: string;
   defaultLocale: string;
@@ -52,5 +54,5 @@ export async function resolveEditorContexts(
       }
     }),
   );
-  return Object.assign({}, ...results) as Record<string, unknown>;
+  return mergeContributedRecords(results);
 }

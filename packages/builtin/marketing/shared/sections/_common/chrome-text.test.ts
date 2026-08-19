@@ -61,4 +61,14 @@ describe("resolveChromeText", () => {
       }),
     ).toBe("Acme {foo} {domain} 2026");
   });
+
+  it("模块贡献的 extra token 与内置同一套花括号", () => {
+    expect(
+      resolveChromeText("© {year} {site} · {topic}", {
+        siteName: "站点",
+        year: 2026,
+        extra: { topic: "AI" },
+      }),
+    ).toBe("© 2026 站点 · AI");
+  });
 });

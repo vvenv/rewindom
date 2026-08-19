@@ -39,6 +39,12 @@ import {
   type PublicSitePage,
 } from "../../../shared/site-cms.js";
 import {
+  interpolateSiteHref,
+  interpolateSiteText,
+  interpolationValues,
+  readContributedInterpolation,
+} from "../../../shared/site-interpolation.js";
+import {
   resolveNavItems,
   settingNavItems,
   type ResolvedNavItem,
@@ -346,7 +352,7 @@ function selectable(onSelect: ((blockId: string | null) => void) | undefined) {
   };
 }
 
-function chromeNavContext(props: SiteChromeProps): SiteNavContext {
+function chromeNavContext(props: SiteChromeProps, origin: string): SiteNavContext {
   const defaultLocale = (props.defaultLocale ?? "zh-CN") as AppLocale;
   return {
     navPages: siteNavPages(props.pages ?? []),
@@ -355,6 +361,11 @@ function chromeNavContext(props: SiteChromeProps): SiteNavContext {
     currentPath: props.currentPath ?? "",
     contributed: props.contributed,
     enabledEntitlements: props.enabledEntitlements,
+    interpolation: interpolationValues({
+      siteName: props.siteName,
+      origin,
+      extra: readContributedInterpolation(props.contributed),
+    }),
   };
 }
 
@@ -371,7 +382,7 @@ export function SiteChrome({
     props.origin ??
     (typeof window !== "undefined" ? window.location.origin : "");
   const s = section.settings;
-  const ctx = chromeNavContext(props);
+  const ctx = chromeNavContext(props, origin);
   const select = selectable(onSelect);
   const shell = resolveChromeShell(
     tag === "header" ? "site-header" : "site-footer",
@@ -433,12 +444,20 @@ export function SiteChrome({
         const text = resolveChromeText(settingText(block.settings, "text"), {
           siteName,
           origin,
+          extra: readContributedInterpolation(props.contributed),
         });
         return text ? <p className="chrome-text">{text}</p> : null;
       }
       case "chrome_button": {
-        const label = settingText(block.settings, "label");
-        const href = settingText(block.settings, "href");
+        const values = ctx.interpolation ?? {};
+        const label = interpolateSiteText(
+          settingText(block.settings, "label"),
+          values,
+        );
+        const href = interpolateSiteHref(
+          settingText(block.settings, "href"),
+          values,
+        );
         if (!label || !href) return null;
         const variant = settingText(block.settings, "variant") || "primary";
         return (

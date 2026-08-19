@@ -64,7 +64,10 @@ import {
   EVENTS_ENTITY_TEMPLATE_PRESET,
   EVENTS_INDEX_PAGE_KIND,
   EVENTS_INDEX_TEMPLATE_PRESET,
+  EVENTS_TOPIC_PAGE_KIND,
+  EVENTS_TOPIC_TEMPLATE_PRESET,
   buildEventsListingSections,
+  eventsListingPreset,
 } from "../../shared/events-page-templates.js";
 
 import {
@@ -269,16 +272,26 @@ async function renderIndex(
   const t = translator(locale);
   const topicLabel = topic ? t(`topic.${topic}`) : undefined;
 
+  const hub = pathTopic
+    ? {
+        kind: EVENTS_TOPIC_PAGE_KIND,
+        preset: EVENTS_TOPIC_TEMPLATE_PRESET,
+      }
+    : {
+        kind: EVENTS_INDEX_PAGE_KIND,
+        preset: EVENTS_INDEX_TEMPLATE_PRESET,
+      };
+
   return renderEventsTemplatePage({
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
     siteName: input.tenantSlug,
     origin: input.origin,
     locale,
-    kind: EVENTS_INDEX_PAGE_KIND,
+    kind: hub.kind,
     path: pagePath,
     servedPath: input.servedPath ?? pagePath,
-    preset: EVENTS_INDEX_TEMPLATE_PRESET,
+    preset: hub.preset,
     title: topicLabel,
     description: topicLabel
       ? t("topicMeta.description", { topic: topicLabel })
@@ -312,16 +325,17 @@ async function renderListing(
   const title = topic ? `${sourceLabel} · ${t(`topic.${topic}`)}` : sourceLabel;
   const pagePath = topic ? topicPath(topic, indexPath) : indexPath;
 
+  const listing = eventsListingPreset(source, topic);
   return renderEventsTemplatePage({
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug,
     siteName: input.tenantSlug,
     origin: input.origin,
     locale,
-    kind: EVENTS_INDEX_PAGE_KIND,
+    kind: listing.kind,
     path: pagePath,
     servedPath: input.servedPath ?? pagePath,
-    preset: EVENTS_INDEX_TEMPLATE_PRESET,
+    preset: listing,
     title,
     description: topic
       ? t("listing.metaDescription", {

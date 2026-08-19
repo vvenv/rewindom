@@ -13,6 +13,10 @@ import {
   type LocalizedText,
   type SettingValues,
 } from "./section-settings.js";
+import {
+  interpolateSiteHref,
+  interpolateSiteText,
+} from "./site-interpolation.js";
 import { localizeSiteHref, parseSiteLocalePath } from "./site-locale.js";
 
 import type { AppLocale } from "@rewindom/shared";
@@ -43,6 +47,11 @@ export interface SiteNavContext {
   defaultLocale: AppLocale;
   currentPath?: string;
   contributed?: Readonly<Record<string, unknown>>;
+  /**
+   * 渲染期占位符（`{year}` `{site}` `{topic_slug}` …）。手填链接的 href / 文案
+   * 走同一套，与页脚 `chrome_text` 一致。不传等于不替换。
+   */
+  interpolation?: Readonly<Record<string, string>>;
   /**
    * 本站已开通的贡献能力。声明了 `entitlement` 的导航源没在集合里就不展开。
    * 漏传按未开通算——页头里残留的「文档库」条目关模块后必须消失。
@@ -353,9 +362,11 @@ function resolveItem(
   if (item.source === "link") {
     if (!item.href && item.children.length === 0) return [];
     const children = item.children.flatMap((child) => resolveItem(child, ctx));
-    const label = resolveNavLabel(item.label, ctx, item.href);
+    const values = ctx.interpolation ?? {};
+    const href = interpolateSiteHref(item.href, values);
+    const label = interpolateSiteText(resolveNavLabel(item.label, ctx, href), values);
     if (!label && children.length === 0) return [];
-    return [makeNavLink(item.id, label, item.href, ctx, children)];
+    return [makeNavLink(item.id, label, href, ctx, children)];
   }
 
   if (item.source === "pages") {

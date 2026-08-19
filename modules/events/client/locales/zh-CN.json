@@ -169,6 +169,10 @@
     "entityStrip": {
       "more": "查看全部实体"
     },
+    "topic": {
+      "title": "{topic}",
+      "subtitle": "跨来源追踪 {topic} 正在发生的事"
+    },
     "hero": {
       "eyebrow": "事件雷达 · 持续追踪",
       "headline": "同一件事，来自多个来源，合成一条时间线",
@@ -193,14 +197,14 @@
         "hours": "{{count}} 小时前",
         "days": "{{count}} 天前"
       },
-      "topicEyebrow": "事件雷达 · {{topic}}",
-      "topicHeadline": "{{topic}} 正在发生什么",
-      "topicSubscribe": "订阅 {{topic}} 的 RSS"
+      "topicEyebrow": "事件雷达 · {topic}",
+      "topicHeadline": "{topic} 正在发生什么"
     }
   },
   "link": {
     "siteFeed": "全站 RSS",
-    "topicFeed": "{{topic}} RSS"
+    "topicFeed": "{{topic}} RSS",
+    "currentTopicFeed": "当前主题 RSS"
   },
   "home": {
     "layout": {
@@ -267,20 +271,17 @@
       "label": "首屏",
       "showStats": "显示实时计数",
       "showStatsInfo": "还没有事件时自动隐藏，不会在首屏挂一串 0",
-      "topicGroup": "主题页变体",
-      "topicEyebrow": "主题页眉标",
-      "topicHeadline": "主题页标题",
-      "topicSubscribeLabel": "主题页订阅文案",
-      "topicInfo": "只在 /ai、/tech 这类主题页上生效；留空则用上面那条。{{topic}} 会换成主题名",
-      "topicSubscribeInfo": "只改订阅按钮上的字；地址仍按当前主题自动指向对应 RSS",
-      "subscribeLabel": "订阅按钮文案",
-      "subscribeInfo": "地址按当前页自动指向对应 RSS，不用再选或填写链接"
+      "interpolationInfo": "可写 {topic}（当前主题名）与 {topic_slug}（路径段）。没有当前主题时这两项为空。",
+      "subscribeHrefInfo": "默认 /events/{topic_slug}/feed.xml：有当前主题时订那一格，没有时收成全站 feed。想钉死某一格就改成 /events/ai/feed.xml。"
     }
   },
   "template": {
     "group": "事件",
     "index": {
       "label": "事件枢纽"
+    },
+    "topic": {
+      "label": "主题枢纽"
     },
     "detail": {
       "label": "事件详情页"

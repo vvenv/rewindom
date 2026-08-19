@@ -7,13 +7,14 @@
  * 计数拿不到（provider 还没回来）或站点还没有事件时整块不画，左列独占整行：
  * 首屏挂一串 0 比不挂更糟，与 entity_strip 空态返回 "" 同一条纪律。
  *
- * 主题枢纽（`/ai` 等）与 `/` 渲染的是同一张 CMS 页，所以主题版身份文案走同一段上的
- * `topic_eyebrow` / `topic_headline`，不另起一张页。订阅按钮没有 href 控件，地址
- * 跟页头订阅入口共用 `eventsSubscribeHref`。
+ * 枢纽 / 首页与专题页是两张模板。文案与按钮链接走与页脚同一套 `{token}`：
+ * `{topic}` 是主题名，`{topic_slug}` 是路径段。订阅是普通次按钮，默认 href
+ * `/events/{topic_slug}/feed.xml`，空段收掉后站点首页是全站 feed。
  */
 
 import {
-  eventsSubscribeHref,
+  EVENTS_FEED_HREF_TEMPLATE,
+  eventsInterpolationValues,
   readEventsContext,
 } from "../events-section-context.js";
 
@@ -24,49 +25,42 @@ import {
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import { buttonRow } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
 import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
+import {
+  interpolateSiteHref,
+  interpolateSiteText,
+  readContributedInterpolation,
+} from "@rewindom/builtin/marketing/shared/site-interpolation.js";
 
 import type { PublicHeroView } from "../events-section-context.js";
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 import type { SettingValues } from "@rewindom/builtin/marketing/shared/section-settings.js";
 
-/** `{{topic}}` → 已落成当前语言的主题名。没有占位就原样返回。 */
-function withTopic(text: string, label: string): string {
-  return label ? text.replaceAll("{{topic}}", label) : text;
+function interpolationOf(
+  ctx: Parameters<SectionHtmlRenderer>[1],
+): Record<string, string> {
+  const context = readEventsContext(ctx);
+  return {
+    ...(context ? eventsInterpolationValues(context) : {}),
+    ...readContributedInterpolation(ctx.contributed),
+  };
 }
 
-/**
- * 主题枢纽上取哪一条文案：`topic_*` 有值就用它，留空回落站点那条。
- *
- * 回落而不是留空：租户清掉主题标题多半是「不想单独写」，不是「主题页不要标题」。
- */
-function copy(
-  s: SettingValues,
-  id: string,
-  topicId: string,
-  topicLabel: string,
-): string {
-  const override = topicLabel ? settingText(s, topicId) : "";
-  return withTopic(override || settingText(s, id), topicLabel);
-}
-
-/**
- * 主按钮仍走通用 `link` 控件；订阅按钮没有 href，地址按当前页取。
- *
- * 只改订阅那一颗：租户给主按钮填的关于页 / 外链一概不动。
- * 文案键仍是 `secondary_label` / `topic_secondary_label`（存量页）。
- */
-function withSubscribeCta(
+function withInterpolatedCtas(
   s: SettingValues,
   ctx: Parameters<SectionHtmlRenderer>[1],
-  topicLabel: string,
+  values: Record<string, string>,
 ): SettingValues {
-  const label = copy(s, "secondary_label", "topic_secondary_label", topicLabel);
-  if (!label) return s;
-  return {
-    ...s,
-    secondary_label: label,
-    secondary_href: siteHref(eventsSubscribeHref(ctx), ctx),
-  };
+  const next: SettingValues = { ...s };
+  for (const prefix of ["primary", "secondary"] as const) {
+    const label = interpolateSiteText(settingText(s, `${prefix}_label`), values);
+    const rawHref =
+      settingText(s, `${prefix}_href`) ||
+      (prefix === "secondary" ? EVENTS_FEED_HREF_TEMPLATE : "");
+    const href = interpolateSiteHref(rawHref, values);
+    next[`${prefix}_label`] = label;
+    next[`${prefix}_href`] = href ? siteHref(href, ctx) : "";
+  }
+  return next;
 }
 
 function renderStats(hero: PublicHeroView): string {
@@ -95,15 +89,11 @@ function renderStats(hero: PublicHeroView): string {
 export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
   const s = section.settings;
   const context = readEventsContext(ctx);
-  /*
-   * 主题身份不从 `hero` 上取：计数为空时 `hero` 是 null，而那一格暂时没有事件
-   * 不代表首屏该改回站点主张。
-   */
-  const topicLabel = context?.topic_label ?? "";
+  const values = interpolationOf(ctx);
 
-  const headline = copy(s, "headline", "topic_headline", topicLabel);
-  const eyebrow = copy(s, "eyebrow", "topic_eyebrow", topicLabel);
-  const subhead = withTopic(settingText(s, "subhead"), topicLabel);
+  const headline = interpolateSiteText(settingText(s, "headline"), values);
+  const eyebrow = interpolateSiteText(settingText(s, "eyebrow"), values);
+  const subhead = interpolateSiteText(settingText(s, "subhead"), values);
 
   const hero = context?.hero ?? null;
   const stats =
@@ -115,7 +105,7 @@ export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
   ${eyebrow ? `<p class="events-hero-eyebrow">${escapeHtml(eyebrow)}</p>` : ""}
   <h1 class="events-hero-headline">${escapeHtml(headline)}</h1>
   ${subhead ? `<p class="events-hero-lead">${escapeHtml(subhead)}</p>` : ""}
-  ${buttonRow(withSubscribeCta(s, ctx, topicLabel), "left")}
+  ${buttonRow(withInterpolatedCtas(s, ctx, values), "left")}
 </div>`;
 
   return `<div class="events-hero${stats ? " has-panel" : ""}">${main}${stats}</div>`;

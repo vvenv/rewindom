@@ -151,8 +151,10 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 **`chrome_text` 的占位符替掉了 `chrome_copyright` 的隐藏行为。** 那个块的语义是「留空则
 自动生成 © 当年 站名」：输入框里空着、前台却有字，想改成「© 2020–{year} Acme, Inc.」
 无从下手。现在默认值就是 `© {year} {site}`，看得见改得动。同一套还会替换 `{hostname}`
-（当前主机名，不含端口）和 `{url}`（当前 origin，含协议）。跨年、改站名、换绑域名
-照样自己跟上（`_common/chrome-text.ts`）。
+（当前主机名，不含端口）和 `{url}`（当前 origin，含协议）。业务模块可以再往
+`contributed.interpolation` 填自己的 token（events 的 `{topic}` / `{topic_slug}`）。
+跨年、改站名、换绑域名照样自己跟上（`shared/site-interpolation.ts`，页脚走
+`_common/chrome-text.ts`）。链接 href 同一套插值，空路径段会收掉——不要在渲染器里暗改地址。
 
 区域自身的 settings 只剩外壳（`_common/chrome-shell.ts`）：`padding_top` / `padding_bottom` /
 `row_gap` / `show_divider`，页头另加 `sticky`、页脚另加 `spacing_above`，再加通用配色。

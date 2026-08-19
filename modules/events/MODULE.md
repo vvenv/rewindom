@@ -11,7 +11,7 @@
 已交付：
 
 - **主链路**：采集 → 聚类 → 事件详情（发生了什么 / 时间线 / 来源）→ Follow → 更新检测
-- **官网面**：首屏 / 升温 / 正在发生 / 近期实体 / 详情 + `/events` 与 `/events/:slug` 两张模板页（把 `/events` 设为首页后，访客 URL 收到 `/` 与 `/:slug`），未登录访客可直接浏览
+- **官网面**：首屏 / 升温 / 正在发生 / 近期实体 / 详情 + `/events`、`/events/:topic` 与 `/events/:slug` 三张模板页（把 `/events` 设为首页后，访客 URL 收到 `/`、`/:topic` 与 `/:slug`），未登录访客可直接浏览
 
 明确**不在**当前范围：Related Events、Why it's trending。两者都建立在同一套语料之上，
 加进来是增量，不需要动现有表结构。
@@ -82,13 +82,14 @@ server/
 
 | 贡献物 | 说明 |
 | --- | --- |
-| 段 `events.hero` | 首屏。左列是文案主张（eyebrow / h1 / 副标题 / 主按钮链接 / **订阅按钮**），右列是**按请求查出来的**实时计数。主题枢纽上换用 `topic_eyebrow` / `topic_headline` / `topic_secondary_label`、计数按格子过滤。订阅地址跟页头入口同一条 `eventsSubscribeHref`，编辑器里没有链接控件。`live_events` 为 0 时整块计数不渲染 |
+| 段 `events.hero` | 首屏。左列是文案主张（eyebrow / h1 / 副标题 / 两个通用链接按钮），右列是**按请求查出来的**实时计数。枢纽 / 首页与专题是两张模板，不要在这一段上再长 `topic_*` 覆盖。专题页库存文案自己写 `{topic}`；订阅是普通次按钮，默认 href `/events/{topic_slug}/feed.xml`（空段收掉后站点首页是全站 feed）。`live_events` 为 0 时整块计数不渲染 |
 | 段 `events.rising` | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/events?source=rising`（枢纽当首页时是 `/?source=rising`） |
 | 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/events?source=now`（枢纽当首页时是 `/?source=now`） |
 | 段 `events.entity_strip` | 近期实体胶囊条，可摆在任意页面。近 30 天实体按事件数排序，默认 Top 24，字号一律、用数字角标表示权重。**主题枢纽上只列这一格事件里的实体**。「查看全部」打开实体枢纽。预设插在 Now 与订阅之间 |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
-| 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now + 实体条 + 订阅）；`/events/:topic` 是该主题的同构枢纽；带 `?source=` 时是该批次的查询列表，不再用这段版式 |
-| 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构。站点设置里选这项会套首页草稿并把公开 URL 收到 `/`、`/:topic`、`/:slug` |
+| 模板页 `events_index` | `/events` 枢纽（预设 Rising + Now + 实体条 + 订阅，**没有**首屏——首页首屏由租户 / yestino 铺）。带 `?source=` 时是该批次的查询列表，不再用这段版式 |
+| 模板页 `events_topic` | `/events/:topic`（根挂载时 `/:topic`）。七格共用一张模板，预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。库存文案写 `{topic}` / `{topic_slug}` |
+| 首页版式 `events.home` | 套在站点首页（`/`）上，与枢纽同构（无首屏）。站点设置里选这项会套首页草稿并把公开 URL 收到 `/`、`/:topic`、`/:slug` |
 | 模板页 `events_detail` | `/events/:slug`（枢纽当首页时访客地址是 `/:slug`；主题格子 `ai` / `tech`… 先被认成主题页，事件 slug 恒带 id 后缀不会撞） |
 | 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上。编辑器没有当前实体，预览用样张 |
 | 模板页 `events_entity` | `/events/entities/:slug`（枢纽当首页时访客地址是 `/entities/:slug`） |
@@ -99,7 +100,7 @@ server/
 | 导航源 `events` | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/events/:topic`（当首页时 `/:topic`），当前格高亮；`children` 则收成「事件」一条下挂七格 |
 | 导航源 `events.topic` | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填 |
 | path handler | 接 `/events`、`/events/:topic`、`/events/:slug`、`/events/entities`、`/events/entities/:slug`，以及三条非 HTML：`feed.xml`（枢纽 / 主题 / 实体）与 `/events/:slug/og.png`（`/en/...` 同一条，locale 已被剥掉）。选了事件雷达版式（或存量把 `/events` 设为首页）后：旧前缀 301 到 `/`、`/:topic`、`/:slug`、`/entities/:slug`；`/` 由首页 CMS 渲染，`/?source=` 才接管列表；根上的主题 / 详情在 CMS 未命中后再认，避免抢走已发布的 CMS 页 |
-| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给枢纽页（`/events`、`/events/entities`）以及 RSS（全站 + 已启用主题，分组 `feed`）。实体 feed 不进下拉 |
+| sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给枢纽页（`/events`、`/events/entities`）以及 RSS（**当前主题** `/events/{topic_slug}/feed.xml` + 全站 + 已启用主题，分组 `feed`）。实体 feed 不进下拉 |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
 `registerHomeLayout`（events 填表，内核不认识「雷达」这个概念）。
@@ -129,21 +130,20 @@ server/
 
 ### 主题枢纽上的首屏
 
-`/`、`/ai`、`/tech`… 渲染的是**同一张** CMS 页（`events_index`）。所以主题版不是另一张页，
-是同一段上的覆盖字段（`topic_eyebrow` / `topic_headline` / `topic_secondary_label`），
-留空回落站点那条；都支持 `{{topic}}` 占位，换成已落成当前语言的主题名。
+`/` / `/events` 与 `/ai` / `/tech` **不是同一张 CMS 页**。专题是独立模板
+`events_topic`（path `/events/:topic`，根挂载时 `/:topic`），与详情页同构：kind
+唯一、每种语言一张，七格共用版式。身份文案写在这张页自己的首屏上，用 `{topic}`
+（主题名）与 `{topic_slug}`（路径段）填格子——与页脚 `chrome_text` 同一套
+`{token}`，不是代码 i18n 的 `{{param}}`。
 
-主按钮是通用 `link`（选页 / 手填）。订阅按钮只有文案、没有链接控件——地址跟页头
-订阅入口共用 `eventsSubscribeHref`（当前页有主题就带 `?topic=`）。不要再给订阅配一个
-「次按钮链接」，也不要把主题版文案叫成「次按钮文案」。
+不要在枢纽页上再长 `topic_*` 覆盖字段。一张页演两种身份才会让两套文案抢同一颗按钮。
 
-**为什么必须覆盖**：不覆盖的话 `/`、`/ai`、`/tech`、`/business` 共用一颗 h1，而它们的
-`<title>` 各不相同。同一颗 h1 铺满整个主题面既不是给读者看的，也正是
-`public-seo-audit` 写「不给列表硬塞 h1」要避开的那件事——那条约束反对的是**重复的**
-h1，不反对一颗说明这一格是什么的 h1。
+主按钮、订阅按钮都是通用 `link`。订阅默认 href 是 `/events/{topic_slug}/feed.xml`：
+有当前主题时订那一格，空段收掉后站点首页是全站 feed。租户填的地址看得见、改得动，
+渲染器不再暗改。页头 chrome / 正文订阅段仍走 `eventsSubscribeHref`（实体页要订实体
+feed）。
 
-主题身份走 `EventsRenderContext.topic_label`，**不挂在 `hero` 上**：计数为空时 `hero`
-是 null，而那一格暂时没有事件不代表首屏该改回站点主张。
+编辑器编专题模板时用已启用的第一格当样张，好让 `{topic}` 在预览里看得见。
 
 三样数据一起跟着格子走（`renderIndex` 里同一个 `topic`）：feed、`entity_strip`、
 首屏计数。只过滤 feed 的那种状态最难读——四行数字里三行在说别的事。
@@ -155,8 +155,8 @@ h1，不反对一颗说明这一格是什么的 h1。
 | `/` | 在采集的来源（`EventFeed.enabled`） | 站点配置事实 |
 | `/:topic` | 贡献来源（该格在发展事件的 `source_names` 去重） | 源的 `topic` 只是采集提示，一个源会产出好几个主题的事件，按它筛没有意义；`source_names` 是聚类时实际落进来的来源名 |
 
-主题枢纽上的订阅（页头 chrome / 正文订阅段 / 首屏订阅按钮）按当前页取址，会带上 `?topic=`。
-首屏主按钮不参与这件事，避免和编辑器里的选页 / 手填打架。
+页头 chrome / 正文订阅段仍按当前页取址（有实体订实体、有主题订主题）。首屏订阅是
+普通链接，不参与这件事。
 
 两处填数据：CMS 页走 section context provider，事件模板页（含把 `/events` 设为首页后的
 `/`）走 path handler 的 `renderIndex`——与 `entity_strip` 同一条分工。编辑器预览走
@@ -1015,7 +1015,8 @@ release / filing 是预防性的：同一批样本里没观察到碰撞（k8s 10
 | `events.subscribe` | 页面段 | 页面编辑器 → 添加区块 | 摆在正文流里，可带一句说明 |
 
 与 shop 同形（`shop.cart-link` 是 chrome 块、`shop.cart` 是段）。两者共用同一份取址
-逻辑——「订阅哪个 feed」只该有一份判断。
+逻辑——「订阅哪个 feed」只该有一份判断。首屏订阅**不是**这条路：它是普通次按钮，
+href 存在 setting 里（默认 `/events/{topic_slug}/feed.xml`）。
 
 chrome 块默认落在靠右、窄屏收进菜单。`icon_only` 打开后只画一个 RSS 图标，
 此时**必须**补 `aria-label`：图标本身已经 `aria-hidden`，不补就等于给了读屏软件

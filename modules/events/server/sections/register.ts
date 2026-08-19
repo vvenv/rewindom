@@ -135,6 +135,10 @@ function registerEventsLinkTargets(): void {
       return eventsLinkTargets({
         indexLabel: eventsMessage(defaultLocale, "site.index.title"),
         entityIndexLabel: eventsMessage(defaultLocale, "site.entityIndex.title"),
+        currentTopicFeedLabel: eventsMessage(
+          defaultLocale,
+          "link.currentTopicFeed",
+        ),
         siteFeedLabel: eventsMessage(defaultLocale, "link.siteFeed"),
         topicName: (topic) => eventsMessage(defaultLocale, `topic.${topic}`),
         topicFeedLabel: (name) =>

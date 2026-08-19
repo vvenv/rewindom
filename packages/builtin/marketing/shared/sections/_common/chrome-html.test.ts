@@ -54,7 +54,11 @@ function localized(
   return next!;
 }
 
-function header(blocks: SiteBlock[], settings: SettingValues = {}) {
+function header(
+  blocks: SiteBlock[],
+  settings: SettingValues = {},
+  extra: { contributed?: Record<string, unknown> } = {},
+) {
   return renderHeaderHtml({
     section: localized("header", blocks, settings),
     siteName: "站点",
@@ -63,10 +67,15 @@ function header(blocks: SiteBlock[], settings: SettingValues = {}) {
     locales: LOCALES,
     locale: "zh-CN",
     origin: "https://example.com",
+    contributed: extra.contributed,
   });
 }
 
-function footer(blocks: SiteBlock[], settings: SettingValues = {}) {
+function footer(
+  blocks: SiteBlock[],
+  settings: SettingValues = {},
+  extra: { contributed?: Record<string, unknown> } = {},
+) {
   return renderFooterHtml({
     section: localized("footer", blocks, settings),
     siteName: "站点",
@@ -74,6 +83,7 @@ function footer(blocks: SiteBlock[], settings: SettingValues = {}) {
     locales: LOCALES,
     locale: "zh-CN",
     origin: "https://example.com",
+    contributed: extra.contributed,
   });
 }
 
@@ -178,6 +188,30 @@ describe("chrome 文本占位符", () => {
     const empty = block("chrome_text");
     empty.settings.text = "";
     expect(footer([empty])).not.toContain("chrome-text");
+  });
+
+  it("模块贡献的 {topic} 与页脚内置 token 同一套花括号", () => {
+    const html = footer(
+      [block("chrome_text", { text: "© {year} {site} · {topic}" })],
+      {},
+      { contributed: { interpolation: { topic: "AI" } } },
+    );
+    expect(html).toContain(`© ${new Date().getFullYear()} 站点 · AI`);
+  });
+
+  it("按钮 href 插值后空路径段收掉", () => {
+    const html = header(
+      [
+        block("chrome_button", {
+          label: "订阅 {topic}",
+          href: "/events/{topic_slug}/feed.xml",
+        }),
+      ],
+      {},
+      { contributed: { interpolation: { topic: "AI", topic_slug: "" } } },
+    );
+    expect(html).toContain("订阅 AI");
+    expect(html).toContain('href="/events/feed.xml"');
   });
 });
 

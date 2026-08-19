@@ -205,6 +205,7 @@ export const CHROME_BUTTON_BLOCK: BlockDefinition = {
       id: "href",
       label: "editor.setting.button_href",
       placeholder: "/pricing",
+      info: "editor.info.site_interpolation_href",
     },
     {
       type: "select",

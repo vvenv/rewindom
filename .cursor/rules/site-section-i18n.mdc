@@ -23,6 +23,14 @@ alwaysApply: false
 
 同一段被多张预设共用（如 `shop.product-grid` 的 heading）时不要硬塞一个 default，交给 `relocalizeSections` 按 catalog 反查。
 
+## CMS 插值 vs 代码 i18n
+
+库存句、页脚版权、段里手填的 href 是**数据**，语法是 `{token}`（与页脚 `chrome_text` 同一套）。代码 i18n（工作台 UI / API `error` / 审计模板）仍是 `{{param}}`。两套不要混。
+
+- 内置 `{year}` `{site}` `{hostname}` `{url}`；模块往 `contributed.interpolation` 加自己的（如 `{topic}`）
+- 链接空路径段渲染时收掉；**不要**在渲染器里暗改租户填的 href
+- 实现：`packages/builtin/marketing/shared/site-interpolation.ts`
+
 ## 贡献段的按请求数据：预览取数 = 当前选中页面的 locale
 
 预览与实站共用同一个 HTML 渲染器，喂进去的 `contributed` 数据也必须按**同一个 locale** 取，

@@ -95,6 +95,24 @@ describe("resolveNavItems", () => {
     ).toEqual([]);
   });
 
+  it("手填链接的 href 与文案走 {token} 插值，空路径段收掉", () => {
+    const resolved = resolveNavItems(
+      [
+        item({
+          label: "订阅 {topic}",
+          href: "/events/{topic_slug}/feed.xml",
+        }),
+      ],
+      ctx({ interpolation: { topic: "AI", topic_slug: "" } }),
+    );
+    expect(resolved).toEqual([
+      expect.objectContaining({
+        label: "订阅 AI",
+        href: "/events/feed.xml",
+      }),
+    ]);
+  });
+
   it("未登记的贡献源整条消失", () => {
     expect(
       resolveNavItems([item({ source: "site-docs" })], ctx()),

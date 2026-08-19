@@ -32,7 +32,13 @@ vi.mock("./public-events.service.js", () => ({
   getPublicEventBySlug: vi.fn(async () => null),
   getPublicEventFeed: vi.fn(async () => ({ rising: [], now: [] })),
   getPublicEventList: vi.fn(async () => []),
-  getPublicHeroStats: vi.fn(async () => null),
+  getPublicHeroStats: vi.fn(async () => ({
+    live_events: 0,
+    merged_reports: 0,
+    sources: 0,
+    updated_at: null,
+    topic_scoped: false,
+  })),
 }));
 
 const { renderEventsPath } = await import("./events-path-handler.js");
@@ -127,5 +133,21 @@ describe("非 HTML 地址的分派", () => {
     ).resolves.toBeNull();
     expect(renderEventsFeed).not.toHaveBeenCalled();
     expect(renderEventOgImage).not.toHaveBeenCalled();
+  });
+});
+
+describe("HTML 页的模板 kind", () => {
+  it("枢纽走 events_index", async () => {
+    await renderEventsPath(input("/events"));
+    expect(renderEventsTemplatePage).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "events_index" }),
+    );
+  });
+
+  it("专题路径走 events_topic，不是同一张枢纽页", async () => {
+    await renderEventsPath(input("/events/ai"));
+    expect(renderEventsTemplatePage).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "events_topic" }),
+    );
   });
 });

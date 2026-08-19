@@ -29,6 +29,7 @@ import {
   toPublicEntityStrip,
   toPublicHero,
 } from "../shared/index.js";
+import { EVENTS_TOPIC_PAGE_KIND } from "../shared/events-page-templates.js";
 import {
   EVENTS_NAV_SOURCES,
   eventsNavTopicOptions,
@@ -91,11 +92,19 @@ export function registerEventsEditorContext(): void {
         input.usedTypes.has(EVENTS_ENTITY_SECTION_TYPE) &&
         input.pageKind === EVENTS_ENTITY_PAGE_KIND;
 
-      const [feed, enabled, entityRows, heroStats] = await Promise.all([
-        wantFeed ? loadFeed(t, indexPath) : Promise.resolve({ rising: [], now: [] }),
-        loadEnabledTopics(),
+      const enabled = await loadEnabledTopics();
+      /*
+       * 专题模板没有「当前格子」——地址是 `/events/:topic`。用已启用的第一格
+       * 当样张，好让 `{topic}` / `{topic_slug}` 在预览里看得见。
+       */
+      const sampleTopic =
+        input.pageKind === EVENTS_TOPIC_PAGE_KIND ? enabled[0] : undefined;
+      const topicLabel = sampleTopic ? t(`topic.${sampleTopic}`) : undefined;
+
+      const [feed, entityRows, heroStats] = await Promise.all([
+        wantFeed ? loadFeed(t, indexPath, sampleTopic) : Promise.resolve({ rising: [], now: [] }),
         wantStrip || wantHub ? loadEntityIndex() : Promise.resolve([]),
-        wantHero ? loadHeroStats() : Promise.resolve(null),
+        wantHero ? loadHeroStats(sampleTopic) : Promise.resolve(null),
       ]);
       const event =
         wantFeed && input.pageKind === EVENTS_DETAIL_PAGE_KIND
@@ -105,6 +114,8 @@ export function registerEventsEditorContext(): void {
       return eventsContextEntry(
         emptyEventsContext({
           index_path: indexPath,
+          topic: sampleTopic,
+          topic_label: topicLabel,
           nav_topics: eventsNavTopicOptions(locale, enabled),
           feed,
           event,
@@ -145,9 +156,13 @@ async function loadEnabledTopics(): Promise<readonly EventTopic[]> {
 async function loadFeed(
   t: ReturnType<typeof translator>,
   indexPath: string,
+  topic?: EventTopic,
 ) {
   try {
-    const data = await api.get<EventFeedResult>("/events/feed");
+    const data = await api.get<EventFeedResult>(
+      "/events/feed",
+      topic ? { topic } : undefined,
+    );
     const cards = (items: EventListItem[]) =>
       items.map((item) => toPublicCard(item, t, indexPath));
     if (data.now.length > 0 || data.rising.length > 0) {
@@ -206,16 +221,20 @@ async function loadEntityIndex(): Promise<PublicEntityIndexRow[]> {
 /**
  * 首屏计数。走 `/events/stats`——与公开面同一个函数，预览里的数字就是访客看到的数字。
  *
- * 不传 topic：编辑器编的是那**一张** CMS 页，主题枢纽是同一张页在 `/ai` 上的呈现，
- * 预览按站点面显示。主题版文案（`topic_*`）在编辑器里能填、能存，只是不在这里预览。
+ * 编专题模板时带上样张格子的 `?topic=`，计数与 `{topic}` 文案对得上。
  *
  * 这里**故意不**在接口失败时退回样张：计数为 0 时首屏整块该隐藏，拿一份漂亮的样张
  * 顶上去会让租户在编辑器里排一块访客根本看不到的版。接口挂了就当没有计数，
  * 与「provider 还没回来」同一个观感。
  */
-async function loadHeroStats(): Promise<HeroStatsInput | null> {
+async function loadHeroStats(
+  topic?: EventTopic,
+): Promise<HeroStatsInput | null> {
   try {
-    return await api.get<HeroStatsInput>("/events/stats");
+    return await api.get<HeroStatsInput>(
+      "/events/stats",
+      topic ? { topic } : undefined,
+    );
   } catch {
     return null;
   }

@@ -1,0 +1,88 @@
+# `/ai` `/tech` 与枢纽 / 首页共用一张 CMS 页，首屏才被迫长出 topic_* 覆盖字段，
+# 订阅按钮也只能在渲染时暗改地址。两套文案抢同一颗按钮，根因是一张页演两种身份。
+# 正确拆法与详情页同构：一张 `events_topic` 模板管所有 `/events/:topic`，
+# 格子之间共用版式；身份文案写在这张页上，用与页脚同一套 `{token}` 插值填七格。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 专题枢纽从 events_index 拆成独立模板页 events_topic；首屏去掉主题覆盖字段，订阅改回可插值的普通次按钮；CMS 文案 / 链接与页脚同一套 {token} 插值。
+gold: modules/events/shared/events-page-templates.ts
+touch:
+  - modules/events/features/topic-page.spec.yaml
+  - modules/events/features/site-hero-section.spec.yaml
+  - modules/events/features/hero-cta-literal.spec.yaml
+  - modules/events/features/link-target-rss.spec.yaml
+  - modules/events/MODULE.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-link-targets.ts
+  - modules/events/shared/events-link-targets.test.ts
+  - modules/events/shared/sections/hero-html.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/shared/sections/subscribe-html.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/events-path-handler.test.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/server/events.routes.ts
+  - modules/events/client/editor-context.ts
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/client/locales/en.json
+  - packages/builtin/marketing/shared/site-interpolation.ts
+  - packages/builtin/marketing/shared/site-interpolation.test.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-text.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-text.test.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.test.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-blocks.ts
+  - packages/builtin/marketing/shared/sections/_common/settings.ts
+  - packages/builtin/marketing/shared/site-nav.ts
+  - packages/builtin/marketing/shared/site-nav.test.ts
+  - packages/builtin/marketing/shared/sections/render-context.ts
+  - packages/builtin/marketing/server/section-context-providers.ts
+  - packages/builtin/marketing/client/editor-context-providers.ts
+  - packages/builtin/marketing/client/components/sections/SiteChrome.tsx
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/MODULE.md
+  - .cursor/skills/site-section/SKILL.md
+  - .cursor/rules/site-section-i18n.mdc
+  - docs/design/i18n.md
+  - apps/server/scripts/apply-yestino-about.ts
+out_of_scope:
+  - 给每个主题格子单独建 CMS 页
+  - 在 marketing 内核做通用「专题」类型
+  - 改页头 chrome / 正文订阅段的按页取址（实体页仍要订实体 feed）
+  - 把 `?source=` 列表也拆成独立 kind
+  - 给 events_index / 首页版式预设补上 hero（专题页才预置；首页仍由租户 / yestino 铺）
+i18n: data
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-page-templates.test.ts shared/sections/hero-html.test.ts shared/events-link-targets.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/ssr/events-path-handler.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/*' shared/site-interpolation.test.ts shared/sections/_common/chrome-text.test.ts shared/site-nav.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. `events_topic`：kind 唯一、每种语言一张，path `/events/:topic`（根挂载时
+#    `/:topic`）。预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。required_section
+#    为 null（与枢纽同理由：不是「有且仅有一段」）。
+# 2. path handler：有 pathTopic 走 `events_topic`，枢纽 / 首页走 `events_index` 或
+#    home。查询列表仍覆盖 sections，kind 跟着有没有 topic 走。
+# 3. 首屏不再有 topic_* 覆盖。专题页库存文案自己写 `{topic}`；订阅是普通
+#    `linkSettings("secondary")`，默认 href `/events/{topic_slug}/feed.xml`。
+#    空路径段渲染时收掉，站点首页变成 `/events/feed.xml`。
+# 4. 插值语法与页脚 chrome_text 同一套：`{token}`，不是 i18next 的 `{{param}}`。
+#    内置 `{year}` `{site}` `{hostname}` `{url}`；模块经 contributed.interpolation
+#    贡献 `{topic}` `{topic_slug}`。未识别的 `{foo}` 原样留下。
+# 5. 链接候选加一项「当前主题 RSS」= `/events/{topic_slug}/feed.xml`（稳定存进
+#    setting，渲染期解析）。钉死某一格的 `/events/ai/feed.xml` 仍在。
+# 6. 编辑器编专题模板时用已启用的第一格当样张，好让 `{topic}` 在预览里看得见。

@@ -11,6 +11,11 @@
 import { escapeHtml } from "../../html.js";
 import { registerSectionCss } from "../../load-marketing-site-css.js";
 import { settingBool, settingText } from "../../section-schema.js";
+import {
+  interpolateSiteHref,
+  interpolateSiteText,
+  readContributedInterpolation,
+} from "../../site-interpolation.js";
 import { siteHref } from "../../site-locale.js";
 import {
   resolveNavItems,
@@ -24,8 +29,17 @@ import {
   getContributedChromeBlock,
   registerChromeBlock,
 } from "./chrome-blocks.js";
-import { chromeBlockClass, chromeRows, type ChromeRow, type ChromeZone } from "./chrome-layout.js";
-import { chromeMenuLabel, mainNavLabel, themeToggleTitle } from "./chrome-messages.js";
+import {
+  chromeBlockClass,
+  chromeRows,
+  type ChromeRow,
+  type ChromeZone,
+} from "./chrome-layout.js";
+import {
+  chromeMenuLabel,
+  mainNavLabel,
+  themeToggleTitle,
+} from "./chrome-messages.js";
 import { resolveChromeText } from "./chrome-text.js";
 import { linkAttrs } from "./html.js";
 
@@ -123,7 +137,8 @@ function renderBrandHtml(input: {
 function renderNavItemHtml(item: ResolvedNavItem, column: boolean): string {
   const label = escapeHtml(item.label);
   if (item.children.length === 0) {
-    if (!item.href) return column ? `<li><span class="nav-group">${label}</span></li>` : "";
+    if (!item.href)
+      return column ? `<li><span class="nav-group">${label}</span></li>` : "";
     const link = `<a${linkAttrs(item.href)}${item.current ? ' aria-current="page"' : ""}>${label}</a>`;
     return column ? `<li>${link}</li>` : link;
   }
@@ -170,7 +185,10 @@ function renderNavHtml(input: {
   ctx: SiteNavContext;
   fallbackLabel?: string;
 }): string {
-  const items = resolveNavItems(settingNavItems(input.block.settings), input.ctx);
+  const items = resolveNavItems(
+    settingNavItems(input.block.settings),
+    input.ctx,
+  );
   if (items.length === 0) return "";
   const column = settingText(input.block.settings, "display") === "column";
   const title = settingText(input.block.settings, "title");
@@ -187,8 +205,12 @@ function renderNavHtml(input: {
 }
 
 function renderButtonHtml(block: SiteBlock, ctx: SiteNavContext): string {
-  const label = settingText(block.settings, "label");
-  const href = settingText(block.settings, "href");
+  const values = ctx.interpolation ?? {};
+  const label = interpolateSiteText(
+    settingText(block.settings, "label"),
+    values,
+  );
+  const href = interpolateSiteHref(settingText(block.settings, "href"), values);
   if (!label || !href) return "";
   const variant = settingText(block.settings, "variant") || "primary";
   const className =
@@ -225,7 +247,11 @@ function renderThemeHtml(locale: AppLocale): string {
   return `<button type="button" class="theme-toggle chrome-control" title="${title}">${ICON.sun}</button>`;
 }
 
-function renderBlockHtml(block: SiteBlock, input: ChromeRenderInput, isMainNav: boolean): string {
+function renderBlockHtml(
+  block: SiteBlock,
+  input: ChromeRenderInput,
+  isMainNav: boolean,
+): string {
   switch (block.type) {
     case "chrome_brand":
       return renderBrandHtml({
@@ -244,6 +270,7 @@ function renderBlockHtml(block: SiteBlock, input: ChromeRenderInput, isMainNav: 
       const text = resolveChromeText(settingText(block.settings, "text"), {
         siteName: input.siteName,
         origin: input.origin,
+        extra: readContributedInterpolation(input.contributed),
       });
       return text ? `<p class="chrome-text">${escapeHtml(text)}</p>` : "";
     }
@@ -295,7 +322,10 @@ function renderZoneHtml(
   for (const block of zone.blocks) {
     const isMainNav = block.type === "chrome_nav" && !state.mainNavUsed;
     if (isMainNav) state.mainNavUsed = true;
-    const inner = wrapBlockHtml(block, renderBlockHtml(block, input, isMainNav));
+    const inner = wrapBlockHtml(
+      block,
+      renderBlockHtml(block, input, isMainNav),
+    );
     if (!inner) continue;
     if (blockMobile(block) === "menu") {
       drawers.push(
@@ -308,7 +338,8 @@ function renderZoneHtml(
   if (pins.length === 0 && drawers.length === 0) {
     return { zoneHtml: "", drawers: [] };
   }
-  const pinsHtml = pins.length > 0 ? `<div class="chrome-pins">${pins.join("")}</div>` : "";
+  const pinsHtml =
+    pins.length > 0 ? `<div class="chrome-pins">${pins.join("")}</div>` : "";
   return {
     zoneHtml: `<div class="chrome-zone chrome-zone-${zone.align}">${pinsHtml}</div>`,
     drawers,

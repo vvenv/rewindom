@@ -169,6 +169,10 @@
     "entityStrip": {
       "more": "See all entities"
     },
+    "topic": {
+      "title": "{topic}",
+      "subtitle": "What's happening in {topic}, merged across sources"
+    },
     "hero": {
       "eyebrow": "Event radar · tracked continuously",
       "headline": "One story, many sources, one timeline",
@@ -193,14 +197,14 @@
         "hours": "{{count}} h ago",
         "days": "{{count}} d ago"
       },
-      "topicEyebrow": "Event radar · {{topic}}",
-      "topicHeadline": "What's happening in {{topic}}",
-      "topicSubscribe": "Subscribe to {{topic}}"
+      "topicEyebrow": "Event radar · {topic}",
+      "topicHeadline": "What's happening in {topic}"
     }
   },
   "link": {
     "siteFeed": "All events RSS",
-    "topicFeed": "{{topic}} RSS"
+    "topicFeed": "{{topic}} RSS",
+    "currentTopicFeed": "This topic's RSS"
   },
   "home": {
     "layout": {
@@ -267,20 +271,17 @@
       "label": "Hero",
       "showStats": "Show live counts",
       "showStatsInfo": "Hidden automatically until there are events — never shows a row of zeros",
-      "topicGroup": "Topic page variants",
-      "topicEyebrow": "Topic eyebrow",
-      "topicHeadline": "Topic headline",
-      "topicSubscribeLabel": "Topic subscribe label",
-      "topicInfo": "Used only on topic pages like /ai or /tech; leave empty to reuse the one above. {{topic}} is replaced with the topic name",
-      "topicSubscribeInfo": "Only changes the subscribe button's wording; the URL still follows that topic's RSS",
-      "subscribeLabel": "Subscribe button label",
-      "subscribeInfo": "Points at this page's RSS automatically — no link to pick or type"
+      "interpolationInfo": "Use {topic} for the topic name and {topic_slug} for the path segment. Both are empty when there is no current topic.",
+      "subscribeHrefInfo": "Default /events/{topic_slug}/feed.xml — this topic's feed, or the site feed when there is no current topic. Pin a slot with /events/ai/feed.xml."
     }
   },
   "template": {
     "group": "Events",
     "index": {
       "label": "Events hub"
+    },
+    "topic": {
+      "label": "Topic hub"
     },
     "detail": {
       "label": "Event page"

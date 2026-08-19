@@ -1,3 +1,7 @@
+# SUPERSEDED by `topic-page.spec.yaml`（2026-08-19）：枢纽与专题拆成两张模板，
+# 首屏不再有 topic_* 覆盖；订阅改回可插值的普通次按钮。下文是当时的口径，
+# 实现以 `topic-page.spec.yaml` 为准。
+#
 # 官网首屏现在是一条通用 `band`（`apply-yestino-about.ts` 铺的 `anchor: about-yestino`），
 # 三个问题：
 #
@@ -11,6 +15,9 @@
 #
 # 结论：首屏该由 events 自己贡献一个段，而不是继续拿通用 band 拼。合并率与新鲜度只有
 # events 查得到，而这两个数就是这个产品的主张本身。
+#
+# 专题枢纽后来拆成独立模板 `events_topic`（见 `topic-page.spec.yaml`）。本 spec 里
+# 「同一张 CMS 页 + topic_* 覆盖」已被那份取代，不要按这里再加覆盖字段。
 
 # ---------- 必填 ----------
 module: events
@@ -63,14 +70,9 @@ models: [] # 只读既有 NewsEvent / EventSignal / EventFeed，无新增字段
 #                     这是「多条报道 → 一个事件」的直接证据，不是热度的另一种写法。
 #      sources        EventFeed，enabled = true。
 #      updated_at     NewsEvent.last_activity_at 的最大值。
-# 2b. **主题枢纽**（`/ai` 等）与 `/` 是同一张 CMS 页，所以主题版身份文案是同一段上的
-#     覆盖字段（`topic_eyebrow` / `topic_headline` / `topic_secondary_label`），留空
-#     回落站点那条，都支持 `{{topic}}` 占位。不覆盖的话四个 URL 共用一颗 h1，而
-#     `<title>` 各不相同——`public-seo-audit` 反对的是重复 h1，不是这一颗。主题身份走
-#     `EventsRenderContext.topic_label`，不挂在 `hero` 上：计数为空时 `hero` 是
-#     null，那一格没事件不代表首屏该改回站点主张。订阅按钮没有链接控件，地址走
-#     `eventsSubscribeHref`（见 `hero-cta-literal.spec.yaml`）。订阅文案覆盖字段
-#     仍是 `topic_secondary_label`（编辑器叫「主题页订阅文案」）。
+# 2b. **主题枢纽**（`/ai` 等）后来拆成独立模板 `events_topic`（见 `topic-page.spec.yaml`）。
+#     当时的口径是与 `/` 共用一张 CMS 页，主题版身份文案是同一段上的覆盖字段。
+#     那套 `topic_*` 已删：身份文案写在专题页自己的首屏上，用 `{topic}` 插值。
 # 2c. 计数与 `entity_strip` 一起跟着格子过滤（`renderIndex` 同一个 `topic`）。第三行
 #     在主题面换成「贡献来源」（该格在发展事件的 `source_names` 去重）：源的 topic
 #     只是采集提示，按它筛没有意义。其余三行口径不变。

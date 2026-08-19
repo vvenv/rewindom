@@ -219,12 +219,18 @@ audit:
   page_templates:
     - { kind: events_index, slug: events, path: /events, required_section: null }
     - {
+        kind: events_topic,
+        slug: events-topic,
+        path: /events/:topic,
+        required_section: null,
+      }
+    - {
         kind: events_detail,
         slug: events-detail,
         path: /events/:slug,
         required_section: events.detail,
       }
-  path_handler: /events 与 /events/:slug（locale 前缀由 marketing 剥掉）
+  path_handler: /events、/events/:topic 与 /events/:slug（locale 前缀由 marketing 剥掉）
   reserved_slug: events
   providers: [section_context, editor_context, sitemap, link_target]
   css_source: shared/site-css/events.css → site-css.generated.ts

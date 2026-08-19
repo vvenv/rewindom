@@ -1,3 +1,6 @@
+# SUPERSEDED by `topic-page.spec.yaml`（2026-08-19）：订阅改回可插值的普通次按钮，
+# 默认 href `/events/{topic_slug}/feed.xml`。下文「没有 href 控件、暗改地址」已作废。
+#
 # 首屏把订阅做成了通用「次按钮」（文案 + 选页/手填），又另给一颗「主题页次按钮文案」，
 # 渲染时再暗改 `?topic=`。两套文案抢同一颗按钮，链接控件和自动取址也打架。
 # 正确拆法：订阅只留文案、地址走 `eventsSubscribeHref`；主按钮才是通用 link。
@@ -20,7 +23,7 @@ touch:
   - modules/events/client/locales/en.json
   - apps/server/scripts/apply-yestino-about.ts
 out_of_scope:
-  - 改 events.subscribe / chrome 的取址规则（只是抽成共用函数）
+  - 改页头 chrome / 正文订阅段的按页取址（只是抽成共用函数；首屏后来改成可插值链接）
   - 给每个主题另建 CMS 页
   - 改计数 / entity_strip 的格子过滤
 i18n: code

@@ -14,6 +14,8 @@
  * 查询都不发。定价区是全站唯一一处需要它的地方，不该让每一次页面渲染都付这个代价。
  */
 
+import { mergeContributedRecords } from "../shared/site-interpolation.js";
+
 import type { AppLocale } from "@rewindom/shared";
 
 export interface SectionContextInput {
@@ -118,5 +120,5 @@ export async function resolveSectionContexts(
     }),
   );
 
-  return Object.assign({}, ...results) as Record<string, unknown>;
+  return mergeContributedRecords(results);
 }

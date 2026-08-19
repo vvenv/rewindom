@@ -140,8 +140,13 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
     context: "EventHeroStats",
     errorCode: "EVENT_HERO_STATS_FAILED",
     preHandler: [app.requirePermission("events.read")],
-    handler: async (request) =>
-      getPublicHeroStats(request.tenantContext!.tenant_id),
+    handler: async (request) => {
+      const { topic } = request.query as { topic?: string };
+      return getPublicHeroStats(
+        request.tenantContext!.tenant_id,
+        parseTopic(topic),
+      );
+    },
   });
 
   defineRoute(app, {

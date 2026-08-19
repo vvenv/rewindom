@@ -25,6 +25,7 @@ import {
 } from "../shared/site-path-handlers.js";
 import { localizeRedirectLocation, visitorRedirectPath } from "../shared/site-redirect.js";
 
+import { hstsHeaderForOrigin } from "./hsts.js";
 import {
   cookiesFromHeader,
   resolveSectionContexts,
@@ -53,7 +54,6 @@ import {
   resolveWwwCanonicalHost,
   swapOriginHost,
 } from "./www-canonical-host.js";
-import { hstsHeaderForOrigin } from "./hsts.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
