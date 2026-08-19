@@ -41,34 +41,32 @@ export function ErrorLogs() {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground hidden sm:block">
+      <p className="hidden text-muted-foreground sm:block">
         {t("platform.description")}
       </p>
 
-      <div className="flex flex-col gap-4">
-        <ErrorLogFilters
-          filters={filters}
-          onFiltersChange={updateFilters}
-          showTenantFilter
-        />
+      <ErrorLogFilters
+        filters={filters}
+        onFiltersChange={updateFilters}
+        showTenantFilter
+      />
 
-        <ErrorLogsTable
-          logs={logs?.items ?? []}
-          isLoading={isLoading}
-          error={error}
-          page={page}
-          pageSize={pageSize}
-          total={logs?.total ?? 0}
-          pageCount={logs?.page_count}
-          logId={logId}
-          onSelectLog={(log) => selectLog(log.id)}
-          onClearSelectedLog={clearSelectedLog}
-          sorting={sorting}
-          onSortingChange={handleSortingChange}
-          showTenantColumn
-          isFiltered={hasActiveFilters(filters)}
-        />
-      </div>
+      <ErrorLogsTable
+        logs={logs?.items ?? []}
+        isLoading={isLoading}
+        error={error}
+        page={page}
+        pageSize={pageSize}
+        total={logs?.total ?? 0}
+        pageCount={logs?.page_count}
+        logId={logId}
+        onSelectLog={(log) => selectLog(log.id)}
+        onClearSelectedLog={clearSelectedLog}
+        sorting={sorting}
+        onSortingChange={handleSortingChange}
+        showTenantColumn
+        isFiltered={hasActiveFilters(filters)}
+      />
     </div>
   );
 }

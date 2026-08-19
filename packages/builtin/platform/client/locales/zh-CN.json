@@ -288,22 +288,9 @@
     "emptyFilteredHint": "换个关键词再试。"
   },
   "dashboard": {
-    "description": "跨租户慢查询统计概览，帮助定位性能瓶颈",
-    "loadFailed": "加载统计数据失败：{{message}}",
-    "totalCount": "慢查询总数",
-    "selectedRange": "所选时间范围内",
-    "allTime": "全部时间",
-    "avgDuration": "平均耗时",
-    "maxDuration": "最高: {{value}}",
-    "p95Duration": "P95 耗时",
-    "avgValue": "均值: {{value}}",
-    "peakDuration": "最高耗时",
-    "p95Value": "P95: {{value}}",
-    "routeTop10": "路由慢查询次数 Top 10",
-    "fingerprintTop10": "SQL 指纹最高耗时 Top 10",
-    "countLabel": "次数",
-    "durationLabel": "耗时",
-    "countUnit": "{{value}} 次"
+    "description": "跨租户性能概览：慢查询与慢请求",
+    "empty": "暂无监控数据",
+    "sectionFailed": "该区块加载失败"
   },
   "planLimitTemplates": {
     "title": "套餐用量模板",

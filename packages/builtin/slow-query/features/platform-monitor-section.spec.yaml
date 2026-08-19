@@ -1,0 +1,28 @@
+# 慢查询向平台监控页贡献 KPI + 图表区块。
+
+# ---------- 必填 ----------
+module: slow-query
+surfaces: [platform]
+goal: 通过 `client.platformDashboardSections` 向 `/platform` 贡献慢查询统计区块；列表页保持筛选+表。
+gold: packages/builtin/error-log/client/tenant/dashboard-widgets.ts
+touch:
+  - packages/builtin/slow-query/features/platform-monitor-section.spec.yaml
+  - packages/builtin/slow-query/MODULE.md
+  - packages/builtin/slow-query/client/module.tsx
+  - packages/builtin/slow-query/client/platform/dashboard-sections.ts
+  - packages/builtin/slow-query/client/components/SlowQueryMonitorSection.tsx
+  - packages/builtin/slow-query/client/pages/slow-query-logs.tsx
+  - packages/builtin/slow-query/client/locales/en.json
+  - packages/builtin/slow-query/client/locales/zh-CN.json
+out_of_scope:
+  - 租户工作台页
+  - 新 API / 模型
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'slow-query/*'
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement:
+permissions: []
+models: []

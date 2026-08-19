@@ -39,35 +39,31 @@ export function AuditLogs() {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground hidden sm:block">
+      <p className="hidden text-muted-foreground sm:block">
         {t("platform.description")}
       </p>
 
-      <div className="flex flex-col gap-4">
-        <AuditLogFilters
-          filters={filters}
-          onTenantChange={(slug) =>
-            updateParam("tenant_slug", slug ?? undefined)
-          }
-          onUsernameChange={(username) => updateParam("username", username)}
-          onFiltersChange={updateFilters}
-          onReset={resetFilters}
-        />
+      <AuditLogFilters
+        filters={filters}
+        onTenantChange={(slug) => updateParam("tenant_slug", slug ?? undefined)}
+        onUsernameChange={(username) => updateParam("username", username)}
+        onFiltersChange={updateFilters}
+        onReset={resetFilters}
+      />
 
-        <AuditLogsTable
-          logs={logs?.items ?? []}
-          isLoading={isLoading}
-          error={error}
-          page={page}
-          pageSize={pageSize}
-          total={logs?.total ?? 0}
-          pageCount={logs?.page_count}
-          sorting={sorting}
-          onSortingChange={handleSortingChange}
-          showTenantColumn
-          isFiltered={hasActiveFilters(filters)}
-        />
-      </div>
+      <AuditLogsTable
+        logs={logs?.items ?? []}
+        isLoading={isLoading}
+        error={error}
+        page={page}
+        pageSize={pageSize}
+        total={logs?.total ?? 0}
+        pageCount={logs?.page_count}
+        sorting={sorting}
+        onSortingChange={handleSortingChange}
+        showTenantColumn
+        isFiltered={hasActiveFilters(filters)}
+      />
     </div>
   );
 }

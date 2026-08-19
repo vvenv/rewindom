@@ -1,19 +1,10 @@
 import { hasActiveFilters } from "@rewindom/client-kit/lib/list-url-params";
-import { Card, CardContent, CardHeader, CardTitle } from "@rewindom/ui/card";
 import { useTranslation } from "react-i18next";
 
-import { SlowRequestBarChart } from "../components/SlowRequestBarChart.js";
 import { SlowRequestLogFilters } from "../components/SlowRequestLogFilters.js";
 import { SlowRequestLogsTable } from "../components/SlowRequestLogsTable.js";
 import { usePlatformSlowRequestLogs } from "../hooks/usePlatformSlowRequestLogs.js";
 import { usePlatformSlowRequestLogsPage } from "../hooks/usePlatformSlowRequestLogsPage.js";
-import { usePlatformSlowRequestStats } from "../hooks/usePlatformSlowRequestStats.js";
-import {
-  buildRouteChartRows,
-  formatPlatformCountLabel,
-  formatPlatformDuration,
-  formatPlatformDurationLabel,
-} from "../lib/slow-request-dashboard.js";
 
 export function SlowRequestLogs() {
   const { t } = useTranslation("slow-request");
@@ -49,55 +40,11 @@ export function SlowRequestLogs() {
     sortDir,
   );
 
-  const { data: stats, isLoading: statsLoading } = usePlatformSlowRequestStats({
-    startDate: filters.start_date,
-    endDate: filters.end_date,
-    tenantSlug: filters.tenant_slug,
-  });
-
-  const chartRows = buildRouteChartRows(stats?.by_route);
-
   return (
     <div className="flex flex-col gap-4">
-      <p className="hidden text-muted-foreground md:block">
+      <p className="hidden text-muted-foreground sm:block">
         {t("page.description")}
       </p>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title={t("stats.total")}
-          value={formatPlatformCountLabel(stats?.total_count, statsLoading)}
-        />
-        <StatCard
-          title={t("stats.avg")}
-          value={formatPlatformDurationLabel(
-            stats?.avg_duration_ms,
-            statsLoading,
-          )}
-        />
-        <StatCard
-          title={t("stats.p95")}
-          value={formatPlatformDurationLabel(
-            stats?.p95_duration_ms,
-            statsLoading,
-          )}
-        />
-        <StatCard
-          title={t("stats.max")}
-          value={formatPlatformDurationLabel(
-            stats?.duration_max,
-            statsLoading,
-          )}
-        />
-      </div>
-
-      <SlowRequestBarChart
-        title={t("stats.byRoute")}
-        data={chartRows}
-        valueFormatter={formatPlatformDuration}
-        chartLabel={t("chart.avgDuration")}
-        isLoading={statsLoading}
-      />
 
       <SlowRequestLogFilters
         filters={filters}
@@ -121,20 +68,5 @@ export function SlowRequestLogs() {
         isFiltered={hasActiveFilters(filters)}
       />
     </div>
-  );
-}
-
-function StatCard({ title, value }: { title: string; value: string }) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="font-mono text-2xl tabular-nums">{value}</p>
-      </CardContent>
-    </Card>
   );
 }

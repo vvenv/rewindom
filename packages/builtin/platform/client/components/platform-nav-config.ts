@@ -34,6 +34,7 @@ export function usePlatformNavConfig() {
     "audit",
     "error-log",
     "slow-query",
+    "slow-request",
   ]);
 
   const translatedEntries = useMemo(

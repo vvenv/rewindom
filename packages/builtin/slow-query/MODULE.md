@@ -18,6 +18,7 @@
 
 - `registerJobs` — 慢查询日志清理
 - 平台慢查询路由：`platform-slow-query.routes.ts`（`/api/platform/slow-query-logs`）
+- `client.platformDashboardSections` — 向平台监控 `/platform` 贡献 KPI + 图表区块
 
 ## 如何单独测试
 

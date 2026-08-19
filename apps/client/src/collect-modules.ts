@@ -4,6 +4,7 @@ import {
   type ClientAppModule,
   type AppNavSection,
   type DashboardWidget,
+  type PlatformDashboardSection,
 } from "@rewindom/client-kit";
 
 import { renderModuleDeclarativeRoutes } from "./declarative-routes";
@@ -83,6 +84,23 @@ export function collectDashboardWidgets(
     for (const widget of module.client?.dashboardWidgets ?? []) {
       if (!byId.has(widget.id)) {
         byId.set(widget.id, widget);
+      }
+    }
+  }
+  return [...byId.values()];
+}
+
+/**
+ * 汇总各模块贡献的平台监控区块。同 id 只保留先注册的那个，与 `collectDashboardWidgets` 一致。
+ */
+export function collectPlatformDashboardSections(
+  modules: readonly ClientAppModule[],
+): readonly PlatformDashboardSection[] {
+  const byId = new Map<string, PlatformDashboardSection>();
+  for (const module of modules) {
+    for (const section of module.client?.platformDashboardSections ?? []) {
+      if (!byId.has(section.id)) {
+        byId.set(section.id, section);
       }
     }
   }

@@ -7,6 +7,7 @@ import {
   collectAppRouteTrees,
   collectDashboardWidgets,
   collectModuleNav,
+  collectPlatformDashboardSections,
 } from "./collect-modules";
 
 import type { ClientAppModule } from "@rewindom/client-kit";
@@ -198,6 +199,54 @@ describe("collect-modules", () => {
       "todos.pending",
     ]);
     expect(widgets[0]!.order).toBe(20);
+  });
+
+  it("collects platform dashboard sections in module order and drops duplicate ids", () => {
+    const Section = () => null;
+    const modules: ClientAppModule[] = [
+      {
+        id: "slow-query",
+        version: "1.0.0",
+        label: "Slow Query",
+        kind: "infrastructure",
+        client: {
+          platformDashboardSections: [
+            {
+              id: "slow-query.stats",
+              order: 10,
+              component: Section,
+            },
+          ],
+        },
+      },
+      {
+        id: "slow-request",
+        version: "1.0.0",
+        label: "Slow Request",
+        kind: "infrastructure",
+        client: {
+          platformDashboardSections: [
+            {
+              id: "slow-request.stats",
+              order: 20,
+              component: Section,
+            },
+            {
+              id: "slow-query.stats",
+              order: 99,
+              component: Section,
+            },
+          ],
+        },
+      },
+    ];
+
+    const sections = collectPlatformDashboardSections(modules);
+    expect(sections.map((section) => section.id)).toEqual([
+      "slow-query.stats",
+      "slow-request.stats",
+    ]);
+    expect(sections[0]!.order).toBe(10);
   });
 
   it("collects route trees by mount point", () => {

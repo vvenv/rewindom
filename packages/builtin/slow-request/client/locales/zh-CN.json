@@ -14,6 +14,13 @@
     "max": "最大耗时",
     "byRoute": "最慢路由"
   },
+  "monitor": {
+    "title": "慢请求",
+    "viewAll": "查看全部",
+    "loadFailed": "加载统计数据失败：{{message}}",
+    "selectedRange": "所选时间范围内",
+    "allTime": "全部时间"
+  },
   "filters": {
     "route": "路由",
     "method": "方法",

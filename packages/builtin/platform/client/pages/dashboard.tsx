@@ -1,20 +1,14 @@
-import { useMemo } from "react";
+import { Suspense } from "react";
 
-
-import { DateTimeRangePicker } from "@rewindom/client-kit";
-import { Alert, AlertDescription } from "@rewindom/ui/alert";
+import {
+  DateTimeRangePicker,
+  getPlatformDashboardSections,
+  sortPlatformDashboardSections,
+} from "@rewindom/client-kit";
+import { Skeleton } from "@rewindom/ui/skeleton";
 import { useTranslation } from "react-i18next";
 
-import { SlowQueryBarChart } from "../../../slow-query/client/components/SlowQueryBarChart.js";
-import { usePlatformSlowQueryStats } from "../../../slow-query/client/hooks/usePlatformSlowQueryStats.js";
-import {
-  buildFingerprintChartRows,
-  buildRouteChartRows,
-  formatPlatformCountLabel,
-  formatPlatformDuration,
-  formatPlatformDurationLabel,
-} from "../../../slow-query/client/lib/slow-query-dashboard.js";
-import { MetricCard } from "../components/MetricCard.js";
+import { PlatformDashboardSectionBoundary } from "../components/PlatformDashboardSectionBoundary.js";
 import { usePlatformDashboardPage } from "../hooks/usePlatformDashboardPage.js";
 
 export function Dashboard() {
@@ -22,30 +16,13 @@ export function Dashboard() {
   const { dateRange, dateParams, handleDateRangeChange } =
     usePlatformDashboardPage();
 
-  const {
-    data: stats,
-    isLoading,
-    error,
-  } = usePlatformSlowQueryStats({
-    startDate: dateParams?.start_date,
-    endDate: dateParams?.end_date,
-  });
-
-  const routeChart = useMemo(
-    () => buildRouteChartRows(stats?.by_route),
-    [stats],
+  const sections = sortPlatformDashboardSections(
+    getPlatformDashboardSections(),
   );
-  const fingerprintChart = useMemo(
-    () => buildFingerprintChartRows(stats?.by_fingerprint),
-    [stats],
-  );
-
-  const routeFormatter = (value: number) =>
-    t("dashboard.countUnit", { value: value.toLocaleString() });
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between gap-4">
         <p className="hidden text-muted-foreground sm:block">
           {t("dashboard.description")}
         </p>
@@ -55,77 +32,38 @@ export function Dashboard() {
         />
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            {t("dashboard.loadFailed", { message: error.message })}
-          </AlertDescription>
-        </Alert>
+      {sections.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("dashboard.empty")}</p>
+      ) : (
+        sections.map((section) => (
+          <PlatformDashboardSectionBoundary
+            key={section.id}
+            sectionId={section.id}
+          >
+            <Suspense fallback={<SectionSkeleton />}>
+              <section.component
+                start_date={dateParams?.start_date}
+                end_date={dateParams?.end_date}
+              />
+            </Suspense>
+          </PlatformDashboardSectionBoundary>
+        ))
       )}
+    </div>
+  );
+}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <MetricCard
-          color="blue"
-          label={t("dashboard.totalCount")}
-          value={formatPlatformCountLabel(stats?.total_count, isLoading)}
-          sub={
-            dateParams ? t("dashboard.selectedRange") : t("dashboard.allTime")
-          }
-        />
-        <MetricCard
-          color="amber"
-          label={t("dashboard.avgDuration")}
-          value={formatPlatformDurationLabel(stats?.avg_duration_ms, isLoading)}
-          sub={
-            stats
-              ? t("dashboard.maxDuration", {
-                  value: formatPlatformDuration(stats.duration_max),
-                })
-              : undefined
-          }
-        />
-        <MetricCard
-          color="orange"
-          label={t("dashboard.p95Duration")}
-          value={formatPlatformDurationLabel(stats?.p95_duration_ms, isLoading)}
-          sub={
-            stats
-              ? t("dashboard.avgValue", {
-                  value: formatPlatformDuration(stats.avg_duration_ms),
-                })
-              : undefined
-          }
-        />
-        <MetricCard
-          color="red"
-          label={t("dashboard.peakDuration")}
-          value={formatPlatformDurationLabel(stats?.duration_max, isLoading)}
-          sub={
-            stats
-              ? t("dashboard.p95Value", {
-                  value: formatPlatformDuration(stats.p95_duration_ms),
-                })
-              : undefined
-          }
-        />
+function SectionSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <Skeleton className="h-5 w-32" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Skeleton className="h-24" />
+        <Skeleton className="h-24" />
+        <Skeleton className="h-24" />
+        <Skeleton className="h-24" />
       </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <SlowQueryBarChart
-          title={t("dashboard.routeTop10")}
-          data={routeChart}
-          valueFormatter={routeFormatter}
-          chartLabel={t("dashboard.countLabel")}
-          isLoading={isLoading}
-        />
-        <SlowQueryBarChart
-          title={t("dashboard.fingerprintTop10")}
-          data={fingerprintChart}
-          valueFormatter={formatPlatformDuration}
-          chartLabel={t("dashboard.durationLabel")}
-          isLoading={isLoading}
-        />
-      </div>
+      <Skeleton className="h-72" />
     </div>
   );
 }

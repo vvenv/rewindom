@@ -1,4 +1,5 @@
 import { SLOW_QUERY_I18N } from "./i18n.js";
+import { SLOW_QUERY_PLATFORM_DASHBOARD_SECTIONS } from "./platform/dashboard-sections.js";
 import { slowQueryPlatformNavContributions } from "./platform/nav-contributions.js";
 import { renderSlowQueryPlatformRoutes } from "./platform/routes.js";
 
@@ -14,5 +15,6 @@ export const slowQueryClientModule: ClientAppModule = {
     i18n: SLOW_QUERY_I18N,
     renderPlatformRoutes: renderSlowQueryPlatformRoutes,
     platformNav: slowQueryPlatformNavContributions,
+    platformDashboardSections: SLOW_QUERY_PLATFORM_DASHBOARD_SECTIONS,
   },
 };

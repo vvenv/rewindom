@@ -65,7 +65,7 @@ GET /api/platform/slow-request-logs/stats
 
 ## 前端
 
-平台 `/platform/slow-request-logs`：统计卡片 + 最慢路由图 + 可筛选列表。无租户工作台页（与 `slow-query` 相同）。
+平台 `/platform/slow-request-logs`：可筛选列表。统计卡片与最慢路由图在监控页 `/platform`（本模块 `platformDashboardSections`）。无租户工作台页（与 `slow-query` 相同）。
 
 ## 配置
 

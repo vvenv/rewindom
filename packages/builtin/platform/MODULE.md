@@ -19,6 +19,7 @@
 - 对外 guard / 类型：`guards/`、`lib/`
 - 业务模块可通过 slot 向平台控制台注入自己的组件，`platform` 不反向依赖业务模块
 - 平台侧栏：壳层 `collectPlatformNav` 固定分组；模块用 `client.platformNav` 往分组追加子项，或贡献根级 `link`
+- 平台监控 `/platform`：只提供日期选择与区块孤立；图表由各模块 `client.platformDashboardSections` 贡献（金标准：`slow-query` / `slow-request`）
 
 ## 平台导航
 
@@ -26,10 +27,10 @@
 
 | 位置 | 形态 | 内容 |
 | --- | --- | --- |
-| 监控 | 根链接 | `/platform` |
+| 监控 | 根链接 | `/platform`（各模块 `platformDashboardSections` 聚合的 KPI + 图） |
 | 租户 | 分组 | 租户管理、跨租户用户 |
 | 计费 | 分组 `commerce` | 套餐配置（本模块）、订阅与付款（`billing`） |
-| 运维 | 分组 `observability` | 审计、错误、慢查询、数据备份 |
+| 运维 | 分组 `observability` | 审计、错误、慢查询、慢请求、数据备份 |
 | 设置 | 分组 | 平台管理员、平台设置（谁能进控制台 + 控制台怎么配，同属「管这个后台」） |
 
 空分组不渲染。装不进上述分组的模块才用 `kind: "link"`，会插在监控和租户之间。

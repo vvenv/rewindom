@@ -20,6 +20,7 @@
 
 - `registerJobs` — 慢请求日志清理
 - 平台慢请求路由：`platform-slow-request.routes.ts`（`/api/platform/slow-request-logs`）
+- `client.platformDashboardSections` — 向平台监控 `/platform` 贡献 KPI + 图表区块
 
 ## 配置
 

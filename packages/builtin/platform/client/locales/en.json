@@ -288,22 +288,9 @@
     "emptyFilteredHint": "Try a different keyword."
   },
   "dashboard": {
-    "description": "Cross-tenant slow query overview to find performance bottlenecks",
-    "loadFailed": "Failed to load stats: {{message}}",
-    "totalCount": "Total slow queries",
-    "selectedRange": "Selected time range",
-    "allTime": "All time",
-    "avgDuration": "Average duration",
-    "maxDuration": "Max: {{value}}",
-    "p95Duration": "P95 duration",
-    "avgValue": "Avg: {{value}}",
-    "peakDuration": "Peak duration",
-    "p95Value": "P95: {{value}}",
-    "routeTop10": "Top 10 routes by slow query count",
-    "fingerprintTop10": "Top 10 SQL fingerprints by max duration",
-    "countLabel": "Count",
-    "durationLabel": "Duration",
-    "countUnit": "{{value}}"
+    "description": "Cross-tenant performance overview: slow queries and slow requests",
+    "empty": "No monitoring sections available",
+    "sectionFailed": "This section failed to load"
   },
   "planLimitTemplates": {
     "title": "Plan limit templates",

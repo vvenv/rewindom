@@ -742,6 +742,28 @@ client: {
 否则用户能把无权访问的卡片显示出来。卡片外壳统一用 `client-kit` 的 `DashboardWidgetCard`。
 详见 `packages/builtin/dashboard/MODULE.md`。
 
+### 10.5.2 平台监控区块（`platformDashboardSections`）
+
+`/platform` 是平台控制台首页（`platform` 模块）。它只提供日期选择、区块排序与单区块错误隔离，
+**不 import 任何业务组件**；KPI + 图由拥有数据的模块自己声明：
+
+```typescript
+// <module>/client/module.tsx
+client: {
+  platformDashboardSections: [
+    {
+      id: "slow-query.stats", // 约定 `<moduleId>.<name>`，重复 id 只保留先注册的
+      order: 10,              // 升序，默认 100；相同值按模块注册顺序
+      component: LazySection, // lazy()；props 为 `{ start_date?, end_date? }`
+    },
+  ],
+}
+```
+
+与 `dashboardWidgets` 的区别：监控区块是全宽 KPI+图，平台管理员不做用户级显隐/排序。
+组装层同样依赖倒置（`prepareAppRoutes` → `registerPlatformDashboardSectionsProvider`）。
+列表页（`/platform/slow-query-logs` 等）只留筛选 + 表，图表不上第二遍。
+
 ### 10.6 `ClientShellContributions`
 
 除路由与导航外，模块可通过 `client.shell` 贡献壳层 UI（`ClientShellContributions`）：

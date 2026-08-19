@@ -42,7 +42,9 @@ export function SlowQueryLogs() {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="hidden text-muted-foreground md:block">{t("page.description")}</p>
+      <p className="hidden text-muted-foreground sm:block">
+        {t("page.description")}
+      </p>
 
       <SlowQueryLogFilters
         filters={filters}

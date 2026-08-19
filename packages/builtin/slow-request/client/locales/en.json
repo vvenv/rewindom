@@ -14,6 +14,13 @@
     "max": "Max",
     "byRoute": "Slowest routes"
   },
+  "monitor": {
+    "title": "Slow requests",
+    "viewAll": "View all",
+    "loadFailed": "Failed to load stats: {{message}}",
+    "selectedRange": "Selected time range",
+    "allTime": "All time"
+  },
   "filters": {
     "route": "Route",
     "method": "Method",

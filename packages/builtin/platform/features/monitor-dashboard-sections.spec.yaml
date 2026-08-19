@@ -1,0 +1,42 @@
+# 平台监控页改为各模块贡献的图表区块，不再硬编码慢查询。
+
+# ---------- 必填 ----------
+module: platform
+surfaces: [platform]
+goal: 监控 `/platform` 只提供骨架（日期 + 区块孤立）；图表由 `platformDashboardSections` 注入，platform 不 import slow-query / slow-request。
+gold: packages/builtin/dashboard/client/pages/dashboard.tsx
+touch:
+  - packages/builtin/platform/features/monitor-dashboard-sections.spec.yaml
+  - packages/builtin/platform/MODULE.md
+  - packages/builtin/platform/client/pages/dashboard.tsx
+  - packages/builtin/platform/client/components/PlatformDashboardSectionBoundary.tsx
+  - packages/builtin/platform/client/components/MetricCard.tsx
+  - packages/builtin/platform/client/components/platform-nav-config.ts
+  - packages/builtin/platform/client/locales/en.json
+  - packages/builtin/platform/client/locales/zh-CN.json
+  - packages/client-kit/src/lib/module-contract.ts
+  - packages/client-kit/src/lib/platform-dashboard-sections.ts
+  - packages/client-kit/src/lib/platform-dashboard-sections.test.ts
+  - packages/client-kit/src/index.ts
+  - apps/client/src/collect-modules.ts
+  - apps/client/src/collect-modules.test.ts
+  - apps/client/src/render-app-routes.tsx
+  - docs/design/modular-architecture.md
+  - packages/builtin/error-log/client/pages/error-logs.tsx
+  - packages/builtin/audit/client/pages/audit-logs.tsx
+out_of_scope:
+  - 侧栏分组与路由 path
+  - 租户工作台 dashboardWidgets
+  - 监控区块用户级显隐/排序
+  - 错误/审计图表
+i18n: code
+acceptance:
+  - pnpm --filter client exec vitest --run src/collect-modules.test.ts
+  - pnpm --filter @rewindom/client-kit exec vitest --run src/lib/platform-dashboard-sections.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'platform/client'
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement:
+permissions: []
+models: []

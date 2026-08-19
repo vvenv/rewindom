@@ -225,6 +225,12 @@ export {
   getDashboardWidgets,
 } from "./lib/dashboard-widgets";
 export {
+  registerPlatformDashboardSectionsProvider,
+  getPlatformDashboardSections,
+  sortPlatformDashboardSections,
+  DEFAULT_PLATFORM_DASHBOARD_SECTION_ORDER,
+} from "./lib/platform-dashboard-sections";
+export {
   configureClientTenantCatalog,
   getClientTenantCatalog,
 } from "./lib/tenant-catalog";

@@ -7,7 +7,6 @@ import {
   type TenantFeatureKey,
 } from "@rewindom/shared";
 
-
 import type { AppNavSection } from "./app-nav-types.js";
 import type { PlatformNavContribution } from "./platform-nav-types.js";
 import type { LucideIcon } from "lucide-react";
@@ -24,7 +23,6 @@ export interface ClientI18nBundle {
   ns: string;
   resources: Partial<Record<AppLocale, Record<string, unknown>>>;
 }
-
 
 /**
  * 工作台（`/dashboard`）卡片：由**拥有数据的模块自己声明**，`dashboard` 模块只提供
@@ -65,6 +63,23 @@ export interface DashboardWidget {
   tenantFeature?: TenantFeatureKey;
   /** 命中任一权限才渲染（与导航项同义）。 */
   anyPermission?: readonly Permission[];
+}
+
+/** 平台监控页 `/platform` 上的全宽区块，由拥有数据的模块自己声明。 */
+export interface PlatformDashboardSectionProps {
+  start_date?: string;
+  end_date?: string;
+}
+
+export interface PlatformDashboardSection {
+  /**
+   * 全局唯一，约定 `<moduleId>.<name>`；同 id 只保留先注册的那个。
+   * 不是用户偏好键，改 id 只影响 React key。
+   */
+  id: string;
+  /** 默认顺序，升序，默认 100；相同值按模块注册顺序。 */
+  order?: number;
+  component: ComponentType<PlatformDashboardSectionProps>;
 }
 
 export interface ClientRouteDefinition {
@@ -153,6 +168,11 @@ export interface ClientAppModule extends ModuleManifestBase {
     nav?: AppNavSection[];
     /** 本模块贡献给 `/dashboard` 工作台的卡片。 */
     dashboardWidgets?: readonly DashboardWidget[];
+    /**
+     * 本模块贡献给平台监控页 `/platform` 的全宽区块（KPI + 图）。
+     * 与 `dashboardWidgets` 不同：无用户级显隐/排序，platform 只提供骨架。
+     */
+    platformDashboardSections?: readonly PlatformDashboardSection[];
     platformNav?: readonly PlatformNavContribution[];
     mobileTabPaths?: readonly string[];
     shell?: ClientShellContributions;

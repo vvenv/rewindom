@@ -1,0 +1,29 @@
+# 慢请求向平台监控页贡献 KPI + 图表区块；列表页去掉统计。
+
+# ---------- 必填 ----------
+module: slow-request
+surfaces: [platform]
+goal: 通过 `client.platformDashboardSections` 向 `/platform` 贡献慢请求统计区块；列表页只留说明 + 筛选 + 表。
+gold: packages/builtin/slow-query/client/pages/slow-query-logs.tsx
+touch:
+  - packages/builtin/slow-request/features/platform-monitor-section.spec.yaml
+  - packages/builtin/slow-request/MODULE.md
+  - packages/builtin/slow-request/client/module.tsx
+  - packages/builtin/slow-request/client/platform/dashboard-sections.ts
+  - packages/builtin/slow-request/client/components/SlowRequestMonitorSection.tsx
+  - packages/builtin/slow-request/client/pages/slow-request-logs.tsx
+  - packages/builtin/slow-request/client/locales/en.json
+  - packages/builtin/slow-request/client/locales/zh-CN.json
+  - docs/design/request-performance.md
+out_of_scope:
+  - 租户工作台页
+  - 新 API / 模型
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'slow-request/*'
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement:
+permissions: []
+models: []
