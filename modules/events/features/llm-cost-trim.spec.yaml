@@ -1,0 +1,53 @@
+# 三道 EVENTS_LLM_* 闸门挡住了「该不该调模型」；剩下的钱漏在调用本身。
+#
+# 1. **embedding 不按成本排序**。MODULE.md 写的是 URL → 词面 → 语义，
+#    实现却是整批新信号先 embed 再判定。同 URL、词面已合并、非新闻源
+#    （本来就不走文本聚类）都付了向量费，向量还没用上。
+# 2. **补摘录把已付费的 LLM 分析作废**。`analyzed_at = null` 会绕过冷却，
+#    一个已有 LLM 摘要的事件只因 HN 链接补上了 og:description 就再调一次模型。
+#    规则产出覆盖 LLM 产出更糟，所以已经是 LLM 的不该被置空。
+# 3. **提示词把固定说明放在 user 消息里、信号 JSON 还 pretty-print**。
+#    前缀缓存命中的是「每次完全相同且排在最前面」的那一段；可变部分越靠前，
+#    命中越短。pretty-print 对模型没有帮助，只加 token。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 在不改三道 EVENTS_LLM_* 闸门口径的前提下，让一轮采集的模型费只花在「词面不够、必须语义」的新信号和「信号集合真的变了」的 LLM 分析上。
+gold: modules/events/server/event/cluster.service.ts
+touch:
+  - modules/events/features/llm-cost-trim.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/event/cluster.service.ts
+  - modules/events/server/event/cluster.service.test.ts
+  - modules/events/server/event/analyzer/llm-analyzer.ts
+  - modules/events/server/event/analyzer/llm-analyzer.test.ts
+  - modules/events/server/ingest/excerpt-enrichment.ts
+  - modules/events/server/ingest/excerpt-enrichment.test.ts
+  - modules/events/server/ingest/ingest.service.ts
+out_of_scope:
+  - 改三道 LLM 省钱闸门（EVENTS_LLM_*）的默认值与口径
+  - 改采集周期、降温扫描上限、语义阈值
+  - 新增 Prisma 字段
+  - 换对话模型 / embedding 模型
+  - 把分析改成后台队列
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/cluster.service.test.ts server/event/analyzer/llm-analyzer.test.ts server/ingest/excerpt-enrichment.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 聚类按成本排序真正落到调用上：同 URL / 非新闻源 / 词面命中 → 不请求 embedding；
+#    只有这三条都落空的信号才进 embedTexts。立事件的那一条仍要向量（给后续语义与 Related）。
+# 2. 非新闻源质心保持空数组。它们的标题高度模板化，Related 用向量只会把两次不相干的
+#    「Incident with Actions」拉到一起——空质心让 Related 整块不渲染，与「精度换召回」一致。
+# 3. 摘录补齐只把 analyzer 不是 llm / manual 的事件的 analyzed_at 置空。
+#    已经付过钱的摘要继续留着；规则实现仍用新摘录免费重写。
+# 4. LLM 的系统消息 = 边界规则 + 响应格式（每次完全相同）；user 消息只放 topic hint
+#    与紧凑 JSON（不 pretty-print）。不要把固定说明塞进 user。

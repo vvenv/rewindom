@@ -26,8 +26,9 @@ const BACKFILL_RETRY_HOURS = 6;
  *
  * 新抓到的信号在 persist 前就已经试过目标页；这里只补「当时失败 /
  * 上线前已入库」的旧行，避免同一轮对同一 URL 抓两次。
- * 成功写入后把所属事件的 `analyzed_at` 清掉，refresh 才会用新摘录重写摘要——
- * 那是一次绕过冷却的模型调用，所以这条路必须限量（见 `BACKFILL_RETRY_HOURS`）。
+ * 成功写入后，还没有 LLM / 人工摘要的事件才把 `analyzed_at` 清掉，
+ * 让 refresh 用新摘录重写规则摘要。已经付过钱的产出不置空——
+ * 置空会绕过冷却再调一次模型。
  */
 export async function enrichStoredEmptyExcerpts(
   tenantId: string,
@@ -94,11 +95,30 @@ export async function enrichStoredEmptyExcerpts(
   );
 
   const ids = [...eventIds];
-  if (ids.length > 0) {
-    await prisma.newsEvent.updateMany({
-      where: withTenantScope(tenantId, { id: { in: ids } }),
-      data: { analyzed_at: null },
-    });
-  }
+  await clearAnalysisForExcerptUpgrade(tenantId, ids);
   return ids;
+}
+
+/**
+ * 摘录补齐后，只有还没付过模型费的事件才重跑分析。
+ *
+ * `analyzed_at = null` 会绕过 LLM 冷却。已经是 llm / manual 的摘要
+ * 再拿规则产出或再调一次模型都是亏的：前者降级，后者重复付费。
+ * 规则实现（heuristic）零成本，新摘录该立刻写进摘要。
+ */
+export async function clearAnalysisForExcerptUpgrade(
+  tenantId: string,
+  eventIds: readonly string[],
+): Promise<void> {
+  const ids = [...new Set(eventIds.filter((id) => id.length > 0))];
+  if (ids.length === 0) {
+    return;
+  }
+  await prisma.newsEvent.updateMany({
+    where: withTenantScope(tenantId, {
+      id: { in: ids },
+      analyzer: { notIn: ["llm", "manual"] },
+    }),
+    data: { analyzed_at: null },
+  });
 }

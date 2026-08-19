@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { parseAnalyzerResponse, parseUsage } from "./llm-analyzer.js";
+import {
+  buildLlmMessages,
+  parseAnalyzerResponse,
+  parseUsage,
+} from "./llm-analyzer.js";
 
 import type { AnalyzerSignal } from "./analyzer.js";
 
@@ -165,5 +169,21 @@ describe("parseUsage", () => {
 
   it("整个 usage 缺失时不产出用量", () => {
     expect(parseUsage(undefined)).toBeUndefined();
+  });
+});
+
+describe("buildLlmMessages", () => {
+  it("固定说明只在 system 里，user 里没有响应格式", () => {
+    const [system, user] = buildLlmMessages("ai", SIGNALS);
+    expect(system.role).toBe("system");
+    expect(system.content).toContain("Respond with JSON only");
+    expect(user.content).not.toContain("Respond with JSON only");
+    expect(user.content).toContain("topic hint from the feeds");
+  });
+
+  it("信号 JSON 不 pretty-print", () => {
+    const user = buildLlmMessages("ai", SIGNALS)[1];
+    expect(user.content).not.toContain("\n  ");
+    expect(user.content).toContain('"signal_index":0');
   });
 });

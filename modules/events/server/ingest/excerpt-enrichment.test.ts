@@ -68,6 +68,10 @@ describe("enrichStoredEmptyExcerpts", () => {
     expect(signalUpdate.mock.calls[0][0].data.excerpt).toContain("Ferrari");
     expect(ids).toEqual(["e1"]);
     expect(eventUpdateMany.mock.calls[0][0].data).toEqual({ analyzed_at: null });
+    // 已有 LLM / 人工摘要的不能置空——那会绕过冷却再付一次钱
+    expect(eventUpdateMany.mock.calls[0][0].where.analyzer).toEqual({
+      notIn: ["llm", "manual"],
+    });
   });
 
   /**

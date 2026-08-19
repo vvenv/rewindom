@@ -30,7 +30,10 @@ const MAX_ENTITY_NAME_LENGTH = 80;
 const MAX_ENTITIES_PER_EVENT = 10;
 
 /**
- * 提示词把 MVP §11 的边界写死在系统消息里。
+ * 提示词把 MVP §11 的边界和响应格式都写死在系统消息里。
+ *
+ * 两者每次调用完全相同、且排在最前面——这是前缀缓存能命中的前提。
+ * 可变部分（topic hint + 信号）只进 user 消息。
  *
  * 关键约束是最后两条：时间戳不由模型给（否则它会编造「11:08 开发者开始测试」这种
  * 看似合理、实则没有出处的格子），模型只负责给每条**已存在的**信号配一句标签。
@@ -45,9 +48,7 @@ const SYSTEM_PROMPT = [
   "- Write in the dominant language of the source titles. Do not translate.",
   "- Keep product, company and person names in their original form.",
   "- Do not invent timestamps. You only label signals that were given to you.",
-].join("\n");
-
-const RESPONSE_SHAPE = [
+  "",
   "Respond with JSON only:",
   '{"title": string, "summary": string, "topic": string, "kind": string | null, "timeline": [{"signal_index": number, "label": string}], "entities": [{"name": string, "kind": string}]}',
   "- title: one headline naming the event, max 120 characters.",
@@ -86,19 +87,7 @@ export function createLlmAnalyzer(llm: ResolvedLlmConfig): EventAnalyzer {
         model: llm.model,
         temperature: llm.temperature,
         response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: [
-              RESPONSE_SHAPE,
-              "",
-              `topic hint from the feeds (may be wrong): ${input.topic}`,
-              "signals:",
-              JSON.stringify(signals.map(toPromptSignal), null, 2),
-            ].join("\n"),
-          },
-        ],
+        messages: buildLlmMessages(input.topic, signals),
       });
 
       const raw = completion.choices[0]?.message?.content ?? "";
@@ -167,6 +156,27 @@ function toPromptSignal(signal: AnalyzerSignal, index: number) {
     published_at: signal.published_at.toISOString(),
     excerpt: signal.excerpt.slice(0, MAX_EXCERPT_LENGTH),
   };
+}
+
+/**
+ * 系统消息每次完全相同；user 只放本事件会变的东西。
+ * 信号 JSON 不 pretty-print——空白对模型没有帮助，只加 token。
+ */
+export function buildLlmMessages(
+  topic: string,
+  signals: readonly AnalyzerSignal[],
+): { role: "system" | "user"; content: string }[] {
+  return [
+    { role: "system", content: SYSTEM_PROMPT },
+    {
+      role: "user",
+      content: [
+        `topic hint from the feeds (may be wrong): ${topic}`,
+        "signals:",
+        JSON.stringify(selectSignals(signals).map(toPromptSignal)),
+      ].join("\n"),
+    },
+  ];
 }
 
 interface RawTimelineEntry {

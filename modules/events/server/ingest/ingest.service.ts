@@ -15,7 +15,10 @@ import { refreshEvents } from "../event/event-refresh.service.js";
 import { syncRelatedEvents } from "../event/related.service.js";
 import { getEnabledTopics } from "../event/topic-settings.service.js";
 
-import { enrichStoredEmptyExcerpts } from "./excerpt-enrichment.js";
+import {
+  clearAnalysisForExcerptUpgrade,
+  enrichStoredEmptyExcerpts,
+} from "./excerpt-enrichment.js";
 import { ensureDefaultFeeds } from "./feed-seed.js";
 import { hackerNewsConnector } from "./hacker-news.connector.js";
 import { fillEmptyExcerpts, isUsableExcerpt } from "./page-excerpt.js";
@@ -570,12 +573,7 @@ async function persistSignals(
     }
   }
 
-  if (excerptImprovedEventIds.length > 0) {
-    await prisma.newsEvent.updateMany({
-      where: withTenantScope(tenantId, { id: { in: excerptImprovedEventIds } }),
-      data: { analyzed_at: null },
-    });
-  }
+  await clearAnalysisForExcerptUpgrade(tenantId, excerptImprovedEventIds);
 
   return {
     created_ids: createdRows.map((row) => row.id),

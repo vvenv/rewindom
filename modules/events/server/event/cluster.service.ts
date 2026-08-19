@@ -2,7 +2,11 @@ import { randomUUID } from "node:crypto";
 
 import { prisma, withTenantScope } from "@rewindom/module-sdk/server";
 
-import { pickBestCluster } from "./cluster-match.js";
+import {
+  pickBestCluster,
+  pickBestLexicalCluster,
+  type ClusterCandidate,
+} from "./cluster-match.js";
 import { buildEmbeddingInput, embedTexts, mergeCentroid } from "./embedding.js";
 import { buildEventSlug } from "./slug.js";
 import { buildFingerprint, tokenizeTitle } from "./title-tokens.js";
@@ -27,12 +31,32 @@ export interface ClusterableSignal {
 }
 
 /**
+ * 这条信号还要不要去要向量。
+ *
+ * 判据按成本排序：同 URL、非新闻源、词面命中都不需要 embedding。
+ * 语义只接住这三条都够不着的——那才是向量费该花的地方。
+ */
+export function embeddingRequiredForCluster(params: {
+  has_url_sibling: boolean;
+  url_only: boolean;
+  has_lexical_match: boolean;
+}): boolean {
+  return (
+    !params.has_url_sibling && !params.url_only && !params.has_lexical_match
+  );
+}
+
+/**
  * 把新信号挂到事件上，返回被动过的事件 id 集合。
  *
  * 按时间升序处理：先到的信号先立事件，后到的才有机会并进来——
  * 反过来会让「后续报道」立事件、「原始公告」变成它的附属。
  *
  * 只在同一站点内聚类：不同站点即使抓到同一篇原文，也是各自的事件。
+ *
+ * embedding 只给「廉价判据落空」的信号发一次批量请求：同 URL / 词面 /
+ * 非新闻源零成本先走，剩下的才进语义。立事件的那一条仍带向量，
+ * 后续措辞不同的报道才有质心可对。
  */
 export async function clusterSignals(
   signals: readonly ClusterableSignal[],
@@ -43,22 +67,48 @@ export async function clusterSignals(
     (a, b) => a.published_at.getTime() - b.published_at.getTime(),
   );
 
-  // 一次把整批向量取回来：逐条请求会把一轮采集拖成几百次往返。
-  // 没配 key 或调用失败时返回空数组，下面的语义判据自动让位给词面判据。
-  const embeddings = await embedTexts(ordered.map(buildEmbeddingInput));
+  const pending: ClusterableSignal[] = [];
 
-  for (const [index, signal] of ordered.entries()) {
-    const embedding = embeddings[index] ?? [];
-    const eventId = await resolveEventForSignal(signal, embedding);
-    await prisma.eventSignal.update({
-      where: { id: signal.id },
-      data: { event_id: eventId },
-    });
-    await absorbIntoCentroid(eventId, embedding);
-    touched.add(eventId);
+  const flushPending = async (): Promise<void> => {
+    if (pending.length === 0) {
+      return;
+    }
+    const batch = pending.splice(0, pending.length);
+    const embeddings = await embedTexts(batch.map(buildEmbeddingInput));
+    for (const [index, signal] of batch.entries()) {
+      const embedding = embeddings[index] ?? [];
+      const eventId = await resolveEventForSignal(signal, embedding);
+      await attachSignal(signal.id, eventId, embedding);
+      touched.add(eventId);
+    }
+  };
+
+  for (const signal of ordered) {
+    const cheapId = await resolveCheapEvent(signal);
+    if (cheapId) {
+      // 更早、还在 pending 里的信号必须先落库：后面这条可能词面命中它刚立的事件
+      await flushPending();
+      await attachSignal(signal.id, cheapId, []);
+      touched.add(cheapId);
+      continue;
+    }
+    pending.push(signal);
   }
+  await flushPending();
 
   return touched;
+}
+
+async function attachSignal(
+  signalId: string,
+  eventId: string,
+  embedding: readonly number[],
+): Promise<void> {
+  await prisma.eventSignal.update({
+    where: { id: signalId },
+    data: { event_id: eventId },
+  });
+  await absorbIntoCentroid(eventId, embedding);
 }
 
 /**
@@ -89,11 +139,9 @@ async function absorbIntoCentroid(
   });
 }
 
-async function resolveEventForSignal(
+async function findUrlSibling(
   signal: ClusterableSignal,
-  embedding: readonly number[],
-): Promise<string> {
-  // 1. 同一篇原文已经归属过——URL 相等是最硬的证据，先于任何文本相似度
+): Promise<string | null> {
   const sibling = await prisma.eventSignal.findFirst({
     where: withTenantScope(signal.tenant_id, {
       canonical_url: signal.canonical_url,
@@ -104,8 +152,54 @@ async function resolveEventForSignal(
     }),
     select: { event_id: true },
   });
-  if (sibling?.event_id) {
-    return sibling.event_id;
+  return sibling?.event_id ?? null;
+}
+
+async function loadCandidates(
+  signal: ClusterableSignal,
+): Promise<ClusterCandidate[]> {
+  const cutoff = new Date(
+    signal.published_at.getTime() - CANDIDATE_WINDOW_HOURS * 60 * 60 * 1000,
+  );
+  return prisma.newsEvent.findMany({
+    where: withTenantScope(signal.tenant_id, {
+      last_activity_at: { gte: cutoff },
+    }),
+    select: { id: true, tokens: true, centroid: true },
+    orderBy: { last_activity_at: "desc" },
+    take: CANDIDATE_LIMIT,
+  });
+}
+
+/**
+ * 不花钱能定归属就定。定不了返回 null，让调用方去要向量。
+ */
+async function resolveCheapEvent(
+  signal: ClusterableSignal,
+): Promise<string | null> {
+  const sibling = await findUrlSibling(signal);
+  if (sibling) {
+    return sibling;
+  }
+
+  const tokens = tokenizeTitle(signal.title);
+  const urlOnly = clustersByUrlOnly(signal.source_kind as EventSourceKind);
+  if (urlOnly) {
+    return createEvent(signal, tokens, [], true);
+  }
+
+  const lexical = pickBestLexicalCluster(tokens, await loadCandidates(signal));
+  return lexical;
+}
+
+async function resolveEventForSignal(
+  signal: ClusterableSignal,
+  embedding: readonly number[],
+): Promise<string> {
+  // 1. 同一篇原文已经归属过——URL 相等是最硬的证据，先于任何文本相似度
+  const sibling = await findUrlSibling(signal);
+  if (sibling) {
+    return sibling;
   }
 
   const tokens = tokenizeTitle(signal.title);
@@ -128,17 +222,7 @@ async function resolveEventForSignal(
   // **刻意不按 topic 过滤**。topic 曾经是采集源的属性（HN=tech、OpenAI=ai、BBC=world），
   // 带上它等于规定「跨源的同一件事不许合并」——而那恰恰是这个产品要做的事。
   // 现在 topic 由内容判定、且在事件层每轮重算，用它当聚类前置条件既不必要也不正确。
-  const cutoff = new Date(
-    signal.published_at.getTime() - CANDIDATE_WINDOW_HOURS * 60 * 60 * 1000,
-  );
-  const candidates = await prisma.newsEvent.findMany({
-    where: withTenantScope(signal.tenant_id, {
-      last_activity_at: { gte: cutoff },
-    }),
-    select: { id: true, tokens: true, centroid: true },
-    orderBy: { last_activity_at: "desc" },
-    take: CANDIDATE_LIMIT,
-  });
+  const candidates = await loadCandidates(signal);
   const matched = pickBestCluster(tokens, embedding, candidates);
   if (matched) {
     return matched;
