@@ -37,7 +37,7 @@ dl {
   width: 100%;
   max-width: var(--site-page-width, 72rem);
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 var(--site-gutter, 1.5rem);
 }
 .muted {
   color: var(--muted-fg);
@@ -55,6 +55,7 @@ dl {
 
 /* 页面外壳：撑满视口 + main 吃掉中间，页脚贴底（无 Tailwind） */
 .marketing-site-root {
+  --site-gutter: 1.5rem;
   min-height: 100svh;
 }
 .marketing-site-root.is-embedded {
@@ -67,6 +68,7 @@ dl {
 }
 .site-main {
   flex: 1 1 auto;
+  padding-inline: var(--site-gutter, 1.5rem);
 }
 .page-missing {
   display: flex;
@@ -162,32 +164,39 @@ dl {
     padding-bottom: var(--sec-pb, 0px);
     padding-left: var(--sec-pl, 0px);
   }
+  .site-main .sec-w-full > .sec-content.sec-pad-x {
+    padding-left: max(
+      0px,
+      calc(var(--sec-pl, 0px) - var(--site-gutter, 1.5rem))
+    );
+    padding-right: max(
+      0px,
+      calc(var(--sec-pr, 0px) - var(--site-gutter, 1.5rem))
+    );
+  }
 }
 /* 限宽在 section 内部：色块与正文各自一档，组合出「通栏色带 + 居中正文」等排版 */
 /*
- * 页宽色块 = 正文列，gutter 留在色块**外面**。
- *
- * 色块外框若按整个页宽算（含 gutter），有底色的段就会比同页的卡片、标题宽出 3rem，
- * 底色边、描边、分隔线全部对不上正文列——页面上一眼看得出来的那种错位。
+ * 页 gutter 是 `--site-gutter`（与页眉 `.wrap` 同一条边）：`.site-main` 内补白，
+ * 页宽段吃这份留白。通栏色块负外补白拉回视口，再垫同样内补白把正文推回去——
+ * 任何尺寸都是这一对，不靠媒体查询补洞。gutter 在色块上，内背景不会把留白染上色。
  */
 .sec-w-page {
-  width: calc(100% - 3rem);
-  max-width: calc(var(--site-page-width, 72rem) - 3rem);
+  width: 100%;
+  max-width: calc(
+    var(--site-page-width, 72rem) - 2 * var(--site-gutter, 1.5rem)
+  );
   margin: 0 auto;
 }
-/*
- * 正文列不论装在哪种色块里都落在同一条边上（= 页眉页脚 `.wrap` 的那条边）：
- * 页宽段的 gutter 由 `.sec-w-page` 在色块外扣掉，通栏段由正文列自己扣。
- *
- * gutter 不能像以前那样走 `.sec-content` 的左右 padding——内背景铺的是 padding box，
- * 会把 gutter 一起染上色，通栏段的内背景因此比页宽段的两侧各宽出 1.5rem。
- *
- * 租户一旦在盒模型里写了左右内边距（`.sec-pad-x`），那份 gutter 就让位：
- * 再扣 3rem 的话自定义 padding 只是在已经缩进的列里再垫一层，看起来改不动。
- */
+.sec-w-full {
+  margin-inline: calc(-1 * var(--site-gutter, 1.5rem));
+  padding-inline: var(--site-gutter, 1.5rem);
+}
 .sec-c-default {
   width: 100%;
-  max-width: calc(var(--site-page-width, 72rem) - 3rem);
+  max-width: calc(
+    var(--site-page-width, 72rem) - 2 * var(--site-gutter, 1.5rem)
+  );
   margin: 0 auto;
 }
 .sec-c-narrow {
@@ -195,25 +204,36 @@ dl {
   max-width: 48rem;
   margin: 0 auto;
 }
-.sec-w-full > .sec-content:is(.sec-c-default, .sec-c-narrow):not(.sec-pad-x) {
-  width: calc(100% - 3rem);
-}
 /*
- * 正文左右不自带内边距。两种例外：`content_width: full` 不限宽，靠它兜住视口边；
- * 有底色的色块靠它把正文推离色边（页宽段的色块边此时正压在正文列上）。
+ * 正文左右不自带内边距。有底色的页宽色块靠它把正文推离色边（色块边此时正压在
+ * 正文列上）。通栏的页 gutter 已在 `.sec-w-full` 上，这里不要再垫一层。
  */
 .sec-content:not(.sec-pad-x) {
   padding-left: 0;
   padding-right: 0;
 }
-.sec-w-full > .sec-c-full:not(.sec-pad-x) {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
 .sec-band:is(.sec-bg-muted, .sec-bg-accent, .has-surface)
   > .sec-content:not(.sec-pad-x) {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  padding-left: var(--site-gutter, 1.5rem);
+  padding-right: var(--site-gutter, 1.5rem);
+}
+.site-main .sec-w-full > .sec-content:not(.sec-pad-x) {
+  padding-left: 0;
+  padding-right: 0;
+}
+/*
+ * 通栏盒模型左右 padding 只保留「比 gutter 多出来」的部分：默认 24px 不叠一层，
+ * 0 也落在页眉边上。窄屏 --sec-pl 仍 ×0.7。
+ */
+.site-main .sec-w-full > .sec-content.sec-pad-x {
+  padding-left: max(
+    0px,
+    calc(var(--sec-pl, 0px) * 0.7 - var(--site-gutter, 1.5rem))
+  );
+  padding-right: max(
+    0px,
+    calc(var(--sec-pr, 0px) * 0.7 - var(--site-gutter, 1.5rem))
+  );
 }
 /* 容器段的列里外层已限宽并给了留白，section 不再自带 gutter，full 退化为 page */
 .grp-col .sec-band,
@@ -222,6 +242,10 @@ dl {
 }
 .grp-col .sec-band {
   width: 100%;
+}
+.grp-col .sec-w-full {
+  margin-inline: 0;
+  padding-inline: 0;
 }
 .sec-c-contained {
   width: 100%;

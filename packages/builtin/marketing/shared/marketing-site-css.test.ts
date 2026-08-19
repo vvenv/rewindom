@@ -58,6 +58,14 @@ describe("marketing-site-css", () => {
     expect(MARKETING_SITE_CSS_BASE).toContain(
       ".nav-menu>summary[aria-current=page]",
     );
+    // 任何尺寸：main 内补白 + 通栏负外补白（见 full-bleed-mobile-gutter）
+    expect(MARKETING_SITE_CSS_BASE).toContain("--site-gutter: 1.5rem");
+    expect(MARKETING_SITE_CSS_BASE).toContain(
+      "padding-inline:var(--site-gutter, 1.5rem)",
+    );
+    expect(MARKETING_SITE_CSS_BASE).toContain(
+      "margin-inline:calc(-1 * var(--site-gutter, 1.5rem))",
+    );
   });
 
   it("段样式按 type 分开，各在各的条目里", () => {

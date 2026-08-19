@@ -1,0 +1,33 @@
+# 增量功能契约 —— 通栏段与页 gutter 正负配合
+#
+# 起因：通栏（width: full）左右 padding 桌面允许 0（贴边）。按视口宽度补 media query
+# 是治标——640 漏了、800 还是贴。页眉 `.wrap` 任何尺寸都有 1.5rem，通栏应同一套。
+#
+# 做法：任何尺寸 `.site-main` 内补白 = `--site-gutter`；通栏 `.sec-w-full` 负外补白
+# 拉回视口、再垫同样内补白把正文推回页眉列。页宽段吃 main 的留白，不再自己扣 3rem。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: 任何尺寸通栏都用内补白+负外补白：正文与页眉 .wrap 对齐，色块仍铺满视口。
+gold: packages/builtin/marketing/shared/site-css/base.css
+touch:
+  - packages/builtin/marketing/features/full-bleed-mobile-gutter.spec.yaml
+  - packages/builtin/marketing/shared/site-css/base.css
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+  - packages/builtin/marketing/shared/marketing-site-css.test.ts
+  - packages/builtin/marketing/shared/section-schema.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改页头 / 页脚 chrome 外壳（仍由 `.wrap` 管，只与 --site-gutter 对齐）
+  - 回填存量页面的 padding_left / padding_right
+  - 改 band 新建默认 24px（盒模型多出来的部分会被 CSS 扣掉，不叠 gutter）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin assemble:marketing-css
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared marketing-site-css.test.ts
+
+# ---------- 可选 ----------
+entitlement: # 无
+permissions: []
+models: []

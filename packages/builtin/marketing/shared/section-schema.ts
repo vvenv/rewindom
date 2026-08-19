@@ -751,9 +751,9 @@ function resolveSpacing(settings: SettingValues, id: string): number | null {
 /**
  * 左右内边距是否按 `--sec-pl` / `--sec-pr` 画（挂 `sec-pad-x`）。
  *
- * 页宽段默认左右是 0，CSS 会给有底色的色块补 1.5rem，免得正文贴色边。
- * 通栏没有「色块边 = 正文列」这条前提，水平 padding 必须完全听设置——含 0，
- * 否则租户把左右拖成 0 仍会被写死 gutter 挡住。
+ * 页宽段默认左右是 0，CSS 会给有底色的色块补一份页 gutter，免得正文贴色边。
+ * 通栏的页 gutter 走色块上的内补白+负外补白，水平 padding 是额外往里收——含 0
+ *（0 = 落在页眉边上，不是贴视口）。
  */
 export function sectionUsesExplicitPadX(
   layout: SectionLayout,
