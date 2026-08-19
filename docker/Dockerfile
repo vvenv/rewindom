@@ -36,7 +36,11 @@ COPY packages/server-test/package.json packages/server-test/
 COPY packages/shared/package.json packages/shared/
 COPY packages/ui/package.json packages/ui/
 COPY modules/bookmark/package.json modules/bookmark/
+COPY modules/events/package.json modules/events/
 COPY modules/note/package.json modules/note/
+COPY modules/shop/package.json modules/shop/
+COPY modules/site-docs/package.json modules/site-docs/
+COPY modules/site-form/package.json modules/site-form/
 COPY modules/todo/package.json modules/todo/
 
 RUN --mount=type=cache,id=rewindom-pnpm-store,target=/pnpm/store \

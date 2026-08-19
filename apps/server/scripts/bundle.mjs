@@ -4,6 +4,9 @@
  * - Inline workspace packages (@rewindom/*) that ship TypeScript source
  * - Inline transitive deps that only those packages declare (e.g. pinyin-pro)
  * - Leave apps/server's own dependencies + native/engine packages external
+ *   (native addons imported by inlined workspace modules MUST also be listed
+ *   in apps/server dependencies, or --prod prune drops them and Node cannot
+ *   resolve the bare import from dist/)
  *
  * Output: dist/index.js — start with plain `node dist/index.js`.
  */
@@ -27,6 +30,7 @@ const serverRuntimeDeps = new Set([
 /** Always external: native addons, Prisma engines, worker/wasm loaders. */
 const FORCED_EXTERNAL = [
   /^@prisma\//,
+  /^@napi-rs\//,
   /^bcrypt$/,
   /^tesseract\.js(?:\/|$)/,
   /^thread-stream$/,
