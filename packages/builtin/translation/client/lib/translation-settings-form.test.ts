@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildTranslationKeyPayload,
   buildTranslationPayload,
   engineNeedsEndpoint,
   engineNeedsKey,
@@ -29,16 +30,9 @@ describe("parseKeepTerms", () => {
 });
 
 describe("buildTranslationPayload", () => {
-  it("没输入 key 时不带 api_key —— 带空串是「清除」的意思", () => {
+  it("设置表单不带 api_key —— 密钥走独立 Sheet", () => {
     const payload = buildTranslationPayload(form({ engine: "deepl" }));
     expect("api_key" in payload).toBe(false);
-  });
-
-  it("输入了 key 就带上", () => {
-    const payload = buildTranslationPayload(
-      form({ engine: "deepl", api_key: " abc " }),
-    );
-    expect(payload.api_key).toBe("abc");
   });
 
   it("空端点归一成 null", () => {
@@ -46,8 +40,19 @@ describe("buildTranslationPayload", () => {
   });
 });
 
+describe("buildTranslationKeyPayload", () => {
+  it("空串表示清除已存密钥", () => {
+    expect(buildTranslationKeyPayload("")).toEqual({ api_key: "" });
+    expect(buildTranslationKeyPayload("   ")).toEqual({ api_key: "" });
+  });
+
+  it("trims a new key", () => {
+    expect(buildTranslationKeyPayload(" abc ")).toEqual({ api_key: "abc" });
+  });
+});
+
 describe("statusToForm", () => {
-  it("不把 key 掩码填进输入框", () => {
+  it("不把 key 掩码填进设置表单", () => {
     const status = {
       enabled: true,
       engine: "deepl",
@@ -58,8 +63,8 @@ describe("statusToForm", () => {
       api_key_hint: "…abcd",
       has_api_key: true,
     } satisfies TranslationStatus;
-    expect(statusToForm(status).api_key).toBe("");
     expect(statusToForm(status).keep_terms).toBe("OpenAI");
+    expect(statusToForm(status)).not.toHaveProperty("api_key");
   });
 });
 

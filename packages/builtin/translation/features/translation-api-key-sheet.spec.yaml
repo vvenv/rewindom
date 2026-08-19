@@ -1,0 +1,27 @@
+# 翻译 API 密钥与 AI 配置同一口径：收进 Sheet，留空保存即清除
+#
+# 用法：extend-module skill 的输入；与本次改动一起提交。
+
+# ---------- 必填 ----------
+module: translation
+surfaces: [tenant]
+goal: 工作台「内容翻译」的 API 密钥从多字段设置表单里拆出，收进独立 Sheet；留空保存即清除已存密钥，与 AI 配置同一套契约
+gold: packages/builtin/platform/client/components/TenantOpenaiKeySheet.tsx
+touch:
+  - packages/builtin/translation/features/translation-api-key-sheet.spec.yaml
+  - packages/builtin/translation/MODULE.md
+  - packages/builtin/translation/client/components/TranslationSettingsPanel.tsx
+  - packages/builtin/translation/client/components/TranslationApiKeySheet.tsx
+  - packages/builtin/translation/client/lib/translation-settings-form.ts
+  - packages/builtin/translation/client/lib/translation-settings-form.test.ts
+  - packages/builtin/translation/client/locales/
+out_of_scope:
+  - 改翻译引擎 / 代理路由
+  - 平台控制台
+  - OpenAI BYOK 本身（已按此口径改过）
+  - 新建物理包
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'translation/client' lib/translation-settings-form.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs translation

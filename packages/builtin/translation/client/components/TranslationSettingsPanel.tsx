@@ -41,7 +41,7 @@ import {
   validateTranslationForm,
   type TranslationFormValues,
 } from "../lib/translation-settings-form.js";
-
+import { TranslationApiKeySheet } from "./TranslationApiKeySheet.js";
 
 export function TranslationSettingsPanel(): ReactElement | null {
   const { t } = useTranslation(["translation", "common"]);
@@ -169,24 +169,27 @@ export function TranslationSettingsPanel(): ReactElement | null {
             </Field>
           ) : null}
 
-          {needsKey ? (
+          {needsKey && data ? (
             <Field>
-              <FieldLabel htmlFor="translation_api_key">
+              <FieldLabel htmlFor="translation_api_key_status">
                 {t("settings.apiKey")}
               </FieldLabel>
-              <Input
-                id="translation_api_key"
-                type="password"
-                autoComplete="off"
-                value={form.api_key}
-                disabled={!canWrite}
-                placeholder={data?.api_key_hint ?? t("settings.apiKeyEmpty")}
-                onChange={(e) =>
-                  setForm((current) => ({ ...current, api_key: e.target.value }))
-                }
-              />
-              {/* 带 key 的引擎必须经服务端中转，这一句是给站长的解释而不是免责声明 */}
-              <FieldDescription>{t("settings.apiKeyHint")}</FieldDescription>
+              <div
+                id="translation_api_key_status"
+                className="flex flex-wrap items-center justify-between gap-2"
+              >
+                <p className="text-sm">
+                  {data.has_api_key
+                    ? t("settings.apiKeyConfigured", {
+                        hint: data.api_key_hint ?? "",
+                      })
+                    : t("settings.apiKeyEmpty")}
+                </p>
+                {canWrite ? (
+                  <TranslationApiKeySheet status={data} />
+                ) : null}
+              </div>
+              <FieldDescription>{t("settings.apiKeyProxyHint")}</FieldDescription>
             </Field>
           ) : null}
 

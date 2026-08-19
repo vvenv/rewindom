@@ -18,8 +18,6 @@ export interface TranslationFormValues {
   enabled: boolean;
   engine: TranslationEngine;
   endpoint: string;
-  /** 空串 = 不改动已存的 key；用户清空要显式点「清除」。 */
-  api_key: string;
   /** 一行一条。 */
   keep_terms: string;
 }
@@ -28,7 +26,6 @@ export const INITIAL_TRANSLATION_FORM: TranslationFormValues = {
   enabled: false,
   engine: DEFAULT_TRANSLATION_ENGINE,
   endpoint: "",
-  api_key: "",
   keep_terms: "",
 };
 
@@ -37,7 +34,6 @@ export function statusToForm(status: TranslationStatus): TranslationFormValues {
     enabled: status.enabled,
     engine: status.engine,
     endpoint: status.endpoint ?? "",
-    api_key: "",
     keep_terms: status.keep_terms.join("\n"),
   };
 }
@@ -60,13 +56,21 @@ export function buildTranslationPayload(
     enabled: form.enabled,
     engine: form.engine,
     endpoint: form.endpoint.trim() || null,
-    // 没输入就不带这个字段：带空串是「清除已存 key」的意思
-    ...(form.api_key.trim() ? { api_key: form.api_key.trim() } : {}),
     keep_terms: parseKeepTerms(form.keep_terms),
   };
 }
 
-/** 引擎是否需要在表单里出现「API Key」输入框。 */
+/**
+ * 密钥 Sheet 只有这一项：空串就是清除已存密钥。
+ * 与 `PUT /settings/translation` 契约一致（省略 = 不改；空串 = 清除）。
+ */
+export function buildTranslationKeyPayload(
+  apiKey: string,
+): TranslationWriteBody {
+  return { api_key: apiKey.trim() };
+}
+
+/** 引擎是否需要 API Key（工作台展示密钥状态行 + Sheet）。 */
 export function engineNeedsKey(engine: TranslationEngine): boolean {
   return engineNeedsProxy(engine);
 }
