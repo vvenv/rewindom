@@ -151,7 +151,8 @@ _ssh_try_password() {
 # `_ssh_try_key; rc=$?` 会在赋值前退出；stderr 又被重定向到临时文件，
 # 表现为「确认后立刻 255、无任何报错」，密码回退（sshpass）也永远走不到。
 # 也不可写成 `if _ssh_try_key; then`——if 成功后 $? 恒为 0，远程失败会被误报成功。
-# 本函数成功返回 0，失败则打印 stderr 并 exit（避免把非 0 return 交回 set -e 调用方）。
+# 失败返回非 0：`set -e` 的调用脚本会停；被 zsh `source` 进交互会话时
+# 不能 `exit`，否则整扇终端一起关掉。
 _ssh_try_key_then_password() {
   local mode="$1"
   local stderr_file="$2"
@@ -177,7 +178,7 @@ _ssh_try_key_then_password() {
     _ssh_auth_failure_hint
   fi
   rm -f "$stderr_file"
-  exit "$rc"
+  return "$rc"
 }
 
 _run_scp() {
