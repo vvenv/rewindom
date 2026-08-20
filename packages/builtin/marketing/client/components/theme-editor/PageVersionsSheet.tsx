@@ -61,9 +61,18 @@ export function PageVersionsSheet({
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         {children ?? (
-          <Button variant="outline" size="sm">
+          /*
+           * 只留图标：它挨着「保存草稿」站在工具栏上，带文字时两者一样重，而翻历史
+           * 是全场用得最少的一件事。`title` 与 `aria-label` 补上名字，手机端悬浮条
+           * 也省下一枚按钮的宽度。外形跟着导航段走（outline，与换页按钮等高）。
+           */
+          <Button
+            variant="outline"
+            size="icon-sm"
+            title={t("versions.title")}
+            aria-label={t("versions.title")}
+          >
             <History className="size-4" />
-            {t("versions.title")}
           </Button>
         )}
       </SheetTrigger>

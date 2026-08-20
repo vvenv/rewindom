@@ -140,7 +140,10 @@ export function PageEditorToolbar({
               ) : null}
             </div>
 
-            {/* 版本历史与「撤销」是两回事：撤销只退到最近一次发布，这里能挑任意一版 */}
+            {/*
+              版本历史与「撤销」是两回事：撤销只退到最近一次发布，这里能挑任意一版，
+              所以留在导航段、不并进「更多」里的撤销组。只画图标（见 Sheet 内的注释）。
+            */}
             <PageVersionsSheet pageId={page.id} />
           </>
         }
