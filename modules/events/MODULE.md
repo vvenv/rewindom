@@ -82,7 +82,8 @@ server/
 
 | 贡献物 | 说明 |
 | --- | --- |
-| 段 `events.hero` | 首屏。左列是文案主张（eyebrow / h1 / 副标题 / 两个通用链接按钮），右列是**按请求查出来的**实时计数。首页 / 专题 / 实体是三张模板，不要在这一段上再长 `topic_*` / `entity_*` 覆盖。专题页库存文案自己写 `{topic}`，实体页自己写 `{entity}`（默认关掉计数）。订阅是普通次按钮，默认 href `{feed}`。`live_events` 为 0 时整块计数不渲染 |
+| 段 `events.hero` | 首屏。左列是文案主张，右列是实时计数。首页 / 专题共用这一段，专题页库存文案自己写 `{topic}`。实体页不要用它——那是另一段 |
+| 段 `events.entity-hero` | 实体页专用首屏。`page_kinds` 钉在实体模板上，添加区块里叫「实体首屏」。默认文案 `{entity}` / `{entity_kind}`，计数默认关。markup 与 `events.hero` 同一份渲染器 |
 | 段 `events.rising` | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/?source=rising`（专题页上是 `/topics/ai?source=rising`） |
 | 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/?source=now` |
 | 段 `events.entity_strip` | 近期实体胶囊条，可摆在任意页面。近 30 天实体按事件数排序，默认 Top 24，字号一律、用数字角标表示权重。**主题枢纽上只列这一格事件里的实体**。「查看全部」打开实体枢纽。预设插在 Now 与订阅之间 |
@@ -91,7 +92,7 @@ server/
 | 首页版式 `events.home` | 套在站点首页（`/`）上。预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。`group` 与模板页同为「事件」。不声明 `rootPrefix`，集合路径不搬家 |
 | 模板页 `events_detail` | `/events/:slug` |
 | 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上。编辑器没有当前实体，预览用样张 |
-| 模板页 `events_entity` | `/entities/:slug`。预设 = 首屏（`{entity}` / `{entity_kind}`，关掉计数）+ 实体正文 |
+| 模板页 `events_entity` | `/entities/:slug`。预设 = 实体首屏 + 实体正文 |
 | 段 `events.entity_index` | 实体枢纽正文（按类型分组的实体链接），`page_kinds` 限定只能落在实体枢纽模板页上。客户端必须登记视图，否则编辑器预览是空白 |
 | 模板页 `events_entity_index` | `/entities` |
 | 导航源 `events.entities` | 页头 / 页脚：实体枢纽一条叶子。**不塞进 `events` 源**——那个源是七个主题格，混一条进去会打乱它的语义 |
@@ -165,13 +166,11 @@ feed）。
 
 ### 实体页上的首屏
 
-`/entities/:slug` 也是独立模板。身份文案写在这张页自己的首屏上，用 `{entity}`
-（实体名）、`{entity_kind}`（已落成当前语言的类型名）与 `{feed}`（该实体 RSS）。
+`/entities/:slug` 也是独立模板。首屏是**另一段** `events.entity-hero`（不是首页那一段换文案）：`page_kinds` 钉在实体模板上，添加区块里叫「实体首屏」，点下去默认就是 `{entity}` / `{entity_kind}` / `{feed}`。
 **计数默认关掉**：那四个数是雷达口径，跟下面「这个实体涉及哪些事件」对不上。
-累计档案仍画在正文段里，不是首屏右侧那块面板。编辑器用实体样张，好让 `{entity}`
-在预览里看得见。
+累计档案仍画在正文段里。编辑器用实体样张，好让 `{entity}` 在预览里看得见。
 
-不要在首页 / 专题首屏上再长 `entity_*` 覆盖字段。
+存量已发布的实体页不会自动插入——在编辑器里添加「实体首屏」，或重设版式。
 
 ## 页头 / 页脚导航
 

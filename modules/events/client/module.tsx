@@ -13,6 +13,7 @@ import { renderEventsRoutes } from "./tenant/routes.js";
 import {
   EVENTS_ENTITLEMENT,
   eventsDetailSection,
+  eventsEntityHeroSection,
   eventsEntityIndexSection,
   eventsEntitySection,
   eventsEntityStripSection,
@@ -41,13 +42,18 @@ import type { ClientAppModule } from "@rewindom/module-sdk/client";
 
 /*
  * 官网贡献的客户端一半：编辑器要能在「添加区块」里看到升温 / 正在发生 / 近期实体 /
- * 实体枢纽，并用 **同一份** HTML 渲染器预览（`htmlSectionView`），不再为编辑器写一套 React 版式。
+ * 实体枢纽 / 实体首屏，并用 **同一份** HTML 渲染器预览（`htmlSectionView`），不再为编辑器写一套 React 版式。
  */
 registerEventsPageTemplates();
 registerEventsNavSources();
 registerEventsEditorContext();
 registerSiteSectionView(
   eventsHeroSection,
+  htmlSectionView(renderEventsHeroHtml),
+  { css: EVENTS_CSS, icon: Signal },
+);
+registerSiteSectionView(
+  eventsEntityHeroSection,
   htmlSectionView(renderEventsHeroHtml),
   { css: EVENTS_CSS, icon: Signal },
 );

@@ -6,6 +6,7 @@ import {
   EVENTS_RISING_SECTION_TYPE,
 } from "./events-feed-section.js";
 import { EVENTS_HERO_SECTION_TYPE } from "./events-hero-section.js";
+import { EVENTS_ENTITY_HERO_SECTION_TYPE } from "./events-entity-hero-section.js";
 import { EVENTS_ENTITY_SECTION_TYPE } from "./events-entity-section.js";
 import { EVENTS_ENTITY_STRIP_SECTION_TYPE } from "./events-entity-strip-section.js";
 import {
@@ -105,24 +106,13 @@ describe("registerEventsPageTemplates", () => {
     ]);
   });
 
-  it("实体页是专用首屏加正文：首屏带 {entity}，关掉雷达计数", () => {
+  it("实体页是专用首屏加正文：添加区块里是 events.entity-hero，不是首页那一段", () => {
     expect(
       EVENTS_ENTITY_TEMPLATE_PRESET.sections.map((section) => section.type),
-    ).toEqual([EVENTS_HERO_SECTION_TYPE, EVENTS_ENTITY_SECTION_TYPE]);
-    expect(EVENTS_ENTITY_TEMPLATE_PRESET.sections[0]).toEqual(
-      expect.objectContaining({
-        type: EVENTS_HERO_SECTION_TYPE,
-        text: expect.objectContaining({
-          eyebrow: "events:site.hero.entityEyebrow",
-          headline: "events:site.hero.entityHeadline",
-          subhead: "events:site.hero.entitySubhead",
-        }),
-        raw: expect.objectContaining({
-          secondary_href: EVENTS_FEED_HREF_TEMPLATE,
-          show_stats: false,
-        }),
-      }),
-    );
+    ).toEqual([EVENTS_ENTITY_HERO_SECTION_TYPE, EVENTS_ENTITY_SECTION_TYPE]);
+    expect(EVENTS_ENTITY_TEMPLATE_PRESET.sections[0]).toEqual({
+      type: EVENTS_ENTITY_HERO_SECTION_TYPE,
+    });
     expect(getPageTemplateKind("events_entity")?.required_section).toBe(
       EVENTS_ENTITY_SECTION_TYPE,
     );

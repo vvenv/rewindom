@@ -273,6 +273,9 @@
       "showStatsInfo": "Hidden automatically until there are events — never shows a row of zeros",
       "interpolationInfo": "Use {topic} / {topic_slug} on topic pages, {entity} / {entity_kind} on entity pages, and {feed} for this page's RSS. Tokens for the other identity are empty.",
       "subscribeHrefInfo": "Default {feed} — this page's RSS (topic, entity, or site). Pin a slot with /topics/ai/feed.xml."
+    },
+    "entityHero": {
+      "label": "Entity hero"
     }
   },
   "template": {

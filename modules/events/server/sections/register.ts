@@ -18,6 +18,7 @@ import {
   emptyEventsContext,
   eventsContextEntry,
   eventsDetailSection,
+  eventsEntityHeroSection,
   eventsFeedSection,
   eventsHeroSection,
   eventsLinkTargets,
@@ -145,6 +146,7 @@ function registerEventsLinkTargets(): void {
 /** 在模块 `onBoot` 里调。 */
 export function registerEventsSections(): void {
   registerSiteSectionHtml(eventsHeroSection, renderEventsHeroHtml, css);
+  registerSiteSectionHtml(eventsEntityHeroSection, renderEventsHeroHtml, css);
   registerSiteSectionHtml(eventsRisingSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsNowSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsFeedSection, renderEventsFeedHtml, css);

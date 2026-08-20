@@ -12,6 +12,7 @@ import { registerEditorContextProvider } from "@rewindom/builtin/marketing/clien
 import {
   EVENTS_DETAIL_PAGE_KIND,
   EVENTS_DETAIL_SECTION_TYPE,
+  EVENTS_ENTITY_HERO_SECTION_TYPE,
   EVENTS_ENTITY_INDEX_SECTION_TYPE,
   EVENTS_ENTITY_PAGE_KIND,
   EVENTS_ENTITY_SECTION_TYPE,
@@ -55,6 +56,7 @@ const EVENTS_EDITOR_CONTEXT_TYPES = [
   ...EVENTS_FEED_SECTION_TYPES,
   EVENTS_DETAIL_SECTION_TYPE,
   EVENTS_ENTITY_SECTION_TYPE,
+  EVENTS_ENTITY_HERO_SECTION_TYPE,
   EVENTS_ENTITY_INDEX_SECTION_TYPE,
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
   EVENTS_HERO_SECTION_TYPE,
@@ -83,13 +85,16 @@ export function registerEventsEditorContext(): void {
       const wantStrip = input.usedTypes.has(EVENTS_ENTITY_STRIP_SECTION_TYPE);
       const wantHub = input.usedTypes.has(EVENTS_ENTITY_INDEX_SECTION_TYPE);
       const wantHero = input.usedTypes.has(EVENTS_HERO_SECTION_TYPE);
+      const wantEntityHero = input.usedTypes.has(EVENTS_ENTITY_HERO_SECTION_TYPE);
       /*
-       * 实体模板没有「当前实体」——地址是 `/entities/:slug`。正文段或首屏
+       * 实体模板没有「当前实体」——地址是 `/entities/:slug`。正文段或实体首屏
        * 只要有一个在，就用样张把 `{entity}` / `{entity_kind}` 填上。
        */
       const wantEntity =
         input.pageKind === EVENTS_ENTITY_PAGE_KIND &&
-        (input.usedTypes.has(EVENTS_ENTITY_SECTION_TYPE) || wantHero);
+        (input.usedTypes.has(EVENTS_ENTITY_SECTION_TYPE) ||
+          wantEntityHero ||
+          wantHero);
 
       const enabled = await loadEnabledTopics();
       /*

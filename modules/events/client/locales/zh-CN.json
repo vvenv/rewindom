@@ -273,6 +273,9 @@
       "showStatsInfo": "还没有事件时自动隐藏，不会在首屏挂一串 0",
       "interpolationInfo": "专题页可写 {topic} / {topic_slug}，实体页可写 {entity} / {entity_kind}，{feed} 是当前页 RSS。另一种身份的 token 为空。",
       "subscribeHrefInfo": "默认 {feed}：订当前页对应的 feed（专题 / 实体 / 全站）。想钉死某一格就改成 /topics/ai/feed.xml。"
+    },
+    "entityHero": {
+      "label": "实体首屏"
     }
   },
   "template": {

@@ -29,6 +29,7 @@ import {
   EVENTS_ENTITY_INDEX_SECTION_TYPE,
 } from "./events-entity-index-section.js";
 import { EVENTS_ENTITY_STRIP_SECTION_TYPE } from "./events-entity-strip-section.js";
+import { EVENTS_ENTITY_HERO_SECTION_TYPE } from "./events-entity-hero-section.js";
 import { EVENTS_HERO_SECTION_TYPE } from "./events-hero-section.js";
 import {
   EVENTS_FEED_HREF_TEMPLATE,
@@ -196,21 +197,10 @@ export const EVENTS_DETAIL_TEMPLATE_PRESET: PagePreset = {
 };
 
 /**
- * 实体页自己的首屏。计数关掉：那四个数是雷达口径，跟这个实体的事件列表对不上。
- * 订阅仍走 `{feed}`（该实体 feed）。
+ * 实体页自己的首屏。默认文案写在段定义上（1:1），添加区块点下去就是 {entity} 那一套。
  */
 const EVENTS_ENTITY_HERO_SECTION: PresetSection = {
-  ...EVENTS_HOME_HERO_SECTION,
-  text: {
-    ...EVENTS_HOME_HERO_SECTION.text,
-    eyebrow: "events:site.hero.entityEyebrow",
-    headline: "events:site.hero.entityHeadline",
-    subhead: "events:site.hero.entitySubhead",
-  },
-  raw: {
-    ...EVENTS_HOME_HERO_SECTION.raw,
-    show_stats: false,
-  },
+  type: EVENTS_ENTITY_HERO_SECTION_TYPE,
 };
 
 export const EVENTS_ENTITY_TEMPLATE_PRESET: PagePreset = {

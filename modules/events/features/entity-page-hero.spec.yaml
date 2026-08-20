@@ -1,24 +1,30 @@
 # 实体模板页没有自己的首屏：身份画在 `events.entity` 的 h1 上，看起来像列表页
 # 的一段，不像 `/topics/:slug` 那样先有一块主张。
 #
-# 正确拆法与专题页同构：同一段 `events.hero`，库存文案另写带 `{entity}` 的那一套。
-# 不要在 hero 上再长 entity_* 覆盖字段，也不要把首页的产品主张 / 实时计数
-# 原样铺到实体页上——那四个数是雷达口径，和「这个实体涉及哪些事件」对不上。
+# 第一次做成「同一段 `events.hero`、预设里换文案」。添加区块里看不到专用项，
+# 点「首屏」拿到的是首页默认主张。正确拆法与升温 / 正在发生同构：另开一段
+# `events.entity-hero`，`page_kinds` 钉在实体模板，默认值写在自己的 setting 上。
+# markup 仍共用 `renderEventsHeroHtml`，不要复制一份。
 
 # ---------- 必填 ----------
 module: events
 surfaces: [ssr, tenant]
-goal: 实体模板页加上专用首屏（events.hero + {entity}/{entity_kind} 库存文案）；关掉实时计数，订阅仍走 {feed}。
-gold: modules/events/shared/events-page-templates.ts
+goal: 实体页贡献独立段 `events.entity-hero`（page_kinds 钉在实体模板，添加区块可见）；默认文案 {entity}/{entity_kind}，关掉实时计数，订阅走 {feed}。
+gold: modules/events/shared/events-feed-section.ts
 touch:
   - modules/events/features/entity-page-hero.spec.yaml
   - modules/events/features/page-meta-interpolation.spec.yaml
   - modules/events/MODULE.md
+  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/events-entity-hero-section.ts
+  - modules/events/shared/events-entity-hero-section.test.ts
   - modules/events/shared/events-page-templates.ts
   - modules/events/shared/events-page-templates.test.ts
   - modules/events/shared/events-section-context.ts
-  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/index.ts
   - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/module.tsx
   - modules/events/client/editor-context.ts
   - modules/events/client/locales/en.json
   - modules/events/client/locales/zh-CN.json
@@ -27,13 +33,12 @@ touch:
   - docs/design/i18n.md
   - .cursor/skills/site-section/SKILL.md
 out_of_scope:
-  - 给实体页另写一段 `events.entity-hero`（身份文案用插值即可，不要复制一份 markup）
   - 按实体过滤 `getPublicHeroStats`（那四个数是雷达口径，不是实体档案）
   - 改 `events.entity` 正文（名字 / 类型 / 累计档案仍画在那段里）
-  - 存量已发布的实体页自动插入首屏（预设升级只影响新快照与「重设版式」）
+  - 存量已发布的实体页自动插入首屏（在编辑器里添加「实体首屏」，或重设版式）
 i18n: data
 acceptance:
-  - pnpm --filter @rewindom/events exec vitest --run shared/events-page-templates.test.ts shared/sections/hero-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-entity-hero-section.test.ts shared/events-page-templates.test.ts shared/sections/hero-html.test.ts
   - pnpm check:i18n
   - node scripts/verify-module.mjs events
 
@@ -43,15 +48,16 @@ permissions: []
 models: []
 
 # ---------- 设计要点 ----------
-# 1. 预设第一节是 `events.hero`，与专题页同一段 type。库存文案：
-#      eyebrow  `events:site.hero.entityEyebrow`（事件雷达 · {entity_kind}）
-#      headline `events:site.hero.entityHeadline`（与 {entity} 相关的全部事件）
-#      subhead  `events:site.hero.entitySubhead`（时间尺度：事件会凉，这一页不会）。
-#    不要复用首页那句产品主张，也不要用空字符串——可本地化字段的空串会回落库存默认。
-# 2. `show_stats: false`。首屏计数与首页 Rising / Now 对得上才有意义；实体页
-#    下面是这个实体的事件列表，挂全站「正在追踪 37」是在说另一件事。
-# 3. 订阅仍是普通次按钮，默认 href `{feed}`（该实体 feed）。
-# 4. 插值加 `{entity_kind}`（已落成当前语言的类型名）。`interpolation_tokens`
-#    变成 entity / entity_kind / feed。`eventsInterpolationValues` 始终带这些 key。
-# 5. 编辑器编实体模板时，hero 也要带实体样张，否则 `{entity}` 在预览里是空的。
-# 6. 正文段仍画实体名 h1：存量页没有首屏，删掉会让线上实体页突然没有标题。
+# 1. 新 type `events.entity-hero`：label「实体首屏」，`page_kinds: [events_entity]`。
+#    两端登记同一份 `renderEventsHeroHtml`。setting 形状与 `events.hero` 共用
+#    `eventsHeroSettings()`，默认值是实体那一套：
+#      eyebrow  `events:site.hero.entityEyebrow`
+#      headline `events:site.hero.entityHeadline`
+#      subhead  `events:site.hero.entitySubhead`
+#      show_stats false
+# 2. 预设第一节就是 `{ type: events.entity-hero }`，不再覆盖 text——1:1 模板段
+#    的 key 写在 setting default 上。添加区块点下去与快照落库是同一套文案。
+# 3. 不要在 `events.hero` 上再长 entity_* 覆盖字段。首页 / 专题仍用 `events.hero`。
+# 4. 插值 `{entity}` / `{entity_kind}` / `{feed}`。编辑器编实体模板时，实体首屏
+#    也要带实体样张。
+# 5. 正文段仍画实体名 h1：存量页没有首屏，删掉会让线上实体页突然没有标题。

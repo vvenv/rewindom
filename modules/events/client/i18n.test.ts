@@ -15,6 +15,7 @@ import "./i18n.js";
 
 import {
   eventsDetailSection,
+  eventsEntityHeroSection,
   eventsEntityIndexSection,
   eventsEntitySection,
   eventsEntityStripSection,
@@ -28,6 +29,7 @@ import {
 
 const CONTRIBUTED = [
   eventsHeroSection,
+  eventsEntityHeroSection,
   eventsRisingSection,
   eventsNowSection,
   eventsFeedSection,
