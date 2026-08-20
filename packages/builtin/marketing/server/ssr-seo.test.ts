@@ -235,3 +235,12 @@ describe("noindex", () => {
     );
   });
 });
+
+describe("主屏图标", () => {
+  it("有 favicon 也不拿它顶 apple-touch 或 manifest", () => {
+    const html = render({}, { favicon_url: "/uploads/icon.png" });
+    expect(html).toContain('<link rel="icon" href="/uploads/icon.png" />');
+    expect(html).not.toContain("apple-touch-icon");
+    expect(html).not.toContain('rel="manifest"');
+  });
+});

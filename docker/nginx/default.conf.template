@@ -134,8 +134,8 @@ server {
         add_header Cache-Control "no-cache" always;
     }
 
-    # sitemap / robots：租户 Host 走 SSR；平台控制台 Host 若有静态文件则直接返回。
-    location ~ ^/(sitemap\.xml|robots\.txt)$ {
+    # sitemap / robots / manifest：租户 Host 走 SSR；平台控制台 Host 若有静态文件则直接返回。
+    location ~ ^/(sitemap\.xml|robots\.txt|site\.webmanifest)$ {
         error_page 418 = @tenant_ssr;
         if ($use_tenant_ssr = 1) {
             return 418;

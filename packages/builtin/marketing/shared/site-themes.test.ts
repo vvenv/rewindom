@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 
 import { findStarterPagePreset } from "./page-presets.js";
 import { buildSiteStarter, SITE_STARTERS } from "./site-starters.js";
-import { findSiteTheme, SITE_THEMES } from "./site-themes.js";
+import { applySiteThemeSettings, findSiteTheme, SITE_THEMES } from "./site-themes.js";
 
 /** 起步模板里的文案走 i18n key，测试里原样返回即可。 */
 const t = (key: string): string => key;
@@ -24,6 +24,9 @@ describe("主题包", () => {
     for (const theme of SITE_THEMES) {
       expect(theme.theme_settings).not.toHaveProperty("logo_url");
       expect(theme.theme_settings).not.toHaveProperty("og_image");
+      expect(theme.theme_settings).not.toHaveProperty("favicon_url");
+      expect(theme.theme_settings).not.toHaveProperty("apple_touch_icon_url");
+      expect(theme.theme_settings).not.toHaveProperty("maskable_icon_url");
     }
   });
 
@@ -43,6 +46,28 @@ describe("主题包", () => {
       expect(theme.theme_settings.page_width).toBeDefined();
       expect(theme.theme_settings.section_spacing).toBeGreaterThan(0);
     }
+  });
+
+  it("套用主题包时品牌图标穿过，字标字体跟着留下", () => {
+    const next = applySiteThemeSettings(
+      {
+        logo_url: "/logo.svg",
+        favicon_url: "/icon.png",
+        og_image: "/og.png",
+        apple_touch_icon_url: "/apple.png",
+        maskable_icon_url: "/mask.png",
+        brand_font_family: "newsreader",
+        primary_color: "#111111",
+      },
+      findSiteTheme("bold")!,
+    );
+    expect(next.logo_url).toBe("/logo.svg");
+    expect(next.favicon_url).toBe("/icon.png");
+    expect(next.og_image).toBe("/og.png");
+    expect(next.apple_touch_icon_url).toBe("/apple.png");
+    expect(next.maskable_icon_url).toBe("/mask.png");
+    expect(next.brand_font_family).toBe("newsreader");
+    expect(next.primary_color).toBe("#c026d3");
   });
 });
 

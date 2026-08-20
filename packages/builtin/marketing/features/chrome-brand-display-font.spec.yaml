@@ -1,0 +1,73 @@
+# 增量功能契约 —— 页头页脚字标可以单独指定显示体与大小写
+#
+# 起因：`chrome_brand` 的字标是纯文本，跟着 `theme_settings.font_family` 走。于是站点
+# 一旦按正文可读性选字体（yestino 选的是 `source_sans`），字标就和正文同一款字——
+# 它不再是字标，只是一行大一点的正文。品牌资产那边（`apps/server/scripts/yestino-brand/`）
+# 已经把分享卡的报头做成 Newsreader 全大写，读者从分享卡点进来，落地页头换成无衬线，
+# 第一印象那一下声音是断的。
+#
+# 反过来把分享卡退回正文字体不是修复：那等于取消字标。字标用显示体、界面用正文体，
+# 本来就是正常的品牌分工，缺的是官网这边没有位置表达它。
+#
+# ---------- 实现上唯一的坑 ----------
+# `themeFontFaceCss(family)` 现在只为**一款**字族吐 `@font-face`，`marketingSiteThemeCss`
+# 也只调它一次。加了字标字体之后必须吐两款，且两处选同一款时**不能吐两遍**——重复的
+# `@font-face` 会让同一份 woff2 在部分浏览器里请求两次。改成接一组字族、去重后拼接。
+#
+# 大小写走 CSS `text-transform`，**不改 `brand_text` 存的值**：全大写是排版处理不是改名，
+# 存成大写会污染 SEO 标题与 og:site_name（它们跟 `site_name` 走同一份数据）。
+# 全大写必须配字距，混排必须不配——两者一起切，不要给字距单开一个设置位。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: theme_settings 新增可选 `brand_font_family`（留空回落 `font_family`）；chrome_brand 块新增字标大小写开关（normal/upper，upper 自动带字距）；`@font-face` 改为按一组字族去重输出。
+gold: packages/builtin/marketing/shared/sections/_common/chrome-blocks.ts
+touch:
+  - packages/builtin/marketing/features/chrome-brand-display-font.spec.yaml
+  # 新字段：resolveThemeSettings 是白名单式重建，不在这里登记的键会被直接丢掉
+  - packages/builtin/marketing/shared/theme-sections.ts
+  - packages/builtin/marketing/shared/theme-sections.test.ts
+  # 单字族 → 一组字族，去重
+  - packages/builtin/marketing/shared/theme-fonts.ts
+  - packages/builtin/marketing/shared/theme-fonts.test.ts
+  # 新增 --brand-font 变量，并把两款字体的 @font-face 一起注入
+  - packages/builtin/marketing/shared/marketing-site-theme.ts
+  - packages/builtin/marketing/shared/marketing-site-theme.test.ts
+  - packages/builtin/marketing/shared/marketing-site-css.test.ts
+  # 块设置 + SSR 渲染 + SPA 渲染，三处同一套取值
+  - packages/builtin/marketing/shared/sections/_common/chrome-blocks.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.test.ts
+  - packages/builtin/marketing/client/components/sections/SiteChrome.tsx
+  - packages/builtin/marketing/client/components/sections/SiteChrome.test.tsx
+  - packages/builtin/marketing/shared/sections/_common/styles.css
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+  # 外观面板加字标字体下拉（复用现有 font_family 那个下拉的预览写法）
+  - packages/builtin/marketing/client/components/appearance/SiteThemeSettingsForm.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  # yestino 品牌脚本把字标字体与全大写写进已发布站点（不走 publishSiteDraft）
+  - apps/server/scripts/apply-yestino-brand.ts
+  - apps/server/scripts/yestino-brand/README.md
+out_of_scope:
+  - 改 `brand_text` / `site_name` 存的值（大小写是 CSS 层的事，不是改名）
+  - 给字距单开设置位（跟随大小写开关，见上）
+  - 引入 Google Fonts CDN / 自定义字体上传 / 中文 webfont（MODULE.md「外观字体」明确不碰）
+  - 往字体目录加新字族（Newsreader 已经在 `THEME_FONT_GROUPS.serif` 里）
+  - 正文 / 标题字体拆分（本次只给**字标**一个位置，页面正文仍然只有一款字）
+  - 迁移存量租户（`brand_font_family` 留空即回落，零数据迁移）
+i18n: code # 只加编辑器 label/info 与下拉项 key，走 client/locales；字标文案本身仍是数据 locale map
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared theme-fonts.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared theme-sections.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared marketing-site-theme.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared chrome-html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteChrome.test.tsx
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: [] # 沿用站点设置现有权限
+models: [] # 只动 theme_settings 这个 Json 列，无 schema 变更

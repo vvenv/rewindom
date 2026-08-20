@@ -39,6 +39,8 @@ describe("marketing-site-css", () => {
     // 页头页脚都用 .brand/.logo，所以它们归共用而不是归 header
     expect(MARKETING_SITE_CSS_BASE).toContain(".brand{");
     expect(MARKETING_SITE_CSS_BASE).toContain("white-space:nowrap");
+    expect(MARKETING_SITE_CSS_BASE).toContain("--site-brand-font");
+    expect(MARKETING_SITE_CSS_BASE).toContain(".brand.brand-upper span");
     expect(MARKETING_SITE_CSS_BASE).toContain(
       ".chrome-row:not(:has(.chrome-zone-center))",
     );

@@ -16,6 +16,7 @@ import {
 } from "../shared/page-templates.js";
 import { collectSectionTypes } from "../shared/sections/collect-types.js";
 import { isSpaShellPath, parseMarketingSsrPath } from "../shared/site-locale.js";
+import { buildSiteWebManifest } from "../shared/site-manifest.js";
 import {
   isSitePathResponse,
   matchSitePathFallback,
@@ -24,6 +25,7 @@ import {
   type SitePathRenderResult,
 } from "../shared/site-path-handlers.js";
 import { localizeRedirectLocation, visitorRedirectPath } from "../shared/site-redirect.js";
+import { resolveThemeSettings } from "../shared/theme-sections.js";
 
 import { hstsHeaderForOrigin } from "./hsts.js";
 import {
@@ -36,6 +38,7 @@ import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
 import { findSiteRedirect } from "./site-redirect.service.js";
 import {
   getPublishedPublicPage,
+  getPublishedPublicSite,
   getPublishedSitemapEntries,
   getSiteChromeOrFallback,
   resolveVisitorHomePath,
@@ -582,8 +585,8 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
    * `www.<apex>` → `<apex>` 的 301。
    *
    * 挂在 SSR 插件作用域上：这里就是公开面的入口（`/`、`/*`、`/sitemap.xml`、
-   * `/robots.txt` 全在），而 `/api/*` 不在——接口层不能做主机改写，
-   * 301 会把 POST 变成 GET。
+   * `/robots.txt`、`/llms.txt`、`/site.webmanifest` 全在），而 `/api/*` 不在——
+   * 接口层不能做主机改写，301 会把 POST 变成 GET。
    */
   app.addHook("onRequest", async (request, reply) => {
     const hsts = hstsHeaderForOrigin(requestOrigin(request));
@@ -659,6 +662,38 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
       );
   });
 
+  /*
+   * 按租户产出，不是一份静态文件。缓存跟着页面走（60s），不要长缓存——换图标或
+   * 改站名后，装到主屏的名字 / 主题色得尽快跟上。
+   */
+  app.get("/site.webmanifest", async (request, reply) => {
+    await ensureHostTenant(request);
+    const hostTenant = request.hostTenantContext;
+    if (!hostTenant) {
+      return reply.status(404).send("Not Found");
+    }
+    const site = await getPublishedPublicSite(
+      hostTenant.tenant_id,
+      hostTenant.tenant_slug,
+    );
+    if (!site) {
+      return reply.status(404).send("Not Found");
+    }
+    const theme = resolveThemeSettings(site.theme_settings);
+    const body = JSON.stringify(
+      buildSiteWebManifest({
+        name: site.site_name,
+        theme_color: theme.primary_color,
+        background_color: theme.bg_color,
+        maskable_icon_url: theme.maskable_icon_url,
+      }),
+    );
+    return reply
+      .header("content-type", "application/manifest+json; charset=utf-8")
+      .header("cache-control", "public, max-age=60")
+      .send(body);
+  });
+
   /* -------------------------------------------------- 站点默认语言（无前缀） */
 
   app.get("/", async (request, reply) => {
@@ -670,9 +705,9 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
    * `/:first/:second/:third`：超过三段（`/en/docs/guide/intro`）和末尾斜杠
    * （`/old/`）都进不了渲染，重定向也没机会跑，直接掉到 JSON 404。
    *
-   * `/*` 在 find-my-way 里优先级最低，静态路径（`/member/login`、`/sitemap.xml`）
-   * 和参数路径（`/shop/:slug`）仍然先命中。locale 的 slug 必须占住
-   * `RESERVED_PAGE_SLUGS`，否则一个叫 `en` 的顶层页会把整棵 `/en/*` 遮住。
+   * `/*` 在 find-my-way 里优先级最低，静态路径（`/member/login`、`/sitemap.xml`、
+   * `/site.webmanifest`）和参数路径（`/shop/:slug`）仍然先命中。locale 的 slug
+   * 必须占住 `RESERVED_PAGE_SLUGS`，否则一个叫 `en` 的顶层页会把整棵 `/en/*` 遮住。
    */
   app.get("/*", async (request, reply) => {
     const { logicalPath, locale } = parseMarketingSsrPath(request.url);

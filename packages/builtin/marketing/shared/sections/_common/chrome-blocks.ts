@@ -118,6 +118,17 @@ export const CHROME_BRAND_BLOCK: BlockDefinition = {
       info: "editor.info.brand_text",
     },
     {
+      type: "select",
+      id: "text_case",
+      label: "editor.setting.brand_text_case",
+      default: "normal",
+      options: [
+        { value: "normal", label: "editor.option.brand_text_case.normal" },
+        { value: "upper", label: "editor.option.brand_text_case.upper" },
+      ],
+      info: "editor.info.brand_text_case",
+    },
+    {
       type: "textarea",
       id: "blurb",
       label: "editor.setting.blurb",
@@ -315,6 +326,13 @@ export function blockAlign(block: SiteBlock): ChromeAlign {
 export function blockMobile(block: SiteBlock): ChromeMobile {
   const raw = block.settings.mobile;
   return raw === "pin" || raw === "hide" ? raw : "menu";
+}
+
+export type BrandTextCase = "normal" | "upper";
+
+/** 字标大小写。存量块没有这个键，行为与以前逐字节一致（混排、不配字距）。 */
+export function brandTextCase(block: SiteBlock): BrandTextCase {
+  return block.settings.text_case === "upper" ? "upper" : "normal";
 }
 
 /**

@@ -100,13 +100,26 @@ export function themeFontCdnDir(publicBaseUrl: string): string | undefined {
   return `${origin}/${THEME_FONT_STORAGE_PREFIX}`;
 }
 
-/** 选中 webfont 时才注入；系统栈为零请求。 */
+/**
+ * 选中 webfont 时才注入；系统栈为零请求。
+ *
+ * 接一**组**字族而不是一款：正文与字标可以各选一款（`font_family` /
+ * `brand_font_family`）。两处选同一款时必须去重——重复的 `@font-face` 会让同一份
+ * woff2 在部分浏览器里被请求两次。
+ */
 export function themeFontFaceCss(
-  family: ThemeFontFamily | undefined,
+  families: readonly (ThemeFontFamily | null | undefined)[],
   publicDir: string = THEME_FONT_ASSET_PATH,
 ): string {
-  if (!family || !isWebFont(family)) return "";
-  const css = THEME_FONT_FACE_CSS[family];
+  const webFonts = [
+    ...new Set(
+      families.filter((family): family is ThemeWebFontFamily =>
+        Boolean(family && isWebFont(family)),
+      ),
+    ),
+  ];
+  if (webFonts.length === 0) return "";
+  const css = webFonts.map((family) => THEME_FONT_FACE_CSS[family]).join("\n");
   const dir = publicDir.replace(/\/+$/u, "");
   if (dir === THEME_FONT_ASSET_PATH) return css;
   return css.replaceAll(`${THEME_FONT_ASSET_PATH}/`, `${dir}/`);

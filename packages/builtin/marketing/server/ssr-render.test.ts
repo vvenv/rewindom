@@ -84,6 +84,33 @@ describe("renderMarketingHtml favicon", () => {
     });
     expect(html).toContain('<link rel="icon" href="/uploads/acme.png" />');
   });
+
+  it("emits apple-touch-icon and manifest only when those fields are set", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site({
+        theme_settings: {
+          apple_touch_icon_url: "/uploads/apple.png",
+          maskable_icon_url: "/uploads/mask.png",
+        },
+      }),
+      page: page(),
+    });
+    expect(html).toContain(
+      '<link rel="apple-touch-icon" href="/uploads/apple.png" />',
+    );
+    expect(html).toContain('<link rel="manifest" href="/site.webmanifest" />');
+  });
+
+  it("does not fall back apple-touch or manifest to the favicon", () => {
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site: site({ theme_settings: { favicon_url: "/uploads/acme.png" } }),
+      page: page(),
+    });
+    expect(html).not.toContain("apple-touch-icon");
+    expect(html).not.toContain("site.webmanifest");
+  });
 });
 
 describe("renderMarketingHtml SEO", () => {

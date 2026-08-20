@@ -1,0 +1,73 @@
+# 增量功能契约 —— 官网补 apple-touch-icon 与 site.webmanifest
+#
+# 起因：SSR 的 `<head>` 只输出一行 `<link rel="icon">`。于是：
+#
+# - iOS 用户「加到主屏」，系统找不到 `apple-touch-icon`，会去截一张页面缩略图当图标
+# - Android / PWA 没有 manifest，安装横幅不出，装上去的图标会被系统遮罩切到
+#
+# 品牌资产那边（`apps/server/scripts/yestino-brand/`）已经按平台各自的遮罩规则出好了
+# `apple-touch-icon.png`（180，满幅无圆角）与 `maskable-512.png`（字形收进中心 80% 直径
+# 的安全圆），但目前只是文件——没有字段存、没有标签输出、没有 manifest 引用。
+#
+# ---------- 为什么不拿 favicon 顶替 ----------
+# 三类场景的容器处理不一样，互相顶替都会出事：favicon 自带圆角（没有平台遮罩，圆角得
+# 自己带）；apple-touch / maskable 必须满幅无圆角（平台自己套遮罩，自带圆角会被二次
+# 裁切成一圈毛边）。所以**字段没设就不输出对应标签**，而不是回落到 favicon——
+# 一个圆角被切两次的主屏图标比没有品牌图标更糟。
+#
+# ---------- 路由落点 ----------
+# `/site.webmanifest` 与 `sitemap.xml` / `robots.txt` / `llms.txt` 同一类：具体路径必须
+# 注册在 `ssr.routes.ts` 那条 `/*` catch-all **之前**，否则会被当成页面路径去查 CMS。
+#
+# manifest 是**按租户**产出的（名字取 `site_name`、主题色取 `primary_color`），不是一份
+# 静态文件；缓存头要跟着站点发布走，别长缓存。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: theme_settings 新增可选 `apple_touch_icon_url` / `maskable_icon_url`；SSR head 在两者有值时分别输出 apple-touch-icon 与 manifest 链接；新增按租户产出的 `/site.webmanifest` 路由。
+gold: packages/builtin/marketing/server/ssr.routes.ts # sitemap.xml / robots.txt 那几条的注册位置与响应写法
+touch:
+  - packages/builtin/marketing/features/app-icons-and-manifest.spec.yaml
+  # 新字段：resolveThemeSettings 是白名单式重建，不登记的键会被直接丢掉
+  - packages/builtin/marketing/shared/theme-sections.ts
+  - packages/builtin/marketing/shared/theme-sections.test.ts
+  # manifest 的 JSON 组装（纯函数，便于单测），与 seo-meta 同层
+  - packages/builtin/marketing/shared/site-manifest.ts
+  - packages/builtin/marketing/shared/site-manifest.test.ts
+  # head 里补两行 link；注意「没设就不输出」，不要给空 href
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-render.test.ts
+  - packages/builtin/marketing/server/ssr-seo.test.ts
+  # 具体路径必须挂在 /* catch-all 之前
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/server/ssr-catch-all.test.ts
+  # 租户不能建一张叫 site.webmanifest 的 CMS 页把这条路由遮住
+  - packages/builtin/marketing/shared/reserved-slugs.ts
+  # 开发代理 / 生产 nginx 与 sitemap.xml 同一类：不是 HTML，也要打到 Fastify
+  - apps/client/vite-marketing-ssr-proxy.ts
+  - apps/client/vite-marketing-ssr-proxy.test.ts
+  - docker/nginx/default.conf.template
+  - packages/builtin/marketing/MODULE.md
+  # 字段目前没有编辑器 UI（见 out_of_scope），得让品牌脚本能写进去，否则字段不可达
+  - apps/server/scripts/apply-yestino-brand.ts
+  - apps/server/scripts/yestino-brand/README.md
+out_of_scope:
+  - Service Worker / 离线缓存 / 安装提示（manifest 不等于 PWA，本次只做元数据）
+  - 从一张图自动派生多尺寸图标（资产由 `yestino-brand/generate.mjs` 按平台规则各自出图）
+  - 给这两个字段做媒体库选择器 UI（先由品牌脚本写；要 UI 另开 spec）
+  - 字段没设时回落 favicon（理由见上：二次裁切比没有更糟）
+  - 动现有 `favicon_url` 的回落逻辑（`/favicon.svg` 那条兜底保持不变）
+  - `og:image` / twitter 卡片（那组标签已在 `renderSocialMetaHtml`，本次不碰）
+i18n: none # manifest 的 name 取站点已有的 `site_name`（本身就是 __i18n），不新增库存文案
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-manifest.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared theme-sections.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-render.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-catch-all.test.ts
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: [] # 公开面只读，无新权限
+models: [] # 只动 theme_settings 这个 Json 列，无 schema 变更

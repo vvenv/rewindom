@@ -40,10 +40,10 @@ describe("theme fonts", () => {
     );
     expect(webfonts.sort()).toEqual(Object.keys(THEME_FONT_FACE_CSS).sort());
     for (const family of webfonts) {
-      expect(themeFontFaceCss(family)).toContain("@font-face");
-      expect(themeFontFaceCss(family)).toContain(`${THEME_FONT_ASSET_PATH}/`);
+      expect(themeFontFaceCss([family])).toContain("@font-face");
+      expect(themeFontFaceCss([family])).toContain(`${THEME_FONT_ASSET_PATH}/`);
     }
-    expect(themeFontFaceCss("system")).toBe("");
+    expect(themeFontFaceCss(["system"])).toBe("");
   });
 
   it("系统栈零请求，中文走系统字体", () => {
@@ -55,7 +55,7 @@ describe("theme fonts", () => {
   });
 
   it("只在选中 webfont 时给出带引号的 @font-face 与同源路径", () => {
-    const css = themeFontFaceCss("inter");
+    const css = themeFontFaceCss(["inter"]);
     expect(css).toContain("font-family: 'Inter Variable'");
     expect(css).toContain("font-display: swap");
     expect(css).toContain(`${THEME_FONT_ASSET_PATH}/inter-latin-wght-normal-`);
@@ -66,7 +66,7 @@ describe("theme fonts", () => {
   it("可把 @font-face URL 改写到对象存储公开根", () => {
     const cdn = themeFontCdnDir("https://media.example.com/");
     expect(cdn).toBe(`https://media.example.com/${THEME_FONT_STORAGE_PREFIX}`);
-    const css = themeFontFaceCss("inter", cdn);
+    const css = themeFontFaceCss(["inter"], cdn);
     expect(css).toContain(
       `url("https://media.example.com/${THEME_FONT_STORAGE_PREFIX}/inter-latin-wght-normal-`,
     );
@@ -87,5 +87,18 @@ describe("theme fonts", () => {
     const { faces, files } = assembleThemeFonts();
     expect(files).toEqual([...THEME_FONT_FILES]);
     expect(faces).toEqual(THEME_FONT_FACE_CSS);
+  });
+
+  it("一组字族去重后再拼，同一款不会吐两遍 @font-face", () => {
+    const once = themeFontFaceCss(["inter"]);
+    const twice = themeFontFaceCss(["inter", "inter"]);
+    expect(twice).toBe(once);
+    const mixed = themeFontFaceCss(["inter", "newsreader", "system", null]);
+    expect(mixed).toContain("Inter Variable");
+    expect(mixed).toContain("Newsreader Variable");
+    expect((mixed.match(/@font-face/g) ?? []).length).toBe(
+      (once.match(/@font-face/g) ?? []).length +
+        (themeFontFaceCss(["newsreader"]).match(/@font-face/g) ?? []).length,
+    );
   });
 });

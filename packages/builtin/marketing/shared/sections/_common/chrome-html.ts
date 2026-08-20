@@ -25,6 +25,7 @@ import {
 
 import {
   blockMobile,
+  brandTextCase,
   getContributedChromeBlock,
   registerChromeBlock,
 } from "./chrome-blocks.js";
@@ -114,12 +115,14 @@ function renderBrandHtml(input: {
   // 字标留空就跟着站名走（存量块没有这个键，行为与以前逐字节一致）
   const brandText = settingText(s, "brand_text") || input.siteName;
   const showBrandText = settingBool(s, "show_site_name");
+  const brandClass =
+    brandTextCase(input.block) === "upper" ? "brand brand-upper" : "brand";
   /*
    * 字标在场时 logo 是装饰性的：同一个 `<a>` 里已经有一份可读的品牌名，
    * 再给图片一个同名 alt 只会让读屏念两遍。
    */
   const logoAlt = showBrandText ? "" : brandText;
-  const mark = `<a class="brand" href="${escapeHtml(input.homeHref)}">
+  const mark = `<a class="${brandClass}" href="${escapeHtml(input.homeHref)}">
       ${settingBool(s, "show_logo") && input.logoUrl ? `<img class="logo" src="${escapeHtml(input.logoUrl)}" alt="${escapeHtml(logoAlt)}" />` : ""}
       ${showBrandText ? `<span>${escapeHtml(brandText)}</span>` : ""}
     </a>`;

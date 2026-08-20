@@ -1781,8 +1781,8 @@ function isUnderPrefix(path: string, prefix: string): boolean {
  * 「主题」在这里是一组预设值而不是运行时的一层——写下去之后 `theme_settings` 仍是唯一
  * 真相源，租户接着微调哪一项就是哪一项（理由见 `shared/site-themes.ts`）。
  *
- * `logo_url` / `og_image` 不在包里也不被清空：那是品牌资产，不是外观风格，
- * 换个配色不该把 logo 抹掉。
+ * `logo_url` / `og_image` / `apple_touch_icon_url` / `maskable_icon_url` 不在包里
+ * 也不被清空：那是品牌资产，不是外观风格，换个配色不该把 logo 抹掉。
  */
 export async function applySiteTheme(
   tenant_id: string,

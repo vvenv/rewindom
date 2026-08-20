@@ -325,4 +325,16 @@ describe("SiteChrome 品牌", () => {
     );
     expect(container.querySelector("img.logo")?.getAttribute("alt")).toBe("Acme");
   });
+
+  it("全大写是 class，不改存进去的字标文案", () => {
+    const { container } = brandArea({
+      brand_text: "Yestino",
+      text_case: "upper",
+    });
+    expect(container.querySelector("a.brand")?.className).toContain(
+      "brand-upper",
+    );
+    expect(screen.getByText("Yestino")).toBeTruthy();
+    expect(container.textContent).not.toContain("YESTINO");
+  });
 });

@@ -44,6 +44,8 @@ export interface MarketingSiteThemeTokens {
   accent: string;
   accentFg: string;
   fontFamily: string;
+  /** 字标字体；未单独指定时与 `fontFamily` 相同。 */
+  brandFontFamily: string;
   pageWidth: string;
   light: MarketingCanvasPalette;
   dark: MarketingCanvasPalette;
@@ -92,6 +94,8 @@ export function resolveMarketingSiteThemeTokens(
     accent,
     accentFg: primaryForegroundFor(accent),
     fontFamily: themeFontCss(theme.font_family),
+    // 留空即回落正文字体，于是 `--site-brand-font` 永远有值，CSS 那边不用写兜底
+    brandFontFamily: themeFontCss(theme.brand_font_family ?? theme.font_family),
     pageWidth: themePageWidthCss(theme.page_width),
     light,
     dark,
@@ -135,7 +139,8 @@ function paletteCssVars(
       --radius: .75rem;
       background-color: ${palette.bg};
       color: ${palette.fg};
-      font-family: ${tokens.fontFamily};`;
+      font-family: ${tokens.fontFamily};
+      --site-brand-font: ${tokens.brandFontFamily};`;
 }
 
 /**
@@ -158,7 +163,10 @@ export function marketingSiteThemeCss(
   const tokens = resolveMarketingSiteThemeTokens(theme_settings);
   const lightVars = paletteCssVars(tokens.light, tokens);
   const darkVars = paletteCssVars(tokens.dark, tokens);
-  const fontFace = themeFontFaceCss(theme.font_family, options?.fontPublicDir);
+  const fontFace = themeFontFaceCss(
+    [theme.font_family, theme.brand_font_family],
+    options?.fontPublicDir,
+  );
   return `
     ${fontFace}
     ${scope} {${lightVars}

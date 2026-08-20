@@ -332,4 +332,17 @@ describe("chrome 品牌", () => {
     expect(html).toContain('alt="站点"');
     expect(html).not.toContain("<span>站点</span>");
   });
+
+  it("全大写是 class，不改存进去的字标文案", () => {
+    const html = brandHeader({ brand_text: "Yestino", text_case: "upper" });
+    expect(html).toContain('class="brand brand-upper"');
+    expect(html).toContain("<span>Yestino</span>");
+    expect(html).not.toContain("<span>YESTINO</span>");
+  });
+
+  it("存量块没有大小写键时不加 brand-upper", () => {
+    const html = brandHeader({ brand_text: "Yestino" });
+    expect(html).toContain('class="brand"');
+    expect(html).not.toContain("brand-upper");
+  });
 });

@@ -58,6 +58,7 @@ export function shouldProxyDocumentToMarketingSsr(
     url === "/sitemap.xml" ||
     url === "/robots.txt" ||
     url === "/llms.txt" ||
+    url === "/site.webmanifest" ||
     accept.includes("text/html")
   );
 }

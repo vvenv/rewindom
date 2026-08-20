@@ -18,7 +18,10 @@ import {
   type SiteBlock,
   type SiteSection,
 } from "../../../shared/section-schema.js";
-import { blockMobile } from "../../../shared/sections/_common/chrome-blocks.js";
+import {
+  blockMobile,
+  brandTextCase,
+} from "../../../shared/sections/_common/chrome-blocks.js";
 import {
   chromeBlockClass,
   chromeRows,
@@ -413,7 +416,12 @@ export function SiteChrome({
         const brandText = settingText(block.settings, "brand_text") || siteName;
         const showBrandText = settingBool(block.settings, "show_site_name");
         const mark = (
-          <SiteLink href="/" className="brand">
+          <SiteLink
+            href="/"
+            className={
+              brandTextCase(block) === "upper" ? "brand brand-upper" : "brand"
+            }
+          >
             {settingBool(block.settings, "show_logo") && logoUrl ? (
               <img
                 src={logoUrl}

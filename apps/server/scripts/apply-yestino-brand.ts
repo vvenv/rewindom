@@ -1,10 +1,12 @@
 /* eslint-disable no-console */
 /**
  * 把 Yestino 品牌标（两条来源汇成一条时间线的 Y）写入指定租户的官网
- * logo / favicon / og:image。资产真源见 `scripts/yestino-brand/README.md`。
+ * logo / favicon / og:image / apple-touch / maskable，以及字标字体与全大写。
+ * 资产真源见 `scripts/yestino-brand/README.md`。
  *
- * 只改 `theme_settings` 两列里的品牌字段，不走 `publishSiteDraft`，避免把未发布的
- * 页头页脚草稿一并推上线。
+ * 主题字段写 `theme_settings` 两列。页头字标全大写只改 chrome_brand 块的
+ * `text_case`，线上与草稿各写一份，**不**走 `publishSiteDraft`，避免把未发布的
+ * 其它页头页脚改动一并推上线。
  *
  * 用法:
  *   pnpm --filter server exec tsx scripts/apply-yestino-brand.ts --dry-run --slug yestino
@@ -30,6 +32,7 @@ import { sanitizeSvg } from "@rewindom/server-kernel/lib/svg-sanitize.js";
 const BRAND_DIR = dirname(fileURLToPath(import.meta.url));
 const ASSET_DIR = join(BRAND_DIR, "yestino-brand");
 const PRIMARY_COLOR = "#4F46E5";
+const BRAND_FONT_FAMILY = "newsreader";
 
 interface Args {
   dryRun: boolean;
@@ -104,6 +107,28 @@ async function readAsset(
   return { buffer, mime_type };
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * 只改 chrome_brand 的 `text_case`，其它块原样留下。
+ * 全大写是排版处理，不改 `brand_text` 存的值。
+ */
+function withUppercaseBrand(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withUppercaseBrand);
+  if (!isPlainObject(value)) return value;
+  const next: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(value)) {
+    next[key] = withUppercaseBrand(child);
+  }
+  if (value.type === "chrome_brand") {
+    const settings = isPlainObject(next.settings) ? next.settings : {};
+    next.settings = { ...settings, text_case: "upper" };
+  }
+  return next;
+}
+
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const tenant = await prisma.tenant.findUnique({
@@ -116,7 +141,15 @@ async function main(): Promise<void> {
 
   const site = await prisma.marketingSite.findUnique({
     where: { tenant_id: tenant.id },
-    select: { site_name: true, theme_settings: true, theme_settings_draft: true },
+    select: {
+      site_name: true,
+      theme_settings: true,
+      theme_settings_draft: true,
+      nav_json: true,
+      footer_json: true,
+      nav_draft_json: true,
+      footer_draft_json: true,
+    },
   });
   if (!site) {
     throw new Error(`租户 ${args.slug} 没有官网`);
@@ -219,15 +252,17 @@ async function main(): Promise<void> {
 
   const mark = await readAsset("mark.svg", "image/svg+xml");
   const og = await readAsset("og.png", "image/png");
+  const appleTouch = await readAsset("apple-touch-icon.png", "image/png");
+  const maskable = await readAsset("maskable-512.png", "image/png");
 
   console.log(
     `[apply-yestino-brand] tenant=${tenant.slug} domain=${tenant.custom_domain ?? ""}`,
   );
   console.log(
-    `[apply-yestino-brand] current logo=${live.logo_url ?? ""} favicon=${live.favicon_url ?? ""} og=${live.og_image ?? ""} primary=${live.primary_color ?? ""}`,
+    `[apply-yestino-brand] current logo=${live.logo_url ?? ""} favicon=${live.favicon_url ?? ""} og=${live.og_image ?? ""} apple=${live.apple_touch_icon_url ?? ""} maskable=${live.maskable_icon_url ?? ""} font=${live.brand_font_family ?? "(body)"} primary=${live.primary_color ?? ""}`,
   );
   console.log(
-    `[apply-yestino-brand] files mark=${mark.buffer.byteLength}B favicon=svg og=${og.buffer.byteLength}B primary=${args.setPrimary ? PRIMARY_COLOR : "(keep)"}`,
+    `[apply-yestino-brand] files mark=${mark.buffer.byteLength}B favicon=svg og=${og.buffer.byteLength}B apple=${appleTouch.buffer.byteLength}B maskable=${maskable.buffer.byteLength}B brand_font=${BRAND_FONT_FAMILY} text_case=upper primary=${args.setPrimary ? PRIMARY_COLOR : "(keep)"}`,
   );
 
   if (args.dryRun) {
@@ -251,10 +286,29 @@ async function main(): Promise<void> {
   });
   await updateSiteAssetAlt(tenant.id, tenant.slug, ogAsset.id, "Yestino");
 
+  const appleAsset = await uploadSiteAsset({
+    tenant_id: tenant.id,
+    tenant_slug: tenant.slug,
+    buffer: appleTouch.buffer,
+    mime_type: appleTouch.mime_type,
+  });
+  await updateSiteAssetAlt(tenant.id, tenant.slug, appleAsset.id, "Yestino");
+
+  const maskableAsset = await uploadSiteAsset({
+    tenant_id: tenant.id,
+    tenant_slug: tenant.slug,
+    buffer: maskable.buffer,
+    mime_type: maskable.mime_type,
+  });
+  await updateSiteAssetAlt(tenant.id, tenant.slug, maskableAsset.id, "Yestino");
+
   const patch = {
     logo_url: logoAsset.url,
     favicon_url: logoAsset.url,
     og_image: ogAsset.url,
+    apple_touch_icon_url: appleAsset.url,
+    maskable_icon_url: maskableAsset.url,
+    brand_font_family: BRAND_FONT_FAMILY,
     ...(args.setPrimary ? { primary_color: PRIMARY_COLOR } : {}),
   };
   const nextLive = { ...live, ...patch };
@@ -265,11 +319,19 @@ async function main(): Promise<void> {
     data: {
       theme_settings: nextLive as Prisma.InputJsonValue,
       theme_settings_draft: nextDraft as Prisma.InputJsonValue,
+      nav_json: withUppercaseBrand(site.nav_json) as Prisma.InputJsonValue,
+      footer_json: withUppercaseBrand(site.footer_json) as Prisma.InputJsonValue,
+      nav_draft_json: withUppercaseBrand(
+        site.nav_draft_json,
+      ) as Prisma.InputJsonValue,
+      footer_draft_json: withUppercaseBrand(
+        site.footer_draft_json,
+      ) as Prisma.InputJsonValue,
     },
   });
 
   console.log(
-    `[apply-yestino-brand] wrote logo=${logoAsset.url} favicon=${logoAsset.url} og=${ogAsset.url}`,
+    `[apply-yestino-brand] wrote logo=${logoAsset.url} favicon=${logoAsset.url} og=${ogAsset.url} apple=${appleAsset.url} maskable=${maskableAsset.url} brand_font=${BRAND_FONT_FAMILY} text_case=upper`,
   );
 }
 

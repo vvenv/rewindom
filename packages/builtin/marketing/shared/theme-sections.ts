@@ -36,6 +36,19 @@ export interface ThemeSettings {
    */
   favicon_url?: string | null;
   /**
+   * iOS「加到主屏」图标。空 = 不输出 `<link rel="apple-touch-icon">`。
+   *
+   * **不**回落 favicon：favicon 自带圆角，iOS 还会再套一次圆角矩形遮罩，二次裁切
+   * 比没有品牌图标更糟。
+   */
+  apple_touch_icon_url?: string | null;
+  /**
+   * Android / PWA 自适应图标（maskable）。空 = 不输出 `<link rel="manifest">`。
+   *
+   * 同样不回落 favicon：maskable 的安全区是中心 80% 直径的圆，自带圆角会被遮罩切到。
+   */
+  maskable_icon_url?: string | null;
+  /**
    * 站点级社交分享缩略图（og:image / twitter:image）的默认值。
    *
    * 页面可以逐页覆盖（`page.settings.og_image`）。**不**拿 logo 顶替：logo 通常是方形、
@@ -48,8 +61,33 @@ export interface ThemeSettings {
   /** 整站默认前景（可带 alpha）；空 = 主题默认近黑。 */
   fg_color?: string | null;
   font_family?: ThemeFontFamily;
+  /**
+   * 字标（页头页脚 `chrome_brand` 那一行品牌名）单独的字体。
+   *
+   * 空 = 跟着 `font_family` 走，存量站点零变化。给它一个独立字段是因为字标和正文
+   * 是两件事：正文按可读性选，字标按识别度选。两者同一款字时，字标就不再是字标，
+   * 只是一行大一点的正文——而分享卡（`yestino-brand`）那边的报头本来就是显示体，
+   * 页头跟不上，读者点进来第一眼声音是断的。
+   */
+  brand_font_family?: ThemeFontFamily | null;
   page_width?: ThemePageWidth;
   section_spacing?: number;
+}
+
+/**
+ * 主题里的图片地址：站内相对路径或 http(s)。挡住 `javascript:` / `data:`——
+ * 这些值会进 `<link href>` 与 manifest 的 `icons[].src`。
+ */
+function parseOptionalAssetUrl(raw: unknown): string | null | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === null || raw === "") return null;
+  if (typeof raw !== "string") throw new Error("site.theme_settings_invalid");
+  const trimmed = raw.trim();
+  if (trimmed === "") return null;
+  if (!trimmed.startsWith("/") && !/^https?:\/\//iu.test(trimmed)) {
+    throw new Error("site.theme_settings_invalid");
+  }
+  return trimmed;
 }
 
 function parseOptionalColor(
@@ -103,6 +141,14 @@ export function parseThemeSettings(value: unknown): ThemeSettings {
     }
   }
 
+  if (raw.apple_touch_icon_url !== undefined) {
+    out.apple_touch_icon_url = parseOptionalAssetUrl(raw.apple_touch_icon_url)!;
+  }
+
+  if (raw.maskable_icon_url !== undefined) {
+    out.maskable_icon_url = parseOptionalAssetUrl(raw.maskable_icon_url)!;
+  }
+
   if (raw.og_image !== undefined) {
     if (raw.og_image === null) {
       out.og_image = null;
@@ -142,6 +188,20 @@ export function parseThemeSettings(value: unknown): ThemeSettings {
       (THEME_FONT_FAMILIES as readonly string[]).includes(raw.font_family)
     ) {
       out.font_family = raw.font_family as ThemeFontFamily;
+    } else {
+      throw new Error("site.theme_settings_invalid");
+    }
+  }
+
+  if (raw.brand_font_family !== undefined) {
+    // 与 font_family 同一套白名单，另外允许 null / "" 表示「回落正文字体」
+    if (raw.brand_font_family === null || raw.brand_font_family === "") {
+      out.brand_font_family = null;
+    } else if (
+      typeof raw.brand_font_family === "string" &&
+      (THEME_FONT_FAMILIES as readonly string[]).includes(raw.brand_font_family)
+    ) {
+      out.brand_font_family = raw.brand_font_family as ThemeFontFamily;
     } else {
       throw new Error("site.theme_settings_invalid");
     }
@@ -192,11 +252,15 @@ export function resolveThemeSettings(theme_settings: unknown): ThemeSettings {
   return {
     logo_url: fromJson.logo_url ?? null,
     favicon_url: fromJson.favicon_url ?? null,
+    apple_touch_icon_url: fromJson.apple_touch_icon_url ?? null,
+    maskable_icon_url: fromJson.maskable_icon_url ?? null,
     og_image: fromJson.og_image ?? null,
     primary_color: fromJson.primary_color ?? null,
     bg_color: fromJson.bg_color ?? null,
     fg_color: fromJson.fg_color ?? null,
     font_family: fromJson.font_family ?? "system",
+    // null 而不是回落成 font_family：回落发生在渲染期，这里保留「没设」这个事实
+    brand_font_family: fromJson.brand_font_family ?? null,
     page_width: fromJson.page_width ?? "default",
     section_spacing: fromJson.section_spacing ?? THEME_SECTION_SPACING.default,
   };

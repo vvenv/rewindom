@@ -21,6 +21,10 @@ app.get("/", async () => {
   return { ok: true };
 });
 
+app.get("/site.webmanifest", async () => {
+  return { manifest: true };
+});
+
 app.get("/*", async (request, reply) => {
   const parsed = parseMarketingSsrPath(request.url);
   if (isSpaShellPath(parsed.logicalPath)) {
@@ -60,6 +64,13 @@ describe("marketing SSR catch-all", () => {
   it("应用区路径不进官网渲染", async () => {
     const res = await app.inject({ method: "GET", url: "/app/dashboard" });
     expect(res.statusCode).toBe(404);
+    expect(seen).toEqual([]);
+  });
+
+  it("site.webmanifest 是静态路径，不会被当成 CMS 页", async () => {
+    const res = await app.inject({ method: "GET", url: "/site.webmanifest" });
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body)).toEqual({ manifest: true });
     expect(seen).toEqual([]);
   });
 });

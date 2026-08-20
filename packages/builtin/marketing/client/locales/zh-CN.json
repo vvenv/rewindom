@@ -460,6 +460,8 @@
     "richtextFullscreenHint": "支持 Markdown，右侧是实时预览。改动即时生效，仍需在编辑器顶栏保存。",
     "fieldFontFamily": "字体",
     "fieldFontFamilyHint": "西文 webfont 自托管；中文仍走访客系统字体。",
+    "fieldBrandFontFamily": "字标字体",
+    "fieldBrandFontFamilyHint": "页头页脚那一行品牌名用的字体。选「与正文相同」则跟着页面字体走。",
     "group": {
       "content": "内容",
       "buttons": "按钮",
@@ -536,7 +538,8 @@
       "chrome_divider": "朝着正文那一侧的分隔线（页头在下、页脚在上）。换成深色底时通常关掉。",
       "chrome_spacing_above": "页脚与正文之间的距离。",
       "chrome_blurb": "品牌下方的一句话简介。页头上通常不填。",
-      "brand_text": "logo 旁边显示的品牌名。留空跟着站点名走——站点名同时是搜索结果里的标题，通常更长。"
+      "brand_text": "logo 旁边显示的品牌名。留空跟着站点名走——站点名同时是搜索结果里的标题，通常更长。",
+      "brand_text_case": "全大写是排版处理，不是改名——存进去的字标和搜索标题里的站名仍是原文。字距跟着全大写一起给，混排不加。"
     },
     "unit": {
       "columns": "列",
@@ -615,6 +618,7 @@
       "show_page_header": "显示页面标题",
       "sticky": "滚动时吸顶",
       "brand_text": "字标文案",
+      "brand_text_case": "字标大小写",
       "blurb": "简介",
       "padding_top": "上内边距",
       "padding_right": "右内边距",
@@ -746,9 +750,14 @@
       "chrome_nav_display": {
         "inline": "横排",
         "column": "竖列"
+      },
+      "brand_text_case": {
+        "normal": "按原文",
+        "upper": "全大写"
       }
     },
     "font": {
+      "followBody": "与正文相同",
       "system": "系统无衬线",
       "serif": "衬线",
       "mono": "等宽",

@@ -25,14 +25,21 @@ pnpm --filter server exec node scripts/yestino-brand/generate.mjs
 各变体**不重抄路径**：脚本读 `mark.svg` 再做受控改写（去圆角 / 缩字形），
 `mark.svg` 的几何一旦重构会当场抛错，而不是悄悄出一张不对的图。
 
-再写进站点（改 `theme_settings` 两列，不发布页头页脚草稿）：
+再写进站点（改 `theme_settings` 两列，并把页头页脚 `chrome_brand` 的 `text_case`
+写成 `upper`；不发布其它草稿改动）：
 
 ```bash
 pnpm --filter server exec tsx scripts/apply-yestino-brand.ts --dry-run --slug yestino
 pnpm --filter server exec tsx scripts/apply-yestino-brand.ts --slug yestino
 ```
 
-`apply-yestino-brand.ts` 只覆盖 `logo_url` / `favicon_url` / `og_image` 三个字段。
+`apply-yestino-brand.ts` 覆盖：
+
+- `logo_url` / `favicon_url` / `og_image`
+- `apple_touch_icon_url` / `maskable_icon_url`
+- `brand_font_family`（Newsreader）
+- 页头页脚 `chrome_brand.text_case = upper`
+
 其余几张的落地方式见下面「谁用哪张」。
 
 ## 谁用哪张
@@ -48,10 +55,9 @@ pnpm --filter server exec tsx scripts/apply-yestino-brand.ts --slug yestino
 | Android 自适应图标 | `maskable-512.png` | 安全区是「中心 80% 直径的圆」，字形要再缩一档才不会被遮罩切到 |
 | 公众号头图 / 演示稿 / 页脚 | `wordmark-*.png` | 透明底解决不了字色，深浅底各一张 |
 
-**尚未接进代码**：`apple-touch-icon.png` / `maskable-512.png` 目前只是文件。
-SSR 那边（`packages/builtin/marketing/server/ssr-render.ts`）只输出一行
-`<link rel="icon">`，没有 `apple-touch-icon`、没有 `site.webmanifest`。
-要让这两张真正生效，得改 marketing 模块 —— 按仓库约定先填 FEATURE.spec。
+**尚未接进代码**：无。`apple-touch-icon.png` / `maskable-512.png` 由
+`apply-yestino-brand.ts` 写入 `theme_settings`，SSR 在字段有值时分别输出
+`<link rel="apple-touch-icon">` 与 `<link rel="manifest" href="/site.webmanifest">`。
 
 ## 设计口径
 
@@ -83,8 +89,10 @@ SSR 那边（`packages/builtin/marketing/server/ssr-render.ts`）只输出一行
 - **字标垂直居中走墨迹，不走 em 盒**：全大写没有下伸笔画，`textBaseline="middle"` 会让
   整段字标比旁边的标高出一截。取 `actualBoundingBox` 的上下沿才是眼睛看到的中心。
 - **页头字标要跟上**：官网页头渲染的是 `brand_text` / `site_name`（现在是 `Yestino - …`），
-  OG 走全大写而那边不动，两处就不一致了。全大写是排版处理不是改名，页头那边套
-  `text-transform: uppercase` 即可，但那是 marketing 模块的事，本次没动。
+  OG 走全大写而那边不动，两处就不一致了。全大写是排版处理不是改名：marketing 的
+  `chrome_brand.text_case = upper` 套 `text-transform: uppercase`，字标字体走
+  `theme_settings.brand_font_family = newsreader`。`apply-yestino-brand.ts` 会把这两项
+  一起写进去。
 - **OG 图**：底色 / 文字色 / 光晕照抄官网深色模式 token 与 `.sec-glow`。整幅左对齐，
   一条分隔线把报头和内容分开。
 - **OG 的层级是按小尺寸定的**：分享卡在信息流里常被缩到 300px 上下（微信卡片缩略图尤其小），

@@ -53,6 +53,24 @@ describe("marketing-site-theme", () => {
     expect(css).toContain("font-family:");
   });
 
+  it("loads a separate wordmark font without duplicating the same @font-face", () => {
+    const mixed = marketingSiteThemeCss({
+      font_family: "source_sans",
+      brand_font_family: "newsreader",
+    });
+    expect(mixed).toContain("Source Sans 3 Variable");
+    expect(mixed).toContain("Newsreader Variable");
+    expect(mixed).toContain("--site-brand-font:");
+    const same = marketingSiteThemeCss({
+      font_family: "inter",
+      brand_font_family: "inter",
+    });
+    const once = marketingSiteThemeCss({ font_family: "inter" });
+    expect((same.match(/font-family: 'Inter Variable'/g) ?? []).length).toBe(
+      (once.match(/font-family: 'Inter Variable'/g) ?? []).length,
+    );
+  });
+
   it("can point webfonts at an object-storage public origin", () => {
     const css = marketingSiteThemeCss({ font_family: "inter" }, ":root", {
       fontPublicDir: "https://media.example.com/platform/site-fonts",

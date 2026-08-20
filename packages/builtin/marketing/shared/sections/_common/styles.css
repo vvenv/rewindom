@@ -103,6 +103,17 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* 未单独指定字标字体时，这个变量的值就是正文字体，所以不需要兜底 */
+  font-family: var(--site-brand-font);
+}
+/*
+ * 全大写走 CSS，不改 `brand_text` 存的值：站名同时喂 <title> 与 og:site_name，
+ * 存成大写会把它们一起污染。字距跟着大小写一起给——全大写不配字距会挤成一坨，
+ * 混排配了字距又会散架，所以不给字距单开设置位。
+ */
+.brand.brand-upper span {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
 .logo {
   height: 1.5rem;

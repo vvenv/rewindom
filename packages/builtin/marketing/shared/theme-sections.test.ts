@@ -24,11 +24,14 @@ describe("theme settings", () => {
     ).toEqual({
       logo_url: "/a.png",
       favicon_url: null,
+      apple_touch_icon_url: null,
+      maskable_icon_url: null,
       og_image: null,
       primary_color: "#111",
       bg_color: null,
       fg_color: null,
       font_family: "system",
+      brand_font_family: null,
       page_width: "default",
       section_spacing: 16,
     });
@@ -38,11 +41,14 @@ describe("theme settings", () => {
     const empty = {
       logo_url: null,
       favicon_url: null,
+      apple_touch_icon_url: null,
+      maskable_icon_url: null,
       og_image: null,
       primary_color: null,
       bg_color: null,
       fg_color: null,
       font_family: "system",
+      brand_font_family: null,
       page_width: "default",
       section_spacing: 16,
     };
@@ -96,5 +102,41 @@ describe("theme settings", () => {
     expect(parseThemeSettings({ primary_color: null }).primary_color).toBe(
       null,
     );
+  });
+
+  it("parses a separate wordmark font and treats empty as inherit", () => {
+    expect(
+      parseThemeSettings({ brand_font_family: "newsreader" }).brand_font_family,
+    ).toBe("newsreader");
+    expect(parseThemeSettings({ brand_font_family: "" }).brand_font_family).toBe(
+      null,
+    );
+    expect(
+      parseThemeSettings({ brand_font_family: null }).brand_font_family,
+    ).toBe(null);
+    expect(() => parseThemeSettings({ brand_font_family: "comic" })).toThrow(
+      "site.theme_settings_invalid",
+    );
+  });
+
+  it("parses apple-touch / maskable icon URLs and rejects dangerous schemes", () => {
+    expect(
+      parseThemeSettings({
+        apple_touch_icon_url: "/uploads/apple.png",
+        maskable_icon_url: "https://cdn.example/mask.png",
+      }),
+    ).toEqual({
+      apple_touch_icon_url: "/uploads/apple.png",
+      maskable_icon_url: "https://cdn.example/mask.png",
+    });
+    expect(parseThemeSettings({ apple_touch_icon_url: "" }).apple_touch_icon_url).toBe(
+      null,
+    );
+    expect(() =>
+      parseThemeSettings({ apple_touch_icon_url: "javascript:alert(1)" }),
+    ).toThrow("site.theme_settings_invalid");
+    expect(() =>
+      parseThemeSettings({ maskable_icon_url: "data:image/png;base64,xx" }),
+    ).toThrow("site.theme_settings_invalid");
   });
 });

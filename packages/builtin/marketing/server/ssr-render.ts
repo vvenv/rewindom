@@ -301,6 +301,16 @@ export function renderMarketingHtml(input: {
     theme.favicon_url && theme.favicon_url !== ""
       ? theme.favicon_url
       : "/favicon.svg";
+  /*
+   * apple-touch / manifest：**没设就不输出**。不要回落 favicon——那张图自带圆角，
+   * 平台再套一层遮罩会切出一圈毛边，比没有品牌图标更糟。
+   */
+  const appleTouchHtml = theme.apple_touch_icon_url
+    ? `<link rel="apple-touch-icon" href="${escapeHtml(theme.apple_touch_icon_url)}" />`
+    : "";
+  const manifestHtml = theme.maskable_icon_url
+    ? `<link rel="manifest" href="/site.webmanifest" />`
+    : "";
   // 页头 / 页脚区各是一串 section：本体走专用渲染，其余（公告条等）走通用那套
   const headerHtml = site.header
     .map((section) =>
@@ -405,6 +415,8 @@ export function renderMarketingHtml(input: {
   <title>${title}</title>
   <meta name="description" content="${description}" />
   <link rel="icon" href="${escapeHtml(faviconUrl)}" />
+  ${appleTouchHtml}
+  ${manifestHtml}
   ${robotsMeta}
   <link rel="canonical" href="${escapeHtml(canonical)}" />
   ${alternateLinks}

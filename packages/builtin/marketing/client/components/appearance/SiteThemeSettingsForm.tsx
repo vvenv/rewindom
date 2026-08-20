@@ -36,6 +36,8 @@ import { SiteColorField } from "../SiteColorField.js";
 import { SiteThemePicker } from "./SiteThemePicker.js";
 
 const FALLBACK_PRIMARY_COLOR = "#0f766e";
+/** Select 不能用空字符串当 value；这个哨兵在落库时写成 null，渲染期回落正文字体。 */
+const BRAND_FONT_FOLLOW_BODY = "__body__";
 
 /**
  * 站点主题的字段面板：主题包 + 品牌资产 + 配色 + 版式。
@@ -212,6 +214,56 @@ export function SiteThemeSettingsForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              {THEME_FONT_GROUPS.map((group) => (
+                <SelectGroup key={group.id}>
+                  <SelectLabel>{t(`editor.fontGroup.${group.id}`)}</SelectLabel>
+                  {group.families.map((family) => (
+                    <SelectItem
+                      key={family}
+                      value={family}
+                      style={{ fontFamily: themeFontCss(family) }}
+                    >
+                      {t(`editor.font.${family}`)}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="site_brand_font_family">
+            {t("editor.fieldBrandFontFamily")}
+            <FieldInfoTip text={t("editor.fieldBrandFontFamilyHint")} />
+          </FieldLabel>
+          <Select
+            disabled={!canWrite}
+            value={theme.brand_font_family ?? BRAND_FONT_FOLLOW_BODY}
+            onValueChange={(next) =>
+              patch({
+                brand_font_family:
+                  next === BRAND_FONT_FOLLOW_BODY
+                    ? null
+                    : (next as ThemeFontFamily),
+              })
+            }
+          >
+            <SelectTrigger
+              id="site_brand_font_family"
+              className="w-full"
+              style={{
+                fontFamily: themeFontCss(
+                  theme.brand_font_family ?? theme.font_family ?? "system",
+                ),
+              }}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={BRAND_FONT_FOLLOW_BODY}>
+                {t("editor.font.followBody")}
+              </SelectItem>
               {THEME_FONT_GROUPS.map((group) => (
                 <SelectGroup key={group.id}>
                   <SelectLabel>{t(`editor.fontGroup.${group.id}`)}</SelectLabel>

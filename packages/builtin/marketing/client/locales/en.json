@@ -460,6 +460,8 @@
     "richtextFullscreenHint": "Markdown supported, with a live preview on the right. Edits apply instantly but still need saving from the editor toolbar.",
     "fieldFontFamily": "Font",
     "fieldFontFamilyHint": "Latin webfonts are self-hosted. Chinese still uses the visitor's system font.",
+    "fieldBrandFontFamily": "Wordmark font",
+    "fieldBrandFontFamilyHint": "The brand name in the header and footer. Leave as “same as body” to follow the page font.",
     "group": {
       "content": "Content",
       "buttons": "Buttons",
@@ -536,7 +538,8 @@
       "chrome_divider": "The hairline on the side facing the page content (below a header, above a footer). Usually turned off once the bar has a dark background.",
       "chrome_spacing_above": "Gap between the page content and the footer.",
       "chrome_blurb": "One-line blurb under the brand. Usually left empty in a header.",
-      "brand_text": "The brand name shown next to the logo. Leave empty to follow the site name — which also serves as the title in search results, and is usually longer."
+      "brand_text": "The brand name shown next to the logo. Leave empty to follow the site name — which also serves as the title in search results, and is usually longer.",
+      "brand_text_case": "Uppercase is a typesetting choice, not a rename — the stored wordmark and the site name used in search titles stay as written. Letter-spacing is applied with uppercase and omitted otherwise."
     },
     "unit": {
       "columns": "cols",
@@ -615,6 +618,7 @@
       "show_page_header": "Show page title",
       "sticky": "Stick to top on scroll",
       "brand_text": "Wordmark",
+      "brand_text_case": "Wordmark case",
       "blurb": "Blurb",
       "padding_top": "Top padding",
       "padding_right": "Right padding",
@@ -746,9 +750,14 @@
       "chrome_nav_display": {
         "inline": "Inline",
         "column": "Stacked"
+      },
+      "brand_text_case": {
+        "normal": "As written",
+        "upper": "Uppercase"
       }
     },
     "font": {
+      "followBody": "Same as body",
       "system": "System sans",
       "serif": "Serif",
       "mono": "Monospace",

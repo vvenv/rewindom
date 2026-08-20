@@ -12,7 +12,7 @@
 
 | 面           | 路由                                                                  | 目录                                         | 守卫                                           |
 | ------------ | --------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
-| 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt`、`/llms.txt` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
+| 公开（SSR）  | `/`、`/:slug`、嵌套路径（及 `/{locale}/…`）、`/sitemap.xml`、`/robots.txt`、`/llms.txt`、`/site.webmanifest` | `server/ssr.routes.ts` + `client/enhance/`   | Host 绑定（含主域→default）+ 站点已发布        |
 | 租户中台     | `/app/site`、`/app/site/editor`（`?page=` 区块树；`?scope=theme` 外观，从卡片进入）；站点设置为官网卡片上的 Sheet | `client/tenant/` + `client/pages/site-*.tsx` | entitlement `tenant-marketing` + `site.read` |
 
 挂载点：`server.registerRoutes`（SSR + 公开 API）+ `client.renderRoutes`（CMS / 编辑器）。
@@ -201,7 +201,7 @@ registerInterpolationTokens([
 
 | type              | settings                                    |
 | ----------------- | ------------------------------------------- |
-| `chrome_brand`    | show_logo, show_site_name, brand_text, blurb |
+| `chrome_brand`    | show_logo, show_site_name, brand_text, text_case(normal\|upper), blurb |
 | `chrome_nav`      | title, items, display(inline\|column)       |
 | `chrome_text`     | text（`{year}` / `{site}` / `{tagline}` / `{hostname}` / `{url}`） |
 | `chrome_button`   | label, href, variant                        |
@@ -219,6 +219,13 @@ registerInterpolationTokens([
 那条长句子该给搜索引擎，不该顶在 logo 旁边。**不要**为了页头好看去缩短站名。
 
 `brand_text` 是文案类设置，逐语言填写走 `__i18n`，与站名一样。
+
+全大写走 CSS `text-transform`（`text_case: upper`），**不改存进去的值**：站名同时喂
+`<title>` 与 `og:site_name`，存成大写会把它们一起污染。字距跟着大小写开关走，不单开
+设置位。
+
+字标字体是站点主题上的 `brand_font_family`（外观面板），不是块设置：留空回落
+`font_family`。正文按可读性选、字标按识别度选，两款可以不同。
 
 显示字标时 logo 的 `alt` 是空串：同一个 `<a>` 里已经有一份可读的品牌名，再给图片一个
 同名 alt 只会让读屏念两遍；只有关掉字标时 `alt` 才承担品牌名。
@@ -1073,7 +1080,7 @@ site-docs 登记，会员页由 site-member 登记。文案在创建时展开成
 
 ### 站点主题的归属
 
-**站点主题**（Logo / Favicon / 分享图 / 配色 / 字体 / 页宽 / 区块间距）在官网卡片的
+**站点主题**（Logo / Favicon / 分享图 / 配色 / 正文字体 / 字标字体 / 页宽 / 区块间距）在官网卡片的
 **「外观」**（`/app/site/editor?scope=theme`），与「站点设置」并列。中台那边**没有**品牌页了。
 
 历史上分过两次家又合回来：先是借 `platform` 的 `settingsBrandingExtraSlot` 把主题字段
@@ -1103,8 +1110,8 @@ site-docs 登记，会员页由 site-member 登记。文案在创建时展开成
 **字体**是精选目录（`shared/theme-fonts.ts`），不是任意 `font-family`。`system` / `serif` /
 `mono` 是系统栈（零请求）；其余是自托管西文 variable 切片（latin + latin-ext，OFL），
 中文回落系统字体。默认文件在 `apps/client/public/assets/site-fonts/`，走 nginx 已有的
-`/assets/`（同源，无 CORS）。SSR 与预览只在选中 webfont 时注入对应 `@font-face`。
-改目录或升级 `@fontsource-variable/*` 后跑
+`/assets/`（同源，无 CORS）。SSR 与预览只在选中 webfont 时注入对应 `@font-face`；正文与字标各选一款时去重后拼在一起，
+同一款不会吐两遍。改目录或升级 `@fontsource-variable/*` 后跑
 `pnpm --filter @rewindom/builtin assemble:site-fonts`。
 
 生产若要把切片放到对象存储（备份、或以后给中文大文件用）：跑
@@ -1116,6 +1123,14 @@ site-docs 登记，会员页由 site-member 登记。文案在创建时展开成
 **Favicon 必须显式输出**：SSR 的 `<head>` 无条件写 `<link rel="icon">`，站点没填就指向产品
 默认 `/favicon.svg`。不写这一行时浏览器会去猜 `/favicon.ico`，官网这个路径上没有东西，
 结果是标签页挂一个空白图标。
+
+**apple-touch-icon 与 manifest 没设就不输出**。三类场景的容器处理不一样：favicon 自带圆角
+（没有平台遮罩）；apple-touch / maskable 必须满幅无圆角（平台自己套遮罩）。拿 favicon
+顶替会被二次裁切成一圈毛边。字段目前没有编辑器 UI，由品牌脚本写入
+`theme_settings.apple_touch_icon_url` / `maskable_icon_url`。
+
+`/site.webmanifest` 按租户现场拼（名字取 `site_name`、主题色取 `primary_color`），挂在
+`/*` catch-all 之前，缓存跟着页面走（`max-age=60`），不要长缓存。
 
 API：
 
@@ -1254,6 +1269,7 @@ URL 都会先规范化再查。来源写成 `/en/old` 或 `/old/` 与 `/old` 是
 | meta description | 页面设置的描述（同一套插值），否则首页 tagline、内页 `{标题} — {tagline}` | 禁止多页共用一句光秃 tagline |
 | 首页 h1 | 不注入 | 页头品牌始终是链接；正文标题由 hero / page-header 段自己出 |
 | `/llms.txt` | 现场拼 | 站点名 + 标语 + 链到 sitemap，和 robots.txt 一样是站点级 |
+| `/site.webmanifest` | 现场拼 | 名字取 `site_name`、主题色取 `primary_color`；图标只放 maskable，不回落 favicon |
 | HSTS | SSR `onRequest` + 宿主机 nginx | 只在 https origin 上发；nginx 每次部署幂等补（certbot 写的 443 块自己不会带） |
 
 og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:description 与 meta description 同源。
