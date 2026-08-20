@@ -1,0 +1,35 @@
+.fg .card {
+  padding: 1.5rem;
+  border-radius: calc(var(--radius) + 0.25rem);
+  background: var(--surface);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+.fg .card.card-plain {
+  background: transparent;
+  padding: 0.75rem 0;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .fg .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--fg) 8%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  }
+  .fg .card.card-plain:hover {
+    box-shadow: none;
+    transform: none;
+  }
+}
+.fg a.card {
+  color: inherit;
+}
+.fg .card .title {
+  font-size: 1.0625rem;
+  letter-spacing: -0.02em;
+}
+.fg .card .muted {
+  margin-top: 0.5rem;
+  line-height: 1.65;
+}

@@ -5,6 +5,10 @@ import {
 
 import { DEFAULT_HOME_LAYOUT_KEY, registerHomeLayout } from "./home-layouts.js";
 import {
+  LANDING_HOME_LAYOUT_KEY,
+  LANDING_HOME_PRESET,
+} from "./landing-preset.js";
+import {
   NOT_FOUND_PAGE_KIND,
   NOT_FOUND_TEMPLATE_SLUG,
   registerPageTemplatePreset,
@@ -61,6 +65,12 @@ registerHomeLayout({
   label: "marketing:preset.home.layoutLabel",
   description: "marketing:preset.home.layoutDescription",
   preset: HOME_STARTER_PRESET,
+});
+registerHomeLayout({
+  key: LANDING_HOME_LAYOUT_KEY,
+  label: "marketing:preset.landing.layoutLabel",
+  description: "marketing:preset.landing.layoutDescription",
+  preset: LANDING_HOME_PRESET,
 });
 
 /**

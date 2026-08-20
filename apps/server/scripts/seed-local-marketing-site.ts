@@ -2,13 +2,18 @@
 /**
  * 为指定租户铺一套已发布的营销站。
  *
- * - slug=`rewindom`（`DEFAULT_TENANT_SLUG`，产品主域）：Rewindom 产品官网终稿（首页，中英）+ 使用说明文档库
+ * - slug=`rewindom`（`DEFAULT_TENANT_SLUG`，产品主域）：Rewindom 产品官网终稿（首页，中英）+ 使用说明文档库 + 品牌资产
  * - 其它租户：通用 default starter（仅首页占位）+ 可选文档库
  *
- * 幂等：反复执行会覆盖模板页内容并重新发布。
+ * 幂等：反复执行会覆盖模板页内容并重新发布。产品站会再跑一次
+ * `apply-rewindom-brand.ts`，避免 `theme_settings` 整列覆盖把 logo 抹掉。
  *
  *   pnpm --filter server exec tsx scripts/seed-local-marketing-site.ts [tenantSlug]
  */
+import { spawnSync } from "node:child_process";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { applyDefaultProductSite } from "@rewindom/builtin/marketing/server/apply-default-product-site.js";
 import { initializeTenantSite } from "@rewindom/builtin/marketing/server/site-init.service.js";
 import { updateSite } from "@rewindom/builtin/marketing/server/site.service.js";
@@ -16,11 +21,29 @@ import { ensureDefaultTenant } from "@rewindom/builtin/platform/server/services/
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 
-
 import { loadUsageDocs } from "../../../modules/site-docs/server/load-usage-docs.js";
 import { seedDocsFromFiles } from "../../../modules/site-docs/server/site-doc.service.js";
 import { registerDocsPageTemplates } from "../../../modules/site-docs/shared/page-templates.js";
 
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+
+function applyRewindomBrand(slug: string): void {
+  const scriptPath = join(SCRIPT_DIR, "apply-rewindom-brand.ts");
+  const result = spawnSync(
+    "pnpm",
+    ["--filter", "server", "exec", "tsx", scriptPath, "--slug", slug],
+    {
+      stdio: "inherit",
+      env: process.env,
+      cwd: join(SCRIPT_DIR, "../../.."),
+      shell: false,
+    },
+  );
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    throw new Error(`apply-rewindom-brand.ts exited with ${result.status ?? "null"}`);
+  }
+}
 
 async function main(): Promise<void> {
   registerDocsPageTemplates();
@@ -55,6 +78,7 @@ async function main(): Promise<void> {
     } else {
       console.warn("[seed-local-marketing-site] no usage docs found");
     }
+    applyRewindomBrand(slug);
     console.log(
       `[seed-local-marketing-site] published product site for tenant=${slug} pages=${page_count}`,
     );

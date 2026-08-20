@@ -11,6 +11,9 @@ import type { SettingDef, SettingValues } from "../section-settings.js";
 export const PAGE_SECTION_TYPES = [
   "page-header",
   "hero",
+  "feature-grid",
+  "steps",
+  "split",
   "page-menu",
   "prose",
   "group",

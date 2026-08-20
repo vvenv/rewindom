@@ -22,14 +22,13 @@ describe("buildDefaultProductSite", () => {
     expect(zhHome?.title).toContain("Rewindom");
     expect(zhHome?.sections.map((section) => section.type)).toEqual([
       "hero",
-      "group",
-      "prose",
-      "prose",
-      "group",
-      "group",
-      "prose",
+      "feature-grid",
+      "steps",
+      "feature-grid",
+      "split",
       "band",
     ]);
+    expect(zhHome?.sections[0]?.settings.layout).toBe("split");
     expect(zhHome?.sections[0]?.settings.headline).toContain("编码 Agent");
     expect(zhHome?.sections[0]?.settings.eyebrow).toContain("开源");
     expect(zhHome?.sections[0]?.settings.secondary_href).toBe(
@@ -44,7 +43,7 @@ describe("buildDefaultProductSite", () => {
     const showcase = zhHome?.sections.find(
       (section) => section.settings.anchor === "showcase",
     );
-    expect(showcase?.type).toBe("group");
+    expect(showcase?.type).toBe("split");
     expect(payload.pages.some((page) => page.slug === "pricing")).toBe(false);
   });
 

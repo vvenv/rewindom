@@ -1,0 +1,44 @@
+# 内置视觉积木：Theme Editor 能快速配出抓眼球的落地页
+module: marketing
+surfaces: [ssr, tenant]
+goal: 内置 feature-grid / steps / split，Hero 可左右分栏；提供可套用的落地首页版式；产品站首页改用这些段。
+gold: packages/builtin/marketing/shared/sections/hero/
+touch:
+  - packages/builtin/marketing/features/visual-page-sections.spec.yaml
+  - packages/builtin/marketing/shared/sections/types.ts
+  - packages/builtin/marketing/shared/sections/index.ts
+  - packages/builtin/marketing/shared/sections/html.ts
+  - packages/builtin/marketing/shared/sections/_common/settings.ts
+  - packages/builtin/marketing/shared/sections/_common/html.ts
+  - packages/builtin/marketing/shared/sections/_common/styles.css
+  - packages/builtin/marketing/shared/sections/hero/
+  - packages/builtin/marketing/shared/sections/feature-grid/
+  - packages/builtin/marketing/shared/sections/steps/
+  - packages/builtin/marketing/shared/sections/split/
+  - packages/builtin/marketing/client/components/sections/section-views.ts
+  - packages/builtin/marketing/client/components/sections/section-parts.tsx
+  - packages/builtin/marketing/client/components/sections/views/
+  - packages/builtin/marketing/client/components/theme-editor/section-icons.ts
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/shared/landing-preset.ts
+  - packages/builtin/marketing/shared/page-presets.ts
+  - packages/builtin/marketing/shared/home-layouts.test.ts
+  - packages/builtin/marketing/server/default-product-site-content.ts
+  - packages/builtin/marketing/server/default-product-site-content.test.ts
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/billing/shared/plans-section.ts
+  - modules/site-docs/docs/usage/zh-CN/manage-pages.md
+  - modules/site-docs/docs/usage/en/manage-pages.md
+  - modules/site-docs/server/usage-docs.generated.ts
+out_of_scope:
+  - 恢复 pricing / faq / spec-list / cards 为内置段（定价走 billing 套餐段）
+  - 为产品站生成摄影图 / OG 图
+  - 改 DEFAULT_TENANT_SLUG
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin assemble:marketing-css
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared marketing/client marketing/server shared/home-layouts.test.ts client/components/sections/section-parity.test.ts client/components/sections/section-structure.test.ts server/default-product-site-content.test.ts
+  - pnpm check:section-css
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/site-docs assemble:usage-docs

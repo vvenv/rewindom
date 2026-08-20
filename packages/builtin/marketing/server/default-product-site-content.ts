@@ -4,6 +4,8 @@
  * 与通用起步模板（`site-starters` / `page-presets` 的占位文案）分开：那些是给任意
  * 租户开局用的；这里是 Rewindom 自己的产品站，文案来自 `client/locales` 里
  * `site` / `hero` / `features` / `landing` / `seo`。
+ *
+ * 首页用视觉积木（hero 分栏、feature-grid、steps、split、band），不用 Markdown 卡片堆。
  */
 
 import { APP_DISPLAY_NAME, type AppLocale } from "@rewindom/shared";
@@ -22,6 +24,7 @@ import { findSiteTheme } from "../shared/site-themes.js";
 
 import type {
   LocalizedText,
+  SectionIconName,
   SettingValues,
 } from "../shared/section-settings.js";
 import type { UpdateMarketingSiteBody } from "../shared/site-cms.js";
@@ -37,28 +40,30 @@ const MESSAGES: Record<AppLocale, LocaleMessages> = {
 /** 产品站对外公开的语言（与 usage docs / 落地页文案对齐）。 */
 export const PRODUCT_SITE_LOCALES: readonly AppLocale[] = ["zh-CN", "en"];
 
-const CONTRAST_KEYS = ["scaffold", "micro", "lowcode"] as const;
-const SHIPPED_KEYS = ["site", "platform", "operate"] as const;
-const AGENT_FIRST_STEP_KEYS = ["spec", "gen", "check"] as const;
+const CONTRAST_ITEMS: ReadonlyArray<{
+  key: "scaffold" | "micro" | "lowcode";
+  icon: SectionIconName;
+}> = [
+  { key: "scaffold", icon: "Blocks" },
+  { key: "micro", icon: "Server" },
+  { key: "lowcode", icon: "Puzzle" },
+];
+
+const SHIPPED_ITEMS: ReadonlyArray<{
+  key: "site" | "platform" | "operate";
+  icon: SectionIconName;
+}> = [
+  { key: "site", icon: "Globe" },
+  { key: "platform", icon: "Shield" },
+  { key: "operate", icon: "LineChart" },
+];
+
+const AGENT_FIRST_STEPS = ["spec", "gen", "check"] as const;
 
 const YESTINO_HREF = "https://yestino.com";
 const GITHUB_HREF = "https://github.com/vvenv/rewindom";
 const SHOWCASE_ANCHOR = "showcase";
 
-/** 分栏里的卡片：底、边、圆角都走段外观，不另造一种 section。 */
-const CARD_SURFACE = {
-  padding_top: 28,
-  padding_right: 24,
-  padding_bottom: 28,
-  padding_left: 24,
-  radius: 16,
-  border_width: 1,
-} as const;
-
-/**
- * 首页内容区段的上下留白。段与段之间仍走主题 `section_spacing`；
- * schema 默认 padding 为 0，叠在一起会挤成一团。
- */
 const PAGE_SECTION_PADDING = {
   padding_top: 48,
   padding_bottom: 48,
@@ -123,46 +128,6 @@ function section(
   };
 }
 
-function column(children: SiteSection[]): SiteBlock {
-  const block = createBlock("group", "column");
-  return { ...block, sections: children };
-}
-
-function threeColumnGroup(
-  columns: SiteSection[],
-  extra: SettingValues = {},
-): SiteSection {
-  return section(
-    "group",
-    {
-      columns_layout: "4:4:4",
-      column_gap: 32,
-      align_items: "stretch",
-      ...PAGE_SECTION_PADDING,
-      ...extra,
-    },
-    columns.map((child) => column([child])),
-  );
-}
-
-function twoColumnGroup(
-  left: SiteSection,
-  right: SiteSection,
-  extra: SettingValues = {},
-): SiteSection {
-  return section(
-    "group",
-    {
-      columns_layout: "7:5",
-      column_gap: 32,
-      align_items: "stretch",
-      ...PAGE_SECTION_PADDING,
-      ...extra,
-    },
-    [column([left]), column([right])],
-  );
-}
-
 function githubButton(
   area: "header" | "footer",
   extra: SettingValues = {},
@@ -193,10 +158,6 @@ function buildChrome(): Pick<
       section_spacing: 40,
       logo_url: null,
     } satisfies ThemeSettings,
-    /*
-     * 页头在默认块之后加 GitHub；页脚版权行旁同样挂仓库入口。
-     * 版权文本仍走 definition 默认 `© {year} {site}`，不烤死年份。
-     */
     header: [
       {
         ...header,
@@ -210,78 +171,6 @@ function buildChrome(): Pick<
       },
     ],
   };
-}
-
-function contrastCard(locale: AppLocale, key: (typeof CONTRAST_KEYS)[number]): SiteSection {
-  return section("prose", {
-    body_md: `### ${t(locale, `features.${key}.title`)}\n\n${t(locale, `features.${key}.description`)}`,
-    ...CARD_SURFACE,
-  });
-}
-
-function shippedCard(
-  locale: AppLocale,
-  key: (typeof SHIPPED_KEYS)[number],
-): SiteSection {
-  return section("prose", {
-    body_md: `### ${t(locale, `landing.shipped.${key}.title`)}\n\n${t(locale, `landing.shipped.${key}.body`)}`,
-    ...CARD_SURFACE,
-  });
-}
-
-function buildAgentFirstMarkdown(locale: AppLocale): string {
-  const lines = [
-    `## ${t(locale, "landing.agentFirst.title")}`,
-    "",
-    t(locale, "landing.agentFirst.description"),
-    "",
-  ];
-  AGENT_FIRST_STEP_KEYS.forEach((key, index) => {
-    lines.push(
-      `${index + 1}. **${t(locale, `landing.agentFirst.steps.${key}.title`)}** — ${t(locale, `landing.agentFirst.steps.${key}.description`)}`,
-    );
-  });
-  lines.push(
-    "",
-    `[${t(locale, "landing.agentFirst.readMore")}](/docs/modular-architecture)`,
-  );
-  return lines.join("\n").trim();
-}
-
-function buildShippedIntro(locale: AppLocale): string {
-  return [
-    `## ${t(locale, "landing.shipped.title")}`,
-    "",
-    t(locale, "landing.shipped.description"),
-  ].join("\n");
-}
-
-function buildTechStackMarkdown(locale: AppLocale): string {
-  return [
-    `## ${t(locale, "landing.techStack.title")}`,
-    "",
-    t(locale, "landing.techStack.description"),
-    "",
-    `[${t(locale, "landing.techStack.readDocs")}](/docs)`,
-  ].join("\n");
-}
-
-function buildShowcaseCopy(locale: AppLocale): string {
-  return [
-    `## ${t(locale, "landing.showcase.title")}`,
-    "",
-    t(locale, "landing.showcase.body"),
-    "",
-    `[${t(locale, "landing.showcase.cta")}](${YESTINO_HREF})`,
-  ].join("\n");
-}
-
-function buildShowcasePanel(locale: AppLocale): string {
-  return [
-    `### ${t(locale, "landing.showcase.panelTitle")}`,
-    "",
-    t(locale, "landing.showcase.panelBody"),
-  ].join("\n");
 }
 
 function buildHomeSections(locale: AppLocale): SiteSection[] {
@@ -304,42 +193,71 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
         secondary_label: t(locale, "hero.secondaryCta"),
         secondary_href: GITHUB_HREF,
         align: "left",
+        layout: "split",
         show_glow: true,
       },
       heroStats,
     ),
-    threeColumnGroup(
-      CONTRAST_KEYS.map((key) => contrastCard(locale, key)),
+    section(
+      "feature-grid",
+      {
+        heading: t(locale, "features.heading"),
+        columns: 3,
+        card_style: "bordered",
+        show_icons: true,
+        ...PAGE_SECTION_PADDING,
+      },
+      CONTRAST_ITEMS.map((item) =>
+        createBlock("feature-grid", "feature", {
+          icon: item.icon,
+          title: t(locale, `features.${item.key}.title`),
+          body: t(locale, `features.${item.key}.description`),
+        }),
+      ),
     ),
-    section("prose", {
-      body_md: buildAgentFirstMarkdown(locale),
-      anchor: "agent-first",
-      ...PAGE_SECTION_PADDING,
-    }),
-    section("prose", {
-      body_md: buildShippedIntro(locale),
-      anchor: "shipped",
-      padding_top: 48,
-      padding_bottom: 16,
-    }),
-    threeColumnGroup(
-      SHIPPED_KEYS.map((key) => shippedCard(locale, key)),
-      { padding_top: 0, padding_bottom: 48 },
+    section(
+      "steps",
+      {
+        heading: t(locale, "landing.agentFirst.title"),
+        subheading: t(locale, "landing.agentFirst.description"),
+        show_number: true,
+        anchor: "agent-first",
+        ...PAGE_SECTION_PADDING,
+      },
+      AGENT_FIRST_STEPS.map((key) =>
+        createBlock("steps", "step", {
+          title: t(locale, `landing.agentFirst.steps.${key}.title`),
+          body: t(locale, `landing.agentFirst.steps.${key}.description`),
+        }),
+      ),
     ),
-    twoColumnGroup(
-      section("prose", {
-        body_md: buildShowcaseCopy(locale),
-        ...CARD_SURFACE,
-      }),
-      section("prose", {
-        body_md: buildShowcasePanel(locale),
-        ...CARD_SURFACE,
-        bg_color: "#0369a114",
-      }),
-      { anchor: SHOWCASE_ANCHOR },
+    section(
+      "feature-grid",
+      {
+        heading: t(locale, "landing.shipped.title"),
+        subheading: t(locale, "landing.shipped.description"),
+        columns: 3,
+        card_style: "bordered",
+        show_icons: true,
+        anchor: "shipped",
+        ...PAGE_SECTION_PADDING,
+      },
+      SHIPPED_ITEMS.map((item) =>
+        createBlock("feature-grid", "feature", {
+          icon: item.icon,
+          title: t(locale, `landing.shipped.${item.key}.title`),
+          body: t(locale, `landing.shipped.${item.key}.body`),
+        }),
+      ),
     ),
-    section("prose", {
-      body_md: buildTechStackMarkdown(locale),
+    section("split", {
+      heading: t(locale, "landing.showcase.title"),
+      body: t(locale, "landing.showcase.body"),
+      panel_md: `### ${t(locale, "landing.showcase.panelTitle")}\n\n${t(locale, "landing.showcase.panelBody")}`,
+      primary_label: t(locale, "landing.showcase.cta"),
+      primary_href: YESTINO_HREF,
+      media_side: "right",
+      anchor: SHOWCASE_ANCHOR,
       ...PAGE_SECTION_PADDING,
     }),
     section("band", {

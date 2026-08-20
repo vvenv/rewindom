@@ -26,12 +26,15 @@ import {
 } from "../section-schema.js";
 
 import { renderBandHtml } from "./band/html.js";
+import { renderFeatureGridHtml } from "./feature-grid/html.js";
 import { renderGroupHtml } from "./group/html.js";
 import { renderHeroHtml } from "./hero/html.js";
 import { renderPageHeaderHtml } from "./page-header/html.js";
 import { renderPageMenuHtml } from "./page-menu/html.js";
 import { renderPageMissingSectionHtml } from "./page-missing/html.js";
 import { renderProseHtml } from "./prose/html.js";
+import { renderSplitHtml } from "./split/html.js";
+import { renderStepsHtml } from "./steps/html.js";
 
 import type {
   SectionHtmlRenderer,
@@ -75,6 +78,9 @@ export function registerSiteSectionHtml(
  */
 export const SECTION_HTML: Partial<Record<SectionType, SectionHtmlRenderer>> = {
   hero: renderHeroHtml,
+  "feature-grid": renderFeatureGridHtml,
+  steps: renderStepsHtml,
+  split: renderSplitHtml,
   "page-missing": renderPageMissingSectionHtml,
   "page-menu": renderPageMenuHtml,
   band: renderBandHtml,

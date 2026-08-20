@@ -39,6 +39,7 @@
     }
   },
   "features": {
+    "heading": "None of those three",
     "scaffold": {
       "title": "Not a scaffold dump",
       "description": "Agent-written code lands in the repo and passes gates. No throwaway skeleton you regenerate and discard."
@@ -510,6 +511,10 @@
       "code": "Rendered as monospace code, e.g. a shell command.",
       "padding": "Desktop value; scaled down on narrow screens",
       "anchor": "Leave blank for none. With \"pricing\", link here via /#pricing",
+      "hero_layout": "Split layout puts media on the right (or left). With no image, a decorative panel holds the composition.",
+      "hero_image": "Shown only in split layout. Leave empty for a decorative panel — you do not need a photo first.",
+      "split_image": "Uses the image when set; otherwise the highlight card; otherwise a decorative panel.",
+      "split_panel": "Markdown shown on the media side when there is no image. Use it for case points, a quote, or a capability list.",
       "content_width": "Full bleed + unconstrained gives edge-to-edge media; colored bands usually keep content at page width.",
       "spacing": "Distance to the neighbouring section; “Inherit” follows the site-wide section spacing.",
       "doc_category_filter": "Category key (e.g. getting-started); leave empty to list all.",
@@ -606,6 +611,10 @@
       "stat_term": "Stat name",
       "stat_detail": "Stat detail",
       "icon": "Icon",
+      "image": "Image",
+      "image_alt": "Image alt text",
+      "media_side": "Media side",
+      "panel_md": "Highlight card (Markdown)",
       "code": "Command / code",
       "page_missing_code": "Status code",
       "term": "Term",
@@ -711,6 +720,10 @@
         "split": "Split",
         "stacked": "Stacked"
       },
+      "media_side": {
+        "right": "Right",
+        "left": "Left"
+      },
       "background": {
         "none": "None",
         "muted": "Subtle",
@@ -794,6 +807,9 @@
       "header": "Header",
       "footer": "Footer",
       "hero": "Hero",
+      "feature-grid": "Feature grid",
+      "steps": "Steps",
+      "split": "Split",
       "page-menu": "Page menu",
       "prose": "Rich text",
       "doc-list": "Doc list",
@@ -962,6 +978,12 @@
       "layoutDescription": "No sections — start from a blank page.",
       "title": "Home",
       "description": "The site home page."
+    },
+    "landing": {
+      "layoutLabel": "Landing home",
+      "layoutDescription": "Split hero, feature grid, steps, split media, and a closing CTA. Swap copy and images after applying.",
+      "title": "Home",
+      "description": "Put the product claim, selling points, and call to action on the home page."
     },
     "not_found": {
       "label": "Not found",
@@ -1178,6 +1200,55 @@
     "hero": {
       "headline": "Welcome",
       "statTerm": "Term"
+    },
+    "features": {
+      "heading": "Why us",
+      "itemTitle": "Feature",
+      "itemBody": "One sentence on why this matters to a visitor."
+    },
+    "steps": {
+      "heading": "How to start",
+      "itemTitle": "Step",
+      "itemBody": "What the visitor completes in this step."
+    },
+    "split": {
+      "heading": "Put the point on this side",
+      "body": "The other side holds an image or a highlight list. With no image, the card still holds the layout.",
+      "panel": "### You can write\n\n- Case points\n- A capability list\n- A short quote"
+    },
+    "landing": {
+      "hero": {
+        "eyebrow": "New product",
+        "headline": "Say what you solve in one line",
+        "subhead": "The subhead is for scanners: who it is for, what you promise, why now.",
+        "primary_label": "Get started",
+        "stat1": { "term": "Speed", "detail": "A home page in minutes" },
+        "stat2": { "term": "Layout", "detail": "Grid, steps, split media" },
+        "stat3": { "term": "Publish", "detail": "Draft first, then go live" }
+      },
+      "features": {
+        "heading": "Three things a visitor can catch at a glance",
+        "item1": { "title": "A clear claim", "body": "A split hero puts the line and a visual together. You do not need a photo first." },
+        "item2": { "title": "Grouped selling points", "body": "The feature grid ships with icons and cards. Three sentences beat a Markdown dump." },
+        "item3": { "title": "A readable path", "body": "Steps number the onboarding or delivery path so it scans." }
+      },
+      "steps": {
+        "heading": "Three steps to a page",
+        "item1": { "title": "Apply a layout", "body": "In site settings, switch the home page to Landing home." },
+        "item2": { "title": "Edit copy", "body": "Open the editor and change headlines, features, and steps in place." },
+        "item3": { "title": "Publish", "body": "Preview, then publish. Drafts stay off the public site." }
+      },
+      "split": {
+        "heading": "Story on one side, proof on the other",
+        "body": "Use it for a case, a screenshot, or a capability list. With no image, the highlight card keeps the layout from collapsing.",
+        "panel": "### This side can be\n\n- A product screenshot\n- Case points\n- A line of social proof",
+        "primary_label": "Learn more"
+      },
+      "band": {
+        "headline": "Next step",
+        "body": "Point the primary button at the action you want visitors to take.",
+        "primary_label": "Get started"
+      }
     },
     "band": {
       "headline": "Headline"

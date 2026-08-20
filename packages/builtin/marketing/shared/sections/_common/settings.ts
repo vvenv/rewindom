@@ -12,6 +12,18 @@ export const ALIGN_OPTIONS = [
   { value: "center", label: "editor.option.align.center" },
 ] as const;
 
+/** 首屏 / 图文段：上下堆叠，或左右分栏。 */
+export const LAYOUT_OPTIONS = [
+  { value: "stacked", label: "editor.option.layout.stacked" },
+  { value: "split", label: "editor.option.layout.split" },
+] as const;
+
+/** 分栏时媒体在哪一侧。 */
+export const MEDIA_SIDE_OPTIONS = [
+  { value: "right", label: "editor.option.media_side.right" },
+  { value: "left", label: "editor.option.media_side.left" },
+] as const;
+
 /**
  * 宽度拆成两个正交维度，覆盖 Shopify / Webflow 那几种真实排版：
  *

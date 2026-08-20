@@ -39,6 +39,7 @@
     }
   },
   "features": {
+    "heading": "不是那三种东西",
     "scaffold": {
       "title": "不是脚手架喷发器",
       "description": "Agent 写的代码进仓库、过闸门。没有「生成完就扔掉」的一次性骨架。"
@@ -510,6 +511,10 @@
       "code": "显示为等宽代码，例如命令行。",
       "padding": "桌面端数值；窄屏自动按比例收窄",
       "anchor": "留空则不生成；填 pricing 后可用 /#pricing 链到此区块",
+      "hero_layout": "左右分栏时右侧（或左侧）放图；没上传图片会用装饰底撑住版式。",
+      "hero_image": "仅「左右分栏」时显示。留空则用装饰底，不必先上传图。",
+      "split_image": "有图用图；没图则显示下方强调卡，再没有就用装饰底。",
+      "split_panel": "没上传图片时显示在媒体侧的 Markdown。适合案例要点、引用或能力清单。",
       "content_width": "「通栏」+「不限宽」可做满屏大图；通栏色带一般配「跟随页宽」。",
       "spacing": "与相邻区块之间的距离；「继承」跟随站点的区块间距。",
       "doc_category_filter": "填分类标识（如 getting-started）；留空列出全部。",
@@ -606,6 +611,10 @@
       "stat_term": "指标名",
       "stat_detail": "指标说明",
       "icon": "图标",
+      "image": "图片",
+      "image_alt": "图片替代文字",
+      "media_side": "媒体位置",
+      "panel_md": "强调卡（Markdown）",
       "code": "命令 / 代码",
       "page_missing_code": "状态码",
       "term": "名称",
@@ -711,6 +720,10 @@
         "split": "左右分栏",
         "stacked": "上下堆叠"
       },
+      "media_side": {
+        "right": "右侧",
+        "left": "左侧"
+      },
       "background": {
         "none": "无",
         "muted": "浅灰",
@@ -794,6 +807,9 @@
       "header": "页头",
       "footer": "页脚",
       "hero": "首屏 Hero",
+      "feature-grid": "特性网格",
+      "steps": "步骤",
+      "split": "图文分栏",
       "page-menu": "页面菜单",
       "prose": "富文本",
       "doc-list": "文档列表",
@@ -962,6 +978,12 @@
       "layoutDescription": "没有预设区块，从空白开始。",
       "title": "首页",
       "description": "站点首页。"
+    },
+    "landing": {
+      "layoutLabel": "落地首页",
+      "layoutDescription": "首屏分栏、卖点网格、步骤、图文分栏和收尾 CTA。套用后改文案和图即可。",
+      "title": "首页",
+      "description": "把产品主张、卖点和行动号召铺在首页上。"
     },
     "not_found": {
       "label": "找不到的页面",
@@ -1178,6 +1200,55 @@
     "hero": {
       "headline": "欢迎",
       "statTerm": "指标"
+    },
+    "features": {
+      "heading": "为什么选我们",
+      "itemTitle": "特性",
+      "itemBody": "用一句话说清这件事对访客的价值。"
+    },
+    "steps": {
+      "heading": "怎么开始",
+      "itemTitle": "步骤",
+      "itemBody": "这一步访客要完成什么。"
+    },
+    "split": {
+      "heading": "把重点放在这一侧",
+      "body": "另一侧放图片或要点清单。没有图时强调卡会自动撑住版式。",
+      "panel": "### 你可以写\n\n- 案例要点\n- 能力清单\n- 一句引用"
+    },
+    "landing": {
+      "hero": {
+        "eyebrow": "新产品",
+        "headline": "用一句话说清你解决什么问题",
+        "subhead": "副标题写给扫一眼的人：他们是谁、你承诺什么、为什么现在。",
+        "primary_label": "开始使用",
+        "stat1": { "term": "速度", "detail": "几分钟就能配出首页" },
+        "stat2": { "term": "版式", "detail": "网格、步骤、图文分栏" },
+        "stat3": { "term": "发布", "detail": "草稿确认后再上线" }
+      },
+      "features": {
+        "heading": "访客扫一眼就能抓住的三件事",
+        "item1": { "title": "主张清晰", "body": "首屏分栏把一句话主张和视觉放在一起，不必先准备摄影图。" },
+        "item2": { "title": "卖点成组", "body": "特性网格自带图标和卡片，改三句话就比贴 Markdown 好看。" },
+        "item3": { "title": "流程可读", "body": "步骤段把上手路径排成编号，适合 onboarding 或交付节奏。" }
+      },
+      "steps": {
+        "heading": "三步配出一页",
+        "item1": { "title": "套用版式", "body": "站点设置里把首页换成「落地首页」。" },
+        "item2": { "title": "改文案", "body": "标题、卖点、步骤都在编辑器里点开即改。" },
+        "item3": { "title": "发布", "body": "预览满意后再发布，半成品不会出现在公开站。" }
+      },
+      "split": {
+        "heading": "一侧讲故事，一侧给证据",
+        "body": "适合案例、产品截图或能力清单。没图就用强调卡，版式不会塌。",
+        "panel": "### 这一侧可以是\n\n- 产品截图\n- 案例要点\n- 一句社会证明",
+        "primary_label": "了解更多"
+      },
+      "band": {
+        "headline": "下一步",
+        "body": "主按钮指向你最想让访客做的那件事。",
+        "primary_label": "开始"
+      }
     },
     "band": {
       "headline": "标题"

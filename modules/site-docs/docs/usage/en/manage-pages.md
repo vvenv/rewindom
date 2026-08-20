@@ -13,19 +13,17 @@ Every page is a sequence of sections. This is how to arrange them.
 | -------------- | ------------ | ----------------------------------- |
 | `header`       | Header       | Site-level, shared by every page    |
 | `footer`       | Footer       | Site-level, shared by every page    |
-| `hero`         | Hero         | Opening statement plus main button  |
+| `hero`         | Hero         | Opening claim and buttons; optional split |
 | `page-header`  | Page title   | Title block for inner pages         |
-| `feature-grid` | Feature grid | Grid of selling points with icons   |
-| `cards`        | Cards        | A group of content cards            |
+| `feature-grid` | Feature grid | Icon cards for selling points       |
 | `steps`        | Steps        | An ordered process                  |
-| `spec-list`    | Spec list    | Key/value specifications            |
-| `pricing`      | Pricing      | Pricing table                       |
-| `faq`          | FAQ          | Collapsible questions               |
+| `split`        | Split        | Copy on one side, image or highlight card on the other |
 | `band`         | CTA band     | One full-width call to action       |
 | `prose`        | Rich text    | Write Markdown directly             |
 | `site-form.form` | Form       | Collect leads; submissions are stored |
 | `page-menu`    | Page menu    | Page-level table of contents        |
 | `group`        | Columns      | A container that puts sections side by side |
+| `billing.plans` | Plans      | Platform plans (data from plan config) |
 | `site-docs.list`    | Doc list     | Documentation index                 |
 | `site-docs.nav`     | Doc navigation | Sidebar list of documents         |
 | `site-docs.toc`     | On this page | Headings of the current document    |

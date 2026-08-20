@@ -449,7 +449,7 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 就是公告条，prose 摆进页脚就是备案号，不另造类型。`group`（分栏）另外放行页脚区：
 多栏页脚是布局问题，用同一个布局原语解，不在页脚 schema 里再长一套列宽字段。
 
-内置段只保留**通用积木**（首屏、富文本、分栏、CTA、页面菜单）。表单、文档库、店面等业务段由模块贡献。
+内置段是**通用视觉积木**（首屏、卖点网格、步骤、图文分栏、富文本、分栏、CTA、页面菜单）。表单、文档库、店面、套餐等业务段由模块贡献。
 ### 贡献段要按请求查库：`registerSectionContextProvider`
 
 `SectionRenderContext.contributed` 一直都有，但只有**模块自有的 SSR 路由**填得上
@@ -470,13 +470,14 @@ section type，通用 SSR 路由在渲染前按**页面实际用到的段**调�
 不带就会出现「编辑 en 页面、预览里却是中文标题」。服务端对应路由用「显式 `locale`
 优先于 `resolveRequestLocale`」取值，金标准 `modules/shop/server/lib/request-locale.ts`。
 
-曾经的 `feature-grid` / `steps` / `spec-list` / `cards` / `pricing` / `faq` 等营销专用版式
-已移除——卖点网格、步骤、定价表、FAQ 等用 `prose`（Markdown）或 `group` 分栏组合即可；
-存量页面里若仍引用已删 type，读路径会落成 `unsupported` 占位（见下）。
+定价表、FAQ 这类**带业务数据**的版式由模块贡献（billing 的套餐段、site-form 的表单）。卖点网格、步骤、图文分栏是排版积木，内置在 marketing，Theme Editor 可直接加。
 
 | type           | settings                                                               | blocks                                                                                  |
 | -------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `hero`         | eyebrow, headline\*, subhead, align, show_glow, primary/secondary 按钮 | `stat`{term\*, detail}，最多 4                                                          |
+| `hero`         | eyebrow, headline\*, subhead, align, layout(stacked\|split), image, media_side, show_glow, primary/secondary 按钮 | `stat`{term\*, detail}，最多 4                                                          |
+| `feature-grid` | 抬头, card_style, show_icons, columns(2–4)                             | `feature`{icon, title\*, body, href}，最多 12；新建预置 3 张                             |
+| `steps`        | 抬头, show_number                                                      | `step`{title\*, body}，最多 6；新建预置 3 步                                            |
+| `split`        | 抬头, body, image, panel_md, media_side, primary/secondary 按钮        | —（无图时用强调卡，再没有用装饰底）                                                     |
 | `page-header`  | 无内容页签。显示文案 = 页面 meta 的 title/description；版式页签：show_header、align、通用 `layoutSettings`（默认上 48 / 下 24 px） | —                                                                                       |
 | `page-menu`    | 抬头, source(children\|siblings), style(list\|cards), columns          | —（动态菜单：父页 children / 子页 siblings；条目来自已发布 `site.pages`）               |
 | `form`         | 抬头, submit_label\*, success_message                                  | `field`{label\*, type, placeholder, required, options, validation…}，最多 16            |
@@ -780,8 +781,9 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 #### 业务模块贡献首页版式
 
 首页只有一张（`kind: home`，路径 `/`）。marketing 内核的 `marketing.default` 是空白槽位，
-不预填段。模块可以再登记一套**首页版式**，让租户把站点根换成自己的内容结构（例如
-事件雷达的升温 + 正在发生）。设置里和「把另一张页占据 /」合成一个下拉：选版式就套到
+不预填段。另有一套内置 **落地首页**（`marketing.landing`）：首屏分栏、卖点网格、步骤、
+图文分栏、收尾 CTA，租户在站点设置里套用后改文案即可。模块可以再登记自己的首页版式
+（例如事件雷达的升温 + 正在发生）。设置里和「把另一张页占据 /」合成一个下拉：选版式就套到
 首页模板上，并把 `home_path` 收回 `/`。贡献版式声明 `group`（与本模块模板页同一
 i18n key）后，中台常驻模板区也列出它：未套用是「套用版式」占位行，套用后首页行
 落到该组，不再同时出现在「首页」分组。内核空白首页（`marketing.default`）不进常驻

@@ -78,6 +78,10 @@
   color: var(--accent);
   margin-bottom: 0.75rem;
 }
+.card-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
 
 .spec {
   border: 1px solid var(--border);

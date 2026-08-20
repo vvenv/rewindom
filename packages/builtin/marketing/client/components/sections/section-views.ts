@@ -19,12 +19,15 @@ import {
 import { registerSectionIcon } from "../theme-editor/section-icons.js";
 
 import { BandSection } from "./views/band.js";
+import { FeatureGridSection } from "./views/feature-grid.js";
 import { GroupSection } from "./views/group.js";
 import { HeroSection } from "./views/hero.js";
 import { PageHeaderSection } from "./views/page-header.js";
 import { PageMenuSection } from "./views/page-menu.js";
 import { PageMissingSection } from "./views/page-missing.js";
 import { ProseSection } from "./views/prose.js";
+import { SplitSection } from "./views/split.js";
+import { StepsSection } from "./views/steps.js";
 
 import type { SectionViewProps } from "./section-parts.js";
 import type { LucideIcon } from "lucide-react";
@@ -33,6 +36,9 @@ export const SECTION_VIEWS: Partial<
   Record<SectionType, ComponentType<SectionViewProps>>
 > = {
   hero: HeroSection,
+  "feature-grid": FeatureGridSection,
+  steps: StepsSection,
+  split: SplitSection,
   "page-missing": PageMissingSection,
   "page-menu": PageMenuSection,
   band: BandSection,

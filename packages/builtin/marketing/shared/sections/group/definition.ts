@@ -49,7 +49,7 @@ export const groupSection: SectionDefinition = {
     },
     ...layoutSettings(),
   ],
-  // 4 列已经是一行里还读得下去的上限；再多就该换成 `cards` 那类网格段了
+  // 4 列已经是一行里还读得下去的上限；再多用 `feature-grid`
   max_blocks: 4,
   preset_blocks: [{ type: "column" }, { type: "column" }],
   blocks: [

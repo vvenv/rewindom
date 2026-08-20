@@ -1,7 +1,9 @@
 import {
   ALIGN_OPTIONS,
+  LAYOUT_OPTIONS,
   layoutSettings,
   linkSettings,
+  MEDIA_SIDE_OPTIONS,
   styleSettings,
 } from "../_common/settings.js";
 
@@ -33,6 +35,32 @@ export const heroSection: SectionDefinition = {
       label: "editor.setting.align",
       default: "left",
       options: ALIGN_OPTIONS,
+    },
+    {
+      type: "select",
+      id: "layout",
+      label: "editor.setting.layout",
+      default: "stacked",
+      options: LAYOUT_OPTIONS,
+      info: "editor.info.hero_layout",
+    },
+    {
+      type: "image",
+      id: "image",
+      label: "editor.setting.image",
+      info: "editor.info.hero_image",
+    },
+    {
+      type: "text",
+      id: "image_alt",
+      label: "editor.setting.image_alt",
+    },
+    {
+      type: "select",
+      id: "media_side",
+      label: "editor.setting.media_side",
+      default: "right",
+      options: MEDIA_SIDE_OPTIONS,
     },
     {
       type: "checkbox",

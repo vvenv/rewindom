@@ -8,10 +8,13 @@
 import { Marked, Renderer } from "marked";
 
 import { escapeHtml } from "../../html.js";
+import { SECTION_ICON_SVG } from "../../section-icons.generated.js";
 import {
   resolveSurfaceStyle,
   surfaceStyleAttr,
+  settingIcon,
   settingText,
+  type SectionIconName,
   type SettingValues,
 } from "../../section-schema.js";
 
@@ -112,4 +115,20 @@ export function sectionHeading(settings: SettingValues, action = false): string 
 
 export function gridClass(columns: number): string {
   return `grid cols-${columns === 2 || columns === 4 ? columns : 3}`;
+}
+
+/** lucide 白名单图标，SSR 内联 SVG（公开站不挂 React）。 */
+export function iconHtml(
+  name: SectionIconName,
+  className = "card-icon",
+): string {
+  return `<span class="${className}" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SECTION_ICON_SVG[name]}</svg></span>`;
+}
+
+export function iconHtmlFromSettings(
+  settings: SettingValues,
+  id = "icon",
+  className = "card-icon",
+): string {
+  return iconHtml(settingIcon(settings, id), className);
 }

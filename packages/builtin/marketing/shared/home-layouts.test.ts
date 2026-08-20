@@ -40,6 +40,9 @@ describe("首页版式注册表", () => {
     expect(listHomeLayouts(new Set()).map((layout) => layout.key)).toContain(
       DEFAULT_HOME_LAYOUT_KEY,
     );
+    expect(listHomeLayouts(new Set()).map((layout) => layout.key)).toContain(
+      "marketing.landing",
+    );
   });
 
   it("贡献一套后选择器里能看到，未开通则隐藏", () => {

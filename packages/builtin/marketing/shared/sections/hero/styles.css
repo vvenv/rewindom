@@ -1,13 +1,15 @@
 .hero h1 {
-  font-size: 3rem;
-  line-height: 1.1;
+  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  line-height: 1.08;
   max-width: 48rem;
   margin-top: 1rem;
+  letter-spacing: -0.04em;
 }
 .hero .lead {
   margin-top: 1.25rem;
   max-width: 36rem;
   font-size: 1.125rem;
+  line-height: 1.7;
 }
 .hero .eyebrow {
   color: var(--accent);
@@ -24,6 +26,75 @@
 .hero.center .stats {
   margin-left: auto;
   margin-right: auto;
+}
+.hero.hero-split {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+  text-align: left;
+}
+.hero-copy {
+  min-width: 0;
+}
+@media (min-width: 768px) {
+  .hero.hero-split {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 3.5rem;
+  }
+  .hero.hero-split.media-left {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+  .hero.hero-split.media-left .hero-media {
+    order: -1;
+  }
+}
+.hero.hero-split .hero-copy h1,
+.hero.hero-split .hero-copy .lead,
+.hero.hero-split .hero-copy .stats {
+  margin-left: 0;
+  margin-right: 0;
+}
+.hero-media {
+  min-width: 0;
+}
+.hero-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 0.35rem);
+  background: var(--muted-bg);
+}
+.hero-media-deco {
+  position: relative;
+  overflow: hidden;
+  min-height: 16rem;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 0.35rem);
+  background:
+    radial-gradient(
+      80% 70% at 18% -10%,
+      color-mix(in srgb, var(--accent) 38%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      50% 40% at 92% 12%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 70%
+    ),
+    var(--muted-bg);
+}
+.hero-media-deco::after {
+  content: "";
+  position: absolute;
+  inset: 18% 12% 14%;
+  border-radius: 0.85rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 24px 56px color-mix(in srgb, var(--fg) 12%, transparent);
 }
 .stats {
   display: grid;
@@ -46,8 +117,5 @@
 @media (max-width: 640px) {
   .stats {
     grid-template-columns: 1fr;
-  }
-  .hero h1 {
-    font-size: 2.25rem;
   }
 }
