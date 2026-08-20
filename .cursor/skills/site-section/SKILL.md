@@ -123,7 +123,7 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 路径固定、每种语言最多一张（登录、`/shop`、`/docs`）。**不要**自己写初始化，**不要**做「自定义版式」空态。
 
-同一路径模式、多条实例（`/shop/:slug`、`/events/:topic`）仍是**一张**模板页：kind 唯一、每种语言一张，路径参数由 path handler 填。不要给每个格子各建一张 CMS 页，也不要在另一张页上长覆盖字段。金标准：`events_detail`、`events_topic`、shop collection。
+同一路径模式、多条实例（`/shop/:slug`、`/topics/:slug`）仍是**一张**模板页：kind 唯一、每种语言一张，路径参数由 path handler 填。不要给每个格子各建一张 CMS 页，也不要在另一张页上长覆盖字段。金标准：`events_detail`、`events_topic`、shop collection。
 
 | 写 | 登记 |
 | --- | --- |

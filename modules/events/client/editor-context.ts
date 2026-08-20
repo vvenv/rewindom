@@ -89,7 +89,7 @@ export function registerEventsEditorContext(): void {
 
       const enabled = await loadEnabledTopics();
       /*
-       * 专题模板没有「当前格子」——地址是 `/topics/:topic`。用已启用的第一格
+       * 专题模板没有「当前格子」——地址是 `/topics/:slug`。用已启用的第一格
        * 当样张，好让 `{topic}` / `{topic_slug}` 在预览里看得见。
        */
       const sampleTopic =

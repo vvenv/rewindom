@@ -920,23 +920,10 @@
     },
     "home": {
       "label": "首页",
-      "layoutLabel": "起步首页",
-      "layoutDescription": "首屏、简介和联系号召，适合介绍型站点。",
+      "layoutLabel": "空白首页",
+      "layoutDescription": "没有预设区块，从空白开始。",
       "title": "首页",
-      "description": "一句话说明这个站点是做什么的。",
-      "hero": {
-        "headline": "在这里写一句话，说清你是谁、做什么",
-        "subhead": "副标题再补一句：为谁解决什么问题。控制在两行以内。",
-        "primary_label": "联系我们"
-      },
-      "prose": {
-        "body_md": "## 我们能提供什么\n\n### 第一项优势\n\n用一两句话说明这一项，替换掉这段占位文字。\n\n### 第二项优势\n\n用一两句话说明这一项，替换掉这段占位文字。\n\n### 第三项优势\n\n用一两句话说明这一项，替换掉这段占位文字。"
-      },
-      "cta": {
-        "headline": "想聊聊？",
-        "body": "把这段换成你的联系方式或行动号召，按钮链接改成自己的邮箱。",
-        "primary_label": "发邮件给我们"
-      }
+      "description": "站点首页。"
     },
     "not_found": {
       "label": "找不到的页面",

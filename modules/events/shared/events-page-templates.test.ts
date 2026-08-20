@@ -64,7 +64,7 @@ describe("registerEventsPageTemplates", () => {
       }),
     );
     expect(getPageTemplateKind(EVENTS_TOPIC_PAGE_KIND)?.path).toBe(
-      "/topics/:topic",
+      "/topics/:slug",
     );
     expect(getPageTemplateKind(EVENTS_TOPIC_PAGE_KIND)?.required_section).toBe(
       null,

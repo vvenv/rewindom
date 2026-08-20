@@ -2,7 +2,7 @@
  * 公开 RSS 订阅的渲染。
  *
  *   /feed.xml                    这个站在报什么
- *   /topics/:topic/feed.xml      只看某个主题
+ *   /topics/:slug/feed.xml       只看某个主题
  *   /entities/:slug/feed.xml     只看某个公司 / 产品
  */
 

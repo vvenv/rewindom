@@ -220,7 +220,7 @@ audit:
     - {
         kind: events_topic,
         slug: events-topic,
-        path: /topics/:topic,
+        path: /topics/:slug,
         required_section: null,
       }
     - {

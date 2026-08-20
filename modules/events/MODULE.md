@@ -87,7 +87,7 @@ server/
 | 段 `events.now` | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/?source=now` |
 | 段 `events.entity_strip` | 近期实体胶囊条，可摆在任意页面。近 30 天实体按事件数排序，默认 Top 24，字号一律、用数字角标表示权重。**主题枢纽上只列这一格事件里的实体**。「查看全部」打开实体枢纽。预设插在 Now 与订阅之间 |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
-| 模板页 `events_topic` | `/topics/:topic`。七格共用一张模板，预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。库存文案写 `{topic}` / `{topic_slug}` / `{feed}` |
+| 模板页 `events_topic` | `/topics/:slug`。七格共用一张模板，预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。库存文案写 `{topic}` / `{topic_slug}` / `{feed}` |
 | 首页版式 `events.home` | 套在站点首页（`/`）上（无首屏）。不声明 `rootPrefix`，集合路径不搬家 |
 | 模板页 `events_detail` | `/events/:slug` |
 | 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上。编辑器没有当前实体，预览用样张 |
@@ -130,7 +130,7 @@ server/
 ### 主题枢纽上的首屏
 
 `/` 与 `/topics/ai` / `/topics/tech` **不是同一张 CMS 页**。专题是独立模板
-`events_topic`（path `/topics/:topic`），与详情页同构：kind
+`events_topic`（path `/topics/:slug`），与详情页同构：kind
 唯一、每种语言一张，七格共用版式。身份文案写在这张页自己的首屏上，用 `{topic}`
 （主题名）、`{topic_slug}`（路径段）与 `{feed}`（当前页 RSS）填格子——与页脚 `chrome_text` 同一套
 `{token}`，不是代码 i18n 的 `{{param}}`。

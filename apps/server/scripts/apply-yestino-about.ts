@@ -560,7 +560,7 @@ async function applyFooterLink(args: Args, tenant_id: string): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  // `marketingPagePath` 要认得贡献的模板页 kind（`events_topic` → `/topics/:topic`）
+  // `marketingPagePath` 要认得贡献的模板页 kind（`events_topic` → `/topics/:slug`）
   registerEventsPageTemplates();
   /*
    * `section()` 走 `getSectionDefinition` 拿默认值，而贡献段的定义是模块装载时才进

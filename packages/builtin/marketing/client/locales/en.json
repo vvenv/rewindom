@@ -920,23 +920,10 @@
     },
     "home": {
       "label": "Home",
-      "layoutLabel": "Starter home",
-      "layoutDescription": "Hero, intro and a contact call-to-action — for an introductory site.",
+      "layoutLabel": "Blank home",
+      "layoutDescription": "No sections — start from a blank page.",
       "title": "Home",
-      "description": "One line on what this site is about.",
-      "hero": {
-        "headline": "Say who you are and what you do, in one line",
-        "subhead": "Then one more line: what you solve and for whom. Keep it under two lines.",
-        "primary_label": "Get in touch"
-      },
-      "prose": {
-        "body_md": "## What we offer\n\n### First highlight\n\nA sentence or two about this one. Replace this placeholder text.\n\n### Second highlight\n\nA sentence or two about this one. Replace this placeholder text.\n\n### Third highlight\n\nA sentence or two about this one. Replace this placeholder text."
-      },
-      "cta": {
-        "headline": "Want to talk?",
-        "body": "Replace this with your call to action, and point the button at your own address.",
-        "primary_label": "Email us"
-      }
+      "description": "The site home page."
     },
     "not_found": {
       "label": "Not found",

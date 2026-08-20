@@ -74,9 +74,9 @@ export const EVENTS_ENTITY_INDEX_TEMPLATE_SLUG = "events-entities";
 export const EVENTS_DETAIL_PATH = withEventsPrefix(
   `/${EVENTS_EVENTS_SEGMENT}/:slug`,
 );
-/** `/topics/:topic` —— 七个格子共用这一张专题模板。 */
+/** `/topics/:slug` —— 七个格子共用这一张专题模板。 */
 export const EVENTS_TOPIC_PATH = withEventsPrefix(
-  `/${EVENTS_TOPICS_SEGMENT}/:topic`,
+  `/${EVENTS_TOPICS_SEGMENT}/:slug`,
 );
 /** `/entities/:slug`。 */
 export const EVENTS_ENTITY_PATH = withEventsPrefix(
