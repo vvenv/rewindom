@@ -4,30 +4,24 @@
   形就是产品口径——底座是闭合的环（内核不含业务），顶上那条缝是模块挂上去的口
   （底座随业务成形）。单一连通实心，缩到 16px 仍然是它自己。
 
-  几何与工作台 Logo / `apps/client/public/favicon.svg` 同一条 path，只是收进圆角
-  容器并改成白填，给标签页 / OG / 头像用。工作台那侧继续走 currentColor、不带容器：
-  侧栏和登录页背景各异，彩色方块会跟周围抢。
+  几何与工作台 Logo / `apps/client/public/favicon.svg` / `docs/assets/logo.svg`
+  同一条 path。标就是这块玉玦，不套圆角色块：环本身已有轮廓，再加方块会把
+  24px 页头收成「又一个 App 图标」，并和工作台那套身份打架。
 
-  为什么不是大写 R：字母标在开发者工具图标堆里没有轮廓。玉玦已经是产品自己的形。
+  浅底 #0369a1、深底 #38bdf8（与 favicon.svg 同一组 token）。`prefers-color-scheme`
+  只跟 OS，官网自己的明暗（data-site-color-mode）管不到 <img> 里的 SVG。
 
-  容器色取官网主色 #0369a1（theme_settings.primary_color / 默认主题包），渐变只在
-  同一色相里走深浅（sky-500 → sky-700），不跨色相。容器不跟官网换成近黑：深色
-  标签栏上整块容器会消失，图标就没有轮廓了。
+  平台会裁切的图（头像 / apple-touch / maskable）由 generate.mjs 另铺 accent 底、
+  改白填——那层底是平台的画布，不是品牌容器。
 
-  尺寸下限是官网页头的 24px（`.logo{height:1.5rem}`），所以环壁厚、缝够宽、无分离元素。
-  字形已按画布中心缩到 0.78，给圆角和 maskable 安全区留边。
   几何改动要同步 mark-mono.svg，并重跑 generate.mjs 出位图。
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Rewindom">
-  <defs>
-    <linearGradient id="rewindom-bg" x1="24" y1="16" x2="232" y2="240" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#0ea5e9"/>
-      <stop offset="0.55" stop-color="#0284c7"/>
-      <stop offset="1" stop-color="#0369a1"/>
-    </linearGradient>
-  </defs>
-  <rect width="256" height="256" rx="60" fill="url(#rewindom-bg)"/>
-  <g fill="#FFFFFF">
-    <path d="M96.42 49.89A84.24 84.24 0 1 0 159.56 49.89L139.11 100.56A29.64 29.64 0 1 1 116.89 100.56Z"/>
-  </g>
+  <style>
+    .mark { fill: #0369a1; }
+    @media (prefers-color-scheme: dark) {
+      .mark { fill: #38bdf8; }
+    }
+  </style>
+  <path class="mark" fill="#0369a1" d="M87.54 27.86A108 108 0 1 0 168.46 27.86L142.24 92.77A38 38 0 1 1 113.76 92.77Z"/>
 </svg>

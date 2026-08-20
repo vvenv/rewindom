@@ -24,7 +24,6 @@ import {
   isInputSetting,
   isLocalizableSetting,
   readLocalizedSetting,
-  SECTION_ICON_CHOICES,
   writeLocalizedSetting,
   type InputSettingDef,
   type SettingDef,
@@ -34,12 +33,12 @@ import {
 import { getSettingSelectOptions } from "../../setting-select-options.js";
 import { InterpolationTokensButton } from "../InterpolationTokensButton.js";
 import { SiteImageField } from "../media/SiteImageField.js";
-import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 import { SiteColorField } from "../SiteColorField.js";
 
 import { ColumnSpansField } from "./ColumnSpansField.js";
 import { MarkdownFullscreenDialog } from "./MarkdownFullscreenDialog.js";
 import { useSiteNavPreview } from "./site-nav-preview-context.js";
+import { SiteIconField } from "./SiteIconField.js";
 import { SiteLinkField } from "./SiteLinkField.js";
 import { SiteNavItemsField } from "./SiteNavItemsField.js";
 import { SpacingBoxField } from "./SpacingBoxField.js";
@@ -428,28 +427,13 @@ function SettingControl({
 
     case "icon":
       return (
-        <Select
+        <SiteIconField
+          id={fieldId}
+          value={text}
           disabled={disabled}
-          value={text || SECTION_ICON_CHOICES[0]}
-          onValueChange={onChange}
-        >
-          <SelectTrigger id={fieldId} className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SECTION_ICON_CHOICES.map((name) => {
-              const Icon = SECTION_ICON_COMPONENTS[name];
-              return (
-                <SelectItem key={name} value={name}>
-                  <span className="inline-flex items-center gap-2">
-                    <Icon className="size-3.5" />
-                    {name}
-                  </span>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+          allowEmpty={def.allow_empty === true}
+          onChange={onChange}
+        />
       );
 
     case "select": {

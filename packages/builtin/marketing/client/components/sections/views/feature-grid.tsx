@@ -1,16 +1,17 @@
 import { type ReactElement } from "react";
 
 import {
+  resolveSettingIcon,
   settingIcon,
   settingNumber,
   settingText,
 } from "../../../../shared/section-schema.js";
+import { SettingIconMark } from "../section-icons.js";
 import {
   gridClass,
   SectionHeading,
   type SectionViewProps,
 } from "../section-parts.js";
-import { SECTION_ICON_COMPONENTS } from "../section-icons.js";
 import { SiteLink } from "../SiteLink.js";
 
 export function FeatureGridSection({
@@ -29,12 +30,15 @@ export function FeatureGridSection({
           const title = settingText(block.settings, "title");
           const body = settingText(block.settings, "body");
           const href = settingText(block.settings, "href");
-          const Icon = SECTION_ICON_COMPONENTS[settingIcon(block.settings, "icon")];
+          const icon = resolveSettingIcon(block.settings, "icon") ?? {
+            kind: "lucide" as const,
+            name: settingIcon(block.settings, "icon"),
+          };
           const inner = (
             <>
-              {showIcons ? (
+              {showIcons && icon ? (
                 <span className="card-icon" aria-hidden="true">
-                  <Icon />
+                  <SettingIconMark icon={icon} size={20} />
                 </span>
               ) : null}
               <span className="title">{title}</span>

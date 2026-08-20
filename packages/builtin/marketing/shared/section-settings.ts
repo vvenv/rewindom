@@ -8,7 +8,18 @@
 
 import { translateRegisteredKeyTable } from "@rewindom/shared";
 
+import {
+  BRAND_ICON_CHOICES,
+  type BrandIconName,
+} from "./brand-icons.js";
 import { isSiteColor } from "./site-color.js";
+
+export type { BrandIconName } from "./brand-icons.js";
+export {
+  BRAND_ICON_CHOICES,
+  BRAND_ICON_LABELS,
+  BRAND_ICON_SVG,
+} from "./brand-icons.js";
 
 /**
  * 多语言文案值。
@@ -282,9 +293,13 @@ export type InputSettingDef =
       options_from?: string;
     })
   | (SettingBase & {
-      /** lucide 图标名，取值受 `SECTION_ICON_CHOICES` 约束。 */
+      /**
+       * 图标：lucide 名、社交品牌名，或媒体库 / 外链图片 URL。
+       * `allow_empty` 时缺省为空（页头按钮可以没有图标）；否则回落 `default`。
+       */
       type: "icon";
       default?: string;
+      allow_empty?: boolean;
     })
   | (SettingBase & {
       type: "range";
@@ -391,9 +406,61 @@ export const SECTION_ICON_CHOICES = [
   "Puzzle",
   "Workflow",
   "Boxes",
+  "Mail",
+  "Rss",
+  "Phone",
+  "Search",
+  "MessageCircle",
+  "Send",
+  "ExternalLink",
+  "Download",
+  "Share2",
+  "Heart",
+  "Star",
 ] as const;
 
 export type SectionIconName = (typeof SECTION_ICON_CHOICES)[number];
+
+const SECTION_ICON_NAME_SET = new Set<string>(SECTION_ICON_CHOICES);
+const BRAND_ICON_NAME_SET = new Set<string>(BRAND_ICON_CHOICES);
+
+export function isSectionIconName(value: string): value is SectionIconName {
+  return SECTION_ICON_NAME_SET.has(value);
+}
+
+export function isBrandIconName(value: string): value is BrandIconName {
+  return BRAND_ICON_NAME_SET.has(value);
+}
+
+/**
+ * 自定义图标：媒体库路径、http(s) 外链、或 data URI。
+ * lucide / 品牌名都是标识符，不会带 `/` 或 `:`。
+ */
+export function isIconImageUrl(value: string): boolean {
+  return (
+    value.startsWith("/") ||
+    value.startsWith("https://") ||
+    value.startsWith("http://") ||
+    value.startsWith("data:image/")
+  );
+}
+
+export type ResolvedSectionIcon =
+  | { kind: "lucide"; name: SectionIconName }
+  | { kind: "brand"; name: BrandIconName }
+  | { kind: "image"; url: string };
+
+export function resolveSettingIcon(
+  values: SettingValues,
+  id: string,
+): ResolvedSectionIcon | null {
+  const value = settingText(values, id).trim();
+  if (!value) return null;
+  if (isBrandIconName(value)) return { kind: "brand", name: value };
+  if (isSectionIconName(value)) return { kind: "lucide", name: value };
+  if (isIconImageUrl(value)) return { kind: "image", url: value };
+  return null;
+}
 
 /** 段内留白 range（与编辑器盒模型、旧独立滑块同一口径）。 */
 export const SECTION_PADDING_RANGE = {
@@ -418,6 +485,7 @@ export function defaultSettingValue(def: InputSettingDef): SettingValue {
     case "checkbox":
       return def.default;
     case "icon":
+      if (def.allow_empty) return def.default ?? "";
       return def.default ?? SECTION_ICON_CHOICES[0];
     case "spacing_box":
       // 复合控件不落单一值；调用方应走 parseSettingValues
@@ -539,9 +607,15 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
       return [];
     case "icon": {
       const value = typeof raw === "string" ? raw.trim() : "";
-      return (SECTION_ICON_CHOICES as readonly string[]).includes(value)
-        ? value
-        : defaultSettingValue(def);
+      if (!value) return def.allow_empty ? "" : defaultSettingValue(def);
+      if (
+        isBrandIconName(value) ||
+        isSectionIconName(value) ||
+        isIconImageUrl(value)
+      ) {
+        return value;
+      }
+      return defaultSettingValue(def);
     }
     case "select": {
       const value = typeof raw === "string" ? raw : "";
@@ -709,7 +783,5 @@ export function settingIcon(
   id: string,
 ): SectionIconName {
   const value = settingText(values, id);
-  return (SECTION_ICON_CHOICES as readonly string[]).includes(value)
-    ? (value as SectionIconName)
-    : SECTION_ICON_CHOICES[0];
+  return isSectionIconName(value) ? value : SECTION_ICON_CHOICES[0];
 }

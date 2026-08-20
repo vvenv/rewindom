@@ -219,6 +219,25 @@ export const CHROME_BUTTON_BLOCK: BlockDefinition = {
       info: "editor.info.site_interpolation_href",
     },
     {
+      type: "icon",
+      id: "icon",
+      label: "editor.setting.icon",
+      allow_empty: true,
+      default: "",
+      info: "editor.info.button_icon",
+    },
+    /*
+     * 用「只显示图标」而不是「显示文字」：`settingBool` 是严格 `=== true`，
+     * 键缺失一律当 false。存量按钮缺这个键时必须仍显示文字。
+     */
+    {
+      type: "checkbox",
+      id: "icon_only",
+      label: "editor.setting.icon_only",
+      default: false,
+      info: "editor.info.icon_only",
+    },
+    {
       type: "select",
       id: "variant",
       label: "editor.setting.button_variant",

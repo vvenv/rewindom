@@ -1,7 +1,4 @@
-<!-- 单色版：容器走 currentColor，用于印刷 / 单色场景。几何与 mark.svg 保持一致。 -->
+<!-- 单色版：字形走 currentColor。几何与 mark.svg / 工作台 Logo 保持一致。 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Rewindom">
-  <rect width="256" height="256" rx="60" fill="currentColor"/>
-  <g fill="#FFFFFF">
-    <path d="M96.42 49.89A84.24 84.24 0 1 0 159.56 49.89L139.11 100.56A29.64 29.64 0 1 1 116.89 100.56Z"/>
-  </g>
+  <path fill="currentColor" d="M87.54 27.86A108 108 0 1 0 168.46 27.86L142.24 92.77A38 38 0 1 1 113.76 92.77Z"/>
 </svg>

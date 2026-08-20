@@ -1,0 +1,51 @@
+# 页头 / 页脚按钮支持图标（内置社交 + lucide，或媒体库上传）
+#
+# 起因：页头常驻入口（GitHub、Google 登录、微信）要做成图标按钮。
+# Lucide 已去掉品牌图标，所以社交品牌走自有内置目录；自定义 logo 走媒体库。
+#
+# 「只显示图标」用 icon_only（默认 false），不要写成 show_label：settingBool
+# 是严格 === true，键缺失一律当 false。存量按钮缺这个键时必须仍显示文字。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: chrome_button 支持图标（内置社交 / lucide，或上传 / 媒体库）与仅图标形态；纯图标必须带 aria-label。
+gold: packages/builtin/marketing/shared/sections/_common/chrome-blocks.ts
+touch:
+  - packages/builtin/marketing/features/chrome-button-icons.spec.yaml
+  - packages/builtin/marketing/shared/brand-icons.ts
+  - packages/builtin/marketing/shared/brand-icons.test.ts
+  - packages/builtin/marketing/shared/section-settings.ts
+  - packages/builtin/marketing/shared/section-schema.test.ts
+  - packages/builtin/marketing/shared/sections/_common/html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-blocks.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.test.ts
+  - packages/builtin/marketing/shared/sections/_common/styles.css
+  - packages/builtin/marketing/shared/site-css/base.css
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+  - packages/builtin/marketing/client/components/sections/SiteChrome.tsx
+  - packages/builtin/marketing/client/components/sections/SiteChrome.test.tsx
+  - packages/builtin/marketing/client/components/sections/SiteLink.tsx
+  - packages/builtin/marketing/client/components/sections/section-icons.tsx
+  - packages/builtin/marketing/client/components/sections/views/feature-grid.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SettingsFields.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SiteIconField.tsx
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/server/default-product-site-content.ts
+  - packages/builtin/marketing/server/default-product-site-content.test.ts
+  - packages/builtin/marketing/MODULE.md
+  - packages/builtin/marketing/shared/section-icons.generated.ts
+out_of_scope:
+  - 给导航条目加图标
+  - 改 events.subscribe-link / shop.cart-link 的固定图标
+  - 把品牌图标加回 lucide
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin assemble:marketing-css
+  - pnpm --filter @rewindom/builtin assemble:section-icons
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared brand-icons.test.ts section-schema.test.ts chrome-html.test.ts section-icons.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteChrome.test.tsx
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server default-product-site-content.test.ts
+  - pnpm check:i18n

@@ -10,7 +10,11 @@
 
 import { escapeHtml } from "../../html.js";
 import { registerSectionCss } from "../../load-marketing-site-css.js";
-import { settingBool, settingText } from "../../section-schema.js";
+import {
+  resolveSettingIcon,
+  settingBool,
+  settingText,
+} from "../../section-schema.js";
 import {
   interpolateSiteHref,
   interpolateSiteText,
@@ -40,7 +44,7 @@ import {
   mainNavLabel,
   themeToggleTitle,
 } from "./chrome-messages.js";
-import { linkAttrs } from "./html.js";
+import { linkAttrs, resolvedIconHtml } from "./html.js";
 
 import type { SiteBlock, SiteSection } from "../types.js";
 import type { AppLocale } from "@rewindom/shared";
@@ -211,14 +215,28 @@ function renderButtonHtml(block: SiteBlock, ctx: SiteNavContext): string {
   );
   const href = interpolateSiteHref(settingText(block.settings, "href"), values);
   if (!label || !href) return "";
+  const icon = resolveSettingIcon(block.settings, "icon");
+  const iconOnly = Boolean(icon) && settingBool(block.settings, "icon_only");
   const variant = settingText(block.settings, "variant") || "primary";
-  const className =
-    variant === "ghost"
+  const className = iconOnly
+    ? "chrome-control"
+    : variant === "ghost"
       ? "btn btn-ghost"
       : variant === "secondary"
         ? "btn btn-secondary"
         : "btn";
-  return `<a class="${className}"${linkAttrs(siteHref(href, ctx))}>${escapeHtml(label)}</a>`;
+  const iconMarkup = icon
+    ? resolvedIconHtml(icon, { size: 16, wrap: false })
+    : "";
+  const labelMarkup = iconOnly
+    ? ""
+    : icon
+      ? `<span>${escapeHtml(label)}</span>`
+      : escapeHtml(label);
+  const a11y = iconOnly
+    ? ` aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"`
+    : "";
+  return `<a class="${className}"${linkAttrs(siteHref(href, ctx))}${a11y}>${iconMarkup}${labelMarkup}</a>`;
 }
 
 function renderLocaleHtml(options: LocaleSwitcherOption[]): string {

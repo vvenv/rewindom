@@ -10,6 +10,7 @@ import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
 import { Link } from "react-router";
 
 import {
+  resolveSettingIcon,
   resolveSurfaceStyle,
   settingBool,
   settingNumber,
@@ -56,6 +57,7 @@ import { useSiteColorMode } from "../../hooks/use-marketing-site-document-theme.
 import { siteMemberEntrySlot } from "../../shell/site-member-slots.js";
 
 import { getChromeBlockView } from "./chrome-views.js";
+import { SettingIconMark } from "./section-icons.js";
 import { SiteLink } from "./SiteLink.js";
 
 
@@ -469,19 +471,26 @@ export function SiteChrome({
           values,
         );
         if (!label || !href) return null;
+        const icon = resolveSettingIcon(block.settings, "icon");
+        const iconOnly = Boolean(icon) && settingBool(block.settings, "icon_only");
         const variant = settingText(block.settings, "variant") || "primary";
         return (
           <SiteLink
             href={href}
             className={
-              variant === "ghost"
-                ? "btn btn-ghost"
-                : variant === "secondary"
-                  ? "btn btn-secondary"
-                  : "btn"
+              iconOnly
+                ? "chrome-control"
+                : variant === "ghost"
+                  ? "btn btn-ghost"
+                  : variant === "secondary"
+                    ? "btn btn-secondary"
+                    : "btn"
             }
+            aria-label={iconOnly ? label : undefined}
+            title={iconOnly ? label : undefined}
           >
-            {label}
+            {icon ? <SettingIconMark icon={icon} size={16} /> : null}
+            {iconOnly ? null : icon ? <span>{label}</span> : label}
           </SiteLink>
         );
       }

@@ -113,6 +113,15 @@ dl {
   font-weight: 500;
   border: 1px solid transparent;
 }
+.btn svg,
+.btn img {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+.btn img {
+  object-fit: contain;
+}
 .btn-secondary {
   background: transparent;
   border-color: var(--border);

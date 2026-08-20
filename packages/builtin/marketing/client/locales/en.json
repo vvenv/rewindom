@@ -554,7 +554,9 @@
       "chrome_spacing_above": "Gap between the page content and the footer.",
       "chrome_blurb": "One-line blurb under the brand. Usually left empty in a header.",
       "brand_text": "The brand name shown next to the logo. Leave empty to follow the site name — which also serves as the title in search results, and is usually longer.",
-      "brand_text_case": "Uppercase is a typesetting choice, not a rename — the stored wordmark and the site name used in search titles stay as written. Letter-spacing is applied with uppercase and omitted otherwise."
+      "brand_text_case": "Uppercase is a typesetting choice, not a rename — the stored wordmark and the site name used in search titles stay as written. Letter-spacing is applied with uppercase and omitted otherwise.",
+      "button_icon": "Built-in includes GitHub, Google, and other social marks. You can also upload an image or pick one from the media library.",
+      "icon_only": "Hide the label and show only the icon. The label is still used as the accessible name and hover title. Has no effect when no icon is set."
     },
     "unit": {
       "columns": "cols",
@@ -611,6 +613,7 @@
       "stat_term": "Stat name",
       "stat_detail": "Stat detail",
       "icon": "Icon",
+      "icon_only": "Icon only",
       "image": "Image",
       "image_alt": "Image alt text",
       "media_side": "Media side",
@@ -845,6 +848,13 @@
     "tabAppearance": "Appearance",
     "noSettings": "Nothing to configure here — this one takes its look from the theme.",
     "inherit": "Inherit",
+    "icon": {
+      "builtin": "Built-in",
+      "upload": "Upload",
+      "none": "None",
+      "social": "Social",
+      "general": "General"
+    },
     "spacingBoxHint": "Drag, or use ↑↓ (hold Shift for bigger steps). The two toggles inside link left/right and top/bottom.",
     "spacingBoxLockX": "Link left and right",
     "spacingBoxLockY": "Link top and bottom",

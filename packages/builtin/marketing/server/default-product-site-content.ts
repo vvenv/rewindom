@@ -136,6 +136,8 @@ function githubButton(
     label: i18n("header.github"),
     href: GITHUB_HREF,
     variant: "ghost",
+    icon: "Github",
+    icon_only: true,
     align: "end",
     mobile: "menu",
     ...extra,

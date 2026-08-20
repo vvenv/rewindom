@@ -7,13 +7,17 @@
 
 import { Marked, Renderer } from "marked";
 
+import { BRAND_ICON_SVG } from "../../brand-icons.js";
 import { escapeHtml } from "../../html.js";
 import { SECTION_ICON_SVG } from "../../section-icons.generated.js";
 import {
+  resolveSettingIcon,
   resolveSurfaceStyle,
-  surfaceStyleAttr,
   settingIcon,
   settingText,
+  surfaceStyleAttr,
+  type BrandIconName,
+  type ResolvedSectionIcon,
   type SectionIconName,
   type SettingValues,
 } from "../../section-schema.js";
@@ -117,12 +121,40 @@ export function gridClass(columns: number): string {
   return `grid cols-${columns === 2 || columns === 4 ? columns : 3}`;
 }
 
+function lucideSvgHtml(name: SectionIconName, size: number): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SECTION_ICON_SVG[name]}</svg>`;
+}
+
+function brandSvgHtml(name: BrandIconName, size: number): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${BRAND_ICON_SVG[name]}</svg>`;
+}
+
+/** lucide / 社交品牌 / 上传图：公开站内联 SVG 或 `<img>`。 */
+export function resolvedIconHtml(
+  icon: ResolvedSectionIcon,
+  options: { className?: string; size?: number; wrap?: boolean } = {},
+): string {
+  const size = options.size ?? 20;
+  const inner =
+    icon.kind === "image"
+      ? `<img src="${escapeHtml(icon.url)}" alt="" width="${size}" height="${size}" />`
+      : icon.kind === "brand"
+        ? brandSvgHtml(icon.name, size)
+        : lucideSvgHtml(icon.name, size);
+  if (options.wrap === false) return inner;
+  const className = options.className ?? "card-icon";
+  return `<span class="${className}" aria-hidden="true">${inner}</span>`;
+}
+
 /** lucide 白名单图标，SSR 内联 SVG（公开站不挂 React）。 */
 export function iconHtml(
   name: SectionIconName,
   className = "card-icon",
 ): string {
-  return `<span class="${className}" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SECTION_ICON_SVG[name]}</svg></span>`;
+  return resolvedIconHtml(
+    { kind: "lucide", name },
+    { className, size: 20, wrap: true },
+  );
 }
 
 export function iconHtmlFromSettings(
@@ -130,5 +162,9 @@ export function iconHtmlFromSettings(
   id = "icon",
   className = "card-icon",
 ): string {
+  const resolved = resolveSettingIcon(settings, id);
+  if (resolved) {
+    return resolvedIconHtml(resolved, { className, size: 20, wrap: true });
+  }
   return iconHtml(settingIcon(settings, id), className);
 }

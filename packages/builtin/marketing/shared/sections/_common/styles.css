@@ -78,9 +78,13 @@
   color: var(--accent);
   margin-bottom: 0.75rem;
 }
-.card-icon svg {
+.card-icon svg,
+.card-icon img {
   width: 1.25rem;
   height: 1.25rem;
+}
+.card-icon img {
+  object-fit: contain;
 }
 
 .spec {
@@ -391,6 +395,15 @@
 .chrome-control:hover {
   background: var(--chrome-control-hover-bg, var(--muted-bg));
   color: var(--fg);
+}
+.chrome-control svg,
+.chrome-control img {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+.chrome-control img {
+  object-fit: contain;
 }
 
 /* ---- 导航：同一份条目，横排或竖列 ---------------------------------------- */

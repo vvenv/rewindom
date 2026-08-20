@@ -1020,3 +1020,42 @@ describe("容器段（group）", () => {
     });
   });
 });
+
+describe("icon 设置", () => {
+  const required = [
+    { type: "icon" as const, id: "icon", label: "icon", default: "Sparkles" },
+  ];
+  const optional = [
+    {
+      type: "icon" as const,
+      id: "icon",
+      label: "icon",
+      allow_empty: true,
+      default: "",
+    },
+  ];
+
+  it("认 lucide 名、社交品牌名、图片 URL", () => {
+    expect(parseSettingValues(required, { icon: "Mail" }).icon).toBe("Mail");
+    expect(parseSettingValues(optional, { icon: "Github" }).icon).toBe(
+      "Github",
+    );
+    expect(parseSettingValues(optional, { icon: "Google" }).icon).toBe(
+      "Google",
+    );
+    expect(
+      parseSettingValues(optional, {
+        icon: "/api/public/tenants/acme/site-assets/x.png",
+      }).icon,
+    ).toBe("/api/public/tenants/acme/site-assets/x.png");
+  });
+
+  it("allow_empty 时空值留下，否则回落默认", () => {
+    expect(parseSettingValues(optional, { icon: "" }).icon).toBe("");
+    expect(parseSettingValues(optional, {}).icon).toBe("");
+    expect(parseSettingValues(required, { icon: "" }).icon).toBe("Sparkles");
+    expect(parseSettingValues(required, { icon: "Nope" }).icon).toBe(
+      "Sparkles",
+    );
+  });
+});

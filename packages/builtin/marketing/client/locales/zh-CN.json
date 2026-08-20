@@ -554,7 +554,9 @@
       "chrome_spacing_above": "页脚与正文之间的距离。",
       "chrome_blurb": "品牌下方的一句话简介。页头上通常不填。",
       "brand_text": "logo 旁边显示的品牌名。留空跟着站点名走——站点名同时是搜索结果里的标题，通常更长。",
-      "brand_text_case": "全大写是排版处理，不是改名——存进去的字标和搜索标题里的站名仍是原文。字距跟着全大写一起给，混排不加。"
+      "brand_text_case": "全大写是排版处理，不是改名——存进去的字标和搜索标题里的站名仍是原文。字距跟着全大写一起给，混排不加。",
+      "button_icon": "内置含 GitHub、Google 等社交图标，也可上传或从媒体库选一张。",
+      "icon_only": "隐藏文案，只显示图标。文案仍用作读屏名称和悬停提示。没有图标时这项无效。"
     },
     "unit": {
       "columns": "列",
@@ -611,6 +613,7 @@
       "stat_term": "指标名",
       "stat_detail": "指标说明",
       "icon": "图标",
+      "icon_only": "只显示图标",
       "image": "图片",
       "image_alt": "图片替代文字",
       "media_side": "媒体位置",
@@ -845,6 +848,13 @@
     "tabAppearance": "外观",
     "noSettings": "这一项没有可配置的选项，样子完全跟随主题。",
     "inherit": "继承",
+    "icon": {
+      "builtin": "内置",
+      "upload": "上传",
+      "none": "无",
+      "social": "社交",
+      "general": "通用"
+    },
     "spacingBoxHint": "可拖动，或用 ↑↓ 调整（按住 Shift 走大档）；中间两个开关可让左右 / 上下一起改",
     "spacingBoxLockX": "左右一起改",
     "spacingBoxLockY": "上下一起改",

@@ -39,6 +39,8 @@ describe("buildDefaultProductSite", () => {
       ?.flatMap((section) => section.blocks)
       .find((block) => block.settings.href === "https://github.com/vvenv/rewindom");
     expect(headerGithub?.type).toBe("chrome_button");
+    expect(headerGithub?.settings.icon).toBe("Github");
+    expect(headerGithub?.settings.icon_only).toBe(true);
 
     const showcase = zhHome?.sections.find(
       (section) => section.settings.anchor === "showcase",

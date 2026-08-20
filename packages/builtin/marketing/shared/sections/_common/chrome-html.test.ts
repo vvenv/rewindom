@@ -346,3 +346,65 @@ describe("chrome 品牌", () => {
     expect(html).not.toContain("brand-upper");
   });
 });
+
+describe("chrome 按钮图标", () => {
+  it("仅图标时挂 chrome-control，文案进 aria-label", () => {
+    const html = header([
+      block("chrome_button", {
+        label: "GitHub",
+        href: "https://github.com/vvenv/rewindom",
+        icon: "Github",
+        icon_only: true,
+        variant: "ghost",
+      }),
+    ]);
+    expect(html).toContain('class="chrome-control"');
+    expect(html).toContain('aria-label="GitHub"');
+    expect(html).toContain('title="GitHub"');
+    expect(html).toContain("M12 .297");
+    expect(html).not.toContain("<span>GitHub</span>");
+    expect(html).not.toContain('class="btn');
+  });
+
+  it("图标+文案时仍是按钮，文案包在 span 里", () => {
+    const html = header([
+      block("chrome_button", {
+        label: "GitHub",
+        href: "https://github.com/vvenv/rewindom",
+        icon: "Github",
+      }),
+    ]);
+    expect(html).toContain('class="btn"');
+    expect(html).toContain("<span>GitHub</span>");
+    expect(html).toContain("M12 .297");
+    expect(html).not.toMatch(/<a class="btn"[^>]*aria-label=/u);
+  });
+
+  it("没有图标时 icon_only 不生效", () => {
+    const html = header([
+      block("chrome_button", {
+        label: "开始",
+        href: "/s",
+        icon_only: true,
+      }),
+    ]);
+    expect(html).toContain('class="btn"');
+    expect(html).toContain("开始");
+    expect(html).not.toContain("chrome-control");
+  });
+
+  it("自定义图片 URL 渲成 img", () => {
+    const html = header([
+      block("chrome_button", {
+        label: "商店",
+        href: "/shop",
+        icon: "/api/public/tenants/acme/site-assets/mark.png",
+        icon_only: true,
+      }),
+    ]);
+    expect(html).toContain(
+      'src="/api/public/tenants/acme/site-assets/mark.png"',
+    );
+    expect(html).toContain('aria-label="商店"');
+  });
+});

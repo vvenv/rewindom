@@ -204,10 +204,14 @@ registerInterpolationTokens([
 | `chrome_brand`    | show_logo, show_site_name, brand_text, text_case(normal\|upper), blurb |
 | `chrome_nav`      | title, items, display(inline\|column)       |
 | `chrome_text`     | text（`{year}` / `{site}` / `{tagline}` / `{hostname}` / `{url}`） |
-| `chrome_button`   | label, href, variant                        |
+| `chrome_button`   | label, href, icon, icon_only, variant       |
 | `chrome_locale`   | —                                           |
 | `chrome_theme`    | —                                           |
 | `chrome_account`  | —                                           |
+
+`chrome_button` 的 `icon` 可以是内置社交品牌（GitHub、Google 等）、lucide 名，或媒体库
+/ 外链图片 URL。`icon_only`（默认 `false`）把按钮收成页头那排的 `chrome-control`；
+纯图标必须带 `aria-label`（文案仍填，只是不画出来）。存量按钮没有这两个键时行为不变。
 
 业务模块还可以**贡献** chrome 块（如 shop 的 `shop.cart-link`），加进页头就是一枚按钮，
 与上表同一排定位。见下方「业务模块贡献 chrome 块」。

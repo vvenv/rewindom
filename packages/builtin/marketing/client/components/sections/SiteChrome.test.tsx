@@ -338,3 +338,23 @@ describe("SiteChrome 品牌", () => {
     expect(container.textContent).not.toContain("YESTINO");
   });
 });
+
+describe("SiteChrome 按钮图标", () => {
+  it("仅图标按钮用 chrome-control，文案只作无障碍名", () => {
+    const { container } = area("header", [
+      block("chrome_button", {
+        label: "GitHub",
+        href: "https://github.com/vvenv/rewindom",
+        icon: "Github",
+        icon_only: true,
+        variant: "ghost",
+        mobile: "pin",
+      }),
+    ]);
+    const link = container.querySelector("a.chrome-control");
+    expect(link).not.toBeNull();
+    expect(link?.getAttribute("aria-label")).toBe("GitHub");
+    expect(link?.querySelector("svg")).not.toBeNull();
+    expect(container.querySelector("a.btn")).toBeNull();
+  });
+});

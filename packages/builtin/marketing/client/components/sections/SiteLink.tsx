@@ -27,7 +27,9 @@ export function SiteLink({
   style,
   children,
   blockId,
+  title,
   "aria-current": ariaCurrent,
+  "aria-label": ariaLabel,
 }: {
   href: string;
   className?: string;
@@ -35,7 +37,9 @@ export function SiteLink({
   children: ReactNode;
   /** 这条链接就是某个 block 时带上，编辑器据此在预览里选中它。 */
   blockId?: string;
+  title?: string;
   "aria-current"?: "page" | "true" | "false" | boolean;
+  "aria-label"?: string;
 }): ReactElement {
   const localize = useSiteHref();
   if (isExternal(href)) {
@@ -47,6 +51,8 @@ export function SiteLink({
         style={style}
         rel="noreferrer noopener"
         target="_blank"
+        title={title}
+        aria-label={ariaLabel}
         aria-current={ariaCurrent}
       >
         {children}
@@ -60,6 +66,8 @@ export function SiteLink({
         data-block-id={blockId}
         className={className}
         style={style}
+        title={title}
+        aria-label={ariaLabel}
         aria-current={ariaCurrent}
       >
         {children}
@@ -72,6 +80,8 @@ export function SiteLink({
       data-block-id={blockId}
       className={className}
       style={style}
+      title={title}
+      aria-label={ariaLabel}
       aria-current={ariaCurrent}
     >
       {children}
