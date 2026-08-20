@@ -4,22 +4,15 @@
  * 与代码 i18n 的 `{{param}}` 不是同一套：库存句、页脚版权、段里手填的 href 都是
  * **数据**，语法对齐 Hugo / Jekyll / 页脚 `chrome_text`——单花括号 `{token}`。
  *
- * 内置五项，全是「写进 settings 就会过期」的值（口径同 Hugo / Jekyll / Ghost）：
+ * 本文件管**怎么替**；「这个站点上有哪些 token」在 `interpolation-tokens.ts`（注册表）。
  *
- * - `{year}` 当前年份——建站那天写死 `© 2026`，跨年之后页脚就一直停在去年
- * - `{site}` 站点设置里的**站点名称**——改了站名，页脚 / 区块标题 / 页面 title 不跟着变
- * - `{tagline}` 站点设置里的**标语**——一句话主张改了，得挨个页面去翻
- * - `{hostname}` 当前访问的主机名（不含端口）——备案号旁边的域名、换绑自定义域
- * - `{url}` 当前站点 origin（含协议，无末尾斜杠）——「访问 https://…」
- *
- * `{hostname}` / `{url}` 都从**这次请求的 origin** 拆，不是库里某条「对外域名」：
- * 工作台与官网同 Host（见 Host 分流），编辑器预览和实站因此是同一个值。
+ * 内置五项 `{year}` `{site}` `{tagline}` `{hostname}` `{url}` 全是「写进 settings 就会
+ * 过期」的站点级值。`{hostname}` / `{url}` 都从**这次请求的 origin** 拆，不是库里某条
+ *「对外域名」：工作台与官网同 Host（见 Host 分流），编辑器预览和实站因此是同一个值。
  *
  * 业务模块往 `contributed.interpolation` 填额外的（events 的 `{topic}` /
- * `{topic_slug}` / `{feed}`）。未出现在 values 里的 `{foo}` 原样留下，避免误伤文案里的花括号。
- *
- * **不搞别名**（`{site_name}` / `{site_desc}` / `{domain}` 都不认）：同一个值两种写法，
- * 租户在编辑器里看见的是一份清单、在别人的站上抄到的是另一份，谁都说不清哪个是对的。
+ * `{topic_slug}` / `{feed}`），并在注册表里登记同一批 key。未出现在 values 里的 `{foo}`
+ * 原样留下，避免误伤文案里的花括号。
  *
  * 链接里空掉的路径段与空查询值会收掉：`/topics/{topic_slug}/feed.xml` 在没有
  * 当前主题时是 `/topics/feed.xml`，而不是 `//`。当前页 RSS 请用 `{feed}`，不要
@@ -27,14 +20,6 @@
  */
 
 export const SITE_INTERPOLATION_KEY = "interpolation";
-
-export const BUILTIN_SITE_TOKENS = [
-  "year",
-  "site",
-  "tagline",
-  "hostname",
-  "url",
-] as const;
 
 const TOKEN_PATTERN = /\{([a-z][a-z0-9_]*)\}/gu;
 

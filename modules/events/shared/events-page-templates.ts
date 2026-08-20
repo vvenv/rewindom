@@ -49,6 +49,10 @@ import {
 } from "@rewindom/builtin/marketing/shared/home-layouts.js";
 import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
 import {
+  registerInterpolationTokens,
+  type InterpolationTokenDefinition,
+} from "@rewindom/builtin/marketing/shared/interpolation-tokens.js";
+import {
   HOME_PAGE_KIND,
   registerPageTemplateKind,
   registerPageTemplatePreset,
@@ -250,7 +254,6 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "events:template.topic.label",
     required_section: null,
     entitlement: EVENTS_ENTITLEMENT.key,
-    interpolation_tokens: ["topic", "topic_slug", "feed"],
   },
   {
     kind: EVENTS_DETAIL_PAGE_KIND,
@@ -260,7 +263,6 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "events:template.detail.label",
     required_section: EVENTS_DETAIL_SECTION_TYPE,
     entitlement: EVENTS_ENTITLEMENT.key,
-    interpolation_tokens: ["event", "headline", "topic", "topic_slug", "feed"],
   },
   {
     kind: EVENTS_ENTITY_PAGE_KIND,
@@ -270,7 +272,6 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "events:template.entity.label",
     required_section: EVENTS_ENTITY_SECTION_TYPE,
     entitlement: EVENTS_ENTITLEMENT.key,
-    interpolation_tokens: ["entity", "entity_kind", "feed"],
   },
   {
     kind: EVENTS_ENTITY_INDEX_PAGE_KIND,
@@ -283,10 +284,71 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
   },
 ];
 
+/**
+ * events 贡献的 `{token}`，与 `eventsInterpolationValues()` 填的那批**一一对应**
+ *（`events-page-templates.test.ts` 钉了这条：多一个少一个都红）。
+ *
+ * `page_kinds` 摆在 token 这一侧：`{feed}` 长在五张页面上，写在这里是一行，写在每张
+ * kind 上要抄五遍——实体枢纽当初就是这么把 `{feed}` 抄漏的，那张页面上明明可用，
+ * 编辑器却从来不列。
+ */
+const EVENTS_INTERPOLATION_TOKENS: readonly InterpolationTokenDefinition[] = [
+  {
+    key: "topic",
+    label: "events:token.topic",
+    page_kinds: [EVENTS_TOPIC_PAGE_KIND, EVENTS_DETAIL_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
+    key: "topic_slug",
+    label: "events:token.topic_slug",
+    page_kinds: [EVENTS_TOPIC_PAGE_KIND, EVENTS_DETAIL_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
+    key: "event",
+    label: "events:token.event",
+    page_kinds: [EVENTS_DETAIL_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
+    key: "headline",
+    label: "events:token.headline",
+    page_kinds: [EVENTS_DETAIL_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
+    key: "entity",
+    label: "events:token.entity",
+    page_kinds: [EVENTS_ENTITY_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
+    key: "entity_kind",
+    label: "events:token.entity_kind",
+    page_kinds: [EVENTS_ENTITY_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+  {
+    key: "feed",
+    // 首页也算：事件雷达当首页版式时，`/feed.xml` 就是这张页面的订阅地址
+    label: "events:token.feed",
+    page_kinds: [
+      HOME_PAGE_KIND,
+      EVENTS_TOPIC_PAGE_KIND,
+      EVENTS_DETAIL_PAGE_KIND,
+      EVENTS_ENTITY_PAGE_KIND,
+      EVENTS_ENTITY_INDEX_PAGE_KIND,
+    ],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+];
+
 export function registerEventsPageTemplates(): void {
   for (const definition of EVENTS_TEMPLATE_KINDS) {
     registerPageTemplateKind(definition);
   }
+  registerInterpolationTokens(EVENTS_INTERPOLATION_TOKENS);
   registerPageTemplatePreset(
     EVENTS_TOPIC_PAGE_KIND,
     EVENTS_TOPIC_TEMPLATE_PRESET,

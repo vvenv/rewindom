@@ -297,6 +297,15 @@
       "label": "Entity hub"
     }
   },
+  "token": {
+    "topic": "Name of the current topic, e.g. \"AI\"",
+    "topic_slug": "URL segment of the current topic, for building links",
+    "event": "Title of the current event",
+    "headline": "One-line summary of the current event (falls back to its title)",
+    "entity": "Name of the current entity, e.g. \"OpenAI\"",
+    "entity_kind": "Kind of the current entity, e.g. \"Company\"",
+    "feed": "RSS feed address for the current page"
+  },
   "edit": {
     "action": "Edit",
     "ariaLabel": "Edit event",

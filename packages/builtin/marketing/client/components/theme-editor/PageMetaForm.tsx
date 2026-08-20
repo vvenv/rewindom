@@ -24,6 +24,9 @@ interface PageMetaFormProps {
   description: string;
   /** 页面的 kind / 语言：模板页拿版式预设文案当输入框占位。 */
   kind: string;
+  /** 本站已开通的能力 / 站点文案：只喂给「可用占位符」那份清单。 */
+  entitlements?: ReadonlySet<string>;
+  site?: { site_name: string; tagline: string };
   locale: AppLocale;
   /** 页面路径，只读——改 slug 会换 URL，仍然留在页面列表里做。 */
   path: string;
@@ -55,6 +58,8 @@ export function PageMetaForm({
   title,
   description,
   kind,
+  entitlements,
+  site,
   locale,
   path,
   settings,
@@ -82,6 +87,8 @@ export function PageMetaForm({
           title={title}
           description={description}
           kind={kind}
+          entitlements={entitlements}
+          site={site}
           settings={settings}
           disabled={disabled}
           placeholders={

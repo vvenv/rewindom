@@ -235,6 +235,13 @@
     "currencyInvalid": "请输入三位 ISO 货币代码",
     "countryInvalid": "请输入两位 ISO 国家代码"
   },
+  "token": {
+    "product": "当前商品的名称（优先用商品的 SEO 标题）",
+    "product_description": "当前商品的简介（优先用商品的 SEO 描述）",
+    "collection": "当前分类的名称",
+    "collection_description": "当前分类的简介",
+    "order": "当前订单号"
+  },
   "template": {
     "group": "商店页版式",
     "catalog": { "label": "商品列表" },

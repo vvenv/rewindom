@@ -21,8 +21,6 @@ import {
   type AppLocale,
 } from "@rewindom/shared";
 
-import { BUILTIN_SITE_TOKENS } from "./site-interpolation.js";
-
 import type { PagePreset } from "./page-presets.types.js";
 
 export interface PageTemplateKindDefinition {
@@ -80,13 +78,6 @@ export interface PageTemplateKindDefinition {
    * 404 是一级地址但不是入口——死链页不该出现在导航里，所以显式关掉。
    */
   in_catalog?: boolean;
-  /**
-   * 本页标题 / 描述（以及段里的 href）在内置 `{year}` `{site}` `{hostname}` `{url}`
-   * 之外还能用的 `{token}`。带 `:slug` 的模板应当声明，并写进预设 title/description。
-   *
-   * 只是编辑器 tip 与约定；真正填值的是 `contributed.interpolation`。
-   */
-  interpolation_tokens?: readonly string[];
 }
 
 const TEMPLATE_KINDS = new Map<string, PageTemplateKindDefinition>();
@@ -428,29 +419,6 @@ export function resolveCatalogPageDescription(
     return copy.description;
   }
   return stored;
-}
-
-/**
- * 页面设置 tip 列出的 `{token}`：内置四项 + 该 kind 声明的额外项。
- */
-export function pageMetaInterpolationTokens(kind?: string): string[] {
-  const extra = kind
-    ? (getPageTemplateKind(kind)?.interpolation_tokens ?? [])
-    : [];
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const key of [...BUILTIN_SITE_TOKENS, ...extra]) {
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(key);
-  }
-  return out;
-}
-
-export function formatPageMetaInterpolationTokens(kind?: string): string {
-  return pageMetaInterpolationTokens(kind)
-    .map((key) => `{${key}}`)
-    .join(" ");
 }
 
 /* -------------------------------------------------------------------------- */

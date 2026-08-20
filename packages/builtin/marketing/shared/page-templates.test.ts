@@ -19,7 +19,6 @@ import {
   resolveCatalogPageTitle,
   resolveEditorTemplateCopy,
   resolveTemplatePresetCopy,
-  formatPageMetaInterpolationTokens,
   isStockTemplateTitle,
   relocalizeStockTemplateDescription,
   relocalizeStockTemplateTitle,
@@ -302,32 +301,5 @@ describe("库存模板标题", () => {
     expect(
       resolveCatalogPageDescription(kind, "en", "在售"),
     ).toBe("For sale");
-  });
-});
-
-describe("页面 meta 插值 tip", () => {
-  it("普通页只列出内置五项", () => {
-    expect(formatPageMetaInterpolationTokens("page")).toBe(
-      "{year} {site} {tagline} {hostname} {url}",
-    );
-    expect(formatPageMetaInterpolationTokens()).toBe(
-      "{year} {site} {tagline} {hostname} {url}",
-    );
-  });
-
-  it("模板 kind 声明的 token 接在内置后面", () => {
-    const kind = `interp-tokens-${Date.now()}`;
-    registerPageTemplateKind({
-      kind,
-      slug: kind,
-      path: "/x/:slug",
-      group: "x",
-      label: "x",
-      required_section: null,
-      interpolation_tokens: ["product", "product_description"],
-    });
-    expect(formatPageMetaInterpolationTokens(kind)).toBe(
-      "{year} {site} {tagline} {hostname} {url} {product} {product_description}",
-    );
   });
 });

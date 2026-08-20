@@ -235,6 +235,13 @@
     "currencyInvalid": "Enter a 3-letter ISO currency code",
     "countryInvalid": "Enter a 2-letter ISO country code"
   },
+  "token": {
+    "product": "Name of the current product (its SEO title when set)",
+    "product_description": "Summary of the current product (its SEO description when set)",
+    "collection": "Name of the current collection",
+    "collection_description": "Summary of the current collection",
+    "order": "Current order number"
+  },
   "template": {
     "group": "Shop page layouts",
     "catalog": { "label": "Product list" },

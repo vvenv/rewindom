@@ -54,6 +54,8 @@ models: []
 #    chrome 同一套 `interpolationValues`（内置 year/site/hostname/url + contributed）
 #    跑 `interpolateSiteText`。未识别的 `{foo}` 原样留下。
 # 2. 页面设置 tip 列出 `BUILTIN_SITE_TOKENS` + 该 kind 声明的 `interpolation_tokens`。
+#    （已被 site-tokens-everywhere 取代：两者都删了，改为 `interpolation-tokens.ts`
+#     注册表 + 编辑器的「可用占位符」面板。）
 # 3. 带 `:param` 的模板在 `registerPageTemplateKind` 上声明 token；预设 titleKey /
 #    descriptionKey 默认带上这些占位符。path handler **不要**再覆盖 title/description。
 # 4. 库存旧译名（「事件详情」「商品」）走 `RETIRED_PRESET_TITLES`，公开面按当前预设

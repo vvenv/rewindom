@@ -6,18 +6,33 @@
 # events 首屏（自己抄了一遍）各做各的，普通页面区块（hero / band / prose / page-header）
 # 与所有贡献段一个 token 都不认。租户在区块标题里写 `{site}`，前台原样吐花括号。
 #
+# 第二件事是**占位符没有一个「看得见」的地方**。它此前只以一行字段提示存在
+#（`渲染时替换：{year} {site} …`），而那行字回答不了唯一要紧的问题：`{topic_slug}`
+# 到底是什么、`{site}` 现在等于什么、这张页面上到底有没有 `{event}`。更糟的是那份清单
+# 是**手写**的：`interpolation_tokens` 写在 page kind 上、值填在模块的 values 函数里，
+# 两份清单没有任何东西对得上——events 填了七个 token，实体枢纽那张模板一个都没声明，
+# `{feed}` 在那张页面上明明可用，编辑器却从来不列。
+#
 # 口径不变（Hugo / Jekyll / Ghost 同一套，见 chrome-text-placeholders）：只放「写进
 # settings 就会过期」的值，一次给齐，不搞别名。
 
 # ---------- 必填 ----------
 module: marketing
 surfaces: [ssr, tenant]
-goal: 内置 token 补上 `{tagline}`；段渲染的聚合层按 schema 统一把 text/textarea/richtext/list/link 类设置过一遍插值，页面区块与贡献段因此不必各写一遍；编辑器在文字类设置下方列出本处可用的占位符。
-gold: packages/builtin/marketing/shared/site-interpolation.ts
+goal: 内置 token 补上 `{tagline}`；段渲染的聚合层按 schema 统一把 text/textarea/richtext/list/link 类设置过一遍插值，页面区块与贡献段因此不必各写一遍；`{token}` 收进一张注册表（一个 token 一条声明，由填值的模块登记），编辑器凭它渲染「可用占位符」面板——租户第一次看得见每个占位符是什么、现在等于什么、这张页面上有没有。
+gold: packages/builtin/marketing/shared/interpolation-tokens.ts
 touch:
   - packages/builtin/marketing/features/site-tokens-everywhere.spec.yaml
   - packages/builtin/marketing/shared/site-interpolation.ts
   - packages/builtin/marketing/shared/site-interpolation.test.ts
+  - packages/builtin/marketing/shared/interpolation-tokens.ts
+  - packages/builtin/marketing/shared/interpolation-tokens.test.ts
+  - packages/builtin/marketing/shared/page-templates.ts # 删 interpolation_tokens
+  - packages/builtin/marketing/client/components/InterpolationTokensButton.tsx
+  - packages/builtin/marketing/client/components/InterpolationTokensButton.test.tsx
+  - packages/builtin/marketing/client/components/SitePageMetaCoreFields.tsx
+  - packages/builtin/marketing/client/components/theme-editor/PageMetaForm.tsx
+  - packages/builtin/marketing/client/components/SitePageCreateSheet.tsx
   - packages/builtin/marketing/shared/interpolate-section-settings.ts
   - packages/builtin/marketing/shared/interpolate-section-settings.test.ts
   - packages/builtin/marketing/shared/sections/render-context.ts
@@ -44,6 +59,16 @@ touch:
   - packages/builtin/marketing/MODULE.md
   - modules/events/shared/sections/hero-html.ts
   - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/client/locales/
+  - modules/shop/shared/shop-page-templates.ts
+  - modules/shop/shared/shop-page-templates.test.ts
+  - modules/shop/client/locales/
+  - modules/site-docs/shared/page-templates.ts
+  - modules/site-docs/shared/page-templates.test.ts
+  - modules/site-docs/client/locales/
+  - .cursor/rules/site-section-i18n.mdc
   - modules/site-docs/docs/usage/
   - modules/site-docs/server/usage-docs.generated.ts
   - .cursor/skills/site-section/SKILL.md
@@ -51,13 +76,20 @@ out_of_scope:
   - `{site_name}` / `{site_desc}` 作为 `{site}` / `{tagline}` 的别名（口径是「一次给齐不搞别名」，见 chrome-text-placeholders 的 out_of_scope）
   - 给站点设置的站名 / 标语字段本身做插值（那是插值的**源**，自引用只会绕圈）
   - `nav_items` 里的条目（已在 `site-nav.ts` 走同一套 values，不重复处理）
+  - 给占位符做「插入到光标处」（点一行复制即可；插入要每个控件各自持有 ref，收益不抵复杂度）
+  - 列出按页取值的 token 的**当前值**（`{event}` 在编辑器里无从算起——编辑的是版式，不是某一条内容）
+  - 单独开一条「列出所有 token」的 API（注册表在 shared，两端同进程就能读；编辑器不必多打一次网络）
   - 主题设置 / 站点设置里的非文案字段（颜色、字体、脚本地址不该被花括号影响）
   - 段渲染器里已有的插值调用一律删掉（events 首屏保留：它的 `{feed}` 缺省值要在插值后再拼站内前缀）
 i18n: code
 acceptance:
   - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-interpolation.test.ts interpolate-section-settings.test.ts chrome-html.test.ts
   - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-seo.test.ts render-page-sections-html.test.ts
-  - pnpm --filter @rewindom/events exec vitest --run --project shared sections/hero-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run --project shared sections/hero-html.test.ts events-page-templates.test.ts
+  - pnpm --filter @rewindom/shop exec vitest --run --project shared shop-page-templates.test.ts
+  - pnpm --filter @rewindom/site-docs exec vitest --run page-templates.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client InterpolationTokensButton.test.tsx
+  - pnpm typecheck && pnpm lint
   - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteChrome.test.tsx
   - pnpm check:i18n
   - pnpm check:modules
@@ -79,3 +111,15 @@ models: []
 #    `contributed.interpolation`。
 # 4. chrome 的 `{token}` 与段的是同一份 values：`chrome_text` 不再自算一套
 #    （`resolveChromeText` 连同 `CHROME_TEXT_TOKENS` 一起删掉，后者早已无人引用）。
+# 5. **注册表**（`interpolation-tokens.ts`）：一个 token 一条声明，带 `label`（写给租户
+#    看的说明，必须 `ns:key`）、`page_kinds`、`entitlement`。`page_kinds` 摆在 token 这一
+#    侧——`{feed}` 长在五张模板上，写在 kind 上要抄五遍，实体枢纽当初就是这么抄漏的。
+#    `PageTemplateKindDefinition.interpolation_tokens` 与 `pageMetaInterpolationTokens`
+#    一并删除，不留兼容。
+# 6. 贡献方在登记 page template 的同一个函数里 `registerInterpolationTokens`，并各钉一条
+#    「登记的 key 集合 == values 函数的 key 集合」——这两份清单以前没有任何东西对得上。
+# 7. 租户面：编辑器的「可用占位符」面板（页面设置 + 每组含文字/链接字段的区块设置）。
+#    站点级 token 直接显示当前值（`{site} → Acme`），点一行复制。它替掉了原来那行
+#    `渲染时替换：{year} {site} …`——那行字回答不了「这是什么、现在等于什么」。
+# 8. `label` 一律带 ns（含 marketing 自己的）：`check:i18n` 扫 `ns:key` 字面量，
+#    漏写文案在门禁上就红（已验证：改成不存在的 key 会让 check:i18n 失败）。

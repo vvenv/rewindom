@@ -102,7 +102,15 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 
 站点设置里的**站点名称**与**标语**是租户随时会改的东西，写死进任何一段文案都会过期。
 所以它们和年份、当前域名一样是渲染期替换的占位符，**页面设置、每个区块、页头页脚
-共用同一张表**（`shared/site-interpolation.ts`）：
+共用同一张表**。三个文件分工不同，别混：
+
+| 文件                             | 管什么                                       |
+| -------------------------------- | -------------------------------------------- |
+| `shared/interpolation-tokens.ts` | **有哪些** token（注册表）+ 每个是什么、长在哪几张页面上 |
+| `shared/site-interpolation.ts`   | **怎么替**（`interpolateSiteText` / `interpolateSiteHref`）与值表合成 |
+| `shared/interpolate-section-settings.ts` | 按段的 schema 把 settings 过一遍（见下） |
+
+内置五项，每张页面都可用：
 
 | token        | 值                                     |
 | ------------ | -------------------------------------- |
@@ -112,10 +120,45 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 | `{hostname}` | 本次请求的主机名（不含端口）           |
 | `{url}`      | 本次请求的站点 origin（含协议，无尾斜杠）|
 
-业务模块往 `contributed.interpolation` 填自己的（events 的 `{topic}` / `{topic_slug}` /
-`{feed}`），模板页再用 `interpolation_tokens` 声明「这张页面额外有哪几个」，编辑器据此
-列清单。**不搞别名**：`{site_name}` / `{site_desc}` / `{domain}` 一律不认——同一个值两种
-写法，租户就永远说不清哪个是对的。未识别的 `{foo}` 原样留下，不会被吃成空串。
+**不搞别名**：`{site_name}` / `{site_desc}` / `{domain}` 一律不认——同一个值两种写法，
+租户就永远说不清哪个是对的。未识别的 `{foo}` 原样留下，不会被吃成空串。
+
+#### 贡献一个 token：登记 + 填值，两处必须对上
+
+业务模块把值填进 `contributed.interpolation`（`eventsContextEntry` 那一套），**同时**在
+注册表里登记同一批 key：
+
+```ts
+registerInterpolationTokens([
+  {
+    key: "topic",
+    label: "events:token.topic",   // 写给租户看的说明，必须带 ns（check:i18n 认它）
+    page_kinds: [EVENTS_TOPIC_PAGE_KIND, EVENTS_DETAIL_PAGE_KIND],
+    entitlement: EVENTS_ENTITLEMENT.key,
+  },
+]);
+```
+
+- `page_kinds` 摆在 **token 这一侧**，不是 page kind 那一侧：`{feed}` 长在五张模板上，
+  写在 token 上是一行，写在每张 kind 上要抄五遍——实体枢纽当初就是这么抄漏的
+- 不声明 `page_kinds` = 全站通用；页头 / 页脚只列这一类（同一份区块出现在每张页面上，
+  列出只有详情页才有值的 `{event}` 等于请租户写一个到处替不掉的花括号）
+- `entitlement` 未开通就不列出——token 是进程级登记的，开通与否是按租户的
+- 撞名**直接抛**：两个模块各填一个同名 token，渲染期后写的盖掉先写的，租户看到的是
+  「有时候对有时候不对」
+- 贡献方各钉一条测试：**登记的 key 集合 == values 函数的 key 集合**。这两份清单以前
+  没有任何东西对得上，漂移不报错、只是编辑器悄悄少列一项
+
+#### 租户在哪儿看到这份清单
+
+编辑器里「页面设置」的标题 / 描述之下、每一组含文字或链接字段的区块设置之末，都有一枚
+**「可用占位符」**（`client/components/InterpolationTokensButton.tsx`）：一个 token 一行，
+带说明，站点级的还显示**当前值**（`{site} → Acme`），点一行即复制。内容全部来自注册表，
+按当前页面 kind 与本站已开通能力过滤。
+
+这一枚按钮替掉了原来的一行字段提示（`渲染时替换：{year} {site} …`）。那行字回答不了
+唯一要紧的问题——`{topic_slug}` 到底是什么、`{site}` 现在等于什么、这张页面上到底有没有
+`{event}`；而手写一份清单必然与实际能替的东西漂移。
 
 **插值收口在聚合层，段自己不要再插一遍。** `renderSectionHtml`（SSR）与 `SiteSections`
 （预览）在调用渲染器之前，按段的 schema 把设置值过一遍
@@ -722,10 +765,10 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 同一条（登录标题用 `headingSettings({ headingDefault: "site-member:login.title" })`）。
 复制跨语言时库存句换成目标语言，租户改过的才搬原文。不要先 `t()` 成单语字符串。
 
-带 `:slug` 的模板（`/shop/:slug`、`/docs/:slug`、`/events/:slug`）在 kind 上声明
-`interpolation_tokens`，并把 `{product}` `{doc}` `{event}` 这类占位符写进预设标题 /
-描述。公开面 `<title>` / meta 用页面设置、渲染期插值；不要在 path handler 里用内容
-标题覆盖。
+带 `:slug` 的模板（`/shop/:slug`、`/docs/:slug`、`/events/:slug`）把 `{product}` `{doc}`
+`{event}` 这类占位符写进预设标题 / 描述，并在**注册表**里登记它们（见「占位符
+（`{token}`）」——token 自己声明长在哪几张页面上，kind 上不再有 `interpolation_tokens`）。
+公开面 `<title>` / meta 用页面设置、渲染期插值；不要在 path handler 里用内容标题覆盖。
 
 #### 业务模块贡献首页版式
 
@@ -1217,9 +1260,9 @@ og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:descr
 `og_image` 只放行站内相对路径与 http(s)：同一个值也会进编辑器预览的 `<img src>`。
 
 **页面设置的标题 / 描述就是 HTML `<title>` / meta。** 渲染期走与页脚、与每个区块同一套
-`{token}`（见下方「占位符（`{token}`）」）。带 `:slug` 的模板应在 `registerPageTemplateKind`
-上声明 `interpolation_tokens`，预设 title/description 默认带上这些占位符——path handler
-不要再用内容标题把页面设置盖掉。编辑器 tip 列出内置 token + 该 kind 声明的额外项。
+`{token}`（见「占位符（`{token}`）」）。带 `:slug` 的模板把占位符写进预设 title/description
+并在注册表里登记——path handler 不要再用内容标题把页面设置盖掉。编辑器的「可用占位符」
+按当前页面 kind 列出本页实际可用的那几个。
 
 用例见 `server/ssr-seo.test.ts`、`shared/seo-meta.test.ts`。
 

@@ -478,6 +478,19 @@
       "seo": "Search & sharing",
       "chrome_slot": "Placement"
     },
+    "token": {
+      "title": "Available placeholders",
+      "hint": "Type one into any text or link field; it is replaced at render time. Unrecognized {foo} is left as-is.",
+      "sitewide": "Everywhere on this site",
+      "thisPage": "This page only",
+      "copied": "Copied",
+      "empty": "not set",
+      "year": "The current year",
+      "site": "Site name, from Site settings",
+      "tagline": "Tagline, from Site settings",
+      "hostname": "Hostname visitors used to reach the site (no port)",
+      "url": "Site address (scheme included, no trailing slash)"
+    },
     "info": {
       "markdown": "Markdown is supported.",
       "one_per_line": "One per line.",
@@ -499,8 +512,6 @@
       "stack_order": "Only affects narrow screens, where columns stack vertically.",
       "page_title": "Shown in the browser tab, search results, and the page-title section. The page menu uses it too.",
       "page_description": "The snippet in search results, also shown as the subtitle under the page-title section; keep it under ~150 characters.",
-      "page_interpolation": "Placeholders fill in at render time: {{tokens}}. Unrecognized {foo} is left as-is.",
-      "settings_interpolation": "Text and link fields accept placeholders, filled in at render time: {{tokens}}. Unrecognized {foo} is left as-is.",
       "page_path": "Change the address from the page list — a new path means a new URL.",
       "show_page_header": "Off hides the title block on the page; page settings still apply to SEO and the browser tab.",
       "bg_color": "Leave empty for no custom fill. Supports alpha (e.g. #0f766e80).",

@@ -115,6 +115,10 @@
       "description": "{doc_description}"
     }
   },
+  "token": {
+    "doc": "当前文档的标题",
+    "doc_description": "当前文档的简介"
+  },
   "section": {
     "list": {
       "label": "文档列表",

@@ -650,6 +650,8 @@ export function SiteEditor() {
                 title={editor.title}
                 description={editor.description}
                 kind={page.kind}
+                entitlements={editor.capabilities.entitlements}
+                site={editor.previewSite}
                 locale={editor.locale}
                 path={editor.path}
                 settings={editor.pageSettings}
@@ -674,6 +676,8 @@ export function SiteEditor() {
                 locale={editor.locale}
                 defaultLocale={editor.defaultLocale}
                 pageKind={editor.page?.kind}
+                entitlements={editor.capabilities.entitlements}
+                site={editor.previewSite}
                 onChangeSettings={(settings) =>
                   editor.updateSettings(selectedSection.id, settings)
                 }

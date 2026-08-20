@@ -11,7 +11,6 @@ import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/se
 
 import type {
   EventEntityKind,
-  EventFeedTab,
   EventIncidentUpdate,
   EventSourceKind,
   EventStatus,

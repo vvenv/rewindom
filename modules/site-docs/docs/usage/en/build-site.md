@@ -109,8 +109,13 @@ settings updates every page at once. That is also why the default copyright
 "© 2020–{year} Acme, Inc." or an ICP line with `{hostname}`? Just type it.
 
 Some pages offer extra placeholders of their own — a topic page has `{topic}`, an event
-page has `{event}`. The editor lists what the field you are editing accepts, right below
-it. Anything it does not recognize is left alone, so a stray `{` in your copy is safe.
+page has `{event}`, a product page has `{product}`. **You do not have to memorize them**:
+under the Description in Page settings, and at the end of every group of text settings,
+there is an **Available placeholders** button. It opens the full list for the page you are
+on — one per line with an explanation, and for the site-wide ones what they currently
+resolve to (`{site} → Acme`). Click a row to copy it.
+
+Anything it does not recognize is left alone, so a stray `{` in your copy is safe.
 
 ### On mobile
 

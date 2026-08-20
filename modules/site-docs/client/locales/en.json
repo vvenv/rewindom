@@ -115,6 +115,10 @@
       "description": "{doc_description}"
     }
   },
+  "token": {
+    "doc": "Title of the current document",
+    "doc_description": "Summary of the current document"
+  },
   "section": {
     "list": {
       "label": "Doc list",

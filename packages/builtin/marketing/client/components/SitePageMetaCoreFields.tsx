@@ -7,8 +7,7 @@ import { Switch } from "@rewindom/ui/switch";
 import { Textarea } from "@rewindom/ui/textarea";
 import { useTranslation } from "react-i18next";
 
-import { formatPageMetaInterpolationTokens } from "../../shared/page-templates.js";
-
+import { InterpolationTokensButton } from "./InterpolationTokensButton.js";
 import { SiteImageField } from "./media/SiteImageField.js";
 
 import type { MarketingPageSettings } from "../../shared/site-cms.js";
@@ -30,8 +29,10 @@ interface SitePageMetaCoreFieldsProps extends SitePageMetaCoreValues {
    * 只是提示该填什么，不会自动写进草稿——必填就得租户自己确认一遍。
    */
   placeholders?: { title?: string; description?: string };
-  /** 用来列出本页标题 / 描述能写的 `{token}`。普通页只显示内置四项。 */
+  /** 本页 kind / 已开通能力 / 站点文案：决定「可用占位符」列出哪些、当前值是什么。 */
   kind?: string;
+  entitlements?: ReadonlySet<string>;
+  site?: { site_name: string; tagline: string };
   onChangeTitle: (value: string) => void;
   onChangeDescription: (value: string) => void;
   onChangeSettings: (settings: MarketingPageSettings) => void;
@@ -51,24 +52,20 @@ export function SitePageMetaCoreFields({
   disabled,
   placeholders,
   kind,
+  entitlements,
+  site,
   onChangeTitle,
   onChangeDescription,
   onChangeSettings,
 }: SitePageMetaCoreFieldsProps): ReactElement {
   const { t } = useTranslation("marketing");
-  const interpolationTip = t("editor.info.page_interpolation", {
-    tokens: formatPageMetaInterpolationTokens(kind),
-  });
 
   return (
     <FieldGroup>
       <Field>
         <FieldLabel htmlFor={`${idPrefix}-title`} className={LABEL_CLASS}>
           {t("cms.fieldTitle")}
-          <FieldInfoTip
-            text={`${t("editor.info.page_title")} ${interpolationTip}`}
-            side="left"
-          />
+          <FieldInfoTip text={t("editor.info.page_title")} side="left" />
         </FieldLabel>
         <Input
           id={`${idPrefix}-title`}
@@ -83,10 +80,7 @@ export function SitePageMetaCoreFields({
       <Field>
         <FieldLabel htmlFor={`${idPrefix}-description`} className={LABEL_CLASS}>
           {t("cms.fieldDescription")}
-          <FieldInfoTip
-            text={`${t("editor.info.page_description")} ${interpolationTip}`}
-            side="left"
-          />
+          <FieldInfoTip text={t("editor.info.page_description")} side="left" />
         </FieldLabel>
         <Textarea
           id={`${idPrefix}-description`}
@@ -98,6 +92,16 @@ export function SitePageMetaCoreFields({
           onChange={(event) => onChangeDescription(event.target.value)}
         />
       </Field>
+
+      {/*
+        标题与描述都能写 `{token}`，所以入口摆在这两个控件之后、SEO 分组之前——
+        它属于上面那两个字段，不属于下面的分享图与 noindex。
+      */}
+      <InterpolationTokensButton
+        pageKind={kind}
+        entitlements={entitlements}
+        site={site}
+      />
 
       <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase not-first:mt-2">
         {t("editor.group.seo")}

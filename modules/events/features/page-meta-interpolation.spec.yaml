@@ -33,6 +33,8 @@ models: []
 
 # ---------- 设计要点 ----------
 # 1. interpolation_tokens：topic 页 topic/topic_slug/feed；详情 event/headline/topic/feed；
+#    （已被 marketing 的 site-tokens-everywhere 取代：kind 上的 `interpolation_tokens`
+#     已删，改由 token 自己在注册表里声明 `page_kinds`。）
 #    实体 entity/entity_kind/feed。eventsInterpolationValues 始终带这些 key（空则空串）。
 # 2. 预设：详情 `{event}` / `{headline}`；实体 `{entity}`；专题已是 `{topic}`。
 # 3. 详情上下文补上当前事件的 topic / topic_label，好让 `{topic}` 也能用。

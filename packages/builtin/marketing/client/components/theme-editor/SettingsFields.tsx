@@ -20,7 +20,6 @@ import { Slider } from "@rewindom/ui/slider";
 import { Textarea } from "@rewindom/ui/textarea";
 import { useTranslation } from "react-i18next";
 
-import { formatPageMetaInterpolationTokens } from "../../../shared/page-templates.js";
 import {
   isInputSetting,
   isLocalizableSetting,
@@ -33,6 +32,7 @@ import {
   type SettingValues,
 } from "../../../shared/section-schema.js";
 import { getSettingSelectOptions } from "../../setting-select-options.js";
+import { InterpolationTokensButton } from "../InterpolationTokensButton.js";
 import { SiteImageField } from "../media/SiteImageField.js";
 import { SECTION_ICON_COMPONENTS } from "../sections/section-icons.js";
 import { SiteColorField } from "../SiteColorField.js";
@@ -88,9 +88,13 @@ interface SettingsFieldsProps {
   sectionType: string;
   /**
    * 当前页面的 kind；用来列出本页额外可用的 `{token}`（专题页的 `{topic}` 等）。
-   * 页头 / 页脚是站点级区域，不传——那里只有内置项。
+   * 页头 / 页脚是站点级区域，不传——那里只有全站通用的那几个。
    */
   pageKind?: string;
+  /** 本站已开通的能力；没开通店面就不该列出 `{product}`。 */
+  entitlements?: ReadonlySet<string>;
+  /** 站点名称与标语，用来在清单里显示当前值。 */
+  site?: { site_name: string; tagline: string };
   onChange: (next: SettingValues) => void;
 }
 
@@ -108,6 +112,8 @@ export function SettingsFields({
   columnCount,
   sectionType,
   pageKind,
+  entitlements,
+  site,
   onChange,
 }: SettingsFieldsProps): ReactElement {
   const { t } = useTranslation("marketing");
@@ -198,16 +204,16 @@ export function SettingsFields({
         );
       })}
       {/*
-        占位符清单摊在组末，不收进气泡：它是**整组**文字与链接字段共有的能力，
+        占位符入口摊在组末，不收进气泡：它是**整组**文字与链接字段共有的能力，
         逐个字段挂一个 tip 等于同一句话说十遍，而藏进 hover 里就等于没写——
         租户不会去 hover 一个自己没预期存在的功能。
       */}
       {hasInterpolatableField(defs) ? (
-        <FieldDescription>
-          {t("editor.info.settings_interpolation", {
-            tokens: formatPageMetaInterpolationTokens(pageKind),
-          })}
-        </FieldDescription>
+        <InterpolationTokensButton
+          pageKind={pageKind}
+          entitlements={entitlements}
+          site={site}
+        />
       ) : null}
     </FieldGroup>
   );

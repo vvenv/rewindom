@@ -25,6 +25,10 @@ import {
   registerPageTemplateKind,
   registerPageTemplatePreset,
 } from "@rewindom/builtin/marketing/shared/page-templates.js";
+import {
+  registerInterpolationTokens,
+  type InterpolationTokenDefinition,
+} from "@rewindom/builtin/marketing/shared/interpolation-tokens.js";
 import { buildPresetSections } from "@rewindom/builtin/marketing/shared/page-presets.js";
 
 import type { PagePreset, PresetTranslateFn } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
@@ -123,6 +127,25 @@ export function buildDocsTemplateSections(
   return buildPresetSections(PRESETS[kind]!, t);
 }
 
+/**
+ * site-docs 贡献的 `{token}`，与 `docsInterpolationValues()` 填的那批**一一对应**
+ *（`page-templates.test.ts` 钉了这条：多一个少一个都红）。
+ */
+const SITE_DOCS_INTERPOLATION_TOKENS: readonly InterpolationTokenDefinition[] = [
+  {
+    key: "doc",
+    label: "site-docs:token.doc",
+    page_kinds: [DOCS_ARTICLE_PAGE_KIND],
+    entitlement: SITE_DOCS_ENTITLEMENT.key,
+  },
+  {
+    key: "doc_description",
+    label: "site-docs:token.doc_description",
+    page_kinds: [DOCS_ARTICLE_PAGE_KIND],
+    entitlement: SITE_DOCS_ENTITLEMENT.key,
+  },
+];
+
 /** 登记两张模板页（幂等）；server `onBoot` 与 client manifest 各调一次。 */
 export function registerDocsPageTemplates(): void {
   registerPageTemplateKind({
@@ -142,8 +165,8 @@ export function registerDocsPageTemplates(): void {
     label: "site-docs:template.article.label",
     required_section: null,
     entitlement: SITE_DOCS_ENTITLEMENT.key,
-    interpolation_tokens: ["doc", "doc_description"],
   });
+  registerInterpolationTokens(SITE_DOCS_INTERPOLATION_TOKENS);
   registerPageTemplatePreset(DOCS_INDEX_PAGE_KIND, DOCS_INDEX_TEMPLATE_PRESET);
   registerPageTemplatePreset(
     DOCS_ARTICLE_PAGE_KIND,

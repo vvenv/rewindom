@@ -53,6 +53,10 @@ import {
   registerPageTemplatePreset,
   type PageTemplateKindDefinition,
 } from "@rewindom/builtin/marketing/shared/page-templates.js";
+import {
+  registerInterpolationTokens,
+  type InterpolationTokenDefinition,
+} from "@rewindom/builtin/marketing/shared/interpolation-tokens.js";
 
 import type { PagePreset } from "@rewindom/builtin/marketing/shared/page-presets.types.js";
 
@@ -296,7 +300,6 @@ const SHOP_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "shop:template.product.label",
     required_section: SHOP_PRODUCT_SECTION_TYPE,
     entitlement: SHOP_ENTITLEMENT.key,
-    interpolation_tokens: ["product", "product_description"],
   },
   {
     kind: SHOP_COLLECTION_PAGE_KIND,
@@ -306,7 +309,6 @@ const SHOP_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "shop:template.collection.label",
     required_section: SHOP_COLLECTION_PRODUCTS_SECTION_TYPE,
     entitlement: SHOP_ENTITLEMENT.key,
-    interpolation_tokens: ["collection", "collection_description"],
   },
   {
     kind: SHOP_CART_PAGE_KIND,
@@ -334,7 +336,6 @@ const SHOP_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "shop:template.order.label",
     required_section: SHOP_ORDER_SECTION_TYPE,
     entitlement: SHOP_ENTITLEMENT.key,
-    interpolation_tokens: ["order"],
   },
   {
     kind: SHOP_MEMBER_ORDERS_PAGE_KIND,
@@ -347,11 +348,49 @@ const SHOP_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
   },
 ];
 
+/**
+ * shop 贡献的 `{token}`，与 `shopInterpolationValues()` 填的那批**一一对应**
+ *（`shop-page-templates.test.ts` 钉了这条：多一个少一个都红）。
+ */
+const SHOP_INTERPOLATION_TOKENS: readonly InterpolationTokenDefinition[] = [
+  {
+    key: "product",
+    label: "shop:token.product",
+    page_kinds: [SHOP_PRODUCT_PAGE_KIND],
+    entitlement: SHOP_ENTITLEMENT.key,
+  },
+  {
+    key: "product_description",
+    label: "shop:token.product_description",
+    page_kinds: [SHOP_PRODUCT_PAGE_KIND],
+    entitlement: SHOP_ENTITLEMENT.key,
+  },
+  {
+    key: "collection",
+    label: "shop:token.collection",
+    page_kinds: [SHOP_COLLECTION_PAGE_KIND],
+    entitlement: SHOP_ENTITLEMENT.key,
+  },
+  {
+    key: "collection_description",
+    label: "shop:token.collection_description",
+    page_kinds: [SHOP_COLLECTION_PAGE_KIND],
+    entitlement: SHOP_ENTITLEMENT.key,
+  },
+  {
+    key: "order",
+    label: "shop:token.order",
+    page_kinds: [SHOP_ORDER_PAGE_KIND],
+    entitlement: SHOP_ENTITLEMENT.key,
+  },
+];
+
 /** 登记店面模板页（幂等）；server `onBoot` 与 client manifest 各调一次。 */
 export function registerShopPageTemplates(): void {
   for (const definition of SHOP_TEMPLATE_KINDS) {
     registerPageTemplateKind(definition);
   }
+  registerInterpolationTokens(SHOP_INTERPOLATION_TOKENS);
   registerPageTemplatePreset(SHOP_INDEX_PAGE_KIND, SHOP_INDEX_TEMPLATE_PRESET);
   registerPageTemplatePreset(
     SHOP_PRODUCT_PAGE_KIND,

@@ -27,9 +27,11 @@ alwaysApply: false
 
 库存句、页脚版权、段里手填的 href 是**数据**，语法是 `{token}`（与页脚 `chrome_text` 同一套）。代码 i18n（工作台 UI / API `error` / 审计模板）仍是 `{{param}}`。两套不要混。
 
-- 内置 `{year}` `{site}` `{hostname}` `{url}`；模块往 `contributed.interpolation` 加自己的（如 `{topic}`）
+- 内置 `{year}` `{site}` `{tagline}` `{hostname}` `{url}`；模块往 `contributed.interpolation` 加自己的（如 `{topic}`），**并登记进注册表**（`registerInterpolationTokens`）
+- token 的 `label` 是写给租户看的说明，和别的库存文案一样必须是 `ns:key`（`events:token.topic`）——`check:i18n` 扫的就是这类字面量
+- 段的文案 / 链接由聚合层统一插值，渲染器**不要**自己再插一遍
 - 链接空路径段渲染时收掉；**不要**在渲染器里暗改租户填的 href
-- 实现：`packages/builtin/marketing/shared/site-interpolation.ts`
+- 实现：`marketing/shared/interpolation-tokens.ts`（有哪些）+ `site-interpolation.ts`（怎么替）+ `interpolate-section-settings.ts`（段设置）
 
 ## 贡献段的按请求数据：预览取数 = 当前选中页面的 locale
 

@@ -29,8 +29,11 @@ interface SectionSettingsFormProps {
   /** 正在编辑的语言（文案类字段按语言分槽存）。 */
   locale: AppLocale;
   defaultLocale: AppLocale;
-  /** 当前页面 kind；文字字段下方的 `{token}` 清单据此加上本页特有的那几项。 */
+  /** 当前页面 kind；文字字段下方的「可用占位符」据此加上本页特有的那几项。 */
   pageKind?: string;
+  /** 本站已开通的能力 / 站点文案：同样只喂给那份占位符清单。 */
+  entitlements?: ReadonlySet<string>;
+  site?: { site_name: string; tagline: string };
   onChangeSettings: (settings: SettingValues) => void;
   onChangeBlockSettings: (blockId: string, settings: SettingValues) => void;
 }
@@ -69,6 +72,8 @@ export function SectionSettingsForm({
   locale,
   defaultLocale,
   pageKind,
+  entitlements,
+  site,
   onChangeSettings,
   onChangeBlockSettings,
 }: SectionSettingsFormProps): ReactElement {
@@ -96,6 +101,8 @@ export function SectionSettingsForm({
         locale={locale}
         defaultLocale={defaultLocale}
         pageKind={pageKind}
+        entitlements={entitlements}
+        site={site}
         onChange={(settings) => onChangeBlockSettings(block.id, settings)}
       />
     );
@@ -135,6 +142,8 @@ export function SectionSettingsForm({
       locale={locale}
       defaultLocale={defaultLocale}
       pageKind={pageKind}
+      entitlements={entitlements}
+      site={site}
       sectionType={section.type}
       /* 列宽控件要知道这一段现在有几列——列是 block，schema 里数不出来 */
       columnCount={groupColumns(section).length}
@@ -152,6 +161,8 @@ function ChromeBlockSettings({
   locale,
   defaultLocale,
   pageKind,
+  entitlements,
+  site,
   onChange,
 }: {
   block: { id: string; type: string; settings: SettingValues };
@@ -162,6 +173,8 @@ function ChromeBlockSettings({
   locale: AppLocale;
   defaultLocale: AppLocale;
   pageKind?: string;
+  entitlements?: ReadonlySet<string>;
+  site?: { site_name: string; tagline: string };
   onChange: (settings: SettingValues) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -198,6 +211,8 @@ function ChromeBlockSettings({
         locale={locale}
         defaultLocale={defaultLocale}
         pageKind={pageKind}
+        entitlements={entitlements}
+        site={site}
         sectionType={sectionType}
         onChange={onChange}
       />
@@ -216,6 +231,8 @@ function ScopedSettings({
   columnCount,
   sectionType,
   pageKind,
+  entitlements,
+  site,
   onChange,
 }: {
   label: string;
@@ -229,6 +246,8 @@ function ScopedSettings({
   columnCount?: number;
   sectionType: string;
   pageKind?: string;
+  entitlements?: ReadonlySet<string>;
+  site?: { site_name: string; tagline: string };
   onChange: (settings: SettingValues) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -278,6 +297,8 @@ function ScopedSettings({
       columnCount={columnCount}
       sectionType={sectionType}
       pageKind={pageKind}
+      entitlements={entitlements}
+      site={site}
       onChange={onChange}
     />
   );

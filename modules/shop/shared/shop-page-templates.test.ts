@@ -1,12 +1,17 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { cartSection } from "./cart-section.js";
+import { SHOP_ENTITLEMENT } from "./entitlements.js";
 import { checkoutSection } from "./checkout-section.js";
 import { collectionListSection } from "./collection-list-section.js";
 import { collectionProductsSection } from "./collection-products-section.js";
 import { orderListSection, orderSection } from "./order-section.js";
 import { productGridSection } from "./product-grid-section.js";
 import { productSection } from "./product-section.js";
+import {
+  emptyShopContext,
+  shopInterpolationValues,
+} from "./shop-section-context.js";
 import {
   registerShopPageTemplates,
   SHOP_COLLECTION_TEMPLATE_PRESET,
@@ -18,6 +23,7 @@ import {
   getPageTemplateKind,
   listPageTemplateKinds,
 } from "@rewindom/builtin/marketing/shared/page-templates.js";
+import { interpolationTokensFor } from "@rewindom/builtin/marketing/shared/interpolation-tokens.js";
 
 describe("registerShopPageTemplates", () => {
   beforeAll(() => {
@@ -88,17 +94,31 @@ describe("registerShopPageTemplates", () => {
     expect(getPageTemplateKind(SHOP_INDEX_PAGE_KIND)?.path).toBe("/shop");
   });
 
-  it("带 :slug 的模板声明页面 meta 插值 token", () => {
-    expect(getPageTemplateKind("shop_product")?.interpolation_tokens).toEqual([
-      "product",
-      "product_description",
-    ]);
-    expect(getPageTemplateKind("shop_collection")?.interpolation_tokens).toEqual(
-      ["collection", "collection_description"],
+  /*
+   * 「登记了哪些 token」与「实际填了哪些」是两份清单，靠这条钉在一起——漂移不报错，
+   * 只会让编辑器少列一项（租户无从知道能写），或多列一项（写下永远替不掉的花括号）。
+   */
+  it("shop 填的每个 token 都登记过，登记的每个也都有人填", () => {
+    const entitlements = new Set([SHOP_ENTITLEMENT.key]);
+    const filled = new Set(
+      Object.keys(shopInterpolationValues(emptyShopContext())),
     );
-    expect(getPageTemplateKind("shop_order")?.interpolation_tokens).toEqual([
-      "order",
-    ]);
+    const registered = new Set(
+      ["shop_product", "shop_collection", "shop_order"].flatMap((pageKind) =>
+        interpolationTokensFor({ pageKind, entitlements })
+          .filter((token) => token.entitlement === SHOP_ENTITLEMENT.key)
+          .map((token) => token.key),
+      ),
+    );
+    expect([...registered].sort()).toEqual([...filled].sort());
+  });
+
+  it("没开通店面的站点一个都不列", () => {
+    expect(
+      interpolationTokensFor({ pageKind: "shop_product" }).every(
+        (token) => token.entitlement === undefined,
+      ),
+    ).toBe(true);
   });
 
   it("同一进程再登记一次不抛", () => {

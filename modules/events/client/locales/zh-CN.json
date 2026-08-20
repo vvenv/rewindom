@@ -297,6 +297,15 @@
       "label": "实体枢纽"
     }
   },
+  "token": {
+    "topic": "当前专题的名称，如「AI」",
+    "topic_slug": "当前专题的地址片段，用来拼链接",
+    "event": "当前事件的标题",
+    "headline": "当前事件的一句话概述（没有则回落标题）",
+    "entity": "当前实体的名称，如「OpenAI」",
+    "entity_kind": "当前实体的类型，如「公司」",
+    "feed": "当前页面的 RSS 订阅地址"
+  },
   "edit": {
     "action": "编辑",
     "ariaLabel": "编辑事件",

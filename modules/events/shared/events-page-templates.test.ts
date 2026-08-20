@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { EVENTS_DETAIL_SECTION_TYPE } from "./events-detail-section.js";
+import { EVENTS_ENTITLEMENT } from "./entitlements.js";
 import {
   EVENTS_NOW_SECTION_TYPE,
   EVENTS_RISING_SECTION_TYPE,
@@ -20,9 +21,14 @@ import {
   eventsListingPreset,
   registerEventsPageTemplates,
 } from "./events-page-templates.js";
-import { EVENTS_FEED_HREF_TEMPLATE } from "./events-section-context.js";
+import {
+  EVENTS_FEED_HREF_TEMPLATE,
+  emptyEventsContext,
+  eventsInterpolationValues,
+} from "./events-section-context.js";
 
 import { getHomeLayout } from "@rewindom/builtin/marketing/shared/home-layouts.js";
+import { interpolationTokensFor } from "@rewindom/builtin/marketing/shared/interpolation-tokens.js";
 import {
   HOME_PAGE_KIND,
   getPageTemplateKind,
@@ -78,9 +84,6 @@ describe("registerEventsPageTemplates", () => {
     expect(getPageTemplateKind(EVENTS_TOPIC_PAGE_KIND)?.path).toBe(
       "/topics/:slug",
     );
-    expect(getPageTemplateKind(EVENTS_TOPIC_PAGE_KIND)?.interpolation_tokens).toEqual(
-      ["topic", "topic_slug", "feed"],
-    );
     expect(getPageTemplateKind(EVENTS_TOPIC_PAGE_KIND)?.required_section).toBe(
       null,
     );
@@ -97,13 +100,6 @@ describe("registerEventsPageTemplates", () => {
       EVENTS_DETAIL_SECTION_TYPE,
     );
     expect(getPageTemplateKind("events_detail")?.path).toBe("/events/:slug");
-    expect(getPageTemplateKind("events_detail")?.interpolation_tokens).toEqual([
-      "event",
-      "headline",
-      "topic",
-      "topic_slug",
-      "feed",
-    ]);
   });
 
   it("实体页是专用首屏加正文：添加区块里是 events.entity-hero，不是首页那一段", () => {
@@ -117,11 +113,6 @@ describe("registerEventsPageTemplates", () => {
       EVENTS_ENTITY_SECTION_TYPE,
     );
     expect(getPageTemplateKind("events_entity")?.path).toBe("/entities/:slug");
-    expect(getPageTemplateKind("events_entity")?.interpolation_tokens).toEqual([
-      "entity",
-      "entity_kind",
-      "feed",
-    ]);
   });
 
   it("查询列表只摆与 source 匹配的一段，kind 跟着有没有 topic 走", () => {
@@ -142,5 +133,57 @@ describe("registerEventsPageTemplates", () => {
     expect(layout?.group).toBe(EVENTS_PAGE_TEMPLATE_GROUP);
     expect(layout?.rootPrefix).toBeUndefined();
     expect(layout?.preset).toBe(EVENTS_HOME_LAYOUT_PRESET);
+  });
+});
+
+/*
+ * 「登记了哪些 token」与「实际填了哪些」是两份清单，靠这条钉在一起。
+ *
+ * 漂移不会报错、只会悄悄少一项：实体枢纽当初一个 token 都没声明，`{feed}` 在那张
+ * 页面上明明可用，编辑器却从来不列，租户无从知道能写。反过来，声明了却没人填的
+ * token 会让租户写下一个永远替不掉的花括号。
+ */
+describe("占位符登记与填值一一对应", () => {
+  const ENTITLEMENTS = new Set([EVENTS_ENTITLEMENT.key]);
+  const ALL_KINDS = [
+    HOME_PAGE_KIND,
+    EVENTS_TOPIC_PAGE_KIND,
+    "events_detail",
+    "events_entity",
+    "events_entity_index",
+  ];
+
+  it("events 填的每个 key 都登记过，登记的每个 key 也都有人填", () => {
+    const filled = new Set(
+      Object.keys(eventsInterpolationValues(emptyEventsContext())),
+    );
+    const registered = new Set(
+      ALL_KINDS.flatMap((pageKind) =>
+        interpolationTokensFor({ pageKind, entitlements: ENTITLEMENTS })
+          .filter((token) => token.entitlement === EVENTS_ENTITLEMENT.key)
+          .map((token) => token.key),
+      ),
+    );
+    expect([...registered].sort()).toEqual([...filled].sort());
+  });
+
+  it("{feed} 在五张页面上都列得出——它当初正是被抄漏的那一个", () => {
+    for (const pageKind of ALL_KINDS) {
+      expect(
+        interpolationTokensFor({ pageKind, entitlements: ENTITLEMENTS }).map(
+          (token) => token.key,
+        ),
+      ).toContain("feed");
+    }
+  });
+
+  it("没开通事件雷达的站点一个都不列", () => {
+    for (const pageKind of ALL_KINDS) {
+      expect(
+        interpolationTokensFor({ pageKind }).every(
+          (token) => token.entitlement === undefined,
+        ),
+      ).toBe(true);
+    }
   });
 });

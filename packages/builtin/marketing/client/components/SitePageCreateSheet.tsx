@@ -35,6 +35,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
+import { localizeSiteText } from "../../shared/section-schema.js";
 import { siteLocaleOrder } from "../../shared/site-locale.js";
 import { useSite, useSiteMutations } from "../hooks/useSite.js";
 import { siteEditorPath } from "../lib/site-editor-url.js";
@@ -58,6 +59,21 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
   const navigate = useNavigate();
   const siteQuery = useSite();
   const defaultLocale = normalizeLocale(siteQuery.data?.default_locale);
+  // 管理端的站名 / 标语是整张多语言表，面板要的是一句话——按站点默认语言压平
+  const siteText = siteQuery.data
+    ? {
+        site_name: localizeSiteText(
+          siteQuery.data.site_name,
+          defaultLocale,
+          defaultLocale,
+        ),
+        tagline: localizeSiteText(
+          siteQuery.data.tagline,
+          defaultLocale,
+          defaultLocale,
+        ),
+      }
+    : undefined;
   const [open, setOpen] = useState(false);
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
@@ -133,6 +149,11 @@ export function SitePageCreateSheet({ children }: SitePageCreateSheetProps) {
               idPrefix="create-page"
               title={title}
               description={description}
+              /*
+               * 只喂站点文案，不喂 entitlements：这里建的是普通页面，本来就只有全站
+               * 通用那几个 token；而「{site} 现在等于什么」在这里和在编辑器里一样有用。
+               */
+              site={siteText}
               settings={settings}
               onChangeTitle={setTitle}
               onChangeDescription={setDescription}

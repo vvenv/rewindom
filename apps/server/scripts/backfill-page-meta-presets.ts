@@ -17,7 +17,10 @@
  */
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 
-type LocaleCopy = { title: string; description: string };
+interface LocaleCopy {
+  title: string;
+  description: string;
+}
 
 interface KindSpec {
   kind: string;
@@ -126,14 +129,11 @@ const KINDS: readonly KindSpec[] = [
   },
 ];
 
-const FIELDS = [
-  "title",
-  "title_draft",
-  "description",
-  "description_draft",
-] as const;
-
-type MetaField = (typeof FIELDS)[number];
+type MetaField =
+  | "title"
+  | "title_draft"
+  | "description"
+  | "description_draft";
 
 function stockSet(
   key: string,
@@ -242,15 +242,15 @@ async function main(): Promise<void> {
       next.description_draft = expected.description;
     }
 
-    const changed = Object.keys(next);
+    const changed = Object.keys(next) as MetaField[];
     if (changed.length === 0) continue;
 
     matched += 1;
     const tenant = tenantById.get(page.tenant_id) ?? page.tenant_id;
     const summary = changed
       .map((field) => {
-        const from = page[field as MetaField];
-        const to = next[field as MetaField] ?? "";
+        const from = page[field];
+        const to = next[field] ?? "";
         return `${field}:${JSON.stringify(from)}→${JSON.stringify(to)}`;
       })
       .join(" ");
