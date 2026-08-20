@@ -2,9 +2,12 @@
 # 用法: ROOT=/path/to/repo source scripts/lib/deploy-remote.sh
 #       load_deploy_credentials production
 #       _run_ssh "echo hello"
+# 在仓库根执行也可以不设 ROOT。zsh `source` 没有 BASH_SOURCE，要回落到 $0。
 
 if [ -z "${ROOT:-}" ]; then
-  ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  _deploy_remote_src="${BASH_SOURCE[0]:-$0}"
+  ROOT="$(cd "$(dirname "$_deploy_remote_src")/../.." && pwd)"
+  unset _deploy_remote_src
 fi
 
 # shellcheck source=scripts/lib/release-deploy-config.sh
