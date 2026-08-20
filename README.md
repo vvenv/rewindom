@@ -7,38 +7,76 @@
 
 # Rewindom
 
-**Agent-first · 多租户 SaaS 底座 — 模块化 Monolith**
+**给编码 Agent 用的多租户 SaaS 底座**
 
-底座随业务成形，而不是业务迁就底座。
+开源 · 模块化单体
+
+底座随业务成形
 
 [官网](https://rewindom.com) · [文档](https://rewindom.com/docs) · [GitHub](https://github.com/vvenv/rewindom) · [案例 · Yestino](https://yestino.com)
 
 </div>
 
+内核不含业务代码。业务以模块挂上，按租户开关。人与 Cursor / Claude 走同一条 Spec → gen → check 闭环——不是又一份脚手架。
+
+| 本地启动 | 开箱即用 | 一种部署 |
+| --- | --- | --- |
+| 三条命令跑起来 | CMS · 认证 · 计费 | 单进程 Docker Compose |
+
+产品站就是默认租户（slug=`rewindom`）：[rewindom.com](https://rewindom.com)，文档在同一套 CMS 上的 [`/docs`](https://rewindom.com/docs)。
+
 ---
 
-## 这是什么
+## 不是那三种东西
 
-**Agent-first** 的多租户 SaaS **模块化单体**：内核 + 内置基础设施 + 可选外部业务模块。用 `AGENTS.md`、Cursor/Claude Skills 与 `gen:module` → `check:modules` 闭环，让编码 Agent 在强制边界内扩展业务。内核与基础设施**不含业务领域代码**；业务以模块挂载，外部示例以 `modules/note` 为金标准。
-
-| 类型                            | 模块                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 基础设施（`packages/builtin/`） | `user` 认证/JWT · `platform` 租户/套餐/配额 · `rbac` PBAC（未启用则登录即可访问）· `audit` 审计 · `notification` 站内通知 · `background-job` BullMQ 任务中心 · `error-log` / `slow-query` 可观测 · `dashboard` 工作台 · `marketing` 官网 CMS（主域=默认租户 SSR） · `site-member` 站点会员 · `billing` 平台租户订阅（Creem） · `site-billing` 站点会员订阅 |
-| 外部业务（`modules/`）          | `note` 金标准 CRUD · `todo` 列表示例 · `bookmark` 书签示例（由 `pnpm gen:external-modules` 装进组装层）                                                                                                                                                                                                                                                    |
-
-**不是**：无约束的脚手架喷发器、微服务框架、低代码平台。Agent 写代码，闸门与契约由框架强制。详见 [agent-first.md](docs/design/agent-first.md)。
-
-### 案例
-
-| 产品 | 说明 | 链接 |
+| 不是脚手架喷发器 | 不是微服务框架 | 不是低代码平台 |
 | --- | --- | --- |
-| **Yestino** | 全球科技热点与实时趋势追踪：多租户 CMS、自定义域名、`events` 资讯模块，跑在同一套 Rewindom 底座上 | [yestino.com](https://yestino.com) |
+| Agent 写的代码进仓库、过闸门。没有「生成完就扔掉」的一次性骨架。 | 编译期组装、一个进程。租户、官网、工作台按 Host 分流，而不是再拆一套服务。 | 没有天花板：模块是 TypeScript 包，契约与测试都是代码。闸门强制边界，不代替写代码。 |
 
-产品介绍与使用说明也在 [rewindom.com](https://rewindom.com)（默认租户 slug=`rewindom`）与站内 [`/docs`](https://rewindom.com/docs)。
+---
+
+## 人与 Agent 共用一条闭环
+
+`AGENTS.md` 与 Skills 是产品的一部分。新模块填 `MODULE.spec`，改现有模块填 `FEATURE.spec`；留空则 Agent 必须追问，禁止瞎猜。
+
+| 填 Spec | 生成并装配 | 机器闸门 |
+| --- | --- | --- |
+| 声明 id、权限、模型、触达面。空白就是问题，不是发挥空间。 | 骨架与注册表一次写对，避免漏挂路由或租户守卫。 | 契约、依赖、文案校验拦住越权与漏装配；CI 跑同一套。 |
+
+详见 [agent-first.md](docs/design/agent-first.md)。
+
+---
+
+## 每个 SaaS 都要重写的那一层，已经写好
+
+按租户开关：未开通不挂路由、不进侧栏、不产生数据。
+
+| 站点 | 平台 | 运营 |
+| --- | --- | --- |
+| 官网 CMS 与 SSR、文档库、站点会员、自定义域名。主域就是产品站，租户站按 Host 绑定。 | 认证与 JWT、多租户与套餐配额、PBAC、审计、通知、任务中心。 | 错误日志、慢查询与慢请求、平台计费与站点收款。可观测性不是事后再接。 |
+
+内置能力在 `packages/builtin/`，两处 `enabled-modules.ts` 手写注册。外部业务在 `modules/`，由 `pnpm gen:external-modules` 装进组装层：
+
+| 类型 | 模块 |
+| --- | --- |
+| 基础设施 | `user` · `platform` · `rbac` · `audit` · `notification` · `background-job` · `error-log` · `slow-query` · `slow-request` · `dashboard` · `translation` · `marketing` · `site-member` · `billing` · `site-billing` |
+| 外部业务 | `note`（金标准 CRUD）· `todo` · `bookmark` · `shop` · `site-docs` · `site-form` · `events` |
+
+---
+
+## 案例 · Yestino
+
+全球科技热点与实时趋势追踪。同一进程、按 Host 分流、自定义域名、`events` 资讯模块——不是演示站，是线上产品。
+
+这套底座在线上扛着：多租户 CMS 与 SSR · 自定义域名 · `events` 资讯模块 · 单进程，按 Host 分流。
+
+打开 [yestino.com](https://yestino.com)。
 
 ---
 
 ## 快速开始
+
+先跑起来，再让 Agent 扩模块。clone 仓库，`pnpm setup && pnpm dev`。文档和产品站是同一套。
 
 前置：Node.js 22+、pnpm 11+、Docker。
 
@@ -136,25 +174,25 @@ TENANT_BASE_DOMAIN=localhost
 
 ## 架构
 
-编译期组装、单进程部署。每模块自带 server 路由、client 页面、shared 契约与 `MODULE.md`。
+编译期组装、单进程部署。每模块自带 server 路由、client 页面、shared 契约与 `MODULE.md`。内核与基础设施不含业务领域代码。
 
-1. **Agent-first** — `AGENTS.md` + Skills + Spec → `gen:module` → `check:modules` / `check:deps`
-2. **内核不依赖业务** — HTTP 栈、认证、租户上下文、ModuleLoader、EventBus
-3. **模块间禁止直接 import** — 跨模块走 manifest `requires` + Event Bus / Provider / Slot
-4. **模块可按租户开关** — 未开通不挂路由、不进侧栏
-
-边界由 `pnpm check:deps` 强制（包层环 + manifest/schema FK + 文件级环）。
+1. **内核不依赖业务** — HTTP 栈、认证、租户上下文、ModuleLoader、EventBus
+2. **模块间禁止直接 import** — 跨模块走 manifest `requires` + Event Bus / Provider / Slot
+3. **模块可按租户开关** — 未开通不挂路由、不进侧栏
+4. **边界由机器强制** — `pnpm check:deps` / `check:modules` / `check:i18n`（包层环 + manifest/schema FK + 文案）
 
 - **内置能力**改 `packages/builtin/<id>/`，在两处 `enabled-modules.ts` 手写注册
 - **业务模块**用 `pnpm gen:module <spec.yaml>` 生成到 `modules/<id>/`（经 `@rewindom/module-sdk` 门面，不直连内核），再 `pnpm gen:external-modules` 装进组装层；金标准是 `modules/note`
 
-详见 [modular-architecture.md](docs/design/modular-architecture.md) 与 [agent-first.md](docs/design/agent-first.md)。
+详见 [modular-architecture.md](docs/design/modular-architecture.md)。
 
 前端有四类路由挂载点：`renderPublicRoutes`（无守卫，租户 CMS 前台）、`renderGuestRoutes`（登录注册，已登录会被弹走）、`renderTenantRoutes`（租户应用）、`renderPlatformRoutes`（平台控制台，仅 `PLATFORM_URL` Host）。公开页 SEO 由 Fastify SSR 输出；SPA 接管后补交互层。
 
 ---
 
 ## 技术栈
+
+技术栈没有惊喜：招人好招，出问题搜得到答案。价值在边界与约束，不在堆新框架。
 
 | 层次 | 技术                                                       |
 | ---- | ---------------------------------------------------------- |
@@ -184,7 +222,7 @@ rewindom/
 │   ├── client-kit/          # api、守卫、PageLayout、Slot
 │   ├── shared/ · ui/        # 跨端类型 · shadcn 基础组件
 │   └── server-test/ · client-test/
-├── modules/                 # 外部业务包（note / todo / bookmark …）
+├── modules/                 # 外部业务包（note / shop / site-docs / events …）
 ├── docker/ · docs/ · scripts/
 ```
 
