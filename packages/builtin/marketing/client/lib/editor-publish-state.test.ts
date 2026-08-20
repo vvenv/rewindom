@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { resolveEditorPublishState } from "./editor-publish-state.js";
 
 describe("resolveEditorPublishState", () => {
-  it("points at 保存 while there are unsaved edits, and blocks publish", () => {
+  it("turns 发布 into 立即发布 while there are unsaved edits", () => {
     const state = resolveEditorPublishState({
       dirty: true,
       published: true,
@@ -11,11 +11,11 @@ describe("resolveEditorPublishState", () => {
     });
 
     expect(state.stage).toBe("unsaved");
-    expect(state.primary).toBe("save");
     expect(state.canSave).toBe(true);
-    // 发的会是上次保存的草稿，不是眼前这一版
-    expect(state.canPublish).toBe(false);
-    expect(state.publishBlockedKey).toBe("editor.publishBlockedUnsaved");
+    // 发得出去，但得先把眼前这一版存下来——直发的会是上次保存的草稿
+    expect(state.canPublish).toBe(true);
+    expect(state.publishSavesFirst).toBe(true);
+    expect(state.publishBlockedKey).toBeUndefined();
   });
 
   it("points at 发布 for a saved draft that was never published", () => {
@@ -26,9 +26,10 @@ describe("resolveEditorPublishState", () => {
     });
 
     expect(state.stage).toBe("unpublished");
-    expect(state.primary).toBe("publish");
     expect(state.canPublish).toBe(true);
     expect(state.canSave).toBe(false);
+    // 草稿已经落库，这一发不用再存
+    expect(state.publishSavesFirst).toBe(false);
   });
 
   it("points at 发布 when the live version fell behind the saved draft", () => {
@@ -39,12 +40,12 @@ describe("resolveEditorPublishState", () => {
     });
 
     expect(state.stage).toBe("stale");
-    expect(state.primary).toBe("publish");
     expect(state.canPublish).toBe(true);
+    expect(state.publishSavesFirst).toBe(false);
     expect(state.tone).toBe("amber");
   });
 
-  it("has no primary action once live matches the draft", () => {
+  it("has nothing left to do once live matches the draft", () => {
     const state = resolveEditorPublishState({
       dirty: false,
       published: true,
@@ -52,9 +53,9 @@ describe("resolveEditorPublishState", () => {
     });
 
     expect(state.stage).toBe("live");
-    expect(state.primary).toBeNull();
     expect(state.canSave).toBe(false);
     expect(state.canPublish).toBe(false);
+    expect(state.publishSavesFirst).toBe(false);
     expect(state.tone).toBe("emerald");
     expect(state.publishBlockedKey).toBe("editor.publishBlockedUpToDate");
   });
@@ -67,7 +68,7 @@ describe("resolveEditorPublishState", () => {
     });
 
     expect(state.stage).toBe("unsaved");
-    expect(state.primary).toBe("save");
+    expect(state.publishSavesFirst).toBe(true);
     // 两级撤销互不遮挡：既能退回已保存的草稿，也能一路退回线上
     expect(state.canDiscardLocal).toBe(true);
     expect(state.canRevert).toBe(true);
@@ -113,7 +114,6 @@ describe("页头页脚并入同一条发布链", () => {
     });
 
     expect(state.stage).toBe("stale");
-    expect(state.primary).toBe("publish");
     expect(state.canPublish).toBe(true);
     // 撤销也是一条：正文与页头一起回滚
     expect(state.canRevert).toBe(true);
@@ -128,7 +128,7 @@ describe("页头页脚并入同一条发布链", () => {
     });
 
     expect(state.stage).toBe("live");
-    expect(state.primary).toBeNull();
+    expect(state.canPublish).toBe(false);
     expect(state.canRevert).toBe(false);
   });
 
@@ -142,7 +142,7 @@ describe("页头页脚并入同一条发布链", () => {
     });
 
     expect(state.stage).toBe("unsaved");
-    expect(state.primary).toBe("save");
+    expect(state.publishSavesFirst).toBe(true);
   });
 
   // 页面没上线过时正文没有「线上版」可回，但页头照样能还原
@@ -163,15 +163,16 @@ describe("页头页脚并入同一条发布链", () => {
  * 不传 `published` / `contentDirty`，只有 `stale` 那句文案换成站点级的说法。
  */
 describe("resolveEditorPublishState（站点级：页头页脚 + 主题）", () => {
-  it("有未保存改动时先保存，不让直接发布", () => {
+  it("有未保存改动时发布要先存一遍", () => {
     const state = resolveEditorPublishState({
       dirty: true,
       chromeDirty: true,
       scope: "chrome",
     });
 
-    expect(state.primary).toBe("save");
-    expect(state.canPublish).toBe(false);
+    expect(state.canSave).toBe(true);
+    // 站点级也一样：一次点完保存与发布
+    expect(state.publishSavesFirst).toBe(true);
   });
 
   it("草稿领先线上时给发布，文案指名是站点级那几样", () => {
@@ -181,7 +182,8 @@ describe("resolveEditorPublishState（站点级：页头页脚 + 主题）", () 
       scope: "chrome",
     });
 
-    expect(state.primary).toBe("publish");
+    expect(state.canPublish).toBe(true);
+    expect(state.publishSavesFirst).toBe(false);
     expect(state.canRevert).toBe(true);
     expect(state.statusKey).toBe("editor.state.siteDraftStale");
   });
@@ -194,7 +196,7 @@ describe("resolveEditorPublishState（站点级：页头页脚 + 主题）", () 
     });
 
     expect(state.stage).toBe("live");
-    expect(state.primary).toBeNull();
+    expect(state.canPublish).toBe(false);
   });
 
   /** 缺省 `published: true` 不能让页面编辑器的「未上线」档意外走进页头页脚。 */

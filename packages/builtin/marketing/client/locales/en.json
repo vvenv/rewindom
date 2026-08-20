@@ -433,7 +433,8 @@
     "saveDraft": "Save draft",
     "saveHint": "Saves your changes to the draft. Visitors still see the live version.",
     "publishHint": "Pushes the current draft live: this page and the header & footer together (the header & footer are shared by every page).",
-    "publishBlockedUnsaved": "Save the draft first; publishing now would ship your last saved version.",
+    "publishNow": "Publish now",
+    "publishNowHint": "Saves the draft and publishes it right away: visitors see exactly what you see (this page plus the header & footer).",
     "publishBlockedUpToDate": "The live page already matches the draft — nothing to publish.",
     "more": "More actions",
     "state": {

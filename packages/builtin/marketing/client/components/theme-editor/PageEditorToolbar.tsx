@@ -39,6 +39,7 @@ interface PageEditorToolbarProps {
   onDuplicated: (page: MarketingPage) => void;
   onSave: () => void;
   onPublish: () => void;
+  onPublishNow: () => void;
   onUnpublish: () => void;
   onDiscardLocal: () => void;
   onRevert: () => void;
@@ -70,6 +71,7 @@ export function PageEditorToolbar({
   onDuplicated,
   onSave,
   onPublish,
+  onPublishNow,
   onUnpublish,
   onDiscardLocal,
   onRevert,
@@ -78,7 +80,9 @@ export function PageEditorToolbar({
 }: PageEditorToolbarProps) {
   const { t } = useTranslation("marketing");
   const [duplicateOpen, setDuplicateOpen] = useState(false);
-  const canResetPreset = Boolean(getPageTemplatePreset(page.kind) && onResetPreset);
+  const canResetPreset = Boolean(
+    getPageTemplatePreset(page.kind) && onResetPreset,
+  );
 
   return (
     <>
@@ -89,6 +93,7 @@ export function PageEditorToolbar({
         publishLabelKey="cms.publish"
         onSave={onSave}
         onPublish={onPublish}
+        onPublishNow={onPublishNow}
         onDiscardLocal={onDiscardLocal}
         onRevert={onRevert}
         nav={

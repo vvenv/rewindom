@@ -433,7 +433,8 @@
     "saveDraft": "保存草稿",
     "saveHint": "把改动存进草稿；访客看到的还是线上那一版。",
     "publishHint": "把当前草稿推到线上：本页内容与页头页脚一起上线（页头页脚是所有页面共用的）。",
-    "publishBlockedUnsaved": "先保存草稿，再发布——否则发出去的是上一次保存的内容。",
+    "publishNow": "立即发布",
+    "publishNowHint": "保存草稿并立刻发布：访客马上看到眼前这一版（本页内容与页头页脚一起）。",
     "publishBlockedUpToDate": "线上已经和当前草稿一致，没有要发布的改动。",
     "more": "更多操作",
     "state": {

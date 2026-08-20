@@ -17,6 +17,7 @@ import type { EditorPublishState } from "../../lib/editor-publish-state.js";
 
 export interface EditorToolbarPending {
   saving: boolean;
+  /** 发布中——「立即发布」的保存那半也算在这里，转圈才不会画到另一枚按钮上。 */
   publishing: boolean;
   reverting: boolean;
 }
@@ -29,6 +30,8 @@ interface EditorToolbarProps {
   publishLabelKey: string;
   onSave: () => void;
   onPublish: () => void;
+  /** 保存 + 发布一次做完；只在有未保存改动时（`publishSavesFirst`）走这条。 */
+  onPublishNow: () => void;
   onDiscardLocal: () => void;
   onRevert: () => void;
   /**
@@ -52,13 +55,18 @@ interface EditorToolbarProps {
  * 差异其实只有三处：左边那段导航、「更多」里的额外项、发布按钮的文案，于是收成三个
  * 插槽，其余只此一份。
  *
- * 只有两枚主按钮：保存、发布。发布把这次编辑的东西整个上线——本页正文与站点级的
+ * 只有两枚主按钮：保存草稿、发布。发布把这次编辑的东西整个上线——本页正文与站点级的
  * 页头页脚一起（服务端同一事务）。曾经把它们拆成两条发布链，工具栏就长出了第三种
  * 状态、第三个主按钮和第三条撤销，而站长的心智始终只有一个「发过去」。
  *
- * 同一时刻只有一枚 primary，由 `EditorPublishState` 决定，工具栏因此永远只有一个重点。
- * 不可点的按钮**留在原位置置灰**（不是藏起来）：`publishBlockedKey` 会在 tooltip 里
- * 说明为什么现在发不了，藏掉的话租户只会觉得功能时有时无。
+ * 右边那枚按钮按 `publishSavesFirst` 换语义，而不是再加第三枚：有未保存改动时它是
+ * 「立即发布」（保存 + 发布一次点完），否则是「发布」。三件事并排摆不出来——不脏时
+ * 「立即发布」与「发布」是同一件事，脏时「只发已保存的草稿」发的是租户看不见的旧版本，
+ * 所以无论哪个状态都会有一枚按钮是死的。
+ *
+ * 主按钮只有一枚：能发布时是发布，发不了时（线上已是最新）谁都不抢重点。不可点的
+ * 按钮**留在原位置置灰**（不是藏起来）：`publishBlockedKey` 会在 tooltip 里说明为什么
+ * 现在发不了，藏掉的话租户只会觉得功能时有时无。
  */
 export function EditorToolbar({
   state,
@@ -67,6 +75,7 @@ export function EditorToolbar({
   publishLabelKey,
   onSave,
   onPublish,
+  onPublishNow,
   onDiscardLocal,
   onRevert,
   nav,
@@ -146,10 +155,11 @@ export function EditorToolbar({
             </DropdownMenu>
           ) : null}
 
+          {/* 保存草稿始终是次要动作：便宜、可逆，且「立即发布」已经包含了它 */}
           <Button
             size="sm"
-            variant={state.primary === "save" ? "default" : "outline"}
-            disabled={!state.canSave || pending.saving}
+            variant="outline"
+            disabled={!state.canSave || pending.saving || pending.publishing}
             title={t("editor.saveHint")}
             onClick={onSave}
           >
@@ -159,13 +169,20 @@ export function EditorToolbar({
 
           <Button
             size="sm"
-            variant={state.primary === "publish" ? "default" : "outline"}
-            disabled={!state.canPublish || pending.publishing}
-            title={t(state.publishBlockedKey ?? "editor.publishHint")}
-            onClick={onPublish}
+            variant={state.canPublish ? "default" : "outline"}
+            disabled={!state.canPublish || pending.publishing || pending.saving}
+            title={t(
+              state.publishBlockedKey ??
+                (state.publishSavesFirst
+                  ? "editor.publishNowHint"
+                  : "editor.publishHint"),
+            )}
+            onClick={state.publishSavesFirst ? onPublishNow : onPublish}
           >
             {pending.publishing && <Spinner className="size-4" />}
-            {t(publishLabelKey)}
+            {state.publishSavesFirst
+              ? t("editor.publishNow")
+              : t(publishLabelKey)}
           </Button>
         </>
       ) : null}

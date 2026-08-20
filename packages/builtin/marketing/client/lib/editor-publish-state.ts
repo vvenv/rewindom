@@ -26,10 +26,16 @@ export type EditorStage = "unsaved" | "unpublished" | "stale" | "live";
 
 export interface EditorPublishState {
   stage: EditorStage;
-  /** 当下该点哪个——同一时刻只有一个按钮是 primary，工具栏的「重点」由它决定。 */
-  primary: "save" | "publish" | null;
   canSave: boolean;
   canPublish: boolean;
+  /**
+   * 发布前要不要先保存。内存里还有没落库的改动时为 true，发布按钮这时是
+   * 「立即发布」：一次点完保存与发布。
+   *
+   * 服务端的 publish 没有 body——发出去的永远是库里那份草稿，所以「同时保存与
+   * 发布」只能由前端串起来（存成功再发），做不成一个请求。
+   */
+  publishSavesFirst: boolean;
   /** 内存里这一版能退回已保存的草稿（纯前端，不碰服务端）。 */
   canDiscardLocal: boolean;
   /**
@@ -69,26 +75,33 @@ export function resolveEditorPublishState({
     canRevert: (published && contentDirty) || chromeDirty,
   };
 
-  // 有未保存改动时不让直接发布：发出去的会是上一次保存的草稿，跟眼前看到的不是一回事
+  /*
+   * 有未保存改动时**不是**不能发布，而是这一发得连保存一起做：直接发出去的会是
+   * 上一次保存的草稿，跟眼前看到的不是一回事。
+   *
+   * 这里曾经把发布按钮置灰，让租户先点保存再点发布。两枚按钮点两次，中间还要看懂
+   * tooltip 才知道为什么灰——而「把我改的这一版发出去」本来就是一个动作，于是
+   * 改成 `publishSavesFirst`：按钮留在原位，文案变「立即发布」，一次点完。
+   */
   if (dirty) {
     return {
       stage: "unsaved",
-      primary: "save",
       canSave: true,
-      canPublish: false,
+      canPublish: true,
+      publishSavesFirst: true,
       ...revert,
       statusKey: "editor.state.unsaved",
       tone: "amber",
-      publishBlockedKey: "editor.publishBlockedUnsaved",
+      publishBlockedKey: undefined,
     };
   }
 
   if (!published) {
     return {
       stage: "unpublished",
-      primary: "publish",
       canSave: false,
       canPublish: true,
+      publishSavesFirst: false,
       ...revert,
       statusKey: "editor.state.unpublished",
       tone: "muted",
@@ -99,9 +112,9 @@ export function resolveEditorPublishState({
   if (contentDirty || chromeDirty) {
     return {
       stage: "stale",
-      primary: "publish",
       canSave: false,
       canPublish: true,
+      publishSavesFirst: false,
       ...revert,
       statusKey:
         scope === "chrome"
@@ -114,9 +127,9 @@ export function resolveEditorPublishState({
 
   return {
     stage: "live",
-    primary: null,
     canSave: false,
     canPublish: false,
+    publishSavesFirst: false,
     ...revert,
     statusKey: "editor.state.live",
     tone: "emerald",

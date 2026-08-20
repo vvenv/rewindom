@@ -63,6 +63,7 @@ function renderToolbar(
       onDuplicated={vi.fn()}
       onSave={vi.fn()}
       onPublish={vi.fn()}
+      onPublishNow={vi.fn()}
       onUnpublish={vi.fn()}
       onDiscardLocal={vi.fn()}
       onRevert={vi.fn()}
@@ -95,7 +96,9 @@ describe("PageEditorToolbar", () => {
   });
 
   it("hides reset layout on an ordinary page", async () => {
-    renderToolbar(page({ id: "about-1", kind: "page", slug: "about", title: "关于" }));
+    renderToolbar(
+      page({ id: "about-1", kind: "page", slug: "about", title: "关于" }),
+    );
 
     await openMoreMenu();
     expect(screen.queryByRole("menuitem", { name: "重设版式" })).toBeNull();

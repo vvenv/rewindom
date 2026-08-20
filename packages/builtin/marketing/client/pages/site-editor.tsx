@@ -150,6 +150,8 @@ export function SiteEditor() {
       }),
   });
   const [device, setDevice] = useState<PreviewDevice>("desktop");
+  /** 「立即发布」跨了两个请求（存→发），转圈与互锁得自己记一档。 */
+  const [publishingNow, setPublishingNow] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
   const { selectedSectionId, selectedBlockId } = editor;
@@ -216,10 +218,14 @@ export function SiteEditor() {
   const highlightLabel = selectedSection
     ? selectionTypeLabel(selectedSection, editor.selectedBlockId, t)
     : undefined;
+  // 「立即发布」的保存那半算进 publishing：转圈要留在被点的那枚按钮上，
+  // 而不是先在「保存草稿」上转半圈再跳过去。
   const saving =
-    editor.mutations.saveEditorDraft.isPending ||
-    editor.mutations.saveSiteDraft.isPending;
+    !publishingNow &&
+    (editor.mutations.saveEditorDraft.isPending ||
+      editor.mutations.saveSiteDraft.isPending);
   const publishing =
+    publishingNow ||
     editor.mutations.publishDraft.isPending ||
     editor.mutations.publishSiteDraft.isPending;
   const reverting =
@@ -261,14 +267,27 @@ export function SiteEditor() {
   /**
    * 保存：有页面时正文与站点级草稿一次事务落库；没有页面就只落站点级。
    * 两条路都带上主题——它现在是站点级草稿的一部分。
+   *
+   * 拆出参数是为了「立即发布」能接着往下走：`silent` 吞掉「已保存」那条 toast
+   * （一次点击弹两条，第二条才是租户要看的），`onSaved` 里接发布。
+   * 返回值说的是**请求发出去了没有**——标题 / 描述没填时这里直接 return，
+   * 调用方要靠它把「发布中」的转圈收回去。
    */
-  const save = (): void => {
+  const saveDraft = (
+    options: {
+      silent?: boolean;
+      onSaved?: () => void;
+      onFailed?: () => void;
+    } = {},
+  ): boolean => {
     const onSuccess = (): void => {
       clearEditorCache(pageId);
-      toast.success(t("editor.toastSaved"));
+      if (!options.silent) toast.success(t("editor.toastSaved"));
+      options.onSaved?.();
     };
     const onError = (): void => {
       toast.error(t("editor.toastSaveFailed"));
+      options.onFailed?.();
     };
 
     if (pageId && page) {
@@ -276,11 +295,11 @@ export function SiteEditor() {
       // 缺哪一样得当场说清楚，右栏「页面设置」里就是这两个框
       if (!editor.title.trim()) {
         toast.error(t("editor.toastTitleRequired"));
-        return;
+        return false;
       }
       if (!editor.description.trim()) {
         toast.error(t("editor.toastDescriptionRequired"));
-        return;
+        return false;
       }
       editor.mutations.saveEditorDraft.mutate(
         {
@@ -299,7 +318,7 @@ export function SiteEditor() {
         },
         { onSuccess, onError },
       );
-      return;
+      return true;
     }
 
     editor.mutations.saveSiteDraft.mutate(
@@ -311,6 +330,11 @@ export function SiteEditor() {
       },
       { onSuccess, onError },
     );
+    return true;
+  };
+
+  const save = (): void => {
+    saveDraft();
   };
 
   /**
@@ -318,18 +342,40 @@ export function SiteEditor() {
    * 一起（服务端同一事务）；页面还没上线的话顺带上线。对用户就是一件事：
    * 让访客看到的等于眼前这一版。
    */
-  const publish = (): void => {
+  const publishDraft = (options: { onSettled?: () => void } = {}): void => {
     const onSuccess = (): void => {
       toast.success(t("editor.toastPublished"));
     };
     const onError = (): void => {
       toast.error(t("editor.toastPublishFailed"));
     };
+    const settled = { onSuccess, onError, onSettled: options.onSettled };
     if (pageId && page) {
-      editor.mutations.publishDraft.mutate(pageId, { onSuccess, onError });
+      editor.mutations.publishDraft.mutate(pageId, settled);
       return;
     }
-    editor.mutations.publishSiteDraft.mutate(undefined, { onSuccess, onError });
+    editor.mutations.publishSiteDraft.mutate(undefined, settled);
+  };
+
+  const publish = (): void => {
+    publishDraft();
+  };
+
+  /**
+   * 立即发布 = 保存草稿 + 发布，一次点完。服务端 publish 没有 body（发的永远是库里
+   * 那份草稿），所以只能在前端串：存成功再发。
+   *
+   * 中间断掉不会留下坏状态——草稿已经落库，工具栏退回「线上不是最新」，再点一次
+   * 「发布」就补上了；转圈期间 `publishingNow` 让两枚按钮都锁住，免得存了两遍。
+   */
+  const publishNow = (): void => {
+    setPublishingNow(true);
+    const started = saveDraft({
+      silent: true,
+      onSaved: () => publishDraft({ onSettled: () => setPublishingNow(false) }),
+      onFailed: () => setPublishingNow(false),
+    });
+    if (!started) setPublishingNow(false);
   };
 
   /** 丢掉内存里这一版，回到库里已保存的草稿（不碰服务端）。 */
@@ -446,6 +492,7 @@ export function SiteEditor() {
         }
         onSave={save}
         onPublish={publish}
+        onPublishNow={publishNow}
         onUnpublish={unpublish}
         onDiscardLocal={() => void discardLocal()}
         onRevert={() => void revert()}
@@ -460,6 +507,7 @@ export function SiteEditor() {
         publishLabelKey="editor.publishSite"
         onSave={save}
         onPublish={publish}
+        onPublishNow={publishNow}
         onDiscardLocal={() => void discardLocal()}
         onRevert={() => void revert()}
       />
