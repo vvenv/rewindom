@@ -2,13 +2,16 @@
 # 用法: ROOT=/path/to/repo source scripts/lib/deploy-env.sh
 #       load_deploy_env "$ROOT" production   # → .env.production
 #       load_deploy_env "$ROOT" test         # → .env.test
+# zsh `source` 没有 BASH_SOURCE，路径回落到 $0。
 
 if [ -z "${ROOT:-}" ]; then
-  ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  _deploy_env_src="${BASH_SOURCE[0]:-$0}"
+  ROOT="$(cd "$(dirname "$_deploy_env_src")/../.." && pwd)"
+  unset _deploy_env_src
 fi
 
 # shellcheck source=log.sh
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/log.sh"
+source "$ROOT/scripts/lib/log.sh"
 
 deploy_env_file_for() {
   local root="${1:-$ROOT}"

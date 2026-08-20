@@ -2,7 +2,9 @@
 # 用法: VERSION_ROOT=/path/to/repo source scripts/lib/version.sh
 
 if [ -z "${VERSION_ROOT:-}" ]; then
-  VERSION_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  _version_src="${BASH_SOURCE[0]:-$0}"
+  VERSION_ROOT="$(cd "$(dirname "$_version_src")/../.." && pwd)"
+  unset _version_src
 fi
 
 VERSION_PACKAGE_JSONS=(

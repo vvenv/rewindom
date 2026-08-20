@@ -3,7 +3,9 @@
 #       docker_deploy production 0 1   # environment yes bootstrap
 
 if [ -z "${ROOT:-}" ]; then
-  ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  _docker_deploy_src="${BASH_SOURCE[0]:-$0}"
+  ROOT="$(cd "$(dirname "$_docker_deploy_src")/../.." && pwd)"
+  unset _docker_deploy_src
 fi
 
 # shellcheck source=scripts/lib/release-deploy-config.sh
