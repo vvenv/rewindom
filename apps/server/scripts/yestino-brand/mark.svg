@@ -1,8 +1,19 @@
 <!--
-  Yestino 品牌标：两条来源线汇成一条时间线（events 的产品口径），同时是字母 Y。
+  Yestino 品牌标：一笔上扬的加速曲线。产品口径（Rising —— 新增来源 / 新增信号在涨）
+  就是这个形，单一连通笔画，缩到 16px 仍然是它自己。
+
+  为什么不是大写 Y：Hacker News 的标就是方块里一个大写 Y，同一批读者的图标堆里会直接撞车。
+
+  为什么不给它补左臂凑成小写 y：试过。补上确实读成 y，但曲线一旦被第二笔切开，
+  轮廓就从「一道甩出去的弧」变回一个字母，识别度反而退回字母标那一档。
+  在左上放一个分离圆点更差：16px 上点和曲线糊成一团，大尺寸读成「ソ」。
+
   容器色取官网主色 #4F46E5（theme_settings.primary_color），渐变只在同一色相里走深浅，
   不跨色相——官网通篇只有一个 accent，logo 也不该多出第二种颜色。
+  容器不跟官网换成近黑：试过，深色标签栏上整块容器消失，图标就没有轮廓了。
+
   尺寸下限是官网页头的 24px（`.logo{height:1.5rem}`），所以笔画粗、无细节、无分离元素。
+  几何改动要同步 mark-mono.svg，并重跑 generate.mjs 出位图。
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Yestino">
   <defs>
@@ -13,12 +24,7 @@
     </linearGradient>
   </defs>
   <rect width="256" height="256" rx="60" fill="url(#yestino-bg)"/>
-  <path
-    fill="none"
-    stroke="#FFFFFF"
-    stroke-width="44"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    d="M76 64 L128 130 L180 64 M128 130 L128 192"
-  />
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round">
+    <path stroke-width="40" d="M62 186 Q 146 186 182 70"/>
+  </g>
 </svg>
