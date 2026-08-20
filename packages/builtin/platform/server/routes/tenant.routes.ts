@@ -11,6 +11,7 @@ import {
   isAppLocale,
   isShellLayoutSlug,
   isThemePaletteSlug,
+  DEFAULT_TENANT_SLUG,
   InvalidTenantSlugError,
   ReservedTenantSlugError,
 } from "@rewindom/shared";
@@ -292,7 +293,7 @@ export async function registerTenantRoutes(
         if (!before) {
           return sendCodedError(reply, 404, "tenant.not_found");
         }
-        if (before.slug === "default") {
+        if (before.slug === DEFAULT_TENANT_SLUG) {
           return handleValidationError(reply, "tenant.default_not_archivable");
         }
         if (before.status === "archived") {

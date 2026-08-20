@@ -215,14 +215,14 @@ describe("resolveHostTenant", () => {
   it("产品主域绑定默认租户", async () => {
     vi.mocked(prisma.tenant.findUnique).mockResolvedValueOnce({
       id: DEFAULT_TENANT_ID,
-      slug: "default",
+      slug: "rewindom",
       name: "默认租户",
       status: "active",
     } as never);
 
     await expect(resolveHostTenant("rewindom.com")).resolves.toEqual({
       tenant_id: DEFAULT_TENANT_ID,
-      tenant_slug: "default",
+      tenant_slug: "rewindom",
       name: "默认租户",
     });
     expect(prisma.tenant.findUnique).toHaveBeenCalledWith({

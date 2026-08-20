@@ -78,7 +78,7 @@ describe("platform slow-query routes", () => {
           target: "default",
           route: "/api/test",
           method: "GET",
-          tenant_slug: "default",
+          tenant_slug: "rewindom",
           user_id: null,
           username: null,
           request_id: null,

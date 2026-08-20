@@ -31,7 +31,7 @@ const tenantAccessPayload = {
   actor_type: "tenant_user" as const,
   is_system_admin: false,
   tenant_id: DEFAULT_TENANT_ID,
-  tenant_slug: "default",
+  tenant_slug: "rewindom",
   type: "access" as const,
 };
 
@@ -282,7 +282,7 @@ describe("auth.middleware", () => {
         actor_type: "tenant_user",
         is_system_admin: false,
         tenant_id: DEFAULT_TENANT_ID,
-        tenant_slug: "default",
+        tenant_slug: "rewindom",
       });
     });
   });
@@ -489,7 +489,7 @@ describe("auth.middleware", () => {
       actor_type: "site_member" as const,
       is_system_admin: false,
       tenant_id: DEFAULT_TENANT_ID,
-      tenant_slug: "default",
+      tenant_slug: "rewindom",
       type: "access" as const,
     };
 

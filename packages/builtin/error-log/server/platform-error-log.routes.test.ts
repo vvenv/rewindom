@@ -74,7 +74,7 @@ describe("platform error-log routes", () => {
         message: "test error",
         route: "/api/test",
         error_code: "TEST_ERROR",
-        tenant_slug: "default",
+        tenant_slug: "rewindom",
         created_at: new Date("2026-01-01"),
       },
     ] as never);

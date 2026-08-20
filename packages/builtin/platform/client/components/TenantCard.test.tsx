@@ -127,7 +127,7 @@ describe("TenantCard", () => {
 
   it("default 租户不应显示暂停与归档", () => {
     render(
-      <TenantCard tenant={{ ...baseTenant, slug: "default" }} {...handlers} />,
+      <TenantCard tenant={{ ...baseTenant, slug: "rewindom" }} {...handlers} />,
       { wrapper },
     );
 

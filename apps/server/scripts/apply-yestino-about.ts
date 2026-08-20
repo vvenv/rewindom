@@ -16,7 +16,7 @@
  * 用法:
  *   pnpm --filter server exec tsx scripts/apply-yestino-about.ts --dry-run
  *   pnpm --filter server exec tsx scripts/apply-yestino-about.ts
- *   pnpm --filter server exec tsx scripts/apply-yestino-about.ts --slug default --force
+ *   pnpm --filter server exec tsx scripts/apply-yestino-about.ts --slug yestino --force
  *   pnpm --filter server exec tsx scripts/apply-yestino-about.ts --contact hi@example.com
  */
 
@@ -45,7 +45,7 @@ import { parseNavItems } from "@rewindom/builtin/marketing/shared/site-nav.js";
 import { type Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { withTenantScope } from "@rewindom/server-kernel/lib/tenant-scope.js";
-import { DEFAULT_TENANT_SLUG, type AppLocale } from "@rewindom/shared";
+import { type AppLocale } from "@rewindom/shared";
 
 /*
  * 副作用导入：把 events 的 locale catalog 登记进来。首屏库存文案（`events:site.hero.*`）
@@ -86,7 +86,7 @@ interface Args {
 }
 
 function parseArgs(argv: string[]): Args {
-  let slug = DEFAULT_TENANT_SLUG;
+  let slug = "yestino";
   let dryRun = false;
   let force = false;
   let contact = "";

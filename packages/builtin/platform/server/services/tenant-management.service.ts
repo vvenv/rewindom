@@ -13,7 +13,7 @@ import {
 } from "@rewindom/server-kernel/lib/host-tenant.js";
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { emitDetachedDomainEventSafe } from "@rewindom/server-kernel/runtime/domain-event-emit.js";
-import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug, TENANT_SETTING_KEY_OPENAI } from "@rewindom/shared";
+import { formatLoginIdentifier, generateRandomPassword, assertValidTenantSlug, DEFAULT_TENANT_SLUG, TENANT_SETTING_KEY_OPENAI } from "@rewindom/shared";
 
 import { isValidPlanSlug, PRICING_PLANS, TENANT_FEATURES_STORAGE_KEY, TENANT_INITIAL_ADMIN_USERNAME, TENANT_LIMITS_STORAGE_KEY, type CreateTenantBody, type ImpersonateTenantResult, type PatchTenantBody, type PlanSlug, type PlatformUserSummary, type TenantAdminCredentials, type TenantCreated, type TenantIntegrationStatus, type TenantStats, type TenantSummary, type TenantStatus, type UpdateTenantPlanBody } from "../../shared/index.js";
 
@@ -258,7 +258,7 @@ export async function patchTenant(
   if (patch.slug !== undefined) {
     const slug = assertValidTenantSlug(patch.slug);
     if (slug !== existing.slug) {
-      if (existing.slug === "default") {
+      if (existing.slug === DEFAULT_TENANT_SLUG) {
         throw new ValidationError("tenant.default_slug_immutable");
       }
       const conflict = await prisma.tenant.findFirst({
@@ -290,7 +290,7 @@ export async function patchTenant(
       throw new ValidationError("tenant.status_invalid");
     }
     if (
-      existing.slug === "default" &&
+      existing.slug === DEFAULT_TENANT_SLUG &&
       (patch.status === "suspended" || patch.status === "archived")
     ) {
       throw new ValidationError("tenant.default_not_suspendable_or_archivable");

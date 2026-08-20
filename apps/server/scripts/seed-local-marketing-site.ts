@@ -2,7 +2,7 @@
 /**
  * 为指定租户铺一套已发布的营销站。
  *
- * - slug=`default`（产品主域）：Rewindom 产品官网终稿（首页，中英）+ 使用说明文档库
+ * - slug=`rewindom`（`DEFAULT_TENANT_SLUG`，产品主域）：Rewindom 产品官网终稿（首页，中英）+ 使用说明文档库
  * - 其它租户：通用 default starter（仅首页占位）+ 可选文档库
  *
  * 幂等：反复执行会覆盖模板页内容并重新发布。

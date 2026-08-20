@@ -255,7 +255,7 @@ describe("AuditService", () => {
 
       expect(prisma.auditLog.findMany).toHaveBeenCalledWith({
         where: {
-          AND: [{ user_id: "user-123" }, { tenant_slug: "default" }],
+          AND: [{ user_id: "user-123" }, { tenant_slug: "rewindom" }],
         },
         orderBy: { created_at: "desc" },
         take: 100,
@@ -504,7 +504,7 @@ describe("AuditService", () => {
 
       expect(prisma.auditLog.count).toHaveBeenCalledWith({
         where: {
-          AND: [{ tenant_slug: "default" }],
+          AND: [{ tenant_slug: "rewindom" }],
         },
       });
     });

@@ -17,9 +17,9 @@ describe("parseLoginIdentifier", () => {
   });
 
   it("parses explicit default tenant", () => {
-    expect(parseLoginIdentifier("admin@default")).toEqual({
+    expect(parseLoginIdentifier(`admin@${DEFAULT_TENANT_SLUG}`)).toEqual({
       username: "admin",
-      tenant_slug: "default",
+      tenant_slug: DEFAULT_TENANT_SLUG,
     });
   });
 

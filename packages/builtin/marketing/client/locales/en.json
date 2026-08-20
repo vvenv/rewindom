@@ -92,6 +92,11 @@
       "description": "Mainstream, long-maintained choices: easy to hire for, easy to search, clear upgrade paths. Value is in boundaries and constraints—not novelty frameworks.",
       "readDocs": "Read the docs"
     },
+    "showcase": {
+      "title": "Built with Rewindom",
+      "body": "Yestino is a live product on this foundation: multi-tenant CMS, custom domain, and an events feed module—one process, Host-based routing, the same agent-first loop.",
+      "cta": "Visit yestino.com"
+    },
     "docsTeaser": {
       "title": "Start here"
     },

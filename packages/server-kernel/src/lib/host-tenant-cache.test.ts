@@ -122,7 +122,7 @@ describe("resolveHostTenant 缓存", () => {
   it("产品主域的默认租户结果也缓存", async () => {
     vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
       id: DEFAULT_TENANT_ID,
-      slug: "default",
+      slug: "rewindom",
       name: "默认租户",
       status: "active",
     } as never);

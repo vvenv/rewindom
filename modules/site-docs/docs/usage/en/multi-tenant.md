@@ -40,7 +40,7 @@ module contract checks.
 
 ## The default tenant
 
-The tenant with slug `default` is implicitly bound to the product domain. What you see
+The tenant with slug `rewindom` is implicitly bound to the product domain. What you see
 at `FRONTEND_URL` (locally `localhost`) is its site.
 
 Its site and documentation library are **initialized when the server starts**,

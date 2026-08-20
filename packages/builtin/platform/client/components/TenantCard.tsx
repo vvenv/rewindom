@@ -1,5 +1,5 @@
 import { usePublicConfig } from "@rewindom/client-kit";
-import { formatBusinessDate } from "@rewindom/shared";
+import { DEFAULT_TENANT_SLUG, formatBusinessDate } from "@rewindom/shared";
 import { Button } from "@rewindom/ui/button";
 import {
   Card,
@@ -64,7 +64,7 @@ export function TenantCard({
     data: { tenant_base_domain },
   } = usePublicConfig();
   const isArchived = tenant.status === "archived";
-  const canManageLifecycle = tenant.slug !== "default";
+  const canManageLifecycle = tenant.slug !== DEFAULT_TENANT_SLUG;
   const defaultUrl =
     tenant_base_domain != null && tenant_base_domain.length > 0
       ? `https://${tenant.slug}.${tenant_base_domain}`

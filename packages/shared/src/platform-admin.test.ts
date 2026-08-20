@@ -17,6 +17,9 @@ describe("assertValidTenantSlug", () => {
     expect(() => assertValidTenantSlug("default")).toThrow(
       ReservedTenantSlugError,
     );
+    expect(() => assertValidTenantSlug("rewindom")).toThrow(
+      ReservedTenantSlugError,
+    );
     expect(() => assertValidTenantSlug("platform")).toThrow(
       ReservedTenantSlugError,
     );

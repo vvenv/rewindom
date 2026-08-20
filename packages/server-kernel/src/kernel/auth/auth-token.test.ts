@@ -30,7 +30,7 @@ describe("AuthService tokens", () => {
         actor_type: "tenant_user",
         is_system_admin: false,
         tenant_id: TENANT_ID,
-        tenant_slug: "default",
+        tenant_slug: "rewindom",
         type: "access",
       });
       expect(jwtSign).toHaveBeenCalledWith(
@@ -39,7 +39,7 @@ describe("AuthService tokens", () => {
           actor_type: "tenant_user",
           is_system_admin: false,
           tenant_id: TENANT_ID,
-          tenant_slug: "default",
+          tenant_slug: "rewindom",
           type: "refresh",
           jti: expect.any(String),
         }),
@@ -85,7 +85,7 @@ describe("AuthService tokens", () => {
         is_system_admin: false,
         type: "refresh",
         tenant_id: TENANT_ID,
-        tenant_slug: "default",
+        tenant_slug: "rewindom",
       }));
 
       const result = await AuthService.refresh(
@@ -131,7 +131,7 @@ describe("AuthService tokens", () => {
         is_system_admin: false,
         type: "refresh",
         tenant_id: TENANT_ID,
-        tenant_slug: "default",
+        tenant_slug: "rewindom",
       }));
 
       await expect(
@@ -159,7 +159,7 @@ describe("AuthService tokens", () => {
         is_system_admin: false,
         type: "refresh",
         tenant_id: TENANT_ID,
-        tenant_slug: "default",
+        tenant_slug: "rewindom",
       }));
 
       await expect(
@@ -186,7 +186,7 @@ describe("AuthService tokens", () => {
         is_system_admin: false,
         type: "refresh",
         tenant_id: TENANT_ID,
-        tenant_slug: "default",
+        tenant_slug: "rewindom",
       }));
 
       await expect(

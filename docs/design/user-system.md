@@ -19,7 +19,7 @@ JWT / 请求上下文用 `actor_type` 区分身份（见 `packages/shared/src/au
 
 站点会员是独立身份层：独立 refresh token 表、**HttpOnly cookie** 会话（与工作台 localStorage Bearer 隔离）、独立 `createApiClient`（`authMode: "cookie"`）。`marketing` 通过 Component Slot / SSR 注入点接入会员入口与门控，不反向依赖 `site-member`。
 
-> **多租户**：登录标识为 `username@tenant_slug`，默认租户 `default` 可省略后缀；**租户侧 UI 无感知**；平台管理员见 [`tenant-config.md`](./tenant-config.md) §5.8、§10.3。单租户部署见 `SINGLE_TENANT`。
+> **多租户**：登录标识为 `username@tenant_slug`，默认租户 `rewindom` 可省略后缀；**租户侧 UI 无感知**；平台管理员见 [`tenant-config.md`](./tenant-config.md) §5.8、§10.3。单租户部署见 `SINGLE_TENANT`。
 
 ## 二、技术选型
 
@@ -152,7 +152,7 @@ POST /api/auth/register
 
 1. 客户端提交登录表单（账号、密码、滑块验证码 token）
 2. 服务端验证滑块验证码
-3. **解析登录标识**（支持多租户格式 `username@tenant_slug`，默认租户 `default` 可省略）
+3. **解析登录标识**（支持多租户格式 `username@tenant_slug`，默认租户 `rewindom` 可省略）
 4. 查询租户记录（多租户场景）
 5. 查询用户记录
 6. 检查账户是否被锁定

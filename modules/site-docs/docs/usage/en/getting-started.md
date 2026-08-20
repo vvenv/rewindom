@@ -57,7 +57,7 @@ behaviours locally without editing your hosts file. See
 
 ## 4. Open the default tenant's site
 
-The default tenant (slug `default`) gets its site and this documentation library
+The default tenant (slug `rewindom`) gets its site and this documentation library
 **initialized automatically when the server starts** — no script to run. The starter
 home page is created and published, and the docs library is seeded per language.
 

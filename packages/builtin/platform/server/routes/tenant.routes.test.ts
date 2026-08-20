@@ -49,7 +49,7 @@ describe("platform-tenant routes", () => {
     vi.mocked(listTenants).mockResolvedValueOnce([
       {
         id: "tenant-1",
-        slug: "default",
+        slug: "rewindom",
         name: "默认租户",
         status: "active",
       },
@@ -57,7 +57,7 @@ describe("platform-tenant routes", () => {
     vi.mocked(prisma.tenant.findMany).mockResolvedValue([
       {
         id: "tenant-1",
-        slug: "default",
+        slug: "rewindom",
         name: "默认租户",
         remark: null,
         status: "active",
@@ -234,7 +234,7 @@ describe("platform-tenant routes", () => {
     vi.mocked(getTenantById).mockResolvedValueOnce({
       ...mockTenant,
       id: "t-default",
-      slug: "default",
+      slug: "rewindom",
     } as never);
 
     const app = await buildApp();

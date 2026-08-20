@@ -242,7 +242,7 @@ describe("TenantEditSheet", () => {
   });
 
   it("默认租户 slug 输入框应禁用且不提交 slug", async () => {
-    const defaultTenant = { ...mockTenant, slug: "default" };
+    const defaultTenant = { ...mockTenant, slug: "rewindom" };
     let capturedBody: unknown = null;
     server.use(
       http.patch(PATCH_URL, async ({ request }) => {

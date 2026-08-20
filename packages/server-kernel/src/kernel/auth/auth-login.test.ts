@@ -39,7 +39,7 @@ describe("AuthService login", () => {
 
       const result = await AuthService.login(
         {
-          username: "testuser@default",
+          username: "testuser@rewindom",
           password: "password123",
         },
         jwtSign,
@@ -107,7 +107,7 @@ describe("AuthService login", () => {
       await expect(
         AuthService.login(
           {
-            username: "testuser@default",
+            username: "testuser@rewindom",
             password: "wrong_password",
           },
           vi.fn(),
@@ -133,7 +133,7 @@ describe("AuthService login", () => {
       await expect(
         AuthService.login(
           {
-            username: "testuser@default",
+            username: "testuser@rewindom",
             password: "password123",
           },
           vi.fn(),
@@ -160,7 +160,7 @@ describe("AuthService login", () => {
       await expect(
         AuthService.login(
           {
-            username: "testuser@default",
+            username: "testuser@rewindom",
             password: "password123",
           },
           vi.fn(),
@@ -189,7 +189,7 @@ describe("AuthService login", () => {
       await expect(
         AuthService.login(
           {
-            username: "testuser@default",
+            username: "testuser@rewindom",
             password: "wrong_password",
           },
           vi.fn(),
@@ -225,7 +225,7 @@ describe("AuthService login", () => {
       await expect(
         AuthService.login(
           {
-            username: "testuser@default",
+            username: "testuser@rewindom",
             password: "wrong_password",
           },
           vi.fn(),

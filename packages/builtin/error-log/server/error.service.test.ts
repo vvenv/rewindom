@@ -498,7 +498,7 @@ describe("ErrorService", () => {
 
       expect(prisma.errorLog.count).toHaveBeenCalledWith({
         where: {
-          AND: [{ tenant_slug: "default" }],
+          AND: [{ tenant_slug: "rewindom" }],
         },
       });
     });

@@ -29,12 +29,13 @@ describe("ensureDefaultTenant", () => {
       create: {
         id: DEFAULT_TENANT_ID,
         slug: DEFAULT_TENANT_SLUG,
-        name: "默认租户",
+        name: "Rewindom",
         status: "active",
         plan: "free",
       },
       update: {
         slug: DEFAULT_TENANT_SLUG,
+        name: "Rewindom",
         status: "active",
       },
     });

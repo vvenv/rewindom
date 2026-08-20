@@ -1,0 +1,33 @@
+# 产品站首页增加 Yestino 案例段；默认租户 slug 改为 rewindom
+module: marketing
+surfaces: [ssr]
+goal: 默认租户 slug 改为 rewindom；产品站首页增加 Yestino 案例段；README 挂案例与官网；本地 Yestino 为独立租户
+gold: packages/builtin/marketing/server/default-product-site-content.ts
+touch:
+  - packages/builtin/marketing/features/product-site-yestino-showcase.spec.yaml
+  - packages/builtin/marketing/server/default-product-site-content.ts
+  - packages/builtin/marketing/server/default-product-site-content.test.ts
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/MODULE.md
+  - packages/shared/src/tenant-defaults.ts
+  - packages/shared/src/platform-admin.ts
+  - packages/shared/src/platform-admin.test.ts
+  - packages/shared/src/login-identifier.test.ts
+  - packages/builtin/platform/server/services/ensure-default-tenant.service.ts
+  - packages/builtin/platform/server/services/tenant-management.service.ts
+  - packages/builtin/platform/server/routes/tenant.routes.ts
+  - packages/builtin/platform/client/components/TenantCard.tsx
+  - apps/server/scripts/seed-local-yestino.ts
+  - apps/server/scripts/seed-local-marketing-site.ts
+  - apps/server/scripts/clone-tenant.ts
+  - README.md
+out_of_scope:
+  - events 模块业务逻辑
+  - 改 DEFAULT_TENANT_ID
+  - 生产 yestino 租户数据迁移（单独运维）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/shared test
+  - pnpm --filter @rewindom/builtin exec vitest --run packages/builtin/marketing/server/default-product-site-content.test.ts
+  - pnpm check:i18n

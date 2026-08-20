@@ -11,6 +11,8 @@
 
 底座随业务成形，而不是业务迁就底座。
 
+[官网](https://rewindom.com) · [文档](https://rewindom.com/docs) · [案例 · Yestino](https://yestino.com)
+
 </div>
 
 ---
@@ -25,6 +27,14 @@
 | 外部业务（`modules/`）          | `note` 金标准 CRUD · `todo` 列表示例 · `bookmark` 书签示例（由 `pnpm gen:external-modules` 装进组装层）                                                                                                                                                                                                                                                    |
 
 **不是**：无约束的脚手架喷发器、微服务框架、低代码平台。Agent 写代码，闸门与契约由框架强制。详见 [agent-first.md](docs/design/agent-first.md)。
+
+### 案例
+
+| 产品 | 说明 | 链接 |
+| --- | --- | --- |
+| **Yestino** | 全球科技热点与实时趋势追踪：多租户 CMS、自定义域名、`events` 资讯模块，跑在同一套 Rewindom 底座上 | [yestino.com](https://yestino.com) |
+
+产品介绍与使用说明也在 [rewindom.com](https://rewindom.com)（默认租户 slug=`rewindom`）与站内 [`/docs`](https://rewindom.com/docs)。
 
 ---
 

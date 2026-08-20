@@ -36,7 +36,7 @@ const records = await prisma.siteDoc.findMany({
 
 ## 默认租户
 
-slug 为 `default` 的租户是产品主域隐式绑定的组织。访问 `FRONTEND_URL`（本地
+slug 为 `rewindom` 的租户是产品主域隐式绑定的组织。访问 `FRONTEND_URL`（本地
 `localhost`）看到的就是它的站点。
 
 它的站点与文档库**在服务端启动时自动初始化**，幂等且按语言分别判断：某种语言已经有

@@ -9,8 +9,8 @@ Rewindom 当前为**单实例部署**：业务配置分散在 `.env`（进程环
 - **三层配置**：Platform（平台）→ Tenant（租户）→ 可选子级
 - **DB 存租户配置**：敏感字段加密；非敏感字段 JSON 明文
 - **运行时解析**：优先级 TenantSetting（DB）> Platform env > 代码默认值
-- **单租户零破坏**：引入默认租户 `default`，现有用户仍可用原用户名登录（省略 `@default`）
-- **登录标识**：`username@tenant_slug`；默认租户 `default` 在登录时可省略后缀
+- **单租户零破坏**：引入默认租户 `rewindom`，现有用户仍可用原用户名登录（省略 `@rewindom`）
+- **登录标识**：`username@tenant_slug`；默认租户 `rewindom` 在登录时可省略后缀
 - **租户无感知**：租户侧 UI 不暴露「租户」概念；多租户能力对使用者透明
 - **平台系统管理员**：独立于租户 SUPERUSER，凭 env 登录，管理租户；租户不可见该平台控制台
 - **不写 `.env`**：Settings 页只操作 API → DB，不涉及文件系统或进程重启（**平台管理员账号密码除外**）
@@ -237,7 +237,7 @@ enum TenantStatus {
 }
 ```
 
-**单租户迁移**：创建 `slug = "default"` 的租户，现有 `User` 与各业务 model 挂 `tenant_id = default.id`。
+**单租户迁移**：创建 `slug = "rewindom"` 的租户，现有 `User` 与各业务 model 挂 `tenant_id = default.id`。
 
 ### 4.2 租户配置表
 
@@ -300,27 +300,27 @@ model User {
 
 **迁移**：
 
-1. 创建 `Tenant { slug: "default", name: "默认租户" }`
+1. 创建 `Tenant { slug: "rewindom", name: "Rewindom" }`
 2. 现有 `User` 全部设置 `tenant_id = default.id`
 3. 删除原 `username @unique`，改为 `@@unique([tenant_id, username])`
 
 > 该迁移已在 init migration 中落地，此处保留为设计说明。
 
-存储的 `username` 仅为本地部分（如 `admin`），**不含** `@default` 后缀。
+存储的 `username` 仅为本地部分（如 `admin`），**不含** `@rewindom` 后缀。
 
 ---
 
 ## 5. 登录与租户识别
 
-SaaS 多租户下，同一登录名可存在于不同租户。采用 **`username@tenant_slug`** 作为登录标识；默认租户 `default` 在登录时可省略后缀，保证现有单租户用户无感迁移。
+SaaS 多租户下，同一登录名可存在于不同租户。采用 **`username@tenant_slug`** 作为登录标识；默认租户 `rewindom` 在登录时可省略后缀，保证现有单租户用户无感迁移。
 
 ### 5.1 标识格式
 
 | 概念       | 字段            | 说明                                                                   |
 | ---------- | --------------- | ---------------------------------------------------------------------- |
-| 登录标识   | 用户输入        | 如 `admin`、`admin@default`、`bob@acme`                                |
+| 登录标识   | 用户输入        | 如 `admin`、`admin@rewindom`、`bob@acme`                                |
 | 本地用户名 | `User.username` | `@` 左侧，如 `admin`                                                   |
-| 租户 slug  | `Tenant.slug`   | `@` 右侧，如 `default`、`acme`；常量 `DEFAULT_TENANT_SLUG = "default"` |
+| 租户 slug  | `Tenant.slug`   | `@` 右侧，如 `rewindom`、`acme`；常量 `DEFAULT_TENANT_SLUG = "rewindom"`（历史曾用 `default`，仍为保留字） |
 
 **tenant_slug 命名规则**：小写 `[a-z0-9][a-z0-9_-]{0,62}`，创建租户时校验。
 
@@ -329,7 +329,7 @@ SaaS 多租户下，同一登录名可存在于不同租户。采用 **`username
 ```typescript
 // packages/shared/src/login-identifier.ts
 
-export const DEFAULT_TENANT_SLUG = "default";
+export const DEFAULT_TENANT_SLUG = "rewindom";
 
 export function parseLoginIdentifier(input: string): {
   username: string;
@@ -360,8 +360,8 @@ export function parseLoginIdentifier(input: string): {
 
 | 用户输入           | 解析 username | 解析 tenant_slug | 说明                 |
 | ------------------ | ------------- | ---------------- | -------------------- |
-| `admin`            | `admin`       | `default`        | 单租户常用，省略租户 |
-| `admin@default`    | `admin`       | `default`        | 显式指定默认租户     |
+| `admin`            | `admin`       | `rewindom`       | 单租户常用，省略租户 |
+| `admin@rewindom`   | `admin`       | `rewindom`       | 显式指定默认租户     |
 | `bob@acme`         | `bob`         | `acme`           | 多租户               |
 | `admin@` / `@acme` | —             | —                | 格式错误，返回 400   |
 
@@ -479,7 +479,7 @@ request.authUser = { userId, username, role, tenant_id };
 | Host 解析 | 平台控制台 Host → null；产品主域 → default；再 custom_domain → `{slug}.{TENANT_BASE_DOMAIN}` |
 | Host 解析缓存 | 结果按 hostname 缓存 30s（`resolveHostTenant`）。auth 中间件对**每个** `/api` 请求都解析一次，不缓存等于每个 API 调用附赠一次数据库往返。改 `slug` / `custom_domain` / `status` 与建租户的写路径必须调 `invalidateHostTenantCache()`，否则新绑域名最长 30s 内仍 404、刚归档的租户还进得去；TTL 只兜底多进程部署下的其它实例。测试态不缓存 |
 | 绑定域名上的面 | 前台开放（租户 Marketing CMS，Fastify SSR）；中台（`/login`、`/app`）开放；**禁止** `/platform/*` 与平台管理员登录 |
-| 租户官网内容 | `MarketingSite`（含 `theme_settings`）/ `MarketingPage`（`sections[]`）；租户自助 `/app/site` + 编辑器 `/app/site/editor`（`?page=` 区块树；`?scope=theme` 外观，从卡片进入；entitlement `tenant-marketing`，权限 `site.read`/`site.write`）；仅站点+页均 `published` 进入 SSR / 公开 API；草稿预览走 `GET /api/site/preview`；默认租户站**不**在 server 启动时自动铺——本地用 `pnpm --filter server exec tsx scripts/seed-local-marketing-site.ts default` |
+| 租户官网内容 | `MarketingSite`（含 `theme_settings`）/ `MarketingPage`（`sections[]`）；租户自助 `/app/site` + 编辑器 `/app/site/editor`（`?page=` 区块树；`?scope=theme` 外观，从卡片进入；entitlement `tenant-marketing`，权限 `site.read`/`site.write`）；仅站点+页均 `published` 进入 SSR / 公开 API；草稿预览走 `GET /api/site/preview`；默认租户站**不**在 server 启动时自动铺——本地用 `pnpm --filter server exec tsx scripts/seed-local-marketing-site.ts`（默认 slug=`rewindom`） |
 | 登录 | 裸用户名强制本租户；带 `@other` 拒绝（不静默改写）；JWT/API Key 的 `tenant_id` 必须与 Host 租户一致 |
 | 注册 / OAuth 首次 | 加入绑定租户，**禁止**在该 Host 新建租户 |
 | 公开配置 | `bound_tenant`、`tenant_base_domain`；站点内容见 `GET /api/public/site` |
@@ -573,7 +573,7 @@ PLATFORM_ADMIN_PASSWORD=<generated-on-bootstrap>
 ### Phase 0 — 单租户基础（当前）
 
 - [x] Prisma Schema 定义 Tenant、TenantSetting 模型
-- [x] 创建 seed 脚本生成 `default` 租户
+- [x] 创建 seed 脚本生成 `rewindom` 租户
 - [x] 所有业务模型添加 `tenant_id` 外键
 - [x] 实现 `resolveLlmConfig` 解析器（TenantSetting > 平台 env）
 - [x] Settings 页面支持 AI 配置编辑（OpenAI Key BYOK）

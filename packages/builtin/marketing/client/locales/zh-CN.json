@@ -92,6 +92,11 @@
       "description": "全是主流且长期维护的选择：招人好招，出问题搜得到答案，升级路径清晰。底座的价值在边界与约束，不在堆新框架。",
       "readDocs": "读文档"
     },
+    "showcase": {
+      "title": "用 Rewindom 做成的产品",
+      "body": "Yestino 是跑在这套底座上的真实产品：多租户 CMS、自定义域名与 events 资讯模块——单进程、按 Host 分流，同一套 Agent-first 闭环。",
+      "cta": "打开 yestino.com"
+    },
     "docsTeaser": {
       "title": "从这里开始"
     },

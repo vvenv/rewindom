@@ -52,7 +52,7 @@ export function tenantToken(app: PlatformTestApp): string {
     actor_type: "tenant_user",
     is_system_admin: true,
     tenant_id: DEFAULT_TENANT_ID,
-    tenant_slug: "default",
+    tenant_slug: "rewindom",
     type: "access",
   });
 }

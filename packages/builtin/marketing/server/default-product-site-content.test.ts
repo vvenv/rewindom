@@ -26,9 +26,15 @@ describe("buildDefaultProductSite", () => {
       "prose",
       "prose",
       "prose",
+      "prose",
       "band",
     ]);
     expect(zhHome?.sections[0]?.settings.headline).toContain("Agent-first");
+    const showcase = zhHome?.sections.find(
+      (section) => section.settings.anchor === "showcase",
+    );
+    expect(showcase?.settings.body_md).toContain("Yestino");
+    expect(showcase?.settings.body_md).toContain("https://yestino.com");
     expect(payload.pages.some((page) => page.slug === "pricing")).toBe(false);
   });
 

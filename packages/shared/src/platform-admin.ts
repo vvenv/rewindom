@@ -4,8 +4,14 @@ import { pinyin } from "pinyin-pro";
 export const PLATFORM_ADMIN_USER_ID =
   "00000000-0000-0000-0000-000000000000";
 
+import {
+  DEFAULT_TENANT_SLUG,
+  LEGACY_DEFAULT_TENANT_SLUG,
+} from "./tenant-defaults.js";
+
 export const RESERVED_TENANT_SLUGS = [
-  "default",
+  DEFAULT_TENANT_SLUG,
+  LEGACY_DEFAULT_TENANT_SLUG,
   "platform",
   "admin",
   "api",

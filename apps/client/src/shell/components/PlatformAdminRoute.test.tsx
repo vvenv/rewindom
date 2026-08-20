@@ -31,7 +31,7 @@ vi.mock("@rewindom/client-kit", async () => {
 });
 
 const TENANT = {
-  slug: "default",
+  slug: "rewindom",
   name: "默认租户",
   logo_url: null,
   favicon_url: null,

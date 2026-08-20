@@ -56,7 +56,7 @@ import { AuthService } from "./auth.service.js";
 
 const mockTenant = {
   id: DEFAULT_TENANT_ID,
-  slug: "default",
+  slug: "rewindom",
   name: "默认租户",
   status: "active",
   created_at: new Date(),
@@ -138,7 +138,7 @@ describe("AuthService issueSessionForUser", () => {
 
     expect(result.user.actor_type).toBe("tenant_user");
     expect(result.user.id).toBe("user-1");
-    expect(result.tenant_slug).toBe("default");
+    expect(result.tenant_slug).toBe("rewindom");
     expect(result.tokens.accessToken).toBe("token_access_user-1");
     expect(result.tokens.refreshToken).toBe("token_refresh_user-1");
     // 清除失败计数 + 更新登录时间
@@ -358,7 +358,7 @@ describe("AuthService.login hostTenant 分支", () => {
 
   const hostTenant = {
     tenant_id: DEFAULT_TENANT_ID,
-    tenant_slug: "default",
+    tenant_slug: "rewindom",
     name: "默认租户",
   };
 
@@ -396,7 +396,7 @@ describe("AuthService.login hostTenant 分支", () => {
     expect(prisma.tenant.findUnique).toHaveBeenCalledWith({
       where: { id: DEFAULT_TENANT_ID },
     });
-    expect(result.tenant_slug).toBe("default");
+    expect(result.tenant_slug).toBe("rewindom");
     expect(result.user.actor_type).toBe("tenant_user");
   });
 
@@ -410,13 +410,13 @@ describe("AuthService.login hostTenant 分支", () => {
     vi.mocked(prisma.user.update).mockResolvedValue(user as never);
 
     const result = await AuthService.login(
-      { username: "alice@default", password: "pw" },
+      { username: "alice@rewindom", password: "pw" },
       jwtSign,
       { hostTenant },
     );
 
-    expect(result.tenant_slug).toBe("default");
-    // 用户名应是去掉 @default 后的 alice
+    expect(result.tenant_slug).toBe("rewindom");
+    // 用户名应是去掉 @rewindom 后的 alice
     expect(prisma.user.findUnique).toHaveBeenNthCalledWith(1, {
       where: {
         tenant_id_username: {
@@ -454,9 +454,9 @@ describe("AuthService.login hostTenant 分支", () => {
 
     // 无 hostTenant 时按 slug 查租户
     expect(prisma.tenant.findUnique).toHaveBeenCalledWith({
-      where: { slug: "default" },
+      where: { slug: "rewindom" },
     });
-    expect(result.tenant_slug).toBe("default");
+    expect(result.tenant_slug).toBe("rewindom");
   });
 });
 

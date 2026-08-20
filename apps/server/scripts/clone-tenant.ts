@@ -21,6 +21,7 @@ import {
   publicSiteAssetUrl,
 } from "@rewindom/builtin/marketing/server/site-asset.service.js";
 import { ensureTenantImpersonationUser } from "@rewindom/builtin/platform/server/services/ensure-tenant-impersonation-user.service.js";
+import { Prisma } from "@rewindom/server-kernel/generated/prisma/client/client.js";
 import { getFileStorageProvider } from "@rewindom/server-kernel/infra/file-storage/index.js";
 import {
   invalidateHostTenantCache,
@@ -32,14 +33,12 @@ import {
   TENANT_IMPERSONATION_USERNAME,
 } from "@rewindom/shared";
 
+type InputJson = Prisma.InputJsonValue | typeof Prisma.JsonNull;
 
-type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+function toInputJson(value: unknown): InputJson {
+  if (value === null) return Prisma.JsonNull;
+  return value as Prisma.InputJsonValue;
+}
 
 interface Args {
   dryRun: boolean;
@@ -71,7 +70,7 @@ function parseArgs(argv: string[]): Args {
       i += 1;
     }
   }
-  const fromSlug = (raw.get("from") ?? "default").trim();
+  const fromSlug = (raw.get("from") ?? "rewindom").trim();
   const toSlug = (raw.get("to") ?? "").trim();
   const name = (raw.get("name") ?? toSlug).trim();
   const domainRaw = raw.get("domain")?.trim() ?? "";
@@ -160,25 +159,33 @@ async function createManyBatched<T>(
 
 async function wipeTenant(tenantId: string): Promise<void> {
   await prisma.eventFollow.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.eventTimelineEntry.deleteMany({ where: { tenant_id: tenantId } });
+  await prisma.eventTimelineEntry.deleteMany({
+    where: { tenant_id: tenantId },
+  });
   await prisma.eventSignal.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.newsEvent.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.eventFeed.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.marketingPageVersion.deleteMany({ where: { tenant_id: tenantId } });
+  await prisma.marketingPageVersion.deleteMany({
+    where: { tenant_id: tenantId },
+  });
   await prisma.marketingRedirect.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.marketingPage.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.marketingAsset.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.marketingSite.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.siteDoc.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.siteDocCategory.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.siteFormSubmission.deleteMany({ where: { tenant_id: tenantId } });
+  await prisma.siteFormSubmission.deleteMany({
+    where: { tenant_id: tenantId },
+  });
   await prisma.shopCartItem.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.shopCart.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.shopPayment.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.shopShipment.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.shopOrderLine.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.shopOrder.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.shopCollectionProduct.deleteMany({ where: { tenant_id: tenantId } });
+  await prisma.shopCollectionProduct.deleteMany({
+    where: { tenant_id: tenantId },
+  });
   await prisma.shopVariant.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.shopProduct.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.shopCollection.deleteMany({ where: { tenant_id: tenantId } });
@@ -187,7 +194,9 @@ async function wipeTenant(tenantId: string): Promise<void> {
   await prisma.shopShippingZone.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.shopSetting.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.memberPayment.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.memberSubscription.deleteMany({ where: { tenant_id: tenantId } });
+  await prisma.memberSubscription.deleteMany({
+    where: { tenant_id: tenantId },
+  });
   await prisma.memberPlan.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.siteMemberOAuthExchangeCode.deleteMany({
     where: { tenant_id: tenantId },
@@ -201,7 +210,9 @@ async function wipeTenant(tenantId: string): Promise<void> {
   await prisma.bookmark.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.notification.deleteMany({ where: { tenant_id: tenantId } });
   await prisma.notificationLog.deleteMany({ where: { tenant_id: tenantId } });
-  await prisma.dashboardPreference.deleteMany({ where: { tenant_id: tenantId } });
+  await prisma.dashboardPreference.deleteMany({
+    where: { tenant_id: tenantId },
+  });
   await prisma.tenantApiKey.deleteMany({ where: { tenant_id: tenantId } });
   const roles = await prisma.role.findMany({
     where: { tenant_id: tenantId },
@@ -233,7 +244,9 @@ async function wipeTenant(tenantId: string): Promise<void> {
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-  const source = await prisma.tenant.findUnique({ where: { slug: args.fromSlug } });
+  const source = await prisma.tenant.findUnique({
+    where: { slug: args.fromSlug },
+  });
   if (!source) {
     throw new Error(`源租户不存在: ${args.fromSlug}`);
   }
@@ -270,14 +283,18 @@ async function main(): Promise<void> {
       },
     }),
     roles: await prisma.role.count({ where: { tenant_id: source.id } }),
-    pages: await prisma.marketingPage.count({ where: { tenant_id: source.id } }),
+    pages: await prisma.marketingPage.count({
+      where: { tenant_id: source.id },
+    }),
     assets: await prisma.marketingAsset.count({
       where: { tenant_id: source.id },
     }),
     docs: await prisma.siteDoc.count({ where: { tenant_id: source.id } }),
     feeds: await prisma.eventFeed.count({ where: { tenant_id: source.id } }),
     events: await prisma.newsEvent.count({ where: { tenant_id: source.id } }),
-    signals: await prisma.eventSignal.count({ where: { tenant_id: source.id } }),
+    signals: await prisma.eventSignal.count({
+      where: { tenant_id: source.id },
+    }),
   };
   console.log(
     `[clone-tenant] ${args.fromSlug} → ${args.toSlug} name=${args.name} domain=${args.domain ?? ""} dry_run=${args.dryRun} force=${args.force}`,
@@ -412,7 +429,7 @@ async function main(): Promise<void> {
     data: settings.map((row) => ({
       tenant_id: dest.id,
       key: row.key,
-      value: rewriteJson(row.value, urlReplacements) as JsonValue,
+      value: toInputJson(rewriteJson(row.value, urlReplacements)),
       secret: row.secret,
     })),
   });
@@ -467,28 +484,16 @@ async function main(): Promise<void> {
     await prisma.marketingSite.create({
       data: {
         tenant_id: dest.id,
-        site_name: rewriteJson(site.site_name, urlReplacements) as JsonValue,
-        tagline: rewriteJson(site.tagline, urlReplacements) as JsonValue,
-        theme_settings: rewriteJson(
-          site.theme_settings,
-          urlReplacements,
-        ) as JsonValue,
-        theme_settings_draft: rewriteJson(
-          site.theme_settings_draft,
-          urlReplacements,
-        ) as JsonValue,
+        site_name: toInputJson(rewriteJson(site.site_name, urlReplacements)),
+        tagline: toInputJson(rewriteJson(site.tagline, urlReplacements)),
+        theme_settings: toInputJson(rewriteJson(site.theme_settings, urlReplacements)),
+        theme_settings_draft: toInputJson(rewriteJson(site.theme_settings_draft, urlReplacements)),
         theme_key: site.theme_key,
         default_locale: site.default_locale,
-        nav_json: rewriteJson(site.nav_json, urlReplacements) as JsonValue,
-        footer_json: rewriteJson(site.footer_json, urlReplacements) as JsonValue,
-        nav_draft_json: rewriteJson(
-          site.nav_draft_json,
-          urlReplacements,
-        ) as JsonValue,
-        footer_draft_json: rewriteJson(
-          site.footer_draft_json,
-          urlReplacements,
-        ) as JsonValue,
+        nav_json: toInputJson(rewriteJson(site.nav_json, urlReplacements)),
+        footer_json: toInputJson(rewriteJson(site.footer_json, urlReplacements)),
+        nav_draft_json: toInputJson(rewriteJson(site.nav_draft_json, urlReplacements)),
+        footer_draft_json: toInputJson(rewriteJson(site.footer_draft_json, urlReplacements)),
         published: site.published,
       },
     });
@@ -507,20 +512,14 @@ async function main(): Promise<void> {
       kind: row.kind,
       title: String(rewriteJson(row.title, urlReplacements)),
       description: String(rewriteJson(row.description, urlReplacements)),
-      sections: rewriteJson(row.sections, urlReplacements) as JsonValue,
-      settings: rewriteJson(row.settings, urlReplacements) as JsonValue,
+      sections: toInputJson(rewriteJson(row.sections, urlReplacements)),
+      settings: toInputJson(rewriteJson(row.settings, urlReplacements)),
       title_draft: String(rewriteJson(row.title_draft, urlReplacements)),
       description_draft: String(
         rewriteJson(row.description_draft, urlReplacements),
       ),
-      sections_draft: rewriteJson(
-        row.sections_draft,
-        urlReplacements,
-      ) as JsonValue,
-      settings_draft: rewriteJson(
-        row.settings_draft,
-        urlReplacements,
-      ) as JsonValue,
+      sections_draft: toInputJson(rewriteJson(row.sections_draft, urlReplacements)),
+      settings_draft: toInputJson(rewriteJson(row.settings_draft, urlReplacements)),
       visibility: row.visibility,
       status: row.status,
       sort_order: row.sort_order,
@@ -553,8 +552,8 @@ async function main(): Promise<void> {
           version: row.version,
           title: String(rewriteJson(row.title, urlReplacements)),
           description: String(rewriteJson(row.description, urlReplacements)),
-          sections: rewriteJson(row.sections, urlReplacements) as JsonValue,
-          settings: rewriteJson(row.settings, urlReplacements) as JsonValue,
+          sections: toInputJson(rewriteJson(row.sections, urlReplacements)),
+          settings: toInputJson(rewriteJson(row.settings, urlReplacements)),
           created_by: mappedOr(userIds, row.created_by, "") ?? "",
         },
       ];
@@ -571,7 +570,7 @@ async function main(): Promise<void> {
     data: docCategories.map((row) => ({
       tenant_id: dest.id,
       key: row.key,
-      label: rewriteJson(row.label, urlReplacements) as JsonValue,
+      label: toInputJson(rewriteJson(row.label, urlReplacements)),
       sort_order: row.sort_order,
     })),
   });
@@ -598,9 +597,7 @@ async function main(): Promise<void> {
       sort_order_draft: row.sort_order_draft,
     })),
   });
-  console.log(
-    `  site_docs: ${docs.length} categories=${docCategories.length}`,
-  );
+  console.log(`  site_docs: ${docs.length} categories=${docCategories.length}`);
 
   const feeds = await prisma.eventFeed.findMany({
     where: { tenant_id: source.id },
@@ -715,9 +712,7 @@ async function main(): Promise<void> {
     }),
     skipDuplicates: true,
   });
-  console.log(
-    `  event_feeds: ${feeds.length} follows=${follows.length}`,
-  );
+  console.log(`  event_feeds: ${feeds.length} follows=${follows.length}`);
 
   const notes = await prisma.note.findMany({ where: { tenant_id: source.id } });
   await prisma.note.createMany({
@@ -781,19 +776,16 @@ async function main(): Promise<void> {
       tenant_id: dest.id,
       slug: row.slug,
       status: row.status,
-      title: rewriteJson(row.title, urlReplacements) as JsonValue,
-      subtitle: rewriteJson(row.subtitle, urlReplacements) as JsonValue,
-      description: rewriteJson(row.description, urlReplacements) as JsonValue,
-      images: rewriteJson(row.images, urlReplacements) as JsonValue,
+      title: toInputJson(rewriteJson(row.title, urlReplacements)),
+      subtitle: toInputJson(rewriteJson(row.subtitle, urlReplacements)),
+      description: toInputJson(rewriteJson(row.description, urlReplacements)),
+      images: toInputJson(rewriteJson(row.images, urlReplacements)),
       product_type: row.product_type,
       vendor: row.vendor,
-      tags: row.tags as JsonValue,
-      seo_title: rewriteJson(row.seo_title, urlReplacements) as JsonValue,
-      seo_description: rewriteJson(
-        row.seo_description,
-        urlReplacements,
-      ) as JsonValue,
-      options: rewriteJson(row.options, urlReplacements) as JsonValue,
+      tags: toInputJson(row.tags),
+      seo_title: toInputJson(rewriteJson(row.seo_title, urlReplacements)),
+      seo_description: toInputJson(rewriteJson(row.seo_description, urlReplacements)),
+      options: toInputJson(rewriteJson(row.options, urlReplacements)),
       published_at: row.published_at,
       created_by: mappedOr(userIds, row.created_by, "") ?? "",
       updated_by: mappedOr(userIds, row.updated_by),
@@ -808,13 +800,10 @@ async function main(): Promise<void> {
       tenant_id: dest.id,
       slug: row.slug,
       status: row.status,
-      title: rewriteJson(row.title, urlReplacements) as JsonValue,
-      description: rewriteJson(row.description, urlReplacements) as JsonValue,
-      seo_title: rewriteJson(row.seo_title, urlReplacements) as JsonValue,
-      seo_description: rewriteJson(
-        row.seo_description,
-        urlReplacements,
-      ) as JsonValue,
+      title: toInputJson(rewriteJson(row.title, urlReplacements)),
+      description: toInputJson(rewriteJson(row.description, urlReplacements)),
+      seo_title: toInputJson(rewriteJson(row.seo_title, urlReplacements)),
+      seo_description: toInputJson(rewriteJson(row.seo_description, urlReplacements)),
       image_url: row.image_url
         ? String(rewriteJson(row.image_url, urlReplacements))
         : row.image_url,
@@ -862,8 +851,8 @@ async function main(): Promise<void> {
           tenant_id: dest.id,
           product_id: productId,
           sku: row.sku,
-          title: rewriteJson(row.title, urlReplacements) as JsonValue,
-          option_values: row.option_values as JsonValue,
+          title: toInputJson(rewriteJson(row.title, urlReplacements)),
+          option_values: toInputJson(row.option_values),
           price_cents: row.price_cents,
           compare_at_price_cents: row.compare_at_price_cents,
           currency: row.currency,
@@ -905,7 +894,7 @@ async function main(): Promise<void> {
       id: mapId(zoneIds, row.id),
       tenant_id: dest.id,
       name: row.name,
-      countries: row.countries as JsonValue,
+      countries: toInputJson(row.countries),
     })),
   });
   const rates = await prisma.shopShippingRate.findMany({
@@ -939,8 +928,8 @@ async function main(): Promise<void> {
     data: memberPlans.map((row) => ({
       tenant_id: dest.id,
       slug: row.slug,
-      name: rewriteJson(row.name, urlReplacements) as JsonValue,
-      description: rewriteJson(row.description, urlReplacements) as JsonValue,
+      name: toInputJson(rewriteJson(row.name, urlReplacements)),
+      description: toInputJson(rewriteJson(row.description, urlReplacements)),
       price_cents: row.price_cents,
       currency: row.currency,
       interval: row.interval,

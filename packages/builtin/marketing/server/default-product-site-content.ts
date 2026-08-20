@@ -220,6 +220,16 @@ function buildTechStackMarkdown(locale: AppLocale): string {
   return lines.join("\n").trim();
 }
 
+function buildShowcaseMarkdown(locale: AppLocale): string {
+  return [
+    `## ${t(locale, "landing.showcase.title")}`,
+    "",
+    t(locale, "landing.showcase.body"),
+    "",
+    `[${t(locale, "landing.showcase.cta")}](https://yestino.com)`,
+  ].join("\n");
+}
+
 function buildHomeSections(locale: AppLocale): SiteSection[] {
   const infraCount = String(
     Object.keys(MESSAGES[locale].builtinModules).length,
@@ -266,6 +276,11 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
     }),
     section("prose", {
       body_md: buildTechStackMarkdown(locale),
+      ...PAGE_SECTION_PADDING,
+    }),
+    section("prose", {
+      body_md: buildShowcaseMarkdown(locale),
+      anchor: "showcase",
       ...PAGE_SECTION_PADDING,
     }),
     section("band", {

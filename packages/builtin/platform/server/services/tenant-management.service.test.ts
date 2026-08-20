@@ -70,7 +70,7 @@ describe("tenant-management.service", () => {
     vi.mocked(prisma.tenant.findMany).mockResolvedValue([
       {
         id: DEFAULT_TENANT_ID,
-        slug: "default",
+        slug: "rewindom",
         name: "默认租户",
         remark: null,
         status: "active",
@@ -84,7 +84,7 @@ describe("tenant-management.service", () => {
 
     const tenants = await listTenants();
     expect(tenants).toHaveLength(1);
-    expect(tenants[0]?.slug).toBe("default");
+    expect(tenants[0]?.slug).toBe("rewindom");
   });
 
   it("rejects creating tenant in single-tenant mode", async () => {
@@ -187,7 +187,7 @@ describe("tenant-management.service", () => {
   it("rejects suspending default tenant", async () => {
     vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
       id: DEFAULT_TENANT_ID,
-      slug: "default",
+      slug: "rewindom",
       name: "默认租户",
       remark: null,
       status: "active",
@@ -238,7 +238,7 @@ describe("tenant-management.service", () => {
   it("rejects changing default tenant slug", async () => {
     vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
       id: DEFAULT_TENANT_ID,
-      slug: "default",
+      slug: "rewindom",
       name: "默认租户",
       remark: null,
       status: "active",

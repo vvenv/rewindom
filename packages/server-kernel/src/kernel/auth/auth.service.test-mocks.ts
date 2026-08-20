@@ -57,7 +57,7 @@ vi.mock("bcrypt", () => ({
 
 export const mockTenant = {
   id: DEFAULT_TENANT_ID,
-  slug: "default",
+  slug: "rewindom",
   name: "默认租户",
   status: "active",
   created_at: new Date(),
