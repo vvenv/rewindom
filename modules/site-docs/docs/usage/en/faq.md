@@ -59,8 +59,9 @@ containers, run `pnpm --filter server exec prisma migrate deploy` once.
 
 ### Why does a new site only have a home page?
 
-Initialization creates just a home page on purpose. Add pricing, about or contact pages
-from the page presets when you need them.
+Initialization creates a blank home page on purpose. Add pricing, about or contact
+pages in the CMS when you need them. For a product home, pick a module's layout in
+site settings.
 
 ### Where did the "Get started" header button go?
 

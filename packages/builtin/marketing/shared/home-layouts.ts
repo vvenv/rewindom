@@ -82,7 +82,7 @@ export function listHomeLayouts(
 }
 
 /**
- * 按站点记下的 key 取版式；key 空了、开关关了、或登记被撤了，回落到起步首页。
+ * 按站点记下的 key 取版式；key 空了、开关关了、或登记被撤了，回落到空白首页。
  */
 export function resolveHomeLayout(
   key: string | null | undefined,

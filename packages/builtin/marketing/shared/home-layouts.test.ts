@@ -31,10 +31,11 @@ describe("首页版式注册表", () => {
     registerHomeLayout(DEMO_LAYOUT);
   });
 
-  it("marketing 自带起步首页", () => {
+  it("marketing 自带空白首页", () => {
     expect(getHomeLayout(DEFAULT_HOME_LAYOUT_KEY)?.preset).toBe(
       HOME_STARTER_PRESET,
     );
+    expect(HOME_STARTER_PRESET.sections).toEqual([]);
     expect(listHomeLayouts(new Set()).map((layout) => layout.key)).toContain(
       DEFAULT_HOME_LAYOUT_KEY,
     );
@@ -75,7 +76,7 @@ describe("首页版式注册表", () => {
     ).toThrow("site.home_layout_kind:demo.not-home");
   });
 
-  it("开关关掉或 key 不认识时回落到起步首页", () => {
+  it("开关关掉或 key 不认识时回落到空白首页", () => {
     expect(resolveHomeLayout("demo.home", new Set()).key).toBe(
       DEFAULT_HOME_LAYOUT_KEY,
     );

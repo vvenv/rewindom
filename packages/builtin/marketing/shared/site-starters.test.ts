@@ -78,7 +78,7 @@ describe("buildSiteStarterChrome", () => {
 });
 
 describe("buildSiteStarter", () => {
-  it("只建首页", () => {
+  it("只建一张空白首页", () => {
     expect(DEFAULT_SITE_STARTER_PAGES).toEqual([
       { presetKey: "home", sort_order: 0 },
     ]);
@@ -86,31 +86,13 @@ describe("buildSiteStarter", () => {
     const payload = buildSiteStarter("default", (key) => key, "zh-CN");
     expect(payload?.pages).toHaveLength(1);
     expect(payload?.pages[0]?.preset.kind).toBe("home");
-  });
-
-  it("首页只有三段，CTA 指向页内锚点而不是别的页面", () => {
-    const payload = buildSiteStarter("default", (key) => key, "zh-CN");
-    const sections = payload!.pages[0]!.sections;
-
-    expect(sections.map((section) => section.type)).toEqual([
-      "hero",
-      "prose",
-      "band",
-    ]);
-    expect(sections[1]?.settings.body_md).toEqual({
-      __i18n: {
-        "zh-CN": expect.stringContaining("我们能提供什么"),
-        en: expect.stringContaining("What we offer"),
-      },
-    });
-    expect(sections[0]?.settings.primary_href).toBe("#contact");
-    expect(sections[2]?.settings.anchor).toBe("contact");
+    expect(payload?.pages[0]?.sections).toEqual([]);
   });
 });
 
-describe("起步首页版式", () => {
-  it("不指向工作台的注册页", () => {
-    const hrefs = JSON.stringify(HOME_STARTER_PRESET);
-    expect(hrefs).not.toContain('"/register"');
+describe("空白首页版式", () => {
+  it("不预填段，也不指向工作台的注册页", () => {
+    expect(HOME_STARTER_PRESET.sections).toEqual([]);
+    expect(JSON.stringify(HOME_STARTER_PRESET)).not.toContain('"/register"');
   });
 });

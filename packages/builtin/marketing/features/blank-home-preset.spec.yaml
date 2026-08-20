@@ -1,0 +1,43 @@
+# marketing 内核不再预填首页内容。首页仍是一张槽位（kind=home，路径 /），
+# 起步 / 重设 / SSR 兜底都是空段；产品首页由模块贡献版式（如 events.home），
+# 默认租户产品站仍走 default-product-site-content。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant, ssr]
+goal: 干掉起步首页的 hero / 富文本 / CTA 占位；新站首页空白，只保留 kind=home 槽位与页头页脚。
+gold: packages/builtin/marketing/shared/page-presets.ts
+touch:
+  - packages/builtin/marketing/features/blank-home-preset.spec.yaml
+  - packages/builtin/marketing/shared/page-presets.ts
+  - packages/builtin/marketing/shared/site-starters.ts
+  - packages/builtin/marketing/shared/site-starters.test.ts
+  - packages/builtin/marketing/shared/preset-merge.test.ts
+  - packages/builtin/marketing/shared/home-layouts.ts
+  - packages/builtin/marketing/shared/home-layouts.test.ts
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/MODULE.md
+  - .cursor/skills/site-section/SKILL.md
+  - modules/site-docs/docs/usage/zh-CN/build-site.md
+  - modules/site-docs/docs/usage/en/build-site.md
+  - modules/site-docs/docs/usage/zh-CN/faq.md
+  - modules/site-docs/docs/usage/en/faq.md
+  - modules/site-docs/server/usage-docs.generated.ts
+out_of_scope:
+  - 抽出 site-member（会员版式已经在独立模块）
+  - 开通 entitlement 时自动套用业务首页版式
+  - 改写存量租户已落库的首页
+  - 默认租户产品站终稿（default-product-site-content）
+  - 404 起步版式
+i18n: data
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-starters.test.ts preset-merge.test.ts home-layouts.test.ts
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/site-docs assemble:usage-docs
+  - node scripts/verify-module.mjs marketing
+
+# ---------- 可选 ----------
+# entitlement: 无新增
+# permissions: []
+# models: []

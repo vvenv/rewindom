@@ -6,8 +6,9 @@ sort_order: 50
 ---
 
 Every site has one marketing site made of pages, a theme, and a header and footer.
-New tenants get a default home page and chrome when the organization is created. From
-there the path is: open a page row → change sections → publish.
+New tenants get a blank home page and chrome when the organization is created. From
+there the path is: open a page row → add sections → publish. Product homes come from
+a module's home layout.
 
 ## Opening the editor
 

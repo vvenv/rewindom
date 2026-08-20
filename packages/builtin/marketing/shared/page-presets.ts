@@ -35,70 +35,20 @@ export type {
 } from "./page-presets.types.js";
 
 /**
- * 默认起步模板的首页版式。
+ * 内核首页槽位：kind=home、路径 `/`，**不预填任何段**。
  *
- * 建站与「重设」的兜底；也作为 `registerHomeLayout` 的 `marketing.default`。
- * 它是**起点**，不是成品：租户第一件事是把文案换成自己的。
+ * 建站 / 「重设」/ SSR 缺口的兜底；也作为 `registerHomeLayout` 的 `marketing.default`。
+ * 产品首页由模块贡献版式（如 `events.home`），默认租户产品站另走
+ * `default-product-site-content`。内核再塞 hero / 简介 / CTA，对真实租户都是噪音。
  */
 export const HOME_STARTER_PRESET: PagePreset = {
-  /*
-   * 起步首页刻意只有三段。
-   *
-   * 它是**起点**，不是成品：租户第一件事是把文案换成自己的，段数越多越像
-   * 「改别人的站」，改不完就干脆整页删掉重来。原来这页有六段十八块，还写死了
-   * 本仓自己的技术栈（Fastify / Prisma / `pnpm gen:module`），对任何真实租户
-   * 都是噪音。
-   */
   key: "home",
   label: "marketing:preset.home.label",
   kind: "home",
   slug: "home",
   titleKey: "marketing:preset.home.title",
   descriptionKey: "marketing:preset.home.description",
-  sections: [
-    {
-      type: "hero",
-      text: {
-        headline: "marketing:preset.home.hero.headline",
-        subhead: "marketing:preset.home.hero.subhead",
-        primary_label: "marketing:preset.home.hero.primary_label",
-      },
-      raw: {
-        // 起步模板只建首页，站内没有别的地址可指；页内锚点是单页站的通行写法
-        primary_href: "#contact",
-        align: "left",
-        show_glow: true,
-      },
-    },
-    {
-      type: "prose",
-      text: {
-        body_md: "marketing:preset.home.prose.body_md",
-      },
-      raw: { padding_top: 48, padding_bottom: 48 },
-    },
-    {
-      type: "band",
-      text: {
-        headline: "marketing:preset.home.cta.headline",
-        body: "marketing:preset.home.cta.body",
-        primary_label: "marketing:preset.home.cta.primary_label",
-      },
-      raw: {
-        anchor: "contact",
-        primary_href: "mailto:hello@example.com",
-        align: "center",
-        background: "muted",
-        spacing_above: 32,
-        width: "full",
-        content_width: "full",
-        padding_top: 48,
-        padding_right: 24,
-        padding_bottom: 48,
-        padding_left: 24,
-      },
-    },
-  ],
+  sections: [],
 };
 
 /*
