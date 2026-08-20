@@ -78,6 +78,9 @@ describe("registerEventsPageTemplates", () => {
     expect(getPageTemplateKind(EVENTS_TOPIC_PAGE_KIND)?.path).toBe(
       "/topics/:slug",
     );
+    expect(getPageTemplateKind(EVENTS_TOPIC_PAGE_KIND)?.interpolation_tokens).toEqual(
+      ["topic", "topic_slug", "feed"],
+    );
     expect(getPageTemplateKind(EVENTS_TOPIC_PAGE_KIND)?.required_section).toBe(
       null,
     );
@@ -94,6 +97,13 @@ describe("registerEventsPageTemplates", () => {
       EVENTS_DETAIL_SECTION_TYPE,
     );
     expect(getPageTemplateKind("events_detail")?.path).toBe("/events/:slug");
+    expect(getPageTemplateKind("events_detail")?.interpolation_tokens).toEqual([
+      "event",
+      "headline",
+      "topic",
+      "topic_slug",
+      "feed",
+    ]);
   });
 
   it("查询列表只摆与 source 匹配的一段，kind 跟着有没有 topic 走", () => {

@@ -95,6 +95,40 @@ describe("分享卡片", () => {
     );
     expect(html).toContain(`<meta property="og:url" content="${ORIGIN}/pricing" />`);
   });
+
+  it("页面设置里的 {token} 在 <title> / description 里替换", () => {
+    const site = {
+      site_name: "Acme",
+      tagline: "标语",
+      theme_settings: {},
+      default_locale: "zh-CN",
+      pages: [],
+      header: [],
+      footer: [],
+    } as unknown as PublicMarketingSite;
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site,
+      page: {
+        slug: "topic",
+        locale: "zh-CN",
+        kind: "page",
+        title: "{topic}",
+        description: "What's happening in {topic}",
+        sections: [],
+        settings: {},
+        path: "/topics/ai",
+        alternates: [],
+        updated_at: "2026-08-20T00:00:00.000Z",
+      } as unknown as PublicMarketingPage,
+      contributed: { interpolation: { topic: "AI" } },
+    });
+    expect(html).toContain("<title>AI · Acme</title>");
+    expect(html).toContain(`<meta property="og:title" content="AI" />`);
+    expect(html).toContain(
+      `<meta name="description" content="What's happening in AI" />`,
+    );
+  });
 });
 
 describe("JSON-LD", () => {

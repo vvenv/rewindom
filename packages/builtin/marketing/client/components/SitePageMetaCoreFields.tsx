@@ -7,6 +7,7 @@ import { Switch } from "@rewindom/ui/switch";
 import { Textarea } from "@rewindom/ui/textarea";
 import { useTranslation } from "react-i18next";
 
+import { formatPageMetaInterpolationTokens } from "../../shared/page-templates.js";
 import { SiteImageField } from "./media/SiteImageField.js";
 
 import type { MarketingPageSettings } from "../../shared/site-cms.js";
@@ -28,6 +29,8 @@ interface SitePageMetaCoreFieldsProps extends SitePageMetaCoreValues {
    * 只是提示该填什么，不会自动写进草稿——必填就得租户自己确认一遍。
    */
   placeholders?: { title?: string; description?: string };
+  /** 用来列出本页标题 / 描述能写的 `{token}`。普通页只显示内置四项。 */
+  kind?: string;
   onChangeTitle: (value: string) => void;
   onChangeDescription: (value: string) => void;
   onChangeSettings: (settings: MarketingPageSettings) => void;
@@ -46,18 +49,25 @@ export function SitePageMetaCoreFields({
   settings,
   disabled,
   placeholders,
+  kind,
   onChangeTitle,
   onChangeDescription,
   onChangeSettings,
 }: SitePageMetaCoreFieldsProps): ReactElement {
   const { t } = useTranslation("marketing");
+  const interpolationTip = t("editor.info.page_interpolation", {
+    tokens: formatPageMetaInterpolationTokens(kind),
+  });
 
   return (
     <FieldGroup>
       <Field>
         <FieldLabel htmlFor={`${idPrefix}-title`} className={LABEL_CLASS}>
           {t("cms.fieldTitle")}
-          <FieldInfoTip text={t("editor.info.page_title")} side="left" />
+          <FieldInfoTip
+            text={`${t("editor.info.page_title")} ${interpolationTip}`}
+            side="left"
+          />
         </FieldLabel>
         <Input
           id={`${idPrefix}-title`}
@@ -72,7 +82,10 @@ export function SitePageMetaCoreFields({
       <Field>
         <FieldLabel htmlFor={`${idPrefix}-description`} className={LABEL_CLASS}>
           {t("cms.fieldDescription")}
-          <FieldInfoTip text={t("editor.info.page_description")} side="left" />
+          <FieldInfoTip
+            text={`${t("editor.info.page_description")} ${interpolationTip}`}
+            side="left"
+          />
         </FieldLabel>
         <Textarea
           id={`${idPrefix}-description`}

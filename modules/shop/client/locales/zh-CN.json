@@ -375,15 +375,15 @@
       "empty": "暂无在售商品。"
     },
     "collection": {
-      "title": "分类",
-      "subtitle": "该分类下的商品",
+      "title": "{collection}",
+      "subtitle": "{collection_description}",
       "empty": "这个分类还没有商品。"
     },
     "collectionList": { "empty": "还没有可展示的分类。" },
     "promo": { "text": "全场下单输入 {code} 立减 {value}" },
     "product": {
-      "title": "商品",
-      "subtitle": "商品详情",
+      "title": "{product}",
+      "subtitle": "{product_description}",
       "variant": "规格",
       "quantity": "数量",
       "add": "加入购物车",
@@ -427,7 +427,7 @@
       "pay": "去付款"
     },
     "order": {
-      "title": "订单",
+      "title": "{order}",
       "subtitle": "订单状态与物流",
       "status": "状态",
       "pending": "正在确认付款，请稍候刷新。",

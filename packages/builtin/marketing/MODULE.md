@@ -687,6 +687,11 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 同一条（登录标题用 `headingSettings({ headingDefault: "site-member:login.title" })`）。
 复制跨语言时库存句换成目标语言，租户改过的才搬原文。不要先 `t()` 成单语字符串。
 
+带 `:slug` 的模板（`/shop/:slug`、`/docs/:slug`、`/events/:slug`）在 kind 上声明
+`interpolation_tokens`，并把 `{product}` `{doc}` `{event}` 这类占位符写进预设标题 /
+描述。公开面 `<title>` / meta 用页面设置、渲染期插值；不要在 path handler 里用内容
+标题覆盖。
+
 #### 业务模块贡献首页版式
 
 首页只有一张（`kind: home`，路径 `/`）。marketing 内核的 `marketing.default` 是空白槽位，
@@ -1167,14 +1172,20 @@ URL 都会先规范化再查。来源写成 `/en/old` 或 `/old/` 与 `/old` 是
 | 分享缩略图 | `theme_settings.og_image`（站点级）+ `page.settings.og_image`（逐页覆盖） | 相对路径按 origin 补成**绝对地址**——抓取器不带页面上下文；没图就整组图片标签不出（空 `content` 会被部分平台画成裂图），`twitter:card` 也相应退成 `summary` |
 | 逐页 noindex | `page.settings.noindex` | 只掐收录，链接权重照常传递；同时从 sitemap 摘掉、也不发 hreflang——留在 sitemap 又标 noindex 是自相矛盾的信号 |
 | 会员页 noindex | 自动（`requires_member`） | `noindex, nofollow`：SSR 只有占位，收录了也是空页，所以连 follow 一起掐 |
-| `<title>` | 现场拼 | 首页 = 站名；内页能放下 `标题 · 站名` 就拼，否则只用页标题。上限 60 字（`shared/seo-meta.ts`） |
-| meta description | 页面 description，否则首页 tagline、内页 `{标题} — {tagline}` | 禁止多页共用一句光秃 tagline |
+| `<title>` | 页面设置的标题（渲染期 `{token}` 插值）再拼站名 | 首页 = 站名；内页能放下 `标题 · 站名` 就拼，否则只用页标题。上限 60 字（`shared/seo-meta.ts`） |
+| meta description | 页面设置的描述（同一套插值），否则首页 tagline、内页 `{标题} — {tagline}` | 禁止多页共用一句光秃 tagline |
 | 首页 h1 | 不注入 | 页头品牌始终是链接；正文标题由 hero / page-header 段自己出 |
 | `/llms.txt` | 现场拼 | 站点名 + 标语 + 链到 sitemap，和 robots.txt 一样是站点级 |
 | HSTS | SSR `onRequest` + 宿主机 nginx | 只在 https origin 上发；nginx 每次部署幂等补（certbot 写的 443 块自己不会带） |
 
 og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:description 与 meta description 同源。
 `og_image` 只放行站内相对路径与 http(s)：同一个值也会进编辑器预览的 `<img src>`。
+
+**页面设置的标题 / 描述就是 HTML `<title>` / meta。** 渲染期走与页脚同一套 `{token}`
+（`interpolateSiteText`）：内置 `{year}` `{site}` `{hostname}` `{url}`，再加上该页
+`contributed.interpolation`。带 `:slug` 的模板应在 `registerPageTemplateKind` 上声明
+`interpolation_tokens`，预设 title/description 默认带上这些占位符——path handler
+不要再用内容标题把页面设置盖掉。编辑器 tip 列出内置 token + 该 kind 声明的额外项。
 
 用例见 `server/ssr-seo.test.ts`、`shared/seo-meta.test.ts`。
 

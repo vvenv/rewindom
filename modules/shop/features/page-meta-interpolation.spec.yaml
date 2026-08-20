@@ -1,0 +1,35 @@
+# 增量功能契约 —— 店面 :slug 页的标题 / 描述走 CMS 插值
+
+# ---------- 必填 ----------
+module: shop
+surfaces: [ssr, tenant]
+goal: 商品 / 分类 / 订单模板用页面设置的 title/description，经 {product} {collection} {order} 插值；不再用内容标题覆盖。
+gold: modules/shop/shared/shop-page-templates.ts
+touch:
+  - modules/shop/features/page-meta-interpolation.spec.yaml
+  - modules/shop/shared/shop-page-templates.ts
+  - modules/shop/shared/shop-section-context.ts
+  - modules/shop/server/ssr/shop-view.ts
+  - modules/shop/server/ssr/shop.ssr.ts
+  - modules/shop/server/ssr/shop-path-handler.ts
+  - modules/shop/client/locales/en.json
+  - modules/shop/client/locales/zh-CN.json
+  - modules/shop/MODULE.md
+out_of_scope:
+  - 改商品 / 分类工作台 SEO 字段的存法
+  - 购物车 / 结账 / 目录页（没有 :slug）
+i18n: data
+acceptance:
+  - pnpm --filter @rewindom/shop exec vitest --run shared/shop-page-templates.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs shop
+
+# ---------- 可选 ----------
+entitlement: shop
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. `{product}` = seo_title || title；`{product_description}` = seo_description || description。
+#    `{collection}` / `{collection_description}` 同理。`{order}` = 订单号。
+# 2. 预设标题默认就是这些 token，商品级 SEO 字段仍通过 token 值生效。

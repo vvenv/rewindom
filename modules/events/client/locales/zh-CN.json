@@ -50,9 +50,6 @@
     "entertainment": "娱乐",
     "sports": "体育"
   },
-  "topicMeta": {
-    "description": "{topic} 正在发生的事件：来源、时间线，以及这件事是怎么走到这一步的"
-  },
   "listing": {
     "metaDescription": "{topic} 的「{source}」列表：符合条件的事件，按最近动态排序",
     "metaDescriptionAll": "「{source}」列表：符合条件的事件，按最近动态排序"
@@ -147,8 +144,8 @@
       "subtitle": "跨来源发现事件，看清它是怎么走到现在的"
     },
     "detail": {
-      "title": "事件详情",
-      "subtitle": "发生了什么、怎么发展到现在、证据在哪"
+      "title": "{event}",
+      "subtitle": "{headline}"
     },
     "feed": {
       "heading": "正在发生什么",
@@ -157,8 +154,8 @@
       "more": "查看全部事件"
     },
     "entity": {
-      "title": "实体",
-      "subtitle": "这个公司 / 产品 / 人物涉及的全部事件"
+      "title": "{entity}",
+      "subtitle": "与 {entity} 相关的全部事件"
     },
     "subscribe": "订阅 RSS",
     "subscribeHint": "用任意 RSS 阅读器订阅，不需要注册账号",
@@ -395,8 +392,7 @@
   },
   "entity": {
     "relatedEvents": "相关事件",
-    "empty": "这个实体还没有关联的事件",
-    "metaDescription": "{{name}} 相关的 {{count}} 个事件，按最近动态排序"
+    "empty": "这个实体还没有关联的事件"
   },
   "entityKind": {
     "company": "公司",

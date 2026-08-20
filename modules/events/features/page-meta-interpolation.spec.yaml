@@ -1,0 +1,38 @@
+# 增量功能契约 —— 事件 :slug 页的标题 / 描述走 CMS 插值，不再覆盖页面设置
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 专题 / 详情 / 实体页用模板页的 title/description，经 {topic} {event} {headline} {entity} 插值进 HTML meta；path handler 不再覆盖。
+gold: modules/events/shared/events-page-templates.ts
+touch:
+  - modules/events/features/page-meta-interpolation.spec.yaml
+  - modules/events/features/public-seo-audit.spec.yaml
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/events-preset-i18n.test.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/MODULE.md
+out_of_scope:
+  - ?source= 列表仍覆盖 title/description（不是模板页身份）
+  - 实体枢纽 /entities 的 count 描述覆盖
+  - og.png 卡片图上的事件标题
+i18n: data
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-page-templates.test.ts server/ssr/events-preset-i18n.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. interpolation_tokens：topic 页 topic/topic_slug/feed；详情 event/headline/topic/feed；
+#    实体 entity/feed。eventsInterpolationValues 始终带这些 key（空则空串）。
+# 2. 预设：详情 `{event}` / `{headline}`；实体 `{entity}`；专题已是 `{topic}`。
+# 3. 详情上下文补上当前事件的 topic / topic_label，好让 `{topic}` 也能用。

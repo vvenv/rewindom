@@ -375,15 +375,15 @@
       "empty": "No products for sale yet."
     },
     "collection": {
-      "title": "Collection",
-      "subtitle": "Products in this collection",
+      "title": "{collection}",
+      "subtitle": "{collection_description}",
       "empty": "This collection has no products yet."
     },
     "collectionList": { "empty": "No collections to show." },
     "promo": { "text": "Use {code} for {value} off your order" },
     "product": {
-      "title": "Product",
-      "subtitle": "Product details",
+      "title": "{product}",
+      "subtitle": "{product_description}",
       "variant": "Variant",
       "quantity": "Quantity",
       "add": "Add to cart",
@@ -427,7 +427,7 @@
       "pay": "Pay"
     },
     "order": {
-      "title": "Order",
+      "title": "{order}",
       "subtitle": "Status and tracking",
       "status": "Status",
       "pending": "Confirming payment. Refresh in a moment.",

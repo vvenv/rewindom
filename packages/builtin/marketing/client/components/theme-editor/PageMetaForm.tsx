@@ -81,6 +81,7 @@ export function PageMetaForm({
           idPrefix="page-meta"
           title={title}
           description={description}
+          kind={kind}
           settings={settings}
           disabled={disabled}
           placeholders={

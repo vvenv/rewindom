@@ -1,0 +1,28 @@
+# 增量功能契约 —— 文档详情页的标题 / 描述走 CMS 插值
+
+# ---------- 必填 ----------
+module: site-docs
+surfaces: [ssr, tenant]
+goal: /docs/:slug 用模板页的 title/description，经 {doc} {doc_description} 插值进 HTML meta；不再用文档元数据覆盖。
+gold: modules/site-docs/shared/page-templates.ts
+touch:
+  - modules/site-docs/features/page-meta-interpolation.spec.yaml
+  - modules/site-docs/shared/page-templates.ts
+  - modules/site-docs/shared/site-docs-context.ts
+  - modules/site-docs/server/docs.ssr.ts
+  - modules/site-docs/client/locales/en.json
+  - modules/site-docs/client/locales/zh-CN.json
+  - modules/site-docs/MODULE.md
+out_of_scope:
+  - 文档正文 h1（仍来自文档元数据，与浏览器标签解耦）
+  - 文档索引 /docs
+i18n: data
+acceptance:
+  - pnpm --filter @rewindom/site-docs exec vitest --run shared/page-templates.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs site-docs
+
+# ---------- 可选 ----------
+entitlement: site-docs
+permissions: []
+models: []

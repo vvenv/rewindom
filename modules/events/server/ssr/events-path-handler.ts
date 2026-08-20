@@ -201,11 +201,6 @@ async function renderEntity(
     path: href,
     servedPath: input.servedPath ?? href,
     preset: EVENTS_ENTITY_TEMPLATE_PRESET,
-    title: entity.name,
-    description: t("entity.metaDescription", {
-      name: entity.name,
-      count: entity.event_count,
-    }),
     omitHreflang: true,
     canonicalPath: href,
     events: emptyEventsContext({
@@ -250,8 +245,6 @@ async function renderTopic(
     path: pagePath,
     servedPath: input.servedPath ?? pagePath,
     preset: EVENTS_TOPIC_TEMPLATE_PRESET,
-    title: topicLabel,
-    description: t("topicMeta.description", { topic: topicLabel }),
     events: emptyEventsContext({
       topic,
       topic_label: topicLabel,
@@ -336,8 +329,6 @@ async function renderDetail(
     path: href,
     servedPath: input.servedPath ?? href,
     preset: EVENTS_DETAIL_TEMPLATE_PRESET,
-    title: detail.title,
-    description: detail.headline || detail.title,
     omitHreflang: true,
     canonicalPath: href,
     ogImage: isEventOgImageAvailable()
@@ -345,6 +336,8 @@ async function renderDetail(
       : undefined,
     events: emptyEventsContext({
       event: toPublicDetail(detail, t),
+      topic: detail.topic,
+      topic_label: t(`topic.${detail.topic}`),
     }),
   });
 }

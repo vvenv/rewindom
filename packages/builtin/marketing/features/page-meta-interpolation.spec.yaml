@@ -1,0 +1,58 @@
+# 增量功能契约 —— 页面设置的标题 / 描述进 HTML title/meta，并支持 {token} 插值
+#
+# 起因：编辑器「页面设置」里的标题、描述写进了 MarketingPage，普通页 SSR 会用；
+# 但带 :slug 的模板页（事件详情、商品、文档…）path handler 用内容标题把它们盖掉，
+# 租户改的 SEO 模板进不了 `<title>` / meta description。chrome 文案早已走 `{token}`，
+# 页面 meta 没有同一套。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: 公开面 <title> / meta / og / JSON-LD 用页面设置的标题与描述，渲染期走 {token} 插值；页面设置 tip 列出本页可用占位符。带 :slug 的模板默认 title/description 由贡献方写上 token。
+gold: packages/builtin/marketing/server/ssr-render.ts
+touch:
+  - packages/builtin/marketing/features/page-meta-interpolation.spec.yaml
+  - packages/builtin/marketing/shared/site-interpolation.ts
+  - packages/builtin/marketing/shared/site-interpolation.test.ts
+  - packages/builtin/marketing/shared/page-templates.ts
+  - packages/builtin/marketing/shared/page-templates.test.ts
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-seo.test.ts
+  - packages/builtin/marketing/server/ssr-render.test.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/site.mapper.ts
+  - packages/builtin/marketing/client/components/SitePageMetaCoreFields.tsx
+  - packages/builtin/marketing/client/components/theme-editor/PageMetaForm.tsx
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/MODULE.md
+  - .cursor/skills/site-section/SKILL.md
+  - modules/events/features/page-meta-interpolation.spec.yaml
+  - modules/shop/features/page-meta-interpolation.spec.yaml
+  - modules/site-docs/features/page-meta-interpolation.spec.yaml
+out_of_scope:
+  - 给 page-header 段单独再做一套插值（公开 HTML head 插值后，catalog 里当前页的标题仍是库存句；slug 页本来就不靠 page-header）
+  - 把 ?source= 列表也改成 CMS 标题（那不是模板页身份，仍覆盖 title/description）
+  - 回填库里已改过的自定义标题
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-interpolation.test.ts page-templates.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-seo.test.ts ssr-render.test.ts
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. `renderMarketingHtml` 在拼 <title> / description / og / JSON-LD 之前，用与
+#    chrome 同一套 `interpolationValues`（内置 year/site/hostname/url + contributed）
+#    跑 `interpolateSiteText`。未识别的 `{foo}` 原样留下。
+# 2. 页面设置 tip 列出 `BUILTIN_SITE_TOKENS` + 该 kind 声明的 `interpolation_tokens`。
+# 3. 带 `:param` 的模板在 `registerPageTemplateKind` 上声明 token；预设 titleKey /
+#    descriptionKey 默认带上这些占位符。path handler **不要**再覆盖 title/description。
+# 4. 库存旧译名（「事件详情」「商品」）走 `RETIRED_PRESET_TITLES`，公开面按当前预设
+#    重解（含 `{event}`），否则停掉覆盖后所有详情页会变成同一句「Event」。
+# 5. 商品级 `seo_title` 仍生效：贡献方把 `{product}` 填成 seo_title || title。

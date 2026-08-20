@@ -13,7 +13,8 @@ import "./events-preset-i18n.js";
 describe("events preset catalog", () => {
   it("marketing 快照能解开专题页标题 key", () => {
     const zh = createStarterTranslator("zh-CN");
-    expect(zh("events:site.topic.title")).toBe("{topic}");
+    expect(zh("events:site.detail.title")).toBe("{event}");
+    expect(zh("events:site.entity.title")).toBe("{entity}");
     expect(zh("events:site.topic.subtitle")).toBe(
       "跨来源追踪 {topic} 正在发生的事",
     );

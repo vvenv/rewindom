@@ -3,10 +3,9 @@ import { normalizeLocale, type AppLocale } from "@rewindom/shared";
 import { DEFAULT_HOME_LAYOUT_KEY } from "../shared/home-layouts.js";
 import {
   publicCatalogSources,
+  resolveCatalogPageDescription,
   resolveCatalogPageTitle,
   resolveEditorTemplateCopy,
-  resolveTemplatePresetCopy,
-  isStockTemplateDescription,
 } from "../shared/page-templates.js";
 import {
   localizeSections,
@@ -233,9 +232,6 @@ export function toPublicMarketingSite(
         const content = useDraftContent
           ? pageContentDraft(row.record)
           : pageContentPublished(row.record);
-        const copy = localizeFromPreset
-          ? resolveTemplatePresetCopy(row.kind, current)
-          : null;
         return {
           slug: row.slug,
           locale: current,
@@ -243,7 +239,12 @@ export function toPublicMarketingSite(
           title: resolveCatalogPageTitle(row.kind, current, content.title, {
             forcePreset: localizeFromPreset,
           }),
-          description: copy?.description || content.description,
+          description: resolveCatalogPageDescription(
+            row.kind,
+            current,
+            content.description,
+            { forcePreset: localizeFromPreset },
+          ),
           path: marketingPagePath(row.kind, row.slug),
           settings: content.settings,
         };
@@ -299,16 +300,16 @@ export function toPublicMarketingPage(
       : pageContentPublished(record);
   const visibility = parsePageVisibility(record.visibility);
   const memberSummary = options?.memberSummary === true;
-  const copy = resolveTemplatePresetCopy(kind, locale);
   return {
     slug,
     locale,
     kind,
     title: resolveCatalogPageTitle(kind, locale, content.title),
-    description:
-      copy && isStockTemplateDescription(kind, content.description)
-        ? copy.description
-        : content.description,
+    description: resolveCatalogPageDescription(
+      kind,
+      locale,
+      content.description,
+    ),
     sections: memberSummary
       ? []
       : localizeSections(content.sections, locale, default_locale),

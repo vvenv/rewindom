@@ -248,6 +248,7 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "events:template.topic.label",
     required_section: null,
     entitlement: EVENTS_ENTITLEMENT.key,
+    interpolation_tokens: ["topic", "topic_slug", "feed"],
   },
   {
     kind: EVENTS_DETAIL_PAGE_KIND,
@@ -257,6 +258,7 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "events:template.detail.label",
     required_section: EVENTS_DETAIL_SECTION_TYPE,
     entitlement: EVENTS_ENTITLEMENT.key,
+    interpolation_tokens: ["event", "headline", "topic", "topic_slug", "feed"],
   },
   {
     kind: EVENTS_ENTITY_PAGE_KIND,
@@ -266,6 +268,7 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "events:template.entity.label",
     required_section: EVENTS_ENTITY_SECTION_TYPE,
     entitlement: EVENTS_ENTITLEMENT.key,
+    interpolation_tokens: ["entity", "feed"],
   },
   {
     kind: EVENTS_ENTITY_INDEX_PAGE_KIND,

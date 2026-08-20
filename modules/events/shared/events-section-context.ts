@@ -281,9 +281,13 @@ export function emptyEventsContext(
 export function eventsInterpolationValues(
   context: EventsRenderContext,
 ): Record<string, string> {
+  const event = context.event;
   return {
-    topic: context.topic_label ?? "",
-    topic_slug: context.topic ?? "",
+    topic: context.topic_label ?? event?.topic_label ?? "",
+    topic_slug: context.topic ?? event?.topic ?? "",
+    event: event?.title ?? "",
+    headline: event?.headline || event?.title || "",
+    entity: context.entity?.name ?? "",
     feed: eventsSubscribeHref({
       contributed: { [EVENTS_CONTEXT_KEY]: context },
     }),

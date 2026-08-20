@@ -296,6 +296,7 @@ const SHOP_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "shop:template.product.label",
     required_section: SHOP_PRODUCT_SECTION_TYPE,
     entitlement: SHOP_ENTITLEMENT.key,
+    interpolation_tokens: ["product", "product_description"],
   },
   {
     kind: SHOP_COLLECTION_PAGE_KIND,
@@ -305,6 +306,7 @@ const SHOP_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "shop:template.collection.label",
     required_section: SHOP_COLLECTION_PRODUCTS_SECTION_TYPE,
     entitlement: SHOP_ENTITLEMENT.key,
+    interpolation_tokens: ["collection", "collection_description"],
   },
   {
     kind: SHOP_CART_PAGE_KIND,
@@ -332,6 +334,7 @@ const SHOP_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "shop:template.order.label",
     required_section: SHOP_ORDER_SECTION_TYPE,
     entitlement: SHOP_ENTITLEMENT.key,
+    interpolation_tokens: ["order"],
   },
   {
     kind: SHOP_MEMBER_ORDERS_PAGE_KIND,

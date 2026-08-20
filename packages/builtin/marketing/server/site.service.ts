@@ -24,11 +24,13 @@ import {
   getPageTemplateKind,
   getPageTemplatePreset,
   HOME_PAGE_KIND,
+  isStockTemplateDescription,
+  isStockTemplateTitle,
   isTemplatePageKind,
   listPageTemplateKinds,
   NOT_FOUND_PAGE_KIND,
+  resolveCatalogPageDescription,
   resolveCatalogPageTitle,
-  resolveTemplatePresetCopy,
   relocalizeStockTemplateDescription,
   relocalizeStockTemplateTitle,
 } from "../shared/page-templates.js";
@@ -978,16 +980,22 @@ export async function resetPageToPreset(
     where: { id: existing.id, tenant_id },
     data: {
       sections_draft: sections as unknown as Prisma.InputJsonValue,
-      title_draft: persistablePresetCopy(
-        t,
-        preset.titleKey,
-        existing.title_draft,
-      ),
-      description_draft: persistablePresetCopy(
-        t,
-        preset.descriptionKey,
-        existing.description_draft,
-      ),
+      title_draft: isStockTemplateTitle(
+        existing.kind,
+        existing.title_draft ?? "",
+      )
+        ? resolvedStarterText(t, preset.titleKey)
+        : persistablePresetCopy(t, preset.titleKey, existing.title_draft),
+      description_draft: isStockTemplateDescription(
+        existing.kind,
+        existing.description_draft ?? "",
+      )
+        ? resolvedStarterText(t, preset.descriptionKey)
+        : persistablePresetCopy(
+            t,
+            preset.descriptionKey,
+            existing.description_draft,
+          ),
     },
   });
   return presentPage(updated, enabled);
@@ -1663,15 +1671,21 @@ export async function getPublishedTemplatePage(
   const content = pageContentPublished(match);
   const matchLocale = normalizeLocale(match.locale, default_locale);
   const t = createStarterTranslator(locale);
-  const copy =
-    matchLocale === locale ? null : resolveTemplatePresetCopy(kind, locale, t);
   return {
     sections: localizeSections(content.sections, locale, default_locale),
     title: resolveCatalogPageTitle(kind, locale, content.title, {
       forcePreset: matchLocale !== locale,
       t,
     }),
-    description: copy?.description || content.description,
+    description: resolveCatalogPageDescription(
+      kind,
+      locale,
+      content.description,
+      {
+        forcePreset: matchLocale !== locale,
+        t,
+      },
+    ),
   };
 }
 

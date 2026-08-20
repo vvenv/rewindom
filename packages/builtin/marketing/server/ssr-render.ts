@@ -12,6 +12,11 @@ import {
   formatDocumentTitle,
 } from "../shared/seo-meta.js";
 import {
+  interpolateSiteText,
+  interpolationValues,
+  readContributedInterpolation,
+} from "../shared/site-interpolation.js";
+import {
   type PublicMarketingPage,
   type PublicMarketingSite,
 } from "../shared/site-cms.js";
@@ -229,17 +234,27 @@ export function renderMarketingHtml(input: {
     site.default_locale,
     omitHreflang,
   );
+  const interpolation = interpolationValues({
+    siteName: site.site_name,
+    origin,
+    extra: readContributedInterpolation(contributed),
+  });
+  const pageTitle = interpolateSiteText(page.title, interpolation).trim();
+  const pageDescription = interpolateSiteText(
+    page.description || "",
+    interpolation,
+  ).trim();
   const title = escapeHtml(
     formatDocumentTitle({
-      pageTitle: page.title,
+      pageTitle,
       siteName: site.site_name,
       isHome,
     }),
   );
-  const ogTitle = escapeHtml(isHome ? site.site_name : page.title);
+  const ogTitle = escapeHtml(isHome ? site.site_name : pageTitle);
   const rawDescription = formatDocumentDescription({
-    pageDescription: page.description || "",
-    pageTitle: page.title,
+    pageDescription,
+    pageTitle,
     tagline: site.tagline || "",
     isHome,
   });
@@ -247,7 +262,7 @@ export function renderMarketingHtml(input: {
   const jsonLd = jsonLdScriptText({
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: page.title,
+    name: pageTitle,
     description: rawDescription || undefined,
     url: canonical,
     isPartOf: {
@@ -337,8 +352,8 @@ export function renderMarketingHtml(input: {
       : "";
   const mainInner = memberGate
     ? `<div class="wrap" style="padding:4rem 1.5rem;text-align:center">
-      <h1 style="font-size:1.5rem;font-weight:600;margin-bottom:.75rem">${escapeHtml(page.title)}</h1>
-      <p class="muted" style="margin-bottom:1.5rem">${escapeHtml(page.description || "Sign in to read this content.")}</p>
+      <h1 style="font-size:1.5rem;font-weight:600;margin-bottom:.75rem">${escapeHtml(pageTitle)}</h1>
+      <p class="muted" style="margin-bottom:1.5rem">${escapeHtml(pageDescription || "Sign in to read this content.")}</p>
       <p><a class="btn" href="/member/login?redirect=${encodeURIComponent(localizedPath)}">Sign in</a></p>
     </div>`
     : renderPageSectionsHtml(site, page, {

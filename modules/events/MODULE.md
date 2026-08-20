@@ -37,8 +37,8 @@ LLM key 时唯一的译文来源。译文一旦入库就代表了这个事件，
 界面文案（主题名、阶段名、时间线 code、段设置）仍然是完整多语言的——那是**代码 i18n**，
 走 `client/locales/*.json`，与事件内容无关。
 
-公开面 SEO 的其余口径（主题页独特 description、`?source=` 列表 noindex）见
-`features/public-seo-audit.spec.yaml`。
+公开面 SEO 的其余口径（主题 / 详情 / 实体页走页面设置的 `{token}` 插值、`?source=` 列表 noindex）见
+`features/public-seo-audit.spec.yaml` 与 `features/page-meta-interpolation.spec.yaml`。
 
 ## 为什么事件按站点隔离
 

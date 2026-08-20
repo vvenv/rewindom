@@ -21,6 +21,8 @@ import {
   type AppLocale,
 } from "@rewindom/shared";
 
+import { BUILTIN_SITE_TOKENS } from "./site-interpolation.js";
+
 import type { PagePreset } from "./page-presets.types.js";
 
 export interface PageTemplateKindDefinition {
@@ -78,6 +80,13 @@ export interface PageTemplateKindDefinition {
    * 404 是一级地址但不是入口——死链页不该出现在导航里，所以显式关掉。
    */
   in_catalog?: boolean;
+  /**
+   * 本页标题 / 描述（以及段里的 href）在内置 `{year}` `{site}` `{hostname}` `{url}`
+   * 之外还能用的 `{token}`。带 `:slug` 的模板应当声明，并写进预设 title/description。
+   *
+   * 只是编辑器 tip 与约定；真正填值的是 `contributed.interpolation`。
+   */
+  interpolation_tokens?: readonly string[];
 }
 
 const TEMPLATE_KINDS = new Map<string, PageTemplateKindDefinition>();
@@ -288,6 +297,29 @@ export function resolveTemplatePresetCopy(
  */
 const RETIRED_PRESET_TITLES: Readonly<Record<string, readonly string[]>> = {
   "shop:storefront.catalog.title": ["商品", "Products"],
+  "events:site.detail.title": ["Event", "事件详情"],
+  "events:site.detail.subtitle": [
+    "What happened, how it developed, and the evidence",
+    "发生了什么、怎么发展到现在、证据在哪",
+  ],
+  "events:site.entity.title": ["Entity", "实体"],
+  "events:site.entity.subtitle": [
+    "Every event involving this company, product or person",
+    "这个公司 / 产品 / 人物涉及的全部事件",
+  ],
+  "shop:storefront.product.title": ["Product", "商品"],
+  "shop:storefront.product.subtitle": ["Product details", "商品详情"],
+  "shop:storefront.collection.title": ["Collection", "分类"],
+  "shop:storefront.collection.subtitle": [
+    "Products in this collection",
+    "该分类下的商品",
+  ],
+  "shop:storefront.order.title": ["Order", "订单"],
+  "site-docs:template.article.title": ["Doc detail", "文档详情"],
+  "site-docs:template.article.description": [
+    "Layout for a single document (shared by every /docs/… address).",
+    "单篇文档的版式（所有 /docs/… 地址共用）。",
+  ],
 };
 
 function isStockPresetString(key: string, stored: string): boolean {
@@ -345,13 +377,13 @@ export function resolveEditorTemplateCopy(
   locale: AppLocale,
   stored: { title: string; description: string },
 ): { title: string; description: string } {
-  const copy = resolveTemplatePresetCopy(kind, locale);
   return {
     title: resolveCatalogPageTitle(kind, locale, stored.title),
-    description:
-      copy && isStockTemplateDescription(kind, stored.description)
-        ? copy.description
-        : stored.description,
+    description: resolveCatalogPageDescription(
+      kind,
+      locale,
+      stored.description,
+    ),
   };
 }
 
@@ -374,6 +406,50 @@ export function resolveCatalogPageTitle(
     return copy.title;
   }
   return stored;
+}
+
+/**
+ * 与 `resolveCatalogPageTitle` 同一条库存口径：旧默认描述按当前语言重解。
+ */
+export function resolveCatalogPageDescription(
+  kind: string,
+  viewingLocale: AppLocale,
+  storedDescription: string,
+  options?: { forcePreset?: boolean; t?: (key: string) => string },
+): string {
+  const stored = storedDescription.trim();
+  const copy = resolveTemplatePresetCopy(kind, viewingLocale, options?.t);
+  if (!copy) return stored;
+  if (
+    options?.forcePreset === true ||
+    isStockTemplateDescription(kind, stored)
+  ) {
+    return copy.description;
+  }
+  return stored;
+}
+
+/**
+ * 页面设置 tip 列出的 `{token}`：内置四项 + 该 kind 声明的额外项。
+ */
+export function pageMetaInterpolationTokens(kind?: string): string[] {
+  const extra = kind
+    ? (getPageTemplateKind(kind)?.interpolation_tokens ?? [])
+    : [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const key of [...BUILTIN_SITE_TOKENS, ...extra]) {
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
+}
+
+export function formatPageMetaInterpolationTokens(kind?: string): string {
+  return pageMetaInterpolationTokens(kind)
+    .map((key) => `{${key}}`)
+    .join(" ");
 }
 
 /* -------------------------------------------------------------------------- */

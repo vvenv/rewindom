@@ -170,7 +170,8 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 库存文案、链接 href、页脚 `chrome_text` 走 `{token}`（与 Hugo / 页脚同一套），**不是**代码 i18n 的 `{{param}}`。
 
 - 内置：`{year}` `{site}` `{hostname}` `{url}`（`site-interpolation.ts`）
-- 模块经 `contributed.interpolation` 贡献（events：`{topic}` `{topic_slug}` `{feed}`）；多个 provider **按 key 合并**，不要 `Object.assign` 整包覆盖
+- 模块经 `contributed.interpolation` 贡献（events：`{topic}` `{topic_slug}` `{feed}` `{event}` `{headline}` `{entity}`）；多个 provider **按 key 合并**，不要 `Object.assign` 整包覆盖
+- **页面设置的标题 / 描述**走同一套插值，进 `<title>` / meta；带 `:slug` 的模板在 kind 上声明 `interpolation_tokens`，预设默认带上这些 token。path handler 不要覆盖 title/description
 - 未识别的 `{foo}` 原样留下
 - 链接空路径段 / 空查询值渲染时收掉：`/topics/{topic_slug}/feed.xml` 在没有当前主题时是 `/topics/feed.xml`。当前页 RSS 请用 `{feed}`
 - **不要**在渲染器里暗改租户填的 href；把 token 写进存下来的地址，看得见、改得动

@@ -50,9 +50,6 @@
     "entertainment": "Entertainment",
     "sports": "Sports"
   },
-  "topicMeta": {
-    "description": "{topic} events as they develop — sources, a timeline, and how the story got here"
-  },
   "listing": {
     "metaDescription": "{source} in {topic} — every matching event, most recent first",
     "metaDescriptionAll": "{source} — every matching event, most recent first"
@@ -147,8 +144,8 @@
       "subtitle": "Events discovered across sources, and how they got here"
     },
     "detail": {
-      "title": "Event",
-      "subtitle": "What happened, how it developed, and the evidence"
+      "title": "{event}",
+      "subtitle": "{headline}"
     },
     "feed": {
       "heading": "What's happening",
@@ -157,8 +154,8 @@
       "more": "See all events"
     },
     "entity": {
-      "title": "Entity",
-      "subtitle": "Every event involving this company, product or person"
+      "title": "{entity}",
+      "subtitle": "Every event involving {entity}"
     },
     "subscribe": "Subscribe via RSS",
     "subscribeHint": "Follow in any RSS reader — no account needed",
@@ -395,8 +392,7 @@
   },
   "entity": {
     "relatedEvents": "Related events",
-    "empty": "No events reference this entity yet",
-    "metaDescription": "{{count}} events involving {{name}}, most recent first"
+    "empty": "No events reference this entity yet"
   },
   "entityKind": {
     "company": "Company",
