@@ -146,8 +146,8 @@
   },
   "site": {
     "index": {
-      "title": "What's happening",
-      "subtitle": "Events discovered across sources, and how they got here"
+      "title": "{site}",
+      "subtitle": "{tagline}"
     },
     "detail": {
       "title": "{event}",

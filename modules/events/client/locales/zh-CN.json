@@ -146,8 +146,8 @@
   },
   "site": {
     "index": {
-      "title": "正在发生什么",
-      "subtitle": "跨来源发现事件，看清它是怎么走到现在的"
+      "title": "{site}",
+      "subtitle": "{tagline}"
     },
     "detail": {
       "title": "{event}",
