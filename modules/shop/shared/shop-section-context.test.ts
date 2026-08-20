@@ -6,7 +6,10 @@ import {
 } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import {
+  emptyShopContext,
   isShopLocaleSwitchablePath,
+  shopContextEntry,
+  shopInterpolationValues,
   shopStorefrontAlternates,
 } from "./shop-section-context.js";
 
@@ -93,5 +96,28 @@ describe("shopStorefrontAlternates", () => {
         noindex: true,
       }),
     ).toEqual([]);
+  });
+});
+
+describe("shopInterpolationValues", () => {
+  it("商品页把 seo_title 填进 {product}", () => {
+    const values = shopInterpolationValues(
+      emptyShopContext({
+        product: {
+          title: "Mug",
+          subtitle: "Ceramic",
+          description: "A mug",
+          seo_title: "Best mug 2026",
+          seo_description: "Buy the mug",
+          images: [],
+          variants: [],
+        },
+      }),
+    );
+    expect(values.product).toBe("Best mug 2026");
+    expect(values.product_description).toBe("Buy the mug");
+    expect(shopContextEntry(emptyShopContext()).interpolation).toEqual(
+      shopInterpolationValues(emptyShopContext()),
+    );
   });
 });

@@ -315,6 +315,7 @@ const RETIRED_PRESET_TITLES: Readonly<Record<string, readonly string[]>> = {
     "该分类下的商品",
   ],
   "shop:storefront.order.title": ["Order", "订单"],
+  "shop:storefront.order.pageTitle": ["Order", "订单"],
   "site-docs:template.article.title": ["Doc detail", "文档详情"],
   "site-docs:template.article.description": [
     "Layout for a single document (shared by every /docs/… address).",

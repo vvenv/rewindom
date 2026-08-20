@@ -126,7 +126,7 @@ describe("分享卡片", () => {
     expect(html).toContain("<title>AI · Acme</title>");
     expect(html).toContain(`<meta property="og:title" content="AI" />`);
     expect(html).toContain(
-      `<meta name="description" content="What's happening in AI" />`,
+      `<meta name="description" content="What&#39;s happening in AI" />`,
     );
   });
 });

@@ -142,6 +142,7 @@ export function registerDocsPageTemplates(): void {
     label: "site-docs:template.article.label",
     required_section: null,
     entitlement: SITE_DOCS_ENTITLEMENT.key,
+    interpolation_tokens: ["doc", "doc_description"],
   });
   registerPageTemplatePreset(DOCS_INDEX_PAGE_KIND, DOCS_INDEX_TEMPLATE_PRESET);
   registerPageTemplatePreset(

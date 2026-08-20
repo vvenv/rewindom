@@ -234,7 +234,7 @@ export const SHOP_ORDER_TEMPLATE_PRESET: PagePreset = {
   label: "shop:template.order.label",
   kind: SHOP_ORDER_PAGE_KIND,
   slug: SHOP_ORDER_TEMPLATE_SLUG,
-  titleKey: "shop:storefront.order.title",
+  titleKey: "shop:storefront.order.pageTitle",
   descriptionKey: "shop:storefront.order.subtitle",
   sections: [
     {

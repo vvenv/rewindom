@@ -5,6 +5,7 @@
  * 一个，渲染器各取各的字段。marketing 不认识这些形状，只负责原样透传。
  */
 
+import { SITE_INTERPOLATION_KEY } from "@rewindom/builtin/marketing/shared/site-interpolation.js";
 import type { SectionRenderContext } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 import type { PageLocaleAlternate } from "@rewindom/builtin/marketing/shared/site-cms.js";
 import {
@@ -104,6 +105,8 @@ export interface ShopCollectionDetailView {
   slug: string;
   title: string;
   description: string;
+  seo_title?: string;
+  seo_description?: string;
 }
 
 export interface ShopProductVariantView {
@@ -124,6 +127,8 @@ export interface ShopProductDetailView {
   title: string;
   subtitle: string;
   description: string;
+  seo_title?: string;
+  seo_description?: string;
   images: ShopProductImageView[];
   variants: ShopProductVariantView[];
 }
@@ -255,8 +260,30 @@ export function readShopContext(
   return value ? (value as ShopRenderContext) : null;
 }
 
+export function shopInterpolationValues(
+  context: ShopRenderContext,
+): Record<string, string> {
+  const product = context.product;
+  const collection = context.collection;
+  return {
+    product: product?.seo_title || product?.title || "",
+    product_description:
+      product?.seo_description ||
+      product?.description ||
+      product?.subtitle ||
+      "",
+    collection: collection?.seo_title || collection?.title || "",
+    collection_description:
+      collection?.seo_description || collection?.description || "",
+    order: context.order?.number ?? "",
+  };
+}
+
 export function shopContextEntry(
   context: ShopRenderContext,
 ): Record<string, unknown> {
-  return { [SHOP_CONTEXT_KEY]: context };
+  return {
+    [SHOP_CONTEXT_KEY]: context,
+    [SITE_INTERPOLATION_KEY]: shopInterpolationValues(context),
+  };
 }

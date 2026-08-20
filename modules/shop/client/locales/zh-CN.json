@@ -427,7 +427,8 @@
       "pay": "去付款"
     },
     "order": {
-      "title": "{order}",
+      "title": "订单",
+      "pageTitle": "{order}",
       "subtitle": "订单状态与物流",
       "status": "状态",
       "pending": "正在确认付款，请稍候刷新。",

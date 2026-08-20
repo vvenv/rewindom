@@ -20,7 +20,7 @@ out_of_scope:
   - 购物车 / 结账 / 目录页（没有 :slug）
 i18n: data
 acceptance:
-  - pnpm --filter @rewindom/shop exec vitest --run shared/shop-page-templates.test.ts
+  - pnpm --filter @rewindom/shop exec vitest --run shared/shop-page-templates.test.ts shared/shop-section-context.test.ts
   - pnpm check:i18n
   - node scripts/verify-module.mjs shop
 

@@ -111,8 +111,8 @@
     },
     "article": {
       "label": "Doc detail",
-      "title": "Doc detail",
-      "description": "Layout for a single document (shared by every /docs/… address)."
+      "title": "{doc}",
+      "description": "{doc_description}"
     }
   },
   "section": {

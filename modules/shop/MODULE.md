@@ -95,8 +95,9 @@ shop/
 分类页的标题也不是手填的：`shop.collection-products` 没有区块标题 / 副标题设置，画的是**当前分类
 自己的**名称与简介（`shop.collection`，由 SSR 的 `toCollectionDetail()` 按站点语言定稿），租户只配
 `show_title` / `show_description` 两个开关；markup 与 `sectionHeading()` 同构（`.sec-head` / `h2` /
-`.lead`），所以和站上别的段一个样式。页面本身不渲染 `page.title`（那是 `<title>` 与 SEO 用的），
-分类名要出现在页面上就得由这一段画。
+`.lead`），所以和站上别的段一个样式。浏览器标签走页面设置的 `{collection}` / `{collection_description}`
+（商品页 `{product}` / `{product_description}`，商品级 `seo_title` 填进这些 token），不要在 SSR
+里用内容标题覆盖页面设置。分类名要出现在页面上就得由这一段画。
 
 > 已经落库过 `shop_collection` 版式的站点：那张页面里存的仍是 `shop.product-grid`，渲染照旧，
 > 但必备段已换成 `shop.collection-products`，再保存会被 `site.template_section_required` 拦下。

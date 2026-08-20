@@ -26,7 +26,7 @@ import { getPublishedCollectionBySlug } from "../catalog/collection.service.js";
 import { isShopEnabled } from "../lib/entitlement.js";
 import { createCheckout, getOrderByNumber, listMemberOrders } from "../order/order.service.js";
 import { listShippingZones } from "../shipping/shipping.service.js";
-import { displayTitle, formatMoney } from "../lib/format.js";
+import { formatMoney } from "../lib/format.js";
 import { cartRequiresShipping } from "../../shared/index.js";
 import { SHOP_CART_PAGE_KIND } from "../../shared/cart-section.js";
 import { SHOP_CHECKOUT_PAGE_KIND } from "../../shared/checkout-section.js";
@@ -586,7 +586,6 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
           path,
           preset: SHOP_ORDER_TEMPLATE_PRESET,
           noindex: true,
-          title: order.number,
           shop: buildShopContext({
             cart: toCartView(cart, host.locale),
             order: toOrderView(order, host.locale),
@@ -658,18 +657,10 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
           host.tenantId,
           slug,
         );
-        const title =
-          displayTitle(collection.seo_title, host.locale) ||
-          displayTitle(collection.title, host.locale, collection.slug);
-        const description =
-          displayTitle(collection.seo_description, host.locale) ||
-          displayTitle(collection.description, host.locale);
         await sendShopPage(request, reply, host, {
           kind: SHOP_COLLECTION_PAGE_KIND,
           path,
           preset: SHOP_COLLECTION_TEMPLATE_PRESET,
-          title,
-          description,
           shop: buildShopContext({
             products: products.map((product) =>
               toProductCard(product, host.locale),
@@ -708,18 +699,10 @@ export async function shopStorefrontRoutes(app: FastifyInstance): Promise<void> 
       const path = `${SHOP_INDEX_PATH}/${encodeURIComponent(slug)}`;
       try {
         const product = await getPublishedProductBySlug(host.tenantId, slug);
-        const title =
-          displayTitle(product.seo_title, host.locale) ||
-          displayTitle(product.title, host.locale, product.slug);
-        const description =
-          displayTitle(product.seo_description, host.locale) ||
-          displayTitle(product.description, host.locale);
         await sendShopPage(request, reply, host, {
           kind: SHOP_PRODUCT_PAGE_KIND,
           path,
           preset: SHOP_PRODUCT_TEMPLATE_PRESET,
-          title,
-          description,
           shop: buildShopContext({
             cart: toCartView(cart, host.locale),
             product: toProductDetail(product, host.locale),

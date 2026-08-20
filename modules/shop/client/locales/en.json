@@ -427,7 +427,8 @@
       "pay": "Pay"
     },
     "order": {
-      "title": "{order}",
+      "title": "Order",
+      "pageTitle": "{order}",
       "subtitle": "Status and tracking",
       "status": "Status",
       "pending": "Confirming payment. Refresh in a moment.",

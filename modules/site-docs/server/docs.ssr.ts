@@ -183,8 +183,8 @@ export async function renderDocLibrary(input: {
     synthesizeDocPage({
       path: docPath(result.doc.slug),
       locale: result.locale,
-      title: result.doc.title,
-      description: result.doc.description,
+      title: template.title,
+      description: template.description,
       sections: template.sections,
       alternates: buildDocAlternates(
         docPath(result.doc.slug),

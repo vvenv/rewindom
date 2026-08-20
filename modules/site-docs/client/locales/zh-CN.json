@@ -111,8 +111,8 @@
     },
     "article": {
       "label": "文档详情",
-      "title": "文档详情",
-      "description": "单篇文档的版式（所有 /docs/… 地址共用）。"
+      "title": "{doc}",
+      "description": "{doc_description}"
     }
   },
   "section": {

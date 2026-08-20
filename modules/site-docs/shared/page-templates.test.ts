@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import {
   isPublicCatalogPageKind,
   isTemplatePageKind,
+  getPageTemplateKind,
 } from "@rewindom/builtin/marketing/shared/page-templates.js";
 import {
   canonicalizePageIdentity,
@@ -36,5 +37,11 @@ describe("registerDocsPageTemplates", () => {
   it("文档索引进公开目录，详情模板不进", () => {
     expect(isPublicCatalogPageKind(DOCS_INDEX_PAGE_KIND)).toBe(true);
     expect(isPublicCatalogPageKind(DOCS_ARTICLE_PAGE_KIND)).toBe(false);
+  });
+
+  it("详情模板声明 {doc} 插值", () => {
+    expect(getPageTemplateKind(DOCS_ARTICLE_PAGE_KIND)?.interpolation_tokens).toEqual(
+      ["doc", "doc_description"],
+    );
   });
 });

@@ -7,6 +7,7 @@
 站点文档库：Markdown 文档、分类，以及公开面的 `/docs` 索引与 `/docs/:slug` 详情。
 文档**不是**页面——不进 section / block 体系；作者只写 markdown。版式是两张模板页
 （`docs_index` / `docs_article`），与会员页同一套 `registerPageTemplateKind` 机制。
+详情页的浏览器标题 / meta 走模板的 `{doc}` / `{doc_description}`，正文 h1 仍是文档自己的标题。
 
 ## 面划分
 

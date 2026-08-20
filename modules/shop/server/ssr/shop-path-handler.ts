@@ -26,7 +26,6 @@ import {
   getPublishedProductBySlug,
   listPublishedProducts,
 } from "../catalog/catalog.service.js";
-import { displayTitle } from "../lib/format.js";
 import { renderShopTemplatePage } from "./shop-page.js";
 import {
   buildShopContext,
@@ -75,12 +74,6 @@ async function renderShopPath(
 
   try {
     const product = await getPublishedProductBySlug(input.tenantId, slug);
-    const title =
-      displayTitle(product.seo_title, locale) ||
-      displayTitle(product.title, locale, product.slug);
-    const description =
-      displayTitle(product.seo_description, locale) ||
-      displayTitle(product.description, locale);
     return renderShopTemplatePage({
       tenantId: input.tenantId,
       tenantSlug: input.tenantSlug,
@@ -91,8 +84,6 @@ async function renderShopPath(
       path: `${SHOP_INDEX_PATH}/${encodeURIComponent(slug)}`,
       servedPath: input.servedPath,
       preset: SHOP_PRODUCT_TEMPLATE_PRESET,
-      title,
-      description,
       shop: buildShopContext({
         cart: cartView,
         product: toProductDetail(product, locale),

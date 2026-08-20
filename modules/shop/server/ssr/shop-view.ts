@@ -90,13 +90,20 @@ export function toCollectionDetail(
     slug: string;
     title: Record<string, string>;
     description: Record<string, string> | null;
+    seo_title?: Record<string, string> | null;
+    seo_description?: Record<string, string> | null;
   },
   locale: AppLocale,
 ): ShopCollectionDetailView {
+  const title = displayTitle(collection.title, locale, collection.slug);
+  const description = displayTitle(collection.description, locale);
   return {
     slug: collection.slug,
-    title: displayTitle(collection.title, locale, collection.slug),
-    description: displayTitle(collection.description, locale),
+    title,
+    description,
+    seo_title: displayTitle(collection.seo_title, locale) || title,
+    seo_description:
+      displayTitle(collection.seo_description, locale) || description,
   };
 }
 
@@ -138,10 +145,15 @@ export function toProductDetail(
   product: ShopProduct,
   locale: AppLocale,
 ): ShopProductDetailView {
+  const title = displayTitle(product.title, locale, product.slug);
+  const description = displayTitle(product.description, locale);
   return {
-    title: displayTitle(product.title, locale, product.slug),
+    title,
     subtitle: displayTitle(product.subtitle, locale),
-    description: displayTitle(product.description, locale),
+    description,
+    seo_title: displayTitle(product.seo_title, locale) || title,
+    seo_description:
+      displayTitle(product.seo_description, locale) || description,
     images: product.images.map((image) => ({
       url: image.url,
       alt: resolveShopLocaleText(

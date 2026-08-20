@@ -88,6 +88,19 @@ describe("registerShopPageTemplates", () => {
     expect(getPageTemplateKind(SHOP_INDEX_PAGE_KIND)?.path).toBe("/shop");
   });
 
+  it("带 :slug 的模板声明页面 meta 插值 token", () => {
+    expect(getPageTemplateKind("shop_product")?.interpolation_tokens).toEqual([
+      "product",
+      "product_description",
+    ]);
+    expect(getPageTemplateKind("shop_collection")?.interpolation_tokens).toEqual(
+      ["collection", "collection_description"],
+    );
+    expect(getPageTemplateKind("shop_order")?.interpolation_tokens).toEqual([
+      "order",
+    ]);
+  });
+
   it("同一进程再登记一次不抛", () => {
     expect(() => registerShopPageTemplates()).not.toThrow();
   });
