@@ -27,16 +27,6 @@ export const eventsEntitySection: SectionDefinition = {
   page_kinds: [EVENTS_ENTITY_PAGE_KIND],
   settings: [
     { type: "header", content: "editor.group.content" },
-    /*
-     * 默认留空 = 不画标题。这一页只有这一个列表，首屏又刚说完这是谁，
-     * 再挂一行「相关事件」只是多拦一道眼睛（而且它们并非「相关」，就是它的事件）。
-     */
-    {
-      type: "text",
-      id: "events_label",
-      label: "events:section.entity.eventsLabel",
-      info: "events:section.entity.eventsLabelInfo",
-    },
     {
       type: "checkbox",
       id: "show_sources",

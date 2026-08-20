@@ -242,8 +242,6 @@
     },
     "entity": {
       "label": "Entity body",
-      "eventsLabel": "Events heading",
-      "eventsLabelInfo": "Left empty no heading is drawn: this page has only one list, and the hero just said whose it is",
       "showSources": "Show sources",
       "emptyText": "Empty state text"
     },

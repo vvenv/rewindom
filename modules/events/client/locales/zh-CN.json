@@ -242,8 +242,6 @@
     },
     "entity": {
       "label": "实体正文",
-      "eventsLabel": "事件列表标题",
-      "eventsLabelInfo": "默认留空就不画标题：这一页只有这一个列表，首屏也刚说完这是谁",
       "showSources": "显示来源",
       "emptyText": "空态文案"
     },

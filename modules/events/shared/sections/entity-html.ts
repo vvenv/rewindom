@@ -30,7 +30,6 @@ export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
   }
 
   const s = section.settings;
-  const eventsLabel = settingText(s, "events_label");
   const showSources = settingBool(s, "show_sources");
 
   const list =
@@ -40,14 +39,7 @@ export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
           .join("")}</ul>`
       : emptyHtml(settingText(s, "empty_text"));
 
-  return [
-    `<section class="events-entity">`,
-    eventsLabel
-      ? `<h2 class="events-entity-section-title">${escapeHtml(eventsLabel)}</h2>`
-      : "",
-    list,
-    `</section>`,
-  ]
+  return [`<section class="events-entity">`, list, `</section>`]
     .filter(Boolean)
     .join("");
 };
