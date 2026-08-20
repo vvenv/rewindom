@@ -21,7 +21,12 @@ import { ensureDefaultTenant } from "@rewindom/builtin/platform/server/services/
 import { prisma } from "@rewindom/server-kernel/lib/prisma.js";
 import { DEFAULT_TENANT_SLUG } from "@rewindom/shared";
 
+import { registerEventsSections } from "../../../modules/events/server/sections/register.js";
+import { registerEventsPageTemplates } from "../../../modules/events/shared/events-page-templates.js";
+import { registerShopStorefrontSections } from "../../../modules/shop/server/sections/register.js";
+import { registerShopPageTemplates } from "../../../modules/shop/shared/shop-page-templates.js";
 import { loadUsageDocs } from "../../../modules/site-docs/server/load-usage-docs.js";
+import { registerDocsSections } from "../../../modules/site-docs/server/register.js";
 import { seedDocsFromFiles } from "../../../modules/site-docs/server/site-doc.service.js";
 import { registerDocsPageTemplates } from "../../../modules/site-docs/shared/page-templates.js";
 
@@ -45,8 +50,19 @@ function applyRewindomBrand(slug: string): void {
   }
 }
 
-async function main(): Promise<void> {
+function registerContributedSiteSurfaces(): void {
+  // tsx 直跑没有 Fastify onBoot：模板页预设里的贡献段必须先登记，否则
+  // initializeTenantSite → createSection 会抛 site.sections_invalid。
   registerDocsPageTemplates();
+  registerDocsSections();
+  registerShopPageTemplates();
+  registerShopStorefrontSections();
+  registerEventsPageTemplates();
+  registerEventsSections();
+}
+
+async function main(): Promise<void> {
+  registerContributedSiteSurfaces();
   const slug = process.argv[2]?.trim() || DEFAULT_TENANT_SLUG;
   if (slug === DEFAULT_TENANT_SLUG) {
     await ensureDefaultTenant();
