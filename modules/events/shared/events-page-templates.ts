@@ -30,7 +30,6 @@ import {
 } from "./events-entity-index-section.js";
 import { EVENTS_ENTITY_STRIP_SECTION_TYPE } from "./events-entity-strip-section.js";
 import { EVENTS_HERO_SECTION_TYPE } from "./events-hero-section.js";
-import { EVENTS_SUBSCRIBE_SECTION_TYPE } from "./events-subscribe-section.js";
 import {
   EVENTS_FEED_HREF_TEMPLATE,
   EVENTS_HOME_LAYOUT_KEY,
@@ -86,6 +85,25 @@ export const EVENTS_ENTITY_PATH = withEventsPrefix(
 export const EVENTS_ENTITY_INDEX_PATH = entityIndexPath();
 
 /**
+ * 首页版式的首屏：产品主张 + 实时计数。专题页另写带 `{topic}` 的那一套，
+ * 不要把两种身份揉进这一段。
+ */
+const EVENTS_HOME_HERO_SECTION: PresetSection = {
+  type: EVENTS_HERO_SECTION_TYPE,
+  text: {
+    eyebrow: "events:site.hero.eyebrow",
+    headline: "events:site.hero.headline",
+    subhead: "events:site.hero.subhead",
+    secondary_label: "events:site.subscribe",
+  },
+  raw: {
+    secondary_href: EVENTS_FEED_HREF_TEMPLATE,
+    show_stats: true,
+    show_glow: true,
+  },
+};
+
+/**
  * 枢纽与站点首页共用的段：Rising → Now → 实体条 → 订阅。
  *
  * 顺序就是产品主张——先看**正在变化**的，再看正在发生的，再看是谁被卷进去。
@@ -93,21 +111,15 @@ export const EVENTS_ENTITY_INDEX_PATH = entityIndexPath();
  */
 const EVENTS_HUB_SECTIONS: readonly PresetSection[] = [
   { type: eventFeedSectionType("rising") },
-  {
-    type: eventFeedSectionType("now"),
-    raw: { limit: 9 },
-  },
   /*
    * 近期实体条：让首页也链到实体页。枢纽那张完整清单仍在 `/entities`，
    * 这里只是 Top N 胶囊。「查看全部」把人送去枢纽。
    */
   { type: EVENTS_ENTITY_STRIP_SECTION_TYPE },
-  /*
-   * 订阅段摆在两段列表之后：页面级的次要动作。
-   * 页头 / 页脚那个常驻入口是 chrome 块（`events.subscribe-link`），两者不冲突——
-   * 段能带一句说明，chrome 块能只显示图标。
-   */
-  { type: EVENTS_SUBSCRIBE_SECTION_TYPE },
+  {
+    type: eventFeedSectionType("now"),
+    raw: { limit: 9 },
+  },
 ];
 
 /**
@@ -143,8 +155,9 @@ export const EVENTS_TOPIC_TEMPLATE_PRESET: PagePreset = {
 /**
  * 站点首页（`kind: home`，路径 `/`）的贡献版式。
  *
- * 与枢纽同构，但是另一张页：租户套用后站点根就是雷达。
- * 公开 URL 不搬家——专题仍是 `/topics/:slug`，详情仍是 `/events/:slug`。
+ * 与专题枢纽同构（首屏 + 升温 + 正在发生 + 实体条 + 订阅），但是另一张页：
+ * 租户套用后站点根就是雷达。公开 URL 不搬家——专题仍是 `/topics/:slug`，
+ * 详情仍是 `/events/:slug`。
  */
 export const EVENTS_HOME_LAYOUT_PRESET: PagePreset = {
   key: EVENTS_HOME_LAYOUT_KEY,
@@ -153,13 +166,14 @@ export const EVENTS_HOME_LAYOUT_PRESET: PagePreset = {
   slug: "home",
   titleKey: "events:site.index.title",
   descriptionKey: "events:site.index.subtitle",
-  sections: [...EVENTS_HUB_SECTIONS],
+  sections: [EVENTS_HOME_HERO_SECTION, ...EVENTS_HUB_SECTIONS],
 };
 
 const EVENTS_HOME_LAYOUT: HomeLayoutDefinition = {
   key: EVENTS_HOME_LAYOUT_KEY,
   label: "events:home.layout.label",
   description: "events:home.layout.description",
+  group: EVENTS_PAGE_TEMPLATE_GROUP,
   entitlement: EVENTS_ENTITLEMENT.key,
   preset: EVENTS_HOME_LAYOUT_PRESET,
 };
@@ -203,8 +217,6 @@ export const EVENTS_ENTITY_TEMPLATE_PRESET: PagePreset = {
         empty_text: "events:entity.empty",
       },
     },
-    // 按上下文挑地址：摆在实体页上就指向这个实体的 feed
-    { type: EVENTS_SUBSCRIBE_SECTION_TYPE },
   ],
 };
 
@@ -301,9 +313,7 @@ export function eventsListingPreset(
   const isTopic = Boolean(topic);
   return {
     key: isTopic ? EVENTS_TOPIC_PAGE_KIND : HOME_PAGE_KIND,
-    label: isTopic
-      ? "events:template.topic.label"
-      : "events:home.layout.label",
+    label: isTopic ? "events:template.topic.label" : "events:home.layout.label",
     kind: isTopic ? EVENTS_TOPIC_PAGE_KIND : HOME_PAGE_KIND,
     slug: isTopic ? EVENTS_TOPIC_TEMPLATE_SLUG : "home",
     titleKey: isTopic ? "events:site.topic.title" : "events:site.index.title",

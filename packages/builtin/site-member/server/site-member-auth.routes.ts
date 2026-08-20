@@ -25,7 +25,7 @@ import {
   SiteMemberAuthService,
 } from "./site-member-auth.service.js";
 import {
-  hasSiteForHost,
+  isSiteMemberEnabledForHost,
   resolveSiteTenant,
 } from "./site-member-tenant.js";
 
@@ -94,7 +94,7 @@ export async function siteMemberAuthRoutes(
     handler: async (request) => {
       const hostTenant = request.hostTenantContext ?? null;
       const [enabled, settings, oauthFlags] = await Promise.all([
-        hasSiteForHost(hostTenant),
+        isSiteMemberEnabledForHost(hostTenant),
         getPlatformSettings(),
         // 没绑站点时 enabled 已经是 false，这里给平台口径即可
         hostTenant

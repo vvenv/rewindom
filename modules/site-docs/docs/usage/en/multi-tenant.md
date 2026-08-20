@@ -52,9 +52,14 @@ boot.
 ## Creating and managing tenants
 
 New tenants are created in the platform console (`PLATFORM_URL`, locally
-`127.0.0.1`). A new tenant is active; creation also lays down default header / footer
-and a primary-language home page (`initializeTenantSite`). Admins open the home page row
-to edit.
+`127.0.0.1`). A new tenant is active; creation also lays down the default header /
+footer and theme (`initializeTenantSite`).
+
+Home and member layouts are **not** created up front — a site may never use them, and
+pre-creating them leaves empty layouts that cannot be deleted. Visitors still get the
+built-in layout rendered as a fallback; the layout becomes an editable record once an
+admin hits "Set up layout" in the layouts section under Site → Pages. Turning a feature
+on (memberships, for example) sets up the layouts that belong to it.
 
 ## Single-tenant mode
 

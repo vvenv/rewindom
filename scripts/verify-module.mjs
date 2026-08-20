@@ -634,9 +634,9 @@ function checkBoundary(mod, add) {
 /**
  * 11. 官网模板页：kind 与 preset 成对登记；有开关则声明 entitlement；禁止「自定义版式」空态。
  *
- * 新模块只许 `registerPageTemplateKind` + `registerPageTemplatePreset`。落库由
- * marketing 的 `initializeTenantSite` 在相关时统一做——模块自己写初始化或空态按钮
- * 会再分出一条「不落库直到点一下」的路径。
+ * 新模块只许 `registerPageTemplateKind` + `registerPageTemplatePreset`。落库统一归
+ * marketing：相关时自动快照，或（`auto_init: false` 时）由中台那颗「初始化版式」按钮
+ * 触发——按钮也在 marketing。模块自己写一套初始化 / 空态，等于再分出一条并行路径。
  */
 function checkPageTemplates(mod, add) {
   const sharedFiles = walk(path.join(mod.dir, "shared"), [".ts"]).filter(
@@ -663,7 +663,7 @@ function checkPageTemplates(mod, add) {
     add(
       "error",
       "page-templates",
-      "模板页不要做「自定义版式」空态：登记 kind + preset 即可，marketing 会在建租户 / 开通 entitlement / 打开 /app/site 时快照落库。",
+      "模板页不要做「自定义版式」空态：登记 kind + preset 即可，落库与「初始化版式」入口都归 marketing（要延后落库就声明 auto_init: false）。",
     );
   }
 

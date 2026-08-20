@@ -139,6 +139,20 @@ export function resetSitePagePreset(pageId: string): Promise<MarketingPage> {
   return api.post<MarketingPage>(`/site/pages/${pageId}/reset-preset`, {});
 }
 
+/**
+ * 初始化一张模板页的版式：内置预设快照成本站点的真实页面记录（默认语言那一行）。
+ *
+ * 返回的是刷新后的整张页面列表——调用它的就是列表页，直接写进缓存即可。
+ */
+export function initializeSiteTemplatePage(
+  kind: string,
+): Promise<MarketingPageListItem[]> {
+  return api.post<MarketingPageListItem[]>(
+    `/site/pages/templates/${encodeURIComponent(kind)}/init`,
+    {},
+  );
+}
+
 /** 套用一套首页版式：记下 key，首页草稿换成该预设，home_path 收回 /（发布才对访客生效）。 */
 export function applySiteHomeLayout(key: string): Promise<MarketingSite> {
   return api.post<MarketingSite>("/site/home-layout", { key });

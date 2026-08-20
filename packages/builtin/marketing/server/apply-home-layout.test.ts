@@ -14,8 +14,11 @@ vi.mock("@rewindom/server-kernel/lib/prisma.js", () => ({
       update: vi.fn(),
     },
     marketingPage: {
+      findFirst: vi.fn(),
       findMany: vi.fn(),
+      create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }));
@@ -71,6 +74,10 @@ describe("applyHomeLayout", () => {
       siteRow as never,
     );
     vi.mocked(prisma.marketingSite.update).mockResolvedValue(siteRow as never);
+    // 首页已落库：套用版式不用补建（补建那条路见 site-init.service.test.ts）
+    vi.mocked(prisma.marketingPage.findFirst).mockResolvedValue({
+      id: "home-1",
+    } as never);
     vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([
       {
         id: "home-1",

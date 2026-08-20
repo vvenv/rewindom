@@ -19,6 +19,7 @@ export const SITE_MEMBER_DASHBOARD_WIDGETS: readonly DashboardWidget[] = [
     icon: Users,
     component: SiteMembersDashboardWidget,
     order: 45,
+    tenantModule: "site-member",
     anyPermission: ["site_members.read"],
   },
 ];

@@ -9,12 +9,16 @@
  */
 
 
+import { SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
+
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 
 export const MEMBER_GATE_SECTION_TYPE = "site-member.gate";
 
 export const memberGateSection: SectionDefinition = {
   type: MEMBER_GATE_SECTION_TYPE,
+  // 站点关掉会员功能后，这个段既不进「添加区块」菜单，也不再渲染
+  entitlement: SITE_MEMBER_ENTITLEMENT.key,
   // 带命名空间的 key：文案在本模块的 i18n 包里，marketing 的编辑器认前缀
   label: "site-member:section.gate.label",
   placements: ["page"],

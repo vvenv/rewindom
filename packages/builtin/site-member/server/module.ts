@@ -1,3 +1,6 @@
+import { registerTenantGatedRoutes } from "@rewindom/server-kernel/runtime/register-tenant-gated-routes.js";
+
+import { SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
 import { registerMemberMenuLink } from "../shared/member-menu-links.js";
 import { registerMemberPageTemplates } from "../shared/member-page-templates.js";
 
@@ -28,6 +31,7 @@ export const siteMemberServerModule: ServerAppModule = {
   description: "站点前台会员身份（注册/登录/账户）与运营侧会员管理",
   // marketing：客户端把会员入口 / 门控组件填进站点前台的 slot（marketing 不反向依赖）
   requires: ["rbac", "audit", "platform", "marketing"],
+  tenantEntitlements: [SITE_MEMBER_ENTITLEMENT],
   shared: {
     permissions: [
       {
@@ -85,7 +89,7 @@ export const siteMemberServerModule: ServerAppModule = {
        *
        * 也**不能**套 registerTenantGatedRoutes：注册/登录是免认证的，
        * 那时还没有 request.tenantContext，网关会直接崩。
-       * entitlement 由 resolveSiteTenant 在解析站点归属时一并校验。
+       * 会员开关由 resolveSiteTenant 在解析站点归属时一并校验。
        */
       await app.register(siteMemberAuthRoutes, {
         prefix: "/api/member",
@@ -102,12 +106,23 @@ export const siteMemberServerModule: ServerAppModule = {
       await app.register(memberAuthPageRoutes);
       await app.register(memberAccountPageRoutes);
 
-      // 不套租户开关网关：会员体系是每个站点都具备的能力，不可禁用
-      await app.register(siteMemberAdminRoutes, { prefix: "/api/site-members" });
-      // 会员登录的 OAuth 覆盖：与会员管理同一命名空间、同一套权限
-      await app.register(siteOAuthProvidersRoutes, {
-        prefix: "/api/site-members",
-      });
+      /*
+       * 运营侧：会员管理与会员 OAuth 配置。这两组是**认证后**的租户接口，走标准的
+       * 开关网关——站点关掉会员功能，中台这块整体消失（前端 nav 也随 manifest 隐藏）。
+       */
+      await registerTenantGatedRoutes(
+        app,
+        SITE_MEMBER_ENTITLEMENT.key,
+        async (scoped) => {
+          await scoped.register(siteMemberAdminRoutes, {
+            prefix: "/api/site-members",
+          });
+          // 会员登录的 OAuth 覆盖：与会员管理同一命名空间、同一套权限
+          await scoped.register(siteOAuthProvidersRoutes, {
+            prefix: "/api/site-members",
+          });
+        },
+      );
     },
   },
 };

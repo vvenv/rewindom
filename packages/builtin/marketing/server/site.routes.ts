@@ -17,7 +17,10 @@ import {
   uploadSiteAsset,
 } from "./site-asset.service.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
-import { ensureTenantTemplatePages } from "./site-init.service.js";
+import {
+  ensureTenantTemplatePages,
+  initializeTemplatePage,
+} from "./site-init.service.js";
 import { listSiteLinkTargets } from "./site-link-target.service.js";
 import {
   getPageVersion,
@@ -578,6 +581,46 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
           detail_params: {},
         });
         return { ok: true };
+      } catch (err) {
+        if (err instanceof AppError && err.code) {
+          return sendCodedError(reply, err.status, err.code, err.params);
+        }
+        throw err;
+      }
+    },
+  });
+
+  /**
+   * 初始化一张模板页的版式：把内置预设快照成这个站点的真实页面记录。
+   *
+   * 只有 `auto_init: false` 的模板才需要它（首页、会员三张）——其余的在相关的那一刻
+   * 已经落库了，重复点也只是返回同一张列表（服务端幂等）。
+   *
+   * 返回整张页面列表而不是新建的那一页：调用方就是列表本身，拿回来直接写进缓存，
+   * 少一次往返，也不会出现「按钮变成功了、行还没长出来」的空档。
+   */
+  defineRoute(app, {
+    method: "POST",
+    url: "/pages/templates/:templateKind/init",
+    context: "SiteTemplatePageInit",
+    errorCode: "SITE_TEMPLATE_PAGE_INIT_FAILED",
+    preHandler: [app.requirePermission("site.write")],
+    handler: async (request, reply) => {
+      try {
+        const tenant_id = request.tenantContext!.tenant_id;
+        const { templateKind } = request.params as { templateKind: string };
+        const result = await initializeTemplatePage(tenant_id, templateKind);
+        if (result.created_pages.includes(templateKind)) {
+          await emitAuditLogFromRequestSafe(app.events, app.log, request, {
+            userId: request.authUser!.userId,
+            username: request.authUser!.username,
+            action: AuditAction.SITE_PAGE_CREATE,
+            resource: templateKind,
+            detail_key: "marketing.audit.template_page_initialized",
+            detail_params: { kind: templateKind },
+          });
+        }
+        return listPages(tenant_id);
       } catch (err) {
         if (err instanceof AppError && err.code) {
           return sendCodedError(reply, err.status, err.code, err.params);

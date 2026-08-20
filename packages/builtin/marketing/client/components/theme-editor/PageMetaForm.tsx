@@ -29,6 +29,13 @@ interface PageMetaFormProps {
   path: string;
   settings: MarketingPageSettings;
   visibility: MarketingPageVisibility;
+  /**
+   * 本站有没有会员能力（`capabilities.account_entry`）。
+   *
+   * 没有就不画「仅会员可见」——关掉会员功能的站点没人能登录，锁上的页面等于谁都
+   * 打不开。已经锁着的页面保持原样（值还在库里），重新开通就恢复。
+   */
+  membersOnlyAvailable?: boolean;
   disabled?: boolean;
   onChangeTitle: (value: string) => void;
   onChangeDescription: (value: string) => void;
@@ -52,6 +59,7 @@ export function PageMetaForm({
   path,
   settings,
   visibility,
+  membersOnlyAvailable = true,
   disabled,
   onChangeTitle,
   onChangeDescription,
@@ -76,7 +84,9 @@ export function PageMetaForm({
           settings={settings}
           disabled={disabled}
           placeholders={
-            preset ? { title: preset.title, description: preset.description } : undefined
+            preset
+              ? { title: preset.title, description: preset.description }
+              : undefined
           }
           onChangeTitle={onChangeTitle}
           onChangeDescription={onChangeDescription}
@@ -91,28 +101,30 @@ export function PageMetaForm({
           <Input id="page-meta-path" value={path} disabled readOnly />
         </Field>
 
-        <Field>
-          <div className="flex items-center justify-between gap-3">
-            <FieldLabel
-              htmlFor="page-meta-members-only"
-              className={LABEL_CLASS}
-            >
-              {t("editor.visibility.membersOnly")}
-              <FieldInfoTip
-                text={t("editor.visibility.membersOnlyHint")}
-                side="left"
+        {membersOnlyAvailable || visibility === "members" ? (
+          <Field>
+            <div className="flex items-center justify-between gap-3">
+              <FieldLabel
+                htmlFor="page-meta-members-only"
+                className={LABEL_CLASS}
+              >
+                {t("editor.visibility.membersOnly")}
+                <FieldInfoTip
+                  text={t("editor.visibility.membersOnlyHint")}
+                  side="left"
+                />
+              </FieldLabel>
+              <Switch
+                id="page-meta-members-only"
+                checked={visibility === "members"}
+                disabled={disabled}
+                onCheckedChange={(checked) =>
+                  onChangeVisibility(checked ? "members" : "public")
+                }
               />
-            </FieldLabel>
-            <Switch
-              id="page-meta-members-only"
-              checked={visibility === "members"}
-              disabled={disabled}
-              onCheckedChange={(checked) =>
-                onChangeVisibility(checked ? "members" : "public")
-              }
-            />
-          </div>
-        </Field>
+            </div>
+          </Field>
+        ) : null}
 
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase not-first:mt-2">
           {t("editor.group.appearance")}

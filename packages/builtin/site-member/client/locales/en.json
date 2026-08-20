@@ -61,6 +61,7 @@
   },
   "admin": {
     "nav": "Members",
+    "disabledHint": "Memberships are not enabled for this site. Ask a platform admin to turn them on.",
     "title": "Members",
     "description": "Members who registered on your site. Enable, disable, or reset passwords.",
     "searchPlaceholder": "Search by email or name",
@@ -95,7 +96,7 @@
       "site": "this site's"
     },
     "status": {
-      "enabled": "Available ({{source}} credentials)",
+      "enabled": "Available ({source} credentials)",
       "disabled": "Unavailable: not configured by the platform or this site"
     },
     "fields": {

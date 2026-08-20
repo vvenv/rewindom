@@ -57,7 +57,6 @@ out_of_scope:
   - 在 marketing 内核做通用「专题」类型
   - 改页头 chrome / 正文订阅段的按页取址（实体页仍要订实体 feed）
   - 把 `?source=` 列表也拆成独立 kind
-  - 给 events_index / 首页版式预设补上 hero（专题页才预置；首页仍由租户 / yestino 铺）
 i18n: data
 acceptance:
   - pnpm --filter @rewindom/events exec vitest --run shared/events-page-templates.test.ts shared/sections/hero-html.test.ts shared/events-link-targets.test.ts

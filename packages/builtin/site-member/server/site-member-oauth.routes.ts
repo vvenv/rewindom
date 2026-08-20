@@ -19,7 +19,7 @@ import {
   type MemberOAuthStatePayload,
 } from "./site-member-oauth.service.js";
 import {
-  hasSiteForHost,
+  isSiteMemberEnabledForHost,
   resolveSiteTenant,
 } from "./site-member-tenant.js";
 
@@ -44,7 +44,7 @@ export async function siteMemberOAuthRoutes(
         assertMemberOAuthProvider(request.params.provider);
         const provider = request.params.provider;
 
-        const enabled = hasSiteForHost(
+        const enabled = await isSiteMemberEnabledForHost(
           request.hostTenantContext ?? null,
         );
         if (!enabled) {

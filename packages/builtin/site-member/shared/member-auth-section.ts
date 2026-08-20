@@ -11,10 +11,12 @@
 
 import { headingSettings } from "../../marketing/shared/sections/_common/settings.js";
 
+import { SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
 import {
   memberCardSettings,
   memberPageLayoutSettings,
 } from "./member-page-settings.js";
+
 
 import type { SectionDefinition } from "../../marketing/shared/section-schema.js";
 import type { SectionRenderContext } from "../../marketing/shared/sections/render-context.js";
@@ -145,6 +147,8 @@ function altLinkSettings(
 
 export const memberLoginFormSection: SectionDefinition = {
   type: MEMBER_LOGIN_FORM_SECTION_TYPE,
+  // 站点关掉会员功能后，这个段既不进「添加区块」菜单，也不再渲染
+  entitlement: SITE_MEMBER_ENTITLEMENT.key,
   label: "site-member:section.loginForm.label",
   placements: ["page"],
   page_kinds: [MEMBER_LOGIN_PAGE_KIND],
@@ -164,6 +168,8 @@ export const memberLoginFormSection: SectionDefinition = {
 
 export const memberRegisterFormSection: SectionDefinition = {
   type: MEMBER_REGISTER_FORM_SECTION_TYPE,
+  // 站点关掉会员功能后，这个段既不进「添加区块」菜单，也不再渲染
+  entitlement: SITE_MEMBER_ENTITLEMENT.key,
   label: "site-member:section.registerForm.label",
   placements: ["page"],
   page_kinds: [MEMBER_REGISTER_PAGE_KIND],

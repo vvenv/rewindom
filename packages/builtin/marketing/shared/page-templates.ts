@@ -10,7 +10,8 @@
  * 依赖图上仍只有一条边（业务模块 `requires: ["marketing"]`）。
  *
  * 对该站点变得相关时由 `initializeTenantSite` 快照进 DB（建租户、开通 entitlement、
- * 打开 `/app/site`）。SSR 仍能在记录尚未落库时用内置预设兜底，那是缺口不是产品路径。
+ * 打开 `/app/site`）；声明 `auto_init: false` 的除外——那些等租户在中台点「初始化版式」，
+ * 或等它的 entitlement 由关变开。SSR 仍能在记录尚未落库时用内置预设兜底。
  */
 
 import {
@@ -58,6 +59,18 @@ export interface PageTemplateKindDefinition {
   required_section: string | null;
   /** 仅贡献的模板页：租户开通了这项 entitlement 才在中台露出。 */
   entitlement?: string;
+  /**
+   * 建租户 / 打开 `/app/site` 时要不要**自动**快照落库。缺省 `true`。
+   *
+   * `false` 的模板只在两个时刻落库：租户在中台常驻模板区点「初始化版式」，或它声明的
+   * `entitlement` 由关变开（安装 / 启用那项功能的那一刻）。用于那些「站点未必要用」的
+   * 版式——首页、会员登录 / 注册 / 账户：预建出来的空版式对不做这块的站点只是噪音，
+   * 页面列表里还删不掉（模板页不可删）。
+   *
+   * 未落库不影响访客：SSR 仍按内置预设兜底渲染。反过来，像 404 这种**每个**站点都
+   * 需要、且租户迟早要改的版式，留在自动落库里更省事。
+   */
+  auto_init?: boolean;
   /**
    * 是否进公开导航目录（「全部一级页面」、`page-menu`）。
    *
@@ -185,6 +198,18 @@ export function isPageTemplateRelevant(
   enabledEntitlements: ReadonlySet<string>,
 ): boolean {
   return !template.entitlement || enabledEntitlements.has(template.entitlement);
+}
+
+/**
+ * 这张模板要不要在「相关」的那一刻自动快照落库。
+ *
+ * 与 `isPageTemplateRelevant` 分开的两问：相关的是「站点用不用得上这张页」，这一条
+ * 是「用得上的话要不要替租户先建出来」。中台露出看前者，落库看两者。
+ */
+export function isPageTemplateAutoInit(
+  template: PageTemplateKindDefinition,
+): boolean {
+  return template.auto_init !== false;
 }
 
 /**
@@ -360,6 +385,11 @@ export const NOT_FOUND_PAGE_KIND = "not_found";
 export const NOT_FOUND_TEMPLATE_SLUG = "404";
 export const NOT_FOUND_PATH = "/404";
 
+/*
+ * 首页不自动落库：没落库时 SSR 按当前首页版式（`home_layout_key`）兜底渲染，与预建
+ * 一条空版式记录对访客毫无差别，却省掉了「每个新站点都先有一张没人动过的首页」。
+ * 租户在站点设置里套用一套首页版式，或在模板区点「初始化版式」，那一刻才落库。
+ */
 registerPageTemplateKind({
   kind: HOME_PAGE_KIND,
   slug: "home",
@@ -367,6 +397,7 @@ registerPageTemplateKind({
   group: "cms.homeTemplate",
   label: "preset.home.label",
   required_section: null,
+  auto_init: false,
 });
 
 registerPageTemplateKind({

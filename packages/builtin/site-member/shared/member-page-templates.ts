@@ -15,6 +15,7 @@ import {
   registerPageTemplatePreset,
 } from "../../marketing/shared/page-templates.js";
 
+import { SITE_MEMBER_ENTITLEMENT } from "./entitlements.js";
 import {
   MEMBER_ACCOUNT_PAGE_KIND,
   MEMBER_ACCOUNT_PANEL_SECTION_TYPE,
@@ -131,7 +132,14 @@ export const MEMBER_ACCOUNT_TEMPLATE_PRESET: PagePreset = {
   ],
 };
 
-/** 登记三张模板页（幂等）；server `onBoot` 与 client manifest 各调一次。 */
+/**
+ * 登记三张模板页（幂等）；server `onBoot` 与 client manifest 各调一次。
+ *
+ * 都声明 `entitlement` + `auto_init: false`：会员是个可关的功能，关了不该在中台露出
+ * 这三行；开着也不预建——不打算做会员的站点，页面列表里不该常驻三张删不掉的空版式。
+ * 落库发生在两处：租户在中台点「初始化版式」，或会员开关由关变开的那一刻。
+ * 没落库时 SSR 仍按这里的预设兜底，会员照样能登录。
+ */
 export function registerMemberPageTemplates(): void {
   registerPageTemplateKind({
     kind: MEMBER_LOGIN_PAGE_KIND,
@@ -140,6 +148,8 @@ export function registerMemberPageTemplates(): void {
     group: MEMBER_PAGE_TEMPLATE_GROUP,
     label: "site-member:template.login.label",
     required_section: MEMBER_LOGIN_FORM_SECTION_TYPE,
+    entitlement: SITE_MEMBER_ENTITLEMENT.key,
+    auto_init: false,
   });
   registerPageTemplateKind({
     kind: MEMBER_REGISTER_PAGE_KIND,
@@ -148,6 +158,8 @@ export function registerMemberPageTemplates(): void {
     group: MEMBER_PAGE_TEMPLATE_GROUP,
     label: "site-member:template.register.label",
     required_section: MEMBER_REGISTER_FORM_SECTION_TYPE,
+    entitlement: SITE_MEMBER_ENTITLEMENT.key,
+    auto_init: false,
   });
   registerPageTemplatePreset(
     MEMBER_LOGIN_PAGE_KIND,
@@ -164,6 +176,8 @@ export function registerMemberPageTemplates(): void {
     group: MEMBER_PAGE_TEMPLATE_GROUP,
     label: "site-member:template.account.label",
     required_section: MEMBER_ACCOUNT_PANEL_SECTION_TYPE,
+    entitlement: SITE_MEMBER_ENTITLEMENT.key,
+    auto_init: false,
   });
   registerPageTemplatePreset(
     MEMBER_ACCOUNT_PAGE_KIND,

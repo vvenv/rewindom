@@ -9,6 +9,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { createSection } from "../../marketing/shared/section-schema.js";
 import { renderSectionHtml } from "../../marketing/shared/sections/html.js";
+import { SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
 import {
   MEMBER_LOGIN_FORM_SECTION_TYPE,
   MEMBER_REGISTER_FORM_SECTION_TYPE,
@@ -18,8 +19,8 @@ import {
 
 import { registerMemberAuthSections } from "./member-auth-section.js";
 
-/** 会员段不再声明 entitlement（能力常驻），空集也照渲染。 */
-const ENABLED = new Set<string>();
+/** 会员段挂在会员开关下：开着才渲染（关掉的站点见下面那条用例）。 */
+const ENABLED = new Set<string>([SITE_MEMBER_ENTITLEMENT.key]);
 
 const AUTH: MemberAuthRenderContext = {
   action: "/member/login?redirect=%2Fmember%2Faccount",
@@ -114,16 +115,16 @@ describe("登录表单段", () => {
   });
 
   /*
-   * 会员体系不再有开关：能力常驻、不可禁用。空的 entitlement 集合下照样渲染
-   * ——以前这里断言的是相反的事（没开通就整段不出）。
+   * 会员是一个可关的功能：关掉的站点连登录框都不该吐出来——那时公开会员接口一律
+   * 403，渲染出来的表单只会把访客送进一个交不上去的提交。
    */
-  it("不受 entitlement 闸门影响，空集合也照渲染", () => {
+  it("站点关掉会员功能就不渲染登录框", () => {
     const section = createSection(MEMBER_LOGIN_FORM_SECTION_TYPE);
     const html = renderSectionHtml(section, 0, {
       enabledEntitlements: new Set<string>(),
       contributed: memberAuthContextEntry(AUTH),
     });
-    expect(html).toContain('name="email"');
+    expect(html).toBe("");
   });
 });
 

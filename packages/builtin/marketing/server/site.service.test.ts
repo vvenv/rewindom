@@ -189,7 +189,7 @@ describe("duplicatePage", () => {
         kind: "home",
         slug: "home",
         title: "首页",
-        description: "一句话说明这个站点是做什么的。",
+        description: "站点首页。",
       }) as never,
     );
     vi.mocked(prisma.marketingPage.findMany).mockResolvedValue([] as never);
@@ -197,9 +197,7 @@ describe("duplicatePage", () => {
     await duplicatePage(TENANT, "page-1", { title: "首页", locale: "en" });
 
     expect(createdData().title).toBe("Home");
-    expect(createdData().description).toBe(
-      "One line on what this site is about.",
-    );
+    expect(createdData().description).toBe("The site home page.");
     expect(createdData().slug).toBe("home");
     expect(createdData().locale).toBe("en");
   });

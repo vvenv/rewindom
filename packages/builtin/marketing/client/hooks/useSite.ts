@@ -13,6 +13,7 @@ import {
   publishSiteEditorDraft,
   reorderSitePages,
   resetSitePagePreset,
+  initializeSiteTemplatePage,
   applySiteHomeLayout,
   revertSiteDraft,
   revertSiteEditorDraft,
@@ -161,10 +162,27 @@ export function useSiteMutations() {
     onSuccess: () => invalidate(),
   });
 
-  /** 重设为最新版式（只写草稿）。 */
+  /** 重设为最新版式（只写草稿）。返回的整页先写进缓存，编辑器灌入不用空一拍。 */
   const resetPagePreset = useMutation({
     mutationFn: (pageId: string) => resetSitePagePreset(pageId),
-    onSuccess: () => invalidate(),
+    onSuccess: (page) => {
+      queryClient.setQueryData([...SITE_PAGES_QUERY_KEY, page.id], page);
+      return invalidate();
+    },
+  });
+
+  /**
+   * 初始化一张模板页的版式（首页 / 会员那几张平时不预建的）。
+   *
+   * 与 reorder 同一手法：返回的清单先写进缓存再作废，点完按钮那一行当场就在，
+   * 不会先空一拍等重新拉取。
+   */
+  const initializeTemplatePage = useMutation({
+    mutationFn: (kind: string) => initializeSiteTemplatePage(kind),
+    onSuccess: (pages) => {
+      queryClient.setQueryData(SITE_PAGES_QUERY_KEY, pages);
+      return invalidate();
+    },
   });
 
   /** 套用一套首页版式（只写草稿，并把 home_path 收回 /）。 */
@@ -187,6 +205,7 @@ export function useSiteMutations() {
     removePage,
     unpublishPage,
     resetPagePreset,
+    initializeTemplatePage,
     applyHomeLayout,
   };
 }

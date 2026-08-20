@@ -1,0 +1,29 @@
+# 增量功能契约 —— 官网编辑器里也能「重设版式」
+#
+# 现状：列表行「更多」里有「重设版式」（POST /pages/:id/reset-preset），MODULE.md 也写了
+# 工具栏该放整页预设，但 PageEditorToolbar 只有复制 / 取消发布。租户在编辑器里改完结构
+# 想回到最新内置版式，必须退回列表。
+#
+# 同一条接口、同一份确认文案；成功后清掉编辑器 session 草稿再灌入，预览立刻跟上。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant]
+goal: 官网编辑器工具栏「更多」可把当前页重设为最新内置版式（有预设的 kind 才出现），与列表同一接口，结果只写草稿。
+gold: packages/builtin/marketing/client/components/theme-editor/PageEditorToolbar.tsx
+touch:
+  - packages/builtin/marketing/features/editor-reset-layout.spec.yaml
+  - packages/builtin/marketing/client/components/theme-editor/PageEditorToolbar.tsx
+  - packages/builtin/marketing/client/components/theme-editor/PageEditorToolbar.test.tsx
+  - packages/builtin/marketing/client/pages/site-editor.tsx
+  - packages/builtin/marketing/client/hooks/useSite.ts
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改 reset-preset 合并算法 / 服务端语义
+  - 普通自定义页（kind=page）提供重设
+  - 外观 scope（?scope=theme）上的重设
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client PageEditorToolbar.test.tsx
+  - pnpm check:i18n
+  - pnpm check:modules

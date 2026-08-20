@@ -35,6 +35,7 @@ describe("首页版式注册表", () => {
     expect(getHomeLayout(DEFAULT_HOME_LAYOUT_KEY)?.preset).toBe(
       HOME_STARTER_PRESET,
     );
+    expect(getHomeLayout(DEFAULT_HOME_LAYOUT_KEY)?.group).toBeUndefined();
     expect(HOME_STARTER_PRESET.sections).toEqual([]);
     expect(listHomeLayouts(new Set()).map((layout) => layout.key)).toContain(
       DEFAULT_HOME_LAYOUT_KEY,
@@ -53,13 +54,14 @@ describe("首页版式注册表", () => {
     expect(() => registerHomeLayout(DEMO_LAYOUT)).not.toThrow();
   });
 
-  it("撞名直接抛", () => {
-    expect(() =>
-      registerHomeLayout({
-        ...DEMO_LAYOUT,
-        label: "other",
-      }),
-    ).toThrow("site.home_layout_conflict:demo.home");
+  it("同一 key 再登记则换成新定义", () => {
+    const next: HomeLayoutDefinition = {
+      ...DEMO_LAYOUT,
+      label: "demo:home.updated",
+    };
+    registerHomeLayout(next);
+    expect(getHomeLayout("demo.home")).toBe(next);
+    registerHomeLayout(DEMO_LAYOUT);
   });
 
   it("preset.kind 不是 home 直接抛", () => {

@@ -150,9 +150,9 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 | 写 | 登记 |
 | --- | --- |
-| 与模板页同一份 `*-page-templates.ts` | `registerHomeLayout({ key, label, entitlement?, rootPrefix?, preset })` |
+| 与模板页同一份 `*-page-templates.ts` | `registerHomeLayout({ key, label, group?, entitlement?, rootPrefix?, preset })` |
 
-`preset.kind` 必须是 `home`；有开关必须声明 `entitlement`。要把本模块公开前缀收到站点根时
+`preset.kind` 必须是 `home`；有开关必须声明 `entitlement`。`group` 与本模块模板页共用同一个 i18n key 时，中台常驻模板区把版式和页面排在同一组；未声明则只进站点设置下拉。内核空白首页不声明 `group`、不进常驻模板区。要把本模块公开前缀收到站点根时
 加 `rootPrefix`（如 `/docs`）：选择器不再把该枢纽列为「设为首页」，套用会把
 `home_path` 收回 `/`。事件雷达不声明 `rootPrefix`——首页版式只改 `/` 长什么样，集合路径
 仍是 `/topics` `/events` `/entities`。金标准：`modules/events/shared/events-page-templates.ts` 的 `events.home`。

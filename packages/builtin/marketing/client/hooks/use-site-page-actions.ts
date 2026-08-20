@@ -2,18 +2,17 @@ import { useConfirm } from "@rewindom/client-kit";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { DEFAULT_HOME_LAYOUT_KEY } from "../../shared/home-layouts.js";
+import {
+  DEFAULT_HOME_LAYOUT_KEY,
+  getHomeLayout,
+} from "../../shared/home-layouts.js";
 import {
   canSetPageAsHome,
   homeLayoutReplacingPath,
 } from "../../shared/site-home.js";
 import { moveSitePageGroup } from "../lib/site-page-order.js";
 
-import {
-  useSite,
-  useSiteCapabilities,
-  useSiteMutations,
-} from "./useSite.js";
+import { useSite, useSiteCapabilities, useSiteMutations } from "./useSite.js";
 
 import type { MarketingPageListItem } from "../../shared/site-cms.js";
 import type { SitePageGroup } from "../lib/site-page-groups.js";
@@ -34,6 +33,12 @@ export interface SitePageActions {
   remove: (pageId: string, pageTitle: string) => Promise<void>;
   /** 重设为最新版式（智能合并保留内容，只写草稿）；仅对有内置版式的页面可用。 */
   resetPreset: (page: MarketingPageListItem) => Promise<void>;
+  /** 把一张还没落库的模板页版式建出来（首页、会员那几张平时不预建的）。 */
+  initializeTemplate: (kind: string) => void;
+  initializeTemplatePendingKind: string | undefined;
+  /** 套用一套首页版式（确认后立刻 POST；会落库首页草稿）。 */
+  applyHomeLayout: (key: string) => void;
+  applyHomeLayoutPendingKey: string | undefined;
   /** 把第 `index` 个翻译组上移（-1）/ 下移（+1）。 */
   move: (
     groups: readonly SitePageGroup[],
@@ -60,6 +65,7 @@ export function useSitePageActions(): SitePageActions {
     unpublishPage,
     reorderPages,
     resetPagePreset,
+    initializeTemplatePage,
     updateSite,
     applyHomeLayout,
   } = useSiteMutations();
@@ -98,6 +104,19 @@ export function useSitePageActions(): SitePageActions {
     });
   };
 
+  /**
+   * 初始化一张模板页的版式。
+   *
+   * 不问确认：这一步只是把内置版式建成一条可编辑的记录，访客看到的东西不变
+   * （没落库时 SSR 本来就按同一套预设兜底），也没有什么可覆盖的。
+   */
+  const initializeTemplate = (kind: string): void => {
+    initializeTemplatePage.mutate(kind, {
+      onSuccess: () => toast.success(t("cms.toastTemplatePageInitialized")),
+      onError: () => toast.error(t("cms.toastTemplatePageInitializeFailed")),
+    });
+  };
+
   /** 发布 / 取消发布共用同一份 toast 逻辑，按当前状态切换 mutation 与文案。 */
   const togglePublish = (page: MarketingPageListItem): void => {
     const isPublished = page.status === "published";
@@ -131,43 +150,49 @@ export function useSitePageActions(): SitePageActions {
     );
   };
 
-  const setHome = (path: string): void => {
+  const applyLayout = (key: string): void => {
     void (async () => {
-      const layout = homeLayoutReplacingPath(path, entitlements);
-      if (layout) {
-        if (
-          !canSetPageAsHome({
-            pagePath: path,
-            homePath: site?.home_path || "/",
-            homeLayoutKey: site?.home_layout_key || DEFAULT_HOME_LAYOUT_KEY,
-            entitlements,
-          })
-        ) {
-          return;
-        }
-        const confirmed = await confirm({
-          title: t("cms.applyHomeLayoutConfirmTitle", {
-            label: t(layout.label),
-          }),
-          description: t("cms.applyHomeLayoutConfirmDescription"),
-          confirmText: t("cms.applyHomeLayout"),
-        });
-        if (!confirmed) return;
-        applyHomeLayout.mutate(layout.key, {
-          onSuccess: () => toast.success(t("cms.toastHomeLayoutApplied")),
-          onError: () => toast.error(t("cms.toastHomeLayoutApplyFailed")),
-        });
+      const layout = getHomeLayout(key);
+      if (!layout) return;
+      const confirmed = await confirm({
+        title: t("cms.applyHomeLayoutConfirmTitle", {
+          label: t(layout.label),
+        }),
+        description: t("cms.applyHomeLayoutConfirmDescription"),
+        confirmText: t("cms.applyHomeLayout"),
+      });
+      if (!confirmed) return;
+      applyHomeLayout.mutate(key, {
+        onSuccess: () => toast.success(t("cms.toastHomeLayoutApplied")),
+        onError: () => toast.error(t("cms.toastHomeLayoutApplyFailed")),
+      });
+    })();
+  };
+
+  const setHome = (path: string): void => {
+    const layout = homeLayoutReplacingPath(path, entitlements);
+    if (layout) {
+      if (
+        !canSetPageAsHome({
+          pagePath: path,
+          homePath: site?.home_path || "/",
+          homeLayoutKey: site?.home_layout_key || DEFAULT_HOME_LAYOUT_KEY,
+          entitlements,
+        })
+      ) {
         return;
       }
-      if (path === (site?.home_path || "/")) return;
-      updateSite.mutate(
-        { home_path: path },
-        {
-          onSuccess: () => toast.success(t("cms.toastHomeUpdated")),
-          onError: () => toast.error(t("cms.toastSiteSaveFailed")),
-        },
-      );
-    })();
+      applyLayout(layout.key);
+      return;
+    }
+    if (path === (site?.home_path || "/")) return;
+    updateSite.mutate(
+      { home_path: path },
+      {
+        onSuccess: () => toast.success(t("cms.toastHomeUpdated")),
+        onError: () => toast.error(t("cms.toastSiteSaveFailed")),
+      },
+    );
   };
 
   return {
@@ -185,6 +210,14 @@ export function useSitePageActions(): SitePageActions {
     togglePublish,
     remove,
     resetPreset,
+    initializeTemplate,
+    initializeTemplatePendingKind: initializeTemplatePage.isPending
+      ? initializeTemplatePage.variables
+      : undefined,
+    applyHomeLayout: applyLayout,
+    applyHomeLayoutPendingKey: applyHomeLayout.isPending
+      ? applyHomeLayout.variables
+      : undefined,
     move,
     homePath: site?.home_path || "/",
     homeLayoutKey: site?.home_layout_key || DEFAULT_HOME_LAYOUT_KEY,

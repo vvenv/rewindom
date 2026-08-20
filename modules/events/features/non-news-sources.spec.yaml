@@ -192,9 +192,9 @@ models:
 # 8. i18n（code）：`sourceKind.{release,status,filing}` 与
 #    `timeline.{release,status,filing}` 两组 key，en / zh-CN 都要补。
 #    timeline 文案要写成可核对的事实，不解释动机：
-#      release → 「{{source}} 发布了新版本」
-#      status  → 「{{source}} 报告了服务状态变化」
-#      filing  → 「{{source}} 发布了公告文件」
+#      release → 「{source} 发布了新版本」
+#      status  → 「{source} 报告了服务状态变化」
+#      filing  → 「{source} 发布了公告文件」
 #    `check:i18n` 是硬门槛（漏 key 会把 `timeline.release` 原样渲染到详情页上）。
 #
 # 9. 采集耗时随源数线性增长，且仍是串行 for 循环（ingest.service.ts）。

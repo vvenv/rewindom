@@ -8,6 +8,7 @@ import { siteContentRoutes } from "./site-content.routes.js";
 import {
   ensureTenantTemplatePages,
   initializeTenantSite,
+  templateKindsForEnabledEntitlements,
 } from "./site-init.service.js";
 import { siteRoutes } from "./site.routes.js";
 import { marketingSsrRoutes } from "./ssr.routes.js";
@@ -81,7 +82,11 @@ export const marketingServerModule: ServerAppModule = {
       });
       ctx.events.on("tenant.entitlements.updated", async (payload) => {
         try {
-          await ensureTenantTemplatePages(payload.tenant_id);
+          // 刚打开的那些开关名下、平时不自动落库的版式（会员三张）这一刻建出来
+          await ensureTenantTemplatePages(
+            payload.tenant_id,
+            templateKindsForEnabledEntitlements(payload.enabled_keys),
+          );
         } catch (err) {
           ctx.log.error(
             { err, tenant_id: payload.tenant_id },

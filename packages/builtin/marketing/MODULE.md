@@ -61,8 +61,15 @@
 
 **相关时快照落库**：没有 entitlement 的常驻页在建租户时写入；声明了 `entitlement`
 的在开关打开时写入（打开 `/app/site` 也会补缺）。SSR 在记录尚未落库时仍用内置预设
-兜底——那是缺口不是产品路径。新增模板页种类**不需要数据迁移**，也不要做「自定义版式」
-空态：登记 `registerPageTemplateKind` + `registerPageTemplatePreset` 即可。
+兜底。新增模板页种类**不需要数据迁移**，也不要做「自定义版式」空态：登记
+`registerPageTemplateKind` + `registerPageTemplatePreset` 即可。
+
+**`auto_init: false` 的不预建**：首页与会员三张标了这一条——站点未必要做会员，预建出来
+就是三张删不掉的空版式。它们落库只在两个时刻：租户在中台常驻模板区点「初始化版式」
+（`POST /api/site/pages/templates/:kind/init`），或它声明的 entitlement **由关变开**
+（`tenant.entitlements.updated` 带 `enabled_keys`，即「安装 / 启用这项功能」的那一刻）。
+首页还多一条：在站点设置里套用一套首页版式，也是首页落库的时刻。
+没落库不是缺口——SSR 照旧按内置预设兜底，中台把这一行画成占位行 + 按钮。
 
 注册表定义在 marketing，业务模块自己填（同 `registerSectionDefinition` 的方向）：
 `/member/login` 的版式属于 site-member，marketing 不认识「会员」这个概念。
@@ -668,6 +675,10 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 
 - 常驻（无 entitlement）→ `tenant.created`
 - 有开关 → `tenant.entitlements.updated`（打开 `/app/site` 也会补缺）
+- `auto_init: false` → 不预建；租户点「初始化版式」，或该 entitlement 由关变开时才落库
+
+站点未必要用的版式（会员登录 / 注册 / 账户）加 `auto_init: false`；枢纽页那种
+「开通了就一定要有」的不加。初始化入口在 marketing，贡献方不要自己写空态按钮。
 
 金标准：`site-member/shared/member-page-templates.ts`、`shop/shared/shop-page-templates.ts`。
 `pnpm check:modules` 会查 kind/preset 成对、有开关则声明了 entitlement、客户端没有「自定义版式」。
@@ -681,14 +692,17 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 首页只有一张（`kind: home`，路径 `/`）。marketing 内核的 `marketing.default` 是空白槽位，
 不预填段。模块可以再登记一套**首页版式**，让租户把站点根换成自己的内容结构（例如
 事件雷达的升温 + 正在发生）。设置里和「把另一张页占据 /」合成一个下拉：选版式就套到
-首页模板上，并把 `home_path` 收回 `/`。
+首页模板上，并把 `home_path` 收回 `/`。贡献版式声明 `group`（与本模块模板页同一
+i18n key）后，中台常驻模板区也列出它：未套用是「套用版式」占位行，套用后首页行
+落到该组，不再同时出现在「首页」分组。内核空白首页（`marketing.default`）不进常驻
+模板区——它不是产品表面，切回去走站点设置里的首页下拉。
 
 与模板页正交：`/shop` 仍是枢纽页；事件雷达的专题 / 详情 / 实体走独立集合路径。
 店面 / 文档库的入口就是自己的枢纽页，通常不必再贡献一份，除非要把该模块做成站点根。
 
 | 位置 | 做什么 |
 | --- | --- |
-| `<模块>/shared/*-page-templates.ts` | `registerHomeLayout({ key, label, entitlement?, rootPrefix?, preset })`（`preset.kind` 必须是 `home`） |
+| `<模块>/shared/*-page-templates.ts` | `registerHomeLayout({ key, label, group?, entitlement?, rootPrefix?, preset })`（`preset.kind` 必须是 `home`） |
 | server `onBoot` + client manifest | 与模板页同一个注册函数里调（幂等） |
 
 有租户开关必须声明 `entitlement`。要把本模块公开前缀收到站点根时声明 `rootPrefix`
@@ -763,13 +777,18 @@ Fastify。markup 不要因此写成两份——client 用 `htmlSectionView` 包�
 ### 站点管理页（`/app/site`）
 
 一张卡：卡头是站点（站名 / 发布状态 / 计数 / 站点设置 / 查看官网），卡身是页面列表，
-底下常驻模板页（首页 / 文档版式 / 会员版式等）。页面与它所在的站点是同一个对象，不拆成两张卡。
+底下常驻模板页（首页 / 文档版式 / 会员版式 / 事件版式等）。页面与它所在的站点是同一个对象，不拆成两张卡。
 
 - **一行 = 一个页面**，同 `(kind, slug)` 的各语言合成一个**翻译组**（`site-page-groups.ts`）。
   单语言时组头与那一行合并；多语言时组头 + 缩进的语言行。整行是热区：标题 / 语言名
   这个链接用 `after:inset-0` 摊满整行，全行只有一个真链接，⌘ 点、中键、Tab 都照常
 - **行内操作**与文档库同一套：发布 / 取消发布留在行上（最高频），打开编辑器 / 复制 /
   删除收进「更多」菜单
+- **常驻模板区里未落库的那几行**（首页、会员登录 / 注册 / 账户）画成占位行 + 「初始化
+  版式」按钮；未套用的贡献首页版式画成「套用版式」占位行（`SiteTemplatePageRows`）。
+  不画就没有入口——这些版式不再随建租户预建；画出来还顺带回答了「这个站点还能有哪些
+  版式」。只读用户看得到状态、没有按钮。当前套用的首页版式若声明了 `group`，首页行
+  落到那一组。
 - **标题与描述必填**：建页 / 复制 / 更新 / 编辑器保存（`saveEditorDraft`）四条写入
   路径都拦空（`site.page_title_required` / `site.page_description_required`）。行的
   入口就挂在标题上，空串等于一行点不到的空白，编辑器顶部的页面切换器也会变成一颗
@@ -876,12 +895,15 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 草稿预览 API：`GET /api/site/preview?path=`（需 `site.read`，含 draft 页面 + 草稿 chrome）。
 
 顶部工具栏是**页面级**操作区：页面切换器（`PageSwitcher`，只列同语言的页面，改完一页直接切下一页）、
-语言按钮组、复制、预设、发布、保存。整页替换 sections 的「预设」放这里而不是区块树里——
-它与「添加区块」不是一档操作，挨着摆成同样的下拉太容易误点。
+语言按钮组、复制、重设版式、发布、保存。「重设版式」在「更多」里，只对有内置预设的
+kind 出现（首页 / 模板页），走 `POST /pages/:id/reset-preset`，与列表行同一条接口。
+整页替换 sections 放这里而不是区块树里——它与「添加区块」不是一档操作，挨着摆成同样
+的下拉太容易误点。成功后清掉编辑器 session 草稿再灌入，预览立刻跟上；有未保存改动时
+确认框会多说一句会一并丢失。
 
 **工具栏只有一份**（`components/theme-editor/EditorToolbar.tsx`）：容器、返回、状态、
 保存 / 发布此一份，差异收成三个插槽——`nav`（换页 / 换语言 / 版本历史）、
-`menuItemsBefore` / `menuItemsAfter`（复制、取消发布）、`publishLabelKey`。打开页面时那
+`menuItemsBefore` / `menuItemsAfter`（复制、重设版式、取消发布）、`publishLabelKey`。打开页面时那
 几样特有的东西装在 `PageEditorToolbar` 里（复制那张 Sheet 必须挂在工具栏**外面**：
 菜单项当不了 `SheetTrigger`，而菜单内容关闭时会卸载）。
 
@@ -911,7 +933,8 @@ site-docs 登记，会员页由 site-member 登记。文案在创建时展开成
 应是同一条 key。
 
 **站点初始化**（`server/site-init.service.ts` + `shared/site-starters.ts` 的 chrome 构建）在
-租户创建时铺好默认页头 / 页脚 / 主题与主语言首页等模板页。产品面**不再**提供「一键应用
+租户创建时铺好默认页头 / 页脚 / 主题与该建的模板页（首页与会员版式除外，见
+`auto_init`）。产品面**不再**提供「一键应用
 起步模板」；日常回到最新靠页面「重设为最新版式」与主题包「重设为最新」。
 
 初始化只铺结构：首页是空白画布（没有 hero / 富文本 / CTA），页头不预设按钮、页脚不
@@ -1033,7 +1056,8 @@ minimal），套用时直接写进站点的 `theme_settings`。
 logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
 
 **初始化配方 = 主题包 + 页面组合**（`SITE_STARTERS` / `buildSiteStarterChrome`，当前仅
-`default`）。租户创建时由 `initializeTenantSite` 落库；**没有**产品面「应用起步模板」API。
+`default`）。租户创建时由 `initializeTenantSite` 落库（首页版式除外，等租户表态）；
+**没有**产品面「应用起步模板」API。
 `buildSiteStarter` 仍可供测试与内部拼装，对不认识的 key 返回 `null`。
 
 页头 / 页脚各模板暂时共用一套：区别在页面组合与主题，不在 chrome 结构。真需要不同页头的

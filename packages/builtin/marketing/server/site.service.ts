@@ -81,6 +81,7 @@ import {
 import { resolveThemeSettings } from "../shared/theme-sections.js";
 
 import { resolveSectionEntitlements } from "./site-entitlements.js";
+import { initializeTemplatePage } from "./site-init.service.js";
 import { recordPageVersion } from "./site-page-version.service.js";
 import {
   toMarketingPage,
@@ -997,6 +998,10 @@ export async function resetPageToPreset(
  *
  * 只写首页草稿：访客仍看已发布的那一版，满意再发布。
  * 开关没开或 key 不认识直接拒。
+ *
+ * 首页不自动预建（`auto_init: false`），所以套用版式**也是**首页落库的时刻之一：
+ * 选定一套版式就是租户对首页表态了，这之后中台里得有一张能改的页面，不能还停在
+ * 「SSR 按 key 兜底渲染、列表里什么都没有」。
  */
 export async function applyHomeLayout(
   tenant_id: string,
@@ -1013,6 +1018,9 @@ export async function applyHomeLayout(
     where: { tenant_id },
     data: { home_layout_key: key, home_path: DEFAULT_HOME_PATH },
   });
+
+  // key 先写库：这里补建的首页会按**新**版式落库，与下面写草稿的内容一致
+  await initializeTemplatePage(tenant_id, HOME_PAGE_KIND);
 
   const homes = await prisma.marketingPage.findMany({
     where: withTenantScope(tenant_id, { kind: HOME_PAGE_KIND }),

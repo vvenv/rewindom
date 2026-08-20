@@ -44,6 +44,9 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.home_path_invalid": "不能把该页面设为首页",
       "site.home_layout_invalid": "不能套用该首页版式",
       "marketing.audit.home_layout_applied": "套用官网首页版式「{{key}}」",
+      "marketing.audit.template_page_initialized": "初始化官网版式「{{kind}}」",
+      "site.page_template_unknown": "没有这张版式",
+      "site.page_template_unavailable": "该站点未开通这张版式所属的功能",
       "site.template_page_exists": "该语言下这张版式已存在",
       "site.template_page_slug_fixed": "版式页路径不可更改",
       "site.template_page_not_deletable": "系统版式页不可删除",
@@ -137,6 +140,11 @@ export const MARKETING_SERVER_I18N: ServerI18nBundle = {
       "site.home_layout_invalid": "That homepage layout cannot be applied",
       "marketing.audit.home_layout_applied":
         'Applied homepage layout "{{key}}"',
+      "marketing.audit.template_page_initialized":
+        "Initialized the “{{kind}}” site layout",
+      "site.page_template_unknown": "No such layout",
+      "site.page_template_unavailable":
+        "This site does not have the feature that owns this layout",
       "site.template_page_exists": "This layout already exists for this locale",
       "site.template_page_slug_fixed": "Layout page path cannot be changed",
       "site.template_page_not_deletable": "Built-in layout pages cannot be deleted",

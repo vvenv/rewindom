@@ -4,9 +4,10 @@ import { getLocaleNativeLabel, type AppLocale } from "@rewindom/shared";
 import { Button } from "@rewindom/ui/button";
 import { ButtonGroup } from "@rewindom/ui/button-group";
 import { DropdownMenuItem } from "@rewindom/ui/dropdown-menu";
-import { CloudOff, Copy } from "lucide-react";
+import { CloudOff, Copy, LayoutTemplate } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { getPageTemplatePreset } from "../../../shared/page-templates.js";
 import { SitePageDuplicateSheet } from "../SitePageDuplicateSheet.js";
 
 import { EditorToolbar, type EditorToolbarPending } from "./EditorToolbar.js";
@@ -41,14 +42,20 @@ interface PageEditorToolbarProps {
   onUnpublish: () => void;
   onDiscardLocal: () => void;
   onRevert: () => void;
+  /** 有内置版式的 kind 才传；点了之后由页面去确认并调 reset-preset。 */
+  onResetPreset?: () => void;
+  resetPresetPending?: boolean;
 }
 
 /**
  * Theme Editor 的工具栏 = 共用的 `EditorToolbar` + 本页特有的三样东西：
- * 换页 / 换语言 / 版本历史（导航段）、复制与取消发布（「更多」里的额外项）。
+ * 换页 / 换语言 / 版本历史（导航段）、复制 / 重设版式 / 取消发布（「更多」里的额外项）。
  *
  * 复制那张 Sheet 挂在工具栏外面：菜单项当不了 `SheetTrigger`（一点菜单就关），
  * 而菜单内容在关闭时会卸载，Sheet 跟着一起没了。
+ *
+ * 「重设版式」只对有内置预设的 kind 出现（首页 / 模板页），和列表行同一条接口。
+ * 图标不用 RotateCcw——撤销草稿已经占了那个，免得两项长得一样。
  */
 export function PageEditorToolbar({
   page,
@@ -66,9 +73,12 @@ export function PageEditorToolbar({
   onUnpublish,
   onDiscardLocal,
   onRevert,
+  onResetPreset,
+  resetPresetPending = false,
 }: PageEditorToolbarProps) {
   const { t } = useTranslation("marketing");
   const [duplicateOpen, setDuplicateOpen] = useState(false);
+  const canResetPreset = Boolean(getPageTemplatePreset(page.kind) && onResetPreset);
 
   return (
     <>
@@ -130,10 +140,21 @@ export function PageEditorToolbar({
           </>
         }
         menuItemsBefore={
-          <DropdownMenuItem onSelect={() => setDuplicateOpen(true)}>
-            <Copy className="size-4" />
-            {t("cms.duplicate")}
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem onSelect={() => setDuplicateOpen(true)}>
+              <Copy className="size-4" />
+              {t("cms.duplicate")}
+            </DropdownMenuItem>
+            {canResetPreset ? (
+              <DropdownMenuItem
+                disabled={resetPresetPending}
+                onSelect={() => onResetPreset?.()}
+              >
+                <LayoutTemplate className="size-4" />
+                {t("cms.resetPreset")}
+              </DropdownMenuItem>
+            ) : null}
+          </>
         }
         menuItemsAfter={
           page.status === "published" ? (

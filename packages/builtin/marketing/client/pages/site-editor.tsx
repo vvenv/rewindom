@@ -382,6 +382,33 @@ export function SiteEditor() {
     });
   };
 
+  /**
+   * 重设为最新内置版式：服务端按已保存草稿合并，结果只写草稿。
+   * 内存里没存的改动灌不进去，确认时说清楚；成功后清 session 再灌入。
+   */
+  const resetPreset = async (): Promise<void> => {
+    if (!page) return;
+    const body = t("cms.resetPresetConfirmDescription", {
+      title: editor.title || page.title,
+    });
+    const confirmed = await confirm({
+      title: t("cms.resetPresetConfirmTitle"),
+      description: editor.dirty
+        ? `${body}${t("editor.revertDiscardsUnsavedToo")}`
+        : body,
+      confirmText: t("cms.resetPreset"),
+    });
+    if (!confirmed) return;
+    editor.mutations.resetPagePreset.mutate(page.id, {
+      onSuccess: () => {
+        clearEditorCache(pageId);
+        editor.discardLocalChanges();
+        toast.success(t("cms.toastPageResetToPreset"));
+      },
+      onError: () => toast.error(t("cms.toastPageResetToPresetFailed")),
+    });
+  };
+
   const previewView = (
     <TenantSiteView
       embedded
@@ -422,6 +449,8 @@ export function SiteEditor() {
         onUnpublish={unpublish}
         onDiscardLocal={() => void discardLocal()}
         onRevert={() => void revert()}
+        onResetPreset={() => void resetPreset()}
+        resetPresetPending={editor.mutations.resetPagePreset.isPending}
       />
     ) : (
       <EditorToolbar
@@ -625,6 +654,7 @@ export function SiteEditor() {
                 path={editor.path}
                 settings={editor.pageSettings}
                 visibility={editor.visibility}
+                membersOnlyAvailable={accountEntryAvailable}
                 disabled={!canWrite}
                 onChangeTitle={editor.setTitle}
                 onChangeDescription={editor.setDescription}

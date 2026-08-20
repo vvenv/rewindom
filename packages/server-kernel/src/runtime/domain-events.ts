@@ -52,6 +52,14 @@ export interface TenantCreatedEventPayload {
  */
 export interface TenantEntitlementsUpdatedEventPayload {
   tenant_id: string;
+  /**
+   * 这一次**由关变开**的开关 key（模块 entitlement 与套餐 feature flag 合在一起）。
+   *
+   * 只报增量，不报全量：有些资源要的是「安装这项功能的那一刻」而不是「这项功能开着」
+   * ——官网的首页 / 会员版式平时不预建，开关翻上来才落库。全量集合区分不出这两者，
+   * 保存一次开关就会把它们统统建出来。
+   */
+  enabled_keys: string[];
 }
 
 export interface DomainEventMap {

@@ -19,14 +19,22 @@ export interface HomeLayoutDefinition {
   /**
    * 稳定 key，落进 `MarketingSite.home_layout_key`。
    *
-   * 带模块前缀（`events.home`）。撞名直接抛：两个模块共用一个 key 会让租户
-   * 选中的版式被对方接管。
+   * 带模块前缀（`events.home`）。同一 key 再登记会换成新定义，好让预设升级
+   * 与热更新生效；两个模块不要共用一个 key。
    */
   key: string;
   /** 选择器上的名字（i18n key，贡献方用带命名空间的 key）。 */
   label: string;
   /** 选择器下的一句说明（i18n key）。 */
   description?: string;
+  /**
+   * 中台常驻模板区的分组（i18n key，与模板页 `group` 同一套口径）。
+   *
+   * **同一 key = 同一组**：本模块的首页版式应和它的模板页共用一个 key
+   * （如 `EVENTS_PAGE_TEMPLATE_GROUP`），否则版式只出现在站点设置下拉里。
+   * 内核空白首页不声明 group、也不进常驻模板区。未声明则不进常驻模板区。
+   */
+  group?: string;
   /** 有租户开关则未开通不进选择器、也不能套用。 */
   entitlement?: string;
   /**
@@ -45,14 +53,10 @@ export interface HomeLayoutDefinition {
 
 const HOME_LAYOUTS = new Map<string, HomeLayoutDefinition>();
 
-/** 登记一套首页版式（幂等：同一引用再登记一次不抛）。 */
+/** 登记一套首页版式。同一 key 再登记则换成新定义（热更新 / 预设升级）。 */
 export function registerHomeLayout(definition: HomeLayoutDefinition): void {
   if (definition.preset.kind !== HOME_PAGE_KIND) {
     throw new Error(`site.home_layout_kind:${definition.key}`);
-  }
-  const existing = HOME_LAYOUTS.get(definition.key);
-  if (existing && existing !== definition) {
-    throw new Error(`site.home_layout_conflict:${definition.key}`);
   }
   HOME_LAYOUTS.set(definition.key, definition);
 }

@@ -88,7 +88,7 @@ server/
 | 段 `events.entity_strip` | 近期实体胶囊条，可摆在任意页面。近 30 天实体按事件数排序，默认 Top 24，字号一律、用数字角标表示权重。**主题枢纽上只列这一格事件里的实体**。「查看全部」打开实体枢纽。预设插在 Now 与订阅之间 |
 | 段 `events.detail` | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上 |
 | 模板页 `events_topic` | `/topics/:slug`。七格共用一张模板，预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。库存文案写 `{topic}` / `{topic_slug}` / `{feed}` |
-| 首页版式 `events.home` | 套在站点首页（`/`）上（无首屏）。不声明 `rootPrefix`，集合路径不搬家 |
+| 首页版式 `events.home` | 套在站点首页（`/`）上。预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。`group` 与模板页同为「事件」。不声明 `rootPrefix`，集合路径不搬家 |
 | 模板页 `events_detail` | `/events/:slug` |
 | 段 `events.entity` | 实体页正文，`page_kinds` 限定只能落在实体模板页上。编辑器没有当前实体，预览用样张 |
 | 模板页 `events_entity` | `/entities/:slug` |
@@ -102,7 +102,8 @@ server/
 | sitemap / 链接候选 | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给实体枢纽以及 RSS（**当前页** `{feed}` + 全站 `/feed.xml` + 已启用主题 `/topics/:slug/feed.xml`，分组 `feed`）。实体 feed 不进下拉 |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
-`registerHomeLayout`（events 填表，内核不认识「雷达」这个概念）。
+`registerHomeLayout`（events 填表，内核不认识「雷达」这个概念），`group` 与模板页
+同为 `EVENTS_PAGE_TEMPLATE_GROUP`，所以中台「事件」分组里能直接套用。
 
 ### 首屏为什么是 events 自己的段
 

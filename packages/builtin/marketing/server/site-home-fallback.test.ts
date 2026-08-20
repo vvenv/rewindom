@@ -49,11 +49,8 @@ describe("getPublishedPublicPage home fallback", () => {
     expect(result).not.toBeNull();
     expect(result!.page.path).toBe("/");
     expect(result!.page.kind).toBe("home");
-    expect(result!.page.sections.map((section) => section.type)).toEqual([
-      "hero",
-      "prose",
-      "band",
-    ]);
+    // 内置首页版式是空白的（见 `HOME_STARTER_PRESET`）：兜底渲染的是页头页脚 + 空正文
+    expect(result!.page.sections).toEqual([]);
     expect(result!.page.title).toBe("首页");
   });
 

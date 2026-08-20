@@ -26,7 +26,7 @@
 
 | 项 | 口径 |
 | --- | --- |
-| 版式 | 租户在 `/app/site` →「会员页版式」编辑；相关时由 marketing 快照落库。分组 key 是 `MEMBER_PAGE_TEMPLATE_GROUP`（本模块持有文案）；依赖方贡献的 `/member/*` 模板（如 site-billing 订阅页）必须复用，不得另开同名组 |
+| 版式 | 租户在 `/app/site` →「会员页版式」编辑；**不预建**（`auto_init: false`），点那一行的「初始化版式」或开通会员开关时由 marketing 落库。分组 key 是 `MEMBER_PAGE_TEMPLATE_GROUP`（本模块持有文案）；依赖方贡献的 `/member/*` 模板（如 site-billing 订阅页）必须复用，不得另开同名组 |
 | 地址 | kind 决定 slug（`member-login` / `member-register` / `member-account`），租户改不了 |
 | 必备段 | `site-member.login-form` / `.register-form` / `.account-panel`：编辑器不给删，服务端保存时校验有且仅有一段（`site.template_section_required`） |
 | 段的落脚点 | 三段都声明了 `page_kinds`，只能出现在自己那张模板页上 |
@@ -67,8 +67,28 @@ Fastify 先命中；`/member/oauth/callback` 仍落到 SPA。nginx 与 vite dev 
 | --- | --- |
 | 管理路由 | `requirePermission("site_members.read" / "site_members.write")` |
 | 导航 | `anyPermission: ["site_members.read"]`；挂在「官网 CMS」分组 |
-| entitlement | **没有**——会员体系是每个站点都具备的能力，不可禁用；能不能管归权限 |
-| 会员自助 API | **不**套 `registerTenantGatedRoutes`（未登录时无 tenantContext）；站点归属在 `resolveSiteTenant` 校验 |
+| entitlement | `site-member`（`shared/entitlements.ts`），**默认开**——存量站点不受影响；关掉就是「这个站点不做会员」：中台的会员管理与三张会员版式一起消失，公开面的注册 / 登录 / 账户也不可用。会员数据不动，重开即恢复 |
+| 管理路由（`/api/site-members`） | 套 `registerTenantGatedRoutes(SITE_MEMBER_ENTITLEMENT.key)`；nav 随 client manifest 的 `tenantEntitlements` 隐藏 |
+| 会员自助 API | **不**套 `registerTenantGatedRoutes`（未登录时无 tenantContext）；站点归属**与开关**都在 `resolveSiteTenant` 校验，SSR 页面走 `isSiteMemberEnabledForHost` |
+
+关掉之后**站点前后台都不再出现会员相关内容**，一处一处是：
+
+| 面 | 怎么消失 |
+| --- | --- |
+| 中台导航 / `/app/site-members` / 工作台卡片 | nav 项与卡片声明 `tenantModule`，路由套 `TenantModuleRoute` |
+| 管理 API `/api/site-members` | `registerTenantGatedRoutes` |
+| 公开会员接口 `/api/member/*` | `resolveSiteTenant` 抛 `site_member.not_enabled`（403） |
+| `/member/login` `/register` `/account` | `isSiteMemberEnabledForHost` → 404 |
+| 页头账户入口 | `resolveSiteAccountEntry` 返回 `available: false`（编辑器里 `chrome_account` 也点不动） |
+| 四个会员段（登录 / 注册 / 账户 / 会员专属内容） | 段定义声明 `entitlement`：「添加区块」菜单不列，`parsePageSections` 也不渲染 |
+| 三张会员版式 | 模板声明 `entitlement`，中台常驻模板区不露出 |
+| 页面的「仅会员可见」开关 | 编辑器按 `capabilities.account_entry` 隐藏（**已经锁着的页面保持锁着**——放开等于把正文泄露给所有人） |
+| 会员付费 `/member/billing` | `isSiteBillingEnabled` 两个开关都要（订阅挂在会员身上） |
+
+三张会员版式声明了这个 entitlement + `auto_init: false`：开关关着不露出，开着也不预建
+——不做会员的站点不该常驻三张删不掉的空版式。落库时刻只有两个：租户在 `/app/site` 点
+「初始化版式」，或这个开关**由关变开**（`tenant.entitlements.updated` 的 `enabled_keys`）。
+没落库时 SSR 仍按预设兜底，会员照样能登录。
 
 ## 第三方登录（OAuth）
 

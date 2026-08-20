@@ -62,7 +62,7 @@
     "deleted": "已删除",
     "deleteFailed": "删除失败",
     "deleteConfirmTitle": "删除这条提交？",
-    "deleteConfirmDescription": "来自「{{source}}」的这条提交将被永久删除，无法恢复。",
+    "deleteConfirmDescription": "来自「{source}」的这条提交将被永久删除，无法恢复。",
     "table": {
       "time": "时间",
       "source": "来源",

@@ -51,11 +51,11 @@
     "sports": "体育"
   },
   "topicMeta": {
-    "description": "{{topic}} 正在发生的事件：来源、时间线，以及这件事是怎么走到这一步的"
+    "description": "{topic} 正在发生的事件：来源、时间线，以及这件事是怎么走到这一步的"
   },
   "listing": {
-    "metaDescription": "{{topic}} 的「{{source}}」列表：符合条件的事件，按最近动态排序",
-    "metaDescriptionAll": "「{{source}}」列表：符合条件的事件，按最近动态排序"
+    "metaDescription": "{topic} 的「{source}」列表：符合条件的事件，按最近动态排序",
+    "metaDescriptionAll": "「{source}」列表：符合条件的事件，按最近动态排序"
   },
   "sourceKind": {
     "official": "一手来源",
@@ -101,15 +101,15 @@
     "related": "相关事件"
   },
   "timeline": {
-    "firstSeen": "{{source}} 最先出现",
-    "official": "{{source}} 发布官方公告",
-    "officialUpdate": "{{source}} 发布补充说明",
-    "news": "{{source}} 开始报道",
-    "moreCoverage": "{{source}} 跟进报道",
-    "community": "{{source}} 出现讨论",
-    "release": "{{source}} 发布了新版本",
-    "status": "{{source}} 报告了服务状态变化",
-    "filing": "{{source}} 发布了公告文件"
+    "firstSeen": "{source} 最先出现",
+    "official": "{source} 发布官方公告",
+    "officialUpdate": "{source} 发布补充说明",
+    "news": "{source} 开始报道",
+    "moreCoverage": "{source} 跟进报道",
+    "community": "{source} 出现讨论",
+    "release": "{source} 发布了新版本",
+    "status": "{source} 报告了服务状态变化",
+    "filing": "{source} 发布了公告文件"
   },
   "follow": {
     "follow": "关注事件",
@@ -203,7 +203,7 @@
   },
   "link": {
     "siteFeed": "全站 RSS",
-    "topicFeed": "{{topic}} RSS",
+    "topicFeed": "{topic} RSS",
     "currentTopicFeed": "当前主题 RSS"
   },
   "home": {
@@ -336,11 +336,11 @@
     "enabled": "开启",
     "disabled": "关闭",
     "enabledAriaLabel": "采集 {{name}}",
-    "topicEnabledAriaLabel": "显示并采集{{topic}}",
+    "topicEnabledAriaLabel": "显示并采集{topic}",
     "topicGroupCount": "{{count}} 个采集源",
     "topicGroupPaused": "{{count}} 个源已暂停——这个主题关着",
     "topicGroupEmpty": "这个主题还没有采集源",
-    "feedPausedByTopic": "主题「{{topic}}」关着，暂不采集",
+    "feedPausedByTopic": "主题「{topic}」关着，暂不采集",
     "topicsNeedOne": "至少启用一个主题",
     "lastFetched": "上次抓取",
     "neverFetched": "尚未抓取",
@@ -383,7 +383,7 @@
   "updates": {
     "sinceLastSeen": "自你上次查看后",
     "recent": "最近 24 小时的变化",
-    "sourceJoined": "{{source}} 开始报道",
+    "sourceJoined": "{source} 开始报道",
     "statusChanged": "阶段变为「{{status}}」",
     "summaryRewritten": "摘要依据新来源改写",
     "titleChanged": "标题已更新"
@@ -411,7 +411,7 @@
   },
   "why": {
     "title": "为什么在扩散",
-    "officialAnnouncement": "{{source}} 发布了一手公告",
+    "officialAnnouncement": "{source} 发布了一手公告",
     "crossSource": "{{count}} 个来源在报道，{{first}} 最先",
     "recentActivity": "最近 {{hours}} 小时新增 {{count}} 条信号，来自 {{sources}} 个来源",
     "communityOnly": "只有社区在讨论（{{count}} 条），还没有来源证实",

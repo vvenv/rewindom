@@ -1,0 +1,44 @@
+# 贡献的首页版式声明 group，出现在中台常驻模板区对应分组里。
+#
+# 首页仍是一张页（kind=home，路径 /）。版式不是另一张页面，但和本模块其它
+# 模板页同属一个产品概念时，应和那些页排在同一组，而不是只藏在站点设置下拉里。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant]
+goal: 首页版式可声明 group；当前套用的那套决定首页行落在哪一组，未套用的贡献版式在该组以「套用版式」占位行出现。内核空白首页不进常驻模板区。
+gold: packages/builtin/marketing/client/components/SiteTemplatePageRows.tsx
+touch:
+  - packages/builtin/marketing/features/home-layout-template-group.spec.yaml
+  - packages/builtin/marketing/shared/home-layouts.ts
+  - packages/builtin/marketing/shared/home-layouts.test.ts
+  - packages/builtin/marketing/shared/page-presets.ts
+  - packages/builtin/marketing/shared/site-template-area.ts
+  - packages/builtin/marketing/shared/site-template-area.test.ts
+  - packages/builtin/marketing/client/components/SiteTemplatePageRows.tsx
+  - packages/builtin/marketing/client/components/SiteTemplatePageRows.test.tsx
+  - packages/builtin/marketing/client/components/SitePageGroupRow.test.tsx
+  - packages/builtin/marketing/client/hooks/use-site-page-actions.ts
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/MODULE.md
+  - .cursor/skills/site-section/SKILL.md
+  - modules/events/features/home-layout.spec.yaml
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/MODULE.md
+out_of_scope:
+  - 开通 entitlement 时自动套用贡献版式
+  - 改 home_path 语义
+  - shop / site-docs 各自贡献首页版式
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared home-layouts.test.ts site-template-area.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteTemplatePageRows.test.tsx
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-page-templates.test.ts
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+# entitlement: 无新增
+# permissions: 沿用 site.write

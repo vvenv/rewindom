@@ -61,7 +61,10 @@ import {
 } from "./member-ssr-common.js";
 import { SiteMemberAuthService } from "./site-member-auth.service.js";
 import { resolveMemberSsrSession } from "./site-member-ssr-session.js";
-import { hasSiteForHost, resolveSiteTenant } from "./site-member-tenant.js";
+import {
+  isSiteMemberEnabledForHost,
+  resolveSiteTenant,
+} from "./site-member-tenant.js";
 
 
 import type { PagePreset } from "../../marketing/shared/page-presets.types.js";
@@ -152,7 +155,7 @@ async function renderAuthPage(
     return;
   }
 
-  const enabled = hasSiteForHost(hostTenant);
+  const enabled = await isSiteMemberEnabledForHost(hostTenant);
   if (!enabled) {
     sendHtml(
       reply,

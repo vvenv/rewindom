@@ -31,18 +31,30 @@ describe("registerEventsPageTemplates", () => {
     registerEventsPageTemplates();
   });
 
-  it("首页版式是升温、正在发生、实体条与订阅，因此不能声明「有且仅有一段」必备段", () => {
+  it("首页版式是首屏、升温、正在发生、实体条与订阅，因此不能声明「有且仅有一段」必备段", () => {
     expect(
       EVENTS_HOME_LAYOUT_PRESET.sections.map((section) => section.type),
     ).toEqual([
+      EVENTS_HERO_SECTION_TYPE,
       EVENTS_RISING_SECTION_TYPE,
       EVENTS_NOW_SECTION_TYPE,
       EVENTS_ENTITY_STRIP_SECTION_TYPE,
       EVENTS_SUBSCRIBE_SECTION_TYPE,
     ]);
+    expect(EVENTS_HOME_LAYOUT_PRESET.sections[0]).toEqual(
+      expect.objectContaining({
+        type: EVENTS_HERO_SECTION_TYPE,
+        text: expect.objectContaining({
+          headline: "events:site.hero.headline",
+        }),
+        raw: expect.objectContaining({
+          secondary_href: EVENTS_FEED_HREF_TEMPLATE,
+        }),
+      }),
+    );
   });
 
-  it("专题枢纽是另一张模板：首屏带 {topic}，其余与首页同构", () => {
+  it("专题枢纽是另一张模板：首屏带 {topic}，其后与首页同构", () => {
     expect(
       EVENTS_TOPIC_TEMPLATE_PRESET.sections.map((section) => section.type),
     ).toEqual([
@@ -96,17 +108,10 @@ describe("registerEventsPageTemplates", () => {
     expect(eventsListingPreset("rising").kind).toBe(HOME_PAGE_KIND);
   });
 
-  it("贡献一套站点首页版式，与列表预设同构，不声明 rootPrefix", () => {
-    expect(
-      EVENTS_HOME_LAYOUT_PRESET.sections.map((section) => section.type),
-    ).toEqual([
-      EVENTS_RISING_SECTION_TYPE,
-      EVENTS_NOW_SECTION_TYPE,
-      EVENTS_ENTITY_STRIP_SECTION_TYPE,
-      EVENTS_SUBSCRIBE_SECTION_TYPE,
-    ]);
+  it("贡献一套站点首页版式，不声明 rootPrefix", () => {
     const layout = getHomeLayout(EVENTS_HOME_LAYOUT_KEY);
     expect(layout?.entitlement).toBe("events");
+    expect(layout?.group).toBe(EVENTS_PAGE_TEMPLATE_GROUP);
     expect(layout?.rootPrefix).toBeUndefined();
     expect(layout?.preset).toBe(EVENTS_HOME_LAYOUT_PRESET);
   });

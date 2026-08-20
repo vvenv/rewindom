@@ -1,0 +1,56 @@
+# 增量功能契约 —— 模板页不再无条件预建：手动初始化 + 开通功能时自动初始化
+#
+# 现状：`initializeTenantSite` 把「当下相关」的模板页一律快照落库，没有 entitlement 的
+# 首页与会员三张页因此对**每个**租户预建。结果是从没打算做会员的站点，页面列表里
+# 常驻着 /member/login、/member/register、/member/account，首页也被塞进一条空版式记录。
+#
+# 本次把「相关」拆成两问：这张模板对站点有没有意义（entitlement），以及要不要**自动**
+# 落库（auto_init）。auto_init:false 的模板只在两种时刻落库：租户在中台点「初始化版式」，
+# 或它声明的 entitlement 由关变开（安装 / 启用功能的那一刻）。
+# 记录不落库时 SSR 仍按内置预设兜底，公开面行为不变。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [tenant, ssr, platform]
+goal: 模板页登记支持 auto_init:false（首页先用上）；中台常驻模板区把未落库的画成占位行 + 「初始化版式」按钮；entitlement 由关变开时自动补建该开关下的模板。
+gold: packages/builtin/marketing/shared/page-templates.ts
+touch:
+  - packages/builtin/marketing/features/manual-template-page-init.spec.yaml
+  - packages/builtin/marketing/shared/page-templates.ts
+  - packages/builtin/marketing/shared/page-templates.test.ts
+  - packages/builtin/marketing/server/site-init.service.ts
+  - packages/builtin/marketing/server/site-init.service.test.ts
+  - packages/builtin/marketing/server/site.service.ts
+  - packages/builtin/marketing/server/site.routes.ts
+  - packages/builtin/marketing/server/module.ts
+  - packages/builtin/marketing/server/i18n.ts
+  - packages/builtin/marketing/client/lib/site-api.ts
+  - packages/builtin/marketing/client/hooks/useSite.ts
+  - packages/builtin/marketing/client/hooks/use-site-page-actions.ts
+  - packages/builtin/marketing/client/components/SiteTemplatePageRows.tsx
+  - packages/builtin/marketing/client/components/SiteTemplatePageRows.test.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  - packages/server-kernel/src/runtime/domain-events.ts
+  - packages/builtin/platform/server/services/tenant-entitlement.service.ts
+  - apps/server/scripts/cleanup-stock-template-pages.ts
+  - scripts/verify-module.mjs
+  - modules/site-docs/docs/usage/zh-CN/multi-tenant.md
+  - modules/site-docs/docs/usage/en/multi-tenant.md
+  - modules/site-docs/server/usage-docs.generated.ts
+out_of_scope:
+  - 404 模板（死链页必须常驻，仍自动落库）
+  - 改 SSR 兜底渲染本身（未落库的模板页照旧按预设渲染）
+  - 让 auto_init:false 的模板从公开导航目录里消失（口径仍归 isPublicCatalogPage）
+  - 默认租户产品站（apply-default-product-site 显式铺首页，走自己的路径）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/*' page-templates.test.ts site-init.service.test.ts SiteTemplatePageRows.test.tsx
+  - pnpm check:i18n
+  - pnpm check:modules
+  - pnpm --filter @rewindom/site-docs assemble:usage-docs
+
+# ---------- 可选 ----------
+# entitlement: 无新增（marketing 自己的 tenant-marketing 不变）
+# permissions: 沿用 site.read / site.write
+# models: 无

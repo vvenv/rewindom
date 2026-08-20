@@ -6,6 +6,7 @@ import { canonicalizePageIdentity, marketingPagePath } from "./site-cms.js";
 import {
   getPageTemplateKind,
   isFirstLevelCatalogPath,
+  isPageTemplateAutoInit,
   isPageTemplateRelevant,
   isPublicCatalogPage,
   isPublicCatalogPageKind,
@@ -30,6 +31,13 @@ describe("模板页注册表", () => {
     expect(isTemplatePageKind("doc_index")).toBe(false);
     expect(getPageTemplateKind("not_found")?.required_section).toBe(
       "page-missing",
+    );
+  });
+
+  it("首页等租户表态才落库，404 每个站点都要、自动落库", () => {
+    expect(isPageTemplateAutoInit(getPageTemplateKind("home")!)).toBe(false);
+    expect(isPageTemplateAutoInit(getPageTemplateKind("not_found")!)).toBe(
+      true,
     );
   });
 

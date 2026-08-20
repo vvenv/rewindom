@@ -1,4 +1,5 @@
 import { registerSiteSectionView } from "../../marketing/client/components/sections/section-views.js";
+import { SITE_MEMBER_ENTITLEMENT } from "../shared/entitlements.js";
 import { memberAccountPanelSection } from "../shared/member-account-section.js";
 import {
   memberLoginFormSection,
@@ -59,6 +60,7 @@ export const siteMemberClientModule: ClientAppModule = {
   description: "站点前台会员身份与运营侧会员管理",
   // marketing：会员入口 / 门控 slot 定义在消费方；本模块只填 Provider
   requires: ["marketing"],
+  tenantEntitlements: [SITE_MEMBER_ENTITLEMENT],
   client: {
     i18n: SITE_MEMBER_I18N,
     renderPublicRoutes: renderSiteMemberPublicRoutes,

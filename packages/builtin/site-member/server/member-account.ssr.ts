@@ -59,7 +59,7 @@ import {
 } from "./member-ssr-common.js";
 import { SiteMemberAuthService } from "./site-member-auth.service.js";
 import { resolveMemberSsrSession } from "./site-member-ssr-session.js";
-import { hasSiteForHost } from "./site-member-tenant.js";
+import { isSiteMemberEnabledForHost } from "./site-member-tenant.js";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -133,7 +133,7 @@ async function renderAccountPage(
     return true;
   }
 
-  const enabled = hasSiteForHost(hostTenant);
+  const enabled = await isSiteMemberEnabledForHost(hostTenant);
   if (!enabled) {
     sendHtml(
       reply,

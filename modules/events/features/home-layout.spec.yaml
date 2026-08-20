@@ -1,12 +1,12 @@
-# events 贡献一套站点首页版式：升温 + 正在发生。
+# events 贡献一套站点首页版式：首屏 + 升温 + 正在发生，并出现在中台「事件」分组。
 #
-# `/events` 枢纽仍是模板页。这套版式套在 kind=home（路径 `/`）上；
-# 站点设置里选它会套首页草稿，公开 URL 按 home_layout_key 收到站点根。
+# 这套版式套在 kind=home（路径 `/`）上，不是另一张模板页。登记 `group` 与
+# 专题 / 详情 / 实体同一 key，中台常驻模板区把版式和页面排在一起。
 
 # ---------- 必填 ----------
 module: events
-surfaces: [ssr]
-goal: 开通事件雷达的站点可以在官网设置里把首页换成「升温 + 正在发生」版式。
+surfaces: [ssr, tenant]
+goal: 开通事件雷达后，首屏+升温+正在发生的首页版式出现在官网「事件」分组；套用后首页行也落在该组。
 gold: modules/events/shared/events-page-templates.ts
 touch:
   - modules/events/features/home-layout.spec.yaml
@@ -17,7 +17,6 @@ touch:
   - modules/events/MODULE.md
 out_of_scope:
   - 开通开关时自动套用
-  - 改 /events 枢纽版式
   - shop / docs 的首页版式
 i18n: code
 acceptance:

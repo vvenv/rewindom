@@ -61,6 +61,7 @@
   },
   "admin": {
     "nav": "会员",
+    "disabledHint": "该站点未开通会员功能，请联系平台管理员开通。",
     "title": "会员",
     "description": "在站点前台注册的会员。可启用、停用或重置密码。",
     "searchPlaceholder": "按邮箱或昵称搜索",
@@ -95,7 +96,7 @@
       "site": "本站"
     },
     "status": {
-      "enabled": "可用（{{source}}凭证）",
+      "enabled": "可用（{source}凭证）",
       "disabled": "不可用：平台未配置，本站也未填"
     },
     "fields": {

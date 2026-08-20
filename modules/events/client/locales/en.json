@@ -51,11 +51,11 @@
     "sports": "Sports"
   },
   "topicMeta": {
-    "description": "{{topic}} events as they develop — sources, a timeline, and how the story got here"
+    "description": "{topic} events as they develop — sources, a timeline, and how the story got here"
   },
   "listing": {
-    "metaDescription": "{{source}} in {{topic}} — every matching event, most recent first",
-    "metaDescriptionAll": "{{source}} — every matching event, most recent first"
+    "metaDescription": "{source} in {topic} — every matching event, most recent first",
+    "metaDescriptionAll": "{source} — every matching event, most recent first"
   },
   "sourceKind": {
     "official": "Official",
@@ -101,15 +101,15 @@
     "related": "Related events"
   },
   "timeline": {
-    "firstSeen": "First appeared on {{source}}",
-    "official": "{{source}} published an announcement",
-    "officialUpdate": "{{source}} posted a follow-up",
-    "news": "{{source}} started reporting",
-    "moreCoverage": "{{source}} followed up",
-    "community": "Discussion started on {{source}}",
-    "release": "{{source}} shipped a release",
-    "status": "{{source}} reported a service status change",
-    "filing": "{{source}} published a filing"
+    "firstSeen": "First appeared on {source}",
+    "official": "{source} published an announcement",
+    "officialUpdate": "{source} posted a follow-up",
+    "news": "{source} started reporting",
+    "moreCoverage": "{source} followed up",
+    "community": "Discussion started on {source}",
+    "release": "{source} shipped a release",
+    "status": "{source} reported a service status change",
+    "filing": "{source} published a filing"
   },
   "follow": {
     "follow": "Follow event",
@@ -203,7 +203,7 @@
   },
   "link": {
     "siteFeed": "All events RSS",
-    "topicFeed": "{{topic}} RSS",
+    "topicFeed": "{topic} RSS",
     "currentTopicFeed": "This topic's RSS"
   },
   "home": {
@@ -336,11 +336,11 @@
     "enabled": "On",
     "disabled": "Off",
     "enabledAriaLabel": "Collect from {{name}}",
-    "topicEnabledAriaLabel": "Show and collect {{topic}}",
+    "topicEnabledAriaLabel": "Show and collect {topic}",
     "topicGroupCount": "{{count}} sources",
     "topicGroupPaused": "{{count}} sources paused — this topic is off",
     "topicGroupEmpty": "No sources in this topic yet",
-    "feedPausedByTopic": "Not collecting while {{topic}} is off",
+    "feedPausedByTopic": "Not collecting while {topic} is off",
     "topicsNeedOne": "Keep at least one topic enabled",
     "lastFetched": "Last fetched",
     "neverFetched": "Not fetched yet",
@@ -383,7 +383,7 @@
   "updates": {
     "sinceLastSeen": "Since you last looked",
     "recent": "Changes in the last 24 hours",
-    "sourceJoined": "{{source}} started covering this",
+    "sourceJoined": "{source} started covering this",
     "statusChanged": "Stage changed to “{{status}}”",
     "summaryRewritten": "Summary rewritten from new sources",
     "titleChanged": "Title updated"
@@ -411,7 +411,7 @@
   },
   "why": {
     "title": "Why it's spreading",
-    "officialAnnouncement": "{{source}} published a first-party announcement",
+    "officialAnnouncement": "{source} published a first-party announcement",
     "crossSource": "{{count}} sources are covering it, {{first}} first",
     "recentActivity": "{{count}} new signals from {{sources}} sources in the last {{hours}}h",
     "communityOnly": "Community discussion only ({{count}} posts), not yet corroborated",

@@ -1,0 +1,56 @@
+# 增量功能契约 —— 会员体系重新变成一个租户功能开关
+
+# 会员的三张模板页此前没有任何 entitlement，于是每个租户都被预建 /member/login、
+# /member/register、/member/account——哪怕这个站点根本不做会员。
+#
+# 本次给 site-member 加回租户开关（默认**开**，存量站点行为不变），三张模板声明该
+# entitlement 并标 auto_init:false：
+#   - 开关关掉 → 中台不再露出会员管理与会员版式，公开会员接口 / 会员页一律不可用
+#   - 开关由关变开 → marketing 自动把三张版式落库（安装功能即初始化）
+#   - 开关一直开着 → 不预建，租户在中台点「初始化版式」时才落库
+
+# ---------- 必填 ----------
+module: site-member
+surfaces: [tenant, member, ssr, platform]
+goal: "新增 site-member 租户开关（default_enabled: true）：关掉后站点前后台都不再出现会员相关内容（管理入口、公开接口与页面、页头账户入口、四个会员段、会员版式、仅会员可见开关、会员付费），三张模板页声明 entitlement + auto_init:false。"
+gold: packages/builtin/site-billing/shared/entitlements.ts
+touch:
+  - packages/builtin/site-member/features/member-entitlement-switch.spec.yaml
+  - packages/builtin/site-member/shared/entitlements.ts
+  - packages/builtin/site-member/shared/member-page-templates.ts
+  - packages/builtin/site-member/shared/member-gate-section.ts
+  - packages/builtin/site-member/shared/member-auth-section.ts
+  - packages/builtin/site-member/shared/member-account-section.ts
+  - packages/builtin/site-member/server/member-auth-section.test.ts
+  - packages/builtin/site-member/server/module.ts
+  - packages/builtin/site-member/server/site-member-tenant.ts
+  - packages/builtin/site-member/server/site-member-tenant.test.ts
+  - packages/builtin/site-member/server/member-auth.ssr.ts
+  - packages/builtin/site-member/server/member-account.ssr.ts
+  - packages/builtin/site-member/server/site-member-auth.routes.ts
+  - packages/builtin/site-member/server/site-member-oauth.routes.ts
+  - packages/builtin/site-member/server/site-account-entry.ts
+  - packages/builtin/site-member/server/i18n.ts
+  - packages/builtin/site-member/client/module.tsx
+  - packages/builtin/site-member/client/tenant/routes.tsx
+  - packages/builtin/site-member/client/tenant/nav-sections.ts
+  - packages/builtin/site-member/client/tenant/dashboard-widgets.ts
+  - packages/builtin/site-member/client/locales/
+  - packages/builtin/site-billing/server/entitlement.ts
+  - packages/builtin/marketing/client/components/theme-editor/PageMetaForm.tsx
+  - packages/builtin/marketing/client/pages/site-editor.tsx
+  - packages/builtin/site-member/MODULE.md
+out_of_scope:
+  - 关掉开关时删会员数据（只是不可用，重新打开即恢复）
+  - 会员登录态的失效策略（已登录会话不主动踢）
+  - 把已经锁成「仅会员可见」的页面改回公开（关掉会员后它们仍锁着——放开等于泄露正文）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'site-member/*'
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: site-member
+# permissions: 沿用 site_members.read / site_members.write
+# models: 无
