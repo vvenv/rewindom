@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /**
- * 把 Rewindom 品牌标（玉玦收进圆角容器）写入指定租户的官网
+ * 把 Rewindom 品牌标（玉玦本身，不套圆角色块）写入指定租户的官网
  * logo / favicon / og:image / apple-touch / maskable，以及字标字体。
  * 资产真源见 `scripts/rewindom-brand/README.md`。
  *
@@ -100,8 +100,8 @@ async function readAsset(
   }
   if (mime_type === "image/svg+xml") {
     const clean = sanitizeSvg(buffer.toString("utf8"));
-    if (!clean || !clean.includes("linearGradient")) {
-      throw new Error(`SVG 消毒后丢失渐变: ${name}`);
+    if (!clean || !clean.includes("M87.54 27.86")) {
+      throw new Error(`SVG 消毒后丢失玉玦 path: ${name}`);
     }
     return { buffer: Buffer.from(clean, "utf8"), mime_type };
   }
