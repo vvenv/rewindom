@@ -1,7 +1,7 @@
 /**
  * 近期实体胶囊条 —— 可摆在任意页面上。
  *
- * 枢纽 `events.entity_index` 是一张按类型分组的完整清单，只活在 `/entities`。
+ * 枢纽 `events.entity-index` 是一张按类型分组的完整清单，只活在 `/entities`。
  * 这一段是同一批实体的 **Top N**，字号一律、用数字角标表示权重，默认出现在
  * 升温 / 正在发生下面——让首页也链到实体页，而不另做一朵词云。
  */
@@ -15,7 +15,7 @@ import {
 
 import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
-export const EVENTS_ENTITY_STRIP_SECTION_TYPE = "events.entity_strip";
+export const EVENTS_ENTITY_STRIP_SECTION_TYPE = "events.entity-strip";
 
 export const EVENTS_ENTITY_STRIP_LIMIT_DEFAULT = 24;
 export const EVENTS_ENTITY_STRIP_LIMIT_MIN = 8;

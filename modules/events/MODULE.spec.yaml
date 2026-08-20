@@ -209,7 +209,7 @@ audit:
     sections:
     - { type: events.rising, placements: [page], entitlement: events }
     - { type: events.now, placements: [page], entitlement: events }
-    - { type: events.entity_strip, placements: [page], entitlement: events }
+    - { type: events.entity-strip, placements: [page], entitlement: events }
     - {
         type: events.detail,
         placements: [page],
@@ -239,7 +239,7 @@ audit:
         kind: events_entity_index,
         slug: events-entities,
         path: /entities,
-        required_section: events.entity_index,
+        required_section: events.entity-index,
       }
   path_handler: /topics/:slug、/events/:slug、/entities、/feed.xml（locale 前缀由 marketing 剥掉）
   reserved_slug: [topics, events, entities]

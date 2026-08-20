@@ -1,0 +1,55 @@
+# 段 type 全系统是 kebab（`shop.collection-list`、`shop.product-grid`、
+# `site-member.login-form`、`site-docs.article`、`events.entity-hero`），events 有两个
+# 下划线 outlier：`events.entity_strip`、`events.entity_index`。它们是同一批里最先写的
+# 两段，后来的都按 kebab 写，于是同一个模块里两种拼法并存。
+#
+# 这串字符**存在库里**（`MarketingPage.sections` / `sections_draft`、
+# `MarketingPageVersion.sections`，容器段的列里还能再嵌一层），所以改名要配一次性迁移。
+#
+# 不改的是同名的**字段**：`EventsRenderContext.entity_strip` / `entity_index`、
+# 路由判别式 `{ type: "entity_index" }`、模板页 kind `events_entity_index`。
+# 字段与 kind 全系统就是 snake（`field-naming` rule、`shop_product`、`docs_article`），
+# 它们本来就没跑偏——跑偏的只有段 type 这一层。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 段 type `events.entity_strip` / `events.entity_index` 改成 kebab，并把库里存量页面（草稿 / 已发布 / 历史版本 / 容器列里的嵌套段）一次性改名。
+gold: modules/events/shared/events-entity-hero-section.ts
+touch:
+  - modules/events/features/section-type-kebab.spec.yaml
+  - modules/events/shared/events-entity-strip-section.ts
+  - modules/events/shared/events-entity-index-section.ts
+  - modules/events/MODULE.md
+  - modules/events/MODULE.spec.yaml
+  - apps/server/scripts/rename-events-section-types.ts
+out_of_scope:
+  - 改 `EventsRenderContext` 的字段名（`entity_strip` / `entity_index` 是字段，snake 是对的）
+  - 改模板页 kind `events_entity_index`（kind 全系统 snake）
+  - 给旧 type 留别名（本仓库默认不做向后兼容；存量数据由迁移脚本接住）
+  - 其它模块的段 type（都已经是 kebab）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm --filter server exec tsx scripts/rename-events-section-types.ts --dry-run
+  - pnpm --filter server exec tsc --noEmit -p tsconfig.json
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. 代码里只有两个常量的**值**要改，别处一律走常量（已核过全仓没有字面量）。
+# 2. 迁移脚本 `rename-events-section-types.ts`：
+#    - 三处存量：`MarketingPage.sections` / `sections_draft`、`MarketingPageVersion.sections`；
+#    - 递归进容器段的列（`blocks[].sections[]`）——胶囊条摆在分栏里是合法版式；
+#    - 顺手复活 `unsupported` 占位：部署与迁移之间的窗口里，读路径会把认不出的 type
+#      原样兜进 `{ type: "unsupported", source: { type, raw } }`（`section-schema` 的口径），
+#      租户这时保存就把占位存进了库。按 `source.type` 认出来、用 `source.raw` 还原成
+#      新 type，比让租户自己重新加一遍强。
+#    - `--dry-run` / `--tenant <slug>`，幂等，与 `backfill-events-entity-hero.ts` 同一套用法。
+# 3. 部署顺序：**先部署代码，再立刻跑脚本**。两者之间那一小段时间，存量页上的这两段
+#    渲染成空（读路径兜住、不渲染），不会丢数据——正是上面那条 `unsupported` 的兜底。
+#    反过来先跑脚本也一样有窗口（老代码不认识新 type），没有零窗口的顺序。

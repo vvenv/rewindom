@@ -14,7 +14,7 @@ import { layoutSettings } from "@rewindom/builtin/marketing/shared/sections/_com
 
 import type { SectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
-export const EVENTS_ENTITY_INDEX_SECTION_TYPE = "events.entity_index";
+export const EVENTS_ENTITY_INDEX_SECTION_TYPE = "events.entity-index";
 export const EVENTS_ENTITY_INDEX_PAGE_KIND = "events_entity_index";
 
 export const eventsEntityIndexSection: SectionDefinition = {
