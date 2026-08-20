@@ -47,6 +47,14 @@ describe("config", () => {
     "OPENAI_BASE_URL",
     "OPENAI_API_KEY",
     "OPENAI_MODEL",
+    "EVENTS_INGEST_ENABLED",
+    "EVENTS_INGEST_INTERVAL_MINUTES",
+    "EVENTS_ANALYZER",
+    "EVENTS_LLM_MIN_SIGNALS",
+    "EVENTS_LLM_TOP_EVENTS",
+    "EVENTS_LLM_COOLDOWN_MINUTES",
+    "EVENTS_SIGNAL_RETENTION_DAYS",
+    "EVENTS_EVENT_RETENTION_DAYS",
   ];
 
   beforeEach(() => {
@@ -337,6 +345,42 @@ describe("config", () => {
     });
   });
 
+  describe("events", () => {
+    it("省钱闸门与采集周期有安全默认值", async () => {
+      const { config: cfg } = await importConfig();
+      expect(cfg.events.analyzer).toBe("auto");
+      expect(cfg.events.ingestEnabled).toBe(true);
+      expect(cfg.events.ingestIntervalMinutes).toBe(15);
+      expect(cfg.events.llmMinSignals).toBe(2);
+      expect(cfg.events.llmTopEvents).toBe(30);
+      expect(cfg.events.llmCooldownMinutes).toBe(30);
+    });
+
+    it("Compose 透传的空字符串不关掉三道闸门", async () => {
+      process.env.EVENTS_ANALYZER = "";
+      process.env.EVENTS_LLM_MIN_SIGNALS = "";
+      process.env.EVENTS_LLM_TOP_EVENTS = "";
+      process.env.EVENTS_LLM_COOLDOWN_MINUTES = "";
+      process.env.EVENTS_INGEST_INTERVAL_MINUTES = "";
+      const { config: cfg } = await importConfig();
+      expect(cfg.events.analyzer).toBe("auto");
+      expect(cfg.events.llmMinSignals).toBe(2);
+      expect(cfg.events.llmTopEvents).toBe(30);
+      expect(cfg.events.llmCooldownMinutes).toBe(30);
+      expect(cfg.events.ingestIntervalMinutes).toBe(15);
+    });
+
+    it("可显式关掉闸门（0 / 1 仍是合法值）", async () => {
+      process.env.EVENTS_LLM_MIN_SIGNALS = "1";
+      process.env.EVENTS_LLM_TOP_EVENTS = "0";
+      process.env.EVENTS_LLM_COOLDOWN_MINUTES = "0";
+      const { config: cfg } = await importConfig();
+      expect(cfg.events.llmMinSignals).toBe(1);
+      expect(cfg.events.llmTopEvents).toBe(0);
+      expect(cfg.events.llmCooldownMinutes).toBe(0);
+    });
+  });
+
   describe("tenant", () => {
     it("测试环境使用 fallback 密钥", async () => {
       process.env.VITEST = "true";
@@ -356,6 +400,12 @@ describe("config", () => {
   describe("辅助函数行为", () => {
     it("intEnv 对非数字值返回 fallback", async () => {
       process.env.PORT = "abc";
+      const { config: cfg } = await importConfig();
+      expect(cfg.server.port).toBe(3700);
+    });
+
+    it("intEnv 把空字符串当未设置，不把 Number(\"\") 当成 0", async () => {
+      process.env.PORT = "";
       const { config: cfg } = await importConfig();
       expect(cfg.server.port).toBe(3700);
     });

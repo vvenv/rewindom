@@ -35,8 +35,19 @@ function optionalStrEnv(name: string): string | undefined {
   return value === undefined || value === "" ? undefined : value;
 }
 
+/**
+ * 读整数环境变量。未设置、空串、纯空白都走 fallback。
+ *
+ * Compose 里 `FOO: ${FOO:-}` 在宿主机没配时会把空字符串打进容器。
+ * `Number("") === 0`，对 `EVENTS_LLM_TOP_EVENTS` / `EVENTS_LLM_COOLDOWN_MINUTES`
+ * 来说 0 的语义是「不限 / 不冷却」——等于把省钱闸门整组关掉。
+ */
 function intEnv(name: string, fallback: number): number {
-  const value = Number(process.env[name]);
+  const raw = process.env[name];
+  if (raw === undefined || raw.trim() === "") {
+    return fallback;
+  }
+  const value = Number(raw);
   return Number.isFinite(value) ? value : fallback;
 }
 
@@ -369,7 +380,7 @@ function buildEventsConfig() {
 }
 
 function resolveEventsAnalyzer(): "auto" | "heuristic" | "llm" {
-  const value = strEnv("EVENTS_ANALYZER", "auto").toLowerCase();
+  const value = (optionalStrEnv("EVENTS_ANALYZER") ?? "auto").toLowerCase();
   if (value === "auto" || value === "heuristic" || value === "llm") {
     return value;
   }

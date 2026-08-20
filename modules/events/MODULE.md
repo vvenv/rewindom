@@ -874,6 +874,10 @@ Cloudflare
 三道闸门都能关：`EVENTS_LLM_MIN_SIGNALS=1` + `EVENTS_LLM_TOP_EVENTS=0` + `EVENTS_LLM_COOLDOWN_MINUTES=0`
 就是加闸门之前的行为。
 
+Compose 里 `EVENTS_LLM_*: ${VAR:-}` 在宿主机没配时会把**空字符串**打进容器。
+`Number("") === 0`，而 0 对后两道闸门的语义是「不限 / 不冷却」——等于整组关掉。
+没配就不要写进 env：空串按默认 2 / 30 / 30，只有显式 `0` / `1` 才是关闸门。
+
 ### 用量打点
 
 `AnalyzedEvent.usage` 带回每次调用的 token 数，采集任务按轮汇总打一条
