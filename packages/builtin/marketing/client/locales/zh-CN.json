@@ -1,8 +1,8 @@
 {
   "site": {
-    "title": "Rewindom · Agent-first 多租户 SaaS 底座",
+    "title": "Rewindom · 给编码 Agent 用的多租户 SaaS 底座",
     "tagline": "底座随业务成形",
-    "description": "Rewindom 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。",
+    "description": "Rewindom 是开源的多租户 SaaS 模块化单体：内核不含业务，认证、租户、官网 CMS 与计费开箱即用。人与 Cursor / Claude 共用 Spec → gen → check 闭环，在闸门内加模块。",
     "homeAriaLabel": "Rewindom 首页"
   },
   "nav": {
@@ -17,93 +17,94 @@
     "menuOpen": "打开菜单"
   },
   "hero": {
-    "headline": "Agent-first 的多租户 SaaS 底座",
-    "subline": "AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展业务；内核不含业务代码，模块按租户开关，单进程部署。",
+    "eyebrow": "开源 · 模块化单体",
+    "headline": "给编码 Agent 用的多租户 SaaS 底座",
+    "subline": "内核不含业务代码。业务以模块挂上，按租户开关。人与 Cursor / Claude 走同一条 Spec → gen → check 闭环——不是又一份脚手架。",
     "primaryCta": "快速开始",
-    "secondaryCta": "Agent-first",
+    "secondaryCta": "看案例",
     "stats": {
-      "agentLoop": {
-        "term": "Agent 闭环",
-        "detail": "spec → gen → check"
+      "local": {
+        "term": "本地启动",
+        "detail": "三条命令跑起来"
       },
-      "infraModules": {
-        "term": "基础设施模块",
-        "detail": "{{count}} 个开箱可用"
+      "shipped": {
+        "term": "开箱即用",
+        "detail": "CMS · 认证 · 计费"
       },
-      "tenantIsolation": {
-        "term": "租户隔离",
-        "detail": "Prisma 层 fail-closed"
+      "deploy": {
+        "term": "一种部署",
+        "detail": "单进程 Docker Compose"
       }
     }
   },
   "features": {
-    "bot": {
-      "title": "Agent-first 闭环",
-      "description": "AGENTS.md 与 Skills 是交付物的一部分：新模块填 MODULE.spec，改现有模块填 FEATURE.spec → gen:module 或按 Skill 实现 → check:modules，编码 Agent 在闸门内扩展，而不是碰运气。"
+    "scaffold": {
+      "title": "不是脚手架喷发器",
+      "description": "Agent 写的代码进仓库、过闸门。没有「生成完就扔掉」的一次性骨架。"
     },
-    "layers": {
-      "title": "内核不依赖业务",
-      "description": "HTTP 栈、认证、租户上下文、模块加载器、事件总线都在内核里，业务代码一行不掺。换业务不用动底座。"
+    "micro": {
+      "title": "不是微服务框架",
+      "description": "编译期组装、一个进程。租户、官网、工作台按 Host 分流，而不是再拆一套服务。"
     },
-    "blocks": {
-      "title": "模块即插即用",
-      "description": "每个模块自带 server 路由、client 页面与 shared 契约，注册进两处 enabled-modules 即上线，移除同样干净。"
-    },
-    "plug": {
-      "title": "按租户开关",
-      "description": "模块与功能项按租户开通：未开通就不挂路由、不进侧栏、不产生数据，配额超限由内核统一拦截。"
-    },
-    "shield": {
-      "title": "多租户隔离是强制的",
-      "description": "租户守卫在 Prisma 层 fail-closed：模型没登记就启动失败，越权查询还有 lint 与运行时双重兜底。"
-    },
-    "server": {
-      "title": "单进程部署",
-      "description": "编译期组装、单进程运行，生产用 Docker Compose 交付。没有微服务的运维税，也没有低代码的天花板。"
+    "lowcode": {
+      "title": "不是低代码平台",
+      "description": "没有天花板：模块是 TypeScript 包，契约与测试都是代码。闸门强制边界，不代替写代码。"
     }
   },
   "landing": {
     "agentFirst": {
-      "title": "为人与 Agent 共用的开发闭环",
-      "description": "不是又一份脚手架：结构化 Spec、一键装配、机器闸门，让 Cursor / Claude Code 在边界内扩模块。",
-      "readMore": "读 Agent-first",
+      "title": "人与 Agent 共用一条闭环",
+      "description": "AGENTS.md 与 Skills 是产品的一部分。新模块填 MODULE.spec，改现有模块填 FEATURE.spec；留空则 Agent 必须追问，禁止瞎猜。",
+      "readMore": "读模块化架构",
       "stepLabel": "步骤 {{step}}",
       "steps": {
         "spec": {
           "title": "填 Spec",
-          "description": "新模块声明 id、权限、模型与 entitlement；改现有模块声明 surfaces、goal、touch。留空则 Agent 必须追问，禁止瞎猜。"
+          "description": "声明 id、权限、模型、触达面。空白就是问题，不是发挥空间。"
         },
         "gen": {
           "title": "生成并装配",
-          "description": "骨架与六处注册表一次写对，避免漏挂路由或租户守卫。"
+          "description": "骨架与注册表一次写对，避免漏挂路由或租户守卫。"
         },
         "check": {
           "title": "机器闸门",
-          "description": "契约与依赖校验拦住越权与漏装配，CI 跑同一套。"
+          "description": "契约、依赖、文案校验拦住越权与漏装配；CI 跑同一套。"
         }
       }
     },
-    "builtinModules": {
-      "title": "基础设施开箱即用",
-      "description": "认证、租户、权限、审计、通知、任务、可观测性——这些每个 SaaS 都要重写一遍的东西，底座已经写好了，而且都是可开关的模块而非硬编码。"
+    "shipped": {
+      "title": "每个 SaaS 都要重写的那一层，已经写好",
+      "description": "按租户开关：未开通不挂路由、不进侧栏、不产生数据。",
+      "site": {
+        "title": "站点",
+        "body": "官网 CMS 与 SSR、文档库、站点会员、自定义域名。主域就是产品站，租户站按 Host 绑定。"
+      },
+      "platform": {
+        "title": "平台",
+        "body": "认证与 JWT、多租户与套餐配额、PBAC、审计、通知、任务中心。"
+      },
+      "operate": {
+        "title": "运营",
+        "body": "错误日志、慢查询与慢请求、平台计费与站点收款。可观测性不是事后再接。"
+      }
     },
     "techStack": {
       "title": "技术栈没有惊喜",
-      "description": "全是主流且长期维护的选择：招人好招，出问题搜得到答案，升级路径清晰。底座的价值在边界与约束，不在堆新框架。",
+      "description": "Fastify、Prisma、PostgreSQL、React、Vite、shadcn/ui、Docker Compose。招人好招，出问题搜得到答案。价值在边界与约束，不在堆新框架。",
       "readDocs": "读文档"
     },
     "showcase": {
-      "title": "用 Rewindom 做成的产品",
-      "body": "Yestino 是跑在这套底座上的真实产品：多租户 CMS、自定义域名与 events 资讯模块——单进程、按 Host 分流，同一套 Agent-first 闭环。",
+      "title": "案例 · Yestino",
+      "body": "全球科技热点与实时趋势追踪。同一进程、按 Host 分流、自定义域名、events 资讯模块——不是演示站，是线上产品。",
       "cta": "打开 yestino.com"
     },
     "docsTeaser": {
       "title": "从这里开始"
     },
     "closingCta": {
-      "title": "先把底座跑起来，再让 Agent 扩业务",
-      "description": "本地 5 分钟起服务；模块用 Spec → gen → check 闭环落地。免费版可以一直用下去。",
-      "getStarted": "免费开始",
+      "title": "先跑起来，再让 Agent 扩模块",
+      "description": "pnpm setup && pnpm dev。文档库与产品站同源，快速开始在 /docs。",
+      "getStarted": "读快速开始",
       "viewPricing": "看定价"
     }
   },
@@ -926,8 +927,8 @@
   },
   "seo": {
     "home": {
-      "title": "Rewindom · Agent-first 多租户 SaaS 底座",
-      "description": "Rewindom 是 Agent-first 的多租户 SaaS 模块化单体底座：AGENTS.md、Skills 与 gen/check 闭环让编码 Agent 在强制边界内扩展；内核不含业务代码，模块按租户开关，单进程部署。"
+      "title": "Rewindom · 给编码 Agent 用的多租户 SaaS 底座",
+      "description": "开源的多租户 SaaS 模块化单体：内核不含业务，认证、租户、官网 CMS 与计费开箱即用。人与 Cursor / Claude 共用 Spec → gen → check 闭环。"
     },
     "pricing": {
       "title": "定价",

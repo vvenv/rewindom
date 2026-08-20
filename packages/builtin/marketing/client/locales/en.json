@@ -1,8 +1,8 @@
 {
   "site": {
-    "title": "Rewindom · Agent-first multi-tenant SaaS foundation",
+    "title": "Rewindom · A multi-tenant SaaS foundation for coding agents",
     "tagline": "The foundation takes the shape of the product",
-    "description": "Rewindom is an agent-first multi-tenant SaaS modular monolith: AGENTS.md, Skills, and a gen/check loop let coding agents extend the product inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production.",
+    "description": "Rewindom is an open-source multi-tenant SaaS modular monolith: the kernel stays business-free; auth, tenants, site CMS, and billing ship ready. Humans and Cursor / Claude share one Spec → gen → check loop to add modules inside gates.",
     "homeAriaLabel": "Rewindom home"
   },
   "nav": {
@@ -17,93 +17,94 @@
     "menuOpen": "Open menu"
   },
   "hero": {
-    "headline": "An agent-first multi-tenant SaaS foundation",
-    "subline": "AGENTS.md, Skills, and a gen/check loop let coding agents extend the product inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production.",
+    "eyebrow": "Open source · modular monolith",
+    "headline": "A multi-tenant SaaS foundation for coding agents",
+    "subline": "The kernel stays business-free. Modules plug in and toggle per tenant. Humans and Cursor / Claude share one Spec → gen → check loop—not another scaffold dump.",
     "primaryCta": "Quick start",
-    "secondaryCta": "Agent-first",
+    "secondaryCta": "See a live product",
     "stats": {
-      "agentLoop": {
-        "term": "Agent loop",
-        "detail": "spec → gen → check"
+      "local": {
+        "term": "Local setup",
+        "detail": "Three commands"
       },
-      "infraModules": {
-        "term": "Infrastructure modules",
-        "detail": "{{count}} ready out of the box"
+      "shipped": {
+        "term": "Ships ready",
+        "detail": "CMS · auth · billing"
       },
-      "tenantIsolation": {
-        "term": "Tenant isolation",
-        "detail": "Prisma layer fail-closed"
+      "deploy": {
+        "term": "One deploy",
+        "detail": "Single-process Compose"
       }
     }
   },
   "features": {
-    "bot": {
-      "title": "Agent-first loop",
-      "description": "AGENTS.md and Skills are part of the product: fill MODULE.spec for a new module or FEATURE.spec to extend one → gen:module or the matching Skill → check:modules so coding agents extend inside gates—not by luck."
+    "scaffold": {
+      "title": "Not a scaffold dump",
+      "description": "Agent-written code lands in the repo and passes gates. No throwaway skeleton you regenerate and discard."
     },
-    "layers": {
-      "title": "Kernel stays business-free",
-      "description": "HTTP stack, auth, tenant context, module loader, and event bus live in the kernel—zero business code mixed in. Swap the product without touching the foundation."
+    "micro": {
+      "title": "Not a microservice framework",
+      "description": "Assembled at compile time, one process. Product site, console, and tenant sites split by Host—not by another service."
     },
-    "blocks": {
-      "title": "Modules plug in cleanly",
-      "description": "Each module ships server routes, client pages, and shared contracts. Register in both enabled-modules lists to go live; remove just as cleanly."
-    },
-    "plug": {
-      "title": "Per-tenant toggles",
-      "description": "Modules and entitlements open per tenant: disabled means no routes, no sidebar, no data—and quota overruns are blocked by the kernel."
-    },
-    "shield": {
-      "title": "Tenant isolation is mandatory",
-      "description": "Tenant guards fail-closed at the Prisma layer: unregistered models block startup, with lint and runtime checks against cross-tenant access."
-    },
-    "server": {
-      "title": "Single-process deployment",
-      "description": "Assembled at compile time, one process in production, delivered with Docker Compose. No microservice ops tax, no low-code ceiling."
+    "lowcode": {
+      "title": "Not a low-code platform",
+      "description": "No ceiling: modules are TypeScript packages with contracts and tests. Gates enforce boundaries; they do not replace writing code."
     }
   },
   "landing": {
     "agentFirst": {
       "title": "One loop for humans and agents",
-      "description": "Not another scaffold dump: structured Specs, one-shot wiring, and machine gates so Cursor / Claude Code extend modules inside the lines.",
-      "readMore": "Read Agent-first",
+      "description": "AGENTS.md and Skills are part of the product. New modules fill MODULE.spec; extending one fills FEATURE.spec. Blanks mean the agent must ask—no guessing.",
+      "readMore": "Read the modular architecture",
       "stepLabel": "Step {{step}}",
       "steps": {
         "spec": {
           "title": "Fill the Spec",
-          "description": "New modules declare id, permissions, models, and entitlements; existing modules declare surfaces, goal, and touch. Blanks mean the agent must ask—no guessing."
+          "description": "Declare id, permissions, models, and surfaces. A blank is a question, not room to improvise."
         },
         "gen": {
           "title": "Generate and wire",
-          "description": "Scaffold plus six registry touchpoints in one pass—no silent missing routes or tenant guards."
+          "description": "Scaffold and registries in one pass—no silent missing routes or tenant guards."
         },
         "check": {
           "title": "Machine gates",
-          "description": "Contract and dependency checks catch overreach and missed wiring; CI runs the same suite."
+          "description": "Contract, dependency, and copy checks catch overreach and missed wiring; CI runs the same suite."
         }
       }
     },
-    "builtinModules": {
-      "title": "Infrastructure ready to go",
-      "description": "Auth, tenants, permissions, audit, notifications, jobs, observability—everything every SaaS rebuilds from scratch, already modular and toggleable."
+    "shipped": {
+      "title": "The layer every SaaS rewrites, already written",
+      "description": "Toggled per tenant: disabled means no routes, no sidebar, no data.",
+      "site": {
+        "title": "Site",
+        "body": "CMS and SSR, docs library, site members, custom domains. The product host is the default site; tenant sites bind by Host."
+      },
+      "platform": {
+        "title": "Platform",
+        "body": "Auth and JWT, tenants with plans and quotas, PBAC, audit, notifications, job center."
+      },
+      "operate": {
+        "title": "Operate",
+        "body": "Error logs, slow queries and slow requests, platform billing and site payments. Observability is not an afterthought."
+      }
     },
     "techStack": {
       "title": "A predictable stack",
-      "description": "Mainstream, long-maintained choices: easy to hire for, easy to search, clear upgrade paths. Value is in boundaries and constraints—not novelty frameworks.",
+      "description": "Fastify, Prisma, PostgreSQL, React, Vite, shadcn/ui, Docker Compose. Easy to hire for, easy to search, clear upgrades. Value is in boundaries—not novelty frameworks.",
       "readDocs": "Read the docs"
     },
     "showcase": {
-      "title": "Built with Rewindom",
-      "body": "Yestino is a live product on this foundation: multi-tenant CMS, custom domain, and an events feed module—one process, Host-based routing, the same agent-first loop.",
+      "title": "In production · Yestino",
+      "body": "Global tech signals and live trend tracking. One process, Host-based routing, a custom domain, and an events module—not a demo, a live product.",
       "cta": "Visit yestino.com"
     },
     "docsTeaser": {
       "title": "Start here"
     },
     "closingCta": {
-      "title": "Run the foundation, then let agents extend it",
-      "description": "Five minutes locally; ship modules through Spec → gen → check. The free tier can stay free.",
-      "getStarted": "Get started free",
+      "title": "Run it, then let agents add modules",
+      "description": "pnpm setup && pnpm dev. Docs live on the same product site, starting at /docs.",
+      "getStarted": "Read the quick start",
       "viewPricing": "View pricing"
     }
   },
@@ -926,8 +927,8 @@
   },
   "seo": {
     "home": {
-      "title": "Rewindom · Agent-first multi-tenant SaaS foundation",
-      "description": "Rewindom is an agent-first multi-tenant SaaS modular monolith: AGENTS.md, Skills, and a gen/check loop let coding agents extend inside enforced boundaries; the kernel stays business-free, modules toggle per tenant, one process in production."
+      "title": "Rewindom · A multi-tenant SaaS foundation for coding agents",
+      "description": "Open-source multi-tenant SaaS modular monolith: kernel stays business-free; auth, tenants, site CMS, and billing ship ready. Humans and Cursor / Claude share one Spec → gen → check loop."
     },
     "pricing": {
       "title": "Pricing",

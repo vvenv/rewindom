@@ -1,0 +1,20 @@
+# 产品站首页改叙事与版式（开源对外）
+module: marketing
+surfaces: [ssr]
+goal: 默认租户产品站首页从「内部术语墙」改成对外叙事：是什么 / 不是什么 / 怎么扩 / 开箱即用 / Yestino 案例
+gold: packages/builtin/marketing/server/default-product-site-content.ts
+touch:
+  - packages/builtin/marketing/features/product-site-homepage-copy.spec.yaml
+  - packages/builtin/marketing/server/default-product-site-content.ts
+  - packages/builtin/marketing/server/default-product-site-content.test.ts
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/MODULE.md
+out_of_scope:
+  - 改 DEFAULT_TENANT_SLUG
+  - events 模块
+  - 定价页
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project 'marketing/server' marketing/server/default-product-site-content.test.ts
+  - pnpm check:i18n

@@ -22,19 +22,24 @@ describe("buildDefaultProductSite", () => {
     expect(zhHome?.title).toContain("Rewindom");
     expect(zhHome?.sections.map((section) => section.type)).toEqual([
       "hero",
+      "group",
       "prose",
       "prose",
-      "prose",
-      "prose",
+      "group",
+      "band",
       "prose",
       "band",
     ]);
-    expect(zhHome?.sections[0]?.settings.headline).toContain("Agent-first");
+    expect(zhHome?.sections[0]?.settings.headline).toContain("编码 Agent");
+    expect(zhHome?.sections[0]?.settings.eyebrow).toContain("开源");
+    expect(zhHome?.sections[0]?.settings.secondary_href).toBe("#showcase");
+
     const showcase = zhHome?.sections.find(
       (section) => section.settings.anchor === "showcase",
     );
-    expect(showcase?.settings.body_md).toContain("Yestino");
-    expect(showcase?.settings.body_md).toContain("https://yestino.com");
+    expect(showcase?.type).toBe("band");
+    expect(showcase?.settings.headline).toContain("Yestino");
+    expect(showcase?.settings.primary_href).toBe("https://yestino.com");
     expect(payload.pages.some((page) => page.slug === "pricing")).toBe(false);
   });
 
