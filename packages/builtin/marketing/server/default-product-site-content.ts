@@ -42,7 +42,18 @@ const SHIPPED_KEYS = ["site", "platform", "operate"] as const;
 const AGENT_FIRST_STEP_KEYS = ["spec", "gen", "check"] as const;
 
 const YESTINO_HREF = "https://yestino.com";
+const GITHUB_HREF = "https://github.com/vvenv/rewindom";
 const SHOWCASE_ANCHOR = "showcase";
+
+/** 分栏里的卡片：底、边、圆角都走段外观，不另造一种 section。 */
+const CARD_SURFACE = {
+  padding_top: 28,
+  padding_right: 24,
+  padding_bottom: 28,
+  padding_left: 24,
+  radius: 16,
+  border_width: 1,
+} as const;
 
 /**
  * 首页内容区段的上下留白。段与段之间仍走主题 `section_spacing`；
@@ -134,33 +145,77 @@ function threeColumnGroup(
   );
 }
 
+function twoColumnGroup(
+  left: SiteSection,
+  right: SiteSection,
+  extra: SettingValues = {},
+): SiteSection {
+  return section(
+    "group",
+    {
+      columns_layout: "7:5",
+      column_gap: 32,
+      align_items: "stretch",
+      ...PAGE_SECTION_PADDING,
+      ...extra,
+    },
+    [column([left]), column([right])],
+  );
+}
+
+function githubButton(
+  area: "header" | "footer",
+  extra: SettingValues = {},
+): SiteBlock {
+  return createBlock(area, "chrome_button", {
+    label: i18n("header.github"),
+    href: GITHUB_HREF,
+    variant: "ghost",
+    align: "end",
+    mobile: "menu",
+    ...extra,
+  });
+}
+
 function buildChrome(): Pick<
   UpdateMarketingSiteBody,
   "header" | "footer" | "theme_settings" | "site_name" | "tagline"
 > {
+  const header = createSection("header");
+  const footer = createSection("footer");
   return {
     site_name: i18nLiteral({ "zh-CN": APP_DISPLAY_NAME, en: APP_DISPLAY_NAME }),
     tagline: i18n("site.tagline"),
     theme_settings: {
       ...findSiteTheme("default")!.theme_settings,
-      section_spacing: 32,
+      font_family: "inter",
+      page_width: "wide",
+      section_spacing: 40,
       logo_url: null,
     } satisfies ThemeSettings,
     /*
-     * 页头页脚都走 definition 默认：页头是 Logo + 站名 + 一级页面导航 + 语言 + 明暗，
-     * 页脚是一行 `© {year} {site}`。
-     *
-     * 版权**不再**在这里烤死成 `© 2026 Rewindom`：文本块的占位符自己会算当年年份与
-     * 当前站名，建站那天写死的话跨年之后页脚就一直停在去年。
+     * 页头在默认块之后加 GitHub；页脚版权行旁同样挂仓库入口。
+     * 版权文本仍走 definition 默认 `© {year} {site}`，不烤死年份。
      */
-    header: [createSection("header")],
-    footer: [createSection("footer")],
+    header: [
+      {
+        ...header,
+        blocks: [...header.blocks, githubButton("header")],
+      },
+    ],
+    footer: [
+      {
+        ...footer,
+        blocks: [...footer.blocks, githubButton("footer", { mobile: "pin" })],
+      },
+    ],
   };
 }
 
 function contrastCard(locale: AppLocale, key: (typeof CONTRAST_KEYS)[number]): SiteSection {
   return section("prose", {
     body_md: `### ${t(locale, `features.${key}.title`)}\n\n${t(locale, `features.${key}.description`)}`,
+    ...CARD_SURFACE,
   });
 }
 
@@ -170,6 +225,7 @@ function shippedCard(
 ): SiteSection {
   return section("prose", {
     body_md: `### ${t(locale, `landing.shipped.${key}.title`)}\n\n${t(locale, `landing.shipped.${key}.body`)}`,
+    ...CARD_SURFACE,
   });
 }
 
@@ -210,6 +266,24 @@ function buildTechStackMarkdown(locale: AppLocale): string {
   ].join("\n");
 }
 
+function buildShowcaseCopy(locale: AppLocale): string {
+  return [
+    `## ${t(locale, "landing.showcase.title")}`,
+    "",
+    t(locale, "landing.showcase.body"),
+    "",
+    `[${t(locale, "landing.showcase.cta")}](${YESTINO_HREF})`,
+  ].join("\n");
+}
+
+function buildShowcasePanel(locale: AppLocale): string {
+  return [
+    `### ${t(locale, "landing.showcase.panelTitle")}`,
+    "",
+    t(locale, "landing.showcase.panelBody"),
+  ].join("\n");
+}
+
 function buildHomeSections(locale: AppLocale): SiteSection[] {
   const heroStats = (["local", "shipped", "deploy"] as const).map((key) =>
     createBlock("hero", "stat", {
@@ -228,7 +302,7 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
         primary_label: t(locale, "hero.primaryCta"),
         primary_href: "/docs/getting-started",
         secondary_label: t(locale, "hero.secondaryCta"),
-        secondary_href: `#${SHOWCASE_ANCHOR}`,
+        secondary_href: GITHUB_HREF,
         align: "left",
         show_glow: true,
       },
@@ -252,16 +326,18 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
       SHIPPED_KEYS.map((key) => shippedCard(locale, key)),
       { padding_top: 0, padding_bottom: 48 },
     ),
-    section("band", {
-      headline: t(locale, "landing.showcase.title"),
-      body: t(locale, "landing.showcase.body"),
-      primary_label: t(locale, "landing.showcase.cta"),
-      primary_href: YESTINO_HREF,
-      align: "left",
-      background: "muted",
-      anchor: SHOWCASE_ANCHOR,
-      spacing_above: 16,
-    }),
+    twoColumnGroup(
+      section("prose", {
+        body_md: buildShowcaseCopy(locale),
+        ...CARD_SURFACE,
+      }),
+      section("prose", {
+        body_md: buildShowcasePanel(locale),
+        ...CARD_SURFACE,
+        bg_color: "#0369a114",
+      }),
+      { anchor: SHOWCASE_ANCHOR },
+    ),
     section("prose", {
       body_md: buildTechStackMarkdown(locale),
       ...PAGE_SECTION_PADDING,
@@ -271,10 +347,11 @@ function buildHomeSections(locale: AppLocale): SiteSection[] {
       body: t(locale, "landing.closingCta.description"),
       primary_label: t(locale, "landing.closingCta.getStarted"),
       primary_href: "/docs/getting-started",
+      secondary_label: t(locale, "landing.closingCta.github"),
+      secondary_href: GITHUB_HREF,
       align: "center",
       background: "muted",
       anchor: "get-started",
-      spacing_above: 16,
     }),
   ];
 }

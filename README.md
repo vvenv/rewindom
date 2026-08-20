@@ -11,7 +11,7 @@
 
 底座随业务成形，而不是业务迁就底座。
 
-[官网](https://rewindom.com) · [文档](https://rewindom.com/docs) · [案例 · Yestino](https://yestino.com)
+[官网](https://rewindom.com) · [文档](https://rewindom.com/docs) · [GitHub](https://github.com/vvenv/rewindom) · [案例 · Yestino](https://yestino.com)
 
 </div>
 
@@ -43,7 +43,7 @@
 前置：Node.js 22+、pnpm 11+、Docker。
 
 ```bash
-git clone <repo-url> && cd rewindom
+git clone https://github.com/vvenv/rewindom && cd rewindom
 pnpm install
 pnpm setup    # 幂等：.env.local + Postgres/Redis + migration
 pnpm dev

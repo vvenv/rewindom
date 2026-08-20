@@ -14,14 +14,15 @@
     "login": "登录",
     "getStarted": "免费开始",
     "enterConsole": "进入控制台",
-    "menuOpen": "打开菜单"
+    "menuOpen": "打开菜单",
+    "github": "GitHub"
   },
   "hero": {
     "eyebrow": "开源 · 模块化单体",
     "headline": "给编码 Agent 用的多租户 SaaS 底座",
     "subline": "内核不含业务代码。业务以模块挂上，按租户开关。人与 Cursor / Claude 走同一条 Spec → gen → check 闭环——不是又一份脚手架。",
     "primaryCta": "快速开始",
-    "secondaryCta": "看案例",
+    "secondaryCta": "GitHub 仓库",
     "stats": {
       "local": {
         "term": "本地启动",
@@ -96,15 +97,18 @@
     "showcase": {
       "title": "案例 · Yestino",
       "body": "全球科技热点与实时趋势追踪。同一进程、按 Host 分流、自定义域名、events 资讯模块——不是演示站，是线上产品。",
-      "cta": "打开 yestino.com"
+      "cta": "打开 yestino.com",
+      "panelTitle": "这套底座在线上扛着",
+      "panelBody": "- 多租户 CMS 与 SSR\n- 自定义域名\n- events 资讯模块\n- 单进程，按 Host 分流"
     },
     "docsTeaser": {
       "title": "从这里开始"
     },
     "closingCta": {
       "title": "先跑起来，再让 Agent 扩模块",
-      "description": "pnpm setup && pnpm dev。文档库与产品站同源，快速开始在 /docs。",
+      "description": "clone 仓库，pnpm setup && pnpm dev。文档和产品站是同一套。",
       "getStarted": "读快速开始",
+      "github": "打开 GitHub",
       "viewPricing": "看定价"
     }
   },

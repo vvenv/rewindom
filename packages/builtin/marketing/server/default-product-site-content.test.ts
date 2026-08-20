@@ -26,20 +26,25 @@ describe("buildDefaultProductSite", () => {
       "prose",
       "prose",
       "group",
-      "band",
+      "group",
       "prose",
       "band",
     ]);
     expect(zhHome?.sections[0]?.settings.headline).toContain("编码 Agent");
     expect(zhHome?.sections[0]?.settings.eyebrow).toContain("开源");
-    expect(zhHome?.sections[0]?.settings.secondary_href).toBe("#showcase");
+    expect(zhHome?.sections[0]?.settings.secondary_href).toBe(
+      "https://github.com/vvenv/rewindom",
+    );
+
+    const headerGithub = payload.site.header
+      ?.flatMap((section) => section.blocks)
+      .find((block) => block.settings.href === "https://github.com/vvenv/rewindom");
+    expect(headerGithub?.type).toBe("chrome_button");
 
     const showcase = zhHome?.sections.find(
       (section) => section.settings.anchor === "showcase",
     );
-    expect(showcase?.type).toBe("band");
-    expect(showcase?.settings.headline).toContain("Yestino");
-    expect(showcase?.settings.primary_href).toBe("https://yestino.com");
+    expect(showcase?.type).toBe("group");
     expect(payload.pages.some((page) => page.slug === "pricing")).toBe(false);
   });
 

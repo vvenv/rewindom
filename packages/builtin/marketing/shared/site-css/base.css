@@ -375,10 +375,41 @@ dl {
   pointer-events: none;
   border-radius: inherit;
   background: radial-gradient(
-    60% 55% at 50% 0%,
-    color-mix(in srgb, var(--site-accent, currentColor) 18%, transparent) 0%,
-    transparent 72%
-  );
+    70% 70% at 12% -10%,
+    color-mix(in srgb, var(--site-accent, currentColor) 28%, transparent) 0%,
+    transparent 58%
+  ),
+    radial-gradient(
+      50% 45% at 88% 8%,
+      color-mix(in srgb, var(--site-accent, currentColor) 14%, transparent) 0%,
+      transparent 70%
+    );
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sec-glow {
+    animation: sec-glow-shift 12s ease-in-out infinite alternate;
+  }
+}
+@keyframes sec-glow-shift {
+  from {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .grp-col > .sec .sec-band.has-surface {
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .grp-col > .sec .sec-band.has-surface:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--fg) 8%, transparent);
+  }
 }
 /* 色块含上下留白。横向上它与正文列同宽（见 .sec-w-page），换底色会把 gutter 变成
    色块的内边距，正文因此右移 1.5rem——用色块边和正文列对齐换掉那 1.5rem 的位移 */

@@ -14,14 +14,15 @@
     "login": "Sign in",
     "getStarted": "Get started free",
     "enterConsole": "Open console",
-    "menuOpen": "Open menu"
+    "menuOpen": "Open menu",
+    "github": "GitHub"
   },
   "hero": {
     "eyebrow": "Open source · modular monolith",
     "headline": "A multi-tenant SaaS foundation for coding agents",
     "subline": "The kernel stays business-free. Modules plug in and toggle per tenant. Humans and Cursor / Claude share one Spec → gen → check loop—not another scaffold dump.",
     "primaryCta": "Quick start",
-    "secondaryCta": "See a live product",
+    "secondaryCta": "View on GitHub",
     "stats": {
       "local": {
         "term": "Local setup",
@@ -96,15 +97,18 @@
     "showcase": {
       "title": "In production · Yestino",
       "body": "Global tech signals and live trend tracking. One process, Host-based routing, a custom domain, and an events module—not a demo, a live product.",
-      "cta": "Visit yestino.com"
+      "cta": "Visit yestino.com",
+      "panelTitle": "What this foundation carries live",
+      "panelBody": "- Multi-tenant CMS and SSR\n- Custom domain\n- Events module\n- One process, split by Host"
     },
     "docsTeaser": {
       "title": "Start here"
     },
     "closingCta": {
       "title": "Run it, then let agents add modules",
-      "description": "pnpm setup && pnpm dev. Docs live on the same product site, starting at /docs.",
+      "description": "Clone the repo, then pnpm setup && pnpm dev. Docs live on the same product site.",
       "getStarted": "Read the quick start",
+      "github": "Open GitHub",
       "viewPricing": "View pricing"
     }
   },

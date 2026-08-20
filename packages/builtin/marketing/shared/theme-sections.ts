@@ -279,6 +279,9 @@ export function themePageWidthCss(width: ThemePageWidth | undefined): string {
  * 颜色取主题主色 `--site-accent`，两处渲染都注入了这个变量。
  */
 export const HERO_GLOW_BACKGROUND =
-  "radial-gradient(60% 55% at 50% 0%," +
-  " color-mix(in srgb, var(--site-accent, currentColor) 18%, transparent) 0%," +
-  " transparent 72%)";
+  "radial-gradient(70% 70% at 12% -10%," +
+  " color-mix(in srgb, var(--site-accent, currentColor) 28%, transparent) 0%," +
+  " transparent 58%)," +
+  " radial-gradient(50% 45% at 88% 8%," +
+  " color-mix(in srgb, var(--site-accent, currentColor) 14%, transparent) 0%," +
+  " transparent 70%)";

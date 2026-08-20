@@ -1343,7 +1343,7 @@ og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:descr
 | 内容 | 位置 | 说明 |
 | --- | --- | --- |
 | 通用初始化配方 | `shared/site-starters.ts` + `page-presets.ts` + `site-init.service.ts` | chrome + 对该站点已相关的模板页（常驻页建租户时快照；有开关的页开通时补建） |
-| **默认租户产品站** | `server/default-product-site-content.ts` | Rewindom 终稿：中英双语首页（hero + 三栏对照 + Agent 闭环 + 开箱即用 + Yestino 案例 + 技术栈 + CTA）；文案来自 `client/locales` 的 `site` / `hero` / `features` / `landing` / `seo` |
+| **默认租户产品站** | `server/default-product-site-content.ts` | Rewindom 终稿：中英双语首页（hero + 三栏卡片 + Agent 闭环 + 开箱即用 + Yestino 双栏案例 + 技术栈 + 通栏 CTA）；GitHub 在页头 / 首屏次按钮 / 页脚；文案来自 `client/locales` |
 | Bootstrap | `server/ensure-default-marketing-site.ts` | 默认租户幂等铺产品站并发布；已是产品站则跳过 |
 
 新增页面：在 CMS Theme Editor 创建/发布即可；SEO 由 SSR + sitemap 动态生成。
