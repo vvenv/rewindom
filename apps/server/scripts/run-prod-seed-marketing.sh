@@ -12,6 +12,7 @@ docker run --rm \
   --network rewindom-docker_default \
   --env-file /tmp/rewindom-app.env \
   -e npm_config_update_notifier=false \
+  -e CI=true \
   -v "${REMOTE_DIR}:/workspace" \
   -w /workspace \
   --entrypoint bash \
