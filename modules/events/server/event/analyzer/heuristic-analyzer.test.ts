@@ -77,6 +77,7 @@ describe("heuristicAnalyzer", () => {
         signal_id: "s2",
         source_name: "TechCrunch",
         source_kind: "news",
+        title: "Regulators open a review of GPT-6 realtime video",
         published_at: new Date("2025-08-12T11:42:00Z"),
       }),
       signal({ signal_id: "s1", published_at: new Date("2025-08-12T10:02:00Z") }),
@@ -129,5 +130,34 @@ describe("heuristicAnalyzer", () => {
       }),
     ]);
     expect(result.title).toBe("OpenAI releases GPT-6 with realtime video");
+  });
+
+  it("后到的新闻标题几乎等于一手来源时不占格——那是通稿回声，证据在来源列表", async () => {
+    const result = await analyze([
+      signal({ signal_id: "s1", published_at: new Date("2025-08-12T10:02:00Z") }),
+      signal({
+        signal_id: "s2",
+        source_kind: "news",
+        source_name: "The Verge",
+        title: "OpenAI releases GPT-6 with realtime video",
+        published_at: new Date("2025-08-12T11:00:00Z"),
+      }),
+    ]);
+    expect(result.timeline.map((entry) => entry.signal_id)).toEqual(["s1"]);
+  });
+
+  it("社区讨论即使标题像一手来源也保留——讨论是进展，不是通稿", async () => {
+    const result = await analyze([
+      signal({ signal_id: "s1", published_at: new Date("2025-08-12T10:02:00Z") }),
+      signal({
+        signal_id: "s2",
+        source_kind: "community",
+        source_name: "Hacker News",
+        title: "OpenAI releases GPT-6 with realtime video",
+        published_at: new Date("2025-08-12T10:17:00Z"),
+      }),
+    ]);
+    expect(result.timeline.map((entry) => entry.signal_id)).toEqual(["s1", "s2"]);
+    expect(result.timeline[1].label_code).toBe("timeline.community");
   });
 });

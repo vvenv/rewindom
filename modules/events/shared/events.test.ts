@@ -4,11 +4,13 @@ import {
   clustersByUrlOnly,
   CROSS_SOURCE_KINDS,
   describeEventMomentum,
+  describeTimelineEntry,
   enabledTopicWhere,
   EVENT_SOURCE_KINDS,
   EVENT_TOPICS,
   isFeedCollecting,
   isFirstPartySource,
+  isTimelineRoleCode,
   parseEnabledTopicsInput,
   resolveEnabledTopics,
 } from "./events.js";
@@ -219,5 +221,44 @@ describe("非新闻源", () => {
       "status",
       "filing",
     ]);
+  });
+});
+
+describe("describeTimelineEntry", () => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
+    if (key === "timeline.news") return `${params?.source} started reporting`;
+    if (key === "timeline.role.newDetail") return "New detail";
+    return key;
+  };
+
+  it("规则整句带来源名，没有角色徽章", () => {
+    expect(
+      describeTimelineEntry(
+        {
+          label_code: "timeline.news",
+          label_text: null,
+          source_name: "TechCrunch",
+        },
+        t,
+      ),
+    ).toEqual({ role_label: "", text: "TechCrunch started reporting" });
+  });
+
+  it("LLM 新细节做正文，角色 code 只当徽章", () => {
+    expect(
+      describeTimelineEntry(
+        {
+          label_code: "timeline.role.newDetail",
+          label_text: "Adds a $2B earnout in the deal.",
+          source_name: "The Verge",
+        },
+        t,
+      ),
+    ).toEqual({
+      role_label: "New detail",
+      text: "Adds a $2B earnout in the deal.",
+    });
+    expect(isTimelineRoleCode("timeline.role.newDetail")).toBe(true);
+    expect(isTimelineRoleCode("timeline.news")).toBe(false);
   });
 });

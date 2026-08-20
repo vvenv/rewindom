@@ -83,3 +83,47 @@ describe("renderEventsDetailHtml entities", () => {
     expect(html).not.toContain("events-entity-chips");
   });
 });
+
+describe("renderEventsDetailHtml timeline", () => {
+  function entry(
+    overrides: Partial<PublicEventDetailView["timeline"][number]> = {},
+  ): PublicEventDetailView["timeline"][number] {
+    return {
+      occurred_at: "2026-08-17T10:02:00.000Z",
+      role_label: "新细节",
+      role: "newDetail",
+      label: "Adds a $2B earnout in the deal.",
+      source_name: "The Verge",
+      source_kind: "news",
+      url: "https://example.com/story",
+      incident_updates: [],
+      ...overrides,
+    };
+  }
+
+  it("shows the new detail as text and the outlet as the citation", () => {
+    const html = render(detail({ timeline: [entry()] }));
+    expect(html).toContain("events-timeline-role");
+    expect(html).toContain(">新细节</span>");
+    expect(html).toContain("Adds a $2B earnout in the deal.");
+    expect(html).toContain('href="https://example.com/story"');
+    expect(html).toContain(">The Verge</a>");
+    expect(html).not.toContain('href="https://example.com/story">Adds a $2B');
+  });
+
+  it("marks differing accounts without wrapping the insight in the link", () => {
+    const html = render(
+      detail({
+        timeline: [
+          entry({
+            role_label: "说法不一",
+            role: "conflict",
+            label: "Reuters reports the deal is off; The Verge says talks continue.",
+          }),
+        ],
+      }),
+    );
+    expect(html).toContain("events-timeline-role-conflict");
+    expect(html).toContain("Reuters reports the deal is off");
+  });
+});

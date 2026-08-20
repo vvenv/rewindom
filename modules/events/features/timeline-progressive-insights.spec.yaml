@@ -1,0 +1,78 @@
+# 时间线按信息增量推进，而不是按来源清单罗列。
+#
+# 产品卖点是「同一事件的不同报道构成时间线」。落到交互上，用户点进 Event
+# 之后要一眼看出事情怎么发展到现在：谁先说、后来补了什么、说法是否不一致。
+# 不该是一串「某媒体开始报道」的链接。
+#
+# 起因 / 发酵 / 转折 **不**做成 AI 叙事章节。那是编辑判断，越过 MVP §11
+# （不判断谁对、不引入来源外的结构）。递进从可核对的信息增量里长出来：
+#   first      ≈ 首次披露
+#   new_detail ≈ 这家补了什么新细节
+#   update     ≈ 同一来源或当事方修订
+#   conflict   ≈ 说法不一（只归因，不下判）
+# 通稿回声不占一格，证据仍在「来源」里。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 时间线每一格回答「这条比前面多了什么」；LLM 提炼新细节并丢掉通稿回声；规则实现按标题近重复折叠新闻通稿；界面把角色徽章、新细节、来源引用拆开，而不是把整句做成链接。
+gold: modules/events/client/components/EventTimeline.tsx
+touch:
+  - modules/events/features/timeline-progressive-insights.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/server/event/analyzer/analyzer.ts
+  - modules/events/server/event/analyzer/llm-analyzer.ts
+  - modules/events/server/event/analyzer/llm-analyzer.test.ts
+  - modules/events/server/event/analyzer/heuristic-analyzer.ts
+  - modules/events/server/event/analyzer/heuristic-analyzer.test.ts
+  - modules/events/client/components/EventTimeline.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/models.prisma
+out_of_scope:
+  - 让模型给事件标「起因 / 发酵 / 转折」叙事章节（编辑判断，越过 MVP §11）
+  - 判断哪家媒体更可信、谁对谁错
+  - 新表 / 新列（角色走已有 label_code，新细节走已有 label_text，两者现在可以同时有）
+  - 强制重跑已有 LLM 时间线（只在信号集合再变时按新提示词重写，避免一轮账单）
+  - 改聚类、Related Events、Why it's trending 的事实算法
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/event/analyzer/llm-analyzer.test.ts server/event/analyzer/heuristic-analyzer.test.ts shared/events.test.ts shared/public-view.test.ts shared/sections/detail-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/events assemble:site-css
+  - pnpm --filter @rewindom/builtin check:section-css
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **时间线 ≠ 来源列表**。来源段继续摊开全部信号（证据链，含通稿）。
+#    时间线只留「推进了叙事」的格子。LLM 提示词从「这家做了什么（announced /
+#    reported）」改成「比前面的信号多了哪句事实」；没有新事实的信号不进 timeline。
+# 2. **label_code + label_text 可以同时有**。以前 XOR：规则走 code 整句、LLM 走
+#    自由文案。LLM 现在 code = 角色徽章（timeline.role.*，短、无 {source}），
+#    text = 新细节。规则实现仍只产 code 整句，text 恒 null。
+# 3. **角色枚举只有四个**：first / new_detail / update / conflict。模型给 echo
+#    的格子直接丢掉。conflict 的文案必须归因（「A 说 X；B 说 Y」），禁止「打脸」
+#    「辟谣」这类判断。
+# 4. **规则实现不猜新细节**。它只能做词面折叠：后到的 news 标题与已保留的
+#    news / 一手来源 Jaccard ≥ 0.75 视为通稿回声，不占格。阈值高于聚类 0.4——
+#    这些信号已经在同一事件里，0.4 会把跟进报道也吃掉。community / 一手来源
+#    不按标题折叠（讨论和官方更新是真的进展）。
+# 5. **时间戳仍然不由模型给**。occurred_at 只认信号 published_at。
+# 6. **插值语法**。timeline.* 与同页的 updates.sourceJoined / why.officialAnnouncement
+#    是代码 i18n，必须用 {{source}}。写成 {source} 时 i18next 与 eventsMessage
+#    都不会替换，公开页和工作台会原样露出花括号。CMS 库存句的 {topic} 不要动。

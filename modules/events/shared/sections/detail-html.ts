@@ -150,14 +150,28 @@ function timelineHtml(
   const rows = entries
     .map((entry) => {
       const time = entry.occurred_at.slice(11, 16);
-      const text = entry.url
-        ? `<a href="${escapeHtml(entry.url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(entry.label)}</a>`
-        : escapeHtml(entry.label);
+      const role = entry.role_label
+        ? `<span class="events-timeline-role${
+            entry.role === "conflict" ? " events-timeline-role-conflict" : ""
+          }">${escapeHtml(entry.role_label)}</span>`
+        : "";
+      const source = entry.url
+        ? `<a class="events-timeline-source" href="${escapeHtml(
+            entry.url,
+          )}" target="_blank" rel="noreferrer noopener" translate="no">${escapeHtml(
+            entry.source_name,
+          )}</a>`
+        : entry.source_name
+          ? `<span class="events-timeline-source" translate="no">${escapeHtml(
+              entry.source_name,
+            )}</span>`
+          : "";
+      const text = `<span class="events-timeline-text">${escapeHtml(entry.label)}</span>`;
       return `<li class="events-timeline-row"><time class="events-timeline-time" datetime="${escapeHtml(
         entry.occurred_at,
-      )}">${escapeHtml(time)}</time><span class="events-timeline-text">${text}${incidentUpdatesHtml(
+      )}">${escapeHtml(time)}</time><div class="events-timeline-body">${role}${text}${source}${incidentUpdatesHtml(
         entry,
-      )}</span></li>`;
+      )}</div></li>`;
     })
     .join("");
   return `<section class="events-block"><h2 class="events-block-title">${escapeHtml(

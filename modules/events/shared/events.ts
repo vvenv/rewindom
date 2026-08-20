@@ -405,11 +405,53 @@ export function describeEventMomentum(item: {
   return null;
 }
 
+/** LLM 时间线角色徽章的 code 前缀。规则实现的整句 code 不走这条。 */
+export const TIMELINE_ROLE_PREFIX = "timeline.role.";
+
+export function isTimelineRoleCode(
+  code: string | null | undefined,
+): code is string {
+  return typeof code === "string" && code.startsWith(TIMELINE_ROLE_PREFIX);
+}
+
+/**
+ * 一格时间线怎么显示：有自由文案就当「新细节」，角色 code 只当徽章；
+ * 否则把规则 code 落成带来源名的整句。
+ *
+ * 工作台与公开面必须走同一份，否则同一事件两面文字会对不上。
+ */
+export function describeTimelineEntry(
+  entry: Pick<EventTimelineItem, "label_code" | "label_text" | "source_name">,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): { role_label: string; text: string } {
+  if (entry.label_text) {
+    return {
+      role_label: isTimelineRoleCode(entry.label_code)
+        ? t(entry.label_code)
+        : "",
+      text: entry.label_text,
+    };
+  }
+  return {
+    role_label: "",
+    text: entry.label_code
+      ? t(entry.label_code, { source: entry.source_name })
+      : "",
+  };
+}
+
 export interface EventTimelineItem {
   id: string;
   occurred_at: string;
-  /** 与 label_text 二选一：code 走客户端 i18n，text 是 LLM 自由文案 */
+  /**
+   * 稳定 code。规则实现是整句（`timeline.news`，插值 {{source}}）；
+   * LLM 是角色徽章（`timeline.role.*`）。可以与 label_text 同时有。
+   */
   label_code: string | null;
+  /**
+   * LLM 写的「这条比前面多了什么」。规则实现恒为 null。
+   * 有它时界面用它做正文、code 只当徽章。
+   */
   label_text: string | null;
   source_kind: EventSourceKind;
   source_name: string;

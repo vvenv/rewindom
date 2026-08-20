@@ -129,6 +129,78 @@ describe("parseAnalyzerResponse", () => {
     );
     expect(result.timeline.map((e) => e.label_text)).toEqual(["earlier", "later"]);
   });
+
+  it("角色徽章与新细节可以同时有", () => {
+    const result = parseAnalyzerResponse(
+      JSON.stringify({
+        title: "t",
+        summary: "s",
+        timeline: [
+          {
+            signal_index: 0,
+            label: "OpenAI announced GPT-6 with realtime video.",
+            role: "first",
+          },
+          {
+            signal_index: 1,
+            label: "HN thread asks whether the API will be priced per minute.",
+            role: "new_detail",
+          },
+        ],
+      }),
+      SIGNALS,
+    );
+    expect(result.timeline[0]).toMatchObject({
+      label_code: "timeline.role.first",
+      label_text: "OpenAI announced GPT-6 with realtime video.",
+    });
+    expect(result.timeline[1]).toMatchObject({
+      label_code: "timeline.role.newDetail",
+      label_text: "HN thread asks whether the API will be priced per minute.",
+    });
+  });
+
+  it("标成 echo 的格子丢掉——通稿回声不占时间线", () => {
+    const result = parseAnalyzerResponse(
+      JSON.stringify({
+        title: "t",
+        summary: "s",
+        timeline: [
+          { signal_index: 0, label: "OpenAI announced GPT-6.", role: "first" },
+          { signal_index: 1, label: "Same announcement.", role: "echo" },
+        ],
+      }),
+      SIGNALS,
+    );
+    expect(result.timeline).toHaveLength(1);
+    expect(result.timeline[0].signal_id).toBe("s0");
+  });
+
+  it("全部是 echo 视为失败——上层据此退回规则分析器", () => {
+    expect(() =>
+      parseAnalyzerResponse(
+        JSON.stringify({
+          title: "t",
+          summary: "s",
+          timeline: [{ signal_index: 0, role: "echo" }],
+        }),
+        SIGNALS,
+      ),
+    ).toThrow();
+  });
+
+  it("未知角色忽略，当没给角色", () => {
+    const result = parseAnalyzerResponse(
+      JSON.stringify({
+        title: "t",
+        summary: "s",
+        timeline: [{ signal_index: 0, label: "OpenAI announced GPT-6.", role: "plot" }],
+      }),
+      SIGNALS,
+    );
+    expect(result.timeline[0].label_code).toBeNull();
+    expect(result.timeline[0].label_text).toBe("OpenAI announced GPT-6.");
+  });
 });
 
 describe("parseUsage", () => {
@@ -177,6 +249,8 @@ describe("buildLlmMessages", () => {
     const [system, user] = buildLlmMessages("ai", SIGNALS);
     expect(system.role).toBe("system");
     expect(system.content).toContain("Respond with JSON only");
+    expect(system.content).toContain("PROGRESSIVE account");
+    expect(system.content).toContain("Skip wire copies");
     expect(user.content).not.toContain("Respond with JSON only");
     expect(user.content).toContain("topic hint from the feeds");
   });

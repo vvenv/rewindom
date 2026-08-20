@@ -68,7 +68,13 @@ export interface PublicEventCard {
 
 export interface PublicEventTimelineItem {
   occurred_at: string;
-  /** 已落成当前语言：code 走模块 locale 表，自由文案走语言表 */
+  /**
+   * 角色徽章（「新细节」/「说法不一」）。空串 = 规则整句，渲染侧跳过徽章。
+   */
+  role_label: string;
+  /** 稳定角色 id（first / newDetail / update / conflict）。空串 = 规则整句 */
+  role: string;
+  /** 已落成当前语言：新细节原文，或规则 code 落成的整句 */
   label: string;
   source_name: string;
   source_kind: EventSourceKind;

@@ -98,15 +98,21 @@
     "related": "相关事件"
   },
   "timeline": {
-    "firstSeen": "{source} 最先出现",
-    "official": "{source} 发布官方公告",
-    "officialUpdate": "{source} 发布补充说明",
-    "news": "{source} 开始报道",
-    "moreCoverage": "{source} 跟进报道",
-    "community": "{source} 出现讨论",
-    "release": "{source} 发布了新版本",
-    "status": "{source} 报告了服务状态变化",
-    "filing": "{source} 发布了公告文件"
+    "firstSeen": "{{source}} 最先出现",
+    "official": "{{source}} 发布官方公告",
+    "officialUpdate": "{{source}} 发布补充说明",
+    "news": "{{source}} 开始报道",
+    "moreCoverage": "{{source}} 跟进报道",
+    "community": "{{source}} 出现讨论",
+    "release": "{{source}} 发布了新版本",
+    "status": "{{source}} 报告了服务状态变化",
+    "filing": "{{source}} 发布了公告文件",
+    "role": {
+      "first": "首次披露",
+      "newDetail": "新细节",
+      "update": "进展",
+      "conflict": "说法不一"
+    }
   },
   "follow": {
     "follow": "关注事件",
@@ -396,7 +402,7 @@
   "updates": {
     "sinceLastSeen": "自你上次查看后",
     "recent": "最近 24 小时的变化",
-    "sourceJoined": "{source} 开始报道",
+    "sourceJoined": "{{source}} 开始报道",
     "statusChanged": "阶段变为「{{status}}」",
     "summaryRewritten": "摘要依据新来源改写",
     "titleChanged": "标题已更新"
@@ -422,7 +428,7 @@
   },
   "why": {
     "title": "为什么在扩散",
-    "officialAnnouncement": "{source} 发布了一手公告",
+    "officialAnnouncement": "{{source}} 发布了一手公告",
     "crossSource": "{{count}} 个来源在报道，{{first}} 最先",
     "recentActivity": "最近 {{hours}} 小时新增 {{count}} 条信号，来自 {{sources}} 个来源",
     "communityOnly": "只有社区在讨论（{{count}} 条），还没有来源证实",

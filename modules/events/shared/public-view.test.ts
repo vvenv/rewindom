@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { EMPTY_EVENT_FACTS } from "./events.js";
-import { sampleEntityData } from "./events-sample.js";
+import { sampleEntityData, sampleEventDetail } from "./events-sample.js";
 import {
+  toPublicDetail,
   toPublicEntity,
   toPublicEntityIndex,
   toPublicEntityStrip,
@@ -120,5 +121,32 @@ describe("toPublicEntity", () => {
     expect(view.name).toBe("OpenAI");
     expect(view.profile.length).toBeGreaterThan(0);
     expect(view.events.length).toBeGreaterThan(0);
+  });
+});
+
+describe("toPublicDetail timeline", () => {
+  it("splits role badge from the new-detail text", () => {
+    const detail = sampleEventDetail(t);
+    detail.timeline[0] = {
+      ...detail.timeline[0]!,
+      label_code: "timeline.role.newDetail",
+      label_text: "Adds a $2B earnout in the deal.",
+      url: "https://example.com/story",
+    };
+    const view = toPublicDetail(detail, t);
+    expect(view.timeline[0]).toMatchObject({
+      role: "newDetail",
+      role_label: "timeline.role.newDetail",
+      label: "Adds a $2B earnout in the deal.",
+      source_name: "OpenAI",
+      url: "https://example.com/story",
+    });
+  });
+
+  it("heuristic rows stay a single sentence with an empty role", () => {
+    const view = toPublicDetail(sampleEventDetail(t), t);
+    expect(view.timeline[0]?.role).toBe("");
+    expect(view.timeline[0]?.role_label).toBe("");
+    expect(view.timeline[0]?.label).toBe("timeline.firstSeen");
   });
 });

@@ -281,9 +281,10 @@ model EventTimelineEntry {
   tenant_id   String
   event_id    String
   occurred_at DateTime
-  /// 启发式分析器产出的稳定文案 code（客户端按 events ns 翻译）
+  /// 启发式分析器产出的稳定文案 code（客户端按 events ns 翻译）。
+  /// LLM 下是角色徽章（timeline.role.*），可以与 label_text 同时有。
   label_code  String?
-  /// LLM 分析器产出的自由文案；与 label_code 二选一
+  /// LLM 分析器产出的「这条比前面多了什么」；规则实现恒为空
   label_text  String?
   source_kind String
   /// 这一格是谁贡献的，界面上直接显示（「10:17 Hacker News 出现讨论」）

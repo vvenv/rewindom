@@ -31,9 +31,15 @@ export interface AnalyzerInput {
 
 export interface AnalyzedTimelineEntry {
   occurred_at: Date;
-  /** 规则实现产出稳定 code（客户端按 events ns 翻译） */
+  /**
+   * 稳定 code。规则实现是整句（`timeline.news`）；LLM 是角色徽章
+   * （`timeline.role.newDetail`）。可以与 label_text 同时有。
+   */
   label_code: string | null;
-  /** LLM 实现产出自由文案；与 label_code 二选一 */
+  /**
+   * LLM 写的「这条比前面多了什么」。规则实现恒为 null。
+   * 有它时界面用它做正文、code 只当徽章。
+   */
   label_text: string | null;
   source_kind: EventSourceKind;
   source_name: string;

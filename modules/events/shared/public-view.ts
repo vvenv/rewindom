@@ -13,6 +13,9 @@ import {
   EVENT_ENTITY_KINDS,
   describeEventFacts,
   describeEventMomentum,
+  describeTimelineEntry,
+  isTimelineRoleCode,
+  TIMELINE_ROLE_PREFIX,
 } from "./events.js";
 
 import {
@@ -182,12 +185,14 @@ function toPublicSource(source: {
 }
 
 function toPublicTimelineItem(entry: EventTimelineItem, t: EventsTranslate) {
+  const view = describeTimelineEntry(entry, t);
   return {
     occurred_at: entry.occurred_at,
-    // code 走本模块文案表，自由文案已经在服务端按语言表解析好了
-    label: entry.label_code
-      ? t(entry.label_code, { source: entry.source_name })
-      : (entry.label_text ?? ""),
+    role_label: view.role_label,
+    role: isTimelineRoleCode(entry.label_code)
+      ? entry.label_code.slice(TIMELINE_ROLE_PREFIX.length)
+      : "",
+    label: view.text,
     source_name: entry.source_name,
     source_kind: entry.source_kind,
     url: entry.url,

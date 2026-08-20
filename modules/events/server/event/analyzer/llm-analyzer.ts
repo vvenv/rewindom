@@ -24,7 +24,8 @@ import type {
 /** 一次分析最多喂多少条信号——超过这个量，摘要质量的提升赶不上 token 成本。 */
 const MAX_SIGNALS_PER_CALL = 20;
 const MAX_EXCERPT_LENGTH = 500;
-const MAX_LABEL_LENGTH = 80;
+/** 新细节要比「某媒体开始报道」长一句，80 字写不下「补了什么」。 */
+const MAX_LABEL_LENGTH = 160;
 const MAX_SUMMARY_LENGTH = 800;
 const MAX_ENTITY_NAME_LENGTH = 80;
 const MAX_ENTITIES_PER_EVENT = 10;
@@ -35,9 +36,19 @@ const MAX_ENTITIES_PER_EVENT = 10;
  * 两者每次调用完全相同、且排在最前面——这是前缀缓存能命中的前提。
  * 可变部分（topic hint + 信号）只进 user 消息。
  *
- * 关键约束是最后两条：时间戳不由模型给（否则它会编造「11:08 开发者开始测试」这种
- * 看似合理、实则没有出处的格子），模型只负责给每条**已存在的**信号配一句标签。
+ * 关键约束是最后几条：时间戳不由模型给（否则它会编造「11:08 开发者开始测试」这种
+ * 看似合理、实则没有出处的格子），模型只为已存在的信号写「这条多了什么」，
+ * 通稿回声不进时间线。
  */
+const TIMELINE_ROLES = {
+  first: "timeline.role.first",
+  new_detail: "timeline.role.newDetail",
+  update: "timeline.role.update",
+  conflict: "timeline.role.conflict",
+} as const;
+
+type TimelineRole = keyof typeof TIMELINE_ROLES;
+
 const SYSTEM_PROMPT = [
   "You organize signals collected from multiple platforms into ONE event.",
   "Rules you must not break:",
@@ -50,15 +61,22 @@ const SYSTEM_PROMPT = [
   "- Do not invent timestamps. You only label signals that were given to you.",
   "",
   "Respond with JSON only:",
-  '{"title": string, "summary": string, "topic": string, "kind": string | null, "timeline": [{"signal_index": number, "label": string}], "entities": [{"name": string, "kind": string}]}',
+  '{"title": string, "summary": string, "topic": string, "kind": string | null, "timeline": [{"signal_index": number, "label": string, "role": "first" | "new_detail" | "update" | "conflict"}], "entities": [{"name": string, "kind": string}]}',
   "- title: one headline naming the event, max 120 characters.",
   "- summary: 3 to 5 sentences answering 'what happened', grounded in the sources.",
   `- topic: exactly one of ${EVENT_TOPICS.join(" | ")}. Judge it from what the event`,
   "  is about, not from which site reported it.",
   `- kind: one of ${EVENT_KINDS.join(" | ")}, or null. Use null unless the event`,
   "  clearly is one of them. A plain news report is null, not a guess.",
-  "- timeline: one entry per meaningful signal, each label max 80 characters,",
-  "  describing what that source did (announced / discussed / reported).",
+  "- timeline: a PROGRESSIVE account, not a source list. Include a signal only",
+  "  if it adds facts that earlier timeline entries do not already state.",
+  "  Skip wire copies and restatements (same press release, different outlet).",
+  "  label: the NEW facts this source adds, max 160 characters. Do not write",
+  "  'X reported Y' or 'discussion started'. For the first signal, state the",
+  "  opening facts. For conflict, attribute both claims ('A reports X; B reports Y')",
+  "  and never say who is right.",
+  "  role: first (first public disclosure) | new_detail (adds facts) |",
+  "  update (same source or first party revises) | conflict (accounts differ).",
   `- entities: the named companies, products, people, places or organisations`,
   `  this event is about. kind must be one of ${ENTITY_KINDS.join(" | ")}.`,
   "  Only include names that literally appear in the sources. Max 10.",
@@ -132,6 +150,16 @@ function toCount(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+function parseTimelineRole(value: unknown): TimelineRole | "echo" | null {
+  if (value === "echo") {
+    return "echo";
+  }
+  if (typeof value === "string" && value in TIMELINE_ROLES) {
+    return value as TimelineRole;
+  }
+  return null;
+}
+
 /** 信号多时优先保留一手来源与最新进展，而不是简单截前 N 条。 */
 function selectSignals(signals: readonly AnalyzerSignal[]): AnalyzerSignal[] {
   if (signals.length <= MAX_SIGNALS_PER_CALL) {
@@ -182,6 +210,7 @@ export function buildLlmMessages(
 interface RawTimelineEntry {
   signal_index?: unknown;
   label?: unknown;
+  role?: unknown;
 }
 
 /**
@@ -227,6 +256,11 @@ export function parseAnalyzerResponse(
       seen.add(index);
 
       const signal = signals[index];
+      const role = parseTimelineRole(entry.role);
+      // 通稿回声不占格。模型仍可能标 echo，丢掉即可。
+      if (role === "echo") {
+        return null;
+      }
       const label =
         typeof entry.label === "string" && entry.label.trim().length > 0
           ? entry.label.trim().slice(0, MAX_LABEL_LENGTH)
@@ -234,8 +268,12 @@ export function parseAnalyzerResponse(
 
       return {
         occurred_at: signal.published_at,
-        // 模型没给标签就交回给客户端的 code 文案，不留空白格
-        label_code: label === null ? `timeline.${signal.source_kind}` : null,
+        // 有角色就当徽章；没标签时回落到按来源类型的整句，不留空白格
+        label_code: role
+          ? TIMELINE_ROLES[role]
+          : label === null
+            ? `timeline.${signal.source_kind}`
+            : null,
         label_text: label,
         source_kind: signal.source_kind,
         source_name: signal.source_name,
