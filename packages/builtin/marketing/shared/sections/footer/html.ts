@@ -37,7 +37,6 @@ export function renderFooterHtml(
     homeHref: input.homeHref ?? "/",
     ctx: chromeNavContext(input),
     locales: input.locales ?? [],
-    origin: input.origin,
     accountEntryHtml: input.accountEntryHtml,
     contributed: input.contributed,
     enabledEntitlements: input.enabledEntitlements,

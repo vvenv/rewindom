@@ -63,15 +63,55 @@ describe("interpolationValues", () => {
     expect(
       interpolationValues({
         siteName: "站点",
+        tagline: "一句话主张",
         origin: "https://yestino.com",
         year: 2026,
       }),
     ).toEqual({
       year: "2026",
       site: "站点",
+      tagline: "一句话主张",
       hostname: "yestino.com",
       url: "https://yestino.com",
     });
+  });
+
+  it("站点没填标语时 {tagline} 替成空串，而不是留下花括号", () => {
+    const values = interpolationValues({ siteName: "站点" });
+    expect(values.tagline).toBe("");
+    expect(interpolateSiteText("{site}{tagline}", values)).toBe("站点");
+  });
+
+  it("从 origin 丢掉路径与默认端口；非默认端口留在 {url} 里", () => {
+    expect(
+      interpolationValues({
+        siteName: "站点",
+        origin: "https://www.example.com/about",
+      }),
+    ).toMatchObject({ hostname: "www.example.com", url: "https://www.example.com" });
+    expect(
+      interpolationValues({ siteName: "站点", origin: "http://localhost:7300" }),
+    ).toMatchObject({ hostname: "localhost", url: "http://localhost:7300" });
+  });
+
+  it("year 缺省用当前日历年", () => {
+    expect(interpolationValues({ siteName: "站点" }).year).toBe(
+      String(new Date().getFullYear()),
+    );
+  });
+
+  it("origin 缺省 / 非法时 {hostname} / {url} 换成空串，不把花括号留给访客", () => {
+    for (const origin of [undefined, "not a url", "ftp://x.test"]) {
+      const values = interpolationValues({ siteName: "站点", origin });
+      expect(interpolateSiteText("h={hostname};u={url}", values)).toBe("h=;u=");
+    }
+  });
+
+  it("不把 {domain} / {site_name} 当别名", () => {
+    const values = interpolationValues({ siteName: "Acme", tagline: "标语" });
+    expect(
+      interpolateSiteText("{site} {tagline} {domain} {site_name}", values),
+    ).toBe("Acme 标语 {domain} {site_name}");
   });
 
   it("只传 extra 时不凭空发明 {site}", () => {

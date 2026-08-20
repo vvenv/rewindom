@@ -29,6 +29,8 @@ interface SectionSettingsFormProps {
   /** 正在编辑的语言（文案类字段按语言分槽存）。 */
   locale: AppLocale;
   defaultLocale: AppLocale;
+  /** 当前页面 kind；文字字段下方的 `{token}` 清单据此加上本页特有的那几项。 */
+  pageKind?: string;
   onChangeSettings: (settings: SettingValues) => void;
   onChangeBlockSettings: (blockId: string, settings: SettingValues) => void;
 }
@@ -66,6 +68,7 @@ export function SectionSettingsForm({
   unavailable,
   locale,
   defaultLocale,
+  pageKind,
   onChangeSettings,
   onChangeBlockSettings,
 }: SectionSettingsFormProps): ReactElement {
@@ -92,6 +95,7 @@ export function SectionSettingsForm({
         unavailable={unavailable}
         locale={locale}
         defaultLocale={defaultLocale}
+        pageKind={pageKind}
         onChange={(settings) => onChangeBlockSettings(block.id, settings)}
       />
     );
@@ -130,6 +134,7 @@ export function SectionSettingsForm({
       unavailable={unavailable}
       locale={locale}
       defaultLocale={defaultLocale}
+      pageKind={pageKind}
       sectionType={section.type}
       /* 列宽控件要知道这一段现在有几列——列是 block，schema 里数不出来 */
       columnCount={groupColumns(section).length}
@@ -146,6 +151,7 @@ function ChromeBlockSettings({
   unavailable,
   locale,
   defaultLocale,
+  pageKind,
   onChange,
 }: {
   block: { id: string; type: string; settings: SettingValues };
@@ -155,6 +161,7 @@ function ChromeBlockSettings({
   unavailable?: Record<string, string>;
   locale: AppLocale;
   defaultLocale: AppLocale;
+  pageKind?: string;
   onChange: (settings: SettingValues) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -190,6 +197,7 @@ function ChromeBlockSettings({
         unavailable={unavailable}
         locale={locale}
         defaultLocale={defaultLocale}
+        pageKind={pageKind}
         sectionType={sectionType}
         onChange={onChange}
       />
@@ -207,6 +215,7 @@ function ScopedSettings({
   defaultLocale,
   columnCount,
   sectionType,
+  pageKind,
   onChange,
 }: {
   label: string;
@@ -219,6 +228,7 @@ function ScopedSettings({
   /** 容器段当前的列数；只有 `column_spans` 那个控件用得上。 */
   columnCount?: number;
   sectionType: string;
+  pageKind?: string;
   onChange: (settings: SettingValues) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -267,6 +277,7 @@ function ScopedSettings({
       defaultLocale={defaultLocale}
       columnCount={columnCount}
       sectionType={sectionType}
+      pageKind={pageKind}
       onChange={onChange}
     />
   );

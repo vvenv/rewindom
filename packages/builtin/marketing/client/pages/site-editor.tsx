@@ -673,6 +673,7 @@ export function SiteEditor() {
                 }
                 locale={editor.locale}
                 defaultLocale={editor.defaultLocale}
+                pageKind={editor.page?.kind}
                 onChangeSettings={(settings) =>
                   editor.updateSettings(selectedSection.id, settings)
                 }

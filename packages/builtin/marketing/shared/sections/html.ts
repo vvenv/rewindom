@@ -10,6 +10,7 @@
  */
 
 import { escapeHtml } from "../html.js";
+import { interpolateSectionSettings } from "../interpolate-section-settings.js";
 import { registerSectionCss } from "../load-marketing-site-css.js";
 import {
   getSectionDefinition,
@@ -112,8 +113,14 @@ export function renderSectionHtml(
    * 不传 `isDefaultTenant` 按 false 算：方向与 entitlement 一致，少了而不是多了。
    */
   if (definition?.default_tenant_only && !ctx.isDefaultTenant) return "";
+  /*
+   * `{token}` 在这里一次替完（见 `interpolate-section-settings.ts`）：渲染器读到的
+   * settings 已经是成品，加一段不必再记得自己插一遍。外层色块用的是 layout / surface
+   * 这些非文案设置，替不替都一样，所以下面几十行仍读原 `section.settings`。
+   */
+  const resolved = interpolateSectionSettings(section, ctx.interpolation ?? {});
   // 容器段要能下钻回这里；注入而不是让它反向 import，见 render-context.ts
-  const inner = render(section, { ...ctx, renderSection: renderSectionHtml });
+  const inner = render(resolved, { ...ctx, renderSection: renderSectionHtml });
   if (!inner) return "";
   const layout = resolveSectionLayout(section.settings);
   const surface = resolveSurfaceStyle(section.settings);

@@ -7,6 +7,7 @@
 
 import { type CSSProperties, type ReactNode } from "react";
 
+import { interpolateSectionSettings } from "../../../shared/interpolate-section-settings.js";
 import {
   contentSurfaceStyleCss,
   hasCustomSurface,
@@ -61,6 +62,11 @@ interface SiteSectionsProps {
   pages?: PublicSitePage[];
   currentPath?: string;
   contributed?: Readonly<Record<string, unknown>>;
+  /**
+   * 本次渲染的 `{token}` 值表（与 SSR 的 `SectionRenderContext.interpolation` 同一份）。
+   * 由 `TenantSiteView` 算一次传进来；不传则花括号原样显示。
+   */
+  interpolation?: Record<string, string>;
 }
 
 export function SiteSections({
@@ -71,6 +77,7 @@ export function SiteSections({
   pages = [],
   currentPath = "/",
   contributed,
+  interpolation,
 }: SiteSectionsProps): ReactNode {
   const layouts = sections.map((section) =>
     resolveSectionLayout(section.settings),
@@ -89,6 +96,7 @@ export function SiteSections({
       pages={pages}
       currentPath={currentPath}
       contributed={contributed}
+      interpolation={interpolation}
       onSelectSection={onSelectSection}
     />
   );
@@ -186,7 +194,11 @@ export function SiteSections({
             }
           >
             <View
-              section={section}
+              /*
+               * `{token}` 在这里一次替完，与 SSR 的 `renderSectionHtml` 同构：
+               * 视图读到的 settings 已经是成品，加一段不必再插一遍。
+               */
+              section={interpolateSectionSettings(section, interpolation ?? {})}
               pages={pages}
               currentPath={currentPath}
               contributed={contributed}

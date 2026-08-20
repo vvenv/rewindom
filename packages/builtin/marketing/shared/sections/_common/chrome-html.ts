@@ -14,7 +14,6 @@ import { settingBool, settingText } from "../../section-schema.js";
 import {
   interpolateSiteHref,
   interpolateSiteText,
-  readContributedInterpolation,
 } from "../../site-interpolation.js";
 import { siteHref } from "../../site-locale.js";
 import {
@@ -40,7 +39,6 @@ import {
   mainNavLabel,
   themeToggleTitle,
 } from "./chrome-messages.js";
-import { resolveChromeText } from "./chrome-text.js";
 import { linkAttrs } from "./html.js";
 
 import type { SiteBlock, SiteSection } from "../types.js";
@@ -61,8 +59,6 @@ export interface ChromeRenderInput {
   homeHref: string;
   ctx: SiteNavContext;
   locales: LocaleSwitcherOption[];
-  /** 当前请求 origin；chrome_text 的 `{hostname}` / `{url}` 都从这里拆。 */
-  origin?: string;
   /** 会员入口的 SSR 片段（由 site-member 模块灌进来）。 */
   accountEntryHtml?: string;
   /** 贡献段 / 贡献 chrome 块的按请求数据。 */
@@ -267,11 +263,11 @@ function renderBlockHtml(
         fallbackLabel: isMainNav ? mainNavLabel(input.ctx.locale) : undefined,
       });
     case "chrome_text": {
-      const text = resolveChromeText(settingText(block.settings, "text"), {
-        siteName: input.siteName,
-        origin: input.origin,
-        extra: readContributedInterpolation(input.contributed),
-      });
+      // 与按钮、导航同一张 values（`chromeNavContext` 已经算过），别再自算一套
+      const text = interpolateSiteText(
+        settingText(block.settings, "text"),
+        input.ctx.interpolation ?? {},
+      );
       return text ? `<p class="chrome-text">${escapeHtml(text)}</p>` : "";
     }
     case "chrome_button":

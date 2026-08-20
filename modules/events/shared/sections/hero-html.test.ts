@@ -4,9 +4,16 @@ import {
   emptyEventsContext,
   eventsContextEntry,
 } from "../events-section-context.js";
-import { EVENTS_HERO_SECTION_TYPE } from "../events-hero-section.js";
+import {
+  EVENTS_HERO_SECTION_TYPE,
+  eventsHeroSection,
+} from "../events-hero-section.js";
 import { toPublicHero } from "../public-view.js";
 import { renderEventsHeroHtml } from "./hero-html.js";
+
+import { interpolateSectionSettings } from "@rewindom/builtin/marketing/shared/interpolate-section-settings.js";
+import { registerSectionDefinition } from "@rewindom/builtin/marketing/shared/section-schema.js";
+import { readContributedInterpolation } from "@rewindom/builtin/marketing/shared/site-interpolation.js";
 
 import type { PublicHeroView } from "../events-section-context.js";
 import type { HeroStatsInput } from "../public-view.js";
@@ -31,10 +38,30 @@ function hero(overrides: Partial<HeroStatsInput> = {}) {
   );
 }
 
+/*
+ * 段的 `{token}` 由聚合层（`renderSectionHtml`）在调用渲染器之前替掉，所以这里也得
+ * 走同一步——直接把原始 settings 喂给渲染器，测的就不是租户实际会看到的那一份了。
+ * `interpolateSectionSettings` 要按 schema 判断哪个字段是文案，因此先登记定义。
+ */
+registerSectionDefinition(eventsHeroSection);
+
+function renderHero(
+  section: SiteSection,
+  contributed?: Record<string, unknown>,
+): string {
+  const interpolation = readContributedInterpolation(contributed);
+  return renderEventsHeroHtml(interpolateSectionSettings(section, interpolation), {
+    contributed,
+    interpolation,
+  });
+}
+
 function section(extra: Record<string, unknown> = {}): SiteSection {
   return {
     id: "s-hero",
     type: EVENTS_HERO_SECTION_TYPE,
+    // 存储层解析出来的段恒带 blocks（哪怕是空的）；夹具也照这个形状来
+    blocks: [],
     settings: {
       eyebrow: "事件雷达 · 持续追踪",
       headline: "同一件事，来自多个来源，合成一条时间线",
@@ -54,11 +81,10 @@ function render(
   extra: Record<string, unknown> = {},
   topic?: { topic: "ai"; topic_label: string },
 ) {
-  return renderEventsHeroHtml(section(extra), {
-    contributed: eventsContextEntry(
-      emptyEventsContext({ hero: view, ...(topic ?? {}) }),
-    ),
-  });
+  return renderHero(
+    section(extra),
+    eventsContextEntry(emptyEventsContext({ hero: view, ...(topic ?? {}) })),
+  );
 }
 
 const AI = { topic: "ai" as const, topic_label: "AI" };
@@ -100,7 +126,7 @@ describe("renderEventsHeroHtml", () => {
   });
 
   it("still renders while the context provider has not answered", () => {
-    const html = renderEventsHeroHtml(section(), {});
+    const html = renderHero(section());
     expect(html).toContain("events-hero-headline");
     expect(html).not.toContain("events-hero-panel");
   });
@@ -221,11 +247,12 @@ describe("renderEventsHeroHtml · 实体页", () => {
     extra: Record<string, unknown> = {},
     entity: (typeof openai)["entity"] | Record<string, unknown> = openai.entity,
   ): string {
-    return renderEventsHeroHtml(section(extra), {
-      contributed: eventsContextEntry(
+    return renderHero(
+      section(extra),
+      eventsContextEntry(
         emptyEventsContext({ entity: entity as (typeof openai)["entity"] }),
       ),
-    });
+    );
   }
 
   it("fills {entity} / {entity_kind} from this page's own copy", () => {

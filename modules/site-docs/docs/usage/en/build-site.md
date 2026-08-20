@@ -90,18 +90,27 @@ Every common arrangement is those three combined — there is no "layout" dropdo
 All eight can go in either area — moving the language switcher down to the footer, or
 putting a line of announcement text in the header, is a single change.
 
-### Placeholders in text
+### Placeholders
 
-The text block supports placeholders that are filled in at render time so they do not
-go stale:
+Anything you type that would go stale — the year, your site name, your domain — can be a
+placeholder instead. It is filled in when the page renders:
 
 - `{year}` current year
-- `{site}` site name
+- `{site}` site name, from Site settings
+- `{tagline}` tagline, from Site settings
 - `{hostname}` hostname visitors used (no port)
 - `{url}` site address (scheme included, no trailing slash)
 
-That is why the default `© {year} {site}` keeps up with new years and renames on its
-own. Want "© 2020–{year} Acme, Inc." or an ICP line with `{hostname}`? Just type it.
+**They work in every text and link field**, not just the footer: section headlines and
+body copy, button labels and links, and the Title / Description under Page settings. So a
+home layout can have the page title `{site} — {tagline}`, and renaming the site in Site
+settings updates every page at once. That is also why the default copyright
+`© {year} {site}` keeps up with new years and renames on its own. Want
+"© 2020–{year} Acme, Inc." or an ICP line with `{hostname}`? Just type it.
+
+Some pages offer extra placeholders of their own — a topic page has `{topic}`, an event
+page has `{event}`. The editor lists what the field you are editing accepts, right below
+it. Anything it does not recognize is left alone, so a stray `{` in your copy is safe.
 
 ### On mobile
 
@@ -146,6 +155,9 @@ ship a second, area-only set of column settings.
 
 The site name and tagline appear in the header and in SEO metadata; both can be filled in
 per language. Replacing the placeholder copy from initialization is job number one.
+
+They are also what `{site}` and `{tagline}` resolve to: rather than retyping the site name
+into every page title, write `{site}` and rename once (see [Placeholders](#placeholders)).
 
 ## Languages
 

@@ -129,6 +129,38 @@ describe("分享卡片", () => {
       `<meta name="description" content="What&#39;s happening in AI" />`,
     );
   });
+
+  it("站名与标语是内置 token：页面设置里直接写 {site} / {tagline}", () => {
+    const site = {
+      site_name: "Acme",
+      tagline: "把散落的线索连成时间线",
+      theme_settings: {},
+      default_locale: "zh-CN",
+      pages: [],
+      header: [],
+      footer: [],
+    } as unknown as PublicMarketingSite;
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      site,
+      page: {
+        slug: "home",
+        locale: "zh-CN",
+        kind: "page",
+        title: "{site} 事件雷达",
+        description: "{tagline}",
+        sections: [],
+        settings: {},
+        path: "/radar",
+        alternates: [],
+        updated_at: "2026-08-20T00:00:00.000Z",
+      } as unknown as PublicMarketingPage,
+    });
+    expect(html).toContain("<title>Acme 事件雷达 · Acme</title>");
+    expect(html).toContain(
+      `<meta name="description" content="把散落的线索连成时间线" />`,
+    );
+  });
 });
 
 describe("JSON-LD", () => {

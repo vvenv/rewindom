@@ -27,7 +27,6 @@ import { buttonRow } from "@rewindom/builtin/marketing/shared/sections/_common/h
 import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 import {
   interpolateSiteHref,
-  interpolateSiteText,
   readContributedInterpolation,
 } from "@rewindom/builtin/marketing/shared/site-interpolation.js";
 
@@ -35,32 +34,37 @@ import type { PublicHeroView } from "../events-section-context.js";
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 import type { SettingValues } from "@rewindom/builtin/marketing/shared/section-settings.js";
 
+/**
+ * 这一段自己还要一张 values：`{feed}` 的**缺省** href（租户没填次按钮地址时）要在
+ * 插值之后再拼站内语言前缀，聚合层替好的 settings 里没有它。段里手填的文案与链接
+ * 已经由聚合层替过（见 marketing 的 `interpolate-section-settings.ts`），这里不重复。
+ */
 function interpolationOf(
   ctx: Parameters<SectionHtmlRenderer>[1],
 ): Record<string, string> {
   const context = readEventsContext(ctx);
   return {
+    ...(ctx.interpolation ?? {}),
     ...(context ? eventsInterpolationValues(context) : {}),
     ...readContributedInterpolation(ctx.contributed),
   };
 }
 
-function withInterpolatedCtas(
+/** 只改按钮的 href：缺省值补上 + 拼站内语言前缀。文案已由聚合层替好。 */
+function withResolvedCtaHrefs(
   s: SettingValues,
   ctx: Parameters<SectionHtmlRenderer>[1],
   values: Record<string, string>,
 ): SettingValues {
   const next: SettingValues = { ...s };
   for (const prefix of ["primary", "secondary"] as const) {
-    const label = interpolateSiteText(
-      settingText(s, `${prefix}_label`),
-      values,
-    );
-    const rawHref =
-      settingText(s, `${prefix}_href`) ||
-      (prefix === "secondary" ? EVENTS_FEED_HREF_TEMPLATE : "");
-    const href = interpolateSiteHref(rawHref, values);
-    next[`${prefix}_label`] = label;
+    const filled = settingText(s, `${prefix}_href`);
+    // 只有缺省值这一支还没插值过——它不在 settings 里，聚合层无从替起
+    const href = filled
+      ? filled
+      : prefix === "secondary"
+        ? interpolateSiteHref(EVENTS_FEED_HREF_TEMPLATE, values)
+        : "";
     next[`${prefix}_href`] = href ? siteHref(href, ctx) : "";
   }
   return next;
@@ -107,9 +111,10 @@ export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
   const context = readEventsContext(ctx);
   const values = interpolationOf(ctx);
 
-  const headline = interpolateSiteText(settingText(s, "headline"), values);
-  const eyebrow = interpolateSiteText(settingText(s, "eyebrow"), values);
-  const subhead = interpolateSiteText(settingText(s, "subhead"), values);
+  // 文案的 `{token}` 由聚合层替过了（`interpolate-section-settings.ts`），这里直接读
+  const headline = settingText(s, "headline");
+  const eyebrow = settingText(s, "eyebrow");
+  const subhead = settingText(s, "subhead");
 
   const hero = context?.hero ?? null;
   const stats =
@@ -129,7 +134,7 @@ export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
   <h1 class="events-hero-headline">${escapeHtml(headline)}</h1>
   ${profile}
   ${subhead ? `<p class="events-hero-lead">${escapeHtml(subhead)}</p>` : ""}
-  ${buttonRow(withInterpolatedCtas(s, ctx, values), "left")}
+  ${buttonRow(withResolvedCtaHrefs(s, ctx, values), "left")}
 </div>`;
 
   return `<div class="events-hero${stats ? " has-panel" : ""}">${main}${stats}</div>`;

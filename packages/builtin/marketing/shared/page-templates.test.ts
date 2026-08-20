@@ -306,12 +306,12 @@ describe("库存模板标题", () => {
 });
 
 describe("页面 meta 插值 tip", () => {
-  it("普通页只列出内置四项", () => {
+  it("普通页只列出内置五项", () => {
     expect(formatPageMetaInterpolationTokens("page")).toBe(
-      "{year} {site} {hostname} {url}",
+      "{year} {site} {tagline} {hostname} {url}",
     );
     expect(formatPageMetaInterpolationTokens()).toBe(
-      "{year} {site} {hostname} {url}",
+      "{year} {site} {tagline} {hostname} {url}",
     );
   });
 
@@ -327,7 +327,7 @@ describe("页面 meta 插值 tip", () => {
       interpolation_tokens: ["product", "product_description"],
     });
     expect(formatPageMetaInterpolationTokens(kind)).toBe(
-      "{year} {site} {hostname} {url} {product} {product_description}",
+      "{year} {site} {tagline} {hostname} {url} {product} {product_description}",
     );
   });
 });

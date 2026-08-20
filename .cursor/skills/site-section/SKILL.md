@@ -167,16 +167,19 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 
 ## CMS 插值（`{token}`）
 
-库存文案、链接 href、页脚 `chrome_text` 走 `{token}`（与 Hugo / 页脚同一套），**不是**代码 i18n 的 `{{param}}`。
+页面设置的标题 / 描述、每个区块的文案与链接、页头页脚 `chrome_text` 走同一套 `{token}`（与 Hugo / 页脚同一套），**不是**代码 i18n 的 `{{param}}`。
 
-- 内置：`{year}` `{site}` `{hostname}` `{url}`（`site-interpolation.ts`）
+- 内置：`{year}` `{site}`（站点名称）`{tagline}`（标语）`{hostname}` `{url}`（`site-interpolation.ts`）。**不搞别名**——`{site_name}` / `{site_desc}` / `{domain}` 一律不认
 - 模块经 `contributed.interpolation` 贡献（events：`{topic}` `{topic_slug}` `{feed}` `{event}` `{headline}` `{entity}` `{entity_kind}`）；多个 provider **按 key 合并**，不要 `Object.assign` 整包覆盖
-- **页面设置的标题 / 描述**走同一套插值，进 `<title>` / meta；带 `:slug` 的模板在 kind 上声明 `interpolation_tokens`，预设默认带上这些 token。path handler 不要覆盖 title/description
+- **段自己不要再插一遍。** 聚合层（`renderSectionHtml` / `SiteSections`）已按 schema 把 `text`/`textarea`/`richtext`/`list` 走文本插值、`link` 走 href 插值（`interpolate-section-settings.ts`），渲染器读到的 `settings` 就是成品。贡献段**什么都不用做**就支持 token
+- 例外只有一种：渲染器里**写死的缺省值**（不在 settings 里，聚合层无从替起），如 events 首屏次按钮的 `{feed}` 默认 href
+- **页面设置的标题 / 描述**同一套插值，进 `<title>` / meta；带 `:slug` 的模板在 kind 上声明 `interpolation_tokens`，预设默认带上这些 token。path handler 不要覆盖 title/description
 - 未识别的 `{foo}` 原样留下
 - 链接空路径段 / 空查询值渲染时收掉：`/topics/{topic_slug}/feed.xml` 在没有当前主题时是 `/topics/feed.xml`。当前页 RSS 请用 `{feed}`
 - **不要**在渲染器里暗改租户填的 href；把 token 写进存下来的地址，看得见、改得动
+- 新写一个渲染入口（自己那条 SSR 路由）时记得算好 `interpolation` 往下传，否则花括号原样吐给访客
 
-金标准：`packages/builtin/marketing/shared/site-interpolation.ts`、events 专题页 hero。
+金标准：`packages/builtin/marketing/shared/site-interpolation.ts`、`shared/interpolate-section-settings.ts`。
 
 ## 公开路径（非 MarketingPage）
 
@@ -198,3 +201,4 @@ CSS 金标准：`packages/builtin/site-member/shared/site-css/`。
 - 自己写模板页初始化或「自定义版式」空态
 - 预设文案先 `t()`，或 preset key 与 setting `default` 不是同一条 `ns:key`
 - 在渲染器里暗改租户填的 href（把 `{token}` 写进存下来的地址）
+- 在段的渲染器里自己再插一遍 `{token}`（聚合层已经替好了）

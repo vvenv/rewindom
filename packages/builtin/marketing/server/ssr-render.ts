@@ -12,15 +12,15 @@ import {
   formatDocumentTitle,
 } from "../shared/seo-meta.js";
 import {
-  interpolateSiteText,
-  interpolationValues,
-  readContributedInterpolation,
-} from "../shared/site-interpolation.js";
-import {
   type PublicMarketingPage,
   type PublicMarketingSite,
 } from "../shared/site-cms.js";
 import { SITE_ENHANCE_HASH } from "../shared/site-enhance.js";
+import {
+  interpolateSiteText,
+  interpolationValues,
+  readContributedInterpolation,
+} from "../shared/site-interpolation.js";
 import { withSiteLocale } from "../shared/site-locale.js";
 import {
   resolveThemeSettings,
@@ -203,6 +203,16 @@ export function renderMarketingHtml(input: {
     site.default_locale,
   );
   const theme = resolveThemeSettings(site.theme_settings);
+  /*
+   * 这一页的 `{token}` 值表，整条渲染路径共用一份：页面 title / description、页头页脚的
+   * chrome、正文每一段的文案与链接。算两次的下场是三处清单各漂各的。
+   */
+  const interpolation = interpolationValues({
+    siteName: site.site_name,
+    tagline: site.tagline,
+    origin,
+    extra: readContributedInterpolation(contributed),
+  });
   const sectionCtx = {
     pages: site.pages,
     currentPath: page.path,
@@ -213,6 +223,7 @@ export function renderMarketingHtml(input: {
     enabledEntitlements,
     contributed,
     isDefaultTenant,
+    interpolation,
   };
   const base = origin.replace(/\/$/u, "");
   const locale = normalizeLocale(page.locale, site.default_locale);
@@ -234,11 +245,6 @@ export function renderMarketingHtml(input: {
     site.default_locale,
     omitHreflang,
   );
-  const interpolation = interpolationValues({
-    siteName: site.site_name,
-    origin,
-    extra: readContributedInterpolation(contributed),
-  });
   const pageTitle = interpolateSiteText(page.title, interpolation).trim();
   const pageDescription = interpolateSiteText(
     page.description || "",
@@ -302,6 +308,7 @@ export function renderMarketingHtml(input: {
         ? renderHeaderHtml({
             section,
             siteName: site.site_name,
+            tagline: site.tagline,
             logoUrl,
             homeHref: withSiteLocale("/", locale, site.default_locale),
             locales: localeSwitcherOptions(page, locale),
@@ -324,6 +331,7 @@ export function renderMarketingHtml(input: {
           renderFooterHtml({
             section,
             siteName: site.site_name,
+            tagline: site.tagline,
             logoUrl,
             homeHref: withSiteLocale("/", locale, site.default_locale),
             locales: localeSwitcherOptions(page, locale),
@@ -360,6 +368,7 @@ export function renderMarketingHtml(input: {
         enabledEntitlements,
         contributed,
         isDefaultTenant,
+        interpolation,
       });
 
   const mainStyle =

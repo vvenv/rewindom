@@ -1,10 +1,12 @@
 import { defineRoute } from "@rewindom/server-kernel/http/define-route.js";
+import { requestOriginFromHeaders } from "@rewindom/server-kernel/lib/host-tenant.js";
 import {
   DEFAULT_TENANT_ID,
   isSiteMemberActor,
   type AppLocale,
 } from "@rewindom/shared";
 
+import { interpolationValues } from "../shared/site-interpolation.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
 import { renderPageSectionsHtml } from "./render-page-sections-html.js";
@@ -137,6 +139,13 @@ export async function siteContentRoutes(app: FastifyInstance): Promise<void> {
             hostTenant.tenant_id,
           ),
           isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
+          // 这段 HTML 直接注进公开页，`{site}` / `{tagline}` 得和同页其它段一样替掉
+          interpolation: interpolationValues({
+            siteName: result.site.site_name,
+            tagline: result.site.tagline,
+            origin:
+              requestOriginFromHeaders(request) ?? `http://${request.hostname}`,
+          }),
         }),
         title: result.page.title,
       };

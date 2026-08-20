@@ -98,6 +98,42 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 （`_common/styles.css` 的 chrome 段）。差别只有三样：语义元素（`<header>` / `<footer>`）、
 吸顶（只页头有意义）、`spacing_above`（只页脚有意义）。
 
+### 占位符（`{token}`）
+
+站点设置里的**站点名称**与**标语**是租户随时会改的东西，写死进任何一段文案都会过期。
+所以它们和年份、当前域名一样是渲染期替换的占位符，**页面设置、每个区块、页头页脚
+共用同一张表**（`shared/site-interpolation.ts`）：
+
+| token        | 值                                     |
+| ------------ | -------------------------------------- |
+| `{year}`     | 当前年份                               |
+| `{site}`     | 站点设置的**站点名称**                 |
+| `{tagline}`  | 站点设置的**标语**                     |
+| `{hostname}` | 本次请求的主机名（不含端口）           |
+| `{url}`      | 本次请求的站点 origin（含协议，无尾斜杠）|
+
+业务模块往 `contributed.interpolation` 填自己的（events 的 `{topic}` / `{topic_slug}` /
+`{feed}`），模板页再用 `interpolation_tokens` 声明「这张页面额外有哪几个」，编辑器据此
+列清单。**不搞别名**：`{site_name}` / `{site_desc}` / `{domain}` 一律不认——同一个值两种
+写法，租户就永远说不清哪个是对的。未识别的 `{foo}` 原样留下，不会被吃成空串。
+
+**插值收口在聚合层，段自己不要再插一遍。** `renderSectionHtml`（SSR）与 `SiteSections`
+（预览）在调用渲染器之前，按段的 schema 把设置值过一遍
+（`shared/interpolate-section-settings.ts`）：
+
+- `text` / `textarea` / `richtext` / `list` → `interpolateSiteText`
+- `link` → `interpolateSiteHref`（顺带收掉空路径段：`/topics/{topic_slug}/feed.xml` 在没有
+  当前主题时是 `/topics/feed.xml`，不是 `//`）
+- 其余（颜色、开关、数字、`select` 的枚举值）不碰；`nav_items` 由 `site-nav.ts` 走同一张表
+
+**贡献段因此什么都不用做**就支持 token——渲染器读到的 `settings` 已经是替换好的。以前
+每个想支持占位符的段都要自己 import 两个函数抄一遍，结果是页脚支持、events 首屏支持，
+而 hero / band / prose 与所有贡献段一个 token 都不认。
+
+值表由**根**算一次并往下传（`SectionRenderContext.interpolation`）：SSR 是 `ssr-render.ts`
+与 `renderPageSectionsHtml`，预览是 `TenantSiteView`。漏传不会报错，表现是花括号原样
+吐给访客——加新的渲染入口时记得带上。
+
 ### 位置由**块**说了算，不由块的 type 说了算
 
 这是整套 chrome 的核心。每个块带三个定位设置：
@@ -124,7 +160,7 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 | ----------------- | ------------------------------------------- |
 | `chrome_brand`    | show_logo, show_site_name, brand_text, blurb |
 | `chrome_nav`      | title, items, display(inline\|column)       |
-| `chrome_text`     | text（`{year}` / `{site}` / `{hostname}` / `{url}`） |
+| `chrome_text`     | text（`{year}` / `{site}` / `{tagline}` / `{hostname}` / `{url}`） |
 | `chrome_button`   | label, href, variant                        |
 | `chrome_locale`   | —                                           |
 | `chrome_theme`    | —                                           |
@@ -157,11 +193,10 @@ SSR 渲染器（`_common/chrome-html.ts`）、同一个 React 组件（`SiteChro
 
 **`chrome_text` 的占位符替掉了 `chrome_copyright` 的隐藏行为。** 那个块的语义是「留空则
 自动生成 © 当年 站名」：输入框里空着、前台却有字，想改成「© 2020–{year} Acme, Inc.」
-无从下手。现在默认值就是 `© {year} {site}`，看得见改得动。同一套还会替换 `{hostname}`
-（当前主机名，不含端口）和 `{url}`（当前 origin，含协议）。业务模块可以再往
-`contributed.interpolation` 填自己的 token（events 的 `{topic}` / `{topic_slug}` / `{feed}`）。
-跨年、改站名、换绑域名照样自己跟上（`shared/site-interpolation.ts`，页脚走
-`_common/chrome-text.ts`）。链接 href 同一套插值，空路径段会收掉——不要在渲染器里暗改地址。
+无从下手。现在默认值就是 `© {year} {site}`，看得见改得动。同一套 token 见下方
+「占位符（`{token}`）」——它不是页脚专有的，页面标题、每个区块的文案与链接都是这一份。
+跨年、改站名、改标语、换绑域名照样自己跟上。链接 href 同一套插值，空路径段会收掉——
+不要在渲染器里暗改地址。
 
 区域自身的 settings 只剩外壳（`_common/chrome-shell.ts`）：`padding_top` / `padding_bottom` /
 `row_gap` / `show_divider`，页头另加 `sticky`、页脚另加 `spacing_above`，再加通用配色。
@@ -1181,10 +1216,9 @@ URL 都会先规范化再查。来源写成 `/en/old` 或 `/old/` 与 `/old` 是
 og:title 用完整页标题（社交卡片不必跟 SERP 一样短）；og:description 与 meta description 同源。
 `og_image` 只放行站内相对路径与 http(s)：同一个值也会进编辑器预览的 `<img src>`。
 
-**页面设置的标题 / 描述就是 HTML `<title>` / meta。** 渲染期走与页脚同一套 `{token}`
-（`interpolateSiteText`）：内置 `{year}` `{site}` `{hostname}` `{url}`，再加上该页
-`contributed.interpolation`。带 `:slug` 的模板应在 `registerPageTemplateKind` 上声明
-`interpolation_tokens`，预设 title/description 默认带上这些占位符——path handler
+**页面设置的标题 / 描述就是 HTML `<title>` / meta。** 渲染期走与页脚、与每个区块同一套
+`{token}`（见下方「占位符（`{token}`）」）。带 `:slug` 的模板应在 `registerPageTemplateKind`
+上声明 `interpolation_tokens`，预设 title/description 默认带上这些占位符——path handler
 不要再用内容标题把页面设置盖掉。编辑器 tip 列出内置 token + 该 kind 声明的额外项。
 
 用例见 `server/ssr-seo.test.ts`、`shared/seo-meta.test.ts`。

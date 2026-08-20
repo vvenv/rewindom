@@ -35,6 +35,14 @@ export interface SectionRenderContext {
    */
   isDefaultTenant?: boolean;
   /**
+   * 本次渲染的 `{token}` 值表（内置项 + `contributed.interpolation`）。
+   *
+   * 由**根**算一次（`ssr-render` / `renderPageSectionsHtml` / 预览的 `TenantSiteView`），
+   * 聚合层据此把段的文案 / 链接类设置替换掉——渲染器读到的 `settings` 已经是成品。
+   * 不传等于「这次渲染没有站点上下文」：花括号原样留下，不会被悄悄吃成空串。
+   */
+  interpolation?: Record<string, string>;
+  /**
    * 贡献段的按请求数据。
    *
    * key 用**模块 id** 做命名空间，值的形状由贡献方自己定义与断言——marketing 不认识

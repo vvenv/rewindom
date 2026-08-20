@@ -4,9 +4,22 @@
  * 与代码 i18n 的 `{{param}}` 不是同一套：库存句、页脚版权、段里手填的 href 都是
  * **数据**，语法对齐 Hugo / Jekyll / 页脚 `chrome_text`——单花括号 `{token}`。
  *
- * 内置四项（页脚版权那一套）：`{year}` `{site}` `{hostname}` `{url}`。
+ * 内置五项，全是「写进 settings 就会过期」的值（口径同 Hugo / Jekyll / Ghost）：
+ *
+ * - `{year}` 当前年份——建站那天写死 `© 2026`，跨年之后页脚就一直停在去年
+ * - `{site}` 站点设置里的**站点名称**——改了站名，页脚 / 区块标题 / 页面 title 不跟着变
+ * - `{tagline}` 站点设置里的**标语**——一句话主张改了，得挨个页面去翻
+ * - `{hostname}` 当前访问的主机名（不含端口）——备案号旁边的域名、换绑自定义域
+ * - `{url}` 当前站点 origin（含协议，无末尾斜杠）——「访问 https://…」
+ *
+ * `{hostname}` / `{url}` 都从**这次请求的 origin** 拆，不是库里某条「对外域名」：
+ * 工作台与官网同 Host（见 Host 分流），编辑器预览和实站因此是同一个值。
+ *
  * 业务模块往 `contributed.interpolation` 填额外的（events 的 `{topic}` /
  * `{topic_slug}` / `{feed}`）。未出现在 values 里的 `{foo}` 原样留下，避免误伤文案里的花括号。
+ *
+ * **不搞别名**（`{site_name}` / `{site_desc}` / `{domain}` 都不认）：同一个值两种写法，
+ * 租户在编辑器里看见的是一份清单、在别人的站上抄到的是另一份，谁都说不清哪个是对的。
  *
  * 链接里空掉的路径段与空查询值会收掉：`/topics/{topic_slug}/feed.xml` 在没有
  * 当前主题时是 `/topics/feed.xml`，而不是 `//`。当前页 RSS 请用 `{feed}`，不要
@@ -15,7 +28,13 @@
 
 export const SITE_INTERPOLATION_KEY = "interpolation";
 
-export const BUILTIN_SITE_TOKENS = ["year", "site", "hostname", "url"] as const;
+export const BUILTIN_SITE_TOKENS = [
+  "year",
+  "site",
+  "tagline",
+  "hostname",
+  "url",
+] as const;
 
 const TOKEN_PATTERN = /\{([a-z][a-z0-9_]*)\}/gu;
 
@@ -71,8 +90,16 @@ function tokensFromOrigin(origin: string | undefined): {
   }
 }
 
+/**
+ * 合成一次渲染要用的整张 `{token}` 值表。
+ *
+ * `siteName` 不传就**一个内置项都不填**（而不是填空串）：那是「这次调用没有站点上下文」，
+ * 此时把 `{site}` 换成空串会把租户写的花括号悄悄吃掉，原样留下才看得见哪里没接上。
+ */
 export function interpolationValues(input: {
   siteName?: string;
+  /** 站点设置里的标语；站点没填时是空串，`{tagline}` 也就替换成空。 */
+  tagline?: string;
   origin?: string;
   year?: number;
   extra?: Record<string, string>;
@@ -82,6 +109,7 @@ export function interpolationValues(input: {
   if (input.siteName !== undefined) {
     builtin.year = String(input.year ?? new Date().getFullYear());
     builtin.site = input.siteName;
+    builtin.tagline = input.tagline ?? "";
     builtin.hostname = fromOrigin.hostname;
     builtin.url = fromOrigin.url;
   }

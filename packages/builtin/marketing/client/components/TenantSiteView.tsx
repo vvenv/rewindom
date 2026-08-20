@@ -15,6 +15,10 @@ import {
   type PublicMarketingPage,
   type PublicMarketingSite,
 } from "../../shared/site-cms.js";
+import {
+  interpolationValues,
+  readContributedInterpolation,
+} from "../../shared/site-interpolation.js";
 import { resolveThemeSettings } from "../../shared/theme-sections.js";
 import { useMarketingSiteDocumentTheme } from "../hooks/use-marketing-site-document-theme.js";
 import { marketingPresetT } from "../lib/marketing-preset-t.js";
@@ -86,6 +90,17 @@ export function TenantSiteView({
 
   const pageMeta = findPage(site, path);
   const theme = resolveThemeSettings(site.theme_settings);
+  /*
+   * 这张页面的 `{token}` 值表，页头 / 正文 / 页脚共用一份（同 SSR 的 `renderMarketingHtml`）。
+   * origin 交给 `SiteChrome` 兜底成 `window.location.origin`——工作台与官网同 Host，
+   * 编辑器预览里的 `{hostname}` / `{url}` 因此和访客看到的一致。
+   */
+  const interpolation = interpolationValues({
+    siteName: site.site_name,
+    tagline: site.tagline,
+    origin: typeof window !== "undefined" ? window.location.origin : undefined,
+    extra: readContributedInterpolation(contributed),
+  });
   const pageBg = pageSettings?.bg_color ?? null;
   const pageFg = pageSettings?.fg_color ?? null;
   const mainStyle: CSSProperties = {
@@ -131,6 +146,7 @@ export function TenantSiteView({
               key={section.id}
               section={section}
               siteName={site.site_name}
+              tagline={site.tagline}
               logoUrl={theme.logo_url ?? null}
               pages={site.pages}
               contributed={contributed}
@@ -154,6 +170,7 @@ export function TenantSiteView({
               pages={site.pages}
               currentPath={path}
               contributed={contributed}
+              interpolation={interpolation}
             />
           ),
         )}
@@ -169,6 +186,7 @@ export function TenantSiteView({
               pages={site.pages}
               currentPath={path}
               contributed={contributed}
+              interpolation={interpolation}
             />
           )}
         </main>
@@ -179,6 +197,7 @@ export function TenantSiteView({
               key={section.id}
               section={section}
               siteName={site.site_name}
+              tagline={site.tagline}
               logoUrl={theme.logo_url ?? null}
               pages={site.pages}
               contributed={contributed}
@@ -202,6 +221,7 @@ export function TenantSiteView({
               pages={site.pages}
               currentPath={path}
               contributed={contributed}
+              interpolation={interpolation}
             />
           ),
         )}

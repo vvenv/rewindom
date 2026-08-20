@@ -32,7 +32,6 @@ import {
   chromeShellVarsAttr,
   resolveChromeShell,
 } from "../../../shared/sections/_common/chrome-shell.js";
-import { resolveChromeText } from "../../../shared/sections/_common/chrome-text.js";
 import {
   siteNavPages,
   type PageLocaleAlternate,
@@ -302,6 +301,8 @@ function SiteThemeToggle({ locale }: { locale: AppLocale }): ReactElement {
 export interface SiteChromeProps {
   section: SiteSection;
   siteName: string;
+  /** 站点设置里的标语；`{tagline}` 从这里来。 */
+  tagline?: string;
   logoUrl: string | null;
   pages?: PublicSitePage[];
   contributed?: Readonly<Record<string, unknown>>;
@@ -363,6 +364,7 @@ function chromeNavContext(props: SiteChromeProps, origin: string): SiteNavContex
     enabledEntitlements: props.enabledEntitlements,
     interpolation: interpolationValues({
       siteName: props.siteName,
+      tagline: props.tagline,
       origin,
       extra: readContributedInterpolation(props.contributed),
     }),
@@ -441,11 +443,11 @@ export function SiteChrome({
         );
       }
       case "chrome_text": {
-        const text = resolveChromeText(settingText(block.settings, "text"), {
-          siteName,
-          origin,
-          extra: readContributedInterpolation(props.contributed),
-        });
+        // 与按钮、导航同一张 values（`chromeNavContext` 已经算过），别再自算一套
+        const text = interpolateSiteText(
+          settingText(block.settings, "text"),
+          ctx.interpolation ?? {},
+        );
         return text ? <p className="chrome-text">{text}</p> : null;
       }
       case "chrome_button": {

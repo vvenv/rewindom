@@ -20,6 +20,7 @@ import { Slider } from "@rewindom/ui/slider";
 import { Textarea } from "@rewindom/ui/textarea";
 import { useTranslation } from "react-i18next";
 
+import { formatPageMetaInterpolationTokens } from "../../../shared/page-templates.js";
 import {
   isInputSetting,
   isLocalizableSetting,
@@ -46,6 +47,23 @@ import { SpacingBoxField } from "./SpacingBoxField.js";
 import type { SiteNavItem } from "../../../shared/site-nav.js";
 import type { AppLocale } from "@rewindom/shared";
 
+/**
+ * 这一组里有没有会被插值的字段（口径与 `interpolate-section-settings.ts` 同一份）。
+ *
+ * 只在有的时候才把占位符清单写在组末：颜色、留白那两个页签下写一行「支持 {site}」
+ * 纯属误导——那些字段里的花括号不会被替。
+ */
+function hasInterpolatableField(defs: SettingDef[]): boolean {
+  return defs.some(
+    (def) =>
+      def.type === "text" ||
+      def.type === "textarea" ||
+      def.type === "richtext" ||
+      def.type === "list" ||
+      def.type === "link",
+  );
+}
+
 interface SettingsFieldsProps {
   defs: SettingDef[];
   values: SettingValues;
@@ -68,6 +86,11 @@ interface SettingsFieldsProps {
    * 页头导航再显示「从页头复制」等于复制自己。
    */
   sectionType: string;
+  /**
+   * 当前页面的 kind；用来列出本页额外可用的 `{token}`（专题页的 `{topic}` 等）。
+   * 页头 / 页脚是站点级区域，不传——那里只有内置项。
+   */
+  pageKind?: string;
   onChange: (next: SettingValues) => void;
 }
 
@@ -84,6 +107,7 @@ export function SettingsFields({
   defaultLocale,
   columnCount,
   sectionType,
+  pageKind,
   onChange,
 }: SettingsFieldsProps): ReactElement {
   const { t } = useTranslation("marketing");
@@ -173,6 +197,18 @@ export function SettingsFields({
           />
         );
       })}
+      {/*
+        占位符清单摊在组末，不收进气泡：它是**整组**文字与链接字段共有的能力，
+        逐个字段挂一个 tip 等于同一句话说十遍，而藏进 hover 里就等于没写——
+        租户不会去 hover 一个自己没预期存在的功能。
+      */}
+      {hasInterpolatableField(defs) ? (
+        <FieldDescription>
+          {t("editor.info.settings_interpolation", {
+            tokens: formatPageMetaInterpolationTokens(pageKind),
+          })}
+        </FieldDescription>
+      ) : null}
     </FieldGroup>
   );
 }
@@ -431,11 +467,7 @@ function SettingControl({
         options.push({ value: current, label: current });
       }
       return (
-        <Select
-          disabled={disabled}
-          value={current}
-          onValueChange={onChange}
-        >
+        <Select disabled={disabled} value={current} onValueChange={onChange}>
           <SelectTrigger id={fieldId} className="w-full">
             <SelectValue />
           </SelectTrigger>

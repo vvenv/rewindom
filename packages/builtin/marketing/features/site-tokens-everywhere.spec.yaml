@@ -1,0 +1,81 @@
+# 增量功能契约 —— 站点名称 / 标语作为占位符，页面与区块处处可用
+#
+# 起因：站点设置里的**站名**已经有 `{site}`，**标语**却只在「首页 description 缺省时
+# 回落」这一处用得上——想在事件雷达首页版式的页面标题里写「{site} · {tagline}」无从下手。
+# 更要命的是插值的**覆盖面**：页面 meta（ssr-render）、chrome 文案与链接（chrome-html）、
+# events 首屏（自己抄了一遍）各做各的，普通页面区块（hero / band / prose / page-header）
+# 与所有贡献段一个 token 都不认。租户在区块标题里写 `{site}`，前台原样吐花括号。
+#
+# 口径不变（Hugo / Jekyll / Ghost 同一套，见 chrome-text-placeholders）：只放「写进
+# settings 就会过期」的值，一次给齐，不搞别名。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: 内置 token 补上 `{tagline}`；段渲染的聚合层按 schema 统一把 text/textarea/richtext/list/link 类设置过一遍插值，页面区块与贡献段因此不必各写一遍；编辑器在文字类设置下方列出本处可用的占位符。
+gold: packages/builtin/marketing/shared/site-interpolation.ts
+touch:
+  - packages/builtin/marketing/features/site-tokens-everywhere.spec.yaml
+  - packages/builtin/marketing/shared/site-interpolation.ts
+  - packages/builtin/marketing/shared/site-interpolation.test.ts
+  - packages/builtin/marketing/shared/interpolate-section-settings.ts
+  - packages/builtin/marketing/shared/interpolate-section-settings.test.ts
+  - packages/builtin/marketing/shared/sections/render-context.ts
+  - packages/builtin/marketing/shared/sections/html.ts
+  - packages/builtin/marketing/shared/sections/header/html.ts
+  - packages/builtin/marketing/shared/sections/footer/html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-html.test.ts
+  - packages/builtin/marketing/shared/sections/_common/chrome-text.ts # 删除：并进 site-interpolation
+  - packages/builtin/marketing/shared/sections/_common/chrome-text.test.ts # 删除
+  - packages/builtin/marketing/shared/page-templates.test.ts
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-seo.test.ts
+  - packages/builtin/marketing/server/render-page-sections-html.ts
+  - packages/builtin/marketing/server/render-page-sections-html.test.ts
+  - packages/builtin/marketing/server/site-content.routes.ts
+  - packages/builtin/marketing/client/components/TenantSiteView.tsx
+  - packages/builtin/marketing/client/components/sections/SiteSections.tsx
+  - packages/builtin/marketing/client/components/sections/SiteChrome.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SettingsFields.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SectionSettingsForm.tsx
+  - packages/builtin/marketing/client/pages/site-editor.tsx
+  - packages/builtin/marketing/client/locales/
+  - packages/builtin/marketing/MODULE.md
+  - modules/events/shared/sections/hero-html.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/site-docs/docs/usage/
+  - modules/site-docs/server/usage-docs.generated.ts
+  - .cursor/skills/site-section/SKILL.md
+out_of_scope:
+  - `{site_name}` / `{site_desc}` 作为 `{site}` / `{tagline}` 的别名（口径是「一次给齐不搞别名」，见 chrome-text-placeholders 的 out_of_scope）
+  - 给站点设置的站名 / 标语字段本身做插值（那是插值的**源**，自引用只会绕圈）
+  - `nav_items` 里的条目（已在 `site-nav.ts` 走同一套 values，不重复处理）
+  - 主题设置 / 站点设置里的非文案字段（颜色、字体、脚本地址不该被花括号影响）
+  - 段渲染器里已有的插值调用一律删掉（events 首屏保留：它的 `{feed}` 缺省值要在插值后再拼站内前缀）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-interpolation.test.ts interpolate-section-settings.test.ts chrome-html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-seo.test.ts render-page-sections-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run --project shared sections/hero-html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client SiteChrome.test.tsx
+  - pnpm check:i18n
+  - pnpm check:modules
+
+# ---------- 可选 ----------
+entitlement: # 无（marketing 是 infra 模块）
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. `BUILTIN_SITE_TOKENS` = `year` `site` `tagline` `hostname` `url`。页面设置 tip
+#    与编辑器区块提示都读这张表，加一项两处自动跟上。
+# 2. **插值收口在聚合层**：`renderSectionHtml` / `SiteSections` 拿 `ctx.interpolation`
+#    按段的 schema 把设置值过一遍（`link` 走 `interpolateSiteHref`，其余文案类走
+#    `interpolateSiteText`），渲染器读到的 `settings` 已经是替换好的。贡献段因此
+#    **什么都不用做**就支持 token——以前要自己 import 两个函数抄一遍。
+# 3. values 由**根**算一次：`ssr-render`（页头页脚 + 正文）、`renderPageSectionsHtml`、
+#    `TenantSiteView`（预览）。内置项来自站点对象与请求 origin，模块项仍走
+#    `contributed.interpolation`。
+# 4. chrome 的 `{token}` 与段的是同一份 values：`chrome_text` 不再自算一套
+#    （`resolveChromeText` 连同 `CHROME_TEXT_TOKENS` 一起删掉，后者早已无人引用）。

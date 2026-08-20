@@ -110,6 +110,45 @@ describe("renderPageSectionsHtml", () => {
     ).toContain("产品站专属");
   });
 
+  /*
+   * 段的文案 / 链接由聚合层统一插值（`interpolate-section-settings.ts`）。贡献段
+   * 因此什么都不用做就支持 `{site}` / `{tagline}`——这条一旦断了，表现是租户在区块
+   * 标题里写的花括号原样吐给访客，没有任何报错。
+   */
+  it("段里的 {token} 由聚合层替掉，贡献段不必自己插一遍", () => {
+    const type = "demo.token-probe";
+    registerSiteSectionHtml(
+      {
+        type,
+        label: "demo:token",
+        placements: ["page"],
+        settings: [
+          { type: "text", id: "title", label: "demo:title" },
+          { type: "link", id: "href", label: "demo:href" },
+        ],
+      },
+      (section) =>
+        `<p>${section.settings.title as string}</p><a href="${section.settings.href as string}">go</a>`,
+    );
+
+    const section = createSection(type);
+    const withTokens = {
+      ...section,
+      settings: { title: "{site} · {tagline}", href: "/t/{topic_slug}/feed.xml" },
+    };
+
+    expect(renderPageSectionsHtml(site(), page([withTokens]))).toContain(
+      "{site} · {tagline}",
+    );
+
+    const html = renderPageSectionsHtml(site(), page([withTokens]), {
+      interpolation: { site: "Demo", tagline: "标语", topic_slug: "" },
+    });
+    expect(html).toContain("<p>Demo · 标语</p>");
+    // link 类走 href 那一支：空段收掉，而不是留下 `//`
+    expect(html).toContain(`href="/t/feed.xml"`);
+  });
+
   it("渲出与 SSR 同构的 section HTML", () => {
     const section = createSection("prose");
     const html = renderPageSectionsHtml(

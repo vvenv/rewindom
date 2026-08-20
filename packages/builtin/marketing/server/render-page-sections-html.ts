@@ -41,6 +41,13 @@ export interface RenderPageSectionsOptions {
    * 编辑器预览却正常（React 视图不走这条闸门）。
    */
   isDefaultTenant?: boolean;
+  /**
+   * 本次渲染的 `{token}` 值表（见 `SectionRenderContext.interpolation`）。
+   *
+   * 与 `contributed` 同病：漏传不会报错，只是段里的 `{site}` / `{tagline}` 原样
+   * 吐给访客。调用方手上有站点对象与请求 origin，算一次传下来即可。
+   */
+  interpolation?: Record<string, string>;
 }
 
 export function renderPageSectionsHtml(
@@ -48,7 +55,7 @@ export function renderPageSectionsHtml(
   page: PublicMarketingPage,
   options: RenderPageSectionsOptions = {},
 ): string {
-  const { enabledEntitlements, contributed, isDefaultTenant } =
+  const { enabledEntitlements, contributed, isDefaultTenant, interpolation } =
     options;
   const theme = resolveThemeSettings(site.theme_settings);
   const sections = page.sections;
@@ -65,6 +72,7 @@ export function renderPageSectionsHtml(
     enabledEntitlements,
     contributed,
     isDefaultTenant,
+    interpolation,
   };
   return sections
     .map((section, index) =>
