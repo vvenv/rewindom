@@ -15,6 +15,7 @@ rewindom.com（产品主域、默认租户）的品牌资产真源。
 | `maskable-512.png` | Android 自适应图标（字形收进安全区） | `generate.mjs` |
 | `wordmark-light.png` | 横向字标，`#38bdf8` 标 + 白字，给深底 | `generate.mjs` |
 | `wordmark-dark.png` | 横向字标，`#0369a1` 标 + 黑字，给浅底 | `generate.mjs` |
+| `hero.jpg` | 首页首屏分栏配图，4:3 | 手出（不走 `generate.mjs`） |
 
 **只手改 SVG**，位图一律重跑生成脚本：
 
@@ -40,6 +41,7 @@ pnpm --filter server exec tsx scripts/apply-rewindom-brand.ts --slug rewindom
 
 - `logo_url` / `favicon_url` / `og_image`
 - `apple_touch_icon_url` / `maskable_icon_url`
+- 首页（中英）hero 段的 `image` / `image_alt`
 - `brand_font_family`（Inter）
 - `primary_color`（`#0369a1`，可用 `--no-primary` 跳过）
 
@@ -57,6 +59,7 @@ pnpm --filter server exec tsx scripts/apply-rewindom-brand.ts --slug rewindom
 | iOS 加到主屏 | `apple-touch-icon.png` | 同上，iOS 套圆角矩形 |
 | Android 自适应图标 | `maskable-512.png` | 安全区是「中心 80% 直径的圆」，字形要再缩一档 |
 | 公众号头图 / 演示稿 / 页脚 | `wordmark-*.png` | 透明底解决不了字色，深浅底各一张 |
+| 首页首屏分栏 | `hero.jpg` | 4:3；Spec 对着站点预览，不是抽象光晕 |
 
 工作台侧栏 / 登录页走 `packages/client-kit` 的 `Logo`（同一条 path、`currentColor`）。
 
@@ -100,6 +103,8 @@ pnpm --filter server exec tsx scripts/apply-rewindom-brand.ts --slug rewindom
   ```
 
 - **长句自己折行**：OG 上没有溢出滚动这回事，`wrapLines` 按实测宽度断，最多取两行。
+- **首页配图**：`hero.jpg` 是一张产品实景——笔记本上左边 `MODULE.spec.yaml`、右边带玉玦的站点预览，
+  不是光晕隐喻、不是假数据仪表盘。4:3 对齐 `.hero-media img`。不走 `generate.mjs`。
 
 字体取自官网自己发的那套（`apps/client/public/assets/site-fonts`，见 marketing 的
 `theme-fonts`），不吃系统字体——换台机器出图一致。

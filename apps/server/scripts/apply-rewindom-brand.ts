@@ -14,6 +14,7 @@
  *   pnpm --filter server exec tsx scripts/apply-rewindom-brand.ts --slug rewindom --favicon-svg
  *   pnpm --filter server exec tsx scripts/apply-rewindom-brand.ts --slug rewindom --favicon-png
  *   pnpm --filter server exec tsx scripts/apply-rewindom-brand.ts --slug rewindom --og-only
+ *   pnpm --filter server exec tsx scripts/apply-rewindom-brand.ts --slug rewindom --hero-only
  */
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -48,6 +49,8 @@ interface Args {
   faviconPng: boolean;
   /** 只换 OG 图，不动 logo / favicon / 主色。 */
   ogOnly: boolean;
+  /** 只换首页 hero 配图。 */
+  heroOnly: boolean;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -56,6 +59,7 @@ function parseArgs(argv: string[]): Args {
   let faviconSvg = false;
   let faviconPng = false;
   let ogOnly = false;
+  let heroOnly = false;
   let slug = DEFAULT_TENANT_SLUG;
   for (let i = 0; i < argv.length; i += 1) {
     const token = argv[i];
@@ -79,6 +83,10 @@ function parseArgs(argv: string[]): Args {
       ogOnly = true;
       continue;
     }
+    if (token === "--hero-only") {
+      heroOnly = true;
+      continue;
+    }
     if (token === "--slug" && i + 1 < argv.length) {
       slug = (argv[i + 1] ?? "").trim();
       i += 1;
@@ -87,7 +95,7 @@ function parseArgs(argv: string[]): Args {
   if (!slug) {
     throw new Error("需要 --slug <tenant-slug>");
   }
-  return { dryRun, slug, setPrimary, faviconSvg, faviconPng, ogOnly };
+  return { dryRun, slug, setPrimary, faviconSvg, faviconPng, ogOnly, heroOnly };
 }
 
 async function readAsset(
@@ -106,6 +114,70 @@ async function readAsset(
     return { buffer: Buffer.from(clean, "utf8"), mime_type };
   }
   return { buffer, mime_type };
+}
+
+const HERO_ALT: Record<string, string> = {
+  en: "The foundation takes the shape of the product",
+  "zh-CN": "底座随业务成形",
+};
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** 给首页 hero 段写 image / image_alt，容器列里的 hero 也走到。 */
+function withHeroImage(value: unknown, imageUrl: string, alt: string): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => withHeroImage(item, imageUrl, alt));
+  }
+  if (!isPlainObject(value)) return value;
+  const next: Record<string, unknown> = { ...value };
+  if (Array.isArray(value.blocks)) {
+    next.blocks = value.blocks.map((block) => {
+      if (!isPlainObject(block) || !Array.isArray(block.sections)) return block;
+      return { ...block, sections: withHeroImage(block.sections, imageUrl, alt) };
+    });
+  }
+  if (value.type === "hero") {
+    const settings = isPlainObject(value.settings) ? value.settings : {};
+    next.settings = { ...settings, image: imageUrl, image_alt: alt };
+  }
+  return next;
+}
+
+async function applyHeroToHomePages(
+  tenantId: string,
+  imageUrl: string,
+  dryRun: boolean,
+): Promise<number> {
+  const pages = await prisma.marketingPage.findMany({
+    where: { tenant_id: tenantId, kind: "home" },
+    select: {
+      id: true,
+      locale: true,
+      sections: true,
+      sections_draft: true,
+    },
+  });
+  let wrote = 0;
+  for (const page of pages) {
+    const alt = HERO_ALT[page.locale] ?? HERO_ALT.en;
+    const sections = withHeroImage(page.sections, imageUrl, alt);
+    const draft = withHeroImage(page.sections_draft, imageUrl, alt);
+    console.log(
+      `[apply-rewindom-brand] home locale=${page.locale} hero image → ${imageUrl}`,
+    );
+    if (dryRun) continue;
+    await prisma.marketingPage.update({
+      where: { id: page.id, tenant_id: tenantId },
+      data: {
+        sections: sections as Prisma.InputJsonValue,
+        sections_draft: draft as Prisma.InputJsonValue,
+      },
+    });
+    wrote += 1;
+  }
+  return wrote;
 }
 
 async function main(): Promise<void> {
@@ -225,10 +297,39 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (args.heroOnly) {
+    const hero = await readAsset("hero.jpg", "image/jpeg");
+    console.log(
+      `[apply-rewindom-brand] tenant=${tenant.slug} hero ← ${hero.buffer.byteLength}B jpeg`,
+    );
+    if (args.dryRun) {
+      const homes = await prisma.marketingPage.count({
+        where: { tenant_id: tenant.id, kind: "home" },
+      });
+      console.log(
+        `[apply-rewindom-brand] dry-run, would patch ${homes} home page(s)`,
+      );
+      return;
+    }
+    const heroAsset = await uploadSiteAsset({
+      tenant_id: tenant.id,
+      tenant_slug: tenant.slug,
+      buffer: hero.buffer,
+      mime_type: hero.mime_type,
+    });
+    await updateSiteAssetAlt(tenant.id, tenant.slug, heroAsset.id, BRAND_ALT);
+    const wrote = await applyHeroToHomePages(tenant.id, heroAsset.url, false);
+    console.log(
+      `[apply-rewindom-brand] wrote hero=${heroAsset.url} pages=${wrote}`,
+    );
+    return;
+  }
+
   const mark = await readAsset("mark.svg", "image/svg+xml");
   const og = await readAsset("og.png", "image/png");
   const appleTouch = await readAsset("apple-touch-icon.png", "image/png");
   const maskable = await readAsset("maskable-512.png", "image/png");
+  const hero = await readAsset("hero.jpg", "image/jpeg");
 
   console.log(
     `[apply-rewindom-brand] tenant=${tenant.slug} domain=${tenant.custom_domain ?? ""}`,
@@ -237,7 +338,7 @@ async function main(): Promise<void> {
     `[apply-rewindom-brand] current logo=${live.logo_url ?? ""} favicon=${live.favicon_url ?? ""} og=${live.og_image ?? ""} apple=${live.apple_touch_icon_url ?? ""} maskable=${live.maskable_icon_url ?? ""} font=${live.brand_font_family ?? "(body)"} primary=${live.primary_color ?? ""}`,
   );
   console.log(
-    `[apply-rewindom-brand] files mark=${mark.buffer.byteLength}B favicon=svg og=${og.buffer.byteLength}B apple=${appleTouch.buffer.byteLength}B maskable=${maskable.buffer.byteLength}B brand_font=${BRAND_FONT_FAMILY} primary=${args.setPrimary ? PRIMARY_COLOR : "(keep)"}`,
+    `[apply-rewindom-brand] files mark=${mark.buffer.byteLength}B favicon=svg og=${og.buffer.byteLength}B apple=${appleTouch.buffer.byteLength}B maskable=${maskable.buffer.byteLength}B hero=${hero.buffer.byteLength}B brand_font=${BRAND_FONT_FAMILY} primary=${args.setPrimary ? PRIMARY_COLOR : "(keep)"}`,
   );
 
   if (args.dryRun) {
@@ -277,6 +378,14 @@ async function main(): Promise<void> {
   });
   await updateSiteAssetAlt(tenant.id, tenant.slug, maskableAsset.id, BRAND_ALT);
 
+  const heroAsset = await uploadSiteAsset({
+    tenant_id: tenant.id,
+    tenant_slug: tenant.slug,
+    buffer: hero.buffer,
+    mime_type: hero.mime_type,
+  });
+  await updateSiteAssetAlt(tenant.id, tenant.slug, heroAsset.id, BRAND_ALT);
+
   const patch = {
     logo_url: logoAsset.url,
     favicon_url: logoAsset.url,
@@ -299,6 +408,11 @@ async function main(): Promise<void> {
 
   console.log(
     `[apply-rewindom-brand] wrote logo=${logoAsset.url} favicon=${logoAsset.url} og=${ogAsset.url} apple=${appleAsset.url} maskable=${maskableAsset.url} brand_font=${BRAND_FONT_FAMILY}`,
+  );
+
+  const heroPages = await applyHeroToHomePages(tenant.id, heroAsset.url, false);
+  console.log(
+    `[apply-rewindom-brand] wrote hero=${heroAsset.url} pages=${heroPages}`,
   );
 }
 
