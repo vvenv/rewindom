@@ -197,8 +197,8 @@
       "topicEyebrow": "事件雷达 · {topic}",
       "topicHeadline": "{topic} 正在发生什么",
       "entityEyebrow": "事件雷达 · {entity_kind}",
-      "entityHeadline": "与 {entity} 相关的全部事件",
-      "entitySubhead": "事件一天就凉，这一页是长期可回访的记录。"
+      "entityHeadline": "{entity}",
+      "entitySubhead": "跨来源追踪 {entity} 相关的事件，最近的排在前面。"
     }
   },
   "link": {
@@ -241,8 +241,9 @@
       "whyLabel": "「为什么在扩散」标题"
     },
     "entity": {
-      "label": "实体页正文",
+      "label": "实体正文",
       "eventsLabel": "事件列表标题",
+      "eventsLabelInfo": "默认留空就不画标题：这一页只有这一个列表，首屏也刚说完这是谁",
       "showSources": "显示来源",
       "emptyText": "空态文案"
     },
@@ -275,7 +276,9 @@
       "subscribeHrefInfo": "默认 {feed}：订当前页对应的 feed（专题 / 实体 / 全站）。想钉死某一格就改成 /topics/ai/feed.xml。"
     },
     "entityHero": {
-      "label": "实体首屏"
+      "label": "实体首屏",
+      "showProfile": "显示累计档案",
+      "showProfileInfo": "近 90 天出过几次、累计多久——下面那个按时间排的列表回答不了的那部分"
     }
   },
   "template": {
@@ -397,7 +400,6 @@
     "unfollow": "取消关注 {{name}}"
   },
   "entity": {
-    "relatedEvents": "相关事件",
     "empty": "这个实体还没有关联的事件"
   },
   "entityKind": {

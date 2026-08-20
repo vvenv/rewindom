@@ -61,3 +61,5 @@ models: []
 # 4. 插值 `{entity}` / `{entity_kind}` / `{feed}`。编辑器编实体模板时，实体首屏
 #    也要带实体样张。
 # 5. 正文段仍画实体名 h1：存量页没有首屏，删掉会让线上实体页突然没有标题。
+#    （已被 `entity-page-copy-dedupe.spec.yaml` 推翻：h1 归首屏、正文那一份删了，
+#     存量页由 `backfill-events-entity-hero.ts` 一次性补首屏接住。）

@@ -17,10 +17,9 @@ import type {
   EventStatus,
   EventTopic,
 } from "./events.js";
-import {
-  eventsFeedPath,
-  eventsHubPath,
-} from "./events-public-paths.js";
+import { eventsFeedPath, eventsHubPath } from "./events-public-paths.js";
+/* `export *` 不带进本地作用域，下面 `listing?: EventsIndexQuery` 要单独引一次 */
+import type { EventsIndexQuery } from "./events-public-paths.js";
 
 export * from "./events-public-paths.js";
 
@@ -125,7 +124,11 @@ export interface PublicEventDetailView extends PublicEventCard {
    */
   placement: { text: string; href: string | null }[];
   /** 已按 official / news / community 分好组，且组名已落成当前语言 */
-  source_groups: { kind: EventSourceKind; label: string; items: PublicEventSource[] }[];
+  source_groups: {
+    kind: EventSourceKind;
+    label: string;
+    items: PublicEventSource[];
+  }[];
   /** 相关事件（不是同一件事）。空数组 = 没算出来或没配 embedding key，整块不渲染 */
   related: PublicRelatedEvent[];
   /** 「为什么在扩散」。说不清楚时是空数组，整块不渲染 */

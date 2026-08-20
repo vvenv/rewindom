@@ -98,7 +98,14 @@ export async function renderEntityFeed(
     renderRssXml({
       title: `${scope.siteName} · ${entity.name}`,
       link: absolute(scope, entityPath(slug)),
-      description: eventsMessage(scope.locale, "entity.relatedEvents"),
+      /*
+       * feed 的说明就是这一页的摘要（`{entity}` 是 CMS 插值，这里自己代掉）。
+       * 曾经写的是段标题「相关事件」——脱离页面看，那三个字什么也没说。
+       */
+      description: eventsMessage(
+        scope.locale,
+        "site.entity.subtitle",
+      ).replaceAll("{entity}", entity.name),
       self_url: absolute(scope, scope.selfPath),
       language: scope.locale,
       items: entity.events.map((event) => toRssItem(event, scope)),

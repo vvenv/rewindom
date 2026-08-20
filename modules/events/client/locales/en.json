@@ -197,8 +197,8 @@
       "topicEyebrow": "Event radar · {topic}",
       "topicHeadline": "What's happening in {topic}",
       "entityEyebrow": "Event radar · {entity_kind}",
-      "entityHeadline": "Every event involving {entity}",
-      "entitySubhead": "Events go cold in a day. This page is the lasting record."
+      "entityHeadline": "{entity}",
+      "entitySubhead": "Every event involving {entity}, merged across sources — most recent first."
     }
   },
   "link": {
@@ -241,8 +241,9 @@
       "whyLabel": "Why it's spreading heading"
     },
     "entity": {
-      "label": "Entity page body",
+      "label": "Entity body",
       "eventsLabel": "Events heading",
+      "eventsLabelInfo": "Left empty no heading is drawn: this page has only one list, and the hero just said whose it is",
       "showSources": "Show sources",
       "emptyText": "Empty state text"
     },
@@ -275,7 +276,9 @@
       "subscribeHrefInfo": "Default {feed} — this page's RSS (topic, entity, or site). Pin a slot with /topics/ai/feed.xml."
     },
     "entityHero": {
-      "label": "Entity hero"
+      "label": "Entity hero",
+      "showProfile": "Show the running tally",
+      "showProfileInfo": "How many times in the last 90 days, and for how long — the part the list below can't answer"
     }
   },
   "template": {
@@ -397,7 +400,6 @@
     "unfollow": "Unfollow {{name}}"
   },
   "entity": {
-    "relatedEvents": "Related events",
     "empty": "No events reference this entity yet"
   },
   "entityKind": {

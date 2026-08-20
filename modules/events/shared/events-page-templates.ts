@@ -213,10 +213,9 @@ export const EVENTS_ENTITY_TEMPLATE_PRESET: PagePreset = {
   sections: [
     EVENTS_ENTITY_HERO_SECTION,
     {
-      /* 没有 heading：标题画的是当前实体自己的名字（见段定义）。 */
+      /* 标题默认留空：这一页只有这一个列表，身份已经画在上面的首屏里。 */
       type: EVENTS_ENTITY_SECTION_TYPE,
       text: {
-        events_label: "events:entity.relatedEvents",
         empty_text: "events:entity.empty",
       },
     },

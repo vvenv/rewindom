@@ -29,6 +29,19 @@ export function eventsHeroSettings(defaults: {
   headline: string;
   subhead: string;
   showStatsDefault: boolean;
+  /**
+   * 实体首屏专属：把累计档案画在标题下面。
+   *
+   * 只在**有当前实体**的那一段上长这个开关——首页 / 专题没有实体，多一个永远
+   * 画不出东西的勾选框只会让人以为自己关错了什么。
+   */
+  profile?: boolean;
+  /**
+   * 竖向留白。首页那块是产品主张，撑开好看；实体名片不是——首屏下面紧跟着的是
+   * 卡片列表（正文段默认不画标题），72 的下边距加上正文段自己的 48，按钮和第一张
+   * 卡片之间会空出 120px 的无人区。
+   */
+  paddingY?: { top: number; bottom: number };
 }): SettingDef[] {
   return [
     { type: "header", content: "editor.group.content" },
@@ -62,6 +75,17 @@ export function eventsHeroSettings(defaults: {
       default: defaults.showStatsDefault,
       info: "events:section.hero.showStatsInfo",
     },
+    ...(defaults.profile
+      ? ([
+          {
+            type: "checkbox",
+            id: "show_profile",
+            label: "events:section.entityHero.showProfile",
+            default: true,
+            info: "events:section.entityHero.showProfileInfo",
+          },
+        ] as SettingDef[])
+      : []),
     {
       type: "checkbox",
       id: "show_glow",
@@ -82,9 +106,9 @@ export function eventsHeroSettings(defaults: {
      */
     ...layoutSettings({
       width: "full",
-      padding_top: 72,
+      padding_top: defaults.paddingY?.top ?? 72,
       padding_right: 24,
-      padding_bottom: 72,
+      padding_bottom: defaults.paddingY?.bottom ?? 72,
       padding_left: 24,
     }),
   ];

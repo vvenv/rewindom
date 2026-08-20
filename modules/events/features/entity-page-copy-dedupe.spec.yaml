@@ -1,0 +1,85 @@
+# 实体页加了 `events.entity-hero` 之后，同一屏说了两遍：
+#
+#   首屏  事件雷达 · 公司 / 与 OpenAI 相关的全部事件 / 事件一天就凉…
+#   正文  OpenAI(h1) / 公司(p) / 累计档案 / 相关事件(h2) / 列表
+#
+# 三处重复：两个 h1、类型（公司）两遍、「与 X 相关的全部事件」和「相关事件」两遍。
+#
+# 归位按「谁是页面的名字」来分：**实体名就是这一页的 h1**，画在首屏上（与页面
+# 标题 `{entity}` 同一条）；类型进 eyebrow（已经在了）。正文段只留列表回答不了的
+# 累计档案 + 事件列表，不再自己画一次身份。
+#
+# 顺带统一称呼：添加区块里「实体首屏」/「实体页正文」不是一套词。段名一律按
+# **内容**命名（系统里 `文档正文` / `事件详情` / `商品详情` 都是这条），
+# 「实体页正文」→「实体正文」，与「实体首屏」成对。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 实体页读成「名片 → 列表」：身份 + 累计档案都归首屏，正文只剩事件列表（标题默认空）；段名统一为「实体首屏 / 实体正文」。
+gold: modules/events/shared/sections/detail-html.ts
+touch:
+  - modules/events/features/entity-page-copy-dedupe.spec.yaml
+  - modules/events/features/entity-page-hero.spec.yaml
+  - modules/events/features/entity-profile.spec.yaml
+  - modules/events/MODULE.md
+  # 顺带：`export *` 不带进本地作用域，`EventsIndexQuery` 一直没被本文件引进来，
+  # apps/server 的 tsc 一跑就报 TS2304（存量错，补一行 type import）
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/sections/entity-html.ts
+  - modules/events/shared/sections/entity-html.test.ts
+  - modules/events/shared/sections/hero-html.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/events-entity-hero-section.ts
+  - modules/events/shared/events-entity-section.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/server/ssr/rss.render.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/server/ssr/events-preset-i18n.test.ts
+  - apps/server/scripts/backfill-events-entity-hero.ts
+out_of_scope:
+  - 改首页 / 专题的 `events.hero` 默认值（共用的是 setting 工厂与渲染器，
+    新开关 `show_profile` 只在实体首屏上长出来）
+  - 改实体枢纽正文 `events.entity-index`（它与模板页「实体枢纽」已经同名，无歧义）
+  - 段设置加「显示实体名」开关（身份不是可关板块；存量页走一次性回填）
+  - 模板页标签（「实体页」是页面的名字，与段名不同表）
+i18n: data
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/entity-html.test.ts shared/events-page-templates.test.ts shared/sections/hero-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run client/i18n.test.ts server/ssr/events-preset-i18n.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 读下来是：类型 → 名字 → 累计档案 → 这一页是什么 → 订阅 → 卡片。一屏只说一遍。
+#
+# 1. `events:site.hero.entityHeadline` 由「与 {entity} 相关的全部事件」改成 `{entity}`：
+#    首屏 h1 = 实体名 = 页面标题，三处同一句。类型仍在 eyebrow（`事件雷达 · {entity_kind}`）。
+# 2. `events.entity` 正文删掉 `<header>`（实体名 h1 + 类型 p）。
+# 3. **累计档案搬进首屏**，紧跟 h1、排在 lead 之前。开关 `show_profile` 由
+#    `eventsHeroSettings({ profile: true })` 只长在实体首屏上——首页 / 专题没有当前实体，
+#    多一个永远画不出东西的勾选框只会让人以为自己关错了什么。`settingBool` 缺键即 false，
+#    所以 `events.hero` 不必显式关掉。markup 仍是 `renderEventsHeroHtml` 一份。
+#    留在正文段会掉到下一个色块顶上（像上一段的残留），排在 lead 后面会被库存文案
+#    挡到下一屏——两种都试过，这是第三种。
+# 4. `entitySubhead` 从讲页面（「事件一天就凉…」，每个实体页都一样）改成讲这个实体，
+#    并交代排序：与专题页 `topicSubhead` 同一句式。
+# 5. 正文段 `events_label` **去掉 default**（预设也不再覆盖）→ 默认不画 h2。
+#    这一页只有这一个列表，首屏刚说完这是谁；而且那些事件并非「相关」，就是它的。
+#    `events:entity.relatedEvents` 随之删掉（唯一另一个用处是实体 RSS 的 description，
+#    换成 `site.entity.subtitle` 代入实体名——脱离页面看，「相关事件」什么也没说）。
+# 6. 段标签：`events:section.entity.label` 实体页正文 → 实体正文（en: Entity page body →
+#    Entity body）。系统里段名一律按内容命名（文档正文 / 事件详情 / 商品详情），
+#    没有第二个「xx页yy」。
+# 7. 存量页的段设置是快照，改 default 到不了它们 → `backfill-events-entity-hero.ts`：
+#    补首屏（有正文没首屏的）+ 换库存文案（`RETIRED_COPY` 只列作废旧句，新句现造自
+#    setting default，一处真源）。草稿与已发布各判各的，租户改过的一个字不动，幂等。

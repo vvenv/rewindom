@@ -71,7 +71,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 0.75rem;
-  margin: 0.5rem 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
   color: var(--muted-fg);
@@ -369,31 +369,14 @@
   font-size: 0.75rem;
 }
 
-/* 实体页：这是谁 → 它涉及的事件。卡片沿用 .events-card，不另起一套。 */
+/*
+ * 实体页正文：累计档案 → 它涉及的事件。卡片沿用 .events-card，不另起一套。
+ * 身份（名字 + 类型）画在首屏那一段上，这里不再有自己的标题块。
+ */
 .events-entity {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.events-entity-head {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.events-entity-name {
-  margin: 0;
-  font-size: 1.75rem;
-  line-height: 1.2;
-}
-
-.events-entity-meta {
-  margin: 0;
-  color: var(--muted-fg);
-  font-size: 0.875rem;
 }
 
 .events-entity-section-title {
@@ -562,6 +545,16 @@
   line-height: 1.08;
   letter-spacing: -0.025em;
   text-wrap: balance;
+}
+
+/*
+ * 首屏里的累计档案：紧跟标题、在 lead 之前，比正文那份大半档——
+ * 它是这张名片上唯一的事实，不该弱到像脚注。
+ */
+.events-hero-profile {
+  margin-top: 0.875rem;
+  color: var(--fg);
+  font-size: 0.9375rem;
 }
 
 .events-hero-lead {

@@ -52,7 +52,10 @@ function withInterpolatedCtas(
 ): SettingValues {
   const next: SettingValues = { ...s };
   for (const prefix of ["primary", "secondary"] as const) {
-    const label = interpolateSiteText(settingText(s, `${prefix}_label`), values);
+    const label = interpolateSiteText(
+      settingText(s, `${prefix}_label`),
+      values,
+    );
     const rawHref =
       settingText(s, `${prefix}_href`) ||
       (prefix === "secondary" ? EVENTS_FEED_HREF_TEMPLATE : "");
@@ -61,6 +64,19 @@ function withInterpolatedCtas(
     next[`${prefix}_href`] = href ? siteHref(href, ctx) : "";
   }
   return next;
+}
+
+/**
+ * 累计档案，只有实体首屏画（`show_profile` 只长在那一段上）。
+ *
+ * 紧跟标题、在 lead 之前：名字 → 事实 → 这一页是什么。事实排在库存文案后面就成了
+ * 下一个色块顶上的一行灰字，读者会当成上一段的残留划过去。
+ */
+function renderProfile(profile: readonly string[]): string {
+  const items = profile
+    .map((text) => `<li class="events-profile-item">${escapeHtml(text)}</li>`)
+    .join("");
+  return `<ul class="events-profile events-hero-profile">${items}</ul>`;
 }
 
 function renderStats(hero: PublicHeroView): string {
@@ -101,9 +117,17 @@ export const renderEventsHeroHtml: SectionHtmlRenderer = (section, ctx) => {
       ? renderStats(hero)
       : "";
 
+  // 窗口内不足两件事时 service 给空数组 → 整块不画（同 entity 正文段的口径）
+  const entityProfile = context?.entity?.profile ?? [];
+  const profile =
+    settingBool(s, "show_profile") && entityProfile.length > 0
+      ? renderProfile(entityProfile)
+      : "";
+
   const main = `<div class="events-hero-main">
   ${eyebrow ? `<p class="events-hero-eyebrow">${escapeHtml(eyebrow)}</p>` : ""}
   <h1 class="events-hero-headline">${escapeHtml(headline)}</h1>
+  ${profile}
   ${subhead ? `<p class="events-hero-lead">${escapeHtml(subhead)}</p>` : ""}
   ${buttonRow(withInterpolatedCtas(s, ctx, values), "left")}
 </div>`;

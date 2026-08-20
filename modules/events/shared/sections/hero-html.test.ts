@@ -106,7 +106,7 @@ describe("renderEventsHeroHtml", () => {
   });
 
   it("escapes tenant copy", () => {
-    const html = render(hero(), { headline: '<script>alert(1)</script>' });
+    const html = render(hero(), { headline: "<script>alert(1)</script>" });
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
   });
@@ -129,9 +129,8 @@ describe("toPublicHero", () => {
 
   it("buckets the relative time by minute, hour and day", () => {
     const at = (iso: string) =>
-      hero({ updated_at: iso })?.stats.find(
-        (stat) => stat.key === "updated",
-      )?.value;
+      hero({ updated_at: iso })?.stats.find((stat) => stat.key === "updated")
+        ?.value;
     expect(at("2026-08-19T11:59:30.000Z")).toBe("site.hero.updated.now");
     expect(at("2026-08-19T09:00:00.000Z")).toBe("site.hero.updated.hours(3)");
     expect(at("2026-08-17T12:00:00.000Z")).toBe("site.hero.updated.days(2)");
@@ -166,7 +165,9 @@ describe("renderEventsHeroHtml · 专题页", () => {
       },
       AI,
     );
-    expect(html).toContain('<h1 class="events-hero-headline">AI 正在发生什么</h1>');
+    expect(html).toContain(
+      '<h1 class="events-hero-headline">AI 正在发生什么</h1>',
+    );
     expect(html).toContain("事件雷达 · AI");
     expect(html).toContain("订阅 AI");
     expect(html).not.toContain("同一件事，来自多个来源");
@@ -189,11 +190,7 @@ describe("renderEventsHeroHtml · 专题页", () => {
   });
 
   it("keeps the topic copy even when the panel is empty", () => {
-    const html = render(
-      null,
-      { headline: "{topic} 正在发生什么" },
-      AI,
-    );
+    const html = render(null, { headline: "{topic} 正在发生什么" }, AI);
     expect(html).toContain("AI 正在发生什么");
     expect(html).not.toContain("events-hero-panel");
   });
@@ -222,9 +219,12 @@ describe("renderEventsHeroHtml · 实体页", () => {
 
   function renderEntity(
     extra: Record<string, unknown> = {},
+    entity: (typeof openai)["entity"] | Record<string, unknown> = openai.entity,
   ): string {
     return renderEventsHeroHtml(section(extra), {
-      contributed: eventsContextEntry(emptyEventsContext({ ...openai })),
+      contributed: eventsContextEntry(
+        emptyEventsContext({ entity: entity as (typeof openai)["entity"] }),
+      ),
     });
   }
 
@@ -243,9 +243,45 @@ describe("renderEventsHeroHtml · 实体页", () => {
   });
 
   it("points the subscribe button at that entity's feed via {feed}", () => {
-    expect(renderEntity()).toContain(
-      'href="/entities/openai-abc123/feed.xml"',
+    expect(renderEntity()).toContain('href="/entities/openai-abc123/feed.xml"');
+  });
+
+  /*
+   * 累计档案画在这一段（不是正文段）：名字下面紧跟着事实，才是一张实体名片。
+   * 排在 lead 之前——事实不该被一句库存文案挡在下一屏。
+   */
+  it("draws the running tally right under the headline", () => {
+    const html = renderEntity(
+      { headline: "{entity}", subhead: "lead", show_profile: true },
+      { ...openai.entity, profile: ["近 90 天 12 件事", "故障 3 次"] },
     );
+    expect(html).toContain("events-hero-profile");
+    expect(html).toContain("近 90 天 12 件事");
+    expect(html.indexOf("events-hero-profile")).toBeLessThan(
+      html.indexOf("events-hero-lead"),
+    );
+  });
+
+  it("escapes the tally so data can't smuggle markup out", () => {
+    const html = renderEntity(
+      { show_profile: true },
+      { ...openai.entity, profile: ["<b>3</b> 次"] },
+    );
+    expect(html).not.toContain("<b>");
+  });
+
+  /* 窗口内不足两件事时 service 给空数组 → 整块不画，而不是一个空 ul。 */
+  it("draws nothing when there is no tally yet", () => {
+    expect(renderEntity({ show_profile: true })).not.toContain(
+      "events-hero-profile",
+    );
+  });
+
+  /* 首页 / 专题那一段根本没有这个 key，`settingBool` 缺键即 false。 */
+  it("stays off wherever the setting is absent", () => {
+    expect(
+      renderEntity({}, { ...openai.entity, profile: ["近 90 天 12 件事"] }),
+    ).not.toContain("events-hero-profile");
   });
 });
 

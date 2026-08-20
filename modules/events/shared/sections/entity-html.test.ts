@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { emptyEventsContext, eventsContextEntry } from "../events-section-context.js";
+import {
+  emptyEventsContext,
+  eventsContextEntry,
+} from "../events-section-context.js";
 import { EVENTS_ENTITY_SECTION_TYPE } from "../events-entity-section.js";
 import { renderEventsEntityHtml } from "./entity-html.js";
 
@@ -10,7 +13,10 @@ import type {
 } from "../events-section-context.js";
 import type { SiteSection } from "@rewindom/builtin/marketing/shared/section-schema.js";
 
-function card(slug: string, overrides: Partial<PublicEventCard> = {}): PublicEventCard {
+function card(
+  slug: string,
+  overrides: Partial<PublicEventCard> = {},
+): PublicEventCard {
   return {
     slug,
     href: `/events/${slug}`,
@@ -56,7 +62,10 @@ function section(extra: Record<string, unknown> = {}): SiteSection {
   } as SiteSection;
 }
 
-function render(view: PublicEntityView | null, extra: Record<string, unknown> = {}) {
+function render(
+  view: PublicEntityView | null,
+  extra: Record<string, unknown> = {},
+) {
   const context = emptyEventsContext({ entity: view });
   return renderEventsEntityHtml(section(extra), {
     contributed: eventsContextEntry(context),
@@ -64,10 +73,15 @@ function render(view: PublicEntityView | null, extra: Record<string, unknown> = 
 }
 
 describe("renderEventsEntityHtml", () => {
-  it("画出实体名与类型", () => {
+  /*
+   * 身份归首屏（`events.entity-hero` 的 h1 就是 `{entity}`，eyebrow 是类型）。
+   * 正文再画一遍就是同一屏说两遍，而且一页上会有两个 h1。
+   */
+  it("不画实体名与类型——那是首屏那一段的事", () => {
     const html = render(entity());
-    expect(html).toContain(">OpenAI</h1>");
-    expect(html).toContain(">公司</p>");
+    expect(html).not.toContain("<h1");
+    expect(html).not.toContain("events-entity-name");
+    expect(html).not.toContain("公司");
   });
 
   it("列出事件，链接指向站内详情页", () => {
@@ -86,28 +100,23 @@ describe("renderEventsEntityHtml", () => {
     expect(html).toContain("3 个来源正在跟进");
   });
 
-  /*
-   * 实体页真正的价值在**累计**而不在下面那个按时间排的列表——
-   * 「这家近 90 天出过几次故障、累计多久」是列表回答不了的。
-   */
-  it("画出累计档案", () => {
+  /* 累计档案跟着身份一起搬去了首屏段（见 hero-html.test.ts）。 */
+  it("不画累计档案", () => {
     const html = render(entity({ profile: ["近 90 天 12 件事", "故障 3 次"] }));
-    expect(html).toContain("events-profile");
-    expect(html).toContain("近 90 天 12 件事");
-    expect(html).toContain("故障 3 次");
+    expect(html).not.toContain("events-profile");
   });
 
-  /* 窗口内不足两件事时 service 给空数组，这里整块不画，而不是画一个空 ul。 */
-  it("没有档案时整块不渲染", () => {
-    expect(render(entity())).not.toContain("events-profile");
-  });
-
-  it("档案文案转义，不让数据带出标签", () => {
-    expect(render(entity({ profile: ["<b>3</b> 次"] }))).not.toContain("<b>");
+  /* 标题默认留空 → 默认整段就是一个列表，不挂「相关事件」。 */
+  it("没填标题时不画 h2", () => {
+    const html = render(entity(), { events_label: "" });
+    expect(html).not.toContain("<h2");
+    expect(html).toContain("events-grid");
   });
 
   it("关掉来源开关后不画来源", () => {
-    expect(render(entity(), { show_sources: false })).not.toContain("events-sources");
+    expect(render(entity(), { show_sources: false })).not.toContain(
+      "events-sources",
+    );
   });
 
   it("没有事件时画空态", () => {
@@ -131,11 +140,4 @@ describe("renderEventsEntityHtml", () => {
   it("不自己画订阅入口——那由独立的订阅段负责", () => {
     expect(render(entity())).not.toContain("events-subscribe");
   });
-
-  it("实体名转义，不让数据带出标签", () => {
-    const html = render(entity({ name: "<script>x</script>" }));
-    expect(html).not.toContain("<script>");
-    expect(html).toContain("&lt;script&gt;");
-  });
-
 });
