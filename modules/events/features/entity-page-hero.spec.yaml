@@ -1,0 +1,57 @@
+# 实体模板页没有自己的首屏：身份画在 `events.entity` 的 h1 上，看起来像列表页
+# 的一段，不像 `/topics/:slug` 那样先有一块主张。
+#
+# 正确拆法与专题页同构：同一段 `events.hero`，库存文案另写带 `{entity}` 的那一套。
+# 不要在 hero 上再长 entity_* 覆盖字段，也不要把首页的产品主张 / 实时计数
+# 原样铺到实体页上——那四个数是雷达口径，和「这个实体涉及哪些事件」对不上。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr, tenant]
+goal: 实体模板页加上专用首屏（events.hero + {entity}/{entity_kind} 库存文案）；关掉实时计数，订阅仍走 {feed}。
+gold: modules/events/shared/events-page-templates.ts
+touch:
+  - modules/events/features/entity-page-hero.spec.yaml
+  - modules/events/features/page-meta-interpolation.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-hero-section.ts
+  - modules/events/shared/sections/hero-html.test.ts
+  - modules/events/client/editor-context.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - modules/events/client/i18n.test.ts
+  - modules/events/server/ssr/events-preset-i18n.test.ts
+  - docs/design/i18n.md
+  - .cursor/skills/site-section/SKILL.md
+out_of_scope:
+  - 给实体页另写一段 `events.entity-hero`（身份文案用插值即可，不要复制一份 markup）
+  - 按实体过滤 `getPublicHeroStats`（那四个数是雷达口径，不是实体档案）
+  - 改 `events.entity` 正文（名字 / 类型 / 累计档案仍画在那段里）
+  - 存量已发布的实体页自动插入首屏（预设升级只影响新快照与「重设版式」）
+i18n: data
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-page-templates.test.ts shared/sections/hero-html.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+# 1. 预设第一节是 `events.hero`，与专题页同一段 type。库存文案：
+#      eyebrow  `events:site.hero.entityEyebrow`（事件雷达 · {entity_kind}）
+#      headline `events:site.hero.entityHeadline`（与 {entity} 相关的全部事件）
+#      subhead  `events:site.hero.entitySubhead`（时间尺度：事件会凉，这一页不会）。
+#    不要复用首页那句产品主张，也不要用空字符串——可本地化字段的空串会回落库存默认。
+# 2. `show_stats: false`。首屏计数与首页 Rising / Now 对得上才有意义；实体页
+#    下面是这个实体的事件列表，挂全站「正在追踪 37」是在说另一件事。
+# 3. 订阅仍是普通次按钮，默认 href `{feed}`（该实体 feed）。
+# 4. 插值加 `{entity_kind}`（已落成当前语言的类型名）。`interpolation_tokens`
+#    变成 entity / entity_kind / feed。`eventsInterpolationValues` 始终带这些 key。
+# 5. 编辑器编实体模板时，hero 也要带实体样张，否则 `{entity}` 在预览里是空的。
+# 6. 正文段仍画实体名 h1：存量页没有首屏，删掉会让线上实体页突然没有标题。

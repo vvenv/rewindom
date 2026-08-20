@@ -288,6 +288,7 @@ export function eventsInterpolationValues(
     event: event?.title ?? "",
     headline: event?.headline || event?.title || "",
     entity: context.entity?.name ?? "",
+    entity_kind: context.entity?.kind_label ?? "",
     feed: eventsSubscribeHref({
       contributed: { [EVENTS_CONTEXT_KEY]: context },
     }),

@@ -16,6 +16,9 @@ describe("events preset catalog", () => {
     expect(zh("events:site.topic.title")).toBe("{topic}");
     expect(zh("events:site.detail.title")).toBe("{event}");
     expect(zh("events:site.entity.title")).toBe("{entity}");
+    expect(zh("events:site.hero.entityHeadline")).toBe(
+      "与 {entity} 相关的全部事件",
+    );
     expect(zh("events:site.topic.subtitle")).toBe(
       "跨来源追踪 {topic} 正在发生的事",
     );

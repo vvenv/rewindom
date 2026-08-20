@@ -86,7 +86,7 @@ export const EVENTS_ENTITY_INDEX_PATH = entityIndexPath();
 
 /**
  * 首页版式的首屏：产品主张 + 实时计数。专题页另写带 `{topic}` 的那一套，
- * 不要把两种身份揉进这一段。
+ * 实体页另写带 `{entity}` 的那一套，不要把三种身份揉进这一段。
  */
 const EVENTS_HOME_HERO_SECTION: PresetSection = {
   type: EVENTS_HERO_SECTION_TYPE,
@@ -135,17 +135,11 @@ export const EVENTS_TOPIC_TEMPLATE_PRESET: PagePreset = {
   descriptionKey: "events:site.topic.subtitle",
   sections: [
     {
-      type: EVENTS_HERO_SECTION_TYPE,
+      ...EVENTS_HOME_HERO_SECTION,
       text: {
+        ...EVENTS_HOME_HERO_SECTION.text,
         eyebrow: "events:site.hero.topicEyebrow",
         headline: "events:site.hero.topicHeadline",
-        subhead: "events:site.hero.subhead",
-        secondary_label: "events:site.subscribe",
-      },
-      raw: {
-        secondary_href: EVENTS_FEED_HREF_TEMPLATE,
-        show_stats: true,
-        show_glow: true,
       },
     },
     ...EVENTS_HUB_SECTIONS,
@@ -201,6 +195,24 @@ export const EVENTS_DETAIL_TEMPLATE_PRESET: PagePreset = {
   ],
 };
 
+/**
+ * 实体页自己的首屏。计数关掉：那四个数是雷达口径，跟这个实体的事件列表对不上。
+ * 订阅仍走 `{feed}`（该实体 feed）。
+ */
+const EVENTS_ENTITY_HERO_SECTION: PresetSection = {
+  ...EVENTS_HOME_HERO_SECTION,
+  text: {
+    ...EVENTS_HOME_HERO_SECTION.text,
+    eyebrow: "events:site.hero.entityEyebrow",
+    headline: "events:site.hero.entityHeadline",
+    subhead: "events:site.hero.entitySubhead",
+  },
+  raw: {
+    ...EVENTS_HOME_HERO_SECTION.raw,
+    show_stats: false,
+  },
+};
+
 export const EVENTS_ENTITY_TEMPLATE_PRESET: PagePreset = {
   key: EVENTS_ENTITY_PAGE_KIND,
   label: "events:template.entity.label",
@@ -209,6 +221,7 @@ export const EVENTS_ENTITY_TEMPLATE_PRESET: PagePreset = {
   titleKey: "events:site.entity.title",
   descriptionKey: "events:site.entity.subtitle",
   sections: [
+    EVENTS_ENTITY_HERO_SECTION,
     {
       /* 没有 heading：标题画的是当前实体自己的名字（见段定义）。 */
       type: EVENTS_ENTITY_SECTION_TYPE,
@@ -268,7 +281,7 @@ const EVENTS_TEMPLATE_KINDS: readonly PageTemplateKindDefinition[] = [
     label: "events:template.entity.label",
     required_section: EVENTS_ENTITY_SECTION_TYPE,
     entitlement: EVENTS_ENTITLEMENT.key,
-    interpolation_tokens: ["entity", "feed"],
+    interpolation_tokens: ["entity", "entity_kind", "feed"],
   },
   {
     kind: EVENTS_ENTITY_INDEX_PAGE_KIND,

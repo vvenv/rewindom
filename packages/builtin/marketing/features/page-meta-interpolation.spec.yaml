@@ -30,16 +30,19 @@ touch:
   - modules/events/features/page-meta-interpolation.spec.yaml
   - modules/shop/features/page-meta-interpolation.spec.yaml
   - modules/site-docs/features/page-meta-interpolation.spec.yaml
+  - apps/server/scripts/backfill-page-meta-presets.ts
+  - apps/server/scripts/backfill-page-meta-presets.sql
 out_of_scope:
   - 给 page-header 段单独再做一套插值（公开 HTML head 插值后，catalog 里当前页的标题仍是库存句；slug 页本来就不靠 page-header）
   - 把 ?source= 列表也改成 CMS 标题（那不是模板页身份，仍覆盖 title/description）
-  - 回填库里已改过的自定义标题
+  - 回填库里已改过的自定义标题（库存旧译名由 backfill-page-meta-presets 写回当前预设）
 i18n: code
 acceptance:
   - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared site-interpolation.test.ts page-templates.test.ts
   - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/server ssr-seo.test.ts ssr-render.test.ts
   - pnpm check:i18n
   - pnpm check:modules
+  - pnpm --filter server exec tsx scripts/backfill-page-meta-presets.ts --dry-run
 
 # ---------- 可选 ----------
 entitlement: # 无（marketing 是 infra 模块）

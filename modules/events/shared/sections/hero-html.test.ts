@@ -206,6 +206,49 @@ describe("renderEventsHeroHtml · 专题页", () => {
   });
 });
 
+describe("renderEventsHeroHtml · 实体页", () => {
+  const openai = {
+    entity: {
+      slug: "openai-abc123",
+      href: "/entities/openai-abc123",
+      feed_href: "/entities/openai-abc123/feed.xml",
+      name: "OpenAI",
+      kind_label: "公司",
+      event_count: 2,
+      profile: [],
+      events: [],
+    },
+  } as const;
+
+  function renderEntity(
+    extra: Record<string, unknown> = {},
+  ): string {
+    return renderEventsHeroHtml(section(extra), {
+      contributed: eventsContextEntry(emptyEventsContext({ ...openai })),
+    });
+  }
+
+  it("fills {entity} / {entity_kind} from this page's own copy", () => {
+    const html = renderEntity({
+      eyebrow: "事件雷达 · {entity_kind}",
+      headline: "与 {entity} 相关的全部事件",
+      show_stats: false,
+    });
+    expect(html).toContain(
+      '<h1 class="events-hero-headline">与 OpenAI 相关的全部事件</h1>',
+    );
+    expect(html).toContain("事件雷达 · 公司");
+    expect(html).not.toContain("同一件事，来自多个来源");
+    expect(html).not.toContain("events-hero-panel");
+  });
+
+  it("points the subscribe button at that entity's feed via {feed}", () => {
+    expect(renderEntity()).toContain(
+      'href="/entities/openai-abc123/feed.xml"',
+    );
+  });
+});
+
 describe("toPublicHero · 专题页", () => {
   it("reads the third row as contributing sources so all four rows share one scope", () => {
     const site = hero()!.stats.map((stat) => stat.key);

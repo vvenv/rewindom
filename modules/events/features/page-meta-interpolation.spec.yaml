@@ -33,6 +33,6 @@ models: []
 
 # ---------- 设计要点 ----------
 # 1. interpolation_tokens：topic 页 topic/topic_slug/feed；详情 event/headline/topic/feed；
-#    实体 entity/feed。eventsInterpolationValues 始终带这些 key（空则空串）。
+#    实体 entity/entity_kind/feed。eventsInterpolationValues 始终带这些 key（空则空串）。
 # 2. 预设：详情 `{event}` / `{headline}`；实体 `{entity}`；专题已是 `{topic}`。
 # 3. 详情上下文补上当前事件的 topic / topic_label，好让 `{topic}` 也能用。

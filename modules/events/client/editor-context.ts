@@ -83,9 +83,13 @@ export function registerEventsEditorContext(): void {
       const wantStrip = input.usedTypes.has(EVENTS_ENTITY_STRIP_SECTION_TYPE);
       const wantHub = input.usedTypes.has(EVENTS_ENTITY_INDEX_SECTION_TYPE);
       const wantHero = input.usedTypes.has(EVENTS_HERO_SECTION_TYPE);
+      /*
+       * 实体模板没有「当前实体」——地址是 `/entities/:slug`。正文段或首屏
+       * 只要有一个在，就用样张把 `{entity}` / `{entity_kind}` 填上。
+       */
       const wantEntity =
-        input.usedTypes.has(EVENTS_ENTITY_SECTION_TYPE) &&
-        input.pageKind === EVENTS_ENTITY_PAGE_KIND;
+        input.pageKind === EVENTS_ENTITY_PAGE_KIND &&
+        (input.usedTypes.has(EVENTS_ENTITY_SECTION_TYPE) || wantHero);
 
       const enabled = await loadEnabledTopics();
       /*

@@ -195,7 +195,10 @@
         "days": "{{count}} 天前"
       },
       "topicEyebrow": "事件雷达 · {topic}",
-      "topicHeadline": "{topic} 正在发生什么"
+      "topicHeadline": "{topic} 正在发生什么",
+      "entityEyebrow": "事件雷达 · {entity_kind}",
+      "entityHeadline": "与 {entity} 相关的全部事件",
+      "entitySubhead": "事件一天就凉，这一页是长期可回访的记录。"
     }
   },
   "link": {
@@ -268,7 +271,7 @@
       "label": "首屏",
       "showStats": "显示实时计数",
       "showStatsInfo": "还没有事件时自动隐藏，不会在首屏挂一串 0",
-      "interpolationInfo": "可写 {topic}（当前主题名）、{topic_slug}（路径段）、{feed}（当前页 RSS）。没有当前主题时前两项为空。",
+      "interpolationInfo": "专题页可写 {topic} / {topic_slug}，实体页可写 {entity} / {entity_kind}，{feed} 是当前页 RSS。另一种身份的 token 为空。",
       "subscribeHrefInfo": "默认 {feed}：订当前页对应的 feed（专题 / 实体 / 全站）。想钉死某一格就改成 /topics/ai/feed.xml。"
     }
   },

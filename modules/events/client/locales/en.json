@@ -195,7 +195,10 @@
         "days": "{{count}} d ago"
       },
       "topicEyebrow": "Event radar · {topic}",
-      "topicHeadline": "What's happening in {topic}"
+      "topicHeadline": "What's happening in {topic}",
+      "entityEyebrow": "Event radar · {entity_kind}",
+      "entityHeadline": "Every event involving {entity}",
+      "entitySubhead": "Events go cold in a day. This page is the lasting record."
     }
   },
   "link": {
@@ -268,7 +271,7 @@
       "label": "Hero",
       "showStats": "Show live counts",
       "showStatsInfo": "Hidden automatically until there are events — never shows a row of zeros",
-      "interpolationInfo": "Use {topic} for the topic name, {topic_slug} for the path segment, and {feed} for this page's RSS. Topic tokens are empty when there is no current topic.",
+      "interpolationInfo": "Use {topic} / {topic_slug} on topic pages, {entity} / {entity_kind} on entity pages, and {feed} for this page's RSS. Tokens for the other identity are empty.",
       "subscribeHrefInfo": "Default {feed} — this page's RSS (topic, entity, or site). Pin a slot with /topics/ai/feed.xml."
     }
   },

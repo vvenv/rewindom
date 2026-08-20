@@ -80,6 +80,9 @@ describe("events client locale catalog", () => {
       "events:site.detail.subtitle",
       "events:site.entity.title",
       "events:site.entity.subtitle",
+      "events:site.hero.entityEyebrow",
+      "events:site.hero.entityHeadline",
+      "events:site.hero.entitySubhead",
       "events:site.entityIndex.title",
       "events:site.entityIndex.subtitle",
     ];
