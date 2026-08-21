@@ -105,15 +105,20 @@ pnpm deploy -- --env production --env-only
 
 ## 发布
 
+默认：跳过本机 lint/test → 本地 Docker 构建部署到 production → 推送 commit + tag。
+
 ```bash
-# 推送 tag 触发 GitHub Actions 自动 Docker 部署
-pnpm release patch -- --push
+# 默认路径（本地部署 production + 推送）
+pnpm release patch
 
-# CI 分钟用尽：本地上传源码 → 服务器 build（--deploy-local）
-pnpm release patch -- --deploy-local --env production
+# 部署到测试环境
+pnpm release patch -- --env test
 
-# 跳过本机 lint/test（假定 PR CI 已跑过）
-pnpm release patch -- --no-check --deploy-local --env production
+# 先跑本机 lint/test
+pnpm release patch -- --check
+
+# 推送 tag 触发 GitHub Actions（不本地部署）
+pnpm release patch -- --ci --push
 ```
 
 ## 运维

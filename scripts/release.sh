@@ -1,19 +1,19 @@
 #!/bin/bash
-# 发布流程：同步版本号 → 提交 → 打 tag →（可选）推送触发 Release workflow
+# 发布流程：同步版本号 → 提交 → 打 tag → 本地 Docker 部署 → 推送 tag
+#
+# 默认：跳过 lint/test、本地构建部署到 production、完成后推送 commit + tag
 #
 # 用法:
 #   ./scripts/release.sh                    # 交互式选择版本与选项
 #   ./scripts/release.sh <version>          # 指定版本，如 1.0.0 或 v1.0.0
-#   ./scripts/release.sh patch|minor|major  # 基于根 package.json 递增
-#   ./scripts/release.sh 1.0.0 --push       # 提交并推送 commit + tag
-#   ./scripts/release.sh patch --no-check   # 跳过 lint/test
-#   ./scripts/release.sh patch --deploy-local              # Docker 部署 + 推送 tag
-#   ./scripts/release.sh patch --deploy-local --no-push    # 仅本地部署，不推送
-#   ./scripts/release.sh patch --deploy-local --env test   # 部署到测试环境
-#   ./scripts/release.sh patch --deploy-local --env test,production  # 一次部署多个环境
+#   ./scripts/release.sh patch|minor|major  # 基于根 package.json 递增（默认本地部署 production + 推送）
+#   ./scripts/release.sh patch --env test   # 本地部署到测试环境
+#   ./scripts/release.sh patch --env test,production  # 一次部署多个环境
+#   ./scripts/release.sh patch --no-push    # 仅本地部署，不推送
+#   ./scripts/release.sh patch --check     # 先跑 lint/test
+#   ./scripts/release.sh patch --ci --push # 推送 tag 触发 GitHub Actions（不本地部署）
 #
-# 推送 v* 标签后会自动触发 .github/workflows/release.yml（构建 + GitHub Release + 部署）
-# GitHub Actions 分钟用尽时，使用 --deploy-local 在本地构建并直推服务器，同时推送 tag 记录版本
+# --ci 推送 v* 标签后会触发 .github/workflows/release.yml（构建 + GitHub Release + 部署）
 
 set -euo pipefail
 
@@ -30,12 +30,12 @@ source "$ROOT/scripts/lib/log.sh"
 VERSION_ARG=""
 PUSH=0
 NO_PUSH=0
-RUN_CHECK=1
+RUN_CHECK=0
 INTERACTIVE=0
 PUSH_PRESET=0
 NO_PUSH_PRESET=0
 CHECK_PRESET=0
-DEPLOY_LOCAL=0
+DEPLOY_LOCAL=1
 DEPLOY_LOCAL_PRESET=0
 DEPLOY_ENV="production"
 
@@ -43,8 +43,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --push) PUSH=1; PUSH_PRESET=1; shift ;;
     --no-push) NO_PUSH=1; NO_PUSH_PRESET=1; shift ;;
+    --check) RUN_CHECK=1; CHECK_PRESET=1; shift ;;
     --no-check) RUN_CHECK=0; CHECK_PRESET=1; shift ;;
     --deploy-local) DEPLOY_LOCAL=1; DEPLOY_LOCAL_PRESET=1; shift ;;
+    --ci) DEPLOY_LOCAL=0; DEPLOY_LOCAL_PRESET=1; shift ;;
     --env)
       DEPLOY_ENV="$2"
       shift 2
@@ -54,7 +56,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     -*)
-      log_die "未知选项: $1（可用 --push、--no-push、--no-check、--deploy-local、--env）"
+      log_die "未知选项: $1（可用 --push、--no-push、--check、--no-check、--deploy-local、--ci、--env）"
       ;;
     *)
       if [ -n "$VERSION_ARG" ]; then
@@ -161,9 +163,11 @@ run_interactive() {
   if [ "$CHECK_PRESET" -eq 0 ]; then
     local check_choice
     check_choice="$(prompt_menu "是否运行 lint 和 test？" --default=1 \
-      "yes:运行 lint + test" \
-      "no:跳过检查")"
-    if [ "$check_choice" = "no" ]; then
+      "no:跳过检查（默认）" \
+      "yes:运行 lint + test")"
+    if [ "$check_choice" = "yes" ]; then
+      RUN_CHECK=1
+    else
       RUN_CHECK=0
     fi
   fi
@@ -171,9 +175,11 @@ run_interactive() {
   if [ "$DEPLOY_LOCAL_PRESET" -eq 0 ]; then
     local deploy_choice
     deploy_choice="$(prompt_menu "发布方式" --default=1 \
-      "ci:推送 tag 触发 GitHub Actions（推荐）" \
-      "local:本地 Docker 部署（不消耗 CI 分钟）")"
-    if [ "$deploy_choice" = "local" ]; then
+      "local:本地 Docker 部署（默认）" \
+      "ci:推送 tag 触发 GitHub Actions")"
+    if [ "$deploy_choice" = "ci" ]; then
+      DEPLOY_LOCAL=0
+    else
       DEPLOY_LOCAL=1
     fi
   fi
