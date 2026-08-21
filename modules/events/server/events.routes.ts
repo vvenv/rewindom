@@ -292,10 +292,12 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
  */
 function viewerScope(request: FastifyRequest): {
   tenant_id: string;
+  tenant_slug: string;
   user_id: string;
 } {
   return {
     tenant_id: request.tenantContext!.tenant_id,
+    tenant_slug: request.tenantContext!.tenant_slug,
     user_id: request.authUser!.userId,
   };
 }

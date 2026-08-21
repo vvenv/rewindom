@@ -170,6 +170,7 @@ describe("isEventsPath", () => {
     expect(isEventsPath("/topics/ai/feed.xml")).toBe(true);
     expect(isEventsPath("/entities/openai-abc123/feed.xml")).toBe(true);
     expect(isEventsPath("/events/openai-gpt6-abc123/og.png")).toBe(true);
+    expect(isEventsPath("/events/icons/openai.com")).toBe(true);
   });
 
   /* 不存在的东西不要生成一个空 feed / 一张空卡片图 —— 一律交回 404。 */

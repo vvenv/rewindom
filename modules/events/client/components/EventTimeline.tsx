@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { describeTimelineEntry } from "../../shared/index.js";
 import { formatClockTime, formatDayLabel, groupByDay } from "../lib/events.js";
 
+import { SourceIcon } from "./SourceIcon.js";
+
 import type { EventTimelineItem } from "../../shared/index.js";
 
 /**
@@ -86,14 +88,16 @@ export function EventTimeline({ entries }: { entries: EventTimelineItem[] }) {
                       rel="noreferrer noopener"
                       className="text-muted-foreground hover:text-foreground ml-15 inline-flex w-fit items-center gap-1 text-xs hover:underline"
                     >
+                      <SourceIcon url={entry.icon_url} className="size-3.5" />
                       <span translate="no">{entry.source_name}</span>
                       <ExternalLink className="size-3" />
                     </a>
                   ) : entry.source_name ? (
                     <span
                       translate="no"
-                      className="text-muted-foreground ml-15 text-xs"
+                      className="text-muted-foreground ml-15 inline-flex items-center gap-1 text-xs"
                     >
+                      <SourceIcon url={entry.icon_url} className="size-3.5" />
                       {entry.source_name}
                     </span>
                   ) : null}

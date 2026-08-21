@@ -1,0 +1,108 @@
+# 来源名旁边显示站点 favicon。新闻聚合器的标准做法：扫卡片时先认出发行人。
+#
+# 取图**不能**走 Google s2（`www.google.com/s2/favicons`）——这个地址不是全球
+# 可达（国内尤其），公开页一旦依赖它，图标会整批裂掉。访客只请求本站；
+# 由服务端用采集那条 HTTP 出口去源站拉 favicon，内存缓存后同源吐出。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 来源名旁显示站点 favicon（公开卡片 / 详情来源与时间线 / 工作台采集源列表与事件详情）。img 同源 `/events/icons/{host}`，服务端从发行人源站取图并缓存；不依赖 Google s2 或其它第三方图标 CDN。
+gold: modules/events/shared/sections/feed-html.ts
+touch:
+  - modules/events/features/source-icons.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/source-icon.ts
+  - modules/events/shared/source-icon.test.ts
+  - modules/events/shared/source-icon-html.ts
+  - modules/events/shared/events.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/events-public-paths.ts
+  - modules/events/shared/events-public-paths.test.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/shared/sections/entity-html.ts
+  - modules/events/shared/sections/entity-html.test.ts
+  - modules/events/shared/sections/detail-html.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.mapper.test.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/events-path-handler.test.ts
+  - modules/events/server/ssr/source-icon.ts
+  - modules/events/server/ssr/source-icon.test.ts
+  - modules/events/server/feed/feed.service.ts
+  - modules/events/server/feed/source-icon-index.ts
+  - modules/events/server/feed/source-icon.routes.ts
+  - apps/client/vite-marketing-ssr-proxy.ts
+  - modules/events/client/components/SourceIcon.tsx
+  - modules/events/client/components/EventCard.tsx
+  - modules/events/client/components/EventFeedList.tsx
+  - modules/events/client/components/EventSourceGroups.tsx
+  - modules/events/client/components/EventTimeline.tsx
+out_of_scope:
+  - 把 favicon 落进 EventFeed 列或对象存储（内存 LRU 够用；要 CDN 持久化另立）
+  - 新模型字段 / migration
+  - 工作台采集源表单加「上传图标」
+  - 对外 RSS / og.png（订阅阅读器与社交卡片不画 16px favicon）
+  - 按 source_kind 画 lucide 通用图标（那是类型，不是发行人身份）
+  - Google s2 / DuckDuckGo icons / 任何第三方图标 CDN
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/source-icon.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-public-paths.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/ssr/source-icon.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run shared/sections/feed-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run server/event/event.mapper.test.ts
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. icon 代表**发行人**（采集源），不是文章域名。
+#    HN 的信号 URL 是目标站，拿它当 favicon 会在「Hacker News」旁边画出 OpenAI
+#    的标——名实不符。主机名从 EventFeed.url + connector 推，按 source_name
+#    贴到事件卡片 / 时间线 / 来源列表上。
+#
+# 2. 推导是纯函数，放 shared/source-icon.ts（SSR 与工作台同一份）：
+#    connector === hackernews → news.ycombinator.com
+#    其余取 URL hostname，去掉 www.；feeds./feed./rss./search. 前缀剥掉
+#    （feed.infoq.com → infoq.com）。剥完仍不是品牌域的进显式别名表
+#    （feeds.bbci.co.uk → bbc.com、githubstatus.com → github.com）。
+#    解析失败 → 不画，不占位。
+#
+# 3. 公开页取图地址是本站 `/events/icons/{host}`，**不是** Google s2。
+#    工作台 `<img>` 不带 JWT、开发态 Vite 默认只代理 HTML，所以工作台走
+#    `/api/public/tenants/{slug}/events/icons/{host}`（与站点媒体库同一套）。
+#    访客浏览器只打我们的源；服务端用 ingest 那条 HTTP 出口去
+#    `https://{host}/favicon.ico`，不行再读首页 `<link rel="icon">`。
+#    只代理光栅图（ico / png / gif / webp / jpeg），**不代理 SVG**——
+#    字节从本站源发出，SVG 即代码。
+#    img：alt=""（名字在旁边）、loading=lazy、onerror 摘掉。
+#    Cache-Control 一天；进程内 LRU，未命中负缓存一小时避免打爆源站。
+#
+# 4. SSRF：只为**本站 EventFeed 推出来的 host** 去抓。路径上的 host 必须过
+#    `isIconHost`（有点的公网主机名，拒 IP / localhost / .local）。
+#    未在本站源列表里的 host → 404，一次出站都不发。
+#
+# 5. 与 RSS / og.png 同一条 path handler，locale 前缀与 entitlement 闸门白拿。
+#    `/events/icons/openai.com` 是三段，不会撞 `/events/:slug`。
+#
+# 6. 读路径多一次 `EventFeed.findMany`（每站 ~70 行）做成 name → 本站 icon 路径
+#    索引，不往 NewsEvent 加并行数组。工作台采集源列表自己就有 url + connector。
+#
+# 7. 卡片仍保留 source_names（RSS / og / 修订快照继续用纯文字）。
+#    新增同序的 source_icon_urls：(string | null)[]，对不上的源该项为 null。
+#    EventSourceItem / EventTimelineItem / EventFeedItem / 公开视图各加 icon_url。

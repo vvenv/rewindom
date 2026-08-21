@@ -63,6 +63,8 @@ export interface PublicEventCard {
   fact_labels: string[];
   signal_count: number;
   source_names: string[];
+  /** 与 source_names 同序。对不上采集源的项为 null */
+  source_icon_urls: (string | null)[];
   last_activity_at: string;
 }
 
@@ -78,6 +80,7 @@ export interface PublicEventTimelineItem {
   label: string;
   source_name: string;
   source_kind: EventSourceKind;
+  icon_url: string | null;
   url: string | null;
   /**
    * 状态页那条 incident 的一手更新序列，嵌在这一格里渲染。
@@ -91,6 +94,7 @@ export interface PublicEventSource {
   url: string;
   source_name: string;
   source_kind: EventSourceKind;
+  icon_url: string | null;
   published_at: string;
 }
 

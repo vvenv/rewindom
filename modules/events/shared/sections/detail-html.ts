@@ -14,6 +14,8 @@ import {
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
 import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
+import { sourceIconImgHtml } from "../source-icon-html.js";
+
 import type {
   PublicEventDetailView,
   PublicEventTimelineItem,
@@ -155,14 +157,15 @@ function timelineHtml(
             entry.role === "conflict" ? " events-timeline-role-conflict" : ""
           }">${escapeHtml(entry.role_label)}</span>`
         : "";
+      const icon = sourceIconImgHtml(entry.icon_url);
       const source = entry.url
         ? `<a class="events-timeline-source" href="${escapeHtml(
             entry.url,
-          )}" target="_blank" rel="noreferrer noopener" translate="no">${escapeHtml(
+          )}" target="_blank" rel="noreferrer noopener" translate="no">${icon}${escapeHtml(
             entry.source_name,
           )}</a>`
         : entry.source_name
-          ? `<span class="events-timeline-source" translate="no">${escapeHtml(
+          ? `<span class="events-timeline-source" translate="no">${icon}${escapeHtml(
               entry.source_name,
             )}</span>`
           : "";
@@ -217,7 +220,7 @@ function sourcesHtml(event: PublicEventDetailView, label: string): string {
             (item) =>
               `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(
                 item.title,
-              )}</a><span class="events-source-name" translate="no">${escapeHtml(item.source_name)}</span></li>`,
+              )}</a><span class="events-source-name" translate="no">${sourceIconImgHtml(item.icon_url)}${escapeHtml(item.source_name)}</span></li>`,
           )
           .join("")}</ul></div>`,
     )

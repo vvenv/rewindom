@@ -24,6 +24,12 @@ function record(overrides: Partial<EventRecordForList> = {}): EventRecordForList
     signal_count: 9,
     source_count: 4,
     source_names: ["OpenAI", "Hacker News"],
+    kind: null,
+    fact_version: null,
+    fact_amount_text: null,
+    fact_amount_usd: null,
+    fact_duration_minutes: null,
+    fact_resolved: null,
     first_seen_at: new Date("2025-08-12T10:02:00Z"),
     last_activity_at: new Date("2025-08-12T12:15:00Z"),
     ...overrides,
@@ -35,6 +41,19 @@ describe("toEventListItem", () => {
     const item = toEventListItem(record());
     expect(item.first_seen_at).toBe("2025-08-12T10:02:00.000Z");
     expect(item.last_activity_at).toBe("2025-08-12T12:15:00.000Z");
+  });
+
+  it("来源 icon 走本站路径，不拼第三方 CDN", () => {
+    const icons = new Map([
+      ["OpenAI", "/events/icons/openai.com"],
+      ["Hacker News", "/events/icons/news.ycombinator.com"],
+    ]);
+    const item = toEventListItem(record(), null, icons);
+    expect(item.source_icon_urls).toEqual([
+      "/events/icons/openai.com",
+      "/events/icons/news.ycombinator.com",
+    ]);
+    expect(item.source_icon_urls.join("")).not.toContain("google.com");
   });
 
   it("没有关注记录时既未关注也没有更新", () => {
@@ -125,6 +144,19 @@ describe("groupSources", () => {
     const grouped = groupSources(signals);
     expect(grouped.official.map((s) => s.id)).toEqual(["s1"]);
     expect(grouped.community.map((s) => s.id)).toEqual(["s2"]);
+  });
+
+  it("HN 信号即使 URL 是目标站也画 HN 的标", () => {
+    const grouped = groupSources([
+      {
+        ...signals[1]!,
+        connector: "hackernews",
+        url: "https://openai.com/blog/gpt",
+      },
+    ]);
+    expect(grouped.community[0]?.icon_url).toBe(
+      "/events/icons/news.ycombinator.com",
+    );
   });
 
   // 每个键都必须在——公开面直接 `sources[kind].map`，缺一个就在 undefined 上炸

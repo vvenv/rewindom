@@ -26,6 +26,7 @@ vi.mock("@rewindom/module-sdk/server", () => ({
       findMany: timelineFindMany,
     },
     eventFollow: { findMany: vi.fn(async () => []) },
+    eventFeed: { findMany: vi.fn(async () => []) },
     $transaction: transaction,
   },
   withTenantScope: (tenantId: string, rest: object = {}) => ({
@@ -56,7 +57,7 @@ vi.mock("./event-revision.service.js", () => ({
 
 const { removeEventSignal } = await import("./event.service.js");
 
-const scope = { tenant_id: "t1", user_id: "u1" };
+const scope = { tenant_id: "t1", tenant_slug: "acme", user_id: "u1" };
 
 beforeEach(() => {
   vi.clearAllMocks();

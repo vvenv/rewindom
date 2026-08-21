@@ -4,12 +4,11 @@ import { Bell } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
-import { formatSourceNames } from "../lib/events.js";
-
 import { EventStatusBadge } from "./EventStatusBadge.js";
 import { EventMomentumBadge } from "./EventMomentumBadge.js";
 import { EventFactChips } from "./EventFactChips.js";
 import { RelativeTime } from "./RelativeTime.js";
+import { SourceIcon } from "./SourceIcon.js";
 
 import type { EventListItem } from "../../shared/index.js";
 
@@ -50,10 +49,16 @@ export function EventCard({ event }: { event: EventListItem }) {
         ) : null}
         <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
           {event.source_names.length > 0 ? (
-            <span>
-              {t("card.sources", {
-                names: formatSourceNames(event.source_names),
-              })}
+            <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              {event.source_names.slice(0, 3).map((name, index) => (
+                <span key={`${name}-${index}`} className="inline-flex items-center gap-1">
+                  <SourceIcon url={event.source_icon_urls[index]} className="size-3.5" />
+                  {name}
+                </span>
+              ))}
+              {event.source_names.length > 3 ? (
+                <span>+{event.source_names.length - 3}</span>
+              ) : null}
             </span>
           ) : null}
           <span>{t("card.signals", { count: event.signal_count })}</span>

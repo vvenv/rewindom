@@ -105,7 +105,7 @@ server/
 | 卡片图 `/events/:slug/og.png` | 事件自己的社交卡片图（1200×630）                                                                                                                                                                                                                                                                       |
 | 导航源 `events`               | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/topics/:slug`，当前格高亮；`children` 则收成「事件」一条下挂七格                                                                                                                                                                          |
 | 导航源 `events.topic`         | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填                                                                                                                                                                                                                                                |
-| path handler                  | 接 `/topics/:slug`、`/events/:slug`、`/entities`、`/entities/:slug`，以及三条非 HTML：`/feed.xml`、`/topics/:slug/feed.xml`、`/entities/:slug/feed.xml` 与 `/events/:slug/og.png`（`/en/...` 同一条，locale 已被剥掉）。`/` 由首页 CMS 渲染；套了雷达版式时 `/?source=` 才接管列表。旧地址不接、不 301 |
+| path handler                  | 接 `/topics/:slug`、`/events/:slug`、`/entities`、`/entities/:slug`，以及非 HTML：`/feed.xml`、`/topics/:slug/feed.xml`、`/entities/:slug/feed.xml`、`/events/:slug/og.png`、`/events/icons/:host`（`/en/...` 同一条，locale 已被剥掉）。`/` 由首页 CMS 渲染；套了雷达版式时 `/?source=` 才接管列表。旧地址不接、不 301 |
 | sitemap / 链接候选            | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给实体枢纽以及 RSS（**当前页** `{feed}` + 全站 `/feed.xml` + 已启用主题 `/topics/:slug/feed.xml`，分组 `feed`）。实体 feed 不进下拉                                                                                                |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
@@ -947,6 +947,9 @@ Anthropic 与 Meta AI 官网没有官方 RSS，不进目录（第三方刮来的
 
 工作台 `/app/events/sources` 按主题分组列出采集源。组头开关就是本站显示哪些主题：
 关掉一格，页头不再出现它，这一组源**暂停采集**（不改源自己的 `enabled`，主题开回来按原开关恢复）。
+来源名旁边的 favicon 是本站 `/events/icons/{host}`：访客不打 Google（那个地址不是全球可达），
+由服务端用采集那条 HTTP 出口去源站拉图并缓存。host 从采集源 URL + connector 推（HN 永远是
+`news.ycombinator.com`，不拿文章域名），只代理本站源列表里的 host，不落库。
 至少留一格。源仍可增删改（名称、地址、类型、默认主题）。
 
 > 目录里每个 URL 都实际请求验证过。`GitHub Blog` 与 `Hugging Face` 在部分网络环境下
@@ -1047,6 +1050,7 @@ release / filing 是预防性的：同一批样本里没观察到碰撞（k8s 10
 
 `parseEventsPublicPath` **先认末段**（`feed.xml` / `og.png`），且认不出也不许往下掉：
 否则 `/entities/feed.xml` 会被读成 slug 为 `feed.xml` 的实体。
+来源 favicon 是三段 `/events/icons/:host`，不跟 `/events/:slug` 撞。
 只有全站、主题格、实体页三种基地址有 feed；单条事件没有（`/events/:slug/feed.xml` → 404），
 不给不存在的东西发一份空 feed。
 

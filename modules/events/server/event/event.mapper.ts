@@ -1,4 +1,8 @@
 import { isEventKind, isEventRevisionKind } from "../../shared/index.js";
+import {
+  resolveSourceIconUrl,
+  sourceIconUrlsForNames,
+} from "../../shared/source-icon.js";
 
 import type {
   EventIncidentUpdate,
@@ -54,6 +58,7 @@ export interface FollowMarker {
 export function toEventListItem(
   record: EventRecordForList,
   follow?: FollowMarker | null,
+  sourceIcons?: ReadonlyMap<string, string>,
 ): EventListItem {
   return {
     id: record.id,
@@ -78,6 +83,7 @@ export function toEventListItem(
     signal_count: record.signal_count,
     source_count: record.source_count,
     source_names: record.source_names,
+    source_icon_urls: sourceIconUrlsForNames(record.source_names, sourceIcons),
     first_seen_at: record.first_seen_at.toISOString(),
     last_activity_at: record.last_activity_at.toISOString(),
     is_following: Boolean(follow),
@@ -105,6 +111,7 @@ export interface SignalRecord {
   url: string;
   source_name: string;
   source_kind: string;
+  connector?: string;
   published_at: Date;
   score: number;
   comment_count: number;
@@ -129,6 +136,10 @@ export function toEventDetail(params: {
   follow?: FollowMarker | null;
   /** 只有测试会显式传；生产恒为当下 */
   now?: Date;
+  /** 本站采集源 name → 本站 icon 路径 */
+  sourceIcons?: ReadonlyMap<string, string>;
+  /** 索引未命中时的取图地址。工作台绑 API 路径。 */
+  iconToUrl?: (host: string) => string;
 }): EventDetail {
   const { record } = params;
   // 更新序列挂在信号上、时间线格子按 signal_id 认领它——两边本来就在同一批查询里
@@ -138,17 +149,28 @@ export function toEventDetail(params: {
       toIncidentUpdates(signal.incident_updates),
     ]),
   );
+  const connectorBySignal = new Map(
+    params.signals
+      .filter((signal) => signal.connector)
+      .map((signal) => [signal.id, signal.connector!]),
+  );
   return {
-    ...toEventListItem(record, params.follow),
+    ...toEventListItem(record, params.follow, params.sourceIcons),
     summary: record.summary,
     analyzer: record.analyzer,
     analyzed_at: record.analyzed_at?.toISOString() ?? null,
     manual_content: record.manual_content,
     manual_topic: record.manual_topic,
     timeline: params.timeline.map((entry) =>
-      toTimelineItem(entry, updatesBySignal),
+      toTimelineItem(
+        entry,
+        updatesBySignal,
+        connectorBySignal,
+        params.sourceIcons,
+        params.iconToUrl,
+      ),
     ),
-    sources: groupSources(params.signals),
+    sources: groupSources(params.signals, params.sourceIcons, params.iconToUrl),
     revisions: (params.revisions ?? []).flatMap(toRevisionItem),
     why_trending: computeWhyTrending({
       signals: params.signals.map((signal) => ({
@@ -232,6 +254,9 @@ function asPayload(
 function toTimelineItem(
   record: TimelineRecord,
   updatesBySignal: ReadonlyMap<string, EventIncidentUpdate[]>,
+  connectorBySignal: ReadonlyMap<string, string>,
+  sourceIcons?: ReadonlyMap<string, string>,
+  iconToUrl?: (host: string) => string,
 ): EventTimelineItem {
   return {
     id: record.id,
@@ -240,6 +265,15 @@ function toTimelineItem(
     label_text: record.label_text,
     source_kind: record.source_kind as EventSourceKind,
     source_name: record.source_name,
+    icon_url: resolveSourceIconUrl({
+      name: record.source_name,
+      url: record.url,
+      connector: record.signal_id
+        ? connectorBySignal.get(record.signal_id)
+        : undefined,
+      icons: sourceIcons,
+      toUrl: iconToUrl,
+    }),
     url: record.url,
     incident_updates:
       (record.signal_id ? updatesBySignal.get(record.signal_id) : null) ?? [],
@@ -272,6 +306,8 @@ function toIncidentUpdates(value: unknown): EventIncidentUpdate[] {
  */
 export function groupSources(
   signals: readonly SignalRecord[],
+  sourceIcons?: ReadonlyMap<string, string>,
+  iconToUrl?: (host: string) => string,
 ): Record<EventSourceKind, EventSourceItem[]> {
   const grouped: Record<EventSourceKind, EventSourceItem[]> = {
     official: [],
@@ -293,6 +329,13 @@ export function groupSources(
       url: signal.url,
       source_name: signal.source_name,
       source_kind: kind,
+      icon_url: resolveSourceIconUrl({
+        name: signal.source_name,
+        url: signal.url,
+        connector: signal.connector,
+        icons: sourceIcons,
+        toUrl: iconToUrl,
+      }),
       published_at: signal.published_at.toISOString(),
       score: signal.score,
       comment_count: signal.comment_count,

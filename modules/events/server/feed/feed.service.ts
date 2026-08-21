@@ -15,6 +15,8 @@ import {
   normalizeFeedUpdate,
 } from "./feed.util.js";
 
+import { bindSourceIconUrl, sourceIconUrl } from "../../shared/source-icon.js";
+
 import type {
   EventConnectorId,
   EventFeedItem,
@@ -26,17 +28,19 @@ import type {
 
 export async function listEventFeeds(
   tenantId: string,
+  tenantSlug: string,
 ): Promise<EventFeedListResult> {
   await ensureDefaultFeeds(tenantId);
   const rows = await prisma.eventFeed.findMany({
     where: withTenantScope(tenantId),
     orderBy: [{ created_at: "asc" }],
   });
-  return { items: rows.map(toFeedItem) };
+  return { items: rows.map((row) => toFeedItem(row, tenantSlug)) };
 }
 
 export async function createEventFeed(
   tenantId: string,
+  tenantSlug: string,
   body: EventFeedWriteBody,
 ): Promise<EventFeedItem> {
   const input = wrapValidation(() => normalizeFeedCreate(body));
@@ -44,7 +48,7 @@ export async function createEventFeed(
     const row = await prisma.eventFeed.create({
       data: { tenant_id: tenantId, ...input },
     });
-    return toFeedItem(row);
+    return toFeedItem(row, tenantSlug);
   } catch (err) {
     throwIfUrlTaken(err);
     throw err;
@@ -53,6 +57,7 @@ export async function createEventFeed(
 
 export async function updateEventFeed(params: {
   tenant_id: string;
+  tenant_slug: string;
   feed_id: string;
   body: EventFeedWriteBody;
 }): Promise<EventFeedItem> {
@@ -61,14 +66,14 @@ export async function updateEventFeed(params: {
     normalizeFeedUpdate(params.body, current),
   );
   if (Object.keys(patch).length === 0) {
-    return toFeedItem(current);
+    return toFeedItem(current, params.tenant_slug);
   }
   try {
     const row = await prisma.eventFeed.update({
       where: { id: current.id },
       data: patch,
     });
-    return toFeedItem(row);
+    return toFeedItem(row, params.tenant_slug);
   } catch (err) {
     throwIfUrlTaken(err);
     throw err;
@@ -110,17 +115,20 @@ function throwIfUrlTaken(err: unknown): void {
   }
 }
 
-function toFeedItem(row: {
-  id: string;
-  connector: string;
-  name: string;
-  url: string;
-  source_kind: string;
-  topic: string;
-  enabled: boolean;
-  last_fetched_at: Date | null;
-  last_error: string | null;
-}): EventFeedItem {
+function toFeedItem(
+  row: {
+    id: string;
+    connector: string;
+    name: string;
+    url: string;
+    source_kind: string;
+    topic: string;
+    enabled: boolean;
+    last_fetched_at: Date | null;
+    last_error: string | null;
+  },
+  tenantSlug: string,
+): EventFeedItem {
   return {
     id: row.id,
     connector: row.connector as EventConnectorId,
@@ -131,5 +139,9 @@ function toFeedItem(row: {
     enabled: row.enabled,
     last_fetched_at: row.last_fetched_at?.toISOString() ?? null,
     last_error: row.last_error,
+    icon_url: sourceIconUrl(
+      { connector: row.connector, url: row.url },
+      bindSourceIconUrl(tenantSlug),
+    ),
   };
 }

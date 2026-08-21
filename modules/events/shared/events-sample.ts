@@ -6,12 +6,19 @@
  */
 
 import { EMPTY_EVENT_FACTS } from "./events.js";
+import { sourceIconUrlFromHost } from "./source-icon.js";
 
 import type { EventDetail, EventListItem } from "./events.js";
 import type { EventsTranslate } from "./public-view.js";
 
 const SAMPLE_TIME = "2026-08-17T10:02:00.000Z";
 const SAMPLE_UPDATED = "2026-08-17T12:15:00.000Z";
+const SAMPLE_SOURCE_NAMES = ["OpenAI", "Hacker News", "TechCrunch"] as const;
+const SAMPLE_SOURCE_ICON_URLS = [
+  sourceIconUrlFromHost("openai.com"),
+  sourceIconUrlFromHost("news.ycombinator.com"),
+  sourceIconUrlFromHost("techcrunch.com"),
+] as const;
 
 function sampleItem(index: number, t: EventsTranslate): EventListItem {
   return {
@@ -39,7 +46,8 @@ function sampleItem(index: number, t: EventsTranslate): EventListItem {
     recent_source_count: 3,
     signal_count: 9 - index,
     source_count: 3,
-    source_names: ["OpenAI", "Hacker News", "TechCrunch"],
+    source_names: [...SAMPLE_SOURCE_NAMES],
+    source_icon_urls: [...SAMPLE_SOURCE_ICON_URLS],
     first_seen_at: SAMPLE_TIME,
     last_activity_at: SAMPLE_UPDATED,
     is_following: false,
@@ -111,6 +119,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         incident_updates: [],
         source_kind: "official",
         source_name: "OpenAI",
+        icon_url: SAMPLE_SOURCE_ICON_URLS[0],
         url: null,
       },
       {
@@ -121,6 +130,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         incident_updates: [],
         source_kind: "community",
         source_name: "Hacker News",
+        icon_url: SAMPLE_SOURCE_ICON_URLS[1],
         url: null,
       },
       {
@@ -131,6 +141,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         incident_updates: [],
         source_kind: "news",
         source_name: "TechCrunch",
+        icon_url: SAMPLE_SOURCE_ICON_URLS[2],
         url: null,
       },
     ],
@@ -142,6 +153,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
           url: "https://example.com/announcement",
           source_name: "OpenAI",
           source_kind: "official",
+          icon_url: SAMPLE_SOURCE_ICON_URLS[0],
           published_at: SAMPLE_TIME,
           score: 0,
           comment_count: 0,
@@ -160,6 +172,7 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
           url: "https://example.com/discussion",
           source_name: "Hacker News",
           source_kind: "community",
+          icon_url: SAMPLE_SOURCE_ICON_URLS[1],
           published_at: "2026-08-17T10:17:00.000Z",
           score: 320,
           comment_count: 118,

@@ -51,6 +51,23 @@ describe("vite marketing SSR proxy routing", () => {
     expect(
       shouldProxyDocumentToMarketingSsr("/site.webmanifest", "GET", "*/*"),
     ).toBe(true);
+    expect(
+      shouldProxyDocumentToMarketingSsr(
+        "/events/icons/openai.com",
+        "GET",
+        "image/avif,image/webp,image/*,*/*;q=0.8",
+      ),
+    ).toBe(true);
+    expect(
+      shouldProxyDocumentToMarketingSsr("/feed.xml", "GET", "application/xml"),
+    ).toBe(true);
+    expect(
+      shouldProxyDocumentToMarketingSsr(
+        "/events/foo-abc123/og.png",
+        "GET",
+        "image/png",
+      ),
+    ).toBe(true);
   });
 
   it("店面与会员订单走 Fastify SSR，含无 JS 表单 POST", () => {

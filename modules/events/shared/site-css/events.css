@@ -187,9 +187,28 @@
 }
 
 .events-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
   margin: 0;
   color: var(--muted-fg);
   font-size: 0.75rem;
+}
+
+.events-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.events-source-icon {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: none;
+  border-radius: 2px;
+  object-fit: contain;
+  background: var(--muted-bg, transparent);
 }
 
 .events-more {
@@ -345,6 +364,9 @@
 }
 
 .events-timeline-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: var(--muted-fg);
   font-size: 0.75rem;
   text-decoration: none;
@@ -395,6 +417,9 @@
 }
 
 .events-source-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: var(--muted-fg);
   font-size: 0.75rem;
 }

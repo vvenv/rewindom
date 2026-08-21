@@ -86,6 +86,7 @@ export function toPublicCard(
     ),
     signal_count: item.signal_count,
     source_names: item.source_names,
+    source_icon_urls: item.source_icon_urls,
     last_activity_at: item.last_activity_at,
   };
 }
@@ -173,6 +174,7 @@ function toPublicSource(source: {
   url: string;
   source_name: string;
   source_kind: EventSourceKind;
+  icon_url: string | null;
   published_at: string;
 }): PublicEventSource {
   return {
@@ -180,6 +182,7 @@ function toPublicSource(source: {
     url: source.url,
     source_name: source.source_name,
     source_kind: source.source_kind,
+    icon_url: source.icon_url,
     published_at: source.published_at,
   };
 }
@@ -195,6 +198,7 @@ function toPublicTimelineItem(entry: EventTimelineItem, t: EventsTranslate) {
     label: view.text,
     source_name: entry.source_name,
     source_kind: entry.source_kind,
+    icon_url: entry.icon_url,
     url: entry.url,
     // 一手更新序列原样带过去：里面每一格的时刻都写在来源正文里，不用翻译
     incident_updates: entry.incident_updates,

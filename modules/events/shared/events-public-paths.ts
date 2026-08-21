@@ -13,6 +13,7 @@
  *   /topics/:slug/feed.xml     专题 RSS
  *   /entities/:slug/feed.xml   实体 RSS
  *   /events/:slug/og.png       事件卡片图
+ *   /events/icons/:host        来源 favicon（同源代理）
  *
  * 没有专题目录、没有 `/events` 枢纽。只认上表，旧地址不接、不转。
  */
@@ -25,6 +26,7 @@ import {
   type EventSourceKind,
   type EventTopic,
 } from "./events.js";
+import { isIconHost, sourceIconUrlFromHost } from "./source-icon.js";
 
 /**
  * 模块级前缀，不含斜杠。空串 = 集合路径落在站点根。
@@ -37,6 +39,7 @@ export const EVENTS_EVENTS_SEGMENT = "events";
 export const EVENTS_ENTITY_SEGMENT = "entities";
 export const EVENTS_FEED_SEGMENT = "feed.xml";
 export const EVENTS_OG_IMAGE_SEGMENT = "og.png";
+export const EVENTS_ICONS_SEGMENT = "icons";
 
 /** 与 `registerHomeLayout` 的 key 一致。 */
 export const EVENTS_HOME_LAYOUT_KEY = "events.home";
@@ -125,6 +128,13 @@ export function eventOgImagePath(
   return joinPublic(eventPath(slug, prefix), EVENTS_OG_IMAGE_SEGMENT);
 }
 
+export function sourceIconPath(
+  host: string,
+  prefix: string = EVENTS_MODULE_PREFIX,
+): string {
+  return withEventsPrefix(sourceIconUrlFromHost(host), prefix);
+}
+
 /** 当前页 RSS。有主题时订那一格，否则全站。看见的就是 `{feed}`。 */
 export const EVENTS_FEED_HREF_TEMPLATE = "{feed}";
 
@@ -196,7 +206,8 @@ export type EventsPublicRoute =
   | { type: "entity"; slug: string }
   | { type: "feed"; topic?: EventTopic }
   | { type: "entity_feed"; slug: string }
-  | { type: "og_image"; slug: string };
+  | { type: "og_image"; slug: string }
+  | { type: "source_icon"; host: string };
 
 function decodeSegment(value: string): string {
   try {
@@ -250,6 +261,14 @@ export function parseEventsPublicPath(
   if (parts.length === 2 && parts[0] === EVENTS_TOPICS_SEGMENT) {
     const topic = decodeSegment(parts[1]!);
     return isEventTopic(topic) ? { type: "topic", topic } : null;
+  }
+  if (
+    parts.length === 3 &&
+    parts[0] === EVENTS_EVENTS_SEGMENT &&
+    parts[1] === EVENTS_ICONS_SEGMENT
+  ) {
+    const host = decodeSegment(parts[2]!).toLowerCase();
+    return isIconHost(host) ? { type: "source_icon", host } : null;
   }
   if (parts.length === 2 && parts[0] === EVENTS_EVENTS_SEGMENT) {
     return { type: "event", slug: decodeSegment(parts[1]!) };

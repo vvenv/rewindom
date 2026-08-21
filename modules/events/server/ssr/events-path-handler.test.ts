@@ -147,6 +147,7 @@ describe("非 HTML 地址的分派", () => {
     expect(renderEventOgImage).not.toHaveBeenCalled();
     expect(renderSourceIcon).not.toHaveBeenCalled();
   });
+});
 
 describe("HTML 页的模板 kind", () => {
   it("专题路径走 events_topic", async () => {

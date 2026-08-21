@@ -345,6 +345,8 @@ export interface EventListItem {
   source_count: number;
   /** 贡献过信号的源名，最多前 4 个，用于卡片上的「来源：X · Reddit · HN」 */
   source_names: string[];
+  /** 与 source_names 同序。对不上采集源的项为 null，渲染侧不画图标 */
+  source_icon_urls: (string | null)[];
   first_seen_at: string;
   last_activity_at: string;
   /** 当前用户是否已关注 */
@@ -455,6 +457,8 @@ export interface EventTimelineItem {
   label_text: string | null;
   source_kind: EventSourceKind;
   source_name: string;
+  /** 采集源 favicon。对不上源时为 null */
+  icon_url: string | null;
   url: string | null;
   /**
    * 状态页那条 incident 的一手更新序列，嵌在这一格里渲染。
@@ -480,6 +484,8 @@ export interface EventSourceItem {
   url: string;
   source_name: string;
   source_kind: EventSourceKind;
+  /** 采集源 favicon。对不上源时为 null */
+  icon_url: string | null;
   published_at: string;
   score: number;
   comment_count: number;
@@ -643,6 +649,8 @@ export interface EventFeedItem {
   enabled: boolean;
   last_fetched_at: string | null;
   last_error: string | null;
+  /** 由 url + connector 推导，不落库 */
+  icon_url: string | null;
 }
 
 export interface EventFeedListResult {

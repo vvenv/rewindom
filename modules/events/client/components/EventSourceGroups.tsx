@@ -4,6 +4,7 @@ import { ExternalLink, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { RelativeTime } from "./RelativeTime.js";
+import { SourceIcon } from "./SourceIcon.js";
 
 import { SOURCE_KIND_ORDER } from "../../shared/index.js";
 
@@ -57,7 +58,10 @@ export function EventSourceGroups({
                       <ExternalLink className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
                     </span>
                     <span className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                      <Badge variant="outline">{source.source_name}</Badge>
+                      <span className="inline-flex items-center gap-1">
+                        <SourceIcon url={source.icon_url} className="size-3.5" />
+                        <Badge variant="outline">{source.source_name}</Badge>
+                      </span>
                       <RelativeTime iso={source.published_at} />
                       {source.score > 0 ? (
                         <span>{t("detail.score", { count: source.score })}</span>

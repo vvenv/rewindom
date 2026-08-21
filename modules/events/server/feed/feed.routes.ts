@@ -23,7 +23,10 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
     errorCode: "EVENT_FEED_LIST_FAILED",
     preHandler: [app.requirePermission("events.read")],
     handler: async (request) =>
-      listEventFeeds(request.tenantContext!.tenant_id),
+      listEventFeeds(
+        request.tenantContext!.tenant_id,
+        request.tenantContext!.tenant_slug,
+      ),
   });
 
   defineRoute(app, {
@@ -36,6 +39,7 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
       guardAppError(reply, async () => {
         const feed = await createEventFeed(
           request.tenantContext!.tenant_id,
+          request.tenantContext!.tenant_slug,
           request.body as EventFeedWriteBody,
         );
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
@@ -61,6 +65,7 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
         const { feedId } = request.params as { feedId: string };
         const feed = await updateEventFeed({
           tenant_id: request.tenantContext!.tenant_id,
+          tenant_slug: request.tenantContext!.tenant_slug,
           feed_id: feedId,
           body: request.body as EventFeedWriteBody,
         });

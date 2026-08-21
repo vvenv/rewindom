@@ -18,6 +18,7 @@ import {
   isEventsRootQueryTakeover,
   parseEventsIndexQuery,
   parseEventsPublicPath,
+  sourceIconPath,
   topicPath,
   withEventsPrefix,
 } from "./events-public-paths.js";
@@ -33,6 +34,7 @@ describe("typed public paths", () => {
     expect(eventsFeedPath("ai")).toBe("/topics/ai/feed.xml");
     expect(entityFeedPath("openai")).toBe("/entities/openai/feed.xml");
     expect(eventOgImagePath("foo-abc123")).toBe("/events/foo-abc123/og.png");
+    expect(sourceIconPath("openai.com")).toBe("/events/icons/openai.com");
   });
 
   it("module prefix wraps collection paths, not home", () => {
@@ -89,6 +91,10 @@ describe("parseEventsPublicPath", () => {
       type: "og_image",
       slug: "foo-abc123",
     });
+    expect(parseEventsPublicPath("/events/icons/openai.com")).toEqual({
+      type: "source_icon",
+      host: "openai.com",
+    });
 
     expect(parseEventsPublicPath("/")).toBeNull();
     expect(parseEventsPublicPath("/events")).toBeNull();
@@ -101,12 +107,15 @@ describe("parseEventsPublicPath", () => {
     expect(parseEventsPublicPath("/topics")).toBeNull();
     expect(parseEventsPublicPath("/events/foo-abc123/feed.xml")).toBeNull();
     expect(parseEventsPublicPath("/topics/ai/og.png")).toBeNull();
+    expect(parseEventsPublicPath("/events/icons/localhost")).toBeNull();
+    expect(parseEventsPublicPath("/events/icons/not a host")).toBeNull();
   });
 
   it("isEventsPath 与解析同一条", () => {
     expect(isEventsPath("/topics/ai")).toBe(true);
     expect(isEventsPath("/events/foo-abc123")).toBe(true);
     expect(isEventsPath("/feed.xml")).toBe(true);
+    expect(isEventsPath("/events/icons/openai.com")).toBe(true);
     expect(isEventsPath("/events")).toBe(false);
     expect(isEventsPath("/ai")).toBe(false);
   });

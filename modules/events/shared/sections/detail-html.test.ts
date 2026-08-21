@@ -26,6 +26,7 @@ function detail(
     momentum_rising: true,
     signal_count: 3,
     source_names: ["OpenAI"],
+    source_icon_urls: [],
     last_activity_at: "2026-08-17T12:00:00.000Z",
     fact_labels: [],
     summary: "摘要",

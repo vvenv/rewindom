@@ -6,6 +6,7 @@ import {
 import { registerReservedPageSlug } from "@rewindom/builtin/marketing/shared/reserved-slugs.js";
 
 import { feedRoutes } from "./feed/feed.routes.js";
+import { sourceIconRoutes } from "./feed/source-icon.routes.js";
 import { followRoutes } from "./follow/follow.routes.js";
 import { registerEventIngestJobs } from "./ingest/scheduler-jobs.js";
 import { registerEventsSections } from "./sections/register.js";
@@ -88,7 +89,10 @@ export const eventsServerModule: ServerAppModule = {
       /*
        * 公开面（页面 / RSS / og.png）一条 Fastify 路由都不挂：它们全部走
        * marketing 的 path handler，locale 剥离与 entitlement 闸门都在那里。
+       * 来源 favicon 额外挂一条 `/api/public/...`：工作台 `<img>` 不带 JWT，
+       * 只能走 Vite 已经代理的 `/api`。
        */
+      await app.register(sourceIconRoutes);
       await registerTenantGatedRoutes(app, "events", async (scoped) => {
         await scoped.register(feedRoutes, { prefix: "/api/events/feeds" });
         await scoped.register(followRoutes, { prefix: "/api/events/follows" });

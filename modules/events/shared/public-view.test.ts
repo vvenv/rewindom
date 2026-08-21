@@ -96,6 +96,7 @@ describe("toPublicEntity", () => {
             signal_count: 1,
             source_count: 1,
             source_names: ["Status"],
+            source_icon_urls: [null],
             first_seen_at: "2026-08-17T10:00:00.000Z",
             last_activity_at: "2026-08-17T12:00:00.000Z",
             is_following: false,

@@ -25,6 +25,8 @@ import {
 import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
 import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
+import { sourcesLineHtml } from "../source-icon-html.js";
+
 import type {
   EventsIndexQuery,
   EventsRenderContext,
@@ -160,7 +162,7 @@ function cardHtml(
 
   const sources =
     showSources && card.source_names.length > 0
-      ? `<p class="events-sources" translate="no">${escapeHtml(card.source_names.join(" · "))}</p>`
+      ? sourcesLineHtml(card.source_names, card.source_icon_urls)
       : "";
 
   return `<li class="events-card"><a class="events-card-link" href="${escapeHtml(

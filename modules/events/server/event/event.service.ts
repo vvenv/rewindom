@@ -8,6 +8,8 @@ import {
 } from "@rewindom/module-sdk/server";
 
 import { toEventDetail, toEventListItem } from "./event.mapper.js";
+import { loadSourceIconIndex } from "../feed/source-icon-index.js";
+import { bindSourceIconUrl } from "../../shared/source-icon.js";
 import { listEventEntities } from "./entity.service.js";
 import { listRelatedEvents } from "./related.service.js";
 import { getEventPlacementForDetail } from "./placement.service.js";
@@ -81,6 +83,7 @@ const LIST_SELECT = {
 
 export interface EventViewerScope {
   tenant_id: string;
+  tenant_slug: string;
   user_id: string;
 }
 
@@ -114,10 +117,11 @@ export async function listEvents(
   ]);
 
   const follows = await loadFollowMarkers(params, records.map((r) => r.id));
+  const sourceIcons = await loadSourceIconIndex(params.tenant_id, params.tenant_slug);
 
   return {
     items: records.map((record) =>
-      toEventListItem(record, follows.get(record.id) ?? null),
+      toEventListItem(record, follows.get(record.id) ?? null, sourceIcons),
     ),
     page: params.page,
     page_size: params.page_size,
@@ -182,8 +186,14 @@ export async function getEventFeed(
     ...risingIds,
     ...nowEvents.map((event) => event.id),
   ]);
+  const sourceIcons = await loadSourceIconIndex(
+    params.tenant_id,
+    params.tenant_slug,
+  );
   const map = (records: typeof rising): EventListItem[] =>
-    records.map((record) => toEventListItem(record, follows.get(record.id) ?? null));
+    records.map((record) =>
+      toEventListItem(record, follows.get(record.id) ?? null, sourceIcons),
+    );
 
   return {
     rising: map(rising),
@@ -241,6 +251,7 @@ export async function getEventDetail(
         url: true,
         source_name: true,
         source_kind: true,
+        connector: true,
         published_at: true,
         score: true,
         comment_count: true,
@@ -278,6 +289,11 @@ export async function getEventDetail(
     entities,
   });
 
+  const sourceIcons = await loadSourceIconIndex(
+    params.tenant_id,
+    params.tenant_slug,
+  );
+
   return toEventDetail({
     record,
     timeline,
@@ -287,6 +303,8 @@ export async function getEventDetail(
     related,
     placement,
     follow,
+    sourceIcons,
+    iconToUrl: bindSourceIconUrl(params.tenant_slug),
   });
 }
 
@@ -366,6 +384,7 @@ export async function updateEvent(
 
   return getEventDetail({
     tenant_id: params.tenant_id,
+    tenant_slug: params.tenant_slug,
     user_id: params.user_id,
     event_id: existing.id,
   });
@@ -433,6 +452,7 @@ export async function removeEventSignal(
     event: survived
       ? await getEventDetail({
           tenant_id: params.tenant_id,
+          tenant_slug: params.tenant_slug,
           user_id: params.user_id,
           event_id: event.id,
         })

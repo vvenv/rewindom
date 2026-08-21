@@ -24,6 +24,7 @@ function card(
     momentum_rising: true,
     signal_count: 3,
     source_names: ["OpenAI"],
+    source_icon_urls: [],
     last_activity_at: "2026-08-17T12:00:00.000Z",
     ...overrides,
   };
@@ -287,6 +288,18 @@ describe("renderEventsFeedHtml", () => {
       card("a", { momentum_label: "", momentum_rising: false }),
     ]);
     expect(html).not.toContain("events-velocity");
+  });
+
+  it("来源 icon 走本站路径，不打 Google", () => {
+    const html = renderCards([
+      card("a", {
+        source_names: ["OpenAI"],
+        source_icon_urls: ["/events/icons/openai.com"],
+      }),
+    ]);
+    expect(html).toContain('src="/events/icons/openai.com"');
+    expect(html).toContain('class="events-source-icon"');
+    expect(html).not.toContain("google.com/s2");
   });
 });
 

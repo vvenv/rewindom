@@ -1,4 +1,5 @@
 export * from "./events.js";
+export * from "./source-icon.js";
 export * from "./entitlements.js";
 export * from "./events-section-context.js";
 export * from "./events-feed-section.js";

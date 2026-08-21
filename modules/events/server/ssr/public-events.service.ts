@@ -13,6 +13,7 @@ import {
 import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
 import { toEventDetail, toEventListItem } from "../event/event.mapper.js";
+import { loadSourceIconIndex } from "../feed/source-icon-index.js";
 import { listEventEntities } from "../event/entity.service.js";
 import { listRelatedEvents } from "../event/related.service.js";
 import { getEventPlacementForDetail } from "../event/placement.service.js";
@@ -138,8 +139,9 @@ export async function getPublicEventFeed(
    * 与工作台不同：这里**不做**两段互斥。官网上两段可能被租户拆到不同页面、
    * 也可能只摆其中一段——按「谁先出现就从后面扣掉」来算，单独摆一段时就会莫名少内容。
    */
+  const sourceIcons = await loadSourceIconIndex(tenantId);
   const map = (records: typeof rising): EventListItem[] =>
-    records.map((record) => toEventListItem(record, null));
+    records.map((record) => toEventListItem(record, null, sourceIcons));
 
   return {
     rising: map(rising),
@@ -201,7 +203,9 @@ export async function getPublicEventList(
           ],
         });
 
-  return records.map((record) => toEventListItem(record, null));
+  const sourceIcons = await loadSourceIconIndex(tenantId);
+
+  return records.map((record) => toEventListItem(record, null, sourceIcons));
 }
 
 /** RSS 一次给多少条。阅读器普遍只留最近若干条，给太多只是浪费带宽。 */
@@ -309,6 +313,7 @@ export async function getPublicEventBySlug(
         url: true,
         source_name: true,
         source_kind: true,
+        connector: true,
         published_at: true,
         score: true,
         comment_count: true,
@@ -340,6 +345,8 @@ export async function getPublicEventBySlug(
     entities,
   });
 
+  const sourceIcons = await loadSourceIconIndex(tenantId);
+
   return toEventDetail({
     record,
     timeline,
@@ -351,6 +358,7 @@ export async function getPublicEventBySlug(
       isTopicEnabled(enabled, row.topic as EventTopic),
     ),
     follow: null,
+    sourceIcons,
   });
 }
 
@@ -410,10 +418,12 @@ export async function getPublicEntityBySlug(
     }),
   ]);
 
+  const sourceIcons = await loadSourceIconIndex(tenantId);
+
   return {
     ...entity,
     event_count: eventCount,
-    events: links.map((link) => toEventListItem(link.event, null)),
+    events: links.map((link) => toEventListItem(link.event, null, sourceIcons)),
     profile,
   };
 }

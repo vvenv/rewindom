@@ -23,6 +23,7 @@ import { groupFeedsByTopic } from "../lib/event-feeds.js";
 
 import { EventFeedEditSheet } from "./EventFeedEditSheet.js";
 import { RelativeTime } from "./RelativeTime.js";
+import { SourceIcon } from "./SourceIcon.js";
 
 import {
   EVENT_TOPICS,
@@ -231,6 +232,7 @@ function EventFeedRow({
     <li className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
+          <SourceIcon url={feed.icon_url} />
           <p className="font-medium">{feed.name}</p>
           <span className="text-muted-foreground text-xs">
             {t(`sourceKind.${feed.source_kind}`)}

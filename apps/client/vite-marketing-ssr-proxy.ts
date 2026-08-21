@@ -45,6 +45,20 @@ export function shouldBypassMarketingSsrProxy(url: string): boolean {
   return SPA_PREFIX_RE.test(url) || VITE_DEV_INTERNAL_RE.test(url);
 }
 
+/**
+ * RSS / og.png / 来源 favicon：浏览器 Accept 是 xml 或 image/*，
+ * 不含 text/html。只认 HTML 的话开发态这些地址会掉进 Vite SPA，
+ * `<img>` 拿到一段 HTML 就 onerror 摘掉，图标整批看不见。
+ */
+export function isMarketingSsrResourcePath(url: string): boolean {
+  const path = pathOnly(url);
+  return (
+    /(?:^|\/)events\/icons\/[^/]+$/u.test(path) ||
+    path.endsWith("/feed.xml") ||
+    path.endsWith("/og.png")
+  );
+}
+
 export function shouldProxyDocumentToMarketingSsr(
   url: string,
   method: string,
@@ -59,6 +73,7 @@ export function shouldProxyDocumentToMarketingSsr(
     url === "/robots.txt" ||
     url === "/llms.txt" ||
     url === "/site.webmanifest" ||
+    isMarketingSsrResourcePath(url) ||
     accept.includes("text/html")
   );
 }

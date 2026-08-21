@@ -11,6 +11,7 @@ import { normalizeLocale } from "@rewindom/module-sdk";
 import { renderEventsTemplatePage } from "./events-page.js";
 import { isEventOgImageAvailable } from "./og-image.js";
 import { renderEventOgImage } from "./og.render.js";
+import { renderSourceIcon } from "./source-icon.js";
 import { renderEntityFeed, renderEventsFeed } from "./rss.render.js";
 import {
   createEventsPresetTranslator,
@@ -123,6 +124,12 @@ export async function renderEventsPath(
       tenantSlug: input.tenantSlug,
       origin: input.origin,
       slug: route.slug,
+    });
+  }
+  if (route.type === "source_icon") {
+    return renderSourceIcon({
+      tenantId: input.tenantId,
+      host: route.host,
     });
   }
 
