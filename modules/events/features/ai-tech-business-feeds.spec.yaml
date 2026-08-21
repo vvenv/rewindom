@@ -1,0 +1,43 @@
+# AI / Tech / Business 三格的跨源印证仍然偏薄。
+#
+# 目录扩到 48 个源之后，ai 仍缺 Meta / NVIDIA / Microsoft 这类当事方博客，
+# business 只有 BBC + FT + 两个监管源，tech 的报道侧几乎还是初版那 5 家。
+# Anthropic / Meta AI 官网没有官方 RSS——第三方刮来的镜像不进目录。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant]
+goal: 内置目录给 ai / tech / business 各补一批一手博客与报道源；存量站点按从未种过的 key 自动补齐。
+gold: modules/events/server/ingest/feed-catalog.ts
+touch:
+  - modules/events/features/ai-tech-business-feeds.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/feed-catalog.ts
+  - modules/events/server/ingest/feed-catalog.test.ts
+out_of_scope:
+  - 新 connector（仍只有 hackernews 与 rss）
+  - 中文源（跨语言合并要等阈值校准，见 MODULE.md「后续」）
+  - 第三方刮来的镜像（Anthropic / Meta AI 官网没有官方 RSS，不进目录）
+  - 已有出版社的分类 feed（TechCrunch AI、The Verge AI——同一家已经在目录里）
+  - gaming / entertainment / sports
+  - 改采集周期与并发
+  - 工作台上的「从目录添加源」选择器
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/feed-catalog.test.ts server/ingest/feed-seed.test.ts
+  - node scripts/verify-module.mjs events
+  - 新增目录项逐条请求验证（HTTP 2xx + 能解析出条目）
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 只加第一方 RSS/Atom。RSSHub、GitHub 刮来的 mirror 不进目录——
+#    它们不是当事方自己发的，挂了整格都空。
+# 2. 优先当事方博客（source_kind: official），报道源用来给同一件事第二份印证。
+#    business 现在几乎没有能跟 SEC/FTC 对上的媒体，优先补新闻站。
+# 3. 每个 URL 实际请求过才进目录。403 / 空 feed / HTML 登录页不要硬塞。
+# 4. 种植仍走现成的 ensureDefaultFeeds：新 key 补给存量站点，已种过的不复活。
+#    本 spec 不改 feed-seed.ts。

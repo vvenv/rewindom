@@ -19,8 +19,12 @@ export interface FeedSeed {
  * 为什么要铺到这个量：跨源印证是这个产品的核心，而它受制于
  * 「HN 上那条帖子有没有第二个源覆盖到」。8 个源时线上 16 张卡有 13 张只有单一来源。
  * 每个 topic 至少 3 个源——单源 topic 的事件永远无法跨源印证，等于白占一个筛选项。
+ * ai / tech / business 刻意更密：同一件事更容易被第二家源接到。
  * entertainment / sports 没有 official 源：这两类没有「当事方自己发公告」的等价物，
  * 硬凑一个不如空着。
+ *
+ * 明确不加：Anthropic / Meta AI 官网没有官方 RSS（第三方刮来的镜像不进目录）；
+ * Wired 主 feed 目前是优惠码；Reuters 已关公开 RSS。
  *
  * 目录里的每个 URL 都实际请求验证过。**已知在部分网络环境下不可达**：
  * `GitHub Blog` 与 `Hugging Face` 在本地会 `terminated`（连接被中断，不是 404），
@@ -60,9 +64,15 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   { connector: "rss", name: "Hugging Face", url: "https://huggingface.co/blog/feed.xml", source_kind: "official", topic: "ai" },
   { connector: "rss", name: "Google Research", url: "https://research.google/blog/rss/", source_kind: "official", topic: "ai" },
   { connector: "rss", name: "DeepMind", url: "https://deepmind.google/blog/rss.xml", source_kind: "official", topic: "ai" },
+  { connector: "rss", name: "Google AI Blog", url: "https://blog.google/technology/ai/rss/", source_kind: "official", topic: "ai" },
+  { connector: "rss", name: "NVIDIA Blog", url: "https://blogs.nvidia.com/feed/", source_kind: "official", topic: "ai" },
+  { connector: "rss", name: "Microsoft Research", url: "https://www.microsoft.com/en-us/research/feed/", source_kind: "official", topic: "ai" },
+  { connector: "rss", name: "PyTorch Blog", url: "https://pytorch.org/blog/feed.xml", source_kind: "official", topic: "ai" },
   { connector: "rss", name: "AWS Machine Learning", url: "https://aws.amazon.com/blogs/machine-learning/feed/", source_kind: "official", topic: "ai" },
   // ---- ai · 报道
   { connector: "rss", name: "MIT Technology Review", url: "https://www.technologyreview.com/feed/", source_kind: "news", topic: "ai" },
+  { connector: "rss", name: "VentureBeat AI", url: "https://venturebeat.com/category/ai/feed/", source_kind: "news", topic: "ai" },
+  { connector: "rss", name: "IEEE Spectrum AI", url: "https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss", source_kind: "news", topic: "ai" },
 
   // ---- tech · 一手来源
   { connector: "rss", name: "GitHub Blog", url: "https://github.blog/feed/", source_kind: "official", topic: "tech" },
@@ -71,16 +81,30 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   { connector: "rss", name: "Chromium Blog", url: "https://blog.chromium.org/feeds/posts/default", source_kind: "official", topic: "tech" },
   { connector: "rss", name: "Rust Blog", url: "https://blog.rust-lang.org/feed.xml", source_kind: "official", topic: "tech" },
   { connector: "rss", name: "Stack Overflow Blog", url: "https://stackoverflow.blog/feed/", source_kind: "official", topic: "tech" },
-  // ---- tech · 报道
+  { connector: "rss", name: "Meta Engineering", url: "https://engineering.fb.com/feed/", source_kind: "official", topic: "tech" },
+  { connector: "rss", name: "AWS News Blog", url: "https://aws.amazon.com/blogs/aws/feed/", source_kind: "official", topic: "tech" },
+  { connector: "rss", name: "Microsoft DevBlogs", url: "https://devblogs.microsoft.com/feed/", source_kind: "official", topic: "tech" },
+  { connector: "rss", name: "Apple Newsroom", url: "https://www.apple.com/newsroom/rss-feed.rss", source_kind: "official", topic: "tech" },
+  // ---- tech · 报道 / 社区
   { connector: "rss", name: "TechCrunch", url: "https://techcrunch.com/feed/", source_kind: "news", topic: "tech" },
   { connector: "rss", name: "The Verge", url: "https://www.theverge.com/rss/index.xml", source_kind: "news", topic: "tech" },
   { connector: "rss", name: "Ars Technica", url: "https://feeds.arstechnica.com/arstechnica/index", source_kind: "news", topic: "tech" },
   { connector: "rss", name: "Hacker Noon", url: "https://hackernoon.com/feed", source_kind: "news", topic: "tech" },
   { connector: "rss", name: "Engadget", url: "https://www.engadget.com/rss.xml", source_kind: "news", topic: "tech" },
+  { connector: "rss", name: "The Register", url: "https://www.theregister.com/headlines.atom", source_kind: "news", topic: "tech" },
+  { connector: "rss", name: "InfoQ", url: "https://feed.infoq.com", source_kind: "news", topic: "tech" },
+  { connector: "rss", name: "Bloomberg Technology", url: "https://feeds.bloomberg.com/technology/news.rss", source_kind: "news", topic: "tech" },
+  { connector: "rss", name: "WSJ Technology", url: "https://feeds.a.dj.com/rss/RSSWSJD.xml", source_kind: "news", topic: "tech" },
+  { connector: "rss", name: "Lobsters", url: "https://lobste.rs/rss", source_kind: "community", topic: "tech" },
 
   // ---- business
   { connector: "rss", name: "BBC Business", url: "https://feeds.bbci.co.uk/news/business/rss.xml", source_kind: "news", topic: "business" },
   { connector: "rss", name: "Financial Times", url: "https://www.ft.com/rss/home", source_kind: "news", topic: "business" },
+  { connector: "rss", name: "NPR Business", url: "https://feeds.npr.org/1006/rss.xml", source_kind: "news", topic: "business" },
+  { connector: "rss", name: "CNBC Business", url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10001147", source_kind: "news", topic: "business" },
+  { connector: "rss", name: "Fortune", url: "https://fortune.com/feed/", source_kind: "news", topic: "business" },
+  { connector: "rss", name: "Business Insider", url: "https://www.businessinsider.com/rss", source_kind: "news", topic: "business" },
+  { connector: "rss", name: "Federal Reserve Press", url: "https://www.federalreserve.gov/feeds/press_all.xml", source_kind: "official", topic: "business" },
   { connector: "rss", name: "SEC Press Releases", url: "https://www.sec.gov/news/pressreleases.rss", source_kind: "filing", topic: "business" },
   // Akamai 会拦阅读器 UA，采集出口对 ftc.gov 改用浏览器族 UA（见 http.ts）
   { connector: "rss", name: "FTC Press Releases", url: "https://www.ftc.gov/feeds/press-release.xml", source_kind: "filing", topic: "business" },

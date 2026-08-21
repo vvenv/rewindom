@@ -927,7 +927,9 @@ OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应�
 
 ## 采集源
 
-内置目录在 `server/ingest/feed-catalog.ts`，48 个源，每个 topic 至少 3 个。
+内置目录在 `server/ingest/feed-catalog.ts`，68 个源，每个 topic 至少 3 个。
+ai / tech / business 三格比其余更密：跨源印证主要发生在这三格，目录也优先往这儿补。
+Anthropic 与 Meta AI 官网没有官方 RSS，不进目录（第三方刮来的镜像挂了整格都空）。
 
 种植按**目录项的 key**（`connector:url`）记账，记录存在 `TenantSetting`
 的 `events.seeded_feed_keys` 上：每轮采集前把该站点从没种过的补进去。
