@@ -70,7 +70,8 @@
   "card": {
     "sources": "Sources: {{names}}",
     "signals": "{{count}} signals",
-    "hasUpdate": "Update"
+    "hasUpdate": "Update",
+    "confirmedSources": "Confirmed · {{count}} sources"
   },
   "detail": {
     "back": "Back to events",

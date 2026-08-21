@@ -70,7 +70,8 @@
   "card": {
     "sources": "来源：{{names}}",
     "signals": "{{count}} 条信号",
-    "hasUpdate": "有更新"
+    "hasUpdate": "有更新",
+    "confirmedSources": "已证实 · {{count}} 家来源"
   },
   "detail": {
     "back": "返回事件",
