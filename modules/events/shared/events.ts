@@ -347,6 +347,16 @@ export interface EventListItem {
   source_names: string[];
   /** 与 source_names 同序。对不上采集源的项为 null，渲染侧不画图标 */
   source_icon_urls: (string | null)[];
+  /**
+   * 贡献过信号的来源类型（去重）。卡片上的「已证实」靠它判，不另查信号表。
+   * 空数组 = 还没写过（不该常见），此时不猜 confirmed。
+   */
+  source_kinds: EventSourceKind[];
+  /**
+   * 归位。列表用来挑卡片那一行；没抽到实体或第一次出现时是空数组。
+   * 详情页画完整几行，卡片只取最强的一句（见 `pickCardEvidence`）。
+   */
+  placement: EventPlacementFact[];
   first_seen_at: string;
   last_activity_at: string;
   /** 当前用户是否已关注 */
@@ -572,11 +582,6 @@ export interface EventDetail extends EventListItem {
   related: EventRelatedItem[];
   /** 「为什么在扩散」。说不清楚时是空数组，界面整块不渲染 */
   why_trending: EventTrendingFactor[];
-  /**
-   * 归位：这条材料在该实体的连续记录里排第几、上一次是什么时候。
-   * 空数组 = 没抽到实体，或这是它第一次出现——界面整块不渲染。
-   */
-  placement: EventPlacementFact[];
 }
 
 /**
@@ -594,6 +599,104 @@ export interface EventPlacementFact {
    * 在工作台还是公开面，两侧各自拼。
    */
   event_slug?: string;
+}
+
+/**
+ * 卡片上那一行证据。i18n code + 参数，不是自由文案。
+ *
+ * 优先级：同类型归位 → 出现次数 → 已证实的跨源。没有可主张的就返回 null，
+ * 卡片保持薄——不要用「仅讨论」把单来源帖子撑成厚卡。
+ */
+export interface CardEvidence {
+  code: string;
+  params: Record<string, string | number>;
+}
+
+/** 单来源不叫跨源印证——与 spreading 同一条门槛。 */
+const CONFIRMED_MIN_SOURCES = 2;
+
+export function pickCardEvidence(item: {
+  source_count: number;
+  source_kinds: readonly EventSourceKind[];
+  placement: readonly EventPlacementFact[];
+}): CardEvidence | null {
+  const kindRecurrence = item.placement.find(
+    (fact) => fact.code === "placement.kindRecurrence",
+  );
+  if (kindRecurrence) {
+    return { code: kindRecurrence.code, params: kindRecurrence.params ?? {} };
+  }
+  const recurrence = item.placement.find(
+    (fact) => fact.code === "placement.recurrence",
+  );
+  if (recurrence) {
+    return { code: recurrence.code, params: recurrence.params ?? {} };
+  }
+  if (
+    item.source_count >= CONFIRMED_MIN_SOURCES &&
+    isListConfirmed(item.source_kinds)
+  ) {
+    return {
+      code: "card.confirmedSources",
+      params: { count: item.source_count },
+    };
+  }
+  return null;
+}
+
+/**
+ * 列表上的 confirmed：有一手，或至少两家且不是纯社区。
+ * source_kinds 为空时不猜——空不等于「有新闻源」。
+ */
+function isListConfirmed(kinds: readonly EventSourceKind[]): boolean {
+  if (kinds.some(isFirstPartySource)) {
+    return true;
+  }
+  if (kinds.length === 0) {
+    return false;
+  }
+  return !kinds.every((kind) => kind === "community");
+}
+
+/**
+ * 厚卡 = 有证据行或有类型事实。动量角标不算——薄卡上的单来源帖子不该因为
+ * 缺基线时的 spreading 文案变厚，而 spreading 本身也要求 ≥2 个近窗来源，
+ * 那种情况 confirmed 行已经会把它升级。
+ */
+export function isThickEventCard(item: {
+  kind: EventKind | null;
+  facts: EventFacts;
+  source_count: number;
+  source_kinds: readonly EventSourceKind[];
+  placement: readonly EventPlacementFact[];
+}): boolean {
+  return (
+    pickCardEvidence(item) !== null ||
+    describeEventFacts(item.kind, item.facts).length > 0
+  );
+}
+
+/**
+ * 证据行落成当前语言。kindRecurrence 的 `kind` 是嵌套 code，先翻再代进去。
+ */
+export function describeCardEvidence(
+  item: {
+    source_count: number;
+    source_kinds: readonly EventSourceKind[];
+    placement: readonly EventPlacementFact[];
+  },
+  t: (key: string, params?: Record<string, string | number>) => string,
+): string {
+  const evidence = pickCardEvidence(item);
+  if (!evidence) {
+    return "";
+  }
+  const kind = evidence.params.kind;
+  const params =
+    typeof kind === "string"
+      ? { ...evidence.params, kind: t(kind) }
+      : evidence.params;
+  return t(evidence.code, params);
 }
 
 /**

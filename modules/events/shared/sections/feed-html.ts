@@ -25,7 +25,7 @@ import {
 import { sectionHeading } from "@rewindom/builtin/marketing/shared/sections/_common/html.js";
 import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
-import { sourcesLineHtml } from "../source-icon-html.js";
+import { eventCardHtml } from "./event-card-html.js";
 
 import type {
   EventsIndexQuery,
@@ -140,66 +140,6 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
       : "";
 
   return `<div class="events-feed">${header}<ul class="events-grid">${cards
-    .map((card) => cardHtml(card, showSources, ctx))
+    .map((card) => eventCardHtml(card, showSources, ctx))
     .join("")}</ul>${more}</div>`;
 };
-
-function cardHtml(
-  card: PublicEventCard,
-  showSources: boolean,
-  ctx: Parameters<SectionHtmlRenderer>[1],
-): string {
-  const meta = [
-    `<span class="events-status events-status-${escapeHtml(card.status)}">${escapeHtml(
-      card.status_label,
-    )}</span>`,
-    `<span class="events-topic">${escapeHtml(card.topic_label)}</span>`,
-    factLabelsHtml(card.fact_labels),
-    momentumHtml(card),
-  ]
-    .filter(Boolean)
-    .join("");
-
-  const sources =
-    showSources && card.source_names.length > 0
-      ? sourcesLineHtml(card.source_names, card.source_icon_urls)
-      : "";
-
-  return `<li class="events-card"><a class="events-card-link" href="${escapeHtml(
-    siteHref(card.href, ctx),
-  )}"><span class="events-meta" translate="no">${meta}</span><span class="events-title">${escapeHtml(
-    card.title,
-  )}</span>${
-    card.headline
-      ? `<span class="events-headline">${escapeHtml(card.headline)}</span>`
-      : ""
-  }</a>${sources}</li>`;
-}
-
-/**
- * 势头标记。产品主指标是「它正在变化」而不是「它排第几」（MVP §2），
- * 所以这里没有名次也没有绝对热度分。
- *
- * 文案已经在 `toPublicCard` 落成当前语言了——涨跌幅是「↑ 42%」，
- * 新事件是「3 个来源正在跟进」。空串表示没有可主张的变化，留白。
- */
-/**
- * 类型与事实 chips（「故障」「47 分钟」「已解决」）。
- *
- * 文案已经在 `toPublicCard` 落成当前语言。空数组 = 判不出类型，整块跳过——
- * 绝大多数普通报道都是这样，多画一个空角标只会让卡片更吵。
- */
-function factLabelsHtml(labels: readonly string[]): string {
-  return labels
-    .map((label) => `<span class="events-fact">${escapeHtml(label)}</span>`)
-    .join("");
-}
-
-function momentumHtml(card: PublicEventCard): string {
-  if (!card.momentum_label) {
-    return "";
-  }
-  return `<span class="events-velocity${
-    card.momentum_rising ? " up" : ""
-  }">${escapeHtml(card.momentum_label)}</span>`;
-}

@@ -66,6 +66,11 @@ export interface PublicEventCard {
   /** 与 source_names 同序。对不上采集源的项为 null */
   source_icon_urls: (string | null)[];
   last_activity_at: string;
+  /**
+   * 已落成当前语言的那一行证据（归位或「已证实 · N 家来源」）。
+   * 空串 = 没有可主张的一句，渲染侧跳过。
+   */
+  evidence_text: string;
 }
 
 export interface PublicEventTimelineItem {

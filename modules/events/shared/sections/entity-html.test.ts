@@ -32,6 +32,8 @@ function card(
     source_names: ["OpenAI", "TechCrunch"],
     source_icon_urls: [],
     last_activity_at: "2026-08-17T12:00:00.000Z",
+    fact_labels: [],
+    evidence_text: "",
     ...overrides,
   };
 }
@@ -91,14 +93,18 @@ describe("renderEventsEntityHtml", () => {
     expect(html).toContain('href="/events/b"');
   });
 
-  /*
-   * 与「正在发生什么」区块共用 .events-card，不另起一套样式；
-   * 势头角标也保留——实体页上「哪几件事正在扩散」和首页上一样重要。
-   */
-  it("卡片沿用 events-card，并保留势头角标", () => {
-    const html = render(entity());
-    expect(html).toContain('class="events-card"');
+  it("卡片沿用 events-card，厚卡才摊开势头", () => {
+    const html = render(
+      entity({
+        events: [
+          card("a", { evidence_text: "已证实 · 2 家来源" }),
+          card("b"),
+        ],
+      }),
+    );
+    expect(html).toContain("events-card-thick");
     expect(html).toContain("3 个来源正在跟进");
+    expect(html).toContain("events-card-thin");
   });
 
   /* 累计档案跟着身份一起搬去了首屏段（见 hero-html.test.ts）。 */

@@ -3,15 +3,19 @@ import { describe, expect, it } from "vitest";
 import {
   clustersByUrlOnly,
   CROSS_SOURCE_KINDS,
+  describeCardEvidence,
   describeEventMomentum,
   describeTimelineEntry,
+  EMPTY_EVENT_FACTS,
   enabledTopicWhere,
   EVENT_SOURCE_KINDS,
   EVENT_TOPICS,
   isFeedCollecting,
   isFirstPartySource,
+  isThickEventCard,
   isTimelineRoleCode,
   parseEnabledTopicsInput,
+  pickCardEvidence,
   resolveEnabledTopics,
 } from "./events.js";
 import { isEventsPath } from "./events-section-context.js";
@@ -261,5 +265,142 @@ describe("describeTimelineEntry", () => {
     });
     expect(isTimelineRoleCode("timeline.role.newDetail")).toBe(true);
     expect(isTimelineRoleCode("timeline.news")).toBe(false);
+  });
+});
+
+describe("pickCardEvidence", () => {
+  const base = {
+    source_count: 1,
+    source_kinds: ["community"] as const,
+    placement: [] as const,
+  };
+
+  it("同类型归位优先于出现次数，出现次数优先于已证实", () => {
+    const placement = [
+      {
+        code: "placement.recurrence",
+        params: { entity: "Cloudflare", days: 90, count: 12 },
+      },
+      {
+        code: "placement.kindRecurrence",
+        params: {
+          entity: "Cloudflare",
+          days: 90,
+          count: 4,
+          kind: "kind.outage",
+        },
+      },
+    ];
+    expect(
+      pickCardEvidence({
+        source_count: 4,
+        source_kinds: ["official", "news"],
+        placement,
+      }),
+    ).toEqual({
+      code: "placement.kindRecurrence",
+      params: {
+        entity: "Cloudflare",
+        days: 90,
+        count: 4,
+        kind: "kind.outage",
+      },
+    });
+    expect(
+      pickCardEvidence({
+        source_count: 4,
+        source_kinds: ["official", "news"],
+        placement: [placement[0]],
+      }),
+    ).toMatchObject({ code: "placement.recurrence" });
+  });
+
+  it("没有归位、≥2 家且不是纯社区 → 已证实", () => {
+    expect(
+      pickCardEvidence({
+        source_count: 3,
+        source_kinds: ["news", "community"],
+        placement: [],
+      }),
+    ).toEqual({ code: "card.confirmedSources", params: { count: 3 } });
+  });
+
+  it("一手来源也要满 2 家才写已证实——单独一条状态页不是跨源印证", () => {
+    expect(
+      pickCardEvidence({
+        source_count: 1,
+        source_kinds: ["status"],
+        placement: [],
+      }),
+    ).toBeNull();
+  });
+
+  it("纯社区不论几家都不写已证实，也不写仅讨论", () => {
+    expect(
+      pickCardEvidence({
+        source_count: 5,
+        source_kinds: ["community"],
+        placement: [],
+      }),
+    ).toBeNull();
+  });
+
+  it("source_kinds 为空时不猜", () => {
+    expect(
+      pickCardEvidence({
+        source_count: 4,
+        source_kinds: [],
+        placement: [],
+      }),
+    ).toBeNull();
+  });
+
+  it("kindRecurrence 的 kind 先落成文案再代进去", () => {
+    expect(
+      describeCardEvidence(
+        {
+          source_count: 1,
+          source_kinds: ["status"],
+          placement: [
+            {
+              code: "placement.kindRecurrence",
+              params: {
+                entity: "Cloudflare",
+                days: 90,
+                count: 4,
+                kind: "kind.outage",
+              },
+            },
+          ],
+        },
+        (key, params) => {
+          if (key === "kind.outage") return "故障";
+          if (key === "placement.kindRecurrence") {
+            return `${params?.entity} 近 ${params?.days} 天第 ${params?.count} 次${params?.kind}`;
+          }
+          return key;
+        },
+      ),
+    ).toBe("Cloudflare 近 90 天第 4 次故障");
+  });
+
+  it("有类型事实就是厚卡，即使没有证据行", () => {
+    expect(
+      isThickEventCard({
+        ...base,
+        kind: "outage",
+        facts: { ...EMPTY_EVENT_FACTS, duration_minutes: 47, resolved: true },
+      }),
+    ).toBe(true);
+  });
+
+  it("单来源、无类型、无归位是薄卡", () => {
+    expect(
+      isThickEventCard({
+        ...base,
+        kind: null,
+        facts: EMPTY_EVENT_FACTS,
+      }),
+    ).toBe(false);
   });
 });

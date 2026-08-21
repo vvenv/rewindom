@@ -26,6 +26,7 @@ function card(
     source_names: ["OpenAI"],
     source_icon_urls: [],
     last_activity_at: "2026-08-17T12:00:00.000Z",
+    evidence_text: "",
     ...overrides,
   };
 }
@@ -271,23 +272,69 @@ describe("renderEventsFeedHtml", () => {
    */
   it("势头角标原样渲染，涨的带 up 配色", () => {
     const html = renderCards([
-      card("a", { momentum_label: "3 个来源正在跟进", momentum_rising: true }),
+      card("a", {
+        evidence_text: "已证实 · 3 家来源",
+        momentum_label: "3 个来源正在跟进",
+        momentum_rising: true,
+      }),
     ]);
     expect(html).toContain('<span class="events-velocity up">3 个来源正在跟进</span>');
   });
 
   it("下降不带 up 配色", () => {
     const html = renderCards([
-      card("a", { momentum_label: "↓ 62%", momentum_rising: false }),
+      card("a", {
+        fact_labels: ["故障"],
+        momentum_label: "↓ 62%",
+        momentum_rising: false,
+      }),
     ]);
     expect(html).toContain('<span class="events-velocity">↓ 62%</span>');
   });
 
   it("没有可主张的变化时整个角标不出现——留白比写「持平」更权威", () => {
     const html = renderCards([
-      card("a", { momentum_label: "", momentum_rising: false }),
+      card("a", {
+        evidence_text: "已证实 · 2 家来源",
+        momentum_label: "",
+        momentum_rising: false,
+      }),
     ]);
     expect(html).not.toContain("events-velocity");
+  });
+
+  it("薄卡不画阶段、主题、摘要和势头——只留标题与来源", () => {
+    const html = renderCards([
+      card("a", {
+        evidence_text: "",
+        fact_labels: [],
+        headline: "Should not show",
+        momentum_label: "↑ 420%",
+      }),
+    ]);
+    expect(html).toContain('class="events-card events-card-thin"');
+    expect(html).not.toContain("events-card-thick");
+    expect(html).not.toContain("events-status");
+    expect(html).not.toContain("events-topic");
+    expect(html).not.toContain("Should not show");
+    expect(html).not.toContain("events-velocity");
+    expect(html).toContain("Title a");
+    expect(html).toContain("OpenAI");
+  });
+
+  it("厚卡把证据画成 meta 行角标，不把 headline 再画一遍", () => {
+    const html = renderCards([
+      card("a", {
+        evidence_text: "Cloudflare 近 90 天第 4 次故障",
+        headline: "Should stay in the detail page",
+      }),
+    ]);
+    expect(html).toContain('class="events-card events-card-thick"');
+    expect(html).toContain(
+      '<span class="events-evidence">Cloudflare 近 90 天第 4 次故障</span>',
+    );
+    expect(html.indexOf("events-evidence")).toBeLessThan(html.indexOf("events-title"));
+    expect(html).not.toContain("Should stay in the detail page");
   });
 
   it("来源 icon 走本站路径，不打 Google", () => {

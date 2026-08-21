@@ -1,0 +1,84 @@
+# 列表卡片厚薄分流——把能当简报用的那一行从详情拿到卡片上。
+#
+# 首页 16 张卡几乎一个模子，真正值钱的东西（归位、已证实、类型事实）全藏在详情里。
+# 访客扫的是一张热榜，不是一份简报。AI 写「影响 / 意义」越过 MVP §11，
+# 公开热度分会变回热榜。正确的抓眼球方式是**对比**：少数厚卡打断网格。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant, ssr]
+goal: 公开列表与工作台卡片按「有没有可核对的证据」分成厚卡 / 薄卡。薄卡只留标题与来源；厚卡把最多一句证据（归位优先，否则已证实 · N 家来源）做成角标排进标题上方的 meta 行，已有的类型事实 chips 仍画。不写影响解读、不上热度分、不标萌芽→爆发。
+gold: modules/events/shared/events.ts
+touch:
+  - modules/events/features/thick-thin-cards.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events.ts
+  - modules/events/shared/events.test.ts
+  - modules/events/shared/events-sample.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/public-view.test.ts
+  - modules/events/shared/sections/event-card-html.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/shared/sections/entity-html.ts
+  - modules/events/shared/sections/entity-html.test.ts
+  - modules/events/shared/sections/detail-html.test.ts
+  - modules/events/shared/site-css/events.css
+  - modules/events/shared/site-css.generated.ts
+  - modules/events/server/event/placement.service.ts
+  - modules/events/server/event/placement.service.test.ts
+  - modules/events/server/event/list-items.ts
+  - modules/events/server/event/event.mapper.ts
+  - modules/events/server/event/event.mapper.test.ts
+  - modules/events/server/event/event.service.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/client/components/EventCard.tsx
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - AI 写「影响」「意义」「为什么重要」（自由文案，越过 MVP §11）
+  - 公开绝对热度分 / 名次 / 媒体等级
+  - 模型给事件标萌芽 / 发酵 / 爆发
+  - 通栏头条 / 改变 Rising·Now 取数
+  - 在每张薄卡上印「仅讨论」（13/16 张 HN 会变成整页报警）
+  - 预计算归位落库（读路径批量查，与详情同一套 buildPlacementFacts）
+  - RSS 条目形态（仍用 headline，不跑归位查询）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events.test.ts server/event/placement.service.test.ts shared/sections/feed-html.test.ts shared/sections/entity-html.test.ts shared/public-view.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/builtin check:section-css
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **厚卡条件**（满足任一）：有证据，或有类型事实 chips。
+#    薄卡：标题 + 来源。不要 status / topic / headline / momentum。
+#    厚卡：证据角标（若有）+ chips + momentum（若有）+ 标题 + 来源。headline 仍不下卡片——
+#    那是详情「发生了什么」的活。工作台额外保留相对时间与 hasUpdate。
+#    证据做成角标、排进标题上方的 meta 行（accent 描边、不铺色）。句子跟在标题下面
+#    会被当成副标题扫过去；跟 chips 同排才扫得见。
+#
+# 2. **证据行最多一句**，优先级：
+#    placement.kindRecurrence → placement.recurrence → card.confirmedSources（已证实且 ≥2 家来源）。
+#    不把 previous / outageTotal 搬上卡片（那是详情的第二、三行）。
+#    「仅讨论」不上卡片。
+#
+# 3. **confirmed 不调 why-trending、不载入信号**。列表已有 source_count / source_kinds：
+#    有一手来源，或 ≥2 家且不是纯 community。source_kinds 为空时不猜。
+#
+# 4. **归位批量查**，不是 N×3。`getEventPlacementsForList` 一次拉主实体、一次拉窗口内
+#    同伴事件，然后走与详情同一份 `buildPlacementFacts`。首页 Rising+Now 合成一批。
+#    没有实体或第一次出现 → 空数组，卡片保持薄（除非有 chips）。
+#
+# 5. 公开 feed / 实体页 / 工作台列表共用 `pickCardEvidence` + 同一份卡片 markup
+#    （`event-card-html.ts`）。两处各写一份必然漂移。
+#
+# 6. 产出 i18n code + 参数，不是自由文案。kindRecurrence 的 `kind` 仍是嵌套 code。

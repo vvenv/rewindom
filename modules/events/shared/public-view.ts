@@ -11,6 +11,7 @@
 
 import {
   EVENT_ENTITY_KINDS,
+  describeCardEvidence,
   describeEventFacts,
   describeEventMomentum,
   describeTimelineEntry,
@@ -88,6 +89,7 @@ export function toPublicCard(
     source_names: item.source_names,
     source_icon_urls: item.source_icon_urls,
     last_activity_at: item.last_activity_at,
+    evidence_text: describeCardEvidence(item, t),
   };
 }
 

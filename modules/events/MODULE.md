@@ -61,6 +61,7 @@ shared/          事件域契约 + 官网段定义 + 公开视图映射
   nav-sources.ts          页头 / 页脚主题导航源
   public-view.ts          领域 DTO → 公开视图（两端共用）
   sections/*-html.ts      段 markup（SSR 与编辑器预览共用同一份）
+                          event-card-html.ts 公开卡片厚薄规则
   site-css/               CSS 真源 → site-css.generated.ts
 server/
   events.routes.ts        列表 / 首页两区块 / 主题计数 / 详情 / 人工编辑 / 显示主题
@@ -105,7 +106,7 @@ server/
 | 卡片图 `/events/:slug/og.png` | 事件自己的社交卡片图（1200×630）                                                                                                                                                                                                                                                                       |
 | 导航源 `events`               | 页头 / 页脚：默认 flat 铺成 AI / Tech / Gaming… 七条，点进 `/topics/:slug`，当前格高亮；`children` 则收成「事件」一条下挂七格                                                                                                                                                                          |
 | 导航源 `events.topic`         | 页头 / 页脚：某一个主题一条。编辑器从下拉选格子，不手填                                                                                                                                                                                                                                                |
-| path handler                  | 接 `/topics/:slug`、`/events/:slug`、`/entities`、`/entities/:slug`，以及非 HTML：`/feed.xml`、`/topics/:slug/feed.xml`、`/entities/:slug/feed.xml`、`/events/:slug/og.png`、`/events/icons/:host`（`/en/...` 同一条，locale 已被剥掉）。`/` 由首页 CMS 渲染；套了雷达版式时 `/?source=` 才接管列表。旧地址不接、不 301 |
+| path handler                  | 接 `/topics/:slug`、`/events/:slug`、`/entities`、`/entities/:slug`，以及非 HTML：`/feed.xml`、`/topics/:slug/feed.xml`、`/entities/:slug/feed.xml`、`/events/:slug/og.png`、`/events/icons/:host`（`/en/...` 同一条，locale 已被剥掉）。`/` 由首页 CMS 渲染；带合法 `?source=` 时接管列表（不看 `home_layout_key`，闸门是 events entitlement）。旧地址不接、不 301 |
 | sitemap / 链接候选            | 近 30 天事件、近 30 天还有事件的实体、实体枢纽各进 sitemap；链接下拉给实体枢纽以及 RSS（**当前页** `{feed}` + 全站 `/feed.xml` + 已启用主题 `/topics/:slug/feed.xml`，分组 `feed`）。实体 feed 不进下拉                                                                                                |
 
 段 / 模板页 / 导航源仍登记在贡献方 `shared/`。首页版式走 marketing 的
@@ -211,6 +212,25 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 本源、页面上没有事件段时，context provider 不会为了导航去拉 feed。没开通
 `events` 时这两项不进添加菜单，残留条目也不渲染。关掉的 `/topics/:slug` 对访客
 是 404，该主题下已有事件的 `/events/:slug` 同样 404（工作台详情仍可打开，方便改主题）。
+
+### 列表卡片是厚薄两档，不是把详情缩进格子里
+
+首页 16 张卡如果长得一样，访客扫的是热榜。真正能当简报用的事件很少
+（跨源、有归位、能抽出类型事实），它们必须在网格里**看起来不像**旁边那些单来源帖子。
+
+| | 薄卡 | 厚卡 |
+| --- | --- | --- |
+| 何时 | 单来源、无类型、无归位（大约八成） | 有证据，或有类型事实 chips |
+| 露出 | 标题 + 来源 | **证据角标**（若有）+ chips + 势头（若有）+ 标题 + 来源 |
+| 不露 | 阶段、主题、headline、仅讨论 | headline（那是详情「发生了什么」的活） |
+
+证据最多一句，做成角标排进标题上方的 meta 行（accent 描边，不铺色）。
+优先级：`placement.kindRecurrence` → `placement.recurrence` → `已证实 · N 家来源`。
+「仅讨论」不上卡片——13/16 张 HN 帖印警告等于没警告。公开热度分、AI「影响」解读、萌芽→爆发章节都不做。
+
+归位在列表上**批量查**（两轮，不是 N×3），与详情共用 `buildPlacementFacts`。RSS 不查。
+
+公开 feed 与实体页走同一份 `event-card-html.ts`；工作台 `EventCard` 走同一套 `pickCardEvidence`。
 
 ### 两段同页的去重
 
@@ -548,8 +568,8 @@ news / 一手来源 Jaccard ≥ 0.75 视为通稿回声，不占格。阈值高�
 path handler 直接带进 `EventsRenderContext.entity`，**不走 contributed provider**——
 只有 path handler 知道当前是哪个实体。
 
-卡片沿用 `.events-card`，并**保留势头角标**：实体页上「哪几件事正在扩散」和首页上一样重要，
-少画一个角标不会让页面更干净，只会让它更没有信息。
+卡片沿用 `.events-card`，并走同一套厚薄规则：有证据或类型事实才摊开势头角标，
+薄卡保持瘦——实体页上「哪几件是简报、哪几件是链接」和首页上一样重要。
 
 sitemap 只收**最近 30 天还有事件**的实体（不是按实体自身更新时间）。实体页比事件页更值得
 索引——事件 24h 后就凉，实体不会——但也正因为它长期存在，更要挡住「三年前提过一次就
@@ -798,10 +818,9 @@ Cloudflare 近 90 天第 4 次故障，此前几次累计 192 分钟
 2. 挂在**主实体**上（`mention_count` 最高的那个）。**没有实体就整块留白**——实体抽取
    刻意保守（覆盖率约 36%），挂到一个抽错的实体上会把这条材料放进不相干的记录里，
    而读者没有办法核对。没有实体时**一次查询都不发**。
-3. **读路径上算，不预计算**。与 `related_event_ids` 的取舍相反、理由也相反：related
-   要把候选 centroid 全部载入（几 MB/请求），归位只是三次带索引的聚合
-   （`EventEntityLink` 上有 `@@index([tenant_id, entity_id])`）。而预计算会让它过期
-   ——一条新故障进来，旧详情页的「第 4 次」应该立刻变成第 5 次。
+3. **读路径上算，不预计算**。详情三次带索引的聚合；列表两轮批量查
+   （主实体 + 窗口内同伴），再走同一份 `buildPlacementFacts`。预计算会过期
+   ——一条新故障进来，旧页上的「第 4 次」应该立刻变成第 5 次。
 4. 窗口 90 天：比 related 的 30 天宽（「这家一直在出什么事」本就跨更长跨度），
    比事件保留期 180 天窄（不把快被清理的行算进来，否则数字某天会悄悄变小）。
 5. 计数**包含读者眼前这条**（「第 4 次」里有他正在读的那一次），而累计时长
@@ -1017,7 +1036,9 @@ release / filing 是预防性的：同一批样本里没观察到碰撞（k8s 10
 报道的事，在 `?kind=release` 下仍该出现。非法值当没传，不给访客 404。
 
 `kind` 刻意**不**参与 `isEventsRootQueryTakeover`——单独一个 `?kind=` 不该把站点首页
-从 CMS 手里抢走。
+从 CMS 手里抢走。`/?source=` 的闸门是 events entitlement + 合法 `source`，**不**再看
+`home_layout_key`：「查看全部」在任意页都会链到这个地址，自定义首页（段在、key 还是
+`marketing.default`）也必须能打开完整列表。
 
 ## 对外发布 RSS
 

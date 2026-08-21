@@ -12,7 +12,8 @@ import {
 
 import { withSiteLocale } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
-import { toEventDetail, toEventListItem } from "../event/event.mapper.js";
+import { toEventDetail } from "../event/event.mapper.js";
+import { mapEventRecordsToListItems } from "../event/list-items.js";
 import { loadSourceIconIndex } from "../feed/source-icon-index.js";
 import { listEventEntities } from "../event/entity.service.js";
 import { listRelatedEvents } from "../event/related.service.js";
@@ -86,6 +87,7 @@ const LIST_SELECT = {
   signal_count: true,
   source_count: true,
   source_names: true,
+  source_kinds: true,
   first_seen_at: true,
   last_activity_at: true,
 } as const;
@@ -140,12 +142,15 @@ export async function getPublicEventFeed(
    * 也可能只摆其中一段——按「谁先出现就从后面扣掉」来算，单独摆一段时就会莫名少内容。
    */
   const sourceIcons = await loadSourceIconIndex(tenantId);
-  const map = (records: typeof rising): EventListItem[] =>
-    records.map((record) => toEventListItem(record, null, sourceIcons));
+  const items = await mapEventRecordsToListItems({
+    tenant_id: tenantId,
+    records: [...rising, ...nowEvents],
+    sourceIcons,
+  });
 
   return {
-    rising: map(rising),
-    now: map(nowEvents),
+    rising: items.slice(0, rising.length),
+    now: items.slice(rising.length),
   };
 }
 
@@ -205,7 +210,11 @@ export async function getPublicEventList(
 
   const sourceIcons = await loadSourceIconIndex(tenantId);
 
-  return records.map((record) => toEventListItem(record, null, sourceIcons));
+  return mapEventRecordsToListItems({
+    tenant_id: tenantId,
+    records,
+    sourceIcons,
+  });
 }
 
 /** RSS 一次给多少条。阅读器普遍只留最近若干条，给太多只是浪费带宽。 */
@@ -229,7 +238,11 @@ export async function getPublicEventsForRss(
     take: RSS_LIMIT,
     select: LIST_SELECT,
   });
-  return rows.map((record) => toEventListItem(record, null));
+  return mapEventRecordsToListItems({
+    tenant_id: tenantId,
+    records: rows,
+    withPlacement: false,
+  });
 }
 
 /** 某个实体的事件，供 `/entities/<slug>/feed.xml` 用。 */
@@ -256,7 +269,11 @@ export async function getPublicEntityEventsForRss(
   });
   return {
     name: entity.name,
-    events: links.map((link) => toEventListItem(link.event, null)),
+    events: await mapEventRecordsToListItems({
+      tenant_id: tenantId,
+      records: links.map((link) => link.event),
+      withPlacement: false,
+    }),
   };
 }
 
@@ -423,7 +440,11 @@ export async function getPublicEntityBySlug(
   return {
     ...entity,
     event_count: eventCount,
-    events: links.map((link) => toEventListItem(link.event, null, sourceIcons)),
+    events: await mapEventRecordsToListItems({
+      tenant_id: tenantId,
+      records: links.map((link) => link.event),
+      sourceIcons,
+    }),
     profile,
   };
 }

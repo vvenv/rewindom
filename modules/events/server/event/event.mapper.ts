@@ -1,4 +1,4 @@
-import { isEventKind, isEventRevisionKind } from "../../shared/index.js";
+import { isEventKind, isEventRevisionKind, isEventSourceKind } from "../../shared/index.js";
 import {
   resolveSourceIconUrl,
   sourceIconUrlsForNames,
@@ -47,6 +47,7 @@ export interface EventRecordForList {
   signal_count: number;
   source_count: number;
   source_names: string[];
+  source_kinds: string[];
   first_seen_at: Date;
   last_activity_at: Date;
 }
@@ -59,6 +60,7 @@ export function toEventListItem(
   record: EventRecordForList,
   follow?: FollowMarker | null,
   sourceIcons?: ReadonlyMap<string, string>,
+  placement: readonly EventPlacementFact[] = [],
 ): EventListItem {
   return {
     id: record.id,
@@ -84,6 +86,8 @@ export function toEventListItem(
     source_count: record.source_count,
     source_names: record.source_names,
     source_icon_urls: sourceIconUrlsForNames(record.source_names, sourceIcons),
+    source_kinds: record.source_kinds.filter(isEventSourceKind),
+    placement: [...placement],
     first_seen_at: record.first_seen_at.toISOString(),
     last_activity_at: record.last_activity_at.toISOString(),
     is_following: Boolean(follow),
@@ -155,7 +159,12 @@ export function toEventDetail(params: {
       .map((signal) => [signal.id, signal.connector!]),
   );
   return {
-    ...toEventListItem(record, params.follow, params.sourceIcons),
+    ...toEventListItem(
+      record,
+      params.follow,
+      params.sourceIcons,
+      params.placement ?? [],
+    ),
     summary: record.summary,
     analyzer: record.analyzer,
     analyzed_at: record.analyzed_at?.toISOString() ?? null,
@@ -180,7 +189,6 @@ export function toEventDetail(params: {
       })),
       now: params.now ?? new Date(),
     }),
-    placement: params.placement ?? [],
     related: (params.related ?? []).map((record) => ({
       id: record.id,
       slug: record.slug,

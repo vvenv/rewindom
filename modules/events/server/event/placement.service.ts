@@ -50,6 +50,98 @@ export interface EventPlacementInput {
   now?: Date;
 }
 
+const PLACEMENT_PEER_SELECT = {
+  id: true,
+  kind: true,
+  first_seen_at: true,
+  slug: true,
+  title: true,
+  fact_duration_minutes: true,
+} as const;
+
+export interface PlacementPeer {
+  id: string;
+  kind: string | null;
+  first_seen_at: Date;
+  slug: string;
+  title: string;
+  fact_duration_minutes: number | null;
+}
+
+/**
+ * 归位事实的纯函数。详情一次查、列表批量查，两边必须走这一份——
+ * 卡片上的「第 4 次」和详情页对不上会立刻被发现。
+ */
+export function buildPlacementFacts(input: {
+  event_id: string;
+  kind: EventKind | null;
+  entity_name: string;
+  first_seen_at: Date;
+  peers: readonly PlacementPeer[];
+}): EventPlacementFact[] {
+  const others = input.peers.filter((peer) => peer.id !== input.event_id);
+  const facts: EventPlacementFact[] = [];
+
+  if (others.length > 0) {
+    facts.push({
+      code: "placement.recurrence",
+      params: {
+        entity: input.entity_name,
+        days: WINDOW_DAYS,
+        count: others.length + 1,
+      },
+    });
+  }
+
+  if (input.kind) {
+    const sameKind = others.filter((peer) => peer.kind === input.kind);
+    if (sameKind.length > 0) {
+      facts.push({
+        code: "placement.kindRecurrence",
+        params: {
+          entity: input.entity_name,
+          days: WINDOW_DAYS,
+          count: sameKind.length + 1,
+          kind: `kind.${input.kind}`,
+        },
+      });
+
+      const total = sameKind.reduce(
+        (sum, peer) => sum + (peer.fact_duration_minutes ?? 0),
+        0,
+      );
+      if (input.kind === "outage" && total > 0) {
+        facts.push({
+          code: "placement.outageTotal",
+          params: { minutes: total },
+        });
+      }
+    }
+  }
+
+  const previous = others
+    .filter(
+      (peer) =>
+        peer.first_seen_at.getTime() < input.first_seen_at.getTime() &&
+        (!input.kind || peer.kind === input.kind),
+    )
+    .sort((a, b) => b.first_seen_at.getTime() - a.first_seen_at.getTime())[0];
+
+  if (previous) {
+    const days = Math.floor(
+      (input.first_seen_at.getTime() - previous.first_seen_at.getTime()) /
+        DAY_MS,
+    );
+    facts.push({
+      code: days < 1 ? "placement.previousToday" : "placement.previous",
+      params: { days, title: previous.title },
+      event_slug: previous.slug,
+    });
+  }
+
+  return facts;
+}
+
 /**
  * 三次带索引的聚合，合并进详情页现有的 Promise.all。
  *
@@ -63,85 +155,103 @@ export async function getEventPlacement(
   const now = input.now ?? new Date();
   const cutoff = new Date(now.getTime() - WINDOW_DAYS * DAY_MS);
 
-  const sameEntity = withTenantScope(input.tenant_id, {
-    id: { not: input.event_id },
-    first_seen_at: { gte: cutoff },
-    entities: { some: { entity_id: input.entity_id } },
+  const peers = await prisma.newsEvent.findMany({
+    where: withTenantScope(input.tenant_id, {
+      first_seen_at: { gte: cutoff },
+      entities: { some: { entity_id: input.entity_id } },
+    }),
+    select: PLACEMENT_PEER_SELECT,
   });
 
-  const [others, sameKind, previous] = await Promise.all([
-    prisma.newsEvent.count({ where: sameEntity }),
-    input.kind
-      ? prisma.newsEvent.aggregate({
-          where: { ...sameEntity, kind: input.kind },
-          _count: true,
-          _sum: { fact_duration_minutes: true },
-        })
-      : null,
-    // 「上一次」只看**更早**的那些：一件比它新的事不叫上一次
-    prisma.newsEvent.findFirst({
-      where: {
-        ...sameEntity,
-        ...(input.kind ? { kind: input.kind } : {}),
-        first_seen_at: { gte: cutoff, lt: input.first_seen_at },
-      },
-      orderBy: { first_seen_at: "desc" },
-      select: { slug: true, title: true, first_seen_at: true },
-    }),
-  ]);
+  return buildPlacementFacts({
+    event_id: input.event_id,
+    kind: input.kind,
+    entity_name: input.entity_name,
+    first_seen_at: input.first_seen_at,
+    peers,
+  });
+}
 
-  const facts: EventPlacementFact[] = [];
-
-  if (others > 0) {
-    facts.push({
-      code: "placement.recurrence",
-      params: {
-        entity: input.entity_name,
-        days: WINDOW_DAYS,
-        // 加上本事件自己：读者看到的「第 N 次」里，眼前这条也算一次
-        count: others + 1,
-      },
-    });
+/**
+ * 列表页的归位：两轮查询，不是 N×3。
+ *
+ * 首页 Rising + Now 合成一批再调用。没有实体的事件得到空数组，卡片保持薄。
+ */
+export async function getEventPlacementsForList(params: {
+  tenant_id: string;
+  events: readonly {
+    id: string;
+    kind: string | null;
+    first_seen_at: Date;
+  }[];
+  now?: Date;
+}): Promise<Map<string, EventPlacementFact[]>> {
+  const result = new Map<string, EventPlacementFact[]>();
+  for (const event of params.events) {
+    result.set(event.id, []);
+  }
+  if (params.events.length === 0) {
+    return result;
   }
 
-  if (input.kind && sameKind && sameKind._count > 0) {
-    facts.push({
-      code: "placement.kindRecurrence",
-      params: {
-        entity: input.entity_name,
-        days: WINDOW_DAYS,
-        count: sameKind._count + 1,
-        kind: `kind.${input.kind}`,
-      },
-    });
+  const now = params.now ?? new Date();
+  const cutoff = new Date(now.getTime() - WINDOW_DAYS * DAY_MS);
+  const eventIds = params.events.map((event) => event.id);
 
-    /*
-     * 累计时长只对故障给，而且只加**同类型别的事件**的时长——本事件自己的时长
-     * 已经在 chips 上写着了，再加进来会让两个数字互相矛盾。
-     */
-    const total = sameKind._sum.fact_duration_minutes ?? 0;
-    if (input.kind === "outage" && total > 0) {
-      facts.push({
-        code: "placement.outageTotal",
-        params: { minutes: total },
-      });
+  const links = await prisma.eventEntityLink.findMany({
+    where: withTenantScope(params.tenant_id, { event_id: { in: eventIds } }),
+    orderBy: { mention_count: "desc" },
+    select: {
+      event_id: true,
+      entity: { select: { id: true, name: true } },
+    },
+  });
+
+  const primaryByEvent = new Map<string, { id: string; name: string }>();
+  for (const link of links) {
+    if (!primaryByEvent.has(link.event_id)) {
+      primaryByEvent.set(link.event_id, link.entity);
     }
   }
 
-  if (previous) {
-    const days = Math.floor(
-      (input.first_seen_at.getTime() - previous.first_seen_at.getTime()) / DAY_MS,
-    );
-    facts.push({
-      // 不足一天时不写「0 天前」——那读起来像没算出来
-      code: days < 1 ? "placement.previousToday" : "placement.previous",
-      params: { days, title: previous.title },
-      // service 不知道自己在哪一面，两侧各自拼地址
-      event_slug: previous.slug,
-    });
+  const entityIds = [
+    ...new Set([...primaryByEvent.values()].map((entity) => entity.id)),
+  ];
+  if (entityIds.length === 0) {
+    return result;
   }
 
-  return facts;
+  const peers = await prisma.newsEvent.findMany({
+    where: withTenantScope(params.tenant_id, {
+      first_seen_at: { gte: cutoff },
+      entities: { some: { entity_id: { in: entityIds } } },
+    }),
+    select: {
+      ...PLACEMENT_PEER_SELECT,
+      entities: { select: { entity_id: true } },
+    },
+  });
+
+  for (const event of params.events) {
+    const primary = primaryByEvent.get(event.id);
+    if (!primary) {
+      continue;
+    }
+    result.set(
+      event.id,
+      buildPlacementFacts({
+        event_id: event.id,
+        kind: isEventKind(event.kind) ? event.kind : null,
+        entity_name: primary.name,
+        first_seen_at: event.first_seen_at,
+        peers: peers.filter((peer) =>
+          peer.entities.some((link) => link.entity_id === primary.id),
+        ),
+      }),
+    );
+  }
+
+  return result;
 }
 
 /**

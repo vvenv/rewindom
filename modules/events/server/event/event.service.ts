@@ -7,7 +7,8 @@ import {
   withTenantScope,
 } from "@rewindom/module-sdk/server";
 
-import { toEventDetail, toEventListItem } from "./event.mapper.js";
+import { toEventDetail } from "./event.mapper.js";
+import { mapEventRecordsToListItems } from "./list-items.js";
 import { loadSourceIconIndex } from "../feed/source-icon-index.js";
 import { bindSourceIconUrl } from "../../shared/source-icon.js";
 import { listEventEntities } from "./entity.service.js";
@@ -77,6 +78,7 @@ const LIST_SELECT = {
   signal_count: true,
   source_count: true,
   source_names: true,
+  source_kinds: true,
   first_seen_at: true,
   last_activity_at: true,
 } as const;
@@ -120,9 +122,12 @@ export async function listEvents(
   const sourceIcons = await loadSourceIconIndex(params.tenant_id, params.tenant_slug);
 
   return {
-    items: records.map((record) =>
-      toEventListItem(record, follows.get(record.id) ?? null, sourceIcons),
-    ),
+    items: await mapEventRecordsToListItems({
+      tenant_id: params.tenant_id,
+      records,
+      follows,
+      sourceIcons,
+    }),
     page: params.page,
     page_size: params.page_size,
     total,
@@ -190,14 +195,16 @@ export async function getEventFeed(
     params.tenant_id,
     params.tenant_slug,
   );
-  const map = (records: typeof rising): EventListItem[] =>
-    records.map((record) =>
-      toEventListItem(record, follows.get(record.id) ?? null, sourceIcons),
-    );
+  const items = await mapEventRecordsToListItems({
+    tenant_id: params.tenant_id,
+    records: [...rising, ...nowEvents],
+    follows,
+    sourceIcons,
+  });
 
   return {
-    rising: map(rising),
-    now: map(nowEvents),
+    rising: items.slice(0, rising.length),
+    now: items.slice(rising.length),
   };
 }
 

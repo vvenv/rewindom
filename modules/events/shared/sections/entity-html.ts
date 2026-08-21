@@ -7,6 +7,8 @@
  *
  * 列表标题默认为空，因此默认整段就是一个列表：这一页只有这一个列表，上面又刚说完
  * 这是谁，再挂一个「相关事件」只是把眼睛多拦一道。租户填了才画。
+ *
+ * 卡片与首页同一套厚薄规则（`event-card-html.ts`）。
  */
 
 import { readEventsContext } from "../events-section-context.js";
@@ -16,11 +18,9 @@ import {
   settingBool,
   settingText,
 } from "@rewindom/builtin/marketing/shared/section-schema.js";
-import { siteHref } from "@rewindom/builtin/marketing/shared/site-locale.js";
 
-import { sourcesLineHtml } from "../source-icon-html.js";
+import { eventCardHtml } from "./event-card-html.js";
 
-import type { PublicEventCard } from "../events-section-context.js";
 import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sections/render-context.js";
 
 export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
@@ -37,7 +37,7 @@ export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
   const list =
     entity.events.length > 0
       ? `<ul class="events-grid">${entity.events
-          .map((card) => cardHtml(card, showSources, ctx))
+          .map((card) => eventCardHtml(card, showSources, ctx))
           .join("")}</ul>`
       : emptyHtml(settingText(s, "empty_text"));
 
@@ -48,45 +48,4 @@ export const renderEventsEntityHtml: SectionHtmlRenderer = (section, ctx) => {
 
 function emptyHtml(text: string): string {
   return text ? `<p class="events-empty">${escapeHtml(text)}</p>` : "";
-}
-
-/**
- * 与「正在发生什么」区块用同一套卡片类名，不另起一套样式。
- *
- * 刻意保留势头角标：实体页上「哪几件事正在扩散」和首页上一样重要，
- * 少画一个角标不会让页面更干净，只会让它更没有信息。
- */
-function cardHtml(
-  card: PublicEventCard,
-  showSources: boolean,
-  ctx: Parameters<SectionHtmlRenderer>[1],
-): string {
-  const meta = [
-    `<span class="events-status events-status-${escapeHtml(card.status)}">${escapeHtml(
-      card.status_label,
-    )}</span>`,
-    `<span class="events-topic">${escapeHtml(card.topic_label)}</span>`,
-    card.momentum_label
-      ? `<span class="events-velocity${
-          card.momentum_rising ? " up" : ""
-        }">${escapeHtml(card.momentum_label)}</span>`
-      : "",
-  ]
-    .filter(Boolean)
-    .join("");
-
-  const sources =
-    showSources && card.source_names.length > 0
-      ? sourcesLineHtml(card.source_names, card.source_icon_urls)
-      : "";
-
-  return `<li class="events-card"><a class="events-card-link" href="${escapeHtml(
-    siteHref(card.href, ctx),
-  )}"><span class="events-meta" translate="no">${meta}</span><span class="events-title">${escapeHtml(
-    card.title,
-  )}</span>${
-    card.headline
-      ? `<span class="events-headline">${escapeHtml(card.headline)}</span>`
-      : ""
-  }</a>${sources}</li>`;
 }

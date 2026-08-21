@@ -24,6 +24,7 @@ function record(overrides: Partial<EventRecordForList> = {}): EventRecordForList
     signal_count: 9,
     source_count: 4,
     source_names: ["OpenAI", "Hacker News"],
+    source_kinds: ["official", "community"],
     kind: null,
     fact_version: null,
     fact_amount_text: null,
@@ -54,6 +55,14 @@ describe("toEventListItem", () => {
       "/events/icons/news.ycombinator.com",
     ]);
     expect(item.source_icon_urls.join("")).not.toContain("google.com");
+  });
+
+  it("来源类型过滤未知值，归位默认为空", () => {
+    const item = toEventListItem(
+      record({ source_kinds: ["news", "mystery"] }),
+    );
+    expect(item.source_kinds).toEqual(["news"]);
+    expect(item.placement).toEqual([]);
   });
 
   it("没有关注记录时既未关注也没有更新", () => {

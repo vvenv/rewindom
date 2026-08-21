@@ -28,8 +28,8 @@ function sampleItem(index: number, t: EventsTranslate): EventListItem {
     headline: t(`sample.event${index}.headline`),
     topic: index === 1 ? "ai" : index === 2 ? "tech" : "business",
     /*
-     * 2 号样张演示「有类型 + 有事实」的 chips，1 / 3 号演示 null——
-     * 编辑器里两种形态都该出现，否则改版式时看不出绝大多数卡片其实没有角标。
+     * 2 号样张演示「有类型 + 有事实」的 chips（厚卡），1 号演示归位证据行，
+     * 3 号是薄卡——编辑器里三种形态都该出现，否则改版式时看不出对比。
      */
     kind: index === 2 ? "outage" : null,
     facts:
@@ -38,16 +38,30 @@ function sampleItem(index: number, t: EventsTranslate): EventListItem {
         : { ...EMPTY_EVENT_FACTS },
     status: index === 1 ? "developing" : "active",
     heat_score: 12 - index,
-    // 1 号样张演示「有基线的涨幅」，其余演示「新事件按跟进来源数说话」——
-    // 编辑器里两种角标都该出现，否则改版式时看不出第二种存在
+    // 1 号样张演示「有基线的涨幅」，2 号演示类型事实 chips，3 号是薄卡（单来源 HN）
     velocity_pct: index === 1 ? 420 : 0,
     has_velocity_baseline: index === 1,
-    recent_signal_count: 9 - index,
-    recent_source_count: 3,
-    signal_count: 9 - index,
-    source_count: 3,
-    source_names: [...SAMPLE_SOURCE_NAMES],
-    source_icon_urls: [...SAMPLE_SOURCE_ICON_URLS],
+    recent_signal_count: index === 3 ? 1 : 9 - index,
+    recent_source_count: index === 3 ? 1 : 3,
+    signal_count: index === 3 ? 1 : 9 - index,
+    source_count: index === 3 ? 1 : 3,
+    source_names:
+      index === 3 ? ["Hacker News"] : [...SAMPLE_SOURCE_NAMES],
+    source_icon_urls:
+      index === 3
+        ? [SAMPLE_SOURCE_ICON_URLS[1]]
+        : [...SAMPLE_SOURCE_ICON_URLS],
+    source_kinds:
+      index === 3 ? ["community"] : ["official", "community", "news"],
+    placement:
+      index === 1
+        ? [
+            {
+              code: "placement.recurrence",
+              params: { entity: "OpenAI", days: 90, count: 4 },
+            },
+          ]
+        : [],
     first_seen_at: SAMPLE_TIME,
     last_activity_at: SAMPLE_UPDATED,
     is_following: false,
@@ -75,13 +89,6 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         occurred_at: SAMPLE_UPDATED,
         before: null,
         after: { source_name: "TechCrunch", source_kind: "news", lag_ms: 8_100_000 },
-      },
-    ],
-    // 样张给一条归位：编辑器里要能看出这块存在，否则改版式时会漏掉它
-    placement: [
-      {
-        code: "placement.recurrence",
-        params: { entity: "OpenAI", days: 90, count: 4 },
       },
     ],
     why_trending: [

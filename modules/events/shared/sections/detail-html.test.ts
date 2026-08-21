@@ -29,6 +29,7 @@ function detail(
     source_icon_urls: [],
     last_activity_at: "2026-08-17T12:00:00.000Z",
     fact_labels: [],
+    evidence_text: "",
     summary: "摘要",
     analyzer: "heuristic",
     provenance_note: "规则整理",

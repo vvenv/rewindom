@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { EMPTY_EVENT_FACTS } from "./events.js";
-import { sampleEntityData, sampleEventDetail } from "./events-sample.js";
+import { sampleEntityData, sampleEventDetail, sampleEventList } from "./events-sample.js";
 import {
+  toPublicCard,
   toPublicDetail,
   toPublicEntity,
   toPublicEntityIndex,
@@ -18,6 +19,12 @@ const t = (key: string, params?: Record<string, string | number>): string => {
   }
   if (key === "profile.kindCount") {
     return `${params?.kind} ×${params?.count}`;
+  }
+  if (key === "placement.recurrence") {
+    return `${params?.entity}: ${params?.count} in ${params?.days}d`;
+  }
+  if (key === "card.confirmedSources") {
+    return `Confirmed · ${params?.count}`;
   }
   if (key.startsWith("topic.")) return key.slice("topic.".length);
   if (key.startsWith("status.")) return key.slice("status.".length);
@@ -101,6 +108,8 @@ describe("toPublicEntity", () => {
             last_activity_at: "2026-08-17T12:00:00.000Z",
             is_following: false,
             has_update: false,
+            source_kinds: ["status"],
+            placement: [],
           },
         ],
       },
@@ -149,5 +158,13 @@ describe("toPublicDetail timeline", () => {
     expect(view.timeline[0]?.role).toBe("");
     expect(view.timeline[0]?.role_label).toBe("");
     expect(view.timeline[0]?.label).toBe("timeline.firstSeen");
+  });
+});
+
+describe("toPublicCard evidence", () => {
+  it("样张 1 有归位 → 证据行落成文案；样张 3 是薄卡", () => {
+    const [first, , thin] = sampleEventList(t);
+    expect(toPublicCard(first!, t).evidence_text).toBe("OpenAI: 4 in 90d");
+    expect(toPublicCard(thin!, t).evidence_text).toBe("");
   });
 });
