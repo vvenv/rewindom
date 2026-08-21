@@ -92,7 +92,7 @@ function sendHtml(
 
 /**
  * 贡献 handler 的结果 → 响应。字符串是 HTML；`SitePathResponse` 自带
- * content-type（feed 是 `application/rss+xml`，og 是 `image/png`）。
+ * content-type（feed 是 `application/xml`，og 是 `image/png`）。
  */
 function sendPathHandlerResult(
   reply: FastifyReply,

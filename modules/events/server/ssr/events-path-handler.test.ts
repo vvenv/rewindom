@@ -8,21 +8,26 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const renderEventsFeed = vi.fn(async () => ({
   body: "<rss/>",
-  content_type: "application/rss+xml; charset=utf-8",
+  content_type: "application/xml; charset=utf-8",
 }));
 const renderEntityFeed = vi.fn(async () => ({
   body: "<rss entity/>",
-  content_type: "application/rss+xml; charset=utf-8",
+  content_type: "application/xml; charset=utf-8",
 }));
 const renderEventOgImage = vi.fn(async () => ({
   body: Buffer.from("png"),
   content_type: "image/png",
+}));
+const renderSourceIcon = vi.fn(async () => ({
+  body: Buffer.from("ico"),
+  content_type: "image/x-icon",
 }));
 const renderEventsTemplatePage = vi.fn(async () => "<html/>");
 const getEnabledTopics = vi.fn(async () => ["ai", "tech"]);
 
 vi.mock("./rss.render.js", () => ({ renderEventsFeed, renderEntityFeed }));
 vi.mock("./og.render.js", () => ({ renderEventOgImage }));
+vi.mock("./source-icon.js", () => ({ renderSourceIcon }));
 vi.mock("./events-page.js", () => ({ renderEventsTemplatePage }));
 vi.mock("./og-image.js", () => ({ isEventOgImageAvailable: () => true }));
 vi.mock("../event/topic-settings.service.js", () => ({ getEnabledTopics }));
@@ -100,6 +105,11 @@ describe("非 HTML 地址的分派", () => {
     expect(renderEventOgImage).toHaveBeenCalledWith(
       expect.objectContaining({ slug: "foo-abc123" }),
     );
+
+    await renderEventsPath(input("/events/icons/openai.com"));
+    expect(renderSourceIcon).toHaveBeenCalledWith(
+      expect.objectContaining({ host: "openai.com" }),
+    );
   });
 
   it("旧地址不接、不转", async () => {
@@ -114,6 +124,7 @@ describe("非 HTML 地址的分派", () => {
     expect(renderEventsFeed).not.toHaveBeenCalled();
     expect(renderEntityFeed).not.toHaveBeenCalled();
     expect(renderEventOgImage).not.toHaveBeenCalled();
+    expect(renderSourceIcon).not.toHaveBeenCalled();
   });
 
   /* 关掉的主题格对访客是 404——它的 feed 不能还在发内容。 */
@@ -134,8 +145,8 @@ describe("非 HTML 地址的分派", () => {
     ).resolves.toBeNull();
     expect(renderEventsFeed).not.toHaveBeenCalled();
     expect(renderEventOgImage).not.toHaveBeenCalled();
+    expect(renderSourceIcon).not.toHaveBeenCalled();
   });
-});
 
 describe("HTML 页的模板 kind", () => {
   it("专题路径走 events_topic", async () => {

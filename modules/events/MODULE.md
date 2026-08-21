@@ -1052,6 +1052,9 @@ release / filing 是预防性的：同一批样本里没观察到碰撞（k8s 10
 
 四条细节：
 
+- HTTP `Content-Type` 发 `application/xml`（与 sitemap 同口径）。Chrome 只对这个
+  MIME 打开 XML 树视图；`application/rss+xml` 会被当成附件下载。页面 `<a type>`
+  与 `atom:link` 仍标 RSS 类型，阅读器认那个。
 - **XML 转义自己写一份**，不复用 `escapeHtml`：HTML 转义不处理 XML 里非法的控制字符，
   而标题来自外部来源，一个 `0x08` 就能让整个 feed 在阅读器里**静默**解析失败。
 - `guid` 用详情页绝对地址并标 `isPermaLink`：slug 一旦生成就不变，是稳定的订阅身份。

@@ -1,0 +1,36 @@
+# Chrome 打开 feed.xml 时要走内置 XML 树视图，不能当附件下载。
+# IANA 的 RSS 类型是 `application/rss+xml`，但 Chrome 拆掉阅读器后这个 MIME
+# 经常被当成无 handler 的下载；`application/xml` / `text/xml` 才会格式化显示。
+# 同仓库 sitemap 已经按这个口径发。阅读器认的是 HTML `type` / atom:link，
+# 那两处仍标 `application/rss+xml`。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: feed.xml 的 HTTP Content-Type 改为 application/xml，让 Chrome 打开 XML 树视图；页面订阅入口与 atom:link 的 type 仍是 application/rss+xml。
+gold: packages/builtin/marketing/server/ssr.routes.ts
+touch:
+  - modules/events/features/rss-xml-content-type.spec.yaml
+  - modules/events/features/public-rss.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ssr/rss.render.ts
+  - modules/events/server/ssr/rss.render.test.ts
+  - modules/events/server/ssr/events-path-handler.test.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  # 未加引号的 `githubstatus.com` 键让 oxc 解析失败，events server 测试全部进不来
+  - modules/events/shared/source-icon.ts
+out_of_scope:
+  - 改 HTML `<a type>` / `<link rel=alternate>`（阅读器认 RSS 类型）
+  - 改 atom:link 的 type 属性
+  - 加 XSLT / 自绘 feed 预览页
+  - 改 ingest 侧 Accept 头
+  - 把 XML 正文改成缩进排版
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ssr/rss.render.test.ts server/ssr/events-path-handler.test.ts
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []

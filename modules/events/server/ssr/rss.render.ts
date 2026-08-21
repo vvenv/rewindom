@@ -24,7 +24,12 @@ import type { AppLocale } from "@rewindom/module-sdk";
 
 /** feed 变化不快，一小时的公共缓存与 sitemap 同口径。 */
 const CACHE_CONTROL = "public, max-age=3600";
-const CONTENT_TYPE = "application/rss+xml; charset=utf-8";
+/**
+ * Chrome 只对 `application/xml` / `text/xml` 打开 XML 树视图。
+ * `application/rss+xml` 是 IANA 类型，但 Chrome 拆掉阅读器后会当附件下载。
+ * 页面 `<a type>` 与 atom:link 仍标 RSS，阅读器认那个。
+ */
+const CONTENT_TYPE = "application/xml; charset=utf-8";
 
 interface FeedInput {
   tenantId: string;

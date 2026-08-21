@@ -59,7 +59,10 @@ models: [] # 不落库
 # ---------- 设计要点（实现时按此，偏离先改本 spec）----------
 # 1. **不能用 path handler**：它的 `render` 只回 HTML，没有 content-type 控制，
 #    feed 会被当成 text/html 发出去。走模块自己的 Fastify 路由（与 shop 店面路由同构），
-#    在里面自行 `resolveHostTenant` 并设 `application/rss+xml`。
+#    在里面自行 `resolveHostTenant`。HTTP Content-Type 发 `application/xml`
+#    （与 sitemap 同口径）：Chrome 只对这个 MIME 打开 XML 树视图；
+#    `application/rss+xml` 会被当成附件下载。HTML `<a type>` 与 atom:link
+#    仍标 `application/rss+xml`，阅读器认那个。
 #    marketing 的 sitemap.xml 是内核路由，业务模块**不改内核**去蹭它。
 # 2. 未开通事件雷达的站点一律 404，与 path handler 的 entitlement 闸门同口径。
 # 3. XML 转义**自己写一份**，不复用 `escapeHtml`：HTML 转义不处理 XML 里
