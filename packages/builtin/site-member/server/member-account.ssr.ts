@@ -199,6 +199,8 @@ async function renderAccountPage(
     state.status,
     renderMarketingHtml({
       origin: requestOrigin(request),
+      tenant_id: hostTenant.tenant_id,
+      tenant_slug: hostTenant.tenant_slug,
       site,
       page: {
         slug: MEMBER_ACCOUNT_PATH,

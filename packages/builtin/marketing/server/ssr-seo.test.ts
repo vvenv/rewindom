@@ -43,7 +43,7 @@ function render(
     updated_at: "2026-08-07T00:00:00.000Z",
   } as unknown as PublicMarketingPage;
 
-  return renderMarketingHtml({ origin: ORIGIN, site, page, ...overrides });
+  return renderMarketingHtml({ origin: ORIGIN, tenant_id: "tenant-1", tenant_slug: "acme", site, page, ...overrides });
 }
 
 describe("分享卡片", () => {
@@ -107,7 +107,7 @@ describe("分享卡片", () => {
       footer: [],
     } as unknown as PublicMarketingSite;
     const html = renderMarketingHtml({
-      origin: ORIGIN,
+      origin: ORIGIN, tenant_id: "tenant-1", tenant_slug: "acme",
       site,
       page: {
         slug: "topic",
@@ -141,7 +141,7 @@ describe("分享卡片", () => {
       footer: [],
     } as unknown as PublicMarketingSite;
     const html = renderMarketingHtml({
-      origin: ORIGIN,
+      origin: ORIGIN, tenant_id: "tenant-1", tenant_slug: "acme",
       site,
       page: {
         slug: "home",
@@ -197,7 +197,7 @@ describe("JSON-LD", () => {
       footer: [],
     } as unknown as PublicMarketingSite;
     const html = renderMarketingHtml({
-      origin: ORIGIN,
+      origin: ORIGIN, tenant_id: "tenant-1", tenant_slug: "acme",
       site,
       page: {
         slug: "event",

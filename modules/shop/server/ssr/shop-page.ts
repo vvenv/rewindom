@@ -72,6 +72,8 @@ export async function renderShopTemplatePage(input: {
 
   return renderMarketingHtml({
     origin: input.origin,
+    tenant_id: input.tenantId,
+    tenant_slug: input.tenantSlug,
     site,
     page: {
       slug: input.path,

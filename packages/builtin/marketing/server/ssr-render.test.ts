@@ -70,6 +70,8 @@ describe("renderMarketingHtml favicon", () => {
   it("falls back to the product favicon when the site has none", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page(),
     });
@@ -79,6 +81,8 @@ describe("renderMarketingHtml favicon", () => {
   it("uses the site's own favicon when set", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({ theme_settings: { favicon_url: "/uploads/acme.png" } }),
       page: page(),
     });
@@ -88,6 +92,8 @@ describe("renderMarketingHtml favicon", () => {
   it("emits apple-touch-icon and manifest only when those fields are set", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({
         theme_settings: {
           apple_touch_icon_url: "/uploads/apple.png",
@@ -105,6 +111,8 @@ describe("renderMarketingHtml favicon", () => {
   it("does not fall back apple-touch or manifest to the favicon", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({ theme_settings: { favicon_url: "/uploads/acme.png" } }),
       page: page(),
     });
@@ -117,6 +125,8 @@ describe("renderMarketingHtml SEO", () => {
   it("declares the page's own language, not the site default", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({ locale: "en" }),
       page: page({ locale: "en" }),
     });
@@ -126,6 +136,8 @@ describe("renderMarketingHtml SEO", () => {
   it("points canonical at the localised URL", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({ locale: "en" }),
       page: page({ locale: "en" }),
     });
@@ -137,6 +149,8 @@ describe("renderMarketingHtml SEO", () => {
   it("derives button foreground from the theme primary color", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({
         theme_settings: { primary_color: "#facc15" },
       }),
@@ -151,6 +165,8 @@ describe("renderMarketingHtml SEO", () => {
   it("inlines shared semantic marketing CSS without Tailwind", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page(),
     });
@@ -162,6 +178,8 @@ describe("renderMarketingHtml SEO", () => {
   it("只内联本页用到的段样式", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page({ sections: [createSection("hero")] }),
     });
@@ -177,6 +195,8 @@ describe("renderMarketingHtml SEO", () => {
     const group = createSection("group");
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page({
         sections: [
@@ -200,6 +220,8 @@ describe("renderMarketingHtml SEO", () => {
   it("会员闸门下仍发正文段的样式——解锁是客户端塞 HTML，那时 CSS 早发完了", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page({ sections: [createSection("band")] }),
       memberGate: true,
@@ -211,6 +233,8 @@ describe("renderMarketingHtml SEO", () => {
   it("leaves the default language unprefixed", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page(),
     });
@@ -220,6 +244,8 @@ describe("renderMarketingHtml SEO", () => {
   it("emits reciprocal hreflang plus x-default", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page(),
     });
@@ -239,6 +265,8 @@ describe("renderMarketingHtml SEO", () => {
     // 只有一种语言时互指不成立，列出来反而会被整组忽略
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page({ alternates: [{ locale: "zh-CN", path: "/about" }] }),
     });
@@ -248,6 +276,8 @@ describe("renderMarketingHtml SEO", () => {
   it("omits hreflang on noindex pages so duplicates do not advertise alternates", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page({ settings: { noindex: true } }),
     });
@@ -260,6 +290,8 @@ describe("renderMarketingHtml SEO", () => {
       "Apple Rejects DOJ Latest Antitrust Challenge as Failing at Every Level";
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({ site_name: "Yestino - The Signal" }),
       page: page({ title: headline }),
     });
@@ -271,6 +303,8 @@ describe("renderMarketingHtml SEO", () => {
   it("does not reuse the site tagline as every inner page's description", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({ tagline: "The Signal" }),
       page: page({ title: "AI", description: "" }),
     });
@@ -282,6 +316,8 @@ describe("renderMarketingHtml SEO", () => {
   it("lets the caller override canonical", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page({ locale: "en", path: "/story" }),
       canonicalPath: "/story",
@@ -292,6 +328,8 @@ describe("renderMarketingHtml SEO", () => {
   it("rewrites canonical and title when another page is served at /", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page({
         kind: "events_index",
@@ -318,6 +356,8 @@ describe("renderMarketingHtml SEO", () => {
   it("renders the language switcher once the page has a translation", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page(),
     });
@@ -332,6 +372,8 @@ describe("renderMarketingHtml SEO", () => {
   it("keeps it out of single-language pages", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page({ alternates: [{ locale: "zh-CN", path: "/about" }] }),
     });
@@ -341,6 +383,8 @@ describe("renderMarketingHtml SEO", () => {
   it("points the brand link at the current language's home", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({ locale: "en" }),
       page: page({ locale: "en" }),
     });
@@ -352,6 +396,8 @@ describe("renderMarketingHtml SEO", () => {
     const header = createSection("header");
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({
         header: [header],
         pages: [
@@ -387,6 +433,8 @@ describe("renderMarketingHtml SEO", () => {
     const header = headerWith({ items: [] });
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({
         header: [header],
         pages: [
@@ -414,6 +462,8 @@ describe("renderMarketingHtml 接上 site-enhance", () => {
   it("注入 enhance 脚本，正文包在 marketing-site-root（无 #root）", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page(),
     });
@@ -429,6 +479,8 @@ describe("renderMarketingHtml 接上 site-enhance", () => {
   it("会员门控页给 main 打 data-member-gate", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page(),
       memberGate: true,
@@ -443,6 +495,8 @@ describe("renderMarketingHtml analytics", () => {
   it("puts the site's analytics script in <head>", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({
         analytics_html: `<script defer data-domain="acme.test" src="https://plausible.io/js/script.js"></script>`,
       }),
@@ -455,6 +509,8 @@ describe("renderMarketingHtml analytics", () => {
   it("emits nothing when the site has no analytics configured", () => {
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page: page(),
     });
@@ -530,6 +586,8 @@ describe("renderMarketingHtml builtin 404", () => {
     });
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site(),
       page,
     });
@@ -551,6 +609,8 @@ describe("renderMarketingHtml builtin 404", () => {
     });
     const html = renderMarketingHtml({
       origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
       site: site({ locale: "en" }),
       page,
     });
@@ -559,6 +619,45 @@ describe("renderMarketingHtml builtin 404", () => {
     expect(html).toContain('href="/en"');
     expect(html).not.toContain("页面不存在");
     expect(html).not.toContain("回到首页");
+  });
+});
+
+describe("renderMarketingHtml CDN rewrite", () => {
+  it("有公开根时把媒体库路径改成直链（含 og:image）", () => {
+    const asset = "/api/public/tenants/acme/site-assets/hero.png";
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
+      asset_public_base_url: "https://media.example.com",
+      site: site({
+        theme_settings: {
+          og_image: asset,
+          favicon_url: asset,
+        },
+      }),
+      page: page(),
+    });
+    expect(html).toContain(
+      `<meta property="og:image" content="https://media.example.com/tenant-1/site-assets/hero.png" />`,
+    );
+    expect(html).toContain(
+      '<link rel="icon" href="https://media.example.com/tenant-1/site-assets/hero.png" />',
+    );
+    expect(html).not.toContain("/api/public/tenants/acme/site-assets/");
+  });
+
+  it("无公开根时保持应用路径", () => {
+    const asset = "/api/public/tenants/acme/site-assets/hero.png";
+    const html = renderMarketingHtml({
+      origin: ORIGIN,
+      tenant_id: "tenant-1",
+      tenant_slug: "acme",
+      asset_public_base_url: "",
+      site: site({ theme_settings: { favicon_url: asset } }),
+      page: page(),
+    });
+    expect(html).toContain(`href="${asset}"`);
   });
 });
 

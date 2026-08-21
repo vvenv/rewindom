@@ -233,6 +233,8 @@ async function renderBillingPage(
     state.status,
     renderMarketingHtml({
       origin: requestOrigin(request),
+      tenant_id: hostTenant.tenant_id,
+      tenant_slug: hostTenant.tenant_slug,
       site,
       page: {
         slug: MEMBER_BILLING_PATH,

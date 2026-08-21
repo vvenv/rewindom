@@ -222,6 +222,8 @@ async function renderAuthPage(
     state.status,
     renderMarketingHtml({
       origin: requestOrigin(request),
+      tenant_id: hostTenant.tenant_id,
+      tenant_slug: hostTenant.tenant_slug,
       site,
       page: {
         slug: spec.path,

@@ -98,6 +98,7 @@ function synthesizeDocPage(input: {
 
 export async function renderDocLibrary(input: {
   tenantId: string;
+  tenantSlug: string;
   origin: string;
   site: PublicMarketingSite | null;
   accountEntryHtml: string;
@@ -128,6 +129,8 @@ export async function renderDocLibrary(input: {
     });
     return renderMarketingHtml({
       origin: input.origin,
+      tenant_id: input.tenantId,
+      tenant_slug: input.tenantSlug,
       site,
       page,
       servedPath: input.servedPath,
@@ -208,6 +211,7 @@ async function renderDocsPath(
   );
   return renderDocLibrary({
     tenantId: input.tenantId,
+    tenantSlug: input.tenantSlug,
     origin: input.origin,
     site,
     accountEntryHtml: input.accountEntryHtml,

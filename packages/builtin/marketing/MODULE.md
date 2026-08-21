@@ -987,7 +987,7 @@ block 不跨层：它的 schema 属于所在 section，一个 `field` 换不到 
 **已发布**页面开放——没上线过的页面，无后缀列里躺的是建页初值，拿它当还原目标只会
 给出一个用户从没见过的版本。可撤性由 `resolveEditorPublishState` 与发布态一起算出
 （`canDiscardLocal` / `canRevertContent`），工具栏只负责渲染。
-图片上传：`POST /api/site/assets`（始终新建）；替换：`POST /api/site/assets/:id/replace`（公开 URL 不变）→ 公开 URL `/api/public/tenants/:slug/site-assets/:filename`。
+图片上传：`POST /api/site/assets`（始终新建）；替换：`POST /api/site/assets/:id/replace`（公开 URL 不变）→ 库内 / 区块存 `/api/public/tenants/:slug/site-assets/:filename`。配了 `S3_PUBLIC_BASE_URL` 时，公开 SSR / webmanifest / 会员正文 HTML 在出站前改写成 CDN 直链（`rewrite-site-asset-urls.ts`）；该 API 路由仍保留作回退与工作台预览。
 草稿预览 API：`GET /api/site/preview?path=`（需 `site.read`，含 draft 页面 + 草稿 chrome）。
 
 顶部工具栏是**页面级**操作区：页面切换器（`PageSwitcher`，只列同语言的页面，改完一页直接切下一页）、
@@ -1213,6 +1213,10 @@ logo 抹掉（`applySiteTheme` 显式把它们保留下来）。
   先传进媒体库。
 - 选图而不是直接上传：同一张图在多处用是常态，每次都重新传只会堆出一堆一模一样的文件。
   弹层里照样能就地批量上传（含拖放），只传一张时传完直接选中。
+- **公开页 CDN 改写**：区块里继续存应用路径；有 `S3_PUBLIC_BASE_URL`（且
+  `ATTACHMENT_STORAGE` 为 s3/r2）时，`renderMarketingHtml` / webmanifest / 会员
+  `page-html` 在出站前换成 `{S3_PUBLIC_BASE_URL}/{tenant_id}/site-assets/{filename}`，
+  访客不再先打应用再 302。编辑器与库不写 CDN 绝对 URL——换媒体域只改 env。
 
 > 目前**没有内置 section 声明 `image` 设置**（站点上唯一的图是页头页脚的 logo）。
 > `SiteImageField` 已经接好，加一个带图的段（媒体位 / hero 背景）时不用再碰这一层。

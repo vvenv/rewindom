@@ -32,6 +32,10 @@ import {
   cookiesFromHeader,
   resolveSectionContexts,
 } from "./section-context-providers.js";
+import {
+  rewriteSiteAssetUrl,
+  siteAssetPublicBaseUrl,
+} from "./rewrite-site-asset-urls.js";
 import { resolveSiteAccountEntry } from "./site-account-entry.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
 import { resolveSiteMemberSsrSession } from "./site-member-ssr-session.js";
@@ -237,6 +241,8 @@ async function renderNotFound(
       404,
       renderMarketingHtml({
         origin: requestOrigin(request),
+        tenant_id: hostTenant.tenant_id,
+        tenant_slug: hostTenant.tenant_slug,
         site,
         contributed,
         page,
@@ -278,6 +284,8 @@ async function renderNotFound(
     404,
     renderMarketingHtml({
       origin: requestOrigin(request),
+      tenant_id: hostTenant.tenant_id,
+      tenant_slug: hostTenant.tenant_slug,
       site: custom.site,
       contributed,
       // 404 页不该被收录：它会出现在无数个不存在的地址上
@@ -563,6 +571,8 @@ async function renderLogicalPath(
     200,
     renderMarketingHtml({
       origin: requestOrigin(request),
+      tenant_id: hostTenant.tenant_id,
+      tenant_slug: hostTenant.tenant_slug,
       site: result.site,
       page: result.page,
       servedPath,
@@ -680,12 +690,17 @@ export async function marketingSsrRoutes(app: FastifyInstance): Promise<void> {
       return reply.status(404).send("Not Found");
     }
     const theme = resolveThemeSettings(site.theme_settings);
+    const publicBase = siteAssetPublicBaseUrl();
     const body = JSON.stringify(
       buildSiteWebManifest({
         name: site.site_name,
         theme_color: theme.primary_color,
         background_color: theme.bg_color,
-        maskable_icon_url: theme.maskable_icon_url,
+        maskable_icon_url: rewriteSiteAssetUrl(theme.maskable_icon_url, {
+          tenant_id: hostTenant.tenant_id,
+          tenant_slug: hostTenant.tenant_slug,
+          public_base_url: publicBase,
+        }),
       }),
     );
     return reply

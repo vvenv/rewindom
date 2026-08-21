@@ -1,0 +1,34 @@
+# 增量功能契约 —— 公开页渲染时把媒体库 URL 改写成 OSS/S3 直链
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr]
+goal: 区块/主题仍存 /api/public/tenants/:slug/site-assets/:filename；公开 SSR（含 webmanifest、会员正文 HTML）在有 S3_PUBLIC_BASE_URL 时改写成 CDN 直链，去掉访客侧 302
+gold: packages/builtin/marketing/shared/theme-fonts.ts
+touch:
+  - packages/builtin/marketing/features/site-asset-cdn-rewrite.spec.yaml
+  - packages/builtin/marketing/server/rewrite-site-asset-urls.ts
+  - packages/builtin/marketing/server/rewrite-site-asset-urls.test.ts
+  - packages/builtin/marketing/server/site-asset.service.ts
+  - packages/builtin/marketing/server/ssr-render.ts
+  - packages/builtin/marketing/server/ssr-render.test.ts
+  - packages/builtin/marketing/server/ssr-seo.test.ts
+  - packages/builtin/marketing/server/ssr.routes.ts
+  - packages/builtin/marketing/server/site-content.routes.ts
+  - packages/builtin/marketing/MODULE.md
+  - docs/design/file-storage.md
+  - modules/events/server/ssr/events-page.ts
+  - modules/shop/server/ssr/shop-page.ts
+  - modules/site-docs/server/docs.ssr.ts
+  - packages/builtin/site-member/server/member-auth.ssr.ts
+  - packages/builtin/site-member/server/member-account.ssr.ts
+  - packages/builtin/site-billing/server/member-billing.ssr.ts
+out_of_scope:
+  - 编辑器写入 CDN 绝对 URL
+  - 字体 URL 默认改写（仍见 site-font-catalog-oss）
+  - 删掉 /api/public/.../site-assets 路由（保留作回退与同源预览）
+  - 多尺寸派生 / srcset
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run rewrite-site-asset-urls.test.ts ssr-render.test.ts ssr-seo.test.ts
+  - node scripts/verify-module.mjs marketing

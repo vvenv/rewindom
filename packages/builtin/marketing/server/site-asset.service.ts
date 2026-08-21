@@ -42,6 +42,10 @@ export function publicSiteAssetUrl(
   tenantSlug: string,
   filename: string,
 ): string {
+  /*
+   * 稳定应用路径：写进区块 / 主题 JSON。公开 SSR 在有 S3_PUBLIC_BASE_URL 时
+   * 再改写成 CDN（见 rewrite-site-asset-urls.ts），不要在这里直接返回直链。
+   */
   return `/api/public/tenants/${encodeURIComponent(tenantSlug)}/site-assets/${encodeURIComponent(filename)}`;
 }
 

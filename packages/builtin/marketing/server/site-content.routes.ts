@@ -10,6 +10,10 @@ import { interpolationValues } from "../shared/site-interpolation.js";
 import { resolveLocaleSegment } from "../shared/site-locale.js";
 
 import { renderPageSectionsHtml } from "./render-page-sections-html.js";
+import {
+  rewriteSiteAssetUrls,
+  siteAssetPublicBaseUrl,
+} from "./rewrite-site-asset-urls.js";
 import { resolveSectionEntitlements } from "./site-entitlements.js";
 import { getMemberContentPage } from "./site.service.js";
 
@@ -132,20 +136,25 @@ export async function siteContentRoutes(app: FastifyInstance): Promise<void> {
         });
       }
 
+      const html = renderPageSectionsHtml(result.site, result.page, {
+        // 会员正文里同样可能有贡献段，闸门口径与公开 SSR 一致
+        enabledEntitlements: await resolveSectionEntitlements(
+          hostTenant.tenant_id,
+        ),
+        isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
+        // 这段 HTML 直接注进公开页，`{site}` / `{tagline}` 得和同页其它段一样替掉
+        interpolation: interpolationValues({
+          siteName: result.site.site_name,
+          tagline: result.site.tagline,
+          origin:
+            requestOriginFromHeaders(request) ?? `http://${request.hostname}`,
+        }),
+      });
       return {
-        html: renderPageSectionsHtml(result.site, result.page, {
-          // 会员正文里同样可能有贡献段，闸门口径与公开 SSR 一致
-          enabledEntitlements: await resolveSectionEntitlements(
-            hostTenant.tenant_id,
-          ),
-          isDefaultTenant: hostTenant.tenant_id === DEFAULT_TENANT_ID,
-          // 这段 HTML 直接注进公开页，`{site}` / `{tagline}` 得和同页其它段一样替掉
-          interpolation: interpolationValues({
-            siteName: result.site.site_name,
-            tagline: result.site.tagline,
-            origin:
-              requestOriginFromHeaders(request) ?? `http://${request.hostname}`,
-          }),
+        html: rewriteSiteAssetUrls(html, {
+          tenant_id: hostTenant.tenant_id,
+          tenant_slug: hostTenant.tenant_slug,
+          public_base_url: siteAssetPublicBaseUrl(),
         }),
         title: result.page.title,
       };

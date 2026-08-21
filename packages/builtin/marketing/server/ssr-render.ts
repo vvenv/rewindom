@@ -29,6 +29,10 @@ import {
 
 import { renderPageSectionsHtml } from "./render-page-sections-html.js";
 import {
+  rewriteSiteAssetUrls,
+  siteAssetPublicBaseUrl,
+} from "./rewrite-site-asset-urls.js";
+import {
   renderFooterHtml,
   renderHeaderHtml,
   renderSectionHtml,
@@ -160,6 +164,15 @@ export function renderMarketingHtml(input: {
   origin: string;
   site: PublicMarketingSite;
   page: PublicMarketingPage;
+  /** 拼 CDN 存储键；与媒体库落盘前缀一致。 */
+  tenant_id: string;
+  /** 匹配区块里存的 `/api/public/tenants/:slug/site-assets/...`。 */
+  tenant_slug: string;
+  /**
+   * 对象存储公开根。默认读 `S3_PUBLIC_BASE_URL`（仅 s3/r2）；
+   * 测试可显式传入；空串表示不改写。
+   */
+  asset_public_base_url?: string;
   /** 会员专属页且访客：正文占位 + robots noindex（已登录由 SSR 解锁）。 */
   memberGate?: boolean;
   /** 页头账户入口 HTML（登录链或已登录菜单）；见 `site-account-entry.ts`。 */
@@ -407,7 +420,7 @@ export function renderMarketingHtml(input: {
   collectSectionTypes(site.footer, usedSectionTypes);
   collectSectionTypes(page.sections, usedSectionTypes);
 
-  return `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="${escapeHtml(locale)}">
 <head>
   <meta charset="utf-8" />
@@ -439,6 +452,20 @@ export function renderMarketingHtml(input: {
   ${siteEnhanceScriptTag()}
 </body>
 </html>`;
+
+  /*
+   * 区块里存的是稳定应用路径；有对象存储公开根时在这里换成 CDN 直链，
+   * 访客 `<img>` / og:image 不再先打应用再 302。见 rewrite-site-asset-urls.ts。
+   */
+  const publicBase =
+    input.asset_public_base_url !== undefined
+      ? input.asset_public_base_url
+      : siteAssetPublicBaseUrl();
+  return rewriteSiteAssetUrls(html, {
+    tenant_id: input.tenant_id,
+    tenant_slug: input.tenant_slug,
+    public_base_url: publicBase,
+  });
 }
 
 export function renderUnavailableHtml(input: {

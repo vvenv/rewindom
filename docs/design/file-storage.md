@@ -34,6 +34,12 @@ interface FileStorageProvider {
 图片是站点里请求量最大的一类资源。接对象存储的**主要收益就是第 1 条**：不再让每一张
 图逐字节穿过 Node 进程。所以新的公开资源路由一律用这个 helper，别自己 `reply.send(stream)`。
 
+官网进一步：区块 / 主题 JSON **仍存**应用路径
+`/api/public/tenants/:slug/site-assets/:filename`；公开 SSR 在有 `S3_PUBLIC_BASE_URL`
+时把 HTML（及 webmanifest、会员正文片段）里的该路径**改写成 CDN 直链**，访客 `<img>`
+不再先打应用再 302。实现：`marketing/server/rewrite-site-asset-urls.ts`。不要在选图时
+把 CDN URL 写进库——换媒体域应只改 env。
+
 ## 存储键
 
 存储键由**业务侧**拼，内核不认识任何业务概念：
