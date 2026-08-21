@@ -320,18 +320,23 @@ if [ \"\$b\" -eq 0 ]; then
   docker compose -f docker-compose.prod.yml --env-file '${env_file}' up -d
   b=\$?
 fi
-echo \$b > /tmp/rewindom-docker-compose.rc
+# 先写临时文件再原子 mv，避免 ENOSPC/SIGKILL 留下空 .rc 导致 exit \"\"
+printf '%s\\n' \"\${b:-1}\" > /tmp/rewindom-docker-compose.rc.tmp
+mv -f /tmp/rewindom-docker-compose.rc.tmp /tmp/rewindom-docker-compose.rc
 JOB
 chmod +x \"\$job\"
 setsid nohup \"\$job\" >>\"\$log\" 2>&1 < /dev/null &
 echo \"compose 已在后台启动，日志 \$log\"
-while [ ! -f \"\$rcfile\" ]; do
+while [ ! -s \"\$rcfile\" ]; do
   sleep 8
   tail -n 5 \"\$log\" || true
   echo
 done
 tail -n 40 \"\$log\"
-rc=\$(cat \"\$rcfile\")
+rc=\$(tr -d '[:space:]' < \"\$rcfile\")
+case \"\$rc\" in
+  ''|*[!0-9]*) rc=1 ;;
+esac
 echo '--- docker compose ps ---'
 docker compose -f docker-compose.prod.yml --env-file '${env_file}' ps
 exit \"\$rc\"
