@@ -161,6 +161,17 @@ describe("toPublicDetail timeline", () => {
   });
 });
 
+describe("toPublicDetail related", () => {
+  it("按时间升序并落成类型事实，不解释为什么相关", () => {
+    const view = toPublicDetail(sampleEventDetail(t), t);
+    expect(view.related.map((item) => item.href)).toEqual([
+      "/events/sample-event-0",
+      "/events/sample-event-2",
+    ]);
+    expect(view.related[1]?.fact_labels.length).toBeGreaterThan(0);
+  });
+});
+
 describe("toPublicCard evidence", () => {
   it("样张 1 有归位 → 证据行落成文案；样张 3 是薄卡", () => {
     const [first, , thin] = sampleEventList(t);

@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { EVENTS_DETAIL_SECTION_TYPE } from "./events-detail-section.js";
 import { EVENTS_ENTITLEMENT } from "./entitlements.js";
 import {
+  EVENTS_BRIEFING_SECTION_TYPE,
   EVENTS_NOW_SECTION_TYPE,
   EVENTS_RISING_SECTION_TYPE,
 } from "./events-feed-section.js";
@@ -39,11 +40,12 @@ describe("registerEventsPageTemplates", () => {
     registerEventsPageTemplates();
   });
 
-  it("首页版式是首屏、升温、实体条与正在发生，因此不能声明「有且仅有一段」必备段", () => {
+  it("首页版式是首屏、简报、升温、实体条与正在发生，因此不能声明「有且仅有一段」必备段", () => {
     expect(
       EVENTS_HOME_LAYOUT_PRESET.sections.map((section) => section.type),
     ).toEqual([
       EVENTS_HERO_SECTION_TYPE,
+      EVENTS_BRIEFING_SECTION_TYPE,
       EVENTS_RISING_SECTION_TYPE,
       EVENTS_ENTITY_STRIP_SECTION_TYPE,
       EVENTS_NOW_SECTION_TYPE,
@@ -66,6 +68,7 @@ describe("registerEventsPageTemplates", () => {
       EVENTS_TOPIC_TEMPLATE_PRESET.sections.map((section) => section.type),
     ).toEqual([
       EVENTS_HERO_SECTION_TYPE,
+      EVENTS_BRIEFING_SECTION_TYPE,
       EVENTS_RISING_SECTION_TYPE,
       EVENTS_ENTITY_STRIP_SECTION_TYPE,
       EVENTS_NOW_SECTION_TYPE,

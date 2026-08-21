@@ -47,7 +47,11 @@ export function EventCard({ event }: { event: EventListItem }) {
         ) : null}
         <Link
           to={`/app/events/${event.id}`}
-          className="text-base leading-snug font-semibold hover:underline"
+          className={
+            thick
+              ? "text-lg leading-snug font-semibold hover:underline"
+              : "text-sm leading-snug font-medium hover:underline"
+          }
         >
           {event.title}
         </Link>

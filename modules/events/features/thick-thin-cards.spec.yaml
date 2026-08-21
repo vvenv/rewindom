@@ -65,6 +65,7 @@ models: []
 #    那是详情「发生了什么」的活。工作台额外保留相对时间与 hasUpdate。
 #    证据做成角标、排进标题上方的 meta 行（accent 描边、不铺色）。句子跟在标题下面
 #    会被当成副标题扫过去；跟 chips 同排才扫得见。
+#    厚卡标题大于薄卡（公开 CSS / 工作台 EventCard 字号），不要靠铺色或通栏拉开层级。
 #
 # 2. **证据行最多一句**，优先级：
 #    placement.kindRecurrence → placement.recurrence → card.confirmedSources（已证实且 ≥2 家来源）。

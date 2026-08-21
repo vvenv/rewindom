@@ -209,6 +209,7 @@ audit:
     sections:
     - { type: events.rising, placements: [page], entitlement: events }
     - { type: events.now, placements: [page], entitlement: events }
+    - { type: events.briefing, placements: [page], entitlement: events }
     - { type: events.entity-strip, placements: [page], entitlement: events }
     - {
         type: events.detail,

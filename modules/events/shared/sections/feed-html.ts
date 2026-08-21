@@ -7,6 +7,7 @@
  */
 
 import {
+  EVENTS_BRIEFING_SECTION_TYPE,
   EVENTS_NOW_SECTION_TYPE,
   EVENTS_RISING_SECTION_TYPE,
 } from "../events-feed-section.js";
@@ -38,8 +39,8 @@ import type { SectionHtmlRenderer } from "@rewindom/builtin/marketing/shared/sec
 /**
  * 同一页上已经出现过的事件（按上下文对象分桶）。
  *
- * 默认版式把 Rising / Now 两段摆在同一张页面上，而两段的取数是各自独立的
- * ——一个又热又在升温的事件会同时命中两段，页面上就出现两张一模一样的卡片。
+ * 默认版式把 Briefing / Rising / Now 摆在同一张页面上，而各段的取数是各自独立的
+ * ——一个又热又有证据的事件会同时命中简报与 Now，页面上就出现两张一模一样的卡片。
  *
  * 去重刻意**不做在取数层**：那样「只摆 Now 一段」的页面会莫名少掉最热的那几条。
  * 放在渲染层则是「先来先得」：一段单独摆时拿到完整列表，两段同页时后面的自动让开。
@@ -106,6 +107,10 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
   const context = readEventsContext(ctx);
   const s = section.settings;
 
+  if (section.type === EVENTS_BRIEFING_SECTION_TYPE) {
+    return renderBriefingHtml(section, ctx, context);
+  }
+
   const source = feedSourceFromSection(section);
   const sectionTopic = feedTopic(settingText(s, "topic"));
   const topic = sectionTopic ?? context?.topic;
@@ -143,3 +148,36 @@ export const renderEventsFeedHtml: SectionHtmlRenderer = (section, ctx) => {
     .map((card) => eventCardHtml(card, showSources, ctx))
     .join("")}</ul>${more}</div>`;
 };
+
+/**
+ * 简报：空则整段不渲染。查看全部永远链到 Now 列表，不新造 ?source=briefing。
+ */
+function renderBriefingHtml(
+  section: Parameters<SectionHtmlRenderer>[0],
+  ctx: Parameters<SectionHtmlRenderer>[1],
+  context: EventsRenderContext | null,
+): string {
+  const s = section.settings;
+  const sectionTopic = feedTopic(settingText(s, "topic"));
+  const topic = sectionTopic ?? context?.topic;
+  const limit = settingNumber(s, "limit", 4);
+  const showSources = settingBool(s, "show_sources");
+  const bucket = context?.feed.briefing ?? [];
+  const all = topic ? bucket.filter((card) => card.topic === topic) : bucket;
+  const cards = takeUnseen(context, all, limit);
+  if (cards.length === 0) {
+    return "";
+  }
+
+  const header = sectionHeading(s);
+  const moreLabel = settingText(s, "more_label");
+  const more = moreLabel
+    ? `<a class="events-more" href="${escapeHtml(
+        siteHref(eventsIndexHref({ source: "now", topic }), ctx),
+      )}">${escapeHtml(moreLabel)}</a>`
+    : "";
+
+  return `<div class="events-feed">${header}<ul class="events-grid">${cards
+    .map((card) => eventCardHtml(card, showSources, ctx))
+    .join("")}</ul>${more}</div>`;
+}

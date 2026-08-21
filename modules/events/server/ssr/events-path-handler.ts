@@ -51,6 +51,7 @@ import {
   toPublicEntity,
   toPublicEntityIndex,
   toPublicEntityStrip,
+  toPublicFeed,
   toPublicHero,
 } from "../../shared/index.js";
 import {
@@ -244,10 +245,7 @@ async function renderTopic(
     events: emptyEventsContext({
       topic,
       topic_label: topicLabel,
-      feed: {
-        rising: feed.rising.map((item) => toCard(item, t)),
-        now: feed.now.map((item) => toCard(item, t)),
-      },
+      feed: toPublicFeed(feed, t),
       entity_strip: toPublicEntityStrip(entityRows),
       hero: toPublicHero(heroStats, t),
     }),
@@ -298,6 +296,7 @@ async function renderListing(
       feed: {
         rising: source === "rising" ? cards : [],
         now: source === "now" ? cards : [],
+        briefing: [],
       },
     }),
   });

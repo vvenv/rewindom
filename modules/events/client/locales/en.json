@@ -32,6 +32,8 @@
     "risingHint": "Just started to break out",
     "now": "Now",
     "nowHint": "Still developing in the last 24 hours",
+    "briefing": "Developments with evidence",
+    "briefingHint": "Confirmed across sources, typed, or placed in an entity's record",
     "entities": "Entities",
     "entitiesHint": "Companies and people in the last 30 days of events"
   },
@@ -216,7 +218,7 @@
   "home": {
     "layout": {
       "label": "Events radar",
-      "description": "Rising then Now — use this when the site root should be the events front door"
+      "description": "Evidence first, then Rising then Now — use this when the site root should be the events front door"
     }
   },
   "section": {

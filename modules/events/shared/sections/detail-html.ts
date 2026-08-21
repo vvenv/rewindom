@@ -5,6 +5,7 @@
  * 而不是把几个平台的榜单并排画出来。
  */
 
+import { sortRelatedForReading } from "../events.js";
 import { readEventsContext } from "../events-section-context.js";
 
 import { escapeHtml } from "@rewindom/builtin/marketing/shared/html.js";
@@ -232,7 +233,8 @@ function sourcesHtml(event: PublicEventDetailView, label: string): string {
 
 /**
  * 相关事件。**不是同一件事**，只是有关系——所以摆在来源之后：
- * 先给结论与证据，再给「还牵着什么」。
+ * 先给结论与证据，再给「还牵着什么」。按时间升序排，当成连续记录读，
+ * 不解释为什么相关。
  *
  * 没有相关事件（没配 embedding key、或确实没算出来）时整块不渲染，
  * 与势头角标同一条口径：没有可主张的就留白。
@@ -248,13 +250,20 @@ function relatedHtml(
   const heading = label
     ? `<h2 class="events-related-title">${escapeHtml(label)}</h2>`
     : "";
-  const items = event.related
-    .map(
-      (item) =>
-        `<li><a href="${escapeHtml(siteHref(item.href, ctx))}">${escapeHtml(
-          item.title,
-        )}</a></li>`,
-    )
+  const items = sortRelatedForReading(event.related)
+    .map((item) => {
+      const date = item.last_activity_at.slice(0, 10);
+      const facts = item.fact_labels
+        .map((fact) => `<span class="events-fact">${escapeHtml(fact)}</span>`)
+        .join("");
+      return `<li class="events-related-item"><time class="events-related-date" datetime="${escapeHtml(
+        item.last_activity_at,
+      )}">${escapeHtml(date)}</time>${
+        facts ? `<span class="events-meta" translate="no">${facts}</span>` : ""
+      }<a href="${escapeHtml(siteHref(item.href, ctx))}">${escapeHtml(
+        item.title,
+      )}</a></li>`;
+    })
     .join("");
   return `<section class="events-related">${heading}<ul>${items}</ul></section>`;
 }

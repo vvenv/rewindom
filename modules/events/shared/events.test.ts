@@ -17,6 +17,7 @@ import {
   parseEnabledTopicsInput,
   pickCardEvidence,
   resolveEnabledTopics,
+  sortRelatedForReading,
 } from "./events.js";
 import { isEventsPath } from "./events-section-context.js";
 
@@ -402,5 +403,16 @@ describe("pickCardEvidence", () => {
         facts: EMPTY_EVENT_FACTS,
       }),
     ).toBe(false);
+  });
+});
+
+describe("sortRelatedForReading", () => {
+  it("按 last_activity_at 升序，存储的相似度顺序不进展示", () => {
+    expect(
+      sortRelatedForReading([
+        { last_activity_at: "2026-08-18T00:00:00.000Z", title: "later" },
+        { last_activity_at: "2026-08-12T00:00:00.000Z", title: "earlier" },
+      ]).map((item) => item.title),
+    ).toEqual(["earlier", "later"]);
   });
 });

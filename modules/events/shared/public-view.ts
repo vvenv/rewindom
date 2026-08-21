@@ -16,6 +16,7 @@ import {
   describeEventMomentum,
   describeTimelineEntry,
   isTimelineRoleCode,
+  sortRelatedForReading,
   TIMELINE_ROLE_PREFIX,
 } from "./events.js";
 
@@ -39,6 +40,7 @@ import type {
   PublicEntityView,
   PublicEventCard,
   PublicEventDetailView,
+  PublicEventFeed,
   PublicEventSource,
   PublicHeroStat,
   PublicHeroView,
@@ -93,6 +95,21 @@ export function toPublicCard(
   };
 }
 
+export function toPublicFeed(
+  feed: {
+    rising: readonly EventListItem[];
+    now: readonly EventListItem[];
+    briefing?: readonly EventListItem[];
+  },
+  t: EventsTranslate,
+): PublicEventFeed {
+  return {
+    rising: feed.rising.map((item) => toPublicCard(item, t)),
+    now: feed.now.map((item) => toPublicCard(item, t)),
+    briefing: (feed.briefing ?? []).map((item) => toPublicCard(item, t)),
+  };
+}
+
 /**
  * 势头角标在这里就落成文案：段渲染器是同步的、也拿不到 i18n。
  *
@@ -137,9 +154,13 @@ export function toPublicDetail(
       text: t(fact.code, resolvePlacementParams(fact.params, t)),
       href: fact.event_slug ? eventPath(fact.event_slug) : null,
     })),
-    related: detail.related.map((item) => ({
+    related: sortRelatedForReading(detail.related).map((item) => ({
       href: eventPath(item.slug),
       title: item.title,
+      last_activity_at: item.last_activity_at,
+      fact_labels: describeEventFacts(item.kind, item.facts).map((chip) =>
+        t(chip.code, chip.params),
+      ),
     })),
     /*
      * 实体链接。公开面不带关注态（没有 viewer），只留「叫什么 + 去哪」。

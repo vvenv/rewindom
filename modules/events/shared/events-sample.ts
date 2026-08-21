@@ -111,6 +111,18 @@ export function sampleEventDetail(t: EventsTranslate): EventDetail {
         topic: "tech",
         status: "active",
         last_activity_at: SAMPLE_UPDATED,
+        kind: "outage",
+        facts: { ...EMPTY_EVENT_FACTS, duration_minutes: 47, resolved: true },
+      },
+      {
+        id: "sample-r0",
+        slug: "sample-event-0",
+        title: t("sample.event3.title"),
+        topic: "business",
+        status: "active",
+        last_activity_at: SAMPLE_TIME,
+        kind: null,
+        facts: { ...EMPTY_EVENT_FACTS },
       },
     ],
     entities: [

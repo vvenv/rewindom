@@ -115,10 +115,12 @@ export interface PublicTrendingFactor {
   confidence_label: string;
 }
 
-/** 相关事件在公开面上只是一条链接：标题 + 站内地址。 */
+/** 相关事件在公开面上是一条可顺读的记录：日期 + 类型事实 + 标题。 */
 export interface PublicRelatedEvent {
   href: string;
   title: string;
+  last_activity_at: string;
+  fact_labels: string[];
 }
 
 export interface PublicEventDetailView extends PublicEventCard {
@@ -238,6 +240,8 @@ export interface PublicHeroView {
 export interface PublicEventFeed {
   rising: PublicEventCard[];
   now: PublicEventCard[];
+  /** Now 同序里筛出的厚卡。空数组 = 简报段整段不渲染 */
+  briefing: PublicEventCard[];
 }
 
 export interface EventsRenderContext {
@@ -287,11 +291,12 @@ export interface EventsRenderContext {
 export function emptyEventsContext(
   overrides: Partial<EventsRenderContext> = {},
 ): EventsRenderContext {
+  const { feed, ...rest } = overrides;
   return {
-    feed: { rising: [], now: [] },
+    feed: { rising: [], now: [], briefing: [], ...feed },
     event: null,
     index_path: eventsHubPath(),
-    ...overrides,
+    ...rest,
   };
 }
 

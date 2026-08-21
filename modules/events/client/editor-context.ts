@@ -17,11 +17,12 @@ import {
   EVENTS_ENTITY_PAGE_KIND,
   EVENTS_ENTITY_SECTION_TYPE,
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
-  EVENTS_FEED_SECTION_TYPES,
+  EVENTS_FEED_CONTEXT_TYPES,
   EVENTS_HERO_SECTION_TYPE,
   EVENT_TOPICS,
   emptyEventsContext,
   eventsContextEntry,
+  isThickEventCard,
   toPublicCard,
   toPublicDetail,
   toPublicEntity,
@@ -53,7 +54,7 @@ import type {
 import type { AppLocale } from "@rewindom/module-sdk";
 
 const EVENTS_EDITOR_CONTEXT_TYPES = [
-  ...EVENTS_FEED_SECTION_TYPES,
+  ...EVENTS_FEED_CONTEXT_TYPES,
   EVENTS_DETAIL_SECTION_TYPE,
   EVENTS_ENTITY_SECTION_TYPE,
   EVENTS_ENTITY_HERO_SECTION_TYPE,
@@ -79,7 +80,7 @@ export function registerEventsEditorContext(): void {
       const locale = normalizeLocale(input.locale);
       const t = translator(locale);
       const wantFeed = wantsAny(input.usedTypes, [
-        ...EVENTS_FEED_SECTION_TYPES,
+        ...EVENTS_FEED_CONTEXT_TYPES,
         EVENTS_DETAIL_SECTION_TYPE,
       ]);
       const wantStrip = input.usedTypes.has(EVENTS_ENTITY_STRIP_SECTION_TYPE);
@@ -106,7 +107,7 @@ export function registerEventsEditorContext(): void {
       const topicLabel = sampleTopic ? t(`topic.${sampleTopic}`) : undefined;
 
       const [feed, entityRows, heroStats] = await Promise.all([
-        wantFeed ? loadFeed(t, sampleTopic) : Promise.resolve({ rising: [], now: [] }),
+        wantFeed ? loadFeed(t, sampleTopic) : Promise.resolve({ rising: [], now: [], briefing: [] }),
         wantStrip || wantHub ? loadEntityIndex() : Promise.resolve([]),
         wantHero ? loadHeroStats(sampleTopic) : Promise.resolve(null),
       ]);
@@ -171,13 +172,19 @@ async function loadFeed(
       return {
         rising: cards(data.rising),
         now: cards(data.now),
+        briefing: cards([...data.rising, ...data.now].filter(isThickEventCard)),
       };
     }
   } catch {
     // 拉不到就用样张，预览结构仍与实站同一套渲染器
   }
-  const sample = sampleEventList(t).map((item) => toPublicCard(item, t));
-  return { rising: sample, now: sample };
+  const sampleItems = sampleEventList(t);
+  const sample = sampleItems.map((item) => toPublicCard(item, t));
+  return {
+    rising: sample,
+    now: sample,
+    briefing: sampleItems.filter(isThickEventCard).map((item) => toPublicCard(item, t)),
+  };
 }
 
 /**

@@ -36,6 +36,7 @@ import type {
 import {
   CROSS_SOURCE_KINDS,
   enabledTopicWhere,
+  isThickEventCard,
   isTopicEnabled,
 } from "../../shared/index.js";
 import type { AppLocale } from "@rewindom/module-sdk";
@@ -56,6 +57,11 @@ const NOW_WINDOW_HOURS = LIVE_WINDOW_HOURS;
 
 /** 公开面一次最多取多少张卡。段自己的 `limit` 再往下截，这里只是查询上限。 */
 const FEED_FETCH_LIMIT = 12;
+/**
+ * 简报从 Now 同序里筛厚卡，池子要比区块 12 条大——排在第 13 的故障不该因为
+ * 前面全是单来源帖就进不了简报。
+ */
+const BRIEFING_POOL = 30;
 /** 「查看全部」列表不再受区块 12 条上限约束，但仍封顶，避免一次铺几百张。 */
 const LISTING_FETCH_LIMIT = 48;
 /**
@@ -95,6 +101,7 @@ const LIST_SELECT = {
 export interface PublicFeedData {
   rising: EventListItem[];
   now: EventListItem[];
+  briefing: EventListItem[];
 }
 
 export async function getPublicEventFeed(
@@ -132,7 +139,7 @@ export async function getPublicEventFeed(
         last_activity_at: { gte: new Date(now - NOW_WINDOW_HOURS * HOUR_MS) },
       },
       orderBy: [{ heat_score: "desc" }, { last_activity_at: "desc" }],
-      take: FEED_FETCH_LIMIT,
+      take: BRIEFING_POOL,
       select: LIST_SELECT,
     }),
   ]);
@@ -148,9 +155,11 @@ export async function getPublicEventFeed(
     sourceIcons,
   });
 
+  const nowItems = items.slice(rising.length);
   return {
     rising: items.slice(0, rising.length),
-    now: items.slice(rising.length),
+    now: nowItems.slice(0, FEED_FETCH_LIMIT),
+    briefing: nowItems.filter(isThickEventCard),
   };
 }
 

@@ -1,0 +1,66 @@
+# 「有证据的进展」——首页先看到能当简报的那几条，而不是再排一次热榜。
+#
+# 厚卡条件已经有了（归位 / 已证实 / 类型事实）。本段只是把它们从网格里提出来，
+# 单独成一段。不叫必读、精选、头条。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 新增官网段 events.briefing，从 Now 同序的更大一池里筛厚卡，默认 4 条；空则整段不渲染；查看全部链到 /?source=now。预设插在 Rising 之前，去重走 takeUnseen。
+gold: modules/events/shared/events-feed-section.ts
+touch:
+  - modules/events/features/briefing-section.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/MODULE.spec.yaml
+  - modules/events/shared/events-feed-section.ts
+  - modules/events/shared/events-feed-section.test.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/module.tsx
+  - modules/events/client/editor-context.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+out_of_scope:
+  - 今日必读 / Featured / Top / 通栏头条
+  - 新造 ?source=briefing 列表页
+  - 第三把排序尺子（不用热度以外的公式）
+  - 回填已发布页
+  - 紧急色 / 公开热度分
+  - 工作台 /app/events 的 Rising / Now 区块改成三段
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-feed-section.test.ts shared/events-page-templates.test.ts shared/sections/feed-html.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:i18n
+  - pnpm --filter @rewindom/builtin check:section-css
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. 新 type `events.briefing`，与 Rising / Now 同形（独立段，标题写在自己的 setting 上）。
+#    heading = events:sections.briefing（「有证据的进展」）。英文不要 Must-read / Featured / Top。
+#
+# 2. **取数**：Now 同序（heat_score），先拉 Top 30，再按 isThickEventCard 过滤，
+#    截 limit（默认 4）。不发明第三把尺子。rising 那批仍是 12。
+#
+# 3. **去重**：feed-html.ts 的 takeUnseen。预设里 briefing 在 Rising 之前，
+#    后面两段自动让开厚卡。单独摆一段时拿到完整厚卡列表。
+#
+# 4. **空则整段不渲染**（return ""），不要「暂无精选」。设置里不放 empty_text。
+#
+# 5. 「查看全部」链到 /?source=now（带当前 topic 时 /topics/ai?source=now）。
+#    不新造 briefing 列表页。
+#
+# 6. 预设只写进 EVENTS_HUB_SECTIONS，不回填已发布页。

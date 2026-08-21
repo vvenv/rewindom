@@ -86,6 +86,38 @@ describe("renderEventsDetailHtml entities", () => {
   });
 });
 
+describe("renderEventsDetailHtml related", () => {
+  it("按时间升序排，带日期和类型事实，不解释为什么相关", () => {
+    const html = render(
+      detail({
+        related: [
+          {
+            href: "/events/later",
+            title: "Later event",
+            last_activity_at: "2026-08-18T12:00:00.000Z",
+            fact_labels: [],
+          },
+          {
+            href: "/events/earlier",
+            title: "Earlier outage",
+            last_activity_at: "2026-08-12T08:00:00.000Z",
+            fact_labels: ["故障", "47 分钟"],
+          },
+        ],
+      }),
+    );
+    expect(html).toContain("2026-08-12");
+    expect(html).toContain("故障");
+    expect(html.indexOf("Earlier outage")).toBeLessThan(html.indexOf("Later event"));
+    expect(html).not.toContain("为什么相关");
+  });
+
+  it("没有相关事件时整块不渲染", () => {
+    const html = render(detail({ related: [] }));
+    expect(html).not.toContain("events-related");
+  });
+});
+
 describe("renderEventsDetailHtml timeline", () => {
   function entry(
     overrides: Partial<PublicEventDetailView["timeline"][number]> = {},

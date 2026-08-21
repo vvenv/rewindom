@@ -19,6 +19,7 @@ import {
 import {
   EVENTS_FEED_TOPIC_ALL,
   eventFeedSectionType,
+  EVENTS_BRIEFING_SECTION_TYPE,
 } from "./events-feed-section.js";
 import {
   EVENTS_ENTITY_PAGE_KIND,
@@ -109,12 +110,17 @@ const EVENTS_HOME_HERO_SECTION: PresetSection = {
 };
 
 /**
- * 枢纽与站点首页共用的段：Rising → Now → 实体条 → 订阅。
+ * 枢纽与站点首页共用的段：简报 → Rising → 实体条 → Now。
  *
- * 顺序就是产品主张——先看**正在变化**的，再看正在发生的，再看是谁被卷进去。
- * 反过来排就又变成一份普通榜单了。租户当然可以在编辑器里删掉或调序。
+ * 顺序就是产品主张——先看**有证据的**，再看正在变化的，再看是谁被卷进去，
+ * 最后才是正在发生的完整网格。反过来排就又变成一份普通榜单了。
+ * 租户当然可以在编辑器里删掉或调序。存量已发布页不会自动插入简报。
  */
 const EVENTS_HUB_SECTIONS: readonly PresetSection[] = [
+  {
+    type: EVENTS_BRIEFING_SECTION_TYPE,
+    raw: { limit: 4 },
+  },
   { type: eventFeedSectionType("rising") },
   /*
    * 近期实体条：让首页也链到实体页。枢纽那张完整清单仍在 `/entities`，
@@ -154,7 +160,7 @@ export const EVENTS_TOPIC_TEMPLATE_PRESET: PagePreset = {
 /**
  * 站点首页（`kind: home`，路径 `/`）的贡献版式。
  *
- * 与专题枢纽同构（首屏 + 升温 + 正在发生 + 实体条 + 订阅），但是另一张页：
+ * 与专题枢纽同构（首屏 + 有证据的进展 + 升温 + 正在发生 + 实体条），但是另一张页：
  * 租户套用后站点根就是雷达。公开 URL 不搬家——专题仍是 `/topics/:slug`，
  * 详情仍是 `/events/:slug`。
  */

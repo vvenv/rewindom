@@ -140,6 +140,12 @@ export async function listRelatedEvents(params: {
       topic: true,
       status: true,
       last_activity_at: true,
+      kind: true,
+      fact_version: true,
+      fact_amount_text: true,
+      fact_amount_usd: true,
+      fact_duration_minutes: true,
+      fact_resolved: true,
     },
   });
   // 保持预计算时的相似度顺序——findMany 不保证顺序

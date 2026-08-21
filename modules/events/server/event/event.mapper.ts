@@ -196,6 +196,14 @@ export function toEventDetail(params: {
       topic: record.topic as EventTopic,
       status: record.status as EventStatus,
       last_activity_at: record.last_activity_at.toISOString(),
+      kind: isEventKind(record.kind) ? record.kind : null,
+      facts: {
+        version: record.fact_version,
+        amount_text: record.fact_amount_text,
+        amount_usd: record.fact_amount_usd,
+        duration_minutes: record.fact_duration_minutes,
+        resolved: record.fact_resolved,
+      },
     })),
     entities: (params.entities ?? []).map((record) => ({
       id: record.entity.id,
@@ -216,6 +224,12 @@ export interface RelatedRecord {
   topic: string;
   status: string;
   last_activity_at: Date;
+  kind: string | null;
+  fact_version: string | null;
+  fact_amount_text: string | null;
+  fact_amount_usd: number | null;
+  fact_duration_minutes: number | null;
+  fact_resolved: boolean | null;
 }
 
 export interface EntityRecord {

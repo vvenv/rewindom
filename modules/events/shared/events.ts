@@ -714,7 +714,7 @@ export interface EventTrendingFactor {
   confidence: EventTrendingConfidence;
 }
 
-/** 相关事件卡片。只放跳转要用的字段，不把整条事件带进来。 */
+/** 相关事件卡片。只放跳转与顺读要用的字段，不把整条事件带进来。 */
 export interface EventRelatedItem {
   id: string;
   slug: string;
@@ -722,6 +722,19 @@ export interface EventRelatedItem {
   topic: EventTopic;
   status: EventStatus;
   last_activity_at: string;
+  kind: EventKind | null;
+  facts: EventFacts;
+}
+
+/**
+ * 详情上把相关事件按发生时间升序排——存储仍按相似度，展示才是故事时间。
+ */
+export function sortRelatedForReading<T extends { last_activity_at: string }>(
+  items: readonly T[],
+): T[] {
+  return [...items].sort((a, b) =>
+    a.last_activity_at.localeCompare(b.last_activity_at),
+  );
 }
 
 export interface EventUpdateBody {

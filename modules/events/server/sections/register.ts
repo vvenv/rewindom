@@ -13,9 +13,10 @@ import {
 import { getEnabledTopics } from "../event/topic-settings.service.js";
 import {
   EVENTS_ENTITY_STRIP_SECTION_TYPE,
-  EVENTS_FEED_SECTION_TYPES,
+  EVENTS_FEED_CONTEXT_TYPES,
   EVENTS_HERO_SECTION_TYPE,
   emptyEventsContext,
+  eventsBriefingSection,
   eventsContextEntry,
   eventsDetailSection,
   eventsEntityHeroSection,
@@ -29,8 +30,8 @@ import {
   eventsRisingSection,
   eventsSubscribeBlock,
   eventsSubscribeSection,
-  toPublicCard,
   toPublicEntityStrip,
+  toPublicFeed,
   toPublicHero,
 } from "../../shared/index.js";
 import {
@@ -76,7 +77,7 @@ function wantsAny(
 function registerEventsContextProvider(): void {
   registerSectionContextProvider({
     sectionTypes: [
-      ...EVENTS_FEED_SECTION_TYPES,
+      ...EVENTS_FEED_CONTEXT_TYPES,
       EVENTS_ENTITY_STRIP_SECTION_TYPE,
       EVENTS_HERO_SECTION_TYPE,
       ...EVENTS_NAV_SOURCES,
@@ -85,7 +86,7 @@ function registerEventsContextProvider(): void {
       const t = (key: string, params?: Record<string, string | number>): string =>
         eventsMessage(input.locale, key, params);
       const enabled = await getEnabledTopics(input.tenantId);
-      const wantFeed = wantsAny(input.usedTypes, EVENTS_FEED_SECTION_TYPES);
+      const wantFeed = wantsAny(input.usedTypes, EVENTS_FEED_CONTEXT_TYPES);
       const wantStrip = wantsAny(input.usedTypes, [
         EVENTS_ENTITY_STRIP_SECTION_TYPE,
       ]);
@@ -93,7 +94,7 @@ function registerEventsContextProvider(): void {
       const [feed, entityRows, heroStats] = await Promise.all([
         wantFeed
           ? getPublicEventFeed(input.tenantId)
-          : Promise.resolve({ rising: [], now: [] }),
+          : Promise.resolve({ rising: [], now: [], briefing: [] }),
         wantStrip
           ? getPublicEntityIndex(input.tenantId)
           : Promise.resolve([]),
@@ -103,10 +104,7 @@ function registerEventsContextProvider(): void {
       return eventsContextEntry(
         emptyEventsContext({
           nav_topics: eventsNavTopicOptions(input.locale, enabled),
-          feed: {
-            rising: feed.rising.map((item) => toPublicCard(item, t)),
-            now: feed.now.map((item) => toPublicCard(item, t)),
-          },
+          feed: toPublicFeed(feed, t),
           entity_strip: wantStrip
             ? toPublicEntityStrip(entityRows)
             : undefined,
@@ -149,6 +147,7 @@ export function registerEventsSections(): void {
   registerSiteSectionHtml(eventsEntityHeroSection, renderEventsHeroHtml, css);
   registerSiteSectionHtml(eventsRisingSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsNowSection, renderEventsFeedHtml, css);
+  registerSiteSectionHtml(eventsBriefingSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsFeedSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsDetailSection, renderEventsDetailHtml, css);
   registerSiteSectionHtml(eventsEntitySection, renderEventsEntityHtml, css);

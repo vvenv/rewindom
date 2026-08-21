@@ -15,7 +15,11 @@ import type { EventListItem } from "../../shared/index.js";
  * 与 `describeEventMomentum` 同一条口径）：金额优先渲染原串（`$7B` 比
  * `7000000000` 更可核对），归一化值只为聚合服务、不上界面。
  */
-export function EventFactChips({ event }: { event: EventListItem }) {
+export function EventFactChips({
+  event,
+}: {
+  event: Pick<EventListItem, "kind" | "facts">;
+}) {
   const { t } = useTranslation("events");
   const chips = describeEventFacts(event.kind, event.facts);
 
