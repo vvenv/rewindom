@@ -1,0 +1,32 @@
+# `/?source=` 列表不该再绑 home_layout_key。
+#
+# 「查看全部」永远链到 /?source=rising|now（专题页是 /topics/ai?source=）。
+# 接管却只在雷达版式 key 上发生。自定义首页（sections 在、key 仍是
+# marketing.default）会静默掉回未过滤的 CMS 首页——query 看起来无效。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 枢纽路径上带合法 ?source= 即接管列表；闸门是 events entitlement + 合法 source，不再看 home_layout_key。
+gold: modules/events/shared/events-public-paths.ts
+touch:
+  - modules/events/features/listing-root-query.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-public-paths.ts
+  - modules/events/shared/events-public-paths.test.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/events-path-handler.test.ts
+out_of_scope:
+  - 把列表改成 /rising、/now 独立路径
+  - 改租户 home_layout_key 存量数据
+  - 工作台 /app/events
+  - ?kind= 单独接管首页（仍要配 source）
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-public-paths.test.ts server/ssr/events-path-handler.test.ts
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []

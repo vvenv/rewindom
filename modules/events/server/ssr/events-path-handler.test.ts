@@ -57,8 +57,6 @@ const { registerSectionDefinition } = await import(
 registerSectionDefinition(eventsRisingSection);
 registerSectionDefinition(eventsNowSection);
 
-const RADAR_HOME = { homeLayoutKey: "events.home" };
-
 function input(
   path: string,
   mount: Record<string, unknown> = {},
@@ -164,12 +162,15 @@ describe("HTML 页的模板 kind", () => {
     expect(renderEventsTemplatePage).not.toHaveBeenCalled();
   });
 
-  it("雷达首页带 ?source= 才接管列表", async () => {
-    await renderEventsPath(
-      input("/", { ...RADAR_HOME, query: { source: "rising" } }),
-    );
+  it("/ 不带 source 交给 CMS，不接管", async () => {
+    await expect(renderEventsPath(input("/"))).resolves.toBeNull();
+    expect(renderEventsTemplatePage).not.toHaveBeenCalled();
+  });
+
+  it("/?source= 接管列表，不看首页版式", async () => {
+    await renderEventsPath(input("/", { query: { source: "rising" } }));
     expect(renderEventsTemplatePage).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: "home" }),
+      expect.objectContaining({ kind: "home", noindex: true }),
     );
   });
 });

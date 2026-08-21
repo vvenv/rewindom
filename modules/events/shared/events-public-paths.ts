@@ -150,15 +150,6 @@ export function eventsReservedSlugs(
   ];
 }
 
-export interface EventsHomeMount {
-  homeLayoutKey?: string;
-}
-
-/** `/` 上的 `?source=` 列表只在雷达当首页时接管。 */
-export function eventsHomeIsRadar(input: EventsHomeMount = {}): boolean {
-  return input.homeLayoutKey === EVENTS_HOME_LAYOUT_KEY;
-}
-
 export interface EventsIndexQuery {
   source?: EventFeedTab;
   topic?: EventTopic;
@@ -307,18 +298,20 @@ export function isEventsPath(
 }
 
 /**
- * 版式挂在站点根时，`/` 本身仍由首页 CMS 渲染；带 `source` 的查询
- * 才交给事件 handler（列表页）。主题落地是 `/topics/:slug`，不是查询串。
+ * 枢纽路径上带合法 `source` 时接管成列表页。
+ *
+ * `/` 仍是 CMS 首页；只有显式 `?source=rising|now` 才从 CMS 手里拿走。
+ * 不看 `home_layout_key`：「查看全部」在任意页都会链到这个地址，闸在版式
+ * key 上会让自定义首页（段在、key 还是 `marketing.default`）静默掉回未过滤
+ * 的首页。未开通 events 时 handler 的 entitlement 已经挡掉。
+ *
+ * 主题落地是 `/topics/:slug`，不是查询串；单独一个 `?kind=` 不接管。
  */
 export function isEventsRootQueryTakeover(
   path: string,
   query: Record<string, string>,
-  mount: EventsHomeMount = {},
   prefix: string = EVENTS_MODULE_PREFIX,
 ): boolean {
   if (path !== eventsHubPath(prefix)) return false;
-  const parsed = parseEventsIndexQuery(query);
-  if (parsed.source === undefined) return false;
-  if (eventsHubPath(prefix) !== "/") return true;
-  return eventsHomeIsRadar(mount);
+  return parseEventsIndexQuery(query).source !== undefined;
 }

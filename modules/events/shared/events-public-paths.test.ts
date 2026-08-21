@@ -2,14 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   EVENTS_FEED_HREF_TEMPLATE,
-  EVENTS_HOME_LAYOUT_KEY,
   entityFeedPath,
   entityIndexPath,
   entityPath,
   eventOgImagePath,
   eventPath,
   eventsFeedPath,
-  eventsHomeIsRadar,
   eventsHubPath,
   eventsIndexHref,
   eventsReservedSlugs,
@@ -145,24 +143,16 @@ describe("isEventsIndexListing", () => {
 });
 
 describe("isEventsRootQueryTakeover", () => {
-  it("只在雷达首页且带 source 时接管 /", () => {
-    const mount = { homeLayoutKey: EVENTS_HOME_LAYOUT_KEY };
-    expect(isEventsRootQueryTakeover("/", { source: "now" }, mount)).toBe(
-      true,
-    );
-    expect(isEventsRootQueryTakeover("/", { topic: "ai" }, mount)).toBe(
+  it("枢纽路径带合法 source 即接管，不看首页版式", () => {
+    expect(isEventsRootQueryTakeover("/", { source: "now" })).toBe(true);
+    expect(isEventsRootQueryTakeover("/", { source: "rising" })).toBe(true);
+    expect(isEventsRootQueryTakeover("/", { source: "today" })).toBe(true);
+    expect(isEventsRootQueryTakeover("/", { source: "hot" })).toBe(false);
+    expect(isEventsRootQueryTakeover("/", { topic: "ai" })).toBe(false);
+    expect(isEventsRootQueryTakeover("/", { kind: "release" })).toBe(false);
+    expect(isEventsRootQueryTakeover("/", {})).toBe(false);
+    expect(isEventsRootQueryTakeover("/topics/ai", { source: "now" })).toBe(
       false,
     );
-    expect(isEventsRootQueryTakeover("/", {}, mount)).toBe(false);
-    expect(
-      isEventsRootQueryTakeover("/", { source: "now" }, {}),
-    ).toBe(false);
-  });
-
-  it("雷达版式才算首页，不认旧 home_path=/events", () => {
-    expect(eventsHomeIsRadar({ homeLayoutKey: EVENTS_HOME_LAYOUT_KEY })).toBe(
-      true,
-    );
-    expect(eventsHomeIsRadar({})).toBe(false);
   });
 });

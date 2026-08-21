@@ -2,8 +2,9 @@
  * 公开事件页的路径处理：`/topics/:slug`、`/events/:slug`、`/entities`、
  * `/feed.xml`（含 `/en/...` 前缀，locale 已被剥掉）。
  *
- * `/` 由首页 CMS 渲染；套了雷达版式时 `/?source=` 由本 handler 接管列表。
- * 事件模块没有 cookie 要写，因此不需要像 shop 那样再挂一条自己的 Fastify 路由。
+ * `/` 由首页 CMS 渲染；带合法 `?source=` 时由本 handler 接管列表
+ * （不看 `home_layout_key`）。事件模块没有 cookie 要写，因此不需要像
+ * shop 那样再挂一条自己的 Fastify 路由。
  */
 
 import { normalizeLocale } from "@rewindom/module-sdk";
@@ -76,25 +77,13 @@ import type {
 } from "@rewindom/builtin/marketing/shared/site-path-handlers.js";
 import type { AppLocale } from "@rewindom/module-sdk";
 
-function mountOf(input: { homeLayoutKey?: string }): {
-  homeLayoutKey?: string;
-} {
-  return { homeLayoutKey: input.homeLayoutKey };
-}
-
 export async function renderEventsPath(
   input: SitePathHandlerInput,
 ): Promise<SitePathRenderResult> {
   const locale = normalizeLocale(input.locale);
   const route = parseEventsPublicPath(input.path);
   if (!route) {
-    if (
-      !isEventsRootQueryTakeover(
-        input.path,
-        input.query,
-        mountOf(input),
-      )
-    ) {
+    if (!isEventsRootQueryTakeover(input.path, input.query)) {
       return null;
     }
     const query = parseEventsIndexQuery(input.query);
@@ -365,7 +354,7 @@ export function registerEventsPathHandler(): void {
   registerSitePathHandler({
     match: (path, ctx) =>
       isEventsPath(path) ||
-      isEventsRootQueryTakeover(path, ctx?.query ?? {}, mountOf(ctx ?? {})),
+      isEventsRootQueryTakeover(path, ctx?.query ?? {}),
     entitlement: EVENTS_ENTITLEMENT.key,
     render: renderEventsPath,
   });
