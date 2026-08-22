@@ -15,7 +15,7 @@ Locally that is `http://127.0.0.1:7300/platform`; signed-out visits redirect to
 
 > It has to be `127.0.0.1`, not `localhost` — the latter is the product site entrance,
 > and asking it for `/platform` bounces you back to the console Host. See
-> [Host-based routing](/en/docs/host-routing).
+> [Host-based routing](/docs/host-routing).
 
 In production this is whatever Host `PLATFORM_URL` points at.
 
@@ -72,5 +72,5 @@ console.
 
 ## Next
 
-- Users inside a tenant → [Users and permissions](/en/docs/users-permissions)
-- Private single-tenant installs → [Installation and deployment](/en/docs/installation)
+- Users inside a tenant → [Users and permissions](/docs/users-permissions)
+- Private single-tenant installs → [Installation and deployment](/docs/installation)

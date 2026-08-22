@@ -71,5 +71,5 @@ by value, which is why `en` and `zh-CN` cannot be used as page paths.
 
 ## Next
 
-- Tenants and data isolation → [Multi-tenancy](/en/docs/multi-tenant)
-- Production domains → [Installation and deployment](/en/docs/installation)
+- Tenants and data isolation → [Multi-tenancy](/docs/multi-tenant)
+- Production domains → [Installation and deployment](/docs/installation)

@@ -3,6 +3,8 @@ import { type ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { useSiteHref } from "./sections/site-locale-context.js";
+
 /**
  * 标题文本 → 锚点 id。保留 CJK：中文标题占多数，剥成空串的话目录链接点不动。
  * 与 SSR `md()` 同一算法，两端锚点才对得上。
@@ -35,6 +37,18 @@ function headingText(node: ReactNode): string {
 }
 
 /**
+ * 正文里的站内链接补 locale 前缀，与 SSR `md(body, ctx)` 同口径。
+ *
+ * 正文存的是逻辑路径（`/docs/x`），前缀在渲染期补——否则站点主语言换成 `en` 之后，
+ * 正文里写死的 `/en/docs/x` 就指向一个不存在的入口。没有 `SiteLocaleProvider`
+ * 时（编辑器预览、单测）原样输出。
+ */
+function ProseLink({ href, children }: { href?: string; children: ReactNode }) {
+  const toSiteHref = useSiteHref();
+  return <a href={href ? toSiteHref(href) : undefined}>{children}</a>;
+}
+
+/**
  * 站点正文 markdown 渲染（文档页 + 富文本区块共用一套排版）。
  *
  * 样式由父级 `.prose`（`sections/prose/styles.css` → `MARKETING_SITE_CSS`）负责；
@@ -49,7 +63,7 @@ export const MARKDOWN_PROSE_COMPONENTS: Components = {
   ul: ({ children }) => <ul>{children}</ul>,
   ol: ({ children }) => <ol>{children}</ol>,
   li: ({ children }) => <li>{children}</li>,
-  a: ({ children, href }) => <a href={href}>{children}</a>,
+  a: ({ children, href }) => <ProseLink href={href}>{children}</ProseLink>,
   strong: ({ children }) => <strong>{children}</strong>,
   code: ({ children, className }) => {
     if (className?.includes("language-")) {

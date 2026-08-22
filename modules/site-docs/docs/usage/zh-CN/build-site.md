@@ -159,5 +159,5 @@ sort_order: 50
 
 ## 下一步
 
-- 编排页面版式 → [页面与版式](/zh-CN/docs/manage-pages)
-- 管理文档库 → [文档库](/zh-CN/docs/manage-docs)
+- 编排页面版式 → [页面与版式](/docs/manage-pages)
+- 管理文档库 → [文档库](/docs/manage-docs)

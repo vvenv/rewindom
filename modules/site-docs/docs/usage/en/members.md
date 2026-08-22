@@ -67,5 +67,5 @@ it off.
 
 ## Next
 
-- Set page visibility → [Pages and layout](/en/docs/manage-pages)
-- Workspace users and permissions → [Users and permissions](/en/docs/users-permissions)
+- Set page visibility → [Pages and layout](/docs/manage-pages)
+- Workspace users and permissions → [Users and permissions](/docs/users-permissions)

@@ -184,5 +184,5 @@ master switch is only a master switch** — individual content still has to be p
 
 ## Next
 
-- Arrange page layout → [Pages and layout](/en/docs/manage-pages)
-- Manage documentation → [Documentation library](/en/docs/manage-docs)
+- Arrange page layout → [Pages and layout](/docs/manage-pages)
+- Manage documentation → [Documentation library](/docs/manage-docs)

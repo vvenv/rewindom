@@ -98,5 +98,5 @@ See `docker/nginx/default.conf.template` for a working configuration.
 
 ## Next
 
-- How the entrances split → [Host-based routing](/en/docs/host-routing)
-- Tenants and domains → [Tenant administration](/en/docs/tenant-management)
+- How the entrances split → [Host-based routing](/docs/host-routing)
+- Tenants and domains → [Tenant administration](/docs/tenant-management)

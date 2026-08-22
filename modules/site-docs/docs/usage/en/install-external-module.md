@@ -118,4 +118,4 @@ checks.
 
 ## Next
 
-- The bigger picture → [Modular architecture](/en/docs/modular-architecture)
+- The bigger picture → [Modular architecture](/docs/modular-architecture)

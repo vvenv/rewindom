@@ -9,6 +9,11 @@
 （`docs_index` / `docs_article`），与会员页同一套 `registerPageTemplateKind` 机制。
 详情页的浏览器标题 / meta 走模板的 `{doc}` / `{doc_description}`，正文 h1 仍是文档自己的标题。
 
+正文里的站内链接写**逻辑路径**（`/docs/host-routing`），不带 locale 前缀：前缀由渲染期
+按「当前语言 vs 站点主语言」补（SSR `md(body, ctx)`、SPA `MarkdownProse`），与 section
+设置里的链接同一口径。写死 `/en/docs/…` 的话，站点主语言换成 `en` 之后那条链接就指向
+一个不存在的入口。`docs/usage/<locale>/*.md` 这套内置文档同样照这个写。
+
 ## 面划分
 
 | 面 | 路由 | 目录 | 所需权限 / 门控 |

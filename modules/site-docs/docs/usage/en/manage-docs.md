@@ -134,5 +134,5 @@ never produces duplicate filenames, and an export can be re-imported as-is.
 
 ## Next
 
-- Change the document layout → [Pages and layout](/en/docs/manage-pages)
-- Put docs in the navigation → [Building a site](/en/docs/build-site)
+- Change the document layout → [Pages and layout](/docs/manage-pages)
+- Put docs in the navigation → [Building a site](/docs/build-site)

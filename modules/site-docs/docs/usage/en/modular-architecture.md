@@ -47,7 +47,7 @@ examples are `note`, `todo` and `bookmark`):
 - Import boundaries are enforced by `verify-module.mjs`
 - They bring their own Prisma schema; migrations stay with `apps/server`
 
-See [Installing an external module](/en/docs/install-external-module).
+See [Installing an external module](/docs/install-external-module).
 
 ## Modules never import each other
 
@@ -77,7 +77,7 @@ edit it.
 A new module's `renderRoutes` / `nav.path` / `mobileTabPaths` **must** use the
 `/app/<module>` prefix (`/app/site`, `/app/notes`). Routes mounted at the top level get
 swallowed by the CMS on tenant domains. The reasoning is in
-[Host-based routing](/en/docs/host-routing).
+[Host-based routing](/docs/host-routing).
 
 ## Generating and checking
 

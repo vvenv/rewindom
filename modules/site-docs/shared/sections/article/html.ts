@@ -65,6 +65,6 @@ export const renderSiteDocsArticleHtml: SectionHtmlRenderer = (
   ${title}
   ${lead}
   ${below ? meta : ""}
-  <div class="prose">${md(doc.body_md)}</div>
+  <div class="prose">${md(doc.body_md, ctx)}</div>
 </article>`;
 };

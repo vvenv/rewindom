@@ -6,7 +6,7 @@ sort_order: 110
 ---
 
 This covers users inside a tenant. "User" here means someone who works in the
-workspace — not a site member; see [Site members](/en/docs/members) for the difference.
+workspace — not a site member; see [Site members](/docs/members) for the difference.
 
 ## Managing users
 

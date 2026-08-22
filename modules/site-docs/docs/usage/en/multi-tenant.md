@@ -79,4 +79,4 @@ configuration. There is no separate branch to maintain for private installs.
 - `{slug}.{TENANT_BASE_DOMAIN}` → the tenant with that slug
 - A tenant's custom domain → that tenant
 
-See [Host-based routing](/en/docs/host-routing).
+See [Host-based routing](/docs/host-routing).

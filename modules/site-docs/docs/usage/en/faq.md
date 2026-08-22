@@ -10,7 +10,7 @@ sort_order: 120
 
 They are two entrances. `localhost` is the product site (the default tenant),
 `127.0.0.1` is the platform console. This falls out of Host-based routing — see
-[Host-based routing](/en/docs/host-routing).
+[Host-based routing](/docs/host-routing).
 
 ### Why was I redirected away from `/platform`?
 
@@ -85,7 +85,7 @@ this way.
 Choose the language when creating it — one row per language under the same path. The
 public site serves the version matching the visitor; the primary language has no URL
 prefix and the rest live at `/{locale}/docs`. See
-[Documentation library](/en/docs/manage-docs).
+[Documentation library](/docs/manage-docs).
 
 ### Can I change a document's language later?
 

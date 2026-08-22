@@ -121,5 +121,5 @@ search results.
 
 ## Next
 
-- Manage documentation → [Documentation library](/en/docs/manage-docs)
-- Gate content behind sign-in → [Site members](/en/docs/members)
+- Manage documentation → [Documentation library](/docs/manage-docs)
+- Gate content behind sign-in → [Site members](/docs/members)

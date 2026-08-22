@@ -53,7 +53,7 @@ Everything is routed by **Host**, and this is the part that catches people out:
 `/platform` on `localhost` sends you to `127.0.0.1`; opening `/` on `127.0.0.1` sends
 you into the console. That split is deliberate — it lets you exercise both Host
 behaviours locally without editing your hosts file. See
-[Host-based routing](/en/docs/host-routing).
+[Host-based routing](/docs/host-routing).
 
 ## 4. Open the default tenant's site
 
@@ -74,7 +74,7 @@ pnpm --filter server exec tsx scripts/seed-local-marketing-site.ts [tenant-slug]
 
 ## Next
 
-- Understand the entrances → [Host-based routing](/en/docs/host-routing)
-- Understand the architecture → [Multi-tenancy](/en/docs/multi-tenant)
-- Start editing your site → [Building a site](/en/docs/build-site)
-- Ship it → [Installation and deployment](/en/docs/installation)
+- Understand the entrances → [Host-based routing](/docs/host-routing)
+- Understand the architecture → [Multi-tenancy](/docs/multi-tenant)
+- Start editing your site → [Building a site](/docs/build-site)
+- Ship it → [Installation and deployment](/docs/installation)
