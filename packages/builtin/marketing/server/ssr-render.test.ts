@@ -519,6 +519,15 @@ describe("renderMarketingHtml analytics", () => {
 });
 
 describe("renderSitemapXml", () => {
+  it("declares the sitemaps.org namespace Google Search Console requires", () => {
+    const xml = renderSitemapXml(ORIGIN, [{ path: "/" }]);
+    expect(xml).toContain(
+      'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+    );
+    expect(xml).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
+    expect(xml).not.toContain("www.w3.org/schemas/sitemap");
+  });
+
   it("gives each language its own url with xhtml alternates", () => {
     const xml = renderSitemapXml(ORIGIN, [
       {

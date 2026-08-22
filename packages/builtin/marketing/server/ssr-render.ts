@@ -527,8 +527,13 @@ export function renderSitemapXml(
       return `<url><loc>${escapeHtml(absolute(item.path))}</loc>${lastmod}${alternates}${xDefault}</url>`;
     })
     .join("");
+  /*
+   * 默认命名空间必须是 sitemaps.org，不是 w3.org。后者看起来像 XML 惯例，
+   * Google Search Console 会报 “doesn't properly declare the namespace”，
+   * 整份 sitemap 可读但不收录。xhtml 仍走 w3.org（hreflang 备选的规范前缀）。
+   */
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.w3.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls}</urlset>`;
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls}</urlset>`;
 }
 
 export function renderRobotsTxt(origin: string): string {
