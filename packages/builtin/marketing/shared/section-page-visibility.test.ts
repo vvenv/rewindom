@@ -6,6 +6,7 @@ import {
   createSection,
   getSectionDefinition,
   parseSettingValues,
+  splitSettingsByScope,
   VISIBLE_ON_SETTING_ID,
 } from "./section-schema.js";
 import {
@@ -81,6 +82,16 @@ describe("area page visibility schema", () => {
   it("omits the visibility group for the page-stream settings form", () => {
     const defs = omitAreaPageVisibilitySettings(getSectionDefinition("band").settings);
     expect(defs.some((d) => "id" in d && d.id === VISIBLE_ON_SETTING_ID)).toBe(false);
+  });
+
+  it("puts visible_on in the content tab, not layout", () => {
+    const { content, layout } = splitSettingsByScope(
+      getSectionDefinition("band").settings,
+    );
+    const ids = (defs: typeof content): string[] =>
+      defs.map((def) => ("id" in def ? def.id : "")).filter(Boolean);
+    expect(ids(content)).toContain(VISIBLE_ON_SETTING_ID);
+    expect(ids(layout)).not.toContain(VISIBLE_ON_SETTING_ID);
   });
 });
 

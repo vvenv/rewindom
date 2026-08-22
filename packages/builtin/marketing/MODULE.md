@@ -90,7 +90,7 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 **页头 / 页脚区**（`nav_json` / `footer_json`，各存**一串** section，默认出现在所有页面上）。
 区域本体（下表两行）不可删不可移——它就是这个区域本身；其余段随便加随便排。
-区里的其它段（公告条、badge、分栏、文档导航等）可在版式里勾选「仅在这些页面显示」；
+区里的其它段（公告条、badge、分栏、文档导航等）可在内容里勾选「仅在这些页面显示」；
 不勾选仍是全站。某个段能放进哪个区域由它自己的 `placements` 声明（`sectionTypesFor(area)` 读它），
 所以「页头加公告条」= 往区域里加一段 `band`，不用给 header 的 schema 再长字段：
 

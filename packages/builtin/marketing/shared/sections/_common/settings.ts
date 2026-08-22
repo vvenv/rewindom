@@ -242,12 +242,15 @@ export function layoutSettings(defaults?: {
 /**
  * 页头 / 页脚区里的段：限制只在勾选的页面上出现。
  *
+ * 归在内容页签：这是「这段算哪几页的内容」，不是宽窄留白。拼在 schema 末尾，
+ * 靠 `group: "content"` 把页签拨回去——否则会跟着最后一组外观抬头走。
+ *
  * 不写进 `layoutSettings()`——页面段流里的 hero 已经只属于这一页，再给它这项会误导。
  * 由 `getSectionDefinition` 给声明了 header/footer placement 的段（不含区域本体）拼上。
  */
 export function areaPageVisibilitySettings(): SettingDef[] {
   return [
-    { type: "header", content: "editor.group.visible_on", group: "layout" },
+    { type: "header", content: "editor.group.visible_on", group: "content" },
     {
       type: "page_paths",
       id: VISIBLE_ON_SETTING_ID,

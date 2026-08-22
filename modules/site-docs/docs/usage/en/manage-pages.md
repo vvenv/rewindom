@@ -36,7 +36,7 @@ they read from the docs library.
 Drag to reorder, add and remove, and edit each section's settings in the page editor.
 
 Header and footer extras (announcement bands, badges, columns, and so on) can be limited
-to specific pages from the Layout tab. Leave the list empty to show them on every page.
+to specific pages from the Content tab. Leave the list empty to show them on every page.
 Checking a template such as a docs article matches every article of that kind.
 
 ## Columns
