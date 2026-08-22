@@ -200,9 +200,14 @@ Row 级可用 `syncUrlParam` 同步 URL，但 open 仍由 Dialog/Row 内部管�
 
 **一页一表单**：设置页不要上下两张 `<form>`。密钥 / 收款通道收进 Sheet，页上留状态行 + 一张设置表单。金标准：`SiteBillingProviderStatusRow`、shop `ShopProviderStatusRow`。详见 Skill「一页一表单」。
 
-**正文内边距**：`SheetContent` / `DialogContent` 本身无 padding，只有 Header / Footer 自带 `p-4`。
-中间的正文节点必须自己写 `min-h-0 flex-1 overflow-y-auto px-4`，否则字段贴边、与头尾不对齐；
-垂直间距由 `gap-4` 负责，别再加 `py-4`。详见 `ui-components` rule。
+**正文内边距（Sheet 与 Dialog 相反，别套同一条）**：
+`SheetContent` 无 padding、Header / Footer 自带 `p-4` → 正文必须自己写
+`min-h-0 flex-1 overflow-y-auto px-4`，且整块可以包在 `<form>` 里。
+`DialogContent` **自带 `p-4`**、Header 无 padding、Footer 靠负 margin 贴边 → 正文
+**不要**补 `px-4`（会比标题多缩进一格），`DialogHeader` 必须是 `DialogContent` 的
+**直接子元素**（`gap-4` 够不着 form 内部），正文靠 `mb-4` 隔开页脚。
+两侧都别加 `py-4`。金标准：Sheet 看 `SiteBillingProviderSheet`，Dialog 看 `TenantCreateDialog`。
+详见 Skill「Sheet / Dialog 正文内边距」与 `ui-components` rule。
 
 ## 目标体量
 

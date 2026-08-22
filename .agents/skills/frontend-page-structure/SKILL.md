@@ -214,11 +214,20 @@ const [createOpen, setCreateOpen] = useState(false);
 - [ ] 多步结果（如凭据）在同一 Dialog 内展示，不另挂 Page 级 Dialog
 - [ ] 正文有 `px-4`（见下）
 
-## Sheet / Dialog 正文内边距
+## Sheet / Dialog 正文内边距（两者结构相反，别套同一条规则）
 
-`SheetContent` / `DialogContent` 只有 `flex flex-col gap-4`，**自身没有 padding**；
-只有 `SheetHeader` / `SheetFooter`（Dialog 同理）内建 `p-4`。夹在中间的正文是你手写的节点，
-不补 `px-4` 就会贴着抽屉边缘，且与上方标题、下方按钮左右不对齐。
+**先看这张表再动手。** Sheet 和 Dialog 的 padding 分工是反过来的，照着另一个写必然错位：
+
+| | `SheetContent` | `DialogContent` |
+| --- | --- | --- |
+| 容器自身 | `flex flex-col gap-4`，**无 padding** | `grid gap-4 p-4`，**自带 p-4** |
+| Header | `p-4`（自带） | 无 padding（吃容器的 `p-4`） |
+| Footer | `p-4`（自带） | `-mx-4 -mb-4 border-t bg-muted/50 p-4`（负 margin 贴到卡片边缘） |
+| 正文要不要补 `px-4` | **要** | **不要**（补了正文会比标题多缩进一格） |
+| Header 能不能塞进 `<form>` | 能（它自带 padding，不依赖容器 gap） | **不能**（`gap-4` 只作用于 `DialogContent` 的直接子元素，塞进去标题就贴着正文） |
+| 正文与 Footer 的间距 | 靠 Footer 自带的 `p-4` | 正文自己加 `mb-4`（Footer 负 margin，不带上间距） |
+
+### Sheet：正文补 `px-4`，可以整个包在 form 里
 
 ```tsx
 <SheetContent>
@@ -234,6 +243,31 @@ const [createOpen, setCreateOpen] = useState(false);
 - `min-h-0` 保证 flex 子项能收缩后再滚动，否则 `overflow-y-auto` 不生效
 - **不要加 `py-4`**：`SheetContent` 的 `gap-4` 已经隔开头/正文/尾
 - ❌ `<FieldGroup className="flex-1 overflow-y-auto py-4">` — notes 模块曾如此，左右贴边
+
+### Dialog：正文不补 padding，header 与 form 是兄弟
+
+```tsx
+<DialogContent>
+  <DialogHeader>…</DialogHeader>       {/* 必须是 DialogContent 的直接子元素 */}
+  <form onSubmit={handleSubmit}>
+    <FieldGroup className="mb-4">…</FieldGroup>   {/* 隔开页脚，且不写 px-4 */}
+    <DialogFooter>
+      <Button type="button" variant="outline" onClick={close}>取消</Button>
+      <Button type="submit">确定</Button>
+    </DialogFooter>
+  </form>
+</DialogContent>
+```
+
+金标准：`platform/client/components/TenantCreateDialog.tsx`。
+
+- ❌ 把 `DialogHeader` 写进 `<form>` 里 —— 标题会紧贴第一个字段（`gap-4` 够不着它）
+- ❌ 给 Dialog 正文加 `px-4` —— 表单整体比标题右移 16px
+- 页脚只有一颗按钮时补上「取消」：`DialogFooter` 是整条 `bg-muted/50` 的深色条，
+  孤零零一颗按钮会显得那条 bar 是空的
+
+> 历史教训：mailer 的测试发信弹层同时踩了上面两条 ❌——本节早期版本通篇只举 Sheet 的例子，
+> 写了句「Dialog 同理」，而实际上正好相反。
 
 ## 设置页 / 分组表单
 
