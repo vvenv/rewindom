@@ -68,6 +68,11 @@ interface SiteSectionsProps {
    * 由 `TenantSiteView` 算一次传进来；不传则花括号原样显示。
    */
   interpolation?: Record<string, string>;
+  /**
+   * 正在渲染的页面正文段树。贡献段按同页兄弟分配内容时用。
+   * 不传则用当前这一层的 `sections`（根调用就是正文）。
+   */
+  pageSections?: readonly SiteSection[];
 }
 
 export function SiteSections({
@@ -79,6 +84,7 @@ export function SiteSections({
   currentPath,
   contributed,
   interpolation,
+  pageSections,
 }: SiteSectionsProps): ReactNode {
   const visible = sections.filter((section) =>
     sectionVisibleOnPage(section, currentPath),
@@ -87,6 +93,7 @@ export function SiteSections({
     resolveSectionLayout(section.settings),
   );
   const gaps = resolveSectionGaps(layouts, sectionSpacing);
+  const tree = pageSections ?? visible;
 
   /*
    * 容器段的下钻口：列已经限过宽、给过 gutter，列内子段走 `contained`
@@ -101,6 +108,7 @@ export function SiteSections({
       currentPath={currentPath}
       contributed={contributed}
       interpolation={interpolation}
+      pageSections={tree}
       onSelectSection={onSelectSection}
     />
   );
@@ -206,6 +214,7 @@ export function SiteSections({
               pages={pages}
               currentPath={currentPath ?? "/"}
               contributed={contributed}
+              pageSections={tree}
               renderChildren={renderChildren}
             />
           </div>

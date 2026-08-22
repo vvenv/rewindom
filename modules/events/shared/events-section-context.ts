@@ -240,8 +240,6 @@ export interface PublicHeroView {
 export interface PublicEventFeed {
   rising: PublicEventCard[];
   now: PublicEventCard[];
-  /** Now 同序里筛出的厚卡。空数组 = 简报段整段不渲染 */
-  briefing: PublicEventCard[];
 }
 
 export interface EventsRenderContext {
@@ -293,7 +291,7 @@ export function emptyEventsContext(
 ): EventsRenderContext {
   const { feed, ...rest } = overrides;
   return {
-    feed: { rising: [], now: [], briefing: [], ...feed },
+    feed: { rising: [], now: [], ...feed },
     event: null,
     index_path: eventsHubPath(),
     ...rest,

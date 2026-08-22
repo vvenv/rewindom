@@ -43,6 +43,13 @@ export interface SectionRenderContext {
    */
   interpolation?: Record<string, string>;
   /**
+   * 正在渲染的**页面正文**段树（含 group 列里的子段）。
+   *
+   * 贡献段若要按同页兄弟段分配内容，必须看见整棵树，而不能只看见自己。
+   * 页头页脚不在这里。不传 = 这段当「单独摆在一页上」处理。
+   */
+  pageSections?: readonly SiteSection[];
+  /**
    * 贡献段的按请求数据。
    *
    * key 用**模块 id** 做命名空间，值的形状由贡献方自己定义与断言——marketing 不认识

@@ -41,9 +41,7 @@ function section(
       ? "events.now"
       : source === "rising"
         ? "events.rising"
-        : source === "briefing"
-          ? "events.briefing"
-          : "events.feed";
+        : "events.feed";
   return {
     id: `s-${source}`,
     type,
@@ -91,10 +89,15 @@ describe("renderEventsFeedHtml", () => {
         now: [hot, card("n2")],
       },
     });
-    const ctx = { contributed: eventsContextEntry(context) };
+    const risingSection = section("rising", 5);
+    const nowSection = section("now", 5);
+    const ctx = {
+      contributed: eventsContextEntry(context),
+      pageSections: [risingSection, nowSection],
+    };
 
-    const rising = titlesIn(renderEventsFeedHtml(section("rising", 5), ctx));
-    const now = titlesIn(renderEventsFeedHtml(section("now", 5), ctx));
+    const rising = titlesIn(renderEventsFeedHtml(risingSection, ctx));
+    const now = titlesIn(renderEventsFeedHtml(nowSection, ctx));
 
     expect(rising).toEqual(["Title hot", "Title r2"]);
     expect(now).toEqual(["Title n2"]);
@@ -129,15 +132,23 @@ describe("renderEventsFeedHtml", () => {
     ]);
   });
 
-  it("去重按上下文分桶：另一个请求不受影响", () => {
+  it("去重按页面段树：另一页不受影响", () => {
     const build = () =>
       emptyEventsContext({
         feed: { rising: [card("a")], now: [] },
       });
-    const first = { contributed: eventsContextEntry(build()) };
-    const second = { contributed: eventsContextEntry(build()) };
-    renderEventsFeedHtml(section("rising", 5), first);
-    expect(titlesIn(renderEventsFeedHtml(section("rising", 5), second))).toEqual([
+    const firstSection = section("rising", 5);
+    const secondSection = section("rising", 5);
+    const first = {
+      contributed: eventsContextEntry(build()),
+      pageSections: [firstSection],
+    };
+    const second = {
+      contributed: eventsContextEntry(build()),
+      pageSections: [secondSection],
+    };
+    renderEventsFeedHtml(firstSection, first);
+    expect(titlesIn(renderEventsFeedHtml(secondSection, second))).toEqual([
       "Title a",
     ]);
   });
@@ -153,52 +164,36 @@ describe("renderEventsFeedHtml", () => {
     expect(titlesIn(renderEventsFeedHtml(section("rising", 2), ctx))).toHaveLength(2);
   });
 
+  it("Rising 加量后 Now 仍能凑满自己的 limit——池子必须按前面可能占掉的条数加量", () => {
+    const overlapping = Array.from({ length: 8 }, (_, index) =>
+      card(`o${index + 1}`),
+    );
+    const extras = Array.from({ length: 8 }, (_, index) =>
+      card(`n${index + 1}`),
+    );
+    const context = emptyEventsContext({
+      feed: {
+        rising: overlapping,
+        now: [...overlapping, ...extras],
+      },
+    });
+    const risingSection = section("rising", 8);
+    const nowSection = section("now", 8);
+    const ctx = {
+      contributed: eventsContextEntry(context),
+      pageSections: [risingSection, nowSection],
+    };
+    expect(titlesIn(renderEventsFeedHtml(risingSection, ctx))).toHaveLength(8);
+    expect(titlesIn(renderEventsFeedHtml(nowSection, ctx))).toEqual(
+      extras.map((item) => `Title ${item.slug}`),
+    );
+  });
+
   it("没有事件时渲染空态而不是空白", () => {
     const ctx = { contributed: eventsContextEntry(emptyEventsContext()) };
     const html = renderEventsFeedHtml(section("rising", 5), ctx);
     expect(html).toContain("暂无事件");
     expect(html).not.toContain("events-grid");
-  });
-
-  it("简报空则整段不渲染，不要暂无精选", () => {
-    const ctx = { contributed: eventsContextEntry(emptyEventsContext()) };
-    expect(renderEventsFeedHtml(section("briefing", 4), ctx)).toBe("");
-  });
-
-  it("简报只取 briefing 桶，查看全部链到 Now 列表", () => {
-    const context = emptyEventsContext({
-      feed: {
-        rising: [card("r")],
-        now: [card("n")],
-        briefing: [card("b", { evidence_text: "已证实 · 3 家来源" })],
-      },
-    });
-    const ctx = { contributed: eventsContextEntry(context) };
-    const html = renderEventsFeedHtml(
-      section("briefing", 4, { more_label: "查看全部事件" }),
-      ctx,
-    );
-    expect(titlesIn(html)).toEqual(["Title b"]);
-    expect(html).toContain('href="/?source=now"');
-    expect(html).not.toContain("source=briefing");
-  });
-
-  it("简报先占位后，升温不再重复那张厚卡", () => {
-    const thick = card("hot", { evidence_text: "已证实 · 3 家来源" });
-    const context = emptyEventsContext({
-      feed: {
-        briefing: [thick],
-        rising: [thick, card("r2")],
-        now: [],
-      },
-    });
-    const ctx = { contributed: eventsContextEntry(context) };
-    expect(titlesIn(renderEventsFeedHtml(section("briefing", 4), ctx))).toEqual([
-      "Title hot",
-    ]);
-    expect(titlesIn(renderEventsFeedHtml(section("rising", 5), ctx))).toEqual([
-      "Title r2",
-    ]);
   });
 
   it("HTML 转义：标题里的尖括号不能变成标签", () => {

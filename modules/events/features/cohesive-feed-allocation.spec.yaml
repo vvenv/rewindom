@@ -1,0 +1,57 @@
+# 同页 Briefing / Rising / Now 的取数、去重、截断收到一处。
+#
+# 现状把三件事拆开：查询各取一池、渲染器 WeakMap 先来先得、Now 池却先截成 12。
+# 改 Rising 的显示数量会让 Now 凑不满自己的 limit——看起来像两个滑杆绑在一起。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 同页 feed 段由一个纯函数按页面段树分配卡片；各段 limit 互不影响凑不满；渲染器不再自己 takeUnseen。
+gold: modules/events/server/event/event.service.ts
+touch:
+  - modules/events/features/cohesive-feed-allocation.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/shared/events-feed-section.ts
+  - modules/events/shared/events-feed-section.test.ts
+  - modules/events/shared/allocate-event-feed.ts
+  - modules/events/shared/allocate-event-feed.test.ts
+  - modules/events/shared/index.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - packages/builtin/marketing/shared/sections/render-context.ts
+  - packages/builtin/marketing/server/render-page-sections-html.ts
+  - packages/builtin/marketing/client/components/sections/section-parts.tsx
+  - packages/builtin/marketing/client/components/sections/SiteSections.tsx
+  - packages/builtin/marketing/client/components/sections/html-section-view.tsx
+out_of_scope:
+  - 工作台 /app/events 的 Rising / Now（那边取数已经互斥且各自凑满）
+  - 新造第三把排序尺子
+  - 把库里的 events.feed 改写成新 type
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/allocate-event-feed.test.ts shared/events-feed-section.test.ts shared/sections/feed-html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run client/components/sections/html-section-view.test.tsx
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+#
+# 1. **一个函数**：`allocateEventFeed(slots, pools)`。按页面文档序走 feed 段，
+#    先来先得去重，每段截自己的 limit。单独摆一段 = slots 里只有它，拿到完整列表。
+#
+# 2. **slots 来自当前页的段树**（含 group 列），不是 usedTypes。limit / 顺序都是
+#    这份树当时的值——编辑器拖滑杆立即生效，不必为 limit 再打一次 feed 接口。
+#
+# 3. **取数只负责池子够大**：Now 候选 = Now 上限 + Rising 上限 + 简报上限，
+#    前面的段占掉重叠项之后后面仍能凑满。不再先把 Now 截成 12 再去重。
+#
+# 4. **渲染器变笨**：读 allocate 的结果。查询列表页仍走「这一段已经是全部」，
+#    不经 allocate 截断。
+#
+# 5. marketing 只加 `pageSections` 到渲染上下文（和 currentPath 同级的页面树），
+#    不认识 events。

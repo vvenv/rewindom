@@ -32,8 +32,6 @@
     "risingHint": "刚刚开始爆发的事情",
     "now": "正在发生",
     "nowHint": "过去 24 小时内仍在持续发展",
-    "briefing": "有证据的进展",
-    "briefingHint": "已证实、有类型事实，或能归到某家连续记录里",
     "entities": "实体",
     "entitiesHint": "近 30 天事件里出现过的公司与人物"
   },
@@ -218,7 +216,7 @@
   "home": {
     "layout": {
       "label": "事件雷达",
-      "description": "有证据的进展，再升温、正在发生，适合把站点根做成事件入口"
+      "description": "升温再正在发生，适合把站点根做成事件入口"
     }
   },
   "section": {

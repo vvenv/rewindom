@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  EVENTS_BRIEFING_SECTION_TYPE,
   EVENTS_FEED_SECTION_TYPE,
   EVENTS_NOW_SECTION_TYPE,
   EVENTS_RISING_SECTION_TYPE,
   eventFeedSectionType,
-  eventsBriefingSection,
   eventsFeedSection,
   eventsNowSection,
   eventsRisingSection,
@@ -33,6 +31,8 @@ describe("event feed sections", () => {
     expect(settingDefault(eventsNowSection, "subheading")).toBe(
       "events:sections.nowHint",
     );
+    expect(settingDefault(eventsRisingSection, "limit")).toBe(4);
+    expect(settingDefault(eventsNowSection, "limit")).toBe(8);
   });
 
   it("存量 events.feed 不进添加菜单", () => {
@@ -43,18 +43,5 @@ describe("event feed sections", () => {
   it("查询批次对应到段 type", () => {
     expect(eventFeedSectionType("rising")).toBe(EVENTS_RISING_SECTION_TYPE);
     expect(eventFeedSectionType("now")).toBe(EVENTS_NOW_SECTION_TYPE);
-  });
-
-  it("简报是独立段，标题默认就是有证据的进展，不放空态文案", () => {
-    expect(eventsBriefingSection.type).toBe(EVENTS_BRIEFING_SECTION_TYPE);
-    expect(eventsBriefingSection.placements).toEqual(["page"]);
-    expect(settingDefault(eventsBriefingSection, "heading")).toBe(
-      "events:sections.briefing",
-    );
-    expect(settingDefault(eventsBriefingSection, "subheading")).toBe(
-      "events:sections.briefingHint",
-    );
-    expect(settingDefault(eventsBriefingSection, "limit")).toBe(4);
-    expect(settingDefault(eventsBriefingSection, "empty_text")).toBeUndefined();
   });
 });

@@ -296,7 +296,6 @@ async function renderListing(
       feed: {
         rising: source === "rising" ? cards : [],
         now: source === "now" ? cards : [],
-        briefing: [],
       },
     }),
   });

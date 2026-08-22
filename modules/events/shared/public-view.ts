@@ -99,14 +99,12 @@ export function toPublicFeed(
   feed: {
     rising: readonly EventListItem[];
     now: readonly EventListItem[];
-    briefing?: readonly EventListItem[];
   },
   t: EventsTranslate,
 ): PublicEventFeed {
   return {
     rising: feed.rising.map((item) => toPublicCard(item, t)),
     now: feed.now.map((item) => toPublicCard(item, t)),
-    briefing: (feed.briefing ?? []).map((item) => toPublicCard(item, t)),
   };
 }
 

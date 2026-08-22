@@ -76,6 +76,7 @@ export function renderPageSectionsHtml(
     contributed,
     isDefaultTenant,
     interpolation,
+    pageSections: sections,
   };
   return sections
     .map((section, index) =>

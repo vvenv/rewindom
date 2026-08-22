@@ -3,6 +3,7 @@ export * from "./source-icon.js";
 export * from "./entitlements.js";
 export * from "./events-section-context.js";
 export * from "./events-feed-section.js";
+export * from "./allocate-event-feed.js";
 export * from "./events-hero-section.js";
 export * from "./events-entity-hero-section.js";
 export * from "./events-detail-section.js";

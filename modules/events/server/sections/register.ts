@@ -16,7 +16,6 @@ import {
   EVENTS_FEED_CONTEXT_TYPES,
   EVENTS_HERO_SECTION_TYPE,
   emptyEventsContext,
-  eventsBriefingSection,
   eventsContextEntry,
   eventsDetailSection,
   eventsEntityHeroSection,
@@ -94,7 +93,7 @@ function registerEventsContextProvider(): void {
       const [feed, entityRows, heroStats] = await Promise.all([
         wantFeed
           ? getPublicEventFeed(input.tenantId)
-          : Promise.resolve({ rising: [], now: [], briefing: [] }),
+          : Promise.resolve({ rising: [], now: [] }),
         wantStrip
           ? getPublicEntityIndex(input.tenantId)
           : Promise.resolve([]),
@@ -147,7 +146,6 @@ export function registerEventsSections(): void {
   registerSiteSectionHtml(eventsEntityHeroSection, renderEventsHeroHtml, css);
   registerSiteSectionHtml(eventsRisingSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsNowSection, renderEventsFeedHtml, css);
-  registerSiteSectionHtml(eventsBriefingSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsFeedSection, renderEventsFeedHtml, css);
   registerSiteSectionHtml(eventsDetailSection, renderEventsDetailHtml, css);
   registerSiteSectionHtml(eventsEntitySection, renderEventsEntityHtml, css);

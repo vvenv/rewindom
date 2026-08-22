@@ -35,7 +35,7 @@ vi.mock("./public-events.service.js", () => ({
   getPublicEntityBySlug: vi.fn(async () => null),
   getPublicEntityIndex: vi.fn(async () => []),
   getPublicEventBySlug: vi.fn(async () => null),
-  getPublicEventFeed: vi.fn(async () => ({ rising: [], now: [], briefing: [] })),
+  getPublicEventFeed: vi.fn(async () => ({ rising: [], now: [] })),
   getPublicEventList: vi.fn(async () => []),
   getPublicHeroStats: vi.fn(async () => ({
     live_events: 0,

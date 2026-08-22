@@ -11,7 +11,7 @@
 已交付：
 
 - **主链路**：采集 → 聚类 → 事件详情（发生了什么 / 时间线 / 来源）→ Follow → 更新检测
-- **官网面**：首屏 / 有证据的进展 / 升温 / 正在发生 / 近期实体 / 详情 + `/topics/:slug`、`/events/:slug`、`/entities` 模板页（首页永远是 CMS `/`；套雷达版式只改 `/` 长什么样），未登录访客可直接浏览
+- **官网面**：首屏 / 升温 / 正在发生 / 近期实体 / 详情 + `/topics/:slug`、`/events/:slug`、`/entities` 模板页（首页永远是 CMS `/`；套雷达版式只改 `/` 长什么样），未登录访客可直接浏览
 - **Related Events**：详情页把相关事件按时间排成一条可核对的记录（不是分析专题）
 - **Why it's trending**：只陈述可核对的事实，confirmed / discussion 分开标
 
@@ -55,7 +55,7 @@ LLM key 时唯一的译文来源。译文一旦入库就代表了这个事件，
 
 ```
 shared/          事件域契约 + 官网段定义 + 公开视图映射
-  events-*-section.ts     段定义（events.hero / events.briefing / events.rising / events.now / events.detail）
+  events-*-section.ts     段定义（events.hero / events.rising / events.now / events.detail）
   events-page-templates.ts 模板页 kind + 预设
   nav-sources.ts          页头 / 页脚主题导航源
   public-view.ts          领域 DTO → 公开视图（两端共用）
@@ -84,19 +84,19 @@ server/
 `events.entity_strip` / `events.entity_index` 曾是下划线，已改名；那串字符存在库里，
 存量页由 `apps/server/scripts/rename-events-section-types.ts` 一次性改（草稿 / 已发布 /
 发布历史 / 容器列里的嵌套段都走）。**先部署再跑脚本**——中间那一小段时间这两段渲染成空，
-读路径会把认不出的 type 原样兜住，不会丢数据。
+读路径会把认不出的 type 原样兜住，不会丢数据。曾经还有一段 `events.briefing`（把厚卡抽成
+独立区块），已删；存量由 `apps/server/scripts/drop-events-briefing-sections.ts` 摘掉。
 
 | 贡献物                        | 说明                                                                                                                                                                                                                                                                                                   |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 段 `events.hero`              | 首屏。左列是文案主张，右列是实时计数。首页 / 专题共用这一段，专题页库存文案自己写 `{topic}`。实体页不要用它——那是另一段                                                                                                                                                                                |
 | 段 `events.entity-hero`       | 实体页专用首屏 = 一张实体名片：eyebrow 是 `{entity_kind}`、**h1 是 `{entity}`**、下面紧跟累计档案（`show_profile`，只长在这一段上）。雷达计数默认关。`page_kinds` 钉在实体模板上，添加区块里叫「实体首屏」。markup 与 `events.hero` 同一份渲染器                                                       |
-| 段 `events.briefing`          | 「有证据的进展」。Now 同序的更大一池里只留厚卡（归位 / 已证实 / 类型事实），默认 4 条。空则整段不渲染。「查看全部」打开 `/?source=now`。预设插在升温之前；存量已发布页不会自动插入                                                                                                                                 |
 | 段 `events.rising`            | 「正在升温」列表，可摆在任意页面。标题默认就是升温文案。「查看全部」打开 `/?source=rising`（专题页上是 `/topics/ai?source=rising`）                                                                                                                                                                    |
 | 段 `events.now`               | 「正在发生」列表，可摆在任意页面。标题默认就是正在发生文案。「查看全部」打开 `/?source=now`                                                                                                                                                                                                            |
 | 段 `events.entity-strip`      | 近期实体胶囊条，可摆在任意页面。近 30 天实体按事件数排序，默认 Top 24，字号一律、用数字角标表示权重。**主题枢纽上只列这一格事件里的实体**。「查看全部」打开实体枢纽。预设插在 Now 与订阅之间                                                                                                           |
 | 段 `events.detail`            | 公开详情正文，`page_kinds` 限定只能落在事件详情模板页上                                                                                                                                                                                                                                                |
-| 模板页 `events_topic`         | `/topics/:slug`。七格共用一张模板，预设 = 首屏 + 有证据的进展 + 升温 + 正在发生 + 实体条 + 订阅。库存文案写 `{topic}` / `{topic_slug}` / `{feed}`                                                                                                                                                                     |
-| 首页版式 `events.home`        | 套在站点首页（`/`）上。预设 = 首屏 + 有证据的进展 + 升温 + 正在发生 + 实体条 + 订阅。`group` 与模板页同为「事件」。不声明 `rootPrefix`，集合路径不搬家                                                                                                                                                                |
+| 模板页 `events_topic`         | `/topics/:slug`。七格共用一张模板，预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。库存文案写 `{topic}` / `{topic_slug}` / `{feed}`                                                                                                                                                                     |
+| 首页版式 `events.home`        | 套在站点首页（`/`）上。预设 = 首屏 + 升温 + 正在发生 + 实体条 + 订阅。`group` 与模板页同为「事件」。不声明 `rootPrefix`，集合路径不搬家                                                                                                                                                                |
 | 模板页 `events_detail`        | `/events/:slug`                                                                                                                                                                                                                                                                                        |
 | 段 `events.entity`            | 实体正文 = 这个实体的事件列表，`page_kinds` 限定只能落在实体模板页上。**身份与档案都归首屏那一段**；列表标题默认留空（这一页只有这一个列表）。编辑器没有当前实体，预览用样张                                                                                                                           |
 | 模板页 `events_entity`        | `/entities/:slug`。预设 = 实体首屏 + 实体正文                                                                                                                                                                                                                                                          |
@@ -232,11 +232,16 @@ path handler，由 `renderEventsTemplatePage` 补上，否则页头会退回七�
 
 公开 feed 与实体页走同一份 `event-card-html.ts`；工作台 `EventCard` 走同一套 `pickCardEvidence`。
 
-### 同页多段的去重
+### 同页多段的分配
 
-默认版式把 Briefing / Rising / Now 摆在同一张页面上，而各段取数各自独立——一个又热又有证据的事件会同时命中简报与 Now。去重**做在渲染层**（`feed-html.ts` 的 `takeUnseen`，按上下文
-对象分桶的 WeakMap = 天然按请求隔离），不做在取数层：那样「只摆 Now 一段」的页面
-会莫名少掉最热的那几条。效果是先来先得——单独摆一段拿到完整列表，多段同页时后面的自动让开。简报放在升温之前，所以厚卡先被简报拿走。
+默认版式把 Rising / Now 摆在同一张页面上。各段的**排序池**各自独立
+（一个又热又在扩散的事件会同时命中两段），但「这一页上每段实际露出哪几张」
+由 `allocateEventFeed` **一处**决定：按页面段树的文档序先来先得，每段截自己的
+`limit`。单独摆一段 = slots 里只有它，拿到完整列表；两段同页时后面的自动让开。
+
+查询层只保证池子够大（Now 候选 = Now 上限 + Rising 上限），好让前面的
+段占掉重叠项之后，后面仍能凑满自己的数量。渲染器不再自己截断。
+厚卡对比留在网格里，不再抽成单独一段。
 
 ## 流水线
 

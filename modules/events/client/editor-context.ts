@@ -22,7 +22,6 @@ import {
   EVENT_TOPICS,
   emptyEventsContext,
   eventsContextEntry,
-  isThickEventCard,
   toPublicCard,
   toPublicDetail,
   toPublicEntity,
@@ -107,7 +106,7 @@ export function registerEventsEditorContext(): void {
       const topicLabel = sampleTopic ? t(`topic.${sampleTopic}`) : undefined;
 
       const [feed, entityRows, heroStats] = await Promise.all([
-        wantFeed ? loadFeed(t, sampleTopic) : Promise.resolve({ rising: [], now: [], briefing: [] }),
+        wantFeed ? loadFeed(t, sampleTopic) : Promise.resolve({ rising: [], now: [] }),
         wantStrip || wantHub ? loadEntityIndex() : Promise.resolve([]),
         wantHero ? loadHeroStats(sampleTopic) : Promise.resolve(null),
       ]);
@@ -172,7 +171,6 @@ async function loadFeed(
       return {
         rising: cards(data.rising),
         now: cards(data.now),
-        briefing: cards([...data.rising, ...data.now].filter(isThickEventCard)),
       };
     }
   } catch {
@@ -183,7 +181,6 @@ async function loadFeed(
   return {
     rising: sample,
     now: sample,
-    briefing: sampleItems.filter(isThickEventCard).map((item) => toPublicCard(item, t)),
   };
 }
 

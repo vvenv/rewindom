@@ -29,6 +29,10 @@ export interface SectionViewProps {
    */
   contributed?: Readonly<Record<string, unknown>>;
   /**
+   * 正在渲染的页面正文段树。贡献段按同页兄弟分配内容时用。
+   */
+  pageSections?: readonly SiteSection[];
+  /**
    * 渲染一串子段——**只有容器段用得上**，由 `SiteSections` 注入。
    *
    * 注入而不是让 `views/group.tsx` 直接 import `SiteSections`：那条边会成环

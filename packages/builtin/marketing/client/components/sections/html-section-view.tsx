@@ -32,12 +32,14 @@ export function htmlSectionView(
     pages,
     currentPath,
     contributed,
+    pageSections,
   }: SectionViewProps): ReactElement | null {
     const siteLocale = useSiteLocaleContext();
     const html = render(section, {
       pages,
       currentPath,
       contributed,
+      pageSections,
       locale: siteLocale?.locale,
       defaultLocale: siteLocale?.defaultLocale,
     });

@@ -1,0 +1,53 @@
+# 删掉 events.briefing。厚卡对比留在 Rising / Now 网格里，不再单独抽一段。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: 删除官网段 events.briefing；预设与存量页只留 Rising + Now。厚薄卡规则不动。
+gold: modules/events/features/drop-today-feed.spec.yaml
+touch:
+  - modules/events/features/drop-briefing-section.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/MODULE.spec.yaml
+  - modules/events/shared/events-feed-section.ts
+  - modules/events/shared/events-feed-section.test.ts
+  - modules/events/shared/allocate-event-feed.ts
+  - modules/events/shared/allocate-event-feed.test.ts
+  - modules/events/shared/events-page-templates.ts
+  - modules/events/shared/events-page-templates.test.ts
+  - modules/events/shared/events-section-context.ts
+  - modules/events/shared/public-view.ts
+  - modules/events/shared/sections/feed-html.ts
+  - modules/events/shared/sections/feed-html.test.ts
+  - modules/events/server/ssr/public-events.service.ts
+  - modules/events/server/ssr/events-path-handler.ts
+  - modules/events/server/ssr/events-path-handler.test.ts
+  - modules/events/server/sections/register.ts
+  - modules/events/client/module.tsx
+  - modules/events/client/editor-context.ts
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - apps/server/scripts/drop-events-briefing-sections.ts
+  - apps/server/scripts/drop-events-briefing-sections.sql
+out_of_scope:
+  - 厚薄卡规则 / isThickEventCard
+  - 工作台 /app/events（本来就没有简报）
+  - 存量 events.feed
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run shared/events-feed-section.test.ts shared/allocate-event-feed.test.ts shared/events-page-templates.test.ts shared/sections/feed-html.test.ts
+  - pnpm check:i18n
+  - node scripts/verify-module.mjs events
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点 ----------
+#
+# 1. briefing 没有第三把尺子：Now 同序筛厚卡。厚卡已经在 Rising / Now 网格里
+#    做对比；再抽一段只会先占掉那些卡，网格变薄。
+# 2. 定义、登记、预设、取数桶、i18n 一并删。不留 placements: [] 的残段。
+# 3. 库里的存量段（含 unsupported 占位、分栏列里的）由
+#    apps/server/scripts/drop-events-briefing-sections.ts 一次性摘掉。
