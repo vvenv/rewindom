@@ -5,7 +5,7 @@
  * 只有一处定义，加段时不会抄出十几种写法不一的「对齐」下拉。
  */
 
-import type { SettingDef } from "../../section-settings.js";
+import { VISIBLE_ON_SETTING_ID, type SettingDef } from "../../section-settings.js";
 
 export const ALIGN_OPTIONS = [
   { value: "left", label: "editor.option.align.left" },
@@ -236,6 +236,25 @@ export function layoutSettings(defaults?: {
       info: "editor.info.anchor",
     },
     ...styleSettings(undefined, { withInnerBg: true }),
+  ];
+}
+
+/**
+ * 页头 / 页脚区里的段：限制只在勾选的页面上出现。
+ *
+ * 不写进 `layoutSettings()`——页面段流里的 hero 已经只属于这一页，再给它这项会误导。
+ * 由 `getSectionDefinition` 给声明了 header/footer placement 的段（不含区域本体）拼上。
+ */
+export function areaPageVisibilitySettings(): SettingDef[] {
+  return [
+    { type: "header", content: "editor.group.visible_on", group: "layout" },
+    {
+      type: "page_paths",
+      id: VISIBLE_ON_SETTING_ID,
+      label: "editor.setting.visible_on",
+      info: "editor.info.visible_on",
+      default: [],
+    },
   ];
 }
 

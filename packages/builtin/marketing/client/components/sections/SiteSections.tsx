@@ -8,6 +8,7 @@
 import { type CSSProperties, type ReactNode } from "react";
 
 import { interpolateSectionSettings } from "../../../shared/interpolate-section-settings.js";
+import { sectionVisibleOnPage } from "../../../shared/section-page-visibility.js";
 import {
   contentSurfaceStyleCss,
   hasCustomSurface,
@@ -75,11 +76,14 @@ export function SiteSections({
   sectionSpacing = THEME_SECTION_SPACING.default,
   contained = false,
   pages = [],
-  currentPath = "/",
+  currentPath,
   contributed,
   interpolation,
 }: SiteSectionsProps): ReactNode {
-  const layouts = sections.map((section) =>
+  const visible = sections.filter((section) =>
+    sectionVisibleOnPage(section, currentPath),
+  );
+  const layouts = visible.map((section) =>
     resolveSectionLayout(section.settings),
   );
   const gaps = resolveSectionGaps(layouts, sectionSpacing);
@@ -101,7 +105,7 @@ export function SiteSections({
     />
   );
 
-  return sections.map((section, index) => {
+  return visible.map((section, index) => {
     if (section.type === "page-header" && !isPageHeaderVisible(section.settings)) {
       return null;
     }
@@ -200,7 +204,7 @@ export function SiteSections({
                */
               section={interpolateSectionSettings(section, interpolation ?? {})}
               pages={pages}
-              currentPath={currentPath}
+              currentPath={currentPath ?? "/"}
               contributed={contributed}
               renderChildren={renderChildren}
             />

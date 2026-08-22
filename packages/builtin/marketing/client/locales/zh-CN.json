@@ -485,6 +485,7 @@
       "section": "区块版式",
       "content_layout": "内容布局",
       "appearance": "外观",
+      "visible_on": "显示范围",
       "doc_meta": "元信息",
       "doc_back": "返回链接",
       "page": "页面",
@@ -561,7 +562,8 @@
       "badge_image_dark": "站点切到深色时用这张。留空则两态共用上面那张。",
       "badge_href": "snippet 里的链接。http(s) 外链会在新标签打开。",
       "badge_alt": "读屏名称，例如 Featured on NewTool.site。",
-      "badge_height": "目录站 snippet 通常写 54px。"
+      "badge_height": "目录站 snippet 通常写 54px。",
+      "visible_on": "不勾选则所有页面都显示。勾选后只出现在选中的页面上；文档文章这类模板页代表那一类全部详情。"
     },
     "unit": {
       "columns": "列",
@@ -682,7 +684,8 @@
       "chrome_text": "文字",
       "chrome_row_gap": "行内间距",
       "chrome_divider": "分隔线",
-      "chrome_spacing_above": "与正文的距离"
+      "chrome_spacing_above": "与正文的距离",
+      "visible_on": "仅在这些页面显示"
     },
     "option": {
       "align": {
@@ -893,6 +896,9 @@
     "linkPick": "选择…",
     "linkLoading": "加载中…",
     "linkEmpty": "站内还没有可链接的地址",
+    "visibleOnEmpty": "还没有可勾选的页面",
+    "visibleOnMissing": "已删除的页面",
+    "visibleOnHidden": "本页不显示（换到勾选的页面可预览）",
     "linkDraft": "（草稿）",
     "linkGroup": {
       "page": "页面",

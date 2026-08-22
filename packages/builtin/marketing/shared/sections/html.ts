@@ -12,6 +12,7 @@
 import { escapeHtml } from "../html.js";
 import { interpolateSectionSettings } from "../interpolate-section-settings.js";
 import { registerSectionCss } from "../load-marketing-site-css.js";
+import { sectionVisibleOnPage } from "../section-page-visibility.js";
 import {
   getSectionDefinition,
   hasCustomSurface,
@@ -103,6 +104,7 @@ export function renderSectionHtml(
   ctx: SectionRenderContext = {},
   options: { contained?: boolean } = {},
 ): string {
+  if (!sectionVisibleOnPage(section, ctx.currentPath)) return "";
   const render = SECTION_HTML[section.type];
   if (!render) return "";
   /*

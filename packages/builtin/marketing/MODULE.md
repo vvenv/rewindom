@@ -80,7 +80,7 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 
 | 文件                  | 职责                                                                                                                                                    |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `section-settings.ts` | setting 的类型系统 + 解析（`text`/`textarea`/`richtext`/`list`/`link`/`menu`/`image`/`select`/`icon`/`range`/`checkbox`/`color` + 排版用 `header`/`paragraph`） |
+| `section-settings.ts` | setting 的类型系统 + 解析（`text`/`textarea`/`richtext`/`list`/`link`/`menu`/`image`/`select`/`icon`/`range`/`checkbox`/`color`/`page_paths` + 排版用 `header`/`paragraph`） |
 | `sections/`           | **一段一个目录**：`<type>/definition.ts` 是声明，`<type>/html.ts` 是 SSR 渲染；`sections/index.ts` 聚合成 `SECTION_DEFINITIONS`，`sections/html.ts` 聚合成渲染器表 |
 | `section-schema.ts`   | 按 schema 解析脏数据、按 schema 造默认值                                                                                                                |
 
@@ -88,9 +88,10 @@ section 的定义分三层，`shared/section-schema.ts` 统一 re-export，调�
 编辑器由 schema 自动渲染表单、渲染端按 id 读值、写入路径按同一份 schema 校验。
 存储结构统一为 `{ id, type, settings, blocks[] }`，block 为 `{ id, type, settings }`。
 
-**页头 / 页脚区**（`nav_json` / `footer_json`，各存**一串** section，出现在所有页面上）。
+**页头 / 页脚区**（`nav_json` / `footer_json`，各存**一串** section，默认出现在所有页面上）。
 区域本体（下表两行）不可删不可移——它就是这个区域本身；其余段随便加随便排。
-某个段能放进哪个区域由它自己的 `placements` 声明（`sectionTypesFor(area)` 读它），
+区里的其它段（公告条、badge、分栏、文档导航等）可在版式里勾选「仅在这些页面显示」；
+不勾选仍是全站。某个段能放进哪个区域由它自己的 `placements` 声明（`sectionTypesFor(area)` 读它），
 所以「页头加公告条」= 往区域里加一段 `band`，不用给 header 的 schema 再长字段：
 
 页头与页脚是**同一套东西**：同一张块表（`sections/_common/chrome-blocks.ts`）、同一个

@@ -485,6 +485,7 @@
       "section": "Section layout",
       "content_layout": "Content layout",
       "appearance": "Appearance",
+      "visible_on": "Visibility",
       "doc_meta": "Metadata",
       "doc_back": "Back link",
       "page": "Page",
@@ -561,7 +562,8 @@
       "badge_image_dark": "Used when the site is in dark mode. Leave empty to use the same image in both modes.",
       "badge_href": "The link from the snippet. http(s) URLs open in a new tab.",
       "badge_alt": "Accessible name, e.g. Featured on NewTool.site.",
-      "badge_height": "Directory snippets usually specify 54px."
+      "badge_height": "Directory snippets usually specify 54px.",
+      "visible_on": "Leave unchecked to show on every page. Checking pages limits this section to those pages; a template such as a docs article matches every article of that kind."
     },
     "unit": {
       "columns": "cols",
@@ -682,7 +684,8 @@
       "chrome_text": "Text",
       "chrome_row_gap": "Gap",
       "chrome_divider": "Divider",
-      "chrome_spacing_above": "Space above"
+      "chrome_spacing_above": "Space above",
+      "visible_on": "Show only on these pages"
     },
     "option": {
       "align": {
@@ -893,6 +896,9 @@
     "linkPick": "Pick…",
     "linkLoading": "Loading…",
     "linkEmpty": "Nothing to link to yet",
+    "visibleOnEmpty": "No pages to choose from yet",
+    "visibleOnMissing": "Deleted page",
+    "visibleOnHidden": "Hidden on this page — switch to a checked page to preview",
     "linkDraft": "(draft)",
     "linkGroup": {
       "page": "Pages",

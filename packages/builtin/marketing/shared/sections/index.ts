@@ -9,7 +9,10 @@
  * 文档库、店面、套餐等业务段由模块贡献，不进这张表。
  */
 
+import { VISIBLE_ON_SETTING_ID } from "../section-settings.js";
+
 import { contributedChromeBlocks } from "./_common/chrome-blocks.js";
+import { areaPageVisibilitySettings } from "./_common/settings.js";
 import { badgesSection } from "./badges/definition.js";
 import { bandSection } from "./band/definition.js";
 import { featureGridSection } from "./feature-grid/definition.js";
@@ -129,6 +132,32 @@ export function resetSectionContributions(): void {
 
 /* -------------------------------------------------------------------------- */
 
+const WITH_PAGE_VISIBILITY = new Map<string, SectionDefinition>();
+
+/**
+ * 能放进页头 / 页脚区的段自动带上「仅这些页面显示」。
+ *
+ * 贡献段（文档导航等）不必自己抄一份——漏了就只能全站挂。区域本体不带：
+ * 把整条导航藏起来是另一件事。
+ */
+function withAreaPageVisibility(def: SectionDefinition): SectionDefinition {
+  if (def.type === "header" || def.type === "footer") return def;
+  if (!def.placements.includes("header") && !def.placements.includes("footer")) {
+    return def;
+  }
+  if (def.settings.some((setting) => "id" in setting && setting.id === VISIBLE_ON_SETTING_ID)) {
+    return def;
+  }
+  const cached = WITH_PAGE_VISIBILITY.get(def.type);
+  if (cached) return cached;
+  const wrapped: SectionDefinition = {
+    ...def,
+    settings: [...def.settings, ...areaPageVisibilitySettings()],
+  };
+  WITH_PAGE_VISIBILITY.set(def.type, wrapped);
+  return wrapped;
+}
+
 /**
  * 拿一个段的定义 —— **所有查表都该走这里**，别再直接索引 `BUILTIN_SECTION_DEFINITIONS`。
  *
@@ -148,10 +177,11 @@ export function getSectionDefinition(
     ? BUILTIN_SECTION_DEFINITIONS[type as BuiltinSectionType]
     : CONTRIBUTED.get(type);
   if (!def) return undefined;
-  if (def.type !== "header" && def.type !== "footer") return def;
+  const withVis = withAreaPageVisibility(def);
+  if (withVis.type !== "header" && withVis.type !== "footer") return withVis;
   const extra = contributedChromeBlocks();
-  if (extra.length === 0) return def;
-  return { ...def, blocks: [...(def.blocks ?? []), ...extra] };
+  if (extra.length === 0) return withVis;
+  return { ...withVis, blocks: [...(withVis.blocks ?? []), ...extra] };
 }
 
 /** 内置段 + 已贡献段的全表（编辑器菜单、校验白名单用）。 */

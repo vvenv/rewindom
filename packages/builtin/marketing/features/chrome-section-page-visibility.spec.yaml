@@ -1,0 +1,44 @@
+# 页头 / 页脚区里的段，可限制只在指定页面显示
+#
+# 页头页脚是站点级、默认出现在每一页上。公告条、badge、页脚文档导航这类
+# 常常只想出现在首页或某几张模板上——以前只能整站都挂，或复制进每一页正文。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: 页头 / 页脚区里的段（不含区域本体）可勾选「仅在这些页面显示」；留空仍是全站。
+gold: packages/builtin/marketing/shared/sections/_common/settings.ts
+touch:
+  - packages/builtin/marketing/features/chrome-section-page-visibility.spec.yaml
+  - packages/builtin/marketing/shared/section-settings.ts
+  - packages/builtin/marketing/shared/section-page-visibility.ts
+  - packages/builtin/marketing/shared/section-page-visibility.test.ts
+  - packages/builtin/marketing/shared/sections/_common/settings.ts
+  - packages/builtin/marketing/shared/sections/index.ts
+  - packages/builtin/marketing/shared/sections/html.ts
+  - packages/builtin/marketing/shared/sections/types.ts
+  - packages/builtin/marketing/server/render-page-sections-html.ts
+  - packages/builtin/marketing/client/components/TenantSiteView.test.tsx
+  - packages/builtin/marketing/client/components/sections/SiteSections.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SettingsFields.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SitePagePathsField.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SectionSettingsForm.tsx
+  - packages/builtin/marketing/client/components/theme-editor/SectionTree.tsx
+  - packages/builtin/marketing/client/components/theme-editor/site-nav-preview-context.tsx
+  - packages/builtin/marketing/client/pages/site-editor.tsx
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/MODULE.md
+  - modules/site-docs/docs/usage/zh-CN/manage-pages.md
+  - modules/site-docs/docs/usage/en/manage-pages.md
+  - modules/site-docs/server/usage-docs.generated.ts
+out_of_scope:
+  - 按路径前缀 / 排除名单（只做「这些页面」，空 = 全站）
+  - 隐藏页头 / 页脚本体（导航条本身始终在）
+  - chrome 块级可见性（那是块不是段）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared section-page-visibility.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client TenantSiteView.test.tsx
+  - pnpm --filter @rewindom/site-docs assemble:usage-docs
+  - pnpm check:i18n

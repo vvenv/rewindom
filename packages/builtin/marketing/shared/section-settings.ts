@@ -280,6 +280,16 @@ export type InputSettingDef =
        */
       copy_from_header?: boolean;
     })
+  | (SettingBase & {
+      /**
+       * 逻辑路径列表（不带 locale 前缀），页头 / 页脚段「仅这些页面显示」用。
+       *
+       * 空数组 = 所有页面。存路径而不是 page id：跨语言同一篇是同一个 slug，
+       * 模板页的 path 还可能是 `/docs/:slug` 这种「这一类全部详情」。
+       */
+      type: "page_paths";
+      default?: readonly string[];
+    })
   | (SettingBase & { type: "image"; default?: string; placeholder?: string })
   | (SettingBase & {
       type: "select";
@@ -492,6 +502,8 @@ export function defaultSettingValue(def: InputSettingDef): SettingValue {
       return "";
     case "nav_items":
       return def.default ?? [];
+    case "page_paths":
+      return Array.isArray(def.default) ? [...def.default] : [];
     case "text":
     case "textarea":
     case "richtext":
@@ -558,6 +570,38 @@ function reconcileStockLocalizedText(
   return changed ? { __i18n: out } : value;
 }
 
+/** 页头 / 页脚段「仅这些页面显示」的 setting id。空数组 = 全站。 */
+export const VISIBLE_ON_SETTING_ID = "visible_on";
+
+/**
+ * 逻辑路径：以 `/` 开头、不含协议、最长 200。模板 path（`/docs/:slug`）合法。
+ *
+ * 去掉末尾斜杠（`/` 除外），避免 `/about` 与 `/about/` 对不上。
+ */
+export function normalizeLogicalPagePath(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return null;
+  if (trimmed.includes("://") || trimmed.includes("\\")) return null;
+  if (trimmed.length > 200) return null;
+  if (trimmed.length > 1 && trimmed.endsWith("/")) {
+    return trimmed.slice(0, -1);
+  }
+  return trimmed;
+}
+
+export function coercePagePathList(raw: readonly unknown[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (typeof item !== "string") continue;
+    const path = normalizeLogicalPagePath(item);
+    if (!path || seen.has(path)) continue;
+    seen.add(path);
+    out.push(path);
+  }
+  return out;
+}
+
 /** 类型不符一律回落默认值——渲染端与编辑器都不该因脏数据崩掉。 */
 function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
   switch (def.type) {
@@ -604,6 +648,10 @@ function coerceSetting(def: InputSettingDef, raw: unknown): SettingValue {
       if (Array.isArray(def.default)) {
         return JSON.parse(JSON.stringify(def.default)) as unknown[];
       }
+      return [];
+    case "page_paths":
+      if (Array.isArray(raw)) return coercePagePathList(raw);
+      if (Array.isArray(def.default)) return coercePagePathList(def.default);
       return [];
     case "icon": {
       const value = typeof raw === "string" ? raw.trim() : "";
@@ -776,6 +824,14 @@ export function settingLines(values: SettingValues, id: string): string[] {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
+}
+
+/** `page_paths` 取值：已经洗过的逻辑路径列表。 */
+export function settingPagePaths(values: SettingValues, id: string): string[] {
+  const value = values[id];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 export function settingIcon(

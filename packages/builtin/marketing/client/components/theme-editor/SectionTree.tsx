@@ -20,6 +20,7 @@ import {
   ArrowUp,
   ChevronDown,
   ChevronRight,
+  EyeOff,
   FileText,
   GripVertical,
   Plus,
@@ -28,6 +29,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { getPageTemplateKind } from "../../../shared/page-templates.js";
+import { sectionHiddenOnCurrentPage } from "../../../shared/section-page-visibility.js";
 import {
   addableBlockDefinitions,
   getSectionDefinition,
@@ -78,6 +80,8 @@ interface SectionTreeProps {
   sections: SiteSection[];
   header: SiteSection[];
   footer: SiteSection[];
+  /** 预览正在看的逻辑路径；页头页脚段「仅这些页面」据此标「本页不显示」。 */
+  currentPath?: string;
   selectedSectionId: string | null;
   selectedBlockId: string | null;
   /** 选中的是页面元数据（左树最上面那一行）。 */
@@ -131,6 +135,7 @@ export function SectionTree({
   sections,
   header,
   footer,
+  currentPath,
   selectedSectionId,
   selectedBlockId,
   metaSelected,
@@ -355,6 +360,10 @@ export function SectionTree({
             ) : null
           }
           label={sectionLabel(section, sectionTypeLabel(t, section.type))}
+          hiddenOnPage={
+            (options.tree === "header" || options.tree === "footer") &&
+            sectionHiddenOnCurrentPage(section, currentPath)
+          }
           canWrite={canWrite}
           movable={options.movable}
           removable={options.removable}
@@ -635,6 +644,8 @@ interface TreeRowProps {
   selected: boolean;
   icon: ReactElement | null;
   label: string;
+  /** 页头页脚段限制了页面，且当前预览页不在名单里。 */
+  hiddenOnPage?: boolean;
   canWrite: boolean;
   movable: boolean;
   removable: boolean;
@@ -657,6 +668,7 @@ function TreeRow({
   selected,
   icon,
   label,
+  hiddenOnPage = false,
   canWrite,
   movable,
   removable,
@@ -728,6 +740,12 @@ function TreeRow({
         ) : null}
         {icon}
         <span className="truncate">{label}</span>
+        {hiddenOnPage ? (
+          <EyeOff
+            className="size-3 shrink-0 text-muted-foreground"
+            aria-label={t("editor.visibleOnHidden")}
+          />
+        ) : null}
       </span>
       {showActions ? (
         <div className="relative flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">

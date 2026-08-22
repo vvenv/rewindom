@@ -41,6 +41,7 @@ import { useSiteNavPreview } from "./site-nav-preview-context.js";
 import { SiteIconField } from "./SiteIconField.js";
 import { SiteLinkField } from "./SiteLinkField.js";
 import { SiteNavItemsField } from "./SiteNavItemsField.js";
+import { SitePagePathsField } from "./SitePagePathsField.js";
 import { SpacingBoxField } from "./SpacingBoxField.js";
 
 import type { SiteNavItem } from "../../../shared/site-nav.js";
@@ -395,6 +396,20 @@ function SettingControl({
           onChange={(next: SiteNavItem[]) =>
             onChange(next as unknown as SettingValue)
           }
+        />
+      );
+
+    case "page_paths":
+      return (
+        <SitePagePathsField
+          id={fieldId}
+          value={
+            Array.isArray(value)
+              ? value.filter((item): item is string => typeof item === "string")
+              : []
+          }
+          disabled={disabled}
+          onChange={onChange}
         />
       );
 

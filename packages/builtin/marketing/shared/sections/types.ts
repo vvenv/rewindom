@@ -22,7 +22,7 @@ export const PAGE_SECTION_TYPES = [
   "page-missing",
 ] as const;
 
-/** 站点级区域：出现在所有页面上，各自是一串 section。 */
+/** 站点级区域：默认出现在所有页面上；区里的其它段可限制只在指定页面显示。 */
 export const AREA_SECTION_TYPES = ["header", "footer"] as const;
 
 /**

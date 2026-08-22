@@ -26,7 +26,7 @@ import {
 } from "../../shared/section-schema.js";
 import { collectHeaderNavItems } from "../../shared/sections/_common/chrome-blocks.js";
 import { collectSectionTypes } from "../../shared/sections/collect-types.js";
-import { siteNavPages } from "../../shared/site-cms.js";
+import { siteNavPages, marketingPagePath } from "../../shared/site-cms.js";
 import { normalizeHomePath, pageIdAtHomePath } from "../../shared/site-home.js";
 import { withSiteLocale } from "../../shared/site-locale.js";
 import { SiteThemeSettingsForm } from "../components/appearance/SiteThemeSettingsForm.js";
@@ -520,6 +520,10 @@ export function SiteEditor() {
           path: item.path,
           title: item.title,
         })),
+        editorPages: editor.localePages.map((item) => ({
+          path: marketingPagePath(item.kind, item.slug),
+          title: item.title,
+        })),
         contributed: editorCtx,
         enabledEntitlements: editor.capabilities.entitlements,
         headerItems: collectHeaderNavItems(editor.header),
@@ -596,6 +600,7 @@ export function SiteEditor() {
                 sections={editor.sections}
                 header={editor.header}
                 footer={editor.footer}
+                currentPath={editor.path}
                 selectedSectionId={editor.selectedSectionId}
                 selectedBlockId={editor.selectedBlockId}
                 metaSelected={editor.metaSelected}
@@ -726,6 +731,8 @@ export function SiteEditor() {
                 pageKind={editor.page?.kind}
                 entitlements={editor.capabilities.entitlements}
                 site={editor.previewSite}
+                area={editor.selectedArea}
+                currentPath={editor.path}
                 onChangeSettings={(settings) =>
                   editor.updateSettings(selectedSection.id, settings)
                 }

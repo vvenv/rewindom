@@ -157,4 +157,28 @@ describe("TenantSiteView 页面外壳", () => {
       screen.queryByRole("heading", { name: "页面不存在" }),
     ).not.toBeInTheDocument();
   });
+
+  it("hides header extra sections that are not listed in visible_on", () => {
+    const header = parseAreaSections("header", [
+      {
+        type: "band",
+        settings: { visible_on: ["/about"], headline: "Only about" },
+        blocks: [],
+      },
+      { type: "header", settings: {}, blocks: [] },
+    ]);
+    const { rerender } = render(
+      <MemoryRouter>
+        <TenantSiteView site={site()} path="/" headerOverride={header} />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole("heading", { name: "Only about" })).toBeNull();
+
+    rerender(
+      <MemoryRouter>
+        <TenantSiteView site={site()} path="/about" headerOverride={header} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("heading", { name: "Only about" })).toBeInTheDocument();
+  });
 });

@@ -6,6 +6,10 @@ import { LayoutTemplate, Palette, Type, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
+  omitAreaPageVisibilitySettings,
+  sectionHiddenOnCurrentPage,
+} from "../../../shared/section-page-visibility.js";
+import {
   getBlockDefinition,
   getSectionDefinition,
   groupColumns,
@@ -34,6 +38,13 @@ interface SectionSettingsFormProps {
   /** 本站已开通的能力 / 站点文案：同样只喂给那份占位符清单。 */
   entitlements?: ReadonlySet<string>;
   site?: { site_name: string; tagline: string };
+  /**
+   * 选中段落在哪一串。页头 / 页脚才露出「仅这些页面显示」；
+   * 页面段流里的段已经只属于这一页。
+   */
+  area?: "header" | "footer" | "page" | null;
+  /** 预览正在看的逻辑路径，用来提示「本页不显示」。 */
+  currentPath?: string;
   onChangeSettings: (settings: SettingValues) => void;
   onChangeBlockSettings: (blockId: string, settings: SettingValues) => void;
 }
@@ -74,6 +85,8 @@ export function SectionSettingsForm({
   pageKind,
   entitlements,
   site,
+  area,
+  currentPath,
   onChangeSettings,
   onChangeBlockSettings,
 }: SectionSettingsFormProps): ReactElement {
@@ -132,10 +145,16 @@ export function SectionSettingsForm({
       </p>
     );
   }
+  const showPageVisibility = area === "header" || area === "footer";
+  const defs = showPageVisibility
+    ? def.settings
+    : omitAreaPageVisibilitySettings(def.settings);
+  const hiddenHere =
+    showPageVisibility && sectionHiddenOnCurrentPage(section, currentPath);
   return (
     <ScopedSettings
       label={t(def.label)}
-      defs={def.settings}
+      defs={defs}
       values={section.settings}
       disabled={disabled}
       unavailable={unavailable}
@@ -147,6 +166,7 @@ export function SectionSettingsForm({
       sectionType={section.type}
       /* 列宽控件要知道这一段现在有几列——列是 block，schema 里数不出来 */
       columnCount={groupColumns(section).length}
+      hiddenOnCurrentPage={hiddenHere}
       onChange={onChangeSettings}
     />
   );
@@ -233,6 +253,7 @@ function ScopedSettings({
   pageKind,
   entitlements,
   site,
+  hiddenOnCurrentPage,
   onChange,
 }: {
   label: string;
@@ -248,6 +269,7 @@ function ScopedSettings({
   pageKind?: string;
   entitlements?: ReadonlySet<string>;
   site?: { site_name: string; tagline: string };
+  hiddenOnCurrentPage?: boolean;
   onChange: (settings: SettingValues) => void;
 }): ReactElement {
   const { t } = useTranslation("marketing");
@@ -306,6 +328,9 @@ function ScopedSettings({
   return (
     <div className="space-y-3">
       <PanelLabel>{label}</PanelLabel>
+      {hiddenOnCurrentPage ? (
+        <p className="text-xs text-muted-foreground">{t("editor.visibleOnHidden")}</p>
+      ) : null}
       {tabs.length > 1 ? (
         <Tabs
           value={tabValue}

@@ -4,6 +4,7 @@
 
 import { normalizeLocale } from "@rewindom/shared";
 
+import { sectionVisibleOnPage } from "../shared/section-page-visibility.js";
 import {
   resolveSectionGaps,
   resolveSectionLayout,
@@ -58,7 +59,9 @@ export function renderPageSectionsHtml(
   const { enabledEntitlements, contributed, isDefaultTenant, interpolation } =
     options;
   const theme = resolveThemeSettings(site.theme_settings);
-  const sections = page.sections;
+  const sections = page.sections.filter((section) =>
+    sectionVisibleOnPage(section, page.path),
+  );
   const gaps = resolveSectionGaps(
     sections.map((section) => resolveSectionLayout(section.settings)),
     theme.section_spacing ?? THEME_SECTION_SPACING.default,
