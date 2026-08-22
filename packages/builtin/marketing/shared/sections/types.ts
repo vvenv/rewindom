@@ -18,6 +18,7 @@ export const PAGE_SECTION_TYPES = [
   "prose",
   "group",
   "band",
+  "badges",
   "page-missing",
 ] as const;
 

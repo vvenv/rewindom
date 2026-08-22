@@ -19,6 +19,7 @@ Every page is a sequence of sections. This is how to arrange them.
 | `steps`        | Steps        | An ordered process                  |
 | `split`        | Split        | Copy on one side, image or highlight card on the other |
 | `band`         | CTA band     | One full-width call to action       |
+| `badges`       | Badges       | Directory “Featured on” images (Product Hunt, NewTool, …) |
 | `prose`        | Rich text    | Write Markdown directly             |
 | `site-form.form` | Form       | Collect leads; submissions are stored |
 | `page-menu`    | Page menu    | Page-level table of contents        |

@@ -19,6 +19,7 @@ sort_order: 60
 | `steps`        | 步骤      | 有先后的流程             |
 | `split`        | 图文分栏  | 一侧文案，一侧图片或强调卡 |
 | `band`         | 通栏 CTA  | 一条横贯的行动号召       |
+| `badges`       | 第三方徽章 | Product Hunt / NewTool 等目录站的 Featured 图 |
 | `prose`        | 富文本    | 直接写 Markdown          |
 | `site-form.form` | 表单      | 收集线索，提交进表单记录 |
 | `page-menu`    | 页面菜单  | 页面级的目录 / 子导航    |

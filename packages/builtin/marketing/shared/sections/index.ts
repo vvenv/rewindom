@@ -5,11 +5,12 @@
  * 渲染，客户端的 React 视图在 `client/components/sections/views/<type>.tsx`。
  * 本文件只做聚合，不含任何一段的具体内容——**加一段不改这里的任何逻辑，只多一行**。
  *
- * 内置段是通用视觉积木：首屏、卖点网格、步骤、图文分栏、富文本、分栏、CTA、页面菜单。
+ * 内置段是通用视觉积木：首屏、卖点网格、步骤、图文分栏、富文本、分栏、CTA、badge、页面菜单。
  * 文档库、店面、套餐等业务段由模块贡献，不进这张表。
  */
 
 import { contributedChromeBlocks } from "./_common/chrome-blocks.js";
+import { badgesSection } from "./badges/definition.js";
 import { bandSection } from "./band/definition.js";
 import { featureGridSection } from "./feature-grid/definition.js";
 import { footerSection } from "./footer/definition.js";
@@ -80,6 +81,7 @@ export const BUILTIN_SECTION_DEFINITIONS: Record<
   prose: proseSection,
   group: groupSection,
   band: bandSection,
+  badges: badgesSection,
   /* 保留：只由解析层产生，`placements: []` 保证它不出现在任何添加菜单里 */
   unsupported: unsupportedSection,
 };

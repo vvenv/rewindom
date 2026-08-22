@@ -449,11 +449,11 @@ nginx / vite 代理三处对齐，由 `nginx-spa-prefixes.test.ts` 守住）。
 若 SPA 内客户端导航误入公开 CMS 路径，`AppNotFoundRedirect` 会 `location.replace`
 硬跳回 SSR 文档。
 
-**页面级**（`placements` 含 `page`）。`band` / `prose` 三处都能放——通栏 CTA 摆进页头区
-就是公告条，prose 摆进页脚就是备案号，不另造类型。`group`（分栏）另外放行页脚区：
+**页面级**（`placements` 含 `page`）。`band` / `prose` / `badges` 三处都能放——通栏 CTA 摆进页头区
+就是公告条，prose 摆进页脚就是备案号，badge 摆进页脚就是「收录于」一排，不另造类型。`group`（分栏）另外放行页脚区：
 多栏页脚是布局问题，用同一个布局原语解，不在页脚 schema 里再长一套列宽字段。
 
-内置段是**通用视觉积木**（首屏、卖点网格、步骤、图文分栏、富文本、分栏、CTA、页面菜单）。表单、文档库、店面、套餐等业务段由模块贡献。
+内置段是**通用视觉积木**（首屏、卖点网格、步骤、图文分栏、富文本、分栏、CTA、第三方徽章、页面菜单）。表单、文档库、店面、套餐等业务段由模块贡献。
 ### 贡献段要按请求查库：`registerSectionContextProvider`
 
 `SectionRenderContext.contributed` 一直都有，但只有**模块自有的 SSR 路由**填得上
@@ -488,6 +488,7 @@ section type，通用 SSR 路由在渲染前按**页面实际用到的段**调�
 | `prose`        | body_md                                                                | —                                                                                       |
 | `group`        | columns_layout(12 栏份额), column_gap, align_items                     | `column`{sticky, show_divider + 线型/粗细/颜色, stack_order}，最多 4；**容器 block**，见下 |
 | `band`         | headline\*, body, align, primary/secondary 按钮                        | —                                                                                       |
+| `badges`       | 抬头（可空）, align, height(32–80，默认 54)                            | `badge`{image, image_dark, href, alt}，最多 12；新建预置 1 枚。外链新标签打开；深色图按 `data-site-color-mode` 切换 |
 
 `*` = `required`，为空时该 section 校验失败。
 

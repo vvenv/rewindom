@@ -556,7 +556,12 @@
       "brand_text": "The brand name shown next to the logo. Leave empty to follow the site name — which also serves as the title in search results, and is usually longer.",
       "brand_text_case": "Uppercase is a typesetting choice, not a rename — the stored wordmark and the site name used in search titles stay as written. Letter-spacing is applied with uppercase and omitted otherwise.",
       "button_icon": "Built-in includes GitHub, Google, and other social marks. You can also upload an image or pick one from the media library.",
-      "icon_only": "Hide the label and show only the icon. The label is still used as the accessible name and hover title. Has no effect when no icon is set."
+      "icon_only": "Hide the label and show only the icon. The label is still used as the accessible name and hover title. Has no effect when no icon is set.",
+      "badge_image": "Paste the image URL from the directory snippet (external URLs are fine — no need to upload first). Do not paste the HTML.",
+      "badge_image_dark": "Used when the site is in dark mode. Leave empty to use the same image in both modes.",
+      "badge_href": "The link from the snippet. http(s) URLs open in a new tab.",
+      "badge_alt": "Accessible name, e.g. Featured on NewTool.site.",
+      "badge_height": "Directory snippets usually specify 54px."
     },
     "unit": {
       "columns": "cols",
@@ -614,7 +619,9 @@
       "stat_detail": "Stat detail",
       "icon": "Icon",
       "icon_only": "Icon only",
+      "badge_height": "Badge height",
       "image": "Image",
+      "image_dark": "Dark-mode image",
       "image_alt": "Image alt text",
       "media_side": "Media side",
       "panel_md": "Highlight card (Markdown)",
@@ -821,6 +828,7 @@
       "doc-toc": "On this page",
       "group": "Columns",
       "band": "CTA band",
+      "badges": "Badges",
       "page-header": "Page title",
       "unsupported": "Unavailable block",
       "page-missing": "Not found"
@@ -834,6 +842,7 @@
       "row": "Row",
       "plan": "Plan",
       "qa": "Q&A",
+      "badge": "Badge",
       "chrome_brand": "Brand",
       "chrome_nav": "Navigation",
       "chrome_button": "Button",

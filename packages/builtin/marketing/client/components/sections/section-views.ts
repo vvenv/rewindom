@@ -18,6 +18,7 @@ import {
 } from "../../../shared/section-schema.js";
 import { registerSectionIcon } from "../theme-editor/section-icons.js";
 
+import { BadgesSection } from "./views/badges.js";
 import { BandSection } from "./views/band.js";
 import { FeatureGridSection } from "./views/feature-grid.js";
 import { GroupSection } from "./views/group.js";
@@ -42,6 +43,7 @@ export const SECTION_VIEWS: Partial<
   "page-missing": PageMissingSection,
   "page-menu": PageMenuSection,
   band: BandSection,
+  badges: BadgesSection,
   group: GroupSection,
   "page-header": PageHeaderSection,
   prose: ProseSection,

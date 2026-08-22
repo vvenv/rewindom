@@ -1,4 +1,5 @@
 import {
+  Award,
   Columns2,
   Globe,
   LayoutGrid,
@@ -42,6 +43,7 @@ export const SECTION_ICONS: Partial<Record<SectionType, LucideIcon>> = {
   prose: Text,
   group: Columns2,
   band: Megaphone,
+  badges: Award,
   // 这份代码不认识的段：树上要看得见、能选中、能删，所以给它一个明确的警示图标
   unsupported: TriangleAlert,
 };
@@ -61,6 +63,7 @@ export function registerBlockIcon(type: string, icon: LucideIcon): void {
 
 export const BLOCK_ICONS: Record<string, LucideIcon> = {
   column: RectangleVertical,
+  badge: Award,
   feature: Sparkles,
   step: ListOrdered,
   nav_link: Link2,

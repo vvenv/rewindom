@@ -556,7 +556,12 @@
       "brand_text": "logo 旁边显示的品牌名。留空跟着站点名走——站点名同时是搜索结果里的标题，通常更长。",
       "brand_text_case": "全大写是排版处理，不是改名——存进去的字标和搜索标题里的站名仍是原文。字距跟着全大写一起给，混排不加。",
       "button_icon": "内置含 GitHub、Google 等社交图标，也可上传或从媒体库选一张。",
-      "icon_only": "隐藏文案，只显示图标。文案仍用作读屏名称和悬停提示。没有图标时这项无效。"
+      "icon_only": "隐藏文案，只显示图标。文案仍用作读屏名称和悬停提示。没有图标时这项无效。",
+      "badge_image": "填目录站 snippet 里的图片地址（可外链，不必先上传）。不要把整段 HTML 贴进来。",
+      "badge_image_dark": "站点切到深色时用这张。留空则两态共用上面那张。",
+      "badge_href": "snippet 里的链接。http(s) 外链会在新标签打开。",
+      "badge_alt": "读屏名称，例如 Featured on NewTool.site。",
+      "badge_height": "目录站 snippet 通常写 54px。"
     },
     "unit": {
       "columns": "列",
@@ -614,7 +619,9 @@
       "stat_detail": "指标说明",
       "icon": "图标",
       "icon_only": "只显示图标",
+      "badge_height": "徽章高度",
       "image": "图片",
+      "image_dark": "深色模式图片",
       "image_alt": "图片替代文字",
       "media_side": "媒体位置",
       "panel_md": "强调卡（Markdown）",
@@ -821,6 +828,7 @@
       "doc-toc": "章节导航",
       "group": "分栏",
       "band": "通栏 CTA",
+      "badges": "第三方徽章",
       "page-header": "页面标题",
       "unsupported": "不可用区块",
       "page-missing": "页面不存在"
@@ -834,6 +842,7 @@
       "row": "行",
       "plan": "套餐",
       "qa": "问答",
+      "badge": "徽章",
       "chrome_brand": "品牌",
       "chrome_nav": "导航",
       "chrome_button": "按钮",

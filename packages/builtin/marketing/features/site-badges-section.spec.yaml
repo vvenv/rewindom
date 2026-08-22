@@ -1,0 +1,38 @@
+# 官网第三方 badge（Product Hunt / NewTool 等目录站发的「Featured on」图）
+#
+# 不接受粘贴整段 HTML：那是 XSS 面，也没法跟站点明暗切换。租户从 snippet 里抄
+# 图片 URL、链接、替代文字三项即可。chrome_button 也不合适——页头控件是 2rem
+# 工具栏密度，这类图通常 54px 高，是宣传图不是图标按钮。
+
+# ---------- 必填 ----------
+module: marketing
+surfaces: [ssr, tenant]
+goal: 内置 badges 段，可重复摆第三方目录 badge（图 + 外链 + 可选深色图）；页面 / 页头 / 页脚都能放。
+gold: packages/builtin/marketing/shared/sections/feature-grid/
+touch:
+  - packages/builtin/marketing/features/site-badges-section.spec.yaml
+  - packages/builtin/marketing/shared/sections/types.ts
+  - packages/builtin/marketing/shared/sections/index.ts
+  - packages/builtin/marketing/shared/sections/html.ts
+  - packages/builtin/marketing/shared/sections/badges/
+  - packages/builtin/marketing/shared/marketing-site-css.generated.ts
+  - packages/builtin/marketing/client/components/sections/section-views.ts
+  - packages/builtin/marketing/client/components/sections/views/badges.tsx
+  - packages/builtin/marketing/client/components/theme-editor/section-icons.ts
+  - packages/builtin/marketing/client/locales/zh-CN.json
+  - packages/builtin/marketing/client/locales/en.json
+  - packages/builtin/marketing/MODULE.md
+  - modules/site-docs/docs/usage/zh-CN/manage-pages.md
+  - modules/site-docs/docs/usage/en/manage-pages.md
+  - modules/site-docs/server/usage-docs.generated.ts
+out_of_scope:
+  - 粘贴原始 HTML / 自定义脚本
+  - 把 badge 做成 chrome 块（密度对不上页头工具栏）
+  - 预置某个目录站的 badge 到产品站或 yestino（租户在编辑器里自己加）
+i18n: code
+acceptance:
+  - pnpm --filter @rewindom/builtin assemble:marketing-css
+  - pnpm --filter @rewindom/site-docs assemble:usage-docs
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/shared sections/badges/html.test.ts
+  - pnpm --filter @rewindom/builtin exec vitest --run --project marketing/client section-parity.test.ts
+  - pnpm check:i18n

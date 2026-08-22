@@ -25,6 +25,7 @@ import {
   type SectionDefinition,
 } from "../section-schema.js";
 
+import { renderBadgesHtml } from "./badges/html.js";
 import { renderBandHtml } from "./band/html.js";
 import { renderFeatureGridHtml } from "./feature-grid/html.js";
 import { renderGroupHtml } from "./group/html.js";
@@ -84,6 +85,7 @@ export const SECTION_HTML: Partial<Record<SectionType, SectionHtmlRenderer>> = {
   "page-missing": renderPageMissingSectionHtml,
   "page-menu": renderPageMenuHtml,
   band: renderBandHtml,
+  badges: renderBadgesHtml,
   group: renderGroupHtml,
   "page-header": renderPageHeaderHtml,
   prose: renderProseHtml,
