@@ -12,10 +12,10 @@ Rewindom 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 | --- | --- | --- |
 | Agent 根指令 | `AGENTS.md` | 约定速查、模块工作流、Skills/Rules 索引 |
 | Cursor Rules | `.cursor/rules/*.mdc` | 始终生效的边界与命名 |
-| Skills | `.cursor/skills/*/SKILL.md` | 任务剧本（`create-module` 等） |
-| Claude Code Skills | `.claude/skills/` | 由 `pnpm sync-skills` 从 `.cursor/skills` 生成 |
-| Spec 模板 | `.cursor/skills/create-module/templates/MODULE.spec.yaml` | 新模块；留空则追问 |
-| 增量 Spec | `.cursor/skills/extend-module/templates/FEATURE.spec.yaml` | 扩展已有模块；落盘 `<module>/features/<slug>.spec.yaml` |
+| Skills | `.agents/skills/*/SKILL.md` | 任务剧本（自研 `create-module` 等 + 第三方） |
+| Claude Code Skills | `.claude/skills` → `.agents/skills` | 符号链接；`pnpm sync-skills` 确保存在 |
+| Spec 模板 | `.agents/skills/create-module/templates/MODULE.spec.yaml` | 新模块；留空则追问 |
+| 增量 Spec | `.agents/skills/extend-module/templates/FEATURE.spec.yaml` | 扩展已有模块；落盘 `<module>/features/<slug>.spec.yaml` |
 | 生成 / 校验 | `pnpm gen:module` · `pnpm check:modules` · `pnpm check:deps` | 机器可检查的闭环 |
 | 模块说明书 | `packages/builtin/*/MODULE.md`、`modules/*/MODULE.md` | 供人类与 Agent 的模块边界（含「常见改动」） |
 
@@ -97,7 +97,7 @@ Rewindom 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 | **生成代替记忆** | 易漏的装配点由 `gen:module` 写入，不靠 Agent 背清单 |
 | **校验代替信任** | 边界用 CI 与 lint 强制，不靠「模型应该记得」 |
 | **Spec 代替闲聊** | 结构化 YAML 是意图的契约（新模块 `MODULE.spec`、增量 `FEATURE.spec`）；闲聊补全必须回写 Spec |
-| **双 IDE 同源** | Cursor Rules + Claude Skills 同源；只改 `.cursor/skills/` |
+| **双 IDE 同源** | Skills 只维护 `.agents/skills/`；Claude 经 `.claude/skills` 符号链接读取。不要在 `.cursor/skills/` 再放一份 |
 
 ---
 
@@ -105,7 +105,7 @@ Rewindom 的核心卖点之一是 **Agent-first**：框架为编码 Agent（Curs
 
 改 Agent 面时同步：
 
-- [ ] 新 Skill → 只加 `.cursor/skills/`，`prepare` / `pnpm sync-skills` 同步 Claude
+- [ ] 新 Skill → 只加 `.agents/skills/`（`pnpm sync-skills` 确保 Claude 链接）
 - [ ] 新硬约束 → 优先 Rule 或 `check:*`，再写进 AGENTS.md 速查
 - [ ] 闭环变更 → 更新本文、`AGENTS.md` 与默认租户 CMS（starter / Theme Editor）相关文案
 - [ ] 对外口号 → `packages/builtin/marketing` 的 i18n（`starter.default.*` / `preset.*`）保持一致

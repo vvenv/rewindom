@@ -47,7 +47,7 @@ touch:
   - packages/builtin/marketing/client/locales/en.json
   - packages/builtin/marketing/client/locales/zh-CN.json
   - packages/builtin/marketing/MODULE.md
-  - .cursor/skills/site-section/SKILL.md
+  - .agents/skills/site-section/SKILL.md
   - docs/design/i18n.md
   - apps/server/scripts/apply-yestino-about.ts
 out_of_scope:

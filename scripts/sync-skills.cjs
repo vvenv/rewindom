@@ -1,23 +1,23 @@
 #!/usr/bin/env node
 /**
- * 把 `.cursor/skills/` 同步到 `.claude/skills/`。
+ * 确保 Claude Code 能读到 `.agents/skills/`。
  *
- * 两个客户端的 skill 格式一致（`SKILL.md` + frontmatter 的 `name` / `description`，
- * 可选 `reference/`），因此是**直接复制**，不做格式转换。
+ * 单一真相源是 `.agents/skills/`（Cursor / Codex 原生扫描）。Claude Code 只认
+ * `.claude/skills/`，因此这里放一个指向真相源的符号链接。
+ * 不要再在 `.cursor/skills/` 放 skill——Cursor 会同时扫描两处，导致重复加载。
  *
- * 单一真相源是 `.cursor/skills/`；`.claude/skills/` 为生成物，勿手改。
- * Rules 不同步——Cursor 用 `.cursor/rules/*.mdc`，Claude 用根目录 `AGENTS.md`，
- * 两者形态不同，各自维护。
+ * 若当前环境无法建 symlink（例如未开 Developer Mode 的 Windows），则退回整目录复制。
  *
- *   node scripts/sync-skills.cjs           # 同步一次
- *   node scripts/sync-skills.cjs --watch   # 监听变更
+ *   node scripts/sync-skills.cjs           # 确保链接（或复制兜底）
+ *   node scripts/sync-skills.cjs --watch   # 仅 copy 模式下监听；symlink 无需 watch
  */
 const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const SRC_DIR = path.join(ROOT, ".cursor", "skills");
+const SRC_DIR = path.join(ROOT, ".agents", "skills");
 const DST_DIR = path.join(ROOT, ".claude", "skills");
+const RELATIVE_TARGET = path.join("..", ".agents", "skills");
 
 const WATCH = process.argv.includes("--watch");
 
@@ -27,7 +27,7 @@ function ensureDir(dir) {
 
 function copyRecursive(from, to) {
   ensureDir(path.dirname(to));
-  const stat = fs.statSync(from);
+  const stat = fs.lstatSync(from);
   if (stat.isDirectory()) {
     ensureDir(to);
     for (const entry of fs.readdirSync(from)) {
@@ -38,46 +38,81 @@ function copyRecursive(from, to) {
   }
 }
 
-function syncSkills() {
+function isCorrectSymlink(dir) {
+  try {
+    const stat = fs.lstatSync(dir);
+    if (!stat.isSymbolicLink()) return false;
+    const resolved = path.resolve(path.dirname(dir), fs.readlinkSync(dir));
+    return path.resolve(resolved) === path.resolve(SRC_DIR);
+  } catch {
+    return false;
+  }
+}
+
+function removePath(target) {
+  fs.rmSync(target, { recursive: true, force: true });
+}
+
+function copyFallback() {
+  if (fs.existsSync(DST_DIR)) removePath(DST_DIR);
+  copyRecursive(SRC_DIR, DST_DIR);
+  const names = fs.readdirSync(SRC_DIR).filter((name) => {
+    const from = path.join(SRC_DIR, name);
+    return (
+      fs.statSync(from).isDirectory() &&
+      fs.existsSync(path.join(from, "SKILL.md"))
+    );
+  });
+  for (const name of names) console.log(`  ✅ ${name}`);
+  console.log(
+    `\n✨ 已复制 ${names.length} 个 skill → .claude/skills/（symlink 不可用，copy 兜底）`,
+  );
+}
+
+function ensureLink() {
   if (!fs.existsSync(SRC_DIR)) {
     console.error(`✗ 源目录不存在: ${path.relative(ROOT, SRC_DIR)}`);
     process.exit(1);
   }
 
-  // 先清掉生成物中已不存在的 skill，避免删除后残留
-  if (fs.existsSync(DST_DIR)) {
-    const src = new Set(fs.readdirSync(SRC_DIR));
-    for (const name of fs.readdirSync(DST_DIR)) {
-      if (!src.has(name)) {
-        fs.rmSync(path.join(DST_DIR, name), { recursive: true, force: true });
-        console.log(`  🗑  移除已删除的 skill: ${name}`);
-      }
-    }
+  if (isCorrectSymlink(DST_DIR)) {
+    console.log("✨ .claude/skills → .agents/skills（符号链接已就绪）");
+    return "symlink";
   }
 
-  ensureDir(DST_DIR);
-  let count = 0;
-  for (const name of fs.readdirSync(SRC_DIR)) {
-    const from = path.join(SRC_DIR, name);
-    if (!fs.statSync(from).isDirectory()) continue;
-    if (!fs.existsSync(path.join(from, "SKILL.md"))) {
-      console.warn(`  ⚠️  跳过（无 SKILL.md）: ${name}`);
-      continue;
-    }
-    copyRecursive(from, path.join(DST_DIR, name));
-    console.log(`  ✅ ${name}`);
-    count += 1;
+  ensureDir(path.dirname(DST_DIR));
+  try {
+    fs.lstatSync(DST_DIR);
+    removePath(DST_DIR);
+  } catch {
+    // absent
   }
-  console.log(`\n✨ 已同步 ${count} 个 skill → .claude/skills/`);
+
+  try {
+    fs.symlinkSync(RELATIVE_TARGET, DST_DIR, "dir");
+    if (!isCorrectSymlink(DST_DIR)) {
+      throw new Error("symlink created but does not resolve to .agents/skills");
+    }
+    console.log("✨ 已创建 .claude/skills → .agents/skills");
+    return "symlink";
+  } catch (err) {
+    console.warn(`  ⚠️  无法创建符号链接（${err.message}），改用复制`);
+    copyFallback();
+    return "copy";
+  }
 }
 
-syncSkills();
+const mode = ensureLink();
 
 if (WATCH) {
-  console.log("\n👀 监听 .cursor/skills/ …");
+  if (mode === "symlink") {
+    console.log("\n符号链接无需 watch：改 `.agents/skills/` 即对 Claude Code 生效。");
+    process.exit(0);
+  }
+  console.log("\n👀 监听 .agents/skills/ …");
   fs.watch(SRC_DIR, { recursive: true }, (_event, filename) => {
     if (!filename) return;
     console.log(`\n🔄 变更: ${filename}`);
-    syncSkills();
+    copyFallback();
   });
 }

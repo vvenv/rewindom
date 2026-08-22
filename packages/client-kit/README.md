@@ -24,4 +24,4 @@ import type { ClientAppModule } from "@rewindom/client-kit";
 
 ## 相关文档
 
-- [前端 Page 分层](../../.cursor/skills/frontend-page-structure/SKILL.md)
+- [前端 Page 分层](../../.agents/skills/frontend-page-structure/SKILL.md)

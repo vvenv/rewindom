@@ -15,8 +15,11 @@ coverage/
 dist/
 dist-ssr/
 
-# Claude Code skills（由 pnpm sync-skills 从 .cursor/skills/ 生成）
-.claude/skills/
+# Claude Code 本机权限（.claude/skills 是指向 .agents/skills 的跟踪符号链接）
+.claude/settings.local.json
+
+# Skills 真相源是 .agents/skills/；勿再往这里放（Cursor 会与 .agents 双扫重复加载）
+.cursor/skills/
 
 # Editor directories and files
 .idea

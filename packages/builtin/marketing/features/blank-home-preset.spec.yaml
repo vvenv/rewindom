@@ -18,7 +18,7 @@ touch:
   - packages/builtin/marketing/client/locales/zh-CN.json
   - packages/builtin/marketing/client/locales/en.json
   - packages/builtin/marketing/MODULE.md
-  - .cursor/skills/site-section/SKILL.md
+  - .agents/skills/site-section/SKILL.md
   - modules/site-docs/docs/usage/zh-CN/build-site.md
   - modules/site-docs/docs/usage/en/build-site.md
   - modules/site-docs/docs/usage/zh-CN/faq.md

@@ -11,7 +11,7 @@
  *   node scripts/gen-module.mjs <spec.yaml> --force  # 覆盖已存在的模块目录
  *   node scripts/gen-module.mjs <spec.yaml> --dry-run
  *
- * spec 模板：.cursor/skills/create-module/templates/MODULE.spec.yaml
+ * spec 模板：.agents/skills/create-module/templates/MODULE.spec.yaml
  *
  * 支持范围（故意收窄——宁可明确报错，也不生成半对的代码）：
  *   - surfaces: [tenant]，挂载点 renderRoutes 的列表型 CRUD
@@ -41,7 +41,7 @@ const specPath = args.find((a) => !a.startsWith("--"));
 if (!specPath) {
   console.error(
     "用法：node scripts/gen-module.mjs <spec.yaml> [--force] [--dry-run]\n" +
-      "模板：.cursor/skills/create-module/templates/MODULE.spec.yaml",
+      "模板：.agents/skills/create-module/templates/MODULE.spec.yaml",
   );
   process.exit(1);
 }

@@ -28,7 +28,7 @@ touch:
   - packages/builtin/marketing/client/hooks/useSite.ts
   - packages/builtin/marketing/client/components/settings/SiteHomeForm.tsx
   - packages/builtin/marketing/client/locales/
-  - .cursor/skills/site-section/SKILL.md
+  - .agents/skills/site-section/SKILL.md
 out_of_scope:
   - 套用时改 home_path（访客仍看已发布的那一版，草稿发布前切路径会露出旧首页）
   - 开通 entitlement 时自动套用（租户显式选）

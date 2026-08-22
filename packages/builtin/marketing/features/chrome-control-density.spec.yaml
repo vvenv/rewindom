@@ -29,7 +29,7 @@ touch:
   - modules/events/shared/sections/subscribe-html.test.ts
   - modules/events/MODULE.md
   - .cursor/rules/site-section-css.mdc
-  - .cursor/skills/site-section/SKILL.md
+  - .agents/skills/site-section/SKILL.md
 out_of_scope:
   - 给 chrome_text / 订阅块加字号设置（密度由区域决定，不是块级旋钮）
   - 改 shop.cart-link / 会员入口（它们走按钮而不是图标控件）

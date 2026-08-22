@@ -31,7 +31,7 @@ touch:
   - modules/events/client/i18n.test.ts
   - modules/events/server/ssr/events-preset-i18n.test.ts
   - docs/design/i18n.md
-  - .cursor/skills/site-section/SKILL.md
+  - .agents/skills/site-section/SKILL.md
 out_of_scope:
   - 按实体过滤 `getPublicHeroStats`（那四个数是雷达口径，不是实体档案）
   - 改 `events.entity` 正文（名字 / 类型 / 累计档案仍画在那段里）

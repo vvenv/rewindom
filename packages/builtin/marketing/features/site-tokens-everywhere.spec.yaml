@@ -71,7 +71,7 @@ touch:
   - .cursor/rules/site-section-i18n.mdc
   - modules/site-docs/docs/usage/
   - modules/site-docs/server/usage-docs.generated.ts
-  - .cursor/skills/site-section/SKILL.md
+  - .agents/skills/site-section/SKILL.md
 out_of_scope:
   - `{site_name}` / `{site_desc}` 作为 `{site}` / `{tagline}` 的别名（口径是「一次给齐不搞别名」，见 chrome-text-placeholders 的 out_of_scope）
   - 给站点设置的站名 / 标语字段本身做插值（那是插值的**源**，自引用只会绕圈）

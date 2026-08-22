@@ -132,10 +132,10 @@ SHADOW_DATABASE_URL="postgresql://rewindom:<pw>@localhost:5433/rewindom-shadow" 
 > 拖到一年后才用一条 drop 迁移清掉。squash 迁移时务必核对生成物。
 
 新建模块的标准路径：**填 MODULE.spec → `gen:module` → 补 service 业务逻辑 → `check:modules`**。
-模板：`.cursor/skills/create-module/templates/MODULE.spec.yaml`。
+模板：`.agents/skills/create-module/templates/MODULE.spec.yaml`。
 
 扩展已有模块：**填 FEATURE.spec → 按 `extend-module` 实现 → `check:modules`**。
-模板：`.cursor/skills/extend-module/templates/FEATURE.spec.yaml`；
+模板：`.agents/skills/extend-module/templates/FEATURE.spec.yaml`；
 落盘：`<module>/features/<slug>.spec.yaml`（与本次改动一起提交）。
 
 `check:modules` 是 skill「交付前自检」的机器化版本，改动模块后必须跑。
@@ -165,5 +165,5 @@ SHADOW_DATABASE_URL="postgresql://rewindom:<pw>@localhost:5433/rewindom-shadow" 
 ## Agent 配置（Cursor + Claude Code）
 
 - **Rules**（`.cursor/rules/*.mdc`，仅 Cursor）— `architecture`、`extension-points`、`coding-standards`、`field-naming`、`permissions`、`docs-reference`、`tenancy-mode`、`ui-components`、`frontend-page-structure`、`audit-logging`、`prisma-migration`、`auto-execute-scripts`、`site-section-css`、`site-section-i18n`
-- **Skills**（`.cursor/skills/`，单一真相源）— `create-module`、`extend-module`、`site-section`、`extract-module`、`error-logging`、`frontend-page-structure`、`prisma-sync-fix`、`merge-migrations`
-- **Claude Code**：根目录 `CLAUDE.md` 指向本文件；`.claude/skills/` 由 `pnpm sync-skills` 生成（`prepare` 自动跑）；只改 `.cursor/skills/`，勿手改生成物
+- **Skills**（`.agents/skills/`，单一真相源）— 自研 `create-module`、`extend-module`、`site-section`、`extract-module`、`error-logging`、`frontend-page-structure`、`prisma-sync-fix`、`merge-migrations`；第三方（Stripe 等）同目录，由根目录 `skills-lock.json` 锁定。不要再往 `.cursor/skills/` 放 skill（Cursor 会与 `.agents` 双扫重复加载）
+- **Claude Code**：根目录 `CLAUDE.md` 指向本文件；`.claude/skills` 是指向 `.agents/skills` 的符号链接（`pnpm sync-skills` / `prepare` 确保存在）。只改 `.agents/skills/`

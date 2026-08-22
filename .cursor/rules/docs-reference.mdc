@@ -5,7 +5,7 @@ alwaysApply: true
 
 # 设计文档索引
 
-完整文档在 `docs/`。按任务选用 **Skill**（`.cursor/skills/`，同步到 `.claude/skills/`）或 **docs** 原文。
+完整文档在 `docs/`。按任务选用 **Skill**（`.agents/skills/`）或 **docs** 原文。
 
 | 任务域 | Skill | 设计文档 |
 | --- | --- | --- |

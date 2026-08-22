@@ -33,7 +33,7 @@ touch:
   - packages/builtin/marketing/client/hooks/use-site-page-actions.ts
   - packages/builtin/marketing/client/locales/
   - packages/builtin/marketing/MODULE.md
-  - .cursor/skills/site-section/SKILL.md
+  - .agents/skills/site-section/SKILL.md
   - modules/events/features/home-layout.spec.yaml
   - modules/events/shared/events-page-templates.ts
   - modules/events/shared/events-page-templates.test.ts

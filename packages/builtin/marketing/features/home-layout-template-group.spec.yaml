@@ -22,7 +22,7 @@ touch:
   - packages/builtin/marketing/client/locales/en.json
   - packages/builtin/marketing/client/locales/zh-CN.json
   - packages/builtin/marketing/MODULE.md
-  - .cursor/skills/site-section/SKILL.md
+  - .agents/skills/site-section/SKILL.md
   - modules/events/features/home-layout.spec.yaml
   - modules/events/shared/events-page-templates.ts
   - modules/events/shared/events-page-templates.test.ts
