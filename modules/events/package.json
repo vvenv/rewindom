@@ -22,8 +22,8 @@
     "@rewindom/module-sdk": "workspace:*",
     "@rewindom/ui": "workspace:*",
     "@tanstack/react-query": "^5.101.4",
-    "lucide-react": "^1.32.0",
-    "react-i18next": "^17.0.11"
+    "lucide-react": "^1.33.0",
+    "react-i18next": "^17.0.12"
   },
   "peerDependencies": {
     "fastify": "^5.11.3",
@@ -38,7 +38,7 @@
     "@types/react-dom": "^19.2.4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
-    "happy-dom": "^20.11.2",
+    "happy-dom": "^20.11.6",
     "msw": "^2.15.0",
     "vitest": "^4.1.11"
   },
