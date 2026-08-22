@@ -1,0 +1,62 @@
+# 目录 68 个源之后，跨源印证仍然几乎只发生在 ai / tech / business。
+# MODULE.md 写着这三格刻意更密，其余四格（world / gaming / entertainment /
+# sports）各 3–5 个——单源 topic 的事件永远无法跨源印证，等于白占一个筛选项。
+# 非新闻源（status / release）也只覆盖了几家开发者工具，云厂商大面积事故进不来。
+#
+# 种植仍走现成的 ensureDefaultFeeds：新 key 补给存量站点，已种过的不复活。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [tenant]
+goal: 内置目录给 world / gaming / entertainment / sports 补报道与一手源，并给 status / release 补云厂商与主流运行时；每个新增 URL 实际请求验证后再进目录。
+gold: modules/events/server/ingest/feed-catalog.ts
+touch:
+  - modules/events/features/feed-catalog-more-sources.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/server/ingest/feed-catalog.ts
+  - modules/events/server/ingest/feed-catalog.test.ts
+out_of_scope:
+  - 新 connector（仍只有 hackernews 与 rss）
+  - 中文源（跨语言合并要等阈值校准，见 MODULE.md「后续」）
+  - 第三方刮来的镜像与 RSSHub
+  - 已有出版社的分类 feed（BBC / ESPN / Bloomberg / WSJ / NPR 同一家已经在目录里）
+  - Anthropic / Meta AI 官网（没有官方 RSS）
+  - 招聘源
+  - 改采集周期与并发
+  - 工作台上的「从目录添加源」选择器
+i18n: none
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/ingest/feed-catalog.test.ts server/ingest/feed-seed.test.ts
+  - node scripts/verify-module.mjs events
+  - 新增目录项逐条请求验证（HTTP 2xx + 能解析出条目）
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: []
+models: []
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. 只加第一方 RSS/Atom。RSSHub、GitHub 刮来的 mirror 不进目录。
+# 2. 优先补覆盖偏薄的 topic，以及非新闻源里缺的云厂商 status / 主流运行时 release。
+#    ai / tech / business 已经密过一轮，本期只加明确缺位的一手博客（Stripe /
+#    GitLab / Kubernetes Blog 这类），不加同一家出版社的第二个分类 feed。
+# 3. 每个 URL 实际请求过才进目录。403 / 空 feed / HTML 登录页不要硬塞。
+#    沿用既有口径：本地 terminated 但不是 404 的，可以进目录并在注释里标明。
+# 4. 种植仍走现成的 ensureDefaultFeeds。本 spec 不改 feed-seed.ts。
+# 5. 采集仍是串行。加完后目录总量记进 MODULE.md；超过周期一半再单独立项做并发，
+#    不要在本期顺手改 ingest.service.ts。
+#
+# 最终进目录的 33 条（2026-08-22 逐条请求，HTTP 2xx 且能解析出条目）：
+#   world          Guardian World / Deutsche Welle / France 24 / Foreign Policy / Time
+#   gaming         Steam News（official）、IGN / Rock Paper Shotgun / PC Gamer / Nintendo Life
+#   entertainment  Deadline / Rolling Stone / Billboard / Pitchfork
+#   sports         Guardian Sport / CBS Sports / The Athletic
+#   tech official  GitLab Blog / Kubernetes Blog / Docker Blog / Vercel Blog / Netflix Tech Blog
+#   status         AWS / Google Cloud / Vercel / Discord / Atlassian
+#   release        TypeScript / React / Redis / Linux Kernel
+#   filing         FDA 新闻稿；ECB Press 标 official（与 Federal Reserve Press 同档）
+#
+# 验证过但没进目录：Politico 403、CNN TLS 被掐、Stripe Blog/Status 404、
+# Azure Status 空 feed、Vulture/NBC Sports/SI 404、The Batch 404、
+# Mistral / Cohere / LangChain / Shopify Engineering 解析不出条目。
+# RSSHub 镜像不进目录。同一家已有出版社的分类 feed 不加（BBC / ESPN / NPR）。

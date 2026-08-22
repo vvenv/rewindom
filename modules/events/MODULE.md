@@ -948,8 +948,10 @@ OpenAI 报 `prompt_tokens_details.cached_tokens`）。系统提示词与响应�
 
 ## 采集源
 
-内置目录在 `server/ingest/feed-catalog.ts`，68 个源，每个 topic 至少 3 个。
-ai / tech / business 三格比其余更密：跨源印证主要发生在这三格，目录也优先往这儿补。
+内置目录在 `server/ingest/feed-catalog.ts`，101 个源，每个 topic 至少 3 个。
+ai / tech / business 三格比其余更密：跨源印证主要发生在这三格。
+world / gaming / entertainment / sports 也按同一口径补过报道与一手源
+（Steam 是 gaming 里少有的 official；娱乐与体育仍然没有当事方公告的等价物）。
 Anthropic 与 Meta AI 官网没有官方 RSS，不进目录（第三方刮来的镜像挂了整格都空）。
 
 种植按**目录项的 key**（`connector:url`）记账，记录存在 `TenantSetting`
@@ -995,9 +997,9 @@ HN 讨论页、PDF、图片不抓。单篇失败不影响整轮；旧的空摘�
 
 | `source_kind` | 是什么                    | 目录里的例子                                                                        |
 | ------------- | ------------------------- | ----------------------------------------------------------------------------------- |
-| `release`     | changelog / release notes | kubernetes / rust / node / go / cpython 的 `releases.atom`                          |
-| `status`      | 状态页事故记录            | githubstatus / cloudflarestatus / npm / slack / openai / anthropic 的 `history.rss` |
-| `filing`      | 监管与公告文件            | SEC、FTC 新闻稿                                                                     |
+| `release`     | changelog / release notes | kubernetes / rust / node / go / cpython / TypeScript / React / Redis / Linux kernel |
+| `status`      | 状态页事故记录            | GitHub / Cloudflare / npm / Slack / OpenAI / Anthropic，外加 AWS / Google Cloud / Vercel / Discord / Atlassian |
+| `filing`      | 监管与公告文件            | SEC、FTC、FDA 新闻稿；欧央行新闻稿走 official（与美联储同档） |
 
 **为什么加这一类**：在「新闻覆盖面」上比不过 Google News 与 Techmeme，那是它们最强的
 一条线。而聚合器结构上不收 changelog 与状态页——它们不是「新闻」。对读者来说

@@ -10,7 +10,7 @@ describe("DEFAULT_FEEDS", () => {
     expect(keys).toEqual([...new Set(keys)]);
   });
 
-  it("每个 topic 至少 3 个源，ai / tech / business 更密", () => {
+  it("每个 topic 至少 3 个源，ai / tech / business 更密，其余四格也能跨源印证", () => {
     const counts = Object.fromEntries(
       EVENT_TOPICS.map((topic) => [
         topic,
@@ -24,5 +24,9 @@ describe("DEFAULT_FEEDS", () => {
     expect(counts.ai).toBeGreaterThanOrEqual(10);
     expect(counts.tech).toBeGreaterThanOrEqual(18);
     expect(counts.business).toBeGreaterThanOrEqual(8);
+    expect(counts.world).toBeGreaterThanOrEqual(8);
+    expect(counts.gaming).toBeGreaterThanOrEqual(8);
+    expect(counts.entertainment).toBeGreaterThanOrEqual(6);
+    expect(counts.sports).toBeGreaterThanOrEqual(6);
   });
 });

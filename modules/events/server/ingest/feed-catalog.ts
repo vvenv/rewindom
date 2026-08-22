@@ -20,11 +20,13 @@ export interface FeedSeed {
  * 「HN 上那条帖子有没有第二个源覆盖到」。8 个源时线上 16 张卡有 13 张只有单一来源。
  * 每个 topic 至少 3 个源——单源 topic 的事件永远无法跨源印证，等于白占一个筛选项。
  * ai / tech / business 刻意更密：同一件事更容易被第二家源接到。
- * entertainment / sports 没有 official 源：这两类没有「当事方自己发公告」的等价物，
- * 硬凑一个不如空着。
+ * world / gaming / entertainment / sports 也曾偏薄，后来按同一口径补过报道与一手源
+ * （Steam 是 gaming 里少有的 official；娱乐与体育仍然没有「当事方公告」的等价物，
+ * 硬凑一个不如空着）。
  *
  * 明确不加：Anthropic / Meta AI 官网没有官方 RSS（第三方刮来的镜像不进目录）；
- * Wired 主 feed 目前是优惠码；Reuters 已关公开 RSS。
+ * Wired 主 feed 目前是优惠码；Reuters 已关公开 RSS；Politico 对阅读器 UA 403；
+ * Stripe 没有公开 blog/status RSS；Azure 状态页 feed 解析不出条目。
  *
  * 目录里的每个 URL 都实际请求验证过。**已知在部分网络环境下不可达**：
  * `GitHub Blog` 与 `Hugging Face` 在本地会 `terminated`（连接被中断，不是 404），
@@ -85,6 +87,11 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   { connector: "rss", name: "AWS News Blog", url: "https://aws.amazon.com/blogs/aws/feed/", source_kind: "official", topic: "tech" },
   { connector: "rss", name: "Microsoft DevBlogs", url: "https://devblogs.microsoft.com/feed/", source_kind: "official", topic: "tech" },
   { connector: "rss", name: "Apple Newsroom", url: "https://www.apple.com/newsroom/rss-feed.rss", source_kind: "official", topic: "tech" },
+  { connector: "rss", name: "GitLab Blog", url: "https://about.gitlab.com/atom.xml", source_kind: "official", topic: "tech" },
+  { connector: "rss", name: "Kubernetes Blog", url: "https://kubernetes.io/feed.xml", source_kind: "official", topic: "tech" },
+  { connector: "rss", name: "Docker Blog", url: "https://www.docker.com/blog/feed/", source_kind: "official", topic: "tech" },
+  { connector: "rss", name: "Vercel Blog", url: "https://vercel.com/atom", source_kind: "official", topic: "tech" },
+  { connector: "rss", name: "Netflix Tech Blog", url: "https://netflixtechblog.com/feed", source_kind: "official", topic: "tech" },
   // ---- tech · 报道 / 社区
   { connector: "rss", name: "TechCrunch", url: "https://techcrunch.com/feed/", source_kind: "news", topic: "tech" },
   { connector: "rss", name: "The Verge", url: "https://www.theverge.com/rss/index.xml", source_kind: "news", topic: "tech" },
@@ -108,6 +115,8 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   { connector: "rss", name: "SEC Press Releases", url: "https://www.sec.gov/news/pressreleases.rss", source_kind: "filing", topic: "business" },
   // Akamai 会拦阅读器 UA，采集出口对 ftc.gov 改用浏览器族 UA（见 http.ts）
   { connector: "rss", name: "FTC Press Releases", url: "https://www.ftc.gov/feeds/press-release.xml", source_kind: "filing", topic: "business" },
+  { connector: "rss", name: "FDA Press Releases", url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml", source_kind: "filing", topic: "business" },
+  { connector: "rss", name: "ECB Press", url: "https://www.ecb.europa.eu/rss/press.html", source_kind: "official", topic: "business" },
 
   // ---- world
   { connector: "rss", name: "BBC World", url: "https://feeds.bbci.co.uk/news/world/rss.xml", source_kind: "news", topic: "world" },
@@ -115,22 +124,39 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   { connector: "rss", name: "Al Jazeera", url: "https://www.aljazeera.com/xml/rss/all.xml", source_kind: "news", topic: "world" },
   { connector: "rss", name: "UN News", url: "https://news.un.org/feed/subscribe/en/news/all/rss.xml", source_kind: "official", topic: "world" },
   { connector: "rss", name: "WHO Newsroom", url: "https://www.who.int/rss-feeds/news-english.xml", source_kind: "official", topic: "world" },
+  { connector: "rss", name: "The Guardian World", url: "https://www.theguardian.com/world/rss", source_kind: "news", topic: "world" },
+  { connector: "rss", name: "Deutsche Welle", url: "https://rss.dw.com/rdf/rss-en-world", source_kind: "news", topic: "world" },
+  { connector: "rss", name: "France 24", url: "https://www.france24.com/en/rss", source_kind: "news", topic: "world" },
+  { connector: "rss", name: "Foreign Policy", url: "https://foreignpolicy.com/feed/", source_kind: "news", topic: "world" },
+  { connector: "rss", name: "Time", url: "https://time.com/feed/", source_kind: "news", topic: "world" },
 
   // ---- gaming
   { connector: "rss", name: "Polygon", url: "https://www.polygon.com/rss/index.xml", source_kind: "news", topic: "gaming" },
   { connector: "rss", name: "Eurogamer", url: "https://www.eurogamer.net/feed", source_kind: "news", topic: "gaming" },
   { connector: "rss", name: "PlayStation Blog", url: "https://blog.playstation.com/feed/", source_kind: "official", topic: "gaming" },
   { connector: "rss", name: "Xbox Wire", url: "https://news.xbox.com/en-us/feed/", source_kind: "official", topic: "gaming" },
+  { connector: "rss", name: "Steam News", url: "https://store.steampowered.com/feeds/news.xml", source_kind: "official", topic: "gaming" },
+  { connector: "rss", name: "IGN", url: "https://feeds.ign.com/ign/all", source_kind: "news", topic: "gaming" },
+  { connector: "rss", name: "Rock Paper Shotgun", url: "https://www.rockpapershotgun.com/feed", source_kind: "news", topic: "gaming" },
+  { connector: "rss", name: "PC Gamer", url: "https://www.pcgamer.com/rss/", source_kind: "news", topic: "gaming" },
+  { connector: "rss", name: "Nintendo Life", url: "https://www.nintendolife.com/feeds/latest", source_kind: "news", topic: "gaming" },
 
   // ---- entertainment
   { connector: "rss", name: "Variety", url: "https://variety.com/feed/", source_kind: "news", topic: "entertainment" },
   { connector: "rss", name: "The Hollywood Reporter", url: "https://www.hollywoodreporter.com/feed/", source_kind: "news", topic: "entertainment" },
   { connector: "rss", name: "BBC Entertainment", url: "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml", source_kind: "news", topic: "entertainment" },
+  { connector: "rss", name: "Deadline", url: "https://deadline.com/feed/", source_kind: "news", topic: "entertainment" },
+  { connector: "rss", name: "Rolling Stone", url: "https://www.rollingstone.com/feed/", source_kind: "news", topic: "entertainment" },
+  { connector: "rss", name: "Billboard", url: "https://www.billboard.com/feed/", source_kind: "news", topic: "entertainment" },
+  { connector: "rss", name: "Pitchfork", url: "https://pitchfork.com/feed/feed-news/rss", source_kind: "news", topic: "entertainment" },
 
   // ---- sports
   { connector: "rss", name: "BBC Sport", url: "https://feeds.bbci.co.uk/sport/rss.xml", source_kind: "news", topic: "sports" },
   { connector: "rss", name: "ESPN", url: "https://www.espn.com/espn/rss/news", source_kind: "news", topic: "sports" },
   { connector: "rss", name: "Sky Sports", url: "https://www.skysports.com/rss/12040", source_kind: "news", topic: "sports" },
+  { connector: "rss", name: "The Guardian Sport", url: "https://www.theguardian.com/sport/rss", source_kind: "news", topic: "sports" },
+  { connector: "rss", name: "CBS Sports", url: "https://www.cbssports.com/rss/headlines/", source_kind: "news", topic: "sports" },
+  { connector: "rss", name: "The Athletic", url: "https://www.nytimes.com/athletic/rss/news/", source_kind: "news", topic: "sports" },
 
   /*
    * ---- 非新闻源 ----
@@ -149,6 +175,10 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   { connector: "rss", name: "Node.js Releases", url: "https://github.com/nodejs/node/releases.atom", source_kind: "release", topic: "tech" },
   { connector: "rss", name: "Go Releases", url: "https://github.com/golang/go/releases.atom", source_kind: "release", topic: "tech" },
   { connector: "rss", name: "Python Releases", url: "https://github.com/python/cpython/releases.atom", source_kind: "release", topic: "tech" },
+  { connector: "rss", name: "TypeScript Releases", url: "https://github.com/microsoft/TypeScript/releases.atom", source_kind: "release", topic: "tech" },
+  { connector: "rss", name: "React Releases", url: "https://github.com/facebook/react/releases.atom", source_kind: "release", topic: "tech" },
+  { connector: "rss", name: "Redis Releases", url: "https://github.com/redis/redis/releases.atom", source_kind: "release", topic: "tech" },
+  { connector: "rss", name: "Linux Kernel", url: "https://www.kernel.org/feeds/kdist.xml", source_kind: "release", topic: "tech" },
 
   // ---- status · Statuspage 的 history.rss，每次故障一个独立 permalink
   { connector: "rss", name: "GitHub Status", url: "https://www.githubstatus.com/history.rss", source_kind: "status", topic: "tech" },
@@ -157,4 +187,9 @@ export const DEFAULT_FEEDS: readonly FeedSeed[] = [
   { connector: "rss", name: "Slack Status", url: "https://status.slack.com/feed/rss", source_kind: "status", topic: "tech" },
   { connector: "rss", name: "OpenAI Status", url: "https://status.openai.com/history.rss", source_kind: "status", topic: "ai" },
   { connector: "rss", name: "Anthropic Status", url: "https://status.anthropic.com/history.rss", source_kind: "status", topic: "ai" },
+  { connector: "rss", name: "AWS Status", url: "https://status.aws.amazon.com/rss/all.rss", source_kind: "status", topic: "tech" },
+  { connector: "rss", name: "Google Cloud Status", url: "https://status.cloud.google.com/feed.atom", source_kind: "status", topic: "tech" },
+  { connector: "rss", name: "Vercel Status", url: "https://www.vercel-status.com/history.rss", source_kind: "status", topic: "tech" },
+  { connector: "rss", name: "Discord Status", url: "https://discordstatus.com/history.rss", source_kind: "status", topic: "tech" },
+  { connector: "rss", name: "Atlassian Status", url: "https://status.atlassian.com/history.rss", source_kind: "status", topic: "tech" },
 ];
