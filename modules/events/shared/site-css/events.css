@@ -433,11 +433,16 @@
   list-style: none;
 }
 
+/*
+ * 标题在上、出处在下——跟时间线同一条阅读心流。
+ * 不要再把出处挤到标题右侧：宽屏上 `flex: 1 1 240px` 会把一行拆成左右两栏，
+ * 眼睛刚顺着时间线从上往下读完，到这里又被拽去扫右栏。
+ */
 .events-source-list li {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: baseline;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -445,7 +450,6 @@
 }
 
 .events-source-list a {
-  flex: 1 1 240px;
   color: inherit;
 }
 

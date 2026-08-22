@@ -23,8 +23,11 @@ interface EventSourceGroupsProps {
  * 刻意**不**做成「各平台热榜并排」——那会把产品退回聚合器。这里的顺序是
  * 一手 → 报道 → 讨论，读下来就是一条可核对的证据链，而不是几个榜单。
  *
+ * 每一行跟时间线同一条阅读心流：标题在上，出处（图标 / 源名 / 外链）在下，
+ * 不要把出处或外链图标甩到标题右侧。
+ *
  * 移除按钮**不能包在链接里**（`<button>` 嵌 `<a>` 既不合法也点不准），
- * 所以整条是 flex 行：左边链接占满，右边留给动作。
+ * 所以动作单独占一行右侧，不掺进阅读列。
  */
 export function EventSourceGroups({
   sources,
@@ -53,14 +56,12 @@ export function EventSourceGroups({
                     rel="noreferrer noopener"
                     className="group flex min-w-0 flex-1 flex-col gap-1 p-3"
                   >
-                    <span className="flex items-start gap-2 text-sm font-medium">
-                      <span className="flex-1">{source.title}</span>
-                      <ExternalLink className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
-                    </span>
+                    <span className="text-sm font-medium">{source.title}</span>
                     <span className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                       <span className="inline-flex items-center gap-1">
                         <SourceIcon url={source.icon_url} className="size-3.5" />
                         <Badge variant="outline">{source.source_name}</Badge>
+                        <ExternalLink className="size-3.5 shrink-0" />
                       </span>
                       <RelativeTime iso={source.published_at} />
                       {source.score > 0 ? (
