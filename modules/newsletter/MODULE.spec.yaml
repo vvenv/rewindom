@@ -1,0 +1,219 @@
+# 邮件订阅。gen-module 只支持单资源列表 CRUD，本模块为多模型手写：
+# 还带一个公开写入口、两张 SSR 页、一个官网段、一个定时任务和一张对外注册表。
+#
+# 本模块**不认识任何内容来源**。它只认抽象的「列表」（list_key），谁往
+# registerNewsletterSource() 里登记，谁就成了可订阅的东西。events 是第一个消费者，
+# 但这里不会出现 events 三个字母——依赖是单向的 events → newsletter。
+
+# ---------- 必填 · 骨架 ----------
+id: newsletter
+label: Newsletter
+description: 访客邮件订阅：双重确认、定时摘要投递、一键退订
+kind: business
+placement: modules/newsletter
+resource:
+  singular: subscriber
+  plural: subscribers
+surfaces: [tenant, ssr]
+# marketing：贡献官网段与 enhance 脚本。
+# **mailer 不在这里**：发信经 app.registry.getMailProvider() 拿，编译期不 import 该包，
+# 与 rbac 的 AuthzProvider 同形。requires 要与真实 import 图一致，写了反而过不了 check:deps。
+requires: [rbac, audit, marketing]
+
+# ---------- 必填 · 租户开关 ----------
+entitlement:
+  key: newsletter
+  label: 邮件订阅
+  description: 访客留邮箱订阅站点内容，按周期收摘要
+  disabled_hint: 该站点未开通邮件订阅
+  # 与 site-form 相反，这里默认**关**：site-form 是拆分前就在用的存量能力，
+  # 而订阅是全新的对外入口。默认开会让所有存量站点在升级当天多出一个收集邮箱的表单，
+  # 那是站长该自己决定的事（还牵扯隐私政策）。
+  default_enabled: false
+
+# ---------- 必填 · 权限 ----------
+permissions:
+  - { key: newsletter.read, label: 查看订阅者, group: 邮件订阅, description: 查看订阅者名单与摘要投递记录 }
+  - { key: newsletter.write, label: 管理订阅, group: 邮件订阅, description: 删除订阅者、导出名单、手动触发摘要 }
+
+# ---------- 必填 · 数据模型 ----------
+models:
+  - name: NewsletterSubscriber
+    fields:
+      - { name: email, type: String, required: true, label: 邮箱 }
+      # 决定确认信、摘要邮件、退订页用哪种语言。订阅那一刻的页面语言，不跟着站点改
+      - { name: locale, type: String, required: true, label: 语言 }
+      # pending | confirmed | unsubscribed | bounced
+      - { name: status, type: String, required: true, label: 状态 }
+      # 双重确认：未确认的地址不发任何摘要。token 一次性，确认后清空
+      - { name: confirm_token, type: String, required: false }
+      - { name: confirm_token_expires_at, type: DateTime, required: false }
+      - { name: confirmed_at, type: DateTime, required: false, label: 确认时间 }
+      # 退订 token **长期有效且不清空**：它进每一封摘要的 List-Unsubscribe 头，
+      # 读者半年后翻出旧邮件点退订也必须能退。与 confirm_token 是两个字段，不复用
+      - { name: unsubscribe_token, type: String, required: true }
+      - { name: unsubscribed_at, type: DateTime, required: false }
+      # 订阅来源页，用于站长判断哪个入口有效；不存 IP 以外的指纹
+      - { name: source_path, type: String, required: false, label: 来源页 }
+      - { name: ip, type: String, required: true }
+      - { name: user_agent, type: String, required: true }
+    indexes:
+      # 一个站点内一个邮箱一行（实现落成 @@unique）
+      - [tenant_id, email]
+      - [tenant_id, status]
+      - [tenant_id, created_at]
+      - [unsubscribe_token]
+      - [confirm_token]
+
+  - name: NewsletterSubscription
+    fields:
+      - { name: subscriber_id, type: String, required: true }
+      # 贡献方登记的列表标识，如 events:topic:ai。本模块只当它是字符串
+      - { name: list_key, type: String, required: true, label: 订阅列表 }
+      # daily | weekly —— 摘要周期跟订阅走，同一个人可以按不同频率订不同列表
+      - { name: cadence, type: String, required: true, default: "weekly", label: 周期 }
+    indexes:
+      - [tenant_id, subscriber_id, list_key]
+      - [tenant_id, list_key, cadence]
+
+  - name: NewsletterDigestRun
+    fields:
+      - { name: list_key, type: String, required: true, label: 订阅列表 }
+      - { name: cadence, type: String, required: true, label: 周期 }
+      # 游标：上一轮取到哪条为止。下一轮从这里往后要，不靠「现在减去七天」算窗口——
+      # 进程重启、任务漏跑、时钟漂移都会让时间窗算错，游标不会
+      - { name: cursor, type: String, required: false }
+      - { name: last_run_at, type: DateTime, required: false, label: 上次投递 }
+      - { name: item_count, type: String, required: true, default: "0", label: 条目数 }
+      - { name: recipient_count, type: String, required: true, default: "0", label: 收件数 }
+    indexes:
+      - [tenant_id, list_key, cadence]
+      - [tenant_id, last_run_at]
+
+# ---------- 必填 · API ----------
+api:
+  prefix: /api/newsletter
+  # 订阅者不在工作台里创建/编辑——那是访客自己的行为。只读 + 删
+  operations: [list, delete]
+  list:
+    search_fields: [email]
+    sort_whitelist: [created_at, confirmed_at, status, email]
+    default_sort: { by: created_at, dir: desc }
+
+# ---------- 必填 · 前端 ----------
+client:
+  mount: renderRoutes
+  route_path: /app/newsletter
+  nav:
+    # 与 /app/site、/app/site-form 同组：订阅名单是站点的一类内容集合
+    section: marketing:cms.navSection
+    label: 邮件订阅
+    title: 邮件订阅
+    icon: Mail
+  page:
+    layout: list-filter-table
+    form_fields: []
+
+# ---------- 可选 ----------
+audit:
+  actions:
+    # 访客订阅 / 确认 / 退订**不写审计**（匿名正常写入，同 site-form 提交口径）；
+    # 后台动名单、导出、手动触发才留痕
+    - { action: NEWSLETTER_SUBSCRIBER_DELETE, label: 删除订阅者 }
+    - { action: NEWSLETTER_SUBSCRIBER_EXPORT, label: 导出订阅者名单 }
+    - { action: NEWSLETTER_DIGEST_RUN, label: 手动触发摘要投递 }
+options:
+  soft_delete: false
+  page_size: 20
+  mobile_tab: false
+
+# ---------- 手写面（gen-module 不生成，实现时补）----------
+extra_routes:
+  - {
+      method: POST,
+      path: /api/public/newsletter/subscribe,
+      note: 匿名；Host 认租户；套 captcha 与 租户:IP 限流；一律回 202 不透露地址是否已存在,
+    }
+  - {
+      method: GET,
+      path: /newsletter/confirm,
+      note: SSR 页；token 在 query；渲染结果页，不做副作用（见设计要点 3）,
+    }
+  - { method: POST, path: /newsletter/confirm, note: SSR 表单提交，真正落确认 }
+  - {
+      method: GET,
+      path: /newsletter/unsubscribe,
+      note: SSR 页；列出该地址订的列表，可退单个或全退,
+    }
+  - { method: POST, path: /newsletter/unsubscribe, note: SSR 表单提交，落退订 }
+site_contributions:
+  sections:
+    - type: newsletter.subscribe
+      label: 邮件订阅
+      placements: [page]
+      entitlement: newsletter
+      note: |
+        邮箱输入框 + 列表选择器 + 周期选择器。列表候选来自 registerNewsletterSource()，
+        租户在 Theme Editor 里挑要订哪个（不挑则订本站默认列表）。
+        贡献方一行 UI 都不用写——这是整套设计里最划算的一处。
+  enhance: client/enhance/index.ts # 公开站提交脚本，随 site-enhance 一起打包
+registry:
+  # 注册表定义在消费方（本模块），贡献方来填。与 marketing 的 registerSiteSectionHtml、
+  # site-member 的 member-menu-links 同形。
+  name: registerNewsletterSource
+  file: modules/newsletter/shared/newsletter-source.ts
+  shape: |
+    interface NewsletterSource {
+      /** 列表清单：给订阅段的选择器和工作台用 */
+      listLists(input: { tenant_id: string; locale: string }):
+        Promise<Array<{ list_key: string; label: string; description?: string }>>;
+      /** 拉条目：游标之后的新内容，中立结构，本模块不认识它从哪来 */
+      listItemsSince(input: {
+        tenant_id: string; list_key: string; cursor: string | null; limit: number;
+      }): Promise<{
+        items: Array<{
+          id: string; title: string; url: string;
+          summary?: string; published_at: string;
+        }>;
+        next_cursor: string | null;
+      }>;
+    }
+jobs:
+  - {
+      id: newsletter-digest,
+      note: 按 cadence 扫到期的 (list_key, cadence)，拉条目 → 组装 → 逐人投递 → 推进游标,
+    }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **拉，不推。** 摘要天然是拉：定时问 source「游标之后有什么」。推模式（events 发
+#    EventBus 事件、本模块订阅）三条都不成立——每条事件一封信；EventBus 的约定是
+#    「Handler 失败不阻塞发布方」，失败即丢信；补发和重放做不了。即时推送（breaking）
+#    要的话是第二期叠一条独立通道，不改这一条。
+# 2. **公开口一律回 202，不区分「新订阅」和「这个地址早就订过了」。** 否则这个接口就是
+#    一个邮箱枚举器：谁都能拿它验证某个地址是不是本站订阅者。确认信照发（已确认的地址
+#    改发一封「你已经订阅了」而不是再给一个 token），对外表现一模一样。
+# 3. **确认与退订的副作用只发生在 POST。** GET 页面只渲染一个带 token 的表单。
+#    原因是邮件客户端和企业安全网关会替用户「预取」邮件里的链接——GET 就落确认的话，
+#    扫描器点一遍就等于用户确认了；退订更糟，Gmail 的图片代理能把整个名单退光。
+#    表单 POST 同时校验 Origin 同源，与 site-member 三张会员页同口径。
+# 4. **无 JS 也要能确认和退订。** 两张页都是真 `<form method="post">` 的 SSR 页，
+#    走 POST-重定向-GET。订阅入口可以依赖 JS（enhance 脚本），退订不行——
+#    读者退不掉订阅就只能点「举报垃圾邮件」，那会烧掉整个发信域的声誉。
+# 5. **每封摘要都带 List-Unsubscribe 与 List-Unsubscribe-Post 头**，值用长期有效的
+#    unsubscribe_token。Gmail / Outlook 的「取消订阅」按钮读的就是它，这是 2024 年之后
+#    批量发信的硬门槛，不是可选项。
+# 6. **不要求注册。** 会员登录时可以预填邮箱，但订阅本身与 site-member 无关——
+#    否则「让访客订阅」这件事从根上就不成立。故 requires 里没有 site-member。
+# 7. **发信能力不可用时，订阅入口整块不渲染。** isConfigured() 为假就当没开通：
+#    收了邮箱却永远发不出确认信，比没有这个表单更糟。与 mailer 设计要点 4 对齐。
+# 8. **一次摘要一次组装，多份投递。** 同一个 (list_key, cadence) 的所有订阅者收到的
+#    正文相同，只有退订链接不同。幂等键取 `newsletter:{run_id}:{subscriber_id}`，
+#    任务重跑、进程重启、多进程部署都不会重发——游标推进与投递写在同一个事务里。
+# 9. 收件人地址是个人数据：列表页默认掩码，导出要 newsletter.write 且留痕。
+out_of_scope:
+  - 即时逐条推送（第二期，独立通道，不改摘要这条）
+  - 邮件模板编辑器（先写死一套，随站点主色走）
+  - 退信 / 投诉回调把 status 打成 bounced（等 mailer 那边有 webhook 再接）
+  - 名单导入（先只做导出；导入进来的地址没有双重确认凭证，是发垃圾邮件的路子）
+  - A/B、打开率与点击追踪（要埋追踪像素和跳转中转，先不碰）
+  - 按关注实体生成个人化摘要（那是登录态，订阅是匿名的）

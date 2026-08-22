@@ -49,7 +49,7 @@ if (!specPath) {
 // ---------------------------------------------------------------- YAML 子集解析
 //
 // 仓库里的脚本一律零依赖，spec 的语法面又固定，所以自带一个子集解析器：
-// 支持缩进映射/序列、行内 [a, b] 与 { k: v }、注释、引号、布尔与整数。
+// 支持缩进映射/序列、行内 [a, b] 与 { k: v }（可跨行）、注释、引号、布尔与整数。
 // 不支持锚点、多行折叠、复杂键——遇到就当普通字符串，spec 校验会兜住。
 
 function stripComment(line) {
@@ -63,6 +63,29 @@ function stripComment(line) {
       return line.slice(0, i);
   }
   return line;
+}
+
+/**
+ * 一行里未闭合的 `[` / `{` 数量，引号内的括号不算。
+ *
+ * 行内集合是允许跨行写的，模板与既有 spec 的 `permissions` 就是那么排版的。
+ * 没有这个判断，`- {` 会被当成一个字符串项收下，后面几行更深缩进的键谁也认领不了，
+ * 于是 `parseMap` 在同一缩进层上再也匹配不到——**该层剩下的键被整段丢掉**。
+ * 症状是模板自己都解析不出 models / api / client，报「缺少必填项」。
+ */
+function flowDepth(line) {
+  let depth = 0;
+  let quote = null;
+  for (const c of line) {
+    if (quote) {
+      if (c === quote) quote = null;
+      continue;
+    }
+    if (c === '"' || c === "'") quote = c;
+    else if (c === "[" || c === "{") depth += 1;
+    else if (c === "]" || c === "}") depth -= 1;
+  }
+  return depth;
 }
 
 function splitTopLevel(text, sep = ",") {
@@ -120,11 +143,32 @@ function parseScalar(raw) {
 
 function parseYaml(text) {
   const lines = [];
+  // 括号没闭合就把后续行接上来，凑成一条完整的逻辑行；缩进以第一行为准
+  let pending = null;
+  let pendingDepth = 0;
+  const flush = () => {
+    if (pending === null) return;
+    lines.push({
+      indent: pending.match(/^\s*/u)[0].length,
+      text: pending.trim(),
+    });
+    pending = null;
+    pendingDepth = 0;
+  };
   for (const raw of text.split(/\r?\n/u)) {
     const line = stripComment(raw);
     if (!line.trim()) continue;
-    lines.push({ indent: line.match(/^\s*/u)[0].length, text: line.trim() });
+    if (pending === null) {
+      pending = line;
+      pendingDepth = flowDepth(line);
+    } else {
+      pending += ` ${line.trim()}`;
+      pendingDepth += flowDepth(line);
+    }
+    // 深度归零（或因为写坏了转负）就收线，别把整份文件粘成一行
+    if (pendingDepth <= 0) flush();
   }
+  flush();
 
   let cursor = 0;
   function parseBlock(indent) {
@@ -197,6 +241,7 @@ const REQUIRED = [
   "id",
   "label",
   "kind",
+  "placement",
   "resource.singular",
   "resource.plural",
   "surfaces",
@@ -232,6 +277,26 @@ function validateSpec(spec) {
     fail(
       `spec 缺少必填项：\n  ${missing.join("\n  ")}\n\n` +
         "这些是 create-module skill 第 0 步的「必问项」——缺了就得追问，不能猜。",
+    );
+  }
+
+  /*
+   * placement 决定产出到哪、产出什么形状——不是注释。
+   * 「一包一 manifest：模块 id 与物理包一一对应」（AGENTS.md §模块包布局），
+   * 所以目录名必须等于 id，否则 gen:external-modules 按 package.json 认出来的
+   * moduleId 会和 spec 对不上。
+   */
+  const placement = String(spec.placement).replace(/\/+$/u, "");
+  const allowedPlacements = [
+    `modules/${spec.id}`,
+    `packages/builtin/${spec.id}`,
+  ];
+  if (!allowedPlacements.includes(placement)) {
+    fail(
+      `placement 必须是 ${allowedPlacements.join(" 或 ")}（当前：${spec.placement}）\n\n` +
+        "业务模块放 modules/<id>/（独立 workspace 包，只依赖 @rewindom/module-sdk）；\n" +
+        "横切 infra 放 packages/builtin/<id>/（共享 @rewindom/builtin 这一个包）。\n" +
+        "目录名与 id 必须一致。",
     );
   }
 
@@ -289,8 +354,17 @@ const pascal = (s) =>
 function deriveNames(spec) {
   const singular = spec.resource.singular;
   const plural = spec.resource.plural;
+  const placement = String(spec.placement).replace(/\/+$/u, "");
+  const external = placement.startsWith("modules/");
   return {
     id: spec.id,
+    placement,
+    /** 外部模块是独立 workspace 包，内置模块共享 @rewindom/builtin */
+    external,
+    /** 审计动作的引用方式：内置用常量，外部用字面量（见 routes 模板注释） */
+    auditRef: external ? '"' : "AuditAction.",
+    auditRefEnd: external ? '"' : "",
+    pkg: external ? `@rewindom/${spec.id}` : "@rewindom/builtin",
     singular,
     plural,
     Singular: pascal(singular),
@@ -371,6 +445,99 @@ const mapperLine = (f) =>
       ? `    ${f.name}: record.${f.name} ? record.${f.name}.toISOString() : null,`
       : `    ${f.name}: record.${f.name}.toISOString(),`
     : `    ${f.name}: record.${f.name},`;
+
+// ------------------------------------------------- 外部模块：内核 import → SDK 门面
+//
+// 模板是按内置模块写的，直接 import 内核深路径（server-kernel / client-kit / shared）。
+// 外部模块不许这么干——`scripts/verify-module.mjs` 的边界校验会拦下来，理由是外部包
+// 只能依赖 `@rewindom/module-sdk` 这一个门面。所以生成完统一改写一次。
+//
+// 改写会让好几条深路径塌到同一个 specifier 上（service 里 4 条内核 import 全变成
+// `@rewindom/module-sdk/server`），必须顺手合并，否则一个文件里四条同源 import，
+// `import/no-duplicates` 第一次 lint 就是一屏红。合并结果与金标准 `modules/todo`
+// 一致：一条 import，类型成员用行内 `type` 前缀。
+
+function externalSpecifier(specifier, area) {
+  if (specifier.startsWith("@rewindom/server-kernel")) {
+    return "@rewindom/module-sdk/server";
+  }
+  if (specifier.startsWith("@rewindom/client-kit")) {
+    return "@rewindom/module-sdk/client";
+  }
+  if (
+    specifier === "@rewindom/shared" ||
+    specifier.startsWith("@rewindom/shared/")
+  ) {
+    // client 侧走 /client 子入口，好和同文件里已有的 client 门面 import 合成一条
+    return area === "client"
+      ? "@rewindom/module-sdk/client"
+      : "@rewindom/module-sdk";
+  }
+  return specifier;
+}
+
+/** `import { a, type B } from "x";`（含跨行大括号）；默认导入与副作用 import 不碰 */
+const NAMED_IMPORT_RE =
+  /^import\s+(type\s+)?\{([\s\S]*?)\}\s*from\s*["']([^"']+)["'];?[ \t]*$/gmu;
+
+function rewriteSdkImports(text, area) {
+  const groups = new Map();
+  for (const match of text.matchAll(NAMED_IMPORT_RE)) {
+    const [, typeOnly, body, specifier] = match;
+    const target = externalSpecifier(specifier, area);
+    if (!target.startsWith("@rewindom/module-sdk")) continue;
+    let group = groups.get(target);
+    if (!group) {
+      group = { members: [], matches: [] };
+      groups.set(target, group);
+    }
+    for (const raw of body.split(",")) {
+      const member = raw.trim();
+      if (!member) continue;
+      const marked =
+        typeOnly && !member.startsWith("type ") ? `type ${member}` : member;
+      if (!group.members.includes(marked)) group.members.push(marked);
+    }
+    group.matches.push(match);
+  }
+  if (groups.size === 0) return text;
+
+  const edits = [];
+  for (const [target, group] of groups) {
+    const allType = group.members.every((m) => m.startsWith("type "));
+    const names = allType
+      ? group.members.map((m) => m.slice("type ".length))
+      : group.members;
+    const [first, ...rest] = group.matches;
+    edits.push({
+      start: first.index,
+      end: first.index + first[0].length,
+      // prettier 随后会按行宽决定要不要拆行，这里不操心排版
+      text: `import ${allType ? "type " : ""}{ ${names.join(", ")} } from "${target}";`,
+    });
+    for (const match of rest) {
+      edits.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: null,
+      });
+    }
+  }
+
+  // 从后往前改，前面的替换才不会挪动后面的下标
+  edits.sort((a, b) => b.start - a.start);
+  let out = text;
+  for (const edit of edits) {
+    if (edit.text === null) {
+      // 连同行尾换行一起删，别留下空行让 import 分组看起来断开
+      const end = out[edit.end] === "\n" ? edit.end + 1 : edit.end;
+      out = out.slice(0, edit.start) + out.slice(end);
+    } else {
+      out = out.slice(0, edit.start) + edit.text + out.slice(edit.end);
+    }
+  }
+  return out;
+}
 
 // ---------------------------------------------------------------- 文件模板
 
@@ -467,11 +634,18 @@ export const ${n.CONST}_ENTITLEMENT: TenantModuleEntitlement = {
     const def = f.default !== undefined ? ` @default(${raw})` : "";
     return `  ${f.name} ${f.type}${optional}${def}`;
   };
+  /*
+   * 外部 `prisma/schema.prisma`、内置 `models.prisma`——这是 create-module skill
+   * 定死的约定，note / todo / shop 三个现存外部模块都是前者。
+   * 「片段不要叫 schema.prisma」那条警告只针对**内置**片段（它们平铺在包根上，
+   * Prisma 语言服务会把 schema.prisma 当成独立 schema 根）。
+   */
+  const prismaRel = n.external ? "prisma/schema.prisma" : "models.prisma";
   add(
-    "models.prisma",
+    prismaRel,
     `
-// packages/builtin/${n.id}/models.prisma
-// 由 apps/server/prisma/models/${n.id}.prisma 符号链接汇入
+// ${n.placement}/${prismaRel}
+// 由 apps/server/prisma/models/${n.id}.prisma 符号链接汇入${n.external ? "（gen:external-modules 自动建链）" : ""}
 // --- module: ${n.id} ---
 model ${model.name} {
   id         String   @id @default(uuid())
@@ -586,11 +760,29 @@ ${required ? `    if (!${f.name}) {\n      return "请输入${label(f)}";\n    }
   );
 
   // ---- server mapper
-  add(
-    `server/${n.singular}.mapper.ts`,
-    `
+  /*
+   * 记录类型的来源分两种：内置模块直接 import 生成的 Prisma client 类型；
+   * 外部模块拿不到（module-sdk 只导出 `Prisma` 命名空间，不导出各 model 类型），
+   * 改从 prisma 实例上把返回类型推出来——与金标准 modules/todo 一致。
+   */
+  const mapperHead = n.external
+    ? `
+import { prisma } from "@rewindom/module-sdk/server";
+
+import type { ${n.Singular}, ${n.Singular}ListItem } from "../shared/index.js";
+
+/** 从 prisma 实例推导记录类型——外部模块拿不到生成的 Prisma client 类型。 */
+type ${model.name}Record = NonNullable<
+  Awaited<ReturnType<typeof prisma.${n.prismaClient}.findFirst>>
+>;
+`
+    : `
 import type { ${n.Singular}, ${n.Singular}ListItem } from "../shared/index.js";
 import type { ${model.name} as ${model.name}Record } from "@rewindom/server-kernel/generated/prisma/client/client.js";
+`;
+  add(
+    `server/${n.singular}.mapper.ts`,
+    `${mapperHead}
 
 export function to${n.Singular}ListItem(record: ${model.name}Record): ${n.Singular}ListItem {
   return {
@@ -801,9 +993,7 @@ import { parsePagination } from "@rewindom/server-kernel/http/pagination.js";
 import { NotFoundError, ValidationError } from "@rewindom/server-kernel/lib/app-errors.js";
 import { emitAuditLogFromRequestSafe } from "@rewindom/server-kernel/runtime/audit-log-emit.js";
 
-import { AuditAction } from "../../audit/shared/index.js";
-
-import {
+${n.external ? "" : `import { AuditAction } from "../../audit/shared/index.js";\n\n`}import {
   create${n.Singular},
   delete${n.Singular},
   get${n.Singular},
@@ -878,7 +1068,7 @@ ${formFields.map((f) => `          ${f.name}: body.${f.name}${f.required === fal
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: request.authUser!.userId,
           username: request.authUser!.username,
-          action: AuditAction.${n.CONST}_CREATE,
+          action: ${n.auditRef}${n.CONST}_CREATE${n.auditRefEnd},
           resource: ${n.singular}.id,
           details: \`创建${spec.entitlement.label}：\${${n.singular}.${titleField}}\`,
         });
@@ -913,7 +1103,7 @@ ${formFields.map((f) => `          ${f.name}: body.${f.name},`).join("\n")}
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: request.authUser!.userId,
           username: request.authUser!.username,
-          action: AuditAction.${n.CONST}_UPDATE,
+          action: ${n.auditRef}${n.CONST}_UPDATE${n.auditRefEnd},
           resource: ${n.singular}.id,
           details: \`更新${spec.entitlement.label}：\${${n.singular}.${titleField}}\`,
         });
@@ -949,7 +1139,7 @@ ${formFields.map((f) => `          ${f.name}: body.${f.name},`).join("\n")}
         await emitAuditLogFromRequestSafe(app.events, app.log, request, {
           userId: request.authUser!.userId,
           username: request.authUser!.username,
-          action: AuditAction.${n.CONST}_DELETE,
+          action: ${n.auditRef}${n.CONST}_DELETE${n.auditRefEnd},
           resource: existing.id,
           details: \`删除${spec.entitlement.label}：\${existing.${titleField}}\`,
         });
@@ -2052,10 +2242,149 @@ ${(spec.requires ?? []).map((r) => `- \`module-${r}\``).join("\n") || "- 无"}
 ## 如何单独测试
 
 \`\`\`bash
-pnpm --filter @rewindom/builtin test --project ${n.id}/client
+${
+  n.external
+    ? `pnpm --filter ${n.pkg} test`
+    : `pnpm --filter @rewindom/builtin test --project ${n.id}/client`
+}
 \`\`\`
 `,
   );
+
+  // ---- 外部模块的包元文件（内置模块共享 @rewindom/builtin 那一份，不需要）
+  if (n.external) {
+    add(
+      "package.json",
+      JSON.stringify(
+        {
+          name: n.pkg,
+          version: "0.0.0",
+          private: true,
+          type: "module",
+          // 组装层按这两个入口拿 manifest；"./*" 兜住 shared/ 的深路径引用
+          exports: {
+            "./server/index.js": "./server/index.ts",
+            "./client/module.js": "./client/module.tsx",
+            "./*": "./*",
+          },
+          scripts: {
+            test: "vitest --run",
+            "test:watch": "vitest",
+            typecheck: "tsc -p tsconfig.json --noEmit",
+          },
+          dependencies: {
+            "@rewindom/module-sdk": "workspace:*",
+            "@rewindom/ui": "workspace:*",
+            "@tanstack/react-query": "^5.101.4",
+            "lucide-react": "^1.33.0",
+          },
+          // 宿主提供的运行时：由 apps/* 统一定版，模块不各自锁
+          peerDependencies: {
+            fastify: "^5.11.3",
+            react: "^19.0.0",
+            "react-dom": "^19.0.0",
+            "react-router": "^8.0.0",
+          },
+          devDependencies: {
+            "@rewindom/client-test": "workspace:*",
+            "@rewindom/server-test": "workspace:*",
+            "@testing-library/jest-dom": "^7.0.1",
+            "@testing-library/react": "^16.3.2",
+            "@types/react": "^19.2.18",
+            "@types/react-dom": "^19.2.4",
+            "happy-dom": "^20.11.6",
+            msw: "^2.15.0",
+            vitest: "^4.1.11",
+          },
+          // gen:external-modules 认这个字段：模块 id、Prisma 片段位置、依赖图
+          rewindom: {
+            moduleId: n.id,
+            prismaSchema: "./prisma/schema.prisma",
+            requires: spec.requires ?? [],
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    add(
+      "tsconfig.json",
+      JSON.stringify(
+        {
+          compilerOptions: {
+            target: "ES2022",
+            lib: ["ES2022", "DOM"],
+            module: "ESNext",
+            moduleResolution: "bundler",
+            strict: true,
+            skipLibCheck: true,
+            noEmit: true,
+            jsx: "react-jsx",
+            resolveJsonModule: true,
+          },
+          include: [
+            "shared/**/*.ts",
+            "server/**/*.ts",
+            "client/**/*.ts",
+            "client/**/*.tsx",
+          ],
+          exclude: ["node_modules", "**/*.test.ts", "**/*.test.tsx"],
+        },
+        null,
+        2,
+      ),
+    );
+
+    add(
+      "vitest.config.ts",
+      `
+import { existsSync } from "node:fs";
+import path from "node:path";
+
+import { createModuleClientTestProject } from "@rewindom/client-test/vitest";
+import {
+  createModuleServerTestProject,
+  createModuleSharedTestProject,
+} from "@rewindom/server-test/vitest";
+import { defineConfig } from "vitest/config";
+
+const ROOT = import.meta.dirname;
+
+/** 三个 project 同名会让 \`--project\` 过滤不掉，逐个显式命名 */
+function named<T extends { test?: Record<string, unknown> }>(
+  project: T,
+  name: string,
+): T {
+  return { ...project, test: { ...(project.test ?? {}), name } };
+}
+
+export default defineConfig({
+  test: {
+    projects: [
+      ...(existsSync(path.join(ROOT, "server"))
+        ? [named(createModuleServerTestProject(ROOT), "server")]
+        : []),
+      ...(existsSync(path.join(ROOT, "client"))
+        ? [named(createModuleClientTestProject(ROOT), "client")]
+        : []),
+      ...(existsSync(path.join(ROOT, "shared"))
+        ? [named(createModuleSharedTestProject(ROOT), "shared")]
+        : []),
+    ],
+  },
+});
+`,
+    );
+
+    // 只改 server/ client/ shared/ 下的源码；包元文件与 vitest 配置照原样
+    for (const [rel, content] of Object.entries(files)) {
+      const area = rel.split("/")[0];
+      if (!["server", "client", "shared"].includes(area)) continue;
+      if (!/\.tsx?$/u.test(rel)) continue;
+      files[rel] = rewriteSdkImports(content, area);
+    }
+  }
 
   return { files, auditActions };
 }
@@ -2066,6 +2395,14 @@ const camel = (s) => s.replace(/-(\w)/gu, (_, c) => c.toUpperCase());
 
 function patchRegistries(spec, n) {
   const patches = [];
+
+  /*
+   * 外部模块的登记**一处都不在这里**：两处 external-modules.ts、Prisma 符号链接、
+   * tenant-models、tenant-guard、静态 module-manifest，全由 gen:external-modules
+   * 扫 `modules/*` 生成。在这里再写一遍只会和它打架——它是幂等重生成，
+   * 手写进去的行下一次会被覆盖或判成漂移。
+   */
+  if (n.external) return patches;
 
   const serverPath = path.join(ROOT, "apps/server/src/enabled-modules.ts");
   const serverText = readFileSync(serverPath, "utf8");
@@ -2183,9 +2520,9 @@ const spec = parseYaml(readFileSync(path.resolve(specPath), "utf8"));
 validateSpec(spec);
 const n = deriveNames(spec);
 
-const moduleDir = path.join(ROOT, "packages/builtin", n.id);
+const moduleDir = path.join(ROOT, n.placement);
 if (existsSync(moduleDir) && !FORCE) {
-  fail(`模块目录已存在：packages/builtin/${n.id}（要覆盖加 --force）`);
+  fail(`模块目录已存在：${n.placement}（要覆盖加 --force）`);
 }
 
 const { files, auditActions } = buildFiles(spec, n);
@@ -2193,18 +2530,23 @@ const patches = [
   ...patchRegistries(spec, n),
   ...patchAuditActions(auditActions, spec),
 ];
-const symlinkPath = path.join(
-  ROOT,
-  "apps/server/prisma/models",
-  `${n.id}.prisma`,
-);
+// 外部模块的符号链接由 gen:external-modules 建，这里只管内置模块那条
+const symlinkPath = n.external
+  ? null
+  : path.join(ROOT, "apps/server/prisma/models", `${n.id}.prisma`);
 
 if (DRY) {
-  console.log(`将生成 packages/builtin/${n.id}/：`);
+  console.log(`将生成 ${n.placement}/：`);
   for (const rel of Object.keys(files).sort()) console.log(`  + ${rel}`);
   console.log("\n将修改：");
   for (const [p] of patches) console.log(`  ~ ${path.relative(ROOT, p)}`);
-  console.log(`  + ${path.relative(ROOT, symlinkPath)}（符号链接）`);
+  if (symlinkPath) {
+    console.log(`  + ${path.relative(ROOT, symlinkPath)}（符号链接）`);
+  } else {
+    console.log(
+      "\n注册表与 Prisma 符号链接由 pnpm gen:external-modules 生成（见下方步骤）",
+    );
+  }
   process.exit(0);
 }
 
@@ -2218,7 +2560,7 @@ cpSync(path.resolve(specPath), path.join(moduleDir, "MODULE.spec.yaml"));
 
 for (const [p, content] of patches) writeFileSync(p, content);
 
-if (!existsSync(symlinkPath)) {
+if (symlinkPath && !existsSync(symlinkPath)) {
   symlinkSync(
     `../../../../packages/builtin/${n.id}/models.prisma`,
     symlinkPath,
@@ -2232,25 +2574,48 @@ try {
     cwd: ROOT,
     stdio: "pipe",
   });
-  execFileSync("npx", ["eslint", "--fix", ...touched], {
-    cwd: ROOT,
-    stdio: "pipe",
-  });
+  /*
+   * 外部模块跳过 eslint：`modules/*` 在这个仓库里没有 eslint 配置——根 eslint.config.js
+   * 只声明 ignores，每个包各带一份，而 note / todo / shop 都没带。硬跑只会得到
+   * 「all files are ignored」，然后把一条假警告糊在生成结果后面。
+   * 被改到的既有文件（audit.ts 等）仍在 packages/ 下，照常跑。
+   */
+  const lintTargets = n.external ? patches.map(([p]) => p) : touched;
+  if (lintTargets.length > 0) {
+    execFileSync("npx", ["eslint", "--fix", ...lintTargets], {
+      cwd: ROOT,
+      stdio: "pipe",
+    });
+  }
 } catch (err) {
   console.warn(
     `⚠ 自动格式化/修复未完全通过，请手动跑 lint：\n${err.stdout?.toString() ?? err.message}`,
   );
 }
 
-console.log(
-  `✅ 已生成 packages/builtin/${n.id}/（${Object.keys(files).length} 个文件）`,
-);
+console.log(`✅ 已生成 ${n.placement}/（${Object.keys(files).length} 个文件）`);
 for (const [p] of patches) console.log(`   ~ ${path.relative(ROOT, p)}`);
-console.log(`   + ${path.relative(ROOT, symlinkPath)}`);
+if (symlinkPath) console.log(`   + ${path.relative(ROOT, symlinkPath)}`);
+
+/*
+ * 外部模块多两步且**有先后**：新包要先 pnpm install 链进 workspace，
+ * gen:external-modules 生成的注册表才 import 得到 @rewindom/<id>。
+ */
+const nextSteps = n.external
+  ? [
+      "pnpm install（新 workspace 包要先链进来）",
+      "pnpm gen:external-modules（两处注册表 + Prisma 符号链接 + 四处登记）",
+      `node scripts/verify-module.mjs ${n.id}`,
+      `pnpm --filter server exec prisma migrate dev --name add_${n.id}`,
+      `在 /roles 给角色勾选 ${n.readPerm} / ${n.writePerm}`,
+      `业务逻辑在 server/${n.singular}.service.ts 里补`,
+    ]
+  : [
+      `node scripts/verify-module.mjs ${n.id}`,
+      `pnpm --filter server exec prisma migrate dev --name add_${n.id}`,
+      `在 /roles 给角色勾选 ${n.readPerm} / ${n.writePerm}`,
+      `业务逻辑在 server/${n.singular}.service.ts 里补`,
+    ];
 console.log(
-  "\n接下来：\n" +
-    `  1. node scripts/verify-module.mjs ${n.id}\n` +
-    `  2. pnpm --filter server exec prisma migrate dev --name add_${n.id}\n` +
-    `  3. 在 /roles 给角色勾选 ${n.readPerm} / ${n.writePerm}\n` +
-    `  4. 业务逻辑在 server/${n.singular}.service.ts 里补`,
+  `\n接下来：\n${nextSteps.map((s, i) => `  ${i + 1}. ${s}`).join("\n")}`,
 );

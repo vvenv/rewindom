@@ -73,6 +73,7 @@ export const ModelName = {
   TenantApiKey: 'TenantApiKey',
   TenantSetting: 'TenantSetting',
   User: 'User',
+  MailDelivery: 'MailDelivery',
   MarketingSite: 'MarketingSite',
   MarketingPage: 'MarketingPage',
   MarketingRedirect: 'MarketingRedirect',
@@ -513,6 +514,30 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const MailDeliveryScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  to_email: 'to_email',
+  subject: 'subject',
+  source: 'source',
+  status: 'status',
+  driver: 'driver',
+  html: 'html',
+  text: 'text',
+  headers: 'headers',
+  provider_message_id: 'provider_message_id',
+  idempotency_key: 'idempotency_key',
+  attempt_count: 'attempt_count',
+  last_error: 'last_error',
+  next_attempt_at: 'next_attempt_at',
+  sent_at: 'sent_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MailDeliveryScalarFieldEnum = (typeof MailDeliveryScalarFieldEnum)[keyof typeof MailDeliveryScalarFieldEnum]
 
 
 export const MarketingSiteScalarFieldEnum = {

@@ -164,3 +164,51 @@ export interface TranslationTermsProvider {
    */
   getKeepTerms(tenantId: string): Promise<readonly string[]>;
 }
+
+// ---------------------------------------------------------------- 发信
+
+export interface MailSendInput {
+  tenant_id: string;
+  to: string;
+  subject: string;
+  html: string;
+  /** 纯文本兜底。空正文的多部分邮件会被大量网关直接判成垃圾，别省。 */
+  text: string;
+  /** 调用方标识（`newsletter.digest`、`site-member.verify`…），用于按来源排障与配额。 */
+  source: string;
+  /**
+   * 幂等键，由调用方负责稳定。同一个 key 只会真的投出去一次。
+   *
+   * 这是发信里唯一防重的机制：定时任务重跑、进程重启、失败重试都会重新走到
+   * `send()`，没有它就是给同一个人连发几封一样的信。
+   */
+  idempotency_key: string;
+  /** `List-Unsubscribe` 这类必须落到信头上的字段。 */
+  headers?: Record<string, string>;
+}
+
+export interface MailSendResult {
+  delivery_id: string;
+  /** `sent` = 已交给通道；`queued` = 已落投递记录，等重试任务发。 */
+  status: "queued" | "sent";
+}
+
+/**
+ * 发信能力 —— 横切基础设施，由 `mailer` 模块实现。
+ *
+ * 走 ProviderRegistry 而不是让调用方直接 import `mailer`，是因为消费方跨了层：
+ * `site-member`（builtin infra）与 `newsletter`（外部业务模块）都要发信，而
+ * 「infra 模块禁止 import 业务包」。契约留在内核，两边都只认这个接口。
+ *
+ * 拿不到 provider（模块没启用、该租户关掉了开关）时 `getMailProvider()` 返回 null，
+ * 调用方据此把依赖发信的入口收起来——**不要假装能发**。
+ */
+export interface MailProvider {
+  send(input: MailSendInput): Promise<MailSendResult>;
+  /**
+   * 该租户是否有可用的发信通道（本站覆盖或平台默认）。
+   *
+   * 为 false 时 `send()` 会抛，不会留下一条永远发不出去的 queued 记录。
+   */
+  isConfigured(tenant_id: string): Promise<boolean>;
+}

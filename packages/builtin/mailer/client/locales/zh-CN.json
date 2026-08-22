@@ -1,0 +1,80 @@
+{
+  "nav": {
+    "mailer": "邮件发送"
+  },
+  "page": {
+    "title": "邮件发送",
+    "description": "配置本站的发信通道，并查看每一封信的投递结果"
+  },
+  "status": {
+    "heading": "发信通道",
+    "description": "没有可用通道时，依赖发信的功能会把入口收起来，而不是收下请求再发不出去",
+    "configured": "可用",
+    "notConfigured": "未配置",
+    "sourceTenant": "本站覆盖",
+    "sourcePlatform": "平台默认",
+    "driver": "通道",
+    "from": "发件人",
+    "notSet": "未设置"
+  },
+  "config": {
+    "heading": "发信通道设置",
+    "description": "留空的字段回落到平台默认；全部留空即完全使用平台配置",
+    "edit": "配置",
+    "driver": "通道类型",
+    "driverSmtp": "SMTP",
+    "driverLog": "仅记录日志（开发用）",
+    "driverInherit": "跟随平台默认",
+    "driverHint": "「仅记录日志」不会真的把信发出去，只把全文写进服务端日志；生产环境不可用",
+    "from": "发件人地址",
+    "fromHint": "收件方按这个地址校验 SPF/DKIM，必须是你能证明所有权的域名",
+    "smtpHost": "SMTP 主机",
+    "smtpPort": "端口",
+    "smtpSecure": "使用隐式 TLS",
+    "smtpSecureHint": "465 端口打开；587 端口请关闭（它走 STARTTLS，打开会握手失败）",
+    "smtpUser": "用户名",
+    "smtpPassword": "密码",
+    "smtpPasswordCurrent": "已保存 {{hint}}",
+    "smtpPasswordHint": "留空表示不修改；要清掉本站密码请填一个空格后保存",
+    "save": "保存",
+    "saved": "发信配置已保存"
+  },
+  "test": {
+    "trigger": "发送测试邮件",
+    "heading": "发送测试邮件",
+    "description": "往指定地址发一封测试信，用来确认通道确实可用",
+    "to": "收件地址",
+    "send": "发送",
+    "sent": "测试邮件已提交发送"
+  },
+  "deliveries": {
+    "heading": "投递记录"
+  },
+  "deliveryStatus": {
+    "queued": "排队中",
+    "sent": "已发出",
+    "failed": "失败",
+    "dropped": "已放弃"
+  },
+  "filters": {
+    "q": "搜索收件人或主题",
+    "status": "状态",
+    "allStatuses": "全部状态",
+    "source": "来源"
+  },
+  "table": {
+    "time": "时间",
+    "to": "收件人",
+    "subject": "主题",
+    "source": "来源",
+    "status": "状态",
+    "attempts": "尝试",
+    "error": "最近错误",
+    "sentAt": "送达时间",
+    "retry": "重试",
+    "retried": "已重新投递"
+  },
+  "empty": {
+    "title": "还没有任何投递记录"
+  }
+}

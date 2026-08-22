@@ -1,7 +1,7 @@
 # ⚠️ 本模块生成后做过手工 UI 定制（见 MODULE.md「相对生成物的手工偏离」）。
 # 直接 `gen-module.mjs --force` 会覆盖那些定制。
 # 待办清单（极简：title + completed）
-id: todos
+id: todo
 label: Todos
 description: 租户内待办清单
 kind: business

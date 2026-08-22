@@ -1,0 +1,95 @@
+# events 接入邮件订阅 —— 只做「内容源」，不做订阅 UI。
+#
+# 订阅是留存的第三条腿，public-rss.spec.yaml 里已经论证过：关注事件（易逝）、
+# 关注实体（要登录）、订阅（不需要账号）。RSS 解决了技术读者那一档，但 RSS 的读者
+# 基数在缩小；邮件是剩下那批人唯一还会用的订阅方式。
+#
+# 关键在于本模块**几乎不需要为此写东西**：订阅表单是 newsletter 贡献给站点的段，
+# 租户在 Theme Editor 里拖到 /events 页上就有了。events 这边只负责回答两个问题——
+# 「这个站有哪些东西可订」和「某个列表自游标以来有什么新条目」。
+
+# ---------- 必填 ----------
+module: events
+surfaces: [ssr]
+goal: |
+  events 实现并注册 newsletter 的 NewsletterSource：把已启用的主题与全站事件登记成
+  可订阅列表，并按游标返回中立条目（title / url / summary / published_at），
+  供 newsletter 组装定时摘要。events 不出现任何订阅 UI，也不认识邮件。
+gold: modules/events/server/translation-terms.provider.ts
+touch:
+  - modules/events/features/newsletter-source.spec.yaml
+  - modules/events/MODULE.md
+  - modules/events/MODULE.spec.yaml # requires 加 newsletter
+  - modules/events/package.json # 依赖 + rewindom.requires 同步
+  - modules/events/server/newsletter-source.provider.ts
+  - modules/events/server/newsletter-source.provider.test.ts
+  - modules/events/server/module.ts # onBoot 注册
+  - modules/events/client/locales/en.json
+  - modules/events/client/locales/zh-CN.json
+  - apps/server/scripts/lib/module-manifest.ts # requires 图同步
+out_of_scope:
+  - 订阅表单 / 订阅入口 UI（那是 newsletter 贡献的段，本模块一行不写）
+  - 邮件正文模板与发信（newsletter + mailer 的事）
+  - 「事件有新进展」的追更摘要（见设计要点 3，第二期）
+  - 实体列表进选择器候选（见设计要点 2）
+  - 个人化摘要 / 按关注实体推送（那是登录态，订阅是匿名的）
+  - 即时推送（第二期独立通道）
+i18n: code # 列表 label 走文案表；事件标题是数据，不翻译（与 public-rss 同口径）
+acceptance:
+  - pnpm --filter @rewindom/events exec vitest --run server/newsletter-source.provider.test.ts
+  - pnpm --filter @rewindom/events exec vitest --run
+  - node scripts/verify-module.mjs events
+  - pnpm check:deps
+  - pnpm check:modules
+  - pnpm check:i18n
+
+# ---------- 可选 ----------
+entitlement: events
+permissions: [] # 不新增；这条路径上没有登录态
+models: [] # 不落库，游标存在 newsletter 侧的 NewsletterDigestRun 上
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **依赖方向单向：events → newsletter。**
+#    契约（NewsletterSource 类型 + registerNewsletterSource）住在 newsletter 的 shared，
+#    events 以包规格 import `@rewindom/newsletter/shared/newsletter-source.js`，
+#    在 onBoot 里注册自己。newsletter 永远不认识 events——它拿到的只是一串 list_key
+#    和一堆 { title, url, summary, published_at }。这与本模块给 translation 注册
+#    TranslationTermsProvider 是同一套做法，抄那份即可。
+#    package.json 的 `rewindom.requires` 与 module-manifest.ts 都要加 newsletter，
+#    否则 check:deps 报缺声明；requires 图必须无环，newsletter 那边不许反向声明 events。
+#
+# 2. **列表粒度：全站 + 已启用主题进候选，实体只解析不进候选。**
+#    list_key 形状：`events:all` / `events:topic:<topic>` / `events:entity:<slug>`。
+#    listLists() 只返回前两类——主题取自 topic-settings.service 的已启用清单，数量可控；
+#    实体是几千个量级，全塞进订阅段的下拉框会让租户在编辑器里翻到崩溃。
+#    但 listItemsSince() **要认识** `events:entity:<slug>`：实体页上摆订阅段时，
+#    段可以把当前实体的 key 填进去（与 RSS 那边「按上下文取址」同一个思路），
+#    这条路径不经过候选清单。
+#
+# 3. **游标用 `first_seen_at + id`，摘要只发新事件，不发进展。**
+#    RSS 那边 pubDate 用 last_activity_at，因为 RSS 是流，订阅者按时间轴看更新没问题。
+#    邮件不是：事件会被反复合并、反复更新，用 last_activity_at 当游标的话，
+#    同一条事件会在连续几周的摘要里反复出现，读者第三次看到就退订了。
+#    「这条又有新进展了」是有价值的，但它需要一套「上次告诉过你什么」的按人状态，
+#    比游标复杂一个量级——记进 out_of_scope，第二期做。
+#    复合游标而不是纯时间戳：同一毫秒多条事件时纯时间戳会漏发或重发。
+#
+# 4. **URL 必须是绝对地址。** 邮件里没有 base，相对路径直接死。走
+#    events-public-paths + marketing 的 siteHref 拿站点绝对地址，
+#    并带上订阅者的 locale 前缀（NewsletterSource 的入参里有 locale）。
+#
+# 5. **summary 用现成字段，不为邮件另跑一次 LLM。** llm-cost-trim 那条口径继续生效：
+#    摘要邮件是派生视图，不是新的分析入口。没有 summary 就只给标题。
+#
+# 6. **租户隔离在 provider 内部收口。** listItemsSince 的每一条查询都必须带 tenant_id，
+#    入参给了就用入参的，不从请求上下文猜——这条路径是定时任务调的，没有 request。
+#    tenant-isolation.spec.yaml 里踩过一次，别再踩。
+#
+# 7. **两道 entitlement 各管各的。** events 关了 → listLists 返回空，站点上那个订阅段
+#    就没有 events 的列表可选；newsletter 关了 → 段整个不渲染。两边独立判断，
+#    不要在任何一侧去读对方的开关。
+#
+# 8. **limit 必须被尊重且要有上限。** newsletter 会传 limit，provider 自己再夹一层硬上限
+#    （建议 50）：一个沉寂三个月的列表突然被拉一次，不能把三个月的事件全灌进一封信。
+#    超出部分靠 next_cursor 留给下一轮，或者干脆丢弃并在正文里说「另有 N 条」——
+#    实现时选前者，语义更干净。

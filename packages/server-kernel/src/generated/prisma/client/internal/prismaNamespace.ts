@@ -419,6 +419,7 @@ export const ModelName = {
   TenantApiKey: 'TenantApiKey',
   TenantSetting: 'TenantSetting',
   User: 'User',
+  MailDelivery: 'MailDelivery',
   MarketingSite: 'MarketingSite',
   MarketingPage: 'MarketingPage',
   MarketingRedirect: 'MarketingRedirect',
@@ -476,7 +477,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo"
+    modelProps: "auditLog" | "backgroundJob" | "subscription" | "payment" | "bookmark" | "dashboardPreference" | "errorLog" | "eventFeed" | "eventSignal" | "newsEvent" | "eventEntity" | "eventEntityLink" | "eventEntityFollow" | "eventRevision" | "eventTimelineEntry" | "eventFollow" | "refreshToken" | "oAuthAccount" | "tenant" | "tenantApiKey" | "tenantSetting" | "user" | "mailDelivery" | "marketingSite" | "marketingPage" | "marketingRedirect" | "marketingAsset" | "marketingPageVersion" | "note" | "notification" | "notificationLog" | "appSetting" | "platformAdmin" | "platformAdminRole" | "platformAdminRefreshToken" | "role" | "rolePermission" | "userRole" | "shopSetting" | "shopProduct" | "shopCollection" | "shopCollectionProduct" | "shopDiscount" | "shopVariant" | "shopCart" | "shopCartItem" | "shopShippingZone" | "shopShippingRate" | "shopOrder" | "shopOrderLine" | "shopShipment" | "shopPayment" | "memberPlan" | "memberSubscription" | "memberPayment" | "siteDocCategory" | "siteDoc" | "siteFormSubmission" | "siteMember" | "siteMemberRefreshToken" | "siteMemberOAuthAccount" | "siteMemberOAuthExchangeCode" | "slowQueryLog" | "slowRequestLog" | "todo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2105,6 +2106,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    MailDelivery: {
+      payload: Prisma.$MailDeliveryPayload<ExtArgs>
+      fields: Prisma.MailDeliveryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MailDeliveryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MailDeliveryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload>
+        }
+        findFirst: {
+          args: Prisma.MailDeliveryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MailDeliveryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload>
+        }
+        findMany: {
+          args: Prisma.MailDeliveryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload>[]
+        }
+        create: {
+          args: Prisma.MailDeliveryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload>
+        }
+        createMany: {
+          args: Prisma.MailDeliveryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MailDeliveryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload>[]
+        }
+        delete: {
+          args: Prisma.MailDeliveryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload>
+        }
+        update: {
+          args: Prisma.MailDeliveryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload>
+        }
+        deleteMany: {
+          args: Prisma.MailDeliveryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MailDeliveryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MailDeliveryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload>[]
+        }
+        upsert: {
+          args: Prisma.MailDeliveryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MailDeliveryPayload>
+        }
+        aggregate: {
+          args: Prisma.MailDeliveryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMailDelivery>
+        }
+        groupBy: {
+          args: Prisma.MailDeliveryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MailDeliveryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MailDeliveryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MailDeliveryCountAggregateOutputType> | number
         }
       }
     }
@@ -5637,6 +5712,30 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const MailDeliveryScalarFieldEnum = {
+  id: 'id',
+  tenant_id: 'tenant_id',
+  to_email: 'to_email',
+  subject: 'subject',
+  source: 'source',
+  status: 'status',
+  driver: 'driver',
+  html: 'html',
+  text: 'text',
+  headers: 'headers',
+  provider_message_id: 'provider_message_id',
+  idempotency_key: 'idempotency_key',
+  attempt_count: 'attempt_count',
+  last_error: 'last_error',
+  next_attempt_at: 'next_attempt_at',
+  sent_at: 'sent_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MailDeliveryScalarFieldEnum = (typeof MailDeliveryScalarFieldEnum)[keyof typeof MailDeliveryScalarFieldEnum]
+
+
 export const MarketingSiteScalarFieldEnum = {
   id: 'id',
   tenant_id: 'tenant_id',
@@ -6637,6 +6736,7 @@ export type GlobalOmitConfig = {
   tenantApiKey?: Prisma.TenantApiKeyOmit
   tenantSetting?: Prisma.TenantSettingOmit
   user?: Prisma.UserOmit
+  mailDelivery?: Prisma.MailDeliveryOmit
   marketingSite?: Prisma.MarketingSiteOmit
   marketingPage?: Prisma.MarketingPageOmit
   marketingRedirect?: Prisma.MarketingRedirectOmit

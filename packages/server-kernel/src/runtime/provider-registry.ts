@@ -1,6 +1,7 @@
 import { AppError } from "../lib/app-errors.js";
 
 import type {
+  MailProvider,
   MemberMenuLinksProvider,
   MemberOAuthCallbackProvider,
   PublicConfigProvider,
@@ -84,6 +85,11 @@ export class ProviderRegistry {
   private memberOAuthCallback: MemberOAuthCallbackProvider | null = null;
   private siteMemberSession: SiteMemberSessionProvider | null = null;
   private memberMenuLinks: MemberMenuLinksProvider | null = null;
+  /**
+   * 发信能力。null = 这个部署 / 这个租户没有可用通道，调用方应把依赖发信的入口收起来，
+   * 而不是收下请求再无声地发不出去。
+   */
+  private mail: MailProvider | null = null;
   /** 列表而非单值：专有名词来自多个业务域，后注册的不该顶掉先注册的。 */
   private translationTerms: TranslationTermsProvider[] = [];
 
@@ -149,5 +155,13 @@ export class ProviderRegistry {
 
   getMemberMenuLinksProvider(): MemberMenuLinksProvider | null {
     return this.memberMenuLinks;
+  }
+
+  setMailProvider(provider: MailProvider): void {
+    this.mail = provider;
+  }
+
+  getMailProvider(): MailProvider | null {
+    return this.mail;
   }
 }

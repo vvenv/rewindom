@@ -95,6 +95,9 @@ export const AuditAction = {
   SHOP_SETTING_UPDATE: "SHOP_SETTING_UPDATE",
   SHOP_PROVIDER_UPDATE: "SHOP_PROVIDER_UPDATE",
   SHOP_WEBHOOK_SYNC: "SHOP_WEBHOOK_SYNC",
+  MAILER_CONFIG_UPDATE: "MAILER_CONFIG_UPDATE",
+  MAILER_TEST_SEND: "MAILER_TEST_SEND",
+  MAILER_DELIVERY_RETRY: "MAILER_DELIVERY_RETRY",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];
@@ -250,6 +253,9 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
   [AuditAction.SHOP_SETTING_UPDATE]: "更新商店设置",
   [AuditAction.SHOP_PROVIDER_UPDATE]: "更新商店收款通道",
   [AuditAction.SHOP_WEBHOOK_SYNC]: "同步商店付款 webhook",
+  [AuditAction.MAILER_CONFIG_UPDATE]: "更新发信配置",
+  [AuditAction.MAILER_TEST_SEND]: "发送测试邮件",
+  [AuditAction.MAILER_DELIVERY_RETRY]: "重试失败投递",
 };
 
 export const AUDIT_ACTION_GROUPS = [
@@ -390,6 +396,14 @@ export const AUDIT_ACTION_GROUPS = [
       AuditAction.SHOP_SETTING_UPDATE,
       AuditAction.SHOP_PROVIDER_UPDATE,
       AuditAction.SHOP_WEBHOOK_SYNC,
+    ],
+  },
+  {
+    label: "邮件发送",
+    actions: [
+      AuditAction.MAILER_CONFIG_UPDATE,
+      AuditAction.MAILER_TEST_SEND,
+      AuditAction.MAILER_DELIVERY_RETRY,
     ],
   },
 ] as const;

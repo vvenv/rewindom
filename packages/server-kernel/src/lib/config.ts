@@ -447,6 +447,41 @@ function buildShopConfig() {
   };
 }
 
+/**
+ * 平台级发信通道 —— 租户没有自己配时的回落。
+ *
+ * **没有「免费兜底」这一档**：所谓免费额度（Resend / Brevo）仍然要平台管理员去注册、
+ * 拿凭据、验域名，那就是这里的平台默认，不是什么零配置。三档都没有时发信能力
+ * 就是不可用，`MailProvider.isConfigured()` 返回 false，调用方把入口收起来。
+ *
+ * `log` driver 是开发环境的零配置默认：邮件全文进日志，不出网、不烧送达率。
+ * 生产禁用——真在生产用它，等于所有确认信、退订信静默消失。
+ */
+function buildMailConfig() {
+  const driver = strEnv("MAIL_DRIVER", isProduction ? "" : "log").toLowerCase();
+  if (driver && driver !== "smtp" && driver !== "log") {
+    throw new Error(`MAIL_DRIVER 取值非法：${driver}（可选 smtp / log）`);
+  }
+  if (driver === "log" && isProduction) {
+    throw new Error(
+      "MAIL_DRIVER=log 只能用于开发环境：生产用它会让所有邮件静默消失",
+    );
+  }
+  return {
+    driver: driver as "" | "smtp" | "log",
+    /** 信封发件人；留空则发信能力视为未配置（收件方一律拒收无 From 的信）。 */
+    from: strEnv("MAIL_FROM", ""),
+    smtp: {
+      host: strEnv("MAIL_SMTP_HOST", ""),
+      port: clampIntEnv("MAIL_SMTP_PORT", 587, 1, 65535),
+      /** 465 走隐式 TLS；587 走 STARTTLS，此处应为 false。 */
+      secure: boolEnv("MAIL_SMTP_SECURE", false),
+      user: strEnv("MAIL_SMTP_USER", ""),
+      password: strEnv("MAIL_SMTP_PASSWORD", ""),
+    },
+  };
+}
+
 function resolveTenantGuardMode(): "off" | "audit" | "enforce" {
   const value = strEnv("TENANT_GUARD_MODE", "enforce").toLowerCase();
   if (value === "off" || value === "audit" || value === "enforce") {
@@ -480,6 +515,7 @@ export const config = {
   events: buildEventsConfig(),
   billing: buildBillingConfig(),
   shop: buildShopConfig(),
+  mail: buildMailConfig(),
   tenant: {
     secretEncryptionKey: resolveTenantSecretEncryptionKey(),
     // 租户守卫：enforce 强制注入租户谓词；audit 只上报不改写（灰度用）；off 关闭。

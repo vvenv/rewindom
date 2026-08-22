@@ -161,6 +161,11 @@ export type TenantSetting = Prisma.TenantSettingModel
  */
 export type User = Prisma.UserModel
 /**
+ * Model MailDelivery
+ * 
+ */
+export type MailDelivery = Prisma.MailDeliveryModel
+/**
  * Model MarketingSite
  * 
  */

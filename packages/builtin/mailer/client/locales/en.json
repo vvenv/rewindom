@@ -1,0 +1,80 @@
+{
+  "nav": {
+    "mailer": "Email"
+  },
+  "page": {
+    "title": "Email",
+    "description": "Configure this site's mail transport and review every delivery"
+  },
+  "status": {
+    "heading": "Mail transport",
+    "description": "With no usable transport, features that send email hide their entry points instead of accepting requests they cannot fulfil",
+    "configured": "Ready",
+    "notConfigured": "Not configured",
+    "sourceTenant": "Site override",
+    "sourcePlatform": "Platform default",
+    "driver": "Transport",
+    "from": "From",
+    "notSet": "Not set"
+  },
+  "config": {
+    "heading": "Mail transport settings",
+    "description": "Blank fields fall back to the platform default; leave everything blank to use it entirely",
+    "edit": "Configure",
+    "driver": "Transport type",
+    "driverSmtp": "SMTP",
+    "driverLog": "Log only (development)",
+    "driverInherit": "Follow platform default",
+    "driverHint": "Log-only never sends anything; it writes the full message to the server log. Unavailable in production",
+    "from": "From address",
+    "fromHint": "Recipients check SPF/DKIM against this address, so it must be a domain you control",
+    "smtpHost": "SMTP host",
+    "smtpPort": "Port",
+    "smtpSecure": "Use implicit TLS",
+    "smtpSecureHint": "On for port 465; off for 587, which uses STARTTLS and will fail the handshake if this is on",
+    "smtpUser": "Username",
+    "smtpPassword": "Password",
+    "smtpPasswordCurrent": "Stored {{hint}}",
+    "smtpPasswordHint": "Leave blank to keep it unchanged; save a single space to clear the site password",
+    "save": "Save",
+    "saved": "Mail transport saved"
+  },
+  "test": {
+    "trigger": "Send test email",
+    "heading": "Send test email",
+    "description": "Send a test message to confirm the transport really works",
+    "to": "Recipient",
+    "send": "Send",
+    "sent": "Test email queued"
+  },
+  "deliveries": {
+    "heading": "Delivery log"
+  },
+  "deliveryStatus": {
+    "queued": "Queued",
+    "sent": "Sent",
+    "failed": "Failed",
+    "dropped": "Dropped"
+  },
+  "filters": {
+    "q": "Search recipient or subject",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "source": "Source"
+  },
+  "table": {
+    "time": "Time",
+    "to": "Recipient",
+    "subject": "Subject",
+    "source": "Source",
+    "status": "Status",
+    "attempts": "Attempts",
+    "error": "Last error",
+    "sentAt": "Delivered",
+    "retry": "Retry",
+    "retried": "Delivery retried"
+  },
+  "empty": {
+    "title": "No deliveries yet"
+  }
+}

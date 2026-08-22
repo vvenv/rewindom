@@ -6,7 +6,7 @@
 # 下面的示例值取自金标准模块 notes，可直接对照改写。
 
 # ---------- 必填 · 骨架 ----------
-id: notes # 包目录名 / manifest id，kebab-case
+id: note # 包目录名 / manifest id，kebab-case；必须等于 placement 的目录名
 label: Notes
 description: 租户内笔记 CRUD 金标准示例模块
 kind: business # business | infrastructure

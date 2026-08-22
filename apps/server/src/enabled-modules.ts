@@ -3,6 +3,7 @@ import { backgroundJobServerModule } from "@rewindom/builtin/background-job/serv
 import { billingServerModule } from "@rewindom/builtin/billing/server/index.js";
 import { dashboardServerModule } from "@rewindom/builtin/dashboard/server/index.js";
 import { errorLogServerModule } from "@rewindom/builtin/error-log/server/index.js";
+import { mailerServerModule } from "@rewindom/builtin/mailer/server/index.js";
 import { marketingServerModule } from "@rewindom/builtin/marketing/server/index.js";
 import { notificationServerModule } from "@rewindom/builtin/notification/server/index.js";
 import { platformServerModule } from "@rewindom/builtin/platform/server/index.js";
@@ -30,6 +31,7 @@ export const ENABLED_SERVER_MODULES = [
   dashboardServerModule,
   userServerModule,
   platformServerModule,
+  mailerServerModule,
   marketingServerModule,
   siteMemberServerModule,
   billingServerModule,

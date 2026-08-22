@@ -701,11 +701,12 @@ export type $EventTimelineEntryPayload<ExtArgs extends runtime.Types.Extensions.
     event_id: string
     occurred_at: Date
     /**
-     * 启发式分析器产出的稳定文案 code（客户端按 events ns 翻译）
+     * 启发式分析器产出的稳定文案 code（客户端按 events ns 翻译）。
+     * LLM 下是角色徽章（timeline.role.*），可以与 label_text 同时有。
      */
     label_code: string | null
     /**
-     * LLM 分析器产出的自由文案；与 label_code 二选一
+     * LLM 分析器产出的「这条比前面多了什么」；规则实现恒为空
      */
     label_text: string | null
     source_kind: string

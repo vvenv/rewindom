@@ -1,0 +1,39 @@
+// packages/builtin/mailer/models.prisma
+// 由 apps/server/prisma/models/mailer.prisma 符号链接汇入
+//
+// 只有投递记录落表。发信配置（SMTP 主机 / 账号 / 密钥）走 TenantSetting +
+// tenant-secret-crypto，与 LLM 配置同一套，不在这里另开一张表。
+model MailDelivery {
+  id                  String    @id @default(uuid())
+  tenant_id           String
+  to_email            String
+  subject             String
+  /// 调用方标识（newsletter.digest / site-member.verify…），按来源排障与配额
+  source              String
+  /// queued | sent | failed | dropped
+  status              String
+  driver              String
+  /// 正文随投递记录一起存：不存就没法重试——重试任务醒来时调用方早已返回，
+  /// 拿不回当初那封信。顺带也让「到底发出去的是什么」可查。
+  /// 代价是这张表会长，保留期清理见 MODULE.spec.yaml 的 out_of_scope。
+  html                String
+  text                String
+  /// List-Unsubscribe 这类必须原样重放的信头
+  headers             Json?
+  provider_message_id String?
+  /// 调用方给的幂等键。租户内唯一——防重发的全部指望它，见下方 @@unique
+  idempotency_key     String
+  attempt_count       Int       @default(0)
+  last_error          String?
+  next_attempt_at     DateTime?
+  sent_at             DateTime?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  /// 幂等键在租户内唯一：并发两次 send() 撞同一个 key 时靠数据库拦，
+  /// 不靠「先查再写」——那中间的窗口正好是重试任务最容易并发的地方。
+  @@unique([tenant_id, idempotency_key])
+  /// 重试任务的扫描路径
+  @@index([tenant_id, status, next_attempt_at])
+  @@index([tenant_id, created_at])
+}

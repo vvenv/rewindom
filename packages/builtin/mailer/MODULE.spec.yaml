@@ -1,0 +1,183 @@
+# 发信通道（infra）。gen-module 只支持单资源列表 CRUD，本模块为手写：
+# 配置不落自己的表（走 TenantSetting），还要出一个 ProviderRegistry 契约。
+#
+# 为什么它必须是独立的 infra 包，而不是 newsletter 里的一个 service：
+# `site-member` 是 builtin infra（会员验证邮箱、找回密码是它迟早要做的事），
+# 而「infra 模块禁止 import 业务包」是硬规则。发信一旦埋进 modules/newsletter，
+# site-member 将来就够不着它——只能靠 Provider 反着注册，变成
+# 「基础能力要等某个业务模块启用了才存在」。发信是横切能力，按决策表
+# 「可替换横切能力 → ProviderRegistry」那一行走。
+
+# ---------- 必填 · 骨架 ----------
+id: mailer
+label: Mailer
+description: 发信通道：租户/平台两级配置、driver 可插拔、投递记录与重试
+kind: infrastructure
+placement: packages/builtin/mailer
+resource:
+  singular: delivery
+  plural: deliveries
+surfaces: [tenant]
+# 只依赖 rbac（权限）与 audit（配置变更留痕）。
+# **没有任何模块在 requires 里写 mailer**：消费方一律经 app.registry.getMailProvider()
+# 拿能力，编译期不 import 本包——这正是把它拆出来的意义。与 AuthzProvider 同形。
+requires: [rbac, audit]
+
+# ---------- 必填 · 租户开关 ----------
+entitlement:
+  key: mailer
+  label: 邮件发送
+  description: 配置本站发信通道，查看投递记录
+  disabled_hint: 该组织未开通邮件发送
+  # 存量租户默认开：关掉的语义是「这个租户一封信都不发」，
+  # getMailProvider() 对它返回 null，依赖发信的模块随之诚实失败（见下方设计要点 4）。
+  default_enabled: true
+
+# ---------- 必填 · 权限 ----------
+permissions:
+  - { key: mailer.read, label: 查看发信配置, group: 邮件发送, description: 查看发信通道状态与投递记录 }
+  - { key: mailer.write, label: 管理发信配置, group: 邮件发送, description: 配置发信通道、发送测试邮件、重试失败投递 }
+
+# ---------- 必填 · 数据模型 ----------
+# 配置**不在这里**：SMTP 主机/账号/密钥走 TenantSetting + tenant-secret-crypto，
+# 与 tenant-llm.ts 同一套（本站覆盖 > 平台 env，接口只回 status 不回密钥）。
+# 本模块唯一落表的是投递记录。
+models:
+  - name: MailDelivery
+    fields:
+      - { name: to_email, type: String, required: true, label: 收件人 }
+      - { name: subject, type: String, required: true, label: 主题 }
+      # 调用方是谁：newsletter.digest / site-member.verify …… 用于按来源排障与配额
+      - { name: source, type: String, required: true, label: 来源 }
+      # queued | sent | failed | dropped
+      - { name: status, type: String, required: true, label: 状态 }
+      - { name: driver, type: String, required: true, label: 通道 }
+      # 正文随记录一起存：不存就没法重试——重试任务醒来时调用方早已返回，
+      # 拿不回当初那封信。顺带也让「到底发出去的是什么」可查
+      - { name: html, type: String, required: true }
+      - { name: text, type: String, required: true }
+      - { name: headers, type: Json, required: false }
+      - { name: provider_message_id, type: String, required: false }
+      # 幂等键：同一 key 只投一次。摘要任务重跑、进程重启、重试都靠它防重发
+      - { name: idempotency_key, type: String, required: true }
+      - { name: attempt_count, type: String, required: true, default: "0" }
+      - { name: last_error, type: String, required: false, label: 最近错误 }
+      - { name: next_attempt_at, type: DateTime, required: false }
+      - { name: sent_at, type: DateTime, required: false, label: 送达时间 }
+    indexes:
+      # 幂等键在租户内唯一（实现时落成 @@unique，不是普通索引）
+      - [tenant_id, idempotency_key]
+      - [tenant_id, status, next_attempt_at]
+      - [tenant_id, created_at]
+
+# ---------- 必填 · API ----------
+api:
+  prefix: /api/mailer
+  # 投递记录只读 + 手动重试；创建投递不开放 HTTP 口（只能由服务端调 MailProvider）
+  operations: [list, detail]
+  list:
+    search_fields: [to_email, subject]
+    sort_whitelist: [created_at, sent_at, status, source]
+    default_sort: { by: created_at, dir: desc }
+
+# ---------- 必填 · 前端 ----------
+client:
+  mount: renderRoutes
+  route_path: /app/mailer
+  nav:
+    section: 系统管理
+    label: 邮件发送
+    title: 邮件发送
+    icon: Send
+  page:
+    layout: list-filter-table
+    form_fields: []
+
+# ---------- 可选 ----------
+audit:
+  actions:
+    - { action: MAILER_CONFIG_UPDATE, label: 更新发信配置 }
+    - { action: MAILER_TEST_SEND, label: 发送测试邮件 }
+    - { action: MAILER_DELIVERY_RETRY, label: 重试失败投递 }
+options:
+  soft_delete: false
+  page_size: 20
+  mobile_tab: false
+
+# ---------- 手写面（gen-module 不生成，实现时补）----------
+extra_routes:
+  - { method: GET, path: /api/mailer/config, note: 回 status 形状，绝不回密钥明文 }
+  - { method: PUT, path: /api/mailer/config, note: 写 TenantSetting（加密），留审计 }
+  - { method: POST, path: /api/mailer/test, note: 往当前登录用户邮箱发一封测试信 }
+  - {
+      method: POST,
+      path: "/api/mailer/deliveries/:deliveryId/retry",
+      note: 手动重试，复用同一幂等键,
+    }
+provider_contract:
+  # 契约加在 kernel 的 provider-contracts.ts + ProviderRegistry，与 PublicConfigProvider 同级。
+  # kernel 只认这个接口，不认识 mailer 包本身。
+  name: MailProvider
+  file: packages/server-kernel/src/runtime/provider-contracts.ts
+  shape: |
+    send(input: {
+      tenant_id: string;
+      to: string;
+      subject: string;
+      html: string;
+      text: string;
+      source: string;            // 调用方标识，进 MailDelivery.source
+      idempotency_key: string;   // 调用方负责稳定；重复调用只投一次
+      headers?: Record<string, string>;  // List-Unsubscribe 等
+    }): Promise<{ delivery_id: string; status: "queued" | "sent" }>;
+    isConfigured(tenant_id: string): Promise<boolean>;
+drivers:
+  - {
+      id: smtp,
+      note: nodemailer；任何服务商与自建都能接，先做这个,
+    }
+  - {
+      id: log,
+      note: 邮件全文进日志/落盘；开发环境的零配置默认，NODE_ENV=production 下禁用,
+    }
+jobs:
+  - {
+      id: mailer-retry,
+      note: 扫 status=queued/failed 且 next_attempt_at 到期的行，指数退避重试,
+    }
+
+# ---------- 设计要点（实现时按此，偏离先改本 spec）----------
+# 1. **配置解析照抄 `resolveLlmConfig`**（packages/server-kernel/src/lib/tenant-llm.ts）：
+#    本站覆盖 > 平台 env（MAIL_*）；密钥用 tenant-secret-crypto 加密进 TenantSetting；
+#    任何接口都不把密钥回给浏览器，设置页只读 status（含 maskApiKeyHint 那样的掩码）。
+#    这条已经有现成实现可抄，不要另发明一套。
+# 2. **没有「免费兜底通道」这种东西。** 所谓免费额度（Resend / Brevo）仍然要平台管理员
+#    去注册、拿 key、验域名，它是「平台级默认」不是「免配置默认」。真正零配置能跑的
+#    只有 `log` driver，那是给开发环境的。从服务器裸连收件方 MX 直投**不做**：
+#    云厂商基本封 25 端口，没有 SPF/DKIM 的信一律进垃圾箱，等于白发。
+# 3. **失败时不切通道。** 换 provider 就是换发信域和 IP，收件方当可疑源处理，伤送达率；
+#    而且主通道超时不代表没发出去，立刻用备用通道重发同一封，读者收两遍。
+#    降级链是：租户配置 → 平台 env → 无（诚实失败）；失败处理是
+#    **同一 provider 指数退避重试 + 幂等键**，连续失败告警走 error-log。
+#    备用 driver 作为显式配置项存在，且只在**连接级**失败（连不上 / 认证失败）时启用，
+#    「被收件方拒收」不触发降级——那是内容或声誉问题，换家发只会把第二个域也烧掉。
+# 4. **没配置就是没能力，不要假装能发。** isConfigured() 为 false 时 send() 直接抛，
+#    不写 queued 行（不然队列里堆一堆永远发不出去的信）。上层（newsletter）据此
+#    把订阅入口收起来。entitlement 关掉同理：getMailProvider() 对该租户返回 null。
+# 5. **投递记录不写审计日志**：一次发信是一条业务记录，往审计流里再抄一份只会把
+#    「谁动了后台」冲淡。与 site-form 提交同口径。配置变更、测试发信、手动重试**要**留痕。
+# 6. **配置 status 必须同时回「本站覆盖值」与「生效值」**（`resolved_*`）。
+#    只回生效值的话设置页分不清「这项是我改的」还是「继承来的」，预填后一保存
+#    就把平台默认原样固化成本站覆盖，之后平台改配置这个站再也跟不上。
+#    与 `TenantLlmStatus` 的 `model` / `resolved_model` 同一套。
+# 7. 收件人地址属于个人数据：列表页默认掩码显示，`mailer.read` 才看得到全址；
+#    保留期跟随 error-log 的口径定期清理（先不做，记在 out_of_scope）。
+out_of_scope:
+  # 主通道连接级失败时切到第二套凭据。留到有真实需求再做：它要再来一整套
+  # host/port/user/password 配置面，而真正防丢信的是幂等键 + 退避重试（已实现）。
+  # 换发信域本身就伤送达率，不该是默认行为。
+  - 备用 driver（显式配置的第二通道）
+  - 退信 / 投诉 webhook 回调（要按 driver 各写一套，等真有送达率问题再上）
+  - 邮件模板编辑器（模板先写死在调用方模块里）
+  - 平台侧全局发信总览与配额（先只做租户面）
+  - 投递记录保留期清理

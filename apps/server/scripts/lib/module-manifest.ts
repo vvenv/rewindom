@@ -59,6 +59,11 @@ export const SERVER_MODULE_MANIFEST = [
     requires: ["rbac", "audit", "background-job"],
   },
   {
+    id: "mailer",
+    kind: "infrastructure",
+    requires: ["rbac", "audit", "platform"],
+  },
+  {
     id: "marketing",
     kind: "infrastructure",
     // platform：官网 logo 默认继承租户品牌资产（未上传时才回落到手填 URL）

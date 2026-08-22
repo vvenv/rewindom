@@ -40,6 +40,7 @@ type ModelPolicy =
   | { kind: "global"; reason: string };
 
 const MODEL_POLICIES: Record<string, ModelPolicy> = {
+  MailDelivery: { kind: "tenant_id" },
   EventFeed: { kind: "tenant_id" },
   EventSignal: { kind: "tenant_id" },
   NewsEvent: { kind: "tenant_id" },
